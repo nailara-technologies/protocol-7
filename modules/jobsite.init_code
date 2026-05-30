@@ -84,8 +84,9 @@ if ( glob("$jobs_root/*.yaml") ) {
 
 <[jobsite.state.load]>;
 
-## build in-memory id->status index ##
+## rebuild job index and in-memory task map from filesystem ##
 <[jobsite.job.index.build]>;
+<[jobsite.job.load_all]>;
 
 ## load checksum-based dedup / blacklist index ##
 <[jobsite.checksum.index]>->(qw| load |);
@@ -160,8 +161,8 @@ my $job_count = scalar keys %{$tasks};
     <jobsite.cycle>, $job_count
 );
 
-#,,,,,..,,,.,,...,,,.,,,.,,..,,..,.,,,,,,,.,,,..,,...,...,..,,..,,...,,,,,,..,
-#BZAWVYGT4LU2GFXZO7UJDTW6N2PDAML2KWLDWDJQEYACQEXTU426CPYAB3WHDIKUHC33EQPQF24R4
-#\\\|V2NUGT6ZDML3EOG5HJWENXVNW6FY2MWCV43GDC6RRST2LRXYRTV \ / AMOS7 \ YOURUM ::
-#\[7]7SYDCOAYXDTFPOZHQRE62WWM6E4PAWFM6EVJX4JDXA44SSFCN6BI 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,.,.,..,,...,.,,,...,,..,..,,,.,,..,,...,...,,..,,..,,,,,,,,,..,,
+#N374YQKEIGGYRC5XBVESYJWQT3DVK3ISSWU4RBGMEGYNWZSYSNSUATFHWT7PNVZHF5MKSB34B7ZQM
+#\\\|7CGS7OQDVC6A2SQH6J37HGQYDV42BODSM4JSLTGQ624HUVPXI6N \ / AMOS7 \ YOURUM ::
+#\[7]RHGN6AGAUCMVZUU74UENLLB5PK3NQFCQBTOWXXO76CXJLUO7ISAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

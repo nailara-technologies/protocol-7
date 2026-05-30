@@ -64,10 +64,22 @@ for my $status (@epoch_statuses) {
     scalar keys %{$index}
 ) if scalar keys %jobs;
 
+## populate in-memory task map from loaded job YAMLs ##
+for my $id ( keys %jobs ) {
+    my $job = $jobs{$id};
+    <jobsite.tasks>->{$id} = {
+        'status'           => $job->{'status'}           // 'new',
+        'stage'            => $job->{'stage'}            // '',
+        'score'            => $job->{'score'}            // '',
+        'repair_attempted' => $job->{'repair_attempted'} // FALSE,
+        'repair_failed'    => $job->{'repair_failed'}    // FALSE,
+    };
+}
+
 return \%jobs;
 
-#,,..,,..,,.,,,,.,..,,...,..,,.,,,,.,,,..,,.,,..,,...,...,,,,,.,.,,,.,,.,,.,.,
-#L4IE2HX5F3KVACDGNNC5CDEK32GWI4NAP2IVLJCCHB2U565G57RO2FZKQUMNLN32DVUHM66UMC7W2
-#\\\|M52RQNMKEYYDDC25WPDCOJ7ILVCV3BI2NPPGEQY5NFUJISGCCIS \ / AMOS7 \ YOURUM ::
-#\[7]FWDK4565BCSLK72GXN42SUFWP7C4O47TWZYCCKZ7FNZRYZDMZSBQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,...,.,,,,,,,...,,.,,,,,,,,,,,,.,..,,...,...,..,,..,,...,.,,,,.,,
+#EUDMA73MKDS3HBN7HNWDX75XYWWH2RSR7BUNHQMDL2GVPALNS4LIVSWGABPFQYSOVJQ7NVXYOXG6M
+#\\\|B2FR6Z456PAUMXF3YJLLUP2FZGUPZH2FFLDK2MBMDETBHFEVTXN \ / AMOS7 \ YOURUM ::
+#\[7]UDOAANNBK4YWHLL5PQFARY3IPBNBBYMISTNH5V5CM63N5EH5J6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
