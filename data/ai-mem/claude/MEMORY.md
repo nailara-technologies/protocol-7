@@ -10,7 +10,8 @@
 - Leave new files clean; `bin/Protocol-7 sourcecode update-signatures` adds real 4-line footer
 
 ## Recent Sessions
-- [session-64](session-64.md) — encoding Mojibake ROOT CAUSE: utf8 flag on $body from route path; fix: utf8::downgrade before decode_json; all 3 fixes ready to commit (stage, %data key, encoding)
+- [session-65](session-65.md) — data recovery: Mojibake fix committed; 312 garbage files deleted; backup restored; 127 files chmod 644; 294 repair_failed jobs reset; scan running
+- [session-64](session-64.md) — encoding Mojibake ROOT CAUSE: utf8 flag on $body from route path; fix: utf8::decode in httpd.route.handler.web-relay; all 3 fixes committed (stage, %data key, encoding)
 - [session-63](session-63.md) — STRM had_local_consumer fix WORKING; review tab stage sync bug FIXED (stage added to @pipeline_fields); web cache %data flat dotted key; encoding Mojibake source unclear
 - [session-62](session-62.md) — httpd web-relay STRM refactor: SIZE→STRM, bytes::length fix, flush_shutdown wrong (route closes), phantom !TERM! from cancel_route
 - [session-61](session-61.md) — umlaut conditional utf8 encode, model_output buffer gap for no_tools tasks
@@ -166,8 +167,8 @@
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 - **coding zenka**: fully operational; 9B model loads in seconds (new ik_llama.cpp); no urgent issues
 
-#,,..,,,,,...,,..,,..,,..,,,,,...,,..,,..,,..,..,,...,...,,,.,.,,,...,,,.,,.,,
-#YLUKHD2INB5WOXKOXGOV4VTIT4AMFHMVUTHA2DRF2SNWSACNAWPK7TAH72LRH5R3DUBDJP2XGMMBY
-#\\\|Z5LC4YOKUD3KC5NT4D6RBUIPBLXHCRMDCHRROYVW7DWVNAWQ2MU \ / AMOS7 \ YOURUM ::
-#\[7]IYOFC3XZKOZVXDRMCCUXND2AXDP4LJAGSE332AS3N7N3BKMNTQAI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,,,,..,,.,.,,.,,,..,,,,,,,.,,..,..,,...,...,...,..,,,,,,,,,,,,.,
+#JKCLPPFTG4CQRTSIAFEFRNC3V3UC55HAYK6RBZU6VU2FG6P5JX36IUGQIIE3IPC6FU5MJKCKPBN66
+#\\\|ANEUJ3OACW6TT2KFHYG456FMJYT7WUDWU6VHEXHMVTGH3F3PBTG \ / AMOS7 \ YOURUM ::
+#\[7]VQZ7OD5V24FCH7YFKOFSEHXVY4FQFTGHDREOHDKM4RPQO4SDNKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
