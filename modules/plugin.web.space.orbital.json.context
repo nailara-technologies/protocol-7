@@ -30,45 +30,6 @@ foreach my $n (@$known_all) {
     }
 }
 
-## helper: build synthetic orbital node from zenka identity ##
-sub _synthetic_zenka_node {
-    my ( $ctx, $name ) = @_;
-
-    ## deterministic hash from context + name ##
-    my $hash_input = sprintf( 'zenka:%s:%s', $ctx, $name );
-    my $hash_hex   = eval {
-        <[base.perlmod.autoload]>->('Digest::SHA');
-        Digest::SHA::sha256_hex($hash_input);
-    } // do {
-        my $sum = 0;
-        $sum = ( $sum * 31 + ord($_) ) & 0xFFFFFFFF for split //, $hash_input;
-        sprintf( '%08X%08X', $sum, $sum ^ 0xAAAAAAAA );
-    };
-    my @bytes = map { hex($_) } unpack( '(a2)*', substr( $hash_hex, 0, 8 ) );
-
-    ## encode first 4 bytes as base32r addr ##
-    <[base.perlmod.autoload]>->('Crypt::Misc');
-    my $packed = pack( 'C4',
-        $bytes[0] // 0,
-        $bytes[1] // 0,
-        $bytes[2] // 0,
-        $bytes[3] // 0 );
-    my $addr_b32 = Crypt::Misc::encode_b32r($packed);
-    $addr_b32 =~ s|=+$||;
-    $addr_b32 =~ tr|a-z|A-Z|;
-    $addr_b32 = substr( $addr_b32, 0, 16 );
-
-    return {
-        qw| p7ref    | => sprintf( 'NODE:%s:%s', $name, $addr_b32 ),
-        qw| hostname | => $name,
-        qw| theta    | => ( ( $bytes[0] // 0 ) / 255 ) * 360,
-        qw| phi      | => ( ( $bytes[1] // 0 ) / 255 ) * 360,
-        qw| psi      | => ( ( $bytes[2] // 0 ) / 255 ) * 360,
-        qw| omega    | => ( ( $bytes[3] // 0 ) / 255 ) * 360,
-        qw| age      | => 0,
-    };
-}
-
 ## level 1: try to build zenki list from local running registry ##
 my @sub_known;
 
@@ -104,7 +65,10 @@ if ( ref $zenki_running eq qw| HASH | ) {
 
     if (@zenki_names) {
         foreach my $z_name ( sort @zenki_names ) {
-            push @sub_known, _synthetic_zenka_node( $context_p7ref, $z_name );
+            push @sub_known,
+                <[plugin.web.space.orbital.synthetic-zenka-node]>->(
+                $context_p7ref, $z_name
+                );
         }
     }
 }
@@ -143,8 +107,8 @@ my $payload = {
 
 return eval { JSON::XS::encode_json($payload) } // '{}';
 
-#,,,,,,.,,...,,,.,,..,...,.,.,,.,,,,,,..,,.,.,..,,...,...,,.,,,,,,,..,..,,..,,
-#CWORUH2KWWFUNCF7TRFL52MJOQBS3Q4R64ADTHPRIIV2EITP5LK4NQT5Y5XVRYIHM6HJK6U6B3PZW
-#\\\|CPEGZDIL4Z3MDMJQQH6BZXZJM3R224S3LHEWRMG4UAMRJOWA262 \ / AMOS7 \ YOURUM ::
-#\[7]YAYJYCLVXO52WMD6LQ3YLYGWLDWO2BB76X7BINICJ4VOK4JX32BA 7  DATA SIGNATURE ::
+#,,,.,,,.,...,.,,,,,.,...,..,,,,.,..,,.,.,,..,..,,...,...,.,,,.,,,,..,,..,.,,,
+#PIE56MSSG2WN6ZZBLLQIVTMRQKIJADKAGNRUIXTFKY73F3QD7NJTQCCFF53NRIXVCPUHBC4TL5KK6
+#\\\|NKRZGDTDBYAGCASAIBOFDSF3LUAR3ZN6K6RPNDD6X7D7TCF3CK3 \ / AMOS7 \ YOURUM ::
+#\[7]4QCQTT5F3K4X6L34X5FHDQRF4ZVBJAGNZZYWVT3XT5ETQDKEJEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
