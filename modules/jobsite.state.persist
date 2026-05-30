@@ -3,21 +3,22 @@
 # name  = jobsite.state.persist
 # descr = save scan state to disk, ensure index exists
 
-my $payload = {
+my $state = {
     'cycle'           => <jobsite.cycle>                  // 'idle',
     'last_scan'       => <jobsite.last_scan>              // 0,
-    'tasks'           => <jobsite.tasks>                  // {},
+    'pending_count'   => <jobsite.pending_count>          // 0,
     'sync_last_ntime' => <jobsite.sync.last_server_ntime> // '',
 };
 
 my $yaml;
-eval { $yaml = YAML::XS::Dump($payload) };
+eval { $yaml = YAML::XS::Dump($state) };
 if ($@) {
     <[base.logs]>->( 0, 'jss.persist: serialize error: %s', $@ );
     return FALSE;
 }
 
-my $written = <[file.zenka_dir.write]>->( 'scan-state.yaml', \$yaml );
+my $written
+    = <[file.zenka_dir.write]>->( 'scan-state.yaml', \$yaml, '>', 0640 );
 if ( not defined $written ) {
     <[base.logs]>->( 0, 'jss.persist: write failed' );
     return FALSE;
@@ -31,8 +32,8 @@ if ( not -f $index_file ) {
 
 return TRUE;
 
-#,,..,,,,,..,,..,,..,,.,,,.,,,..,,...,,.,,.,,,..,,...,...,,.,,.,.,.,,,..,,.,,,
-#T5E25J4U5HTZ6UH25QYKBUVDAURMO2KWNNUUPWAWB65KNB2GYLPGUZGNKGNUQTMZDQNPN5JDMIT62
-#\\\|KSY6WI4OC54I2NF27KQSGXTHGGNNPW2GSYRRLINJIP7O5NGU6CC \ / AMOS7 \ YOURUM ::
-#\[7]IJ7HCETMQM73XGID7Q2F4PF47I6FXEXB5CRN6U56HXCTAINA32BI 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,..,...,..,,.,,,,,,,,..,.,.,,,.,..,,...,...,..,,.,.,.,,,,.,,...,
+#I4R5M54T7ZM65HEJIPFICTYGCA7OZ7URK7HPBM6P7M4UAKQEGYENGO3AWHDGGATWJDDKMLXFC3DPG
+#\\\|FP7ZFZJBPIXDL34ZT36DISONABMGZ2CDUF34MRDZRY2RTTNO5OX \ / AMOS7 \ YOURUM ::
+#\[7]XJJIFRAKZTGQAGJC3CPWGLINI6Q6N5JSQU7WDGKHOD4VCS2I2MBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
