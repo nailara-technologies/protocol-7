@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = jobsite.util.fix_encoding.mojibake-table
+# descr = build mojibake replacement table for a given encoding
+
+my $enc   = shift;
+my %table = ();
+for my $byte ( 0x80 .. 0xFF ) {
+    my $uni
+        = eval { Encode::decode( $enc, chr($byte), Encode::FB_CROAK ) };
+    next unless defined $uni and not $@;
+    my $utf8_bytes = Encode::encode( 'UTF-8', $uni );
+    my $as_latin1  = eval {
+        Encode::decode( 'ISO-8859-1', $utf8_bytes, Encode::FB_CROAK );
+    };
+    next unless defined $as_latin1 and not $@;
+    $table{$as_latin1} = $uni if $as_latin1 ne $uni;
+}
+return \%table;
+
+#,,,.,.,,,,,.,,.,,.,.,,..,.,,,...,,..,.,.,,,.,..,,...,...,.,.,.,.,,.,,.,.,.,,,
+#NSONB7B5DFF3XG4KHMZOJXI3JEE3ZCZWHMPBD2DXBOFQMV4YFUR25ZDKUTV6IXI52CJA7DWJFSKJI
+#\\\|AKGRVOD74MCSHDBUSLSU76SQ4FDQDGHYMPO5VN2ES6TSVSKGLE3 \ / AMOS7 \ YOURUM ::
+#\[7]OTW76P4Q5LVOFRXS7P33KMB6YVOUASONIVUYCY2UEZ5Z4NH5RMAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

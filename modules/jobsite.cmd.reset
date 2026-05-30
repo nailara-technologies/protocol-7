@@ -43,7 +43,25 @@ if ( defined $params{'job_id'} ) {
     push @candidates, map { uc $ARG }
         grep { length $ARG } split /[,\s]+/, $params{'job_id'};
 } else {
-    @candidates = keys %{$tasks};
+    my %seen = map { $ARG => 1 } keys %{$tasks};
+    ## also scan job files for statuses not tracked in-memory (e.g. blocked) ##
+    if ( defined $params{'status'} ) {
+        my $status_pat = quotemeta( $params{'status'} );
+        if ( opendir my $dh, $jobs_dir ) {
+            for my $fn ( readdir $dh ) {
+                next unless $fn =~ m{^(\d+)\.yaml$};
+                my $jid = $1;
+                next if $seen{$jid};
+                my $job_file = "$jobs_dir/$jid.yaml";
+                open my $fh, '<', $job_file or next;
+                my $found = grep {m{^status:\s*$status_pat\s*$}} <$fh>;
+                close $fh;
+                push @candidates, $jid if $found;
+            }
+            closedir $dh;
+        }
+    }
+    push @candidates, keys %{$tasks};
 }
 
 ## encoding_broken: use cfg_bool so yes/true/1/5 all work ##
@@ -56,10 +74,21 @@ my ( $n_reset, $n_protected ) = ( 0, 0 );
 
 for my $job_id (@candidates) {
     my $rec = $tasks->{$job_id};
-    next unless defined $rec;
+
+    ## for jobs not in-memory (e.g. blocked), read status from file for filters ##
+    my $rec_status = defined $rec ? ( $rec->{'status'} // '' ) : do {
+        my $job_file = "$jobs_dir/$job_id.yaml";
+        my $st       = '';
+        if ( open my $fh, '<', $job_file ) {
+            ($st) = map { /^status:\s*(\S+)/ ? $1 : () } <$fh>;
+            close $fh;
+        }
+        $st;
+    };
+    my $rec_stage = defined $rec ? ( $rec->{'stage'} // '' ) : '';
 
     ## always skip protected stages ##
-    if ( $protected{ $rec->{'stage'} // '' } ) {
+    if ( $protected{$rec_stage} ) {
         $n_protected++;
         next;
     }
@@ -67,12 +96,12 @@ for my $job_id (@candidates) {
     ## status filter ##
     next
         if defined $params{'status'}
-        and ( $rec->{'status'} // '' ) ne $params{'status'};
+        and $rec_status ne $params{'status'};
 
     ## stage filter ##
     next
         if defined $params{'stage'}
-        and ( $rec->{'stage'} // '' ) ne $params{'stage'};
+        and $rec_stage ne $params{'stage'};
 
     ## encoding_broken filter : scan raw file bytes for double-encoded marker ##
     if ( defined $check_encoding ) {
@@ -88,9 +117,11 @@ for my $job_id (@candidates) {
         next if not $check_encoding and $broken;
     }
 
-    ## reset in-memory record ##
-    delete $rec->{$ARG} for @clear_fields;
-    $rec->{'status'} = 'new';
+    ## reset in-memory record if present ##
+    if ( defined $rec ) {
+        delete $rec->{$ARG} for @clear_fields;
+        $rec->{'status'} = 'new';
+    }
 
     ## reset per-job file ##
     my $job = <[jobsite.job.read]>->($job_id) // {};
@@ -115,8 +146,8 @@ return {
     $n_protected ? " ($n_protected protected skipped)" : ''
 };
 
-#,,,,,,..,,,,,.,.,,..,,,.,...,,.,,,.,,,,,,.,,,..,,...,...,..,,.,.,.,,,.,.,,..,
-#RZY7LRDN7JBAIOMK6CAVHONJPIWBKQLI5FHBTOEJ4PN7HON5DLIT4PJQRFQMUGHA4NFCLLEBTA2HM
-#\\\|77JLW332O5KSVVG6NJZPN6CNZVZQQ4PVIEW6XQYDTUKDS7JGWLH \ / AMOS7 \ YOURUM ::
-#\[7]IO5ERYQ7XHI75DFOJ3S3VABWECDSCIRYW7PYCTPEVVL62QDY2GAY 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,,.,,,,,,,,.,,..,,.,,.,.,,..,.,.,..,,...,...,...,..,,,,.,,,,,,,.,
+#CZXB6EY2XMTYETAC2KQGDSU6VADF6GYED7FG4VIT5WB52VFVSTKT7KQGAI2UKYHLUOARE7NKBFGMQ
+#\\\|FDDQCSUQJ2VPHGFNQ7KWNI3JRUU4242VTAAFIUYWJOY4F6643EO \ / AMOS7 \ YOURUM ::
+#\[7]U34PXXIWFRCC5Q2KOWV2TRPNUOP2ONKH4XB6DQIDSW6TQSXPWGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

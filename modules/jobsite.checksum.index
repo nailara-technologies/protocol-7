@@ -76,22 +76,14 @@ if ( $action eq qw| add | ) {
     my $job   = shift // {};
     my $ntime = shift // <[base.ntime.b32]>;
 
-    my $company = $job->{'company'} // '';
-    my $title   = $job->{'title'}   // '';
-    my $url     = $job->{'url'}     // '';
+    my $title = $job->{'title'} // '';
+    my $url   = $job->{'url'}   // '';
 
-    utf8::encode($company) if utf8::is_utf8($company);
-    utf8::encode($title)   if utf8::is_utf8($title);
-    utf8::encode($url)     if utf8::is_utf8($url);
+    utf8::encode($title) if utf8::is_utf8($title);
+    utf8::encode($url)   if utf8::is_utf8($url);
 
-    $idx->{'companies'} //= {};
-    $idx->{'titles'}    //= {};
-    $idx->{'urls'}      //= {};
-
-    if ( length $company ) {
-        my $c_sum = <[chk-sum.amos]>->($company);
-        $idx->{'companies'}{$c_sum} = $ntime if length $c_sum;
-    }
+    $idx->{'titles'} //= {};
+    $idx->{'urls'}   //= {};
 
     if ( length $title ) {
         my $t_sum = <[chk-sum.bmw.str-b32.L13]>->($title);
@@ -133,8 +125,8 @@ if ( $action eq qw| stats | ) {
 
 return { 'mode' => qw| false |, 'data' => "unknown action: $action" };
 
-#,,,.,,..,..,,,.,,...,...,.,,,.,.,.,,,,,.,,..,..,,...,...,,..,,..,..,,...,,..,
-#AA5BS6FNLP36HMIBI43Y6DB2UUI47N43HZ72INBKLHPNJVEAVF6G2QHMVLLLHP3JBMC6OKI5BPKIK
-#\\\|OUL4XFMQZHDVWKIX53RY3YJAVMJBWPPVTTXS3HF64DS2LE2IAXQ \ / AMOS7 \ YOURUM ::
-#\[7]DR2DLHHHF4W7AYDVUQJWLRWXO72O6BQDKEITU53AQQUDNMEUPECA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,..,,.,.,,..,,..,.,.,,,.,,,,,,,.,..,,...,...,,,,,,..,...,,..,,..,
+#RN2UZS2CCYSRDQMFRLIGHDVM3VNTAUCZ6LLCSZ4LPYBA5NS2WWRSFUWD6BXGVW7FUZJ2V3D54ZRFI
+#\\\|ZSMJIWFQICDB7ZHXSHXZMZK6CK3IKRRKCRS3B2GY5YE4V5JUMST \ / AMOS7 \ YOURUM ::
+#\[7]CM7ZJO2ATOLLHZLMIPRBOFRCR6KPCEFJPZXOFMK7HPZ4AQVVFACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
