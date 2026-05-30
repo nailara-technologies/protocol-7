@@ -30,11 +30,16 @@ scanned/assessed jobs automatically appear in next incremental sync.
 **Working**: GET /jobs.json and POST /jobs-sync fully operational via web zenka.
 Verified with curl. Cache at var_P7/web/jobs/ (web zenka owns it, not httpd).
 
-## Route flow
+## Route flow (session 63 — STRM migration WORKING ✓)
 
 httpd route registry → httpd.route.handler.web-relay → route-send to web zenka
-→ web.cmd.jobs-data / web.cmd.jobs-sync → plugin.web.jobs.data/sync → SIZE reply
-→ httpd.handler.web-relay.response → flush_shutdown → client
+→ web.cmd.jobs-data / web.cmd.jobs-sync → plugin.web.jobs.data/sync → STRM reply
+→ httpd.handler.web-relay.strm_open (new) → HTTP client
+
+SIZE reply path (old): → httpd.handler.web-relay.response → flush_shutdown → client
+STRM path working (session 63). cosmetic: cube logs "STRM-reply to unknown route"
+after each stream (web zenka TRUE reply after STRM close hits dead route). harmless.
+fix: skip fall-through TRUE reply in base.handler.command STRM send path.
 
 Key fix: reply handler reads params from `$reply->{'params'}` not second shift arg.
 `shift // {}` was silently masking missing http_sid causing early return with no response.
@@ -123,10 +128,8 @@ Link-upgrade can later promote the HTTP push to a native P7 connection.
 - Deploy jobs.vhost to remote server (DNS + letsencr cert install)
 - When jobsite distributes: web zenka push/cache model
 
-#,,.,,,.,,..,,...,,,.,,..,,,,,.,,...,,.,,.,.,..,,...,..,,...,,...,,,.,,,,,.,,,,
-
-#,,,.,...,..,,,..,..,,...,.,.,,.,,.,.,,..,...,..,,...,..,,.,.,,.,,,,,,,.,,,.,,
-#GQHTNXHO2Q2J3ZTK7ZW2YGMJUXNAV4FLL3CVJ3ZWTNFTQ4J2J7B2MZPJZBY4IUUHKPACGQOFGOAWO
-#\\\|GLPG4DNFFKRGAJFDILAVYH4MB2RTRPCYETCBDHJG7O5E5F2HMJC \ / AMOS7 \ YOURUM ::
-#\[7]IE3KDH77YJ4RTTSYZ5YPW7OVEZ4VIQXHPB6VKEOZIJYPAXZFRQBY 7  DATA SIGNATURE ::
+#,,..,,,.,...,,,.,..,,,..,...,...,,,.,...,,,,,..,,...,...,..,,.,.,,..,.,,,..,,
+#5KJMA62UZX6EXBLURS6VF6R6ONSVF4UUTHVHVMYBTP2O4STLQG6RBU2N3GNGGYJOZZJD4TXGL2CHC
+#\\\|PP2XMWBUE5IPYDAWWWTMGKHEL6GIGQNA3PQY6VTX72USFMOTZLZ \ / AMOS7 \ YOURUM ::
+#\[7]TMI6VL6RRGJPG3PDZ2AJZ2YVL3IMAP4LEWIRM77RL2MX3BK3CKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

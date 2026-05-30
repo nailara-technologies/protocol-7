@@ -13,27 +13,41 @@ my @ids = sort {
 
 my @array;
 for my $job_id (@ids) {
-    push @array, { %{ $jobs->{$job_id} }, 'id' => $job_id };
+    my $j = { %{ $jobs->{$job_id} }, 'id' => $job_id };
+    ## ui expects reason/summary as short aliases ##
+    $j->{'reason'} = delete $j->{'score_reason'}
+        if exists $j->{'score_reason'};
+    $j->{'summary'} = delete $j->{'score_summary'}
+        if exists $j->{'score_summary'};
+    push @array, $j;
 }
 
 my $json = eval { JSON::XS::encode_json( \@array ) };
 if ($@) {
-    <[base.logs]>->( 0, 'web.jobs.data: json error: %s', $@ );
+    <[base.logs]>->(
+        0, 'web.jobs.data: json error: %s',
+        <[base.str.eval_error]>
+    );
     return {
-        'mode'         => 'size',
-        'data'         => '[]',
-        'content_type' => 'application/json'
+        'mode'         => qw| strm |,
+        'data'         => qw| [] |,
+        'content_type' => qw| application/json |
     };
 }
 
+<[base.logs]>->(
+    2, '[web.jobs.data] returning %d bytes [ mode=strm ]',
+    bytes::length($json)
+);
+
 return {
-    'mode'         => 'size',
+    'mode'         => qw| strm |,
     'data'         => $json,
-    'content_type' => 'application/json'
+    'content_type' => qw| application/json |
 };
 
-#,,.,,.,,,,..,,,,,...,,,,,,..,,.,,.,,,,..,.,,,..,,...,...,.,.,,.,,,,.,,,,,,,.,
-#L27FA7UUN5SSSPFCNSYIPCXQLCGKXSSYJ7GB4B4C7JHDAMJO6MGNRJRNTLCBYNS55DMSM6WKZM26I
-#\\\|M6QOF2KAWBWGKB2EZANZKZ4W4D6M64KXDK23CIWIGL6HVL7W2LZ \ / AMOS7 \ YOURUM ::
-#\[7]DTSRL5VWAJLB5FM436YYNHKL4OCYIKZPZNZJSMVC5C5QSHRRNABI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,..,,...,...,..,,.,,,.,,,,.,,,..,..,,...,...,,.,,,,,,,,.,.,.,.,,,
+#C5SLQMJYDLYVFGE3SFCVRACCW7DAIZCCRO7WU4I4EIFGJNLS5XQSQPVWHLLM5A26VO7SACTK6QQCA
+#\\\|J2ZHL2NYYJ5RDPRC4TUMGZUTLJFBS7JPHNCR2P5QMPHLZHG7QND \ / AMOS7 \ YOURUM ::
+#\[7]UURP2EBNCQWT7TLP5L3HC5I3VAWDKY3Q5JOACPLZ3NY4AOYJXEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

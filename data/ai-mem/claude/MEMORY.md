@@ -3,12 +3,16 @@
 ## CRITICAL — load when writing code
 - [Critical Patterns](critical-patterns.md) — P7 module patterns, CRITICAL syntax, API rules; load this first for any code work
 - [Deferred Init Pattern](feedback-deferred-init.md) — push onto system.callbacks.initialized, NOT event.add_var, to defer post-verification work
+- [Timer Module Args](feedback-timer-module-args.md) — timer-called modules get event object as $ARG[0]; use `@ARG > 1` not `@_ ? shift` for extra params
 
 ## File Creation (CRITICAL)
 - **Never add** the `#,,.,,,...` stub at end of new files — blocks signing system
 - Leave new files clean; `bin/Protocol-7 sourcecode update-signatures` adds real 4-line footer
 
 ## Recent Sessions
+- [session-64](session-64.md) — encoding Mojibake ROOT CAUSE: utf8 flag on $body from route path; fix: utf8::downgrade before decode_json; all 3 fixes ready to commit (stage, %data key, encoding)
+- [session-63](session-63.md) — STRM had_local_consumer fix WORKING; review tab stage sync bug FIXED (stage added to @pipeline_fields); web cache %data flat dotted key; encoding Mojibake source unclear
+- [session-62](session-62.md) — httpd web-relay STRM refactor: SIZE→STRM, bytes::length fix, flush_shutdown wrong (route closes), phantom !TERM! from cancel_route
 - [session-61](session-61.md) — umlaut conditional utf8 encode, model_output buffer gap for no_tools tasks
 - [session-60](session-60.md) — jobsite pipeline: YAML parsing, B32 newline transport, model→9B, state_machine no_tools fix
 - [session-59](session-59.md) — tool calls verified working, session-58 committed [cfc07a3f7]
@@ -66,6 +70,7 @@
 - [kimi-zenka-state-machine](topic-kimi-zenka-state-machine.md) — improvements ongoing; backend reconnect behavior still open; see `needs-testing/kimi-zenka-multiplexer.md` + `needs-testing/kimi-web-session-cache-access.md`
 - [chat-script](topic-chat-script.md) — bin/chat COMPLETE (session 23); open: kimi state machine, coding zenka dispatch, phase 2 channels zenka
 - [stream-transport-layer](topic-stream-transport-layer.md) — STRM stack complete; open: formal open-0 sentinel, transport.register, webcam/log-tail
+- [stream-reply-modes](topic-stream-reply-modes.md) — 4 reply modes: bounded scalar (done), unbounded live (done), scalar-ref (planned), filehandle (planned); design constraints for scalar-ref optimization
 - [radio-relay-zenka](topic-radio-relay-zenka.md) — radio COMPLETE; phase 5 (buffer-fill curve) next
 - [vhost-install](topic-vhost-install.md) — space.v7.ax live; open items remain
 - [cursor-model](topic-cursor-model.md) — true cursor from hyperspace plane density; next: remove wireframe cube, queue glow task
@@ -161,8 +166,8 @@
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 - **coding zenka**: fully operational; 9B model loads in seconds (new ik_llama.cpp); no urgent issues
 
-#,,,,,,..,.,,,,..,,,.,,,,,,..,.,,,,.,,...,.,.,..,,...,.,.,...,..,,.,.,.,.,.,,,
-#565PFRZPC77AH7HVOIDRNLVNN5BNJCHCHSSX653HHVXVJJ534DKS7OPJCEKVNYATDFEGPPF6OUEUO
-#\\\|DKNEIX7TMQF6V6DLLBPSFDTW2EQJM63IUUQ2RELITGLUFKWOHQR \ / AMOS7 \ YOURUM ::
-#\[7]CF3U56DRV7B7SCDSH7OKMFLH2WTW4B6FC2IY3NWC3IAT2ENUPKBA 7  DATA SIGNATURE ::
+#,,..,,,,,...,,..,,..,,..,,,,,...,,..,,..,,..,..,,...,...,,,.,.,,,...,,,.,,.,,
+#YLUKHD2INB5WOXKOXGOV4VTIT4AMFHMVUTHA2DRF2SNWSACNAWPK7TAH72LRH5R3DUBDJP2XGMMBY
+#\\\|Z5LC4YOKUD3KC5NT4D6RBUIPBLXHCRMDCHRROYVW7DWVNAWQ2MU \ / AMOS7 \ YOURUM ::
+#\[7]IYOFC3XZKOZVXDRMCCUXND2AXDP4LJAGSE332AS3N7N3BKMNTQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

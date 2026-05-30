@@ -14,10 +14,23 @@ my @params = split m|\s+|, $args;
 
 return {
     'mode' => qw| false |,
-    'data' => 'usage: delta-time <ntime-b32> [<ntime-b32>]'
+    'data' => 'parameter expected : <ntime-b32> [<ntime-b32>]'
     }
     if not @params
     or not length $params[0];
+
+return {
+    'mode' => qw| false |,
+    'data' => 'too many parameters'
+    }
+    if @params > 2;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected base32 network time format'
+    }
+    if $params[0] !~ m{^[2-7A-Z]{2,}$}
+    or defined $params[1] and $params[1] !~ m{^[2-7A-Z]{2,}$};
 
 ## decode first ntime to unix ##
 my $ntime_a_num = <[base.ntime_BASE32_to_numerical]>->( $params[0] );
@@ -41,14 +54,14 @@ if ( defined $params[1] and length $params[1] ) {
     my $ntime_b_num = <[base.ntime_BASE32_to_numerical]>->( $params[1] );
     return {
         'mode' => qw| false |,
-        'data' => sprintf 'cannot decode ntime: %s',
+        'data' => sprintf ': cannot decode ntime : %s',
         $params[1]
         }
         if not defined $ntime_b_num;
     $unix_b = <[base.n2u_time]>->($ntime_b_num);
     return {
         'mode' => qw| false |,
-        'data' => 'ntime-b: n2u_time conversion failed'
+        'data' => ': ntime-b : n2u_time conversion failed'
         }
         if not defined $unix_b;
 } else {
@@ -71,8 +84,8 @@ return {
     'data' => $duration_str
 };
 
-#,,.,,..,,.,.,,.,,,,,,,.,,,..,,..,.,.,.,,,,,.,..,,...,..,,..,,,,.,...,..,,.,.,
-#S7NSSQN7QIWOSGRQOO56X3PUW3JI6SYPRB752MXMK7G2UT2MYVBDX2EX64TTOHOOZATM4SERWGXK4
-#\\\|ITCBCQLHKKPZ6CNTUDPLT5YBSRG4NXYWEG5NWFLPGTCPIZYJ7TC \ / AMOS7 \ YOURUM ::
-#\[7]DOZJ2TMCSTLFBBOHEWJ4EGPPRHP4OJGBDG4BCVHJVDLG6AHAYADQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,,.,,..,,,.,,,.,.,.,,.,,.,.,,,.,..,,...,...,,.,,...,..,,.,,,,,.,
+#ETHYGTIDGBC6EUVJR7VTTRF5N6B4XGLFR6XHJ2MWHGUT6GGZOKUGJZ3T4HUQBZZQRJWF6JEW4HXL2
+#\\\|NXW5CC5KFNY6V7RWQKMCHWM5QKGDZUOFCVFILQATBTZLTUHTZ5L \ / AMOS7 \ YOURUM ::
+#\[7]LEHN2YHB3P3TQIV2O4CHFQDD4AX25JQFWMEBOMAFEZVF2CP4HYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

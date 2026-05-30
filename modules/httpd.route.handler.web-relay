@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = httpd.route.handler.web-relay
-# descr = relay HTTP request to web zenka via route-send SIZE pattern
+# descr = relay HTTP request to web zenka via route-send STRM pattern
 #         generic handler : command and args from route config
 
 my $id      = shift;
@@ -14,22 +14,45 @@ my $body    = $session->{'http'}->{'body'} // $session->{'buffer'}->{'input'}
 $session->{'http'}->{'body'}    = '';
 $session->{'buffer'}->{'input'} = '';
 
+## decode raw utf-8 bytes to unicode before route-send : base.s_write re-encodes
+## on the outgoing side, so the body must be unicode chars, not raw bytes ##
+utf8::decode($body) if length($body) and not utf8::is_utf8($body);
+
 $session->{'http'}->{'close'} = TRUE;
+
+##  replace input watcher : keep EOF detection, disable timeout  ##
+if ( defined $session->{'watcher'}{'input_handler'} ) {
+    my $fd = $session->{'watcher'}{'input_handler'}->fd;
+    $session->{'watcher'}{'input_handler'}->cancel;
+    $session->{'watcher'}{'input_handler'} = Event->io(
+        'fd'     => $fd,
+        'cb'     => sub { &{ $code{'base.handler.read'} } },
+        'poll'   => qw| r |,
+        'prio'   => 1,
+        'repeat' => FALSE,
+        'data'   => $id,
+        'desc'   => sprintf( '[%d] input handler [ no timeout ]', $id ),
+    );
+}
 
 <[protocol-7.route-send]>->(
     {   'command'   => $command,
         'call_args' => { 'args' => $body },
         'reply'     => {
-            'handler' => qw| httpd.handler.web-relay.response |,
-            'params'  => { 'http_sid' => $id },
+            'handler' => qw| httpd.handler.web-relay.strm_open |,
+            'params'  => {
+                'http_sid'     => $id,
+                'content_type' => $args->{'content_type'}
+                    // qw| application/json |,
+            },
         },
     }
 );
 
 return 0;    # [ deferred : reply handler writes response ]
 
-#,,,.,,..,...,,..,..,,..,,.,.,.,.,.,.,.,.,..,,..,,...,..,,,,,,,,,,,..,...,,..,
-#PGQNE2QJPFPWNHZDOQVJBG3QS2X3EAIPK3JHYZHTRMLLYGOD2UDPU4OY55HCBZWNGEELN5VT3OOCC
-#\\\|VNFSOJXRFGNZVWLSZ7D4A2BFMJR6V4H6IO3H7ICGHTKESX2WCLH \ / AMOS7 \ YOURUM ::
-#\[7]IA63DA6LHC2S7L74XZA4DLQOG4DLSUZGYJIOJXKEO66QRYA2Q4BQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,..,,.,,,,,,,..,,,,.,,.,,,,,,.,.,..,,...,...,,,.,,..,,.,,.,,,.,,,
+#LUJPIEWWWJPJ6RTCZXC5HA33D4FWOGLP45XLBETX2NPAWFHXXDYEKKWJRSDQWZ24TL4PXAK3N4WYK
+#\\\|VQJ5627HU4IGKRFZ5LPG3HY2I7RIC7GVH6VKAFPIPIQMQ5R7UMX \ / AMOS7 \ YOURUM ::
+#\[7]BNX63VB62XLA7QYVJBHEMSGJTYZYQMNJTIRADRKF7XDVHTAYXODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

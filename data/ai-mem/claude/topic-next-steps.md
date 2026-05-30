@@ -7,6 +7,35 @@ metadata:
   originSessionId: 56cce73a-933a-4992-96e4-4d88e138e8f6
 ---
 
+## open bugs (session 63)
+
+### nshell (0) on first command (each session) — partially fixed, source unknown
+something in nshell sends `(0)<something>\n` exactly once per session at startup
+(triggered visibly on first user command). `$re->{cmd_id} = \d{2,15}` — single
+digit 0 fails the length check → cube logs "command id syntax not valid [0]",
+nshell prints "invalid command id syntax or length". command still executes.
+earlier form: explicit `(0)` check said "command id 0 not valid". partial fix
+removed that check, now falls through to generic syntax error instead.
+source UNCONFIRMED after prior kimi investigation (100 rounds, May 1):
+NOT from log send system (`send.local` debug ruled it out). NOT from cmd_id
+counter starting at 0 (user commands don't carry a cmd_id prefix in nshell).
+likely from v7.notify_online reply or some other startup buffer entry.
+related task file: data/yaml/coding-tasks/nshell-session-protocol-tunneling.yaml
+
+### nshell stray cursor — commit DE5EAEA4 (2026-05-25)
+`index.cmd.search/lookup/stats` — added trailing `\n` to inline SIZE replies
+to match what `base.callback.cmd_reply` adds for deferred replies.
+symptom: stray cursor in nshell after index search/lookup/stats output.
+likely cause: nshell output handler was compensating for the missing newline;
+fix double-newlines it. check `nshell.handler.strm_reply` or wherever nshell
+processes SIZE responses for its own `\n` addition.
+
+### STRM fix review needed (session 63)
+`had_local_consumer` fix in base.handler.command STRM close path is correct
+for local consumer case. relay path (no local consumer) still fires forward as
+before. but test needed: radio zenka (uses both local consumers and relay paths),
+and any other STRM consumer, to confirm no undefined state introduced.
+
 ## iris visualization queue (dispatch to kimi one by one)
 
 - **iris alpha-density v2**: data/tasks/iris-alpha-density-mode-v2.md — filter-safe, dispatch next
@@ -163,8 +192,8 @@ metadata:
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,..,,..,...,,..,,.,,,,,,,..,.,,,.,,,..,,,,.,..,,...,...,,,,,..,,,,.,...,,,.,
-#YCNPHTNVEYVPLSH3UOCCXL2PFMXJ4CRYFPTQK2OENNNFLF6LETAARACUWMNXV2VHLDMKUFRK63RBE
-#\\\|AKFAFPCKJQL6DSARF44J4LLS45SHS7LSLAHEMQHFU5KUOLSUBD3 \ / AMOS7 \ YOURUM ::
-#\[7]REIYFLT6HV3JHFV3MRTAQRXM57TYUV3XXYK7H6PQI4J5WIDJEADQ 7  DATA SIGNATURE ::
+#,,,.,.,,,...,,.,,.,.,..,,.,.,..,,...,,.,,..,,..,,...,...,..,,,.,,..,,,,,,,,.,
+#HBAYT2HAJIVYRXP7OZWTA43U7IVIWA2LCOXOSCX4SFNUCE2R5MW5WT4A6CP6ZBXBU2S45CWPM3WBQ
+#\\\|2TKYMAASPYWQ3BCWKZVH34YBKMG3LPKOWL4JW2TMYGW2U6C7DFB \ / AMOS7 \ YOURUM ::
+#\[7]W3I22Y5DFA5ETR7TKF2UK4ELUEF663OZIBND6EIVFBJPISRKRSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

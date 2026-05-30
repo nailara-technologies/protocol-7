@@ -1,31 +1,42 @@
 ## [:< ##
 
 # name  = plugin.web.jobs.cache.read_all
-# descr = load all job records from httpd cache dir
+# descr = return in-memory job cache, loading from disk once on first call
+
+return <plugin.web.jobs.cache>
+    if ref <plugin.web.jobs.cache> eq qw| HASH |;
 
 my $cache_dir = <[plugin.web.jobs.cache.path]>;
 my %jobs;
 
-return \%jobs unless -d $cache_dir;
+if ( -d $cache_dir ) {
+    opendir my $dh, $cache_dir or do {
+        <plugin.web.jobs.cache> = \%jobs;
+        return \%jobs;
+    };
+    my @files = grep { m|\.yaml$| && !m|^\.| } readdir $dh;
+    closedir $dh;
 
-opendir my $dh, $cache_dir or return \%jobs;
-my @files = grep { /\.yaml$/ && !/^\./ } readdir $dh;
-closedir $dh;
-
-for my $file (@files) {
-    my $job_id = $file =~ s/\.yaml$//r;
-    my $job    = eval { YAML::XS::LoadFile("$cache_dir/$file") };
-    if ($@) {
-        <[base.logs]>->( 0, 'jobs.cache.read_all: error %s: %s', $file, $@ );
-        next;
+    for my $file (@files) {
+        my $job_id = $file =~ s|\.yaml$||r;
+        my $job    = eval { YAML::XS::LoadFile("$cache_dir/$file") };
+        if ($EVAL_ERROR) {
+            <[base.logs]>->(
+                0,     'jobs.cache.read_all: error %s: %s',
+                $file, <[base.str.eval_error]>
+            );
+            next;
+        }
+        $jobs{$job_id} = $job if ref $job eq qw| HASH |;
     }
-    $jobs{$job_id} = $job if ref $job eq 'HASH';
 }
 
-return \%jobs;
+<plugin.web.jobs.cache> = \%jobs;
 
-#,,,,,,,,,..,,,,.,,,.,...,,,.,,,,,,,,,..,,.,,,..,,...,...,.,,,.,.,,,.,.,.,..,,
-#INEH6W7OUPHOHOJ4NV6FFWB4Q6GHOKGR5PNZXAAO7NYPE4JA4ANOALLXBUVGWRAE4MJIP6Q5TK3OW
-#\\\|R7D5U3YWDNNIC6FHUL6K5SXI63TLSDPEC6BVL6XRE5QYH3EJSHE \ / AMOS7 \ YOURUM ::
-#\[7]5ETXDRNFEFEJYNVC4MOMT3IKRS52TX2C2YVJ7YQM37ZVE4DSPWAA 7  DATA SIGNATURE ::
+return <plugin.web.jobs.cache>;
+
+#,,,,,.,.,,..,,,,,..,,,..,.,.,..,,,,.,,,,,,,.,..,,...,...,.,.,,.,,,,,,,.,,...,
+#LBXV4K3GCU3PD2GYGZ2QCL2PVKVNEEDKV5T46ALDRZ3QX3GVODQFT6S26RQYJ6PVUMFNYYETPZ4CU
+#\\\|VJ6F4OKTNUPJT3G63KWV5KDAN3QTCJUNX4KLQPHWP5NA4JHUSH6 \ / AMOS7 \ YOURUM ::
+#\[7]TSQJP7LQJXI5HXIS2T2265HUUNIEDN7E6PXU2F3LCRWXAX45AIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
