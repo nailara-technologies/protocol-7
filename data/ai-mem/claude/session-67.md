@@ -108,16 +108,69 @@ filesystem via `job.load_all` on every restart. no more divergence.
 30 jobs with `repair_failed: 5` reset via `jobsite.reset rep-err=1` and
 re-assessed via `jobsite.scan`.
 
+## additional commits (late session)
+
+- `310e85a80` — feat: status/stage reconcile, progress bar fix, interviewed tab, prune wiring
+- `1aee4bb85` — feat: UI card refinements, reassess button, flexible export + arch designs
+- `96f3b93e6` — fix: ES5 compat (?./??→&&), sync_url fallback (//→||), sync multiplex
+- `7451502ca` — feat: web plugin status-dir layout (phase 2)
+- `1b0ff79f0` — fix: sync push status-dir awareness + apply_reverse path via index
+
+### checksum store status-dir expansion — DONE ✓ (kimi 3e42231f)
+12 files: titles/ per-status subdirs, `update_status` action (rename on
+status change), `check` returns `resolved_status`, `interviewed` added to
+all enumerations. `dispatch.assessments` inherits status from checksum store.
+
+### status/stage reconcile — DONE ✓
+`assess-done`: `status=review` set when score >= threshold (not just stage).
+`job.load_all`: status overridden from dir index (authoritative). Migration
+in `init_code` moves assessed+stage=review jobs to `jobs/review/`.
+
+### progress bar — DONE ✓
+counts from `<jobsite.job.index>` by dir name; `rev:152` shows correctly.
+format: `new:0 | rev:152 | assessed:725 | apply:0`
+
+### UI card refinements — DONE ✓
+assertions.suggest.apply badge (✓/✗); dimension score row with detail
+toggle; error tab wired to repair_failed; archive dimming; NaN filter fix
+(`!isFinite(norm)`); repair_failed passthrough in jobs.data.
+
+### reassess ↺ button — DONE ✓ (UI live; backchannel not yet propagating)
+`jobsite.sync.apply_reverse` handles `action=reassess` (resets job, injects
+at front of assess_queue). button appears subtly in cards. POST to /sync
+works; forwarding to jobsite pending sync push update.
+
+### flexible export — DONE ✓
+export config panel: stage checkboxes + since-last-export filter (tracks
+exported IDs in localStorage).
+
+### web plugin phase 2 — DONE ✓
+`plugin.web.jobs.cache.write` routes by status subdir, atomic rename.
+`plugin.web.jobs.sync.merge`: priority map interviewed:8>applied:7>...
+`plugin.web.jobs.store.prune`: two-phase epoch cleanup.
+
+### sync push status-dir aware — DONE ✓
+`jobsite.sync.push`: status from index, skip blocked/deleted.
+`jobsite.sync.apply_reverse`: delete resolves path via index.
+
+### ES5 compat fix — DONE ✓
+all `?.` and `??` replaced with `&&`/ternary — mobile DuckDuckGo renders.
+
+### arch design task files written (not dispatched)
+- `data/tasks/web-auth-plugin.md` — plugin.web.auth.*, dual-loadable
+- `data/tasks/web-sessions-distributed.md` — signed session tokens, cross-node
+- `data/tasks/jobsite-sync-multiplex.md` — multi-endpoint + multi-jobsite
+
 ## open items
 
-- kimi continue session `3e42231f` — checksum store status-dir expansion
-  (titles/ per-status, resolved_status, interviewed status); may be complete
-- phase 2 (web-jobs-status-dir-layout.md) not dispatched yet
-- remote atom divergence: atom has applied jobs, local doesn't — sync/merge pass needed
-- nshell `(0)` on first command bug — still open
+- **reassess backchannel** — POST hits /sync but not forwarding to jobsite yet
+- **atom divergence** — remote has applied jobs; needs sync/merge pass
+- **web-auth-plugin** — medium priority, not dispatched
+- **web-sessions-distributed** — low priority, not dispatched
+- **repair_failed 5 jobs** — still in assessed; run `jobsite.reset rep-err=1` + scan
+- nshell `(0)` on first command — still open
 - nshell stray cursor after index search — still open
-- `review: 0` in progress bar — `<jobsite.tasks>` uses `status` field but
-  review jobs have `status=assessed` + `stage=review`; needs investigation
+- STRM fix review needed (had_local_consumer)
 
 ## design notes
 
@@ -132,8 +185,8 @@ re-assessed via `jobsite.scan`.
 
 #,,,,
 
-#,,..,,,,,,,.,.,.,,..,..,,.,.,..,,,.,,.,,,.,,,..,,...,...,...,,,,,,.,,...,...,
-#PA22L5Q43VDCBYM66KSJSKTQDBV7HRS7EE6VCXM2LWGQSSTIO2RLWT6C24YZVR6CM2HP2IBQMYP6S
-#\\\|N3ISSYF76JCA66VKZSJPKMUCIDHEPHWRPIY757NXHOVZ6YX3NK5 \ / AMOS7 \ YOURUM ::
-#\[7]HDBUQNYKESYVJKHSMPZA4CB6ATXDFSNRLUYJO5EZIZHLA75KFIBI 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,.,,,..,,.,,,.,,,,,.,,..,.,.,,.,,..,,...,...,,,.,.,.,..,,..,,,..,
+#2PKG3XD75WGY4PAKA3OAKRPSUXMMR5D4RSFA7LCH3CVIZ5Y2JGMN4FB3A3NS65E745GUWREGGB2QQ
+#\\\|2SK3P73BSBFACZLFSV2H6BS6S7GLSQOTL2T2ACAMDFFEIOQJ557 \ / AMOS7 \ YOURUM ::
+#\[7]EQWXLFY7A73VCOQZWG7K6XY3RG7LCSSGCUGS7MYYBTPY266PIACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
