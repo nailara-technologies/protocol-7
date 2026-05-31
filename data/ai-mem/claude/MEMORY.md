@@ -134,6 +134,7 @@
 - [claude-dispatch-strategy](feedback-claude-dispatch-strategy.md) — use claude_dispatch to offload kimi orchestration; keeps parent context lean; parallel dispatch pattern
 - **coding_summarize** live (55a4a68df) — free 9B summarization; auto-summarize=TRUE default on claude/kimi dispatch; rolling-window sized from coding.context-size (32K→108K chars); file= param reads directly (zero context tokens)
 - **session_catchup** MCP tool — list recent claude+kimi sessions or summarize one by UUID; use at session start to catch up; `session_catchup(limit=8)` to list, add session_id+instruction to summarize
+- **store_summary_focus** MCP tool — prime next kimi/claude dispatch auto_summarize with a specific focus; one-shot, clears after use; call before dispatch when you know exactly what you need from the result
 - **claude_continue** live (1adbf83d2) — resume claude sessions same as kimi_continue
 - [ncode-tools](feedback-ncode-tools.md) — use ncode replace/parse-headers for namespace renames; not sed/perl -i loops
 - **httpd architecture**: httpd is a thin proxy — never load plugin.web.* in httpd. all cross-zenka data goes through web zenka via route-send SIZE. blocking reply-wait in httpd crashes sessions.
@@ -174,8 +175,8 @@
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 - **coding zenka**: fully operational; 9B model loads in seconds (new ik_llama.cpp); no urgent issues
 
-#,,.,,,.,,.,.,.,,,,.,,,.,,,,,,,.,,,.,,.,,,,..,..,,...,..,,...,..,,,,.,,..,,,.,
-#FGXBP5TT4L7PD5AXNDWO6DLUT3LTYTJ6CNBRECR7YGPFS3OFHSQ2OZG6E6Z4B2OG7PEOUZZT6BOBA
-#\\\|KDD4Y3XRGZ7D6P7S34AUPT7VYZTWQC6WJ2WA6MEQTZHF5PRQC6B \ / AMOS7 \ YOURUM ::
-#\[7]CHUK6JW6QPBIYM5MMPFBHC3PM62XLLGXRQW72AMXVYPUAP4IQGDQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,.,.,..,,,,.,,,,,,,,,...,,,.,,..,..,,...,...,..,,,..,,,.,...,.,,,
+#AGXUYOY7NF6XKV2SNBNESLRSWYOMRKK5ONJN74RWKDAGYZPOVVVPMKF52XQXGOEQTZFYUNELTGI7E
+#\\\|O4H52TGTAWLEHXGJNJ27DIS4WAM6OHLS4NLSMY5NAWIZZJFLVYF \ / AMOS7 \ YOURUM ::
+#\[7]YWV6NNPGTCVVRGCZWJ3Z6W5J6XI4D6YWHHDZ53GG5DBKSNEIOQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
