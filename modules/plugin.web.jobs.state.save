@@ -9,9 +9,18 @@ my $delta = shift // {};
 return FALSE if not length $id;
 return FALSE if ref $delta ne 'HASH';
 
-## load from web cache [ web zenka owns var_P7/web/jobs/ ] ##
+## locate job via index ##
 my $cache_dir = <[plugin.web.jobs.cache.path]>;
-my $job_file  = "$cache_dir/$id.yaml";
+my $status    = <plugin.web.jobs.index>->{$id} // '';
+
+my $job_file;
+if ( $status =~ m{^(blocked|deleted):(.+)$} ) {
+    $job_file = "$cache_dir/$1/$2/$id.yaml";
+} elsif ( length $status ) {
+    $job_file = "$cache_dir/$status/$id.yaml";
+} else {
+    $job_file = "$cache_dir/new/$id.yaml";
+}
 
 my $job = eval { YAML::XS::LoadFile($job_file) };
 if ($@) {
@@ -35,8 +44,8 @@ for my $field (qw| stage notes date_applied |) {
 
 return <[plugin.web.jobs.cache.write]>->( $id, $job );
 
-#,,,,,,.,,..,,...,,,.,,..,,.,,,,.,..,,,,,,.,.,..,,...,...,,,.,...,,,,,,.,,.,.,
-#CGKEAFBMD3BGG2HKQGBTQGPLVAB3EMLLHJCGBS6TXFKOGDTHTTMUP6D4VLVK4PRPMJQW3FKJ52IT2
-#\\\|GDETEYBTUNNKBWCJYKV7MCZTHA7MKT5NQFGRYDUQZHPFX5AXEIO \ / AMOS7 \ YOURUM ::
-#\[7]T4YSPXWG645XVLTTPDZOBDV6XCVQDKSMXBH2QVSNAMM3KAYF42CY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,..,.,,,,..,...,..,,,,,,,.,,,,,,..,,...,...,.,,,,.,,,.,,,,.,...,
+#DAXXYU37VFQ3ELRQZA4IXBGOG2ZYPBFNYWHEMNWCQLZ4W34BB6YWYEAHH6MKG5S54WS7SQO2L6W32
+#\\\|IO2MZ4IQFHWA7CQQW5RIHBLB4H4MHJEPIUDZAF3N2YTPRW6KW4D \ / AMOS7 \ YOURUM ::
+#\[7]WTVFNM7KDILMRH4FRTDJNEBBNW7XWTZV6PKOR32IPZCKKUNI6WDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
