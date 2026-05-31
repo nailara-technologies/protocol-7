@@ -1356,8 +1356,12 @@ sub _model_chunk_size {
         $model_context_tokens
             = ( $ok and $val =~ m{^(\d+)$} ) ? $1 + 0 : 8000;
     }
-    ## reserve ~5000 tokens for system prompt + output; 4 chars per token ##
-    my $chunk = ( $model_context_tokens - 5000 ) * 4;
+    ## match coding zenka token estimator: bytes::length(json) / 3.2            ##
+    ## /2 safety factor covers json-of-json content where re-encoding inflates  ##
+    ## byte count ~2x vs plain text [ observed: 58KB dispatch → 34K tokens ]    ##
+    my $overhead_tokens = 4000;    ## system + instruction + output reserve ##
+    my $safe_tokens     = $model_context_tokens - $overhead_tokens;
+    my $chunk           = int( $safe_tokens * 3.2 / 2.0 );
     $chunk = 8000 if $chunk < 8000;    ## floor for safety
     return $chunk;
 }
@@ -1765,8 +1769,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,.,..,,.,.,,,,,.,.,,,.,,..,,,,,,,,,,..,...,..,,...,.,.,..,,..,,,..,.,.,,..,
-#7CBYQR6EI5RJ4TTXU6LUSNAG2FGVPWXYTEYLWRM6TEGBK3PNAMGIL5UHX4VC2JORJPBGZTUN42KOC
-#\\\|ZRU722RT2MWYWTWYWYMM4NBVJHG6TPVMGINIABJ73Y3VBUTJVFG \ / AMOS7 \ YOURUM ::
-#\[7]4EFDIRP5P3KUYSPVZOJLOIJTITXVTXYZMHN6DHIVUGTGWB5VMEAA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,.,,,,,,..,,,..,,..,,..,,,,,,..,..,,...,..,,,..,..,,,..,,..,,,,,
+#LXHRU4OIPVAMQ2AAR2GR6XW2LX4354GWGZU65RPA4LKGZEQR2G3HCN7WPBZZSHCYCMNTMSDXYCYJU
+#\\\|3N2QISTOB5E4I7LBOFULAWNIDOWQAFDUE63PBK463XCL3LXNA3U \ / AMOS7 \ YOURUM ::
+#\[7]NMKO3KYMB3OMQA2SSPTJINPHGCEQVTCCTL4HADZIXR5NX7HGAOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
