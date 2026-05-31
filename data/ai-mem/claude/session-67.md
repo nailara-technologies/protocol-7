@@ -83,14 +83,41 @@ kimi continue session `3e42231f-76f9-4a62-9e61-a9ddaa442070` expanding:
 web plugin, adds sync path awareness, merge conflict resolution (highest
 priority status wins), delta sync compatible.
 
+## additional commits this session
+
+- `3df3f7a49` — feat: jobsite progress bar, scan-state slim, reset enc_error/rep-err
+- `bd877527c` — doc: memory maintenance
+
+### jobsite.cmd.progress — DONE ✓
+new module: ascii progress bar matching bin/ptd style. 13-char `:` fill
+proportional to (total-new)/total. right bracket: cycle-aware — shows
+"assessing: N remaining" when active, "scanning sites.." when fetching,
+"assessed: N  review: N  new: N" when idle. TRUE reply, no trailing \n.
+access added to cube line in jobsite/start.
+
+### scan-state slim — DONE ✓
+`state.load` and `state.persist` now handle only 4 fields: cycle,
+last_scan, pending_count, sync_last_ntime. `<jobsite.tasks>` rebuilt from
+filesystem via `job.load_all` on every restart. no more divergence.
+
+### jobsite.cmd.reset enc_error/rep-err rename — DONE ✓
+`encoding_broken` → `enc_error` (harmony TRUE), `repair_failed` → `rep-err`
+(harmony TRUE). param line uses `<>` mandatory syntax at 54 chars.
+
+### repair_failed jobs reset — DONE ✓
+30 jobs with `repair_failed: 5` reset via `jobsite.reset rep-err=1` and
+re-assessed via `jobsite.scan`.
+
 ## open items
 
-- kimi continue session still running (checksum expansion)
-- phase 2 (web-jobs-status-dir-layout) not dispatched yet
-- `jobsite.job.read` utf8 fix needs commit (not staged yet)
-- remote atom divergence: atom has applied jobs, local doesn't — need sync/merge pass
+- kimi continue session `3e42231f` — checksum store status-dir expansion
+  (titles/ per-status, resolved_status, interviewed status); may be complete
+- phase 2 (web-jobs-status-dir-layout.md) not dispatched yet
+- remote atom divergence: atom has applied jobs, local doesn't — sync/merge pass needed
 - nshell `(0)` on first command bug — still open
 - nshell stray cursor after index search — still open
+- `review: 0` in progress bar — `<jobsite.tasks>` uses `status` field but
+  review jobs have `status=assessed` + `stage=review`; needs investigation
 
 ## design notes
 
@@ -105,8 +132,8 @@ priority status wins), delta sync compatible.
 
 #,,,,
 
-#,,..,...,,,,,,,,,,,.,.,.,.,.,.,.,,..,.,,,.,.,..,,...,...,...,.,.,...,,.,,...,
-#HBMDQCNXG5BEQMAD6X6EPAPAE25SPM6CVYD46ZABDY5QN367RRYXKYLJCCE6IS5535EXEDZU2ZLLK
-#\\\|N6LZBXIUTCWIQWS7RAXYMRYOOOYFBJDQIYV4MUWS76K5Q3YZY77 \ / AMOS7 \ YOURUM ::
-#\[7]DGCPICKGME4LJT3XTR2XRXIMBUSWVX5RWIS7E3VJ2JOTSK2KRQAA 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,.,.,,..,..,,.,.,..,,,.,,.,,,.,,,..,,...,...,...,,,,,,.,,...,...,
+#PA22L5Q43VDCBYM66KSJSKTQDBV7HRS7EE6VCXM2LWGQSSTIO2RLWT6C24YZVR6CM2HP2IBQMYP6S
+#\\\|N3ISSYF76JCA66VKZSJPKMUCIDHEPHWRPIY757NXHOVZ6YX3NK5 \ / AMOS7 \ YOURUM ::
+#\[7]HDBUQNYKESYVJKHSMPZA4CB6ATXDFSNRLUYJO5EZIZHLA75KFIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
