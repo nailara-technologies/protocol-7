@@ -8,43 +8,66 @@ my $force = ( @ARG > 1 ) ? <[base.cfg_bool]>->( $ARG[1] ) : FALSE;
 
 return if <jobsite.sync.push_in_progress>;
 
-my $url = <jobsite.cfg.sync_url> // '';
-if ( not length $url ) {
+my @urls = split /\s+/, ( <jobsite.cfg.sync_urls> || <jobsite.cfg.sync_url> || '' );
+if ( not @urls ) {
     <[base.logs]>->( 0, 'jss.sync.push: no sync_url configured' );
     return;
 }
 
-my $jobs       = <[jobsite.job.load_all]>;
-my $last_ntime = <jobsite.sync.last_server_ntime> // '';
+my $jobs = <[jobsite.job.load_all]>;
 
 ## record local ntime at cycle start : used as new watermark after success ##
 my $cycle_ntime_b32 = <[base.ntime.b32]>;
 <jobsite.sync.push_cycle_ntime> = $cycle_ntime_b32;
 
-## ntime is encode_b32r [reverse byte order] : NOT lexicographically sortable ##
-## must compare numerically via base.ntime_BASE32_to_numerical                ##
-my $last_ntime_num
-    = length($last_ntime)
-    ? ( <[base.ntime_BASE32_to_numerical]>->($last_ntime) // 0 )
-    : 0;
+my @push_queue;
+my @pushed_urls;
 
-$last_ntime_num = 0 if $force;    ## manual sync : bypass watermark ##
+for my $url ( @urls ) {
+    next unless length $url;
 
-## filter to jobs changed since last sync watermark ##
-my @changed;
-for my $id ( keys %{ $jobs // {} } ) {
-    my $job = $jobs->{$id};
-    my $mod = $job->{'last_modified'} // '';
-    my $mod_num
-        = length($mod)
-        ? ( <[base.ntime_BASE32_to_numerical]>->($mod) // 0 )
+    my $last_ntime = <jobsite.sync.last_ntime>->{$url} // '';
+    ## fallback to scalar for backward compat ##
+    $last_ntime = <jobsite.sync.last_server_ntime> // '' if not length $last_ntime;
+
+    ## ntime is encode_b32r [reverse byte order] : NOT lexicographically sortable ##
+    ## must compare numerically via base.ntime_BASE32_to_numerical                ##
+    my $last_ntime_num
+        = length($last_ntime)
+        ? ( <[base.ntime_BASE32_to_numerical]>->($last_ntime) // 0 )
         : 0;
-    if ( not $last_ntime_num or $mod_num > $last_ntime_num ) {
-        push @changed, { %{$job}, 'id' => $id };
+
+    $last_ntime_num = 0 if $force;    ## manual sync : bypass watermark ##
+
+    ## filter to jobs changed since last sync watermark ##
+    my @changed;
+    for my $id ( keys %{ $jobs // {} } ) {
+        my $job = $jobs->{$id};
+        my $mod = $job->{'last_modified'} // '';
+        my $mod_num
+            = length($mod)
+            ? ( <[base.ntime_BASE32_to_numerical]>->($mod) // 0 )
+            : 0;
+        if ( not $last_ntime_num or $mod_num > $last_ntime_num ) {
+            push @changed, { %{$job}, 'id' => $id };
+        }
     }
+
+    next if not @changed;
+
+    ## split into chunks to stay well within session buffer limits ##
+    my $chunk_size = <jobsite.cfg.sync_chunk_size> // 30;
+    while (@changed) {
+        push @push_queue, {
+            'url'   => $url,
+            'since' => $last_ntime,
+            'chunk' => [ splice @changed, 0, $chunk_size ],
+        };
+    }
+    push @pushed_urls, $url;
 }
 
-if ( not @changed ) {
+if ( not @push_queue ) {
     <[base.logs]>->(
         1,
         'jobsite: sync push skipped [ no changes since %s ]',
@@ -53,28 +76,26 @@ if ( not @changed ) {
     return;
 }
 
-## split into chunks to stay well within session buffer limits ##
-my $chunk_size = <jobsite.cfg.sync_chunk_size> // 30;
-my @chunks;
-while (@changed) {
-    push @chunks, [ splice @changed, 0, $chunk_size ];
-}
-
-<jobsite.sync.push_in_progress> = TRUE;
-<jobsite.sync.push_chunks>      = \@chunks;
-<jobsite.sync.push_reverse>     = [];
+my $total_jobs = 0;
+$total_jobs += scalar @{ $ARG->{'chunk'} } for @push_queue;
 
 <[base.logs]>->(
     1,
-    'jobsite: sync push %d jobs in %d chunks',
-    scalar( map { @{$ARG} } @chunks ),
-    scalar @chunks,
+    'jobsite: sync push %d jobs in %d chunks to %d url(s)',
+    $total_jobs,
+    scalar @push_queue,
+    scalar @pushed_urls,
 );
+
+<jobsite.sync.push_in_progress> = TRUE;
+<jobsite.sync.push_queue>       = \@push_queue;
+<jobsite.sync.push_urls>        = \@pushed_urls;
+<jobsite.sync.push_reverse>     = [];
 
 <[jobsite.sync.push_chunk]>;
 
-#,,..,.,,,,.,,,..,,,,,.,.,,,.,,,.,..,,...,..,,..,,...,.,.,,.,,..,,,,,,.,,,,..,
-#KYAAFCMEXC7RBEKZVAPDULHDQEPR5ZQPVN3NK26MWHTWPZBQO4ITE74ZQ2SN3QM457I7E6H6JN3AY
-#\\\|EPPOC3PXB6K4VP46FDYEPEXR42MJ4IGABUM7M3NWSMMKKRFLGBM \ / AMOS7 \ YOURUM ::
-#\[7]M4CDA6O6G7NWWGRVABJKLWM4C3ZV3UIUFBLYJ65OXSNS3MH7BKDQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,.,.,.,.,.,.,.,,,...,.,,,...,.,.,..,,...,...,.,,,,,.,,,.,,..,.,,,
+#HU233VB24WDYVCXY45ZMB77A3IORPUDJAOREUGI344BM2Y6UAZEDX33YKK7AZSRRB6RAEGEJS6XG4
+#\\\|J665HQEHWWTTSX6EZVDIO6HKXK6R7CRRHMTMHDXXIPMRK35WNNV \ / AMOS7 \ YOURUM ::
+#\[7]2XYLFW5NSBMZOTLCCLOVBY6CQ6NVCW2GZNS33H4AHC6QEQRLCECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

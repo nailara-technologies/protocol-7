@@ -504,7 +504,7 @@ function loadCache() {
 function mergeJobs(serverJobs) {
     let added = 0, updated = 0;
     for (const sj of serverJobs) {
-        const id = String(sj.id ?? sj.job_id ?? '');
+        const id = String(sj.id != null ? sj.id : (sj.job_id != null ? sj.job_id : ''));
         if (!id) continue;
         if (!jobs[id]) {
             jobs[id] = { ...sj, id };
@@ -594,7 +594,10 @@ function stageLabel(s) {
 
 function renderCard(j) {
     const el = document.createElement('div');
-    el.className = 'job-card' + (j.assertions?.suggest?.archive === 'true' ? ' suggest-archive' : '');
+    const _assert = j.assertions || {};
+    const _sug    = _assert.suggest    || {};
+    const _dims   = _assert.dimensions || {};
+    el.className = 'job-card' + (_sug.archive === 'true' ? ' suggest-archive' : '');
     el.dataset.stage = j.stage;
     el.dataset.id = j.id;
     el.draggable = true;
@@ -618,7 +621,7 @@ function renderCard(j) {
     const scClass = scoreClass(j.score);
 
     /* assertion badges */
-    const sug = j.assertions?.suggest || {};
+    const sug = _sug;
     const badges = [];
     if (sug.apply === 'true')  badges.push('<span class="assert-badge assert-apply">bewerben</span>');
     if (sug.delete === 'true') badges.push('<span class="assert-badge assert-delete">löschen</span>');
@@ -627,7 +630,7 @@ function renderCard(j) {
     if (j.repair_failed)       badges.push('<span class="repair-badge repair-fail">fehler</span>');
 
     /* dimension breakdown */
-    const dims = j.assertions?.dimensions || {};
+    const dims = _dims;
     const dimKeys = Object.keys(dims);
     const dimAbbr = {
         'location': 'loc', 'work-profile': 'work', 'company-culture': 'cult',
@@ -678,7 +681,7 @@ function renderCard(j) {
       ${dimHtml}
       ${dimKeys.length ? `<div class="toggle-dim">▼ dimensionen</div>` : ''}
       <div class="card-actions no-print">
-        ${j.assertions?.suggest?.apply === 'true' ? '<span class="badge-apply badge-yes">✓ apply</span>' : j.assertions?.suggest?.apply === 'false' ? '<span class="badge-apply badge-no">✗ skip</span>' : ''}
+        ${sug.apply === 'true' ? '<span class="badge-apply badge-yes">✓ apply</span>' : sug.apply === 'false' ? '<span class="badge-apply badge-no">✗ skip</span>' : ''}
         ${!['applied','interviewed','responded','archived'].includes(j.stage) ? `<button class="btn-reassess" data-id="${j.id}" title="re-assess">↺</button>` : ''}
         <select class="stage-select" data-id="${j.id}">
           ${['review','to_apply','applied','interviewed','responded','rejected','skipped','archived']
@@ -883,7 +886,7 @@ function render() {
     const visible = sorted.filter(j => {
         if (j.stage === 'archived' && !showArchived) return false;
         if (filterMode === 'delete') {
-            return (j.assertions?.suggest?.delete === 'true') && j.stage !== 'archived';
+            return ((j.assertions && j.assertions.suggest && j.assertions.suggest.delete) === 'true') && j.stage !== 'archived';
         }
         if (filterMode === 'error') {
             return (j.repair_failed == 5 || j.repair_failed === true) && j.stage !== 'archived';
@@ -912,7 +915,7 @@ function render() {
 }
 
 function updateStats(all) {
-    const del = all.filter(j => j.assertions?.suggest?.delete === 'true' && j.stage !== 'archived').length;
+    const del = all.filter(j => (j.assertions && j.assertions.suggest && j.assertions.suggest.delete) === 'true' && j.stage !== 'archived').length;
     const rfl = all.filter(j => j.repair_failed && j.stage !== 'archived').length;
     document.getElementById('stat-total').textContent  = all.length + ' gesamt';
     document.getElementById('stat-review').textContent = all.filter(j=>j.stage==='review').length + ' review';
@@ -1009,9 +1012,9 @@ function exportCSV() {
     const lines = [cols.join(';')];
     rows.forEach((j, i) => {
         const val = v => `"${String(v||'').replace(/"/g,'""')}"`;
-        const sug = j.assertions?.suggest || {};
-        const dim = j.assertions?.dimensions || {};
-        const dscore = d => dim[d]?.score ?? '';
+        const sug = (j.assertions && j.assertions.suggest) || {};
+        const dim = (j.assertions && j.assertions.dimensions) || {};
+        const dscore = d => (dim[d] && dim[d].score != null ? dim[d].score : '');
         lines.push([
             i+1, j.date_added||'', j.company, j.title, j.city,
             scoreDisplay(j.score), stageLabel(j.stage),
@@ -1044,7 +1047,7 @@ function showPrintTable() {
       <table>
         <tr><th>Nr</th><th>Datum</th><th>Unternehmen</th><th>Position</th><th>Ort</th><th>Score</th><th>Status</th><th>Bew.</th><th>Del.</th></tr>
         ${rows.map((j,i) => {
-            const sug = j.assertions?.suggest || {};
+            const sug = (j.assertions && j.assertions.suggest) || {};
             return `<tr>
               <td>${i+1}</td><td>${j.date_added||''}</td><td>${escHtml(j.company)}</td>
               <td>${escHtml(j.title)}</td><td>${escHtml(j.city)}</td>
@@ -1054,8 +1057,8 @@ function showPrintTable() {
         }).join('')}
       </table>`;
     const details = rows.map((j,i) => {
-        const sug = j.assertions?.suggest || {};
-        const dim = j.assertions?.dimensions || {};
+        const sug = (j.assertions && j.assertions.suggest) || {};
+        const dim = (j.assertions && j.assertions.dimensions) || {};
         const dimList = Object.entries(dim).map(([k,v]) => `${k.replace(/-/g,' ')}:${v.score}`).join(', ');
         return `
         <div class="print-detail" style="margin-top:1.2rem;padding:0.7rem 0.8rem;border:1px solid #1a2a3a;border-radius:4px">
