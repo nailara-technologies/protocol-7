@@ -79,12 +79,24 @@ for my $url (@urls) {
 }
 
 if ( not @push_queue ) {
+    ## no local changes: still ping to collect reverse entries from web side ##
     <[base.logs]>->(
-        1,
-        'jobsite: sync push skipped [ no changes since %s ]',
+        2,
+        'jobsite: sync ping [ no local changes since %s ]',
         <jobsite.sync.last_server_ntime>
     );
-    return;
+    for my $url (@urls) {
+        push @push_queue,
+            {
+            'url'   => $url,
+            'since' => (
+                <jobsite.sync.last_ntime>->{$url}
+                    // <jobsite.sync.last_server_ntime> // ''
+            ),
+            'chunk' => []
+            };
+        push @pushed_urls, $url;
+    }
 }
 
 my $total_jobs = 0;
@@ -104,8 +116,8 @@ $total_jobs += scalar @{ $ARG->{'chunk'} } for @push_queue;
 
 <[jobsite.sync.push_chunk]>;
 
-#,,,.,.,,,,,.,..,,.,.,,..,.,,,.,,,,..,.,,,.,,,..,,...,...,,.,,,,,,...,,,,,,,.,
-#2HXOHYYMZCVMD6CYIRE2EQCIIGWTWT2BK44O6T5P3EWPXZBMQGIMWNWB7K3XJ4WTENVVWWTFEQLDQ
-#\\\|KIWMG6BCE4TGBXRE4XTDYPPC3EPMY6KFLFBRLGVJ6Z5BOJCBPID \ / AMOS7 \ YOURUM ::
-#\[7]VSP32U5VCME6LHWZJ27Q333NMNBVD4U2UR2RKNFG6CG4D6BMTGBI 7  DATA SIGNATURE ::
+#,,..,,,,,,..,.,,,...,...,,,,,.,,,,.,,,.,,..,,..,,...,...,.,.,..,,,,.,...,..,,
+#DNUAWAWZ7LXHYXLPTJSUFLCEZWVXRJCFXLRYENRIGI7H4HTDXS7RGXGK3AJQWXC34YZ2J7R4VJMSS
+#\\\|TYY7UFCZN4GINH5UGRCV2OCPZ5SKYONKGO6AEQIIPMSUCSVRUM6 \ / AMOS7 \ YOURUM ::
+#\[7]27IJUF6TCX5BMAIQUGBLJQVYFOWBHVSRIKD3FG7335CA3QKN5GAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
