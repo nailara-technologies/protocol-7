@@ -8,14 +8,21 @@ my $blacklight = "\e[38;2;68;39;172m";
 my $nailara_bg = "\e[48;2;9;5;42m";
 my $TRUE_color = "\e[38;2;6;71;195m";
 
-my $total = scalar keys %{ <jobsite.tasks> // {} };
-my $new_c = scalar grep { ( $_->{'status'} // '' ) eq qw| new | }
-    values %{ <jobsite.tasks> // {} };
-my $assessed = scalar grep { ( $_->{'status'} // '' ) eq qw| assessed | }
-    values %{ <jobsite.tasks> // {} };
-my $review = scalar grep { ( $_->{'status'} // '' ) eq qw| review | }
-    values %{ <jobsite.tasks> // {} };
-my $pending = <jobsite.pending_count> // 0;
+my %by_status;
+for my $id ( keys %{ <jobsite.job.index> // {} } ) {
+    my $st = <jobsite.job.index>->{$id} // '';
+    $st =~ s{^(blocked|deleted):.*}{$1};
+    $by_status{$st}++;
+}
+
+my $new_c    = $by_status{'new'}      // 0;
+my $assessed = $by_status{'assessed'} // 0;
+my $review   = $by_status{'review'}   // 0;
+my $apply    = $by_status{'apply'}    // 0;
+my $applied  = $by_status{'applied'}  // 0;
+my $rejected = $by_status{'rejected'} // 0;
+my $total    = scalar keys %{ <jobsite.job.index> // {} };
+my $pending  = <jobsite.pending_count> // 0;
 
 my $done      = $total - $new_c;
 my $chars_max = 13;
@@ -26,11 +33,12 @@ my $cycle = <jobsite.cycle> // qw| idle |;
 
 my $right = do {
     if ( $cycle eq qw| assessing | and $pending > 0 ) {
-        "assessing: $pending remaining";
+        "assessing : $pending remaining";
     } elsif ( $cycle eq qw| scanning | ) {
         'scanning sites..';
     } else {
-        "assessed : $assessed  review : $review  new : $new_c";
+        "new : $new_c | rev : $review | "
+            . "assessed : $assessed | apply : $apply";
     }
 };
 
@@ -48,8 +56,8 @@ return {
     'data' => $output_str,
 };
 
-#,,..,,,.,..,,,..,,,.,..,,,.,,,.,,,.,,.,.,.,.,..,,...,...,.,.,,.,,.,.,,.,,...,
-#FQ4LP53ADH5KPPSTMB7KF5NTUO5GN3KXGVH6JMAUZXTWWKNHADUY43DDCLWQQUDSNRNB2QJD6H4YW
-#\\\|P3RB2M2XTP2CDRUD7XQXUYFESN7DTKRAU77FRARODGOGUQXLWNU \ / AMOS7 \ YOURUM ::
-#\[7]V6ZZ7ZK5LEWHHR5SHGZWH32G4KXCTMJR4I5FIS4KAVOC3ELT3YDQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,,,,,.,,,.,,.,.,..,,,.,,.,,,,..,..,,...,...,...,,,,,,..,.,,,,,.,
+#FLWJKP7AAYG7RO2H3SGLWJHSAC6LUE3DYIPYPDGHJQNHZIQFMJHYJXIE4MN3LI3VS7OYFLNIA47PW
+#\\\|VOVFUMGEUGTK2YW65ENKMGVCH43CE3R3DMUINDIB2MRI37KL7AD \ / AMOS7 \ YOURUM ::
+#\[7]CMKK2DUFKO2RNRTE4QRBQXX23KJOYTBK3MWO7OASMGPYZH7GP2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

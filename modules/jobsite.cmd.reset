@@ -16,9 +16,9 @@ for my $token ( split /\s+/, $args_str ) {
 
 ## require at least one filter : refuse naked reset ##
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' =>
-        'reset requires a filter: status= stage= job_id= enc_error= rep-err='
+        'reset requires a filter : status= stage= job_id= enc_error= rep-err='
     }
     unless %params;
 
@@ -135,7 +135,7 @@ for my $job_id (@candidates) {
         my $has_flag = FALSE;
         if ( length $job_file and -f $job_file ) {
             open my $fh, '<', $job_file or next;
-            $has_flag = TRUE if grep {/^repair_failed:\s*[15]/} <$fh>;
+            $has_flag = TRUE if grep {m|^repair_failed:\s*[15]|} <$fh>;
             close $fh;
         }
         next if $want     and not $has_flag;
@@ -145,13 +145,13 @@ for my $job_id (@candidates) {
     ## reset in-memory record if present ##
     if ( defined $rec ) {
         delete $rec->{$ARG} for @clear_fields;
-        $rec->{'status'} = 'new';
+        $rec->{'status'} = qw| new |;
     }
 
     ## reset per-job file ##
     my $job = <[jobsite.job.read]>->($job_id) // {};
     delete $job->{$ARG} for @clear_fields;
-    $job->{'status'} = 'new';
+    $job->{'status'} = qw| new |;
     <[jobsite.job.write]>->( $job_id, $job );
 
     $n_reset++;
@@ -160,19 +160,19 @@ for my $job_id (@candidates) {
 <[jobsite.state.persist]> if $n_reset;
 
 <[base.logs]>->(
-    1,        'jss.reset: reset=%d protected_skipped=%d',
+    1,        'jss.reset : reset=%d protected_skipped=%d',
     $n_reset, $n_protected
 );
 
 return {
-    'mode' => 'true',
-    'data' => sprintf 'reset %d job(s)%s',
-    $n_reset,
-    $n_protected ? " ($n_protected protected skipped)" : ''
+    'mode' => qw| true |,
+    'data' => sprintf 'reset %d job%s%s',
+    $n_reset, <[base.cnt_s]>->($n_reset),
+    $n_protected ? " [$n_protected protected skipped]" : ''
 };
 
-#,,,,,.,.,,,.,..,,,,.,,.,,,.,,,..,,,.,,..,,.,,..,,...,...,..,,.,.,.,,,.,.,.,,,
-#TNSLYE6EZ2CRM3YI7G44RLEQW6JND3FNXQYHBXVFDRR4RTBERWIR3JAWESYPSESTYWXM6CFIDYUUW
-#\\\|42KU5VYGZB6GCTCHNB65KKZUGZFVGTTOVXH7F3C3NLR7A7ON3ZH \ / AMOS7 \ YOURUM ::
-#\[7]CJKLMUEP2ECWIK22DIUJXSLROXTWJAGHZMEVNUJTYSLFIE2S34DI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,,,,.,.,...,,,.,,..,,.,,..,,,,,,..,,...,...,..,,,.,,..,,..,,.,,,
+#MHKIVC6P7AEGOSARHDZRCD3ZKTIYTIFOE4IY6U5KYNHFD43MK6UG6HG5OZOMF3TREXSKXOWPB3RQ4
+#\\\|3K2EBCJ5LUSXQTD5ACUQ5A7LOAZLDFIBGUMU6Q3A5AOR32JWUD2 \ / AMOS7 \ YOURUM ::
+#\[7]ZE7AP25NNAASGNHQ2EXK7DB45JWCZEIZVNH6V53A5VM5S4L2FSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
