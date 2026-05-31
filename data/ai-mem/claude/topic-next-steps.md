@@ -102,15 +102,19 @@ and any other STRM consumer, to confirm no undefined state introduced.
 - **scan-state slim** — DONE ✓ 4 fields only
 - **status/stage reconcile** — DONE ✓ assess-done writes status=review; migration ran
 - **UI card refinements** — DONE ✓ badges, dims row, error tab, NaN fix
-- **reassess ↺ button** — DONE ✓ UI live; backchannel POST works; forwarding pending
+- **reassess ↺ button** — DONE ✓ full loop working (commit 00c2e2605); 5 bugs fixed
 - **flexible export** — DONE ✓ stage checkboxes + since-last-export
 - **web plugin phase 2** — DONE ✓ status-dir layout, merge, prune
 - **sync push status-dir** — DONE ✓ status injected, blocked skipped, delete via index
 - **ES5 compat** — DONE ✓ ?./??→&& ; mobile rendering fixed
 - **sync_urls multiplex config** — DONE ✓ //→|| fallback fixed
-- **web-auth-plugin** — task written, medium priority, not dispatched
-- **web-sessions-distributed** — task written, lower priority, not dispatched
-- **repair_failed 5 jobs** — stuck in assessed; `jobsite.reset rep-err=1` + scan needed
+- **web-auth-plugin** — NEXT: dispatch now; needed before atom sync + multi-endpoint
+- **atom data recovery** — two steps: (1) merge jobsite YAMLs from flat layout via
+  script using priority rules; (2) extract browser localStorage applied/rejected
+  stages via DevTools → POST as reverse-sync batch to /jobs-sync
+- **multi-endpoint sync** — after auth plugin + atom recovery
+- **web-sessions-distributed** — lower priority, task written
+- **repair_failed 5 jobs** — resolved (all reassessed via ↺ button)
 
 ## jobs pipeline open items
 
@@ -220,8 +224,8 @@ and any other STRM consumer, to confirm no undefined state introduced.
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,..,.,.,,..,...,.,,,..,,,,,,,..,,,.,.,.,,.,,..,,...,.,.,...,,.,,.,,,.,,,.,,,
-#4F24U7IJ5MXFWRJNRD4P5M7I2UG64PNPRNGHKRNSPM3HFEMG67MQAYDVEGY5IW5IH45EW55JW6SQE
-#\\\|2HI2NLLZLSCXIZWZKI7OQS4ULEX7F53K62TIBKMUZAXXKRNHP6A \ / AMOS7 \ YOURUM ::
-#\[7]QH555WBNTBHWEGABCYNYIUHPZV5KFFPSOXW5FOY5XB7X7GA236BA 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,.,,..,,...,...,,,,,,,,,,,.,,,.,..,,...,...,...,,,,,,,.,.,.,.,.,
+#ZWVWILKQ6XCW5ASQHHFC5VZPNJOUZDG6YTYMO7XBKV76YVNCP2ZG2SS2RTXUPSAO2JU36XDZGMMQE
+#\\\|WLCOMJER4LSXCW76HAY74Z22EWZ246U5UIFBJWZ7AXWT2LMPY36 \ / AMOS7 \ YOURUM ::
+#\[7]KJQ6OUAXCCBXRXFZ7OLNNYDJPYHQBQHXVYG7B5MXIALQTZ4P6GAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
