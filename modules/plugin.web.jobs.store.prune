@@ -1,0 +1,101 @@
+## [:< ##
+
+# name  = plugin.web.jobs.store.prune
+# descr = two-phase prune: blocked->deleted, deleted->gone (no checksum store)
+
+my $cache_dir     = <[plugin.web.jobs.cache.path]>;
+my $current_epoch = int(<[base.ntime.epoch_dec]>);
+my ( $blocked_moved, $deleted_pruned ) = ( 0, 0 );
+
+## phase 1: blocked -> deleted (epoch distance > 0) ##
+my $blocked_root = "$cache_dir/blocked";
+if ( -d $blocked_root ) {
+    opendir my $dh, $blocked_root or goto PHASE2;
+    my @epoch_dirs = grep { !/^\./ && -d "$blocked_root/$_" } readdir($dh);
+    closedir $dh;
+
+    for my $ep_dir (@epoch_dirs) {
+        next unless $ep_dir =~ m{^V7[A-Z2-7]{5}$}i;
+        my $ep_num = <[base.ntime.epoch_timestamp]>->($ep_dir);
+        next unless defined $ep_num and $ep_num =~ m{^\d+$};
+        my $distance = $current_epoch - $ep_num;
+        next if $distance <= 0;
+
+        my $src_dir = "$blocked_root/$ep_dir";
+        my $dst_dir = "$cache_dir/deleted/$ep_dir";
+
+        ## ensure destination dir exists ##
+        if ( not -d $dst_dir ) {
+            my $user = <system.zenka-user.current>
+                // <system.amos-zenka-user> // qw| protocol-7 |;
+            my $group = <system.zenka-group.current> // $user;
+            <[file.make_path]>->( $dst_dir, 0750, $user, $group );
+        }
+
+        opendir my $edh, $src_dir or next;
+        my @stubs = grep { /\.yaml$/ && !/^\./ } readdir($edh);
+        closedir $edh;
+
+        for my $stub_fn (@stubs) {
+            my $src_path = "$src_dir/$stub_fn";
+            my $dst_path = "$dst_dir/$stub_fn";
+            if ( rename $src_path, $dst_path ) {
+                $blocked_moved++;
+            } else {
+                <[base.logs]>->(
+                    0, 'web.jobs.store.prune: rename %s -> %s failed: %s',
+                    $src_path, $dst_path, $!
+                );
+            }
+        }
+
+        rmdir $src_dir;
+        <[base.logs]>->(
+            1, 'web.jobs.store.prune: moved blocked/%s to deleted/', $ep_dir
+        );
+    }
+}
+
+PHASE2:
+
+## phase 2: deleted -> gone (epoch distance > 1) ##
+my $deleted_root = "$cache_dir/deleted";
+if ( -d $deleted_root ) {
+    opendir my $dh, $deleted_root or goto DONE;
+    my @epoch_dirs = grep { !/^\./ && -d "$deleted_root/$_" } readdir($dh);
+    closedir $dh;
+
+    for my $ep_dir (@epoch_dirs) {
+        next unless $ep_dir =~ m{^V7[A-Z2-7]{5}$}i;
+        my $ep_num = <[base.ntime.epoch_timestamp]>->($ep_dir);
+        next unless defined $ep_num and $ep_num =~ m{^\d+$};
+        my $distance = $current_epoch - $ep_num;
+        next if $distance <= 1;
+
+        my $dir = "$deleted_root/$ep_dir";
+        unlink glob("$dir/*");
+        rmdir $dir;
+        $deleted_pruned++;
+        <[base.logs]>->(
+            1, 'web.jobs.store.prune: removed deleted/%s', $ep_dir
+        );
+    }
+}
+
+DONE:
+
+<[base.logs]>->(
+    1,              'web.jobs.store.prune: moved=%d pruned=%d',
+    $blocked_moved, $deleted_pruned
+);
+
+return {
+    'blocked_moved'  => $blocked_moved,
+    'deleted_pruned' => $deleted_pruned,
+};
+
+#,,,.,,,.,,.,,,.,,,..,,,.,.,.,.,,,,,.,,.,,...,..,,...,.,.,,,,,,,.,...,...,.,,,
+#WX3Y4A4U4WW2777PSJV6IDYYBESMS65KFUFI6IEC33HT3YX6MNFTE2DSGYBWWRHGZMAWZQQ2B633M
+#\\\|GSD4E7NEHNNLBRNLA5WGFSQQQ2AJ7BYA6YGEBEI46SS3RDIGP7L \ / AMOS7 \ YOURUM ::
+#\[7]RGYVMC43HDLRMA5JDOW54DTSPBNPQYGKSZDJJ2EBTGTC272GA6AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

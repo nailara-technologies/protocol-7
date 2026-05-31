@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = plugin.web.jobs.sync.merge
+# descr = merge conflict resolution: highest-priority status wins
+
+my $local  = shift // {};
+my $remote = shift // {};
+
+return $local  if ref $local ne qw| HASH |;
+return $remote if ref $remote ne qw| HASH |;
+
+my %priority = (
+    interviewed => 8,
+    applied     => 7,
+    apply       => 6,
+    review      => 5,
+    assessed    => 4,
+    new         => 3,
+    rejected    => 2,
+    blocked     => 1,
+    deleted     => 0,
+);
+
+my $lp = $priority{ $local->{'status'}  // '' } // 0;
+my $rp = $priority{ $remote->{'status'} // '' } // 0;
+
+return $lp >= $rp ? $local : $remote
+    if $lp != $rp;
+
+## equal priority: newest last_modified wins ##
+return ( $local->{'last_modified'} // '' )
+    ge( $remote->{'last_modified'} // '' ) ? $local : $remote;
+
+#,,..,,..,,.,,..,,,,.,,..,,.,,.,.,,,.,,,.,,,,,..,,...,...,...,,,.,...,,.,,..,,
+#S4ZKQHNELKPJMKHAGF35UKOP4B6E32I55GQSXLJ3OJG6DPWXECXECNYNUZOMV2MOJ6GN4MBBBAXSI
+#\\\|QSPAXGLZFEPOUBASUDVNRVZ7RWYM65N6RD7RF3ONBSHPBLXVDHW \ / AMOS7 \ YOURUM ::
+#\[7]O5N6JIBDO5NN3RVKNYDEWODYCFK74XTXNR7VHST22AKJ4KLA36BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

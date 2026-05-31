@@ -8,35 +8,59 @@ return <plugin.web.jobs.cache>
 
 my $cache_dir = <[plugin.web.jobs.cache.path]>;
 my %jobs;
+my $index = {};
 
-if ( -d $cache_dir ) {
-    opendir my $dh, $cache_dir or do {
-        <plugin.web.jobs.cache> = \%jobs;
-        return \%jobs;
-    };
-    my @files = grep { m|\.yaml$| && !m|^\.| } readdir $dh;
-    closedir $dh;
+my @active_statuses
+    = qw| new assessed review apply applied interviewed rejected |;
+my @epoch_statuses = qw| blocked deleted |;
 
-    for my $file (@files) {
-        my $job_id = $file =~ s|\.yaml$||r;
-        my $job    = eval { YAML::XS::LoadFile("$cache_dir/$file") };
+## scan active status dirs ##
+for my $status (@active_statuses) {
+    my $dir = "$cache_dir/$status";
+    next if not -d $dir;
+    opendir my $dh, $dir or next;
+    for my $fn ( grep { /\.yaml$/ && !/^\./ } readdir($dh) ) {
+        my $job_id = $fn;
+        $job_id =~ s/\.yaml$//;
+        my $job = eval { YAML::XS::LoadFile("$dir/$fn") };
         if ($EVAL_ERROR) {
             <[base.logs]>->(
-                0,     'jobs.cache.read_all: error %s: %s',
-                $file, <[base.str.eval_error]>
+                0, 'web.jobs.cache.read_all: error %s/%s: %s',
+                $status, $fn, <[base.str.eval_error]>
             );
             next;
         }
-        $jobs{$job_id} = $job if ref $job eq qw| HASH |;
+        next if ref $job ne qw| HASH |;
+        $jobs{$job_id} = $job;
+        $index->{$job_id} = $status;
     }
+    closedir $dh;
 }
 
+## scan epoch-bucketed dirs for index only ##
+for my $status (@epoch_statuses) {
+    my $dir = "$cache_dir/$status";
+    next if not -d $dir;
+    opendir my $dh, $dir or next;
+    for my $epoch_dir ( grep { !/^\./ && -d "$dir/$_" } readdir($dh) ) {
+        opendir my $edh, "$dir/$epoch_dir" or next;
+        for my $fn ( grep { /\.yaml$/ && !/^\./ } readdir($edh) ) {
+            my $job_id = $fn;
+            $job_id =~ s/\.yaml$//;
+            $index->{$job_id} = "$status:$epoch_dir";
+        }
+        closedir $edh;
+    }
+    closedir $dh;
+}
+
+<plugin.web.jobs.index> = $index;
 <plugin.web.jobs.cache> = \%jobs;
 
 return <plugin.web.jobs.cache>;
 
-#,,,,,.,.,,..,,,,,..,,,..,.,.,..,,,,.,,,,,,,.,..,,...,...,.,.,,.,,,,,,,.,,...,
-#LBXV4K3GCU3PD2GYGZ2QCL2PVKVNEEDKV5T46ALDRZ3QX3GVODQFT6S26RQYJ6PVUMFNYYETPZ4CU
-#\\\|VJ6F4OKTNUPJT3G63KWV5KDAN3QTCJUNX4KLQPHWP5NA4JHUSH6 \ / AMOS7 \ YOURUM ::
-#\[7]TSQJP7LQJXI5HXIS2T2265HUUNIEDN7E6PXU2F3LCRWXAX45AIBI 7  DATA SIGNATURE ::
+#,,..,.,.,..,,.,,,,.,,,.,,,.,,,,.,.,,,,,.,,,.,..,,...,...,,,,,,.,,.,.,,.,,,..,
+#XGTRLDUVHSFBGM7IFCD3RLXQQ7ZFELQY6HB72Z6DUBHRPBE7LX43O5SSF7KUX4W2J7ABWSBFAWXJQ
+#\\\|LWHL22KVXQ6MHYZDBKE3ACBXZ2KGYIRZAUCLD3SA637M7FBV2Q6 \ / AMOS7 \ YOURUM ::
+#\[7]UMFKGONDXOX4ZYM5AZA3SDZUJLFQWKQW6NAJYASXA7R64SOYK4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
