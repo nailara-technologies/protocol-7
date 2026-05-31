@@ -58,16 +58,52 @@ my @external_tools = (
         'timeout'    => 4620,               ## 77 minutes
     },
     {   'name'        => 'kimi_continue',
-        'description' => 'resume a kimi session by session id and send a new prompt. '
+        'description' =>
+            'resume a kimi session by session id and send a new prompt. '
             . 'use when kimi_dispatch output ends with a resume line. '
             . 'pass the uuid from "To resume this session: kimi -r <uuid>". '
             . 'kimi resumes with full prior context and acts on the new prompt.',
-        'command'     => 'kimi -y -r %s -p %s',  ## session uuid + new prompt
+        'command'     => 'kimi -y -r %s -p %s',   ## session uuid + new prompt
         'param_name'  => 'session_id',
         'param_desc'  => 'the kimi session uuid from the resume line',
         'param2_name' => 'prompt',
-        'param2_desc' => 'the next task or instruction for the resumed session',
-        'timeout'     => 4620,               ## 77 minutes
+        'param2_desc' =>
+            'the next task or instruction for the resumed session',
+        'timeout' => 4620,                        ## 77 minutes
+    },
+    {   'name'        => 'claude_dispatch',
+        'description' =>
+            'dispatch a task to Claude Code CLI in non-interactive mode. '
+            . 'high-quality async dispatch for complex multi-file code tasks, architecture decisions, or '
+            . 'tasks requiring deep reasoning. specify model=haiku for cheap mechanical work, '
+            . 'model=sonnet (default) for general tasks, model=opus for maximum quality. '
+            . 'the result ends with "To resume this session: claude -r <uuid>" — pass that '
+            . 'uuid to claude_continue to resume a long-running task.',
+        'command' => 'claude -p %s --dangerously-skip-permissions '
+            . '--output-format stream-json --model %s --max-budget-usd %s',
+        'params' => [
+            [ 'prompt',     'the task or question for claude to work on', 1 ],
+            [ 'model',      'model: haiku|sonnet|opus (default: sonnet)', 0 ],
+            [ 'max_budget', 'max USD to spend (default: 1.00)',           0 ],
+        ],
+        'timeout' => 2400,    ## 40 minutes
+    },
+    {   'name'        => 'claude_continue',
+        'description' =>
+            'resume a claude session by session ID and send a new prompt. '
+            . 'use when claude_dispatch output ends with a resume line. '
+            . 'claude resumes with full prior context and acts on the new prompt.',
+        'command' => 'claude -r %s -p %s --dangerously-skip-permissions '
+            . '--output-format stream-json --model %s --max-budget-usd %s',
+        'params' => [
+            [   'session_id',
+                'the session UUID from the prior dispatch result', 1
+            ],
+            [ 'prompt', 'the next instruction for the resumed session', 1 ],
+            [ 'model',  'model: haiku|sonnet|opus (default: sonnet)',   0 ],
+            [ 'max_budget', 'max USD to spend (default: 1.00)',         0 ],
+        ],
+        'timeout' => 2400,    ## 40 minutes
     },
     ## additional external tools can be added here
     ## format: name, description, command (%s = shell-quoted first arg),
@@ -357,20 +393,34 @@ our @tools = (
 
 for my $ext (@external_tools) {
     next if grep { $_->{'name'} eq $ext->{'name'} } @tools;
-    my %props = (
-        $ext->{'param_name'} => {
+
+    my ( %props, @required );
+
+    if ( defined $ext->{'params'} ) {
+        for my $p ( @{ $ext->{'params'} } ) {
+            my ( $name, $desc, $req ) = @$p;
+            $props{$name} = {
+                'type'        => 'string',
+                'description' => $desc // '',
+            };
+            push @required, $name if $req;
+        }
+    } else {
+        ## legacy format (1-2 params)
+        $props{ $ext->{'param_name'} } = {
             'type'        => 'string',
             'description' => $ext->{'param_desc'} // '',
-        }
-    );
-    my @required = ( $ext->{'param_name'} );
-    if ( defined $ext->{'param2_name'} ) {
-        $props{ $ext->{'param2_name'} } = {
-            'type'        => 'string',
-            'description' => $ext->{'param2_desc'} // '',
         };
-        push @required, $ext->{'param2_name'};
+        push @required, $ext->{'param_name'};
+        if ( defined $ext->{'param2_name'} ) {
+            $props{ $ext->{'param2_name'} } = {
+                'type'        => 'string',
+                'description' => $ext->{'param2_desc'} // '',
+            };
+            push @required, $ext->{'param2_name'};
+        }
     }
+
     push @tools,
         {
         'name'        => $ext->{'name'},
@@ -1142,11 +1192,45 @@ sub tool_call_tool {
 
 sub tool_external_command {
     my ( $id, $args, $ext ) = @ARG;
-    my $param = $args->{ $ext->{'param_name'} } // '';
-    my $cmd   = defined $ext->{'param2_name'}
-        ? sprintf( $ext->{'command'}, quotemeta($param),
-            quotemeta( $args->{ $ext->{'param2_name'} } // '' ) )
-        : sprintf( $ext->{'command'}, quotemeta($param) );
+
+    ## claude-specific defaults and model alias resolution
+    if ( $ext->{'name'} =~ m{^claude_} ) {
+        $args->{'model'}      //= 'sonnet';
+        $args->{'max_budget'} //= '1.00';
+
+        my %model_map = (
+            'haiku'  => 'claude-haiku-4-5-20251001',
+            'sonnet' => 'claude-sonnet-4-6',
+            'opus'   => 'claude-opus-4-7',
+        );
+        if ( defined $args->{'model'} ) {
+            $args->{'model'} = $model_map{ $args->{'model'} }
+                // $args->{'model'};
+        }
+    }
+
+    ## build command from params
+    my @cmd_args;
+    if ( defined $ext->{'params'} ) {
+        for my $p ( @{ $ext->{'params'} } ) {
+            my ( $name, undef, $required ) = @$p;
+            my $val = $args->{$name} // '';
+            if ( $required and not length $val ) {
+                return send_tool_result( $id, "$name is required", 1 );
+            }
+            push @cmd_args, quotemeta($val);
+        }
+    } else {
+        ## legacy format (1-2 params)
+        my $param = $args->{ $ext->{'param_name'} } // '';
+        push @cmd_args, quotemeta($param);
+        if ( defined $ext->{'param2_name'} ) {
+            push @cmd_args,
+                quotemeta( $args->{ $ext->{'param2_name'} } // '' );
+        }
+    }
+
+    my $cmd    = sprintf( $ext->{'command'}, @cmd_args );
     my $output = '';
     my $error  = '';
 
@@ -1164,6 +1248,14 @@ sub tool_external_command {
             : "error: $@";
     }
 
+    ## claude session id extraction
+    if (    not length($error)
+        and $ext->{'name'} eq 'claude_dispatch'
+        and $output =~ m{"session_id"\s*:\s*"([a-f0-9\-]{36})"} ) {
+        my $session_id = $1;
+        $output .= "\nTo resume this session: claude -r $session_id\n";
+    }
+
     my $result = length($error) ? $error : $output;
     send_tool_result( $id, $result, length($error) ? 1 : 0 );
 }
@@ -1178,8 +1270,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,..,..,,,..,..,,..,,,.,,,..,...,,,.,..,,,..,..,,...,...,,,,,,,,,,,.,.,,,,,,,
-#LGY5VTDY7ROK7XEIHEHQZNBOAJLCJ6BOFR4TGEFYACTAOA74DB6OCZH5GOTRQOMLVR63TOJLNM3YM
-#\\\|DEP65CE7Q3JN5NGIACYWAK33GQL2E53MBZNP4VBHJLTMY4CTKEE \ / AMOS7 \ YOURUM ::
-#\[7]KQEWXHSP2BWA7WKYDFEYJVMVWYSL55OKK7KMSJE3QCJ26ZKRJMAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,..,,,,.,,.,,.,,,.,,,...,,,.,.,.,..,,...,..,,..,,,,.,,,.,,.,,.,.,
+#S4JEPLSCBGR2AGWTHOJ6SI2NOH34LXUDLLK5UIKAU6T74FZUIKLFQAN4RYL7N26LGEZ3FQX4F32BO
+#\\\|ABESFWZI6FNMHQ6HW2HD3FX2QYEUBWZ75SR33IWWPIXZGE7FD5Z \ / AMOS7 \ YOURUM ::
+#\[7]ZQKCTTRHLINDC2SOU2EE62OOPNKZB372S5QZUWPQ5AGC5OB7NGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
