@@ -7,6 +7,7 @@ use English;
 use warnings;
 
 use JSON;
+use POSIX       qw| strftime |;
 use List::Util  qw| max |;
 use Encode      qw| encode |;
 use Crypt::Misc qw| encode_b32r |;
@@ -412,6 +413,35 @@ our @tools = (
             'additionalProperties' => \0
         }
     },
+    {   'name'        => 'session_catchup',
+        'description' =>
+            'list or summarize recent claude/kimi sessions for this project. '
+            . 'without session_id: returns reverse-time sorted list with titles. '
+            . 'with session_id: summarizes that session via local 9B model (token-free). '
+            . 'use to catch up after a context reset or handover.',
+        'inputSchema' => {
+            'type'       => 'object',
+            'properties' => {
+                'client' => {
+                    'type'        => 'string',
+                    'description' => 'which client: claude | kimi | all (default: all)'
+                },
+                'session_id' => {
+                    'type'        => 'string',
+                    'description' => 'uuid of session to summarize (omit to list)'
+                },
+                'instruction' => {
+                    'type'        => 'string',
+                    'description' => 'focus for summarization (default: general summary)'
+                },
+                'limit' => {
+                    'type'        => 'integer',
+                    'description' => 'max sessions to list (default: 10)'
+                },
+            },
+            'additionalProperties' => \0
+        }
+    },
 );
 
 ##[ load chat tool definitions ]##
@@ -583,6 +613,8 @@ sub handle_tools_call {
         tool_p7_chat_channels( $id, $args );
     } elsif ( $name eq 'coding_summarize' ) {
         tool_coding_summarize( $id, $args );
+    } elsif ( $name eq 'session_catchup' ) {
+        tool_session_catchup( $id, $args );
     } elsif ( my ($ext) = grep { $_->{'name'} eq $name } @external_tools ) {
         tool_external_command( $id, $args, $ext );
     } else {
@@ -1324,6 +1356,234 @@ sub _do_summarize {
     }
 }
 
+## =========================================================================
+## session catchup tool
+## =========================================================================
+
+sub _claude_session_dir {
+    my $home = $ENV{'HOME'} // '/home/' . ( $ENV{'USER'} // 'taeki' );
+    return "$home/.claude/projects/-data-projects-protocol-7";
+}
+
+sub _kimi_session_dir {
+    my $home = $ENV{'HOME'} // '/home/' . ( $ENV{'USER'} // 'taeki' );
+    return "$home/.kimi/sessions";
+}
+
+sub _list_claude_sessions {
+    my ($limit) = @ARG;
+    my $dir = _claude_session_dir();
+    return () unless -d $dir;
+
+    my @files = glob("$dir/*.jsonl");
+    my @sessions;
+    for my $file (@files) {
+        my $mtime = ( stat($file) )[9] // 0;
+        my $uuid  = $file;
+        $uuid =~ s{.*/}{};
+        $uuid =~ s{\.jsonl$}{};
+        next unless $uuid =~ m{^[0-9a-f\-]{36}$};
+
+        ## extract first user message as title ##
+        my $title = '';
+        if ( open( my $fh, '<:raw', $file ) ) {
+            while ( my $line = <$fh> ) {
+                eval {
+                    my $d = $json->decode($line);
+                    if (    ( $d->{'type'} // '' ) eq 'user'
+                        and ( $d->{'message'}{'role'} // '' ) eq 'user' ) {
+                        my $c = $d->{'message'}{'content'} // '';
+                        if ( ref $c eq 'ARRAY' ) {
+                            for my $block (@$c) {
+                                if ( ( $block->{'type'} // '' ) eq 'text' ) {
+                                    $title = $block->{'text'};
+                                    last;
+                                }
+                            }
+                        } elsif ( not ref $c ) {
+                            $title = $c;
+                        }
+                        last if length $title;
+                    }
+                };
+                last if length $title;
+            }
+            close $fh;
+        }
+        $title =~ s/\s+/ /g;
+        $title = substr( $title, 0, 80 ) . ( length($title) > 80 ? '...' : '' );
+        $title ||= '(no title)';
+        push @sessions,
+            {   mtime  => $mtime,
+                uuid   => $uuid,
+                title  => $title,
+                client => 'claude',
+                file   => $file,
+            };
+    }
+    return sort { $b->{'mtime'} <=> $a->{'mtime'} } @sessions;
+}
+
+sub _list_kimi_sessions {
+    my ($limit) = @ARG;
+    my $base = _kimi_session_dir();
+    return () unless -d $base;
+
+    my @sessions;
+    for my $outer_dir ( glob("$base/*") ) {
+        next unless -d $outer_dir;
+        for my $inner_dir ( glob("$outer_dir/*") ) {
+            my $state_file = "$inner_dir/state.json";
+            next unless -f $state_file;
+            my $uuid = $inner_dir;
+            $uuid =~ s{.*/}{};
+
+            my $file_mtime = ( stat($state_file) )[9] // 0;
+            my ( $title, $mtime ) = ( '', $file_mtime );
+            eval {
+                open( my $fh, '<:raw', $state_file ) or die;
+                my $raw = do { local $/; <$fh> };
+                close $fh;
+                my $d = $json->decode($raw);
+                $title = $d->{'custom_title'} // '';
+                my $t = $d->{'wire_mtime'} // $d->{'archived_at'} // 0;
+                $mtime = int($t) if $t;
+            };
+            $title ||= '(no title)';
+            $title =~ s/\s+/ /g;
+            $title = substr( $title, 0, 80 )
+                . ( length($title) > 80 ? '...' : '' );
+            push @sessions,
+                {   mtime  => $mtime,
+                    uuid   => $uuid,
+                    title  => $title,
+                    client => 'kimi',
+                    file   => "$inner_dir/context.jsonl",
+                };
+        }
+    }
+    return sort { $b->{'mtime'} <=> $a->{'mtime'} } @sessions;
+}
+
+sub tool_session_catchup {
+    my ( $id, $args ) = @ARG;
+
+    my $client     = lc( $args->{'client'}     // 'all' );
+    my $session_id = $args->{'session_id'}     // '';
+    my $instruction = $args->{'instruction'}   // '';
+    my $limit      = $args->{'limit'}          // 10;
+
+    my @sessions;
+    push @sessions, _list_claude_sessions()
+        if $client eq 'all' or $client eq 'claude';
+    push @sessions, _list_kimi_sessions()
+        if $client eq 'all' or $client eq 'kimi';
+    @sessions = sort { $b->{'mtime'} <=> $a->{'mtime'} } @sessions;
+
+    ## summarize mode ##
+    if ( length $session_id ) {
+        my ($s) = grep { $_->{'uuid'} eq $session_id } @sessions;
+        return send_tool_result( $id, "session not found: $session_id", 1 )
+            unless defined $s;
+        return send_tool_result( $id, "session file missing: $s->{'file'}", 1 )
+            unless -f $s->{'file'};
+
+        my $inst = length($instruction) ? $instruction
+            : 'summarize what was accomplished, key decisions, open issues, and next steps';
+
+        ## session files are in user home — coding zenka (different user) can't
+        ## read them directly; extract conversation text here and pass as content ##
+        my $text = _extract_session_text( $s->{'file'}, $s->{'client'} );
+        return send_tool_result( $id, 'failed to read session file', 1 )
+            unless length $text;
+
+        my $result = '';
+        my $error  = '';
+        eval {
+            local $SIG{ALRM} = sub { die "timeout\n" };
+            alarm(247);
+            $result = _do_summarize( $text, $inst, 600 );
+            alarm(0);
+        };
+        if ($@) {
+            cube_disconnect();
+            $error = $@ eq "timeout\n"
+                ? 'summarization timed out after 247s'
+                : "error: $@";
+        }
+        if ( length $error ) {
+            return send_tool_result( $id, $error, 1 );
+        }
+        $result //= 'summarization failed';
+        my $header = sprintf ":. %s .[ %s ]:. %s\n\n",
+            $s->{'client'}, $session_id,
+            POSIX::strftime( '%Y-%m-%d %H:%M', localtime( $s->{'mtime'} ) );
+        return send_tool_result( $id, $header . $result, 0 );
+    }
+
+    ## list mode ##
+    my @out;
+    push @out, '.:[ recent sessions ]:.';
+    my $n = 0;
+    for my $s (@sessions) {
+        last if $n++ >= $limit;
+        my $ts = POSIX::strftime( '%m-%d %H:%M', localtime( $s->{'mtime'} ) );
+        push @out, sprintf "  %-5s  %s  :. %s",
+            $s->{'client'}, $s->{'uuid'}, $s->{'title'};
+        $out[-1] =~ s/$/ [ $ts ]/;
+    }
+    return send_tool_result( $id,
+        @out > 1 ? join( "\n", @out ) : 'no sessions found', 0 );
+}
+
+sub _extract_session_text {
+    my ( $file, $client ) = @ARG;
+    my $text = '';
+    return $text unless -f $file;
+    open( my $fh, '<:raw', $file ) or return $text;
+    while ( my $line = <$fh> ) {
+        eval {
+            my $d = $json->decode($line);
+            if ( $client eq 'claude' ) {
+                ## claude: type=user or type=assistant entries ##
+                my $role = $d->{'type'} // '';
+                if ( $role eq 'user' or $role eq 'assistant' ) {
+                    my $msg = $d->{'message'} // {};
+                    my $c   = $msg->{'content'} // '';
+                    if ( ref $c eq 'ARRAY' ) {
+                        for my $b (@$c) {
+                            next unless ref $b eq 'HASH';
+                            $text .= $b->{'text'} . "\n"
+                                if ( $b->{'type'} // '' ) eq 'text';
+                        }
+                    } elsif ( not ref $c and length $c ) {
+                        $text .= $c . "\n";
+                    }
+                }
+            } else {
+                ## kimi context.jsonl: role=user or role=assistant ##
+                my $role = $d->{'role'} // '';
+                if ( $role eq 'user' or $role eq 'assistant' ) {
+                    my $c = $d->{'content'} // '';
+                    if ( ref $c eq 'ARRAY' ) {
+                        for my $b (@$c) {
+                            next unless ref $b eq 'HASH';
+                            $text .= $b->{'text'} . "\n"
+                                if ( $b->{'type'} // '' ) eq 'text';
+                        }
+                    } elsif ( not ref $c and length $c ) {
+                        $text .= $c . "\n";
+                    }
+                }
+            }
+        };
+    }
+    close $fh;
+    ## ensure decoded perl chars before returning ##
+    utf8::decode($text) if length $text and not utf8::is_utf8($text);
+    return $text;
+}
+
 sub _do_summarize_file {
     my ( $path, $instruction, $max_tokens ) = @ARG;
     $instruction //= 'summarize concisely';
@@ -1453,8 +1713,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,..,,,.,,..,...,...,.,,,,.,,...,...,,,,,..,,..,,...,...,..,,.,,,,..,,.,,,..,
-#7TW7D7IENFZ3MRMUF5UV6OWDF6XXIDHVSAUK35IAGYDOD7M3EXYY7OHYR6XOPOUHQE5KL642J65S4
-#\\\|T5CNWWWTSNSBE42CZTNVGQ4ASKMZJJM36MQVTPZGL5SE4HGBU47 \ / AMOS7 \ YOURUM ::
-#\[7]TTHENVDX73YYSJBCW2WGNZWVLUMCJS5QSMIDNFAFZZPEMSLV26AI 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,...,,,,,.,,,.,,,..,,,,,,..,,..,,..,,...,...,...,.,,,.,,,,.,,,,,,
+#B2CJK2M65XCE4BBQLC43IBTR3IGQVZUIUTJLWC2WI4SUQ3PFFOHNLFILX43WABXMSNMQXJFIIKNZU
+#\\\|TLB5Z6OGYQHV7IC3GAFLHFAJ33P2WHNN57B7X6VFIQBY6OLJOVD \ / AMOS7 \ YOURUM ::
+#\[7]NXDWLICMHGUFATPV75J73AY6ZQSYT2EIMSXO52X732ELXH6VRSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
