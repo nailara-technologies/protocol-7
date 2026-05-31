@@ -99,6 +99,23 @@ if ($async_mode) {
     );
     my $est_tokens      = int( bytes::length($body_est_json) / 3.2 );
     my $max_tokens_safe = $n_ctx - $est_tokens - 500;
+
+    ## fail immediately if initial prompt already overflows context ##
+    if ( $max_tokens_safe <= 0 ) {
+        my $overflow = $est_tokens - $n_ctx;
+        my $err = sprintf(
+            'initial prompt overflow: estimated %d tokens exceeds n_ctx=%d by %d'
+                . ' : reduce task description or tool output size',
+            $est_tokens, $n_ctx, $overflow > 0 ? $overflow : 0
+        );
+        <[base.logs]>->( 0, "coding.task.execute: %s [%s]", $err, $task_id );
+        $task->{'execution'}->{'status'} = 'failed';
+        $task->{'execution'}->{'error'}  = $err;
+        <[jobqueue.move_job]>->( $job_id, 'error' );
+        <[coding.task.fail]>->( $task_id, $err );
+        return { success => FALSE, error => $err };
+    }
+
     $max_tokens_safe = 200 if $max_tokens_safe < 200;
     my $max_tokens
         = $max_tokens_cfg < $max_tokens_safe
@@ -176,8 +193,8 @@ if ($async_mode) {
 ## unreachable : async block always returns before here ##
 return FALSE;
 
-#,,,.,,,,,...,...,..,,,.,,,.,,,,,,...,...,,.,,.,.,...,...,..,,.,.,.,.,,.,,..,,
-#WE4K7RWDEFVUJSJAFB3R3XW3ROPJMNN6R65X6ZL7AARJKSDSMTUFWRL4WMZSSMZ4QSWOSSYYIJWK2
-#\\\|OZLRMH5GAV5IYPKMVESLYDZD4C644FKKVQMMO5CKGP4FFIAYOOJ \ / AMOS7 \ YOURUM ::
-#\[7]IOMYFP3VAUBB3A7INGLHLV5R4S5SWP2FEOP6KD6SFZOEPUO7DQAI 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,..,,,,,,.,,.,,,,,,,,.,,...,.,.,.,.,...,...,,,.,..,,,.,,..,,,..,
+#3FLZAWX4GL6OD2YGA7PGE22U2OCZL37PHKKKHRQM7U5JB5P6HYWJSMECX7L6PCMHQI7NTFCUUCHQ6
+#\\\|NY3I3VNYLRB7HIMTYMKFOA5XKOKJLBBEYCYNUMI5S4NMWA67LT4 \ / AMOS7 \ YOURUM ::
+#\[7]FTTI6BSY6PKPN22QOBVD5JAGV35O55ACMPOZHQ4SRGA2ZEBHVMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
