@@ -1366,6 +1366,37 @@ sub _model_chunk_size {
     return $chunk;
 }
 
+sub _extract_stream_content {
+    my ($text) = @ARG;
+
+    ## primary: extract result field from final {"type":"result",...} line ##
+    for my $line ( split /\n/, $text ) {
+        next unless $line =~ m{^\{.*"type"\s*:\s*"result"};
+        my $decoded = eval { decode_json($line) };
+        next if $@;
+        my $result = $decoded->{'result'} // '';
+        return $result if length($result) > 10;
+    }
+
+    ## fallback: concatenate text from {"type":"assistant",...} message lines ##
+    my @parts;
+    for my $line ( split /\n/, $text ) {
+        next unless $line =~ m{^\{.*"type"\s*:\s*"assistant"};
+        my $decoded = eval { decode_json($line) };
+        next if $@;
+        my $msg = $decoded->{'message'} // {};
+        for my $block ( @{ $msg->{'content'} // [] } ) {
+            push @parts, $block->{'text'}
+                if ( $block->{'type'} // '' ) eq 'text'
+                and length( $block->{'text'} // '' );
+        }
+    }
+    return join( "\n", @parts ) if @parts;
+
+    ## last resort: return original — do not lose data ##
+    return $text;
+}
+
 sub _do_summarize {
     my ( $text, $instruction, $max_tokens ) = @ARG;
     $instruction //= 'summarize concisely';
@@ -1747,6 +1778,7 @@ sub tool_external_command {
                 . 'issues (list), resume_uuid (if present), '
                 . 'next_steps (explicit next actions)';
             $pending_summary_focus = undef;
+            $output                = _extract_stream_content($output);
             my $summary = _do_summarize( $output, $instruction, 600 );
             if ( defined $summary and length $summary ) {
                 $output = $summary;
@@ -1769,8 +1801,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,,,,.,,.,,,,.,,,,,,..,,,..,,..,,..,,,,,,..,..,,...,..,,,..,..,,,..,,..,,,,,
-#LXHRU4OIPVAMQ2AAR2GR6XW2LX4354GWGZU65RPA4LKGZEQR2G3HCN7WPBZZSHCYCMNTMSDXYCYJU
-#\\\|3N2QISTOB5E4I7LBOFULAWNIDOWQAFDUE63PBK463XCL3LXNA3U \ / AMOS7 \ YOURUM ::
-#\[7]NMKO3KYMB3OMQA2SSPTJINPHGCEQVTCCTL4HADZIXR5NX7HGAOAA 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,.,.,,,.,,.,,...,.,,,.,,,.,,,.,,,..,,...,...,...,,..,,,,,.,,,,,,,
+#FQDMCWNHGTRAEB6K7WHRYMRH73ZZNSCAKSYYV3P3DCIRS5UYDUNHTMNMAV6SUXMOCZDZMK53U76GA
+#\\\|S3P7VMBC2LS5C2I7I6YAUZPEJQODKJGOOD2OG3M47OLACY3LBS7 \ / AMOS7 \ YOURUM ::
+#\[7]WIZZYWTPBZZEMZLCTNZDOULEV5G7QJFK3R76DNLIFAYXYNUAMABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
