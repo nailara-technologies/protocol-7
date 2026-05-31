@@ -97,13 +97,20 @@ and any other STRM consumer, to confirm no undefined state introduced.
 - **filesystem checksum store** — DONE ✓ commit 5846902bc: dir-based, no load/persist
 - **jobsite status-dir layout** — DONE ✓ kimi dispatch; per-status job subdirs live
 - **job.read utf8 fix** — DONE ✓ uncommitted: utf8::encode before YAML::XS::Load
-- **checksum status-dir expansion** — kimi continue 3e42231f dispatched; status unknown
-- **jobsite.cmd.progress** — DONE ✓ commit 3df3f7a49; ascii bar, cycle-aware right bracket
-- **scan-state slim** — DONE ✓ commit 3df3f7a49; 4 fields only, tasks from filesystem
-- **reset enc_error/rep-err** — DONE ✓ renamed from encoding_broken/repair_failed
-- **repair_failed 30 jobs** — DONE ✓ reset + re-assessed
-- **web-jobs-status-dir-layout** — task file written, not dispatched
-- **progress bar review:0 bug** — tasks use status=assessed+stage=review; bar shows 0
+- **checksum store status-dir expansion** — DONE ✓ kimi 3e42231f; titles/ per-status, resolved_status, interviewed
+- **jobsite.cmd.progress** — DONE ✓ index-based counts; rev:152 correct
+- **scan-state slim** — DONE ✓ 4 fields only
+- **status/stage reconcile** — DONE ✓ assess-done writes status=review; migration ran
+- **UI card refinements** — DONE ✓ badges, dims row, error tab, NaN fix
+- **reassess ↺ button** — DONE ✓ UI live; backchannel POST works; forwarding pending
+- **flexible export** — DONE ✓ stage checkboxes + since-last-export
+- **web plugin phase 2** — DONE ✓ status-dir layout, merge, prune
+- **sync push status-dir** — DONE ✓ status injected, blocked skipped, delete via index
+- **ES5 compat** — DONE ✓ ?./??→&& ; mobile rendering fixed
+- **sync_urls multiplex config** — DONE ✓ //→|| fallback fixed
+- **web-auth-plugin** — task written, medium priority, not dispatched
+- **web-sessions-distributed** — task written, lower priority, not dispatched
+- **repair_failed 5 jobs** — stuck in assessed; `jobsite.reset rep-err=1` + scan needed
 
 ## jobs pipeline open items
 
@@ -213,8 +220,8 @@ and any other STRM consumer, to confirm no undefined state introduced.
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,.,,,,.,.,,,...,.,.,,.,,,.,,,.,,..,,,.,,,,,,..,,...,...,...,.,,,.,.,.,,,...,
-#VEYVT6SXHHJA6V7FOTRJW7ID32DOXGPBGLKFQMRUBSFRBPG532JPFUCYONP6LEIPL3MY4P6K523MW
-#\\\|RH26EQYTLW7YHZ2FE72FCQJ2S64IW2MEQXPGFPURNH6EYAAW56L \ / AMOS7 \ YOURUM ::
-#\[7]R5ENGTOA32WN6UYDMSK6NYIPJJ6M3R6G2LXGFIHDO2ANFCJZS2BA 7  DATA SIGNATURE ::
+#,,..,.,.,,..,...,.,,,..,,,,,,,..,,,.,.,.,,.,,..,,...,.,.,...,,.,,.,,,.,,,.,,,
+#4F24U7IJ5MXFWRJNRD4P5M7I2UG64PNPRNGHKRNSPM3HFEMG67MQAYDVEGY5IW5IH45EW55JW6SQE
+#\\\|2HI2NLLZLSCXIZWZKI7OQS4ULEX7F53K62TIBKMUZAXXKRNHP6A \ / AMOS7 \ YOURUM ::
+#\[7]QH555WBNTBHWEGABCYNYIUHPZV5KFFPSOXW5FOY5XB7X7GA236BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
