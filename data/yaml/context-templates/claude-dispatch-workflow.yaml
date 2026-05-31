@@ -1,0 +1,114 @@
+---
+name: claude-dispatch-workflow
+descr: when and how to use claude_dispatch — nested orchestration, two-UUID pattern, auto_summarize
+budget: 3000
+sections:
+
+  - static: |
+      ## claude dispatch workflow ##
+
+      claude_dispatch launches a Claude Code CLI subprocess with auto-approve.
+      model choices: haiku (fast/cheap), sonnet (default), opus (max quality).
+      use it to offload sequences that would bloat the parent context window.
+
+      ## when to use claude vs kimi ##
+
+      use claude_dispatch when:
+        - reasoning quality matters more than cost (claude > kimi for planning)
+        - the task is best done by claude-code patterns (git, file editing, CLI)
+        - you want nested orchestration: claude manages a kimi workflow end-to-end
+        - you need max_budget control to cap spend on a subtask
+
+      use kimi_dispatch when:
+        - the task is a focused P7 code job (kimi is free and good at P7)
+        - you want parallel dispatch of multiple independent tasks
+        - cost is the primary constraint
+
+      use both in parallel when:
+        - independent tasks can run simultaneously without context sharing
+        - review + implementation can proceed concurrently
+
+      ## nested dispatch pattern ##
+
+      claude_dispatch can orchestrate kimi_dispatch internally.
+      the outer claude session reads the task, dispatches kimi, waits for result,
+      runs ptd -c verification, then returns a summary to the parent.
+
+      this keeps the parent context small: the parent only sees the summary,
+      not the full kimi output or the intermediate exploration steps.
+
+      pattern:
+        1. parent: claude_dispatch(prompt="complete X", model="sonnet")
+        2. inner claude: reads task → kimi_dispatch(task_file) → kimi runs
+        3. inner claude: kimi_continue if needed → ptd -c → review result
+        4. inner claude: returns compact summary to parent
+        5. parent: receives summary only (auto_summarize trims raw output)
+
+      two-UUID pattern:
+        outer_uuid = claude_dispatch return value    [ resume outer claude session ]
+        inner_uuid = kimi_dispatch return value      [ resume kimi session if needed ]
+        track both — use claude_continue(outer_uuid) and kimi_continue(inner_uuid)
+        independently if either needs a follow-up pass.
+
+      ## auto_summarize behavior ##
+
+      auto_summarize=TRUE is the default on both claude_dispatch and kimi_dispatch.
+      the summarizer is the local free 9B model (coding_summarize).
+      it applies a rolling window for large outputs — no context overflow.
+
+      return value with auto_summarize:
+        { uuid: "<session-id>", summary: "<compact result>", raw_truncated: true }
+
+      return value without auto_summarize (auto_summarize=FALSE):
+        { uuid: "<session-id>", output: "<full raw text>" }
+
+      use auto_summarize=FALSE only when:
+        - you need to parse structured output (JSON, YAML) from the subprocess
+        - the output is known to be short (< 2K tokens)
+        - you are building a pipeline where the next step needs exact text
+
+      ## structuring the outer claude prompt ##
+
+      for nested kimi orchestration, the outer claude prompt should contain:
+        - the task objective (one paragraph)
+        - the kimi task file path or enough info to write it
+        - the verification steps (ptd -c, grep checks, read output)
+        - a compact summary format for the return value
+        - signatures_note carried through to any kimi task files written
+
+      example:
+        "read data/yaml/coding-tasks/T-42.yaml, dispatch kimi to complete the
+         implementation, run ptd -c on each new module, fix any errors, then
+         return a one-paragraph summary of what was done and any open issues."
+
+      ## claude_continue for follow-up passes ##
+
+      use claude_continue when:
+        - the dispatched session ran out of budget mid-task
+        - a second pass is needed (e.g., verify then fix)
+        - the first call returned with incomplete work
+
+      format:
+        session_id:  "<uuid from claude_dispatch return>"
+        prompt:      "continue from where you left off; verify ptd -c passes"
+        max_budget:  2.0   [ optional cap for the continuation ]
+
+      ## max_budget ##
+
+      always set max_budget for dispatched subtasks to avoid runaway spend.
+      recommended defaults:
+        haiku  : 0.5  [ simple lookups, summaries ]
+        sonnet : 1.5  [ standard implementation tasks ]
+        opus   : 3.0  [ complex reasoning, architecture decisions ]
+
+      a dispatched claude session that hits max_budget will call task_complete
+      with whatever it has. use claude_continue to resume if needed.
+    priority: 1
+    budget_pct: 100
+    label: claude dispatch workflow
+
+#,,,.,,,.,.,.,..,,.,.,.,.,,.,,,..,...,..,,,,,,..,,...,...,..,,,,.,.,.,,.,,,.,,
+#NGPFAHWGL3EBBZLTQNC6UO3Y6JGLH536OEZXG6SKOYVWNBZNMYQORNOUACGMAZKYD3ADL7L6BVGZA
+#\\\|2Y3JYBQ35AOZOFRJYET5B2JMHXRY2TLKY5MUZW7RSCJ4YCPX5AW \ / AMOS7 \ YOURUM ::
+#\[7]6NMS2BKZT6MEXFE3AFB6AUYNO5BUBOT6Z7RGAYJZNW7OUMVBUMAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
