@@ -1,0 +1,86 @@
+## [:< ##
+
+# name  = plugin.web.auth.handler.logout
+# descr = POST /auth/logout — destroy session
+
+my $id       = shift;
+my $zenka    = <system.zenka.name> // qw| web |;
+my $is_httpd = ( $zenka eq qw| httpd | or $zenka eq qw| httpsd | );
+
+my ( $http_sid, $body, $headers );
+
+if ($is_httpd) {
+    $http_sid = $id;
+    $body     = $data{'session'}->{$http_sid}->{'buffer'}->{'input'} // '';
+    $data{'session'}->{$http_sid}->{'buffer'}->{'input'} = '';
+    $headers
+        = $data{'session'}->{$http_sid}->{'http'}->{'request'}->{'headers'}
+        // {};
+} else {
+    my $call = $id // {};
+    $body     = $call->{'args'}     // '';
+    $http_sid = $call->{'http_sid'} // 0;
+    $headers  = {};
+}
+
+## parse JSON body if present ##
+my $payload = {};
+if ( length $body ) {
+    $payload = eval { JSON::XS::decode_json($body) } // {};
+}
+
+## extract token from body, header, or cookie ##
+my $token = '';
+if ( ref $payload eq qw| HASH | and length( $payload->{'token'} // '' ) ) {
+    $token = $payload->{'token'};
+} else {
+    my $auth = $headers->{'authorization'} // '';
+    if ( $auth =~ m|^Bearer\s+(\S+)$|i ) {
+        $token = $LAST_PAREN_MATCH;
+    } else {
+        my $cookie = $headers->{'cookie'} // '';
+        if ( $cookie =~ m|\bp7_session=([^;\s]+)| ) {
+            $token = $LAST_PAREN_MATCH;
+        }
+    }
+}
+
+my $ok = FALSE;
+if ( length $token ) {
+    $ok = <[plugin.web.auth.destroy_session]>->($token);
+}
+
+my $json_str
+    = $ok
+    ? '{"ok":true}'
+    : '{"ok":false,"error":"logout failed"}';
+
+if ($is_httpd) {
+    my $code = $ok ? 200 : 400;
+    $data{'session'}->{$http_sid}->{'http'}->{'close'} = 1;
+    $data{'session'}->{$http_sid}->{'buffer'}->{'output'}
+        .= <[httpd.new_header]>->(
+        $code,
+        {   'Content-Type'   => qw| application/json |,
+            'Content-Length' => length($json_str),
+            'Connection'     => qw| close |,
+            'Set-Cookie'     => 'p7_session=; Max-Age=0; Path=/; HttpOnly',
+        }
+        );
+    $data{'session'}->{$http_sid}->{'buffer'}->{'output'} .= $json_str;
+    return 2;
+}
+
+return {
+    'mode'         => qw| strm |,
+    'data'         => $json_str,
+    'content_type' => qw| application/json |,
+};
+
+#,,.,,...,,..,...,.,,,..,,,..,..,,,,,,...,,,.,..,,...,...,,.,,,..,,.,,,.,,..,,
+
+#,,..,..,,.,,,,,,,..,,.,,,,.,,..,,,,,,,,.,.,,,..,,...,...,...,.,.,...,,..,,,.,
+#HET5SAR6NQP2Y23EAE6JU2S4KVEZ3UDFPM7VWYW2SIZGSUWJYEE2LU2333VT2GQEMGKZCY2C73MMI
+#\\\|2S656WO672YTC37HLI3L2NRC4N4RFEZUSMK4DKCJSQEQATM2ZMJ \ / AMOS7 \ YOURUM ::
+#\[7]JH6YQM4JOUWIHZLYFANVITLUATEXHSV526AM34IKEY4MSIM6CUBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

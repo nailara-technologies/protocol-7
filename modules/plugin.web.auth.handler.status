@@ -1,0 +1,76 @@
+## [:< ##
+
+# name  = plugin.web.auth.handler.status
+# descr = GET /auth/status — return session info or 401
+
+my $id       = shift;
+my $zenka    = <system.zenka.name> // qw| web |;
+my $is_httpd = ( $zenka eq qw| httpd | or $zenka eq qw| httpsd | );
+
+my ( $http_sid, $body, $headers );
+
+if ($is_httpd) {
+    $http_sid = $id;
+    $body     = $data{'session'}->{$http_sid}->{'buffer'}->{'input'} // '';
+    $data{'session'}->{$http_sid}->{'buffer'}->{'input'} = '';
+    $headers
+        = $data{'session'}->{$http_sid}->{'http'}->{'request'}->{'headers'}
+        // {};
+} else {
+    my $call = $id // {};
+    $body     = $call->{'args'}     // '';
+    $http_sid = $call->{'http_sid'} // 0;
+    $headers  = {};
+}
+
+## build a pseudo-session hash for verify_session ##
+my $session_check = { 'http' => { 'request' => { 'headers' => $headers } } };
+
+my $session_data = <[plugin.web.auth.verify_session]>->($session_check);
+
+my $json_str;
+if ( defined $session_data ) {
+    $json_str = eval {
+        JSON::XS::encode_json(
+            {   'ok'      => JSON::XS::true(),
+                'session' => {
+                    'user_id'    => $session_data->{'user_id'}    // '',
+                    'node_id'    => $session_data->{'node_id'}    // '',
+                    'created_at' => $session_data->{'created_at'} // '',
+                    'last_seen'  => $session_data->{'last_seen'}  // '',
+                }
+            }
+        );
+    } // '{"ok":true}';
+} else {
+    $json_str = '{"ok":false,"error":"unauthorized"}';
+}
+
+if ($is_httpd) {
+    my $code = defined $session_data ? 200 : 401;
+    $data{'session'}->{$http_sid}->{'http'}->{'close'} = 1;
+    $data{'session'}->{$http_sid}->{'buffer'}->{'output'}
+        .= <[httpd.new_header]>->(
+        $code,
+        {   'Content-Type'   => qw| application/json |,
+            'Content-Length' => length($json_str),
+            'Connection'     => qw| close |,
+        }
+        );
+    $data{'session'}->{$http_sid}->{'buffer'}->{'output'} .= $json_str;
+    return 2;
+}
+
+return {
+    'mode'         => qw| strm |,
+    'data'         => $json_str,
+    'content_type' => qw| application/json |,
+};
+
+#,,.,,...,,..,...,.,,,..,,,..,..,,,,,,...,,,.,..,,...,...,,.,,,..,,.,,,.,,..,,
+
+#,,,.,,,.,,.,,.,.,.,.,...,,,.,,..,,,.,..,,,,.,..,,...,..,,.,,,,,.,.,.,.,.,,.,,
+#T73TMONSSMO3GIGONQLR3CZXLIJ4NI3ZNMBKYF35S2CMLSCZDIRI7TJURSTKVL7QFDHSCARUJJ7HG
+#\\\|ZSPKDLKOFV5PMOK5KB5ZQBOHVYGGOKMUCD7XQPTPMFQ2J5JGVIX \ / AMOS7 \ YOURUM ::
+#\[7]CS3MGWWD7IWRQ6I5VINN6VWNL2ROXYQ6FCGOKGKD5RVRCFZXPWCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
