@@ -3,15 +3,20 @@
 # name  = jobsite.sync.push_chunk
 # descr = send next chunk from queue, or finish cycle when all chunks sent
 
-my $chunks = <jobsite.sync.push_chunks> // [];
-my $chunk  = shift @{$chunks};
+my $queue = <jobsite.sync.push_queue> // [];
+my $item  = shift @{$queue};
 
-if ( not defined $chunk ) {
+if ( not defined $item ) {
     ## all chunks done : advance local watermark to cycle start ntime ##
     my $cycle_ntime = delete <jobsite.sync.push_cycle_ntime> // '';
+    my $urls        = delete <jobsite.sync.push_urls>        // [];
+    for my $url ( @{$urls} ) {
+        <jobsite.sync.last_ntime>->{$url} = $cycle_ntime if length $cycle_ntime;
+    }
     <jobsite.sync.last_server_ntime> = $cycle_ntime if length $cycle_ntime;
+
     my $reverse = delete <jobsite.sync.push_reverse> // [];
-    delete <jobsite.sync.push_chunks>;
+    delete <jobsite.sync.push_queue>;
     <jobsite.sync.push_in_progress> = FALSE;
     <[jobsite.state.persist]>;
     <[base.logs]>->(
@@ -23,11 +28,13 @@ if ( not defined $chunk ) {
     return;
 }
 
-my $last_ntime = <jobsite.sync.last_server_ntime> // '';
+my $url   = $item->{'url'};
+my $since = $item->{'since'} // '';
+my $chunk = $item->{'chunk'};
 
 my $body = eval {
     JSON::XS::encode_json(
-        {   'since' => $last_ntime,
+        {   'since' => $since,
             'jobs'  => $chunk,
         }
     );
@@ -41,7 +48,7 @@ if ( not length $body ) {
 }
 
 <[clients.http.post]>->(
-    {   'url'     => <jobsite.cfg.sync_url>,
+    {   'url'     => $url,
         'body'    => $body,
         'timeout' => 30,
         'on_done' => 'jobsite.handler.sync-response',
@@ -49,8 +56,8 @@ if ( not length $body ) {
     }
 );
 
-#,,,,,...,,,,,..,,.,,,...,,,.,.,.,,,.,.,,,,.,,..,,...,...,.,.,.,,,,,,,,.,,..,,
-#BA5VD3CDN474XFHH72T5Z2G6XN3YEHITAN4PV73PEYUFS5P33S4NEKWK5SSGH4ZCFXOJY7VX22CFW
-#\\\|IKTUZ62THD47CFGLLHVW5OZL2E3CUFDZVWPSGZHCOILWERX6FML \ / AMOS7 \ YOURUM ::
-#\[7]W7DERK4MRZWYA7KEKXMILSMJCBDQI3BBHTL24OT5Z3AXWDMSIUCI 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,,,,...,,,,,,,.,,,.,.,,,..,,.,.,..,,...,...,,,.,,,.,.,.,.,,,,.,,
+#EKJSE2UILFEIY77BQJ2QDEDFAHX5OLTALTOIGF6OWZCWB4O5DANOF24BHMZRJSNOZRSUJLAITXCU2
+#\\\|I3WZ2DXFLVZDIJSF6RALVECGMZB7VP7GJXLFCJKS6G6U5HUYHWG \ / AMOS7 \ YOURUM ::
+#\[7]YWG6TAZOIJ7EVVOWFECI3ZE4M34GC6JYOTQGRWY6SWMO7FWOKECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
