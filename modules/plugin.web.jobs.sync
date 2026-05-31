@@ -61,25 +61,35 @@ for my $job_data (@job_list) {
             <[plugin.web.jobs.reverse.queue]>
                 ->( { 'id' => $job_id, %changed } );
         }
+
+        ## action entries (e.g. reassess) bypass browser_fields and queue directly ##
+        if ( exists $job_data->{'action'}
+            and length( $job_data->{'action'} ) ) {
+            <[plugin.web.jobs.reverse.queue]>
+                ->( { 'id' => $job_id, 'action' => $job_data->{'action'} } );
+        }
     }
 
     my $wrote = <[plugin.web.jobs.cache.write]>->( $job_id, $cached );
     $ok = FALSE if not $wrote;
 }
 
-## flush reverse queue, filtered to entries newer than since ##
-## encode_b32r is reverse-byte-order so string gt is wrong; compare numerically ##
-my $all_reverse = <[plugin.web.jobs.reverse.flush]>;
-my $since_num
-    = length($since)
-    ? <[base.ntime_BASE32_to_numerical]>->($since)
-    : undef;
-my @reverse = defined $since_num
-    ? grep {
-    my $n = <[base.ntime_BASE32_to_numerical]>->( $_->{'ntime'} // '' );
-    defined $n && $n > $since_num
-    } @{$all_reverse}
-    : @{$all_reverse};
+## flush reverse queue only for jobsite batch pulls, not browser POSTs ##
+## browser POSTs must not drain the queue or action entries are lost ##
+my @reverse;
+if ($is_batch) {
+    my $all_reverse = <[plugin.web.jobs.reverse.flush]>;
+    my $since_num
+        = length($since)
+        ? <[base.ntime_BASE32_to_numerical]>->($since)
+        : undef;
+    @reverse = defined $since_num
+        ? grep {
+        my $n = <[base.ntime_BASE32_to_numerical]>->( $_->{'ntime'} // '' );
+        defined $n && $n > $since_num
+        } @{$all_reverse}
+        : @{$all_reverse};
+}
 
 my $current_ntime = <[base.ntime.b32]>;
 
@@ -103,8 +113,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,,.,,,,,.,,,.,,,...,.,.,,.,,,,.,,,.,,,.,,.,,..,,...,..,,.,.,,,,,.,.,.,.,...,
-#7J453MVXVUMSB5CKNDRBT4PKHDGWO6OE3Q5WBPMNU3KYXVIERKA6ZIMHGBBRMZTX3FIWR2YBMZUJO
-#\\\|MNGRIOQKE3AXYAGDHVRDVDW4OZ3A77M642GFHQ4YFRJWY4FH4J7 \ / AMOS7 \ YOURUM ::
-#\[7]YOQI26R55JTBNXFUY5ERQFUWSJA7EJPQEVDFLC47CEXL3P7WOSCA 7  DATA SIGNATURE ::
+#,,.,,...,,..,...,.,,,..,,,..,..,,,,,,...,,,.,..,,...,...,,.,,,..,,.,,,.,,..,,
+#4S4U7NYXM3LY7KTLEY6L3PTERZQETPD4GFRJ6KWPZPNUKB4BFMS3NRFNZFGIDHKGN3HJZIGK53FYU
+#\\\|AMWSPXC5SFZLQREDQFJEKTDFBPHLXX36VRDQZYHCOJPBRDSQBWB \ / AMOS7 \ YOURUM ::
+#\[7]VFP2ORJ2RQKGS7C5GBNWXTHWUNXPAYWXYNGQ4ISFTICVP35K5OAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

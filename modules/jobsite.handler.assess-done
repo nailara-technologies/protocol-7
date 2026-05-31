@@ -252,13 +252,15 @@ if ( <jobsite.pending_count> <= 0 ) {
     <jobsite.pending_count> = 0;
     <jobsite.cycle>         = 'idle';
     <[base.logs]>->( 1, 'all assessments complete, cycle=idle' );
+    <[jobsite.sync.push]>->( undef, FALSE )    ## push updated job to web ##
+        ;    ## push results to web immediately ##
 }
 
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.next]>
 
-#,,,,,..,,.,.,,..,..,,,,.,..,,,,.,..,,...,.,,,..,,...,...,.,,,..,,..,,...,.,,,
-#MSKWECM7IKOSREVBFWOEPAXWG23HVVXB7O2S56DLTWOUCCWNMVSKTI5GQGDEM7IL54PPPSN6ZHA2C
-#\\\|YG6N5IVP62TL3OMWJCVDOHUTK3KLRIYQMZMGTG5DGKRDAZ5OH57 \ / AMOS7 \ YOURUM ::
-#\[7]X2IYVP4DE5TOUMX2WF5AUHEGAUS55NUHZB44F2B2WW5QZFQ42GDY 7  DATA SIGNATURE ::
+#,,..,...,.,,,,,.,.,,,,..,.,.,,.,,,,,,,..,...,..,,...,..,,.,,,.,.,.,.,.,.,,.,,
+#4HZ7BI3UZL7I3X66WBXRJT4TGEA332RZXLSB6KVMBEADA5MWHHFBWDQDC4TBO5TSUI72R4JV4YBBW
+#\\\|UBN3EHLPRYETVLKNHVWWFHW6CAUS6AAO63SVY4UOWZVRXBTA7B3 \ / AMOS7 \ YOURUM ::
+#\[7]6SNDNJREZEHB5LN4AWRIQUKRUZQ4U6UYUZ6AWVP375T7VFSXUUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
