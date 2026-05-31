@@ -108,13 +108,14 @@ and any other STRM consumer, to confirm no undefined state introduced.
 - **sync push status-dir** — DONE ✓ status injected, blocked skipped, delete via index
 - **ES5 compat** — DONE ✓ ?./??→&& ; mobile rendering fixed
 - **sync_urls multiplex config** — DONE ✓ //→|| fallback fixed
-- **web-auth-plugin** — NEXT: dispatch now; needed before atom sync + multi-endpoint
-- **atom data recovery** — two steps: (1) merge jobsite YAMLs from flat layout via
-  script using priority rules; (2) extract browser localStorage applied/rejected
-  stages via DevTools → POST as reverse-sync batch to /jobs-sync
-- **multi-endpoint sync** — after auth plugin + atom recovery
+- **web-auth-plugin** — DONE ✓ commit 142da4c44; POST /jobs-sync gated
+- **import-atom-jobs script** — DONE ✓ commit 142da4c44; bin/dev/import-atom-jobs
+- **CSV/HTML import** — DONE ✓ 47 applied, 3 interviewed, 16 apply imported
+- **jobsite.status fix** — DONE ✓ commit 4b930b439; index-based counts, base.sort
+- **atom browser localStorage** — pri server was empty; jobs in browser only;
+  extract via DevTools key `jobs_[vhost]_v1` → POST as reverse-sync batch
+- **multi-endpoint sync** — after auth settled
 - **web-sessions-distributed** — lower priority, task written
-- **repair_failed 5 jobs** — resolved (all reassessed via ↺ button)
 
 ## jobs pipeline open items
 
@@ -224,8 +225,8 @@ and any other STRM consumer, to confirm no undefined state introduced.
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,.,,,..,,,.,,.,,..,,...,...,,,,,,,,,,,.,,,.,..,,...,...,...,,,,,,,.,.,.,.,.,
-#ZWVWILKQ6XCW5ASQHHFC5VZPNJOUZDG6YTYMO7XBKV76YVNCP2ZG2SS2RTXUPSAO2JU36XDZGMMQE
-#\\\|WLCOMJER4LSXCW76HAY74Z22EWZ246U5UIFBJWZ7AXWT2LMPY36 \ / AMOS7 \ YOURUM ::
-#\[7]KJQ6OUAXCCBXRXFZ7OLNNYDJPYHQBQHXVYG7B5MXIALQTZ4P6GAQ 7  DATA SIGNATURE ::
+#,,,.,...,.,.,,,.,..,,.,.,,,.,,,,,.,,,..,,..,,..,,...,...,,..,...,...,..,,,.,,
+#DE4WSK5IVLQFE5H7NBKLVHY73MKF5EFXALYAIDNR2R5IKR2P4LIIYHL2C42WOGTVIRQFN2ECS5JX6
+#\\\|BRQ4OUL5IDZVD2SDN3KAVTUWXCNZ3FFH6L3UWH342BTBXMH7JN4 \ / AMOS7 \ YOURUM ::
+#\[7]J7IALO5C7KQMSRYCSGURLIM6J3KP7ECELEB5GBZETO3O25HCFECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
