@@ -116,6 +116,18 @@ Runs the local free 9B model to summarize text. Used internally by the dispatche
 - `file` param: pass an absolute path — coding zenka reads it directly, **zero tokens** enter Claude's context
 - Window size auto-derived from `coding.context-size` (currently 32K → ~108K char chunks)
 
+### store_summary_focus
+**Prime the next dispatch's auto_summarize with a specific focus before you dispatch.**
+- Stored focus is used once by the next `kimi_dispatch` or `claude_dispatch` auto_summarize, then cleared automatically
+- Call with empty `instruction` to clear without firing
+- Use when you know exactly what you need from a dispatch result — don't settle for a generic dump
+
+```
+store_summary_focus("current state of the dedup logic and the exact fix needed")
+kimi_dispatch("investigate the checksum dedup false positive in jobsite...")
+→ summary returns precisely what you asked for
+```
+
 ### session_catchup
 **Use this at the start of a new session to catch up on prior work.**
 - Without `session_id`: lists recent claude + kimi sessions, reverse time-sorted, with titles and timestamps
