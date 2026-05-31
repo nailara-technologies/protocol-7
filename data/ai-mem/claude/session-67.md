@@ -161,13 +161,44 @@ all `?.` and `??` replaced with `&&`/ternary — mobile DuckDuckGo renders.
 - `data/tasks/web-sessions-distributed.md` — signed session tokens, cross-node
 - `data/tasks/jobsite-sync-multiplex.md` — multi-endpoint + multi-jobsite
 
+## reassess ↺ button — fully working — commit 00c2e2605
+
+full loop confirmed working. multiple bugs fixed:
+
+1. **action entries not queued** — browser POST `{action: reassess}` not in
+   `@browser_fields` → `%changed` empty → nothing queued. fix: detect `action`
+   field after browser_fields loop in `plugin.web.jobs.sync`, queue directly.
+
+2. **reverse queue drained by browser POST** — `reverse.flush` called for ALL
+   POSTs; browser POST consumed the reassess entry before jobsite ping arrived.
+   fix: gate `reverse.flush` to `$is_batch` only in `plugin.web.jobs.sync`.
+
+3. **pending_count off-by-one** — `apply_reverse` set
+   `pending_count = 1 + scalar @{queue}` (queue had 1 item → count=2); after
+   assess-done decremented once → stuck at 1, cycle never returned to idle.
+   fix: `pending_count = scalar @{queue}` (= 1).
+
+4. **sync push skipped** — `sync_interval=300` but push was skipping when no
+   local changes, never collecting reverse entries. fix: send empty ping
+   (`chunk=[]`) every sync cycle so reverse queue is always delivered.
+
+5. **full resync instead of delta** — `assess-done` called `sync.push(undef,TRUE)`
+   which bypasses the watermark (`$last_ntime_num = 0 if $force`) → sent ALL
+   jobs. fix: `sync.push(undef, FALSE)` — only sends job with fresh last_modified.
+
+result: click ↺ → web queues reverse entry → jobsite ping delivers it → assessment
+runs at front of queue → delta push sends just the updated job → browser delta
+poll picks it up. all cards in 'alle' tab now complete.
+
 ## open items
 
-- **reassess backchannel** — POST hits /sync but not forwarding to jobsite yet
-- **atom divergence** — remote has applied jobs; needs sync/merge pass
-- **web-auth-plugin** — medium priority, not dispatched
-- **web-sessions-distributed** — low priority, not dispatched
-- **repair_failed 5 jobs** — still in assessed; run `jobsite.reset rep-err=1` + scan
+- **auth plugin** — dispatch next (`web-auth-plugin.md`); needed before atom sync
+- **atom data recovery** — two layers:
+  1. atom jobsite YAMLs (flat layout) → merge script using priority rules
+  2. atom browser localStorage (applied/rejected stages) → extract via DevTools,
+     POST as reverse-sync batch to `/jobs-sync`
+- **multi-endpoint sync** — after auth + atom recovery
+- **web-sessions-distributed** — low priority
 - nshell `(0)` on first command — still open
 - nshell stray cursor after index search — still open
 - STRM fix review needed (had_local_consumer)
@@ -185,8 +216,8 @@ all `?.` and `??` replaced with `&&`/ternary — mobile DuckDuckGo renders.
 
 #,,,,
 
-#,,,,,.,.,,.,,.,,,..,,.,,,.,,,,,.,,..,.,.,,.,,..,,...,...,,,.,.,.,..,,..,,,..,
-#2PKG3XD75WGY4PAKA3OAKRPSUXMMR5D4RSFA7LCH3CVIZ5Y2JGMN4FB3A3NS65E745GUWREGGB2QQ
-#\\\|2SK3P73BSBFACZLFSV2H6BS6S7GLSQOTL2T2ACAMDFFEIOQJ557 \ / AMOS7 \ YOURUM ::
-#\[7]EQWXLFY7A73VCOQZWG7K6XY3RG7LCSSGCUGS7MYYBTPY266PIACA 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,,,,,.,,.,,,..,,,.,,..,,..,,,.,..,,...,...,,.,,,.,,,,,,.,,,,.,,
+#7AR3A7BFZGLGH6LBO4SEZFVDIAJECKHS6WXWF2ECPBKJIGPNVDNK2R65OGOHNW5X4247XLPLHMFLI
+#\\\|4OIQ7JJ7ZK7NARUT3S5ZRH3RMOKIVZEPEAD3UHWYIT3HPDJVAFV \ / AMOS7 \ YOURUM ::
+#\[7]YT6Y53I7GX7N2JA4K3VDHQPT4S7GI7HZTLFWDRJZNCKMS5RFN6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
