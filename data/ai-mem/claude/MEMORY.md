@@ -132,6 +132,8 @@
 - [memory-sync-timing](feedback-memory-sync-timing.md) — sync memory at ~42K context remaining, before auto-compaction fires
 - [memory-management](feedback-memory-management.md) — update proactively; tree-structured modules; startup efficiency; strategic maintenance
 - [claude-dispatch-strategy](feedback-claude-dispatch-strategy.md) — use claude_dispatch to offload kimi orchestration; keeps parent context lean; parallel dispatch pattern
+- **coding_summarize** live (e99591b05) — free 9B summarization; auto-summarize=TRUE default on claude/kimi dispatch; rolling-window for large outputs
+- **claude_continue** live (1adbf83d2) — resume claude sessions same as kimi_continue
 - [ncode-tools](feedback-ncode-tools.md) — use ncode replace/parse-headers for namespace renames; not sed/perl -i loops
 - **httpd architecture**: httpd is a thin proxy — never load plugin.web.* in httpd. all cross-zenka data goes through web zenka via route-send SIZE. blocking reply-wait in httpd crashes sessions.
 - **P7 cross-zenka data**: use route-send + SIZE reply handler pattern (like radio relay). file system access between zenki is forbidden by design (different users). SHM or route-send for cross-zenka data.
@@ -171,8 +173,8 @@
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 - **coding zenka**: fully operational; 9B model loads in seconds (new ik_llama.cpp); no urgent issues
 
-#,,,,,,.,,,,,,,.,,..,,,,.,,.,,,.,,.,,,,,,,.,.,..,,...,...,.,,,,,,,..,,,,.,,,.,
-#YYMAWUA7E2CG3KWN3HQFIUG45OPQOWPB6I4AVLIYQNLC2GMUDNMMWIXVETOP6H4FM3N5R4VBYB5LG
-#\\\|LH7MR6DHFFMVLGGKYRZBNWYZPZSCNEMQMQPEZUSOC4ZEM4SDJV3 \ / AMOS7 \ YOURUM ::
-#\[7]GDVCMJQANQADESZGSK6FDYQCUGYHRHSYR2MI4XSVXAQ656HO6UCQ 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,,.,,..,.,,,..,,...,.,.,.,,,,.,,..,,...,..,,..,,.,.,,.,,,,,,..,,
+#5DBT7YHTYTNJAKZOKYUFIK7LBLRIFN4SQQ3XYZHDCCW3CEPA5IH2D2WHHOPPXE332K3Z7VFWM52O6
+#\\\|RNELWFZL2DGKQTXD4TKTORBQV3G2FF5XOC64SQGK3XYSY4DFPHO \ / AMOS7 \ YOURUM ::
+#\[7]YMOMJ242F426XE7JVOUWMUFFOD6AWKCLIO2UC3VC5J2736ZLIYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -18,6 +18,7 @@ Protocol-7 is a **multi-agent system** (zenki) built in Perl with:
 - **`CLAUDE.md`** - Primary codebase instructions, architecture overview, module system
 - **`data/md/development/CODE-STYLE-AND-LLM-INTEGRATION.md`** - Code style guide
 - **`data/yaml/code-style/CONVENTIONS.yaml`** - Quick style reference
+- **`data/md/design/`** - Deeper context on topics: nested-cube segmentation, zenka lifecycle, signed commands, space engine, stream framing, and more
 - **`ai-mem/claude/MEMORY.md`** - Claude's session memory (solved issues, patterns, architecture decisions)
 - **`ai-mem/kimi/MEMORY.md`** - Kimi's session memory (code review notes, bug fixes, conventions)
 
@@ -91,6 +92,45 @@ Protocol-7 is a **multi-agent system** (zenki) built in Perl with:
 - **1**: Default (important events)
 - **2**: Info (normal operations)
 - **3**: Debug (detailed tracing)
+
+## MCP Dispatch Tools (P7 Server)
+
+The P7 MCP server exposes async dispatch tools for offloading work to other models.
+
+### claude_dispatch / claude_continue
+Launches a Claude Code CLI subprocess with auto-approve enabled.
+- `model`: `haiku` / `sonnet` (default) / `opus`
+- `max_budget`: cap spend on the subtask (recommended: 0.5/1.5/3.0 for haiku/sonnet/opus)
+- Returns `{ uuid, summary }` — use the UUID with `claude_continue` to resume
+- `auto_summarize=TRUE` is the default — the local 9B model trims large outputs via rolling window
+
+### kimi_dispatch / kimi_continue
+Dispatches a task to **Kimi K2.6** — a full remote model from Moonshot AI (not the local 9B).
+- Kimi is free and well-suited for focused P7 code work: exploration, bug fixes, implementation
+- Write a task file to `data/yaml/coding-tasks/<id>.yaml`, `data/md/coding-tasks/<id>.md`, or `data/tasks/<id>.md`, then dispatch pointing at it
+- Returns `{ uuid, summary }` — use the UUID with `kimi_continue` for follow-up passes
+- Use `p7c coding.inject-message <id> <msg>` to redirect a stuck kimi session
+
+### coding_summarize
+Runs the local free 9B model to summarize text. Used internally by the dispatchers when `auto_summarize=TRUE`. Can also be called directly for standalone summarization. Rolling window handles outputs too large for a single pass.
+
+### Nested Dispatch Pattern
+`claude_dispatch` can orchestrate `kimi_dispatch` internally — keeping the parent context small:
+1. **Parent** calls `claude_dispatch` with a high-level goal
+2. **Inner claude** reads the task file → calls `kimi_dispatch` → waits for result
+3. **Inner claude** runs `ptd -c` verification, fixes errors, returns a compact summary
+4. **Parent** receives only the summary (not the full kimi output or exploration steps)
+
+Two-UUID pattern: track both the outer claude UUID and the inner kimi UUID independently. Either session can be resumed with `claude_continue` / `kimi_continue` if a follow-up pass is needed.
+
+### Efficient Memory Management
+- **Update proactively** — don't wait for context limit; update after each significant fix or pattern discovery
+- **Tree-structured files** — keep memory in separate topic files loadable on demand (not one giant file)
+- **Dispatch offloads context bloat** — use `claude_dispatch` for long sequences so the parent context stays lean
+- Context template: `data/yaml/context-templates/kimi-dispatch-workflow.yaml` — kimi task writing patterns and pitfalls
+- Context template: `data/yaml/context-templates/claude-dispatch-workflow.yaml` — nested orchestration, two-UUID pattern
+
+---
 
 ## Key Commands and Tools
 
@@ -182,7 +222,7 @@ git commit -m "message"
 - **source.v7.ax**: planned — code browsing and search UI
 
 ### Key Patterns Since Feb 2026
-- **kimi task dispatch**: write task file to `data/yaml/coding-tasks/`, dispatch via MCP or p7c
+- **kimi task dispatch**: write task file to `data/yaml/coding-tasks/`, `data/md/coding-tasks/`, or `data/tasks/`, dispatch via MCP or p7c
 - **plugin system**: `plugin.web.*` or `plugin.httpd.*` namespace, loaded via `[load_plugins]`
 - **inline sub extraction**: modules must not contain `sub {}` — each file IS the subroutine
 - **template commands**: `<[module.name:arg]>` in .tmpl files, processed by web zenka
