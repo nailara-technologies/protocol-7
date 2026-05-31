@@ -132,7 +132,8 @@
 - [memory-sync-timing](feedback-memory-sync-timing.md) — sync memory at ~42K context remaining, before auto-compaction fires
 - [memory-management](feedback-memory-management.md) — update proactively; tree-structured modules; startup efficiency; strategic maintenance
 - [claude-dispatch-strategy](feedback-claude-dispatch-strategy.md) — use claude_dispatch to offload kimi orchestration; keeps parent context lean; parallel dispatch pattern
-- **coding_summarize** live (e99591b05) — free 9B summarization; auto-summarize=TRUE default on claude/kimi dispatch; rolling-window for large outputs
+- **coding_summarize** live (55a4a68df) — free 9B summarization; auto-summarize=TRUE default on claude/kimi dispatch; rolling-window sized from coding.context-size (32K→108K chars); file= param reads directly (zero context tokens)
+- **session_catchup** MCP tool — list recent claude+kimi sessions or summarize one by UUID; use at session start to catch up; `session_catchup(limit=8)` to list, add session_id+instruction to summarize
 - **claude_continue** live (1adbf83d2) — resume claude sessions same as kimi_continue
 - [ncode-tools](feedback-ncode-tools.md) — use ncode replace/parse-headers for namespace renames; not sed/perl -i loops
 - **httpd architecture**: httpd is a thin proxy — never load plugin.web.* in httpd. all cross-zenka data goes through web zenka via route-send SIZE. blocking reply-wait in httpd crashes sessions.
@@ -173,8 +174,8 @@
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 - **coding zenka**: fully operational; 9B model loads in seconds (new ik_llama.cpp); no urgent issues
 
-#,,.,,,.,,...,,,.,,..,.,,,..,,...,.,.,.,,,,.,,..,,...,..,,..,,.,.,,.,,,,,,..,,
-#5DBT7YHTYTNJAKZOKYUFIK7LBLRIFN4SQQ3XYZHDCCW3CEPA5IH2D2WHHOPPXE332K3Z7VFWM52O6
-#\\\|RNELWFZL2DGKQTXD4TKTORBQV3G2FF5XOC64SQGK3XYSY4DFPHO \ / AMOS7 \ YOURUM ::
-#\[7]YMOMJ242F426XE7JVOUWMUFFOD6AWKCLIO2UC3VC5J2736ZLIYBA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,.,,,,.,,,.,,,,,,,.,,,.,,.,,,,..,..,,...,..,,...,..,,,,.,,..,,,.,
+#FGXBP5TT4L7PD5AXNDWO6DLUT3LTYTJ6CNBRECR7YGPFS3OFHSQ2OZG6E6Z4B2OG7PEOUZZT6BOBA
+#\\\|KDD4Y3XRGZ7D6P7S34AUPT7VYZTWQC6WJ2WA6MEQTZHF5PRQC6B \ / AMOS7 \ YOURUM ::
+#\[7]CHUK6JW6QPBIYM5MMPFBHC3PM62XLLGXRQW72AMXVYPUAP4IQGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

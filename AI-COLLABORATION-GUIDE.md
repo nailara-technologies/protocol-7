@@ -113,6 +113,22 @@ Dispatches a task to **Kimi K2.6** — a full remote model from Moonshot AI (not
 
 ### coding_summarize
 Runs the local free 9B model to summarize text. Used internally by the dispatchers when `auto_summarize=TRUE`. Can also be called directly for standalone summarization. Rolling window handles outputs too large for a single pass.
+- `file` param: pass an absolute path — coding zenka reads it directly, **zero tokens** enter Claude's context
+- Window size auto-derived from `coding.context-size` (currently 32K → ~108K char chunks)
+
+### session_catchup
+**Use this at the start of a new session to catch up on prior work.**
+- Without `session_id`: lists recent claude + kimi sessions, reverse time-sorted, with titles and timestamps
+- With `session_id`: summarizes that session via local 9B model (token-free) with optional focus instruction
+- `client`: `claude` | `kimi` | `all` (default: all)
+- `instruction`: focus the summary — e.g. `"what was implemented and what's still open"`
+
+Example flow:
+```
+session_catchup(limit=8)                          # see recent sessions
+session_catchup(session_id="...", client="kimi",  # summarize specific one
+                instruction="open bugs and next steps")
+```
 
 ### Nested Dispatch Pattern
 `claude_dispatch` can orchestrate `kimi_dispatch` internally — keeping the parent context small:
