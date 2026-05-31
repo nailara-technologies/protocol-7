@@ -1,0 +1,86 @@
+## [:< ##
+
+# name  = route.bmw384.visual.route-commitment
+# descr = render active route commitments as bright/dim arc overlays
+
+return ''
+    unless defined <bmw384.route.curves>
+    and scalar keys %{<bmw384.route.curves>};
+
+my $PI            = 3.14159265358979;
+my $segment_deg   = 360 / 26;
+my $segment_width = 16777216 / 26;
+
+my $svg = '';
+
+for my $cid ( sort keys %{<bmw384.route.curves>} ) {
+    my $curve   = <bmw384.route.curves>->{$cid};
+    my $hops    = $curve->{'hops'}    // [];
+    my $current = $curve->{'current'} // 0;
+    my $color   = $curve->{'color'}   // 'hsl(180,90%,60%)';
+
+    next unless @$hops;
+
+    my @positions;
+
+    for my $i ( 0 .. $#$hops ) {
+        my $coord = $hops->[$i];
+        my $arc   = $coord->{'arc'};
+        my $clr   = $coord->{'color'} // 0;
+
+        my $arc_start = -$arc * $segment_deg;
+        my $frac  = ( $clr / $segment_width ) - int( $clr / $segment_width );
+        my $angle = ( $arc_start - $frac * $segment_deg ) * $PI / 180;
+
+        # [ route overlay spirals outward hop by hop ]
+        my $radius = 80 + $i * 8;
+        my $x      = 400 + $radius * sin($angle);
+        my $y      = 400 - $radius * cos($angle);
+
+        push @positions, [ $x, $y ];
+
+        # [ state-based opacity ]
+        my ( $op, $r, $glow );
+        if ( $i < $current ) {
+            $op   = '0.15';
+            $r    = 3;
+            $glow = '';
+        } elsif ( $i == $current ) {
+            $op   = '1.00';
+            $r    = 6;
+            $glow = ' filter="url(#glow)"';
+        } else {
+            $op   = '0.60';
+            $r    = 4;
+            $glow = '';
+        }
+
+        $svg
+            .= sprintf '  <circle cx="%.2f" cy="%.2f" r="%d"'
+            . ' fill="%s" opacity="%s"%s>' . "\n",
+            $x, $y, $r, $color, $op, $glow;
+
+        $svg .= sprintf '    <title>route %s hop %d/%d</title>' . "\n",
+            $cid, $i + 1, scalar @$hops;
+
+        $svg .= '  </circle>' . "\n";
+    }
+
+    # [ connecting polyline through all hop positions ]
+    if ( @positions > 1 ) {
+        my $pts = join ' ',
+            map { sprintf '%.2f,%.2f', $_->[0], $_->[1] } @positions;
+        $svg
+            .= sprintf '  <polyline points="%s" fill="none"'
+            . ' stroke="%s" stroke-width="1" opacity="0.4"/>' . "\n",
+            $pts, $color;
+    }
+}
+
+return $svg;
+
+#,,,.,,..,...,..,,,.,,.,,,,..,..,,...,..,,,..,..,,...,...,...,,..,,.,,.,,,.,.,
+#XXESVZIRDF2WF4ZORO4AMFXJ24NLN6YQAGARXFMEYWF75Q5JJBMDDSKWOQR637NNHDVJAAP35JCUA
+#\\\|IRRIQ4R5AZUL4GZCFEK2QHBDQMIIGE5REAZVWEAXJG7FEKOQXUQ \ / AMOS7 \ YOURUM ::
+#\[7]BSK3VSQEIFV3LO73I2LUH2CHR4TVCEQ47NBQBNNCUBCVZM3D7ODQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,80 @@
+## [:< ##
+
+# name  = httpd.route.handler.iris-route-advance
+# descr = advance a route curve's execution frontier by N hops
+
+my $id      = shift;
+my $session = $data{'session'}->{$id};
+my $body    = $session->{'http'}->{'body'} // $session->{'buffer'}->{'input'}
+    // '';
+
+$session->{'http'}->{'body'}    = undef;
+$session->{'buffer'}->{'input'} = '';
+
+my $payload = eval { JSON::XS::decode_json($body) };
+if ( $@ or ref $payload ne 'HASH' ) {
+    my $rb = '{"error":"invalid json"}';
+    $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+        400,
+        {   'Content-Type'   => 'application/json',
+            'Content-Length' => length($rb)
+        }
+    );
+    $session->{'buffer'}->{'output'} .= $rb;
+    return 2;
+}
+
+my $cid   = $payload->{'curve_id'};
+my $steps = int( $payload->{'steps'} // 1 );
+$steps = 1 if $steps < 1;
+
+if ( not defined $cid or not defined <bmw384.route.curves>->{$cid} ) {
+    my $rb = '{"error":"unknown curve_id"}';
+    $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+        404,
+        {   'Content-Type'   => 'application/json',
+            'Content-Length' => length($rb)
+        }
+    );
+    $session->{'buffer'}->{'output'} .= $rb;
+    return 2;
+}
+
+my $curve   = <bmw384.route.curves>->{$cid};
+my $hops    = $curve->{'hops'}    // [];
+my $current = $curve->{'current'} // 0;
+my $max     = $#$hops;
+
+# [ move crossed hops to committed list ]
+for my $s ( 1 .. $steps ) {
+    last if $current >= $max;
+    push @{ $curve->{'committed'} }, $current;
+    $current++;
+}
+
+$curve->{'current'} = $current;
+
+# [ clear svg cache so next render reflects advancement ]
+<bmw384.svg.cache> = {};
+
+my $rb = <[httpd.json.encode]>->(
+    {   curve_id => $cid,
+        current  => $current,
+        total    => scalar @$hops,
+        done     => ( $current >= $max ? \1 : \0 ),
+    }
+);
+
+$session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+    200,
+    { 'Content-Type' => 'application/json', 'Content-Length' => length($rb) }
+);
+$session->{'buffer'}->{'output'} .= $rb;
+
+return 2;
+
+#,,.,,.,,,,,.,,..,,..,.,,,,,,,...,,,.,.,.,,,.,..,,...,.,.,,..,.,,,.,,,,..,,.,,
+#JLVJZCPT6W5WT6KBLGWUCBOHKD7ZOZ3BYYGDFF5KN4EPIJODGHG7MJUDQPTEAAZ672WYPAUIHDTLM
+#\\\|5DZJYMGEUQIFYJBAT62SZZYPDET7N27RRRX4KQ27LRLLM62DN4M \ / AMOS7 \ YOURUM ::
+#\[7]SVRD7RTA6TL7DIOEXDAC3JOWZHTR5YUMZQ4UU3GL4NFEACHJEIDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
