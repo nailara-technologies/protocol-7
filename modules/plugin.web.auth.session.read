@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = plugin.web.auth.session.read
+# descr = read session data by token_hash
+# param = token_hash string
+
+my $token_hash = shift // '';
+return undef if not length $token_hash;
+
+my $session_base = <[plugin.web.auth.session.path]>;
+my $file         = "$session_base/active/$token_hash/session.yaml";
+
+return undef if not -f $file;
+
+my $data = eval { YAML::XS::LoadFile($file) };
+if ($@) {
+    <[base.s_warn]>->(
+        'plugin.web.auth.session.read : yaml error [ %s ] : %s',
+        $token_hash, <[base.str.eval_error]>
+    );
+    return undef;
+}
+
+return ref $data eq qw| HASH | ? $data : undef;
+
+#,,..,..,,,,.,,,.,,,,,,,,,,..,,..,..,,.,,,,.,,..,,...,.,.,,..,...,,..,,,,,...,
+
+#,,.,,,,.,.,,,,,,,..,,,,.,,.,,,,,,.,.,,,.,.,,,..,,...,...,..,,,.,,..,,,,.,...,
+#4GW72H4K5AC3EJJYXILZJSCFLCPH753M4ZCGZ2CGLRUSL7MDL5FJ4T5NK64IFHSIRDACG27JMV3VK
+#\\\|YOQR6CDIM5FIQX4FLJO5RESHFNMFKP6GCKQGND37ZZEN5L35ZBM \ / AMOS7 \ YOURUM ::
+#\[7]FPLVKYXDUFDMCT6TECQX4SH2VSCFVKDTHXHGD6A2WAUJPDS4GSAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
