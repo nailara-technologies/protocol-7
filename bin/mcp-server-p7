@@ -1101,6 +1101,9 @@ sub send_error {
 sub send_tool_result {
     my ( $id, $text, $is_error ) = @ARG;
 
+    ## cube returns raw utf-8 bytes — decode to perl chars before json encoding ##
+    utf8::decode($text) if defined $text and not utf8::is_utf8($text);
+
     send_result(
         $id,
         {   'content' => [ { 'type' => 'text', 'text' => $text } ],
@@ -1450,8 +1453,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,.,,.,.,.,.,,..,.,.,,,.,,,,,.,,,.,.,,,,,,.,,..,,...,..,,..,,..,,...,.,.,,,.,
-#M3KUV5ZPQFGCM6R2T2L5QVU5DL6JSFYHMLDQDGKKKELLJDF64CT2DTKKQDAJ575CMJGMEGYMICJA2
-#\\\|T4ZA5HNB3645D3G2U2CQ7IR5ST32YSGDH7RSWPSMCFM2O4CDD2N \ / AMOS7 \ YOURUM ::
-#\[7]B3IHGP6KGYBEMUMM5P7PPAUOTHIMQFAFM3MWNJINIWMLSNPO4WBY 7  DATA SIGNATURE ::
+#,,..,,,.,,..,...,...,.,,,,.,,...,...,,,,,..,,..,,...,...,..,,.,,,,..,,.,,,..,
+#7TW7D7IENFZ3MRMUF5UV6OWDF6XXIDHVSAUK35IAGYDOD7M3EXYY7OHYR6XOPOUHQE5KL642J65S4
+#\\\|T5CNWWWTSNSBE42CZTNVGQ4ASKMZJJM36MQVTPZGL5SE4HGBU47 \ / AMOS7 \ YOURUM ::
+#\[7]TTHENVDX73YYSJBCW2WGNZWVLUMCJS5QSMIDNFAFZZPEMSLV26AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
