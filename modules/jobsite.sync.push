@@ -8,13 +8,21 @@ my $force = ( @ARG > 1 ) ? <[base.cfg_bool]>->( $ARG[1] ) : FALSE;
 
 return if <jobsite.sync.push_in_progress>;
 
-my @urls = split /\s+/, ( <jobsite.cfg.sync_urls> || <jobsite.cfg.sync_url> || '' );
+my @urls = split /\s+/,
+    ( <jobsite.cfg.sync_urls> || <jobsite.cfg.sync_url> || '' );
 if ( not @urls ) {
     <[base.logs]>->( 0, 'jss.sync.push: no sync_url configured' );
     return;
 }
 
 my $jobs = <[jobsite.job.load_all]>;
+
+## ensure status is set from index before push ##
+for my $id ( keys %{$jobs} ) {
+    my $idx_status = <jobsite.job.index>->{$id} // '';
+    $idx_status =~ s{^(?:blocked|deleted):.*}{};
+    $jobs->{$id}{'status'} = $idx_status if length $idx_status;
+}
 
 ## record local ntime at cycle start : used as new watermark after success ##
 my $cycle_ntime_b32 = <[base.ntime.b32]>;
@@ -23,12 +31,13 @@ my $cycle_ntime_b32 = <[base.ntime.b32]>;
 my @push_queue;
 my @pushed_urls;
 
-for my $url ( @urls ) {
+for my $url (@urls) {
     next unless length $url;
 
     my $last_ntime = <jobsite.sync.last_ntime>->{$url} // '';
     ## fallback to scalar for backward compat ##
-    $last_ntime = <jobsite.sync.last_server_ntime> // '' if not length $last_ntime;
+    $last_ntime = <jobsite.sync.last_server_ntime> // ''
+        if not length $last_ntime;
 
     ## ntime is encode_b32r [reverse byte order] : NOT lexicographically sortable ##
     ## must compare numerically via base.ntime_BASE32_to_numerical                ##
@@ -43,6 +52,7 @@ for my $url ( @urls ) {
     my @changed;
     for my $id ( keys %{ $jobs // {} } ) {
         my $job = $jobs->{$id};
+        next if ( $job->{'status'} // '' ) =~ m{^(?:blocked|deleted)$};
         my $mod = $job->{'last_modified'} // '';
         my $mod_num
             = length($mod)
@@ -58,11 +68,12 @@ for my $url ( @urls ) {
     ## split into chunks to stay well within session buffer limits ##
     my $chunk_size = <jobsite.cfg.sync_chunk_size> // 30;
     while (@changed) {
-        push @push_queue, {
+        push @push_queue,
+            {
             'url'   => $url,
             'since' => $last_ntime,
             'chunk' => [ splice @changed, 0, $chunk_size ],
-        };
+            };
     }
     push @pushed_urls, $url;
 }
@@ -80,8 +91,7 @@ my $total_jobs = 0;
 $total_jobs += scalar @{ $ARG->{'chunk'} } for @push_queue;
 
 <[base.logs]>->(
-    1,
-    'jobsite: sync push %d jobs in %d chunks to %d url(s)',
+    1, 'jobsite: sync push %d jobs in %d chunks to %d url(s)',
     $total_jobs,
     scalar @push_queue,
     scalar @pushed_urls,
@@ -94,8 +104,8 @@ $total_jobs += scalar @{ $ARG->{'chunk'} } for @push_queue;
 
 <[jobsite.sync.push_chunk]>;
 
-#,,.,,,,,,,,,,.,.,.,.,.,.,.,,,...,.,,,...,.,.,..,,...,...,.,,,,,.,,,.,,..,.,,,
-#HU233VB24WDYVCXY45ZMB77A3IORPUDJAOREUGI344BM2Y6UAZEDX33YKK7AZSRRB6RAEGEJS6XG4
-#\\\|J665HQEHWWTTSX6EZVDIO6HKXK6R7CRRHMTMHDXXIPMRK35WNNV \ / AMOS7 \ YOURUM ::
-#\[7]2XYLFW5NSBMZOTLCCLOVBY6CQ6NVCW2GZNS33H4AHC6QEQRLCECQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,..,,.,.,,..,.,,,.,,,,..,.,,,.,,,..,,...,...,,.,,,,,,...,,,,,,,.,
+#2HXOHYYMZCVMD6CYIRE2EQCIIGWTWT2BK44O6T5P3EWPXZBMQGIMWNWB7K3XJ4WTENVVWWTFEQLDQ
+#\\\|KIWMG6BCE4TGBXRE4XTDYPPC3EPMY6KFLFBRLGVJ6Z5BOJCBPID \ / AMOS7 \ YOURUM ::
+#\[7]VSP32U5VCME6LHWZJ27Q333NMNBVD4U2UR2RKNFG6CG4D6BMTGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
