@@ -52,10 +52,15 @@ my @external_tools = (
             . 'kimi prints a resume line at the end: '
             . '"To resume this session: kimi -r <uuid>" — '
             . 'pass that uuid to kimi_continue to resume a long-running task.',
-        'command'    => 'kimi -y -p %s',    ## %s = shell-quoted prompt arg
-        'param_name' => 'prompt',
-        'param_desc' => 'the task or question for kimi to work on',
-        'timeout'    => 4620,               ## 77 minutes
+        'command' => 'kimi -y -p %s',
+        'params'  => [
+            [ 'prompt', 'the task or question for kimi to work on', 1 ],
+            [   'auto_summarize',
+                'summarize output via local 9B model before returning (default: true)',
+                0
+            ],
+        ],
+        'timeout' => 4620,    ## 77 minutes
     },
     {   'name'        => 'kimi_continue',
         'description' =>
@@ -85,6 +90,10 @@ my @external_tools = (
             [ 'prompt',     'the task or question for claude to work on', 1 ],
             [ 'model',      'model: haiku|sonnet|opus (default: sonnet)', 0 ],
             [ 'max_budget', 'max USD to spend (default: 1.00)',           0 ],
+            [   'auto_summarize',
+                'summarize output via local 9B model before returning (default: true)',
+                0
+            ],
         ],
         'timeout' => 2400,    ## 40 minutes
     },
@@ -104,6 +113,22 @@ my @external_tools = (
             [ 'max_budget', 'max USD to spend (default: 1.00)',         0 ],
         ],
         'timeout' => 2400,    ## 40 minutes
+    },
+    {   'name'        => 'coding_summarize',
+        'description' =>
+            'summarize text using the local coding zenka (9B model, free). '
+            . 'if text exceeds model context, uses rolling-window summarization. '
+            . 'use for compressing kimi/claude dispatch results before reading.',
+        'params' => [
+            [ 'text', 'content to summarize', 1 ],
+            [   'instruction', 'what to focus on (default: general summary)',
+                0
+            ],
+            [   'max_tokens',
+                'target summary length in tokens (default: 500)', 0
+            ],
+        ],
+        'timeout' => 120,
     },
     ## additional external tools can be added here
     ## format: name, description, command (%s = shell-quoted first arg),
@@ -546,6 +571,8 @@ sub handle_tools_call {
         tool_p7_chat_search( $id, $args );
     } elsif ( $name eq 'p7_chat_channels' ) {
         tool_p7_chat_channels( $id, $args );
+    } elsif ( $name eq 'coding_summarize' ) {
+        tool_coding_summarize( $id, $args );
     } elsif ( my ($ext) = grep { $_->{'name'} eq $name } @external_tools ) {
         tool_external_command( $id, $args, $ext );
     } else {
@@ -1187,6 +1214,60 @@ sub tool_call_tool {
 }
 
 ## =========================================================================
+## coding summarize tool
+## =========================================================================
+
+sub tool_coding_summarize {
+    my ( $id, $args ) = @ARG;
+
+    my $text        = $args->{'text'} // '';
+    my $instruction = $args->{'instruction'}
+        // 'summarize the following text concisely';
+    my $max_tokens = $args->{'max_tokens'} // 500;
+
+    return send_tool_result( $id, 'text is required', 1 )
+        if not length $text;
+
+    my $result = _do_summarize( $text, $instruction, $max_tokens );
+    $result //= 'summarization failed — coding zenka may not be running';
+    send_tool_result( $id, $result, 0 );
+}
+
+sub _do_summarize {
+    my ( $text, $instruction, $max_tokens ) = @ARG;
+    $instruction //= 'summarize concisely';
+    $max_tokens  //= 500;
+
+    if ( length($text) > 8000 ) {
+        ## rolling-window: each chunk carries forward the previous summary ##
+        my $running = '';
+        my $pos     = 0;
+        while ( $pos < length($text) ) {
+            my $chunk = substr( $text, $pos, 6000 );
+            $pos += 6000;
+            my $content
+                = length($running)
+                ? "previous summary:\n$running\n\nnew content to integrate:\n$chunk"
+                : "$instruction:\n\n$chunk";
+            my ( $ok, $chunk_result )
+                = cube_command_multiline(
+                "coding.summarize-context max_len=$max_tokens",
+                {}, $content );
+            return undef unless $ok;
+            $running = $chunk_result;
+        }
+        return $running;
+    } else {
+        my $content = "$instruction:\n\n$text";
+        my ( $ok, $result )
+            = cube_command_multiline(
+            "coding.summarize-context max_len=$max_tokens",
+            {}, $content );
+        return $ok ? $result : undef;
+    }
+}
+
+## =========================================================================
 ## external command tool implementations
 ## =========================================================================
 
@@ -1209,6 +1290,9 @@ sub tool_external_command {
         }
     }
 
+    ## params handled here, not forwarded to the shell command ##
+    my %skip_in_cmd = map { $_ => 1 } qw( auto_summarize );
+
     ## build command from params
     my @cmd_args;
     if ( defined $ext->{'params'} ) {
@@ -1218,6 +1302,7 @@ sub tool_external_command {
             if ( $required and not length $val ) {
                 return send_tool_result( $id, "$name is required", 1 );
             }
+            next if $skip_in_cmd{$name};
             push @cmd_args, quotemeta($val);
         }
     } else {
@@ -1256,6 +1341,34 @@ sub tool_external_command {
         $output .= "\nTo resume this session: claude -r $session_id\n";
     }
 
+    ## auto_summarize: compress large dispatch output via local 9B model ##
+    if ( not length($error)
+        and $ext->{'name'} =~ m{^(?:claude|kimi)_dispatch$} ) {
+        my $auto_sum = $args->{'auto_summarize'} // '';
+        my $do_sum
+            = not length($auto_sum)                             ? 1
+            : ( lc($auto_sum) ne 'false' and $auto_sum ne '0' ) ? 1
+            :                                                     0;
+        if ($do_sum) {
+            ## preserve resume line verbatim — keep UUID out of model round-trip ##
+            my $resume_line = '';
+            if ( $output =~ s{(\nTo resume this session: \S+ -r \S+)\n*$}{} )
+            {
+                $resume_line = $1;
+            }
+            my $instruction
+                = 'extract: status (completed/partial/errored), '
+                . 'files_created (list), files_modified (list), '
+                . 'issues (list), resume_uuid (if present), '
+                . 'next_steps (explicit next actions)';
+            my $summary = _do_summarize( $output, $instruction, 600 );
+            if ( defined $summary and length $summary ) {
+                $output = $summary;
+            }
+            $output .= $resume_line if length $resume_line;
+        }
+    }
+
     my $result = length($error) ? $error : $output;
     send_tool_result( $id, $result, length($error) ? 1 : 0 );
 }
@@ -1270,8 +1383,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,.,,.,,..,,..,,,,.,,.,,.,,,.,,,...,,,.,.,.,..,,...,..,,..,,,,.,,,.,,.,,.,.,
-#S4JEPLSCBGR2AGWTHOJ6SI2NOH34LXUDLLK5UIKAU6T74FZUIKLFQAN4RYL7N26LGEZ3FQX4F32BO
-#\\\|ABESFWZI6FNMHQ6HW2HD3FX2QYEUBWZ75SR33IWWPIXZGE7FD5Z \ / AMOS7 \ YOURUM ::
-#\[7]ZQKCTTRHLINDC2SOU2EE62OOPNKZB372S5QZUWPQ5AGC5OB7NGCY 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,..,,.,.,..,,..,,,.,,,,,,,.,,..,,..,,...,...,..,,,..,,..,..,,,.,,
+#Q3BJJ6235YOXZKDHYPFJZUKIMWZ2AMQ7FPMIO6ID6FW4QBB6WXHUJ6H4MFKPP2MBCPTOBIJNLXXAO
+#\\\|PGQMXBKJJ4HGZMAUXLIKUAXIEN6GJO2B3GKOYRONPJLBL6J3O37 \ / AMOS7 \ YOURUM ::
+#\[7]OFMJFRJQCEVJW6GHBZKQZCBK5UNTOCIOCT7SCYRCAPVDT3WIZKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
