@@ -42,6 +42,7 @@ for my $job_id (@ids) {
         if exists $j->{'score_reason'};
     $j->{'summary'} = delete $j->{'score_summary'}
         if exists $j->{'score_summary'};
+    $j->{'repair_failed'} = $j->{'repair_failed'} // 0;
     push @array, $j;
 }
 
@@ -73,8 +74,8 @@ return {
     'content_type' => qw| application/json |
 };
 
-#,,..,.,,,,,,,...,,.,,,.,,,.,,,,,,,,.,,,,,..,,..,,...,...,,,.,..,,...,,..,.,.,
-#5CSWRVUIHVUNSZUUZSJHKN2DPCJV4KRR5LK5WHWUIZZIECTDSJ4SNAMTXVW72ALNUOS54JY4FYUDY
-#\\\|ZN26RZ3DVV74UO5VNK7OIJZ7BT5ECAD7WQ3HXEDMRYWXE2AEZV5 \ / AMOS7 \ YOURUM ::
-#\[7]FWVPG5ZGLEAR7WTB7MD7H26U3RGRZYG74QXDPTX5O2MZ3PWHY6AI 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,.,,.,,,,.,,...,...,..,,.,.,.,,,..,,...,...,,..,,,.,...,,,,,...,
+#K52XK567TLTLB2HL5UKRARCEHLAATIZVNUSGLJUYZMISUNSCYHX2MAAQ2RABYR25FDZI6MROXRSUY
+#\\\|AWPZNHND3RNP7YHI2AE3Z3POW5TOMVJ5F7J5NTD2DDYLLW3NO6L \ / AMOS7 \ YOURUM ::
+#\[7]LU3AZHJWQRHAYI4JPXY5L7BAJLGV3BNINH3NSZGVRITQ2MD57YDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
