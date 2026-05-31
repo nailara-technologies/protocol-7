@@ -190,15 +190,41 @@ result: click ↺ → web queues reverse entry → jobsite ping delivers it → 
 runs at front of queue → delta push sends just the updated job → browser delta
 poll picks it up. all cards in 'alle' tab now complete.
 
+## auth plugin — DONE ✓ commit 142da4c44
+
+15 new modules: `plugin.web.auth.*` — session file store at
+`sessions/active/<token_hash>/session.yaml`, AMOS-checksum token
+(node_id+ntime+secret), verify_session (Bearer/cookie), create/destroy/prune,
+login/logout/status handlers. POST `/jobs-sync` gated; GET `/jobs.json` public.
+dual-loadable in web + httpd zenki via start file.
+
+## import-atom-jobs script — DONE ✓ commit 142da4c44
+
+`bin/dev/import-atom-jobs <dir>` — merges atom flat-layout YAMLs into local
+status-dir store. priority map (applied:8>interviewed:7>...), last_modified
+tiebreaker. prints imported/merged/skipped summary.
+
+## CSV/HTML import — DONE ✓ (kimi + jobsite.cmd.status fix)
+
+kimi imported `IMPORT/*.csv` and `IMPORT/*.htm/html` into local job store.
+47 applied, 3 interviewed, 5 rejected, 16 apply imported.
+`/var/protocol-7/jobsite/index.yaml` was a stale 3-entry flat-layout relic
+blocking `jobsite.status` — deleted. `jobsite.cmd.status` now reads from
+`<jobsite.job.index>` (same source as progress bar); vertical alignment;
+`base.sort` key order (length-grouped).
+
+## jobsite.status fix — DONE ✓ commit 4b930b439
+
+status now shows 922 total with correct per-status counts.
+format: `  %-12s : %d` with base.sort order.
+
 ## open items
 
-- **auth plugin** — dispatch next (`web-auth-plugin.md`); needed before atom sync
-- **atom data recovery** — two layers:
-  1. atom jobsite YAMLs (flat layout) → merge script using priority rules
-  2. atom browser localStorage (applied/rejected stages) → extract via DevTools,
-     POST as reverse-sync batch to `/jobs-sync`
-- **multi-endpoint sync** — after auth + atom recovery
-- **web-sessions-distributed** — low priority
+- **atom browser localStorage** — pri server jobs dir was empty; jobs only in
+  browser localStorage key `jobs_[vhost]_v1`; extract via DevTools and POST
+  as reverse-sync batch, or use CSV export from the browser
+- **multi-endpoint sync** — after auth settled
+- **web-sessions-distributed** — lower priority
 - nshell `(0)` on first command — still open
 - nshell stray cursor after index search — still open
 - STRM fix review needed (had_local_consumer)
@@ -216,8 +242,8 @@ poll picks it up. all cards in 'alle' tab now complete.
 
 #,,,,
 
-#,,,.,..,,.,.,,,,,,,.,,.,,,..,,,.,,..,,..,,,.,..,,...,...,,.,,,.,,,,,,.,,,,.,,
-#7AR3A7BFZGLGH6LBO4SEZFVDIAJECKHS6WXWF2ECPBKJIGPNVDNK2R65OGOHNW5X4247XLPLHMFLI
-#\\\|4OIQ7JJ7ZK7NARUT3S5ZRH3RMOKIVZEPEAD3UHWYIT3HPDJVAFV \ / AMOS7 \ YOURUM ::
-#\[7]YT6Y53I7GX7N2JA4K3VDHQPT4S7GI7HZTLFWDRJZNCKMS5RFN6BI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,,,,,,.,,,,,.,.,.,,,.,,,,..,,,.,..,,...,...,..,,.,,,.,.,,,,,...,
+#WNEJEX3UMSPNIPN2I2C3TWZBXOIOHPPZQWEUO35UY22V2Z4AVM4TTA277T2YZ475ZCPMUW6PYPOFS
+#\\\|RXDSGAJFAFXINRGE67HLK3HM3BTHVPEVJO4AGZXQD3UPCZ6EZQM \ / AMOS7 \ YOURUM ::
+#\[7]33IOQUCLO2IECUM55OPBLPVNUHCKWUU7LC7X3LUGWK57MBVTEGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
