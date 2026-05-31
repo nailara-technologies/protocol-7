@@ -146,8 +146,9 @@ my @external_tools = (
 
 ##[ global state ]##
 
-my $cube_sock;    ## persistent connection to cube
+my $cube_sock;               ## persistent connection to cube
 my $json = JSON->new->utf8->canonical;
+my $model_context_tokens;    ## cached from coding.context-size on first use
 
 ##[ stdio setup ]##
 
@@ -1270,10 +1271,26 @@ sub tool_coding_summarize {
     }
 }
 
+sub _model_chunk_size {
+    ## query context size once and cache; derive safe chunk size from it ##
+    unless ( defined $model_context_tokens ) {
+        my ( $ok, $val ) = cube_command('coding.context-size');
+        $model_context_tokens
+            = ( $ok and $val =~ m{^(\d+)$} ) ? $1 + 0 : 8000;
+    }
+    ## reserve ~5000 tokens for system prompt + output; 4 chars per token ##
+    my $chunk = ( $model_context_tokens - 5000 ) * 4;
+    $chunk = 8000 if $chunk < 8000;    ## floor for safety
+    return $chunk;
+}
+
 sub _do_summarize {
     my ( $text, $instruction, $max_tokens ) = @ARG;
     $instruction //= 'summarize concisely';
     $max_tokens  //= 500;
+
+    my $chunk_size = _model_chunk_size();
+    my $threshold  = int( $chunk_size * 1.1 );
 
     my $_b32_cmd = sub {
         my ($content) = @ARG;
@@ -1282,13 +1299,13 @@ sub _do_summarize {
             "coding.summarize-context max_len=$max_tokens :B32:$encoded");
     };
 
-    if ( length($text) > 8000 ) {
+    if ( length($text) > $threshold ) {
         ## rolling-window: each chunk carries forward the previous summary ##
         my $running = '';
         my $pos     = 0;
         while ( $pos < length($text) ) {
-            my $chunk = substr( $text, $pos, 6000 );
-            $pos += 6000;
+            my $chunk = substr( $text, $pos, $chunk_size );
+            $pos += $chunk_size;
             my $content
                 = length($running)
                 ? "previous summary:\n$running\n\nnew content to integrate:\n$chunk"
@@ -1433,8 +1450,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,.,,.,,,...,,.,,..,,,..,...,,,,,,,.,,,,,,,,,..,,...,...,...,.,.,,,,,,,.,,.,,
-#7FCWGSGDXNIV6SX6M3ARHNLBWHGIEW6TSHKEWDH6H6AJSIOOLOOBR6GBKJJ3A3E3JXOBSANOUOZ56
-#\\\|GCQMOYOUUY6NK5GTSZOHDCI2RIXIY6DOL3V5YRV2I4DKTXQVSVF \ / AMOS7 \ YOURUM ::
-#\[7]AMMSMRUOSMFJ2S5PUTDOJTCVSGFE5JVSTIIUG6O7KVBMLE7QIQAY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,..,.,.,,,.,,,,,.,,,.,.,,,,,,.,,..,,...,..,,..,,..,,...,.,.,,,.,
+#M3KUV5ZPQFGCM6R2T2L5QVU5DL6JSFYHMLDQDGKKKELLJDF64CT2DTKKQDAJ575CMJGMEGYMICJA2
+#\\\|T4ZA5HNB3645D3G2U2CQ7IR5ST32YSGDH7RSWPSMCFM2O4CDD2N \ / AMOS7 \ YOURUM ::
+#\[7]B3IHGP6KGYBEMUMM5P7PPAUOTHIMQFAFM3MWNJINIWMLSNPO4WBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
