@@ -88,6 +88,17 @@ if ( glob("$jobs_root/*.yaml") ) {
 <[jobsite.job.index.build]>;
 <[jobsite.job.load_all]>;
 
+## migrate jobs with status=assessed but stage=review to review directory ##
+my $tasks = <jobsite.tasks> // {};
+for my $id ( keys %{$tasks} ) {
+    my $rec = $tasks->{$id};
+    next unless ( $rec->{'stage'}  // '' ) eq 'review';
+    next unless ( $rec->{'status'} // '' ) eq 'assessed';
+    my $job = <[jobsite.job.read]>->($id) // next;
+    $job->{'status'} = 'review';
+    <[jobsite.job.write]>->( $id, $job );
+}
+
 ## load checksum-based dedup / blacklist index ##
 <[jobsite.checksum.index]>->(qw| load |);
 
@@ -128,7 +139,7 @@ if ( $sync_interval > 0 ) {
 }
 
 ## re-wire task.wait-done for any jobs stuck in 'assessing' after restart
-my $tasks   = <jobsite.tasks> // {};
+$tasks = <jobsite.tasks> // {};
 my @orphans = grep {
     ( $tasks->{$ARG}{'stage'} // '' ) eq 'assessing'
         and length( $tasks->{$ARG}{'task_id'} // '' )
@@ -161,8 +172,8 @@ my $job_count = scalar keys %{$tasks};
     <jobsite.cycle>, $job_count
 );
 
-#,,..,,,,,,,,,.,.,..,,...,.,,,...,,..,..,,,.,,..,,...,...,,..,,..,,,,,,,,,..,,
-#N374YQKEIGGYRC5XBVESYJWQT3DVK3ISSWU4RBGMEGYNWZSYSNSUATFHWT7PNVZHF5MKSB34B7ZQM
-#\\\|7CGS7OQDVC6A2SQH6J37HGQYDV42BODSM4JSLTGQ624HUVPXI6N \ / AMOS7 \ YOURUM ::
-#\[7]RHGN6AGAUCMVZUU74UENLLB5PK3NQFCQBTOWXXO76CXJLUO7ISAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,,,.,.,,,.,.,.,.,,,.,...,,,,,,..,..,,...,...,.,.,,,,,,..,.,.,.,.,
+#XMGE6AMBBMWWFQN2HNEYKGYMOUADSPMEAIIU7KJTOXCGQJZ4H2ZPVKCEPQK3ZXRXMCT3WYPVFK7SC
+#\\\|HMNYZSBLHVEUGF35EJWBPUXR3QHSBJEJD27SBK5NHPN2G2LXRRF \ / AMOS7 \ YOURUM ::
+#\[7]GP6YTOGGMGHPJICQ464UGTFJM3B7FRYXKVIX54TIOXNNOH2F7MAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

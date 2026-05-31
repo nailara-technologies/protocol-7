@@ -76,10 +76,19 @@ for my $id ( keys %jobs ) {
     };
 }
 
+## directory name is the authoritative status ##
+my $tasks = <jobsite.tasks> // {};
+for my $id ( keys %{$tasks} ) {
+    my $dir_status = $index->{$id} // '';
+    ## strip epoch prefix for blocked/deleted ##
+    $dir_status =~ s{^(blocked|deleted):.*}{$1};
+    $tasks->{$id}{'status'} = $dir_status if length $dir_status;
+}
+
 return \%jobs;
 
-#,,..,,,,,,,,,...,.,,,,,,,...,,.,,,,,,,,,,,,.,..,,...,...,..,,..,,...,.,,,,.,,
-#EUDMA73MKDS3HBN7HNWDX75XYWWH2RSR7BUNHQMDL2GVPALNS4LIVSWGABPFQYSOVJQ7NVXYOXG6M
-#\\\|B2FR6Z456PAUMXF3YJLLUP2FZGUPZH2FFLDK2MBMDETBHFEVTXN \ / AMOS7 \ YOURUM ::
-#\[7]UDOAANNBK4YWHLL5PQFARY3IPBNBBYMISTNH5V5CM63N5EH5J6CA 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,...,,,.,,,,,,,,,..,,..,,.,.,,,.,..,,...,...,,.,,.,.,.,,,,.,,,,,,
+#EKYBABY3S226VI4W7OWOKOQ2IU5EKWDWQM4VBEBDHK7HAZANWUVY5GOZE2TW5H47P5VEGOTOAJEDC
+#\\\|27MHL5EBFN376R6TDDAW4RCUMGVJI4F6OPJXZG7SG5ENCSDQKUC \ / AMOS7 \ YOURUM ::
+#\[7]JH5Y7HRFDGJ46X2BK7EWFS3FCBNXNIYUMS4B2AOCBSATUAGXKSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

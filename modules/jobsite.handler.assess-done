@@ -214,16 +214,18 @@ for my $dim ( keys %{ $assertions->{'dimensions'} // {} } ) {
 $job_rec->{'score'}         = $score;
 $job_rec->{'score_reason'}  = $reason  // '';
 $job_rec->{'score_summary'} = $summary // '';
-$job_rec->{'stage'}         = 'assessed';
 
 my $threshold = <jobsite.cfg.threshold> // 6;
 if ( length($score) and $score >= $threshold ) {
-    $job_rec->{'stage'} = 'review';
+    $job_rec->{'status'} = 'review';
+    $job_rec->{'stage'}  = 'review';
     <[base.logs]>->(
         1,       'job %s score=%s ABOVE threshold → review',
         $job_id, $score
     );
 } else {
+    $job_rec->{'status'} = 'assessed';
+    $job_rec->{'stage'}  = 'assessed';
     <[base.logs]>->(
         1,       'job %s score=%s below threshold',
         $job_id, length($score) ? $score : '?'
@@ -232,7 +234,7 @@ if ( length($score) and $score >= $threshold ) {
 
 ## update per-job file
 my $job = <[jobsite.job.read]>->($job_id) // {};
-$job->{'status'}        = 'assessed';
+$job->{'status'}        = $job_rec->{'status'};
 $job->{'score'}         = $score;
 $job->{'score_reason'}  = $reason  // '';
 $job->{'score_summary'} = $summary // '';
@@ -255,8 +257,8 @@ if ( <jobsite.pending_count> <= 0 ) {
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.next]>
 
-#,,,,,,,,,,,.,,,,,,..,,,,,.,.,,..,.,,,,..,..,,..,,...,...,...,,..,.,.,..,,.,,,
-#IS2UGDN5EBVMOMTDOJXS5ADVCLPD2IIBP7BNEZDSAQ24BDSX25RLSOTHBCMB42CNFEJSGVLJT5E3W
-#\\\|FZSOABF4ZKS4OVHKLT76WBS2HUGTZBGKCRFFVTFBWLEXF36D2GB \ / AMOS7 \ YOURUM ::
-#\[7]J6VIOMN2N7DLDU7WRUTCWUCJLGVLJH6HKYMIIEFU5LI3KTCQOABI 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,..,..,,,,.,..,,,,.,..,,...,.,,,..,,...,...,.,,,..,,..,,...,.,,,
+#MSKWECM7IKOSREVBFWOEPAXWG23HVVXB7O2S56DLTWOUCCWNMVSKTI5GQGDEM7IL54PPPSN6ZHA2C
+#\\\|YG6N5IVP62TL3OMWJCVDOHUTK3KLRIYQMZMGTG5DGKRDAZ5OH57 \ / AMOS7 \ YOURUM ::
+#\[7]X2IYVP4DE5TOUMX2WF5AUHEGAUS55NUHZB44F2B2WW5QZFQ42GDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
