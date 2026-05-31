@@ -150,6 +150,8 @@ my @external_tools = (
 my $cube_sock;               ## persistent connection to cube
 my $json = JSON->new->utf8->canonical;
 my $model_context_tokens;    ## cached from coding.context-size on first use
+my $pending_summary_focus
+    ;    ## one-shot focus for next auto_summarize; clears on use
 
 ##[ stdio setup ]##
 
@@ -424,20 +426,43 @@ our @tools = (
             'properties' => {
                 'client' => {
                     'type'        => 'string',
-                    'description' => 'which client: claude | kimi | all (default: all)'
+                    'description' =>
+                        'which client: claude | kimi | all (default: all)'
                 },
                 'session_id' => {
                     'type'        => 'string',
-                    'description' => 'uuid of session to summarize (omit to list)'
+                    'description' =>
+                        'uuid of session to summarize (omit to list)'
                 },
                 'instruction' => {
                     'type'        => 'string',
-                    'description' => 'focus for summarization (default: general summary)'
+                    'description' =>
+                        'focus for summarization (default: general summary)'
                 },
                 'limit' => {
                     'type'        => 'integer',
                     'description' => 'max sessions to list (default: 10)'
                 },
+            },
+            'additionalProperties' => \0
+        }
+    },
+    {   'name'        => 'store_summary_focus',
+        'description' =>
+            'prime the next auto_summarize with a specific focus instruction. '
+            . 'the stored focus is used once by the next kimi_dispatch or claude_dispatch '
+            . 'auto_summarize, then cleared automatically. '
+            . 'use before a dispatch to tell the summarizer exactly what YOU need to know '
+            . 'from the result, rather than getting a generic status dump. '
+            . 'call with empty instruction to clear without using.',
+        'inputSchema' => {
+            'type'       => 'object',
+            'properties' => {
+                'instruction' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'the focus for the next summarization (empty to clear)'
+                }
             },
             'additionalProperties' => \0
         }
@@ -615,6 +640,8 @@ sub handle_tools_call {
         tool_coding_summarize( $id, $args );
     } elsif ( $name eq 'session_catchup' ) {
         tool_session_catchup( $id, $args );
+    } elsif ( $name eq 'store_summary_focus' ) {
+        tool_store_summary_focus( $id, $args );
     } elsif ( my ($ext) = grep { $_->{'name'} eq $name } @external_tools ) {
         tool_external_command( $id, $args, $ext );
     } else {
@@ -1306,6 +1333,22 @@ sub tool_coding_summarize {
     }
 }
 
+sub tool_store_summary_focus {
+    my ( $id, $args ) = @ARG;
+    my $instruction = $args->{'instruction'} // '';
+    if ( length $instruction ) {
+        $pending_summary_focus = $instruction;
+        send_tool_result(
+            $id,
+            "summary focus stored — will apply to next dispatch auto_summarize",
+            0
+        );
+    } else {
+        $pending_summary_focus = undef;
+        send_tool_result( $id, "summary focus cleared", 0 );
+    }
+}
+
 sub _model_chunk_size {
     ## query context size once and cache; derive safe chunk size from it ##
     unless ( defined $model_context_tokens ) {
@@ -1380,8 +1423,8 @@ sub _list_claude_sessions {
     for my $file (@files) {
         my $mtime = ( stat($file) )[9] // 0;
         my $uuid  = $file;
-        $uuid =~ s{.*/}{};
-        $uuid =~ s{\.jsonl$}{};
+        $uuid             =~ s{.*/}{};
+        $uuid             =~ s{\.jsonl$}{};
         next unless $uuid =~ m{^[0-9a-f\-]{36}$};
 
         ## extract first user message as title ##
@@ -1411,14 +1454,16 @@ sub _list_claude_sessions {
             close $fh;
         }
         $title =~ s/\s+/ /g;
-        $title = substr( $title, 0, 80 ) . ( length($title) > 80 ? '...' : '' );
+        $title
+            = substr( $title, 0, 80 ) . ( length($title) > 80 ? '...' : '' );
         $title ||= '(no title)';
         push @sessions,
-            {   mtime  => $mtime,
-                uuid   => $uuid,
-                title  => $title,
-                client => 'claude',
-                file   => $file,
+            {
+            mtime  => $mtime,
+            uuid   => $uuid,
+            title  => $title,
+            client => 'claude',
+            file   => $file,
             };
     }
     return sort { $b->{'mtime'} <=> $a->{'mtime'} } @sessions;
@@ -1454,11 +1499,12 @@ sub _list_kimi_sessions {
             $title = substr( $title, 0, 80 )
                 . ( length($title) > 80 ? '...' : '' );
             push @sessions,
-                {   mtime  => $mtime,
-                    uuid   => $uuid,
-                    title  => $title,
-                    client => 'kimi',
-                    file   => "$inner_dir/context.jsonl",
+                {
+                mtime  => $mtime,
+                uuid   => $uuid,
+                title  => $title,
+                client => 'kimi',
+                file   => "$inner_dir/context.jsonl",
                 };
         }
     }
@@ -1468,10 +1514,10 @@ sub _list_kimi_sessions {
 sub tool_session_catchup {
     my ( $id, $args ) = @ARG;
 
-    my $client     = lc( $args->{'client'}     // 'all' );
-    my $session_id = $args->{'session_id'}     // '';
-    my $instruction = $args->{'instruction'}   // '';
-    my $limit      = $args->{'limit'}          // 10;
+    my $client      = lc( $args->{'client'} // 'all' );
+    my $session_id  = $args->{'session_id'}  // '';
+    my $instruction = $args->{'instruction'} // '';
+    my $limit       = $args->{'limit'}       // 10;
 
     my @sessions;
     push @sessions, _list_claude_sessions()
@@ -1485,10 +1531,13 @@ sub tool_session_catchup {
         my ($s) = grep { $_->{'uuid'} eq $session_id } @sessions;
         return send_tool_result( $id, "session not found: $session_id", 1 )
             unless defined $s;
-        return send_tool_result( $id, "session file missing: $s->{'file'}", 1 )
+        return send_tool_result( $id, "session file missing: $s->{'file'}",
+            1 )
             unless -f $s->{'file'};
 
-        my $inst = length($instruction) ? $instruction
+        my $inst
+            = length($instruction)
+            ? $instruction
             : 'summarize what was accomplished, key decisions, open issues, and next steps';
 
         ## session files are in user home — coding zenka (different user) can't
@@ -1507,7 +1556,8 @@ sub tool_session_catchup {
         };
         if ($@) {
             cube_disconnect();
-            $error = $@ eq "timeout\n"
+            $error
+                = $@ eq "timeout\n"
                 ? 'summarization timed out after 247s'
                 : "error: $@";
         }
@@ -1548,7 +1598,7 @@ sub _extract_session_text {
                 ## claude: type=user or type=assistant entries ##
                 my $role = $d->{'type'} // '';
                 if ( $role eq 'user' or $role eq 'assistant' ) {
-                    my $msg = $d->{'message'} // {};
+                    my $msg = $d->{'message'}   // {};
                     my $c   = $msg->{'content'} // '';
                     if ( ref $c eq 'ARRAY' ) {
                         for my $b (@$c) {
@@ -1686,11 +1736,13 @@ sub tool_external_command {
             {
                 $resume_line = $1;
             }
-            my $instruction
-                = 'extract: status (completed/partial/errored), '
+            ## use stored focus if primed, then clear it (one-shot) ##
+            my $instruction = $pending_summary_focus
+                // 'extract: status (completed/partial/errored), '
                 . 'files_created (list), files_modified (list), '
                 . 'issues (list), resume_uuid (if present), '
                 . 'next_steps (explicit next actions)';
+            $pending_summary_focus = undef;
             my $summary = _do_summarize( $output, $instruction, 600 );
             if ( defined $summary and length $summary ) {
                 $output = $summary;
@@ -1713,8 +1765,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,.,,,,,,,,,...,,,,,.,,,.,,,..,,,,,,..,,..,,..,,...,...,...,.,,,.,,,,.,,,,,,
-#B2CJK2M65XCE4BBQLC43IBTR3IGQVZUIUTJLWC2WI4SUQ3PFFOHNLFILX43WABXMSNMQXJFIIKNZU
-#\\\|TLB5Z6OGYQHV7IC3GAFLHFAJ33P2WHNN57B7X6VFIQBY6OLJOVD \ / AMOS7 \ YOURUM ::
-#\[7]NXDWLICMHGUFATPV75J73AY6ZQSYT2EIMSXO52X732ELXH6VRSAA 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,,,.,.,,,.,,..,,,,,,,,,,..,...,..,,...,.,.,..,,..,,,..,.,.,,..,
+#7CBYQR6EI5RJ4TTXU6LUSNAG2FGVPWXYTEYLWRM6TEGBK3PNAMGIL5UHX4VC2JORJPBGZTUN42KOC
+#\\\|ZRU722RT2MWYWTWYWYMM4NBVJHG6TPVMGINIABJ73Y3VBUTJVFG \ / AMOS7 \ YOURUM ::
+#\[7]4EFDIRP5P3KUYSPVZOJLOIJTITXVTXYZMHN6DHIVUGTGWB5VMEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
