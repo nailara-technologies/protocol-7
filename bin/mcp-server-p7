@@ -7,7 +7,9 @@ use English;
 use warnings;
 
 use JSON;
-use List::Util qw| max |;
+use List::Util  qw| max |;
+use Encode      qw| encode |;
+use Crypt::Misc qw| encode_b32r |;
 use IO::Socket::UNIX;
 use FindBin qw| $RealBin |;
 use File::Spec;
@@ -116,11 +118,18 @@ my @external_tools = (
     },
     {   'name'        => 'coding_summarize',
         'description' =>
-            'summarize text using the local coding zenka (9B model, free). '
-            . 'if text exceeds model context, uses rolling-window summarization. '
-            . 'use for compressing kimi/claude dispatch results before reading.',
+            'summarize text or a file using the local coding zenka (9B model, free). '
+            . 'use file param to summarize without loading content into context (token-free). '
+            . 'if text exceeds model context, uses rolling-window summarization.',
         'params' => [
-            [ 'text', 'content to summarize', 1 ],
+            [   'text',
+                'content to summarize (use file instead to avoid loading into context)',
+                0
+            ],
+            [   'file',
+                'absolute path to file — zenka reads it directly, content never enters context',
+                0
+            ],
             [   'instruction', 'what to focus on (default: general summary)',
                 0
             ],
@@ -128,7 +137,7 @@ my @external_tools = (
                 'target summary length in tokens (default: 500)', 0
             ],
         ],
-        'timeout' => 120,
+        'timeout' => 247,
     },
     ## additional external tools can be added here
     ## format: name, description, command (%s = shell-quoted first arg),
@@ -934,6 +943,10 @@ sub cube_command_multiline {
     ## ensure body is newline-terminated ##
     $body .= "\n" if length($body) and $body !~ /\n\z/;
 
+    ## downgrade to bytes for syswrite — json decode leaves utf8 flag on ##
+    utf8::encode($body)         if utf8::is_utf8($body);
+    utf8::encode($header_block) if utf8::is_utf8($header_block);
+
     my $packet = sprintf "%s+\n%s\n%s.\n", $command, $header_block, $body;
 
     log_msg( 'sending multiline: %s (%d bytes)', $command, length($packet) );
@@ -1221,22 +1234,53 @@ sub tool_coding_summarize {
     my ( $id, $args ) = @ARG;
 
     my $text        = $args->{'text'} // '';
+    my $file        = $args->{'file'} // '';
     my $instruction = $args->{'instruction'}
         // 'summarize the following text concisely';
     my $max_tokens = $args->{'max_tokens'} // 500;
 
-    return send_tool_result( $id, 'text is required', 1 )
-        if not length $text;
+    return send_tool_result( $id, 'text or file is required', 1 )
+        if not length $text and not length $file;
 
-    my $result = _do_summarize( $text, $instruction, $max_tokens );
-    $result //= 'summarization failed — coding zenka may not be running';
-    send_tool_result( $id, $result, 0 );
+    my $result = '';
+    my $error  = '';
+    eval {
+        local $SIG{ALRM} = sub { die "timeout\n" };
+        alarm(247);
+        if ( length $file ) {
+            $result = _do_summarize_file( $file, $instruction, $max_tokens );
+        } else {
+            $result = _do_summarize( $text, $instruction, $max_tokens );
+        }
+        alarm(0);
+    };
+    if ($@) {
+        cube_disconnect();    ## socket may be mid-write — force fresh connect
+        $error
+            = $@ eq "timeout\n"
+            ? 'summarization timed out after 247s — model may still be loading'
+            : "error: $@";
+    }
+
+    if ( length $error ) {
+        send_tool_result( $id, $error, 1 );
+    } else {
+        $result //= 'summarization failed — coding zenka may not be running';
+        send_tool_result( $id, $result, 0 );
+    }
 }
 
 sub _do_summarize {
     my ( $text, $instruction, $max_tokens ) = @ARG;
     $instruction //= 'summarize concisely';
     $max_tokens  //= 500;
+
+    my $_b32_cmd = sub {
+        my ($content) = @ARG;
+        my $encoded = encode_b32r( encode( 'UTF-8', $content ) );
+        return cube_command(
+            "coding.summarize-context max_len=$max_tokens :B32:$encoded");
+    };
 
     if ( length($text) > 8000 ) {
         ## rolling-window: each chunk carries forward the previous summary ##
@@ -1249,22 +1293,28 @@ sub _do_summarize {
                 = length($running)
                 ? "previous summary:\n$running\n\nnew content to integrate:\n$chunk"
                 : "$instruction:\n\n$chunk";
-            my ( $ok, $chunk_result )
-                = cube_command_multiline(
-                "coding.summarize-context max_len=$max_tokens",
-                {}, $content );
+            my ( $ok, $chunk_result ) = $_b32_cmd->($content);
             return undef unless $ok;
             $running = $chunk_result;
         }
         return $running;
     } else {
-        my $content = "$instruction:\n\n$text";
-        my ( $ok, $result )
-            = cube_command_multiline(
-            "coding.summarize-context max_len=$max_tokens",
-            {}, $content );
+        my ( $ok, $result ) = $_b32_cmd->("$instruction:\n\n$text");
         return $ok ? $result : undef;
     }
+}
+
+sub _do_summarize_file {
+    my ( $path, $instruction, $max_tokens ) = @ARG;
+    $instruction //= 'summarize concisely';
+    $max_tokens  //= 500;
+
+    ## coding zenka reads the file directly — content never enters mcp context ##
+    my $focus   = '';
+    my $cmd_opt = "max_len=$max_tokens path=$path";
+    $cmd_opt .= " focus=$focus" if length $focus;
+    my ( $ok, $result ) = cube_command("coding.summarize-context $cmd_opt");
+    return $ok ? $result : undef;
 }
 
 ## =========================================================================
@@ -1383,8 +1433,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,,,,,.,,,,,..,,.,.,..,,..,,,.,,,,,,,.,,..,,..,,...,...,..,,,..,,..,..,,,.,,
-#Q3BJJ6235YOXZKDHYPFJZUKIMWZ2AMQ7FPMIO6ID6FW4QBB6WXHUJ6H4MFKPP2MBCPTOBIJNLXXAO
-#\\\|PGQMXBKJJ4HGZMAUXLIKUAXIEN6GJO2B3GKOYRONPJLBL6J3O37 \ / AMOS7 \ YOURUM ::
-#\[7]OFMJFRJQCEVJW6GHBZKQZCBK5UNTOCIOCT7SCYRCAPVDT3WIZKBI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,.,,..,,,..,...,,,,,,,.,,,,,,,,,..,,...,...,...,.,.,,,,,,,.,,.,,
+#7FCWGSGDXNIV6SX6M3ARHNLBWHGIEW6TSHKEWDH6H6AJSIOOLOOBR6GBKJJ3A3E3JXOBSANOUOZ56
+#\\\|GCQMOYOUUY6NK5GTSZOHDCI2RIXIY6DOL3V5YRV2I4DKTXQVSVF \ / AMOS7 \ YOURUM ::
+#\[7]AMMSMRUOSMFJ2S5PUTDOJTCVSGFE5JVSTIIUG6O7KVBMLE7QIQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
