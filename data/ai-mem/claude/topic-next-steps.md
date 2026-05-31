@@ -97,9 +97,13 @@ and any other STRM consumer, to confirm no undefined state introduced.
 - **filesystem checksum store** — DONE ✓ commit 5846902bc: dir-based, no load/persist
 - **jobsite status-dir layout** — DONE ✓ kimi dispatch; per-status job subdirs live
 - **job.read utf8 fix** — DONE ✓ uncommitted: utf8::encode before YAML::XS::Load
-- **checksum status-dir expansion** — IN PROGRESS: kimi continue 3e42231f; titles/
-  per-status, resolved_status, interviewed status, update_status action
+- **checksum status-dir expansion** — kimi continue 3e42231f dispatched; status unknown
+- **jobsite.cmd.progress** — DONE ✓ commit 3df3f7a49; ascii bar, cycle-aware right bracket
+- **scan-state slim** — DONE ✓ commit 3df3f7a49; 4 fields only, tasks from filesystem
+- **reset enc_error/rep-err** — DONE ✓ renamed from encoding_broken/repair_failed
+- **repair_failed 30 jobs** — DONE ✓ reset + re-assessed
 - **web-jobs-status-dir-layout** — task file written, not dispatched
+- **progress bar review:0 bug** — tasks use status=assessed+stage=review; bar shows 0
 
 ## jobs pipeline open items
 
@@ -209,8 +213,8 @@ and any other STRM consumer, to confirm no undefined state introduced.
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,.,,.,,,,,,,..,,.,,,,,,,...,..,,.,.,,..,...,..,,...,...,...,.,,,,.,,.,.,.,.,
-#D53VXOVD42PZA7NC3EGVD6FTI5A5TMRRRYMOXC6A76XCVGEDB6CCKVYUMYZXSHRMCJOBC25TVAVAE
-#\\\|YGYPQKO5346J6DICXKP4JOL24DWVMEKJZOXLU5FJ2GG4GLFGKQS \ / AMOS7 \ YOURUM ::
-#\[7]WMBCNIVQF64A3GUVNVIP55PUW57NQQ46KJ56ROKDTJKBLHN3JEBQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,...,.,.,,.,,,.,,,.,,..,,,.,,,,,,..,,...,...,...,.,,,.,.,.,,,...,
+#VEYVT6SXHHJA6V7FOTRJW7ID32DOXGPBGLKFQMRUBSFRBPG532JPFUCYONP6LEIPL3MY4P6K523MW
+#\\\|RH26EQYTLW7YHZ2FE72FCQJ2S64IW2MEQXPGFPURNH6EYAAW56L \ / AMOS7 \ YOURUM ::
+#\[7]R5ENGTOA32WN6UYDMSK6NYIPJJ6M3R6G2LXGFIHDO2ANFCJZS2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
