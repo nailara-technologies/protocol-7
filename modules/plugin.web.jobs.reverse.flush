@@ -1,14 +1,18 @@
 ## [:< ##
 
 # name  = plugin.web.jobs.reverse.flush
-# descr = return and clear pending reverse change queue
+# descr = return and clear pending reverse change queue, run prune
 
 my $pending = <plugin.web.jobs.reverse> // [];
 <plugin.web.jobs.reverse> = [];
+
+## periodic lifecycle prune ##
+<[plugin.web.jobs.store.prune]>;
+
 return $pending;
 
-#,,..,,,,,,..,,,,,,,,,.,.,..,,,.,,,,,,,.,,..,,..,,...,...,,,,,,,,,,.,,,,.,.,,,
-#XDYPYBFHEAKVPUDLRCI3DZT3AOYDXGIZRS5MHMQHPYMTEWMQ2YQEABJXX3AULHPCRMEEVMDC34756
-#\\\|DV7JJVNM2OVM34CLDMZYL6UI2HAFN7PMGFX4BNKWBEWPBJUMZJA \ / AMOS7 \ YOURUM ::
-#\[7]PS62JBFYMXEMAS7GDLVYN3GEGV6IGIDOWKZTJWTEWEZ5NNCEJIBI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,...,..,,,..,.,.,.,.,,,.,,,,,,,,,..,,...,..,,,.,,,..,..,,.,,,...,
+#FPH4M3N2SNONITAXNDFS5G2KIWTAY3BATKJCFZ4HRHHN7OSHEVGJUXDLJCNILSZBYIHKB2U5H5UXE
+#\\\|LSTWTTJAMYBFQOJ2UEAF7O6GIQTF6NP45QGEMIAJEPKOEOH4YLS \ / AMOS7 \ YOURUM ::
+#\[7]KXDKF2NTXQXXRJAS7GQJOJALEUINIHWD4P33R5BYPVNEFLNW3WDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
