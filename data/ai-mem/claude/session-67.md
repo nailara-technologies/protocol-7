@@ -218,6 +218,28 @@ blocking `jobsite.status` — deleted. `jobsite.cmd.status` now reads from
 status now shows 922 total with correct per-status counts.
 format: `  %-12s : %d` with base.sort order.
 
+## claude_dispatch + claude_continue — DONE ✓ commit 1adbf83d2
+
+new MCP tools in `bin/mcp-server-p7`. claude CLI dispatch with:
+- `--dangerously-skip-permissions` (auto-approve)
+- `--output-format stream-json` + session_id extraction
+- model aliases: haiku/sonnet/opus → full IDs; default: sonnet
+- max_budget_usd guard (default: 1.00)
+- resume line: `To resume this session: claude -r <uuid>`
+
+tested: managed full kimi dispatch workflow (iris-ring-ledger) — found task
+in needs-testing/, dispatched to kimi, reviewed result (already done), skipped
+ptd. two UUIDs returned: outer claude + inner kimi session.
+
+**strategic pattern**: route kimi dispatches through claude_dispatch to keep
+parent context lean. claude handles task reading → kimi dispatch → review →
+ptd → summary. parent sees only summary + UUID.
+
+## iris tasks status
+- **alpha-density v2** — DONE ✓ (signature stub removed, impl was already in c80c2a69e)
+- **ring ledger** — DONE ✓ (already implemented in c80c2a69e, verified by claude_dispatch test)
+- **route-commitment** — next in iris queue: data/tasks/iris-route-commitment.md
+
 ## open items
 
 - **atom browser localStorage** — pri server jobs dir was empty; jobs only in
@@ -242,8 +264,8 @@ format: `  %-12s : %d` with base.sort order.
 
 #,,,,
 
-#,,,,,.,,,...,,,,,,,.,,,,,.,.,.,,,.,,,,..,,,.,..,,...,...,..,,.,,,.,.,,,,,...,
-#WNEJEX3UMSPNIPN2I2C3TWZBXOIOHPPZQWEUO35UY22V2Z4AVM4TTA277T2YZ475ZCPMUW6PYPOFS
-#\\\|RXDSGAJFAFXINRGE67HLK3HM3BTHVPEVJO4AGZXQD3UPCZ6EZQM \ / AMOS7 \ YOURUM ::
-#\[7]33IOQUCLO2IECUM55OPBLPVNUHCKWUU7LC7X3LUGWK57MBVTEGAQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,.,,,,,,,,,.,,,.,,,,,,..,,,.,.,,,..,,...,...,,..,.,.,,,.,,.,,,,,,
+#65KOUAEDBGQQ3CDEOV256CMI7E46X7FNPMSXFYKDAKKFOOEMDZDICXZ4TKBHBLMQDPN5FYMYZVYK2
+#\\\|YHNIU5NNIBCUUR3CYS3EN57QHF75IDG63YIFO254DVCWMSHFBID \ / AMOS7 \ YOURUM ::
+#\[7]WW7O6OJ46ITMY6VVC4MBJGY4J7JUHTPXMLI66HSTNAM46NP34CCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
