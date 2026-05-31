@@ -3,51 +3,33 @@
 # name  = jobsite.cmd.status
 # descr = show current cycle state and job counts
 
+## count from filesystem index (authoritative, same source as jobsite.progress) ##
 my %counts;
-my $total = 0;
-
-## prefer index.yaml for fast counts
-my $index_file = '/var/protocol-7/jobsite/index.yaml';
-if ( -f $index_file ) {
-    my $index = eval { YAML::XS::LoadFile($index_file) } // {};
-    if ( ref $index eq 'HASH' ) {
-        for my $id ( keys %{$index} ) {
-            my $stage = $index->{$id}{'stage'} // 'unknown';
-            $counts{$stage}++;
-        }
-        $total = scalar keys %{$index};
-    }
+my $idx = <jobsite.job.index> // {};
+for my $id ( keys %{$idx} ) {
+    my $st = $idx->{$id} // '';
+    $st =~ s{^(blocked|deleted):.*}{$1};
+    $counts{$st}++ if length $st;
 }
-
-## fallback to in-memory tasks
-if ( not $total ) {
-    my $tasks = <jobsite.tasks> // {};
-    for my $id ( keys %{$tasks} ) {
-        my $stage = $tasks->{$id}{'stage'} // 'unknown';
-        $counts{$stage}++;
-    }
-    $total = scalar keys %{$tasks};
-}
+my $total = scalar keys %{$idx};
 
 my $last = <jobsite.last_scan> // 0;
 my $age  = $last ? sprintf( '%ds ago', time - $last ) : 'never';
 
 my @lines;
-push @lines, sprintf 'cycle:      %s', <jobsite.cycle> // 'idle';
-push @lines, sprintf 'last scan:  %s', $age;
-push @lines, sprintf 'jobs total: %d', $total;
-for my $stage (
-    qw| queued assessing assessed review approved interviewed rejected failed |
-) {
-    push @lines, sprintf '  %-12s %d', $stage, $counts{$stage} // 0
-        if $counts{$stage};
+push @lines, sprintf '  cycle      : %s', <jobsite.cycle> // 'idle';
+push @lines, sprintf '  last scan  : %s', $age;
+push @lines, sprintf '  threshold  : %s', <jobsite.cfg.threshold> // 6;
+push @lines, sprintf '  total      : %d', $total;
+push @lines, '';
+for my $st ( <[base.sort]>->( keys %counts ) ) {
+    push @lines, sprintf '  %-12s : %d', $st, $counts{$st};
 }
-push @lines, sprintf 'threshold:  %s', <jobsite.cfg.threshold> // 6;
 
 return { 'mode' => 'size', 'data' => join( "\n", @lines ) };
 
-#,,,.,..,,.,.,.,.,..,,.,.,.,.,,..,,,,,,.,,.,,,..,,...,...,.,.,,,.,,,,,...,,.,,
-#COCUF63YB4AZML7GWE5PDJ2FAIPERZSX5RNA5WO2MKZV6ZKCTVJHF4JDONPW3RGEHOAGRWZUOMDG2
-#\\\|SO64LQ57K2SOL4DT6M5GJVE3VJS3OFGBITYDHWBG5G5IJ7UGKQK \ / AMOS7 \ YOURUM ::
-#\[7]63KS5PPLQCLQF5DBHAMHNYQP5MYYOAYRJKDFG4LZNDXD34WGMOCQ 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,..,...,,..,.,,,..,,,..,.,.,,,.,..,,...,...,...,..,,,,.,,..,,,,,
+#FWZG4H7W6MXXUODQPY7NZT7WDGUXCIXNSRKXAM5AZDWV727D6JEXZ2ANY5EOJLX5XH5NRKNTVYEI2
+#\\\|XWRT3LUZMML7PYLFU2GROMJILCFSFGLMXGGIDLBWOWLNY3J7VIG \ / AMOS7 \ YOURUM ::
+#\[7]ODYVJ45DBXP5WMICS3EUT6K2J4U5WKPYARW3ZIXQ2HLN3JK7RUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
