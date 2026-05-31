@@ -1,0 +1,62 @@
+## [:< ##
+
+# name  = plugin.web.auth.session.write
+# descr = write session data by token_hash
+# param = token_hash string, session hashref
+
+my $token_hash = shift // '';
+my $session    = shift;
+
+return FALSE if not length $token_hash;
+return FALSE if ref $session ne qw| HASH |;
+
+my $session_base = <[plugin.web.auth.session.path]>;
+my $dir          = "$session_base/active/$token_hash";
+my $file         = "$dir/session.yaml";
+
+if ( not -d $dir ) {
+    my $user = <system.zenka-user.current> // <system.amos-zenka-user>
+        // qw| protocol-7 |;
+    my $group = <system.zenka-group.current> // $user;
+    <[file.make_path]>->( $dir, 0750, $user, $group );
+}
+
+my $yaml_str = eval { YAML::XS::Dump($session) };
+if ($@) {
+    <[base.s_warn]>->(
+        'plugin.web.auth.session.write : yaml dump error [ %s ] : %s',
+        $token_hash, $@
+    );
+    return FALSE;
+}
+
+## use file.zenka_dir.write when in web zenka for sync semantics ##
+my $zenka = <system.zenka.name> // qw| web |;
+if ( $zenka eq qw| web | ) {
+    my $rel_path = "active/$token_hash/session.yaml";
+    my $written
+        = <[file.zenka_dir.write]>->( $rel_path, \$yaml_str, qw| > |, 0640 );
+    return $written ? TRUE : FALSE;
+}
+
+## fallback direct write for other zenki ##
+my $fh = <[file.open]>->( $file, qw| :raw |, qw| > |, TRUE, 0640 );
+if ( not defined $fh ) {
+    <[base.s_warn]>->(
+        'plugin.web.auth.session.write : open failed [ %s ]', $file
+    );
+    return FALSE;
+}
+print {$fh} $yaml_str;
+close($fh)
+    or <[base.s_warn]>->('plugin.web.auth.session.write : close error');
+
+return TRUE;
+
+#,,.,,...,,..,...,.,,,..,,,..,..,,,,,,...,,,.,..,,...,...,,.,,,..,,.,,,.,,..,,
+
+#,,..,,,.,.,,,,.,,,,,,,,,,,,,,,,.,.,.,,,,,,.,,..,,...,...,..,,.,,,..,,,,.,,.,,
+#ZQJNXL3ID535LLYOL2W3TIKSUMO3DVQKMST3DGWWMUJ7DUGQEWOWHEJLF2MDAFQ7AVKSX3UOZ5G3U
+#\\\|HK4DQ4V5IFRQDSG6UDJALGJDUVU3XJLM4CCKO2HF3QOIVVBQ3GT \ / AMOS7 \ YOURUM ::
+#\[7]SDYXEIW4RHP57XHZZSBGRG4OWBSAWKH7D4F3FXF5CEIJDYFSB2DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
