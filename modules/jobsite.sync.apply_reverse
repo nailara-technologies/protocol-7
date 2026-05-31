@@ -45,6 +45,54 @@ for my $entry ( @{$entries} ) {
         next;
     }
 
+    if ( $action eq 'reassess' ) {
+        my $job = <[jobsite.job.read]>->($id);
+        if ( ref $job ne 'HASH' ) {
+            <[base.logs]>->( 0, 'jss.sync.apply: reassess %s — not found', $id );
+            next;
+        }
+
+        ## clear assessment fields, reset to new ##
+        for my $f (qw| score score_reason score_summary assertions stage
+                       repair_attempted repair_failed repair_applied |) {
+            delete $job->{$f};
+        }
+        $job->{'status'} = 'new';
+        <[jobsite.job.write]>->( $id, $job );
+
+        ## update in-memory task record ##
+        my $rec = ( <jobsite.tasks> // {} )->{$id} // {};
+        delete $rec->{$ARG} for qw| score score_reason score_summary assertions
+                                    stage repair_attempted repair_failed |;
+        $rec->{'status'} = 'new';
+        <jobsite.tasks>->{$id} = $rec;
+
+        ## inject at front of assess queue (prioritized) ##
+        my $profile_file = <jobsite.cfg.profile_file>
+            // '/etc/protocol-7/jobsite/profile.txt';
+        my $profile_text = <[file.read]>->($profile_file)
+            // 'no profile configured';
+        <[base.perlmod.autoload]>->('Encode');
+        $profile_text = Encode::decode( 'UTF-8', $profile_text )
+            unless utf8::is_utf8($profile_text);
+
+        my $prompt = <[jobsite.util.build_prompt]>->($job);
+        my $entry  = { 'job_id' => $id, 'desc' => $prompt };
+
+        <jobsite.assess_queue> //= [];
+        unshift @{ <jobsite.assess_queue> }, $entry;    ## front of queue ##
+
+        ## if idle: start the cycle ##
+        if ( ( <jobsite.cycle> // 'idle' ) eq 'idle' ) {
+            <jobsite.cycle>         = 'assessing';
+            <jobsite.pending_count> = 1 + scalar @{ <jobsite.assess_queue> };
+            <[jobsite.dispatch.next]>;
+        }
+
+        <[base.logs]>->( 1, 'jss.sync.apply: reassess %s queued (front)', $id );
+        next;
+    }
+
     ## update browser-owned fields
     my $job = <[jobsite.job.read]>->($id);
     if ( ref $job ne 'HASH' ) {
@@ -66,8 +114,8 @@ for my $entry ( @{$entries} ) {
     }
 }
 
-#,,,,,,.,,,..,,,.,...,..,,.,,,...,,..,,,.,..,,..,,...,...,,.,,,.,,,,,,.,,,,,.,
-#IKECBNTJRN7XBZXFN2C4IR2BIISMJEY5ZZETO7EVUKWGZH5DLUKCHEKJH7BGPVYC5L23GVSGBT726
-#\\\|4SGFL75IBLHRSIUK6GHLQFLMSRVNWRZBOLKVNWKMNHVXBGIMFW5 \ / AMOS7 \ YOURUM ::
-#\[7]SFKBHLD3OOGF6ARTIG4536SNB746K2OOXNVFWP3AZBN2JYZVEYBI 7  DATA SIGNATURE ::
+#,,,.,..,,...,..,,,,.,,..,...,.,,,,..,,,,,.,,,..,,...,...,.,.,,,.,...,..,,.,,,
+#DQGWB5Y62WQRIZK73Z6HYBHWM3MFJO53WQIPIIJJKRD5AKXXD55I4VDY6BE2PQ2GVCBHXJG3IDA5G
+#\\\|JWDEWCFH6J5R5F6OBTSAWA6N5T53ULD4JZCZQVDPAHEUEFDEWX3 \ / AMOS7 \ YOURUM ::
+#\[7]TBWE23PYCGEBBT3OQ2CVPKRFWWXHJ5IVUB7IJMTPC6OPRF3CFKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
