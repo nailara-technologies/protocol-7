@@ -8,6 +8,19 @@ my $id      = shift;
 my $args    = shift // {};
 my $session = $data{'session'}->{$id};
 
+## route-level auth gating ##
+if ( $args->{'auth.required'} ) {
+    my $auth_session = <[plugin.web.auth.verify_session]>->($session);
+    if ( not defined $auth_session ) {
+        <[base.logs]>->(
+            1,   '[%d] auth required for %s : unauthorized',
+            $id, $args->{'command'} // '(unknown)'
+        );
+        return <[httpd.send_error_page]>->( $id, 401 );
+    }
+    $session->{'auth_session'} = $auth_session;
+}
+
 my $command = $args->{'command'}           // qw| web.request |;
 my $body    = $session->{'http'}->{'body'} // $session->{'buffer'}->{'input'}
     // '';
@@ -59,8 +72,8 @@ if ( defined $session->{'watcher'}{'input_handler'} ) {
 
 return 0;    # [ deferred : reply handler writes response ]
 
-#,,,,,,.,,...,...,,..,..,,,..,,,.,,.,,,,.,,.,,..,,...,...,...,,,.,.,.,...,...,
-#RMLKC35AUHDJ7NKNHQ5GJNNSV6V3NSDT647ZL4F3IVGWJBD4LND5EDH2GPLLKKDCO6OZ2LZO3TMCW
-#\\\|6O7SYQXMHRJDUNXQTUSDGEISSIZ7MDPAI4TDCS5EU4UUJJALP5I \ / AMOS7 \ YOURUM ::
-#\[7]FYMJNJZEJIYWOJ73JUQRJPABKGWZFDCUG2AJ7QRPMMSPZ6Q4EKAY 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,,,,,..,,,..,...,,.,,.,,,,..,,,.,..,,...,...,.,,,.,.,,..,...,.,.,
+#UIKTRFNN7OYAGKH2DHUW2X3BTTTSO4TZ6452VESETYFSU57BPZLCLCBIP7BAEGLK2L75GQ2FKPVE2
+#\\\|FGJLNUHOIUK47GWXWX3MFTST4IBOVPHMS7OPMURNWX2ONMSC3VB \ / AMOS7 \ YOURUM ::
+#\[7]ECMWXPHP2K2WRL4VWCY7RNQBYGVTEBMISXOIV3WCTJPVNZT4YWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

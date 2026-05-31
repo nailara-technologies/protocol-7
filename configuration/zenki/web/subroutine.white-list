@@ -143,6 +143,7 @@ base.cmd.commands
 base.chk-sum.amos
 web.scan_directory
 web.menu_generator
+web.cmd.auth-login
 jobsite.state.load
 index.restore.cube
 base.reload_values
@@ -160,6 +161,8 @@ base.cmd.verbosity
 base.clear_p7_mods
 base.clean_unicode
 base.clean_hashref
+web.cmd.auth-status
+web.cmd.auth-logout
 web.assets.registry
 web.assets.register
 plugin.auth.twofish
@@ -314,6 +317,7 @@ base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
 web.response.content_type
 plugin.web.jobs.init_code
+plugin.web.auth.init_code
 plugin.web.attention.json
 jobsite.util.fix_encoding
 jobsite.util.build_prompt
@@ -392,6 +396,8 @@ web.cmd.process_template_ipc
 protocol.protocol-7.pre_init
 protocol.amos_term.init_code
 plugin.web.space.cmd.context
+plugin.web.auth.session.read
+plugin.web.auth.session.path
 jobsite.handler.task-created
 jobsite.handler.rescan-timer
 jobsite.dispatch.assessments
@@ -411,6 +417,9 @@ protocol.protocol-7.init_code
 plugin.web.space.orbital.json
 plugin.web.jobs.reverse.queue
 plugin.web.jobs.reverse.flush
+plugin.web.auth.session.write
+plugin.web.auth.session.prune
+plugin.web.auth.handler.login
 crypt.C25519.get_usr_keys_dir
 base.validate.data_key_syntax
 base.source.collect_file_list
@@ -434,6 +443,10 @@ protocol.amos-chksum.init_code
 plugin.web.space.orbital.fetch
 plugin.web.space.index.persist
 plugin.web.jobs.cache.read_all
+plugin.web.auth.verify_session
+plugin.web.auth.handler.status
+plugin.web.auth.handler.logout
+plugin.web.auth.create_session
 plugin.web.attention.pop_state
 plugin.web.attention.init_code
 jobsite.handler.repair-created
@@ -444,6 +457,7 @@ base.number-cache.true_upwards
 base.log.send-buffer.add-queue
 base.cache.refaddr-prefix.init
 plugin.web.space.grid.init_code
+plugin.web.auth.destroy_session
 plugin.web.attention.push_state
 jobsite.handler.pending-changed
 crypt.C25519.cmd.get-public-key
@@ -556,8 +570,8 @@ base.log.send-buffer.reply-handler.notify-online
 plugin.web.space.template-resolver.update_context
 plugin.web.space.template-resolver.available_data
 
-#,,,.,,,,,,,,,,.,,..,,...,..,,.,.,,,.,,.,,...,..,,...,..,,...,...,.,,,...,,,.,
-#L6R7K5Z5VMMWFVEOQGU6ATEB2T7EBY2E4SIEWC4ZAYPCGSCMZQ2BW5DYS3A732EFDAGN6PRUYPAV2
-#\\\|GYRMYBESJC5WHSPIZALNXJ5MPWLPZJDZXK6DNDFYQEQ7JE7BQT6 \ / AMOS7 \ YOURUM ::
-#\[7]VKYSCZURVXOAMJ4G5JQKX4MEXSV4XL5QMEMJ7KCTJLYKAFN55KBI 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,..,,,.,,..,,,,,,,,,,,,.,.,,,,,,,..,,...,...,.,,,.,,,,..,.,.,.,.,
+#5CX7ICCALWDU5WYLGV7GS4NRGCBI45HVGUPQM43IZ3YCTB3JGEB32LBEMJJEUPDLG2C4CM363S4Y6
+#\\\|CZGAUVDMXOFBEDMLY32DVXWOBZVKY7DTPZLLIPLXK75FL755FQC \ / AMOS7 \ YOURUM ::
+#\[7]6M27XZVIH5A6B77ZGYOUHQDA6QIG2VO3N2XCGDLCGSSMOQIMOIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

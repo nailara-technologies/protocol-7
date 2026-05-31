@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = plugin.web.auth.session.prune
+# descr = remove expired sessions older than prune_after_epochs
+
+my $cfg          = $data{'plugin.web.auth'}{'cfg'}           // {};
+my $prune_after  = $cfg->{'session'}->{'prune_after_epochs'} // 7;
+my $session_base = <[plugin.web.auth.session.path]>;
+my $expired_base = "$session_base/expired";
+
+return 0 if not -d $expired_base;
+
+my $now_epoch = time;
+my $cutoff    = $now_epoch - ( $prune_after * 86400 );
+my $pruned    = 0;
+
+opendir my $dh, $expired_base or return 0;
+for my $epoch_dir ( grep { /^\d+$/ && -d "$expired_base/$_" } readdir($dh) ) {
+    next if $epoch_dir > $cutoff;
+
+    my $dir = "$expired_base/$epoch_dir";
+    opendir my $edh, $dir or next;
+    for my $fn ( grep {/\.yaml$/} readdir($edh) ) {
+        my $path = "$dir/$fn";
+        next if not -f $path;
+        if ( unlink($path) ) {
+            $pruned++;
+        } else {
+            <[base.s_warn]>->(
+                'plugin.web.auth.session.prune : unlink %s failed', $path
+            );
+        }
+    }
+    closedir $edh;
+
+    ## remove empty epoch dir ##
+    rmdir $dir;
+}
+closedir $dh;
+
+<[base.logs]>->(
+    2,       'plugin.web.auth : pruned %d expired session%s',
+    $pruned, <[base.cnt_s]>->($pruned)
+);
+
+return $pruned;
+
+#,,.,,...,,..,...,.,,,..,,,..,..,,,,,,...,,,.,..,,...,...,,.,,,..,,.,,,.,,..,,
+
+#,,..,.,,,.,,,,..,,.,,,.,,.,.,..,,,,.,.,,,.,,,..,,...,...,...,.,.,.,.,.,,,,.,,
+#3FNCMED7B3SKKKDXHSRYRS3S5DAFPTBUIKDA7QEP7NI2ZEER4GIIRLW3Y26HV4NDDUIO2BYDXNJFC
+#\\\|QJUIJBRA7IMSFGRWATMAEHJCVMXXUCZFUM4NZH24UBUDQUBIZ65 \ / AMOS7 \ YOURUM ::
+#\[7]YGNDQJ27D6QZUCMTFNXOLEL33CHVAMW3IDKGGSOJYX2JQ4UEHADQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

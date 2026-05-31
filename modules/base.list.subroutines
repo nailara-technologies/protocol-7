@@ -586,6 +586,7 @@ return [ qw[
         work.console.stats
         web.scan_directory
         web.menu_generator
+        web.cmd.auth-login
         weather.cmd.widget
         valued.node.create
         v7.zenka.setup.add
@@ -752,6 +753,8 @@ return [ qw[
         window.profile.save
         window.profile.load
         websocket.init_code
+        web.cmd.auth-status
+        web.cmd.auth-logout
         web.assets.registry
         web.assets.register
         web-browser.js_call
@@ -2048,6 +2051,7 @@ return [ qw[
         power.set-up.export_rules
         power.cmd.get_device_addr
         plugin.web.jobs.init_code
+        plugin.web.auth.init_code
         plugin.web.attention.json
         plan-9.server.handle_walk
         plan-9.server.client.data
@@ -2679,6 +2683,8 @@ return [ qw[
         protocol.protocol-7.pre_init
         protocol.amos_term.init_code
         plugin.web.space.cmd.context
+        plugin.web.auth.session.read
+        plugin.web.auth.session.path
         plugin.storage.p7ref.resolve
         plugin.httpd.radio.init_code
         plan-9.server.handle_version
@@ -2859,6 +2865,9 @@ return [ qw[
         plugin.web.space.orbital.json
         plugin.web.jobs.reverse.queue
         plugin.web.jobs.reverse.flush
+        plugin.web.auth.session.write
+        plugin.web.auth.session.prune
+        plugin.web.auth.handler.login
         plugin.storage.util.find_path
         plugin.image-resize.init_code
         plugin.external.udt.init_code
@@ -3061,6 +3070,10 @@ return [ qw[
         plugin.web.space.orbital.fetch
         plugin.web.space.index.persist
         plugin.web.jobs.cache.read_all
+        plugin.web.auth.verify_session
+        plugin.web.auth.handler.status
+        plugin.web.auth.handler.logout
+        plugin.web.auth.create_session
         plugin.web.attention.pop_state
         plugin.web.attention.init_code
         plugin.storage.util.visual.min
@@ -3216,6 +3229,7 @@ return [ qw[
         route.bmw384.index.query-radius
         protocol-7-menu.cmd.menu-update
         plugin.web.space.grid.init_code
+        plugin.web.auth.destroy_session
         plugin.web.attention.push_state
         plugin.storage.visual.init_code
         plugin.storage.inference.lookup
@@ -4258,8 +4272,8 @@ return [ qw[
     ]
 ];
 
-#,,..,,.,,.,,,,,.,.,,,,.,,,,,,.,,,.,.,,.,,,,,,.,.,...,...,...,.,.,,.,,.,.,,,.,
-#MKMGNQIRQSVFN46BX62KXDS4EHLC75NG34DXXG3AYT3F3MH636T37MCFCFZ2TD46PHGHKHJIZMUWM
-#\\\|2NN4E5WEHVUW43ONUIUUSCQH247EQHB562SUGKEL24XFUBDMUCZ \ / AMOS7 \ YOURUM ::
-#\[7]KB2G272AUKJWTHFKX2BAJ4RPL5W4YWM5TUSKRIQ23LDYEGMQXWCA 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,.,,,..,.,.,.,,,...,...,.,,,..,,.,.,...,..,,..,,.,.,...,,,.,,,.,
+#MCBGXIPBMKFLPD2M53GZG3EXQ4G3NH7MJ2VK3ECIL5S4DAIVSMCELLE6PPREUNKVHWDMQYCVOOIDO
+#\\\|I3VW57HQVTMT4PUNOXZZP6232UERDXXWTY4ZKFMXUQBFUENDNIE \ / AMOS7 \ YOURUM ::
+#\[7]XPFNJMY4CXIDWQKP6O4KHRADIWGZNEFUH7F4MEXRBBRUVNHXSMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = plugin.web.auth.create_session
+# descr = generate token and create session file
+# param = optional { user_id => '...', data => {} }
+
+my $params  = shift                // {};
+my $user_id = $params->{'user_id'} // <system.amos-zenka-user>
+    // qw| protocol-7 |;
+my $extra_data = $params->{'data'} // {};
+
+my $cfg    = $data{'plugin.web.auth'}{'cfg'} // {};
+my $secret = $cfg->{'secret'}                // '';
+
+if ( not length $secret ) {
+    <[base.s_warn]>
+        ->('plugin.web.auth : no secret configured, cannot create session');
+    return undef;
+}
+
+my $node_id = <system.node.name> // qw| protocol-7 |;
+my $ntime   = <[base.ntime.b32]> // '';
+
+## token = AMOS checksum of (node_id + ntime + secret) ##
+my $token = <[base.chk-sum.amos]>->("$node_id $ntime $secret");
+return undef if not defined $token;
+
+my $token_hash = <[base.chk-sum.bmw.L13-str]>->($token);
+return undef if not defined $token_hash;
+
+my $ttl       = $cfg->{'session'}->{'ttl_seconds'} // 86400;
+my $now_epoch = time;
+my $now_ntime = $ntime;
+
+my $session_data = {
+    'token_hash'       => $token_hash,
+    'user_id'          => $user_id,
+    'node_id'          => $node_id,
+    'created_at'       => $now_ntime,
+    'created_at_epoch' => $now_epoch,
+    'last_seen'        => $now_ntime,
+    'last_seen_epoch'  => $now_epoch,
+    'expires_at'       => $now_ntime,         ## placeholder, updated below ##
+    'expires_at_epoch' => $now_epoch + $ttl,
+    'data'             => $extra_data,
+};
+
+my $written
+    = <[plugin.web.auth.session.write]>->( $token_hash, $session_data );
+return undef if not $written;
+
+return {
+    'token'            => $token,
+    'token_hash'       => $token_hash,
+    'user_id'          => $user_id,
+    'node_id'          => $node_id,
+    'expires_at_epoch' => $session_data->{'expires_at_epoch'},
+};
+
+#,,,,,...,,.,,..,,..,,,,,,...,,,.,.,.,,..,,.,,..,,...,.,.,..,,..,,,,,,,,.,,,,,
+
+#,,,.,.,.,.,,,,,.,..,,.,,,,,.,,..,,,,,.,.,..,,..,,...,..,,.,.,..,,,,,,,.,,,.,,
+#CBKGQAEEE6YLHF3ROG4ZPHMEIPQ3EM32FQY3GLMV242VLQQNSBCYGPPMVUT4IQ4MVBXSQJ73523A6
+#\\\|DT4B7JCF5OLUF7PWK6OLUOIXDOAL6TT63OJAFJ53LDIMR2XMCLE \ / AMOS7 \ YOURUM ::
+#\[7]WQHJDPAQZJJPIPXODYJ3XUWO6MA52S5O6EXDJRG5TTHFC2EKK6BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

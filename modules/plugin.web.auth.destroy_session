@@ -1,0 +1,82 @@
+## [:< ##
+
+# name  = plugin.web.auth.destroy_session
+# descr = invalidate session (logout) — move to expired bucket
+# param = token string or token_hash string
+
+my $input = shift // '';
+return FALSE if not length $input;
+
+my $token_hash;
+if ( length $input == 13 and $input =~ m|^[A-Z0-9]+$| ) {
+    ## already a BMW-L13 hash ##
+    $token_hash = $input;
+} else {
+    $token_hash = <[base.chk-sum.bmw.L13-str]>->($input);
+    return FALSE if not defined $token_hash;
+}
+
+my $session_base = <[plugin.web.auth.session.path]>;
+my $active_file  = "$session_base/active/$token_hash/session.yaml";
+
+return FALSE if not -f $active_file;
+
+## load session data before moving ##
+my $session_data = <[plugin.web.auth.session.read]>->($token_hash);
+return FALSE if not defined $session_data;
+
+my $epoch       = <[base.ntime.epoch_timestamp]> // time;
+my $expired_dir = "$session_base/expired/$epoch";
+
+my $user = <system.zenka-user.current> // <system.amos-zenka-user>
+    // qw| protocol-7 |;
+my $group = <system.zenka-group.current> // $user;
+
+if ( not -d $expired_dir ) {
+    <[file.make_path]>->( $expired_dir, 0750, $user, $group );
+}
+
+my $expired_file = "$expired_dir/$token_hash.yaml";
+
+## write to expired location then remove active ##
+my $yaml_str = eval { YAML::XS::Dump($session_data) };
+if ($@) {
+    <[base.s_warn]>->(
+        'plugin.web.auth.destroy_session : yaml dump error : %s', $@
+    );
+    return FALSE;
+}
+
+my $fh = <[file.open]>->( $expired_file, qw| :raw |, qw| > |, TRUE, 0640 );
+if ( not defined $fh ) {
+    <[base.s_warn]>->(
+        'plugin.web.auth.destroy_session : cannot write %s',
+        $expired_file
+    );
+    return FALSE;
+}
+print {$fh} $yaml_str;
+close($fh)
+    or <[base.s_warn]>->('plugin.web.auth.destroy_session : close error');
+
+if ( unlink($active_file) ) {
+    rmdir "$session_base/active/$token_hash";    ## remove empty parent dir ##
+    <[base.logs]>->(
+        2, 'plugin.web.auth : session destroyed [ %s ]', $token_hash
+    );
+    return TRUE;
+} else {
+    <[base.s_warn]>->(
+        'plugin.web.auth.destroy_session : unlink %s failed : %s',
+        $active_file, <[base.str.os_err]>
+    );
+    return FALSE;
+}
+
+#,,.,,...,,..,...,.,,,..,,,..,..,,,,,,...,,,.,..,,...,...,,.,,,..,,.,,,.,,..,,
+
+#,,,.,,,,,...,.,,,...,,,.,...,,,,,...,.,.,.,.,..,,...,...,...,..,,.,.,.,,,...,
+#SWYV2DXRDPF4FTSL7D5G2E2K4JY7JIADK3MUQCS2L7F2D27Y74A6MZSHAWVMYV3COGD5QL7EZU4EG
+#\\\|CMXNMQHZJHRAASXCPSRLJTYOPJ2AEZDTHXUW7TRUO3SDYP2X7F4 \ / AMOS7 \ YOURUM ::
+#\[7]JGCHTN6XXPM4HLSHJJOTTHXEX7O4DYOCPP26ZC3DRTBTKWTAHGCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

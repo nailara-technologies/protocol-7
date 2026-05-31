@@ -1,0 +1,70 @@
+## [:< ##
+
+# name  = plugin.web.auth.verify_session
+# descr = validate session token from cookie or Authorization header
+# param = session hashref (httpd) or token string
+
+my $input = shift // '';
+my $token = '';
+
+## context detection ##
+my $zenka = <system.zenka.name> // qw| web |;
+
+if ( ref $input eq qw| HASH | and exists $input->{'http'} ) {
+    ## httpd session hash ##
+    my $headers = $input->{'http'}->{'request'}->{'headers'} // {};
+
+    ## check Authorization: Bearer <token> ##
+    my $auth = $headers->{'authorization'} // '';
+    if ( $auth =~ m|^Bearer\s+(\S+)$|i ) {
+        $token = $LAST_PAREN_MATCH;
+    }
+
+    ## fallback to Cookie: p7_session=<token> ##
+    if ( not length $token ) {
+        my $cookie = $headers->{'cookie'} // '';
+        if ( $cookie =~ m|\bp7_session=([^;\s]+)| ) {
+            $token = $LAST_PAREN_MATCH;
+        }
+    }
+} elsif ( length $input and not ref $input ) {
+    ## direct token string ##
+    $token = $input;
+}
+
+return undef if not length $token;
+
+## compute token hash ##
+my $token_hash = <[base.chk-sum.bmw.L13-str]>->($token);
+return undef if not defined $token_hash;
+
+## read session file ##
+my $session_data = <[plugin.web.auth.session.read]>->($token_hash);
+return undef if not defined $session_data;
+
+## check expiry ##
+my $cfg     = $data{'plugin.web.auth'}{'cfg'}    // {};
+my $ttl     = $cfg->{'session'}->{'ttl_seconds'} // 86400;
+my $now     = time;
+my $expires = $session_data->{'expires_at_epoch'} // 0;
+
+if ( $expires > 0 and $now > $expires ) {
+    <[plugin.web.auth.destroy_session]>->($token_hash);
+    return undef;
+}
+
+## update last_seen ##
+$session_data->{'last_seen'}       = <[base.ntime.b32]> // '';
+$session_data->{'last_seen_epoch'} = $now;
+
+<[plugin.web.auth.session.write]>->( $token_hash, $session_data );
+
+return $session_data;
+
+#,,.,,...,,..,...,.,,,..,,,..,..,,,,,,...,,,.,..,,...,...,,.,,,..,,.,,,.,,..,,
+
+#,,..,...,.,,,,,.,.,.,.,.,.,.,.,.,.,.,...,..,,..,,...,...,,.,,..,,..,,...,,..,
+#5HTBQ3Y7LKZK2PBYWTUMFA7VKCH55GTLEDJ2Q6IUQFAC3BLP4TFSNUMMQB5LY3UZZ3OEPFILPTHLQ
+#\\\|6KNIIET3Y45PKNLJG236QVN2MS4R27BC2I36B4PW4FDXSGSWISE \ / AMOS7 \ YOURUM ::
+#\[7]W3VKIEHFPKIRYB32FBBIJLXKNIBIH2FG66D5CE657RR2AWEYPGAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
