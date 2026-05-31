@@ -27,7 +27,20 @@ if ( exists $_web_zenka_identity{<system.zenka.name>} ) {
 }
 <[base.path-set-up.check-zenka-paths]>->( TRUE, 0750, FALSE, 0700, 'jobs' );
 
-## pre-warm in-memory job cache to avoid blocking on first request ##
+## ensure status subdirectories exist under web jobs root ##
+my $cache_dir = <[plugin.web.jobs.cache.path]>;
+my $user      = <system.zenka-user.current> // <system.amos-zenka-user>
+    // qw| protocol-7 |;
+my $group = <system.zenka-group.current> // $user;
+
+for my $status ( qw| new assessed review apply applied interviewed rejected |,
+    qw| blocked deleted | ) {
+    my $dir = "$cache_dir/$status";
+    next if -d $dir;
+    <[file.make_path]>->( $dir, 0750, $user, $group );
+}
+
+## pre-warm in-memory job cache and index ##
 my $loaded = <[plugin.web.jobs.cache.read_all]>;
 my $count  = scalar keys %{$loaded};
 <[base.logs]>->(
@@ -36,8 +49,8 @@ my $count  = scalar keys %{$loaded};
 
 0;
 
-#,,..,,.,,,,,,..,,,,,,,,.,...,.,,,.,,,...,,.,,..,,...,..,,,.,,..,,,,.,,..,..,,
-#BPNIEGTJQS5DQMOYLPIKDHCROPB6VVEIUH37OKB723A5MTOLNYBWH76LX3RYQT74ZF7I6UFEGBS2A
-#\\\|U2M3PKT24QUPTHZQZHAAOZ4R6PRM32VTCIBV3YC3D6B5XYYMBZN \ / AMOS7 \ YOURUM ::
-#\[7]7J6HYGHCZGJFCNF67PIL5V6QJHEH2LZ2QCZ2IX2P2MCSDH7NWEAA 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,,,,,,.,.,,,...,...,,.,,,..,,,,,..,,...,...,...,,,,,.,,,,.,,,,.,
+#O25WHXKG7QWPZ3MAASC6U3ZM3XTMWSLVSWKNWOTBVS2KSAWKNWLMYF2F5EV37WTGRLDORXNNMSPY2
+#\\\|CRXSDTHP3ZO5YNXXEQDK3ERY74ZWI5HMK6SSDOAW7ITTLG5XF2P \ / AMOS7 \ YOURUM ::
+#\[7]4Q2Z2AVPJAGIT4SYVOVBFSCVV7IGUDTGBV65DZMOKT7YOVD37AAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

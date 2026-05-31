@@ -16,14 +16,16 @@ if ( $EVAL_ERROR or ref $payload ne qw| HASH | ) {
 }
 
 my @pipeline_fields = qw| title company url score score_reason score_summary
-    fetched_at status stage description last_modified |;
+    fetched_at status stage description last_modified blocked_epoch checksum_hit |;
 my @browser_fields = qw| stage notes date_applied |;
 
 my $since    = '';
 my @job_list = ();
+my $is_batch = FALSE;
 
 if ( ref $payload->{'jobs'} eq qw| ARRAY | ) {
     ## batch push from jobsite ##
+    $is_batch = TRUE;
     $since    = $payload->{'since'} // '';
     @job_list = @{ $payload->{'jobs'} };
 } else {
@@ -41,9 +43,7 @@ for my $job_data (@job_list) {
     my $cached
         = ref $mem->{$job_id} eq qw| HASH | ? { %{ $mem->{$job_id} } } : {};
 
-    if (   exists $job_data->{'fetched_at'}
-        or exists $job_data->{'score'}
-        or exists $job_data->{'last_modified'} ) {
+    if ($is_batch) {
         ## jobsite push : update pipeline fields, keep browser fields ##
         for my $f (@pipeline_fields) {
             $cached->{$f} = $job_data->{$f} if exists $job_data->{$f};
@@ -103,8 +103,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,,,,,,,,,..,.,,,...,,..,,..,,,.,,,.,.,,,...,..,,...,...,,.,,...,,..,.,.,,.,,
-#DN74YEPDAW3T3XHO2QZCJU6YGTBSW3KW3FU6C5MJVGDUE3BWO4PDF4TMGIUDMNK46XKVGYB5R45UG
-#\\\|JTT3RA5SCMNJJAR26IR5IR4E5R6EPSNIAWNSOP4P746AH27E4V3 \ / AMOS7 \ YOURUM ::
-#\[7]PS3JOHGKKRH6W5WQUCTG6QBFEMMS6GLTQZJTPVN5WEMQRJICRSDY 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,.,,,...,.,.,,.,,,,.,,,.,,,.,,.,,..,,...,..,,.,.,,,,,.,.,.,.,...,
+#7J453MVXVUMSB5CKNDRBT4PKHDGWO6OE3Q5WBPMNU3KYXVIERKA6ZIMHGBBRMZTX3FIWR2YBMZUJO
+#\\\|MNGRIOQKE3AXYAGDHVRDVDW4OZ3A77M642GFHQ4YFRJWY4FH4J7 \ / AMOS7 \ YOURUM ::
+#\[7]YOQI26R55JTBNXFUY5ERQFUWSJA7EJPQEVDFLC47CEXL3P7WOSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
