@@ -130,6 +130,13 @@ if ( $mode ne 'oscilloscope' ) {
     $svg =~ s{</svg>}{$flying</svg>} if defined $flying and length $flying;
 }
 
+# [ add route commitment overlay ]
+if ( $mode ne 'oscilloscope' ) {
+    my $commitment = <[route.bmw384.visual.route-commitment]>;
+    $svg =~ s{</svg>}{$commitment</svg>}
+        if defined $commitment and length $commitment;
+}
+
 # [ restore cfg state ]
 if ( defined $saved_mode ) {
     <route.bmw384.cfg.visual_mode> = $saved_mode;
@@ -214,8 +221,8 @@ $session->{'buffer'}->{'output'} .= $svg;
 
 return 2;
 
-#,,,.,.,.,..,,...,,..,,,,,..,,...,.,,,,.,,,,,,..,,...,...,,..,,,,,,.,,.,,,...,
-#7XQMMJJ4CSOKTPICRT6GB6K4OSKZ7D7F5NT4IVC34NBUACCMDN6FBBYJUG46WT22XXXHAGKPZMIRU
-#\\\|GG57JFQDITWARTKURCFTG63YXKO5WZOL26THJSLPHBNSQYA5OWI \ / AMOS7 \ YOURUM ::
-#\[7]F4XHBMW7PF4U62M5YD2T6E6WDBBGPKL5MSAZUJZAPUW6PP6MHGAQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,..,..,,.,,,,,,,,,,,..,,...,...,..,,...,...,..,,.,,,.,,,,,,,.,.,
+#EQD4CABHB3J5C6W3GVNLBJRNAIURE3WCASZNCRZ6KFYP3OAVHTZ3SHNIUVJFDD67HJQT6I76E7FAG
+#\\\|6IBNEUDXDLZU4UEPBLYFOSJWEBYOWSE4VXS2B5MQKFBPTOV7U5M \ / AMOS7 \ YOURUM ::
+#\[7]B5CPA4AU2LFCNIUM7PD54GH72FYUI6ECCGCKCMTXS2WA3OQT2GAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
