@@ -72,8 +72,9 @@ h1 { color: #60a8d0; font-size: 1.4rem; margin-bottom: 0.2rem; font-weight: bold
 }
 .stat.review  { color: #50e050; background: rgba(20,80,20,0.3); }
 .stat.pending { color: #60c0e0; background: rgba(20,60,100,0.25); }
-.stat.applied { color: #f0c060; background: rgba(80,60,0,0.3); }
-.stat.done    { color: #807090; background: rgba(40,30,60,0.3); }
+.stat.applied    { color: #f0c060; background: rgba(80,60,0,0.3); }
+.stat.interviewed { color: #c8a84b; background: rgba(80,60,0,0.3); }
+.stat.done        { color: #807090; background: rgba(40,30,60,0.3); }
 
 button {
     padding: 3px 9px 4px;
@@ -139,8 +140,9 @@ button.red:hover { background: rgba(130,0,0,0.6); }
 .job-card.drag-over { border-top: 2px solid #40c0ff; }
 /* review stage: left accent set dynamically by JS based on score */
 .job-card[data-stage="to_apply"]  { border-left-color: #5050c0; }
-.job-card[data-stage="applied"]   { border-left-color: #a08010; }
-.job-card[data-stage="responded"] { border-left-color: #108070; }
+.job-card[data-stage="applied"]    { border-left-color: #a08010; }
+.job-card[data-stage="interviewed"] { border-left-color: #c8a84b; }
+.job-card[data-stage="responded"]  { border-left-color: #108070; }
 .job-card[data-stage="rejected"]  { border-left-color: #601818; opacity: 0.65; }
 .job-card[data-stage="skipped"]   { border-left-color: #1a1a28; opacity: 0.45; }
 .job-card[data-stage="archived"]  { display: none; }
@@ -326,8 +328,9 @@ button.red:hover { background: rgba(130,0,0,0.6); }
       <span id="stat-total"   class="stat">0 gesamt</span>
       <span id="stat-review"  class="stat review">0 review</span>
       <span id="stat-apply"   class="stat pending">0 bewerben</span>
-      <span id="stat-applied" class="stat applied">0 beworben</span>
-      <span id="stat-done"    class="stat done">0 erledigt</span>
+      <span id="stat-applied"    class="stat applied">0 beworben</span>
+      <span id="stat-interviewed" class="stat interviewed">0 interviewed</span>
+      <span id="stat-done"        class="stat done">0 erledigt</span>
       <label style="font-size:0.78rem; color:#506070; display:flex; align-items:center; gap:0.4rem; margin-left:0.3rem;">
         min score
         <span id="min-score-val" style="color:#80c0e0; min-width:2em; text-align:right;">7</span>
@@ -357,6 +360,7 @@ button.red:hover { background: rgba(130,0,0,0.6); }
     <span class="ftab active" data-filter="review">review</span>
     <span class="ftab" data-filter="to_apply">bewerben</span>
     <span class="ftab" data-filter="applied">beworben</span>
+    <span class="ftab" data-filter="interviewed">interviewed</span>
     <span class="ftab" data-filter="responded">rückmeldung</span>
     <span class="ftab" data-filter="rejected">absage</span>
     <span class="ftab" data-filter="skipped">übersprungen</span>
@@ -525,7 +529,7 @@ function scoreDisplay(s) {
 /* ── render ── */
 function stageLabel(s) {
     return {review:'review', to_apply:'bewerben', applied:'beworben',
-            responded:'rückmeldung', rejected:'absage', skipped:'übersp.',
+            interviewed:'interviewed', responded:'rückmeldung', rejected:'absage', skipped:'übersp.',
             archived:'archiv'}[s] || s;
 }
 
@@ -598,13 +602,14 @@ function renderCard(j) {
       ${dimKeys.length ? `<div class="toggle-dim">▼ dimensionen</div>` : ''}
       <div class="card-actions no-print">
         <select class="stage-select" data-id="${j.id}">
-          ${['review','to_apply','applied','responded','rejected','skipped','archived']
+          ${['review','to_apply','applied','interviewed','responded','rejected','skipped','archived']
             .map(s => `<option value="${s}"${j.stage===s?' selected':''}>${stageLabel(s)}</option>`).join('')}
         </select>
-        ${j.stage === 'applied' || j.stage === 'responded' ? `
+        ${j.stage === 'applied' || j.stage === 'interviewed' || j.stage === 'responded' ? `
           <input type="date" class="date-applied-input" data-id="${j.id}" value="${j.date_applied||''}"
             title="Bewerbungsdatum" style="width:130px; padding:2px 6px; font-size:0.75rem;
             background:#0a1825; border:1px solid #1e3040; color:#90c0d0; border-radius:3px;">` : ''}
+        ${j.stage === 'applied' || j.stage === 'interviewed' ? `<button class="btn-status" data-id="${j.id}" data-action="review" style="padding:2px 8px;font-size:0.72rem;">← review</button>` : ''}
         <button class="btn-note-toggle" data-id="${j.id}" style="font-size:0.72rem; padding:2px 8px;">note</button>
         <span class="card-date">${j.date_added || ''}</span>
       </div>
@@ -629,19 +634,21 @@ function renderCard(j) {
         pushChange(id, { stage });
     };
     const dblActions = {
-        review:    () => setStage(j.id, 'skipped'),
-        to_apply:  () => openNote(),
-        applied:   () => setStage(j.id, 'rejected'),
-        responded: () => openNote(),
-        skipped:   () => setStage(j.id, 'archived'),
+        review:      () => setStage(j.id, 'skipped'),
+        to_apply:    () => openNote(),
+        applied:     () => setStage(j.id, 'interviewed'),
+        interviewed: () => setStage(j.id, 'rejected'),
+        responded:   () => openNote(),
+        skipped:     () => setStage(j.id, 'archived'),
     };
     const longActions = {
-        review:    () => setStage(j.id, 'to_apply'),
-        to_apply:  () => setStage(j.id, 'applied'),
-        applied:   () => setStage(j.id, 'responded'),
-        responded: () => setStage(j.id, 'rejected'),
-        rejected:  () => setStage(j.id, 'archived'),
-        archived:  () => setStage(j.id, 'review'),
+        review:      () => setStage(j.id, 'to_apply'),
+        to_apply:    () => setStage(j.id, 'applied'),
+        applied:     () => setStage(j.id, 'interviewed'),
+        interviewed: () => setStage(j.id, 'responded'),
+        responded:   () => setStage(j.id, 'rejected'),
+        rejected:    () => setStage(j.id, 'archived'),
+        archived:    () => setStage(j.id, 'review'),
     };
 
     let longPressTimer = null;
@@ -683,6 +690,15 @@ function renderCard(j) {
     el.querySelector('.stage-select').addEventListener('change', e => {
         setStage(j.id, e.target.value);
     });
+
+    /* status-change button (e.g. ← review) */
+    const btnStatus = el.querySelector('.btn-status');
+    if (btnStatus) {
+        btnStatus.addEventListener('click', () => {
+            const action = btnStatus.dataset.action;
+            if (action) setStage(j.id, action);
+        });
+    }
 
     /* date applied */
     const dateInput = el.querySelector('.date-applied-input');
@@ -800,7 +816,8 @@ function updateStats(all) {
     document.getElementById('stat-total').textContent  = all.length + ' gesamt';
     document.getElementById('stat-review').textContent = all.filter(j=>j.stage==='review').length + ' review';
     document.getElementById('stat-apply').textContent  = all.filter(j=>j.stage==='to_apply').length + ' bewerben';
-    document.getElementById('stat-applied').textContent= all.filter(j=>j.stage==='applied'||j.stage==='responded').length + ' beworben';
+    document.getElementById('stat-applied').textContent   = all.filter(j=>j.stage==='applied'||j.stage==='responded').length + ' beworben';
+    document.getElementById('stat-interviewed').textContent= all.filter(j=>j.stage==='interviewed').length + ' interviewed';
     document.getElementById('stat-done').textContent   = all.filter(j=>j.stage==='rejected'||j.stage==='archived').length + ' erledigt'
         + (del ? ' · ' + del + ' del' : '')
         + (rfl ? ' · ' + rfl + ' err' : '');
@@ -811,7 +828,7 @@ function exportCSV() {
     const cols = ['Nr','Datum','Unternehmen','Position','Ort','Score','Status','Bewerbungsdatum','Notiz','Link',
                   'Bewerben','Löschen','Archiv','Ort-Score','Profil-Score','Kultur-Score','Gehalt-Score',
                   'Remote-Score','Wachstum-Score','Tech-Score','Team-Score'];
-    const trackStages = new Set(['applied','responded','rejected']);
+    const trackStages = new Set(['applied','interviewed','responded','rejected']);
     const rows = sortedJobs().reverse().filter(j => trackStages.has(j.stage));
     const lines = [cols.join(';')];
     rows.forEach((j, i) => {
@@ -841,7 +858,7 @@ function exportCSV() {
 /* ── print table ── */
 function showPrintTable() {
     /* print: all actively tracked jobs — excludes review, to_apply, skipped, archived */
-    const printStages = new Set(['applied','responded','rejected']);
+    const printStages = new Set(['applied','interviewed','responded','rejected']);
     const rows = sortedJobs().filter(j => printStages.has(j.stage));
     const date = new Date().toLocaleDateString('de-DE');
     const overview = `
