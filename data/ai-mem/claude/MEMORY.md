@@ -130,6 +130,8 @@
 
 ## Feedback (behavior rules — always apply)
 - [memory-sync-timing](feedback-memory-sync-timing.md) — sync memory at ~42K context remaining, before auto-compaction fires
+- [memory-management](feedback-memory-management.md) — update proactively; tree-structured modules; startup efficiency; strategic maintenance
+- [claude-dispatch-strategy](feedback-claude-dispatch-strategy.md) — use claude_dispatch to offload kimi orchestration; keeps parent context lean; parallel dispatch pattern
 - [ncode-tools](feedback-ncode-tools.md) — use ncode replace/parse-headers for namespace renames; not sed/perl -i loops
 - **httpd architecture**: httpd is a thin proxy — never load plugin.web.* in httpd. all cross-zenka data goes through web zenka via route-send SIZE. blocking reply-wait in httpd crashes sessions.
 - **P7 cross-zenka data**: use route-send + SIZE reply handler pattern (like radio relay). file system access between zenki is forbidden by design (different users). SHM or route-send for cross-zenka data.
@@ -169,8 +171,8 @@
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 - **coding zenka**: fully operational; 9B model loads in seconds (new ik_llama.cpp); no urgent issues
 
-#,,.,,,..,,,,,.,.,,..,...,,..,,,,,,.,,..,,...,..,,...,...,..,,.,,,,..,,..,..,,
-#QD4EO4IZM2BBVXD5SBNO7S73MTCDVTPWFEHESRJERLFFJRA6LZWHDZER6UY2NKKITGPQFT5LHX5W4
-#\\\|MG73LOYFY6D5DFZBVY5JQVUIQAZP6CDCKEVBNBUF2FXIZBBM6LK \ / AMOS7 \ YOURUM ::
-#\[7]W4FWLJMQADICQADMM3QGX43AIXCGDKK2TPSLT26W22EZ4SMHMWDY 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,.,,..,,,,.,,.,,,.,,.,,,,,,,.,.,..,,...,...,.,,,,,,,..,,,,.,,,.,
+#YYMAWUA7E2CG3KWN3HQFIUG45OPQOWPB6I4AVLIYQNLC2GMUDNMMWIXVETOP6H4FM3N5R4VBYB5LG
+#\\\|LH7MR6DHFFMVLGGKYRZBNWYZPZSCNEMQMQPEZUSOC4ZEM4SDJV3 \ / AMOS7 \ YOURUM ::
+#\[7]GDVCMJQANQADESZGSK6FDYQCUGYHRHSYR2MI4XSVXAQ656HO6UCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
