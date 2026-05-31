@@ -94,15 +94,37 @@ if ( $type eq 'vortex_spiral' ) {
     };
 }
 
+# [ compute hop coordinates for commitment tracking ]
+my @hops;
+if ( $type eq 'linear_hop' ) {
+    @hops = ( $coords[0], $coords[-1] );
+} else {
+    my $start_arc   = $coords[0]->{'arc'}    // 0;
+    my $start_color = $coords[0]->{'color'}  // 0;
+    my $end_arc     = $coords[-1]->{'arc'}   // 0;
+    my $end_color   = $coords[-1]->{'color'} // 0;
+    my $steps       = 5;
+    for my $i ( 0 .. $steps ) {
+        my $t   = $i / $steps;
+        my $arc = int( $start_arc + $t * ( $end_arc - $start_arc ) + 0.5 );
+        my $color
+            = int( $start_color + $t * ( $end_color - $start_color ) + 0.5 );
+        push @hops, { arc => $arc, color => $color };
+    }
+}
+
 # [ store in route curves registry ]
 <bmw384.route.curves> //= {};
 <bmw384.route.curves>->{$curve_id} = {
-    route    => $route,
-    type     => $type,
-    params   => $params,
-    duration => $duration,
-    started  => <[base.time]>->(3),
-    callback => $callback,
+    route     => $route,
+    type      => $type,
+    params    => $params,
+    duration  => $duration,
+    started   => <[base.time]>->(3),
+    callback  => $callback,
+    hops      => \@hops,
+    current   => 0,
+    committed => [],
 };
 
 # [ optionally register scalar progress curve ]
@@ -125,8 +147,8 @@ if ( defined $callback and ref $callback eq qw| CODE | ) {
 
 return $curve_id;
 
-#,,.,,...,,,.,,.,,,..,,,,,...,...,...,..,,..,,..,,...,...,,.,,,.,,,.,,.,,,...,
-#BIK5CLASRBECVOAVZ5FEMYGOVZGJGYXFA5PIVG25H7SAVVIMTOUG3JER3JVV7ITL35VQOVMIWJM6G
-#\\\|PXFMZDO4CNMKT6XZP4ND4DXXB7RWEDX2SUBQLZQXTW4BDBPMHNP \ / AMOS7 \ YOURUM ::
-#\[7]C3HRJ4CSHHJXOZYYXZ4GMWCHBGPQI4N3GMPVXPX6UXD4WBS2VUCQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,.,,...,,,.,.,.,,..,,,,,,..,.,,,..,,...,...,.,,,...,,..,.,.,..,,
+#EVYOUFBPKVUF6OPVEG7225O3PISXZAZFSYG5WRPKLWW6RKK6L4OR3UN7QCGPD4CTIDQMFWWTIV2NS
+#\\\|BOFDC32UFASJ5KYQ7TDXE2TB66WMQGTDLTQAIWULO4BVGHHC7NG \ / AMOS7 \ YOURUM ::
+#\[7]C3LYUKMLFP3SPD5NDR7TKT34G2EDWHDBYDQI4AXQGAXHLI5HZOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
