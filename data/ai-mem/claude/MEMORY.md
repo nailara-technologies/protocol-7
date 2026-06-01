@@ -122,7 +122,9 @@
 - `bin/todo` — self-contained todo CLI; project-local `data/yaml/todo/default.yaml`; add/done/rm/edit/tag/untag/clear; priority -h/-l
 - `ncode doc` — unified doc lookup in bin/ncode + ncode.cmd.doc; delegates GObject to dump-class subprocess
 - `smtpd` zenka — receive mail → YAML + LLM classify → route; xz+twofish archive; bin/p7-mail-inject bridge
-- `window.*` namespace — generic proportional window placement for GTK zenki; 8 profiles; ticker integrated#,,..,...,.,,,,..,.,.,...,.,,,,..,..,,,..,...,...,...,...,.,.,,,,,,..,.,.,,.,,
+- `window.*` namespace — generic proportional window placement for GTK zenki; 8 profiles; ticker integrated
+
+#,,..,...,.,,,,..,.,.,...,.,,,,..,..,,,..,...,...,...,...,.,.,,,,,,..,.,.,,.,,
 #3ROZ657JEOJZ5E45VS6WIZUWM5GI36HAEGBF7EPHVBXJ36JYVCG5BIKUXV4ZGHDP4XKYVFCKMW7M2
 #\\\|GALJ3HCDDQXAZG5MRYIBHKX6CIF2BLOUHVSAIV2X5WBUK26356G \ / AMOS7 \ YOURUM ::
 #\[7]2MLU36B2UK74ODCKTGERPXEZWJW444KT2QJNTQJBLRHMQZP4X6AI 7  DATA SIGNATURE ::
