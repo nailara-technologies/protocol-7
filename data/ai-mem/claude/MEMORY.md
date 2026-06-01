@@ -178,8 +178,59 @@
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 - **coding zenka**: fully operational; 9B model loads in seconds (new ik_llama.cpp); no urgent issues
 
-#,,,.,..,,,.,,.,.,,..,,,,,,,.,,.,,,.,,,.,,..,,..,,...,..,,,..,..,,.,,,.,,,,.,,
-#PNQXW6S5XGSYPYGU5ROCPGY6HQ2HBE7OC4TN4SSDQJCIP24E7GOZBHJPA5VYFCNJ32UPIIVQLVD24
-#\\\|RTQZHATW2RR3AIUF5ZRYHPPXIFRQBCCNSKRA2TKVZ5VUWFOZUSO \ / AMOS7 \ YOURUM ::
-#\[7]S5BT432HKAFBA7YUMHKVXQN6ODDCKC5KLTMNU3G7WYP364ULJQBA 7  DATA SIGNATURE ::
+## session-70 summary (2026-06-01)
+
+### coding zenka :twin: — remaining fixes (this session)
+
+**drain permission** (`configuration/zenki/coding/start`): added `drain` to
+`access.cmd.usr.cube` — without this, v7's drain command was blocked by the
+second access layer (coding's own config), so `<coding.draining>` was never set
+and the sigchld guard never fired.
+
+**awaiting_resources guard** (`coding.spawn_inference_server`): added check at
+the very top (before `spawning_in_progress`) — when `<coding.awaiting_resources>`
+is set, ALL spawn paths return early (model_path_reply, spawn_smart, crash
+restart, etc.), not just the init timer path. this was the "two spawn paths"
+issue causing the mutual kill loop to persist.
+
+**instance-scoped pid file age display**: `file.timestamped_delta_s` shows
+`56y 151d` for a file written minutes ago — ntime epoch mismatch in delta
+calculation. cosmetic only; the kill logic still works correctly. needs separate
+investigation of `base.ntime.delta_seconds` epoch handling.
+
+### channels zenka on-demand
+
+`configuration/zenki/channels/start`: added `start.on-demand = 1`,
+`restart.disabled = 1`, `heartbeat.disabled = 1`,
+`[base.zenki.set_ondemand_timeout:600]` — 10 min idle timeout. not in v7
+always-on list so no removal needed.
+
+### bin/chat STDIN blocking fix
+
+`bin/chat -channels` (and `-models`) hung when called from a pipe (e.g. MCP
+server `open('-|', ...)`) because STDIN read happened before the
+`--channels` flag check. fix: moved both early-exit listing commands before
+the STDIN read block. root cause: `not -t STDIN` is true for any pipe, so
+the script blocked waiting for EOF.
+
+### coding transparent task requeue on timeout
+
+`coding.callback.http_error`: when a data-start or request-completed timeout
+exhausts retries and triggers a GPU server restart, task is now reset to
+`pending` instead of failed — `verify_inference_startup` calls
+`jobqueue.check_dependencies` when server is ready, picking it up automatically.
+also reduced `$max_retries` from 3 to 1 (fast models don't need 3×100ms
+attempts against a dead server).
+
+### verified working
+
+- `:twin:` restart of coding zenka: stuck task held drain, drain_timeout (300s)
+  caught it, terminated cleanly; second restart was instant.
+- `p7_chat_channels` MCP tool now returns immediately (was hanging 38+ min).
+- task requeue: pending to be confirmed on next server timeout event.
+
+#,,,.,,,,,,,.,...,,.,,,.,,.,.,.,,,,.,,,,,,.,,,...,...,...,,,.,.,.,,,.,.,.,,,,,
+#NBXZQX4ZZ2TEACTXIX57LIYPGJ7CEE34JMJE4OL6X43JCMD73QQLUDDEDDBU5VWDGRR6QIFIBG4US
+#\\\|G4AXLV4IJFFJ7I27AXRYEG7AJ4FQOIPCSLYS2KY7YN5XPEVDXUB \ / AMOS7 \ YOURUM ::
+#\[7]RRR5HMLJRIB2MPTIFU74ZBNHW2WBVD65ZTYMEGBAYQBU6QX2QEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
