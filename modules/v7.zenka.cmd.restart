@@ -135,8 +135,7 @@ if ($twin_mode) {
             next;
         }
 
-        my $new_id
-            = <[v7.zenka.instance.track_handover]>->( $iid, $drain_time );
+        my $new_id = <[zenka.instance.track_handover]>->( $iid, $drain_time );
         if ( not defined $new_id ) {
             <[base.logs]>->(
                 1, 'twin restart: track_handover failed [%s]', $zname
@@ -146,7 +145,7 @@ if ($twin_mode) {
 
         my $reply = <[zenka.cmd.start]>->(
             {   'args'   => $zname,
-                'mode'   => 'concurrent-handover',
+                'mode'   => qw| concurrent-handover |,
                 'source' => $iid
             }
         );
@@ -155,7 +154,7 @@ if ($twin_mode) {
                 1,      'twin restart: start failed [%s]: %s',
                 $zname, $reply->{'data'}
             );
-            <[v7.zenka.instance.handover_cleanup]>->($iid);
+            <[zenka.instance.handover_cleanup]>->($iid);
             ## remove orphaned pre-allocated slot
             delete <v7.zenka.instance>->{$new_id};
             next;
@@ -197,8 +196,8 @@ if ($count) {
     };
 }
 
-#,,..,,,.,.,,,,,,,,..,..,,...,,..,,..,...,,,.,..,,...,.,,,..,,,..,...,.,,,,,,,
-#7OM4V7OWRQGEJ75YSLPS7Y5JZSFJQNQBW2J6AKJWIQMPXE4OHY47ZYUI7Z22O2FKWF3R2NZB5RXBU
-#\\\|CYZBKTZODIFKBKMBINDDBB2A52BQIEHMQQ4RBJUN3VKPO7DJJ63 \ / AMOS7 \ YOURUM ::
-#\[7]2KMNOYQ6IF2443ZTHTT2YDQ3XKJA4GHACJCEL7YC2QTYA4SPH6BQ 7  DATA SIGNATURE ::
+#,,.,,,..,,..,.,,,,.,,,..,.,,,.,,,...,,..,,..,..,,...,...,..,,..,,..,,...,.,.,
+#QAHKZU5RZBYDRJLYOP2E4EKK7UAO7P4BY3YQIL2OO4DPU6ZIKIYNEMNDVC4VBA2DOD37ABKOVNXXU
+#\\\|X66JNJOFPTJXZNRSUF3I3BTSJZAIKHIWHCIPNK2GXF2FI7EUGBK \ / AMOS7 \ YOURUM ::
+#\[7]JZZLHD444B3ADJJSO5LDNHAKOBYZ5CS4FEHJKXX3VCPO4ZIMQ2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
