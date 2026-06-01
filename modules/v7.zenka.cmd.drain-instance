@@ -25,20 +25,21 @@ my $drain_timeout = $instance->{'drain_timeout'} // 30;
 ## mark instance as draining
 $instance->{'draining'} = TRUE;
 
-## generic cube-level pause: stop delivering new commands to old zenka
-## [ same gating as pre-initialized state — zenka finishes in-flight work ]
-if ( exists $instance->{'cube_sid'} ) {
-    <[protocol-7.route-send]>->(
-        {   'command' => sprintf( 'cube.unset-initialized %d',
-                $instance->{'cube_sid'} )
+## send drain command first [ while still initialized, so cube delivers it ]
+if ( exists $instance->{'cube_sid'} and exists $instance->{'root_sid'} ) {
+    my $root_sid = $instance->{'root_sid'};
+    my $cube_sid = $instance->{'cube_sid'};
+
+    <[protocol-7.command.send.local]>
+        ->( { 'command' => "${root_sid}.${cube_sid}.drain" } );
+
+    ## then pause new command delivery via cube backchannel
+    ## [ drain cmd already queued — subsequent commands held as pre-init ]
+    <[protocol-7.command.send.local]>->(
+        {   'command'   => sprintf( qw| %d.unset-initialized |, $root_sid ),
+            'call_args' => { 'args' => $cube_sid }
         }
     );
-}
-
-## send drain command via cube if instance has cube_sid
-if ( exists $instance->{'cube_sid'} ) {
-    <[protocol-7.route-send]>->(
-        { 'command' => sprintf( qw| %d.drain |, $instance->{'cube_sid'} ) } );
 } else {
     ## for non-cube zenki (extbin), we can only terminate
     <[base.logs]>->(
@@ -63,8 +64,8 @@ return {
     'data' => sprintf( 'drain signaled [timeout=%.1fs]', $drain_timeout )
 };
 
-#,,,,,...,.,,,,.,,...,...,,,.,,,.,,,.,.,.,...,.,.,...,...,.,.,..,,...,,.,,,,.,
-#6OQ4UMSWEO4C2BGICMTAZ37MNILSVH5SWYTVCXBZB22ALBG3DVUZNBEAMOHHXJA5KEABHD7VQOOMI
-#\\\|QZTHNII3XOJAYBX5CP3UB6IICUHW5PFNFFA5K3NCSZURT3SJ3SN \ / AMOS7 \ YOURUM ::
-#\[7]JW63UOKZC2F6OLNZPLZ2ZC72FO57O4YYT66F3QP2ZZH5SIWG7SAQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,.,,..,,,,.,,,.,.,.,,.,,,,,,..,,.,.,...,...,,.,,,.,,,,.,,.,,,,.,
+#5BMXI43UE6TKBAZAQW7DYG5SDBKQ3ELON2I3TCTRHHK6HYXRZ2YYMBM7PTBZSFTIRYCRLZSNC7YZS
+#\\\|GNZ5SELBVAVVVC5SOT6Q6BI5PH6KZWGJ4DSPTVZTFIITFHKUEDN \ / AMOS7 \ YOURUM ::
+#\[7]XJQCON23XYYDKKV7P5WWSMB7KDQC7AWYNOSBO5R5SPMYNKMNVYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
