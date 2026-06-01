@@ -9,10 +9,13 @@
 ## mark as draining [ prevents new task acceptance ]
 <coding.draining> = TRUE;
 
-## check remaining tasks
+## count only active (non-completed, non-failed) tasks ##
 my $remaining = 0;
 if ( exists <coding.task.queue> ) {
-    $remaining = scalar keys <coding.task.queue>->%*;
+    for my $task ( values <coding.task.queue>->%* ) {
+        my $st = $task->{'execution'}{'status'} // '';
+        $remaining++ unless $st eq 'completed' or $st eq 'failed';
+    }
 }
 
 <[base.logs]>->( 'coding draining: %d tasks remaining', $remaining );
@@ -35,8 +38,8 @@ if ( $remaining == 0 ) {
 
 return { 'mode' => qw| true |, 'data' => 'draining initiated' };
 
-#,,,.,...,..,,..,,,.,,...,.,,,,.,,..,,,,.,..,,..,,...,...,,..,,..,,.,,...,,,,,
-#BDOOMUHFZ6BE4PVKDLYHBXPDFRP3OUXVWWZ6X6VL52YZ3UQY57LSYX5AAZO2RWRTB6Y3IVNXYJMV2
-#\\\|FWUVMMZUZO67S3WXPYKJXA7IA5E4HPLPWNPOHWXYSZRQXIKN6EG \ / AMOS7 \ YOURUM ::
-#\[7]NFEZUQTNCAA3HXOFTDZRJ2DGORQS2M3AFKHU6KUBCJ77GSZNOMBI 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,,,.,...,.,.,...,..,,.,,,,.,,..,,..,,...,..,,,,.,..,,...,..,,,,,,
+#KJXSBSIU2XNPEZATZTH33WJ552SITFENDL6YXAYA3A3DSGWTRFHLAODRA6OGNKSBETTK2E25RJBL4
+#\\\|F6ILDXAMDRMJG647AON6HDTICC3M4R7WFLI45OEHMO63XMDKFAD \ / AMOS7 \ YOURUM ::
+#\[7]HPAPRPT2CFVCAO43JKMD7VANQO4KKJN34RXFHDFIUUSRTSLC6ECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
