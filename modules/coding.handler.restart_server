@@ -28,12 +28,6 @@ my $binary
     : ( <inference.backend.cpu.binary>
         // '/data/source/ik_llama.cpp/llama-server-cpu' );
 
-## Kill existing server on this port ##
-my $pkill_cmd = sprintf 'pkill -f "llama-server.*--port %d" 2>/dev/null',
-    $port;
-system($pkill_cmd);
-sleep 1;    ## brief pause for cleanup ##
-
 ## Spawn new server ##
 my $result = <[coding.spawn_inference_server]>->(
     {   backend    => $backend,
@@ -56,8 +50,8 @@ if ( $result && $result->{'success'} ) {
     return FALSE;
 }
 
-#,,..,,.,,,,.,.,,,.,.,.,,,..,,.,.,,.,,,,.,,,,,.,.,...,...,,..,,.,,..,,...,..,,
-#GELVUEEFLCGRKTPY3BGN77LCK24HPRFB6BYKT5VH35ZNSBZPNOOWOWU3QYPPLVRVQZ4ICKYLEDJ34
-#\\\|ECSCC4MUE37O5EHZ6XA4KEB237GVT76XQEWXR52MB3A736JDDOQ \ / AMOS7 \ YOURUM ::
-#\[7]H4XIFASPDN65RZXSSWNUWVGZG3774IGLGJYUDFYFUVHYUXZZRKBA 7  DATA SIGNATURE ::
+#,,..,...,...,..,,,..,...,..,,,.,,.,,,,..,.,.,.,.,...,...,.,.,..,,..,,,,,,,,,,
+#IWZ7L73QXNDGLVZMZOVUHUWBAI3ALZX5TSPRTVVXGJ7AMGBYIV2NH2X2RTKWXGEWZ3ACIJWD5PDXA
+#\\\|NGRSKBF323DSYGDTUETWJZ4MGJI4PYFSI6BGX7FYWDPK737IE26 \ / AMOS7 \ YOURUM ::
+#\[7]DTSCI2W5DLKMOPLJWSXDROBLHWYAZL32LGINR2MH77F7MFAOCOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

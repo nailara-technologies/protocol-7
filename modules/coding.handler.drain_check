@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = coding.handler.drain_check
+# descr = check if all tasks completed, self-terminate when done
+
+my $remaining = 0;
+if ( exists <coding.task.queue> ) {
+    $remaining = scalar keys <coding.task.queue>->%*;
+}
+
+## count active inference requests in flight ##
+my $in_flight   = 0;
+my $backend_ref = <coding.state.backend> // {};
+for my $backend (qw| gpu cpu |) {
+    my $lock = $backend_ref->{$backend}{'lock'};
+    $in_flight++ if defined $lock;
+}
+
+if ( $remaining == 0 && $in_flight == 0 ) {
+    <[base.log]>->('coding drain: all tasks completed, self-terminating');
+
+    ## cancel drain check timer
+    if ( exists <coding.drain_check_timer> ) {
+        <coding.drain_check_timer>->cancel
+            if <coding.drain_check_timer>->is_active;
+        delete <coding.drain_check_timer>;
+    }
+
+    ## self-terminate
+    <[base.exit]>->(0);
+
+} else {
+    <[base.logs]>->( 2, 'coding drain: %d tasks still active', $remaining )
+        if $remaining > 0;
+    <[base.logs]>->(
+        2, 'coding drain: %d inference request(s) in flight', $in_flight
+    ) if $in_flight > 0;
+    ## timer continues, will check again
+}
+
+return TRUE;
+
+#,,,,,,.,,,,,,...,,,.,.,.,..,,..,,...,,.,,,,.,..,,...,...,..,,,.,,.,,,,,,,..,,
+#XERZZVYWFDDY5UHDS6NQSLIMRNYYY4GYW5YPBK6KMFHQSVF3WG64SLZBZAZ7NO4NH5QVUUATCFGLS
+#\\\|YBSZISF7PIYC5Z4YY3HLTBDHFSYLDUOAWB3Q7N2IREN3HFQ7VPR \ / AMOS7 \ YOURUM ::
+#\[7]AS5S46EAMD2ZOR7L7T46SZZYKMCHGSK57OU76RHKJH6VHC7V5QDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

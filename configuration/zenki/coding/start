@@ -53,7 +53,7 @@ access.cmd.usr.cube = commands heart reload verify-instance list show-buffer \
                       inject-message stop-task async-test wait-done \
                       list-tasks task-info pause-task resume-task \
                       execute_round last-compaction task-append \
-                      context-size summarize-context \
+                      context-size summarize-context drain \
                       exec-sub eval-code ## <-- temporary [ development only ]
 ##                    utf8-test-buffer utf8-stream-test \ ## <-- resolved =).
 ##                    test-strm test-strm-size            ## <-- resolved =).
@@ -129,6 +129,9 @@ inference.routing.fallback_on_timeout = yes  ## Try CPU if GPU times out ##
 ## Async Mode Configuration ##
 coding.async.enabled = 1  ## Use non-blocking HTTP streaming with tool execution loop ##
 
+## concurrent drain timeout: seconds to wait for in-flight inference before force-kill ##
+coding.cfg.concurrent.drain_timeout = 300
+
 #
 ## [timeouts] streaming data begin and total request duration ##
 #
@@ -188,8 +191,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,,.,,.,,.,,,,.,,..,,,,.,.,,,,,.,,,.,...,,,.,.,.,...,...,.,,,,.,,,..,.,.,,.,,
-#CONURNT2SCGOZSAB7ET4A3B4Y7BJJI3PIGI5ZKB2NYRXO5PNSYOUCZWYYFX7ASIKSWWA6KVYYVVSO
-#\\\|5BHQYGZZ3B563D34XLI3AL7DOV7JTTVXS2MAZNF4QZJBPJ3VCG5 \ / AMOS7 \ YOURUM ::
-#\[7]DITDWNYMCHBJSNNIBHEPYNLO5KCFEVUIK5NBVK7GDD3DNWOOMCBY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,.,,,..,,,.,,...,,..,.,,,,.,,...,.,.,...,...,.,,,..,,..,,..,,,,,,
+#A3IWNN2QNW6PEXOGIWZJVOJNBWCU2VYDO7NHBVHAFPKVTR2N6O7RXJ5MNYIFC453FORS3PE5BLM7K
+#\\\|BGT73XZ7ULCSQGXAEMDNJ3MZ7AAX34A5S47TKBP6L56P43GH7MQ \ / AMOS7 \ YOURUM ::
+#\[7]EDVKMNM6EV36YZVMRU7447EWJYJNGP4SBUQHM3JNJ5ESWE25KWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

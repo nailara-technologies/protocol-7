@@ -12,6 +12,15 @@ my $port    = $params->{'port'}    // 8000;
 ## recovery, model_path_reply, deferred timer) hits this central lock      ##
 ## also enforce a 30s cooldown: the seed sleep(0.0013) yields to the event ##
 ## loop, which can let a second call through before the first completes    ##
+if (<coding.awaiting_resources>) {
+    <[base.logs]>->(
+        2,
+        '[spawn_inference_server] awaiting gpu resources'
+            . ' — spawn deferred %s',
+        $backend
+    );
+    return { 'success' => FALSE, 'error' => 'awaiting gpu resources' };
+}
 if (<coding.spawning_in_progress>) {
     <[base.logs]>->(
         2,
@@ -70,15 +79,23 @@ if ( my $old_pid = $old->{'pid'} ) {
     }
 }
 
-## check persisted pid file for orphans surviving zenka restart ##
-my $pid_rel   = "state/inference.$backend.pid";
-my $saved_ref = <[file.zenka_dir.load]>->($pid_rel);
-if ( defined $saved_ref ) {
-    my ( $saved_pid, $saved_bin ) = split m|\n|, $saved_ref->$*;
+## instance-scoped pid file: old and new twins never clobber each other ##
+my $zenka_dir = <[file.zenka_dir.data_path]>;
+my $pid_rel   = "state/inference.$backend.$$.pid";
+
+## ensure state/ subdir exists ##
+<[file.make_path]>->("$zenka_dir/state")
+    unless -d "$zenka_dir/state";
+
+## scan ALL instance pid files for this backend and kill any live orphans ##
+for my $orphan_path ( glob "$zenka_dir/state/inference.$backend.*.pid" ) {
+    my ( $age_s, $pid_bin_str )
+        = <[file.timestamped_delta_s]>->($orphan_path);
+    next unless defined $pid_bin_str;
+    my ( $saved_pid, $saved_bin ) = split m|\s+|, $pid_bin_str, 2;
     $saved_pid //= '';
     $saved_bin //= '';
     if ( $saved_pid =~ m|^\d+$| and kill( 0, $saved_pid ) ) {
-        ## verify process name matches before killing ##
         my $proc_cmd = '';
         if ( open my $cfh, '<', "/proc/$saved_pid/cmdline" ) {
             local $/;
@@ -86,18 +103,24 @@ if ( defined $saved_ref ) {
             close $cfh;
         }
         if ( length $saved_bin and $proc_cmd =~ m|\Q$saved_bin\E| ) {
+            my $age_str
+                = defined $age_s
+                ? eval { <[base.parser.duration]>->($age_s) }
+                // sprintf( '%.0fs', $age_s )
+                : 'unknown age';
             kill( 'KILL', $saved_pid );
-            <[base.waitpid]>->($saved_pid);    ## reap zombie ##
+            <[base.waitpid]>->($saved_pid);
             <[base.logs]>->(
                 1,
-                '[spawn_inference_server] killed orphan %s'
-                    . ' server [pid:%d] from pid file',
+                '[spawn_inference_server] killed orphan %s server'
+                    . ' [pid:%d age:%s] from pid file',
                 $backend,
-                $saved_pid
+                $saved_pid,
+                $age_str
             );
         }
     }
-    <[file.zenka_dir.unlink_file]>->($pid_rel);
+    unlink $orphan_path;    ## clean up regardless of kill result ##
 }
 
 ## scan for stale llama-server processes on same port ##
@@ -406,8 +429,8 @@ POSIX::setpgid( $pid, $pid );
     }
 );
 
-## persist pid + binary name for orphan detection across restarts ##
-<[file.zenka_dir.write]>->( $pid_rel, \"$pid\n$binary\n" );
+## write timestamped pid file for this instance ##
+<[file.write_timestamped]>->( "$zenka_dir/$pid_rel", "$pid $binary" );
 
 ## Store server metadata (initialize if needed)
 <coding.inference_servers> = {} unless defined <coding.inference_servers>;
@@ -476,8 +499,8 @@ return {
     'port'    => $port
 };
 
-#,,,.,.,.,,,.,...,.,,,..,,.,.,.,,,,.,,.,,,,,,,..,,...,.,.,.,.,,,,,...,,.,,,,.,
-#NQPLMFD7XM4QKQWIKW4DUROH7KZP6FUPHJSKONWE3MCBEKOXRVRIZ36MOHAPNWHNI6RTSNY6U5HRO
-#\\\|G7S2LX7GEAVLRJOS6JUGGWSQ5LP2D27L2ZTKZOFVTTUXG27AA5D \ / AMOS7 \ YOURUM ::
-#\[7]7UNB2HASOZ4RTNCCX62FJGPTYD26DFYWTEQOYFCZXHQLVD62UMBY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,...,.,,,...,.,.,,,,,..,,,..,,,,,..,,...,...,,,.,..,,,,.,,.,,...,
+#SJ2YSQEXYGN3HE7Z2DGUMLN5UZDP2NBEIVFHZ7OXL44YYL5IDMABXPJHPSGLGNBRQFKX4VJBVHSQQ
+#\\\|ZYDNX4P43LJQV6LNEUSDFFG4R6JBTSFGIAZLP2VYASU5ADTMVR5 \ / AMOS7 \ YOURUM ::
+#\[7]ZEMKLVOK653YX6HGER6WA7CLFG4UDVCJDVWVVUTGGLPQ6ZY5POAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

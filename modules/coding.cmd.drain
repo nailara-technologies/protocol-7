@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = coding.cmd.drain
+# descr = drain task queue + self-terminate [handover]
+# note  = called via cube command during concurrent restart handover
+
+<[base.logs]>->('coding draining: checking active tasks');
+
+## mark as draining [ prevents new task acceptance ]
+<coding.draining> = TRUE;
+
+## check remaining tasks
+my $remaining = 0;
+if ( exists <coding.task.queue> ) {
+    $remaining = scalar keys <coding.task.queue>->%*;
+}
+
+<[base.logs]>->( 'coding draining: %d tasks remaining', $remaining );
+
+if ( $remaining == 0 ) {
+    ## no tasks - can terminate immediately
+    <[base.log]>->('coding: no active tasks, initiating self-termination');
+    <[base.exit]>->(0);
+} else {
+    ## set up task check timer
+    ## when queue reaches zero, self-terminate
+    <coding.drain_check_timer> = <[event.add_timer]>->(
+        {   'after'    => 1.0,
+            'interval' => 1.0,
+            'handler'  => qw| coding.handler.drain_check |,
+            'data'     => {}
+        }
+    );
+}
+
+return { 'mode' => qw| true |, 'data' => 'draining initiated' };
+
+#,,,.,...,..,,..,,,.,,...,.,,,,.,,..,,,,.,..,,..,,...,...,,..,,..,,.,,...,,,,,
+#BDOOMUHFZ6BE4PVKDLYHBXPDFRP3OUXVWWZ6X6VL52YZ3UQY57LSYX5AAZO2RWRTB6Y3IVNXYJMV2
+#\\\|FWUVMMZUZO67S3WXPYKJXA7IA5E4HPLPWNPOHWXYSZRQXIKN6EG \ / AMOS7 \ YOURUM ::
+#\[7]NFEZUQTNCAA3HXOFTDZRJ2DGORQS2M3AFKHU6KUBCJ77GSZNOMBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
