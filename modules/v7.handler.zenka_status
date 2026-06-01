@@ -285,6 +285,17 @@ if ( $status eq qw| offline | or $status eq qw| error | ) {
                 } <v7.zenka.notify_online>->{$instance_id}->@*;
                 delete <v7.zenka.notify_online>->{$instance_id};
             }
+
+            ## restore cube command delivery to old instance
+            my $old_inst = <v7.zenka.instance>->{$old_instance_id};
+            if ( defined $old_inst and exists $old_inst->{'cube_sid'} ) {
+                <[protocol-7.route-send]>->(
+                    {   'command' => sprintf( 'cube.set-initialized %d',
+                            $old_inst->{'cube_sid'} )
+                    }
+                );
+            }
+
             <[zenka.cmd.stop]>
                 ->( { 'args' => $instance_id, 'mode' => qw| implicit | } );
             return;
@@ -539,8 +550,8 @@ if ( $old_status ne qw| online | and $status eq qw| online | ) { # LLL extbin?
 
 <[jobqueue.check_dependencies]>;
 
-#,,,.,,..,,.,,..,,,,.,,..,...,.,,,,,,,...,,,,,..,,...,..,,.,,,,..,,..,,,,,,,,,
-#K6FWUPMWEMYGEOPQ63UTJEVT6EABAU2KJPFMDP2TLI6IWEXXZCWB6RZ3BNSJCLAG5WKOXZDQVV6WK
-#\\\|HGVID7NM5QGEQDLH67XFQ2HQ4WHJGN2MLB4BS5IBVT7PWYFAMS6 \ / AMOS7 \ YOURUM ::
-#\[7]AEECV6LYTCFFFI53KUSKMVFQ7WFX33JNZHWGT3R7N6EMHAW3TGBI 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,,,,,.,,,,,,,,,,,,,,...,,,,,..,,..,,...,...,,.,,,,,,,,,,...,,,,,
+#R3MOJAME72GYEDA2U6PZD4CH34EEBP3UFZIF5AZ22MHCHYLD5BZHFI6MN7AKMXMXDYEZARCPH7GBC
+#\\\|K2PJBSCKCSQ4HGSOJTD4MZ4LIHX7HYBJPWXVTBW6O5YGT4GUFTC \ / AMOS7 \ YOURUM ::
+#\[7]7PLR2T3DBPIBSQP4VBMIR3AMJ4DM7WSNXYIRLWMGIL63K7LSXCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

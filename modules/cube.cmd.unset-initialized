@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = cube.cmd.unset-initialized
+# descr = pause command delivery [ unset initialized flag ]
+# param = <sid|0>
+
+my $sid = $call->{'args'} || $call->{'session_id'};   # 0 == self [current s.]
+
+return { 'mode' => qw| false |, 'data' => 'no such session' }
+    if not exists $data{'session'}{$sid};
+return { 'mode' => qw| false |, 'data' => "session not in 'zenka' mode" }
+    if not defined $data{'session'}{$sid}{'auth'}{'method'}
+    or $data{'session'}{$sid}{'auth'}{'method'} ne qw| zenka |;
+return { 'mode' => qw| false |, 'data' => 'was not initialized' }
+    if not defined $data{'session'}{$sid}{'initialized'}
+    or not $data{'session'}{$sid}{'initialized'};
+
+$data{'session'}{$sid}{'initialized'} = 0;
+
+my $zenka_name = $data{'session'}{$sid}{'user'};
+<[base.logs]>->(
+    "[%s] zenka '%s' [uninitialized — drain mode]",
+    $sid, $zenka_name
+);
+
+return { 'mode' => qw| true |, 'data' => qw| uninitialized | }
+
+#,,..,,,,,.,,,,,.,.,,,,,.,,,,,..,,,,.,,,,,...,.,.,...,...,.,.,,.,,,,,,..,,...,
+#2DPXMZS2X3KCKT2YBM6EKBVAC7M4EMF46LU6MJVWJPQNSITSXE6ALUNB6F5AYXDVGW4ICW5LOTNCE
+#\\\|HFU6KWW7R2AFLLRGCK2X4WONM22PA6HMLOVPEOYUSA33LLPXWBC \ / AMOS7 \ YOURUM ::
+#\[7]RBDT4AM5VGLKH3WWWMV5BT7GAGL4S7BT343MKWG27IH3Z52HGEBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
