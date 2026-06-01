@@ -153,3 +153,10 @@ three bugs fixed, all committed to `base`:
 #\\\|P4EPOZY3CAH7XDNIA45HGLXWB5J4CKBULWGYSRENUA7BNSF6G7W \ / AMOS7 \ YOURUM ::
 #\[7]LSOLNUVSTXSIWA4JQDQ4S4WVXD6QMDNF4VZHUDKZCXXJ23K7NMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- **keep= dispatch param** (`07e029e1b`) — `kimi_dispatch` + `claude_dispatch` now accept `keep=true` to preserve stored summary focus after consumption; default clears as before. use for post-dispatch verification that the correct focus shaped the summary.
+
+#,,..,,..,.,,,.,.,.,.,.,,,..,,,.,,,,,,...,...,...,...,..,,.,.,,,,,...,.,.,.,.,
+#MOTTD7UIE4VOZJRHOA6ZXM5V45LPC6V67XJYRNWMYICOLYTIH77K7Z4OWF56M3GMYTH5IE2PBAJ3C
+#\\\|N3MCLLTHHKNPWBUBZLWPP2JR7QOST6B7EEHNEEPRDJXJJDGC24I \ / AMOS7 \ YOURUM ::
+#\[7]BJLD566OQ2FT4ZNYTAGF3RCUYS77SFVNNVSZVVUZMN54PSVKY4AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
