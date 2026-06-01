@@ -156,6 +156,8 @@ if ($twin_mode) {
                 $zname, $reply->{'data'}
             );
             <[v7.zenka.instance.handover_cleanup]>->($iid);
+            ## remove orphaned pre-allocated slot
+            delete <v7.zenka.instance>->{$new_id};
             next;
         }
 
@@ -195,8 +197,8 @@ if ($count) {
     };
 }
 
-#,,..,..,,,.,,..,,,,.,...,,,,,,,.,,,,,.,.,...,..,,...,...,..,,.,,,,..,,.,,.,.,
-#5JZPIYDMTHHMIVY4KI6ZTSG6C2XSBOIN6QTGQFMZYBXZOMDJVZVV2AP7HNNZ2XFPCEUUMKBV2ENDY
-#\\\|K6YJFVL2W73S5QRTJWX4LYWJNDM3VVW63QLKHDEBIPLJBKZ3AML \ / AMOS7 \ YOURUM ::
-#\[7]BCU4U4MGT5ZUEPKJGCEG75YQWZXVJF6BCIKRN4NKWYIDB52264AI 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,,,,,,..,..,,...,,..,,..,...,,,.,..,,...,.,,,..,,,..,...,.,,,,,,,
+#7OM4V7OWRQGEJ75YSLPS7Y5JZSFJQNQBW2J6AKJWIQMPXE4OHY47ZYUI7Z22O2FKWF3R2NZB5RXBU
+#\\\|CYZBKTZODIFKBKMBINDDBB2A52BQIEHMQQ4RBJUN3VKPO7DJJ63 \ / AMOS7 \ YOURUM ::
+#\[7]2KMNOYQ6IF2443ZTHTT2YDQ3XKJA4GHACJCEL7YC2QTYA4SPH6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
