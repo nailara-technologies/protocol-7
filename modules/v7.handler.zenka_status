@@ -235,7 +235,7 @@ if ( $status eq qw| offline | or $status eq qw| error | ) {
         );
         my $old_instance_id = $instance->{'replaces_instance'};
         my $new_instance_id = $instance->{'being_replaced_by'};
-        <[v7.zenka.instance.handover_cleanup]>->($instance_id);
+        <[zenka.instance.handover_cleanup]>->($instance_id);
         if ( defined $new_instance_id ) {
             ## old instance terminated — suppress restart if handover succeeded
             my $new_inst   = <v7.zenka.instance>->{$new_instance_id};
@@ -456,7 +456,7 @@ if ( $status eq qw| shutdown |
     ## cleanup handover tracking if this instance was part of a handover pair
     if (   exists $instance->{'being_replaced_by'}
         or exists $instance->{'replaces_instance'} ) {
-        <[v7.zenka.instance.handover_cleanup]>->($instance_id);
+        <[zenka.instance.handover_cleanup]>->($instance_id);
     }
 
     delete <v7.zenka.instance>->{$instance_id};
@@ -550,8 +550,8 @@ if ( $old_status ne qw| online | and $status eq qw| online | ) { # LLL extbin?
 
 <[jobqueue.check_dependencies]>;
 
-#,,..,.,.,.,.,,,,,,.,,,,,,,,,,,,,,...,,,,,..,,..,,...,...,,.,,,,,,,,,,...,,,,,
-#R3MOJAME72GYEDA2U6PZD4CH34EEBP3UFZIF5AZ22MHCHYLD5BZHFI6MN7AKMXMXDYEZARCPH7GBC
-#\\\|K2PJBSCKCSQ4HGSOJTD4MZ4LIHX7HYBJPWXVTBW6O5YGT4GUFTC \ / AMOS7 \ YOURUM ::
-#\[7]7PLR2T3DBPIBSQP4VBMIR3AMJ4DM7WSNXYIRLWMGIL63K7LSXCBY 7  DATA SIGNATURE ::
+#,,..,...,.,.,,,,,,,,,...,,.,,,,,,.,.,.,,,.,.,..,,...,...,...,,,.,..,,.,,,,.,,
+#FLULMMNSNXDV4GBZBVWBEIQ6BPQB6CWDD2J6QONLWZII6BDCYA3PFYTYRG7YEFLOPBDX5XRQGBARA
+#\\\|ZUKIQAMTHC5A55GGUIDQ3YQEBKKACQOCIT5CNXDHKIVVO463E64 \ / AMOS7 \ YOURUM ::
+#\[7]BTL35O673B5YXQ5E2UPCWSJSE4BUQQHZOTLKHCO3EBH2DDAITGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
