@@ -10,6 +10,7 @@
 - Leave new files clean; `bin/Protocol-7 sourcecode update-signatures` adds real 4-line footer
 
 ## Recent Sessions
+- [session-68](session-68.md) — auto_summarize root cause: decode_json→from_json (-C31 unicode); FD_CLOEXEC+cube_disconnect+2>/dev/null fixes; session_catchup live; task files: dispatch-template-param, dispatch-create-template
 - [session-67](session-67.md) — jobsite dedup false positive fix; status-dir layout (kimi); checksum store rewrite to filesystem dirs; job.read utf8 fix; checksum expansion in progress
 - [session-66](session-66.md) — delta sync /jobs.json (3 bugs); UI polish (title, buttons, hover, slider); sort NaN fix; inline sub extraction; double-plugin-load fix in base.cmd.reload
 - [session-65](session-65.md) — data recovery: Mojibake fix committed; 312 garbage files deleted; backup restored; 127 files chmod 644; 294 repair_failed jobs reset; scan running
@@ -132,7 +133,8 @@
 - [memory-sync-timing](feedback-memory-sync-timing.md) — sync memory at ~42K context remaining, before auto-compaction fires
 - [memory-management](feedback-memory-management.md) — update proactively; tree-structured modules; startup efficiency; strategic maintenance
 - [claude-dispatch-strategy](feedback-claude-dispatch-strategy.md) — use claude_dispatch to offload kimi orchestration; keeps parent context lean; parallel dispatch pattern
-- **coding_summarize** live (55a4a68df) — free 9B summarization; auto-summarize=TRUE default on claude/kimi dispatch; rolling-window sized from coding.context-size (32K→108K chars); file= param reads directly (zero context tokens)
+- **coding_summarize** live — free 9B summarization; auto-summarize=TRUE default on claude/kimi dispatch; rolling-window `(ctx-4000)*3.2/2` chars; file= param reads directly (zero context tokens)
+- **auto_summarize root cause fixed (session-68)**: `decode_json`→`from_json` in `_extract_stream_content` — `-C31` flag makes `qx()` return unicode strings; decode_json fails silently on non-ASCII; from_json handles correctly. Also: `2>/dev/null`, FD_CLOEXEC on cube socket, `cube_disconnect()` before summarize. Needs `/mcp` restart to confirm working.
 - **session_catchup** MCP tool — list recent claude+kimi sessions or summarize one by UUID; use at session start to catch up; `session_catchup(limit=8)` to list, add session_id+instruction to summarize
 - **store_summary_focus** MCP tool — prime next kimi/claude dispatch auto_summarize with a specific focus; one-shot, clears after use; call before dispatch when you know exactly what you need from the result
 - **claude_continue** live (1adbf83d2) — resume claude sessions same as kimi_continue
@@ -175,8 +177,8 @@
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 - **coding zenka**: fully operational; 9B model loads in seconds (new ik_llama.cpp); no urgent issues
 
-#,,,,,,,,,,..,.,.,..,,,,.,,,,,,,,,...,,,.,,..,..,,...,...,..,,,..,,,.,...,.,,,
-#AGXUYOY7NF6XKV2SNBNESLRSWYOMRKK5ONJN74RWKDAGYZPOVVVPMKF52XQXGOEQTZFYUNELTGI7E
-#\\\|O4H52TGTAWLEHXGJNJ27DIS4WAM6OHLS4NLSMY5NAWIZZJFLVYF \ / AMOS7 \ YOURUM ::
-#\[7]YWV6NNPGTCVVRGCZWJ3Z6W5J6XI4D6YWHHDZ53GG5DBKSNEIOQBA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,.,,,,..,.,,,.,.,.,.,,..,...,,,,,..,,...,...,.,.,.,.,..,,,..,..,,
+#XGZSQT7NSZQHTLGKTOVD7YI26D5HKBVMD4J5Z5RNCKWZSB6GJ3IVPHJWLYU3VEBZ5RGOZAUJNRPQK
+#\\\|QPLEOLV4DAWNE5RE2N6DQWAQ5YPQPD7MG4AVGSTOTJ2JE3BVJ2G \ / AMOS7 \ YOURUM ::
+#\[7]JEPC7ME5BD2N3JLB6LM6BL3OCDWBIETT3RKAYLY6KUWDFKFHK2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
