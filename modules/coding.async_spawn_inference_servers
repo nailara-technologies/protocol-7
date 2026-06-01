@@ -5,6 +5,9 @@
 # purpose = Start GPU and CPU inference servers without blocking zenka
 #           initialization
 
+## await_resources owns the spawn during :twin: handover — skip silently
+return FALSE if <coding.awaiting_resources>;
+
 <[base.logs]>->( 1, ": starting inference servers asynchronously" );
 
 ## check system memory before spawning [ prevents oom conditions ]
@@ -68,14 +71,26 @@ if ( $spawn_params->{'gpu_enabled'} ) {
             1, ": GPU server spawned [pid=%d] - monitoring startup",
             $gpu_result->{'pid'}
         );
-        <inference.gpu_port> = $gpu_port;
-        <inference.gpu_pid>  = $gpu_result->{'pid'};
+        <inference.gpu_port>       = $gpu_port;
+        <inference.gpu_pid>        = $gpu_result->{'pid'};
+        <coding.spawn_retry_count> = 0;
     } else {
+        my $retries = ( <coding.spawn_retry_count> //= 0 );
+        <coding.spawn_retry_count>++;
+        my $delay = 2**$retries;
+        $delay = 120 if $delay > 120;    ## cap at 2 minutes ##
         <[base.logs]>->(
-            0, 'GPU server spawn failed : %s',
-            $gpu_result->{error}
+            0,
+            'GPU server spawn failed (attempt %d) — retrying in %.0fs: %s',
+            $retries + 1,
+            $delay, $gpu_result->{'error'}
         );
-        return FALSE;    ## spawning not successful ##
+        <[event.add_timer]>->(
+            {   'after'   => $delay,
+                'handler' => qw| coding.handler.spawn_servers_deferred |
+            }
+        );
+        return FALSE;                    ## spawning not successful ##
     }
 }
 
@@ -86,8 +101,8 @@ if ( $spawn_params->{'gpu_enabled'} ) {
 
 return TRUE;
 
-#,,,,,..,,.,,,.,.,...,,,,,,,,,,,.,...,.,.,.,,,..,,...,...,,.,,,..,..,,...,,,.,
-#3AYTZPH67CTLKDQ6FF6SKA7TQTPLYIV6XEYXTHU3342P7GW5GS53VESHKPFRLBWG57DUY756EMC4Y
-#\\\|XV3JVKKXJKEG4S5E3LV2CF2C2KP5LNAAEU7LKSK4DCPRQIVBFLS \ / AMOS7 \ YOURUM ::
-#\[7]FQZD2QSOJZKG5LNNXK5GWNHKP6Q2GMILWZ3HFWVEDV32XTADIGDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,.,.,.,.,,,,,...,,.,,,,,,..,,,,.,..,,...,...,...,.,,,.,,,.,.,...,
+#EK7ZQAACRV7KGHTBYAFTFGXE2SQ5WQCTKKMTHART5J526QCXYYZUGI64EYBTWFZ6UBZB5PPS6UDMI
+#\\\|FWXO7LSVEJW2L3V5UFRDMGDEKIYYR43O2ZPTSS4FEXPPAJ7J6GR \ / AMOS7 \ YOURUM ::
+#\[7]XJOKR4G3KVLQFBI7L4D6ORXE2IMMSTI4CTNA4VNT3MV6V4XBIWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

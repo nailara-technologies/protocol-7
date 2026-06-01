@@ -203,9 +203,37 @@ $params->{'cpu_threads'} = <inference.backend.cpu.threads>    // 7;
 $params->{'gpu_layers'}  = <inference.backend.gpu.gpu_layers> // 32;
 <coding.spawn_params.lib_path> = <coding.lib_path>;
 
-# Register timer to spawn servers after init completes [non-blocking]
-# Wait 500ms to allow async model path resolution to complete first
-if ( not <coding.state.initialized> ) {
+## check if GPU port already occupied (another coding instance running)
+my $gpu_port = <inference.backend.gpu.port> // 8000;
+my $gpu_busy = 0;
+{
+    use IO::Socket::INET;
+    my $probe = IO::Socket::INET->new(
+        PeerAddr => '127.0.0.1',
+        PeerPort => $gpu_port,
+        Proto    => 'tcp',
+        Timeout  => 1
+    );
+    if ( defined $probe ) {
+        $probe->close;
+        $gpu_busy = 1;
+    }
+}
+
+if ($gpu_busy) {
+    <[base.logs]>->(
+        1, 'GPU port %d occupied — entering resource-wait mode', $gpu_port
+    );
+    <coding.awaiting_resources> = TRUE;
+    ## start polling timer instead of spawn timer
+    <coding.timer.await_resources> = <[event.add_timer]>->(
+        {   'after'    => 3.0,
+            'interval' => 3.0,
+            'handler'  => qw| coding.handler.await_resources |,
+        }
+    );
+} elsif ( not <coding.state.initialized> ) {
+    ## normal startup: register deferred spawn timer
     <coding.timer.spawn_servers> = <[event.add_timer]>->(
         {   'after'   => 0.5,
             'handler' => qw| coding.handler.spawn_servers_deferred |
@@ -465,8 +493,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,..,,..,.,,,.,.,,.,,...,,,,,.,.,,,.,,.,,.,.,.,.,...,...,,.,,,..,..,,.,,,...,
-#IKJE6ALFMBUXDXWKVNESFIO2QJ3E7U2RV3QBRKSBDWXP4UH4V76G6SAGK37QXSUTQRZBFTKFYVNAW
-#\\\|G6T62PDYC52PCYJOLY5C3EKUYOAMKVLZXRNJOVIJMQTYWZX74VI \ / AMOS7 \ YOURUM ::
-#\[7]IUDLCW3DLZ2Q4WLCDHY7SUVFQCATMRPNX5ZIOI5WQIVSHZJ2SYCA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,,.,.,,,.,,,,.,,,..,..,,...,.,,,.,.,...,...,,..,,..,...,...,.,.,
+#2THJ47WYIHFD3CAZ6TKRS6YKG6LJ5BP5UP4V7GPQ3DSEEI254PJKZEOV2PHYDHCUEMOL2QIXI6OLK
+#\\\|YNDA6IX6NY6DK3GFFS5ZSRC6VWG4XMRW7DCHTRE5TIRAOOBKLYE \ / AMOS7 \ YOURUM ::
+#\[7]7UXLHLF73OMOTHME4QANVLPRGLOQIDGUKAR46ZKHHTVCDNUDBSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

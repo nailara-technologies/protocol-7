@@ -135,14 +135,8 @@ if ($twin_mode) {
             next;
         }
 
-        my $new_id = <[zenka.instance.track_handover]>->( $iid, $drain_time );
-        if ( not defined $new_id ) {
-            <[base.logs]>->(
-                1, 'twin restart: track_handover failed [%s]', $zname
-            );
-            next;
-        }
-
+        ## start first [ count=1=max_concurrency, no expansion slot yet ]
+        ## [ track_handover before start pushes count to 2 — blocks expansion ]
         my $reply = <[zenka.cmd.start]>->(
             {   'args'   => $zname,
                 'mode'   => qw| concurrent-handover |,
@@ -154,17 +148,20 @@ if ($twin_mode) {
                 1,      'twin restart: start failed [%s]: %s',
                 $zname, $reply->{'data'}
             );
-            <[zenka.instance.handover_cleanup]>->($iid);
-            ## remove orphaned pre-allocated slot
-            delete <v7.zenka.instance>->{$new_id};
             next;
         }
 
-        ## wire pre-allocated handover instance into the queued job so
-        ## v7.zenka.start reuses it [ replaces_instance + handover_expansion ]
-        ## [ event loop won't execute the job until current block returns ]
-        if (    $reply->{'mode'} eq qw| true |
-            and $reply->{'data'} =~ m|\[ID=(\d+)\]| ) {
+        ## then create handover tracking + wire into the queued job
+        ## [ event loop won't run job until current block returns — safe ]
+        my $new_id = <[zenka.instance.track_handover]>->( $iid, $drain_time );
+        if ( not defined $new_id ) {
+            <[base.logs]>->(
+                1, 'twin restart: track_handover failed [%s]', $zname
+            );
+            next;
+        }
+
+        if ( $reply->{'data'} =~ m|\[ID=(\d+)\]| ) {
             <jobqueue.joblist.by_id>->{$1}->{'instance_id'} = $new_id;
         }
 
@@ -196,8 +193,8 @@ if ($count) {
     };
 }
 
-#,,.,,,..,,..,.,,,,.,,,..,.,,,.,,,...,,..,,..,..,,...,...,..,,..,,..,,...,.,.,
-#QAHKZU5RZBYDRJLYOP2E4EKK7UAO7P4BY3YQIL2OO4DPU6ZIKIYNEMNDVC4VBA2DOD37ABKOVNXXU
-#\\\|X66JNJOFPTJXZNRSUF3I3BTSJZAIKHIWHCIPNK2GXF2FI7EUGBK \ / AMOS7 \ YOURUM ::
-#\[7]JZZLHD444B3ADJJSO5LDNHAKOBYZ5CS4FEHJKXX3VCPO4ZIMQ2AA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,,.,,,..,.,,,.,,,..,,.,,,.,.,.,,,..,,...,...,...,.,,,,.,,,.,,,,,,
+#7AYBMLKARFNZ7RU646YDS2WCW26ESYNUEIBULVRRWAEFMAO3SZGNTTTQOD4HK7E5BNXPDMGY2A2LQ
+#\\\|E7CWDJGOBI7CHJCETAILAJBAHKS4K5XB2TLHAPQ7GCEH45HCXOG \ / AMOS7 \ YOURUM ::
+#\[7]VGAAHJJNZV6S6IU4U7T7DGBJ6LQJIL5KFPS23QZNXUIPP4EF5WAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
