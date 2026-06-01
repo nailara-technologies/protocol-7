@@ -153,6 +153,7 @@ my $json = JSON->new->utf8->canonical;
 my $model_context_tokens;    ## cached from coding.context-size on first use
 my $pending_summary_focus
     ;    ## one-shot focus for next auto_summarize; clears on use
+my $mcp_client_name;    ## captured from initialize clientInfo.name
 
 ##[ stdio setup ]##
 
@@ -468,6 +469,83 @@ our @tools = (
             'additionalProperties' => \0
         }
     },
+    {   'name'        => 'p7_memory_summary',
+        'description' =>
+            'summarize the protocol-7 development memory for context continuity '
+            . 'and session handover. defaults to the most relevant agent memory '
+            . 'based on caller context (the OTHER agent — you already know your own).',
+        'inputSchema' => {
+            'type'       => 'object',
+            'properties' => {
+                'agent' => {
+                    'type'        => 'string',
+                    'enum'        => [ 'claude', 'kimi', 'both', 'auto' ],
+                    'description' =>
+                        'which memory to summarize [ claude | kimi | both | auto ]. '
+                        . 'auto detects from MCP client identity and defaults to the other agent.'
+                },
+                'focus' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'what to emphasize: recent commits, open bugs, next priorities, '
+                        . 'architectural decisions, etc. (default: handover-optimized)'
+                },
+                'max_tokens' => {
+                    'type'        => 'integer',
+                    'description' =>
+                        'target summary length in tokens (default: 600)'
+                }
+            },
+            'additionalProperties' => \0
+        }
+    },
+    {   'name'        => 'p7_memory_update',
+        'description' =>
+            'review and update the protocol-7 development memory. '
+            . 'review mode gathers recent git changes, memory summary, and session '
+            . 'summaries so the parent model can identify gaps. apply mode delegates '
+            . 'to the coding zenka to append specific content to the memory file.',
+        'inputSchema' => {
+            'type'       => 'object',
+            'properties' => {
+                'agent' => {
+                    'type'        => 'string',
+                    'enum'        => [ 'claude', 'kimi', 'auto' ],
+                    'description' =>
+                        'which agent memory to target [ claude | kimi | auto ]. '
+                        . 'auto detects from MCP client identity.'
+                },
+                'sessions' => {
+                    'type'        => 'integer',
+                    'description' =>
+                        'number of recent sessions to summarize (default: 1, 0 for none)'
+                },
+                'git_changes' => {
+                    'type'        => 'boolean',
+                    'description' =>
+                        'include recent git changes (default: true)'
+                },
+                'mode' => {
+                    'type'        => 'string',
+                    'enum'        => [ 'review', 'apply' ],
+                    'description' =>
+                        'review = gather context for gap analysis (default). '
+                        . 'apply = append content to memory file.'
+                },
+                'content' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'text to append to memory file (required for apply mode)'
+                },
+                'focus' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'optional focus instruction for memory summarization'
+                }
+            },
+            'additionalProperties' => \0
+        }
+    },
 );
 
 ##[ load chat tool definitions ]##
@@ -575,6 +653,7 @@ sub handle_initialize {
     my ( $id, $params ) = @ARG;
 
     log_msg('initialize request received');
+    $mcp_client_name = $params->{'clientInfo'}{'name'} // '';
 
     send_result(
         $id,
@@ -643,6 +722,10 @@ sub handle_tools_call {
         tool_session_catchup( $id, $args );
     } elsif ( $name eq 'store_summary_focus' ) {
         tool_store_summary_focus( $id, $args );
+    } elsif ( $name eq 'p7_memory_summary' ) {
+        tool_p7_memory_summary( $id, $args );
+    } elsif ( $name eq 'p7_memory_update' ) {
+        tool_p7_memory_update( $id, $args );
     } elsif ( my ($ext) = grep { $_->{'name'} eq $name } @external_tools ) {
         tool_external_command( $id, $args, $ext );
     } else {
@@ -1076,7 +1159,9 @@ sub cube_command {
         return ( 0, 'not connected to protocol-7 network' );
     }
 
-    log_msg( 'sending: %s', $command );
+    my $log_cmd = $command;
+    $log_cmd =~ s{(:B32:)([A-Z2-7]{20})[A-Z2-7]*}{$1$2...}s;
+    log_msg( 'sending: %s', $log_cmd );
 
     ## send command
     my $written = sock_write( $sock, "$command\n" );
@@ -1356,6 +1441,230 @@ sub tool_store_summary_focus {
     }
 }
 
+## =========================================================================
+## memory summary tool
+## =========================================================================
+
+sub tool_p7_memory_summary {
+    my ( $id, $args ) = @ARG;
+
+    my $agent      = $args->{'agent'}      // 'auto';
+    my $focus      = $args->{'focus'}      // '';
+    my $max_tokens = $args->{'max_tokens'} // 600;
+
+    ## resolve auto → other agent (you already know your own context)
+    if ( $agent eq 'auto' ) {
+        my $caller = lc( $mcp_client_name // '' );
+        if ( $caller =~ m{kimi} ) {
+            $agent = 'claude';
+        } elsif ( $caller =~ m{claude} ) {
+            $agent = 'kimi';
+        } else {
+            $agent = 'both';
+        }
+    }
+
+    my $default_focus
+        = 'optimize handover context between sessions: identify critical '
+        . 'unfinished work, recent architectural decisions, and what the next '
+        . 'session absolutely needs to know to be productive immediately.';
+    my $instruction = length($focus) ? $focus : $default_focus;
+
+    my $claude_mem = "$ROOT_PATH/data/ai-mem/claude/MEMORY.md";
+    my $kimi_mem   = "$ROOT_PATH/data/ai-mem/kimi/MEMORY.md";
+
+    my @parts;
+    my $error = '';
+
+    eval {
+        local $SIG{ALRM} = sub { die "timeout\n" };
+        alarm(247);
+
+        if ( $agent eq 'claude' or $agent eq 'both' ) {
+            if ( -f $claude_mem ) {
+                my $s = _do_summarize_file( $claude_mem, $instruction,
+                    $max_tokens );
+                push @parts, ":. claude memory .:\n\n"
+                    . ( $s // 'summarization failed' );
+            } else {
+                push @parts, ":. claude memory .:\n\n[file not found]";
+            }
+        }
+
+        if ( $agent eq 'kimi' or $agent eq 'both' ) {
+            if ( -f $kimi_mem ) {
+                my $s = _do_summarize_file( $kimi_mem, $instruction,
+                    $max_tokens );
+                push @parts, ":. kimi memory .:\n\n"
+                    . ( $s // 'summarization failed' );
+            } else {
+                push @parts, ":. kimi memory .:\n\n[file not found]";
+            }
+        }
+
+        alarm(0);
+    };
+    if ($@) {
+        cube_disconnect();
+        $error
+            = $@ eq "timeout\n"
+            ? 'summarization timed out after 247s'
+            : "error: $@";
+    }
+
+    if ( length $error ) {
+        send_tool_result( $id, $error, 1 );
+    } else {
+        send_tool_result( $id, join( "\n\n", @parts ), 0 );
+    }
+}
+
+## =========================================================================
+## memory update tool
+## =========================================================================
+
+sub tool_p7_memory_update {
+    my ( $id, $args ) = @ARG;
+
+    my $agent       = $args->{'agent'}       // 'auto';
+    my $sessions_n  = $args->{'sessions'}    // 1;
+    my $git_changes = $args->{'git_changes'} // 1;
+    my $mode        = $args->{'mode'}        // 'review';
+    my $content     = $args->{'content'}     // '';
+    my $focus       = $args->{'focus'}       // '';
+
+    ## resolve auto → other agent
+    if ( $agent eq 'auto' ) {
+        my $caller = lc( $mcp_client_name // '' );
+        if ( $caller =~ m{kimi} ) {
+            $agent = 'claude';
+        } elsif ( $caller =~ m{claude} ) {
+            $agent = 'kimi';
+        } else {
+            $agent = 'claude';
+        }
+    }
+
+    my $mem_path
+        = $agent eq 'claude'
+        ? "$ROOT_PATH/data/ai-mem/claude/MEMORY.md"
+        : "$ROOT_PATH/data/ai-mem/kimi/MEMORY.md";
+
+    ## apply mode: delegate file append to coding zenka ##
+    if ( $mode eq 'apply' ) {
+        if ( not length $content ) {
+            return send_tool_result( $id,
+                'content is required for apply mode', 1 );
+        }
+        if ( not -f $mem_path ) {
+            return send_tool_result( $id, "memory file not found: $mem_path",
+                1 );
+        }
+
+        my $tool_args = $json->encode(
+            {   'file_path' => $mem_path,
+                'content'   => $content
+            }
+        );
+        my $cmd = "coding.call-tool write_append $tool_args";
+        my ( $ok, $response ) = cube_command($cmd);
+        if ($ok) {
+            send_tool_result(
+                $id,
+                "appended to $agent memory:\n\n$content\n\n[coding zenka response: $response]",
+                0
+            );
+        } else {
+            send_tool_result( $id, "append failed: $response", 1 );
+        }
+        return;
+    }
+
+    ## review mode: gather context for gap analysis ##
+    my @parts;
+    my $error = '';
+
+    eval {
+        local $SIG{ALRM} = sub { die "timeout\n" };
+        alarm(300);
+
+        ## 1. recent git changes ##
+        if ($git_changes) {
+            my ( $ok, $git_out )
+                = cube_command('coding.call-tool recent_changes');
+            if ( $ok and length $git_out ) {
+                push @parts, ":. recent git changes .:\n\n$git_out";
+            } else {
+                push @parts,
+                    ":. recent git changes .:\n\n[no changes or unable to fetch]";
+            }
+        }
+
+        ## 2. current memory summary ##
+        if ( -f $mem_path ) {
+            my $mem_focus
+                = length($focus)
+                ? $focus
+                : 'summarize what is currently documented in this development memory';
+            my $s = _do_summarize_file( $mem_path, $mem_focus, 600 );
+            push @parts, ":. current $agent memory .:\n\n"
+                . ( $s // 'summarization failed' );
+        } else {
+            push @parts,
+                ":. current $agent memory .:\n\n[file not found: $mem_path]";
+        }
+
+        ## 3. recent session summaries ##
+        if ( $sessions_n > 0 ) {
+            my @session_summaries;
+            my @session_list
+                = $agent eq 'claude'
+                ? _list_claude_sessions($sessions_n)
+                : _list_kimi_sessions($sessions_n);
+
+            for my $s ( @session_list[ 0 .. $sessions_n - 1 ] ) {
+                last unless defined $s;
+                my $text = _extract_session_text( $s->{'file'}, $agent );
+                next unless length $text;
+                my $sum = _do_summarize(
+                    $text,
+                    'summarize what was accomplished, key decisions, and open issues',
+                    400
+                );
+                my $header = sprintf ":. %s session %s .[ %s ]:.\n",
+                    $agent, $s->{'uuid'},
+                    POSIX::strftime( '%Y-%m-%d %H:%M',
+                    localtime( $s->{'mtime'} ) );
+                push @session_summaries,
+                    $header . ( $sum // '[summarization failed]' );
+            }
+
+            if (@session_summaries) {
+                push @parts, ":. recent $agent sessions .:\n\n"
+                    . join( "\n\n", @session_summaries );
+            } else {
+                push @parts,
+                    ":. recent $agent sessions .:\n\n[no sessions found]";
+            }
+        }
+
+        alarm(0);
+    };
+    if ($@) {
+        cube_disconnect();
+        $error
+            = $@ eq "timeout\n"
+            ? 'review timed out after 300s'
+            : "error: $@";
+    }
+
+    if ( length $error ) {
+        send_tool_result( $id, $error, 1 );
+    } else {
+        send_tool_result( $id, join( "\n\n", @parts ), 0 );
+    }
+}
+
 sub _model_chunk_size {
     ## query context size once and cache; derive safe chunk size from it ##
     unless ( defined $model_context_tokens ) {
@@ -1488,7 +1797,6 @@ sub _list_claude_sessions {
                         } elsif ( not ref $c ) {
                             $title = $c;
                         }
-                        last if length $title;
                     }
                 };
                 last if length $title;
@@ -1768,7 +2076,7 @@ sub tool_external_command {
         and $ext->{'name'} =~ m{^(?:claude|kimi)_dispatch$} ) {
         my $auto_sum = $args->{'auto_summarize'} // '';
         my $do_sum
-            = not length($auto_sum)                             ? 1
+            = !length($auto_sum)                                ? 1
             : ( lc($auto_sum) ne 'false' and $auto_sum ne '0' ) ? 1
             :                                                     0;
         if ($do_sum) {
@@ -1810,8 +2118,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,,,.,,,.,,,,..,..,,.,,,,..,,,.,...,...,,.,,..,,...,...,,..,..,,,,,,..,,.,,,
-#HPR3GZVSLRZEK6HIJVCCKJQD2KAYC7PI2KFBO6I3DP6MCNKH23O5DEYPXRIWTEZW7GRN3DAA6UPOG
-#\\\|L5O5HCKSJFUSTCOM6CQRV63IMHXY73L6QAQHTNWCO6JTIAAFCQY \ / AMOS7 \ YOURUM ::
-#\[7]AH5RVV36NHSYI6CYMXCEWOWUBGPWNNKUVQOGYQZ42SPR7BLQQGCY 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,,,,,..,..,,.,.,...,.,,,.,,,.,.,..,,...,...,,..,..,,,,.,...,,,.,
+#FIVAAJJT73UKP6PHUU4T5ZT2RTI7G7ZPY6KCJYAODE4A5FP2FT4BOMQ6RGSZQAUIHBYO2JEJJOXME
+#\\\|3QH6IEOBWSAXP2HGF34W6QEXBRYVGRJFAFGYJPY3AQOODOFEVZG \ / AMOS7 \ YOURUM ::
+#\[7]JPPB7KTINLGAR4X3ZFMFCL6JOUIBCS7PAJP4WXUFCPLSIPWUNYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
