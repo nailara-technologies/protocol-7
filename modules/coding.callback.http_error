@@ -130,6 +130,23 @@ if ( $error =~ m{timeout}i ) {
             $backend_r
         );
         $srv->{'status'} = 'restart_needed';
+
+        ## reduce context size to recover from VRAM-pressure timeouts ##
+        my $step  = <coding.cfg.ctx_timeout_step>    // 7000;
+        my $floor = <coding.cfg.ctx_timeout_floor>   // 16000;
+        my $cur   = <inference.model.context_length> // 0;
+        if ( $cur > $floor ) {
+            my $reduced = ( $cur - $step > $floor ) ? $cur - $step : $floor;
+            <inference.model.context_length> = $reduced;
+            <[base.logs]>->(
+                1,
+                "http_error: reducing context %d → %d [timeout recovery, floor=%d]",
+                $cur,
+                $reduced,
+                $floor
+            );
+        }
+
         ## clear cached pid so spawn_servers_deferred doesn't skip us ##
         <inference.gpu_pid> = 0 if $backend_r eq 'gpu';
         ## defer restart to avoid interfering with task teardown ##
@@ -162,8 +179,8 @@ if ( $error =~ m{timeout}i ) {
 
 return;
 
-#,,,,,.,.,...,.,,,,,,,...,...,,,,,,,.,,..,,..,..,,...,...,.,.,,..,...,.,.,,,.,
-#ITS5N3DMLUSPZ6DSOKGRIFGNKGZS7OQNFFJ56XBHHG5MYRVW4RVEM3WNU34BQYCRJZ53D7PVKVEKA
-#\\\|LNZZLIPHGIB6JH474HZVSOIZZNU6ZIJT5CHVELYG7JPFBOXIFND \ / AMOS7 \ YOURUM ::
-#\[7]MRPFSZLEKYQWKUKN2I4YYTFEE5XAFHSHTILKZ3L3XF4CGI3Y7UAY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,...,,.,,...,,,,,...,..,,...,..,,..,,...,...,..,,.,.,.,,,..,,,.,,
+#6DOB4N6VSIDWF2TENKF6NQHD6ODTFP5PORYERMXI7PVQQBFMEY6QOQ47UWEZVOTF7YXTKWGHWAVMW
+#\\\|YVXMDVTTZIJ6OJKZYV7XHOJCKT6KZPXR7CSR5NRTAT5XYGMZYYK \ / AMOS7 \ YOURUM ::
+#\[7]JGG3KMCGGLHYKF4KYNSC5ZSYEAHJP4GMJ2OLCQ4AIBPG2GESGABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
