@@ -10,6 +10,7 @@
 - Leave new files clean; `bin/Protocol-7 sourcecode update-signatures` adds real 4-line footer
 
 ## Recent Sessions
+- [session-69](session-69.md) — v7.restart :twin: fully working (web+coding); cube backchannel drain; namespace swap fix; coding await_resources + spawn resilience
 - [session-68](session-68.md) — auto_summarize root cause: decode_json→from_json (-C31 unicode); FD_CLOEXEC+cube_disconnect+2>/dev/null fixes; session_catchup live; task files: dispatch-template-param, dispatch-create-template
 - [session-67](session-67.md) — jobsite dedup false positive fix; status-dir layout (kimi); checksum store rewrite to filesystem dirs; job.read utf8 fix; checksum expansion in progress
 - [session-66](session-66.md) — delta sync /jobs.json (3 bugs); UI polish (title, buttons, hover, slider); sort NaN fix; inline sub extraction; double-plugin-load fix in base.cmd.reload
@@ -177,8 +178,8 @@
 - **task dispatch sections**: all dispatched tasks now carry ## dispatch + prompt for reuse
 - **coding zenka**: fully operational; 9B model loads in seconds (new ik_llama.cpp); no urgent issues
 
-#,,.,,,,.,.,.,.,,,,..,.,,,.,.,.,.,,..,...,,,,,..,,...,...,.,.,.,.,..,,,..,..,,
-#XGZSQT7NSZQHTLGKTOVD7YI26D5HKBVMD4J5Z5RNCKWZSB6GJ3IVPHJWLYU3VEBZ5RGOZAUJNRPQK
-#\\\|QPLEOLV4DAWNE5RE2N6DQWAQ5YPQPD7MG4AVGSTOTJ2JE3BVJ2G \ / AMOS7 \ YOURUM ::
-#\[7]JEPC7ME5BD2N3JLB6LM6BL3OCDWBIETT3RKAYLY6KUWDFKFHK2AI 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,.,.,,..,,,,,,,.,,.,,,.,,,.,,..,,..,,...,..,,,..,..,,.,,,.,,,,.,,
+#PNQXW6S5XGSYPYGU5ROCPGY6HQ2HBE7OC4TN4SSDQJCIP24E7GOZBHJPA5VYFCNJ32UPIIVQLVD24
+#\\\|RTQZHATW2RR3AIUF5ZRYHPPXIFRQBCCNSKRA2TKVZ5VUWFOZUSO \ / AMOS7 \ YOURUM ::
+#\[7]S5BT432HKAFBA7YUMHKVXQN6ODDCKC5KLTMNU3G7WYP364ULJQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
