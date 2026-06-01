@@ -1,40 +1,17 @@
 ---
 name: next-steps
-description: "active task queue, roadmap items, open bugs, and planned work — full detail for planning sessions"
-metadata: 
+description: "active task queue, roadmap items, open bugs, and planned work"
+metadata:
   node_type: memory
   type: project
   originSessionId: 56cce73a-933a-4992-96e4-4d88e138e8f6
 ---
 
-## open bugs (session 63)
+## open bugs
 
-### nshell (0) on first command (each session) — partially fixed, source unknown
-something in nshell sends `(0)<something>\n` exactly once per session at startup
-(triggered visibly on first user command). `$re->{cmd_id} = \d{2,15}` — single
-digit 0 fails the length check → cube logs "command id syntax not valid [0]",
-nshell prints "invalid command id syntax or length". command still executes.
-earlier form: explicit `(0)` check said "command id 0 not valid". partial fix
-removed that check, now falls through to generic syntax error instead.
-source UNCONFIRMED after prior kimi investigation (100 rounds, May 1):
-NOT from log send system (`send.local` debug ruled it out). NOT from cmd_id
-counter starting at 0 (user commands don't carry a cmd_id prefix in nshell).
-likely from v7.notify_online reply or some other startup buffer entry.
-related task file: data/yaml/coding-tasks/nshell-session-protocol-tunneling.yaml
-
-### nshell stray cursor — commit DE5EAEA4 (2026-05-25)
-`index.cmd.search/lookup/stats` — added trailing `\n` to inline SIZE replies
-to match what `base.callback.cmd_reply` adds for deferred replies.
-symptom: stray cursor in nshell after index search/lookup/stats output.
-likely cause: nshell output handler was compensating for the missing newline;
-fix double-newlines it. check `nshell.handler.strm_reply` or wherever nshell
-processes SIZE responses for its own `\n` addition.
-
-### STRM fix review needed (session 63)
-`had_local_consumer` fix in base.handler.command STRM close path is correct
-for local consumer case. relay path (no local consumer) still fires forward as
-before. but test needed: radio zenka (uses both local consumers and relay paths),
-and any other STRM consumer, to confirm no undefined state introduced.
+- **nshell (0) on first command**: `(0)<something>\n` sent once per session at startup; `$re->{cmd_id} = \d{2,15}` rejects single-digit 0; source UNCONFIRMED after 100-round investigation (May 1); NOT from log send system, NOT cmd_id counter; likely v7.notify_online reply or startup buffer entry
+- **nshell stray cursor**: `index.cmd.search/lookup/stats` added trailing `\n` to inline SIZE replies (commit DE5EAEA4); nshell output handler may be double-newlining — check `nshell.handler.strm_reply`
+- **STRM fix review needed**: `had_local_consumer` fix correct for local consumer; relay path unchanged; test needed on radio zenka and other STRM consumers
 
 ## iris visualization queue (dispatch to kimi one by one)
 
@@ -47,29 +24,17 @@ and any other STRM consumer, to confirm no undefined state introduced.
 - **iris temporal**: data/tasks/iris-temporal-mode.md — radial=time, git blame as orbital map
 - **iris boundary**: data/tasks/iris-boundary-mode.md — stained glass event horizons
 - **iris negotiation-window**: data/tasks/iris-negotiation-window.md — floor budget urgency
+- **iris oscilloscope**: route-send SIZE relay to index — verify working after httpd+index+zulum restart
 
-**iris oscilloscope**: route-send SIZE relay to index — verify working after httpd+index+zulum restart
+## pending tasks (from session 37 queue)
 
-## session 37 task queue (kimi-cli dispatch)
-
-- `data/tasks/v7-teardown-whitelist.md` — DONE ✓ session 48c (access.cmd.usr.system = v7.teardown + SOURCE alias already in cube/command_aliases; test with devmod switch-user — taeki has full wildcard so need to switch to verify restriction)
-- `data/tasks/source-code-header-check.md` — DONE ✓ already completed prior session (parameterized // TRUE, all headers valid)
-- `data/tasks/weather-forecast-humidity.md` — re-enable humidity API field (tiny)
-- `data/tasks/web-browser-evaluate-javascript.md` — DONE ✓ session 42
+- `data/tasks/weather-forecast-humidity.md` — re-enable humidity API field
 - `data/tasks/mpv-xephyr-vo-override.md` — test gpu vs sdl under xephyr
-- `data/tasks/diff-modified-no-color-mode.md` — --no-color flag **[dispatched session 42]**
-- `data/tasks/x11-gpu-monitoring-vendor-detect.md` — DONE ✓ session 48c (needs longer soak test → needs-testing/)
-- `data/tasks/kimi-zenka-multiplexer.md` — STRM dispatch + queue + sudo auto-decline (kimi-cli only)
+- `data/tasks/diff-modified-no-color-mode.md` — --no-color flag
+- `data/tasks/kimi-zenka-multiplexer.md` — STRM dispatch + queue + sudo auto-decline
 - `data/tasks/credentials-zenka.md` — encrypted credential store, per-zenka authorization
 - `data/tasks/x11-wait-visible-host-mode-skip.md` — capability flag, skip on WSL
-- `data/tasks/zenka-window-placement-profiles.md` — window.* namespace (needs re-dispatch after rename)
-
-## session 42 completed
-
-- `data/tasks/source-code-header-check.md` — NOOP ✓ already done prior session
-- `data/tasks/web-browser-evaluate-javascript.md` — DONE ✓ → needs-testing/ (evaluate_javascript+JSCValue migration)
-- `data/tasks/kimi-web-session-cache-access.md` — DONE ✓ → needs-testing/ (7 new kimi-web modules)
-- `data/tasks/diff-modified-no-color-mode.md` — still pending (not dispatched this session)
+- `data/tasks/zenka-window-placement-profiles.md` — window.* namespace (re-dispatch after rename)
 
 ## infrastructure
 
@@ -80,7 +45,7 @@ and any other STRM consumer, to confirm no undefined state introduced.
 - **jobsite BMW384 dedup**: dispatch bmw384-arc-grouping-filter.md to kimi
 - **route.bmw384 find-route testing**: register nodes, verify-coordinate
 
-## roadmap (see IMPLEMENTATION-ROADMAP.md)
+## roadmap
 
 - **sub-bit element definition**: data/tasks/sub-bit-element-definition.md
 - **generic content layer**: 4b.6 improvement-directed history, git supersession path
@@ -88,51 +53,49 @@ and any other STRM consumer, to confirm no undefined state introduced.
 - **orbital velocity signatures**: 4.8 per-ring speed multipliers, TRUE/FALSE CCW/CW lanes
 - **network cycle clock**: 4.9 logically mapping orbital timebase
 
-## session 67 completed
+## session 67 completed (2026-05-25)
 
-- **jobsite dedup false positive fix** — DONE ✓ commit f70d841eb: company removed
-  from checksum.index `add`; 64 blocked jobs reset and re-assessed
-- **jobsite.cmd.reset off-memory** — DONE ✓ scans job files for status=blocked
-- **fix_encoding inline sub extraction** — DONE ✓ mojibake-table + score-candidate
-- **filesystem checksum store** — DONE ✓ commit 5846902bc: dir-based, no load/persist
-- **jobsite status-dir layout** — DONE ✓ kimi dispatch; per-status job subdirs live
-- **job.read utf8 fix** — DONE ✓ uncommitted: utf8::encode before YAML::XS::Load
-- **checksum store status-dir expansion** — DONE ✓ kimi 3e42231f; titles/ per-status, resolved_status, interviewed
-- **jobsite.cmd.progress** — DONE ✓ index-based counts; rev:152 correct
-- **scan-state slim** — DONE ✓ 4 fields only
-- **status/stage reconcile** — DONE ✓ assess-done writes status=review; migration ran
-- **UI card refinements** — DONE ✓ badges, dims row, error tab, NaN fix
-- **reassess ↺ button** — DONE ✓ full loop working (commit 00c2e2605); 5 bugs fixed
-- **flexible export** — DONE ✓ stage checkboxes + since-last-export
-- **web plugin phase 2** — DONE ✓ status-dir layout, merge, prune
-- **sync push status-dir** — DONE ✓ status injected, blocked skipped, delete via index
-- **ES5 compat** — DONE ✓ ?./??→&& ; mobile rendering fixed
-- **sync_urls multiplex config** — DONE ✓ //→|| fallback fixed
-- **web-auth-plugin** — DONE ✓ commit 142da4c44; POST /jobs-sync gated
-- **import-atom-jobs script** — DONE ✓ commit 142da4c44; bin/dev/import-atom-jobs
-- **CSV/HTML import** — DONE ✓ 47 applied, 3 interviewed, 16 apply imported
-- **jobsite.status fix** — DONE ✓ commit 4b930b439; index-based counts, base.sort
-- **atom browser localStorage** — pri server was empty; jobs in browser only;
-  extract via DevTools key `jobs_[vhost]_v1` → POST as reverse-sync batch
-- **multi-endpoint sync** — after auth settled
-- **web-sessions-distributed** — lower priority, task written
+- jobsite dedup false positive fix ✓ (f70d841eb); 64 blocked jobs reset
+- jobsite.cmd.reset off-memory ✓ scans job files for status=blocked
+- fix_encoding inline sub extraction ✓ mojibake-table + score-candidate
+- filesystem checksum store ✓ (5846902bc) dir-based, no load/persist
+- jobsite status-dir layout ✓ kimi dispatch; per-status job subdirs live
+- job.read utf8 fix ✓ utf8::encode before YAML::XS::Load
+- checksum store status-dir expansion ✓ titles/ per-status, resolved_status, interviewed
+- jobsite.cmd.progress ✓ index-based counts
+- scan-state slim ✓ 4 fields only
+- status/stage reconcile ✓ assess-done writes status=review
+- UI card refinements ✓ badges, dims row, error tab, NaN fix
+- reassess ↺ button ✓ full loop working (00c2e2605); 5 bugs fixed
+- flexible export ✓ stage checkboxes + since-last-export
+- web plugin phase 2 ✓ status-dir layout, merge, prune
+- sync push status-dir ✓ status injected, blocked skipped, delete via index
+- ES5 compat ✓ ?./??→&& ; mobile rendering fixed
+- sync_urls multiplex config ✓ //→|| fallback fixed
+- web-auth-plugin ✓ (142da4c44) POST /jobs-sync gated
+- import-atom-jobs script ✓ (142da4c44) bin/dev/import-atom-jobs
+- CSV/HTML import ✓ 47 applied, 3 interviewed, 16 apply imported
+- jobsite.status fix ✓ (4b930b439) index-based counts, base.sort
+- atom browser localStorage extraction ✓ DevTools key `jobs_[vhost]_v1` → POST reverse-sync batch
+- multi-endpoint sync — after auth settled
+- web-sessions-distributed — lower priority, task written
 
 ## jobs pipeline open items
 
-- **profile.txt**: /var/protocol-7/jobs/profile.txt — CV/skills for LLM scoring
-- **multi-page search**: stepstone 25/page; cfg.max_pages per category
-- **orphan re-queue**: re-create tasks stuck in 'assessing' after restart
+- profile.txt: /var/protocol-7/jobs/profile.txt — CV/skills for LLM scoring
+- multi-page search: stepstone 25/page; cfg.max_pages per category
+- orphan re-queue: re-create tasks stuck in 'assessing' after restart
 - note_read pagination (offset/limit on sections)
 - active deps execution (requires list in task dispatcher)
 - think-block stripping — `<think>...</think>` from Kimi/Deepseek leaks into output
 - task.cmd.start — task zenka step 3
-- **model selection for assessment**: `preferred_model` param on task.create needed
-- **site-yaml 403 backoff**: currently fixed at 10s; should scale with consecutive count
-- **sync ?since=N browser delta**: DONE ✓ session 66 — server filters by last_modified, browser sends ?since=<B32ntime>; key bug: lastNtime > 0 fails when lastNtime is B32 string (NaN > 0 = false), fixed to truthy check; only args field crosses route-send wire, not custom call_args keys
-- **inline subroutine warning**: DONE ✓ session 66 — extracted to plugin.web.space.orbital.synthetic-zenka-node; double-load root cause also fixed in base.cmd.reload (plugin.* filtered from source reload pass)
-- **repair-jobsite-encoding**: committed (1916318) but known to damage files (zeroes text fields via broken to_unicode path); do not run again without investigation
-- **bin/dev/merge-jobsite-from-backup**: useful script, exists on disk, not yet committed
-- **assessment re-run**: 306 jobs currently status=new (294 reset from repair_failed + 12 genuinely new); coding zenka scan in progress (session 65, ~several hours)
+- model selection for assessment: `preferred_model` param on task.create needed
+- site-yaml 403 backoff: currently fixed at 10s; should scale with consecutive count
+- sync ?since=N browser delta ✓ DONE session 66 — server filters by last_modified, browser sends ?since=<B32ntime>; key bug: lastNtime > 0 fails when B32 string (NaN > 0 = false), fixed to truthy check
+- inline subroutine warning ✓ DONE session 66 — extracted to plugin.web.space.orbital.synthetic-zenka-node; double-load root cause fixed in base.cmd.reload
+- repair-jobsite-encoding: committed (1916318) but damages files (zeroes text fields); do not run again without investigation
+- bin/dev/merge-jobsite-from-backup: useful script, exists on disk, not yet committed
+- assessment re-run: 306 jobs status=new (294 reset from repair_failed + 12 new); coding zenka scan in progress
 
 ## shm pipeline (next major infra)
 
@@ -154,7 +117,7 @@ and any other STRM consumer, to confirm no undefined state introduced.
 - **animated**: auto-refresh as modules are signed, live topology monitor
 - **interactive**: click node → highlight color-radius neighbors, show routing candidates
 - **route arcs**: find-route result drawn as arc across wheel, color-coded by resonance
-- **namespace layers**: separate rings per namespace (base.*, kimi.*, jobsite.*) — layer boundaries visible
+- **namespace layers**: separate rings per namespace (base.*, kimi.*, jobsite.*)
 - **favicon/header**: 26-ring iris at thumbnail scale as live system-state favicon
 
 ## completed session 50 (2026-05-24)
@@ -163,25 +126,25 @@ and any other STRM consumer, to confirm no undefined state introduced.
 - kimi_dispatch + kimi_continue timeout raised 47min → 77min (bin/mcp-server-p7)
 - INTENT-CLASSIFICATION-AND-SELF-IMPROVEMENT.md: help-as-signal, regex tier 1, LLM tier 2, deferred self-improvement cycle, network patch sharing
 - SEMANTIC-BACKCHANNEL-AND-DEDUPLICATED-COMMUNICATION.md: identity-content coupling as root failure; context alignment + dedup + normalization; suppression→forensic; no eviction by arithmetic impossibility
-- semantic-dedup-tree.yaml: reasoning template — one currency, open mapping, overdetermined self-correcting correlations, inverse = other matches
-- HARMONIC-TREE-ADDRESSING.md: minimal distance principle, route=address, rollover dialing, algebraic exclusion, self-annealing equilibrium, islanded data reintegration, living data eternal self-sustainability, pausing as cycle-based load balancing, active bit + inverse address + starting verse, computation placement = data placement, transport as eternal network work; preamble: tree/space/field/hyperspace/gate as coordinate systems for one structure
+- semantic-dedup-tree.yaml: reasoning template — one currency, open mapping, overdetermined self-correcting correlations
+- HARMONIC-TREE-ADDRESSING.md: minimal distance principle, route=address, rollover dialing, algebraic exclusion, self-annealing equilibrium, islanded data reintegration, pausing as cycle-based load balancing, computation placement = data placement, transport as eternal network work
 
 ## session 50 potential next steps
 
-- **tree.route.page Z.Y.X update**: word_graphical encodes col+row but not Z-depth
-- **graphical word design doc**: character rotation (3 Z-states), X/Y symmetry collapse, edge-on semi-invisible state
-- **branch.session integration with task zenka**: dag.open_list + policy.next_hop → task zenka scheduling loop
-- **branch.cluster intent template (layer 4)**: only task (layer 1) + design (layer 3) exist
-- **branch.calc.fraction intent template**: same — layer 4 missing
-- **proxy-zenka-skeleton dispatch**: task file ready, not yet dispatched
-- **transport-selector dispatch**: same
-- **credential-fabric dispatch**: same
-- **intent-classification modules**: intent.* + backchannel.* namespaces (task files not yet written)
-- **overview + describe commands**: cube-level orientation commands from intent classification design
+- tree.route.page Z.Y.X update: word_graphical encodes col+row but not Z-depth
+- graphical word design doc: character rotation (3 Z-states), X/Y symmetry collapse, edge-on semi-invisible state
+- branch.session integration with task zenka: dag.open_list + policy.next_hop → task zenka scheduling loop
+- branch.cluster intent template (layer 4): only task (layer 1) + design (layer 3) exist
+- branch.calc.fraction intent template: same — layer 4 missing
+- proxy-zenka-skeleton dispatch: task file ready, not yet dispatched
+- transport-selector dispatch: same
+- credential-fabric dispatch: same
+- intent-classification modules: intent.* + backchannel.* namespaces
+- overview + describe commands: cube-level orientation commands
 
 ## completed session 49 (2026-05-24)
 
-- branch unified theory: design doc (BRANCH-OPEN-CAPACITY-SESSION-DAG.md) + reasoning template extended
+- branch unified theory: design doc + reasoning template extended
 - 58 new modules: branch.field.*(9) + branch.calc.fraction.*(10) + branch.cluster.*(8) + branch.session.*(14) + tree.sort.trunk.*(5) + tree.route.page.*(12)
 - Z.Y.X coords, rollover dual semantics, chained usefulness, mask/canvas orthogonality, holographic devices
 - kimi_dispatch completed 4 task files; kimi_continue timed out on 2 (fixed in session 50)
@@ -192,41 +155,41 @@ and any other STRM consumer, to confirm no undefined state introduced.
 - X-11.init_code: intel binary noise fix (file.which silent lookup)
 - GPU STRM subscription + coding zenka feed + sparkline (3 phases)
 - MCP external command config table + kimi_dispatch tool
-- `data/yaml/reasoning-templates/holographic-grid-interface.yaml` (733 lines)
-- v7-teardown-whitelist: DONE ✓ — access.cmd.usr.system = v7.teardown in v7/start; SOURCE alias for v7.teardown already in cube/command_aliases (transmits caller identity); test pending with devmod switch-user (taeki has full wildcard, need non-taeki user to verify denial)
+- data/yaml/reasoning-templates/holographic-grid-interface.yaml (733 lines)
+- v7-teardown-whitelist ✓ — access.cmd.usr.system = v7.teardown in v7/start; SOURCE alias in cube/command_aliases; test pending with devmod switch-user
 - MCP kimi_dispatch/kimi_continue: LIVE — 47min timeout, session resume via kimi -r <uuid>
 
 ## planned / future
 
-- **SHM streaming pipeline** — data/tasks/shm-streaming-payload-pipeline.md
-- **model self-selection** — data/tasks/coding-model-selection-template.md
-- **sourcecode normalize-endline-state** — data/tasks/sourcecode-normalize-endline-paths.md
-- **privacy credentials** — data/md/design/PRIVACY-PRESERVING-IDENTITY-CREDENTIALS.md
-- **HTTP sync** — /api/jobs/sync httpd endpoint, C25519-signed YAML
-- **USB backup zenka** — udev insertion → backup task tree
-- **site-auth zenka** — session/auth for login-gated scrapers
-- **job automation** — jobtracker integration (HTML/JS, CSV/PDF), email reply monitor
-- **base.handler.command refactor** — data/md/development/BASE-HANDLER-COMMAND-REFACTOR-PLAN.md
+- SHM streaming pipeline — data/tasks/shm-streaming-payload-pipeline.md
+- model self-selection — data/tasks/coding-model-selection-template.md
+- sourcecode normalize-endline-state — data/tasks/sourcecode-normalize-endline-paths.md
+- privacy credentials — data/md/design/PRIVACY-PRESERVING-IDENTITY-CREDENTIALS.md
+- HTTP sync — /api/jobs/sync httpd endpoint, C25519-signed YAML
+- USB backup zenka — udev insertion → backup task tree
+- site-auth zenka — session/auth for login-gated scrapers
+- job automation — jobtracker integration (HTML/JS, CSV/PDF), email reply monitor
+- base.handler.command refactor — data/md/development/BASE-HANDLER-COMMAND-REFACTOR-PLAN.md
 
-## open bugs (session 37 — still open)
+## open bugs (session 37)
 
-- **source.extract_sig_body**: YOURUM fake stubs 1 char too long → size mismatch → error instead of strip
-- **signature oscillation Variant B** — double-footer on never-signed non-empty files
-- ~~signature endline restoration~~ — **FIXED session 48b**: stale delta clamp + normalize recovery
-- **repo var/ cleanup** — `var/httpd/` tracked from Nov 2025 AI error
-- **kimi auto-approval regression** (Apr 16) — some tool calls not auto-approved
+- source.extract_sig_body: YOURUM fake stubs 1 char too long → size mismatch → error instead of strip
+- signature oscillation Variant B — double-footer on never-signed non-empty files
+- ~~signature endline restoration~~ — FIXED session 48b: stale delta clamp + normalize recovery
+- repo var/ cleanup — var/httpd/ tracked from Nov 2025 AI error
+- kimi auto-approval regression (Apr 16) — some tool calls not auto-approved
 
-## open bugs (session 39 — letsencr, partially resolved)
+## open bugs (session 39 — letsencr)
 
-- **visual.v7.ax ACME timing race** — vhost rescan not complete before LE validates; cert renews on retry but needs proper fix (wait for challenge file to be serveable before proceeding)
-- **letsencr cert PEM format** — fix committed (remap bundle fields), pending next renewal cycle to verify httpsd loads correctly
+- visual.v7.ax ACME timing race — vhost rescan not complete before LE validates; cert renews on retry but needs proper fix
+- letsencr cert PEM format — fix committed (remap bundle fields), pending next renewal cycle
 
 ## Glitter 4B quirk
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,,.,...,.,.,,,.,..,,.,.,,,.,,,,,.,,,..,,..,,..,,...,...,,..,...,...,..,,,.,,
-#DE4WSK5IVLQFE5H7NBKLVHY73MKF5EFXALYAIDNR2R5IKR2P4LIIYHL2C42WOGTVIRQFN2ECS5JX6
-#\\\|BRQ4OUL5IDZVD2SDN3KAVTUWXCNZ3FFH6L3UWH342BTBXMH7JN4 \ / AMOS7 \ YOURUM ::
-#\[7]J7IALO5C7KQMSRYCSGURLIM6J3KP7ECELEB5GBZETO3O25HCFECY 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,.,,,.,,,..,...,.,.,.,.,,.,,..,,..,,...,..,,.,,,,.,,,.,,,.,,,,.,
+#Y5AFIDMMQKFMNMHTRJHYXEANNKF7DUAZ4BRTISXIQHZREF7QUR2V5TSLXOHMNWVX3KBBVIGSIOSD4
+#\\\|MIYKIA2D2BNDT7VYM2CELBA3YROFFYXC4CNV5I2ZOFNJ3SGY6KK \ / AMOS7 \ YOURUM ::
+#\[7]KNIOZ6UN5GYXXNELLC37HWXL57GWFUKLYCN33NAWXFUAPT6JEMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

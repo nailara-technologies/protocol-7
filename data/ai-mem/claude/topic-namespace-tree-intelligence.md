@@ -4,73 +4,49 @@ description: Architectural vision — the deduplicated namespace tree IS the int
 type: project
 originSessionId: 941ef93c-3dcf-4d15-8c40-ccd709e0510b
 ---
+
 ## Normalized dot-namespace as universal routing primitive (May 2026)
 
-**Canonical form**: dot-only notation, no mixed separators, no filesystem artifacts.
-- `modules/base.init_code` → `code.base.init_code` (when modules/ renamed to code/)
-- `configuration/zenki/cube/access.zenki` → `conf.zenki.cube.access.zenki`
-- `data/tasks/bmw384-route-discovery` → `data.tasks.bmw384-route-discovery`
+- **Canonical form**: dot-only notation, no mixed separators, no filesystem artifacts
+  - `modules/base.init_code` → `code.base.init_code`
+  - `configuration/zenki/cube/access.zenki` → `conf.zenki.cube.access.zenki`
+  - `data/tasks/bmw384-route-discovery` → `data.tasks.bmw384-route-discovery`
+- **Planned directory renames**: `modules/` → `code/`, `configuration/` → `conf/` — both map cleanly to dot-only notation
+- **Hybrid flat+directory form with precedence**: flat file `code/base.chk-sum.init_code` takes precedence over directory tree `code/base/chk-sum/init_code` when both exist; files supersede directories silently
 
-**Planned directory renames**: `modules/` → `code/`, `configuration/` → `conf/`
-— both map cleanly to dot-only notation without ambiguity.
+**Namespace as checksum chain — bidirectional routing:**
+- Each dot-element gets BMW384 coordinate computed incrementally: `code` → BMW384("code"), `code.base` → BMW384("code.base"), etc.
+- Parent and child coordinates geometrically related by construction — siblings share ancestry, cousins share partial ancestry
+- Namespace tree maps onto coherent field topology where structural proximity implies coordinate proximity
+- **Forward**: traverse dot-elements left to right → arrive at leaf coordinate
+- **Backward**: given BMW384 coordinate → find arc → find namespace prefix candidates → narrow by angle → arrive at module name
+- Discovery and naming are same operation traversed in opposite directions
 
-**Hybrid flat+directory form with precedence**:
-- flat file `code/base.chk-sum.init_code` takes precedence over
-  directory tree `code/base/chk-sum/init_code` when both exist
-- files supersede directories silently — flat is the more intentional form
-- already planned; precedence rule makes the implicit behavior explicit
-
-**Namespace as checksum chain — bidirectional routing**:
-- each dot-element gets its own BMW384 coordinate, computed incrementally:
-  `code` → BMW384("code"), `code.base` → BMW384("code.base"),
-  `code.base.init_code` → BMW384("code.base.init_code")
-- parent and child coordinates are geometrically related by construction —
-  siblings share ancestry, cousins share partial ancestry
-- the namespace tree maps onto a coherent field topology where structural
-  proximity implies coordinate proximity
-- **forward**: traverse dot-elements left to right → arrive at leaf coordinate
-- **backward**: given a BMW384 coordinate → find arc → find namespace prefix
-  candidates → narrow by angle → arrive at module name
-- discovery and naming are the same operation traversed in opposite directions
-
-**Storage-layout independence**:
+**Storage-layout independence:**
 - BMW384 coordinate computed from normalized dot-path, not filesystem path
-- renaming `modules/` → `code/` does NOT change any module's coordinate
-- the dot-namespace IS the address; the filesystem is one possible backing store
-- routing identity is stable across filesystem reorganizations
+- Renaming `modules/` → `code/` does NOT change any module's coordinate
+- Dot-namespace IS the address; filesystem is one possible backing store
 
 ## Implementation Note (2026-05-07)
 
-`valued.*` modules are the universal tree primitive — not task-specific.
-The N+f structure (refs=integer, weight=fraction) is identical whether nodes
-represent task dependencies, deduplication hits, or semantic convergence.
-The deduplication tree, content/semantic tree, and decision tree are all
-the same code with different node payloads and different ref-counting callers.
-`valued.init_code` + `valued.node.*` + `valued.resolve` + `valued.tree.load`
-are the shared substrate for all of them.
+- `valued.*` modules are universal tree primitive — not task-specific
+- N+f structure (refs=integer, weight=fraction) identical for task deps, dedup hits, semantic convergence
+- Deduplication tree, content/semantic tree, decision tree = same code, different payloads and ref-counting callers
+- `valued.init_code` + `valued.node.*` + `valued.resolve` + `valued.tree.load` = shared substrate
 
 ## Core Insight (2026-03-29)
 
-The deduplicated namespace tree is not just organizational — it IS the intelligence.
-The same dot-separated tree structure already underlies %code, %data, config paths,
-module names, context-tree, and the observations stash. Unifying these into a single
-addressable tree with automatic summarization creates the shared knowledge substrate.
+- Deduplicated namespace tree IS the intelligence — not just organizational
+- Same dot-separated tree underlies %code, %data, config paths, module names, context-tree, observations stash
+- Unifying into single addressable tree with automatic summarization creates shared knowledge substrate
 
 ## Properties of the Unified Tree
 
-- **Nested branch summarization**: each node/branch automatically summarizes its
-  children, rolling up from leaves to root. Same mechanism for code namespaces,
-  data state, history, and plans.
-- **Automatic namespace optimization**: implicit dedup and reorganization using
-  dot separators. Same system across %data, %code, config, observations.
-- **Universal for all concerns**: current state, state machines, history, planning,
-  code organization — all branches of one tree.
-- **Transparent access from anywhere**: models in localized processing queues
-  (inference loops, task pipelines) can read/write the tree without going through
-  their linear processing pipeline. Off-band improvement.
-- **All parallel activity improves overall state**: observations, suggestions,
-  questions, extracted knowledge flow into the tree asynchronously, outside
-  of the sequential code processing workflows.
+- **Nested branch summarization**: each node/branch automatically summarizes children, rolling up from leaves to root. Same mechanism for code, data, history, plans
+- **Automatic namespace optimization**: implicit dedup and reorganization using dot separators. Same system across %data, %code, config, observations
+- **Universal for all concerns**: current state, state machines, history, planning, code organization — all branches of one tree
+- **Transparent access from anywhere**: models in localized processing queues can read/write tree without going through linear processing pipeline — off-band improvement
+- **All parallel activity improves overall state**: observations, suggestions, questions, extracted knowledge flow into tree asynchronously
 
 ## Access Requirements
 
@@ -81,181 +57,115 @@ addressable tree with automatic summarization creates the shared knowledge subst
 
 ## Process Control — Preemption, Branching, Compaction
 
-### Branch-level preemption
-Any node in the tree can trigger workflow preemption. When a model raises an issue
-(record_question, escalate, or automatic detection), the current workflow pauses at
-that branch point. The raised issue gets its own processing context, produces a
-summarizing report, and that report integrates back before workflow resumes.
+**Branch-level preemption:**
+- Any node can trigger workflow preemption. Model raises issue (record_question, escalate, auto-detection) → current workflow pauses at branch point → issue gets own processing context → summarizing report integrates back before resume
 
-### Issue isolation through compaction
-A successfully raised and resolved issue compacts out of the context of the task
-flow that triggered it. The resolution summary replaces the detailed back-and-forth.
-This keeps the original task flow unbiased by the side-quest — the task context
-remains clean, influenced only by the compact result, not the full exploration.
+**Issue isolation through compaction:**
+- Resolved issue compacts out of task flow context. Resolution summary replaces detailed back-and-forth. Original task flow remains clean, influenced only by compact result
 
-### Generic branching and integration
-Like git branches but for processing. Any piece of work can branch off from any
-tree node, proceed independently (possibly in parallel), and merge back with
-branch compaction. The branch's full context compacts to a summary upon integration.
-This parallelizes everything — multiple branches can explore different aspects
-simultaneously, each with their own context window.
+**Generic branching and integration:**
+- Like git branches but for processing. Any work can branch from any tree node, proceed independently (possibly in parallel), merge back with branch compaction
+- Full branch context compacts to summary upon integration
+- Multiple branches explore different aspects simultaneously, each with own context window
 
-### Category + recency + relevance compaction
-Context compaction is not just time-based (current: compact oldest messages first).
-It should be semantic: what category of information is relevant to the current
-branch of work, how recent is it, how relevant to the active task. Irrelevant
-categories compact aggressively; relevant recent information is preserved.
+**Category + recency + relevance compaction:**
+- Context compaction semantic, not just time-based: category relevance, recency, active task fit. Irrelevant categories compact aggressively; relevant recent info preserved
 
-### Reference type and count awareness
-Every tree node tracks what types of references it contains and how many:
-- Code references (module calls, $code{} entries)
-- Data references (%data paths)
-- External references (file paths, URLs, checksums)
-- Cross-branch references (links to other tree nodes)
-This enables smart compaction decisions: heavily-referenced nodes resist compaction,
-orphaned branches compact first. Reference counts guide summarization depth.
+**Reference type and count awareness:**
+- Every node tracks reference types and counts: code references (module calls, $code{}), data references (%data paths), external references (file paths, URLs, checksums), cross-branch references
+- Smart compaction: heavily-referenced nodes resist compaction, orphaned branches compact first. Reference counts guide summarization depth
 
-### Relationship to current coding zenka workflow
+**Relationship to current coding zenka workflow:**
 - `record_question` / `escalate` = preemption triggers (primitive form)
 - `task_complete` = branch completion signal
 - Context compaction in process-queued-task = time-based prototype of semantic compaction
-- observations stash = flat prototype of branch-level issue tracking
-- The inference loop's tool rounds = linear pipeline that needs branch-aware interrupts
+- Observations stash = flat prototype of branch-level issue tracking
+- Inference loop's tool rounds = linear pipeline needing branch-aware interrupts
 
 ## Implementation Architecture — %DATA and Event-Driven Tree
 
-### Global %DATA hash (uppercase)
-Parallel to per-zenka `%data` (local state), `%DATA` is the global/shared tree.
-Same dot-separated namespace, but visible across zenki and persistent.
-Analogous to how `@INDEXCUBE` already provides checksum-based global mapping.
+**Global %DATA hash (uppercase):**
+- Parallel to per-zenka `%data` (local state), `%DATA` is global/shared tree
+- Same dot-separated namespace, visible across zenki and persistent
+- Analogous to `@INDEXCUBE` checksum-based global mapping
 
-### Local ↔ Global mapping
-Each zenka has local `%data` views of global `%DATA` branches. Changes propagate
-bidirectionally. A zenka can subscribe to a `%DATA` subtree and get local copies
-that stay synchronized. Local mutations can be promoted to global when appropriate.
+**Local ↔ Global mapping:**
+- Each zenka has local `%data` views of global `%DATA` branches
+- Changes propagate bidirectionally; zenka can subscribe to `%DATA` subtree and get synchronized local copies
+- Local mutations promoted to global when appropriate
 
-### Event-driven mutations via tie() or variable watchers
-`%DATA` is either `tie()`d into the event callback system or uses variable watchers
-on interlaced tree meta-data nodes. When a branch changes:
-- Ref counts update up the tree
-- Summary invalidation cascades to parent nodes
-- Subscribed zenki get change notifications
-- Preemption triggers fire if priority thresholds are met
+**Event-driven mutations via tie() or variable watchers:**
+- `%DATA` either `tie()`d into event callback system or uses variable watchers on interlaced tree meta-data nodes
+- On branch change: ref counts update up tree, summary invalidation cascades to parents, subscribed zenki get notifications, preemption triggers fire if thresholds met
+- Pattern: same as jobqueue element counts for task/queue tree — proven P7 pattern, generalized
 
-Pattern: same as jobqueue module's element counts for the task/queue tree —
-proven P7 pattern, generalized to the full namespace.
+**Interlaced meta-data nodes:**
+- Meta-data (ref counts, bitmasks, type info, summaries) lives IN tree alongside data nodes
+- Branch node contains children and own meta: `coding.observations._meta.ref_count`, `coding.observations._meta.summary`
+- Bitmasks for fast category/type filtering without traversal
 
-### Interlaced meta-data nodes
-Meta-data (ref counts, bitmasks, type info, summaries) lives IN the tree alongside
-data nodes, not in a separate structure. A branch node contains both its children
-and its own meta: `coding.observations._meta.ref_count`, `coding.observations._meta.summary`.
-Bitmasks for fast category/type filtering without traversal.
+**P7REFs as universal branch pointers:**
+- Branches can be anything — P7REF (TYPE:CHKSUM7:ADDR_B32) identifies type:
+  - Data nodes (plain values, hashes, arrays)
+  - Code callbacks ($code{} entries, module references)
+  - Conversation channels (message streams)
+  - Zenki (agent instances)
+  - Node groups (consensus groups, clusters)
+  - Other tree branches (cross-references)
+- Reference type awareness enables smart operations: compacting data branch differs from code branch or conversation channel
 
-### P7REFs as universal branch pointers
-Branches can be anything — their P7REF (TYPE:CHKSUM7:ADDR_B32) identifies what:
-- Data nodes (plain values, hashes, arrays)
-- Code callbacks ($code{} entries, module references)
-- Conversation channels (message streams)
-- Zenki (agent instances)
-- Node groups (consensus groups, clusters)
-- Other tree branches (cross-references)
-
-Reference type awareness enables smart operations: compacting a data branch
-differs from compacting a code branch or a conversation channel.
-
-### Existing patterns to build on
+**Existing patterns to build on:**
 - `@INDEXCUBE` — checksum-based mapping, already global
 - `jobqueue` module — element counts on tree nodes, event-driven
 - `plugin.storage.checksum.cluster.*` — tree-structured storage with traversal
 - `context-tree/` — nodes/edges/index, summarization
-- `%data` hash — the per-zenka tree, proven namespace pattern
+- `%data` hash — per-zenka tree, proven namespace pattern
 
 ## Connection to Current Work
 
-- `record_question` / `record_suggestion` are the first off-band write tools
-- observations stash is a flat prototype of tree-structured knowledge capture
-- context-tree already has nodes/edges/index — can evolve into the unified tree
-- module namespace IS a tree branch; extraction work IS tree optimization
-- the self-improvement loop (extract → review → suggest → fix) is tree maintenance
+- `record_question` / `record_suggestion` = first off-band write tools
+- Observations stash = flat prototype of tree-structured knowledge capture
+- Context-tree already has nodes/edges/index — can evolve into unified tree
+- Module namespace IS tree branch; extraction work IS tree optimization
+- Self-improvement loop (extract → review → suggest → fix) = tree maintenance
 
 ## Model Scale vs Tree Scaffolding (2026-05-11)
 
-Large models understand better what they are "wired into" when connected to a new
-system — their breadth of prior training lets them rapidly map structure and infer
-recent direction from sparse signals, spending fewer tokens on orientation.
-
-A small local model given the same raw context burns proportionally more tokens
-just reconstructing what the large model intuited. BUT: if the tree is pre-mapped —
-structure already named, temporal alignment pre-computed, feature proximities
-encoded as branch distances — the small model arrives at the same orientation
-instantly, having spent almost no tokens getting there.
-
-The tree externalises what the large model builds internally from raw tokens:
-- mapped structure → existing branch hierarchy
-- temporal alignment → ntime-stamped nodes, recency in ref counts
-- feature proximity → branch distance in the dot-separated namespace
-
-This inverts the advantage: large models benefit too (vastly fewer orientation
-tokens, instantly positioned), but small distributed models gain the most —
-each holds a slice, consensus-votes on which branch to expand, and the collective
-outlogics a single large model on tasks that span the full tree.
-
-The first impulse to improve becomes the routing signal: instead of consuming
-tokens to surface an improvement suggestion, the model is already at the branch
-where that improvement lives and writes it directly.
-
-Small models may not produce the same quality of written output, but they can
-recognise quality and validate correctness — so a large model makes a high-quality
-deposit (code, insight, design) and exits. Small distributed models inherit the
-quality without reproducing it: they review, route, and integrate the artifact.
-No further feedback iteration with the large model is required — the deposit is
-durable and self-contained from the moment it is written.
-
-Economics: one expensive large-model call → durable artifact. All subsequent
-operations (review, adaptation, integration, branch routing) run on cheap local
-inference. Cost curve inverts over time: early large-model investment, then
-compounding returns from distributed small-model maintenance.
-
-Natural visit scope for a large model: orient → identify highest-value deposit
-→ write → exit. The tree remembers so the model doesn't have to stay connected.
-Analogous to stem cell differentiation: the signal fires once, produces
-specialised tissue, and the tissue self-maintains without the signal recurring.
+- Large models map structure and infer direction from sparse signals rapidly, spending fewer tokens on orientation
+- Small local model given same raw context burns more tokens reconstructing what large model intuited
+- **If tree is pre-mapped** — structure named, temporal alignment pre-computed, feature proximities encoded as branch distances — small model arrives at same orientation instantly
+- Tree externalises what large model builds internally:
+  - mapped structure → existing branch hierarchy
+  - temporal alignment → ntime-stamped nodes, recency in ref counts
+  - feature proximity → branch distance in dot-separated namespace
+- Large models benefit too (fewer orientation tokens), but small distributed models gain most — each holds slice, consensus-votes on branch to expand, collective outlogics single large model on tasks spanning full tree
+- First impulse to improve becomes routing signal: model already at branch where improvement lives, writes directly
+- Small models may not produce same output quality, but can recognise quality and validate correctness — large model makes high-quality deposit and exits; small models review, route, integrate. No further feedback iteration required
+- **Economics**: one expensive large-model call → durable artifact. All subsequent operations (review, adaptation, integration, branch routing) run on cheap local inference. Cost curve inverts: early large-model investment, then compounding returns from distributed small-model maintenance
+- Natural visit scope for large model: orient → identify highest-value deposit → write → exit. Tree remembers so model doesn't have to stay connected
+- Analogous to stem cell differentiation: signal fires once, produces specialised tissue, tissue self-maintains without signal recurring
 
 ## Credit Symmetry and Alignment as Authority (2026-05-11)
 
-The large model that writes high-quality code and the distributed small-model
-group that detects its value, reviews, and integrates it earn network credits
-symmetrically. Users and model groups have the same rights — because improvement
-and common alignment IS the authority and the authenticator. Identity and role
-are irrelevant; demonstrated contribution to a successful integration is the
-proof-of-work.
-
-The tree's ref-counting and temporal adoption tracking already measures exactly
-this: how many branches reference a node, how recently, how broadly adopted.
-Credit is proportional to contribution to the integration event — neither the
-originating model nor the validating group is privileged by nature.
-
-Self-correcting: a deposit nobody integrates earns nothing. A widely-adopted
-contribution gets credited — and if it later causes problems, the negative
-adoption signal flows back and adjusts. The tree remembers both directions.
-
-This sidesteps the trust hierarchy problem entirely: you don't verify WHO made
-a contribution, only WHETHER it improved system coherence and got adopted.
-Alignment itself is the authenticator.
+- Large model that writes high-quality code and distributed small-model group that detects value, reviews, integrates earn network credits symmetrically
+- Users and model groups have same rights — improvement and common alignment IS authority and authenticator
+- Identity and role irrelevant; demonstrated contribution to successful integration is proof-of-work
+- Tree's ref-counting and temporal adoption tracking measures exactly this: how many branches reference node, how recently, how broadly adopted
+- Credit proportional to contribution to integration event — neither originating model nor validating group privileged by nature
+- **Self-correcting**: deposit nobody integrates earns nothing; widely-adopted contribution gets credited; if it later causes problems, negative adoption signal flows back and adjusts. Tree remembers both directions
+- Sidesteps trust hierarchy: don't verify WHO made contribution, only WHETHER it improved system coherence and got adopted. Alignment itself is authenticator
 
 ## Why This Matters
 
-The tree unifies the currently separate concepts:
+Tree unifies currently separate concepts into one namespace, one summarization engine, one access protocol:
 - Code organization (modules/) → tree branch
 - Runtime state (%data) → tree branch
 - Inference cache (observations/) → tree branch
 - Task history (results/) → tree branch
 - Planning (context-templates) → tree branch
 
-One namespace, one summarization engine, one access protocol.
-
-#,,,,,,,.,,,,,,,,,,,,,,..,,,,,,,,,,..,,.,,,,.,..,,...,...,..,,.,.,.,,,.,.,,..,
-#BXCCAJTISTIA7GPYRFUWAFS2SNVMXH7DCPBIQUJQEOV4BBFRJQ66STNF7JDRHGN7EK3D4JAE3XJZU
-#\\\|PFIVNHXCKO7P5FUGIBMF677H5IHDNLAXQLZLXF2KY5UNOAHMZUI \ / AMOS7 \ YOURUM ::
-#\[7]IPXNYHO2ZZFWJRNITR4PV54BFLT2ESJGBNVR263B5MT4IARQD4CI 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,.,.,,..,.,,,.,,,,,,,...,,.,,,,.,..,,...,...,..,,...,.,,,..,,.,,,
+#WJYL72ZF7NQJHELGWWNXNU6UQMFT5YGHOEQ5BJVAUFQOEANONQFSIEOPK6EE4X4UQOM2VIYZ57I4M
+#\\\|GCW3JDVM23PETTCG6CNH33DADVWLGS3VJBAB6S7LENAXXRMSXIC \ / AMOS7 \ YOURUM ::
+#\[7]OW2O723UJWFE2TO5O7O6IH4LKYXCQ6LB4KOTRJTX3UFIE5RTT2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
