@@ -1,0 +1,76 @@
+## [:< ##
+
+# name  = coding.handler.await_resources
+# descr = poll GPU port and spawn inference server when free
+# purpose = allows coding zenka to start during :twin: handover
+
+my $event   = shift;
+my $backend = 'gpu';
+
+## find old instance's GPU server PID from sibling pid files
+## [ instance-scoped: state/inference.gpu.<pid>.pid, skip our own $$ ]
+my $zenka_dir = <[file.zenka_dir.data_path]>;
+my $old_pid   = 0;
+my $old_pidfile;
+for my $pf ( glob "$zenka_dir/state/inference.$backend.*.pid" ) {
+    next if $pf =~ m|\.\Q$$\E\.pid$|;    ## skip our own ##
+    my ( undef, $pid_str ) = <[file.timestamped_delta_s]>->($pf);
+    next unless defined $pid_str;
+    my ($pid) = split m|\s+|, $pid_str, 2;
+    if ( defined $pid and $pid =~ m|^\d+$| and $pid > 0 ) {
+        $old_pid     = $pid;
+        $old_pidfile = $pf;
+        last;
+    }
+}
+
+## if no sibling pid file found, fall back to TCP port probe
+if ( !$old_pid ) {
+    my $gpu_port   = <inference.backend.gpu.port> // 8000;
+    my $still_busy = 0;
+    {
+        use IO::Socket::INET;
+        my $probe = IO::Socket::INET->new(
+            PeerAddr => '127.0.0.1',
+            PeerPort => $gpu_port,
+            Proto    => 'tcp',
+            Timeout  => 1
+        );
+        if ( defined $probe ) { $probe->close; $still_busy = 1; }
+    }
+    if ($still_busy) {
+        <[base.logs]>->(
+            2, 'await_resources: port still occupied, no pid file'
+        );
+        return;
+    }
+    ## no process and port free — proceed
+} elsif ( -e "/proc/$old_pid" ) {
+    ## old server still alive [ /proc check — works across user boundaries ]
+    <[base.logs]>->(
+        2, 'await_resources: old server pid %d still running', $old_pid
+    );
+    return;    ## timer continues ##
+}
+
+## old server is gone — cancel timer and spawn
+$event->w->cancel if defined $event->w;
+delete <coding.timer.await_resources>;
+delete <coding.awaiting_resources>;
+
+<[base.logs]>->( 1, 'await_resources: old server gone — spawning' );
+
+my $spawn_ok = <[coding.async_spawn_inference_servers]>;
+
+if ($spawn_ok) {
+    ## trigger dependency recheck for jobs that queued while waiting ##
+    <[jobqueue.check_dependencies]>;
+}
+
+return TRUE;
+
+#,,,,,,.,,,,,,,.,,,..,...,,,,,.,.,,.,,,..,.,,,..,,...,...,.,.,,,,,,,.,..,,.,,,
+#N5QJ65ZAC3PE5I7V77GT3P7UOQQDF2BAU2DJJ7L2HRZWWTO7LW6MLIBWXQ63BKCJYOY6NJC3FNTYK
+#\\\|MK7KFIYPC3YT7FYABFVYEDQ5P73SULNQGZPNY42CWZSTNC4DWLC \ / AMOS7 \ YOURUM ::
+#\[7]UFNQMQXKTRKELMX6BSRV5C6I3T4TFYPMMHU4JD75CDUQ6NLBIIDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

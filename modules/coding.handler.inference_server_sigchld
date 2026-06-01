@@ -36,6 +36,16 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
             $server_info->{'crashed_at'}  = <[base.time]>->(3);
             $server_info->{'exit_status'} = $exit_status;
 
+            ## skip crash recovery if zenka is draining [ new twin instance owns GPU ] ##
+            if (<coding.draining>) {
+                <[base.logs]>->(
+                    1,
+                    '[inference_server_sigchld] draining — skipping %s crash restart',
+                    $backend
+                );
+                next;
+            }
+
             ## schedule restart with backoff ##
             my $restart_count = $server_info->{'restart_count'} // 0;
             $restart_count++;
@@ -91,8 +101,8 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
 ## note: if $reaped == 0, the child was already reaped by another path
 ## (e.g. Perl's system() waitpid) : this is normal, no action needed.
 
-#,,..,,,,,.,.,.,,,..,,..,,..,,,,,,,.,,,.,,,.,,..,,...,...,...,,..,,..,,..,,..,
-#3IBNC7LNRQ5BBZ6BE4ESVQ3ZZ65JTFXN57CBV5ND36GOQF6GORZOKKJPB73Z6P6RL2IYKMD7U5PJU
-#\\\|KKYUXCIVZ527Z525GBR6Q3H23U472F6JB3LWYJUDWW7QU2YL5TG \ / AMOS7 \ YOURUM ::
-#\[7]22DHQUO57NJC5TVBGKMT4IH4ZNM2XBJNFNGWUTQVZ3CPCLEY4MBI 7  DATA SIGNATURE ::
+#,,.,,.,.,...,...,,,.,...,...,.,.,.,,,,.,,,,.,..,,...,...,..,,.,.,,,.,...,...,
+#B7VKAUNFRUHWYE6WVXMDOJIM4T45WG33N2CPAP7GUECTV32YHQQCDKNQUZZPQCQJ5PGVSWAEFKYVI
+#\\\|YHEK7XSRJV3FUVMAATPJNKBZHVK6XLLTBQD6CXEJS2KWT4I2IQG \ / AMOS7 \ YOURUM ::
+#\[7]I3R7BR3JIQEDW4B43CTNQBOJCXLEYJDPDYL7QUN22VHNWLGUCUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

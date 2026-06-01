@@ -6,6 +6,15 @@
 my $handler_data = shift->w->data;
 my $backend      = $handler_data->{'backend'} // 'gpu';
 
+## skip crash recovery if zenka is draining [ new twin instance owns GPU ]
+if (<coding.draining>) {
+    <[base.logs]>->(
+        1, '[inference_crash_restart] draining — skipping %s restart',
+        $backend
+    );
+    return;
+}
+
 <[base.logs]>->(
     1, '[inference_crash_restart] restarting %s server after crash', $backend
 );
@@ -71,8 +80,8 @@ if ($result) {
     return FALSE;
 }
 
-#,,,.,.,,,,,,,.,.,,.,,..,,...,,.,,.,.,..,,...,..,,...,...,...,.,.,.,.,,.,,,,,,
-#6W3BHLB3FEYRUP6VENVITOI6LWQMUNDL7GIDYBAT2637HWCLC3QHCTJ3PS5GVXYZDQ6MDITHMGYKA
-#\\\|5F47SI7KFVGX3CFEPZK6EZJECUMF5KCUXVGQKNCKZIFKWOAJPEI \ / AMOS7 \ YOURUM ::
-#\[7]YLUONI44NJ37GMBMGKZ5GSRPNFP3OZJWZHQM2AEDZZPQZBB7JUBQ 7  DATA SIGNATURE ::
+#,,,,,..,,..,,,..,..,,..,,..,,...,,.,,,..,,..,..,,...,...,..,,...,,,,,.,.,,.,,
+#IUFV7DQL5CA26RIKAIGINCMEDIEDETH4KY7NI3KQB6DQPT5AB4WUBXE6RN5II65GZOEBMZ6OI5HBG
+#\\\|C7OFXNKWM2JDQUZP43475TIOGCU7QO5AQPOTDQ5PW34UNHPCYGR \ / AMOS7 \ YOURUM ::
+#\[7]MPFRLM22NISMODP6ENTBHJEE6NYJ7RUG3UPNFKNO4POSBT3WT6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
