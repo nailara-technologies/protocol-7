@@ -9,7 +9,7 @@ return warn 'watcher not found'
     if not exists <coding.watcher_pair>->{$current_watcher};
 my $other_watcher = <coding.watcher_pair>->{$current_watcher};
 
-<[base.log]>->( 1, ':. cancelling backend_monitor watchers' );
+<[base.log]>->( 2, ':. cancelling backend_monitor watchers' );
 
 my $current_fd = eval { $current_watcher->fd };
 my $other_fd   = eval { $other_watcher->fd };
@@ -23,7 +23,7 @@ $other_watcher->cancel
     and $other_watcher->is_active;
 
 ## replace startup-monitoring watchers with drain watchers            ##
-## the server's pipes must stay readable : if the buffer fills (64KB) ##
+## the server's pipes must stay readable : if the buffer fills [64KB] ##
 ## llama-server's write() blocks and inference stalls silently        ##
 ## do NOT close the fds : that sends SIGPIPE to the server            ##
 ## store watcher refs so spawn_inference_server can cancel on respawn ##
@@ -58,8 +58,8 @@ delete <coding.watcher_pair>->{$current_watcher};
 delete <coding.watcher_pair>->{$other_watcher}
     if defined $other_watcher;
 
-#,,..,.,,,,,.,...,,..,.,,,...,,,.,,.,,,,.,.,.,..,,...,...,.,,,...,,,,,,,.,...,
-#YRCZR6FDQQST4J2WZ5XVXW7WBKFRAZMA7P2S2KMRYXSQW5PQ2KMZNEBTWBSHYWFQYPYG5BLOLSKXK
-#\\\|FM3RMYBIODE4LK57CMIE36Y422N7LF66LW7DMM5TZXLF3HI44L2 \ / AMOS7 \ YOURUM ::
-#\[7]GK64QP7OAIBGCV4EYUFQVI5IX47L6M5I6C47ELZG7INQQAAP6EBI 7  DATA SIGNATURE ::
+#,,,,,...,,.,,.,,,...,...,.,,,,,,,..,,,,.,,..,..,,...,...,,..,.,.,,..,,,.,,,.,
+#Q6S3JAQYHCB7BDF4MEAV254IJFNC3ENT7HCOJ75YFWRR7QKMQC7DGBMFSN4TV5BF2JF576BAHUFHK
+#\\\|4HOZEE5VV7YLLRD4YZNAK3B6YPUCD63BA73LWZYCQMTICOHHS3S \ / AMOS7 \ YOURUM ::
+#\[7]6JAUFLT3ZHHQAM5VRNXH52SBSTNVAM7RFA43E3UBEOMJMUQZAYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
