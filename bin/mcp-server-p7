@@ -63,6 +63,10 @@ my @external_tools = (
                 'summarize output via local 9B model before returning (default: true)',
                 0
             ],
+            [   'keep',
+                'keep stored summary focus after use for verification (default: false)',
+                0
+            ],
         ],
         'timeout' => 4620,    ## 77 minutes
     },
@@ -96,6 +100,10 @@ my @external_tools = (
             [ 'max_budget', 'max USD to spend (default: 1.00)',           0 ],
             [   'auto_summarize',
                 'summarize output via local 9B model before returning (default: true)',
+                0
+            ],
+            [   'keep',
+                'keep stored summary focus after use for verification (default: false)',
                 0
             ],
         ],
@@ -2023,7 +2031,7 @@ sub tool_external_command {
     }
 
     ## params handled here, not forwarded to the shell command ##
-    my %skip_in_cmd = map { $_ => 1 } qw( auto_summarize );
+    my %skip_in_cmd = map { $_ => 1 } qw( auto_summarize keep );
 
     ## build command from params
     my @cmd_args;
@@ -2094,7 +2102,7 @@ sub tool_external_command {
                 . 'files_created (list), files_modified (list), '
                 . 'issues (list), resume_uuid (if present), '
                 . 'next_steps (explicit next actions)';
-            $pending_summary_focus = undef;
+            $pending_summary_focus = undef unless $args->{'keep'};
             $output                = _extract_stream_content($output);
             cube_disconnect()
                 ;    ## flush any stale socket state from subprocess ##
@@ -2120,8 +2128,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,..,..,,,,.,.,,,...,,,.,,.,,,,.,,,,,,,.,...,..,,...,...,,,,,,,.,...,..,,,.,,
-#PWZMRUR4643LO7Y6WDFYX3A5W2LMYU7PKBDCB2IBDLCBR2TEU5MJMPGVYA67LJAD7CQ6LX7LQQL5Y
-#\\\|RDSRPSTBAZGIHJZLDB3O3RWDUZ75N3Y4GMX4UCZZ6C5OL3KH5WI \ / AMOS7 \ YOURUM ::
-#\[7]PIBGO3BFPMXOWIECQZZXN73PXGGCSHVO3XVPZ3JQSH5CPS6OYUDA 7  DATA SIGNATURE ::
+#,,.,,,..,..,,.,.,,,,,..,,,,.,.,,,..,,.,,,..,,..,,...,...,.,,,.,,,...,,,.,..,,
+#5Z2RF2N2L37EPLYKLQDXOAPMR3ZJ66MED7X7Q36TTURVZG7N7UGM3T3GGSPOGRH2MGTTSWBZMO4Y2
+#\\\|VQSAB5HMIJBR7E7EDFRAIXDQ3JGVWOT3LFNIKYNBK6ILKG4S3EM \ / AMOS7 \ YOURUM ::
+#\[7]IGBNTIDY25JNJNMGHM6YKBHWJWTNFAGRGRGY4CNREG6A5HIPW6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
