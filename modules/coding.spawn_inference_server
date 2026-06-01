@@ -103,11 +103,23 @@ for my $orphan_path ( glob "$zenka_dir/state/inference.$backend.*.pid" ) {
             close $cfh;
         }
         if ( length $saved_bin and $proc_cmd =~ m|\Q$saved_bin\E| ) {
-            my $age_str
-                = defined $age_s
-                ? eval { <[base.parser.duration]>->($age_s) }
-                // sprintf( '%.0fs', $age_s )
-                : 'unknown age';
+            ## age_s is delta-seconds from timestamped_delta_s —     ##
+            ## base.parser.duration expects a unix timestamp, not     ##
+            ## a duration, so format manually                         ##
+            my $age_str = 'unknown age';
+            if ( defined $age_s ) {
+                my $s = int($age_s);
+                my $d = int( $s / 86400 );
+                $s -= $d * 86400;
+                my $h = int( $s / 3600 );
+                $s -= $h * 3600;
+                my $m = int( $s / 60 );
+                $s -= $m * 60;
+                $age_str
+                    = $d ? sprintf( '%dd %dh %dm', $d, $h, $m )
+                    : $h ? sprintf( '%dh %dm %ds', $h, $m, $s )
+                    :      sprintf( '%dm %ds', $m, $s );
+            }
             kill( 'KILL', $saved_pid );
             <[base.waitpid]>->($saved_pid);
             <[base.logs]>->(
@@ -499,8 +511,8 @@ return {
     'port'    => $port
 };
 
-#,,,.,,,,,,,.,...,.,,,...,.,.,,,,,..,,,..,,,,,..,,...,...,,,.,..,,,,.,,.,,...,
-#SJ2YSQEXYGN3HE7Z2DGUMLN5UZDP2NBEIVFHZ7OXL44YYL5IDMABXPJHPSGLGNBRQFKX4VJBVHSQQ
-#\\\|ZYDNX4P43LJQV6LNEUSDFFG4R6JBTSFGIAZLP2VYASU5ADTMVR5 \ / AMOS7 \ YOURUM ::
-#\[7]ZEMKLVOK653YX6HGER6WA7CLFG4UDVCJDVWVVUTGGLPQ6ZY5POAI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,,,,,..,...,,..,,..,,,.,...,,,.,..,,...,...,.,,,,..,..,,.,,,,.,,
+#XAQNWF7Y5G46Q4DZ6FWRPSZLFDAWDMXAOQZFM6NK7QDXRWICRGZPJKVNE2YWIQRPIDTHJ7FWF4RZI
+#\\\|WFUXEQW6ZGM7BES43E3GORJ4I7M6CXVYJEIC7QKMR2NF6OPW5ZS \ / AMOS7 \ YOURUM ::
+#\[7]ZWBV5XVWFVYMMZ6VJGHVVKYYHFTV2AFLSCYQ7CVKN7S6WB7CYKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
