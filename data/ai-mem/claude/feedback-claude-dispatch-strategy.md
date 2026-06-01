@@ -33,16 +33,34 @@ blocking the parent context.
 dispatched to kimi, reviewed result (already implemented in c80c2a69e), skipped ptd
 since no changes. Two UUIDs returned: outer claude session + inner kimi session.
 
+**kimi-cli MCP integration (session-69, 2026-06-01):** kimi-cli now loads
+`~/.kimi/mcp.json` → `bin/mcp-server-p7` for every session, including dispatched
+ones. Dispatched kimi sessions have the full p7 tool set: `p7_memory_update`,
+`session_catchup`, `p7_call_tool`, `store_summary_focus`, `coding_summarize`, etc.
+kimi can orient itself, query the live system, and update its own memory mid-task
+without any extra scaffolding in the prompt.
+
+**Nested dispatch pattern:** claude_dispatch sessions can themselves call
+`kimi_dispatch` or `coding_summarize` as part of their workflow — e.g. a claude
+session that reads a task, dispatches to kimi, waits for result, summarizes it with
+`coding_summarize`, and writes the summary back via `p7_memory_update`, all before
+returning a compact result to the parent. This creates a 3-layer stack:
+  parent claude (context-lean) → claude_dispatch (orchestration) → kimi_dispatch (impl)
+Each layer only sees a summary of the layer below. Ideal for large multi-step tasks
+that would otherwise blow the parent context.
+
 **How to apply:** For any kimi dispatch, prefer routing through claude_dispatch
 unless the task needs live feedback in the parent context. Small tasks (< 10 min
-estimated) may stay inline; larger or parallel tasks → claude_dispatch.
+estimated) may stay inline; larger or parallel tasks → claude_dispatch. For very
+large tasks, consider the 3-layer stack — claude_dispatch handles orchestration
+so the parent only ever sees the final summary.
 
 **Why:** keeps parent context under 100K tokens during long sessions; outer session
 can be continued via claude_continue if review needs follow-up; kimi session can
 be continued via kimi_continue for additional passes.
 
-#,,.,,.,.,..,,,,.,.,,,,..,.,,,,..,...,...,..,,..,,...,...,..,,.,,,,..,,,,,,,.,
-#LCLB2O3AA7VUL74O5YJ37PIH3KLD6TWMIAZR2UHVS45BQJNAFKQJFAAFPC2VV4SXVYTKQBZ4ESN7I
-#\\\|OQX7YCRFCMZHWLZBGXEVECFC2SVBUDUTOQPWU5NAA2CIDJ43LKH \ / AMOS7 \ YOURUM ::
-#\[7]ZBQJRDD4OIN54CJE5FJ2HO7524XLCNDV77MKIFPWJ4MYROXIK6BY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,.,,,...,.,.,.,.,...,,..,...,.,.,..,,...,..,,.,.,,,.,.,,,.,.,,..,
+#6TZZYFSKQY3P4VGNG6PGG77CJX4AT3C7CG4BPMCMJDC26D2NKVFULP7LL3WQ3FV6VIDAU26FCW5X2
+#\\\|7FJTOI6GEPYZA4Q6INQOGXL2P32PAO5FITOY4H3WPCHC2VO7Y7E \ / AMOS7 \ YOURUM ::
+#\[7]UICZTYCTE5HXGA4AGEOR5M6LE3QAHKGCUDN5T4WXI33XDD3W42DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
