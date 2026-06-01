@@ -234,7 +234,33 @@ if ( $status eq qw| offline | or $status eq qw| error | ) {
             $instance_id, $status
         );
         my $old_instance_id = $instance->{'replaces_instance'};
+        my $new_instance_id = $instance->{'being_replaced_by'};
         <[v7.zenka.instance.handover_cleanup]>->($instance_id);
+        if ( defined $new_instance_id ) {
+            ## old instance terminated — suppress restart if handover succeeded
+            my $new_inst   = <v7.zenka.instance>->{$new_instance_id};
+            my $new_online = defined $new_inst
+                && ( $new_inst->{'status'} eq qw| online |
+                or $new_inst->{'status'} eq qw| extbin | );
+            if ($new_online) {
+                <[base.logs]>->(
+                    "handover complete for '%s' — suppressing restart"
+                        . " of old instance %d",
+                    $zenka_name, $instance_id
+                );
+                <[zenka.cmd.stop]>->(
+                    { 'args' => $instance_id, 'mode' => qw| implicit | } );
+                return;
+            }
+            ## new instance also failed — fall through to normal restart
+            <[base.logs]>->(
+                1,
+                'handover instance %d not online — allowing'
+                    . ' restart of old instance %d',
+                $new_instance_id,
+                $instance_id
+            );
+        }
         if ( defined $old_instance_id ) {
             <[base.logs]>->(
                 "twin restart failed for '%s' [instance %d]"
@@ -513,8 +539,8 @@ if ( $old_status ne qw| online | and $status eq qw| online | ) { # LLL extbin?
 
 <[jobqueue.check_dependencies]>;
 
-#,,..,,,.,,..,,,.,,,,,...,,,,,.,,,,.,,.,,,,,,,..,,...,...,,..,...,,..,,,.,,,,,
-#B2POSK2XAZFY2EKBER4KXAQ5NYOQSCDN4XIYI6LJFKTVMOJCIJXZMHJHGFP7BA4NLTL5MG4ELG7XK
-#\\\|UT5XKGNBX7VPQ57QVJVO7UPYNE56D7TKISZVDDG5Y6G7CB4P5UP \ / AMOS7 \ YOURUM ::
-#\[7]NNEK47N6CQ7WBK65PAA54H2QPK7XVUKZYS523RP3S6ERRGJWTUDA 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,..,,,,.,,..,...,.,,,,,,,...,,,,,..,,...,..,,.,,,,..,,..,,,,,,,,,
+#K6FWUPMWEMYGEOPQ63UTJEVT6EABAU2KJPFMDP2TLI6IWEXXZCWB6RZ3BNSJCLAG5WKOXZDQVV6WK
+#\\\|HGVID7NM5QGEQDLH67XFQ2HQ4WHJGN2MLB4BS5IBVT7PWYFAMS6 \ / AMOS7 \ YOURUM ::
+#\[7]AEECV6LYTCFFFI53KUSKMVFQ7WFX33JNZHWGT3R7N6EMHAW3TGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
