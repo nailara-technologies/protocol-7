@@ -149,6 +149,9 @@ if ( $error =~ m{timeout}i ) {
 
         ## clear cached pid so spawn_servers_deferred doesn't skip us ##
         <inference.gpu_pid> = 0 if $backend_r eq 'gpu';
+        ## clear awaiting_resources: may be stuck from twin startup,
+        ## blocking async_spawn_inference_servers silently             ##
+        delete <coding.awaiting_resources> if <coding.awaiting_resources>;
         ## defer restart to avoid interfering with task teardown ##
         <[event.add_timer]>->(
             {   'after'   => 0.5,
@@ -179,8 +182,8 @@ if ( $error =~ m{timeout}i ) {
 
 return;
 
-#,,,,,,.,,.,.,...,,.,,...,,,,,...,..,,...,..,,..,,...,...,..,,.,.,.,,,..,,,.,,
-#6DOB4N6VSIDWF2TENKF6NQHD6ODTFP5PORYERMXI7PVQQBFMEY6QOQ47UWEZVOTF7YXTKWGHWAVMW
-#\\\|YVXMDVTTZIJ6OJKZYV7XHOJCKT6KZPXR7CSR5NRTAT5XYGMZYYK \ / AMOS7 \ YOURUM ::
-#\[7]JGG3KMCGGLHYKF4KYNSC5ZSYEAHJP4GMJ2OLCQ4AIBPG2GESGABI 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,.,,..,,...,,,.,,.,,,..,.,.,,,,,..,,...,...,,,,,..,,..,,,,.,...,
+#GPJI45UKEXEIDG6MTOVLPF5ERVWG6IED6OVIIM74YRDMW2WBMO5KISO7LL6SIB6NENKDMTXXJ6ZQM
+#\\\|2TGCIL6FDI7Q4DUYOODBIS7JWZAHX3R5INHY5ESUQ5DWG3I7NFS \ / AMOS7 \ YOURUM ::
+#\[7]V4CZUHICGXOV7MHSXYJDYRCHYWJ4GXDS4JEVHWK7V7JCAHEDCIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
