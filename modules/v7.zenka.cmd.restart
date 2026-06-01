@@ -1,10 +1,13 @@
 ## [:< ##
 
 # name  = v7.zenka.cmd.restart
-# param = <zenka-name|instance>
+# param = [:twin:] <zenka-name|instance>
 # descr = restart one or more zenka instances
+# note  = prefix :twin: for concurrent zero-downtime restart with handover
 
 my $params = $call->{'args'} // '';
+
+my $twin_mode = ( $params =~ s{^:twin:\s+}{} ) ? 1 : 0;
 return {
     'mode' => qw| false |,
     'data' => 'expected zenka name or instance id'
@@ -92,11 +95,59 @@ map {
 
 } @instance_ids;
 
-map { <[zenka.instance.restart]>->($ARG) } @instance_ids;
+my $count = scalar @instance_ids;
+my $msg_str;
 
-my $count   = scalar @instance_ids;
-my $msg_str = sprintf( 'restarting %d zenka instance%s .,',
-    $count, <[base.cnt_s]>->($count) );
+if ($twin_mode) {
+    my $started = 0;
+    for my $iid (@instance_ids) {
+        my $instance   = <v7.zenka.instance>->{$iid};
+        my $zname      = $instance->{'zenka_name'};
+        my $zconfig    = <v7.start_setup.zenki.config>->{$zname}     // {};
+        my $drain_time = $zconfig->{'concurrent'}->{'drain_timeout'} // 30;
+
+        if ( exists $instance->{'being_replaced_by'} ) {
+            <[base.logs]>->(
+                1, 'twin restart: handover already in progress [%s]', $zname
+            );
+            next;
+        }
+
+        my $new_id
+            = <[v7.zenka.instance.track_handover]>->( $iid, $drain_time );
+        if ( not defined $new_id ) {
+            <[base.logs]>->(
+                1, 'twin restart: track_handover failed [%s]', $zname
+            );
+            next;
+        }
+
+        my $reply = <[zenka.cmd.start]>->(
+            {   'args'   => $zname,
+                'mode'   => 'concurrent-handover',
+                'source' => $iid
+            }
+        );
+        if ( $reply->{'mode'} ne 'true' ) {
+            <[base.logs]>->(
+                1,      'twin restart: start failed [%s]: %s',
+                $zname, $reply->{'data'}
+            );
+            <[v7.zenka.instance.handover_cleanup]>->($iid);
+            next;
+        }
+        $started++;
+    }
+
+    $msg_str
+        = sprintf( 'twin restart initiated for %d of %d zenka instance%s .,',
+        $started, $count, <[base.cnt_s]>->($count) );
+    $count = $started;
+} else {
+    map { <[zenka.instance.restart]>->($ARG) } @instance_ids;
+    $msg_str = sprintf( 'restarting %d zenka instance%s .,',
+        $count, <[base.cnt_s]>->($count) );
+}
 
 return {
     'mode' => qw| false |,
@@ -113,8 +164,8 @@ if ($count) {
     };
 }
 
-#,,,.,.,.,,,,,.,,,..,,..,,..,,..,,..,,.,,,..,,..,,...,...,...,..,,...,,..,,,.,
-#WORGE5KNGUUEJZKRMDJJ4YE6AT4GC5KE3ULOQ6B4VDQMWZFJOF3W22L4LL7YFX7SK52IFWCSOKNH2
-#\\\|FD3ZJQPUMOYW4CPSJOSXHDWPKIMEFB4RFROLHZRQORRAHO7GIOD \ / AMOS7 \ YOURUM ::
-#\[7]GIFPA6HO5UCCGSHDSYBX5GMAXOWJP3NNGEX2SDTY5P4VNT44XYCI 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,..,,.,,..,,,.,,.,.,,,.,,.,,...,..,,...,...,...,.,,,,,.,,,,,..,,
+#LCVNEJPNEXEA43Q5SIPB5NDSUVGE5YJBJHG47A3WZ3WYLVEQYTQTQKNABF5SBFQHH7OWMT6QV4OZS
+#\\\|QDFKKEE4ICEJKSO273E7O267ZKUT2VDF7AWOV43FNEWBXVDCLRI \ / AMOS7 \ YOURUM ::
+#\[7]DGGC7TQUVVKJ3662NR73UQZGBLXHAMK2VFU5ZB5WB76DXKLPIEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
