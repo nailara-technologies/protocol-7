@@ -972,6 +972,8 @@ sub sock_readline {
 ## write string to socket via syswrite
 sub sock_write {
     my ( $sock, $data ) = @ARG;
+    ## syswrite operates on bytes — length() returns characters with -C31 ##
+    utf8::encode($data) if utf8::is_utf8($data);
     my $offset = 0;
     my $len    = length $data;
     while ( $offset < $len ) {
@@ -1372,8 +1374,6 @@ sub tool_call_tool {
     my $args_json = '{}';
     if ( ref $tool_args eq 'HASH' and keys %$tool_args ) {
         $args_json = encode_json($tool_args);
-        ## escape for shell safety ##
-        $args_json =~ s{"}{\\"}g;
     }
 
     my $cmd = "coding.call-tool $tool_name $args_json";
@@ -1550,7 +1550,7 @@ sub tool_p7_memory_update {
         ? "$ROOT_PATH/data/ai-mem/claude/MEMORY.md"
         : "$ROOT_PATH/data/ai-mem/kimi/MEMORY.md";
 
-    ## apply mode: delegate file append to coding zenka ##
+    ## apply mode: delegate append to coding zenka, return response for review ##
     if ( $mode eq 'apply' ) {
         if ( not length $content ) {
             return send_tool_result( $id,
@@ -1561,12 +1561,14 @@ sub tool_p7_memory_update {
                 1 );
         }
 
-        my $tool_args = $json->encode(
-            {   'file_path' => $mem_path,
-                'content'   => $content
+        my $rel_path = $mem_path;
+        $rel_path =~ s{^\Q$ROOT_PATH/\E}{};
+        my $args_json = encode_json(
+            {   'path'    => $rel_path,
+                'content' => $content
             }
         );
-        my $cmd = "coding.call-tool write_append $tool_args";
+        my $cmd = "coding.call-tool write_append $args_json";
         my ( $ok, $response ) = cube_command($cmd);
         if ($ok) {
             send_tool_result(
@@ -2118,8 +2120,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,,,,,.,..,,,,,,,..,..,,.,.,...,.,,,.,,,.,.,..,,...,...,,..,..,,,,.,...,,,.,
-#FIVAAJJT73UKP6PHUU4T5ZT2RTI7G7ZPY6KCJYAODE4A5FP2FT4BOMQ6RGSZQAUIHBYO2JEJJOXME
-#\\\|3QH6IEOBWSAXP2HGF34W6QEXBRYVGRJFAFGYJPY3AQOODOFEVZG \ / AMOS7 \ YOURUM ::
-#\[7]JPPB7KTINLGAR4X3ZFMFCL6JOUIBCS7PAJP4WXUFCPLSIPWUNYBI 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,..,,.,,,..,,..,,.,,,,,.,.,.,...,..,,...,...,,.,,,..,,,.,,,,,,..,
+#B6GMCTSPXU5ITYFG55ODC5JA7SBY2YFHTHVBJQA736EODMXQMHKOLUZ5O3HZ2O45HM6G7VFSYBGFG
+#\\\|3J6EQUMX5K2ONY6ITCCCXD5GHQRM3G4VIZ6EUSRUMWRM2BL2ETU \ / AMOS7 \ YOURUM ::
+#\[7]GMSK7WHHJEJV72CPUBKIIN3UO66MXEDJR6WL2S6X4KC46MQ32YBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
