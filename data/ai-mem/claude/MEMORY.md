@@ -129,3 +129,27 @@
 #\\\|GALJ3HCDDQXAZG5MRYIBHKX6CIF2BLOUHVSAIV2X5WBUK26356G \ / AMOS7 \ YOURUM ::
 #\[7]2MLU36B2UK74ODCKTGERPXEZWJW444KT2QJNTQJBLRHMQZP4X6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+## session-71 coding zenka restart hardening (2026-06-01)
+
+three bugs fixed, all committed to `base`:
+
+**context reduction on timeout** (`9210c4204`):
+- `inference.model.context_length = 40000` exceeded VRAM-safe auto-calc (~18209), causing KV spill → 77s data-start timeouts
+- `coding.callback.http_error` now reduces by `coding.cfg.ctx_timeout_step` (7000) per restart cycle, floor at `coding.cfg.ctx_timeout_floor` (16000)
+- converges 40K→33K→26K→19K in 3 restart cycles
+
+**drain mode task counting** (`92623ad1e`):
+- `coding.cmd.drain` and `coding.handler.drain_check` counted ALL tasks including completed/failed → phantom "7 tasks remaining" on idle restarts
+- both now filter to active statuses only (not completed/failed)
+- also fixed `concurrent.drain_timeout` key name — was `coding.cfg.concurrent.drain_timeout` (wrong tree path, v7 never read it); corrected to `concurrent.drain_timeout = 300`
+
+**awaiting_resources blocker** (`8d167c436`):
+- `async_spawn_inference_servers` silently returned FALSE when `<coding.awaiting_resources>` was stuck from twin startup, leaving requeued tasks stranded
+- `http_error` now deletes the flag before scheduling the spawn timer
+- diagnostic log added to `async_spawn_inference_servers` so future blocks are visible at console verbosity 1
+
+#,,,,,,,,,,.,,,,.,,,.,,,,,.,,,...,...,..,,,..,...,...,..,,.,.,.,,,.,.,..,,,.,,
+#E4ZGYXRORRWXOD2OTZ4B34SBITZ5L7SJ5EVGEMFGL7ZGHGKLNFKWIMTTL7VC354JQVRFHNXD5JZES
+#\\\|P4EPOZY3CAH7XDNIA45HGLXWB5J4CKBULWGYSRENUA7BNSF6G7W \ / AMOS7 \ YOURUM ::
+#\[7]LSOLNUVSTXSIWA4JQDQ4S4WVXD6QMDNF4VZHUDKZCXXJ23K7NMDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
