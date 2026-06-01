@@ -6,15 +6,15 @@ my $instance_id = shift->w->data;
 die "expected instance id" if not defined $instance_id;
 my $instance  = <v7.zenka.instance>->{$instance_id};
 my $log_level = 2;                                       ## start level 2 ##
-$log_level-- if $instance->{'restart_delay'} >= 0.07;    ## default: 0.05 ##
+$log_level-- if $instance->{'restart_delay'} >= 0.7;     ## default: 0.05 ##
 
 <[base.logs]>->( $log_level, "[%s] resetting restart delay", $instance_id );
 delete $instance->{'restart_delay'};    ## delete last value to re-init.., ##
 delete $instance->{'timer'}->{'restart_delay'};    ## clean-up watcher ##
 delete $instance->{'timer'} if not keys $instance->{'timer'}->%*;  ## and href
 
-#,,,,,,,.,..,,.,.,,.,,.,.,.,.,,,.,.,,,..,,.,,,..,,...,...,.,.,.,.,.,.,,..,,,,,
-#EJY6EF7SVIBSE6W2SLBLB2HVJTMW5OGZ2QL3WS2Y2BSJCNPUNYHVFO3BPIPJ2FD7VZLKQI75AEPZ4
-#\\\|WLIZKJCNDHUU3BHCGQPJIVIMKYBOPD62JDASJOPBUINCAARYMZF \ / AMOS7 \ YOURUM ::
-#\[7]C4BE4F5Q4UX4G5DLOAY5A5UPWYAUW2VTLNDKUEAUONHNNZXP4GBA 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,...,,.,,,,.,,,.,.,.,...,...,,.,,..,,...,...,.,,,,,,,...,,,.,,,,,
+#F2DC7M7YXNLKJDGW3X5P2U7U74ALAA4O2NPGXF7CPFRIYLARWUQZVJWWSHBQFJGDS7WZVZIPLLTUC
+#\\\|QO7PFDZ77LA6LW6PRDGOSHV5A6D6TZLLNMU24NDTA6QO7QSU4JU \ / AMOS7 \ YOURUM ::
+#\[7]FRPTYTXNA7FTDSSSO5EWMC6SXCJWEMDP3D7OQAHTA6T7QMJIUOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
