@@ -46,7 +46,7 @@ BEGIN {
 
 ##[ AMOS7 COLORS ]############################################################
 
-use AMOS7 qw| %C |;
+use AMOS7       qw| %C |;
 use AMOS7::TERM qw| terminal_size |;
 
 ##[ CONSTANTS ]###############################################################
@@ -110,17 +110,15 @@ EOL
 my %option;
 Getopt::Long::Configure(qw| bundling_override |);
 GetOptions(
-    \%option,
-    'wait-reply|wait_reply|w:s',
-    'file|f=s',        'channel|c=s',
-    'model|m=s',       'quiet|q',
-    'clear',           'clear-all|clear_all',
-    'clear-msg|clear_msg=i',
-    'trim=i',          'archive:s',
-    'channels',        'models',
-    'search=s',        'grep=s',
-    'all-channels|all_channels',
-    'summarize',       'summary',
+    \%option,                'wait-reply|wait_reply|w:s',
+    'file|f=s',              'channel|c=s',
+    'model|m=s',             'quiet|q',
+    'clear',                 'clear-all|clear_all',
+    'clear-msg|clear_msg=i', 'trim=i',
+    'archive:s',             'channels',
+    'models',                'search=s',
+    'grep=s',                'all-channels|all_channels',
+    'summarize',             'summary',
     'help|h',
 ) or do { list_options(); exit(2) };
 
@@ -132,6 +130,21 @@ if ( $option{'help'} ) {
 ##[ CALLER DETECTION ]########################################################
 
 my $CALLER = detect_caller();
+
+##[ EARLY-EXIT LISTING COMMANDS ]#############################################
+## list_channels / list_models read only from filesystem — no state or      ##
+## message needed. exit before STDIN read to avoid blocking when called     ##
+## non-interactively (e.g. from MCP server via open('-|', ...))             ##
+
+if ( $option{'channels'} ) {
+    list_channels();
+    exit(0);
+}
+
+if ( $option{'models'} ) {
+    list_models();
+    exit(0);
+}
 
 ##[ STATE MANAGEMENT ]########################################################
 
@@ -172,16 +185,6 @@ if ( $switches->{'model'} and not $switches->{'broadcast'} ) {
 save_state($state);
 
 ##[ LIST / CLEAR COMMANDS ]###################################################
-
-if ( $option{'channels'} ) {
-    list_channels();
-    exit(0);
-}
-
-if ( $option{'models'} ) {
-    list_models();
-    exit(0);
-}
 
 if ( defined $option{'archive'} ) {
     my $ch
@@ -280,7 +283,8 @@ if ( not $switches->{'note_only'} ) {
 ##[ WAIT FOR REPLY ]##########################################################
 
 if ( $option{'wait-reply'} // '' ne '' or exists $option{'wait-reply'} ) {
-    my $timeout = ( defined $option{'wait-reply'} and length $option{'wait-reply'} )
+    my $timeout
+        = ( defined $option{'wait-reply'} and length $option{'wait-reply'} )
         ? $option{'wait-reply'} + 0
         : $WAIT_DEFAULT;
     my $target = $broadcast ? undef : $state->{'active_model'};
@@ -302,7 +306,7 @@ sub detect_caller {
     if ( open my $fh, '<', $comm_path ) {
         my $comm = <$fh>;
         close $fh;
-        chomp $comm          if defined $comm;
+        chomp $comm     if defined $comm;
         return 'kimi'   if defined $comm and $comm =~ m|kimi|i;
         return 'claude' if defined $comm and $comm =~ m|claude|i;
     }
@@ -656,7 +660,8 @@ sub wait_reply {
         $elapsed += $WAIT_INTERVAL;
     }
 
-    return defined $timeout
+    return
+        defined $timeout
         ? colored(": timeout waiting for reply ($timeout s)")
         : undef;
 }
@@ -950,8 +955,8 @@ sub summary_path {
 
 sub get_summary {
     my ($channel) = @_;
-    my $hpath = history_path($channel);
-    my $spath = summary_path($channel);
+    my $hpath     = history_path($channel);
+    my $spath     = summary_path($channel);
 
     my $fresh = 0;
     if ( -f $spath and -f $hpath ) {
@@ -971,8 +976,8 @@ sub get_summary {
 
 sub summarize_channel {
     my ($channel) = @_;
-    my $hpath = history_path($channel);
-    my $spath = summary_path($channel);
+    my $hpath     = history_path($channel);
+    my $spath     = summary_path($channel);
 
     my $history = '';
     if ( -f $hpath ) {
@@ -997,21 +1002,20 @@ sub summarize_channel {
         return undef;
         };
     my $submit_line = do { local $/; <$fh> } if $fh;
-    close $fh if $fh;
-    chomp $submit_line if defined $submit_line;
+    close $fh                                if $fh;
+    chomp $submit_line                       if defined $submit_line;
 
     if ( not defined $submit_line
-        or $submit_line !~ m{^task:(task-[^|]+)} )
-    {
+        or $submit_line !~ m{^task:(task-[^|]+)} ) {
         warn colored(": failed to submit summary request for '$channel'\n");
         return undef;
     }
 
     my $task_id = $1;
 
-    my $timeout   = 120;
-    my $interval  = 2;
-    my $elapsed   = 0;
+    my $timeout  = 120;
+    my $interval = 2;
+    my $elapsed  = 0;
     my $result;
 
     while ( $elapsed <= $timeout ) {
@@ -1021,8 +1025,8 @@ sub summarize_channel {
         open( my $rfh, '-|', 'p7c', 'coding.get-result', $task_id )
             or next;
         my $line = do { local $/; <$rfh> } if $rfh;
-        close $rfh if $rfh;
-        chomp $line if defined $line;
+        close $rfh                         if $rfh;
+        chomp $line                        if defined $line;
 
         next if not defined $line;
         next if $line =~ m{^task \Q$task_id\E is still (pending|in_progress)};
@@ -1074,7 +1078,8 @@ sub summarize_all_channels {
         return;
     }
 
-    my $combined_prompt = "produce a concise combined overview of these "
+    my $combined_prompt
+        = "produce a concise combined overview of these "
         . "channel summaries. highlight cross-channel themes, dependencies, "
         . "and any conflicting information. keep under 300 words.\n\n";
     for my $name ( sort keys %summaries ) {
@@ -1090,12 +1095,11 @@ sub summarize_all_channels {
         return;
         };
     my $submit_line = do { local $/; <$fh> } if $fh;
-    close $fh if $fh;
-    chomp $submit_line if defined $submit_line;
+    close $fh                                if $fh;
+    chomp $submit_line                       if defined $submit_line;
 
     if ( not defined $submit_line
-        or $submit_line !~ m{^task:(task-[^|]+)} )
-    {
+        or $submit_line !~ m{^task:(task-[^|]+)} ) {
         warn colored(": failed to submit combined summary request\n");
         return;
     }
@@ -1114,8 +1118,8 @@ sub summarize_all_channels {
         open( my $rfh, '-|', 'p7c', 'coding.get-result', $task_id )
             or next;
         my $line = do { local $/; <$rfh> } if $rfh;
-        close $rfh if $rfh;
-        chomp $line if defined $line;
+        close $rfh                         if $rfh;
+        chomp $line                        if defined $line;
 
         next if not defined $line;
         next if $line =~ m{^task \Q$task_id\E is still (pending|in_progress)};
@@ -1133,7 +1137,7 @@ sub summarize_all_channels {
 }
 
 sub first_sentence {
-    my $text = shift // '';
+    my $text  = shift // '';
     my @lines = split m{\n}, $text;
 
     ## skip empty lines and markdown headers ##
@@ -1213,13 +1217,13 @@ sub list_options {
 
 sub colored {
     my $text = shift;
-    return $text if $option{'quiet'};
+    return $text     if $option{'quiet'};
     return ": $text" if not defined terminal_size();
     return "$C{0}:\n::$C{b} $C{T}$text$C{0} $C{R}\n$C{0}:$C{R}";
 }
 
-#,,,,,,,.,,,.,,..,...,,,.,.,.,.,,,,..,...,...,..,,...,...,..,,..,,,,,,.,.,...,
-#K6TETCS7ZTHICBEG4M6FPZVWKE5D2M6LRLKWHOGTUSQFISH67WDKTJG5FDYU3T52IYIBS3HKJ2CLU
-#\\\|SABNHVMABIB7XTVYPRNKO3R6Q5KSW6XOFYKEZGMWJ44OSN3DCRE \ / AMOS7 \ YOURUM ::
-#\[7]7UJAZFUNOHBKTYYDYQQMMF7D74NZY4DQLJS77PZFIBD4EZHXTYDA 7  DATA SIGNATURE ::
+#,,,.,...,,,.,,..,.,,,,,.,.,.,,..,,,,,,,,,.,,,..,,...,...,...,,,.,,.,,,,.,,..,
+#W5KMPFMEK55H52GTQGXYETVIF2FZTDCOX4BW4VJC67YL5IX6VM5CDWAKVJO3OYLMEW2B64UHX2JJM
+#\\\|GO4J2IG3ICL42AJXECSC6B5XITDNWJBJXJ4WGSPI32QIUJ45QMO \ / AMOS7 \ YOURUM ::
+#\[7]HNYV5NGHCHQZJHAEZDMS4NYYP2YP7KPAJUIFRUGNJUVRUWSYVWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
