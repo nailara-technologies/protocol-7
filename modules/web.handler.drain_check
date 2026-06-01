@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = web.handler.drain_check
+# descr = check if all template operations complete, self-terminate when done
+
+my $remaining = 0;
+$remaining += scalar keys %{ <web.templates.active> // {} };
+$remaining += scalar keys %{ <web.commands.pending> // {} };
+
+if ( $remaining == 0 ) {
+    <[base.log]>->('web drain: all operations complete, self-terminating');
+
+    ## cancel drain check timer
+    if ( exists <web.drain_check_timer> ) {
+        <web.drain_check_timer>->cancel
+            if <web.drain_check_timer>->is_active;
+        delete <web.drain_check_timer>;
+    }
+
+    ## self-terminate
+    <[base.exit]>->(0);
+
+} else {
+    <[base.logs]>->( 2, 'web drain: %d operations still active', $remaining );
+    ## timer continues, will check again
+}
+
+return TRUE;
+
+#,,.,,.,,,,.,,,,.,..,,,.,,,,.,..,,..,,.,,,,.,,.,.,...,..,,.,.,,.,,.,,,,.,,...,
+#MORS6WZTAPGEXD4FF6QTMGHFYC7YYGYLRQVMRUG2B5GSLFS3FPS5K5QEAYKNWBDAAOHMVJQAXADWK
+#\\\|PD4H2IBJ5NYABUCKZCLKW7BK7Z6DUG6SQNCRACBFXQAPW7FA6HU \ / AMOS7 \ YOURUM ::
+#\[7]2XLVYZANGUNQHSFKI6ZDDAXEZHZ664J3XQLIO5F7F765LSX2I4DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

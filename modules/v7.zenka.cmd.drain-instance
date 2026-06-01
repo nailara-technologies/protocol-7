@@ -25,13 +25,20 @@ my $drain_timeout = $instance->{'drain_timeout'} // 30;
 ## mark instance as draining
 $instance->{'draining'} = TRUE;
 
-## send drain command via cube if instance has cube_sid
+## generic cube-level pause: stop delivering new commands to old zenka
+## [ same gating as pre-initialized state — zenka finishes in-flight work ]
 if ( exists $instance->{'cube_sid'} ) {
-    <[protocol-7.command.send.local]>->(
-        {   'command'   => sprintf( qw| %d.drain |, $instance->{'cube_sid'} ),
-            'call_args' => {}
+    <[protocol-7.route-send]>->(
+        {   'command' => sprintf( 'cube.unset-initialized %d',
+                $instance->{'cube_sid'} )
         }
     );
+}
+
+## send drain command via cube if instance has cube_sid
+if ( exists $instance->{'cube_sid'} ) {
+    <[protocol-7.route-send]>->(
+        { 'command' => sprintf( qw| %d.drain |, $instance->{'cube_sid'} ) } );
 } else {
     ## for non-cube zenki (extbin), we can only terminate
     <[base.logs]>->(
@@ -56,8 +63,8 @@ return {
     'data' => sprintf( 'drain signaled [timeout=%.1fs]', $drain_timeout )
 };
 
-#,,,,,,,.,...,,..,,.,,,,.,.,.,...,...,,,,,,..,.,.,...,..,,...,.,.,.,.,,,,,.,.,
-#AXORJDA33ALHXWMYEHPTL4AEDJSUGQ3SPDHBKZZCKU6EG6J2P3J6U46ZYGZ54MQX3RY3BAQPEB24O
-#\\\|WR5D472A2UZ5ZO2SZ3J2VBQOH3EFTT6V4KLBPZ6COHS6PL26UGP \ / AMOS7 \ YOURUM ::
-#\[7]SNPGSHGRKRK34LVMX7LZPVIWPHWME2AQ7YT7BV5GVARV2C6Q66AQ 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,.,,...,...,,,.,,,.,,,.,.,.,...,.,.,...,...,.,.,..,,...,,.,,,,.,
+#6OQ4UMSWEO4C2BGICMTAZ37MNILSVH5SWYTVCXBZB22ALBG3DVUZNBEAMOHHXJA5KEABHD7VQOOMI
+#\\\|QZTHNII3XOJAYBX5CP3UB6IICUHW5PFNFFA5K3NCSZURT3SJ3SN \ / AMOS7 \ YOURUM ::
+#\[7]JW63UOKZC2F6OLNZPLZ2ZC72FO57O4YYT66F3QP2ZZH5SIWG7SAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

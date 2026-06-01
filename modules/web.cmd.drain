@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = web.cmd.drain
+# descr = drain active operations, terminate when idle
+# note  = called via cube command during concurrent restart handover
+
+<[base.logs]>->('web draining: checking active operations');
+
+## mark as draining
+<web.draining> = TRUE;
+
+## check remaining active operations
+my $remaining = 0;
+$remaining += scalar keys %{ <web.templates.active> // {} };
+$remaining += scalar keys %{ <web.commands.pending> // {} };
+
+<[base.logs]>->( 'web draining: %d operations remaining', $remaining );
+
+if ( $remaining == 0 ) {
+    ## no active operations - can terminate immediately
+    <[base.log]>->('web: no active operations, initiating self-termination');
+    <[base.exit]>->(0);
+} else {
+    ## set up operation check timer
+    <web.drain_check_timer> = <[event.add_timer]>->(
+        {   'after'    => 0.5,
+            'interval' => 0.5,
+            'handler'  => qw| web.handler.drain_check |,
+            'data'     => {}
+        }
+    );
+}
+
+return { 'mode' => qw| true |, 'data' => 'draining initiated' };
+
+#,,,.,.,.,...,,,.,.,.,...,.,,,,,.,,..,...,,..,.,.,...,..,,.,.,.,.,.,,,,,,,.,.,
+#WV23PIJQNUXM4YMUNIDOGO4FMOSKP6LMYUFDRZ226B7DBKN4OXJ26GI4BHAMOKGM2WYY263PZ4UAY
+#\\\|BF42YJ2E4REKQ4QZIBRLXJME5XPKKS6F65QKGKVPFNCQVR7MUUY \ / AMOS7 \ YOURUM ::
+#\[7]6ULBNTNT6WH3U3M2GZ4ST2ZNUZYEHN4OQJSZSJHZXNKAKK5AWMCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
