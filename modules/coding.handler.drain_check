@@ -3,9 +3,13 @@
 # name  = coding.handler.drain_check
 # descr = check if all tasks completed, self-terminate when done
 
+## count only active (non-completed, non-failed) tasks ##
 my $remaining = 0;
 if ( exists <coding.task.queue> ) {
-    $remaining = scalar keys <coding.task.queue>->%*;
+    for my $task ( values <coding.task.queue>->%* ) {
+        my $st = $task->{'execution'}{'status'} // '';
+        $remaining++ unless $st eq 'completed' or $st eq 'failed';
+    }
 }
 
 ## count active inference requests in flight ##
@@ -40,8 +44,8 @@ if ( $remaining == 0 && $in_flight == 0 ) {
 
 return TRUE;
 
-#,,,,,,.,,,,,,...,,,.,.,.,..,,..,,...,,.,,,,.,..,,...,...,..,,,.,,.,,,,,,,..,,
-#XERZZVYWFDDY5UHDS6NQSLIMRNYYY4GYW5YPBK6KMFHQSVF3WG64SLZBZAZ7NO4NH5QVUUATCFGLS
-#\\\|YBSZISF7PIYC5Z4YY3HLTBDHFSYLDUOAWB3Q7N2IREN3HFQ7VPR \ / AMOS7 \ YOURUM ::
-#\[7]AS5S46EAMD2ZOR7L7T46SZZYKMCHGSK57OU76RHKJH6VHC7V5QDA 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,.,,,,.,,.,,,,.,,.,,,,..,,,.,,,,,..,,...,...,,,.,,,.,,.,,...,,.,,
+#EHQMUDLUIXT45OZQ7WEP74LQJFXFQSY5GGJRE2CPGN6XMC2IWVWAVLGOJLLI42H7MG33LJIUNGSSW
+#\\\|P7CIWZDE5XUDLOVETHPTV27JJPXHK7G35ABJSFJAPGOUHHYSMLR \ / AMOS7 \ YOURUM ::
+#\[7]S5C7T5FKWYUTSFG74ZH65R46WUYNXYZQ5SJEC6RGYCD4TF6YRMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
