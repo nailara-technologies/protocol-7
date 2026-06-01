@@ -99,6 +99,28 @@ my $count = scalar @instance_ids;
 my $msg_str;
 
 if ($twin_mode) {
+    if ( $twin_mode and scalar @instance_ids > 1 ) {
+        my $zenka_name
+            = <v7.zenka.instance>->{ $instance_ids[0] }->{'zenka_name'};
+        my @desc = map {
+            my $inst = <v7.zenka.instance>->{$ARG};
+            my $sn
+                = defined $inst->{'subname'}
+                ? sprintf( ' [%s]', $inst->{'subname'} )
+                : '';
+            sprintf( 'instance %d%s [%s]', $ARG, $sn, $inst->{'status'} )
+        } @instance_ids;
+        return {
+            'mode' => qw| false |,
+            'data' => sprintf(
+                "ambiguous: %d %s instances running"
+                    . " — use 'zenka[subname]' or instance id:\n  %s",
+                scalar @instance_ids,
+                $zenka_name,
+                join( "\n  ", @desc )
+            )
+        };
+    }
     my $started = 0;
     for my $iid (@instance_ids) {
         my $instance   = <v7.zenka.instance>->{$iid};
@@ -136,6 +158,15 @@ if ($twin_mode) {
             <[v7.zenka.instance.handover_cleanup]>->($iid);
             next;
         }
+
+        ## wire pre-allocated handover instance into the queued job so
+        ## v7.zenka.start reuses it [ replaces_instance + handover_expansion ]
+        ## [ event loop won't execute the job until current block returns ]
+        if (    $reply->{'mode'} eq qw| true |
+            and $reply->{'data'} =~ m|\[ID=(\d+)\]| ) {
+            <jobqueue.joblist.by_id>->{$1}->{'instance_id'} = $new_id;
+        }
+
         $started++;
     }
 
@@ -164,8 +195,8 @@ if ($count) {
     };
 }
 
-#,,..,,,,,.,.,,..,,.,,..,,,.,,.,.,,,.,,.,,...,..,,...,...,...,.,,,,,.,,,,,..,,
-#LCVNEJPNEXEA43Q5SIPB5NDSUVGE5YJBJHG47A3WZ3WYLVEQYTQTQKNABF5SBFQHH7OWMT6QV4OZS
-#\\\|QDFKKEE4ICEJKSO273E7O267ZKUT2VDF7AWOV43FNEWBXVDCLRI \ / AMOS7 \ YOURUM ::
-#\[7]DGGC7TQUVVKJ3662NR73UQZGBLXHAMK2VFU5ZB5WB76DXKLPIEDY 7  DATA SIGNATURE ::
+#,,..,..,,,.,,..,,,,.,...,,,,,,,.,,,,,.,.,...,..,,...,...,..,,.,,,,..,,.,,.,.,
+#5JZPIYDMTHHMIVY4KI6ZTSG6C2XSBOIN6QTGQFMZYBXZOMDJVZVV2AP7HNNZ2XFPCEUUMKBV2ENDY
+#\\\|K6YJFVL2W73S5QRTJWX4LYWJNDM3VVW63QLKHDEBIPLJBKZ3AML \ / AMOS7 \ YOURUM ::
+#\[7]BCU4U4MGT5ZUEPKJGCEG75YQWZXVJF6BCIKRN4NKWYIDB52264AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
