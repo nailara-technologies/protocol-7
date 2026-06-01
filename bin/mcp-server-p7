@@ -472,8 +472,8 @@ our @tools = (
     {   'name'        => 'p7_memory_summary',
         'description' =>
             'summarize the protocol-7 development memory for context continuity '
-            . 'and session handover. defaults to the most relevant agent memory '
-            . 'based on caller context (the OTHER agent — you already know your own).',
+            . 'and session handover. auto detects the calling agent and returns '
+            . 'that agent\'s own memory by default.',
         'inputSchema' => {
             'type'       => 'object',
             'properties' => {
@@ -482,7 +482,7 @@ our @tools = (
                     'enum'        => [ 'claude', 'kimi', 'both', 'auto' ],
                     'description' =>
                         'which memory to summarize [ claude | kimi | both | auto ]. '
-                        . 'auto detects from MCP client identity and defaults to the other agent.'
+                        . 'auto detects from MCP client identity and returns caller\'s own memory.'
                 },
                 'focus' => {
                     'type'        => 'string',
@@ -1452,13 +1452,13 @@ sub tool_p7_memory_summary {
     my $focus      = $args->{'focus'}      // '';
     my $max_tokens = $args->{'max_tokens'} // 600;
 
-    ## resolve auto → other agent (you already know your own context)
+    ## resolve auto → caller's own memory
     if ( $agent eq 'auto' ) {
         my $caller = lc( $mcp_client_name // '' );
         if ( $caller =~ m{kimi} ) {
-            $agent = 'claude';
-        } elsif ( $caller =~ m{claude} ) {
             $agent = 'kimi';
+        } elsif ( $caller =~ m{claude} ) {
+            $agent = 'claude';
         } else {
             $agent = 'both';
         }
@@ -1533,13 +1533,13 @@ sub tool_p7_memory_update {
     my $content     = $args->{'content'}     // '';
     my $focus       = $args->{'focus'}       // '';
 
-    ## resolve auto → other agent
+    ## resolve auto → caller's own memory
     if ( $agent eq 'auto' ) {
         my $caller = lc( $mcp_client_name // '' );
         if ( $caller =~ m{kimi} ) {
-            $agent = 'claude';
-        } elsif ( $caller =~ m{claude} ) {
             $agent = 'kimi';
+        } elsif ( $caller =~ m{claude} ) {
+            $agent = 'claude';
         } else {
             $agent = 'claude';
         }
@@ -2120,8 +2120,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,,,.,.,,..,..,,.,,,..,,..,,.,,,,,.,.,.,...,..,,...,...,,.,,,..,,,.,,,,,,..,
-#B6GMCTSPXU5ITYFG55ODC5JA7SBY2YFHTHVBJQA736EODMXQMHKOLUZ5O3HZ2O45HM6G7VFSYBGFG
-#\\\|3J6EQUMX5K2ONY6ITCCCXD5GHQRM3G4VIZ6EUSRUMWRM2BL2ETU \ / AMOS7 \ YOURUM ::
-#\[7]GMSK7WHHJEJV72CPUBKIIN3UO66MXEDJR6WL2S6X4KC46MQ32YBA 7  DATA SIGNATURE ::
+#,,..,..,,,,.,.,,,...,,,.,,.,,,,.,,,,,,,.,...,..,,...,...,,,,,,,.,...,..,,,.,,
+#PWZMRUR4643LO7Y6WDFYX3A5W2LMYU7PKBDCB2IBDLCBR2TEU5MJMPGVYA67LJAD7CQ6LX7LQQL5Y
+#\\\|RDSRPSTBAZGIHJZLDB3O3RWDUZ75N3Y4GMX4UCZZ6C5OL3KH5WI \ / AMOS7 \ YOURUM ::
+#\[7]PIBGO3BFPMXOWIECQZZXN73PXGGCSHVO3XVPZ3JQSH5CPS6OYUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
