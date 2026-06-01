@@ -4,8 +4,11 @@
 # descr = handle drain timeout - force-terminate instance
 #                                       if still draining
 
-my $instance_id   = $ARG[0]->{'instance_id'};
-my $drain_timeout = $ARG[0]->{'drain_timeout'};
+my $watcher       = $ARG[0]->w;
+my $instance_id   = $watcher->data->{'instance_id'};
+my $drain_timeout = $watcher->data->{'drain_timeout'};
+
+$watcher->cancel if $watcher->is_active;
 
 return undef if not defined $instance_id;
 
@@ -71,8 +74,8 @@ delete $instance->{'timer'}->{'drain_timeout'}
 
 return TRUE;
 
-#,,.,,,..,,..,.,,,.,,,,,,,.,.,..,,,..,.,,,,,.,.,.,...,...,,..,,.,,...,,,.,.,,,
-#ZJLEWGZ3O6GIBECROWZSP3SCUSFIVAM76G2MQQMWS4MLECCLYS3Y3NPU7QOG4UPZBWQ3TWHV76D66
-#\\\|Y46NGGOBDF247BX22S5GDUQHMY2EG7LLXDKKH44SILOQYYX7BH7 \ / AMOS7 \ YOURUM ::
-#\[7]SIO7DX7PSTCFSFS2TMWPD3VELRWJC4E5IFJVZ6WNLA5ODVLJUACY 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,,,,.,,,,.,,.,,,,,.,,,.,,,.,,.,,.,.,...,...,,..,...,,,.,,,,,,,.,
+#STRGHGQ3YPWVLG57RSEGHFKUBGUFPTF7LRM7UCROQS2KJQDTFHXZXYF5E7KNE4BZBI2H4AWZX4YFK
+#\\\|5ZQNWG4DVZKZ2HSXFR7UG5VKNEG2OVNJL34D74DPHUJDUKSK767 \ / AMOS7 \ YOURUM ::
+#\[7]LIPMUMLMAAO3RUWSRCYWHLZVJ6JUQFVFSLKE4HBZ7CB3OZ5RJYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
