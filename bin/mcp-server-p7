@@ -10,6 +10,7 @@ use JSON;
 use POSIX       qw| strftime |;
 use List::Util  qw| max |;
 use Encode      qw| encode |;
+use Fcntl       qw| FD_CLOEXEC F_SETFD F_GETFD |;
 use Crypt::Misc qw| encode_b32r |;
 use IO::Socket::UNIX;
 use FindBin qw| $RealBin |;
@@ -974,6 +975,12 @@ sub cube_connect {
         return undef;
     }
 
+    ## close-on-exec: subprocesses must not inherit the cube socket ##
+    ## inherited fds closed by child processes desync the protocol   ##
+    my $fd    = fileno($cube_sock);
+    my $flags = fcntl( $cube_sock, F_GETFD, 0 ) // 0;
+    fcntl( $cube_sock, F_SETFD, $flags | FD_CLOEXEC );
+
     log_msg('connected and authenticated');
     return $cube_sock;
 }
@@ -1738,7 +1745,7 @@ sub tool_external_command {
     eval {
         local $SIG{ALRM} = sub { die "timeout\n" };
         alarm( $ext->{'timeout'} // 120 );
-        $output = qx($cmd 2>&1);
+        $output = qx($cmd 2>/dev/null);
         alarm(0);
     };
     if ($@) {
@@ -1779,6 +1786,8 @@ sub tool_external_command {
                 . 'next_steps (explicit next actions)';
             $pending_summary_focus = undef;
             $output                = _extract_stream_content($output);
+            cube_disconnect()
+                ;    ## flush any stale socket state from subprocess ##
             my $summary = _do_summarize( $output, $instruction, 600 );
             if ( defined $summary and length $summary ) {
                 $output = $summary;
@@ -1801,8 +1810,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,.,,..,,.,.,.,.,,,.,,.,,...,.,,,.,,,.,,,.,,,..,,...,...,...,,..,,,,,.,,,,,,,
-#FQDMCWNHGTRAEB6K7WHRYMRH73ZZNSCAKSYYV3P3DCIRS5UYDUNHTMNMAV6SUXMOCZDZMK53U76GA
-#\\\|S3P7VMBC2LS5C2I7I6YAUZPEJQODKJGOOD2OG3M47OLACY3LBS7 \ / AMOS7 \ YOURUM ::
-#\[7]WIZZYWTPBZZEMZLCTNZDOULEV5G7QJFK3R76DNLIFAYXYNUAMABQ 7  DATA SIGNATURE ::
+#,,..,.,,,...,..,,,..,.,,,..,,,,.,,.,,,..,,,,,..,,...,..,,..,,,.,,...,.,,,,,.,
+#XKSL7GYCAOR72IRH266ATZ2K6VNS3XAFELBOTGNWZILAGPQLAP3SUOSR6Y3D5JA6EVU3V6CZHXDLK
+#\\\|74HH34PNFWPGCKV4QGZY5CSWP3ITT2YSOVHTNAFJIWC7E53OM3W \ / AMOS7 \ YOURUM ::
+#\[7]ZXGSKJKRA3LCPVGUHMVDLUW7PZ7KIKKAYQP2Q2NOMRG3GJU57OCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
