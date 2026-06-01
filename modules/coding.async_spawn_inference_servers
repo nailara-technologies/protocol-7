@@ -5,8 +5,13 @@
 # purpose = Start GPU and CPU inference servers without blocking zenka
 #           initialization
 
-## await_resources owns the spawn during :twin: handover — skip silently
-return FALSE if <coding.awaiting_resources>;
+## await_resources owns the spawn during :twin: handover — skip if set ##
+if (<coding.awaiting_resources>) {
+    <[base.logs]>->(
+        1, ': async_spawn : awaiting_resources flag set : spawn blocked :'
+    );
+    return FALSE;
+}
 
 <[base.logs]>->( 1, ": starting inference servers asynchronously" );
 
@@ -101,8 +106,8 @@ if ( $spawn_params->{'gpu_enabled'} ) {
 
 return TRUE;
 
-#,,,,,.,.,,.,,.,.,.,.,,,,,...,,.,,,,,,..,,,,.,..,,...,...,...,.,,,.,,,.,.,...,
-#EK7ZQAACRV7KGHTBYAFTFGXE2SQ5WQCTKKMTHART5J526QCXYYZUGI64EYBTWFZ6UBZB5PPS6UDMI
-#\\\|FWXO7LSVEJW2L3V5UFRDMGDEKIYYR43O2ZPTSS4FEXPPAJ7J6GR \ / AMOS7 \ YOURUM ::
-#\[7]XJOKR4G3KVLQFBI7L4D6ORXE2IMMSTI4CTNA4VNT3MV6V4XBIWBA 7  DATA SIGNATURE ::
+#,,..,..,,,,,,.,,,...,.,,,,..,,..,.,.,...,.,,,..,,...,...,..,,,.,,,.,,,,,,...,
+#2PKCFD6BUEXVE7TC3H4DYOUD34YVIGOPFX77YR2ED3XMCJDF3ADCBLRYHYWIUXDH4U3TVBNUTQWGK
+#\\\|FUUVCJUMZYCAUJ4W2RC4TEIOIKF5FCLLU64WA6WJSGINBVFJRXR \ / AMOS7 \ YOURUM ::
+#\[7]7ZUSDLJFWPZEHI2WEXC6KUVNT5IENJCF6ML4OV4BWU7WEVPLDUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
