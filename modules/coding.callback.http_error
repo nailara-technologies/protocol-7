@@ -10,7 +10,7 @@ my ( $task_id, $error ) = @ARG;
 ## check for retryable errors (HTTP 500, timeouts) ##
 my $state       = <[coding.async.state_manager]>->( 'get', $task_id );
 my $retry_count = $state->{'retry_count'} // 0;
-my $max_retries = 3;
+my $max_retries = 1;
 
 ## prevent duplicate retry timers ##
 if ( $state->{'retry_pending'} ) {
@@ -43,10 +43,8 @@ if (   $error =~ m{HTTP error:\s*5\d\d|timeout|connection closed}i
 
         ## detect gemma/llama jinja templates that reject role:tool messages ##
         ## pattern: raise_exception("Invalid content type") in else branch  ##
-        my $convert_tool_role = (
-            $error =~ m{Invalid content type}i
-            || $error =~ m{raise_exception}i
-        ) ? 1 : 0;
+        my $convert_tool_role = ( $error =~ m{Invalid content type}i
+                || $error =~ m{raise_exception}i ) ? 1 : 0;
 
         for my $msg ( @{$msgs} ) {
             my $role = $msg->{'role'} // '';
@@ -54,16 +52,17 @@ if (   $error =~ m{HTTP error:\s*5\d\d|timeout|connection closed}i
             ## convert role:tool → role:user when template rejects tool role ##
             if ( $convert_tool_role && $role eq qw| tool | ) {
                 my $tc_id = $msg->{'tool_call_id'} // 'unknown';
-                $msg->{'role'}    = qw| user |;
-                $msg->{'content'} = "[TOOL RESULT: $tc_id]\n"
-                    . ( $msg->{'content'} // '' );
+                $msg->{'role'} = qw| user |;
+                $msg->{'content'}
+                    = "[TOOL RESULT: $tc_id]\n" . ( $msg->{'content'} // '' );
                 delete $msg->{'tool_call_id'};
                 <[base.logs]>->(
-                    1, "http_error: converted tool role → user (jinja mismatch)"
+                    1,
+                    "http_error: converted tool role → user (jinja mismatch)"
                 );
 
-            ## convert role:assistant → role:model for gemma-family templates ##
-            ## gemma uses 'model' not 'assistant' as the AI turn role name    ##
+                ## convert role:assistant → role:model for gemma-family templates ##
+                ## gemma uses 'model' not 'assistant' as the AI turn role name    ##
             } elsif ( $convert_tool_role && $role eq qw| assistant | ) {
                 $msg->{'role'} = qw| model |;
                 <[base.logs]>->(
@@ -140,6 +139,22 @@ if ( $error =~ m{timeout}i ) {
                 'data'    => { 'reason' => 'timeout_restart' }
             }
         );
+
+        ## requeue task transparently instead of failing it :              ##
+        ## server restart is already scheduled; verify_inference_startup   ##
+        ## calls jobqueue.check_dependencies when ready, which picks us up ##
+        my $task = <coding.task.queue>->{$task_id};
+        if ( defined $task ) {
+            $task->{'status'} = 'pending';
+            ## clear http-level state so next attempt starts a fresh round ##
+            <[coding.async.state_manager]>->( 'delete', $task_id );
+            <[base.logs]>->(
+                1,
+                "http_error: requeued %s as pending — retries after server restart",
+                $task_id
+            );
+            return;
+        }
     }
 }
 
@@ -147,8 +162,8 @@ if ( $error =~ m{timeout}i ) {
 
 return;
 
-#,,.,,...,,,,,.,.,.,.,,,.,,.,,.,,,,.,,,,.,...,..,,...,...,...,,,.,.,,,,.,,.,,,
-#TUT62CE3NK5QJ5V3YH7R5T6JOIXHBTGO6D7TQPN3F3RSJEV65U3HNMPL6X4B7PKGL5FNOKAY25YJQ
-#\\\|44MD3HH3CVXTLZMDMLBKFO6U6MGBQM5Q55FTKZFB4PRRTVZSRT5 \ / AMOS7 \ YOURUM ::
-#\[7]7BOKTB3DNIVBA3X23SGWRE47DWURBZ4677M65RS35J46IVI6YOAY 7  DATA SIGNATURE ::
+#,,,,,.,.,...,.,,,,,,,...,...,,,,,,,.,,..,,..,..,,...,...,.,.,,..,...,.,.,,,.,
+#ITS5N3DMLUSPZ6DSOKGRIFGNKGZS7OQNFFJ56XBHHG5MYRVW4RVEM3WNU34BQYCRJZ53D7PVKVEKA
+#\\\|LNZZLIPHGIB6JH474HZVSOIZZNU6ZIJT5CHVELYG7JPFBOXIFND \ / AMOS7 \ YOURUM ::
+#\[7]MRPFSZLEKYQWKUKN2I4YYTFEE5XAFHSHTILKZ3L3XF4CGI3Y7UAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
