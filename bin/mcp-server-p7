@@ -1379,7 +1379,7 @@ sub _extract_stream_content {
     ## primary: extract result field from final {"type":"result",...} line ##
     for my $line ( split /\n/, $text ) {
         next unless $line =~ m{^\{.*"type"\s*:\s*"result"};
-        my $decoded = eval { decode_json($line) };
+        my $decoded = eval { from_json($line) };
         next if $@;
         my $result = $decoded->{'result'} // '';
         return $result if length($result) > 10;
@@ -1389,7 +1389,7 @@ sub _extract_stream_content {
     my @parts;
     for my $line ( split /\n/, $text ) {
         next unless $line =~ m{^\{.*"type"\s*:\s*"assistant"};
-        my $decoded = eval { decode_json($line) };
+        my $decoded = eval { from_json($line) };
         next if $@;
         my $msg = $decoded->{'message'} // {};
         for my $block ( @{ $msg->{'content'} // [] } ) {
@@ -1810,8 +1810,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,..,.,,,...,..,,,..,.,,,..,,,,.,,.,,,..,,,,,..,,...,..,,..,,,.,,...,.,,,,,.,
-#XKSL7GYCAOR72IRH266ATZ2K6VNS3XAFELBOTGNWZILAGPQLAP3SUOSR6Y3D5JA6EVU3V6CZHXDLK
-#\\\|74HH34PNFWPGCKV4QGZY5CSWP3ITT2YSOVHTNAFJIWC7E53OM3W \ / AMOS7 \ YOURUM ::
-#\[7]ZXGSKJKRA3LCPVGUHMVDLUW7PZ7KIKKAYQP2Q2NOMRG3GJU57OCQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,..,..,,.,,,,..,,,.,...,...,,.,,..,,...,...,,..,..,,,,,,..,,.,,,
+#HPR3GZVSLRZEK6HIJVCCKJQD2KAYC7PI2KFBO6I3DP6MCNKH23O5DEYPXRIWTEZW7GRN3DAA6UPOG
+#\\\|L5O5HCKSJFUSTCOM6CQRV63IMHXY73L6QAQHTNWCO6JTIAAFCQY \ / AMOS7 \ YOURUM ::
+#\[7]AH5RVV36NHSYI6CYMXCEWOWUBGPWNNKUVQOGYQZ42SPR7BLQQGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
