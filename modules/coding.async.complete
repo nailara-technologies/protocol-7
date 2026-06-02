@@ -12,8 +12,40 @@ return { success => FALSE, error => 'task_id required' }
 ## retrieve stored state ##
 my $state = <[coding.async.state_manager]>->( 'get', $task_id );
 
-return { success => FALSE, error => "no state for task $task_id" }
-    unless defined $state;
+## state may have been deleted by a prior timeout requeue ##
+## for compaction subtasks we must still unblock the parent ##
+if ( not defined $state ) {
+    my $task_rec  = <coding.task.queue>->{$task_id} // {};
+    my $meta      = $task_rec->{'metadata'}         // {};
+    my $parent_id = <coding.task.parent>->{$task_id}
+        // $meta->{'parent_task_id'};
+    if ( $meta->{'is_compaction'} and defined $parent_id ) {
+        my $pstate = <[coding.async.state_manager]>->( 'get', $parent_id );
+        if ( defined $pstate
+            and ( $pstate->{'compaction_pending'} // '' ) eq $task_id ) {
+            delete $pstate->{'compaction_pending'};
+            delete $pstate->{'compact_start'};
+            delete $pstate->{'compact_end'};
+            $pstate->{'compaction_applied_round'} = $pstate->{'round'} // 0;
+            $pstate->{'pending_subtask'}          = undef;
+            $pstate->{'state'}                    = qw| running |;
+            <coding.async.task_state>->{$parent_id} = $pstate;
+            <[base.logs]>->(
+                1,
+                "async.complete: compaction %s had no state "
+                    . "— unblocked parent %s [ heuristic fallback ]",
+                $task_id,
+                $parent_id
+            );
+            <[event.add_timer]>->(
+                {   after   => 0.1,
+                    handler => qw| coding.handler.process-queued-task |,
+                }
+            );
+        }
+    }
+    return { success => FALSE, error => "no state for task $task_id" };
+}
 
 my $job_id = $state->{'job_id'};
 
@@ -348,8 +380,8 @@ if ( defined $result && $result->{'success'} ) {
     return { success => FALSE, error => $error_msg, task_id => $task_id };
 }
 
-#,,.,,,,.,..,,.,.,..,,,,,,..,,.,.,,..,.,.,,..,.,.,...,...,.,,,..,,,,.,,,,,.,,,
-#4KC4SVGVBCYAUXIOIZ24MQULRM26OC7PB3RLAS5KEBWBNTFZG6NIAPRKASO2SOMZUMEKZK25EWYYM
-#\\\|OJQJHRL25X63HWQ5OEUWVAOZ5QKI4EQTDLKFHVKEPSM3GA3QSAD \ / AMOS7 \ YOURUM ::
-#\[7]ERACHM4E5ZF3EURPRPUIFGTYAREWOPB2VTT3KCRLQYROGOWLPEAI 7  DATA SIGNATURE ::
+#,,..,,..,,..,,.,,.,,,,,.,.,,,,,.,,,.,,.,,,..,.,.,...,...,,.,,,.,,,,,,.,,,.,.,
+#OHNOOMNEPP6JAVE2MF5QKRD5IH4ZZ7HUSPFQGJHSB755YB6XKGI5GZHODS7WZVMTF234CE6ANLMXY
+#\\\|EGG2APYUIGCHMQGOAQOBANB6KGCWQFOSUIXKQJNNOVNX7ZM3J3V \ / AMOS7 \ YOURUM ::
+#\[7]EGOCP7ZE3XRAY3JD7B65BYH7OAZMQJ2LTDTOGNWPZAK5KOXOWWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

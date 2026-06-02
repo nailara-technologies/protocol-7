@@ -52,11 +52,12 @@ if ( !-w ( $abs_path =~ s|/[^/]+$||r ) and defined $chmod_fh ) {
     print {$chmod_fh} "create $abs_path\n";
     my $reply = <[coding.chmod_child.readline]>;
     if ( -f $abs_path ) {
-        ## grant world-write so coding zenka can write regardless of group ##
+        ## grant other-write so coding zenka can write regardless of group ##
         my $raw_mode = ( stat $abs_path )[2];
         $cur_mode = defined $raw_mode ? ( $raw_mode & 07777 ) : 0664;
-        print {$chmod_fh} "gw $abs_path\n";
-        <[coding.chmod_child.readline]>;    ## wait for gw to complete ##
+        printf {$chmod_fh} "restore %04o %s\n", ( $cur_mode | 0002 ),
+            $abs_path;
+        <[coding.chmod_child.readline]>;    ## wait for restore to complete ##
     }
 }
 
@@ -95,8 +96,8 @@ return
     sprintf "staged new file %s [ %d bytes, no write access ]\n"
     . "staged at : %s", $path, length($content), $stage_rel;
 
-#,,..,...,,..,,,.,.,,,...,,,.,,,.,,,.,.,,,,,,,.,.,...,...,..,,,.,,,,.,,,,,,.,,
-#X7JACMAA7TIFY4T2MX5GSGBOF4QRD7KZZZ4UV72D32XMM3I6GRTBEEOFXSLHCOGJY4D4VZ4NOGQ62
-#\\\|LX4HPBBJMOERVB4ATMTJU7WV4NXXTKNAVHXGYB5KEPVKWQUNX2G \ / AMOS7 \ YOURUM ::
-#\[7]K3VF7FUUWUMTC6LXO4LJJNWBOLQMYBSFN3VNXVUEDPUFHCXPGCBA 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,,,,,,.,..,,,.,,,,,,...,,,,,.,,,.,.,...,...,,..,,,,,,..,.,,,,.,,
+#G72MY3ZOPAAHV2XBIRKDGG7OP63D4SRETVX6WVJ7EH3GHLFWSOKYYDZ4TMKEFV2H52KW4Y362FD5I
+#\\\|V3WIEBZSBKXGDMUCQ6DW6FS2JB7JZZBTNHAP7UU5B6QFR44LEJ6 \ / AMOS7 \ YOURUM ::
+#\[7]ML72CVIXJ36V33Q66DLQLHI4KGEEGDT2DTP24DZZDZVTLU2UP2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
