@@ -1,0 +1,305 @@
+## [:< ##
+
+# name  = ascii.frame.render
+# descr = render frame descriptor with slot values to ascii art string
+
+my $params = shift // {};
+
+my $descriptor = $params->{'descriptor'} // {};
+my $values     = $params->{'values'}     // {};
+
+return undef if not keys %{$descriptor};
+
+my $border      = $descriptor->{'border'}      // {};
+my $corners     = $descriptor->{'corners'}     // {};
+my $min_width   = $descriptor->{'min_width'}   // 0;
+my $padding     = $descriptor->{'padding'}     // { left => 0, right => 0 };
+my $slots       = $descriptor->{'slots'}       // {};
+my $static_rows = $descriptor->{'static_rows'} // {};
+
+my $lpad = $padding->{'left'}  // 0;
+my $rpad = $padding->{'right'} // 0;
+
+## compute required width ##
+my $required_width = $min_width;
+
+## static rows drive content width when no slots present ##
+for my $row ( keys %{$static_rows} ) {
+    my $static        = $static_rows->{$row};
+    my $content_width = length($static);
+    $required_width = $content_width if $content_width > $required_width;
+}
+
+## field slots drive content width ##
+for my $name ( keys %{$slots} ) {
+    my $slot = $slots->{$name};
+    if ( $slot->{'type'} eq qw| field | ) {
+        my $value = $values->{$name} // '';
+        my $row_width
+            = length( $slot->{'prefix'} // '' )
+            + length($value)
+            + length( $slot->{'suffix'} // '' )
+            + $lpad + $rpad;
+        $required_width = $row_width if $row_width > $required_width;
+    } elsif ( $slot->{'type'} eq qw| composed |
+        and exists $slot->{'inner_width'} ) {
+        ## composed inner frame constrains outer width ##
+        my $inner_total = $slot->{'inner_width'};
+        my $content_width
+            = $inner_total
+            - length( $border->{'left'}  // '' )
+            - length( $border->{'right'} // '' );
+        $required_width = $content_width
+            if $content_width > $required_width;
+    }
+}
+
+## inline slots in borders also contribute ##
+for my $el ( @{ $border->{'top'} // [] } ) {
+    if ( $el->{'type'} eq qw| slot | ) {
+        my $val_len      = length( $values->{ $el->{'name'} } // '' );
+        my $border_width = $min_width + $val_len;
+        $required_width = $border_width if $border_width > $required_width;
+    }
+}
+for my $el ( @{ $border->{'bottom'} // [] } ) {
+    if ( $el->{'type'} eq qw| slot | ) {
+        my $val_len      = length( $values->{ $el->{'name'} } // '' );
+        my $border_width = $min_width + $val_len;
+        $required_width = $border_width if $border_width > $required_width;
+    }
+}
+
+## total frame width includes left and right borders ##
+my $frame_width
+    = $required_width
+    + length( $border->{'left'}  // '' )
+    + length( $border->{'right'} // '' );
+
+## render top border ##
+my @output;
+my $top_line = _render_border_line( $border->{'top'}, $values, $frame_width );
+push @output, $top_line if length $top_line;
+
+## collect rows with slot assignments ##
+my %row_slots;
+for my $name ( keys %{$slots} ) {
+    my $slot = $slots->{$name};
+    next if $slot->{'type'} eq qw| inline |;
+    my $row = $slot->{'row'} // 0;
+    push @{ $row_slots{$row} }, $name;
+}
+
+## determine max content row ##
+my $max_row = 0;
+for my $k ( keys %row_slots ) {
+    $max_row = $k if $k > $max_row;
+}
+for my $k ( keys %{$static_rows} ) {
+    $max_row = $k if $k > $max_row;
+}
+
+## render content rows ##
+my @content_output;
+for my $row ( 1 .. $max_row ) {
+    if ( exists $row_slots{$row} ) {
+        my @slot_names = @{ $row_slots{$row} };
+        for my $name (@slot_names) {
+            my $slot  = $slots->{$name};
+            my $value = $values->{$name} // '';
+
+            ## resolve scalar binding if present ##
+            if ( exists $slot->{'binding'}
+                and ref $slot->{'binding'} eq qw| SCALAR | ) {
+                $value = ${ $slot->{'binding'} };
+            }
+
+            ## render composed inner frame ##
+            if ( $slot->{'type'} eq qw| composed |
+                and exists $slot->{'inner_frame'} ) {
+                my $inner_rendered = <[ascii.frame.render]>->(
+                    {   descriptor => $slot->{'inner_frame'},
+                        values     => $values,
+                    }
+                );
+                $value = $inner_rendered // '';
+            }
+
+            if ( $slot->{'type'} eq qw| composed | ) {
+                ## composed inner frame : lines replace slot directly ##
+                my @inner_lines = split "\n", $value;
+                @inner_lines = ('') if not @inner_lines;
+                for my $iline (@inner_lines) {
+                    ## inner frame line already has its own borders ##
+                    ## pad or trim to fit outer frame width ##
+                    my $line_width = length($iline);
+                    my $target
+                        = $frame_width
+                        - length( $border->{'left'}  // '' )
+                        - length( $border->{'right'} // '' );
+                    if ( $line_width < $target ) {
+                        $iline .= ' ' x ( $target - $line_width );
+                    }
+                    my $line
+                        = $border->{'left'} . $iline . $border->{'right'};
+                    push @content_output, $line;
+                }
+            } elsif ( $slot->{'type'} eq qw| block | ) {
+                ## block expands to multiple lines ##
+                my @block_lines = split "\n", $value;
+                @block_lines = ('') if not @block_lines;
+                for my $bline (@block_lines) {
+                    my $content_part = ( $slot->{'prefix'} // '' ) . $bline;
+                    my $fill_width
+                        = $frame_width
+                        - length( $border->{'left'}  // '' )
+                        - length( $border->{'right'} // '' )
+                        - $lpad - $rpad
+                        - length($content_part);
+                    $fill_width = 0 if $fill_width < 0;
+                    my $line
+                        = $border->{'left'}
+                        . ( ' ' x $lpad )
+                        . $content_part
+                        . ( ' ' x $fill_width )
+                        . ( ' ' x $rpad )
+                        . $border->{'right'};
+                    push @content_output, $line;
+                }
+            } else {
+                ## field slot : pad to required width ##
+                my $prefix       = $slot->{'prefix'} // '';
+                my $suffix       = $slot->{'suffix'} // '';
+                my $content_part = $prefix . $value . $suffix;
+                my $fill_width
+                    = $frame_width
+                    - length( $border->{'left'}  // '' )
+                    - length( $border->{'right'} // '' )
+                    - $lpad - $rpad
+                    - length($content_part);
+                $fill_width = 0 if $fill_width < 0;
+                my $line
+                    = $border->{'left'}
+                    . ( ' ' x $lpad )
+                    . $content_part
+                    . ( ' ' x $fill_width )
+                    . ( ' ' x $rpad )
+                    . $border->{'right'};
+                push @content_output, $line;
+            }
+        }
+    } elsif ( exists $static_rows->{$row} ) {
+        my $static   = $static_rows->{$row};
+        my $stripped = $static;
+        if (    $lpad > 0
+            and length($stripped) >= $lpad
+            and substr( $stripped, 0, $lpad ) eq ' ' x $lpad ) {
+            $stripped = substr( $stripped, $lpad );
+        }
+        if (    $rpad > 0
+            and length($stripped) >= $rpad
+            and substr( $stripped, length($stripped) - $rpad, $rpad ) eq ' '
+            x $rpad ) {
+            $stripped = substr( $stripped, 0, length($stripped) - $rpad );
+        }
+        my $fill_width
+            = $frame_width
+            - length( $border->{'left'}  // '' )
+            - length( $border->{'right'} // '' )
+            - $lpad - $rpad
+            - length($stripped);
+        $fill_width = 0 if $fill_width < 0;
+        my $line
+            = $border->{'left'}
+            . ( ' ' x $lpad )
+            . $stripped
+            . ( ' ' x $fill_width )
+            . ( ' ' x $rpad )
+            . $border->{'right'};
+        push @content_output, $line;
+    }
+}
+
+push @output, @content_output;
+
+## render bottom border ##
+if ( @{ $border->{'bottom'} // [] } ) {
+    my $bottom_line
+        = _render_border_line( $border->{'bottom'}, $values, $frame_width );
+    push @output, $bottom_line if length $bottom_line;
+}
+
+return join "\n", @output;
+
+##[ render a border line with elasticity ]##
+sub _render_border_line {
+    my ( $elements, $values, $width ) = @_;
+    return '' if not @{$elements};
+
+    ## compute fixed width and fill min sum ##
+    my $fixed_width  = 0;
+    my $fill_count   = 0;
+    my $fill_min_sum = 0;
+    for my $el ( @{$elements} ) {
+        if ( $el->{'type'} eq qw| anchor | ) {
+            $fixed_width += length( $el->{'value'} // '' );
+        } elsif ( $el->{'type'} eq qw| slot | ) {
+            $fixed_width += length( $values->{ $el->{'name'} } // '' );
+        } elsif ( $el->{'type'} eq qw| fill | ) {
+            $fill_count++;
+            $fill_min_sum += $el->{'min'} // 1;
+        }
+    }
+
+    my $available_fill = $width - $fixed_width;
+    $available_fill = $fill_count if $available_fill < $fill_count;
+
+    ## distribute fill among fill elements ##
+    my %fill_alloc;
+    if ( $fill_count > 0 and $available_fill > 0 ) {
+        my @fill_indices = grep { $elements->[$_]->{'type'} eq qw| fill | }
+            0 .. $#{$elements};
+        if ( @fill_indices == 1 ) {
+            $fill_alloc{ $fill_indices[0] } = $available_fill;
+        } else {
+            ## proportional distribution based on min ##
+            my $allocated = 0;
+            for my $i ( 0 .. $#fill_indices ) {
+                my $idx   = $fill_indices[$i];
+                my $min   = $elements->[$idx]->{'min'} // 1;
+                my $alloc = int( $available_fill * $min / $fill_min_sum );
+                $alloc = 1 if $alloc < 1;
+                $fill_alloc{$idx} = $alloc;
+                $allocated += $alloc;
+            }
+            ## adjust for rounding : give remainder to last fill ##
+            my $remainder = $available_fill - $allocated;
+            if ( $remainder != 0 and @fill_indices ) {
+                $fill_alloc{ $fill_indices[-1] } += $remainder;
+            }
+        }
+    }
+
+    ## build line ##
+    my $line = '';
+    for my $i ( 0 .. $#{$elements} ) {
+        my $el = $elements->[$i];
+        if ( $el->{'type'} eq qw| anchor | ) {
+            $line .= $el->{'value'} // '';
+        } elsif ( $el->{'type'} eq qw| slot | ) {
+            $line .= $values->{ $el->{'name'} } // '';
+        } elsif ( $el->{'type'} eq qw| fill | ) {
+            my $flen = $fill_alloc{$i} // 1;
+            $flen = 1 if $flen < 1;
+            $line .= $el->{'char'} x $flen;
+        }
+    }
+
+    return $line;
+}
+
+#,,,,,,,.,,,.,,,,,.,.,,,.,,.,,.,,,...,.,.,..,,..,,...,...,...,..,,,,.,,..,.,,,
+#PWF3EAVEATE6WARAZVB36UMII6K2WQCP5SYBCGTKPXZWAMSY7FULPC5MVHYA5DULRUEOAGJ6PSAWK
+#\\\|WMO4MUJGVXTBDPPKQP3LH2KOVBHVFXTT2FAWPXYFBBYYAO6RIM5 \ / AMOS7 \ YOURUM ::
+#\[7]BZDLDPHDYBDGKCYSOBC6HAMACL4COHLC2CD4NFNNJ3NZ77S2BUBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = ascii.frame.slot.bind
+# descr = bind a scalar reference to a frame slot for live updates
+
+my $params = shift // {};
+
+my $descriptor = $params->{'descriptor'} // return undef;
+my $slot_name  = $params->{'slot'}       // return undef;
+my $scalar_ref = $params->{'ref'}        // return undef;
+
+return undef if ref $scalar_ref ne qw| SCALAR |;
+
+$descriptor->{'slots'} //= {};
+
+unless ( exists $descriptor->{'slots'}->{$slot_name} ) {
+    $descriptor->{'slots'}->{$slot_name} = {
+        type => 'field',
+        row  => 1,
+    };
+}
+
+$descriptor->{'slots'}->{$slot_name}->{'binding'} = $scalar_ref;
+
+return $descriptor;
+
+#,,.,,.,.,,,.,,.,,...,.,,,..,,,..,,,,,,,,,...,..,,...,...,.,,,...,,,,,.,,,,,,,
+#L2JJOOT6GD2MX76LHJBWK6U4ZWXWBS5DV4SP6EIV35SEDD3LQLLHR3QVY3W4TEDSME3SH57GQHOZW
+#\\\|GKXB7RFXCDBZECMA7ZQEYJ4I67Z7N4FAR4J47X4W6B5ROIJHF4J \ / AMOS7 \ YOURUM ::
+#\[7]M7KGJ4QBG2VH7UK34LEKRTNM4IW7Z3WXJZFJFTL2XC6EG7UR2ICY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
