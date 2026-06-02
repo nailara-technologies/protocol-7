@@ -1,0 +1,347 @@
+## [:< ##
+
+# name  = ascii.frame.parse
+# descr = reverse template parser : ascii art mockup to frame descriptor
+
+my $mockup = shift // return undef;
+
+return undef if not length $mockup;
+
+my @lines = split "\n", $mockup;
+
+## identify structural characters ##
+my $struct_re = qr/[:.,\[\]#=]/;
+
+## pass 1 : skeleton detection ##
+
+## find border lines by structural density and bracket patterns ##
+my @primary;
+my @secondary;
+for my $i ( 0 .. $#lines ) {
+    my $line = $lines[$i];
+    next if not length $line;
+    my $struct_count = 0;
+    $struct_count++ while $line =~ m{$struct_re}g;
+    my $density = length($line) > 0 ? $struct_count / length($line) : 0;
+    if ( $density >= 0.5 or $line =~ m{^#} ) {
+        push @primary, $i;
+    } elsif ( $line =~ m{\[}
+        and $line =~ m{\]}
+        and $line =~ m{^[:.,#]}
+        and $line =~ m{[:.,#]$} ) {
+        push @secondary, $i;
+    }
+}
+
+my @border_candidates = sort { $a <=> $b } ( @primary, @secondary );
+
+return undef if not @border_candidates;
+
+## top border is first substantial candidate [ not just a corner line ] ##
+my $top_idx = $border_candidates[0];
+if ( length( $lines[$top_idx] ) <= 2
+    and @border_candidates > 1 ) {
+    $top_idx = $border_candidates[1];
+}
+
+my $bottom_idx = $border_candidates[-1];
+my $has_bottom = ( scalar @border_candidates > 1 );
+
+## single border at top means open-bottom frame ##
+if ( scalar @border_candidates == 1
+    and $top_idx < scalar(@lines) / 2 ) {
+    $bottom_idx = scalar(@lines);
+    $has_bottom = 0;
+}
+
+## detect left and right border characters from content lines ##
+my ( $left_border, $right_border ) = ( ':', ':' );
+my @content_indices;
+for my $i ( $top_idx + 1 .. $bottom_idx - 1 ) {
+    push @content_indices, $i;
+}
+
+my ( %left_chars, %right_chars );
+for my $i (@content_indices) {
+    my $line = $lines[$i];
+    next if not length $line;
+    my $first = substr( $line,  0, 1 );
+    my $last  = substr( $line, -1, 1 );
+    $left_chars{$first}++;
+    $right_chars{$last}++;
+}
+
+if ( keys %left_chars ) {
+    $left_border = (
+        sort { $left_chars{$b} <=> $left_chars{$a} }
+            keys %left_chars
+    )[0];
+}
+if ( keys %right_chars ) {
+    $right_border = (
+        sort { $right_chars{$b} <=> $right_chars{$a} }
+            keys %right_chars
+    )[0];
+}
+
+## extract content region [ strip left and right borders ] ##
+my @content;
+for my $i (@content_indices) {
+    my $line = $lines[$i];
+    $line =~ s{^\Q$left_border\E}{};
+    $line =~ s{\Q$right_border\E$}{};
+    push @content, $line;
+}
+
+## compute padding from static rows [ lines without slots ] ##
+my ( $lpad, $rpad ) = ( 0, 0 );
+my @static_samples;
+for my $line (@content) {
+    next if not length $line;
+    next if $line =~ m{\{\{\w+(\.\.\.)?\}\}};
+    push @static_samples, $line;
+}
+
+## fall back to all content if no static rows ##
+@static_samples = grep { length $ARG } @content if not @static_samples;
+
+if (@static_samples) {
+    my $min_left  = ~0;
+    my $min_right = ~0;
+    for my $line (@static_samples) {
+        my $ls = 0;
+        $ls++ while $ls < length($line)
+            and substr( $line, $ls, 1 ) eq ' ';
+        my $rs = 0;
+        $rs++
+            while $rs < length($line)
+            and substr( $line, length($line) - 1 - $rs, 1 ) eq ' ';
+        $min_left  = $ls if $ls < $min_left;
+        $min_right = $rs if $rs < $min_right;
+    }
+    $lpad = $min_left;
+    $rpad = $min_right;
+}
+
+## pass 2 : elasticity encoding ##
+
+my $top_elements    = _parse_border_line( $lines[$top_idx] // '' );
+my $bottom_elements = [];
+if ($has_bottom) {
+    $bottom_elements = _parse_border_line( $lines[$bottom_idx] // '' );
+}
+
+## scan content for slots and static rows ##
+my ( %slots, %static_rows );
+for my $idx ( 0 .. $#content ) {
+    my $line     = $content[$idx];
+    my $row      = $idx + 1;         ## 1-based row in descriptor ##
+    my $has_slot = 0;
+
+    while ( $line =~ m{\{\{(\w+)(\.\.\.)?\}\}}g ) {
+        my $name     = $1;
+        my $is_block = defined $2;
+        my $match    = $&;
+        my $pos      = $-[0];
+        my $prefix   = substr( $line, 0, $pos );
+
+        if ($is_block) {
+            $slots{$name} = {
+                row    => $row,
+                type   => 'block',
+                height => 'auto',
+                prefix => $prefix,
+            };
+        } else {
+            my $suffix = substr( $line, $pos + length($match) );
+            $slots{$name} = {
+                row    => $row,
+                type   => 'field',
+                width  => 'auto',
+                prefix => $prefix,
+                suffix => $suffix,
+            };
+        }
+        $has_slot = 1;
+    }
+
+    if ( not $has_slot and length $line ) {
+        $static_rows{$row} = $line;
+    }
+}
+
+## strip padding from slot prefixes and suffixes ##
+for my $name ( keys %slots ) {
+    my $slot = $slots{$name};
+    if ( $lpad > 0 and exists $slot->{'prefix'} ) {
+        my $p = $slot->{'prefix'};
+        if ( length($p) >= $lpad and substr( $p, 0, $lpad ) eq ' ' x $lpad ) {
+            $slot->{'prefix'} = substr( $p, $lpad );
+        }
+    }
+    if ( $rpad > 0 and exists $slot->{'suffix'} ) {
+        my $s = $slot->{'suffix'};
+        if ( length($s) >= $rpad
+            and substr( $s, length($s) - $rpad, $rpad ) eq ' ' x $rpad ) {
+            $slot->{'suffix'} = substr( $s, 0, length($s) - $rpad );
+        }
+    }
+}
+
+## scan borders for inline slots ##
+for my $el ( @{$top_elements} ) {
+    if ( $el->{'type'} eq qw| slot | ) {
+        $slots{ $el->{'name'} } = {
+            region => 'border.top',
+            type   => 'inline',
+        };
+    }
+}
+for my $el ( @{$bottom_elements} ) {
+    if ( $el->{'type'} eq qw| slot | ) {
+        $slots{ $el->{'name'} } = {
+            region => 'border.bottom',
+            type   => 'inline',
+        };
+    }
+}
+
+## compute min_width from fixed anchor lengths ##
+my $min_width = 0;
+for my $el ( @{$top_elements}, @{$bottom_elements} ) {
+    $min_width += length( $el->{'value'} )
+        if $el->{'type'} eq qw| anchor |;
+}
+
+## determine corners from border lines ##
+my $top_line    = $lines[$top_idx]    // '';
+my $bottom_line = $lines[$bottom_idx] // '';
+
+my $corners = {
+    top_left     => length $top_line    ? substr( $top_line,     0, 1 ) : ':',
+    top_right    => length $top_line    ? substr( $top_line,    -1, 1 ) : '.',
+    bottom_left  => length $bottom_line ? substr( $bottom_line,  0, 1 ) : '#',
+    bottom_right => length $bottom_line ? substr( $bottom_line, -1, 1 ) : '.',
+};
+
+## assemble descriptor ##
+my $descriptor = {
+    border => {
+        top    => $top_elements,
+        bottom => $bottom_elements,
+        left   => $left_border,
+        right  => $right_border,
+    },
+    corners   => $corners,
+    width     => 'auto',
+    height    => 'auto',
+    min_width => $min_width,
+    padding   => {
+        left  => $lpad,
+        right => $rpad,
+    },
+    slots       => \%slots,
+    static_rows => \%static_rows,
+};
+
+return $descriptor;
+
+##[ border line parser : fills, anchors, slots ]##
+sub _parse_border_line {
+    my $line = shift;
+    my @elements;
+
+    ## locate all slots first ##
+    my @slot_positions;
+    while ( $line =~ m{\{\{(\w+)(\.\.\.)?\}\}}g ) {
+        push @slot_positions,
+            {
+            name  => $1,
+            start => $-[0],
+            end   => $+[0],
+            };
+    }
+
+    ## process segments between slots ##
+    my $pos = 0;
+    for my $sp (@slot_positions) {
+        my $segment = substr( $line, $pos, $sp->{'start'} - $pos );
+        _parse_border_segment( $segment, \@elements );
+        push @elements, { type => qw| slot |, name => $sp->{'name'} };
+        $pos = $sp->{'end'};
+    }
+    my $trailing = substr( $line, $pos );
+    _parse_border_segment( $trailing, \@elements );
+
+    return \@elements;
+}
+
+##[ parse a border segment [ between slots ] into anchors and fills ]##
+sub _parse_border_segment {
+    my ( $segment, $elements ) = @_;
+    return if not length $segment;
+
+    ## find bracketed anchors within segment ##
+    my @brackets;
+    while ( $segment =~ m{\[([^\]]*)\]}g ) {
+        push @brackets,
+            {
+            value => $&,
+            start => $-[0],
+            end   => $+[0],
+            };
+    }
+
+    ## walk segment : brackets are anchors, rest is fill or anchor ##
+    my $pos = 0;
+    for my $br (@brackets) {
+        my $text = substr( $segment, $pos, $br->{'start'} - $pos );
+        _parse_fill_anchor_text( $text, $elements );
+        push @{$elements}, { type => qw| anchor |, value => $br->{'value'} };
+        $pos = $br->{'end'};
+    }
+    my $remaining = substr( $segment, $pos );
+    _parse_fill_anchor_text( $remaining, $elements );
+}
+
+##[ split text into fill runs and anchor runs ]##
+sub _parse_fill_anchor_text {
+    my ( $text, $elements ) = @_;
+    return if not length $text;
+
+    ## fill-eligible chars : any run of the same p7 border char ##
+    my %fill_chars = map { $_ => 1 } ( ':', '.', '=' );
+
+    my $pos = 0;
+    while ( $pos < length($text) ) {
+        my $char = substr( $text, $pos, 1 );
+        if ( $fill_chars{$char} ) {
+            my $flen = 0;
+            while ( $pos + $flen < length($text)
+                and substr( $text, $pos + $flen, 1 ) eq $char ) {
+                $flen++;
+            }
+            push @{$elements},
+                { type => qw| fill |, char => $char, min => $flen };
+            $pos += $flen;
+        } else {
+            my $alen = 0;
+            while ( $pos + $alen < length($text)
+                and not $fill_chars{ substr( $text, $pos + $alen, 1 ) } ) {
+                $alen++;
+            }
+            push @{$elements},
+                {
+                type  => qw| anchor |,
+                value => substr( $text, $pos, $alen )
+                };
+            $pos += $alen;
+        }
+    }
+}
+
+#,,,.,.,,,,,,,...,,,.,.,.,...,,..,...,.,,,,.,,..,,...,...,.,.,.,,,,,,,.,,,..,,
+#GPS7SU57TOB57A45GLWGV2J2KMSPEW7YWOLMXSLXLXFIYQLXA3OT4BNR5UL65BEZR475EOVZ5JOOM
+#\\\|X2D45KZIEZPEIHMLSCXTCCUVOO6EVITIFLARBPGF56BFIL5QT4Y \ / AMOS7 \ YOURUM ::
+#\[7]B3UKK3DVV6XTCK4B5DOWD6BEXBYK2IKFOWT53Y4HK2OGKENWASCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
