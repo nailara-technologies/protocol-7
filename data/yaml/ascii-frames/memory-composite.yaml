@@ -1,0 +1,70 @@
+---
+name: memory-composite
+title: memory
+descr: |
+  composite memory window — two-mode frame.
+  progress mode: single animated line showing data acquisition state.
+  expanded mode: full container with double :: bars enclosing all memory sections.
+  the transition from progress to expanded is the unfold moment.
+border_style: double
+modes: [progress, expanded]
+
+mockup_progress: |
+  :::[{{PROGRESS}}]:::[ memory : {{STATUS}} ]:.
+
+mockup_expanded: |
+  :::[:::::::::::::::::::::::::::::::::]:::[ memory ]:.
+  :  {{PROFILE...}}                                  :
+  :                                                  :
+  :  {{FEEDBACK...}}                                 :
+  :                                                  :
+  :  {{PROJECT...}}                                  :
+  :                                                  :
+  :  {{TASKS...}}                                    :
+  #:::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+slots:
+  PROGRESS:
+    type: inline
+    region: border.top
+    mockup: progress
+    descr: progress bar fill — colons growing left to right as sections load; rendered in phosphor green
+  STATUS:
+    type: inline
+    region: border.top
+    mockup: progress
+    descr: current loading phase label — e.g. 'loading profile..', 'loading feedback..', 'ready'
+  PROFILE:
+    type: block
+    mockup: expanded
+    descr: rendered user-profile frame string
+  FEEDBACK:
+    type: block
+    mockup: expanded
+    descr: rendered feedback frames — one or more, stacked vertically
+  PROJECT:
+    type: block
+    mockup: expanded
+    descr: rendered project state frames — one or more, most recent first
+  TASKS:
+    type: block
+    mockup: expanded
+    descr: rendered task-queue frame string
+
+notes:
+  double_bars: |
+    border_style double means the renderer outputs :: instead of : for left/right
+    vertical bars. the mockup uses single : for parseability; the renderer applies
+    the double style based on this metadata. color: p7_fg_0001 (blue) vs p7_fg_0000
+    (purple) for single — visually distinguishes the container shell from leaf frames.
+  unfold: |
+    the progress → expanded transition:
+      1. render progress mode in a \r loop, updating PROGRESS and STATUS each tick
+      2. when STATUS = 'ready', print \n to commit the progress line
+      3. render expanded mode below — terminal scroll handles the reveal naturally
+
+#,,,,,.,.,,,,,,..,,.,,..,,...,..,,,,.,,,,,..,,..,,...,...,,..,,..,..,,.,,,,,.,
+#UUMQEABFIX4XEI4Z2NE3XLRICRUYR3A3E5IZOB2QT3P25QPBH6GRUFVO6BV2CEKHF5NQEFACSERIW
+#\\\|CTSGEQ2YFHEUEOKCV5VSGQZHZLZA5YEU3EBW3AIN7WX33OJ3ITW \ / AMOS7 \ YOURUM ::
+#\[7]7K36THVWONDGCHVITIBSAE7AIDS2NBUQOVYKR3QAR5ZPFPL6WCAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
