@@ -1,5 +1,8 @@
 # Completed Work Sessions — Index
 
+## 2026-06-02
+- session-72 — ascii.frame.* complete (9 modules + context.provider.frame + render.color), nshell cursor/color fixes (4 bugs), coding zenka hardening (chmod 0020→0002, compaction restart recovery, write permission chain)
+
 ## 2026-06-01
 - [session-69](session-69.md) — v7.restart :twin: zero-downtime concurrent restart; drain + spawn resilience; coding await_resources + instance-scoped pid files
 - [session-70](session-70.md) — coding zenka :twin: fixes (drain permission, awaiting_resources guard, pid file age display); channels on-demand; chat STDIN blocking fix; coding transparent task requeue on timeout
@@ -104,8 +107,8 @@
 ## Full Archive
 - [Complete session archive](archive/topic-completed-archive.md) — all detailed session summaries preserved
 
-#,,.,,,.,,,,,,.,,,,,,,,..,...,,,,,.,.,..,,,..,..,,...,...,.,,,...,,.,,,,.,,..,
-#2AYK3MTEVLCLFFJJ4M5HNANVT6OL3XGUB3CRNK5P3GD5DME2YRYZP4OJLSWFNWNWNO7RUWCAP5JS6
-#\\\|VMYFLUJJIYQDTZS3W67FC255CBGIWBB2L2W6K46OU77RC6FM4RV \ / AMOS7 \ YOURUM ::
-#\[7]WEJKD6S3RGADQ2KDU6VDRIPEVL47IYSUZSTTPJ32MMUQVRHQISBI 7  DATA SIGNATURE ::
+#,,,.,,,.,...,..,,,,.,,..,,,.,,.,,,.,,,.,,.,,,..,,...,.,.,..,,..,,.,,,...,..,,
+#52HRMU3D2TV2VAWSQCEMJQXDEJT6JAMQYX5GU5LQTYD7D4GW5W4OQLHASIUJ4XU6YRNF4H2BSOS6Y
+#\\\|DZMEGGCFXFRX6NYMGJMVBYPRTOMQFKO6JVHINIAUV24L4T5PIOQ \ / AMOS7 \ YOURUM ::
+#\[7]CUJ62Z33UV6CD3I2R7O4YBYIO3SHOHN72LVGOAEWVH6LLBANHGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
