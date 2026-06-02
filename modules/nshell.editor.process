@@ -70,7 +70,7 @@ if ( $action eq 'newline' ) {
     my $buffer_len = length($buffer);
 
     ## get terminal width to choose render path
-    my $term_cols = ( eval { ( AMOS7::TERM::terminal_size() )[1] } // 80 );
+    my $term_cols = ( eval { ( AMOS7::TERM::terminal_size() )[0] } // 80 );
 
     if ( $buffer_len < $term_cols ) {
         ## normal mode: de-render cursor and show clean full line
@@ -88,8 +88,8 @@ if ( $action eq 'newline' ) {
             if $cursor_pos + 1 < $buffer_len;
         print "\e[0m" . $colors{'p7_fg_0004'};
     } else {
-        ## overflow mode: clear marker/cursor escapes,
-        ## submit from current position
+        ## overflow mode: clear line and cursor, show full buffer from start
+        print "\r\e[2K" . $colors{'p7_fg_0004'} . $buffer;
         print "\e[0m" . $colors{'p7_fg_0004'};
     }
 
@@ -113,7 +113,7 @@ if ( $action eq 'newline' ) {
         $state_ref->{'current_history_index'} = -1;
     } else {
         ## redraw cursor on empty submit
-        print $colors{'p7_fg_0003'} . "_\r";
+        print $colors{'p7_fg_0003'} . "_\r" . "\e[0m" . $colors{'p7_fg_0004'};
         STDOUT->flush();
     }
 
@@ -123,8 +123,8 @@ if ( $action eq 'newline' ) {
 ## Unknown action - ignore
 return undef;
 
-#,,,.,..,,,,,,..,,,..,.,.,,.,,,,,,,,,,,,.,.,,,.,.,...,...,,,,,..,,,.,,.,.,,.,,
-#7W2JL6MQQCSVDEOSKRYEVF66DTMRRG6T7WJHF7WMQ7HXH6U4PLHPS5N2QQ7I4R2AA724EKFPMOSNA
-#\\\|RYDSFQAIULS4UDZYAIE4KFSEYA57QUDKPJHXH4IUYZKKYCAHSNU \ / AMOS7 \ YOURUM ::
-#\[7]ILN74LC2EUINHQZ6IWRDFMYSFODSPA5Z2J2DJLB2UXHVCWAKS6BA 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,..,.,.,...,,.,,..,,...,...,,..,.,.,...,...,..,,..,,.,,,,.,,.,,,
+#RPXD4KXWRQT3EQ24EHK3CWR7U2VRU4CNAABZTWL2VE7PKC4Q7DB4GOZKMDDG47DE4Q5DSPCNZSZVI
+#\\\|XEASBNLSBUGB4DGRG4VEV67ZQSJOTMFAEVH7UZLOVHYNBXH3MXA \ / AMOS7 \ YOURUM ::
+#\[7]GTRJ4NA372WMIL37NH6YTZTFQKYL2CTCYPOIGH67MYM6V6IVRQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

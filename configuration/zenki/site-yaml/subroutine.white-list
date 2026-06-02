@@ -74,7 +74,6 @@ base.cmd.reload
 base.calc_gauss
 plugin.auth.unix
 jobsite.job.read
-jobsite.job.index.build
 base.stream.push
 base.stream.open
 base.stream.gate
@@ -138,6 +137,7 @@ site-yaml.jobs.save
 site-yaml.init_code
 site-yaml.cmd.fetch
 plugin.auth.twofish
+jobsite.store.prune
 jobsite.stage.fetch
 jobsite.assert.init
 io.ip.tcp.init_code
@@ -164,7 +164,6 @@ site-yaml.cmd.search
 site-yaml.cmd.import
 jobsite.stage.review
 jobsite.job.load_all
-jobsite.store.prune
 io.ip.tcp.input.open
 clients.http.request
 clients.http.cleanup
@@ -227,6 +226,7 @@ site-yaml.fetch.backoff
 site-yaml.cmd.list-jobs
 protocol.sftp.init_code
 jobsite.sync.push_chunk
+jobsite.job.index.build
 jobsite.dispatch.repair
 io.unix.socket.end_code
 crypt.C25519.key_exists
@@ -432,7 +432,9 @@ base.init_zenka.install_signal_handlers
 base.handler.strm_size_absolute_timeout
 base.chk-sum.amos.truth_template_chksum
 protocol.sftp.handler.read_server_output
+jobsite.util.fix_encoding.mojibake-table
 protocol.protocol-7.auth.select-size-mode
+jobsite.util.fix_encoding.score-candidate
 base.zenki.ondemand.handler.startup_reply
 base.agent_code.handler.sig_warn.end_proc
 protocol.protocol-7.link-upgrade.handshake
@@ -448,8 +450,8 @@ auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,.,,.,,,,..,,,,,...,,,.,,,.,.,.,,,.,,,,,.,,,..,,...,.,.,,,,,..,,.,.,,,.,,.,,
-#COVH2JSOFNP6ACQJZZSGWOLNI7QBODYJNWJEQJPABXEF3CMPCUXG5UC356WIZZXUOBK37VTJHU3DW
-#\\\|MHIEBS5EHTWX243GCEMBCHM7C7Z6WKE6SDROXJC25LMCR3JZK64 \ / AMOS7 \ YOURUM ::
-#\[7]42SQUAGGKZIIWRR4XPFYISNXTR7WADQEGN4B2ABO5JUF6GSJZABA 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,.,,,,,,,,,,,,.,,,.,.,.,,,,,.,.,..,,...,..,,..,,...,,,,,...,.,,,
+#44FOH7USLQDE5U2ELQDCVLAXN2NEZUYFXRJJAKLEUTVNGYPDDQJAF3L6CESBVWBILBX26OPAPDTRY
+#\\\|75YAGQZUN4Q5UEHUZLTIY42PO5EIKHCHY5R5TJYJ5DDKQJXDAHP \ / AMOS7 \ YOURUM ::
+#\[7]BJL5PDV7EZD7JR2SUYWPJIX7JT4RPIVZ4TD2B6LB3JB62EH64UDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
