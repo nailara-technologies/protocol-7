@@ -25,7 +25,7 @@ see [topic-coding-zenka-massive-cleanup.md](topic-coding-zenka-massive-cleanup.m
 ## May 1 2026 Session — Regression, Revert, and nshell (0) Bug
 
 regression in `base.log.send-buffer.send-idle-callback` reverted in commit `3b01d2e81` — cube-only guard restored.
-nshell cmd_id (0) bug pre-existing, still open, low priority.
+nshell cmd_id (0) bug **FIXED** 2026-06-02 — orphaned route handler in `base.handler.command` generated `(0)!TERM!` for prefix-less replies; added `$cmd_id > 0` guard.
 
 ## NShell Ctrl+O Cycle Fixes (February 2025)
 
@@ -168,8 +168,8 @@ see [topic-language-detection.md](topic-language-detection.md)
 phase 1 operational (~950 lines); file-backed history at `data/chat/channel/*/history`; `data/ai-mem/handover.txt` retired.
 open: kimi zenka state machine upgrade (backend reconnect), coding zenka as third dispatch target, phase 2 channels zenka.
 
-#,,,,,.,.,,.,,,.,,,,.,...,,.,,..,,...,.,.,,.,,..,,...,..,,.,.,,.,,.,,,..,,,,.,
-#HBJFJ2A2IVMIE5TGSM2GNWT7EAEFBBCPM2IR7YZHBPRUKU3IJAI44CVLHT7K3DGQNGXQH7KTZHOXQ
-#\\\|RBDDNXGKDEYOYDOH3H3CQR3VXKSNQWKCCXUSBZASHVIRDKLGBE3 \ / AMOS7 \ YOURUM ::
-#\[7]MEIYC2OH2VLY53JXVCJE6XHN2HD25A4YOOCB4QC7B62PYDGVLSAY 7  DATA SIGNATURE ::
+#,,,.,..,,..,,..,,,,.,,,.,,..,,..,...,.,.,,.,,..,,...,...,..,,,..,,,.,,.,,.,,,
+#IVEWMOJ2QBJSZGJZCGGFLSMHNQO22YPSOL63L33BPI4XPWEIGYSKFQ7ZXLU547F5OMEDNLDKBY35I
+#\\\|G7KLHX44OKUH23ULO5XPOMCXA3THFBBRMB67XQF7FDI55UEDQUV \ / AMOS7 \ YOURUM ::
+#\[7]AVMRGI4EUGB2CALQOJBJLMNE44F4P2WBKIYBE6RW5LK6PDS5CAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

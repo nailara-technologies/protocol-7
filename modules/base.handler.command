@@ -133,9 +133,14 @@ my $call_args    = {};
 # check cmd_id regex [ for numbers or valid length ]
 if (    $input->$* =~ m|^\(([^\)]*)\)[^\n]+\n|
     and $input->$* !~ m|^\(($re->{cmd_id})\)| ) {
-    my $cmd_id = ${^CAPTURE}[0] // '';
+    my $cmd_id   = ${^CAPTURE}[0] // '';
+    my $bad_line = $input->$*;
+    $bad_line  =~ s|\n$||;
     $input->$* =~ s|^(\([^\)]*\)[^\n]+)\n||;
-    <[base.logs]>->( "[%d] command id syntax not valid [%s]", $id, $cmd_id );
+    <[base.logs]>->(
+        "[%d] command id syntax not valid ['%s'] line=['%s']",
+        $id, $cmd_id, $bad_line
+    );
     $output->$* .= "FALSE invalid command id syntax or length\n";
     $event->w->start;    ##  restarting input buffer processing  ##
     return 0;            ## comand complete ##
@@ -1464,8 +1469,9 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                 );
 
                 ##  orphaned route : signal producer to stop  ##
-                if ( not $data{'session'}{$id}{'stream_cancelled'}{$cmd_id} )
-                {
+                if ( $cmd_id > 0
+                    and
+                    not $data{'session'}{$id}{'stream_cancelled'}{$cmd_id} ) {
                     $data{'session'}{$id}{'buffer'}{'output'}
                         .= sprintf "(%d)!TERM!\n", $cmd_id;
                     <[base.logs]>->(
@@ -1476,7 +1482,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                         $cmd_id
                     );
                 }
-                $data{'session'}{$id}{'stream_cancelled'}{$cmd_id} = TRUE;
+                $data{'session'}{$id}{'stream_cancelled'}{$cmd_id} = TRUE
+                    if $cmd_id > 0;
 
                 ## [ HOOK POINT: unknown-reply-route - complete case ]
                 ## Hook can intercept complete replies with unknown route IDs
@@ -1510,8 +1517,9 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                 );
 
                 ##  orphaned route : signal producer to stop  ##
-                if ( not $data{'session'}{$id}{'stream_cancelled'}{$cmd_id} )
-                {
+                if ( $cmd_id > 0
+                    and
+                    not $data{'session'}{$id}{'stream_cancelled'}{$cmd_id} ) {
                     $data{'session'}{$id}{'buffer'}{'output'}
                         .= sprintf "(%d)!TERM!\n", $cmd_id;
                     <[base.logs]>->(
@@ -2304,8 +2312,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,,.,...,.,,,..,,,..,,.,,,,.,.,,,.,.,,..,..,,..,,...,...,,.,,,..,.,.,,.,,.,,,
-#FYKV4NMDOROHLXV4EDDHNGDN5DOBC6MZT2BOKBOCKGFKXCJP3PQOS2GTKGICH5ZWTOY2MA3M7UE3M
-#\\\|UESOJBS7KK3IIAJM7OIYXIXG4JSXQ3KF6YWQMVRPUQZSE3AKDQX \ / AMOS7 \ YOURUM ::
-#\[7]UNTVHNTBKFRMHBXB3BWUMG6EVKEVUNHN4LXEY36RDDFQBNQD4SDQ 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,.,.,...,.,.,,,,,...,..,,..,,,,,,..,,...,...,..,,,..,.,,,...,,,.,
+#YYMFHQDF2GXYOZ4WAFURA4OXOQL52JFTAHS3F3JOMZTTC5AR3JJSJ6AUEZ6HD7UTLL4NIMKHBI4WE
+#\\\|NEH4HQXFN2DU63ERDKNZVZX3WEXMBI6UX72IDBM654DF6GYRVER \ / AMOS7 \ YOURUM ::
+#\[7]SPQD7AMLZIOW5CCS63PHLDJBZF4PABKUJJZZENBMGT2LLS3W3WDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
