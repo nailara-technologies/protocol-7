@@ -66,15 +66,21 @@ if ( not defined $payload_str ) {
 
     print $payload_str;
 }
-print "\r"    ## re-display cursor after multi-line output
-    . $colors{'p7_fg_0003'} . "_\e[K\r" . "\e[0m" . $colors{'p7_fg_0004'};
+## re-display cursor after reply output
+## ensure we start on a fresh line if payload didn't end with one
+print "\n" if defined $payload_str && $payload_str !~ m{\n\z};
+
+print "\r"
+    . $colors{'p7_fg_0003'}
+    . "_\e[K\r" . "\e[0m"
+    . $colors{'p7_fg_0004'};
 
 STDOUT->flush();
 
 return TRUE;
 
-#,,..,,..,..,,.,,,.,.,,,.,,,.,,..,.,,,..,,,,.,.,.,...,.,.,...,..,,..,,,.,,,..,
-#CU5OUEGNVZX622AZJG32VLKTXFNUL32A26HYIKSO3N6DQAG5NZ6BYOKUHOT5PWOMKLNETGVWT4GE2
-#\\\|K46G64CQHTKEGNT5EUMSBUNGMYVWDBBDAT3GYRHSNNCL46HZIMK \ / AMOS7 \ YOURUM ::
-#\[7]QDTZFH54NXMHRZBQE3HKPV6XDY3PB3TLMG3GPH6HKSGK7TCKDCDA 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,.,.,,,.,,.,,,.,,.,.,,..,,,.,,,,,.,.,...,...,..,,,,.,.,.,...,.,.,
+#7VAAEIZP3IK5UXSSONUDLO256BUYFLLFMGWFP6L2UOGUQD4KPLRY6DAXLZVTL4UP2LOMQBKWEF442
+#\\\|EO36BOZGCWAPI45E2KIZXHVA5HPGPDKBIQS7QZF234IG3SDD4IM \ / AMOS7 \ YOURUM ::
+#\[7]XDDYQ4SZRXNQYTVM3H24TVF3XFJ6KPL3RXCI7LWJWNTWMJ2CNIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
