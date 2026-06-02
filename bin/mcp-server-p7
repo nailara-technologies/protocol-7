@@ -53,20 +53,24 @@ my $auth_user = sprintf 'unix-%s',
 my @external_tools = (
     {   'name'        => 'kimi_dispatch',
         'description' => 'dispatch a task to the local kimi AI agent. '
-            . 'runs kimi with auto-approval (-y) and returns combined output. '
+            . 'runs kimi with auto-approval (-y) and returns combined '
+            . 'output. '
             . 'use for code implementation, analysis, or research tasks. '
             . 'kimi prints a resume line at the end: '
             . '"To resume this session: kimi -r <uuid>" — '
-            . 'pass that uuid to kimi_continue to resume a long-running task.',
+            . 'pass that uuid to kimi_continue to resume a long-running '
+            . 'task.',
         'command' => 'kimi -y -p %s',
         'params'  => [
             [ 'prompt', 'the task or question for kimi to work on', 1 ],
             [   'auto_summarize',
-                'summarize output via local 9B model before returning (default: true)',
+                'summarize output via local 9B model before returning '
+                    . '(default: true)',
                 0
             ],
             [   'keep',
-                'keep stored summary focus after use for verification (default: false)',
+                'keep stored summary focus after use for verification '
+                    . '(default: false)',
                 0
             ],
         ],
@@ -77,7 +81,8 @@ my @external_tools = (
             'resume a kimi session by session id and send a new prompt. '
             . 'use when kimi_dispatch output ends with a resume line. '
             . 'pass the uuid from "To resume this session: kimi -r <uuid>". '
-            . 'kimi resumes with full prior context and acts on the new prompt.',
+            . 'kimi resumes with full prior context and acts on the new '
+            . 'prompt.',
         'command'     => 'kimi -y -r %s -p %s',   ## session uuid + new prompt
         'param_name'  => 'session_id',
         'param_desc'  => 'the kimi session uuid from the resume line',
@@ -89,10 +94,14 @@ my @external_tools = (
     {   'name'        => 'claude_dispatch',
         'description' =>
             'dispatch a task to Claude Code CLI in non-interactive mode. '
-            . 'high-quality async dispatch for complex multi-file code tasks, architecture decisions, or '
-            . 'tasks requiring deep reasoning. specify model=haiku for cheap mechanical work, '
-            . 'model=sonnet (default) for general tasks, model=opus for maximum quality. '
-            . 'the result ends with "To resume this session: claude -r <uuid>" — pass that '
+            . 'high-quality async dispatch for complex multi-file code '
+            . 'tasks, architecture decisions, or '
+            . 'tasks requiring deep reasoning. specify model=haiku for '
+            . 'cheap mechanical work, '
+            . 'model=sonnet (default) for general tasks, model=opus for '
+            . 'maximum quality. '
+            . 'the result ends with "To resume this session: claude -r '
+            . '<uuid>" — pass that '
             . 'uuid to claude_continue to resume a long-running task.',
         'command' => 'claude -p %s --dangerously-skip-permissions '
             . '--output-format stream-json --model %s --max-budget-usd %s',
@@ -101,11 +110,13 @@ my @external_tools = (
             [ 'model',      'model: haiku|sonnet|opus (default: sonnet)', 0 ],
             [ 'max_budget', 'max USD to spend (default: 1.00)',           0 ],
             [   'auto_summarize',
-                'summarize output via local 9B model before returning (default: true)',
+                'summarize output via local 9B model before returning '
+                    . '(default: true)',
                 0
             ],
             [   'keep',
-                'keep stored summary focus after use for verification (default: false)',
+                'keep stored summary focus after use for verification '
+                    . '(default: false)',
                 0
             ],
         ],
@@ -115,7 +126,8 @@ my @external_tools = (
         'description' =>
             'resume a claude session by session ID and send a new prompt. '
             . 'use when claude_dispatch output ends with a resume line. '
-            . 'claude resumes with full prior context and acts on the new prompt.',
+            . 'claude resumes with full prior context and acts on the new '
+            . 'prompt.',
         'command' => 'claude -r %s -p %s --dangerously-skip-permissions '
             . '--output-format stream-json --model %s --max-budget-usd %s',
         'params' => [
@@ -130,16 +142,21 @@ my @external_tools = (
     },
     {   'name'        => 'coding_summarize',
         'description' =>
-            'summarize text or a file using the local coding zenka (9B model, free). '
-            . 'use file param to summarize without loading content into context (token-free). '
-            . 'if text exceeds model context, uses rolling-window summarization.',
+            'summarize text or a file using the local coding zenka (9B '
+            . 'model, free). '
+            . 'use file param to summarize without loading content into '
+            . 'context (token-free). '
+            . 'if text exceeds model context, uses rolling-window '
+            . 'summarization.',
         'params' => [
             [   'text',
-                'content to summarize (use file instead to avoid loading into context)',
+                'content to summarize (use file instead to avoid loading '
+                    . 'into context)',
                 0
             ],
             [   'file',
-                'absolute path to file — zenka reads it directly, content never enters context',
+                'absolute path to file — zenka reads it directly, content '
+                    . 'never enters context',
                 0
             ],
             [   'instruction', 'what to focus on (default: general summary)',
@@ -267,7 +284,8 @@ our @tools = (
     {   'name'        => 'p7_task_continue',
         'description' =>
             'continue a completed task with a follow-up message. '
-            . 'reuses the existing backend session for multi-turn interaction.',
+            . 'reuses the existing backend session for multi-turn '
+            . 'interaction.',
         'inputSchema' => {
             'type'       => 'object',
             'properties' => {
@@ -416,7 +434,8 @@ our @tools = (
                 'tool_name' => {
                     'type'        => 'string',
                     'description' =>
-                        'name of the tool to call [ e.g. "read_file", "search_code" ]'
+                        'name of the tool to call [ e.g. "read_file", '
+                        . '"search_code" ]'
                 },
                 'arguments' => {
                     'type'        => 'object',
@@ -430,8 +449,10 @@ our @tools = (
     {   'name'        => 'session_catchup',
         'description' =>
             'list or summarize recent claude/kimi sessions for this project. '
-            . 'without session_id: returns reverse-time sorted list with titles. '
-            . 'with session_id: summarizes that session via local 9B model (token-free). '
+            . 'without session_id: returns reverse-time sorted list with '
+            . 'titles. '
+            . 'with session_id: summarizes that session via local 9B model '
+            . '(token-free). '
             . 'use to catch up after a context reset or handover.',
         'inputSchema' => {
             'type'       => 'object',
@@ -461,10 +482,13 @@ our @tools = (
     },
     {   'name'        => 'store_summary_focus',
         'description' =>
-            'prime the next auto_summarize with a specific focus instruction. '
-            . 'the stored focus is used once by the next kimi_dispatch or claude_dispatch '
+            'prime the next auto_summarize with a specific focus '
+            . 'instruction. '
+            . 'the stored focus is used once by the next kimi_dispatch or '
+            . 'claude_dispatch '
             . 'auto_summarize, then cleared automatically. '
-            . 'use before a dispatch to tell the summarizer exactly what YOU need to know '
+            . 'use before a dispatch to tell the summarizer exactly what '
+            . 'YOU need to know '
             . 'from the result, rather than getting a generic status dump. '
             . 'call with empty instruction to clear without using.',
         'inputSchema' => {
@@ -473,7 +497,8 @@ our @tools = (
                 'instruction' => {
                     'type'        => 'string',
                     'description' =>
-                        'the focus for the next summarization (empty to clear)'
+                        'the focus for the next summarization (empty to '
+                        . 'clear)'
                 }
             },
             'additionalProperties' => \0
@@ -481,8 +506,10 @@ our @tools = (
     },
     {   'name'        => 'p7_memory_summary',
         'description' =>
-            'summarize the protocol-7 development memory for context continuity '
-            . 'and session handover. auto detects the calling agent and returns '
+            'summarize the protocol-7 development memory for context '
+            . 'continuity '
+            . 'and session handover. auto detects the calling agent and '
+            . 'returns '
             . 'that agent\'s own memory by default.',
         'inputSchema' => {
             'type'       => 'object',
@@ -491,14 +518,18 @@ our @tools = (
                     'type'        => 'string',
                     'enum'        => [ 'claude', 'kimi', 'both', 'auto' ],
                     'description' =>
-                        'which memory to summarize [ claude | kimi | both | auto ]. '
-                        . 'auto detects from MCP client identity and returns caller\'s own memory.'
+                        'which memory to summarize [ claude | kimi | both | '
+                        . 'auto ]. '
+                        . 'auto detects from MCP client identity and '
+                        . 'returns caller\'s own memory.'
                 },
                 'focus' => {
                     'type'        => 'string',
                     'description' =>
-                        'what to emphasize: recent commits, open bugs, next priorities, '
-                        . 'architectural decisions, etc. (default: handover-optimized)'
+                        'what to emphasize: recent commits, open bugs, next '
+                        . 'priorities, '
+                        . 'architectural decisions, etc. (default: '
+                        . 'handover-optimized)'
                 },
                 'max_tokens' => {
                     'type'        => 'integer',
@@ -512,9 +543,12 @@ our @tools = (
     {   'name'        => 'p7_memory_update',
         'description' =>
             'review and update the protocol-7 development memory. '
-            . 'review mode gathers recent git changes, memory summary, and session '
-            . 'summaries so the parent model can identify gaps. apply mode delegates '
-            . 'to the coding zenka to append specific content to the memory file.',
+            . 'review mode gathers recent git changes, memory summary, and '
+            . 'session '
+            . 'summaries so the parent model can identify gaps. apply mode '
+            . 'delegates '
+            . 'to the coding zenka to append specific content to the memory '
+            . 'file.',
         'inputSchema' => {
             'type'       => 'object',
             'properties' => {
@@ -522,13 +556,15 @@ our @tools = (
                     'type'        => 'string',
                     'enum'        => [ 'claude', 'kimi', 'auto' ],
                     'description' =>
-                        'which agent memory to target [ claude | kimi | auto ]. '
+                        'which agent memory to target [ claude | kimi | '
+                        . 'auto ]. '
                         . 'auto detects from MCP client identity.'
                 },
                 'sessions' => {
                     'type'        => 'integer',
                     'description' =>
-                        'number of recent sessions to summarize (default: 1, 0 for none)'
+                        'number of recent sessions to summarize (default: '
+                        . '1, 0 for none)'
                 },
                 'git_changes' => {
                     'type'        => 'boolean',
@@ -545,7 +581,8 @@ our @tools = (
                 'content' => {
                     'type'        => 'string',
                     'description' =>
-                        'text to append to memory file (required for apply mode)'
+                        'text to append to memory file (required for apply '
+                        . 'mode)'
                 },
                 'focus' => {
                     'type'        => 'string',
@@ -1264,7 +1301,8 @@ sub send_error {
 sub send_tool_result {
     my ( $id, $text, $is_error ) = @ARG;
 
-    ## cube returns raw utf-8 bytes — decode to perl chars before json encoding ##
+    ## cube returns raw utf-8 bytes — decode to perl chars before json
+    ## encoding ##
     utf8::decode($text) if defined $text and not utf8::is_utf8($text);
 
     send_result(
@@ -1324,7 +1362,8 @@ sub tool_agent_dispatch {
     ( my $safe_prompt = $prompt ) =~ s{\n}{ }g;
 
     my $cmd
-        = "kimi-web.dispatch agent_id=$agent_id prompt=\"$safe_prompt\" timeout=$timeout";
+        = "kimi-web.dispatch agent_id=$agent_id prompt=\"$safe_prompt\" "
+        . "timeout=$timeout";
 
     my ( $ok, $response ) = cube_command($cmd);
     send_tool_result( $id, $response, $ok ? 0 : 1 );
@@ -1423,14 +1462,16 @@ sub tool_coding_summarize {
         cube_disconnect();    ## socket may be mid-write — force fresh connect
         $error
             = $@ eq "timeout\n"
-            ? 'summarization timed out after 247s — model may still be loading'
+            ? 'summarization timed out after 247s — model may still be '
+            . 'loading'
             : "error: $@";
     }
 
     if ( length $error ) {
         send_tool_result( $id, $error, 1 );
     } else {
-        $result //= 'summarization failed — coding zenka may not be running';
+        $result
+            //= 'summarization failed — coding zenka may not be ' . 'running';
         send_tool_result( $id, $result, 0 );
     }
 }
@@ -1442,7 +1483,8 @@ sub tool_store_summary_focus {
         $pending_summary_focus = $instruction;
         send_tool_result(
             $id,
-            "summary focus stored — will apply to next dispatch auto_summarize",
+            "summary focus stored — will apply to next dispatch "
+                . "auto_summarize",
             0
         );
     } else {
@@ -1476,7 +1518,8 @@ sub tool_p7_memory_summary {
 
     my $default_focus
         = 'optimize handover context between sessions: identify critical '
-        . 'unfinished work, recent architectural decisions, and what the next '
+        . 'unfinished work, recent architectural decisions, and what the '
+        . 'next '
         . 'session absolutely needs to know to be productive immediately.';
     my $instruction = length($focus) ? $focus : $default_focus;
 
@@ -1583,7 +1626,8 @@ sub tool_p7_memory_update {
         if ($ok) {
             send_tool_result(
                 $id,
-                "appended to $agent memory:\n\n$content\n\n[coding zenka response: $response]",
+                "appended to $agent memory:\n\n$content\n\n[coding zenka "
+                    . "response: $response]",
                 0
             );
         } else {
@@ -1608,7 +1652,8 @@ sub tool_p7_memory_update {
                 push @parts, ":. recent git changes .:\n\n$git_out";
             } else {
                 push @parts,
-                    ":. recent git changes .:\n\n[no changes or unable to fetch]";
+                    ":. recent git changes .:\n\n[no changes or unable to "
+                    . "fetch]";
             }
         }
 
@@ -1617,7 +1662,8 @@ sub tool_p7_memory_update {
             my $mem_focus
                 = length($focus)
                 ? $focus
-                : 'summarize what is currently documented in this development memory';
+                : 'summarize what is currently documented in this '
+                . 'development memory';
             my $s = _do_summarize_file( $mem_path, $mem_focus, 600 );
             push @parts, ":. current $agent memory .:\n\n"
                 . ( $s // 'summarization failed' );
@@ -1640,7 +1686,8 @@ sub tool_p7_memory_update {
                 next unless length $text;
                 my $sum = _do_summarize(
                     $text,
-                    'summarize what was accomplished, key decisions, and open issues',
+                    'summarize what was accomplished, key decisions, and '
+                        . 'open issues',
                     400
                 );
                 my $header = sprintf ":. %s session %s .[ %s ]:.\n",
@@ -1749,7 +1796,8 @@ sub _do_summarize {
             $pos += $chunk_size;
             my $content
                 = length($running)
-                ? "previous summary:\n$running\n\nnew content to integrate:\n$chunk"
+                ? "previous summary:\n$running\n\nnew content to "
+                . "integrate:\n$chunk"
                 : "$instruction:\n\n$chunk";
             my ( $ok, $chunk_result ) = $_b32_cmd->($content);
             return undef unless $ok;
@@ -1900,10 +1948,13 @@ sub tool_session_catchup {
         my $inst
             = length($instruction)
             ? $instruction
-            : 'summarize what was accomplished, key decisions, open issues, and next steps';
+            : 'summarize what was accomplished, key decisions, open issues, '
+            . 'and next steps';
 
-        ## session files are in user home — coding zenka (different user) can't
-        ## read them directly; extract conversation text here and pass as content ##
+        ## session files are in user home — coding zenka (different user)
+        ## can't
+        ## read them directly; extract conversation text here and pass as
+        ## content ##
         my $text = _extract_session_text( $s->{'file'}, $s->{'client'} );
         return send_tool_result( $id, 'failed to read session file', 1 )
             unless length $text;
@@ -2001,7 +2052,8 @@ sub _do_summarize_file {
     $instruction //= 'summarize concisely';
     $max_tokens  //= 500;
 
-    ## coding zenka reads the file directly — content never enters mcp context ##
+    ## coding zenka reads the file directly — content never enters mcp
+    ## context ##
     my $focus   = '';
     my $cmd_opt = "max_len=$max_tokens path=$path";
     $cmd_opt .= " focus=$focus" if length $focus;
@@ -2092,7 +2144,8 @@ sub tool_external_command {
             : ( lc($auto_sum) ne 'false' and $auto_sum ne '0' ) ? 1
             :                                                     0;
         if ($do_sum) {
-            ## preserve resume line verbatim — keep UUID out of model round-trip ##
+            ## preserve resume line verbatim — keep UUID out of model
+            ## round-trip ##
             my $resume_line = '';
             if ( $output =~ s{(\nTo resume this session: \S+ -r \S+)\n*$}{} )
             {
@@ -2130,8 +2183,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,.,.,.,,.,,...,,.,,,,.,,.,,,..,.,,,...,...,..,,...,...,..,,..,,,,.,...,,..,
-#7Z3NYKLV52XLXHOF53JIXIEMTFZHS3TFOWMAEIZU2KRNPGNLRA6Y4QLQHWVNYJMVK6IFZE526WPIE
-#\\\|R2XURMXYYCYJ7B3I23RIVFAH45BGGXDDY2FVUYBM434KK3LYZTI \ / AMOS7 \ YOURUM ::
-#\[7]73OEK6WJ4SCSBDQXWX65U2WCP33VT5E53R5NVXXUUUTWG7MYTECQ 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,,,.,,,,,,,.,,.,,.,,,,,.,,,.,,,,,..,,...,...,...,,.,,.,,,,..,,..,
+#F2CT633CIOIYXQXL3OM4HKBH6LM2MLEXBH3LHR5K2LMXLHBLH2XJDZWACA35KVF2SJ53TLHDVTWTQ
+#\\\|I5XGCRGRURQQOTKTETQA6GKW4YZYEAP77WID25N5EHRWDIT3DZY \ / AMOS7 \ YOURUM ::
+#\[7]AOLDPCYKOX374GKTEHEJGXZOI63L6F4K5LYMY4OGYHKRICSR3UCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
