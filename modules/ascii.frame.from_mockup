@@ -1,0 +1,71 @@
+## [:< ##
+
+# name  = ascii.frame.from_mockup
+# descr = user-facing entry point: parse + validate + optional escalation
+
+my $params = shift // {};
+
+my $mockup = $params->{'mockup'};
+my $strict = $params->{'strict'} // 0;
+my $name   = $params->{'name'}   // '';
+
+## parse mockup ##
+my $descriptor = <[ascii.frame.parse]>->($mockup);
+
+if ( not defined $descriptor ) {
+    return {
+        ok     => 0,
+        errors => [
+            {   check   => 'parse',
+                message => 'mockup parse ' . 'failed'
+            }
+        ],
+        error_classes => ['syntax'],
+    };
+}
+
+## validate descriptor ##
+my $result = <[ascii.frame.validate]>->($descriptor);
+
+if ( $result->{'valid'} ) {
+    return { ok => 1, descriptor => $descriptor };
+}
+
+my @errors        = $result->{'errors'}->@*;
+my @error_classes = $result->{'error_classes'}->@*;
+
+## strict mode: return errors without escalation ##
+if ($strict) {
+    return {
+        ok            => 0,
+        errors        => \@errors,
+        error_classes => \@error_classes,
+    };
+}
+
+## check for topology/syntax errors ##
+my %class_map = map { $ARG => 1 } @error_classes;
+if ( $class_map{'topology'} or $class_map{'syntax'} ) {
+    return {
+        ok            => 0,
+        escalate      => 1,
+        errors        => \@errors,
+        error_classes => \@error_classes,
+    };
+}
+
+## only reference/structural errors: log warnings and proceed ##
+for my $err (@errors) {
+    <[base.logs]>->(
+        2,     ': ascii frame from_mockup warning [ %s ]: %s',
+        $name, $err->{'message'} // 'unknown'
+    );
+}
+
+return { ok => 1, descriptor => $descriptor };
+
+#,,..,..,,.,.,...,.,,,,,.,..,,.,,,...,,..,,,,,..,,...,...,.,,,,.,,.,.,,..,,,,,
+#BQE4OOPFQWEBYTE4STAJQOLOXQCJXD3NX6KXGEDKJHKUAHMERWTSHYMWLX2NAUJ4AD3XUOAMLBWT6
+#\\\|6JES4R5NKFSV353MVVMSAQ3GMPH6CDJG7S4RAEJO6HZMQXRU34R \ / AMOS7 \ YOURUM ::
+#\[7]JDYPM6JRNDSTVVIA5K2XTEJPKNJA37Z5INCOSTGS7TWQHPRSMODQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
