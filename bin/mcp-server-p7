@@ -1470,8 +1470,7 @@ sub tool_coding_summarize {
     if ( length $error ) {
         send_tool_result( $id, $error, 1 );
     } else {
-        $result
-            //= 'summarization failed — coding zenka may not be ' . 'running';
+        $result //= 'summarization failed — coding zenka may not be running';
         send_tool_result( $id, $result, 0 );
     }
 }
@@ -1642,7 +1641,9 @@ sub tool_p7_memory_update {
 
     eval {
         local $SIG{ALRM} = sub { die "timeout\n" };
-        alarm(300);
+        ## 7 minutes — memory review fetches git + summarizes file +
+        ## sessions ##
+        alarm(420);
 
         ## 1. recent git changes ##
         if ($git_changes) {
@@ -2183,8 +2184,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,,,,..,.,.,,,.,,,,,,,.,,.,,.,,,,,.,,,.,,,,,..,,...,...,...,,.,,.,,,,..,,..,
-#F2CT633CIOIYXQXL3OM4HKBH6LM2MLEXBH3LHR5K2LMXLHBLH2XJDZWACA35KVF2SJ53TLHDVTWTQ
-#\\\|I5XGCRGRURQQOTKTETQA6GKW4YZYEAP77WID25N5EHRWDIT3DZY \ / AMOS7 \ YOURUM ::
-#\[7]AOLDPCYKOX374GKTEHEJGXZOI63L6F4K5LYMY4OGYHKRICSR3UCI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,,,,.,,,..,,.,.,..,,,,.,,.,,,.,,..,,...,...,.,,,,,.,,,,,..,,,..,
+#S3ML3D4CICCUZGKR4TRJIPRAB5VIKAWX65ZLOZCWTMK5W2RQJM5IYJEGIRGH3POBDQXGXXCYCMMDW
+#\\\|BPVMQFLNWIFLDEA5U4PG64L3IZVDW5YE6TETGERBDSVDDNRYCEI \ / AMOS7 \ YOURUM ::
+#\[7]7PZ3W2KPMFNTRN7K3RWJJZAC5OP6DMI4KVOFPZEUCLHKPDYVDOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
