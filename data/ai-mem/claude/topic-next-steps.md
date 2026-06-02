@@ -9,7 +9,7 @@ metadata:
 
 ## open bugs
 
-- **nshell (0) on first command**: `(0)<something>\n` sent once per session at startup; `$re->{cmd_id} = \d{2,15}` rejects single-digit 0; source UNCONFIRMED after 100-round investigation (May 1); NOT from log send system, NOT cmd_id counter; likely v7.notify_online reply or startup buffer entry
+- ~~nshell (0) on first command~~ **FIXED 2026-06-02** — orphaned route handler in `base.handler.command` generated `(0)!TERM!` for prefix-less replies (`cmd_id == 0`); guard added
 - **nshell stray cursor**: `index.cmd.search/lookup/stats` added trailing `\n` to inline SIZE replies (commit DE5EAEA4); nshell output handler may be double-newlining — check `nshell.handler.strm_reply`
 - **STRM fix review needed**: `had_local_consumer` fix correct for local consumer; relay path unchanged; test needed on radio zenka and other STRM consumers
 
@@ -188,8 +188,8 @@ metadata:
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,..,,.,,,.,,,.,,,.,,,..,...,.,.,.,.,,.,,..,,..,,...,..,,.,,,,.,,,.,,,.,,,,.,
-#Y5AFIDMMQKFMNMHTRJHYXEANNKF7DUAZ4BRTISXIQHZREF7QUR2V5TSLXOHMNWVX3KBBVIGSIOSD4
-#\\\|MIYKIA2D2BNDT7VYM2CELBA3YROFFYXC4CNV5I2ZOFNJ3SGY6KK \ / AMOS7 \ YOURUM ::
-#\[7]KNIOZ6UN5GYXXNELLC37HWXL57GWFUKLYCN33NAWXFUAPT6JEMCY 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,.,,,.,,.,.,.,,,.,,,,,,,..,,.,.,..,,...,...,,.,,..,,,..,,,.,.,.,
+#H6R5PYLLILLWEF6JA5JEFBKFKWK45PRJUSGNAAPCYCHGVH5XYWNOWBYGKZ5T2N57ZNUETN5AKOUGC
+#\\\|E5KBN6WDCHM3KB6MTD2BAO3NBFWAPQF67DLXHM2JR7IXJDZDVN4 \ / AMOS7 \ YOURUM ::
+#\[7]ED2MQQIGJMC5ZOCCBQIYSDBPJS3244XZBBEDITTDB2LYFDONYQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
