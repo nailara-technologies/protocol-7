@@ -26,20 +26,13 @@ originSessionId: 6f91985c-b3f0-4cfc-b8d2-1a26499a7881
   3. Illegal backslash escapes (\[ \< \$ etc)
 - On parse failure: return exact error to model (not empty args) so model can fix its JSON
 
-## nshell first-command (0) bug
-- `( echo clear ; sleep 2 ; echo close ) | p7.nshell | grep invalid` triggers error
-- Cube receives `(0)clear\n` on first command only
-- Earlier form was `(cmd_id)(route_id)p7-log.append...` — the commit `01b6be26e`
-  ("STRM cancel + protocol cmd_id format fixes") removed trailing space from cmd_id
-  formatting, changing the appearance of the bug without fixing root cause
-- Root cause still unconfirmed: something writes to session output buffer before first
-  user command. send.local debug showed it's NOT from log send system. YYOPDKA template
-  produces "FALSE..." with no (0) when cmd_id empty. Likely: something that was undef
-  (no prefix) is now 0 (produces (0) prefix) due to the format fix.
-- Cube alias `setup.aliases.source_zenka_sid` (config/zenki/cube/command_aliases)
-  auto-prepends SOURCE_ZENKA SOURCE_SID to p7-log.append — do NOT add manually
+## nshell first-command (0) bug — FIXED 2026-06-02
+- **Root cause:** `base.handler.command` orphaned route handler generated `(0)!TERM!` when processing prefix-less replies (`cmd_id == 0`). The `clear` command triggers this via SIZE reply orphan paths.
+- **Fix:** Added `$cmd_id > 0` guard to both orphaned-route `!TERM!` paths (lines ~1470, ~1516).
+- **Defense in depth:** `base.protocol-7.command.send.local` line 107 changed wrap regex from `^(\d+)$` to `^([1-9]\d*)$` so `0` never gets wrapped as `(0)`.
+- Historical: commit `01b6be26e` removed trailing space from cmd_id formatting, changing appearance without fixing root cause.
+- Cube alias `setup.aliases.source_zenka_sid` (config/zenki/cube/command_aliases) auto-prepends SOURCE_ZENKA SOURCE_SID to p7-log.append — do NOT add manually.
 - Kimi session archived: `data/asc/coding-chats/kimi-session-nshell-bug.jsonl.xz`
-- Proper fix: cube raw mode + VTerm line session buffers (large feature, deferred)
 
 ## nshell Ctrl+O fix
 - `history_add` uses push+shift at max capacity — shifts all indices down by 1
@@ -59,8 +52,8 @@ originSessionId: 6f91985c-b3f0-4cfc-b8d2-1a26499a7881
 - Sliding window paragraph compaction idea: center paragraph compacted with prev/next
   as anchors; group sizes adjustable; works for trees/networks too (neighborhood compaction)
 
-#,,,,,..,,,,.,.,.,,,,,,,,,.,.,,,.,,..,.,.,.,,,..,,...,...,..,,...,.,,,...,,,.,
-#NSHMYAGZBLOQKWVLGGRAJ52GZR3XR76DXDD7MAKTMREJB4VNN7PZ2PEDJNKOEC3G264IK3IEB7ZYC
-#\\\|3G4TRL64AYOYQB7JLEGPBH5D7XG42BAL64HSPTK3CL6TVDHG77K \ / AMOS7 \ YOURUM ::
-#\[7]VTRT2N2XWSACNRAT6TJSFP6LLSP52WSKV2SFBKIKXF32BCAS3SDY 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,..,,,,.,,,.,...,.,,,,,,,...,.,.,..,,...,...,.,,,.,,,,,.,,,.,,.,,
+#QRCQAFIL3JLW6FKK66IFBQYDBWNWV6COJ5NASVMCGG6QCQEEBS642URVGFOBIFZKHKSQRDGCJGX6O
+#\\\|Z6LFFZQC4FUDYIK7GQKSNT2OCGBUF4UWRPS5XXKB6IHPZS3Y4EN \ / AMOS7 \ YOURUM ::
+#\[7]OGUBK7X65I2WINPUB6KW75XA4UUHSRI4Y6V3CJHI34OC6A4XYKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
