@@ -127,3 +127,22 @@
 #\\\|YI4J6G4MPGIH47OKNPN26PZZTUB2AU7WIPSRVJHVLRLOXK5DELV \ / AMOS7 \ YOURUM ::
 #\[7]O2VZPNURHCCMPJ2QHPCVQWJM4PZ4BK763QEHAJBHOQNVPBTWDEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+## 2026-06-02 — nshell `(0)` prefix bug fix
+
+**Root cause:** `base.handler.command` orphaned route handler generated `(0)!TERM!` when processing prefix-less replies (`cmd_id == 0`). The `clear` command triggers this via SIZE reply orphan paths.
+
+**Fixes applied:**
+- `base.handler.command` lines ~1470, ~1516: added `$cmd_id > 0` guard before `sprintf "(%d)!TERM!\n"` in orphaned route handlers
+- `base.protocol-7.command.send.local` line 107: changed wrap regex from `^(\d+)$` to `^([1-9]\d*)$` so `0` never gets wrapped as `(0)`
+- `nshell.editor.process`: fixed `terminal_size()[0]` for cols + color reset on empty submit
+- `nshell.handler.command_reply`: newline safety before cursor redraw
+
+**Key insight:** The `!TERM!` backchannel logic at line ~565 already guarded with `$tgt_cmd_id > 0`, but the orphaned-route fallback paths did not.
+
+**Diagnostic:** Improved `base.handler.command` syntax error log to show full bad line (`line=['...']`) instead of stripping it.
+
+#,,..,...,,,.,,,,,...,..,,,,,,,.,,,,,,.,.,..,,..,,...,...,...,.,,,,,,,,.,,,,,,
+#LAB7JTY4LWVRTOJNGGUG6ZEMBJPNUZPYUBCE65TSMM4B6SI234GA4I7BD5F4ZIBMEYN5OTNL7WGMO
+#\\\|AHWVXYJVZZ75BVFTDAQNGNYD7U7PKQ3UAQC2JMDQDFRK7T65A7B \ / AMOS7 \ YOURUM ::
+#\[7]NJ2MKQ3G2DHD5CEB3N55A47ZRXW64DFRBGIYNJTD3RYTHNOHHADI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

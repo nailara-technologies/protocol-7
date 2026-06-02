@@ -154,7 +154,7 @@ MCP tools in `bin/mcp-server-p7`. Claude CLI dispatch with `--dangerously-skip-p
 - atom browser localStorage extraction — pri server jobs dir empty; extract via DevTools and POST as reverse-sync batch
 - multi-endpoint sync — after auth settled
 - web-sessions-distributed — lower priority
-- nshell `(0)` on first command — still open
+- ~~nshell `(0)` on first command~~ **FIXED 2026-06-02** — orphaned route handler generated `(0)!TERM!` for prefix-less replies
 - nshell stray cursor after index search — still open
 - STRM fix review needed (`had_local_consumer`)
 
@@ -168,8 +168,8 @@ MCP tools in `bin/mcp-server-p7`. Claude CLI dispatch with `--dangerously-skip-p
 
 #,,,,
 
-#,,,.,,.,,.,.,,.,,,,,,,..,,,,,,.,,,,.,.,,,,,.,..,,...,..,,,,,,,.,,..,,.,,,,..,
-#5V5Q66JI3HJQIOZR2EWMBS5ZSZAQR6JDZIDZ3UXA7SRWPV453WTGB4ZADJ3TV3XMQLXXM46S32WRS
-#\\\|WLUEZU7ZI6TGXNTGXLOVFOYGJGG2YD635FRU7KHRG72U7OZI6VU \ / AMOS7 \ YOURUM ::
-#\[7]UXZPLOINMV3J324WQDHSOFSTMTP5GQZYOW6MSP56YTG4672EZSBA 7  DATA SIGNATURE ::
+#,,..,.,.,,..,.,,,...,,..,,,,,.,,,,,.,,,.,...,..,,...,..,,,,,,,..,..,,,.,,,.,,
+#5C2KG4QAVKFFXF7JL6N44OPIP5NN4GLIV5UK7QYKCRVNQ5J7TOEMWYDPJQU2A3WXVGVXALGIRBH5W
+#\\\|LGGZTTMI2BVJVEYVH3IWM3LXTCARVTFPKYYUVJ4IC7ET6BVQDNJ \ / AMOS7 \ YOURUM ::
+#\[7]AAA423FKNNCCRGBMPGAVUL3B34L6GS3HZVJXBU5QZRBJRSDKB2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

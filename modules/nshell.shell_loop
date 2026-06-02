@@ -32,6 +32,10 @@ my ($cube_sid) = keys <user.cube.session>->%*;
 if ( defined $cube_sid and exists $data{'session'}{$cube_sid} ) {
     ## append command directly to cube's output buffer [ cube input stream ]
     ## cube zenka session watcher will automatically process it
+    open( my $df, '>>', '/tmp/nshell-debug.log' ) or warn $!;
+    print $df sprintf( "shell_loop: cmd=[%s] buf_before=[%s]\n",
+        $cmd, $data{'session'}{$cube_sid}{'buffer'}{'output'} // '' );
+    close($df);
     $data{'session'}{$cube_sid}{'buffer'}{'output'} .= $cmd . "\n";
 } else {
     <[base.log]>->( 0, 'nshell.shell_loop: cube session not available' );
@@ -39,8 +43,8 @@ if ( defined $cube_sid and exists $data{'session'}{$cube_sid} ) {
 
 return 0;
 
-#,,..,,.,,,,,,,,,,...,,.,,.,.,,.,,,,,,..,,..,,.,.,...,...,.,.,.,,,,.,,...,.,.,
-#3IALXZQPNA2PHTMDHHCOT4Y2LVSMEKEEUICWBCNC26C5QP7UWD6Y4BBJHBIXRTKWXOCOM2C2EVDY4
-#\\\|OQS7EZLTYWXUCVB5DCJ6DAEDHZDDXLOFJO2T5UWP4YSMHH6XQ4W \ / AMOS7 \ YOURUM ::
-#\[7]BTSFOZW7M3Z4EMCE4A4J4TCM3PX24ZD2E3HMRFAMHHC6Z74OCSAQ 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,.,,,,,,.,.,,.,,,,.,,.,,...,.,,,.,.,...,...,.,,,..,,.,,,,..,,,.,
+#3QBHQOTI23CJTZJMIFJF2W33KQZKGLJKWAFF2SDNJOFOXA6ER436GM22WVRSLEG5LHHVJ7DMWMH3O
+#\\\|KQSDKUGEWQP5WFXJ2UZ7QV6RVKNU7V2IYHAKKDSMIWCBAUY4I53 \ / AMOS7 \ YOURUM ::
+#\[7]QOT75HFJYEX4CRT2GEXKSLAPKP4JN23F62FV2LVMXYZYU4QGXYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
