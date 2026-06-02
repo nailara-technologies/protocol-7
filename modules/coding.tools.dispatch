@@ -516,7 +516,9 @@ my %dispatch = (
         ## validate and apply edits [reverse order to preserve line nums] ##
         my @preview;
         my $errors = 0;
-        for my $edit ( sort { $b->{'line'} <=> $a->{'line'} } @batch_edits ) {
+        for my $edit (
+            sort { ( $b->{'line'} // 0 ) <=> ( $a->{'line'} // 0 ) }
+            @batch_edits ) {
             my $ln  = $edit->{'line'} // next;
             my $old = $edit->{'old'}  // '';
             my $new = $edit->{'new'}  // '';
@@ -716,8 +718,8 @@ return {
     'content' => $content,
 };
 
-#,,,,,...,...,,,,,.,.,.,,,,,,,,,.,.,,,.,,,...,..,,...,..,,...,,..,...,.,,,,..,
-#U5RAUNCEJZIUA6VDCHNRPFXXK3W5H4GJLRLR7MPP7GUASBQM3TPC4GEOF5IRHNCOY6EY4MAMTN3FY
-#\\\|JXALQOYZ6LAAXA5LWFSDSMLXZHAM2GMOWWFLS5SPF4X3I7CCUPV \ / AMOS7 \ YOURUM ::
-#\[7]5YHDRK6UV47GB5XKI6OPW2KYTTSZEFTK54FJ24BAUSLFHXHCDADY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,...,.,.,..,,..,,,,,,,..,,.,,,,.,..,,...,...,..,,..,,,,.,,.,,,,.,
+#UZ5Q7CHOUVJMJPJNBKL7NDPRBT4LIFC7G537XCGVDY3UHXYKOCA6GYSXC3HTIUI3BMSI6WLWBPKNQ
+#\\\|VTWQBLAHOSHUYXQVN2KXFICUIOSQRMP4G4HIBBA6WAFKHW6UID2 \ / AMOS7 \ YOURUM ::
+#\[7]AIF6IDTW6O5AMYSMQPDKKNC6GUMJ6IQVVIPA7ZEFXMU33MLUTQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

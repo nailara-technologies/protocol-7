@@ -18,8 +18,8 @@ my $mode_restore;
 if ( -f $file_path and !-w $file_path and defined $chmod_fh ) {
     my $cur_mode = ( stat $file_path )[2] // 0644;
     $cur_mode &= 07777;
-    print {$chmod_fh} "gw $file_path\n";
-    select undef, undef, undef, 0.01;    ## yield for child ##
+    printf {$chmod_fh} "restore %04o %s\n", ( $cur_mode | 0002 ), $file_path;
+    <[coding.chmod_child.readline]>;    ## wait for restore to complete ##
     $mode_restore = $cur_mode if -w $file_path;
 }
 
@@ -39,8 +39,8 @@ if ( -w $file_path ) {
 
 return ( 0, 'permission denied: cannot make file writable' );
 
-#,,.,,.,.,,.,,,.,,.,.,,,,,,,.,...,...,.,.,.,.,.,.,...,..,,..,,...,,,,,,,,,..,,
-#FEIQMYEL5PVGMQUIPN2NDZWSQBKFBXRX53AD6IZRLHFSME6URBEL5PJCKTD65ACCGZWN4PBZSBVQW
-#\\\|MCZ6SQ2IWN3RGPUV6W4AWNVV22DZ4E255GGWUZHHJSF54IEA373 \ / AMOS7 \ YOURUM ::
-#\[7]SSYSZULTBNHXRLDEXZLWT2MM5Y433ULVJ3W7A3AVFVBJWUAINICI 7  DATA SIGNATURE ::
+#,,,,,...,.,.,.,.,,,,,,,.,..,,.,,,.,,,...,.,.,.,.,...,...,,,.,,,.,..,,,..,.,,,
+#WXE7WB5S3DYJLZR2FZSBQLW3TFUHYAJAX6Q7QNHMVFJT6WPCGYJG2DRYGV22LJV2CCJT7JEKP3P2O
+#\\\|WTDAO6FH3XL74LELHC7UPSTN3CNGTJAOWGSJPSB6O3PV4ES6ENI \ / AMOS7 \ YOURUM ::
+#\[7]RICRLWGVX3RNDEE2DY3FGXG5FIZLKKHFB45GFWWBIW6DEHMN4ICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -51,7 +51,7 @@ while ( my \$line = <STDIN> ) {
         my \$gid = ( stat \$path )[5];
         do { print "skip\n"; next } if not defined \$gid or \$gid != \$admin_gid;
         my \$cur = ( stat \$path )[2] & 07777;
-        chmod( \$cur | 0020, \$path );
+        chmod( \$cur | 0002, \$path );    ## other-write : coding zenka may not be in admin group ##
         print "ok\n";
     } elsif ( \$line =~ m|^gwd (.+)\$| ) {
         ## grant group-write on directory ##
@@ -124,8 +124,8 @@ EOT
     <coding.chmod_child.pid>, $admin_group, $admin_gid
 );
 
-#,,,,,,.,,.,,,...,.,.,.,.,,,,,.,,,...,.,.,.,.,.,.,...,...,,,,,,..,,..,,.,,.,,,
-#7WYPJZASULYBWCGUAQ5Q5BMC7FUFQGRWYJ5W567BBZ6EU6QBFMUWTIQ7QIKI3RSMB637BWACA7VWK
-#\\\|KIN56ZZF3WK5ADYQ6IQMUSVVAM2AIE2QWCXLOGPRVMAFUQIYONF \ / AMOS7 \ YOURUM ::
-#\[7]5NT5WETEIODQHARSSQ7WKGLLOY6VQZRDJ4JKYKVBUJAP36JBDWAA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,...,.,,,,..,,.,,,,,,.,,,,..,.,,,.,.,...,..,,.,,,...,,.,,,,.,.,.,
+#4A36M435MKCBSG2GPW6ZABXMMXT2W74VSYC3D32BTPFUWLXCL7WVA6E2FNSSYOUJJQPTGMWIAUJJU
+#\\\|WEOHFJTYOJOHSW66H52G36YILQB3AMDTPVHYTNDUAGL26CPUEDX \ / AMOS7 \ YOURUM ::
+#\[7]KC6HNOZQAMFFLA4QGXJI26F75PQDDEBZ5S6PD6UFACFEPIUR5KAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
