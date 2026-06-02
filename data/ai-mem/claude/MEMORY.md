@@ -26,6 +26,7 @@
 - [cursor-model](topic-cursor-model.md) â true cursor from hyperspace plane density
 - [iris-spoke-labels](topic-iris-spoke-labels.md) â 63-ring spoke sequence; dot-fold; BASE32/bottom
 - [stream-framing-protocol](topic-stream-framing-protocol.md) â 3+1 bit frame; separator inversion on 000
+- [nshell-terminal-rendering](topic-nshell-terminal-rendering.md) â `(0)!TERM!` bug, overflow path, color reset, async reply during VIEWING_HISTORY
 
 ## Vision / Design
 - [project-vision-origin](project-vision-origin.md) â 24-year vision; threshold reached Apr 2026
@@ -141,8 +142,8 @@
 
 **Diagnostic:** Improved `base.handler.command` syntax error log to show full bad line (`line=['...']`) instead of stripping it.
 
-#,,..,...,,,.,,,,,...,..,,,,,,,.,,,,,,.,.,..,,..,,...,...,...,.,,,,,,,,.,,,,,,
-#LAB7JTY4LWVRTOJNGGUG6ZEMBJPNUZPYUBCE65TSMM4B6SI234GA4I7BD5F4ZIBMEYN5OTNL7WGMO
-#\\\|AHWVXYJVZZ75BVFTDAQNGNYD7U7PKQ3UAQC2JMDQDFRK7T65A7B \ / AMOS7 \ YOURUM ::
-#\[7]NJ2MKQ3G2DHD5CEB3N55A47ZRXW64DFRBGIYNJTD3RYTHNOHHADI 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,,,.,.,,,,.,,,,.,.,,,,.,,,..,,,.,..,,...,...,.,.,.,,,.,,,.,.,,,,,
+#IQR4THMMWM4U5A2VTVHJ7NN2BGFJ67HW52XBOYKOQ52CAHW4X7RJYVAAB24FIAY4TNMFRUPQ3UKF4
+#\\\|FFTK3PLXXZKQGWEIKXMPQQFLEYJV7ZAZ4IGMR76EZ6IM37S2ENA \ / AMOS7 \ YOURUM ::
+#\[7]7NSZMXNLJWUTBK3ECUSZFJ265E642LK6Z7TAPC7YTYCRBNJJHICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
