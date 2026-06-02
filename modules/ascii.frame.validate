@@ -1,0 +1,456 @@
+## [:< ##
+
+# name  = ascii.frame.validate
+# descr = trace frame descriptor border topology for completeness
+
+my $descriptor = shift // return {
+    valid  => 0,
+    errors => [ { check => 'input', message => 'no descriptor supplied' } ]
+};
+
+return {
+    valid  => 0,
+    errors =>
+        [ { check => 'input', message => 'descriptor is not a hash ref' } ]
+    }
+    if ref $descriptor ne qw| HASH |;
+
+my @errors;
+
+## p7 character vocabularies ##
+my %structural_char = map { $_ => 1 } ( ':', '.', ',', '[', ']', '#', '=' );
+my %fill_char       = map { $_ => 1 } ( ':', '.', '=' );
+my %corner_char     = map { $_ => 1 } ( ':', '.', ',', '#' );
+my %top_right_ok    = map { $_ => 1 } ( '.', ',' );
+my %bottom_left_ok  = map { $_ => 1 } ( '#', ':' );
+
+my $border      = $descriptor->{'border'}      // {};
+my $corners     = $descriptor->{'corners'}     // {};
+my $slots       = $descriptor->{'slots'}       // {};
+my $static_rows = $descriptor->{'static_rows'} // {};
+my $padding     = $descriptor->{'padding'}     // {};
+
+my $top_elements    = $border->{'top'}    // [];
+my $bottom_elements = $border->{'bottom'} // [];
+my $left_border     = $border->{'left'};
+my $right_border    = $border->{'right'};
+
+my $has_bottom = ( ref $bottom_elements eq qw| ARRAY |
+        and scalar @{$bottom_elements} > 0 );
+
+##[ helper : terminating char of a border element [ cached ] ]##
+state $tail_char = sub {
+    my $el = shift;
+    return undef if not defined $el;
+    my $t = $el->{'type'} // '';
+    if ( $t eq qw| anchor | ) {
+        my $v = $el->{'value'} // '';
+        return length $v ? substr( $v, -1, 1 ) : undef;
+    } elsif ( $t eq qw| fill | ) {
+        return $el->{'char'};
+    }
+    return undef;
+};
+
+##[ helper : leading char of a border element [ cached ] ]##
+state $head_char = sub {
+    my $el = shift;
+    return undef if not defined $el;
+    my $t = $el->{'type'} // '';
+    if ( $t eq qw| anchor | ) {
+        my $v = $el->{'value'} // '';
+        return length $v ? substr( $v, 0, 1 ) : undef;
+    } elsif ( $t eq qw| fill | ) {
+        return $el->{'char'};
+    }
+    return undef;
+};
+
+## [ check 1 : border closure ] ##
+
+if ( ref $top_elements ne qw| ARRAY | or not @{$top_elements} ) {
+    push @errors,
+        {
+        check   => 'border_closure',
+        message => 'top border has no elements',
+        };
+} else {
+    my $last = $top_elements->[-1];
+    my $tail = $tail_char->($last);
+    if ( not defined $tail ) {
+        push @errors,
+            {
+            check   => 'border_closure',
+            message => 'top border last element has no resolvable terminator',
+            detail  => $last,
+            };
+    } elsif ( not $top_right_ok{$tail} ) {
+        push @errors,
+            {
+            check   => 'border_closure',
+            message => "top border does not terminate at a soft corner [ "
+                . "got '$tail' ]",
+            detail => $last,
+            };
+    }
+}
+
+if ($has_bottom) {
+    my $bfirst = $bottom_elements->[0];
+    my $bhead  = $head_char->($bfirst);
+    if ( not defined $bhead ) {
+        push @errors,
+            {
+            check   => 'border_closure',
+            message => 'bottom border first element has no resolvable lead',
+            detail  => $bfirst,
+            };
+    } elsif ( not $bottom_left_ok{$bhead} ) {
+        push @errors,
+            {
+            check   => 'border_closure',
+            message => "bottom border does not begin at a valid anchor [ "
+                . "got '$bhead' ]",
+            detail => $bfirst,
+            };
+    }
+    my $blast = $bottom_elements->[-1];
+    my $btail = $tail_char->($blast);
+    if ( not defined $btail ) {
+        push @errors,
+            {
+            check   => 'border_closure',
+            message => 'bottom border last element has no resolvable '
+                . 'terminator',
+            detail => $blast,
+            };
+    } elsif ( not $corner_char{$btail} ) {
+        push @errors,
+            {
+            check   => 'border_closure',
+            message => "bottom border does not terminate at a valid corner "
+                . "[ got '$btail' ]",
+            detail => $blast,
+            };
+    }
+}
+
+## [ check 2 : corner consistency ] ##
+
+if ( ref $corners eq qw| HASH | ) {
+    for my $name (qw| top_left top_right bottom_left bottom_right |) {
+        next if not exists $corners->{$name};
+        my $c = $corners->{$name};
+        next if not defined $c or not length $c;
+        if ( not $corner_char{$c} ) {
+            push @errors,
+                {
+                check   => 'corner_consistency',
+                message => "corner '$name' is not a p7 corner char [ got "
+                    . "'$c' ]",
+                detail => { corner => $name, value => $c },
+                };
+        }
+    }
+
+    ## top_right must match last char of top border ##
+    if (    exists $corners->{'top_right'}
+        and defined $corners->{'top_right'}
+        and length $corners->{'top_right'}
+        and ref $top_elements eq qw| ARRAY |
+        and @{$top_elements} ) {
+        my $tail = $tail_char->( $top_elements->[-1] );
+        if ( defined $tail and $tail ne $corners->{'top_right'} ) {
+            push @errors,
+                {
+                check   => 'corner_consistency',
+                message => "top_right corner '$corners->{'top_right'}' does "
+                    . "not match top border tail '$tail'",
+                detail =>
+                    { corner => $corners->{'top_right'}, tail => $tail },
+                };
+        }
+    }
+
+    ## bottom_left must match first char of bottom border ##
+    if (    $has_bottom
+        and exists $corners->{'bottom_left'}
+        and defined $corners->{'bottom_left'}
+        and length $corners->{'bottom_left'} ) {
+        my $bhead = $head_char->( $bottom_elements->[0] );
+        if ( defined $bhead and $bhead ne $corners->{'bottom_left'} ) {
+            push @errors,
+                {
+                check   => 'corner_consistency',
+                message => "bottom_left corner '$corners->{'bottom_left'}' "
+                    . "does not match bottom border head '$bhead'",
+                detail =>
+                    { corner => $corners->{'bottom_left'}, head => $bhead },
+                };
+        }
+    }
+}
+
+## [ check 3 : border column integrity ] ##
+
+if ( not defined $left_border or not length $left_border ) {
+    push @errors,
+        {
+        check   => 'border_column_integrity',
+        message => 'left border char is missing',
+        };
+} elsif ( not $structural_char{$left_border} ) {
+    push @errors,
+        {
+        check   => 'border_column_integrity',
+        message => "left border char '$left_border' is not a p7 structural "
+            . "char",
+        detail => { side => 'left', value => $left_border },
+        };
+}
+
+if ( not defined $right_border or not length $right_border ) {
+    push @errors,
+        {
+        check   => 'border_column_integrity',
+        message => 'right border char is missing',
+        };
+} elsif ( not $structural_char{$right_border} ) {
+    push @errors,
+        {
+        check   => 'border_column_integrity',
+        message => "right border char '$right_border' is not a p7 "
+            . "structural char",
+        detail => { side => 'right', value => $right_border },
+        };
+}
+
+## at least one content row must be present if slots / static rows imply one ##
+my $slot_row_count = 0;
+if ( ref $slots eq qw| HASH | ) {
+    for my $name ( keys %{$slots} ) {
+        my $slot = $slots->{$name} // {};
+        my $type = $slot->{'type'} // '';
+        next if $type eq qw| inline |;
+        my $row = $slot->{'row'} // 0;
+        $slot_row_count++ if $row >= 1;
+    }
+}
+my $static_row_count
+    = ( ref $static_rows eq qw| HASH | )
+    ? scalar keys %{$static_rows}
+    : 0;
+
+my $declares_content
+    = ( ref $static_rows eq qw| HASH | and keys %{$static_rows} )
+    || (
+    ref $slots eq qw| HASH | and grep {
+        my $t = ( $slots->{$ARG} // {} )->{'type'} // '';
+        $t ne qw| inline |
+    } keys %{$slots}
+    );
+
+if ( $declares_content and $slot_row_count + $static_row_count == 0 ) {
+    push @errors,
+        {
+        check   => 'border_column_integrity',
+        message => 'descriptor declares content but no content row is '
+            . 'present',
+        };
+}
+
+## [ check 4 : bracket balance in border anchor elements ] ##
+
+for my $where ( [ 'top', $top_elements ], [ 'bottom', $bottom_elements ] ) {
+    my ( $label, $els ) = @{$where};
+    next if ref $els ne qw| ARRAY |;
+    for my $el ( @{$els} ) {
+        next if ( $el->{'type'} // '' ) ne qw| anchor |;
+        my $v      = $el->{'value'} // '';
+        my $opens  = ( $v =~ tr/\[/\[/ );
+        my $closes = ( $v =~ tr/\]/\]/ );
+        if ( $opens != $closes ) {
+            push @errors,
+                {
+                check   => 'bracket_balance',
+                message => "unbalanced brackets in $label border anchor [ "
+                    . "open=$opens close=$closes ]",
+                detail => $el,
+                };
+        }
+    }
+}
+
+## [ check 5 : slot reachability ] ##
+
+my %inline_in_border;
+for my $where ( $top_elements, $bottom_elements ) {
+    next if ref $where ne qw| ARRAY |;
+    for my $el ( @{$where} ) {
+        next if ( $el->{'type'} // '' ) ne qw| slot |;
+        $inline_in_border{ $el->{'name'} } = 1
+            if defined $el->{'name'};
+    }
+}
+
+if ( ref $slots eq qw| HASH | ) {
+    for my $name ( sort keys %{$slots} ) {
+        my $slot = $slots->{$name} // {};
+        my $type = $slot->{'type'} // '';
+        if ( $type eq qw| inline | ) {
+            if ( not $inline_in_border{$name} ) {
+                push @errors,
+                    {
+                    check   => 'slot_reachability',
+                    message => "inline slot '$name' is not present in any "
+                        . "border element list",
+                    detail => { slot => $name },
+                    };
+            }
+        } elsif ( $type eq qw| field | or $type eq qw| block | ) {
+            my $row = $slot->{'row'} // 0;
+            if ( $row < 1 ) {
+                push @errors,
+                    {
+                    check   => 'slot_reachability',
+                    message => "slot '$name' of type '$type' has invalid "
+                        . "row [ $row ]",
+                    detail => { slot => $name, row => $row },
+                    };
+            }
+        } elsif ( $type eq qw| composed | ) {
+            if (   not exists $slot->{'inner_frame'}
+                or not defined $slot->{'inner_frame'} ) {
+                push @errors,
+                    {
+                    check   => 'slot_reachability',
+                    message => "composed slot '$name' is missing "
+                        . "'inner_frame'",
+                    detail => { slot => $name },
+                    };
+            }
+            if (   not exists $slot->{'inner_width'}
+                or not defined $slot->{'inner_width'} ) {
+                push @errors,
+                    {
+                    check   => 'slot_reachability',
+                    message => "composed slot '$name' is missing "
+                        . "'inner_width'",
+                    detail => { slot => $name },
+                    };
+            }
+        }
+    }
+}
+
+## [ check 6 : fill run sanity ] ##
+
+for my $where ( [ 'top', $top_elements ], [ 'bottom', $bottom_elements ] ) {
+    my ( $label, $els ) = @{$where};
+    next if ref $els ne qw| ARRAY |;
+    for my $el ( @{$els} ) {
+        next if ( $el->{'type'} // '' ) ne qw| fill |;
+        my $c = $el->{'char'};
+        if ( not defined $c or not length $c or not $fill_char{$c} ) {
+            push @errors,
+                {
+                check   => 'fill_run_sanity',
+                message => "$label border fill has invalid char [ "
+                    . ( defined $c ? "'$c'" : 'undef' ) . ' ]',
+                detail => $el,
+                };
+        }
+        my $min = $el->{'min'};
+        if ( not defined $min or $min < 1 ) {
+            push @errors,
+                {
+                check   => 'fill_run_sanity',
+                message => "$label border fill has min < 1",
+                detail  => $el,
+                };
+        }
+    }
+}
+
+## [ check 7 : width sanity ] ##
+
+my $min_width = $descriptor->{'min_width'};
+if ( defined $min_width and $min_width < 0 ) {
+    push @errors,
+        {
+        check   => 'width_sanity',
+        message => "min_width must be >= 0 [ got $min_width ]",
+        detail  => { min_width => $min_width },
+        };
+}
+
+if ( ref $padding eq qw| HASH | ) {
+    for my $side (qw| left right |) {
+        next if not exists $padding->{$side};
+        my $p = $padding->{$side};
+        next if not defined $p;
+        if ( $p < 0 ) {
+            push @errors,
+                {
+                check   => 'width_sanity',
+                message => "padding.$side must be >= 0 [ got $p ]",
+                detail  => { side => $side, value => $p },
+                };
+        }
+    }
+}
+
+my $width = $descriptor->{'width'};
+if ( defined $width and $width ne qw| auto | and $width =~ m{^-?\d+$} ) {
+    my $mw = $min_width // 0;
+    if ( $width < $mw ) {
+        push @errors,
+            {
+            check   => 'width_sanity',
+            message => "width $width is less than min_width $mw",
+            detail  => { width => $width, min_width => $mw },
+            };
+    }
+}
+
+## [ classify errors into ambiguity classes ] ##
+
+my %class_for = (
+    border_closure          => 'topology',
+    corner_consistency      => 'topology',
+    bracket_balance         => 'syntax',
+    slot_reachability       => 'reference',
+    fill_run_sanity         => 'structural',
+    width_sanity            => 'structural',
+    border_column_integrity => 'structural',
+    input                   => 'structural',
+);
+
+my %seen_class;
+my @error_classes;
+for my $err (@errors) {
+    my $cls = $class_for{ $err->{'check'} // '' };
+    next if not defined $cls;
+    next if $seen_class{$cls}++;
+    push @error_classes, $cls;
+}
+
+if ( not @errors ) {
+    return {
+        valid         => 1,
+        errors        => [],
+        error_classes => [],
+    };
+}
+
+return {
+    valid         => 0,
+    errors        => \@errors,
+    error_classes => \@error_classes,
+};
+
+#,,..,.,,,,,.,...,,,.,.,.,,..,,..,,,,,..,,...,..,,...,...,,.,,,..,.,.,...,.,,,
+#L5MJPD6VNY56EHU5TKJ5OEMZTLQNI7SWYUB6LGO35U2RATU7LRJTTYDS4YNLHQPPJABCQJWCXMDKM
+#\\\|ORU4PZ4AOFLW4K6PL2JQUU5GMOHJ3HCBCZFKWU5EP5THDNR2C5U \ / AMOS7 \ YOURUM ::
+#\[7]AOMNNU4DTDSVVSXVZMZ4L6QHSOKNOR7SBGFQFFN5IPG6PBYAMSBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

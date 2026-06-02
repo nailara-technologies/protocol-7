@@ -1,0 +1,659 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+use utf8;
+use Encode          qw| decode_utf8 encode_utf8 |;
+use Text::Wrap      qw| wrap |;
+use File::Temp      qw| tempfile |;
+use File::Copy      qw| copy |;
+use File::Basename  qw| dirname |;
+use Cwd             qw| abs_path |;
+use List::MoreUtils qw| minmax uniq |;
+use File::Which     qw| which |;
+use Time::HiRes     qw| sleep |;
+use Term::ReadKey;
+use PPI;
+
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
+
+use constant LINE_MAX => 78;
+
+$OUTPUT_AUTOFLUSH = TRUE;
+
+##[ argv parsing ]##
+my $check_only = FALSE;
+my $no_ptd     = FALSE;
+my $no_utf8    = FALSE;
+
+while ( @ARGV and defined $ARGV[0] and $ARGV[0] =~ m|^-| ) {
+    my $opt = $ARGV[0];
+    if    ( $opt eq qw| -c | )       { $check_only = TRUE; shift @ARGV; }
+    elsif ( $opt eq qw| -n | )       { $no_ptd = TRUE; shift @ARGV; }
+    elsif ( $opt eq qw| :noutf8: | ) { $no_utf8 = TRUE; shift @ARGV; }
+    else                             { last; }
+}
+
+##[ exclusion pattern [ same as ptd ] ]##
+my @exclude_pattern = qw|  ~  .md  .yaml  .yml  .asc  |;
+
+##[ colors ]##
+my $reset             = "\e[0m";
+my $nailara_bg        = "\e[48;2;9;5;42m";
+my $blacklight        = "\e[38;2;68;39;172m";
+my $nailara_fg        = "\e[38;2;38;46;153m";
+my $TRUE_color        = "\e[38;2;6;71;195m";
+my $NEON_orange       = "\e[38;2;197;141;7m";
+my $NEON_green_yellow = "\e[38;2;71;195;6m";
+
+$SIG{'INT'} = \&sig_int;
+
+##[ locate perltidy binary directly [ avoids ptd progress display on tmpfile ] ]##
+my @perltidy_args = qw|
+    -q -pbp
+    -wc=13 -cs
+    -utf8 -l=78
+    -bar -sot -ce
+    -nst -b -bext=.bak
+    |;
+@perltidy_args = grep { $ARG ne qw| -utf8 | } @perltidy_args if $no_utf8;
+
+my $perltidy_bin;
+if ( not $no_ptd ) {
+    $perltidy_bin = which qw| perltidy |;
+    die ":\n:: < format-code > : 'perltidy' not found in path .,\n\n"
+        if not defined $perltidy_bin or not -x $perltidy_bin;
+}
+
+##[ filename selection ]##
+my @clean_argv = grep { !m{^@exclude_pattern} } @ARGV;
+my @files      = grep { is_perl_code($ARG) }
+    uniq sort { length $a <=> length $b } reverse sort @clean_argv;
+
+die ":\n:: < ${NEON_green_yellow}format-code$reset > $reset:$NEON_orange "
+    . "expected ${NEON_green_yellow}[${NEON_orange}perl"
+    . "${NEON_green_yellow}]${NEON_orange} file name${NEON_green_yellow}"
+    . "[${NEON_orange}s${NEON_green_yellow}]${NEON_orange}.,$reset\n:\n"
+    if not @files;
+
+map {
+    die ":\n:: < ${NEON_green_yellow}format-code$reset > $reset:$NEON_orange "
+        . "not found $reset : '$NEON_green_yellow$ARG$reset' $reset\n:\n"
+        if not -f $ARG
+} @files;
+
+my $file_count = scalar @files;
+( undef, my $file_maxlen ) = minmax map {length} @files;
+
+say $blacklight, qw| : |;
+
+while ( my $file_path = shift @files ) {
+    show_progress( $file_path, $file_count - scalar @files, $file_count );
+
+    my $orig_text = slurp_file($file_path);
+    my $new_text  = eval { preprocess_source( $orig_text, $file_path ) };
+    if ( not defined $new_text ) {
+        my $err_msg = lcfirst( $EVAL_ERROR // 'preprocess failed' );
+        chomp $err_msg;
+        warn color_msg( $err_msg, $file_path );
+        next;
+    }
+
+    if ($check_only) {
+        if ( $new_text ne $orig_text ) {
+            print color_msg( 'would reflow', $file_path, $NEON_orange );
+        }
+        next;
+    }
+
+    if ( $new_text eq $orig_text and $no_ptd ) {
+        ##  nothing to do , skip  ##
+        next;
+    }
+
+    ##  write temp file in same directory  ##
+    my $dir = dirname($file_path) || qw| . |;
+    my ( $tmpfh, $tmpfile ) = tempfile(
+        qw| format-code.XXXXXX |,
+        DIR    => $dir,
+        SUFFIX => qw| .tmp |,
+    );
+    binmode $tmpfh, qw| :raw |;
+    print $tmpfh $new_text;
+    close $tmpfh;
+
+    if ($no_ptd) {
+        if ( not copy( $tmpfile, $file_path ) ) {
+            unlink $tmpfile;
+            warn color_msg( lcfirst $OS_ERROR, $file_path );
+            next;
+        }
+        unlink $tmpfile;
+        next;
+    }
+
+    ##  invoke perltidy directly on temp file [ no ptd progress display ] ##
+    ReadMode TRUE;
+    no warnings;
+    my $rc = eval { system( $perltidy_bin, @perltidy_args, $tmpfile ) };
+    use warnings;
+    ReadMode 0;
+    sleep 0.13;
+
+    if ( defined $rc and $rc == 0 ) {
+        if ( not copy( $tmpfile, $file_path ) ) {
+            warn color_msg( lcfirst $OS_ERROR, $file_path );
+        }
+    } else {
+        my $err_msg
+            = lcfirst( $OS_ERROR // $EVAL_ERROR // 'perltidy ' . 'failed' );
+        warn color_msg( $err_msg, $file_path );
+    }
+
+    unlink $tmpfile;
+    unlink "$tmpfile.bak" if -f "$tmpfile.bak";
+}
+
+say "\n$blacklight:$reset";
+exit 0;
+
+##[ preprocessing pipeline ]##
+sub preprocess_source {
+    my $text = shift;
+    my $path = shift;
+
+    ##  parse with PPI for safe quote token + heredoc + pod identification  ##
+    my $doc = PPI::Document->new( \$text );
+    die "ppi parse failed\n" if not defined $doc;
+
+    ##  classify lines : signature footer , pod region , heredoc body  ##
+    my @lines = split m{(?<=\n)}, $text;    ## keep trailing newlines ##
+
+    my $sig_start = detect_signature_start( \@lines );
+
+    my %skip;    ## line-number [ 1-based ] => reason ##
+    mark_pod_regions( \@lines, \%skip );
+    mark_heredoc_regions( $doc, \%skip );
+
+    ##  collect single/double quote tokens with line/col positions  ##
+    my @quote_tokens = collect_quote_tokens($doc);
+
+    ##  group tokens by line for fast lookup  ##
+    my %quotes_by_line;
+    for my $tok (@quote_tokens) {
+        push @{ $quotes_by_line{ $tok->{line} } }, $tok;
+    }
+
+    ##  output buffer  ##
+    my @out;
+
+    for my $lnum ( 1 .. scalar @lines ) {
+        my $line = $lines[ $lnum - 1 ];
+
+        ##  pass-through signature footer  ##
+        if ( defined $sig_start and $lnum >= $sig_start ) {
+            push @out, $line;
+            next;
+        }
+
+        ##  pass-through pod , heredoc body  ##
+        if ( $skip{$lnum} ) {
+            push @out, $line;
+            next;
+        }
+
+        ##  step 3 : trailing inline comment relocation  ##
+        my @produced = step3_relocate_trailing_comment($line);
+        if ( @produced > 1 ) {
+            push @out, @produced;
+            next;
+        }
+        $line = $produced[0];
+
+        ##  step 1 : split long quoted strings  ##
+        my $split_result
+            = step1_split_long_string( $line, $quotes_by_line{$lnum} );
+        if ( defined $split_result ) {
+            push @out, @$split_result;
+            next;
+        }
+
+        ##  step 2 : reflow long comment lines  ##
+        my $reflowed = step2_reflow_comment($line);
+        if ( defined $reflowed ) {
+            push @out, @$reflowed;
+            next;
+        }
+
+        push @out, $line;
+    }
+
+    return join( '', @out );
+}
+
+##[ step 3 : move trailing comment above when it pushes line past 78 ]##
+sub step3_relocate_trailing_comment {
+    my $line = shift;
+    return ($line) if length_no_nl($line) <= LINE_MAX;
+
+    ##  match : code ws ## comment ## newline  ##
+    ##  only safe with the ## .. ## p7 annotation form  ##
+    if ( $line
+        =~ m{^(\s*)([^\#\n].*?\S)(\s{2,})(\#\#\s.*?\s\#\#)\s*(\r?\n)?$} ) {
+        my $indent    = $1;
+        my $code      = $2;
+        my $comment   = $4;
+        my $nl        = $5 // "\n";
+        my $code_line = "$indent$code$nl";
+        return ($code_line) if length_no_nl($code_line) > LINE_MAX;
+        my $comment_line = "$indent$comment$nl";
+        return ( $comment_line, $code_line );
+    }
+    return ($line);
+}
+
+##[ step 1 : split a long-line quoted string at whitespace boundary ]##
+sub step1_split_long_string {
+    my $line   = shift;
+    my $quotes = shift;
+    return undef if length_no_nl($line) <= LINE_MAX;
+    return undef if not $quotes or not @$quotes;
+
+    ##  pick longest quote token on the line that contains a splittable
+    ##  whitespace position and whose split fits within LINE_MAX  ##
+    my @candidates = sort { $b->{length} <=> $a->{length} } @$quotes;
+    for my $tok (@candidates) {
+        my $col      = $tok->{col};
+        my $content  = $tok->{content};
+        my $quote_ch = substr( $content, 0, 1 );
+        next if $quote_ch ne q|'| and $quote_ch ne q|"|;
+        my $inner = substr( $content, 1, -1 );
+        next if $inner !~ m{\s};
+
+        ##  budget : col + 1 (open quote) up to LINE_MAX leaves room for
+        ##  inner chars and closing quote + trailing space  ##
+        my $prefix_len = $col - 1;    ## 0-based column of first char ##
+        ##  available width for content of part1 + closing quote on line 1 :
+        ##  prefix_len + 1 [open] + part1_len + 1 [close] + 1 [optional sp]
+        ##  must be <= LINE_MAX  ##
+        my $max_inner1 = LINE_MAX - $prefix_len - 3;
+        next if $max_inner1 < 1;
+
+        ##  find whitespace split positions inside $inner [ not inside
+        ##  interpolation for double-quoted ]  ##
+        my @safe_splits = find_split_positions( $inner, $quote_ch );
+        next if not @safe_splits;
+
+        ##  pick largest position <= $max_inner1  ##
+        my $best;
+        for my $p (@safe_splits) {
+            last if $p > $max_inner1;
+            $best = $p;
+        }
+        next if not defined $best;
+
+        my $part1 = substr( $inner, 0, $best );
+        my $part2 = substr( $inner, $best );
+        ##  keep the splitting whitespace on the trailing edge of part1  ##
+        ##  best is at a position just after a whitespace boundary  ##
+
+        ##  compose new lines  ##
+        my $tok_start_idx = $tok->{idx};    ##  0-based start of token
+        my $tok_end_idx   = $tok->{idx} + $tok->{length};
+        my $before        = substr( $line, 0, $tok_start_idx );
+        my $after         = substr( $line, $tok_end_idx );
+
+        ##  trailing newline preserved on $after if present  ##
+        my $nl = '';
+        if ( $after =~ s{(\r?\n)$}{} ) { $nl = $1 }
+
+        my $continuation_indent = ' ' x ($prefix_len);
+        my $part1_token         = $quote_ch . $part1 . $quote_ch;
+        my $part2_token         = $quote_ch . $part2 . $quote_ch;
+
+        my $line1 = $before . $part1_token . "\n";
+        my $line2
+            = $continuation_indent
+            . qw| . | . ' '
+            . $part2_token
+            . $after
+            . $nl;
+        $line2 .= "\n" if $nl eq '';
+
+        ##  if either resulting line still exceeds budget , do nothing  ##
+        ##  [ perltidy can wrap shorter lines downstream ]  ##
+        if ( length_no_nl($line2) > LINE_MAX ) {
+
+            ##  recursive descent : try splitting part2 again  ##
+            ##  build minimal token info and recurse  ##
+            ##  for safety , just return both lines and let ptd handle  ##
+        }
+
+        return [ $line1, $line2 ];
+    }
+    return undef;
+}
+
+##[ find positions in $inner where a split keeps interpolation intact ]##
+sub find_split_positions {
+    my ( $inner, $quote ) = @_;
+    my @positions;
+    my $len = length $inner;
+    my $i   = 0;
+    ##  build a mask of "in interpolation" for double-quoted  ##
+    my @in_interp = (0) x $len;
+    if ( $quote eq q|"| ) {
+        while ( $i < $len ) {
+            my $c = substr( $inner, $i, 1 );
+            if ( $c eq qw| \\ | ) {
+                $in_interp[$i] = 1;
+                $in_interp[ $i + 1 ] = 1 if $i + 1 < $len;
+                $i += 2;
+                next;
+            }
+            if ( $c eq qw| $ | or $c eq qw| @ | ) {
+                ##  start interp : ${expr} , $var , @arr , @{expr}  ##
+                my $start = $i;
+                $in_interp[$i] = 1;
+                $i++;
+                if ( $i < $len and substr( $inner, $i, 1 ) eq '{' ) {
+                    ##  bracketed - find matching brace  ##
+                    my $depth = 1;
+                    $in_interp[$i] = 1;
+                    $i++;
+                    while ( $i < $len and $depth > 0 ) {
+                        my $cc = substr( $inner, $i, 1 );
+                        $in_interp[$i] = 1;
+                        if    ( $cc eq '{' ) { $depth++ }
+                        elsif ( $cc eq '}' ) { $depth-- }
+                        $i++;
+                    }
+                    next;
+                }
+                ##  bareword variable name [ + optional [] {} -> chain ]  ##
+                while ( $i < $len and substr( $inner, $i, 1 ) =~ m{\w} ) {
+                    $in_interp[$i] = 1;
+                    $i++;
+                }
+                ##  allow subscript/method chain to remain protected  ##
+                while ( $i < $len ) {
+                    my $cc = substr( $inner, $i, 1 );
+                    if ( $cc eq '[' or $cc eq '{' ) {
+                        my $open  = $cc;
+                        my $close = $cc eq '[' ? ']' : '}';
+                        my $depth = 1;
+                        $in_interp[$i] = 1;
+                        $i++;
+                        while ( $i < $len and $depth > 0 ) {
+                            my $cc2 = substr( $inner, $i, 1 );
+                            $in_interp[$i] = 1;
+                            if    ( $cc2 eq $open )  { $depth++ }
+                            elsif ( $cc2 eq $close ) { $depth-- }
+                            $i++;
+                        }
+                        next;
+                    }
+                    if ( substr( $inner, $i, 2 ) eq '->' ) {
+                        $in_interp[$i] = 1;
+                        $in_interp[ $i + 1 ] = 1;
+                        $i += 2;
+                        next;
+                    }
+                    last;
+                }
+                next;
+            }
+            $i++;
+        }
+    } else {
+        ##  single-quoted : only \' and \\ are escapes  ##
+        while ( $i < $len ) {
+            my $c = substr( $inner, $i, 1 );
+            if ( $c eq qw| \\ | and $i + 1 < $len ) {
+                my $nx = substr( $inner, $i + 1, 1 );
+                if ( $nx eq qw| \\ | or $nx eq qw| ' | ) {
+                    $in_interp[$i] = 1;
+                    $in_interp[ $i + 1 ] = 1;
+                    $i += 2;
+                    next;
+                }
+            }
+            $i++;
+        }
+    }
+
+    ##  collect split points : just after a whitespace , when neither side
+    ##  is inside an interpolation segment  ##
+    for ( my $p = 1; $p < $len; $p++ ) {
+        my $prev = substr( $inner, $p - 1, 1 );
+        next if $prev !~ m{\s};
+        next if $in_interp[ $p - 1 ];
+        next if $in_interp[$p];
+        push @positions, $p;
+    }
+    return @positions;
+}
+
+##[ step 2 : reflow over-long ## comment lines using Text::Wrap ]##
+sub step2_reflow_comment {
+    my $line = shift;
+    return undef if length_no_nl($line) <= LINE_MAX;
+
+    ##  detect ## comment line [ pure comment ]  ##
+    ##  exclusions :
+    ##    ## [:< ##         module header
+    ##    ## [ ... ] ##     annotation
+    ##    #!                shebang
+    ##    #,                signature
+    ##  any leading code disqualifies [ handled by step 3 instead ]  ##
+
+    if ( $line !~ m{^(\s*)(\#\#\s)(.*?)\s*(\r?\n)?$} ) {
+        return undef;
+    }
+    my $indent  = $1;
+    my $prefix  = $2;
+    my $content = $3;
+    my $nl      = $4 // "\n";
+
+    ##  exclusion patterns  ##
+    return undef if $content =~ m{^\[:< \#\#$};          ## module header ##
+    return undef if $content =~ m{^\[.*\]\s*\#?\#?$};    ## annotation ##
+
+    my $width = LINE_MAX - length($indent) - length($prefix);
+    return undef if $width < 20;    ##  too narrow , skip  ##
+
+    ##  preserve trailing ## marker if present  ##
+    my $trailing = '';
+    if ( $content =~ s{\s*(\#\#)\s*$}{} ) {
+        $trailing = " $1";
+    }
+
+    local $Text::Wrap::columns  = $width + 1;    ##  Text::Wrap : "+ 1" ##
+    local $Text::Wrap::break    = qr/\s/;
+    local $Text::Wrap::huge     = 'overflow';
+    local $Text::Wrap::unexpand = 0;
+    my $wrapped = Text::Wrap::wrap( '', '', $content );
+    my @parts   = split m{\n}, $wrapped;
+    return undef if @parts <= 1;                 ##  did not need wrapping  ##
+
+    my @out;
+    for my $p ( 0 .. $#parts ) {
+        my $part   = $parts[$p];
+        my $suffix = ( $p == $#parts ) ? $trailing : '';
+        push @out, "$indent$prefix$part$suffix$nl";
+    }
+    return \@out;
+}
+
+##[ utilities ]##
+sub length_no_nl {
+    my $s = shift;
+    $s =~ s{\r?\n\z}{};
+    return length $s;
+}
+
+sub slurp_file {
+    my $f = shift;
+    open my $fh, qw| < |, $f or die "cannot read $f : $OS_ERROR\n";
+    binmode $fh, qw| :raw |;
+    local $/;
+    my $data = <$fh>;
+    close $fh;
+    return $data;
+}
+
+##[ detect signature footer : trailing block of #-prefixed lines ending in
+##  a line of colons . returns 1-based line number of first sig line , or
+##  undef if no signature footer found ]##
+sub detect_signature_start {
+    my $lines = shift;
+    my $n     = scalar @$lines;
+    return undef if $n < 5;
+    my $idx = $n - 1;
+    ##  trim trailing blank line  ##
+    while ( $idx >= 0 and $lines->[$idx] =~ m{^\s*$} ) { $idx-- }
+    return undef if $idx < 4;
+    return undef if $lines->[$idx] !~ m{^\#:{10,}};
+
+    my $start = $idx;
+    while ( $start > 0
+        and $lines->[ $start - 1 ] =~ m{^\#(?:[,\\\[].*|:{10,})} ) {
+        $start--;
+    }
+    return $start + 1;
+}
+
+##[ mark =pod ... =cut regions in %skip [ 1-based line numbers ] ]##
+sub mark_pod_regions {
+    my ( $lines, $skip ) = @_;
+    my $in_pod = 0;
+    for my $i ( 0 .. $#$lines ) {
+        my $l = $lines->[$i];
+        if ( not $in_pod and $l =~ m{^=\w+} and $l !~ m{^=cut\b} ) {
+            $in_pod = 1;
+        }
+        if ($in_pod) {
+            $skip->{ $i + 1 } = 'pod';
+        }
+        if ( $in_pod and $l =~ m{^=cut\b} ) {
+            $in_pod = 0;
+        }
+    }
+}
+
+##[ mark heredoc body lines using PPI heredoc tokens ]##
+sub mark_heredoc_regions {
+    my ( $doc, $skip ) = @_;
+    my $heredocs = $doc->find(qw| PPI::Token::HereDoc |);
+    return if not $heredocs;
+    for my $h (@$heredocs) {
+        ##  PPI exposes the heredoc body lines via ->heredoc method  ##
+        my @body = $h->heredoc;
+        ##  location of heredoc token is at the << on the source line .
+        ##  body begins on the line AFTER the line containing << , and
+        ##  the terminator follows the body  ##
+        my $loc = $h->location;
+        next if not $loc;
+        my $start = $loc->[0] + 1;
+        my $end   = $start + scalar(@body);    ## terminator inclusive ##
+        for my $ln ( $start .. $end ) {
+            $skip->{$ln} = 'heredoc';
+        }
+    }
+}
+
+##[ collect single + double quoted tokens with line/col info ]##
+sub collect_quote_tokens {
+    my $doc = shift;
+    my @result;
+    my $toks = $doc->find(
+        sub {
+            my ( $top, $node ) = @_;
+            return 1 if $node->isa(qw| PPI::Token::Quote::Single |);
+            return 1 if $node->isa(qw| PPI::Token::Quote::Double |);
+            return 0;
+        }
+    );
+    return () if not $toks;
+    for my $t (@$toks) {
+        my $loc = $t->location;
+        next if not $loc;
+        my $content = $t->content;
+        push @result, {
+            line    => $loc->[0],
+            col     => $loc->[1],
+            idx     => $loc->[1] - 1,     ## 0-based column ##
+            length  => length $content,
+            content => $content,
+        };
+    }
+    return @result;
+}
+
+##[ shared utilities adapted from bin/ptd ]##
+sub color_msg {
+    my $err_msg   = shift;
+    my $file_path = shift;
+    my $color     = shift // $NEON_orange;
+    my $colored_msg
+        = "\n$blacklight:\n::[$color $err_msg $blacklight] "
+        . ".: $color$file_path$blacklight ::\n:$reset\n";
+}
+
+sub is_perl_code {
+    my $file = shift;
+    return FALSE if not -f $file or -z $file;
+    my $is_code = 0;
+    open( my $fh, qw| < |, $file ) or die ":\n:: \l$OS_ERROR :: $file\n:\n";
+    my $first_line = '';
+    while ( $first_line ne '## [:< ##'
+        and $first_line =~ m{^\s*($|(use|my|our)\s.+;|#(*nla:!))} ) {
+        $first_line = readline($fh);
+        if   ( not defined $first_line ) { last; }
+        else                             { chomp($first_line); }
+    }
+    if ( defined $first_line ) {
+        $is_code = TRUE
+            if $first_line eq '## [:< ##'
+            or $first_line =~ m|^#!.*perl|
+            or $first_line =~ m|^package .+;(\s*#.*)?$|
+            or $file       =~ m|\.pm$|;
+    }
+    print color_msg( 'skipping config.,', $file, $blacklight )
+        and return FALSE
+        if $is_code
+        and index( abs_path($file), qw| /configuration/ |, 0 ) != -1;
+    close($fh) or die ":\n:: \l$OS_ERROR :: $file\n:\n";
+    return $is_code;
+}
+
+sub sig_int {
+    print "\b\b::\b\b\r$blacklight\:::\n:\n:: [ ${NEON_orange}SIG"
+        . "INT$blacklight ] $NEON_green_yellow format-code run "
+        . "aborted$blacklight ..,\n:$reset\n";
+    exit('000113');
+}
+
+sub show_progress {
+    my $filename    = shift;
+    my $file_num    = shift;
+    my $files_total = shift;
+    my $chars_max   = 13;
+    my $character   = qw| : |;
+    my $char_count  = int( $chars_max * $file_num / $files_total );
+    my $perc_chars  = $character x $char_count;
+    printf( "\r${blacklight}:::[$nailara_bg$TRUE_color%-${chars_max}s"
+            . "$reset$blacklight]:"
+            . "::[$nailara_bg$TRUE_color %-${file_maxlen}s"
+            . " $reset$blacklight]:.$reset\r",
+        $perc_chars, $filename );
+}
+
+#,,,,,...,,,.,,.,,,,.,,,.,.,,,,,.,,,,,...,..,,..,,...,.,.,...,,..,.,.,.,,,.,.,
+#ERJ6N5KRXAXR4YT5JRXO6PAJABWNF7XJJMG3WSGLORBBJZGLHKQM27KGSV5JF35CXXQ6QA5GVYBS2
+#\\\|L5NBEOHBTSVIMIU4OHVPDS6ECCRDJ43HI4C3HG6DT5ZFOSATNO6 \ / AMOS7 \ YOURUM ::
+#\[7]BKAYRMGAJL7LOSZDHQJUOTVQYUCJQBLVSEVIKGR75SMD4COHGSDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

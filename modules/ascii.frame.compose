@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = ascii.frame.compose
+# descr = nest an inner frame into an outer frame slot with width reconciliation
+
+my $params = shift // {};
+
+my $outer     = $params->{'outer'} // return undef;
+my $slot_name = $params->{'slot'}  // return undef;
+my $inner     = $params->{'inner'} // return undef;
+
+return undef unless ref $outer eq qw| HASH | and ref $inner eq qw| HASH |;
+
+## ensure slot exists in outer frame ##
+$outer->{'slots'} //= {};
+unless ( exists $outer->{'slots'}->{$slot_name} ) {
+    $outer->{'slots'}->{$slot_name} = {
+        type => 'block',
+        row  => 1,
+    };
+}
+
+## compute inner frame's content width ##
+my $inner_min    = $inner->{'min_width'}        // 0;
+my $inner_lpad   = $inner->{'padding'}{'left'}  // 0;
+my $inner_rpad   = $inner->{'padding'}{'right'} // 0;
+my $inner_border = length( $inner->{'border'}{'left'} // '' )
+    + length( $inner->{'border'}{'right'} // '' );
+my $inner_total_width
+    = $inner_min + $inner_lpad + $inner_rpad + $inner_border;
+
+## constrain outer slot to inner dimensions ##
+$outer->{'slots'}->{$slot_name}->{'inner_frame'} = $inner;
+$outer->{'slots'}->{$slot_name}->{'inner_width'} = $inner_total_width;
+
+## update outer min_width if inner is wider ##
+my $outer_content_width = $outer->{'min_width'}        // 0;
+my $outer_lpad          = $outer->{'padding'}{'left'}  // 0;
+my $outer_rpad          = $outer->{'padding'}{'right'} // 0;
+my $outer_border        = length( $outer->{'border'}{'left'} // '' )
+    + length( $outer->{'border'}{'right'} // '' );
+my $outer_total
+    = $outer_content_width + $outer_lpad + $outer_rpad + $outer_border;
+
+if ( $inner_total_width > $outer_total ) {
+    $outer->{'min_width'}
+        = $inner_total_width - $outer_lpad - $outer_rpad - $outer_border;
+}
+
+## mark slot as composed frame source ##
+$outer->{'slots'}->{$slot_name}->{'type'} = 'composed';
+
+return $outer;
+
+#,,..,.,,,,,.,,.,,..,,.,.,.,.,,.,,,.,,,..,.,,,..,,...,...,...,...,,,.,...,.,,,
+#JX6HDDJ3SDP55V734ET2FGGTMH5VY5F7BJ4ZE4DFWTVSNYI3UOMRZGM6M3MGPT5XUY4RKJCDEXI2Q
+#\\\|EUIDN3JXU4WBO3HFEZLB266SVSMQVHOEYQ2W2BOM4JWTMHR2E4K \ / AMOS7 \ YOURUM ::
+#\[7]27LJI6D2ROCFOVSP3BWYSL4UV5WJ456QSV3EJKJBFGLML4LXJKDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
