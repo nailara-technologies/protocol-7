@@ -52,6 +52,12 @@ if ( defined $encoded_payload ) {
 
 ## print to console [STDOUT] and handle cursor display
 #
+## [ clear current line if a history entry is displayed, so reply appears clean ]
+my $_nshell_state = <nshell.state> // {};
+print "\r\e[2K"
+    if $_nshell_state->{'current_mode'} == 2
+    and length( $_nshell_state->{'display_buffer'} // '' );
+
 if ( not defined $payload_str ) {
 
     ## single-line reply : colorize and print to console for immediate display
@@ -75,12 +81,21 @@ print "\r"
     . "_\e[K\r" . "\e[0m"
     . $colors{'p7_fg_0004'};
 
+## [ re-display history entry if reply arrived while in VIEWING_HISTORY mode ]
+my $nshell_state = <nshell.state> // {};
+if ( $nshell_state->{'current_mode'} == 2
+    and length( $nshell_state->{'display_buffer'} // '' ) ) {
+    print "\r\e[2K";
+    $nshell_state->{'view_offset'} = 0;
+    <[nshell.render.viewport]>->( $nshell_state->{'editor'}, \%colors );
+}
+
 STDOUT->flush();
 
 return TRUE;
 
-#,,,,,,..,,,,,.,.,,,.,,.,,,.,,.,.,,..,,,.,,,,,.,.,...,...,..,,,,.,.,.,...,.,.,
-#7VAAEIZP3IK5UXSSONUDLO256BUYFLLFMGWFP6L2UOGUQD4KPLRY6DAXLZVTL4UP2LOMQBKWEF442
-#\\\|EO36BOZGCWAPI45E2KIZXHVA5HPGPDKBIQS7QZF234IG3SDD4IM \ / AMOS7 \ YOURUM ::
-#\[7]XDDYQ4SZRXNQYTVM3H24TVF3XFJ6KPL3RXCI7LWJWNTWMJ2CNIAY 7  DATA SIGNATURE ::
+#,,..,...,.,.,,,,,,,.,..,,.,.,...,,.,,,,,,,,,,.,.,...,...,,,.,..,,,,.,..,,,,,,
+#3VD6OXQ5MF3KZO2OIM36ORC2SUGR6URPXGFNG4BJVVCZHKX6TAI23EWNZWEVJPZTH6PQNZMVSHQJ4
+#\\\|I3CKBDFT7VXKYJVUBUYGPRUXNTBNCPBU4W6SX6Y434DSL6LAZWD \ / AMOS7 \ YOURUM ::
+#\[7]34RWBXR3CYVJVTHXTTNMSKHT3EIISU2FVYMWW6TAIYOG4BG6K4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
