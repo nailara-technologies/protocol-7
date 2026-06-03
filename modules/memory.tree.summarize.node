@@ -1,0 +1,56 @@
+## [:< ##
+
+# name = memory.tree.summarize.node
+# descr = submit overflow cluster to coding zenka for summarization
+
+my $params  = shift // {};
+my $branch  = $params->{'node'};
+my $cluster = $params->{'cluster'} // [];
+
+return FALSE if not defined $branch;
+return FALSE if not scalar @$cluster;
+
+## [ stampede guard ]##
+return FALSE if <memory.summarize_lock> { $branch->{'id'} };
+
+<memory.summarize_lock> { $branch->{'id'} } = TRUE;
+
+my @parts;
+my @replace_ids;
+
+for my $leaf (@$cluster) {
+    push @parts,       $leaf->{'title'} // '';
+    push @parts,       $leaf->{'body'}  // '';
+    push @replace_ids, $leaf->{'id'};
+}
+
+my $content     = join "\n", grep { length $_ } @parts;
+my $replace_ids = \@replace_ids;
+
+my $sent = <[base.protocol-7.command.send.local]>->(
+    {   'command'   => qw| coding.summarize-context |,
+        'call_args' => { 'args' => 'max_len=800', 'data' => $content },
+        'reply'     => {
+            'handler' => 'memory.tree.summarize.handler',
+            'params'  => {
+                'node_id'     => $branch->{'id'},
+                'replace_ids' => $replace_ids
+            }
+        }
+    }
+);
+
+if ( not defined $sent or $sent <= 0 ) {
+    <memory.summarize_queue_depth>--
+        if ( <memory.summarize_queue_depth> // 0 ) > 0;
+    delete <memory.summarize_lock> { $branch->{'id'} };
+    return FALSE;
+}
+
+return TRUE;
+
+#,,..,,.,,,,,,...,...,,..,,.,,...,,.,,,,.,,.,,.,.,...,...,.,.,.,,,,..,,..,,.,,
+#EX3FKWWKG3FIU5RDCEFQAZU6F2Y2GQFGDTKIQCXWQOB4URCLYFB73CX52QZCO4OHWYVH5KLKHMZC6
+#\\\|F4VKN4GADZDAYUHCDJEIWTLDUJ2WVS2KP33BCN3JNO2WKIG4AOJ \ / AMOS7 \ YOURUM ::
+#\[7]PAFADGYO5DEZCBALQPFOPMYVPSFRYITCQGVZMZVMQYJKRFTDKGCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

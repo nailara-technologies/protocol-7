@@ -1,0 +1,64 @@
+## [:< ##
+# name = memory.tree.summarize.wave
+# descr = walk tree and queue overflow clusters for summarization
+
+my $params = shift // {};
+
+my $root = <memory.tree>;
+return 0 if not defined $root;
+
+my $cfg    = <memory.cfg> // {};
+my $queued = 0;
+my @stack  = ($root);
+
+while (@stack) {
+    my $branch = pop @stack;
+
+    next if ( $branch->{'type'} // '' ) eq 'leaf';
+
+    my $children = $branch->{'children'} // [];
+    my $count    = scalar @$children;
+    my $cap      = $branch->{'n_max_cap'} // 13;
+
+    if ( $count > $cap ) {
+        my @sorted
+            = sort { ( $a->{'score'} // 0 ) <=> ( $b->{'score'} // 0 ) }
+            @$children;
+        my $overflow = $count - $cap;
+        my @cluster;
+
+        for my $i ( 0 .. $overflow - 1 ) {
+            my $child = $sorted[$i];
+            push @cluster, $child if ( $child->{'type'} // '' ) eq 'leaf';
+        }
+
+        if ( scalar @cluster >= 2 ) {
+            my $depth     = <memory.summarize_queue_depth> // 0;
+            my $queue_max = $cfg->{'summarize_queue_max'}  // 3;
+            if ( $depth < $queue_max ) {
+                <memory.summarize_queue_depth> = $depth + 1;
+
+                my $result = <[memory.tree.summarize.node]>
+                    ->( { 'node' => $branch, 'cluster' => \@cluster } );
+
+                if ( $result == TRUE ) {
+                    $queued++;
+                } else {
+                    <memory.summarize_queue_depth> = $depth;
+                }
+            }
+        }
+    }
+
+    for my $child (@$children) {
+        push @stack, $child if ( $child->{'type'} // '' ) ne 'leaf';
+    }
+}
+
+return $queued;
+
+#,,,.,.,,,.,,,.,.,...,,,,,,,.,,,,,,,,,..,,...,..,,...,...,...,,.,,..,,,,.,,.,,
+#BEJZDMB3XEKVGNNO57OXH2QYIM5LSWXGLRP4QHFJTT7NCM6AMPXQWBF7XSCIR3NHELZP4O5IBDAUC
+#\\\|PCDQJRVXBZBXC3JHDY2ICZCWFGJEG625RR6A72NZT22YBPP6R5U \ / AMOS7 \ YOURUM ::
+#\[7]7O2ACQNVKQ2LN42VJTZQCXLZM3FBX2H5M2RZMX7EXR3GDL2IMAAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

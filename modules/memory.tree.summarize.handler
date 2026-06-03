@@ -1,0 +1,98 @@
+## [:< ##
+
+# name = memory.tree.summarize.handler
+# descr = handle coding zenka reply and replace cluster with summary node
+
+my $reply = shift;
+
+my $params      = $reply->{'params'}       // {};
+my $node_id     = $params->{'node_id'}     // '';
+my $replace_ids = $params->{'replace_ids'} // [];
+
+my $summary_text = $reply->{'data'} // '';
+
+## [ always decrement in-flight count and release lock on exit ] ##
+my $cleanup = sub {
+    <memory.summarize_queue_depth>--
+        if ( <memory.summarize_queue_depth> // 0 ) > 0;
+    delete <memory.summarize_lock> {$node_id};
+};
+
+if ( not length $summary_text ) {
+    $cleanup->();
+    return FALSE;
+}
+
+my $node = <memory.tree_index> {$node_id};
+if ( not defined $node ) {
+    $cleanup->();
+    return FALSE;
+}
+
+my $summary_node = {
+    type         => 'summary',
+    id           => <[chk-sum.jha.hex]>->($summary_text),
+    title        => 'summary',
+    body         => $summary_text,
+    ntime        => <[base.ntime.b32]>->(<[base.ntime]>),
+    content_hash => <[chk-sum.jha.hex]>->($summary_text),
+    score        => 0,
+    curve_type   => $node->{'curve_type'} // 'sigmoid',
+    children     => [],
+    n_visible    => 0,
+    n_inherit    => FALSE,
+    n_max_cap    => 0,
+    subtree_hash => <[chk-sum.jha.hex]>->($summary_text),
+    replaces     => $replace_ids,
+    summary_ref  => $node_id,
+};
+
+## [ remove replaced children ]##
+my %replace_map = map { $_ => TRUE } @$replace_ids;
+$node->{'children'}
+    = [ grep { not $replace_map{ $_->{'id'} } }
+        @{ $node->{'children'} // [] } ];
+
+push @{ $node->{'children'} }, $summary_node;
+
+<memory.tree_index> { $summary_node->{'id'} } = $summary_node;
+
+## [ recompute subtree hashes upward ]##
+my $root = <memory.tree>;
+if ( defined $root ) {
+    my @path;
+    my @stack      = ( [ $root, [$root] ] );
+    my $found_path = 0;
+
+    while (@stack) {
+        my ( $current, $trail ) = @{ pop @stack };
+        if ( $current->{'id'} eq $node_id ) {
+            @path       = @$trail;
+            $found_path = 1;
+            last;
+        }
+        for my $child ( @{ $current->{'children'} // [] } ) {
+            push @stack, [ $child, [ @$trail, $child ] ];
+        }
+    }
+
+    if ($found_path) {
+        for my $ancestor ( reverse @path ) {
+            my @hashes = map { $_->{'content_hash'} // '' }
+                @{ $ancestor->{'children'} // [] };
+            my $combined = join ':', sort @hashes;
+            $ancestor->{'subtree_hash'}
+                = length $combined ? <[chk-sum.jha.hex]>->($combined) : '';
+        }
+    }
+}
+
+$cleanup->();
+
+return TRUE;
+
+#,,.,,.,,,,..,,.,,...,,,,,,,.,...,,..,...,,,,,..,,...,...,,..,..,,.,,,...,,,.,
+#AVNUIA22O27QPMSTJ4NUK2EU3PKLI4CD2NPLRD5UPMXJ76N2HWCILR2ISL2TCHIYN7OIDNMPGJ43E
+#\\\|FXXSSZ2KB7H7NBKIKDON4D75H4FOTSRDZ5DOE4AIJ7PQGFMSDVI \ / AMOS7 \ YOURUM ::
+#\[7]63W7GUKU4Z3WEXTI2VMTVS7ZXNIQSUGRZINHAWSNM54ZFSYDAMDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

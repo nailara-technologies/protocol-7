@@ -1,0 +1,30 @@
+## [:< ##
+
+# name = memory.cmd.zoom
+# descr = adjust memory tree n_visible zoom factor
+
+my $args   = $call->{'args'} // '';
+my $factor = 1;
+
+if ( $args =~ m{(\d+(?:\.\d+)?)} ) {
+    $factor = $1 + 0;
+}
+
+my $new_n = eval { <[memory.tree.zoom]>->( { factor => $factor } ) };
+my $err   = <[base.str.eval_error]>;
+
+if ( $err or not defined $new_n ) {
+    <[base.logs]>->( 0, 'memory.cmd.zoom failed: %s', $err );
+    return { 'mode' => 'size', 'data' => "zoom failed: $err\n" };
+}
+
+my $output = sprintf "memory tree zoom: factor=%.2f n_visible=%d\n",
+    $factor, $new_n;
+
+return { 'mode' => 'size', 'data' => $output };
+
+#,,,,,,,,,,,.,,..,,..,...,,,,,.,.,..,,,,,,,,.,..,,...,..,,...,.,.,.,,,.,.,.,,,
+#G5WWJGJYLY7S3THRUXQ5P7SVHIUQIDQUCCBQB4TRLZWPPZNOFPO3CJFZWYJM4KINULPFKPH5ALUTW
+#\\\|IWUWZKWUG2YCGOWCWNJS7422DLEFYRX3PLGM5KHH5DRFFXNC45Y \ / AMOS7 \ YOURUM ::
+#\[7]RXURZEBTYNNHUYCN3K76MAEUGH22DXLUNTAMO3DVEVK6KHEYGACY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

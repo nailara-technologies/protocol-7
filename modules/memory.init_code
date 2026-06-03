@@ -30,6 +30,18 @@ $decay_interval = 30 if not $decay_interval or $decay_interval < 5;
     }
 );
 
+## [ register maintenance timer ] ##
+my $maint_interval = $cfg->{'maintenance_interval'} // 300;
+$maint_interval = 60 if not $maint_interval or $maint_interval < 30;
+<[event.add_timer]>->(
+    {   'after'    => $maint_interval,
+        'interval' => $maint_interval,
+        'repeat'   => TRUE,
+        'handler'  => 'memory.maintenance.timer',
+        'desc'     => 'memory tree maintenance wave'
+    }
+);
+
 ## [ tree init ]##
 <[memory.tree.init]>;
 
@@ -52,8 +64,8 @@ push @{ <system.callbacks.initialized> //= [] }, 'memory.startup';
 
 return TRUE;
 
-#,,.,,..,,,.,,,,.,,..,,..,,..,,,,,.,.,,,.,.,,,..,,...,..,,.,.,...,,..,,,,,.,.,
-#RKNIIUCL2VD3A34EVYMTFQPA5C7R7G7IHOKUS6XBYGTU3X6HKZTFNXQHFAQ2VCREBHXP5FPVJ7ALC
-#\\\|MXZTYVJRGZ2SF27L34WWFGO5B4BT5LHXFFGMIIPEHBCPZ3ZTNTS \ / AMOS7 \ YOURUM ::
-#\[7]F6KVW7Z3OWQF6UI32Q7VIFAWXZUSMTAHW6TBL6AOPDOIDO6PSABI 7  DATA SIGNATURE ::
+#,,..,..,,,,.,...,,..,.,,,,..,,..,,,.,..,,,.,,..,,...,..,,...,,..,,,.,...,...,
+#QIBK4ADMDBDMQJW3Y7IZTV5TBAFYY3WNYYQKIQEM3ZBAC74DN7U4MY2NMVGICBVKXUFDSIKQZX6BK
+#\\\|BPXPFHPHHMJV7K7FAU56IBG7KBFQQ774W2AQS5QBJHA4OZHWUMS \ / AMOS7 \ YOURUM ::
+#\[7]DHWDLJC74ACSWOWUHVO7OSELFB7MLEZIZGOHO72FCASU7E6FN4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
