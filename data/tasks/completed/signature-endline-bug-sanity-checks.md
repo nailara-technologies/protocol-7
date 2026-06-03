@@ -1,5 +1,22 @@
 # task: signature endline bug — sanity checks after strict state recovery
 
+## RESOLVED 2026-06-03 — see signature-endline-bug-FINDINGS.md
+
+the bug was a single root cause , not the large state-space this task
+hypothesised. `source.harmonize_payload_line_feed` early-returned for endline
+states 0 / 7 , so re-signing a zero-trailing-newline file ( state 7 ) left the
+payload without its `\n\n` separator and concatenated the footer onto the last
+content line — oscillating valid / invalid on every other sign. fix : removed
+the state 0/7 early-return ( canonical-form loop is idempotent ). regression
+net : `bin/dev/tests/timing/test-endline-state7-oscillation`.
+
+NOTE : the diagnostic-channel analysis below ( the `restore_payload_endline_state`
+clamp → `encountered-error` propagation ) was a wrong lead — that clamp does not
+reach the generic-error log ; the generic log comes from the markers
+misclassification path , which is cosmetic and unrelated to the concatenation.
+the `extract_sig_body:703` suspect was also a red herring ( unreachable in
+strict signing ). retained below for the record.
+
 ## status
 
 still empirically reproducible after the may-23 strict-recovery fix
@@ -325,8 +342,8 @@ fixtures :
 - a clean re-sign of all currently corrupted files in the repo ( one
   pass , no further oscillation )
 
-#,,,,,...,,.,,,,,,,,.,...,.,.,..,,...,,.,,..,,..,,...,...,.,,,,.,,,..,..,,.,.,
-#26OMTD7SJJOMOTAWD3TJR5JNMXO5FC4KUG3FO6MR2VHTBE6HEMSBVLVILQZKPNBPGAFG7TZANXFOE
-#\\\|QVPIYTTVTUNK5REZXDWRPNHRWSCKJOD36TKG5DUHLHE3LL66HIV \ / AMOS7 \ YOURUM ::
-#\[7]NF5A44L6P6G2AGBVFOCO267POTK25HYQ76UPHUKMSSA6DHG7E6AI 7  DATA SIGNATURE ::
+#,,..,,..,,,,,.,.,,,,,,.,,.,.,.,,,.,.,..,,,,,,..,,...,...,.,.,..,,,..,..,,,.,,
+#STCVBOTGLOBCQLCEFKODMVXRU2756BSKCX27PP766CTJRA2KNQQEUCQ4O3QJSISPAIIVPUCUHYLJG
+#\\\|E5OUBUHC7KVRBLKLSYJCCTDSVJ2ZUHXZ4B3BQZ33AQN2VS45JPH \ / AMOS7 \ YOURUM ::
+#\[7]6RHMRZPE5BNYLWGKL3RJP476QRAZBPH43SUPT7MR77B77RMV2UCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

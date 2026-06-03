@@ -1,61 +1,59 @@
 ---
 name: bug-signature-endline-restoration
-description: signing restoration uses stale encoded endline state after edit changes last content line — produces concatenated footer
-metadata: 
+description: RESOLVED — signature footer concatenation was harmonize state-0/7 early-return, not the restore clamp; state-7 (0-trailing-newline) files oscillated on every other sign
+metadata:
   node_type: memory
   type: project
   originSessionId: 59836803-64cb-4781-9e11-bdd727d581dc
 ---
 
-## Bug
+## RESOLVED 2026-06-03
 
-When a file is edited such that the last content line changes (e.g. inserting a
-line before `return TRUE;`), the re-signing restoration logic reads the endline
-state encoded in the OLD signature and applies it as if the content still ends
-the same way. The strip+restore cycle then adds or removes the wrong number of
-newlines — producing `return TRUE;#,,...` with no separator.
+The footer-concatenation bug (`last content line.#,,..` with no separator) was a
+single root cause, **not** the large state×nl-count matrix earlier hypothesised.
 
-**Why**: `source.restore_payload_endline_state` trusts the encoded delta from
-the previous signature without checking whether the actual trailing newline
-count matches what that delta implies. Valid assumption for a clean sign/verify
-cycle, but breaks when an edit changes the endline state between sign cycles.
+**Symptom**: a file whose on-disk body has **zero trailing newlines** (encoded
+endline state 7) oscillates — sign 1 valid (state 7), sign 2 INVALID (footer
+concatenated, state 5), sign 3 valid, … A *single* sign looks correct, which is
+why it was first mis-diagnosed as "not reproducible". **Always test re-signing
+across ≥2 passes** to see signature oscillation.
 
-**Root cause**: no sanity check on the encoded state vs. actual current state
-before applying the delta.
+**Root cause**: `source.harmonize_payload_line_feed` early-returned for endline
+states 0 and 7 ("already at modification limit"), skipping its idempotent
+canonical-form loop. On a state-7 re-sign, `extract_sig_body` strips the footer
+and `restore_payload_endline_state` correctly returns the payload to 0 trailing
+newlines — then `harmonize(7)` no-ops, so the `\n\n` separator is never re-added,
+and `get-code-signed:181` appends the footer onto the last content byte.
 
-**Fix direction**: in `restore_payload_endline_state`, before removing N
-trailing newlines (states 0-4, negative delta), count actual trailing newlines
-in the content. If `actual < N` → encoded state is stale/corrupt → log warning
-with discrepancy, clamp removal to actual count (don't underflow).
+**Fix**: removed the `== 0 or == 7` early-return (and dead `$mod_offset`) in
+`harmonize_payload_line_feed`. Signing only ever emits states 5/6/7, so the
+change is effectively state-7-only; repo had 0 state-7 files, so no existing
+file changed behaviour.
 
-Zero trailing newlines after restore is valid for many file types (JSON, YAML,
-generated files, binaries) — cannot assume it's wrong without file-type context.
-File-path heuristics (e.g. modules/) would couple signing to content conventions
-and avoid the real fix. The only safe invariant: cannot remove more newlines than
-exist.
+**Wrong leads (do not re-chase)**:
+- the `restore_payload_endline_state` clamp (lines 40-47) was already present and
+  working; it does NOT reach the generic-error log.
+- the `:E: unspecified error in footer structure` log comes from the
+  markers-misclassification path in `extract_sig_body` (content literally
+  containing SIGNATURE/AMOS7/YOURUM) — cosmetic, unrelated to concatenation.
+- `extract_sig_body:703` `$seperator_endline_absent` skip-branch is unreachable
+  in strict signing (early return at :652).
 
-**After fix**: add normalization config to the existing path set-up for
-signing so modules/ always converges cleanly as a belt-and-suspenders layer.
+**Regression net**: `bin/dev/tests/timing/test-endline-state7-oscillation`
+(self-contained; 0-trailing fixtures both path roots; proven to exit 1 when the
+fix is reverted). Needed because `verify-p7-signatures` over the repo can't catch
+a revert — no state-7 files exist to trip it.
 
-**Reproduction**: edit a module file inserting a line before the last code
-line → run update-signatures → inspect result for missing newline before `#,,`
+**Tools**: `sourcecode report-endline-state <pattern> -v` lists encoded states
+(find at-risk state-7 files). `update-signatures` needs the passphrase; the
+`test-*` family (`test-sign-and-verify` etc.) signs with a temp key — correct for
+unattended reproduction.
 
-**Related task files**:
-- data/tasks/signature-endline-bug-sanity-checks.md  ← active consolidating task (2026-06-03)
-- data/yaml/coding-tasks/signature-endline-state-verification.yaml (completed but verifications pending)
-- data/yaml/docs/processing/signature-endline-handling.yaml
-- data/yaml/code-reviews/modules/source.signature-endline-policy-system.yaml
+**Record**: `data/tasks/completed/signature-endline-bug-FINDINGS.md` (full
+writeup) + `signature-endline-bug-sanity-checks.md` (original task, banner-marked).
 
-**Update 2026-06-03**: Strict state recovery WAS implemented in commit 4aa5536ed
-(`fix: stale endline recovery + vc-changed-files -sig-only staged diff`) but only
-applies to paths in `<source.cfg.normalize_endline_paths>` (default `['modules']`).
-Files outside that set (data/, data/ai-mem/, data/tasks/) still hit the bug —
-empirically reproduced on a memory file write 2026-06-03. See the active task
-file above for the 16-cell state×actual-nl matrix to work through, and the
-sanity-check options (universal recovery vs hard assertion). Opus-suitable.
-
-#,,..,..,,,..,,.,,..,,,..,..,,,,.,,,.,,,.,.,.,..,,...,...,,,,,.,.,,.,,,,.,..,,
-#3JHI53AXQUPW3AXXYCFGMAYTFSVRRCORXNPC3ZFE5FKBA4B4YA7X4W4CBZVTSS2QMAGUTESHL5C3G
-#\\\|A6PH2CRDF4I7GNLOQGDVVA2C357XSBEU4WNMTVHFXSS7CNUEOZ7 \ / AMOS7 \ YOURUM ::
-#\[7]A2TIUFEFVFO5YXELPN5EGUYZF5U4TZESBJXRGBPLE2NM3FIWJYAI 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,.,,,.,.,.,.,,,,,..,,..,,,..,,..,..,,...,...,.,.,,,,,,,,,...,.,,,
+#BZJFUJC6DDVEHXED3IYHULHS6DPXOWSJG6HXMJSZXFAVR7I3FD5PHJPP7YLFNW64SCKL6LCMWJ2LY
+#\\\|UEZWVCJPMZXT7YV52CEVKF5LF5GXQG5X2ZSXSOCKS3XL6MMJMEK \ / AMOS7 \ YOURUM ::
+#\[7]VUSTQ27I5CEXU44I44Y37MLRJQL3N6KNA4EYN7QC2LAFLPCNRWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
