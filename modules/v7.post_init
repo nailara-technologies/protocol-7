@@ -53,7 +53,7 @@ my ( $added_all_ref, $removed_all_ref )
 <v7.init_state.all_zenki>   = \@all_zenki;
 <v7.init_state.start_zenki> = \@start_zenki;
 
-## requires time based decrease --> implement ##
+## requires time based decrease --> implement ##  [LLL?]
 # <[v7.calc_prefix_lengths]>->( qw| v7 cube |, @start_zenki );
 
 <[v7.calc_prefix_lengths]>->(qw| v7 cube |);    # <-- running, not start
@@ -68,12 +68,16 @@ map { <[base.clean_hashref]>->( $zenka_config->{$ARG} ) } @all_zenki;
 if (    exists <system.subs_loaded.devmod>
     and <system.subs_loaded.devmod> > 1
     and <system.verbosity.console> > 4 ) {
-    ( my $devmod_str = Dumper($zenka_config) ) =~ s{^.{7}|;$}{  }mg;
+    ( my $devmod_str = Dumper($zenka_config) ) =~ s'^.{7}|;$''mg;
     print "\n < v7.start_setup.zenki.config >\n\n$devmod_str\n";
 }
 
 map { <[v7.autostart_zenki]>->($ARG) if !<[v7.start_count]>->($ARG) }
     $added_start_ref->@*;
+
+## re-register ondemand zenki at cube on reload
+##   [ initial registration via cube post-init ]
+<[v7.register_ondemand_zenki]> if $module_reinitialization;
 
 print Dumper( $data{'jobqueue'} )
     if exists <system.subs_loaded.devmod>
@@ -82,8 +86,8 @@ print Dumper( $data{'jobqueue'} )
 
 0;
 
-#,,..,..,,.,,,.,.,.,.,,,.,.,.,..,,...,..,,,,.,..,,...,...,...,,,,,,..,.,,,,.,,
-#EZJCGCGGXPCIMZXYO7YMH27FRMPG4PKIZTHL7D4RRFRKKHLPNDHKTXRCHNISXRVFBEN2XPVMLOQQE
-#\\\|DARGYERCN6WWV2624UTKC5ZM3ILLRO36LBYZ4R5ELOV2VBXG3GQ \ / AMOS7 \ YOURUM ::
-#\[7]YUNZFYALAP5TOT3SHLISQWR2YMSD75LWW65VGHFM56FBJL7NEACI 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,,.,.,.,,..,..,,,,.,..,,...,,,,,..,,...,...,.,,,,..,,..,..,,...,
+#X4GCLINKUFRKKTWCC7LXC7ML6MEW5GMC5ONW3YEFTXWG6QP7WMEFHNW4JBUI634Z5GK5H3N3PSTOW
+#\\\|BULA2UKG6P5KS633JGZH6FFXWJ3THACPOWV5VG5LWRCF7EVL4KN \ / AMOS7 \ YOURUM ::
+#\[7]GMRXZ2T3OYTORMU4JEHSY5L77MP6KJRYQY7GL6KDSNKGB54UNYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
