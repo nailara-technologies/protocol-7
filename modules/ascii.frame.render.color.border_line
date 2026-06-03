@@ -1,0 +1,68 @@
+## [:< ##
+
+# name  = ascii.frame.render.color.border_line
+# descr = apply ansi colors to a border line of an ascii frame
+
+my ( $line, $A, $bold, $reset ) = @_;
+return $line if not length $line;
+
+my $out = '';
+my $pos = 0;
+my $len = length $line;
+
+while ( $pos < $len ) {
+    my $ch = substr( $line, $pos, 1 );
+
+    if ( $ch eq '#' ) {
+        $out .= $A->{'anchor'} . $bold . $ch . $reset;
+        $pos++;
+    } elsif ( $ch eq qw| [ | ) {
+        ## find matching close bracket ##
+        my $end = index( $line, ']', $pos + 1 );
+        if ( $end > $pos ) {
+            my $inner = substr( $line, $pos + 1, $end - $pos - 1 );
+            $out
+                .= $A->{'br_char'} . '['
+                . $reset
+                . $A->{'br_label'}
+                . $inner
+                . $reset
+                . $A->{'br_char'} . ']'
+                . $reset;
+            $pos = $end + 1;
+        } else {
+            $out .= $A->{'br_char'} . $ch . $reset;
+            $pos++;
+        }
+    } elsif ( $ch eq qw| ] | ) {
+        ## unmatched close bracket : color as bracket char ##
+        $out .= $A->{'br_char'} . $ch . $reset;
+        $pos++;
+    } elsif ( $ch eq ':' or $ch eq '.' or $ch eq '=' or $ch eq ',' ) {
+        ## fill run : same char repeated ##
+        my $run_end = $pos + 1;
+        while ( $run_end < $len
+            and substr( $line, $run_end, 1 ) eq $ch ) {
+            $run_end++;
+        }
+        my $run = substr( $line, $pos, $run_end - $pos );
+        my $color
+            = $ch eq qw| : | ? $A->{'fill_colon'}
+            : $ch eq qw| . | ? $A->{'fill_dot'}
+            : $ch eq qw| = | ? $A->{'fill_eq'}
+            :                  $A->{'soft'};
+        $out .= $color . $run . $reset;
+        $pos = $run_end;
+    } else {
+        ## passthrough : whitespace, text in title not bracketed ##
+        $out .= $ch;
+        $pos++;
+    }
+}
+return $out;
+
+#,,,,,,,.,.,,,,,.,..,,,,,,,,,,,.,,,,,,,.,,...,..,,...,...,...,,,.,,,.,.,,,.,.,
+#UTB7JS3HKT35HISWCY4BEIFOOISSUIMC65LPE3QQUPSTZLQ5ULTV3SMCTYUWVV4O6JZGJ4GFC5GX2
+#\\\|ZGBYFABLBLAAAJ3WNKLXS5QLQX6HA2C4Z3DDM6NSMPRIAZORQ7O \ / AMOS7 \ YOURUM ::
+#\[7]6MFXZBMD4JIMBK472ACMRVVJS4XLFHGBNO7LAIUKW4WSLM45HICQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = ascii.frame.render.html.anchor
+# descr = classify and render an anchor value to html
+
+my $value = shift;
+
+## bracketed label : [label] ##
+if ( $value =~ m{^\[(.*)\]$} ) {
+    my $label = <[ascii.frame.render.html.escape]>->($1);
+    return
+          '<span class="p7-bracket">[</span>'
+        . '<span class="p7-label">'
+        . $label
+        . '</span>'
+        . '<span class="p7-bracket">]</span>';
+}
+
+## corner chars : . or , ##
+if ( $value =~ m{^[.,]$} ) {
+    return
+          '<span class="p7-corner">'
+        . <[ascii.frame.render.html.escape]>->($value)
+        . '</span>';
+}
+
+## hard border anchor : # ##
+if ( $value eq '#' ) {
+    return '<span class="p7-anchor">#</span>';
+}
+
+## default : plain text ##
+return <[ascii.frame.render.html.escape]>->($value);
+
+#,,,.,,,,,.,,,,..,..,,,,,,,,,,.,.,,.,,.,,,..,,..,,...,...,,..,,,,,,,.,,..,,,,,
+#6JVDEVMR44P7NT2WSCGGE2KT6IIPOVI2VULYJJIJ3HEHSZSKCC34AOWZI2J6BR25SZR66N77UE4UA
+#\\\|X5YBX4HDQN7QOMGOSFIVWIEH65JUAGNRG2CFFXF5D4HEJH4JAZ2 \ / AMOS7 \ YOURUM ::
+#\[7]KYQUQKEMHF5EMNU6XBGOC6EEQWQMF37IN6L3JFWM5QALPEHI7KCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

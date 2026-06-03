@@ -1,0 +1,82 @@
+## [:< ##
+
+# name  = ascii.frame.render.html.border
+# descr = render a border line to html with p7 semantics
+
+my ( $elements, $values, $width ) = @_;
+return '' if not @{$elements};
+
+## compute fixed width and fill min sum ##
+my $fixed_width  = 0;
+my $fill_count   = 0;
+my $fill_min_sum = 0;
+for my $el ( @{$elements} ) {
+    if ( $el->{'type'} eq qw| anchor | ) {
+        $fixed_width += length( $el->{'value'} // '' );
+    } elsif ( $el->{'type'} eq qw| slot | ) {
+        $fixed_width += length( $values->{ $el->{'name'} } // '' );
+    } elsif ( $el->{'type'} eq qw| fill | ) {
+        $fill_count++;
+        $fill_min_sum += $el->{'min'} // 1;
+    }
+}
+
+my $available_fill = $width - $fixed_width;
+$available_fill = $fill_count if $available_fill < $fill_count;
+
+## distribute fill among fill elements ##
+my %fill_alloc;
+if ( $fill_count > 0 and $available_fill > 0 ) {
+    my @fill_indices
+        = grep { $elements->[$_]->{'type'} eq qw| fill | } 0 .. $#{$elements};
+    if ( @fill_indices == 1 ) {
+        $fill_alloc{ $fill_indices[0] } = $available_fill;
+    } else {
+        ## proportional distribution based on min ##
+        my $allocated = 0;
+        for my $i ( 0 .. $#fill_indices ) {
+            my $idx   = $fill_indices[$i];
+            my $min   = $elements->[$idx]->{'min'} // 1;
+            my $alloc = int( $available_fill * $min / $fill_min_sum );
+            $alloc = 1 if $alloc < 1;
+            $fill_alloc{$idx} = $alloc;
+            $allocated += $alloc;
+        }
+        ## adjust for rounding : give remainder to last fill ##
+        my $remainder = $available_fill - $allocated;
+        if ( $remainder != 0 and @fill_indices ) {
+            $fill_alloc{ $fill_indices[-1] } += $remainder;
+        }
+    }
+}
+
+## build html ##
+my $html = '';
+for my $i ( 0 .. $#{$elements} ) {
+    my $el = $elements->[$i];
+    if ( $el->{'type'} eq qw| anchor | ) {
+        $html .= <[ascii.frame.render.html.anchor]>->( $el->{'value'} // '' );
+    } elsif ( $el->{'type'} eq qw| slot | ) {
+        my $val = <[ascii.frame.render.html.escape]>
+            ->( $values->{ $el->{'name'} } // '' );
+        $html .= '<span class="p7-slot">' . $val . '</span>';
+    } elsif ( $el->{'type'} eq qw| fill | ) {
+        my $flen = $fill_alloc{$i} // 1;
+        $flen = 1 if $flen < 1;
+        my $fchar    = $el->{'char'} // ':';
+        my $fill_str = <[ascii.frame.render.html.escape]>->( $fchar x $flen );
+        if ( $fchar eq '.' or $fchar eq ',' ) {
+            $html .= '<span class="p7-corner">' . $fill_str . '</span>';
+        } else {
+            $html .= '<span class="p7-fill">' . $fill_str . '</span>';
+        }
+    }
+}
+
+return $html;
+
+#,,,.,...,.,.,.,.,..,,,,,,...,,.,,..,,.,.,...,..,,...,...,,..,...,,,,,,,,,,..,
+#ZDQZJ352C5DQONAQKZ6HBHEED6BISNFODBYRXRCKQS4ANTXVMVKDQRCPXFXSPC4NAG2ONQABP2VRS
+#\\\|G72A2FQIEG7O4BB6KQJO44CNSCJN6H2XBY5RZXQRIJO2YLS7ARE \ / AMOS7 \ YOURUM ::
+#\[7]2AZB6SRTGFVH7TKJGG7YHY5K2IV7H4SWPKQYZROYPNWHYMB7AKCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

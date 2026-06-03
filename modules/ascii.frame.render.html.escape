@@ -1,0 +1,18 @@
+## [:< ##
+
+# name  = ascii.frame.render.html.escape
+# descr = escape html entities
+
+my $text = shift;
+return '' if not defined $text;
+$text =~ s{&}{&amp;}g;
+$text =~ s{<}{&lt;}g;
+$text =~ s{>}{&gt;}g;
+$text =~ s{"}{&quot;}g;
+return $text;
+
+#,,,.,.,.,..,,.,,,..,,,..,,..,,.,,.,.,,,,,...,..,,...,...,.,.,...,..,,..,,.,.,
+#QSLMMUR5ECCNBWNIRD7CQMO2N4U6XRSGYPY3YOMEJJ4X6CGOV2P4HO2YC6UJESUXH4WJEBG7ITWUA
+#\\\|FBFBYNHC536BNTILCQ4FFTDGE2IILVQERI677KMEJ4V7PCRW7I6 \ / AMOS7 \ YOURUM ::
+#\[7]VG4CVL6QIGV4PZ3SCQZA4MWDZM7QKBYF57Y6NNO5QVATJFRXHAAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
