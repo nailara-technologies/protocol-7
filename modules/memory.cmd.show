@@ -1,0 +1,48 @@
+## [:< ##
+
+# name = memory.cmd.show
+# descr = route memory show command to the right renderer
+
+my $first = shift // 'term';
+my $n;
+
+## [ allow numeric first arg as zoom level ]##
+if ( $first =~ m{^\d+$} ) {
+    $n     = $first;
+    $first = 'term';
+}
+
+my $variant = lc( $first // 'term' );
+$n //= shift;
+
+my %renderers = (
+    context => 'memory.render.context',
+    term    => 'memory.render.term',
+    web     => 'memory.render.web',
+    data    => 'memory.render.data',
+);
+
+my $renderer = $renderers{$variant} // 'memory.render.term';
+
+## [ not ready yet — startup still loading ]##
+if ( not <memory.ready> ) {
+    return { 'mode' => 'size', 'data' => "memory tree loading..\n" };
+}
+
+my $output = eval { <[$renderer]>->( { n => $n } ) };
+my $err    = <[base.str.eval_error]>;
+if ( $err or not defined $output ) {
+    <[base.logs]>->(
+        0,         'memory.show renderer failed [%s]: %s',
+        $renderer, $err
+    );
+    return { 'mode' => 'size', 'data' => "memory render failed\n" };
+}
+
+return { 'mode' => 'size', 'data' => $output };
+
+#,,,,,,..,.,.,,.,,.,,,,,.,,,,,,..,,,,,..,,.,,,..,,...,...,..,,,,.,,.,,,,.,.,,,
+#IVNAOYR46GM2LQMZM5MBUYSVPVCM26JHWQQZBJYY5JI47KZNCJN3WUL64HBI6IO37ZZOXBGKXIBII
+#\\\|AIBFNZ3XQK4JYXMJ6JXTPFRIQY23ZOYIMCL4BAZXW3FLLJ2IQMG \ / AMOS7 \ YOURUM ::
+#\[7]SIBUUQAMWXFQUO3ONUDEEEAAUP3UJYRLMWX2MXTM2JQ2KXYC2ICY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

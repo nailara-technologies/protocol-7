@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = memory.source.git
+# descr = bounded git log into universal leaves
+
+my $params = shift              // {};
+my $limit  = $params->{'limit'} // 200;
+
+my $root = <system.root_path>;
+
+return [] unless -d "$root/.git";
+
+my @leaves;
+
+## [ bounded git log with full message body ] ##
+my $git_cmd = sprintf
+    "cd %s && git log -%d --format='%%H%%x00%%at%%x00%%B%%x00' 2>/dev/null",
+    $root, $limit;
+
+my $output = `$git_cmd`;
+return [] unless length $output;
+
+## [ parse null-delimited records ] ##
+my @fields = split /\x00/, $output;
+
+for ( my $i = 0; $i < @fields - 2; $i += 3 ) {
+    my ( $hash, $at, $body ) = @fields[ $i, $i + 1, $i + 2 ];
+
+    next if not defined $hash or not length $hash;
+
+    $body //= '';
+    chomp $body;
+
+    my $subject = ( split /\n/, $body, 2 )[0] // '';
+
+    ## [ commit date to ntime ] ##
+    my $ntime_num = <[base.ntime]>->($at);
+    my $ntime_b32 = <[base.ntime.b32]>->($ntime_num);
+
+    my $content_hash = <[chk-sum.jha.hex]>->($body);
+
+    my $short_hash = substr( $hash, 0, 7 );
+
+    push @leaves,
+        {
+        ntime        => $ntime_b32,
+        content_hash => $content_hash,
+        source_type  => 'git',
+        title        => $subject,
+        body         => $body,
+        score        => 0,
+        curve_type   => 'exponential',
+        source_ref   => $short_hash
+        };
+}
+
+return \@leaves;
+
+#,,,.,..,,.,.,...,,..,...,.,.,,..,,..,,,.,,.,,..,,...,...,,,.,.,,,...,..,,,,,,
+#5V7QG2AGCNNGZW2GG5PIX2GGGJSFGW2QIMHQ7ALNH4PPRSMLD5OT4VO7P6A2GN3UMLDVVAT56L7CI
+#\\\|4XJO66VP7L2ZKPQWNZZ36742BM5EVUEKVBUTLUQ4P5CZUIRSZ2S \ / AMOS7 \ YOURUM ::
+#\[7]MQSWAQJH45QEY3IAMVPNLUUPBUXUV25RM45BVUC7VPR4VJYEC4AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
