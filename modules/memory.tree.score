@@ -1,0 +1,122 @@
+## [:< ##
+
+# name = memory.tree.score
+# descr = three-pass weighting over a branch's children
+
+my $params = shift             // {};
+my $branch = $params->{'node'} // {};
+
+my $children = $branch->{'children'} // [];
+return $branch if not @$children;
+
+my $count = scalar @$children;
+my $curve = $branch->{'curve_type'} // 'sigmoid';
+
+## [ pass 1 — baseline recency ]##
+my @ntimes = map {
+    my $n = <[base.ntime_BASE32_to_numerical]>->( $_->{'ntime'} // '0' );
+    $n //= 0;
+    $n;
+} @$children;
+
+my ( $min_t, $max_t );
+for my $t (@ntimes) {
+    $min_t = $t if not defined $min_t or $t < $min_t;
+    $max_t = $t if not defined $max_t or $t > $max_t;
+}
+
+for my $i ( 0 .. $#$children ) {
+    my $w
+        = ( defined $max_t and $max_t > $min_t )
+        ? ( $ntimes[$i] - $min_t ) / ( $max_t - $min_t )
+        : 1;
+    $children->[$i]{'w_base'} = $w;
+}
+
+## [ pass 2 — focus boost ]##
+my $focus = <memory.focus> // {};
+
+for my $child (@$children) {
+    my $w_focus = 1.0;
+    while ( my ( $topic, $boost ) = each %$focus ) {
+        my $matches = 0;
+        eval { $matches = <[memory.focus.matches]>->( $child, $topic ); };
+        $matches = _focus_matches_stub( $child, $topic ) if $@;
+        $w_focus *= $boost                               if $matches;
+    }
+    $w_focus = 5 if $w_focus > 5;
+    $child->{'w_focus'} = $w_focus;
+} continue {
+    keys %$focus;
+}    ## reset iterator ##
+
+## [ combine and sort by w_combined desc, stable tie-break by content_hash ]##
+my @sorted = sort {
+    my $cmp = $b->{'w_combined'} <=> $a->{'w_combined'};
+    return $cmp if $cmp;
+    ( $a->{'content_hash'} // '' ) cmp( $b->{'content_hash'} // '' );
+} map {
+    $_->{'w_combined'} = ( $_->{'w_base'} // 0 ) * ( $_->{'w_focus'} // 1 );
+    $_;
+} @$children;
+
+## [ pass 3 — curve falloff by rank position ]##
+## [ invariant check for this branch's curve type ]##
+my $falloff_0 = _rank_falloff( $curve, 0 );
+my $falloff_1 = _rank_falloff( $curve, 1 );
+warn "rank_falloff invariant violated for [$curve] <{C1}>"
+    if $falloff_0 < $falloff_1;
+
+my $c = scalar @sorted;
+for my $rank ( 0 .. $#sorted ) {
+    my $p = $c > 1 ? $rank / ( $c - 1 ) : 0;
+    my $s = $sorted[$rank]{'w_combined'} * _rank_falloff( $curve, $p );
+    $s = 1 if $s > 1;
+    $sorted[$rank]{'score'} = $s;
+}
+
+## [ reorder branch children by score desc ]##
+$branch->{'children'} = \@sorted;
+
+## [ recurse into child branches ]##
+for my $child (@sorted) {
+    <[memory.tree.score]>->( { 'node' => $child } )
+        if $child->{'type'} ne 'leaf';
+}
+
+return $branch;
+
+## [ rank falloff helper — rank 0 strongest, monotonic toward rank n ]##
+sub _rank_falloff {
+    my ( $curve, $p ) = @_;
+    $p = 0 if $p < 0;
+    $p = 1 if $p > 1;
+
+    if ( $curve eq 'exponential' ) {
+        return <[base.curve.eval]>->( $curve, $p );
+    } elsif ( $curve =~ m{^(gaussian_pulse|heartbeat)$} ) {
+        return <[base.curve.eval]>->( $curve, 0.5 + $p / 2 );
+    } else {
+        ## [ increasing family: sigmoid, linear, quantized, ease-*, sine, hold ]##
+        return <[base.curve.eval]>->( $curve, 1 - $p );
+    }
+}
+
+## [ focus match stub when memory.focus.matches absent ]##
+sub _focus_matches_stub {
+    my ( $node, $topic ) = @_;
+    return 0 if not length $topic;
+    my $text = join ' ',
+        grep {defined} (
+        $node->{'title'}      // '',
+        $node->{'body'}       // '',
+        $node->{'source_ref'} // '',
+        );
+    return index( lc($text), lc($topic) ) >= 0 ? 1 : 0;
+}
+
+#,,.,,,,,,.,.,.,,,,,.,.,.,,.,,.,.,.,.,..,,.,.,..,,...,...,..,,..,,...,,..,,,,,
+#W5VCBLMF5LLH4PUM5IHC7S7YBCGTP3IWLFEBZ4QVBE6TLJJDFYX6LSRNRWUPLF4B434IXGVXOJLKY
+#\\\|UJGPAZ74PKR3APSHTBA53UW6C3LFO6GMMYIKMHHRFLITR5FGHLN \ / AMOS7 \ YOURUM ::
+#\[7]VFNFHVDX27CCN234FL4R2ZSQB7UYV7H6HXOVYQKLWBOZ7ILXFYBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

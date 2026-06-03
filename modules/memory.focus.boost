@@ -1,0 +1,32 @@
+## [:< ##
+
+# name = memory.focus.boost
+# descr = temporary boost spike that decays toward floor
+
+my $topic = @_ ? shift : $ARG;
+my $boost = @_ ? shift : $ARG;
+
+return FALSE if not defined $topic or not length $topic;
+
+$boost = 2.0 if not defined $boost or not length $boost;
+$boost = 0 + $boost;
+
+## [ ensure state exists ]##
+<memory.focus>       //= {};
+<memory.focus_floor> //= {};
+
+my $current = <memory.focus>->{$topic} // 1.0;
+my $spiked  = $current * $boost;
+
+## [ cap to prevent runaway ]##
+$spiked = 13 if $spiked > 13;
+
+<memory.focus>->{$topic} = $spiked;
+
+return TRUE;
+
+#,,.,,,.,,,,,,,..,...,..,,,.,,.,.,,,.,...,..,,..,,...,.,.,,.,,.,,,...,...,,,,,
+#NWKLKW2Q7N3I2AF3EC7SEE4W4VZS4R4GHF4ZH3JLMYRXKJLM3FFOD4NT52AL37U2Z77S3O7FYNFGA
+#\\\|BYVTT4RMZUSR2FNATXJVAKCYFBSQUMIDWUSKX3EFKIZVFOQUKJM \ / AMOS7 \ YOURUM ::
+#\[7]PDBRMSNV24MJG2PIHXXSN7FP3GU2G5SYLSZ5J5DTRKDWNSA62ODQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

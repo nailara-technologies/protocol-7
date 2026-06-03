@@ -1,0 +1,114 @@
+## [:< ##
+
+# name  = memory.source.file
+# descr = parse ai-mem markdown files into universal leaves
+
+my $params = shift            // {};
+my $dir    = $params->{'dir'} // 'data/ai-mem';
+
+my @leaves;
+
+## [ gather markdown files ] ##
+my @files = glob "$dir/*/*.md";
+
+foreach my $file (@files) {
+    next if not -f $file;
+
+    my $content_ref = <[file.slurp]>->($file);
+    next if not defined $content_ref;
+
+    my $content = $content_ref->$*;
+
+    ## [ strip amos7 signature block ] ##
+    $content =~ s|^#,,.*\n.*\n.*AMOS7.*\n.*DATA\sSIGNATURE.*\n.*\n||ms;
+
+    ## [ file mtime as ntime source ] ##
+    my $mtime     = ( stat($file) )[9] // time;
+    my $ntime_num = <[base.ntime]>->($mtime);
+    my $ntime_b32 = <[base.ntime.b32]>->($ntime_num);
+
+    ## [ detect archive path ] ##
+    my $is_archive = $file =~ m|/archive/| ? 1 : 0;
+
+    ## [ split into sections by headings ] ##
+    my @sections = split m|^\n?(?=#{2,3}\s)|m, $content;
+
+    ## [ first chunk before any heading is file preamble ] ##
+    my $preamble = '';
+    if ( @sections and $sections[0] !~ m|^#{2,3}\s| ) {
+        $preamble = shift @sections;
+    }
+
+    foreach my $section (@sections) {
+        next if $section =~ m|^\s*$|s;
+
+        my ( $heading, $body ) = $section =~ m|^(#{2,3}\s+(.+?)\n)(.*)$|s;
+        $heading //= '';
+        $body    //= $section;
+
+        my $title = $heading;
+        $title =~ s|^#+\s+||;
+        $title =~ s|\s+$||;
+        $title = 'untitled' if not length $title;
+
+        ## [ canonical body for hashing ] ##
+        my $canonical_body = "$title\n$body";
+        my $content_hash   = <[chk-sum.jha.hex]>->($canonical_body);
+
+        ## [ curve type from heading context ] ##
+        my $curve_type = 'sigmoid';
+        if ( $title =~ m|^\s*CRITICAL\b|i ) {
+            $curve_type = 'gaussian_pulse';
+        } elsif ( $title =~ m|^\s*Active\s+Topics\b|i ) {
+            $curve_type = 'quantized';
+        } elsif ( $is_archive
+            or $title =~ m|archive|i
+            or $title =~ m|completed|i ) {
+            $curve_type = 'exponential';
+        }
+
+        push @leaves,
+            {
+            ntime        => $ntime_b32,
+            content_hash => $content_hash,
+            source_type  => 'file',
+            title        => $title,
+            body         => $body,
+            score        => 0,
+            curve_type   => $curve_type,
+            source_ref   => "$file#$title"
+            };
+    }
+
+    ## [ if no sections found, emit whole file as one leaf ] ##
+    if ( not @sections and length $preamble ) {
+        my $title = $file;
+        $title =~ s|^.*/||;
+        $title =~ s|\.md$||;
+
+        my $canonical_body = "$title\n$preamble";
+        my $content_hash   = <[chk-sum.jha.hex]>->($canonical_body);
+
+        my $curve_type = $is_archive ? 'exponential' : 'sigmoid';
+
+        push @leaves,
+            {
+            ntime        => $ntime_b32,
+            content_hash => $content_hash,
+            source_type  => 'file',
+            title        => $title,
+            body         => $preamble,
+            score        => 0,
+            curve_type   => $curve_type,
+            source_ref   => $file
+            };
+    }
+}
+
+return \@leaves;
+
+#,,,,,.,,,,,.,...,,.,,,,.,...,,,.,,..,,,,,..,,..,,...,...,.,,,,,.,,,.,..,,,,,,
+#6VPMS47WCPLPOMERO3ENKPVVCUUZGDGR673NHHRMJ7XVDILPEOLOKANNEIXFJZCURNFF7FCO3ZYXG
+#\\\|T3NJBGDBQO42APJ4LKXIK44IZ3E2OPYKU7QFZUBFDLQNHBXEB7P \ / AMOS7 \ YOURUM ::
+#\[7]WWJ3KQ62KAZLNUDN5QW5KVMWZMJRZ7N55M7A5XFUIOXSTL5CZIDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

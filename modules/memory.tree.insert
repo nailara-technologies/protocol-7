@@ -1,0 +1,95 @@
+## [:< ##
+
+# name = memory.tree.insert
+# descr = insert leaf with path walk, dedup, and subtree hash rollup
+
+my $params = shift             // {};
+my $leaf   = $params->{'leaf'} // return undef;
+my $path   = $params->{'path'} // [];
+
+return undef if not defined $leaf->{'content_hash'};
+
+## [ ensure tree exists ]##
+<[memory.tree.init]> if not defined <memory.tree>;
+
+my $root  = <memory.tree>;
+my $index = <memory.tree.index> //= {};
+
+## [ ensure leaf has id ]##
+$leaf->{'id'} //= $leaf->{'content_hash'};
+
+## [ dedup by content hash in flat index ]##
+if ( exists $index->{ $leaf->{'content_hash'} } ) {
+    my $existing = $index->{ $leaf->{'content_hash'} };
+    my $new_num
+        = <[base.ntime_BASE32_to_numerical]>->( $leaf->{'ntime'} // '0' );
+    my $old_num
+        = <[base.ntime_BASE32_to_numerical]>->( $existing->{'ntime'} // '0' );
+    $new_num //= 0;
+    $old_num //= 0;
+    $existing->{'ntime'} = $leaf->{'ntime'} if $new_num > $old_num;
+    $existing->{'seen'}++;
+    return $existing;
+}
+
+## [ walk path, creating branches as needed ]##
+my $current   = $root;
+my @ancestors = ($current);
+
+for my $segment (@$path) {
+    my $found = undef;
+    for my $child ( @{ $current->{'children'} // [] } ) {
+        if ( $child->{'type'} ne 'leaf' and $child->{'title'} eq $segment ) {
+            $found = $child;
+            last;
+        }
+    }
+    if ( not defined $found ) {
+        my $cfg       = <memory.cfg> // {};
+        my $branch_id = <[chk-sum.jha.hex]>->("branch:$segment");
+        my $branch    = {
+            type  => 'branch',
+            id    => $branch_id,
+            title => $segment,
+            ntime => $leaf->{'ntime'} // <[base.ntime.b32]>->(<[base.ntime]>),
+            content_hash => $branch_id,
+            score        => 0,
+            curve_type   => $cfg->{'curve_type'} // 'sigmoid',
+            children     => [],
+            n_visible    => $cfg->{'n_visible'} // 7,
+            n_inherit    => FALSE,
+            n_max_cap    => $cfg->{'n_max_cap'} // 13,
+            subtree_hash => '',
+        };
+        push @{ $current->{'children'} }, $branch;
+        $index->{ $branch->{'id'} } = $branch;
+        $found = $branch;
+    }
+    push @ancestors, $found;
+    $current = $found;
+}
+
+## [ attach leaf to terminal branch ]##
+$leaf->{'type'}  //= 'leaf';
+$leaf->{'score'} //= 0;
+$leaf->{'seen'}  //= 1;
+
+push @{ $current->{'children'} }, $leaf;
+$index->{ $leaf->{'id'} } = $leaf;
+
+## [ rollup subtree hashes from leaf upward ]##
+for my $node ( reverse @ancestors ) {
+    my @hashes
+        = map { $_->{'content_hash'} // '' } @{ $node->{'children'} // [] };
+    my $combined = join ':', sort @hashes;
+    $node->{'subtree_hash'}
+        = length $combined ? <[chk-sum.jha.hex]>->($combined) : '';
+}
+
+return $leaf;
+
+#,,,.,,..,.,.,,,.,,.,,...,.,.,..,,,.,,...,..,,..,,...,...,,.,,..,,,.,,...,,.,,
+#YVLTNV7DI6GLZDJZI3U6KQYYMQCQM2L4QTOHXR5EC3DV32Q7KYCHUF6DRXITMMM2SFSIA3AUZO3OO
+#\\\|LSJE2FEZ7UDO6Y7XES4EERSXM52OBW6WGLDI2Q46RXKU2CAUDY6 \ / AMOS7 \ YOURUM ::
+#\[7]RDXDFR47YWOQA5SKAFEYQYRU733WAIH6QM6G2PFVVSDL4AR2R2CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

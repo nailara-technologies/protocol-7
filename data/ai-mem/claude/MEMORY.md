@@ -1,5 +1,6 @@
 ## CRITICAL
 - [File Creation](feedback-file-io-api.md) â never add `#,,.,,,...` stub â blocks signing
+- [filter-repo prefix](feedback-filter-repo-amend.md) — `AMEND=1 git filter-repo ...`; also clear `.git/filter-repo/already_ran` if interrupted
 - [ntime](feedback-ntime.md) â `encode_b32r` is reverse-byte-order, NOT sortable; use `<[base.ntime_BASE32_to_numerical]>`
 - [Cross-zenka](feedback-cross-zenka-deferred-reply.md) â route-send + SIZE reply only; FS access forbidden
 - [Access control](feedback-buffer-access-control.md) â cube/access.zenki is REAL gate
@@ -142,8 +143,8 @@
 
 **Diagnostic:** Improved `base.handler.command` syntax error log to show full bad line (`line=['...']`) instead of stripping it.
 
-#,,..,,,,,,,,,,,.,.,,,,.,,,,.,.,,,,.,,,..,,,.,..,,...,...,.,.,.,,,.,,,.,.,,,,,
-#IQR4THMMWM4U5A2VTVHJ7NN2BGFJ67HW52XBOYKOQ52CAHW4X7RJYVAAB24FIAY4TNMFRUPQ3UKF4
-#\\\|FFTK3PLXXZKQGWEIKXMPQQFLEYJV7ZAZ4IGMR76EZ6IM37S2ENA \ / AMOS7 \ YOURUM ::
-#\[7]7NSZMXNLJWUTBK3ECUSZFJ265E642LK6Z7TAPC7YTYCRBNJJHICY 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,.,.,..,,.,.,,.,,,..,..,,...,,,,,..,,...,..,,...,.,.,,..,...,,,,,
+#H6KL6RN3WOLW4USZCEERWOVSXB5MKYDLPQDE3ZI36SNUV4V76EMWBQIO2XKC5GQ6SYMKYVWMLRWQ2
+#\\\|B5NNETXBM7XP3E3VPTLYCXCIJ4YTUXSN7THLNYOZEO6ZMFQICKG \ / AMOS7 \ YOURUM ::
+#\[7]UPB7WEDD6ULIOKYYXYBCILX6MGSRQHTTZBWP6YVB33L3HVMOE4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

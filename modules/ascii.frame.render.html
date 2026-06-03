@@ -374,7 +374,7 @@ sub _render_border_html {
             $flen = 1 if $flen < 1;
             my $fchar    = $el->{'char'} // ':';
             my $fill_str = _html_escape( $fchar x $flen );
-            if ( $fchar eq qw| . | or $fchar eq qw| , | ) {
+            if ( $fchar eq '.' or $fchar eq ',' ) {
                 $html .= '<span class="p7-corner">' . $fill_str . '</span>';
             } else {
                 $html .= '<span class="p7-fill">' . $fill_str . '</span>';
@@ -406,7 +406,7 @@ sub _render_anchor_html {
     }
 
     ## hard border anchor : # ##
-    if ( $value eq qw| # | ) {
+    if ( $value eq '#' ) {
         return '<span class="p7-anchor">#</span>';
     }
 
@@ -425,8 +425,8 @@ sub _html_escape {
     return $text;
 }
 
-#,,,.,,,,,,,,,.,,,.,,,...,...,,,,,.,.,,,.,,..,..,,...,...,,..,..,,,,.,.,,,.,,,
-#QRNWTCMJM3JPI3Q3MYZTXQ654E3YOXVSRU7M5IGTYMVY3EZE5QO2CBSFF5AIOT4FBRWOJSDHTFPL6
-#\\\|FE3LFVE42T2UY6H4ZJOPFQTJNHDBUQMB6KQW4TRF45QYATXP3JU \ / AMOS7 \ YOURUM ::
-#\[7]32HO2CF4QFS4QSMS57NL2AWVYMBBZQQGJPURKXBMKZWVWVUMNWDA 7  DATA SIGNATURE ::
+#,,,,,,,,,...,,.,,,,.,,,.,...,.,.,.,.,,,.,..,,..,,...,.,.,.,,,,,.,.,.,..,,,,,,
+#MPTLNH6MJMEQB24XU2V6PZ5AANQUHVFV2NGUYC2BVPQLYPVLYSFNIS6SCZHT4HJIRLDFYIYPSVUN6
+#\\\|NQR6LUB7OR24BDQ66J2GALD4Y2WXDWGSUAEPPUEUVBTC67T46PJ \ / AMOS7 \ YOURUM ::
+#\[7]F7NXMWINPND4TMPVFSYRQZLJIEZOS4NBAISSNXIGZMQUQVGU4IAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

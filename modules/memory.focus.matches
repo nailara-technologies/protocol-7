@@ -1,0 +1,25 @@
+## [:< ##
+
+# name = memory.focus.matches
+# descr = predicate does node match topic substring
+
+my $node  = @_ ? shift : $ARG;
+my $topic = @_ ? shift : $ARG;
+
+return FALSE if not defined $node  or not ref $node eq 'HASH';
+return FALSE if not defined $topic or not length $topic;
+
+my $text = join ' ',
+    grep {defined} (
+    $node->{'title'}      // '',
+    $node->{'body'}       // '',
+    $node->{'source_ref'} // '',
+    );
+
+return index( lc($text), lc($topic) ) >= 0 ? TRUE : FALSE;
+
+#,,,.,.,,,,,.,,,,,,,.,.,,,...,..,,.,.,.,,,.,.,..,,...,...,.,,,.,,,...,,.,,.,.,
+#IPPTLN5CSKKWLZNHKAXZIVJWJ7XTXOE7WL2VV5QBA54LY5B7XDVCKVTU4VNWUJWGVC4RTJ6Z6URWM
+#\\\|2A7FVZRA6W6COK2A7GZFOMHPKZQ25LSLZDZQ2OB5QQLY5TPCATY \ / AMOS7 \ YOURUM ::
+#\[7]7VVEWTQSS5YIZR2Z6WX664RQOELYGS7YMTAQDTNLKWPWX67CASAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

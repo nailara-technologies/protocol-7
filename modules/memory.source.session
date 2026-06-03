@@ -1,0 +1,88 @@
+## [:< ##
+
+# name  = memory.source.session
+# descr = read session files and archives into universal leaves
+
+my $params = shift // {};
+
+my @leaves;
+
+## [ discover session directories ] ##
+my @session_dirs = glob 'data/ai-mem/*';
+
+foreach my $zenka_dir (@session_dirs) {
+    next if not -d $zenka_dir;
+
+    ## [ active session files ] ##
+    my @session_files
+        = ( glob("$zenka_dir/session*.md"), glob("$zenka_dir/SESSION*.md") );
+    foreach my $file (@session_files) {
+        next if not -f $file;
+
+        my $leaf = _session_file_to_leaf($file);
+        push @leaves, $leaf if defined $leaf;
+    }
+
+    ## [ archived sessions ] ##
+    my $archive_dir = "$zenka_dir/archive";
+    next if not -d $archive_dir;
+
+    foreach my $file ( glob "$archive_dir/*.md" ) {
+        next if not -f $file;
+
+        my $leaf = _session_file_to_leaf($file);
+        push @leaves, $leaf if defined $leaf;
+    }
+}
+
+return \@leaves;
+
+## [ helper: single session file to leaf ] ##
+sub _session_file_to_leaf {
+    my $file = shift;
+
+    my $content_ref = <[file.slurp]>->($file);
+    return undef if not defined $content_ref;
+
+    my $content = $content_ref->$*;
+
+    ## [ strip signature blocks ] ##
+    $content =~ s|^#,,.*\n.*\n.*AMOS7.*\n.*DATA\sSIGNATURE.*\n.*\n||ms;
+
+    ## [ title from yaml frontmatter or first heading ] ##
+    my $title = '';
+    if ( $content =~ m|^---\s*\n.*?^name:\s*(.+?)\s*\n|ms ) {
+        $title = $1;
+        $title =~ s|[\"']||g;
+    } elsif ( $content =~ m|^#{1,3}\s+(.+?)\n|m ) {
+        $title = $1;
+    } else {
+        $title = $file;
+        $title =~ s|^.*/||;
+        $title =~ s|\.md$||;
+    }
+
+    ## [ ntime from file mtime ] ##
+    my $mtime     = ( stat($file) )[9] // time;
+    my $ntime_num = <[base.ntime]>->($mtime);
+    my $ntime_b32 = <[base.ntime.b32]>->($ntime_num);
+
+    my $content_hash = <[chk-sum.jha.hex]>->($content);
+
+    return {
+        ntime        => $ntime_b32,
+        content_hash => $content_hash,
+        source_type  => 'session',
+        title        => $title,
+        body         => $content,
+        score        => 0,
+        curve_type   => 'exponential',
+        source_ref   => $file
+    };
+}
+
+#,,,,,,.,,,,.,,,,,...,...,,,.,,,,,,,,,.,,,...,..,,...,...,...,,,.,...,,,,,.,.,
+#RC7E4NMAR2H6XAGZK4VZAMXOCFWBATS5UIGLBPTHX33SYWGMK3AV3ULD2WWUGSRZEPZWGZ6UD4BZE
+#\\\|ZBQBO67UEDFXKPSVEK4QV3R4A5FJSU6BRLQWLXFC3A3IICJ2B2Q \ / AMOS7 \ YOURUM ::
+#\[7]B4Y5JODWZFQFTLY3LAMOMH75NUYPW4AEEO7FNGA46KASDN5V52CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
