@@ -1,0 +1,35 @@
+## [:< ##
+
+    # name  = ascii.frame.parse.border_segment
+    # descr = parse a border segment into anchors and fills
+
+    my ( $segment, $elements ) = @_;
+    return if not length $segment;
+
+    ## find bracketed anchors within segment ##
+    my @brackets;
+    while ( $segment =~ m{\[([^\]]*)\]}g ) {
+        push @brackets,
+            {
+            value => $&,
+            start => $-[0],
+            end   => $+[0],
+            };
+    }
+
+    ## walk segment : brackets are anchors, rest is fill or anchor ##
+    my $pos = 0;
+    for my $br (@brackets) {
+        my $text = substr( $segment, $pos, $br->{'start'} - $pos );
+        <[ascii.frame.parse.fill_anchor_text]>->( $text, $elements );
+        push @{$elements}, { type => qw| anchor |, value => $br->{'value'} };
+        $pos = $br->{'end'};
+    }
+    my $remaining = substr( $segment, $pos );
+    <[ascii.frame.parse.fill_anchor_text]>->( $remaining, $elements );
+
+#,,..,,,.,...,.,,,...,.,,,,,,,..,,,.,,.,,,,,,,..,,...,...,..,,.,.,...,,.,,.,.,
+#FDKGXO57NXYCUJVAMBP6Z3FSA5X72ZDHXHPHEY7XX2OYBVK5LBXSVMJ76IJHP7JSOR3GPTL6DUDHW
+#\\\|5XIYKATY5KPBSI2RNQKFGVJN25KBC2VHJSIXNQMNWKVOJ3D5BXL \ / AMOS7 \ YOURUM ::
+#\[7]TIUAI5W7BVVVNNJHKYK6ZFV3LBM4YIFTRBR3ZVK7MFL3UKEQQOBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -113,7 +113,9 @@ if ( $params->{'inline_style'} ) {
 push @output, '<div class="p7-frame">';
 
 ## render top border ##
-my $top_html = _render_border_html( $border->{'top'}, $values, $frame_width );
+my $top_html = <[ascii.frame.render.html.border]>->(
+    $border->{'top'}, $values, $frame_width
+);
 if ( length $top_html ) {
     push @output,
         '<div class="p7-border p7-border-top">' . $top_html . '</div>';
@@ -178,10 +180,14 @@ for my $row ( 1 .. $max_row ) {
                         - $lpad - $rpad
                         - length($content_part);
                     $fill_width = 0 if $fill_width < 0;
-                    my $left  = _html_escape( $border->{'left'}  // '' );
-                    my $right = _html_escape( $border->{'right'} // '' );
-                    my $prefix_html = _html_escape( $slot->{'prefix'} // '' );
-                    my $value_html  = _html_escape($bline);
+                    my $left = <[ascii.frame.render.html.escape]>
+                        ->( $border->{'left'} // '' );
+                    my $right = <[ascii.frame.render.html.escape]>
+                        ->( $border->{'right'} // '' );
+                    my $prefix_html = <[ascii.frame.render.html.escape]>
+                        ->( $slot->{'prefix'} // '' );
+                    my $value_html
+                        = <[ascii.frame.render.html.escape]>->($bline);
                     push @output,
                           '<div class="p7-content-row">'
                         . '<span class="p7-fill">'
@@ -192,7 +198,7 @@ for my $row ( 1 .. $max_row ) {
                         . $prefix_html
                         . '</span>'
                         . '<span class="p7-slot-value" data-slot="'
-                        . _html_escape($name) . '">'
+                        . <[ascii.frame.render.html.escape]>->($name) . '">'
                         . $value_html
                         . '</span>'
                         . ( ' ' x $fill_width )
@@ -214,11 +220,15 @@ for my $row ( 1 .. $max_row ) {
                     - $lpad - $rpad
                     - length($content_part);
                 $fill_width = 0 if $fill_width < 0;
-                my $left        = _html_escape( $border->{'left'}  // '' );
-                my $right       = _html_escape( $border->{'right'} // '' );
-                my $prefix_html = _html_escape($prefix);
-                my $value_html  = _html_escape($value);
-                my $suffix_html = _html_escape($suffix);
+                my $left = <[ascii.frame.render.html.escape]>
+                    ->( $border->{'left'} // '' );
+                my $right = <[ascii.frame.render.html.escape]>
+                    ->( $border->{'right'} // '' );
+                my $prefix_html
+                    = <[ascii.frame.render.html.escape]>->($prefix);
+                my $value_html = <[ascii.frame.render.html.escape]>->($value);
+                my $suffix_html
+                    = <[ascii.frame.render.html.escape]>->($suffix);
                 my $row_html
                     = '<div class="p7-content-row">'
                     . '<span class="p7-fill">'
@@ -234,7 +244,7 @@ for my $row ( 1 .. $max_row ) {
                 }
                 $row_html
                     .= '<span class="p7-slot-value" data-slot="'
-                    . _html_escape($name) . '">'
+                    . <[ascii.frame.render.html.escape]>->($name) . '">'
                     . $value_html
                     . '</span>';
                 if ( length $suffix ) {
@@ -274,9 +284,11 @@ for my $row ( 1 .. $max_row ) {
             - $lpad - $rpad
             - length($stripped);
         $fill_width = 0 if $fill_width < 0;
-        my $left        = _html_escape( $border->{'left'}  // '' );
-        my $right       = _html_escape( $border->{'right'} // '' );
-        my $static_html = _html_escape($stripped);
+        my $left
+            = <[ascii.frame.render.html.escape]>->( $border->{'left'} // '' );
+        my $right = <[ascii.frame.render.html.escape]>
+            ->( $border->{'right'} // '' );
+        my $static_html = <[ascii.frame.render.html.escape]>->($stripped);
         push @output,
               '<div class="p7-content-row">'
             . '<span class="p7-fill">'
@@ -297,8 +309,9 @@ for my $row ( 1 .. $max_row ) {
 
 ## render bottom border ##
 if ( @{ $border->{'bottom'} // [] } ) {
-    my $bottom_html
-        = _render_border_html( $border->{'bottom'}, $values, $frame_width );
+    my $bottom_html = <[ascii.frame.render.html.border]>->(
+        $border->{'bottom'}, $values, $frame_width
+    );
     if ( length $bottom_html ) {
         push @output,
               '<div class="p7-border p7-border-bottom">'
@@ -311,122 +324,8 @@ push @output, '</div>';
 
 return join "\n", @output;
 
-##[ render a border line to html with p7 semantics ]##
-sub _render_border_html {
-    my ( $elements, $values, $width ) = @_;
-    return '' if not @{$elements};
-
-    ## compute fixed width and fill min sum ##
-    my $fixed_width  = 0;
-    my $fill_count   = 0;
-    my $fill_min_sum = 0;
-    for my $el ( @{$elements} ) {
-        if ( $el->{'type'} eq qw| anchor | ) {
-            $fixed_width += length( $el->{'value'} // '' );
-        } elsif ( $el->{'type'} eq qw| slot | ) {
-            $fixed_width += length( $values->{ $el->{'name'} } // '' );
-        } elsif ( $el->{'type'} eq qw| fill | ) {
-            $fill_count++;
-            $fill_min_sum += $el->{'min'} // 1;
-        }
-    }
-
-    my $available_fill = $width - $fixed_width;
-    $available_fill = $fill_count if $available_fill < $fill_count;
-
-    ## distribute fill among fill elements ##
-    my %fill_alloc;
-    if ( $fill_count > 0 and $available_fill > 0 ) {
-        my @fill_indices = grep { $elements->[$_]->{'type'} eq qw| fill | }
-            0 .. $#{$elements};
-        if ( @fill_indices == 1 ) {
-            $fill_alloc{ $fill_indices[0] } = $available_fill;
-        } else {
-            ## proportional distribution based on min ##
-            my $allocated = 0;
-            for my $i ( 0 .. $#fill_indices ) {
-                my $idx   = $fill_indices[$i];
-                my $min   = $elements->[$idx]->{'min'} // 1;
-                my $alloc = int( $available_fill * $min / $fill_min_sum );
-                $alloc = 1 if $alloc < 1;
-                $fill_alloc{$idx} = $alloc;
-                $allocated += $alloc;
-            }
-            ## adjust for rounding : give remainder to last fill ##
-            my $remainder = $available_fill - $allocated;
-            if ( $remainder != 0 and @fill_indices ) {
-                $fill_alloc{ $fill_indices[-1] } += $remainder;
-            }
-        }
-    }
-
-    ## build html ##
-    my $html = '';
-    for my $i ( 0 .. $#{$elements} ) {
-        my $el = $elements->[$i];
-        if ( $el->{'type'} eq qw| anchor | ) {
-            $html .= _render_anchor_html( $el->{'value'} // '' );
-        } elsif ( $el->{'type'} eq qw| slot | ) {
-            my $val = _html_escape( $values->{ $el->{'name'} } // '' );
-            $html .= '<span class="p7-slot">' . $val . '</span>';
-        } elsif ( $el->{'type'} eq qw| fill | ) {
-            my $flen = $fill_alloc{$i} // 1;
-            $flen = 1 if $flen < 1;
-            my $fchar    = $el->{'char'} // ':';
-            my $fill_str = _html_escape( $fchar x $flen );
-            if ( $fchar eq '.' or $fchar eq ',' ) {
-                $html .= '<span class="p7-corner">' . $fill_str . '</span>';
-            } else {
-                $html .= '<span class="p7-fill">' . $fill_str . '</span>';
-            }
-        }
-    }
-
-    return $html;
-}
-
-##[ classify and render an anchor value to html ]##
-sub _render_anchor_html {
-    my $value = shift;
-
-    ## bracketed label : [label] ##
-    if ( $value =~ m{^\[(.*)\]$} ) {
-        my $label = _html_escape($1);
-        return
-              '<span class="p7-bracket">[</span>'
-            . '<span class="p7-label">'
-            . $label
-            . '</span>'
-            . '<span class="p7-bracket">]</span>';
-    }
-
-    ## corner chars : . or , ##
-    if ( $value =~ m{^[.,]$} ) {
-        return '<span class="p7-corner">' . _html_escape($value) . '</span>';
-    }
-
-    ## hard border anchor : # ##
-    if ( $value eq '#' ) {
-        return '<span class="p7-anchor">#</span>';
-    }
-
-    ## default : plain text ##
-    return _html_escape($value);
-}
-
-##[ escape html entities ]##
-sub _html_escape {
-    my $text = shift;
-    return '' if not defined $text;
-    $text =~ s{&}{&amp;}g;
-    $text =~ s{<}{&lt;}g;
-    $text =~ s{>}{&gt;}g;
-    $text =~ s{"}{&quot;}g;
-    return $text;
-}
-
-#,,,,,,,,,...,,.,,,,.,,,.,...,.,.,.,.,,,.,..,,..,,...,.,.,.,,,,,.,.,.,..,,,,,,
-#MPTLNH6MJMEQB24XU2V6PZ5AANQUHVFV2NGUYC2BVPQLYPVLYSFNIS6SCZHT4HJIRLDFYIYPSVUN6
-#\\\|NQR6LUB7OR24BDQ66J2GALD4Y2WXDWGSUAEPPUEUVBTC67T46PJ \ / AMOS7 \ YOURUM ::
-#\[7]F7NXMWINPND4TMPVFSYRQZLJIEZOS4NBAISSNXIGZMQUQVGU4IAQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,,,,,..,..,,,,,,.,,,,,,,,,.,,.,,..,,...,...,,.,,,..,,,.,,..,.,,,
+#GJX2VMTE2W3BRYGWMLDZCUKHV6PSVD6UBWICLI2UIN4R5WZ7S2MK62FDRZWWBIGIXK46ANJ3XCEWI
+#\\\|QY3EHMALF6DXTENL2GANDCGWN2WSFZJIZ6SWIJQZSY244GO62QV \ / AMOS7 \ YOURUM ::
+#\[7]YJL7CQRNFMIKLZC473BBQVSCQXLZIJXAKEM5RJAZOBY2XZHATMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

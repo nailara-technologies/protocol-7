@@ -59,143 +59,21 @@ my @out;
 for my $i ( 0 .. $#lines ) {
     if ( $is_border{$i} ) {
         push @out,
-            _color_border_line( $lines[$i], \%A, $anchor_bold, $RESET );
+            <[ascii.frame.render.color.border_line]>->(
+            $lines[$i], \%A, $anchor_bold, $RESET
+            );
     } else {
-        push @out, _color_content_line( $lines[$i], \%A, $RESET );
+        push @out,
+            <[ascii.frame.render.color.content_line]>->(
+            $lines[$i], \%A, $RESET
+            );
     }
 }
 
 return join "\n", @out;
 
-##[ color a border line : fill runs, brackets, anchors ]##
-sub _color_border_line {
-    my ( $line, $A, $bold, $reset ) = @_;
-    return $line if not length $line;
-
-    my $out = '';
-    my $pos = 0;
-    my $len = length $line;
-
-    while ( $pos < $len ) {
-        my $ch = substr( $line, $pos, 1 );
-
-        if ( $ch eq '#' ) {
-            $out .= $A->{'anchor'} . $bold . $ch . $reset;
-            $pos++;
-        } elsif ( $ch eq qw| [ | ) {
-            ## find matching close bracket ##
-            my $end = index( $line, ']', $pos + 1 );
-            if ( $end > $pos ) {
-                my $inner = substr( $line, $pos + 1, $end - $pos - 1 );
-                $out
-                    .= $A->{'br_char'} . '['
-                    . $reset
-                    . $A->{'br_label'}
-                    . $inner
-                    . $reset
-                    . $A->{'br_char'} . ']'
-                    . $reset;
-                $pos = $end + 1;
-            } else {
-                $out .= $A->{'br_char'} . $ch . $reset;
-                $pos++;
-            }
-        } elsif ( $ch eq qw| ] | ) {
-            ## unmatched close bracket : color as bracket char ##
-            $out .= $A->{'br_char'} . $ch . $reset;
-            $pos++;
-        } elsif ( $ch eq ':' or $ch eq '.' or $ch eq '=' or $ch eq ',' ) {
-            ## fill run : same char repeated ##
-            my $run_end = $pos + 1;
-            while ( $run_end < $len
-                and substr( $line, $run_end, 1 ) eq $ch ) {
-                $run_end++;
-            }
-            my $run = substr( $line, $pos, $run_end - $pos );
-            my $color
-                = $ch eq qw| : | ? $A->{'fill_colon'}
-                : $ch eq qw| . | ? $A->{'fill_dot'}
-                : $ch eq qw| = | ? $A->{'fill_eq'}
-                :                  $A->{'soft'};
-            $out .= $color . $run . $reset;
-            $pos = $run_end;
-        } else {
-            ## passthrough : whitespace, text in title not bracketed ##
-            $out .= $ch;
-            $pos++;
-        }
-    }
-    return $out;
-}
-
-##[ color a content line : left/right border + label/value content ]##
-sub _color_content_line {
-    my ( $line, $A, $reset ) = @_;
-    return $line if not length $line;
-
-    ## separator row : left border + run of = + right border ##
-    if ( $line =~ m{^([:.])(\s*=+\s*)([:.])$} ) {
-        my ( $lb, $mid, $rb ) = ( $1, $2, $3 );
-        return
-              $A->{'fill_colon'}
-            . $lb
-            . $reset
-            . $A->{'fill_eq'}
-            . $mid
-            . $reset
-            . $A->{'fill_colon'}
-            . $rb
-            . $reset;
-    }
-
-    my $first = substr( $line, 0, 1 );
-    my $last  = length($line) > 1 ? substr( $line, -1, 1 ) : '';
-    my $body
-        = length($line) > 1
-        ? substr( $line, 1, length($line) - 2 )
-        : '';
-
-    my $left
-        = ( $first eq qw| : | )
-        ? ( $A->{'fill_colon'} . $first . $reset )
-        : $first;
-    my $right
-        = ( $last eq qw| : | )
-        ? ( $A->{'fill_colon'} . $last . $reset )
-        : $last;
-
-    ## field label pattern : leading spaces + word: + spaces + value ##
-    my $body_colored;
-    if ( $body =~ m{^(\s*)([\w][\w\-\.]*:)(\s+)(.*?)(\s*)$} ) {
-        my ( $lpad, $lbl, $sp, $val, $rpad ) = ( $1, $2, $3, $4, $5 );
-        $body_colored
-            = $lpad
-            . $A->{'label'}
-            . $lbl
-            . $reset
-            . $sp
-            . ( length($val) ? $A->{'value'} . $val . $reset : '' )
-            . $rpad;
-    } elsif ( length $body and $body =~ m{\S} ) {
-        ## raw content : color as value ##
-        if ( $body =~ m{^(\s*)(.*?)(\s*)$} ) {
-            my ( $lpad, $mid, $rpad ) = ( $1, $2, $3 );
-            $body_colored
-                = $lpad
-                . ( length($mid) ? $A->{'value'} . $mid . $reset : '' )
-                . $rpad;
-        } else {
-            $body_colored = $body;
-        }
-    } else {
-        $body_colored = $body;
-    }
-
-    return $left . $body_colored . $right;
-}
-
-#,,,,,,,,,.,.,.,.,,,,,...,.,.,.,,,,.,,.,.,...,..,,...,...,.,,,,,,,,,,,..,,,..,
-#3L2Y6GNIT6QNQH24XBVGTSOFRQ6L5KLGRTWD3ULNFQR26BBKDC7FFFR5KQQY7QHSZFHNM6BRF3J6O
-#\\\|F53RH32YUBOZI2LPMZLOWXLRIZEACO5OO2BBZ2YCLUSBVJMGWIV \ / AMOS7 \ YOURUM ::
-#\[7]2F5SP3Q22GJPWZJMQPW4FTRJOCBEWYQKP5XQZKJWOBXFQ2MGNIBQ 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,...,.,,,,..,..,,,,.,,,,,.,.,.,,,..,,...,...,.,,,,,.,,..,,,.,.,,,
+#5UPI6ACEYMOZ7LFRN2GD4PHGMDZ66LY2PAPGNQ2KSNZHIVH46VDKYGXJSMDZ4CLPQCLJQSTLZXHOM
+#\\\|QU3HU5KG6VPGXXKTZSZ2WAAFFYZKOBYXHW27WRWCHYPKUFNFSGL \ / AMOS7 \ YOURUM ::
+#\[7]KZFKRBRD4N4QAGIX2RE5YHUD624IBYOKJL37JVNNCAHAR4ZE2OAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
