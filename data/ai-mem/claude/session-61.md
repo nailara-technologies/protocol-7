@@ -31,6 +31,7 @@ When a model response contains XML/JSON that looks like a tool call, `chunk_hand
 Fix: added buffer write (with same markup stripping as STATE_COMPLETE) before `complete_task` in the no_tools branch.
 
 **How to apply:** When touching models.handler.task-result or coding.async.state_machine, remember the flag-conditional encode pattern and that no_tools tasks take the STATE_TOOL_EXEC early-return path.
+
 #,,..,,..,.,,,...,...,..,,...,.,.,,,.,,..,.,.,...,...,...,..,,...,..,,,,.,.,.,
 #LUCZRKQIALFR3PPWHICRFGJQF7LYX4REDWEWGCNKINJBZVVF6NQ6OKFM3H4LBATBCVLC4HLLINLEK
 #\\\|P4DGBXYSNPIRU2TJYWQU4XFEWB5W4JRZE6IZD7QL243O76SK3M6 \ / AMOS7 \ YOURUM ::
