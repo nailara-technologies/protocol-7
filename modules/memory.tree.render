@@ -1,0 +1,90 @@
+## [:< ##
+
+# name = memory.tree.render
+# descr = walk tree, render visible children, compose parent frame
+
+my $params  = shift                // {};
+my $variant = $params->{'variant'} // 'compact';
+my $n       = $params->{'n'};
+
+return undef if not defined <memory.tree>;
+
+## [ score lazily — guarded so a scoring bug never kills the render ]##
+eval { <[memory.tree.score]>->( { 'node' => <memory.tree> } ) };
+if ( my $err = <[base.str.eval_error]> ) {
+    <[base.logs]>->( 0, 'memory.tree.score failed: %s', $err );
+}
+
+## [ render recursively from root ]##
+my $rendered = _render_node( <memory.tree>, $variant, undef, 0, 1, $n );
+
+return $rendered;
+
+## [ recursive render helper ]##
+sub _render_node {
+    my ( $node, $variant, $parent_n, $depth, $is_root, $root_n ) = @_;
+    return '' if not defined $node;
+
+    ## [ resolve effective visible count ]##
+    my $eff_n = $node->{'n_visible'} // 7;
+    if ( $is_root and defined $root_n ) {
+        $eff_n = $root_n;
+    } elsif ( $node->{'n_inherit'} and defined $parent_n ) {
+        $eff_n = $parent_n;
+    }
+    my $cap = $node->{'n_max_cap'} // 13;
+    $eff_n = $cap if $eff_n > $cap;
+
+    my $children = $node->{'children'} // [];
+    my @visible  = @$children;
+
+    ## [ slice top eff_n by score desc ]##
+    @visible = sort { $b->{'score'} <=> $a->{'score'} } @visible;
+    @visible = splice @visible, 0, $eff_n if @visible > $eff_n;
+
+    ## [ render children depth-first ]##
+    my @rendered_children;
+    for my $child (@visible) {
+        my $child_str = _render_node( $child, $variant, $eff_n, $depth + 1, 0,
+            $root_n );
+        push @rendered_children, $child_str if length $child_str;
+    }
+
+    ## [ stash composed children into node for frame render ]##
+    if ($is_root) {
+        $node->{'_branches_rendered'} = join "\n", @rendered_children;
+    } else {
+        $node->{'_children_rendered'} = join "\n", @rendered_children;
+    }
+
+    ## [ determine render variant for this node ]##
+    my $node_variant;
+    if ($is_root) {
+        $node_variant = 'root';
+    } elsif ( $variant eq 'compact' ) {
+        $node_variant = 'compact';
+    } else {
+        $node_variant = $node->{'type'} eq 'leaf' ? 'compact' : 'card';
+    }
+
+    my $frame_str = <[memory.tree.node.render]>->(
+        {   'node'    => $node,
+            'variant' => $node_variant,
+        }
+    );
+
+    ## [ prefix compact non-root with depth indent ]##
+    if ( not $is_root and $variant eq 'compact' ) {
+        my $prefix = '  ' x $depth;
+        $frame_str = $prefix . $frame_str
+            if defined $frame_str and length $frame_str;
+    }
+
+    return $frame_str // '';
+}
+
+#,,.,,,,,,.,,,,,.,..,,..,,..,,.,,,...,.,.,.,,,..,,...,...,,,,,.,.,...,,..,...,
+#3HG3SILGDYSZSLFPINO4D377EZ46RHME5SKIUBTSSFDWRV4SNYPPHOINYXRKEYDB6TDFOLEMVEIKQ
+#\\\|XF3FOYVSZR3GKGZJ3BGO7ZV34QX7R4P65KAZDT5CP52Y7WW2NPH \ / AMOS7 \ YOURUM ::
+#\[7]5OXXTTBYVSLC33WS2TFOJW7VF5FIXBQUUWN23DTLNIF7XE44LOCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

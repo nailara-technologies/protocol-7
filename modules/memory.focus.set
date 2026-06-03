@@ -1,0 +1,28 @@
+## [:< ##
+
+# name = memory.focus.set
+# descr = set persistent boost floor for a topic
+
+my $topic = @_ ? shift : $ARG;
+my $boost = @_ ? shift : $ARG;
+
+return FALSE if not defined $topic or not length $topic;
+return FALSE if not defined $boost or $boost !~ m|^\d+(?:\.\d+)?$|;
+
+$boost = 0 + $boost;
+
+## [ ensure state exists ]##
+<memory.focus>       //= {};
+<memory.focus_floor> //= {};
+
+## [ set persistent floor and current boost ]##
+<memory.focus_floor>->{$topic} = $boost;
+<memory.focus>->{$topic}       = $boost;
+
+return TRUE;
+
+#,,,.,,,.,,.,,,.,,..,,,,.,,,.,..,,,,.,.,.,,.,,..,,...,.,.,...,.,.,...,...,,,.,
+#XZXXPWBKQNMXMMQPVQROEEF7WKJPI4JBKI5336EPK5JSJXPM2ANLBSOAF6ELWEQE4KTB6YPRCS2XI
+#\\\|LJZX5JEIENVHPUP6EQ4WNZXI3GZ5F4R4DEIFHTPZPCKDR35SFT5 \ / AMOS7 \ YOURUM ::
+#\[7]FTBXNZBC3EOF2ZYL4NW6AGRG55JXHW2LLR5MN2CWHL4BJR6ZXEAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
