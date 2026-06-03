@@ -1,0 +1,71 @@
+## [:< ##
+
+# name = memory.tree.dedup.exact
+# descr = exact duplicate leaf removal by content_hash within a branch
+
+my $params = shift             // {};
+my $branch = $params->{'node'} // return 0;
+
+my $children = $branch->{'children'} // [];
+return 0 if @$children < 2;
+
+## [ group leaf children by content_hash ]##
+my %by_hash;
+for my $child (@$children) {
+    next if $child->{'type'} ne 'leaf';
+    push @{ $by_hash{ $child->{'content_hash'} // '' } }, $child;
+}
+
+my $removed = 0;
+my $index   = <memory.tree_index> //= {};
+
+for my $hash ( keys %by_hash ) {
+    my @group = @{ $by_hash{$hash} };
+    next if @group < 2;
+
+    ## [ pick canonical leaf: highest score, then newest ntime ]##
+    my @sorted = sort {
+        my $score_cmp = ( $b->{'score'} // 0 ) <=> ( $a->{'score'} // 0 );
+        return $score_cmp if $score_cmp != 0;
+
+        my $b_num
+            = <[base.ntime_BASE32_to_numerical]>->( $b->{'ntime'} // '0' )
+            // 0;
+        my $a_num
+            = <[base.ntime_BASE32_to_numerical]>->( $a->{'ntime'} // '0' )
+            // 0;
+        return $b_num <=> $a_num;
+    } @group;
+
+    my $canonical = $sorted[0];
+    my @dupes     = @sorted[ 1 .. $#sorted ];
+
+    $canonical->{'seen'} += scalar @dupes;
+    $removed += scalar @dupes;
+
+    ## [ filter duplicates out of children array ]##
+    my %keep = map { $_->{'id'} => TRUE } ($canonical);
+    $branch->{'children'}
+        = [ grep { $keep{ $_->{'id'} } // FALSE } @$children ];
+    $children = $branch->{'children'};
+
+    ## [ purge removed ids from flat index ]##
+    for my $dupe (@dupes) {
+        delete $index->{ $dupe->{'id'} };
+    }
+}
+
+## [ recompute subtree_hash ]##
+my @hashes
+    = map { $_->{'content_hash'} // '' } @{ $branch->{'children'} // [] };
+my $combined = join ':', sort @hashes;
+$branch->{'subtree_hash'}
+    = length $combined ? <[chk-sum.jha.hex]>->($combined) : '';
+
+return $removed;
+
+#,,.,,..,,,,,,,.,,,,.,,,,,..,,,,.,.,,,,.,,...,.,.,...,...,...,...,,.,,.,.,,.,,
+#KT2THFKQ6FLWI6CO2YFK4JDWQCWLCM5OX6TI3NQLYQ6SH55ZP4EQDKAO555J3AYEV76P5A7E6B6JM
+#\\\|W2DEPJFRE5AWYQ4YTNNRTAMVSBTF4ZAFMYHQR7MWMLNQ7EAVQM7 \ / AMOS7 \ YOURUM ::
+#\[7]ZTXXXWT6SE66NDBOPNDT7WNLIPFOXXWWLDVM4FNUPOP5TSV3DOCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

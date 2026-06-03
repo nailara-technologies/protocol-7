@@ -1,0 +1,17 @@
+## [:< ##
+
+# name  = memory.maintenance.timer.count_leaves
+# descr = count leaf nodes in a memory tree
+
+my $node = shift;
+return 1 if $node->{'type'} eq 'leaf';
+my $c = 0;
+$c += <[memory.maintenance.timer.count_leaves]>->($_)
+    for @{ $node->{'children'} // [] };
+return $c;
+
+#,,,,,,,,,...,...,,..,.,.,,..,,.,,,.,,.,.,...,..,,...,..,,..,,.,.,,,.,,.,,,..,
+#U5K57XT6LXZMMDFCR5SBARQ2ICX6V532UEWR52WJXV5UUKZKBK477EANJKS5YRIV4V6TNEX6M5HDS
+#\\\|BMQGWKTJPYSPMAQY4GFTB3OXRRJQ7QIEVLPC7LSJGVRIAU2BSBL \ / AMOS7 \ YOURUM ::
+#\[7]GIKNMBDJKXHHD4H24UE2RDALZCQSQAVV74JYKOT3K6N2RVAWL6DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

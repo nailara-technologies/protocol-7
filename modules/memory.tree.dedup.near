@@ -1,0 +1,33 @@
+## [:< ##
+
+# name = memory.tree.dedup.near
+# descr = detect near-duplicate leaf clusters by content_hash prefix
+
+my $params = shift             // {};
+my $branch = $params->{'node'} // return [];
+
+my $children = $branch->{'children'} // [];
+
+## [ group leaf children by first 8 hex chars of content_hash ]##
+my %by_prefix;
+for my $child (@$children) {
+    next if $child->{'type'} ne 'leaf';
+    my $hash   = $child->{'content_hash'} // '';
+    my $prefix = length $hash >= 8 ? substr( $hash, 0, 8 ) : $hash;
+    push @{ $by_prefix{$prefix} }, $child;
+}
+
+## [ build clusters from groups with >1 member ]##
+my @clusters;
+for my $prefix ( keys %by_prefix ) {
+    my @group = @{ $by_prefix{$prefix} };
+    push @clusters, \@group if @group > 1;
+}
+
+return @clusters ? \@clusters : [];
+
+#,,..,...,,.,,..,,,,,,.,,,.,,,,..,..,,.,.,.,,,.,.,...,...,.,,,...,,..,.,.,...,
+#4URDROCEV2THPPLT5GLUEEUONHPAZYF35WCKD2KAO6OY5ROW7SHWD56QZP23IAF2HJUT6LXKTOA7Y
+#\\\|WXFJHEUCKD6WQWOYERMBATSQJYF3AXJH5GZ44UGSC4FMPKLZAFG \ / AMOS7 \ YOURUM ::
+#\[7]B3IDS6AXAROR3RNSHJOMPMDLRJ27OG4DUP7EH6RX6JDCHOXII2BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
