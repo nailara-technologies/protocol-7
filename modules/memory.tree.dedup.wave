@@ -1,0 +1,64 @@
+## [:< ##
+
+# name = memory.tree.dedup.wave
+# descr = wave-based dedup across entire tree
+
+my $params = shift // {};
+
+## [ stampede guard ]##
+return { exact_removed => 0, near_clusters => 0 }
+    if defined <memory.maintenance_lock> and <memory.maintenance_lock>;
+
+my $root = <memory.tree> // return { exact_removed => 0, near_clusters => 0 };
+
+## [ depth-first post-order walk, children before parents ]##
+my @stack = ( [ $root, 0 ] );
+my @post_order;
+
+while (@stack) {
+    my ( $node, $visited ) = @{ $stack[-1] };
+    if ($visited) {
+        pop @stack;
+        push @post_order, $node;
+    } else {
+        $stack[-1][1] = 1;
+        for my $child ( reverse @{ $node->{'children'} // [] } ) {
+            push @stack, [ $child, 0 ] if $child->{'type'} ne 'leaf';
+        }
+    }
+}
+
+my $exact_removed       = 0;
+my $near_clusters_found = 0;
+
+for my $branch (@post_order) {
+    next if $branch->{'type'} eq 'leaf';
+
+    $exact_removed += <[memory.tree.dedup.exact]>->( { node => $branch } );
+
+    my $near = <[memory.tree.dedup.near]>->( { node => $branch } );
+    $near_clusters_found += scalar @$near if ref $near eq 'ARRAY' and @$near;
+
+    ## [ recompute subtree_hash after dedup passes ]##
+    my @hashes
+        = map { $_->{'content_hash'} // '' } @{ $branch->{'children'} // [] };
+    my $combined = join ':', sort @hashes;
+    $branch->{'subtree_hash'}
+        = length $combined ? <[chk-sum.jha.hex]>->($combined) : '';
+}
+
+<[base.logs]>->(
+    2, 'dedup wave: removed %d exact dupes, found %d near clusters',
+    $exact_removed, $near_clusters_found
+);
+
+return {
+    exact_removed => $exact_removed,
+    near_clusters => $near_clusters_found
+};
+
+#,,,,,...,,,.,,,,,,,.,...,...,..,,..,,,,,,,.,,.,.,...,...,,.,,,.,,.,,,.,,,,..,
+#YW2UBR5R35FJ3YP6O547HLPI2CKELOILBLBC2BYYANZPQP2KTDTIX7EKWHVVIJBMYKCXIXFOH4MWU
+#\\\|55S22KM7TXZ4Z7ITZERDHOD233HTPQGAUZOD3Y3ORLTMDPWPDTO \ / AMOS7 \ YOURUM ::
+#\[7]XUNPMDI46HFZWT3I7AL6P4TGCGB25O3SKGJSFHZ7ZEP37V22CIBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

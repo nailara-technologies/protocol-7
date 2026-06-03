@@ -77,6 +77,11 @@ $leaf->{'seen'}  //= 1;
 push @{ $current->{'children'} }, $leaf;
 $index->{ $leaf->{'id'} } = $leaf;
 
+## [ maintenance batch counter ] ##
+<memory.insert_batch_count> //= 0;
+<memory.insert_batch_count>++;
+<memory.insert_batch_time> //= <[base.time]>->(3);
+
 ## [ rollup subtree hashes from leaf upward ]##
 for my $node ( reverse @ancestors ) {
     my @hashes
@@ -88,8 +93,8 @@ for my $node ( reverse @ancestors ) {
 
 return $leaf;
 
-#,,..,,,.,.,,,,,.,,..,..,,..,,,.,,,..,.,,,...,..,,...,...,,,.,.,.,,,.,,.,,,,.,
-#WI5QXO4NZ3XWL5Y7LNPZ4LQNBRNHSUW6QRCKXXYQ7SOECZL4C5ZGBIWAVRSQJPOIL7IDYMANVRA3O
-#\\\|V2MQVNCL2UC7QWUHFSE6PBMCP6OR4LYRR2GDZVLA6VAKPRDNJRS \ / AMOS7 \ YOURUM ::
-#\[7]XUBLYIJMBFUWNBYF573NG5GP55BQK5T7XXJBBSUOBIBJ6PR3ZUAY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,,,,,,.,,..,...,,..,...,,,,,,,,,..,,...,...,,..,..,,...,.,,,..,,
+#Y3WE6TIHOI5EZN5T2BYRITWDRHEGAELZRQNL22OJCJYTMSJJQ5YYJAYJI6YQY764JHBZT3TE3WY46
+#\\\|F6FINSWGOOL4WJX3UVDXUM5DLQYXXEF7EECN3FPWHYK3T7AV3QJ \ / AMOS7 \ YOURUM ::
+#\[7]PSBT2YCUMGQWD4JLPJW5LMB7IK5KOSM4UCOIB5QKKZAPFVA3PODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

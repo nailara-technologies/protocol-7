@@ -264,6 +264,7 @@ return [ qw[
         mpv.cmd.align-y
         mpv.cmd.align-x
         models.cmd.chat
+        memory.cmd.zoom
         memory.cmd.show
         kimi.task.queue
         kimi.cmd.status
@@ -358,9 +359,11 @@ return [ qw[
         mpv.json.command
         mpv.get_playlist
         models.init_code
+        memory.tree.zoom
         memory.tree.init
         memory.init_code
         memory.focus.set
+        memory.cmd.dedup
         kimi.wire.prompt
         kimi.task.status
         kimi.task.intake
@@ -1032,6 +1035,7 @@ return [ qw[
         models.chat.announce
         models.cfg.tab_width
         memory.focus.matches
+        memory.cmd.summarize
         lm-vision.cmd.status
         kimi.wire.initialize
         kimi.task.queue_next
@@ -1466,6 +1470,8 @@ return [ qw[
         models.chat.get_recent
         mod-test.cmd.strm-stop
         mod-test.cmd.strm-open
+        memory.tree.dedup.wave
+        memory.tree.dedup.near
         melt.cmd.extract_frame
         mediainfo.cmd.get_info
         logo-display.init_code
@@ -1691,7 +1697,9 @@ return [ qw[
         models.backend.kimi_web
         mod-test.cmd.strm-start
         menu-commands.init_code
+        memory.tree.render.node
         memory.tree.node.render
+        memory.tree.dedup.exact
         letsencr.child.acme_new
         letsencr.base.post_init
         letsencr.base.init_code
@@ -1914,6 +1922,7 @@ return [ qw[
         menu-commands.cmd.update
         menu-commands.cmd.status
         menu-commands.cmd.remove
+        memory.maintenance.timer
         lm-vision.select_backend
         letsencr.extract_aia_url
         letsencr.child.init_code
@@ -2335,6 +2344,8 @@ return [ qw[
         models.cmd.adapter-resolve
         models.callback.send_reply
         mod-test.handler.strm-tick
+        memory.tree.summarize.wave
+        memory.tree.summarize.node
         llm.service.consensus_vote
         letsencr.parent.cmd.status
         letsencr.child.get_rsa_jwk
@@ -2936,6 +2947,7 @@ return [ qw[
         models.checksum.from_metadata
         models.checksum.calculate_all
         mod-test.cmd.list-blacklisted
+        memory.tree.summarize.handler
         lm-vision.handler.read_output
         lm-vision.handler.job_cleanup
         lm-vision.cmd.resume_analysis
@@ -3048,6 +3060,7 @@ return [ qw[
         base.chk-sum.bmw.B-32-56.TRUE
         base.callback.report_children
         auth.zenka.process_auth_reply
+        ascii.frame.parse.border_line
         amos7.decode_octal_bit_header
         amos-term.fuse.build_metadata
         amos-term.decoder.scan_buffer
@@ -3144,6 +3157,7 @@ return [ qw[
         models.chat.messages_to_prompt
         mod-test.update_blacklist_aref
         menu-commands.cmd.add-category
+        memory.tree.score.rank_falloff
         melt.handler.frame_count_reply
         lm-vision.parser.process_chunk
         lm-vision.handler.http_analyze
@@ -3232,6 +3246,10 @@ return [ qw[
         base.chk-sum.bmw.encode_digest
         base.chk-sum.amos.calc_version
         base.cache.refaddr-prefix.init
+        ascii.frame.render.html.escape
+        ascii.frame.render.html.border
+        ascii.frame.render.html.anchor
+        ascii.frame.render.border_line
         amos-term.cmd.list_attachments
         X-11.start-up.show-screen-size
         X-11.handler.protocol-warnings
@@ -3519,6 +3537,7 @@ return [ qw[
         base.chk-sum.bmw.filesum.56.TRUE
         base.chk-sum.amos.unix.sock_path
         base.calculate_line_length_stats
+        ascii.frame.parse.border_segment
         X-11.handler.display_power_state
         zenki.parent.resolve_dependencies
         workspace-transfer.cmd.checkpoint
@@ -3688,6 +3707,7 @@ return [ qw[
         mod-test.write_out_blacklist_pcode
         menu-commands.parser.element_count
         menu-commands.format-provider-data
+        memory.source.session.file_to_leaf
         lm-vision.handler.check_completion
         letsencr.parent.query_httpd_vhosts
         letsencr.parent.handler_cert_ready
@@ -3741,6 +3761,7 @@ return [ qw[
         base.chk-sum.bmw384.coordinate-str
         base.chk-sum.bmw.calculate_L13_sum
         base.callback.setup_rollback_timer
+        ascii.frame.parse.fill_anchor_text
         amos-term.plugin-decoder.init_code
         amos-term.plugin-decoder.elf_match
         USR.AMOS7-admin.sourcecode-pub-key
@@ -3876,6 +3897,7 @@ return [ qw[
         models.checksum.calculate_bmw_base32
         models.callback.object_dispatch_slot
         mod-test.cmd.blacklisted-add-matches
+        memory.tree.score.focus_matches_stub
         lm-vision.handler.poll_coding_status
         letsencr.child.poll_challenge_status
         letsencr.child.cmd.renew-certificate
@@ -3921,6 +3943,7 @@ return [ qw[
         base.handler.read.encryption-wrapper
         base.file.file_chksums_are_identical
         base.callback.clean_data_source_hash
+        ascii.frame.render.color.border_line
         workspace-transfer.console.checkpoint
         workspace-transfer.console.bug-commit
         weather.parent.cache.write_station_id
@@ -3949,6 +3972,7 @@ return [ qw[
         models.statistics.invocation_tracking
         models.registry.init_from_definitions
         models.decision.recommendation_engine
+        memory.maintenance.timer.count_leaves
         lm-vision.handler.coding_online_reply
         letsencr.parent.handler_renewal_retry
         letsencr.parent.handler_renewal_reply
@@ -3992,6 +4016,8 @@ return [ qw[
         base.perlmod.unregister_loaded_module
         base.handler.write.encryption-wrapper
         base.handler.check_strm_size_timeouts
+        ascii.frame.render.data.border_string
+        ascii.frame.render.color.content_line
         workspace-transfer.console.todo-commit
         web-browser.start-up.init_window_title
         web-browser.handler.signal.load_failed
@@ -4314,8 +4340,8 @@ return [ qw[
     ]
 ];
 
-#,,..,,,,,,..,.,.,,.,,..,,...,,,,,,..,..,,,,.,.,.,...,...,.,,,.,,,,,.,..,,,,,,
-#IHIBIVMLR4U7RL4IQ3OXKNHJWGIS7EZIIVES3WADH7SAW7SEBQSWY4IWQDVTPYJ52OXHZC663M6EG
-#\\\|TBFMNX5E2PMDSA77E7PPLYULYWMBHCMK7CW65A6E45QMQA2HIDU \ / AMOS7 \ YOURUM ::
-#\[7]ZSAXGYLIXNVXVIJOCT4H4S7CMJP5WRUSAUWHVJA4GUNXXPUXBYAY 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,...,...,..,,.,.,..,,,,.,,..,.,,,.,.,...,...,..,,..,,...,,..,...,
+#CSD24DHWJMWXT2MMZTHUR3YQBNRWA2RKGSAFGGZXW6U5X5QDKP2QCR6DG3RAUWT2CHI6UQIJYIL4W
+#\\\|NIFFFYRU3H3SGVXBZJPQRE7HP4MGCYOYDKYBTZKQC5FQR5J4XUB \ / AMOS7 \ YOURUM ::
+#\[7]D2ES2CSGDLS7NVWKY2NXOX547AYW673Q3BWHVHQW7M5FDW6UZ4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
