@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = memory.source.session.file_to_leaf
+# descr = convert a single session file into a universal leaf structure
+
+my $file = shift;
+
+my $content_ref = <[file.slurp]>->($file);
+return undef if not defined $content_ref;
+
+my $content = $content_ref->$*;
+
+## [ strip signature blocks ] ##
+$content =~ s|^#,,.*\n.*\n.*AMOS7.*\n.*DATA\sSIGNATURE.*\n.*\n||ms;
+
+## [ title from yaml frontmatter or first heading ] ##
+my $title = '';
+if ( $content =~ m|^---\s*\n.*?^name:\s*(.+?)\s*\n|ms ) {
+    $title = $1;
+    $title =~ s|[\"']||g;
+} elsif ( $content =~ m|^#{1,3}\s+(.+?)\n|m ) {
+    $title = $1;
+} else {
+    $title = $file;
+    $title =~ s|^.*/||;
+    $title =~ s|\.md$||;
+}
+
+## [ ntime from file mtime ] ##
+my $mtime     = ( stat($file) )[9] // time;
+my $ntime_num = <[base.ntime]>->($mtime);
+my $ntime_b32 = <[base.ntime.b32]>->($ntime_num);
+
+my $content_hash = <[chk-sum.jha.hex]>->($content);
+
+return {
+    ntime        => $ntime_b32,
+    content_hash => $content_hash,
+    source_type  => 'session',
+    title        => $title,
+    body         => $content,
+    score        => 0,
+    curve_type   => 'exponential',
+    source_ref   => $file
+};
+
+#,,,.,,,.,,,.,,.,,,,,,,.,,,.,,,..,.,,,,..,...,..,,...,...,,,,,...,.,.,.,.,,,.,
+#3IKXIDEBIWXQSYMCIBGSZDRGY3CVZIHEXICZTFHAOGKDFXYKWQO3BQEGSSR6T7E2ZUVIYC3KVBNBM
+#\\\|MZNL2AK7I4PWKDQNDZRSBRUX33IB4NR4ABCZG5QXHU7RZY6ECOZ \ / AMOS7 \ YOURUM ::
+#\[7]7XPP4FMGSN2OIGGNFIRZRQBEHWJHNPQTA3FTDI7SKWPXV5N6QKDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

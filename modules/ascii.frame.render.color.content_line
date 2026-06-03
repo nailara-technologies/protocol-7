@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = ascii.frame.render.color.content_line
+# descr = apply ansi colors to a content line of an ascii frame
+
+my ( $line, $A, $reset ) = @_;
+return $line if not length $line;
+
+## separator row : left border + run of = + right border ##
+if ( $line =~ m{^([:.])(\s*=+\s*)([:.])$} ) {
+    my ( $lb, $mid, $rb ) = ( $1, $2, $3 );
+    return
+          $A->{'fill_colon'}
+        . $lb
+        . $reset
+        . $A->{'fill_eq'}
+        . $mid
+        . $reset
+        . $A->{'fill_colon'}
+        . $rb
+        . $reset;
+}
+
+my $first = substr( $line, 0, 1 );
+my $last  = length($line) > 1 ? substr( $line, -1, 1 ) : '';
+my $body
+    = length($line) > 1
+    ? substr( $line, 1, length($line) - 2 )
+    : '';
+
+my $left
+    = ( $first eq qw| : | )
+    ? ( $A->{'fill_colon'} . $first . $reset )
+    : $first;
+my $right
+    = ( $last eq qw| : | )
+    ? ( $A->{'fill_colon'} . $last . $reset )
+    : $last;
+
+## field label pattern : leading spaces + word: + spaces + value ##
+my $body_colored;
+if ( $body =~ m{^(\s*)([\w][\w\-\.]*:)(\s+)(.*?)(\s*)$} ) {
+    my ( $lpad, $lbl, $sp, $val, $rpad ) = ( $1, $2, $3, $4, $5 );
+    $body_colored
+        = $lpad
+        . $A->{'label'}
+        . $lbl
+        . $reset
+        . $sp
+        . ( length($val) ? $A->{'value'} . $val . $reset : '' )
+        . $rpad;
+} elsif ( length $body and $body =~ m{\S} ) {
+    ## raw content : color as value ##
+    if ( $body =~ m{^(\s*)(.*?)(\s*)$} ) {
+        my ( $lpad, $mid, $rpad ) = ( $1, $2, $3 );
+        $body_colored
+            = $lpad
+            . ( length($mid) ? $A->{'value'} . $mid . $reset : '' )
+            . $rpad;
+    } else {
+        $body_colored = $body;
+    }
+} else {
+    $body_colored = $body;
+}
+
+return $left . $body_colored . $right;
+
+#,,..,.,.,...,,.,,,..,,,.,,,.,.,,,,..,...,,.,,..,,...,.,.,.,.,...,.,.,..,,,,.,
+#MNOPI5MCF34LRXNVIA2AE4SOR75EVFHCLKQMVASVTBYRLPQG2OOBXYNNJ7ARXVBMGSJWMVQIETMP2
+#\\\|KCY53GEJJXXZAASVBM2RBTMXXEUXT2Y7Q4RJK4Y7F2HE245B7C4 \ / AMOS7 \ YOURUM ::
+#\[7]ZWUJJTQ4FHHZO5FZB5QL64ZDO4XXFTTMMM3IENJZC2RQBMNEOKAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
