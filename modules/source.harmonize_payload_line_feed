@@ -19,14 +19,10 @@ warn 'expected octal endline state descriptor <{C1}>' and return undef
 #
 ##  7 : 2 added, 5 : untouched, 0 : 4 removed  ##
 
-my $mod_offset = 0;
-
-## already at modification limit ? ##
-if ( $cur_endline_state == 0 or $cur_endline_state == 7 ) {
-    return $cur_endline_state;    ##  no change, keep previous state  ##
-} elsif ( $cur_endline_state != 5 ) {
-    $mod_offset = $cur_endline_state - 5;
-}
+## canonical-form normalization [ Fix #3 ] below always runs : a prior
+## early-return for states 0 / 7 skipped it , leaving state-7 re-signs with
+## zero trailing newlines → footer concatenation oscillation on every other
+## sign. the canonical loop is idempotent , so no limit guard is needed.
 
 my $endline_state_oct       = $cur_endline_state;         ##  unmodified  ##
 my $payload_size_delta      = 0;
@@ -70,8 +66,8 @@ if ( $payload_sref->$* =~ m|\n\n$|s ) {
 
 return $endline_state_oct;
 
-#,,,,,..,,,..,.,.,..,,,,.,..,,,,.,.,,,.,,,,.,,..,,...,...,..,,,.,,,..,,,,,..,,
-#IHEMGWZHBHWOH5FQJUKSAJJSNSNKIDW5BMAU73JBVNHZH4R6GC3TPC2VUYYTI6HVAKFG6QZ5JTLTS
-#\\\|YNUYK7ANK2CC37GQVTIM3JWEL6UWBUVE6R42RL6BYDDGRXVPFDR \ / AMOS7 \ YOURUM ::
-#\[7]DRI2FNSZ2NYZHIGY65YMRH4AZJRPQCXFZNYIXVLZ5JAFACAC42AI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,.,,,..,,,.,,,.,.,.,,.,,,..,..,,..,,...,...,,,,,,,.,,,,,.,,,.,,,
+#DKJLZD3JPIJ65PMDDT2WUZ6PZD5U45HVBEVONMH5TPHMXPBX3VRIAYT3FNG4HXVEYJSDKULVJCN7Y
+#\\\|J7EB6N46XHXO54LF3KXHQZ7N5FZ3MPFFAUYDLWIMYYXP7NHHLYI \ / AMOS7 \ YOURUM ::
+#\[7]JRAJ5SRCHBWSWLOLV527J3Q35D5EUIIXSP3ZUCTXYZA3FBGYAKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

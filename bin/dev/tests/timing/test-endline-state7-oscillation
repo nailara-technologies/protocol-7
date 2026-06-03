@@ -1,0 +1,100 @@
+#!/bin/bash
+
+# test endline state-7 oscillation regression
+#
+# a file whose on-disk body has zero trailing newlines encodes endline
+# state 7 [ +2 : content + separator ]. before the harmonize_payload_line_feed
+# fix [ removal of the state 0/7 early-return ] , re-signing such a file left
+# the payload with zero trailing newlines and concatenated the footer directly
+# onto the last content line — oscillating valid / invalid on every other sign.
+#
+# the repo normally holds no state-7 files , so this regression is invisible
+# to verify-p7-signatures. this test creates 0-trailing fixtures under both
+# path roots [ inside and outside <source.normalize_endline_paths> ] and signs
+# each twice , asserting the signature stays valid [ no concatenation ].
+#
+# usage: ./bin/dev/tests/timing/test-endline-state7-oscillation
+
+ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
+cd "$ROOT" || exit 2
+
+P7="./bin/Protocol-7"
+SCRATCH="data/test-scratch"
+mkdir -p "$SCRATCH"
+
+## fixtures : 0-trailing-newline content under two path roots ##
+## [ modules/ is inside normalize paths ; data/ is outside ]   ##
+## non-hidden names — collect_file_list does not collect dotfiles / dotdirs ##
+IN_PATH="modules/test.state7osc"
+OUT_PATH="$SCRATCH/test-state7osc.md"
+
+cleanup() { rm -f "$IN_PATH" "$OUT_PATH"; rmdir "$SCRATCH" 2>/dev/null; }
+trap cleanup EXIT
+
+## printf without trailing newline → 0 trailing → state 7 candidate ##
+printf '## [:< ##\n\n# name = test.state7osc\n\nlast line with no trailing newline' \
+    > "$IN_PATH"
+## plain content [ no AMOS7 / SIGNATURE / YOURUM markers — those route       ##
+## through the extract recovery path and mask the clean re-sign oscillation ] ##
+printf 'plain memory note line one.\nlast line with no trailing newline' \
+    > "$OUT_PATH"
+
+fail=0
+
+## sign twice , require zero invalid on each pass [ concatenation → invalid ] ##
+check_file() {
+    local label="$1" path="$2"
+    echo ": [ $label ] $path"
+    for pass in 1 2 3; do
+        local out invalid signed
+        out=$( $P7 sourcecode test-sign-and-verify "$path" 2>&1 )
+
+        ## guard : a fixture that was not collected / signed would pass     ##
+        ## vacuously [ 0 invalid on an unsigned file ] — require it signed  ##
+        signed=$( echo "$out" | grep -cE 'Found [1-9].* files|\[SIGNED\]' )
+        if [ "$signed" = "0" ]; then
+            echo ":   pass $pass : [ FAIL ] fixture not signed [ not collected ? ]"
+            fail=1
+            continue
+        fi
+
+        invalid=$( echo "$out" | grep -oE '[0-9]+ invalid' | grep -oE '^[0-9]+' )
+        invalid="${invalid:-0}"
+
+        ## detect footer concatenated onto a content line [ no separator ] ##
+        ## a clean footer-start line begins at column 0 with '#'           ##
+        local concat
+        concat=$( grep -cE '.+#[,.]{70,85}$' "$path" )
+
+        if [ "$invalid" != "0" ] || [ "$concat" != "0" ]; then
+            echo ":   pass $pass : [ FAIL ] invalid=$invalid concat_lines=$concat"
+            fail=1
+        else
+            echo ":   pass $pass : [ ok ] valid , no concatenation"
+        fi
+    done
+}
+
+echo ":"
+echo ":::[ endline state-7 oscillation regression ]::"
+echo ":"
+check_file "inside  normalize-paths" "$IN_PATH"
+check_file "outside normalize-paths" "$OUT_PATH"
+echo ":"
+
+if [ "$fail" = "0" ]; then
+    echo ": [ PASS ] no state-7 oscillation under either path root"
+    echo ":"
+    exit 0
+else
+    echo ": [ FAIL ] state-7 oscillation / footer concatenation detected"
+    echo ": regression in source.harmonize_payload_line_feed [ state 0/7 ] ?"
+    echo ":"
+    exit 1
+fi
+
+#,,,,,.,.,.,.,,,,,,,.,..,,...,,.,,,.,,,..,.,.,..,,...,...,..,,,..,,,,,,,.,..,,
+#SR2BJGQJRAFHRXQO274AIKZ4ASFQSSGKSNXSHL7CPO76FII2YA5B54XSOHJ7ZLYKJ55CSUOIETJLG
+#\\\|3S6NE5V4Y7EZFR7ZVM2QGJZCG5PHNXJLRX4ROT6JOLJ773EOFHT \ / AMOS7 \ YOURUM ::
+#\[7]DEDQGC2P4PMT74YQFPD3F4ABFVVWW37KS5BCFUCDTT3R2MJJ6IDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -130,6 +130,7 @@
 - `smtpd`: receive → YAML + LLM classify → route; xz+twofish archive
 - `window.*`: proportional placement; 8 profiles; ticker integrated
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
+- [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
 #,,..,.,,,,.,,...,..,,,.,,.,,,,,,,,,.,.,.,,,,,..,,...,...,,.,,.,,,..,,,.,,.,,,
 #NA62WCAUJIZLWZNLJO6VINOMNVRKVGXWBZTPXKTPAM3DQZ7RRPTJ25K37QJS3WANEFJD4AZYH2MFO
@@ -150,8 +151,8 @@
 
 **Diagnostic:** Improved `base.handler.command` syntax error log to show full bad line (`line=['...']`) instead of stripping it.
 
-#,,..,...,,..,..,,.,.,...,.,,,.,.,...,,..,,,.,..,,...,...,,,,,..,,,.,,..,,...,
-#5UCPIK6AV7KCJCPXV7F43ZY4RVQPFWTVKEYGTJWGGZSSSSLG43N4FU4HS6CZ4KDHHK5EH77YNPPQ6
-#\\\|EKBF5CYUQ5OLUOT2LPMFK43IOOD2NEHHV5Z4LD5IVJDLQHB5C4G \ / AMOS7 \ YOURUM ::
-#\[7]ZDLSPWY65NNE56VOZ65BVNUTDDIE6X2EKYCMGKMWS2WRDAWLDUAI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,..,,,,,,..,...,,.,,,,,,..,,.,.,..,,...,...,.,,,...,,..,,,,,.,.,
+#N4I5OZRJ4UU3H36RXSMBBTNGEOEW2S7GZRXBO673HDMNXQHJIMYBAYHEOFLA4UACQLMRTUUKHMML6
+#\\\|676VB2V7NDM3MD56H3UONIIDXRIMSN2DSH3TN4WU6Y5U7ZXNBUU \ / AMOS7 \ YOURUM ::
+#\[7]A6HRUBWV3C6Y7JMRDDVH4G34LL5WNFFJXZJO2Z6L7DG2EVXR5CDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
