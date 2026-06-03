@@ -17,7 +17,7 @@ metadata:
 ### Mojibake pattern
 Hexdump of `/var/protocol-7/web/jobs/14025299.yaml`:
 - em-dash (–, U+2013, UTF-8 `e2 80 93`): stored as `c3 a2 5c 78 38 30 5c 78 39 33` = `â\x80\x93`
-- ä (U+00E4, UTF-8 `c3 a4`): stored as `c3 83 c2 a4` = `Ã¤`
+- ä (U+00E4, UTF-8 `c3 a4`): stored as `c3 83 c2 a4` = `ä`
 
 This is DOUBLE-ENCODING: each UTF-8 byte treated as individual Latin-1 code point, then re-encoded as UTF-8 by YAML::XS.
 
@@ -71,8 +71,8 @@ Actually cleanest: reset `<jobsite.sync.last_server_ntime> = ''` (or clear jobsi
 - [[session-63]] — investigation start, simulation showed correct results but actual still broken
 - [[plugin-web-jobs]] — delta sync, stage fix
 
-#,,,,,.,.,,,.,,..,,..,,..,,.,,,,.,.,.,,.,,,,.,..,,...,...,.,,,...,.,,,.,,,...,
-#VTFZJYJT6RS2GZNHBX4SPLYVOXNCEU4DQV4IQIUVH5CPXDY4MZ7OPDGG6ACFQIQNOQLJ26JZLM5L2
-#\\\|G2FYJ2EDTDAGRV6JVIVHFNL5RCDCGW7GNUQNID3JMXFNKWBKSZB \ / AMOS7 \ YOURUM ::
-#\[7]GDTVCOKFBX6UZSP57WC7IVR65RXHCZTHLOGBNZ2T2WQG4RSMCACA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,.,,,.,,,,,,,.,,,.,,,.,,,.,.,,,.,..,,...,...,,..,.,.,,..,.,.,,,.,
+#J2J5SOXNDQNJHGU2OMHHGIDUOLHAOLJO4WXSYRE7YU3RAHPC5NVH4BSF2YRI7JYUFDNA3YWKH2MK6
+#\\\|MNLNILEHLVQ4SLKLPSTEULYAMIUGNDQK4TUHTE5KFM4RAM772VP \ / AMOS7 \ YOURUM ::
+#\[7]WYU3MWBYINUWEHFUX5EMAKJM2YSPUZRHG743EKTSHKWO6BTQPQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,7 +11,7 @@ metadata:
 
 ### 1. Umlaut double-encoding — `modules/models.handler.task-result`
 
-`Encode::encode('UTF-8', $response)` was called unconditionally. When `$response` arrives as raw UTF-8 bytes without the Perl utf8 flag (which is the normal case — network transport strips the flag), this double-encodes every non-ASCII byte. `ü` (bytes C3 BC) becomes C3 83 C2 BC → decodes as mojibake `Ã¼`.
+`Encode::encode('UTF-8', $response)` was called unconditionally. When `$response` arrives as raw UTF-8 bytes without the Perl utf8 flag (which is the normal case — network transport strips the flag), this double-encodes every non-ASCII byte. `ü` (bytes C3 BC) becomes C3 83 C2 BC → decodes as mojibake `ü`.
 
 `fix_encoding` repaired lowercase `ä/ö/ü` (their mojibake second bytes are printable Latin-1 so they survive the YAML control-char strip). But `ß/Ä/Ö/Ü` were permanently broken: their mojibake second bytes are C1 controls (0x80–0x9F), stripped before YAML parsing, leaving orphaned `Ã` that fix_encoding can't reverse.
 
@@ -31,9 +31,8 @@ When a model response contains XML/JSON that looks like a tool call, `chunk_hand
 Fix: added buffer write (with same markup stripping as STATE_COMPLETE) before `complete_task` in the no_tools branch.
 
 **How to apply:** When touching models.handler.task-result or coding.async.state_machine, remember the flag-conditional encode pattern and that no_tools tasks take the STATE_TOOL_EXEC early-return path.
-
-#,,,.,,..,,..,,,.,.,.,.,.,,,.,..,,...,.,.,,,,,...,...,...,..,,,..,,,,,,,.,,..,
-#ZQFJRNZ2OW3H35JBWMCP4OPK3GQ2OFXSHN7F4Y2TEPHGTG4YMRTEWM7KGQHSCHQOYG6H5F72A36YK
-#\\\|EHE7JZEUEQ2LELIRTJNCOCSFIFQHS3R5FNIHEZZPPFJSWP33A5I \ / AMOS7 \ YOURUM ::
-#\[7]EHMZIUYCFO45AGEPAUMQX4A4JVOVWJIQ2E3TXJYHROVVHBI5ZWAQ 7  DATA SIGNATURE ::
+#,,..,,..,.,,,...,...,..,,...,.,.,,,.,,..,.,.,...,...,...,..,,...,..,,,,.,.,.,
+#LUCZRKQIALFR3PPWHICRFGJQF7LYX4REDWEWGCNKINJBZVVF6NQ6OKFM3H4LBATBCVLC4HLLINLEK
+#\\\|P4DGBXYSNPIRU2TJYWQU4XFEWB5W4JRZE6IZD7QL243O76SK3M6 \ / AMOS7 \ YOURUM ::
+#\[7]KEBDX6CPCKGNSOQMTLKM7XDZOWFIRTKCAZFLGQSLZTN2AJXT2IAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -41,12 +41,21 @@ signing so modules/ always converges cleanly as a belt-and-suspenders layer.
 line → run update-signatures → inspect result for missing newline before `#,,`
 
 **Related task files**:
+- data/tasks/signature-endline-bug-sanity-checks.md  ← active consolidating task (2026-06-03)
 - data/yaml/coding-tasks/signature-endline-state-verification.yaml (completed but verifications pending)
 - data/yaml/docs/processing/signature-endline-handling.yaml
 - data/yaml/code-reviews/modules/source.signature-endline-policy-system.yaml
 
-#,,,.,,,,,..,,.,.,,.,,...,,,.,...,..,,,,,,,,.,..,,...,...,...,.,.,.,.,,..,..,,
-#5XHQILL5HUXWSA6A5PFG6EK2WV63BSESSX2K7KPF4EMOWKJLTBB2M2SWHRDRM44TD3LOMDC7W2THA
-#\\\|WNZKQ2QRHNNZFE3D4SF7HFXZY5TECLWGWHLT3HN2LW2C2JUZOFV \ / AMOS7 \ YOURUM ::
-#\[7]3EXFPIVQOSBJK4B6KYYA53IJPUPF4OG2RKWJ6ZOXRITQTRI6KIAY 7  DATA SIGNATURE ::
+**Update 2026-06-03**: Strict state recovery WAS implemented in commit 4aa5536ed
+(`fix: stale endline recovery + vc-changed-files -sig-only staged diff`) but only
+applies to paths in `<source.cfg.normalize_endline_paths>` (default `['modules']`).
+Files outside that set (data/, data/ai-mem/, data/tasks/) still hit the bug —
+empirically reproduced on a memory file write 2026-06-03. See the active task
+file above for the 16-cell state×actual-nl matrix to work through, and the
+sanity-check options (universal recovery vs hard assertion). Opus-suitable.
+
+#,,..,..,,,..,,.,,..,,,..,..,,,,.,,,.,,,.,.,.,..,,...,...,,,,,.,.,,.,,,,.,..,,
+#3JHI53AXQUPW3AXXYCFGMAYTFSVRRCORXNPC3ZFE5FKBA4B4YA7X4W4CBZVTSS2QMAGUTESHL5C3G
+#\\\|A6PH2CRDF4I7GNLOQGDVVA2C357XSBEU4WNMTVHFXSS7CNUEOZ7 \ / AMOS7 \ YOURUM ::
+#\[7]A2TIUFEFVFO5YXELPN5EGUYZF5U4TZESBJXRGBPLE2NM3FIWJYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
