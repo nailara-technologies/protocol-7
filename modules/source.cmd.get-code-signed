@@ -83,7 +83,7 @@ if ( $footer_found and $found_footer_valid ) {
     \$src_str, $footer_data, {}, undef, 'update'
 );
 
-if ($is_valid) {
+if ( $is_valid and not $footer_data->{'needs_separator_endline'} ) {
     <[base.log]>->( 2, ':.: checksums and signature still valid. =)' );
 
     ## [ SKIP UNCHANGED MODE ] ##
@@ -126,17 +126,19 @@ if ($is_valid) {
     ## recovery: stale endline delta : normalize for canonical paths ##
     my $normalize_paths = <source.normalize_endline_paths> // [];
     if ( ref $normalize_paths eq qw| ARRAY | and @$normalize_paths ) {
-        foreach my $prefix ( @$normalize_paths ) {
+        foreach my $prefix (@$normalize_paths) {
             if ( index( $code_name, "$prefix/" ) == 0 ) {
                 my ($trailing) = $src_str =~ /(\n+)$/;
-                my $trailing_count = defined $trailing ? length($trailing) : 0;
+                my $trailing_count
+                    = defined $trailing ? length($trailing) : 0;
                 if ( $trailing_count <= 1 ) {
                     $src_str =~ s|\n*$|\n|s;
                     $footer_data->{'endline-state-encoded'}   = 5;
                     $footer_data->{'needs_separator_endline'} = FALSE;
                     $footer_data->{'last_line_incomplete'}    = FALSE;
                     <[base.logs]>->(
-                        2, ': : stale endline state : normalized for canonical path'
+                        2,
+                        ': : stale endline state : normalized for canonical path'
                     );
                 }
                 last;
@@ -223,8 +225,8 @@ if (   not defined $present_checksum
 ##  current \ updated source  ##
 return { 'mode' => qw| size |, 'data' => $src_str }
 
-#,,..,,,,,,,,,,..,,.,,...,,.,,.,.,,,,,...,,,.,..,,...,...,.,.,,,.,..,,,.,,,..,
-#JBBRNHQTCZLTK4GTHDBWJ54T7P7ZI3OGU74UJ5MPAWQPOEC6CEPILLRQSLOLM5HSKYRITZUQ3YUH6
-#\\\|AEP5VGBXBQ57YKH5X4W46IBN7ML3ZCD6BRKI6WXIH25PYKBZSPV \ / AMOS7 \ YOURUM ::
-#\[7]J2IGGKG2W6WTVGLGTXIT4JUOSRUF6ILRMX7CQSN27PK5JCXFI4DA 7  DATA SIGNATURE ::
+#,,..,..,,,,,,.,,,,,,,...,.,,,,..,,.,,..,,.,,,..,,...,...,.,.,.,.,,,,,.,,,..,,
+#5JE7NSN2BXB2FEPHZKRT2DBWCHY25WCPFLIOCKO6XGQU4CFE2GXNO6OMHQFIVQL33PPOC264FRLXW
+#\\\|DJOQJMG7UA53OEW3VT4VAPV3BLIWKJSLUW36H6ZYYICGZCYIAFD \ / AMOS7 \ YOURUM ::
+#\[7]QYL7TSCXI4VAIASZCKUKCOE65FZCFWTOC7AOK6BWNYRQLKJHIIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
