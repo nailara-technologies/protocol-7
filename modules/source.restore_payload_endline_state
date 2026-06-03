@@ -32,10 +32,8 @@ my $delta = $endline_state_oct - 5;
 
 if ( $delta > 0 ) {
 
-    ## count actual trailing newlines before removal ##
-    my ($actual_trailing) = $payload_sref->$* =~ /(\n+)$/;
-    my $actual_count
-        = defined $actual_trailing ? length($actual_trailing) : 0;
+    my $actual_count    ## count actual trailing newlines before removal ##
+        = $payload_sref->$* =~ m{(\n+)$} ? length $LAST_PAREN_MATCH : 0;
 
     if ( $actual_count < $delta ) {
         <[base.s_warn]>->(
@@ -55,8 +53,8 @@ if ( $delta > 0 ) {
 ##  return length difference [ representing change in trailing endlines ]  ##
 return length( $payload_sref->$* ) - $previous_payload_length;
 
-#,,,.,..,,,,.,,,.,.,,,,..,..,,.,,,,,,,,..,...,..,,...,...,,.,,.,.,,.,,,..,.,,,
-#7UJCM2S7BTUENMVZSEHMJOUBNTQKGNJJWOXEIRQO3BN6NM4R6KB3AYSBGQLA2HTNM6FFDUDL4EMDS
-#\\\|JKYRKGNXPDEDOK2VVP4N7J2TAN3QARV273JHLIKSBWUKP3454TR \ / AMOS7 \ YOURUM ::
-#\[7]GBP5MK4E2G5RURQV6CUJ4ILAJRYYPP7S7TNTABOIGL3DN34T7KDI 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,...,,..,...,.,.,.,,,,,.,...,...,..,,...,...,.,.,..,,,,.,,,.,,,,,
+#4HIZPKRMYOXOL6JMI7FQQUF5TJYFAU6AUWMWOFT6FDZ4PWWP4L4T6UQOEDSF6SD4YMZ6BGWT5RQRO
+#\\\|KL74QRBTYOWJYHBXZYY52BZQCLWA6GEKV6AB7HWTETRPMKG5YXO \ / AMOS7 \ YOURUM ::
+#\[7]LYVWWJWGQTJKUC5JCJHI53EJHN4OVCUOPEBAEHZIRBEOO2DO6GBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

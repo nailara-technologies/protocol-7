@@ -707,7 +707,18 @@ if (   defined $EVAL_ERROR && length($EVAL_ERROR)
     } else {
 
         # Separator was present - file was canonical, restore endline state
-        <[source.restore_payload_endline_state]>->( $src_ref, $state );
+        my $restored_delta
+            = <[source.restore_payload_endline_state]>->( $src_ref, $state );
+
+        my $expected_delta = 5 - $state;
+
+        if ( $restored_delta != $expected_delta ) {
+            $footer_data->{'encountered-error'}
+                = sprintf 'endline state mismatch : encoded state=%d '
+                . '(expected change %d) but got %d',
+                $state, $expected_delta, $restored_delta;
+            return $footer_data;
+        }
     }
 
     # Copy data from header
@@ -775,8 +786,8 @@ if ( $mode eq qw| repair | ) {
 
 return $footer_data;
 
-#,,,,,..,,,,.,.,.,.,.,...,.,,,.,.,..,,.,.,,,,,..,,...,...,...,,,.,.,,,.,,,.,.,
-#HN6PZSH44ECAPTXTNYVVMN7LOTPHY7KIA2RWQS4SZ5GT6E3VHTSMAJQH2F3YPVUILSMKIMWRLUVQK
-#\\\|KFZD6JA7ZRYLLNWHO46AQZY3XAZCYQ7RQB7TPCSCOJN5RUKZLRW \ / AMOS7 \ YOURUM ::
-#\[7]RYXPMA32IG4TYTNK6CYCE5FVRYS4MV6Z7ZXSTPQGZ3CC4M74DUCI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,,,,,,,,...,..,,...,,..,...,,..,..,,...,..,,...,..,,.,,,.,.,...,
+#K7WZW5ZQKTGC6ZXTCRJ24LXQ66SOLFOAXLHLBNXQ7F43AZW3RBMXTVWZTNESY65V4SD4EJL444NEG
+#\\\|3CWYSJUZLQHAREXPYATZDTSFHA47UKCQPB2I3SFYA5TTY6HV5B4 \ / AMOS7 \ YOURUM ::
+#\[7]MIVBJOHFGL7MUNHSJOJIXD2ABG25DHDEZBIK6BT5WNTCLUJMPUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
