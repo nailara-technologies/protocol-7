@@ -39,7 +39,7 @@ my @sources
 for my $src (@sources) {
     my $mod_path = <system.root_path> . "/modules/$src";
     next if not -f $mod_path;
-    push @{ <memory.sources.registered> //= [] }, $src;
+    push @{ <memory.sources_registered> //= [] }, $src;
 }
 
 ## [ always defer — never call startup synchronously inside init ]##
@@ -52,8 +52,8 @@ push @{ <system.callbacks.initialized> //= [] }, 'memory.startup';
 
 return TRUE;
 
-#,,,,,,..,...,,.,,.,.,..,,,,.,,,,,.,,,,,.,,,,,..,,...,...,,..,.,,,,,,,,..,,,.,
-#YOF7A2CMFFN3QR5R6SAALU36D4OW76FUH66JEMMAZO7DNWUYSAENTNPQDQLWJ5NU6NH5DIIJD6GB4
-#\\\|CPMDNT2OI2Q6XPPUQZ5QIUPN7VLNE4CX3TESFMNIRFGZKGLSZGG \ / AMOS7 \ YOURUM ::
-#\[7]BFEWD5XDZVTXATIKKVZY4MUMCBDCRTPE6AIVPPAJKMGPCKJXRWAA 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,,.,,..,,..,,..,,,,,.,.,,,.,.,,,..,,...,..,,.,.,...,,..,,,,,.,.,
+#RKNIIUCL2VD3A34EVYMTFQPA5C7R7G7IHOKUS6XBYGTU3X6HKZTFNXQHFAQ2VCREBHXP5FPVJ7ALC
+#\\\|MXZTYVJRGZ2SF27L34WWFGO5B4BT5LHXFFGMIIPEHBCPZ3ZTNTS \ / AMOS7 \ YOURUM ::
+#\[7]F6KVW7Z3OWQF6UI32Q7VIFAWXZUSMTAHW6TBL6AOPDOIDO6PSABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
