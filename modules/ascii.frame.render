@@ -78,7 +78,9 @@ my $frame_width
 
 ## render top border ##
 my @output;
-my $top_line = _render_border_line( $border->{'top'}, $values, $frame_width );
+my $top_line = <[ascii.frame.render.border_line]>->(
+    $border->{'top'}, $values, $frame_width
+);
 push @output, $top_line if length $top_line;
 
 ## collect rows with slot assignments ##
@@ -224,82 +226,16 @@ push @output, @content_output;
 
 ## render bottom border ##
 if ( @{ $border->{'bottom'} // [] } ) {
-    my $bottom_line
-        = _render_border_line( $border->{'bottom'}, $values, $frame_width );
+    my $bottom_line = <[ascii.frame.render.border_line]>->(
+        $border->{'bottom'}, $values, $frame_width
+    );
     push @output, $bottom_line if length $bottom_line;
 }
 
 return join "\n", @output;
 
-##[ render a border line with elasticity ]##
-sub _render_border_line {
-    my ( $elements, $values, $width ) = @_;
-    return '' if not @{$elements};
-
-    ## compute fixed width and fill min sum ##
-    my $fixed_width  = 0;
-    my $fill_count   = 0;
-    my $fill_min_sum = 0;
-    for my $el ( @{$elements} ) {
-        if ( $el->{'type'} eq qw| anchor | ) {
-            $fixed_width += length( $el->{'value'} // '' );
-        } elsif ( $el->{'type'} eq qw| slot | ) {
-            $fixed_width += length( $values->{ $el->{'name'} } // '' );
-        } elsif ( $el->{'type'} eq qw| fill | ) {
-            $fill_count++;
-            $fill_min_sum += $el->{'min'} // 1;
-        }
-    }
-
-    my $available_fill = $width - $fixed_width;
-    $available_fill = $fill_count if $available_fill < $fill_count;
-
-    ## distribute fill among fill elements ##
-    my %fill_alloc;
-    if ( $fill_count > 0 and $available_fill > 0 ) {
-        my @fill_indices = grep { $elements->[$_]->{'type'} eq qw| fill | }
-            0 .. $#{$elements};
-        if ( @fill_indices == 1 ) {
-            $fill_alloc{ $fill_indices[0] } = $available_fill;
-        } else {
-            ## proportional distribution based on min ##
-            my $allocated = 0;
-            for my $i ( 0 .. $#fill_indices ) {
-                my $idx   = $fill_indices[$i];
-                my $min   = $elements->[$idx]->{'min'} // 1;
-                my $alloc = int( $available_fill * $min / $fill_min_sum );
-                $alloc = 1 if $alloc < 1;
-                $fill_alloc{$idx} = $alloc;
-                $allocated += $alloc;
-            }
-            ## adjust for rounding : give remainder to last fill ##
-            my $remainder = $available_fill - $allocated;
-            if ( $remainder != 0 and @fill_indices ) {
-                $fill_alloc{ $fill_indices[-1] } += $remainder;
-            }
-        }
-    }
-
-    ## build line ##
-    my $line = '';
-    for my $i ( 0 .. $#{$elements} ) {
-        my $el = $elements->[$i];
-        if ( $el->{'type'} eq qw| anchor | ) {
-            $line .= $el->{'value'} // '';
-        } elsif ( $el->{'type'} eq qw| slot | ) {
-            $line .= $values->{ $el->{'name'} } // '';
-        } elsif ( $el->{'type'} eq qw| fill | ) {
-            my $flen = $fill_alloc{$i} // 1;
-            $flen = 1 if $flen < 1;
-            $line .= $el->{'char'} x $flen;
-        }
-    }
-
-    return $line;
-}
-
-#,,,,,,,.,,,.,,,,,.,.,,,.,,.,,.,,,...,.,.,..,,..,,...,...,...,..,,,,.,,..,.,,,
-#PWF3EAVEATE6WARAZVB36UMII6K2WQCP5SYBCGTKPXZWAMSY7FULPC5MVHYA5DULRUEOAGJ6PSAWK
-#\\\|WMO4MUJGVXTBDPPKQP3LH2KOVBHVFXTT2FAWPXYFBBYYAO6RIM5 \ / AMOS7 \ YOURUM ::
-#\[7]BZDLDPHDYBDGKCYSOBC6HAMACL4COHLC2CD4NFNNJ3NZ77S2BUBQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,,,,,.,,...,,,,,,,.,..,,,.,,,,.,..,,...,...,,.,,,..,.,,,,.,,,,.,
+#MGVDU2AJIMGGMP2G4OYD3ARPZMWKCEV63WY7I34WJ3KJ64ALZLHNFGIYVOUDF7PSPJTMTZQELPGDG
+#\\\|5UXVQILYF6GFXQOMCALZFXKIESXDUSW4XOCADYXD4RKOYXWMKDO \ / AMOS7 \ YOURUM ::
+#\[7]UOACBEB6D5IUZUEQKWPDLSJEYVGFDSBX6GM5XL7GDUA3VJE6SYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

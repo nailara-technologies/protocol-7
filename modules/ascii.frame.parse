@@ -125,10 +125,12 @@ if (@static_samples) {
 
 ## pass 2 : elasticity encoding ##
 
-my $top_elements    = _parse_border_line( $lines[$top_idx] // '' );
+my $top_elements
+    = <[ascii.frame.parse.border_line]>->( $lines[$top_idx] // '' );
 my $bottom_elements = [];
 if ($has_bottom) {
-    $bottom_elements = _parse_border_line( $lines[$bottom_idx] // '' );
+    $bottom_elements
+        = <[ascii.frame.parse.border_line]>->( $lines[$bottom_idx] // '' );
 }
 
 ## scan content for slots and static rows ##
@@ -246,102 +248,8 @@ my $descriptor = {
 
 return $descriptor;
 
-##[ border line parser : fills, anchors, slots ]##
-sub _parse_border_line {
-    my $line = shift;
-    my @elements;
-
-    ## locate all slots first ##
-    my @slot_positions;
-    while ( $line =~ m{\{\{(\w+)(\.\.\.)?\}\}}g ) {
-        push @slot_positions,
-            {
-            name  => $1,
-            start => $-[0],
-            end   => $+[0],
-            };
-    }
-
-    ## process segments between slots ##
-    my $pos = 0;
-    for my $sp (@slot_positions) {
-        my $segment = substr( $line, $pos, $sp->{'start'} - $pos );
-        _parse_border_segment( $segment, \@elements );
-        push @elements, { type => qw| slot |, name => $sp->{'name'} };
-        $pos = $sp->{'end'};
-    }
-    my $trailing = substr( $line, $pos );
-    _parse_border_segment( $trailing, \@elements );
-
-    return \@elements;
-}
-
-##[ parse a border segment [ between slots ] into anchors and fills ]##
-sub _parse_border_segment {
-    my ( $segment, $elements ) = @_;
-    return if not length $segment;
-
-    ## find bracketed anchors within segment ##
-    my @brackets;
-    while ( $segment =~ m{\[([^\]]*)\]}g ) {
-        push @brackets,
-            {
-            value => $&,
-            start => $-[0],
-            end   => $+[0],
-            };
-    }
-
-    ## walk segment : brackets are anchors, rest is fill or anchor ##
-    my $pos = 0;
-    for my $br (@brackets) {
-        my $text = substr( $segment, $pos, $br->{'start'} - $pos );
-        _parse_fill_anchor_text( $text, $elements );
-        push @{$elements}, { type => qw| anchor |, value => $br->{'value'} };
-        $pos = $br->{'end'};
-    }
-    my $remaining = substr( $segment, $pos );
-    _parse_fill_anchor_text( $remaining, $elements );
-}
-
-##[ split text into fill runs and anchor runs ]##
-sub _parse_fill_anchor_text {
-    my ( $text, $elements ) = @_;
-    return if not length $text;
-
-    ## fill-eligible chars : any run of the same p7 border char ##
-    my %fill_chars = map { $_ => 1 } ( ':', '.', '=' );
-
-    my $pos = 0;
-    while ( $pos < length($text) ) {
-        my $char = substr( $text, $pos, 1 );
-        if ( $fill_chars{$char} ) {
-            my $flen = 0;
-            while ( $pos + $flen < length($text)
-                and substr( $text, $pos + $flen, 1 ) eq $char ) {
-                $flen++;
-            }
-            push @{$elements},
-                { type => qw| fill |, char => $char, min => $flen };
-            $pos += $flen;
-        } else {
-            my $alen = 0;
-            while ( $pos + $alen < length($text)
-                and not $fill_chars{ substr( $text, $pos + $alen, 1 ) } ) {
-                $alen++;
-            }
-            push @{$elements},
-                {
-                type  => qw| anchor |,
-                value => substr( $text, $pos, $alen )
-                };
-            $pos += $alen;
-        }
-    }
-}
-
-#,,,.,.,,,,,,,...,,,.,.,.,...,,..,...,.,,,,.,,..,,...,...,.,.,.,,,,,,,.,,,..,,
-#GPS7SU57TOB57A45GLWGV2J2KMSPEW7YWOLMXSLXLXFIYQLXA3OT4BNR5UL65BEZR475EOVZ5JOOM
-#\\\|X2D45KZIEZPEIHMLSCXTCCUVOO6EVITIFLARBPGF56BFIL5QT4Y \ / AMOS7 \ YOURUM ::
-#\[7]B3UKK3DVV6XTCK4B5DOWD6BEXBYK2IKFOWT53Y4HK2OGKENWASCY 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,..,..,,...,,,,,,,,,,..,,,.,..,,..,,...,...,,,.,,,.,.,,,..,,...,
+#BQWAV3RAVIJQOZZRQN25A3JOCR7CT5KEJPLKMU6PX3OXZ4TNB65ECLRC57UTIYWJU2SG5TBHBBSNW
+#\\\|HGNOZW2PCFTK4WSHWTU7S4FY3BHQTNAET2QDYFVGRYAIOOSJ23K \ / AMOS7 \ YOURUM ::
+#\[7]O3YWEKDIY3Q4EVSCO2S7QIG3QDKZVHIUBXEED2OZG7N5BN5ADSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

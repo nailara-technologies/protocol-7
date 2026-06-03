@@ -41,8 +41,10 @@ for my $child (@$children) {
     while ( my ( $topic, $boost ) = each %$focus ) {
         my $matches = 0;
         eval { $matches = <[memory.focus.matches]>->( $child, $topic ); };
-        $matches = _focus_matches_stub( $child, $topic ) if $@;
-        $w_focus *= $boost                               if $matches;
+        $matches
+            = <[memory.tree.score.focus_matches_stub]>->( $child, $topic )
+            if $@;
+        $w_focus *= $boost if $matches;
     }
     $w_focus = 5 if $w_focus > 5;
     $child->{'w_focus'} = $w_focus;
@@ -62,15 +64,16 @@ my @sorted = sort {
 
 ## [ pass 3 — curve falloff by rank position ]##
 ## [ invariant check for this branch's curve type ]##
-my $falloff_0 = _rank_falloff( $curve, 0 );
-my $falloff_1 = _rank_falloff( $curve, 1 );
+my $falloff_0 = <[memory.tree.score.rank_falloff]>->( $curve, 0 );
+my $falloff_1 = <[memory.tree.score.rank_falloff]>->( $curve, 1 );
 warn "rank_falloff invariant violated for [$curve] <{C1}>"
     if $falloff_0 < $falloff_1;
 
 my $c = scalar @sorted;
 for my $rank ( 0 .. $#sorted ) {
     my $p = $c > 1 ? $rank / ( $c - 1 ) : 0;
-    my $s = $sorted[$rank]{'w_combined'} * _rank_falloff( $curve, $p );
+    my $s = $sorted[$rank]{'w_combined'} *
+        <[memory.tree.score.rank_falloff]>->( $curve, $p );
     $s = 1 if $s > 1;
     $sorted[$rank]{'score'} = $s;
 }
@@ -86,37 +89,8 @@ for my $child (@sorted) {
 
 return $branch;
 
-## [ rank falloff helper — rank 0 strongest, monotonic toward rank n ]##
-sub _rank_falloff {
-    my ( $curve, $p ) = @_;
-    $p = 0 if $p < 0;
-    $p = 1 if $p > 1;
-
-    if ( $curve eq 'exponential' ) {
-        return <[base.curve.eval]>->( $curve, $p );
-    } elsif ( $curve =~ m{^(gaussian_pulse|heartbeat)$} ) {
-        return <[base.curve.eval]>->( $curve, 0.5 + $p / 2 );
-    } else {
-        ## [ increasing family: sigmoid, linear, quantized, ease-*, sine, hold ]##
-        return <[base.curve.eval]>->( $curve, 1 - $p );
-    }
-}
-
-## [ focus match stub when memory.focus.matches absent ]##
-sub _focus_matches_stub {
-    my ( $node, $topic ) = @_;
-    return 0 if not length $topic;
-    my $text = join ' ',
-        grep {defined} (
-        $node->{'title'}      // '',
-        $node->{'body'}       // '',
-        $node->{'source_ref'} // '',
-        );
-    return index( lc($text), lc($topic) ) >= 0 ? 1 : 0;
-}
-
-#,,.,,,,,,.,.,.,,,,,.,.,.,,.,,.,.,.,.,..,,.,.,..,,...,...,..,,..,,...,,..,,,,,
-#W5VCBLMF5LLH4PUM5IHC7S7YBCGTP3IWLFEBZ4QVBE6TLJJDFYX6LSRNRWUPLF4B434IXGVXOJLKY
-#\\\|UJGPAZ74PKR3APSHTBA53UW6C3LFO6GMMYIKMHHRFLITR5FGHLN \ / AMOS7 \ YOURUM ::
-#\[7]VFNFHVDX27CCN234FL4R2ZSQB7UYV7H6HXOVYQKLWBOZ7ILXFYBA 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,.,.,,..,.,,,,,,,,..,,,,,,,,,,..,..,,...,.,.,,..,..,,,,.,.,.,,,,,
+#IQIVL3ACJRMEN6JEJAHFVEIORWSREAFYWMISTUHAHHUNSEFBC4AKD6UODC3E7WS4EUYAKNYIZJVLW
+#\\\|VVPNAA75VLVTRJSABBPVQIWTNOKGSJBORJRE5LU535HYP4IZTCS \ / AMOS7 \ YOURUM ::
+#\[7]6MI5O76VWPLNC5N72SJRJ3H2DUJWDDEHVP23WH3GQSQMIKXZBYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
