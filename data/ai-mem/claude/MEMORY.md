@@ -1,6 +1,9 @@
 ## CRITICAL
 - [File Creation](feedback-file-io-api.md) â never add `#,,.,,,...` stub â blocks signing
-- [filter-repo prefix](feedback-filter-repo-amend.md) — `AMEND=1 git filter-repo ...`; also clear `.git/filter-repo/already_ran` if interrupted
+- [filter-repo prefix](feedback-filter-repo-amend.md)
+- [P7 data nesting](feedback-p7-data-nesting.md) — `<a.b.c>` = `$data{a}{b}{c}`; use underscore for siblings not dot
+- [timer undef interval](feedback-timer-undef-interval.md) — undef after/interval = IO::Async max-rate loop; always guard with fallback
+- [each+continue+keys](feedback-each-continue-keys.md) — `continue{keys %h}` on `while(each %h)` resets iterator = infinite loop — `AMEND=1 git filter-repo ...`; also clear `.git/filter-repo/already_ran` if interrupted
 - [ntime](feedback-ntime.md) â `encode_b32r` is reverse-byte-order, NOT sortable; use `<[base.ntime_BASE32_to_numerical]>`
 - [Cross-zenka](feedback-cross-zenka-deferred-reply.md) â route-send + SIZE reply only; FS access forbidden
 - [Access control](feedback-buffer-access-control.md) â cube/access.zenki is REAL gate
@@ -143,8 +146,8 @@
 
 **Diagnostic:** Improved `base.handler.command` syntax error log to show full bad line (`line=['...']`) instead of stripping it.
 
-#,,,.,.,.,,.,,.,.,..,,.,.,,.,,,..,..,,...,,,,,..,,...,..,,...,.,.,,..,...,,,,,
-#H6KL6RN3WOLW4USZCEERWOVSXB5MKYDLPQDE3ZI36SNUV4V76EMWBQIO2XKC5GQ6SYMKYVWMLRWQ2
-#\\\|B5NNETXBM7XP3E3VPTLYCXCIJ4YTUXSN7THLNYOZEO6ZMFQICKG \ / AMOS7 \ YOURUM ::
-#\[7]UPB7WEDD6ULIOKYYXYBCILX6MGSRQHTTZBWP6YVB33L3HVMOE4CY 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,,.,,..,...,,..,,.,,,,,,,.,,,.,,..,,...,...,..,,...,,.,,,,,,.,.,
+#E5DGCSOIPELLVEQBFQGTQTLO4HE3OYZOOZGVBQCR3LFQEW5FASNAFLPZGXMOUXCCTDVKZMW4R7Z7A
+#\\\|G4EVCX5R37VPV5BZ3QURTFPNDFBRRKQIXLGVLAHJMKMFVOWVZR2 \ / AMOS7 \ YOURUM ::
+#\[7]TO7RQA3XKSYQW3XOREL4BATYOMESQIIBECEJ4ZCCQDR4YYURFEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
