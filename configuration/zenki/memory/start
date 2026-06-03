@@ -1,0 +1,34 @@
+
+.:[ nailara [ memory ] zenka : focus-weighted memory tree ]:.
+
+[load_config_file:'shared-params']
+
+modules.load          = net protocol io.unix auth \
+                        base.curve base.sort base.sort-num \
+                        base.chk-sum.jha ascii.frame format.yaml \
+                        context.memory memory devmod # <- !!
+
+access.cmd.usr.cube   = verify-instance commands heart reload \
+                        show render tree focus init startup
+
+memory.cfg.n_visible        = 7
+memory.cfg.n_max_cap        = 13
+memory.cfg.focus_decay      = 0.85
+memory.cfg.ai_mem_dir       = data/ai-mem
+memory.cfg.git_commit_limit = 200
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,,,,.,.,...,,.,,..,,..,,,..,...,...,..,,.,,,..,,...,...,...,,,.,...,..,,,,.,
+#ZKZIB7I7MOB35PC6HN2NTSTY42CNRIH36GHL7AFSJGS54HXXA7QZ77AXVIHCJ4BFDRQF6P35OIYOQ
+#\\\|KWNYTESPBYAYKKMHHIUPC4HBBHG3RTQLIRVWP3VPQ5NDAL73OSS \ / AMOS7 \ YOURUM ::
+#\[7]DJGKKXWDTQAOESIHDZGDHH2L24ZNTYLRAJ72CRR7WO24SXGLEIAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

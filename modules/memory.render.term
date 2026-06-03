@@ -1,0 +1,19 @@
+## [:< ##
+
+# name = memory.render.term
+# descr = ansi colored tree render for terminal / nshell
+
+my $params = shift // {};
+my $n      = $params->{'n'};
+
+my $tree = <[memory.tree.render]>->( { variant => 'compact', n => $n } );
+return $tree if not defined $tree or not length $tree;
+
+my $colored = <[ascii.frame.render.color]>->($tree);
+return $colored // $tree;
+
+#,,.,,,.,,,.,,...,,.,,,,.,,,,,,.,,..,,.,,,.,.,..,,...,...,.,,,,.,,,..,,,,,...,
+#X2XMCJJBQF3UEEVFHYZ3L6CFMGRNTWJBTESZ4KZY37ZD7EHBQKRT2DKLJ6365QNKR57DHQPNUQFYS
+#\\\|IV5NKHSKDZMGAULJWNIXAONSKSDNN5CJ3TER22NQLNKBGBACRRL \ / AMOS7 \ YOURUM ::
+#\[7]UQ6KXZSSVDMKD3MIKKRNMDL6ZSZFWOTELHEDUGAOBB2IDDKAZQBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

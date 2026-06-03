@@ -1,0 +1,59 @@
+## [:< ##
+
+# name = memory.focus.apply
+# descr = fold active task and recent commands into focus vector
+
+my $focus = <memory.focus>               // {};
+my $cap   = <memory.cfg.focus_apply_cap> // 3.0;
+
+## [ active task source ]##
+my $task_boost = $cap;    ## strong boost capped at per-source limit ##
+
+my $task_queue = <task.queue> // {};
+for my $task_id ( keys %$task_queue ) {
+    my $task   = $task_queue->{$task_id} // next;
+    my $status = $task->{'status'}       // '';
+    next if $status ne 'claimed' and $status ne 'in_progress';
+
+    my $desc = $task->{'description'} // '';
+    next if not length $desc;
+
+    ## [ extract first meaningful word as topic ]##
+    my $topic = $desc;
+    $topic =~ s|^\s+||;
+    $topic =~ s|\s.*$||s;
+    $topic = lc $topic;
+    next if not length $topic or length $topic > 42;
+
+    my $current = $focus->{$topic} // 1.0;
+    my $target  = $current + $task_boost;
+    $target = $cap if $target > $cap;
+
+    ## [ idempotent: only raise if below target ]##
+    $focus->{$topic} = $target if $target > $current;
+}
+
+## [ recent command namespaces source ]##
+my $cmd_boost = 1.3;        ## low ambient boost ##
+my $cmd_cap   = $cap / 2;
+
+my $buffer = <memory.focus_cmd_buffer> // [];
+for my $ns (@$buffer) {
+    next if not defined $ns or not length $ns;
+
+    my $topic   = lc $ns;
+    my $current = $focus->{$topic} // 1.0;
+    my $target  = $current + $cmd_boost;
+    $target = $cmd_cap if $target > $cmd_cap;
+
+    ## [ idempotent: only raise if below target ]##
+    $focus->{$topic} = $target if $target > $current;
+}
+
+return TRUE;
+
+#,,,.,...,..,,,,,,,.,,..,,,,,,,..,,..,.,,,,..,..,,...,...,...,...,,..,.,.,,..,
+#RK2GTCERL6PENHA522SVNVJ7OFDAM4MTWWYREWVDIWVLMKEZTFI4UR2X6E6B2BSEU6KWLN63OFPOG
+#\\\|OMAQPUZBSCH5F7DGBONR54CSSOWW2U5Y2QZWRNKZWKB5BZUK2CX \ / AMOS7 \ YOURUM ::
+#\[7]UJZZSJQPBKIP4XZOZUAW3VVFB34ESSNE5NTBVHFKQQ55CW2OIWCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

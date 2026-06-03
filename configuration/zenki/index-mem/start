@@ -1,0 +1,41 @@
+
+.:[ nailara [ file ] 'index-mem' zenka : focused index of data/ai-mem ]:.
+
+[load_config_file:'shared-params']
+
+modules.load          = net protocol io.unix auth index \
+                        base.chk-sum.bmw384 route.bmw384  devmod # <- !!
+
+access.cmd.usr.cube   = verify-instance commands heart reload \
+                        list show-buffer buffer-erase buffer-erase-level \
+                        add-wordlist del-wordlist stop-job dependencies \
+                        add-path gen-path write lookup cluster correlate \
+                        rescan-paths search \
+                        index-path find-route verify-coordinate visual-wheel \
+                        stats address decode feed-dir export persist restore \
+                        replace remove \
+                        * # <-- !! [devmod]
+
+index.path.index-cfg   = /data/index-mem/set-up/index-paths
+index.path.index-files = /data/index-mem/data/index-state
+
+index.permissions.index_root_path = 0770
+
+start.on-demand = 1
+
+[base.white-list.register:'base.chk-sum.profile']
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,,,,.,.,.,.,,.,,,.,,.,,,,,,,,.,,.,.,.,,,,,.,..,,...,..,,.,.,.,.,..,,..,,,.,,
+#AGFQEDLPHIWB5DDGYXNCZOV3U3PDVTW7S3UBWXZYXJNS3ECY67PIMHDSJOGQ7MD7FD3TCLWTAYYSY
+#\\\|CFQHA3J3ERW36JRUEKWFS3WA3D52GJMOJMLZLV6XYI7PU3OEEF6 \ / AMOS7 \ YOURUM ::
+#\[7]UZP33LJ5O7G3CAQP4Q7DQDQNSPKI6FHFSB3DMKNZTYQOBKNUY6CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

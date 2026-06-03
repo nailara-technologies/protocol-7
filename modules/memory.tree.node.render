@@ -1,0 +1,133 @@
+## [:< ##
+
+# name = memory.tree.node.render
+# descr = render one memory tree node into compact, card, or root frame
+
+my $params = shift // {};
+
+my $node    = $params->{'node'}    // {};
+my $variant = $params->{'variant'} // '';
+
+## [ derive variant from node type when not given ]##
+if ( not length $variant ) {
+    my $type = $node->{'type'} // 'leaf';
+    if    ( $type eq 'root' )   { $variant = 'root'; }
+    elsif ( $type eq 'branch' ) { $variant = 'card'; }
+    else                        { $variant = 'compact'; }
+}
+
+## [ map variant to frame name ]##
+my %frame_map = (
+    compact => 'memory-tree-compact',
+    card    => 'memory-tree-node',
+    root    => 'memory-tree-root',
+);
+my $frame_name = $frame_map{$variant} // 'memory-tree-compact';
+
+## [ score quantization to 13-step glyph band ]##
+my $score = $node->{'score'} // 0;
+$score = 0 if $score < 0;
+$score = 1 if $score > 1;
+my $q = int( $score * 13 );
+$q = 12 if $q > 12;
+
+my $glyph_band = ' ·░▒▓▌▐▀▄▅▆▇█';
+my $glyph      = substr( $glyph_band, $q, 1 );
+
+## [ build slot values from node fields ]##
+my $title = $node->{'title'} // '';
+
+my @children = @{ $node->{'children'} // [] };
+my $total    = scalar @children;
+my $n_vis    = $node->{'n_visible'} // $total;
+
+my $curve = $node->{'curve_type'} // 'linear';
+
+my $preview = '';
+if ( defined $node->{'body'} and length $node->{'body'} ) {
+    $preview = substr( $node->{'body'}, 0, 40 );
+    $preview =~ s{\s+$}{};
+}
+
+my %values = (
+    TITLE     => $title,
+    GLYPH     => $glyph,
+    SCORE_BAR => $glyph x 4,
+    N         => $n_vis,
+    TOTAL     => $total,
+    CURVE     => $curve,
+    PREVIEW   => $preview,
+    CHILDREN  => $node->{'_children_rendered'} // '',
+    BRANCHES  => $node->{'_branches_rendered'} // '',
+);
+
+## [ borderless compact : plain template substitution ]##
+if ( $variant eq 'compact' ) {
+    my $root      = <system.root_path>;
+    my $yaml_path = "$root/data/yaml/ascii-frames/$frame_name.yaml";
+    my ( $yaml, $err ) = <[format.yaml.load_file]>->($yaml_path);
+    if ( defined $err or not defined $yaml ) {
+        <[base.logs]>->(
+            0, ': memory tree compact yaml load failed [ %s ]', $frame_name
+        );
+        return undef;
+    }
+    my $mockup = $yaml->{'mockup'} // '';
+    $mockup =~ s{\{\{(\w+)\}\}}{ $values{$1} // '' }ge;
+    return $mockup;
+}
+
+## [ framed variants : load descriptor and render ]##
+my $frame = <[ascii.frame.load]>->($frame_name);
+if ( not defined $frame ) {
+    <[base.logs]>->( 0, ': memory tree frame not found [ %s ]', $frame_name );
+    return undef;
+}
+
+my $descriptor;
+if ( exists $frame->{'descriptor'} ) {
+    $descriptor = $frame->{'descriptor'};
+} elsif ( exists $frame->{'descriptors'} ) {
+    my $mode = $frame->{'modes'}[0] // 'expanded';
+    $descriptor = $frame->{'descriptors'}{$mode};
+}
+
+if ( not defined $descriptor ) {
+    <[base.logs]>->(
+        0, ': memory tree frame descriptor missing [ %s ]', $frame_name
+    );
+    return undef;
+}
+
+my $rendered = <[ascii.frame.render]>->(
+    {   descriptor => $descriptor,
+        values     => \%values,
+    }
+);
+
+## [ apply double border to content lines for root frame ]##
+if ( ( $frame->{'border_style'} // 'single' ) eq 'double' ) {
+    my @rl        = split "\n", $rendered, -1;
+    my $last_line = $rl[-1] // '';
+    my $sc        = 0;
+    $sc++ while $last_line =~ m{[:.,#=\[\]]}g;
+    my $density        = length($last_line) ? $sc / length($last_line) : 0;
+    my $last_is_border = $density >= 0.5;
+    my $end_content    = $last_is_border ? $#rl - 1 : $#rl;
+
+    ## [ left : double a lone colon, leave an already-double :: alone ]##
+    ## [ right : consume trailing fill space so width stays constant ]##
+    for my $i ( 1 .. $end_content ) {
+        $rl[$i] =~ s{^:(?!:)}{::};
+        $rl[$i] =~ s{ :$}{::};
+    }
+    $rendered = join "\n", @rl;
+}
+
+return $rendered;
+
+#,,,,,,,,,,,,,,,,,,..,.,,,...,.,,,..,,,..,..,,..,,...,...,,,,,.,,,,..,...,..,,
+#JPC6AO5DDXSQCNR43DMPEWH2ANCWRVE7VEDLLIEKNP5TZBUL5UOVTCLLV3RMZEO4FO7PVZWM625DS
+#\\\|IMIHNSBQY3623Z5CJWY55SEHGKLCXIVNLRRHEQ3YAMGM6KJGDX4 \ / AMOS7 \ YOURUM ::
+#\[7]2KK6JN2ZL67XWH3SLYYBPCSGDQYXUF6IQZJN3UXRXXM4BGVLCUCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

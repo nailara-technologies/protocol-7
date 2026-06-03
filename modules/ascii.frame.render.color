@@ -79,7 +79,7 @@ sub _color_border_line {
     while ( $pos < $len ) {
         my $ch = substr( $line, $pos, 1 );
 
-        if ( $ch eq qw| # | ) {
+        if ( $ch eq '#' ) {
             $out .= $A->{'anchor'} . $bold . $ch . $reset;
             $pos++;
         } elsif ( $ch eq qw| [ | ) {
@@ -104,10 +104,7 @@ sub _color_border_line {
             ## unmatched close bracket : color as bracket char ##
             $out .= $A->{'br_char'} . $ch . $reset;
             $pos++;
-        } elsif ( $ch eq qw| : |
-            or $ch eq qw| . |
-            or $ch eq qw| = |
-            or $ch eq qw| , | ) {
+        } elsif ( $ch eq ':' or $ch eq '.' or $ch eq '=' or $ch eq ',' ) {
             ## fill run : same char repeated ##
             my $run_end = $pos + 1;
             while ( $run_end < $len
@@ -197,8 +194,8 @@ sub _color_content_line {
     return $left . $body_colored . $right;
 }
 
-#,,.,,,.,,..,,,,.,,,,,,.,,,,,,.,.,.,.,.,.,.,.,..,,...,...,..,,,,,,...,.,,,,.,,
-#4UMLUNKPA4TK3VGGRU5HZYBIMQU65DRK7RA2O5VDSBXHRZLFLXGRJK7QXP7EGLMCFVJXE7KUYIDLQ
-#\\\|GHZFAT3SIPRPZQ4BLH7CTUOQVVUYV5ZZBGNB2K7TQHEPU7MOYMF \ / AMOS7 \ YOURUM ::
-#\[7]ZT3JU36HDE4DXY53HH7RIEWZJOTC463IUVGLK2QK45RPYGUPACDI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,.,.,,,,,...,.,.,.,,,,.,,.,.,...,..,,...,...,.,,,,,,,,,,,..,,,..,
+#3L2Y6GNIT6QNQH24XBVGTSOFRQ6L5KLGRTWD3ULNFQR26BBKDC7FFFR5KQQY7QHSZFHNM6BRF3J6O
+#\\\|F53RH32YUBOZI2LPMZLOWXLRIZEACO5OO2BBZ2YCLUSBVJMGWIV \ / AMOS7 \ YOURUM ::
+#\[7]2F5SP3Q22GJPWZJMQPW4FTRJOCBEWYQKP5XQZKJWOBXFQ2MGNIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

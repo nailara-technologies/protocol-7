@@ -1,0 +1,33 @@
+## [:< ##
+
+# name = memory.render.data
+# descr = structured hashref render of memory tree for gtk3
+
+my $params = shift // {};
+my $n      = $params->{'n'};
+
+my $tree = <[memory.tree.render]>->( { variant => 'compact', n => $n } );
+return undef if not defined $tree or not length $tree;
+
+## [ minimal descriptor so ascii.frame.render.data is exercised ]##
+my $descriptor = {
+    border      => { top  => [], bottom => [], left => '', right => '' },
+    padding     => { left => 0,  right  => 0 },
+    min_width   => 0,
+    slots       => { TREE => { type => 'block', row => 1, prefix => '' } },
+    static_rows => {},
+};
+
+my $data = <[ascii.frame.render.data]>->(
+    {   descriptor => $descriptor,
+        values     => { TREE => $tree },
+    }
+);
+
+return $data;
+
+#,,,,,,..,.,,,,.,,...,,,.,..,,,..,,.,,...,,,.,..,,...,...,.,.,,..,.,,,,.,,,.,,
+#V2YXTEC3VBNW4U4MKUQGPCNKOXQDIYFD2MORFUCKVTO7OUL467FSF6T25WKVVJSRXVKOXZS3LMZKQ
+#\\\|HAOD5SV5HWZ762RVWX7HQSHPQOKXESV2BCWEUHK4TSXFJMYCXRP \ / AMOS7 \ YOURUM ::
+#\[7]2X6FF2AVOTC4XA5YTP4QK3BBQHQ4ESIEH2RZWSW6G3ETPSYJPSDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

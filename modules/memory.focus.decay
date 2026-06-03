@@ -1,0 +1,45 @@
+## [:< ##
+
+# name = memory.focus.decay
+# descr = timer body decaying boosts toward floor or 1.0
+
+## [ timer body gets event as $ARG[0] ]##
+## [ guard real-arg path ]##
+return if @ARG > 1;
+
+my $focus = <memory.focus>           // {};
+my $floor = <memory.focus_floor>     // {};
+my $rate  = <memory.cfg.focus_decay> // 0.85;
+my $eps   = 0.001;
+
+## [ defensive : both must be hashrefs before the topic loop ]##
+$focus = {} if ref($focus) ne 'HASH';
+$floor = {} if ref($floor) ne 'HASH';
+
+my @drop;
+
+while ( my ( $topic, $boost ) = each %$focus ) {
+    my $f = $floor->{$topic} // 1.0;
+
+    ## [ decay toward floor ]##
+    my $new_boost = $f + ( $boost - $f ) * $rate;
+
+    ## [ drop if near 1.0 with no floor ]##
+    if ( not exists $floor->{$topic} and $new_boost < 1.0 + $eps ) {
+        push @drop, $topic;
+        next;
+    }
+
+    $focus->{$topic} = $new_boost;
+}    ## modifying values during each is safe; deletes deferred to @drop ##
+
+## [ evict faded topics ]##
+delete $focus->{$_} for @drop;
+
+return TRUE;
+
+#,,..,...,.,,,..,,.,,,,..,.,,,.,,,,,.,.,.,,,.,..,,...,..,,,..,,,.,,,,,,,,,,,.,
+#XKLWPYIDN5CMCTAAH3XASZRBVDKQDUMB5CEHB2EIKZVAH562RD45VBCU7BCKNS2WK5B4N6DOQZJEW
+#\\\|HUJ2R42NJKK74HAG6JNZSWUT2KNVW2I2WI326J2SE4OAIBJZUOJ \ / AMOS7 \ YOURUM ::
+#\[7]TKNFX7UB2UBTYBXNLO54OJJWYVU7WPQADWIU7XEZPY4MPO4RACDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

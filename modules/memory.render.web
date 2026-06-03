@@ -1,0 +1,34 @@
+## [:< ##
+
+# name = memory.render.web
+# descr = html render of memory tree via ascii frame pipeline
+
+my $params = shift // {};
+my $n      = $params->{'n'};
+
+my $tree = <[memory.tree.render]>->( { variant => 'compact', n => $n } );
+return '' if not defined $tree or not length $tree;
+
+## [ minimal descriptor so ascii.frame.render.html is exercised ]##
+my $descriptor = {
+    border      => { top  => [], bottom => [], left => '', right => '' },
+    padding     => { left => 0,  right  => 0 },
+    min_width   => 0,
+    slots       => { TREE => { type => 'block', row => 1, prefix => '' } },
+    static_rows => {},
+};
+
+my $html = <[ascii.frame.render.html]>->(
+    {   descriptor   => $descriptor,
+        values       => { TREE => $tree },
+        inline_style => 1,
+    }
+);
+
+return $html // '';
+
+#,,,.,...,.,.,.,,,..,,.,.,.,,,.,,,,,,,,.,,,,,,..,,...,...,..,,,,,,,..,,,.,...,
+#4XNBRDOKVPBIXD3BBGWIHQ5IWTR5CBV3TUQGQJ44XMAP6QL6SV7PYCFQYGLUEITYCTVRPUEDQWLAA
+#\\\|YEPNTASUNCEHIHF7B6CSTITNXFXEXSWRYIX3JV73G6ASETXXKLV \ / AMOS7 \ YOURUM ::
+#\[7]DPTQSEMT7QTMW2GGCCNTZANXUJHB4KZSAVTQVD5IVIXSORYE6WBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

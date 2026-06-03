@@ -1,0 +1,39 @@
+## [:< ##
+
+# name = memory.tree.init
+# descr = construct empty root node and flat index
+
+## [ idempotent — skip if already built ]##
+return <memory.tree> if defined <memory.tree> and defined <memory.tree.index>;
+
+my $cfg = <memory.cfg> //= {};
+
+my $n_visible  = $cfg->{'n_visible'}  // 7;
+my $n_max_cap  = $cfg->{'n_max_cap'}  // 13;
+my $curve_type = $cfg->{'curve_type'} // 'sigmoid';
+
+my $root = {
+    type         => 'root',
+    id           => 'root',
+    title        => 'memory tree',
+    ntime        => <[base.ntime.b32]>->(<[base.ntime]>),
+    content_hash => <[chk-sum.jha.hex]>->('memory-tree-root'),
+    score        => 0,
+    curve_type   => $curve_type,
+    children     => [],
+    n_visible    => $n_visible,
+    n_inherit    => FALSE,
+    n_max_cap    => $n_max_cap,
+    subtree_hash => '',
+};
+
+<memory.tree>       = $root;
+<memory.tree.index> = { $root->{'id'} => $root };
+
+return $root;
+
+#,,,.,,.,,.,,,..,,.,.,.,.,,.,,,,,,.,.,.,,,,.,,..,,...,...,..,,,,,,...,..,,..,,
+#BMQX76BW6OLKF5V6V4HYFRLJM2LL2N3772HAV73ORYS6SYFW7LQNVZ3SWHD2JHMIU6ZK7XN5LIZSS
+#\\\|KODCV364W67PLV7JUGKYTNMQHUCFX4LV3T4GVNRMD4UWOC7KFRH \ / AMOS7 \ YOURUM ::
+#\[7]DG7OELL436MLEXJA6MQMXTWRIK64FD6ILM3OK5QPR44LHAPV6SCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
