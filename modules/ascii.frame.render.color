@@ -44,14 +44,20 @@ return $input if not $any_color;
 ## split into lines preserving empties ##
 my @lines = split m{\n}, $input, -1;
 
-## identify border lines by structural density >= 0.5 or '#' anchor lead ##
+## identify border lines : strip bracketed regions first, then measure
+## structural density on the remainder. position-independent [ works on
+## composite output where nested frame top-borders sit mid-stream ] and
+## avoids false positives from content rows carrying inline [brackets] —
+## a top border diluted by a text slot still resolves to a border ##
 my %is_border;
 for my $i ( 0 .. $#lines ) {
     my $line = $lines[$i];
     next if not length $line;
-    my $sc = 0;
-    $sc++ while $line =~ m{[:.,#=\[\]]}g;
-    my $density = length($line) > 0 ? $sc / length($line) : 0;
+    ( my $bare = $line ) =~ s{\[[^\]]*\]}{}g;
+    my $bare_len = length $bare;
+    my $sc       = 0;
+    $sc++ while $bare =~ m{[:.,#=]}g;
+    my $density = $bare_len > 0 ? $sc / $bare_len : 0;
     $is_border{$i} = 1 if $density >= 0.5 or $line =~ m{^#};
 }
 
@@ -72,8 +78,8 @@ for my $i ( 0 .. $#lines ) {
 
 return join "\n", @out;
 
-#,,..,,.,,,.,,...,.,,,,..,..,,,,.,,,,,.,.,.,,,..,,...,...,.,,,,,.,,..,,,.,.,,,
-#5UPI6ACEYMOZ7LFRN2GD4PHGMDZ66LY2PAPGNQ2KSNZHIVH46VDKYGXJSMDZ4CLPQCLJQSTLZXHOM
-#\\\|QU3HU5KG6VPGXXKTZSZ2WAAFFYZKOBYXHW27WRWCHYPKUFNFSGL \ / AMOS7 \ YOURUM ::
-#\[7]KZFKRBRD4N4QAGIX2RE5YHUD624IBYOKJL37JVNNCAHAR4ZE2OAQ 7  DATA SIGNATURE ::
+#,,..,.,.,...,.,,,,..,,.,,,,.,,.,,.,,,,,,,...,..,,...,...,.,,,.,,,,.,,..,,,,.,
+#242YV24B4XKYUBVQJ3653UTNSZNU3F5IJASU64OYCTTQGAX3BC4QODMSVQIPX4M7JWVF6OZJ266CS
+#\\\|EPZQZYIMHSLJLRDTALZXBSPMKUVHGP64TD34QC2KYGWKH3BYUX7 \ / AMOS7 \ YOURUM ::
+#\[7]S3YYL6PYIFV5VDBAWRKQSXO6GXPBOKWQISV6A36VDXXUEIUOMUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

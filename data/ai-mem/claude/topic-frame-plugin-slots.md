@@ -35,12 +35,22 @@ gotcha that bit us: `base.ntime.b32` does NOT round-trip through
 `base.ntime_BASE32_to_numerical` — store timestamps as raw numerical `base.ntime`
 and compute `(now-built)/4200`. reinforces [[feedback-ntime]].
 
+gotcha #2 (fixed 2026-06-04 s3): putting live TEXT in the top-bar slot diluted
+that line's structural density from ~1.0 to ~0.44, dropping it under
+`ascii.frame.render.color`'s 0.5 border-detection threshold → top border fell
+through to the CONTENT colorizer, which only colors `:` corners (not `.`), leaving
+the corner dots raw/grey. fix: strip bracketed regions `s{\[[^\]]*\]}{}g` BEFORE
+measuring density — content-agnostic + composite-safe (nested frame tops mid-stream
+also classify right). lesson: any density heuristic over frame lines must discount
+slot/label text first. `ascii.frame.parse`'s own density check (line ~26) is saved
+from the same trap only by its secondary bracket-corner clause.
+
 next: vertical slots (per-row border state in `ascii.frame.render` = renderer
 change), bottom-right mini scrollbar echo, cleaner double-colon pass. related:
-[[topic-ascii-frame-system]] [[topic-memory-tree-zenka]].
+[[topic-ascii-frame-system]] [[topic-memory-tree-zenka]] [[topic-ascii-desktop-domains]].
 
-#,,.,,..,,,.,,.,.,,,,,,,.,.,.,.,,,.,.,,.,,,.,,..,,...,...,,..,,,.,.,,,.,.,,,,,
-#ASGXOUDIXW6H6T33OGWDX75E3OIBVVFEUALCRSSW64VBLLAQNJOZZS5S7DSTUBLBCHTP5RCDHZWLE
-#\\\|QPDPQIOIITFQMHKZ24AJQLCLVO4RNXNKCQ7GO4UJDWSPHVFQVHF \ / AMOS7 \ YOURUM ::
-#\[7]YQPOXN4HOSZYTXUZM7MOUO5CH4SECQEQYJ56HXK6ZGV5AJCVRSAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,..,.,,,..,,,..,,.,,.,,,,,.,.,.,..,,...,...,...,,,.,,..,,.,,.,.,
+#MR6QCCHMVTVBR2WKA4GECSQTASROBA7IHRIQUUCF27J6QGCZIS3VRV4TPEQU34RORLHFK2S275FRO
+#\\\|IKDPFLVBGT6RUPDCMKYTW7P2AXCMUWW23FNGUBUH3CJXUNXWJAM \ / AMOS7 \ YOURUM ::
+#\[7]OPJG6XTZJMTQXK3AILWNFJPGH6AUYJKQ265Z2KQO73CBU2FX4MCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
