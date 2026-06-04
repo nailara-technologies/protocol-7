@@ -6,48 +6,50 @@
 my ( $elements, $values, $width ) = @_;
 return '' if not @{$elements};
 
-## compute fixed width and fill min sum ##
-my $fixed_width  = 0;
-my $fill_count   = 0;
-my $fill_min_sum = 0;
+## a border line stretches at exactly ONE spring so corners and separators
+## keep their drawn shape :
+##   - with a slot present, the slot IS the spring — its value is padded to
+##     fill the line while every fill stays rigid at its minimum [ pins the
+##     .:  ::  :. and widens the bracketed content, matching the reference ]
+##   - with no slot, the largest fill is the spring [ e.g. the dotted bottom
+##     rule's dots stretch while the : corners stay put ]
+
+my @fill_idx
+    = grep { $elements->[$_]->{'type'} eq qw| fill | } 0 .. $#{$elements};
+my @slot_idx
+    = grep { $elements->[$_]->{'type'} eq qw| slot | } 0 .. $#{$elements};
+
+## fixed width = anchors + every fill minimum + every slot value ##
+my $fixed = 0;
 for my $el ( @{$elements} ) {
     if ( $el->{'type'} eq qw| anchor | ) {
-        $fixed_width += length( $el->{'value'} // '' );
-    } elsif ( $el->{'type'} eq qw| slot | ) {
-        $fixed_width += length( $values->{ $el->{'name'} } // '' );
+        $fixed += length( $el->{'value'} // '' );
     } elsif ( $el->{'type'} eq qw| fill | ) {
-        $fill_count++;
-        $fill_min_sum += $el->{'min'} // 1;
+        $fixed += $el->{'min'} // 1;
+    } elsif ( $el->{'type'} eq qw| slot | ) {
+        $fixed += length( $values->{ $el->{'name'} } // '' );
     }
 }
 
-my $available_fill = $width - $fixed_width;
-$available_fill = $fill_count if $available_fill < $fill_count;
+my $slack = $width - $fixed;
+$slack = 0 if $slack < 0;
 
-## distribute fill among fill elements ##
-my %fill_alloc;
-if ( $fill_count > 0 and $available_fill > 0 ) {
-    my @fill_indices
-        = grep { $elements->[$_]->{'type'} eq qw| fill | } 0 .. $#{$elements};
-    if ( @fill_indices == 1 ) {
-        $fill_alloc{ $fill_indices[0] } = $available_fill;
-    } else {
-        ## proportional distribution based on min ##
-        my $allocated = 0;
-        for my $i ( 0 .. $#fill_indices ) {
-            my $idx   = $fill_indices[$i];
-            my $min   = $elements->[$idx]->{'min'} // 1;
-            my $alloc = int( $available_fill * $min / $fill_min_sum );
-            $alloc = 1 if $alloc < 1;
-            $fill_alloc{$idx} = $alloc;
-            $allocated += $alloc;
-        }
-        ## adjust for rounding : give remainder to last fill ##
-        my $remainder = $available_fill - $allocated;
-        if ( $remainder != 0 and @fill_indices ) {
-            $fill_alloc{ $fill_indices[-1] } += $remainder;
-        }
+## every fill defaults to its rigid minimum ; the spring takes the slack ##
+my %fill_w = map { $_ => ( $elements->[$_]->{'min'} // 1 ) } @fill_idx;
+my %slot_pad;
+
+if (@slot_idx) {
+    ## slot-spring : first slot absorbs the slack [ padded on its right ] ##
+    $slot_pad{ $slot_idx[0] } = $slack;
+} elsif (@fill_idx) {
+    ## no-slot fallback : the largest fill absorbs the slack ##
+    my $spring = $fill_idx[0];
+    for my $idx (@fill_idx) {
+        $spring = $idx
+            if ( $elements->[$idx]->{'min'} // 1 )
+            > ( $elements->[$spring]->{'min'} // 1 );
     }
+    $fill_w{$spring} += $slack;
 }
 
 ## build line ##
@@ -57,18 +59,18 @@ for my $i ( 0 .. $#{$elements} ) {
     if ( $el->{'type'} eq qw| anchor | ) {
         $line .= $el->{'value'} // '';
     } elsif ( $el->{'type'} eq qw| slot | ) {
-        $line .= $values->{ $el->{'name'} } // '';
+        $line
+            .= ( $values->{ $el->{'name'} } // '' )
+            . ( ' ' x ( $slot_pad{$i} // 0 ) );
     } elsif ( $el->{'type'} eq qw| fill | ) {
-        my $flen = $fill_alloc{$i} // 1;
-        $flen = 1 if $flen < 1;
-        $line .= $el->{'char'} x $flen;
+        $line .= $el->{'char'} x ( $fill_w{$i} // 1 );
     }
 }
 
 return $line;
 
-#,,..,.,.,...,.,.,...,,,,,,,,,,,,,,.,,...,,..,..,,...,...,...,,..,..,,,..,.,,,
-#YLZCMVRIRUQESCTSOFDELMAIJ3NBDS4GRMETVUNQPQHAMQMTXIUKK2A5I3TZEYE4ET4UZYHPUFG72
-#\\\|YQMO2MPRGI5XXOZF7SHJ5HEQIAXBAMU5GEBMOHLL2LWKF3SNPMJ \ / AMOS7 \ YOURUM ::
-#\[7]X6676HDHNNDUNOWYSQRHE67LGFUUDZ3X2PTMBOTDNGCOKLYDLQCI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,.,,.,,,,.,,.,,,...,,,.,.,.,.,,,..,,...,...,,,.,,.,,...,...,,..,
+#ONGNKWNCC5NGP72TZLMOJ4MVLDY6OPBGXGLX53GK66RIVT5M7HSN2XZD7QAQYBHWRPCSEVG6RVUAE
+#\\\|TLQE4M7S6ANADRDHYPMFY5RAQLAGWKGKYKVGEBOLXNOW2VBY4Q5 \ / AMOS7 \ YOURUM ::
+#\[7]PBYKSKDBCEDCGFOSHAUEM52ZGCS6EJA2NMN5FEMCUANHMSO5BCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
