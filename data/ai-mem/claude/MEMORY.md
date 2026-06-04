@@ -31,6 +31,7 @@
 - [iris-spoke-labels](topic-iris-spoke-labels.md) — 63-ring spoke sequence; dot-fold; BASE32/bottom
 - [stream-framing-protocol](topic-stream-framing-protocol.md) — 3+1 bit frame; separator inversion on 000
 - [nshell-terminal-rendering](topic-nshell-terminal-rendering.md) — `(0)!TERM!` bug, overflow path, color reset, async reply during VIEWING_HISTORY
+- [memory-tree-zenka](topic-memory-tree-zenka.md) — tree BUILD live (162 branches); focus steering works; step 2 = flow-weighting; per-node re-weighting engine vision
 
 ## Vision / Design
 - [project-vision-origin](project-vision-origin.md) — 24-year vision; threshold reached Apr 2026
@@ -113,6 +114,7 @@
 - [store_summary_focus](feedback-coding-zenka-edits.md) — MCP to prime next dispatch
 - [claude_continue](feedback-coding-zenka-edits.md) — live (1adbf83d2); resume same as kimi
 - [Glitter restart](feedback-coding-zenka-edits.md) — restart after failed tool task
+- [perltidy-sil0](feedback-perltidy-sil0.md) — format-code/ptd `-sil=0` self-heals over-indented modules to col0
 
 ## Completed Sessions
 - [topic-completed](topic-completed.md) — all session summaries (Feb 2026 → present)
@@ -151,8 +153,8 @@
 
 **Diagnostic:** Improved `base.handler.command` syntax error log to show full bad line (`line=['...']`) instead of stripping it.
 
-#,,,,,.,,,...,,..,,,,,,..,...,,.,,,,,,..,,.,.,..,,...,...,.,,,...,,..,,,,,.,.,
-#N4I5OZRJ4UU3H36RXSMBBTNGEOEW2S7GZRXBO673HDMNXQHJIMYBAYHEOFLA4UACQLMRTUUKHMML6
-#\\\|676VB2V7NDM3MD56H3UONIIDXRIMSN2DSH3TN4WU6Y5U7ZXNBUU \ / AMOS7 \ YOURUM ::
-#\[7]A6HRUBWV3C6Y7JMRDDVH4G34LL5WNFFJXZJO2Z6L7DG2EVXR5CDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,.,,,,.,,,,.,..,,.,.,,,.,,,,,,,.,..,,...,...,,,.,..,,,,.,,.,,..,,
+#YQGLTFPXUWZWGAAJXJIANHN7TCJZT4OZTMXMLQFPIJQ4H3W3V7AVY34GWL7TKYP2HHQ7GJXE4DEB2
+#\\\|XYVD5VN3HN73JVLDTNJ45RXXXX5NDQ5NIV6MQEQR7MGNWCTY7S7 \ / AMOS7 \ YOURUM ::
+#\[7]56LY3LYINJM3F4PTMIFBTOJ6XT5M4SKPFUOVSM4SFFUU23YZLGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

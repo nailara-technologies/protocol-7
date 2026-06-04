@@ -33,24 +33,29 @@ for my $i ( 0 .. $#$children ) {
     $children->[$i]{'w_base'} = $w;
 }
 
-## [ pass 2 — focus boost ]##
-my $focus = <memory.focus> // {};
-
+## [ pass 2 — focus boost from bottom-up flow ]##
 for my $child (@$children) {
-    my $w_focus = 1.0;
-    while ( my ( $topic, $boost ) = each %$focus ) {
-        my $matches = 0;
-        eval { $matches = <[memory.focus.matches]>->( $child, $topic ); };
-        $matches
-            = <[memory.tree.score.focus_matches_stub]>->( $child, $topic )
-            if $@;
-        $w_focus *= $boost if $matches;
+    my $w_focus;
+    if ( exists $child->{'flow_focus'} ) {
+        my $excess = $child->{'flow_focus'};
+        $excess  = 0 if $excess < 0;
+        $w_focus = 1 + ( $excess > 4 ? 4 : $excess );
+    } else {
+        ## [ fallback: direct match when flow pre-pass has not run ]##
+        my $focus = <memory.focus> // {};
+        $w_focus = 1.0;
+        while ( my ( $topic, $boost ) = each %$focus ) {
+            my $matches = 0;
+            eval { $matches = <[memory.focus.matches]>->( $child, $topic ); };
+            $matches
+                = <[memory.tree.score.focus_matches_stub]>->( $child, $topic )
+                if $@;
+            $w_focus *= $boost if $matches;
+        }
+        $w_focus = 5 if $w_focus > 5;
     }
-    $w_focus = 5 if $w_focus > 5;
     $child->{'w_focus'} = $w_focus;
-} continue {
-    keys %$focus;
-}    ## reset iterator ##
+}
 
 ## [ combine and sort by w_combined desc, stable tie-break by content_hash ]##
 my @sorted = sort {
@@ -89,8 +94,8 @@ for my $child (@sorted) {
 
 return $branch;
 
-#,,..,.,.,,,.,.,.,,..,.,,,,,,,,..,,,,,,,,,,..,..,,...,.,.,,..,..,,,,.,.,.,,,,,
-#IQIVL3ACJRMEN6JEJAHFVEIORWSREAFYWMISTUHAHHUNSEFBC4AKD6UODC3E7WS4EUYAKNYIZJVLW
-#\\\|VVPNAA75VLVTRJSABBPVQIWTNOKGSJBORJRE5LU535HYP4IZTCS \ / AMOS7 \ YOURUM ::
-#\[7]6MI5O76VWPLNC5N72SJRJ3H2DUJWDDEHVP23WH3GQSQMIKXZBYCA 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,,.,...,.,.,...,.,,,,,.,,,,,,..,..,,...,...,...,,,,,,.,,,,,,.,.,
+#DL6TLV4IGHV55VJ4UUNRQH3ZUEBMDDDE36PAU3TECXBUHUHJKKO2L2KLSYG3XXOUIL5VJHWTJVTPM
+#\\\|7IUPWWVDCEUDTHEF2SB6EDHPSE22SA5LHOSGW7G5FAHRNK7YDHQ \ / AMOS7 \ YOURUM ::
+#\[7]VQ476DGJEQYHKFXWB4QTUYICNEE27D7PJMNDYZO6QN32KGECUIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

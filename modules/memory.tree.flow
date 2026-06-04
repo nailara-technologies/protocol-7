@@ -1,0 +1,51 @@
+## [:< ##
+
+# name = memory.tree.flow
+# descr = bottom-up roll-up of flow_count (descendant leaves) and flow_focus
+# descr = (focus excess). call before memory.tree.score whenever focus changes.
+
+my $params = shift             // {};
+my $node   = $params->{'node'} // {};
+
+my $children = $node->{'children'} // [];
+
+## [ recurse bottom-up into children first ]##
+for my $child (@$children) {
+    <[memory.tree.flow]>->( { 'node' => $child } );
+}
+
+if ( $node->{'type'} eq 'leaf' ) {
+    $node->{'flow_count'} = 1;
+
+    my $focus = <memory.focus> // {};
+    my $m     = 1.0;
+
+    for my $topic ( keys %$focus ) {
+        my $matches = 0;
+        eval { $matches = <[memory.focus.matches]>->( $node, $topic ); };
+        $matches = <[memory.tree.score.focus_matches_stub]>->( $node, $topic )
+            if $@;
+        $m *= $focus->{$topic} if $matches;
+    }
+
+    $node->{'flow_focus'} = $m - 1;
+} else {
+    my $flow_count = 0;
+    my $flow_focus = 0;
+
+    for my $child (@$children) {
+        $flow_count += $child->{'flow_count'} // 0;
+        $flow_focus += $child->{'flow_focus'} // 0;
+    }
+
+    $node->{'flow_count'} = $flow_count;
+    $node->{'flow_focus'} = $flow_focus;
+}
+
+return $node;
+
+#,,.,,...,..,,,,,,,,.,,,.,.,,,,,,,,..,,.,,...,..,,...,...,...,..,,,,.,,,,,,..,
+#3WT5HYFBC3EC37NFQDKLM4ERLJE5WVI234B53AYIQ6YM57LJZGQ7ZKRKGAHJFPHNOQLTJ2H6LZLZI
+#\\\|6DVNWUBXJEJ5IZ6LYIEELZIOELGTQQXLEDRFJETQAB3NV5HGHRM \ / AMOS7 \ YOURUM ::
+#\[7]756CMWAZXUPW7N6UPADQ5NRIR753XEO6OSI6HX75KUA4SFQSV2CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

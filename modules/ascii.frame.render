@@ -51,6 +51,16 @@ for my $name ( keys %{$slots} ) {
             - length( $border->{'right'} // '' );
         $required_width = $content_width
             if $content_width > $required_width;
+    } elsif ( $slot->{'type'} eq qw| block | ) {
+        ## block slot content drives width ##
+        my $prefix = $slot->{'prefix'} // '';
+        my $value  = $values->{$name}  // '';
+        my @lines  = split "\n", $value;
+        @lines = ('') if not @lines;
+        for my $line (@lines) {
+            my $row_width = length($prefix) + length($line) + $lpad + $rpad;
+            $required_width = $row_width if $row_width > $required_width;
+        }
     }
 }
 
@@ -193,6 +203,24 @@ for my $row ( 1 .. $max_row ) {
     } elsif ( exists $static_rows->{$row} ) {
         my $static   = $static_rows->{$row};
         my $stripped = $static;
+
+        ## [ strip border artifacts left in content by double-style mockups ]##
+        my $lb = $border->{'left'}  // '';
+        my $rb = $border->{'right'} // '';
+        if (    length($lb)
+            and length($stripped) >= length($lb)
+            and substr( $stripped, 0, length($lb) ) eq $lb ) {
+            $stripped = substr( $stripped, length($lb) );
+        }
+        if (    length($rb)
+            and length($stripped) >= length($rb)
+            and
+            substr( $stripped, length($stripped) - length($rb), length($rb) )
+            eq $rb ) {
+            $stripped
+                = substr( $stripped, 0, length($stripped) - length($rb) );
+        }
+
         if (    $lpad > 0
             and length($stripped) >= $lpad
             and substr( $stripped, 0, $lpad ) eq ' ' x $lpad ) {
@@ -234,8 +262,8 @@ if ( @{ $border->{'bottom'} // [] } ) {
 
 return join "\n", @output;
 
-#,,,,,,.,,.,.,,,,,,.,,...,,,,,,,.,..,,,.,,,,.,..,,...,...,,.,,,..,.,,,,.,,,,.,
-#MGVDU2AJIMGGMP2G4OYD3ARPZMWKCEV63WY7I34WJ3KJ64ALZLHNFGIYVOUDF7PSPJTMTZQELPGDG
-#\\\|5UXVQILYF6GFXQOMCALZFXKIESXDUSW4XOCADYXD4RKOYXWMKDO \ / AMOS7 \ YOURUM ::
-#\[7]UOACBEB6D5IUZUEQKWPDLSJEYVGFDSBX6GM5XL7GDUA3VJE6SYAQ 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,,.,..,,.,,,,,.,...,,.,,.,,,,..,..,,...,..,,..,,...,,,,,,,,,,.,,
+#SEI5XLXLPLYPUIFRMUQMRJTQGRTR5BPXCCTYTWJISGVCCRTJORSIK6X6QVB4PGEMALKV2ZVONSXIK
+#\\\|NKHGFIOBHDGID5ISDK2EU7APQ5J5TFBGUHX62SCENPU7LYHN5I5 \ / AMOS7 \ YOURUM ::
+#\[7]RXCBQLRG2FNIXKMIZD22TK7ZKU2432FDSEY4H4S7XFZUJIKCESBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

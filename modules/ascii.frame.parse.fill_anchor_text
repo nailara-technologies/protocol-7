@@ -1,43 +1,43 @@
 ## [:< ##
 
-    # name  = ascii.frame.parse.fill_anchor_text
-    # descr = split text into fill runs and anchor runs
+# name  = ascii.frame.parse.fill_anchor_text
+# descr = split text into fill runs and anchor runs
 
-    my ( $text, $elements ) = @_;
-    return if not length $text;
+my ( $text, $elements ) = @_;
+return if not length $text;
 
-    ## fill-eligible chars : any run of the same p7 border char ##
-    my %fill_chars = map { $_ => 1 } ( ':', '.', '=' );
+## fill-eligible chars : any run of the same p7 border char ##
+my %fill_chars = map { $_ => 1 } ( ':', '.', '=' );
 
-    my $pos = 0;
-    while ( $pos < length($text) ) {
-        my $char = substr( $text, $pos, 1 );
-        if ( $fill_chars{$char} ) {
-            my $flen = 0;
-            while ( $pos + $flen < length($text)
-                and substr( $text, $pos + $flen, 1 ) eq $char ) {
-                $flen++;
-            }
-            push @{$elements},
-                { type => qw| fill |, char => $char, min => $flen };
-            $pos += $flen;
-        } else {
-            my $alen = 0;
-            while ( $pos + $alen < length($text)
-                and not $fill_chars{ substr( $text, $pos + $alen, 1 ) } ) {
-                $alen++;
-            }
-            push @{$elements},
-                {
-                type  => qw| anchor |,
-                value => substr( $text, $pos, $alen )
-                };
-            $pos += $alen;
+my $pos = 0;
+while ( $pos < length($text) ) {
+    my $char = substr( $text, $pos, 1 );
+    if ( $fill_chars{$char} ) {
+        my $flen = 0;
+        while ( $pos + $flen < length($text)
+            and substr( $text, $pos + $flen, 1 ) eq $char ) {
+            $flen++;
         }
+        push @{$elements},
+            { type => qw| fill |, char => $char, min => $flen };
+        $pos += $flen;
+    } else {
+        my $alen = 0;
+        while ( $pos + $alen < length($text)
+            and not $fill_chars{ substr( $text, $pos + $alen, 1 ) } ) {
+            $alen++;
+        }
+        push @{$elements},
+            {
+            type  => qw| anchor |,
+            value => substr( $text, $pos, $alen )
+            };
+        $pos += $alen;
     }
+}
 
-#,,,.,,..,,..,,,,,,,,,,.,,,.,,,,.,,,.,.,,,..,,..,,...,...,.,,,..,,,..,.,,,.,,,
-#EAVZP6DDWZJZA7DD6GOSDNKRPXTGP5NQYKZ7V5NSNEW6XA6HXQKMIRBGWN3O56SLWGS63DWOSYHBG
-#\\\|YC3RK5N2JRKKQW7BLNPQMDI2JDPL24J276ZEEQH4ZVPEWO7O5RQ \ / AMOS7 \ YOURUM ::
-#\[7]4C2YQSF2IWQAEU6EL5HGDPDTFUYWGVM52JPBFTYKYZKT5ZKFQ4CI 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,..,,.,.,,,.,.,.,.,,,,,,,...,..,,..,,...,...,...,,,.,.,,,...,,.,,
+#3TS36MJW4SQBCVME25PV3ZUQU5LHWS3MOUBXOD5CE2P3IDSQAGOUTILKNKG7M5GRPOZQ4J6JQEMIQ
+#\\\|A2YDHZCZRQOWDH6UCABPBSIIGMYOX2FYWYPQVUHU3FVBFYS4HJO \ / AMOS7 \ YOURUM ::
+#\[7]CL3LDY6WMWBTYLUFX652KSALYSVVXTAWNY4K33YKX2Y3MWWCC6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

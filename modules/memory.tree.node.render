@@ -40,6 +40,7 @@ my $title = $node->{'title'} // '';
 my @children = @{ $node->{'children'} // [] };
 my $total    = scalar @children;
 my $n_vis    = $node->{'n_visible'} // $total;
+$n_vis = $total if $n_vis > $total;
 
 my $curve = $node->{'curve_type'} // 'linear';
 
@@ -126,8 +127,8 @@ if ( ( $frame->{'border_style'} // 'single' ) eq 'double' ) {
 
 return $rendered;
 
-#,,,,,,,,,,,,,,,,,,..,.,,,...,.,,,..,,,..,..,,..,,...,...,,,,,.,,,,..,...,..,,
-#JPC6AO5DDXSQCNR43DMPEWH2ANCWRVE7VEDLLIEKNP5TZBUL5UOVTCLLV3RMZEO4FO7PVZWM625DS
-#\\\|IMIHNSBQY3623Z5CJWY55SEHGKLCXIVNLRRHEQ3YAMGM6KJGDX4 \ / AMOS7 \ YOURUM ::
-#\[7]2KK6JN2ZL67XWH3SLYYBPCSGDQYXUF6IQZJN3UXRXXM4BGVLCUCA 7  DATA SIGNATURE ::
+#,,,.,..,,...,.,,,..,,,.,,...,.,,,,.,,,.,,,..,..,,...,...,..,,,,.,..,,...,.,,,
+#NHJCC2IPM247P6DZJJVTCF42OO7ROR7TETRPYOQZG4LZPMFCBQXEEBDJFFK5AJR3WJPVK67RLXXVM
+#\\\|LK3P6ZFZUGUQI3NCPKU6BE777UXKGTKIASUGZ24PIFF3HZYADIC \ / AMOS7 \ YOURUM ::
+#\[7]Q3YP22ETRIW56IWEBP5IXVE6G7HYUCSSUA4Q6QQUJW4AIIEMNYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

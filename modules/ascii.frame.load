@@ -100,6 +100,17 @@ if ($is_single_mode) {
     $entry->{'descriptors'} = \%descriptors;
 }
 
+## [ apply explicit padding from yaml if given ]##
+if ( exists $yaml->{'padding'} ) {
+    my $pad = $yaml->{'padding'};
+    for my $desc ( values %descriptors ) {
+        $desc->{'padding'}{'left'} = $pad->{'left'}
+            if exists $pad->{'left'};
+        $desc->{'padding'}{'right'} = $pad->{'right'}
+            if exists $pad->{'right'};
+    }
+}
+
 ## cache and return ##
 <ascii.frame.cache>->{$name} = $entry;
 
@@ -110,8 +121,8 @@ if ($is_single_mode) {
 
 return $entry;
 
-#,,,.,...,,,,,,,,,,..,...,..,,,,.,.,.,...,.,,,..,,...,...,,,,,..,,,.,,,..,.,.,
-#CXFNDAP6HGO4HD432IKCU5L4RXHG2RBG3E2SGBYZRZBTXM3SV6N3Q5ANC2L5YOLKV2AG2622YQOMQ
-#\\\|P4XBVAMD74VGBH7HJ4M7R7USN37SMYRDTB4O7OOOQWC5Q7PA4E4 \ / AMOS7 \ YOURUM ::
-#\[7]7MKCCIYU73NESYFCIOPOTT5TWY55MJE6H4M7NGZHZPAJZI2JEWAQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,...,.,.,,,,,,..,,.,,,,.,.,.,,.,,..,,...,...,...,.,.,..,,,,.,,..,
+#CVIADK5TS5EJFPLTMOXNMA5QZJ6CQZC3RFK4VU74JIOYHEJEDX6JMX32CEUP6FLCSR2CEOXE3BPLK
+#\\\|ACJY24QX37QUAPDFZIWVVWIEAJTRFUSI6HGW4ZLXMDLPCS7PZSN \ / AMOS7 \ YOURUM ::
+#\[7]S62AUCZCNTLO6DZ2PGODBRZ4NI5RLQ5JHRINXI6SC5R366NEKQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

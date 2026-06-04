@@ -1,23 +1,23 @@
 ## [:< ##
 
-    # name  = memory.tree.score.rank_falloff
-    # descr = calculate rank-based weight falloff for tree scoring
+# name  = memory.tree.score.rank_falloff
+# descr = calculate rank-based weight falloff for tree scoring
 
-    my ( $curve, $p ) = @_;
-    $p = 0 if $p < 0;
-    $p = 1 if $p > 1;
+my ( $curve, $p ) = @_;
+$p = 0 if $p < 0;
+$p = 1 if $p > 1;
 
-    if ( $curve eq 'exponential' ) {
-        return <[base.curve.eval]>->( $curve, $p );
-    } elsif ( $curve =~ m{^(gaussian_pulse|heartbeat)$} ) {
-        return <[base.curve.eval]>->( $curve, 0.5 + $p / 2 );
-    } else {
-        ## [ increasing family: sigmoid, linear, quantized, ease-*, sine, hold ]##
-        return <[base.curve.eval]>->( $curve, 1 - $p );
-    }
+if ( $curve eq 'exponential' ) {
+    return <[base.curve.eval]>->( $curve, $p );
+} elsif ( $curve =~ m{^(gaussian_pulse|heartbeat)$} ) {
+    return <[base.curve.eval]>->( $curve, 0.5 + $p / 2 );
+} else {
+    ## [ increasing family: sigmoid, linear, quantized, ease-*, sine, hold ]##
+    return <[base.curve.eval]>->( $curve, 1 - $p );
+}
 
-#,,.,,...,,..,,,.,.,,,,,.,.,,,...,,,.,,,,,,,,,..,,...,..,,.,,,,.,,,,,,.,,,,.,,
-#ILMKSCMESSZRMM74ULECVFO6T2GHFBX45TMDSFBPVFVPC2OM776PFCINFTLOMVHGIPGUJ5VS4V4FG
-#\\\|ORPH2R65NE7O3K3XPAQXBJOAMNN2ZSM3MJQZAKNLSHJIURUJ7VS \ / AMOS7 \ YOURUM ::
-#\[7]ZHDURE5XY3ZLWCDBXC2XQT2VLMCXVISDJPWWXSJNYU2E4PXPRIDY 7  DATA SIGNATURE ::
+#,,,.,...,,.,,.,.,,..,,,,,,.,,,,.,,..,,.,,,..,..,,...,...,.,,,,.,,,.,,,,,,...,
+#RPPROWD7ELKGR3M5GWR3ON6FHS5HFJAXL6GJ7E3JKQULCM663ZPRZWAUKTBQLRP564XKAMSBL7LO2
+#\\\|J2BSX4W3VYKXZETB5HP5OWOEAPJXDHCWZCWBYYOAWTK5FH7FI4F \ / AMOS7 \ YOURUM ::
+#\[7]OZPVLSN6TZMWWPWLNG6LER2HO5O6BIRVODQE3Z7OETK2XXM6JQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

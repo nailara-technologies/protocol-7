@@ -1,20 +1,20 @@
 ## [:< ##
 
-    # name  = memory.tree.score.focus_matches_stub
-    # descr = fallback focus match when memory.focus.matches is absent
+# name  = memory.tree.score.focus_matches_stub
+# descr = fallback focus match when memory.focus.matches is absent
 
-    my ( $node, $topic ) = @_;
-    return 0 if not length $topic;
-    my $text = join ' ',
-        grep {defined} (
-        $node->{'title'}      // '',
-        $node->{'body'}       // '',
-        $node->{'source_ref'} // '',
-        );
-    return index( lc($text), lc($topic) ) >= 0 ? 1 : 0;
+my ( $node, $topic ) = @_;
+return 0 if not length $topic;
+my $text = join ' ',
+    grep {defined} (
+    $node->{'title'}      // '',
+    $node->{'body'}       // '',
+    $node->{'source_ref'} // '',
+    );
+return index( lc($text), lc($topic) ) >= 0 ? 1 : 0;
 
-#,,,.,...,.,,,..,,,,,,.,,,.,.,.,,,,,.,,,,,.,,,..,,...,...,,..,..,,.,,,,,.,,..,
-#RHMMJETUZNVKGFNNPKOBHF57E25ON5SLQCOGB2H4WRUNSQ6T6EU6VVU3X7I4ORPE4C4N5VUXSK2RS
-#\\\|NTL7DRJGPDDDQCJJJAKCBVYLDYZKVWHTVQ77BA6EQALIEWNVFFA \ / AMOS7 \ YOURUM ::
-#\[7]ZXC5EQAZRVFJEKRBO4BDOFLZ3CKERMA3LDX2FWQFUJRSGMHX3SBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,.,.,.,.,,,,,,,,,.,.,,,.,,..,,,.,..,,...,..,,...,.,.,,,,,...,,.,,
+#A3HPNUCHENHCGP7R55F4HHARXQ2YKLZGNAKMD35HFYRMJ237KGO7GMKX6C4N2IY7BALRQYXT6X3XS
+#\\\|V6B2JD6STNJDVIRDA3LDML6VCUEXO4G4CLGSS4JMHAYDGW76TBU \ / AMOS7 \ YOURUM ::
+#\[7]GVZIFDGMVCLXZYTTXQRUF6VTOBSKHYF3T62HASJ6SAC6V5MVRMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

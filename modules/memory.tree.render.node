@@ -1,71 +1,71 @@
 ## [:< ##
 
-    # name = memory.tree.render.node
-    # descr = recursively render a single tree node and its visible children
+# name = memory.tree.render.node
+# descr = recursively render a single tree node and its visible children
 
-    my ( $node, $variant, $parent_n, $depth, $is_root, $root_n ) = @_;
-    return '' if not defined $node;
+my ( $node, $variant, $parent_n, $depth, $is_root, $root_n ) = @_;
+return '' if not defined $node;
 
-    ## [ resolve effective visible count ]##
-    my $eff_n = $node->{'n_visible'} // 7;
-    if ( $is_root and defined $root_n ) {
-        $eff_n = $root_n;
-    } elsif ( $node->{'n_inherit'} and defined $parent_n ) {
-        $eff_n = $parent_n;
-    }
-    my $cap = $node->{'n_max_cap'} // 13;
-    $eff_n = $cap if $eff_n > $cap;
+## [ resolve effective visible count ]##
+my $eff_n = $node->{'n_visible'} // 7;
+if ( $is_root and defined $root_n ) {
+    $eff_n = $root_n;
+} elsif ( $node->{'n_inherit'} and defined $parent_n ) {
+    $eff_n = $parent_n;
+}
+my $cap = $node->{'n_max_cap'} // 13;
+$eff_n = $cap if $eff_n > $cap;
 
-    my $children = $node->{'children'} // [];
-    my @visible  = @$children;
+my $children = $node->{'children'} // [];
+my @visible  = @$children;
 
-    ## [ slice top eff_n by score desc ]##
-    @visible = sort { $b->{'score'} <=> $a->{'score'} } @visible;
-    @visible = splice @visible, 0, $eff_n if @visible > $eff_n;
+## [ slice top eff_n by score desc ]##
+@visible = sort { $b->{'score'} <=> $a->{'score'} } @visible;
+@visible = splice @visible, 0, $eff_n if @visible > $eff_n;
 
-    ## [ render children depth-first ]##
-    my @rendered_children;
-    for my $child (@visible) {
-        my $child_str = <[memory.tree.render.node]>->(
-            $child, $variant, $eff_n, $depth + 1, 0, $root_n
-        );
-        push @rendered_children, $child_str if length $child_str;
-    }
-
-    ## [ stash composed children into node for frame render ]##
-    if ($is_root) {
-        $node->{'_branches_rendered'} = join "\n", @rendered_children;
-    } else {
-        $node->{'_children_rendered'} = join "\n", @rendered_children;
-    }
-
-    ## [ determine render variant for this node ]##
-    my $node_variant;
-    if ($is_root) {
-        $node_variant = 'root';
-    } elsif ( $variant eq 'compact' ) {
-        $node_variant = 'compact';
-    } else {
-        $node_variant = $node->{'type'} eq 'leaf' ? 'compact' : 'card';
-    }
-
-    my $frame_str = <[memory.tree.node.render]>->(
-        {   'node'    => $node,
-            'variant' => $node_variant,
-        }
+## [ render children depth-first ]##
+my @rendered_children;
+for my $child (@visible) {
+    my $child_str = <[memory.tree.render.node]>->(
+        $child, $variant, $eff_n, $depth + 1, 0, $root_n
     );
+    push @rendered_children, $child_str if length $child_str;
+}
 
-    ## [ prefix compact non-root with depth indent ]##
-    if ( not $is_root and $variant eq 'compact' ) {
-        my $prefix = '  ' x $depth;
-        $frame_str = $prefix . $frame_str
-            if defined $frame_str and length $frame_str;
+## [ stash composed children into node for frame render ]##
+if ($is_root) {
+    $node->{'_branches_rendered'} = join "\n", @rendered_children;
+} else {
+    $node->{'_children_rendered'} = join "\n", @rendered_children;
+}
+
+## [ determine render variant for this node ]##
+my $node_variant;
+if ($is_root) {
+    $node_variant = 'root';
+} elsif ( $variant eq 'compact' ) {
+    $node_variant = 'compact';
+} else {
+    $node_variant = $node->{'type'} eq 'leaf' ? 'compact' : 'card';
+}
+
+my $frame_str = <[memory.tree.node.render]>->(
+    {   'node'    => $node,
+        'variant' => $node_variant,
     }
+);
 
-    return $frame_str // '';
+## [ prefix compact non-root with depth indent ]##
+if ( not $is_root and $variant eq 'compact' ) {
+    my $prefix = '  ' x $depth;
+    $frame_str = $prefix . $frame_str
+        if defined $frame_str and length $frame_str;
+}
 
-#,,.,,,..,..,,,..,.,,,,,.,,..,,,.,,,.,.,,,,..,..,,...,..,,,,,,..,,.,.,..,,..,,
-#L54KU3LH64B36GGE2PGCMB3SY3ZHXVL76LI3JIA5XJSAJHGIYNMYZWOXPBQK2PSOXT7HUAULHFUWQ
-#\\\|FA3CWKUAXBOO2ZN2D3H4YT6NUV27UIPUBORTGXGJ6HFPXPV5ORU \ / AMOS7 \ YOURUM ::
-#\[7]SLDKI62LZLYU5KEOZUY2QESG6O3E7UDZKEQ4XZLCTAYVBKVGIGCQ 7  DATA SIGNATURE ::
+return $frame_str // '';
+
+#,,..,,.,,,..,..,,,..,,,,,.,,,,,.,,,,,..,,.,,,..,,...,...,.,,,,,.,,,.,,,.,..,,
+#LE624EVRA4HLX5ZDNB4FNSU7AQ3QNSKBWOJ36AURMN5PNUR4KOAXNHQLZACK6IFMLLZTD6DFMW55Q
+#\\\|44XDLXL5GCRKH5FQTSJZM6J3PDEY26QH6C7PVCWVLH5VXROJYXO \ / AMOS7 \ YOURUM ::
+#\[7]V3WWJBQOSXFOO53E7CKSMJTP4H2MGLXPNMOWWMQNZ5EKJ23UTSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

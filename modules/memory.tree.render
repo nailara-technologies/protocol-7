@@ -9,8 +9,11 @@ my $n       = $params->{'n'};
 
 return undef if not defined <memory.tree>;
 
-## [ score lazily — guarded so a scoring bug never kills the render ]##
-eval { <[memory.tree.score]>->( { 'node' => <memory.tree> } ) };
+## [ flow then score lazily — guarded so a scoring bug never kills the render ]##
+eval {
+    <[memory.tree.flow]>->( { 'node' => <memory.tree> } );
+    <[memory.tree.score]>->( { 'node' => <memory.tree> } );
+};
 if ( my $err = <[base.str.eval_error]> ) {
     <[base.logs]>->( 0, 'memory.tree.score failed: %s', $err );
 }
@@ -21,8 +24,8 @@ my $rendered = <[memory.tree.render.node]>
 
 return $rendered;
 
-#,,,,,.,.,..,,,..,,,.,,..,..,,,,,,,,.,..,,,,.,..,,...,...,..,,.,,,..,,...,,..,
-#5YN6V4MIYUIUAZ4N4ASRVVUQWRTO5WWKWPPBZOVOLOPGOU66F2DG4CBU5ZZDVVE3QSN3PXNAIANO4
-#\\\|B7WRAGEVCV3VDY6BO5JOS4XFV3BTKGS7VFCVDGYF7ATRGNUQGTJ \ / AMOS7 \ YOURUM ::
-#\[7]YRKALI6G2KJOKXVQA3REMOOESBRLC6AHAVMP5A4CXCDVTSWDJQAA 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,..,,,.,,.,.,,.,,..,,..,,.,.,,.,,..,,...,...,...,..,,..,,,..,...,
+#FCAX45IPE3MG2S6X6DDTLEKJ3KEEG4P7RKWIALZ2F4ZTOXO232KX5SAUNO4BSP7VGLVV2Z6TPANZK
+#\\\|O5A5PAF5HL5RCTSOHOR2OY4XZ5C5FDZ2WFPB7QTTWZICE447M3H \ / AMOS7 \ YOURUM ::
+#\[7]TSB4D7PK2UDHEWAVRTO77QDAT6LGAYUUPVX7BVDLMGBFX7MMLEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
