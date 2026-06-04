@@ -17,7 +17,8 @@ use Crypt::Misc qw| encode_b32r |;
 use IO::Socket::UNIX;
 use FindBin qw| $RealBin |;
 use File::Spec;
-use Cwd qw| abs_path |;
+use Cwd        qw| abs_path |;
+use File::Path qw| make_path |;
 
 BEGIN {
     use File::Spec;
@@ -181,6 +182,27 @@ my $model_context_tokens;    ## cached from coding.context-size on first use
 my $pending_summary_focus
     ;    ## one-shot focus for next auto_summarize; clears on use
 my $mcp_client_name;    ## captured from initialize clientInfo.name
+my $FOCUS_FILE = "$ROOT_PATH/data/state/mcp-summary-focus.txt";
+my $summary_focus_sticky
+    = 0;                ## 1 if loaded from disk (sticky across sessions)
+
+sub load_sticky_focus {
+    return unless -f $FOCUS_FILE and -s $FOCUS_FILE;
+    if ( open( my $fh, '<:encoding(UTF-8)', $FOCUS_FILE ) ) {
+        local $/;
+        my $content = <$fh>;
+        close $fh;
+        if ( defined $content ) {
+            $content =~ s{^\s+|\s+$}{}g;
+            if ( length $content ) {
+                $pending_summary_focus = $content;
+                $summary_focus_sticky  = 1;
+            }
+        }
+    } else {
+        warn "cannot read focus file: $OS_ERROR";
+    }
+}
 
 ##[ stdio setup ]##
 
@@ -490,7 +512,9 @@ our @tools = (
             . 'use before a dispatch to tell the summarizer exactly what '
             . 'YOU need to know '
             . 'from the result, rather than getting a generic status dump. '
-            . 'call with empty instruction to clear without using.',
+            . 'call with empty instruction to clear without using. '
+            . 'with keep:true the focus is persisted to disk and reused '
+            . 'every session until cleared.',
         'inputSchema' => {
             'type'       => 'object',
             'properties' => {
@@ -499,8 +523,16 @@ our @tools = (
                     'description' =>
                         'the focus for the next summarization (empty to '
                         . 'clear)'
+                },
+                'keep' => {
+                    'type'        => 'boolean',
+                    'description' =>
+                        'persist this focus to disk so it survives into the '
+                        . 'next session (sticky), instead of one-shot '
+                        . 'clearing'
                 }
             },
+            'required'             => ['instruction'],
             'additionalProperties' => \0
         }
     },
@@ -651,6 +683,8 @@ for my $ext (@external_tools) {
 }
 
 ##[ main loop ]##
+
+load_sticky_focus();
 
 log_msg( 'mcp-server-p7 starting [ auth=%s socket=%s ]',
     $auth_user, $socket_path );
@@ -1478,16 +1512,40 @@ sub tool_coding_summarize {
 sub tool_store_summary_focus {
     my ( $id, $args ) = @ARG;
     my $instruction = $args->{'instruction'} // '';
+    my $keep        = $args->{'keep'}        // 0;
+
     if ( length $instruction ) {
         $pending_summary_focus = $instruction;
-        send_tool_result(
-            $id,
-            "summary focus stored — will apply to next dispatch "
-                . "auto_summarize",
-            0
-        );
+        if ($keep) {
+            $summary_focus_sticky = 1;
+            eval {
+                make_path("$ROOT_PATH/data/state")
+                    unless -d "$ROOT_PATH/data/state";
+                if ( open( my $fh, '>:encoding(UTF-8)', $FOCUS_FILE ) ) {
+                    print $fh $instruction;
+                    close $fh;
+                } else {
+                    warn "cannot write focus file: $OS_ERROR";
+                }
+            };
+            warn "failed to persist focus: $@" if $@;
+            send_tool_result( $id,
+                "summary focus stored (sticky — persists to next session)",
+                0 );
+        } else {
+            $summary_focus_sticky = 0;
+            unlink $FOCUS_FILE if -f $FOCUS_FILE;
+            send_tool_result(
+                $id,
+                "summary focus stored — will apply to next dispatch "
+                    . "auto_summarize",
+                0
+            );
+        }
     } else {
         $pending_summary_focus = undef;
+        $summary_focus_sticky  = 0;
+        unlink $FOCUS_FILE if -f $FOCUS_FILE;
         send_tool_result( $id, "summary focus cleared", 0 );
     }
 }
@@ -2158,8 +2216,9 @@ sub tool_external_command {
                 . 'files_created (list), files_modified (list), '
                 . 'issues (list), resume_uuid (if present), '
                 . 'next_steps (explicit next actions)';
-            $pending_summary_focus = undef unless $args->{'keep'};
-            $output                = _extract_stream_content($output);
+            $pending_summary_focus = undef
+                if not $summary_focus_sticky and not $args->{'keep'};
+            $output = _extract_stream_content($output);
             cube_disconnect()
                 ;    ## flush any stale socket state from subprocess ##
             my $summary = _do_summarize( $output, $instruction, 600 );
@@ -2184,8 +2243,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,.,,.,,,.,,,,,,,.,,,..,,.,.,..,,,,.,,.,,,.,,..,,...,...,.,,,,,.,,,,,..,,,..,
-#S3ML3D4CICCUZGKR4TRJIPRAB5VIKAWX65ZLOZCWTMK5W2RQJM5IYJEGIRGH3POBDQXGXXCYCMMDW
-#\\\|BPVMQFLNWIFLDEA5U4PG64L3IZVDW5YE6TETGERBDSVDDNRYCEI \ / AMOS7 \ YOURUM ::
-#\[7]7PZ3W2KPMFNTRN7K3RWJJZAC5OP6DMI4KVOFPZEUCLHKPDYVDOAI 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,.,,,,,,...,...,..,,..,,,,.,,..,..,,...,...,...,,..,.,.,,,,,,,.,
+#EX7Z33AXAKLEWZYTKCYU4KTNUBQBAFOYYBNYGDABWXRRIMYWSPE4UZOAMSC67TFVRP6QBCERX2SVE
+#\\\|KKXWCJDCLY5DG3XW73ARJTBTUKPKVG3EBGK24HVNIU7EGJ2EGBK \ / AMOS7 \ YOURUM ::
+#\[7]KAUDESE3AFABSE6LBIRECBBYDTPIG2FRFZ7NFEFFPARLXCOVAADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
