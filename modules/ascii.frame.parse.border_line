@@ -1,37 +1,37 @@
 ## [:< ##
 
-    # name  = ascii.frame.parse.border_line
-    # descr = parse a border line into elements (fills, anchors, slots)
+# name  = ascii.frame.parse.border_line
+# descr = parse a border line into elements (fills, anchors, slots)
 
-    my $line = shift;
-    my @elements;
+my $line = shift;
+my @elements;
 
-    ## locate all slots first ##
-    my @slot_positions;
-    while ( $line =~ m{\{\{(\w+)(\.\.\.)?\}\}}g ) {
-        push @slot_positions,
-            {
-            name  => $1,
-            start => $-[0],
-            end   => $+[0],
-            };
-    }
+## locate all slots first ##
+my @slot_positions;
+while ( $line =~ m{\{\{(\w+)(\.\.\.)?\}\}}g ) {
+    push @slot_positions,
+        {
+        name  => $1,
+        start => $-[0],
+        end   => $+[0],
+        };
+}
 
-    ## process segments between slots ##
-    my $pos = 0;
-    for my $sp (@slot_positions) {
-        my $segment = substr( $line, $pos, $sp->{'start'} - $pos );
-        <[ascii.frame.parse.border_segment]>->( $segment, \@elements );
-        push @elements, { type => qw| slot |, name => $sp->{'name'} };
-        $pos = $sp->{'end'};
-    }
-    my $trailing = substr( $line, $pos );
-    <[ascii.frame.parse.border_segment]>->( $trailing, \@elements );
+## process segments between slots ##
+my $pos = 0;
+for my $sp (@slot_positions) {
+    my $segment = substr( $line, $pos, $sp->{'start'} - $pos );
+    <[ascii.frame.parse.border_segment]>->( $segment, \@elements );
+    push @elements, { type => qw| slot |, name => $sp->{'name'} };
+    $pos = $sp->{'end'};
+}
+my $trailing = substr( $line, $pos );
+<[ascii.frame.parse.border_segment]>->( $trailing, \@elements );
 
-    return \@elements;
+return \@elements;
 
-#,,,.,..,,...,.,.,.,.,.,,,,,,,,,,,,,,,,,,,.,,,..,,...,...,..,,,..,,,,,,.,,,,.,
-#TUQP5XDWSH7JIS55APVJ6ZQX74XVOY6TO5WQIQS2RMOPMNVBAC5Y324Q3RMMODZWA5SI7NWWN5N7C
-#\\\|UK4RKVBOB3W3XXL6T47NHW3HLWAU7TC26KLMWQHZ47HU6WCVPI2 \ / AMOS7 \ YOURUM ::
-#\[7]JRX2YRLWPLEGGUDMVWJT5J4V7SZJO32ZLPA55M2OC7F6LEA6P2AY 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,,,,.,,,.,,,.,,,.,.,.,,,..,,.,,,..,,...,...,,..,,.,,..,,,..,,,,,
+#FQEWET6YVVA26LA3ECRCXE4O35OKUW7P6D5RGDLDPHWQ6CYFEI3ADFHTOOKEAAC2ZPHQWD4Q6Y7KC
+#\\\|4B3ZO2TNWWGMBIU4APTSGBEPOMAZFMKJIQR754L5ZYR476HBPVM \ / AMOS7 \ YOURUM ::
+#\[7]6QN3NUF2LQ5EWCBS2SUQFVTODJXYTT3X7AQ76QRS55LSNDUVESBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
