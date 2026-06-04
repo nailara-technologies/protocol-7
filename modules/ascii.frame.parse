@@ -55,7 +55,7 @@ if ( scalar @border_candidates == 1
 }
 
 ## detect left and right border characters from content lines ##
-my ( $left_border, $right_border ) = ( ':', ':' );
+my ( $left_char, $right_char ) = ( ':', ':' );
 my @content_indices;
 for my $i ( $top_idx + 1 .. $bottom_idx - 1 ) {
     push @content_indices, $i;
@@ -72,17 +72,40 @@ for my $i (@content_indices) {
 }
 
 if ( keys %left_chars ) {
-    $left_border = (
+    $left_char = (
         sort { $left_chars{$b} <=> $left_chars{$a} }
             keys %left_chars
     )[0];
 }
 if ( keys %right_chars ) {
-    $right_border = (
+    $right_char = (
         sort { $right_chars{$b} <=> $right_chars{$a} }
             keys %right_chars
     )[0];
 }
+
+## detect border WIDTH : minimum consistent run of the border char ##
+## [ supports multi-char vertical borders like '::' - taking the min ##
+##   run guarantees the strip never eats into content ]              ##
+my ( $left_width, $right_width ) = ( ~0, ~0 );
+for my $i (@content_indices) {
+    my $line = $lines[$i];
+    next if not length $line;
+    my $lw = 0;
+    $lw++ while $lw < length($line)
+        and substr( $line, $lw, 1 ) eq $left_char;
+    my $rw = 0;
+    $rw++
+        while $rw < length($line)
+        and substr( $line, length($line) - 1 - $rw, 1 ) eq $right_char;
+    $left_width  = $lw if $lw < $left_width;
+    $right_width = $rw if $rw < $right_width;
+}
+$left_width  = 1 if $left_width == ~0  or $left_width < 1;
+$right_width = 1 if $right_width == ~0 or $right_width < 1;
+
+my $left_border  = $left_char x $left_width;
+my $right_border = $right_char x $right_width;
 
 ## extract content region [ strip left and right borders ] ##
 my @content;
@@ -98,12 +121,14 @@ my ( $lpad, $rpad ) = ( 0, 0 );
 my @static_samples;
 for my $line (@content) {
     next if not length $line;
+    ## pure-whitespace spacer rows carry no padding signal ##
+    next if $line !~ m{\S};
     next if $line =~ m{\{\{\w+(\.\.\.)?\}\}};
     push @static_samples, $line;
 }
 
-## fall back to all content if no static rows ##
-@static_samples = grep { length $ARG } @content if not @static_samples;
+## fall back to content with substance if no static rows ##
+@static_samples = grep {m{\S}} @content if not @static_samples;
 
 if (@static_samples) {
     my $min_left  = ~0;
@@ -248,8 +273,8 @@ my $descriptor = {
 
 return $descriptor;
 
-#,,.,,..,,,,,,,..,..,,...,,,,,,,,,,..,,,.,..,,..,,...,...,,,.,,,.,.,,,..,,...,
-#BQWAV3RAVIJQOZZRQN25A3JOCR7CT5KEJPLKMU6PX3OXZ4TNB65ECLRC57UTIYWJU2SG5TBHBBSNW
-#\\\|HGNOZW2PCFTK4WSHWTU7S4FY3BHQTNAET2QDYFVGRYAIOOSJ23K \ / AMOS7 \ YOURUM ::
-#\[7]O3YWEKDIY3Q4EVSCO2S7QIG3QDKZVHIUBXEED2OZG7N5BN5ADSBQ 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,..,..,,,,.,.,,,...,,.,,,,,,,,.,..,,...,.,.,..,,...,.,.,.,,,...,
+#QAB5ZU5GIYMUQEWXUVALLBR6U2EVOY7UZ222OJEZKJGEUUW2QX3W2YZJY4LO2OI5FT7CRHMSXTDKC
+#\\\|SLLEL4VL7K4XF4YGAEKHY76KKVYPMUQTE5WZOPEBP6ZTBQZFPEM \ / AMOS7 \ YOURUM ::
+#\[7]MEJRLIPJG2UTQNGS5XLN7WHNKU6Y3PR7E6POKUGYNJVGR4XM4EBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

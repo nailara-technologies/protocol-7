@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = memory.status.provider.weight_captured
+# descr = status provider : visible slice score fraction [ weight bar ]
+
+my $ctx = shift // {};
+
+my $children = $ctx->{'node'}{'children'} // [];
+my $visible  = $ctx->{'visible'}          // 0;
+my $width    = $ctx->{'width'}            // 23;
+
+my $total_score = 0;
+my $vis_score   = 0;
+my $idx         = 0;
+for my $child (@$children) {
+    $total_score += $child->{'score'} // 0;
+    $vis_score   += $child->{'score'} // 0 if $idx < $visible;
+    $idx++;
+}
+
+my $frac = $total_score > 0 ? $vis_score / $total_score : 0;
+my $text = <[ascii.frame.bar]>
+    ->( { frac => $frac, width => $width, char => ':' } );
+
+## [ pad / truncate to the fixed slot width so the border never jitters ]##
+$text = substr( $text, 0, $width ) if length $text > $width;
+$text = sprintf( '%-*s', $width, $text );
+
+## [ moderate baseline interest ; beaten by focus when focus active ]##
+return { value => $text, label => 'weight', interest => 0.5 * $frac };
+
+#,,,,,,,,,,,.,...,.,,,,.,,.,.,.,.,..,,,.,,.,.,..,,...,...,...,,,.,,,,,..,,...,
+#CTAKMUS7JGGWHIS4LFE4OCESOKB3TDYCWRAAUT3ET5ESVTSK74S4CJAKMCWJR6LOW7GK5LP5ESNFU
+#\\\|KQUN3V6HAW6BNBS55CKRVAHCSIL5OYYFNC37HGBIMXEKU2JPX4H \ / AMOS7 \ YOURUM ::
+#\[7]4D6IRA7PRHYXKLOQH344K44EYOZS5IO6TMMEWILAMKMURBXXGYAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

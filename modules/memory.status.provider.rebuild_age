@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = memory.status.provider.rebuild_age
+# descr = status provider : time since last tree rebuild [ age indicator ]
+
+my $ctx = shift // {};
+
+my $width = $ctx->{'width'} // 23;
+
+## [ inactive until first build records a numerical timestamp ]##
+my $built = <memory.built_ntime>;
+if ( not defined $built or $built !~ m{^\d+(\.\d+)?$} ) {
+    my $empty = sprintf( '%-*s', $width, '' );
+    return { value => $empty, label => 'rebuilt', interest => 0 };
+}
+
+## [ both raw numerical network time : seconds = delta / 4200 ]##
+my $age_sec = ( <[base.ntime]> - $built ) / 4200;
+$age_sec = 0 if $age_sec < 0;
+
+my $text
+    = $age_sec < 1
+    ? ':. just rebuilt .,'
+    : sprintf( ':. rebuilt %.0fs ago .,', $age_sec );
+
+## [ pad / truncate to the fixed slot width so the border never jitters ]##
+$text = substr( $text, 0, $width ) if length $text > $width;
+$text = sprintf( '%-*s', $width, $text );
+
+## [ brief flash : wins for ~10s after a rebuild, then yields to the ]##
+## [ resting default ( branch_count ) — floor stays below it ]##
+my $interest = $age_sec < 10 ? 0.6 : 0.04;
+
+return { value => $text, label => 'rebuilt', interest => $interest };
+
+#,,,.,,..,..,,...,,.,,..,,.,.,,..,..,,...,.,,,..,,...,...,...,...,..,,.,,,,.,,
+#RG67QWN7SCTKZ7XNYP74IU4AAIHNVPZKERCVNDXQLZ2IROICHHTRWAO2QGDIB7E6XKZGTF3CHYGTK
+#\\\|MB336FQZHPE4QHSOBATX4JG7ULL64NCCTFNQL42RTIPWN4FWSNC \ / AMOS7 \ YOURUM ::
+#\[7]WIK3YW5F2RBFHOI5VG5AXBKCAKFMZB7MRVKMLTD3GSU222WYOSBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
