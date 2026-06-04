@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = memory.status.provider.branch_count
+# descr = status provider : visible / total branch count [ fallback floor ]
+
+my $ctx = shift // {};
+
+my $visible = $ctx->{'visible'} // 0;
+my $total   = $ctx->{'total'}   // 0;
+my $width   = $ctx->{'width'}   // 23;
+
+my $text = sprintf( '%d of %d branches', $visible, $total );
+
+## [ pad / truncate to the fixed slot width so the border never jitters ]##
+$text = substr( $text, 0, $width ) if length $text > $width;
+$text = sprintf( '%-*s', $width, $text );
+
+## [ low constant interest : the always-available fallback ]##
+return { value => $text, label => 'branches', interest => 0.05 };
+
+#,,,.,.,.,,,.,.,.,..,,,.,,,,.,..,,,.,,.,.,,,.,..,,...,...,.,,,,.,,...,.,,,,,.,
+#6TUBJMO2YMUY4KGPXOEJUSF35MXQSJQ6P5ICD5T2DTJRGKEDOCVKPSMNXKELHRPIXP576JXBUZE6E
+#\\\|R7GEEAGMEUKZVVZHOGACKEALDWKVRM4O3VHM46KFKRY4UN5TLQQ \ / AMOS7 \ YOURUM ::
+#\[7]5KTCU6NRUMYGB4V4MUH36COV5JSB6MVGUWI3YPUZO5QQKMXYD2BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

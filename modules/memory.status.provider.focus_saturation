@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = memory.status.provider.focus_saturation
+# descr = status provider : focus hit ratio [ spikes when focus active ]
+
+my $ctx = shift // {};
+
+my $focus    = $ctx->{'focus'}            // {};
+my $children = $ctx->{'node'}{'children'} // [];
+my $width    = $ctx->{'width'}            // 23;
+
+## [ inactive when no focus set ]##
+if ( not scalar keys %$focus ) {
+    my $empty = sprintf( '%-*s', $width, '' );
+    return { value => $empty, label => 'focus', interest => 0 };
+}
+
+my $total = scalar @$children;
+$total = 1 if $total < 1;
+
+my $hits = 0;
+for my $child (@$children) {
+    $hits++ if ( $child->{'flow_focus'} // 0 ) > 0;
+}
+
+my $frac = $hits / $total;
+my $text = <[ascii.frame.bar]>
+    ->( { frac => $frac, width => $width, char => ':' } );
+
+## [ pad / truncate to the fixed slot width so the border never jitters ]##
+$text = substr( $text, 0, $width ) if length $text > $width;
+$text = sprintf( '%-*s', $width, $text );
+
+## [ must spike above weight_captured whenever focus is set ]##
+return { value => $text, label => 'focus', interest => 0.7 + 0.3 * $frac };
+
+#,,..,..,,.,,,.,,,,.,,,,.,.,.,.,,,.,.,,,,,.,,,..,,...,..,,,..,...,,..,,..,...,
+#WJZPDLV774KKJIFUY3TRMJBRB3Y63D3TDTWOBWELM6NHLMIWIGE53IIZIS7OJMNOPQ3JTXSYXEK2M
+#\\\|PHLMEBJKJLUF2QABM667NRLK2OYLL7PTVE2B2FH637BA324M35B \ / AMOS7 \ YOURUM ::
+#\[7]PWTDUWIXZ4FM4WKES6OS2MGI2JTPYPUN5LAI2USGEXOX6XGTDODI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
