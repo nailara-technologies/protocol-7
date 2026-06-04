@@ -44,14 +44,27 @@ return $input if not $any_color;
 ## split into lines preserving empties ##
 my @lines = split m{\n}, $input, -1;
 
+## split off any uniform leading-whitespace margin per line : classify and
+## colorize the border/content SHAPE, then re-apply the margin verbatim so an
+## outer frame margin never poisons side / corner detection ##
+my @indent;
+my @body;
+for my $i ( 0 .. $#lines ) {
+    if ( $lines[$i] =~ m{^(\s*)(.*)$} ) {
+        ( $indent[$i], $body[$i] ) = ( $1, $2 );
+    } else {
+        ( $indent[$i], $body[$i] ) = ( '', $lines[$i] );
+    }
+}
+
 ## identify border lines : strip bracketed regions first, then measure
 ## structural density on the remainder. position-independent [ works on
 ## composite output where nested frame top-borders sit mid-stream ] and
 ## avoids false positives from content rows carrying inline [brackets] —
 ## a top border diluted by a text slot still resolves to a border ##
 my %is_border;
-for my $i ( 0 .. $#lines ) {
-    my $line = $lines[$i];
+for my $i ( 0 .. $#body ) {
+    my $line = $body[$i];
     next if not length $line;
     ( my $bare = $line ) =~ s{\[[^\]]*\]}{}g;
     my $bare_len = length $bare;
@@ -62,24 +75,24 @@ for my $i ( 0 .. $#lines ) {
 }
 
 my @out;
-for my $i ( 0 .. $#lines ) {
+for my $i ( 0 .. $#body ) {
+    my $colored;
     if ( $is_border{$i} ) {
-        push @out,
-            <[ascii.frame.render.color.border_line]>->(
-            $lines[$i], \%A, $anchor_bold, $RESET
-            );
+        $colored = <[ascii.frame.render.color.border_line]>->(
+            $body[$i], \%A, $anchor_bold, $RESET
+        );
     } else {
-        push @out,
-            <[ascii.frame.render.color.content_line]>->(
-            $lines[$i], \%A, $RESET
-            );
+        $colored = <[ascii.frame.render.color.content_line]>->(
+            $body[$i], \%A, $RESET
+        );
     }
+    push @out, $indent[$i] . $colored;
 }
 
 return join "\n", @out;
 
-#,,..,.,.,...,.,,,,..,,.,,,,.,,.,,.,,,,,,,...,..,,...,...,.,,,.,,,,.,,..,,,,.,
-#242YV24B4XKYUBVQJ3653UTNSZNU3F5IJASU64OYCTTQGAX3BC4QODMSVQIPX4M7JWVF6OZJ266CS
-#\\\|EPZQZYIMHSLJLRDTALZXBSPMKUVHGP64TD34QC2KYGWKH3BYUX7 \ / AMOS7 \ YOURUM ::
-#\[7]S3YYL6PYIFV5VDBAWRKQSXO6GXPBOKWQISV6A36VDXXUEIUOMUCI 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,,.,,..,,,,,.,,,..,,.,,,,,.,,,.,..,,...,...,.,,,.,.,,,.,...,.,.,
+#5MG54HLSYQJDAOQZH6E3ZMDYI6KKY3UO4LRJY67GWPBD5V3MDLLETFPB2WE6ZGWSSQDG3AECSOXNM
+#\\\|LMJWD64QYMCXGLJ5XZFE2QJGAOQIBIPM5YOXLWAPJ6NC43VA6IT \ / AMOS7 \ YOURUM ::
+#\[7]GM7CN65RR6QR2ISMOCFDSR2PK2TDF7W6QLQBMDFXKVYFBIEMQOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

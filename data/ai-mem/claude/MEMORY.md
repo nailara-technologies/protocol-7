@@ -16,6 +16,7 @@
 - [ascii-frame-system](topic-ascii-frame-system.md) — reverse parser, elastic renderer, DRC validator
 - [frame-plugin-slots](topic-frame-plugin-slots.md) — status-bar plugin slots + context-aware selector; variable border width; vertical-slot roadmap
 - [ascii-desktop-domains](topic-ascii-desktop-domains.md) — border glyphs are domain-scoped; nested domains = nested planes = ascii desktop; role-vs-glyph descriptor is the windowing unlock
+- [frame-idiom-convergence](topic-frame-idiom-convergence.md) — NEW frame features: margin/vertical-padding/self-invalidating-cache/corner-pinning-spring; `.:[ ]::[ ]:.` idiom; 5 frames still need conversion (REQUIRED)
 - [plugin-web-jobs](topic-plugin-web-jobs.md) — delta sync WORKING; open: ?since=N, remote deploy
 - [clients-http](topic-clients-http.md) — clients.http.* + clients.https.* async; kimi-web parallel dispatch
 - [reasoning-chain-repository](topic-reasoning-chain-repository.md) — native model; dedup-based self-improvement
@@ -155,8 +156,8 @@
 
 **Diagnostic:** Improved `base.handler.command` syntax error log to show full bad line (`line=['...']`) instead of stripping it.
 
-#,,,.,..,,,,.,..,,..,,..,,...,,..,...,..,,.,,,..,,...,...,.,,,,.,,.,.,,..,,,.,
-#WCNKPWHKKNEIZ2FQK76V5D7PGDSKPBMELJ27UKGE7ZCFESMXYTEN3B5CBIJFQEPAO4GOOYMG5AKOU
-#\\\|TEAA5C3OEFIFUS26LRH2OQJ37SFWFPEUPKCTLWKNHSE4XVCVII7 \ / AMOS7 \ YOURUM ::
-#\[7]GGDWNJLAMXCYEJ45REAUPVUSXW7Y6LT3JKS5AE4HR3QOPZTUUEBA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,,,,.,,,,.,,..,,...,,.,,,.,,,,,,..,,...,...,...,...,,..,,,.,...,
+#LAFQCCONBTVG4BLVS5URTNJTSTHMRNLM3YFW7BUD3OZKFL4T54D55IWU5TCV4TDR554K36JT7WXCS
+#\\\|JSO7PAVB3FKOAGGPMSIQQL3G5SNOPOD47TFXFDZAZQJFZ22QX3G \ / AMOS7 \ YOURUM ::
+#\[7]GTUO4DJ4MKNQ3PGPKUS23PLOWIBVFQ3NLDOQQRBDYSYDH66O3SCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

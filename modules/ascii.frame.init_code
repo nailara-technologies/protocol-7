@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = ascii.frame.init_code
+# descr = reset the frame descriptor cache on init / reload
+
+## ascii.frame.load caches parsed descriptors keyed by frame name. clearing
+## the cache here — base.init_modules re-runs init_code on every source
+## reload — lets edited frame yaml take effect on reload without a cold
+## zenka restart, while keeping the lifecycle owned by the frame system
+## itself rather than leaking frame specifics into generic base.cmd.reload ##
+
+<ascii.frame.cache> = {};
+
+return TRUE;
+
+#,,,.,...,.,.,...,..,,.,.,,..,,,.,,,.,,,,,,,,,..,,...,...,,..,..,,...,,,,,,,.,
+#22H74DRTN6YF5NJZM6VGKPD3MULLDNJ7QWFNQGAXLCJLJMNTG2A7JXBBPKIZSQ22YOIVQDSOSDQEC
+#\\\|QCEMWVCP62G7DRLUCIJQUCXCNLCJLBAH5XQ7ALGUMAJ25NCV3FW \ / AMOS7 \ YOURUM ::
+#\[7]7ZIHWAO24N6KZ4QO6OBGCWRD4WAZT3IPK45EAGRNLM3UO5WQ32CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
