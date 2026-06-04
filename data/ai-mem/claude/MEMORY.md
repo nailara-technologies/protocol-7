@@ -14,6 +14,7 @@
 
 ## Active Topics
 - [ascii-frame-system](topic-ascii-frame-system.md) — reverse parser, elastic renderer, DRC validator
+- [frame-plugin-slots](topic-frame-plugin-slots.md) — status-bar plugin slots + context-aware selector; variable border width; vertical-slot roadmap
 - [plugin-web-jobs](topic-plugin-web-jobs.md) — delta sync WORKING; open: ?since=N, remote deploy
 - [clients-http](topic-clients-http.md) — clients.http.* + clients.https.* async; kimi-web parallel dispatch
 - [reasoning-chain-repository](topic-reasoning-chain-repository.md) — native model; dedup-based self-improvement
@@ -153,8 +154,8 @@
 
 **Diagnostic:** Improved `base.handler.command` syntax error log to show full bad line (`line=['...']`) instead of stripping it.
 
-#,,,,,.,.,.,.,.,,,,.,,,,.,..,,.,.,,,.,,,,,,,.,..,,...,...,,,.,..,,,,.,,.,,..,,
-#YQGLTFPXUWZWGAAJXJIANHN7TCJZT4OZTMXMLQFPIJQ4H3W3V7AVY34GWL7TKYP2HHQ7GJXE4DEB2
-#\\\|XYVD5VN3HN73JVLDTNJ45RXXXX5NDQ5NIV6MQEQR7MGNWCTY7S7 \ / AMOS7 \ YOURUM ::
-#\[7]56LY3LYINJM3F4PTMIFBTOJ6XT5M4SKPFUOVSM4SFFUU23YZLGCA 7  DATA SIGNATURE ::
+#,,,.,,..,...,,,,,..,,.,.,.,,,,,.,,..,,,,,,,.,..,,...,...,...,..,,...,...,,,,,
+#NBEOLALYE3O6VLZ3WW62O3PWWF42JP5ZZ6DVFMVW2SVYHFA4WLLZLPPQIZFZLJLYU6KY5WAW44SVU
+#\\\|OR4DY4PIPR7L5W66WCOPFIXJZZ3VJQZNQTJ3LRKD6U5TZ5VI3M6 \ / AMOS7 \ YOURUM ::
+#\[7]SKDZIAI6IOWGFVZB65IUROCH6QIPITVHDC2KSDHGODYLSF6NBMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

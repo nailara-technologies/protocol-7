@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = ascii.frame.bar
+# descr = render a fractional value [ 0..1 ] as a ptd-style fill bar to a width
+
+my $params = shift // {};
+
+my $frac  = $params->{'frac'}  // 0;
+my $width = $params->{'width'} // 0;
+my $char  = $params->{'char'}  // ':';
+
+## [ clamp into range ]##
+$frac  = 0 if $frac < 0;
+$frac  = 1 if $frac > 1;
+$width = 0 if $width < 0;
+
+my $fill = int( $width * $frac );
+$fill = $width if $fill > $width;
+
+## [ left-justify the fill run, space-padded to full width — ptd style ]##
+return sprintf( '%-*s', $width, $char x $fill );
+
+#,,,.,...,..,,.,,,,,.,,,.,,.,,,,.,,.,,,..,.,.,..,,...,...,...,.,.,.,,,,..,,.,,
+#L2EBZKIPB4VLZNLKAYWHUJGQ6XLYLSSDTCPXAXAO2QHWUBGCPBC5X6FEBVWLQHVNK6FFPKBQPXTR2
+#\\\|2C7SA3IV5YEWANDWH2QP6RTGAL3OR5525TV5MLABY7VQJRI3OLP \ / AMOS7 \ YOURUM ::
+#\[7]CEFL74IUXV467SETCNYG6MNBDL7EPS26ZR352UATFXQSLJXVO4CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
