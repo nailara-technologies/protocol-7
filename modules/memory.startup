@@ -7,16 +7,64 @@ return TRUE if <memory.ready>;    ## [ idempotent ] ##
 
 my $cfg = <memory.cfg> // {};
 
-## [ adapters temporarily disabled for stability testing ]##
-<[base.logs]>->( 2, 'memory startup : empty tree — adapters disabled' );
+## [ resolve absolute ai-mem dir ] ##
+my $dir  = $cfg->{'ai_mem_dir'} // 'data/ai-mem';
+my $root = <system.root_path>;
+$dir = "$root/$dir" if $dir !~ m{^/};
+
+## [ build from file adapter ] ##
+my $leaves = <[memory.source.file]>->( { dir => $dir } ) // [];
+
+<[memory.tree.init]> if not defined <memory.tree>;
+
+for my $leaf (@$leaves) {
+    my $ref    = $leaf->{'source_ref'} // '';
+    my ($file) = split /#/, $ref, 2;
+    $file //= '';
+    $file =~ s{^.*/}{};
+    $file =~ s{\.(md|txt|log)$}{}i;
+
+    my $path;
+    my $group_by = $cfg->{'group_by'} // 'file';
+
+    if ( $group_by eq 'flat' ) {
+        $path = [];
+    } elsif ( $group_by eq 'source-type' ) {
+        $path = [ $leaf->{'source_type'} // 'file' ];
+    } elsif ( $group_by eq 'section-class' ) {
+        my $class;
+        my $curve = $leaf->{'curve_type'} // '';
+        if ( $curve eq 'gaussian_pulse' ) {
+            $class = 'CRITICAL';
+        } elsif ( $curve eq 'quantized' ) {
+            $class = 'Active Topics';
+        } elsif ( $curve eq 'exponential' ) {
+            $class = 'Archive';
+        } else {
+            $class = 'General';
+        }
+        $path = [$class];
+    } else {    ## [ default: file ] ##
+        $path = [$file];
+    }
+
+    <[memory.tree.insert]>->( { leaf => $leaf, path => $path } );
+}
+
+## [ flow then score whole tree once ] ##
+<[memory.tree.flow]>->( { node => <memory.tree> } );
+<[memory.tree.score]>->( { node => <memory.tree> } );
 
 <memory.ready> = TRUE;
-<[base.logs]>->( 2, 'memory tree built — ready' );
+<[base.logs]>->(
+    2,                'memory tree built : %d leaves, group_by=%s',
+    scalar(@$leaves), $cfg->{'group_by'}
+);
 
 return TRUE;
 
-#,,..,...,,.,,..,,,.,,.,.,...,,.,,...,,..,...,..,,...,...,,,.,.,,,,,.,.,.,,..,
-#BLVBQMOXQKKYMJVPUKDPILMTNHCGMJKUKPKAOGWHIMHHRF3OHZNLS5CL3LVQJ2A5PI7VPRGEWXLSQ
-#\\\|66HCA6LR4CLQGD3YBJSES7SSITU4B7PYSHX7KF2OH7KQGEYDERL \ / AMOS7 \ YOURUM ::
-#\[7]DTMUVVSF4IZMDSE2UXMJ3P5RP4CF3GIEYWF4YSGFSU5SXTL24KDI 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,...,.,.,,,,,,..,.,,,,.,,...,,,,,..,,...,...,...,,,.,.,.,.,.,...,
+#MRGG4BSSVHED44EC4EPMJFJZCRQZMG6CQU2JU5URQUOUMZD5GTZKAVDJ77SDAXPI2SAYXTRFGQXXM
+#\\\|KPT6RRKHGGSQ55YXLKD72OGF7P4HKZ3YPVD7NXLTB5UANZHO5AK \ / AMOS7 \ YOURUM ::
+#\[7]GVBZME5NL24FCZDM36UTRC7NY7OVP4T7KTYGGKWBFFJNLUK6O6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
