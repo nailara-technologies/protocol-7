@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = ascii.frame.slot.select
+# descr = run candidate providers, surface the most interesting value for the page
+
+my $params = shift // {};
+
+my $providers = $params->{'providers'} // [];
+my $context   = $params->{'context'}   // {};
+
+return { value => '', label => '', interest => 0 } if not @$providers;
+
+## [ run each provider, keep the highest interest — earliest wins on ties ]##
+my $winner;
+my $best = -1;
+
+for my $provider (@$providers) {
+    next if ref $provider ne qw| CODE |;
+
+    ## [ a broken provider is skipped, never a dead render ]##
+    my $result;
+    eval { $result = $provider->($context); };
+    next if $@ or ref $result ne qw| HASH |;
+
+    my $interest = $result->{'interest'} // 0;
+
+    ## [ strictly greater keeps registration order as the tie-break ]##
+    if ( $interest > $best ) {
+        $best   = $interest;
+        $winner = $result;
+    }
+}
+
+## [ all providers failed : empty value keeps the slot harmless ]##
+$winner //= { value => '', label => '', interest => 0 };
+
+return $winner;
+
+#,,,,,,.,,,.,,,,.,..,,.,.,,.,,..,,..,,.,.,,,.,..,,...,...,,,,,.,.,.,,,.,.,..,,
+#I4K3LFKIIG7LJOK2MWTQNAON4PKRUBJGBSDXFYUYEFF3ZDID65RARZ5DAUVVEAKLYZDD3FBFHVSVO
+#\\\|N5NZI3LQCZ4RGRWWYGJPV6DIWYYLE4YHWP34J2SQ3TCKWK3W62O \ / AMOS7 \ YOURUM ::
+#\[7]REPGOYHFFUSUUUZNCTDE3F4JSPLQ7SARDEKCBZXF5RH5IUPZIYDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

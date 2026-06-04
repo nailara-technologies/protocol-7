@@ -60,7 +60,38 @@ my %values = (
     PREVIEW   => $preview,
     CHILDREN  => $node->{'_children_rendered'} // '',
     BRANCHES  => $node->{'_branches_rendered'} // '',
+    PROGRESS  => '',
+    STATUS    => '',
 );
+
+## [ root status slot : context-aware provider selection ]##
+## [ providers ranked by interest, fill the ptd-style bracket region ]##
+if ( $variant eq 'root' ) {
+    my $cfg   = <memory.cfg.status_providers> // 'branch_count';
+    my @names = split ' ', $cfg;
+
+    my @providers;
+    for my $name (@names) {
+        my $mod = "memory.status.provider.$name";
+        ## [ closure defers the call so a missing module is simply skipped ]##
+        push @providers, sub { $code{$mod}->( $_[0] ) };
+    }
+
+    my $ctx = {
+        node    => $node,
+        visible => $n_vis,
+        total   => $total,
+        focus   => <memory.focus> // {},
+        variant => 'root',
+        width   => 23,
+    };
+
+    my $winner = <[ascii.frame.slot.select]>
+        ->( { providers => \@providers, context => $ctx } );
+
+    $values{'PROGRESS'} = $winner->{'value'} // '';
+    $values{'STATUS'}   = $winner->{'label'} // '';
+}
 
 ## [ borderless compact : plain template substitution ]##
 if ( $variant eq 'compact' ) {
@@ -127,8 +158,8 @@ if ( ( $frame->{'border_style'} // 'single' ) eq 'double' ) {
 
 return $rendered;
 
-#,,,.,..,,...,.,,,..,,,.,,...,.,,,,.,,,.,,,..,..,,...,...,..,,,,.,..,,...,.,,,
-#NHJCC2IPM247P6DZJJVTCF42OO7ROR7TETRPYOQZG4LZPMFCBQXEEBDJFFK5AJR3WJPVK67RLXXVM
-#\\\|LK3P6ZFZUGUQI3NCPKU6BE777UXKGTKIASUGZ24PIFF3HZYADIC \ / AMOS7 \ YOURUM ::
-#\[7]Q3YP22ETRIW56IWEBP5IXVE6G7HYUCSSUA4Q6QQUJW4AIIEMNYCY 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,.,,,,,.,,.,,,..,,,,,..,,.,,,,,,,..,,...,...,..,,,,.,,,.,...,,.,,
+#DQ7263BL3U6CO3HFOOKCGIMEQ3A3KOINLPUV6D4UWZOHTAEASBDQRPGLPYAM2KCRETA6NMCNTSPMU
+#\\\|6OS46HMPMYHIKDLV47T7OKADLLECHZWNXCA3OUTG7CKG6YISD75 \ / AMOS7 \ YOURUM ::
+#\[7]3IGLXVQFJQ5PEEKEA645TY5BJZ6OR2XQKQ7W3D7KES4SRQNMKUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
