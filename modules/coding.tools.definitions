@@ -1830,10 +1830,36 @@ if ( exists $code{'coding.tools.handler.summarize_context'} ) {
         };
 }
 
+## search_memory : focus-scored memory tree lookup ##
+push @tools,
+    {
+    'type'     => 'function',
+    'function' => {
+        'name'        => 'search_memory',
+        'description' =>
+            'search the focus-scored memory tree for relevant context. '
+            . 'boosts query terms in the memory zenka focus vector, '
+            . 're-scores the tree by recency × focus × IDF, and returns '
+            . 'the top-ranked branches as compact ASCII. '
+            . 'use to retrieve relevant project memory mid-task.',
+        'parameters' => {
+            'type'       => 'object',
+            'properties' => {
+                'terms' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'one or more space-separated search terms'
+                },
+            },
+            'required' => ['terms'],
+        },
+    },
+    };
+
 return \@tools;
 
-#,,.,,,,.,,.,,,..,,,.,.,.,,..,,,,,,,.,...,.,.,..,,...,..,,..,,...,.,.,,.,,,.,,
-#ZYS6BNHBE2M2OPNMPZP6C6WXYR5MWSXPUNQEASTNHK2HQNUBS4BLWQ4YUHHON4RGVTGPPIK4YTMQY
-#\\\|5A5AQQDK4AULMWL5XTB6HN2FPU6PBTRO5BRJFQ6A4W5VA7FKNZ7 \ / AMOS7 \ YOURUM ::
-#\[7]KGV3A3F7THTBEJCLJKKP6EH2UJ4O2SYVD4NVE6Z6JHJ4Y3PFUICA 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,,,,..,,,..,,,.,,,,,,,.,,,,,,.,,..,,...,...,,,,,..,,.,.,,,.,,..,
+#XVYLIEIQ5BR6S3TNIE4XWVOXCEMUH5KNJVNW2SO3LFOBVV4G7YZM4HMJY2EMZWRJ5XBKAIW4J2ALW
+#\\\|2YQVMSBR4WISA3WSSHNSQ3AVHSTTS6ACOIKGJE4FFUEEFVCZ3YV \ / AMOS7 \ YOURUM ::
+#\[7]HIHEX42Y4KCVTHLUALXXQTJ4USVPJ47GEQZ6WQBZBSA5BEXQEADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
