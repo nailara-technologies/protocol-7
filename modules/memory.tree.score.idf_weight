@@ -1,0 +1,53 @@
+## [:< ##
+
+# name = memory.tree.score.idf_weight
+# descr = compute idf rarity multiplier for a single node
+
+my $params       = shift                     // {};
+my $node         = $params->{'node'}         // {};
+my $wc           = $params->{'wordcount'}    // {};
+my $total_leaves = $params->{'total_leaves'} // 1;
+
+return 1.0 if $total_leaves <= 0;
+
+my @stopwords = qw(
+    the a an and or of in to for with at by from is are was be has have it this
+    that on as
+);
+
+my %stop;
+@stop{@stopwords} = ();
+
+my $text = join ' ',
+    grep {defined} ( $node->{'body'} // '', $node->{'title'} // '' );
+
+my %seen;
+my @idf_vals;
+for my $raw ( split /\W+/, $text ) {
+    my $t = lc($raw);
+    next if length $t < 2;
+    next if exists $stop{$t};
+    next if $seen{$t}++;
+    next if not exists $wc->{$t};
+    my $df = $wc->{$t};
+    next if $df <= 0;
+    push @idf_vals, log( $total_leaves / $df );
+}
+
+@idf_vals = sort { $b <=> $a } @idf_vals;
+
+my $sum = 0;
+for my $i ( 0 .. 2 ) {
+    last if $i > $#idf_vals;
+    $sum += $idf_vals[$i];
+}
+
+$sum = 1.0 if $sum < 1.0;
+
+return $sum;
+
+#,,..,,,.,..,,.,.,,,,,,..,,.,,,,,,...,..,,...,..,,...,...,.,,,,.,,.,.,,,.,..,,
+#DHONJW6VZY2EX5572EOWQTNYPTRM5ERGR7FCDZGLLFWGZWPAG665AAGBN6NUVEJQHOJF2YSTQMI7Q
+#\\\|7BL4USOEPJK4BZDLATPJ5SMLMFJ3BZWV2ORZ2ILTBG2CKNRIHZD \ / AMOS7 \ YOURUM ::
+#\[7]O6BK7AEY33WYDTTEZQMSMS6PVJHYQ7SIRSQLJO5YTYRV3XSXF6BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

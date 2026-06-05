@@ -1,0 +1,48 @@
+## [:< ##
+
+# name = memory.tree.wordcount
+# descr = build term-document-frequency table from all leaf nodes
+
+my $params = shift             // {};
+my $node   = $params->{'node'} // {};
+
+my @stopwords = qw(
+    the a an and or of in to for with at by from is are was be has have it this
+    that on as
+);
+
+my %stop;
+@stop{@stopwords} = ();
+
+my %wc;
+my $total_leaves = 0;
+
+## [ iterative walk — stack avoids deep recursion ]##
+my @stack = ($node);
+while (@stack) {
+    my $n    = pop @stack;
+    my $type = $n->{'type'} // '';
+    if ( $type eq 'leaf' ) {
+        $total_leaves++;
+        my $text = join ' ',
+            grep {defined} ( $n->{'body'} // '', $n->{'title'} // '' );
+        my %terms_in_leaf;
+        for my $raw ( split /\W+/, $text ) {
+            my $t = lc($raw);
+            next if length $t < 2;
+            next if exists $stop{$t};
+            $terms_in_leaf{$t} = 1;
+        }
+        $wc{$_}++ for keys %terms_in_leaf;
+    } elsif ( $type eq 'branch' or $type eq 'root' ) {
+        push @stack, @{ $n->{'children'} // [] };
+    }
+}
+
+return { 'wordcount' => \%wc, 'total_leaves' => $total_leaves };
+
+#,,..,.,,,,..,.,.,...,,.,,,,.,,..,.,.,..,,.,.,..,,...,...,,,.,,.,,,..,.,,,,..,
+#IVOTQNZP5MZZ33REWCVJULXOSRTBW3UVMRZBE2WC5NT3NJZBTFY2ENURGU52KWT6RLBIXZQ5MYVEK
+#\\\|Q36GY5QFLPRVHXNWWZ6ECXEI3IFJVPCLDY3R67EUKA6ENWN3PIB \ / AMOS7 \ YOURUM ::
+#\[7]JMF4UCWP7DPQEZ5THI6MFA6QLR2LQI375HO6VW64W6C2AJ2VIWAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
