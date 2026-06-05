@@ -1,0 +1,89 @@
+## [:< ##
+
+# name = memory.source.index
+# descr = index lookup/correlate -> focus boosts + cross edges
+
+my $params = shift // {};
+my $topic  = $params->{'topic'};
+
+my @topics;
+if ( defined $topic and length $topic ) {
+    push @topics, $topic;
+} else {
+    my $focus = <memory.focus> // {};
+    @topics = keys %$focus;
+}
+
+return [] if not @topics;
+
+<[base.logs]>
+    ->( 2, 'memory.source.index: topics=[%s]', join( ',', @topics ) );
+
+## [ route to focused index zenka ] ##
+my $index_zenka = 'index-mem';
+
+for my $t (@topics) {
+    my $focus      = <memory.focus> // {};
+    my $base_boost = $focus->{$t}   // 1.0;
+    <[base.logs]>->(
+        2,  'memory.source.index: topic=%s boost=%s',
+        $t, $base_boost
+    );
+    next if $base_boost <= 1.0;
+
+    my $derived_boost = $base_boost * 0.5;
+    $derived_boost = 3.0 if $derived_boost > 3.0;
+
+    <[base.logs]>->( 1, 'memory.source.index: sending lookup for %s', $t );
+
+    my $sent = <[protocol-7.route-send]>->(
+        {   'command'   => 'index-mem.lookup',
+            'call_args' => { 'args' => $t },
+            'reply'     => {
+                'handler' => 'memory.source.index.lookup_reply',
+                'params'  => {
+                    'topic'         => $t,
+                    'derived_boost' => $derived_boost,
+                },
+            },
+        }
+    );
+    <[base.logs]>->(
+        1,
+        'memory.source.index: lookup sent=%s',
+        $sent // 'undef'
+    );
+}
+
+## [ cross edges via correlate between topic pairs ] ##
+for my $i ( 0 .. $#topics - 1 ) {
+    for my $j ( $i + 1 .. $#topics ) {
+        my ( $t1, $t2 ) = ( $topics[$i], $topics[$j] );
+
+        my $sent = <[protocol-7.route-send]>->(
+            {   'command'   => 'index-mem.correlate',
+                'call_args' => { 'args' => "$t1 $t2" },
+                'reply'     => {
+                    'handler' => 'memory.source.index.correlate_reply',
+                    'params'  => {
+                        'from' => $t1,
+                        'to'   => $t2,
+                    },
+                },
+            }
+        );
+        <[base.logs]>->(
+            1,
+            'memory.source.index: correlate sent=%s',
+            $sent // 'undef'
+        );
+    }
+}
+
+return [];
+
+#,,.,,.,,,,.,,,.,,.,,,,.,,...,.,.,,,.,.,.,...,..,,...,...,,..,.,.,.,,,.,,,..,,
+#IKA3CHOV5ZPT4YZRCOZSOG74NTZD3DGR3357OLA2TEGZKDTGUF5Q7LURZ4ZZIG232FFTGKUXM62DG
+#\\\|VLRC6IJBYPEEQQWY4YFDCFTHMIB7HIDYFANPUYJNH6UKBDDMZQ5 \ / AMOS7 \ YOURUM ::
+#\[7]2ZWRPT3FTWTUASE2KIX6GBAHGERHTB3Q7RUJGBBUDTG5DNHATECY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

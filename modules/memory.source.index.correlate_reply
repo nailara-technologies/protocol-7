@@ -1,0 +1,59 @@
+## [:< ##
+
+# name = memory.source.index.correlate_reply
+# descr = parse index correlate reply and store cross edges
+
+my $reply  = shift;
+my $cmd    = $reply->{'cmd'}    // '';
+my $data   = $reply->{'data'}   // '';
+my $params = $reply->{'params'} // {};
+
+return if $cmd ne 'SIZE';
+
+my $from = $params->{'from'} // '';
+my $to   = $params->{'to'}   // '';
+return if not length $from or not length $to;
+
+## [ count shared continuations as weight proxy ] ##
+my $count = 0;
+for my $line ( split /\n/, $data ) {
+    $count++ if $line =~ m|^\s*'[^']+'\s+|;
+}
+
+my $weight = $count > 0 ? 0.3 + ( $count * 0.1 ) : 0;
+$weight = 1.0 if $weight > 1.0;
+
+return if $weight <= 0;
+
+my $edges = <memory.tree.edges> //= [];
+
+## [ dedup edges — avoid duplicate from/to pairs ] ##
+my $found = 0;
+for my $e (@$edges) {
+    if (    lc( $e->{'from'} // '' ) eq lc($from)
+        and lc( $e->{'to'} // '' ) eq lc($to) ) {
+        $e->{'weight'} = $weight;
+        $found = 1;
+        last;
+    }
+}
+
+push @$edges,
+    {
+    from   => $from,
+    to     => $to,
+    weight => $weight,
+    ntime  => <[base.ntime.b32]>->(<[base.ntime]>),
+    }
+    if not $found;
+
+## [ cap edge list size ] ##
+splice @$edges, 0, scalar(@$edges) - 1000 if scalar(@$edges) > 1000;
+
+return TRUE;
+
+#,,.,,...,,..,,,.,,,,,,,,,,.,,..,,...,,,.,,.,,..,,...,...,...,,..,,,.,..,,.,,,
+#WGCMBWUZ3OMTDK7MNVMLLQRU5K2DX2ATR7ZUXLYK4V3DZF47QRCTCCN5757ZGKK27MPMMZ5D2BPYI
+#\\\|5MG67IAR7EIRGYTLXIMUDWJPLRUHQY7QOSRYRDAZCZR2UCC2J4U \ / AMOS7 \ YOURUM ::
+#\[7]6SNLK3WM3CFUCWMU5LJD7EO7H76JKYOL5TGGLZX4F645G2NNR2BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

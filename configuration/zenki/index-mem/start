@@ -4,7 +4,8 @@
 [load_config_file:'shared-params']
 
 modules.load          = net protocol io.unix auth index \
-                        base.chk-sum.bmw384 route.bmw384  devmod # <- !!
+                        base.chk-sum.bmw384 base.chk-sum.amos \
+                        route.bmw384  devmod # <- !!
 
 access.cmd.usr.cube   = verify-instance commands heart reload \
                         list show-buffer buffer-erase buffer-erase-level \
@@ -15,6 +16,10 @@ access.cmd.usr.cube   = verify-instance commands heart reload \
                         stats address decode feed-dir export persist restore \
                         replace remove \
                         * # <-- !! [devmod]
+
+access.cmd.usr.memory = lookup correlate cluster feed-dir stats
+
+access.cmd.usr.*      = feed-dir lookup correlate cluster stats
 
 index.path.index-cfg   = /data/index-mem/set-up/index-paths
 index.path.index-files = /data/index-mem/data/index-state
@@ -34,8 +39,8 @@ start.on-demand = 1
 
 [zenka.loop]
 
-#,,,,,.,.,.,.,,.,,,.,,.,,,,,,,,.,,.,.,.,,,,,.,..,,...,..,,.,.,.,.,..,,..,,,.,,
-#AGFQEDLPHIWB5DDGYXNCZOV3U3PDVTW7S3UBWXZYXJNS3ECY67PIMHDSJOGQ7MD7FD3TCLWTAYYSY
-#\\\|CFQHA3J3ERW36JRUEKWFS3WA3D52GJMOJMLZLV6XYI7PU3OEEF6 \ / AMOS7 \ YOURUM ::
-#\[7]UZP33LJ5O7G3CAQP4Q7DQDQNSPKI6FHFSB3DMKNZTYQOBKNUY6CQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,.,,,,..,.,.,,.,,,,,,,..,,.,,.,.,..,,...,..,,,,.,,..,,.,,.,,,,.,,
+#ZDHDQYMPCQB66N5EYH5DFOSEPOURX3LJ5VS2J5ZF2GTJVOWLOYEEW2VDSOQNRXHDGAABGRLYYMVYM
+#\\\|R6JSWE5Q66V6KXJERNT4TIFQH6NMGXKPAZ5VPNNBQQLJ4AEZQFO \ / AMOS7 \ YOURUM ::
+#\[7]AR65UAB7NK3FFFVHGL2SNYFAESAO3CD42W7PWFHWMSDDTQVPC2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
