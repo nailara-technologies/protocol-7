@@ -629,6 +629,49 @@ our @tools = (
             'additionalProperties' => \0
         }
     },
+    {   'name'        => 'p7_memory_search',
+        'description' =>
+            'search the focus-scored memory tree for relevant topics. '
+            . 'boosts query terms in the focus vector, re-scores the tree, '
+            . 'and returns the top-ranked branches as compact ASCII output. '
+            . 'use when you need to find memory about a specific topic.',
+        'inputSchema' => {
+            'type'       => 'object',
+            'properties' => {
+                'terms' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'one or more space-separated search terms'
+                },
+            },
+            'required'             => ['terms'],
+            'additionalProperties' => \0
+        }
+    },
+    {   'name'        => 'p7_memory_digest',
+        'description' =>
+            'search the focus-scored memory tree and return a prose digest. '
+            . 'runs memory.search to score the tree by relevance, then '
+            . 'summarizes the top leaves via the local coding zenka. '
+            . 'slower than p7_memory_search but returns a concise summary.',
+        'inputSchema' => {
+            'type'       => 'object',
+            'properties' => {
+                'terms' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'one or more space-separated search terms'
+                },
+                'max_tokens' => {
+                    'type'        => 'integer',
+                    'description' =>
+                        'target summary length in tokens (default: 400)'
+                },
+            },
+            'required'             => ['terms'],
+            'additionalProperties' => \0
+        }
+    },
 );
 
 ##[ load chat tool definitions ]##
@@ -818,6 +861,10 @@ sub handle_tools_call {
         tool_p7_memory_summary( $id, $args );
     } elsif ( $name eq 'p7_memory_update' ) {
         tool_p7_memory_update( $id, $args );
+    } elsif ( $name eq 'p7_memory_search' ) {
+        tool_p7_memory_search( $id, $args );
+    } elsif ( $name eq 'p7_memory_digest' ) {
+        tool_p7_memory_digest( $id, $args );
     } elsif ( my ($ext) = grep { $_->{'name'} eq $name } @external_tools ) {
         tool_external_command( $id, $args, $ext );
     } else {
@@ -993,7 +1040,7 @@ sub tool_p7_chat {
         return tool_p7_chat_read( $id, $args );
     }
 
-    my $width = 72;
+    my $width  = 72;
     my $top    = '.:[ ]' . ( ':' x ( $width - 12 ) ) . '::[ chat ]:.';
     my $bottom = ':' . ( '.' x ( $width - 2 ) ) . ':';
 
@@ -1870,6 +1917,70 @@ sub tool_p7_memory_update {
     }
 }
 
+## =========================================================================
+## memory search tool — scored tree, synchronous SIZE reply
+## =========================================================================
+
+sub tool_p7_memory_search {
+    my ( $id, $args ) = @ARG;
+
+    my $terms = $args->{'terms'} // '';
+    if ( not length $terms ) {
+        return send_tool_result( $id, 'terms is required', 1 );
+    }
+
+    my ( $ok, $response ) = cube_command("memory.search $terms");
+    send_tool_result( $id, $response, $ok ? 0 : 1 );
+}
+
+## =========================================================================
+## memory digest tool — scored search + prose summary via coding zenka
+## =========================================================================
+
+sub tool_p7_memory_digest {
+    my ( $id, $args ) = @ARG;
+
+    my $terms      = $args->{'terms'}      // '';
+    my $max_tokens = $args->{'max_tokens'} // 400;
+
+    if ( not length $terms ) {
+        return send_tool_result( $id, 'terms is required', 1 );
+    }
+
+    ## [ get scored tree from memory zenka — synchronous SIZE reply ]##
+    my ( $ok, $tree ) = cube_command("memory.search $terms");
+    if ( not $ok or not length $tree ) {
+        return send_tool_result( $id,
+            'memory.search failed or returned empty', 1 );
+    }
+
+    ## [ prose-summarize via coding zenka ]##
+    my $instruction
+        = "summarize the following memory tree sections relevant to: $terms";
+    my $result = '';
+    my $error  = '';
+    eval {
+        local $SIG{ALRM} = sub { die "timeout\n" };
+        alarm(247);
+        $result = _do_summarize( $tree, $instruction, $max_tokens );
+        alarm(0);
+    };
+    if ($@) {
+        cube_disconnect();
+        $error
+            = $@ eq "timeout\n"
+            ? 'digest timed out after 247s'
+            : "error: $@";
+    }
+
+    if ( length $error ) {
+        send_tool_result( $id, $error, 1 );
+    } else {
+        $result //= 'digest failed — coding zenka may not be running';
+        send_tool_result( $id, $result, 0 );
+    }
+}
+
 sub _model_chunk_size {
     ## query context size once and cache; derive safe chunk size from it ##
     unless ( defined $model_context_tokens ) {
@@ -2330,8 +2441,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,,,,.,,.,.,.,,,.,.,,,.,,.,,.,.,...,.,,,..,,..,,...,..,,...,,,.,,..,.,,,...,
-#R2O7C2QYUIUOZPGYJW7MT7XPLWN3FQNJNTIZWQTTTNJ67KGHTGGP6DHY3TWIPE5EPDPZWGP3C6Y4A
-#\\\|UE2OJED2AHBGSZDOC6CRVTGYLXGGM7RNNADSMCOMQDAD4EVBNG3 \ / AMOS7 \ YOURUM ::
-#\[7]W5RFCP5XM2CI44RO5SMH5LUC3E7646CQFSJOQFO3JASUMODBAICQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,.,.,,,,,,,.,.,,,,,.,.,.,,.,,.,.,..,,...,...,..,,,.,,..,,,,,,.,,,
+#TM23MOK5XR7XRUBUZJZPJXWBBYVYMPLRWC6TPCAAVONREIGNVAHSIJUOZYZT2BXQ4HJN6LLMQWOD4
+#\\\|DNHLBHVTPITXMULUB6A2JNNQMGLJ5GVSVVI62UGCFJGYJJ2CIZH \ / AMOS7 \ YOURUM ::
+#\[7]67SEZ5GYMG4P7E2S5DWNGTEFSAWRTINPU2T34SKKP5J3LE2TSUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
