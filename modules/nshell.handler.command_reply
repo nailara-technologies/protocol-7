@@ -58,6 +58,8 @@ print "\r\e[2K"
     if $_nshell_state->{'current_mode'} == 2
     and length( $_nshell_state->{'display_buffer'} // '' );
 
+my $cursor_mode = $data{'nshell'}{'cfg'}{'cursor_after_reply'} // 'all';
+
 if ( not defined $payload_str ) {
 
     ## single-line reply : colorize and print to console for immediate display
@@ -69,10 +71,12 @@ if ( not defined $payload_str ) {
     printf "\n%s%s\e[0m\n\n", $reply_color, $args;
 
     ## re-display cursor after single-line reply output
-    print "\r"
-        . $colors{'p7_fg_0003'}
-        . "_\e[K\r" . "\e[0m"
-        . $colors{'p7_fg_0004'};
+    if ( $cursor_mode eq 'line' or $cursor_mode eq 'all' ) {
+        print "\r"
+            . $colors{'p7_fg_0003'}
+            . "_\e[K\r" . "\e[0m"
+            . $colors{'p7_fg_0004'};
+    }
 
 } else {    ## print multi-line output directly without padding to console
 
@@ -83,6 +87,17 @@ if ( not defined $payload_str ) {
     if ( $payload_str !~ m{\n\z} ) {
         <nshell.state>->{'needs_newline_prefix'} = TRUE;
     } else {
+        delete <nshell.state>->{'needs_newline_prefix'};
+    }
+
+    ## redraw cursor after SIZE/payload reply if configured
+    if ( $cursor_mode eq 'all' ) {
+        print "\n"
+            if $payload_str !~ m{\n\z};
+        print "\r"
+            . $colors{'p7_fg_0003'}
+            . "_\e[K\r" . "\e[0m"
+            . $colors{'p7_fg_0004'};
         delete <nshell.state>->{'needs_newline_prefix'};
     }
 }
@@ -100,8 +115,8 @@ STDOUT->flush();
 
 return TRUE;
 
-#,,,.,,.,,...,.,.,,,,,,,.,..,,,.,,,,.,..,,.,,,.,.,...,...,,.,,..,,.,,,,..,,,,,
-#OGEKA6ECD43RDOK2ZZ74FHXZAGIEVP3FNDG5EKMSMMS6PHVUPBSXFPSR3SGWNJQOPDJBATMANQJ5S
-#\\\|K3NHS2FGNQ7JPU4SPG2KLIPAQPEBL33DJ2OIBYJPS4WC7DKCOAT \ / AMOS7 \ YOURUM ::
-#\[7]4NKQWK4YQR7EKOPGDT37PCLUXADV7HIBWXMI6JLHDNZPBGGESWBA 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,,..,,,.,...,,,,,.,.,.,.,..,,...,.,.,...,..,,...,,,,,.,,,,..,..,,
+#WMWBRXSUXJGE6ZIDVYFN7WN3HGLLITESJETJWD5UQMNQT3MXV2WUEEL3X3CXZBB5BB2M23DM5ZJJS
+#\\\|SMZRFTEPWOXU5QEY4NKYARHYGQYDTRFI2FZK7FQO7TLOELRTHRA \ / AMOS7 \ YOURUM ::
+#\[7]QXKVPQWJ7ATYROGP25GURPQ2YYJXW4B2CKHJTUJXT6NCXHZR62DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
