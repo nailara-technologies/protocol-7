@@ -40,12 +40,22 @@ if ($show_cursor_on_call) {
                 $buffer, $colors{'p7_fg_0004'} // '<undef>'
             );
         }
+        ## [ recover terminal state after raw-ANSI reply with no trailing newline ]
+        if ( $state_ref->{'needs_newline_prefix'} ) {
+            print "\n\n";
+            delete $state_ref->{'needs_newline_prefix'};
+        }
         ## [ clear line and render preloaded entry ]
         ## [ \r\e[2K avoids wrap on long lines, matches arrow handler behavior ]
         print "\r\e[2K";
         $state_ref->{'view_offset'} = 0;
         <[nshell.render.viewport]>->( $state_ref->{'editor'}, \%colors );
     } else {
+        ## recover terminal state after raw-ANSI reply with no trailing newline
+        if ( $state_ref->{'needs_newline_prefix'} ) {
+            print "\n\n";
+            delete $state_ref->{'needs_newline_prefix'};
+        }
         ## Just display cursor on empty line
         print $colors{'p7_fg_0003'} . "_\r" . "\e[0m" . $colors{'p7_fg_0004'};
         STDOUT->flush();
@@ -327,8 +337,8 @@ while ( length $input_chars ) {
 
 return undef;
 
-#,,,.,,..,,.,,...,.,,,..,,,,.,,..,,,.,,..,,.,,.,.,...,...,...,,,.,,,.,.,,,,,,,
-#7ABFV7JO5NVNYNQ4PZL6UP2OKRDZKBPCXHX7X33WVKRJYPF3ZGRL26FCAK3ZAX3CCT5EKVNE7YDFC
-#\\\|ZH4XZKMXM6KTHK76W7L7KHTC6425XNUTPIRIHZA5S3F6S27I4XH \ / AMOS7 \ YOURUM ::
-#\[7]EL26CMFQHDBBNF3JSD42LSAUWE2EP3ME6I2GXGXORFJZDIYB4CCI 7  DATA SIGNATURE ::
+#,,.,,,..,..,,.,.,..,,..,,,..,.,,,.,,,..,,,,.,.,.,...,...,,,.,.,,,..,,,,,,.,,,
+#F3LC56QXQB7W6NT24OZ2QJRP23F4MAA3N7K3O2BZTI6RBOTD6H7SH36B2KBQWVDXKVIY3BRE3RWNG
+#\\\|QWAQPHJ2RJ54PURQ4H7SURQOTKV2IZD57S633ZLKKWTOESJKT27 \ / AMOS7 \ YOURUM ::
+#\[7]4W72LNLNKWOE2KACT67SB6VDRAQ6GT42SG5GEY5R2A6EZNY2HEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
