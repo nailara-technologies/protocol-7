@@ -57,13 +57,31 @@ for my $child (@$children) {
     $child->{'w_focus'} = $w_focus;
 }
 
+## [ pass 2b — idf rarity weight (from cached wordcount table) ]##
+my $idf_table = <memory.score.idf_cache> // {};
+if (%$idf_table) {
+    my $wc = $idf_table->{'wordcount'}    // {};
+    my $n  = $idf_table->{'total_leaves'} // 1;
+    for my $child (@$children) {
+        my $w_idf = <[memory.tree.score.idf_weight]>
+            ->( { node => $child, wordcount => $wc, total_leaves => $n } );
+        $child->{'w_idf'} = $w_idf;
+    }
+} else {
+    ## [ no cache yet — neutral weight ]##
+    $_->{'w_idf'} = 1.0 for @$children;
+}
+
 ## [ combine and sort by w_combined desc, stable tie-break by content_hash ]##
 my @sorted = sort {
     my $cmp = $b->{'w_combined'} <=> $a->{'w_combined'};
     return $cmp if $cmp;
     ( $a->{'content_hash'} // '' ) cmp( $b->{'content_hash'} // '' );
 } map {
-    $_->{'w_combined'} = ( $_->{'w_base'} // 0 ) * ( $_->{'w_focus'} // 1 );
+    $_->{'w_combined'}
+        = ( $_->{'w_base'}  // 0 )
+        * ( $_->{'w_focus'} // 1 )
+        * ( $_->{'w_idf'}   // 1 );
     $_;
 } @$children;
 
@@ -94,8 +112,8 @@ for my $child (@sorted) {
 
 return $branch;
 
-#,,..,..,,,,,,,,.,...,.,.,...,.,,,,,.,,,,,,..,..,,...,...,...,,,,,,.,,,,,,.,.,
-#DL6TLV4IGHV55VJ4UUNRQH3ZUEBMDDDE36PAU3TECXBUHUHJKKO2L2KLSYG3XXOUIL5VJHWTJVTPM
-#\\\|7IUPWWVDCEUDTHEF2SB6EDHPSE22SA5LHOSGW7G5FAHRNK7YDHQ \ / AMOS7 \ YOURUM ::
-#\[7]VQ476DGJEQYHKFXWB4QTUYICNEE27D7PJMNDYZO6QN32KGECUIAQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,,.,..,,.,.,.,.,,,,,.,,,..,,.,,,..,,...,...,...,..,,,,,,,.,,,,,,
+#RWONPLYV26XIVK466H3F7Z7RQUN27UTUOTRM6DJUINVCD6ZVWBIDOEDVGYTNKGWQDWPHVIZWE7EGI
+#\\\|HBEJDDCOUQY3X7N244YG5OEJLVKEHHZDXMKSVVG7UDYKCBAWDOT \ / AMOS7 \ YOURUM ::
+#\[7]O4C6PWGXQZHYFTZSOPBRZXV5ZBBICAMOUXKTSYQMNMPUDP7URECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

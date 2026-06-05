@@ -16,6 +16,9 @@ for my $term (@terms) {
 ## [ index replies arrive later and expand focus further  ]##
 <[memory.focus.apply]>;
 
+## [ rebuild idf cache from current tree, then re-score ]##
+<[memory.tree.score.rebuild_idf]>;
+
 ## [ re-score with current (sync) focus — index expansion is async ]##
 <[memory.tree.flow]>->( { node => <memory.tree> } );
 <[memory.tree.score]>->( { node => <memory.tree> } );
@@ -24,8 +27,8 @@ for my $term (@terms) {
 my $output = <[memory.tree.render]>->( { variant => 'compact' } );
 return { 'mode' => 'size', 'data' => $output // "[ no results ]\n" };
 
-#,,,.,,,.,.,.,.,.,.,.,,,.,,..,,,.,,,,,,,.,,.,,..,,...,...,,.,,...,...,,.,,,,,,
-#7U4MI74PX3JYIF3KUJWXITMFKYS4K5JGXOHBHYBVAX3PTXVGAEH6NYAEEM6G5KOJ3OEWHPAJAIZZI
-#\\\|JDESRA66VCYZFBWIZZSDSXQ6RF3AV2HOHMGJ3VL6Y6N67P3S5QA \ / AMOS7 \ YOURUM ::
-#\[7]LLRXMKM6YK7EL5DFHRJGSIBISEVAURKDB2OQTUAI7F2BFSTXLYAA 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,,,,..,,,.,,..,,,.,,...,...,.,,,..,,...,...,.,.,.,.,,.,,.,.,...,
+#NWLQPJPCMT6ZBOYOBKC26GD7N2YIQQQS42XKEXPOI3R5S5RWBCMSXECCYW4NOHIK7W536XH4NMW2I
+#\\\|LMXNX3TW6FYDKAGVL6RDS3Y5ZBJDFMYDQGZMT3BVQEEYTYE63ZF \ / AMOS7 \ YOURUM ::
+#\[7]6AY2X373PCEGKC7IR7XUFI6BHGWJZFF2XTKFK2IN5HNRBP7DBSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
