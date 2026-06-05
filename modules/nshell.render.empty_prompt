@@ -5,6 +5,12 @@
 
 my ( $state_ref, $editor, $colors ) = @ARG;
 
+## recover terminal state after raw-ANSI reply with no trailing newline
+if ( <nshell.state>->{'needs_newline_prefix'} ) {
+    print "\n\n";
+    delete <nshell.state>->{'needs_newline_prefix'};
+}
+
 ## Clear the line completely
 print "\r\e[2K";
 
@@ -22,8 +28,8 @@ my $display_buffer = $colors{'p7_fg_0004'};
 
 return;
 
-#,,,,,..,,.,.,,..,.,,,,.,,,.,,.,,,...,..,,,.,,.,.,...,...,...,,..,,,.,,,,,,.,,
-#E2LSZD3ZC7CMKITMYKZBEUFVVY2CAMB7KBCN2VCPWEAHLTQXKQTVRHXF4Z6XLCKW473CVJZ2NOJXM
-#\\\|TLX3SWAD3NKC3E4FL4BH6OC3FQEOJZZ3Z7QFMWJFKQEA6QAHGL3 \ / AMOS7 \ YOURUM ::
-#\[7]PU7LSA54EXU5DA4P4QLJASO37CTQD5LZ5XWK5YXPX4MTNYD2NIDA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,.,.,...,.,.,...,...,.,.,..,,,.,,.,.,...,...,...,,..,,,,,.,.,...,
+#VUYW72OCF4ERDTDW6HWQBYBBIKHOKULAY6UFA7UOOHQINTGWXBV37RCTZATSSKVSAOEQAMJQMUTKC
+#\\\|K2PP4EMP66XS25G5MKPKHR6U3Q2JKHI55AVZJ56HOENLVNTCG74 \ / AMOS7 \ YOURUM ::
+#\[7]4UDC3RQOEPUH6PE2GUFYU7DL6Q36K2EX2NNLWX4YSYARXMMPYABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
