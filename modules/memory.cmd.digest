@@ -61,15 +61,16 @@ my $key = <[base.ntime]>;
 <memory.digest.pending> //= {};
 <memory.digest.pending>->{$key} = $call->{'reply_id'};
 
-## [ route to coding zenka with local reply handler ]##
+## [ route to coding zenka via cube with local reply handler ]##
+## [ base.protocol-7.command.send.local routes by username, not through cube  ]##
+## [ cube. prefix makes cube the target; content b32-encoded into args        ]##
 
-my $sent = <[base.protocol-7.command.send.local]>->(
-    {   'command'   => 'coding.summarize-context',
-        'call_args' => {
-            'args' => 'max_len=1200',
-            'data' => $content,
-        },
-        'reply' => {
+my $content_b32 = encode_b32r( Encode::encode( 'UTF-8', $content ) );
+
+my $sent = <[protocol-7.command.send.local]>->(
+    {   'command'   => 'cube.coding.summarize-context',
+        'call_args' => { 'args' => "max_len=1200 :B32:$content_b32", },
+        'reply'     => {
             'handler' => 'memory.digest.done',
             'params'  => { 'digest_key' => $key },
         },
@@ -83,8 +84,8 @@ unless ($sent) {
 
 return { 'mode' => 'deferred' };
 
-#,,..,.,,,,..,,.,,,..,.,.,,,.,.,.,,..,,,.,...,..,,...,.,.,.,,,,,,,,,.,..,,.,,,
-#R5TTUAZRSRLXCQX5O3MNL66LV7GRU557JFNHNUEIMGNAZUJZZJWZUS2QQNAB5ECORUSC7ZI5ZYGY6
-#\\\|HMOMMJP5GTPK64GLOKQ542FHZXBEJB632XN6QOGIDN2N6DRBRXO \ / AMOS7 \ YOURUM ::
-#\[7]FTS3YJOV7KNWVSUQKHZGR6A6YNCSQGNOUDSZG3W7OCCXGZHBACDA 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,.,,,,,.,...,...,,.,,,.,,..,,,,,,..,,...,...,.,.,,,,,.,,,...,,,,,
+#5FH25WVIC7FN66B4YBNOEZBZANHHPYQ5AYU7KH2C7G6RVY7YZLIEFYRMGPCHCFF4SOEJJVZ2ZK2NC
+#\\\|FUW7L244AGEHRA4UU2E5KGMIN2I3EEQ6OCVX7XCB74CJ7NDZBGB \ / AMOS7 \ YOURUM ::
+#\[7]HTZZQNHNHXCLD733E4VRP57LR6SDQCY3FQMHNB47OLSNKULLEEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
