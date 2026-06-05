@@ -7,7 +7,12 @@ metadata:
   originSessionId: 56cce73a-933a-4992-96e4-4d88e138e8f6
 ---
 
-## completed this session (2026-06-05)
+## completed this session (2026-06-06)
+
+- **memory context pipeline** ✓ — `memory.render.context` writes cache file; `context.memory.load` reads scored tree; `memory.startup` primes on init (commit aa0b24c9d)
+- **MCP memory tools** ✓ — `p7_memory_search` + `p7_memory_digest` in `bin/mcp-server-p7` (commit fae65a85d); live after MCP restart
+
+## completed previous session (2026-06-05)
 
 - **memory IDF search** ✓ — `memory.tree.score.idf_weight` + `wordcount` + `rebuild_idf`; pass-2b in scorer; live
 - **memory.digest pipeline** ✓ — `memory.cmd.digest` + `memory.digest.done`; deferred SIZE reply via `cube.coding.summarize-context`; DeepSeek R1 0528 (8B Q8) confirmed working
@@ -194,8 +199,8 @@ metadata:
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,,.,,,,,,.,,.,,,,.,,,,,,,,.,,..,,,.,..,,...,..,,...,...,...,.,,,,,.,,.,,.,,,
-#XJ5LJHRTKUDTWGMCABHTK5PW75WGHNUMG3TH5Y7FS6SBWVTR3YSSOHCSKMH7N4PPA4NBYVUQBVOWM
-#\\\|L2OLSIY3M6XEPLK4CDBMZRI5JXZOE7RW3D3OLUYNKQAAXI7EVDW \ / AMOS7 \ YOURUM ::
-#\[7]TPDUMK6HUEW6FCZN6WROU2KSL23566WA46KPWMVJW4ID73HTT6AA 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,,.,.,,,,.,,...,.,,,.,,,,,.,.,,,..,,...,...,,.,,.,,,.,,,,,,,,,.,
+#RKZZ5TTCQYDYGJZVHS64AG4UNR5Q4AH4WM54QNWFIMZOH5SGN6OAGYJ26CJRVK6XY5XLSEQOKOOWC
+#\\\|YNXNVUT24EHFQQYNVBHDJ4ELZ2NHEMOSDPZLXOFFFORHLX6PV7W \ / AMOS7 \ YOURUM ::
+#\[7]LU7RWZQB3YI3IJ56B54MPF7KJE2XMV2HO7IGSYSTCBKCXVDA7GAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

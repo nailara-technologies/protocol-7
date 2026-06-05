@@ -44,12 +44,23 @@ the `memory` zenka builds a focus-weighted tree over `data/ai-mem/*.md` and rend
 
 **render quirks:** KNOWN cosmetic: static blank row (mockup double-`::`) renders 1 char too wide. PROPER FIX LOCUS: `ascii.frame.parse` variable-border-width detection (parser layer, NOT render-side strip). low priority; do NOT let kimi guess the spec here — needs precise parser-side spec first.
 
-**next candidate:** summarization pipeline variant — `memory.digest` already delivers prose summaries; next would be a `memory.tree.dedup` + coding zenka semantic dedup wave (already scaffolded in `memory.tree.summarize.*` modules, uses same `cube.coding.*` routing pattern).
+**context pipeline — LIVE 2026-06-06** (commit aa0b24c9d):
+- `memory.render.context` now writes compact tree to `var/memory-context-cache.txt` (atomic tmp+rename) + `var/memory-context-cache.ntime` after each render
+- `context.memory.load` checks cache first (600s freshness window); falls back to flat file load when cache missing/stale
+- `memory.startup` primes the cache after initial tree build
+- net effect: every coding zenka inference task gets the focus-scored tree instead of a flat alphabetical dump
+
+**MCP tools — LIVE 2026-06-06** (commit fae65a85d):
+- `p7_memory_search <terms>` — routes `memory.search`, returns scored ASCII tree (synchronous SIZE reply)
+- `p7_memory_digest <terms>` — routes `memory.search` then pipes output through `_do_summarize` → coding zenka prose summary
+- both tools available in `bin/mcp-server-p7`; appear in MCP tool list after server restart
+
+**next candidate:** `memory.tree.dedup` semantic dedup wave — `memory.tree.summarize.*` already scaffolded; uses same `cube.coding.*` routing pattern proven by digest pipeline.
 
 related: [[topic-ascii-frame-system]], [[namespace-tree-intelligence]], [[feedback-perltidy-sil0]].
 
-#,,,,,..,,.,.,.,.,..,,...,,,,,,,.,..,,.,.,,.,,..,,...,...,.,.,.,,,...,,..,..,,
-#TRYTRSV2PNQHPAJ37PETL4KQU327CBI25GQFCKCKDZIZMZ3P57EVK3NJ6ROQHB7RBPDNINATITFME
-#\\\|26NP77BEH6DMV7UD72VUWWRSXKH3RCLZVHR7EAWTAPQX3KY52IK \ / AMOS7 \ YOURUM ::
-#\[7]2TCLDNUDLWFRXEREEMJ4SV6Q2YAI6DYK4RUPE2JGVHWR67WBF4AA 7  DATA SIGNATURE ::
+#,,,.,,..,...,,.,,...,.,,,,..,,.,,.,.,,,.,.,,,..,,...,...,...,.,.,,..,.,.,,,,,
+#3ZWILNGPXHR3S7MQG44YCS32YUPYQNIQMGSFZWRWXDFILXP2VX4LUNCQVTKQ52QII3OSPBGC5WSDE
+#\\\|V6G6OVUKUZVCHO2NE27DFALR3WS6LR3CBPLZCWS3LFBTN2LF2ET \ / AMOS7 \ YOURUM ::
+#\[7]CIFNAPVQ24B75M3O5AUYO2DGNBWRPFYZA7FSIDE4B2ZJJVLLRQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
