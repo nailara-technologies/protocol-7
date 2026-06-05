@@ -1,5 +1,6 @@
 ## CRITICAL
 - [File Creation](feedback-file-io-api.md) — never add `#,,.,,,...` stub — blocks signing
+- [base. prefix stripped](feedback-base-prefix-stripped.md) — use `<[protocol-7.command.send.local]>` not `base.` prefix; check with `<zenka>.list-subs`
 - [filter-repo prefix](feedback-filter-repo-amend.md)
 - [P7 data nesting](feedback-p7-data-nesting.md) — `<a.b.c>` = `$data{a}{b}{c}`; use underscore for siblings not dot
 - [timer undef interval](feedback-timer-undef-interval.md) — undef after/interval = IO::Async max-rate loop; always guard with fallback
@@ -34,7 +35,7 @@
 - [iris-spoke-labels](topic-iris-spoke-labels.md) — 63-ring spoke sequence; dot-fold; BASE32/bottom
 - [stream-framing-protocol](topic-stream-framing-protocol.md) — 3+1 bit frame; separator inversion on 000
 - [nshell-terminal-rendering](topic-nshell-terminal-rendering.md) — `(0)!TERM!` bug, overflow path, color reset, async reply during VIEWING_HISTORY
-- [memory-tree-zenka](topic-memory-tree-zenka.md) — tree LIVE; focus/search commands LIVE (2026-06-05); $call->{'args'} pattern; next: IDF search attribute
+- [memory-tree-zenka](topic-memory-tree-zenka.md) — tree LIVE; IDF search LIVE; digest pipeline LIVE (2026-06-05); cube.coding.* routing; base. prefix stripped
 
 ## Vision / Design
 - [project-vision-origin](project-vision-origin.md) — 24-year vision; threshold reached Apr 2026
@@ -156,8 +157,8 @@
 
 **Diagnostic:** Improved `base.handler.command` syntax error log to show full bad line (`line=['...']`) instead of stripping it.
 
-#,,..,.,.,.,.,.,.,...,,..,..,,,.,,...,.,.,,..,..,,...,...,.,.,.,,,,..,,.,,,,,,
-#VJAU2ZZFD4FWHS5WD6G4Z22XLXBLN7ASI6PY6UED5LRNIIAAJ2BY4666UVAYAW77LDYESEXE44FLQ
-#\\\|PX6UCR2ADX4GE5DS6OPAMULXWXW3HPH7MY36RGN7IUYLEJXKGFA \ / AMOS7 \ YOURUM ::
-#\[7]ZZIKC7LQNYXGCFMY2SAAODIXA7TA3OQSLDZFLAQJID25G4KSMWAY 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,.,.,.,,,,,,,,..,.,,,..,,,,.,,,.,..,,...,...,...,,..,.,.,,,,,.,.,
+#EOS2PVDCIKKJSI7S5HLGLMUF4IQB572RELAPGANQBQXQIUHRGYNQGGXIVZ3FN3SJM67EZANHAZSCY
+#\\\|MTSAHG2MSJJ4IOKWOJDM2FSDKAIS52UYRH3MQXKICW4ZQCNJ6YY \ / AMOS7 \ YOURUM ::
+#\[7]PIC5FZZJ35RDNAFVS4Q3DHHPJR4B77XZ73P2SB5C7HDSM2GAEQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

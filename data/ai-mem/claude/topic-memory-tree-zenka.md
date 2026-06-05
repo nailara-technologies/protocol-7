@@ -1,6 +1,6 @@
 ---
 name: topic-memory-tree-zenka
-description: memory zenka focus-weighted tree — LIVE; focus/search commands working
+description: memory zenka focus-weighted tree — LIVE; IDF search + digest pipeline working
 metadata: 
   node_type: memory
   type: project
@@ -23,20 +23,33 @@ the `memory` zenka builds a focus-weighted tree over `data/ai-mem/*.md` and rend
 - all commands return `{ mode => 'size', data => ... }` — plain TRUE/FALSE is rejected by the handler
 - args come via `$call->{'args'}` (split into @args), NOT `shift` or `$ARG` — confirmed from bin/Protocol-7 line 1893
 
+**IDF search attribute — LIVE 2026-06-05** (commits 9c54cee28):
+- `modules/memory.tree.wordcount` — builds term-document-frequency table from all leaves (iterative stack walk, stopword filter)
+- `modules/memory.tree.score.idf_weight` — top-3 IDF values summed, clamped to >= 1.0
+- `modules/memory.tree.score.rebuild_idf` — rebuilds and caches at `<memory.score.idf_cache>`
+- `memory.tree.score` pass-2b: `w_combined = w_base × w_focus × w_idf`; neutral 1.0 when cache empty
+- `memory.cmd.search` and `memory.startup` both call `rebuild_idf` before scoring
+
+**digest pipeline — LIVE 2026-06-05** (commits ba5cc0f9f, 9cb37ab58, 919ce2976):
+- `p7c memory.digest <terms>` — same IDF rescore as `memory.search`, collects top-13 leaves, submits to `coding.summarize-context` via `protocol-7.command.send.local` with `cube.` prefix, returns deferred SIZE reply (prose summary from coding zenka)
+- `modules/memory.cmd.digest` — command; stores `$call->{'reply_id'}` in `<memory.digest.pending>`, routes `cube.coding.summarize-context` with `:B32:`-encoded content in args
+- `modules/memory.digest.done` — reply handler; fires `base.callback.cmd_reply` to complete deferred reply
+- **routing lesson**: `protocol-7.command.send.local` routes by direct session username; coding is not a direct session of memory — must prefix `cube.coding.*` so cube routes it; content must be `:B32:`-encoded into args (the `data` key in `call_args` is ignored by the module)
+- **access control**: `cube/access.zenki` `access.cmd.usr.memory` must include `coding.summarize-context`; `memory/start` `access.cmd.usr.cube` must include `digest`
+- **subroutine namespace**: `base.` prefix is stripped at init phase — inside memory zenka use `protocol-7.command.send.local` not `base.protocol-7.command.send.local`; check with `memory.list-subs <pattern>`
+
 **`memory.source.index` wiring:** called automatically from `memory.focus.apply` (which fires on every `memory.tree.render`) when focus vector keys change. sends async `index-mem.lookup` route-sends; replies boost related tokens via `memory.focus_index_cache`. `memory.search` triggers this pipeline; index expansion arrives ~1s later and lifts subsequent `memory.show` results.
 
-**THE UNIFYING ABSTRACTION [ user, 2026-06-03 ]: a per-node RE-WEIGHTING / RE-SORT engine.** `memory.tree.score` is ALREADY this engine (3 passes: recency × focus × rank-falloff); flow-weighting is the first pluggable attribute. next: search-by-uniqueness (IDF/rarity ranking).
-
-**search attribute — inverse wordcount [ later ]:** build a wordcount table (term→count), re-sort entries by word uniqueness (lowest count = rarest first). IDF/term-rarity ranking; valuable when result cut is tight (N=5-7 per branch).
-
-**re-sorted result tree → summarization → present [ user, 2026-06-03 ]:** pipeline: select → re-weight(attributes) → top-N subtree → summarize (coding zenka) → present. raw `memory.search` + summarizing variant as complement commands.
+**THE UNIFYING ABSTRACTION [ user, 2026-06-03 ]: a per-node RE-WEIGHTING / RE-SORT engine.** `memory.tree.score` is ALREADY this engine (3 passes: recency × focus × rank-falloff); flow-weighting is the first pluggable attribute. IDF is the second pluggable attribute (LIVE).
 
 **render quirks:** KNOWN cosmetic: static blank row (mockup double-`::`) renders 1 char too wide. PROPER FIX LOCUS: `ascii.frame.parse` variable-border-width detection (parser layer, NOT render-side strip). low priority; do NOT let kimi guess the spec here — needs precise parser-side spec first.
 
+**next candidate:** summarization pipeline variant — `memory.digest` already delivers prose summaries; next would be a `memory.tree.dedup` + coding zenka semantic dedup wave (already scaffolded in `memory.tree.summarize.*` modules, uses same `cube.coding.*` routing pattern).
+
 related: [[topic-ascii-frame-system]], [[namespace-tree-intelligence]], [[feedback-perltidy-sil0]].
 
-#,,,.,,.,,,..,,,,,,..,..,,,..,,,,,.,.,..,,,..,..,,...,...,,.,,.,,,,..,...,...,
-#WHLTOESQVKIBUQ5Y2C3NVY7QRRDL7UVHNQZHX5Q6ULJPQPIUXHVZVJ45LEMKCKBLA266TBGFLPC74
-#\\\|WRXULSP4BSLDX42BN6ZQ7O6ND2SKME63URN4UMIGQGSQ7XORWYA \ / AMOS7 \ YOURUM ::
-#\[7]YOLOOA3O62BACTXJJT74E7LZNGWSEJWTRGIOGPYGOJMZLWTGOYCQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,.,.,..,,...,,,,,,,.,..,,.,.,,.,,..,,...,...,.,.,.,,,...,,..,..,,
+#TRYTRSV2PNQHPAJ37PETL4KQU327CBI25GQFCKCKDZIZMZ3P57EVK3NJ6ROQHB7RBPDNINATITFME
+#\\\|26NP77BEH6DMV7UD72VUWWRSXKH3RCLZVHR7EAWTAPQX3KY52IK \ / AMOS7 \ YOURUM ::
+#\[7]2TCLDNUDLWFRXEREEMJ4SV6Q2YAI6DYK4RUPE2JGVHWR67WBF4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
