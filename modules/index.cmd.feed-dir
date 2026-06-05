@@ -38,13 +38,15 @@ my $job_id = <[chk-sum.amos]>->( \$dir );
     'rebalance-later' => $rebalance_later,
 };
 
+<index.cfg.rebalance_deferred> = TRUE if $rebalance_later;
+
 <[index.tick.start]>;
 <[base.logs]>->( 1, "index feed-dir queued [ %d files ]", scalar(@files) );
 
 return { 'mode' => 'deferred' };
 
-#,,,,,.,.,...,,.,,,,,,.,.,,..,,,,,.,,,,.,,,,,,..,,...,...,...,.,.,,,,,,,.,.,,,
-#TAZ6LXQBITQSY7KTEUBCUAYBWGAIQUDCQU4NYLCCCLXTI7NOW5UCLYDQ5YGEFNSQG6VWNXNAYTTLG
-#\\\|J5FEYPBLVSHAV7UAN7CRC2P5S7DUYWHEMWFUGH36CAJWAAV4F2K \ / AMOS7 \ YOURUM ::
-#\[7]4ORX5FKTVTCPQGFVFIOBXAC6QJGY4UIZSKMSQRUWZQXC4ZPHS6AA 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,,,,,.,,.,.,,.,,,.,,,.,,,,,,,,,,..,,...,...,.,,,..,,,..,,..,,.,,
+#JAEVEEDWLWGDZJRZUE4YSEJQFEVS6TPG54IW4NAXUE5DG57CRYP6IHMCDB3OV4RBGU75CTWXXSJU6
+#\\\|KNXTMP5CP7N7G6S4KMQZEYPET4WQCHCGOBGMW5S5OLWT22WQWUF \ / AMOS7 \ YOURUM ::
+#\[7]DRFM4C3SGWD43JJI76VR73EEGUJTTAZGIVQVYSN45J32KHB7BGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

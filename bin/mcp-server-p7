@@ -186,6 +186,10 @@ my $FOCUS_FILE = "$ROOT_PATH/data/state/mcp-summary-focus.txt";
 my $summary_focus_sticky
     = 0;                ## 1 if loaded from disk (sticky across sessions)
 
+my $last_chat_mtime = 0;
+my $last_hint_time  = 0;
+my $last_tool_name  = '';
+
 sub load_sticky_focus {
     return unless -f $FOCUS_FILE and -s $FOCUS_FILE;
     if ( open( my $fh, '<:encoding(UTF-8)', $FOCUS_FILE ) ) {
@@ -720,6 +724,8 @@ while ( my $line = <STDIN> ) {
     } else {
         send_error( $id, -32601, "method not found: $method" );
     }
+
+    check_chat_pending($last_tool_name);
 }
 
 log_msg('stdin closed, exiting');
@@ -759,6 +765,9 @@ sub handle_tools_call {
     my $name = $params->{'name'}      // '';
     my $args = $params->{'arguments'} // {};
 
+    check_chat_pending($name);
+    $last_tool_name = $name;
+
     log_msg( 'tools/call: %s', $name );
 
     if ( $name eq 'p7_command' ) {
@@ -797,6 +806,8 @@ sub handle_tools_call {
         tool_p7_chat_search( $id, $args );
     } elsif ( $name eq 'p7_chat_channels' ) {
         tool_p7_chat_channels( $id, $args );
+    } elsif ( $name eq 'p7_chat' ) {
+        tool_p7_chat( $id, $args );
     } elsif ( $name eq 'coding_summarize' ) {
         tool_coding_summarize( $id, $args );
     } elsif ( $name eq 'session_catchup' ) {
@@ -928,6 +939,82 @@ sub tool_p7_chat_channels {
     close $fh;
     chomp( $output //= '' );
     send_tool_result( $id, $output, 0 );
+}
+
+sub check_chat_pending {
+    my $current_tool = shift // '';
+
+    my $chat_dir = "$ROOT_PATH/data/chat/channel";
+    return if not -d $chat_dir;
+
+    my $newest_mtime = 0;
+    if ( opendir my $dh, $chat_dir ) {
+        my @ch = grep {
+            $_ !~ m{^\.\.?$}
+                and -d File::Spec->catdir( $chat_dir, $_ )
+        } readdir $dh;
+        closedir $dh;
+
+        for my $name (@ch) {
+            my $hpath = File::Spec->catfile( $chat_dir, $name, 'history' );
+            next if not -f $hpath;
+            my $mtime = ( stat($hpath) )[9] // 0;
+            $newest_mtime = $mtime if $mtime > $newest_mtime;
+        }
+    }
+
+    if ( $current_tool =~ m{^p7_chat} ) {
+        $last_chat_mtime = $newest_mtime if $newest_mtime > 0;
+        return;
+    }
+
+    my $now = time();
+    return if $now - $last_hint_time < 30;
+
+    if ( $newest_mtime > $last_chat_mtime ) {
+        $last_chat_mtime = $newest_mtime;
+        $last_hint_time  = $now;
+        print STDERR
+            "[chat] new message(s) — call p7_chat_channels to see active channels\n";
+    }
+}
+
+sub tool_p7_chat {
+    my ( $id, $args ) = @ARG;
+
+    my $message = $args->{'message'} // '';
+    my $channel = $args->{'channel'} // '';
+
+    if ( length $message ) {
+        return tool_p7_chat_send( $id, $args );
+    }
+
+    if ( length $channel ) {
+        return tool_p7_chat_read( $id, $args );
+    }
+
+    my $width = 72;
+    my $top    = '.:[ ]' . ( ':' x ( $width - 12 ) ) . '::[ chat ]:.';
+    my $bottom = ':' . ( '.' x ( $width - 2 ) ) . ':';
+
+    local $ENV{'P7_CHAT_CALLER'} = qw| mcp |;
+    open( my $fh, '-|', "$ROOT_PATH/bin/chat", qw| -q | )
+        or
+        return send_tool_result( $id, 'failed to run chat: ' . $OS_ERROR, 1 );
+    my $output = do { local $/; <$fh> };
+    close $fh;
+    chomp( $output //= '' );
+
+    my @out = ($top);
+    if ( length $output and $output !~ m{^:\s*no channels} ) {
+        $output =~ s{^\.:\s*active channels\s*:\.\s*\n}{};
+        push @out, split( /\n/, $output );
+    } else {
+        push @out, '(no channels)';
+    }
+    push @out, $bottom;
+
+    send_tool_result( $id, join( "\n", @out ), 0 );
 }
 
 ## =========================================================================
@@ -2243,8 +2330,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,.,,,.,,,,,,,.,,,,,,...,...,..,,..,,,,.,,..,..,,...,...,...,,..,.,.,,,,,,,.,
-#EX7Z33AXAKLEWZYTKCYU4KTNUBQBAFOYYBNYGDABWXRRIMYWSPE4UZOAMSC67TFVRP6QBCERX2SVE
-#\\\|KKXWCJDCLY5DG3XW73ARJTBTUKPKVG3EBGK24HVNIU7EGJ2EGBK \ / AMOS7 \ YOURUM ::
-#\[7]KAUDESE3AFABSE6LBIRECBBYDTPIG2FRFZ7NFEFFPARLXCOVAADQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,.,,,.,.,,,.,,.,,.,.,...,.,,,..,,..,,...,..,,...,,,.,,..,.,,,...,
+#R2O7C2QYUIUOZPGYJW7MT7XPLWN3FQNJNTIZWQTTTNJ67KGHTGGP6DHY3TWIPE5EPDPZWGP3C6Y4A
+#\\\|UE2OJED2AHBGSZDOC6CRVTGYLXGGM7RNNADSMCOMQDAD4EVBNG3 \ / AMOS7 \ YOURUM ::
+#\[7]W5RFCP5XM2CI44RO5SMH5LUC3E7646CQFSJOQFO3JASUMODBAICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,60 @@
+## [:< ##
+
+# name = memory.source.index.lookup_reply
+# descr = parse index lookup reply and boost related tokens
+
+my $reply  = shift;
+my $cmd    = $reply->{'cmd'}    // '';
+my $data   = $reply->{'data'}   // '';
+my $params = $reply->{'params'} // {};
+
+return if $cmd ne 'SIZE';
+
+my $topic         = $params->{'topic'}         // '';
+my $derived_boost = $params->{'derived_boost'} // 1.5;
+
+## [ parse child sequences from lookup reply ] ##
+## [ format: "  rank  sequence" lines after "children: N" ] ##
+my @related;
+my $in_children = 0;
+for my $line ( split /\n/, $data ) {
+    if ( $line =~ m|^children:\s*\d+| ) {
+        $in_children = 1;
+        next;
+    }
+    next if not $in_children;
+    next if $line =~ m|^\s*$|;
+    ## [ line format: "  rank  sequence" ] ##
+    if ( $line =~ m|^\s+\S+\s+(.+?)\s*$| ) {
+        my $seq = $1;
+        ## [ unescape display escapes ] ##
+        $seq =~ s|\\n|\n|g;
+        $seq =~ s|\\r|\r|g;
+        $seq =~ s|\\t|\t|g;
+        $seq =~ s|\\v|\x0b|g;
+        $seq =~ s|\\\\|\\|g;
+        push @related, $seq;
+    }
+}
+
+## [ store in cache for memory.focus.matches ] ##
+my $cache = <memory.focus_index_cache> //= {};
+$cache->{ lc($topic) } = \@related;
+
+## [ boost each related token ] ##
+for my $rel (@related) {
+    next if not defined $rel;
+    $rel =~ s|^\s+||;
+    $rel =~ s|\s+$||;
+    next if length $rel < 2;         ## [ skip single-char noise ] ##
+    next if lc($rel) eq lc($topic);  ## [ don't re-boost the topic itself ] ##
+    <[memory.focus.boost]>->( $rel, $derived_boost );
+}
+
+return TRUE;
+
+#,,.,,..,,..,,,.,,,.,,..,,.,,,,.,,.,.,...,...,..,,...,...,..,,,..,...,,,.,,.,,
+#2HKGAXEEL65RLBLOQKAGQ5AOGY46V5ZKK6A5USZFQDLAAOF3RJRW6T34THBN5THFSJJBBOE6RL63E
+#\\\|B5J23MZJSRTONCHAZOQW4EBFF27QG3EISXHPRN3C6GQ6GIF3BKZ \ / AMOS7 \ YOURUM ::
+#\[7]XLXBWDK5UX6JOPW6PBNEJTV3IE76YFMUTS73AUCH7PPBUEUZUOCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
