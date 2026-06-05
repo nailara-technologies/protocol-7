@@ -68,18 +68,24 @@ if ( not defined $payload_str ) {
 
     printf "\n%s%s\e[0m\n\n", $reply_color, $args;
 
+    ## re-display cursor after single-line reply output
+    print "\r"
+        . $colors{'p7_fg_0003'}
+        . "_\e[K\r" . "\e[0m"
+        . $colors{'p7_fg_0004'};
+
 } else {    ## print multi-line output directly without padding to console
 
     print $payload_str;
-}
-## re-display cursor after reply output
-## ensure we start on a fresh line if payload didn't end with one
-print "\n" if defined $payload_str && $payload_str !~ m{\n\z};
 
-print "\r"
-    . $colors{'p7_fg_0003'}
-    . "_\e[K\r" . "\e[0m"
-    . $colors{'p7_fg_0004'};
+    ## track whether payload had no trailing newline
+    ## next prompt will add separation if needed
+    if ( $payload_str !~ m{\n\z} ) {
+        <nshell.state>->{'needs_newline_prefix'} = TRUE;
+    } else {
+        delete <nshell.state>->{'needs_newline_prefix'};
+    }
+}
 
 ## [ re-display history entry if reply arrived while in VIEWING_HISTORY mode ]
 my $nshell_state = <nshell.state> // {};
@@ -94,8 +100,8 @@ STDOUT->flush();
 
 return TRUE;
 
-#,,..,...,.,.,,,,,,,.,..,,.,.,...,,.,,,,,,,,,,.,.,...,...,,,.,..,,,,.,..,,,,,,
-#3VD6OXQ5MF3KZO2OIM36ORC2SUGR6URPXGFNG4BJVVCZHKX6TAI23EWNZWEVJPZTH6PQNZMVSHQJ4
-#\\\|I3CKBDFT7VXKYJVUBUYGPRUXNTBNCPBU4W6SX6Y434DSL6LAZWD \ / AMOS7 \ YOURUM ::
-#\[7]34RWBXR3CYVJVTHXTTNMSKHT3EIISU2FVYMWW6TAIYOG4BG6K4AY 7  DATA SIGNATURE ::
+#,,,.,,.,,...,.,.,,,,,,,.,..,,,.,,,,.,..,,.,,,.,.,...,...,,.,,..,,.,,,,..,,,,,
+#OGEKA6ECD43RDOK2ZZ74FHXZAGIEVP3FNDG5EKMSMMS6PHVUPBSXFPSR3SGWNJQOPDJBATMANQJ5S
+#\\\|K3NHS2FGNQ7JPU4SPG2KLIPAQPEBL33DJ2OIBYJPS4WC7DKCOAT \ / AMOS7 \ YOURUM ::
+#\[7]4NKQWK4YQR7EKOPGDT37PCLUXADV7HIBWXMI6JLHDNZPBGGESWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

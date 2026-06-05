@@ -1,9 +1,10 @@
 ---
 name: nshell-terminal-rendering
 description: "nshell terminal rendering bugs, fixes, and diagnostic patterns"
-metadata:
+metadata: 
   node_type: memory
   type: project
+  originSessionId: 9a027a4c-9892-4684-9422-eed52186c7d4
 ---
 
 ## `(0)!TERM!` — invalid cmd_id prefix bug [FIXED 2026-06-02]
@@ -64,6 +65,26 @@ metadata:
 
 ---
 
+## SIZE reply no-endline — display block bug + correct fix design
+
+**Symptom:** A SIZE reply whose payload has no trailing `\n` (e.g. raw ANSI frame) caused ALL subsequent replies to stop rendering. Root: the cursor indicator sequence (`\r..._\e[K\r`) ran immediately after the injected `\n`, erasing the line `\n` just created — leaving the terminal in a state where subsequent reply output drew over itself invisibly.
+
+**Correct fix (user spec):** Print SIZE payload EXACTLY as received — no injected `\n`, no cursor drawn after it. Set `<nshell.state>->{'needs_newline_prefix'} = TRUE` when payload has no trailing `\n`. The NEXT prompt render checks the flag and prefixes `\n\n` before drawing, then clears the flag. This preserves raw ANSI output (visualizations, frames) without prompt interference.
+
+**Task file:** `data/tasks/nshell-size-reply-no-endline-display-block.md`
+
+---
+
+## nshell as network-controlled terminal — future feature
+
+nshell responds to network commands (it IS a zenka). Two related planned features:
+- **prompt-disable mode**: a network command to nshell switches off the prompt display, enabling clean raw-terminal output (e.g. for UI frames rendered via SIZE). Separate from the bug fix above.
+- **silent raw mode**: nshell renders raw ANSI from SIZE reply packets and routes the output back to the requesting zenka via STRM reply packets. Allows any zenka to drive the nshell terminal as a rendering surface. Uses STRM for the backchannel so the requesting zenka gets confirmation/state.
+
+These are separate from the no-endline fix — the fix handles defensive recovery; these are intentional UI control features.
+
+---
+
 ## Key files
 
 - `modules/base.handler.command` — cmd_id validation, orphaned route handler, `!TERM!` backchannel
@@ -72,8 +93,8 @@ metadata:
 - `modules/nshell.handler.command_reply` — reply display, cursor redraw, history restore
 - `modules/nshell.render.viewport` — terminal width, horizontal scroll, cursor rendering
 
-#,,,,,...,,,,,,,,,,,,,,..,,..,,,.,...,,.,,.,.,..,,...,...,..,,,,.,..,,,..,.,.,
-#XS7ZCWB5TGFNRKB6WW7TVEFFZHFM5FKTWOU62ZBJ5YCQMV4TEUYUNJTB5KIBSTHLVOO5DZHFCOIAE
-#\\\|ABMXGGD5B6N236PP2JOAZOBEKLE7JVLDPCNNX73CABO4GATUP6B \ / AMOS7 \ YOURUM ::
-#\[7]QZAVZMCZNHERP4O3F4BN7YPCMZVGIJW36YWXX3SOJQ7WP45W52BQ 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,.,,.,.,,..,.,.,...,...,,.,,.,,,..,,...,...,..,,.,,,.,.,,..,,..,
+#USMVNN3WKVCHNYYJSQWVUCLA5GJ4AX7EU652I2VUIMZ3E7RJBDKED6DY5OM2BMD3C7J6VBBYJTQGC
+#\\\|5B2HBSVUABHLSZBP2EO2J223U3Q5C667Y4ETFLXODVY45ZDNLI5 \ / AMOS7 \ YOURUM ::
+#\[7]UKOZY2L4FIUUGJ3YYAS7DWMJHMLD5HJNR6INICZ6D3XNPS5OYCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
