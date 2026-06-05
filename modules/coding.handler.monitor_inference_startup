@@ -14,6 +14,14 @@ my $server = <coding.inference_servers>->{$backend};
 ## stale watcher guard : cancel if server was replaced by a newer spawn ##
 if ( !defined $server
     || ( defined $expected_pid && $server->{'pid'} != $expected_pid ) ) {
+    <[base.logs]>->(
+        1,
+        "[monitor_startup] stale watcher for backend=%s expected_pid=%s"
+            . " current_pid=%s : cancelling",
+        $backend,
+        $expected_pid // 'undef',
+        $server->{'pid'} // 'undef'
+    );
     $event->cancel if $event->is_active;
     return;
 }
@@ -170,8 +178,8 @@ if ( $bytes <= 0 ) {
     }
 }
 
-#,,..,.,,,..,,,.,,.,,,,..,,..,.,,,.,.,,,,,,.,,..,,...,..,,.,.,,,.,...,,.,,,.,,
-#NILMMHBSVBK24EAP7ZZFNS7VWZVFMOUAUWA72XOCQ5MEEOQPVHN65XHLYFXPZS5SQJSWXSVOFZ6KG
-#\\\|WRJIJC3QBDDS6CRUNLH6TPGVEMXJNVYZNMD3F6WME7PYUNZFL3C \ / AMOS7 \ YOURUM ::
-#\[7]AF4RGJZAMURYJCCXUFWI4J5BRSJUPLLHV4J65PZX5JVX2FK6S4BA 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,..,,.,,,..,,,.,,.,,,,,,,,,.,,,.,..,,...,...,..,,.,.,..,,.,,,.,,,
+#QB4OTLDOKKP7AZLEHPKEFQX7XX54LCUSL6FXFSCTVYCN4J5AO3WTEJ6YXLRW4DOMNUVKCLTUNYRCG
+#\\\|MGHPHYPQ7NTK67HG3NDV7XOEWBL4E6FYGI4CTXR4XJOTPWXPJHC \ / AMOS7 \ YOURUM ::
+#\[7]BQ6H3F5NJMHPXHLTK32ZSVUPIDDNBDBFVJUT3457YPBR47M6FOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
