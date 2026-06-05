@@ -5,6 +5,43 @@
 
 my $params = shift // {};
 
+## [ try scored tree cache from memory zenka first ]##
+my $root      = <system.root_path>;
+my $cache_txt = "$root/var/memory-context-cache.txt";
+my $cache_nt  = "$root/var/memory-context-cache.ntime";
+
+if ( -f $cache_txt and -f $cache_nt ) {
+    my $written_at;
+    if ( open( my $fh_n, '<:utf8', $cache_nt ) ) {
+        local $INPUT_RECORD_SEPARATOR;
+        $written_at = <$fh_n>;
+        close $fh_n;
+        $written_at =~ s|\s+||g if defined $written_at;
+    }
+
+    my $age = defined $written_at ? ( <[base.ntime]> - $written_at ) : 99999;
+
+    if ( $age >= 0 and $age <= 600 ) {
+        if ( open( my $fh_t, '<:utf8', $cache_txt ) ) {
+            local $INPUT_RECORD_SEPARATOR;
+            my $cached = <$fh_t>;
+            close $fh_t;
+            if ( defined $cached and length $cached ) {
+                <[base.logs]>->(
+                    2,
+                    ':. context.memory: using scored tree cache [ %d chars ]',
+                    length $cached
+                );
+                return $cached;
+            }
+        }
+    }
+}
+
+<[base.logs]>->( 2, ':. context.memory: cache miss, using flat file load' );
+
+## [ fall through to existing flat-file load below ]##
+
 my $zenka       = $params->{'zenka'}  // '';
 my $topics      = $params->{'topics'} // '';
 my $budget      = $params->{'budget'} // 1000;
@@ -89,8 +126,8 @@ foreach my $file (@files) {
 
 return $output;
 
-#,,,,,.,.,,..,..,,,.,,,,.,...,.,,,,,.,,.,,.,,,..,,...,..,,...,,.,,,,.,,,.,,,.,
-#PAXT52PHVEAXE76OM4JAFP7SBJIGVLX5N7I4MU3YNIQSOKSB7DJL6QQC4NRUHKVN26VC664EZI4GS
-#\\\|3HKAFYFCDTAYJ2E5RKLWNWFLRRDABSMQM6OHEARQW4FFWHCYY23 \ / AMOS7 \ YOURUM ::
-#\[7]KNXCCKZFT4HXEDDHUSFDZOBIFGCFNBEJXDXLLOI5LEXYWRCGWKAY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,.,,,,,,.,.,.,,,,,,,,..,.,,,,,.,..,,...,...,,,,,.,,,,.,,.,,,,.,,
+#JXPU6NEFZTTCTKQGPN2INBYASSNEORZPXHNNQ5NPHKAVIPODDQZ3I3KMA5EBLKJCHP3QLQHO5JDAY
+#\\\|YMMKBXKRXEWI54FIFKI2GGNF3RYEBPX763IDBR5IUAK3ULBO7JS \ / AMOS7 \ YOURUM ::
+#\[7]AKIIADCOBAOJVEUUOPXZKZMVHNIYB3YFD2BU5IYP273NVA2Y5ACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
