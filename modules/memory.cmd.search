@@ -1,0 +1,31 @@
+## [:< ##
+
+# name = memory.cmd.search
+# descr = focus-boost query terms, re-score tree, render top-N
+
+my @terms = split /\s+/, ( $ARG // '' );
+@terms = grep { length $_ >= 2 } @terms;
+return FALSE if not @terms;
+
+## [ set transient focus boost for each query term ]##
+for my $term (@terms) {
+    <[memory.focus.set]>->( lc($term), 5.0 );
+}
+
+## [ apply: triggers async index lookups if focus changed ]##
+## [ index replies arrive later and expand focus further  ]##
+<[memory.focus.apply]>;
+
+## [ re-score with current (sync) focus — index expansion is async ]##
+<[memory.tree.flow]>->( { node => <memory.tree> } );
+<[memory.tree.score]>->( { node => <memory.tree> } );
+
+## [ render and return top-N branches ]##
+my $output = <[memory.tree.render]>->( { variant => 'compact' } );
+return { 'mode' => 'size', 'data' => $output // "[ no results ]\n" };
+
+#,,,,,,,.,,,,,,,.,,.,,...,..,,..,,,..,,..,,,,,..,,...,...,...,..,,..,,,,.,,.,,
+#3XEDBX3JDQJYX7H4UCQ4HCWIX6VEXB7MEAOHS3QB4X3WKQZOFFUCEZD77Y45DEA7LEEX2YUYEH2IK
+#\\\|6EYLQEF3TW3CKVQTDVPDY4SAHAWCYFMWSA4K2AI7ITQCI2MR2LE \ / AMOS7 \ YOURUM ::
+#\[7]K5TT7XWGLGNBNWI33Y5R7AZCZPGAJCTOPEINUPOKMDGL654NJSAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
