@@ -1,0 +1,30 @@
+## [:< ##
+
+# name = memory.cmd.search.summarize.done
+# descr = reply handler: forward prose digest to caller
+
+my $reply   = shift;
+my $params  = $reply->{'params'}      // {};
+my $key     = $params->{'digest_key'} // '';
+my $cmd     = $reply->{'cmd'}         // '';
+my $summary = $reply->{'data'}        // '';
+
+return FALSE unless length $key;
+
+my $reply_id = delete( <memory.digest.pending>->{$key} );
+return FALSE unless defined $reply_id;
+
+my $mode
+    = ( $cmd eq 'SIZE' or index( $summary, "\n" ) >= 0 ) ? 'size' : 'true';
+
+<[base.callback.cmd_reply]>->(
+    $reply_id, { 'mode' => $mode, 'data' => $summary }
+);
+
+return TRUE;
+
+#,,.,,,..,,,,,.,.,,..,...,,,,,,,.,,.,,,.,,,..,..,,...,...,,,.,...,...,,..,.,,,
+#BEKQEVMZ5LQ2I42RK6ZMZFYXJUUEL33IAAVSBEZDQGCJZFTXEEZGFBGAQRPFYBV7SGZL373FBNVKQ
+#\\\|PYI5KDYZ6YNAWK3WP6QAI7VSQBORBNJA4GLWLFBFVJOXPNLXPGC \ / AMOS7 \ YOURUM ::
+#\[7]PGKZXQ2Z6PZAAKMLBSHBTJQKRWHGOHMMCR4IJOIF2BPKGK5L2CBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

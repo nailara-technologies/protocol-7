@@ -1,0 +1,90 @@
+## [:< ##
+
+# name = memory.cmd.search.summarize
+# descr = search + summarize top leaves via coding zenka
+
+my @terms = split /\s+/, ( $call->{'args'} // '' );
+@terms = grep { length $_ >= 2 } @terms;
+return {
+    'mode' => 'size',
+    'data' => "usage: memory.search.summarize <terms>\n"
+    }
+    if not @terms;
+return { 'mode' => 'size', 'data' => "memory tree loading..\n" }
+    if not <memory.ready>;
+
+## [ same scoring pipeline as memory.cmd.search ]##
+
+for my $term (@terms) {
+    <[memory.focus.set]>->( lc($term), 5.0 );
+}
+<[memory.focus.apply]>;
+<[memory.tree.score.rebuild_idf]>;
+<[memory.tree.flow]>->( { node => <memory.tree> } );
+<[memory.tree.score]>->( { node => <memory.tree> } );
+
+## [ collect top leaves from top branches ]##
+
+my @leaves;
+my $root      = <memory.tree>        // {};
+my $n_visible = $root->{'n_visible'} // 7;
+my @branches  = @{ $root->{'children'} // [] };
+my $max_total = 13;
+
+BRANCH: for my $branch ( @branches[ 0 .. $n_visible - 1 ] ) {
+    last BRANCH unless defined $branch;
+    for my $child ( @{ $branch->{'children'} // [] } ) {
+        next unless ( $child->{'type'} // '' ) eq 'leaf';
+        push @leaves, $child;
+        last BRANCH if @leaves >= $max_total;
+    }
+}
+
+return { 'mode' => 'size', 'data' => "no relevant memory found\n" }
+    unless @leaves;
+
+## [ build content for summarization ]##
+
+my $query = join ' ', @terms;
+my @parts = map {
+    my $title = $_->{'title'} // '';
+    my $body  = $_->{'body'}  // '';
+    length($title) ? "[$title]\n$body" : $body
+} @leaves;
+
+my $content = "memory entries relevant to: $query\n\n"
+    . join( "\n\n---\n\n", @parts );
+
+## [ store caller reply_id — deferred reply will use this ]##
+
+my $key = <[base.ntime]>;
+<memory.digest.pending> //= {};
+<memory.digest.pending>->{$key} = $call->{'reply_id'};
+
+## [ route to coding zenka with local reply handler ]##
+
+my $sent = <[base.protocol-7.command.send.local]>->(
+    {   'command'   => 'coding.summarize-context',
+        'call_args' => {
+            'args' => 'max_len=1200',
+            'data' => $content,
+        },
+        'reply' => {
+            'handler' => 'memory.cmd.search.summarize.done',
+            'params'  => { 'digest_key' => $key },
+        },
+    }
+);
+
+unless ($sent) {
+    delete <memory.digest.pending>->{$key};
+    return { 'mode' => 'size', 'data' => "coding zenka not reachable\n" };
+}
+
+return { 'mode' => 'deferred' };
+
+#,,,.,.,,,,..,,.,,,..,.,.,,.,,,..,...,,,,,.,.,..,,...,...,,..,..,,..,,,..,,,,,
+#3GELXK3Y3KWI4O7LJWOFSSPDEIB3BQDOQU3YMGW7JOFCG76YZPLIJEB2PH6MU5NI42XHP7IRS3IZ2
+#\\\|5OTL7Y2MKEV63THQK5UZX7HHSK42E2ICNZTMWYZ3QMVQUJ3DGQQ \ / AMOS7 \ YOURUM ::
+#\[7]B4W7AUCB4TUTVC22VN6G7LINOWW72SEMDEQ4FGUHSWFFEB2SEYCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
