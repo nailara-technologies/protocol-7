@@ -1,0 +1,77 @@
+## [:< ##
+
+# name = memory.cmd.focus
+# descr = focus sub-commands: set boost get clear apply
+
+my $cmd = shift // 'get';
+$cmd = lc $cmd;
+
+## [ guard not-ready state ]##
+if ( not <memory.ready> ) {
+    return { 'mode' => 'size', 'data' => "memory tree loading..\n" };
+}
+
+if ( $cmd eq 'set' ) {
+    my $topic = shift;
+    my $score = shift;
+
+    my $ok = <[memory.focus.set]>->( $topic, $score );
+    return FALSE if not $ok;
+
+    <[memory.tree.flow]>->( { node => <memory.tree> } );
+    <[memory.tree.score]>->( { node => <memory.tree> } );
+    return TRUE;
+
+} elsif ( $cmd eq 'boost' ) {
+    my $topic = shift;
+    my $mult  = shift;
+
+    my $ok = <[memory.focus.boost]>->( $topic, $mult );
+    return FALSE if not $ok;
+
+    <[memory.tree.flow]>->( { node => <memory.tree> } );
+    <[memory.tree.score]>->( { node => <memory.tree> } );
+    return TRUE;
+
+} elsif ( $cmd eq 'apply' ) {
+    <[memory.focus.apply]>;
+    <[memory.tree.flow]>->( { node => <memory.tree> } );
+    <[memory.tree.score]>->( { node => <memory.tree> } );
+    return TRUE;
+
+} elsif ( $cmd eq 'clear' ) {
+    my $topic = shift;
+
+    if ( defined $topic and length $topic ) {
+        delete <memory.focus>->{$topic};
+        delete <memory.focus_floor>->{$topic};
+    } else {
+        <memory.focus>       = {};
+        <memory.focus_floor> = {};
+    }
+
+    <[memory.tree.flow]>->( { node => <memory.tree> } );
+    <[memory.tree.score]>->( { node => <memory.tree> } );
+    return TRUE;
+
+} else {    ## [ get or unknown — treat as get ] ##
+    my $focus  = <memory.focus> // {};
+    my @topics = sort { $focus->{$b} <=> $focus->{$a} } keys %$focus;
+
+    if ( not @topics ) {
+        return '[ no focus set ]';
+    }
+
+    my $out = '';
+    for my $topic (@topics) {
+        $out .= sprintf "%s = %s\n", $topic, $focus->{$topic};
+    }
+
+    return { 'mode' => 'size', 'data' => $out };
+}
+
+#,,,.,..,,,.,,.,.,...,,..,..,,..,,,.,,...,..,,..,,...,...,...,..,,,.,,.,,,,.,,
+#SIM2KEXLPTJ4EI6YKBZJQ6JPNR5YS4JKIUEXHB47UKEIX4JAU6WL4WWNAGVJVD6TJTFLC6ZC7PKB6
+#\\\|BDIRUPFUKBVCBO35JTDFPGWOBABB53D2XKAGHBQCCCKYFMZHWIR \ / AMOS7 \ YOURUM ::
+#\[7]J6M7AEEOD3LZNG76TAAKUIQNWHMTALKNXBNBTH4SYMU35NT3LOAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
