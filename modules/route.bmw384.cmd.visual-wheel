@@ -4,7 +4,7 @@
 # descr = command handler for BMW384 field wheel visualization
 
 my $args = $call->{'args'} // '';
-my ( $output_mode, @rest ) = split m{\s+}, $args;
+my ( $output_mode, @rest ) = split m|\s+|, $args;
 $output_mode //= '';
 
 # [ parse ring count, visual mode, mode params, and label mode from @rest ]
@@ -98,37 +98,39 @@ if ( not length $output_mode or $output_mode eq 'svg' ) {
     my $svg = <[route.bmw384.visual.wheel-mode]>;
     if ( not defined $svg ) {
         $result = {
-            qw| mode | => qw| size |,
+            qw| mode | => qw| false |,
             qw| data | => 'bmw384 index not initialized'
         };
     } else {
+        $svg .= "\n" if $svg !~ m{\n$};
         $result = { qw| mode | => qw| size |, qw| data | => $svg };
     }
 } elsif ( $output_mode eq 'html' ) {
     my $html = <[route.bmw384.visual.wheel-html]>;
     if ( not defined $html ) {
         $result = {
-            qw| mode | => qw| size |,
+            qw| mode | => qw| false |,
             qw| data | => 'bmw384 index not initialized'
         };
     } else {
+        $html .= "\n" if $html !~ m{\n$};
         $result = { qw| mode | => qw| size |, qw| data | => $html };
     }
 } elsif ( $output_mode eq 'file' ) {
     my $html = <[route.bmw384.visual.wheel-html]>;
     if ( not defined $html ) {
         $result = {
-            qw| mode | => qw| size |,
+            qw| mode | => qw| false |,
             qw| data | => 'bmw384 index not initialized'
         };
     } else {
         my $path = '/tmp/bmw384-wheel.html';
         <[file.write]>->( $path, \$html );
-        $result = { qw| mode | => qw| size |, qw| data | => $path };
+        $result = { qw| mode | => qw| true |, qw| data | => $path };
     }
 } else {
     $result = {
-        qw| mode | => qw| size |,
+        qw| mode | => qw| true |,
         qw| data | => 'usage: visual-wheel [svg|html|file] [rings]'
             . ' [arc-width|density|gauss|overlay|metric|heatmap]'
             . ' [mode-param] [linear|namespace63] [ns=filter]'
@@ -197,8 +199,8 @@ if ( defined $expanse_saved ) {
 
 return $result;
 
-#,,..,.,,,,,.,,,.,..,,..,,.,.,,.,,,,,,,,,,.,,,..,,...,...,..,,.,.,...,,,,,.,.,
-#IIZVA66GQHZ3A3LFAUPORCJCWUP5EL73HT6OSOCFGRTQFWXDIJ5Q2MX5NTANYBMRUR7CEBG7ZSRZ6
-#\\\|LX2G4OVQG2LWO2JNF654K4MS4XOQGZHRGIM3R4Y5I4CVQABHI44 \ / AMOS7 \ YOURUM ::
-#\[7]GPNVDWV7EAGSFRZALVIJCURPQXBS7IIGGMEXA7O4IMQAYIQVCUDA 7  DATA SIGNATURE ::
+#,,..,.,,,..,,,.,,..,,,..,,.,,,.,,.,.,,..,,.,,..,,...,..,,..,,,,,,,,,,,,,,,..,
+#GC57PENB5AQENFSQX2G4MIWW2WSFLTYYEOJO6ZMOKEPT6SOK4666SI5WNANN4GXYBTQGHQNWYAQJC
+#\\\|46FCZED3TJ5WTCPYDOKKJDVEROETURP3ZJTLJTTGA6IFKNE2VR7 \ / AMOS7 \ YOURUM ::
+#\[7]R7NPIZGS7NPFRLUYRL4ICSGC5GKWE6SKVO5R2GSC2FHPE5GMXKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
