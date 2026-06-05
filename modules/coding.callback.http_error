@@ -118,63 +118,131 @@ my $result = {
 ## connection but never responded : restart it so the next task gets
 ## a fresh process rather than silently hanging again                  ##
 if ( $error =~ m{timeout}i ) {
-    my $backend_r = $state->{'backend'} // 'gpu';
-    my $srv       = ( <coding.inference_servers> // {} )->{$backend_r} // {};
-    if ( ( $srv->{'status'} // '' ) eq 'ready' ) {
-        <[base.logs]>->(
-            0,
-            "http_error: %s timed out after %d retries"
-                . " : scheduling %s server restart",
-            $task_id,
-            $max_retries,
-            $backend_r
-        );
-        $srv->{'status'} = 'restart_needed';
+    my $backend_r  = $state->{'backend'} // 'gpu';
+    my $srv        = ( <coding.inference_servers> // {} )->{$backend_r} // {};
+    my $srv_status = $srv->{'status'}                                   // '';
 
-        ## reduce context size to recover from VRAM-pressure timeouts ##
-        my $step  = <coding.cfg.ctx_timeout_step>    // 7000;
-        my $floor = <coding.cfg.ctx_timeout_floor>   // 16000;
-        my $cur   = <inference.model.context_length> // 0;
-        if ( $cur > $floor ) {
-            my $reduced = ( $cur - $step > $floor ) ? $cur - $step : $floor;
-            <inference.model.context_length> = $reduced;
+    ## allow requeue when server is ready, already restarting, or starting ##
+    if (   $srv_status eq qw| ready |
+        || $srv_status eq qw| restart_needed |
+        || $srv_status eq qw| starting | ) {
+
+        ## only schedule a fresh restart if one is not already in flight ##
+        if ( $srv_status eq qw| ready | ) {
+            <[base.logs]>->(
+                0,
+                "http_error: %s timed out after %d retries"
+                    . " : scheduling %s server restart",
+                $task_id,
+                $max_retries,
+                $backend_r
+            );
+            $srv->{'status'} = qw| restart_needed |;
+
+            ## reduce context size to recover from VRAM-pressure timeouts ##
+            my $step  = <coding.cfg.ctx_timeout_step>    // 7000;
+            my $floor = <coding.cfg.ctx_timeout_floor>   // 16000;
+            my $cur   = <inference.model.context_length> // 0;
+            if ( $cur > $floor ) {
+                my $reduced
+                    = ( $cur - $step > $floor ) ? $cur - $step : $floor;
+                <inference.model.context_length> = $reduced;
+                <[base.logs]>->(
+                    1,
+                    "http_error: reducing context %d → %d"
+                        . " [timeout recovery, floor=%d]",
+                    $cur,
+                    $reduced,
+                    $floor
+                );
+            }
+
+            ## clear cached pid so spawn_servers_deferred doesn't skip us ##
+            <inference.gpu_pid> = 0 if $backend_r eq qw| gpu |;
+            ## clear awaiting_resources: may be stuck from twin startup,
+            ## blocking async_spawn_inference_servers silently             ##
+            delete <coding.awaiting_resources>
+                if <coding.awaiting_resources>;
+            ## defer restart to avoid interfering with task teardown ##
+            <[event.add_timer]>->(
+                {   'after'   => 0.5,
+                    'handler' => qw| coding.handler.spawn_servers_deferred |,
+                    'data'    => { 'reason' => 'timeout_restart' }
+                }
+            );
+        } else {
             <[base.logs]>->(
                 1,
-                "http_error: reducing context %d → %d [timeout recovery, floor=%d]",
-                $cur,
-                $reduced,
-                $floor
+                "http_error: %s timed out while %s server status=%s"
+                    . " : requeue without duplicate restart",
+                $task_id,
+                $backend_r,
+                $srv_status
             );
         }
-
-        ## clear cached pid so spawn_servers_deferred doesn't skip us ##
-        <inference.gpu_pid> = 0 if $backend_r eq 'gpu';
-        ## clear awaiting_resources: may be stuck from twin startup,
-        ## blocking async_spawn_inference_servers silently             ##
-        delete <coding.awaiting_resources> if <coding.awaiting_resources>;
-        ## defer restart to avoid interfering with task teardown ##
-        <[event.add_timer]>->(
-            {   'after'   => 0.5,
-                'handler' => qw| coding.handler.spawn_servers_deferred |,
-                'data'    => { 'reason' => 'timeout_restart' }
-            }
-        );
 
         ## requeue task transparently instead of failing it :              ##
         ## server restart is already scheduled; verify_inference_startup   ##
         ## calls jobqueue.check_dependencies when ready, which picks us up ##
         my $task = <coding.task.queue>->{$task_id};
         if ( defined $task ) {
-            $task->{'status'} = 'pending';
+            my $task_exec = $task->{'execution'} //= {};
+
+            ## guard against double-requeue corrupting status ##
+            if ( ( $task_exec->{'status'} // '' ) eq qw| pending | ) {
+                <[base.logs]>->(
+                    2,
+                    "http_error: %s already pending, skipping double-requeue",
+                    $task_id
+                );
+            } else {
+                $task_exec->{'status'} = qw| pending |;
+
+                ## restore task to pending list so queue_next can find it ##
+                my $aref_pending = <coding.task.pending> //= [];
+                my $aref_active  = <coding.task.active>  //= [];
+                $aref_active->@* = grep { $ARG ne $task_id } $aref_active->@*;
+                push $aref_pending->@*, $task_id
+                    unless grep { $ARG eq $task_id } $aref_pending->@*;
+
+                <[base.logs]>->(
+                    1,
+                    "http_error: requeued %s as pending"
+                        . " — retries after server restart",
+                    $task_id
+                );
+            }
+
+            ## move jobqueue job back to depending so the next
+            ## jobqueue.check_dependencies call re-executes the task           ##
+            my $job_id = $state->{'job_id'};
+            if ( defined $job_id ) {
+                my $job_data = <[jobqueue.get_job_data]>->($job_id);
+                if ( defined $job_data
+                    && $job_data->{'status'} eq qw| running | ) {
+                    <[jobqueue.move_job]>->( $job_id, qw| depending | );
+                    <[base.logs]>->(
+                        1,
+                        "http_error: moved job %s to depending"
+                            . " for retry after restart",
+                        $job_id
+                    );
+                }
+            }
+
             ## clear http-level state so next attempt starts a fresh round ##
             <[coding.async.state_manager]>->( 'delete', $task_id );
-            <[base.logs]>->(
-                1,
-                "http_error: requeued %s as pending — retries after server restart",
-                $task_id
-            );
             return;
         }
+    } else {
+        <[base.logs]>->(
+            0,
+            "http_error: %s timed out but %s server status=%s"
+                . " : cannot schedule restart",
+            $task_id,
+            $backend_r,
+            $srv_status
+        );
     }
 }
 
@@ -182,8 +250,8 @@ if ( $error =~ m{timeout}i ) {
 
 return;
 
-#,,,.,..,,,..,,.,,..,,...,,,.,,.,,,..,.,.,,,,,..,,...,...,,,,,..,,..,,,,.,...,
-#GPJI45UKEXEIDG6MTOVLPF5ERVWG6IED6OVIIM74YRDMW2WBMO5KISO7LL6SIB6NENKDMTXXJ6ZQM
-#\\\|2TGCIL6FDI7Q4DUYOODBIS7JWZAHX3R5INHY5ESUQ5DWG3I7NFS \ / AMOS7 \ YOURUM ::
-#\[7]V4CZUHICGXOV7MHSXYJDYRCHYWJ4GXDS4JEVHWK7V7JCAHEDCIAI 7  DATA SIGNATURE ::
+#,,,.,...,...,..,,.,.,,,.,,,.,,,.,..,,..,,,.,,..,,...,...,,.,,..,,,,.,,,.,,,,,
+#4UDYGA3F2SQ6QMBBPO6WSZ3LS6S445SE675HNHTUBCPZJ3EW2XU4WYFBLQOXPMYVG6AK4WCBEIA7U
+#\\\|EDGIVCXZY4PKPLIHJXKAZRN3LCUISIF6I4V2H7BKR746INHFU6U \ / AMOS7 \ YOURUM ::
+#\[7]V6E52262Q2XBMVRF2I53EM673BRMWEGG7COV5PGN6LVZA57HKGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
