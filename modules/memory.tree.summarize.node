@@ -27,9 +27,11 @@ for my $leaf (@$cluster) {
 my $content     = join "\n", grep { length $_ } @parts;
 my $replace_ids = \@replace_ids;
 
-my $sent = <[base.protocol-7.command.send.local]>->(
-    {   'command'   => qw| coding.summarize-context |,
-        'call_args' => { 'args' => 'max_len=800', 'data' => $content },
+my $content_b32 = encode_b32r( Encode::encode( 'UTF-8', $content ) );
+
+my $sent = <[protocol-7.command.send.local]>->(
+    {   'command'   => 'cube.coding.summarize-context',
+        'call_args' => { 'args' => "max_len=800 :B32:$content_b32" },
         'reply'     => {
             'handler' => 'memory.tree.summarize.handler',
             'params'  => {
@@ -49,8 +51,8 @@ if ( not defined $sent or $sent <= 0 ) {
 
 return TRUE;
 
-#,,..,,.,,,,,,...,...,,..,,.,,...,,.,,,,.,,.,,.,.,...,...,.,.,.,,,,..,,..,,.,,
-#EX3FKWWKG3FIU5RDCEFQAZU6F2Y2GQFGDTKIQCXWQOB4URCLYFB73CX52QZCO4OHWYVH5KLKHMZC6
-#\\\|F4VKN4GADZDAYUHCDJEIWTLDUJ2WVS2KP33BCN3JNO2WKIG4AOJ \ / AMOS7 \ YOURUM ::
-#\[7]PAFADGYO5DEZCBALQPFOPMYVPSFRYITCQGVZMZVMQYJKRFTDKGCA 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,.,.,...,.,,,,,,,..,,.,,,.,.,...,.,.,...,...,.,.,,.,,..,,,.,,,,,,
+#ITLHNWYS27KFWGN4ZT22V5ZTIYGNVUN22SQVWSYKSYI6YYBXYGXVIEGJHQ3Y2VHEX5LG6VQXJ3SK2
+#\\\|OZ5TTZ426UC45AKS3GXJK365EMDIM2GDF6BFPCPIARFXSPZXZ4S \ / AMOS7 \ YOURUM ::
+#\[7]ERPVPTP6CAWFIZPS27TSZOPLPZSR5IKUD6QTIVCGJ7MPZY5JXGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
