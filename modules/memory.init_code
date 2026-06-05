@@ -18,7 +18,8 @@ my $cfg = <memory.cfg> // {};
 <memory.focus_cmd_buffer>     //= [];
 <memory.focus_cmd_buffer_max> //= 7;
 
-## [ register repeating decay timer — hardcoded floor prevents undef interval ]##
+## [ register repeating decay timer :
+##   : hardcoded floor prevents undef interval ]##
 my $decay_interval = $cfg->{'focus_interval'} // 30;
 $decay_interval = 30 if not $decay_interval or $decay_interval < 5;
 <[event.add_timer]>->(
@@ -46,8 +47,12 @@ $maint_interval = 60 if not $maint_interval or $maint_interval < 30;
 <[memory.tree.init]>;
 
 ## [ register source adapters if present ]##
-my @sources
-    = qw| memory.source.file memory.source.session memory.source.git |;
+my @sources = qw[
+    memory.source.file
+    memory.source.session
+    memory.source.git
+    memory.source.index
+];
 for my $src (@sources) {
     my $mod_path = <system.root_path> . "/modules/$src";
     next if not -f $mod_path;
@@ -64,8 +69,8 @@ push @{ <system.callbacks.initialized> //= [] }, 'memory.startup';
 
 return TRUE;
 
-#,,..,..,,,,.,...,,..,.,,,,..,,..,,,.,..,,,.,,..,,...,..,,...,,..,,,.,...,...,
-#QIBK4ADMDBDMQJW3Y7IZTV5TBAFYY3WNYYQKIQEM3ZBAC74DN7U4MY2NMVGICBVKXUFDSIKQZX6BK
-#\\\|BPXPFHPHHMJV7K7FAU56IBG7KBFQQ774W2AQS5QBJHA4OZHWUMS \ / AMOS7 \ YOURUM ::
-#\[7]DHWDLJC74ACSWOWUHVO7OSELFB7MLEZIZGOHO72FCASU7E6FN4CI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,,.,,,,,...,...,,,,,,,,,..,,..,,..,,...,...,,,,,...,,,.,,.,,,,.,
+#VGVOJFFOATIQHLRZFDQX4MXKW72A2PE7OGNUV6KMRQMDTASOQFGMG7HQVSXUGGIIELBAA72M6F3VI
+#\\\|C6IZMJYDL5BVIIC2DW44AYVRJBXN65GRWD64MBRBAFLRD7PYVKB \ / AMOS7 \ YOURUM ::
+#\[7]IYRCHXDJMUQXSQH3S7JLRCEHMMAEZ7UXQAPEZ3DRDCZGGDTA54DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

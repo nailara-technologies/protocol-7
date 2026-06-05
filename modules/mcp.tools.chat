@@ -119,11 +119,33 @@ sub {
             'properties'           => {},
             'additionalProperties' => \0
         }
+        },
+        {
+        'name'        => 'p7_chat',
+        'description' =>
+            'read or send chat messages. no args = show active channels. '
+            . 'message= to send. channel= to scope. '
+            . 'combines p7_chat_channels + p7_chat_read + p7_chat_send.',
+        'inputSchema' => {
+            'type'       => 'object',
+            'properties' => {
+                'message' => {
+                    'type'        => 'string',
+                    'description' => 'message text to send (omit to read)'
+                },
+                'channel' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'target channel (default: main for read/send)'
+                }
+            },
+            'additionalProperties' => \0
+        }
         };
     }
 
-#,,..,,,.,...,,..,...,,..,..,,,,,,,.,,,,,,.,,,..,,...,...,...,...,,..,..,,,..,
-#MZOBTSAW2JB3GZ3VSBARBWVGWFH23EHHH2RTOUEYNOWPTALTEEUUTT7RMWWBA6KVS244LGZQ3ARNM
-#\\\|STKWJRPLVYUFARUJQWDEYQCGB7KIINO2VU53LBXA355OVFKB7S5 \ / AMOS7 \ YOURUM ::
-#\[7]R4JSPBIJ3XPAB6XXUCDXBMXVYYBKPN3GAN3N5J4VPBXOY2PHJMAI 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,..,,..,,,,,,..,,,,,,,,,,,.,.,.,..,,...,...,,..,.,.,,.,,.,.,.,,,
+#7ELQWDOR24JR4GSU4HGNK3WWRVISF3FYZHB5H7H3QF7RTFK3G4CL7LL5AZSVKXP5NYY7XSNFNNXH6
+#\\\|FR3CVJ7CKRQWEXSJN4H7NPZTUBGEZSTBOWPATKVD2PZP25RKV5J \ / AMOS7 \ YOURUM ::
+#\[7]B3D7GDIR5XP265DFN7A3YML2YBEXDDOW435OMQOJZAT3N52HKQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
