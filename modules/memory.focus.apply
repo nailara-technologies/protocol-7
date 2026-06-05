@@ -50,10 +50,17 @@ for my $ns (@$buffer) {
     $focus->{$topic} = $target if $target > $current;
 }
 
+## [ index integration — expand focus via semantic lookup ] ##
+my $focus_key = join ':', sort keys %$focus;
+if ( ( <memory.focus_last_index_key> // '' ) ne $focus_key ) {
+    eval { <[memory.source.index]>->(); };
+    <memory.focus_last_index_key> = $focus_key;
+}
+
 return TRUE;
 
-#,,,.,...,..,,,,,,,.,,..,,,,,,,..,,..,.,,,,..,..,,...,...,...,...,,..,.,.,,..,
-#RK2GTCERL6PENHA522SVNVJ7OFDAM4MTWWYREWVDIWVLMKEZTFI4UR2X6E6B2BSEU6KWLN63OFPOG
-#\\\|OMAQPUZBSCH5F7DGBONR54CSSOWW2U5Y2QZWRNKZWKB5BZUK2CX \ / AMOS7 \ YOURUM ::
-#\[7]UJZZSJQPBKIP4XZOZUAW3VVFB34ESSNE5NTBVHFKQQ55CW2OIWCI 7  DATA SIGNATURE ::
+#,,..,...,.,.,..,,,,.,,,.,,..,...,..,,..,,,,.,..,,...,...,,..,,,.,.,,,,,,,,,.,
+#DM64VZYDY7NTKKGKMQY24ZK33K4HJFVF2VSIR2G5AFQPRNZ2ATEZCXRUJK2UABLMM4UDO46ZCJU6A
+#\\\|STJ6EE4X4DYEFFTALCVL3V5JPA52GBJZVN6TP4IIMCFGIJGB53R \ / AMOS7 \ YOURUM ::
+#\[7]GYCSEWMX4CQE7CSIEVF4SX24QD6I6HRDCLOKHRW53KAHGN7VJIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

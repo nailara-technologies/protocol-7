@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name = memory.focus.matches
-# descr = predicate does node match topic substring
+# descr = predicate does node match topic substring or index relation
 
 my $node  = @_ ? shift : $ARG;
 my $topic = @_ ? shift : $ARG;
@@ -16,10 +16,27 @@ my $text = join ' ',
     $node->{'source_ref'} // '',
     );
 
-return index( lc($text), lc($topic) ) >= 0 ? TRUE : FALSE;
+my $lctext  = lc($text);
+my $lctopic = lc($topic);
 
-#,,,.,.,,,,,.,,,,,,,.,.,,,...,..,,.,.,.,,,.,.,..,,...,...,.,,,.,,,...,,.,,.,.,
-#IPPTLN5CSKKWLZNHKAXZIVJWJ7XTXOE7WL2VV5QBA54LY5B7XDVCKVTU4VNWUJWGVC4RTJ6Z6URWM
-#\\\|2A7FVZRA6W6COK2A7GZFOMHPKZQ25LSLZDZQ2OB5QQLY5TPCATY \ / AMOS7 \ YOURUM ::
-#\[7]7VVEWTQSS5YIZR2Z6WX664RQOELYGS7YMTAQDTNLKWPWX67CASAQ 7  DATA SIGNATURE ::
+## [ index cache: if topic has related tokens from index, match those too ] ##
+my $cache   = <memory.focus_index_cache> // {};
+my $related = $cache->{$lctopic};
+
+if ( defined $related and @$related ) {
+    ## [ index is live — match topic or any related token ] ##
+    return TRUE if index( $lctext, $lctopic ) >= 0;
+    for my $token (@$related) {
+        return TRUE if index( $lctext, lc($token) ) >= 0;
+    }
+    return FALSE;
+}
+
+## [ fallback: substring only ] ##
+return index( $lctext, $lctopic ) >= 0 ? TRUE : FALSE;
+
+#,,,.,,,,,.,,,,,.,.,.,,..,.,,,,..,,,.,,..,,,.,..,,...,...,..,,..,,...,..,,,,.,
+#JF3AEGSFT5CU6M3632PXMJAE23ZZ3XTPD423YL5MUZ2UNUML67YOKPU7BNB77WIPZBDQI3MLC3WQW
+#\\\|AJEJV2UWTVMHWMSI2HK6MGDRTVPRTA2ZABCM4LTNXBKXYSPCYPG \ / AMOS7 \ YOURUM ::
+#\[7]PEX6XY7YZCNTP2TSDCKLKQ2L7EZKAMGPL3AONCZZWBRLAJRZPYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
