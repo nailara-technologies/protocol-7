@@ -24,13 +24,22 @@ if ( $gpu_pid and kill( 0, $gpu_pid ) ) {
 # Call the async spawn routine
 <[coding.async_spawn_inference_servers]>;
 
+## schedule fallback verification so jobqueue.check_dependencies is called ##
+## even if a stale watcher guard cancels the io monitor before it fires    ##
+<[event.add_timer]>->(
+    {   'after'   => 10.0,
+        'handler' => qw| coding.handler.verify_inference_startup |,
+        'data'    => { 'backend' => qw| gpu | }
+    }
+);
+
 # Cancel the timer if still active
 $event->w->stop if defined $event->w;
 
 return TRUE;
 
-#,,.,,..,,..,,...,,,.,,,,,...,,,.,...,,,,,...,..,,...,..,,,,.,.,,,...,,,,,,.,,
-#4WIH2PDU7LVEGXYHWZ24YH3ZH7X3CXNMTPJCGFXXJ4Q7JF24WTV3T7TXRYYM6JUE23TEUIQYOU3A6
-#\\\|NOW2KWMNSPWMZPXGXTV5NNH2PJZTLAUEGPOMMQ7XMWME4D5QWB4 \ / AMOS7 \ YOURUM ::
-#\[7]A776A7VSVTKXMKHYCUB6F4QFPBVAZW6V5AY4G22ECWVEET7U4MDQ 7  DATA SIGNATURE ::
+#,,.,,...,..,,,,.,.,.,,,.,,,.,...,.,.,.,,,...,..,,...,...,.,.,.,.,,,,,.,,,,.,,
+#W3CANF3JERHT2UY3GDPMDCN5VSADWYOEFTIGMCFZKGQULH3RSWFEC37JNKBFSV3ZN3THELPIM2MD6
+#\\\|G3VTC6YRLVHQYDGD7YXPYXQD235QMEC7PT5P4PYLNS56VW6HWAC \ / AMOS7 \ YOURUM ::
+#\[7]AXR4R2WRRNAWVG372RKAMRMQ3XB2LZKCXTP4HESMFKCBXFSRM2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
