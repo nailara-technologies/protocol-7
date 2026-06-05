@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = coding.tools.handler.search_memory
+# descr = search focus-scored memory tree by terms
+
+my $args  = shift            // {};
+my $terms = $args->{'terms'} // '';
+return 'terms required' unless length $terms;
+
+## [ reject shell metacharacters ]##
+if ( $terms =~ m{[;&|`\$\\"'\n\r<>]} ) {
+    return 'error: terms contain invalid characters';
+}
+return 'error: terms too long' if length($terms) > 200;
+
+my $output = '';
+if ( open my $fh, '-|', 'p7c', 'memory.search', $terms ) {
+    local $INPUT_RECORD_SEPARATOR;
+    $output = <$fh>;
+    close $fh;
+}
+$output //= '';
+chomp $output;
+
+return length $output
+    ? $output
+    : 'memory.search returned empty — memory zenka may not be running';
+
+#,,,,,.,,,,..,.,,,...,..,,,,,,,.,,,..,,.,,,,,,..,,...,...,,,,,,..,,,.,,..,,..,
+#6VIY3KO65LA7WMYCPBNW2OA5J7XS5CZT5255GWW4LN6J3PC3JLOMI6YLD2A7MQZQYINCP4AAX3UAO
+#\\\|FMNHB7DSTY7VULYIS7AHZW3NZWIAAQZIF7YSBAGE7CUNA2LIANN \ / AMOS7 \ YOURUM ::
+#\[7]FJINXNREC7GLWSKAWBWCRPCTW6FP3I5OFBOEPZQ5Y4ASTNRV5CAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
