@@ -28,6 +28,7 @@ my $intensity  = $qparam{'intensity'}  // '';
 my $expanse    = $qparam{'expanse'}    // '';
 my $dim        = $qparam{'dim'}        // '';
 my $sep        = $qparam{'sep'}        // '';
+my $threshold  = $qparam{'threshold'}  // '';
 
 if ( $dim eq 'vertical' ) {
     $mode = 'vertical';
@@ -48,6 +49,7 @@ if ( not scalar keys %{ <bmw384.index>->{'by_name'} // {} } ) {
 # [ svg cache key ]
 my $cache_key = join ':', $mode, $rings, $param, $label_mode, $ns, $tl,
     $intensity, $expanse, $dim, $sep;
+$cache_key .= ':thr=' . $threshold if length $threshold;
 <bmw384.svg.cache> //= {};
 
 # [ oscilloscope: route to index zenka for cross-zenka zulum data ]
@@ -97,6 +99,7 @@ my $saved_expanse     = <route.bmw384.cfg.translucency_expanse>;
 my $saved_ledger_mode = <route.bmw384.cfg.ledger_mode>;
 my $saved_dimension   = <route.bmw384.cfg.dimension_view>;
 my $saved_sep         = <route.bmw384.cfg.show_separator_pulses>;
+my $saved_threshold   = <route.bmw384.cfg.boundary_threshold>;
 
 # [ apply request params ]
 <route.bmw384.cfg.rings>       = $rings;
@@ -136,6 +139,10 @@ if ( length $expanse and $expanse =~ m{^\d+$} ) {
 
 if ( $mode eq 'ledger' ) {
     <route.bmw384.cfg.ledger_mode> = 1;
+}
+
+if ( length $threshold and $threshold =~ m{^\d*\.?\d+$} ) {
+    <route.bmw384.cfg.boundary_threshold> = $threshold + 0;
 }
 
 my $svg = <[route.bmw384.visual.wheel-mode]>;
@@ -221,6 +228,11 @@ if ( defined $saved_sep ) {
 } else {
     delete <route.bmw384.cfg.show_separator_pulses>;
 }
+if ( defined $saved_threshold ) {
+    <route.bmw384.cfg.boundary_threshold> = $saved_threshold;
+} else {
+    delete <route.bmw384.cfg.boundary_threshold>;
+}
 
 if ( not defined $svg ) {
     my $body = '{"error":"bmw384 index not initialized"}';
@@ -256,8 +268,8 @@ $session->{'buffer'}->{'output'} .= $svg;
 
 return 2;
 
-#,,..,..,,.,,,...,,.,,,,.,,,,,,.,,.,,,,,.,,,,,..,,...,...,.,.,.,,,.,.,...,...,
-#N2GGQEOPFWPERTW5VA4WDW4DBUMOE7O43WZQR4WNWOGRRUKDJWTJR4NIUVXSD2R27KFO72YLLWIVO
-#\\\|5HYYKZYVGDKLY3N3KDGZKFV5E3UFWK3SY5LXUUNQIX53ZHQL53T \ / AMOS7 \ YOURUM ::
-#\[7]56B7JETNYZLQEV3EVW7XSJG43AWXQKD4N5XQFTS4QFWDLWGF3CBQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,.,,,.,,,.,,..,,.,,,,,,,,,,,,..,..,,...,...,,,,,,,,,,,,,..,,.,.,
+#QP6N74N3NGV724CMHNSXUY2V2MNQJFBBBMGY5JALP4C6BVYDINF5G2SWFW7SXJN2WPW3GNGVYL4QY
+#\\\|5ETULXIW44RWNTKUQQ6VF6B4EFWJNIZIUZOXNWVIRRZJEG6QQMH \ / AMOS7 \ YOURUM ::
+#\[7]SFBCFFAD4MVXR5LUPIV5NXGZ4Y4XFYOSGOXRERHATJPILXLOYCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
