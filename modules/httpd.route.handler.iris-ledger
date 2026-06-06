@@ -70,14 +70,17 @@ my $rings_max = <route.bmw384.cfg.rings> // 26;
 
 if ( $action eq 'reset' ) {
     <route.bmw384.cfg.ledger_counts> //= {};
+    <bmw384.ledger.counts>           //= {};
     if ( defined $ring ) {
         my $key = "$arc:$ring";
         <route.bmw384.cfg.ledger_counts>->{$key} = 7;
+        <bmw384.ledger.counts>->{$key}           = 7;
         $result_count = 7;
     } else {
         for my $r ( 0 .. $rings_max - 1 ) {
             my $key = "$arc:$r";
             <route.bmw384.cfg.ledger_counts>->{$key} = 7;
+            <bmw384.ledger.counts>->{$key}           = 7;
         }
         $result_count = 7;
     }
@@ -119,8 +122,8 @@ $session->{'buffer'}->{'output'} .= $rb;
 
 return 2;
 
-#,,..,,,.,...,.,.,.,,,..,,...,,.,,...,.,,,.,.,..,,...,...,.,,,,.,,,,.,.,.,,.,,
-#6YH3M2USOOOCT5RHQK6SLTMZFWAB2ETDVIJSUYBFNZKUG3GT6ZDLHKTZNI7LXXCBU3HM6KPYHSFPK
-#\\\|VOWGX23AMXLKMNCQFXNNPN2JI3YD2AWGGVPPKYOU4FXSIU5IWP2 \ / AMOS7 \ YOURUM ::
-#\[7]2VTZ3WRWAVYMRWSP37ZZXI46BY2SXGOQRIMLFNFKNSE47U3IAWDA 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,..,.,.,,..,,..,,..,.,,,.,.,..,,..,,...,...,..,,,,.,,..,.,,,,.,,
+#7P6IZNLOQHDQHKF3N3S7KT3HLRSMIRFR6QH57X5F3LOCJY4XK6YEZNG23KJXA2JK5QCLG7X7SEXKY
+#\\\|B3VFK4FTRUEZMFGVVXTDQMX36CCUWY5MKZ4NZZ57G7VAIAIW6HI \ / AMOS7 \ YOURUM ::
+#\[7]BRGDGO2TUUTSJG3PJMDJLOXUYWA33AVPCVMIELXZLT3PMWNXRCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
