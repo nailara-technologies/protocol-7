@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = transport.handle.direct-tcp
+# descr = direct TCP connection handler (baseline)
+# args  = $entry, $context
+# returns transport handle hashref or undef
+
+my ( $entry, $ctx ) = @ARG;
+
+my $endpoint = $entry->{'endpoint'} // $ctx->{'session'}{'destination'}
+    // $ctx->{'request'}{'domain'} // '';
+return undef unless length $endpoint;
+
+my ( $host, $port ) = split /:/, $endpoint, 2;
+$port //= 80;
+
+my $sock = IO::Socket::IP->new(
+    PeerHost => $host,
+    PeerPort => $port,
+    Type     => SOCK_STREAM(),
+    Timeout  => 7,
+);
+
+if ( not $sock ) {
+    <[base.logs]>->(
+        0, 'transport.handle.direct-tcp: connect to %s:%d failed: %s',
+        $host, $port, $OS_ERROR
+    );
+    return undef;
+}
+
+$sock->blocking(0);
+
+my $dest = $ctx->{'session'}{'destination'} // $ctx->{'request'}{'domain'}
+    // $endpoint;
+
+my $handle = {
+    'type'     => 'direct-tcp',
+    'socket'   => $sock,
+    'endpoint' => $endpoint,
+    'quality'  => <external.transports>->{'quality'}{'direct-tcp'}{$dest}
+        // {},
+};
+
+## update stats ##
+<external.transports>->{'stats'}{'connections_ok'}++;
+<external.transports>->{'active'}{$dest} = {
+    'type'    => 'direct-tcp',
+    'started' => <[base.time]>->(4),
+};
+
+return $handle;
+
+#,,,,,,,,,..,,.,.,..,,.,,,,,.,..,,,,,,,,,,,..,..,,...,...,..,,.,,,.,.,,,.,.,,,
+#PBR5AKQAA7ALUQXW23CK4ZH6FZD3QBICPA2U3D5I5A6R3RH52VSVLVM3LTTSCDT6SEMC2KEPM62CC
+#\\\|BILE42G476SZKX4GKAV4TCZXPZFE4FS2VGRAXMLOKFOZ6LJLEGP \ / AMOS7 \ YOURUM ::
+#\[7]3HDN75KMVYGZIYSYPPSSFDFISAJDMLUMCLN7VGCK6BK6RJZS3OAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

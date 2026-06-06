@@ -1,0 +1,130 @@
+## [:< ##
+
+# name  = transport.select
+# descr = select and connect best transport for given context
+# args  = $context_hash
+# returns transport handle hashref or undef
+
+my $ctx = shift // return undef;
+
+## get profile name ##
+my $profile_name = <[transport.profile.match]>->($ctx);
+my $profile      = <[transport.profile.load]>->($profile_name);
+
+## fallback to hardcoded direct-tcp if no profile ##
+if ( not defined $profile ) {
+    <[base.logs]>->(
+        1, 'transport.select: no profile for %s, using direct-tcp',
+        $profile_name
+    );
+    return <[transport.handle.direct-tcp]>->( {}, $ctx );
+}
+
+my $dest = $ctx->{'session'}{'destination'} // $ctx->{'request'}{'domain'}
+    // $profile_name;
+
+my $transports = $profile->{'transports'} // [];
+my $fallback   = $profile->{'fallback'}   // 'direct-tcp';
+
+## walk priority list ##
+for my $entry (@$transports) {
+    my $type = $entry->{'type'} // next;
+
+    ## check demotion ##
+    my $demoted = <external.transports>->{'demoted'}{$dest}{$type};
+    if ( defined $demoted ) {
+        <[base.logs]>->(
+            2,     'transport.select: %s demoted for %s, skipping',
+            $type, $dest
+        );
+        next;
+    }
+
+    ## check min_quality if we have quality data ##
+    my $quality = <external.transports>->{'quality'}{$type}{$dest};
+    if ( defined $quality and exists $entry->{'min_quality'} ) {
+        my $min = $entry->{'min_quality'};
+        if ( exists $min->{'loss_max'}
+            and defined $quality->{'loss_rate'} ) {
+            if ( $quality->{'loss_rate'} > $min->{'loss_max'} ) {
+                <[base.logs]>->(
+                    'transport.select: %s quality too low for %s'
+                        . ' (loss %.2f > %.2f)',
+                    $type, $dest, $quality->{'loss_rate'},
+                    $min->{'loss_max'}
+                );
+                <[transport.demote]>->(
+                    $dest, $type, 'quality_below_threshold'
+                );
+                next;
+            }
+        }
+    }
+
+    ## try to connect ##
+    my $handler = sprintf 'transport.handle.%s', $type;
+    if ( not exists $code{$handler} ) {
+        <[base.logs]>->( 0, 'transport.select: no handler for %s', $type );
+        next;
+    }
+
+    my $handle = $code{$handler}->( $entry, $ctx );
+    if ( defined $handle ) {
+        ## success: record as active, initialize quality ##
+        <external.transports>->{'active'}{$dest} = {
+            'type'    => $type,
+            'handle'  => $handle,
+            'started' => <[base.time]>->(4),
+        };
+
+        <external.transports>->{'quality'}{$type}{$dest} //= {
+            'loss_rate'            => 0.0,
+            'rtt_ms'               => 0,
+            'goodput_kbps'         => 0,
+            'last_measured'        => <[base.time]>->(4),
+            'consecutive_failures' => 0,
+        };
+
+        <[base.logs]>->(
+            2,     'transport.select: %s active for %s',
+            $type, $dest
+        );
+        return $handle;
+    }
+
+    ## connection failed: demote ##
+    <[transport.demote]>->( $dest, $type, 'connection_failed' );
+}
+
+## all primary transports failed: try fallback ##
+<[base.logs]>->(
+    1,
+    'transport.select: all primary transports failed for %s,'
+        . ' trying fallback %s',
+    $dest,
+    $fallback
+);
+
+my $fallback_handler = sprintf 'transport.handle.%s', $fallback;
+if ( exists $code{$fallback_handler} ) {
+    my $handle = $code{$fallback_handler}
+        ->( { 'type' => $fallback, 'endpoint' => $dest }, $ctx );
+    if ( defined $handle ) {
+        <external.transports>->{'active'}{$dest} = {
+            'type'    => 'fallback:' . $fallback,
+            'handle'  => $handle,
+            'started' => <[base.time]>->(4),
+        };
+        $ctx->{'transport'}{'degraded'} = TRUE;
+        return $handle;
+    }
+}
+
+<[base.logs]>->( 0, 'transport.select: fallback also failed for %s', $dest );
+return undef;
+
+#,,.,,.,,,,,,,.,,,,,.,..,,,.,,,.,,,,.,,,.,,,.,..,,...,...,.,,,,,.,,..,,..,,,.,
+#TJNYCR3CB4FD5JYFMXH6BZSLPTADQB3XKOO7OLVRHT62T3SRGR3BIIMTYYZ66D4PVIWKFTKDEJLDU
+#\\\|GTCEK5BUSBMLW6QJ5HZWKV5223Q7G4IH2X4FRKMUFYCHMYNJG5Y \ / AMOS7 \ YOURUM ::
+#\[7]RKKZMARFAOQN2MQAT72CG3G7TQACT2YTI6QOC6DOVVOJU7F76EDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
