@@ -157,8 +157,20 @@
 
 **Diagnostic:** Improved `base.handler.command` syntax error log to show full bad line (`line=['...']`) instead of stripping it.
 
-#,,,.,..,,.,,,.,.,.,,,,,,,,..,.,,,..,,,,.,,,.,..,,...,...,...,,..,.,.,,,,,.,.,
-#EOS2PVDCIKKJSI7S5HLGLMUF4IQB572RELAPGANQBQXQIUHRGYNQGGXIVZ3FN3SJM67EZANHAZSCY
-#\\\|MTSAHG2MSJJ4IOKWOJDM2FSDKAIS52UYRH3MQXKICW4ZQCNJ6YY \ / AMOS7 \ YOURUM ::
-#\[7]PIC5FZZJ35RDNAFVS4Q3DHHPJR4B77XZ73P2SB5C7HDSM2GAEQAY 7  DATA SIGNATURE ::
+## completed this session (2026-06-06) — iris queue + credential fabric
+
+- **iris dimension-rotator** ✓ (8e66b0044) — route.bmw384.visual.wheel.vertical; H/V toggle in iris UI
+- **iris cascade-warning** ✓ (497976067) — warning_map + depletion rate tracking; amber glow overlay in wheel.ledger
+- **iris separator-pulse** ✓ (9c5b107d0) — sep toggle + 100ms auto-refresh in iris UI; backend was pre-existing
+- **iris temporal** ✓ (2b8b6ea0c) — wheel.temporal; radial=time-since-modification, hue encodes age
+- **iris boundary** ✓ (71cb6e025) — wheel.boundary; stained glass gap boundaries + threshold slider
+- **iris negotiation-window** ✓ (a6a62fb16) — negotiation-overlay + negotiation.tick + iris-negotiate handler
+- **memory cache fix** ✓ — memory.render.context uses file.zenka_dir.write; stale /var/protocol-7/memory file removed; context.memory.load reads from var_P7/memory/
+- **mcp-server-p7 kimi fix** ✓ — kimi-code v0.11.0 blocks --yolo with --prompt; switched to kimi-legacy; PATH extension stanza added at startup
+- **credential-fabric zenka** ✓ (pending sign+commit) — 17 modules; credential_fabric.* namespace; detached key-holder child (C25519+Twofish ephemeral DH); tiered store; rotate/subscribe/resolve/register; open: web-browser.dialog.show not yet wired, remote-slot async callback pending
+
+#,,..,..,,.,,,,.,,.,.,.,.,,..,.,,,..,,...,...,..,,...,...,..,,,,.,,,.,..,,,,,,
+#QF4TLSALV6ARK6ONHT3KP34PH5IR6NKOBQFCXYKFDXN6F4ERG2PEIO355M5ZXJZWXY6T2ILZ5EUOM
+#\\\|VNC4JK4456JBJX7MFEIEIEEPX3CFDBFTN7T5HLPIC5AQ7YDSP4T \ / AMOS7 \ YOURUM ::
+#\[7]TJWZHGU3V6CJGMSMKUJM2VXPQZOTHKNP7HDHEEPN23ZOM6MMPWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
