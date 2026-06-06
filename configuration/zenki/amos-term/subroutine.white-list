@@ -473,6 +473,8 @@ base.buffer.local_logfile_write
 amos-term.handler.nshell-output
 amos-term.decoder.init_patterns
 amos-term.buffer-attach_generic
+plan-9.protocol.codec.encode-qid
+plan-9.protocol.codec.decode-qid
 data.mount.shm.permission.verify
 data.get.find_interference_match
 base.perlmod.install_cpan_module
@@ -484,6 +486,7 @@ base.file.get_swapped_subs_pairs
 base.config.load_proto_7_version
 protocol.amos-chksum.ext-cmd.exit
 plugin.auth.zenka.no-keys-defined
+plan-9.protocol.codec.encode-stat
 graphics.matrix.visual.cubic-sort
 data.topology.interference.map.PI
 data.mount.shm.open.mmap_shm_read
@@ -518,10 +521,14 @@ amos-term.plugin-decoder.elf_match
 protocol.sftp.handler.session_close
 protocol.protocol-7.encryption.init
 protocol.amos-chksum.ext-cmd.select
+plan-9.protocol.codec.encode-uint64
 plan-9.protocol.codec.encode-uint32
 plan-9.protocol.codec.encode-uint16
+plan-9.protocol.codec.encode-string
+plan-9.protocol.codec.decode-uint64
 plan-9.protocol.codec.decode-uint32
 plan-9.protocol.codec.decode-uint16
+plan-9.protocol.codec.decode-string
 graphics.matrix.visual.sphere-stats
 graphics.matrix.visual.cubic-layers
 graphics.matrix.visual.classify-all
@@ -535,6 +542,7 @@ base.callback.reset_strm_size_timer
 protocol.amos-chksum.ext-cmd.version
 protocol.amos-chksum.command-handler
 plan-9.server.buffer-read-buffer-dir
+plan-9.protocol.codec.encode-message
 graphics.matrix.visual.group-spheres
 graphics.matrix.visual.find-clusters
 graphics.matrix.visual.extract-color
@@ -587,6 +595,7 @@ auth.callback.cap-neg.declare-strm-support
 data.topology.interference.map.MAX_RGB_DIST
 data.mount.shm.header.write.pack_shm_header
 base.referenced_subroutines.clear_from_disk
+data.topology.interference.map.hash_to_phase
 data.topology.interference.map.PROTOCOL_BLUE
 data.mount.shm.header.read.unpack_shm_header
 data.mount.shm.permission.add.sign_permission
@@ -594,27 +603,41 @@ data.init_holographic.position_in_intent_path
 base.log.send-buffer.reply-handler.send-reply
 plugin.auth.auth-keypair.load-authorized-users
 plugin.auth.auth-keypair.cleanup-incoming-keys
+data.topology.interference.map.hash_to_cube_3d
 plugin.auth.auth-keypair.validate-incoming-tofu
+data.topology.interference.map.detect_workholes
+data.topology.interference.map.coord_to_subcube
 data.mount.shm.permission.verify.group_contains
 auth.callback.cap-neg.declare-strm-size-timeout
 auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 data.topology.interference.map.determine_next_hop
+data.topology.interference.map.calculate_antipode
 data.topology.interference.map.SUBCUBES_PER_GROUP
 data.topology.interference.map.generate_povray_csg
+data.topology.interference.map.generate_channel_id
+data.topology.interference.map.determine_bandwidth
+data.topology.interference.map.calculate_cache_ttl
 data.mount.shm.permission.verify.rights_sufficient
 data.init_holographic.calculate_workhole_bandwidth
 data.mount.shm.permission.verify.path_pattern_match
 data.init_holographic.calculate_magnetic_trajectory
+data.topology.interference.map.determine_source_type
+data.topology.interference.map.min_distance_to_center
+data.topology.interference.map.optimal_multiplex_phase
+data.topology.interference.map.determine_security_zone
 data.topology.interference.map.calculate_unified_field
+data.topology.interference.map.calculate_standing_wave
 data.mount.shm.permission.verify.verify_permission_sig
 data.topology.interference.map.generate_cubic_neighbors
 data.topology.interference.map.calculate_resonance_field
+data.topology.interference.map.calculate_metadata_distance
+data.topology.interference.map.calculate_fluorescent_drift
 data.topology.interference.map.calculate_constructive_zone
 
-#,,.,,,,.,,,,,.,,,.,,,..,,...,...,.,.,...,,,,,..,,...,..,,..,,.,,,,..,,.,,,..,
-#NIHAAEVXIZTFUXNBIOWGI5KG4OFQKEM33UHTKA56UVPMHIRWXGUNSPIP3WJSAJI56CANWN5M4H6RA
-#\\\|KEZZAVFEJ6TVIESJF47LYPNWOZDMTOIV7YMK6MS6Q7WCEOFGN3A \ / AMOS7 \ YOURUM ::
-#\[7]TEQQXLMPGU6QD7WGXS62WOEMUVB4ZN2UQK7N7NFWMM64QDUTOMDA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,,..,...,,,,,.,.,...,,,.,,,,,,,.,..,,...,...,,,,,...,,,.,..,,,..,
+#CVJZWDOVAQER3RRTQCMCMR5ZVPG3A5SPJZGHEQUPNENCRJFYRFL5G7YPIQ36WIAI5XA22QM6MQW72
+#\\\|VZG4QZCKYTBKZQK5Y4C7WYSSUDDQPJWR6DU2HSWQM6WQZPTL2NP \ / AMOS7 \ YOURUM ::
+#\[7]LTE3KHP5P3UXVY7JAS4LZG3UJVQ6NJ7L4KCTMQJ5MEQQR44JOAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,6 +11,8 @@ metadata:
 
 - **memory context pipeline** ✓ — `memory.render.context` writes cache file; `context.memory.load` reads scored tree; `memory.startup` primes on init (commit aa0b24c9d)
 - **MCP memory tools** ✓ — `p7_memory_search` + `p7_memory_digest` in `bin/mcp-server-p7` (commit fae65a85d); live after MCP restart
+- **coding zenka tool search_memory** ✓ — `coding.tools.handler.search_memory` + definition; DeepSeek can call mid-task (commit 36f2e9df6)
+- **memory summarize wave** ✓ — `memory.tree.summarize.node` routing fixed (cube. prefix + b32); `p7c memory.summarize` fires 9 tasks to coding zenka; `p7c memory.dedup` working (commit a18205f6d)
 
 ## completed previous session (2026-06-05)
 
@@ -26,9 +28,9 @@ metadata:
 
 ## iris visualization queue (dispatch to kimi one by one)
 
-- **iris alpha-density v2**: data/tasks/iris-alpha-density-mode-v2.md — filter-safe, dispatch next
-- **iris ring ledger**: data/tasks/iris-ring-ledger-mode.md — 3+1 octal counters, separator flash
-- **iris route-commitment**: data/tasks/iris-route-commitment.md — future arcs bright/past dim
+- **iris alpha-density v2**: DONE ✓ (file removed, completed earlier session)
+- **iris ring ledger**: DONE ✓ (file removed, completed earlier session)
+- **iris route-commitment**: data/tasks/iris-route-commitment.md — future arcs bright/past dim ← NEXT
 - **iris dimension-rotator**: data/tasks/iris-dimension-rotator.md — H/V view toggle
 - **iris cascade-warning**: data/tasks/iris-cascade-warning.md — pre-flash amber warning
 - **iris separator-pulse**: data/tasks/iris-separator-pulse.md — routing infrastructure visible
@@ -199,8 +201,8 @@ metadata:
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,..,.,,,.,,,,,.,.,,,,.,,...,.,,,.,,,,,.,.,,,..,,...,...,,.,,.,,,.,,,,,,,,,.,
-#RKZZ5TTCQYDYGJZVHS64AG4UNR5Q4AH4WM54QNWFIMZOH5SGN6OAGYJ26CJRVK6XY5XLSEQOKOOWC
-#\\\|YNXNVUT24EHFQQYNVBHDJ4ELZ2NHEMOSDPZLXOFFFORHLX6PV7W \ / AMOS7 \ YOURUM ::
-#\[7]LU7RWZQB3YI3IJ56B54MPF7KJE2XMV2HO7IGSYSTCBKCXVDA7GAY 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,,.,,..,,.,,,.,.,,,,,.,,,,..,...,..,,...,...,.,,,,.,,...,...,,,.,
+#HHAKCSGPV2FDR4SUDPPE4RKLCGO5YQCRJ5I3TFEKT4PERAJVFXWAC5HB36SP75XN22HEWQRJJNYOC
+#\\\|MJRFYUY7Z3JD55YXXAHIJQML2HRGHGP5IURP7RPLCHAQG7M7PC5 \ / AMOS7 \ YOURUM ::
+#\[7]W7XFWCRFE3PSTHVEMCKWKLBF2Z2WKZRW3XBNNOFV3RALQUBOC2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

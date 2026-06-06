@@ -202,6 +202,12 @@
   <button class="mode-btn" data-mode="oscilloscope">osc</button>
   <button class="mode-btn" data-mode="ledger">ledger</button>
 
+  <div class="param-row">
+    <span class="param-label">dim</span>
+    <button class="mode-btn active" data-dim="horizontal">H</button>
+    <button class="mode-btn" data-dim="vertical">V</button>
+  </div>
+
   <div class="label-mode-row">
     <span class="param-label">labels</span>
     <button class="mode-btn active" data-label-mode="linear">linear</button>
@@ -279,6 +285,7 @@
   let currentTlMode    = '0';
   let currentIntensity = '0.5';
   let currentExpanse   = '3';
+  let currentDim       = 'horizontal';
   let oscInterval      = null;
 
   const frame      = document.getElementById('iris-frame');
@@ -289,6 +296,7 @@
   const ringsInput = document.getElementById('rings-input');
   const nsInput      = document.getElementById('ns-input');
   const tlButtons    = document.querySelectorAll('.mode-btn[data-tl]');
+  const dimButtons   = document.querySelectorAll('.mode-btn[data-dim]');
   const tlIntensity  = document.getElementById('tl-intensity');
   const tlExpanse    = document.getElementById('tl-expanse');
 
@@ -337,6 +345,15 @@
         tlButtons.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         currentTlMode = btn.dataset.tl;
+        render();
+      } else if ( btn.dataset.dim !== undefined ) {
+        dimButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentDim = btn.dataset.dim;
+        if ( currentDim === 'vertical' && oscInterval ) {
+          clearInterval(oscInterval);
+          oscInterval = null;
+        }
         render();
       }
     });
@@ -416,11 +433,13 @@
     const rings = parseInt(ringsInput.value) || 26;
     const param = paramInput.value.trim();
     const ns    = nsInput.value.trim();
-    let url = `/iris/svg?mode=${currentMode}&rings=${rings}&label_mode=${currentLabelMode}`;
+    const urlMode = currentDim === 'vertical' ? 'vertical' : currentMode;
+    let url = `/iris/svg?mode=${urlMode}&rings=${rings}&label_mode=${currentLabelMode}`;
     if (param && modeParams[currentMode]) url += `&param=${encodeURIComponent(param)}`;
     if (ns) url += `&ns=${encodeURIComponent(ns)}`;
     url += `&tl=${currentTlMode}`;
     url += `&intensity=${tlIntensity.value}&expanse=${tlExpanse.value}`;
+    url += `&dim=${currentDim}`;
 
     setStatus('rendering...', 'loading');
     const t0 = performance.now();
@@ -433,7 +452,7 @@
       .then(svg => {
         frame.innerHTML = svg;
         const ms = Math.round(performance.now() - t0);
-        setStatus(`mode: ${currentMode}  rings: ${rings}  ${ms}ms`);
+        setStatus(`mode: ${urlMode}  rings: ${rings}  ${ms}ms`);
       })
       .catch(err => {
         frame.innerHTML = '';

@@ -26,6 +26,11 @@ my $ns         = $qparam{'ns'}         // '';
 my $tl         = $qparam{'tl'}         // '';
 my $intensity  = $qparam{'intensity'}  // '';
 my $expanse    = $qparam{'expanse'}    // '';
+my $dim        = $qparam{'dim'}        // '';
+
+if ( $dim eq 'vertical' ) {
+    $mode = 'vertical';
+}
 $rings = int($rings);
 $rings = 1  if $rings < 1;
 $rings = 63 if $rings > 63;
@@ -41,7 +46,7 @@ if ( not scalar keys %{ <bmw384.index>->{'by_name'} // {} } ) {
 
 # [ svg cache key ]
 my $cache_key = join ':', $mode, $rings, $param, $label_mode, $ns, $tl,
-    $intensity, $expanse;
+    $intensity, $expanse, $dim;
 <bmw384.svg.cache> //= {};
 
 # [ oscilloscope: route to index zenka for cross-zenka zulum data ]
@@ -89,10 +94,15 @@ my $saved_tl          = <route.bmw384.cfg.translucency_mode>;
 my $saved_intensity   = <route.bmw384.cfg.translucency_intensity>;
 my $saved_expanse     = <route.bmw384.cfg.translucency_expanse>;
 my $saved_ledger_mode = <route.bmw384.cfg.ledger_mode>;
+my $saved_dimension   = <route.bmw384.cfg.dimension_view>;
 
 # [ apply request params ]
 <route.bmw384.cfg.rings>       = $rings;
 <route.bmw384.cfg.visual_mode> = $mode;
+
+if ( length $dim ) {
+    <route.bmw384.cfg.dimension_view> = $dim;
+}
 
 if ( length $label_mode ) {
     <route.bmw384.cfg.ring_label_mode> = $label_mode;
@@ -188,6 +198,11 @@ if ( defined $saved_ledger_mode ) {
 } else {
     delete <route.bmw384.cfg.ledger_mode>;
 }
+if ( defined $saved_dimension ) {
+    <route.bmw384.cfg.dimension_view> = $saved_dimension;
+} else {
+    delete <route.bmw384.cfg.dimension_view>;
+}
 
 if ( not defined $svg ) {
     my $body = '{"error":"bmw384 index not initialized"}';
@@ -221,8 +236,8 @@ $session->{'buffer'}->{'output'} .= $svg;
 
 return 2;
 
-#,,.,,.,.,,,,,,..,..,,.,,,,,,,,,,,..,,...,...,..,,...,...,..,,.,,,.,,,,,,,.,.,
-#EQD4CABHB3J5C6W3GVNLBJRNAIURE3WCASZNCRZ6KFYP3OAVHTZ3SHNIUVJFDD67HJQT6I76E7FAG
-#\\\|6IBNEUDXDLZU4UEPBLYFOSJWEBYOWSE4VXS2B5MQKFBPTOV7U5M \ / AMOS7 \ YOURUM ::
-#\[7]B5CPA4AU2LFCNIUM7PD54GH72FYUI6ECCGCKCMTXS2WA3OQT2GAA 7  DATA SIGNATURE ::
+#,,..,,,.,,..,.,,,.,.,.,,,...,...,,,,,..,,..,,..,,...,...,,.,,,,.,...,,..,,.,,
+#C75Q54YKH2HQPU6RSIKTQ6XIAQB7KPWGOCUD75V5RDC6JITSLZ3LDM5U2URO34CNUTF6NFYK5OUS6
+#\\\|6XFOHMHRU66MFUTAWKOT5QG6ATB4XTYKBL6KRMUT3ZQDP5YBPQO \ / AMOS7 \ YOURUM ::
+#\[7]MSR4DEADCSDD4YXIYEH6LQUGNT3HFFIL6EY7UXM4DPS57BI6H6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
