@@ -7,6 +7,10 @@ metadata:
   originSessionId: 56cce73a-933a-4992-96e4-4d88e138e8f6
 ---
 
+## completed this session (2026-06-07)
+
+- **write_append chmod-child fix** ✓ (00d29a793) — replaced racy 10ms `select`-yield with blocking `<[coding.chmod_child.readline]>` (matches insert_line/delete_lines pattern); ALSO fixed root cause in `coding.start.chmod_child`'s `gw` handler — granted other-write (0002) but coding zenka holds admin group as supplementary gid (assume_admin_group), so group bits govern; changed to group-write (0020) matching `gwd`. Verified live: write_append + insert_line both write directly to taeki-owned files now, mode restored correctly.
+
 ## completed this session (2026-06-06)
 
 - **memory context pipeline** ✓ — `memory.render.context` writes cache file; `context.memory.load` reads scored tree; `memory.startup` primes on init (commit aa0b24c9d)
@@ -201,8 +205,8 @@ metadata:
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,.,,.,,,...,...,,,,,.,.,..,,,.,,.,,,,,.,.,,,..,,...,...,...,,,,,,..,...,,..,
-#2DEY2SF4GHI4GOHMIF3VBL7BI322T35ZKJ6KKWJO4DAJUO74RT22MM363EF6SG76PXJC6YLRJFUCM
-#\\\|JI7ZGVDYORRLL7TU6O6HIAMC6BYZOUHF26HFB3HJWIJFYLKBSDE \ / AMOS7 \ YOURUM ::
-#\[7]2YDDZB323XKCMN24XYWFYP3GJNPGLTKFVILTILNAP4CJHEV2DQDY 7  DATA SIGNATURE ::
+#,,..,..,,,.,,.,.,.,.,,,.,,.,,,.,,,.,,.,,,,,,,..,,...,...,,,,,,.,,,,,,,,.,.,,,
+#VYXDXAXKQIF3YBICSEC4NVVOEZ5ISDCM353WGP6SC4WIOC5HALCVM4KC3O7N23TFFIEQ7R7NPYCRI
+#\\\|CHD6P53FOWB4ZGEYIVWYLDPOPYX3FXBR47OWZSPFE6TWN5MWHI7 \ / AMOS7 \ YOURUM ::
+#\[7]4CGTKDMHSNQ4GTVVQGEKTWC2BKDHJKL3PJW3YXAE6KPY5NBBVKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
