@@ -1,0 +1,107 @@
+## [:< ##
+
+# name  = httpd.route.handler.iris-pulse
+# descr = add a test pulse to the separator pulse buffer
+
+my $id = shift;
+
+my $session = $data{'session'}->{$id};
+
+my $body = $session->{'http'}->{'body'} // $session->{'buffer'}->{'input'}
+    // '';
+$session->{'http'}->{'body'}    = undef;
+$session->{'buffer'}->{'input'} = '';
+
+my $payload = eval { JSON::XS::decode_json($body) };
+if ( $@ or ref $payload ne 'HASH' ) {
+    my $rb = '{"error":"invalid json"}';
+    $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+        400,
+        {   'Content-Type'   => 'application/json',
+            'Content-Length' => length($rb),
+        }
+    );
+    $session->{'buffer'}->{'output'} .= $rb;
+    return 2;
+}
+
+my $arc       = $payload->{'arc'};
+my $type      = $payload->{'type'}      // 'HH';
+my $intensity = $payload->{'intensity'} // 1.0;
+
+if ( not defined $arc or $arc !~ m{^\d+$} or $arc < 0 or $arc > 25 ) {
+    my $rb = '{"error":"arc must be 0-25"}';
+    $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+        400,
+        {   'Content-Type'   => 'application/json',
+            'Content-Length' => length($rb),
+        }
+    );
+    $session->{'buffer'}->{'output'} .= $rb;
+    return 2;
+}
+
+if ( $type !~ m{^(HH|HV|VH|VV)$} ) {
+    my $rb = '{"error":"type must be HH, HV, VH, or VV"}';
+    $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+        400,
+        {   'Content-Type'   => 'application/json',
+            'Content-Length' => length($rb),
+        }
+    );
+    $session->{'buffer'}->{'output'} .= $rb;
+    return 2;
+}
+
+if ( $intensity !~ m{^\d*\.?\d+$} or $intensity < 0 or $intensity > 1 ) {
+    my $rb = '{"error":"intensity must be 0.0-1.0"}';
+    $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+        400,
+        {   'Content-Type'   => 'application/json',
+            'Content-Length' => length($rb),
+        }
+    );
+    $session->{'buffer'}->{'output'} .= $rb;
+    return 2;
+}
+
+<bmw384.separator.pulses> //= [];
+
+my $now = <[base.time]>->(3);
+
+# [ prune entries older than 0.5s ]
+@{<bmw384.separator.pulses>}
+    = grep { ( $now - $_->{'timestamp'} ) <= 0.5 }
+    @{<bmw384.separator.pulses>};
+
+push @{<bmw384.separator.pulses>},
+    {
+    'arc'       => int($arc),
+    'timestamp' => $now,
+    'type'      => $type,
+    'intensity' => $intensity + 0,
+    };
+
+my $rb = <[httpd.json.encode]>->(
+    {   qw| arc       | => int($arc) + 0,
+        qw| type      | => $type,
+        qw| intensity | => $intensity + 0,
+        qw| count     | => scalar @{<bmw384.separator.pulses>},
+    }
+);
+
+$session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+    200,
+    {   'Content-Type'   => 'application/json',
+        'Content-Length' => length($rb),
+    }
+);
+$session->{'buffer'}->{'output'} .= $rb;
+
+return 2;
+
+#,,.,,,,.,,..,,..,,,,,,,.,,.,,,,.,,,.,..,,,..,..,,...,...,...,..,,..,,..,,.,.,
+#XAMD4XVO5CV7QXM3JV5QU4YBKQZJQCZBNRCTIT2ZAQ75VALNUDY7KFNYJSGUOBGXOF6DWROOFKNGA
+#\\\|HURPIU3N2ZXPPDM5AONP3JD47ICFPGSWITFYXST2LBNPCCB5QT6 \ / AMOS7 \ YOURUM ::
+#\[7]ZYQFLS32WFND4EATJ4ZGEOBVQ2DAZTLRG6MVTFU67V4LNT2KGEDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

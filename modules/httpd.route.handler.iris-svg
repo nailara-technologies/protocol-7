@@ -27,6 +27,7 @@ my $tl         = $qparam{'tl'}         // '';
 my $intensity  = $qparam{'intensity'}  // '';
 my $expanse    = $qparam{'expanse'}    // '';
 my $dim        = $qparam{'dim'}        // '';
+my $sep        = $qparam{'sep'}        // '';
 
 if ( $dim eq 'vertical' ) {
     $mode = 'vertical';
@@ -46,7 +47,7 @@ if ( not scalar keys %{ <bmw384.index>->{'by_name'} // {} } ) {
 
 # [ svg cache key ]
 my $cache_key = join ':', $mode, $rings, $param, $label_mode, $ns, $tl,
-    $intensity, $expanse, $dim;
+    $intensity, $expanse, $dim, $sep;
 <bmw384.svg.cache> //= {};
 
 # [ oscilloscope: route to index zenka for cross-zenka zulum data ]
@@ -95,6 +96,7 @@ my $saved_intensity   = <route.bmw384.cfg.translucency_intensity>;
 my $saved_expanse     = <route.bmw384.cfg.translucency_expanse>;
 my $saved_ledger_mode = <route.bmw384.cfg.ledger_mode>;
 my $saved_dimension   = <route.bmw384.cfg.dimension_view>;
+my $saved_sep         = <route.bmw384.cfg.show_separator_pulses>;
 
 # [ apply request params ]
 <route.bmw384.cfg.rings>       = $rings;
@@ -102,6 +104,10 @@ my $saved_dimension   = <route.bmw384.cfg.dimension_view>;
 
 if ( length $dim ) {
     <route.bmw384.cfg.dimension_view> = $dim;
+}
+
+if ( length $sep and $sep =~ m{^[01]$} ) {
+    <route.bmw384.cfg.show_separator_pulses> = int($sep);
 }
 
 if ( length $label_mode ) {
@@ -145,6 +151,13 @@ if ( $mode ne 'oscilloscope' ) {
     my $commitment = <[route.bmw384.visual.route-commitment]>;
     $svg =~ s{</svg>}{$commitment</svg>}
         if defined $commitment and length $commitment;
+}
+
+# [ add separator pulse overlay ]
+if ( $mode ne 'oscilloscope' and <route.bmw384.cfg.show_separator_pulses> ) {
+    my $sep_pulses = <[route.bmw384.visual.separator-pulse]>;
+    $svg =~ s{</svg>}{$sep_pulses</svg>}
+        if defined $sep_pulses and length $sep_pulses;
 }
 
 # [ restore cfg state ]
@@ -203,6 +216,11 @@ if ( defined $saved_dimension ) {
 } else {
     delete <route.bmw384.cfg.dimension_view>;
 }
+if ( defined $saved_sep ) {
+    <route.bmw384.cfg.show_separator_pulses> = $saved_sep;
+} else {
+    delete <route.bmw384.cfg.show_separator_pulses>;
+}
 
 if ( not defined $svg ) {
     my $body = '{"error":"bmw384 index not initialized"}';
@@ -216,7 +234,9 @@ if ( not defined $svg ) {
     return 2;
 }
 
-if ( $mode ne 'oscilloscope' and $mode ne 'ledger' ) {
+if (    $mode ne 'oscilloscope'
+    and $mode ne 'ledger'
+    and not <route.bmw384.cfg.show_separator_pulses> ) {
     <bmw384.svg.cache>->{$cache_key} = $svg;
 }
 
@@ -236,8 +256,8 @@ $session->{'buffer'}->{'output'} .= $svg;
 
 return 2;
 
-#,,..,,,.,,..,.,,,.,.,.,,,...,...,,,,,..,,..,,..,,...,...,,.,,,,.,...,,..,,.,,
-#C75Q54YKH2HQPU6RSIKTQ6XIAQB7KPWGOCUD75V5RDC6JITSLZ3LDM5U2URO34CNUTF6NFYK5OUS6
-#\\\|6XFOHMHRU66MFUTAWKOT5QG6ATB4XTYKBL6KRMUT3ZQDP5YBPQO \ / AMOS7 \ YOURUM ::
-#\[7]MSR4DEADCSDD4YXIYEH6LQUGNT3HFFIL6EY7UXM4DPS57BI6H6CI 7  DATA SIGNATURE ::
+#,,..,..,,.,,,...,,.,,,,.,,,,,,.,,.,,,,,.,,,,,..,,...,...,.,.,.,,,.,.,...,...,
+#N2GGQEOPFWPERTW5VA4WDW4DBUMOE7O43WZQR4WNWOGRRUKDJWTJR4NIUVXSD2R27KFO72YLLWIVO
+#\\\|5HYYKZYVGDKLY3N3KDGZKFV5E3UFWK3SY5LXUUNQIX53ZHQL53T \ / AMOS7 \ YOURUM ::
+#\[7]56B7JETNYZLQEV3EVW7XSJG43AWXQKD4N5XQFTS4QFWDLWGF3CBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

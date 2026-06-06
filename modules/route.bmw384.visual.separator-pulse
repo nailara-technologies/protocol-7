@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = route.bmw384.visual.separator-pulse
+# descr = render active separator cube pulse events on spoke boundaries
+
+my $pulses = <bmw384.separator.pulses> // [];
+my $now    = <[base.time]>->(3);
+my $svg    = '';
+
+my $PI          = 3.14159265358979;
+my $segment_deg = 360 / 26;
+my $outer_r     = <route.bmw384.cfg.outer_radius> // 320;
+
+for my $pulse (@$pulses) {
+    my $age = $now - $pulse->{'timestamp'};
+    next if $age > 0.5;
+
+    my $arc       = $pulse->{'arc'};
+    my $type      = $pulse->{'type'}      // 'HH';
+    my $intensity = $pulse->{'intensity'} // 1.0;
+
+    # [ fade over 500ms ]
+    my $opacity = sprintf '%.2f', $intensity * ( 1 - $age / 0.5 );
+    next if $opacity < 0.05;
+
+    # [ spoke boundary position: between arc N and N+1 ]
+    my $boundary_angle = -( $arc + 0.5 ) * $segment_deg * $PI / 180;
+
+    # [ pulse colors by type ]
+    my $color
+        = $type eq 'HH' ? 'rgba(255,255,255,%s)'
+        : $type eq 'HV' ? 'rgba(255,0,255,%s)'
+        : $type eq 'VH' ? 'rgba(0,255,255,%s)'
+        :                 'rgba(80,80,255,%s)';
+    my $fill = sprintf $color, $opacity;
+
+    # [ pulse shape: small diamond on the spoke at mid-radius ]
+    my $r  = 80 + ( $outer_r - 80 ) * 0.5;
+    my $cx = 400 + $r * sin($boundary_angle);
+    my $cy = 400 - $r * cos($boundary_angle);
+    my $sz = 3 + $intensity * 4;
+
+    $svg
+        .= sprintf '  <circle cx="%.2f" cy="%.2f" r="%.1f" fill="%s">'
+        . '<title>sep pulse %s</title></circle>' . "\n",
+        $cx, $cy, $sz, $fill, $type;
+}
+
+return $svg;
+
+#,,.,,,..,...,...,,,,,,,,,,..,..,,,..,,..,..,,..,,...,...,..,,...,..,,,,,,...,
+#7Q5P4FOQJP5OCESMDXN3OVDXOD76LKSXPT2RSMPVFTPVCOF5NL7S6RMUBTSPAA6JXDTPC3GTO77WK
+#\\\|AKP2WSCEY24Z4N53UABTYIX3CHQEXRSMRCJFTUPQMQFEII4CIV7 \ / AMOS7 \ YOURUM ::
+#\[7]Q5UQ4LKOKV4F5NOX63CYLY4TCKJUXCFLLSUTY2AJTLYKWA2VIIDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
