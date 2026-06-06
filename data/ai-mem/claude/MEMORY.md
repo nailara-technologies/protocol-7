@@ -174,3 +174,19 @@
 #\\\|VNC4JK4456JBJX7MFEIEIEEPX3CFDBFTN7T5HLPIC5AQ7YDSP4T \ / AMOS7 \ YOURUM ::
 #\[7]TJWZHGU3V6CJGMSMKUJM2VXPQZOTHKNP7HDHEEPN23ZOM6MMPWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+## completed this session (2026-06-06) — infra tasks
+
+- **credential-fabric zenka** ✓ (b46b5f5d9) — 17 modules; C25519+Twofish ephemeral DH key-holder child; tiered store
+- **transport-selector** ✓ (b4373d6dc) — 14 modules; priority list + YAML profiles; passive quality + probe timer; 4 handlers
+- **proxy zenka skeleton** ✓ (62e0fff54) — 19 modules; HTTP/CONNECT proxy 127.0.0.1:8118; template selector; transport+auth guards
+- **context.provider.frame inline sub** ✓ (1a5ce1c82) — _frame_bottom_sentinel extracted to context.provider.frame.bottom_sentinel
+- **data-start timeout** ✓ (1a5ce1c82) — coding zenka 77s → 13s; faster timeout recovery
+- **kimi-legacy fix** ✓ — kimi-code v0.11.0 blocks --yolo+--prompt; mcp-server-p7 uses kimi-legacy; PATH extension at startup
+- **memory cache fix** ✓ — memory.render.context uses file.zenka_dir.write; stale /var/protocol-7/memory file removed
+- **coding queue stall** OPEN — fix at 6f9492cd9 did not prevent stall; investigate what gets cleared during server restart that blocks requeue; task: data/tasks/archive/coding-zenka-restart-queue-stall.md
+
+#,,,.,.,.,,,,,,..,..,,,.,,..,,..,,..,,...,.,,,...,...,.,.,,,,,,,.,,.,,,,,,,..,
+#FWHDYPXMXLPQULJKRAIBCDT5IJUQ5TV4EGZSO5GQFSLWP7SLDBS4ZZ35FNWGAHKI2UGTGQUEQXJMK
+#\\\|FVQB5XIQKZ5DNAWAYALGNQNLM6VZ3L4LNPLUOXAGUXGLUPVPINN \ / AMOS7 \ YOURUM ::
+#\[7]5ET5GXSAL6Q2LGKXBDJVV2QX7PJ7QDOWI6ODIO576JYPPFWYVMCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
