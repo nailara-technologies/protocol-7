@@ -1,0 +1,80 @@
+## [:< ##
+
+# name  = proxy.log.visit
+# descr = append to visit-log.yaml, update adapter-candidates.yaml
+
+my $context  = shift // {};
+my $template = shift // 'unknown';
+
+my $domain = $context->{'request'}{'domain'} // 'unknown';
+my $ntime  = $context->{'session'}{'ntime'}  // time;
+
+my $log_path = <proxy.cfg.visit_log>
+    // join( '/', <system.root_path>, 'data/yaml/web-proxy/visit-log.yaml' );
+
+my $log = {};
+if ( -f $log_path ) {
+    my $yaml = <[file.slurp]>->($log_path)->$* // '';
+    $log = eval { YAML::XS::Load($yaml) } // {};
+    $log = {} if ref $log ne 'HASH';
+}
+
+$log->{$domain} //= {
+    domain             => $domain,
+    last_visit         => $ntime,
+    visit_count        => 0,
+    extraction_quality => 0.0,
+    template_used      => $template,
+};
+
+$log->{$domain}{'last_visit'} = $ntime;
+$log->{$domain}{'visit_count'} += 1;
+$log->{$domain}{'template_used'} = $template;
+
+## extraction quality stub: 0.5 for generic, 0.9 for passthrough ##
+my $quality = ( $template eq 'generic.proxy' ) ? 0.5 : 0.9;
+my $visits  = $log->{$domain}{'visit_count'};
+$log->{$domain}{'extraction_quality'}
+    = ( $log->{$domain}{'extraction_quality'} * ( $visits - 1 ) + $quality )
+    / $visits;
+
+my $yaml_out = eval { YAML::XS::Dump($log) };
+if ( defined $yaml_out ) {
+    <[file.zenka_dir.write]>->(
+        'data/yaml/web-proxy/visit-log.yaml',
+        \$yaml_out, '>', 0640
+    );
+}
+
+## update adapter candidates ##
+my $candidates_path = join( '/',
+    <system.root_path>, 'data/yaml/web-proxy/adapter-candidates.yaml' );
+my $candidates = {};
+if ( -f $candidates_path ) {
+    my $cyaml = <[file.slurp]>->($candidates_path)->$* // '';
+    $candidates = eval { YAML::XS::Load($cyaml) } // {};
+    $candidates = {} if ref $candidates ne 'HASH';
+}
+
+$candidates->{$domain} = {
+    domain   => $domain,
+    visits   => $visits,
+    score    => $visits * $log->{$domain}{'extraction_quality'},
+    template => $template,
+};
+
+my $cyaml_out = eval { YAML::XS::Dump($candidates) };
+if ( defined $cyaml_out ) {
+    <[file.zenka_dir.write]>->(
+        'data/yaml/web-proxy/adapter-candidates.yaml',
+        \$cyaml_out, '>', 0640
+    );
+}
+
+return;
+
+#,,.,,,.,,,..,.,.,,,.,,,,,.,.,.,,,,,,,...,..,,..,,...,...,..,,,,.,...,,,.,.,,,
+#JPK5LVOTCT44RU3W32KRYC6O7AWYT2EYOW4WFS6V4LB7VG2WD3RMY7IRBR2PSCZT4PQH6O3ADOADO
+#\\\|4WMZN4SULT54HMXI57BRIRPY3IYFFP7D3FNVMSGXNQJJAGQU3ZD \ / AMOS7 \ YOURUM ::
+#\[7]LJUCQCCR2KG4A4J535B5EX2LJZTJEJOXVW7ED5QTJO4E44RO5YAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

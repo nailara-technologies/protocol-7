@@ -1,0 +1,152 @@
+## [:< ##
+
+# name  = proxy.handler.connection
+# descr = read HTTP request from client, parse, build context, dispatch to handler
+
+my $client_id = shift->w->data;
+my $client    = $data{'proxy'}{'clients'}{$client_id};
+
+if ( not defined $client ) {
+    <[base.logs]>->(
+        0, 'proxy.handler.connection: unknown client %s', $client_id
+    );
+    return;
+}
+
+my $sock = $client->{'sock'};
+
+## read data ##
+my $chunk = '';
+my $bytes = <[base.s_read]>->( $sock, \$chunk, 65536 );
+
+## error or disconnect ##
+if ( ( $bytes // -1 ) == -1 ) {
+    <[base.logs]>->(
+        2,          'proxy client %s read error: %s',
+        $client_id, $OS_ERROR
+    );
+    <[proxy.client.close]>->($client_id);
+    return;
+}
+
+## client closed connection ##
+if ( $bytes == 0 ) {
+    <[proxy.client.close]>->($client_id);
+    return;
+}
+
+## accumulate ##
+$client->{'buffer'} .= $chunk;
+
+## check for complete request ##
+return if $client->{'buffer'} !~ s{^(.+\r?\n\r?\n)}{}s;
+
+my $raw_request = $LAST_PAREN_MATCH // '';
+
+## parse request ##
+my $h_req = HTTP::Request->parse($raw_request);
+if (   not defined $h_req
+    or not defined $h_req->method
+    or not defined $h_req->uri ) {
+    <[proxy.client.send_error]>->( $client_id, 400, 'Bad Request' );
+    return;
+}
+
+## extract request info ##
+my $method  = $h_req->method;
+my $uri     = $h_req->uri;
+my $headers = {};
+map { $headers->{ lc $ARG } = $h_req->header($ARG) // '' }
+    $h_req->header_field_names;
+
+## for proxy requests, URI may be full URL ##
+my ( $domain, $path, $query ) = ( '', '', '' );
+my $full_url = $uri;
+
+if ( $uri =~ m{^https?://([^/]+)(/.*)?$} ) {
+    $domain = $1;
+    $path   = $2 // '/';
+} else {
+    $path     = $uri;
+    $domain   = $headers->{'host'} // '';
+    $full_url = "http://$domain$path" if length $domain;
+}
+
+if ( $path =~ m{^([^?]*)\?(.*)$} ) {
+    $path  = $1;
+    $query = $2;
+}
+
+## build request context hash ##
+my $ntime          = <[base.ntime]>        // time;
+my $user           = <session.user>        // 'anonymous';
+my $transport_type = <proxy.cfg.transport> // 'direct';
+
+my $context = {
+    session => {
+        user       => $user,
+        zenka_name => 'proxy',
+        transport  => $transport_type,
+        ntime      => $ntime,
+    },
+    request => {
+        domain    => $domain,
+        url       => $full_url,
+        method    => $method,
+        headers   => $headers,
+        mime_type => $headers->{'accept'} // '',
+        path      => $path,
+        query     => $query,
+    },
+    auth => {
+        has_session => FALSE,
+        slots       => {},
+    },
+    transport => {
+        type      => 'direct',
+        quality   => 1.0,
+        loss_rate => 0.0,
+    },
+    env => {
+        renderer_type => 'html',
+        tty_cols      => undef,
+        tty_rows      => undef,
+    },
+};
+
+## auth stub integration point ##
+if ( exists $code{'proxy.auth.lookup'} ) {
+    my $auth_result = <[proxy.auth.lookup]>->($context);
+    if ( defined $auth_result and ref $auth_result eq 'HASH' ) {
+        $context->{'auth'} = $auth_result;
+    }
+}
+
+## transport stub integration point ##
+if ( exists $code{'proxy.transport.select'} ) {
+    my $transport_result = <[proxy.transport.select]>->($context);
+    if ( defined $transport_result and ref $transport_result eq 'HASH' ) {
+        $context->{'transport'} = $transport_result;
+    }
+}
+
+$client->{'request'} = {
+    method  => $method,
+    uri     => $uri,
+    headers => $headers,
+    raw     => $raw_request,
+};
+
+$client->{'context'} = $context;
+$client->{'state'}   = 'processing';
+
+## dispatch to main handler ##
+<[proxy.handler.request]>->($client_id);
+
+return;
+
+#,,,,,,,,,,,.,...,...,,.,,,,,,,,.,,..,..,,...,..,,...,...,...,..,,,,.,,..,,,,,
+#BXDBNRMVMTOSNSI3MORUVGPYUYAIGOF7QIMZDXUD2FJJNHFYRTUCFQGXJW3MSOVYLR4M6HFSJAPTK
+#\\\|ZTGEXYZFZUHFJKEXHMQ5PLXNH4LOYTHC6N5XRBZ4AG3IXTXOOZU \ / AMOS7 \ YOURUM ::
+#\[7]G3BMGR6WHQQCPJHPLVVXJF5A4YNJ2U2POAYH6M7PFBV5OUX43MBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
