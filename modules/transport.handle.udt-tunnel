@@ -1,0 +1,75 @@
+## [:< ##
+
+# name  = transport.handle.udt-tunnel
+# descr = UDT tunnel handler (stub, full impl when UDT::Simple available)
+# args  = $entry, $context
+# returns transport handle hashref or undef
+
+my ( $entry, $ctx ) = @ARG;
+
+my $endpoint = $entry->{'endpoint'} // $ctx->{'request'}{'domain'} // '';
+return undef unless length $endpoint;
+
+## check if UDT is available ##
+my $udt_registry = <external.transports>->{'registry'}{'udt'};
+if (   not defined $udt_registry
+    or not $udt_registry->{'available'} ) {
+    <[base.logs]>->( 1, 'transport.handle.udt-tunnel: UDT not available' );
+    return undef;
+}
+
+my ( $host, $port ) = split /:/, $endpoint, 2;
+$port //= 9000;
+
+## resolve credential if present ##
+my $cred;
+if ( exists $entry->{'credential'}
+    and defined $entry->{'credential'} ) {
+    $cred = <[credential.resolve]>->( { 'slot' => $entry->{'credential'} } );
+}
+
+## UDT::Simple stub: attempt connection if module loaded ##
+my $has_udt = <[base.perlmod.loaded]>->('UDT::Simple')
+    || <[base.perlmod.autoload]>->('UDT::Simple');
+
+my $sock;
+if ($has_udt) {
+    eval {
+        $sock = UDT::Simple->new( AF_INET, SOCK_DGRAM );
+        $sock->connect( $host, $port );
+    };
+    if ( $@ or not defined $sock ) {
+        <[base.logs]>->(
+            0,
+            'transport.handle.udt-tunnel: UDT connect failed: %s',
+            $@ // 'unknown'
+        );
+        $sock = undef;
+    }
+}
+
+if ( not defined $sock ) {
+    return undef;
+}
+
+my $dest = $ctx->{'session'}{'destination'} // $ctx->{'request'}{'domain'}
+    // $endpoint;
+
+my $handle = {
+    'type'     => 'udt-tunnel',
+    'socket'   => $sock,
+    'endpoint' => $endpoint,
+    'quality'  => <external.transports>->{'quality'}{'udt-tunnel'}{$dest}
+        // {},
+    'credential' => $cred,
+};
+
+<external.transports>->{'stats'}{'connections_ok'}++;
+
+return $handle;
+
+#,,,.,...,.,,,.,.,,,,,..,,,..,,,.,..,,,.,,,,.,..,,...,...,..,,...,,.,,.,.,.,.,
+#HGI27NKCDBPYLYXOFDSKJYHSCPVQLRJUQ23SVYAO4U3OUCCTDZR2JNTV3KC6MM73QSHUNXF463FIG
+#\\\|B2U765U3YN3I6J77QSJYQXSQQXCNF6MGFFMA436ALNQFJ66SYHG \ / AMOS7 \ YOURUM ::
+#\[7]C4OKTJLUPIQLWRI5EJVNMUK5BQQDYFDUKFM3PBRCATFWMLBI5SCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

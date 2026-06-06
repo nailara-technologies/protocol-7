@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = transport.probe.timer
+# descr = global timer: walk demoted transports and probe them
+
+my $demoted = <external.transports>->{'demoted'} // {};
+my $now     = <[base.time]>->(4);
+
+for my $dest ( keys %$demoted ) {
+    my $types = $demoted->{$dest};
+    for my $type ( keys %$types ) {
+        my $demote_time = $types->{$type};
+
+        ## only probe if enough time has passed since last probe ##
+        my $interval = <transport.cfg.probe_interval> // 30;
+        next if $now - $demote_time < $interval;
+
+        ## find the profile and transport entry ##
+        my $profile_name = <[transport.profile.match]>
+            ->( { 'session' => { 'destination' => $dest } } );
+        my $profile = <[transport.profile.load]>->($profile_name);
+        next unless defined $profile;
+
+        my $entry;
+        for my $t ( @{ $profile->{'transports'} // [] } ) {
+            if ( ( $t->{'type'} // '' ) eq $type ) {
+                $entry = $t;
+                last;
+            }
+        }
+        $entry //= { 'type' => $type, 'endpoint' => $dest };
+
+        <[transport.quality.probe]>->( $dest, $type, $entry );
+    }
+}
+
+return 1;
+
+#,,.,,.,.,...,...,,..,.,.,,,.,...,,.,,,..,,.,,..,,...,...,,..,,,.,.,,,,,,,,,.,
+#SH5QMORAJBDBHABEYVHCXOMYGLFKZLQ4SFDMG6GX7NTDZGTMFRKNYJNWKQUXUNTJBTHRD5CQCLDTA
+#\\\|MNWMRBNBD4LJYCGKIFHUKJPLHMBUWAN6AH5455QD5EPOFPAERES \ / AMOS7 \ YOURUM ::
+#\[7]VDBQU3X4RTA6QEA2CY4VQP5NXRIFM66XRDOVHCOBMV4DIVD4B2DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

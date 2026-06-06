@@ -1,0 +1,26 @@
+context:
+  destination: atom.host
+  tags: [ mobile, high-loss ]
+
+transports:
+  - type: udt-tunnel
+    endpoint: atom:7000
+    credential: atom.udt-psk
+    min_quality: { loss_max: 0.95 }
+
+  - type: quic-hysteria
+    endpoint: atom:443
+    credential: atom.hysteria-auth
+    min_quality: { loss_max: 0.95 }
+
+  - type: direct-tcp
+    credential: ~
+    min_quality: { loss_max: 0.30 }
+
+fallback: direct-tcp
+
+#,,,,,,.,,,,.,,,.,..,,,,.,,,.,..,,...,,,.,,,.,..,,...,...,...,...,,,.,...,..,,
+#YYBBDFXSEPCXZZKB5THARVVIS6AL75QLWQENITIXGQIB6IQ4BT4PETLV2CT42XEU3YUQXV6SIOLRW
+#\\\|GGDDNBVSJWGAOCPX3MC5GIB5PKB2LIOTL52MUONH7UQTIO4RVVG \ / AMOS7 \ YOURUM ::
+#\[7]SJ5Y6OGVGFEJWEEARFSY6B5O3LKE4OIOF2I4PHIGOV6IOLTZAADQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

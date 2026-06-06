@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = transport.quality.measure
+# descr = update quality metrics for an active transport
+# args  = $dest, $type, \%metrics
+
+my ( $dest, $type, $metrics ) = @ARG;
+
+return if not defined $dest or not defined $type;
+return if ref $metrics ne qw| HASH |;
+
+my $q = <external.transports>->{'quality'}{$type}{$dest} //= {
+    'loss_rate'            => 0.0,
+    'rtt_ms'               => 0,
+    'goodput_kbps'         => 0,
+    'last_measured'        => 0,
+    'consecutive_failures' => 0,
+};
+
+for my $key (qw| loss_rate rtt_ms goodput_kbps |) {
+    $q->{$key} = $metrics->{$key} if exists $metrics->{$key};
+}
+
+$q->{'last_measured'} = <[base.time]>->(4);
+
+if ( exists $metrics->{'success'} ) {
+    if ( $metrics->{'success'} ) {
+        $q->{'consecutive_failures'} = 0;
+    } else {
+        $q->{'consecutive_failures'}++;
+    }
+}
+
+## auto-demotion if quality drops below threshold ##
+my $profile_name = <[transport.profile.match]>
+    ->( { 'session' => { 'destination' => $dest } } );
+my $profile = <[transport.profile.load]>->($profile_name);
+if ( defined $profile ) {
+    my $transports = $profile->{'transports'} // [];
+    for my $entry (@$transports) {
+        next if ( $entry->{'type'} // '' ) ne $type;
+        next if not exists $entry->{'min_quality'};
+
+        my $min = $entry->{'min_quality'};
+        if ( exists $min->{'loss_max'}
+            and defined $q->{'loss_rate'} ) {
+            if ( $q->{'loss_rate'} > $min->{'loss_max'} ) {
+                <[transport.demote]>->(
+                    $dest, $type, 'quality_below_threshold'
+                );
+                last;
+            }
+        }
+    }
+}
+
+return $q;
+
+#,,,,,.,,,,..,.,,,...,..,,...,,..,,..,,,.,,.,,..,,...,..,,.,.,.,.,.,.,,,,,,..,
+#NVZNRT6XVTCDHNZV2MFPMRAZ2MBFFRHKJWF64LBXLJW5CNMR3CTAOVPJAH5NSGJ2ORGGUDYXIVR3Q
+#\\\|JIGIQMWM65ENCGY4V4AGNPUVM433U3TPZQMM2ODPTO2IRKSE5AM \ / AMOS7 \ YOURUM ::
+#\[7]LR4AS5WUVOJATYV4XPYAWQLCGSD5AME3KXQYTAIX7DHIQASGJ6AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

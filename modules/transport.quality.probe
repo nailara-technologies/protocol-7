@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = transport.quality.probe
+# descr = active probe for a demoted transport (lightweight connect test)
+# args  = $dest, $type, $entry_hashref
+
+my ( $dest, $type, $entry ) = @ARG;
+
+return 0 if not defined $dest or not defined $type;
+
+my $handler = sprintf 'transport.handle.%s', $type;
+if ( not exists $code{$handler} ) {
+    <[base.logs]>->( 0, 'transport.quality.probe: no handler for %s', $type );
+    return 0;
+}
+
+<[base.logs]>->(
+    2,     'transport.quality.probe: probing %s for %s',
+    $type, $dest
+);
+
+## try a lightweight connection ##
+my $ctx    = { 'session' => { 'destination' => $dest } };
+my $handle = $code{$handler}->( $entry, $ctx );
+
+if ( defined $handle ) {
+    ## success: promote ##
+    <[transport.promote]>->( $dest, $type );
+
+    ## close probe handle unless it's a persistent socket we can reuse ##
+    if ( ref $handle eq qw| HASH |
+        and defined $handle->{'socket'} ) {
+        eval { $handle->{'socket'}->close };
+    }
+
+    return 1;
+}
+
+## probe failed: keep demoted, update quality ##
+<[transport.quality.measure]>->(
+    $dest, $type,
+    {   'success'   => FALSE,
+        'loss_rate' => 1.0,
+    }
+);
+
+return 0;
+
+#,,,,,..,,,,,,,,,,,.,,.,,,...,,,.,,,,,..,,...,..,,...,...,,..,.,.,,,,,,,,,...,
+#WG2LN4YSQRUYFNQVMF7KDW6LQ7H63LHVWG3PNAQKG5Y3RFBW5FHC3POV2NDUXKV46BBOANGIBHL24
+#\\\|WDZG7IALFZ33IKZO2XBAD4INII4POLFSPS5K3JHXRZ2PAHW3ZEA \ / AMOS7 \ YOURUM ::
+#\[7]OZC6ARR5E2UDL5GN47Y726FNAT62M6CABTU3RXXQEWN523DWS2CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = transport.promote
+# descr = restore a demoted transport after probe success
+# args  = $dest, $type
+
+my ( $dest, $type ) = @ARG;
+
+return if not defined $dest or not defined $type;
+
+delete <external.transports>->{'demoted'}{$dest}{$type};
+delete <external.transports>->{'demoted'}{$dest}
+    if not keys %{ <external.transports>->{'demoted'}{$dest} // {} };
+
+<[base.logs]>->( 1, 'transport.promote: %s promoted for %s', $type, $dest );
+
+## reset consecutive failures ##
+my $q = <external.transports>->{'quality'}{$type}{$dest} //= {};
+$q->{'consecutive_failures'} = 0;
+
+return 1;
+
+#,,..,..,,,,,,...,,,,,,,,,...,,..,.,.,.,,,...,..,,...,...,...,.,.,..,,,.,,...,
+#YOGECZWB3VHIR6OTG54SINETCXQHI6MYNPCHDATOJHZZT6UFECOLEQI5ROGHDHSGKNLYRJ2CUTB5S
+#\\\|IBZDZ57BYH7SGOYVQNXSJEQZYYUIAWXQQZ3E4KGAPDWZYKUEV3L \ / AMOS7 \ YOURUM ::
+#\[7]63J5VGL6A2BVQ4NFG3LUKLFGXMROAQL4M5ANMMMXTNKDSZTZTOBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

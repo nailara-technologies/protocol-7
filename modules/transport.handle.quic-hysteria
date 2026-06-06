@@ -1,0 +1,65 @@
+## [:< ##
+
+# name  = transport.handle.quic-hysteria
+# descr = hysteria tunnel via local SOCKS5 proxy (external QUIC client)
+# args  = $entry, $context
+# returns transport handle hashref or undef
+
+my ( $entry, $ctx ) = @ARG;
+
+my $endpoint = $entry->{'endpoint'} // $ctx->{'request'}{'domain'} // '';
+return undef unless length $endpoint;
+
+## resolve credential if present ##
+my $cred;
+if ( exists $entry->{'credential'}
+    and defined $entry->{'credential'} ) {
+    $cred = <[credential.resolve]>->( { 'slot' => $entry->{'credential'} } );
+}
+
+## hysteria proxy configuration ##
+## default to local SOCKS5 proxy if not configured otherwise ##
+my $proxy_host = $entry->{'proxy_host'} // '127.0.0.1';
+my $proxy_port = $entry->{'proxy_port'} // 1040;
+
+## optionally try a lightweight TCP connect to proxy to verify it's up ##
+my $test_sock = IO::Socket::IP->new(
+    PeerHost => $proxy_host,
+    PeerPort => $proxy_port,
+    Type     => SOCK_STREAM(),
+    Timeout  => 3,
+);
+
+if ( not $test_sock ) {
+    <[base.logs]>->(
+        1, 'transport.handle.quic-hysteria: proxy %s:%d unreachable',
+        $proxy_host, $proxy_port
+    );
+    return undef;
+}
+$test_sock->close;
+
+my $dest = $ctx->{'session'}{'destination'} // $ctx->{'request'}{'domain'}
+    // $endpoint;
+
+my $handle = {
+    'type'       => 'quic-hysteria',
+    'endpoint'   => $endpoint,
+    'proxy_url'  => sprintf( 'socks5://%s:%d', $proxy_host, $proxy_port ),
+    'proxy_host' => $proxy_host,
+    'proxy_port' => $proxy_port,
+    'quality'    => <external.transports>->{'quality'}{'quic-hysteria'}{$dest}
+        // {},
+    'credential' => $cred,
+};
+
+## update stats ##
+<external.transports>->{'stats'}{'connections_ok'}++;
+
+return $handle;
+
+#,,,.,,,.,,.,,.,.,...,,,,,.,,,.,,,,..,.,.,.,.,..,,...,...,..,,,.,,..,,,..,.,,,
+#PGTPLB5CGSYZUWWQZ2NKRHQTHBJ5COGE7I66TTOPUSLCNWAYMB2A5VEGW5J46MDMPM2OMIOUSPJIS
+#\\\|RS7KTULXSNMVNHUH5RYGXKM2XH6DNJOZJSBASOIANMMLE3FHXBV \ / AMOS7 \ YOURUM ::
+#\[7]DHDQXGNMC23B3DOGXRJ7NB6CPYVG6FONCI7UANN2NZJ2WHFQREDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

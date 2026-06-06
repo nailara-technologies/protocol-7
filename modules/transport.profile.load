@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = transport.profile.load
+# descr = load and cache a transport profile from yaml
+# args  = $profile_name (e.g., 'atom', 'default')
+
+my $name = shift // return undef;
+
+## return cached ##
+my $cached = <external.transports>->{'profiles'}->{$name};
+return $cached if defined $cached;
+
+my $dir  = <transport.cfg.profile_dir> // 'data/yaml/transport/profiles';
+my $path = sprintf '%s/%s.yaml', $dir, $name;
+
+return undef if not -f $path;
+
+require YAML::XS;
+my $profile = eval { YAML::XS::LoadFile($path) };
+if ( $@ or not defined $profile ) {
+    <[base.logs]>->(
+        0,     'transport.profile.load: failed to load %s: %s',
+        $path, $@ // 'unknown'
+    );
+    return undef;
+}
+
+## basic validation ##
+if ( not exists $profile->{'transports'}
+    or ref $profile->{'transports'} ne qw| ARRAY | ) {
+    <[base.logs]>
+        ->( 0, 'transport.profile.load: no transports in %s', $path );
+    return undef;
+}
+
+## cache ##
+<external.transports>->{'profiles'}->{$name} = $profile;
+
+return $profile;
+
+#,,..,..,,,..,,,.,,.,,,,,,,,.,,,,,,,,,,.,,,.,,..,,...,...,..,,..,,...,..,,..,,
+#6VIYOD72I5ZID5NAJSLWR7ILXHG4RMFJWTHLGVT7X33T4II3FBJYTWRDCD4ASR7TLZH3BSJKDKW7M
+#\\\|4DRZ6YBMZWW3G45OB2NHJVXT4XAFIYGUZ7CAY2TYFB2Z7KW2UHL \ / AMOS7 \ YOURUM ::
+#\[7]5UK22CURNZ7QCNMYKFYPQIM23UG65GL2KO54UIT5XODK3MNHB6CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
