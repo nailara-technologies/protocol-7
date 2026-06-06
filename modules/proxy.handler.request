@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = proxy.handler.request
+# descr = main intercept handler: run selector, dispatch to template resolver
+
+my $client_id = shift;
+my $client    = $data{'proxy'}{'clients'}{$client_id};
+return if not defined $client;
+
+my $context  = $client->{'context'};
+my $template = <[proxy.selector.match]>->($context);
+
+<[base.logs]>->(
+    2,
+    'proxy [%s] %s -> %s',
+    $context->{'request'}{'method'},
+    $context->{'request'}{'url'}, $template
+);
+
+## log visit ##
+<[proxy.log.visit]>->( $context, $template );
+
+## resolve template ##
+<[proxy.template.resolve]>->( $client_id, $context, $template );
+
+return;
+
+#,,.,,...,,,,,,..,..,,..,,,,.,,,.,,..,.,,,.,.,..,,...,...,...,.,.,..,,,,.,...,
+#O7UCO5EVLPCP6S3DRZBT4EI42DRIKUIESJNNCTDYU7Q32U5JYYZI7LUPSMOJFBIAZE4AILVDYESBM
+#\\\|6PBOLIDD34KNKOD7MD4TX7BFOSZYTEYQOS6F7OMSZQEXPVAXNNV \ / AMOS7 \ YOURUM ::
+#\[7]4XH2LEFKIKANXJXDUOBETA3DLF7LOXEZUL3VPYJBUEFUE5OWFICQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = proxy.template.generic
+# descr = generic p7-style HTML renderer for extracted content
+
+my $client_id = shift;
+my $context   = shift;
+
+my $client = $data{'proxy'}{'clients'}{$client_id};
+return if not defined $client;
+
+my $url = $context->{'request'}{'url'};
+
+## async call to site-yaml.cmd.fetch ##
+<[protocol-7.route-send]>->(
+    {   'command'   => 'site-yaml.cmd.fetch',
+        'call_args' => { 'args' => $url },
+        'reply'     => {
+            'handler' => 'proxy.handler.site_yaml_reply',
+            'params'  => {
+                client_id => $client_id,
+                context   => $context,
+            }
+        }
+    }
+);
+
+return;
+
+#,,..,,.,,..,,,.,,...,.,.,,,,,,..,...,..,,.,.,..,,...,...,,.,,.,.,..,,...,,,,,
+#JY3FMM7ZLWZTSYPHOOYAKUWVJ4GXKVL3CAR6C2QJIPVFNUV2DBATEFLIKQR3W6X7X2I7GS63NRO3I
+#\\\|2HVMEPRBOVCQVAWZN74IQWLZGBCU45E4LGH5C5VGYUCDHFHKEE6 \ / AMOS7 \ YOURUM ::
+#\[7]XZXCS5YX7SBYSMXQ72VRRMMQ2TH2SRJ4DLP6KA7ETIIOIH5EDGCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

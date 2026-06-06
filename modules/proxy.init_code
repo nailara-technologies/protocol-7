@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = proxy.init_code
+# descr = initialize proxy zenka state, load selector config, start listener
+
+$data{'proxy'}{'clients'}     //= {};
+$data{'proxy'}{'listen_sock'} //= undef;
+
+## load required perl modules ##
+map { <[base.perlmod.autoload]>->($ARG) } qw| HTTP::Request URI YAML::XS |;
+
+## ensure HTTP status codes are available ##
+<protocol.http.status_codes> //= <[httpd.status_codes]>;
+
+## load selector rules ##
+<[proxy.selector.load]>;
+
+## start listener ##
+<[proxy.listen]>;
+
+0;
+
+#,,,,,,.,,...,.,,,,.,,,,.,.,.,.,.,..,,.,.,.,,,..,,...,...,,.,,,..,,.,,,..,..,,
+#IXFQYQLOYDLNA2E542KGMM536EQNE4Q3GMZXJYXZKL4J5OIRWSRVUMQ6EES5MNPAMGLEJB5NUJAIU
+#\\\|QZIGH7PIYL3A5QUCA44C2A7XP27J5XJ4KS3BSYXTIDUV6AH2HED \ / AMOS7 \ YOURUM ::
+#\[7]J3XKDERSGYO3HO72XS7W7OFF2PGCG63XJFGZLWZHRYYUM6GJB6BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

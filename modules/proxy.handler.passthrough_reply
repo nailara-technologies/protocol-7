@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = proxy.handler.passthrough_reply
+# descr = write outbound response back to proxy client
+
+my $result = shift // {};
+
+my $params    = $result->{'params'} // {};
+my $client_id = $params->{'client_id'};
+
+my $client = $data{'proxy'}{'clients'}{$client_id};
+if ( not defined $client ) {
+    <[base.logs]>->(
+        2, 'proxy.passthrough_reply: client %s gone', $client_id
+    );
+    return;
+}
+
+if ( not $result->{'ok'} ) {
+    my $status = $result->{'status'} // 502;
+    my $error  = $result->{'error'}  // 'Bad Gateway';
+    <[proxy.client.send_error]>->( $client_id, $status, $error );
+    return;
+}
+
+## forward response back to client ##
+my $body    = $result->{'body'}    // '';
+my $status  = $result->{'status'}  // 200;
+my $headers = $result->{'headers'} // {};
+
+my $status_text = <protocol.http.status_codes>->{$status} // 'OK';
+my $response    = "HTTP/1.1 $status $status_text\r\n";
+
+for my $k ( keys %$headers ) {
+    $response .= "$k: $headers->{$k}\r\n";
+}
+
+## ensure Content-Length is set ##
+if ( not exists $headers->{'content-length'} ) {
+    $response .= 'Content-Length: ' . length($body) . "\r\n";
+}
+
+$response .= "Connection: close\r\n\r\n" . $body;
+
+<[base.s_write]>->( $client->{'sock'}, \$response );
+
+<[proxy.client.close]>->($client_id);
+
+return;
+
+#,,,,,..,,.,.,...,,.,,...,.,,,.,,,,.,,,,.,,.,,..,,...,...,...,.,,,..,,.,.,...,
+#QZQIR4YURKDH64BE63SIXTPMGCCSJNYB72FWVY6ZGSWX3V75N74JDDOR23PNRPTHRRT4KC7M7YIZ2
+#\\\|NMB7WJXBJ3NIUZ3UQHBHI7MYYI56GO5I4WZV2YNLAUPZZJG2XIE \ / AMOS7 \ YOURUM ::
+#\[7]BFJC72DALTCRDUTKTUCFBRJGHVZHIHU6TOVHOGRLA2WQPVALDOBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
