@@ -1,0 +1,81 @@
+## [:< ##
+
+# name  = route.bmw384.visual.negotiation-overlay
+# descr = render negotiation urgency as arc brightness + pulse rate
+
+return ''
+    if not <route.bmw384.cfg.show_negotiations> // 1;
+
+my $negs = <bmw384.route.negotiations> // {};
+my $now  = <[base.time]>->(3);
+my $svg  = '';
+
+my $PI          = 3.14159265358979;
+my $segment_deg = 360 / 26;
+my $outer_r     = <route.bmw384.cfg.outer_radius> // 320;
+
+for my $key ( keys %$negs ) {
+    my $neg     = $negs->{$key};
+    my $arc     = $neg->{'arc'};
+    my $budget  = $neg->{'floor_budget'} // 10;
+    my $used    = $neg->{'floors_used'}  // 0;
+    my $urgency = $used / ( $budget || 1 );
+
+    # [ arc center angle ]
+    my $angle_deg = -( $arc + 0.5 ) * $segment_deg;
+    my $rad       = $angle_deg * $PI / 180;
+
+    # [ urgency colors ]
+    my $hue = int( 120 - $urgency * 120 );    # green → red
+    my $op  = sprintf '%.2f', 0.2 + $urgency * 0.6;
+
+    # [ pulse: fast when urgent ]
+    # SVG animate element for opacity pulsing
+    my $pulse_dur = sprintf '%.1f', 2.0 - $urgency * 1.5;    # 2s → 0.5s
+
+    # [ render arc segment glow ]
+    my $r  = $outer_r * 0.4;         # negotiation ring at 40% radius
+    my $cx = 400 + $r * sin($rad);
+    my $cy = 400 - $r * cos($rad);
+
+    $svg
+        .= sprintf '  <circle cx="%.2f" cy="%.2f" r="8"'
+        . ' fill="hsl(%d,85%%,55%%)" opacity="%s">' . "\n",
+        $cx, $cy, $hue, $op;
+
+    if ( $urgency > 0.5 ) {
+
+        # [ add pulse animation for urgent negotiations ]
+        $svg
+            .= sprintf
+            '    <animate attributeName="opacity" values="%s;%s;%s"'
+            . ' dur="%ss" repeatCount="indefinite"/>' . "\n",
+            $op, sprintf( '%.2f', $op * 0.3 ), $op, $pulse_dur;
+    }
+
+    $svg .= sprintf
+        '    <title>hop %s: %d/%d floors</title>' . "\n",
+        $key, $used, $budget;
+    $svg .= '  </circle>' . "\n";
+
+    # [ timeout: trigger flash behavior ]
+    if ( $urgency >= 1.0 ) {
+
+        # [ mark as timed out — the 000, flash ]
+        $svg
+            .= sprintf '  <circle cx="%.2f" cy="%.2f" r="12"'
+            . ' fill="white" opacity="0.9">'
+            . '<title>TIMEOUT hop %s</title></circle>' . "\n",
+            $cx, $cy, $key;
+
+        # [ signal to the routing layer: find alternate ]
+    }
+}
+
+return $svg;
+
+#,,,.,.,.,,,,,,,,,,..,...,,,,,,,.,..,,.,,,,,,,..,,...,...,.,.,...,..,,.,,,,..,
+#V63OAUZNZPK5EB5OTQVSUNNSNHFPBGAR5LMVCFPFUBHKRAGCV5R6R2TPB5AKWHFCYB4CPXRU7CRC4
+#\\\|VGQ3EHTUOKBIGXCQL4RWYRTS6DQN7ZUFXPNIZMEJPYH7YGTEA3C \ / AMOS7 \ YOURUM ::
+#\[7]2Q6MJNWJRR3PMPO4WDZMCT3T6EVUJESBOUEEUXGYENLELWPFGUBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
