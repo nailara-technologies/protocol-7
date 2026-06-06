@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = route.bmw384.ledger.warning_map
+# descr = compute which arc:ring positions will deplete within N seconds
+# args  = $horizon_secs (default 5)
+
+my $horizon = shift // 5;
+my %warnings;
+
+my $counts = <bmw384.ledger.counts> // {};
+my $rates  = <bmw384.ledger.rates>  // {};
+my $now    = <[base.time]>->(3);
+
+for my $key ( keys %$counts ) {
+    my $count = $counts->{$key};
+    my $rate  = $rates->{$key} // 0;
+
+    next if $rate <= 0;    # not depleting
+
+    my $time_to_zero = $count / $rate;
+
+    if ( $time_to_zero <= $horizon ) {
+
+        # [ warning intensity: 0.0 (far) to 1.0 (imminent) ]
+        $warnings{$key} = 1 - ( $time_to_zero / $horizon );
+    }
+}
+
+return \%warnings;
+
+#,,.,,,,,,,,,,,,,,.,,,...,...,,,.,..,,,..,,,,,..,,...,...,,..,..,,,,,,,,.,.,,,
+#ZVMESROJC2BLTGX7TWXNWKYY542GKED3NZWWX7UMEL4N6SB552YUDP25JVXB27JDQDKT2MBMEFREI
+#\\\|4PLKTHKYOCUUWKT7F6IBP6QMOJ6C33UQNFDS6C7WP5FMWRX2IXT \ / AMOS7 \ YOURUM ::
+#\[7]NU5FJQV3BG2YPCZN46DFPEYD7M3OXLTU5IBUQIQZNE4HBLLWUADY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

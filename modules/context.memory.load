@@ -5,10 +5,10 @@
 
 my $params = shift // {};
 
-## [ try scored tree cache from memory zenka first ]##
-my $root      = <system.root_path>;
-my $cache_txt = "$root/var/memory-context-cache.txt";
-my $cache_nt  = "$root/var/memory-context-cache.ntime";
+## [ try scored tree cache from memory zenka's var dir ]##
+my $var_p7    = <system.path.zenka-dirs>->{'var_P7'} // '/var/protocol-7';
+my $cache_txt = "$var_p7/memory/memory-context-cache.txt";
+my $cache_nt  = "$var_p7/memory/memory-context-cache.ntime";
 
 if ( -f $cache_txt and -f $cache_nt ) {
     my $written_at;
@@ -126,8 +126,8 @@ foreach my $file (@files) {
 
 return $output;
 
-#,,.,,,,.,,,.,,.,,,,,,.,.,.,,,,,,,,..,.,,,,,.,..,,...,...,,,,,.,,,,.,,.,,,,.,,
-#JXPU6NEFZTTCTKQGPN2INBYASSNEORZPXHNNQ5NPHKAVIPODDQZ3I3KMA5EBLKJCHP3QLQHO5JDAY
-#\\\|YMMKBXKRXEWI54FIFKI2GGNF3RYEBPX763IDBR5IUAK3ULBO7JS \ / AMOS7 \ YOURUM ::
-#\[7]AKIIADCOBAOJVEUUOPXZKZMVHNIYB3YFD2BU5IYP273NVA2Y5ACI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,..,,,,.,.,.,,,.,,,.,,..,,.,,,.,,..,,...,...,,,,,..,,...,.,,,,..,
+#W3OQZ5DVGIPNMT25XF6KEFUK4ZVSDBO76DA2IF6M7SNK3I3VPCSJIFEDJEBT32HR7ERBLHTIH3WHG
+#\\\|RTKOD5D76P72VIDDRFLRIXEOKAVFMAYDXHUUZYARS366Z3TSLYA \ / AMOS7 \ YOURUM ::
+#\[7]VMRD44JG3QABPRKZ5NVW6V2YHKCERWVZEGNGE5JFLGLDVSBDE4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,36 +10,22 @@ my $tree = <[memory.tree.render]>->( { variant => 'compact', n => $n } );
 $tree //= '';
 
 ## [ write cache for cross-zenka context.memory.load consumption ]##
-my $root      = <system.root_path>;
-my $cache_txt = "$root/var/memory-context-cache.txt";
-my $cache_nt  = "$root/var/memory-context-cache.ntime";
-my $ntime_now = <[base.ntime]>;
+my $ntime_now = sprintf '%s', <[base.ntime]>;
+my $wrote_txt = <[file.zenka_dir.write]>->(
+    'memory-context-cache.txt', \$tree, '>', 0600, ':utf8'
+);
+my $wrote_nt = <[file.zenka_dir.write]>->(
+    'memory-context-cache.ntime', \$ntime_now, '>', 0600, ':utf8'
+);
 
-eval {
-    ## [ atomic-ish write : tmp + rename ]##
-    my $tmp_txt = "$cache_txt.tmp";
-    my $tmp_nt  = "$cache_nt.tmp";
-
-    open( my $fh_t, '>:utf8', $tmp_txt ) or die "open $tmp_txt : $OS_ERROR";
-    print {$fh_t} $tree;
-    close $fh_t                    or die "close $tmp_txt : $OS_ERROR";
-    rename( $tmp_txt, $cache_txt ) or die "rename $tmp_txt : $OS_ERROR";
-
-    open( my $fh_n, '>:utf8', $tmp_nt ) or die "open $tmp_nt : $OS_ERROR";
-    print {$fh_n} $ntime_now;
-    close $fh_n                  or die "close $tmp_nt : $OS_ERROR";
-    rename( $tmp_nt, $cache_nt ) or die "rename $tmp_nt : $OS_ERROR";
-
-    TRUE;
+if ( not defined $wrote_txt or not defined $wrote_nt ) {
+    <[base.logs]>->( 1, ':. memory.render.context : cache write failed' );
 }
-    or <[base.logs]>->(
-    1, ':. memory.render.context : cache write failed [ %s ]', $EVAL_ERROR
-    );
 
 return $tree;
 
-#,,.,,..,,,.,,,,,,,..,,..,,..,..,,,.,,..,,,.,,..,,...,...,,,.,,,.,.,.,..,,.,,,
-#TJPYKSM6LLTQQNT3ZOUIBCZD7PEZV3XA2SFM6TVK4BACZOFJKFMUSUHTHZAGKTDWBBSQLJBL5WEBW
-#\\\|CZB77XBHTMF6ZO2Q5D2OQV7JV55OPLNOGN3PK7AMCOIXGJ7L7NR \ / AMOS7 \ YOURUM ::
-#\[7]3XVVZELICUSKETUTJ3NP2DZLX4EEQVDM6YQ4QJEWRUZDPP5VXUAI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,,.,.,.,.,.,.,.,.,,,,.,,..,,,,.,..,,...,...,...,,,.,,.,,.,.,...,
+#AYIESWDLLNIKZVQXSXUP5AOV6UIAECCUYU2XVQKO72SXFIXWAX2KE2KRDQQ7L3BA7MNHNPFEXTEIG
+#\\\|2AAV2OC2J2QRK7BM4AFLNP722TLVKE4XQK7YPM2MEPDUNM7HNZC \ / AMOS7 \ YOURUM ::
+#\[7]SR3WMYTLMVOHIO5C57S2M2MZQ3PIJTJNDZDEX3YVDPSEKMU4PKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

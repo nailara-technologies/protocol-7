@@ -250,6 +250,122 @@ for my $ring ( 0 .. $rings - 1 ) {
     }
 }
 
+# [ warning overlay : amber glow on depleting arcs ]
+my $warnings = <[route.bmw384.ledger.warning_map]>->(5);
+
+for my $key ( keys %$warnings ) {
+    my $intensity = $warnings->{$key};
+    my ( $arc, $ring ) = split ':', $key;
+
+    next if $ring < 0 or $ring >= $rings;
+
+    # [ amber warning glow on this arc segment ]
+    # [ intensity 0=barely visible, 1=bright amber pre-flash ]
+    my $warn_color = sprintf 'hsl(35,90%%,%d%%)', int( 30 + $intensity * 40 );
+    my $warn_op    = sprintf '%.2f',              0.1 + $intensity * 0.6;
+
+    my $radius        = $outer_radius - $ring * $ring_radius_step;
+    my $arc_start_deg = -$arc * $segment_deg;
+    my $arc_end_deg   = -( $arc + 1 ) * $segment_deg;
+
+    my $r_in  = $radius - $ring_radius_step * 0.4;
+    my $r_out = $radius + $ring_radius_step * 0.4;
+    my $a1    = $arc_start_deg * $PI / 180;
+    my $a2    = $arc_end_deg * $PI / 180;
+
+    my $sx1 = 400 + $r_in * sin($a1);
+    my $sy1 = 400 - $r_in * cos($a1);
+    my $sx2 = 400 + $r_out * sin($a1);
+    my $sy2 = 400 - $r_out * cos($a1);
+    my $sx3 = 400 + $r_out * sin($a2);
+    my $sy3 = 400 - $r_out * cos($a2);
+    my $sx4 = 400 + $r_in * sin($a2);
+    my $sy4 = 400 - $r_in * cos($a2);
+
+    my $path = sprintf(
+        'M%.2f,%.2f L%.2f,%.2f A%.2f,%.2f 0 0,0 %.2f,%.2f L%.2f,%.2f A%.2f,%.2f 0 0,1 %.2f,%.2f Z',
+        $sx1, $sy1, $sx2, $sy2,  $r_out, $r_out, $sx3,
+        $sy3, $sx4, $sy4, $r_in, $r_in,  $sx1,   $sy1
+    );
+
+    $svg
+        .= sprintf
+        '  <path d="%s" fill="%s" opacity="%s" style="mix-blend-mode:screen"/>'
+        . "\n", $path, $warn_color, $warn_op;
+}
+
+# [ cascade front detection : three adjacent arcs warming simultaneously ]
+my @cascade_fronts;
+for my $ring ( 0 .. $rings - 1 ) {
+    for my $arc ( 0 .. 25 ) {
+        my $n0 = $warnings->{"$arc:$ring"}           // 0;
+        my $n1 = $warnings->{"$(($arc+1)%26):$ring"} // 0;
+        my $n2 = $warnings->{"$(($arc+2)%26):$ring"} // 0;
+
+        if ( $n0 > 0.5 and $n1 > 0.5 and $n2 > 0.5 ) {
+            push @cascade_fronts,
+                {
+                arc       => $arc,
+                ring      => $ring,
+                intensity => ( $n0 + $n1 + $n2 ) / 3
+                };
+        }
+    }
+}
+
+# [ cascade front: render a larger warning arc spanning 3 segments ]
+# [ color: deeper amber/red based on intensity ]
+for my $front (@cascade_fronts) {
+    my $arc       = $front->{'arc'};
+    my $ring      = $front->{'ring'};
+    my $intensity = $front->{'intensity'};
+
+    my $radius        = $outer_radius - $ring * $ring_radius_step;
+    my $arc_start_deg = -$arc * $segment_deg;
+    my $arc_end_deg   = -( $arc + 3 ) * $segment_deg;
+
+    my $r_in  = $radius - $ring_radius_step * 0.5;
+    my $r_out = $radius + $ring_radius_step * 0.5;
+    my $a1    = $arc_start_deg * $PI / 180;
+    my $a2    = $arc_end_deg * $PI / 180;
+
+    my $sx1 = 400 + $r_in * sin($a1);
+    my $sy1 = 400 - $r_in * cos($a1);
+    my $sx2 = 400 + $r_out * sin($a1);
+    my $sy2 = 400 - $r_out * cos($a1);
+    my $sx3 = 400 + $r_out * sin($a2);
+    my $sy3 = 400 - $r_out * cos($a2);
+    my $sx4 = 400 + $r_in * sin($a2);
+    my $sy4 = 400 - $r_in * cos($a2);
+
+    my $cf_color = sprintf 'hsl(%d,90%%,%d%%)',
+        int( 25 - $intensity * 10 ), int( 30 + $intensity * 30 );
+    my $cf_op = sprintf '%.2f', 0.15 + $intensity * 0.5;
+
+    my $path = sprintf(
+        'M%.2f,%.2f L%.2f,%.2f A%.2f,%.2f 0 0,0 %.2f,%.2f L%.2f,%.2f A%.2f,%.2f 0 0,1 %.2f,%.2f Z',
+        $sx1, $sy1, $sx2, $sy2,  $r_out, $r_out, $sx3,
+        $sy3, $sx4, $sy4, $r_in, $r_in,  $sx1,   $sy1
+    );
+
+    $svg
+        .= sprintf
+        '  <path d="%s" fill="%s" opacity="%s" style="mix-blend-mode:screen"/>'
+        . "\n", $path, $cf_color, $cf_op;
+}
+
+# [ cascade front status bar ]
+if (@cascade_fronts) {
+    my $front      = $cascade_fronts[0];
+    my $status_msg = sprintf "\x{26A0} cascade front at arc %d ring %d",
+        $front->{'arc'}, $front->{'ring'};
+    $svg
+        .= sprintf '  <text x="400" y="790" fill="hsl(35,90%%,55%%)"'
+        . ' font-size="11" text-anchor="middle" opacity="0.9">%s</text>'
+        . "\n",
+        $status_msg;
+}
+
 # [ center logo : nailara at the darksun ]
 my $logo_size = 44;
 my $logo_xy   = 400 - $logo_size / 2;
@@ -267,8 +383,8 @@ $svg .= '</svg>' . "\n";
 
 return $svg;
 
-#,,..,...,...,,.,,...,.,.,,,,,.,,,..,,,,,,,,,,..,,...,...,,,.,,,.,.,,,...,..,,
-#HDI7CCTHU2KJKX5E2XJGEMDKVPZ7TUSNMBDZAU3T22W6FS5FPF7PKFFRYNIWSIEGQBOAMY6B5AQUA
-#\\\|JM4JM5LY4N4Q3VUMQWXXCBQNMDU664AG7PNKYFMI2WKNDOX46BY \ / AMOS7 \ YOURUM ::
-#\[7]A5XWJMZO2RY53QMASCYSL6EZPAW5Y4DCTW23YY2ZIBSKG7LDGQAQ 7  DATA SIGNATURE ::
+#,,.,,..,,..,,.,.,,,.,,,,,.,.,.,.,,,.,.,,,,,.,..,,...,...,.,.,.,.,,,.,,,.,,,.,
+#7EL636JVZANBZJXCBH6XCYXXP7GJAHGZH3YAG6UGJKHPISLF57DPSPGMPOFYO5SPPQBPSJXOJ6V3G
+#\\\|RGO2AXYIIKL3AVUNIL5NTMKVORWW4B6HKI5OMHB752CTCTY3XXR \ / AMOS7 \ YOURUM ::
+#\[7]MY4D7GQKXZZDDLGVQRHOGFQDUSNT2RN4KWSC2W4XB3I6DZTJA2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
