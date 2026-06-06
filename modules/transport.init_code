@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = transport.init_code
+# descr = load transport profiles, initialize quality state and probe timer
+
+## ensure external transport registry exists ##
+unless ( defined <external.transports> ) {
+    <[base.logs]>
+        ->( 0, 'transport.init_code: external.init_code not loaded' );
+    return qw| false |;
+}
+
+## profile cache ##
+<external.transports>->{'profiles'} //= {};
+
+## quality state per transport type per destination ##
+<external.transports>->{'quality'} //= {};
+
+## demoted transports: { destination => { type => $demote_time } } ##
+<external.transports>->{'demoted'} //= {};
+
+## active transport handles per destination ##
+<external.transports>->{'active'} //= {};
+
+## profile directory ##
+<transport.cfg.profile_dir> = 'data/yaml/transport/profiles'
+    unless defined <transport.cfg.profile_dir>;
+
+## default probe interval (seconds) ##
+<transport.cfg.probe_interval> = 30
+    unless defined <transport.cfg.probe_interval>;
+
+## start global probe timer ##
+my $probe_timer = <[event.add_timer]>->(
+    {   'after'    => <transport.cfg.probe_interval>,
+        'interval' => <transport.cfg.probe_interval>,
+        'repeat'   => TRUE,
+        'handler'  => qw| transport.probe.timer |,
+    }
+);
+
+<transport.probe_timer> = $probe_timer;
+
+<[base.logs]>->( 2, 'transport.init_code: transport selector initialized' );
+
+return qw| true |;
+
+#,,,,,.,,,..,,.,.,,,,,.,.,.,.,.,,,,.,,.,,,.,,,..,,...,.,.,...,,..,...,,.,,.,.,
+#GS3RG42OBWTF73PGFU7L2BFZHPOVXAOSGF7DPFRMURTEUGRL7YQZBUBACV46N3XCDWVGMW6X2CJ7O
+#\\\|7EFUA2IDMYLGMGXUL2IF2HR3HH6GAGRDT3U56EPYZIMDZ4IZWJZ \ / AMOS7 \ YOURUM ::
+#\[7]BXMVYILSNVWXKWD2Y7AI7ZGF5RN32CI6BYKLDX4BQ2UV6XYVYOAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

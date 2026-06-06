@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = transport.quality.derive_passive
+# descr = derive quality metrics from application-layer observations
+# args  = $dest, $type, \%observations
+# observations: { total_requests => N, timeouts => N, avg_response_ms => N }
+
+my ( $dest, $type, $obs ) = @ARG;
+
+return if not defined $dest or not defined $type;
+return if ref $obs ne qw| HASH |;
+
+my $total    = $obs->{'total_requests'}  // 0;
+my $timeouts = $obs->{'timeouts'}        // 0;
+my $avg_rtt  = $obs->{'avg_response_ms'} // 0;
+
+my $loss_rate = $total > 0 ? $timeouts / $total : 0.0;
+
+return <[transport.quality.measure]>->(
+    $dest, $type,
+    {   'loss_rate'    => $loss_rate,
+        'rtt_ms'       => $avg_rtt,
+        'goodput_kbps' => $obs->{'goodput_kbps'} // 0,
+        'success'      => ( $total > 0 && $timeouts < $total ),
+    }
+);
+
+#,,,,,...,...,.,,,..,,..,,,..,.,.,.,,,.,.,.,,,..,,...,...,.,.,...,,..,..,,..,,
+#DZDUZ2MHXXSYQVCDV22KHWWWYFXWKN7FQ6GR4QBJTGFT2UBQJSAD7TNAN6T22JRQKVJTSRQ3KHILU
+#\\\|AX5EUEXLXSOJ4RQB3BXI3V4TZXMB5J3K4MUCYT6VSBRLUOBDQJN \ / AMOS7 \ YOURUM ::
+#\[7]D55PK4MOGMSRSL7IAUL2YPJLUUNZG5DIRPYHIPT3ER2RPM5DI4AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
