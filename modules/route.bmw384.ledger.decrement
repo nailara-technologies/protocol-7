@@ -9,24 +9,54 @@ my $ring = shift;
 my $key  = "$arc:$ring";
 
 <route.bmw384.cfg.ledger_counts> //= {};
+<bmw384.ledger.counts>           //= {};
 my $count = <route.bmw384.cfg.ledger_counts>->{$key} // 7;
 
 if ( $count > 0 ) {
     $count--;
     <route.bmw384.cfg.ledger_counts>->{$key} = $count;
+    <bmw384.ledger.counts>->{$key}           = $count;
+}
+
+# [ track depletion rate ]
+<bmw384.ledger.rates>        //= {};
+<bmw384.ledger.rate_history> //= {};
+my $now     = <[base.time]>->(3);
+my $history = <bmw384.ledger.rate_history>->{$key} //= [];
+
+push @$history, $now;
+shift @$history while @$history > 10;
+
+if ( @$history >= 2 ) {
+    my $span = $history->[-1] - $history->[0];
+    if ( $span > 0 ) {
+        <bmw384.ledger.rates>->{$key} = ( @$history - 1 ) / $span;
+    }
 }
 
 # [ separator inversion at 0 : trigger flash ]
 if ( $count == 0 ) {
     <route.bmw384.cfg.ledger_flash> //= {};
-    <route.bmw384.cfg.ledger_flash>->{$key} = <[base.time]>->(3);
+    <route.bmw384.cfg.ledger_flash>->{$key} = $now;
     <[base.logs]>->( 1, 'ledger: arc %d ring %d → 0 [FLASH]', $arc, $ring );
+}
+
+# [ warning map : log imminent depletions ]
+my $warnings = <[route.bmw384.ledger.warning_map]>->(5);
+for my $warn_key ( keys %$warnings ) {
+    if ( $warnings->{$warn_key} > 0.8 ) {
+        my ( $w_arc, $w_ring ) = split ':', $warn_key;
+        <[base.logs]>->(
+            1, 'ledger: arc %d ring %d warning %.2f',
+            $w_arc, $w_ring, $warnings->{$warn_key}
+        );
+    }
 }
 
 return $count;
 
-#,,.,,..,,,..,,,,,.,.,.,,,,,.,,,.,.,.,,.,,.,.,..,,...,...,.,,,,,.,..,,.,,,..,,
-#36L5JFLLOBHXW3PYPNWNT2ZFOQZDBU5VUX6DUFGTYUQTHRH4ESQQDZDMRMVAAW4F4RSGN272VLJXA
-#\\\|NAKMZ3WO3JPR3ZOO7YO2ZWXMT3X2ARJDGFWFHANBNZDSI2BZSW5 \ / AMOS7 \ YOURUM ::
-#\[7]2GTGZKDTJFH4KER5IU3W3SXEK6GSTNV6MGAMLX3EBJZZTC2SBUDI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,.,,...,..,,.,,,.,.,.,,,,,,,.,,,..,,...,...,..,,,,,,.,,,,..,..,,
+#ZA5FJEU5LPIEVKMUVWUSFGES3UFWWNWBRO5IZRVNWBQD2UNTK6LYKNKNBM3RHWW7MP5LKMUM5UZEE
+#\\\|IP2FVUQAVEHNJWSLHLHYEMJWBCKGJ3MVOLG3AQKWLZWO6Z2WLQE \ / AMOS7 \ YOURUM ::
+#\[7]KRMNEXJAA5MP4XN2CWO3ADPDYBXJTEMKMEGQXU2CDGGQSNV5GYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,17 +11,19 @@ my $max    = <route.bmw384.cfg.ledger_max> // 7;
 my $key    = "$arc:$ring";
 
 <route.bmw384.cfg.ledger_counts> //= {};
+<bmw384.ledger.counts>           //= {};
 my $count = <route.bmw384.cfg.ledger_counts>->{$key} // 0;
 
 $count += $amount;
 $count = $max if $count > $max;
 
 <route.bmw384.cfg.ledger_counts>->{$key} = $count;
+<bmw384.ledger.counts>->{$key}           = $count;
 
 return $count;
 
-#,,,,,,,.,,..,,.,,,,,,,..,,,.,,..,,,.,..,,.,,,..,,...,...,...,..,,.,.,,.,,,.,,
-#J2S62S7LEHCPTJVI7TZ5FZ3PX54HXZ5CVC5ODGSBNC63GGQLS54WXLAQT6BTFBMGDTMCBZKLSBDLU
-#\\\|UU4O2PQLWH6UWBBF3UTV536NXZHVTQPMVRNUWTTVY7QECMIFZUG \ / AMOS7 \ YOURUM ::
-#\[7]7LZUYUJXJL2SCHFV7364ESZFE2NQ4AET3Q4O7DMNOKSUB4C7VWCI 7  DATA SIGNATURE ::
+#,,..,..,,,,,,...,,,.,.,.,.,,,...,,..,,,.,.,,,..,,...,..,,.,.,.,.,,..,.,.,..,,
+#KP5HIQFHDJTXD5ZLSESADNK24RUL2LQSIORM5IS27FOO66OKBKHYGSVGECDHHGFUH2CR3YGUUPY3U
+#\\\|EFNPYT6KWFDGLJYKUMVGNESRNHNM4ID7NSY7TTEDUEPF76BYAQG \ / AMOS7 \ YOURUM ::
+#\[7]MNKNQSVCO5ASQ5GDUFUIMCPKZIIECHLHKTLL5ZOQV7LNOQVONSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
