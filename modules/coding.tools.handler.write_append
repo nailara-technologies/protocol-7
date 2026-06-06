@@ -44,7 +44,7 @@ if ( !-w $abs_path and defined $chmod_fh ) {
     my $cur_mode = ( stat $abs_path )[2] // 0644;
     $cur_mode &= 07777;
     print {$chmod_fh} "gw $abs_path\n";
-    select undef, undef, undef, 0.01;    ## yield for child ##
+    <[coding.chmod_child.readline]>;    ## wait for gw to complete ##
     $mode_restore = $cur_mode if -w $abs_path;
 }
 
@@ -54,6 +54,7 @@ if ( -w $abs_path ) {
     if ( defined $mode_restore and defined $chmod_fh ) {
         print {$chmod_fh} sprintf "restore %04o %s\n", $mode_restore,
             $abs_path;
+        <[coding.chmod_child.readline]>;    ## consume restore reply ##
     }
     return undef if not $result;
     return sprintf "appended %s [ %d bytes ]", $path, length($content);
@@ -73,8 +74,8 @@ return sprintf "staged append to %s [ %d bytes, no write access ]\n"
     . "staged at: %s",
     $path, length($content), $stage_rel;
 
-#,,,.,,,,,,..,,..,,,.,..,,,..,...,,..,.,.,..,,.,.,...,...,,.,,,.,,.,,,,,,,.,,,
-#XFTMUKPNATAKFWTAWX3I52U44CXN2NFFHLDZQTYSKBMYIZQTZB2V5AI4ZKJ3ZFJ7JKRUJS7NGPY3I
-#\\\|2OUB7OCUH2KHPBWRQ4I5AXARYC3QHJGSFVOKSM3SP3EXMIJXZMD \ / AMOS7 \ YOURUM ::
-#\[7]7WHM5PIQYSTF7D5NGCUWGJ6N5XN5HS3M6C2SKNWK3BC3MW5SP2BI 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,...,,..,,,.,,..,,,,,.,.,,.,,,,,,.,.,...,...,.,.,,,.,,.,,,..,,,,,
+#AUF2JYXFAAGGYGO7NNVTWJKI3AQSTL3NKMVTZ5XQMRFFL7QGWT3CRIZUHJZ26ZDQIHAV3RRXP7A7A
+#\\\|QWQCCGH33IKKSUYV7DTVEJ3AI27ZPWEADSZXKVBE6JWWV6GBMWW \ / AMOS7 \ YOURUM ::
+#\[7]ZR2GHIIIWUHMYYK2XKCFRCDB5ZWCTGD363WKVQ6BA6K4O3FL3CBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
