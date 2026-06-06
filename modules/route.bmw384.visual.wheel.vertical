@@ -1,0 +1,155 @@
+## [:< ##
+
+# name  = route.bmw384.visual.wheel.vertical
+# descr = vertical dimension view: radial = floor depth, angular = arc
+
+return undef if not defined <bmw384.index>;
+
+my $by_name = <bmw384.index>->{'by_name'};
+my @sorted_names
+    = @{ <bmw384.index>->{'sorted_names'} // [ sort keys %$by_name ] };
+
+# [ optional namespace filter ]
+my $ns_filter = <route.bmw384.cfg.namespace_filter> // '';
+if ( length $ns_filter ) {
+    my $prefix_only = substr( $ns_filter, 0, 1 ) eq '^';
+    my $ns_pat      = $prefix_only ? substr( $ns_filter, 1 ) : $ns_filter;
+    my $anywhere    = not $prefix_only;
+    <[base.logs]>->(
+        1, 'ns filter: [%s] prefix_only=%s anywhere=%s',
+        $ns_filter,
+        $prefix_only ? 'yes' : 'no',
+        $anywhere    ? 'yes' : 'no'
+    );
+    my @sorted_names_f;
+    for my $ARG (@sorted_names) {
+        push @sorted_names_f, $ARG
+            if $anywhere
+            ? index( $ARG, $ns_filter ) != -1
+            : index( $ARG, $ns_pat ) == 0;
+    }
+    @sorted_names = @sorted_names_f;
+}
+
+# [ parameters ]
+my $outer_radius = <route.bmw384.cfg.outer_radius> // 320;
+
+# [ floor depth data ]
+my $floor_data = <bmw384.route.floor_depth> // {};
+if ( not scalar keys %$floor_data ) {
+
+    # [ synthetic stub for testing: arc mod 7 + 1 ]
+    my %synthetic;
+    for my $ARG (@sorted_names) {
+        my $coord = $by_name->{$ARG};
+        $synthetic{$ARG} = ( $coord->{'arc'} % 7 ) + 1;
+    }
+    $floor_data = \%synthetic;
+}
+
+my $max_floor = 1;
+for my $ARG ( values %$floor_data ) {
+    $max_floor = $ARG if $ARG > $max_floor;
+}
+
+my $PI = 3.14159265358979;
+
+my $segment_deg   = 360 / 26;
+my $segment_width = 16777216 / 26;
+
+my $svg = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+$svg .= '<svg xmlns="http://www.w3.org/2000/svg"'
+    . ' viewBox="0 0 800 800" width="800" height="800">' . "\n";
+$svg .= '  <rect width="800" height="800" fill="#0a0a0f"/>' . "\n";
+
+# [ arc spokes : counterclockwise ]
+for my $ARG ( 0 .. 25 ) {
+    my $angle_deg = -$ARG * $segment_deg;
+    my $rad       = $angle_deg * $PI / 180;
+    my $x2        = 400 + 360 * sin($rad);
+    my $y2        = 400 - 360 * cos($rad);
+    $svg
+        .= sprintf '  <line x1="400" y1="400" x2="%.2f" y2="%.2f"'
+        . ' stroke="rgba(255,255,255,0.08)" stroke-width="1"/>'
+        . "\n", $x2, $y2;
+}
+
+# [ arc labels : counterclockwise at outer radius ]
+my $label_radius  = $outer_radius + 12;
+my $label_opacity = 0.3;
+for my $ARG ( 0 .. 25 ) {
+    my $angle_deg = -$ARG * $segment_deg;
+    my $rad       = $angle_deg * $PI / 180;
+    my $x         = 400 + $label_radius * sin($rad);
+    my $y         = 400 - $label_radius * cos($rad);
+    my $label     = <[route.bmw384.visual.ring-label]>->( 0, $ARG );
+
+    # [ ring 27 darksun marker : special rendering ]
+    my ( $label_fill, $label_font_size_actual );
+    if ( $label eq '.' ) {
+        $label_fill             = 'rgba(100,150,255,0.6)';
+        $label_font_size_actual = 12;
+    } else {
+        $label_fill             = "rgba(255,255,255,$label_opacity)";
+        $label_font_size_actual = 10;
+    }
+
+    $svg
+        .= sprintf '  <text x="%.2f" y="%.2f" fill="%s"'
+        . ' font-size="%d" text-anchor="middle"'
+        . ' dominant-baseline="middle">%s</text>'
+        . "\n", $x, $y, $label_fill, $label_font_size_actual, $label;
+}
+
+# [ nodes : radial position from floor depth ]
+for my $ARG (@sorted_names) {
+    my $coord  = $by_name->{$ARG};
+    my $floors = $floor_data->{$ARG} // 1;
+
+    # [ outer = deep (high latency), inner = shallow (fast) ]
+    my $radius = 30 + ( $floors / $max_floor ) * ( $outer_radius - 30 );
+
+    # [ angular position = arc (same as horizontal view) ]
+    my $arc_start_deg   = -$coord->{'arc'} * $segment_deg;
+    my $within_arc_frac = ( $coord->{'color'} / $segment_width )
+        - int( $coord->{'color'} / $segment_width );
+    my $angle_deg = $arc_start_deg - $within_arc_frac * $segment_deg;
+    my $rad       = $angle_deg * $PI / 180;
+
+    my $x = 400 + $radius * sin($rad);
+    my $y = 400 - $radius * cos($rad);
+
+    # [ color: hue from arc (direction), brightness from depth ]
+    my $hue       = ( $coord->{'arc'} * 360 / 26 ) % 360;
+    my $lightness = int( 30 + ( 1 - $floors / $max_floor ) * 40 );
+    my $color_hex = sprintf 'hsl(%d,80%%,%d%%)', $hue, $lightness;
+
+    $svg
+        .= sprintf '  <circle cx="%.2f" cy="%.2f" r="3"'
+        . ' fill="%s" opacity="0.75"><title>%s floors=%d</title></circle>'
+        . "\n",
+        $x, $y, $color_hex, $ARG, $floors;
+}
+
+# [ center logo : nailara at the darksun ]
+my $logo_size = 44;
+my $logo_xy   = 400 - $logo_size / 2;
+
+$svg
+    .= sprintf '  <image x="%.1f" y="%.1f" width="%d" height="%d"'
+    . ' href="%s" opacity="0.7"'
+    . ' style="mix-blend-mode:screen"/>' . "\n",
+    $logo_xy, $logo_xy, $logo_size, $logo_size,
+    '/gfx/logos/nailara_logo.trans-dark.png';
+
+$svg .= '  <circle cx="400" cy="400" r="24" fill="none"'
+    . ' stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>' . "\n";
+$svg .= '</svg>' . "\n";
+
+return $svg;
+
+#,,,.,...,...,.,,,..,,.,,,,,,,...,,..,,..,,,,,..,,...,...,..,,.,,,,,.,,..,,,.,
+#WO24IMBGWFSD7ZFWWS356HCAB3P524O7STW4TIPSHGCTGFC4QFDHRTT5IXJDU2WAQSDZDXZYMPB76
+#\\\|XXLYOZAET3ZYME5JDGWZWLPYYCNDVDCEDJBPVX3HNZ3PRPXCCZ4 \ / AMOS7 \ YOURUM ::
+#\[7]A3P42KIFWBQJVI7I6I535OYCMCRZGAJC4B3DIXO7KGARKSS7T2CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
