@@ -49,6 +49,18 @@ my $auth_user = sprintf 'unix-%s',
     ( $ENV{'PROTOCOL_7_BIN_P7_USER'} // $ENV{'USER'} // $ENV{'LOGNAME'}
         // 'root' );
 
+## extend PATH with known per-user tool install dirs not present in mcp env ##
+do {
+    my $home = $ENV{'HOME'} // ( getpwuid($<) )[7] // '';
+    for my $d (
+        "$home/.kimi-code/bin",
+        "$home/.local/bin",
+        "$home/.cargo/bin",
+    ) {
+        $ENV{'PATH'} = "$d:$ENV{PATH}" if -d $d and $ENV{'PATH'} !~ m{\Q$d\E};
+    }
+};
+
 ##[ external command tools ]##
 
 my @external_tools = (
@@ -61,7 +73,7 @@ my @external_tools = (
             . '"To resume this session: kimi -r <uuid>" — '
             . 'pass that uuid to kimi_continue to resume a long-running '
             . 'task.',
-        'command' => 'kimi -y -p %s',
+        'command' => 'kimi-legacy -y -p %s',
         'params'  => [
             [ 'prompt', 'the task or question for kimi to work on', 1 ],
             [   'auto_summarize',
@@ -84,7 +96,7 @@ my @external_tools = (
             . 'pass the uuid from "To resume this session: kimi -r <uuid>". '
             . 'kimi resumes with full prior context and acts on the new '
             . 'prompt.',
-        'command'     => 'kimi -y -r %s -p %s',   ## session uuid + new prompt
+        'command'     => 'kimi-legacy -y -r %s -p %s',   ## session uuid + new prompt
         'param_name'  => 'session_id',
         'param_desc'  => 'the kimi session uuid from the resume line',
         'param2_name' => 'prompt',
@@ -2441,8 +2453,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,.,.,,,,.,,.,.,,,,,,,.,.,,,,,.,.,.,,.,,.,.,..,,...,...,..,,,.,,..,,,,,,.,,,
-#TM23MOK5XR7XRUBUZJZPJXWBBYVYMPLRWC6TPCAAVONREIGNVAHSIJUOZYZT2BXQ4HJN6LLMQWOD4
-#\\\|DNHLBHVTPITXMULUB6A2JNNQMGLJ5GVSVVI62UGCFJGYJJ2CIZH \ / AMOS7 \ YOURUM ::
-#\[7]67SEZ5GYMG4P7E2S5DWNGTEFSAWRTINPU2T34SKKP5J3LE2TSUAQ 7  DATA SIGNATURE ::
+#,,..,,..,,..,,,,,,,.,...,.,,,...,.,,,,.,,,.,,..,,...,..,,...,.,,,.,,,.,.,.,,,
+#GM3WS2DAZAHZZHHRFKWSE5SL5FHNE6AQMAHVJTLKJBNAY4OHSEPQ2QO47W26TIKBP5WFYAQN774QK
+#\\\|J6Z2OZ73U4TY3ZFWDCQQRNRPOQBN6RPFAK6W65X5MTRAS23PEDX \ / AMOS7 \ YOURUM ::
+#\[7]RGNME6AWHLFLZ6MDOTW4ABB3HWOLD3BK5HM7ZDMBYANCZYZDBADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
