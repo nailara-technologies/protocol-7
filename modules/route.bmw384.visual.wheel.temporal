@@ -1,0 +1,170 @@
+## [:< ##
+
+# name  = route.bmw384.visual.wheel.temporal
+# descr = radial position = time since modification, color = age
+
+return undef if not defined <bmw384.index>;
+
+my $by_name = <bmw384.index>->{'by_name'};
+my @sorted_names
+    = @{ <bmw384.index>->{'sorted_names'} // [ sort keys %$by_name ] };
+
+# [ namespace filter — same pattern as other modes ]
+my $ns_filter = <route.bmw384.cfg.namespace_filter> // '';
+if ( length $ns_filter ) {
+    my $prefix_only = substr( $ns_filter, 0, 1 ) eq '^';
+    my $ns_pat      = $prefix_only ? substr( $ns_filter, 1 ) : $ns_filter;
+    my $anywhere    = not $prefix_only;
+    <[base.logs]>->(
+        1, 'ns filter: [%s] prefix_only=%s anywhere=%s',
+        $ns_filter,
+        $prefix_only ? 'yes' : 'no',
+        $anywhere    ? 'yes' : 'no'
+    );
+    my @ns_f;
+    for my $ARG (@sorted_names) {
+        push @ns_f, $ARG
+            if $anywhere
+            ? index( $ARG, $ns_filter ) != -1
+            : index( $ARG, $ns_pat ) == 0;
+    }
+    @sorted_names = @ns_f;
+}
+
+# [ collect mtimes ]
+my $code_path = <system.code_path> // '';
+my %mtime;
+my $min_t = time();
+my $max_t = 0;
+
+for my $ARG (@sorted_names) {
+    my $path = "$code_path/$ARG";
+    my $t    = ( stat $path )[9] // 0;
+    $mtime{$ARG} = $t;
+    $min_t       = $t if $t < $min_t and $t > 0;
+    $max_t       = $t if $t > $max_t;
+}
+
+my $range = ( $max_t - $min_t ) || 1;
+
+my $PI            = 3.14159265358979;
+my $segment_deg   = 360 / 26;
+my $segment_width = 16777216 / 26;
+my $outer_radius  = <route.bmw384.cfg.outer_radius> // 320;
+my $inner_radius  = 30;
+
+my $svg = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+$svg .= '<svg xmlns="http://www.w3.org/2000/svg"'
+    . ' viewBox="0 0 800 800" width="800" height="800">' . "\n";
+$svg .= '  <rect width="800" height="800" fill="#0a0a0f"/>' . "\n";
+
+# [ arc spokes : counterclockwise ]
+for my $ARG ( 0 .. 25 ) {
+    my $angle_deg = -$ARG * $segment_deg;
+    my $rad       = $angle_deg * $PI / 180;
+    my $x2        = 400 + 360 * sin($rad);
+    my $y2        = 400 - 360 * cos($rad);
+    $svg
+        .= sprintf '  <line x1="400" y1="400" x2="%.2f" y2="%.2f"'
+        . ' stroke="rgba(255,255,255,0.08)" stroke-width="1"/>'
+        . "\n", $x2, $y2;
+}
+
+# [ arc labels : counterclockwise, single ring at outer edge ]
+my $label_radius = $outer_radius + 12;
+for my $ARG ( 0 .. 25 ) {
+    my $angle_deg = -$ARG * $segment_deg;
+    my $rad       = $angle_deg * $PI / 180;
+    my $x         = 400 + $label_radius * sin($rad);
+    my $y         = 400 - $label_radius * cos($rad);
+    my $label     = <[route.bmw384.visual.ring-label]>->( 0, $ARG );
+
+    my ( $label_fill, $label_font_size_actual );
+    if ( $label eq '.' ) {
+        $label_fill             = 'rgba(100,150,255,0.6)';
+        $label_font_size_actual = 12;
+    } else {
+        $label_fill             = 'rgba(255,255,255,0.3)';
+        $label_font_size_actual = 10;
+    }
+
+    $svg
+        .= sprintf '  <text x="%.2f" y="%.2f" fill="%s"'
+        . ' font-size="%d" text-anchor="middle"'
+        . ' dominant-baseline="middle">%s</text>'
+        . "\n", $x, $y, $label_fill, $label_font_size_actual, $label;
+}
+
+for my $ARG (@sorted_names) {
+    my $coord = $by_name->{$ARG};
+    my $t     = $mtime{$ARG} // $min_t;
+
+    # [ age: 0.0 = newest, 1.0 = oldest ]
+    my $age = 1 - ( $t - $min_t ) / $range;
+
+    # [ radial: newer = inner, older = outer ]
+    my $radius = $inner_radius + $age * ( $outer_radius - $inner_radius );
+
+    my $arc_start_deg   = -$coord->{'arc'} * $segment_deg;
+    my $within_arc_frac = ( $coord->{'color'} / $segment_width )
+        - int( $coord->{'color'} / $segment_width );
+    my $angle_deg = $arc_start_deg - $within_arc_frac * $segment_deg;
+    my $rad       = $angle_deg * $PI / 180;
+
+    my $x = 400 + $radius * sin($rad);
+    my $y = 400 - $radius * cos($rad);
+
+    # [ color: hot (red/orange) = recent, cool (blue) = old ]
+    my $hue       = int( $age * 240 );    # 0=red(new) → 240=blue(old)
+    my $color_hex = sprintf 'hsl(%d,85%%,55%%)', $hue;
+
+    $svg
+        .= sprintf
+        '  <circle cx="%.2f" cy="%.2f" r="3" fill="%s" opacity="0.75">'
+        . '<title>%s — %s</title></circle>'
+        . "\n", $x, $y, $color_hex, $ARG,
+        scalar localtime($t);
+}
+
+# [ time legend ]
+my $newest_str = scalar localtime($max_t);
+my $oldest_str = scalar localtime($min_t);
+
+$svg .= '  <g transform="translate(0, 0)">' . "\n";
+$svg
+    .= sprintf '  <text x="400" y="770" fill="rgba(255,255,255,0.3)"'
+    . ' font-size="10" text-anchor="middle">time range: %s → %s</text>'
+    . "\n",
+    $newest_str, $oldest_str;
+
+# [ legend dots: inner=newest(red), outer=oldest(blue) ]
+$svg .= '  <circle cx="320" cy="785" r="4" fill="hsl(0,85%%,55%%)"/>' . "\n";
+$svg .= '  <text x="335" y="789" fill="rgba(255,255,255,0.35)"'
+    . ' font-size="9" text-anchor="start">newest</text>' . "\n";
+$svg
+    .= '  <circle cx="420" cy="785" r="4" fill="hsl(240,85%%,55%%)"/>' . "\n";
+$svg .= '  <text x="435" y="789" fill="rgba(255,255,255,0.35)"'
+    . ' font-size="9" text-anchor="start">oldest</text>' . "\n";
+$svg .= '  </g>' . "\n";
+
+# [ center logo : nailara at the darksun ]
+my $logo_size = 44;
+my $logo_xy   = 400 - $logo_size / 2;
+
+$svg
+    .= sprintf '  <image x="%.1f" y="%.1f" width="%d" height="%d"'
+    . ' href="%s" opacity="0.7"'
+    . ' style="mix-blend-mode:screen"/>' . "\n",
+    $logo_xy, $logo_xy, $logo_size, $logo_size,
+    '/gfx/logos/nailara_logo.trans-dark.png';
+
+$svg .= '  <circle cx="400" cy="400" r="24" fill="none"'
+    . ' stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>' . "\n";
+$svg .= '</svg>' . "\n";
+return $svg;
+
+#,,.,,.,,,,.,,.,.,.,,,,..,,..,,..,..,,,.,,..,,..,,...,..,,.,.,..,,...,.,.,,,,,
+#EMF3DTTSRKVBT65OHW5VJV2LBVQ5LUTU5ZSFKOQAE73BVU5O6PKICEWVPLFUNEDRCDNKFM2FVC6PK
+#\\\|2B5XNTROSS3STLIVW7QSMPL3YO5JR5YW64S2SHUJZJRVS4CQHNI \ / AMOS7 \ YOURUM ::
+#\[7]PSZOJ7BV4O5GLMZXACWXX4AL46PTHI4AQLEXIK5URROJQB6JUGAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
