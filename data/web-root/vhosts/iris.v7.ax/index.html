@@ -208,6 +208,11 @@
     <button class="mode-btn" data-dim="vertical">V</button>
   </div>
 
+  <div class="param-row">
+    <span class="param-label">sep</span>
+    <button class="mode-btn" data-sep="1">on</button>
+  </div>
+
   <div class="label-mode-row">
     <span class="param-label">labels</span>
     <button class="mode-btn active" data-label-mode="linear">linear</button>
@@ -286,7 +291,9 @@
   let currentIntensity = '0.5';
   let currentExpanse   = '3';
   let currentDim       = 'horizontal';
+  let currentSep       = 0;
   let oscInterval      = null;
+  let sepInterval      = null;
 
   const frame      = document.getElementById('iris-frame');
   const statusLine = document.getElementById('status-line');
@@ -353,6 +360,16 @@
         if ( currentDim === 'vertical' && oscInterval ) {
           clearInterval(oscInterval);
           oscInterval = null;
+        }
+        render();
+      } else if ( btn.dataset.sep !== undefined ) {
+        const sepButtons = document.querySelectorAll('.mode-btn[data-sep]');
+        const wasOn = currentSep === 1;
+        sepButtons.forEach(b => b.classList.toggle('active'));
+        currentSep = wasOn ? 0 : 1;
+        if ( sepInterval ) { clearInterval(sepInterval); sepInterval = null; }
+        if ( currentSep === 1 ) {
+          sepInterval = setInterval(render, 100);
         }
         render();
       }
@@ -440,6 +457,7 @@
     url += `&tl=${currentTlMode}`;
     url += `&intensity=${tlIntensity.value}&expanse=${tlExpanse.value}`;
     url += `&dim=${currentDim}`;
+    url += `&sep=${currentSep}`;
 
     setStatus('rendering...', 'loading');
     const t0 = performance.now();
@@ -464,6 +482,7 @@
 
   window.addEventListener('beforeunload', () => {
     if ( oscInterval ) { clearInterval(oscInterval); }
+    if ( sepInterval ) { clearInterval(sepInterval); }
   });
 </script>
 </body>
