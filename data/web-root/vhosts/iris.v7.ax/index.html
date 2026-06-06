@@ -202,6 +202,7 @@
   <button class="mode-btn" data-mode="oscilloscope">osc</button>
   <button class="mode-btn" data-mode="ledger">ledger</button>
   <button class="mode-btn" data-mode="temporal">time</button>
+  <button class="mode-btn" data-mode="boundary">boundary</button>
 
   <div class="param-row">
     <span class="param-label">dim</span>
@@ -218,6 +219,13 @@
     <span class="param-label">labels</span>
     <button class="mode-btn active" data-label-mode="linear">linear</button>
     <button class="mode-btn" data-label-mode="namespace63">namespace63</button>
+  </div>
+
+  <div class="param-row" id="boundary-controls" style="display:none">
+    <span class="param-label">threshold</span>
+    <input class="rings-input" id="boundary-threshold" type="range"
+           min="0.01" max="0.5" step="0.01" value="0.1" style="width:8rem">
+    <span class="param-label" id="boundary-threshold-val">0.10</span>
   </div>
 
   <div class="param-row" id="ledger-controls" style="display:none">
@@ -307,6 +315,9 @@
   const dimButtons   = document.querySelectorAll('.mode-btn[data-dim]');
   const tlIntensity  = document.getElementById('tl-intensity');
   const tlExpanse    = document.getElementById('tl-expanse');
+  const boundaryControls = document.getElementById('boundary-controls');
+  const boundaryThreshold = document.getElementById('boundary-threshold');
+  const boundaryThresholdVal = document.getElementById('boundary-threshold-val');
 
   function setStatus(msg, cls) {
     statusLine.textContent = msg;
@@ -326,6 +337,9 @@
     const ledgerControls = document.getElementById('ledger-controls');
     if (ledgerControls) {
       ledgerControls.style.display = mode === 'ledger' ? 'flex' : 'none';
+    }
+    if (boundaryControls) {
+      boundaryControls.style.display = mode === 'boundary' ? 'flex' : 'none';
     }
   }
 
@@ -382,6 +396,12 @@
   paramInput.addEventListener('keydown', e => { if (e.key === 'Enter') render(); });
   tlIntensity.addEventListener('change', render);
   tlExpanse.addEventListener('change', render);
+  if (boundaryThreshold) {
+    boundaryThreshold.addEventListener('input', () => {
+      boundaryThresholdVal.textContent = parseFloat(boundaryThreshold.value).toFixed(2);
+    });
+    boundaryThreshold.addEventListener('change', render);
+  }
 
   document.getElementById('add-vortex-btn').addEventListener('click', () => addRoute('vortex_spiral'));
   document.getElementById('add-arc-btn').addEventListener('click', () => addRoute('orbital_arc'));
@@ -459,6 +479,9 @@
     url += `&intensity=${tlIntensity.value}&expanse=${tlExpanse.value}`;
     url += `&dim=${currentDim}`;
     url += `&sep=${currentSep}`;
+    if (currentMode === 'boundary') {
+      url += `&threshold=${boundaryThreshold.value}`;
+    }
 
     setStatus('rendering...', 'loading');
     const t0 = performance.now();
