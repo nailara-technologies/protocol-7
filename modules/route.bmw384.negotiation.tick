@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = route.bmw384.negotiation.tick
+# descr = increment floors_used for all active negotiations each clock cycle
+
+my $negs = <bmw384.route.negotiations> // {};
+
+for my $key ( keys %$negs ) {
+    my $neg = $negs->{$key};
+    $neg->{'floors_used'} //= 0;
+    $neg->{'floors_used'}++;
+
+    my $budget = $neg->{'floor_budget'} // 10;
+    my $used   = $neg->{'floors_used'};
+
+    if ( $used >= $budget ) {
+        my $action = $neg->{'timeout_action'} // 'flash';
+        if ( $action eq 'reroute' ) {
+
+            # [ signal routing layer to find alternate ]
+        } elsif ( $action eq 'fail' ) {
+
+            # [ mark negotiation as failed ]
+        }
+
+        # [ flash behavior is visual only — handled by overlay renderer ]
+    }
+}
+
+0;
+
+#,,,,,,..,..,,,,,,.,.,,,.,.,,,.,,,..,,,..,,..,..,,...,..,,,,,,,..,.,.,,,.,,,,,
+#LY5MXG6KYYDMPNA3S3QDII2OLPWSQY6M5D3DY3WKTNT4WE43BA7XBPAUS4LT27QL3W7HP4VPGAWRG
+#\\\|DPH6VHZPKUXTXG4LQDY3DPH7THTTOJDMQFZYSHH22CB7Q63EM6I \ / AMOS7 \ YOURUM ::
+#\[7]C7JJW2KJQCCKXNF33EHKMFZCUITGI3RBPCEJ7GUXMHXU3LY44ACA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

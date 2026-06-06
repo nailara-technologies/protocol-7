@@ -167,6 +167,13 @@ if ( $mode ne 'oscilloscope' and <route.bmw384.cfg.show_separator_pulses> ) {
         if defined $sep_pulses and length $sep_pulses;
 }
 
+# [ add negotiation overlay ]
+if ( $mode ne 'oscilloscope' ) {
+    my $negotiation = <[route.bmw384.visual.negotiation-overlay]>;
+    $svg =~ s{</svg>}{$negotiation</svg>}
+        if defined $negotiation and length $negotiation;
+}
+
 # [ restore cfg state ]
 if ( defined $saved_mode ) {
     <route.bmw384.cfg.visual_mode> = $saved_mode;
@@ -268,8 +275,8 @@ $session->{'buffer'}->{'output'} .= $svg;
 
 return 2;
 
-#,,,,,,..,,,.,,.,,,.,,,.,,..,,.,,,,,,,,,,,,..,..,,...,...,,,,,,,,,,,,,..,,.,.,
-#QP6N74N3NGV724CMHNSXUY2V2MNQJFBBBMGY5JALP4C6BVYDINF5G2SWFW7SXJN2WPW3GNGVYL4QY
-#\\\|5ETULXIW44RWNTKUQQ6VF6B4EFWJNIZIUZOXNWVIRRZJEG6QQMH \ / AMOS7 \ YOURUM ::
-#\[7]SFBCFFAD4MVXR5LUPIV5NXGZ4Y4XFYOSGOXRERHATJPILXLOYCBI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,...,.,.,,..,...,,,,,..,,.,.,,,.,..,,...,...,..,,,,,,.,,,..,,.,.,
+#QJJR5RP76M7OCGTIRMJTLJ57LD4JD5OOT7VPDJT7H6YDGPJN2CUDTFGXTAPB77P6ABKTMAVAHRFAS
+#\\\|3RLJBWODIL6CDNUSKPI5JPL4SMDLM5JEJWK6AHX3XNS572TGZ5A \ / AMOS7 \ YOURUM ::
+#\[7]DUT2A6SCA4K5DZIMX7P3L2LVEZTTKXLAW3JKHH4VWQ2EGNEZYCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

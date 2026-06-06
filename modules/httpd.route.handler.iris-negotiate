@@ -1,0 +1,67 @@
+## [:< ##
+
+# name  = httpd.route.handler.iris-negotiate
+# descr = register or update a negotiation window for testing
+
+my $id = shift;
+
+my $session = $data{'session'}->{$id};
+
+my $body = $session->{'http'}->{'body'} // $session->{'buffer'}->{'input'}
+    // '';
+$session->{'http'}->{'body'}    = undef;
+$session->{'buffer'}->{'input'} = '';
+
+my $payload = eval { JSON::XS::decode_json($body) };
+if ( $@ or ref $payload ne 'HASH' ) {
+    my $rb = '{"error":"invalid json"}';
+    $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+        400,
+        {   'Content-Type'   => 'application/json',
+            'Content-Length' => length($rb),
+        }
+    );
+    $session->{'buffer'}->{'output'} .= $rb;
+    return 2;
+}
+
+my $session_id = $payload->{'session_id'} // 'test';
+my $hop        = int( $payload->{'hop'}    // 0 );
+my $arc        = int( $payload->{'arc'}    // 0 );
+my $budget     = int( $payload->{'budget'} // 10 );
+my $used       = int( $payload->{'used'}   // 0 );
+
+<bmw384.route.negotiations> //= {};
+
+my $key = "$session_id:$hop";
+<bmw384.route.negotiations>->{$key} = {
+    'arc'            => $arc,
+    'floor_budget'   => $budget,
+    'floors_used'    => $used,
+    'started_at'     => <[base.time]>->(3),
+    'timeout_action' => $payload->{'timeout_action'} // 'flash',
+};
+
+my $rb = <[httpd.json.encode]>->(
+    {   qw| key    | => $key,
+        qw| arc    | => $arc,
+        qw| budget | => $budget,
+        qw| used   | => $used,
+    }
+);
+
+$session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+    200,
+    {   'Content-Type'   => 'application/json',
+        'Content-Length' => length($rb),
+    }
+);
+$session->{'buffer'}->{'output'} .= $rb;
+
+return 2;
+
+#,,.,,...,...,,,.,...,.,.,,..,.,,,,,.,...,...,..,,...,...,,,.,,..,..,,.,,,..,,
+#2LNV77QAHNUARF56YH537LUJBL3PPY5PNBGXITRG4X5LLUN5GKUDR5CYPRJVSWLIH4TNRADS5JATK
+#\\\|UW6KJEY3NIMUP2ZBFCB4LLW7OL2FQMWIRJEPWR3OCBQATLXZI6T \ / AMOS7 \ YOURUM ::
+#\[7]IUS425VJKGHS2PLK4VOLYUTS2QQ755WA7ARTYP7DQSLSMJPY7CBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
