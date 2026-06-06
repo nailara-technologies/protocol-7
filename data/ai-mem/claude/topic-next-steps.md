@@ -26,17 +26,17 @@ metadata:
 - **nshell stray cursor**: `index.cmd.search/lookup/stats` added trailing `\n` to inline SIZE replies (commit DE5EAEA4); nshell output handler may be double-newlining — check `nshell.handler.strm_reply`
 - **STRM fix review needed**: `had_local_consumer` fix correct for local consumer; relay path unchanged; test needed on radio zenka and other STRM consumers
 
-## iris visualization queue (dispatch to kimi one by one)
+## iris visualization queue — COMPLETE ✓ (2026-06-06)
 
-- **iris alpha-density v2**: DONE ✓ (file removed, completed earlier session)
-- **iris ring ledger**: DONE ✓ (file removed, completed earlier session)
-- **iris route-commitment**: data/tasks/iris-route-commitment.md — future arcs bright/past dim ← NEXT
-- **iris dimension-rotator**: data/tasks/iris-dimension-rotator.md — H/V view toggle
-- **iris cascade-warning**: data/tasks/iris-cascade-warning.md — pre-flash amber warning
-- **iris separator-pulse**: data/tasks/iris-separator-pulse.md — routing infrastructure visible
-- **iris temporal**: data/tasks/iris-temporal-mode.md — radial=time, git blame as orbital map
-- **iris boundary**: data/tasks/iris-boundary-mode.md — stained glass event horizons
-- **iris negotiation-window**: data/tasks/iris-negotiation-window.md — floor budget urgency
+- **iris alpha-density v2**: DONE ✓
+- **iris ring ledger**: DONE ✓
+- **iris route-commitment**: DONE ✓
+- **iris dimension-rotator**: DONE ✓ (8e66b0044) — H/V floor-depth view
+- **iris cascade-warning**: DONE ✓ (497976067) — amber depletion overlay
+- **iris separator-pulse**: DONE ✓ (9c5b107d0) — sep toggle + 100ms refresh
+- **iris temporal**: DONE ✓ (2b8b6ea0c) — radial=time, hue by age
+- **iris boundary**: DONE ✓ (71cb6e025) — stained glass gap boundaries
+- **iris negotiation-window**: DONE ✓ (a6a62fb16) — floor budget urgency
 - **iris oscilloscope**: route-send SIZE relay to index — verify working after httpd+index+zulum restart
 
 ## pending tasks (from session 37 queue)
@@ -201,8 +201,8 @@ metadata:
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,,,,,,.,,.,,,.,,..,,.,,,.,.,,,,,.,,,,..,...,..,,...,...,.,,,,.,,...,...,,,.,
-#HHAKCSGPV2FDR4SUDPPE4RKLCGO5YQCRJ5I3TFEKT4PERAJVFXWAC5HB36SP75XN22HEWQRJJNYOC
-#\\\|MJRFYUY7Z3JD55YXXAHIJQML2HRGHGP5IURP7RPLCHAQG7M7PC5 \ / AMOS7 \ YOURUM ::
-#\[7]W7XFWCRFE3PSTHVEMCKWKLBF2Z2WKZRW3XBNNOFV3RALQUBOC2AQ 7  DATA SIGNATURE ::
+#,,.,,.,,,...,...,,,,,.,.,..,,,.,,.,,,,,.,.,,,..,,...,...,...,,,,,,..,...,,..,
+#2DEY2SF4GHI4GOHMIF3VBL7BI322T35ZKJ6KKWJO4DAJUO74RT22MM363EF6SG76PXJC6YLRJFUCM
+#\\\|JI7ZGVDYORRLL7TU6O6HIAMC6BYZOUHF26HFB3HJWIJFYLKBSDE \ / AMOS7 \ YOURUM ::
+#\[7]2YDDZB323XKCMN24XYWFYP3GJNPGLTKFVILTILNAP4CJHEV2DQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
