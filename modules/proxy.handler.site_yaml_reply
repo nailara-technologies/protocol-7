@@ -1,0 +1,154 @@
+## [:< ##
+
+# name  = proxy.handler.site_yaml_reply
+# descr = handle site-yaml extraction reply, render generic HTML or fall back
+
+my $reply = shift // {};
+
+my $params    = $reply->{'params'} // {};
+my $client_id = $params->{'client_id'};
+my $context   = $params->{'context'};
+
+my $client = $data{'proxy'}{'clients'}{$client_id};
+if ( not defined $client ) {
+    <[base.logs]>->( 2, 'proxy.site_yaml_reply: client %s gone', $client_id );
+    return;
+}
+
+my $data_ref = $reply->{'data'};
+my $mode     = $reply->{'mode'} // '';
+
+if ( $mode ne 'size' or not defined $data_ref or not length $data_ref ) {
+    ## extraction failed: fall back to passthrough ##
+    <[base.logs]>->(
+        2,
+        'proxy: site-yaml extraction failed for %s, falling back',
+        $context->{'request'}{'url'}
+    );
+    return <[proxy.template.passthrough]>->(
+        $client_id, $context, 'generic.proxy.passthrough'
+    );
+}
+
+## parse yaml result ##
+my $extracted = eval { YAML::XS::Load($data_ref) };
+if (   $@
+    or not defined $extracted
+    or ref $extracted ne 'HASH' ) {
+    <[base.logs]>->( 2, 'proxy: yaml parse failed: %s', $@ // 'unknown' );
+    return <[proxy.template.passthrough]>->(
+        $client_id, $context, 'generic.proxy.passthrough'
+    );
+}
+
+## render generic p7-style HTML ##
+my $title = $extracted->{'title'} // $context->{'request'}{'domain'}
+    // 'Untitled';
+my $author = $extracted->{'author'} // '';
+my $date   = $extracted->{'date'}   // '';
+my $body   = $extracted->{'body'}   // '';
+my $links  = $extracted->{'links'}  // [];
+my $images = $extracted->{'images'} // [];
+
+## escape HTML entities ##
+for my $s ( \$title, \$author, \$date ) {
+    $$s =~ s|&|&amp;|g;
+    $$s =~ s|<|&lt;|g;
+    $$s =~ s|>|&gt;|g;
+}
+
+my $meta_str = '';
+$meta_str .= "author: $author<br>\n" if length $author;
+$meta_str .= "date: $date<br>\n"     if length $date;
+
+my $links_html = '';
+if ( ref $links eq 'ARRAY' and @$links ) {
+    $links_html = "<h2>links</h2>\n<ul>\n";
+    for my $link (@$links) {
+        my $url  = $link->{'url'}  // '';
+        my $text = $link->{'text'} // $url;
+        for my $s ( \$url, \$text ) {
+            $$s =~ s|&|&amp;|g;
+            $$s =~ s|<|&lt;|g;
+            $$s =~ s|>|&gt;|g;
+        }
+        $links_html .= qq|  <li><a href="$url">$text</a></li>\n|;
+    }
+    $links_html .= "</ul>\n";
+}
+
+my $images_html = '';
+if ( ref $images eq 'ARRAY' and @$images ) {
+    $images_html = "<h2>images</h2>\n";
+    for my $img (@$images) {
+        my $src
+            = ref $img eq 'HASH'
+            ? ( $img->{'url'} // $img->{'src'} // '' )
+            : $img;
+        next unless length $src;
+        $src =~ s|&|&amp;|g;
+        $src =~ s|<|&lt;|g;
+        $src =~ s|>|&gt;|g;
+        my $alt = ref $img eq 'HASH' ? ( $img->{'alt'} // '' ) : '';
+        $alt =~ s|&|&amp;|g;
+        $alt =~ s|<|&lt;|g;
+        $alt =~ s|>|&gt;|g;
+        $images_html .= qq|<img src="$src" alt="$alt"><br>\n|;
+    }
+}
+
+## simple paragraph wrapping for body text ##
+$body =~ s|&|&amp;|g;
+$body =~ s|<|&lt;|g;
+$body =~ s|>|&gt;|g;
+$body =~ s|\n\n|</p>\n\n<p>|g;
+$body = "<p>$body</p>" if length $body and $body !~ m|^<|;
+
+my $html = <<"HTML";
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>$title</title>
+<style>
+body{background:#000013;color:#c0c0c0;font-family:monospace;max-width:80ch;margin:2em auto;padding:1em;line-height:1.6}
+h1{color:#fff;border-bottom:1px solid #333366;padding-bottom:.3em}
+h2{color:#9999cc;font-size:1.1em;margin-top:1.5em}
+a{color:#6699ff}
+img{max-width:100%;border:1px solid #333366;margin:.5em 0}
+.meta{color:#666699;font-size:.9em;margin-bottom:1em}
+.content{margin-top:1em}
+ul{list-style-type:square;padding-left:1.5em}
+li{margin:.3em 0}
+</style>
+</head>
+<body>
+<h1>$title</h1>
+<div class="meta">$meta_str</div>
+<div class="content">$body</div>
+$images_html
+$links_html
+</body>
+</html>
+HTML
+
+## send response ##
+my $response
+    = "HTTP/1.1 200 OK\r\n"
+    . "Content-Type: text/html; charset=utf-8\r\n"
+    . 'Content-Length: '
+    . length($html) . "\r\n"
+    . "Connection: close\r\n\r\n"
+    . $html;
+
+<[base.s_write]>->( $client->{'sock'}, \$response );
+
+<[proxy.client.close]>->($client_id);
+
+return;
+
+#,,,,,,,,,,,,,..,,,,.,,,.,,.,,,,,,,..,,.,,...,..,,...,...,.,.,.,,,,..,..,,,..,
+#CRYFDP47Y5XJR2BAWRTWARLJULKF4EWK7PWCJ577A2NOTQQVZJKAD53XKUSI4KPVCZTC3IPTET6XS
+#\\\|N5Y5VW4M2NW3GTUV4YBG7OMUQSVDLWWQAXO5LEVLTYSRFOSZ4LA \ / AMOS7 \ YOURUM ::
+#\[7]34PWXOXRQSU66I5O6YZPQOMZ5VTACZMC2IWBMMFPXTHOCMPPOSAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = proxy.template.passthrough.connect
+# descr = handle CONNECT method tunnel
+
+my $client_id = shift;
+my $context   = shift;
+
+my $client = $data{'proxy'}{'clients'}{$client_id};
+return if not defined $client;
+
+my $url = $context->{'request'}{'url'};    ## host:port ##
+my ( $host, $port ) = split /:/, $url, 2;
+$port //= 443;
+
+## connect to target ##
+my $target_sock = IO::Socket::IP->new(
+    PeerHost => $host,
+    PeerPort => $port,
+    Type     => SOCK_STREAM(),
+    Timeout  => 7,
+);
+
+if ( not $target_sock ) {
+    <[proxy.client.send_error]>->(
+        $client_id, 502, "Cannot connect to $host:$port"
+    );
+    return;
+}
+
+$target_sock->blocking(0);
+
+## send 200 to client ##
+my $established = "HTTP/1.1 200 Connection Established\r\n\r\n";
+my $w           = <[base.s_write]>->( $client->{'sock'}, \$established );
+if ( $w < 0 ) {
+    $target_sock->close;
+    <[proxy.client.close]>->($client_id);
+    return;
+}
+
+## store target socket ##
+$client->{'target_sock'} = $target_sock;
+$client->{'state'}       = 'tunneling';
+
+## register relay watchers ##
+<[event.add_io]>->(
+    {   fd      => $client->{'sock'},
+        poll    => 'r',
+        handler => 'proxy.handler.tunnel_client_to_target',
+        data    => $client_id,
+    }
+);
+
+<[event.add_io]>->(
+    {   fd      => $target_sock,
+        poll    => 'r',
+        handler => 'proxy.handler.tunnel_target_to_client',
+        data    => $client_id,
+    }
+);
+
+return;
+
+#,,..,,,.,.,.,,.,,...,..,,,,.,.,.,.,,,,.,,.,.,..,,...,...,,.,,.,,,,,,,,.,,..,,
+#34ERMGLBJVMP6BGAX2A225LU5AJE2OZ65FJG7X5F2RLNR6ZLFUSSTTXFTKJDL2DO4EBIOUQ67WLMA
+#\\\|6CJOZQ7S76JWM2XCUQVYO5CV4TOZIFPTHSAIPA6GHGYRGO4Q6VE \ / AMOS7 \ YOURUM ::
+#\[7]7N7UETC7NSSD6ZDELMMIUSSHSE45SHNYM35S6KI75ILYJ4QV5OCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

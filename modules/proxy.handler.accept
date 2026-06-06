@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = proxy.handler.accept
+# descr = accept new proxy connection, register read handler
+
+my $listen_sock = shift->w->data // $proxy . listen_sock;
+
+my $client_sock = $listen_sock->accept;
+return if not $client_sock;
+
+$client_sock->blocking(0);
+
+my $client_id
+    = <[base.gen_id]>->( $data{'proxy'}{'clients'}, 99999, '0123456789', 0 );
+
+my $client_addr = $client_sock->peerhost // 'unknown';
+my $client_port = $client_sock->peerport // 0;
+
+$data{'proxy'}{'clients'}{$client_id} = {
+    sock        => $client_sock,
+    buffer      => '',
+    request     => undef,
+    context     => undef,
+    state       => 'reading',
+    client_addr => $client_addr,
+    client_port => $client_port,
+};
+
+<[event.add_io]>->(
+    {   fd      => $client_sock,
+        poll    => 'r',
+        handler => 'proxy.handler.connection',
+        data    => $client_id,
+    }
+);
+
+<[base.logs]>->(
+    2, 'proxy accept from %s:%d [%s]',
+    $client_addr, $client_port, $client_id
+);
+
+return;
+
+#,,,,,.,,,,..,,.,,,,,,,,,,.,,,.,,,..,,,,,,.,,,..,,...,...,..,,,.,,,..,.,,,,,.,
+#IKYKRCW25F2GSFIECKXW6JUO5RY4RC4JU4CN57DVKIAOD64SMW6UNDMYB7A2QBZL3DPIQFF644I5S
+#\\\|DGUA2JYJQD2CRYRXEBJA4G7WYWFLYLITBJDNTE7ERJS5ZTQNO3F \ / AMOS7 \ YOURUM ::
+#\[7]N6DXNHVSA5IQTHFCOVT6XO5GY5KTCEAVLOCH6QHCBSOVNLRGNACA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

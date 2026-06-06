@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = proxy.selector.load
+# descr = load + merge global and domain selector rules from yaml config
+
+my $config_path = <proxy.cfg.selector_config> // join( '/',
+    <system.root_path>, 'data/yaml/web-proxy/template-selector.yaml' );
+
+my $yaml_str = <[file.slurp]>->($config_path)->$* // '';
+my $config   = eval { YAML::XS::Load($yaml_str) } // {};
+
+$data{'proxy'}{'selector'}{'rules'}    = [];
+$data{'proxy'}{'selector'}{'fallback'} = 'generic.proxy';
+
+if ( ref $config eq 'HASH' ) {
+    if ( exists $config->{'rules'} and ref $config->{'rules'} eq 'ARRAY' ) {
+        push $data{'proxy'}{'selector'}{'rules'}->@*, $config->{'rules'}->@*;
+    }
+    $data{'proxy'}{'selector'}{'fallback'} = $config->{'fallback'}
+        if exists $config->{'fallback'};
+}
+
+## load domain-specific rules ##
+my $domains_dir
+    = join( '/', <system.root_path>, 'data/yaml/web-proxy/domains' );
+if ( -d $domains_dir and opendir my $dh, $domains_dir ) {
+    while ( my $fn = readdir $dh ) {
+        next unless $fn =~ m{^(.+)\.yaml$};
+        my $domain        = $1;
+        my $domain_path   = "$domains_dir/$fn";
+        my $domain_yaml   = <[file.slurp]>->($domain_path)->$*    // '';
+        my $domain_config = eval { YAML::XS::Load($domain_yaml) } // {};
+        if ( ref $domain_config eq 'HASH'
+            and exists $domain_config->{'rules'} ) {
+            my $drules = $domain_config->{'rules'};
+            if ( ref $drules eq 'ARRAY' ) {
+                for my $rule (@$drules) {
+                    $rule->{'_domain'} = $domain;
+                }
+                push $data{'proxy'}{'selector'}{'rules'}->@*, @$drules;
+            }
+        }
+    }
+    closedir $dh;
+}
+
+<[base.logs]>->(
+    1,
+    'proxy.selector.load: %d rules loaded [fallback=%s]',
+    scalar( $data{'proxy'}{'selector'}{'rules'}->@* ),
+    $data{'proxy'}{'selector'}{'fallback'}
+);
+
+return;
+
+#,,.,,..,,,.,,...,,,,,...,.,.,.,,,.,.,..,,,..,..,,...,...,.,,,.,.,,.,,.,.,,,.,
+#XSTK7DRE4J5OYFTNZJL2HPSWA5JWOKB4KCBSDYOPWHGZE7XBG247P574VXHVVLFATJVXHQVRCHVDU
+#\\\|XJAZ4KH34DIZMQTL4ZCB52627QHJ2VFM53IEOJ7ZQBUXQREPWY2 \ / AMOS7 \ YOURUM ::
+#\[7]R6LL5RGUIZI7PFHJWCIN232I67AOYH5LHJOCUEP4DUS3QXWSF4DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

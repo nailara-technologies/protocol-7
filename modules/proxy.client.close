@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = proxy.client.close
+# descr = close proxy client connection and clean up state
+
+my $client_id = shift;
+
+my $client = delete $data{'proxy'}{'clients'}{$client_id};
+return if not defined $client;
+
+## close target socket if tunneling ##
+if ( defined $client->{'target_sock'} ) {
+    $client->{'target_sock'}->close;
+}
+
+## close outbound socket if present ##
+if (    defined $client->{'outbound'}
+    and defined $client->{'outbound'}{'sock'} ) {
+    $client->{'outbound'}{'sock'}->close;
+}
+
+## close client socket ##
+if ( defined $client->{'sock'} ) {
+    $client->{'sock'}->close;
+}
+
+<[base.logs]>->( 3, 'proxy client %s closed', $client_id );
+
+return;
+
+#,,,,,.,,,,.,,,..,...,,.,,,,,,,..,,.,,.,,,...,..,,...,...,..,,..,,,..,..,,,..,
+#DHEL5SFSC55OCSHPQQHAKE5QWFB2SMMEQE5WC72TMVQB54TBJEGFHDRENUXNSAT2UHK42IA3Y7BUW
+#\\\|45ZKFXMVJFQ6KLWI2BS7R56K56XMNQKBUCXF6HQU3BCVXRVAJ5M \ / AMOS7 \ YOURUM ::
+#\[7]E6KEPGRRS5MW7XJMI3JNVZS3CC3ROQNAXQOZUHODC7YTSOJHFGBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
