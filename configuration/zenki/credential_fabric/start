@@ -1,0 +1,40 @@
+.:[ credential_fabric — credential fabric zenka (tiered storage, zenka ownership) ]:.
+
+[load_config_file:'shared-params']
+
+buffer.session.log_cmd  = p7-log.append
+buffer.session.max_size = 795648
+
+system.verbosity.zenka_buffer = 1
+
+access.cmd.usr.cube = heart subname name commands reload verify-instance \
+                      list src-age src-ver show-buffer buffer-erase \
+                      buffer-erase-level \
+                      credential_fabric.register \
+                      credential_fabric.resolve \
+                      credential_fabric.subscribe_rotation \
+                      credential_fabric.rotate \
+                      credential_fabric.request-authorization \
+                      dump set get del exec-sub eval-code
+
+credential_fabric.cfg.store_dir     = var/credential_fabric/
+credential_fabric.cfg.registry_file = var/credential_fabric/registry.yaml
+credential_fabric.cfg.audit_log     = var/credential_fabric/audit.log
+
+modules.load = auth net protocol io.unix credential_fabric credential proxy devmod
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,..,,,,,,,,,,,.,,,.,...,..,,,..,.,,,,,.,,..,..,,...,...,,.,,,,,,.,.,,..,.,,,
+#HRIAI7WA3C3XEMJBRNEB2CKNTIH4KGOSROZRXEORRJCG6ZZBQJKURZHUGZ26EUXKETTT2IPQZNLLK
+#\\\|HFGMPWP5WMP74RH2QMY4PVOU5NDE7NVQKRV5SJCODOYFHSJNA7R \ / AMOS7 \ YOURUM ::
+#\[7]AUXHCVN2JYTQ6ZGNA2E4LBDYGDIG3XSJQOALKZ7LKELAMPRLOMAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

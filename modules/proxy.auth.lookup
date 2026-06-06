@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = proxy.auth.lookup
+# descr = proxy auth lookup stub replaced by credential fabric.
+#         extracts domain from request context and attempts credential resolution.
+#         args: $context_hash
+#         returns: { has_session => bool, slots => {} } or undef
+
+my $context = shift;
+
+return undef if ref $context ne qw| HASH |;
+
+my $domain = $context->{'request'}{'domain'} // '';
+return { 'has_session' => FALSE, 'slots' => {} } unless length $domain;
+
+## try session slot for this domain ##
+my $slot = 'session.' . $domain;
+
+my $result = <[credential_fabric.resolve]>->(
+    {   'slot'    => $slot,
+        'context' => $context,
+    }
+);
+
+if (    defined $result
+    and ref $result eq qw| HASH |
+    and $result->{'mode'} eq qw| true | ) {
+    return {
+        'has_session' => TRUE,
+        'slots'       => { $slot => $result },
+    };
+}
+
+## no session found ##
+return { 'has_session' => FALSE, 'slots' => {} };
+
+#,,..,..,,,.,,,,,,...,,..,.,.,.,.,,,,,,.,,.,.,..,,...,...,,.,,,,,,,,.,,,.,,,,,
+#WR4CMVWEPN4QMSGTB66PIM7IWRHU4UFX6UYQJX6VB6EXRKXEBSENKGJCGIHX36A26MAXEMH5TTWVS
+#\\\|WAWWF6KMDOWND57MXLWKK2KHKNP6WYJDR7BKJASLPUQF5XDZC3E \ / AMOS7 \ YOURUM ::
+#\[7]M6WFGCXYWVGECBRKZPPHK2GSGVCWYDAFMXOH2YKAFLG6GBZMGUBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
