@@ -1,0 +1,95 @@
+## [:< ##
+
+# name  = transport.profile.match
+# descr = match request context to transport profile name
+# args  = $context_hash
+
+my $ctx = shift // return qw| default |;
+
+my $dest = $ctx->{'session'}{'destination'} // $ctx->{'request'}{'domain'}
+    // '';
+my $tags = $ctx->{'transport'}{'tags'} // [];
+
+my $profile_dir = <transport.cfg.profile_dir>
+    // 'data/yaml/transport/profiles';
+
+## helper: scan profile files ##
+my @profile_files;
+if ( opendir my $dh, $profile_dir ) {
+    @profile_files = grep {/\.yaml\z/} readdir $dh;
+    closedir $dh;
+}
+
+## 1. explicit destination match ##
+if ( length $dest ) {
+    my $exact = $dest;
+    $exact =~ s|\.host\z||;
+
+    ## check by file name first ##
+    for my $file (@profile_files) {
+        my $pname = $file;
+        $pname =~ s|\.yaml\z||;
+        return $pname if $pname eq $exact;
+    }
+
+    ## then check context.destination inside each profile ##
+    for my $file (@profile_files) {
+        my $pname = $file;
+        $pname =~ s|\.yaml\z||;
+        next if $pname eq qw| default |;
+
+        my $prof = <[transport.profile.load]>->($pname);
+        next unless defined $prof;
+
+        my $pdest = $prof->{'context'}{'destination'} // '';
+        return $pname if length $pdest and $pdest eq $dest;
+    }
+}
+
+## 2. tag match ##
+if ( ref $tags eq qw| ARRAY | and @$tags ) {
+    for my $file (@profile_files) {
+        my $pname = $file;
+        $pname =~ s|\.yaml\z||;
+        next if $pname eq qw| default |;
+
+        my $prof = <[transport.profile.load]>->($pname);
+        next unless defined $prof;
+
+        my $ptags = $prof->{'context'}{'tags'} // [];
+        next unless ref $ptags eq qw| ARRAY |;
+
+        my %ptag_map = map { $ARG => 1 } @$ptags;
+        for my $tag (@$tags) {
+            return $pname if exists $ptag_map{$tag};
+        }
+    }
+}
+
+## 3. subnet/domain pattern match ##
+if ( length $dest ) {
+    for my $file (@profile_files) {
+        my $pname = $file;
+        $pname =~ s|\.yaml\z||;
+        next if $pname eq qw| default |;
+
+        my $prof = <[transport.profile.load]>->($pname);
+        next unless defined $prof;
+
+        my $patterns = $prof->{'context'}{'patterns'} // [];
+        next unless ref $patterns eq qw| ARRAY |;
+
+        for my $pat (@$patterns) {
+            return $pname if $dest =~ m|$pat|;
+        }
+    }
+}
+
+## 4. default profile ##
+return qw| default |;
+
+#,,,.,,,.,...,,,,,,,.,..,,,,.,,,,,..,,.,,,,,.,..,,...,...,.,.,..,,.,.,,,,,...,
+#2VL4BQZS3UCNEMKRIJL2WVZVJIRUZ2KDA4BU6HB5KXZMX5ELKTIUU55THZOJMENAMKOZSRAKQZ5X4
+#\\\|UGD3SO3OT7RSGMHH5WDUOE4OPOVGHZXG7NVRCTPJRMA4ANV3DUL \ / AMOS7 \ YOURUM ::
+#\[7]GHLRKASNHLKDOTIQMBYWGIZZY7YQ2PXBRAOC33Y4LXZ6UOVP7WBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
