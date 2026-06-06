@@ -1,0 +1,23 @@
+rules:
+  - regex:    "\\.(pdf|PDF)$"
+    on_path:  true
+    template: document.proxy
+
+  - regex:    "\\.(jpg|jpeg|png|gif|webp|svg)$"
+    on_path:  true
+    template: image.passthrough
+
+  - regex:    "\\.(js|css|woff2?)$"
+    on_path:  true
+    template: asset.passthrough
+
+  - static:   { "request.method": CONNECT }
+    template: tunnel.passthrough
+
+fallback:   generic.proxy
+
+#,,.,,,,,,,.,,,.,,.,.,.,,,,.,,..,,.,.,...,.,,,..,,...,..,,,..,,,,,.,.,...,.,.,
+#TZBDTLI5I362KMRTWUGORNSSQBH57HA27MBTYB3DQISYNN5M222GREXBBHYQKX6B722J5DYEX4KS2
+#\\\|WBL52XL53I4C5O4GGHV6YQ6J5KU3VU6XTGP6RSO3RMRMG6Z6FWW \ / AMOS7 \ YOURUM ::
+#\[7]A5RNLQYI63OTD3YVSA2Y5WZVNUJ2XPFYYM3XKBKU7PPRI56KIOBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

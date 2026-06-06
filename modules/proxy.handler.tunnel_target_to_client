@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = proxy.handler.tunnel_target_to_client
+# descr = relay data from tunnel target to proxy client
+
+my $client_id = shift->w->data;
+my $client    = $data{'proxy'}{'clients'}{$client_id};
+return if not defined $client;
+
+my $chunk = '';
+my $bytes = <[base.s_read]>->( $client->{'target_sock'}, \$chunk, 65536 );
+
+if ( ( $bytes // -1 ) <= 0 ) {
+    <[proxy.client.close]>->($client_id);
+    return;
+}
+
+my $written = <[base.s_write]>->( $client->{'sock'}, \$chunk );
+if ( $written < 0 ) {
+    <[proxy.client.close]>->($client_id);
+}
+
+return;
+
+#,,,,,..,,,,.,,,.,.,.,.,.,,,.,,..,.,.,..,,,,,,..,,...,...,.,,,..,,,,.,,,.,,.,,
+#GDFOXW2M5ZO2PLYXNPEWQNLNEXV6SWBJEFJ5FOIDQKCL4YLVFWSIFIGLLHG7VECHCBDXMVWL3H3XU
+#\\\|45WXMSH3P5MIKOPDNGHYI2LEKP2L2A3FNNWQOWYYL4GA3WXC554 \ / AMOS7 \ YOURUM ::
+#\[7]Y3F2TTPVN4LTIENV4YFQ52YVEXGA7X2NHOZ2RANIBROVK7JOIKCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

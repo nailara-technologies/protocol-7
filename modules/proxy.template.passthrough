@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = proxy.template.passthrough
+# descr = forward request unchanged and return response unchanged
+
+my $client_id = shift;
+my $context   = shift;
+my $template  = shift;
+
+my $client = $data{'proxy'}{'clients'}{$client_id};
+return if not defined $client;
+
+my $method = $context->{'request'}{'method'};
+my $url    = $context->{'request'}{'url'};
+
+if ( $method eq 'CONNECT' ) {
+    return <[proxy.template.passthrough.connect]>->( $client_id, $context );
+}
+
+## HTTP/HTTPS passthrough via clients.http(s).request ##
+my $is_https = ( $url =~ m{^https://} );
+my $request_module
+    = $is_https ? 'clients.https.request' : 'clients.http.request';
+
+my $request_params = {
+    method  => $method,
+    url     => $url,
+    headers => $context->{'request'}{'headers'},
+    timeout => 30,
+    on_done => 'proxy.handler.passthrough_reply',
+    params  => {
+        client_id => $client_id,
+        context   => $context,
+    },
+};
+
+$client->{'outbound'} = <$request_module>->($request_params);
+
+if ( not defined $client->{'outbound'} ) {
+    <[proxy.client.send_error]>->( $client_id, 502, 'Bad Gateway' );
+}
+
+return;
+
+#,,.,,...,,.,,,.,,,.,,,,.,,.,,..,,...,,,,,,,,,..,,...,...,,..,.,,,.,.,..,,,..,
+#2BSL4BDNXRMW5HYYDNBMBBIDDL26PVMQJFAI3UT7B73XJH4FPY4L5ET5RPY5ZVJ357I273JPRKFJA
+#\\\|3BR32R5G4EYKH4SQRIZ6AT2OVFMKNBQRWI4TVKUU5HOTMHRBVXY \ / AMOS7 \ YOURUM ::
+#\[7]ORNZCBMRI7KORDHFCPPGCQ7NYM2P7PKQMYJ5AZOX4PXQJFILTODY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

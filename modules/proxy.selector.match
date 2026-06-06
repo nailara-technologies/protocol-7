@@ -1,0 +1,90 @@
+## [:< ##
+
+# name  = proxy.selector.match
+# descr = walk rules in priority order, return matched template name
+
+my $context = shift // {};
+
+my $rules    = $data{'proxy'}{'selector'}{'rules'}    // [];
+my $fallback = $data{'proxy'}{'selector'}{'fallback'} // 'generic.proxy';
+
+## helper to traverse dotted context keys ##
+my $get_ctx_value = sub {
+    my ( $ctx, $key ) = @_;
+    my @parts = split /\./, $key;
+    my $val   = $ctx;
+    for my $part (@parts) {
+        return undef if not defined $val or ref $val ne 'HASH';
+        $val = $val->{$part};
+    }
+    return $val;
+};
+
+for my $rule (@$rules) {
+    ## skip domain-tagged rules that don't match current domain ##
+    if ( exists $rule->{'_domain'} ) {
+        my $req_domain = $context->{'request'}{'domain'} // '';
+        next if lc($req_domain) ne lc( $rule->{'_domain'} );
+    }
+
+    ## static assertions ##
+    if ( exists $rule->{'static'} ) {
+        my $static = $rule->{'static'};
+        next if ref $static ne 'HASH';
+        my $matched = 1;
+        for my $key ( keys %$static ) {
+            my $value = $get_ctx_value->( $context, $key );
+            if ( not defined $value or "$value" ne $static->{$key} ) {
+                $matched = 0;
+                last;
+            }
+        }
+        return $rule->{'template'} if $matched;
+    }
+
+    ## regex assertions ##
+    if ( exists $rule->{'regex'} ) {
+        my $pattern = $rule->{'regex'};
+        my $target;
+        if ( $rule->{'on_path'} ) {
+            $target = $context->{'request'}{'path'} // '';
+        } elsif ( $rule->{'on_domain'} ) {
+            $target = $context->{'request'}{'domain'} // '';
+        } elsif ( $rule->{'on_url'} ) {
+            $target = $context->{'request'}{'url'} // '';
+        } elsif ( $rule->{'on_mime'} ) {
+            $target = $context->{'request'}{'mime_type'} // '';
+        } else {
+            $target = $context->{'request'}{'url'} // '';
+        }
+        if (    defined $target
+            and length $target
+            and eval { $target =~ m{$pattern} } ) {
+            return $rule->{'template'};
+        }
+    }
+
+    ## code_ref assertions ##
+    if ( exists $rule->{'code_ref'} ) {
+        my $code_str = $rule->{'code_ref'};
+        my $sub      = eval $code_str;
+        if ( not $@ and ref $sub eq 'CODE' and $sub->($context) ) {
+            return $rule->{'template'};
+        }
+    }
+
+    ## zenka assertions (stub integration point) ##
+    if ( exists $rule->{'zenka'} ) {
+        my $result = <[proxy.selector.zenka_assert]>->( $rule, $context )
+            if exists $code{'proxy.selector.zenka_assert'};
+        return $rule->{'template'} if $result;
+    }
+}
+
+return $fallback;
+
+#,,,,,,..,,,.,,.,,,,,,...,.,.,.,,,,,.,.,,,,..,..,,...,...,..,,,,,,,,,,,..,,.,,
+#CDQKDRHM3NFHTVMXEH62SW5DC25JMT5DETL5E4KPYT6E5MA7GUSKMDJLHTLCQHE5EHP6SBRWUP5W2
+#\\\|4XPIOXSXOBDDYDQPDK57IZP5BLKBJNMBHORNNKHVTBQZJQ24XG7 \ / AMOS7 \ YOURUM ::
+#\[7]KF4PSUGH4C24Q5NBCNDPQ5NGMD5BME2ETVZLDOWR7YZ4TGWOJUDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -57,6 +57,7 @@ return [ qw[
         ssl.list_ssl
         space.search
         radio.ripper
+        proxy.listen
         power.cmd.on
         note.history
         mpv.cmd.zoom
@@ -244,6 +245,8 @@ return [ qw[
         radio.post_init
         radio.init_code
         radio.cmd.start
+        proxy.log.visit
+        proxy.init_code
         power.init_code
         plugin.auth.pwd
         pager.source.9p
@@ -642,6 +645,7 @@ return [ qw[
         space.route.decode
         smtpd.cmd.get-mail
         site-yaml.http.get
+        proxy.client.close
         power.cmd.show_all
         plan-9.client.walk
         plan-9.client.stat
@@ -833,6 +837,7 @@ return [ qw[
         reasoning.tree.node
         radio.gap_fill.tick
         radio.filter.jingle
+        proxy.selector.load
         power-x11.init_code
         plugin.auth.twofish
         plnx.cmd.get_ticker
@@ -1009,6 +1014,8 @@ return [ qw[
         radio.gap_fill.start
         radio.cmd.stream-log
         radio.cmd.jingle-log
+        proxy.selector.match
+        proxy.handler.accept
         power.host_reachable
         power.cmd.set_states
         power.cmd.get_states
@@ -1228,6 +1235,7 @@ return [ qw[
         reasoning.tree.render
         reasoning.tree.lookup
         reasoning.tree.insert
+        proxy.handler.request
         power-x11.open_window
         plugin.web.space.grid
         plugin.web.jobs.stats
@@ -1458,6 +1466,8 @@ return [ qw[
         reenc-msg.cmd.finished
         reasoning.tree.narrate
         proxy.transport.select
+        proxy.template.resolve
+        proxy.template.generic
         power.add_status_timer
         plugin.web.space.state
         plugin.web.space.index
@@ -1685,6 +1695,7 @@ return [ qw[
         reasoning.branch.status
         reasoning.branch.inject
         radio.handler.reconnect
+        proxy.client.send_error
         protocol.sftp.init_code
         power.cmd.remove_device
         plugin.storage.checksum
@@ -1905,6 +1916,7 @@ return [ qw[
         route.bmw384.index.stats
         reasoning.tree.summarize
         reasoning.branch.resolve
+        proxy.handler.connection
         protocol.https.init_code
         power.cmd.get_device_ids
         power-x11.cmd.set_states
@@ -2331,6 +2343,7 @@ return [ qw[
         session.console.setup-keys
         session.console.check-deps
         radio.handler.stream-chunk
+        proxy.template.passthrough
         protocol.sftp.read_ssh_env
         power-x11.handler.show_all
         plugin.web.space.init_code
@@ -2551,6 +2564,7 @@ return [ qw[
         route.bmw384.cmd.find-route
         reasoning.threshold.crossed
         reasoning.branch.checkpoint
+        proxy.selector.zenka_assert
         plugin.web.space.index.scan
         plugin.web.space.index.load
         plugin.web.jobs.store.prune
@@ -2943,6 +2957,7 @@ return [ qw[
         route.bmw384.ledger.decrement
         route.bmw384.cmd.visual-wheel
         reasoning.branch.spawn_rescue
+        proxy.handler.site_yaml_reply
         protocol.protocol-7.init_code
         protocol-7-menu.position.save
         protocol-7-menu.position.load
@@ -3324,6 +3339,7 @@ return [ qw[
         route.bmw384.route.hamming-dist
         route.bmw384.ledger.warning_map
         route.bmw384.index.query-radius
+        proxy.handler.passthrough_reply
         protocol-7-menu.cmd.menu-update
         plugin.web.space.grid.init_code
         plugin.web.auth.destroy_session
@@ -3716,6 +3732,7 @@ return [ qw[
         route.bmw384.index.query-neighbors
         route.bmw384.cmd.verify-coordinate
         radio.audio.handler.player_offline
+        proxy.template.passthrough.connect
         protocol.sftp.server.start-process
         protocol.sftp.callback.kill_server
         protocol.amos-chksum.ext-cmd.reset
@@ -4007,6 +4024,8 @@ return [ qw[
         tile-groups.handler.stack_order_reply
         session.parent.check_and_resolve_deps
         reasoning.branch.internal.check_stuck
+        proxy.handler.tunnel_target_to_client
+        proxy.handler.tunnel_client_to_target
         protocol.sftp.handler.write_to_server
         protocol.protocol-7.message-templates
         protocol.protocol-7.link-upgrade.init
@@ -4400,8 +4419,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,.,,,...,,,.,.,.,..,,,.,,...,,..,,..,,,,,.,.,...,...,..,,.,.,.,.,..,,.,,,
-#G2JUF5O5XJJR5R33TKLU4TJB4NK3N5CSSYBXJKVRO2R647QPR2Q3IGBFEX3FLLRH3NBY76OBQWYZI
-#\\\|6HUYBK5YLI7LENTVPRHEJHUEYZRLJSOP5YHHNAUFROKMYEOJQGV \ / AMOS7 \ YOURUM ::
-#\[7]VTQSZWX5WZS6MDHLMJLW7ZCNBGZIBQPF3CUMPLMSO3KBQQBLT4AI 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,.,.,..,,.,,,..,,,..,...,,..,..,,.,.,...,...,..,,...,,.,,,,.,,..,
+#SZF5QAX63F6AW6AUFECIHOUHI7TGEBKG6Y7YJVHFEOWSK4UYV5HYSCQTQVV4UCEKALXJ2VEU4MBPO
+#\\\|L2733PZ64OMSLCN7QI4RE4YTMLNKMBXMQIS4RX2DATCIOENGQYV \ / AMOS7 \ YOURUM ::
+#\[7]AP6YZC7JJ7SKYP54DPVYLNSXKVQOIHA5WAPJ5OLUSROLLXSYB4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

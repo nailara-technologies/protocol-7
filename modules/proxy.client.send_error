@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = proxy.client.send_error
+# descr = send HTTP error response to proxy client and close
+
+my $client_id = shift;
+my $code      = shift // 500;
+my $reason    = shift // '';
+
+my $client = $data{'proxy'}{'clients'}{$client_id};
+return if not defined $client;
+
+my $status_text = <protocol.http.status_codes>->{$code}
+    // 'Internal Server Error';
+
+my $html = "<html><body><h1>$code $status_text</h1>";
+$html .= "<p>" . ( $reason // '' ) . "</p>" if length $reason;
+$html .= "</body></html>";
+
+my $response = "HTTP/1.1 $code $status_text\r\n";
+$response .= "Content-Type: text/html; charset=utf-8\r\n";
+$response .= 'Content-Length: ' . length($html) . "\r\n";
+$response .= "Connection: close\r\n\r\n$html";
+
+<[base.s_write]>->( $client->{'sock'}, \$response );
+
+<[proxy.client.close]>->($client_id);
+
+return;
+
+#,,..,.,.,..,,..,,..,,,,,,,..,,,,,,,,,,,.,,.,,..,,...,...,...,,.,,,..,,,,,..,,
+#EU7233E6QSJTD4BNB6OZBLDUCVYPE6K3QECIZRNNA3XKDBA77FFRM5DCOW6MBS7ADI7HVKGL27UAS
+#\\\|TNC6VGZIYK353E4ASRSIFTCIDF6BICW4BCTGXEEC6JMW6QNJRJZ \ / AMOS7 \ YOURUM ::
+#\[7]34I5ND5APBXQE2HNKSNTIRPRZLBGIEMIG55T4XAURWCL3TXBPSBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

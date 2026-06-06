@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = proxy.template.resolve
+# descr = dispatch to site-yaml or passthrough, assemble typed result
+
+my $client_id = shift;
+my $context   = shift;
+my $template  = shift;
+
+my $client = $data{'proxy'}{'clients'}{$client_id};
+return if not defined $client;
+
+if ( $template =~ m{\.(passthrough)$} ) {
+    return
+        <[proxy.template.passthrough]>->( $client_id, $context, $template );
+} elsif ( $template eq 'generic.proxy' or $template =~ m{\.(proxy)$} ) {
+    ## generic.proxy or any *.proxy template → generic renderer ##
+    return <[proxy.template.generic]>->( $client_id, $context );
+} else {
+    ## unknown template: fall back to generic.proxy ##
+    <[base.logs]>->(
+        1, 'proxy: unknown template %s, falling back to generic.proxy',
+        $template
+    );
+    return <[proxy.template.generic]>->( $client_id, $context );
+}
+
+#,,..,,..,.,,,...,.,.,.,.,,..,,,,,,.,,.,.,,,.,..,,...,...,..,,.,.,,,,,,.,,.,,,
+#DNVC4LUOR7ZOGSVBTGZUNTRMKPDW7ZEE4J4RYUB2NIYD7RAMVZYEGNUAHVFFMTRRP4GRFQ3AATEQO
+#\\\|CS5W5WE7AZAPCNVYHB6OUEW2C72UM3P36AQFPXCEWFYKIIXMU52 \ / AMOS7 \ YOURUM ::
+#\[7]VPIDCVWVNEVN6ELQTJ2PLJJRLC57PMETS4CB3G2Q3GHMRDAQP2CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
