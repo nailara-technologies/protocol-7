@@ -5,6 +5,7 @@
 
 $data{'proxy'}{'clients'}     //= {};
 $data{'proxy'}{'listen_sock'} //= undef;
+$data{'proxy'}{'auth_cache'}  //= {};
 
 ## load required perl modules ##
 map { <[base.perlmod.autoload]>->($ARG) } qw| HTTP::Request URI YAML::XS |;
@@ -18,10 +19,19 @@ map { <[base.perlmod.autoload]>->($ARG) } qw| HTTP::Request URI YAML::XS |;
 ## start listener ##
 <[proxy.listen]>;
 
+## subscribe to credential rotation events ##
+if ( exists $code{'credential_fabric.subscribe_rotation'} ) {
+    <[credential_fabric.subscribe_rotation]>->(
+        {   'slot'    => '*',
+            'handler' => 'proxy.handler.cred_rotated',
+        }
+    );
+}
+
 0;
 
-#,,,,,,.,,...,.,,,,.,,,,.,.,.,.,.,..,,.,.,.,,,..,,...,...,,.,,,..,,.,,,..,..,,
-#IXFQYQLOYDLNA2E542KGMM536EQNE4Q3GMZXJYXZKL4J5OIRWSRVUMQ6EES5MNPAMGLEJB5NUJAIU
-#\\\|QZIGH7PIYL3A5QUCA44C2A7XP27J5XJ4KS3BSYXTIDUV6AH2HED \ / AMOS7 \ YOURUM ::
-#\[7]J3XKDERSGYO3HO72XS7W7OFF2PGCG63XJFGZLWZHRYYUM6GJB6BQ 7  DATA SIGNATURE ::
+#,,..,..,,...,,.,,.,,,,..,.,,,,.,,,..,...,,,.,..,,...,...,,.,,,,,,,..,,,.,...,
+#SPQFKSREXUBXKDD5D3WLZG2MTLQHTUI4BYKDZ2LFN4FDXJNBBXV3DJKXHWHEXUMY7IFOPLRBKLGOO
+#\\\|6VSXOASV2UHM5QR436EIIY5OW3AEK4FDPFVSDFOVOZ7O6FFSXMX \ / AMOS7 \ YOURUM ::
+#\[7]FVRO6JLO2Y36CKL2YFUENTZBANZAXCGBSE7J5PRSABTVAEUUC2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
