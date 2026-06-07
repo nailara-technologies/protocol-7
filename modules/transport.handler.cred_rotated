@@ -1,0 +1,82 @@
+## [:< ##
+
+# name  = transport.handler.cred_rotated
+# descr = handle credential rotation events: invalidate transport profile
+#         and active handle caches that reference the rotated slot.
+#         args: routed params with reply and args containing event yaml
+
+my $params = shift              // {};
+my $reply  = $params->{'reply'} // {};
+my $args   = $params->{'args'}  // {};
+
+my $event = eval { YAML::XS::Load( $args->{'data'} // '' ) } // {};
+my $slot  = $event->{'slot'}                                 // '';
+
+return undef unless length $slot;
+
+my $profiles = <external.transports>->{'profiles'} // {};
+my $active   = <external.transports>->{'active'}   // {};
+my $quality  = <external.transports>->{'quality'}  // {};
+
+my $profile_removed = 0;
+my $active_cleared  = 0;
+
+## walk profile cache and remove profiles referencing the slot ##
+for my $pname ( keys %$profiles ) {
+    my $prof = $profiles->{$pname};
+    next if ref $prof ne qw| HASH |;
+    my $transports = $prof->{'transports'} // [];
+    next if ref $transports ne qw| ARRAY |;
+
+    my $has_slot = 0;
+    for my $entry (@$transports) {
+        next if ref $entry ne qw| HASH |;
+        if ( ( $entry->{'credential'} // '' ) eq $slot ) {
+            $has_slot = 1;
+            last;
+        }
+    }
+
+    if ($has_slot) {
+        delete $profiles->{$pname};
+        $profile_removed++;
+    }
+}
+
+## clear active handles for destinations using affected profiles ##
+## [ conservative: clear all active since slot may be in use ] ##
+for my $dest ( keys %$active ) {
+    my $handle = $active->{$dest};
+    next if ref $handle ne qw| HASH |;
+    if (    defined $handle->{'handle'}
+        and ref $handle->{'handle'} eq qw| HASH |
+        and defined $handle->{'handle'}{'credential'}
+        and ref $handle->{'handle'}{'credential'} eq qw| HASH |
+        and ( $handle->{'handle'}{'credential'}{'slot'} // '' ) eq $slot ) {
+        delete $active->{$dest};
+        $active_cleared++;
+    }
+}
+
+<[base.logs]>->(
+    1,
+    'transport.handler.cred_rotated: flushed %d profiles, %d active'
+        . ' handles for slot %s',
+    $profile_removed,
+    $active_cleared,
+    $slot
+);
+
+return {
+    'mode'             => qw| true |,
+    'profiles_flushed' => $profile_removed,
+    'active_cleared'   => $active_cleared,
+};
+
+## [ end ] ###################################################################
+
+#,,..,,..,,..,,,,,.,,,.,,,,,.,...,.,.,.,,,.,,,..,,...,...,.,,,.,,,,,.,.,,,,..,
+#S37PKMZNOLVS5DYYSL2NAGSNDHC7YRHORU2LIPCFS7WB24AD7RW544F7GIAGSH5KENOOARXHU2MRA
+#\\\|26SGXZF7GQJJFBRTNVGKFANOL53AVHC42GGYJ67YIB7IH4Y7XKL \ / AMOS7 \ YOURUM ::
+#\[7]NKQHMAPC2IVCWMJAX6QIIIFFEK6RBIZJUSYLEIAFBJB7E5W3PGBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

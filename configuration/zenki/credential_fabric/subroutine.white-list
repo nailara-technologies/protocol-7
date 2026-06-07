@@ -157,6 +157,7 @@ base.calc_unix_path
 proxy.selector.match
 proxy.handler.accept
 io.ip.tcp.input.open
+clients.http.cleanup
 base.route.init_code
 base.root.drop_privs
 base.read_proc_times
@@ -215,6 +216,7 @@ proxy.client.send_error
 protocol.sftp.init_code
 io.unix.socket.end_code
 crypt.C25519.key_exists
+clients.http.handler.io
 base.templates.pre_init
 base.strip_chksum_lines
 base.start.unlink_child
@@ -265,6 +267,7 @@ base.chk-sum.elf.pre_init
 base.chk-sum.bmw.pre_init
 base.callback.delayed-log
 proxy.template.passthrough
+proxy.handler.cred_rotated
 protocol.sftp.read_ssh_env
 io.unix.socket.output.open
 io.unix.socket.input.close
@@ -286,6 +289,7 @@ proxy.selector.zenka_assert
 net.read_linewise_estimated
 io.unix.socket.output.close
 credential_fabric.init_code
+clients.http.parse_response
 base.templates.register_add
 base.stream.record_emission
 base.session.calc_cmd_stats
@@ -299,6 +303,7 @@ base.chk-sum.amos.init_code
 protocol.protocol-7.pre_init
 protocol.amos_term.init_code
 io.unix.socket.input.connect
+clients.http.handler.timeout
 base.validate.composite_name
 base.session.check_remaining
 base.process-into-background
@@ -307,6 +312,7 @@ base.parser.ondemand_session
 base.handler.hooks.has_hooks
 base.handler.heart_ack_reply
 base.access.special-user-map
+proxy.outbound.connect_or_use
 proxy.handler.site_yaml_reply
 protocol.protocol-7.init_code
 crypt.C25519.get_usr_keys_dir
@@ -333,6 +339,7 @@ base.number-cache.true_upwards
 base.log.send-buffer.add-queue
 base.cache.refaddr-prefix.init
 proxy.handler.passthrough_reply
+credential_fabric.seed_registry
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
 base.buffer.local_logfile_write
@@ -429,8 +436,8 @@ auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,.,,,,,,.,,,,.,,,,,...,.,.,,.,,..,,.,,,,..,..,,...,...,.,.,..,,,..,.,.,.,.,
-#SF2P7YCZTT7O4P5H7FJWT55EIA267KZNPW6RUFI2H7EMW7N453Y57KZAMQ742QQ26HI5VGIIR7F2U
-#\\\|LPQCT4TJPA4ZO6D4TSP5Q3XBR7YXGL7DMI2JK7DT5VIQAFTJNJ4 \ / AMOS7 \ YOURUM ::
-#\[7]FJOZ2VTBLOTPDT4UWZFCGZUHA2ABV3HQTXO6TNHSHR6H6KIBYUBI 7  DATA SIGNATURE ::
+#,,..,,.,,,..,,,,,,,.,,,,,,.,,,,.,.,.,,,.,..,,..,,...,...,.,,,.,.,,,,,,,.,...,
+#NCF2ZV4QVHEMG3UZQNSZZCSQETWLX4R33PM3FXKVG3J2FP3ZADYLO6YQCQCWOBY43K7FX5TNLCWQI
+#\\\|UA6Y3Z3EKTRTDDDGB5WBJPMQQADPN6OXVKC7H6TU2OUXMRHGC2W \ / AMOS7 \ YOURUM ::
+#\[7]6JDBENJ5GN2JF3PCXQJVZKNTVKK75YEFWZ37PII5A4PNH56ZSWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

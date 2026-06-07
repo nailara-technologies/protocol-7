@@ -14,7 +14,26 @@ return undef unless length $endpoint;
 my $cred;
 if ( exists $entry->{'credential'}
     and defined $entry->{'credential'} ) {
-    $cred = <[credential.resolve]>->( { 'slot' => $entry->{'credential'} } );
+    $cred = <[credential_fabric.resolve]>->(
+        {   'slot'    => $entry->{'credential'},
+            'context' => $ctx,
+        }
+    );
+}
+
+## validate credential resolution ##
+if ( exists $entry->{'credential'}
+    and defined $entry->{'credential'} ) {
+    if (   not defined $cred
+        or ref $cred ne qw| HASH |
+        or $cred->{'mode'} ne qw| true | ) {
+        <[base.logs]>->(
+            1,
+            'transport.handle.quic-hysteria: credential %s resolution failed',
+            $entry->{'credential'}
+        );
+        return undef;
+    }
 }
 
 ## hysteria proxy configuration ##
@@ -58,8 +77,8 @@ my $handle = {
 
 return $handle;
 
-#,,,.,,,.,,.,,.,.,...,,,,,.,,,.,,,,..,.,.,.,.,..,,...,...,..,,,.,,..,,,..,.,,,
-#PGTPLB5CGSYZUWWQZ2NKRHQTHBJ5COGE7I66TTOPUSLCNWAYMB2A5VEGW5J46MDMPM2OMIOUSPJIS
-#\\\|RS7KTULXSNMVNHUH5RYGXKM2XH6DNJOZJSBASOIANMMLE3FHXBV \ / AMOS7 \ YOURUM ::
-#\[7]DHDQXGNMC23B3DOGXRJ7NB6CPYVG6FONCI7UANN2NZJ2WHFQREDA 7  DATA SIGNATURE ::
+#,,,,,,..,...,,,,,,.,,...,,,.,..,,,,,,,,.,,,,,..,,...,...,...,,.,,..,,,.,,...,
+#U5YW3SZDSNYONEFT66UQLKCFU5743AGMYFRXLGYTWNNRTASZVCBD6AEJSMVXXEAOL4BATPAYFE7UG
+#\\\|6MTHT5FYCRZGK76TVSQRXG3JJZ7EFRO2YITN74CUCDUTZDNDK7Q \ / AMOS7 \ YOURUM ::
+#\[7]DYYLCX6YCNMQWJ3E5D5ACYOAU5YETP2TZNZXTQVNV2TNKGOB72DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
