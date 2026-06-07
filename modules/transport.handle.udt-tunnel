@@ -25,7 +25,26 @@ $port //= 9000;
 my $cred;
 if ( exists $entry->{'credential'}
     and defined $entry->{'credential'} ) {
-    $cred = <[credential.resolve]>->( { 'slot' => $entry->{'credential'} } );
+    $cred = <[credential_fabric.resolve]>->(
+        {   'slot'    => $entry->{'credential'},
+            'context' => $ctx,
+        }
+    );
+}
+
+## validate credential resolution ##
+if ( exists $entry->{'credential'}
+    and defined $entry->{'credential'} ) {
+    if (   not defined $cred
+        or ref $cred ne qw| HASH |
+        or $cred->{'mode'} ne qw| true | ) {
+        <[base.logs]>->(
+            1,
+            'transport.handle.udt-tunnel: credential %s resolution failed',
+            $entry->{'credential'}
+        );
+        return undef;
+    }
 }
 
 ## UDT::Simple stub: attempt connection if module loaded ##
@@ -68,8 +87,8 @@ my $handle = {
 
 return $handle;
 
-#,,,.,...,.,,,.,.,,,,,..,,,..,,,.,..,,,.,,,,.,..,,...,...,..,,...,,.,,.,.,.,.,
-#HGI27NKCDBPYLYXOFDSKJYHSCPVQLRJUQ23SVYAO4U3OUCCTDZR2JNTV3KC6MM73QSHUNXF463FIG
-#\\\|B2U765U3YN3I6J77QSJYQXSQQXCNF6MGFFMA436ALNQFJ66SYHG \ / AMOS7 \ YOURUM ::
-#\[7]C4OKTJLUPIQLWRI5EJVNMUK5BQQDYFDUKFM3PBRCATFWMLBI5SCY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,,,,.,,,,,.,.,.,,.,,,.,,,,.,,.,,..,,...,...,..,,.,,,,..,,.,,,,.,
+#DVV2CF65S2H7I3SRDZQJPALJ75UAHD4W2MMULC4O2U6LTBE6F5SOUBL3V3GSMBE2QIXL3EVHOZW3A
+#\\\|3LGTT5QI3UNXUT7Q2CPM5U6PKEXMDIBCNPNANCGYEAKVDLE7MSB \ / AMOS7 \ YOURUM ::
+#\[7]7LIX3LSXQ3NXAF6L3KDD7QVJXPLXEFDNYCKFD3QPMF5EYV4PJKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = proxy.handler.cred_rotated
+# descr = handle credential rotation events: invalidate proxy auth cache
+#         args: routed params with reply and args containing event yaml
+
+my $params = shift              // {};
+my $reply  = $params->{'reply'} // {};
+my $args   = $params->{'args'}  // {};
+
+my $event = eval { YAML::XS::Load( $args->{'data'} // '' ) } // {};
+my $slot  = $event->{'slot'}                                 // '';
+
+return undef unless length $slot;
+
+## walk proxy auth cache and remove entries referencing the slot ##
+my $auth_cache = $data{'proxy'}{'auth_cache'} // {};
+my $removed    = 0;
+
+for my $key ( keys %$auth_cache ) {
+    my $entry = $auth_cache->{$key};
+    next if ref $entry ne qw| HASH |;
+    next if ref $entry->{'slots'} ne qw| HASH |;
+    if ( exists $entry->{'slots'}{$slot} ) {
+        delete $auth_cache->{$key};
+        $removed++;
+    }
+}
+
+<[base.logs]>->(
+    1, 'proxy.handler.cred_rotated: flushed %d cache entries for slot %s',
+    $removed, $slot
+);
+
+return { 'mode' => qw| true |, 'flushed' => $removed };
+
+## [ end ] ###################################################################
+
+#,,..,,,,,...,.,,,,,.,,.,,...,.,,,,..,,.,,.,,,..,,...,...,,,.,.,.,.,,,..,,..,,
+#JTP5IGJKHIBX6Z3L5YXFI46RKBH3SSX62HOEH7QYWSENNEEHBL6CQTFIZNIGEWMSW4VBN5PQW6QHE
+#\\\|CUOMDMAYYFDWK6VRIYSSHJS63JSCQ7RDLWIXGFM4PPKCQ7NW6YY \ / AMOS7 \ YOURUM ::
+#\[7]ZRIKULMXYFNWMEVPVEWBKC7EWQBTNRSOKLBZVMKKXJKNFGAJQGAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

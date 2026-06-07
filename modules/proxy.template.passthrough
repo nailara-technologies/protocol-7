@@ -17,33 +17,145 @@ if ( $method eq 'CONNECT' ) {
     return <[proxy.template.passthrough.connect]>->( $client_id, $context );
 }
 
-## HTTP/HTTPS passthrough via clients.http(s).request ##
-my $is_https = ( $url =~ m{^https://} );
-my $request_module
-    = $is_https ? 'clients.https.request' : 'clients.http.request';
+## collect injected auth headers from auth lookup result ##
+my $injected_headers = {};
+if (    ref $context->{'auth'} eq qw| HASH |
+    and ref $context->{'auth'}{'slots'} eq qw| HASH | ) {
+    for my $slot ( keys %{ $context->{'auth'}{'slots'} } ) {
+        my $slot_result = $context->{'auth'}{'slots'}{$slot};
+        next if ref $slot_result ne qw| HASH |;
+        my $data = $slot_result->{'data'} // {};
+        next if ref $data ne qw| HASH |;
+        my $inject = $data->{'inject_header'} // {};
+        next if ref $inject ne qw| HASH |;
+        for my $hk ( keys %$inject ) {
+            $injected_headers->{$hk} = $inject->{$hk};
+        }
+    }
+}
 
-my $request_params = {
-    method  => $method,
-    url     => $url,
-    headers => $context->{'request'}{'headers'},
-    timeout => 30,
-    on_done => 'proxy.handler.passthrough_reply',
-    params  => {
-        client_id => $client_id,
-        context   => $context,
+my $is_https = ( $url =~ m{^https://} );
+
+## get outbound socket via helper ##
+my $conn = <[proxy.outbound.connect_or_use]>->($context);
+
+if ( not defined $conn or not defined $conn->{'socket'} ) {
+    <[proxy.client.send_error]>->( $client_id, 502, 'Bad Gateway' );
+    return;
+}
+
+my $sock = $conn->{'socket'};
+
+## if transport socket or direct fallback, handle accordingly ##
+if ( $conn->{'type'} eq 'direct-tcp-fallback' ) {
+
+    ## use existing http client for direct fallback ##
+    my $request_module
+        = $is_https ? 'clients.https.request' : 'clients.http.request';
+
+    ## merge injected headers into request headers ##
+    my $merged_headers = { %{ $context->{'request'}{'headers'} } };
+    for my $hk ( keys %$injected_headers ) {
+        $merged_headers->{$hk} = $injected_headers->{$hk};
+    }
+
+    my $request_params = {
+        method  => $method,
+        url     => $url,
+        headers => $merged_headers,
+        timeout => 30,
+        on_done => 'proxy.handler.passthrough_reply',
+        params  => {
+            client_id => $client_id,
+            context   => $context,
+        },
+    };
+
+    $client->{'outbound'} = <$request_module>->($request_params);
+
+    if ( not defined $client->{'outbound'} ) {
+        <[proxy.client.send_error]>->( $client_id, 502, 'Bad Gateway' );
+    }
+
+    return;
+}
+
+## transport socket path: write request manually ##
+my ( $host, $port, $path )
+    = $url =~ m{^https?://([^/:]+)(?::(\d+))?(/.*)?\z}s;
+$host //= $context->{'request'}{'domain'} // '';
+$port //= ( $url =~ m{^https://} ? 443 : 80 );
+$path = '/' unless defined $path and length $path;
+
+my $body    = '';    ## passthrough does not buffer body yet ##
+my $headers = $context->{'request'}{'headers'};
+
+my $header_str
+    = sprintf "Host: %s\r\nContent-Length: %d\r\nConnection: close\r\n",
+    $host, length($body);
+for my $k ( keys %$headers ) {
+    $header_str .= sprintf "%s: %s\r\n", $k, $headers->{$k};
+}
+for my $k ( keys %$injected_headers ) {
+    $header_str .= sprintf "%s: %s\r\n", $k, $injected_headers->{$k};
+}
+my $request = sprintf "%s %s HTTP/1.1\r\n%s\r\n%s",
+    $method, $path, $header_str, $body;
+
+## write request synchronously ##
+my $total   = length($request);
+my $written = 0;
+while ( $written < $total ) {
+    my $n = syswrite( $sock, $request, $total - $written, $written );
+    if ( defined $n ) {
+        $written += $n;
+    } elsif ( $OS_ERROR{EAGAIN} or $OS_ERROR{EWOULDBLOCK} ) {
+        select( undef, undef, undef, 0.001 );
+    } else {
+        <[base.logs]>->(
+            0, 'proxy.template.passthrough: write failed: %s', $OS_ERROR
+        );
+        eval { $sock->close };
+        <[proxy.client.send_error]>->( $client_id, 502, 'Bad Gateway' );
+        return;
+    }
+}
+
+## register io watcher for response ##
+my $state = {
+    'sock'    => $sock,
+    'buffer'  => '',
+    'on_done' => 'proxy.handler.passthrough_reply',
+    'params'  => {
+        'client_id' => $client_id,
+        'context'   => $context,
     },
 };
 
-$client->{'outbound'} = <$request_module>->($request_params);
+my $io_watcher = <[event.add_io]>->(
+    {   'fd'      => $sock,
+        'poll'    => 'r',
+        'handler' => 'clients.http.handler.io',
+        'data'    => $state,
+    }
+);
 
-if ( not defined $client->{'outbound'} ) {
-    <[proxy.client.send_error]>->( $client_id, 502, 'Bad Gateway' );
-}
+my $timeout_watcher = <[event.add_timer]>->(
+    {   'after'   => 30,
+        'handler' => 'clients.http.handler.timeout',
+        'data'    => $state,
+    }
+);
+
+$state->{'io_watcher'}      = $io_watcher;
+$state->{'timeout_watcher'} = $timeout_watcher;
+
+$client->{'outbound'} = $state;
 
 return;
 
-#,,.,,...,,.,,,.,,,.,,,,.,,.,,..,,...,,,,,,,,,..,,...,...,,..,.,,,.,.,..,,,..,
-#2BSL4BDNXRMW5HYYDNBMBBIDDL26PVMQJFAI3UT7B73XJH4FPY4L5ET5RPY5ZVJ357I273JPRKFJA
-#\\\|3BR32R5G4EYKH4SQRIZ6AT2OVFMKNBQRWI4TVKUU5HOTMHRBVXY \ / AMOS7 \ YOURUM ::
-#\[7]ORNZCBMRI7KORDHFCPPGCQ7NYM2P7PKQMYJ5AZOX4PXQJFILTODY 7  DATA SIGNATURE ::
+#,,.,,...,,..,,,,,...,,,.,,,.,,..,,..,.,.,.,,,..,,...,...,.,,,,,.,.,.,,.,,,.,,
+#XQOXKANQO4ONSEBL5N4JQJG3QG263KS5TXEOA7YMJ7VQBO7NSA4XSQWYPMXXNOTUJPVBGZX3OLIV4
+#\\\|BNRY3AUDFLARNN2QWUXXGBBACD4JXVGQRFENLTABNWFJQDAODPR \ / AMOS7 \ YOURUM ::
+#\[7]BZ75JQK7PEUOSSGC2L2ILIIQ7OYHLLFLEUXWTFX6VPVPIWLM4YCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

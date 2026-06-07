@@ -13,6 +13,12 @@ return undef if ref $context ne qw| HASH |;
 my $domain = $context->{'request'}{'domain'} // '';
 return { 'has_session' => FALSE, 'slots' => {} } unless length $domain;
 
+## check cache ##
+my $cache_key = $domain;
+if ( exists $data{'proxy'}{'auth_cache'}{$cache_key} ) {
+    return $data{'proxy'}{'auth_cache'}{$cache_key};
+}
+
 ## try session slot for this domain ##
 my $slot = 'session.' . $domain;
 
@@ -25,17 +31,21 @@ my $result = <[credential_fabric.resolve]>->(
 if (    defined $result
     and ref $result eq qw| HASH |
     and $result->{'mode'} eq qw| true | ) {
-    return {
+    my $auth_result = {
         'has_session' => TRUE,
         'slots'       => { $slot => $result },
     };
+    $data{'proxy'}{'auth_cache'}{$cache_key} = $auth_result;
+    return $auth_result;
 }
 
 ## no session found ##
-return { 'has_session' => FALSE, 'slots' => {} };
+my $no_auth = { 'has_session' => FALSE, 'slots' => {} };
+$data{'proxy'}{'auth_cache'}{$cache_key} = $no_auth;
+return $no_auth;
 
-#,,..,..,,,.,,,,,,...,,..,.,.,.,.,,,,,,.,,.,.,..,,...,...,,.,,,,,,,,.,,,.,,,,,
-#WR4CMVWEPN4QMSGTB66PIM7IWRHU4UFX6UYQJX6VB6EXRKXEBSENKGJCGIHX36A26MAXEMH5TTWVS
-#\\\|WAWWF6KMDOWND57MXLWKK2KHKNP6WYJDR7BKJASLPUQF5XDZC3E \ / AMOS7 \ YOURUM ::
-#\[7]M6WFGCXYWVGECBRKZPPHK2GSGVCWYDAFMXOH2YKAFLG6GBZMGUBA 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,...,,..,,..,,,.,.,.,.,,,.,.,,,.,..,,...,...,,,.,,..,...,,.,,,.,,
+#DU2PHE2PEGDGIDD7JGR2KIELEWTA24SL3XF7BEGSPEGN7KNCZKBIBCBIH774D4L75QJERRF4NAQAS
+#\\\|BDBPT2L7SZ2BR5W5NEJO4425A4ANDGIKWGVXWXCI3H3TGIZJBT5 \ / AMOS7 \ YOURUM ::
+#\[7]XVBEACKLKHSIRE3WZYDS2HMDPJKTFKAROF7BAI2M4LUMFFXKX6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

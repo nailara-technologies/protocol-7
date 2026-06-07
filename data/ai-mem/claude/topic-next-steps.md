@@ -9,6 +9,7 @@ metadata:
 
 ## completed this session (2026-06-07)
 
+- **credential-fabric integration + UI plan** ✓ (34e3bee78) — `data/md/design/CREDENTIAL-FABRIC-INTEGRATION-AND-UI.md` + 4 task files (wiring, integration-test, ui-frames phase-1, ui-interactive phase-2/3); dispatched to Opus via claude_dispatch + one revision pass via claude_continue (session 17b14f6a-2d5d-4836-a7ba-d3b7a0777ee0). Key design call: auth-relay approval + key-holder unlock route primarily through `protocol-7-menu.cmd.input-text`/`input-password` (existing GTK3 dialogs — works regardless of which browser triggers the proxied request), with the original frame-based design demoted to a headless/no-X11 fallback (phase 3b). Open: `protocol-7-menu.cmd.input-*` has never been called cross-zenka — cube routing of that namespace needs confirming during wiring. NEXT: dispatch `credential-fabric-wiring.md` (the foundational task — others depend on it landing first).
 - **write_append chmod-child fix** ✓ (00d29a793) — replaced racy 10ms `select`-yield with blocking `<[coding.chmod_child.readline]>` (matches insert_line/delete_lines pattern); ALSO fixed root cause in `coding.start.chmod_child`'s `gw` handler — granted other-write (0002) but coding zenka holds admin group as supplementary gid (assume_admin_group), so group bits govern; changed to group-write (0020) matching `gwd`. Verified live: write_append + insert_line both write directly to taeki-owned files now, mode restored correctly.
 
 ## completed this session (2026-06-06)
@@ -205,8 +206,8 @@ metadata:
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,..,..,,,.,,.,.,.,.,,,.,,.,,,.,,,.,,.,,,,,,,..,,...,...,,,,,,.,,,,,,,,.,.,,,
-#VYXDXAXKQIF3YBICSEC4NVVOEZ5ISDCM353WGP6SC4WIOC5HALCVM4KC3O7N23TFFIEQ7R7NPYCRI
-#\\\|CHD6P53FOWB4ZGEYIVWYLDPOPYX3FXBR47OWZSPFE6TWN5MWHI7 \ / AMOS7 \ YOURUM ::
-#\[7]4CGTKDMHSNQ4GTVVQGEKTWC2BKDHJKL3PJW3YXAE6KPY5NBBVKCY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,,.,,..,...,,,,,,.,,,..,,,,,,,,,..,,...,...,,,,,.,,,,,.,,,,,,..,
+#HOMFYAK5RQDO3YWHNBIBCUU7TIGCN6I3X743HFI7GAIF3I7IOKVUGP6NQYNTCAPJ6WE4YTGXG5424
+#\\\|OBKAZSZ7NVZCOYDPIPAZMHDETI6KRVHCUMKOPDPZVWSCNWV6Z2C \ / AMOS7 \ YOURUM ::
+#\[7]5FBAFGZB6TZSOSAV6Y6VAHALU37RGFZ6OA6MUYYFVLAFX3WJIQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
