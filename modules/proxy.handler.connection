@@ -122,11 +122,11 @@ if ( exists $code{'proxy.auth.lookup'} ) {
     }
 }
 
-## transport stub integration point ##
+## transport integration point ##
 if ( exists $code{'proxy.transport.select'} ) {
     my $transport_result = <[proxy.transport.select]>->($context);
     if ( defined $transport_result and ref $transport_result eq 'HASH' ) {
-        $context->{'transport'} = $transport_result;
+        $context->{'transport'}{'handle'} = $transport_result;
     }
 }
 
@@ -145,8 +145,8 @@ $client->{'state'}   = 'processing';
 
 return;
 
-#,,,,,,,,,,,.,...,...,,.,,,,,,,,.,,..,..,,...,..,,...,...,...,..,,,,.,,..,,,,,
-#BXDBNRMVMTOSNSI3MORUVGPYUYAIGOF7QIMZDXUD2FJJNHFYRTUCFQGXJW3MSOVYLR4M6HFSJAPTK
-#\\\|ZTGEXYZFZUHFJKEXHMQ5PLXNH4LOYTHC6N5XRBZ4AG3IXTXOOZU \ / AMOS7 \ YOURUM ::
-#\[7]G3BMGR6WHQQCPJHPLVVXJF5A4YNJ2U2POAYH6M7PFBV5OUX43MBQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,...,..,,,,,,.,,,,.,,,.,,,.,,.,.,..,,...,...,...,,..,.,,,..,,..,,
+#25R27VPMQYARQNM5FLMQ5DNSVW23UJ6HNY7ENNSKUSPYT7ZTTHU7FXMLCTM4UOOFDDG2C2FBBGAIE
+#\\\|ZU54STTWX3ZA3EB47XHW2B5OSKWJV6ECHN4SK6UEPDXBEOQAHS2 \ / AMOS7 \ YOURUM ::
+#\[7]Q3AA4ENEFL42Y7ANVWD5U7G7HQ5QC4GQSBYD7RE2PIQZY7GQZIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

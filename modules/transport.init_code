@@ -41,12 +41,21 @@ my $probe_timer = <[event.add_timer]>->(
 
 <transport.probe_timer> = $probe_timer;
 
+## subscribe to credential rotation events ##
+if ( exists $code{'credential_fabric.subscribe_rotation'} ) {
+    <[credential_fabric.subscribe_rotation]>->(
+        {   'slot'    => '*',
+            'handler' => 'transport.handler.cred_rotated',
+        }
+    );
+}
+
 <[base.logs]>->( 2, 'transport.init_code: transport selector initialized' );
 
 return qw| true |;
 
-#,,,,,.,,,..,,.,.,,,,,.,.,.,.,.,,,,.,,.,,,.,,,..,,...,.,.,...,,..,...,,.,,.,.,
-#GS3RG42OBWTF73PGFU7L2BFZHPOVXAOSGF7DPFRMURTEUGRL7YQZBUBACV46N3XCDWVGMW6X2CJ7O
-#\\\|7EFUA2IDMYLGMGXUL2IF2HR3HH6GAGRDT3U56EPYZIMDZ4IZWJZ \ / AMOS7 \ YOURUM ::
-#\[7]BXMVYILSNVWXKWD2Y7AI7ZGF5RN32CI6BYKLDX4BQ2UV6XYVYOAA 7  DATA SIGNATURE ::
+#,,.,,,..,,..,.,,,,,.,,..,,,,,,..,.,.,...,...,..,,...,...,...,,.,,.,.,...,..,,
+#OQMVLOIAMENPAMGABX2Z3CTGYDULZAMYJ4R2FRLBXZBGNHQDPCEYZBVLPQP6POGSVRMGIKV5GPPW6
+#\\\|72HJHEULBBYYTUWVCWXPLB4DBOIPBRV3JKJ2DGI2UHETGAFFKJ4 \ / AMOS7 \ YOURUM ::
+#\[7]6SAZQG4QHDLKV7GZN3I6FFNXGOG2OZYTG6TMDIG7L6MHZNNN7GCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,75 @@
+## [:< ##
+
+# name  = proxy.outbound.connect_or_use
+# descr = single entry point for outbound sockets in proxy.
+#         checks context.transport.handle for connected socket,
+#         falls back to direct tcp with type tag.
+# args  = $context_hash
+# returns { socket => $sock, type => $tag, transport => $handle_or_undef }
+
+my $context = shift // return undef;
+
+## check for pre-connected transport handle socket ##
+my $handle = $context->{'transport'}{'handle'};
+if ( defined $handle and defined $handle->{'socket'} ) {
+    my $sock = $handle->{'socket'};
+    if ( defined $sock and ref $sock ) {
+        <[base.logs]>->(
+            2,
+            'proxy.outbound.connect_or_use: using transport %s socket',
+            $handle->{'type'} // 'unknown'
+        );
+        return {
+            'socket'    => $sock,
+            'type'      => $handle->{'type'} // 'transport',
+            'transport' => $handle,
+        };
+    }
+}
+
+## fallback: direct tcp ##
+my $url    = $context->{'request'}{'url'}    // '';
+my $domain = $context->{'request'}{'domain'} // '';
+
+my ( $host, $port );
+if ( $url =~ m{^https?://([^/:]+)(?::(\d+))?} ) {
+    $host = $1;
+    $port = $2 // ( $url =~ m{^https://} ? 443 : 80 );
+} elsif ( length $domain ) {
+    $host = $domain;
+    $port = 80;
+} else {
+    <[base.logs]>->( 0, 'proxy.outbound.connect_or_use: no target host' );
+    return undef;
+}
+
+my $sock = IO::Socket::IP->new(
+    PeerHost => $host,
+    PeerPort => $port,
+    Type     => SOCK_STREAM(),
+    Timeout  => 7,
+);
+
+if ( not $sock ) {
+    <[base.logs]>->(
+        0, 'proxy.outbound.connect_or_use: direct tcp to %s:%d failed: %s',
+        $host, $port, $OS_ERROR
+    );
+    return undef;
+}
+
+$sock->blocking(0);
+
+return {
+    'socket'    => $sock,
+    'type'      => 'direct-tcp-fallback',
+    'transport' => undef,
+};
+
+## [ end ] ###################################################################
+
+#,,,,,,.,,.,.,.,.,,,,,,.,,,.,,,,.,,.,,,.,,,..,..,,...,...,,.,,...,,..,.,.,.,.,
+#MMA3K6AWG35GWU3GOWXOQG4YG53UYAMUJZQUMOVKMLGQZ75UWMQYLAGMKNF6J4HMFDX5W7YYQX7B6
+#\\\|AUNWE7EPVW24ZS3NJO7BIFQR7Q2EOTPRNC4E76OD37YR2BZTUOY \ / AMOS7 \ YOURUM ::
+#\[7]B2JBZGD24DCWNX6TCI3LKX6WCLWIX2VOAIRXTUQXFGOQYZQKOUAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

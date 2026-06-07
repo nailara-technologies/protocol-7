@@ -103,11 +103,12 @@ if ($async_mode) {
     ## fail immediately if initial prompt already overflows context ##
     if ( $max_tokens_safe <= 0 ) {
         my $overflow = $est_tokens - $n_ctx;
-        my $err = sprintf(
-            'initial prompt overflow: estimated %d tokens exceeds n_ctx=%d by %d'
+        my $err
+            = sprintf(
+            'initial prompt overflow: estimated %d tokens exceeds n_ctx=%d '
+                . 'by %d'
                 . ' : reduce task description or tool output size',
-            $est_tokens, $n_ctx, $overflow > 0 ? $overflow : 0
-        );
+            $est_tokens, $n_ctx, $overflow > 0 ? $overflow : 0 );
         <[base.logs]>->( 0, "coding.task.execute: %s [%s]", $err, $task_id );
         $task->{'execution'}->{'status'} = 'failed';
         $task->{'execution'}->{'error'}  = $err;
@@ -175,7 +176,9 @@ if ($async_mode) {
     } else {
         ## Async started successfully ##
         <[base.logs]>->(
-            1, "coding.task.execute: async streaming started for %s",
+            1,
+            "coding.task.execute: async request dispatched for %s — "
+                . "awaiting first token",
             $task_id
         );
         ## Return deferred : job stays 'running' until coding.async.complete ##
@@ -193,8 +196,8 @@ if ($async_mode) {
 ## unreachable : async block always returns before here ##
 return FALSE;
 
-#,,,.,,.,,..,,,..,,,,,,.,,.,,,,,,,,.,,...,.,.,.,.,...,...,,,.,..,,,.,,..,,,..,
-#3FLZAWX4GL6OD2YGA7PGE22U2OCZL37PHKKKHRQM7U5JB5P6HYWJSMECX7L6PCMHQI7NTFCUUCHQ6
-#\\\|NY3I3VNYLRB7HIMTYMKFOA5XKOKJLBBEYCYNUMI5S4NMWA67LT4 \ / AMOS7 \ YOURUM ::
-#\[7]FTTI6BSY6PKPN22QOBVD5JAGV35O55ACMPOZHQ4SRGA2ZEBHVMDI 7  DATA SIGNATURE ::
+#,,..,..,,,,.,.,,,,,,,.,,,.,.,,..,...,.,,,.,.,.,.,...,..,,.,.,,.,,...,,,,,.,.,
+#7MFK5GNMLLOWGJVEB6C3XKKEGDQCRIQXMQDS2T6SQ5OC4VSHG25OHLUBDCJA3WRI5CBNPI27FZGT2
+#\\\|6SV6CA7NZFOQJ3FRT7M6IIIDV67HMWXSZCWR5Q7ZO4XUX6AAV5Z \ / AMOS7 \ YOURUM ::
+#\[7]K4NUFFIW32MFIAQA37FXNI47T4M2TISQUTCTDEZVTPHGKC45MQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
