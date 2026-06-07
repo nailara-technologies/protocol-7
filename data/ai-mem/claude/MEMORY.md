@@ -39,6 +39,7 @@
 
 ## Vision / Design
 - [project-vision-origin](project-vision-origin.md) — 24-year vision; threshold reached Apr 2026
+- [layer-matrix-convergence](project-layer-matrix-convergence.md) — self-restart/migration/branching/diff-addressing = one reversible layer-matrix algebra; commutativity is the crux
 - [self-improving-system](topic-self-improving-system.md) — LLM coordination as self-improvement foundation
 - [network-as-computer](topic-network-as-computer.md) — network IS computer; Base32/15-bit/32-bit closure
 - [namespace-tree-intelligence](topic-namespace-tree-intelligence.md) — tree IS intelligence
@@ -119,6 +120,7 @@
 - [claude_continue](feedback-coding-zenka-edits.md) — live (1adbf83d2); resume same as kimi
 - [Glitter restart](feedback-coding-zenka-edits.md) — restart after failed tool task
 - [perltidy-sil0](feedback-perltidy-sil0.md) — format-code/ptd `-sil=0` self-heals over-indented modules to col0
+- [design-ideation-capture](feedback-design-ideation-capture.md) — engage substance + offer fold-in/spin-off doc when user riffs unprompted; write immediately once confirmed
 
 ## Completed Sessions
 - [topic-completed](topic-completed.md) — all session summaries (Feb 2026 → present)
@@ -189,4 +191,32 @@
 #FWHDYPXMXLPQULJKRAIBCDT5IJUQ5TV4EGZSO5GQFSLWP7SLDBS4ZZ35FNWGAHKI2UGTGQUEQXJMK
 #\\\|FVQB5XIQKZ5DNAWAYALGNQNLM6VZ3L4LNPLUOXAGUXGLUPVPINN \ / AMOS7 \ YOURUM ::
 #\[7]5ET5GXSAL6Q2LGKXBDJVV2QX7PJ7QDOWI6ODIO576JYPPFWYVMCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+## completed 2026-06-07 — credential fabric wiring landed + queue-stall fix
+
+- **credential-fabric wiring** ✓ (21f4edfa5) — proxy.outbound.connect_or_use,
+  credential_fabric.seed_registry, proxy/transport.handler.cred_rotated,
+  credential_fabric.cmd.approve; auth-relay routes via protocol-7-menu
+  gtk dialogs w/ console fallback; transport handles resolve credential:
+  refs before connect. landed via kimi session feea2b38 (ran ahead of
+  the dispatch I attempted — found via session_catchup after the
+  coding-zenka restart wiped the auto-summary that referenced it).
+- **verify task dispatched** — data/tasks/credential-fabric-wiring-verify.md
+  (manual pass through the wiring task's acceptance list + findings doc;
+  read-only re: zenka modules) → kimi, in progress.
+- **coding zenka queue stall** — restarted zenka to clear two permanently
+  orphaned jobqueue jobs stuck in 'running' (one from a leak in
+  coding.task.complete never calling jobqueue.move_job on success, one
+  from http_error's requeue-to-depending not firing for a compaction
+  subtask). restart cleared both; underlying coding.task.complete bug
+  still open — needs jobqueue.move_job($job_id,'completed') added.
+- **log message fix** ✓ — coding.task.execute: "async streaming started"
+  → "async request dispatched ... awaiting first token" (fired at
+  request-dispatch not first-byte; was reading as a contradiction
+  against the data-start-timeout log line).
+
+#,,.,,,,.,..,,,,.,.,.,,.,,,.,,...,,,.,.,.,,,,,..,,...,...,,,.,.,.,,,.,.,,,.,,,
+#C6X77WEMXTR7FBQXNBZXYTVOREZNKOBBPHN5H4UJWREGKZ3MR6QZBSXU65DFOWWIM7COC2DR46M7O
+#\\\|5J4EPEW3Z6U5FDIXBWD5W6KOXK4FSOJELHCBE2VYH4JRP6H5SNR \ / AMOS7 \ YOURUM ::
+#\[7]HDPXI2F3EVTLN6ZF552PQOLKOBJWHTTGQAA4Y565CMRLZSJH32DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

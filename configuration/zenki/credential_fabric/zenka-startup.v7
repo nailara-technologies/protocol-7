@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = zenka-startup.v7
+# descr = 'credential_fabric' zenka startup configuration used by 'v7' zenka
+
+dependencies = cube
+
+: v7-init :
+  start_mode = stdin-zenka
+  cube.key = [base.prng.chars-anum:44]
+  [v7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<cube.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{cube.key}>']
+
+#,,,,,.,.,.,.,,..,.,,,,.,,,,.,,..,,,,,.,.,...,..,,...,...,...,,,,,,,,,,..,,,.,
+#XZELL534WGDESOBIRKUGQ4UHCPMWBS3472OD44TAE7GEZIXSTBK27NV6XMVCAOX26SPCBR366M7Y6
+#\\\|FFQHFIQZFCLN4EXRD2EEETPUNII6ZITCVSPYE3EUDSV6AYC6NNQ \ / AMOS7 \ YOURUM ::
+#\[7]KY6B2YQDKBBC4C7EIYN26EIYQVNCGEATVV7ZO5UU5X7HTFXIOEDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
