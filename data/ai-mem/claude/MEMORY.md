@@ -12,6 +12,7 @@
 - [Timers](feedback-timer-module-args.md) — need after + interval + repeat:TRUE
 - [Deferred Init](feedback-deferred-init.md) — push onto system.callbacks.initialized
 - [Timer Args](feedback-timer-module-args.md) — timer modules get event as $ARG[0]; use `@ARG > 1`
+- [config reload clobber](feedback-config-reload-clobber.md) — placeholder `key=val` in start config gets re-applied by `reload config/all`, silently overwriting runtime-resolved values; debug via on-disk zenka log not ring buffer
 
 ## Active Topics
 - [ascii-frame-system](topic-ascii-frame-system.md) — reverse parser, elastic renderer, DRC validator
@@ -215,8 +216,8 @@
   request-dispatch not first-byte; was reading as a contradiction
   against the data-start-timeout log line).
 
-#,,.,,,,.,..,,,,.,.,.,,.,,,.,,...,,,.,.,.,,,,,..,,...,...,,,.,.,.,,,.,.,,,.,,,
-#C6X77WEMXTR7FBQXNBZXYTVOREZNKOBBPHN5H4UJWREGKZ3MR6QZBSXU65DFOWWIM7COC2DR46M7O
-#\\\|5J4EPEW3Z6U5FDIXBWD5W6KOXK4FSOJELHCBE2VYH4JRP6H5SNR \ / AMOS7 \ YOURUM ::
-#\[7]HDPXI2F3EVTLN6ZF552PQOLKOBJWHTTGQAA4Y565CMRLZSJH32DA 7  DATA SIGNATURE ::
+#,,,.,...,..,,..,,...,,,,,...,,,.,..,,.,,,,.,,..,,...,..,,,,.,,.,,,.,,,.,,,,.,
+#7ZMMZCUQBPECDPKHXNPILDJ2VF7TNWEODPCSPZNORIIYFVPXWUEP55F5YAFBUYM3W4JTUJLPVRBQK
+#\\\|PKDGBEO2K45VCEE33A7AWKDIADB2VX5E6HFFWRAM2SFMXHHIHPQ \ / AMOS7 \ YOURUM ::
+#\[7]TFWNZYHGPRS3PHBLYS6SEFSXP4J7UUDTSFQS735NOUAY7UKIIGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
