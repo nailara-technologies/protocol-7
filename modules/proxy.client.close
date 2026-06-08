@@ -8,6 +8,17 @@ my $client_id = shift;
 my $client = delete $data{'proxy'}{'clients'}{$client_id};
 return if not defined $client;
 
+## cancel client read watcher before closing socket ##
+if ( defined $client->{'watcher'} ) {
+    $client->{'watcher'}->cancel if $client->{'watcher'}->is_active;
+}
+
+## cancel outbound io and timeout watchers ##
+for my $wk ( qw| io_watcher timeout_watcher | ) {
+    my $w = $client->{'outbound'}{$wk} // undef;
+    $w->cancel if defined $w and $w->is_active;
+}
+
 ## close target socket if tunneling ##
 if ( defined $client->{'target_sock'} ) {
     $client->{'target_sock'}->close;
@@ -28,8 +39,8 @@ if ( defined $client->{'sock'} ) {
 
 return;
 
-#,,,,,.,,,,.,,,..,...,,.,,,,,,,..,,.,,.,,,...,..,,...,...,..,,..,,,..,..,,,..,
-#DHEL5SFSC55OCSHPQQHAKE5QWFB2SMMEQE5WC72TMVQB54TBJEGFHDRENUXNSAT2UHK42IA3Y7BUW
-#\\\|45ZKFXMVJFQ6KLWI2BS7R56K56XMNQKBUCXF6HQU3BCVXRVAJ5M \ / AMOS7 \ YOURUM ::
-#\[7]E6KEPGRRS5MW7XJMI3JNVZS3CC3ROQNAXQOZUHODC7YTSOJHFGBA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,.,,,,,,,,.,,..,.,,,..,,,,,,.,,,..,,...,...,...,..,,,.,,,.,,,.,,
+#WMNVC7JZA3CFF2OU3IDIH6MJS2LUPZ7DPJN2OFHY2JJ6YWEWPDPNEKSI6FPOMOLZXJMUA4YGT6GOO
+#\\\|Y7GCH5WJ4ISCP4MWAFVIQWFAQB536HVVOVNBA2ZQIUIQ42NTDXT \ / AMOS7 \ YOURUM ::
+#\[7]VX3L7AUNNX5LAM77NY772CJPBPAE5VEKRQMQIPQWK53JMN5FZKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

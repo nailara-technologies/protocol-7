@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = proxy.handler.auth_lookup_reply
+# descr = handle credential_fabric.resolve reply, populate auth context,
+#         call post_auth to continue request processing.
+
+my $reply     = shift // {};
+my $params    = $reply->{'params'} // {};
+my $client_id = $params->{'client_id'};
+my $domain    = $params->{'domain'} // '';
+
+my $client = $data{'proxy'}{'clients'}{$client_id};
+if ( not defined $client ) {
+    <[base.logs]>->(
+        2, 'proxy.auth_lookup_reply: client %s gone', $client_id
+    );
+    return;
+}
+
+my $context = $client->{'context'};
+my $mode    = $reply->{'mode'} // '';
+my $data_r  = $reply->{'data'};
+
+my $auth_result;
+
+if ( $mode eq qw| size | and defined $data_r and length $data_r ) {
+    my $resolved = eval { YAML::XS::Load($data_r) };
+    if (    not $@
+        and defined $resolved
+        and ref $resolved eq qw| HASH |
+        and ( $resolved->{'mode'} // '' ) eq qw| true | ) {
+        my $slot = 'session.' . $domain;
+        $auth_result = {
+            'has_session' => TRUE,
+            'slots'       => { $slot => $resolved },
+        };
+    }
+}
+
+$auth_result //= { 'has_session' => FALSE, 'slots' => {} };
+
+$data{'proxy'}{'auth_cache'}{$domain} = $auth_result
+    if length $domain;
+
+$context->{'auth'} = $auth_result;
+$client->{'state'} = 'processing';
+
+<[proxy.handler.post_auth]>->($client_id);
+
+return;
+
+#,,..,.,.,,.,,,.,,,.,,,.,,.,,,,.,,,,,,,,.,.,,,..,,...,...,.,,,.,,,,,,,..,,,.,,
+#3JSV4NMW2STMEMLVXPIBKD2Q3YYNRR4CNI5XAUEWFREAF5QGWMPLEI6ZSEYRQ2GAGGJIBOCV2EG4I
+#\\\|GMJ7IVP5BA2ZEA4LQXE3XOUE3XJ2WWWHUK2VRSFB6L7DZGLD4VZ \ / AMOS7 \ YOURUM ::
+#\[7]RG2SHFDSYQBGM6DYMOC75JYLPMG34X2Z2RFLMQDR6Z6RQRCNXSCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

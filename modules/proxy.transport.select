@@ -1,16 +1,18 @@
 ## [:< ##
 
 # name  = proxy.transport.select
-# descr = backward-compat alias to transport.select during transition
+# descr = delegate to transport.select if co-loaded, else return undef
 # args  = $context_hash
 # returns transport handle hashref or undef
 
 my $ctx = shift // return undef;
 
+return undef unless exists $code{'transport.select'};
+
 return <[transport.select]>->($ctx);
 
-#,,..,,.,,,.,,,,,,..,,,..,,,.,.,.,.,.,,,,,.,.,..,,...,...,.,,,.,,,,.,,..,,,,.,
-#OEWWFCWQK2IRI44UEVZRNOZKBHPBIXGF44ZCM3QR2TO2AMBQ2GMC2Z6A6VSJWD5WIXJYOJSOMZGDY
-#\\\|Z4TUQEVOUUEQZLEFAQ7DR6EZTQRTVBITUDQYPIHW6G4RBKMNLLQ \ / AMOS7 \ YOURUM ::
-#\[7]3R3FJOBLCUO7ZJYXR765VQPIH4GQ65QFEWXFQQJTYU4CRCQIGUBQ 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,.,,,,.,...,..,,..,,.,,,,.,,,..,..,,...,...,,.,,,..,..,,,.,,,.,,
+#GCDMK7BL6IVOI72AHEVJBNX5YOQKZ6JETFCFGAV2M7A7JZUCWDVSABHYC7ASGC7FGKRJHG7QCWDIO
+#\\\|BU3CGBD3TSX25KC5KSLGTXOCWMJDX4FJLUIVZIYK4RSFOG4VLVV \ / AMOS7 \ YOURUM ::
+#\[7]YMRAQSTYN5YUKMDRGMAMTHK6PDZXO6Y5LL26VVCLCBHHJRY6LIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
