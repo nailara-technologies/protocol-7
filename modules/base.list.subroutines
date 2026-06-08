@@ -163,6 +163,7 @@ return [ qw[
         radio.cmd.stop
         radio.cmd.skip
         radio.cmd.keep
+        proxy.pre_init
         plnx.init_code
         note.tree.view
         note.summarize
@@ -3061,6 +3062,7 @@ return [ qw[
         crypt.C25519.chksum_cache.add
         credentials.spawn_web_session
         credential_fabric.store.local
+        credential_fabric.cmd.ui-show
         credential_fabric.cmd.resolve
         credential_fabric.cmd.approve
         context.pattern.generate_name
@@ -3559,6 +3561,7 @@ return [ qw[
         crypt.C25519.cmd.get-session-sig
         crypt.C25519.cmd.get-session-key
         crypt.C25519.cmd.clear-zenka-key
+        credential_fabric.ui.query.slots
         credential_fabric.cmd.list-slots
         context.util.tree.canonical_json
         context.string.common_suffix_len
@@ -3680,6 +3683,7 @@ return [ qw[
         data.mount.shm.open.mmap_shm_read
         data.mount.shm.open.derive_pubkey
         crypt.C25519.verify_key_signature
+        credential_fabric.util.format_age
         content.update.send_notifications
         coding.tools.handler.write_append
         coding.tools.handler.replace_line
@@ -3918,6 +3922,8 @@ return [ qw[
         graphics-3d.handler.cursor_navigate
         external.orbital.sync_grid_fragment
         credentials.handler.session_cleanup
+        credential_fabric.util.perform_auth
+        credential_fabric.ui.query.overview
         credential_fabric.key_holder.parent
         context.util.template.evaluate_when
         context.pattern.extract_from_change
@@ -3994,6 +4000,7 @@ return [ qw[
         discover.orbital.share_grid_fragment
         debian.parent.resolve_cpan_to_debian
         crypt.C25519.cmd.register-master-key
+        credential_fabric.ui.render.overview
         credential_fabric.subscribe_rotation
         context.util.tree.resolve_time_range
         context.util.tree.generate_narrative
@@ -4074,6 +4081,8 @@ return [ qw[
         crypt.C25519.list_key_signature_names
         crypt.C25519.generate_session_keypair
         crypt.C25519.create_signature_request
+        credential_fabric.ui.query.key_holder
+        credential_fabric.ui.query.auth_relay
         credential_fabric.handler.route_reply
         context.util.tree.parse_relative_time
         context.util.tree.calculate_relevance
@@ -4144,6 +4153,8 @@ return [ qw[
         httpd.benchmark.get_event_loop_metrics
         graphics.matrix.visual.extract-palette
         external.handler.orbital_connect_reply
+        credential_fabric.util.key_holder.sign
+        credential_fabric.ui.query.slot_detail
         context.provider.frame.bottom_sentinel
         context.investigation.user-me-endpoint
         coding.tools.handler.summarize_context
@@ -4183,6 +4194,7 @@ return [ qw[
         graphics.matrix.visual.build-cubic-grid
         discover.callback.resend_interval_reset
         debian.parent.ensure_zenka_dependencies
+        credential_fabric.ui.query.rotation_log
         credential_fabric.request-authorization
         credential_fabric.handler.rotation_strm
         context.pattern.assess_generalizability
@@ -4238,6 +4250,9 @@ return [ qw[
         data.topology.interference.map.CUBE_SIZE
         data.init_holographic.determine_polarity
         data.init_holographic.coordinate_to_hash
+        credential_fabric.util.format_holder_age
+        credential_fabric.util.complete_approval
+        credential_fabric.ui.render.rotation_log
         coding.vision-parser.extraction.workflow
         coding.tools.handler.regex_replace_apply
         coding.learning.generate_recommendations
@@ -4269,6 +4284,9 @@ return [ qw[
         data.init_holographic.generate_field_line
         crypt.C25519.validate_remote_key_checksum
         credentials.unpack_format.archive_payload
+        credential_fabric.util.key_holder.encrypt
+        credential_fabric.util.key_holder.decrypt
+        credential_fabric.ui.render.registry_list
         coding.vision-parser.handler.vision_reply
         base.zenki.ondemand.handler.startup_reply
         base.agent_code.handler.sig_warn.end_proc
@@ -4311,6 +4329,7 @@ return [ qw[
         debian.parent.callback.register_cpan_module
         data.topology.interference.map.MAX_RGB_DIST
         data.mount.shm.header.write.pack_shm_header
+        credential_fabric.ui.render.registry_detail
         coding.tools.handler.validate_module_format
         coding.handler.models_recommendations_reply
         base.zenka.push.reply-handler.notify-online
@@ -4331,6 +4350,7 @@ return [ qw[
         data.topology.interference.map.hash_to_phase
         data.topology.interference.map.PROTOCOL_BLUE
         data.mount.shm.header.read.unpack_shm_header
+        credential_fabric.ui.render.auth_relay_queue
         coding.vision-parser.cmd.analyze_and_extract
         coding.tools.handler.module_convention_check
         coding.learning.analyze_model_specialization
@@ -4341,6 +4361,8 @@ return [ qw[
         image2html.parent.handler.convert_image_reply
         data.mount.shm.permission.add.sign_permission
         data.init_holographic.position_in_intent_path
+        credential_fabric.util.key_holder.start_child
+        credential_fabric.ui.render.key_holder_status
         coding.vision-parser.handler.state_transition
         coding.learning.update_routing_recommendation
         coding.handler.models_record_invocation_reply
@@ -4428,8 +4450,8 @@ return [ qw[
     ]
 ];
 
-#,,.,,.,,,,,.,...,...,,,.,.,.,,,,,,,,,,.,,,,.,.,.,...,.,.,..,,,,,,..,,,,.,,,,,
-#SZSYSOLEY6C27AAADWDZGHE4AKEPGHYVC65CYDZAN5JQMD765V5ZIS3XOWM6SXIMOPL7LNEIUEXWM
-#\\\|MYCJBXFERT4KFJDQVJLCPEL2B3V4JDP3ROUKLA5HCBCB5DFKHYQ \ / AMOS7 \ YOURUM ::
-#\[7]DS6FJW6YFVUIXAT5KAMZAAOZROTRR3YRTPPL46FJK4I3OUNLQKDA 7  DATA SIGNATURE ::
+#,,..,.,.,,..,.,,,,,.,.,,,.,,,..,,,.,,,,.,,,.,.,.,...,...,...,.,,,..,,,.,,,..,
+#YPABGJBOBNGXYCWVXPMVOQEN3QZXU2ZYNELAWBZVKMEA46GENRY3F42PWSQXOCJ4V6SRWCEOIOWAK
+#\\\|RHJTU4GJRGAQNYGEF2Z54XTASKPKMG4MR7BHAV365BCBRY75KPE \ / AMOS7 \ YOURUM ::
+#\[7]WFWVLLW5E2JKSEGRRHOE6UHDF3KDSJZO33GNVRFTTP2UO4FCI2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
