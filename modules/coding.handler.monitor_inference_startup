@@ -84,6 +84,13 @@ if (
         );
         $server->{'status'}       = qw| ready |;
         $server->{'ready_logged'} = TRUE;
+
+        ## mark cold-start : the first request to a freshly-(re)spawned     ##
+        ## server pays model-load / first-inference warmup latency on top   ##
+        ## of normal prefill — independent of prompt size. http_client      ##
+        ## grants this request extra data-start grace ; cleared on the      ##
+        ## first chunk actually received [ coding.callback.http_chunk ]     ##
+        $server->{'cold_start'} = TRUE;
         $server->{'url'}
             = sprintf( 'http://127.0.0.1:%d', $server->{'port'} // 8000 );
         $server->{'model'}       = <inference.model.amos_id>     // '';
@@ -178,8 +185,8 @@ if ( $bytes <= 0 ) {
     }
 }
 
-#,,..,,.,,,,.,..,,.,,,..,,,.,,.,,,,,,,,,.,,,.,..,,...,...,..,,.,.,..,,.,,,.,,,
-#QB4OTLDOKKP7AZLEHPKEFQX7XX54LCUSL6FXFSCTVYCN4J5AO3WTEJ6YXLRW4DOMNUVKCLTUNYRCG
-#\\\|MGHPHYPQ7NTK67HG3NDV7XOEWBL4E6FYGI4CTXR4XJOTPWXPJHC \ / AMOS7 \ YOURUM ::
-#\[7]BQ6H3F5NJMHPXHLTK32ZSVUPIDDNBDBFVJUT3457YPBR47M6FOBY 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,,.,,..,..,,,,.,,,,,,,,,,,,,,.,,..,,...,...,...,,,.,,..,...,,,.,
+#236F42VDFY25DEHSYGW4JVQSJ4MUICLI2D3DB625GZVDKDOMFD5Z7SX6LNVVB36F7FFJRFQGX2ZYA
+#\\\|IIGXQCNUZOSBBPBCFTAORJWXRPBO52BJ2FYRNN3YE7EMMA7OKDP \ / AMOS7 \ YOURUM ::
+#\[7]2BPOFWDHSOYM5UZECMFY5OLZX4HGBNUG2J35D2K36UOHNK6JTSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

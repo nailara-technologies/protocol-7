@@ -49,6 +49,34 @@ if ( $scaled_timeout_sec > $data_start_timeout_sec ) {
     $data_start_timeout_sec = $scaled_timeout_sec;
 }
 
+## cold-start grace : the FIRST request to a freshly-(re)spawned server  ##
+## pays model-load / first-inference warmup latency on top of normal     ##
+## prefill — and that request is often small [ short initial prompt ],   ##
+## so prompt-size scaling alone hands it the shortest timeout exactly    ##
+## when it needs the longest one. grant a flat grace period instead,     ##
+## independent of prompt size ; cleared on first chunk received          ##
+my $backend_name = $callbacks->{'backend'} // '';
+my $backend_srv
+    = length($backend_name)
+    ? ( <coding.inference_servers> // {} )->{$backend_name}
+    : undef;
+
+if ( $backend_srv && $backend_srv->{'cold_start'} ) {
+    my $cold_start_timeout_sec = <coding.cfg.cold_start_data_start_timeout>
+        // 90;
+    if ( $cold_start_timeout_sec > $data_start_timeout_sec ) {
+        <[base.logs]>->(
+            1,
+            'async.http_client: cold-start grace applied %d -> %d'
+                . ' [backend=%s]',
+            $data_start_timeout_sec,
+            $cold_start_timeout_sec,
+            $backend_name
+        );
+        $data_start_timeout_sec = $cold_start_timeout_sec;
+    }
+}
+
 ## Build HTTP request ##
 my $request
     = sprintf( "POST %s HTTP/1.1\r\n"
@@ -164,8 +192,8 @@ return {
     state   => $state,
 };
 
-#,,.,,,..,,,,,...,.,.,,,,,,,.,,.,,..,,..,,,,.,.,.,...,...,.,.,,,.,.,.,.,,,.,,,
-#STWXFIXYZG472M6LJ2OSVZWCQKJ6JRKZFVE6S23MKM23TESXRAZ6I2GJBE7HHX5AASSS6JIGASUDI
-#\\\|IEGIQNP666UH4VLSRB56PBPEBL4KD6GTXXFDKJHUCNKWEQRTXMK \ / AMOS7 \ YOURUM ::
-#\[7]X4XRIFYC6IQJ57OMCIR3S6H47LG3D66MSYZSX45UQGAHN6K3GWCQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,..,,..,,,.,,...,.,.,,.,,..,,,,.,.,.,...,.,.,,,,,...,,.,,,,,,,.,,
+#KKFVRYUV3Z6HWIWSQU6KPUM4X2WFD2HYKT7K7WGPSR7HTCEOIHHOEKXT6EJR755NMTNMMKDL52Y7E
+#\\\|RXNNL5ASCSKIPTBC74QLXTOADJNCMZK5JHD2Z6M6ZY4G4GOXTRV \ / AMOS7 \ YOURUM ::
+#\[7]QNVM5CZKHAU4X3RYAG4CCY7YCWIGMW7YBT3A7X6S6GRZU3VRZACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -19,6 +19,20 @@ if ( defined $req_seq && $req_seq != $current_seq ) {
     return;
 }
 
+## first chunk from this backend since (re)spawn : warmup is over,     ##
+## clear the cold-start data-start grace [ coding.async.http_client ]  ##
+my $backend_name = $state->{'backend'} // '';
+if ( length $backend_name ) {
+    my $srv = ( <coding.inference_servers> // {} )->{$backend_name};
+    if ( $srv && $srv->{'cold_start'} ) {
+        delete $srv->{'cold_start'};
+        <[base.logs]>->(
+            1, "http_chunk: %s backend warmed up, clearing cold-start grace",
+            $backend_name
+        );
+    }
+}
+
 my $context = $state->{'chunk_context'} // {};
 $context->{'round'} = $state->{'round'} // 0;
 
@@ -39,8 +53,8 @@ $state->{'chunk_context'} = $context;
 
 return;
 
-#,,,,,,.,,.,,,.,,,...,,,.,..,,...,.,,,,,,,,,,,..,,...,...,,..,,..,.,,,,..,,..,
-#DRQRJL7KFLNL24RIWSOL7VWOW5NUFPX43QPOLF6YM42LYCGF5C5TM3KOG7TJU2B65AZYO5KHWTDK2
-#\\\|HXNBQQVWYAXK7ISHN75OVW32KVOSE7JULZYRIXWNASWZM7VVQEU \ / AMOS7 \ YOURUM ::
-#\[7]VSKNLB6UPR4LGVQ3GJNFORKEF5XICJ75BV5ZTB3TNMXRJOS6TWAY 7  DATA SIGNATURE ::
+#,,..,,..,,,,,.,,,.,.,,..,.,.,,..,...,,,,,.,.,..,,...,...,.,.,,.,,,,.,..,,.,.,
+#CNGK3BT54K32RHAD2QA2CH4GVT5MFTSA5FSYLK3L73HMZ3AU65ZR6WDCHVSI2IMBQ3EZDWLXXHSRS
+#\\\|L6CWPTZUD76OMND3FJNOI6A4QNCBLKHD6NJWBSU7NA3GN6QYROB \ / AMOS7 \ YOURUM ::
+#\[7]BVKZ6K42UFN7YQKAKKFZPY24JZF3X7QWQQIZ5C6WYPMVTW52H6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
