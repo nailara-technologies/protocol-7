@@ -1,6 +1,7 @@
 ## CRITICAL
 - [File Creation](feedback-file-io-api.md) — never add `#,,.,,,...` stub — blocks signing
 - [base. prefix stripped](feedback-base-prefix-stripped.md) — use `<[protocol-7.command.send.local]>` not `base.` prefix; check with `<zenka>.list-subs`
+- [.cmd. segment stripped](feedback-cmd-segment-stripped.md) — `<zenka>.cmd.<name>` on disk = callable as `<zenka>.<name>`; verifying live 2026-06-08
 - [filter-repo prefix](feedback-filter-repo-amend.md)
 - [P7 data nesting](feedback-p7-data-nesting.md) — `<a.b.c>` = `$data{a}{b}{c}`; use underscore for siblings not dot
 - [timer undef interval](feedback-timer-undef-interval.md) — undef after/interval = IO::Async max-rate loop; always guard with fallback
@@ -94,6 +95,7 @@
 - [migration](topic-migration.md) — Windows 11 instability; KVM/Debian migration
 
 ## Feedback
+- [claude_dispatch summarize hang](feedback-claude-dispatch-summarize-hang.md) — coding_summarize prompt-overflow leaves outer session stuck forever (near-zero CPU); check ps + coding zenka log, kill PID, work is safe on disk
 - [init-code-return-values](feedback-init-code-return-values.md) — TRUE(5) AND FALSE(0) both = success; only undef/exception = failure
 - [memory-sync-timing](feedback-memory-sync-timing.md) — sync at ~42K context remaining
 - [memory-management](feedback-memory-management.md) — tree-structured modules; startup efficiency
@@ -139,8 +141,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,..,.,.,..,,.,,,,,.,,..,...,.,,,,..,,,.,,,.,..,,...,.,.,,,.,.,,,.,.,,.,,,,,,
-#TITS7CYZXZG2MK7OGCUL5PROOIOBKRB345M7R5MR2TFOGMMWG3XVJV2NU7BCQZ74NAOA3EPAVIU2W
-#\\\|GDYHJNNBFTN3OXM4UX44IGW2XFWKG4566LXVD7N2DPKJPA2VYNK \ / AMOS7 \ YOURUM ::
-#\[7]SIXVHZZ6PBFDUTTSC72EZDHFBEPS46BAOEXKWPSUQ7KMPEL3NUCQ 7  DATA SIGNATURE ::
+#,,,,,...,,.,,..,,,..,.,.,.,.,...,,,,,...,..,,..,,...,...,,..,,,.,,..,.,,,,,.,
+#TCPDFASRS2V36HQVLQ7GZLLCFFQXZMCGC7QRHIYXMGHX7SHRVSVVKI75LHXPJYUH6Q7WLF4KTUROG
+#\\\|BYL2B3RGXK5GT5ODNRWVYE7CS7QXDTH4WQXJ44U4A2JMGOWAYEF \ / AMOS7 \ YOURUM ::
+#\[7]IQZVTLZCK53VEBPKES3MOMSDM4YSTBGV7RNBZGGZBV4FPPBMN4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
