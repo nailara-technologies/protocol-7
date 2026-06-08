@@ -16,13 +16,19 @@ access.cmd.usr.cube = heart subname name commands reload verify-instance \
                       rotate \
                       request-authorization \
                       approve \
+                      list-slots \
+                      ui-show \
                       dump set get del exec-sub eval-code
 
 credential_fabric.cfg.store_dir     = var/credential_fabric/
 credential_fabric.cfg.registry_file = var/credential_fabric/registry.yaml
 credential_fabric.cfg.audit_log     = var/credential_fabric/audit.log
 
-modules.load = auth net protocol io.unix credential_fabric credential proxy devmod
+modules.load = auth net protocol io.unix credential_fabric credential proxy \
+               ascii.frame format.yaml httpd.status_codes devmod
+
+[base.white-list.register:'ascii.frame']
+
 [load_modules:<modules.load>]
 [init_modules]
 
@@ -34,8 +40,8 @@ modules.load = auth net protocol io.unix credential_fabric credential proxy devm
 
 [zenka.loop]
 
-#,,,.,...,,..,...,,.,,,,,,,.,,,,.,,.,,.,,,.,,,..,,...,...,,,.,,,.,,,.,,..,.,.,
-#4YFR2YS2QPX353ZEUU3LWSMKBKZFC5YHOWHJNX3SYP4DV5TRVZLEVMWDWESPBV6TPDEAJCXVDKBEK
-#\\\|PXWA6QICDKWQZMYIIVE4YYXKHHPORULOXARNKUGLQQCNFLN5JOZ \ / AMOS7 \ YOURUM ::
-#\[7]XZFT35YNM4EUVAPZWTSM3IHYOL2XLXPEK2X7ARP3BGUU7MH6AYAA 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,.,,.,,,,..,,,,,,.,,.,.,,.,,,,.,..,,...,,.,,...,,,.,.,,,.,,,.,,,
+#OSRNFXWMAKGBNIMOGP56YSSCG7UQVXJZCVZVRRONVX7VDSIXOBUGFOA2SDHMJXW3YL5W7QA37LBAE
+#\\\|JWZMOACABT3B5B7GHDM5IFU6T5IFCN4Q7XSUNRS3O42H3ZRWNTL \ / AMOS7 \ YOURUM ::
+#\[7]FCWKJTC4AYCBDFQCD6FLMRQOAE53QM7HBZJI5ZSEUHIJEGIGCWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
