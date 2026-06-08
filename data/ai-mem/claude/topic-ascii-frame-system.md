@@ -1,5 +1,37 @@
 # session 72: topic-ascii-frame-system
 
+## VERIFIED architecture (2026-06-08, against live code) —
+## the sections below ("DRC validator", generic header/body/sidebar
+## mockup types, width/height required fields) do NOT match the actual
+## implementation; treat them as stale/possibly-hallucinated and prefer
+## this section + direct code reading
+- real pipeline: `ascii.frame.load` → `ascii.frame.parse` (reverse
+  template parser: ascii-art mockup string → descriptor) →
+  `ascii.frame.render` (descriptor + slot values → ascii string)
+- `parse` finds border lines by structural-char density (`[:.,\[\]#=]`
+  ≥ 50%), splits each border line into elements via
+  `parse.border_line`/`parse.border_segment`/`parse.fill_anchor_text`:
+  `anchor` (literal text incl. bracketed labels `[ word ]`), `fill`
+  (runs of `:`/`.`/`=`, carries a `min` length), `slot` (`{{NAME}}` —
+  inline in borders, or field/block/composed in content rows)
+- `render.border_line` elasticity: exactly ONE spring per line — if a
+  slot is present, the slot's value absorbs the slack (padded right,
+  pins corners/separators rigid); if no slot, the LARGEST fill absorbs
+  it (e.g. the dotted bottom rule stretches, `:` corners stay put).
+  Assumes `min` is a true minimum — if `$fixed > $width`, slack clamps
+  to 0 and the line renders OVERSIZED (no shrink-below-min path)
+- `render`'s `required_width` is the max across: `min_width` (sum of
+  TOP+BOTTOM anchor lengths combined — a latent quirk, not yet a
+  observed bug), static rows, field/block/composed slot content widths,
+  AND inline border-slot lines (must use the line's true fixed width =
+  anchors + fill mins + slot value — see [[topic-credential-fabric-
+  proxy-transport]] 2026-06-08 fix for the bug when this was
+  under-computed as `min_width + val_len`)
+- `frame_width = required_width + len(border.left) + len(border.right)`;
+  corners/border chars auto-detected from first/last chars of content
+  rows (most common = winner); `lpad`/`rpad` derived from min leading/
+  trailing whitespace runs across static (non-slot) content rows
+
 ## reverse parser
 - Parse mockup YAML in REVERSE: children first, then parent
 - Mockup structure: `mockup: { type: 'parent', children: [ { type: 'child', ... } ] }`
@@ -73,8 +105,8 @@ mockup:
 - DRC validation catches errors early in the pipeline
 - All three components work together: parse -> validate -> render
 
-#,,,.,,.,,,,,,,..,.,,,..,,.,,,.,.,.,.,,,,,,,,,...,...,...,,.,,,.,,..,,,.,,.,.,
-#3GAEEMUVK6PDJGJPRAF3LGIQ4LNDTEJYUU2FLLLOMOLO2FMCLGQ3CZ34QBCSXKHICGILXZ5XEDUA4
-#\\\|IFS2Q436NHIVVBQ3LEWEST4ASJAPTNBGQ3A7FU5HFV26FT3II7Z \ / AMOS7 \ YOURUM ::
-#\[7]HZGXUWYZOIH26SR464F7EM3QFYJEWHD2XUUEGMORMJTOBIPJUCCA 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,,,,,.,.,.,.,,,...,,.,,.,,,.,,,...,...,...,,..,...,,.,,,.,,.,,,
+#NNRNUR7BQ2Y4TQQ37EVNPE7GYJ7OC5PW55MYA5ISCWVR2G5MPTWCHRTARWK54D26WWEHCVPH2FEBA
+#\\\|G5YOZQ33AITSIHYSOCTXLD2EDXWMKSNOZRUVHZLAZBHMCWMPX47 \ / AMOS7 \ YOURUM ::
+#\[7]EZ57J6ELRDN33JAXRX2AXPF2ULE2N5PNJVCA7SSLEUSODO7PBEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
