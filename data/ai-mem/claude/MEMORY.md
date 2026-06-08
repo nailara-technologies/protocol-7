@@ -15,6 +15,7 @@
 - [config reload clobber](feedback-config-reload-clobber.md) — placeholder `key=val` in start config gets re-applied by `reload config/all`, silently overwriting runtime-resolved values; debug via on-disk zenka log not ring buffer
 
 ## Active Topics
+- [credential-fabric-proxy-transport](topic-credential-fabric-proxy-transport.md) — boot blockers fixed (3349352df); live traffic verification + #6/#15 access gaps remain
 - [ascii-frame-system](topic-ascii-frame-system.md) — reverse parser, elastic renderer, DRC validator
 - [frame-plugin-slots](topic-frame-plugin-slots.md) — status-bar plugin slots + context-aware selector; variable border width; vertical-slot roadmap
 - [ascii-desktop-domains](topic-ascii-desktop-domains.md) — border glyphs are domain-scoped; nested domains = nested planes = ascii desktop; role-vs-glyph descriptor is the windowing unlock
@@ -93,6 +94,7 @@
 - [migration](topic-migration.md) — Windows 11 instability; KVM/Debian migration
 
 ## Feedback
+- [init-code-return-values](feedback-init-code-return-values.md) — TRUE(5) AND FALSE(0) both = success; only undef/exception = failure
 - [memory-sync-timing](feedback-memory-sync-timing.md) — sync at ~42K context remaining
 - [memory-management](feedback-memory-management.md) — tree-structured modules; startup efficiency
 - [claude-dispatch-strategy](feedback-claude-dispatch-strategy.md) — offload kimi orchestration
@@ -137,8 +139,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,,.,.,,,,..,,..,,.,,.,,,..,,,,,,.,.,,,,,,,,,..,,...,...,..,,.,.,...,..,,,.,,
-#EXH3IURXKHSBGRSZL4TZFR3Z5XU7L36GT2RVZQNYUQYQZK2N2EEVJMNMRIWATQLC6VXPEWBVYDXPU
-#\\\|JOCL5EFLE76YDBLZQGT36ZNSIDU7D7JUGSDWQSSYLN37PHXAGGT \ / AMOS7 \ YOURUM ::
-#\[7]ZFLOX46SP77CZ35EE4G7QCEMA6DBSJQCUKMQI74KEMEN67NK6SDY 7  DATA SIGNATURE ::
+#,,..,.,.,..,,.,,,,,.,,..,...,.,,,,..,,,.,,,.,..,,...,.,.,,,.,.,,,.,.,,.,,,,,,
+#TITS7CYZXZG2MK7OGCUL5PROOIOBKRB345M7R5MR2TFOGMMWG3XVJV2NU7BCQZ74NAOA3EPAVIU2W
+#\\\|GDYHJNNBFTN3OXM4UX44IGW2XFWKG4566LXVD7N2DPKJPA2VYNK \ / AMOS7 \ YOURUM ::
+#\[7]SIXVHZZ6PBFDUTTSC72EZDHFBEPS46BAOEXKWPSUQ7KMPEL3NUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
