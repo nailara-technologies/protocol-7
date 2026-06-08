@@ -140,17 +140,24 @@ if ( $error =~ m{timeout}i ) {
             $srv->{'status'} = qw| restart_needed |;
 
             ## reduce context size to recover from VRAM-pressure timeouts ##
-            my $step  = <coding.cfg.ctx_timeout_step>    // 7000;
-            my $floor = <coding.cfg.ctx_timeout_floor>   // 16000;
-            my $cur   = <inference.model.context_length> // 0;
+            ## NOTE: <inference.model.context_length> is a FLOOR — spawn   ##
+            ## picks max(auto_calc, floor), so lowering it alone has no    ##
+            ## effect once auto-calc already exceeds it. set a recovery    ##
+            ## CEILING too : spawn clamps the final size down to it,       ##
+            ## regardless of what auto-calc would otherwise pick           ##
+            my $step  = <coding.cfg.ctx_timeout_step>  // 7000;
+            my $floor = <coding.cfg.ctx_timeout_floor> // 16000;
+            my $cur   = <coding.cfg.ctx_recovery_ceiling>
+                // <inference.model.context_length> // 0;
             if ( $cur > $floor ) {
                 my $reduced
                     = ( $cur - $step > $floor ) ? $cur - $step : $floor;
-                <inference.model.context_length> = $reduced;
+                <inference.model.context_length>  = $reduced;
+                <coding.cfg.ctx_recovery_ceiling> = $reduced;
                 <[base.logs]>->(
                     1,
                     "http_error: reducing context %d → %d"
-                        . " [timeout recovery, floor=%d]",
+                        . " [timeout recovery ceiling, floor=%d]",
                     $cur,
                     $reduced,
                     $floor
@@ -250,8 +257,8 @@ if ( $error =~ m{timeout}i ) {
 
 return;
 
-#,,,.,...,...,..,,.,.,,,.,,,.,,,.,..,,..,,,.,,..,,...,...,,.,,..,,,,.,,,.,,,,,
-#4UDYGA3F2SQ6QMBBPO6WSZ3LS6S445SE675HNHTUBCPZJ3EW2XU4WYFBLQOXPMYVG6AK4WCBEIA7U
-#\\\|EDGIVCXZY4PKPLIHJXKAZRN3LCUISIF6I4V2H7BKR746INHFU6U \ / AMOS7 \ YOURUM ::
-#\[7]V6E52262Q2XBMVRF2I53EM673BRMWEGG7COV5PGN6LVZA57HKGAQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,,,,,.,,,..,...,..,,.,,,...,,,,,..,,...,...,,,,,..,,.,.,.,.,,.,,
+#OSLNX72UC4727CLTJEBC5OY34QWMAHZWT7A6TIOXVILPJBJFUGBSL4OBLJDHNLSDUG2WD7ZZGN64C
+#\\\|DP53IXO4GHNCIH2BXOEBQ5QD4BQ7SC5KCN6MFFXEOTCR2JGSRWW \ / AMOS7 \ YOURUM ::
+#\[7]5CT2TLVXCTJRSHXKEYOJ7SULCR3QQTJTI3JSNSVB3MSAYDHL54DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

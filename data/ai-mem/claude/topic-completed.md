@@ -1,7 +1,13 @@
 # Completed Work Sessions — Index
 
+## 2026-06-07
+- session — credential-fabric wiring landed (21f4edfa5, via kimi feea2b38); queue-stall: 2 orphaned jobqueue jobs found+cleared by restart, coding.task.complete `jobqueue.move_job` leak still open; data-start-timeout log message contradiction fixed (see [archive](archive/topic-completed-archive.md))
+
+## 2026-06-06
+- session — iris queue features (dimension-rotator, cascade-warning, separator-pulse, temporal, boundary, negotiation-window); credential-fabric zenka (17 modules, b46b5f5d9); transport-selector (14 modules, b4373d6dc); proxy zenka skeleton (19 modules, 62e0fff54); data-start timeout 77→13s; memory cache + kimi-legacy fixes (see [archive](archive/topic-completed-archive.md))
+
 ## 2026-06-02
-- session-72 — ascii.frame.* complete (9 modules + context.provider.frame + render.color), nshell cursor/color fixes (4 bugs), coding zenka hardening (chmod 0020→0002, compaction restart recovery, write permission chain)
+- session-72 — ascii.frame.* complete (9 modules + context.provider.frame + render.color), nshell cursor/color fixes (4 bugs — root cause: orphaned-route `(0)!TERM!` on cmd_id==0, see [archive](archive/topic-completed-archive.md)), coding zenka hardening (chmod 0020→0002, compaction restart recovery, write permission chain)
 
 ## 2026-06-01
 - [session-69](session-69.md) — v7.restart :twin: zero-downtime concurrent restart; drain + spawn resilience; coding await_resources + instance-scoped pid files
@@ -107,8 +113,8 @@
 ## Full Archive
 - [Complete session archive](archive/topic-completed-archive.md) — all detailed session summaries preserved
 
-#,,,.,,,.,...,..,,,,.,,..,,,.,,.,,,.,,,.,,.,,,..,,...,.,.,..,,..,,.,,,...,..,,
-#52HRMU3D2TV2VAWSQCEMJQXDEJT6JAMQYX5GU5LQTYD7D4GW5W4OQLHASIUJ4XU6YRNF4H2BSOS6Y
-#\\\|DZMEGGCFXFRX6NYMGJMVBYPRTOMQFKO6JVHINIAUV24L4T5PIOQ \ / AMOS7 \ YOURUM ::
-#\[7]CUJ62Z33UV6CD3I2R7O4YBYIO3SHOHN72LVGOAEWVH6LLBANHGBA 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,.,,,,,,,..,...,,..,,,,,,,,,.,.,..,,...,...,..,,,,,,..,,,..,,..,
+#Y6RWVECGKIZBOWB4QICJNSRALL6JPBM6SBOZIGA53W4GY2UN63NZCGOLW2HUN2PVRUCOPOUZJDYB2
+#\\\|WVPFLSMMFTITP7ZNWHKLQ4OCMWCV7VUXSK7F6Q2QF4ZEA64FZFK \ / AMOS7 \ YOURUM ::
+#\[7]U3TZNBXZ75XM4BNZZ46R5HSEHQQC4EGQECM45NWPVV5QQHS3QOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
