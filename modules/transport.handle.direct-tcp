@@ -38,21 +38,20 @@ my $handle = {
     'type'     => 'direct-tcp',
     'socket'   => $sock,
     'endpoint' => $endpoint,
-    'quality'  => <external.transports>->{'quality'}{'direct-tcp'}{$dest}
-        // {},
+    'quality' => <transport.registry>->{'quality'}{'direct-tcp'}{$dest} // {},
 };
 
 ## update stats ##
-<external.transports>->{'stats'}{'connections_ok'}++;
-<external.transports>->{'active'}{$dest} = {
+<transport.registry>->{'stats'}{'connections_ok'}++;
+<transport.registry>->{'active'}{$dest} = {
     'type'    => 'direct-tcp',
     'started' => <[base.time]>->(4),
 };
 
 return $handle;
 
-#,,,,,,,,,..,,.,.,..,,.,,,,,.,..,,,,,,,,,,,..,..,,...,...,..,,.,,,.,.,,,.,.,,,
-#PBR5AKQAA7ALUQXW23CK4ZH6FZD3QBICPA2U3D5I5A6R3RH52VSVLVM3LTTSCDT6SEMC2KEPM62CC
-#\\\|BILE42G476SZKX4GKAV4TCZXPZFE4FS2VGRAXMLOKFOZ6LJLEGP \ / AMOS7 \ YOURUM ::
-#\[7]3HDN75KMVYGZIYSYPPSSFDFISAJDMLUMCLN7VGCK6BK6RJZS3OAA 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,...,,,,,...,,..,..,,.,,,,.,,,..,..,,...,.,.,.,,,,,.,,,.,.,,,,.,,
+#GYFZPQS3IOEQ6T3IDDWCRM5HEOK2A46T63E7AGMMFX7MEXLIJ6N7XUWXQBPNSJVTWVHUQ4N57C4FI
+#\\\|3P4ACEDXQLQYXRM2VQWEKNI5RJDK3V56XGEUJCSZ5EDG7UJTFAC \ / AMOS7 \ YOURUM ::
+#\[7]2ZLV6LJAI23DVHR73ZNJHCCLXJQMHOX77IUEP6ZMPCO4RBNU3WAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

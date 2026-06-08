@@ -3,24 +3,22 @@
 # name  = transport.init_code
 # descr = load transport profiles, initialize quality state and probe timer
 
-## ensure external transport registry exists ##
-unless ( defined <external.transports> ) {
-    <[base.logs]>
-        ->( 0, 'transport.init_code: external.init_code not loaded' );
-    return qw| false |;
-}
+## own transport registry [ borrowed key name, but per-zenka isolation  ##
+## means this is transport's private hash — seed it directly rather    ##
+## than depending on the [ unrelated, orbital-specific ] external zenka ##
+<transport.registry> //= {};
 
 ## profile cache ##
-<external.transports>->{'profiles'} //= {};
+<transport.registry>->{'profiles'} //= {};
 
 ## quality state per transport type per destination ##
-<external.transports>->{'quality'} //= {};
+<transport.registry>->{'quality'} //= {};
 
 ## demoted transports: { destination => { type => $demote_time } } ##
-<external.transports>->{'demoted'} //= {};
+<transport.registry>->{'demoted'} //= {};
 
 ## active transport handles per destination ##
-<external.transports>->{'active'} //= {};
+<transport.registry>->{'active'} //= {};
 
 ## profile directory ##
 <transport.cfg.profile_dir> = 'data/yaml/transport/profiles'
@@ -52,10 +50,10 @@ if ( exists $code{'credential_fabric.subscribe_rotation'} ) {
 
 <[base.logs]>->( 2, 'transport.init_code: transport selector initialized' );
 
-return qw| true |;
+return TRUE;
 
-#,,.,,,..,,..,.,,,,,.,,..,,,,,,..,.,.,...,...,..,,...,...,...,,.,,.,.,...,..,,
-#OQMVLOIAMENPAMGABX2Z3CTGYDULZAMYJ4R2FRLBXZBGNHQDPCEYZBVLPQP6POGSVRMGIKV5GPPW6
-#\\\|72HJHEULBBYYTUWVCWXPLB4DBOIPBRV3JKJ2DGI2UHETGAFFKJ4 \ / AMOS7 \ YOURUM ::
-#\[7]6SAZQG4QHDLKV7GZN3I6FFNXGOG2OZYTG6TMDIG7L6MHZNNN7GCA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,.,,,.,.,,..,..,,.,.,,,.,.,.,,,.,..,,...,...,...,..,,.,.,,.,,..,,
+#JIU2UDY5DQSH334IWBFBZCEJR3NCUYH66R5PB6CMAMZG7IPYDQCKR7B2KP7ZAA6PFLTKNLR5WHM3I
+#\\\|GYVWST6CBC7BO7ETMJYKDSCAP6O25XDHXKVJEXXCNR2Y5CAZHMT \ / AMOS7 \ YOURUM ::
+#\[7]C256ODJPGY56PHXYTNWOZWTH5NHUUBYTAVAH4DICXRMILOBY4YAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

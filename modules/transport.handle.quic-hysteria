@@ -67,18 +67,18 @@ my $handle = {
     'proxy_url'  => sprintf( 'socks5://%s:%d', $proxy_host, $proxy_port ),
     'proxy_host' => $proxy_host,
     'proxy_port' => $proxy_port,
-    'quality'    => <external.transports>->{'quality'}{'quic-hysteria'}{$dest}
+    'quality'    => <transport.registry>->{'quality'}{'quic-hysteria'}{$dest}
         // {},
     'credential' => $cred,
 };
 
 ## update stats ##
-<external.transports>->{'stats'}{'connections_ok'}++;
+<transport.registry>->{'stats'}{'connections_ok'}++;
 
 return $handle;
 
-#,,,,,,..,...,,,,,,.,,...,,,.,..,,,,,,,,.,,,,,..,,...,...,...,,.,,..,,,.,,...,
-#U5YW3SZDSNYONEFT66UQLKCFU5743AGMYFRXLGYTWNNRTASZVCBD6AEJSMVXXEAOL4BATPAYFE7UG
-#\\\|6MTHT5FYCRZGK76TVSQRXG3JJZ7EFRO2YITN74CUCDUTZDNDK7Q \ / AMOS7 \ YOURUM ::
-#\[7]DYYLCX6YCNMQWJ3E5D5ACYOAU5YETP2TZNZXTQVNV2TNKGOB72DA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,.,,,...,.,.,..,,...,,,,,,..,...,..,,...,...,.,,,..,,,,,,.,,,,,,,
+#7GWVZHJUD2MCSFH4HZ4ZGTWPYBQ5ZRT7JGFZRO6H2D2IA5MP4WHFQI25PNMKH6VRMCM4N2JDGECAG
+#\\\|5R25BKEXV4AVTN7JJXHEWKOIKHYNEKN24OEH4D22DOUBDM43OCA \ / AMOS7 \ YOURUM ::
+#\[7]UIXTH2WLHIZVGHZ5S46SEFSBFXJFSZC2AGXIH32UGJB4DY6LJ6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

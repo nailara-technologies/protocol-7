@@ -11,7 +11,7 @@ my $endpoint = $entry->{'endpoint'} // $ctx->{'request'}{'domain'} // '';
 return undef unless length $endpoint;
 
 ## check if UDT is available ##
-my $udt_registry = <external.transports>->{'registry'}{'udt'};
+my $udt_registry = <transport.registry>->{'registry'}{'udt'};
 if (   not defined $udt_registry
     or not $udt_registry->{'available'} ) {
     <[base.logs]>->( 1, 'transport.handle.udt-tunnel: UDT not available' );
@@ -54,7 +54,7 @@ my $has_udt = <[base.perlmod.loaded]>->('UDT::Simple')
 my $sock;
 if ($has_udt) {
     eval {
-        $sock = UDT::Simple->new( AF_INET, SOCK_DGRAM );
+        $sock = UDT::Simple->new( AF_INET(), SOCK_DGRAM() );
         $sock->connect( $host, $port );
     };
     if ( $@ or not defined $sock ) {
@@ -78,17 +78,16 @@ my $handle = {
     'type'     => 'udt-tunnel',
     'socket'   => $sock,
     'endpoint' => $endpoint,
-    'quality'  => <external.transports>->{'quality'}{'udt-tunnel'}{$dest}
-        // {},
+    'quality' => <transport.registry>->{'quality'}{'udt-tunnel'}{$dest} // {},
     'credential' => $cred,
 };
 
-<external.transports>->{'stats'}{'connections_ok'}++;
+<transport.registry>->{'stats'}{'connections_ok'}++;
 
 return $handle;
 
-#,,,.,.,.,.,,,,,,,.,,,,,.,.,.,,.,,,.,,,,.,,.,,..,,...,...,..,,.,,,,..,,.,,,,.,
-#DVV2CF65S2H7I3SRDZQJPALJ75UAHD4W2MMULC4O2U6LTBE6F5SOUBL3V3GSMBE2QIXL3EVHOZW3A
-#\\\|3LGTT5QI3UNXUT7Q2CPM5U6PKEXMDIBCNPNANCGYEAKVDLE7MSB \ / AMOS7 \ YOURUM ::
-#\[7]7LIX3LSXQ3NXAF6L3KDD7QVJXPLXEFDNYCKFD3QPMF5EYV4PJKDA 7  DATA SIGNATURE ::
+#,,..,,..,.,,,...,..,,...,.,,,..,,,,.,,..,,,,,..,,...,...,...,.,.,.,,,..,,..,,
+#2G67J6O7OIJ7V65AXRZ4AAZO34LE6ZJHFIB7LWY6BVSJ3FQMVEFBGQ6ZRI7EZWLPGA7TZXEDPYLZY
+#\\\|JIAKL2KO5H7QUNEPDSRL6LMMOEFVP25BOTPEQZWF2BK6W25IUPS \ / AMOS7 \ YOURUM ::
+#\[7]AVZWW25W7FIVFGON3S435RMKUIJOIB2UHLVMVYVZXIQDVKEXOMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

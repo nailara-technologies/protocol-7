@@ -1,0 +1,32 @@
+
+ .:[ protocol-7 transport zenka ]:.
+
+[load_config_file:'shared-params']
+
+transport.cfg.profile_dir    = data/yaml/transport/profiles
+transport.cfg.probe_interval = 30
+
+access.cmd.usr.cube = commands heart reload verify-instance \
+                      list show-buffer buffer-erase buffer-erase-level \
+                      status
+
+modules.load = auth net protocol io.unix io.ip format.yaml transport 
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[load_config_file:'zenki/transport/access.zenki']
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,..,,.,,,.,,,,.,,,.,...,..,,,,,,..,,,.,,..,,..,,...,..,,.,.,,,.,.,,,,,.,,,.,
+#AIUANES7CCVX3R4KHUQ4YNHE5HYJF5TM23WX6FPQU5YIDQB42EIFMVPB3XJNB7Q5BHDPRTMRY365S
+#\\\|RLZUEP77GB7SNCJBTEQOAT53RNAOVLMVYHQ3DNQHGNOQOVHZJFP \ / AMOS7 \ YOURUM ::
+#\[7]Z3ZXVYGYTAWVPZBKX6A5CNVISLMTGFTO4ZVYHHNRA5E7CZSCDOCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,7 +8,7 @@ my ( $dest, $type, $reason ) = @ARG;
 
 return if not defined $dest or not defined $type;
 
-<external.transports>->{'demoted'}{$dest}{$type} = <[base.time]>->(4);
+<transport.registry>->{'demoted'}{$dest}{$type} = <[base.time]>->(4);
 
 <[base.logs]>->(
     1, 'transport.demote: %s demoted for %s (reason: %s)',
@@ -16,14 +16,14 @@ return if not defined $dest or not defined $type;
 );
 
 ## update consecutive failures ##
-my $q = <external.transports>->{'quality'}{$type}{$dest} //= {};
+my $q = <transport.registry>->{'quality'}{$type}{$dest} //= {};
 $q->{'consecutive_failures'} //= 0;
 $q->{'consecutive_failures'}++;
 
 return 1;
 
-#,,,.,.,.,,..,,..,...,.,,,...,.,.,..,,..,,,.,,..,,...,...,...,,,,,..,,...,,,.,
-#5H5GBHDOBC6HBQYRCCZDBD5TTKGFAG7IHYDZQKIIWILAYYFUI5UNDWNDMLDGZWTJ3RLCXKBKSCVYA
-#\\\|IT35JIJ7UATS2MLNU3GEYQWZMAEV4OM7V2CVY5RTI5FMLCUA4TS \ / AMOS7 \ YOURUM ::
-#\[7]VZCXQDUK6CKIAPIP46E5FJK723AFK26EHD3OTDDJ7JGLDOLLI4BQ 7  DATA SIGNATURE ::
+#,,..,..,,...,...,,.,,..,,..,,,,,,...,,,,,.,,,..,,...,..,,,.,,..,,..,,.,,,,..,
+#2G25BV73NZ4HNLUYWIMAQWXQG6GDNMERPV7EZWW7ZJWL2JUQOUHSG32QL2THXNPEYMK6T6W4GZWDW
+#\\\|JEIIMWJFCACVRJA5XHQJY3TQP2KAORA7R37APWY5CAGM5GDAJZ3 \ / AMOS7 \ YOURUM ::
+#\[7]375RK2J5AWLKHUM4UA25YXZE4O47MEDFTAL3KVTQX3PYM75U26AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
