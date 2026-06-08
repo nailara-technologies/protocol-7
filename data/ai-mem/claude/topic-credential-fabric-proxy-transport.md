@@ -110,6 +110,48 @@ since the session never self-reported):
 - `subroutine.white-list` updated with the 3 new module names
 **Ready for your sign+stage+commit flow — not yet signed/committed.**
 
+**Fixed and committed 2026-06-08 (`b27ebb655`) — key-holder liveness +
+ascii-frame width drift:**
+- **fork-before-drop_privs liveness false-negative (generalizable
+  pattern, see [[feedback-fork-child-module-loading]] for the sibling
+  module-loading trap)**: `credential_fabric.init_code` forks the
+  key-holder child during `[init_modules]`, which runs BEFORE
+  `[root.drop_privs:<system.amos-zenka-user>]` — so the child stays
+  root-owned while the parent later runs unprivileged. Both liveness
+  checks (`ui.query.key_holder`, `key_holder.parent`) used
+  `kill(0,$pid)`, which reads `EPERM` (cross-uid signal denial) as
+  "dead" — UI permanently showed `terminated`/`dead` for a live process,
+  AND `key_holder.parent` would fork a fresh root child on EVERY
+  operation (process leak). Fixed both call sites to
+  `<[base.exists.sub-process]>->($pid)` — a `waitpid`-based check
+  (`base.waitpid`/`base.exists.sub-process`) that depends only on the
+  parent-child process relationship, not uid match. **General lesson:
+  any liveness check on a child forked pre-drop_privs must use
+  waitpid-based existence, never `kill(0,...)`.**
+- renamed UI state `'dead'` → `'terminated'` (less presumptive about
+  whether key material is still recoverable) — also added to
+  `cmd.ui-show`'s colorisation status-word list
+- **ascii.frame width drift (two compounding bugs)**: the key-holder-
+  status frame rendered at inconsistent widths across rows. (1) the
+  YAML mockup's bottom border had a hardcoded 62-dot fill, 10 chars
+  wider than the frame's actual computed width — `render.border_line`'s
+  elasticity model assumes `min` is a true minimum and produces an
+  oversized line when `$fixed > $width` (slack clamps to 0, no
+  shrinking); fixed the dot count in the source mockup. (2)
+  `ascii.frame.render`'s `required_width` contribution from inline
+  border slots used `$min_width + $val_len`, where `$min_width` only
+  sums *anchor* lengths — it ignored fill runs (the `::::`/dots either
+  side of the bracket), under-counting the line whenever the slot value
+  is longer than its placeholder (`'running'` 7 chars overflowed where
+  `'dead'` 4 chars happened to fit). **General fix** — now computes the
+  border line's true fixed width (anchors + fill mins + slot value),
+  mirroring `render.border_line`'s own `$fixed` formula; benefits any
+  frame with state-driven inline border slots, not just this one. See
+  [[topic-ascii-frame-system]] for the broader frame architecture (that
+  memory's "DRC validator"/generic-mockup-type content looks stale/
+  mismatched against the actual reverse-template-parser code — verify
+  before relying on it).
+
 **Still open (being addressed by the in-flight dispatch above):**
 - `credential_fabric.resolve`/`.rotate`/`.subscribe_rotation`/`.register`/
   `.request-authorization` are plain subroutine modules, not `.cmd.`
@@ -123,8 +165,8 @@ since the session never self-reported):
 - live traffic-level acceptance still needed now that all known boot/
   logic blockers are cleared (see live-verification items above)
 
-#,,,,,.,.,..,,...,,..,.,.,,.,,,..,,,,,...,.,,,..,,...,..,,..,,...,,.,,,,.,,..,
-#LVXMVEDXZFC7VAHIOABN2LWEI55T5G2ST2WELYQLWI4GNZ3ZR3TMRWF6NCSRY3L7DSELGUJ4HO45O
-#\\\|7J5RCQQFPKZBKSQNLIY2DMEJJEWM66FW4I5LMI7BDSVC5AJ7OBM \ / AMOS7 \ YOURUM ::
-#\[7]WZAS3PHCD73BJPSUHC3JQRF4PHXSY6NXM246Q3PZHRCDP43AAQCI 7  DATA SIGNATURE ::
+#,,,.,.,.,...,.,.,,..,.,,,.,.,.,.,...,..,,,,,,..,,...,...,.,,,...,,.,,,,.,,..,
+#NZ37KR47EVMID2UWDPO7RNWPMLVAUNUMO2YHJPHHD3XM5WRBPNXH3AOA7ZCYWJAK4YMYS2KYS6VRK
+#\\\|DY2LQVGZA557XWP6PQM7XOU7TAEIILZBIBOEDCMYHRIAXTTAO4P \ / AMOS7 \ YOURUM ::
+#\[7]U6SZXH3P6CS5B5YX73SA3OTGMWX2X3VKIMIKVUSNSHM2J4USB6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

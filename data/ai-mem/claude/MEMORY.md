@@ -17,7 +17,7 @@
 
 ## Active Topics
 - [global-ui-menu-tree](topic-global-ui-menu-tree.md) — addressable stdio slots + menu tree; settings (new)/configure (stub) zenki as starting points
-- [credential-fabric-proxy-transport](topic-credential-fabric-proxy-transport.md) — boot blockers fixed (3349352df); live traffic verification + #6/#15 access gaps remain
+- [credential-fabric-proxy-transport](topic-credential-fabric-proxy-transport.md) — boot/UI fixes through b27ebb655 (key-holder liveness, frame width); live traffic verification remains
 - [ascii-frame-system](topic-ascii-frame-system.md) — reverse parser, elastic renderer, DRC validator
 - [frame-plugin-slots](topic-frame-plugin-slots.md) — status-bar plugin slots + context-aware selector; variable border width; vertical-slot roadmap
 - [ascii-desktop-domains](topic-ascii-desktop-domains.md) — border glyphs are domain-scoped; nested domains = nested planes = ascii desktop; role-vs-glyph descriptor is the windowing unlock
@@ -142,8 +142,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,.,,,,,,,,.,,..,.,,,.,.,..,,,,.,,.,,...,...,..,,...,..,,,.,,,,,,,,.,,..,.,,,
-#4CB6PYQIEJAX3VXXLLZGTAHJ6XMUPJOJ6QXLXXWWKHCQERVCFAN3T2M3YXT3ZJHUQFVDPMXCEOTYY
-#\\\|Q67ZMVCEA2R2QQ4XSGOUMWBO47J6MQFFJJWBZBDP52MPRLP3TFN \ / AMOS7 \ YOURUM ::
-#\[7]46KXGBULKNRDX6A52JCX3LFNDYCMYCN74VJD57R74WJYGXMCQQAY 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,.,.,.,,,,,.,,..,,..,..,,,,,,,..,..,,...,...,...,.,,,..,,,.,,,,,,
+#X7A5O6SR7XXIGEQQ2YW73I4I7UKAKCCP23SCC62X75XOCCRYYFIEZDB4JGT5EBPQKC43J4SDCG7YA
+#\\\|PORSXZYL2YA2YLNBNER3VL2HZBQJV6RIWGVATETMQR27SPPCA45 \ / AMOS7 \ YOURUM ::
+#\[7]53I3HWX7BHKFPV35ORXC52KXAMO77MOOZ2GUDHLFJUREXGEU7MAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

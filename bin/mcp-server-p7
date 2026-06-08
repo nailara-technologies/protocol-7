@@ -2214,11 +2214,19 @@ sub tool_session_catchup {
             1 )
             unless -f $s->{'file'};
 
+        ## explicit instruction wins; otherwise fall back to a primed
+        ## store_summary_focus [ same one-shot/sticky consumption as
+        ## tool_external_command ], then the generic default ##
         my $inst
-            = length($instruction)
-            ? $instruction
+            = length($instruction) ? $instruction
+            : defined $pending_summary_focus
+            ? $pending_summary_focus
             : 'summarize what was accomplished, key decisions, open issues, '
             . 'and next steps';
+        $pending_summary_focus = undef
+            if not length($instruction)
+            and defined $pending_summary_focus
+            and not $summary_focus_sticky;
 
         ## session files are in user home — coding zenka (different user)
         ## can't
@@ -2453,8 +2461,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,..,,..,,..,,,,,,,.,...,.,,,...,.,,,,.,,,.,,..,,...,..,,...,.,,,.,,,.,.,.,,,
-#GM3WS2DAZAHZZHHRFKWSE5SL5FHNE6AQMAHVJTLKJBNAY4OHSEPQ2QO47W26TIKBP5WFYAQN774QK
-#\\\|J6Z2OZ73U4TY3ZFWDCQQRNRPOQBN6RPFAK6W65X5MTRAS23PEDX \ / AMOS7 \ YOURUM ::
-#\[7]RGNME6AWHLFLZ6MDOTW4ABB3HWOLD3BK5HM7ZDMBYANCZYZDBADY 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,..,,.,,,.,,,,,.,,..,,,,,.,,,.,,,..,,...,...,..,,...,,,.,..,,...,
+#GETMHLIJJ3RDSQI5YYF2MEPYSYPKCDDHJ5R5KZA4NL2K6AWVBBH7OXM6ROAOGGPGHCGQQ5I46P26I
+#\\\|SRB5OIHU5JDRV2XVN2VKND5R7QUMIA56GXJAWQ5KL7D2IKFVWSW \ / AMOS7 \ YOURUM ::
+#\[7]JWJ56B5SVO4UUVLQWZDLUODF5QRZIK2XL6YBRTTOEAIUO6RN7ABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
