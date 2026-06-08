@@ -16,6 +16,7 @@
 - [config reload clobber](feedback-config-reload-clobber.md) — placeholder `key=val` in start config gets re-applied by `reload config/all`, silently overwriting runtime-resolved values; debug via on-disk zenka log not ring buffer
 
 ## Active Topics
+- [global-ui-menu-tree](topic-global-ui-menu-tree.md) — addressable stdio slots + menu tree; settings (new)/configure (stub) zenki as starting points
 - [credential-fabric-proxy-transport](topic-credential-fabric-proxy-transport.md) — boot blockers fixed (3349352df); live traffic verification + #6/#15 access gaps remain
 - [ascii-frame-system](topic-ascii-frame-system.md) — reverse parser, elastic renderer, DRC validator
 - [frame-plugin-slots](topic-frame-plugin-slots.md) — status-bar plugin slots + context-aware selector; variable border width; vertical-slot roadmap
@@ -141,8 +142,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,,,,...,,.,,..,,,..,.,.,.,.,...,,,,,...,..,,..,,...,...,,..,,,.,,..,.,,,,,.,
-#TCPDFASRS2V36HQVLQ7GZLLCFFQXZMCGC7QRHIYXMGHX7SHRVSVVKI75LHXPJYUH6Q7WLF4KTUROG
-#\\\|BYL2B3RGXK5GT5ODNRWVYE7CS7QXDTH4WQXJ44U4A2JMGOWAYEF \ / AMOS7 \ YOURUM ::
-#\[7]IQZVTLZCK53VEBPKES3MOMSDM4YSTBGV7RNBZGGZBV4FPPBMN4AA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,..,.,,,.,.,..,,,,.,,.,,...,...,..,,...,..,,,.,,,,,,,,.,,..,.,,,
+#4CB6PYQIEJAX3VXXLLZGTAHJ6XMUPJOJ6QXLXXWWKHCQERVCFAN3T2M3YXT3ZJHUQFVDPMXCEOTYY
+#\\\|Q67ZMVCEA2R2QQ4XSGOUMWBO47J6MQFFJJWBZBDP52MPRLP3TFN \ / AMOS7 \ YOURUM ::
+#\[7]46KXGBULKNRDX6A52JCX3LFNDYCMYCN74VJD57R74WJYGXMCQQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
