@@ -135,14 +135,27 @@ coding.async.enabled = 1  ## Use non-blocking HTTP streaming with tool execution
 concurrent.drain_timeout = 300
 
 ## context reduction on timeout-restart: step and floor values ##
+## ctx_recovery_ceiling is set at runtime by coding.callback.http_error : ##
+## a hard cap that spawn_inference_server enforces over auto-calc, so the ##
+## reduction actually takes effect on the restart that follows a timeout  ##
 coding.cfg.ctx_timeout_step  = 7000
 coding.cfg.ctx_timeout_floor = 16000
+#coding.cfg.ctx_recovery_ceiling = 29000  ## [ runtime-managed, do not set here ]
 
 #
 ## [timeouts] streaming data begin and total request duration ##
 #
+## data-start floor : short prompts really do start streaming in <2s on   ##
+## local GPU. for larger prompts coding.async.http_client SCALES this up  ##
+## based on estimated prompt size — see prefill_tokens_per_sec/_margin    ##
 coding.http-timeouts.data-start = 13
 coding.http-timeouts.request-completed = 777
+
+## prefill-time estimate used to scale the data-start timeout for large   ##
+## prompts : timeout = est_prompt_tokens / prefill_tokens_per_sec + margin ##
+## tune prefill_tokens_per_sec down if timeouts persist on long contexts  ##
+coding.cfg.prefill_tokens_per_sec = 1200
+coding.cfg.prefill_margin_sec     = 5
 
 ## Model Configuration ##
 ## Context length: floor value — auto-calculated from VRAM, but never below this ##
@@ -200,8 +213,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,..,,.,,,..,,,.,,,,,.,.,.,,,,,,,,..,,,,,.,.,.,.,...,..,,,..,,,.,,,.,..,,,.,,
-#DZKP2FM36PTPTAOP777XIJX7H5ZKEXZF25LN2KNXOC762KDCADHHVLC6EJYK2BXPO54HE4XFX7X5O
-#\\\|23XSLAVYTO6CKQ25FQ4RBD5YFCTOK2JTRNVGQ74HYYTBXOE6AXT \ / AMOS7 \ YOURUM ::
-#\[7]UYNB45OGHM7FD5TRX2FECFI77QLBBDM5ACQLMRZF45KGFQFRZ2BA 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,.,.,,.,,,,,,.,.,,..,.,,,.,.,.,,,.,.,...,..,,,.,,,.,,...,,.,,,,.,
+#NLE2LL5BWJMGQ7CXHTXO72MYVJFUJLA365EUYAYP55WOD27L7MKQP6F47HVCQZZXYFQFCKDQXNERM
+#\\\|3GFQVWNITUYQD42URUW35I2IQKHWIEE7JBFQKGAKU64BLJW74TU \ / AMOS7 \ YOURUM ::
+#\[7]5263WEWRFQOHLGTVU36DHQVNBVBHQSP3FCFFO3RS7AWGVSA6PIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

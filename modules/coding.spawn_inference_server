@@ -335,6 +335,22 @@ if ( defined <inference.model.context_length> ) {
     <[base.logs]>->( 1, ': auto-context : %s', $safe->{'explanation'} );
 }
 
+## timeout-recovery ceiling : hard cap set by coding.callback.http_error  ##
+## after a data-start timeout. unlike the configured floor above, this    ##
+## MUST win over auto-calc — otherwise VRAM-pressure recovery never takes ##
+## effect and the timeout/restart loop repeats forever                    ##
+my $recovery_ceiling = <coding.cfg.ctx_recovery_ceiling>;
+if ( defined $recovery_ceiling and $ctx_size > $recovery_ceiling ) {
+    <[base.logs]>->(
+        1,
+        '[spawn_inference_server] context capped to %d'
+            . ' [timeout recovery ceiling, was %d]',
+        $recovery_ceiling,
+        $ctx_size
+    );
+    $ctx_size = $recovery_ceiling;
+}
+
 push @cmd, qw| -c |, $ctx_size;
 push @cmd, qw| -n |, $max_tokens;
 
@@ -511,8 +527,8 @@ return {
     'port'    => $port
 };
 
-#,,.,,,,,,,,,,,,,,,..,...,,..,,..,,,.,...,,,.,..,,...,...,.,,,,..,..,,.,,,,.,,
-#XAQNWF7Y5G46Q4DZ6FWRPSZLFDAWDMXAOQZFM6NK7QDXRWICRGZPJKVNE2YWIQRPIDTHJ7FWF4RZI
-#\\\|WFUXEQW6ZGM7BES43E3GORJ4I7M6CXVYJEIC7QKMR2NF6OPW5ZS \ / AMOS7 \ YOURUM ::
-#\[7]ZWBV5XVWFVYMMZ6VJGHVVKYYHFTV2AFLSCYQ7CVKN7S6WB7CYKAA 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,,,.,,..,,.,,,,,,,,,,,.,,..,,,..,..,,...,...,,,.,,,,,,,,,.,,,.,,,
+#E5BPT7DHQAP44FA7AFLKK4L4YBOAMAXS3AFPFBEV2TVWPAR2SZ3YX7MSN47WTBUSOWO24HNM6PYCQ
+#\\\|GR64PS55WGUJGOF4ZA5H22J2JP2LD6GHAI4G7JSJFND6LJCOAF2 \ / AMOS7 \ YOURUM ::
+#\[7]BZT6TY4EVHCE4USWMJVM4H32FU2DTFL4W34HPKNPFL64PCJXCUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
