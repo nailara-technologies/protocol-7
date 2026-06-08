@@ -22,12 +22,20 @@ my $sock = IO::Socket::IP->new(
     return;
     };
 
+## prevent listen socket from being inherited by forked children ##
+{
+    use Fcntl qw| F_GETFD F_SETFD FD_CLOEXEC |;
+    my $flags = fcntl( $sock, F_GETFD, 0 ) // 0;
+    fcntl( $sock, F_SETFD, $flags | FD_CLOEXEC );
+}
+
 <proxy.listen_sock> = $sock;
 
 <[event.add_io]>->(
     {   fd      => $sock,
         poll    => 'r',
         handler => 'proxy.handler.accept',
+        data    => $sock,
         desc    => 'proxy accept handler'
     }
 );
@@ -36,8 +44,8 @@ my $sock = IO::Socket::IP->new(
 
 return $sock;
 
-#,,.,,.,,,,,.,,.,,,..,,.,,,,.,,..,..,,,..,,,.,..,,...,...,..,,.,,,,,.,,..,,..,
-#IZWEU77NELHDXN6R6SW2JP2EHXVCSJWSZQ3SBWAN4PERE27XO46NULNYLG7M5MHPGKDLX6RSLF2HG
-#\\\|LSQS7Y6OB5AURCATOZF66RVCJBIU6XDAHMLSFUZHE6YAJ2OVLND \ / AMOS7 \ YOURUM ::
-#\[7]JTX5E2ANSNC42L7SIHWO3JPQESIWWQOZ6YUGHRV5YIRHTK4NA4BA 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,.,,,..,,,,,,,.,,..,,,.,,.,.,,..,..,,...,...,,.,,..,,,.,,,..,,..,
+#3X7IVVZQZYVRKU6QILOPQ2JED5XQGGSPDQF6XRVD4KUMXRMXQ3X4Z2FMSLYUJM7QZ36F4EKAGNW5W
+#\\\|6JHMYQIE4BMRWVNDXYFZMXC2TWQCVUI6FLMQUQ4SY7GLO762P4G \ / AMOS7 \ YOURUM ::
+#\[7]BEPEAUFHJEMBF5YXDQ4P2S552INP5C7OOXXDOPV3GEJQ5HKMD4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

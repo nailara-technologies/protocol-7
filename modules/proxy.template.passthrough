@@ -71,7 +71,7 @@ if ( $conn->{'type'} eq 'direct-tcp-fallback' ) {
         },
     };
 
-    $client->{'outbound'} = <$request_module>->($request_params);
+    $client->{'outbound'} = <[$request_module]>->($request_params);
 
     if ( not defined $client->{'outbound'} ) {
         <[proxy.client.send_error]>->( $client_id, 502, 'Bad Gateway' );
@@ -154,8 +154,8 @@ $client->{'outbound'} = $state;
 
 return;
 
-#,,.,,...,,..,,,,,...,,,.,,,.,,..,,..,.,.,.,,,..,,...,...,.,,,,,.,.,.,,.,,,.,,
-#XQOXKANQO4ONSEBL5N4JQJG3QG263KS5TXEOA7YMJ7VQBO7NSA4XSQWYPMXXNOTUJPVBGZX3OLIV4
-#\\\|BNRY3AUDFLARNN2QWUXXGBBACD4JXVGQRFENLTABNWFJQDAODPR \ / AMOS7 \ YOURUM ::
-#\[7]BZ75JQK7PEUOSSGC2L2ILIIQ7OYHLLFLEUXWTFX6VPVPIWLM4YCQ 7  DATA SIGNATURE ::
+#,,,,,...,...,.,.,...,,,.,,.,,,.,,..,,,,.,,,.,..,,...,..,,,,,,..,,...,...,...,
+#TXGEBXT6PN64F3WFPRISNREIOXU36Z55QOE36SXINSVMBX23NSKQPBTVYMOAMILXYF4XTCL7NH6G2
+#\\\|HDTZJ55BIGX7OMNEBULOO4DTLALOFXEWLEDWVMSKWBZZCGMCOTZ \ / AMOS7 \ YOURUM ::
+#\[7]RJTDMFBF5Z5HJYYQDPC3UAUQ2YGJX6NA7SSJJHCTCGXDDNNISWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

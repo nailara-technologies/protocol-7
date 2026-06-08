@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = proxy.handler.post_auth
+# descr = run transport selection then dispatch to handler.request.
+#         called after auth lookup completes (or is skipped).
+#         args: $client_id
+
+my $client_id = shift;
+my $client    = $data{'proxy'}{'clients'}{$client_id};
+return if not defined $client;
+
+## client half-closed during auth wait: nothing to respond to ##
+if ( $client->{'half_closed'} ) {
+    <[proxy.client.close]>->($client_id);
+    return;
+}
+
+my $context = $client->{'context'};
+
+## transport integration point ##
+if ( exists $code{'proxy.transport.select'} ) {
+    my $transport_result = <[proxy.transport.select]>->($context);
+    if ( defined $transport_result and ref $transport_result eq 'HASH' ) {
+        $context->{'transport'}{'handle'} = $transport_result;
+    }
+}
+
+<[proxy.handler.request]>->($client_id);
+
+return;
+
+#,,..,..,,..,,,.,,,,.,...,..,,,.,,,.,,.,.,.,,,..,,...,...,,,.,,.,,,,.,,.,,,,.,
+#OF63IECJAI2VYJAHQMXKCY4PJ4F2SO6FHCYNQVCDOMYLJCRG6OCRPKJT35SQXGGUQTG7B4J45ZQWG
+#\\\|LA5QPLOQDQYLDOPXGDKE7AETK6RL4YLQBN2LFCIWFZVSEQPGMZU \ / AMOS7 \ YOURUM ::
+#\[7]MNRBWQZTMM4RVCZ6WVYFZEDUVLFEZLPRKSENIEVOXZSZGCFGROAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

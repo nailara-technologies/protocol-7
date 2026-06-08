@@ -1,51 +1,48 @@
 ## [:< ##
 
 # name  = proxy.auth.lookup
-# descr = proxy auth lookup stub replaced by credential fabric.
-#         extracts domain from request context and attempts credential resolution.
-#         args: $context_hash
-#         returns: { has_session => bool, slots => {} } or undef
+# descr = async credential lookup via credential_fabric.resolve.
+#         args: $client_id
+#         calls proxy.handler.post_auth when done (via reply or cache hit).
 
-my $context = shift;
+my $client_id = shift;
+my $client    = $data{'proxy'}{'clients'}{$client_id};
+return if not defined $client;
 
-return undef if ref $context ne qw| HASH |;
+my $context = $client->{'context'};
+my $domain  = $context->{'request'}{'domain'} // '';
 
-my $domain = $context->{'request'}{'domain'} // '';
-return { 'has_session' => FALSE, 'slots' => {} } unless length $domain;
-
-## check cache ##
-my $cache_key = $domain;
-if ( exists $data{'proxy'}{'auth_cache'}{$cache_key} ) {
-    return $data{'proxy'}{'auth_cache'}{$cache_key};
+## no domain: skip auth ##
+if ( not length $domain ) {
+    $client->{'state'} = 'processing';
+    <[proxy.handler.post_auth]>->($client_id);
+    return;
 }
 
-## try session slot for this domain ##
-my $slot = 'session.' . $domain;
+## cache hit ##
+if ( exists $data{'proxy'}{'auth_cache'}{$domain} ) {
+    $context->{'auth'} = $data{'proxy'}{'auth_cache'}{$domain};
+    $client->{'state'} = 'processing';
+    <[proxy.handler.post_auth]>->($client_id);
+    return;
+}
 
-my $result = <[credential_fabric.resolve]>->(
-    {   'slot'    => $slot,
-        'context' => $context,
+## async route to credential_fabric.resolve ##
+my $slot = 'session.' . $domain;
+<[protocol-7.route-send]>->(
+    {   'command'   => 'credential_fabric.resolve',
+        'call_args' => { 'args' => $slot },
+        'reply'     => {
+            'handler' => 'proxy.handler.auth_lookup_reply',
+            'params'  => { 'client_id' => $client_id, 'domain' => $domain },
+        },
     }
 );
 
-if (    defined $result
-    and ref $result eq qw| HASH |
-    and $result->{'mode'} eq qw| true | ) {
-    my $auth_result = {
-        'has_session' => TRUE,
-        'slots'       => { $slot => $result },
-    };
-    $data{'proxy'}{'auth_cache'}{$cache_key} = $auth_result;
-    return $auth_result;
-}
+return;
 
-## no session found ##
-my $no_auth = { 'has_session' => FALSE, 'slots' => {} };
-$data{'proxy'}{'auth_cache'}{$cache_key} = $no_auth;
-return $no_auth;
-
-#,,.,,,..,,,,,...,,..,,..,,,.,.,.,.,,,.,.,,,.,..,,...,...,,,.,,..,...,,.,,,.,,
-#DU2PHE2PEGDGIDD7JGR2KIELEWTA24SL3XF7BEGSPEGN7KNCZKBIBCBIH774D4L75QJERRF4NAQAS
-#\\\|BDBPT2L7SZ2BR5W5NEJO4425A4ANDGIKWGVXWXCI3H3TGIZJBT5 \ / AMOS7 \ YOURUM ::
-#\[7]XVBEACKLKHSIRE3WZYDS2HMDPJKTFKAROF7BAI2M4LUMFFXKX6DA 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,..,..,,,,.,.,,,..,,,,.,..,,..,,..,,...,..,,,,,,,..,,,,,,..,...,
+#TCPOER4B33SLKO2P5ERFBYRMQVYDDWN6TCMTORFOKAIHVJQGSQIDYZXWF5JM5J4GYPMZXXIDCOWGM
+#\\\|SGMAJM23MFJAT3P2CMPMPYVSXAGPJMNB2HQ4Q52ZFWWWTXVRX6L \ / AMOS7 \ YOURUM ::
+#\[7]GPEN54KCRPYYYBEICAYZ5GCQR6BDJ5DL37N7UHRUK4CTVDGA4WAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
