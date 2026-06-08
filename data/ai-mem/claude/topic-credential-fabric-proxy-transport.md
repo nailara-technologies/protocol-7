@@ -1,6 +1,6 @@
 ---
 name: topic-credential-fabric-proxy-transport
-description: credential_fabric/proxy/transport zenki — boot blockers fixed and committed (3349352df); live wiring still needs traffic-level verification
+description: credential_fabric/proxy/transport zenki — boot blockers (3349352df) AND cmd.approve/wildcard-rotation/hardcoded-paths bugs (353f5f39f) fixed+committed; live traffic verification still open
 metadata: 
   node_type: memory
   type: project
@@ -59,24 +59,72 @@ uniquely provides.
   need a live HTTP round-trip test through the proxy
   (`127.0.0.1:8118`) — **remember `NO_PROXY=127.0.0.1` for any curl
   test**, or the system-wide hysteria proxy will interfere
-- `subscribe_rotation` wildcard (`*`) bug — rotation cache flush still
-  broken (open issue #6 in the findings doc)
-- 6 hardcoded `var/credential_fabric/...` paths bypass `file.zenka_dir.*`
-  — confirmed live: a stray run created `bin/var/credential_fabric/`
-  (cwd-relative, wrong location) with real key material (`fabric.public`,
-  `fabric.secret`, `store`); cleaned up with `rm -rf bin/var`, but this
-  is now a p0-adjacent fix, not just portability debt
+**Fixed and committed 2026-06-08 (`353f5f39f`, kimi `cf799057` + follow-up
+via `kimi_continue`), across 9 `credential_fabric.*` modules:**
+- `subscribe_rotation` wildcard (`*`) bug — fixed with `$slot ne qw| * |`
+  guard bypassing the registry-existence check; wildcard bucket that
+  `handler.rotation_strm` reads from is now unblocked
+- ~9 hardcoded `var/credential_fabric/...` path occurrences (init_code,
+  store.local, key_holder.child, register, rotate, seed_registry,
+  handler.auth-relay-reply) migrated to `file.zenka_dir.write/load/
+  unlink_file/data_path` — paths now resolve to the zenka's own
+  `/var/protocol-7/credential_fabric/` instead of cwd. NOTE: this also
+  makes `<credential_fabric.cfg.store_dir/registry_file/audit_log>`
+  config vars dead (paths now inlined as relative strings) — harmless,
+  pre-existing pattern issue, not worth a follow-up
+- `credential_fabric.cmd.approve` argument-parsing — was expecting a
+  hashref (`$call->{'args'}` shifted as `$params->{'req_id'}`) but real
+  callers (p7c, jobsite.cmd.approve) pass positional `"req_id payload"`
+  strings; rewritten to `split qr|\s+|, $args_str, 2`
+- regression caught mid-fix: kimi's first pass on `store.local` write
+  path dropped atomic temp-file+rename semantics (direct
+  `file.zenka_dir.write` unlinks-then-writes non-atomically — risky for
+  encrypted credential blobs); follow-up `kimi_continue` restored
+  atomic write-temp→rename→cleanup-on-failure, fully routed through
+  `file.zenka_dir.*`
+
+**Done (unsigned/uncommitted) 2026-06-08 — task `data/tasks/
+credential-fabric-console-cmd-access.md`:** dispatched via
+`claude_dispatch` (outer session `f870d68f-5996-4ada-83ee-
+54a80deeb531`, PID 2503034). The session itself **hung for ~50min**
+on a `coding_summarize`/review-summarization call that the local 9B
+coding zenka rejected with `initial prompt overflow: estimated 22294
+tokens exceeds n_ctx=22000` (task `7277779` — failed+resolved on the
+coding-zenka side, but the outer session's poll loop only treats
+"completed" as terminal and blocked forever burning near-zero CPU);
+killed manually. **However the actual implementation work it produced
+on disk was complete and reviewed-clean** (Claude reviewed directly
+since the session never self-reported):
+- `credential_fabric.cmd.resolve`/`.cmd.rotate`/`.cmd.list-slots` —
+  positional `$call->{'args'}`+`split` parsing matching `cmd.approve`
+  (the bug class just fixed is NOT reintroduced), bridge correctly to
+  hashref-based internal subs, no fake signature stubs, perl -c clean
+- `list-slots` avoids the `base.cmd.list` collision; formats a slot
+  table (name/owner/type/sensitivity/storage/rotated) without leaking
+  secret material
+- `cube/access.zenki` grants `credential_fabric.resolve`/`.rotate`/
+  `.approve`/`.list-slots` to the admin wildcard using the *stripped*
+  form — confirms [[feedback-cmd-segment-stripped]] (still needs a
+  live end-to-end `p7c credential_fabric.resolve <slot>` test to fully
+  close that memory's "verifying" status)
+- `subroutine.white-list` updated with the 3 new module names
+**Ready for your sign+stage+commit flow — not yet signed/committed.**
+
+**Still open (being addressed by the in-flight dispatch above):**
 - `credential_fabric.resolve`/`.rotate`/`.subscribe_rotation`/`.register`/
   `.request-authorization` are plain subroutine modules, not `.cmd.`
   command modules — they exist as internal APIs but aren't registered as
   console-callable; `credential_fabric.list` doesn't exist at all (spec
-  vs. implementation mismatch, flagged but not yet resolved)
-- `credential_fabric.cmd.approve` has a separate, pre-existing argument-
-  parsing bug ("missing req_id" even when args supplied) — discovered by
-  kimi mid-session, undocumented before now
+  vs. implementation mismatch). **Naming collision avoided: chose
+  `.list-slots`** (not `.list`, which would collide with `base.cmd.list`)
+- per findings doc #12 (p0): NO console/admin user could call ANY
+  credential_fabric command at all — not even the already-landed
+  `cmd.approve` was wired into `access.zenki`
+- live traffic-level acceptance still needed now that all known boot/
+  logic blockers are cleared (see live-verification items above)
 
-#,,,.,,,.,.,,,,.,,,.,,...,...,.,,,,,.,.,.,,.,,..,,...,...,...,..,,,..,.,.,.,.,
-#P5BAXCYT62SMBSCEHUVVI4O3OIX5JLZ3FU2VOC65JBKVZM2PMFQB4I3HSPHSZB2ZEZ6F72UJDPANY
-#\\\|6I72HOWYOZLXZ3UZDZGBCGOE22JSLOCHWNCLBE75U32WGGUTMR7 \ / AMOS7 \ YOURUM ::
-#\[7]ZE2KDO4I5Z4R7CV4PFZZ3LXUXPXXC6DEYVWS6HPOTQUZ2JLGFYBI 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,...,,..,.,.,,.,,,..,,,,,...,.,,,..,,...,..,,..,,...,,.,,,,.,,..,
+#LVXMVEDXZFC7VAHIOABN2LWEI55T5G2ST2WELYQLWI4GNZ3ZR3TMRWF6NCSRY3L7DSELGUJ4HO45O
+#\\\|7J5RCQQFPKZBKSQNLIY2DMEJJEWM66FW4I5LMI7BDSVC5AJ7OBM \ / AMOS7 \ YOURUM ::
+#\[7]WZAS3PHCD73BJPSUHC3JQRF4PHXSY6NXM246Q3PZHRCDP43AAQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
