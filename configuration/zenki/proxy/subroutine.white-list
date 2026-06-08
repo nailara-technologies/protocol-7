@@ -11,6 +11,7 @@ base.fork
 base.exit
 base.regex
 base.cnt_s
+devmod.dump
 base.s_warn
 base.s_read
 base.minmax
@@ -39,7 +40,9 @@ base.get_file
 base.file.put
 base.cmd.name
 base.cmd.list
+base.cmd.exit
 base.cfg_bool
+proxy.pre_init
 httpd.pre_init
 base.wrap_text
 base.swap_subs
@@ -58,12 +61,14 @@ base.file.open
 base.dump_data
 base.conf-wrap
 base.cmd.heart
+base.cmd.clear
 auth.auth_list
 proxy.log.visit
 proxy.init_code
 plugin.auth.pwd
 net.read_binary
 httpd.init_code
+devmod.pre_init
 base.zenka.loop
 base.str.os_err
 base.prng.bytes
@@ -74,12 +79,13 @@ base.file.which
 base.file.slurp
 base.event.once
 base.event.loop
+base.cmd.whoami
 base.cmd.reload
 base.calc_gauss
-transport.select
-transport.demote
 plugin.auth.unix
 httpd.new_header
+devmod.post_init
+devmod.init_code
 clients.http.get
 base.stream.push
 base.stream.open
@@ -96,6 +102,10 @@ base.get_homedir
 base.cmd.subname
 base.cmd.src-ver
 base.cmd.src-age
+base.cmd.rel-ver
+base.cmd.ptl-ver
+base.cmd.present
+base.cmd.cur-pid
 base.chk-sum.elf
 base.call_filter
 auth.pwd.success
@@ -117,10 +127,12 @@ base.init_modules
 base.handler.read
 base.handler.auth
 base.get_warnings
-base.file.put_bin
 base.file.content
 base.event.add_io
 base.context.list
+base.cmd.term-all
+base.cmd.last-sid
+base.cmd.cpu-time
 base.cmd.commands
 base.chk-sum.amos
 proxy.client.close
@@ -137,6 +149,7 @@ base.get_file.aref
 base.file.pre_init
 base.file.line_map
 base.event.add_var
+base.cmd.verbosity
 base.clear_p7_mods
 base.clean_unicode
 base.clean_hashref
@@ -145,6 +158,7 @@ plugin.auth.twofish
 io.ip.tcp.init_code
 httpd.send_raw_html
 httpd.scan_site_dir
+devmod.console-dump
 base.utf8.clean_str
 base.str.eval_error
 base.round_truncate
@@ -193,6 +207,7 @@ base.disable_command
 base.devmod.dump_var
 base.cmd.show-buffer
 base.cmd.show-access
+base.cmd.amos-chksum
 base.buffer.add_line
 auth.zenka.init_code
 proxy.handler.request
@@ -217,10 +232,12 @@ base.load_config_file
 base.list.element.add
 base.file.match_files
 base.event.add_signal
+base.console.describe
 base.console.commands
+base.cmd.when-present
+base.cmd.dependencies
 base.cmd.buffer-erase
 base.balanced-average
-transport.profile.load
 proxy.transport.select
 proxy.template.resolve
 proxy.template.generic
@@ -235,11 +252,13 @@ base.register_src_deps
 base.register_bin_deps
 base.perlmod.init_code
 base.path.resolved_abs
+base.net.cmd.timestamp
 base.get_max_verbosity
 base.file.get-non-dirs
 base.comp-int.is_valid
+base.cmd.cancel-stream
 auth.unix.authenticate
-transport.profile.match
+proxy.handler.post_auth
 proxy.client.send_error
 protocol.sftp.init_code
 io.unix.socket.end_code
@@ -261,6 +280,9 @@ base.exists.sub-process
 base.execute_zenka_code
 base.dump.data_key_list
 base.convert.hex_to_int
+base.cmd.set-name-width
+base.cmd.ondemand-zenka
+base.cmd.loaded-configs
 base.chk-sum.elf.inline
 base.auth.set_zenka_key
 auth.zenka.authenticate
@@ -314,7 +336,7 @@ base.max-len.val-hash-keys
 base.handler.session_error
 base.event.io_idle_restart
 base.check_dependency_dirs
-transport.handle.direct-tcp
+auth.zenka.cmd.session-key
 proxy.selector.zenka_assert
 net.read_linewise_estimated
 io.unix.socket.output.close
@@ -371,6 +393,8 @@ base.number-cache.true_upwards
 base.log.send-buffer.add-queue
 base.cache.refaddr-prefix.init
 proxy.handler.passthrough_reply
+proxy.handler.auth_lookup_reply
+crypt.C25519.cmd.get-public-key
 clients.https.handler.handshake
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
@@ -408,6 +432,7 @@ base.callback.setup_rollback_timer
 protocol.sftp.handler.session_close
 protocol.protocol-7.encryption.init
 protocol.amos-chksum.ext-cmd.select
+plugin.httpd.radio.cmd.radio_online
 base.perlmod.register_loaded_module
 base.number-cache.is_valid_template
 base.handler.write.encoding-wrapper
@@ -464,8 +489,8 @@ auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,.,..,,...,,..,...,,..,...,,.,,.,.,...,,,,,..,,...,...,..,,..,,,.,,..,,,..,
-#R4C4QCR4SHKQ7QLJ6D4M73XI22LQ2EIAKEIF7B6GID3TEKVMINSBSAWGJSFWBDH7E2TUQJOR7XF7O
-#\\\|BV3PZJHIMZJNT5PZMEWSC5XMIY4MIMR3M3TP47J3SMPZUUANWN5 \ / AMOS7 \ YOURUM ::
-#\[7]TO26OTQHBE5UFTXW5UZWEI75B4SB32WNDXQF2OHYWMBGTK765MBY 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,.,.,,.,,...,,..,.,,,,,,,.,.,.,.,..,,...,...,,,.,...,,.,,,..,.,,,
+#DHSGCDGBFDFF5MK7P6G6Z7AHRQWPLDML5XBV67JKNW64J3CHNXDVHFZYMMR5OZJAX4AS5QHGJARO2
+#\\\|GIZAFTA62WGLOLWKIG52C6D2WZUM6OAMAGBJXP3K4TONGSMJ7A7 \ / AMOS7 \ YOURUM ::
+#\[7]CMEVZSX5NMTY4ORD5HHA6UFAVTQJXVF7YV7C3I4D7GLHPRYK7ODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

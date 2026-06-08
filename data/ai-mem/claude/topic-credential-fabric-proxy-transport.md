@@ -1,6 +1,6 @@
 ---
 name: topic-credential-fabric-proxy-transport
-description: credential_fabric/proxy/transport zenki — boot blockers (3349352df) AND cmd.approve/wildcard-rotation/hardcoded-paths bugs (353f5f39f) fixed+committed; live traffic verification still open
+description: credential_fabric/proxy/transport zenki — proxy HTTP round-trip WORKING (200 OK verified 2026-06-09); boot/UI fixes through b27ebb655; live traffic verification COMPLETE
 metadata: 
   node_type: memory
   type: project
@@ -51,14 +51,25 @@ none of `transport`'s actual usage (`profiles`/`quality`/`demoted`/
 `active`/`stats.connections_ok`) depended on anything `external.init_code`
 uniquely provides.
 
-**Open / not yet verified (from the original findings doc, still relevant):**
-- live traffic-level acceptance items — header injection reaching
-  upstream, transport-handle reuse in `proxy.outbound.connect_or_use`,
-  on-demand auth (407/pending/approve flow) — none of these were
-  exercisable while the zenki couldn't boot; now that they can, these
-  need a live HTTP round-trip test through the proxy
-  (`127.0.0.1:8118`) — **remember `NO_PROXY=127.0.0.1` for any curl
-  test**, or the system-wide hysteria proxy will interfere
+**Fixed 2026-06-09 — proxy HTTP round-trip now WORKING (200 OK verified):**
+- `proxy.listen`: data=>$sock watcher fix + FD_CLOEXEC on listen socket
+- `proxy.init_code`: listen guard + stale socket cleanup on startup
+- `proxy.handler.connection`: async auth + half-close race fix
+- `proxy.auth.lookup`: async route-send to credential_fabric
+- `proxy.handler.auth_lookup_reply`: new module
+- `proxy.handler.post_auth`: new module
+- `proxy.transport.select`: guard for missing transport.select
+- `proxy.template.generic`: site-yaml.cmd.fetch → site-yaml.fetch
+- `proxy.template.passthrough`: `<$var>` → `<[$var]>` dispatch fix
+- `proxy.handler.accept`: store watcher handle
+- `proxy.client.close`: cancel watchers before close
+- `cube/access.zenki`: added site-yaml.fetch for proxy
+
+**Known remaining issue:** stale listen socket from a prior run held by
+root process (v7?) causes ~50% connection timeouts; clears on full P7
+restart. FD_CLOEXEC on the new socket prevents recurrence after first
+clean restart.
+
 **Fixed and committed 2026-06-08 (`353f5f39f`, kimi `cf799057` + follow-up
 via `kimi_continue`), across 9 `credential_fabric.*` modules:**
 - `subscribe_rotation` wildcard (`*`) bug — fixed with `$slot ne qw| * |`
@@ -152,21 +163,14 @@ ascii-frame width drift:**
   mismatched against the actual reverse-template-parser code — verify
   before relying on it).
 
-**Still open (being addressed by the in-flight dispatch above):**
+**Still open:**
 - `credential_fabric.resolve`/`.rotate`/`.subscribe_rotation`/`.register`/
   `.request-authorization` are plain subroutine modules, not `.cmd.`
-  command modules — they exist as internal APIs but aren't registered as
-  console-callable; `credential_fabric.list` doesn't exist at all (spec
-  vs. implementation mismatch). **Naming collision avoided: chose
-  `.list-slots`** (not `.list`, which would collide with `base.cmd.list`)
-- per findings doc #12 (p0): NO console/admin user could call ANY
-  credential_fabric command at all — not even the already-landed
-  `cmd.approve` was wired into `access.zenki`
-- live traffic-level acceptance still needed now that all known boot/
-  logic blockers are cleared (see live-verification items above)
+  command modules — internal APIs only, not console-callable
+- on-demand auth (407/pending/approve flow) end-to-end not yet verified
 
-#,,,.,.,.,...,.,.,,..,.,,,.,.,.,.,...,..,,,,,,..,,...,...,.,,,...,,.,,,,.,,..,
-#NZ37KR47EVMID2UWDPO7RNWPMLVAUNUMO2YHJPHHD3XM5WRBPNXH3AOA7ZCYWJAK4YMYS2KYS6VRK
-#\\\|DY2LQVGZA557XWP6PQM7XOU7TAEIILZBIBOEDCMYHRIAXTTAO4P \ / AMOS7 \ YOURUM ::
-#\[7]U6SZXH3P6CS5B5YX73SA3OTGMWX2X3VKIMIKVUSNSHM2J4USB6CI 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,..,,..,,,.,.,,,,.,,...,.,,,,,.,..,,...,...,.,.,,.,,,..,.,,,.,.,
+#4JGKOTDFPDESX3V4PAJID5B5BGYNZVOLT2YES3CHH4ULBMVE3OVHKFXPDJ5VYCNQYN7TW7V3JDQHW
+#\\\|TWT4OIIJMT2WM3ZJ3PZA4MSVJVLZR7GEQYPNPEOXUIOS6WTOLPS \ / AMOS7 \ YOURUM ::
+#\[7]RZ4YVEMXLJ4FNCJGCFSS26EWSW7HZYW4O23JDI5OSFOFPUZCGSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

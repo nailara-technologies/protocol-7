@@ -31,6 +31,11 @@ if ( ( $bytes // -1 ) == -1 ) {
 
 ## client closed connection ##
 if ( $bytes == 0 ) {
+    ## half-close while awaiting async reply: defer cleanup ##
+    if ( ( $client->{'state'} // '' ) eq 'awaiting_auth' ) {
+        $client->{'half_closed'} = 1;
+        return;
+    }
     <[proxy.client.close]>->($client_id);
     return;
 }
@@ -114,22 +119,6 @@ my $context = {
     },
 };
 
-## auth stub integration point ##
-if ( exists $code{'proxy.auth.lookup'} ) {
-    my $auth_result = <[proxy.auth.lookup]>->($context);
-    if ( defined $auth_result and ref $auth_result eq 'HASH' ) {
-        $context->{'auth'} = $auth_result;
-    }
-}
-
-## transport integration point ##
-if ( exists $code{'proxy.transport.select'} ) {
-    my $transport_result = <[proxy.transport.select]>->($context);
-    if ( defined $transport_result and ref $transport_result eq 'HASH' ) {
-        $context->{'transport'}{'handle'} = $transport_result;
-    }
-}
-
 $client->{'request'} = {
     method  => $method,
     uri     => $uri,
@@ -138,15 +127,21 @@ $client->{'request'} = {
 };
 
 $client->{'context'} = $context;
-$client->{'state'}   = 'processing';
 
-## dispatch to main handler ##
-<[proxy.handler.request]>->($client_id);
+## async auth lookup — proxy.auth.lookup calls post_auth when done ##
+if ( exists $code{'proxy.auth.lookup'} ) {
+    $client->{'state'} = 'awaiting_auth';
+    <[proxy.auth.lookup]>->($client_id);
+    return;
+}
+
+$client->{'state'} = 'processing';
+<[proxy.handler.post_auth]>->($client_id);
 
 return;
 
-#,,,,,.,.,.,,,...,..,,,,,,.,,,,.,,,.,,,.,,.,.,..,,...,...,...,,..,.,,,..,,..,,
-#25R27VPMQYARQNM5FLMQ5DNSVW23UJ6HNY7ENNSKUSPYT7ZTTHU7FXMLCTM4UOOFDDG2C2FBBGAIE
-#\\\|ZU54STTWX3ZA3EB47XHW2B5OSKWJV6ECHN4SK6UEPDXBEOQAHS2 \ / AMOS7 \ YOURUM ::
-#\[7]Q3AA4ENEFL42Y7ANVWD5U7G7HQ5QC4GQSBYD7RE2PIQZY7GQZIAY 7  DATA SIGNATURE ::
+#,,,.,..,,...,...,..,,,,,,,,.,,,.,..,,,.,,.,.,..,,...,...,,.,,,,.,,,,,,.,,...,
+#YPLPBS4NQFGSNDN7THACN476Z45L4GF7U2YO4ZF3UQRPEREZ3D5TAGJ4EQYOE34JCJN44TQIUC6JK
+#\\\|FDLS4726FZG4IJ2Q765PKFKV7STLTMBDXNAQYFJNTMRROAWETZP \ / AMOS7 \ YOURUM ::
+#\[7]WBSWZANBJNJVTV23SZBPLRH7F5S6PYQGZULUDLTBVDSRTAUFX2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -26,7 +26,8 @@ $data{'proxy'}{'clients'}{$client_id} = {
     client_port => $client_port,
 };
 
-<[event.add_io]>->(
+$data{'proxy'}{'clients'}{$client_id}{'watcher'}
+    = <[event.add_io]>->(
     {   fd      => $client_sock,
         poll    => 'r',
         handler => 'proxy.handler.connection',
@@ -41,8 +42,8 @@ $data{'proxy'}{'clients'}{$client_id} = {
 
 return;
 
-#,,..,...,.,,,,,.,,..,,..,,.,,,.,,,.,,..,,,,,,..,,...,...,,.,,,.,,..,,,..,.,.,
-#ZSEWDLKZ2V2N4N4D3WCJSANKFXG3J3IARAYRIA4AQDCCWPEN5I23PVDNCOPXEJV6QYCIIBBSEVDSY
-#\\\|GZ2QUMP6MPUT6OMFWMX74V2ANEZ7BKYZTZTOEZOY5LH6WWHTXVT \ / AMOS7 \ YOURUM ::
-#\[7]VLIKLGEG62ZN2IJWID7B74WKXJMGCFKTTKX3KIRN7EWSAAHPE4CI 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,...,,,.,,..,...,.,,,,,.,...,,..,..,,...,...,,,.,...,,,,,,,.,,..,
+#6WUBLLYYLTENWYD6VNFSNDJEHPAKCFZAWIE6ST7LBU5I4XW3TGAB64VJ6SY257QTJCEZBHPC4MZFO
+#\\\|7Z7SWGQA2JWPFEYWKYNW6DDZT2COSOX2WLVJV4F5NWEHOHWRHHJ \ / AMOS7 \ YOURUM ::
+#\[7]JKQK7E35BEAVDTTRIVPXS4YBCT7IOP4RM4DYZZEXKW4W372YXUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
