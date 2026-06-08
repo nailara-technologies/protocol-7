@@ -55,6 +55,7 @@ access.cmd.usr.cube = commands heart reload verify-instance list show-buffer \
                       list-tasks task-info pause-task resume-task \
                       execute_round last-compaction task-append \
                       context-size summarize-context drain \
+                      bury failed resurrect \
                       exec-sub eval-code ## <-- temporary [ development only ]
 ##                    utf8-test-buffer utf8-stream-test \ ## <-- resolved =).
 ##                    test-strm test-strm-size            ## <-- resolved =).
@@ -160,7 +161,7 @@ coding.cfg.vram_safety_max_mb = 3000  ## cap to reserve VRAM for other use     #
 ## context ceiling for auto-calculation — 0 = uncapped (VRAM math decides) ##
 ## code default is 131072; override here for this system                   ##
 
-coding.cfg.context_max = 40777
+coding.cfg.context_max = 39777
 
 ## Default model AMOS checksum [ resolved from models zenka during init ] ##
 ##
@@ -168,7 +169,10 @@ coding.cfg.context_max = 40777
 
 inference.model.amos_id = <coding.cfg.start_model>
 
-inference.model.path = null  ## Resolved during init via network request ##
+## not declared here : resolved at init via async network request to models  ##
+## zenka [ coding.resolve_model_path -> coding.handler.model_path_reply ] —   ##
+## a placeholder value here would get re-applied [ clobbering the resolved   ##
+## path ] every time 'reload config'/'reload all' re-parses this file        ##
 
 modules.load = auth net protocol io.unix io.ip jobqueue crypt.C25519 \
                coding models.conversation storage context \
@@ -196,8 +200,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,.,,,,,,.,,,,,,,,,.,.,,,.,.,..,,,.,,,..,,,.,.,.,...,...,,..,.,,,,..,,..,.,,,
-#34MQ5QTMMGDELEQIGG6IH3ROVRU3U5ZLIDNYSJGNA7FLT3ILIWRN626GPHHLTIUH5DXNLCDZEHLOG
-#\\\|AUVOZBT3G7LMG5OZEA6V7VD4FHBH5RHCFWPVY5ENWIPGIFOV3EW \ / AMOS7 \ YOURUM ::
-#\[7]CMR4EBPRRAMOSKHMDW5A6PV6R56SKQCB43TBJJ34TIY24BNNNEDY 7  DATA SIGNATURE ::
+#,,..,,.,,,..,,,.,,,,,.,.,.,,,,,,,,..,,,,,.,.,.,.,...,..,,,..,,,.,,,.,..,,,.,,
+#DZKP2FM36PTPTAOP777XIJX7H5ZKEXZF25LN2KNXOC762KDCADHHVLC6EJYK2BXPO54HE4XFX7X5O
+#\\\|23XSLAVYTO6CKQ25FQ4RBD5YFCTOK2JTRNVGQ74HYYTBXOE6AXT \ / AMOS7 \ YOURUM ::
+#\[7]UYNB45OGHM7FD5TRX2FECFI77QLBBDM5ACQLMRZF45KGFQFRZ2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

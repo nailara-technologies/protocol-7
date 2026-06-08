@@ -1,12 +1,19 @@
 ## [:< ##
 
 # name  = coding.task.fail
-# descr = move failed task to failed queue with error context
+# descr = mark task failed with error context [ array+queue model ]
 
-my ( $task, $error, $failure_type ) = @ARG;
+my ( $task_id, $error, $failure_type ) = @ARG;
 
-return { 'mode' => qw| false |, 'data' => 'task required' }
-    unless ref $task eq qw| HASH |;
+return { 'mode' => qw| false |, 'data' => 'task_id required' }
+    unless defined $task_id && length $task_id;
+
+my $queue_href = <coding.task.queue> // {};
+
+return { 'mode' => qw| false |, 'data' => 'task not found' }
+    unless exists $queue_href->{$task_id};
+
+my $task = $queue_href->{$task_id};
 
 $task->{'execution'} //= {};
 $task->{'execution'}->{'failed_at'}    = <[base.time]>->(3);
@@ -15,19 +22,20 @@ $task->{'execution'}->{'failure_type'} = $failure_type // 'unknown';
 $task->{'execution'}->{'retry_count'} //= 0;
 $task->{'execution'}->{'status'} = 'failed';
 
-## store in failed queue ##
-my $failed_queue = <coding.task.failed.queue> //= {};
-$failed_queue->{ $task->{'id'} } = $task;
+## move id between queue lists : record stays in <coding.task.queue> ##
+my $aref_pending = <coding.task.pending> //= [];
+my $aref_active  = <coding.task.active>  //= [];
+my $aref_failed  = <coding.task.failed>  //= [];
 
-## remove from active queue ##
-if ( exists <coding.task.queue>->{ $task->{'id'} } ) {
-    delete <coding.task.queue>->{ $task->{'id'} };
-}
+$aref_pending->@* = grep { $ARG ne $task_id } $aref_pending->@*;
+$aref_active->@*  = grep { $ARG ne $task_id } $aref_active->@*;
+push $aref_failed->@*, $task_id
+    unless grep { $ARG eq $task_id } $aref_failed->@*;
 
 <[base.logs]>->(
     0,
     "::task:: failed [%s]: %s [type: %s, retries: %d]",
-    $task->{'id'},
+    $task_id,
     <[base.parser.ellipse_center]>->( $error // 'unknown', 60 ),
     $task->{'execution'}->{'failure_type'},
     $task->{'execution'}->{'retry_count'}
@@ -35,7 +43,7 @@ if ( exists <coding.task.queue>->{ $task->{'id'} } ) {
 
 ## resolve reasoning branch as failed ##
 <[reasoning.branch.resolve]>->(
-    {   id     => $task->{'id'},
+    {   id     => $task_id,
         output => 'failed: ' . ( $error // 'unknown error' )
     }
 );
@@ -43,14 +51,14 @@ if ( exists <coding.task.queue>->{ $task->{'id'} } ) {
 return {
     'mode' => qw| true |,
     'data' => {
-        'task_id'     => $task->{'id'},
+        'task_id'     => $task_id,
         'failed_at'   => $task->{'execution'}->{'failed_at'},
         'retry_count' => $task->{'execution'}->{'retry_count'},
     }
 };
 
-#,,,.,,..,,,,,...,.,,,,,.,,.,,...,.,,,...,...,.,.,...,...,.,,,.,,,.,.,.,.,,.,,
-#ND47GP3UMY37SVKTODDGBUM72N6KLDDYVR33ZU4MFNM7GYMWHTKBO6BXZ2XW5MRPUZEWZSVB2PQW2
-#\\\|6Z447YHB7X5ETGH4MSQDM4SNSRLB7LZ7FFJXCUTDIV74W5WTBBJ \ / AMOS7 \ YOURUM ::
-#\[7]5UODM6BPCA4XQ2M2BA4HIPDCXULVMV7DZJO2OUZ7MML7W6TEZKAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,..,,,,,,,,,,..,,.,.,...,,.,,,.,,.,.,...,...,...,,,.,,,,,,.,,..,,
+#55QG57OQXL2FRDF6CDMBWPQLLFGOTYZXQBQCLI5FVIQWKNTBLYYLTUVNBF2CMWCPQVY72BRCMMX64
+#\\\|LYZR5KQA56ESZROWYZRNG2HWBBX67DUMJTA5U3YURQGE6NE2CCP \ / AMOS7 \ YOURUM ::
+#\[7]ET5EG4GWM7OTIGMUMGDO7KHMGW7YLCANFWUQKX2TO2N4PBNM4QAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

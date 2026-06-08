@@ -8,12 +8,27 @@ my ($task_id) = @ARG;
 return { 'mode' => qw| false |, 'data' => 'task_id required' }
     unless defined $task_id && length $task_id;
 
-my $failed_queue = <coding.task.failed.queue> // {};
+my $queue_href  = <coding.task.queue> // {};
+my $aref_failed = <coding.task.failed> //= [];
 
 return { 'mode' => qw| false |, 'data' => 'task not found in failed queue' }
-    unless exists $failed_queue->{$task_id};
+    unless grep { $ARG eq $task_id } $aref_failed->@*;
 
-my $task = delete $failed_queue->{$task_id};
+my $task = $queue_href->{$task_id};
+
+return { 'mode' => qw| false |, 'data' => 'task record missing from queue' }
+    unless defined $task;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'buried tasks cannot be resurrected'
+    }
+    if ( $task->{'execution'}->{'status'} // '' ) eq 'failed-stopped';
+
+## drop from failed list + queue : enqueue rejects existing ids,
+## so the old record must be cleared before re-registering it    ##
+$aref_failed->@* = grep { $ARG ne $task_id } $aref_failed->@*;
+delete $queue_href->{$task_id};
 
 ## update retry count and reset status ##
 $task->{'execution'}->{'retry_count'}++;
@@ -23,10 +38,7 @@ delete $task->{'execution'}->{'failed_at'};
 delete $task->{'execution'}->{'error'};
 delete $task->{'execution'}->{'failure_type'};
 
-## re-queue the task ##
-<coding.task.queue>->{$task_id} = $task;
-
-## enqueue via jobqueue for execution ##
+## re-enqueue : restores queue/pending tracking + spawns a fresh job ##
 my $enqueue_result = <[coding.task.enqueue]>->($task);
 
 <[base.logs]>->(
@@ -43,8 +55,8 @@ return {
     }
 };
 
-#,,,.,.,.,.,,,,,.,,.,,,,.,..,,,..,.,.,,,.,,,,,.,.,...,...,,,,,,..,,,.,,..,,..,
-#5FY5N3BHLTMVKF7JDHAWGLZPVSNUTP4YCYN5TN56KQ72VKWCIAGOOBQEWWY3WGTV7XXXOBXQ2NANK
-#\\\|343237GIGRFSZV5TR5K5MWDNN4I6TW6JZS3OIMQ6R7BGQ7AYQCA \ / AMOS7 \ YOURUM ::
-#\[7]EFVTVFDZDSA7KIQ72GCQXO4SEKZQ2HNTYNSF4LOC5QUUBTG3ZMCI 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,,.,,,.,,..,...,..,,..,,,,,,,..,.,.,...,...,,..,...,,,,,,,.,,,,,
+#3HOGZAPRDRKEV2PVGL6PVK3XX64VPJ7X6CZSCLLUTKKQGNDOMDJDAIMJ2LCQ7PP2VIAEBPAKCEIEY
+#\\\|AOR53NKOPT7LNOKDM5SW5KWDGOGFSF4YAI3YM77JQKVKWU7HC2Q \ / AMOS7 \ YOURUM ::
+#\[7]DKBSKRV4L5FW3JD6EWLGYSCXBRYQONCQA2BVWJ3GLY6WYNXT76AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
