@@ -96,6 +96,7 @@ my $callbacks = {
     on_error   => sub { <[coding.callback.http_error]>->( $task_id, @ARG ) },
     check_stop => sub { <[coding.callback.http_check_stop]>->($task_id) },
     timeout    => $http_timeout_request_total,    ## default 13 minutes ##
+    backend    => $backend,    ## used for cold-start data-start grace ##
 };
 
 <[base.logs]>->( 1, "[ %s ] connecting to local backend ..", $task_id );
@@ -133,8 +134,8 @@ return {
     mode    => qw| streaming |,
 };
 
-#,,,.,,.,,.,,,,.,,...,,..,...,,..,,,.,,..,,.,,..,,...,..,,.,.,...,.,.,,.,,,,,,
-#GFLFNPVUDPYS7P5UJRCWVE3CHVWTP6OKUEELWCXMKRGPGDZWEJ5CVZVQSO724YTVHFDQTCW2GVZ6K
-#\\\|FOGS7KCNK44CFML67BZQKQVLTPXULQ7L5K6DHHMP3IZ3KHLME57 \ / AMOS7 \ YOURUM ::
-#\[7]24KWFXXGDO236MFRJGQDVRPNFQGG27J6IDFFW54VIGVOMZRE7CBQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,,.,.,,,..,,.,.,,,,,..,,,,.,...,..,,...,...,,.,,,.,,...,...,.,,,
+#QYA6F7IULNQWHS67FBU5MBKENXYH5KAGZEKUGOXCPTED2PPUC4BC5EXYCTPDJG6YGEX7C6VHBN6EQ
+#\\\|WRDDL6CLPEGVBFSW6TYNBNH6C55ADPZ4JJRKDEUZUKH6JGZSPE5 \ / AMOS7 \ YOURUM ::
+#\[7]F5O4UH6XGWLFPTDSJGYFYBI45ZXBIPQY26B4WE6NFCZQ3D6PIUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
