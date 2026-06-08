@@ -31,19 +31,6 @@ my $url = "http://127.0.0.1:${port}/v1/chat/completions";
 ## [ backend_busy_retry calls send_request which needs messages ] ##
 my $existing = <coding.async.task_state>->{$task_id};
 if ( !defined $existing || !defined $existing->{'state'} ) {
-    <[coding.async.state_manager]>->(
-        qw| set |,
-        $task_id,
-        {   job_id        => $job_id,
-            task_id       => $task_id,
-            backend       => $backend,
-            port          => $port,
-            start_time    => <[base.time]>->(3),
-            mode          => qw| streaming |,
-            chunk_context => {},
-        }
-    );
-
     <[coding.async.state_machine]>->(
         qw| init |,
         $task_id,
@@ -51,6 +38,20 @@ if ( !defined $existing || !defined $existing->{'state'} ) {
             tools    => $request_body->{'tools'}    // [],
             backend  => $backend,
             port     => $port,
+        }
+    );
+
+    ## merge manager-level fields onto the freshly initialized state :
+    ## state_machine 'init' overwrites the whole task_state hash, so
+    ## job_id must be merged in AFTER init — otherwise http_error can
+    ## never find it on timeout and the orphaned job stays 'running'
+    ## forever while the task sits requeued as 'pending'              ##
+    <[coding.async.state_manager]>->(
+        qw| set |,
+        $task_id,
+        {   job_id        => $job_id,
+            mode          => qw| streaming |,
+            chunk_context => {},
         }
     );
     $existing = <coding.async.task_state>->{$task_id};
@@ -132,8 +133,8 @@ return {
     mode    => qw| streaming |,
 };
 
-#,,,.,,.,,.,.,..,,..,,,,.,.,,,,..,,,.,,.,,...,..,,...,...,,..,,..,,..,,,.,.,.,
-#E7LCENV6I4XPBPUNCYHTQ4QW6W74ZUUJVAZCYJ2L3I66BBVSXLGOJ3XBZJMFQMNV6WTH35M63AVHM
-#\\\|3FGTIO52LCWMMBDYYJDWPKZI7GQ6SVJAV2JBAZWMMZISZUDXYM6 \ / AMOS7 \ YOURUM ::
-#\[7]6YSCPCA45YNKOXHVP24WDO6FNIZUWXVBT6NJIPA2HDWM4HKCRSAI 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,.,,...,,..,...,,..,,,.,,..,,.,,..,,...,..,,.,.,...,.,.,,.,,,,,,
+#GFLFNPVUDPYS7P5UJRCWVE3CHVWTP6OKUEELWCXMKRGPGDZWEJ5CVZVQSO724YTVHFDQTCW2GVZ6K
+#\\\|FOGS7KCNK44CFML67BZQKQVLTPXULQ7L5K6DHHMP3IZ3KHLME57 \ / AMOS7 \ YOURUM ::
+#\[7]24KWFXXGDO236MFRJGQDVRPNFQGG27J6IDFFW54VIGVOMZRE7CBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
