@@ -7,18 +7,18 @@ my ( $filter_type, $max_results ) = @ARG;
 
 $max_results //= 20;
 
-my $failed_queue = <coding.task.failed.queue> // {};
+my $queue_href  = <coding.task.queue>  // {};
+my $aref_failed = <coding.task.failed> // [];
 my @results;
 
 for my $task_id (
     sort {
-        $failed_queue->{$b}->{'execution'}->{'failed_at'}
-            <=> $failed_queue->{$a}->{'execution'}->{'failed_at'}
-    } keys %$failed_queue
+        ( $queue_href->{$b}->{'execution'}->{'failed_at'} // 0 )
+            <=> ( $queue_href->{$a}->{'execution'}->{'failed_at'} // 0 )
+    } $aref_failed->@*
 ) {
-
-    my $task = $failed_queue->{$task_id};
-    my $exec = $task->{'execution'} // {};
+    my $task = $queue_href->{$task_id} // next;
+    my $exec = $task->{'execution'}    // {};
 
     ## filter by failure type if requested ##
     if ( defined $filter_type && length $filter_type ) {
@@ -42,11 +42,11 @@ for my $task_id (
 
 return {
     'mode' => qw| true |,
-    'data' => \\&results,
+    'data' => \@results,
 };
 
-#,,.,,,,,,..,,,.,,,,,,,,,,,..,,..,,,,,,,.,.,.,.,.,...,..,,,,.,,,.,,..,,,,,,,.,
-#DUYWVA2XISNN55MQHRIW5LOQOJW7M4EDQLGS4VW4O2WA6UF3HOXQCTS474XPYCMFP5KWBDB4SVQ7I
-#\\\|BIVTNOTGG6ZPAVS2J74CO52ZCTGQOMUG5TOSJB75J7NGP4DMXVS \ / AMOS7 \ YOURUM ::
-#\[7]265E5BKMBW46OGJ7UIVZZBPCLNNFSN33TMNE632YTGP7FKRBSSAY 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,.,,,,..,,..,...,,,,,,,.,,,,,.,.,.,.,...,...,,,,,,,,,.,,,.,.,..,,
+#I5UTN4CZN3GP4WOGUATEDZAFOGEVPRUKSMXHHV44G7L3XCQO6WDJIKIJPWW2PBF6K5BGPMBA6FCZ2
+#\\\|POITB4N56PCKIWTY73L3EG7WVOWCABB5HE4WHSWGGK6IBF7EBJG \ / AMOS7 \ YOURUM ::
+#\[7]G54EZ27B5VPWET3MNOI6WG4GZ4T4JG7NSQAJ2HEYUVVJUS3I5OAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
