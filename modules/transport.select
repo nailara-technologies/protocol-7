@@ -31,7 +31,7 @@ for my $entry (@$transports) {
     my $type = $entry->{'type'} // next;
 
     ## check demotion ##
-    my $demoted = <external.transports>->{'demoted'}{$dest}{$type};
+    my $demoted = <transport.registry>->{'demoted'}{$dest}{$type};
     if ( defined $demoted ) {
         <[base.logs]>->(
             2,     'transport.select: %s demoted for %s, skipping',
@@ -41,7 +41,7 @@ for my $entry (@$transports) {
     }
 
     ## check min_quality if we have quality data ##
-    my $quality = <external.transports>->{'quality'}{$type}{$dest};
+    my $quality = <transport.registry>->{'quality'}{$type}{$dest};
     if ( defined $quality and exists $entry->{'min_quality'} ) {
         my $min = $entry->{'min_quality'};
         if ( exists $min->{'loss_max'}
@@ -71,13 +71,13 @@ for my $entry (@$transports) {
     my $handle = $code{$handler}->( $entry, $ctx );
     if ( defined $handle ) {
         ## success: record as active, initialize quality ##
-        <external.transports>->{'active'}{$dest} = {
+        <transport.registry>->{'active'}{$dest} = {
             'type'    => $type,
             'handle'  => $handle,
             'started' => <[base.time]>->(4),
         };
 
-        <external.transports>->{'quality'}{$type}{$dest} //= {
+        <transport.registry>->{'quality'}{$type}{$dest} //= {
             'loss_rate'            => 0.0,
             'rtt_ms'               => 0,
             'goodput_kbps'         => 0,
@@ -110,7 +110,7 @@ if ( exists $code{$fallback_handler} ) {
     my $handle = $code{$fallback_handler}
         ->( { 'type' => $fallback, 'endpoint' => $dest }, $ctx );
     if ( defined $handle ) {
-        <external.transports>->{'active'}{$dest} = {
+        <transport.registry>->{'active'}{$dest} = {
             'type'    => 'fallback:' . $fallback,
             'handle'  => $handle,
             'started' => <[base.time]>->(4),
@@ -123,8 +123,8 @@ if ( exists $code{$fallback_handler} ) {
 <[base.logs]>->( 0, 'transport.select: fallback also failed for %s', $dest );
 return undef;
 
-#,,.,,.,,,,,,,.,,,,,.,..,,,.,,,.,,,,.,,,.,,,.,..,,...,...,.,,,,,.,,..,,..,,,.,
-#TJNYCR3CB4FD5JYFMXH6BZSLPTADQB3XKOO7OLVRHT62T3SRGR3BIIMTYYZ66D4PVIWKFTKDEJLDU
-#\\\|GTCEK5BUSBMLW6QJ5HZWKV5223Q7G4IH2X4FRKMUFYCHMYNJG5Y \ / AMOS7 \ YOURUM ::
-#\[7]RKKZMARFAOQN2MQAT72CG3G7TQACT2YTI6QOC6DOVVOJU7F76EDA 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,..,,.,.,,,.,,..,,..,..,,...,...,..,,...,.,,,..,,,.,,,,,,...,,..,
+#BNQW3RCRK6X2GIZMPBVKSRIQKMDS24WYTURJ4WUUZQ2NPHOSGWE6MZWABREI5FMVTXEVM6VRFRYNE
+#\\\|RLYCHWONFMWMCF6VOALM7HJZ6JFF3QU6JF5LMKDGY747RA3PV7X \ / AMOS7 \ YOURUM ::
+#\[7]XMZG44C4JPWSKC7T5SSL6XCGHFHTC7SGVXOSHQYPARKSY2UEUEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

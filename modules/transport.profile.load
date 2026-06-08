@@ -7,7 +7,7 @@
 my $name = shift // return undef;
 
 ## return cached ##
-my $cached = <external.transports>->{'profiles'}->{$name};
+my $cached = <transport.registry>->{'profiles'}->{$name};
 return $cached if defined $cached;
 
 my $dir  = <transport.cfg.profile_dir> // 'data/yaml/transport/profiles';
@@ -34,12 +34,12 @@ if ( not exists $profile->{'transports'}
 }
 
 ## cache ##
-<external.transports>->{'profiles'}->{$name} = $profile;
+<transport.registry>->{'profiles'}->{$name} = $profile;
 
 return $profile;
 
-#,,..,..,,,..,,,.,,.,,,,,,,,.,,,,,,,,,,.,,,.,,..,,...,...,..,,..,,...,..,,..,,
-#6VIYOD72I5ZID5NAJSLWR7ILXHG4RMFJWTHLGVT7X33T4II3FBJYTWRDCD4ASR7TLZH3BSJKDKW7M
-#\\\|4DRZ6YBMZWW3G45OB2NHJVXT4XAFIYGUZ7CAY2TYFB2Z7KW2UHL \ / AMOS7 \ YOURUM ::
-#\[7]5UK22CURNZ7QCNMYKFYPQIM23UG65GL2KO54UIT5XODK3MNHB6CQ 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,.,,,..,,.,,,,.,,,.,,.,.,,.,,,.,,..,,...,...,.,,,,..,,,,,...,,,,,
+#LODKCFPL27ANWGFLKVQMERAEIZBETFBWJD2POMUDZ4DC6M2P74OCPUFFF6TX6ZCFCQHBHC3466UPW
+#\\\|D4CPBAHWFITXMQJ2HKURDCT7GLUNLXWL6A2SMPL6YU2DUI55VLN \ / AMOS7 \ YOURUM ::
+#\[7]2ONWMZSVYVH3WFSNXQ5STNAID4NNIDSQKWBWMXPCBPPMF4LYLYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

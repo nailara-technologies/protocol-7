@@ -9,7 +9,7 @@ my ( $dest, $type, $metrics ) = @ARG;
 return if not defined $dest or not defined $type;
 return if ref $metrics ne qw| HASH |;
 
-my $q = <external.transports>->{'quality'}{$type}{$dest} //= {
+my $q = <transport.registry>->{'quality'}{$type}{$dest} //= {
     'loss_rate'            => 0.0,
     'rtt_ms'               => 0,
     'goodput_kbps'         => 0,
@@ -56,8 +56,8 @@ if ( defined $profile ) {
 
 return $q;
 
-#,,,,,.,,,,..,.,,,...,..,,...,,..,,..,,,.,,.,,..,,...,..,,.,.,.,.,.,.,,,,,,..,
-#NVZNRT6XVTCDHNZV2MFPMRAZ2MBFFRHKJWF64LBXLJW5CNMR3CTAOVPJAH5NSGJ2ORGGUDYXIVR3Q
-#\\\|JIGIQMWM65ENCGY4V4AGNPUVM433U3TPZQMM2ODPTO2IRKSE5AM \ / AMOS7 \ YOURUM ::
-#\[7]LR4AS5WUVOJATYV4XPYAWQLCGSD5AME3KXQYTAIX7DHIQASGJ6AA 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,.,.,,,.,,..,.,,,,,.,.,.,...,.,,,..,,...,...,.,.,,,.,,.,,,..,,.,,
+#5MVPZPYKYNJTAFUG4VJ2K4MPVXGPBKSTYGSJGB2YEWCA5TIDX4JKMQFTXHVWU6L6DAFLVLSHZYEHU
+#\\\|LVOYEC3E4GZQXQJJUFXAFRSG6U4RP5AN5UWBAWYRSYEOBXSLMWY \ / AMOS7 \ YOURUM ::
+#\[7]6A3FDDHGGR74GLPL5HYJLY3ZGF2ODPVH4VMIIVZDF4QBIWBS64BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

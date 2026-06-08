@@ -5,7 +5,7 @@
 
 proxy.cfg.listen_address  = 127.0.0.1
 proxy.cfg.listen_port     = 8118
-proxy.cfg.selector_config = data/yaml/web-proxy/template-selector.yaml
+proxy.cfg.selector_config = '<system.root_path>/data/yaml/web-proxy/template-selector.yaml'
 proxy.cfg.visit_log       = data/yaml/web-proxy/visit-log.yaml
 proxy.cfg.transport       = direct
 
@@ -13,7 +13,8 @@ access.cmd.usr.cube = commands heart reload verify-instance \
                       list show-buffer buffer-erase buffer-erase-level \
                       show-access src-ver src-age subname name status
 
-modules.load = auth net protocol io.unix io.ip clients.http clients.https format.yaml proxy proxy.outbound.connect_or_use httpd.status_codes
+modules.load = auth net protocol io.unix io.ip clients.http clients.https \
+                                     format.yaml httpd.status_codes proxy
 
 [load_modules:<modules.load>]
 [init_modules]
@@ -26,8 +27,8 @@ modules.load = auth net protocol io.unix io.ip clients.http clients.https format
 
 [zenka.loop]
 
-#,,,.,,.,,,,,,..,,,,,,.,.,..,,,,,,.,,,,.,,..,,..,,...,...,.,.,..,,,,,,...,..,,
-#ZVQDO3IAJASQ45BS5RSBL3PBY4A5FKKCCDGRK324C5MEAVFDJBPID2FBJKUTREGWY4EJXJ3CTVD6W
-#\\\|G37IBR6KO3MZ42ZISMGSRHKRGSSN7MMNXEM3MH337FNKZOKUYZW \ / AMOS7 \ YOURUM ::
-#\[7]ED5ZMTFE7RWQX2VGO525FOPCH52IAKKRQIN6STQZUJWRP2QUQ2BQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,,.,...,,.,,..,,.,.,,,.,.,.,.,.,..,,...,...,,,,,,,,,.,.,.,,,,..,
+#P3VGK2XLMJ2H7LJC2VWKKQOC6PZS27BUKFJNDTDY5ZWQHIQON274ANF7O5XFGT5WIEJFQ4GX2GAQI
+#\\\|7E4PDLPF6PYDGLWMUEQPW5JQYZ35ORCQUMWKO2JPD3HNJP66CSZ \ / AMOS7 \ YOURUM ::
+#\[7]KYZTZGP3F4ANXKSAVTXKAVNZPFKUDPGLFP3TIR4UH6JIWM5ZSKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
