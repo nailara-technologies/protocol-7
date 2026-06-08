@@ -114,14 +114,10 @@
 - [utf8-module-literals](feedback-utf8-module-literals.md) — non-ASCII corrupts output
 - [watcher-state-machines](feedback-watcher-state-machines.md) — IO::Async variable watchers only
 - [ncode-tools](feedback-ncode-tools.md) — use ncode replace/parse-headers
-- [coding_summarize](feedback-coding-zenka-edits.md) — free 9B summarization; auto default
-- [auto_summarize](feedback-coding-zenka-edits.md) — `decode_json`→`from_json` fix
-- [session_catchup](feedback-coding-zenka-edits.md) — MCP tool for recent sessions
-- [store_summary_focus](feedback-coding-zenka-edits.md) — MCP to prime next dispatch
-- [claude_continue](feedback-coding-zenka-edits.md) — live (1adbf83d2); resume same as kimi
-- [Glitter restart](feedback-coding-zenka-edits.md) — restart after failed tool task
+- [coding-zenka-misc](feedback-coding-zenka-edits.md) — coding_summarize (free 9B, auto default); auto_summarize `decode_json`→`from_json`; session_catchup/store_summary_focus MCP; claude_continue live; Glitter restart-after-fail
 - [perltidy-sil0](feedback-perltidy-sil0.md) — format-code/ptd `-sil=0` self-heals over-indented modules to col0
 - [design-ideation-capture](feedback-design-ideation-capture.md) — engage substance + offer fold-in/spin-off doc when user riffs unprompted; write immediately once confirmed
+- [coding-timeout-restart-loop](feedback-coding-timeout-restart-loop.md) — data-start 13s too short for large prompts (now scales w/ est_tokens); ctx "reduction" on recovery was a no-op (floor≠ceiling) — both fixed 2026-06-08
 
 ## Completed Sessions
 - [topic-completed](topic-completed.md) — all session summaries (Feb 2026 → present)
@@ -141,83 +137,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,..,.,,,,.,,...,..,,,.,,.,,,,,,,,,.,.,.,,,,,..,,...,...,,.,,.,,,..,,,.,,.,,,
-#NA62WCAUJIZLWZNLJO6VINOMNVRKVGXWBZTPXKTPAM3DQZ7RRPTJ25K37QJS3WANEFJD4AZYH2MFO
-#\\\|YI4J6G4MPGIH47OKNPN26PZZTUB2AU7WIPSRVJHVLRLOXK5DELV \ / AMOS7 \ YOURUM ::
-#\[7]O2VZPNURHCCMPJ2QHPCVQWJM4PZ4BK763QEHAJBHOQNVPBTWDEDQ 7  DATA SIGNATURE ::
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-## 2026-06-02 — nshell `(0)` prefix bug fix
-
-**Root cause:** `base.handler.command` orphaned route handler generated `(0)!TERM!` when processing prefix-less replies (`cmd_id == 0`). The `clear` command triggers this via SIZE reply orphan paths.
-
-**Fixes applied:**
-- `base.handler.command` lines ~1470, ~1516: added `$cmd_id > 0` guard before `sprintf "(%d)!TERM!\n"` in orphaned route handlers
-- `base.protocol-7.command.send.local` line 107: changed wrap regex from `^(\d+)$` to `^([1-9]\d*)$` so `0` never gets wrapped as `(0)`
-- `nshell.editor.process`: fixed `terminal_size()[0]` for cols + color reset on empty submit
-- `nshell.handler.command_reply`: newline safety before cursor redraw
-
-**Key insight:** The `!TERM!` backchannel logic at line ~565 already guarded with `$tgt_cmd_id > 0`, but the orphaned-route fallback paths did not.
-
-**Diagnostic:** Improved `base.handler.command` syntax error log to show full bad line (`line=['...']`) instead of stripping it.
-
-## completed this session (2026-06-06) — iris queue + credential fabric
-
-- **iris dimension-rotator** ✓ (8e66b0044) — route.bmw384.visual.wheel.vertical; H/V toggle in iris UI
-- **iris cascade-warning** ✓ (497976067) — warning_map + depletion rate tracking; amber glow overlay in wheel.ledger
-- **iris separator-pulse** ✓ (9c5b107d0) — sep toggle + 100ms auto-refresh in iris UI; backend was pre-existing
-- **iris temporal** ✓ (2b8b6ea0c) — wheel.temporal; radial=time-since-modification, hue encodes age
-- **iris boundary** ✓ (71cb6e025) — wheel.boundary; stained glass gap boundaries + threshold slider
-- **iris negotiation-window** ✓ (a6a62fb16) — negotiation-overlay + negotiation.tick + iris-negotiate handler
-- **memory cache fix** ✓ — memory.render.context uses file.zenka_dir.write; stale /var/protocol-7/memory file removed; context.memory.load reads from var_P7/memory/
-- **mcp-server-p7 kimi fix** ✓ — kimi-code v0.11.0 blocks --yolo with --prompt; switched to kimi-legacy; PATH extension stanza added at startup
-- **credential-fabric zenka** ✓ (pending sign+commit) — 17 modules; credential_fabric.* namespace; detached key-holder child (C25519+Twofish ephemeral DH); tiered store; rotate/subscribe/resolve/register; open: web-browser.dialog.show not yet wired, remote-slot async callback pending
-
-#,,..,..,,.,,,,.,,.,.,.,.,,..,.,,,..,,...,...,..,,...,...,..,,,,.,,,.,..,,,,,,
-#QF4TLSALV6ARK6ONHT3KP34PH5IR6NKOBQFCXYKFDXN6F4ERG2PEIO355M5ZXJZWXY6T2ILZ5EUOM
-#\\\|VNC4JK4456JBJX7MFEIEIEEPX3CFDBFTN7T5HLPIC5AQ7YDSP4T \ / AMOS7 \ YOURUM ::
-#\[7]TJWZHGU3V6CJGMSMKUJM2VXPQZOTHKNP7HDHEEPN23ZOM6MMPWDA 7  DATA SIGNATURE ::
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-## completed this session (2026-06-06) — infra tasks
-
-- **credential-fabric zenka** ✓ (b46b5f5d9) — 17 modules; C25519+Twofish ephemeral DH key-holder child; tiered store
-- **transport-selector** ✓ (b4373d6dc) — 14 modules; priority list + YAML profiles; passive quality + probe timer; 4 handlers
-- **proxy zenka skeleton** ✓ (62e0fff54) — 19 modules; HTTP/CONNECT proxy 127.0.0.1:8118; template selector; transport+auth guards
-- **context.provider.frame inline sub** ✓ (1a5ce1c82) — _frame_bottom_sentinel extracted to context.provider.frame.bottom_sentinel
-- **data-start timeout** ✓ (1a5ce1c82) — coding zenka 77s → 13s; faster timeout recovery
-- **kimi-legacy fix** ✓ — kimi-code v0.11.0 blocks --yolo+--prompt; mcp-server-p7 uses kimi-legacy; PATH extension at startup
-- **memory cache fix** ✓ — memory.render.context uses file.zenka_dir.write; stale /var/protocol-7/memory file removed
-- **coding queue stall** OPEN — fix at 6f9492cd9 did not prevent stall; investigate what gets cleared during server restart that blocks requeue; task: data/tasks/archive/coding-zenka-restart-queue-stall.md
-
-#,,,.,.,.,,,,,,..,..,,,.,,..,,..,,..,,...,.,,,...,...,.,.,,,,,,,.,,.,,,,,,,..,
-#FWHDYPXMXLPQULJKRAIBCDT5IJUQ5TV4EGZSO5GQFSLWP7SLDBS4ZZ35FNWGAHKI2UGTGQUEQXJMK
-#\\\|FVQB5XIQKZ5DNAWAYALGNQNLM6VZ3L4LNPLUOXAGUXGLUPVPINN \ / AMOS7 \ YOURUM ::
-#\[7]5ET5GXSAL6Q2LGKXBDJVV2QX7PJ7QDOWI6ODIO576JYPPFWYVMCA 7  DATA SIGNATURE ::
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-## completed 2026-06-07 — credential fabric wiring landed + queue-stall fix
-
-- **credential-fabric wiring** ✓ (21f4edfa5) — proxy.outbound.connect_or_use,
-  credential_fabric.seed_registry, proxy/transport.handler.cred_rotated,
-  credential_fabric.cmd.approve; auth-relay routes via protocol-7-menu
-  gtk dialogs w/ console fallback; transport handles resolve credential:
-  refs before connect. landed via kimi session feea2b38 (ran ahead of
-  the dispatch I attempted — found via session_catchup after the
-  coding-zenka restart wiped the auto-summary that referenced it).
-- **verify task dispatched** — data/tasks/credential-fabric-wiring-verify.md
-  (manual pass through the wiring task's acceptance list + findings doc;
-  read-only re: zenka modules) → kimi, in progress.
-- **coding zenka queue stall** — restarted zenka to clear two permanently
-  orphaned jobqueue jobs stuck in 'running' (one from a leak in
-  coding.task.complete never calling jobqueue.move_job on success, one
-  from http_error's requeue-to-depending not firing for a compaction
-  subtask). restart cleared both; underlying coding.task.complete bug
-  still open — needs jobqueue.move_job($job_id,'completed') added.
-- **log message fix** ✓ — coding.task.execute: "async streaming started"
-  → "async request dispatched ... awaiting first token" (fired at
-  request-dispatch not first-byte; was reading as a contradiction
-  against the data-start-timeout log line).
-
-#,,,.,...,..,,..,,...,,,,,...,,,.,..,,.,,,,.,,..,,...,..,,,,.,,.,,,.,,,.,,,,.,
-#7ZMMZCUQBPECDPKHXNPILDJ2VF7TNWEODPCSPZNORIIYFVPXWUEP55F5YAFBUYM3W4JTUJLPVRBQK
-#\\\|PKDGBEO2K45VCEE33A7AWKDIADB2VX5E6HFFWRAM2SFMXHHIHPQ \ / AMOS7 \ YOURUM ::
-#\[7]TFWNZYHGPRS3PHBLYS6SEFSXP4J7UUDTSFQS735NOUAY7UKIIGDQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,..,,.,,.,,,..,,,,,,.,.,,,,,,,,,..,,...,...,..,,.,.,...,..,,,.,,
+#EXH3IURXKHSBGRSZL4TZFR3Z5XU7L36GT2RVZQNYUQYQZK2N2EEVJMNMRIWATQLC6VXPEWBVYDXPU
+#\\\|JOCL5EFLE76YDBLZQGT36ZNSIDU7D7JUGSDWQSSYLN37PHXAGGT \ / AMOS7 \ YOURUM ::
+#\[7]ZFLOX46SP77CZ35EE4G7QCEMA6DBSJQCUKMQI74KEMEN67NK6SDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -23,6 +23,32 @@ $path = '/' if !length($path);
 my $json     = JSON::XS->new->utf8->canonical;
 my $body_str = ref($body) ? $json->encode($body) : $body;
 
+## scale data-start timeout with estimated prompt size : a flat timeout
+## starves large prompts — the first streamed token can't arrive until
+## the whole prompt is prefilled, and prefill of 15K+ tokens routinely
+## exceeds a short flat budget under queue contention. floor stays as
+## configured [ short prompts really do start in a couple seconds ]   ##
+my $chars_per_token        = 3.2;
+my $est_prompt_tokens      = int( length($body_str) / $chars_per_token );
+my $prefill_tokens_per_sec = <coding.cfg.prefill_tokens_per_sec> // 1200;
+my $prefill_margin_sec     = <coding.cfg.prefill_margin_sec>     // 5;
+my $scaled_timeout_sec
+    = int( $est_prompt_tokens / $prefill_tokens_per_sec )
+    + $prefill_margin_sec;
+
+if ( $scaled_timeout_sec > $data_start_timeout_sec ) {
+    <[base.logs]>->(
+        2,
+        'async.http_client: data-start timeout scaled %d -> %d'
+            . ' [est_tokens=%d prefill_rate=%d/s]',
+        $data_start_timeout_sec,
+        $scaled_timeout_sec,
+        $est_prompt_tokens,
+        $prefill_tokens_per_sec
+    );
+    $data_start_timeout_sec = $scaled_timeout_sec;
+}
+
 ## Build HTTP request ##
 my $request
     = sprintf( "POST %s HTTP/1.1\r\n"
@@ -138,8 +164,8 @@ return {
     state   => $state,
 };
 
-#,,,.,.,.,,,,,.,,,.,.,.,.,..,,,,,,.,.,,..,..,,.,.,...,...,.,,,.,.,...,,,.,,..,
-#S7E7LSS22JEGAPRYOZPEOW3TZTEQSDXFACXFVRBAJMGDMSPE7ZRLCUADUPMFCDZ4YOGDSHLEPJOOC
-#\\\|WDB6TX54D6JWEIU7EYJOOW4APJAGK7JMCPRORHUMIP2IYQD2WGH \ / AMOS7 \ YOURUM ::
-#\[7]JU66YBLXTPHP3IFPJBTONQKIZ6EBEGWOLX2VBLIYS7I4YRWBNQAA 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,...,.,.,,,,,,,.,,.,,..,,..,,,,.,.,.,...,...,.,.,,,.,.,.,.,,,.,,,
+#STWXFIXYZG472M6LJ2OSVZWCQKJ6JRKZFVE6S23MKM23TESXRAZ6I2GJBE7HHX5AASSS6JIGASUDI
+#\\\|IEGIQNP666UH4VLSRB56PBPEBL4KD6GTXXFDKJHUCNKWEQRTXMK \ / AMOS7 \ YOURUM ::
+#\[7]X4XRIFYC6IQJ57OMCIR3S6H47LG3D66MSYZSX45UQGAHN6K3GWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
