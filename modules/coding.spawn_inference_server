@@ -103,23 +103,10 @@ for my $orphan_path ( glob "$zenka_dir/state/inference.$backend.*.pid" ) {
             close $cfh;
         }
         if ( length $saved_bin and $proc_cmd =~ m|\Q$saved_bin\E| ) {
-            ## age_s is delta-seconds from timestamped_delta_s —     ##
-            ## base.parser.duration expects a unix timestamp, not     ##
-            ## a duration, so format manually                         ##
-            my $age_str = 'unknown age';
-            if ( defined $age_s ) {
-                my $s = int($age_s);
-                my $d = int( $s / 86400 );
-                $s -= $d * 86400;
-                my $h = int( $s / 3600 );
-                $s -= $h * 3600;
-                my $m = int( $s / 60 );
-                $s -= $m * 60;
-                $age_str
-                    = $d ? sprintf( '%dd %dh %dm', $d, $h, $m )
-                    : $h ? sprintf( '%dh %dm %ds', $h, $m, $s )
-                    :      sprintf( '%dm %ds', $m, $s );
-            }
+            my $age_str
+                = defined $age_s
+                ? <[base.parser.duration]>->($age_s)
+                : 'unknown age';
             kill( 'KILL', $saved_pid );
             <[base.waitpid]>->($saved_pid);
             <[base.logs]>->(
@@ -527,8 +514,8 @@ return {
     'port'    => $port
 };
 
-#,,,,,,..,.,.,,,.,,..,,.,,,,,,,,,,,.,,..,,,..,..,,...,...,,,.,,,,,,,,,.,,,.,,,
-#E5BPT7DHQAP44FA7AFLKK4L4YBOAMAXS3AFPFBEV2TVWPAR2SZ3YX7MSN47WTBUSOWO24HNM6PYCQ
-#\\\|GR64PS55WGUJGOF4ZA5H22J2JP2LD6GHAI4G7JSJFND6LJCOAF2 \ / AMOS7 \ YOURUM ::
-#\[7]BZT6TY4EVHCE4USWMJVM4H32FU2DTFL4W34HPKNPFL64PCJXCUCI 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,.,.,,,.,,.,,..,,..,,..,,,,,,.,.,..,,...,...,...,...,.,.,,,,,,,.,
+#P3NXZFLGHZFY6F2KIGIHKHL24GOFI3VGNB35HEATUQNFOWALRUQL7TZNRX2PMPHTCIXL34VQHO2PK
+#\\\|V4EQGZV4A3BGNPNYG663H7KSG2HJFB7M6ELFHWJV7WBBHSRESX6 \ / AMOS7 \ YOURUM ::
+#\[7]2NQTAAMH4ECHGJVOHCRKI4IKDER7YBWSPSFA5IYLDCTYWPO3S4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
