@@ -117,7 +117,8 @@ my $result = {
 ## when all retries fail with a timeout the server accepted the TCP
 ## connection but never responded : restart it so the next task gets
 ## a fresh process rather than silently hanging again                  ##
-if ( $error =~ m{timeout}i ) {
+## also requeue on 0-byte close during restart [ same recovery path ]  ##
+if ( $error =~ m{timeout|connection closed with no data}i ) {
     my $backend_r  = $state->{'backend'} // 'gpu';
     my $srv        = ( <coding.inference_servers> // {} )->{$backend_r} // {};
     my $srv_status = $srv->{'status'}                                   // '';
@@ -257,8 +258,8 @@ if ( $error =~ m{timeout}i ) {
 
 return;
 
-#,,.,,.,.,.,.,,,,,,.,,,..,...,..,,.,,,...,,,,,..,,...,...,,,,,..,,.,.,.,.,,.,,
-#OSLNX72UC4727CLTJEBC5OY34QWMAHZWT7A6TIOXVILPJBJFUGBSL4OBLJDHNLSDUG2WD7ZZGN64C
-#\\\|DP53IXO4GHNCIH2BXOEBQ5QD4BQ7SC5KCN6MFFXEOTCR2JGSRWW \ / AMOS7 \ YOURUM ::
-#\[7]5CT2TLVXCTJRSHXKEYOJ7SULCR3QQTJTI3JSNSVB3MSAYDHL54DA 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,.,,.,,,.,,,,,,,..,,,.,,,,,,,,.,..,,...,..,,,,.,,.,,,..,,..,,.,,
+#CX53SZRQ2RAVSAEWWKUB7ZSA2I6OX5M5IN6YZQ4E73SPWB5L6VM27P2GBQMQD3HIC3RVL625WX6RO
+#\\\|LXKHNT3UBAE2MVKJOXSFDGGPZBCMSZG6VU4PBYJVWYUUOAT5MQG \ / AMOS7 \ YOURUM ::
+#\[7]Q5WD4WQ62SAVWF7DJOLNAWAENLKXSCWZDJTFJCIR4FTRHQQJWKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
