@@ -3,6 +3,26 @@
 # name  = task: base.has_access — source SID hierarchical matching
 # descr = extend access control to support usr.cube.system = cmds syntax
 
+## rewrite note (2026-06-09)
+
+attempted implementation (kimi, session b929dd82) extended `base.has_access`
+with a `$source_sid` third param and extracted the source zenka from command
+args in `base.handler.command`. reverted — the approach is technically wrong
+AND architecturally wrong:
+
+- `base.has_access` is a pure table lookup, not a runtime filter. adding
+  call-context awareness changes its fundamental nature.
+- source SID resolution at the handler level is unreliable — cube strips or
+  aliases the source before commands reach the zenka handler.
+- the correct gate for "only system zenka can call teardown" already exists:
+  `cube/access.zenki` (routing-level, before command delivery). that is not
+  a `base.has_access` concern.
+
+a correct implementation would need a new design: a cube-side policy layer
+that enriches routed commands with a verified source tag, or a separate
+module operating on cube-provided metadata rather than heuristic arg parsing.
+`base.has_access` should not be the host for this feature.
+
 ## context
 
 the current access control system is user-centric:
@@ -147,8 +167,8 @@ prompt: |
   change. The goal: access.cmd.usr.cube.system = teardown works correctly
   alongside access.cmd.usr.cube = *. No signature stubs, no whitelist changes.
 
-#,,,.,,,,,.,,,,.,,,.,,.,,,,,.,,,,,.,.,,..,.,,,..,,...,...,...,...,..,,,.,,..,,
-#GRLTXGUINHGCITZDPE4ONNOGGCWBOQZ64P47FMINDJEPA2SWA54C6K7KR4HJLY7JFCO4TA34EQEWY
-#\\\|VA646EVZXP7KDVX4Z4E3KVPVQOTFNSUSMACEARHXCBDOYZD22MV \ / AMOS7 \ YOURUM ::
-#\[7]HU7KNGYNHIMRBQQK3C5A6ZKFXRPCMWGSEZHMQ3C3LI5DTO6UZOCY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,..,,,..,,,,,.,,,,..,,..,,,.,...,..,,...,...,.,,,...,...,,,,,,,.,
+#6RADSA5SJFU73HNHFME5IUJSZ2MWLGS6KZWGJYTMDTBKHAX4UPVQRNLVZ2KZBKIGOZF55PUCF5AME
+#\\\|WI5GJCJNC5KCKA372PX2NHNORSODM32NFMVU7E63MEVMNNEY33A \ / AMOS7 \ YOURUM ::
+#\[7]X7XCFOBIDUKW7Z6ZFMAN22CESPSQO2XLCJ3AET3UKNINAYKQHMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
