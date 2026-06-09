@@ -15,7 +15,7 @@ if ( not length $args ) {
 
 my $name = $args;
 
-my $stored_coord = <[route.bmw384.index.lookup]>->($name);
+my $stored_coord = <bmw384.index>->{'by_name'}{$name};
 
 if ( not defined $stored_coord ) {
     return {
@@ -25,7 +25,7 @@ if ( not defined $stored_coord ) {
     };
 }
 
-my $name_coord = <[chk-sum.bmw384.coordinate]>->($name);
+my $name_coord = <[base.chk-sum.bmw384.coordinate]>->($name);
 
 if ( not defined $name_coord ) {
     return {
@@ -34,15 +34,28 @@ if ( not defined $name_coord ) {
     };
 }
 
-my $color_dist = <[chk-sum.bmw384.color-dist]>->(
+my $color_dist = <[base.chk-sum.bmw384.color-dist]>->(
     $stored_coord->{'color'},
     $name_coord->{'color'}
 );
 
-my $angle_hamming = <[route.bmw384.route.hamming-dist]>->(
-    $stored_coord->{'angle_bits'},
-    $name_coord->{'angle_bits'}
-);
+# [ compute hamming distance between angle_bits ]
+my $angle_hamming = 0;
+my $stored_bits   = $stored_coord->{'angle_bits'};
+my $name_bits     = $name_coord->{'angle_bits'};
+
+if (    defined $stored_bits
+    and defined $name_bits
+    and length $stored_bits == 360
+    and length $name_bits == 360 ) {
+    for my $ARG ( 0 .. 359 ) {
+        $angle_hamming++
+            if substr( $stored_bits, $ARG, 1 ) ne
+            substr( $name_bits, $ARG, 1 );
+    }
+} else {
+    $angle_hamming = 'N/A';
+}
 
 my $stored_arc = $stored_coord->{'arc'};
 my $name_arc   = $name_coord->{'arc'};
@@ -87,8 +100,8 @@ return {
     qw| data | => $report,
 };
 
-#,,.,,,.,,.,.,,,,,..,,..,,..,,,..,.,,,,.,,,.,,..,,...,...,,..,.,,,.,,,,..,,.,,
-#6VLNHVVNABIQPV76NYQUDETYJBCFV57ZMTKITHAQ3AB4VD274UB76ZCXCLTEJ4UTO65SKYNYSI36Q
-#\\\|SF7W4SJTZF76ELQPHNIGIFARY4CC54UWT774JZH7ALJHIQHQ2C6 \ / AMOS7 \ YOURUM ::
-#\[7]KQLNVIAHDKZKKXHOM52J7LQXKQO6NLIIS2ZDMM66ALVPRSSI4WAY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,.,,,...,..,,.,.,.,,,,..,,,,,,..,..,,...,...,...,,.,,.,,,,,.,,.,,
+#55HNYZOSMDXJDIHLJC63K4VQMCVVCXV5AZL6CF5XFB45STREC7YPWF4L2BTTUSYG75E4NJ77UDEZC
+#\\\|ZPSJS5NHR6IJBKGWGNS65PMBYYAYVOYQG3HR3VOWPZZIKLLFD7Q \ / AMOS7 \ YOURUM ::
+#\[7]FGCM4NK67NJC6OLCECUO7YSEKNVWCTID55E2VVI7BXYXSUX4FUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

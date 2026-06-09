@@ -12,15 +12,14 @@ if ( not defined $filepath or not length $filepath or not -f $filepath ) {
 }
 
 # [ read file content ]
-my $content = <[file.read]>->($filepath);
-if ( not defined $content ) {
+my $lines_r = <[file.slurp]>->( $filepath, \my @lines );
+if ( not defined $lines_r or not @lines ) {
     <[base.logs]>->( 1, 'unable to read file: %s <{C1}>', $filepath );
     return undef;
 }
 
 # [ examine last 6 lines for B32 BMW384 footer ]
-my @lines      = split m{\n}, $content;
-my @last_lines = @lines >= 6 ? splice( @lines, -6 ) : splice( @lines, 0 );
+my @last_lines = @lines >= 6 ? @lines[ -6 .. -1 ] : @lines;
 
 my $b32_str;
 for my $ARG (@last_lines) {
@@ -54,22 +53,8 @@ my $name = $filepath;
 $name =~ s{.*/modules/}{};
 $name =~ s{^modules/}{};
 
-# [ register in bmw384 index ]
+# [ register in bmw384 index with stored digest ]
 my $coord = <[route.bmw384.index.register-digest]>->( $name, $raw_digest );
-
-if (    defined $coord
-    and defined $coord->{'angle_bits'}
-    and length( $coord->{'angle_bits'} ) == 360 ) {
-    my $arr = <bmw384.index>->{'degree_density'};
-    my $max = <bmw384.index>->{'degree_density_max'} // 0;
-    for my $d ( 0 .. 359 ) {
-        if ( substr( $coord->{'angle_bits'}, $d, 1 ) eq '1' ) {
-            $arr->[$d]++;
-            $max = $arr->[$d] if $arr->[$d] > $max;
-        }
-    }
-    <bmw384.index>->{'degree_density_max'} = $max;
-}
 
 if ( not defined $coord ) {
     <[base.logs]>->( 1, 'registration failed for %s <{C1}>', $name );
@@ -77,24 +62,8 @@ if ( not defined $coord ) {
 }
 
 # [ register in harmonic cluster if plugin.storage.checksum.cluster is loaded ]
-if (    exists $code{'plugin.storage.checksum.cluster.add'}
-    and exists $code{'plugin.storage.checksum.cluster.create'}
-    and exists $code{'plugin.storage.checksum.cluster.lookup'} ) {
-    my $arc_label  = $coord->{'segment_label'};
-    my $cluster_id = 'bmw384-harmonic-arc-' . $arc_label;
-
-    my $lookup = <[plugin.storage.checksum.cluster.lookup]>
-        ->( { qw| checksum | => $cluster_id, qw| type | => qw| harmonic | } );
-
-    if ( not defined $lookup ) {
-        <[plugin.storage.checksum.cluster.create]>->(
-            {   qw| checksum | => $cluster_id,
-                qw| type     | => qw| harmonic |,
-                qw| members  | => [],
-            }
-        );
-    }
-
+if ( exists $code{'plugin.storage.checksum.cluster.add'} ) {
+    my $cluster_id = 'bmw384-harmonic-arc-' . $coord->{'segment_label'};
     <[plugin.storage.checksum.cluster.add]>->(
         {   qw| cluster_id | => $cluster_id,
             qw| members    | => [$name],
@@ -109,8 +78,8 @@ return {
     qw| digest_len | => length($raw_digest),
 };
 
-#,,,.,.,.,,,.,...,,,,,..,,..,,,.,,,.,,,,.,.,.,..,,...,...,,,,,,,,,,.,,,,.,,,,,
-#5VRWFWO43OHYQEXZ3E2JOS4CHRESNNHRGJ6SEBRQS522O3NDAVDSLU3ODHZTJRZX7WPWKMGSPOADU
-#\\\|QWZOQQVSHUSRUAFATW63JRWE2VY4UDTYQSSMM6XPPVL7IRBYUBH \ / AMOS7 \ YOURUM ::
-#\[7]LYLW6GOBHPIMOTAUQ73IQSKUYP3ASMOPL2UBXSEJBD7BNVKJMUCY 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,..,,.,.,,..,..,,,,.,,..,..,,..,,..,,...,...,,,.,,..,,,,,...,...,
+#6W3XTWQP3BOFKEKPBFZ47BOKOXGDTZCCYA4WGCTUFXMQ4JZ6P7CVUI3W3I3SFIEABD5LNOFTHKJKY
+#\\\|JROVTK3GBUW2ZVK3YNRL2P7VUKG6KRHJE34WPB4TL57YYGUXSU3 \ / AMOS7 \ YOURUM ::
+#\[7]W27CLITCJVYRIP76CAMRNQISZ4DB3FXD2T3TVV7BEGYOLBYPYKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
