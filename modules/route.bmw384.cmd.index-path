@@ -6,7 +6,7 @@
 my $args = $call->{'args'} // '';
 $args =~ s{^ *| *$}{};
 
-my $path = length $args ? $args : <system.code_path>;
+my $path = length $args ? $args : <system.root_path> . '/modules';
 
 my $result = <[route.bmw384.index.from-path]>->($path);
 
@@ -20,11 +20,14 @@ if ( not defined $result ) {
 my $indexed = $result->{'indexed'} // 0;
 my $skipped = $result->{'skipped'} // 0;
 
-# [ build arc summary ]
-my $stats = <[route.bmw384.index.stats]>;
+# [ build arc summary : top 5 arcs by count ]
 my @arc_counts;
-if ( defined $stats and defined $stats->{'arc_labels'} ) {
-    my %labels = %{ $stats->{'arc_labels'} };
+if ( defined <bmw384.index> and defined <bmw384.index>->{'by_arc'} ) {
+    my %labels;
+    for my $ARG ( 0 .. 25 ) {
+        my $label = chr( ord('A') + $ARG );
+        $labels{$label} = scalar @{ <bmw384.index>->{'by_arc'}{$ARG} // [] };
+    }
     my @sorted = sort { $labels{$b} <=> $labels{$a} } keys %labels;
     my $top    = 0;
     for my $ARG (@sorted) {
@@ -37,8 +40,8 @@ if ( defined $stats and defined $stats->{'arc_labels'} ) {
 my $arcs_str = scalar @arc_counts ? join( ' ', @arc_counts ) : 'none';
 
 my $summary = sprintf
-    "indexed %d modules from [%s] \x{2014} arcs: %s (skipped %d)",
-    $indexed, $path, $arcs_str, $skipped;
+    "indexed %d modules from [%s] \x{2014} arcs: %s",
+    $indexed, $path, $arcs_str;
 
 <[base.logs]>->( 1, 'bmw384 index-path: %s', $summary );
 
@@ -47,8 +50,8 @@ return {
     qw| data | => $summary,
 };
 
-#,,,.,..,,,..,...,,.,,,,,,...,.,,,.,.,,,,,..,,..,,...,...,..,,,,,,.,.,...,...,
-#2TTF7CUAY7M2VODQP6PDUPIWTLNTCVBU6HLQELH4S4SAF6SH3OIUKF7JFT66FDXI7GWB2Q65G4ZJS
-#\\\|UZREIX2OEZKGYW6CD7QU4XJAEBO44XXC4PVLH32HJE2KMGXXGBF \ / AMOS7 \ YOURUM ::
-#\[7]TBDO6XSDJWX4KWOVWSCLRF3ZOPNPQBYEHT7WELRLVNDNWBV2CIAI 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,..,,,,,,.,.,.,.,.,,,..,,,,,,,,,,..,,...,..,,..,,,.,,.,.,,..,,,,,
+#G6IZBEAQSGCH44SZMIS64RKWVU5IK5KTJ5DCLWVBG4HNYKZ3CO7LIQK7ZE6NSHVLWDDL5G6NVGF6Y
+#\\\|EJC2KXDHDYC55Q4VT4ZFFQZU327I5TYPDVEVUMRM2L2ZY2D7NPY \ / AMOS7 \ YOURUM ::
+#\[7]IMHFU3Q6XKP7GDW665GN6Q6YDNFPF4QNBFPRS4A5AAZUV64TMKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
