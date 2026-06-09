@@ -91,6 +91,14 @@ replace the raw `route-send` call with `base.zenka.push`:
 `queue_max => 1` is correct for orbital position — only the latest matters,
 older queued positions are stale and should be dropped.
 
+## companion: base.cmd.when-present
+
+`modules/base.cmd.when-present` exists but is a stub (marked "not implemented / testing").
+it is the command-handler face of the same pattern: forward a command to a zenka when
+it is present/online. as part of this task, complete its implementation using the same
+offline-detection + notify_online + queue logic as `base.zenka.push`, but in command-
+handler form (receives `$call->{'args'}` = "user command [params]" from the router).
+
 ## reference implementation
 
 see `modules/base.log.send-buffer.send-idle-callback` lines 58-79 for the
@@ -111,8 +119,8 @@ check before implementing any runtime load paths.
 do not modify or regenerate any AMOS7 signature lines. the signing system
 handles all footer blocks — leave them untouched.
 
-#,,,,,,..,..,,,..,,,.,,..,,..,,.,,.,,,...,.,.,..,,...,...,..,,,.,,..,,,,.,,..,
-#JIWFTWHHTTGMVYNJCNEW3X6JLZ7IR2H3JCT3FKKT22N4E4P3SLY2DU3GVFVHH5CN6UDRX7L2FV2F2
-#\\\|EKHIQ4D45BVQWXHOFJFCZFVQPA6FQKUTFP7FXLRJQZO3UX6EJRQ \ / AMOS7 \ YOURUM ::
-#\[7]EYO75FRAVRTMOPOZHWXKXGQ72IHGBBVJFUTW6KSB3JLADWDVVGCI 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,..,.,.,.,.,..,,.,,,.,,,,,.,.,,,..,,...,...,,,.,.,,,..,,..,,.,.,
+#H3VLL5LPK4YLOC3EIIO5XWG4CGM7YB6PJXTWLLLUHP7RGSSBARVQE5UDVRWGOPCNBF3PRCYBBNDKE
+#\\\|IB6F5KUF7LT3UJXY55AYTZMKUM5LYDUZ7KT6LE2W3FQY7Z3V6RX \ / AMOS7 \ YOURUM ::
+#\[7]UH7P2BK4PYU7AADOEDIGTYOZ353UVWD6TYIL4PFYXRCAE4AHDWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
