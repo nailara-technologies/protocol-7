@@ -39,14 +39,16 @@ for my $fd ( grep { defined $_ } $current_fd, $other_fd ) {
 }
 
 ## find which backend these fds belong to and store drain watchers ##
-my $servers = <coding.inference_servers> // {};
+## [ fileno ] comparison : watcher->fd returns the filehandle, not a number ##
+my $servers        = <coding.inference_servers> // {};
+my $current_fileno = eval { fileno($current_fd) };
 for my $backend ( keys %{$servers} ) {
     my $srv = $servers->{$backend};
     my $out = $srv->{'io_stdout'};
     my $err = $srv->{'io_stderr'};
-    if (    defined $out
-        and defined $current_fd
-        and eval { fileno($out) } == $current_fd ) {
+    next unless defined $current_fileno;
+    if (   ( defined $out && eval { fileno($out) } == $current_fileno )
+        || ( defined $err && eval { fileno($err) } == $current_fileno ) ) {
         $srv->{'watcher_drain_stdout'} = $drain_watchers[0];
         $srv->{'watcher_drain_stderr'} = $drain_watchers[1];
         last;
@@ -58,8 +60,8 @@ delete <coding.watcher_pair>->{$current_watcher};
 delete <coding.watcher_pair>->{$other_watcher}
     if defined $other_watcher;
 
-#,,,,,...,,.,,.,,,...,...,.,,,,,,,..,,,,.,,..,..,,...,...,,..,.,.,,..,,,.,,,.,
-#Q6S3JAQYHCB7BDF4MEAV254IJFNC3ENT7HCOJ75YFWRR7QKMQC7DGBMFSN4TV5BF2JF576BAHUFHK
-#\\\|4HOZEE5VV7YLLRD4YZNAK3B6YPUCD63BA73LWZYCQMTICOHHS3S \ / AMOS7 \ YOURUM ::
-#\[7]6JAUFLT3ZHHQAM5VRNXH52SBSTNVAM7RFA43E3UBEOMJMUQZAYBY 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,,.,,..,.,.,,.,,.,,,,..,..,,,..,..,,...,...,.,.,..,,,,,,.,,,..,,
+#F22R7S2XDQC5BWFNLD6TTECLI2HIJFLETEZRZISSWHEJCF5XF2CC2KWQMH4J3C64733UEIJPZXHNW
+#\\\|BLJHDMQ2VUUWL35PIQEFMJ2TLD7B5I5FFPZNGH2NAIR6OSAMQIG \ / AMOS7 \ YOURUM ::
+#\[7]CNGZ6MJ7T6NFZWJUUGEBWSJ5E7XMYGAT2H5J4Q6PVTHPOGR6WQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
