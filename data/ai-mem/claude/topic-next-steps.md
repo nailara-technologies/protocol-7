@@ -7,6 +7,16 @@ metadata:
   originSessionId: 56cce73a-933a-4992-96e4-4d88e138e8f6
 ---
 
+## completed this session (2026-06-09)
+
+- **route.bmw384 signature indexer** ✓ (`6dee838d5`) — 5 modules: `index.from-file`, `index.register-digest`, `index.from-path`, `cmd.index-path`, `cmd.verify-coordinate`; kimi dispatch
+- **coding drain-pipe watcher fd-fix + EOF requeue** ✓ (`159d8dc88`) — `cancel_watcher.backend_monitor` fileno comparison fixed; `callback.http_error` requeue regex extended to catch 0-byte EOF
+- **base.zenka.push helper + base.cmd.when-present** ✓ (`92e4fb16c`) — offline-safe push with notify_online + backoff; `when-present` stub completed; stale-state leak fixed in reply-handler.offline
+- **coding timeout fixes for omnicoder** ✓ (`e0868b1e6`, `9bd84f73b`) — ctx-reduction gating: skip when `ctx_pct < 70%` (model latency ≠ VRAM pressure); `prefill_tokens_per_sec` 1200→600; `data-start` floor 13→25s
+- **base.parser.list width fix** ✓ (staged) — removed stale `-= 2` workaround on last column; separator width now always `sum(max_len) - 1`; kimi dispatch
+- **OmniCoder 9B Claude Opus High Reasoning Distill** loaded as coding zenka model (`DVEAZIA:GPAKBLA`); dolphincoder-starcoder2-7b also registered as lighter option
+- **future task**: statistical adaptive timeout — record TTFT per completed request by ctx% band, use p95×1.5 as scaled floor; self-calibrating per model; data in `coding.cfg.timeout_stats`
+
 ## completed this session (2026-06-07)
 
 - **credential-fabric integration + UI plan** ✓ (34e3bee78) — `data/md/design/CREDENTIAL-FABRIC-INTEGRATION-AND-UI.md` + 4 task files (wiring, integration-test, ui-frames phase-1, ui-interactive phase-2/3); dispatched to Opus via claude_dispatch + one revision pass via claude_continue (session 17b14f6a-2d5d-4836-a7ba-d3b7a0777ee0). Key design call: auth-relay approval + key-holder unlock route primarily through `protocol-7-menu.cmd.input-text`/`input-password` (existing GTK3 dialogs — works regardless of which browser triggers the proxied request), with the original frame-based design demoted to a headless/no-X11 fallback (phase 3b). Open: `protocol-7-menu.cmd.input-*` has never been called cross-zenka — cube routing of that namespace needs confirming during wiring. NEXT: dispatch `credential-fabric-wiring.md` (the foundational task — others depend on it landing first).
@@ -206,8 +216,8 @@ metadata:
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,.,,.,,,,,.,,,.,,..,...,,,,,,.,,,..,,,,,,,,,..,,...,...,,,,,.,,,,,.,,,,,,..,
-#HOMFYAK5RQDO3YWHNBIBCUU7TIGCN6I3X743HFI7GAIF3I7IOKVUGP6NQYNTCAPJ6WE4YTGXG5424
-#\\\|OBKAZSZ7NVZCOYDPIPAZMHDETI6KRVHCUMKOPDPZVWSCNWV6Z2C \ / AMOS7 \ YOURUM ::
-#\[7]5FBAFGZB6TZSOSAV6Y6VAHALU37RGFZ6OA6MUYYFVLAFX3WJIQAA 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,..,...,,.,,,.,,..,,.,.,,.,,,,,,..,,...,...,.,,,...,.,.,.,,,...,
+#4DPQ2TSQ2W665FFNBTYLREYN4A5CYMRI5BYAKC7PSLJT2I7RM3DTEP4DNNCT6VH5RRBHRMYRPFHZA
+#\\\|XTJHPAUOCCOZ4NM6AAECSPNJ3YVTOPARBDMQVUK3MDGS427K7SI \ / AMOS7 \ YOURUM ::
+#\[7]SALKDGPQPB36VE7LSBYGA3IQ5YFZI6M36GHGHTEVHZX3MU7TXKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
