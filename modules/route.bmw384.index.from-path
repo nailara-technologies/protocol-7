@@ -4,7 +4,7 @@
 # args  = $path
 # descr = walk directory and index all signed P7 module files
 
-my $path = shift // <system.code_path>;
+my $path = shift // <system.root_path> . '/modules';
 
 if ( not -d $path ) {
     <[base.logs]>->( 1, 'directory not found: %s <{C1}>', $path );
@@ -44,27 +44,14 @@ for my $ARG (@entries) {
         if $file_num % 100 == 0;
 }
 
-<[base.logs]>->(
-    2, 'indexed %d, skipped %d from %s',
-    $count, $skip_count, $path
-);
-
-# [ cache sorted names for wheel renders : avoids re-sorting on every svg ]
-<bmw384.index>->{'sorted_names'}
-    = [ sort keys %{ <bmw384.index>->{'by_name'} // {} } ];
-
-# [ invalidate svg cache : coordinates changed ]
-<bmw384.svg.cache> //= {};
-%{<bmw384.svg.cache>} = ();
-
 return {
     qw| indexed | => $count,
     qw| skipped | => $skip_count,
     qw| path    | => $path,
 };
 
-#,,.,,,,,,,,.,,.,,.,,,...,,,.,,.,,,,,,.,,,..,,..,,...,...,.,.,,..,.,,,,,.,..,,
-#57O723WOCA7KDIEPOHRAWHMJDAFH6EKJKMAKXYVCVI3NY6PVPQGKSA4IXIOUKQ26JCDTKEI64X2US
-#\\\|FSUPIPS2WDCFHUEEB3FUO7QIKYERKW4PJSWZSSUDXJADA6QSOSE \ / AMOS7 \ YOURUM ::
-#\[7]3NAXR2JNGJVLV4XJJM4VVSPRPUZY6TGZRFIBPAP67XJQBBJRG4BA 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,,.,,.,,..,,.,.,,.,,,.,,.,,,,.,,..,,...,...,.,,,,,,,,,.,,,,,.,.,
+#JPGKW662454J6TTLOQ4AJB46UCW4L7BZZSR5CA5GTHW46AXEA45IWVR3VHF5E5YRPMAQGRQMVZVYA
+#\\\|3PLSN4GXVBOM4H5RG4HA6OMGAKHMIBKSOSYXYNUM7I4ND4FBBZE \ / AMOS7 \ YOURUM ::
+#\[7]3FX5CPOEFSPOY7KULIDG5QDSE5M67NERQWWN2CK3THHSLJZWPYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
