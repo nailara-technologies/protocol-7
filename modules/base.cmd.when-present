@@ -11,14 +11,23 @@ $user =~ s|^.+\.||;    ## removing host portion ###
 return { 'mode' => qw| false |, 'data' => 'no access permissions' }
     if not <[base.has_access]>->( $user, $cmnd );
 
-###  not implemented  ##  testing  ###
+return { 'mode' => qw| false |, 'data' => 'no command specified' }
+    if not defined $cmnd or not length $cmnd;
 
-return { 'mode' => qw| true |, 'data' => "$cmnd [ $params ]" }
-    if defined $params;
-return { 'mode' => qw| true |, 'data' => $cmnd }
+my $push_args = {
+    qw| command | => $cmnd,
+    qw| queue_max | => 1,
+};
 
-#,,..,,.,,,.,,,,,,...,,..,,..,,,.,,..,..,,,,,,..,,...,...,,..,.,.,...,.,.,,..,
-#CE7YU2KFCZOUAHI4LWJ2NHVH6ZJZTTFWBHVZJHVOGUHE3OZ64Q53NZ3FXIKYEJAEYBUEOTI3ZRRLK
-#\\\|YCWSFRCBXJ5DZGU7ENH4TDW2HVTKCLPKRNYEJEIND2LKFT22HFC \ / AMOS7 \ YOURUM ::
-#\[7]XHB5BUJW2ECYD3M6QYTDLSHD3SXSWND2HSVHLHOWF3TMDLWBIEBQ 7  DATA SIGNATURE ::
+$push_args->{'args'} = { qw| args | => $params }
+    if defined $params and length $params;
+
+<[zenka.push]>->($push_args);
+
+return { 'mode' => qw| true |, 'data' => 'queued' }
+
+#,,,,,...,.,.,..,,..,,.,.,,,.,...,,,,,.,.,,,,,..,,...,..,,.,,,,.,,,,.,.,.,...,
+#KQCGM6O5FT6C3W7Z4SXRTET2ECA6CLV5JYGTPSWD2HUS3ETSN4LK2ZFJ5VDEORV7SPIM3CTRZAX7I
+#\\\|TODIDH3LH6BMTI2525CLUVVBNCH4DOZ3MEW5P3V5EGMDFBDELGM \ / AMOS7 \ YOURUM ::
+#\[7]IK6JCBQEWXSAGFLR2DDIDM3R6Y2X7O2PJN6OXZKWM6UQVSDN62BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
