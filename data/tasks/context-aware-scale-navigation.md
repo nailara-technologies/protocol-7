@@ -1,5 +1,16 @@
 # task: context-aware scale navigation
 
+## relation to CONSOLE-FOLD-TREE-PHILOSOPHY
+
+the click-snaps-to-scale-layer model here is the **graphical
+counterpart** of the console fold/unfold primitive from
+`data/md/design/CONSOLE-FOLD-TREE-PHILOSOPHY.md`. zoom-out folds a
+sub-tree into its parent scale's representation; zoom-in unfolds it.
+the three-layer abstraction model (space / proximity grouping /
+frame-code) at the bottom of this file is the same recursion the
+philosophy describes as "branch node = complete tree" — every scale
+contains the same kinds of elements.
+
 ## concept
 
 unify all navigation into one interaction primitive: click (or tap).
@@ -143,8 +154,8 @@ claude (JS/HTML work) — once grid has more functional distinction between laye
 extend to include grid-layer drag coupling. touch events can be wired in the
 same pass as the click resolver.
 
-#,,,.,,,.,,.,,.,,,.,,,...,.,,,,,,,,,.,,,.,.,,,..,,...,...,,..,,,.,..,,..,,...,
-#3BS75H2QRXLJ4DPFXBJVTK7XBTADE233EIW6XPZZSF7JYGJOCOFGXEAQHQDBFPJXPLJTQ2FP7M37U
-#\\\|K56XJVD24I4GIUOWOMNN42E7S42YUEGUKNGEU4Y3A5VY2VFLETF \ / AMOS7 \ YOURUM ::
-#\[7]6IKSFK4LLW5BNPP6XFMKL32WQUPMVAIPWVGODXYK2565XDMGK4BY 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,.,,..,,.,,,,,,,..,,,,.,,.,,..,,..,,...,...,,..,..,,,.,,.,,,...,
+#SRDHSFQ2PCKYDFYD7W4GXQEIEBKMHNSUKK4266H35JIV7DMDCODJAE6TE3A74OPQLOPF5NL32XDRU
+#\\\|L4L57DFAGRRROK6PAJX6M5PRJF65E6DFPZOAIX5L73PX7OMRKND \ / AMOS7 \ YOURUM ::
+#\[7]YKGZIP5HFMJ6PKVSJD2UQ4PYPXOMZ6FKKNIX4CZVAPTZTXTVCABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

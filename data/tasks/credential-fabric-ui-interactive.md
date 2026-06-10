@@ -1,5 +1,14 @@
 # task: credential fabric ui — interactive selection + actions [ phase 2 + 3 ]
 
+## relation to CONSOLE-FOLD-TREE-PHILOSOPHY
+
+the **interactive verbs** here (select / act / unlock) operate on
+nodes that, per `data/md/design/CONSOLE-FOLD-TREE-PHILOSOPHY.md`, are
+already foldable handles into the namespace. selection is "give this
+folded handle attention" and unfold is the response — proving the
+fold/unfold verbs flow naturally into interaction without a separate
+interaction model.
+
 ## dispatch
 add interactive selection, slot actions, and key-holder unlock to the
 credential-fabric ui. requires `credential-fabric-ui-frames.md` to have
@@ -310,8 +319,8 @@ do not add the `#,,..` stub to any new file. lowercase comments,
 
 #,,..,...,,,..,...,,,..,..,,..,..,,.,,..,,,..,,..,...,...,..,,,,.,,,..,..,...,
 
-#,,..,,.,,.,.,,..,...,,,.,,,.,,.,,,,.,,,.,.,.,..,,...,...,...,...,,.,,,,.,,..,
-#F4RJW2SAN4JHAGHL2YKW6J7Z6MY6BX2SCGHUMZ7ZIR2AXY5OZIUBB2BY6IJLHR34WQJTBSPGBQ6FI
-#\\\|RXBMXHFEGUUGNLOOUYGO4OJMXDNYY7MOSKOPL7HWPRPCGDTSRFF \ / AMOS7 \ YOURUM ::
-#\[7]ZQIA2UEFTGCKGAZLHTRCOVXD5KACPYKMVC2CQNTH6LI5CG6TTQDQ 7  DATA SIGNATURE ::
+#,,..,...,..,,,,,,,,.,..,,.,,,,,.,..,,..,,.,,,..,,...,...,..,,.,,,..,,,.,,,,.,
+#WVBJNSUK7EVGIIHTO4GI6AVU6TF3WXOIHTHQNE332XKK4EJIVD6CBXF6NFSAQR363TM6QU4ENLUA6
+#\\\|ZXPPZ675XD2W5C7Y6YVERQE4VGQAPNE45NWOXYLQOTTXLIHTE6E \ / AMOS7 \ YOURUM ::
+#\[7]RJQQMFJNABGUIJBK4TI4AI4MFJTVMDZEWU3S6RWNU2YCMUMSFCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

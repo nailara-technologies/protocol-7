@@ -1,5 +1,15 @@
 # task: wire valued tree into task zenka state transitions
 
+## relation to CONSOLE-FOLD-TREE-PHILOSOPHY
+
+the valued tree is one of the canonical *foldable* substrates per
+`data/md/design/CONSOLE-FOLD-TREE-PHILOSOPHY.md` — task nodes
+collapse into one-line handles when not focused, and the same
+addressing trinity (named tree + checksums + timestamps) underwrites
+both task-state persistence and console fold-back. state transitions
+recorded here become summary cells the fold handle can surface
+without extra plumbing.
+
 ## objective
 
 implement task zenka step 3 (state transitions + persistence) with valued
@@ -87,8 +97,8 @@ my $note    = $params->{'note'}   // '';
 - history section present in yaml after each transition
 - no regression in task.init_code yaml loading
 
-#,,..,,..,,,.,,,,,,,.,...,,,,,,.,,.,,,,,.,..,,..,,...,..,,,,.,..,,,,,,..,,,..,
-#XKXCPQDUOTQJHJDDIAEBVYOKODSNQWUVE5VQYD5AVBHJBM5PWBJB4OTNEM4HHRJS7V3Y6TONNKCSM
-#\\\|AQV3NC3CFQDN3AK2FGZEWBGHZY2IYM6BD4UO3SVHEXJD3VNETA5 \ / AMOS7 \ YOURUM ::
-#\[7]GLBTUOQ4CRC54QSYARZW43DVBZWKVSJ3IQHZOFPIYPNUZS23WCBI 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,.,.,.,.,,.,,,,,,.,.,,..,,..,,,,,..,,...,..,,...,,,,,,,.,.,.,,,,,
+#DJFAOTPLE2WT5GNN6IDF6CXN4QAPGEC4JIFTUKXWLAALVFEMMIIUE7HI44J7JXXYRAWOXZNKCD5A4
+#\\\|FHYCBHDTVM7IXFKHBIRCH2D626CKI2DVVAQ7BALFGIY5UZWZ3YU \ / AMOS7 \ YOURUM ::
+#\[7]BYAAOQEQJAMFDPV3DWDW4OHP54VXJT3FEADFJ6YJJDXBBOWNTAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

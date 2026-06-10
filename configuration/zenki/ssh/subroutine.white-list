@@ -213,6 +213,7 @@ base.devmod.dump_var
 base.cmd.show-buffer
 base.cmd.show-access
 base.cmd.amos-chksum
+base.chk-sum.bmw.ctx
 base.buffer.add_line
 auth.zenka.init_code
 io.ip.tcp.output.open
@@ -279,6 +280,7 @@ base.cmd.set-name-width
 base.cmd.ondemand-zenka
 base.cmd.loaded-configs
 base.chk-sum.elf.inline
+base.chk-sum.bmw.strsum
 base.auth.set_zenka_key
 auth.zenka.authenticate
 protocol.https.init_code
@@ -288,6 +290,7 @@ devmod.cmd.unload-unsafe
 devmod.cmd.unload-devmod
 devmod.cmd.mem-allocated
 devmod.cmd.current-umask
+crypt.C25519.verify_sign
 base.zenka.push.pre_init
 base.zenka.is_v7_started
 base.templates.init_code
@@ -296,6 +299,7 @@ base.protocol-7.pre_init
 base.parser.command_list
 base.file.zulum_tmp_file
 base.cmd.verify-instance
+base.chk-sum.from_substr
 base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
 ssh.parser.profile_status
@@ -342,6 +346,8 @@ base.stream.record_emission
 base.session.calc_cmd_stats
 base.root.check_system_user
 base.parser.ondemand_status
+base.modules.check_migrated
+base.handler.whitelist_miss
 base.file.gen_path_linkname
 base.debian.install_package
 base.cmd.buffer-erase-level
@@ -354,6 +360,8 @@ protocol.protocol-7.pre_init
 protocol.amos_term.init_code
 io.unix.socket.input.connect
 devmod.cmd.receive-multiline
+crypt.C25519.keystr_is_valid
+crypt.C25519.compare_keypair
 base.validate.composite_name
 base.session.check_remaining
 base.process-into-background
@@ -366,6 +374,7 @@ ssh.handler.heartbeat_timeout
 protocol.protocol-7.init_code
 devmod.cmd.keep-devmod-loaded
 devmod.cmd.inline-subroutines
+crypt.C25519.load_from_string
 crypt.C25519.get_usr_keys_dir
 base.validate.data_key_syntax
 base.source.collect_file_list
@@ -381,16 +390,19 @@ base.config.show_strack_trace
 base.chk-sum.bmw.template_L13
 base.chk-sum.bmw.B-32-56.TRUE
 auth.zenka.process_auth_reply
+amos7.decode_octal_bit_header
 ssh.parser.profile_connections
 ssh.handler.heartbeat_response
 protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
 devmod.cmd.decode-harmonic-ref
+crypt.C25519.key_bin_checksums
 base.zenki.ondemand_registered
 base.session.send_init_reports
 base.p7refs.get_refaddr_prefix
 base.number-cache.true_upwards
 base.log.send-buffer.add-queue
+base.chk-sum.bmw.encode_digest
 base.cache.refaddr-prefix.init
 devmod.cmd.change-log-verbosity
 crypt.C25519.cmd.get-public-key
@@ -398,6 +410,7 @@ base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
 base.buffer.local_logfile_write
 ssh.handler.connection_heartbeat
+crypt.C25519.decrypt_priv_keystr
 base.perlmod.install_cpan_module
 base.perlmod.get_collision_index
 base.parser.harmonized_reference
@@ -420,6 +433,7 @@ protocol.amos-chksum.ext-cmd.close
 protocol.amos-chksum.ext-cmd.clear
 protocol.amos-chksum.ext-cmd.bytes
 plugin.auth.auth-keypair.init_code
+crypt.C25519.get_type_from_key_str
 base.protocol-7.command.send.local
 base.path-set-up.zenka-directories
 base.handler.read.encoding-wrapper
@@ -460,6 +474,7 @@ base.log.send-buffer.idle-callback-set
 auth.callback.cap-neg.select-strm-mode
 auth.callback.cap-neg.select-size-mode
 base.perlmods.blacklist_collision_index
+base.parser.chk-sum.embedded-code-style
 base.log.send-buffer.send-idle-callback
 base.init_zenka.install_signal_handlers
 base.handler.strm_size_absolute_timeout
@@ -482,8 +497,8 @@ auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,..,,,,,,,.,..,,,..,,..,...,.,,,.,.,,.,,,.,,..,,...,...,.,,,.,,,,.,,,,.,,.,,
-#EDAKP7KTJJ47KPONHAUMY657NGXWEXIP5WRKXHKPVPKFNPP6HNQHVNRR5OHFVQBYIHLLBZUWAVBDG
-#\\\|A6F6JTRTTHKWABUPGTNF5HBC6B76VFCYQM36SSEACDDICZWERJU \ / AMOS7 \ YOURUM ::
-#\[7]6MCBVGT4RZQTC6CTBVVDKQXJWF7RVQWNILC26CABCCPJBDZW3MAQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,,.,.,,,,.,,,.,,...,...,,,.,,.,,..,,...,..,,..,,..,,,.,,.,,,,.,,
+#ZO4I6QJR53IJ5GIMONOKR3AZWIA25CCZ4JUJ5YOQH6HDER332T7IUEXLHDGCXFBGFBYGQS762LTDI
+#\\\|3QFUURJ65TAVSMCZ64TWXCF4GMXRR7UULQY7SJ3XL5TH2ECBTRB \ / AMOS7 \ YOURUM ::
+#\[7]DHBWRKLTSUD4PXTDAFQ4P7J6VTUFUC5NMT6X4KTXZLWXC3MY6YBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

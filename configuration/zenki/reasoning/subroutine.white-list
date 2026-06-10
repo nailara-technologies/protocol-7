@@ -50,6 +50,7 @@ devmod.cmd.echo
 devmod.cmd.dump
 base.zenka.loop
 base.str.os_err
+base.prng.bytes
 base.path_perms
 base.p7ref.self
 base.file.which
@@ -126,7 +127,9 @@ base.eval.get_params
 base.eval.comp_regex
 base.disable_command
 base.devmod.dump_var
+base.chk-sum.bmw.ctx
 base.buffer.add_line
+crypt.C25519.key_vars
 base.register_pm_deps
 base.perlmod.pre_init
 base.perlmod.autoload
@@ -145,8 +148,10 @@ base.register_bin_deps
 base.perlmod.init_code
 base.path.resolved_abs
 base.get_max_verbosity
+base.file.get-non-dirs
 base.comp-int.is_valid
 devmod.cmd.deparse-code
+crypt.C25519.key_exists
 base.strip_chksum_lines
 base.perlmods.init_code
 base.parser.access_conf
@@ -157,14 +162,17 @@ base.execute_zenka_code
 base.dump.data_key_list
 base.convert.hex_to_int
 base.chk-sum.elf.inline
+base.chk-sum.bmw.strsum
 base.auth.set_zenka_key
 devmod.cmd.unload-unsafe
 devmod.cmd.unload-devmod
 devmod.cmd.mem-allocated
 devmod.cmd.current-umask
+crypt.C25519.verify_sign
 base.zenka.is_v7_started
 base.protocol-7.pre_init
 base.file.zulum_tmp_file
+base.chk-sum.from_substr
 base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
 devmod.cmd.test-strm-size
@@ -190,11 +198,15 @@ devmod.cmd.extract-line-map
 base.session.calc_cmd_stats
 base.root.check_system_user
 base.parser.ondemand_status
+base.modules.check_migrated
+base.handler.whitelist_miss
 base.file.gen_path_linkname
 base.debian.install_package
 base.chk-sum.elf.vax-BASE32
 base.chk-sum.amos.init_code
 devmod.cmd.receive-multiline
+crypt.C25519.keystr_is_valid
+crypt.C25519.compare_keypair
 base.session.check_remaining
 base.process-into-background
 base.parser.ondemand_session
@@ -202,6 +214,8 @@ base.handler.heart_ack_reply
 base.access.special-user-map
 devmod.cmd.keep-devmod-loaded
 devmod.cmd.inline-subroutines
+crypt.C25519.load_from_string
+crypt.C25519.get_usr_keys_dir
 base.validate.data_key_syntax
 base.handler.ondemand_timeout
 base.handler.deferred_compile
@@ -209,27 +223,33 @@ base.event.handler.exceptions
 base.cube-zenka.output_prompt
 base.config.show_strack_trace
 base.chk-sum.bmw.template_L13
+amos7.decode_octal_bit_header
 devmod.cmd.decode-harmonic-ref
+crypt.C25519.key_bin_checksums
 base.zenki.ondemand_registered
 base.p7refs.get_refaddr_prefix
 base.number-cache.true_upwards
 base.log.send-buffer.add-queue
+base.chk-sum.bmw.encode_digest
 base.cache.refaddr-prefix.init
 devmod.cmd.change-log-verbosity
 base.zenki.set_ondemand_timeout
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
 base.buffer.local_logfile_write
+crypt.C25519.decrypt_priv_keystr
 base.perlmod.install_cpan_module
 base.perlmod.get_collision_index
 base.parser.harmonized_reference
 base.net.send_to_all_initialized
+base.file.last_existing_dir_path
 base.file.get_swapped_subs_pairs
 base.sourcecode.in-mem.sub-source
 base.perlmod.init_install_buffers
 base.parser.center_ellipse_string
 base.file.matching_path_linknames
 base.callback.expire_code_version
+crypt.C25519.get_type_from_key_str
 base.protocol-7.command.send.local
 base.path-set-up.zenka-directories
 base.chk-sum.bmw.calculate_L13_sum
@@ -246,6 +266,7 @@ base.callback.clean_data_source_hash
 base.perlmod.unregister_loaded_module
 base.log.send-buffer.idle-callback-set
 base.perlmods.blacklist_collision_index
+base.parser.chk-sum.embedded-code-style
 base.log.send-buffer.send-idle-callback
 base.init_zenka.install_signal_handlers
 base.chk-sum.amos.truth_template_chksum
@@ -254,8 +275,8 @@ base.referenced_subroutines.clear_from_disk
 base.log.send-buffer.reply-handler.send-reply
 base.log.send-buffer.reply-handler.notify-online
 
-#,,..,,..,.,,,,,.,,,,,.,,,,,,,..,,,,,,,,,,..,,..,,...,...,.,,,..,,.,,,,,.,,,,,
-#F5MSZTWJFG6OSPKXW6LU4W5WSWI4KM7DWTD3D4C5RQWOEBXBELAZPOEJ3FXUMJOTBSAOHVJVZAJKC
-#\\\|EKOV3XQJFYCES75DMEQ3SBJFLESOKC4VVRJBQBHJSAGY7NF2YG7 \ / AMOS7 \ YOURUM ::
-#\[7]IL5IYVRWHQTBPE6BX2G6HFWN53KGZH2H56OWWHOGKVLVOBM7NACA 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,.,,.,,,,,.,...,..,,...,,,,,.,,,..,,...,...,...,..,,.,.,,..,..,,
+#GP7V7Q7RGZFTCG2P6OTBYE5HCPQRQUJ7SWXNF7XIEXGV6ZDZPD77R4O32AWY4ULESXFL6QVY3NYWK
+#\\\|PQTFF3QFFIJSEKW7YNBMYMTIO6YNE5Q5W63OE44KYPKBRAAIFKK \ / AMOS7 \ YOURUM ::
+#\[7]T6537DAXQGI4X4AEHKL7BHDU3H4YJDRYHK4RN2INPC3O7BA7RGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

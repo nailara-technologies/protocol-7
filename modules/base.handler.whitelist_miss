@@ -1,0 +1,208 @@
+## [:< ##
+
+# name  = base.handler.whitelist_miss
+# descr = on-demand self-healing handler for whitelist misses
+
+my $missing_sub = shift // '';
+
+return FALSE if not length $missing_sub;
+
+# [ policy gate — opt-in per zenka ]
+my $policy = <whitelist.miss.policy> // '';
+return FALSE if not length $policy;
+
+my $sig_fail_mode = <whitelist.miss.sig_fail> // '';
+my $zenka_name    = <system.zenka.name>       // '';
+
+return FALSE if not length $zenka_name;
+
+my $healed = FALSE;
+
+# [ moved_to fast path ]
+my $moved_target = <[base.modules.check_migrated]>->($missing_sub);
+
+if ( defined $moved_target ) {
+    <[base.logs]>->(
+        2,            ': self-heal MOV : %s -> %s',
+        $missing_sub, $moved_target
+    );
+
+    # [ construct new sub name if prefix move ]
+    my $load_target = $moved_target;
+    if ( index( $missing_sub, $moved_target ) != 0 ) {
+        my $old_prefix = undef;
+        foreach my $prefix ( keys <base.modules.moved_to>->%* ) {
+            next if index( $missing_sub, $prefix ) != 0;
+            next
+                if defined $old_prefix
+                and length $prefix <= length $old_prefix;
+            $old_prefix = $prefix;
+        }
+        if ( defined $old_prefix ) {
+            ( $load_target = $missing_sub )
+                =~ s|^\Q$old_prefix\E|$moved_target|;
+        }
+    }
+
+    my $wl_state = $data{'base'}{'loader'}{'sub_whitelist_enabled'};
+    $data{'base'}{'loader'}{'sub_whitelist_enabled'} = FALSE;
+
+    eval {
+        if ( index( $load_target, '.' ) > 0 ) {
+            <[base.load_modules]>->($load_target);
+        } else {
+            <[base.load_code]>->($load_target);
+        }
+    };
+
+    $data{'base'}{'loader'}{'sub_whitelist_enabled'} = $wl_state;
+
+    if ( defined $code{$missing_sub} ) {
+        <[base.logs]>->( 2, ': self-heal MOV loaded : %s', $missing_sub );
+        return TRUE;
+    } elsif ( $load_target ne $missing_sub and defined $code{$load_target} ) {
+        $code{$missing_sub} = $code{$load_target};
+        <[base.logs]>->(
+            2,            ': self-heal MOV aliased : %s -> %s',
+            $missing_sub, $load_target
+        );
+        return TRUE;
+    } else {
+        <[base.logs]>
+            ->( 1, ': self-heal MOV load failed : %s', $missing_sub );
+    }
+}
+
+# [ dep-graph scan ]
+my $dep_graph_bin = catfile( <system.root_path>, qw| bin dev dep-graph | );
+
+if ( not -x $dep_graph_bin ) {
+    <[base.logs]>->( 0, ': self-heal dep-graph not executable' );
+    return FALSE;
+}
+
+my $cmd = sprintf '%s --zenka=%s --list-subs', $dep_graph_bin, $zenka_name;
+
+open( my $dg_fh, '-|', $cmd ) or do {
+    <[base.logs]>->( 0, ': self-heal dep-graph fork failed : %s', $OS_ERROR );
+    return FALSE;
+};
+
+my @dg_subs;
+while ( my $line = <$dg_fh> ) {
+    chomp $line;
+    next if $line =~ m|^::|;    # [ skip metadata lines ]
+    next if not length $line;
+    push @dg_subs, $line;
+}
+close($dg_fh);
+
+my $dg_status = $CHILD_ERROR;
+if ( $dg_status != 0 ) {
+    <[base.logs]>->( 0, ': self-heal dep-graph exited %d', $dg_status >> 8 );
+    return FALSE;
+}
+
+# [ ensure signature key is loaded ]
+my $sig_key_name = <source.C25519.signature_key_name>
+    // qw| proto-7.sourcecode |;
+
+if (   not exists $keys{'C25519'}{$sig_key_name}
+    or not defined $keys{'C25519'}{$sig_key_name}{'public'} ) {
+    eval {
+        <[crypt.C25519.load_from_string]>->(
+            $sig_key_name, <[protocol-7.source-key]>
+        );
+    };
+}
+
+my $key_ready = ( exists $keys{'C25519'}{$sig_key_name}
+        and defined $keys{'C25519'}{$sig_key_name}{'public'} ) ? TRUE : FALSE;
+
+# [ validate and classify each missing sub ]
+my $found_in_depgraph = FALSE;
+
+foreach my $sub_name (@dg_subs) {
+    next if $sub_name ne $missing_sub and defined $code{$sub_name};
+
+    $found_in_depgraph = TRUE if $sub_name eq $missing_sub;
+
+    my $target = <[source.target_namespace]>->($sub_name);
+    next if not defined $target;
+    next if not defined $target->{'abs_path'};
+    next if not -r $target->{'abs_path'};
+
+    # [ read source ]
+    <[base.file.slurp]>->( $target->{'abs_path'}, \my $src_str, qw| :raw | );
+    next if not defined $src_str;
+
+    # [ extract signature ]
+    my $footer_data
+        = <[source.extract_sig_body]>
+        ->( \$src_str, qw| strip |, qw| strict | );
+
+    my $classification = undef;
+
+    if ( not $footer_data->{'was-present'} ) {
+        $classification = qw| MISS |;
+    } elsif ( not $footer_data->{'structure-was-valid'} ) {
+        $classification = qw| BAD |;
+    } elsif ( not $key_ready ) {
+        $classification = qw| MISS |;    # [ cannot verify without key ]
+    } else {
+        my ( $is_valid, $report_ref ) = <[source.signature_valid]>->(
+            \$src_str, $footer_data, {}, $sig_key_name, qw| strict |
+        );
+        $classification = $is_valid ? qw| OK | : qw| BAD |;
+    }
+
+    # [ logging and policy application ]
+    if ( $classification eq qw| OK | ) {
+        if ( $policy eq qw| heal | ) {
+            <[base.logs]>->( 2, ': self-heal loading : %s', $sub_name );
+
+            my $wl_state = $data{'base'}{'loader'}{'sub_whitelist_enabled'};
+            $data{'base'}{'loader'}{'sub_whitelist_enabled'} = FALSE;
+            eval { <[base.load_code]>->($sub_name) };
+            $data{'base'}{'loader'}{'sub_whitelist_enabled'} = $wl_state;
+
+            if ( defined $code{$sub_name} ) {
+                $healed = TRUE;
+            } else {
+                <[base.logs]>->(
+                    1, ': self-heal load failed : %s', $sub_name
+                );
+            }
+        } elsif ( $policy eq qw| warn | ) {
+            <[base.logs]>->( 1, ': self-heal would load : %s', $sub_name );
+        }
+    } elsif ( $classification eq qw| MISS | ) {
+        <[base.logs]>->( 1, ': self-heal MISS sig : %s', $sub_name );
+    } elsif ( $classification eq qw| BAD | ) {
+        <[base.logs]>->( 0, ': self-heal BAD sig : %s', $sub_name );
+
+        if ( $policy eq qw| strict | ) {
+            <[base.logs]>->(
+                0, ': self-heal strict policy violation : %s', $sub_name
+            );
+        } elsif ( $sig_fail_mode eq qw| reject | ) {
+
+            # [ never load bad-signature modules ]
+        }
+
+        # [ heal policy with non-reject sig_fail: still do not load BAD ]
+    }
+}
+
+# [ if sub not in dep-graph and not in moved_to, it is truly missing ]
+if ( not $found_in_depgraph and not defined $moved_target ) {
+    <[base.logs]>->( 1, ': self-heal not in dep-graph : %s', $missing_sub );
+}
+
+return $healed;
+
+#,,.,,.,.,,..,.,.,.,,,..,,...,,,,,,..,.,,,.,,,..,,...,...,...,,..,.,,,..,,,,,,
+#7JWCKC5LVR32J6GYKXJRPUQ2N36AI7KKZAEYF77L7DWGPCZQGQOZDNVVNS5EDBDWIMIYATWUMXTNC
+#\\\|O4QFZR6QOQTITQVASPWECRA4MD5GH7SOLRZNIDUR7DON6CFIWWQ \ / AMOS7 \ YOURUM ::
+#\[7]3T3E6CBT5OPWXRLGCPP6XODEHC2K2XI7HCN2IQP3QPAUPPQRJMAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

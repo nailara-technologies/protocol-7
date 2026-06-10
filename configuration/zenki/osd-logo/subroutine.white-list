@@ -164,6 +164,7 @@ base.eval.comp_regex
 base.disable_command
 base.devmod.dump_var
 base.cmd.show-buffer
+base.chk-sum.bmw.ctx
 base.buffer.add_line
 auth.zenka.init_code
 crypt.C25519.key_vars
@@ -211,11 +212,13 @@ base.execute_zenka_code
 base.dump.data_key_list
 base.convert.hex_to_int
 base.chk-sum.elf.inline
+base.chk-sum.bmw.strsum
 base.auth.set_zenka_key
 auth.zenka.authenticate
 protocol.https.init_code
 plugin.auth.auth-keypair
 io.unix.socket.init_code
+crypt.C25519.verify_sign
 base.zenka.push.pre_init
 base.zenka.is_v7_started
 base.templates.init_code
@@ -224,6 +227,7 @@ base.protocol-7.pre_init
 base.parser.command_list
 base.file.zulum_tmp_file
 base.cmd.verify-instance
+base.chk-sum.from_substr
 base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
 io.unix.socket.input.open
@@ -263,6 +267,8 @@ base.stream.record_emission
 base.session.calc_cmd_stats
 base.root.check_system_user
 base.parser.ondemand_status
+base.modules.check_migrated
+base.handler.whitelist_miss
 base.file.gen_path_linkname
 base.debian.install_package
 base.cmd.buffer-erase-level
@@ -272,6 +278,8 @@ protocol.protocol-7.pre_init
 protocol.amos_term.init_code
 osd-logo.set-up.import_rules
 io.unix.socket.input.connect
+crypt.C25519.keystr_is_valid
+crypt.C25519.compare_keypair
 base.validate.composite_name
 base.session.check_remaining
 base.process-into-background
@@ -281,6 +289,7 @@ base.handler.hooks.has_hooks
 base.handler.heart_ack_reply
 base.access.special-user-map
 protocol.protocol-7.init_code
+crypt.C25519.load_from_string
 crypt.C25519.get_usr_keys_dir
 base.validate.data_key_syntax
 base.source.collect_file_list
@@ -295,13 +304,16 @@ base.config.show_strack_trace
 base.chk-sum.bmw.template_L13
 base.chk-sum.bmw.B-32-56.TRUE
 auth.zenka.process_auth_reply
+amos7.decode_octal_bit_header
 protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
+crypt.C25519.key_bin_checksums
 base.zenki.ondemand_registered
 base.session.send_init_reports
 base.p7refs.get_refaddr_prefix
 base.number-cache.true_upwards
 base.log.send-buffer.add-queue
+base.chk-sum.bmw.encode_digest
 base.cache.refaddr-prefix.init
 osd-logo.handler.download_reply
 base.zenki.set_ondemand_timeout
@@ -309,6 +321,7 @@ base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
 base.buffer.local_logfile_write
 osd-logo.callback.download_image
+crypt.C25519.decrypt_priv_keystr
 base.perlmod.install_cpan_module
 base.perlmod.get_collision_index
 base.parser.harmonized_reference
@@ -332,6 +345,7 @@ protocol.amos-chksum.ext-cmd.close
 protocol.amos-chksum.ext-cmd.clear
 protocol.amos-chksum.ext-cmd.bytes
 plugin.auth.auth-keypair.init_code
+crypt.C25519.get_type_from_key_str
 base.protocol-7.command.send.local
 base.path-set-up.zenka-directories
 base.handler.read.encoding-wrapper
@@ -373,6 +387,7 @@ base.log.send-buffer.idle-callback-set
 auth.callback.cap-neg.select-strm-mode
 auth.callback.cap-neg.select-size-mode
 base.perlmods.blacklist_collision_index
+base.parser.chk-sum.embedded-code-style
 base.log.send-buffer.send-idle-callback
 base.init_zenka.install_signal_handlers
 base.handler.strm_size_absolute_timeout
@@ -395,8 +410,8 @@ auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,,,,..,.,,,,,,,,.,,,,,,.,.,..,,,..,,,.,,,.,..,,...,...,,,.,,,.,...,.,.,.,.,
-#5LDTKBDTYZHCCMHHKPKA4W5F7RWX3EFJURAA6GKMXQR5OZPM66SXX5EBXXODVMZU3X6MRXDEGOSFE
-#\\\|GJ3JTXAOANYYL4PGGNNOXP4ZGLNDNX6OI55IQKVKZMLGU32Y7M3 \ / AMOS7 \ YOURUM ::
-#\[7]YMN5GBYHRUH2VNCY5NMHYEDSMWO5QKV4OO4PJAVJFGU3ZXRXFIAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,.,,..,,,..,...,,..,..,,.,.,.,.,..,,...,...,,,.,.,,,,.,,,..,,,.,
+#F6PL3WWWLGRVHH53GZUKLP6YQYZQIJWYWRWAL56RDWOC6BWRRJLFVY5NI43F4EU4V5OQNLGF5OZEW
+#\\\|UI4OX5ARDWZJKMG65HE2MTQK7MRGFXIW75WAOL6B67NXMZGJUV6 \ / AMOS7 \ YOURUM ::
+#\[7]AY2VRTGC2PQKNYXRZWSSVHEDAVIYVB7PHGBC4G3WD47ET6PVFACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
