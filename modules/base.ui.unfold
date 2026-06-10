@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = base.ui.unfold
+# descr = render an address in its expanded form for the given slot budget
+# param = { address, slot_budget => { cols, rows } }
+
+my $address     = $ARG[0]->{'address'}     // '';
+my $slot_budget = $ARG[0]->{'slot_budget'} // {};
+
+return { 'mode' => qw| false |, 'data' => 'address required' }
+    if not length $address;
+
+## [ 1 ] custom renderer
+my $custom = "$address.ui.render.default";
+if ( defined $code{$custom} ) {
+    my $rendered
+        = eval { $code{$custom}->( { 'slot_budget' => $slot_budget } ) }
+        // '';
+    return { 'mode' => qw| true |, 'data' => $rendered };
+}
+
+## [ 2 ] specific ui-show command
+my $cmd = "$address.cmd.ui-show";
+if ( defined $code{$cmd} ) {
+    my $result
+        = eval { $code{$cmd}->() } // { 'mode' => qw| false |, 'data' => '' };
+    return $result if ref $result eq 'HASH' and exists $result->{'data'};
+    return { 'mode' => qw| true |, 'data' => $result };
+}
+
+## [ 3 ] fallback renderer
+my $rendered = eval {
+    <[base.ui.render.fallback]>->(
+        {   'address'     => $address,
+            'slot_budget' => $slot_budget
+        }
+    );
+} // '';
+
+return { 'mode' => qw| true |, 'data' => $rendered };
+
+#,,..,,.,,..,,.,,,..,,,,.,...,,.,,.,.,,,,,..,,..,,...,...,..,,,,.,,.,,.,.,,,.,
+#HD7E5AQOT6TLUB7MEJBNFH3J4CT3A3SEQWJL22I5ACW6XYYKK4G2RN3MCYVZB3DRWKS4DVSZEJYKO
+#\\\|JGAWMQBVIKJYUXULZ4WNZZJZPWCMO2J6REOWSHFM32ENNZKNZOO \ / AMOS7 \ YOURUM ::
+#\[7]5FVBK3H5CPDSOABMW7TRXVGMVP44VSFECFGFXVNEN5QXHZHHYEDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
