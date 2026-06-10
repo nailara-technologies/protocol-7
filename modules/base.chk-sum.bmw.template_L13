@@ -19,40 +19,13 @@ if ( not @ARG or grep { not defined } @ARG ) {
     return undef;
 }
 
-## start entropy ##
-state $start_seed_num;
-$start_seed_num //= unpack qw| Q |, pack qw| B64 |, '10000000' x 8;
-my $bits_num = $start_seed_num;
+return <[chk-sum.bmw.harmonize_L13]>->(
+    Digest::BMW::bmw_512(@ARG),
+    sub { is_true_with_template( $template, $ARG[0], 0, 1 ) }
+);
 
-foreach my $segment_num ( unpack qw| Q8 |, Digest::BMW::bmw_512(@ARG) ) {
-
-    while ( not AMOS7::Assert::Truth::true_int($segment_num) ) {
-        $segment_num = sprintf qw| %u |, $segment_num / 13;
-    }
-
-    $bits_num ^= $segment_num;    ## stringwise XOR ##
-
-    while ( not AMOS7::Assert::Truth::true_int($bits_num) ) {
-        $bits_num <<= 1;          ## make true ##
-    }
-
-}
-
-my $result_str_B32 = encode_b32r( pack qw| Q |, $bits_num );
-
-while (not is_true_with_template( $template, $result_str_B32, 0, 1 )
-    or not AMOS7::Assert::Truth::true_int($bits_num) ) {
-    $bits_num = sprintf qw| %u |, $bits_num / 13;
-    $bits_num <<= 5;
-    $bits_num = 13 if $bits_num == 0;    ##  make sure to exit true if 0  ##
-    ##  again until true  ##
-    $result_str_B32 = encode_b32r( pack qw| Q |, $bits_num );
-}
-
-return $result_str_B32;    ##  13 characters  ##  [ a true value ]  ##
-
-#,,..,,..,...,,..,.,.,,.,,...,.,,,,..,.,,,...,..,,...,...,.,.,.,,,,,.,,.,,.,.,
-#SL6KILAAZAZVADI2UPR4NA7XPRY355IS2G4HBS6IKDQZQJBLV4BNEVTRSNVTM5ZLUTSYOEHUTLG34
-#\\\|RJV5S3PBVMZO7UCF2DLQ52XUJO7GWOG4ES2MYLHRQ2OTWNFXY3T \ / AMOS7 \ YOURUM ::
-#\[7]FP5TF733MT6H63MGUU3IUSNXZQPDHM3WJCJ36ZROCG2DRZ4LU4AQ 7  DATA SIGNATURE ::
+#,,,.,...,,,,,.,.,,,,,..,,..,,.,,,..,,,,,,,.,,.,.,...,...,.,.,..,,.,,,,..,...,
+#BIHSGZYKMXOYBF4LAGLWONKOWSOXPF2V4YTZBH3V2BQ7ERT2LUNCZTAAIDE6NBLAOJRSJBCC55SAK
+#\\\|2G7HI46EDWR6FJWJSISN5CICDLNIDXKMCHMJEGEZTFFWMB5HYT2 \ / AMOS7 \ YOURUM ::
+#\[7]MLULPNMIR6GFB376UGGJH3BURNORHOMLRGXYGTCICIPWPOCAKSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
