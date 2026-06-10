@@ -272,6 +272,16 @@ cross-link to existing addressing primitives:
   fold doc ] are exactly the `origin` field's content.
 - **fold/unfold operations** at the UI are operations against the
   scope tree the META frames describe — they do not change the wire.
+- **epoch/chksum addressing** [
+  `data/md/design/EPOCH-CHECKSUM-EXCLUSION-ADDRESSING.md` ] is the
+  natural future encoding for `slot_addr` and `hop_id` once the
+  helper at `data/tasks/epoch-chksum-path-helper.md` lands — META
+  scope frames then carry the same fixed-width epoch/chksum path
+  segments the persistent storage layer uses, so a relayed run can
+  be addressed end-to-end without recoding. not a prerequisite for
+  this protocol [ slot_addr is opaque to the wire ], but the
+  alignment is the reason the field is length-prefixed rather than
+  fixed-width.
 
 ## worked end-to-end example
 
@@ -379,8 +389,8 @@ dependency order: codec → transport → demux. the existing v7 relay
 two coexist while zenki are migrated to the multiplexed transport,
 so no zenka has to flip atomically.
 
-#,,,.,,,.,,..,,..,,..,,..,.,.,,,.,,.,,..,,,.,,..,,...,...,...,,.,,,.,,,..,,,,,
-#G2KJWAGZQ4KG7APARNP2UWRAZL5FS7PK7ZQHF3RGR4ZX345WL3N6E4DBZFBCBN7O5E2ZI6E4FLMWU
-#\\\|R5QWSK3P2BRVTMJGRS2ZLJGSGCHQPCDR2F4JDG6OE3IYFSR43XM \ / AMOS7 \ YOURUM ::
-#\[7]MO54XDC6LJU34R5H55D247KXR5DKOGEV4EG7NUW3KGBBA6B5C4AA 7  DATA SIGNATURE ::
+#,,,.,..,,,..,.,.,,.,,.,,,..,,.,,,,,,,.,,,,,.,..,,...,...,...,,..,...,.,.,.,.,
+#NB4QA5U4346BFTBIO2PZADFX2DAKYBSXOLKLMOIGEHEPGNRWDOZDNILOIZCZYZYBZISD2SLELJ6EG
+#\\\|M7SGB4U7XP6LB3ACXVWNA7X6STRVQ2WH2B2434WLLDDF3OSWNUJ \ / AMOS7 \ YOURUM ::
+#\[7]JTQ2MCL2T4J3W542QMB2FUP32UVV4SEPSDBH53I5UZSZL5CRNEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
