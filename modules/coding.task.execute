@@ -102,6 +102,10 @@ if ($async_mode) {
 
     ## fail immediately if initial prompt already overflows context ##
     if ( $max_tokens_safe <= 0 ) {
+        if ( <[coding.task.chunked_summary_eligible]>->($task) ) {
+            return <[coding.task.chunk_and_summarize]>->(
+                $task_id, $task, $est_tokens, $n_ctx, $job_id );
+        }
         my $overflow = $est_tokens - $n_ctx;
         my $err
             = sprintf(
@@ -196,8 +200,8 @@ if ($async_mode) {
 ## unreachable : async block always returns before here ##
 return FALSE;
 
-#,,..,..,,,,.,.,,,,,,,.,,,.,.,,..,...,.,,,.,.,.,.,...,..,,.,.,,.,,...,,,,,.,.,
-#7MFK5GNMLLOWGJVEB6C3XKKEGDQCRIQXMQDS2T6SQ5OC4VSHG25OHLUBDCJA3WRI5CBNPI27FZGT2
-#\\\|6SV6CA7NZFOQJ3FRT7M6IIIDV67HMWXSZCWR5Q7ZO4XUX6AAV5Z \ / AMOS7 \ YOURUM ::
-#\[7]K4NUFFIW32MFIAQA37FXNI47T4M2TISQUTCTDEZVTPHGKC45MQCI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,,,,,,.,..,,,,.,,.,,,,.,...,..,,.,.,...,...,,.,,.,.,..,,..,,..,,
+#DAB7JZITZO2SDQZN4ABXBUIW5DUTQV73D7PAXPCB46YSYNWTHQLBSVFT6FFTICQXKC7QG2HN3CMAG
+#\\\|WUQ3PB3J5J3ELULJVG3DCHFMJ4C3EOINSD6S2RLOQXWIDAAIOHQ \ / AMOS7 \ YOURUM ::
+#\[7]VCT42JWHJS6MLQDXG2IH7KVWWNMOSCQUVPN4TBU4KTMQSZYW7GCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
