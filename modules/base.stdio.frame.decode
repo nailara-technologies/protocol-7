@@ -1,0 +1,249 @@
+## [:< ##
+
+# name  = base.stdio.frame.decode
+# descr = consume framed bytes, return list of typed-run records
+# param = $byte_buf_sref
+
+my $byte_buf_sref = shift;
+
+if ( ref $byte_buf_sref ne qw| SCALAR | ) {
+    warn 'expected scalar-ref to byte buffer <{C1}>';
+    return ();
+}
+
+my $buf = $byte_buf_sref->$*;
+return () if not length $buf;
+
+## [ unpack buffer into frames ] ##
+##   each frame = [ payload_3bit, sep_1bit ]   ##
+my @frames;
+for my $i ( 0 .. length($buf) - 1 ) {
+    my $byte = ord substr $buf, $i, 1;
+    push @frames, [ ( $byte >> 4 ) & 0b111, ( $byte >> 7 ) & 1 ];
+    push @frames, [ $byte & 0b111, ( $byte >> 3 ) & 1 ];
+}
+
+my @records;
+my $i = 0;
+my $last_complete_frame = -1;
+
+while ( $i < @frames ) {
+
+    ## [ locate META boundary ] ##
+    if ( $frames[$i][0] == 0b000 and $frames[$i][1] == 0 ) {
+        die 'framing error: 000 . pair in stream';
+    }
+    last if $frames[$i][0] != 0b000 or $frames[$i][1] != 1;
+    my $start = $i;
+    $i++;
+
+    ## [ need 4 header frames ] ##
+    last if $i + 4 > @frames;
+
+    ## [ validate header frames ] ##
+    my @hdr;
+    for my $h ( 0 .. 3 ) {
+        my $hf = $frames[ $i + $h ];
+        if ( $hf->[0] == 0b000 and $hf->[1] == 0 ) {
+            die 'framing error: 000 . pair in stream';
+        }
+        push @hdr, $hf->[0];
+    }
+
+    ## [ decode base-7 header ] ##
+    my $header_value = 0;
+    for my $h ( 0 .. 3 ) {
+        $header_value = $header_value * 7 + ( $hdr[$h] - 1 );
+    }
+    my $run_len = $header_value % 64;
+    $header_value = int( $header_value / 64 );
+    my $enc_val = $header_value % 3;
+    $header_value = int( $header_value / 3 );
+    my $tag_val = $header_value;
+    $i += 4;
+
+    ## [ consume data frames ] ##
+    my @data;
+    my $complete = 0;
+
+    if ( $run_len == 0 ) {
+        ## [ open-ended — read until next META boundary ] ##
+        while ( $i < @frames ) {
+            my $df = $frames[$i];
+            if ( $df->[0] == 0b000 and $df->[1] == 1 ) {
+                $complete = 1;
+                last;
+            }
+            if ( $df->[0] == 0b000 and $df->[1] == 0 ) {
+                die 'framing error: 000 . pair in stream';
+            }
+            if ( $df->[1] != 0 ) {
+                $complete = 1;
+                last;
+            }
+            push @data, $df->[0];
+            $i++;
+        }
+        last unless $complete;
+    } else {
+        ## [ fixed length run ] ##
+        for my $n ( 1 .. $run_len ) {
+            if ( $i >= @frames ) {
+                last;
+            }
+            my $df = $frames[$i];
+            if ( $df->[0] == 0b000 and $df->[1] == 1 ) {
+                $complete = 1;
+                last;
+            }
+            if ( $df->[0] == 0b000 and $df->[1] == 0 ) {
+                die 'framing error: 000 . pair in stream';
+            }
+            if ( $df->[1] != 0 ) {
+                $complete = 1;
+                last;
+            }
+            push @data, $df->[0];
+            $i++;
+        }
+        $complete = 1 if not $complete and scalar @data == $run_len;
+        last unless $complete;
+    }
+
+    ## [ decode payload ] ##
+    my @enc_names = ( qw| b32 |, qw| nibble |, qw| byte-pack |, qw| reserved | );
+    my $enc_name = $enc_names[$enc_val] // qw| unknown |;
+
+    if ( $enc_name eq qw| reserved | or $enc_name eq qw| unknown | ) {
+        warn 'reserved or unknown encoding in stream <{C1}>';
+        return ();
+    }
+
+    my $payload_bytes = _decode_payload( $enc_name, \@data );
+
+    my @tag_names
+        = ( qw| META |, qw| SIN |, qw| RIN |, qw| EOUT |,
+        qw| TOUT |, qw| NUM |, qw| STR |, qw| ERR | );
+    my $tag_name = $tag_names[$tag_val] // qw| unknown |;
+
+    my $record = {
+        qw| tag        | => $tag_name,
+        qw| encoding   | => $enc_name,
+        qw| header     | => {},
+        qw| payload_sref | => \$payload_bytes,
+    };
+
+    if ( $tag_val == 0b000 ) {
+        _parse_meta( $record, $payload_bytes );
+    } elsif ( $tag_val == 0b011 or $tag_val == 0b111 ) {
+        if ( length $payload_bytes ) {
+            $record->{'header'}->{'fd'}
+                = ord substr $payload_bytes, 0, 1, '';
+        }
+    }
+
+    push @records, $record;
+    $last_complete_frame = $i - 1;
+}
+
+## [ remove consumed bytes from caller buffer ] ##
+if ( $last_complete_frame >= 0 ) {
+    my $consumed_bytes = int( ( $last_complete_frame + 1 ) / 2 );
+    substr $byte_buf_sref->$*, 0, $consumed_bytes, '';
+}
+
+return @records;
+
+## [ helper subs ] ###########################################################
+
+sub _decode_payload {
+    my ( $enc_name, $data_ref ) = @ARG;
+
+    if ( $enc_name eq qw| b32 | ) {
+        return _decode_b32($data_ref);
+    } elsif ( $enc_name eq qw| nibble | ) {
+        return _decode_nibble($data_ref);
+    } elsif ( $enc_name eq qw| byte-pack | ) {
+        return _decode_byte_pack($data_ref);
+    }
+    return '';
+}
+
+sub _decode_b32 {
+    my $data_ref = shift;
+    my @indices;
+    for ( my $j = 0 ; $j < @$data_ref ; $j += 2 ) {
+        last if $j + 1 >= @$data_ref;
+        my $d0 = $data_ref->[$j] - 1;
+        my $d1 = $data_ref->[ $j + 1 ] - 1;
+        push @indices, $d0 * 7 + $d1;
+    }
+    my $alphabet = qw| ABCDEFGHIJKLMNOPQRSTUVWXYZ234567 |;
+    my $b32 = join '', map { substr $alphabet, $_, 1 } @indices;
+    return Crypt::Misc::decode_b32r($b32);
+}
+
+sub _decode_nibble {
+    my $data_ref = shift;
+    my @bytes;
+    for ( my $j = 0 ; $j < @$data_ref ; $j += 2 ) {
+        last if $j + 1 >= @$data_ref;
+        my $d0 = $data_ref->[$j] - 1;
+        my $d1 = $data_ref->[ $j + 1 ] - 1;
+        my $nib = $d0 * 7 + $d1;
+        if ( $j % 4 == 0 ) {
+            push @bytes, $nib << 4;
+        } else {
+            $bytes[-1] |= $nib;
+        }
+    }
+    return pack qw| C* |, @bytes;
+}
+
+sub _decode_byte_pack {
+    my $data_ref = shift;
+    my @bytes;
+    for ( my $j = 0 ; $j < @$data_ref ; $j += 3 ) {
+        last if $j + 2 >= @$data_ref;
+        my $d0 = $data_ref->[$j] - 1;
+        my $d1 = $data_ref->[ $j + 1 ] - 1;
+        my $d2 = $data_ref->[ $j + 2 ] - 1;
+        push @bytes, $d0 * 49 + $d1 * 7 + $d2;
+    }
+    return pack qw| C* |, @bytes;
+}
+
+sub _parse_meta {
+    my ( $record, $bytes ) = @ARG;
+    return if not length $bytes;
+
+    my $subtype_code = ord substr $bytes, 0, 1;
+    my %subtype = (
+        0x01 => qw| scope-enter |,
+        0x02 => qw| scope-leave |,
+        0x03 => qw| end-run |,
+        0x04 => qw| close-field |,
+        0x05 => qw| close-stream |,
+    );
+    my $subtype = $subtype{$subtype_code} // qw| unknown |;
+    $record->{'header'}->{'subtype'} = $subtype;
+
+    if ( $subtype eq qw| scope-enter | ) {
+        my ( $hop_id, $slot_addr, $origin )
+            = unpack( 'x n n/a* n/a*', $bytes );
+        $record->{'header'}->{'hop_id'}    = $hop_id;
+        $record->{'header'}->{'slot_addr'} = $slot_addr;
+        $record->{'header'}->{'origin'}    = $origin;
+    } elsif ( $subtype eq qw| scope-leave | ) {
+        my ($origin) = unpack( 'x n/a*', $bytes );
+        $record->{'header'}->{'origin'} = $origin;
+    }
+
+    return;
+}
+
+#,,.,,,..,.,.,..,,,,.,..,,...,..,,,.,,,..,..,,.,.,...,...,...,.,.,,.,,..,,,,.,
+#3T4EDMMP2EUY25WZK2IQFVJVSEOHNKNTJXV4T62JKCNOCWYJHCKKC7WNPKGIJISDMZZVKYVYZ2KPI
+#\\\|ODIUKWWGRREGYUVM6CJWB7HRJTIBEZVA6GWL64CIGCZQWB2VK7T \ / AMOS7 \ YOURUM ::
+#\[7]JA3HFSVLFMDACIGKB4LENJLTN7YG33CNWS3RBYLFSULQQGPDQ6AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
