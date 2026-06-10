@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = base.slot.bind_content
+# descr = bind a content address into a slot
+# param = { slot_address, content_address }
+
+my $slot_address    = $ARG[0]->{'slot_address'}    // '';
+my $content_address = $ARG[0]->{'content_address'} // '';
+
+return undef if not length $slot_address or not length $content_address;
+
+## parse address for chksum7
+my $chksum7;
+if ( $slot_address =~ m|^SLOT:([^:]+):| ) {
+    $chksum7 = $1;
+} else {
+    warn 'expected slot address <{C1}>';
+    return undef;
+}
+
+my $entry = <base.slots>->{$chksum7};
+if ( not defined $entry ) {
+    warn 'slot not found <{C1}>';
+    return undef;
+}
+
+$entry->{'content_address'} = $content_address;
+
+return $content_address;
+
+#,,.,,,..,,,,,.,.,.,.,,,.,,..,,.,,,,.,.,.,...,..,,...,...,.,.,,..,..,,.,.,...,
+#WHYOD5GL5J6JQ643A5QAMAE3MVDDJNETSFTQDHRYWDTTI5COU5BDDROJRSY2ECOVIEMIKGW6EIGTA
+#\\\|VSPI47YJ7BDMXTEXPBJ2GXFIB6U6XIUAKQXAVDD5YYL76PJ56AO \ / AMOS7 \ YOURUM ::
+#\[7]YXD5JKPDW5HQXFYDJ3OSBT53WXUWXVPSYHY5F65YV46ZK4SDWYAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

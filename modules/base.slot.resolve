@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = base.slot.resolve
+# descr = resolve a slot address to its current registry entry
+# param = { address }
+
+my $address = $ARG[0]->{'address'} // '';
+
+return undef if not length $address;
+
+## parse stable prefix or full geometry-suffixed form
+my $chksum7;
+if ( $address =~ m|^SLOT:([^:]+):| ) {
+    $chksum7 = $1;
+} else {
+    return undef;
+}
+
+return <base.slots>->{$chksum7};
+
+#,,,.,,,,,,,.,,,.,.,,,.,.,.,,,..,,.,.,.,,,...,..,,...,...,.,.,,,,,.,.,.,.,,,.,
+#R3XAMN5RC5JBGGBZASUBVZG2K3KIQL2DX7R555TAE2K7LG5LIGDNUVRRT3BLR7NYKHCJJFQ644QLQ
+#\\\|N7OSS2TRY25MNMFLFX6M2USQLAUEEPK5EQEQVTMGON43WAQZAPO \ / AMOS7 \ YOURUM ::
+#\[7]D6MU7ZPCYODZHMPXHYXVQQQCJF27KA4JODR3VOH5KOLZUWKUXACI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
