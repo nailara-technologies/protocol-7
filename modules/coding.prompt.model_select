@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = coding.prompt.model_select
+# descr = render model selection prompt for self-select tasks
+
+my $params = shift // {};
+
+## [ task introspection prompt ] ##
+## instructs the model to emit a model_selection block as its first output ##
+## the reason field is mandatory : vague reasons are rejected             ##
+
+my $prompt = <<'PROMPT';
+
+## model selection ##
+before starting this task, analyze its requirements and output a
+model_selection block as your ONLY response. do not use tools yet. do not
+begin the task yet.
+
+```yaml
+model_selection:
+  backend: [ gpu | cpu | gpu-heavy | fast ]
+  max_context: <optional token estimate>
+  reason: |
+    <specific justification : min 20 words>
+```
+
+reason quality guidelines:
+- good : references specific token counts, files, modules, or capability gaps
+- bad  : "this is complex", "gpu is better", circular reasoning
+- a vague reason causes the selection to be ignored and the default used
+
+available backends:
+- gpu : primary gpu server [ large context, code synthesis ]
+- gpu-heavy : largest gpu model [ maximum context, deep reasoning ]
+- cpu : cpu fallback server [ smaller context, always available ]
+- fast : smallest fastest model [ classification, summaries, quick checks ]
+
+after emitting the block, wait : the coding zenka will apply your selection
+and continue the task on the chosen backend.
+PROMPT
+
+$prompt =~ s|\s+$||s;
+
+return $prompt;
+
+#,,..,..,,,,,,...,,.,,,,,,...,...,..,,,,.,,,.,..,,...,...,...,,,.,.,.,,,.,.,,,
+#5ENRB7Y5OXBQH2AAY5COHZYNBRD62TNDKN5WZ334HRUHRVV2XGKY6H5ZZZIBPTJVXQZTVJQ7WEGR2
+#\\\|UTYZHW2LCM5I3V67TUHOZE2SKPRWI5WSPHTD3T4LT2PQ7NYTREB \ / AMOS7 \ YOURUM ::
+#\[7]TC6AKXZ3AYIU5AQ6VMJZIBXHY75AMEZC6ZMH6IKUDXVARCNJP4DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

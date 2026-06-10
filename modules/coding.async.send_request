@@ -129,6 +129,56 @@ if ( ( $state->{'round'} // 0 ) > $max_rounds ) {
     return { success => FALSE, error => 'max rounds exceeded' };
 }
 
+## check first assistant message for model_selection block [ safety net ] ##
+## strip it and apply backend if not already handled by chunk_handler    ##
+for my $i ( 0 .. $#messages ) {
+    next unless $messages[$i]->{'role'} eq 'assistant';
+    my $content = $messages[$i]->{'content'} // '';
+    if ( $content =~ m|model_selection:|s ) {
+        my $parsed = <[coding.parser.model_selection]>->($content)
+            // { backend => '', reason => '' };
+        if ( length $parsed->{'backend'} ) {
+            my $current_backend = $state->{'backend'} // '';
+            if ( $parsed->{'backend'} ne $current_backend ) {
+                $state->{'backend'} = $parsed->{'backend'};
+                $state->{'port'}
+                    = $parsed->{'backend'} eq qw| cpu |
+                    ? ( <inference.backend.cpu.port> // 8001 )
+                    : ( <inference.backend.gpu.port> // 8000 );
+                $task_ref->{'analysis'}->{'routed_to'}
+                    = $parsed->{'backend'};
+                <[base.logs]>->(
+                    1,
+                    "send_request: [%s] backend override %s → %s"
+                        . " [ reason: %s ]",
+                    $task_id,
+                    $current_backend,
+                    $parsed->{'backend'},
+                    <[base.parser.center_ellipse_string]>->(
+                        $parsed->{'reason'}, 60
+                    )
+                );
+            }
+        }
+
+        ## strip the block from message ##
+        my $stripped = $content;
+        $stripped =~ s#```ya?ml\s*\n\s*model_selection:.*?(?:```|\z)##s;
+        $stripped =~ s|model_selection:\s*\n.*||s;    ## unfenced fallback ##
+        $stripped =~ s|^\s+||;
+        $stripped =~ s|\s+$||;
+        $messages[$i]->{'content'} = $stripped;
+        <[base.logs]>->(
+            2, "send_request: stripped model_selection block from msg %d", $i
+        );
+
+        ## refresh state messages ##
+        $state->{'messages'} = \@messages;
+        <coding.async.task_state>->{$task_id} = $state;
+        last;
+    }
+}
+
 ## build request body ##
 ## no_tools flag: summary/classification tasks that don't need tool use ##
 ## also detect :no_tools: marker prefix in description ##
@@ -280,8 +330,8 @@ if (@messages) {
 return
     <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
 
-#,,,,,..,,..,,,..,.,.,.,.,,,,,.,,,.,,,,.,,,,,,..,,...,..,,..,,,.,,.,.,,,,,...,
-#BAKSGNBHCBJ6DSVGC7G5LIAPI25VVGNOB2VTZNGPAKWRQHIT2HUUPSX2BZPM5GXHRGO5MPMINOR6I
-#\\\|LX5BRGOKSQPAARNN3UDMTHOGASJOBWMJ3JVTVBWGT5AXSM5FNN2 \ / AMOS7 \ YOURUM ::
-#\[7]SWQLOOINYRZKSITM7BC6Q7QADWCRSPV4EBY5JOFEE4DJV6TL5QCY 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,.,,,.,,,.,.,,.,,.,.,.,,,,.,,.,.,..,,...,...,,,.,,,.,.,.,,,,,.,,,
+#BKH6PJODKRIGQIQCNB25YQUBGUVKQAIWKWH3BNYVALCJBFI3BC6DPJWOQUFPTFF3LZWL4H6CS5A4O
+#\\\|LJH2B4DGA3BISFNB6HCQYPBPIGLHJ6PNGEN65IIE2CTLS2422OL \ / AMOS7 \ YOURUM ::
+#\[7]7FKDAUFHP34XRCLBAYMURLZATY7Y53A4OFPWJBB6QH7OYM5BOODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
