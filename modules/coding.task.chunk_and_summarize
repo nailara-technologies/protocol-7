@@ -1,0 +1,186 @@
+## [:< ##
+
+# name  = coding.task.chunk_and_summarize
+# descr = map-reduce rolling summarization for initial-prompt overflow
+# param = $task_id, $task, $est_tokens, $n_ctx, $job_id
+
+my ( $task_id, $task, $est_tokens, $n_ctx, $job_id ) = @ARG;
+
+return { success => FALSE, error => 'task_id required' }
+    unless defined $task_id;
+return { success => FALSE, error => 'task required' }
+    unless defined $task and ref $task eq qw| HASH |;
+
+## extract raw text from task ##
+my $description = $task->{'request'}->{'description'} // '';
+my $raw_request = $task->{'metadata'}->{'raw_request'} // {};
+$description = $raw_request->{'description'}
+    if length( $raw_request->{'description'} // '' )
+    and length( $raw_request->{'description'} ) > length($description);
+return { success => FALSE, error => 'no description text to chunk' }
+    unless length $description;
+
+my $chars_per_token = 3.2;
+
+## leave headroom for system prompt + running summary + reply tokens ##
+my $headroom_tokens = 800;
+my $max_chunk_chars = int( ( $n_ctx - $headroom_tokens ) * $chars_per_token );
+$max_chunk_chars = 2000 if $max_chunk_chars < 2000;    ## minimum sanity ##
+
+## split into chunks at paragraph/line boundaries ##
+my @chunks;
+my $pos = 0;
+my $len = length $description;
+
+while ( $pos < $len ) {
+    my $remaining = $len - $pos;
+    if ( $remaining <= $max_chunk_chars ) {
+        push @chunks, substr( $description, $pos );
+        last;
+    }
+    my $end = $pos + $max_chunk_chars;
+    ## prefer paragraph break ##
+    my $para_break = rindex( $description, "\n\n", $end );
+    if ( $para_break > $pos ) {
+        $end = $para_break + 2;
+    } else {
+        ## fallback to single newline ##
+        my $line_break = rindex( $description, "\n", $end );
+        $end = $line_break + 1 if $line_break > $pos;
+    }
+    my $chunk = substr( $description, $pos, $end - $pos );
+    push @chunks, $chunk;
+    $pos = $end;
+}
+
+my $n_chunks = scalar @chunks;
+<[base.logs]>->(
+    1,
+    "chunk_and_summarize: %s → %d chunks "
+        . "[ est=%d n_ctx=%d max_chunk=%d ]",
+    $task_id, $n_chunks, $est_tokens, $n_ctx, $max_chunk_chars
+);
+
+## store chunk state in parent task metadata for resume handler ##
+my $chunk_state = {
+    current_idx     => 0,
+    total_chunks    => $n_chunks,
+    chunks          => \@chunks,
+    running_summary => '',
+    system_prompt   => ( $task->{'system'} // '' ),
+    parent_job_id   => $job_id,
+};
+$task->{'metadata'} //= {};
+$task->{'metadata'}->{'chunked_summary_state'} = $chunk_state;
+
+## create async state for parent so coding.async.complete can resume it ##
+my $backend = $task->{'analysis'}->{'routed_to'} // qw| gpu |;
+<[coding.async.state_machine]>->(
+    qw| init |,
+    $task_id,
+    {   messages => [],
+        tools    => [],
+        backend  => $backend,
+    }
+);
+<[coding.async.state_manager]>->(
+    qw| set |,
+    $task_id,
+    {   job_id                  => $job_id,
+        state                   => qw| subtask |,
+        chunked_summary_pending => undef,
+        pending_subtask         => undef,
+        mode                    => qw| streaming |,
+        chunk_context           => {},
+    }
+);
+
+## build and enqueue first chunk child ##
+my $first_chunk = $chunks[0];
+my $child_prompt
+    = "running summary so far:\n\nnew text to fold in:\n$first_chunk\n\n"
+    . "produce an updated running summary that preserves information from "
+    . "both, information-dense, no preamble.";
+
+## guard: truncate if single chunk still overflows [ prevents recursion ] ##
+my $est_child_tokens = int( ( length($child_prompt) * 1.4 ) / $chars_per_token );
+if ( $est_child_tokens > $n_ctx - 500 ) {
+    my $overrun     = $est_child_tokens - ( $n_ctx - 500 );
+    my $truncate_to = length($first_chunk)
+        - int( $overrun * $chars_per_token / 1.4 ) - 100;
+    $truncate_to = 1000 if $truncate_to < 1000;
+    $first_chunk = substr( $first_chunk, 0, $truncate_to );
+    $child_prompt
+        = "running summary so far:\n\nnew text to fold in:\n$first_chunk\n\n"
+        . "produce an updated running summary that preserves information from "
+        . "both, information-dense, no preamble.";
+    <[base.logs]>->(
+        0,
+        "chunk_and_summarize: chunk 0 truncated to %d chars "
+            . "[ overrun %d tokens ]",
+        length($first_chunk), $overrun
+    );
+}
+
+my $child_task_id = <[coding.helper.task_id_generator]>->( qw| chunk | );
+my $child_task = {
+    id       => $child_task_id,
+    type     => qw| general |,
+    request  => { description => $child_prompt },
+    metadata => {
+        raw_request        => {
+            type        => $backend,
+            description => $child_prompt
+        },
+        parent_task_id     => $task_id,
+        is_chunked_summary => 1,
+    },
+    analysis   => { routed_to => $backend },
+    execution  => { status    => qw| pending | },
+    created_at => <[base.time]>->(3),
+    system     => ( $task->{'system'} // '' ),
+    no_tools   => 1,
+    max_rounds => 1,
+};
+
+my $enqueue_result = <[coding.task.enqueue]>->($child_task);
+if ( !$enqueue_result->{'success'} ) {
+    <[base.logs]>->(
+        0, "chunk_and_summarize: first chunk enqueue failed: %s",
+        $enqueue_result->{'error'} // 'unknown'
+    );
+    ## fall back to hard fail with original error format ##
+    my $overflow = $est_tokens - $n_ctx;
+    my $err = sprintf(
+        'initial prompt overflow: estimated %d tokens exceeds n_ctx=%d '
+            . 'by %d'
+            . ' : reduce task description or tool output size',
+        $est_tokens, $n_ctx, $overflow > 0 ? $overflow : 0 );
+    $task->{'execution'}->{'status'} = qw| failed |;
+    $task->{'execution'}->{'error'}  = $err;
+    <[jobqueue.move_job]>->( $job_id, qw| error | ) if defined $job_id;
+    <[coding.task.fail]>->( $task_id, $err );
+    return { success => FALSE, error => $err };
+}
+
+## wire parent/child relationship ##
+<coding.task.parent>->{$child_task_id} = $task_id;
+
+## update parent state to wait for first child ##
+my $parent_state = <[coding.async.state_manager]>->( qw| get |, $task_id );
+$parent_state->{'chunked_summary_pending'} = $child_task_id;
+$parent_state->{'pending_subtask'}         = $child_task_id;
+<coding.async.task_state>->{$task_id} = $parent_state;
+
+<[base.logs]>->(
+    1, "chunk_and_summarize: enqueued chunk 1/%d as child %s",
+    $n_chunks, $child_task_id
+);
+
+return { success => TRUE, mode => qw| deferred |, task_id => $task_id };
+
+#,,..,...,,..,.,,,,.,,,.,,,.,,.,,,,.,,...,,,.,.,.,...,...,.,,,,.,,,,.,,.,,.,.,
+#ZLL4725B32UM7LMIUALP3RRQMIAAIK4G3MIG45O73ENY7Z2QSOVQ6TICEZD443CXLODBLOPOHVEIS
+#\\\|MM6E3Y5RMUKGECT3YBWQTGV75O4HYPCCDIUNN3TY6GWMVLKY324 \ / AMOS7 \ YOURUM ::
+#\[7]O4VOU5TJFTQMIANXIMHXYO5IDX5NB34FAHDMQEQQFRZX2TDTR2DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

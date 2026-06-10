@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = coding.task.chunked_summary_eligible
+# descr = check if a task qualifies for round-0 rolling-window chunk summarization
+
+my ($task) = @ARG;
+
+return FALSE unless defined $task and ref $task eq qw| HASH |;
+
+my $meta = $task->{'metadata'} // {};
+
+## never chunk a child of chunking (prevents infinite recursion) ##
+return FALSE if $meta->{'is_compaction'};
+return FALSE if $meta->{'is_chunked_summary'};
+
+## eligible if explicitly flagged or is a known summarization shape ##
+return TRUE
+    if $meta->{'allow_chunking'}
+    or ( $task->{'type'} // '' ) eq qw| summary |;
+
+return FALSE;
+
+#,,,,,.,.,...,.,.,.,.,,.,,,..,...,..,,.,.,..,,.,.,...,..,,,,.,,,.,,.,,,,,,..,,
+#IPLICDZE6MS47SDRGOQORXNFXMXU647KGCGKGXTJT54FS7ZZSWHOFT5SGMZ5TLXNNCPBYTDVWQ5O6
+#\\\|I77Z4XXCMLGTF6UVUQ7RVZJHU27AN7PACHQVBLCGDABJUJ2WLBA \ / AMOS7 \ YOURUM ::
+#\[7]PS6B4PGKYKI3JOIRR4XFIJVPZWVUFA3VXGEBW6OO4VQT4XZPUIAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
