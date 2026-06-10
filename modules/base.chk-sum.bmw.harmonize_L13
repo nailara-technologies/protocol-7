@@ -1,0 +1,79 @@
+## [:< ##
+
+# name  = base.chk-sum.bmw.harmonize_L13
+# param = $bmw_512_bin   [ 64-byte binary BMW512 digest ]
+# param = $validator     [ CODE ref:
+#                          ( $result_str_B32, $bits_num ) -> bool ]
+# descr = run the L13 harmony loop with a caller-supplied validator
+#         predicate; returns 13-char BASE32 string
+
+use Time::HiRes;
+
+my $bmw_512_bin = shift // '';
+my $validator   = shift;
+
+if ( length $bmw_512_bin != 64 ) {
+    warn 'expecting 64 byte [binary] 512 bit BMW digest <{C1}>';
+    return undef;
+}
+
+## start entropy ##
+state $start_seed_num;
+$start_seed_num //= unpack qw| Q |, pack qw| B64 |, '10000000' x 8;
+my $bits_num = $start_seed_num;
+
+foreach my $segment_num ( unpack qw| Q8 |, $bmw_512_bin ) {
+
+    while ( not AMOS7::Assert::Truth::true_int($segment_num) ) {
+        $segment_num = sprintf qw| %u |, $segment_num / 13;
+    }
+
+    $bits_num ^= $segment_num;    ## stringwise XOR ##
+
+    while ( not AMOS7::Assert::Truth::true_int($bits_num) ) {
+        $bits_num <<= 1;          ## make true ##
+    }
+
+}
+
+my $result_str_B32 = encode_b32r( pack qw| Q |, $bits_num );
+
+my $time_start;
+$time_start = sprintf qw| %.1f |, Time::HiRes::time
+    if AMOS7::TEMPLATE::template_count() > 0;
+
+## fallback iteration cap : guards against bits_num cycles that never  ##
+## satisfy [ validator AND true_int ] when no truth template is        ##
+## assigned [ no time-based timeout applies in that case ]             ##
+my $max_iterations_num = 100_000;
+my $iteration_num      = 0;
+
+while (not $validator->( $result_str_B32, $bits_num )
+    or not AMOS7::Assert::Truth::true_int($bits_num) ) {
+
+    if ( AMOS7::TEMPLATE::template_count()
+        and sprintf( qw| %.1f |, Time::HiRes::time ) - $time_start
+        > AMOS7::TEMPLATE::template_timeout() ) {
+        warn 'truth template validation timeout exceeded <{C1}>';
+        return undef;
+    }
+
+    if ( ++$iteration_num > $max_iterations_num ) {
+        warn 'harmonize_L13 iteration cap exceeded <{C1}>';
+        return undef;
+    }
+
+    $bits_num = sprintf qw| %u |, $bits_num / 13;
+    $bits_num <<= 5;
+    $bits_num = 13 if $bits_num == 0;    ##  make sure to exit true if 0  ##
+    ##  again until true  ##
+    $result_str_B32 = encode_b32r( pack qw| Q |, $bits_num );
+}
+
+return $result_str_B32;    ##  13 characters  ##  [ a true value ]  ##
+
+#,,.,,.,,,..,,.,,,,..,.,.,,.,,..,,.,,,...,,..,..,,...,...,,..,.,,,,,,,,,,,..,,
+#2UHWQEPNW6PVBUROPUCYZ3HCHNLYNNPHP5N6SNWHBB77DXO5NLJ7QFXSX2XTXQRLOTZ5GFQ7HUCM2
+#\\\|62ZXI25RO2PLJAOURYDWPSQA6VCEL36VEDPT4AMS2C64JQGVVU3 \ / AMOS7 \ YOURUM ::
+#\[7]MEMPQOE6S6OAIFEYZJDMAGWAGXGODIPF6ETPQA7MPYVACHGVBWAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
