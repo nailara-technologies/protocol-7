@@ -3,6 +3,15 @@
 # name  = task: reasoning.branch.* — generic parallel reasoning orchestration
 # descr = implement branch orchestration primitives for any reasoning agent
 
+## relation to CONSOLE-FOLD-TREE-PHILOSOPHY
+
+per `data/md/design/CONSOLE-FOLD-TREE-PHILOSOPHY.md`, a reasoning
+branch IS a tree node — and by the "branch node = complete tree"
+principle, every branch in the orchestrator's registry is itself
+foldable, unfoldable, and addressable identically to any other
+console node. this task supplies the *data* that the generic fold
+primitives will render; no bespoke branch-UI needed.
+
 ## kimi memory
 
 if in doubt about P7 patterns, coding style, or project context — read first:
@@ -359,8 +368,8 @@ p7c reasoning.branch.status
 - [ ] ANSI color when TTY (running=amber, paused=dim, resolved=green, rescue=violet)
 - [ ] no signature stubs, no whitelist changes
 
-#,,.,,..,,...,.,,,.,.,,,,,,,,,,,.,.,,,,,,,,..,..,,...,...,.,,,,,,,.,,,,,.,..,,
-#2Q6F4TGCP2QLJRXN3ZNIXFW3NGKRQDOMMRW6VMNIWHYAYXYQS2LJTS7VEZRXJEZJWBY2OPHLK6NLY
-#\\\|JNC4BNZC5RPS2QZSAPIL5LLY36GUWMK5HF4VML4MD5ULUNBYVZ7 \ / AMOS7 \ YOURUM ::
-#\[7]JGZFQ5VFPXQJUIYLPSU2YDPE7B7JTVU5SQ34WP4BIEJ3CEQC7UAQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,.,,,...,.,,,,,,,.,,,.,,,.,.,..,,..,,...,...,...,,.,,..,,.,,,,.,,
+#GBYXDYDWJLXK4WO4EGWNKRLLEMDGAEHJW4BT52GSGYJJ2XNY5H56TCBAAHMSS6N5E45INRQXC3RDE
+#\\\|IVYCC7YC3NMZQO5QNKPG6IXW6BTTYTWQWH3YTRNW4LWKAYQ2BBH \ / AMOS7 \ YOURUM ::
+#\[7]WU2NISSLROPA7P5SQME2MF34ZMGG6RBTALGWC7UWCJET2NUFR2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

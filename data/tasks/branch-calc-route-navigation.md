@@ -1,5 +1,14 @@
 # task: branch route navigation + harmonic calculation utilities
 
+## relation to CONSOLE-FOLD-TREE-PHILOSOPHY
+
+dot/comma route encoding here is the **addressing-layer counterpart**
+of the console fold handle described in
+`data/md/design/CONSOLE-FOLD-TREE-PHILOSOPHY.md` — both compress a
+path through a recursive tree into a compact, resolvable string. the
+short-address segment in a fold handle is exactly the kind of route
+this module encodes; the two layers compose without translation.
+
 ## context
 
 the routing crystal (ROUTING-CRYSTAL-HARMONIC-INFERENCE.md) and checksum
@@ -141,8 +150,8 @@ no signature stubs.
 - [ ] resonance combines reference count × harmonic × shell correctly
 - [ ] all pass ptd, no signature stubs
 
-#,,.,,,,.,,.,,..,,.,.,...,,,,,,,,,,.,,,..,,,,,..,,...,...,..,,,,,,.,,,,,,,,..,
-#PO3XAIXWDBCDIT2AZGGICVF67L2H4SQ3OHK6OTQT5USHF4QVEU22M7JGT6YP4ZYTSPASZYYZIU242
-#\\\|MANABQSPV2BDDNWB4L5NHPBQ5JBECZN327O7LECNZGIO7POSZ7Z \ / AMOS7 \ YOURUM ::
-#\[7]BJ7FUNTJFOWAUBPPQILYARTDFKQM6QMYWZ2ZL767PDTSUGQNM6CI 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,,,,.,.,..,,.,.,...,..,,.,.,...,..,,...,...,..,,...,.,.,,,,,.,,,
+#P3EMY4UM3OV32XEA6LS65QNCFPLMAAMJRCUXQKAIBLOKVT5ZVONH4MMYO6D3UBB67CYQQKMJVELBI
+#\\\|KQBYPXCPFMQKDNFIHTHQYVOTITHBQZ34XQ5P7JCMYJ3L7JJO2GE \ / AMOS7 \ YOURUM ::
+#\[7]K6T2CBN2XZCGUTLU6I4WEL5WLKMXPGBJDKVKQJFI4WLPLQ4T4EAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

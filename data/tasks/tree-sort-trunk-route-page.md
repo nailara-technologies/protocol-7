@@ -1,5 +1,14 @@
 # task: tree.sort.trunk.* + tree.route.page.* — trunk sort and routing page
 
+## relation to CONSOLE-FOLD-TREE-PHILOSOPHY
+
+the trunk sort and routing page define how namespace entries propagate
+through the tree protocol — the **wire-level mechanism** beneath the
+console layer's address-resolves-to-handle guarantee that
+`data/md/design/CONSOLE-FOLD-TREE-PHILOSOPHY.md` rests on. without
+this layer, "fold confidently because the network underwrites
+presence" lacks its concrete substrate.
+
 ## context
 
 two tightly coupled systems that together define how bits and namespace
@@ -237,8 +246,8 @@ use constant CARRY_GROUP   => 7;    ## index of terminal/carry group (leading 0)
 - navigate clamps correctly at both ends of file
 - suction moves exactly the bits vacated by extract, no more
 
-#,,..,,,.,,,,,..,,,..,,..,.,,,.,.,.,,,,,,,.,,,..,,...,...,.,.,,,,,,.,,,,,,...,
-#2NIHOBSCLFX4QHEYV2LWYTFZR7JBTARLQDKD7GKDOBOGWBLZFJWCTUSGH5CHDMSMQVGOWID6OKBKQ
-#\\\|CDKEBCJ3LA2PM4MNVDMWARNQFAFZQGJVSWLKEJUAUR6OCZV66XF \ / AMOS7 \ YOURUM ::
-#\[7]GRBDMDQ5UIJR4RZ3GENOIFFTMHUROLGH643HNG7SZBBLP53CB6CA 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,.,,,,,,,,.,,,.,,..,,.,,.,,,,.,,..,,...,...,..,,.,.,.,.,,,,,.,.,
+#HA3YL5FJMWLXHRT7K7JUPERWVBMCHZZZQX6XYZ3UULFMLPFQFMLRPNQCK7BH7B5EMZNZ6LCK4ROTM
+#\\\|WSR2NJMGH4XRXZBYFRQEOAUZDGPJAUTUTTE746C2YN2MSM3P3BZ \ / AMOS7 \ YOURUM ::
+#\[7]I7Q3BHOV6T5I25ER6IZNTFAVYKQH6NOQC3TOF246SHMCM4WAMGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

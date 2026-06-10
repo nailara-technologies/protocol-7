@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = source.target_namespace
+# descr = resolves a subroutine name to its on-disk path and namespace root
+
+my $sub_name = shift // '';
+
+return undef if not length $sub_name;
+
+my $rel_path = sprintf qw| modules/%s |, $sub_name;
+
+# [ check alternate paths via base.check_bin_p7 ]
+my $checked_rel;
+$checked_rel = <[base.check_bin_p7]>->($rel_path)
+    if defined $code{'base.check_bin_p7'};
+
+$rel_path = $checked_rel if defined $checked_rel;
+
+my $abs_path = undef;
+$abs_path = abs_path( catfile( <system.root_path>, $rel_path ) )
+    if defined <system.root_path>;
+
+# [ derive namespace root ]
+my $namespace = $sub_name;
+$namespace =~ s|\.[^.]+$||;
+
+return {
+    qw| path      | => $rel_path,
+    qw| abs_path  | => $abs_path,
+    qw| namespace | => $namespace
+};
+
+#,,..,.,.,.,.,,,,,,,,,,,,,.,.,...,..,,,,.,.,.,..,,...,...,...,.,,,.,,,,,,,.,,,
+#3AVYMJYBJ3VH2RPOUFPU5YXHHNIQR7JTRXBJSENSTRMYFTV6A45MFPVJPY6MJDA6YTXSPGCS6NFT4
+#\\\|4GYKSGUQDKH2BA74VNNELSMVCVVTBHMCWV72PVQ7PL73KFI3HCV \ / AMOS7 \ YOURUM ::
+#\[7]MBQEPQXV7Z7UFVXPORINLDWFM3C3W4DKZXZWRQOHRAFSLSWMCMBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

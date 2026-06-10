@@ -188,6 +188,7 @@ base.devmod.dump_var
 base.cmd.show-buffer
 base.cmd.show-access
 base.cmd.amos-chksum
+base.chk-sum.bmw.ctx
 base.buffer.add_line
 auth.zenka.init_code
 crypt.C25519.key_vars
@@ -245,11 +246,13 @@ base.cmd.set-name-width
 base.cmd.ondemand-zenka
 base.cmd.loaded-configs
 base.chk-sum.elf.inline
+base.chk-sum.bmw.strsum
 base.auth.set_zenka_key
 auth.zenka.authenticate
 protocol.https.init_code
 plugin.auth.auth-keypair
 io.unix.socket.init_code
+crypt.C25519.verify_sign
 channels.cmd.unsubscribe
 base.zenka.push.pre_init
 base.zenka.is_v7_started
@@ -259,6 +262,7 @@ base.protocol-7.pre_init
 base.parser.command_list
 base.file.zulum_tmp_file
 base.cmd.verify-instance
+base.chk-sum.from_substr
 base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
 io.unix.socket.input.open
@@ -306,6 +310,8 @@ base.stream.record_emission
 base.session.calc_cmd_stats
 base.root.check_system_user
 base.parser.ondemand_status
+base.modules.check_migrated
+base.handler.whitelist_miss
 base.file.gen_path_linkname
 base.debian.install_package
 base.cmd.buffer-erase-level
@@ -314,6 +320,8 @@ base.chk-sum.amos.init_code
 protocol.protocol-7.pre_init
 protocol.amos_term.init_code
 io.unix.socket.input.connect
+crypt.C25519.keystr_is_valid
+crypt.C25519.compare_keypair
 channels.memory-sync.publish
 channels.handler.data_change
 base.validate.composite_name
@@ -325,6 +333,7 @@ base.handler.hooks.has_hooks
 base.handler.heart_ack_reply
 base.access.special-user-map
 protocol.protocol-7.init_code
+crypt.C25519.load_from_string
 crypt.C25519.get_usr_keys_dir
 channels.subscription.mapping
 channels.subscription.manager
@@ -343,8 +352,10 @@ base.config.show_strack_trace
 base.chk-sum.bmw.template_L13
 base.chk-sum.bmw.B-32-56.TRUE
 auth.zenka.process_auth_reply
+amos7.decode_octal_bit_header
 protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
+crypt.C25519.key_bin_checksums
 channels.util.get_review_stage
 channels.cmd.ai-review-approve
 base.zenki.ondemand_registered
@@ -352,6 +363,7 @@ base.session.send_init_reports
 base.p7refs.get_refaddr_prefix
 base.number-cache.true_upwards
 base.log.send-buffer.add-queue
+base.chk-sum.bmw.encode_digest
 base.cache.refaddr-prefix.init
 crypt.C25519.cmd.get-public-key
 channels.util.extract_json_path
@@ -362,6 +374,7 @@ base.zenki.set_ondemand_timeout
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
 base.buffer.local_logfile_write
+crypt.C25519.decrypt_priv_keystr
 channels.cmd.next-data-timestamp
 channels.cmd.last-data-timestamp
 base.perlmod.install_cpan_module
@@ -388,6 +401,7 @@ protocol.amos-chksum.ext-cmd.close
 protocol.amos-chksum.ext-cmd.clear
 protocol.amos-chksum.ext-cmd.bytes
 plugin.auth.auth-keypair.init_code
+crypt.C25519.get_type_from_key_str
 channels.memory-sync.apply-changes
 channels.handler.subscription_data
 base.protocol-7.command.send.local
@@ -434,6 +448,7 @@ auth.callback.cap-neg.select-strm-mode
 auth.callback.cap-neg.select-size-mode
 channels.handler.llm-content-evaluation
 base.perlmods.blacklist_collision_index
+base.parser.chk-sum.embedded-code-style
 base.log.send-buffer.send-idle-callback
 base.init_zenka.install_signal_handlers
 base.handler.strm_size_absolute_timeout
@@ -456,8 +471,8 @@ auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,..,,,.,..,,,,,,..,,...,..,,.,.,,..,.,,,...,..,,...,...,...,...,,.,,,,.,...,
-#4YB5CPUGWPXJZCIDI77WTUGVGHMIRAB6B3KJM2QTNDJXHRFREHZG7Y2EVRDGYN2WK2ZX4YCMD4N44
-#\\\|DHA6KT5JAPOUVDU3T5YGFRR7F37CGVEZ5273PMY5BJYI5NCKAFE \ / AMOS7 \ YOURUM ::
-#\[7]MTMSVDU7ESDQ35VQ264T3V4X7KPZFC5QPJENYOJSBMVF6HJ3XWBY 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,..,,,,,,,,,,..,,,,.,,,,,,.,,,..,..,,...,...,..,,,,,,,.,,.,.,.,.,
+#NEGM5R2BWMD54FGMUX4E6N5MYQ2334YMBRJYCX6PCLU7XXYVRZEDMQKKENOQERVYJLK2NPPK5TLMM
+#\\\|XA7B3SLCDM5LU5257JB55THZBKCH6BGG7VGBMDEOUO5VQG2TTB4 \ / AMOS7 \ YOURUM ::
+#\[7]4JSSBZCENY6OKU2DP6VB2VQFTGHDL6EBZWCAWTRPJ2JS5A7WV2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

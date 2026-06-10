@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = base.modules.check_migrated
+# descr = checks <base.modules.moved_to> for a given module name,
+#         returns new target prefix or undef
+
+my $module_name = shift // '';
+
+return undef if not length $module_name;
+
+my $moved_to_ref = <base.modules.moved_to> // {};
+
+return undef if not keys $moved_to_ref->%*;
+
+# [ find longest matching prefix ]
+my $matched_prefix = undef;
+my $matched_target = undef;
+
+foreach my $prefix ( keys $moved_to_ref->%* ) {
+    next if length $prefix > length $module_name;
+    next if index( $module_name, $prefix ) != 0;
+    next
+        if defined $matched_prefix
+        and length $prefix <= length $matched_prefix;
+    $matched_prefix = $prefix;
+    $matched_target = $moved_to_ref->{$prefix};
+}
+
+return $matched_target;
+
+#,,,.,.,,,,..,,,,,.,,,,..,.,.,.,,,,,,,...,,,,,..,,...,...,.,,,,,,,.,.,...,.,.,
+#IQIJJHF6YES6ZAA4Z5CPELE7EJFEDER3YJZ7UNUVBHRPWSNCYP4YCFOLFIRKF3B5MI2CZQRXWSVA6
+#\\\|WMGL7AIURWZK75QVVHHDNK7KRXDVEAE2RJFFSJKUQE6TLRFWWSY \ / AMOS7 \ YOURUM ::
+#\[7]PF37T5UOWGI7XRMD7CIVF5EIZLSTFKLGFXRLXLM2QODB2WBPZYCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

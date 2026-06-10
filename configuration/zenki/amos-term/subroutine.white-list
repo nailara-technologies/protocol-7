@@ -210,6 +210,7 @@ base.devmod.dump_var
 base.cmd.show-buffer
 base.cmd.show-access
 base.cmd.amos-chksum
+base.chk-sum.bmw.ctx
 base.buffer.add_line
 auth.zenka.init_code
 plan-9.protocol.error
@@ -301,6 +302,7 @@ base.cmd.set-name-width
 base.cmd.ondemand-zenka
 base.cmd.loaded-configs
 base.chk-sum.elf.inline
+base.chk-sum.bmw.strsum
 base.auth.set_zenka_key
 auth.zenka.authenticate
 amos-term.window-resize
@@ -316,6 +318,7 @@ io.unix.socket.init_code
 data.mount.shm.init_code
 data.get.resolve_virtual
 data.cmd.attach-fs-mount
+crypt.C25519.verify_sign
 base.zenka.push.pre_init
 base.zenka.is_v7_started
 base.templates.init_code
@@ -324,6 +327,7 @@ base.protocol-7.pre_init
 base.parser.command_list
 base.file.zulum_tmp_file
 base.cmd.verify-instance
+base.chk-sum.from_substr
 base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
 amos-term.window-destroy
@@ -398,6 +402,8 @@ base.stream.record_emission
 base.session.calc_cmd_stats
 base.root.check_system_user
 base.parser.ondemand_status
+base.modules.check_migrated
+base.handler.whitelist_miss
 base.file.gen_path_linkname
 base.debian.install_package
 base.cmd.buffer-erase-level
@@ -417,6 +423,8 @@ plan-9.server.handle-io-read
 plan-9.server.handle-io-open
 io.unix.socket.input.connect
 graphics.matrix.visual.color
+crypt.C25519.keystr_is_valid
+crypt.C25519.compare_keypair
 base.validate.composite_name
 base.session.check_remaining
 base.process-into-background
@@ -434,6 +442,7 @@ plan-9.server.handle-io-clunk
 graphics.matrix.visual.sphere
 data.mount.shm.permission.add
 data.get.resolve_interference
+crypt.C25519.load_from_string
 crypt.C25519.get_usr_keys_dir
 base.validate.data_key_syntax
 base.source.collect_file_list
@@ -448,6 +457,7 @@ base.config.show_strack_trace
 base.chk-sum.bmw.template_L13
 base.chk-sum.bmw.B-32-56.TRUE
 auth.zenka.process_auth_reply
+amos7.decode_octal_bit_header
 amos-term.fuse.build_metadata
 amos-term.decoder.scan_buffer
 amos-term.cmd.mount-9p-client
@@ -457,11 +467,13 @@ data.topology.interference.map
 data.mount.shm.create.mmap_shm
 data.get.extract_plugin_domain
 data.get.classify_topology_pos
+crypt.C25519.key_bin_checksums
 base.zenki.ondemand_registered
 base.session.send_init_reports
 base.p7refs.get_refaddr_prefix
 base.number-cache.true_upwards
 base.log.send-buffer.add-queue
+base.chk-sum.bmw.encode_digest
 base.cache.refaddr-prefix.init
 amos-term.cmd.list_attachments
 plan-9.server.buffer-read-layer
@@ -480,6 +492,7 @@ plan-9.protocol.codec.encode-qid
 plan-9.protocol.codec.decode-qid
 data.mount.shm.permission.verify
 data.get.find_interference_match
+crypt.C25519.decrypt_priv_keystr
 base.perlmod.install_cpan_module
 base.perlmod.get_collision_index
 base.parser.harmonized_reference
@@ -513,6 +526,7 @@ plan-9.protocol.codec.encode-uint8
 plan-9.protocol.codec.decode-uint8
 data.mount.shm.open.parse_shm_path
 data.mount.shm.open.mmap_file_read
+crypt.C25519.get_type_from_key_str
 base.protocol-7.command.send.local
 base.path-set-up.zenka-directories
 base.handler.read.encoding-wrapper
@@ -577,6 +591,7 @@ auth.callback.cap-neg.select-strm-mode
 auth.callback.cap-neg.select-size-mode
 graphics.matrix.visual.build-cubic-grid
 base.perlmods.blacklist_collision_index
+base.parser.chk-sum.embedded-code-style
 base.log.send-buffer.send-idle-callback
 base.init_zenka.install_signal_handlers
 base.handler.strm_size_absolute_timeout
@@ -641,8 +656,8 @@ data.topology.interference.map.calculate_metadata_distance
 data.topology.interference.map.calculate_fluorescent_drift
 data.topology.interference.map.calculate_constructive_zone
 
-#,,,,,,..,.,,,,..,,.,,...,,,,,,.,,,,.,,,.,.,.,..,,...,..,,.,.,...,,..,,..,,..,
-#N6ASTCFDREZQANYPCZE3Y5FECDT4GNB3XGJ4GSWLAUXOBBHLBCLQ76O3V6IQLGC4NI773UFI5Y4BY
-#\\\|M5GBEY6BGF4D43EAE5QE63PCUGFMNRJS56KAZ4ASRBH54LZYOMP \ / AMOS7 \ YOURUM ::
-#\[7]NZSIJH7ZZ5LLZMEATJZBA7VISLZF5SYE6I2W34JWAECM7N6N4QAQ 7  DATA SIGNATURE ::
+#,,.,,..,,..,,,,,,.,.,..,,..,,,,.,...,,..,...,..,,...,.,.,...,.,,,..,,,..,...,
+#5F6HTBJGAVBSY2POQFNSYCDSVYTQD3ZNEZKXIK5Z4J66SHTDGFIIEPTQYDIRJPEPI6LKWGOOLOY6A
+#\\\|CTXY7DJ4MHE5SQG7U4IVQAHHY6HLRO5I246CYDOZ6IVWR2M7YT6 \ / AMOS7 \ YOURUM ::
+#\[7]VXNZMMMFK23G3P3RDSFTZXFLNBTOFAG547BSWEU7F2EPG33LIEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
