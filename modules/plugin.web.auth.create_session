@@ -25,7 +25,7 @@ my $ntime   = <[base.ntime.b32]> // '';
 my $token = <[base.chk-sum.amos]>->("$node_id $ntime $secret");
 return undef if not defined $token;
 
-my $token_hash = <[base.chk-sum.bmw.L13-str]>->($token);
+my $token_hash = <[chk-sum.bmw.L13-str]>->($token);
 return undef if not defined $token_hash;
 
 my $ttl       = $cfg->{'session'}->{'ttl_seconds'} // 86400;
@@ -59,8 +59,8 @@ return {
 
 #,,,,,...,,.,,..,,..,,,,,,...,,,.,.,.,,..,,.,,..,,...,.,.,..,,..,,,,,,,,.,,,,,
 
-#,,,.,.,.,.,,,,,.,..,,.,,,,,.,,..,,,,,.,.,..,,..,,...,..,,.,.,..,,,,,,,.,,,.,,
-#CBKGQAEEE6YLHF3ROG4ZPHMEIPQ3EM32FQY3GLMV242VLQQNSBCYGPPMVUT4IQ4MVBXSQJ73523A6
-#\\\|DT4B7JCF5OLUF7PWK6OLUOIXDOAL6TT63OJAFJ53LDIMR2XMCLE \ / AMOS7 \ YOURUM ::
-#\[7]WQHJDPAQZJJPIPXODYJ3XUWO6MA52S5O6EXDJRG5TTHFC2EKK6BA 7  DATA SIGNATURE ::
+#,,,,,.,.,...,.,.,,,,,,.,,,,,,.,,,,,.,...,..,,..,,...,...,,,,,.,.,...,.,,,,,,,
+#YHEY6VLD2F6EVU2KLXZZNY65EJTHNGEFSKSGX5CN2P2J3WSJHFCVPHQUWVAC2T7LSKCZK5H2BQUA4
+#\\\|PZ2HJFP5TAZ7GL6U3NVRGURDOZ7EJIB7F2YLCMIZQPI6FTH77H7 \ / AMOS7 \ YOURUM ::
+#\[7]NX322W3GFJPGFCODVPHVRX77PVSDSOS3KIXLDAVNV5CIPG7VCCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
