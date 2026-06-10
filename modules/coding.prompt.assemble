@@ -131,6 +131,18 @@ if ( $task->{'no_tools'} and ( $task->{'max_rounds'} // 99 ) <= 1 ) {
     $selected_template = 'system-tools';    ## minimal context, no template ##
     goto TEMPLATE_SELECTED;
 }
+
+## auto-select model-selection template when self_select_model is set ##
+my $self_select = $task->{'self_select_model'}
+    // $task->{'metadata'}->{'raw_request'}->{'self_select_model'} // 0;
+if ($self_select) {
+    $selected_template = 'system-model-select';
+    <[base.logs]>->(
+        1, ':. prompt.assemble: self_select_model → system-model-select'
+    );
+    goto TEMPLATE_SELECTED;
+}
+
 my $target_module = '';
 
 if ( exists $code{'context.template.load'} ) {
@@ -294,8 +306,8 @@ return {
     'hooks'        => $hooks,
 };
 
-#,,,.,,..,.,.,,..,,,.,.,,,...,,,.,...,,,.,..,,..,,...,...,...,,.,,...,,.,,,.,,
-#CV7PP3UJNSAHMCCJ5DFRHGC2S4H6PVZRLKJXNRPKR2XQQTADLRIN2DLYYJSN372W2IDE23T2OIINY
-#\\\|45XGXJSY7BVQ6FY4V6FCE27PQIXZWM5N2HUBGOZPXF32D4ZA5QB \ / AMOS7 \ YOURUM ::
-#\[7]B77QZKZN6H4JSUDKYUNODWNJTNHXV5KI2OQ6ZPHIBFK7VQWVIKBQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,.,.,,,,,.,,,.,.,,,.,.,,,,,.,..,,..,,...,..,,.,,,,,,,.,,,,,,,,,.,
+#VC65APXBQAKHJO3FNOREALJOYI5AQTJPINO2PMHWV3C362O36TD6JKNKEVXG5D7BREZDKQLSIKLZ2
+#\\\|6TJTDMIZH2JMR4VV5EFZBQHR4UFHIJYRORECNOGL4M4HN4F4AAW \ / AMOS7 \ YOURUM ::
+#\[7]2JMSM2VJC2JUG3WJDFNX44S53JCBKOVAWSKZ4CGF2TFN3JS3VUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

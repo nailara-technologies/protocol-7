@@ -37,6 +37,18 @@ if ( defined $req_seq && $req_seq != $current_seq ) {
 
 my $sm_state = $state->{'state'} // '';
 
+## model_selection round already dispatched next request : do not interfere ##
+if ( $state->{'model_selection_applied'} ) {
+    delete $state->{'model_selection_applied'};
+    <coding.async.task_state>->{$task_id} = $state;
+    <[base.logs]>->(
+        2,
+        "http_complete: %s model_selection already handled, ignoring close",
+        $task_id
+    );
+    return;
+}
+
 <[base.logs]>->(
     1,
     "http_complete: %s sm_state=%s seq=%s/%s finish=%s tools=%d bytes=%d chunks=%d",
@@ -217,8 +229,8 @@ my $backend_early = $state->{'backend'} // '';
 
 return;
 
-#,,.,,.,,,.,.,,..,,,.,,.,,,.,,,,.,,,.,,..,.,,,..,,...,..,,,.,,...,,..,.,,,.,,,
-#6JDHUULBERVAM74ETW44UJDAUTDB4XYUR7HDORACZI7TIOOJNHGWUE5UC2OWURKMMIZXAUNCJDCX2
-#\\\|Q6S5ZCYG5SK26MXBADSTKJPI4JE5QAYWMURTV2PQ3XENVN4IVC5 \ / AMOS7 \ YOURUM ::
-#\[7]PFTZ3NQY4LJKA6CUC7SSLQZT6MJQSKD64XABVQM5EC7PHFGQKKDA 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,,,,...,.,,,,,.,.,.,,,,,..,,,,,,..,,...,.,.,...,,,,,,.,,,,,,,..,
+#O4ZQPTF2GGIVZ5VLX3YSLWVMXJI56PAB3YA2V7GDEOY4DV3EWJE427DQAOPYXUB4TLE7W4CRZYUSG
+#\\\|OWMN7NSOH66R6T3AUDZ5ZUYRWNMSZB24RPSBJU6LVSAFJKSVMUU \ / AMOS7 \ YOURUM ::
+#\[7]ATLZDUXXF23RJ6L6G3PUF46UNJZX4DHVF7XTEAHANZA7CMTV5EDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
