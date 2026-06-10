@@ -44,6 +44,28 @@ if ( not defined $state ) {
             );
         }
     }
+    elsif ( $meta->{'is_chunked_summary'} and defined $parent_id ) {
+        my $pstate = <[coding.async.state_manager]>->( 'get', $parent_id );
+        if ( defined $pstate
+            and ( $pstate->{'chunked_summary_pending'} // '' ) eq $task_id ) {
+            delete $pstate->{'chunked_summary_pending'};
+            $pstate->{'pending_subtask'} = undef;
+            $pstate->{'state'}           = qw| running |;
+            <coding.async.task_state>->{$parent_id} = $pstate;
+            <[base.logs]>->(
+                1,
+                "async.complete: chunked summary %s had no state "
+                    . "— unblocked parent %s [ heuristic fallback ]",
+                $task_id,
+                $parent_id
+            );
+            <[event.add_timer]>->(
+                {   after   => 0.1,
+                    handler => qw| coding.handler.process-queued-task |,
+                }
+            );
+        }
+    }
     return { success => FALSE, error => "no state for task $task_id" };
 }
 
@@ -92,6 +114,8 @@ if ( defined $result && $result->{'success'} ) {
             and $parent_state->{'state'} eq qw| subtask |
             and ( $parent_state->{'pending_subtask'} // '' ) eq $task_id ) {
 
+            my $skip_standard_resume = 0;
+
             ## compaction sub-task: splice summary into messages, no user msg ##
             if ( ( $parent_state->{'compaction_pending'} // '' ) eq $task_id )
             {
@@ -119,6 +143,145 @@ if ( defined $result && $result->{'success'} ) {
                 ## prevent re-triggering on same round ##
                 ##             if still near threshold ##
                 $parent_state->{'compaction_applied_round'} = $round;
+            }
+            ## chunked summary sub-task: fold result, enqueue next or complete ##
+            elsif ( ( $parent_state->{'chunked_summary_pending'} // '' ) eq
+                $task_id )
+            {
+                my $parent_task = <coding.task.queue>->{$parent_id} // {};
+                my $chunk_state
+                    = $parent_task->{'metadata'}->{'chunked_summary_state'}
+                    // {};
+
+                my $current_idx = ( $chunk_state->{'current_idx'} // 0 ) + 1;
+                my $total_chunks = $chunk_state->{'total_chunks'} // 1;
+                my $running_summary = $result_text;
+                my $backend = $parent_state->{'backend'} // qw| gpu |;
+                my $sys = $chunk_state->{'system_prompt'} // '';
+
+                $chunk_state->{'current_idx'}     = $current_idx;
+                $chunk_state->{'running_summary'} = $running_summary;
+
+                if ( $current_idx < $total_chunks ) {
+                    ## enqueue next chunk child ##
+                    my $next_chunk = $chunk_state->{'chunks'}[$current_idx];
+                    my $child_prompt
+                        = "running summary so far:\n$running_summary\n\n"
+                        . "new text to fold in:\n$next_chunk\n\n"
+                        . "produce an updated running summary that preserves "
+                        . "information from both, information-dense, no preamble.";
+
+                    ## guard: hard-truncate if still too big ##
+                    my $chars_per_token = 3.2;
+                    my $prompt_est
+                        = int( bytes::length($child_prompt)
+                        / $chars_per_token );
+                    my $p_srv_key = $parent_state->{'backend'} // qw| gpu |;
+                    my $p_srv_info
+                        = ( <coding.inference_servers> // {} )
+                        ->{$p_srv_key} // {};
+                    my $p_n_ctx
+                        = $p_srv_info->{'n_ctx'}
+                        // <inference.model.context_length>
+                        // 7777;
+                    if ( $prompt_est > $p_n_ctx - 500 ) {
+                        my $max_prompt_bytes
+                            = int( ( $p_n_ctx - 500 )
+                            * $chars_per_token );
+                        my $head
+                            = "running summary so far:\n$running_summary\n\n";
+                        my $tail
+                            = "\n\nproduce an updated running summary that preserves "
+                            . "information from both, information-dense, no preamble.";
+                        my $available
+                            = $max_prompt_bytes
+                            - bytes::length($head)
+                            - bytes::length($tail);
+                        $available = 500 if $available < 500;
+                        $next_chunk = substr( $next_chunk, 0, $available )
+                            . "\n\n...[truncated: chunk exceeded safe size]";
+                        $child_prompt
+                            = $head
+                            . "new text to fold in:\n$next_chunk\n\n"
+                            . "produce an updated running summary that preserves "
+                            . "information from both, information-dense, no preamble.";
+                        <[base.logs]>->(
+                            0,
+                            "chunk_and_summarize: chunk %d/%d hard-truncated "
+                                . "[ est=%d > n_ctx-500 ]",
+                            $current_idx + 1, $total_chunks, $prompt_est
+                        );
+                    }
+
+                    my $child_task_id
+                        = <[coding.helper.task_id_generator]>->( qw| chunk | );
+                    my $enqueue_result = <[coding.task.enqueue]>->(
+                        {   id       => $child_task_id,
+                            type     => qw| general |,
+                            request  => { description => $child_prompt },
+                            metadata => {
+                                raw_request => {
+                                    type        => $backend,
+                                    description => $child_prompt
+                                },
+                                parent_task_id     => $parent_id,
+                                is_chunked_summary => 1,
+                            },
+                            analysis   => { routed_to => $backend },
+                            execution  => { status    => qw| pending | },
+                            created_at => <[base.time]>->(3),
+                            system     => $sys,
+                            no_tools   => 1,
+                            max_rounds => 1,
+                        }
+                    );
+
+                    my $child_id
+                        = ( ref $enqueue_result eq qw| HASH |
+                            and $enqueue_result->{'success'} )
+                        ? $enqueue_result->{'task_id'}
+                        : undef;
+
+                    if ( defined $child_id and length $child_id ) {
+                        <coding.task.parent>->{$child_id} = $parent_id;
+                        $parent_state->{'chunked_summary_pending'} = $child_id;
+                        $parent_state->{'pending_subtask'}         = $child_id;
+                        <coding.async.task_state>->{$parent_id} = $parent_state;
+                        <[base.logs]>->(
+                            1,
+                            "chunk_and_summarize: chunk %d/%d → child %s",
+                            $current_idx + 1, $total_chunks, $child_id
+                        );
+                    } else {
+                        ## enqueue failed: complete parent with what we have ##
+                        <[base.logs]>->(
+                            0,
+                            "chunk_and_summarize: enqueue of chunk %d failed, "
+                                . "completing parent with partial summary",
+                            $current_idx + 1
+                        );
+                        delete $parent_state->{'chunked_summary_pending'};
+                        $parent_state->{'pending_subtask'} = undef;
+                        <coding.async.task_state>->{$parent_id}
+                            = $parent_state;
+                        <[jobqueue.move_job]>->(
+                            $chunk_state->{'parent_job_id'}, 'completed' )
+                            if defined $chunk_state->{'parent_job_id'};
+                        <[coding.task.complete]>->( $parent_id,
+                            $running_summary );
+                    }
+                } else {
+                    ## all chunks done ##
+                    delete $parent_state->{'chunked_summary_pending'};
+                    $parent_state->{'pending_subtask'} = undef;
+                    <coding.async.task_state>->{$parent_id} = $parent_state;
+                    <[jobqueue.move_job]>->(
+                        $chunk_state->{'parent_job_id'}, 'completed' )
+                        if defined $chunk_state->{'parent_job_id'};
+                    <[coding.task.complete]>->( $parent_id,
+                        $running_summary );
+                }
+                $skip_standard_resume = 1;
             } else {
                 ## regular subtask: append result as user message ##
                 push @{ $parent_state->{'messages'} },
@@ -129,6 +292,7 @@ if ( defined $result && $result->{'success'} ) {
                     };
             }
 
+            unless ($skip_standard_resume) {
             ## check subtask queue for more work ##
             my $queue = <coding.task.subtask_queue>->{$parent_id} // [];
             ## remove completed subtask from front of queue ##
@@ -212,6 +376,7 @@ if ( defined $result && $result->{'success'} ) {
                     $parent_id, $task_id
                 );
             }
+            }
         } elsif ( defined $parent_state
             and $parent_state->{'state'} eq qw| subtask | ) {
             <[base.logs]>->(
@@ -272,12 +437,72 @@ if ( defined $result && $result->{'success'} ) {
         if (    defined $parent_state
             and $parent_state->{'state'} eq qw| subtask |
             and ( $parent_state->{'pending_subtask'} // '' ) eq $task_id ) {
-            push @{ $parent_state->{'messages'} },
-                {
-                'role'    => 'user',
-                'content' => "[SUBTASK FAILED: $task_id]\n\n" . $error_msg
-                };
+            my $skip_standard_resume_fail = 0;
 
+            if ( ( $parent_state->{'compaction_pending'} // '' ) eq $task_id ) {
+                ## compaction child failed: clear markers, let parent resume ##
+                delete $parent_state->{'compaction_pending'};
+                delete $parent_state->{'compact_start'};
+                delete $parent_state->{'compact_end'};
+            }
+            elsif ( ( $parent_state->{'chunked_summary_pending'} // '' ) eq
+                $task_id )
+            {
+                ## chunked summary child failed ##
+                my $parent_task = <coding.task.queue>->{$parent_id_fail} // {};
+                my $chunk_state
+                    = $parent_task->{'metadata'}->{'chunked_summary_state'}
+                    // {};
+                my $running_summary = $chunk_state->{'running_summary'} // '';
+
+                delete $parent_state->{'chunked_summary_pending'};
+                $parent_state->{'pending_subtask'} = undef;
+                <coding.async.task_state>->{$parent_id_fail} = $parent_state;
+
+                if ( length $running_summary ) {
+                    <[jobqueue.move_job]>->(
+                        $chunk_state->{'parent_job_id'}, 'completed' )
+                        if defined $chunk_state->{'parent_job_id'};
+                    <[coding.task.complete]>->( $parent_id_fail,
+                        $running_summary );
+                    <[base.logs]>->(
+                        1,
+                        "async.complete: chunked summary parent %s completed "
+                            . "with partial summary after child %s failed",
+                        $parent_id_fail, $task_id
+                    );
+                } else {
+                    my $err = "chunked summary failed: $error_msg";
+                    if ( defined $parent_task ) {
+                        $parent_task->{'execution'}->{'status'} = qw| failed |;
+                        $parent_task->{'execution'}->{'error'}  = $err;
+                    }
+                    my $pending_f = <coding.task.pending> // [];
+                    my $active_f  = <coding.task.active>  // [];
+                    $pending_f->@* = grep { $ARG ne $parent_id_fail }
+                        $pending_f->@*;
+                    $active_f->@* = grep { $ARG ne $parent_id_fail }
+                        $active_f->@*;
+                    <[jobqueue.move_job]>->(
+                        $chunk_state->{'parent_job_id'}, qw| error | )
+                        if defined $chunk_state->{'parent_job_id'};
+                    <[base.logs]>->(
+                        0,
+                        "async.complete: chunked summary parent %s failed "
+                            . "after child %s failed: %s",
+                        $parent_id_fail, $task_id, $error_msg
+                    );
+                }
+                $skip_standard_resume_fail = 1;
+            } else {
+                push @{ $parent_state->{'messages'} },
+                    {
+                    'role'    => 'user',
+                    'content' => "[SUBTASK FAILED: $task_id]\n\n" . $error_msg
+                    };
+            }
+
+            unless ($skip_standard_resume_fail) {
             ## check subtask queue for more work ##
             my $queue = <coding.task.subtask_queue>->{$parent_id_fail} // [];
             while ( @$queue && $queue->[0] eq $task_id ) {
@@ -365,6 +590,7 @@ if ( defined $result && $result->{'success'} ) {
                     $task_id
                 );
             }
+            }
         } elsif ( defined $parent_state
             and $parent_state->{'state'} eq qw| subtask | ) {
             <[base.logs]>->(
@@ -380,8 +606,8 @@ if ( defined $result && $result->{'success'} ) {
     return { success => FALSE, error => $error_msg, task_id => $task_id };
 }
 
-#,,..,,..,,..,,.,,.,,,,,.,.,,,,,.,,,.,,.,,,..,.,.,...,...,,.,,,.,,,,,,.,,,.,.,
-#OHNOOMNEPP6JAVE2MF5QKRD5IH4ZZ7HUSPFQGJHSB755YB6XKGI5GZHODS7WZVMTF234CE6ANLMXY
-#\\\|EGG2APYUIGCHMQGOAQOBANB6KGCWQFOSUIXKQJNNOVNX7ZM3J3V \ / AMOS7 \ YOURUM ::
-#\[7]EGOCP7ZE3XRAY3JD7B65BYH7OAZMQJ2LTDTOGNWPZAK5KOXOWWAY 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,.,.,,.,,...,.,,,..,,..,,..,,.,.,.,.,...,...,,.,,,.,,...,..,,,,.,
+#YOYZOI3QGJRXCBJE4YHAUPDRRX2UJF3XSXUZ3KRVMU2QJXUMQ2BVTFK7RXF6WPSJ4F35QO3YDNOSI
+#\\\|ZVGXCJT5S3PHH3P37C5KQIDBGLXF35ZB3GXA7ATO276OEN2OS5W \ / AMOS7 \ YOURUM ::
+#\[7]VTO565B45KHBPHM3FL3F2TLEUS67WSX3YXSUTA3RHHWJVWUTR2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
