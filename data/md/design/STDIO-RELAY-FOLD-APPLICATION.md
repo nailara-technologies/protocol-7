@@ -355,6 +355,11 @@ dependency order [ smallest-first ]:
 
 - not a re-implementation of `base.log` / `base.logs` / v7-relay
   internals — only an addressing/render layering on top of them.
+- not the persistent-storage layout for rotated logs — when on-disk
+  rotation lands, the `epoch/chksum` native tree from
+  `data/md/design/EPOCH-CHECKSUM-EXCLUSION-ADDRESSING.md` is the
+  intended target shape for those persisted slices; the in-memory
+  ring at `/dev/shm/.7/STDOUT/<sock>` stays flat regardless.
 - not a new IPC mechanism — slots reuse the existing
   `/dev/shm/.7/STDOUT/<sock>` ring + the cube routing layer.
 - not a vterm rewrite — vterm.* is the substrate for richer views,
@@ -379,8 +384,8 @@ framing by being the smallest possible consumers of that language —
 they have almost no zenka-specific code because, per the philosophy
 doc, *they don't need any*.
 
-#,,..,,,.,...,,,.,,,.,,,.,.,,,.,.,,..,,..,,.,,..,,...,..,,,..,,,.,,,.,,,,,,,,,
-#7RA5Z3RJJ3X3KHQ5SDDVTYW5VX6YT6U7B2FOOL4Q4ULHJEBYCMILADVIMARJBZFQQKP6AQKY2RFVC
-#\\\|5DZ5NOXJLY3AB6T6ZKOPZUI6U2FIF4YRB6ZAU2ICTEGYKSQM7EX \ / AMOS7 \ YOURUM ::
-#\[7]4AQPDQX3GOMBRHIK2M56GPJKZ2ETNDHQ22T7SC65PHLSGSWLH2AY 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,,.,..,,,.,,,.,,,,,,.,.,,,,,.,.,..,,...,...,,,.,,,,,..,,,..,...,
+#RCKFRQTNSAOJFSXJALE2BH4VC6FOEOUAKHZXWYVLMJEAB26AZ4E7QJLH3YQEYV2QANFYPEDI2T4SY
+#\\\|XB5MDE2CJO523KCMRCSZCHEFIQISLARV2ZF5UP3R7XFQ236HZL3 \ / AMOS7 \ YOURUM ::
+#\[7]EQLQEWCMMIAJS2JOLX27ZQGF2HCIT6O2UR2DNIHVBRLG2QNUXIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
