@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = base.ui.fold
+# descr = fold an addressable element into a one-line handle
+# param = { address, summary?, kind? }
+
+my $address = $ARG[0]->{'address'} // '';
+my $summary = $ARG[0]->{'summary'};
+my $kind    = $ARG[0]->{'kind'};
+
+return { 'mode' => qw| false |, 'data' => 'address required' }
+    if not length $address;
+
+## derive short-address [ terminal segment ]
+my $short_address = $address;
+$short_address =~ s|^.+\.||;
+
+## derive kind if not supplied
+if ( not defined $kind ) {
+    $kind = qw| node |;
+    my ($head)   = split /\./, $address, 2;
+    my %kind_map = (
+        'zenka'  => qw| zenka |,
+        'slot'   => qw| slot |,
+        'task'   => qw| task |,
+        'log'    => qw| log |,
+        'result' => qw| result |,
+        'view'   => qw| view |,
+    );
+    $kind = $kind_map{$head} if exists $kind_map{$head};
+}
+
+## derive summary if not supplied
+if ( not defined $summary ) {
+    $summary = eval { <[base.ui.summarise]>->( { 'address' => $address } ) }
+        // 'available';
+}
+
+## clamp summary to horizontal budget
+my $template    = sprintf '.:[ %s ]:[ %s ]:[ ', $kind, $short_address;
+my $suffix      = ' ]:.';
+my $max_summary = 80 - length($template) - length($suffix);
+$max_summary = 12 if $max_summary < 12;
+$summary     = substr( $summary, 0, $max_summary )
+    if length $summary > $max_summary;
+
+my $line = $template . $summary . $suffix;
+
+return { 'mode' => qw| true |, 'data' => $line };
+
+#,,..,...,...,.,.,..,,,,.,..,,..,,,,.,...,..,,..,,...,..,,...,...,,,.,.,,,,..,
+#RK4WSZQ7UJKMRRXCBZMVTZCPYT3NIL64ZUDW3KTBWIQUJVETHOGHDIW26O75DVWG5OYWWQYL54AZI
+#\\\|QWRV7RPD34FN6LOVYXCIREBGJCW76NTVMWPYIUN57WARUEHXPB4 \ / AMOS7 \ YOURUM ::
+#\[7]CPV4IUFOYHMXN7NNW5LTGDDAFVXLYCHEWOWC4L66GN4NFDCNMEBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
