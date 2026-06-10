@@ -9,6 +9,9 @@ my $args = shift // {};
 my $description     = $args->{'description'}     // '';
 my $template        = $args->{'template'}        // '';
 my $guiding_message = $args->{'guiding_message'} // '';
+my $preferred_model = $args->{'preferred_model'} // '';
+my $max_context     = $args->{'max_context'}     // '';
+my $reason          = $args->{'reason'}          // '';
 
 return {
     error   => 'description required',
@@ -58,6 +61,35 @@ if ( length $guiding_message ) {
 ## inherit parent's backend routing ##
 my $routed_to = $parent_task->{'analysis'}->{'routed_to'} // 'gpu';
 
+## apply caller-pinned backend if provided with reason ##
+if ( length $preferred_model ) {
+    ## validate reason [ min 20 words, not vague ] ##
+    my @words        = split /\s+/, $reason;
+    my $valid_reason = scalar(@words) >= 20
+        && $reason
+        !~ m{^(?:this\s+is\s+(?:a\s+)?complex|i\s+need\s+.+\s+because)}i;
+
+    if ($valid_reason) {
+        $routed_to = lc($preferred_model);
+        <[base.logs]>->(
+            1,
+            "coding: [%s] model=%s reason=\"%s\" source=caller",
+            $child_task_id,
+            $routed_to,
+            <[base.parser.center_ellipse_string]>->( $reason, 60 )
+        );
+    } else {
+        <[base.logs]>->(
+            1,
+            "subtask_spawn: %s reason rejected [ %d words ] :"
+                . " using parent backend %s",
+            $child_task_id,
+            scalar(@words),
+            $routed_to
+        );
+    }
+}
+
 ## get parent state [ for queue check ] ##
 my $parent_state
     = <[coding.async.state_manager]>->( qw| get |, $parent_task_id );
@@ -78,9 +110,10 @@ my $child_task = {
         },
         parent_task_id => $parent_task_id,
     },
-    analysis   => { routed_to => $routed_to },
-    execution  => { status    => 'pending' },
-    created_at => <[base.time]>->(3),
+    analysis    => { routed_to => $routed_to },
+    max_context => $max_context,
+    execution   => { status => 'pending' },
+    created_at  => <[base.time]>->(3),
 };
 
 ## enqueue child task [ only if first in queue ] ##
@@ -92,7 +125,8 @@ if ($is_first) {
 } else {
     ## store task record so async.complete can find & enqueue it later ##
     ## [ coding.task.enqueue rejects duplicates, so we store directly ] ##
-    my $queue_href = <coding.task.queue> //= {};
+    <coding.task.queue> //= {};
+    my $queue_href = <coding.task.queue>;
     $queue_href->{$child_task_id} = {
         %$child_task,
         queued_at      => <[base.time]>->(3),
@@ -171,8 +205,8 @@ return {
     child_task_id => $child_task_id,
 };
 
-#,,..,,,.,,..,,..,.,,,,.,,.,,,,.,,...,.,.,,,.,..,,...,.,.,...,,,.,,,.,..,,..,,
-#L5ZB4EQVEYCX7R7KOZAUWFT7BZICKFHQ5QZ23RBMCWLBFQ7KPHQBW5CWKQHUPV7PZYVDPQXIUTSMA
-#\\\|FLYPBPNNBQLZWV6GMRDTSTBAZJDN6CBLVU6LPJV662VW64W7RTI \ / AMOS7 \ YOURUM ::
-#\[7]XPXMK663LE4IZIY4VOVR2EUH3POX3NT45ZF5NFBWNLISZZMVWUCI 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,,..,..,,...,,,.,...,.,,,.,,,...,..,,...,...,...,..,,,..,.,.,,.,,
+#RFBTF35JKYNOLQ5TILJ3JJUZMZT5Y3JQPPGQ57N4THUWBA4TTCUTYZN3E6N7GRHQYXXSMBHQMFBYC
+#\\\|24KZ5HFOPNUJF5AOQ2RD6K7PTL3HBKTWBPXWV4OW5AWVOKK4F4N \ / AMOS7 \ YOURUM ::
+#\[7]ONFRSGFWJZJNBPNCRJAMWPDNRQHIYHXCVO3DK4WDOTO76LC4Y6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
