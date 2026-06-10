@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = base.slot.unfold
+# descr = unfold a slot back into a surface
+# param = { address, surface?, geometry? }
+
+my $address  = $ARG[0]->{'address'} // '';
+my $surface  = $ARG[0]->{'surface'};
+my $geometry = $ARG[0]->{'geometry'};
+
+return undef if not length $address;
+
+## parse address for chksum7
+my $chksum7;
+if ( $address =~ m|^SLOT:([^:]+):| ) {
+    $chksum7 = $1;
+} else {
+    warn 'expected slot address <{C1}>';
+    return undef;
+}
+
+my $entry = <base.slots>->{$chksum7};
+if ( not defined $entry ) {
+    warn 'slot not found <{C1}>';
+    return undef;
+}
+
+## restore last-known values when omitted
+if ( not defined $surface ) {
+    $surface = $entry->{'surface'};
+}
+if ( not defined $geometry ) {
+    $geometry = $entry->{'last_geometry'};
+    if ( not defined $geometry ) {
+        warn 'slot has never been placed, cannot unfold <{C1}>';
+        return undef;
+    }
+}
+
+## delegate to move [ preserves identity, restores presence ]
+return <[base.slot.move]>->(
+    {   'address'  => $address,
+        'surface'  => $surface,
+        'geometry' => $geometry
+    }
+);
+
+#,,,.,.,.,.,,,.,,,.,,,,,,,.,,,...,,,.,.,,,...,..,,...,...,...,,..,,,.,,,.,..,,
+#BSNNKXBJZJSMZPCVXI4CEJZBF572BUTBUAE5PTJDS3A4R6JQ65CFGERTQVA34ZRFJEO6CDOBHC4PQ
+#\\\|DBCULFWAMEDPUDZ6CKRTYZV5TUHGPWYW6UWICC3K6QWVHPVO7FN \ / AMOS7 \ YOURUM ::
+#\[7]M3XJ3X4OG4ZYNMW7UFUDXMD55ZXHWMDWNABTA4PGWWPPE5BMYWAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

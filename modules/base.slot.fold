@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = base.slot.fold
+# descr = fold a slot to its handle form [ slot disappears from surface ]
+# param = { address }
+
+my $address = $ARG[0]->{'address'} // '';
+
+return undef if not length $address;
+
+## parse address for chksum7
+my $chksum7;
+if ( $address =~ m|^SLOT:([^:]+):| ) {
+    $chksum7 = $1;
+} else {
+    warn 'expected slot address <{C1}>';
+    return undef;
+}
+
+my $entry = <base.slots>->{$chksum7};
+if ( not defined $entry ) {
+    warn 'slot not found <{C1}>';
+    return undef;
+}
+
+## remove from surface render set
+my $surface = $entry->{'surface'};
+if ( defined $surface and defined $entry->{'geometry'} ) {
+    delete <base.slots.surfaces>->{$surface}->{$chksum7}
+        if exists <base.slots.surfaces>->{$surface};
+}
+
+## clear geometry [ folded state ]
+$entry->{'geometry'} = undef;
+
+## produce fold handle
+my $handle = eval {
+    <[base.ui.fold]>->(
+        {   'address' => $entry->{'content_address'} // $entry->{'name'},
+            'kind'    => qw| slot |,
+            'summary' => $entry->{'name'}
+        }
+    );
+};
+
+if (    defined $handle
+    and ref $handle eq 'HASH'
+    and exists $handle->{'data'} ) {
+    return $handle->{'data'};
+}
+
+return
+      '.:[ slot ]:[ '
+    . ( $entry->{'name'} // 'unknown' )
+    . ' ]:[ folded ]:.';
+
+#,,,,,,.,,,..,.,,,.,.,..,,,.,,,,.,..,,.,,,.,,,..,,...,...,..,,..,,,,.,,..,...,
+#QEFJGTHFBFDEQD34FPFRNZYPRJHIQUEGCN6PR3LXWUQ2FR7UYEB4Y3IM7NE3LSLYEGGV5G5CWUNHY
+#\\\|RIEX6WV4N57NUO5XK4D225VJ3AU32B74QLC67FU3VDGSFHUIUGJ \ / AMOS7 \ YOURUM ::
+#\[7]4NY3AY7L6XDLO3MRYRNEI473Z7VJFTBTN7YUPYQ23KFLUAHCJMDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
