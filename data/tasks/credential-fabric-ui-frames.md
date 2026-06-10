@@ -1,5 +1,14 @@
 # task: credential fabric ui — read-only browser [ phase 1 ]
 
+## relation to CONSOLE-FOLD-TREE-PHILOSOPHY
+
+this is the **proven specific instance** of the tri-layer
+(query / render / dispatch) that
+`data/md/design/CONSOLE-FOLD-TREE-PHILOSOPHY.md` generalises into the
+zero-config baseline every node inherits. completing this phase keeps
+the working reference implementation live; the generic
+`base.ui.*` primitives derive their shape directly from these modules.
+
 ## dispatch
 build the read-only credential-fabric management ui as a set of ascii frame
 templates plus query and render modules. read first:
@@ -265,8 +274,8 @@ it. lowercase comments, `[ word ]` annotations. no emoji.
 
 #,,..,...,,,..,...,,,..,,,,..,..,,.,,,,..,,..,..,,...,...,...,..,,...,,,.,...,
 
-#,,..,..,,,,,,...,,..,..,,...,,.,,..,,,,,,.,.,..,,...,...,,,,,,,.,..,,..,,.,.,
-#KUDPKXFUUJ77CDCCR4L2OZD535PR3RVRVICBH33C7NWW6GPZEZNBDZCP3EACKCXBKL74Y3SH7QK3I
-#\\\|TMNQ55XMGNH2NLVOA5Y4GEA4EFXKETMPTITGY4WZQWIS3QNLICA \ / AMOS7 \ YOURUM ::
-#\[7]IY2LZT76LGH32B2EKR54V32HUYH33UTZS3FDGHODO4HNOWMR7GAA 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,,,,,.,,,..,,,.,,..,,,,.,,,,,.,,,..,,...,...,.,.,,.,,.,,,.,.,,,.,
+#ZSNXUYKFXRX4HRYSI6JSDCUWNVAPHYH2B7T2KWSYIRN4SDDSSK3EEDYRTXQ5GPWK3SYWIEGISWSGE
+#\\\|KGFEGKFNHJTULNB5366WMHMOMWCWKO76DLXP5DAU5CFZ54YP2R3 \ / AMOS7 \ YOURUM ::
+#\[7]LCJSVH6PBQYC6SX2DSSUAX4EYUNVFBODIXTC67OJNDDEMDF7UWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

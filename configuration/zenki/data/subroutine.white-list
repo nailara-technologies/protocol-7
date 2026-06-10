@@ -222,6 +222,7 @@ base.devmod.dump_var
 base.cmd.show-buffer
 base.cmd.show-access
 base.cmd.amos-chksum
+base.chk-sum.bmw.ctx
 base.buffer.add_line
 auth.zenka.init_code
 data.mount.shm.unlink
@@ -300,6 +301,7 @@ base.cmd.set-name-width
 base.cmd.ondemand-zenka
 base.cmd.loaded-configs
 base.chk-sum.elf.inline
+base.chk-sum.bmw.strsum
 base.auth.set_zenka_key
 auth.zenka.authenticate
 protocol.https.init_code
@@ -312,6 +314,7 @@ devmod.cmd.current-umask
 data.mount.shm.init_code
 data.get.resolve_virtual
 data.cmd.attach-fs-mount
+crypt.C25519.verify_sign
 base.zenka.push.pre_init
 base.zenka.is_v7_started
 base.templates.init_code
@@ -320,6 +323,7 @@ base.protocol-7.pre_init
 base.parser.command_list
 base.file.zulum_tmp_file
 base.cmd.verify-instance
+base.chk-sum.from_substr
 base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
 io.unix.socket.input.open
@@ -377,6 +381,8 @@ base.stream.record_emission
 base.session.calc_cmd_stats
 base.root.check_system_user
 base.parser.ondemand_status
+base.modules.check_migrated
+base.handler.whitelist_miss
 base.file.gen_path_linkname
 base.debian.install_package
 base.cmd.buffer-erase-level
@@ -387,6 +393,8 @@ protocol.amos_term.init_code
 io.unix.socket.input.connect
 graphics.matrix.visual.color
 devmod.cmd.receive-multiline
+crypt.C25519.keystr_is_valid
+crypt.C25519.compare_keypair
 base.validate.composite_name
 base.session.check_remaining
 base.process-into-background
@@ -401,6 +409,7 @@ devmod.cmd.keep-devmod-loaded
 devmod.cmd.inline-subroutines
 data.mount.shm.permission.add
 data.get.resolve_interference
+crypt.C25519.load_from_string
 crypt.C25519.get_usr_keys_dir
 base.validate.data_key_syntax
 base.source.collect_file_list
@@ -415,6 +424,7 @@ base.config.show_strack_trace
 base.chk-sum.bmw.template_L13
 base.chk-sum.bmw.B-32-56.TRUE
 auth.zenka.process_auth_reply
+amos7.decode_octal_bit_header
 protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
 devmod.cmd.decode-harmonic-ref
@@ -422,11 +432,13 @@ data.topology.interference.map
 data.mount.shm.create.mmap_shm
 data.get.extract_plugin_domain
 data.get.classify_topology_pos
+crypt.C25519.key_bin_checksums
 base.zenki.ondemand_registered
 base.session.send_init_reports
 base.p7refs.get_refaddr_prefix
 base.number-cache.true_upwards
 base.log.send-buffer.add-queue
+base.chk-sum.bmw.encode_digest
 base.cache.refaddr-prefix.init
 devmod.cmd.change-log-verbosity
 data.mount.shm.create.mmap_file
@@ -439,6 +451,7 @@ base.p7refs.gen_template_chksum
 base.buffer.local_logfile_write
 data.mount.shm.permission.verify
 data.get.find_interference_match
+crypt.C25519.decrypt_priv_keystr
 base.perlmod.install_cpan_module
 base.perlmod.get_collision_index
 base.parser.harmonized_reference
@@ -467,6 +480,7 @@ protocol.amos-chksum.ext-cmd.bytes
 plugin.auth.auth-keypair.init_code
 data.mount.shm.open.parse_shm_path
 data.mount.shm.open.mmap_file_read
+crypt.C25519.get_type_from_key_str
 base.protocol-7.command.send.local
 base.path-set-up.zenka-directories
 base.handler.read.encoding-wrapper
@@ -519,6 +533,7 @@ auth.callback.cap-neg.select-strm-mode
 auth.callback.cap-neg.select-size-mode
 graphics.matrix.visual.build-cubic-grid
 base.perlmods.blacklist_collision_index
+base.parser.chk-sum.embedded-code-style
 base.log.send-buffer.send-idle-callback
 base.init_zenka.install_signal_handlers
 base.handler.strm_size_absolute_timeout
@@ -582,8 +597,8 @@ data.topology.interference.map.calculate_metadata_distance
 data.topology.interference.map.calculate_fluorescent_drift
 data.topology.interference.map.calculate_constructive_zone
 
-#,,.,,.,.,.,.,,.,,.,,,.,.,,..,...,.,.,,,,,,,.,..,,...,...,.,.,,,,,,,.,...,.,,,
-#ZWLANP2W5I7TB45NEFXK3WNG3WIYH3EE4MERKLGSUCX4TAU4HQ7FZNTWBEEVSF3HL4RN6TF343KSY
-#\\\|R57OVVHDRHKP5LXKHLU5HHYVKAC54Q4GRQU6FU3TVLELNBN3XSO \ / AMOS7 \ YOURUM ::
-#\[7]UUKNL4EGZYBR7H2CMT5G52573BT67DUGQYREXCNVWFG4GZK4YQBY 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,.,.,,.,,,,,,.,.,,..,,,,,..,,,,.,..,,...,..,,.,.,,..,.,,,,,,,..,,
+#W6NWZD3OESOYZU4I645YRD4W7XMRN263F63U7ISJLDBJYQN2JK4T4JBZL3DEEKMJMU4MRSN7TG6YM
+#\\\|EMF6LIJ4AAB7LPWJNIS4JYOUS6LSATA6QVX2LAX6HAKDJ4XPCYM \ / AMOS7 \ YOURUM ::
+#\[7]3XYFOGY4BET7FI73PLOHXCWQTW5YCAUR6YEFEAM2ZXCYYFUNIUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

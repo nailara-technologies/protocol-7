@@ -16,6 +16,14 @@ my $sub_name = [<[base.caller]>]->[0];    ##  own name via filename hint  ##
 goto &{ $code{$sub_name} }    ##  transparent hand-off on first call  ##
     if ref $code{$sub_name} eq qw| CODE |;
 
+##  self-healing : attempt recovery via dep-graph scan  ##
+if ( length( <whitelist.miss.policy> // '' ) ) {
+    <[base.handler.whitelist_miss]>->($sub_name);
+
+    goto &{ $code{$sub_name} }
+        if ref $code{$sub_name} eq qw| CODE |;
+}
+
 ##  install broken stub : prevents retry loop, clears itself on reload  ##
 $data{'code'}{$sub_name}{'status'} = 'error';    ##
 $code{$sub_name} = eval(                         ##
@@ -29,8 +37,8 @@ $code{$sub_name} = eval(                         ##
 
 <[base.logs]>->( 0, '..: deferred compile failed [ %s ]', $sub_name );
 
-#,,,.,.,.,...,.,.,,.,,.,.,,,.,.,,,,.,,,.,,...,..,,...,...,,,.,.,.,,,.,,..,,,,,
-#FC5MOYX4GCROZKG2V4CGJ67YTLF25O3NNU7QTYHK6FJHXYXR5RJTSL4U7PTMND7BDCZ6VLGI3ORXS
-#\\\|P5HJUIBEFYOAHKKFO4NLCCHEZOXM4IMUEH63IVZFYRWC37TXHSU \ / AMOS7 \ YOURUM ::
-#\[7]7T4WF3LO6MKFCDD2KMYC6S2NBKMYXUUE3NVQWINSOFEOSN6FW6CY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,...,.,.,...,,,.,..,,.,.,,.,,,.,,..,,...,...,,..,,.,,..,,..,,,,.,
+#OZUZQHASF54RIRYCWATVDBROKVEAZBQDA3R22WY232CXK2G2OADRQZFID3KPIQZEUQTA4MOVCO752
+#\\\|KKY6SUNPALDJOUTU4FQI3LWTCZUZAQOUAREJ5IGXED3HNMZQF6U \ / AMOS7 \ YOURUM ::
+#\[7]GRDQ3AV5R4UT2N63SH4AXPB3423VD5VYJLF2KUQEQFPSY2BKOEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
