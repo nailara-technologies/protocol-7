@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = base.slot.refresh
+# descr = re-render a slot's bound content into its current geometry
+# param = { address }
+
+my $address = $ARG[0]->{'address'} // '';
+
+return undef if not length $address;
+
+## parse address for chksum7
+my $chksum7;
+if ( $address =~ m|^SLOT:([^:]+):| ) {
+    $chksum7 = $1;
+} else {
+    warn 'expected slot address <{C1}>';
+    return undef;
+}
+
+my $entry = <base.slots>->{$chksum7};
+if ( not defined $entry ) {
+    warn 'slot not found <{C1}>';
+    return undef;
+}
+
+## no-op if folded [ no geometry ]
+return $address if not defined $entry->{'geometry'};
+
+## no-op if no content bound
+return $address if not defined $entry->{'content_address'};
+
+my $rendered = eval {
+    <[base.ui.unfold]>->(
+        {   'address'     => $entry->{'content_address'},
+            'slot_budget' => {
+                'cols' => $entry->{'geometry'}->{'cols'},
+                'rows' => $entry->{'geometry'}->{'rows'}
+            }
+        }
+    );
+};
+
+if (    defined $rendered
+    and ref $rendered eq 'HASH'
+    and exists $rendered->{'data'} ) {
+    $entry->{'rendered'} = $rendered->{'data'};
+}
+
+return $address;
+
+#,,..,.,,,..,,,..,.,.,..,,,..,,,.,.,,,,..,,..,..,,...,..,,..,,,,,,,,,,.,,,,.,,
+#YBZGX5MNJNVAQ2GGBYXHEHYWY2Q5CAU7XOXPCIJFIUPPKIGYEEKT4RSBTP63TFHACIR6HQ6V2RF2K
+#\\\|Y7YQ5H6BU6I2MDBQPJT4DJQ35VFIAX6G6TN6IUWBNFYC7BDYU5B \ / AMOS7 \ YOURUM ::
+#\[7]NAHNNDBE3LGWXGZ3CZZ2UQCOIJ2RN32RKINPFXKHV7LR55IKLGAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

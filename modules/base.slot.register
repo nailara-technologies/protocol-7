@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = base.slot.register
+# descr = register a new stdio slot, returning its address
+# param = { surface, name, content_address?, geometry? }
+
+my $surface         = $ARG[0]->{'surface'} // '';
+my $name            = $ARG[0]->{'name'}    // '';
+my $content_address = $ARG[0]->{'content_address'};
+my $geometry        = $ARG[0]->{'geometry'};
+
+return undef if not length $surface or not length $name;
+
+## canonicalize geometry defaults
+if ( defined $geometry ) {
+    $geometry->{'row'}  //= 0;
+    $geometry->{'col'}  //= 0;
+    $geometry->{'cols'} //= 80;
+    $geometry->{'rows'} //= 24;
+}
+
+## compute stable identity checksum
+my $identity_str = sprintf( qw| %s:%s |, $surface, $name );
+my $full_chksum  = <[chk-sum.amos]>->( \$identity_str );
+my $chksum7      = substr( $full_chksum, 0, 7 );
+
+my $entry = <base.slots>->{$chksum7};
+
+## idempotent — return existing address if already registered
+if ( defined $entry ) {
+    my $stable = sprintf( qw| SLOT:%s:%s |, $chksum7, $entry->{'surface'} );
+    if ( defined $entry->{'geometry'} ) {
+        my $g = $entry->{'geometry'};
+        return sprintf( qw| %s.%d.%d+%dx%d |,
+            $stable, $g->{'row'}, $g->{'col'}, $g->{'cols'}, $g->{'rows'} );
+    }
+    return $stable;
+}
+
+## new registry entry
+$entry = {
+    'surface'         => $surface,
+    'name'            => $name,
+    'content_address' => $content_address,
+    'geometry'        => $geometry,
+    'last_geometry'   => $geometry,
+};
+
+<base.slots>->{$chksum7} = $entry;
+
+## add to surface render set when placed with geometry
+if ( defined $geometry ) {
+    <base.slots.surfaces>->{$surface} //= {};
+    <base.slots.surfaces>->{$surface}->{$chksum7} = 1;
+}
+
+## assemble address string
+my $stable = sprintf( qw| SLOT:%s:%s |, $chksum7, $surface );
+if ( defined $geometry ) {
+    return sprintf(
+        qw| %s.%d.%d+%dx%d |,
+        $stable, $geometry->{'row'}, $geometry->{'col'},
+        $geometry->{'cols'}, $geometry->{'rows'}
+    );
+}
+
+return $stable;
+
+#,,,.,.,.,.,.,.,,,..,,,.,,.,,,.,.,..,,.,.,..,,..,,...,...,.,.,,..,...,,.,,,,.,
+#FOKZYS2XF4EBFY3ZDIUSKPSKKY56YV5DGVIKQW5WJHINPE2ECMFW3NWPGUUDIX4PSHVS47F5VGT3U
+#\\\|WCFF5LAVX3GAFXWW7N4VRM7ERQ34N6OROXBG4CMYPLJN7PGLCCY \ / AMOS7 \ YOURUM ::
+#\[7]GTOHG24FHAWAWUVBBMS6XRNO2CJVL6HRAJ2Q3BUJVBWHBVZCNIBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
