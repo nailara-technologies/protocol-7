@@ -7,6 +7,21 @@ metadata:
   originSessionId: 56cce73a-933a-4992-96e4-4d88e138e8f6
 ---
 
+## queued for next opus task-file-generation dispatch (2026-06-10)
+
+- `data/md/design/CHECKSUM-NESTED-ADDRESSING-AND-EPOCH-VALIDITY.md` — raw
+  ideation captured mid-dispatch (interrupted by bmw-harmonize-l13 v7 boot
+  crash, now fixed in `ede1a3441`): (1) `[CHECKSUM:NAME]` recursive
+  collision-free nested addressing, (2) v7 epoch as temporal network root +
+  rollover validity windows + checksum-based search/route/cache protocol,
+  (3) coding zenka model self-test cycle / model-cycling fallback +
+  consensus ranking. needs folding into 2-3 task files.
+- still pending from tranche-1: `data/tasks/stdio-multiplex-type-tag-codec.md`
+  (never dispatched), `console-fold-primitive.md` overlap decision vs
+  `console-foldable-render-baseline` (landed `2560c5499`), and
+  `amos7-template-epoch-exclusion.md` acceptance-criteria check (landed
+  `8cf4fda11`)
+
 ## completed this session (2026-06-09)
 
 - **route.bmw384 signature indexer** ✓ (`6dee838d5`) — 5 modules: `index.from-file`, `index.register-digest`, `index.from-path`, `cmd.index-path`, `cmd.verify-coordinate`; kimi dispatch
@@ -216,8 +231,8 @@ metadata:
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,..,,,,,..,,,..,...,,.,,,.,,..,,.,.,,.,,,,,,..,,...,...,.,,,...,.,.,.,,,...,
-#4DPQ2TSQ2W665FFNBTYLREYN4A5CYMRI5BYAKC7PSLJT2I7RM3DTEP4DNNCT6VH5RRBHRMYRPFHZA
-#\\\|XTJHPAUOCCOZ4NM6AAECSPNJ3YVTOPARBDMQVUK3MDGS427K7SI \ / AMOS7 \ YOURUM ::
-#\[7]SALKDGPQPB36VE7LSBYGA3IQ5YFZI6M36GHGHTEVHZX3MU7TXKCQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,.,.,,,,,,..,.,,,.,.,,.,,.,,,...,..,,...,...,...,.,.,...,,.,,,..,
+#JHFHF5PAWPTAETHPM75MPXRI7LDVAC2KYTXQF6A5DCTPYTB2BBSYFKZ4LF62OE6PTLGAP2UUC2M32
+#\\\|BXNS6XSIL72VMFTOHMWZYFS6YEOEB4Q4XMDOX75HDBJYUJWRBYQ \ / AMOS7 \ YOURUM ::
+#\[7]ENBB2LZTTWESMNIK76KEQQ524KNSYLSD6I6TI67MVSGWJOFWTGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
