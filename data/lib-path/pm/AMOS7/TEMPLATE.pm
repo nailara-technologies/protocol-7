@@ -14,6 +14,7 @@ use constant FALSE => 0;    ##  false  ##
 use Safe;
 use Encode;
 use Time::HiRes;
+use Crypt::Misc;
 use Module::Load qw| autoload |;
 
 use Exporter;
@@ -355,6 +356,87 @@ sub CALLBACK_exclusive_type { ##  calling excl. types callback with params  ##
     );
 }
 
+sub configure_epoch_window_callback {
+    my $current_epoch_num      = shift;        ##  integer in 0..385279  ##
+    my $window_radius          = shift // 1;
+    my $sprintf_templates_aref = shift;
+
+    ##  validate template logic  ##   [ same rules as configure_exclusive_type_callback ]
+
+    return error_exit('expected epoch number parameter')
+        if not defined $current_epoch_num
+        or $current_epoch_num !~ m|^\d+$|
+        or $current_epoch_num < 0
+        or $current_epoch_num > 385279;
+
+    return error_exit('expected window radius parameter')
+        if not defined $window_radius
+        or $window_radius !~ m|^\d+$|
+        or $window_radius < 0;
+
+    return error_exit('expected sprintf templates array ref param')
+        if ref $sprintf_templates_aref ne qw| ARRAY |;
+    return error_exit('template list contains no elements')
+        if not scalar $sprintf_templates_aref->@*;
+
+    foreach my $template ( $sprintf_templates_aref->@* ) {
+        foreach my $match_type (qw| %%s %s |) {
+            my @match_count = $template =~ m|(*nlb:\%)$match_type|sg;
+            if ( @match_count != 1 ) {
+                my $err_reason_str
+                    = @match_count == 0 ? qw| missing | : qw| redundant |;
+                warn_err( "sprintf template '%s' not valid [ %s '%s' ]",
+                    4, $template, $err_reason_str, $match_type );
+                return undef;    ##  aborting template set-up  ##
+            }
+        }
+    }
+
+    ##  mirror of base.ntime.epoch_timestamp encode path  ##
+    my $selected_encoded = Crypt::Misc::encode_b32r( pack qw| w |,
+        99999999 - $current_epoch_num );
+
+    my @epoch_window_list;
+    foreach my $epoch_offset ( -$window_radius .. $window_radius ) {
+        my $epoch_num = $current_epoch_num + $epoch_offset;
+        next if $epoch_num < 0 or $epoch_num > 385279;
+
+        my $encoded
+            = Crypt::Misc::encode_b32r( pack qw| w |, 99999999 - $epoch_num );
+        push @epoch_window_list, $encoded;
+    }
+
+    my @excl_types_list
+        = grep { $ARG ne $selected_encoded } @epoch_window_list;
+
+    $AMOS7::TEMPLATE::callback_setup->{'epoch-window'} = {
+        qw|  excl-type-list   |       => \@excl_types_list,
+        qw| sprintf-truth-templates | => $sprintf_templates_aref,
+    };  ##  truth templates are inverted, returning false if they are true  ##
+
+    return $AMOS7::TEMPLATE::callback_setup->{'epoch-window'};
+}
+
+sub CALLBACK_epoch_window {  ##  calling epoch window callback with params  ##
+    my $cb_params = $AMOS7::TEMPLATE::callback_setup->{'epoch-window'};
+    my $check_string_param = shift;
+
+    my $check_string_param_sref
+        = ref $check_string_param eq qw| SCALAR |
+        ? $check_string_param
+        : \$check_string_param;
+
+    return TEMPLATE_exclusive_type(
+        $cb_params->{'excl-type-list'},
+        $cb_params->{'sprintf-truth-templates'},
+        $check_string_param_sref
+    );
+}
+
+sub TEMPLATE_epoch_window {
+    return TEMPLATE_exclusive_type(@ARG);
+}
+
 sub TEMPLATE_exclusive_type {
     my $excl_list_ref          = shift;
     my $sprintf_templates_aref = shift;
@@ -395,8 +477,8 @@ sub TEMPLATE_exclusive_type {
 
 return TRUE ##################################################################
 
-#,,..,,,.,,..,...,..,,,.,,,..,,,.,,,,,,,.,,,.,..,,...,...,.,.,,.,,.,,,,..,.,,,
-#Y7PZUE6LWX5MYYEPXG2LS3SCLB5OIMSDTVJL65OSXDXVJDLMHCBSR2VRJHLFJSER2UGOELBWKTCTA
-#\\\|OAQI5XMQA3MNNA4WSAN6K4DQITANFEKYKVZYQPDPA2VT67RMM4K \ / AMOS7 \ YOURUM ::
-#\[7]N3QKH3PG2WFQPDCHRUV6DMN5RWROGQJCOW2FHE7A2WTKUGGWOKAQ 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,,,,.,,,.,.,...,..,,.,.,..,,..,,..,,...,...,,..,.,,,,,.,.,,,.,.,
+#6A6VQPEIAVEMT7EJMJHW3LQKYZS2LMOPNEVDXGSQMEJRYDVEP7FH3GHMN4T4SDAGPYSH7JBLBFGM4
+#\\\|B3VUZW3JFSCJMD6OMPBRQR2K5Z2SB4FHI4RESMIL4E4YLYR6LUF \ / AMOS7 \ YOURUM ::
+#\[7]JDKLFMIC7OI3TPGCEMCQ5FRF4MZUK2BQ7PDIN4VOJNHMS6XJFQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
