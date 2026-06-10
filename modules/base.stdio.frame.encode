@@ -1,0 +1,192 @@
+## [:< ##
+
+# name  = base.stdio.frame.encode
+# descr = emit a typed-run frame sequence as a byte string
+# param = $type_tag, $content_encoding, $payload, $header_fields_hashref
+
+my ( $type_tag, $content_encoding, $payload, $header_fields_hashref ) = @ARG;
+
+$header_fields_hashref //= {};
+
+## [ tag lookup ] ##
+my %tag_by_name = (
+    qw| META | => 0b000,
+    qw| SIN  | => 0b001,
+    qw| RIN  | => 0b010,
+    qw| EOUT | => 0b011,
+    qw| TOUT | => 0b100,
+    qw| NUM  | => 0b101,
+    qw| STR  | => 0b110,
+    qw| ERR  | => 0b111,
+);
+
+my $tag_val = $tag_by_name{$type_tag};
+if ( not defined $tag_val ) {
+    warn sprintf 'unknown type tag [ %s ] <{C1}>', $type_tag;
+    return undef;
+}
+
+## [ encoding lookup ] ##
+my %enc_by_name = (
+    qw| b32       | => 0b00,
+    qw| nibble    | => 0b01,
+    qw| byte-pack | => 0b10,
+);
+
+my $enc_val = $enc_by_name{$content_encoding};
+if ( not defined $enc_val ) {
+    warn sprintf 'unknown content encoding [ %s ] <{C1}>', $content_encoding;
+    return undef;
+}
+
+## [ prepare payload bytes ] ##
+my $payload_bytes;
+
+if ( $tag_val == 0b000 ) {    ## [ META run ] ##
+    $payload_bytes = _serialize_meta( $header_fields_hashref );
+} elsif ( $tag_val == 0b011 or $tag_val == 0b111 ) {
+    ## [ EOUT or ERR — prepend fd index ] ##
+    my $fd = $header_fields_hashref->{'fd'} // 0;
+    $payload_bytes = pack( qw| C |, $fd ) . ( $payload // '' );
+} else {
+    $payload_bytes = $payload // '';
+}
+
+## [ encode payload into data frames ] ##
+my @data_frames;
+
+if ( $content_encoding eq qw| b32 | ) {
+    @data_frames = _encode_b32( $payload_bytes );
+} elsif ( $content_encoding eq qw| nibble | ) {
+    @data_frames = _encode_nibble( $payload_bytes );
+} elsif ( $content_encoding eq qw| byte-pack | ) {
+    @data_frames = _encode_byte_pack( $payload_bytes );
+}
+
+## [ build frame stream ] ##
+my @frames;
+
+## [ boundary META frame ] ##
+push @frames, _pack_nibble( 0b000, 1 );
+
+## [ fixed header — 4 frames, base-7 encoded ] ##
+my $run_len = scalar @data_frames;
+if ( $run_len > 63 ) {
+    ## [ open-ended run for long payloads ] ##
+    $run_len = 0;
+}
+
+my $header_value = ( ( $tag_val * 3 ) + $enc_val ) * 64 + $run_len;
+my @header_frames;
+for my $i ( 0 .. 3 ) {
+    unshift @header_frames, _pack_nibble( ( $header_value % 7 ) + 1, 0 );
+    $header_value = int( $header_value / 7 );
+}
+push @frames, @header_frames;
+
+## [ data frames ] ##
+push @frames, $_ for @data_frames;
+
+## [ if open-ended, inject closing META boundary ] ##
+if ( $run_len == 0 and scalar @data_frames > 0 ) {
+    push @frames, _pack_nibble( 0b000, 1 );
+}
+
+## [ pack nibbles into bytes ] ##
+my $out = '';
+for ( my $i = 0 ; $i < @frames ; $i += 2 ) {
+    if ( $i + 1 < @frames ) {
+        $out .= chr( ( $frames[$i] << 4 ) | $frames[ $i + 1 ] );
+    } else {
+        $out .= chr( ( $frames[$i] << 4 ) | 0x1 );  ## [ pad with 001. ] ##
+    }
+}
+
+return $out;
+
+## [ helper subs ] ###########################################################
+
+sub _pack_nibble {
+    my ( $payload, $sep ) = @ARG;
+    return ( $payload & 0b111 ) | ( $sep ? 0b1000 : 0 );
+}
+
+sub _encode_b32 {
+    my $bytes = shift;
+    return () if not length $bytes;
+    my $b32 = Crypt::Misc::encode_b32r($bytes);
+    my @frames;
+    my $alphabet = qw| ABCDEFGHIJKLMNOPQRSTUVWXYZ234567 |;
+    for my $char ( split //, $b32 ) {
+        my $idx = index( $alphabet, $char );
+        next if $idx < 0;
+        my $d0 = int( $idx / 7 ) + 1;
+        my $d1 = ( $idx % 7 ) + 1;
+        push @frames, _pack_nibble( $d0, 0 ), _pack_nibble( $d1, 0 );
+    }
+    return @frames;
+}
+
+sub _encode_nibble {
+    my $bytes = shift;
+    return () if not length $bytes;
+    my @frames;
+    for my $byte ( unpack( qw| C* |, $bytes ) ) {
+        for my $nib ( ( $byte >> 4 ) & 0xF, $byte & 0xF ) {
+            my $d0 = int( $nib / 7 ) + 1;
+            my $d1 = ( $nib % 7 ) + 1;
+            push @frames, _pack_nibble( $d0, 0 ), _pack_nibble( $d1, 0 );
+        }
+    }
+    return @frames;
+}
+
+sub _encode_byte_pack {
+    my $bytes = shift;
+    return () if not length $bytes;
+    my @frames;
+    for my $byte ( unpack( qw| C* |, $bytes ) ) {
+        my $d0 = int( $byte / 49 ) + 1;
+        my $d1 = int( ( $byte % 49 ) / 7 ) + 1;
+        my $d2 = ( $byte % 7 ) + 1;
+        push @frames,
+            _pack_nibble( $d0, 0 ),
+            _pack_nibble( $d1, 0 ),
+            _pack_nibble( $d2, 0 );
+    }
+    return @frames;
+}
+
+sub _serialize_meta {
+    my $header = shift // {};
+    my $subtype = $header->{'subtype'} // qw| end-run |;
+
+    my %code = (
+        qw| scope-enter  | => 0x01,
+        qw| scope-leave  | => 0x02,
+        qw| end-run      | => 0x03,
+        qw| close-field  | => 0x04,
+        qw| close-stream | => 0x05,
+    );
+    my $sc = $code{$subtype} // 0x03;
+
+    if ( $subtype eq qw| scope-enter | ) {
+        return pack( 'C n n/a* n/a*',
+            $sc,
+            $header->{'hop_id'}    // 0,
+            $header->{'slot_addr'} // '',
+            $header->{'origin'}    // '' );
+    } elsif ( $subtype eq qw| scope-leave | ) {
+        return pack( 'C n/a*',
+            $sc,
+            $header->{'origin'} // '' );
+    } else {
+        return pack( 'C', $sc );
+    }
+}
+
+#,,..,.,,,,,,,,,.,.,.,...,...,,..,,..,..,,..,,.,.,...,...,..,,.,.,,..,,,,,...,
+#2WQKIL46O6ZDT4T4VW7RDX3NJJNPFAJV5J5PG2OVF7VDYFSCP7RNPWKNW2U2OMW7RD4MOYALYLDA2
+#\\\|I7T6OPQCDVAVHV4B5LN3S2MAUL3DO67PSWIYQNM4SM73LAFJ5TU \ / AMOS7 \ YOURUM ::
+#\[7]6DDHTT7NUJXZKADX3YGJX5JDPHT6YR3ALQ2AWSMK7VXY2YYGXCBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
