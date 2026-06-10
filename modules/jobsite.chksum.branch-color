@@ -21,15 +21,15 @@ my $bmw = Digest::BMW->new(384);
 $bmw->add($text);
 my $digest = $bmw->digest;
 
-my $color = <[base.chk-sum.bmw384.color]>->($digest);
+my $color = <[chk-sum.bmw384.color]>->($digest);
 return undef if not defined $color;
 
-my $arc = <[base.chk-sum.bmw384.arc-segment]>->($color);
+my $arc = <[chk-sum.bmw384.arc-segment]>->($color);
 
 return { 'color' => $color, 'arc' => $arc, 'digest' => $digest };
 
-#,,,.,,.,,...,,,.,,.,,.,.,.,,,,,.,,..,.,,,,,.,..,,...,.,.,,..,,,.,.,.,,,.,.,,,
-#5LIWTUC6XNHPNCYDNMXIPAYA3BN6KU24EVMFQ6QPUKU2VB2ZWGHIFG7OFD2ARQTR5I2BCBA4467HE
-#\\\|2UZ27WUBOZYN6K2VSN4ZP2A2K2JG2GLC6BQJXJXSRGY7IAHVDMU \ / AMOS7 \ YOURUM ::
-#\[7]ADR5RK3ZILIVWPPUFLJ2FAFVZ67Z363HN6456545SH7TUTR5NIBY 7  DATA SIGNATURE ::
+#,,..,...,,.,,,..,.,,,,,.,...,...,..,,,,.,.,.,..,,...,...,,..,,.,,,,.,...,.,.,
+#NE3XQBIXYZEP65PM44DWETOZWSJ3EX364PY4AMZHCHUUV2RVSKES3CMF3ABQB6TGKL5JJN7QHGPL4
+#\\\|GXKO634IG67FWXAC6TPBBZYHN5SAV6DGMTPH45UOEIYCK7FRL7U \ / AMOS7 \ YOURUM ::
+#\[7]S5RNOD5AJVOOQOT3DK2RLAJLTMWS76BNRX77AOAXTQXO4UVT2YCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
