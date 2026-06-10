@@ -20,9 +20,9 @@ if ( not defined $raw_digest or length $raw_digest != 48 ) {
 <[route.bmw384.index.init]>
     if not defined <bmw384.index>;
 
-my $color = <[base.chk-sum.bmw384.color]>->($raw_digest);
-my $arc   = <[base.chk-sum.bmw384.arc-segment]>->($color);
-my $bits  = <[base.chk-sum.bmw384.angle-bits]>->($raw_digest);
+my $color = <[chk-sum.bmw384.color]>->($raw_digest);
+my $arc   = <[chk-sum.bmw384.arc-segment]>->($color);
+my $bits  = <[chk-sum.bmw384.angle-bits]>->($raw_digest);
 
 my $angle_int = Math::BigInt->new( '0b' . $bits );
 
@@ -53,8 +53,8 @@ push @$arc_r, $name if not $already_present;
 
 return $coord;
 
-#,,,.,..,,.,.,,,.,,,.,..,,,..,.,.,,..,,..,,,.,..,,...,...,.,.,.,,,,..,,..,,,.,
-#XXVET4CC3ITTALJVEYXBCOA2MI3NTEKKAQULAAYC5CJVHSEG2NRWA5TQM23MD5NBNLSKIB2VSG7CY
-#\\\|GG3PR4ATTKS3F6EC2OWIKRUFXQVWBNETBZKUDDFVOU7IEAPX4NZ \ / AMOS7 \ YOURUM ::
-#\[7]S2A7SPGMKT57J7RHQRER3MZ22D2UDUSTCMC7HRDF765RGTKQLIDQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,,,,,..,.,,,,.,,..,,,,,,...,.,.,..,,...,...,.,,,,,.,.,,,,,,,.,,,
+#6MQBAMVV6ORACT6DS5RKW5HFUQQURZ5FU4FZT4HP5QAZTWLG6HBJLY2FY2A2Y7BVUKUNWYHUFII2I
+#\\\|RCGWUFLZWX2G7HPDZ3HFEPFJBFU47XYGL2I5PZBDEG26TSUP5L3 \ / AMOS7 \ YOURUM ::
+#\[7]E6LA4EAK4E5MKV23KAENJXCU2YAOBZBSSZJFYB224JWWQY7IWUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
