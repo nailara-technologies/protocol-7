@@ -24,9 +24,8 @@ for my $job_id ( keys %{$all_jobs} ) {
     my $info = <[jobsite.chksum.branch-color]>->( $job_id, $dimension );
     next if not defined $info;
 
-    my $dist = <[base.chk-sum.bmw384.color-dist]>->(
-        $center_color, $info->{'color'}
-    );
+    my $dist
+        = <[chk-sum.bmw384.color-dist]>->( $center_color, $info->{'color'} );
     next if not defined $dist;
     next if $dist > $radius;
 
@@ -44,8 +43,8 @@ for my $job_id ( keys %{$all_jobs} ) {
 
 return [ sort { $a->{'dist'} <=> $b->{'dist'} } @group ];
 
-#,,..,,,.,,,.,,.,,,,,,..,,..,,.,,,,,.,,,.,,,.,..,,...,...,.,.,,,,,,,.,,,,,,..,
-#UD6WQZYYZ6UPDDV47JLPSWPYGCDPJX7MFBATFHB2RLSD3QRZT4BHW3S725K3UNLXJLB2BBYWEODPE
-#\\\|XEZAYWUQ6D242YATVNL4NNUU2AYRWBFLWJDGFLGYPL4KTDGMBRA \ / AMOS7 \ YOURUM ::
-#\[7]J3Q6SWMPGBW5KSPBIDD55ZG6O757QPD3NFWCPB3ALRS6RSBNSWDA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,.,.,,,.,,,,,..,,,..,,,,,..,,,,.,..,,...,...,...,..,,..,,,,.,.,,,
+#J3UPFQ2YJGZHL4DTZKGGCRXZA3DMB4IMJ2ZTT6V65KFBVCLYQ5EBSZ37MZGRHFFTDOLHLAF6SOQAE
+#\\\|ZZVHK3TPFBBYEA7KIGFQF2WVTL6VCNILBK5KTKUYZMFO4OCO26M \ / AMOS7 \ YOURUM ::
+#\[7]WXQJ4YMA5IJSB7ROENKIL6CHW6HDP4ZZHE3KD5XBRQMZYQP236AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
