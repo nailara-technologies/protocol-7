@@ -81,6 +81,7 @@ return [ qw[
         context.file
         calc.cmd.val
         base.waitpid
+        base.ui.fold
         base.tmp_dir
         base.sig_int
         base.sig_hup
@@ -196,8 +197,11 @@ return [ qw[
         calc.init_code
         branch.resolve
         base.wrap_text
+        base.ui.unfold
         base.swap_subs
         base.ssl.write
+        base.slot.move
+        base.slot.fold
         base.sig_NUM55
         base.sig_NUM53
         base.sig_NUM41
@@ -431,6 +435,7 @@ return [ qw[
         base.stream.gate
         base.stream.emit
         base.stream-file
+        base.slot.unfold
         base.resolve_key
         base.prng.reseed
         base.path_owners
@@ -578,7 +583,10 @@ return [ qw[
         branch.field.grow
         branch.dep.remove
         branch.data.query
+        base.ui.summarise
         base.stream.close
+        base.slot.resolve
+        base.slot.refresh
         base.session.init
         base.reverse-sort
         base.resolve_hash
@@ -749,7 +757,10 @@ return [ qw[
         branch.dep.declare
         branch.data.unbind
         base.utf8.sanitize
+        base.ui.layout.fit
+        base.ui.budget.tty
         base.sort.key-name
+        base.slot.register
         base.reload_values
         base.reload_config
         base.protocol.bind
@@ -933,7 +944,9 @@ return [ qw[
         branch.resource.get
         branch.group.remove
         base.utf8.clean_str
+        base.ui.render.tree
         base.str.eval_error
+        base.slot.init_code
         base.s_read.file_io
         base.round_truncate
         base.root.init_code
@@ -1355,6 +1368,7 @@ return [ qw[
         branch.clock.position
         branch.clock.allocate
         base.vec.offset_write
+        base.ui.estimate.cost
         base.start.prio_child
         base.session.shutdown
         base.reload_whitelist
@@ -1586,6 +1600,7 @@ return [ qw[
         base.utf8.decode_clean
         base.time.is_leap_year
         base.strm.local.cancel
+        base.slot.bind_content
         base.session.init_code
         base.root.convert-user
         base.required_bin_path
@@ -1813,9 +1828,12 @@ return [ qw[
         branch.cluster.validate
         branch.cluster.register
         bench.key-32-iterations
+        base.ui.render.fallback
         base.templates.pre_init
         base.strm.local.consume
         base.strip_chksum_lines
+        base.stdio.frame.encode
+        base.stdio.frame.decode
         base.start.unlink_child
         base.session.init_state
         base.prng.harmonic_seed
@@ -3299,6 +3317,7 @@ return [ qw[
         branch.session.policy.next_hop
         branch.route.key.handler.reply
         base.zenki.ondemand_registered
+        base.ui.render.tree.invalidate
         base.session.send_init_reports
         base.p7refs.get_refaddr_prefix
         base.number-cache.true_upwards
@@ -3310,6 +3329,7 @@ return [ qw[
         base.chk-sum.bmw384.coordinate
         base.chk-sum.bmw384.color-dist
         base.chk-sum.bmw384.angle-bits
+        base.chk-sum.bmw.harmonize_L13
         base.chk-sum.bmw.encode_digest
         base.chk-sum.amos.calc_version
         base.cache.refaddr-prefix.init
@@ -3440,6 +3460,7 @@ return [ qw[
         coding.tools.handler.ptd_format
         coding.tools.handler.note_write
         coding.tools.handler.note_merge
+        coding.task.chunk_and_summarize
         coding.parser.dependency_status
         coding.helper.task_id_generator
         coding.handler.task_buffer_save
@@ -4019,6 +4040,7 @@ return [ qw[
         coding.tools.handler.git_diff_staged
         coding.tools.handler.git_diff_output
         coding.tools.handler.consensus_query
+        coding.task.chunked_summary_eligible
         coding.routing.make_routing_decision
         coding.helper.calculate_safe_context
         coding.handler.models_list_all_reply
@@ -4457,8 +4479,8 @@ return [ qw[
     ]
 ];
 
-#,,.,,,.,,,..,,,,,...,,,,,.,,,.,,,.,.,.,.,...,.,.,...,...,..,,.,.,.,.,.,.,...,
-#QJW45WF56ENH6EQ7XMQFPLST4PM4GA37LJQ3W4PQOADSIO2CAWSQKQZYQHFRBQ7GADXRVXRQEVUEA
-#\\\|CNLHEG65P3JFP5EHJFXZY4HRSGSMFU4REXDJUWOTHKRX5RPJBNJ \ / AMOS7 \ YOURUM ::
-#\[7]7JSMD6NVWTB33AJD7CEGNG2IWRK6LB6C2Z7XIU3OT4ZLEVYLFGCI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,..,.,.,,,,,,,,,..,,...,.,.,,,,,.,.,...,...,.,,,.,.,,.,,.,.,.,,,
+#NSQOOHTFMIYQ4D6GSOCAONIX575X4XH3R3ULTJIHB2HKHGUTZPCOGTOGO4J5K2EGK6IH7BP3JL4MQ
+#\\\|ZE6SLPO7QJ4WY7E4IBLJE7IQBF2RV4Q5QNYQE3P4JC4FINMXX6U \ / AMOS7 \ YOURUM ::
+#\[7]FFSVMNKVOMJHFQ2F3ZEV3P2Q7FJ4FF2XPRTJG3Y6EUH2TC4TUUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
