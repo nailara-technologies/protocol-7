@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = base.ui.budget.tty
+# descr = derive a slot budget from the current tty
+# param = { reserve_rows? = 2 }
+
+my $reserve_rows = $ARG[0]->{'reserve_rows'} // 2;
+
+my ( $cols, $rows ) = eval { AMOS7::TERM::terminal_size() };
+$cols //= 80;
+$rows //= 24;
+
+$rows -= $reserve_rows;
+$rows = 1 if $rows < 1;
+
+return { 'cols' => $cols, 'rows' => $rows };
+
+#,,.,,.,,,.,.,...,,.,,,.,,,,,,.,,,..,,,..,..,,..,,...,...,..,,...,,..,,..,,,,,
+#LH4SCORFCOTWEES3CVCQUHG7P2PI4OBBAYO4TMUPAA3GXYGKQT5RLE4GR6JQA4J4XQFCGOLTNNCOK
+#\\\|AJMILBLG3UF5RBLSBSIUFGGKVIOYTJGBTLGJN5NJ2IW3TUGONKP \ / AMOS7 \ YOURUM ::
+#\[7]NEHCQLIK4AM2VPMEPPJ27RYJWNRUMEGGVS2VLTIURKGQGDJ5Y6DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

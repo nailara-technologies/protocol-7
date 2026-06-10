@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = base.ui.render.fallback
+# descr = generic rendering of an address as foldable children
+# param = { address, slot_budget }
+
+my $address     = $ARG[0]->{'address'}     // '';
+my $slot_budget = $ARG[0]->{'slot_budget'} // {};
+
+return '' if not length $address;
+
+## baseline tree renderer supersedes this fallback
+return eval {
+    <[base.ui.render.tree]>->(
+        {   'address'     => $address,
+            'slot_budget' => $slot_budget
+        }
+    );
+} // '';
+
+#,,..,.,,,.,.,..,,,,.,,.,,,..,,,.,..,,,.,,,.,,..,,...,...,..,,,,,,,..,,..,...,
+#LJNMMOWRNYGBGL7T7ZYY2IPFUXILDOOYRWGJJ3PMQZXT6G6F5ZR53BQ7MODBHJHPN7AG3ZJPSL24I
+#\\\|SRGWB37U575WGGPAQXN2IHN3DTSBIYJAYRSKSXGAAIOR6KD2N27 \ / AMOS7 \ YOURUM ::
+#\[7]VTE5KJ25SIMV3HEKZ7DSY7BCEE73A5PMKZ2H477R7D34IYPLTSCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = base.ui.estimate.cost
+# descr = cheap estimate of an address's rendered cost
+# param = { address }
+
+my $address = $ARG[0]->{'address'} // '';
+
+## [ custom cost hook ]
+my $hook = "$address.ui.cost";
+return $code{$hook}->( $ARG[0] ) if defined $code{$hook};
+
+## resolve address in data space
+my $value_ref = \%data;
+my @segments  = split /\./, $address;
+my $resolved  = TRUE;
+
+for my $segment (@segments) {
+    if ( ref $value_ref eq 'HASH' and exists $value_ref->{$segment} ) {
+        my $next = $value_ref->{$segment};
+        if ( ref $next eq 'HASH' ) {
+            $value_ref = $next;
+        } elsif ( length ref $next ) {
+            $value_ref = $next;
+            last;
+        } else {
+            $value_ref = \$next;
+            last;
+        }
+    } else {
+        $resolved = FALSE;
+        last;
+    }
+}
+
+## [ hash heuristic ]
+if ( $resolved and ref $value_ref eq 'HASH' ) {
+    my $child_count = scalar keys %$value_ref;
+    return {
+        'rows' => ( $child_count < 5 ? $child_count : 5 ),
+        'cols' => 60
+    };
+}
+
+## [ scalar heuristic ]
+if ( $resolved
+    and ( ref $value_ref eq 'SCALAR' or not length ref $value_ref ) ) {
+    my $value = ref $value_ref eq 'SCALAR' ? $$value_ref   : $value_ref;
+    my $len   = defined $value             ? length $value : 0;
+    return {
+        'rows' => 1,
+        'cols' => ( $len < 80 ? ( $len || 1 ) : 80 )
+    };
+}
+
+## [ fallback ] — matches fold handle cost
+return { 'rows' => 1, 'cols' => 40 };
+
+#,,..,.,,,..,,..,,.,.,...,,..,.,,,,,.,,..,,,,,..,,...,...,,.,,,,.,,,.,,,,,.,,,
+#ZNOTXIIKB37YUT7VQZI2DOJEWVQNVEFGTYDG6IGZKJR4VCNPBCY554SQPDV3EBY3R4EHAIZECLTNU
+#\\\|AVYBB5T4V6EFAWV7IBJUI3EB33BJEAHIEMRRCZTUI3TRAQ3S5U6 \ / AMOS7 \ YOURUM ::
+#\[7]OB3LACG7IEB7RTTYUMLDYY7FSC7O6YVM7QTKA4HX42UNVBXS6ADY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

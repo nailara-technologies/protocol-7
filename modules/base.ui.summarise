@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = base.ui.summarise
+# descr = produce a one-line summary cell for an address
+# param = { address }
+
+my $address = $ARG[0]->{'address'} // '';
+
+return 'available' if not length $address;
+
+## [ 1 ] specific summary hook
+my $hook = "$address.ui.summary";
+return $code{$hook}->( $ARG[0] ) if defined $code{$hook};
+
+## resolve address in data space
+my $value_ref = \%data;
+my @segments  = split /\./, $address;
+my $resolved  = TRUE;
+
+for my $segment (@segments) {
+    if ( ref $value_ref eq 'HASH' and exists $value_ref->{$segment} ) {
+        my $next = $value_ref->{$segment};
+        if ( ref $next eq 'HASH' ) {
+            $value_ref = $next;
+        } elsif ( length ref $next ) {
+            $value_ref = $next;
+            last;
+        } else {
+            $value_ref = \$next;
+            last;
+        }
+    } else {
+        $resolved = FALSE;
+        last;
+    }
+}
+
+## [ 2 ] hash heuristic
+if ( $resolved and ref $value_ref eq 'HASH' ) {
+    my $count = scalar keys %$value_ref;
+    return sprintf '%d entries', $count;
+}
+
+## [ 3 ] scalar heuristic
+if ( $resolved
+    and ( ref $value_ref eq 'SCALAR' or not length ref $value_ref ) ) {
+    my $value = ref $value_ref eq 'SCALAR' ? $$value_ref : $value_ref;
+    return $value if defined $value and length $value < 32;
+}
+
+## [ 4 ] code-ref heuristic
+if ( $resolved and ref $value_ref eq 'CODE' ) {
+    return 'callable';
+}
+
+## [ 5 ] fallback
+return 'available';
+
+#,,,,,..,,,,.,.,.,,..,.,.,,,.,,.,,,,,,,,,,,.,,..,,...,...,.,,,,.,,,,.,,..,,,,,
+#BLI23UVJAKUSYZE3L4O45YHKJHW3BP3PFGIEJMBGLEXDCPRF7HHR3YVSF2M25G2IGVA3UEWDWHDAU
+#\\\|GZZCMEFE4XGIT6FFXE66URTSBYMXIRK4C5PFN2KHEC6F7WRE53D \ / AMOS7 \ YOURUM ::
+#\[7]L44MYUVQIM7VX6YZZJNYSC2ZXBHX3WU23YEVIT7NWVXH7GTONKCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
