@@ -153,6 +153,104 @@ if ( defined $choice->{'finish_reason'} ) {
             return $context;
         }
 
+        ## intercept model_selection responses on self-select tasks [ round 0 ] ##
+        ## round 0 of a self-select task never completes : it always continues ##
+        my $task_ref_ch = <coding.task.queue>->{$task_id} // {};
+        if (    ( $task_ref_ch->{'self_select_model'} // 0 )
+            and ( $context->{'round'} // 0 ) == 0
+            and length( $context->{'content'} // '' ) ) {
+
+            my $state_ch
+                = <[coding.async.state_manager]>->( qw| get |, $task_id );
+            my $old_backend = $state_ch->{'backend'} // '';
+            my $new_backend = $old_backend;
+
+            my $parsed = <[coding.parser.model_selection]>
+                ->( $context->{'content'} );
+            if ( defined $parsed and length $parsed->{'backend'} ) {
+                $new_backend = $parsed->{'backend'};
+
+                ## validate reason [ min 20 words, not vague ] ##
+                my $reason       = $parsed->{'reason'} // '';
+                my @words        = split /\s+/, $reason;
+                my $valid_reason = scalar(@words) >= 20
+                    && $reason
+                    !~ m{^(?:this\s+is\s+(?:a\s+)?complex|i\s+need\s+.+\s+because)}i;
+
+                if ( !$valid_reason ) {
+                    <[base.logs]>->(
+                        1,
+                        "chunk_handler: %s model_selection reason rejected"
+                            . " [ %d words ] : using default backend",
+                        $task_id,
+                        scalar(@words)
+                    );
+                    $new_backend = $old_backend;
+                }
+
+                ## forensics log ##
+                <[base.logs]>->(
+                    1,
+                    "coding: [%s] model=%s reason=\"%s\" source=self",
+                    $task_id,
+                    $new_backend,
+                    <[base.parser.center_ellipse_string]>->( $reason, 60 )
+                );
+            } else {
+                <[base.logs]>->(
+                    1,
+                    "chunk_handler: %s model_selection block not found"
+                        . " : using default backend %s",
+                    $task_id,
+                    $old_backend
+                );
+            }
+
+            ## strip model_selection block from content if present ##
+            my $stripped = $context->{'content'};
+            $stripped =~ s#```ya?ml\s*\n\s*model_selection:.*?(?:```|\z)##s;
+            $stripped =~ s|model_selection:\s*\n.*||s; ## unfenced fallback ##
+            $stripped =~ s|^\s+||;
+            $stripped =~ s|\s+$||;
+
+            ## add assistant message to history ##
+            push @{ $state_ch->{'messages'} },
+                {
+                'role'    => 'assistant',
+                'content' => length($stripped)
+                ? $stripped
+                : '[model selected]',
+                };
+
+            ## update state for next round ##
+            $state_ch->{'round'}++;
+            $state_ch->{'backend'} = $new_backend;
+            $state_ch->{'port'}
+                = $new_backend eq qw| cpu |
+                ? ( <inference.backend.cpu.port> // 8001 )
+                : ( <inference.backend.gpu.port> // 8000 );
+            $state_ch->{'model_selection_applied'} = TRUE;
+            $state_ch->{'content'}                 = '';
+            $state_ch->{'tool_calls'}              = [];
+
+            ## update task routing so async.request uses new backend ##
+            $task_ref_ch->{'analysis'}->{'routed_to'} = $new_backend;
+
+            ## release old backend lock if backend changed ##
+            if ( length $old_backend
+                and $old_backend ne $new_backend ) {
+                <[coding.async.backend_release]>->( $task_id, $old_backend );
+            }
+
+            <coding.async.task_state>->{$task_id} = $state_ch;
+
+            ## dispatch next round on selected backend ##
+            <[coding.async.send_request]>->($task_id);
+
+            $context->{'finish_reason'} = qw| model_selected |;
+            return $context;
+        }
+
         ## check if we have tool calls even on stop (model quirk) ##
         if ( @{ $context->{'tool_calls'} // [] } ) {
             <[base.logs]>->(
@@ -255,8 +353,8 @@ if ( defined $choice->{'finish_reason'} ) {
 
 return $context;
 
-#,,,.,,..,,,.,..,,...,,.,,,..,..,,,,,,,..,,.,,.,.,...,...,,,.,..,,,..,..,,..,,
-#U26ZNT5ECWNVU7LR5HFHD7NQ7QTQC66LYFSC6E54ISAFB5AKZXKTMICNYBJ7BSPWWD3QYXOFJQFKA
-#\\\|A3V5HRSRACIGZ3NDH6NYBQCAXJWWGVVOVZJP6TEP4BWGXXJZNI7 \ / AMOS7 \ YOURUM ::
-#\[7]VL4EP2DUAVATQ7MWJVAHMEN65TY56YLMDPQVWXBTHBQT6WFCLCCQ 7  DATA SIGNATURE ::
+#,,..,,,.,,..,,.,,.,,,.,,,..,,.,,,,,,,,..,,,,,.,.,...,.,.,...,...,.,.,,,,,..,,
+#KDEA54M6SDWEGSQVU74S42RPE2EA2JHBFF4TW6DR4MOJIRRHSPMKEMWN7DSOXBLBUVQ66O6O6C26M
+#\\\|5HM6T2E2HSCXCZHDUQVYG7VFZLLQHF77IVZJPPZ2OV7TVW24THE \ / AMOS7 \ YOURUM ::
+#\[7]DCZDI2PMDA67WBYZL3NUD3R3PUBEKJQYVTUOJKMS7I4GWI6RBYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

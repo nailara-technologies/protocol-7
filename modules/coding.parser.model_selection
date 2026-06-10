@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = coding.parser.model_selection
+# descr = parse model_selection block from model output
+
+my ($text) = @ARG;
+
+return undef unless defined $text and length $text;
+
+## extract yaml block [ fenced or bare ] ##
+my $block = '';
+if ( $text =~ m|```ya?ml\s*\n(.*?)```|s ) {
+    $block = $1;
+} elsif ( $text =~ m|(model_selection:\s*\n.*)|s ) {
+    $block = $1;
+}
+
+return undef unless length $block;
+
+## parse backend field ##
+my $backend = '';
+if ( $block =~ m/^backend:\s*(\S+)/m ) {
+    $backend = lc($1);
+    $backend =~ s|\s+$||;
+}
+
+## parse optional max_context ##
+my $max_context = undef;
+if ( $block =~ m/^max_context:\s*(\d+)/m ) {
+    $max_context = $1;
+}
+
+## parse reason field [ literal or folded ] ##
+my $reason = '';
+if ( $block =~ m/^reason:\s*\|\s*\n(.*?)(?:\n\w+:|\z)/s ) {
+    $reason = $1;
+    $reason =~ s|^\s+||;
+    $reason =~ s|\s+$||;
+} elsif ( $block =~ m/^reason:\s*(.+)/m ) {
+    $reason = $1;
+    $reason =~ s|^\s+||;
+    $reason =~ s|\s+$||;
+}
+
+return undef unless length $backend and length $reason;
+
+return {
+    backend     => $backend,
+    max_context => $max_context,
+    reason      => $reason,
+};
+
+#,,,,,,.,,.,,,,.,,,,,,...,..,,,.,,.,,,.,,,,,,,.,.,...,...,.,,,.,,,,,.,,.,,,.,,
+#7NL3KVIDK2P7COODWLO76TSOX4JXAG5DVH7R75LMXNXQHRPBO4VCMCVO3M7EHMQQFDKK4CLGAJ3HO
+#\\\|YKCU4WSJKJAESPNPMOUWBCBY2YV4PCNUGK7DDUFDFU3FFZWHPBI \ / AMOS7 \ YOURUM ::
+#\[7]ZZC6HEBAB5FFCXUOLOTC3QM2LNVQIFGKPXPXYJKNQJ7MUG6UR4DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
