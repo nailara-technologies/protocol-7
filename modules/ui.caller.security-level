@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = ui.caller.security-level
+# descr = resolve the effective ui-show security level for the current caller
+# param = none [ reads ambient session context, like base.handler.command does ]
+# note  = [ returns a plain integer; 0 = default safe-by-construction ]
+
+##  derive session id from ambient context  ##
+##  [ keep aligned with base.handler.command:18 ] ##
+my $sid;
+
+##  single active client session heuristic  ##
+my @client_sessions = grep {
+            defined $data{'session'}{$ARG}
+        and defined $data{'session'}{$ARG}{'mode'}
+        and $data{'session'}{$ARG}{'mode'} ne qw| server |
+} keys %{ $data{'session'} // {} };
+
+return 0 if not @client_sessions;    ##  no sessions -> safe default  ##
+
+if ( @client_sessions == 1 ) {
+    $sid = $client_sessions[0];
+} else {
+    ##  multiple sessions : cannot determine caller unambiguously  ##
+    return 0;
+}
+
+##  derive calling user [ keep aligned with base.handler.command:19 ] ##
+my $user = $data{'session'}{$sid}{'user'} // '';
+return 0 if not length $user;
+
+##  resolve group membership [ same path as base.cmd.show-access:20-32 ] ##
+my $special_users = {
+    map  { $ARG => $data{'system'}->{$ARG} }
+    grep { !m|^amos-zenka-user$| }
+    grep {m|\-user$|} keys %{ $data{'system'} // {} }
+};
+
+my @groups = ($user);
+push @groups, map { sprintf qw| <%s> |, $ARG }
+    grep {
+    defined $special_users->{$ARG}
+        and $special_users->{$ARG} eq $user
+    } <[base.reverse-sort]>->($special_users);
+
+my $effective_level    = 0;
+my $unbounded_sentinel = 1_000_000;    ##  admits any declared field level  ##
+
+foreach my $group (@groups) {
+    ##  admin groups with wildcard access default to unbounded  ##
+    my $cmd_mask = <access.cmd.usr>->{$group};
+    if ( defined $cmd_mask and $cmd_mask =~ m|\*\*| ) {
+        return $unbounded_sentinel;
+    }
+
+    ##  per-group security-level attribute  ##
+    my $group_level = <access.security-level.usr>->{$group} // 0;
+    $effective_level = $group_level if $group_level > $effective_level;
+}
+
+##  [ future: key-based level source maxed in here ] ##
+
+return $effective_level;
+
+#,,.,,,,,,..,,...,,,,,...,,,.,,..,..,,.,.,.,,,..,,...,...,...,,..,.,,,.,,,,,,,
+#RHB7QSRVNRBFODUWHJWY6XDUAXONXT4CHEBMJJ5WT5KGO2VHVOAMG64WSFHGPMPEJRNVTMN7BHJYS
+#\\\|WQDYZLKJKNWGIYDORIQZLU6WSSCWIPZX3L77WRZM7ITCHYUWP37 \ / AMOS7 \ YOURUM ::
+#\[7]HLQTB6POLZISOJ7N6CXW75OW6JMBSSA44TRSF2UMAAPBES6FIGAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
