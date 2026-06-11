@@ -94,16 +94,16 @@ no `#,,..` stubs. do NOT run update-signatures. do NOT modify
 subroutine whitelists. lowercase comments, `[ word ]` annotations,
 `$ARG` not `$_`.
 
-## harmony checks
+## syntax checks
 
 ```
-harmony base.stdio.transport.listen
-harmony base.stdio.transport.connect
-harmony base.stdio.transport.emit
+perl -c modules/base.stdio.transport.listen
+perl -c modules/base.stdio.transport.connect
+perl -c modules/base.stdio.transport.emit
 ```
 
-#,,,.,...,,,,,.,,,,,,,,,.,..,,,,.,,..,.,,,...,..,,...,..,,.,,,..,,.,,,..,,,,.,
-#MO36UYYTI44Y3UZT6IRRMCBVN7HUS243CCQXXURKXNLIRR3X4SA3P3OLQMBNAU6AI22N6NNW7DY6O
-#\\\|QIPVPMFSCCDU27H73AF4HHNWJMUEOHQQXBBWLQLHPNGLG3SSXCG \ / AMOS7 \ YOURUM ::
-#\[7]OTGM4PYUX35PXUBY6P5IL23QWZTFOBYNDOQLF7GBOA45GFJ6D4CY 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,,,,..,,,..,,..,,.,,.,.,,..,,,,,..,,...,...,.,,,...,..,,.,,,,,.,
+#5RSDI27HNL6HBSYUPR5QKY6OXBGOXDE77XACIBOZTCIPTQ4O3AORTJAKJGXPBFAF3CTSQ4KNJYX4Q
+#\\\|AOFIJXUR3QQETPSJ2IVAU4DCAXP3RLIFNTL5ED3RZWR3KDZK4GF \ / AMOS7 \ YOURUM ::
+#\[7]Q6WYFK7THVI5VWIQMN3RXD6HQI22DTMEEDWOF7KUSSDWOUHNSYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
