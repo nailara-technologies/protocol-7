@@ -7,17 +7,37 @@ metadata:
   originSessionId: 56cce73a-933a-4992-96e4-4d88e138e8f6
 ---
 
-## ready to dispatch (2026-06-11)
+## done (2026-06-11)
 
-- `data/tasks/ui-namespace-extraction.md` — rename `base.ui.*` -> `ui.*`
-  (drop `base.` prefix; `base.ui.render.tree`/`base.cmd.ui-show` pull in
-  `ascii.frame.*`, an opt-in namespace, so keeping it under `base.*`
-  couples every base-loading zenka to ascii rendering). open decisions
-  inside the task: `base.cmd.ui-show` placement, `base.slot.*` fate
-  (recommend: stays in `base.*`, update call sites to `ui.*`), and
-  whether `ui.*` needs gradual/opt-in compilation vs blanket like
-  `base.*`. `console-fold-primitive` follow-up
-  `base.cmd.ui-show` landed as `1cf36cb34`.
+- `ui-namespace-extraction.md` landed as `f753e1a5d`: `base.ui.*` ->
+  `ui.*` (10 modules incl. `base.cmd.ui-show` -> `ui.cmd.ui-show`),
+  `base.slot.fold/move/refresh` updated to call `ui.fold`/`ui.unfold`
+  (left in `base.*`, eval-wrapped so they degrade gracefully),
+  104 whitelist files updated, design docs updated.
+  `console-fold-primitive` follow-up `base.cmd.ui-show` landed as
+  `1cf36cb34` just before this.
+
+## OPEN follow-up: ui.* not in any modules.load
+
+`base.*` is unconditionally compiled for every zenka
+(`unshift(@module_names, qw| base |) if $base` in `bin/Protocol-7`
+~line 1398), but `ui.*` is NOT — it's only compiled if a zenka's
+`modules.load` includes `ui`. Currently no zenka does, so
+`ui.cmd.ui-show` and the `ui.fold`/`ui.unfold` calls inside
+`base.slot.fold/move/refresh` are unreachable except where `ui` gets
+added to `modules.load`. Need a follow-up task to pick one of:
+(a) add `ui` to the loader's unconditional namespaces alongside
+`base` (re-couples everything, defeats the point of this rename),
+(b) move `base.slot.*` -> `ui.slot.*` wholesale, (c) add `ui` to
+`modules.load` per-zenka as the "gradual loading" taeki originally
+asked for. (b) or (c) preferred.
+
+note: the literal `harmony <module>` checks in task files don't map to
+the real `/usr/local/bin/harmony` binary (an unrelated AMOS7
+harmonic-truth tool, returns exit 202 for almost everything including
+pre-existing modules) — kimi substituted `perl -c` and that's fine;
+stop asking for literal `harmony` in future task files, or clarify
+what it should actually invoke.
 
 ## queued for next opus task-file-generation dispatch (2026-06-10)
 
@@ -243,8 +263,8 @@ metadata:
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,.,,,.,,,,,,.,.,.,,,,,,,.,,,.,.,,,,,.,.,...,..,,...,...,,,.,,,,,..,,,..,.,.,
-#ANVUP22KEUEVTD2ATIX63PTQ64HEVESRAJYBUGRQV3ZZP44WISOAZZH7HQ66KHLCBNYZFBZAZT4BE
-#\\\|GONA6LYCW5HA6AXD7TEW5TCAUT3SBPXNA44PJ7HTNQKSKBUBPEK \ / AMOS7 \ YOURUM ::
-#\[7]H7F72I4YZLQ7IQMUTSVFEDZBRBEJU2SFXMAJZKDB7ESEQGPUBABY 7  DATA SIGNATURE ::
+#,,,,,,,,,...,..,,.,.,.,.,,,,,.,,,...,,.,,.,.,..,,...,...,,,,,,,,,..,,,,.,,.,,
+#BOATH6RDJBQDLXNYBTC4SWBO42A2J4H647OY25BK2QYHSVVODE3POV25BJ2BVBHH3QUGLDFM4DRNQ
+#\\\|JFNXK76DRX4B7EDBWLJHFZEWV4NHDYTVUEBTH2U6KIK3LGK6TR7 \ / AMOS7 \ YOURUM ::
+#\[7]IGRGFUK4TBATJ27UU4C6VTLWRY6Y7XP3XVSRHMUDDBVZX7SU3ODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
