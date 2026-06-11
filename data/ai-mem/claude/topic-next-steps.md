@@ -17,20 +17,27 @@ metadata:
   `console-fold-primitive` follow-up `base.cmd.ui-show` landed as
   `1cf36cb34` just before this.
 
-## OPEN follow-up: ui.* not in any modules.load
+## done (2026-06-11, cont.)
 
-`base.*` is unconditionally compiled for every zenka
-(`unshift(@module_names, qw| base |) if $base` in `bin/Protocol-7`
-~line 1398), but `ui.*` is NOT — it's only compiled if a zenka's
-`modules.load` includes `ui`. Currently no zenka does, so
-`ui.cmd.ui-show` and the `ui.fold`/`ui.unfold` calls inside
-`base.slot.fold/move/refresh` are unreachable except where `ui` gets
-added to `modules.load`. Need a follow-up task to pick one of:
-(a) add `ui` to the loader's unconditional namespaces alongside
-`base` (re-couples everything, defeats the point of this rename),
-(b) move `base.slot.*` -> `ui.slot.*` wholesale, (c) add `ui` to
-`modules.load` per-zenka as the "gradual loading" taeki originally
-asked for. (b) or (c) preferred.
+- `ui-namespace-modules-load.md` landed as `5306f6450`: `ui` added to
+  `modules.load` for 104 zenki + whitelist refresh. `v7.ui-show` verified
+  live (folded tree render). `coding.ui-show` returned "no permission" —
+  investigated, NOT a bug: `ui-show` access is currently scoped same as
+  before (credential_fabric-only in `cube/access.zenki`'s `usr.*` block).
+
+## OPEN: ui-show generic access — blocked on security-level design
+
+opening `*.ui-show` to `access.cmd.usr.*` (the obvious next step) was
+considered and explicitly deferred: `ui.unfold`/`ui.render.fallback`
+currently render raw `%data` tree contents with no filtering, so a
+generic grant would leak any zenka's internal state to any caller.
+design doc written: `data/md/design/UI-SHOW-SECURITY-LEVELS.md` —
+security-level field maps (level 0 = pid/paths/stats/idle/source-age,
+always safe), caller level via existing admin-group resolution
+(`<admin-user>`/`<AMOS-user>` already grant `taeki` `..*.** **`), future
+key-based level auth. implementation queue is in the doc; not yet split
+into task files. DO NOT add `*.ui-show` to `cube/access.zenki` until
+step (1)-(3) of that queue (level-0 field map + filtering) lands.
 
 note: the literal `harmony <module>` checks in task files don't map to
 the real `/usr/local/bin/harmony` binary (an unrelated AMOS7
@@ -263,8 +270,8 @@ what it should actually invoke.
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,,,,,,,,...,..,,.,.,.,.,,,,,.,,,...,,.,,.,.,..,,...,...,,,,,,,,,..,,,,.,,.,,
-#BOATH6RDJBQDLXNYBTC4SWBO42A2J4H647OY25BK2QYHSVVODE3POV25BJ2BVBHH3QUGLDFM4DRNQ
-#\\\|JFNXK76DRX4B7EDBWLJHFZEWV4NHDYTVUEBTH2U6KIK3LGK6TR7 \ / AMOS7 \ YOURUM ::
-#\[7]IGRGFUK4TBATJ27UU4C6VTLWRY6Y7XP3XVSRHMUDDBVZX7SU3ODY 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,.,,,,,,,..,.,.,,..,...,,,.,.,,,..,,...,..,,...,...,.,.,,..,...,
+#I73DYNXRUA4VMY5AN6JESFSYHOWW6N4J63CPZFJVTLRMLFYTFC4NE5SR32ZOF5K7X25OP3UX4OODS
+#\\\|XDRBF2VJPL4JQ52FY2EIKJ4EU7JU4D5XBY4KC3TYQQZJPYJAN4C \ / AMOS7 \ YOURUM ::
+#\[7]5LVESXEFYOBYI5INRNDNEGKHA72NINWUCJX6NPEZLHJ72S3MOMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
