@@ -47,6 +47,8 @@ my $result = <[models.registry.populate_from_discovery]>->($discovered);
 my $reply_str = '';
 $reply_str .= "discovered: " . scalar(@$discovered) . " models\n";
 $reply_str .= "added_to_registry: " . $result->{added} . " new models\n";
+$reply_str
+    .= "updated_in_registry: " . $result->{updated} . " existing models\n";
 
 if (@$discovered) {
     $reply_str .= "\nModels found:\n";
@@ -58,8 +60,8 @@ if (@$discovered) {
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,,,,.,.,,.,,...,,,,,,,,,..,,,..,.,,,,,,,,..,..,,...,...,...,,,.,,..,..,,,..,
-#UEJ7O6CLQBQ5KSGWUXCH3I7VMJ2JLTEIL2IW7NUPTGZAYNIUBJ3B3ZJRTOM4IGWWFCI3IA4BZ7UEW
-#\\\|OFUQSOOHRUV4P5H6JPQ43NJ3AWDYF4INK4LY3ULTWZGCOR67KM5 \ / AMOS7 \ YOURUM ::
-#\[7]RA2YUVK2PRN7OI6ZTZ22WO7XHP5EUR7XMHH74TJ44LHTTPXWEOCQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,.,.,...,,..,,..,,,,,,,,,...,,,.,..,,...,...,.,,,...,,.,,,,,,.,,,
+#CNBNK5FSHF5CALS2NGRHKG7FT3YIR2GGP6XBMZARO7ZOD6WVBQPEZOZ4MBPDPOSAFITO5RUMYPA3Y
+#\\\|2CQIRMPEGRGTK5NZ3OUU2KKWSICZ4KQTSDMKWCH37IEZBXLPS3N \ / AMOS7 \ YOURUM ::
+#\[7]QSMNUSIUHJ7RFBVF7OOGTIHTSMDMWYKV2L7OL6GK772OJX5SUQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

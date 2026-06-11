@@ -3,9 +3,10 @@
 # name = models.cmd.discover
 # descr = discover all available models in registry
 
-my $cmd = shift @ARG;         # Remove command name from @ARG
-my ($filter) = @ARG;
-$filter //= 'all';
+my $filter = $call->{'args'} // 'all';
+$filter =~ s|^\s+||;
+$filter =~ s|\s+$||;
+$filter = 'all' unless length $filter;
 
 ## access registry directly to preserve keys (keys are the amos composite ids)
 my $registry = <models.registry> // {};
@@ -62,8 +63,8 @@ foreach my $model (@discovered) {
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,,.,...,.,.,,,,,,,,,.,,,...,,,,,,,.,,,,,,,.,..,,...,...,...,,,,,,,.,,.,,.,.,
-#EGFDPFEXHQILT2X32F2OPE46A73JSWRIJUPOBGD3WPMBRSCJYG74CU6BG32N5FGE5FD6GHCRTYRDA
-#\\\|2PH6F7UNOAVMXCC6GE7EAH6P265W2KJKCVAP3O47RMRHHWG6PD2 \ / AMOS7 \ YOURUM ::
-#\[7]SQ3TQH275KSKSJU7FO764XERF27NCFFQT6DFT3WZYZXV2JD6F4DQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,,.,,,.,.,.,,,,,...,,,,,,,,,,.,,..,,...,...,,,,,,.,,..,,..,,,,.,
+#TUJVLHMWXFVDJMQ46EYDFPJQS2VYSO5XJIYVW5PRQ3WXWWSUWTSLHNNP3IKXDBAGVEV7Z6KT6VTIW
+#\\\|DGOMDAUCOGMPHXXSFLRWKVOCVL6ZV7KPTATA7F4OFLZOHGTTZAK \ / AMOS7 \ YOURUM ::
+#\[7]WEMCPHHO3AUNIOE3CALN2NTNTSDQBOCYU7CPNVDCH4JDCWQYHUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
