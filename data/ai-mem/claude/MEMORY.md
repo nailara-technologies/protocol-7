@@ -42,6 +42,7 @@
 - [memory-tree-zenka](topic-memory-tree-zenka.md) — tree LIVE; IDF search LIVE; digest pipeline LIVE (2026-06-05); cube.coding.* routing; base. prefix stripped
 
 ## Vision / Design
+- [incidental-signal-channels](topic-incidental-signal-channels.md) — entropic modulation: alignment/sort/serialization choices double as free statistical-shape signals
 - [project-vision-origin](project-vision-origin.md) — 24-year vision; threshold reached Apr 2026
 - [layer-matrix-convergence](project-layer-matrix-convergence.md) — self-restart/migration/branching/diff-addressing = one reversible layer-matrix algebra; commutativity is the crux
 - [self-improving-system](topic-self-improving-system.md) — LLM coordination as self-improvement foundation
@@ -322,8 +323,8 @@ clean restart.
   command modules — internal APIs only, not console-callable
 - on-demand auth (407/pending/approve flow) end-to-end not yet verified
 
-#,,,.,.,,,..,,,.,,,,,,,.,,,,.,.,,,.,.,,..,...,...,...,.,.,,.,,,..,,,.,...,..,,
-#FWZHQW4KQDUCNSVWVEKN7APYA2QJ6NY2C5FTRYIWZLJYEDXZCGND6DOCOCXGLZWTRTQSXQVC255NW
-#\\\|7WF7UBIEBNRLHYNSNOUFQ4NCN7C7CUB5LOJAXUTIQYTJKJOS7RV \ / AMOS7 \ YOURUM ::
-#\[7]NDQAAVYQIRN5LHLHHU6PATJVMUO66N53UZXYCXERH7VGU5BUNODY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,,,,,,.,...,,,.,..,,,,.,,..,,.,,...,...,...,..,,.,.,.,,,,,,,...,
+#5TDUPNDQ6FNDP27OVANA4UPAR6OKYPDLA47KHW2VCEFVFCTE6EYIA2ULDMEM6WIOEGNYN64OKD5QK
+#\\\|LSRK3TQCJRSVQBQOJGG6BZHCR424FV46ZZHWI7OKSHDED37QZLJ \ / AMOS7 \ YOURUM ::
+#\[7]Q7NBOV4AJKP5HBKHGCVWIQO64G2C7E6KOCY7SXXRJNERA3OZVAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

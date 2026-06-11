@@ -51,8 +51,42 @@ is NOT loaded in the memory zenka — render other frames via eval-code calling
 next layer after convergence = role-vs-glyph descriptor / box-drawing typer
 ([[topic-ascii-desktop-domains]]) — that one IS kimi-shaped; this pass was taste-laden.
 
-#,,,.,.,.,..,,..,,.,.,,,,,...,,,,,...,..,,...,..,,...,...,...,..,,..,,...,,,,,
-#YB4FW52XDRQ2FS3LGEQJF25TGP42WBOJXTUZABSWP7V6P3XKTWPACCUSF5K6UWZCIO3MJJYYWGN5I
-#\\\|AGEHKPORLVQ6RMORQ3HVU7LEWDPWPEOH2KSUIK3TKSXN2T6F7EQ \ / AMOS7 \ YOURUM ::
-#\[7]5PJUD6MEJWULD66CMGAMFSHY24XJHCKNDC4PERVMESIAYKPOFQCY 7  DATA SIGNATURE ::
+**asymmetric anchor / "handheld" alignment principle** (2026-06-11, from
+`coding.list buffers` realignment in `base.init_code` — `name` column → center,
+`data`/`size` columns → right-3): under PAGING (vertical rolling-window scanning of
+a long list, e.g. coding zenka's growing `T-NNNNNNN*` buffer list), a global
+left-anchor assumes you see the whole table — false once it exceeds the viewport.
+Instead: give the table ONE rigid linear edge (here, the right-aligned numeric
+columns — needed anyway for digit-place magnitude comparison) and let the other
+edge(s) (here, `name`) flow proportionally/centered per-row. The rigid edge
+"catches"/anchors the flowing edge, so the table reads as balanced rather than
+unanchored — cross-mapped curves (one straight, one proportional) interacting per
+row, not two independent rules. Analogy: a handheld device that's asymmetric but
+uses its battery as a structural+visual "handle" on one side — the heavy/bold
+rigid element on one edge gives the whole object its balance, freeing the other
+edge's shape. Generalizes beyond this table: "one rigid alignment edge anchors one
+or more proportional/curved edges in the same row."
+
+**addendum — center vs edge picks the comparison mode, not just the anchor:** the
+`lines` (data) column centers values of wildly different magnitude (`2`, `5`,
+`2287`). centering doesn't align digit-places — it groups values by SHAPE/EXTENT:
+short numbers read as compact tokens floating in their own space, long numbers
+fill the column, and similar-magnitude values cluster visually against dissimilar
+ones. right-alignment (the `bytes`/`of_bytes` columns) instead shares one edge so
+digit-places line up for fast absolute comparison. so within ONE row, two adjacent
+numeric columns can deliberately serve two different reading tasks — "which class/
+size-group is this" (centered) vs "what's the exact relative value" (right-
+aligned) — and the rigid right edge of the latter still anchors the former.
+
+right-alignment also gives a free pre-attentive diagram: with the right edge
+fixed, the column's RAGGED LEFT EDGE is literally a bar-chart of digit-count
+(magnitude class) per row — readable before parsing any digit. echoes
+`base.sort`'s default of using length as the last tiebreak: digit-count/length is
+itself a coarse, near-zero-cost comparison signal that both sorting and alignment
+exploit ahead of (or instead of) reading exact values.
+
+#,,,,,,..,,.,,..,,,..,,.,,...,.,.,.,.,,.,,...,..,,...,...,.,.,...,.,,,.,,,.,,,
+#RG2YD2HIDCALVTYHEVRVTMFULW4DEKDW5UNJZFS3XKIAYAONMFNFKSPP3CKCNVUTXVMYKYPKFHFSC
+#\\\|ZFKVJW7RK4QEFIZBLUJ77ALIW3LUM4PHKDVKBDDL7TO2JETG5FL \ / AMOS7 \ YOURUM ::
+#\[7]7LS6QYGCBXBET3RYEN5L6KU6DEIN46KLGHWPZ5ZJS3YP4DYGWYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

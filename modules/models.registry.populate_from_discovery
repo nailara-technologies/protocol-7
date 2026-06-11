@@ -13,23 +13,58 @@ unless ( $discovered && ref($discovered) eq qw| ARRAY | ) {
 
 my $registry = <models.registry> // {};
 
-my $added_count = 0;
+my $added_count   = 0;
+my $updated_count = 0;
 
 foreach my $model ( $discovered->@* ) {
 
     # Check if already in registry by path
-    my $already_exists = FALSE;
+    my $existing_entry = undef;
     my $model_path     = $model->{'path'} // '';
     next unless length $model_path;
 
     foreach my $entry ( values $registry->%* ) {
         my $entry_path = $entry->{path} // '';
         if ( length $entry_path && $entry_path eq $model_path ) {
-            $already_exists = TRUE;
+            $existing_entry = $entry;
             last;
         }
     }
-    next if $already_exists;
+
+    if ( defined $existing_entry ) {
+
+        ## refresh fields if file metadata changed since last scan ##
+        my %fresh = (
+            'name'         => $model->{'name'},
+            'quantization' => $model->{'quantization'} // 'unknown',
+            'size_gb'      => $model->{'size_gb'}      // 0,
+            'is_vision'    => $model->{'is_vision'}    // FALSE,
+            'mmproj_path'  => $model->{'mmproj_path'}  // ''
+        );
+
+        my $changed = FALSE;
+        foreach my $field ( keys %fresh ) {
+            my $old_value = $existing_entry->{$field} // '';
+            my $new_value = $fresh{$field}            // '';
+            if ( "$old_value" ne "$new_value" ) {
+                $changed = TRUE;
+                last;
+            }
+        }
+
+        if ($changed) {
+            $existing_entry->{'name'}         = $fresh{'name'};
+            $existing_entry->{'model_id'}     = $fresh{'name'};
+            $existing_entry->{'quantization'} = $fresh{'quantization'};
+            $existing_entry->{'size_gb'}      = $fresh{'size_gb'};
+            $existing_entry->{'is_vision'}    = $fresh{'is_vision'};
+            $existing_entry->{'mmproj_path'}  = $fresh{'mmproj_path'};
+            $existing_entry->{'updated_at'}   = <[base.time]>->(3);
+            $updated_count++;
+        }
+
+        next;
+    }
 
     ## Calculate composite checksum: path_checksum:model_checksum
     my $path_checksum  = <[models.checksum.from_path]>->( $model->{'path'} );
@@ -73,10 +108,14 @@ foreach my $model ( $discovered->@* ) {
 
 <models.registry> = $registry;
 
-return { 'success' => TRUE, 'added' => $added_count };
+return {
+    'success' => TRUE,
+    'added'   => $added_count,
+    'updated' => $updated_count
+};
 
-#,,.,,.,.,,,.,.,.,,..,.,.,..,,.,,,,,.,...,...,..,,...,..,,,..,...,,,,,,,,,,.,,
-#QXMCDJTU7RV32RLYGOLKD4E4FXM5NOL35S6MVCT43F3OGYNDZWLHIG65RPKPOXGL353ECZTJHHHVO
-#\\\|DRJXO4REUUOS2OC5VK2XOPMI5CHJNSZGEDZBGRX7KL4DPQCFNUT \ / AMOS7 \ YOURUM ::
-#\[7]UYMSB2APAU4G2YS4YFWPH4AYAPK6PG5YYBAGXGITVKVKVU6BWWCQ 7  DATA SIGNATURE ::
+#,,..,..,,..,,.,,,...,,,.,...,.,,,...,,,,,.,.,..,,...,...,..,,,..,.,,,,,,,,,.,
+#YZ3SBP5EYYK2EMZNX4WVM3DXOXXC6KE6QAPOYBAV4DIEC7I7TMP3GG4D36H74VTXGYIKLGM5KQZYI
+#\\\|44X7DWFO7FDNH3CK4XLWQJSRVB3ORP3SD3ZPRBGNOMN2D2OARNZ \ / AMOS7 \ YOURUM ::
+#\[7]DC5Q2ENMXDZ7OIEQHV4DNUCWPOHWTHUHJFM2FYHOV2QBPW2AMQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

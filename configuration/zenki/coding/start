@@ -13,7 +13,9 @@
 # coding.cfg.start_model = WZIZD6Y:2BIZKWY ## Qwen3.5 9B Claude 4.6 Reasoning Distilled v2 ##
 # coding.cfg.start_model = FPI66SQ:CRID5OA ## Qwen3 4B Qwen3.6.,. Reasoning Slerp
 
-coding.cfg.start_model = V33HG2Q:NY3W3MY ## dolphincoder-starcoder2-7b
+coding.cfg.start_model = IXNBXVI:U2XBEXQ   ## Qwimi3.5 9B Kimik2.6 Opus Distill MTP
+#
+# coding.cfg.start_model = O72PLJY:G3IRILQ ## Phi 4 Mini Uncensored 9B -- INCOMPATIBLE: ik_llama.cpp build 4547 lacks tied-embedding fallback [ check_tensor_dims: 'output.weight' not found ]
 #
 # coding.cfg.start_model = DVEAZIA:GPAKBLA ## OmniCoder 9B Claude Opus High Reasoning Distill
 ##
@@ -154,7 +156,7 @@ coding.cfg.ctx_timeout_floor = 16000
 ## data-start floor : short prompts really do start streaming in <2s on   ##
 ## local GPU. for larger prompts coding.async.http_client SCALES this up  ##
 ## based on estimated prompt size — see prefill_tokens_per_sec/_margin    ##
-coding.http-timeouts.data-start = 77
+coding.http-timeouts.data-start = 120
 coding.http-timeouts.request-completed = 777
 
 ## prefill-time estimate used to scale the data-start timeout for large   ##
@@ -169,7 +171,7 @@ coding.cfg.prefill_margin_sec     = 5
 ## small [ short initial prompt ], so prompt-size scaling alone would     ##
 ## hand it the shortest timeout right when it needs the longest. cleared  ##
 ## on first chunk received [ coding.callback.http_chunk ]                 ##
-coding.cfg.cold_start_data_start_timeout = 97
+coding.cfg.cold_start_data_start_timeout = 150
 
 ## Model Configuration ##
 ## Context length: floor value — auto-calculated from VRAM, but never below this ##
@@ -227,8 +229,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,,.,,..,,.,,..,,,.,,,..,,,.,,.,,,,.,..,,,.,,.,.,...,...,..,,.,.,,.,,..,,,,.,
-#Z2N6KAOLDFWPJFRMXGTKXUJMRRQSKK5ALRHDU3TQRYGE6JANGK5ZYZ7RHTGXGWNNCRBGKCKEDSP6S
-#\\\|CI7FSMDL7E45QEY55ZBD4D5YAEMVEHEDMBEVJQNSOU6BUHTBOEJ \ / AMOS7 \ YOURUM ::
-#\[7]P55RL4BGCMQCWQDTND6RDOVX4OGWGF6VS4DHDCEQXQAR75Z5RQCA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,,..,,,,,,.,,,,,,...,.,.,.,.,,..,.,.,...,...,,,.,.,.,,,.,,,.,,.,,
+#YKGNVQOGAAUTBDLIK4TP7222FJLUB5P5BYRNPWX7FTI6RSBTUJYEYEGUH5IQSKK6DNSTPDYDZGHZA
+#\\\|LBKTCDRNQYNKRGEXJQZAOGJ625L7EVHNC6PDJELN3QQKXVM6RMP \ / AMOS7 \ YOURUM ::
+#\[7]Y4ZXQ2W6CPIB2BP2BVX5UDVE44PS3I2IHQWPQDGRDHEYBK7CGGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
