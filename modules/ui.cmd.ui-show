@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = base.cmd.ui-show
+# name  = ui.cmd.ui-show
 # descr = base ui-show command
 # param = { address?, view? }
 # note  = [ overridden by zenka-specific <namespace>.cmd.ui-show ]
@@ -29,11 +29,11 @@ return { 'mode' => qw| false |, 'data' => 'address required' }
 
 ## derive slot budget from current tty ##
 my $slot_budget
-    = eval { <[base.ui.budget.tty]>->() } // { 'cols' => 80, 'rows' => 24 };
+    = eval { <[ui.budget.tty]>->() } // { 'cols' => 80, 'rows' => 24 };
 
 ## render the address using the generic unfold primitive ##
 my $unfolded = eval {
-    <[base.ui.unfold]>->(
+    <[ui.unfold]>->(
         {   'address'     => $address,
             'slot_budget' => $slot_budget
         }
@@ -76,8 +76,8 @@ my $output
 
 return { 'mode' => qw| size |, 'data' => $output };
 
-#,,.,,.,.,,,,,,.,,...,.,.,.,,,,,,,,..,,.,,..,,..,,...,...,..,,..,,...,..,,...,
-#7SXLKHEKW6IF4URT3PWSIPOOSMOL7NJNO6BDUNVRP7NQTP2Y37GV6DPMGVJKN36HS2MOCKPRTA4NA
-#\\\|JAZMLHCBYQKKAVWFS6DSNTIMFU5HGPVFBQQVGOA4HVFFTINMHCM \ / AMOS7 \ YOURUM ::
-#\[7]CDU3FW2YIZUZJSMSXYDSXZDMFZ6VFYKIADV6WXXLGMGNTMKNVGDA 7  DATA SIGNATURE ::
+#,,..,...,..,,..,,,..,,.,,...,,..,..,,,..,,,.,..,,...,...,,.,,,..,.,,,,..,,,,,
+#UMPTSJKTGZJL2NZNR6KBXT7RMROP4X2VFT4OZCNKT6YYPUOO5ZKDBP4BHUJCLDK3GPVQMFG7LAZJQ
+#\\\|CNUOZFKQU2TU3FSDXT4NCHQWMTJ7EWEUS7SYKVBB2QNZAJHTM6S \ / AMOS7 \ YOURUM ::
+#\[7]OC7SMQBWXXXSX6A5KFJRVG4OYODUVREUSCY73TT32QCX7G64G2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
