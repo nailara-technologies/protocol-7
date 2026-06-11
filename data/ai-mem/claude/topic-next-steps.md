@@ -7,6 +7,18 @@ metadata:
   originSessionId: 56cce73a-933a-4992-96e4-4d88e138e8f6
 ---
 
+## ready to dispatch (2026-06-11)
+
+- `data/tasks/ui-namespace-extraction.md` — rename `base.ui.*` -> `ui.*`
+  (drop `base.` prefix; `base.ui.render.tree`/`base.cmd.ui-show` pull in
+  `ascii.frame.*`, an opt-in namespace, so keeping it under `base.*`
+  couples every base-loading zenka to ascii rendering). open decisions
+  inside the task: `base.cmd.ui-show` placement, `base.slot.*` fate
+  (recommend: stays in `base.*`, update call sites to `ui.*`), and
+  whether `ui.*` needs gradual/opt-in compilation vs blanket like
+  `base.*`. `console-fold-primitive` follow-up
+  `base.cmd.ui-show` landed as `1cf36cb34`.
+
 ## queued for next opus task-file-generation dispatch (2026-06-10)
 
 - `data/md/design/CHECKSUM-NESTED-ADDRESSING-AND-EPOCH-VALIDITY.md` — raw
@@ -231,8 +243,8 @@ metadata:
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,,.,.,,,,.,,.,.,,,,,,..,.,,,.,.,,.,,.,,,...,..,,...,...,...,.,.,...,,.,,,..,
-#JHFHF5PAWPTAETHPM75MPXRI7LDVAC2KYTXQF6A5DCTPYTB2BBSYFKZ4LF62OE6PTLGAP2UUC2M32
-#\\\|BXNS6XSIL72VMFTOHMWZYFS6YEOEB4Q4XMDOX75HDBJYUJWRBYQ \ / AMOS7 \ YOURUM ::
-#\[7]ENBB2LZTTWESMNIK76KEQQ524KNSYLSD6I6TI67MVSGWJOFWTGBY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,.,.,.,,,,,,,.,,,.,.,,,,,.,.,...,..,,...,...,,,.,,,,,..,,,..,.,.,
+#ANVUP22KEUEVTD2ATIX63PTQ64HEVESRAJYBUGRQV3ZZP44WISOAZZH7HQ66KHLCBNYZFBZAZT4BE
+#\\\|GONA6LYCW5HA6AXD7TEW5TCAUT3SBPXNA44PJ7HTNQKSKBUBPEK \ / AMOS7 \ YOURUM ::
+#\[7]H7F72I4YZLQ7IQMUTSVFEDZBRBEJU2SFXMAJZKDB7ESEQGPUBABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

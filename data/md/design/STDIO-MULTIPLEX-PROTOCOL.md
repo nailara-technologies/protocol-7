@@ -250,7 +250,7 @@ on the wire — no out-of-band correlation needed.
 the terminal UI's job is then exactly the philosophy doc's
 fold/render tree: walk the META scope tree, render each leaf typed
 run through the appropriate `<zenka>.stdout.view.*` binding,
-collapse scopes via `base.ui.fold`. zero special-casing for "this
+collapse scopes via `ui.fold`. zero special-casing for "this
 stream came from three hops away" — the META frames *are* the
 namespace path.
 
@@ -389,8 +389,8 @@ dependency order: codec → transport → demux. the existing v7 relay
 two coexist while zenki are migrated to the multiplexed transport,
 so no zenka has to flip atomically.
 
-#,,,.,..,,,..,.,.,,.,,.,,,..,,.,,,,,,,.,,,,,.,..,,...,...,...,,..,...,.,.,.,.,
-#NB4QA5U4346BFTBIO2PZADFX2DAKYBSXOLKLMOIGEHEPGNRWDOZDNILOIZCZYZYBZISD2SLELJ6EG
-#\\\|M7SGB4U7XP6LB3ACXVWNA7X6STRVQ2WH2B2434WLLDDF3OSWNUJ \ / AMOS7 \ YOURUM ::
-#\[7]JTQ2MCL2T4J3W542QMB2FUP32UVV4SEPSDBH53I5UZSZL5CRNEBI 7  DATA SIGNATURE ::
+#,,..,...,,..,.,.,,,,,,,,,,,,,,..,...,,.,,.,.,..,,...,...,,..,,.,,.,.,,.,,,,.,
+#IUDSPF5NTPD7PLW7RFNTVNJTEJ2T3P2NR6PPZHQT7WC5FHNIKWZ36Y4ET7W7AQWYMNBMW6ZV6QO4U
+#\\\|VDHCTBS57WO7TYO54Z4ESSCFPJQTR5NWOLF2DVY4R6MD6J2ONO5 \ / AMOS7 \ YOURUM ::
+#\[7]MONDPHO6GIPQUOF7Y75JCH4OKEW3NHUIXFUOEZ3OLHWOH7WPBYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
