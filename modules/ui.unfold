@@ -29,9 +29,25 @@ if ( defined $code{$cmd} ) {
 }
 
 ## [ 3 ] fallback renderer
+my $field_map
+    = defined $code{"$address.ui.fields"}
+    ? $code{"$address.ui.fields"}->()
+    : <[ui.fields.fallback]>->();
+my $caller_level = <[ui.caller.security-level]>->();
+
+my $filtered = {};
+for my $field_name ( keys %$field_map ) {
+    my $field = $field_map->{$field_name};
+    next if ref $field ne 'HASH';
+    my $level = $field->{'level'} // 0;
+    next if $level > $caller_level;
+    $filtered->{$field_name} = $field;
+}
+
 my $rendered = eval {
     <[ui.render.fallback]>->(
         {   'address'     => $address,
+            'fields'      => $filtered,
             'slot_budget' => $slot_budget
         }
     );
@@ -39,8 +55,8 @@ my $rendered = eval {
 
 return { 'mode' => qw| true |, 'data' => $rendered };
 
-#,,..,,,.,...,.,,,,,.,.,.,,..,.,.,..,,,,.,,..,..,,...,...,,.,,.,.,...,..,,,,,,
-#ZTYUUMNN4GX3GBFHNVRQKFHR2H5PINT6XEIXIYSPBUV4HZLX2YIQD3UENRBRPPYYQMCZWKGTTSZK4
-#\\\|ORQQNFZPSUV5IZUQBVYUKM3LIB4ZSFMJZ77UOVW5AUBY33JXBK3 \ / AMOS7 \ YOURUM ::
-#\[7]LIJFVPHOQNWXOYTMF2Y6RGQZKSORLDMLJBIBBOO5QC2WWBFEQWCY 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,,,,..,,.,.,..,,...,..,,,.,,,..,..,,...,...,...,,.,,..,,.,,,...,
+#5IKSGO3G2Q3SWPV74GY4UOYD5ASV23PN4VISCWE6JMDGS7GBZVIQNXA6MPHYZGSQVGY3F5TWCHJSQ
+#\\\|2WB2ECW54NJJMJ6UCXIFXEJNFXZ4IWXIDC56A4EG7R6FKJ32JP7 \ / AMOS7 \ YOURUM ::
+#\[7]BFX7MV4Q2XTNTKL2I45FXFYAAUPRANKHRG2RKRVYPXXYJ6ZNECCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
