@@ -1,0 +1,83 @@
+## [:< ##
+
+# name  = ui.fields.fallback
+# descr = universal level-0 field map used when a zenka has no
+#         <namespace>.ui.fields of its own
+# param = none [ pure data producer ]
+
+return {
+    'pid' => {
+        'value' => sub {
+            return $data{'system'}{'process_start'}{'pid'} // $PID // '';
+        },
+        'level' => 0
+    },
+    'uptime' => {
+        'value' => sub {
+            return '' if not exists $data{'system'}{'process_start'}{'time'};
+            my $startup_time = $data{'system'}{'process_start'}{'time'};
+            $startup_time =~ s|\.\d+$||;
+            return
+                eval { <[base.parser.duration]>->( $startup_time, 2 ) } // '';
+        },
+        'level' => 0
+    },
+    'restart-count' => {
+        'value' => sub {
+            return '';    # [ no generic restart counter available ]
+        },
+        'level' => 0
+    },
+    'start-file' => {
+        'value' => sub {
+            my $cfg_rel = eval { <[base.get_path.zenka_cfg]>->() } // '';
+            return '' if not length $cfg_rel;
+            return
+                join( qw| / |, $data{'system'}{'conf_path'} // '', $cfg_rel );
+        },
+        'level' => 0
+    },
+    'log-file' => {
+        'value' => sub {
+            my $log_dir = $data{'log'}{'protocol_7'}{'path'} // '';
+            return '' if not length $log_dir;
+            my $node_name  = $data{'system'}{'node'}{'name'}  // '';
+            my $zenka_name = $data{'system'}{'zenka'}{'name'} // '';
+            return '' if not length $node_name or not length $zenka_name;
+            return catfile( $log_dir,
+                sprintf( qw| %s.%s.zenka.log |, $node_name, $zenka_name ) );
+        },
+        'level' => 0
+    },
+    'idle' => {
+        'value' => sub {
+            return '';    # [ no generic per-zenka idle tracker ]
+        },
+        'level' => 0
+    },
+    'source-age' => {
+        'value' => sub {
+            my $code_path  = $data{'system'}{'code_path'}     // '';
+            my $zenka_name = $data{'system'}{'zenka'}{'name'} // '';
+            if ( length $code_path and length $zenka_name ) {
+                my $mod_path = catfile( $code_path, $zenka_name );
+                if ( -f $mod_path ) {
+                    my $st = eval { File::stat::stat($mod_path) };
+                    if ( defined $st and $st->mtime ) {
+                        return eval {
+                            <[base.parser.duration]>->( $st->mtime, 2 );
+                        } // '';
+                    }
+                }
+            }
+            return $data{'protocol-7'}{'src-ver'} // '';
+        },
+        'level' => 0
+    }
+};
+
+#,,.,,..,,,,,,..,,,,,,.,.,.,.,.,.,.,,,,..,.,.,..,,...,..,,,,,,,,.,.,,,.,,,,,.,
+#HJ3HUYPJJWF3HPMB6OQ23NTXBQOS42B4RSFB7Z3HLB2JJ4LKF6RU5FDWPR5F7KEDFOX5EAQFACNT6
+#\\\|ZLAFKBKZSZBXCU6BBY4KIMHRLXHNAD4OP3UFZBKJN6AQKXREIRI \ / AMOS7 \ YOURUM ::
+#\[7]BVSLYZGUEG3SQSG3F7C6P6UGP4AKYZPKRCPGL7IPAPQ56OA7WQBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

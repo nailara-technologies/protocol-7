@@ -4,12 +4,50 @@
 # descr = generic rendering of an address as foldable children
 # param = { address, slot_budget }
 
-my $address     = $ARG[0]->{'address'}     // '';
+my $address     = $ARG[0]->{'address'} // '';
+my $fields      = $ARG[0]->{'fields'};
 my $slot_budget = $ARG[0]->{'slot_budget'} // {};
 
 return '' if not length $address;
 
-## baseline tree renderer supersedes this fallback
+my $budget_cols = $slot_budget->{'cols'} // 80;
+
+## [ new path ] map-driven rendering
+if ( defined $fields and ref $fields eq 'HASH' ) {
+    my @lines;
+
+    for my $field_name ( sort keys %$fields ) {
+        my $field = $fields->{$field_name};
+        next if ref $field ne 'HASH';
+
+        my $value_spec = $field->{'value'};
+        my $value      = '';
+
+        if ( ref $value_spec eq 'CODE' ) {
+            $value = eval { $value_spec->() } // '';
+        } elsif ( defined $value_spec and length $value_spec ) {
+            ##  string address — render leaf via tree renderer  ##
+            $value = eval {
+                <[ui.render.tree]>->(
+                    {   'address'     => $value_spec,
+                        'slot_budget' => $slot_budget
+                    }
+                );
+            } // '';
+        }
+
+        ##  label and wrap  ##
+        my $label = "$field_name: $value";
+        if ( length $label > $budget_cols ) {
+            $label = substr( $label, 0, $budget_cols - 3 ) . '...';
+        }
+        push @lines, $label;
+    }
+
+    return join "\n", @lines;
+}
+
+## [ deprecated ] legacy address-driven path
 return eval {
     <[ui.render.tree]>->(
         {   'address'     => $address,
@@ -18,8 +56,8 @@ return eval {
     );
 } // '';
 
-#,,..,.,.,,,,,,..,.,.,,.,,.,,,,.,,,..,.,,,,,,,..,,...,...,...,,,.,,,,,.,.,,..,
-#EK74BC34GGYKW72LEKXJNQUPFG45DDFBNMNBSAVYXX47AHHUDUHRFFGH7EHL4JOYVKEDR74XUKSRA
-#\\\|MXEDKQQH4R6BSEWPFMSCZ2XB3Z6BWFCJW5EBXJVF6OT2TPEAI4B \ / AMOS7 \ YOURUM ::
-#\[7]RHXBWZU2BDVLOCHV2BTG5S47DGMRXXP4VQEFELK4CRU4JQBPZGAI 7  DATA SIGNATURE ::
+#,,..,,.,,,..,,,.,.,.,.,.,,.,,,.,,,..,...,,.,,..,,...,..,,...,,,,,...,..,,...,
+#IEOISJYZ6COZ3Q7YF4YY2Q4SPA3YZWWVAPVR7NSO4MCJ2PHPSP4XWTUG6B52ZURTMH2VPSHEP6FQK
+#\\\|66S5O5OISG5QGC7ZCYCX463EU6A3KFUTKGT5XYNJMXXZZDF3MXC \ / AMOS7 \ YOURUM ::
+#\[7]AGMMFUL3XK2UTDVD5QXSA72SWJMK6TVNA67E63CB6VLFZ2UOXADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
