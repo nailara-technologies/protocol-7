@@ -16,12 +16,15 @@
 - [config reload clobber](feedback-config-reload-clobber.md) — placeholder `key=val` in start config gets re-applied by `reload config/all`, silently overwriting runtime-resolved values; debug via on-disk zenka log not ring buffer
 
 ## Active Topics
+- [cube-tree-dashboard](topic-cube-tree-dashboard.md) — planned ascii tree-view dashboard: per-zenka command/state trees, capability interrogation, push-registry watcher cache, zoom/crop
 - [global-ui-menu-tree](topic-global-ui-menu-tree.md) — addressable stdio slots + menu tree; settings (new)/configure (stub) zenki as starting points
 - [credential-fabric-proxy-transport](topic-credential-fabric-proxy-transport.md) — proxy round-trip WORKING (200 OK verified 2026-06-09); boot/UI fixes through b27ebb655; stale-socket issue clears on full P7 restart
 - [ascii-frame-system](topic-ascii-frame-system.md) — reverse parser, elastic renderer, DRC validator
 - [frame-plugin-slots](topic-frame-plugin-slots.md) — status-bar plugin slots + context-aware selector; variable border width; vertical-slot roadmap
 - [ascii-desktop-domains](topic-ascii-desktop-domains.md) — border glyphs are domain-scoped; nested domains = nested planes = ascii desktop; role-vs-glyph descriptor is the windowing unlock
 - [frame-idiom-convergence](topic-frame-idiom-convergence.md) — NEW frame features: margin/vertical-padding/self-invalidating-cache/corner-pinning-spring; `.:[ ]::[ ]:.` idiom; 5 frames still need conversion (REQUIRED)
+- [ui-show-security-levels](topic-ui-show-security-levels.md) — steps 1-3 LIVE (d3f4e5aca); step 4 (`*.ui-show` generic grant) deferred to step 5
+- [os-command-zenka](topic-os-command-zenka.md) — planned: networked command/script templates, security levels, STRM streaming, vterm result buffers
 - [plugin-web-jobs](topic-plugin-web-jobs.md) — delta sync WORKING; open: ?since=N, remote deploy
 - [clients-http](topic-clients-http.md) — clients.http.* + clients.https.* async; kimi-web parallel dispatch
 - [reasoning-chain-repository](topic-reasoning-chain-repository.md) — native model; dedup-based self-improvement
@@ -323,8 +326,8 @@ clean restart.
   command modules — internal APIs only, not console-callable
 - on-demand auth (407/pending/approve flow) end-to-end not yet verified
 
-#,,,,,.,,,.,.,,,,,,,.,...,,,.,..,,,,.,,..,,.,,...,...,...,..,,.,.,.,,,,,,,...,
-#5TDUPNDQ6FNDP27OVANA4UPAR6OKYPDLA47KHW2VCEFVFCTE6EYIA2ULDMEM6WIOEGNYN64OKD5QK
-#\\\|LSRK3TQCJRSVQBQOJGG6BZHCR424FV46ZZHWI7OKSHDED37QZLJ \ / AMOS7 \ YOURUM ::
-#\[7]Q7NBOV4AJKP5HBKHGCVWIQO64G2C7E6KOCY7SXXRJNERA3OZVAAI 7  DATA SIGNATURE ::
+#,,..,.,.,,..,.,.,...,.,.,..,,,,.,.,.,.,.,,,.,...,...,..,,,.,,,..,,,,,.,.,...,
+#46FFT7XAJQIGJHASEXRI5JIFPNRBUAI6KJQHMY6YZQMSVDIZU5RFOUHKTFMITOTKXSWEFTICH7OQG
+#\\\|KHSRMVZ2KXAODJVWKXUYCA7BAPQBH4PXYEBJ2SA5QLV3GBCTARQ \ / AMOS7 \ YOURUM ::
+#\[7]2OQMZID2UTPNSPP76NHQAII6BWNFOSYKIVOFUDDEIFJAQRC4BAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
