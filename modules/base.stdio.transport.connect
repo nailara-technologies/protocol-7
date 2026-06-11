@@ -1,0 +1,205 @@
+## [:< ##
+
+# name  = base.stdio.transport.connect
+# descr = connect to a listening socket as a client; same callback
+#         shape for inbound records
+# param = $socket_path, $on_record_coderef
+
+my ( $socket_path, $on_record_coderef ) = @ARG;
+
+if ( not defined $socket_path ) {
+    warn 'expected socket path param <{C1}>';
+    return undef;
+}
+
+if ( ref $on_record_coderef ne qw| CODE | ) {
+    warn 'expected coderef param for on_record callback <{C1}>';
+    return undef;
+}
+
+my $disconnect = sub {
+    my ( $socket, $reason ) = @ARG;
+
+    my $conn = delete $data{'stdio_transport'}{'connections'}{$socket};
+    return if not defined $conn;
+
+    ## [ synthesize scope-leave for unmatched scope-enters ] ##
+    for my $origin ( reverse $conn->{'scope_stack'}->@* ) {
+        my $synth_rec = {
+            qw| tag        | => qw| META |,
+            qw| encoding   | => qw| nibble |,
+            qw| header     | => {
+                qw| subtype | => qw| scope-leave |,
+                qw| origin  | => $origin,
+            },
+            qw| payload_sref | => \'',
+        };
+        $conn->{'on_record'}->( $synth_rec, $socket );
+    }
+
+    for my $wk (qw| read write error |) {
+        my $w = $conn->{'watchers'}{$wk} // undef;
+        $w->cancel if defined $w and $w->is_active;
+    }
+
+    eval { shutdown( $socket, 2 ) };
+    close($socket);
+
+    <[base.logs]>->(
+        2,       'stdio transport disconnected [%s]: %s',
+        $socket, $reason // 'unknown'
+    );
+
+    return;
+};
+
+my $read_handler = sub {
+    my $event  = shift;
+    my $socket = $event->w->data;
+    my $conn   = $data{'stdio_transport'}{'connections'}{$socket};
+    return if not defined $conn;
+
+    my $chunk = '';
+    my $bytes = <[base.s_read]>->( $socket, \$chunk, 65536 );
+
+    if ( ( $bytes // -1 ) == -1 ) {
+        $disconnect->( $socket, 'read error' );
+        return;
+    }
+
+    if ( $bytes == 0 ) {
+        $disconnect->( $socket, 'server disconnect' );
+        return;
+    }
+
+    $conn->{'read_buf'} .= $chunk;
+
+    my @records;
+    eval { @records = <[base.stdio.frame.decode]>->( \$conn->{'read_buf'} ); };
+    if ($EVAL_ERROR) {
+        <[base.logs]>->(
+            0, 'base.stdio.transport.connect: decode error: %s', $EVAL_ERROR
+        );
+        $disconnect->( $socket, 'decode error' );
+        return;
+    }
+
+    for my $rec (@records) {
+        if (    $rec->{'tag'} eq qw| META |
+            and defined $rec->{'header'}{'subtype'}
+            and $rec->{'header'}{'subtype'} eq qw| scope-enter | ) {
+            push $conn->{'scope_stack'}->@*, $rec->{'header'}{'origin'} // '';
+        } elsif ( $rec->{'tag'} eq qw| META |
+            and defined $rec->{'header'}{'subtype'}
+            and $rec->{'header'}{'subtype'} eq qw| scope-leave | ) {
+            pop $conn->{'scope_stack'}->@*;
+        }
+
+        $conn->{'on_record'}->( $rec, $socket );
+    }
+
+    $event->w->start;
+
+    return;
+};
+
+my $write_handler = sub {
+    my $event  = shift;
+    my $socket = $event->w->data;
+    my $conn   = $data{'stdio_transport'}{'connections'}{$socket};
+    return if not defined $conn;
+
+    while ( scalar $conn->{'write_queue'}->@* ) {
+        my $buf_ref = \$conn->{'write_queue'}[0];
+        my $len     = bytes::length( $buf_ref->$* );
+        my $written = <[base.s_write]>->( $socket, $buf_ref, $len );
+
+        if ( $written < 0 ) {
+            $disconnect->( $socket, 'write error' );
+            return;
+        } elsif ( $written == 0 ) {
+            last;
+        } else {
+            substr( $conn->{'write_queue'}[0], 0, $written, '' );
+            shift $conn->{'write_queue'}->@*
+                if bytes::length( $conn->{'write_queue'}[0] ) == 0;
+        }
+    }
+
+    $event->w->stop if not scalar $conn->{'write_queue'}->@*;
+
+    return;
+};
+
+my $error_handler = sub {
+    my $event  = shift;
+    my $socket = $event->w->data;
+    $disconnect->( $socket, 'socket exception' );
+    return;
+};
+
+<[base.perlmod.autoload]>->('IO::Socket::UNIX');
+
+if ( !-S $socket_path ) {
+    <[base.logs]>->(
+        0, 'base.stdio.transport.connect: socket %s does not exist',
+        $socket_path
+    );
+    return undef;
+}
+
+my $socket = IO::Socket::UNIX->new(
+    Type => SOCK_STREAM(),
+    Peer => $socket_path,
+    )
+    or do {
+    <[base.logs]>->(
+        0, 'base.stdio.transport.connect: cannot connect to %s: %s',
+        $socket_path, $OS_ERROR
+    );
+    return undef;
+    };
+
+$socket->blocking(0);
+
+$data{'stdio_transport'} //= {};
+$data{'stdio_transport'}{'connections'} //= {};
+
+my $conn = {
+    qw| socket      | => $socket,
+    qw| on_record   | => $on_record_coderef,
+    qw| read_buf    | => '',
+    qw| write_queue | => [],
+    qw| scope_stack | => [],
+    qw| watchers    | => {},
+};
+
+$data{'stdio_transport'}{'connections'}{$socket} = $conn;
+
+$conn->{'watchers'}{'read'} = <[event.add_io]>->(
+    {   fd     => $socket,
+        poll   => qw| r |,
+        cb     => $read_handler,
+        data   => $socket,
+        desc   => sprintf( 'stdio transport read [%s]', $socket_path ),
+        repeat => FALSE,
+    }
+);
+
+$conn->{'watchers'}{'error'} = <[event.add_io]>->(
+    {   fd     => $socket,
+        poll   => qw| e |,
+        cb     => $error_handler,
+        data   => $socket,
+        desc   => sprintf( 'stdio transport error [%s]', $socket_path ),
+        repeat => FALSE,
+    }
+);
+
+return $socket;
+
+#,,.,,.,,,,..,,.,,,,,,,..,.,.,,,,,,,.,...,,,.,..,,...,...,...,...,...,...,...,
+#H5SK6EUFHO5A2BDR2PKPKUW7EZJ66FDJILCSP6JKFMGZ5UAK4URWNAA3KSETLUD2L2V53B6G5RAN6
+#\\\|5OOYMEGITASV5UV7M72KSWUBSVKH4TYVRWIBCXIG2QXNYVAU4OP \ / AMOS7 \ YOURUM ::
+#\[7]CWQUSR2UU46VLPUNO5F6H2OQBCWYRBA5Z7ATCXDIFC2MTYNU6EAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

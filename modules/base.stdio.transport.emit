@@ -1,0 +1,123 @@
+## [:< ##
+
+# name  = base.stdio.transport.emit
+# descr = emit one typed run on a connection handle's writer; wraps
+#         base.stdio.frame.encode with non-blocking write discipline
+# param = $conn_handle, $tag, $encoding, $payload, $header_fields
+
+my $write_handler = sub {
+    my $event  = shift;
+    my $socket = $event->w->data;
+    my $conn   = $data{'stdio_transport'}{'connections'}{$socket};
+    return if not defined $conn;
+
+    while ( scalar $conn->{'write_queue'}->@* ) {
+        my $buf_ref = \$conn->{'write_queue'}[0];
+        my $len     = bytes::length( $buf_ref->$* );
+        my $written = <[base.s_write]>->( $socket, $buf_ref, $len );
+
+        if ( $written < 0 ) {
+            _stdio_transport_disconnect( $socket, 'write error' );
+            return;
+        } elsif ( $written == 0 ) {
+            last;
+        } else {
+            substr( $conn->{'write_queue'}[0], 0, $written, '' );
+            shift $conn->{'write_queue'}->@*
+                if bytes::length( $conn->{'write_queue'}[0] ) == 0;
+        }
+    }
+
+    $event->w->stop if not scalar $conn->{'write_queue'}->@*;
+
+    return;
+};
+
+sub _stdio_transport_disconnect {
+    my ( $socket, $reason ) = @ARG;
+
+    my $conn = delete $data{'stdio_transport'}{'connections'}{$socket};
+    return if not defined $conn;
+
+    ## [ synthesize scope-leave for unmatched scope-enters ] ##
+    for my $origin ( reverse $conn->{'scope_stack'}->@* ) {
+        my $synth_rec = {
+            qw| tag        | => qw| META |,
+            qw| encoding   | => qw| nibble |,
+            qw| header     | => {
+                qw| subtype | => qw| scope-leave |,
+                qw| origin  | => $origin,
+            },
+            qw| payload_sref | => \'',
+        };
+        $conn->{'on_record'}->( $synth_rec, $socket );
+    }
+
+    for my $wk (qw| read write error |) {
+        my $w = $conn->{'watchers'}{$wk} // undef;
+        $w->cancel if defined $w and $w->is_active;
+    }
+
+    eval { shutdown( $socket, 2 ) };
+    close($socket);
+
+    <[base.logs]>->(
+        2,       'stdio transport disconnected [%s]: %s',
+        $socket, $reason // 'unknown'
+    );
+
+    return;
+}
+
+my ( $conn_handle, $tag, $encoding, $payload, $header_fields ) = @ARG;
+
+if ( not defined $conn_handle ) {
+    warn 'expected connection handle param <{C1}>';
+    return undef;
+}
+
+my $conn = $data{'stdio_transport'}{'connections'}{$conn_handle};
+if ( not defined $conn ) {
+    warn 'connection handle not found in transport registry <{C1}>';
+    return undef;
+}
+
+my $frame = <[base.stdio.frame.encode]>
+    ->( $tag, $encoding, $payload, $header_fields );
+
+return if not defined $frame;
+
+my $len     = bytes::length($frame);
+my $written = <[base.s_write]>->( $conn_handle, \$frame, $len );
+
+if ( $written < 0 ) {
+    _stdio_transport_disconnect( $conn_handle, 'write error' );
+    return;
+} elsif ( $written == 0 or $written < $len ) {
+    substr( $frame, 0, $written, '' ) if $written > 0;
+    push $conn->{'write_queue'}->@*, $frame
+        if bytes::length($frame) > 0;
+
+    if ( defined $conn->{'watchers'}{'write'}
+        and not $conn->{'watchers'}{'write'}->is_active ) {
+        $conn->{'watchers'}{'write'}->start;
+    } elsif ( not defined $conn->{'watchers'}{'write'} ) {
+        $conn->{'watchers'}{'write'} = <[event.add_io]>->(
+            {   fd     => $conn_handle,
+                poll   => qw| w |,
+                cb     => $write_handler,
+                data   => $conn_handle,
+                desc   => 'stdio transport write drain',
+                repeat => FALSE,
+            }
+        );
+    }
+}
+
+return $written;
+
+#,,..,,..,.,.,,..,..,,...,,..,.,,,,.,,..,,,..,..,,...,...,,,,,..,,...,..,,,,,,
+#HNGDFF3QPSNO4ODRZR6JJ4OY4M3ZAZ6OJJOBFEO3XQHZOAWYLFUUVD3QZZUFD2BTBQDK4PHIDEW6G
+#\\\|ICYNVFIZ42JJS4KJDT7FUZT4KXCEUKQ4VIGKU4FAJRPW5M7N2WK \ / AMOS7 \ YOURUM ::
+#\[7]CATVMJVYHLXND3MDIEVV6E6AGD2X3GCWSGSDFSGQ5KE7EDWW6QDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
