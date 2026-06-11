@@ -208,8 +208,8 @@ it has its own:
 - foldable child nodes of the same shape
 
 if any of those don't exist *yet*, the default behaviour is a generic
-fallback: `base.ui.query.fallback`, `base.ui.render.fallback`,
-`base.cmd.ui-show.fallback`. **a node never needs to declare itself a
+fallback: `ui.query.fallback`, `ui.render.fallback`,
+`ui.cmd.ui-show.fallback`. **a node never needs to declare itself a
 node** — its presence in the namespace is the declaration. zenki
 acquire UI by being addressable, not by implementing a UI interface.
 
@@ -219,6 +219,25 @@ it's the *fallback* end of the same tri-layer that
 credential_fabric proved at the *specific* end. it doesn't need
 custom rendering per zenka; it needs the base node-renders-as-tree
 behaviour, configurable per parent.
+
+### per-zenka ui extension pattern
+
+a zenka may define `<namespace>.ui.*` modules [ e.g.
+`credential_fabric.ui.render.tree` ] that call `ui.*` primitives
+directly [ `<[ui.fold]>`, `<[ui.unfold]>`, etc ]. no `base.` prefix
+and no `swap_subs` aliasing is needed — `ui.*` was never under
+`base.*`, so the names are already canonical.
+
+resolution order in `ui.unfold` already checks these in sequence:
+1. `<address>.ui.render.default` — zenka-specific renderer
+2. `<address>.cmd.ui-show` — zenka-specific command
+3. `ui.render.fallback` — shared fallback
+
+the `<address>.ui.*` namespace [ zenka extension ] and the `ui.*`
+namespace [ shared primitives ] are different things and must not
+collide. this is the same override relationship that
+`<namespace>.cmd.ui-show` already has with `ui.cmd.ui-show`:
+zenka-specific wins, shared fallback is always available.
 
 ### terminal-width-aware baseline
 
@@ -267,8 +286,8 @@ what the network already does, instead of trying to keep state itself.
 ## implementation queue [ rooted here ]
 
 new tasks generated from this document [ see `data/tasks/` ]:
-- `console-fold-primitive.md` — the generic `base.ui.fold.*` /
-  `base.ui.unfold.*` / `base.cmd.ui-show.fallback` primitives that any
+- `console-fold-primitive.md` — the generic `ui.fold.*` /
+  `ui.unfold.*` / `ui.cmd.ui-show.fallback` primitives that any
   zenka inherits by being addressable. this is the smallest first step.
 - `console-foldable-render-baseline.md` — width/height-aware default
   rendering of an address as foldable children, including the `[ +N
@@ -313,8 +332,8 @@ complete tree, *because both are already true* of the protocol-7
 namespace, P7REF, and the addressing trinity. the console layer's job
 is to stop denying it.
 
-#,,,,,,,.,.,.,,,.,..,,..,,..,,,.,,.,.,,..,.,,,..,,...,...,...,.,.,,.,,,,,,..,,
-#2ETKNPGE5DR4VG7JO253JUCJT7TEOIBXAAC75XRGUZBQC6DFHKMTWJK2KHHRLLM7JNZA5QLCJT3CM
-#\\\|K4NDISZZ7ZQ7GACECOAXPU53HTWN5IFNDQBU7JYC5INCVYWJ4BH \ / AMOS7 \ YOURUM ::
-#\[7]ADABHCCLMWP327EXODQEWX4BXFLQJN7LW7FU7VPMB735NZDUTCDY 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,.,,,.,,,,..,,,.,.,.,,,.,,,.,,,,,..,,...,...,..,,..,,...,,,,,..,,
+#FXESZOYQMIGISBBNRQE6AONW2J26EU6RJ6FBMXPIDALFAQELH7RP2YQMYYPIHOVJHXFZTDBZFUVPI
+#\\\|I7PRSHN7S2HF4QYPJZMX65BOCPBXU7PN55QRD3GFGG2P47BTLTZ \ / AMOS7 \ YOURUM ::
+#\[7]RG2ONVTNVFSY7HV4DR7T4KJ6SNVULCF45OWFVJYTJERIVU7KU4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

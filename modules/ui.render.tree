@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = base.ui.render.tree
+# name  = ui.render.tree
 # descr = render a node as a fitted, foldable tree against a budget
 # param = { address, slot_budget?, depth? = 0 }
 
@@ -13,7 +13,7 @@ return '' if not length $address;
 ## derive budget from tty if omitted
 if ( not defined $slot_budget ) {
     $slot_budget
-        = eval { <[base.ui.budget.tty]>->( { 'reserve_rows' => 2 } ) }
+        = eval { <[ui.budget.tty]>->( { 'reserve_rows' => 2 } ) }
         // { 'cols' => 80, 'rows' => 22 };
 }
 
@@ -40,7 +40,7 @@ my $inner_budget = {
 
 ## decide layout
 my $layout = eval {
-    <[base.ui.layout.fit]>->(
+    <[ui.layout.fit]>->(
         {   'address'     => $address,
             'slot_budget' => $inner_budget
         }
@@ -49,7 +49,7 @@ my $layout = eval {
 
 ## leaf node — render as folded handle when no children exist
 if ( not scalar @$layout ) {
-    my $handle = eval { <[base.ui.fold]>->( { 'address' => $address } ) };
+    my $handle = eval { <[ui.fold]>->( { 'address' => $address } ) };
     if (    defined $handle
         and ref $handle eq 'HASH'
         and exists $handle->{'data'} ) {
@@ -73,7 +73,7 @@ for my $entry ( $layout->@* ) {
 my $total_unfold_cost = 0;
 for my $entry (@unfold) {
     my $cost = eval {
-        <[base.ui.estimate.cost]>
+        <[ui.estimate.cost]>
             ->( { 'address' => $entry->{'child_address'} } );
     } // { 'rows' => 1, 'cols' => 40 };
     $entry->{'cost'} = $cost;
@@ -128,7 +128,7 @@ for my $i ( 0 .. $#unfold ) {
     $allocated = 1 if $allocated < 1;
 
     my $rendered = eval {
-        <[base.ui.render.tree]>->(
+        <[ui.render.tree]>->(
             {   'address'     => $entry->{'child_address'},
                 'slot_budget' => {
                     'cols' => $budget_cols,
@@ -151,7 +151,7 @@ for my $i ( 0 .. $#unfold ) {
 if ( scalar @fold > 0 ) {
     my $folded_count = scalar @fold;
     my $handle       = eval {
-        <[base.ui.fold]>->(
+        <[ui.fold]>->(
             {   'address' => "$address.__more__",
                 'kind'    => "+$folded_count more",
                 'summary' => '...'
@@ -178,8 +178,8 @@ if ($has_frame) {
 
 return $output;
 
-#,,,,,..,,,,.,,,.,..,,,.,,,,,,.,,,,.,,,,,,,,.,..,,...,...,,,,,..,,..,,.,,,,,.,
-#6EDSREXWMRMZBQIT2YJ5V7AP47QVHY7TCQJCLUFEZGUA62R74YGAB2UVB5YV6ALEZS66DCJHT5QRG
-#\\\|FVGBQHWZ3CPYYX4G53JOWKB7Y54FSNSFLLWT5PW7LJUFZRZE43S \ / AMOS7 \ YOURUM ::
-#\[7]L4FCVTFMPNB5QUKQE7WYHSTQIHCMHO733FAQ7XN52HST57DY2IBQ 7  DATA SIGNATURE ::
+#,,..,...,.,.,,.,,,..,,,.,,,,,,.,,,.,,,.,,,,,,..,,...,...,,..,,,,,,,,,,.,,.,,,
+#NPANCP74IGJAMLOVD32SNXKQTT3OOWO5XABMO42VMEDDHYLMSNWGCCWF6AMMYY6NTQWMTOJFRX63G
+#\\\|JC43C4XGBFDZIMVSMVC7D7ECFQEA27HCNCJEEQGY57UBRNBWGN4 \ / AMOS7 \ YOURUM ::
+#\[7]KD4RESAB7VXHXP2XSJE5HDWXNKPCGX3H4J5Z2YLP7UVJ5NQKCGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

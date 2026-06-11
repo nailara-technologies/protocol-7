@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = base.ui.layout.fit
+# name  = ui.layout.fit
 # descr = decide which children unfold and which fold, for a budget
 # param = { address, slot_budget, priority? }
 
@@ -79,7 +79,7 @@ my @child_info;
 for my $child (@children) {
     my $child_address = "$address.$child";
     my $cost          = eval {
-        <[base.ui.estimate.cost]>->( { 'address' => $child_address } );
+        <[ui.estimate.cost]>->( { 'address' => $child_address } );
     } // { 'rows' => 1, 'cols' => 40 };
     push @child_info,
         {
@@ -176,8 +176,8 @@ if ( $folded > 0 and $remaining < 1 ) {
 
 return \@layout;
 
-#,,.,,,.,,,,.,...,.,,,...,,,.,..,,.,.,...,..,,..,,...,...,...,,..,.,.,...,,..,
-#53PFP2GZBVPC32N4MX4THCG22HIUAQJ7RSXD3MDQJRERNRLRWWFPF4BDHJCWYQ2LLY2OUOPZ2YIFO
-#\\\|Q6J3LEP636B53WTPFLHP4V7G5HE6KDPLQS3CYIKXTYIVVXR3QUR \ / AMOS7 \ YOURUM ::
-#\[7]FWZBZQOEW77OWMNAVEZK4WXC2MKLZK2QMQZ6VEFAQN5BF3ZJMSDQ 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,,..,..,,,,,,,.,,...,,,,,,,,,.,,,..,,...,..,,..,,,.,,,,.,...,...,
+#CJJERPYZ6KBBUYBMUVEQ65VGEVINQHFA5MPH5MZB43WPIDFDCUAOEHE4QJAWAWPQFR6M2P4ZAQLFG
+#\\\|YHMP4I5ZYK6UDHV3OSESBY2HVHSXEMIRLEUPPIJY5FWNI3Z7SFP \ / AMOS7 \ YOURUM ::
+#\[7]KCCCANK6D2IEDFXYPN4DZP63TZ4QDIIV76N6LIPW2Z3QP6SXJEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

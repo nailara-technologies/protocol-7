@@ -102,14 +102,14 @@ every node is a complete tree. so:
   view; same `base.slot.*` machinery from `console-stdio-slot-
   addressing.md` ]
 
-the user can `p7c base.ui.show <zenka>.stdout` and get exactly the
+the user can `p7c ui.show <zenka>.stdout` and get exactly the
 default rendering [ the existing single-line relay form ]. they can
-`p7c base.ui.show <zenka>.stdout.filter` and see the currently
+`p7c ui.show <zenka>.stdout.filter` and see the currently
 attached filters as a foldable list. they can attach a new filter at
-`<zenka>.stdout.filter.<name>` and `base.ui.show <zenka>.stdout` now
+`<zenka>.stdout.filter.<name>` and `ui.show <zenka>.stdout` now
 re-renders with that filter behind it — no special wiring per zenka,
 because the *namespace* declared the structure and
-`base.ui.render.tree` did the rest.
+`ui.render.tree` did the rest.
 
 ## de- and re-attachable stdio — the layering
 
@@ -145,7 +145,7 @@ the philosophy is *almost* satisfied by what's there; the gap is the
    at `/dev/shm/.7/STDOUT/<sock>` and through `base.log`.
 2. **filter and render become addressable layers** — new
    `<zenka>.stdout.filter.*` sub-namespace + `<zenka>.stdout.view.*`
-   sub-namespace, both consumed by `base.ui.render.tree` for the
+   sub-namespace, both consumed by `ui.render.tree` for the
    address `<zenka>.stdout`. the v7 console line that `say`s every
    relayed line is recharacterised as *one default view bound to one
    default slot*, not as the relay itself.
@@ -217,7 +217,7 @@ with the fold primitives + slot addressing:
 
 1. user issues `p7c v7.console.filter.add name=errors-only re='\b(ERR|FATAL)\b' mode=keep` [ or hotkey ]
 2. a new filter node lands at `v7.console.filter.errors-only`
-3. `base.ui.render.tree` re-renders the v7 console slot, now driven
+3. `ui.render.tree` re-renders the v7 console slot, now driven
    through the filter chain → only matching lines paint
 4. unmatched lines still arrive at the store layer; they are present,
    addressable as `v7.console.unfiltered`, and a *second* slot bound
@@ -227,8 +227,8 @@ with the fold primitives + slot addressing:
    folds/unfolds the filter node — flipping filter on/off is the same
    operation as flipping any other foldable element's visibility
 
-the *button toggle / one-keypress* is literally `base.ui.fold` /
-`base.ui.unfold` against `v7.console.filter.errors-only` — no
+the *button toggle / one-keypress* is literally `ui.fold` /
+`ui.unfold` against `v7.console.filter.errors-only` — no
 filter-specific UI machinery. detailed task: `v7-console-log-filter-
 overlay.md` below.
 
@@ -246,7 +246,7 @@ with the fold primitives:
    groups by `instance_id` → zenka_name [ data already extracted in
    `v7.handler.process_output_line` ]
 3. each per-zenka group is a foldable child node at
-   `v7.console.view.by-zenka.<zenka>` — `base.ui.render.tree` handles
+   `v7.console.view.by-zenka.<zenka>` — `ui.render.tree` handles
    recursion automatically [ branch-as-complete-tree ]
 4. a globally-reserved hotkey moves the currently-bound slot's
    *content_address* between `v7.console` and `v7.console.view.by-
@@ -283,7 +283,7 @@ what `configure` provides on top of the base render-tree:
 - a decision-prompt sub-namespace `configure.decision.<id>` for
   "logical choice options grouped" — each decision is itself a
   foldable address, each option is a foldable child, selection is
-  `base.ui.unfold` of the chosen option
+  `ui.unfold` of the chosen option
 - *no custom rendering per zenka* — every node uses the base render-
   tree by default; a zenka may register an override at
   `<zenka>.ui.render.default` if and when it wants one
@@ -384,8 +384,8 @@ framing by being the smallest possible consumers of that language —
 they have almost no zenka-specific code because, per the philosophy
 doc, *they don't need any*.
 
-#,,,,,..,,.,.,,,.,..,,,.,,,.,,,,,,.,.,,,,,.,.,..,,...,...,,,.,,,,,..,,,..,...,
-#RCKFRQTNSAOJFSXJALE2BH4VC6FOEOUAKHZXWYVLMJEAB26AZ4E7QJLH3YQEYV2QANFYPEDI2T4SY
-#\\\|XB5MDE2CJO523KCMRCSZCHEFIQISLARV2ZF5UP3R7XFQ236HZL3 \ / AMOS7 \ YOURUM ::
-#\[7]EQLQEWCMMIAJS2JOLX27ZQGF2HCIT6O2UR2DNIHVBRLG2QNUXIBI 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,.,,,...,..,,...,,.,,..,,,,,,...,..,,...,...,...,..,,,..,,..,,,,,
+#DW2ZNL4U6FHSCQ3HNNQFZEOZT642HNYA22AEY2VDMN6JE7QCITVLWEL53L7B222XF2LLA5PIJFN3W
+#\\\|QBKDPJ6IHQ7VDH3BHO6QLIYB6P64OCM3ZNZSYKRAPYBKKRGETXZ \ / AMOS7 \ YOURUM ::
+#\[7]3SGNR4TIKSEPAL5RX2F3YVGDQHX526IVHH7RY3HLOT75NF6IQEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

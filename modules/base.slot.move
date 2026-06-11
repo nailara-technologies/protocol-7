@@ -61,7 +61,7 @@ if ( defined $geometry ) {
 ## re-render bound content into new slot dimensions
 if ( defined $entry->{'content_address'} and defined $entry->{'geometry'} ) {
     my $rendered = eval {
-        <[base.ui.unfold]>->(
+        <[ui.unfold]>->(
             {   'address'     => $entry->{'content_address'},
                 'slot_budget' => {
                     'cols' => $entry->{'geometry'}->{'cols'},
@@ -87,8 +87,8 @@ if ( defined $entry->{'geometry'} ) {
 
 return $stable;
 
-#,,,.,...,,,,,...,.,.,,,,,,..,,,,,..,,..,,,.,,..,,...,...,,,,,..,,,..,...,...,
-#JR4WYPUQTSCODWTHWJO6BPGENKLRKWVNGBMZPCTPFCDN2QSY7TRAYQDSHMUCGPWZHCYV3PCAB7HUI
-#\\\|LFDQCK7EIEL3XLTGYZY3OJGAQMGVG7DPNGGGTSUAQXBN3ZKP4WO \ / AMOS7 \ YOURUM ::
-#\[7]STMCBNQ2MF6HYBXXA3EOJ4RRNL6KXVTJYEE2AKDD2APCABPFASDY 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,.,,,,.,..,,,,,,..,,,..,,..,,.,,..,,...,...,,,.,,..,.,,,.,,,,,.,
+#MNHRP3UULXRFDHJ4THSIJARFQPUONYST6H3EXTIIG5BK4RMPESPF5RBYK5SH3QYSJWJ6VJ7M2ICA6
+#\\\|WXK76IGCQHRXS5E6X2RUGHVN7AQBS7ASWL2UCKITNCX63ZLHNSO \ / AMOS7 \ YOURUM ::
+#\[7]HE5JMOW34VGUIAIE7BD3PLMEVLBJHPAGTCWQADGWWOJVIDN2V2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
