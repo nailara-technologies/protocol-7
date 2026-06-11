@@ -17,6 +17,8 @@
 
 ## Active Topics
 - [cube-tree-dashboard](topic-cube-tree-dashboard.md) — planned ascii tree-view dashboard: per-zenka command/state trees, capability interrogation, push-registry watcher cache, zoom/crop
+- [ascii-minimap](topic-ascii-minimap.md) — planned btop2-style ascii minimap: proportional density bars, anti-aliased gaps, glow color, spotlight, placeholder-template borders
+- [dot-path-case-notation](topic-dot-path-case-notation.md) — uppercase=path level, lowercase-run=dotted key; %DATA/%CODE meta-namespace idea; design doc written
 - [global-ui-menu-tree](topic-global-ui-menu-tree.md) — addressable stdio slots + menu tree; settings (new)/configure (stub) zenki as starting points
 - [credential-fabric-proxy-transport](topic-credential-fabric-proxy-transport.md) — proxy round-trip WORKING (200 OK verified 2026-06-09); boot/UI fixes through b27ebb655; stale-socket issue clears on full P7 restart
 - [ascii-frame-system](topic-ascii-frame-system.md) — reverse parser, elastic renderer, DRC validator
@@ -326,8 +328,8 @@ clean restart.
   command modules — internal APIs only, not console-callable
 - on-demand auth (407/pending/approve flow) end-to-end not yet verified
 
-#,,..,.,.,,..,.,.,...,.,.,..,,,,.,.,.,.,.,,,.,...,...,..,,,.,,,..,,,,,.,.,...,
-#46FFT7XAJQIGJHASEXRI5JIFPNRBUAI6KJQHMY6YZQMSVDIZU5RFOUHKTFMITOTKXSWEFTICH7OQG
-#\\\|KHSRMVZ2KXAODJVWKXUYCA7BAPQBH4PXYEBJ2SA5QLV3GBCTARQ \ / AMOS7 \ YOURUM ::
-#\[7]2OQMZID2UTPNSPP76NHQAII6BWNFOSYKIVOFUDDEIFJAQRC4BAAI 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,,.,..,,,,.,,..,,,,,.,,,,.,,,.,,...,...,...,,..,,,.,...,...,,.,,
+#3APJRKA2PXSQI6HJWBZ2HWWMEMT3EM3GOLIFM5Y6LJYPLNNYYTM3FA6B7A47VRUWWMBXONI5PCBVQ
+#\\\|KJZ7COAGEBQD4MEFVKRNQB66T6KZFZZBZRGQBN36XCUULKLZWZD \ / AMOS7 \ YOURUM ::
+#\[7]WKNSR3OKAE5WZZMG6J3VO5RISK3COEC3XJVTBHJXZH2AKVP7YQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
