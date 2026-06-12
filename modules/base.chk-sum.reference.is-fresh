@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = base.chk-sum.reference.is-fresh
+# descr = check dated reference checksum against rolling prev/curr/next epoch window
+# param = $checksum_a, $checksum_b, $reference_checksum
+
+my ( $checksum_a, $checksum_b, $reference_checksum ) = @ARG;
+
+return warn 'expected checksum_a, checksum_b and reference_checksum <{C1}>'
+    if not defined $checksum_a
+    or not defined $checksum_b
+    or not defined $reference_checksum;
+
+## reference is fresh if it matches any of the prev/current/next epochs ##
+for my $epoch_num (
+    <[base.ntime.epoch_dec]>->(qw| prev |),
+    <[base.ntime.epoch_dec]>->(qw| current |),
+    <[base.ntime.epoch_dec]>->(qw| next |)
+) {
+    my $epoch_v7_string = <[base.ntime.harmonized_epoch]>->($epoch_num);
+
+    return TRUE
+        if <[base.chk-sum.reference]>->(
+        $checksum_a, $checksum_b, $epoch_v7_string
+        ) eq $reference_checksum;
+}
+
+return FALSE;
+
+#,,,,,.,,,,,,,.,.,.,.,...,.,.,,.,,,,,,.,,,,..,.,.,...,...,,,,,.,,,...,,,.,,,,,
+#HIYONFACRVNSD2OJAQTQ24HYHHZ42ECRVWFBXR2X53MSU5ILSKKYYY5G5LAOBRE67FITDP3HF4CF2
+#\\\|WTUMB3Z6PNDDTQNTLAM6T3QCV32Q34RIXXFOSUBWL27S3V5KI2N \ / AMOS7 \ YOURUM ::
+#\[7]IR5XYRSS4IT63DMPDFPXH6VPPVJXYRNFZL2GXSATLCJ2QLFZXSCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
