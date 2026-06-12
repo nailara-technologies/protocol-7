@@ -25,7 +25,7 @@ if ( $scope eq 'local' ) {
     }
 } elsif ( $scope eq 'regional' ) {
     if ( length $root ) {
-        @node_set = _collect_subtree_balance($root);
+        @node_set = <[branch.space.util.collect_subtree]>->($root);
     } else {
         @node_set = keys %{ $data{'branch.nodes'} // {} };
     }
@@ -94,25 +94,8 @@ return {
     }
 };
 
-##[ subtree collector ]##
-sub _collect_subtree_balance {
-    my ($root_id) = @_;
-    my @result    = ($root_id);
-    my @queue     = ($root_id);
-    while (@queue) {
-        my $cur      = shift @queue;
-        my $children = $data{'branch.children'}{$cur} // {};
-        for my $name ( keys %$children ) {
-            my $child_id = $children->{$name};
-            push @result, $child_id;
-            push @queue,  $child_id;
-        }
-    }
-    return @result;
-}
-
-#,,,,,,,.,,,,,,.,,.,,,.,.,...,.,.,,.,,,..,,,.,.,.,...,...,,..,..,,.,.,.,,,..,,
-#FXZEUQ7Q5GU7EAEBUOLDHK5H75T5JI5KYMKIWR7WYYFN42RMGWEU4AG74YP6OMVUYI5VJETWO3YT2
-#\\\|AOJJR5UVMO2P3UWMXRXRV4EYHBFKAN7VCDJIJJSOREKPZENG3CL \ / AMOS7 \ YOURUM ::
-#\[7]P44N6IWDIZCFWM7HFY57OIUZXYSMM3XN6FYZZMCZ6PERNQFBISCA 7  DATA SIGNATURE ::
+#,,..,,,.,,..,...,.,.,...,.,,,,,.,...,,,,,,,,,.,.,...,..,,.,,,,,.,.,,,,,,,.,.,
+#V2HJG76UW3M5MIGWO32SHV7ZVBZ2DHIWOLPXAUSQ7SIQWA3VYKKIJO6SHCK2JH5CXUDHG4MXWAJCY
+#\\\|RZXMYGBKMYJVSNB5P4ZUM224ALA3MO4WR24JUYE4P4IW54E7PDB \ / AMOS7 \ YOURUM ::
+#\[7]NZHT2J6NCMDRGJVJONBCVPO4PAGZCDGPNGU77YFE3CQZV3W5CQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

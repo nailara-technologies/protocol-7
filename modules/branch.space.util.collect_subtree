@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = branch.space.util.collect_subtree
+# descr = collect subtree node ids by bfs
+# param = $root_id
+
+my ($root_id) = @ARG;
+my @result    = ($root_id);
+my @queue     = ($root_id);
+while (@queue) {
+    my $cur      = shift @queue;
+    my $children = $data{'branch.children'}{$cur} // {};
+    for my $name ( keys %$children ) {
+        my $child_id = $children->{$name};
+        push @result, $child_id;
+        push @queue,  $child_id;
+    }
+}
+return @result;
+
+#,,..,...,.,.,.,.,,,.,.,.,.,,,.,.,,..,..,,,,.,..,,...,.,.,,..,,,.,...,.,.,,..,
+#3X5MJXZOXWHYMBFKWCYNSGLEQ45SOM6HUEAMM7DFKNOG5T2B5U4S5I4FVMCAVD66TLKQ67HDQGC5Q
+#\\\|Z7AG7GU3KTIL3AV5TZVYWR4LY64UVOC3SLS2JGWYL725CLQQX77 \ / AMOS7 \ YOURUM ::
+#\[7]FGFMKL6J7ORCS5COUIFUBXWONW26JIDK6TNXH2CNAC4BR5THQKDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

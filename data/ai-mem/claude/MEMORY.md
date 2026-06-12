@@ -1,4 +1,9 @@
+## Open Bugs
+- [mcp.kimi_dispatch undefined](bug-mcp-kimi-dispatch-undefined-sub.md) — branch.session.dag.parallel_dispatch:26 breaks `branch.reload [all]`, needs real fix
+
 ## CRITICAL
+- [kimi reload baseline noise](feedback-kimi-reload-baseline-noise.md) — don't make kimi prove pre-existing reload errors are pre-existing; check baseline yourself first
+- [kimi v7 console hint](feedback-kimi-v7-console-hint.md) — combined v7 console at `/dev/shm/.7/STDOUT/NIW7OAQ`, give kimi this path for live verification
 - [File Creation](feedback-file-io-api.md) — never add `#,,.,,,...` stub — blocks signing
 - [base. prefix stripped](feedback-base-prefix-stripped.md) — use `<[protocol-7.command.send.local]>` not `base.` prefix; check with `<zenka>.list-subs`
 - [.cmd. segment stripped](feedback-cmd-segment-stripped.md) — `<zenka>.cmd.<name>` on disk = callable as `<zenka>.<name>`; verifying live 2026-06-08
@@ -331,8 +336,8 @@ clean restart.
   command modules — internal APIs only, not console-callable
 - on-demand auth (407/pending/approve flow) end-to-end not yet verified
 
-#,,.,,,,,,,,.,,,,,,..,,.,,,.,,...,.,,,,,,,,,.,...,...,...,,,.,,..,...,,,.,,,.,
-#YN3XSRQWDCTFKRBGKKYLHV6N37ZDRYXMEDFQAYOH4ARGF25VKMJZCUN2VR3KLVDPBCVG22ASXXMJK
-#\\\|536UPCY2IWPOESEEHANL5N6URRT7O6SIH3M7FALK5RJCSH7EQ7W \ / AMOS7 \ YOURUM ::
-#\[7]2DI4FG3T6X6N37OO5C4CLYLQ3PKCL45E3WZGB2BHEGO32ULF2WBI 7  DATA SIGNATURE ::
+#,,.,,,..,,..,.,,,.,.,.,.,.,.,,..,,..,...,.,.,...,...,.,,,.,,,.,,,,..,,,,,,..,
+#FO746DZMGBE3KQGDSHRTDOQJOZG3C2HSESSBUMVHAG4PQLD5HF3Q73IRNX56XIMHGNL7MSOCJGM5U
+#\\\|OZCDGREE5CXBOKQFYM5MHH3SXG4WE2VKUHJ4CJQIMHDKFGN4V56 \ / AMOS7 \ YOURUM ::
+#\[7]OYG6JTC54MNFSVTEY6FMIQXG3PBG4355TNN4AD5GW25FN5IKTCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
