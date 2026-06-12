@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = base.stdio.frame.encode.encode_nibble
+# param = $bytes
+# descr = encode bytes to nibbles and split
+#         each nibble into two base-7 frames
+
+my $bytes = shift;
+return () if not length $bytes;
+
+my @frames;
+for my $byte ( unpack( qw| C* |, $bytes ) ) {
+    for my $nib ( ( $byte >> 4 ) & 0xF, $byte & 0xF ) {
+        my $d0 = int( $nib / 7 ) + 1;
+        my $d1 = ( $nib % 7 ) + 1;
+        push @frames,
+            <[base.stdio.frame.encode.pack_nibble]>->( $d0, 0 ),
+            <[base.stdio.frame.encode.pack_nibble]>->( $d1, 0 );
+    }
+}
+
+return @frames;
+
+#,,.,,..,,,,.,..,,,,,,...,.,.,.,.,..,,,,.,.,,,..,,...,...,,..,,,,,...,..,,..,,
+#62H4QPJJLO6EFZBT7KNHKUUZE6UW3OSU2ZQZN5BZJ2JKYTRESSBTST4UY67LR3UAEPMN5PGOPDOBW
+#\\\|JOW76PONUX7NKQ3A26BJUVIFSUTMAXVFQLUD3FRLFLXY3DIP6V7 \ / AMOS7 \ YOURUM ::
+#\[7]ES4TC5VZ4R3TYBQR73TOZS2HVTE3KACUKRZASPI5PKBT6QWIE2AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -17,7 +17,9 @@ my $write_handler = sub {
         my $written = <[base.s_write]>->( $socket, $buf_ref, $len );
 
         if ( $written < 0 ) {
-            _stdio_transport_disconnect( $socket, 'write error' );
+            <[base.stdio.transport.emit.disconnect]>->(
+                $socket, 'write error'
+            );
             return;
         } elsif ( $written == 0 ) {
             last;
@@ -32,42 +34,6 @@ my $write_handler = sub {
 
     return;
 };
-
-sub _stdio_transport_disconnect {
-    my ( $socket, $reason ) = @ARG;
-
-    my $conn = delete $data{'stdio_transport'}{'connections'}{$socket};
-    return if not defined $conn;
-
-    ## [ synthesize scope-leave for unmatched scope-enters ] ##
-    for my $origin ( reverse $conn->{'scope_stack'}->@* ) {
-        my $synth_rec = {
-            qw| tag        | => qw| META |,
-            qw| encoding   | => qw| nibble |,
-            qw| header     | => {
-                qw| subtype | => qw| scope-leave |,
-                qw| origin  | => $origin,
-            },
-            qw| payload_sref | => \'',
-        };
-        $conn->{'on_record'}->( $synth_rec, $socket );
-    }
-
-    for my $wk (qw| read write error |) {
-        my $w = $conn->{'watchers'}{$wk} // undef;
-        $w->cancel if defined $w and $w->is_active;
-    }
-
-    eval { shutdown( $socket, 2 ) };
-    close($socket);
-
-    <[base.logs]>->(
-        2,       'stdio transport disconnected [%s]: %s',
-        $socket, $reason // 'unknown'
-    );
-
-    return;
-}
 
 my ( $conn_handle, $tag, $encoding, $payload, $header_fields ) = @ARG;
 
@@ -91,7 +57,7 @@ my $len     = bytes::length($frame);
 my $written = <[base.s_write]>->( $conn_handle, \$frame, $len );
 
 if ( $written < 0 ) {
-    _stdio_transport_disconnect( $conn_handle, 'write error' );
+    <[base.stdio.transport.emit.disconnect]>->( $conn_handle, 'write error' );
     return;
 } elsif ( $written == 0 or $written < $len ) {
     substr( $frame, 0, $written, '' ) if $written > 0;
@@ -116,8 +82,8 @@ if ( $written < 0 ) {
 
 return $written;
 
-#,,..,,..,.,.,,..,..,,...,,..,.,,,,.,,..,,,..,..,,...,...,,,,,..,,...,..,,,,,,
-#HNGDFF3QPSNO4ODRZR6JJ4OY4M3ZAZ6OJJOBFEO3XQHZOAWYLFUUVD3QZZUFD2BTBQDK4PHIDEW6G
-#\\\|ICYNVFIZ42JJS4KJDT7FUZT4KXCEUKQ4VIGKU4FAJRPW5M7N2WK \ / AMOS7 \ YOURUM ::
-#\[7]CATVMJVYHLXND3MDIEVV6E6AGD2X3GCWSGSDFSGQ5KE7EDWW6QDQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,.,,,.,,,,..,,,,,..,,,..,..,,,,.,..,,...,...,,,.,.,,,.,.,,.,,,..,
+#ZE5M6DZR2U2SUZSSWYL356KTO3HEJW4MNLXF5JHJ7PFVQKDZ4J4QJXKLRTPMCM64Q74MP64C5VEMU
+#\\\|FT734NLCORVIEAFS3Y2OZDZSN7WUUOP55C4XK7GRCGFPAUCEDDZ \ / AMOS7 \ YOURUM ::
+#\[7]F3UCB3JRMKQCGDU66W6NTVH4JX6LQPYPM3OMU7S5QWF77ZQ5L4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
