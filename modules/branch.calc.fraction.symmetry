@@ -30,11 +30,11 @@ if ( <[branch.calc.fraction.terminates]>->( $numerator, $denominator ) ) {
     while ( $yy % 2 == 0 ) { $yy /= 2; $k++; }
     while ( $yy % 5 == 0 ) { $yy /= 5; $k++; }
 
-    my $n = $numerator * ( 10**$k ) / $denominator;
-    my $a = int( $n / ( 10**$k ) );
-    my $b = $n % ( 10**$k );
+    my $n         = $numerator * ( 10**$k ) / $denominator;
+    my $int_part  = int( $n / ( 10**$k ) );
+    my $frac_part = $n % ( 10**$k );
 
-    return qw| self-ref | if $a == $b;
+    return qw| self-ref | if $int_part == $frac_part;
     return qw| none |;    ## [ terminating but not self-ref ] ##
 }
 
@@ -58,8 +58,8 @@ return qw| none |;
 
 #,,,.,,,,,,,,,,.,,.,.,,.,,..,,...,,.,,.,,,,.,,..,,...,...,,.,,...,.,.,,,,,...,
 
-#,,.,,,..,..,,,.,,...,,.,,..,,,..,...,..,,..,,..,,...,...,.,,,,..,,,.,.,.,.,.,
-#EY4C4OVZZ7K4H5GFZOHCGXEN3SB3KNOND7JDT5P7F7D7STXT7ARJECBZWOK44DGTB6C36AU6HOLYC
-#\\\|RDAKZ2SVWGEPDY3AXH4U6RZXSDXW5VBOCIQWGEBAVF2NLQI3G43 \ / AMOS7 \ YOURUM ::
-#\[7]2J357MMGR5NW7Z65X5FQU2E22P7BS4HC6XYQ4TRWH44DUJOVX6DI 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,,,,..,,.,,,,,.,,,,,,..,,.,,...,..,,...,...,,,,,,..,.,,,...,...,
+#BHRPVUGTOHPPFE4OLVPUU76P7MHHIG5YJYDJWTASJZVUNRDRKQZWANWYOD2Y44ILTUIXJTYSTBMN4
+#\\\|RY6I2VF4TOXAW47PXEBKFATJR55MCVTEOIQMVCKHCMCJESQAX4L \ / AMOS7 \ YOURUM ::
+#\[7]DRHEZVZTEJEQZIWN6EJDOPP5N42RSN7HYDCHWXKXTNGNHGAVZIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
