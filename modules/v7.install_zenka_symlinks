@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = v7.install_zenka_symlinks
-# descr = install p7.<zenka> symlinks for console-only zenki access
+# descr = install v7.<zenka> symlinks for console-only zenki access
 # todo  = use internal base.file routines .,.
 
 my $root_path     = <system.root_path>;
@@ -15,7 +15,7 @@ return FALSE unless -x $protocol7_bin;
 return FALSE
     unless -d $symlink_dir and -w $symlink_dir;    ## <- add warning ##
 
-<[base.log]>->(': checking zenki-alias symlinks [ p7.* ]');
+<[base.log]>->(': checking zenki-alias symlinks [ v7.* ]');
 
 ## list of [symlinked] zenki ##
 my %console_zenki;
@@ -61,7 +61,7 @@ my $installed_count = 0;
 my $updated_count   = 0;
 
 foreach my $zenka_name (@zenki_list) {  # implement zenka symlink skip-list[!]
-    my $symlink_path = sprintf qw| %s/p7.%s |, $symlink_dir, $zenka_name;
+    my $symlink_path = sprintf qw| %s/v7.%s |, $symlink_dir, $zenka_name;
 
     ## check if symlink already exists and is current
     ##
@@ -84,7 +84,7 @@ foreach my $zenka_name (@zenki_list) {  # implement zenka symlink skip-list[!]
         }
     }
 
-    ### creating symlink ### [ /usr/local/bin/p7.,. ]
+    ### creating symlink ### [ /usr/local/bin/v7.,. ]
     ##
     if ( symlink( $protocol7_bin, $symlink_path ) ) {
         $installed_count++;
@@ -117,8 +117,8 @@ if ( $installed_count > 0 or $updated_count > 0 ) {
 
 return $installed_count + $updated_count;
 
-#,,.,,,,,,,.,,,,,,.,.,.,,,...,.,,,,,.,,,,,.,.,..,,...,...,,,.,,..,...,,..,...,
-#EIUHMSTAZIAN2EC62P37G4KKVXPAEQCU2VSAL5HAQRGMQZWUB6HFK623Q5ICZEFYHMQNTH6K4HQ4G
-#\\\|E3F6NGLQIBWJEQKQGGGFIL2OTTUF3FJC6FTWKSX6KXA4B7VJ7VM \ / AMOS7 \ YOURUM ::
-#\[7]FB2E3DB4EOLWVRNA2NJVX3OGWFHRGVR6U4WJB7IDAXBCAC7SHQDI 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,,,,,..,,.,,...,.,,,,..,.,.,.,,,..,,...,...,,,.,,.,,,,,,,..,...,
+#KUOPOISUV6SCPVD3EDZKFN6MURNHXG5SUNSIJHYIV5DKOK5F6ICVFLZLDDX5DBLNVDEMLYIDZIIVG
+#\\\|DCSPZUQCDWPHVRVBDHMCLAFNF6XBWVF25QNO73YLQF47ZUU7NTJ \ / AMOS7 \ YOURUM ::
+#\[7]GIKIQNJAFY43GRNOLA4I3ZKVZSFXUWLAOF677LWOSEPY5FQ74UAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
