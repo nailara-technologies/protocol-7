@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = base.stdio.frame.decode.decode_b32
+# param = $data_ref  [ arrayref of base-7 digit values, 1-based ]
+# descr = decode a b32-encoded data run back into raw bytes
+
+my $data_ref = shift;
+
+my @indices;
+for ( my $j = 0; $j < @$data_ref; $j += 2 ) {
+    last if $j + 1 >= @$data_ref;
+    my $d0 = $data_ref->[$j] - 1;
+    my $d1 = $data_ref->[ $j + 1 ] - 1;
+    push @indices, $d0 * 7 + $d1;
+}
+
+my $alphabet = qw| ABCDEFGHIJKLMNOPQRSTUVWXYZ234567 |;
+my $b32      = join '', map { substr $alphabet, $_, 1 } @indices;
+
+return Crypt::Misc::decode_b32r($b32);
+
+#,,,.,,..,,..,,..,,,,,,.,,,,,,,,,,.,,,.,,,,,.,..,,...,...,.,.,.,.,,.,,.,,,.,,,
+#ET23RODCCREX2X4QJ5BJNYVX43ISRBA55K7NGYXGEQRWZ5FEJ37CUMNJQSYQZ2DW2F76O4JXVLVF2
+#\\\|NR437FGPCXVWTD3V3IC4JUOMBKJPTFRDD5EJ6PAGUCY77L27Y2M \ / AMOS7 \ YOURUM ::
+#\[7]R5STXZREWJLE6BBNBY4Q347BORKCKDNUV7VWSI5TDH2SVQA5EQDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
