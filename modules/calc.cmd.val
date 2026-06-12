@@ -34,12 +34,16 @@ return {
     }
     if not defined $value_str;
 
+<[base.stdio_multiplex.emit_num]>->( 'value', $value_str );
+
 ### plain value mode ###
 return { 'mode' => qw| true |, 'data' => $value_str } if $plain_value;
 
 ### formatted mode ###
 $expr_str =~ s,^ +| +$,,g;
 my $result_str = sprintf '____ %s ___ [ %s ]', $value_str, $expr_str;
+
+<[base.stdio_multiplex.emit_eout]>->( 1, \"$result_str\n" );
 
 <[base.buffer.add_line]>->( $cb_name, join( ' ', qw| 0 0 |, $result_str ) )
     if not $plain_value;
@@ -49,8 +53,8 @@ return {
     'data' => sprintf( "        %s\n\n", $result_str )
 };
 
-#,,,,,,..,,,,,,,,,,..,,,,,,.,,...,,,.,,.,,...,..,,...,...,,,.,,.,,.,.,,,.,,..,
-#CWOP3VVTZ7YUCUTWMFLTYYV3I4ZRWB2NXNJRABLNYACCQZQ4SK6ROEOO4NFRONQV4F5K2V25DQEN4
-#\\\|ZEY5VQ6EQ4WSZVRSA2ASPHQNZ4OH3HSWK7I3BHDYF6EOPN65CTK \ / AMOS7 \ YOURUM ::
-#\[7]REUYM74BMIRPOMUFJ2M7OOGJRCMSSILHQLYELMIMG2CXVTFDCGBQ 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,..,...,,.,,.,.,...,..,,..,,.,,,..,,...,...,.,.,.,.,...,,..,.,.,
+#5VZYT5BBSUKBMID5V62JLNZ6RFSSEINKUPYAYLXH4U7XPAFAAYQ5HJNNBIDKK3FOO5YVHT2VAIACQ
+#\\\|OISVYKBNLTTOQ6M42ZACRHEQ64L2BSEGJSE44VAWMPGOBRCR644 \ / AMOS7 \ YOURUM ::
+#\[7]OJYQWABGAYW27TOHSHLWZ6LJS6X3WHH4TS7O4FHAPFL6E2MT2EBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
