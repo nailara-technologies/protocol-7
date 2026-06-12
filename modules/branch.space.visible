@@ -35,9 +35,9 @@ if ( $scope eq 'local' ) {
 } elsif ( $scope eq 'regional' ) {
     my $parent = $observer->{'parent'} // '';
     if ( length $parent ) {
-        @node_set = _collect_subtree_visible($parent);
+        @node_set = <[branch.space.util.collect_subtree]>->($parent);
     } else {
-        @node_set = _collect_subtree_visible($observer_node);
+        @node_set = <[branch.space.util.collect_subtree]>->($observer_node);
     }
 } else {
     ## global ##
@@ -47,7 +47,9 @@ if ( $scope eq 'local' ) {
 
 ## omni mode: return all nodes with observer first ##
 if ( $focal_length eq 'omni' or $focal_length == 0 ) {
-    my @result = _build_visible_result( $observer_node, \@node_set, $scope );
+    my @result = <[branch.space.util.build_visible_result]>->(
+        $observer_node, \@node_set, $scope
+    );
     @result = sort { $a->{'shell'} <=> $b->{'shell'} } @result;
     return { 'mode' => 'true', 'data' => \@result };
 }
@@ -57,9 +59,9 @@ my $max_shell = int( 63 / $focal_length );
 $max_shell++ if 63 % $focal_length;
 
 ## rank all nodes in scope and filter ##
-my @ranked
-    = map { { 'id' => $ARG, 'ref_count' => _ref_count_visible($ARG), } }
-    @node_set;
+my @ranked = map {
+    { 'id' => $ARG, 'ref_count' => <[branch.space.util.ref_count]>->($ARG), }
+} @node_set;
 
 @ranked = sort {
            $b->{'ref_count'} <=> $a->{'ref_count'}
@@ -102,86 +104,8 @@ for my $i ( 0 .. $#ranked ) {
 
 return { 'mode' => 'true', 'data' => \@result };
 
-##[ build result for omni mode ]##
-sub _build_visible_result {
-    my ( $observer_node, $node_set_aref, $scope ) = @_;
-    my @nodes = @$node_set_aref;
-    my @ranked
-        = map { { 'id' => $ARG, 'ref_count' => _ref_count_visible($ARG), } }
-        @nodes;
-
-    @ranked = sort {
-               $b->{'ref_count'} <=> $a->{'ref_count'}
-            || $a->{'id'} cmp $b->{'id'}
-    } @ranked;
-
-    my $total_nodes = scalar @ranked;
-    my $n           = int( $total_nodes / 2 ) + ( $total_nodes % 2 );
-    my @result;
-
-    push @result,
-        {
-        'node_id'  => $observer_node,
-        'shell'    => 0,
-        'position' => 0,
-        };
-
-    for my $i ( 0 .. $#ranked ) {
-        my $rank = $i + 1;
-        my $pos  = int( ( $rank + 1 ) / 2 );
-        $pos = -$pos if $rank % 2 == 0;
-        my $shell = abs($pos);
-
-        push @result,
-            {
-            'node_id'  => $ranked[$i]->{'id'},
-            'shell'    => $shell,
-            'position' => $pos,
-            };
-
-        $data{'branch.space.positions'}{$scope}{ $ranked[$i]->{'id'} } = {
-            'position' => $pos,
-            'shell'    => $shell,
-            'n'        => $n,
-        };
-    }
-    return @result;
-}
-
-##[ reference count resolver ]##
-sub _ref_count_visible {
-    my ($id) = @_;
-    my $n = $data{'branch.nodes'}{$id} // {};
-    return $n->{'ref_count'} if defined $n->{'ref_count'};
-
-    my $root = $data{'branch.root'} // '';
-    if ( length $root and exists $data{'branch.interest'}{$root}{$id} ) {
-        return $data{'branch.interest'}{$root}{$id};
-    }
-    my $children = scalar keys %{ $data{'branch.children'}{$id} // {} };
-    my $groups   = scalar @{ $n->{'groups'}                     // [] };
-    return $children + $groups;
-}
-
-##[ subtree collector ]##
-sub _collect_subtree_visible {
-    my ($root_id) = @_;
-    my @result;
-    my @queue = ($root_id);
-    while (@queue) {
-        my $cur = shift @queue;
-        next if $cur eq $root_id and @result;    ## skip root after first ##
-        push @result, $cur;
-        my $children = $data{'branch.children'}{$cur} // {};
-        for my $name ( keys %$children ) {
-            push @queue, $children->{$name};
-        }
-    }
-    return @result;
-}
-
-#,,,.,.,.,...,,,.,.,.,.,.,,,,,.,,,.,.,,,,,,..,.,.,...,..,,,.,,,,,,,,,,,,.,.,.,
-#HJCQST6UYWEFVVRA65HO4GC3OASMNXPB6EFN44XFX3TOE4WKGGAEN57E7EFGGKPFYRZARM5TS453Y
-#\\\|SVWAPS2RWE5GIBQO2KE3ZI3G6TCS3HK6EBXZISLZWGJHEYH72JB \ / AMOS7 \ YOURUM ::
-#\[7]DVJXFJIVNAOA6UCFFC2FANT2K5CSKQIIIUMTOTR25DDFAQI5B2CY 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,,,,,.,,,,.,,..,,,,,,,,,.,.,...,.,.,...,...,,,.,,,.,.,,,,,.,,,.,
+#LFH2R7TAJCYUPB47CFFWPFKMN322JQQ557LOB3EDOBKRMJMCO7UHT5JQOGADBDY5ZI26HXL2CGXMA
+#\\\|LVN7DDMPDDI4NJN55ATMOAHKGUWSBCIGA2QZW3DVBRFVNQ4UD6W \ / AMOS7 \ YOURUM ::
+#\[7]4JLASA4VVIQXTE5ZSZZF76WXAG3EGUQECITA635F3L4PL7PBJKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

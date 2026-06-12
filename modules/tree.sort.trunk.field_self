@@ -24,7 +24,8 @@ my $trunk = <[tree.sort.trunk.remainder]>->($cancelled);
 my @remainder_grid;
 for my $c     ( 0 .. 4 ) { $remainder_grid[$c] = []; }
 for my $entry (@$trunk) {
-    my $c = $entry->{'col'} // _layer_to_col( $entry->{'layer'} // '' );
+    my $c = $entry->{'col'}
+        // <[tree.sort.trunk.layer_to_col]>->( $entry->{'layer'} // '' );
     next if not defined $c;
     my $r = $entry->{'row'} // 0;
     $r = 6 if $r > 6;
@@ -60,21 +61,8 @@ $node->{'children'} = \@sub_branches if @sub_branches;
 
 return [$node];
 
-## [ helper ] ##
-sub _layer_to_col {
-    my $layer = shift;
-    my %map   = (
-        qw| task     | => 0,
-        qw| template | => 1,
-        qw| design   | => 2,
-        qw| intent   | => 3,
-        qw| address  | => 4,
-    );
-    return $map{$layer};
-}
-
-#,,.,,,..,,,,,...,,..,..,,,.,,,.,,.,.,...,.,,,..,,...,...,,.,,..,,,,.,...,,,.,
-#4SP47YCM5SUURE536NVPRTLSSX5UU64Q7MJLJG263ISCK3XMT7ZN45IIPHUQT7BNIYGLW4PI4NYAQ
-#\\\|2DDSU6BUMK7PAQUP4TJTAVNWYTZRZFYYIYBTUZY2K4KZIYODV3B \ / AMOS7 \ YOURUM ::
-#\[7]VNMMSQTNQL2SUJW74WU5VSNAOKWBEGRNTBC4LON2GCFGMANVYEDY 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,,.,...,,..,,,.,..,,.,.,.,,,.,.,..,,...,...,...,,,,,.,.,...,.,.,
+#TAH5PANLKFAIRT44A74XF6PNBQGDWCOI6WZM6GF6HPYPFPNS7WSGCFVJIEVQVH4UWMA5PZVUYCL7Y
+#\\\|VNUWUNJUG2J552ZQ5KEQU66YQX2WNXEGTJLSLVM2B4DQPOHFET4 \ / AMOS7 \ YOURUM ::
+#\[7]AQZXGQBXHBJ5ADQ7K2P7GJXW5C6QKRWILDV4IXGTUICWAELFAACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

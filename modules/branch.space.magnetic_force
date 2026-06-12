@@ -23,7 +23,7 @@ my $max_group_force = 0;
 my $dominant_group  = '';
 
 ## resolve this node's position ##
-my $this_pos = _position_for( $node_id, $scope );
+my $this_pos = <[branch.space.util.position_for]>->( $node_id, $scope );
 
 for my $group_name (@$groups) {
     my $members     = $data{'branch.groups'}{$group_name}{'members'} // [];
@@ -32,8 +32,9 @@ for my $group_name (@$groups) {
     for my $member_id (@$members) {
         next if $member_id eq $node_id;
 
-        my $other_pos = _position_for( $member_id, $scope );
-        my $dist      = abs( $other_pos - $this_pos );
+        my $other_pos
+            = <[branch.space.util.position_for]>->( $member_id, $scope );
+        my $dist = abs( $other_pos - $this_pos );
         $dist = 1 if $dist < 1;    ## minimum distance guard ##
 
         my $f = ( $other_pos - $this_pos ) / ( $dist * $dist );
@@ -64,24 +65,8 @@ return {
     }
 };
 
-##[ position resolver ]##
-sub _position_for {
-    my ( $id, $scope ) = @_;
-    if ( exists $data{'branch.space.positions'}{$scope}{$id} ) {
-        return $data{'branch.space.positions'}{$scope}{$id}{'position'} // 0;
-    }
-    my $res = <[branch.space.rank]>->(
-        {   'node_id' => $id,
-            'scope'   => $scope,
-        }
-    );
-    return $res->{'data'}{'position'} // 0
-        if ref $res eq qw| HASH | and $res->{'mode'} eq 'true';
-    return 0;
-}
-
-#,,,,,,,,,.,,,.,.,.,,,.,.,.,.,...,,.,,.,.,,,,,.,.,...,...,..,,,..,.,.,,.,,.,.,
-#22WK2WIZX6V7PO3PWX3QZ3ZW33UIWOUCHTNS7HD2MOT5M5V3ONWV7GU2BUDJXBFOUETQPAJHJAYAI
-#\\\|ZSY7JOW6O6R732RFXXIQU24FV6Z4XFHPBWI46ORRI3BWOYO5YEM \ / AMOS7 \ YOURUM ::
-#\[7]BJSBOZF2TV5PUPSORSFI2UMQR3DFKALH32FJN5IJLRXSWNC7HMBY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,,,,,..,.,,,,,.,,..,,..,,,.,...,.,.,...,...,..,,,..,.,,,.,,,...,
+#3GBXYA6ZBU7SSYC2TQJFJZ4V7NGJEXKNYO2P5YK6PV4WHHDK2744C3QQEOGUWWFCVWSTUE4NCDVJ6
+#\\\|F6HOGZEH2VS4NO33KC33MRISX43A2VVNYKTXE5GXGBPYJNO7BR5 \ / AMOS7 \ YOURUM ::
+#\[7]DEZTYCOPITTLTOAKH5T24SHU3LJ65FERXQU3UPRPKW5FI3PAVGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
