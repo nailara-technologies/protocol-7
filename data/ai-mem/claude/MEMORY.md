@@ -1,6 +1,3 @@
-## Open Bugs
-- [mcp.kimi_dispatch undefined](bug-mcp-kimi-dispatch-undefined-sub.md) — branch.session.dag.parallel_dispatch:26 breaks `branch.reload [all]`, needs real fix
-
 ## CRITICAL
 - [kimi reload baseline noise](feedback-kimi-reload-baseline-noise.md) — don't make kimi prove pre-existing reload errors are pre-existing; check baseline yourself first
 - [kimi v7 console hint](feedback-kimi-v7-console-hint.md) — combined v7 console at `/dev/shm/.7/STDOUT/NIW7OAQ`, give kimi this path for live verification
@@ -336,8 +333,8 @@ clean restart.
   command modules — internal APIs only, not console-callable
 - on-demand auth (407/pending/approve flow) end-to-end not yet verified
 
-#,,.,,,..,,..,.,,,.,.,.,.,.,.,,..,,..,...,.,.,...,...,.,,,.,,,.,,,,..,,,,,,..,
-#FO746DZMGBE3KQGDSHRTDOQJOZG3C2HSESSBUMVHAG4PQLD5HF3Q73IRNX56XIMHGNL7MSOCJGM5U
-#\\\|OZCDGREE5CXBOKQFYM5MHH3SXG4WE2VKUHJ4CJQIMHDKFGN4V56 \ / AMOS7 \ YOURUM ::
-#\[7]OYG6JTC54MNFSVTEY6FMIQXG3PBG4355TNN4AD5GW25FN5IKTCDQ 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,.,,,..,,,.,..,,..,,,..,..,,.,,,...,...,...,,,,,,..,.,.,...,..,,
+#Z5O66JS7QELG6233UFZF57BRBOJGMV6NPD7CARK6IT3G5BJF3ZEE4EJLZ25VRMDCQNESRWS3M26CW
+#\\\|CQZDDZYXHSWI3P5BJCKCDYC6PJLL3F3YSFK2PCDTJHATKE5HTDE \ / AMOS7 \ YOURUM ::
+#\[7]P7SIFPNY3X2MGVJFXMSTD2VSNW3OHPIWEZCSYAYAYAS3FVHMNABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

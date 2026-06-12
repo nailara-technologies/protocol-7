@@ -22,24 +22,19 @@ if ( not <[branch.session.policy.threshold]>->($score) ) {
     $target, $intent, $score
 );
 
-my $result = eval {
-    <[mcp.kimi_dispatch]>->(
-        {   'target' => $target,
-            'intent' => $intent,
-            'score'  => $score,
-        }
-    );
-};
+## [LLL] no cross-zenka dispatch path to kimi exists yet from branch -
+## this is a stub until that wiring is designed [ see bug-mcp-kimi-
+## dispatch-undefined-sub memory note ]
+<[base.logs]>->(
+    2,
+    'parallel_dispatch stub: would dispatch target=%s intent=%s score=%.3f',
+    $target, $intent, $score
+);
 
-if ($EVAL_ERROR) {
-    <[base.s_warn]>->( 'dispatch failed: %s', $EVAL_ERROR );
-    return 0;
-}
+return 0;
 
-return defined $result ? 1 : 0;
-
-#,,.,,..,,,.,,.,,,,,.,,..,,.,,..,,,,,,,.,,..,,..,,...,...,.,.,,..,...,...,,,.,
-#G2YHIT2OWRWKX4ZJAOSLWOBKYUA6BYUK25XR3NXDE3LHOIOY5CGG554ENAEVK366UD3VLDNBF6O7C
-#\\\|SSGR2KEAMTPPDB4TKAZEQTFTW2X7WBAZHPEABYQD2NPCPAZZDLP \ / AMOS7 \ YOURUM ::
-#\[7]3IZQBE465IL4HGZG4ADP4ZDX5JEFZTR4BGKCZLXPKW2542HKZ6CQ 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,.,.,,.,,.,.,,,.,,,,,..,,,.,,..,,..,,...,...,.,.,,,,,,,,,.,.,,,,,
+#IS56YOZK2AB33GL5XY4IC6NVXH5WZCIQBIW4MI36MRMEAQR5V6BNN2ZC2DYSREVLRUT3KL6B5K4R4
+#\\\|26LXOEFGW7YO525E2SFL4GYP4YTU6JX4ZENVZYU2CKTH2NTCKNL \ / AMOS7 \ YOURUM ::
+#\[7]FA6IEIC4SV5FULSWKOEHWUDTQSR7GJ4MHSXN574SSEPQDYRGZSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
