@@ -17,6 +17,9 @@ my $tmp_dir_owner = <system.amos-zenka-user>;
 ##  zenka stdout redirection  ##
 <[v7.setup_stdout_redir]> if <[base.cfg_bool]>->(<v7.cfg.zenka_stdout_redir>);
 
+## [ open stdio multiplex listeners for opted-in zenki ] ##
+<[v7.handler.stdio_multiplex_listen]>;
+
 if ( ref <v7.start_setup.zenki.startup.start_order> ne qw| ARRAY |
     or <v7.start_setup.zenki.startup.start_order>->@* == 0 ) {
     <[base.log]>->( 0, ':. no zenki to start found, giving up..,' );
@@ -86,8 +89,8 @@ print Dumper( $data{'jobqueue'} )
 
 0;
 
-#,,,.,.,,,,,.,,,.,.,.,,..,..,,,,.,..,,...,,,,,..,,...,...,.,,,,..,,..,..,,...,
-#X4GCLINKUFRKKTWCC7LXC7ML6MEW5GMC5ONW3YEFTXWG6QP7WMEFHNW4JBUI634Z5GK5H3N3PSTOW
-#\\\|BULA2UKG6P5KS633JGZH6FFXWJ3THACPOWV5VG5LWRCF7EVL4KN \ / AMOS7 \ YOURUM ::
-#\[7]GMRXZ2T3OYTORMU4JEHSY5L77MP6KJRYQY7GL6KDSNKGB54UNYBQ 7  DATA SIGNATURE ::
+#,,.,,...,,..,,..,,..,.,,,,,.,,.,,..,,,..,.,.,..,,...,...,.,,,..,,...,,..,,,.,
+#IU4KVBYAVKKS5E2IUDFCSYN3NX6O3LDAY5HNZS3XR2XGJIHRXM2TVND43Q4XYW3GBFICG4BUNOL26
+#\\\|GS25CD7LUGRH7KFCI3MKOJJKL2S3QM7YI7RAO2FS76ICGEN2JNJ \ / AMOS7 \ YOURUM ::
+#\[7]ILUDI34YGDZOQWJQ255ITU7ULOK6AQNMYZ3M6KVUVVV3N63TFACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
