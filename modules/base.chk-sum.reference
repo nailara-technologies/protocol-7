@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = base.chk-sum.reference
+# descr = dated reference checksum [ embeds epoch_v7 for auto-expiry ]
+# param = $checksum_a, $checksum_b, $epoch_v7_string [ optional, default current ]
+
+my ( $checksum_a, $checksum_b, $epoch_v7_string ) = @ARG;
+
+return
+    warn 'expected checksum_a and checksum_b for reference checksum <{C1}>'
+    if not defined $checksum_a or not defined $checksum_b;
+
+## default to current epoch's encoded V7 timestamp ##
+$epoch_v7_string //= <[base.ntime.harmonized_epoch]>->();
+
+return <[base.chk-sum.amos]>->(
+    sprintf qw| %s:%s:%s |,
+    $checksum_a, $epoch_v7_string, $checksum_b
+);
+
+#,,.,,,.,,.,,,.,.,.,.,,,,,,..,,..,.,.,.,.,..,,.,.,...,..,,..,,.,.,...,..,,.,,,
+#KI5QCHVMW2QYLUZ522B23UPJV55MD27ETVNG7ZIGTIM2UFCKEHFDNXTSMFGGOXVUDXM4CNJ5OJBL6
+#\\\|OLKIFO7HNOK43SHQU4UB74BOMIPRSS7RRB3XID7NU24JSQR2HVX \ / AMOS7 \ YOURUM ::
+#\[7]B2K4KX2HQTEZETK27BIEHRFZUSJQK3Y4VUDAX24L77KTLLQKDKDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

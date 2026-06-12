@@ -19,6 +19,7 @@
 - [cube-tree-dashboard](topic-cube-tree-dashboard.md) — planned ascii tree-view dashboard: per-zenka command/state trees, capability interrogation, push-registry watcher cache, zoom/crop
 - [ascii-minimap](topic-ascii-minimap.md) — planned btop2-style ascii minimap: proportional density bars, anti-aliased gaps, glow color, spotlight, placeholder-template borders
 - [dot-path-case-notation](topic-dot-path-case-notation.md) — uppercase=path level, lowercase-run=dotted key; %DATA/%CODE meta-namespace idea; design doc written
+- [deparse-code-features](topic-deparse-code-features.md) — REMINDER: ask user about their planned tree of deparse-code-based features (not yet elaborated)
 - [global-ui-menu-tree](topic-global-ui-menu-tree.md) — addressable stdio slots + menu tree; settings (new)/configure (stub) zenki as starting points
 - [credential-fabric-proxy-transport](topic-credential-fabric-proxy-transport.md) — proxy round-trip WORKING (200 OK verified 2026-06-09); boot/UI fixes through b27ebb655; stale-socket issue clears on full P7 restart
 - [ascii-frame-system](topic-ascii-frame-system.md) — reverse parser, elastic renderer, DRC validator
@@ -33,6 +34,8 @@
 - [reasoning-namespace](topic-reasoning-namespace.md) — `reasoning.*` namespace; 21 templates
 - [job-pipeline](topic-job-pipeline.md) — WORKING: jobs.vhost live, German reason+summary
 - [task-coordination](topic-task-coordination.md) — task zenka coordinator; dispatch flow
+- [checksum-parenting-namespace-trees](topic-checksum-parenting-namespace-trees.md) — `<C0>:<C1>` auto-parenting collision protection; user-trunk/transit-ring/parabolic-mirror riff; design doc dispatched
+- [triple-twofish-name-entropy](topic-triple-twofish-name-entropy.md) — fwd-bwd-fwd Twofish on xz payload defeats header-bruteforce; name/checksum as key entropy (new)
 - [coding-state-machine](topic-coding-state-machine.md) — coding.state namespace, watcher lock
 - [kimi-zenka-state-machine](topic-kimi-zenka-state-machine.md) — improvements ongoing; reconnect open
 - [chat-script](topic-chat-script.md) — bin/chat COMPLETE; open: kimi dispatch, channels zenka
@@ -328,8 +331,8 @@ clean restart.
   command modules — internal APIs only, not console-callable
 - on-demand auth (407/pending/approve flow) end-to-end not yet verified
 
-#,,,,,,,.,...,,,.,..,,,,.,,..,,,,,.,,,,.,,,.,,...,...,...,,..,,,.,...,...,,.,,
-#3APJRKA2PXSQI6HJWBZ2HWWMEMT3EM3GOLIFM5Y6LJYPLNNYYTM3FA6B7A47VRUWWMBXONI5PCBVQ
-#\\\|KJZ7COAGEBQD4MEFVKRNQB66T6KZFZZBZRGQBN36XCUULKLZWZD \ / AMOS7 \ YOURUM ::
-#\[7]WKNSR3OKAE5WZZMG6J3VO5RISK3COEC3XJVTBHJXZH2AKVP7YQCY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,,,,,..,,.,,,.,,...,.,,,,,,,,,.,...,...,...,,,.,,..,...,,,.,,,.,
+#YN3XSRQWDCTFKRBGKKYLHV6N37ZDRYXMEDFQAYOH4ARGF25VKMJZCUN2VR3KLVDPBCVG22ASXXMJK
+#\\\|536UPCY2IWPOESEEHANL5N6URRT7O6SIH3M7FALK5RJCSH7EQ7W \ / AMOS7 \ YOURUM ::
+#\[7]2DI4FG3T6X6N37OO5C4CLYLQ3PKCL45E3WZGB2BHEGO32ULF2WBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

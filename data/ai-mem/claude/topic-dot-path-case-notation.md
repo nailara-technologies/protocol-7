@@ -45,6 +45,37 @@ uppercase sibling hashes one level up from `%data`/`%code`:
 extends the case rule one level higher: lowercase = "the thing",
 uppercase = "data about the thing", same addressing grammar.
 
+## first-element case-sensitive escape (2026-06-11 addition)
+
+new idea: make the **first element only** case-sensitive, and let it
+select the actual perl package/hash by name in `main::` — not just
+`%data`/`%code`/`%DATA`/`%CODE`. i.e. the reserved-first-token idea
+(open question 3 above) generalizes: instead of a small fixed enum of
+top-level hashes, the first token can name *any* `main::`-namespace
+hash/glob, case-sensitively.
+
+- this would let dot-path lines address arbitrary zenka-internal
+  symbol-table entries beyond `%data`, not just the blessed
+  `%data`/`%code`/`%DATA`/`%CODE` set.
+- because a zenka's compiled subs, lexical closures over `%code`, and
+  `%data` together constitute "the zenka," a notation that can name all
+  of these in one uniform line format starts to look like a **zenka
+  transfer protocol** — a serialization that can represent not just data
+  but (pointers to/addresses of) running code.
+- user's framing: "in form could overlap to code running on routes of
+  abstracted distributed hyperspace" — i.e. this notation, plus
+  [[checksum-parenting-namespace-trees]] (checksum-addressed code,
+  consumer feature 6 in [[topic-deparse-code-features]]: ascii-frame as
+  code transfer container) and [[topic-checksum-addressing]] (route =
+  field/symmetry condition, not stored path), could converge: a dot-path
+  namespace line becomes both an *address* (where) and a *transfer unit*
+  (what), and "running on a route" becomes meaningful if routes
+  themselves can carry/host addressed code.
+- not elaborated further yet — flagged as a convergence point between
+  three previously-separate topics (dot-path notation, checksum
+  parenting/addressing, deparse-code transfer container). worth folding
+  into a doc once more nodes arrive.
+
 ## open questions (in design doc)
 
 1. non-letter char bucketing (digits/-/_) — recommend "anything not
@@ -68,10 +99,8 @@ trinity is the underlying machine address space).
 idea + design doc only, not implemented. next step when picked up: a
 `base.data.dot-path.*` parser/resolver pair, forward direction first.
 
-#,...,...,...,...,...,...,...,...,...,...,...,...,...,...,...,...,...,...,...,
-
-#,,,.,,.,,,.,,...,.,,,..,,.,.,,,,,.,,,.,.,,,,,..,,...,...,.,.,...,,..,..,,.,,,
-#NMKYWOKILIROQ3SNS76R5HSD4EHSKFVPVXKHXVOTT7SQZBSXTBWWGD5SOUXLLDXY3VNQNO6ZSO4MO
-#\\\|U25Q3Z7722RANB2T7OINH2QP6NUS2ZQQKQAN4U3E75CT75WWU2Y \ / AMOS7 \ YOURUM ::
-#\[7]NJEGAT3PBNMFSKFJJ4NNJ3CGO7DSHHBFYLSCVNJWJJOKXQVRDQAA 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,.,,,,.,,.,,,.,.,,..,,,.,,,,,,..,..,,...,...,.,,,,..,,,.,,,,,,,,,
+#QYOGFB6774ECLMFAMLAPHSAQU7DLRPQFWMAFDA2T4HDPMFZT6JKASDGW5ALWQ5QUG274D5EVBGA5M
+#\\\|KV3Q3GVZLX5VXTE5V2Y2OWT4PTWMBL3U46SVKZ4RJJS7HNGOBR7 \ / AMOS7 \ YOURUM ::
+#\[7]4OGTFVQM3A4NQYF2W2CZCBRFH6AEZCI76OYSUJWDSGX5DDJRHKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

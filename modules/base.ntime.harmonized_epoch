@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = base.ntime.harmonized_epoch
-# descr = encoded network epoch value [ in harmonized syntax ]
+# descr = encoded network epoch value [ in extended, harmonized form ]
 
 my $epoch_num = shift;
 
@@ -21,17 +21,17 @@ my $epoch_encoded = <[base.ntime.epoch_timestamp]>->($epoch_num);
 for my $interval ( 0 .. 12 ) {
 
     my $bits = join '', reverse split( '', sprintf( qw| %04B |, $interval ) );
-    $bits =~ s|1|;|g;
-    $bits =~ s|0|:|g;
+    $bits =~ s|1|1|g;
+    $bits =~ s|0|0|g;
 
     $epoch_harmoized = sprintf qw| %s%s |, $epoch_encoded, $bits;
     last if AMOS7::Assert::Truth::is_true( $epoch_harmoized, 0, 1 );
 }
 
-return sprintf qw| <%s> |, $epoch_harmoized;
+return $epoch_harmoized;
 
-#,,.,,,,,,.,.,...,,..,,,.,.,.,...,,,,,,.,,.,.,..,,...,..,,...,,,.,.,,,,,,,...,
-#7DJAOBMSGN3R3WHVRPRMAGARXPUXL3LUVNNEUBFZBQV47U7ZFY7GUU62TQTWDGX3OWD3I2AUVBO5C
-#\\\|LBAC7N2DXZFNRM57G2XNGHMNBSHLZIRI7G3TRO4ONV6QMEONNOF \ / AMOS7 \ YOURUM ::
-#\[7]XNBTB56K26YZ5NFOU4F3RQIMFAKVYCAXTBENEGKNZINJKMGLTKAQ 7  DATA SIGNATURE ::
+#,,,,,,..,,..,.,,,,,.,.,.,,..,,,,,..,,...,,.,,..,,...,...,..,,...,...,,..,...,
+#PLT33UHRJFYOLHC7DG2CXGOMCXLQQIFPTHPSFLOAGNXPPP4EE4FK7BUP7VW2AWE6MJPQ2XB2SUTBK
+#\\\|CBKY7BFPDKSQ5UPIP4DEDJNS6MNMB32CY5HCCWLO2AMFTUH7K2I \ / AMOS7 \ YOURUM ::
+#\[7]RHA7WECZR6CWI2EMPH57ODJHABO7PTQWTTKLTCOWAME3NVTGGQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
