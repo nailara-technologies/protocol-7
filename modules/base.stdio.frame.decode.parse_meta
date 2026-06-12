@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = base.stdio.frame.decode.parse_meta
+# param = $record, $bytes  [ typed-run record hashref, decoded META payload ]
+# descr = fill in $record->{'header'} for a META record
+
+my ( $record, $bytes ) = @ARG;
+return if not length $bytes;
+
+my $subtype_code = ord substr $bytes, 0, 1;
+my %subtype      = (
+    0x01 => qw| scope-enter |,
+    0x02 => qw| scope-leave |,
+    0x03 => qw| end-run |,
+    0x04 => qw| close-field |,
+    0x05 => qw| close-stream |,
+);
+my $subtype = $subtype{$subtype_code} // qw| unknown |;
+$record->{'header'}->{'subtype'} = $subtype;
+
+if ( $subtype eq qw| scope-enter | ) {
+    my ( $hop_id, $slot_addr, $origin ) = unpack( 'x n n/a* n/a*', $bytes );
+    $record->{'header'}->{'hop_id'}    = $hop_id;
+    $record->{'header'}->{'slot_addr'} = $slot_addr;
+    $record->{'header'}->{'origin'}    = $origin;
+} elsif ( $subtype eq qw| scope-leave | ) {
+    my ($origin) = unpack( 'x n/a*', $bytes );
+    $record->{'header'}->{'origin'} = $origin;
+}
+
+return;
+
+#,,,.,.,.,..,,,.,,,,.,,,.,,,.,.,.,..,,,..,,,,,..,,...,...,,,.,...,,.,,,.,,...,
+#VS6WDM3AQDYHMQ4EQGWI4P2S7PHZL7ULMRTVM5JHSCMKBBRK3IJUMR7DEBJN7GSFMUGDSWXQCVJCI
+#\\\|QV2TVTUU3J372FL5BLEMBHI52XF2OLOWV5ECKMYFDX66X5C3WVJ \ / AMOS7 \ YOURUM ::
+#\[7]35Q5MCFGKSBK5TAPX2RLG7FM7PGUBJUEWGZC3S4BIL6IUU5D4ECY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

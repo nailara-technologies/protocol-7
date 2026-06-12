@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = base.stdio.frame.decode.decode_byte_pack
+# param = $data_ref  [ arrayref of base-7 digit values, 1-based ]
+# descr = decode a byte-pack-encoded data run back into raw bytes
+
+my $data_ref = shift;
+
+my @bytes;
+for ( my $j = 0; $j < @$data_ref; $j += 3 ) {
+    last if $j + 2 >= @$data_ref;
+    my $d0 = $data_ref->[$j] - 1;
+    my $d1 = $data_ref->[ $j + 1 ] - 1;
+    my $d2 = $data_ref->[ $j + 2 ] - 1;
+    push @bytes, $d0 * 49 + $d1 * 7 + $d2;
+}
+
+return pack qw| C* |, @bytes;
+
+#,,..,,..,,,,,,,,,,,,,,,,,...,.,.,,,.,,,,,.,.,..,,...,...,,,,,...,,,.,,,.,,,,,
+#33IZ2HO2DCY3UQSS2DZKJ4N7Z3N7SHQHY7BZU3UUX33H5IVEYD72JNCLHBYEY5ZBQ6EZFCZISWC3C
+#\\\|SNPJ4M5ZKQEMWADI425VAW4VMIA4QLG7WZSDVPT5DOHCJ52JV25 \ / AMOS7 \ YOURUM ::
+#\[7]7UGXDHCQMUVGV5C57IXZBQQDQTGPRRNKEKLKMHE6NAFRBG47W2AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
