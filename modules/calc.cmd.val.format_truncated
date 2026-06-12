@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = calc.cmd.val.format_truncated
+# param = $bigrat, $digits
+# descr = format a Math::BigRat as a truncated decimal string
+
+my ( $bigrat, $digits ) = @ARG;
+
+my $sign = $bigrat->is_neg ? '-' : '';
+my $abs  = abs($bigrat);
+
+my $num = $abs->numerator;
+my $den = $abs->denominator;
+
+my $int_part = $num / $den;               ## [ BigInt division truncates ] ##
+my $rem      = $num - $int_part * $den;
+
+my $scale = Math::BigInt->new(10)->bpow($digits);
+my $frac  = ( $rem * $scale ) / $den;            ## [ truncating division ] ##
+
+my $frac_str = $frac->bstr;
+$frac_str = ( '0' x ( $digits - length($frac_str) ) ) . $frac_str;
+$frac_str =~ s|0+$||;
+
+return $frac_str eq ''
+    ? "$sign$int_part"
+    : "$sign$int_part.$frac_str";
+
+#,,,.,..,,,,.,,..,.,.,.,,,,,.,,..,,,,,..,,,,,,..,,...,...,.,,,,.,,...,.,.,,..,
+#ADLFRZJR5WFIFIVQ4RRAVIJCHYFTYEWXQGFKLFFSZBLCGNE63Q2S2S6TGGP2FDJLRDDE3ZUWWZGMI
+#\\\|JPTE2YQBRLKK7B5G66EB3ZRR7XKJJHNFGYYL67FNXGA4N2DHBWE \ / AMOS7 \ YOURUM ::
+#\[7]2MHBKO4I365AV2H2KBGTLJW7E2BESTSFAID64V63KX3PFTSP6QBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

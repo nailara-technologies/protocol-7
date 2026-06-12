@@ -28,6 +28,13 @@ return {
     if not defined $formula or length $EVAL_ERROR;
 
 my $value_str = $formula->value;
+
+my $digits = <calc.cfg.truncate_digits> // 15;
+
+my $bigrat = <[calc.cmd.val.eval_bigrat]>->($formula);
+$value_str = <[calc.cmd.val.format_truncated]>->( $bigrat, $digits )
+    if defined $bigrat;
+
 return {
     'mode' => qw| false |,
     'data' => sprintf( 'calculation not successful [%s]', $expr_str )
@@ -53,8 +60,8 @@ return {
     'data' => sprintf( "        %s\n\n", $result_str )
 };
 
-#,,,,,,,.,.,.,,..,...,,.,,.,.,...,..,,..,,.,,,..,,...,...,.,.,.,.,...,,..,.,.,
-#5VZYT5BBSUKBMID5V62JLNZ6RFSSEINKUPYAYLXH4U7XPAFAAYQ5HJNNBIDKK3FOO5YVHT2VAIACQ
-#\\\|OISVYKBNLTTOQ6M42ZACRHEQ64L2BSEGJSE44VAWMPGOBRCR644 \ / AMOS7 \ YOURUM ::
-#\[7]OJYQWABGAYW27TOHSHLWZ6LJS6X3WHH4TS7O4FHAPFL6E2MT2EBY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,.,.,..,,.,,,,.,,.,,,.,.,,,.,,,.,..,,...,...,..,,,..,.,,,,,,,.,.,
+#HEOVOUR6T7NDVRZ6FJGMF5BGDGFEWBWZW6YA3EBY55A6D4KJLD74QMK2WVDHPFX237XZL7Z462UQO
+#\\\|LVLTM52T5PMF4G6MQ2GWQZMHR2WKET5AUEXDSSABWMVK22XHZNW \ / AMOS7 \ YOURUM ::
+#\[7]7GGWJHSITUQLNMO3H6AIJ7TYDIQF3262WV7EJE7NTVICD3ESJEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

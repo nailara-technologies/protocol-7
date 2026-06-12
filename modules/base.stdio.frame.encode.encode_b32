@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = base.stdio.frame.encode.encode_b32
+# param = $bytes
+# descr = encode bytes to base32 and split
+#         each digit into two base-7 frames
+
+my $bytes = shift;
+return () if not length $bytes;
+
+my $b32 = Crypt::Misc::encode_b32r($bytes);
+my @frames;
+my $alphabet = qw| ABCDEFGHIJKLMNOPQRSTUVWXYZ234567 |;
+
+for my $char ( split //, $b32 ) {
+    my $idx = index( $alphabet, $char );
+    next if $idx < 0;
+    my $d0 = int( $idx / 7 ) + 1;
+    my $d1 = ( $idx % 7 ) + 1;
+    push @frames,
+        <[base.stdio.frame.encode.pack_nibble]>->( $d0, 0 ),
+        <[base.stdio.frame.encode.pack_nibble]>->( $d1, 0 );
+}
+
+return @frames;
+
+#,,,.,,..,,,,,..,,.,.,.,.,.,.,,..,..,,,,.,,.,,..,,...,...,.,.,,.,,.,.,..,,,.,,
+#W6NN2VH3BD4MBMVRRC63VSYY4HOAI22V4LCK4R7ZIZ7FINRZ4HCMFBIU6KSKZD5RE3S6FZHGNENAE
+#\\\|WQ5EB25PEYW4FC74XGSI5KL7XKPIQ6AMXUACGB2ZZDCOIEGLRG3 \ / AMOS7 \ YOURUM ::
+#\[7]CG57YMH2KQYBSGXQGXKT2ZBNZY4TQ2Y24KJUJPEBA2SAKU3XWGDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = base.stdio.frame.encode.serialize_meta
+# param = $header
+# descr = serialize a meta header hashref to bytes
+
+my $header  = shift                // {};
+my $subtype = $header->{'subtype'} // qw| end-run |;
+
+my %code = (
+    qw| scope-enter  | => 0x01,
+    qw| scope-leave  | => 0x02,
+    qw| end-run      | => 0x03,
+    qw| close-field  | => 0x04,
+    qw| close-stream | => 0x05,
+);
+my $sc = $code{$subtype} // 0x03;
+
+if ( $subtype eq qw| scope-enter | ) {
+    return pack( 'C n n/a* n/a*',
+        $sc,
+        $header->{'hop_id'}    // 0,
+        $header->{'slot_addr'} // '',
+        $header->{'origin'}    // '' );
+} elsif ( $subtype eq qw| scope-leave | ) {
+    return pack( 'C n/a*', $sc, $header->{'origin'} // '' );
+} else {
+    return pack( 'C', $sc );
+}
+
+#,,..,,..,,,.,,,.,,.,,,,,,,,.,,,.,.,,,,,,,,,.,..,,...,...,...,.,,,,,.,..,,,..,
+#T337C2HBSD7NDGM7KPM4Z6VAVBCQGK4YTBJKQVCVD3TARBHNVBJMYRTXJOKQYXZNE7OEXPGF32PTK
+#\\\|736PFEFBSHG2VWHXESONE6C6GHH7FZO7IOEQI3C4EASCT4VCOFR \ / AMOS7 \ YOURUM ::
+#\[7]5E6V5V4RHTCE2U7DEB2NRLVQA6NBTSXBV6I7JP2N3BOTBUM7QOAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
