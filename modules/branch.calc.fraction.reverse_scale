@@ -32,20 +32,20 @@ my $k = 0;
 while ( $yy % 2 == 0 ) { $yy /= 2; $k++; }
 while ( $yy % 5 == 0 ) { $yy /= 5; $k++; }
 
-my $n = $numerator * ( 10**$k ) / $denominator;
-my $a = int( $n / ( 10**$k ) );
-my $b = $n % ( 10**$k );
+my $n         = $numerator * ( 10**$k ) / $denominator;
+my $int_part  = int( $n / ( 10**$k ) );
+my $frac_part = $n % ( 10**$k );
 
 ## [ self-referential boundary when integer part is zero ] ##
-return $denominator if $a == 0;
+return $denominator if $int_part == 0;
 
 ## [ scale = integer part of reversed decimal * denominator ] ##
-return $b * $denominator;
+return $frac_part * $denominator;
 
 #,,,.,,,,,,,,,,.,,.,.,,.,,..,,...,,.,,.,,,,.,,..,,...,...,,.,,...,.,.,,,,,...,
 
-#,,..,..,,,,,,.,,,,,.,,..,.,.,,.,,,..,,.,,,..,..,,...,.,.,.,,,.,.,,,.,,..,..,,
-#KXQX6645CZTGJO7FBY6LTXYDFHIBNHYMLCW453UPSFBLRCLM2N3AR3I6QX4NQ2XNZUWVFJBB5YNZW
-#\\\|XD2CHONXESNILFQ7DU6LPXYFHYSVGI367MKP7OW4AQIPNE32ALE \ / AMOS7 \ YOURUM ::
-#\[7]DSVMVXXLJZOX6BCSB44LICWIDQWVRMGAKM6M7AQE2VKFOQ2HBSCQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,.,,,,.,,.,.,.,.,,,.,..,,...,,,.,..,,...,...,.,.,...,,..,,,.,,..,
+#DO5LEGFSOBIKL7M6OKGIHLVO3QUMTW3BUOVRFVN3VYCSS3GXGNTXMVZIG3WI63J6V7GA3ZQ4O6QEU
+#\\\|PAO5RXIXILGPA4FISNLC4LNUBO6AYK6Z5CIS3XQZI452OPRXWYH \ / AMOS7 \ YOURUM ::
+#\[7]BQ4NPMBVBM6RKAS5NYINB2EWOXJEMZMV2MBVMYLQ2GZA2YEN5OCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
