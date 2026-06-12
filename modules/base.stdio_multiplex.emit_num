@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = base.stdio_multiplex.emit_num
+# param = $name, $value
+# descr = emit a named NUM typed run [ stdout.metric.<name> slot ]
+
+my ( $name, $value ) = @ARG;
+
+my $conn_handle = <base.stdio_multiplex.conn> // undef;
+return if not defined $conn_handle;
+return if not defined $data{'stdio_transport'}{'connections'}{$conn_handle};
+
+return if not defined $name or not length $name;
+
+return <[base.stdio.transport.emit]>->(
+    $conn_handle, qw| NUM |, qw| nibble |,
+    $value // 0,
+    { name => $name }
+);
+
+#,,.,,,.,,,..,,,.,.,.,..,,...,,.,,,,.,,,,,,..,..,,...,...,.,,,,,,,,..,,.,,,,.,
+#TDF6OPNFB3Y22IVWCDZFLZV5F6XJ7ZMJBKID22WEFCKT2CPJAL7CCJSUHKWSWEJ6KEHPEIGBYJOK2
+#\\\|KNVCCDFFFAYV6DJFOM3TX7SWFP5236ZUCAA3UEWDTK4LN64HQFG \ / AMOS7 \ YOURUM ::
+#\[7]IT2SGD6PZEZX4BDJHCOLYO4CKIVVJOJMWDUS7JDP774VIYW6ZACY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
