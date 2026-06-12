@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = base.stdio.transport.emit.disconnect
+# param = $socket, $reason
+# descr = disconnect a stdio socket and clean up
+
+my ( $socket, $reason ) = @ARG;
+
+my $conn = delete $data{'stdio_transport'}{'connections'}{$socket};
+return if not defined $conn;
+
+## [ synthesize scope-leave for unmatched scope-enters ] ##
+for my $origin ( reverse $conn->{'scope_stack'}->@* ) {
+    my $synth_rec = {
+        qw| tag        | => qw| META |,
+        qw| encoding   | => qw| nibble |,
+        qw| header     | => {
+            qw| subtype | => qw| scope-leave |,
+            qw| origin  | => $origin,
+        },
+        qw| payload_sref | => \'',
+    };
+    $conn->{'on_record'}->( $synth_rec, $socket );
+}
+
+for my $wk (qw| read write error |) {
+    my $w = $conn->{'watchers'}{$wk} // undef;
+    $w->cancel if defined $w and $w->is_active;
+}
+
+eval { shutdown( $socket, 2 ) };
+close($socket);
+
+<[base.logs]>->(
+    2,       'stdio transport disconnected [%s]: %s',
+    $socket, $reason // 'unknown'
+);
+
+return;
+
+#,,,.,,.,,,,,,..,,,,,,,.,,..,,,,,,,,,,..,,,,,,..,,...,...,..,,...,,..,,..,..,,
+#DMWGFYRK5OHSSHZFBOYHFZR4BFFLDJ65I5TJI6ROORFQNEKV6BKEY6OAQ6WKZVH5ZRRCVVVHDCWJK
+#\\\|FSLVSVAIPR5NLA7POVUGE33H3NVBXJRCZFC35JKAOTCQDC4GWVD \ / AMOS7 \ YOURUM ::
+#\[7]YYBACOFG4MXQDXY2D4A37RY6XEUNG464Q5EONPNABUZLWWH3QUDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
