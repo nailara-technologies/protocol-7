@@ -29,7 +29,7 @@ for my $hop (@$hops) {
         $distance = 1 if $distance < 1;
         push @segments, qw| . | x $distance;
     } elsif ( $direction eq qw| turn | ) {
-        push @segments, qw| , |;
+        push @segments, ',';
     } elsif ( $direction eq qw| landmark | ) {
         my $address
             = ref $hop eq qw| HASH |
@@ -45,8 +45,8 @@ for my $hop (@$hops) {
 
 return { 'mode' => 'true', 'data' => join( '', @segments ) };
 
-#,,..,..,,,,,,.,,,...,.,.,,..,.,.,...,.,.,,..,.,.,...,...,,..,,.,,,..,.,,,,.,,
-#SJUXCAN2CRZ52QXJDKZ5FRPDBKSWGAOJUDE7BHZTFFK7OENFQAMMKOIBYNTVUQPCFCWNM6UDD73GM
-#\\\|UQH2ZWVREWK26KW7FL4Y4OESTCFNYILCSDFLRTL3VE3OXJY6TSU \ / AMOS7 \ YOURUM ::
-#\[7]PXBBRNK44G4EJRYNOEGAM5YCUY5G2DJ4EJIL62Q7BFQLMFGGRMBQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,,.,,,.,.,,,,,,,...,,,.,,..,.,,,.,.,...,...,..,,.,.,..,,,,.,.,,,
+#KSPON5SWAO2EWMXYEBTGDCMNKAIT76S62KZEMSGKU26HEKQTN2VTFGULMELNKGHELGZMIVSWQ5XU2
+#\\\|47FYBOVMOAZMECH5JVOGRRXV6TWDHOUVZ2XPNYVLJBEZYEUFOXR \ / AMOS7 \ YOURUM ::
+#\[7]UV6FZL3PCLQNFFGILLW2LV52KJNSCDBHPPNXVEXCL2674QF7XGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
