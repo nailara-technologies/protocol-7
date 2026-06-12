@@ -10,9 +10,9 @@ my $protocol7_bin = sprintf qw| %s/bin/Protocol-7 |, $root_path;    ##[LLL]
 my $symlink_dir   = <v7.cfg.zenka_symlink_dir> || qw| /usr/local/bin |;
 my $enabled = <[base.cfg_bool]>->( <v7.cfg.install_zenka_symlinks> // TRUE );
 
-## also alias standalone zenki [ no zenka-startup.v7 -> not v7-managed,
-## e.g. nshell ], even without a <name>.console.* command of their own ##
-my $include_standalone_zenki = TRUE;
+## also alias these zenki, even without a <name>.console.* command
+## of their own [ nshell *is* the console, not administered via one ] ##
+my @extra_alias_zenki = (qw| nshell |);
 
 return FALSE unless $enabled;
 return FALSE unless -x $protocol7_bin;
@@ -42,9 +42,9 @@ if ( -d $modules_dir ) {
     }
     closedir($mod_dh);
 }
-return FALSE
-    unless scalar keys %console_zenki
-    or $include_standalone_zenki;    ## <- implement warning.. ##
+return FALSE unless scalar keys %console_zenki;   ## <- implement warning.. ##
+
+$console_zenki{$ARG} = TRUE for @extra_alias_zenki;
 
 ## adding existing console-commands-having zenki from startup configs ##
 ##
@@ -56,17 +56,10 @@ if ( -d $zenki_dir ) {
         next if $dir_name =~ m|^\.\.?$|;
         next unless -d catfile( $zenki_dir, $dir_name );
 
-        ## keep zenka name if it has a console command .. ##
-        if ( defined delete $console_zenki{$dir_name} ) {
-            push( @zenki_list, $dir_name );
-            next;
-        }
-
-        ## .. or if it is a standalone zenka [ no zenka-startup.v7 ] ##
+        ## keep zenka name if it has a console command [ or is listed
+        ## in @extra_alias_zenki ] ##
         push( @zenki_list, $dir_name )
-            if $include_standalone_zenki
-            and
-            not -e catfile( $zenki_dir, $dir_name, qw| zenka-startup.v7 | );
+            if defined delete $console_zenki{$dir_name};
     }
     closedir($cfg_dh);
 }
@@ -133,8 +126,8 @@ if ( $installed_count > 0 or $updated_count > 0 ) {
 
 return $installed_count + $updated_count;
 
-#,,..,,.,,,.,,.,.,,,.,,,.,,.,,,,,,..,,...,,..,..,,...,...,,,.,.,.,,,.,,,.,.,.,
-#5GS4THZG3DCHVQWL2T52J7OYLAOTQFAIBCPSCPOPUG5IH3YQLJJJS3ETICGI74SXU5JNPPPEYMR42
-#\\\|YDGC5CBP5X5UCEBHCSTRA4RBMYTMX3NMCGERDQPXVZIMYVRXZGJ \ / AMOS7 \ YOURUM ::
-#\[7]NEEDBK564OWMQLDJQVGCI4D7CSEHDKEQMW6GR2CUXV7HOSDZ7QAQ 7  DATA SIGNATURE ::
+#,,,.,,,,,...,,..,.,,,.,.,.,.,.,.,,,.,,,.,,..,..,,...,...,.,,,...,.,.,.,.,,..,
+#NYJYZ72S4DEWY25WMJOZAL3DH5TFFJ6DGKHJRQ7N6HVEE5JTVEVU2HS6GJ76UMSBWDBTZZB2EN3ZU
+#\\\|ZJ7Z2Y7ITZWOT2ZWUQEUIGMPRQX6MQPN26O2VNWYC3DGXYMGGOV \ / AMOS7 \ YOURUM ::
+#\[7]4WJYUN6E6Z7UZW5NQAMMJLXYE5KO3PDJNS4ME3T3YU6YC6MOSQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
