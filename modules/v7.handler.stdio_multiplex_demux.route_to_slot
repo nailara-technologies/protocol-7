@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = v7.handler.stdio_multiplex_demux.route_to_slot
+# param = $zenka_name   [ target zenka name ]
+# param = $slot_name    [ slot name to bind ]
+# param = $payload_sref [ scalar ref to raw payload bytes ]
+# param = $provenance   [ provenance hashref for the content ]
+# descr = register a slot, store decoded payload text, and bind content to it
+
+my ( $zenka_name, $slot_name, $payload_sref, $provenance ) = @ARG;
+
+my $payload_text
+    = <[v7.handler.stdio_multiplex_demux.decode_payload_text]>
+    ->($payload_sref);
+
+my $slot_address = <[base.slot.register]>->(
+    {   'surface' => $zenka_name,
+        'name'    => $slot_name
+    }
+);
+
+return if not defined $slot_address;
+
+my ($chksum7) = $slot_address =~ m|^SLOT:([^:]+):|
+    or return;
+
+## [ store payload as addressable content for the slot ] ##
+<v7.stdio_multiplex.content>->{$chksum7}    = $payload_text;
+<v7.stdio_multiplex.provenance>->{$chksum7} = $provenance;
+
+my $content_address
+    = sprintf( qw| v7.stdio_multiplex.content.%s |, $chksum7 );
+
+<[base.slot.bind_content]>->(
+    {   'slot_address'    => $slot_address,
+        'content_address' => $content_address
+    }
+);
+
+<[base.slot.refresh]>->( { 'address' => $slot_address } );
+
+return $slot_address;
+
+#,,,.,.,,,.,.,.,.,,..,.,.,.,,,.,.,,,,,.,,,,..,..,,...,..,,...,...,,,.,,,,,.,,,
+#H5C5GR4H5VRNBV5E5XSZTGP6HNTFJ5FHX7XVWGLRSKBICAPTZX4TFW633Y7YC6AX6SVDGVWOPTCY6
+#\\\|WYL73MYRQJNDH4PR5H5HMRWKUGECNLOIWE4G4HHBG4QY5P4VMIU \ / AMOS7 \ YOURUM ::
+#\[7]FKEKN3Q2UW2T5CNQ6L35ONBRPHBTDGBWRMEG5GRW6S2GEGLXGUCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
