@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = branch.space.util.build_visible_result
+# descr = build omni-mode visible node result list
+# param = $observer_node, $node_set_aref, $scope
+
+my ( $observer_node, $node_set_aref, $scope ) = @ARG;
+my @nodes  = @$node_set_aref;
+my @ranked = map {
+    { 'id' => $ARG, 'ref_count' => <[branch.space.util.ref_count]>->($ARG), }
+} @nodes;
+
+@ranked = sort {
+           $b->{'ref_count'} <=> $a->{'ref_count'}
+        || $a->{'id'} cmp $b->{'id'}
+} @ranked;
+
+my $total_nodes = scalar @ranked;
+my $n           = int( $total_nodes / 2 ) + ( $total_nodes % 2 );
+my @result;
+
+push @result,
+    {
+    'node_id'  => $observer_node,
+    'shell'    => 0,
+    'position' => 0,
+    };
+
+for my $i ( 0 .. $#ranked ) {
+    my $rank = $i + 1;
+    my $pos  = int( ( $rank + 1 ) / 2 );
+    $pos = -$pos if $rank % 2 == 0;
+    my $shell = abs($pos);
+
+    push @result,
+        {
+        'node_id'  => $ranked[$i]->{'id'},
+        'shell'    => $shell,
+        'position' => $pos,
+        };
+
+    $data{'branch.space.positions'}{$scope}{ $ranked[$i]->{'id'} } = {
+        'position' => $pos,
+        'shell'    => $shell,
+        'n'        => $n,
+    };
+}
+return @result;
+
+#,,,.,.,.,..,,.,.,,.,,.,.,,,,,,,.,,.,,.,,,,.,,..,,...,...,.,.,.,.,,,.,.,,,,..,
+#3OOOZVN6F47VMGKWMON2LS75N53RZAEV4ISRB63EOQUGRCPBFFWSU2IUFFK3ZNA5X7BAA5GSIG27A
+#\\\|LP6V3EHGGOJQNHH3ZNVV2VOE57SKQLXEJOPT47TBXNCBARAWCS4 \ / AMOS7 \ YOURUM ::
+#\[7]W7O3BHE2RY4UNMD4DCUVNZNBKGCNOKAJ4OUXFE2NWZTZXMDEZ2CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

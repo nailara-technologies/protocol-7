@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = branch.space.util.position_for
+# descr = resolve ranked position for node in scope
+# param = $id, $scope
+
+my ( $id, $scope ) = @ARG;
+if ( exists $data{'branch.space.positions'}{$scope}{$id} ) {
+    return $data{'branch.space.positions'}{$scope}{$id}{'position'} // 0;
+}
+my $res = <[branch.space.rank]>->(
+    {   'node_id' => $id,
+        'scope'   => $scope,
+    }
+);
+return $res->{'data'}{'position'} // 0
+    if ref $res eq qw| HASH | and $res->{'mode'} eq 'true';
+return 0;
+
+#,,,.,,.,,..,,,,.,,..,,,.,,.,,.,,,,,.,,.,,.,,,..,,...,...,,..,,,,,.,.,,.,,.,.,
+#DSFGMIIKHECTLGBG2AILYYY43NYJN527XYUGWLDDECO3HXPLRVRJPPERC6Y3D7H7TQS2KQAVHRJ4G
+#\\\|65TCK6JCGFXBGZPKU4OFWBH4XCOLM3UQVKVRYNL4FMZR65A6VXN \ / AMOS7 \ YOURUM ::
+#\[7]GKND5Z6QH6CTCAHYKVPWXT7Z5B6K6IYJMQL55AOH7P33GG2VR6DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = branch.space.util.ref_count
+# descr = compute reference count for branch node
+# param = $id
+
+my ($id) = @ARG;
+my $n = $data{'branch.nodes'}{$id} // {};
+return $n->{'ref_count'} if defined $n->{'ref_count'};
+
+my $root = $data{'branch.root'} // '';
+if ( length $root and exists $data{'branch.interest'}{$root}{$id} ) {
+    return $data{'branch.interest'}{$root}{$id};
+}
+my $children = scalar keys %{ $data{'branch.children'}{$id} // {} };
+my $groups   = scalar @{ $n->{'groups'}                     // [] };
+return $children + $groups;
+
+#,,,.,...,,,.,...,,,.,,.,,.,.,..,,...,,,,,,..,..,,...,...,,..,,,,,..,,,,.,,..,
+#XSW5LES65FE4UQMPTWG23RCVZLFBHIBJIBJNOXXQGIVM4BA2Y7DCTWE74EJEB4YQCQRY6ERQEUI3Q
+#\\\|Y5C4S44YOUES3SYNRX3UMP6DE5XNJXFNC5DYARXIQB2UD2FW5E5 \ / AMOS7 \ YOURUM ::
+#\[7]UWXAJYHPM22DQY4AUXGAMJCIH6TC2H5JVE6W4DKC4276FI3J64CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

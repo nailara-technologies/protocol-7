@@ -19,7 +19,7 @@ for my $entry (@$unpaired) {
 for my $res (@$residuals) {
     push @trunk,
         {
-        layer    => _col_to_layer( $res->{'col'} ),
+        layer    => <[tree.sort.trunk.col_to_layer]>->( $res->{'col'} ),
         col      => $res->{'col'},
         row      => $res->{'row'},
         weight   => $res->{'weight'},
@@ -30,7 +30,8 @@ for my $res (@$residuals) {
 ## [ select highest-weight entry per column ] ##
 my %by_col;
 for my $entry (@trunk) {
-    my $c = $entry->{'col'} // _layer_to_col( $entry->{'layer'} // '' );
+    my $c = $entry->{'col'}
+        // <[tree.sort.trunk.layer_to_col]>->( $entry->{'layer'} // '' );
     next if not defined $c;
     push @{ $by_col{$c} }, $entry;
 }
@@ -49,27 +50,8 @@ for my $c ( 0 .. 4 ) {
 
 return \@result;
 
-## [ helpers ] ##
-sub _col_to_layer {
-    my $col    = shift;
-    my @layers = qw| task template design intent address |;
-    return $layers[$col] // '';
-}
-
-sub _layer_to_col {
-    my $layer = shift;
-    my %map   = (
-        qw| task     | => 0,
-        qw| template | => 1,
-        qw| design   | => 2,
-        qw| intent   | => 3,
-        qw| address  | => 4,
-    );
-    return $map{$layer};
-}
-
-#,,,.,,,,,,,,,,,,,.,.,.,.,,,,,.,,,.,.,.,.,,,,,..,,...,...,,.,,,.,,..,,.,.,..,,
-#YLQ4N4CQ4G5O22CUHJQG25R6VZ5TYZ5H3SJ2O4LNFLZLODFAKZ6SULZZSQH2EWIM2RGNMUNSYXA46
-#\\\|MBKI4OYJVVMUPFWPBTCF457CXVKQBTDLGTI6Z3ROI5XBLQOQTOF \ / AMOS7 \ YOURUM ::
-#\[7]GT7WUIL42AIZM4C75P6Z56OCKU3TS5KUBV74YJ24NLXSEAZVIIAI 7  DATA SIGNATURE ::
+#,,..,..,,...,.,.,,,,,,..,.,.,.,,,.,.,.,.,..,,..,,...,..,,..,,.,.,,.,,..,,,.,,
+#H3X5G5TPNEALROHWQK6PIVQ4ML2TTPWIUX4XHFW2T3UVIPBBZA7SCETIIC3RS3PI2SSRBCA5ESSC6
+#\\\|SLRVNA3BETNNQVJM5C6D2LWSWLCE4RCLGG7OBZRQYYWRFFSEBDJ \ / AMOS7 \ YOURUM ::
+#\[7]Y3OETKXHWUMVVXPGJOKQEWBEKWBZSNDDBEQB3GL746UORVYCVAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
