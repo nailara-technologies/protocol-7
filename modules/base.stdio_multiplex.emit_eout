@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = base.stdio_multiplex.emit_eout
+# param = $fd, $bytes_sref
+# descr = emit an EOUT typed run for the given fd [ 1 = stdout,
+#         2 = stderr, >=3 = sub-tree ]
+
+my ( $fd, $bytes_sref ) = @ARG;
+
+my $conn_handle = <base.stdio_multiplex.conn> // undef;
+return if not defined $conn_handle;
+return if not defined $data{'stdio_transport'}{'connections'}{$conn_handle};
+
+return if not defined $bytes_sref or ref $bytes_sref ne qw| SCALAR |;
+
+return <[base.stdio.transport.emit]>->(
+    $conn_handle,
+    qw| EOUT |,
+    qw| nibble |,
+    $bytes_sref->$*,
+    { fd => $fd }
+);
+
+#,,.,,..,,..,,.,,,.,.,,,.,...,,..,,,,,,,.,..,,..,,...,...,..,,.,.,,,.,,,,,,.,,
+#7563RTKVO6AIB77IEOA4AFXJ5KTBNCZMRGJJDP4RIELBBFDIHG33HNYVSPJ6FAXQO3BSHOF4IRAN4
+#\\\|M5WXDSG2WGNQAYSBUW4PNXPAOBVEQBJKRNN67OJHAMGEVW5UAWC \ / AMOS7 \ YOURUM ::
+#\[7]HR6VC544PAYG7LMRZXWS4E7O4Q7US25YZZ2ONFYO7MEJCFJZJWBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = base.stdio_multiplex.connect
+# descr = connect this zenka to its v7-side multiplex listener, if
+#         opted in via start config
+
+return FALSE if not <[base.cfg_bool]>->(<stdio.multiplex>);
+
+if ( not <system.zenka.initialized> ) {
+    push @{ <system.callbacks.initialized> //= [] },
+        qw| base.stdio_multiplex.connect |;
+    return FALSE;
+}
+
+my $existing_conn = <base.stdio_multiplex.conn> // undef;
+return TRUE
+    if defined $existing_conn
+    and defined $data{'stdio_transport'}{'connections'}{$existing_conn};
+
+my $zenka_name  = <system.zenka.name> // '';
+my $socket_path = catfile( qw| /dev/shm/.7/STDIO |, $zenka_name );
+
+## [ on_record callback for inbound SIN replies ] ##
+my $on_record = sub {
+    my $rec = $ARG[0];
+    return if not defined $rec;
+    return if $rec->{'tag'} ne qw| SIN |;
+
+    <[base.logs]>->(
+        2, 'stdio multiplex inbound SIN reply for %s', $zenka_name
+    );
+
+    push @{ <base.stdio_multiplex.inbound_sin> //= [] }, $rec;
+};
+
+my $conn_handle
+    = <[base.stdio.transport.connect]>->( $socket_path, $on_record );
+
+if ( not defined $conn_handle ) {
+    <base.stdio_multiplex.conn> = undef;
+    return FALSE;
+}
+
+<base.stdio_multiplex.conn> = $conn_handle;
+
+<[base.logs]>->(
+    2,           'stdio multiplex connected for %s [%s]',
+    $zenka_name, $socket_path
+);
+
+return TRUE;
+
+#,,..,.,.,,,.,...,,..,...,,,,,,,.,.,,,.,.,.,,,..,,...,...,.,.,.,.,.,,,...,..,,
+#ME3JI5LJMUCKZ6ZLB5MUTXFGTO6GITEQCLHQBS5GHUIQYXEDT5ZLYXH74NDJJVGEMJYH3OXVULNTA
+#\\\|XQVBE2ZZ75MHZZWNK4CNFSV4QS7FNXY5MJEEA6EJZYHDIXO4CUH \ / AMOS7 \ YOURUM ::
+#\[7]RWCC54MRNQD7GYKWTNYWIV6HN5JMTXXUBIWWE2JIVXU3YNOSCEAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
