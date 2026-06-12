@@ -1,0 +1,14 @@
+## [:< ##
+
+# name  = base.stdio.frame.encode.pack_nibble
+# param = $payload, $sep
+# descr = pack a 3-bit payload with a separator bit
+
+my ( $payload, $sep ) = @ARG;
+return ( $payload & 0b111 ) | ( $sep ? 0b1000 : 0 );
+
+#,,.,,...,.,.,.,,,,,,,.,.,...,.,,,,.,,...,,,,,..,,...,...,...,...,...,,,,,,,.,
+#ZIKSLCJSC7GJRWB5MSHHRBZM7J5OD4OOTDWJC777G35RUEMARZLRHWIBUHFG43Q7RQV52UZDAJGHY
+#\\\|KLAMKR2LW2DUU3XCHMRWDJLRGAA6C2VLUPVGGWXAK7ZJO6FZN7S \ / AMOS7 \ YOURUM ::
+#\[7]FRRS4FYGI2RCY75JYPZDQXX4POCSLTKDT34QK623IXUOSCKWWYBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
