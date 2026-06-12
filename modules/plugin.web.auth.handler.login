@@ -86,10 +86,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,.,,...,,..,...,.,,,..,,,..,..,,,,,,...,,,.,..,,...,...,,.,,,..,,.,,,.,,..,,
-
-#,,,,,..,,,,,,,..,,,,,,.,,..,,..,,.,.,.,,,,,.,..,,...,...,.,.,,,,,.,.,,..,,,,,
-#O3H6IIPVUGSI7KR73XGOM7R4B6LEYVXPBC46XFFATFMXLJKVO3F7ZDKQQR7X4IMI6ZT5QYOVGZQ3S
-#\\\|G3XPS7UZC2YT423VZPWPMRXA66K67XDJQUKILLHFDDU5EYCRFKB \ / AMOS7 \ YOURUM ::
-#\[7]3SUHVXMAYESWB6X4C4YH3CG4ZYJNLNBNLFREHTKTCDCESIZ3TYBY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,..,,.,.,,..,.,.,.,,,...,,,,,,,,,..,,...,...,,,,,..,,,.,,,,,,.,,,
+#IZFMT66YHHOZ6AYGR6K65WQEDNGYKQMV7UIASMOEN6QC26IWFNLLPB3H6ADQW7NWHFXFO45HHVIDU
+#\\\|7JDLFDPH4PSUHPST7PPICIXV2JKETHTCI346UK7QV2TQZWO7ILM \ / AMOS7 \ YOURUM ::
+#\[7]ST2EF3H4T7NAT6DHX2EIGO7E2GTJPWKJ3OSJIKNDTT6XHH7UNYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
