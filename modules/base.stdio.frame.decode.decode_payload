@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = base.stdio.frame.decode.decode_payload
+# param = $enc_name, $data_ref  [ encoding name, arrayref of base-7 digits ]
+# descr = dispatch a data run to its encoding-specific decoder
+
+my ( $enc_name, $data_ref ) = @ARG;
+
+if ( $enc_name eq qw| b32 | ) {
+    return <[base.stdio.frame.decode.decode_b32]>->($data_ref);
+} elsif ( $enc_name eq qw| nibble | ) {
+    return <[base.stdio.frame.decode.decode_nibble]>->($data_ref);
+} elsif ( $enc_name eq qw| byte-pack | ) {
+    return <[base.stdio.frame.decode.decode_byte_pack]>->($data_ref);
+}
+
+return '';
+
+#,,,,,...,.,.,,.,,..,,,,,,.,.,,.,,,.,,,,,,..,,..,,...,..,,..,,,.,,,.,,.,.,..,,
+#GXSNHJF2KGP67VFSGRYDAQH26T5AIDSUYDTC2LOPJIXO4SLFOGENRTRF4OX2IDQFKK2XWTRBMQ7XK
+#\\\|TXAZJFIWX52JP6QQ5NG5OOTQDQBXUJMDHGDVIAK2FXLUECICJAN \ / AMOS7 \ YOURUM ::
+#\[7]DZTPAVYMPBULHB32KDHDW7C4WCQKPMR2ONN2BG2AKQGY7LRVQABA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

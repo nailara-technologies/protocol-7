@@ -24,7 +24,7 @@ for my $i ( 0 .. length($buf) - 1 ) {
 }
 
 my @records;
-my $i = 0;
+my $i                   = 0;
 my $last_complete_frame = -1;
 
 while ( $i < @frames ) {
@@ -111,7 +111,8 @@ while ( $i < @frames ) {
     }
 
     ## [ decode payload ] ##
-    my @enc_names = ( qw| b32 |, qw| nibble |, qw| byte-pack |, qw| reserved | );
+    my @enc_names
+        = ( qw| b32 |, qw| nibble |, qw| byte-pack |, qw| reserved | );
     my $enc_name = $enc_names[$enc_val] // qw| unknown |;
 
     if ( $enc_name eq qw| reserved | or $enc_name eq qw| unknown | ) {
@@ -119,26 +120,27 @@ while ( $i < @frames ) {
         return ();
     }
 
-    my $payload_bytes = _decode_payload( $enc_name, \@data );
+    my $payload_bytes
+        = <[base.stdio.frame.decode.decode_payload]>->( $enc_name, \@data );
 
-    my @tag_names
-        = ( qw| META |, qw| SIN |, qw| RIN |, qw| EOUT |,
-        qw| TOUT |, qw| NUM |, qw| STR |, qw| ERR | );
+    my @tag_names = (
+        qw| META |, qw| SIN |, qw| RIN |, qw| EOUT |,
+        qw| TOUT |, qw| NUM |, qw| STR |, qw| ERR |
+    );
     my $tag_name = $tag_names[$tag_val] // qw| unknown |;
 
     my $record = {
-        qw| tag        | => $tag_name,
-        qw| encoding   | => $enc_name,
-        qw| header     | => {},
+        qw| tag        |   => $tag_name,
+        qw| encoding   |   => $enc_name,
+        qw| header     |   => {},
         qw| payload_sref | => \$payload_bytes,
     };
 
     if ( $tag_val == 0b000 ) {
-        _parse_meta( $record, $payload_bytes );
+        <[base.stdio.frame.decode.parse_meta]>->( $record, $payload_bytes );
     } elsif ( $tag_val == 0b011 or $tag_val == 0b111 ) {
         if ( length $payload_bytes ) {
-            $record->{'header'}->{'fd'}
-                = ord substr $payload_bytes, 0, 1, '';
+            $record->{'header'}->{'fd'} = ord substr $payload_bytes, 0, 1, '';
         }
     }
 
@@ -154,96 +156,8 @@ if ( $last_complete_frame >= 0 ) {
 
 return @records;
 
-## [ helper subs ] ###########################################################
-
-sub _decode_payload {
-    my ( $enc_name, $data_ref ) = @ARG;
-
-    if ( $enc_name eq qw| b32 | ) {
-        return _decode_b32($data_ref);
-    } elsif ( $enc_name eq qw| nibble | ) {
-        return _decode_nibble($data_ref);
-    } elsif ( $enc_name eq qw| byte-pack | ) {
-        return _decode_byte_pack($data_ref);
-    }
-    return '';
-}
-
-sub _decode_b32 {
-    my $data_ref = shift;
-    my @indices;
-    for ( my $j = 0 ; $j < @$data_ref ; $j += 2 ) {
-        last if $j + 1 >= @$data_ref;
-        my $d0 = $data_ref->[$j] - 1;
-        my $d1 = $data_ref->[ $j + 1 ] - 1;
-        push @indices, $d0 * 7 + $d1;
-    }
-    my $alphabet = qw| ABCDEFGHIJKLMNOPQRSTUVWXYZ234567 |;
-    my $b32 = join '', map { substr $alphabet, $_, 1 } @indices;
-    return Crypt::Misc::decode_b32r($b32);
-}
-
-sub _decode_nibble {
-    my $data_ref = shift;
-    my @bytes;
-    for ( my $j = 0 ; $j < @$data_ref ; $j += 2 ) {
-        last if $j + 1 >= @$data_ref;
-        my $d0 = $data_ref->[$j] - 1;
-        my $d1 = $data_ref->[ $j + 1 ] - 1;
-        my $nib = $d0 * 7 + $d1;
-        if ( $j % 4 == 0 ) {
-            push @bytes, $nib << 4;
-        } else {
-            $bytes[-1] |= $nib;
-        }
-    }
-    return pack qw| C* |, @bytes;
-}
-
-sub _decode_byte_pack {
-    my $data_ref = shift;
-    my @bytes;
-    for ( my $j = 0 ; $j < @$data_ref ; $j += 3 ) {
-        last if $j + 2 >= @$data_ref;
-        my $d0 = $data_ref->[$j] - 1;
-        my $d1 = $data_ref->[ $j + 1 ] - 1;
-        my $d2 = $data_ref->[ $j + 2 ] - 1;
-        push @bytes, $d0 * 49 + $d1 * 7 + $d2;
-    }
-    return pack qw| C* |, @bytes;
-}
-
-sub _parse_meta {
-    my ( $record, $bytes ) = @ARG;
-    return if not length $bytes;
-
-    my $subtype_code = ord substr $bytes, 0, 1;
-    my %subtype = (
-        0x01 => qw| scope-enter |,
-        0x02 => qw| scope-leave |,
-        0x03 => qw| end-run |,
-        0x04 => qw| close-field |,
-        0x05 => qw| close-stream |,
-    );
-    my $subtype = $subtype{$subtype_code} // qw| unknown |;
-    $record->{'header'}->{'subtype'} = $subtype;
-
-    if ( $subtype eq qw| scope-enter | ) {
-        my ( $hop_id, $slot_addr, $origin )
-            = unpack( 'x n n/a* n/a*', $bytes );
-        $record->{'header'}->{'hop_id'}    = $hop_id;
-        $record->{'header'}->{'slot_addr'} = $slot_addr;
-        $record->{'header'}->{'origin'}    = $origin;
-    } elsif ( $subtype eq qw| scope-leave | ) {
-        my ($origin) = unpack( 'x n/a*', $bytes );
-        $record->{'header'}->{'origin'} = $origin;
-    }
-
-    return;
-}
-
-#,,.,,,..,.,.,..,,,,.,..,,...,..,,,.,,,..,..,,.,.,...,...,...,.,.,,.,,..,,,,.,
-#3T4EDMMP2EUY25WZK2IQFVJVSEOHNKNTJXV4T62JKCNOCWYJHCKKC7WNPKGIJISDMZZVKYVYZ2KPI
-#\\\|ODIUKWWGRREGYUVM6CJWB7HRJTIBEZVA6GWL64CIGCZQWB2VK7T \ / AMOS7 \ YOURUM ::
-#\[7]JA3HFSVLFMDACIGKB4LENJLTN7YG33CNWS3RBYLFSULQQGPDQ6AA 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,,,,.,.,.,,,,..,,,,,.,,,,..,,,.,.,.,...,..,,.,,,,,.,,.,,.,,,,.,,
+#GZETFKXJU7H4ONSA3UPVIG23IR4VTEPPXXDE7JSICVIJKHCU4QZEDZ2CGXRHVVDGLRRTF6RUHPOFU
+#\\\|4237GTERK45B6G42YA3OXYKBM7E4PAVCYQICMEUMHN5NL26P33K \ / AMOS7 \ YOURUM ::
+#\[7]WG2S5EJDR6QF7UHKLM3A2EDBJKY4VHUQ2GKGETIMUSP46KXXKKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
