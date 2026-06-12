@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = base.stdio.frame.decode.decode_nibble
+# param = $data_ref  [ arrayref of base-7 digit values, 1-based ]
+# descr = decode a nibble-encoded data run back into raw bytes
+
+my $data_ref = shift;
+
+my @bytes;
+for ( my $j = 0; $j < @$data_ref; $j += 2 ) {
+    last if $j + 1 >= @$data_ref;
+    my $d0  = $data_ref->[$j] - 1;
+    my $d1  = $data_ref->[ $j + 1 ] - 1;
+    my $nib = $d0 * 7 + $d1;
+    if ( $j % 4 == 0 ) {
+        push @bytes, $nib << 4;
+    } else {
+        $bytes[-1] |= $nib;
+    }
+}
+
+return pack qw| C* |, @bytes;
+
+#,,.,,,..,,..,..,,,..,,,,,.,,,,,.,.,,,,..,.,,,..,,...,...,.,,,..,,..,,...,,,,,
+#TQGNGXZXEWV2MZ5RN45YGRYOIUG7UQK64UWIM3X2CWRYFN4EFC4QBAE32A3O5G2YEVL2YRVZQOEMQ
+#\\\|VSRFRB3O55HIGVAKLFV2E3S6MZO5JO2ZLBGUZKEF4A7QRKHNCD6 \ / AMOS7 \ YOURUM ::
+#\[7]PHNA3QLRZZCVHIXHD4I2A4E5HSDZXVLHUGIVVT4WBP5UWO46SECY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
