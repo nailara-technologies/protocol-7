@@ -168,6 +168,7 @@ ui.render.fallback
 ui.fields.fallback
 jobqueue.init_code
 jobqueue.find_jobs
+base.slot.register
 base.reload_values
 base.reload_config
 base.parser.config
@@ -201,6 +202,7 @@ io.ip.tcp.init_code
 devmod.console-dump
 base.utf8.clean_str
 base.str.eval_error
+base.slot.init_code
 base.round_truncate
 base.root.init_code
 base.reload_plugins
@@ -307,6 +309,7 @@ crypt.C25519.sign_keys
 crypt.C25519.sign_data
 crypt.C25519.post_init
 crypt.C25519.init_code
+base.slot.bind_content
 base.session.init_code
 base.required_bin_path
 base.register_src_deps
@@ -337,6 +340,7 @@ crypt.C25519.sig_fnames
 crypt.C25519.key_exists
 base.templates.pre_init
 base.strip_chksum_lines
+base.stdio.frame.decode
 base.start.unlink_child
 base.session.init_state
 base.perlmods.init_code
@@ -476,6 +480,7 @@ crypt.C25519.gen_keys_typed
 crypt.C25519.compute_shared
 base.templates.register_add
 base.stream.record_emission
+base.stdio.transport.listen
 base.session.calc_cmd_stats
 base.root.check_system_user
 base.parser.ondemand_status
@@ -574,6 +579,8 @@ base.p7refs.gen_template_chksum
 base.buffer.local_logfile_write
 v7.zenka.instance.track_handover
 v7.zenka.end-handler.web-browser
+v7.handler.stdio_multiplex_scope
+v7.handler.stdio_multiplex_demux
 v7.handler.set_initialized_reply
 v7.handler.instance_verification
 crypt.C25519.name_from_skey_name
@@ -595,6 +602,7 @@ base.config.load_proto_7_version
 base.calculate_line_length_stats
 ascii.frame.parse.border_segment
 v7.parser.manually_stopped_tstamp
+v7.handler.stdio_multiplex_listen
 v7.callback.delete_instance_cache
 protocol.amos-chksum.ext-cmd.exit
 plugin.auth.zenka.no-keys-defined
@@ -682,14 +690,17 @@ plugin.auth.auth-keypair.tofu-notification
 base.zenka.push.reply-handler.notify-online
 base.referenced_subroutines.clear_from_disk
 base.log.send-buffer.reply-handler.send-reply
+v7.handler.stdio_multiplex_demux.route_to_slot
 plugin.auth.auth-keypair.load-authorized-users
 plugin.auth.auth-keypair.cleanup-incoming-keys
 plugin.auth.auth-keypair.validate-incoming-tofu
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
+v7.handler.stdio_multiplex_demux.encode_payload_hex
+v7.handler.stdio_multiplex_demux.decode_payload_text
 
-#,,,,,,..,.,.,,..,,..,...,,.,,..,,,,,,.,,,,.,,..,,...,...,.,.,,..,.,.,.,.,..,,
-#HTSMEEWD3FXSPLIIO64LU5HTCV2EQXELCZLCIZZPO625K6YR7ZREBZSBLBXWVRYYEXNKMFE2YRDIC
-#\\\|M5RLDCKICECN5QEUQBNVCUL3Q4KGVZCT64WSFU24XJ6HIEXOLZV \ / AMOS7 \ YOURUM ::
-#\[7]XMV54OOFRJWVAPPJ7EBIAAHULNNKGOTJZSWGMOBQSUIC3DWNAEAI 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,.,,...,,,,,...,,,.,,.,,...,...,..,,...,...,,,,,..,,.,,,...,.,.,
+#QDVHVC4BFM4GHWLT2BJXZT52YIROODFIT5KH2JULGQDA3KZWQVMA76DKUOEZJ657NTBPEMVR3PGG6
+#\\\|VIWG2UUJYPENJF6XQLWX3MV5GL76EYH6ZJL7A7BI4NQ6EZRHYI2 \ / AMOS7 \ YOURUM ::
+#\[7]KAOUGW4LBH2HGUJWHY3BD72HPKPNC7R7URHGVVJXN5IHVO6MTAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
