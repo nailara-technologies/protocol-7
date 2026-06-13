@@ -22,15 +22,31 @@ if (<ticker.is_composited>) {
 
 if ( <ticker.fade_opacity> == 0 ) {
     <[base.log]>->( 2, ":: fade-out complete." );
-    <[base.X-11.keep_below]>->(<x11.id>) if defined <x11.id>;
+
+    if ( <[base.cfg_bool]>->(<ticker.mouse.swap_edge>) ) {
+        my $current = <ticker.window.profile> // qw| bottom-strip |;
+        if ( $current =~ m{^bottom-strip$} ) {
+            <[base.log]>->( 1, ': swap mode: moving ticker to top edge' );
+            <[ticker.cmd.set-window-profile]>
+                ->( { 'args' => qw| top-strip | } );
+        } elsif ( $current =~ m{^top-strip$} ) {
+            <[base.log]>->( 1, ': swap mode: moving ticker to bottom edge' );
+            <[ticker.cmd.set-window-profile]>
+                ->( { 'args' => qw| bottom-strip | } );
+        }
+        ## fade-in is handled by check_pointer once it sees the new edge is free ##
+    } elsif ( defined <x11.id> ) {
+        <[base.X-11.keep_below]>->(<x11.id>);
+    }
+
     delete <ticker.fade_opacity>;
     delete <ticker.time.fade_view>;
     delete <ticker.timer.fade>;
     $timer->cancel;
 }
 
-#,,..,,,,,,.,,...,..,,,.,,,.,,,..,.,.,.,.,,,.,.,.,...,...,,..,.,.,...,,,,,..,,
-#PA25SOD5LC6WXNUOP3XHJ4FHEAW4NH7RBMP2WTWZGMK2UYPRR3YEXOWOFMRKTIGNBDLNLJCEPX3O4
-#\\\|GPQ2D3O5PWCGY7WPELZ2HHO3JXWUVFE7PFRIBYXBBU3LO7HGRW4 \ / AMOS7 \ YOURUM ::
-#\[7]LXLNJNPRAVH64IASWU6BGBYFBJLVF4YBMR2BPIS7OCB67OKAZSAQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,.,.,,,.,,,.,,.,,,,.,..,,.,.,,..,.,.,...,...,,..,.,,,,,.,.,.,.,,,
+#SQQCXKALRLWKCAHA42BC53PLLWEOOXJHPRLAC5WJAG4YZQ3LPHN66UXAIGGXFIRDHC4ZZDEPR327Q
+#\\\|ZESVAJOWCCVSMMZRLY5KU2TRRXS6MPHSREQOIG5YS6XLG3P7E4O \ / AMOS7 \ YOURUM ::
+#\[7]YV4VYYV3ERXDIFSSBO5XXKYX3VLWNGUICH6LELFKMXQ43NXXPYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
