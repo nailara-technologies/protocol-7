@@ -344,6 +344,7 @@ return [ qw[
         ticker.init_code
         ticker.cmd.pause
         ticker.calc_incr
+        ticker.calc_decr
         system.init_code
         storage.9p.mount
         storage.9p.clunk
@@ -626,6 +627,7 @@ return [ qw[
         USR.lain.base-key
         zenki.parent.start
         work.console.stats
+        window.place.start
         web.scan_directory
         web.menu_generator
         web.cmd.auth-login
@@ -644,6 +646,7 @@ return [ qw[
         ui.render.fallback
         ui.fields.fallback
         ticker.open_window
+        ticker.cmd.get-xid
         ticker.calc_colors
         template.init_code
         task.cmd.wait-done
@@ -809,6 +812,8 @@ return [ qw[
         work.aggregate_bugs
         window.profile.save
         window.profile.load
+        window.place.commit
+        window.place.cancel
         websocket.init_code
         web.cmd.auth-status
         web.cmd.auth-logout
@@ -1690,6 +1695,8 @@ return [ qw[
         transport.profile.match
         transport.handle.socks5
         tile-groups.sort_layers
+        ticker.handler.fade_out
+        ticker.cmd.place_window
         task.cmd.summarize-done
         system.process.autokill
         system.cmd.pid_autokill
@@ -1871,6 +1878,7 @@ return [ qw[
         base.chk-sum.bmw.512_32
         base.callback.cmd_reply
         base.auth.set_zenka_key
+        base.X-11.unhide_window
         base.X-11.get_window_id
         base.X-11.get_subconfig
         base.X-11.get_dbus_addr
@@ -1900,6 +1908,7 @@ return [ qw[
         work.parent.scan_history
         work.parent.fix_versions
         window.profile.calculate
+        window.place.open_window
         window.gtk.profile.apply
         web.process_template_ipc
         web.process-template-ipc
@@ -2110,6 +2119,7 @@ return [ qw[
         work.load_workspace_index
         work.generate_todos_index
         work.console.fix-versions
+        window.place.handler.draw
         web.response.content_type
         web-browser.disable_proxy
         web-browser.cmd.slow_down
@@ -2357,6 +2367,7 @@ return [ qw[
         tile-groups.merge_multiple
         tile-groups.cmd.tile-count
         ticker.set-up.import_rules
+        ticker.handler.place_reply
         ticker.cmd.current_content
         system.memory.cmd.mem-used
         system.cmd.reenable-reboot
@@ -2545,6 +2556,8 @@ return [ qw[
         work.extract_workspace_bugs
         work.console.import-dev-key
         work.console.fix-signatures
+        window.place.handler.motion
+        window.place.apply_geometry
         web-browser.wait_for_window
         web-browser.start_slideshow
         web-browser.cmd.scroll_stop
@@ -2954,6 +2967,7 @@ return [ qw[
         work.generate_workspace_index
         work.console.test-oscillation
         work.console.harmonize-emails
+        window.place.cmd.place_window
         web-browser.process_url_flags
         web-browser.handler.slideshow
         web-browser.enable_javascript
@@ -3177,6 +3191,7 @@ return [ qw[
         X-11-pointer.cmd.blank-cursor
         workspace-transfer.console.bug
         work.setup_module_dependencies
+        window.place.handler.key_press
         web.process_template_recursive
         web-browser.handler.swap_views
         web-browser.disable_javascript
@@ -3668,6 +3683,7 @@ return [ qw[
         zenki.parent.resolve_dependencies
         workspace-transfer.cmd.checkpoint
         workspace-transfer.cmd.bug-commit
+        window.place.handler.button_press
         web-browser.start-up.raise_window
         web-browser.handler.size_allocate
         web-browser.handler.quit_fade_out
@@ -3910,6 +3926,7 @@ return [ qw[
         workspace-transfer.env.detect_paths
         workspace-transfer.cmd.status-check
         work.calculate_suggestion_relevance
+        window.place.handler.button_release
         web-browser.handler.snapshot_result
         web-browser.callback.load_fail_page
         weather.parent.handler.update_timer
@@ -4541,8 +4558,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,.,,,.,.,.,,,,..,,,,,,.,,...,.,,,,,.,.,,,.,.,...,..,,,..,..,,.,.,.,.,.,.,
-#5BY25CZURKXGIDHCNHDNCHFXTWSBNKSSXAJ63K2DYSJFME6HVT3W3LKITYXR6SRL6A2SNFRCO3D6Y
-#\\\|RDS5P3YBXFH36AMU2ICGFUZ3XGQHPD7EVVA247OC4BLWT4QNQNZ \ / AMOS7 \ YOURUM ::
-#\[7]VVYRPJXSDUQYKAT7EQFQGLAYLG3ZMS4BKPPZTVJP23T3UALR62CQ 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,.,,,.,.,..,,.,,,,..,,..,,.,,..,,.,.,...,...,.,.,...,..,,,,.,.,,,
+#GC7WCCKF25PICWHQHJYE3WED6N5EXBB6JA3BECZTB36A2UGW43P4GZQYFCA2PGGUSD5V6THTGMLI2
+#\\\|TGYCYLFA2J5HRCYYBFIGNC5Z3NC6PIJWCJBOKEMXI3NR6YLGV7H \ / AMOS7 \ YOURUM ::
+#\[7]IJVL75STAMMTM7JIEAGPMT5U6TKEHVVU5TS7FQWGZHHAJ6B7DUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

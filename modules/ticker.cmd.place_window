@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = ticker.cmd.place_window
+# descr = invoke window.place zenka to position the ticker
+
+my $profile = $call->{'args'} // 'bottom-strip';
+$profile = 'bottom-strip' if not length $profile;
+
+my $reply_handler = 'ticker.handler.place_reply';
+
+<[protocol-7.command.send.local]>->(
+    {   'command'   => qw| cube.window.place.place_window |,
+        'call_args' => {
+            'args' => sprintf(
+                'caller=ticker profile=%s reply_handler=%s',
+                $profile, $reply_handler
+            )
+        }
+    }
+);
+
+return { 'mode' => qw| true |, 'data' => 'placement requested' };
+
+#,,,.,...,,..,..,,,,,,,,,,..,,..,,.,.,,,.,,..,.,.,...,...,..,,.,,,.,,,...,,,.,
+#NJ4CWZBVCZ2R2WLCXDRN4WEHB6RPUEG77VW7EGSIJNV6E5CL36A5KVGDYEQRSLWA43L27N35UGCOI
+#\\\|5K64I6KQ7RNF3NQWD7HMQ5XYTGS2INXAJRN2TOFIDPTOOKOHTJR \ / AMOS7 \ YOURUM ::
+#\[7]5LVD4YB7JI4HDJFUWHGVD7AOT6HUABVFEFFMB4T6OHNW4QTRUODA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

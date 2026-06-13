@@ -1,0 +1,67 @@
+## [:< ##
+
+# name  = window.place.handler.button_press
+# descr = begin drag or commit on double-click
+
+my ( $widget, $event ) = @ARG;
+
+my $ex = $event->x;
+my $ey = $event->y;
+
+my $w = <x11.window.width>  // 320;
+my $h = <x11.window.height> // 240;
+
+my $region = 'body';
+my $corner = 16;
+my $edge   = 8;
+
+if ( $ex < $corner and $ey < $corner ) {
+    $region = 'nw';
+} elsif ( $ex > $w - $corner and $ey < $corner ) {
+    $region = 'ne';
+} elsif ( $ex < $corner and $ey > $h - $corner ) {
+    $region = 'sw';
+} elsif ( $ex > $w - $corner and $ey > $h - $corner ) {
+    $region = 'se';
+} elsif ( $ey < $edge ) {
+    $region = 'n';
+} elsif ( $ey > $h - $edge ) {
+    $region = 's';
+} elsif ( $ex < $edge ) {
+    $region = 'w';
+} elsif ( $ex > $w - $edge ) {
+    $region = 'e';
+}
+
+<window.place.drag.active>     = TRUE;
+<window.place.drag.region>     = $region;
+<window.place.drag.start_x>    = $event->x_root;
+<window.place.drag.start_y>    = $event->y_root;
+<window.place.drag.start_geom> = {
+    'x'      => <x11.coordinates.left> // 0,
+    'y'      => <x11.coordinates.top>  // 0,
+    'width'  => <x11.window.width>     // $w,
+    'height' => <x11.window.height>    // $h
+};
+
+## double-click commit on body ##
+if ( $region eq 'body' ) {
+    my $now = <[base.time]>->(5);
+    if ( defined <window.place.last_click>
+        and ( $now - <window.place.last_click> ) < 0.3 ) {
+        <[base.log]>->( 1, '[place.button_press] double-click commit' );
+        <[window.place.commit]>->();
+        return TRUE;
+    }
+    <window.place.last_click> = $now;
+}
+
+<[base.logs]>->( 2, '[place.button_press] region=%s', $region );
+
+return TRUE;
+
+#,,.,,...,,..,.,,,...,,.,,,..,.,,,,,.,..,,,.,,.,.,...,...,.,.,.,.,,,,,,,,,,.,,
+#FWJI5NF4LE33SUX625FMJ2FFABXNODHZFFB6ZEOIWVGVWRYAPLRXADQFQAC5I6A575QLLLA6PIJ5U
+#\\\|LBQ47AFFDXY7FNQY7BV7F6ZCCZQ6CKN2HCG6JBBMZKPG7XK6MDA \ / AMOS7 \ YOURUM ::
+#\[7]UGZEFAYV6BC6Y7A7VSX2P5GILFJ5PDGY7WSZFIMB2DDMCHPSMOBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

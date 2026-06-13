@@ -1,0 +1,36 @@
+## [:< ##
+
+# name = ticker.handler.fade_out
+
+my $timer  = shift->w;
+my $window = <ticker.obj.window>;
+
+if ( not defined <ticker.time.fade_view> ) {
+    <[base.log]>->( 2, ":. fade-out started.," );
+    <ticker.fade_opacity> //= 1;
+    <ticker.time.fade_view> = <[base.time]>->(3);
+}
+
+my $delta_t = sprintf( '%.3f', <[base.time]>->(3) - <ticker.time.fade_view> );
+
+<ticker.fade_opacity> -= <[ticker.calc_decr]>->($delta_t);
+<ticker.fade_opacity> = 0 if <ticker.fade_opacity> <= 0;
+
+if (<ticker.is_composited>) {
+    $window->set_opacity(<ticker.fade_opacity>);
+}
+
+if ( <ticker.fade_opacity> == 0 ) {
+    <[base.log]>->( 2, ":: fade-out complete." );
+    <[base.X-11.keep_below]>->(<x11.id>) if defined <x11.id>;
+    delete <ticker.fade_opacity>;
+    delete <ticker.time.fade_view>;
+    delete <ticker.timer.fade>;
+    $timer->cancel;
+}
+
+#,,..,,,,,,.,,...,..,,,.,,,.,,,..,.,.,.,.,,,.,.,.,...,...,,..,.,.,...,,,,,..,,
+#PA25SOD5LC6WXNUOP3XHJ4FHEAW4NH7RBMP2WTWZGMK2UYPRR3YEXOWOFMRKTIGNBDLNLJCEPX3O4
+#\\\|GPQ2D3O5PWCGY7WPELZ2HHO3JXWUVFE7PFRIBYXBBU3LO7HGRW4 \ / AMOS7 \ YOURUM ::
+#\[7]LXLNJNPRAVH64IASWU6BGBYFBJLVF4YBMR2BPIS7OCB67OKAZSAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

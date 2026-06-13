@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = ticker.handler.place_reply
+# descr = handle geometry reply from window.place
+
+my $reply = shift;
+my $args  = $reply->{'data'} // '';
+
+<[base.logs]>->( 1, '[ticker.place_reply] received: %s', $args );
+
+if ( $args =~ m|^x=(\d+)\s+y=(\d+)\s+width=(\d+)\s+height=(\d+)| ) {
+    my ( $x, $y, $w, $h ) = ( $1, $2, $3, $4 );
+    <[base.logs]>->(
+        1,  '[ticker.place_reply] saved geometry x=%d y=%d w=%d h=%d',
+        $x, $y, $w, $h
+    );
+    <[base.log]>->(
+        1,
+        'restart ticker with ticker.window.profile = saved to use new placement'
+    );
+} else {
+    <[base.log]>->(
+        1, '[ticker.place_reply] placement cancelled or malformed'
+    );
+}
+
+return { 'mode' => qw| true |, 'data' => 'reply handled' };
+
+#,,..,...,,,,,,,.,.,,,,.,,,..,,,,,,,.,.,.,...,.,.,...,...,..,,.,.,,.,,,.,,.,.,
+#4ZTHUS43L6A3MOR5KJV3Y7LXUGUXDFI6B4SLEIO66IEHIO7JNJUYZBXLUALXQ3DIB3WI3Q3RNCUHW
+#\\\|TW5SFH4B77EP7WYJD6W7JINHLZTGSLNYQNN3B27RWLKCIHWZDS7 \ / AMOS7 \ YOURUM ::
+#\[7]EEIMIHL6KVOMANGROV3DUATUYQ6UB6VBMJQOK5SZV5ONPBI34EBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

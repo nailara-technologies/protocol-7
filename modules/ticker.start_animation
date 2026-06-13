@@ -8,21 +8,51 @@ my $window = <ticker.obj.window>;
 
 <ticker.animation_started> = 1;
 
-if ( <ticker.is-iconified>-- ) {
-    <ticker.obj.window>->deiconify;
-    <[base.log]>->( 1, 'deiconifying..,' );
+if ( not $window->get_visible or <ticker.is-iconified>-- ) {
+    my $was_hidden = not $window->get_visible;
+    if (    $was_hidden
+        and not <ticker.mouse.inside>
+        and <ticker.is_composited> ) {
+        <ticker.fade_opacity> = 0;
+        $window->set_opacity(0);
+    }
+    <ticker.obj.window>->show;
+    <[base.X-11.unhide_window]>->(<x11.id>) if defined <x11.id>;
+    <ticker.is-iconified>      = 0;
+    <ticker.mouse.inside>      = FALSE;
+    <ticker.mouse.grace_until> = <[base.time]>->(5) + 1.5;
+    <[base.log]>->( 1, 'showing window' );
+}
+
+if ( defined <x11.id> ) {
+    <ticker.timer.fade>->cancel if defined <ticker.timer.fade>;
+    delete <ticker.time.fade_view>;  ## keep opacity for smooth transitions ##
+
+    my $handler;
+    if (<ticker.mouse.inside>) {
+        <[base.log]>->( 1, 'mouse is inside ticker window, keeping below' );
+        <[base.X-11.keep_below]>->(<x11.id>);
+        $handler = qw| ticker.handler.fade_out |;
+    } else {
+        <[base.X-11.keep_above]>->(<x11.id>);
+        <[base.X-11.raise_window]>->(<x11.id>);
+        $handler = qw| ticker.handler.fade_in |;
+    }
+
+    if ( <ticker.use_transparency> and <ticker.do_custom_fade_in> ) {
+        <ticker.timer.fade> = <[event.add_timer]>->(
+            {   'after'    => 0,
+                'interval' => 0.017,
+                'handler'  => $handler
+            }
+        );
+    }
 }
 
 $window->queue_draw();
-<[event.add_timer]>->(
-    {   'after'    => 0,
-        'interval' => 0.017,
-        'handler'  => 'ticker.handler.fade_in'
-    }
-) if <ticker.use_transparency> and <ticker.do_custom_fade_in>;
 
-#,,.,,,..,,,.,.,,,,.,,,,,,,,,,..,,,.,,,..,,..,..,,...,..,,...,,,,,,.,,..,,,..,
-#PVILSW3DYNMYBEDQMTJEL5P2W6O6UFFM7ZKOAVLXFLF6JIUA4ZUGVKZNIB45RASW5ZMBNNXCKFVBK
-#\\\|DPEW457CI33VGF7ECNIICHJZO5ABK25IUQUXFUXDDCP3SMEKMXJ \ / AMOS7 \ YOURUM ::
-#\[7]ZBMHKQ52W6YX3NJWUFPR4LXJN6MBUGS7EOPNEX7ZYMN2TAY4JKBI 7  DATA SIGNATURE ::
+#,,,.,..,,...,,,,,,.,,...,..,,.,.,,,,,...,.,.,..,,...,...,...,..,,,.,,,,.,..,,
+#6BH4VNWR6NBQZX4BMCS657E4K3GVLYUHSCBJ5TJJY36CX4YIQYQKP44PTB73JWF26W7M23OWCVS6Q
+#\\\|YDRI3PV4H6D67KOTHNS4FDOSNAXOQ3O6XBIUKEAMGYYAKCKLD3T \ / AMOS7 \ YOURUM ::
+#\[7]LQBQ4PMCVXBMTBXXT5CJOECS23N77RATLYBUX7EJBTP3BMWOEQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
