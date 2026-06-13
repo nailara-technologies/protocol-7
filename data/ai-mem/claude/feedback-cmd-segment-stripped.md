@@ -35,15 +35,14 @@ grant.
 - if you see "no perm" or "command not known" for a `cmd.<name>`-shaped
   string in cube logs, the caller used the on-disk name instead of the
   routed name — fix the *invocation*, not the access grant
-- **status: pattern confirmed from code comment + one live "wrong
-  invocation → cmd.<name> in error" observation; not yet confirmed
-  end-to-end with a successful `<zenka>.<name>` call returning real
-  data — verify that before treating this as fully closed**
+- **status: VERIFIED 2026-06-13** — `credential_fabric.resolve`/`.rotate`/
+  `.list-slots`/`.ui-show` all called live via console (`.cmd.` stripped),
+  routed correctly, returned real data (not "no perm"/"not known"). Closed.
 
 #,,.,,...,...,.,.,.,.,...,,,.,...,.,,,,,.,...,..,,...,...,,,,,,,,,,,,,,.,,,..,
 
-#,,,.,...,..,,..,,..,,.,,,,,.,...,,,,,,,,,,..,..,,...,...,,,.,,,.,.,,,,.,,..,,
-#A6SCEUSQQ4ZWD7MCJHA26MYZP6JFTF3VQ7XVOHAUANA7ACJIGXFLN2ZZFDA74C6WPF4Z63CP5R4LS
-#\\\|5QFBNLRQAAPBGTG7KBZZR6LRL6YNDC6OM7A4RXKVH5Q66DXJLFQ \ / AMOS7 \ YOURUM ::
-#\[7]CNHASBB2VE6522WYF7KZNIVW5JSRCBCQ3RMRNHIEUZH5DQHT46BY 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,...,,,.,...,,..,..,,,,.,,,,,.,.,..,,...,.,.,...,,.,,.,,,..,,...,
+#DDUSE6E2B3PW3GFIWLPI7ONIFEY5QIYEQFOULYBRVC2T5LY6XHGCWXBXJCXDBO6GYUCNWID6BAAFW
+#\\\|SMTTLSIDUU572ISNNRVAO5OKEX2PNLTMVD6PPBQQCHF4EL6ZNA3 \ / AMOS7 \ YOURUM ::
+#\[7]5BF4YRGR2F7XHGOMGQQHEZ5L3B7WKZV5WKXXOKP5Q2WDIXQ2Z4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
