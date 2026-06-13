@@ -85,7 +85,7 @@ if ( exists $query->{'harmonic'} ) {
 if ( exists $query->{'aura'} and ref $query->{'aura'} eq qw| HASH | ) {
     my $a = $query->{'aura'};
     @results = grep {
-        my $aura = <space.orbit.auras>-> $ARG->{'node_id'} };
+        my $aura = <space.orbit.auras>->$ARG->{'node_id'};
         my $ok   = defined $aura ? TRUE : FALSE;
         $ok = FALSE
             if $ok
@@ -107,9 +107,8 @@ if ( exists $query->{'refcount'} and ref $query->{'refcount'} eq qw| HASH | )
     my $min = $r->{'min'} // 0;
     my $max = $r->{'max'} // ~0;
     @results = grep {
-        my $passages = <space.orbit.passages>-> $ARG->{'node_id'} }
-            // [];
-        my $count = scalar @$passages;
+        my $passages = <space.orbit.passages>->$ARG->{'node_id'} // [];
+        my $count    = scalar @$passages;
         $count >= $min and $count <= $max;
     } @results;
 }
@@ -141,29 +140,14 @@ if ( @results > 100 ) {
 
 ## attach aura confidence where available ##
 for my $r (@results) {
-    my $aura = <space.orbit.auras>-> $r->{'node_id'} };
+    my $aura = <space.orbit.auras>->$r->{'node_id'};
     $r->{'aura_confidence'} = $aura->{'confidence'} // 0 if defined $aura;
 }
 
 return \@results;
 
-##[ fallback resonance helper ]##
-sub _fallback_resonance {
-    my $node_id   = shift;
-    my $passages  = <space.orbit.passages>->{$node_id} // [];
-    my $ref_count = scalar @$passages;
-    my $harmonic  = FALSE;
-    eval {
-        $harmonic = AMOS7::Assert::Truth::is_true($node_id) ? TRUE : FALSE;
-    };
-    my $node        = <space.grid.nodes>->{$node_id} // {};
-    my $shell       = $node->{'shell'}                    // 1;
-    my $shell_bonus = 1 / ( $shell > 0 ? $shell : 1 );
-    return $ref_count * ( $harmonic ? 2 : 1 ) * $shell_bonus;
-}
-
-#,,,,,,,.,..,,,.,,..,,,.,,,..,,,.,.,,,,,.,.,,,.,.,...,..,,,..,.,,,.,.,.,.,.,,,
-#BBG6KX23JCSP7DL2WBTATZF74BCQ6VRKBXLUFJY54IF7NFIV7PKIZH3CJ26VJNCDPTNPBDBUAE4P6
-#\\\|MJ2PFISHLYGOALETPGRIQ3VO5TVTKHMVPIZJ7S3IJMSM5N62QOK \ / AMOS7 \ YOURUM ::
-#\[7]KWJUM6EP6DL53BX5HT6UB42TJ34IWQQSY5F5NIRLFGCKSE474YCY 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,,,,,.,,,,,,,,,,,,.,,..,,.,,,,.,,.,.,...,..,,,.,,,..,.,,,,..,.,.,
+#WK5SP3YLPA7NTCYFT2AR2LWMQOS4TKRO4H2GWUH6RA4ON7M5TQ65RR4Z7J5TANH7BEA4MT5M6XOCO
+#\\\|D2PTTZJ7Q5K47SR4W4IHSWESK7DMC3Z3FWPIW52DTLPU3KTGRVY \ / AMOS7 \ YOURUM ::
+#\[7]4MSVDZMD33PB76FE4XYA4AN2POC5THM74O5ONNQJJ652DA3JFMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

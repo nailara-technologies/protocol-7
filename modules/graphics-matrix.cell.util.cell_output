@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = graphics-matrix.cell.util.cell_output
+# descr = format a lattice cell for display
+
+my $cell = shift;
+my $pos  = $cell->{'position'};
+my $out;
+if ( $cell->{'empty'} ) {
+    $out = sprintf "cell [%d,%d,%d] empty\n",
+        $pos->{'selX'}, $pos->{'selY'}, $pos->{'selZ'};
+} else {
+    $out = sprintf "cell [%d,%d,%d] refs=%d chk=%s\n",
+        $pos->{'selX'}, $pos->{'selY'}, $pos->{'selZ'},
+        $cell->{'refs'}, $cell->{'checksum'};
+    $out .= sprintf "  elements: %d\n", scalar( @{ $cell->{'elements'} } );
+    $out .= sprintf "  created: %s\n",
+        scalar( localtime( $cell->{'created'} ) );
+    $out .= sprintf "  modified: %s\n",
+        scalar( localtime( $cell->{'modified'} ) );
+}
+return { qw| mode | => qw| size |, qw| data | => $out };
+
+#,,,,,,,.,.,.,,,.,..,,.,.,...,..,,.,,,...,,.,,..,,...,...,.,.,...,,,,,.,,,.,.,
+#3JSNAZQJV7H7WOOAXFG7UIKSKFIILXX4NWJDSKQV5LA522BLNPNWVXXWRCFR3GJTDOQHRZ62GPYYU
+#\\\|6HHPEHVFSDMBQHDVCQCULJPULCH27MPA7RZNTWOKMLMHERYHS3V \ / AMOS7 \ YOURUM ::
+#\[7]FDFQ345MZHTYPM4WLG2CWWQ2JAF7SAJV2XKV6UBEF6WO5CTCNGBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

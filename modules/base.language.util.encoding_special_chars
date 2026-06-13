@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = base.language.util.encoding_special_chars
+# descr = extract non-ascii chars an encoding maps from 0x80-0xFF
+
+my $enc   = shift;
+my %seen  = ();
+my @chars = ();
+for my $byte ( 0x80 .. 0xFF ) {
+    my $uni
+        = eval { Encode::decode( $enc, chr($byte), Encode::FB_CROAK ) };
+    next unless defined $uni and not $@ and length $uni;
+    push @chars, $uni unless $seen{$uni}++;
+}
+return @chars;
+
+#,,,.,,,,,,.,,.,,,,.,,.,.,.,.,,..,,,.,,,,,..,,..,,...,...,,,.,,..,.,.,,,.,..,,
+#GSG3UNDV6XLQ3WFJM4PNXIF2HKGKHQSYKOWB2NBP6IRIRUAWRFKOKCSYOPMQUOGFMGUUP3Q6RBQGI
+#\\\|PJVX7XDXOJTDYWSRTHOC3D663J3JBNKP55OTOKM2MBQNI7WQTQQ \ / AMOS7 \ YOURUM ::
+#\[7]M7DTQSCUJXHPJMVGEWCXSJBLVGMMMXA4GNZZAKQMS27JZHZRK4DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

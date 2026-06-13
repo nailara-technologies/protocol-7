@@ -17,45 +17,14 @@ use parent qw| LWPx::ParanoidAgent |;
 
 our $etc_hosts = Config::Hosts->new();
 
-sub read_hosts {
-    my ( $self, $hosts_file ) = @ARG;
-    $hosts_file //= qw| /etc/hosts |;
-    <[base.logs]>->( 1, "reading '%s' file..", $hosts_file );
-
-    my $stderr_fhcopy = *STDERR;
-    my $stderr_buffer = '';
-    tie *STDERR, IO::Scalar->new( \$stderr_buffer );
-    eval { $etc_hosts->read_hosts($hosts_file) };
-    untie *STDERR;
-    *STDERR = $stderr_fhcopy;
-    if ($EVAL_ERROR) {
-        ( my $reason_str = $EVAL_ERROR ) =~ s|\n| |g;
-        $reason_str =~ s|( Bailing out)?[ \.]+$||;
-        <[base.log]>->( 0, "<<!>> $hosts_file: $reason_str" );
-        $etc_hosts = undef;
-    }
-    map { <[base.log]>->( 0, "[ $hosts_file ] $ARG" ) } split m|\n|,
-        $stderr_buffer;
-}
-
-sub _resolve {
-    my ( $self, $host, $request, $timeout, $depth ) = @ARG;
-
-    <[base.logs]>->( 2, "resolving host '%s'..,", $host );
-
-    ## /etc/hosts ##
-    if ( defined $etc_hosts ) {
-        my $local_result;
-        $local_result = $etc_hosts->query_host($host);
-        if ( defined $local_result and defined $local_result->{'ip'} ) {
-            my $ip_addr = $local_result->{'ip'};
-            <[base.logs]>->( 2, ": found local entry '%s'", $ip_addr );
-            return $ip_addr;
-        }
-    }
-
-    ## DNS Resolver ##
-    return $self->SUPER::_resolve( $host, $request, $timeout, $depth );
+{
+    no warnings qw| redefine |;
+    *_resolve = sub {
+        return <[download.util.resolve]>->(@ARG);
+    };
+    *read_hosts = sub {
+        return <[download.util.read_hosts]>->(@ARG);
+    };
 }
 
 package main;
@@ -87,8 +56,8 @@ if ( !-d $download_path ) {
 
 0;
 
-#,,,,,...,.,,,,,.,,,,,,..,,,.,.,.,.,.,.,.,,,,,..,,...,...,..,,.,.,.,.,.,.,,.,,
-#3ZON7L2R6LHD65VVBSNY2X4MTB2OP7JIIDNKKPIYKCPBW5WLO56JX3UTZAKJC5U6O3NXL7QTE6FT2
-#\\\|ZUVKDW44IWEMVP4WIGQ7SMCQJF2WOZZ3TVGPCHNVU5O726AJDCO \ / AMOS7 \ YOURUM ::
-#\[7]ZL56LPZHPJEJGY2LLEMEMJ3PMNTJD3MYIIXVNFD2JVB2YLNDW4BQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,..,,,,.,,,.,,,,,,.,,..,,,..,.,,,..,,...,..,,,,.,,.,,...,,,,,.,,,
+#FZPMHSHB6TUPKOMBSVPBIXS4MFTSSYWEQW3DXEH3TYC5JBLBZAXMH6Y6ME63BL3FJKW2XEQKPHWGS
+#\\\|3GEX5JUU6TH63NDAYTOZYYFKADMP7YIGX4H7ES64SLVE3EAKVK3 \ / AMOS7 \ YOURUM ::
+#\[7]EBX5DKG4CZJLV3NRZAQXKHZMLYFY56K2EA5F7LM4EXCQAS2SPWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
