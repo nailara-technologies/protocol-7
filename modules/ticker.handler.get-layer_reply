@@ -14,10 +14,21 @@ if ( $reply->{'cmd'} eq qw| TRUE | ) {
     }
 }
 
+## swap mode needs an override-redirect (popup) window: WSLg/Weston forces  ##
+## _NET_WM_WINDOW_TYPE_DOCK windows to a fixed panel position and ignores   ##
+## client moves. a popup window can be positioned freely by the client.     ##
+if ( not <ticker.window.force_above>
+    and <[base.cfg_bool]>->(<ticker.mouse.swap_edge>) ) {
+    <[base.log]>->(
+        1, ': swap mode enabled, using override-redirect popup window'
+    );
+    <ticker.window.force_above> = TRUE;
+}
+
 <[ticker.open_window]>;
 
-#,,,.,...,,.,,,..,..,,,,.,,.,,,.,,.,,,.,.,,,.,..,,...,...,,..,.,,,.,.,,,,,,..,
-#S7EHOWEQSOZJ74QYYUHR2KZNRNDDKOSK5EY2F75DP5FQNAVKHOJEO2MB3CUD65JQU3BNRUWW5B77K
-#\\\|RYB7C55CYPZQ5FLACAOFYR3UDYNMJVNJ6J4DA6OY6YXLFWIAFHP \ / AMOS7 \ YOURUM ::
-#\[7]PC66LFGW6B64MICD2JRYAKLELWMPAT3YX6QUE4WYLWUWODWEFACI 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,.,.,,,.,...,,..,,,.,,,,,.,.,,,,,..,,...,...,..,,.,.,,,.,,.,,,..,
+#YYMKDHF7XQCDJMQAN6NE5M2MMGKAZ46UFYXPV2GHTWB3I4JC7OZNWTZAXH6YHYUWEGZF2CTJ3H6QC
+#\\\|ZH54IEO4T5ZNJFUV5UGAMMUGAP7KW7HY7NSDDK6SI3KU44GM7PM \ / AMOS7 \ YOURUM ::
+#\[7]PRQCLYRX6W3WBKLCXPO5O656KPGDW4OVSQQSQP5HIAR6IWF522DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
