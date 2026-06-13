@@ -12,44 +12,21 @@ our $WORKSPACE_REPO
     = 'https://github.com/nailara-technologies/workspace-transfer.git';
 
 # Ensure workspace is cloned
-sub ensure_workspace {
-    return $WORKSPACE_DIR if -d $WORKSPACE_DIR && -d "$WORKSPACE_DIR/.git";
-
-    <[base.logs]>->( 1, 'workspace not found at %s', $WORKSPACE_DIR );
-    <[base.logs]>->( 1, 'cloning from %s',           $WORKSPACE_REPO );
-
-    system( 'mkdir', '-p', '/var/run/.7' ) == 0
-        or die "Failed to create /var/run/.7: $!\n";
-
-    my $result = system( 'git', 'clone', $WORKSPACE_REPO, $WORKSPACE_DIR );
-
-    if ( $result != 0 ) {
-        <[base.logs]>->( 0, 'failed to clone workspace-transfer repository' );
-        return undef;
-    }
-
-    <[base.logs]>->( 1, 'workspace cloned successfully' );
-    return $WORKSPACE_DIR;
-}
-
-# Change to workspace directory
-sub chdir_workspace {
-    my $ws_dir = ensure_workspace();
-    return undef unless defined $ws_dir;
-
-    chdir $ws_dir or do {
-        <[base.logs]>->( 0, 'cannot cd to workspace: %s', $! );
-        return undef;
+{
+    no warnings qw| redefine |;
+    *ensure_workspace = sub {
+        return <[workspace-transfer.util.ensure_workspace]>->(@ARG);
     };
-
-    return $ws_dir;
+    *chdir_workspace = sub {
+        return <[workspace-transfer.util.chdir_workspace]>->(@ARG);
+    };
 }
 
 # Initialize workspace module
 <[base.logs]>->( 2, 'workspace module initialized' );
 
-#,,..,,.,,...,.,,,,,,,.,,,...,,.,,.,.,.,.,.,,,..,,...,..,,,..,...,,,.,,,.,.,,,
-#OEEOD32GA3LAEV5S6R6X2H76QOZ6BJMPGZVL3ZV3X7XJNZ53SISKQERCO6R2JLTXEIF5WOZIXBQWE
-#\\\|YCIRKFIEK6VF2JCP5YPGBFLAOL37N3DV6PXYDETA5FROMB5V24V \ / AMOS7 \ YOURUM ::
-#\[7]7W7F4J5XUZWSVARZU7W33GNEK33OWHYFOZNBIB3DEIWYBF7QCSBY 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,.,,,...,,,.,,..,...,.,,,..,,,.,,..,,...,...,.,.,,..,.,,,,.,,.,.,
+#BSGEHSIHN765QTAZSNVQVMTFQHA5AGSIACDQ4R3NDNQ5SASBV6GOAKTXTR2AO7ICW3QUGQUNWH5NG
+#\\\|ADQLNHKBEX5VFCMOLCTZCHNSXQAU43OWUWKJ63WMANBC4WYVDVW \ / AMOS7 \ YOURUM ::
+#\[7]3S4VYGRAIXCMIA6FBWEIA3D34SYK7BI4MQSNS7VON7Q43OMITSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

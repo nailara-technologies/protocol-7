@@ -1,0 +1,17 @@
+## [:< ##
+
+# name  = storchencam.util.loop_wait
+# descr = process network events while waiting
+
+my $tw = shift // 0;
+my $ts = <[base.time]>->(3);
+while ( <[base.time]>->(3) - $ts < $tw ) {
+    <[event.once]>->($tw);
+    SDL::delay( $tw * 100 );
+}
+
+#,,,.,,.,,..,,,..,...,.,,,.,,,..,,...,.,.,...,..,,...,..,,.,.,..,,.,,,,..,..,,
+#MJU2MDVXZRB2M7DXFAVU25QHAKFFVCBDMY7GLELCA4KVLGZ7APN23QRSR2COLXIUJEOM3LJ77EAJA
+#\\\|6LW6N5ORYBUULYQ23OZSS3SLRONXIXDAZIO7ZGLWCRNC6RAOLHT \ / AMOS7 \ YOURUM ::
+#\[7]VKOXWAIYRKU2AT5W2IBIFDGSQNVMXQ5TPPAI4XIEPIV3BFGG3OCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = storchencam.util.mask_scan
+# descr = scan and recolor mask areas on webcam image
+
+# LLL: works on day images only(?) --> implement color sampling area to fix that!
+
+my $surface    = shift;
+my $s_y_offset = shift // 0;
+my @mask_areas = split( / +/, <storchencam.mask_areas> );
+my $pix_format = $surface->format();
+
+foreach my $mask_coord (@mask_areas) {
+    my ( $x_1, $y_1, $x_2, $y_2 ) = split( /,/, $mask_coord );
+
+    my %cols;
+    my $rnd_col;
+
+    foreach my $y ( $y_1 .. $y_2 ) {
+        foreach my $x ( $x_1 .. $x_2 ) {
+            my $offset = $x + ( $y + $s_y_offset ) * $surface->w;
+            my $pixel  = $surface->get_pixel($offset);
+            my $rgb    = SDL::Video::get_RGB( $pix_format, $pixel );
+
+            my $black = 0x20;
+            my $white = 0x50;
+            my $w_tol = 5;
+
+            if (    %cols
+                and $rgb->[0] >= $white - $w_tol
+                and $rgb->[1] >= $white - $w_tol
+                and $rgb->[2] >= $white - $w_tol
+                or %cols
+                and $rgb->[0] <= $black
+                and $rgb->[1] <= $black
+                and $rgb->[2] <= $black ) {
+
+                my @_keys = keys(%cols);
+                $rnd_col = $_keys[ int( rand( scalar @_keys ) ) ]
+                    if not defined $rnd_col or $offset % 2;
+
+                $surface->set_pixels( $offset, $rnd_col ) if @_keys;
+            } elsif ( $rgb->[0] != $rgb->[1]
+                and $rgb->[0] != $rgb->[2]
+                and $rgb->[1] != $rgb->[2] ) {
+                $cols{$pixel} //= 1;
+            }
+        }
+    }
+}
+
+#,,,,,.,.,...,,.,,,.,,...,...,,,,,.,.,,,.,,,.,..,,...,...,...,.,.,.,.,,,,,,,,,
+#IEHNX5KF3OET2J5OLHWWZQDN5VJWURL4JI5VNAS2L7DPTF3SSD2KPYBSLSDT2MS4QJ34BKGBRXXH6
+#\\\|XMKSEAXU2AH4NRL4SIEXBMXPFSEPUQLB25AIOGK632O4QD7WD3J \ / AMOS7 \ YOURUM ::
+#\[7]CWX6BAZSVPHOAXCUHBI626HIIFDS2UJMN3ZIX7NF4FDFUFR53CAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
