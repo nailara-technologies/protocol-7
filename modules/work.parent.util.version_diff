@@ -1,0 +1,17 @@
+## [:< ##
+
+# name  = work.parent.util.version_diff
+# descr = calculate difference between two version strings
+
+my ( $a, $b ) = @ARG;
+my @a_parts = split m|\.|, $a;
+my @b_parts = split m|\.|, $b;
+
+## Simple heuristic: check if patch version jumped by more than 1
+return abs( ( $b_parts[2] || 0 ) - ( $a_parts[2] || 0 ) );
+
+#,,,,,,,.,,,.,...,..,,.,.,.,,,,,.,,.,,,,.,,..,..,,...,...,.,.,..,,,..,,,,,,..,
+#VLLYTET3OTY7ENJ6ZXRYO36OXROWGVUE2XVB7ULDQRNGH5HNKL4KCXYIET2NUSLTHNL5CZHE3WH6G
+#\\\|5WOMICTPGJH65M7GUKYLTETX5P7BLFYTTC4XHVUDAAR353GJHVR \ / AMOS7 \ YOURUM ::
+#\[7]XIUZDOHXIKNAXKBSYZI6AP72E3XJU7SLSWZQ6TCKD3T6ITPWY4BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

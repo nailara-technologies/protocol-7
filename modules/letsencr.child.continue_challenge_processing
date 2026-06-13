@@ -5,19 +5,8 @@
 # note  = called directly from cmd.request-certificate after acme_new returns deferred
 
 ## retrieve stored state from deferred acme_new
-## child will contact httpd directly via message routing for challenge setup/cleanup
-
-## Helper to clean up a specific challenge
-sub _cleanup_challenge {
-    my ( $domain, $token ) = @ARG;
-    return unless $domain && $token;
-    <[base.logs]>->( 2, 'cleaning up challenge for %s', $domain );
-    <[protocol-7.route-send]>->(
-        {   'command'   => qw| httpd.cleanup-acme-challenge |,
-            'call_args' => { 'args' => join( ' ', $domain, $token ) }
-        }
-    );
-}
+## child will contact httpd directly via message routing for challenge
+## setup/cleanup
 
 ## retrieve stored state from deferred acme_new
 my $state = <letsencr.child.acme_state> // {};
@@ -130,8 +119,9 @@ foreach my $auth_url ( @{ $order->{authorizations} } ) {
                 0, '%s: HTTP challenge creation failed', $domain
             );
             ## Clean up the challenge files set up by httpd
-            _cleanup_challenge( $domain, $challenge_data->{token} )
-                if $challenge_data->{token};
+            <[letsencr.child.util.cleanup_challenge]>->(
+                $domain, $challenge_data->{token}
+            ) if $challenge_data->{token};
             goto CHALLENGE_FAILED;
         }
 
@@ -151,7 +141,9 @@ foreach my $auth_url ( @{ $order->{authorizations} } ) {
     unless ($respond_result) {
         <[base.logs]>->( 0, '%s: failed to respond to challenge', $domain );
         ## Clean up the challenge that was already set up
-        _cleanup_challenge( $domain, $challenge_response->{token} );
+        <[letsencr.child.util.cleanup_challenge]>->(
+            $domain, $challenge_response->{token}
+        );
         goto CHALLENGE_FAILED;
     }
 
@@ -271,7 +263,8 @@ unless ($cert_result) {
     } else {
         <[base.log]>->(
             0,
-            'CRITICAL: reply_id undefined in finalize error - route remains open!'
+            'CRITICAL: reply_id undefined in finalize error'
+                . ' - route remains open!'
         );
     }
     return { status => qw| error |, error => 'Order finalization failed' };
@@ -359,8 +352,8 @@ delete <letsencr.child.acme_state>;
 <[base.log]>->( 2, 'challenge processing complete, certificate ready' );
 return $final_result;
 
-#,,,,,.,,,.,.,,..,.,.,.,.,.,.,.,.,.,.,.,,,...,..,,...,..,,,.,,,,.,,,.,,..,,.,,
-#MZ55ZXA6GKZZWIRMZMNHNZLFXJY52QO2BOG3RPTUCCG6GYLW47KGPXHO3RHQ4VG4ZY6F2I77MBUTM
-#\\\|QAKMYTEBXER3E3DZY7VVGOT675DO5DWO2UYODVELJ463MKEVJKZ \ / AMOS7 \ YOURUM ::
-#\[7]NQGB3AWQL33PKW74D7Q3VPKZJAIXMHY2ZIWPD2X57O2BWO25L4AY 7  DATA SIGNATURE ::
+#,,..,...,...,,,.,,..,.,.,,,.,,..,.,.,..,,,,,,..,,...,...,..,,...,..,,,,,,,,.,
+#5P52ZKN2KUPQPZSPU5MG62GXVARYQKHZXYUPRRUFGDBSAPTWY4AK5HFFE3DBATTECY42SKCRZEGS4
+#\\\|KZF2WLW2745R6HP7FKPZUHSMIXUOS6YSJH5QIJXZK7E45W3XPIW \ / AMOS7 \ YOURUM ::
+#\[7]R5Y2HNU7G3BZUICYTFHPEWCH3V2D4VYHISOPRPZFUG6AFSEO2OCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,7 +13,7 @@ if ( $cmd eq '' ) {
 
     ## no args - show cell at cursor position ##
     my $cell = <[graphics-matrix.cell.query]>;
-    return cell_output($cell);
+    return <[graphics-matrix.cell.util.cell_output]>->($cell);
 
 } elsif ( $cmd eq qw| place | ) {
 
@@ -27,7 +27,7 @@ if ( $cmd eq '' ) {
     my $cell = <[graphics-matrix.cell.place]>
         ->( defined $pos ? { qw| position | => $pos } : {} );
     return $cell if ref($cell) eq qw| HASH | and $cell->{'mode'};
-    return cell_output($cell);
+    return <[graphics-matrix.cell.util.cell_output]>->($cell);
 
 } elsif ( $cmd eq qw| remove | ) {
 
@@ -73,7 +73,7 @@ if ( $cmd eq '' ) {
     my $cell = <[graphics-matrix.cell.query]>->($addr);
     return $cell
         if ref($cell) eq qw| HASH | and $cell->{'mode'} eq qw| false |;
-    return cell_output($cell);
+    return <[graphics-matrix.cell.util.cell_output]>->($cell);
 
 } elsif ( $cmd eq qw| survey | ) {
 
@@ -144,30 +144,8 @@ if ( $cmd eq '' ) {
     };
 }
 
-## cell output formatter ##
-sub cell_output {
-    my $cell = shift;
-    my $pos  = $cell->{'position'};
-    my $out;
-    if ( $cell->{'empty'} ) {
-        $out = sprintf "cell [%d,%d,%d] empty\n",
-            $pos->{'selX'}, $pos->{'selY'}, $pos->{'selZ'};
-    } else {
-        $out = sprintf "cell [%d,%d,%d] refs=%d chk=%s\n",
-            $pos->{'selX'}, $pos->{'selY'}, $pos->{'selZ'},
-            $cell->{'refs'}, $cell->{'checksum'};
-        $out .= sprintf "  elements: %d\n",
-            scalar( @{ $cell->{'elements'} } );
-        $out .= sprintf "  created: %s\n",
-            scalar( localtime( $cell->{'created'} ) );
-        $out .= sprintf "  modified: %s\n",
-            scalar( localtime( $cell->{'modified'} ) );
-    }
-    return { qw| mode | => qw| size |, qw| data | => $out };
-}
-
-#,,..,.,.,..,,..,,.,.,,..,..,,...,,..,,,.,,,,,..,,...,...,...,,,.,,,,,..,,...,
-#S3LO5YCDTKNPQNTPWFXZSXSNXIDXMSLJVUYSBXYTJXENACXLAFT73PGGXY7Q4U5DOMDLDHR23PQEK
-#\\\|NX2C6MNCUEXJDT6NMY5VSSU2H52ZILD5NGJ4DJCALXI23NT2VAW \ / AMOS7 \ YOURUM ::
-#\[7]XZ4BGA7XLIMQ7NTHKZOKCYXPACE7Y4IEXMTOZV4AIFPH2ZDHLYBQ 7  DATA SIGNATURE ::
+#,,,.,,..,...,,,,,,.,,.,,,.,.,,.,,,.,,...,..,,.,.,...,...,...,.,.,.,,,,,,,,,,,
+#JNCJW6FFTAXRBY6DXJK3DZBGOGUK2AT7DHHH3RGU35BY2ZNVSFUE7QASFCKFL7EXVOYREQ6R6VKWI
+#\\\|5UEUNTLAOB4PWZ7FVPQVG7A46SJA6LKPJ6DSYFFL24HJLPSKFZV \ / AMOS7 \ YOURUM ::
+#\[7]TEEY3KPM2JMFJP5CIT4U76O7IJHOVA4HVH5XYBAJGSLGYTBOJYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

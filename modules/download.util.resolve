@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = download.util.resolve
+# descr = resolve host via local /etc/hosts or DNS
+
+package Download::UserAgent;
+
+our $etc_hosts;
+
+my ( $self, $host, $request, $timeout, $depth ) = @ARG;
+
+<[base.logs]>->( 2, "resolving host '%s'..,", $host );
+
+## /etc/hosts ##
+if ( defined $etc_hosts ) {
+    my $local_result;
+    $local_result = $etc_hosts->query_host($host);
+    if ( defined $local_result and defined $local_result->{'ip'} ) {
+        my $ip_addr = $local_result->{'ip'};
+        <[base.logs]>->( 2, ": found local entry '%s'", $ip_addr );
+        return $ip_addr;
+    }
+}
+
+## DNS Resolver ##
+return $self->SUPER::_resolve( $host, $request, $timeout, $depth );
+
+#,,,,,..,,.,.,.,.,.,.,..,,,..,,,.,...,.,.,.,.,..,,...,...,,.,,.,,,.,,,.,.,,,.,
+#IX6HJLOQ24GHBXMIRB3GWXWCK3WHOFSYWKEPUXLHF3PAVRRMNH5ML7YWT5R5P54TZHOIHFNUSOLOU
+#\\\|DZJ3IA7OCGABN526E6BSU54WPSRVP5CFAY5SK3WCABACLTNZUS3 \ / AMOS7 \ YOURUM ::
+#\[7]REYTJCKNKSC3EZODSQKA6743ZSWU3KDN6ZNHCN53WJ5CXSCJOCBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
