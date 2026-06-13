@@ -155,7 +155,7 @@ if ( not defined <[base.X-11.wait_for_window]>->($title_pattern) ) {
 <[base.log]>->( 1, 'entering SDL main loop .,' );
 
 # verify-instance reply
-loop_wait(0.888);
+<[storchencam.util.loop_wait]>->(0.888);
 
 my $warned_cam = 0;
 my $warned_res = 0;
@@ -173,7 +173,7 @@ while (1) {
         SDL::Video::flip($screen);
 
         # heartbeat replies + logging
-        loop_wait(0.222);
+        <[storchencam.util.loop_wait]>->(0.222);
     }
     $last_modified = $last_image_date;
     $http->max_size($max_size);
@@ -266,7 +266,7 @@ while (1) {
             SDL::Rect->new( $temp_pos_x, $temp_pos_y + $s_y_offset, 56, 8 ) )
             if <storchencam.display_temp> and defined $temp;
 
-        mask_scan( $screen, $s_y_offset )
+        <[storchencam.util.mask_scan]>->( $screen, $s_y_offset )
             if $mask_left_corner and $resolution_changed;
 
         if (    <storchencam.display_time>
@@ -316,73 +316,16 @@ while (1) {
         $warned_cam = 1;
 
         # heartbeat replies + logging
-        loop_wait(0.333);
+        <[storchencam.util.loop_wait]>->(0.333);
     }
     SDL::Video::flip($screen);
 
     # heartbeat replies + logging
-    loop_wait(0.222);
+    <[storchencam.util.loop_wait]>->(0.222);
 }
 
-sub loop_wait {    # processing network event while waiting
-    my $tw = shift // 0;
-    my $ts = <[base.time]>->(3);
-    while ( <[base.time]>->(3) - $ts < $tw ) {
-        <[event.once]>->($tw);
-        SDL::delay( $tw * 100 );
-    }
-}
-
-# LLL: works on day images only(?) --> implement color sampling area to fix that!
-
-sub mask_scan {
-    my $surface    = shift;
-    my $s_y_offset = shift // 0;
-    my @mask_areas = split( / +/, <storchencam.mask_areas> );
-    my $pix_format = $surface->format();
-
-    foreach my $mask_coord (@mask_areas) {
-        my ( $x_1, $y_1, $x_2, $y_2 ) = split( /,/, $mask_coord );
-
-        my %cols;
-        my $rnd_col;
-
-        foreach my $y ( $y_1 .. $y_2 ) {
-            foreach my $x ( $x_1 .. $x_2 ) {
-                my $offset = $x + ( $y + $s_y_offset ) * $surface->w;
-                my $pixel  = $surface->get_pixel($offset);
-                my $rgb    = SDL::Video::get_RGB( $pix_format, $pixel );
-
-                my $black = 0x20;
-                my $white = 0x50;
-                my $w_tol = 5;
-
-                if (    %cols
-                    and $rgb->[0] >= $white - $w_tol
-                    and $rgb->[1] >= $white - $w_tol
-                    and $rgb->[2] >= $white - $w_tol
-                    or %cols
-                    and $rgb->[0] <= $black
-                    and $rgb->[1] <= $black
-                    and $rgb->[2] <= $black ) {
-
-                    my @_keys = keys(%cols);
-                    $rnd_col = $_keys[ int( rand( scalar @_keys ) ) ]
-                        if not defined $rnd_col or $offset % 2;
-
-                    $surface->set_pixels( $offset, $rnd_col ) if @_keys;
-                } elsif ( $rgb->[0] != $rgb->[1]
-                    and $rgb->[0] != $rgb->[2]
-                    and $rgb->[1] != $rgb->[2] ) {
-                    $cols{$pixel} //= 1;
-                }
-            }
-        }
-    }
-}
-
-#,,..,.,.,,..,,,,,..,,.,,,,.,,,..,,,.,.,,,.,.,..,,...,..,,...,...,,,.,,.,,,,.,
-#2D3JZ5TIQFMDLGFSN76GLW33N4EMI37VL64PLUBDEKC7CNAU4TBCUIFRLCC475LKL6MB7NAVIR5CK
-#\\\|TP54QO6NLTAADCF3HE3QH3JVX3IWT5YFPDZD3BF3F3IRY55MUVP \ / AMOS7 \ YOURUM ::
-#\[7]XGLJBGDIBJP77NYYBRIOJ4N3SEJ5PO6KP7ZG7DEIVG7XOVRMWYDA 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,..,,..,,,..,...,.,.,...,.,.,.,,,..,,...,..,,,.,,...,.,,,,.,,,,.,
+#AJXNJLPRPZJBFXB2PG4WIKRZAA6UD2YO7ONZ5VSM5SVG6EH2K2D2AGVN5JOIGH6TJYGC3F6UERS6G
+#\\\|CTTLQXQB3K5JH3QYV363U3M2DKSCJARCOUGS2NPJ4SINKXPPGMP \ / AMOS7 \ YOURUM ::
+#\[7]SKK2C3CFX5NH4IHK4CB6ECP57GSHCE3MCR25UF6IEIDDU36ANMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = workspace-transfer.util.ensure_workspace
+# descr = ensure workspace repository is cloned
+
+our $WORKSPACE_DIR;
+our $WORKSPACE_REPO;
+
+return $WORKSPACE_DIR if -d $WORKSPACE_DIR && -d "$WORKSPACE_DIR/.git";
+
+<[base.logs]>->( 1, 'workspace not found at %s', $WORKSPACE_DIR );
+<[base.logs]>->( 1, 'cloning from %s',           $WORKSPACE_REPO );
+
+system( 'mkdir', '-p', '/var/run/.7' ) == 0
+    or die "Failed to create /var/run/.7: $!\n";
+
+my $result = system( 'git', 'clone', $WORKSPACE_REPO, $WORKSPACE_DIR );
+
+if ( $result != 0 ) {
+    <[base.logs]>->( 0, 'failed to clone workspace-transfer repository' );
+    return undef;
+}
+
+<[base.logs]>->( 1, 'workspace cloned successfully' );
+return $WORKSPACE_DIR;
+
+#,,..,.,.,.,.,..,,..,,..,,.,.,,,,,..,,,.,,,..,..,,...,...,.,.,...,,.,,,..,,,,,
+#MUPRSCMYZZ5TPULYUHHDRJGPIIHODGHNRPC2DWV5O7JKH5GTLNQPPHQNI6U6HUECUFME7DFV5VV7W
+#\\\|4YZFRRP6NN6MIW2AFESKIPOKDTP7PK4X5MCN7HFBKT2K65QEO3P \ / AMOS7 \ YOURUM ::
+#\[7]5GR2CWFBNEWOWBDOKBJMLMISNFFGAGGEXDQ5X6IOSZJGZYYPLMAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
