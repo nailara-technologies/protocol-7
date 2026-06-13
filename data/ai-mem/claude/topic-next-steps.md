@@ -7,6 +7,16 @@ metadata:
   originSessionId: 56cce73a-933a-4992-96e4-4d88e138e8f6
 ---
 
+## done (2026-06-13)
+
+- `base-handler-command-split.md` landed as `5dcbf0296` (opus dispatch,
+  fable rejected unavailable): base.handler.command 2319->1037 lines,
+  + base.handler.command.process_reply (1004) +
+  base.handler.command.route_to_target (361). verified live, no
+  behavior change. open follow-up: optional dedupe of 4x repeated
+  route-delete block + SIZE/CHRSIZE merge in process_reply (low
+  priority, quality-only).
+
 ## done (2026-06-11)
 
 - `ui-namespace-extraction.md` landed as `f753e1a5d`: `base.ui.*` ->
@@ -270,8 +280,8 @@ what it should actually invoke.
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,.,,,..,,..,,.,,,,,,,..,.,.,,..,...,,,.,.,,,..,,...,..,,...,...,.,.,,..,...,
-#I73DYNXRUA4VMY5AN6JESFSYHOWW6N4J63CPZFJVTLRMLFYTFC4NE5SR32ZOF5K7X25OP3UX4OODS
-#\\\|XDRBF2VJPL4JQ52FY2EIKJ4EU7JU4D5XBY4KC3TYQQZJPYJAN4C \ / AMOS7 \ YOURUM ::
-#\[7]5LVESXEFYOBYI5INRNDNEGKHA72NINWUCJX6NPEZLHJ72S3MOMAY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,..,,.,,,..,,,.,,.,.,.,.,.,.,.,.,..,,...,...,...,.,,,,..,.,.,..,,
+#H5IZ5ZYJUYQB32PDDAT5ZHDGXKZ6J3VIYJMH2TCTAW3VRTOQD2JSXJTHTSZ7TDKBA6KYJZPEWMRV6
+#\\\|KXDD2NVLPPT22CVSER63WLJAXNE7IZRJ3CAGPU6DJ4ZPXLKZYYR \ / AMOS7 \ YOURUM ::
+#\[7]LJEMRKUOWG5Q76PDQ3LWHZHZ7TMDFACAHJJ2FGS67XOJMXDMRCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
