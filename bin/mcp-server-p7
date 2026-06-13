@@ -52,11 +52,8 @@ my $auth_user = sprintf 'unix-%s',
 ## extend PATH with known per-user tool install dirs not present in mcp env ##
 do {
     my $home = $ENV{'HOME'} // ( getpwuid($<) )[7] // '';
-    for my $d (
-        "$home/.kimi-code/bin",
-        "$home/.local/bin",
-        "$home/.cargo/bin",
-    ) {
+    for my $d ( "$home/.kimi-code/bin", "$home/.local/bin",
+        "$home/.cargo/bin", ) {
         $ENV{'PATH'} = "$d:$ENV{PATH}" if -d $d and $ENV{'PATH'} !~ m{\Q$d\E};
     }
 };
@@ -96,13 +93,14 @@ my @external_tools = (
             . 'pass the uuid from "To resume this session: kimi -r <uuid>". '
             . 'kimi resumes with full prior context and acts on the new '
             . 'prompt.',
-        'command'     => 'kimi-legacy -y -r %s -p %s',   ## session uuid + new prompt
+        'command' => 'kimi-legacy -y -r %s -p '
+            . '%s',           ## session uuid + new prompt
         'param_name'  => 'session_id',
         'param_desc'  => 'the kimi session uuid from the resume line',
         'param2_name' => 'prompt',
         'param2_desc' =>
             'the next task or instruction for the resumed session',
-        'timeout' => 4620,                        ## 77 minutes
+        'timeout' => 4620,    ## 77 minutes
     },
     {   'name'        => 'claude_dispatch',
         'description' =>
@@ -591,12 +589,15 @@ our @tools = (
     {   'name'        => 'p7_memory_update',
         'description' =>
             'review and update the protocol-7 development memory. '
+            . 'the main MEMORY.md index should stay under ~180 lines so it '
+            . 'fits in a single context read. long or topic-specific updates '
+            . 'must be written to an external topic file in the same '
+            . 'data/ai-mem/<agent>/ directory and only linked from '
+            . 'MEMORY.md. '
             . 'review mode gathers recent git changes, memory summary, and '
-            . 'session '
-            . 'summaries so the parent model can identify gaps. apply mode '
-            . 'delegates '
-            . 'to the coding zenka to append specific content to the memory '
-            . 'file.',
+            . 'session summaries so the parent model can identify gaps. '
+            . 'apply mode delegates to the coding zenka to append or write '
+            . 'specific content to the memory file or a topic file.',
         'inputSchema' => {
             'type'       => 'object',
             'properties' => {
@@ -624,13 +625,22 @@ our @tools = (
                     'enum'        => [ 'review', 'apply' ],
                     'description' =>
                         'review = gather context for gap analysis (default). '
-                        . 'apply = append content to memory file.'
+                        . 'apply = append or write content to the memory '
+                        . 'file or a topic file.'
+                },
+                'target' => {
+                    'type'        => 'string',
+                    'description' => 'optional destination file relative to '
+                        . 'data/ai-mem/<agent>/. if omitted, writes to '
+                        . 'MEMORY.md. use this for topic-specific updates to '
+                        . 'keep MEMORY.md under the ~180-line limit.'
                 },
                 'content' => {
                     'type'        => 'string',
                     'description' =>
-                        'text to append to memory file (required for apply '
-                        . 'mode)'
+                        'text to append or write (required for apply mode). '
+                        . 'if content starts with "UPDATE FILE: <filename>", '
+                        . 'it is routed to that file automatically.'
                 },
                 'focus' => {
                     'type'        => 'string',
@@ -1034,7 +1044,8 @@ sub check_chat_pending {
         $last_chat_mtime = $newest_mtime;
         $last_hint_time  = $now;
         print STDERR
-            "[chat] new message(s) — call p7_chat_channels to see active channels\n";
+            "[chat] new message(s) — call p7_chat_channels to see active "
+            . "channels\n";
     }
 }
 
@@ -1650,7 +1661,8 @@ sub tool_coding_summarize {
     if ( length $error ) {
         send_tool_result( $id, $error, 1 );
     } else {
-        $result //= 'summarization failed — coding zenka may not be running';
+        $result
+            //= 'summarization failed — coding zenka may not be ' . 'running';
         send_tool_result( $id, $result, 0 );
     }
 }
@@ -1801,10 +1813,11 @@ sub tool_p7_memory_update {
         }
     }
 
-    my $mem_path
+    my $mem_dir
         = $agent eq 'claude'
-        ? "$ROOT_PATH/data/ai-mem/claude/MEMORY.md"
-        : "$ROOT_PATH/data/ai-mem/kimi/MEMORY.md";
+        ? "$ROOT_PATH/data/ai-mem/claude"
+        : "$ROOT_PATH/data/ai-mem/kimi";
+    my $mem_path = "$mem_dir/MEMORY.md";
 
     ## apply mode: delegate append to coding zenka, return response for review ##
     if ( $mode eq 'apply' ) {
@@ -1812,29 +1825,110 @@ sub tool_p7_memory_update {
             return send_tool_result( $id,
                 'content is required for apply mode', 1 );
         }
-        if ( not -f $mem_path ) {
-            return send_tool_result( $id, "memory file not found: $mem_path",
-                1 );
+
+        ## detect "UPDATE FILE: <filename>" directive and route there ##
+        my $update_target = '';
+        if ( $content =~ s{^\s*UPDATE\s+FILE:\s*(\S+)\s*\n?}{}i ) {
+            $update_target = $1;
+            ## strip common boilerplate that follows the directive ##
+            $content
+                =~ s{^\s*Replace the entire file content with the following[^\n]*\n}{}i;
+            $content
+                =~ s{^\s*\(preserve existing signature block[^\n]*\n?}{}i;
+            $content =~ s{^\s*\n+}{}s;
         }
 
-        my $rel_path = $mem_path;
-        $rel_path =~ s{^\Q$ROOT_PATH/\E}{};
-        my $args_json = encode_json(
-            {   'path'    => $rel_path,
-                'content' => $content
+        my $dest_file;
+        if ( length $update_target ) {
+            $dest_file = $update_target;
+        } elsif ( length $args->{'target'} ) {
+            $dest_file = $args->{'target'};
+        } else {
+            $dest_file = 'MEMORY.md';
+        }
+
+        ## keep destination inside the agent memory directory ##
+        if ( $dest_file =~ m|\.\./| ) {
+            return send_tool_result( $id,
+                "refused: target path escapes memory directory", 1 );
+        }
+        my $dest_path
+            = $dest_file =~ m{^/}
+            ? $dest_file
+            : "$mem_dir/$dest_file";
+
+        ## length guard for the main MEMORY.md index ##
+        my $is_main_memory
+            = ( $dest_file eq 'MEMORY.md' or $dest_path eq $mem_path );
+        if ($is_main_memory) {
+            if ( not -f $dest_path ) {
+                return send_tool_result( $id,
+                    "memory file not found: $dest_path", 1 );
             }
-        );
-        my $cmd = "coding.call-tool write_append $args_json";
-        my ( $ok, $response ) = cube_command($cmd);
+            my $current_lines = 0;
+            if ( open my $fh, '<:encoding(UTF-8)', $dest_path ) {
+                $current_lines++ while <$fh>;
+                close $fh;
+            }
+            my $content_lines = ( $content =~ tr/\n// ) || 0;
+            $content_lines++
+                if length $content and substr( $content, -1 ) ne "\n";
+            my $MEMORY_MAX_LINES  = 200;
+            my $MEMORY_WARN_LINES = 180;
+            if ( $current_lines + $content_lines > $MEMORY_MAX_LINES ) {
+                return send_tool_result(
+                    $id,
+                    "refused: append would push MEMORY.md to "
+                        . ( $current_lines + $content_lines )
+                        . " lines (limit $MEMORY_MAX_LINES). "
+                        . "externalize this update to a topic file via "
+                        . "'target' or start content with "
+                        . "'UPDATE FILE: topic-<name>.md'.",
+                    1
+                );
+            }
+            if ( $current_lines + $content_lines > $MEMORY_WARN_LINES ) {
+                $content
+                    = ":warning: MEMORY.md will be at "
+                    . ( $current_lines + $content_lines )
+                    . " lines (soft limit $MEMORY_WARN_LINES). "
+                    . "consider externalizing future updates.\n\n"
+                    . $content;
+            }
+        }
+
+        my $rel_path = $dest_path;
+        $rel_path =~ s{^\Q$ROOT_PATH/\E}{};
+
+        my ( $ok, $response );
+        if ( -f $dest_path ) {
+            my $args_json = encode_json(
+                {   'path'    => $rel_path,
+                    'content' => $content
+                }
+            );
+            my $cmd = "coding.call-tool write_append $args_json";
+            ( $ok, $response ) = cube_command($cmd);
+        } else {
+            ## new topic file: create it with the full content ##
+            my $args_json = encode_json(
+                {   'path'    => $rel_path,
+                    'content' => $content
+                }
+            );
+            my $cmd = "coding.call-tool write_new_file $args_json";
+            ( $ok, $response ) = cube_command($cmd);
+        }
+
         if ($ok) {
             send_tool_result(
                 $id,
-                "appended to $agent memory:\n\n$content\n\n[coding zenka "
+                "wrote to $agent/$dest_file:\n\n$content\n\n[coding zenka "
                     . "response: $response]",
                 0
             );
         } else {
-            send_tool_result( $id, "append failed: $response", 1 );
+            send_tool_result( $id, "write failed: $response", 1 );
         }
         return;
     }
@@ -1842,6 +1936,15 @@ sub tool_p7_memory_update {
     ## review mode: gather context for gap analysis ##
     my @parts;
     my $error = '';
+
+    my $review_target
+        = length $args->{'target'}
+        ? $args->{'target'}
+        : 'MEMORY.md';
+    my $review_path
+        = $review_target =~ m{^/}
+        ? $review_target
+        : "$mem_dir/$review_target";
 
     eval {
         local $SIG{ALRM} = sub { die "timeout\n" };
@@ -1863,18 +1966,19 @@ sub tool_p7_memory_update {
         }
 
         ## 2. current memory summary ##
-        if ( -f $mem_path ) {
+        if ( -f $review_path ) {
             my $mem_focus
                 = length($focus)
                 ? $focus
                 : 'summarize what is currently documented in this '
                 . 'development memory';
-            my $s = _do_summarize_file( $mem_path, $mem_focus, 600 );
-            push @parts, ":. current $agent memory .:\n\n"
+            my $s = _do_summarize_file( $review_path, $mem_focus, 600 );
+            push @parts, ":. current $agent/$review_target .:\n\n"
                 . ( $s // 'summarization failed' );
         } else {
             push @parts,
-                ":. current $agent memory .:\n\n[file not found: $mem_path]";
+                ":. current $agent/$review_target .:\n\n[file not "
+                . "found: $review_path]";
         }
 
         ## 3. recent session summaries ##
@@ -2218,9 +2322,8 @@ sub tool_session_catchup {
         ## store_summary_focus [ same one-shot/sticky consumption as
         ## tool_external_command ], then the generic default ##
         my $inst
-            = length($instruction) ? $instruction
-            : defined $pending_summary_focus
-            ? $pending_summary_focus
+            = length($instruction)           ? $instruction
+            : defined $pending_summary_focus ? $pending_summary_focus
             : 'summarize what was accomplished, key decisions, open issues, '
             . 'and next steps';
         $pending_summary_focus = undef
@@ -2461,8 +2564,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,..,,,,,,..,..,,,.,,.,.,.,,,...,.,.,,,,,...,..,,...,.,,,.,,,,,.,,..,,.,,,,.,
-#BQJJDU2MO6BXA4BQXJCNGZ5K7GODGSFXEJRHQ6N6TFA2EUJFDSXXANBYFFGKZZPFLOGWNPS7AGMJI
-#\\\|XHZBQFAV5DH53NUL2ZE5NBC5UNRBELGE7F3HKGD3DAF44M27A3A \ / AMOS7 \ YOURUM ::
-#\[7]OPZJY3DO2ZMK4OW7QIYDUFWPRXDSLMCT3CT5WQ4GCDE6TEAWJUBI 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,.,.,...,,,.,,,.,.,,,,,,,,.,,.,.,..,,...,...,,,.,,,,,..,,,.,,.,,,
+#RKQRI4ZYEXJ55GGLUA2F3PTGQXHLUP4OYKSMIJRQCTRBEXWVZBMKYTU2LWGR6MO5CAN5ZQQSHUVVO
+#\\\|SQYSGLLHP7MGW4J7C77RYKMTV2SBKNF5ZSU5LAR3CL5TOQKTDTQ \ / AMOS7 \ YOURUM ::
+#\[7]HZKSZFM7YDF2TWDKVFIEQVFNBUIMIWWJYILLU7ZAU46STUNLNABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
