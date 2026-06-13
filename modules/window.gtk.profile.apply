@@ -9,7 +9,13 @@ return undef if not defined $window;
 return undef if not defined $geometry;
 
 $window->move( $geometry->{'x'}, $geometry->{'y'} );
-$window->resize( $geometry->{'width'}, $geometry->{'height'} );
+
+## resize() on an unrealized window can hang under Wayland; use set_default_size ##
+if ( $window->get_realized ) {
+    $window->resize( $geometry->{'width'}, $geometry->{'height'} );
+} else {
+    $window->set_default_size( $geometry->{'width'}, $geometry->{'height'} );
+}
 
 <[base.logs]>->(
     1,
@@ -23,8 +29,8 @@ $window->resize( $geometry->{'width'}, $geometry->{'height'} );
 
 return 1;
 
-#,,,.,.,,,,,,,,.,,,.,,.,.,,,,,..,,,.,,.,.,,.,,..,,...,...,...,,..,.,,,...,,,,,
-#QNNVBPOGDYWEACZ2IMEEFPCUAMVP4EEJVSECBJL2MSPVSBLGTWAWWOOTBN5MHPII4AAW5BCCRVZ66
-#\\\|USOF3UATE7UNSMU74KCDWDZILLFA2GHF6P3CF52O3NEC4FS6FSZ \ / AMOS7 \ YOURUM ::
-#\[7]YG7L7JYXMRI5V5WSQSM5GTKKOOUEEZ5E3MACNB5257MZ7DKQCEDA 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,.,.,,,,,..,,.,.,...,,,,,,,,,,,.,..,,...,...,.,,,,.,,.,,,,..,,,.,
+#7MLM5VZZ3BQDNA36JOIRAHPAO3QQ64KM5VT2RZQATCXAELH5HVJO53UWF3CLT2ST2V5DZGK6KYINI
+#\\\|TIZJQVGP3ZXRLWNQMJ3R3TSRHYPH7N5KT4VV47QRWGI2JYYL3EI \ / AMOS7 \ YOURUM ::
+#\[7]77X56WSARNKVT6JPV5M3I6CPUDH4QC3237TSCBO3FJOFESU5ZAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

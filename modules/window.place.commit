@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = window.place.commit
+# descr = save placement geometry and reply to caller
+
+my $x = <x11.coordinates.left> // 0;
+my $y = <x11.coordinates.top>  // 0;
+my $w = <x11.window.width>     // 1;
+my $h = <x11.window.height>    // 1;
+
+my $caller = <window.place.caller> // '';
+
+if ( length $caller ) {
+    <[window.profile.save]>->( $caller, $x, $y, $w, $h );
+}
+
+my $reply_id = <window.place.reply_id>;
+
+my $reply_args = sprintf 'x=%d y=%d width=%d height=%d profile=saved',
+    $x, $y, $w, $h;
+
+if ( defined $reply_id and $reply_id =~ m|^\d+$| ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => qw| true |,
+            'data' => $reply_args
+        }
+    );
+} else {
+    <[base.log]>->( 1, '[place.commit] no reply_id, skipping direct reply' );
+}
+
+## optional notification handler ##
+my $reply_handler = <window.place.reply_handler> // '';
+if ( length $reply_handler and length $caller ) {
+    <[protocol-7.command.send.local]>->(
+        {   'command' => sprintf( qw| cube.%s.%s |, $caller, $reply_handler ),
+            'call_args' => { 'args' => $reply_args }
+        }
+    );
+}
+
+<[base.log]>->( 1, '[place.commit] placement committed' );
+
+Gtk3->main_quit;
+
+<[base.exit]>->( 0, 'window.place committed', 2 );
+
+#,,,,,..,,.,,,..,,,,,,.,.,,,.,,,.,,,.,,,,,,..,.,.,...,...,,,.,,,,,..,,,,,,,,.,
+#4J4MMM2TIFQX5CJ3CRGDY6VHNSXYYUX337NNFECJTOAS6EK26XVWU6M3236NWRXFE3TWDM5N5THWK
+#\\\|CKN2ILSHOMNZZ6SGNBV5ZAMQ2SJAQNZUTYIW7NGGGPFLPRMTW4O \ / AMOS7 \ YOURUM ::
+#\[7]3DAVZZ7YZKUFIGUUUTMRTQOKEDQAA2MCXZZEF5556SGHTDJRYCAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

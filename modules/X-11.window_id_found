@@ -9,10 +9,20 @@ for my $w_id (<[X-11.get_window_ids]>) {
     return TRUE if $w_id == $window_id;
 }
 
+## _NET_CLIENT_LIST may be empty under Wayland/WSLg; fall back to tree walk ##
+my $X     = <X-11.obj>;
+my @stack = ( $X->root );
+my %seen;
+while ( my $w = shift @stack ) {
+    next        if not defined $w or $w eq qw| None | or $seen{$w}++;
+    return TRUE if $w == $window_id;
+    push @stack, $X->QueryTree($w);
+}
+
 return FALSE;
 
-#,,,,,...,..,,.,,,,,.,...,...,...,...,,,,,,..,..,,...,..,,...,.,,,.,,,.,,,,,,,
-#54UAXKP2LOPXALATQ3OO5EDGYL7Q2JYF7TUEXXFEG2JK6KY4ZI4OOCU2FZ2GJA5BP6GP7S4L4L5FS
-#\\\|C5MS726JHXHQ5WBT7HZBWIDWMXGYOMMGT326SPUJOMUOX6M25EC \ / AMOS7 \ YOURUM ::
-#\[7]Q7XB4FIA7EITLW5ZS34SSFWUWYUFOWO43RUBOT6GPYV2Y4VB4WCI 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,.,,...,,..,..,,.,.,..,,..,,,..,..,,...,...,.,,,,,,,..,,,,.,..,,
+#IB4KEJEPBHVWO3WEWVGQQVCGZO5NARASLEYRMVPJ3JHKKJ2QKR7VTZ7VRQW4SQPCHZRJICO7GZUK6
+#\\\|NUWUCGL47JRQGVFAEDUD3654WPY32CMWVD6ZXI2OBW5MYKNQT62 \ / AMOS7 \ YOURUM ::
+#\[7]NV3HQMCWBFUVNBTCW6Y32YD4CMXREGBG2NCQZ34R52JSNVQIBECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

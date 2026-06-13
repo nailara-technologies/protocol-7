@@ -16,6 +16,7 @@ return { 'mode' => qw| false |, 'data' => 'no such window' }
     if not <[X-11.window_id_found]>->($window_id);
 
 <[base.log]>->( 2, "unhiding window $window_id" );
+$X->MapWindow($window_id);
 eval {
     for ( 0 .. 1 ) {    # <-- workaround [ ignored state requests ]
         X11::Protocol::WM::change_net_wm_state( $X, $window_id, 'remove',
@@ -27,8 +28,8 @@ return { 'mode' => qw| false |, 'data' => "unable to remove 'hidden' state" }
     if $EVAL_ERROR;
 return { 'mode' => qw| true |, 'data' => "removed 'hidden' window state" };
 
-#,,..,,,.,,,,,.,.,..,,,.,,..,,.,.,.,,,,.,,,..,..,,...,..,,...,..,,.,,,,..,,,.,
-#NFIOZGSKCF7GFBW724HG3UFH5UCGWGCQ7SKI72X4X5JKJFMKFUZI5KRPMPAXPOLISTGV3PV6ONRSI
-#\\\|SWOZ5OSOF66MIPYC4SFS25VQ5PQK3G2VQCVNCK23P3MKBBJAIA4 \ / AMOS7 \ YOURUM ::
-#\[7]HQDGAZRK6LX2LEB5M5PUHHC3HJG5O3C66UY3OW45EM2PTJ6ONMDA 7  DATA SIGNATURE ::
+#,,.,,,..,..,,.,,,...,..,,,.,,.,.,.,,,..,,,..,..,,...,...,..,,.,,,.,.,,,,,..,,
+#HEEZ64A7S3MMNEJBXUQJ45FHJDQHFJRKNJ2KCMKNS6P2ULYYVJJHLKAOZXUUHLZVY2WRVKPKM4MKK
+#\\\|GQPHIF6BIYG42SKYZRR7G52E4SXWX3SEEAIYGKBNL5TKVX7KDK3 \ / AMOS7 \ YOURUM ::
+#\[7]ZX3CSVSHQCAYZWI22AM6W3YCUKNNLXPFVXTMUNRNMPF27AFJX6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

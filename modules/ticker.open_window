@@ -4,7 +4,9 @@
 
 <[base.log]>->( 1, ': opening ticker window.,' );
 
-$ENV{'DISPLAY'} = <x11.display>;
+$ENV{'DISPLAY'}     = <x11.display>;
+$ENV{'GDK_BACKEND'} = 'x11';           ## force XWayland under WSL/Wayland ##
+delete $ENV{'WAYLAND_DISPLAY'};
 Gtk3->init;
 
 <ticker.is-iconified> //= FALSE;
@@ -26,13 +28,29 @@ if ( $window->is_composited ) {
 }
 
 ## apply window placement profile ##
-my $screen_geom = <[window.gtk.get_screen_size]>;
-my $geo         = <[window.profile.calculate]>->(
+## parse x11.geometry like web-browser [ avoids blocking X-11/Gtk3 screen call ] ##
+my $screen_geom;
+my $geom_str = <x11.geometry> // '1920x1080+0+0';
+if ( $geom_str =~ m|^\s*(\d+)\s*x\s*(\d+)| ) {
+    $screen_geom = { 'width' => $1, 'height' => $2 };
+    <[base.logs]>->(
+        1,
+        ': using startup screen size %dx%d [from x11.geometry]',
+        $screen_geom->{'width'},
+        $screen_geom->{'height'}
+    );
+} else {
+    $screen_geom = { 'width' => 1920, 'height' => 1080 };
+    <[base.log]>->( 1, ': no x11 geometry, using fallback 1920x1080' );
+}
+
+my $geo = <[window.profile.calculate]>->(
     {   profile  => <ticker.window.profile>,
         screen_w => $screen_geom->{'width'},
         screen_h => $screen_geom->{'height'}
     }
 );
+
 <[window.gtk.profile.apply]>->( $window, $geo );
 
 <x11.window.width>       = $geo->{'width'};
@@ -50,6 +68,70 @@ $window->set_decorated(0);
 $window->set_keep_above(1) if <ticker.window.force_above>;
 $window->set_app_paintable(1);
 $window->set_accept_focus(0);
+$window->set_focus_on_map(0);
+$window->set_can_focus(0);
+$window->set_skip_taskbar_hint(1);
+$window->set_type_hint('dock');        ## don't steal focus / taskbar entry ##
+
+## mouse-avoidance: fade out + lower on hover, raise + fade in on leave ##
+<ticker.mouse.avoid>  //= TRUE;
+<ticker.mouse.inside> //= FALSE;
+$window->add_events( [qw| enter-notify-mask leave-notify-mask |] );
+
+my $start_fade = sub {
+    my ($handler) = @ARG;
+    return if not <ticker.use_transparency> or not <ticker.do_custom_fade_in>;
+    <ticker.timer.fade>->cancel if defined <ticker.timer.fade>;
+    delete <ticker.time.fade_view>
+        ;    ## reset time, keep opacity for smooth switch ##
+    <ticker.timer.fade> = <[event.add_timer]>->(
+        {   'after'    => 0,
+            'interval' => 0.017,
+            'handler'  => $handler
+        }
+    );
+};
+
+$window->signal_connect(
+    'enter-notify-event' => sub {
+        my ( undef, $event ) = @ARG;
+        return FALSE if not <ticker.mouse.avoid>;
+        return FALSE if <ticker.mouse.inside>;
+        return FALSE
+            if defined $event and $event->detail eq qw| inferior |;
+        if ( defined <ticker.mouse.grace_until>
+            and <[base.time]>->(5) < <ticker.mouse.grace_until> ) {
+            return FALSE;
+        }
+        <ticker.mouse.inside> = TRUE;
+        <[base.log]>->( 1, ': mouse entered ticker window, fading out' );
+        if ( <ticker.use_transparency> and <ticker.do_custom_fade_in> ) {
+            $start_fade->(qw| ticker.handler.fade_out |);
+        } elsif ( defined <x11.id> ) {
+            <[base.X-11.keep_below]>->(<x11.id>);
+        }
+        return FALSE;
+    }
+);
+$window->signal_connect(
+    'leave-notify-event' => sub {
+        my ( undef, $event ) = @ARG;
+        return FALSE if not <ticker.mouse.avoid>;
+        return FALSE if not <ticker.mouse.inside>;
+        return FALSE
+            if defined $event and $event->detail eq qw| inferior |;
+        <ticker.mouse.inside> = FALSE;
+        <[base.log]>->(
+            1, ': mouse left ticker window, raising and fading in'
+        );
+        if ( defined <x11.id> ) {
+            <[base.X-11.raise_window]>->(<x11.id>);
+            <[base.X-11.keep_above]>->(<x11.id>);
+        }
+        $start_fade->(qw| ticker.handler.fade_in |);
+        return FALSE;
+    }
+);
 
 my $screen = $window->get_screen;
 
@@ -74,11 +156,38 @@ $window->signal_connect(
     }
 );
 
+my $map_assigned = 0;
+$window->signal_connect(
+    qw| map | => sub {
+        return FALSE if $map_assigned++;
+        <[base.log]>->( 1, ': ticker window mapped, assigning X11 id' );
+        <x11.id> = $window->get_toplevel()->get_window()->get_xid();
+        <[base.X-11.assign_window]>;
+        return FALSE;
+    }
+);
+
 $window->show_all;
 
-<x11.id> = $window->get_toplevel()->get_window()->get_xid();
-
-<[base.X-11.assign_window]>;
+## exclude compositor shadow / border from input so mouse events only ##
+## trigger over the actual ticker content area ##
+my $margin = 6;
+my $i_w
+    = ( <x11.window.width> // $window->get_allocated_width ) - 2 * $margin;
+my $i_h
+    = ( <x11.window.height> // $window->get_allocated_height ) - 2 * $margin;
+$i_w = 1 if $i_w < 1;
+$i_h = 1 if $i_h < 1;
+eval {
+    my $region = Cairo::Region->create(
+        {   x      => $margin,
+            y      => $margin,
+            width  => $i_w,
+            height => $i_h
+        }
+    );
+    $window->input_shape_combine_region($region);
+};
 
 <ticker.font.size> = 0;
 
@@ -90,8 +199,8 @@ my $ft_face   = $freetype->face($font_path);
 
 <ticker.obj.window>->queue_draw;
 
-#,,,.,..,,,.,,,..,..,,,..,.,,,...,.,,,,..,,.,,..,,...,..,,.,.,...,..,,,,,,,.,,
-#B63PB7NCBG3NZEWZCBXPSF4D6HE6VTJVXPK2VHKNCHIRHTCLAJDBOO5IQSJ66BE4JBKFFQDJCIH5Q
-#\\\|KB5JRUZREVEQF54S7QHAYMBFDTO44OCRSQNNDSRJ3CCZ6UFYSCV \ / AMOS7 \ YOURUM ::
-#\[7]HUM5HI3BZTTQLMODJABEBVY53FYZCL2S434LNXTDUEOUM7PHNODY 7  DATA SIGNATURE ::
+#,,.,,...,...,.,.,,,,,.,,,...,..,,.,.,,,.,,..,..,,...,...,..,,.,.,...,...,,,.,
+#HU6TNRYWTHRSAI2CAMZJBWUEMBXXCCYH6Z2FR4ZTLQUCDAF5DNQ7PSMIJDCCJKEE4OVPW324VKHFU
+#\\\|YBUN6D2O7FF37PPSIFEGWHIHS7GE7YFTO7VOL5NS5JEDDGBJ3H2 \ / AMOS7 \ YOURUM ::
+#\[7]4GOUO4PVZ2MUSODX3ZWO2IRXBZL5VNGJADR3OGR6AVL6Q5TCAQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,22 @@
+## [:< ##
+
+# name = ticker.calc_decr
+
+my $dt   = shift;
+my $dt_2 = $dt - 4;
+$dt_2 = 0 if $dt_2 > 0;
+my $t_inc = $dt - 2;
+
+my $decrease
+    = ( <ticker.fade_opacity> + 0.1 ) * 0.22 * <[base.calc_gauss]>->($t_inc);
+
+$decrease
+    += ( ( <ticker.fade_opacity> + 0.1 ) * <[base.calc_gauss]>->($dt_2) ) / 4;
+
+return sprintf( '%.5f', $decrease );
+
+#,,,.,,.,,,.,,...,,.,,,,,,..,,,.,,..,,,,,,,..,.,.,...,...,,,.,.,.,,..,,,,,...,
+#4AKWRBW5BS4I2KK4ICGOE5U5SCI3JFLN7Q4RSD6AZLTKPKOQK25XHGUBOPEZJJBRK4XZTL4ZHX32E
+#\\\|K76Y3F3R2RE2UVHNYW6PUDSNCY6R7L2CUJEAQAUHDUVU4R2Q7R6 \ / AMOS7 \ YOURUM ::
+#\[7]3N34AKTJLPX3D4NTVCMYLB5643F3DT4GZF7RBOZ4ELILEICXOUCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
