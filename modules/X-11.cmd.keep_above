@@ -12,19 +12,8 @@ return { 'mode' => qw| false |, 'data' => 'x11 window id required' }
 return { 'mode' => qw| false |, 'data' => 'invalid x11 window id syntax' }
     if $window_id !~ /^\d+$/;
 
-my $xtops = <X-11.WM>;
-<[X-11.update_X11_WM]>;
-
-my $window;
-for my $w ( @{ $xtops->sorted } ) {
-    if ( $w->id eq $window_id ) {
-        $window = $w;
-        last;
-    }
-}
-
 return { 'mode' => qw| false |, 'data' => 'no such window' }
-    if not defined $window;
+    if not <[X-11.window_id_found]>->($window_id);
 
 eval {
     for ( 1 .. 2 ) {    # <-- workaround (ignored state requests)
@@ -41,8 +30,8 @@ return {
     if $EVAL_ERROR;
 return { 'mode' => qw| true |, 'data' => "set window state 'above'" };
 
-#,,.,,,,,,,.,,,,,,,,.,,.,,,..,..,,,..,,..,.,,,..,,...,..,,,,.,,,,,...,,..,.,.,
-#COTXN2LYLY3RKLWPTJ64ZKI4RVQNR4ACFHBF5CHW4AZJ6BO6AL2QM7IETLF5HPQJHZINHQNQUMCI4
-#\\\|CJH66PSTO55ERNFN7ICO5R4HRTJMWQQXBQOIBUS7R6LWYMXRVHF \ / AMOS7 \ YOURUM ::
-#\[7]G7ONORGP3F4PC6TBVYWZK5MUAACWDLZXVVAE3R2DHDLOHV3LRIAI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,,.,..,,,..,,..,,,.,.,,,,.,,.,,,..,,...,...,...,...,..,,,..,,.,,
+#IONUZLK6FG7P56TVY5TN2Y7N7OWMYHE5JZ3TKWAMHSOHDFBJXQIN7EIDXEFPK7SMQZQLKZO6FFIJ4
+#\\\|5M4N66L2ZU4AQ2XW5BWGK7S7UISC4CGHUF3S5PHMX3XJUHLGEBT \ / AMOS7 \ YOURUM ::
+#\[7]U3WIVBLXNPDZBTWNXTKYQQ53RS3URGXAVE3I32HOE7SAEIDVWOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

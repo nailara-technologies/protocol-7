@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = window.place.handler.motion
+# descr = update geometry while dragging
+
+my ( $widget, $event ) = @ARG;
+
+return TRUE if not <window.place.drag.active>;
+
+my $region  = <window.place.drag.region>;
+my $start_x = <window.place.drag.start_x>;
+my $start_y = <window.place.drag.start_y>;
+my $geom    = <window.place.drag.start_geom>;
+
+my $dx = $event->x_root - $start_x;
+my $dy = $event->y_root - $start_y;
+
+my $x = $geom->{'x'};
+my $y = $geom->{'y'};
+my $w = $geom->{'width'};
+my $h = $geom->{'height'};
+
+if ( $region eq 'body' ) {
+    $x += $dx;
+    $y += $dy;
+} else {
+    if ( $region =~ m|e| ) {
+        $w += $dx;
+    }
+    if ( $region =~ m|w| ) {
+        $w -= $dx;
+        $x += $dx;
+    }
+    if ( $region =~ m|s| ) {
+        $h += $dy;
+    }
+    if ( $region =~ m|n| ) {
+        $h -= $dy;
+        $y += $dy;
+    }
+}
+
+## clamp ##
+$w = 32 if $w < 32;
+$h = 32 if $h < 32;
+
+my $new_geom = {
+    'x'      => $x,
+    'y'      => $y,
+    'width'  => $w,
+    'height' => $h
+};
+
+<[window.place.apply_geometry]>->( $widget, $new_geom );
+$widget->queue_draw;
+
+return TRUE;
+
+#,,,,,...,.,.,,,.,.,.,...,.,,,...,..,,,,.,.,.,.,.,...,...,..,,,.,,..,,,.,,,..,
+#QL2FM7UNA23KASLQIZKSZJJZOT7LBDPFCYUDRI7JW3QE3X5SGVYNI6ELEX37R3LBKM363P5STNBBY
+#\\\|D2O25F2THWF56M6FN3VTSTWMAL5KEZ2PVUGUKZFKJGNLJVU3S5P \ / AMOS7 \ YOURUM ::
+#\[7]VCHGMUHSQ5A6CH2L27W6B2B3OM24SXMTZ6V63XPGBBSTXSC4F4BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

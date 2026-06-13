@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = window.place.start
+# descr = parse placement request and schedule window opening
+
+my $call = shift // {};
+
+my $args = $call->{'args'} // '';
+
+my ( $caller, $profile, $reply_handler );
+
+## parse key=value or positional args ##
+my @tokens = split /\s+/, $args;
+foreach my $token (@tokens) {
+    if ( $token =~ m|^caller=(.+)$| ) {
+        $caller = $1;
+    } elsif ( $token =~ m|^profile=(.+)$| ) {
+        $profile = $1;
+    } elsif ( $token =~ m|^reply_handler=(.+)$| ) {
+        $reply_handler = $1;
+    } elsif ( not defined $caller ) {
+        $caller = $token;
+    } elsif ( not defined $profile ) {
+        $profile = $token;
+    } elsif ( not defined $reply_handler ) {
+        $reply_handler = $token;
+    }
+}
+
+$caller  //= '';
+$profile //= 'center';
+<window.place.reply_handler> = $reply_handler // '';
+
+if ( not length $caller ) {
+    <[base.log]>->( 0, '[place.start] caller required' );
+    return { 'mode' => qw| false |, 'data' => 'caller required' };
+}
+
+<window.place.caller>   = $caller;
+<window.place.reply_id> = $call->{'reply_id'};
+
+<[base.logs]>->( 1, '[place.start] caller=%s profile=%s', $caller, $profile );
+
+## use screen geometry from x11.geometry ##
+my $screen_geom;
+my $geom_str = <x11.geometry> // '1920x1080+0+0';
+if ( $geom_str =~ m|^\s*(\d+)\s*x\s*(\d+)| ) {
+    $screen_geom = { 'width' => $1, 'height' => $2 };
+} else {
+    $screen_geom = { 'width' => 1920, 'height' => 1080 };
+}
+
+my $geo = <[window.profile.calculate]>->(
+    {   profile  => $profile,
+        screen_w => $screen_geom->{'width'},
+        screen_h => $screen_geom->{'height'}
+    }
+);
+
+## schedule window opening after command handler returns ##
+<[base.event.add_timer]>->(
+    {   'after' => 0,
+        'cb'    => sub { <[window.place.open_window]>->($geo) }
+    }
+);
+
+return { 'mode' => qw| deferred | };
+
+#,,.,,,,,,,,.,,,.,.,,,.,,,,,.,,.,,...,...,...,.,.,...,...,..,,...,,.,,.,.,.,.,
+#OQ4U52D3SYB7LG2BCXUW6O2SENFPRK45JDWX6LF42QJA53OV3CI4EWL4DXWPEAIJRBQR6HF5K62ZQ
+#\\\|G26WN5C6ZLQCFYW7YFRGZZMTKQD6EFIAIITXO6RQ7EGOVNTD3EN \ / AMOS7 \ YOURUM ::
+#\[7]B75DGQ5HFKO5EPTG7DFNEVM5QBGTCVP56X46NFNXA3IVNSLBHMCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

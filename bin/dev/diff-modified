@@ -548,7 +548,7 @@ sub do_dsf_stuff {
             #############################################################
             if (    $line !~ m|^$ansi_color_regex*\s*[\-\+]{2,3}|
                 and $line !~ m|^$ansi_color_regex*\n| ) {
-                print $l . $line;
+                print( $no_color_mode ? $line : $l . $line );
             } else {
                 if ( not $skip_empty_output ) {
                     say '';
@@ -1080,8 +1080,8 @@ sub get_terminal_width {
 
 # vim: tabstop=4 shiftwidth=4 noexpandtab autoindent softtabstop=4
 
-#,,,,,.,,,.,,,,..,,.,,...,...,,.,,...,..,,..,,..,,...,...,...,,,,,.,.,.,,,,,.,
-#CBKHPVT23LNCIIYHFQ3VMW5VRYR3G2PZ7IQBKGVIJYBYT66GPJJ7IIIB5CRRKYCJ55PXI3VU3DB5K
-#\\\|WG2JMBWIHR2X5BP7MDLI6V6VSEJCFW5JY22QXTX4I2QR2DLOWI5 \ / AMOS7 \ YOURUM ::
-#\[7]DMY2DAPYZHCZZZJ33EKV7W6ZQSAZ6JAQLPFAUTVIE3M6S7LWEMDQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,,,,,..,,,,,,..,,.,,.,.,,,,,.,.,..,,...,...,...,,..,.,,,,,.,...,
+#ZMLDO237BMEJGMYCVWJRTW47EP266BFNWNWOS5J6DT7A4ICLRH77PFOUAQYQMYKSI27RPBN6PKF6E
+#\\\|IKAZEKOQPVJGLXVRH7CHXXTYQSCE6NV5WAPB4HSVJUNJ3OEI35M \ / AMOS7 \ YOURUM ::
+#\[7]BZA2LJDSBUMSQN5VP5QQBCO7E2TVQEPJXZNSDYSZ5U4K7F5X5YDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
