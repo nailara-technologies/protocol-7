@@ -33,6 +33,9 @@ ticker.cfg.max_gpu_load = 67 # GPU load target in auto_speed mode
 
 ticker.speed = 9.47
 
+## default to bottom-strip; use top-strip only when configured via placement zenka ##
+ticker.window.profile = bottom-strip
+
 ticker.cfg.fg_col   = '00003D'
 ticker.bg_col       = '000047'
 
@@ -45,7 +48,8 @@ ticker.cfg.font.outl_value_factor = 47
 ##
 ## additional values to set in 'ticker.set_default_values' ##
 
-modules.load = auth net protocol io.unix ui ticker  ## devmod
+modules.load = auth net protocol io.unix ui \
+               window.profile window.gtk ticker  ## devmod
 
 [load_modules:<modules.load>]
 [init_modules]
@@ -67,14 +71,15 @@ X.fb_h  =  5  ## fallback height [ in percent ] ##
 
 [base.X-11.get_display]
 [base.X-11.get_coordinates:undef,undef,undef,undef,<X.fb_vp>,<X.fb_h>]
+[base.X-11.get_geometry]
 
 ticker.subcfg = [base.X-11.get_subconfig]
 [ticker.process_subcfg]
 
 [ticker.startup]
 
-#,,..,,..,,..,,..,...,.,.,,.,,...,.,,,,.,,.,,,..,,...,...,.,,,,..,,.,,...,,..,
-#L2DIHGXQX4PNFFCZJW3AFOZMKW6IFCZFZ56AB7CQIRBP7LNCPXGE54DAUJFK2VF3VPSHJT3YF66LK
-#\\\|BWLJM73OUFK4R5ORNDAQXKN7MANXJAC2QICGPDUZ6W4YBX5UVPE \ / AMOS7 \ YOURUM ::
-#\[7]UVXNH7ZVMFTLAKHXOXSG2FE6FWOREUVROLNA6QMNTS6LMMPE4WAQ 7  DATA SIGNATURE ::
+#,,,,,..,,...,.,,,...,..,,,,.,,,.,.,,,.,.,,..,..,,...,...,..,,,,.,..,,,..,,,,,
+#5X46I27DLYYAKRO5TSBTZSAMPOI4HO6OANUJVWUW3VHOOJZUXJLJYDZH6NTOSPLW5CSSDMMY4SQHC
+#\\\|CQDN4DQC7CZEKT75XCJD2YUCXPLQ4DSALMNAXGSRYSGEDYJQD2H \ / AMOS7 \ YOURUM ::
+#\[7]O6ZNAJKOGBS5OPRNV6QD76PIHZPA27HRXZXDKSIPZ36KDUJWHKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -20,6 +20,11 @@ my $have_wnck = eval {
     ); 1;
 };
 
+say "DISPLAY=$ENV{DISPLAY}";
+say "GDK_BACKEND=" . ( $ENV{GDK_BACKEND} // '<unset>' );
+say "WAYLAND_DISPLAY=" . ( $ENV{WAYLAND_DISPLAY} // '<unset>' );
+say '';
+
 my $screen_gdk = Gtk3::Gdk::Screen::get_default();
 
 if ( $have_wnck ) {
@@ -45,12 +50,94 @@ if ( $have_wnck ) {
     }
 }
 
+say '';
+
+## create a small test window and probe its XID ##
+my $window = Gtk3::Window->new('toplevel');
+$window->set_title('gtk_get_windows probe');
+$window->set_default_size( 200, 100 );
+$window->show_all;
+
+## pump events so the window is realized and mapped ##
+while ( Gtk3::events_pending ) { Gtk3::main_iteration }
+select( undef, undef, undef, 0.3 );    ## give X server time to register ##
+while ( Gtk3::events_pending ) { Gtk3::main_iteration }
+
+my $gdk_window = $window->get_window;
+my $xid;
+if ( $gdk_window and $gdk_window->can('get_xid') ) {
+    $xid = $gdk_window->get_xid;
+    my $display = $gdk_window->get_display;
+    my $display_name = $display->can('get_name') ? $display->get_name : 'unknown';
+    say "probe window XID = $xid (GdkDisplay: $display_name)";
+    say "  visible=" . ( $window->get_visible // '?' );
+} else {
+    say 'probe window has no get_xid() (running native Wayland?)';
+}
+
+## query the XID via X11::Protocol, mimicking the X-11 zenka ##
+if ($xid) {
+    my $have_x11_proto = eval { require X11::Protocol; 1 };
+    if ($have_x11_proto) {
+        my $X = eval { X11::Protocol->new( $ENV{'DISPLAY'} ) };
+        if ($X) {
+            say "  X11::Protocol root = " . $X->root;
+            my @children = $X->QueryTree( $X->root );
+            say "  root children: " . scalar(@children);
+
+            ## check _NET_CLIENT_LIST like X-11.get_window_ids does ##
+            my $client_list = $X->InternAtom( '_NET_CLIENT_LIST', 1 );
+            my @client_ids  = ();
+            if ($client_list) {
+                my ( $value, $type, $format, $bytes_after )
+                    = $X->GetProperty( $X->root, $client_list, 'AnyPropertyType',
+                    0, -1, 0 );
+                @client_ids = unpack( 'L*', $value );
+                say "  _NET_CLIENT_LIST count: " . scalar(@client_ids);
+            } else {
+                say "  _NET_CLIENT_LIST atom not found";
+            }
+
+            my @found = grep { $_ == $xid } @children;
+            my @found_client = grep { $_ == $xid } @client_ids;
+
+            ## recursive tree walk fallback (like updated X-11.window_id_found) ##
+            my $found_tree = 0;
+            if ( not @found_client and not @found ) {
+                my @stack = ( $X->root );
+                my %seen;
+                while ( my $w = shift @stack ) {
+                    next if not defined $w or $w eq 'None' or $seen{$w}++;
+                    if ( $w == $xid ) { $found_tree = 1; last }
+                    push @stack, $X->QueryTree($w);
+                }
+            }
+
+            if (@found_client) {
+                say "XID $xid found in _NET_CLIENT_LIST [OK]";
+            } elsif (@found) {
+                say "XID $xid found as direct root child but NOT in _NET_CLIENT_LIST";
+            } elsif ($found_tree) {
+                say "XID $xid found via recursive tree walk [OK]";
+            } else {
+                say "X11::Protocol did NOT find XID $xid [FAIL]";
+                say "  first few child XIDs: " . join( ', ', @children[ 0 .. 9 ] );
+                say "  first few client XIDs: " . join( ', ', @client_ids[ 0 .. 9 ] );
+            }
+        } else {
+            say "could not connect X11::Protocol to $ENV{DISPLAY}: $@";
+        }
+    } else {
+        say 'X11::Protocol not installed; skipping XID query';
+    }
+}
+
 # Gtk3->main;
 
 exit;
 
-#,,.,,,,,,.,,,,,,,,,,,...,.,.,.,,,,.,,,.,,,,.,..,,...,...,,.,,.,,,.,,,..,,,,,,
-#HRXDBOXEUOL62Q3SL2L3ALE7SL6XE27RNLE2VGM7MIQDQ2EZ3S3IHPBTS2OGYP4PN75XN3FWLWA3W
-#\\\|TNGGWSQ4ZZTAR4RS4AEHN3YMN7SKXXTKKIFO4PH2QTTRXMCADWB \ / AMOS7 \ YOURUM ::
-#\[7]PI4ZPMVFGCMW5LBOQYA6A2U4BZFIOIHFZ6RMCDIB4CBIEATGBKCI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,..,,,.,,..,,...,.,,,...,..,,,,,,.,.,...,...,,.,,...,.,.,,,,,,,.,
+#TG3UY57HC6BUQZRS5JNTWUE5BQM3ABMPKGR4YOEXQWO3M7EB4EHCUYINU5MCUPMFQ7MZ2IP4RRSAO
+#\\\|6TRAE3RLRPRNUAOK2XB4T3QZTFPJIU7DZ5EQLZCOX2XEYHHFHHC \ / AMOS7 \ YOURUM ::
+#\[7]VWC6XKZYXHTUHRUUPINAPQJYC52AXRD5RDBB6M76RZZICEZF6KAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

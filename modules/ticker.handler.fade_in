@@ -7,7 +7,7 @@ my $window = <ticker.obj.window>;
 
 if ( not defined <ticker.time.fade_view> ) {
     <[base.log]>->( 2, ":. fade-in started.," );
-    <ticker.fade_opacity>   = 0;
+    <ticker.fade_opacity> //= 0;    ## resume from current opacity if any ##
     <ticker.time.fade_view> = <[base.time]>->(3);
 }
 
@@ -22,12 +22,13 @@ if (<ticker.is_composited>) {
 
 if ( <ticker.fade_opacity> == 1 ) {
     <[base.log]>->( 2, ":: fade-in complete." );
-    delete <ticker.fade_opacity>;
+    delete <ticker.time.fade_view>;
+    delete <ticker.timer.fade>;
     $timer->cancel;
 }
 
-#,,.,,,..,...,,,,,...,.,,,.,.,..,,.,.,.,,,..,,..,,...,..,,..,,.,,,.,,,...,.,,,
-#J2AKJSEYVHLVFKFWXTHJ553ISHQB3U67OQWRFVGV33MKIPIDIWIBFHUTP5I7R4QMPKUZ6I2VH46IG
-#\\\|KMZESIQPRN47ISBYCHVZ35OOAYYJOW5SDCDNQY4667RP34NIZT5 \ / AMOS7 \ YOURUM ::
-#\[7]XENQB22UKLMX2VFU2S3VSUYEGPYDH3GB2F3GMV3CEU6MYLTSIEDI 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,,..,,,.,,,,,,..,...,,,.,,..,,..,..,,...,...,...,..,,...,,.,,.,.,
+#E3JDDZ4BX5GD7DMJFENBURH3I7UV2CIMQLO6467C3KPIEVJR2NIEC7OPU5FVVJMTVWJO3OQCFQ6LO
+#\\\|TULQZUX6R6GJ3EYTT7N26FJBHF4VLQF3OJHCIPSAQDWB7EICNSO \ / AMOS7 \ YOURUM ::
+#\[7]55PZORLP6EUGP6GLQXI5KGXZCISKCSNL45ZXPRSONDENLLGDICBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

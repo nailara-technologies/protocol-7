@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = window.place.handler.draw
+# descr = draw translucent placement frame with readout
+
+my ( $widget, $context ) = @ARG;
+
+my $w = <x11.window.width>  // 320;
+my $h = <x11.window.height> // 240;
+
+## clear ##
+$context->set_operator('source');
+
+## translucent deep blue fill ##
+$context->set_source_rgba( 0.0, 0.0, 0.24, 0.72 );
+$context->paint;
+
+$context->set_operator('over');
+
+## bright cyan border ##
+$context->set_source_rgba( 0.0, 1.0, 1.0, 0.9 );
+$context->set_line_width(2);
+$context->rectangle( 1, 1, $w - 2, $h - 2 );
+$context->stroke;
+
+## outer glow ##
+$context->set_source_rgba( 0.0, 1.0, 1.0, 0.25 );
+$context->set_line_width(6);
+$context->rectangle( -2, -2, $w + 4, $h + 4 );
+$context->stroke;
+
+## readout text ##
+my $x = <x11.coordinates.left> // 0;
+my $y = <x11.coordinates.top>  // 0;
+
+my $readout = sprintf 'x=%d y=%d w=%d h=%d', $x, $y, $w, $h;
+
+$context->set_source_rgba( 0.0, 1.0, 1.0, 0.95 );
+$context->set_font_size(14);
+$context->move_to( 12, 24 );
+$context->show_text($readout);
+
+## instructions ##
+$context->set_font_size(11);
+$context->move_to( 12, 44 );
+$context->show_text('drag body to move, edges/corners to resize');
+$context->move_to( 12, 60 );
+$context->show_text(
+    'arrows move, Ctrl+arrows resize, Shift*10, Enter=commit, Esc=cancel');
+
+return TRUE;
+
+#,,.,,..,,..,,,..,,..,,,,,,,,,..,,,,,,,,,,,.,,.,.,...,...,,,,,...,.,,,..,,,,.,
+#3M5MUYEYQNMYKI4ATM7LWCAQ6GKVI7K6CSSK6L6HL7JJ6SJFTWJJDXEJWLWVC64CI7VCVYILIHQSO
+#\\\|KDPGOSH5EUB6LVWZYYBEGUXZYYMYLM3RRCXLZBRJ3DRFBTS4KEV \ / AMOS7 \ YOURUM ::
+#\[7]BVK774TOMUVRO2MSWVWZAMTXRXU6QATP3MCDX226ORWCJYD7PYBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
