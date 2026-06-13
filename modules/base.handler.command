@@ -14,7 +14,7 @@ my $id    = $event->w->data;
 my $re = <regex.base>;    # <-- regex cache
 
 my $session = $data{'session'}->{$id};
-my $user    = $session->{'user'};
+my $user    = <[base.session.user]>->($id);
 
 my $input  = \$session->{'buffer'}->{'input'};
 my $output = \$session->{'buffer'}->{'output'};
@@ -601,7 +601,7 @@ if ( $cmd eq q|!TERM!| ) {
 
 my $refusal_type;    ##  tracking types of access denial for logging  ##
 
-if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$,
+if (   $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$,
     or $cmd eq uc $cmd ) {
 
     return <[base.handler.command.process_reply]>->(
@@ -965,7 +965,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$,
     UNKNOWN_CMD_HANDLED:
 
         return 0;    ## comand complete ##
-    } else {                              ##  not a local command  ##
+    } else {    ##  not a local command  ##
 
         my $route_ret = <[base.handler.command.route_to_target]>->(
             {   'event'        => $event,
@@ -1028,8 +1028,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,.,,,.,,.,.,..,,.,,,,..,,,,,,,.,...,.,,,...,..,,...,...,...,,,,,,,,,,.,,...,
-#BTTPAJBOCVBEJ52AW6IUCMQXFZOWHJOQM4BHXV63XYTZNZN6WPMDBI7FDXLRGE3SHU7KF5IWYCLCS
-#\\\|AZLVLTJVFH25GJALH4QB6O5GPHAP4IIB4KLW7OF742LWFUYCN7T \ / AMOS7 \ YOURUM ::
-#\[7]HGONKEE6FULJ2NQXBDOHTCDRTX54IE6DM4TGWOPPH4VS6IRKACAY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,..,,,,,,,.,,..,,..,,.,.,,,.,..,,..,,...,...,,..,,,.,,.,,.,.,.,,,
+#PORXDYX77BCOYAVBUPP6CL6BY356462E3OPMQK6LCDRR6ABG4PQ342JCRZRLO2M5XG3HLE3TVMKY6
+#\\\|5Z6PFBRL5F5BDRV6USSK6WTQWK62FL6WIGKLHBLQG3S6JJZPQ5V \ / AMOS7 \ YOURUM ::
+#\[7]775M5DM4BZWUBEUA5RSC5ZRLNF7L7RFIBRSYAF7C3XPCTC7RG6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

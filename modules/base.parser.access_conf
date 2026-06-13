@@ -182,6 +182,24 @@ foreach my $user ( <[base.reverse-sort]>->(<access.cmd.usr>) ) {
 SKIP_COMPILATION:
 }
 
+##  validate optional per-group security-level attributes  ##
+if ( exists <access.security-level.usr> ) {
+    foreach my $user ( keys <access.security-level.usr>->%* ) {
+        my $level = <access.security-level.usr>->{$user};
+        if ( defined $level and $level =~ m|^\d+$| ) {
+            <access.security-level.usr>->{$user} = 0 + $level;
+        } else {
+            <[base.logs]>->(
+                0,
+                "security-level for '%s' is not a non-negative integer, removed",
+                $user
+            );
+            delete <access.security-level.usr>->{$user};
+            $errors++;
+        }
+    }
+}
+
 ## warn when wildcard patterns are actually in use ##
 <[base.log]>->( $warn_level, '<!> wildcard access patterns are configured.' )
     if $wildcards_used;
@@ -223,8 +241,8 @@ foreach my $user ( <[base.reverse-sort]>->($access_regex_log) ) {
 
 return $errors;
 
-#,,,.,...,.,,,,..,...,,,,,,..,.,,,,,.,.,,,,.,,..,,...,...,..,,..,,.,,,..,,..,,
-#Q7WAXWAOCV3GASBQ55C23TMEKN3RLHW4ZNRQAUOKDWBSYMIB3JBTWAOII3IDHR4CB5ISJQT5IFIVW
-#\\\|UPBATBKQFBKDRG7PJYXJWJUOWFBMBS25676WKOXJ5APST725DQT \ / AMOS7 \ YOURUM ::
-#\[7]ASYSF6Z2ASQIAVGUFW4AG7AU2AUOWI2AMTFTWHTODIOGCSYE34AI 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,.,,,,.,,,,.,,..,.,.,..,,...,,..,..,,...,...,,,.,,,.,..,,,.,,...,
+#5ZIAA43HHKKNH22F3JRQGPNW24PG735JYXPDB3UOFG3GKF5UEDAPITBZQIU4TVMZUDRBS4JPU3GJG
+#\\\|IOE3KHCH4665I4OQRJS7KX77S2JOC5HVRH4MCUKVJKREZU4RWMU \ / AMOS7 \ YOURUM ::
+#\[7]KJKJUCU3VC275DRT5UC2KJEYF2PC5MYPLGZNGCRTBSWMXUGMPYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

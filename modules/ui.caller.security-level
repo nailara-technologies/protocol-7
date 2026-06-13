@@ -6,10 +6,7 @@
 # note  = [ returns a plain integer; 0 = default safe-by-construction ]
 
 ##  derive session id from ambient context  ##
-##  [ keep aligned with base.handler.command:18 ] ##
-my $sid;
-
-##  single active client session heuristic  ##
+##  [ keep aligned with base.handler.command:16 ] ##
 my @client_sessions = grep {
             defined $data{'session'}{$ARG}
         and defined $data{'session'}{$ARG}{'mode'}
@@ -17,32 +14,21 @@ my @client_sessions = grep {
 } keys %{ $data{'session'} // {} };
 
 return 0 if not @client_sessions;    ##  no sessions -> safe default  ##
+return 0 if @client_sessions > 1;    ##  ambiguous caller -> safe default  ##
 
-if ( @client_sessions == 1 ) {
-    $sid = $client_sessions[0];
-} else {
-    ##  multiple sessions : cannot determine caller unambiguously  ##
-    return 0;
-}
+my $sid = $client_sessions[0];
 
-##  derive calling user [ keep aligned with base.handler.command:19 ] ##
-my $user = $data{'session'}{$sid}{'user'} // '';
+##  derive calling user via shared helper [ base.handler.command path ] ##
+my $user = <[base.session.user]>->($sid);
 return 0 if not length $user;
 
-##  resolve group membership [ same path as base.cmd.show-access:20-32 ] ##
-my $special_users = {
-    map  { $ARG => $data{'system'}->{$ARG} }
-    grep { !m|^amos-zenka-user$| }
-    grep {m|\-user$|} keys %{ $data{'system'} // {} }
-};
-
+##  expand group membership via base.access.special-user-map  ##
 my @groups = ($user);
-push @groups, map { sprintf qw| <%s> |, $ARG }
-    grep {
-    defined $special_users->{$ARG}
-        and $special_users->{$ARG} eq $user
-    } <[base.reverse-sort]>->($special_users);
+push @groups,
+    grep { <[base.access.special-user-map]>->($ARG) eq $user }
+    <[base.access.special-user-map]>->();
 
+##  resolve effective security level  ##
 my $effective_level    = 0;
 my $unbounded_sentinel = 1_000_000;    ##  admits any declared field level  ##
 
@@ -62,8 +48,8 @@ foreach my $group (@groups) {
 
 return $effective_level;
 
-#,,.,,,,,,..,,...,,,,,...,,,.,,..,..,,.,.,.,,,..,,...,...,...,,..,.,,,.,,,,,,,
-#RHB7QSRVNRBFODUWHJWY6XDUAXONXT4CHEBMJJ5WT5KGO2VHVOAMG64WSFHGPMPEJRNVTMN7BHJYS
-#\\\|WQDYZLKJKNWGIYDORIQZLU6WSSCWIPZX3L77WRZM7ITCHYUWP37 \ / AMOS7 \ YOURUM ::
-#\[7]HLQTB6POLZISOJ7N6CXW75OW6JMBSSA44TRSF2UMAAPBES6FIGAA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,..,.,,,.,,,,,,,,..,,,.,,,,,.,,,..,,...,...,,..,,.,,.,.,.,.,,.,,
+#UTCPD4V2J36QEM2VWUB4LDWIHUFN2HUZHIFS2XQY2NMZ4W6YVKQNF6UT55JCIIT76RGSCHIVS4GO6
+#\\\|TXCJ4AIBQH5SOBVBVYIRVPVIXQZUQ5WYMY4WSTSFT6PG5HDWS7Q \ / AMOS7 \ YOURUM ::
+#\[7]4UORIQBGCTUTO5M67RJ3LIBIW64N4DMLS3NTCP5U3R3NAWZ3IWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
