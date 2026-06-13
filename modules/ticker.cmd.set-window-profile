@@ -28,12 +28,27 @@ if ( not defined $window ) {
 }
 
 my $screen = <[window.gtk.get_screen_size]>;
-my $geo    = <[window.profile.calculate]>->(
+
+## in swap mode the ticker should live on the selected monitor instead of      ##
+## spanning the entire virtual desktop (which can push it onto a disabled or   ##
+## differently-positioned display after hot-plugging).                        ##
+my ( $base, $monitor );
+if ( <[base.cfg_bool]>->(<ticker.mouse.swap_edge>) ) {
+    $monitor = <[ticker.cmd.select_monitor]>;
+}
+$base = $monitor // $screen;
+
+my $geo = <[window.profile.calculate]>->(
     {   profile  => $profile,
-        screen_w => $screen->{'width'},
-        screen_h => $screen->{'height'}
+        screen_w => $base->{'width'},
+        screen_h => $base->{'height'}
     }
 );
+
+if ( defined $monitor ) {
+    $geo->{'x'} += $monitor->{'x'};
+    $geo->{'y'} += $monitor->{'y'};
+}
 
 <[window.gtk.profile.apply]>->( $window, $geo );
 
@@ -50,8 +65,8 @@ return {
     'data' => "window profile: $profile"
 };
 
-#,,,,,.,.,.,.,,,,,,..,,,.,,,,,,..,,,,,.,.,.,.,..,,...,...,..,,.,.,.,,,...,.,,,
-#56SBUHA4VV5USJCKPLAXDXOU3EX4LVMHVPVZU6L3WZGG5IA5A2YYEBQYSVZMBX53PWJ22ODKNIW54
-#\\\|Z54HLEUQ2JWV54QT4DNVQH2MWRBQRCCUONRIAPUAAKFPBW4ELR3 \ / AMOS7 \ YOURUM ::
-#\[7]XPNHVTSGQ73Z53VDHSNC63RDVLNTLF5K3E3CRDYD33QXELCZGEAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,..,,,.,...,,,.,,,.,..,,..,,.,,,..,,...,...,..,,,..,,..,,,,,.,.,
+#DT2AHYCEWC3C36FHY44OAW3F5DCJUYBZQENUT6VLAYG6WPJZP3QYGOMWAX5TRZOJ5GVZQUV5DEHSS
+#\\\|GXVV3DB6PHMVZ22FTSKUS5YF7BHZBTT5IUKPLWDIGGP3HWCEB6F \ / AMOS7 \ YOURUM ::
+#\[7]NG4AMHUC7WQWRJVHFQW56FF6UYGBPH6IFR4EWVI3S5WC2SFTMQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

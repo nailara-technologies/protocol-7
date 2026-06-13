@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = ticker.cmd.set-monitor
+# param = <mode>
+# descr = set monitor selection mode for swap-mode ticker
+# modes = follow-pointer | primary | index:N | cycle
+
+my $mode = $call->{'args'} // qw| follow-pointer |;
+
+my $valid = qr{^(follow-pointer|primary|index:\d+|cycle)$};
+if ( $mode !~ $valid ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "invalid monitor mode '$mode'"
+    };
+}
+
+<ticker.window.monitor>       = $mode;
+<ticker.window.monitor_index> = 0 if $mode eq qw| cycle |;
+
+## re-apply current profile so the change is immediate ##
+if ( defined <ticker.obj.window> ) {
+    <[ticker.cmd.set-window-profile]>
+        ->( { 'args' => <ticker.window.profile> // qw| bottom-strip | } );
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => "monitor mode: $mode"
+};
+
+#,,..,.,,,.,.,,,,,,.,,..,,,,.,,..,,.,,,,.,.,,,.,.,...,...,,..,.,.,,,,,...,...,
+#XTCJVO37OJCAT3KEEQL2LY4SC5Q44YZRK5NTZ2POBQNHAR2VFZH4Q7LU5JND5V2Z7HIIKSZAYR5KQ
+#\\\|K4PSW47D3MLX23QIXVRZKR3II7KD2MRI25QCHICMMIJWJBVQZP4 \ / AMOS7 \ YOURUM ::
+#\[7]H65G4JEOIHTMD4V4M4XD5H5TJB4NMP6KY65MIDDPTKHA4QIHA2AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

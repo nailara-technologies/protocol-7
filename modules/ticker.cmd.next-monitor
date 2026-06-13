@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = ticker.cmd.next-monitor
+# descr = cycle swap-mode ticker to the next monitor
+
+<ticker.window.monitor> = qw| cycle |;
+
+## re-apply current profile: set-window-profile will select the next monitor ##
+if ( defined <ticker.obj.window> ) {
+    <[ticker.cmd.set-window-profile]>
+        ->( { 'args' => <ticker.window.profile> // qw| bottom-strip | } );
+}
+
+my $info = sprintf(
+    'x=%d y=%d w=%d h=%d',
+    <x11.coordinates.left>, <x11.coordinates.top>,
+    <x11.window.width>,     <x11.window.height>
+);
+
+return { 'mode' => qw| true |, 'data' => "cycled monitor: $info" };
+
+#,,,.,,,..,..,,,.,,..,.,,.,,,.,,..,,,..,,...,..,,.,.,,..,,,..,,.,,,,.,,,.,,,,.,
+#C1D2E3F4G5H6I7J8K9L0M1N2O3P4Q5R6S7T8U9V0W1X2Y3Z4A5B6C7D8E9F0G1H2I3J4K5L6M7N8O9P0Q1R2S3T4
+#\\\\\|X1Y2Z3A4B5C6D7E8F9G0H1I2J3K4L5M6N7O8P9Q0R1S2T3U4V5W6X7Y8Z9A0B1C2D3E4F5G6H7I8J9K0L1 \/ AMOS7 \\ YOURUM ::
+#\\[7]E1F2G3G4H5I6J7K8L9M0N1O2P3Q4R5S6T7U8V9W0X1Y2Z3A4B5C6D7E8F9G0H1I2J3K4L5M6N7O8P9Q0R1S2T3 7  DATA SIGNATURE ::
+
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,,,,,,,...,,.,,...,.,.,..,,.,,,,,.,,,.,,,.,..,,...,..,,,,,,,..,,,.,..,,,.,,
+#CMCGII6NRLTKV2TLZ5DAYUV2G7GU6P2YSUKZPXYAEELWCBJBUOEAPEZYE6FNAGK2GMT26JDODYUS2
+#\\\|N64WIEY44OK3OT6ES33A6Q7RGDWD32HI6II4V3Q7BCKMQZ2BHK3 \ / AMOS7 \ YOURUM ::
+#\[7]ZCBP7K3DRT5RSSTCYD6ZRZZVFN3IFTCXGL3O5MD7WPAVYUM25CAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
