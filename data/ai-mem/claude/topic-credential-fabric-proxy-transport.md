@@ -169,14 +169,48 @@ ascii-frame width drift:**
   mismatched against the actual reverse-template-parser code — verify
   before relying on it).
 
-**Still open:**
-- `credential_fabric.resolve`/`.rotate`/`.subscribe_rotation`/`.register`/
-  `.request-authorization` are plain subroutine modules, not `.cmd.`
-  command modules — internal APIs only, not console-callable
-- on-demand auth (407/pending/approve flow) end-to-end not yet verified
+**Fixed and committed 2026-06-13 (`898ac7156`) — live ui-show verification
++ ascii.frame width bugs:** v7 wasn't running credential_fabric (not
+on-demand, no v7 always-on entry) — started manually via `v7.start
+credential_fabric` (v7.list available shows it as a manual-start zenka).
+With it live:
+- `p7c credential_fabric.resolve/.rotate/.list-slots/.ui-show` all
+  console-callable with `.cmd.` stripped, routed + permission-checked
+  correctly, returned real data — closes [[feedback-cmd-segment-stripped]]
+  verification fully (was "verifying" status)
+- `ui.caller.security-level:28` warned 4x on every call
+  (`<unix-AMOS-user> not defined` / `undef value in string eq`) because
+  headless zenki like credential_fabric don't load `X11-vars` (only X11
+  zenki like `osd-logo` do), so `<system.AMOS-user>` is legitimately
+  undef. Fixed by passing the silent flag to
+  `base.access.special-user-map` and guarding for undef.
+- **ascii.frame width/padding bug (new, distinct from the b27ebb655
+  fix)**: `credential_fabric.ui-show overview` rendered the frame at 88
+  cols for an empty registry (mockup is 55). Root cause:
+  `ascii.frame.parse`'s padding fallback measured trailing whitespace
+  on the `{{SUMMARY...}}` content line as `rpad` (=42) — but that
+  whitespace is mockup-only visual filler for a block/expand slot, not a
+  real margin; `ascii.frame.render` then added that 42 *again* on top of
+  the expanded content width. Fixed by skipping `{{NAME...}}\s*$` lines
+  when computing rpad. A second bug: border lines with no inline slot
+  (e.g. the static `[ credential fabric ]` title) didn't contribute their
+  own fixed width to `required_width`, so after the first fix, content
+  rows (48 cols) and border lines (55 cols, from anchors+fill mins) went
+  *out of alignment*. Fixed by having every border line (not just
+  slot-bearing ones) contribute `fixed - left_border - right_border` to
+  `required_width`. Both frames (`overview` 55 cols, `auth-relay-queue`
+  53 cols) now render self-consistent and match their mockups. General
+  fix — affects all `ascii.frame.*` consumers (memory.render.*,
+  ui.cmd.ui-show, etc.), not just credential_fabric.
 
-#,,,.,.,.,...,.,.,,,.,...,,,.,.,,,,..,.,.,,,,,..,,...,...,,.,,,.,,..,,,,,,...,
-#EBOATRHM3TQECWJK5D3KQJV6M6G7GZKUYDS4RSF2AWUT2JDVHKEOZR6HSKCHM4VIAASJVL2JADO3E
-#\\\|ZCNJALXFW75QOV5KEAICSIPN5MAUP32ZPYTZFA6AOLMUMUQR6ME \ / AMOS7 \ YOURUM ::
-#\[7]JNQCUH4TATHWHTDSHVIP5LKH7BHI7U77ZSR7IYZOHYHGNF7HWQAI 7  DATA SIGNATURE ::
+**Still open:**
+- on-demand auth (407/pending/approve flow) end-to-end not yet verified
+- credential_fabric has no v7 always-on/on-demand registration — must be
+  started manually (`v7.start credential_fabric`) each P7 restart until
+  that's added
+
+#,,,,,,,,,,..,,,.,,,.,,,,,,..,.,.,.,,,,,.,,,,,..,,...,...,.,,,.,,,,.,,,,.,.,,,
+#72UOGNRKEPZS3GEBN52OFQNDOMRNS3ZFJTZE3FXBYM3KNRLZL5RILG5GWGA3TXQ6UVLOVSHDFQBIK
+#\\\|2NJCVVVGTPE7TLVQVTX6T6A24SVGXMDIW2QNR6UB2XFTMNK2LGL \ / AMOS7 \ YOURUM ::
+#\[7]D7KZKEX5BBRLQZDIFBCUUD4QIS4ZPNPZGHSLCVVAZI3E474JKACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
