@@ -7,6 +7,9 @@
 > The philosophy doc covers *why* the conventions are load-bearing, not just *what* they are.
 > Update it if you arrive at refined perspectives after reading it.
 
+## Memory Update Tool — Length-Aware Routing (June 2026)
+`p7_memory_update` enforces ~180/200 line limits on `MEMORY.md`, supports `target` for external topic files, and auto-routes `UPDATE FILE:` directives. see [topic-memory-update-tool.md](topic-memory-update-tool.md)
+
 ## Round-Based Scheduling & Subtask Spawn — COMPLETE (April 2026)
 
 complete — full subtask round-trip verified. 4 post-handover fixes (double-spawn VRAM starvation, stale-process kill race, subtask backend lock deadlock, timeout recovery).
@@ -168,8 +171,8 @@ see [topic-language-detection.md](topic-language-detection.md)
 phase 1 operational (~950 lines); file-backed history at `data/chat/channel/*/history`; `data/ai-mem/handover.txt` retired.
 open: kimi zenka state machine upgrade (backend reconnect), coding zenka as third dispatch target, phase 2 channels zenka.
 
-#,,,.,..,,..,,..,,,,.,,,.,,..,,..,...,.,.,,.,,..,,...,...,..,,,..,,,.,,.,,.,,,
-#IVEWMOJ2QBJSZGJZCGGFLSMHNQO22YPSOL63L33BPI4XPWEIGYSKFQ7ZXLU547F5OMEDNLDKBY35I
-#\\\|G7KLHX44OKUH23ULO5XPOMCXA3THFBBRMB67XQF7FDI55UEDQUV \ / AMOS7 \ YOURUM ::
-#\[7]AVMRGI4EUGB2CALQOJBJLMNE44F4P2WBKIYBE6RW5LK6PDS5CAAQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,..,,,.,,,.,,,..,.,,,,,,,.,,,,..,..,,...,...,,,,,..,,.,,,.,,,.,.,
+#GJVCL4HKEKM4MBU2INXTGHP5CJX742GAVPQ5CRKEV266M4EE36HWNRLEAYHEQJWX4RNX42HEY7LPY
+#\\\|XWSEB3WJ6ZB2XSO2N7BDFRASSFLJZHFXPHROYZ5IYKXE2SMVTQ5 \ / AMOS7 \ YOURUM ::
+#\[7]CQRIIICYO2AMTBOJT55BQOCQTAQOWACAC3DJHNAYROVJOZR252AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
