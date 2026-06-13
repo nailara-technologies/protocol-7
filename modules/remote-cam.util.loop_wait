@@ -1,0 +1,17 @@
+## [:< ##
+
+# name  = remote-cam.util.loop_wait
+# descr = process network events while waiting
+
+my $tw = shift // 0;
+my $ts = <[base.time]>->(3);
+while ( <[base.time]>->(3) - $ts < $tw ) {
+    <[event.once]>->($tw);
+    SDL::delay( $tw * 100 );
+}
+
+#,,.,,,..,.,,,,.,,,,.,...,,.,,.,,,,,,,,,,,,.,,..,,...,...,...,,,,,...,.,.,.,,,
+#7X6WTCVGX6JGYIV7HICCVR33IKOOVXEZ6RK7RSNUTJY3J2SZGZLPUCF2KOEZONS54GPNBRGRN7DU4
+#\\\|7HBPQ5C3D4LP35TACBJDX5QCJS34CKNYWRIUZYU4L5WZ2H2GGHW \ / AMOS7 \ YOURUM ::
+#\[7]5P3NL5TMPP7XKNUKY22HDYRY5QIYXMFFEGVBGS6C4FHIBS5X3EBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = workspace-transfer.util.chdir_workspace
+# descr = change into workspace directory
+
+our $WORKSPACE_DIR;
+
+my $ws_dir = <[workspace-transfer.util.ensure_workspace]>->();
+return undef unless defined $ws_dir;
+
+chdir $ws_dir or do {
+    <[base.logs]>->( 0, 'cannot cd to workspace: %s', $! );
+    return undef;
+};
+
+return $ws_dir;
+
+#,,,,,,,.,,..,,..,.,.,,,.,...,,,,,.,.,,..,,..,..,,...,...,...,..,,...,..,,.,,,
+#UBMHPSVMCGGN3FGBRSDWNV55TI3KHDVBERI3CDYAS2FTWLTZNK7LZIAEMCGNKKG7DQ6WEF2ZMOU5U
+#\\\|TTGHLYEXV7VYTBXS7CGYRQZZ2Q33AFL2RUAXAVTQLPEXF4SCXAO \ / AMOS7 \ YOURUM ::
+#\[7]BMNQ4TTP3L5GQWQ63TLDLFYPLSSWO5MOV3BLHRUDFOJWNFWONMDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
