@@ -137,15 +137,22 @@ if (@static_samples) {
         my $ls = 0;
         $ls++ while $ls < length($line)
             and substr( $line, $ls, 1 ) eq ' ';
+        $min_left = $ls if $ls < $min_left;
+
+        ## trailing whitespace after a block/expand placeholder is mockup
+        ## filler [ visual alignment with the border only ], not a real
+        ## right margin -- skip it for rpad, or it gets added a second
+        ## time on top of the expanded content width at render time ##
+        next if $line =~ m{\{\{\w+\.\.\.\}\}\s*$};
+
         my $rs = 0;
         $rs++
             while $rs < length($line)
             and substr( $line, length($line) - 1 - $rs, 1 ) eq ' ';
-        $min_left  = $ls if $ls < $min_left;
         $min_right = $rs if $rs < $min_right;
     }
-    $lpad = $min_left;
-    $rpad = $min_right;
+    $lpad = $min_left == ~0  ? 0     : $min_left;
+    $rpad = $min_right == ~0 ? $lpad : $min_right;
 }
 
 ## pass 2 : elasticity encoding ##
@@ -273,8 +280,8 @@ my $descriptor = {
 
 return $descriptor;
 
-#,,.,,,..,..,,,..,..,,,,.,.,,,...,,.,,,,,,,,.,..,,...,.,.,..,,...,.,.,.,,,...,
-#QAB5ZU5GIYMUQEWXUVALLBR6U2EVOY7UZ222OJEZKJGEUUW2QX3W2YZJY4LO2OI5FT7CRHMSXTDKC
-#\\\|SLLEL4VL7K4XF4YGAEKHY76KKVYPMUQTE5WZOPEBP6ZTBQZFPEM \ / AMOS7 \ YOURUM ::
-#\[7]MEJRLIPJG2UTQNGS5XLN7WHNKU6Y3PR7E6POKUGYNJVGR4XM4EBI 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,,,.,,..,,,.,.,,,,.,,,,.,.,,,,.,,..,,...,...,...,,..,,,.,,,,,..,,
+#Z437MTL3CTIJTDIOAKWZVM762VY43DHS64EYLW4JAYZU3VINB25SCL43PLTMDIT6ROVU5A6ITVTUM
+#\\\|KIUH4XF4SAR35QRYRVAI6ZBJPRJJWEGK3TGZU42MKDIRIPDXD7C \ / AMOS7 \ YOURUM ::
+#\[7]DKHOLEG7HOSS4UJD4P2HK7LQMZDWCFVUF5MBOJ6QWPK4VWWBSCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
