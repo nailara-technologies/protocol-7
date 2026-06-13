@@ -12,7 +12,8 @@ my $opacity = <web-browser.fg_opacity>;
 if ( !<web-browser.cfg.use_transparency> ) {
     <web-browser.fg_opacity> = 1;
 } else {
-    <web-browser.fg_opacity> += incr($delta_t);
+    <web-browser.fg_opacity>
+        += <[web-browser.view.util.fade_increment]>->($delta_t);
 }
 
 if ( <web-browser.fg_opacity> >= 1 ) {    # fade in complete
@@ -44,23 +45,8 @@ if ( <web-browser.fg_opacity> >= 1 ) {    # fade in complete
 <web-browser.gtk_obj.scrolled_window>
     ->{$fg_index}->set_opacity(<web-browser.fg_opacity>);
 
-sub incr {
-    my $dt   = shift;
-    my $dt_2 = $dt - 4;
-    $dt_2 = 0 if $dt_2 > 0;
-    my $t_inc = $dt - 2;
-    my $increase
-        = ( 1.1 - <web-browser.fg_opacity> ) * 0.22 *
-        <[base.calc_gauss]>->($t_inc);
-    $increase
-        += (
-        ( 1.1 - <web-browser.fg_opacity> ) * <[base.calc_gauss]>->($dt_2) )
-        / 4;
-    return sprintf( '%.5f', $increase );
-}
-
-#,,,,,.,.,,,.,.,.,,,.,,,,,,..,..,,,,.,...,.,.,..,,...,...,...,...,,..,...,,,,,
-#QWGJKBB4JJTYQ4E5QEVQUCVV7BXBQ22KPWOUAYCJGF4MAJPJTFNEFWV6PE5CZL5PFGQBFPCYMOWZ6
-#\\\|TFNNUO3AFQQGOIIZSFCH52DDFKZZRBAJDCTALWVMOSRHH325MOJ \ / AMOS7 \ YOURUM ::
-#\[7]2H6TRJELVJXYZK7TXDVZAJI55B47OYPQB364V3YFIZ63KVETGIAI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,.,,,,..,,,.,,,,,,..,...,,..,,,,,..,,...,...,..,,..,,..,,.,.,.,,,
+#SMHD3RS4HQBJLFYDJ57SQN2NDLQ2MU6ASZXXVKLA44HNQQLEDTHKGHWAN4TKS6M6LW3ITE4HMKT5Y
+#\\\|ISWF3U2I7HVF3CZ6H26J77IDMB73F2WC2NG2RWIQUMY6OSRAC4A \ / AMOS7 \ YOURUM ::
+#\[7]BTGXZHUPPTI4HJIMCJ5PPTN7S2ZV2NZRHEPCEJXYBTIGLSKLYEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

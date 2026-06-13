@@ -54,57 +54,14 @@ my @forecast = (
 ## Limit to requested days
 @forecast = @forecast[ 0 .. ( $days - 1 ) ] if $days < scalar(@forecast);
 
-my $html = _format_forecast_widget( \@forecast );
+my $html = <[weather.forecast.util.format_forecast_widget]>->( \@forecast );
 
 return $html;
 
-sub _format_forecast_widget {
-    my ($forecast_ref) = @_;
-
-    my $html = qq|
-<div class="weather-forecast">
-    <div class="forecast-header">5-Day Forecast</div>
-    <div class="forecast-grid">
-|;
-
-    foreach my $day_data ( @{$forecast_ref} ) {
-        my $day      = $day_data->{day};
-        my $temp_min = $day_data->{temp_min};
-        my $temp_max = $day_data->{temp_max};
-        my $desc     = $day_data->{desc};
-        my $clouds   = $day_data->{clouds};
-
-        $html .= qq|
-        <div class="forecast-day">
-            <div class="forecast-day-name">$day</div>
-            <div class="forecast-icon-container">
-                <div class="forecast-icon-glow"></div>
-            </div>
-            <div class="forecast-temps">
-                <span class="temp-max">$temp_max°</span>
-                <span class="temp-separator">/</span>
-                <span class="temp-min">$temp_min°</span>
-            </div>
-            <div class="forecast-desc">$desc</div>
-            <div class="forecast-clouds">
-                <div class="clouds-bar-mini" style="width: ${clouds}%"></div>
-            </div>
-        </div>
-|;
-    }
-
-    $html .= qq|
-    </div>
-</div>
-|;
-
-    return $html;
-}
-
 0;
 
-#,,,.,,..,,..,.,,,,,.,.,.,..,,,.,,..,,,..,,,,,..,,...,..,,.,,,.,,,,,,,..,,..,,
-#I6SMMXQI2YSQUMDW7QCSXWXIZJDS77YLOVC2OI4KYUUBC7FW47GVWXQ2LU3CZGTILAWUTKDHMRC5O
-#\\\|3YAGCEH7RHQJMARAZ222KWDZGNBOKU3HA65RBT5KIBHRIYBIB4I \ / AMOS7 \ YOURUM ::
-#\[7]HI7CCKDMEH5I6SMPEQF5NUS7AOUI5SUWTL55TM7C4K322IGWNAAQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,.,.,..,,,..,,,,,,..,,.,,,,,,,,.,..,,...,...,..,,,,.,.,,,,,.,,,,,
+#K2GSYL7MLH7DQ2Y224AHJNXND5FV56P2CLTVO3M5RASXNWE4NYUAVVOV53KTFEPM7VINCAHFPWAL2
+#\\\|C4AB4YP622NXWCXXGOTQQ34DRDSHFEYGLMUKKPNY6D5WWIUAH5S \ / AMOS7 \ YOURUM ::
+#\[7]33M5MSYQ4YN2YJDRVP6DAVR47GMJMEMB6MSLA7IQHZOE2ENWESAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

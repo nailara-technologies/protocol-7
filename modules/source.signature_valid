@@ -211,8 +211,9 @@ if ( not $signature_footer_data->{'was-present'} ) {
 
             # Try full verification with the extracted signature
             my $test_verified
-                = _verify_signature_with_data( $temp_ref, $test_sig_data,
-                $truth_checks, $key_name_param );
+                = <[source.signature.util.verify_signature_with_data]>->(
+                $temp_ref, $test_sig_data, $truth_checks, $key_name_param
+                );
 
             if ($test_verified) {
                 <[base.logs]>->(
@@ -319,7 +320,8 @@ if ( not $signature_footer_data->{'was-present'} ) {
     # If we get here, repair mode couldn't fix it or we're in a different mode
     <[base.log]>->(
         1,
-        ': allowing validation despite missing separator endline (repair mode)'
+        ': allowing validation despite missing separator endline (repair '
+            . 'mode)'
     ) if $mode ne 'strict';
 }
 
@@ -628,143 +630,8 @@ foreach my $type (qw| footer-complete |) {    ## [..,]
 return ( $verified_true, $truth_status_report ) if wantarray;
 return $verified_true;
 
-## Helper function for verification with modified data
-## Used by the repair mode to test different endline states
-##
-sub _verify_signature_with_data {
-    my $test_payload_sref = shift;
-    my $test_footer_data  = shift;
-    my $test_truth_checks = shift // {};
-    my $test_key_name     = shift;
-
-    # Skip basic checks since we know the data is present
-    # Initialize verification state
-    my $test_verified = TRUE;
-
-    # Get footer parameters
-    my $test_footer_as_string = $test_footer_data->{'signature-footer-str'};
-    my $test_footer_length    = $test_footer_data->{'footer-length-found'};
-    my $test_footer_bmw       = $test_footer_data->{'data-chksum'};
-
-    # Get the elf modes from the main function
-    my @test_elf_modes = qw| 4 7 |;
-    my $test_ELFmode   = 7;
-
-    # Initialize elf checksum values
-    my $test_elf_chksum = {
-        qw| entire-payload     | => { map { $ARG => 0 } @test_elf_modes },
-        qw| embedded-code-style| => { map { $ARG => 0 } @test_elf_modes }
-    };
-
-    # Calculate checksums
-    my $test_data_pos     = 0;
-    my $test_read_length  = 4282;
-    my $test_content_size = length $test_payload_sref->$*;
-
-    my $test_chksum_params = [
-        ( map { [ qw| ELF-7 |, $ARG ] } @test_elf_modes ),
-        [qw| BMW 384 |], [ qw| ELF-7 |, $test_ELFmode ],
-        [qw| BMW-bin 512 |],
-    ];
-
-    # Calculate checksums
-    my @test_chksum_results = <[base.chk-sum.from_substr]>->(
-        $test_payload_sref,  $test_data_pos, $test_content_size,
-        $test_chksum_params, $test_read_length
-    );
-
-    # Extract BMW objects
-    my $test_BMW_objects = pop @test_chksum_results;
-    my $test_bmw_start   = shift $test_BMW_objects->@*;
-    my $test_bmw_amos    = shift $test_BMW_objects->@*;
-
-    # Get ELF checksums
-    foreach my $mode (@test_elf_modes) {
-        $test_elf_chksum->{'entire-payload'}->{$mode}
-            = shift @test_chksum_results;
-    }
-
-    shift @test_chksum_results;    # strip footer BMW checksum
-    shift @test_chksum_results;    # strip AMOS-ELF checksum
-
-    # Get AMOS BMW checksum
-    my $test_amos_digest_bin = shift @test_chksum_results;
-
-    # Calculate AMOS7 checksum
-    my $test_AMOS_B32 = AMOS7::CHKSUM::amos_chksum(
-        {   qw| elf-shift-bits | => 13,
-            qw| elf-modes      | => [ 4, 7 ],
-            qw| elf_checksum   | =>
-                $test_elf_chksum->{'entire-payload'}->{$test_ELFmode},
-            qw| BMW_checksum   | => $test_amos_digest_bin
-        }
-    );
-
-    # Verify AMOS checksum
-    if ( $test_AMOS_B32 ne $test_footer_data->{'amos-payload-checksum'} ) {
-        <[base.log]>->(
-            2, ': test: AMOS checksum mismatch but allowing in repair mode'
-        );
-        <[base.logs]>->(
-            3,
-            ': test: expected %s, got %s',
-            $test_footer_data->{'amos-payload-checksum'},
-            $test_AMOS_B32
-        );
-
-        # Don't fail in repair mode
-    }
-
-    # Calculate footer BMW checksum
-    $test_bmw_start->add( sprintf '%s#',
-        $test_footer_data->{'footer-start-line'} );
-    my $test_bmw_result = <[chk-sum.bmw.encode_digest]>->($test_bmw_start);
-
-    # Verify BMW checksum
-    if ( $test_bmw_result ne $test_footer_data->{'bmw-chksum'} ) {
-        <[base.logs]>->(
-            2, ': test: BMW checksum mismatch but allowing in repair mode'
-        );
-        <[base.logs]>->(
-            3,
-            ': test: expected %s, got %s',
-            $test_footer_data->{'bmw-chksum'},
-            $test_bmw_result
-        );
-
-        # Don't fail in repair mode
-    }
-
-    # Verify signature
-    my $test_signed_data = substr( $test_footer_as_string, 0, 163 );
-    my $test_signature   = $test_footer_data->{'signature'};
-
-    my $test_sig_valid = 0;
-    eval {
-        $test_sig_valid = <[crypt.C25519.verify_sign]>->(
-            \$test_signed_data, \$test_signature, $test_key_name
-        ) ? 1 : 0;
-    };
-
-    if ( !$test_sig_valid ) {
-        <[base.log]>->(
-            2,
-            ': test: C25519 signature verification failed but allowing in repair mode'
-        );
-
-        # Don't fail in repair mode
-    }
-
-    # In repair mode, all checks are considered passed
-    <[base.log]>->(
-        2,
-        ': test: repair mode allowing validation despite checksum or signature issues'
-    );
-    return TRUE;
-}
-
-#,,.,,...,,.,,.,,,,,,,,,.,.,,,,.,,.,,,,,,,,..,..,,...,...,.,.,,..,.,.,.,,,,..,
-#J7WBTV4USULDF7LQUJXA4XX6P63ZBW6XLCLP3RJXCE4I6LCJJGC7RSBG3C7F7WMEJWZSZ2TNF67AO
-#\\\|D466T7RIOOAGKVVGD2VQWGH53ORXBMZZPSEX2VNWW3QUMERRGRB \ / AMOS7 \ YOURUM ::
-#\[7]UV27Z4LG3EZDT6LM7CYQVLXD3GUX57A253NO2CDLTTNIHWFNSSDQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,..,.,,,...,.,,,,,.,...,,..,,..,..,,...,.,,,...,.,.,,..,.,,,,,.,
+#QUGE4O6QDIKZVHRPOK3YZQ7KM5ZZY673PNDQLV3AFW4TQT46IMVTGMQRLNB4LJVMSXMCYBJLDGEFO
+#\\\|JRDQMZOK5ZSZEGXUIG3S3XZU43AGP5IJC4RXJZB7QR6LR3TJSJY \ / AMOS7 \ YOURUM ::
+#\[7]6O7WMU5PWT2GZFP5I4VGNVNGB5Y5YNXD23VZ35I5CXBJDZLFK2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,97 @@
+## [:< ##
+
+# name  = base.language.util.wordlist_detect
+# descr = score language by wordlist hits over tokens
+
+my ( $txt, $heuristic ) = @ARG;
+
+my $leader = $heuristic->{'language'} // '';
+return { language => '', confidence => 0, method => 'wordlist' }
+    unless length $leader;
+
+## check for installed wordlist ##
+my $wl_path = "data/language/wordlist/$leader.txt";
+if ( not -f $wl_path ) {
+    ## no wordlist : charmap-only result from heuristic ##
+    return {
+        language     => $leader,
+        confidence   => $heuristic->{'confidence'},
+        method       => 'charmap',
+        wordlist     => 0,
+        alternatives => $heuristic->{'alternatives'} // [],
+    };
+}
+
+## load wordlist into hash for fast lookup ##
+my %words = ();
+if ( open my $fh, '<', $wl_path ) {
+    while ( my $w = <$fh> ) {
+        chomp($w);
+        $words{ lc($w) } = 1 if length $w;
+    }
+    close $fh;
+}
+
+## tokenize and score ##
+my @tokens = ( $txt =~ m{\b\w+\b}g );
+my $total  = scalar @tokens;
+return { language => $leader, confidence => 0, method => 'wordlist' }
+    unless $total > 0;
+
+my $matched = 0;
+for my $t (@tokens) {
+    $matched++ if exists $words{ lc($t) };
+}
+
+my $hit_ratio = $matched / $total;
+
+## also score alternatives ##
+my %alt_scores = ( $leader => $hit_ratio );
+for my $alt ( @{ $heuristic->{'alternatives'} // [] } ) {
+    my $alt_path = "data/language/wordlist/$alt.txt";
+    next unless -f $alt_path;
+    my %alt_words = ();
+    if ( open my $fh, '<', $alt_path ) {
+        while ( my $w = <$fh> ) {
+            chomp($w);
+            $alt_words{ lc($w) } = 1 if length $w;
+        }
+        close $fh;
+    }
+    my $alt_matched = 0;
+    for my $t (@tokens) {
+        $alt_matched++ if exists $alt_words{ lc($t) };
+    }
+    $alt_scores{$alt} = $alt_matched / $total;
+}
+
+## rank by hit ratio ##
+my @ranked = sort { $alt_scores{$b} <=> $alt_scores{$a} }
+    keys %alt_scores;
+my $winner    = $ranked[0];
+my $winner_hr = $alt_scores{$winner}      // 0;
+my $runner_hr = $alt_scores{ $ranked[1] } // 0;
+my $gap       = $winner_hr - $runner_hr;
+
+my $conf = 0.50;
+if ( $winner_hr > 0.35 and $gap > 0.15 ) {
+    $conf = 0.85;
+} elsif ( $winner_hr > 0.25 and $gap > 0.10 ) {
+    $conf = 0.70;
+} elsif ( $winner_hr > 0.15 ) {
+    $conf = 0.55;
+}
+
+return {
+    language     => $winner,
+    confidence   => $conf,
+    method       => 'wordlist',
+    hit_ratio    => $winner_hr,
+    alternatives => [ grep { $_ ne $winner } @ranked ],
+};
+
+#,,,.,..,,.,,,...,,,,,,,,,,.,,..,,,.,,,,,,..,,..,,...,...,...,.,.,.,.,..,,...,
+#IYSCPOW327HWILX22Q3MZ233CJNBEVPXLM36RNUD4MO73YYXW25MFSGIWJBD5KOHQ5CU272WYJ3VG
+#\\\|G2LJUMRGA3QTGGZSMFWLVQV24PA6Y6QWPU2JWLROISQQ5LRSRMB \ / AMOS7 \ YOURUM ::
+#\[7]HJWN2YYX26RZHUT67IQQL3WAP6DVGWCMWDZGLLJH3IHNA4WEDMBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
