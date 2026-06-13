@@ -96,8 +96,7 @@ if (   not $window->is_composited
     }
 }
 
-my $speed       = <ticker.speed> // 13;
-my $draw_shadow = $speed > 16 ? FALSE : TRUE;
+my $draw_shadow = <[base.cfg_bool]>->(<ticker.cfg.draw_shadow>);
 
 # LLL: initialization part needs to be rewritten ..
 if ( not <ticker.status.initialized> ) {
@@ -220,6 +219,8 @@ my $delta_t = <[base.time]>->(8) - <ticker.last_time>;
 
 if ( not <ticker.paused> ) {
 
+    my $speed = <ticker.speed> // 13;
+
     if (<ticker.auto_speed_mode>) {    # LLL
         my $adjust  = 0;
         my $sl_diff = 0;
@@ -294,8 +295,8 @@ if (<ticker.animation_started>) {
 
 return TRUE;
 
-#,,.,,.,,,.,.,,,.,,,,,,.,,,,,,.,,,.,,,,,.,.,,,..,,...,...,,.,,,,,,.,,,.,,,.,,,
-#DIXGBSMJTJCALA44E257D7ZQUC3P2GWT7XYKLVHHOMKVXKOWMAX6JVQDKGSEPCV6QFR3T6DMKWUQA
-#\\\|LTUS6CTI7LDHVOGBLSHUHGJNYQ7GOFY3R3AWKY2I5IFK7G7ASP4 \ / AMOS7 \ YOURUM ::
-#\[7]O5LTMN25ZG7AWIOMC2ZH44BWL3AZLOQFB6TIQHS5WENM33AEMKDQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,,.,,,.,...,...,,..,,.,,..,,.,,,..,,...,...,,..,,..,...,,..,,,.,
+#P54H4MHPIGVXKFGYOU2VCEVJALAE2W5YP3JDIYO3UR4PX6VB5P6BE7UGTG5PY3UUAXTDHBTKBSNGA
+#\\\|PYSUIECEREG36ULJ6KXWAT5TGULZPPLLF2MQNWPD74VJOFAGXIK \ / AMOS7 \ YOURUM ::
+#\[7]2TBPJR7YRPIE664MNOX4I5FKVQLOIRTZ2TGOUNCIH6K5HFEPIQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
