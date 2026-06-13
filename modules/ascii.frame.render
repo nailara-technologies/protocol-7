@@ -70,26 +70,29 @@ for my $name ( keys %{$slots} ) {
     }
 }
 
-## inline slots in borders also contribute — use that border line's actual
-## fixed width [ anchors + fill minimums + slot value, mirroring
-## render.border_line's $fixed ], not min_width + val_len, which omits the
-## fill runs [ e.g. the dashes/colons either side of the bracket ] and so
-## under-counts whenever the slot value is longer than its placeholder ##
+## every border line contributes its own fixed width [ anchors + fill
+## minimums + slot values, mirroring render.border_line's $fixed ] —
+## not just lines with inline slots. without this, a border line whose
+## decorative fills alone exceed the content-driven width renders wider
+## than the content rows, drifting out of alignment with them ##
 for my $side (qw| top bottom |) {
-    for my $el ( @{ $border->{$side} // [] } ) {
-        next if $el->{'type'} ne qw| slot |;
-        my $fixed = 0;
-        for my $e ( @{ $border->{$side} } ) {
-            if ( $e->{'type'} eq qw| anchor | ) {
-                $fixed += length( $e->{'value'} // '' );
-            } elsif ( $e->{'type'} eq qw| fill | ) {
-                $fixed += $e->{'min'} // 1;
-            } elsif ( $e->{'type'} eq qw| slot | ) {
-                $fixed += length( $values->{ $e->{'name'} } // '' );
-            }
+    my $elements = $border->{$side} // [];
+    next if not @{$elements};
+    my $fixed = 0;
+    for my $e ( @{$elements} ) {
+        if ( $e->{'type'} eq qw| anchor | ) {
+            $fixed += length( $e->{'value'} // '' );
+        } elsif ( $e->{'type'} eq qw| fill | ) {
+            $fixed += $e->{'min'} // 1;
+        } elsif ( $e->{'type'} eq qw| slot | ) {
+            $fixed += length( $values->{ $e->{'name'} } // '' );
         }
-        $required_width = $fixed if $fixed > $required_width;
     }
+    my $candidate
+        = $fixed
+        - length( $border->{'left'}  // '' )
+        - length( $border->{'right'} // '' );
+    $required_width = $candidate if $candidate > $required_width;
 }
 
 ## total frame width includes left and right borders ##
@@ -299,8 +302,8 @@ if ( $lmar or $rmar ) {
 
 return join "\n", @output;
 
-#,,,,,.,.,.,,,,,.,,,,,...,.,,,,,.,,..,.,.,,..,..,,...,...,..,,.,.,.,.,,.,,.,,,
-#KNVEJ6Y4OO2IZHWOMB6VXZHFARR33ZNQA54XF2RBSK6CK45JC6Z6T53UUL6KACIX76IM5YKAWFXWI
-#\\\|33PLOWSCPVWJ4P4ESPC5AMFX6D7NYGDCOFQQQDFL3YA55YWQ7PA \ / AMOS7 \ YOURUM ::
-#\[7]LCMBQ7LOPAIPSTWX2DGVTWJJ6H7HIGBWWH55T4UNNSHAQUCDGAAI 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,,.,,,.,,,,,,,,,..,,,,,,..,,,..,..,,...,...,...,...,.,.,..,,,..,
+#LVBNPDZATFM5HTZJANHCW64RLVPHNKQRWEZSQFY5BZNEVYJQRCTTAT4PKOEIW3MUYS3EKYYXR4U52
+#\\\|DWN7EKMVZEX6T3MY23VB4PFZZTSSVFPGILBONNQPVJHH2CME7VK \ / AMOS7 \ YOURUM ::
+#\[7]ODUBYEPTXTYWM7X5QYXWK2XSYWWIARBRTYAMX4NJUUGESEDCEGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

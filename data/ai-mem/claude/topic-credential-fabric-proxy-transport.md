@@ -14,6 +14,12 @@ their initial wiring in `21f4edfa5`, but a manual verification pass
 dispatched fixes via kimi (`kimi_dispatch`, task files now in
 `data/tasks/completed/`) and committed the result as `3349352df`.
 
+See [[topic-ui-show-security-levels]] for the follow-on UI-show
+security-level work (steps 1-5 landed 2026-06-13 as `36d605896`,
+credential_fabric slot names/metadata now gated by ui-show security
+level; step 6, generic key-based level authorization, is open and
+deferred to a dedicated session).
+
 **Fixed and committed:**
 - proxy: `$proxy` bareword compile error in `proxy.handler.accept`,
   `proxy.selector.load` cwd-relative path failure, `httpd.status_codes`
@@ -169,8 +175,8 @@ ascii-frame width drift:**
   command modules — internal APIs only, not console-callable
 - on-demand auth (407/pending/approve flow) end-to-end not yet verified
 
-#,,..,,..,,.,,,..,,..,,,.,.,,,,.,,...,.,,,,,.,..,,...,...,.,.,,.,,,..,.,,,.,.,
-#4JGKOTDFPDESX3V4PAJID5B5BGYNZVOLT2YES3CHH4ULBMVE3OVHKFXPDJ5VYCNQYN7TW7V3JDQHW
-#\\\|TWT4OIIJMT2WM3ZJ3PZA4MSVJVLZR7GEQYPNPEOXUIOS6WTOLPS \ / AMOS7 \ YOURUM ::
-#\[7]RZ4YVEMXLJ4FNCJGCFSS26EWSW7HZYW4O23JDI5OSFOFPUZCGSDQ 7  DATA SIGNATURE ::
+#,,,.,.,.,...,.,.,,,.,...,,,.,.,,,,..,.,.,,,,,..,,...,...,,.,,,.,,..,,,,,,...,
+#EBOATRHM3TQECWJK5D3KQJV6M6G7GZKUYDS4RSF2AWUT2JDVHKEOZR6HSKCHM4VIAASJVL2JADO3E
+#\\\|ZCNJALXFW75QOV5KEAICSIPN5MAUP32ZPYTZFA6AOLMUMUQR6ME \ / AMOS7 \ YOURUM ::
+#\[7]JNQCUH4TATHWHTDSHVIP5LKH7BHI7U77ZSR7IYZOHYHGNF7HWQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
