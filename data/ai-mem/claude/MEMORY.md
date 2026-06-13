@@ -28,7 +28,7 @@
 - [frame-plugin-slots](topic-frame-plugin-slots.md) — status-bar plugin slots + context-aware selector; variable border width; vertical-slot roadmap
 - [ascii-desktop-domains](topic-ascii-desktop-domains.md) — border glyphs are domain-scoped; nested domains = nested planes = ascii desktop; role-vs-glyph descriptor is the windowing unlock
 - [frame-idiom-convergence](topic-frame-idiom-convergence.md) — NEW frame features: margin/vertical-padding/self-invalidating-cache/corner-pinning-spring; `.:[ ]::[ ]:.` idiom; 5 frames still need conversion (REQUIRED)
-- [ui-show-security-levels](topic-ui-show-security-levels.md) — steps 1-3 LIVE (d3f4e5aca); step 4 (`*.ui-show` generic grant) deferred to step 5
+- [ui-show-security-levels](topic-ui-show-security-levels.md) — steps 1-4 ALL LIVE (687f7daba, 2026-06-13); generic `*.ui-show` grant active; steps 5-6 open
 - [os-command-zenka](topic-os-command-zenka.md) — planned: networked command/script templates, security levels, STRM streaming, vterm result buffers
 - [plugin-web-jobs](topic-plugin-web-jobs.md) — delta sync WORKING; open: ?since=N, remote deploy
 - [clients-http](topic-clients-http.md) — clients.http.* + clients.https.* async; kimi-web parallel dispatch
@@ -333,8 +333,8 @@ clean restart.
   command modules — internal APIs only, not console-callable
 - on-demand auth (407/pending/approve flow) end-to-end not yet verified
 
-#,,.,,.,.,...,,.,,,..,,,.,..,,..,,,..,..,,.,,,...,...,...,,,,,,..,.,.,...,..,,
-#Z5O66JS7QELG6233UFZF57BRBOJGMV6NPD7CARK6IT3G5BJF3ZEE4EJLZ25VRMDCQNESRWS3M26CW
-#\\\|CQZDDZYXHSWI3P5BJCKCDYC6PJLL3F3YSFK2PCDTJHATKE5HTDE \ / AMOS7 \ YOURUM ::
-#\[7]P7SIFPNY3X2MGVJFXMSTD2VSNW3OHPIWEZCSYAYAYAS3FVHMNABA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,.,,,,.,,,..,,..,..,,,..,.,,,..,,...,...,..,,.,.,,.,,,.,,,,.,,,,,
+#WJDYTVPFZSMOSXW7CVJFJ42EZR4Y3752STV7P7WE5ENI4LYSVRRVRKVADWAB2237LHM343I7YUSOG
+#\\\|JIMIN55FQXNIFVPC5SAJAVAPZPXHYX5QCLJ374RBSJ7UGX375WB \ / AMOS7 \ YOURUM ::
+#\[7]I72P6TSIL6GGLN4BOSRAEX6YUG7EBKKNSRNHN7WMTVHDFCAIJAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
