@@ -1,0 +1,47 @@
+## [:< ##
+
+# name = base.X-11.get_window_geometry
+
+my $id = shift;
+
+my $user     = shift // 'cube';
+my $cmd_path = shift // '';
+$cmd_path .= '.'                   if length($cmd_path);
+die "expected numerical window id" if not defined $id or $id !~ /^\d+$/;
+
+my ($local_sid) = keys( %{ $data{'user'}{$user}{'session'} } );
+
+my $cmd_id = <[base.gen_id]>->( $data{'route'} );
+
+my $cube_fh = $data{'session'}{$local_sid}{'handle'};
+<[base.net.send_to_socket]>->(
+    $cube_fh, "($cmd_id)${cmd_path}X-11.get_geometry $id\n"
+);
+
+my $reply_string;
+my $matched_reply = 0;
+while ( !$matched_reply ) {
+    $reply_string = <$cube_fh>;
+    die "cube handle had an exception!" if not defined $reply_string;
+    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(TRUE|FALSE) /;
+    if ( !$matched_reply ) {
+        $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
+    }
+}
+
+if ( $reply_string =~ /^\($cmd_id\)TRUE (.+)$/ ) {
+    my $data = $1;
+    $data =~ s/\s+$//;
+    ## X-11.get_geometry returns "w h x y" ##
+    my ( $w, $h, $x, $y ) = split /\s+/, $data;
+    return { 'x' => $x, 'y' => $y, 'width' => $w, 'height' => $h };
+} else {
+    <[base.log]>->( 0, "get_window_geometry failed with '$reply_string'.." );
+    return undef;
+}
+
+#,,,.,,,,,...,,..,,,,,.,,,,,,,..,,.,,,...,..,,..,,...,...,...,,.,,,,.,.,,,.,,,
+#3J4WLLNFGB3AGA5JI2CGFARLDYJUNXJ3Y6OUYXAGGC5EPDXPC4QNQBK4UXPWBAG7JCYQV7OEZQXYW
+#\\\|4LEOOGM37XLFXLNICDIKFUVEA62S5GTORGHAEZLERK3KEJDHIID \ / AMOS7 \ YOURUM ::
+#\[7]MHTVF4P7YSDL2HWZ5WRQXD7UBQUASV66TSWO7TYRIFK7VRVY52BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

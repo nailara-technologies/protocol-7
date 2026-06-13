@@ -47,17 +47,34 @@ eval {
     ## fade_out handler then moves the window to the opposite edge, and we
     ## fade in there as long as the mouse is not covering it.
 
-    if ( <[base.cfg_bool]>->(<ticker.mouse.swap_edge>) ) {
+    if (    <[base.cfg_bool]>->(<ticker.mouse.swap_edge>)
+        and not <ticker.swap.move_failed>
+        and not <ticker.swap.disabled> ) {
         return if defined <ticker.timer.fade>;    ## transition in progress ##
+
+        my $opacity
+            = <ticker.is_composited>
+            ? $window->get_opacity()
+            : 1;
 
         if ($inside) {
             <ticker.mouse.inside>              = TRUE;
             <ticker.mouse.leave_pending_until> = undef;
+
+            ## if already invisible, stay invisible; do not bounce back       ##
+            ## immediately because the cursor is covering the swapped edge.   ##
+            if ( $opacity < 0.05 ) {
+                <[base.log]>->(
+                    1, ': swapped edge still under cursor, staying invisible'
+                );
+                return;
+            }
+
             <[base.log]>->(
                 1, ': pointer over current edge (swap), fading out'
             );
 
-            <ticker.timer.fade>->cancel if defined <ticker.timer.fade>;
+            <ticker.fade_opacity> = $opacity;
             delete <ticker.time.fade_view>;
             <ticker.timer.fade> = <[event.add_timer]>->(
                 {   'after'    => 0,
@@ -69,27 +86,25 @@ eval {
             <ticker.mouse.inside> = FALSE;
             delete <ticker.mouse.leave_pending_until>;
 
-            my $opacity
-                = defined <ticker.fade_opacity>
-                ? <ticker.fade_opacity>
-                : ( <ticker.is_composited> ? 1 : 1 );
+            ## already visible -> nothing to do                                   ##
+            return if $opacity > 0.99;
 
-            if ( $opacity < 0.99 ) {
-                <[base.log]>->( 1, ': edge free (swap), fading in' );
+            <[base.log]>->( 1, ': edge free (swap), fading in' );
 
-                <ticker.timer.fade>->cancel if defined <ticker.timer.fade>;
-                delete <ticker.time.fade_view>;
-                <ticker.timer.fade> = <[event.add_timer]>->(
-                    {   'after'    => 0,
-                        'interval' => 0.017,
-                        'handler'  => qw| ticker.handler.fade_in |
-                    }
-                );
+            <ticker.fade_opacity> = $opacity;
+            $window->set_opacity($opacity) if <ticker.is_composited>;
+            delete <ticker.time.fade_view>;
 
-                if ( defined <x11.id> ) {
-                    <[base.X-11.raise_window]>->(<x11.id>);
-                    <[base.X-11.keep_above]>->(<x11.id>);
+            <ticker.timer.fade> = <[event.add_timer]>->(
+                {   'after'    => 0,
+                    'interval' => 0.017,
+                    'handler'  => qw| ticker.handler.fade_in |
                 }
+            );
+
+            if ( defined <x11.id> ) {
+                <[base.X-11.raise_window]>->(<x11.id>);
+                <[base.X-11.keep_above]>->(<x11.id>);
             }
         }
         return;
@@ -193,8 +208,8 @@ eval {
 <[base.log]>->( 0, ': pointer check failed: ' . $EVAL_ERROR )
     if length $EVAL_ERROR;
 
-#,,.,,,,,,..,,.,,,..,,...,,,.,,.,,,,.,,,,,...,.,.,...,...,.,,,..,,,,.,...,,,,,
-#CX2PWJXK5ZGNL75FJTFAF266XH2S4OVTPRNFD55G4V4PMUSPCDW5SWZ7ZIWB3PAVTP7HE4MFA5Q3W
-#\\\|6PL7BSDFIE2XJVY32CK6S2B5FFFM222SJJVFEZCTBWMRAAINQ7T \ / AMOS7 \ YOURUM ::
-#\[7]34KQ5J6HT3SZQU7FHJYLVYFARTL3KNPKMFUSAMFV27Q4DNQHMGAY 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,,,,,.,,.,.,.,,,,.,,..,,..,,,..,.,.,...,..,,..,,,,,,.,,,.,.,.,.,
+#EDCU7UW2XUJCSTFTZH7L3GWMP27DPAJXR4QOPPY6PZEWS4YGMMYBXFNJPHRQLAZWOF5NMGR7KNB5M
+#\\\|MUW2WATUWK7GBHVQIJTKBYJFT7PW2DMA6TUCU5R3TVESYZHGBNA \ / AMOS7 \ YOURUM ::
+#\[7]2SRKRESRZ4LWJIZNCQI7U6Z5VWEVIWLH2C5Y3F5BYDYWHQKLOQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
