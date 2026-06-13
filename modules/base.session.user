@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = base.session.user
+# descr = resolve user name from a session id
+# param = [sid] [ returns $data{'session'}{$sid}{'user'} or '' ]
+
+my $sid = shift // '';
+
+return ''
+    if not length $sid
+    or not exists $data{'session'}{$sid}
+    or not exists $data{'session'}{$sid}{'user'};
+
+return $data{'session'}{$sid}{'user'};
+
+#,,..,.,,,..,,..,,.,,,.,.,,,,,,.,,.,.,...,.,.,..,,...,...,.,,,,.,,,,.,,,,,.,.,
+#H34INKZDDM2VSR6IXIPTVEWS6Q2ZIOD5QSC4AJIDBFOX3TB5U5MPVBTNAXHOZWQSQP7CTG5UTJFR2
+#\\\|AT3WLEIKXBMDW5GYVG5DUQZ5YZGTIG6MGYWF4OXERP4JWSZ2KOZ \ / AMOS7 \ YOURUM ::
+#\[7]ARYDUYKNNHQKLHFHI4DWPGD5NQNEO26TFTD6PRIGC75DJN5JCICI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
