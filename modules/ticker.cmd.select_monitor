@@ -1,0 +1,65 @@
+## [:< ##
+
+# name  = ticker.cmd.select_monitor
+# descr = select Gdk monitor geometry for swap ticker
+
+my $mode = <ticker.window.monitor> // qw| follow-pointer |;
+
+my $display = eval { Gtk3::Gdk::Display::get_default() };
+return undef if not defined $display;
+
+my $n_monitors = eval { $display->get_n_monitors } // 0;
+return undef if $n_monitors <= 0;
+
+my $monitor;
+
+if ( $mode eq qw| follow-pointer | ) {
+    eval {
+        my $seat    = $display->get_default_seat;
+        my $pointer = $seat->get_pointer;
+        my ( undef, $px, $py ) = $pointer->get_position;
+        $monitor = $display->get_monitor_at_point( $px, $py );
+    };
+} elsif ( $mode eq qw| primary | ) {
+    $monitor = eval { $display->get_primary_monitor };
+    $monitor = $display->get_monitor(0)
+        if not defined $monitor and $n_monitors > 0;
+} elsif ( $mode =~ m{^index:(\d+)$} ) {
+    my $idx = $1;
+    $monitor = $display->get_monitor($idx)
+        if $idx >= 0 and $idx < $n_monitors;
+} elsif ( $mode eq qw| cycle | ) {
+    my $idx = <ticker.window.monitor_index> // 0;
+    $idx     = 0 if $idx >= $n_monitors;
+    $monitor = $display->get_monitor($idx);
+    <ticker.window.monitor_index> = ( $idx + 1 ) % $n_monitors;
+}
+
+return undef if not defined $monitor;
+
+my $geometry = eval { $monitor->get_geometry };
+return undef if not defined $geometry;
+
+my ( $x, $y, $w, $h );
+if ( ref($geometry) eq qw| HASH | ) {
+    ( $x, $y, $w, $h ) = @$geometry{qw| x y width height |};
+} else {
+    ( $x, $y, $w, $h )
+        = ( $geometry->x, $geometry->y, $geometry->width, $geometry->height );
+}
+
+return undef if not defined $w or not defined $h;
+
+return {
+    'x'      => $x // 0,
+    'y'      => $y // 0,
+    'width'  => $w,
+    'height' => $h,
+    'source' => sprintf( 'monitor[%s]', $mode )
+};
+
+#,,..,.,.,..,,,,,,.,,,..,,,,,,..,,.,.,.,,,.,.,.,.,...,...,...,.,.,,,,,...,,,,,
+#IOXR5JFQEFGO5ZMFTGECZ5NGOH2YRT37EYCHJ4FWPIZDIPV2OJAK2FWGILQR2DOHMT2F2JGBDHGIQ
+#\\\|CSQE5IDPMUKMXPLNLRXN3EEQXWXPRIHAZ3OVJ22Z73O2NBVHI43 \ / AMOS7 \ YOURUM ::
+#\[7]U6HIITBNE6SGO46ZACRHDWYTBZXVFP5ADYAAGURSWXAZJWL4HYCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

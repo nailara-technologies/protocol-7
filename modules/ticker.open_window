@@ -29,37 +29,50 @@ if ( $window->is_composited ) {
 }
 
 ## apply window placement profile ##
-## parse x11.geometry like web-browser [ avoids blocking X-11/Gtk3 screen call ] ##
-my $screen_geom;
-my $geom_str = <x11.geometry> // '1920x1080+0+0';
-if ( $geom_str =~ m|^\s*(\d+)\s*x\s*(\d+)| ) {
-    $screen_geom = { 'width' => $1, 'height' => $2 };
-    <[base.logs]>->(
-        1,
-        ': using startup screen size %dx%d [from x11.geometry]',
-        $screen_geom->{'width'},
-        $screen_geom->{'height'}
+## in swap mode this also constrains the ticker to the selected monitor,    ##
+## so use the shared profile helper instead of duplicating the logic here.   ##
+<[ticker.cmd.set-window-profile]>->( { 'args' => <ticker.window.profile> } );
+
+## detect when the monitor the ticker is on disappears (e.g. beamer switched  ##
+## off) and move it to the next available monitor automatically.             ##
+my $display = Gtk3::Gdk::Display::get_default;
+if ( defined $display and <[base.cfg_bool]>->(<ticker.mouse.swap_edge>) ) {
+    $display->signal_connect(
+        'monitor-removed' => sub {
+            my ( undef, $monitor ) = @ARG;
+            return if not defined $monitor;
+
+            my $mgeo = eval { $monitor->get_geometry };
+            return if not defined $mgeo;
+            my ( $mx, $my )
+                = ref($mgeo) eq qw| HASH |
+                ? @$mgeo{qw| x y |}
+                : ( $mgeo->x, $mgeo->y );
+
+            return
+                if not defined <x11.coordinates.left>
+                or not defined <x11.coordinates.top>;
+
+            my $tol = 5;
+            if (    abs( <x11.coordinates.left> - $mx ) <= $tol
+                and abs( <x11.coordinates.top> - $my ) <= $tol ) {
+                <[base.log]>->(
+                    1,
+                    ': current monitor removed, moving ticker to next monitor'
+                );
+                <[ticker.cmd.set-window-profile]>
+                    ->( { 'args' => <ticker.window.profile> } );
+            }
+        }
     );
-} else {
-    $screen_geom = { 'width' => 1920, 'height' => 1080 };
-    <[base.log]>->( 1, ': no x11 geometry, using fallback 1920x1080' );
 }
 
-my $geo = <[window.profile.calculate]>->(
-    {   profile  => <ticker.window.profile>,
-        screen_w => $screen_geom->{'width'},
-        screen_h => $screen_geom->{'height'}
-    }
-);
-
-<[window.gtk.profile.apply]>->( $window, $geo );
-
-<x11.window.width>       = $geo->{'width'};
-<x11.window.height>      = $geo->{'height'};
-<x11.coordinates.left>   = $geo->{'x'};
-<x11.coordinates.top>    = $geo->{'y'};
-<x11.coordinates.right>  = $geo->{'x'} + $geo->{'width'};
-<x11.coordinates.bottom> = $geo->{'y'} + $geo->{'height'};
+my $geo = {
+    'width'  => <x11.window.width>,
+    'height' => <x11.window.height>,
+    'x'      => <x11.coordinates.left>,
+    'y'      => <x11.coordinates.top>
+};
 
 <[ticker.load_font_offsets_table]>;    ## <--  uses window-height ##
 
@@ -248,8 +261,8 @@ my $ft_face   = $freetype->face($font_path);
 
 <ticker.obj.window>->queue_draw;
 
-#,,,.,...,,..,.,.,.,.,,,,,.,,,,.,,,..,.,,,,,.,..,,...,...,,,.,,.,,,,,,...,...,
-#EEIGWE533JJUOUYH4B2775Y74C2357C53FBGICDTXI6KHKIT7Z6QARPQDJFNMMLRDSTNK3QJ6XGQI
-#\\\|SIF6W2LL44SUP44HVVTFYD6CX4CYIY67M47RDEL734FGUGZZGQH \ / AMOS7 \ YOURUM ::
-#\[7]TCH3QJA7YWCLEYEPM2BW32INHK5PKGK4H43X4XSFQ4TVW7OFISBY 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,.,,,.,.,,..,,,,,,,,,.,.,.,,,..,,..,,...,...,,..,.,,,.,.,.,.,,..,
+#JBAGZL2BNZFLE6RD72UI23NA4AYNTUXKJVDIJYX6UP6MZVE3BWCXHBBHC6WYABRP4FRDJBD6J3WQ4
+#\\\|IBHNVUQWIY3F6MU43IV4SVC2BGFGFPH2HCXXZNXAVRQCG4VTLCU \ / AMOS7 \ YOURUM ::
+#\[7]NORYDPDHIWJ73KDUPNPCDPLERJ4FJNBICZ3QQ3I2SLZPVIMFIEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
