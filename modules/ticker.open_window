@@ -98,12 +98,14 @@ $window->signal_connect(
         return FALSE if not <ticker.mouse.avoid>;
         return FALSE if <ticker.mouse.inside>;
         return FALSE
-            if defined $event and $event->detail eq qw| inferior |;
+            if defined $event
+            and $event->detail =~ /^(inferior|virtual|nonlinear-virtual)$/;
         if ( defined <ticker.mouse.grace_until>
             and <[base.time]>->(5) < <ticker.mouse.grace_until> ) {
             return FALSE;
         }
         <ticker.mouse.inside> = TRUE;
+        delete <ticker.mouse.leave_pending_until>;
         <[base.log]>->( 1, ': mouse entered ticker window, fading out' );
         if ( <ticker.use_transparency> and <ticker.do_custom_fade_in> ) {
             $start_fade->(qw| ticker.handler.fade_out |);
@@ -119,16 +121,13 @@ $window->signal_connect(
         return FALSE if not <ticker.mouse.avoid>;
         return FALSE if not <ticker.mouse.inside>;
         return FALSE
-            if defined $event and $event->detail eq qw| inferior |;
-        <ticker.mouse.inside> = FALSE;
+            if defined $event
+            and $event->detail =~ /^(inferior|virtual|nonlinear-virtual)$/;
+        <ticker.mouse.inside>              = FALSE;
+        <ticker.mouse.leave_pending_until> = <[base.time]>->(5) + 0.3;
         <[base.log]>->(
-            1, ': mouse left ticker window, raising and fading in'
+            1, ': mouse left ticker window, fade-in delayed 300ms'
         );
-        if ( defined <x11.id> ) {
-            <[base.X-11.raise_window]>->(<x11.id>);
-            <[base.X-11.keep_above]>->(<x11.id>);
-        }
-        $start_fade->(qw| ticker.handler.fade_in |);
         return FALSE;
     }
 );
@@ -163,31 +162,76 @@ $window->signal_connect(
         <[base.log]>->( 1, ': ticker window mapped, assigning X11 id' );
         <x11.id> = $window->get_toplevel()->get_window()->get_xid();
         <[base.X-11.assign_window]>;
+
         return FALSE;
     }
 );
 
+## keep input shape in sync with the actual window size. under Wayland the ##
+## allocation at map time can differ from the final compositor placement, ##
+## so we refresh the shape on every resize/configure. ##
+my $update_input_shape = sub {
+    eval {
+        return if not $window->get_realized;
+
+        ## get_allocation can return an unblessed hash ref on some Gtk3/Perl ##
+        ## versions, so access width/height defensively.                     ##
+        my $alloc = $window->get_allocation;
+        my ( $alloc_w, $alloc_h )
+            = ref($alloc) eq qw| HASH |
+            ? ( $alloc->{'width'}, $alloc->{'height'} )
+            : ( $alloc->width, $alloc->height );
+
+        return if $alloc_w <= 1 or $alloc_h <= 1;
+
+        return
+            if not defined <x11.coordinates.left>
+            or not defined <x11.window.width>;
+
+        ## set input shape to the full allocation. on Wayland            ##
+        ## gtk_window_get_position returns (0,0), so a position-relative ##
+        ## clip would end up empty. the log shows the allocation already ##
+        ## matches the intended ticker geometry, so full-window input     ##
+        ## shape is correct here.                                        ##
+        my $shape_w = $alloc_w;
+        my $shape_h = $alloc_h;
+
+        return if $shape_w <= 1 or $shape_h <= 1;
+
+        my $region = Cairo::Region->create(
+            {   x      => 0,
+                y      => 0,
+                width  => $shape_w,
+                height => $shape_h
+            }
+        );
+        $window->input_shape_combine_region($region);
+
+        <[base.logs]>->(
+            2,        ': updated input shape: w=%d h=%d',
+            $shape_w, $shape_h
+        );
+    };
+    <[base.log]>->( 0, ': input shape update failed: ' . $EVAL_ERROR )
+        if length $EVAL_ERROR;
+    return FALSE;
+};
+$window->signal_connect( 'configure-event' => $update_input_shape );
+$window->signal_connect( 'size-allocate'   => $update_input_shape );
+
 $window->show_all;
 
-## exclude compositor shadow / border from input so mouse events only ##
-## trigger over the actual ticker content area ##
-my $margin = 6;
-my $i_w
-    = ( <x11.window.width> // $window->get_allocated_width ) - 2 * $margin;
-my $i_h
-    = ( <x11.window.height> // $window->get_allocated_height ) - 2 * $margin;
-$i_w = 1 if $i_w < 1;
-$i_h = 1 if $i_h < 1;
-eval {
-    my $region = Cairo::Region->create(
-        {   x      => $margin,
-            y      => $margin,
-            width  => $i_w,
-            height => $i_h
-        }
-    );
-    $window->input_shape_combine_region($region);
-};
+## set initial input shape once allocation is known ##
+Glib::Idle->add($update_input_shape);
+
+## poll-based hover detection because WSLg/XWayland enter/leave events ##
+## are unreliable for transparent dock windows ##
+<ticker.timer.pointer_check> //= <[event.add_timer]>->(
+    {   'after'    => 0.1,
+        'interval' => 0.1,
+        'handler'  => qw| ticker.handler.check_pointer |
+    }
+);
 
 <ticker.font.size> = 0;
 
@@ -199,8 +243,8 @@ my $ft_face   = $freetype->face($font_path);
 
 <ticker.obj.window>->queue_draw;
 
-#,,.,,...,...,.,.,,,,,.,,,...,..,,.,.,,,.,,..,..,,...,...,..,,.,.,...,...,,,.,
-#HU6TNRYWTHRSAI2CAMZJBWUEMBXXCCYH6Z2FR4ZTLQUCDAF5DNQ7PSMIJDCCJKEE4OVPW324VKHFU
-#\\\|YBUN6D2O7FF37PPSIFEGWHIHS7GE7YFTO7VOL5NS5JEDDGBJ3H2 \ / AMOS7 \ YOURUM ::
-#\[7]4GOUO4PVZ2MUSODX3ZWO2IRXBZL5VNGJADR3OGR6AVL6Q5TCAQCY 7  DATA SIGNATURE ::
+#,,..,,,.,...,.,.,..,,.,,,.,,,.,.,,.,,,,.,,,,,..,,...,...,,,,,...,,.,,...,..,,
+#27NF66OBBWBJXX5FQJULFP37HMQT3JLVJHZKPUBJAVJWENGPJ5AAQL2RQVJYK3JMZRWRGC4DDZN4Y
+#\\\|ZDYDH4DELGR2SU2SWAR3RYPOYP7UCEVQDEBOZXQOQ5EBMSXFJ5Y \ / AMOS7 \ YOURUM ::
+#\[7]DRVFOCFVSRT7RCISYQHSDZWHDHORVV4QG2LHY5765EH7A447AACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
