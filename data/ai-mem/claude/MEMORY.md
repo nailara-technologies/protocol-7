@@ -28,7 +28,7 @@
 - [frame-plugin-slots](topic-frame-plugin-slots.md) — status-bar plugin slots + context-aware selector; variable border width; vertical-slot roadmap
 - [ascii-desktop-domains](topic-ascii-desktop-domains.md) — border glyphs are domain-scoped; nested domains = nested planes = ascii desktop; role-vs-glyph descriptor is the windowing unlock
 - [frame-idiom-convergence](topic-frame-idiom-convergence.md) — NEW frame features: margin/vertical-padding/self-invalidating-cache/corner-pinning-spring; `.:[ ]::[ ]:.` idiom; 5 frames still need conversion (REQUIRED)
-- [ui-show-security-levels](topic-ui-show-security-levels.md) — steps 1-4 ALL LIVE (687f7daba, 2026-06-13); generic `*.ui-show` grant active; steps 5-6 open
+- [ui-show-security-levels](topic-ui-show-security-levels.md) — steps 1-5 ALL LIVE (36d605896, 2026-06-13); credential_fabric slot name/meta gated; step 6 open
 - [os-command-zenka](topic-os-command-zenka.md) — planned: networked command/script templates, security levels, STRM streaming, vterm result buffers
 - [plugin-web-jobs](topic-plugin-web-jobs.md) — delta sync WORKING; open: ?since=N, remote deploy
 - [clients-http](topic-clients-http.md) — clients.http.* + clients.https.* async; kimi-web parallel dispatch
@@ -333,8 +333,8 @@ clean restart.
   command modules — internal APIs only, not console-callable
 - on-demand auth (407/pending/approve flow) end-to-end not yet verified
 
-#,,,.,,.,,.,.,.,,,,.,,,..,,..,..,,,..,.,,,..,,...,...,..,,.,.,,.,,,.,,,,.,,,,,
-#WJDYTVPFZSMOSXW7CVJFJ42EZR4Y3752STV7P7WE5ENI4LYSVRRVRKVADWAB2237LHM343I7YUSOG
-#\\\|JIMIN55FQXNIFVPC5SAJAVAPZPXHYX5QCLJ374RBSJ7UGX375WB \ / AMOS7 \ YOURUM ::
-#\[7]I72P6TSIL6GGLN4BOSRAEX6YUG7EBKKNSRNHN7WMTVHDFCAIJAAY 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,.,,,,,,,,,.,.,,,.,,,,.,,,,.,,.,,...,...,..,,,,,,,..,,.,,,..,.,.,
+#4XVDFQGOXS3WDNT757H5UE5CVVCC6SSVT6RMHMD25ZWO6U5DDHBVVHYWD7RDQ5JOLKQCA7CJNMWZQ
+#\\\|C4CWMVRW62ED73FJ676SYL4DHI5CJEIALD2IHLVKMHC5VEMRO6K \ / AMOS7 \ YOURUM ::
+#\[7]7HQAGGT6BP3YTOFIOMJMEYIH4MQP5RB7WFJDEY6SNETHFDJNHGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

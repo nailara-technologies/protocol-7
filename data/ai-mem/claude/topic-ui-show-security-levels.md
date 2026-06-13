@@ -37,18 +37,29 @@ design doc: `data/md/design/UI-SHOW-SECURITY-LEVELS.md`. task files moved to
   after reload, to confirm the generic grant resolves through cube
   routing for a non-admin caller.
 
+## step 5 COMPLETE (2026-06-13, `36d605896`)
+
+`credential_fabric.cmd.ui-show` (tier-2 custom command) now calls
+`<[ui.caller.security-level]>` directly and gates two views: `slots`
+(registry_list, slot names) requires level >= 1, `slot <name>`
+(registry_detail, metadata) requires level >= 2. below threshold ->
+plain `[ restricted — ... ]` message, no frame call. `overview` and
+`relays`/`holder` unchanged. no `<namespace>.ui.fields` map needed —
+tier-2 renderers self-gate per design. kimi dispatch, verified
+`perl -c` clean, task file in `data/tasks/completed/
+ui-credential-fabric-slot-levels.md`. live caller-level test (level 0
+vs 1 vs 2 vs admin) still pending.
+
 ## OPEN
 
-- step 5: per-zenka level 1+ `<namespace>.ui.fields`, starting with
-  `credential_fabric` (slot names/metadata) as the proven case
 - step 6: generic key-based level authorization (separate, later)
 - [[topic-os-command-zenka]] is a planned *consumer* of the
   `access.security-level.usr.*` attribute / `ui.caller.security-level`
   resolver beyond `ui-show` itself — could be the real-world driver for
   step 5/6.
 
-#,,,.,..,,,,,,...,.,,,,..,.,,,,,,,,,,,...,.,.,..,,...,..,,,.,,,,,,..,,.,,,,..,
-#AUQYU3NK45LXYSTTZJMFULFZOD6ZTMSA5COXV65EJ6SQSBYBYPD7ETMQFWUPMQ3TWNQWUEJLQ56SY
-#\\\|GEVYNE5MDJGE36D2VGEBULREXKV2YPHRK5S2K2UL2QXFSST7HVK \ / AMOS7 \ YOURUM ::
-#\[7]VTI3F6QS52NJDAAZ4XUZJSO6T646VE4JWAWDNUXTJYE7HQO7VACI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,,.,,,,,,,.,..,,,.,,,,,,..,,,.,,..,,...,...,,,.,,.,,.,.,,,.,.,,,
+#OEAA3JTFKSHXW4SWRN2F3QP63RTKUWOTVG4GVFF5P3RDPRC2I6EFLH2SFPZRDS6FWVADGNE4NCVW6
+#\\\|AT64HY2MUWTN2KO3DQRGNANGYVYFFOTHKVG6CR3YQIJQFZFBVJG \ / AMOS7 \ YOURUM ::
+#\[7]JFFGUIBMFVPWA2PNC5DGPV25ZIZN5ECGDHP72ZOJ52CB74UNF4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
