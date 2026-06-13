@@ -1,0 +1,147 @@
+## [:< ##
+
+# name = ticker.handler.check_pointer
+
+# Poll-based hover fallback for WSLg/XWayland. GTK enter/leave events can be
+# lost or spurious for transparent dock windows, so this timer queries the
+# pointer directly. Both directions are debounced (3 consecutive samples) to
+# avoid flicker when the cursor briefly crosses the boundary.
+#
+# Leave events are also delayed by 150 ms: if the pointer re-enters within that
+# window, the leave is cancelled and an in-progress fade-out continues.
+
+return if not <ticker.mouse.avoid>;
+return if not <ticker.obj.window>->get_visible;
+
+my $window = <ticker.obj.window>;
+
+eval {
+
+    ## use the configured/placed geometry instead of the live allocation: ##
+    ## under Wayland the real GtkWindow allocation may be larger than the ##
+    ## visible ticker, which would make the poll think the whole screen is inside. ##
+    my $wx = <x11.coordinates.left> // 0;
+    my $wy = <x11.coordinates.top>  // 0;
+    my $ww = <x11.window.width>     // $window->get_allocated_width;
+    my $wh = <x11.window.height>    // $window->get_allocated_height;
+
+    ## query pointer position via the default pointer device. ##
+    ## under WSLg/XWayland this is screen-relative, so we also compare screens. ##
+    my $display = Gtk3::Gdk::Display::get_default;
+    my $seat    = $display->get_default_seat;
+    my $pointer = $seat->get_pointer;
+    my ( $ptr_screen, $px, $py ) = $pointer->get_position;
+
+    my $ticker_screen = $window->get_screen;
+
+    my $inside
+        = (    defined $ptr_screen
+            && $ptr_screen == $ticker_screen
+            && $px >= $wx
+            && $px < $wx + $ww
+            && $py >= $wy
+            && $py < $wy + $wh );
+
+## use a small hysteresis margin for leave detection so pointer jitter near ##
+## the ticker edge does not abort the fade-out. ##
+    my $leave_margin = 20;
+    my $leave_outside
+        = (    not defined $ptr_screen
+            || $ptr_screen != $ticker_screen
+            || $px < $wx - $leave_margin
+            || $px >= $wx + $ww + $leave_margin
+            || $py < $wy - $leave_margin
+            || $py >= $wy + $wh + $leave_margin );
+
+    <ticker.mouse.inside_count>  //= 0;
+    <ticker.mouse.outside_count> //= 0;
+
+## delayed leave: GTK signal handler sets this, we expire it ##
+    if (    not <ticker.mouse.inside>
+        and defined <ticker.mouse.leave_pending_until>
+        and <[base.time]>->(5) >= <ticker.mouse.leave_pending_until> ) {
+        delete <ticker.mouse.leave_pending_until>;
+        <ticker.mouse.outside_count> = 0;
+        <ticker.mouse.inside_count>  = 0;
+        <[base.log]>->( 1, ': delayed leave expired, raising and fading in' );
+
+        <ticker.timer.fade>->cancel if defined <ticker.timer.fade>;
+        delete <ticker.time.fade_view>;
+        <ticker.timer.fade> = <[event.add_timer]>->(
+            {   'after'    => 0,
+                'interval' => 0.017,
+                'handler'  => qw| ticker.handler.fade_in |
+            }
+        );
+
+        if ( defined <x11.id> ) {
+            <[base.X-11.raise_window]>->(<x11.id>);
+            <[base.X-11.keep_above]>->(<x11.id>);
+        }
+        return;
+    }
+
+## pointer re-entered before delayed leave expired -> cancel leave ##
+    if ( not <ticker.mouse.inside> and $inside ) {
+        delete <ticker.mouse.leave_pending_until>;
+    }
+
+    if ( not <ticker.mouse.inside> ) {
+
+        ## debounced enter detection (for missed GTK enter events) ##
+        if ($inside) {
+            <ticker.mouse.inside_count>++;
+            if ( <ticker.mouse.inside_count> >= 3 ) {
+                <ticker.mouse.inside>       = TRUE;
+                <ticker.mouse.inside_count> = 0;
+                <[base.log]>->(
+                    1, ': pointer entered ticker window (poll), fading out'
+                );
+
+                <ticker.timer.fade>->cancel if defined <ticker.timer.fade>;
+                delete <ticker.time.fade_view>;
+                <ticker.timer.fade> = <[event.add_timer]>->(
+                    {   'after'    => 0,
+                        'interval' => 0.017,
+                        'handler'  => qw| ticker.handler.fade_out |
+                    }
+                );
+
+                if ( defined <x11.id> ) {
+                    <[base.X-11.keep_below]>->(<x11.id>);
+                }
+            }
+        } else {
+            <ticker.mouse.inside_count> = 0;
+        }
+        return;
+    }
+
+## mouse.inside is TRUE from here on ##
+    if ( not $leave_outside ) {
+        <ticker.mouse.outside_count> = 0;
+        return;
+    }
+
+    <ticker.mouse.outside_count>++;
+    return if <ticker.mouse.outside_count> < 3;
+
+## pointer left ticker window (poll) ##
+    <ticker.mouse.inside>              = FALSE;
+    <ticker.mouse.outside_count>       = 0;
+    <ticker.mouse.inside_count>        = 0;
+    <ticker.mouse.leave_pending_until> = <[base.time]>->(5) + 0.3;
+    <[base.log]>->(
+        1, ': pointer left ticker window (poll), fade-in delayed 300ms'
+    );
+
+};
+
+<[base.log]>->( 0, ': pointer check failed: ' . $EVAL_ERROR )
+    if length $EVAL_ERROR;
+
+#,,..,.,.,..,,,,.,,..,..,,,,,,,..,..,,...,,,,,.,.,...,..,,..,,,..,.,,,...,..,,
+#7HDBHI57PWMQ6J6CXGD23L6KXU7D7NLMFQLSDI75L2NUNFYHQM3M6YLDAQJECZEXTPDSJUOMEVDK4
+#\\\|BY5MXUS54HSPRPBSLORCTQY6CGSSSJHH6ZFXHYFBKXI6WO5PY4B \ / AMOS7 \ YOURUM ::
+#\[7]PXBYZZWWQWSU4R3AYAB52XQUSZQP7HVK67XAMQGSHYFNHV7QLWBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
