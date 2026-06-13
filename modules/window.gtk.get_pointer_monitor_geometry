@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = window.gtk.get_pointer_monitor_geometry
+# descr = return the geometry of the Gdk monitor that currently contains the pointer
+
+my $display = eval { Gtk3::Gdk::Display::get_default() };
+return undef if not defined $display;
+
+my ( $px, $py );
+eval {
+    my $seat    = $display->get_default_seat;
+    my $pointer = $seat->get_pointer;
+    ( undef, $px, $py ) = $pointer->get_position;
+};
+return undef if not defined $px or not defined $py;
+
+my $monitor = eval { $display->get_monitor_at_point( $px, $py ) };
+return undef if not defined $monitor;
+
+my $geometry = eval { $monitor->get_geometry };
+return undef if not defined $geometry;
+
+my ( $x, $y, $w, $h );
+if ( ref($geometry) eq qw| HASH | ) {
+    ( $x, $y, $w, $h ) = @$geometry{qw| x y width height |};
+} else {
+    ( $x, $y, $w, $h )
+        = ( $geometry->x, $geometry->y, $geometry->width, $geometry->height );
+}
+
+return undef if not defined $w or not defined $h;
+
+return {
+    'x'      => $x // 0,
+    'y'      => $y // 0,
+    'width'  => $w,
+    'height' => $h,
+    'source' => qw| pointer-monitor |
+};
+
+#,,..,,,,,.,.,.,,,.,.,,,,,,..,..,,,,,,.,.,..,,.,.,...,...,...,.,,,...,.,,,.,.,
+#GOYWJOVHRGZ623B3BE7KA6XNKIOG7YHGLBX454Z2MVHSKP3YWWVO5NPBZSQFJZBFPWSPNZILG35CI
+#\\\|OC4XYFOZ7ZFY77JS45JWHWD73PV2OHJVSHCMPFEWWJ6XJ2CHQJ2 \ / AMOS7 \ YOURUM ::
+#\[7]3SJWCIW4QYKUHKJAHFRPEHDY6JTCYGQKR7UIXYKQLY6CSMA6KWDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
