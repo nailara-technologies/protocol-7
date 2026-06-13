@@ -25,12 +25,12 @@ if ( $size_gate or $batch_gate or $scheduled_gate ) {
     <memory.maintenance_lock> = TRUE;
 
     if ( $size_gate or $batch_gate ) {
-        eval { <[memory.tree.dedup.wave]>->() };
+        eval { <[memory.tree.dedup.wave]> };
         <[base.logs]>->( 2, 'maintenance dedup wave error: %s', $@ ) if $@;
     }
 
     if ( $size_gate or $batch_gate or $scheduled_gate ) {
-        eval { <[memory.tree.summarize.wave]>->() };
+        eval { <[memory.tree.summarize.wave]> };
         <[base.logs]>->( 2, 'maintenance summarize wave error: %s', $@ )
             if $@;
     }
@@ -52,8 +52,8 @@ if ( $size_gate or $batch_gate or $scheduled_gate ) {
 
 return TRUE;
 
-#,,,,,,..,,.,,,.,,,.,,.,.,,,.,,,,,,.,,,,.,.,,,..,,...,...,.,,,..,,,,,,...,,,.,
-#OEONSBEYG2XQOVXXTZCR25WHEMA7GFIFFD5ECRTZLATPLXRF4GPTNZVZUNKXL4XOBSJFLKAH7WIYS
-#\\\|FDITYGDDGURMZ6MBSI2ST44MUKWYUM56PK5UXUIPLFB3PIDC7JQ \ / AMOS7 \ YOURUM ::
-#\[7]VKBKBCAAYLI4H45NVCSPC6QPAGEU2LQDMBDE2EELQ76WOG56LGCI 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,.,,,,,.,..,,,.,,.,,,,..,,,.,...,..,,...,...,.,.,.,,,.,,,.,,,,.,,
+#44JYJ66D2G7PLHHTRTIOQOJXRJ3GUW5A3MN7EDSQHIKONQLJHT6RIQVLNB4GQGBD37NMMJJFM5YJU
+#\\\|SEM3GU3P6Y2CQ6XXUDUTH54JNJIWKXWIZHYEZIBVYM6O7OHGI3V \ / AMOS7 \ YOURUM ::
+#\[7]FZ4GQBRHLHB2HYS4DZPIP7MKFY7OKXJSQH52JKSPVJ5LRF6TS4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
