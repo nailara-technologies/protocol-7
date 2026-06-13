@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = weather.forecast.util.format_forecast_widget
+# descr = format weather forecast as html widget
+
+my ($forecast_ref) = @ARG;
+
+my $html = qq|
+<div class="weather-forecast">
+    <div class="forecast-header">5-Day Forecast</div>
+    <div class="forecast-grid">
+|;
+
+foreach my $day_data ( @{$forecast_ref} ) {
+    my $day      = $day_data->{day};
+    my $temp_min = $day_data->{temp_min};
+    my $temp_max = $day_data->{temp_max};
+    my $desc     = $day_data->{desc};
+    my $clouds   = $day_data->{clouds};
+
+    $html .= qq|
+        <div class="forecast-day">
+            <div class="forecast-day-name">$day</div>
+            <div class="forecast-icon-container">
+                <div class="forecast-icon-glow"></div>
+            </div>
+            <div class="forecast-temps">
+                <span class="temp-max">$temp_max°</span>
+                <span class="temp-separator">/</span>
+                <span class="temp-min">$temp_min°</span>
+            </div>
+            <div class="forecast-desc">$desc</div>
+            <div class="forecast-clouds">
+                <div class="clouds-bar-mini" style="width: ${clouds}%"></div>
+            </div>
+        </div>
+|;
+}
+
+$html .= qq|
+    </div>
+</div>
+|;
+
+return $html;
+
+#,,..,,..,.,,,..,,.,,,,..,,,.,,,.,,..,..,,,.,,..,,...,...,.,.,..,,...,.,.,,,,,
+#YDAWCNQI5G6KDAIP2RTMXV3QCGW2SMAJT6B5XLWAKX63P6XY5D3AJULPGPMNSCKXDAVYKHUVIHUIW
+#\\\|VTUHWW6FYPVOBFLEF3EZ74BG2ERCDFDXG472RLULKNPNPTU3YQR \ / AMOS7 \ YOURUM ::
+#\[7]RJQSA7Z25EE6BE4GNQ2DQX5M4BJQOAFKAD7NB3MNRXLXQL6PHSDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -240,7 +240,9 @@ foreach my $commit (@$commits) {
 
             if ($is_valid) {
                 <[base.log]>->(
-                    1, "    ✓ Version file signature cryptographically VALID"
+                    1,
+                    "    ✓ Version file signature cryptographically "
+                        . "VALID"
                 );
                 ## Step 3: Version file signature is valid
                 ## validate ALL source files at this commit
@@ -346,7 +348,8 @@ foreach my $commit (@$commits) {
             my $struct_valid = $footer_data->{'structure-was-valid'} // 0;
             <[base.logs]>->(
                 1,
-                "    ✗ Signature footer issue (present=%s, struct_valid=%s)",
+                "    ✗ Signature footer issue (present=%s, "
+                    . "struct_valid=%s)",
                 $was_present,
                 $struct_valid
             );
@@ -416,18 +419,19 @@ foreach my $commit (@$commits) {
 }
 
 ## Detect version gaps
-my @versions = sort { _version_cmp( $a, $b ) } keys %versions_seen;
+my @versions = sort { <[work.parent.util.version_cmp]>->( $a, $b ) }
+    keys %versions_seen;
 
 for ( my $i = 0; $i < @versions - 1; $i++ ) {
     my $current = $versions[$i];
     my $next    = $versions[ $i + 1 ];
 
-    if ( _version_gap( $current, $next ) ) {
+    if ( <[work.parent.util.version_gap]>->( $current, $next ) ) {
         push @{<work.history.gaps>},
             {
             from => $current,
             to   => $next,
-            gap  => _version_diff( $current, $next )
+            gap  => <[work.parent.util.version_diff]>->( $current, $next )
             };
     }
 }
@@ -459,44 +463,13 @@ return {
     authors         => \%authors_seen
 };
 
-## Helper: Compare version strings
-sub _version_cmp {
-    my ( $a, $b ) = @_;
-    my @a_parts = split m|\.|, $a;
-    my @b_parts = split m|\.|, $b;
-
-    for ( my $i = 0; $i < 3; $i++ ) {
-        my $cmp = ( $a_parts[$i] || 0 ) <=> ( $b_parts[$i] || 0 );
-        return $cmp if $cmp != 0;
-    }
-
-    return FALSE;
-}
-
-## Helper: Detect if there's a gap between versions
-sub _version_gap {
-    my ( $current, $next ) = @_;
-    my $diff = _version_diff( $current, $next );
-    return $diff > 1;
-}
-
-## Helper: Calculate difference between versions
-sub _version_diff {
-    my ( $a, $b ) = @_;
-    my @a_parts = split m|\.|, $a;
-    my @b_parts = split m|\.|, $b;
-
-    ## Simple heuristic: check if patch version jumped by more than 1
-    return abs( ( $b_parts[2] || 0 ) - ( $a_parts[2] || 0 ) );
-}
-
 ## Export
 $code{qw| work.parent.scan_history |} = \&workflow_parent_scan_history;
 
 0;
 
-#,,..,,.,,,,.,,,.,,.,,..,,...,.,,,...,,..,,..,..,,...,..,,,..,.,.,..,,,,.,,,,,
-#M2VA5OM5DBEBOBW2SQZ662Y3IDOORIOW4IX2MYVWPIBMXLAISETFXW6TXZEJSPCZ6W4R32DAQAHBG
-#\\\|WTBQV7JWUXW4PFN54WU2R4H2M2BIY4RHBQKKIM36KKABE7E62QH \ / AMOS7 \ YOURUM ::
-#\[7]XWUQBIIPCJQQRHETCQM7AYDB5TVONXOMGXZYPXJDG6H5U44NDWAY 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,.,.,,,,,..,,,,.,.,.,.,,,.,,,,..,..,,...,...,..,,.,.,.,,,...,...,
+#NIFB7SDIGZ4BOVOJCLMEVAKYXM472SYKWVOYPUA45FIFBUFNH54ZENOOTHV3XJQSXJLVBMVRDPDZU
+#\\\|WA5VO6CXVE5B2Q6JUA65JD7OPION6EMKH7AUQRLN63SJVMBDFQR \ / AMOS7 \ YOURUM ::
+#\[7]RROKNIHJSK2GPVKCZCDFKJLTHAPZOBYYWE6I7BRZY276CAMNW6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

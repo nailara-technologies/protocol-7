@@ -1,0 +1,19 @@
+## [:< ##
+
+# name  = letsencr.child.util.cleanup_challenge
+# descr = clean up a specific ACME challenge via httpd
+
+my ( $domain, $token ) = @ARG;
+return unless $domain && $token;
+<[base.logs]>->( 2, 'cleaning up challenge for %s', $domain );
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| httpd.cleanup-acme-challenge |,
+        'call_args' => { 'args' => join( ' ', $domain, $token ) }
+    }
+);
+
+#,,..,,..,.,.,,,,,.,.,.,.,.,,,..,,.,,,.,,,,,,,..,,...,...,...,.,,,.,.,...,..,,
+#O35RNA6W6ICUXQEKXHOSUTKCJ5MWSKA2BMVFA5TZZOIOY6ABZ6GNEODHO3K2NDYA2J3VNPMAYLBEG
+#\\\|X4TXQQO6DNCPA3NBQ2PYAAQHWNQSBFUOLHOCJ4H3AIPOJSE5WO5 \ / AMOS7 \ YOURUM ::
+#\[7]4X64CBKI6GSIWPVAV2RGGTSDPF26NUUZC6IWYCD6DNRWRRFCNKCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

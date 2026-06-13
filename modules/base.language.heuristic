@@ -7,23 +7,6 @@ my $text = shift // '';
 return { language => '', confidence => 0, method => 'heuristic' }
     unless length $text;
 
-##[ ENCODING SPECIAL CHARS : shared helper ]###################################
-## extract all non-ascii chars an encoding maps from 0x80-0xFF ##
-## used by both fix_encoding (FFFD candidates) and here (char map scoring) ##
-
-sub _encoding_special_chars {
-    my $enc   = shift;
-    my %seen  = ();
-    my @chars = ();
-    for my $byte ( 0x80 .. 0xFF ) {
-        my $uni
-            = eval { Encode::decode( $enc, chr($byte), Encode::FB_CROAK ) };
-        next unless defined $uni and not $@ and length $uni;
-        push @chars, $uni unless $seen{$uni}++;
-    }
-    return @chars;
-}
-
 ##[ SCRIPT RANGE DETECTION ]###################################################
 ## classify text into script families by unicode block ranges ##
 
@@ -122,8 +105,9 @@ for my $lang_code (@candidates) {
     my $enc_list = $full_table->{$lang_code} // [];
     next unless @{$enc_list};
     ## use first (most likely) encoding for char map ##
-    my @special = _encoding_special_chars( $enc_list->[0] );
-    my $score   = 0;
+    my @special
+        = <[base.language.util.encoding_special_chars]>->( $enc_list->[0] );
+    my $score = 0;
     for my $char (@special) {
         my $count = 0;
         $count++ while $text =~ /\Q$char\E/g;
@@ -172,8 +156,8 @@ return {
 #\[7]CWX4B5BJV2S7Y3JTXIB5EJUN2E7JBR3VDFA2K7D3MBL5KZ4Y2JDQ 7  DATA SIGNATURE ::
 #::::::::::::::::::;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,..,,,.,.,,,,,,,,..,.,,,,.,,,,,,..,,,,.,,..,..,,...,..,,..,,..,,,,,,...,,,.,
-#3LLI2RI3SIAIBCMBV5QQHUBNHTLL3ANG4U3ZNZFOLVOIGEKF2K7C6ENMPLIOPCL6LIC63WFGHHP4G
-#\\\|C23JO6EW3PL34PYOS7T4F26DRK2TT4TCUABTQDSAUAXKB2XWAKJ \ / AMOS7 \ YOURUM ::
-#\[7]A2F7P3AXQHB6QAHSRJGPG5BKMQQEPMQQEPUSJQATU3EDNQPMGUDQ 7  DATA SIGNATURE ::
+#,,,.,,.,,...,...,..,,,,.,,..,,,.,,.,,,,,,..,,..,,...,...,...,..,,,,.,,,.,.,,,
+#YE6SRHPN25LHGWBFUN7LE6EYMIPO22DGCEXOGSQGEL3XOKXEV4K3ZWEBN4ESP354OGPSOZ3PFCJXS
+#\\\|263OXTTZ5QMQTAAZC7F7FSLNQLA2RHOTSZTCBXIZSGCIEQO53CH \ / AMOS7 \ YOURUM ::
+#\[7]3QC2UGEEUNLGLW3POLVSWQJIHNQOTPBSWKM56IO5WKQ45FB5NKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

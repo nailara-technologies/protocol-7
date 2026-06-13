@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = download.util.read_hosts
+# descr = read /etc/hosts via Config::Hosts
+
+package Download::UserAgent;
+
+our $etc_hosts;
+
+use English;
+
+<[base.perlmod.runtime_use]>->('IO::Scalar');
+
+my ( $self, $hosts_file ) = @ARG;
+$hosts_file //= qw| /etc/hosts |;
+<[base.logs]>->( 1, "reading '%s' file..", $hosts_file );
+
+my $stderr_fhcopy = *STDERR;
+my $stderr_buffer = '';
+tie *STDERR, IO::Scalar->new( \$stderr_buffer );
+eval { $etc_hosts->read_hosts($hosts_file) };
+untie *STDERR;
+*STDERR = $stderr_fhcopy;
+if ($EVAL_ERROR) {
+    ( my $reason_str = $EVAL_ERROR ) =~ s|\n| |g;
+    $reason_str =~ s|( Bailing out)?[ \.]+$||;
+    <[base.log]>->( 0, "<<!>> $hosts_file: $reason_str" );
+    $etc_hosts = undef;
+}
+map { <[base.log]>->( 0, "[ $hosts_file ] $ARG" ) } split m|\n|,
+    $stderr_buffer;
+
+#,,.,,,.,,..,,..,,,,.,,,,,,,.,...,.,,,,.,,,.,,..,,...,..,,.,.,...,,,,,,,,,.,.,
+#OKLRRH3BGVI7RRPWCRGOLDCEVCLO6BGENWAIKUEGFJD2HBC3L2YXWD2X6WJ6MKADMILNOLU4A56QO
+#\\\|3ZVB2UCYROUCXUQIYPRWRX7OKBH4JPMAF5BNTNF2ZZSVFSEJ3VF \ / AMOS7 \ YOURUM ::
+#\[7]LRQ32KPN6FJSFQXR5IH5KZ2PLCJVYCVVH76IRJKN6LBSGHKWSKDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

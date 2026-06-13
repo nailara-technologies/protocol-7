@@ -7,8 +7,14 @@ my $call_args = $ARG[0]->{'call_args'};
 $ARG[0]->{'reply'}   //= {};
 $call_args->{'args'} //= '';
 
-return warn 'expected <command> parameter <{C1}>' if not defined $cmd;
-return warn 'command string contained endlines <{C1}>'
+my $caller_level    ## adjust for relevant caller subroutine [route-send case]
+    = [ <[base.caller]>->(1) ]->[0] eq qw| base.protocol-7.route-send |
+    ? 2
+    : 1;
+
+return warn 'expected <command> parameter <{C' . $caller_level . '}>'
+    if not defined $cmd;
+return warn 'command string contained endlines <{C' . $caller_level . '}>'
     if index( $cmd, "\n" ) >= 0;
 
 ## no clients in session ##
@@ -134,7 +140,7 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
         ##          'HASH' )    # prepare parameter header
         ##      {
         ##          my ( $key, $val );
-        ##          while ( ( $key, $val ) = each( %{ $call_args->{'param'} } ) )
+        ##          while (($key,$val) = each($call_args->{'param'}->%*))
         ##          {
         ##              $header .= $key . '=' . $val . "\n";
         ##          }
@@ -146,12 +152,14 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
     }
     return $count;
 } else {
-    <[base.s_warn]>->( "protocol mismatch ['%s'] <{C1}>", $cmd );
+    <[base.s_warn]>->(
+        "protocol mismatch ['%s'] <{C'.$caller_level.'}>", $cmd
+    );
     return -2;
 }
 
-#,,.,,,..,,.,,,,,,,.,,,,.,,,.,,.,,,,,,,,,,,..,..,,...,..,,...,...,...,,,.,.,.,
-#CW4BDSKQW76VAEENMTQOZHAAMKFZ47PWHQKM3N35PEXPT7N4F2ZE3EBKCD7DEDG327YF36W77XEMA
-#\\\|BUIYQWPDQWIP2NSCP76KYJSTODYABONCPY2OCRXJ6WRRAJTE3ZB \ / AMOS7 \ YOURUM ::
-#\[7]IL2V35J4KAQ6BF2F467VWLEAFG7TMNWDVSIIMH762QESTERRWCAI 7  DATA SIGNATURE ::
+#,,,.,...,..,,.,.,,,,,.,,,,,,,,,,,.,.,,..,.,,,..,,...,...,.,.,,..,,,.,,,.,.,,,
+#NMG6Z3YJAOUNOZZFBJIENGEAC54CZXIWHJY3S3LOV2NEI6XIZZLMWOU43E6ZXQNJG36MO6VSS7K4K
+#\\\|S2NNWFKQ44JOCMEDWWAS65OU4FE47GULKCTI66ORKSTO5BE36AY \ / AMOS7 \ YOURUM ::
+#\[7]KWTK5QCXXFLPF4DMPO3IJNWDSIBYPLWI36IAX7GTCNNWWINAVCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

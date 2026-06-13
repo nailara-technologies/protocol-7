@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = work.parent.util.version_cmp
+# descr = compare two version strings
+
+my ( $a, $b ) = @ARG;
+my @a_parts = split m|\.|, $a;
+my @b_parts = split m|\.|, $b;
+
+for ( my $i = 0; $i < 3; $i++ ) {
+    my $cmp = ( $a_parts[$i] || 0 ) <=> ( $b_parts[$i] || 0 );
+    return $cmp if $cmp != 0;
+}
+
+return FALSE;
+
+#,,,,,,.,,..,,..,,,,,,,.,,,,.,,,,,.,.,,,,,..,,..,,...,..,,.,,,,.,,...,...,...,
+#QOVOG4WD2Y5H7HEOFBKOIX4QNOKROV32L6QGLQNRNSJXOCDJUCNKCPHSPOLBYMVNDB2N2HMH6ZCJ6
+#\\\|UV6YUNR6JYHG77QWVXXQ2VNBWFLTLWF5XDJYWLO7UUWFWQQVC4Q \ / AMOS7 \ YOURUM ::
+#\[7]S4RFIMEM72ISJZJUTU766X7GVM3C2PK2HI3YRDVKKWVKOZP6ZADQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
