@@ -12,6 +12,7 @@ Gtk3->init;
 <ticker.is-iconified> //= FALSE;
 
 my $window_mode = <ticker.window.force_above> ? qw|popup| : qw|toplevel|;
+my $is_popup    = $window_mode eq qw| popup |;
 
 my $window = <ticker.obj.window> = Gtk3::Window->new($window_mode);
 
@@ -71,7 +72,11 @@ $window->set_accept_focus(0);
 $window->set_focus_on_map(0);
 $window->set_can_focus(0);
 $window->set_skip_taskbar_hint(1);
-$window->set_type_hint('dock');        ## don't steal focus / taskbar entry ##
+
+## dock type hint makes WSLg/Weston take over positioning and ignore client   ##
+## moves; override-redirect popup windows must not carry it.                  ##
+$window->set_type_hint('dock')
+    if not $is_popup;    ## don't steal focus/taskbar entry ##
 
 ## mouse-avoidance: fade out + lower on hover, raise + fade in on leave ##
 <ticker.mouse.avoid>  //= TRUE;
@@ -243,8 +248,8 @@ my $ft_face   = $freetype->face($font_path);
 
 <ticker.obj.window>->queue_draw;
 
-#,,..,,,.,...,.,.,..,,.,,,.,,,.,.,,.,,,,.,,,,,..,,...,...,,,,,...,,.,,...,..,,
-#27NF66OBBWBJXX5FQJULFP37HMQT3JLVJHZKPUBJAVJWENGPJ5AAQL2RQVJYK3JMZRWRGC4DDZN4Y
-#\\\|ZDYDH4DELGR2SU2SWAR3RYPOYP7UCEVQDEBOZXQOQ5EBMSXFJ5Y \ / AMOS7 \ YOURUM ::
-#\[7]DRVFOCFVSRT7RCISYQHSDZWHDHORVV4QG2LHY5765EH7A447AACA 7  DATA SIGNATURE ::
+#,,,.,...,,..,.,.,.,.,,,,,.,,,,.,,,..,.,,,,,.,..,,...,...,,,.,,.,,,,,,...,...,
+#EEIGWE533JJUOUYH4B2775Y74C2357C53FBGICDTXI6KHKIT7Z6QARPQDJFNMMLRDSTNK3QJ6XGQI
+#\\\|SIF6W2LL44SUP44HVVTFYD6CX4CYIY67M47RDEL734FGUGZZGQH \ / AMOS7 \ YOURUM ::
+#\[7]TCH3QJA7YWCLEYEPM2BW32INHK5PKGK4H43X4XSFQ4TVW7OFISBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

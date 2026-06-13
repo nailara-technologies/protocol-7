@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = X-11.cmd.move_window
+# descr = move and/or resize an X11 window
+
+my ( $window_id, $x, $y, $width, $height )
+    = ref( $call->{'args'} ) eq qw| ARRAY |
+    ? $call->{'args'}->@*
+    : split( /,/, $call->{'args'} );
+
+return { 'mode' => qw| false |, 'data' => 'no window id given' }
+    if not defined $window_id;
+
+my $X = <X-11.obj>;
+
+return { 'mode' => qw| false |, 'data' => 'X-11 connection not available' }
+    if not defined $X;
+
+my %configure;
+$configure{'x'}      = $x      if defined $x;
+$configure{'y'}      = $y      if defined $y;
+$configure{'width'}  = $width  if defined $width;
+$configure{'height'} = $height if defined $height;
+
+my $result;
+eval { $result = $X->ConfigureWindow( $window_id, %configure ); };
+
+if ( length $EVAL_ERROR ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'ConfigureWindow failed: ' . $EVAL_ERROR
+    };
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        'moved window %d to x=%s y=%s w=%s h=%s',
+        $window_id,
+        defined $x      ? $x      : '-',
+        defined $y      ? $y      : '-',
+        defined $width  ? $width  : '-',
+        defined $height ? $height : '-'
+    )
+};
+
+#,,..,.,.,,,,,..,,,.,,.,.,...,..,,.,,,.,.,..,,.,.,...,...,,,.,,.,,,..,,,.,..,,
+#BICZF2VXOM7PLMA5SS42XDXVJJHCCL5GRAAROP2DCZVNQM3IIWYO5TE5UWONXJCG4GHZ43DFNHGRE
+#\\\|Y3KZGH4JKE4N6UAICE6O5IVFMLIVKWJPPTVRV6JVMLZXWM3PSES \ / AMOS7 \ YOURUM ::
+#\[7]MYTTZ3FL3H6QE7KIJKUUTQYLWXMZI2QEC4ODLEQTYDUMW2SNQIDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

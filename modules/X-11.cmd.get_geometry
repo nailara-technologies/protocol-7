@@ -22,13 +22,30 @@ for my $w ( @{ $xtops->sorted } ) {
     }
 }
 
+## fallback to raw X11 GetGeometry (needed for WSLg/Weston where WM sorted  ##
+## tree may not list the window)                                           ##
+if ( not defined $window ) {
+    my $X = <X-11.obj>;
+    if ( defined $X ) {
+        my @geo = eval { $X->GetGeometry($window_id) };
+        if ( not length $EVAL_ERROR and @geo >= 6 ) {
+            my %geo = @geo;
+            ## keep the same "w h x y" ordering the WM path has always used ##
+            return {
+                'mode' => qw| true |,
+                'data' => join( ' ', @geo{qw| width height x y |} )
+            };
+        }
+    }
+}
+
 return { 'mode' => qw| false |, 'data' => 'no such window' }
     if not defined $window;
 
 return { 'mode' => qw| true |, 'data' => join( ' ', $window->geometry ) };
 
-#,,,,,,,,,.,.,,,,,,,,,.,.,..,,,,,,,..,,,,,,.,,..,,...,...,...,,.,,.,.,,,.,..,,
-#75SOHBE4RBTI3FEOD5JQVVREFFCRAAOFNTDX76RK3SBOOPTTRODBQDH5QVSNOGCQJ2XGD5JX2EEV4
-#\\\|BCRO6BZTCIYZPKATXJVX7XJWKQFA6YOP2TMPLLI6PAY6KEMY6QJ \ / AMOS7 \ YOURUM ::
-#\[7]KP5OI5R55PIOTQ6EPFQQYAPOTIGB3DC6Y7Y5K4GPQALJ6UYPEQDA 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,,,,,,.,.,,,,.,,,..,...,,,.,..,,..,,...,...,...,...,.,,,...,,,,,
+#ZKFVUEFR644FPDS776OLTUZYDJUVUOEX4B2AMJQ6EWT353XTNBO4EUZSCBQNISPTG4PWAPSV75DKQ
+#\\\|UUB2MVEOFMHI3C6LOEBLGIFOC5KSX7FX5GQPHYG7EIHFM4PEXN2 \ / AMOS7 \ YOURUM ::
+#\[7]KBOKT4GUOCE2WGZGLNRSDCRXE7BXNY3DTFCXU46KUHR5GXOENQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

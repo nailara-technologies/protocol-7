@@ -23,17 +23,83 @@ if (<ticker.is_composited>) {
 if ( <ticker.fade_opacity> == 0 ) {
     <[base.log]>->( 2, ":: fade-out complete." );
 
-    if ( <[base.cfg_bool]>->(<ticker.mouse.swap_edge>) ) {
+    if ( <[base.cfg_bool]>->(<ticker.mouse.swap_edge>)
+        and not <ticker.swap.disabled> ) {
         my $current = <ticker.window.profile> // qw| bottom-strip |;
+        my $target;
         if ( $current =~ m{^bottom-strip$} ) {
-            <[base.log]>->( 1, ': swap mode: moving ticker to top edge' );
-            <[ticker.cmd.set-window-profile]>
-                ->( { 'args' => qw| top-strip | } );
+            $target = qw| top-strip |;
         } elsif ( $current =~ m{^top-strip$} ) {
-            <[base.log]>->( 1, ': swap mode: moving ticker to bottom edge' );
-            <[ticker.cmd.set-window-profile]>
-                ->( { 'args' => qw| bottom-strip | } );
+            $target = qw| bottom-strip |;
         }
+
+        if ( defined $target ) {
+            <[base.log]>->(
+                1, sprintf( ': swap mode: moving ticker to %s edge', $target )
+            );
+
+            ## remember where we came from in case the compositor ignores move ##
+            <ticker.swap.previous_profile> = $current;
+            my $before_geo;
+            $before_geo = <[base.X-11.get_window_geometry]>->(<x11.id>)
+                if defined <x11.id>;
+
+            <[ticker.cmd.set-window-profile]>->( { 'args' => $target } );
+
+            ## GTK window moves are not honored under Wayland once mapped,    ##
+            ## so also force the position via X11 ConfigureWindow.            ##
+            if ( defined <x11.id> ) {
+                <[base.X-11.move_window]>->(
+                    <x11.id>,              <x11.coordinates.left>,
+                    <x11.coordinates.top>, <x11.window.width>,
+                    <x11.window.height>
+                );
+
+                ## verify the window actually moved and is near the target; if  ##
+                ## not, revert the profile, disable swap and fall back to      ##
+                ## normal hover fade behaviour for this session.               ##
+                my $actual = <[base.X-11.get_window_geometry]>->(<x11.id>);
+                if ( defined $actual ) {
+                    my $tol = 50;
+                    my $dx  = abs( $actual->{'x'} - <x11.coordinates.left> );
+                    my $dy  = abs( $actual->{'y'} - <x11.coordinates.top> );
+                    my $off_target   = ( $dx > $tol or $dy > $tol );
+                    my $did_not_move = 0;
+                    if ( defined $before_geo ) {
+                        my $bdx = abs( $actual->{'x'} - $before_geo->{'x'} );
+                        my $bdy = abs( $actual->{'y'} - $before_geo->{'y'} );
+                        $did_not_move = ( $bdx <= $tol and $bdy <= $tol );
+                    }
+
+                    if ( $off_target or $did_not_move ) {
+                        <[base.log]>->(
+                            1,
+                            sprintf(
+                                ': swap move failed (actual x=%d y=%d, target x=%d y=%d), disabling swap',
+                                $actual->{'x'},
+                                $actual->{'y'},
+                                <x11.coordinates.left>,
+                                <x11.coordinates.top>
+                            )
+                        );
+                        <ticker.swap.move_failed> = 1;
+                        <ticker.swap.disabled>    = 1;
+
+                        ## put the configured geometry back to the original edge ##
+                        my $previous = delete <ticker.swap.previous_profile>
+                            // qw| bottom-strip |;
+                        <[ticker.cmd.set-window-profile]>
+                            ->( { 'args' => $previous } );
+
+                        <[base.X-11.keep_below]>->(<x11.id>);
+                    } else {
+                        delete <ticker.swap.move_failed>;
+                        delete <ticker.swap.previous_profile>;
+                    }
+                }
+            }
+        }
+
         ## fade-in is handled by check_pointer once it sees the new edge is free ##
     } elsif ( defined <x11.id> ) {
         <[base.X-11.keep_below]>->(<x11.id>);
@@ -45,8 +111,8 @@ if ( <ticker.fade_opacity> == 0 ) {
     $timer->cancel;
 }
 
-#,,,,,,,.,,,.,.,.,,,.,,,.,,.,,,,.,..,,.,.,,..,.,.,...,...,,..,.,,,,,.,.,.,.,,,
-#SQQCXKALRLWKCAHA42BC53PLLWEOOXJHPRLAC5WJAG4YZQ3LPHN66UXAIGGXFIRDHC4ZZDEPR327Q
-#\\\|ZESVAJOWCCVSMMZRLY5KU2TRRXS6MPHSREQOIG5YS6XLG3P7E4O \ / AMOS7 \ YOURUM ::
-#\[7]YV4VYYV3ERXDIFSSBO5XXKYX3VLWNGUICH6LELFKMXQ43NXXPYBY 7  DATA SIGNATURE ::
+#,,..,..,,...,...,.,.,,..,,..,...,,,,,,,.,,.,,.,.,...,..,,.,,,...,,.,,.,.,,.,,
+#NPTP2XPK3QHQPQA75JFD352B433OUVBXPP2GI2ZKLPFJALHD2ZBWXI46MNHNNW3MWNPEKUXY25PNU
+#\\\|URKSDYHFKHL5ASM2QCL3MV4GHCXOTIM343RNZNO7BBK3PLGRPAU \ / AMOS7 \ YOURUM ::
+#\[7]WHPUDDMUNUOUBKESNY6J6IYHLTJ7FWTB4BYX2IFJ7CJR525RTGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
