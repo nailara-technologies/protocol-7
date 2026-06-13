@@ -7,6 +7,15 @@ metadata:
   originSessionId: 56cce73a-933a-4992-96e4-4d88e138e8f6
 ---
 
+## done (2026-06-13, cont.)
+
+- UI-SHOW-SECURITY-LEVELS queue steps 1-4 ALL COMPLETE: `ui.caller.security-level`
+  real implementation (`5c5deed50`, + new shared helper `base.session.user`
+  used by `base.handler.command`/`base.cmd.whoami`), then step 4 `*.ui-show`
+  generic grant in `cube/access.zenki` (`687f7daba`). task files moved to
+  `data/tasks/completed/`. see [[topic-ui-show-security-levels]] for detail.
+  steps 5-6 (per-zenka level 1+ fields, key-based auth) open.
+
 ## done (2026-06-13)
 
 - `base-handler-command-split.md` landed as `5dcbf0296` (opus dispatch,
@@ -280,8 +289,8 @@ what it should actually invoke.
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,,,,.,,,,,.,..,,.,,,..,,,.,,.,.,.,.,.,.,.,.,..,,...,...,...,.,,,,..,.,.,..,,
-#H5IZ5ZYJUYQB32PDDAT5ZHDGXKZ6J3VIYJMH2TCTAW3VRTOQD2JSXJTHTSZ7TDKBA6KYJZPEWMRV6
-#\\\|KXDD2NVLPPT22CVSER63WLJAXNE7IZRJ3CAGPU6DJ4ZPXLKZYYR \ / AMOS7 \ YOURUM ::
-#\[7]LJEMRKUOWG5Q76PDQ3LWHZHZ7TMDFACAHJJ2FGS67XOJMXDMRCAQ 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,.,,.,,,,,.,,,.,..,,,.,,,,.,.,,,..,,...,...,..,,.,.,.,,,,,.,...,
+#VHTPAI2U4XKIPXO3D56WJIGNHSU6N5OESHZMGEULXEQN7SEIIJFOZ7YALHDP4MDEM43KXZ4K5GQF2
+#\\\|AS6GYL76JJ2U7ANIRRHVVQDOLSQIAYND6DLECD3TSRPQEBZ64TZ \ / AMOS7 \ YOURUM ::
+#\[7]3J3JWQIKCBP3SOBOS6SMNTOFCHNUCAJZDIA3JAJWBZP3UOM6HMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
