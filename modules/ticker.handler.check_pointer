@@ -4,29 +4,29 @@
 
 # Poll-based hover fallback for WSLg/XWayland. GTK enter/leave events can be
 # lost or spurious for transparent dock windows, so this timer queries the
-# pointer directly. Both directions are debounced (3 consecutive samples) to
+# pointer directly. Both directions are debounced [3 consecutive samples] to
 # avoid flicker when the cursor briefly crosses the boundary.
 #
-# Leave events are also delayed by 150 ms: if the pointer re-enters within that
-# window, the leave is cancelled and an in-progress fade-out continues.
-
+# Leave events are also delayed by 150 ms: if the pointer re-enters within
+# that window, the leave is cancelled and an in-progress fade-out continues.
 return if not <ticker.mouse.avoid>;
 return if not <ticker.obj.window>->get_visible;
 
 my $window = <ticker.obj.window>;
 
 eval {
-
     ## use the configured/placed geometry instead of the live allocation: ##
     ## under Wayland the real GtkWindow allocation may be larger than the ##
-    ## visible ticker, which would make the poll think the whole screen is inside. ##
+    ## visible ticker, which would make the poll think the whole screen is
+    ## inside.  ##
     my $wx = <x11.coordinates.left> // 0;
     my $wy = <x11.coordinates.top>  // 0;
     my $ww = <x11.window.width>     // $window->get_allocated_width;
     my $wh = <x11.window.height>    // $window->get_allocated_height;
 
     ## query pointer position via the default pointer device. ##
-    ## under WSLg/XWayland this is screen-relative, so we also compare screens. ##
+    ## under WSLg/XWayland this is screen-relative, so we also compare
+    ## screens.
     my $display = Gtk3::Gdk::Display::get_default;
     my $seat    = $display->get_default_seat;
     my $pointer = $seat->get_pointer;
@@ -42,8 +42,61 @@ eval {
             && $py >= $wy
             && $py < $wy + $wh );
 
-## use a small hysteresis margin for leave detection so pointer jitter near ##
-## the ticker edge does not abort the fade-out. ##
+    ## swap-edge mode: keep the ticker visible on the edge that is NOT under
+    ## the mouse.  when the cursor covers the current edge, fade out; the
+    ## fade_out handler then moves the window to the opposite edge, and we
+    ## fade in there as long as the mouse is not covering it.
+
+    if ( <[base.cfg_bool]>->(<ticker.mouse.swap_edge>) ) {
+        return if defined <ticker.timer.fade>;    ## transition in progress ##
+
+        if ($inside) {
+            <ticker.mouse.inside>              = TRUE;
+            <ticker.mouse.leave_pending_until> = undef;
+            <[base.log]>->(
+                1, ': pointer over current edge (swap), fading out'
+            );
+
+            <ticker.timer.fade>->cancel if defined <ticker.timer.fade>;
+            delete <ticker.time.fade_view>;
+            <ticker.timer.fade> = <[event.add_timer]>->(
+                {   'after'    => 0,
+                    'interval' => 0.017,
+                    'handler'  => qw| ticker.handler.fade_out |
+                }
+            );
+        } else {
+            <ticker.mouse.inside> = FALSE;
+            delete <ticker.mouse.leave_pending_until>;
+
+            my $opacity
+                = defined <ticker.fade_opacity>
+                ? <ticker.fade_opacity>
+                : ( <ticker.is_composited> ? 1 : 1 );
+
+            if ( $opacity < 0.99 ) {
+                <[base.log]>->( 1, ': edge free (swap), fading in' );
+
+                <ticker.timer.fade>->cancel if defined <ticker.timer.fade>;
+                delete <ticker.time.fade_view>;
+                <ticker.timer.fade> = <[event.add_timer]>->(
+                    {   'after'    => 0,
+                        'interval' => 0.017,
+                        'handler'  => qw| ticker.handler.fade_in |
+                    }
+                );
+
+                if ( defined <x11.id> ) {
+                    <[base.X-11.raise_window]>->(<x11.id>);
+                    <[base.X-11.keep_above]>->(<x11.id>);
+                }
+            }
+        }
+        return;
+    }
+
+    ## use a small hysteresis margin for leave detection so pointer jitter
+    ## near the ticker edge does not abort the fade-out.
     my $leave_margin = 20;
     my $leave_outside
         = (    not defined $ptr_screen
@@ -88,7 +141,7 @@ eval {
 
     if ( not <ticker.mouse.inside> ) {
 
-        ## debounced enter detection (for missed GTK enter events) ##
+        ## debounced enter detection [for missed GTK enter events] ##
         if ($inside) {
             <ticker.mouse.inside_count>++;
             if ( <ticker.mouse.inside_count> >= 3 ) {
@@ -126,7 +179,7 @@ eval {
     <ticker.mouse.outside_count>++;
     return if <ticker.mouse.outside_count> < 3;
 
-## pointer left ticker window (poll) ##
+## pointer left ticker window [poll] ##
     <ticker.mouse.inside>              = FALSE;
     <ticker.mouse.outside_count>       = 0;
     <ticker.mouse.inside_count>        = 0;
@@ -140,8 +193,8 @@ eval {
 <[base.log]>->( 0, ': pointer check failed: ' . $EVAL_ERROR )
     if length $EVAL_ERROR;
 
-#,,..,.,.,..,,,,.,,..,..,,,,,,,..,..,,...,,,,,.,.,...,..,,..,,,..,.,,,...,..,,
-#7HDBHI57PWMQ6J6CXGD23L6KXU7D7NLMFQLSDI75L2NUNFYHQM3M6YLDAQJECZEXTPDSJUOMEVDK4
-#\\\|BY5MXUS54HSPRPBSLORCTQY6CGSSSJHH6ZFXHYFBKXI6WO5PY4B \ / AMOS7 \ YOURUM ::
-#\[7]PXBYZZWWQWSU4R3AYAB52XQUSZQP7HVK67XAMQGSHYFNHV7QLWBY 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,.,,,..,,...,,,.,,.,,,,.,,,,,...,.,.,...,...,.,,,..,,,,.,...,,,,,
+#CX2PWJXK5ZGNL75FJTFAF266XH2S4OVTPRNFD55G4V4PMUSPCDW5SWZ7ZIWB3PAVTP7HE4MFA5Q3W
+#\\\|6PL7BSDFIE2XJVY32CK6S2B5FFFM222SJJVFEZCTBWMRAAINQ7T \ / AMOS7 \ YOURUM ::
+#\[7]34KQ5J6HT3SZQU7FHJYLVYFARTL3KNPKMFUSAMFV27Q4DNQHMGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
