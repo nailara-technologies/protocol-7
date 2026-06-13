@@ -1,5 +1,8 @@
 # Completed Work Sessions — Index
 
+## 2026-06-13
+- session — base.handler.command split (5dcbf0296, dispatched to opus via claude_dispatch, fable rejected as unavailable): 2319→1037 lines, extracted base.handler.command.process_reply (1004 lines, reply-type dispatch TRUE/FALSE/WAIT/SIZE/CHRSIZE/STRM/STRM-SIZE/GET/TERM) + base.handler.command.route_to_target (361 lines, outbound routing/ondemand-zenka queueing); registered in base.list.subroutines + module-dependency-graph.asc; verified live via cube reload + coding.heart + list sessions, no behavior change; cost ~5% weekly tokens. optional cleanup still open: route-delete dedupe (4x repeated ~10-line block) + SIZE/CHRSIZE merge in process_reply, deferred to a future pass
+
 ## 2026-06-07
 - session — credential-fabric wiring landed (21f4edfa5, via kimi feea2b38); queue-stall: 2 orphaned jobqueue jobs found+cleared by restart, coding.task.complete `jobqueue.move_job` leak still open; data-start-timeout log message contradiction fixed (see [archive](archive/topic-completed-archive.md))
 
@@ -113,8 +116,8 @@
 ## Full Archive
 - [Complete session archive](archive/topic-completed-archive.md) — all detailed session summaries preserved
 
-#,,.,,,..,..,,,.,,,,,,,..,...,,..,,,,,,,,,.,.,..,,...,...,..,,,,,,..,,,..,,..,
-#Y6RWVECGKIZBOWB4QICJNSRALL6JPBM6SBOZIGA53W4GY2UN63NZCGOLW2HUN2PVRUCOPOUZJDYB2
-#\\\|WVPFLSMMFTITP7ZNWHKLQ4OCMWCV7VUXSK7F6Q2QF4ZEA64FZFK \ / AMOS7 \ YOURUM ::
-#\[7]U3TZNBXZ75XM4BNZZ46R5HSEHQQC4EGQECM45NWPVV5QQHS3QOBY 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,.,.,,..,,.,,,,.,.,,,.,,,,,.,,,,,..,,...,...,,.,,...,.,,,,..,,..,
+#DYZPBMRX4V7IACVPVCEW5RMEEC4XM537NELSBDLQNYXDYFMOMBFYWJFVQPFW3KMPRSLVX56ANYAU4
+#\\\|C5XGJLCD72QB657ZASXH3AJ5RMLIZLIVD27WPY3B3H5JDGRD6OI \ / AMOS7 \ YOURUM ::
+#\[7]GQZ7DEXDU4SFB2RYO5TTAKRPKCQGSASIRQLWB25HEJY4H2SJLSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
