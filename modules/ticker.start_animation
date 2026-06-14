@@ -22,6 +22,35 @@ if ( not $window->get_visible or <ticker.is-iconified>-- ) {
     <ticker.mouse.inside>      = FALSE;
     <ticker.mouse.grace_until> = <[base.time]>->(5) + 1.5;
     <[base.log]>->( 1, 'showing window' );
+
+    ## re-mapping the window [ MapWindow / GTK show after hide ] makes      ##
+    ## WSLg/Weston run its initial-placement handshake again, which         ##
+    ## silently discards the corrective move applied earlier while the     ##
+    ## window was hidden. once the remap has settled, re-apply the          ##
+    ## profile geometry and double-move as in swap_profile.                ##
+    if ( $was_hidden and defined <x11.coordinates.left> ) {
+        <[event.add_timer]>->(
+            {   'after' => 0.3,
+                'cb'    => sub {
+                    return if not defined <x11.id>;
+
+                    <[ticker.cmd.set-window-profile]>
+                        ->( { 'args' => <ticker.window.profile> } );
+                    <[base.X-11.move_window]>->(
+                        <x11.id>,              <x11.coordinates.left>,
+                        <x11.coordinates.top>, <x11.window.width>,
+                        <x11.window.height>
+                    );
+                    <[base.sleep]>->(0.05);
+                    <[base.X-11.move_window]>->(
+                        <x11.id>,              <x11.coordinates.left>,
+                        <x11.coordinates.top>, <x11.window.width>,
+                        <x11.window.height>
+                    );
+                }
+            }
+        );
+    }
 }
 
 if ( defined <x11.id> ) {
@@ -40,7 +69,8 @@ if ( defined <x11.id> ) {
     }
 
     if ( <ticker.use_transparency> and <ticker.do_custom_fade_in> ) {
-        <ticker.timer.fade> = <[event.add_timer]>->(
+        <ticker.fade.handler> = $handler;
+        <ticker.timer.fade>   = <[event.add_timer]>->(
             {   'after'    => 0,
                 'interval' => 0.017,
                 'handler'  => $handler
@@ -51,8 +81,8 @@ if ( defined <x11.id> ) {
 
 $window->queue_draw();
 
-#,,,.,..,,...,,,,,,.,,...,..,,.,.,,,,,...,.,.,..,,...,...,...,..,,,.,,,,.,..,,
-#6BH4VNWR6NBQZX4BMCS657E4K3GVLYUHSCBJ5TJJY36CX4YIQYQKP44PTB73JWF26W7M23OWCVS6Q
-#\\\|YDRI3PV4H6D67KOTHNS4FDOSNAXOQ3O6XBIUKEAMGYYAKCKLD3T \ / AMOS7 \ YOURUM ::
-#\[7]LQBQ4PMCVXBMTBXXT5CJOECS23N77RATLYBUX7EJBTP3BMWOEQCI 7  DATA SIGNATURE ::
+#,,..,,..,,..,...,.,.,.,,,,.,,.,,,,,.,.,,,,.,,..,,...,...,,.,,,..,.,,,,.,,..,,
+#7YGCRQY3OXLR5OUA52K344JLRHHLBPUON7DKIWPBRGMUT44LST7NHEP3R5U4QOA2OXXM4SFLEAHHI
+#\\\|EINZ24QO4YB4JBCRFIKL7DN4N3WUVERFSYIPBA2DCDERRD7UIDF \ / AMOS7 \ YOURUM ::
+#\[7]WLEG64TQDEMNLLKRQ2XDDJDMCPUTGFH2K3QMOL65CMPD7LDOCMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
