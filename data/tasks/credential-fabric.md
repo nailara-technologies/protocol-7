@@ -336,8 +336,8 @@ handles all footer blocks — leave them untouched.
 ### naming conflicts or overlaps
 
 - **`modules/credentials.*` (plural, 14 modules) already exists.** The task proposes `modules/credential.*` (singular). This is a **critical naming collision.** The existing `credentials` system handles SMTP/IMAP/API creds, web sessions, and encrypted archives. The new task's `credential` fabric is a broader, multi-owner system with STRM rotation, tiered storage, and zenka ownership.
-   - **Options:** (a) merge into existing `credentials.*` namespace, (b) use distinct prefix like `credential-fabric.*` or `auth.fabric.*`, (c) rename existing `credentials.*` to something else (invasive).
-   - **Recommendation:** the new system should use `credential_fabric.*` or `cred_fabric.*` as its module prefix to avoid collision, and explicitly call out how it relates to (and may eventually subsume) `credentials.*`.
+   - **Options:** (a) merge into existing `credentials.*` namespace, (b) use distinct prefix like `cred-mesh.*` or `auth.fabric.*`, (c) rename existing `credentials.*` to something else (invasive).
+   - **Recommendation:** the new system should use `cred-mesh.*` or `cred_fabric.*` as its module prefix to avoid collision, and explicitly call out how it relates to (and may eventually subsume) `credentials.*`.
 - `configuration/zenki/keys/` — the standalone `keys` zenka is for human key management. The new "detached key-holder child process" is a runtime component, not the same thing. Names should not collide: use `credential.key_holder.child` or similar, not `keys.child`.
 - `crypt.C25519.*` namespace is safe to call into. No collision.
 
@@ -356,13 +356,13 @@ handles all footer blocks — leave them untouched.
 ### suggested refinements
 
 1. **Resolve the `credential` vs `credentials` naming collision immediately.** Options ranked:
-   - **(Recommended)** Use `credential_fabric.*` as the module prefix. e.g., `modules/credential_fabric.init_code`, `credential_fabric.resolve`, `credential_fabric.store.local`. This is unambiguous and leaves `credentials.*` untouched during transition.
+   - **(Recommended)** Use `cred-mesh.*` as the module prefix. e.g., `modules/cred-mesh.init_code`, `cred-mesh.resolve`, `cred-mesh.store.local`. This is unambiguous and leaves `credentials.*` untouched during transition.
    - Merge the new modules into `credentials.*` by adding `credentials.fabric.*` sub-modules. This is cleaner long-term but risks breaking the existing SMTP/IMAP session code.
    - Keep `credential.*` (singular) and rename existing `credentials.*` to `legacy.credentials.*`. Highly invasive, not recommended.
 
 2. **Reuse `credentials.read_archive` / `write_archive_file` for tier-1 storage.** The existing Twofish-encrypted archive I/O with randomized offset padding is exactly what tier 1 needs. Wrap it rather than rewrite:
    ```perl
-   ## in credential_fabric.store.local:
+   ## in cred-mesh.store.local:
    my $data = <[credentials.read_archive]>->($slot_name, $encryption_key);
    <[credentials.write_archive_file]>->($slot_name, $data, $encryption_key);
    ```
@@ -389,7 +389,7 @@ handles all footer blocks — leave them untouched.
    ```perl
    my $addr = AMOS7::Digest::BMW::bmw384($credential_bytes);
    my $b32_addr = encode_b32r($addr);
-   ## file path: var/credential_fabric/store/$b32_addr.enc
+   ## file path: var/cred-mesh/store/$b32_addr.enc
    ```
    This removes the need for a plaintext filename-to-slot index.
 
@@ -398,12 +398,12 @@ handles all footer blocks — leave them untouched.
    <[protocol-7.route-send]>->(
        {   'command'   => 'web-browser.dialog.show',
            'call_args' => { 'type' => 'auth_approval', 'domain' => $domain },
-           'reply'     => { 'handler' => 'credential_fabric.handler.auth_relay_reply' },
+           'reply'     => { 'handler' => 'cred-mesh.handler.auth_relay_reply' },
        }
    );
    ```
 
-7. **Add `credential_fabric.handler.rotation_strm` for STRM subscription.** When a credential rotates, the fabric pushes a STRM notification:
+7. **Add `cred-mesh.handler.rotation_strm` for STRM subscription.** When a credential rotates, the fabric pushes a STRM notification:
    ```perl
    <[base.strm.push]>->('credential.rotated.' . $slot, { slot => $slot, ntime => $ntime });
    ```
@@ -412,25 +412,25 @@ handles all footer blocks — leave them untouched.
 ## refined module list
 
 **Namespace change (critical):**
-- All modules renamed from `credential.*` to `credential_fabric.*` to avoid collision with existing `credentials.*` (14 modules).
+- All modules renamed from `credential.*` to `cred-mesh.*` to avoid collision with existing `credentials.*` (14 modules).
 
 **Additions:**
-- `modules/credential_fabric.key_holder.child` — the detached child process that holds the C25519 private key and performs decrypt/sign operations (replaces the underspecified `credential.store.local.key-holder`)
-- `modules/credential_fabric.key_holder.parent` — parent-side IPC over socketpair, dispatches operations to child
-- `modules/credential_fabric.encrypt` — encrypt a credential blob using C25519-derived Twofish key (shared secret pattern)
-- `modules/credential_fabric.decrypt` — decrypt a credential blob
-- `modules/credential_fabric.handler.rotation_strm` — pushes STRM notifications on rotation
+- `modules/cred-mesh.key_holder.child` — the detached child process that holds the C25519 private key and performs decrypt/sign operations (replaces the underspecified `credential.store.local.key-holder`)
+- `modules/cred-mesh.key_holder.parent` — parent-side IPC over socketpair, dispatches operations to child
+- `modules/cred-mesh.encrypt` — encrypt a credential blob using C25519-derived Twofish key (shared secret pattern)
+- `modules/cred-mesh.decrypt` — decrypt a credential blob
+- `modules/cred-mesh.handler.rotation_strm` — pushes STRM notifications on rotation
 
 **Removals / merges:**
-- `modules/credential.store.local.key-holder` → merged into `credential_fabric.key_holder.child` + `credential_fabric.key_holder.parent`
-- `modules/credential.store.local` → keep but renamed to `credential_fabric.store.local`, and have it delegate encryption/decryption to the key-holder pair rather than doing it inline
+- `modules/credential.store.local.key-holder` → merged into `cred-mesh.key_holder.child` + `cred-mesh.key_holder.parent`
+- `modules/credential.store.local` → keep but renamed to `cred-mesh.store.local`, and have it delegate encryption/decryption to the key-holder pair rather than doing it inline
 
 **Relationship to existing `credentials.*`:**
-- `credential_fabric.store.local` should wrap `credentials.read_archive` / `credentials.write_archive_file` for the actual file I/O, passing the C25519-derived key instead of the old password-derived key.
+- `cred-mesh.store.local` should wrap `credentials.read_archive` / `credentials.write_archive_file` for the actual file I/O, passing the C25519-derived key instead of the old password-derived key.
 - `credentials.cmd.request_session` and `credentials.spawn_web_session` remain in use for SMTP/IMAP/web sessions until the fabric subsumes them.
 
-#,,,.,...,..,,,,,,.,.,.,,,,.,,.,.,.,,,,.,,,..,..,,...,...,.,.,..,,,,.,.,.,,..,
-#FHNQHBAEFMJ7FUHSWYU5EYACMDK5PF6JVAPZ7VCPIRKWQN4ORBL6TUL2ECDFEVVVATDDMX2SH565G
-#\\\|K6KZIDZCY6OSKAI5IFOHEXO53T7JU6ECE6SS3BALXX5ETLFWSHV \ / AMOS7 \ YOURUM ::
-#\[7]6CRGBBCI4I25DOQPOXYQ6YG6QVVS77RDI5HC77IQEYIZ2J6QNUDY 7  DATA SIGNATURE ::
+#,,,.,...,..,,,.,,,..,,.,,.,,,,..,..,,,,,,,,.,..,,...,..,,..,,,..,,.,,,..,.,,,
+#YGXOFM5M6M3TXHIKIR5TRY6NVJFJDXCMA4VDE54WSYDG3A5N4HPC4SQOBNEG7LX4JZLPU2C353SV2
+#\\\|X7AQTDOF6N4TZ5G3MVOLHK3S3WWXKVONGMYKMZTGCGQPH354NU7 \ / AMOS7 \ YOURUM ::
+#\[7]MNZ7E4OFDDYDZK3PD6S6GERJZBVCKEI2LZWSAX5MX2BDXYAAQOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

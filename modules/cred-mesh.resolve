@@ -1,0 +1,78 @@
+## [:< ##
+
+# name  = cred-mesh.resolve
+# descr = resolve a credential slot to an auth result or opaque handle.
+#         args: { slot => '...', context => $request_context }
+#         returns auth result hash or undef
+
+my $params = shift;
+
+return undef if ref $params ne qw| HASH |;
+
+my $slot    = $params->{'slot'}    // '';
+my $context = $params->{'context'} // {};
+
+return undef unless length $slot;
+
+## look up slot in registry ##
+my $meta = <cred-mesh.registry>->{$slot};
+return undef unless defined $meta;
+
+## revoked slots resolve to undef ##
+return undef if $meta->{'revoked'};
+
+my $owner       = $meta->{'owner'}       // qw| cred-mesh |;
+my $type        = $meta->{'type'}        // qw| api-key |;
+my $sensitivity = $meta->{'sensitivity'} // qw| low |;
+my $storage     = $meta->{'storage'}     // qw| local |;
+
+## if owner is not local, route to owning zenka ##
+if ( $owner ne qw| cred-mesh | ) {
+    ## route to owner via protocol-7 ##
+    my $route_result;
+    <[protocol-7.route-send]>->(
+        {   'command'   => $owner . '.credential.resolve',
+            'call_args' => { 'args' => $slot },
+            'reply'     => {
+                'handler' => 'cred-mesh.handler.route_reply',
+                'params'  => { 'slot' => $slot }
+            },
+        }
+    );
+    ## async: return pending marker ##
+    return { 'mode' => qw| pending |, 'data' => 'routed to owner' };
+}
+
+## local resolution: load credential value from tier-1 storage ##
+my $cred_value = <[cred-mesh.store.local]>->( qw| read |, $slot );
+return undef if not defined $cred_value;
+
+## perform auth operation for all sensitivities ##
+my $auth_result
+    = <[cred-mesh.util.perform_auth]>->( $type, $cred_value, $context );
+return undef if not defined $auth_result;
+
+## low-sensitivity: return auth result without sealed flag ##
+if ( $sensitivity eq qw| low | ) {
+    return {
+        'mode'  => qw| true |,
+        'data'  => $auth_result,
+        'type'  => $type,
+        'owner' => $owner,
+    };
+}
+
+## medium/high sensitivity: return with sealed flag ##
+return {
+    'mode'   => qw| true |,
+    'data'   => $auth_result,
+    'type'   => $type,
+    'owner'  => $owner,
+    'sealed' => TRUE,
+};
+
+#,,..,,,,,,..,.,.,,..,...,,,.,,,.,,.,,.,.,,,.,..,,...,...,,..,,..,,,,,...,.,.,
+#BXA3QV5TFRUC5ZAKGBX7IJQ4MIQ5WRRAEFHIKLZVDJSTPDR4N43PPAY3NRPSJW6QFTZN4DDPCW2FC
+#\\\|4FDMELEZCX2C2YBPNXZ64SGN2RCCDWNVLMM4E2XXTMOUVBRLJ73 \ / AMOS7 \ YOURUM ::
+#\[7]LADMWC4SGYOZH2QI3AGWECTLQNG2IXQRFZYXEYIRT2A6F2UVNQDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

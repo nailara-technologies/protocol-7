@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = cred-mesh.ui.query.rotation_log
+# descr = return last 20 rotation log entries
+
+my $log = <cred-mesh.rotation_log> // [];
+
+my @entries;
+my $start = scalar(@$log) > 20 ? scalar(@$log) - 20 : 0;
+for my $i ( $start .. $#$log ) {
+    my $entry = $log->[$i];
+    push @entries,
+        {
+        'ntime_b32' => $entry->{'ntime_b32'} // '',
+        'slot'      => $entry->{'slot'}      // '',
+        'actor'     => $entry->{'actor'}     // '',
+        'result'    => $entry->{'result'}    // '',
+        };
+}
+
+return { 'rotations' => \@entries };
+
+#,,,.,..,,,,,,,,,,.,.,,,,,,,.,..,,,..,,,,,..,,..,,...,...,...,...,,..,,.,,,,,,
+#CPI7LRPCNRCR52QM6NISJTJSIN4JGHNQAUNIJA26X567UHP36CQVE2W6WRDUCGIZ3Z5PMKR6DG4YU
+#\\\|DO34KVH2KMG7G7TF4HZI7IRZGB22GY75OTDTBC36IEHDHQTX6QB \ / AMOS7 \ YOURUM ::
+#\[7]QYA2VNMXZ6TARE3N3QSYIGTKKRPPM3LIAWU63GOI2L2DMNU3VYDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

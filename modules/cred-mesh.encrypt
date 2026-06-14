@@ -1,0 +1,17 @@
+## [:< ##
+
+# name  = cred-mesh.encrypt
+# descr = encrypt a credential blob for a given slot using the key-holder child
+
+my $slot = shift // '';
+my $data = shift // '';
+
+return undef unless length $slot and length $data;
+
+return <[cred-mesh.key_holder.parent]>->( qw| ENCRYPT |, $slot, $data );
+
+#,,.,,.,,,,,,,...,,,.,,.,,,,,,...,.,.,,.,,..,,..,,...,...,,,.,.,,,...,.,.,..,,
+#NMWOQGEJFSEHS666W376Z2ICQ7PCOGHEGT6TJJFAORRBIQHQA2TBV6OIQZUA52SSAEHMHGJSJRK2I
+#\\\|ZCKFXMJFCGU6OP7CLAQHMJ23CYWCK7BYM45AG3H3W4ASTDFSXOC \ / AMOS7 \ YOURUM ::
+#\[7]4IVZBONMXOLNSEDUQL6JKG3PCJHAN7KIROX7GDIOO4JLC6KKUYCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

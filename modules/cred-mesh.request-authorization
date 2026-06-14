@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = cred-mesh.request-authorization
+# descr = on-demand auth relay flow. when no credential exists for a domain,
+#         request user authorization via protocol-7-menu gtk dialogs.
+#         args: { domain => '...', context => $ctx }
+
+my $params = shift;
+
+return { 'mode' => qw| false |, 'data' => 'expected hashref' }
+    if ref $params ne qw| HASH |;
+
+my $domain  = $params->{'domain'}  // '';
+my $context = $params->{'context'} // {};
+
+return { 'mode' => qw| false |, 'data' => 'missing domain' }
+    unless length $domain;
+
+## generate a pending request id ##
+my $req_id = <[base.gen_id]>->( $data{'route'}, undef, undef, 0 );
+
+<cred-mesh.auth_relay_pending>->{$req_id} = {
+    'domain'  => $domain,
+    'context' => $context,
+    'ntime'   => <[base.time]>->(3),
+};
+
+## determine sensitivity for dialog selection ##
+my $high_sensitivity = FALSE;
+my $slot_hint        = $params->{'slot_hint'} // '';
+if ( length $slot_hint
+    and exists <cred-mesh.registry>->{$slot_hint} ) {
+    $high_sensitivity = 1
+        if ( <cred-mesh.registry>->{$slot_hint}{'sensitivity'} // '' ) eq
+        qw| high |;
+}
+
+## pick dialog type by credential sensitivity ##
+## [ note: cube strips '.cmd.' segment for cross-zenka routing ] ##
+my $dialog_cmd
+    = $high_sensitivity
+    ? 'protocol-7-menu.input-password'
+    : 'protocol-7-menu.input-text';
+
+## route auth approval dialog to protocol-7-menu gtk surface ##
+<[protocol-7.route-send]>->(
+    {   'command'   => $dialog_cmd,
+        'call_args' => { 'args' => "authorize: $domain" },
+        'reply'     => {
+            'handler' => 'cred-mesh.handler.auth-relay-reply',
+            'params'  => { 'req_id' => $req_id },
+        },
+    }
+);
+
+return {
+    'mode'   => qw| pending |,
+    'data'   => 'awaiting user authorization',
+    'req_id' => $req_id,
+};
+
+#,,,,,.,.,.,.,.,,,,..,.,,,,,.,.,,,.,,,.,.,.,.,..,,...,...,.,.,,,.,,,,,.,.,,,.,
+#47E7CO4PX5APTHEFZCQJ6SZM4NS5IU3NFYTP5VSGGBYIWBZUAVRKIL5IOCCBDGBVX5HXCI4SHATSO
+#\\\|2Q76KDNTJKHA2SXJ6FXW63QOKQR6OLO7BJDG3M3MR4FK73E4PR5 \ / AMOS7 \ YOURUM ::
+#\[7]MZRBWPPMEVXZX2QQHYJ3DJCNOH37BGQHCYBHYARSE563NWM45CDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

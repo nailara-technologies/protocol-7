@@ -1,0 +1,14 @@
+## [:< ##
+
+# name  = cred-mesh.util.key_holder.sign
+# descr = sign data using Ed25519 public and private keys
+
+my ( $public, $private, $data ) = @ARG;
+return undef if not length $data;
+return Crypt::Ed25519::sign( $data, $public, $private );
+
+#,,.,,.,.,,..,.,.,,,,,,.,,,.,,,.,,,..,.,,,.,.,..,,...,...,...,,.,,,..,,,,,.,.,
+#L7ZI6BT2MEHC35LZPRK744TQ2SDOTAECUNMOPYODOJ74ZW7HQBZMFIM7M5T2MNRS7FIXDAGTPPKHW
+#\\\|OFQCIQUDGH34L4NYDXUNMSH2BMZUWKO47H5QMENEAM53GVKOMEY \ / AMOS7 \ YOURUM ::
+#\[7]LYEWSY2SKYKPUSKDJOIZN7KHRJV6KPQNFFZ3SO4ZAU3BZHSHD6AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

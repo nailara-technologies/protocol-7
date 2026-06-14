@@ -1,0 +1,110 @@
+## [:< ##
+
+# name  = cred-mesh.key_holder.child
+# descr = detached child process holding C25519 fabric key.
+#         performs encrypt/decrypt/sign operations via blocking pipe loop.
+#         invoked after fork with the child-end filehandle as argument.
+
+my $pipe = shift;
+
+if ( not defined $pipe ) {
+    warn 'key_holder.child: expected pipe filehandle <{C1}>';
+    exit(1);
+}
+
+## isolate from parent's event infrastructure ##
+IO::AIO::reinit();
+$SIG{ALRM} = 'IGNORE';
+$SIG{TERM} = $SIG{INT} = sub { exit(0) };
+
+## ensure required modules are loaded ##
+<[base.perlmod.load]>->('Crypt::Misc')
+    if not <[base.perlmod.loaded]>->('Crypt::Misc');
+
+## load or generate fabric C25519 secret key ##
+my $fabric_secret;
+my $secret_ref = <[file.zenka_dir.load]>->('fabric.secret');
+if ( defined $secret_ref ) {
+    my $b32_str = $secret_ref->$* // '';
+    chomp $b32_str;
+    $fabric_secret = decode_b32r($b32_str);
+    if ( defined $fabric_secret
+        and substr( $fabric_secret, 0, 2 ) eq qw| U: | ) {
+        substr( $fabric_secret, 0, 2, '' );
+    }
+} else {
+    $fabric_secret = Crypt::Misc::random_bytes(32);
+    my $b32_out = encode_b32r( sprintf qw| U:%s |, $fabric_secret );
+    <[file.zenka_dir.write]>->( 'fabric.secret', \"$b32_out\n", '>', 0600 );
+
+    my ( $pub, $priv ) = Crypt::Ed25519::generate_keypair($fabric_secret);
+    my $pub_b32 = encode_b32r($pub);
+    <[file.zenka_dir.write]>->( 'fabric.public', \"$pub_b32\n", '>', 0640 );
+}
+
+if ( not defined $fabric_secret or length($fabric_secret) != 32 ) {
+    warn 'key_holder.child: invalid fabric secret key <{C1}>';
+    exit(1);
+}
+
+## derive Ed25519 keypair for signing and DH ##
+my ( $fabric_public, $fabric_private )
+    = Crypt::Ed25519::generate_keypair($fabric_secret);
+
+## lock key material in memory ##
+IO::AIO::aio_mlock( $fabric_private, 0, 64 );
+IO::AIO::aio_mlock( $fabric_secret,  0, 32 );
+
+binmode($pipe);
+
+## blocking command loop ##
+while ( my $line = <$pipe> ) {
+    chomp $line;
+    next if not length $line;
+
+    my ( $op, $slot_b32, $data_b32 ) = split q| |, $line, 3;
+    $op       //= '';
+    $slot_b32 //= '';
+    $data_b32 //= '';
+
+    my $slot = eval { decode_b32r($slot_b32) } // '';
+    my $data = eval { decode_b32r($data_b32) } // '';
+
+    my $result;
+    my $err_msg;
+
+    if ( $op eq qw| ENCRYPT | ) {
+        $result = <[cred-mesh.util.key_holder.encrypt]>->(
+            $fabric_secret, $slot, $data
+        );
+        $err_msg = 'encryption failed' if not defined $result;
+    } elsif ( $op eq qw| DECRYPT | ) {
+        $result = <[cred-mesh.util.key_holder.decrypt]>->(
+            $fabric_secret, $slot, $data
+        );
+        $err_msg = 'decryption failed' if not defined $result;
+    } elsif ( $op eq qw| SIGN | ) {
+        $result = <[cred-mesh.util.key_holder.sign]>->(
+            $fabric_public, $fabric_private, $data
+        );
+        $err_msg = 'sign failed' if not defined $result;
+    } else {
+        $err_msg = "unknown op '$op'";
+    }
+
+    if ( defined $result ) {
+        my $out_b32 = encode_b32r($result);
+        print {$pipe} "OK $out_b32\n";
+    } else {
+        $err_msg //= 'operation failed';
+        print {$pipe} "ERR $err_msg\n";
+    }
+}
+
+exit(0);
+
+#,,,.,,,,,..,,.,.,.,,,..,,.,.,...,.,.,..,,..,,..,,...,...,..,,.,.,,.,,..,,,..,
+#3DALOLGSDBBJHOFJCUEHOLJEEKTFE2XCNCVZ7POFQIMLB5BYOYKCOCLNLLGUTXQIZUECO7XDOWXX6
+#\\\|VFZPEL6DQMXWNR5SU3IH7FU7YHCKVLF3YNB3A6I54PAM67KG4U2 \ / AMOS7 \ YOURUM ::
+#\[7]6KFXMMU445XM2NOSUEL7VB3H6V752WISOUOEFPSPBWXWJADHDQBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

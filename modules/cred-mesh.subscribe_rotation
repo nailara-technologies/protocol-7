@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = cred-mesh.subscribe_rotation
+# descr = register a STRM rotation handler for a credential slot.
+#         args: { slot => '...', handler => 'zenka.handler.name' }
+
+my $params = shift;
+
+return { 'mode' => qw| false |, 'data' => 'expected hashref' }
+    if ref $params ne qw| HASH |;
+
+my $slot    = $params->{'slot'}    // '';
+my $handler = $params->{'handler'} // '';
+
+return { 'mode' => qw| false |, 'data' => 'missing slot' }
+    unless length $slot;
+return { 'mode' => qw| false |, 'data' => 'missing handler' }
+    unless length $handler;
+
+## ensure slot exists ('*' is the wildcard/all-slots bucket) ##
+return {
+    'mode' => qw| false |,
+    'data' => "unknown slot '$slot'"
+    }
+    if $slot ne qw| * |
+    and not exists <cred-mesh.registry>->{$slot};
+
+<cred-mesh.rotation_subscribers>->{$slot} //= [];
+
+## avoid duplicate subscriptions ##
+my $subs = <cred-mesh.rotation_subscribers>->{$slot};
+return { 'mode' => qw| true |, 'data' => 'already subscribed' }
+    if grep { $ARG eq $handler } @$subs;
+
+push @$subs, $handler;
+
+return { 'mode' => qw| true |, 'data' => 'subscribed' };
+
+#,,..,,,,,...,,,.,,,,,..,,..,,,.,,,..,,,,,..,,..,,...,...,...,,.,,.,.,,.,,.,.,
+#LXMPISQ5TT32GU2TX5RK56AAX5MYVQPV2LFHO7TCXZ6FY4AOMHEHN24MCOJAPLMWLVAGG62U37YVY
+#\\\|4AW75NXIRCC4LCC52OLKVAZTULJSUOEAVG5JQ5FT24JVJVGENUG \ / AMOS7 \ YOURUM ::
+#\[7]3STBRE6YPOXGG72G6WQ6ONNKZ7QZITS74KSM4GI5POMF3EJDPCCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

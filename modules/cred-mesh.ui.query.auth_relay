@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = cred-mesh.ui.query.auth_relay
+# descr = return pending auth-relay requests with computed age
+
+my $pending = <cred-mesh.auth_relay_pending> // {};
+my $now     = <[base.time]>->(3);
+
+my @entries;
+for my $req_id ( sort keys %$pending ) {
+    my $entry = $pending->{$req_id};
+    my $ntime = $entry->{'ntime'} // 0;
+    my $age_s = 0;
+    if ( $ntime =~ m{^\d+\.\d+$} ) {
+        $age_s = int( $now - $ntime );
+        $age_s = 0 if $age_s < 0;
+    }
+
+    push @entries,
+        {
+        'req_id' => $req_id,
+        'domain' => $entry->{'domain'} // '',
+        'ntime'  => $ntime,
+        'age_s'  => $age_s,
+        'status' => qw| pending |,
+        };
+}
+
+return { 'relays' => \@entries };
+
+#,,.,,,,.,,,.,,..,,,,,.,.,.,,,.,.,..,,...,...,..,,...,..,,.,.,,.,,,,.,,,,,.,,,
+#6DO6MHTUDJRYULDMQA5O76QDVPEU3MGWU75FTQ5IAA7H2N7XOZRHSZEEYNA2MFLIBEJBIKIEA257I
+#\\\|EYX3JEVS6FPVLOJA5KVB5HP24ZYK22QRWDBPRJYUKXK3GSRMURC \ / AMOS7 \ YOURUM ::
+#\[7]T4QBNYR5RL7GM3XMMIY3YD4XHPDTCQENQVX6BZYPASVLCFPDHOBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

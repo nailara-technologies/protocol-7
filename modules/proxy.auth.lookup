@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = proxy.auth.lookup
-# descr = async credential lookup via credential_fabric.resolve.
+# descr = async credential lookup via cred-mesh.resolve.
 #         args: $client_id
 #         calls proxy.handler.post_auth when done (via reply or cache hit).
 
@@ -27,10 +27,10 @@ if ( exists $data{'proxy'}{'auth_cache'}{$domain} ) {
     return;
 }
 
-## async route to credential_fabric.resolve ##
+## async route to cred-mesh.resolve ##
 my $slot = 'session.' . $domain;
 <[protocol-7.route-send]>->(
-    {   'command'   => 'credential_fabric.resolve',
+    {   'command'   => 'cred-mesh.resolve',
         'call_args' => { 'args' => $slot },
         'reply'     => {
             'handler' => 'proxy.handler.auth_lookup_reply',
@@ -41,8 +41,8 @@ my $slot = 'session.' . $domain;
 
 return;
 
-#,,.,,.,.,...,,..,..,,,,.,.,,,..,,,,.,..,,..,,..,,...,..,,,,,,,..,,,,,,..,...,
-#TCPOER4B33SLKO2P5ERFBYRMQVYDDWN6TCMTORFOKAIHVJQGSQIDYZXWF5JM5J4GYPMZXXIDCOWGM
-#\\\|SGMAJM23MFJAT3P2CMPMPYVSXAGPJMNB2HQ4Q52ZFWWWTXVRX6L \ / AMOS7 \ YOURUM ::
-#\[7]GPEN54KCRPYYYBEICAYZ5GCQR6BDJ5DL37N7UHRUK4CTVDGA4WAA 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,,.,,,,,,,.,,..,,,.,,,..,...,,.,,..,,...,...,..,,,,.,,,.,,..,...,
+#3UE6GJTUNRHTXLXR4OMRR2EILBQYYECT3CQTQ7N2LPPV5EMRXY3K3BI6XJQ5VXRR3JNEU2BRYVQRY
+#\\\|7QMODKJZ6OA3GJD4L37HHE2KU56ZBX7QQTDIZMELCDWVNVNWA5L \ / AMOS7 \ YOURUM ::
+#\[7]JVZM6FVQ4CGBNCN4Z2CIFGTN5ZGOD7S7CGD6MXO6UQ62A4XJJADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,10 +1,10 @@
 # task: credential fabric wiring — manual verification + findings report
 
 ## dispatch
-the wiring task (`data/tasks/credential-fabric-wiring.md`) has landed
-(commit 21f4edfa5 — proxy.outbound.connect_or_use, credential_fabric.
+the wiring task (`data/tasks/cred-mesh-wiring.md`) has landed
+(commit 21f4edfa5 — proxy.outbound.connect_or_use, cred-mesh.
 seed_registry, cred_rotated subscribers, auth-relay via protocol-7-menu,
-credential_fabric.cmd.approve, plus access.zenki/config wiring). read
+cred-mesh.cmd.approve, plus access.zenki/config wiring). read
 that task file first, then skim the modules it lists as touched/created.
 
 this is NOT the integration-test-harness task (`data/tasks/credential-
@@ -17,8 +17,8 @@ half-finished while you're in there, even outside that list.
 
 ## goal
 produce a findings document — pick a sensible path under
-`data/md/development/` (e.g. `CREDENTIAL-FABRIC-WIRING-FINDINGS.md`) —
-that walks through each item in `credential-fabric-wiring.md`'s
+`data/md/development/` (e.g. `CRED-MESH-WIRING-FINDINGS.md`) —
+that walks through each item in `cred-mesh-wiring.md`'s
 `## acceptance` section and records:
 - how you exercised it (commands run, logs checked)
 - verdict: pass / fail / blocked-couldn't-test
@@ -29,27 +29,27 @@ that walks through each item in `credential-fabric-wiring.md`'s
 1. use the already-running v7 instance — no root, no fresh spawn
    needed. reload landed code in place: `p7c v7.reload` then
    `p7c reload` for the cube zenka, then start/restart
-   `credential_fabric`, `transport`, `proxy` as needed (they're
+   `cred-mesh`, `transport`, `proxy` as needed (they're
    on-demand; a command routed to them will start them, or use
    `p7c v7.restart <zenka>` to pick up reloaded modules)
-2. confirm `var/credential_fabric/registry.yaml` gets created from a
-   seed file — copy `configuration/zenki/credential_fabric/seed.yaml.
-   example` to `var/credential_fabric/seed.yaml` as a starting point
+2. confirm `var/cred-mesh/registry.yaml` gets created from a
+   seed file — copy `configuration/zenki/cred-mesh/seed.yaml.
+   example` to `var/cred-mesh/seed.yaml` as a starting point
 3. walk the acceptance list from the wiring task:
-   - seeded slots visible via `p7c credential_fabric.list` (or equiv.)
+   - seeded slots visible via `p7c cred-mesh.list` (or equiv.)
    - transport handle reuse — check the debug log in
      `proxy.outbound.connect_or_use` shows the selected handle's socket
      being used as the outbound socket, not a fresh direct-tcp open
    - header injection — seed a `session.$domain` slot, GET through the
      proxy, confirm the header reaches upstream (httpbin echo or a
      local listener)
-   - rotation — `p7c credential_fabric.rotate <slot>`, confirm both
+   - rotation — `p7c cred-mesh.rotate <slot>`, confirm both
      proxy and transport caches log a flush
    - on-demand auth — hit a domain with no slot, observe the 407 /
-     pending log line with req_id, `p7c credential_fabric.approve
+     pending log line with req_id, `p7c cred-mesh.approve
      <req_id> <payload>`, retry, confirm success
 4. note anything that diverges from the wiring task's spec — e.g. the
-   gtk-dialog routing in `credential_fabric.request-authorization`
+   gtk-dialog routing in `cred-mesh.request-authorization`
    (cube routing of `protocol-7-menu.cmd.input-*` was explicitly
    unconfirmed territory when that task was written), the rotation
    channel naming fix, the console-fallback file format
@@ -65,7 +65,7 @@ that walks through each item in `credential-fabric-wiring.md`'s
   annotations if you add any code
 
 ## acceptance
-- findings doc exists and covers every item in `credential-fabric-
+- findings doc exists and covers every item in `cred-mesh-
   wiring.md`'s acceptance section, each with a clear verdict and the
   steps taken to reach it
 - a short "open issues" list at the end, roughly prioritized by how
@@ -75,8 +75,8 @@ that walks through each item in `credential-fabric-wiring.md`'s
 do not add the `#,,..` stub to any new file — the signing system
 writes it.
 
-#,,,.,,..,,.,,,,,,...,,,,,.,,,...,...,,,.,...,..,,...,...,..,,..,,,.,,,,,,.,.,
-#5LB5DC2MNM4V7FACOZS74KYB3CGSDCLFXW6L5GT43C7AGRVSSMD5KRVEDHMIAHMM22SOT6HLMEHCG
-#\\\|FYAXRK2SWA23ZGDJ577I3X5UBTERWVRPG3MAREWOGE6M6ULOYKF \ / AMOS7 \ YOURUM ::
-#\[7]TSMHYEJMYK6B77V4XIRJF5GMGOSBHNZWGJKLJGDCCZGBK3M75WBI 7  DATA SIGNATURE ::
+#,,..,..,,,..,..,,,,.,.,.,...,.,.,,,.,,.,,,..,..,,...,...,.,,,,,.,.,.,...,...,
+#ULNOSMTRDAPNIRWCB2Z36SHVZYENZ7I5AXLL7SCOCVEOOFKCWDD3TI7D6U4VQBHXRNOGIM7Q6RM7E
+#\\\|YGR4E5M5PLTFF2PC5E3VC4TZMPMWJPYZRDL6KL4TUVA7URU4EYJ \ / AMOS7 \ YOURUM ::
+#\[7]LX3NUFDWEXRVSIAB64P5KU7HQJ5FMWRVX5VPG7TZ3BXD27OTRUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

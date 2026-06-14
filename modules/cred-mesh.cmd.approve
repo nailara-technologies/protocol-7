@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = cred-mesh.cmd.approve
+# descr = console approval for pending auth relay requests
+#         args: <req_id> <payload>  (positional, whitespace-separated)
+#         looks up pending entry, completes approval with synthesised reply.
+
+my $args_str = $call->{'args'} // '';
+$args_str =~ s/^\s+|\s+$//g;
+
+my ( $req_id, $payload ) = split qr|\s+|, $args_str, 2;
+$req_id  //= '';
+$payload //= '';
+
+return { 'mode' => qw| false |, 'data' => 'missing req_id' }
+    unless length $req_id;
+return { 'mode' => qw| false |, 'data' => 'missing payload' }
+    unless length $payload;
+
+my $pending = <cred-mesh.auth_relay_pending>->{$req_id};
+return { 'mode' => qw| false |, 'data' => 'unknown req_id' }
+    if not defined $pending;
+
+my $domain = $pending->{'domain'};
+
+## synthesise a dialog-style reply and complete approval ##
+my $result = <[cred-mesh.handler.auth-relay-reply]>->(
+    {   'reply' => {
+            'params' => { 'req_id' => $req_id },
+            'mode'   => qw| true |,
+        },
+        'args' => { 'data' => $payload },
+    }
+);
+
+## on success, clear pending entry and file ##
+if (    defined $result
+    and ref $result eq qw| HASH |
+    and $result->{'mode'} eq qw| true | ) {
+    delete <cred-mesh.auth_relay_pending>->{$req_id};
+
+    my $remaining = <cred-mesh.auth_relay_pending> // {};
+    my $yaml_str  = eval { YAML::XS::Dump(%$remaining); };
+    if ( defined $yaml_str ) {
+        <[file.zenka_dir.write]>->(
+            'relay_pending.yaml', \$yaml_str, '>', 0600
+        );
+    }
+
+    <[base.logs]>->(
+        1,       'cred-mesh.cmd.approve: approved req_id %s for domain %s',
+        $req_id, $domain
+    );
+
+    return { 'mode' => qw| true |, 'data' => 'approved' };
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => $result->{'data'} // 'approval failed',
+};
+
+## [ end ] ###################################################################
+
+#,,,,,,,,,,,.,.,,,..,,.,.,.,.,.,,,.,.,.,,,.,.,..,,...,...,.,,,.,.,.,,,..,,,..,
+#SYWKWI67DK2QTJS5LQB2D65C26UNQFGRYJTIBUPBUFGCUA6DIL67SVMTBT4TPN7M2VREFNIEMY5YM
+#\\\|ZW62NK25GVPH2MJJ7KN4Q2RYE676UW5XCTS4NQJORNWIDXSVMHY \ / AMOS7 \ YOURUM ::
+#\[7]Q7Y7ZLWPAGPJUHQZQSDEXUOFPKHRPHPLPHMREQT5VSTJD4RH24DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

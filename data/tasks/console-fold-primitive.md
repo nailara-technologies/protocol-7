@@ -15,12 +15,12 @@ namespace node a default rendering without per-zenka boilerplate.
 design doc [ read first ]:
 - `data/md/design/CONSOLE-FOLD-TREE-PHILOSOPHY.md`
 - memory note `topic-global-ui-menu-tree` for the stdio-slot vision
-- `modules/credential_fabric.ui.show` (and `.ui.query.*`, `.ui.render.*`)
+- `modules/cred-mesh.ui.show` (and `.ui.query.*`, `.ui.render.*`)
   — the concrete proven pattern this generalises
 - `modules/ascii.frame.compose`, `modules/ascii.frame.load`
-- `data/yaml/ascii-frames/credential-fabric/*` for the frame idiom
+- `data/yaml/ascii-frames/cred-mesh/*` for the frame idiom
 
-the credential_fabric tri-layer (query / render / dispatch) is proven
+the cred-mesh tri-layer (query / render / dispatch) is proven
 working. this task lifts it from per-zenka boilerplate to a primitive
 every node gets *by default*, so the next twenty zenki don't reinvent
 it.
@@ -156,9 +156,9 @@ do NOT add it as a per-zenka access entry — that would defeat the
 
 ## acceptance
 
-- `p7c base.ui.fold address=credential_fabric.registry summary='5 slots'`
+- `p7c base.ui.fold address=cred-mesh.registry summary='5 slots'`
   produces a single line that visually parses as a fold handle.
-- `p7c base.ui.unfold address=credential_fabric.registry slot_budget='{cols:80,rows:10}'`
+- `p7c base.ui.unfold address=cred-mesh.registry slot_budget='{cols:80,rows:10}'`
   produces a rendered block of at most 10 rows, all foldable handles
   fitting in 80 cols, with a trailing `[ +N more ]` handle iff there
   are uncalled children.
@@ -188,8 +188,8 @@ harmony base.ui.summarise
 harmony base.cmd.ui-show.fallback
 ```
 
-#,,,,,,,.,,..,.,,,,,.,...,.,.,...,.,,,,.,,,..,..,,...,...,.,,,,.,,,.,,,,,,,,.,
-#7Z6FMRAWCG6MF5ANAZFEW73UXWJJMGKCU7AZCEFWJJEFJKAU5VWXFMF7JFJSG37HVVV6UKXXYILP6
-#\\\|6W4R6GM2TVPRPMM7V6UQGMN4VZ4EUBBO3DX75RATOBH23IMEJBN \ / AMOS7 \ YOURUM ::
-#\[7]M7QF7WZRB77MXMV3IFOXZK5MQ7CWJCKV4A53WDMQNFD72UV6GSAY 7  DATA SIGNATURE ::
+#,,..,,,.,,..,,..,.,,,,.,,,.,,,..,,,.,.,,,,,,,..,,...,...,,,.,,,.,..,,,.,,,..,
+#BNNTR64WGF7VLEZZFDMUT34KQDHFJHIRUV2LXOWB5WY3PRZF3KQN4N2A4P22TVFIS674PYJLXVA6M
+#\\\|SBC43FRHK2PYMQAK5X7PLYSZEXIGFTTLEQQRUREDZXNVE623IPP \ / AMOS7 \ YOURUM ::
+#\[7]SWZM3NYHO3YMEIF3EFK653XP7A7OQ2TZ3ULUMLFZKFIFJMESX6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

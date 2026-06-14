@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = cred-mesh.util.key_holder.encrypt
+# descr = encrypt plaintext using fabric secret and slot
+
+my ( $secret, $slot, $plaintext ) = @ARG;
+return undef if not length $plaintext;
+
+## ephemeral Curve25519 keypair ##
+my $eph_secret = Crypt::Misc::random_bytes(32);
+my $eph_public = Crypt::Curve25519::curve25519_public_key($eph_secret);
+
+## DH shared secret with fabric key ##
+my $fabric_public = Crypt::Curve25519::curve25519_public_key($secret);
+my $shared
+    = Crypt::Curve25519::curve25519_shared_secret( $eph_secret,
+    $fabric_public );
+return undef if not defined $shared or length($shared) != 32;
+
+## derive Twofish key ##
+my $key_input = $shared . $slot;
+my $tf_key    = AMOS7::13::key_32( \$key_input );
+return undef if not defined $tf_key or length($tf_key) != 32;
+
+## encrypt ##
+my $status
+    = AMOS7::Twofish::key_init( $tf_key, qw| encryption cred_fabric | );
+return undef if not defined $status or not $status;
+
+## pkcs7-pad to a multiple of 16 bytes [ twofish cbc requires this ] ##
+my $pad_len = 16 - ( length($plaintext) % 16 );
+my $padded  = $plaintext . ( chr($pad_len) x $pad_len );
+
+my $enc_ref = AMOS7::Twofish::encrypt( qw| cred_fabric |, \$padded );
+AMOS7::Twofish::delete_table_entry(qw| encryption cred_fabric |);
+
+return undef
+    if not defined $enc_ref
+    or ref $enc_ref ne qw| SCALAR |
+    or not length $enc_ref->$*;
+
+## prepend ephemeral public key for decryption ##
+return $eph_public . $enc_ref->$*;
+
+#,,,,,,,,,,..,,,,,..,,,,.,.,.,..,,,..,.,.,..,,..,,...,...,..,,,.,,,,,,,,.,.,.,
+#DUKHLLAIEOYIFGYUWFRAQG6ZRZZURSLXMXZZMP4JG2RB6T2RSK5NRAMQVKS5H7Z44HN4QZ47GTW2E
+#\\\|OPZJUAW35I7KWK7R3UQU3MCVBTNVCTISRKJNR7MPGBMAORSCGHY \ / AMOS7 \ YOURUM ::
+#\[7]XNMMOK4KWJKWCTLMTGXTKV4IYBVIE3FDAUPXBS5C3MY4YVJI44CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

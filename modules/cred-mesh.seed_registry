@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = cred-mesh.seed_registry
+# descr = read seed.yaml and register slots once at init.
+#         called from cred-mesh.init_code, guarded by seed.loaded.
+
+return if <cred-mesh.seed.loaded>;
+
+my $seed_ref = <[file.zenka_dir.load]>->('seed.yaml');
+return if not defined $seed_ref;
+
+my $yaml_str = $seed_ref->$* // '';
+return if not length $yaml_str;
+
+my $seed = eval { YAML::XS::Load($yaml_str) };
+if ( $@ or not defined $seed or ref $seed ne qw| HASH | ) {
+    <[base.logs]>->(
+        0,
+        'cred-mesh.seed_registry: failed to parse seed.yaml: %s',
+        $@ // 'unknown'
+    );
+    return;
+}
+
+my $slots = $seed->{'slots'} // [];
+return if ref $slots ne qw| ARRAY |;
+
+for my $entry (@$slots) {
+    next if ref $entry ne qw| HASH |;
+    next if not defined $entry->{'slot'} or not length $entry->{'slot'};
+
+    my $result = <[cred-mesh.register]>->($entry);
+    <[base.logs]>->(
+        2,                'cred-mesh.seed_registry: %s -> %s',
+        $entry->{'slot'}, $result->{'data'} // 'unknown'
+    );
+}
+
+<cred-mesh.seed.loaded> = TRUE;
+
+return;
+
+## [ end ] ###################################################################
+
+#,,.,,..,,.,.,.,,,..,,,,,,,..,.,,,.,.,..,,,,.,..,,...,...,,,.,,,,,.,.,,.,,.,.,
+#LMDXRGHGF5DPG2HEPVTGTLU2TOB5QETDDZT2RENISJ3D7RO244WBDUTFTGANOKA2VHFYK4E6IYKVQ
+#\\\|B5JGH2OOZN3C2IK63ZB5AMCQ257ZTJB2FIDW4P67JQFNPTMCH62 \ / AMOS7 \ YOURUM ::
+#\[7]YXKUWCB426CUUKZG6UT5MCSPP3KUEMNHWLE65CTRHJUL3DGVOYCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

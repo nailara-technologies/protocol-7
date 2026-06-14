@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = cred-mesh.ui.query.slots
+# descr = return the full slot registry as a list of structured entries
+
+my $registry   = <cred-mesh.registry> // {};
+my @slot_names = sort keys %$registry;
+
+my @entries;
+for my $name (@slot_names) {
+    my $meta = $registry->{$name};
+    push @entries,
+        {
+        'slot'        => $name,
+        'owner'       => $meta->{'owner'}       // qw| cred-mesh |,
+        'type'        => $meta->{'type'}        // qw| api-key |,
+        'sensitivity' => $meta->{'sensitivity'} // qw| low |,
+        'storage'     => $meta->{'storage'}     // qw| local |,
+        'revoked'     => $meta->{'revoked'}     // FALSE,
+        };
+}
+
+return { 'slots' => \@entries };
+
+#,,..,.,,,,,,,,,,,,,,,,,.,...,,.,,,.,,,.,,,..,..,,...,...,,..,.,.,...,...,.,.,
+#LVUBRX5PLXNZQEJYEF6RNEC6DHWZIZOE57ZN5OYLZAVHARSKSDQWAVBMUO3ATSVGDP4XWNZDTFGHG
+#\\\|YHADDV3V34ZP3TGIT7JX52D2WKUJMSALVAKX6PFR5KAPLQDUKMK \ / AMOS7 \ YOURUM ::
+#\[7]LSGN4L6MXJCSHB7WLG4A5KKO7BMK6P6T7FMOTT32XNNVWVENXCCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
