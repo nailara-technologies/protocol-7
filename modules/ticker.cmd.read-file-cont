@@ -17,6 +17,12 @@ if ( defined $loaded->{'error'} ) {
 
 <ticker.display.mode> = qw| continuous |;
 delete <ticker.notify.dismissed>;
+<ticker.hidden> = FALSE;
+
+if (<ticker.paused>) {
+    <ticker.paused>    = FALSE;
+    <ticker.last_time> = <[base.time]>->(5);
+}
 
 my $window      = <ticker.obj.window>;
 my $was_visible = defined $window && $window->get_visible;
@@ -48,8 +54,8 @@ if ( defined <ticker.notify.previous_profile> ) {
 
 return { 'mode' => qw| true |, 'data' => 'ticker display content updated' };
 
-#,,,,,,.,,...,,,,,,..,...,,,.,,..,,,.,,,,,,.,,.,.,...,...,.,,,.,.,.,,,,..,,,.,
-#YZHJHQHPJFRMLOSMAULJIWD76CAPNVRWJQ5763V7ZGTDINVCVOUJ7N6SFXIWPJRRGEMOCNHXPKCH6
-#\\\|DM2IELW2VF4SSGZTKR7Q4GDSQ7NO4VKY4WCLHAJGU62AQQPV3WO \ / AMOS7 \ YOURUM ::
-#\[7]F4NTTD3PXO424O3YJGO7CUHVE7C5RLDGK624A35LADY23QDFTEBI 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,..,,.,,.,,,,,.,..,,..,,..,,...,.,.,...,...,,,,,,..,...,.,.,,,.,
+#HNZ5G2TXO3YI3H5463D7JVYBNZZZAD7FDYUENX36JU3ENFUWYVL3PBF4S32QHLH33M3QNZKU4TBKK
+#\\\|7IVHKZJMZJF3RRMPUX3R7GO43E37JKPAUQZ3ZXCJZMUCVIKOI4H \ / AMOS7 \ YOURUM ::
+#\[7]OZL62PZXTRMIVCQ2HLFAFUFA4UUDXN5SVPATEMSXS3Y5RGDBYEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
