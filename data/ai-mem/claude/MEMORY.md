@@ -1,4 +1,5 @@
 ## CRITICAL
+- [gtk ondemand zenka startup](feedback-gtk-ondemand-zenka-startup.md) — on-demand gtk3 zenka needs Gtk3->init in init_code + [base.get_session_id] before [base.gtk.main_loop], else silent hang
 - [cmd reply must be string](feedback-cmd-data-must-be-string.md) — .cmd./whitelisted routines must return {mode=>true|false, data=>STRING}; split internal helpers (raw hash/undef) into separate non-.cmd. routines + thin wrapper
 - [kimi reload baseline noise](feedback-kimi-reload-baseline-noise.md) — don't make kimi prove pre-existing reload errors are pre-existing; check baseline yourself first
 - [kimi v7 console hint](feedback-kimi-v7-console-hint.md) — combined v7 console at `/dev/shm/.7/STDOUT/NIW7OAQ`, give kimi this path for live verification
@@ -19,6 +20,7 @@
 - [config reload clobber](feedback-config-reload-clobber.md) — placeholder `key=val` in start config gets re-applied by `reload config/all`, silently overwriting runtime-resolved values; debug via on-disk zenka log not ring buffer
 
 ## Active Topics
+- [zenka-naming-cleanup](topic-zenka-naming-cleanup.md) — cred-mesh + window-place renames landed; pattern for spotting/fixing more underscore/dotted zenka names
 - [cube-tree-dashboard](topic-cube-tree-dashboard.md) — planned ascii tree-view dashboard: per-zenka command/state trees, capability interrogation, push-registry watcher cache, zoom/crop
 - [ascii-minimap](topic-ascii-minimap.md) — planned btop2-style ascii minimap: proportional density bars, anti-aliased gaps, glow color, spotlight, placeholder-template borders
 - [dot-path-case-notation](topic-dot-path-case-notation.md) — uppercase=path level, lowercase-run=dotted key; %DATA/%CODE meta-namespace idea; design doc written
@@ -154,8 +156,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,.,,...,.,,,.,.,.,,,,.,,...,.,.,.,,,..,,.,.,..,,...,...,...,.,,,,.,,.,.,,,.,
-#6GO46HSX6IGNJHTNPYNHY2IRJS67YX4Z5OHJB4VUCIF55EDWJBOF6KKZ7NTD2I37ONLASJOMFIBMG
-#\\\|N3EGLBLMCYNZ46R7RJUX3SY7DO42HM4YYERCQ4INK6D3CXJPDVB \ / AMOS7 \ YOURUM ::
-#\[7]EL223G2W4ECIA6T2MBIF7MD52A3Y2JYQMLMWOXJLTUUNQTMOWYBQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,.,,,,,.,,..,.,.,,,.,..,,,,,,,,,,..,,...,...,.,.,.,,,..,,,,,,.,,,
+#CAFZMK663IQ3MOMZ2RFQAN5LWATYTDA4AXHSL76LBXMB7PVSM6OPNIBBOHFMOGYQJDFZT2YKMI4AG
+#\\\|CGRSCE3LGAPS3JO5DFEWL67TOKQ7FXEUNY3I5F6RAMLHTGIJ3UM \ / AMOS7 \ YOURUM ::
+#\[7]CKGE4GPGDPCUMCXQBHHFQ3WXWXQ2ATHTLBI3RG5E5IB7YRSPUKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
