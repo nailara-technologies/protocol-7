@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = cred-mesh.store.local
+# descr = tier-1 local encrypted storage: read/write credential blobs to disk.
+#         file path: store/<slot_name>.enc  (relative to zenka dir)
+
+my $operation = shift // '';    ## 'read' or 'write' ##
+my $slot      = shift // '';
+my $data      = shift // '';    ## for write: plaintext bytes ##
+
+return undef unless length $operation and length $slot;
+
+my $rel_path = 'store/' . $slot . '.enc';
+
+if ( $operation eq qw| read | ) {
+    my $content_ref = <[file.zenka_dir.load]>->( $rel_path, qw| :raw | );
+    return undef
+        if not defined $content_ref
+        or not length $content_ref->$*;
+
+    ## decrypt via key-holder child ##
+    return <[cred-mesh.decrypt]>->( $slot, $content_ref->$* );
+
+} elsif ( $operation eq qw| write | ) {
+    return undef if not length $data;
+
+    ## encrypt via key-holder child ##
+    my $enc_data = <[cred-mesh.encrypt]>->( $slot, $data );
+    return undef if not defined $enc_data;
+
+    ## atomic write via temp file ##
+    my $tmp_rel = $rel_path . '.tmp.' . $$ . '.' . <[base.ntime.b32]>;
+    my $write_ok
+        = <[file.zenka_dir.write]>->( $tmp_rel, \$enc_data, '>', 0600 );
+    return undef if not $write_ok;
+
+    my $zenka_dir = <[file.zenka_dir.data_path]>;
+    my $abs_path  = join qw| / |, $zenka_dir, $rel_path;
+    my $tmp_abs   = join qw| / |, $zenka_dir, $tmp_rel;
+
+    rename( $tmp_abs, $abs_path )
+        or do {
+        <[base.s_warn]>->( 'cred-mesh.store.local: rename failed: %s', $! );
+        <[file.zenka_dir.unlink_file]>->( $tmp_rel, TRUE );
+        return undef;
+        };
+
+    return TRUE;
+
+} else {
+    warn "cred-mesh.store.local: unknown operation '$operation' <{C1}>";
+    return undef;
+}
+
+#,,,,,..,,,,,,,,.,,.,,..,,,..,,.,,,.,,,,.,.,.,..,,...,...,..,,,.,,..,,,.,,...,
+#TBEY7KUR5ZM6SGFFGBB377US4JVL4ICDTYHHGORG3EGATX57JRVZVBNC2GDLHI2PH4KU5Y7SQTHCU
+#\\\|AIPVXM74AQBORZXDQKRKMI7ZX47YIH5XWCOAD33LKHS2GIMXG5O \ / AMOS7 \ YOURUM ::
+#\[7]JM2QNXR6LHERBNDIJN3HRZXE4PMLHE5UBFTBBXXFNPU3742UIQCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

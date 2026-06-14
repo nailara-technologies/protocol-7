@@ -100,7 +100,7 @@ a new doc if that one is the wrong home — check) describing the
 intended pattern for zenka-specific UI:
 
 - a zenka may define `<namespace>.ui.*` modules (e.g.
-  `credential_fabric.ui.render.tree`) that call `ui.*` primitives
+  `cred-mesh.ui.render.tree`) that call `ui.*` primitives
   directly (`<[ui.fold]>`, `<[ui.unfold]>`, etc — no `base.` prefix,
   no `swap_subs` aliasing needed, since `ui.*` was never under `base.*`)
 - resolution order for `base.ui.unfold`/`ui.unfold` (whatever it's
@@ -168,8 +168,8 @@ harmony ui.budget.tty ui.estimate.cost
 harmony base.slot.fold base.slot.unfold base.slot.move base.slot.refresh
 ```
 
-#,,..,.,.,..,,..,,,,.,..,,.,,,,..,...,...,,.,,..,,...,...,...,..,,.,.,,,,,.,.,
-#NCHGQPQPA6CVEVVJWIBHAZNI4WBIIZWDYRRPN4B3WU44RVVF7I3WAR2RQAJOLU6YKDMXVHBEIA5YG
-#\\\|OTCNKNB36MEJNSC35FAD36LU2PA4KA6WJCPDE7REGFZCCDRPVZE \ / AMOS7 \ YOURUM ::
-#\[7]AACYDXXVDRLVCLH7GDNQCCAYF6CDAVQYL4EV3LUXG5DIFHRWY6CI 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,...,,.,,,..,,.,,...,,.,,,.,,.,.,..,,...,...,,,,,.,.,,..,,,.,,.,,
+#K6FCE7XLJXVBMADSSRWR7E3C63UENGWES7JG6G2XTFL3ZGBB5UCLJ3WDNB7EXV4JI7LJ6SH5DUQ74
+#\\\|WGRT35EOTLL57BQFN5AGQVMCD3RUR4NWYYLIFWLB64IORMVBCMZ \ / AMOS7 \ YOURUM ::
+#\[7]LUR4I2V6WESPOP2T756EBGDYKGHWZV77KSALDCAIIMXSTEN3ISDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -136,7 +136,7 @@ this task's MVP, may be a no-op stub registered for future use.
 
 ## acceptance
 
-- given a tty of 80x24 and `address=credential_fabric.registry`
+- given a tty of 80x24 and `address=cred-mesh.registry`
   containing 30 slots, `base.ui.render.tree` returns ≤ 22 rows, ≤ 80
   cols, where the first ~N highest-priority slots are unfolded and
   the rest are represented by one trailing `[ +M more ]` handle that
@@ -169,8 +169,8 @@ harmony base.ui.render.tree
 harmony base.ui.render.tree.invalidate
 ```
 
-#,,,.,,.,,,,.,,,.,,,,,,.,,,..,.,,,.,.,,,,,,..,..,,...,...,..,,,,.,.,.,,,,,.,,,
-#IDFCE2QBBAVLSNNIRWOW6LYKWH72D2L5TVO2AYLGZ4IY47XAPZILFQUKMVBRMKGMLMEHEBX6PNYSU
-#\\\|LGMJS5PDBS2XDPJYDFIVY5WQJ7KFRCPECBRX22DIGVB3WHFAV7A \ / AMOS7 \ YOURUM ::
-#\[7]H5MVQ7BELNTZEC22BKLHTO3B453YGAOVAPGYVI5R2PZIVBLMG2CQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,.,.,...,...,..,,,.,,,.,,,,.,,,.,..,,...,..,,.,,,,..,,,.,,.,,.,.,
+#KBANEMAQQICHHTXDS4I3T6V3COIXQUCZ2D7TMJ5K3IPTL2ACRW2WB3Q3V4WTC2JZ7KV4D3VP67MTM
+#\\\|LZHJWXXZNDT64ZQ3T2QCQI2V3EUVOSBRKNPTXGNSKIIDJ7VF3OO \ / AMOS7 \ YOURUM ::
+#\[7]CCGOBWG3THREWKZGTYHK4L6X6PGFJDRKWNFTDJXJREQFW2YHV6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

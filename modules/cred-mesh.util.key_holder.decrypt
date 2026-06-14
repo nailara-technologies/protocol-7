@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = cred-mesh.util.key_holder.decrypt
+# descr = decrypt ciphertext using fabric secret and slot
+
+my ( $secret, $slot, $ciphertext ) = @ARG;
+return undef if length($ciphertext) < 32;
+
+my $eph_public = substr( $ciphertext, 0, 32 );
+my $enc_data   = substr( $ciphertext, 32 );
+return undef if not length $enc_data;
+
+my $shared
+    = Crypt::Curve25519::curve25519_shared_secret( $secret, $eph_public );
+return undef if not defined $shared or length($shared) != 32;
+
+my $key_input = $shared . $slot;
+my $tf_key    = AMOS7::13::key_32( \$key_input );
+return undef if not defined $tf_key or length($tf_key) != 32;
+
+my $status
+    = AMOS7::Twofish::key_init( $tf_key, qw| decryption cred_fabric | );
+return undef if not defined $status or not $status;
+
+my $dec_ref = AMOS7::Twofish::decrypt( qw| cred_fabric |, \$enc_data );
+AMOS7::Twofish::delete_table_entry(qw| decryption cred_fabric |);
+
+return undef
+    if not defined $dec_ref
+    or ref $dec_ref ne qw| SCALAR |
+    or not length $dec_ref->$*;
+
+## strip pkcs7 padding ##
+my $plaintext = $dec_ref->$*;
+my $pad_len   = ord( substr( $plaintext, -1 ) );
+return undef
+    if $pad_len < 1
+    or $pad_len > 16
+    or $pad_len > length($plaintext);
+
+return substr( $plaintext, 0, length($plaintext) - $pad_len );
+
+#,,,.,,.,,...,,..,.,,,..,,,,,,,,.,.,.,..,,,..,..,,...,.,.,..,,...,...,..,,,,,,
+#XQEKMQSR5ONCQKNFOQH57UREM5ERWCAWUAZ6VZTSNHNXTP3RLKT57JB23V4D6TZE7UFHNDIVJPS4Y
+#\\\|2CQ3FNRKNMCXEHBRFMYAUSLLSK3QFTHIQRTTY3QV5FFICDD353W \ / AMOS7 \ YOURUM ::
+#\[7]KCLYAY3CWOLO2IO2UDORLXGWRNVF3UHPPSUXM6TF5ZVTTMEEXIDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

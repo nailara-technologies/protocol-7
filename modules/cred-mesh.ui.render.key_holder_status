@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = cred-mesh.ui.render.key_holder_status
+# descr = render the key-holder status panel
+
+my $params = shift // {};
+
+my $entry = <[ascii.frame.load]>->('credential-fabric/key-holder-status');
+return { 'rendered' => '', 'row_keys' => [] } if not defined $entry;
+
+## focus_index is ignored for status panel [ no selectable rows ] ##
+my $focus_index = $params->{'focus_index'};
+
+my $data = <[cred-mesh.ui.query.key_holder]>;
+
+my $descriptor;
+if ( exists $entry->{'descriptor'} ) {
+    $descriptor = $entry->{'descriptor'};
+} elsif ( exists $entry->{'descriptors'} ) {
+    my $mode = $entry->{'modes'}[0] // 'expanded';
+    $descriptor = $entry->{'descriptors'}{$mode};
+}
+return { 'rendered' => '', 'row_keys' => [] }
+    if not defined $descriptor;
+
+## format last op with age ##
+my $last_op = $data->{'last_op'}       // '';
+my $age_s   = $data->{'last_op_age_s'} // 0;
+
+my $last_op_display = $last_op;
+if ( length $last_op and $age_s > 0 ) {
+    $last_op_display .= sprintf '    (%s)',
+        <[cred-mesh.util.format_holder_age]>->($age_s);
+} elsif ( not length $last_op ) {
+    $last_op_display = qw| none |;
+}
+
+my %values = (
+    HOLDER_STATE   => $data->{'state'},
+    HOLDER_PID     => $data->{'pid'}    // '',
+    HOLDER_LOCKED  => $data->{'locked'} // qw| n/a |,
+    HOLDER_LAST_OP => $last_op_display,
+);
+
+my $rendered = <[ascii.frame.render]>->(
+    {   descriptor => $descriptor,
+        values     => \%values,
+    }
+);
+
+return {
+    'rendered' => $rendered // '',
+    'row_keys' => []
+};
+
+#,,.,,.,,,,..,.,,,.,,,,,.,,.,,..,,,..,..,,,..,..,,...,..,,,..,.,,,.,,,.,,,.,.,
+#ZY2BPZAD6GOTRYB7FRRJIYG55IJGQG2B3C5NQS34TPYFGZ3K42DTWA6V4KJF4DBSOCCU3F4LFMPP6
+#\\\|LVQAFBM3ZGKOY2MNL424PEYG2IXFDDW3XCEVTRT5ZNZ4BWFDJJJ \ / AMOS7 \ YOURUM ::
+#\[7]Y6LEGBUPAAE5PLTBYPYURGF3ZY2LBKULBHPLLYPGOHX76JGZXYBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

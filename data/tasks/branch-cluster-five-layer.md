@@ -120,7 +120,7 @@ clusters:
   branch-open-capacity-session-dag:
     address:  <bmw384_hex>
     ring_pos: 4
-  credential-fabric:
+  cred-mesh:
     address:  <bmw384_hex>
     ring_pos: 9
 ```
@@ -132,8 +132,8 @@ instances of this cluster pattern. they currently have only layer 1 (task).
 to complete their clusters:
 
 ```
-credential-fabric cluster:
-  layer 1  task:     data/tasks/credential-fabric.md
+cred-mesh cluster:
+  layer 1  task:     data/tasks/cred-mesh.md
   layer 2  template: data/yaml/reasoning-templates/  (to be written)
   layer 3  design:   data/md/design/PRIVACY-PRESERVING-IDENTITY-CREDENTIALS.md
   layer 4  intent:   (to be written)
@@ -155,8 +155,8 @@ credential-fabric cluster:
 - register writes yaml and updates _index.yaml
 - mirror returns valid 5+1+5 structure without writing to disk
 
-#,,,.,.,,,.,.,,,.,...,...,,..,,..,...,..,,,,,,..,,...,...,..,,.,.,..,,.,.,.,.,
-#D6AKD2ANYWBNW7EMT2HRSBLPEZMZMPWK4LQQUOZDVMC4JQQTIOPKHHH2E62PDDCU2WZICAYDLHDA2
-#\\\|PCLXBUKKS3FW54CQXVMRW2JB4TMFABS5COZ4JDKJZU2GKYGSM2S \ / AMOS7 \ YOURUM ::
-#\[7]BCPT6VCNYWESNXNPEUCSGTM755OW55JIGYRV7DLTRNL44O6MFSCQ 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,..,,.,,.,,,...,..,,.,,,,,,,,,.,..,,...,...,.,,,,,.,,,,,,..,...,
+#NRNKSN73227X6F5JWIKMWXTUYN3YNBLABB7X32JS5CDFEOSXUOOHT2WQWZNWWRUVFZSKU5VLDHGPG
+#\\\|74MSPISRXNCJSM2JCQXANXQ7FJZ4MZ7VFFHH2SHC27CROLZTJW4 \ / AMOS7 \ YOURUM ::
+#\[7]3XJEKTWNAU2JBN6LI6CEZO2A24JX76XIKM5ZLA2TV5LLAPPRU4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

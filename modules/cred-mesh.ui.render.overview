@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = cred-mesh.ui.render.overview
+# descr = render the credential fabric overview frame
+
+my $params = shift // {};
+
+my $entry = <[ascii.frame.load]>->('credential-fabric/overview');
+return { 'rendered' => '', 'row_keys' => [] } if not defined $entry;
+
+## focus_index is ignored for overview [ no selectable rows ] ##
+my $focus_index = $params->{'focus_index'};
+
+my $data = <[cred-mesh.ui.query.overview]>;
+
+my $descriptor;
+if ( exists $entry->{'descriptor'} ) {
+    $descriptor = $entry->{'descriptor'};
+} elsif ( exists $entry->{'descriptors'} ) {
+    my $mode = $entry->{'modes'}[0] // 'expanded';
+    $descriptor = $entry->{'descriptors'}{$mode};
+}
+return { 'rendered' => '', 'row_keys' => [] }
+    if not defined $descriptor;
+
+## build summary block — two lines with aligned columns ##
+my $line1 = sprintf 'slots: %-4d  owners: %-4d  relays: %d',
+    $data->{'slot_count'},
+    $data->{'owner_count'},
+    $data->{'relay_count'};
+
+my $line2 = sprintf 'holder: %-12s  last rotation: %s',
+    $data->{'holder_state'},
+    $data->{'last_rotation_b32'};
+
+my $summary = join "\n", $line1, $line2;
+
+my %values = ( SUMMARY => $summary );
+
+my $rendered = <[ascii.frame.render]>->(
+    {   descriptor => $descriptor,
+        values     => \%values,
+    }
+);
+
+return {
+    'rendered' => $rendered // '',
+    'row_keys' => []
+};
+
+#,,.,,,.,,,.,,.,.,,,.,..,,,,.,,,,,,,,,,,.,,.,,..,,...,...,...,,,,,..,,,,.,,,.,
+#2XRVC4L2633FUEUEFD2FEQTAGG43F2ANL4QFORDCFRPZ5REKAYDETCH5JZGAF76OKNY33BICHBDTU
+#\\\|VZSV4EN73LDBM7N3XJW3APR7XZW5V5OYFHXJOANN4HC3ZMBQWCX \ / AMOS7 \ YOURUM ::
+#\[7]VYUDBWZB5PO4O5KUQ7PF6O7XKFABQAZ5EOK6X73H5ZCU3YXBIWCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,47 @@
+.:[ cred-mesh — credential fabric zenka (tiered storage, zenka ownership) ]:.
+
+[load_config_file:'shared-params']
+
+buffer.session.log_cmd  = p7-log.append
+buffer.session.max_size = 795648
+
+system.verbosity.zenka_buffer = 1
+
+access.cmd.usr.cube = heart subname name commands reload verify-instance \
+                      list src-age src-ver show-buffer buffer-erase \
+                      buffer-erase-level \
+                      register \
+                      resolve \
+                      subscribe_rotation \
+                      rotate \
+                      request-authorization \
+                      approve \
+                      list-slots \
+                      ui-show \
+                      dump set get del exec-sub eval-code
+
+cred-mesh.cfg.store_dir     = var/cred-mesh/
+cred-mesh.cfg.registry_file = var/cred-mesh/registry.yaml
+cred-mesh.cfg.audit_log     = var/cred-mesh/audit.log
+
+modules.load = auth net protocol io.unix ui cred-mesh credential proxy \
+               ascii.frame format.yaml httpd.status_codes devmod
+
+[base.white-list.register:'ascii.frame']
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,,.,...,...,,.,,.,.,,,,,,.,,,,,,...,,,.,,..,..,,...,...,...,.,.,,,,,..,,.,,,
+#RSHVEU2OPMQZTT3H6RSOBDNMK4DC3MBVQBXXZIE64ELSSYH3Q6GATCO3KNDGOT4QDIRY5RAB2SWEW
+#\\\|BUD5MXKC3QBJ2YUYAZRVI4KBGTALLOTSLSF4SETYAVCV4QOMJQM \ / AMOS7 \ YOURUM ::
+#\[7]3DQUAEDFNT5WGBVX7BAQ26ZHXCPUEOXFQD5D7WOMPJ5KRKXEQQAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

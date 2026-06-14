@@ -2,16 +2,16 @@
 
 ## dispatch
 build a reproducible end-to-end test harness for the
-credential_fabric + transport + proxy zenki working together. read first:
-`data/md/design/CREDENTIAL-FABRIC-INTEGRATION-AND-UI.md` (part 1, "test
+cred-mesh + transport + proxy zenki working together. read first:
+`data/md/design/CRED-MESH-INTEGRATION-AND-UI.md` (part 1, "test
 scenarios" section);
-`data/tasks/credential-fabric-wiring.md` (the wiring this verifies);
+`data/tasks/cred-mesh-wiring.md` (the wiring this verifies);
 `modules/proxy.handler.request`, `modules/proxy.handler.passthrough_reply`;
 `modules/transport.select`, `modules/transport.demote`,
 `modules/transport.promote`, `modules/transport.probe.timer`;
-`modules/credential_fabric.resolve`, `modules/credential_fabric.rotate`,
-`modules/credential_fabric.handler.rotation_strm`,
-`modules/credential_fabric.request-authorization`;
+`modules/cred-mesh.resolve`, `modules/cred-mesh.rotate`,
+`modules/cred-mesh.handler.rotation_strm`,
+`modules/cred-mesh.request-authorization`;
 existing test scripts under `bin/dev/` for shape conventions
 (`bin/dev/comp-test`, `bin/dev/bit-count` etc.).
 do NOT modify zenka modules themselves — this task only adds the harness.
@@ -20,22 +20,22 @@ this task assumes the wiring task has landed.
 ## goal
 five test scenarios from the design doc, each runnable from a single
 script that:
-- prepares a fresh `var/credential_fabric/` and `var/transport/`
+- prepares a fresh `var/cred-mesh/` and `var/transport/`
 - seeds the registry with deterministic slots
 - spawns a local upstream listener (echo server on a high port)
 - runs the scenario against the proxy at `127.0.0.1:8118`
 - verifies the expected behaviour
 - prints pass/fail with one-line summary per scenario
 
-a single harness binary `bin/dev/credential-fabric-test` orchestrates
+a single harness binary `bin/dev/cred-mesh-test` orchestrates
 all five and supports running them individually
-(`bin/dev/credential-fabric-test --scenario 3`) or all in sequence.
+(`bin/dev/cred-mesh-test --scenario 3`) or all in sequence.
 
 ## structure
 
 ```
-bin/dev/credential-fabric-test          [ orchestrator + helpers ]
-bin/dev/credential-fabric-test.d/
+bin/dev/cred-mesh-test          [ orchestrator + helpers ]
+bin/dev/cred-mesh-test.d/
     scenario-1-direct-tcp-api-key.pl
     scenario-2-hysteria-bearer.pl
     scenario-3-transport-degradation.pl
@@ -54,13 +54,13 @@ it reads the request and writes a yaml body containing the request
 headers + path. lets the scenario assert that injected credential
 headers actually made it upstream.
 
-**seed-fabric** — writes a deterministic `var/credential_fabric/seed.yaml`
+**seed-fabric** — writes a deterministic `var/cred-mesh/seed.yaml`
 with all slots the scenarios need, plus writes plaintext values into the
 tier-1 store directly (using the same encryption path the fabric uses,
-or by calling `p7c credential_fabric.register` + `credential_fabric.put`
+or by calling `p7c cred-mesh.register` + `cred-mesh.put`
 once the fabric is up). prefer the latter — it is the real path.
 
-**spawn-proxy** — starts a clean v7 with credential_fabric, transport,
+**spawn-proxy** — starts a clean v7 with cred-mesh, transport,
 and proxy zenki. waits for `proxy.handler.accept` to be ready (poll
 `127.0.0.1:8118` until connect succeeds, max 10s). tears down on exit.
 
@@ -103,7 +103,7 @@ clears the hook, verifies `transport.promote` runs. asserts:
 
 ### 4. rotation invalidation
 seeds a slot, issues one proxied request to populate the proxy cache,
-calls `p7c credential_fabric.rotate <slot>` with a new value, issues
+calls `p7c cred-mesh.rotate <slot>` with a new value, issues
 a second request, asserts:
 - before-rotate echo shows old value
 - after-rotate echo shows new value
@@ -115,8 +115,8 @@ deliberately do NOT seed a slot for the test domain. issue a GET to
 that domain. asserts:
 - proxy returns 407 (or whatever the wiring task chose) with a body
   containing the req_id
-- `var/credential_fabric/relay_pending.yaml` contains one entry
-- `p7c credential_fabric.approve <req_id> <payload>` returns ok
+- `var/cred-mesh/relay_pending.yaml` contains one entry
+- `p7c cred-mesh.approve <req_id> <payload>` returns ok
 - relay_pending.yaml entry is removed
 - retried original request (curl-via-proxy with same url) succeeds
   with injected header
@@ -137,7 +137,7 @@ request start: `proxy: outbound type=<type> dst=<host:port>`.
 
 ## run modes
 
-`bin/dev/credential-fabric-test` (no args) — runs all scenarios in
+`bin/dev/cred-mesh-test` (no args) — runs all scenarios in
 sequence, prints a summary, exits non-zero on any failure.
 
 `--scenario N` — runs one scenario, leaves the fixture alive for
@@ -157,12 +157,12 @@ directory (override via `PROTOCOL_7_VAR=`). do not pollute the real
 failure with a `[ fixture kept: /tmp/credfab-test-... ]` message.
 
 ## acceptance
-- `bin/dev/credential-fabric-test` runs all five scenarios from a clean
+- `bin/dev/cred-mesh-test` runs all five scenarios from a clean
   checkout (after wiring task) and exits 0.
 - individual `--scenario N` works for each.
 - failed scenarios leave a usable fixture and clear failure message
   pointing at the assertion that failed.
-- no scenario leaks state into the real `var/credential_fabric/` or
+- no scenario leaks state into the real `var/cred-mesh/` or
   `var/transport/` directories.
 - harness adds no perl modules to `data/lib-path/pm/` — uses only
   what existing scripts already pull (LWP, IO::Socket::IP, YAML::XS).
@@ -173,8 +173,8 @@ it. lowercase comments, `[ word ]` annotations.
 
 #,,...,,..,,..,...,,,..,..,,,,,.,,...,..,,,,,,,..,,...,...,...,,,..,,,..,,...,
 
-#,,,,,,,.,,..,,,.,.,,,.,.,.,,,,,.,.,,,...,.,,,..,,...,...,,.,,,.,,,.,,,,,,,..,
-#CHFHGFWHYAH2YTYNIZWOX3CL2ZCPHPEY7NPXSLAL2AVJDEICHT3P4JP2QAVPIVB3UM5YAISHN6HCM
-#\\\|WGNBL4UW3UAQVOJO4EAAZH7PHK2AINHZVSQ35V7C6EEZ5Y275PD \ / AMOS7 \ YOURUM ::
-#\[7]Z64DA3TQWAVIK6S4DTNZER22VX2IJRFOAWIDD4252H4TRJDLOOBY 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,,.,.,.,...,,.,,,.,,...,.,.,,,,,..,,...,...,,.,,,,.,.,.,,,,,,.,,
+#QTZTAON2JHUX5LIGUGKMU7YX5LMUY7BRCIFGUJQ7AFJHSRLYMMDUPL6CMAQ4FIJOYE7VVMFIADEQW
+#\\\|INLGAD6K3RPDRXYRA4NQBAARBVIGLCEIO5FGSTQ7F5O4NKJ2H6B \ / AMOS7 \ YOURUM ::
+#\[7]NQARBSBLB5G2MPYIAVW6CMJLZYA2RD3IXNYSQIATZWJ3I2LCFUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

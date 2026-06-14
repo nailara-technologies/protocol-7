@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = cred-mesh.handler.route_reply
+# descr = handle async reply from remote owning zenka during credential.resolve.
+
+my $params = shift              // {};
+my $reply  = $params->{'reply'} // {};
+my $args   = $params->{'args'}  // {};
+
+my $slot = $reply->{'params'}{'slot'} // '';
+
+return undef unless length $slot;
+
+my $result = $args->{'data'};
+
+## store routed result in a transient cache for the requesting zenka ##
+<cred-mesh.route_reply_cache> //= {};
+<cred-mesh.route_reply_cache>->{$slot} = {
+    'result' => $result,
+    'ntime'  => <[base.time]>->(3),
+};
+
+return $result;
+
+#,,,.,...,...,..,,.,.,..,,...,,,.,..,,,.,,.,,,..,,...,..,,.,.,..,,...,...,,,,,
+#U5FMMZADCBIUQXBLVUPSC4Y46KLDB3MBTC4E62UX37J4VYMMSSWZ7PXU6PIYYQ5IMFHQQ3RFMQIFI
+#\\\|SORPZHFTQVKR5NDXXEO3BWLJUGUHZKVI5DH5E2CPLNSFIKGZCEP \ / AMOS7 \ YOURUM ::
+#\[7]WCYYETJE6EFBMNAE4XZVVRYRQGYNVKMXKMAMFXRGR7NGY6KXJGBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
