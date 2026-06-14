@@ -18,104 +18,31 @@ if ( $current =~ m{^bottom-strip$} ) {
 );
 
 <ticker.swap.previous_profile> = $current;
-my $before_geo;
-$before_geo = <[base.X-11.get_window_geometry]>->(<x11.id>)
-    if defined <x11.id>;
 
-<[ticker.cmd.set-window-profile]>->( { 'args' => $target } );
-
-## GTK window moves are not honored under Wayland once mapped,            ##
-## so also force the position via X11 ConfigureWindow.                    ##
-if ( defined <x11.id> ) {
-    <[base.X-11.move_window]>->(
-        <x11.id>,              <x11.coordinates.left>,
-        <x11.coordinates.top>, <x11.window.width>,
-        <x11.window.height>
+## only disable swap for the session after several consecutive failures, ##
+## so a single bad move doesn't kill swap mode for the rest of the run.  ##
+if ( <[ticker.move_to_profile]>->( $target, $current ) ) {
+    delete <ticker.swap.move_failed>;
+    delete <ticker.swap.fail_count>;
+    delete <ticker.swap.previous_profile>;
+} else {
+    <ticker.swap.fail_count> = ( <ticker.swap.fail_count> // 0 ) + 1;
+    my $max_fails = 3;
+    <[base.log]>->(
+        1,
+        sprintf(
+            ': swap move failed, attempt %d/%d',
+            <ticker.swap.fail_count>, $max_fails
+        )
     );
-
-    ## the first move/configure after (re)map tends to be dropped by WSLg/   ##
-    ## Weston; a second [and third] apply a bit after the first one is what  ##
-    ## actually lands. give the compositor a brief moment, then repeat both  ##
-    ## the GTK move/resize and the X11 ConfigureWindow before verifying.     ##
-    <[base.sleep]>->(0.15);
-    <[ticker.cmd.set-window-profile]>->( { 'args' => $target } );
-    <[base.X-11.move_window]>->(
-        <x11.id>,              <x11.coordinates.left>,
-        <x11.coordinates.top>, <x11.window.width>,
-        <x11.window.height>
-    );
-
-    <[base.sleep]>->(0.15);
-    <[ticker.cmd.set-window-profile]>->( { 'args' => $target } );
-    <[base.X-11.move_window]>->(
-        <x11.id>,              <x11.coordinates.left>,
-        <x11.coordinates.top>, <x11.window.width>,
-        <x11.window.height>
-    );
-
-    ## verify the window actually moved and is near the target; if not,     ##
-    ## revert the profile and fall back to normal hover fade behaviour for  ##
-    ## this attempt. only disable swap for the session after several        ##
-    ## consecutive failures, so a single bad move doesn't kill swap mode    ##
-    ## for the rest of the run.                                             ##
-    my $actual = <[base.X-11.get_window_geometry]>->(<x11.id>);
-    if ( defined $actual ) {
-        my $tol          = 50;
-        my $dx           = abs( $actual->{'x'} - <x11.coordinates.left> );
-        my $dy           = abs( $actual->{'y'} - <x11.coordinates.top> );
-        my $off_target   = ( $dx > $tol or $dy > $tol );
-        my $did_not_move = 0;
-        if ( defined $before_geo ) {
-            my $bdx = abs( $actual->{'x'} - $before_geo->{'x'} );
-            my $bdy = abs( $actual->{'y'} - $before_geo->{'y'} );
-            $did_not_move = ( $bdx <= $tol and $bdy <= $tol );
-        }
-
-        if ( $off_target or $did_not_move ) {
-            <ticker.swap.fail_count> = ( <ticker.swap.fail_count> // 0 ) + 1;
-
-            my $max_fails = 3;
-            <[base.log]>->(
-                1,
-                sprintf(
-                    ': swap move failed (actual x=%d y=%d, target x=%d y=%d), attempt %d/%d',
-                    $actual->{'x'},           $actual->{'y'},
-                    <x11.coordinates.left>,   <x11.coordinates.top>,
-                    <ticker.swap.fail_count>, $max_fails
-                )
-            );
-            <ticker.swap.move_failed> = 1;
-            <ticker.swap.disabled>    = 1
-                if <ticker.swap.fail_count> >= $max_fails;
-
-            my $previous = delete <ticker.swap.previous_profile>
-                // qw| bottom-strip |;
-            <[ticker.cmd.set-window-profile]>->( { 'args' => $previous } );
-
-            <[base.X-11.keep_below]>->(<x11.id>);
-
-            ## the failed swap happened at opacity 0; without restoring it    ##
-            ## the ticker stays invisible forever. cancel any in-progress     ##
-            ## fade and snap opacity back to 1 at the reverted profile.       ##
-            if ( defined <ticker.timer.fade> ) {
-                <ticker.timer.fade>->cancel;
-                delete <ticker.timer.fade>;
-            }
-            delete <ticker.time.fade_view>;
-            delete <ticker.fade.handler>;
-            <ticker.fade_opacity> = 1;
-            <ticker.obj.window>->set_opacity(1)
-                if <ticker.is_composited> and defined <ticker.obj.window>;
-        } else {
-            delete <ticker.swap.move_failed>;
-            delete <ticker.swap.fail_count>;
-            delete <ticker.swap.previous_profile>;
-        }
-    }
+    <ticker.swap.move_failed> = 1;
+    <ticker.swap.disabled>    = 1
+        if <ticker.swap.fail_count> >= $max_fails;
+    delete <ticker.swap.previous_profile>;
 }
 
-#,,..,.,.,.,,,.,.,,,,,,..,,.,,,..,...,...,..,,.,.,...,...,,.,,,.,,,..,,..,.,.,
-#UOOQVPJAG6HEIGXFXWBFT6QNPY72LZLRSV54SUMV2DLX4MDAKHPVOMWTVFRF5AVARYURUKHD4Q3AG
-#\\\|DYWLVK2MBO67C5KQ2SMFYC67WCSYQB5PUVGPWVQA3JEGFPKXE6C \ / AMOS7 \ YOURUM ::
-#\[7]B4ZUVUK4BMYTDTRL4G5K7KWVWJFEYX6BMX43MXG5VSFOG5U5RODI 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,..,,.,,,.,.,,..,...,,,.,...,,,.,.,.,...,...,,..,,.,,,,,,.,,,...,
+#G64HJP5X3ONIJQNF6WINSMGS37RSVOZTCAP3BPW3PWA5MN4QUWMZPAOEUNK4ILVRBOPMRWZEH4R6C
+#\\\|57NF7HI6KCRIEPCYDZCYYB3DCW5WZPV7MYPAPWLCS3QC35XUTXF \ / AMOS7 \ YOURUM ::
+#\[7]XELDOQZTJPM4QT6WZVCIEO7ADG7XLOR7QBHM6J2EXYRQTKESZQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

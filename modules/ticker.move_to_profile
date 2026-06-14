@@ -1,0 +1,98 @@
+## [:< ##
+
+# name  = ticker.move_to_profile
+# param = $target_profile [ $previous_profile ]
+# descr = apply a window placement profile, forcing the move via X11
+#         ConfigureWindow retries [needed under WSLg/Wayland, where GTK
+#         moves are not honored once the window is mapped]. on
+#         verification failure, reverts to $previous_profile [or the
+#         profile active before this call] and restores fade opacity.
+#         returns TRUE on success, FALSE if the move did not land.
+
+my $target   = shift;
+my $previous = shift // <ticker.window.profile> // qw| bottom-strip |;
+
+<[ticker.cmd.set-window-profile]>->( { 'args' => $target } );
+
+return TRUE if not defined <x11.id>;
+
+my $before_geo = <[base.X-11.get_window_geometry]>->(<x11.id>);
+
+<[base.X-11.move_window]>->(
+    <x11.id>,              <x11.coordinates.left>,
+    <x11.coordinates.top>, <x11.window.width>,
+    <x11.window.height>
+);
+
+## the first move/configure after (re)map tends to be dropped by WSLg/   ##
+## Weston; a second [and third] apply a bit after the first one is what  ##
+## actually lands. give the compositor a brief moment, then repeat both  ##
+## the GTK move/resize and the X11 ConfigureWindow before verifying.     ##
+<[base.sleep]>->(0.15);
+<[ticker.cmd.set-window-profile]>->( { 'args' => $target } );
+<[base.X-11.move_window]>->(
+    <x11.id>,              <x11.coordinates.left>,
+    <x11.coordinates.top>, <x11.window.width>,
+    <x11.window.height>
+);
+
+<[base.sleep]>->(0.15);
+<[ticker.cmd.set-window-profile]>->( { 'args' => $target } );
+<[base.X-11.move_window]>->(
+    <x11.id>,              <x11.coordinates.left>,
+    <x11.coordinates.top>, <x11.window.width>,
+    <x11.window.height>
+);
+
+## verify the window actually moved and is near the target; if not,     ##
+## revert the profile and restore visibility, since the caller may have ##
+## triggered this at opacity 0 [fade-out].                              ##
+my $actual = <[base.X-11.get_window_geometry]>->(<x11.id>);
+return TRUE if not defined $actual;
+
+my $tol        = 50;
+my $dx         = abs( $actual->{'x'} - <x11.coordinates.left> );
+my $dy         = abs( $actual->{'y'} - <x11.coordinates.top> );
+my $off_target = ( $dx > $tol or $dy > $tol );
+
+my $did_not_move = 0;
+if ( defined $before_geo ) {
+    my $bdx = abs( $actual->{'x'} - $before_geo->{'x'} );
+    my $bdy = abs( $actual->{'y'} - $before_geo->{'y'} );
+    $did_not_move = ( $bdx <= $tol and $bdy <= $tol );
+}
+
+return TRUE if not( $off_target or $did_not_move );
+
+<[base.log]>->(
+    1,
+    sprintf(
+        ': profile move to %s failed (actual x=%d y=%d, target x=%d y=%d)',
+        $target,        $actual->{'x'},
+        $actual->{'y'}, <x11.coordinates.left>,
+        <x11.coordinates.top>
+    )
+);
+
+<[ticker.cmd.set-window-profile]>->( { 'args' => $previous } );
+<[base.X-11.keep_below]>->(<x11.id>);
+
+if ( defined <ticker.timer.fade> ) {
+    <ticker.timer.fade>->cancel;
+    delete <ticker.timer.fade>;
+}
+delete <ticker.time.fade_view>;
+delete <ticker.fade.handler>;
+<ticker.fade_opacity> = 1;
+<ticker.obj.window>->set_opacity(1)
+    if <ticker.is_composited> and defined <ticker.obj.window>;
+
+return FALSE;
+
+#,,,.,.,.,,,...,,..,,,,.,.,,..,,..,..,,...,...,...,.,.,,,,,,..,,,,,,.,,,.,,.,,
+
+#,,.,,,.,,,..,...,,.,,,,.,,,.,,..,,.,,..,,,..,..,,...,..,,...,.,.,.,,,..,,,.,,
+#D264ESNSE7AZ4RDOJ2YAEXV3I2IYSCZT2QARJ7ZAV7TG5PICRAX4FMYKXCLKWA6SSPK5TZLOGR74Q
+#\\\|QYQVJRUJ4JRZEMW5VAKKTHQB4FD5SEW5RHTL4SMA2ONX7RJBU5O \ / AMOS7 \ YOURUM ::
+#\[7]F2SHMCADGA5ZCD3U222DDKMAUFSH4DBPRFPTIB4GJJW62HQFEMAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
