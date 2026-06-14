@@ -1,0 +1,62 @@
+## [:< ##
+
+# name  = cred-mesh.ui.render.registry_detail
+# descr = render a single-slot detail card
+
+my $params = shift // {};
+
+my $entry = <[ascii.frame.load]>->('credential-fabric/registry-detail');
+return { 'rendered' => '', 'row_keys' => [] } if not defined $entry;
+
+## focus_index is ignored for detail card [ no selectable rows ] ##
+my $focus_index = $params->{'focus_index'};
+
+my $data = <[cred-mesh.ui.query.slot_detail]>->($params);
+return "[ unknown slot ]\n" if not defined $data;
+
+my $descriptor;
+if ( exists $entry->{'descriptor'} ) {
+    $descriptor = $entry->{'descriptor'};
+} elsif ( exists $entry->{'descriptors'} ) {
+    my $mode = $entry->{'modes'}[0] // 'expanded';
+    $descriptor = $entry->{'descriptors'}{$mode};
+}
+return { 'rendered' => '', 'row_keys' => [] }
+    if not defined $descriptor;
+
+my $subscribers_str = '';
+my $subs            = $data->{'subscribers'} // [];
+if ( scalar @$subs ) {
+    $subscribers_str = join ', ', sort @$subs;
+} else {
+    $subscribers_str = qw| none |;
+}
+
+my %values = (
+    SLOT_NAME        => $data->{'slot'},
+    SENSITIVITY      => $data->{'sensitivity'},
+    OWNER            => $data->{'owner'},
+    TYPE             => $data->{'type'},
+    STORAGE_TIER     => $data->{'storage'},
+    REGISTERED_NTIME => $data->{'registered'}      // '',
+    LAST_ROTATED     => $data->{'last_rotated'}    // qw| never |,
+    ROTATE_INTERVAL  => $data->{'rotate_interval'} // qw| manual |,
+    SUBSCRIBERS      => $subscribers_str,
+);
+
+my $rendered = <[ascii.frame.render]>->(
+    {   descriptor => $descriptor,
+        values     => \%values,
+    }
+);
+
+return {
+    'rendered' => $rendered // '',
+    'row_keys' => []
+};
+
+#,,..,,,,,..,,,..,,,,,...,..,,...,.,.,,,.,.,.,..,,...,...,.,.,.,.,,,.,,..,.,.,
+#HUZOMONJ56T67IH6H4EIROE3565DZWAEFQFMU5PZZWJ2Q2WNAT5PEIA72X53AOCFZYHRFK2AIQNVQ
+#\\\|JRARJAR2S5626WRB2WXC6Y7SE77AYFYNBHR5XIQAHORA3PAZ26P \ / AMOS7 \ YOURUM ::
+#\[7]OSBJOONSRX2WTO7H2QCMSATHAARWQBPT3I7ZVBP245MXCCTGAGCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -20,17 +20,17 @@
                                      v7.background_zenka loaded-configs \
                                      v7.notify_online v7.restart_own-zenka \
                                      protocol-7-menu.menu-update-notify \
-                                     credential_fabric.resolve \
-                                     credential_fabric.rotate \
-                                     credential_fabric.approve \
-                                     credential_fabric.list-slots \
-                                     credential_fabric.ui-show \
-                                     credential_fabric.interactive-up \
-                                     credential_fabric.interactive-down \
-                                     credential_fabric.interactive-refresh \
-                                     credential_fabric.interactive-select-view \
-                                     credential_fabric.interactive-action \
-                                     credential_fabric.interactive-input \
+                                     cred-mesh.resolve \
+                                     cred-mesh.rotate \
+                                     cred-mesh.approve \
+                                     cred-mesh.list-slots \
+                                     cred-mesh.ui-show \
+                                     cred-mesh.interactive-up \
+                                     cred-mesh.interactive-down \
+                                     cred-mesh.interactive-refresh \
+                                     cred-mesh.interactive-select-view \
+                                     cred-mesh.interactive-action \
+                                     cred-mesh.interactive-input \
                                      *.ui-show
 
 
@@ -192,7 +192,8 @@
                                      X-11.wait_visible \
                                      content.get_list_types \
                                      content.entries_withheld \
-                                     v7.report-temp-path
+                                     v7.report-temp-path \
+                                     cred-mesh.handler.auth-relay-reply
 
           access.cmd.usr.compton  =  X-11.get_mode X-11.get_driver \
                                      X-11.bg_color v7.register_child
@@ -334,7 +335,12 @@
    access.cmd.usr.jobsite         =  v7.notify_online \
                                      site-yaml.import \
                                      task.create task.wait-done \
-                                     coding.summarize-context
+                                     coding.summarize-context \
+                                     cred-mesh.register \
+                                     cred-mesh.resolve
+
+      access.cmd.usr.weather      =  cred-mesh.register \
+                                     cred-mesh.resolve
 
    access.cmd.usr.credentials     =  v7.notify_online
 
@@ -353,20 +359,20 @@
                                      amos-term.list-windows
 
               access.cmd.usr.proxy  =  site-yaml.fetch \
-                                       credential_fabric.resolve \
-                                       credential_fabric.subscribe_rotation \
-                                       credential_fabric.request-authorization
+                                       cred-mesh.resolve \
+                                       cred-mesh.subscribe_rotation \
+                                       cred-mesh.request-authorization
 
-           access.cmd.usr.transport =  credential_fabric.resolve \
-                                       credential_fabric.subscribe_rotation
+           access.cmd.usr.transport =  cred-mesh.resolve \
+                                       cred-mesh.subscribe_rotation
 
-      access.cmd.usr.credential_fabric = protocol-7-menu.input-text \
-                                         protocol-7-menu.input-password \
-                                         proxy.handler.cred_rotated \
-                                         transport.handler.cred_rotated
+           access.cmd.usr.cred-mesh =  protocol-7-menu.input-text \
+                                       protocol-7-menu.input-password \
+                                       proxy.handler.cred_rotated \
+                                       transport.handler.cred_rotated
 
-#,,.,,.,.,,,,,.,,,,..,.,,,..,,...,,,.,,,.,,..,.,.,...,...,,,,,,.,,,.,,,..,,.,,
-#WCWOBZRJKRULKGLUA3HYANOMPTMEG36IFDZNYHKDGGQSU5DJ5QV5L2YQ4WNZGHDL2UQNBW3UHOPFW
-#\\\|WYBUOXELCFKYVJTLKL55MFDF5M757LFVBLJZIPSGSZ5OUE7ZCLT \ / AMOS7 \ YOURUM ::
-#\[7]5Z6LR5QUIDMP5VEN2K6ACMQWKLEK5KZZ5GETUOMKRBOSEE23SABI 7  DATA SIGNATURE ::
+#,,,,,,..,...,..,,.,.,,,.,,.,,,,,,.,.,.,,,.,.,.,.,...,...,...,,..,...,..,,,.,,
+#RDHHA4SME5JZGJWEFQWCFAUFZTDICOXWG27SIDEORGQPYQOXSUMHLBEHB3WV4DAQOXA5RI37XXLLY
+#\\\|WC74BMGARXS5RGHRAEGFXF4CSROTQZJJ7IXNOJDR5TAGCAPBY6Y \ / AMOS7 \ YOURUM ::
+#\[7]UTMCNWRVUU4HAQXKF6QPUPVXSOBWLWAYSTX3PBOD7UWK5G3B6SDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

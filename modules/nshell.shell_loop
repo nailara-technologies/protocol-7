@@ -20,10 +20,10 @@ return 0 unless defined $cmd and length $cmd;
 
 ## detect credential-fabric ui entry and attach session_id for focus state ##
 my $nshell_state = <nshell.state> // {};
-if ( $cmd =~ m{^\s*credential_fabric\.ui[.-]show(?:\s|$) } ) {
-    $nshell_state->{'credential_fabric_ui_active'}  = TRUE;
-    $nshell_state->{'credential_fabric_ui_pending'} = undef;
-    $nshell_state->{'credential_fabric_ui_session'} = $cube_sid
+if ( $cmd =~ m{^\s*cred-mesh\.ui[.-]show(?:\s|$) } ) {
+    $nshell_state->{'cred-mesh_ui_active'}  = TRUE;
+    $nshell_state->{'cred-mesh_ui_pending'} = undef;
+    $nshell_state->{'cred-mesh_ui_session'} = $cube_sid
         if defined $cube_sid;
     $cmd =~ s/\s+$/ /;
     $cmd .= ' session_id=' . $cube_sid if defined $cube_sid;
@@ -54,8 +54,8 @@ if ( defined $cube_sid and exists $data{'session'}{$cube_sid} ) {
 
 return 0;
 
-#,,.,,.,,,,,,,.,,,..,,,.,,.,.,.,,,,,.,,,,,,.,,.,.,...,...,.,,,,..,,..,..,,,.,,
-#V3RYQGG4CB7ZDOANZFTNYHR6O6DK2YODMCXL4OQ4FIH6QYT3FX6P7EL5QE24RQSQEBOCXUBJMII5K
-#\\\|OVAQFEFQETBDIJRCOJRPN4SXWZRDTGB3JZW3BL2QWKCHB3O7W52 \ / AMOS7 \ YOURUM ::
-#\[7]SD6ETQDA24YOZPJ3P2FJTPXMBZE3VOTMDU2RFEECCNZFPP6MD2DI 7  DATA SIGNATURE ::
+#,,..,...,.,,,,,,,,,,,.,,,,.,,..,,,,,,,..,,..,.,.,...,...,.,.,,,,,..,,.,.,.,,,
+#GCKJBCOGOOE7CW7AECM37IUQFEAXIITCTIU5QFQMVZVCE54M3QDBX2JWBCUGLQK2XJJQSEBXDZH2W
+#\\\|TGJSLMI4QQM3NV4VXA7C2AFXFGVZPMGCGWNDOTVZ5LIRZWDDEUG \ / AMOS7 \ YOURUM ::
+#\[7]ZABMVSIXJN3BJXVBBCFV57CGWOUEF2JBTW7AU53LOW72STJOD2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -24,9 +24,9 @@ existing stub state:
   semantically empty ]
 
 reference patterns to mirror but not duplicate:
-- `modules/credential_fabric.ui.query.*`,
-  `modules/credential_fabric.ui.render.*`,
-  `modules/credential_fabric.cmd.ui-show` — the proven tri-layer
+- `modules/cred-mesh.ui.query.*`,
+  `modules/cred-mesh.ui.render.*`,
+  `modules/cred-mesh.cmd.ui-show` — the proven tri-layer
 - memory: `topic-global-ui-menu-tree` — configure's planned role as
   generic fallback / decision surface
 
@@ -195,16 +195,16 @@ modules.load = base.init crypt.C25519 amos7 configure
 
 add `configuration/zenki/configure/zenka-startup.v7` and
 `configuration/zenki/configure/access.zenki` matching the existing
-zenka patterns [ e.g. credential_fabric's ]; refer to live zenki for
+zenka patterns [ e.g. cred-mesh's ]; refer to live zenki for
 exact required keys.
 
 ## acceptance
 
 - `p7c configure.cmd.ui-show` shows a navigable landing with the
   reachable zenki as foldable children.
-- `p7c configure.cmd.go address=credential_fabric.registry` re-binds
-  configure's slot to the credential_fabric registry, rendered via
-  `base.ui.render.tree` with **zero credential_fabric-specific code**
+- `p7c configure.cmd.go address=cred-mesh.registry` re-binds
+  configure's slot to the cred-mesh registry, rendered via
+  `base.ui.render.tree` with **zero cred-mesh-specific code**
   in configure.
 - `p7c configure.cmd.back` returns to the landing.
 - `p7c configure.cmd.decide id=tls-key question='Use existing key or generate?' options='[{name:existing,summary:Use found key},{name:generate,summary:Generate new}]'`
@@ -242,8 +242,8 @@ harmony configure.ui.render.decisions
 harmony configure.cmd.ui-show
 ```
 
-#,,..,,.,,,,.,..,,,,,,,.,,.,.,..,,,..,...,,,,,..,,...,...,..,,,.,,,,.,,.,,.,,,
-#76J6LAWE5473YO3AEYZ3OCONSKC2DEDZJGZJRFGSUEGPWDYAJQIA7OL77H3WP63JOH6YETJVZJYWY
-#\\\|RXO4PTH2H5PCFIRACTFIHFEHGFBX4IJBQEMI5KVM7DOIKQFI62G \ / AMOS7 \ YOURUM ::
-#\[7]XPK7DXKEGRPDOP4MVHNJISQLNDONA43M5YHFEUEARE6QSIJ57CBI 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,.,,,...,,,.,,,.,,.,,,.,,.,.,...,..,,...,...,,..,.,,,.,,,..,,.,.,
+#C4ABCAB6ZOZ2RRLIAGYMXZCS2MEY4TFOAFPJC2NBCDGPJRGX6XM7Q63QIWHMDRBZA46WRDJJNMTTE
+#\\\|YPTDTMZSIHN534BAAOZ4FQQWXV3FVDDAQFWXXDDMJYIGAM2E2G5 \ / AMOS7 \ YOURUM ::
+#\[7]TD263RTWIYZEXCQGO5O5HJQBZQIUY5WBDGCKGV566UGH26UJKGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

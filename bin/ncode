@@ -112,6 +112,8 @@ my %targets = (
     'cfg'    => $PATH->{'root'} . '/configuration/', # configuration root path
     'md'     => $PATH->{'root'} . '/read-me/md/',    # release [markdown] page
     'zenki'  => $PATH->{'root'} . '/configuration/zenki/..,', # p7-zenka progs
+    'docs'   => $PATH->{'root'} . '/data/md/..,',  # design & docs [ recurse ]
+    'tasks'  => $PATH->{'root'} . '/data/tasks/..,',  # task queue [ recurse ]
     'pm-src' => $PATH->{'root'} . '/data/lib-path/pm',    # local perl modules
     'amos' => $PATH->{'root'} . '/data/lib-path/pm/AMOS7', # AMOS perl modules
     'amos-at'  => $PATH->{'root'} . '/data/lib-path/pm/AMOS7/Assert',
@@ -856,7 +858,8 @@ sub cmd_restore_backup {
     system($extract_cmd);
 
     if ( !-d "$temp_dir/configuration" and !-d "$temp_dir/modules" ) {
-        printf " :: invalid backup archive - missing configuration or modules dir ::\n";
+        printf " :: invalid backup archive - "
+            . "missing configuration or modules dir ::\n";
         system("rm -rf $temp_dir");
         return;
     }
@@ -3141,8 +3144,8 @@ sub print_usage {
     print "\n    " . $C{'T'} . $usage_txt . $C{'R'};
 }
 
-#,,,.,.,.,...,,.,,...,,,.,.,.,,,.,..,,,.,,,..,..,,...,..,,...,..,,..,,..,,...,
-#L5LTZLNEN3H4JI7TVT2MAOXHHYH53T3F2TXDY27252J6E5KOXXFB6X372TBXOZ5IPWKDAODNHH6C6
-#\\\|RGWBMUB34TUFY4VKPKOTKBGEQ3HXWLXBWY2AUGT2E7RTVG45Y4Q \ / AMOS7 \ YOURUM ::
-#\[7]ERQCBBKDZVS5JU2TXNR3TX2QS4RN4L7GS2DKSCZBKK6PEL3WFWCY 7  DATA SIGNATURE ::
+#,,,.,...,,,,,...,.,,,..,,..,,,.,,.,.,..,,.,,,..,,...,...,.,.,.,,,.,.,,,.,.,.,
+#G4YN2HJOSIOXXDVZB3PKP7FRDUXLDC4GMXPRWQ2BDOIJW7H5HORYNABYB4EQNG3HRM6SYYNF7AJ4W
+#\\\|QK4L6NQVWTD5I4KATSIVHP2F753GZOTZXCKJUNJ3K7556LQT4TP \ / AMOS7 \ YOURUM ::
+#\[7]FGKKQRJ774SKTO5O7OLLZERJ5N3DC6QZNFHYBR7RA2WOQRHS2CCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

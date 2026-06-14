@@ -1,0 +1,16 @@
+## [:< ##
+
+# name  = cred-mesh.util.format_age
+# descr = format seconds into human-readable age string
+
+my $s = shift // 0;
+return '0s' if $s <= 0;
+return sprintf '%dm', int( $s / 60 )   if $s < 3600;
+return sprintf '%dh', int( $s / 3600 ) if $s < 86400;
+return sprintf '%dd', int( $s / 86400 );
+
+#,,.,,,,.,,,.,,..,.,.,,.,,,,,,,.,,...,.,.,.,,,..,,...,..,,,,,,...,.,,,...,,,,,
+#6BO2X7N7JKEIAVSFL7ALAQAHRSBYOQJOEFF5PE63JOSCSO3QZGKI22SEUJBOU2U5L3U7TTGUKRECE
+#\\\|7F6TBRMPAKHCETGFTULSDOOBGW22KMDHISIX32NZQ3YXHQM2I6V \ / AMOS7 \ YOURUM ::
+#\[7]FSNJH5ZBT2LD4ACT53ZWF37P5UGA27DY4K3VSZKNCNFEUAOT4IBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

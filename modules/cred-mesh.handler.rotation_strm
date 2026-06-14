@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = cred-mesh.handler.rotation_strm
+# descr = push STRM notification to all subscribers when a credential rotates.
+#         args: $slot, $reason
+
+my $slot   = shift // '';
+my $reason = shift // '';
+
+return undef unless length $slot;
+
+my $subs     = <cred-mesh.rotation_subscribers>->{$slot} // [];
+my $all_subs = <cred-mesh.rotation_subscribers>->{'*'}   // [];
+my @combined = ( @$subs, @$all_subs );
+return undef if not @combined;
+
+my $ntime = <[base.time]>->(3);
+
+foreach my $handler (@combined) {
+    ## dispatch STRM-style notification via protocol-7 route-send ##
+    <[protocol-7.route-send]>->(
+        {   'command'   => $handler,
+            'call_args' => {
+                'args' => YAML::XS::Dump(
+                    {   'event'  => 'credential.rotated.' . $slot,
+                        'slot'   => $slot,
+                        'ntime'  => $ntime,
+                        'reason' => $reason,
+                    }
+                )
+            },
+        }
+    );
+}
+
+return scalar @$subs;
+
+#,,,.,,..,,..,.,,,.,,,,,.,..,,.,.,,..,,..,.,,,..,,...,...,,..,.,.,..,,.,.,,.,,
+#U37KH5QOY7GVZRWGVAONU6I5UIRFKTXLCHEZ7Q4Y3T2YUSQDJQDEXZSLHMHZSB7LWK7LRHYFWF3IG
+#\\\|YPWUHMMIECISPAJIGP6TWA53746KR52EODPYSO6PLAGZXT7J3ZY \ / AMOS7 \ YOURUM ::
+#\[7]U2UDHHTISKVNL55QXRPRHDUVS7N5WXL22OEYMGNPAUEDBKHEYCCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

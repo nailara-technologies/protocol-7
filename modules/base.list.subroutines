@@ -422,6 +422,7 @@ return [ qw[
         cube-13.cmd.jump
         credentials.save
         credentials.load
+        cred-mesh.rotate
         coding.task.fail
         coding.task.bury
         coding.init_code
@@ -571,6 +572,9 @@ return [ qw[
         cube.cmd.epoch_v7
         cube.cmd.basepath
         credentials.audit
+        cred-mesh.resolve
+        cred-mesh.encrypt
+        cred-mesh.decrypt
         context.init_code
         content.load_file
         content.init_code
@@ -756,6 +760,7 @@ return [ qw[
         cube.cmd.epoch-num
         cube.cmd.b32-ntime
         credential.resolve
+        cred-mesh.register
         context.cmd.review
         content.cmd.update
         coding.task.status
@@ -937,6 +942,7 @@ return [ qw[
         crypt.cbc.init_code
         crypt.XTEA.pre_init
         credentials.cmd.add
+        cred-mesh.init_code
         context.zenka.state
         context.task.active
         context.style.guide
@@ -1131,6 +1137,7 @@ return [ qw[
         data.get_array_entry
         data.cmd.detach-cube
         credentials.cmd.list
+        cred-mesh.cmd.rotate
         context.share.import
         context.share.export
         context.pattern.find
@@ -1351,6 +1358,10 @@ return [ qw[
         crypt.C25519.key_type
         crypt.C25519.gen_keys
         credentials.init_code
+        cred-mesh.store.local
+        cred-mesh.cmd.ui-show
+        cred-mesh.cmd.resolve
+        cred-mesh.cmd.approve
         context.template.load
         context.priority.rank
         context.delegate.role
@@ -1826,6 +1837,7 @@ return [ qw[
         crypt.C25519.unload_key
         crypt.C25519.sig_fnames
         crypt.C25519.key_exists
+        cred-mesh.seed_registry
         context.template.render
         context.module.dep_pack
         context.delegate.verify
@@ -2050,7 +2062,8 @@ return [ qw[
         crypt.C25519.get_keyname
         crypt.C25519.chk_key_dir
         credentials.read_archive
-        credential_fabric.rotate
+        cred-mesh.ui.query.slots
+        cred-mesh.cmd.list-slots
         context.template.resolve
         context.string.ellipsize
         context.module.dep_order
@@ -2272,9 +2285,7 @@ return [ qw[
         cube-13.cmd.stream-status
         crypt.C25519.load_keypair
         credentials.cmd.authorize
-        credential_fabric.resolve
-        credential_fabric.encrypt
-        credential_fabric.decrypt
+        cred-mesh.util.format_age
         context.delegate.dispatch
         content.cmd.resolve_b32id
         content.cmd.clear-entries
@@ -2495,7 +2506,7 @@ return [ qw[
         crypt.C25519.clear_chksums
         crypt.C25519.cached_chksum
         crypt.C25519.all_key_names
-        credential_fabric.register
+        cred-mesh.key_holder.child
         context.review.consolidate
         context.git.recent_changes
         context.diff.lines_similar
@@ -2727,7 +2738,10 @@ return [ qw[
         crypt.C25519.get_remote_key
         crypt.C25519.gen_keys_typed
         crypt.C25519.compute_shared
-        credential_fabric.init_code
+        cred-mesh.util.perform_auth
+        cred-mesh.ui.query.overview
+        cred-mesh.ui.interactive.up
+        cred-mesh.key_holder.parent
         context.tree.index.position
         context.tree.checksum.state
         context.module.dependencies
@@ -2935,7 +2949,8 @@ return [ qw[
         cube.cmd.reply-encoding-mode
         crypt.C25519.keystr_is_valid
         crypt.C25519.compare_keypair
-        credential_fabric.cmd.rotate
+        cred-mesh.ui.render.overview
+        cred-mesh.subscribe_rotation
         context.tree.checksum.stream
         context.conversation.history
         content.cmd.entries_withheld
@@ -3137,10 +3152,10 @@ return [ qw[
         crypt.C25519.get_usr_keys_dir
         crypt.C25519.chksum_cache.add
         credentials.spawn_web_session
-        credential_fabric.store.local
-        credential_fabric.cmd.ui-show
-        credential_fabric.cmd.resolve
-        credential_fabric.cmd.approve
+        cred-mesh.ui.query.key_holder
+        cred-mesh.ui.query.auth_relay
+        cred-mesh.ui.interactive.down
+        cred-mesh.handler.route_reply
         context.pattern.generate_name
         content.cmd.get_playlist_path
         coding.tools.handler.perltidy
@@ -3345,6 +3360,9 @@ return [ qw[
         crypt.C25519.key_bin_checksums
         crypt.C25519.chksum_cache.retr
         credentials.write_archive_file
+        cred-mesh.util.key_holder.sign
+        cred-mesh.ui.query.slot_detail
+        cred-mesh.ui.interactive.input
         context.tree.summary.init-code
         context.tree.summary.add-event
         context.tree.checksum.template
@@ -3508,7 +3526,10 @@ return [ qw[
         crypt.C25519.cmd.get-public-key
         credentials.pack_format.archive
         credentials.cmd.request_session
-        credential_fabric.seed_registry
+        cred-mesh.ui.query.rotation_log
+        cred-mesh.ui.interactive.action
+        cred-mesh.request-authorization
+        cred-mesh.handler.rotation_strm
         context.tree.summary.get-branch
         context.tree.summary.checkpoint
         context.tree.checksum.init_code
@@ -3652,8 +3673,10 @@ return [ qw[
         crypt.C25519.cmd.get-session-sig
         crypt.C25519.cmd.get-session-key
         crypt.C25519.cmd.clear-zenka-key
-        credential_fabric.ui.query.slots
-        credential_fabric.cmd.list-slots
+        cred-mesh.util.format_holder_age
+        cred-mesh.util.complete_approval
+        cred-mesh.ui.render.rotation_log
+        cred-mesh.ui.interactive.refresh
         context.util.tree.canonical_json
         context.string.common_suffix_len
         context.string.common_prefix_len
@@ -3776,7 +3799,9 @@ return [ qw[
         data.mount.shm.open.mmap_shm_read
         data.mount.shm.open.derive_pubkey
         crypt.C25519.verify_key_signature
-        credential_fabric.util.format_age
+        cred-mesh.util.key_holder.encrypt
+        cred-mesh.util.key_holder.decrypt
+        cred-mesh.ui.render.registry_list
         content.update.send_notifications
         coding.tools.handler.write_append
         coding.tools.handler.replace_line
@@ -3901,7 +3926,7 @@ return [ qw[
         cube.cmd.declare-strm-size-timeout
         crypt.C25519.load_keys_from_secret
         crypt.C25519.get_type_from_key_str
-        credential_fabric.key_holder.child
+        cred-mesh.handler.auth-relay-reply
         context.util.tree.generate_summary
         context.tree.summary.compact.check
         context.review.handler.page_result
@@ -4022,10 +4047,7 @@ return [ qw[
         graphics-3d.handler.cursor_navigate
         external.orbital.sync_grid_fragment
         credentials.handler.session_cleanup
-        credential_fabric.util.perform_auth
-        credential_fabric.ui.query.overview
-        credential_fabric.ui.interactive.up
-        credential_fabric.key_holder.parent
+        cred-mesh.ui.render.registry_detail
         context.util.template.evaluate_when
         context.pattern.extract_from_change
         content.handler.get_exclusive_reply
@@ -4105,8 +4127,8 @@ return [ qw[
         discover.orbital.share_grid_fragment
         debian.parent.resolve_cpan_to_debian
         crypt.C25519.cmd.register-master-key
-        credential_fabric.ui.render.overview
-        credential_fabric.subscribe_rotation
+        cred-mesh.ui.render.auth_relay_queue
+        cred-mesh.ui.interactive.select_view
         context.util.tree.resolve_time_range
         context.util.tree.generate_narrative
         context.pattern.generate_description
@@ -4191,10 +4213,8 @@ return [ qw[
         crypt.C25519.list_key_signature_names
         crypt.C25519.generate_session_keypair
         crypt.C25519.create_signature_request
-        credential_fabric.ui.query.key_holder
-        credential_fabric.ui.query.auth_relay
-        credential_fabric.ui.interactive.down
-        credential_fabric.handler.route_reply
+        cred-mesh.util.key_holder.start_child
+        cred-mesh.ui.render.key_holder_status
         context.util.tree.parse_relative_time
         context.util.tree.calculate_relevance
         context.util.template.substitute_vars
@@ -4266,9 +4286,6 @@ return [ qw[
         httpd.benchmark.get_event_loop_metrics
         graphics.matrix.visual.extract-palette
         external.handler.orbital_connect_reply
-        credential_fabric.util.key_holder.sign
-        credential_fabric.ui.query.slot_detail
-        credential_fabric.ui.interactive.input
         context.provider.frame.bottom_sentinel
         context.investigation.user-me-endpoint
         coding.tools.handler.summarize_context
@@ -4313,10 +4330,6 @@ return [ qw[
         graphics.matrix.visual.build-cubic-grid
         discover.callback.resend_interval_reset
         debian.parent.ensure_zenka_dependencies
-        credential_fabric.ui.query.rotation_log
-        credential_fabric.ui.interactive.action
-        credential_fabric.request-authorization
-        credential_fabric.handler.rotation_strm
         context.pattern.assess_generalizability
         coding.vision-parser.extract.clean_json
         coding.tools.handler.regex_replace_undo
@@ -4371,10 +4384,6 @@ return [ qw[
         data.topology.interference.map.CUBE_SIZE
         data.init_holographic.determine_polarity
         data.init_holographic.coordinate_to_hash
-        credential_fabric.util.format_holder_age
-        credential_fabric.util.complete_approval
-        credential_fabric.ui.render.rotation_log
-        credential_fabric.ui.interactive.refresh
         coding.vision-parser.extraction.workflow
         coding.tools.handler.regex_replace_apply
         coding.learning.generate_recommendations
@@ -4408,9 +4417,6 @@ return [ qw[
         data.init_holographic.generate_field_line
         crypt.C25519.validate_remote_key_checksum
         credentials.unpack_format.archive_payload
-        credential_fabric.util.key_holder.encrypt
-        credential_fabric.util.key_holder.decrypt
-        credential_fabric.ui.render.registry_list
         coding.vision-parser.handler.vision_reply
         base.zenki.ondemand.handler.startup_reply
         base.language.util.encoding_special_chars
@@ -4432,7 +4438,6 @@ return [ qw[
         ncode.transform.wave.util.build_llm_prompt
         letsencr.parent.handler_httpd_reload_reply
         discover.orbital.handler.local_p7ref_reply
-        credential_fabric.handler.auth-relay-reply
         coding.tools.handler.strip_trailing_spaces
         coding.tools.handler.regex_replace_preview
         auth.callback.cap-neg.declare-strm-support
@@ -4456,7 +4461,6 @@ return [ qw[
         debian.parent.callback.register_cpan_module
         data.topology.interference.map.MAX_RGB_DIST
         data.mount.shm.header.write.pack_shm_header
-        credential_fabric.ui.render.registry_detail
         coding.tools.handler.validate_module_format
         coding.handler.models_recommendations_reply
         base.zenka.push.reply-handler.notify-online
@@ -4478,8 +4482,6 @@ return [ qw[
         data.topology.interference.map.hash_to_phase
         data.topology.interference.map.PROTOCOL_BLUE
         data.mount.shm.header.read.unpack_shm_header
-        credential_fabric.ui.render.auth_relay_queue
-        credential_fabric.ui.interactive.select_view
         coding.vision-parser.cmd.analyze_and_extract
         coding.tools.handler.module_convention_check
         coding.learning.analyze_model_specialization
@@ -4490,8 +4492,6 @@ return [ qw[
         image2html.parent.handler.convert_image_reply
         data.mount.shm.permission.add.sign_permission
         data.init_holographic.position_in_intent_path
-        credential_fabric.util.key_holder.start_child
-        credential_fabric.ui.render.key_holder_status
         coding.vision-parser.handler.state_transition
         coding.learning.update_routing_recommendation
         coding.handler.models_record_invocation_reply
@@ -4583,8 +4583,8 @@ return [ qw[
     ]
 ];
 
-#,,..,,..,,,,,,,.,.,,,,.,,.,.,..,,..,,,,.,.,.,.,.,...,...,,,,,,.,,...,..,,,..,
-#2QI5IF4PTEK2INBXPDD236HODYYTL5YHPPY3CP2OLATMKH4R7ZK3JIPSXZGE47QRJCNXA7GVRLSCW
-#\\\|3MHSWGLX3W3KZCIJUQRGGY3AEVO4RIIALP55DUTRN5QZCIBUAK4 \ / AMOS7 \ YOURUM ::
-#\[7]GJIWRDVJPVH46WFFJKM2S3XOGBVI2JUECUTFAOOTDIPIPUKR24AY 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,.,.,,,.,.,,,...,...,,,.,,..,,.,,.,.,...,...,,..,..,,..,,.,,,..,,
+#JYVQS4DTOFBWOVVLC2N2UJ2NUQWK24ZPWALHRZRRGTEMWNVILVB3ZMTS23VQNNNISFL336EI34E3I
+#\\\|L3PVEEE7VV5355S5LGAYIFQPUOX55A5CR4PSCWMX35DMEQRR5DK \ / AMOS7 \ YOURUM ::
+#\[7]BGKS4GRNGD5FGC43OJXX7KLEFHG7EJH3I3JYEXUVA2P3DYLWFWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

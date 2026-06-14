@@ -1,0 +1,96 @@
+## [:< ##
+
+# name  = cred-mesh.init_code
+# descr = initialize credential fabric zenka state, load crypto modules,
+#         set up storage paths, slot registry, and fork key-holder child
+
+my $reinit              = shift // TRUE;
+my $already_initialized = $reinit;
+my $first_init          = $already_initialized ? FALSE : TRUE;
+
+## import socket constants ##
+use Socket qw| AF_UNIX SOCK_STREAM PF_UNSPEC |;
+
+## load crypto modules ##
+map { <[base.perlmod.load]>->($ARG) }
+    qw| AMOS7::13 AMOS7::Twofish Crypt::Ed25519 Crypt::Curve25519 |;
+map { <[base.perlmod.autoload]>->($ARG) } qw| YAML::XS |;
+<[base.perlmod.load]>->('Crypt::Misc')
+    if not <[base.perlmod.loaded]>->('Crypt::Misc');
+<[base.perlmod.load]>->('MIME::Base64')
+    if not <[base.perlmod.loaded]>->('MIME::Base64');
+
+## configure defaults ##
+<cred-mesh.cfg.store_dir>      //= '';
+<cred-mesh.cfg.registry_file>  //= 'registry.yaml';
+<cred-mesh.cfg.audit_log>      //= 'audit.log';
+<cred-mesh.cfg.nonce_size>     //= 16;
+<cred-mesh.size.archive_block> //= 13312;
+
+## in-memory slot registry ##
+<cred-mesh.registry>             //= {};
+<cred-mesh.owners>               //= {};
+<cred-mesh.rotation_subscribers> //= {};
+<cred-mesh.auth_relay_pending>   //= {};
+<cred-mesh.rotation_log>         //= [];
+
+## load persisted rotation log if present ##
+my $log_ref = <[file.zenka_dir.load]>->('rotation.log');
+if ( defined $log_ref ) {
+    my $log_yaml = $log_ref->$* // '';
+    if ( length $log_yaml ) {
+        my $log = eval { YAML::XS::Load($log_yaml) };
+        if ( ref $log eq qw| ARRAY | ) {
+            <cred-mesh.rotation_log> = $log;
+        }
+    }
+}
+
+## load persisted registry if present ##
+my $reg_ref = <[file.zenka_dir.load]>->('registry.yaml');
+if ( defined $reg_ref ) {
+    my $yaml_str = $reg_ref->$* // '';
+    if ( length $yaml_str ) {
+        my $reg = eval { YAML::XS::Load($yaml_str) };
+        if ( ref $reg eq qw| HASH | ) {
+            <cred-mesh.registry> = $reg;
+            ## rebuild owners index ##
+            while ( my ( $slot, $meta ) = each %$reg ) {
+                my $owner = $meta->{'owner'} // qw| cred-mesh |;
+                <cred-mesh.owners>->{$slot} = $owner;
+            }
+        }
+    }
+}
+
+## fork key-holder child on first init ##
+if ( not $already_initialized ) {
+    <[cred-mesh.key_holder.parent]>->(qw| start |);
+}
+
+## seed registry from yaml once ##
+if ( not <cred-mesh.seed.loaded> ) {
+    <[cred-mesh.seed_registry]>;
+}
+
+## register interactive ui commands ##
+my %interactive_cmds = (
+    'interactive-up'          => 'cred-mesh.ui.interactive.up',
+    'interactive-down'        => 'cred-mesh.ui.interactive.down',
+    'interactive-refresh'     => 'cred-mesh.ui.interactive.refresh',
+    'interactive-select-view' => 'cred-mesh.ui.interactive.select_view',
+    'interactive-action'      => 'cred-mesh.ui.interactive.action',
+    'interactive-input'       => 'cred-mesh.ui.interactive.input',
+);
+
+while ( my ( $cmd_name, $module_name ) = each %interactive_cmds ) {
+    $data{'base'}{'cmd'}{$cmd_name} = $module_name;
+}
+
+return 0;
+
+#,,,,,.,.,,.,,.,.,.,,,,,,,...,,..,...,.,,,...,..,,...,...,..,,,..,,..,,..,.,,,
+#D5X6L52IGIPDEL3YPOKRJUBI3KXHZQ7Y6XBPCHMQKSH56KE4NM2KC5A6PHSHBPADQWBVYMFDUMO6W
+#\\\|YZ4XJL3VH2XJCDHLV7BP2SC34ZUJ6LFSB4ZI2XBYSXAYDEILNS4 \ / AMOS7 \ YOURUM ::
+#\[7]7JECXNG4SANJGHGM22TOE76HTNBYTBIV54OTMBLEXEYHBBENI4BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

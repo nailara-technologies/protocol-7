@@ -1,0 +1,72 @@
+## [:< ##
+
+# name  = cred-mesh.register
+# descr = register a credential slot with the fabric.
+#         args: { slot => '...', owner => '...', type => '...',
+#                 storage => '...', rotate => {...}, sensitivity => '...' }
+
+my $params = shift;
+
+return { 'mode' => qw| false |, 'data' => 'expected hashref' }
+    if ref $params ne qw| HASH |;
+
+my $slot = $params->{'slot'} // '';
+return { 'mode' => qw| false |, 'data' => 'missing slot name' }
+    unless length $slot;
+
+my $owner       = $params->{'owner'}       // qw| cred-mesh |;
+my $type        = $params->{'type'}        // qw| api-key |;
+my $storage     = $params->{'storage'}     // qw| local |;
+my $rotate      = $params->{'rotate'}      // {};
+my $sensitivity = $params->{'sensitivity'} // qw| low |;
+
+## validate type ##
+my @valid_types = qw|
+    api-key bearer-token session-cookie basic-auth
+    tls-client-cert psk oauth-token
+    |;
+return {
+    'mode' => qw| false |,
+    'data' => "unsupported credential type '$type'"
+    }
+    unless grep { $ARG eq $type } @valid_types;
+
+## validate sensitivity ##
+my @valid_sens = qw| low medium high |;
+return {
+    'mode' => qw| false |,
+    'data' => "unsupported sensitivity '$sensitivity'"
+    }
+    unless grep { $ARG eq $sensitivity } @valid_sens;
+
+## store in registry ##
+<cred-mesh.registry>->{$slot} = {
+    'slot'        => $slot,
+    'owner'       => $owner,
+    'type'        => $type,
+    'storage'     => $storage,
+    'rotate'      => $rotate,
+    'sensitivity' => $sensitivity,
+    'registered'  => <[base.time]>->(3),
+};
+
+<cred-mesh.owners>->{$slot} = $owner;
+
+## persist registry ##
+eval {
+    my $yaml_str = YAML::XS::Dump(<cred-mesh.registry>);
+    <[file.zenka_dir.write]>->( 'registry.yaml', \$yaml_str, '>', 0600 );
+};
+if ($@) {
+    <[base.logs]>->(
+        0, 'cred-mesh.register: failed to persist registry: %s', $@
+    );
+}
+
+return { 'mode' => qw| true |, 'data' => 'registered' };
+
+#,,,,,..,,...,,.,,.,.,,,.,..,,,..,.,.,,.,,..,,..,,...,...,,,.,..,,.,,,.,,,..,,
+#3TOWI5RVONTONPZLVWG6T6J46PMC76GZJYJLR6BL4EXUHPLWYP6XKHEPLPM3KZRZ6HEUPQGM2AOAA
+#\\\|FH2NSNBLC4BKNBZ7XY7T6MMFCXCNP2CXGP5HBZB7FBZWF6BWRNO \ / AMOS7 \ YOURUM ::
+#\[7]5JITKMA32G4UGXDCKUPC3WIMENRYYQLWBEFVCT67HY4O7U4DCEAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

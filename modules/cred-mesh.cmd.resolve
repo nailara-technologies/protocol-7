@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = cred-mesh.cmd.resolve
+# descr = console resolution of a credential slot.
+#         args: <slot>  (positional, single arg)
+#         wraps <[cred-mesh.resolve]> with empty context.
+#         note: cube strips '.cmd.' segment for console routing.
+
+my $args_str = $call->{'args'} // '';
+$args_str =~ s/^\s+|\s+$//g;
+
+my ($slot) = split qr|\s+|, $args_str;
+$slot //= '';
+
+return { 'mode' => qw| false |, 'data' => 'missing slot name' }
+    unless length $slot;
+
+my $result
+    = <[cred-mesh.resolve]>->( { 'slot' => $slot, 'context' => {} } );
+
+return $result
+    if defined $result and ref $result eq qw| HASH |;
+
+return { 'mode' => qw| false |, 'data' => 'resolve failed' };
+
+## [ end ] ###################################################################
+
+#,,..,,.,,...,.,,,,.,,..,,...,,..,...,.,.,.,,,..,,...,...,...,,,,,,..,,.,,...,
+#UHWRDPTDMOZEY5SCH4BRCXB65BY7QHZECOK5EZSBPUJ6NWZUJFC2VHAJCGCMW764TBS45QBAIJS74
+#\\\|RBKOW5JJ46YRE65NRU6JJ2IA37XEGSDNJ6SK77XHWSFV57DGG4N \ / AMOS7 \ YOURUM ::
+#\[7]G27VWCE67SE4UT626QBJO2NN2AE6CH5S2ZXXTCMUTSUMEJBMOECY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

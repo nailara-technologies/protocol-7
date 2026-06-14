@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = cred-mesh.util.key_holder.start_child
+# descr = fork key-holder child process with socketpair
+
+socketpair(
+    my $parent_pipe, my $child_pipe, AF_UNIX(),
+    SOCK_STREAM(),   PF_UNSPEC()
+    )
+    || do {
+    <[base.s_warn]>->( 'key_holder.parent: socketpair failed: %s', $! );
+    return undef;
+    };
+
+binmode($parent_pipe);
+binmode($child_pipe);
+
+my $pid = <[base.fork]>;
+if ( not defined $pid ) {
+    <[base.s_warn]>->( 'key_holder.parent: fork failed: %s', $! );
+    return undef;
+}
+
+if ( $pid == 0 ) {    ## child ##
+    close($parent_pipe);
+    <[cred-mesh.key_holder.child]>->($child_pipe);
+    exit(0);
+}
+
+## parent ##
+close($child_pipe);
+<cred-mesh.key_holder.pid>  = $pid;
+<cred-mesh.key_holder.pipe> = $parent_pipe;
+
+<[base.logs]>->( 1, 'key_holder.child forked (pid %d)', $pid );
+
+return TRUE;
+
+#,,..,...,.,.,,..,..,,,,.,.,.,...,,,.,,,.,,.,,..,,...,...,...,...,...,..,,,.,,
+#IAMIGMQGHXIDTOUJVWTCYQJLIZVSU7KFJXE5YGHPJSQVLMLRQRJ6244RKI3AKIUMC7KQPBJFXEDP4
+#\\\|SNYTWBUVX4L5N4NARYUX2GR57XCWOI2EFBXN5FTUEIE3FR2SXXA \ / AMOS7 \ YOURUM ::
+#\[7]IM453FCGHKNZSWLBYTVJUZWO7JRO2SEQF7NHZ6XSNOELCRA5M2DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

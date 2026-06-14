@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = cred-mesh.cmd.list-slots
+# descr = console introspection of credential fabric slots.
+#         returns slot name, owner, type, sensitivity, storage,
+#         and last-rotated timestamp without leaking secret material.
+#         note: name avoids collision with base.cmd.list.
+
+my $registry = <cred-mesh.registry> // {};
+my @slots    = sort keys %$registry;
+
+return { 'mode' => qw| size |, 'data' => "no registered slots\n" }
+    if not @slots;
+
+my @lines;
+push @lines,
+    sprintf( "%-24s %-16s %-14s %-10s %-8s %s",
+    qw| slot owner type sensitivity storage rotated | );
+
+foreach my $slot (@slots) {
+    my $meta = $registry->{$slot};
+    push @lines,
+        sprintf(
+        "%-24s %-16s %-14s %-10s %-8s %s",
+        $slot,
+        $meta->{'owner'}       // qw| cred-mesh |,
+        $meta->{'type'}        // qw| api-key |,
+        $meta->{'sensitivity'} // qw| low |,
+        $meta->{'storage'}     // qw| local |,
+        $meta->{'rotated'}     // qw| never |,
+        );
+}
+
+return { 'mode' => qw| size |, 'data' => join( "\n", @lines ) . "\n" };
+
+## [ end ] ###################################################################
+
+#,,.,,,.,,...,..,,.,,,,..,...,...,.,,,,,,,..,,..,,...,...,...,,..,,..,.,.,,.,,
+#KZ4T6UWLNWOHXUI7NREESGE2SGVHKMYUWEPNSMKQJCYUUBE66BN6C3Q7DZMK77AFEAPFTWEPXHMH6
+#\\\|5ZOQM7DHLJ7FVVPDC7DDYYWGUWSWCJEAS3V6FQGA6OOHE6NO2IP \ / AMOS7 \ YOURUM ::
+#\[7]AU35ZZMTJUBWPY63FF6P756GKXYAV3WKDUAYNTRUHVX55SZ2FSDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

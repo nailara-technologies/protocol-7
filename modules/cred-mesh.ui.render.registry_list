@@ -1,0 +1,101 @@
+## [:< ##
+
+# name  = cred-mesh.ui.render.registry_list
+# descr = render the slot registry list frame with column-aligned rows
+
+my $params = shift // {};
+
+my $entry = <[ascii.frame.load]>->('credential-fabric/registry-list');
+return { 'rendered' => '', 'row_keys' => [] } if not defined $entry;
+
+my $focus_index = $params->{'focus_index'};
+
+my $data = <[cred-mesh.ui.query.slots]>;
+
+my $descriptor;
+if ( exists $entry->{'descriptor'} ) {
+    $descriptor = $entry->{'descriptor'};
+} elsif ( exists $entry->{'descriptors'} ) {
+    my $mode = $entry->{'modes'}[0] // 'expanded';
+    $descriptor = $entry->{'descriptors'}{$mode};
+}
+return { 'rendered' => '', 'row_keys' => [] }
+    if not defined $descriptor;
+
+my $slots = $data->{'slots'} // [];
+my $count = scalar @$slots;
+
+## compute column widths from data ##
+my $slot_w  = 4;    ## 'slot' header ##
+my $owner_w = 5;    ## 'owner' header ##
+my $type_w  = 4;    ## 'type' header ##
+my $sens_w  = 4;    ## 'sens' header ##
+
+for my $s (@$slots) {
+    my $sl = length( $s->{'slot'} // '' );
+    $slot_w = $sl if $sl > $slot_w;
+
+    my $ow = length( $s->{'owner'} // '' );
+    $owner_w = $ow if $ow > $owner_w;
+
+    my $tw = length( $s->{'type'} // '' );
+    $type_w = $tw if $tw > $type_w;
+
+    my $sw = length( $s->{'sensitivity'} // '' );
+    $sens_w = $sw if $sw > $sens_w;
+}
+
+## add 2 chars for single quotes around slot name ##
+$slot_w += 2;
+
+my @lines;
+my @row_keys;
+push @lines,
+    sprintf( "%-*s  %-*s  %-*s  %s",
+    $slot_w, 'slot', $owner_w, 'owner', $type_w, 'type', 'sens' );
+
+my $data_row_idx = 0;
+for my $s ( sort { $a->{'slot'} cmp $b->{'slot'} } @$slots ) {
+    my $row = sprintf(
+        "%-*s  %-*s  %-*s  %s",
+        $slot_w,  sprintf( qw| '%s' |, $s->{'slot'} ),
+        $owner_w, $s->{'owner'}, $type_w, $s->{'type'}, $s->{'sensitivity'}
+    );
+
+    ## mark revoked slots ##
+    $row .= ' [revoked]' if $s->{'revoked'};
+
+    push @row_keys, $s->{'slot'};
+
+    ## highlight focused data row [ header is row 0, data starts at 1 ] ##
+    if ( defined $focus_index and $data_row_idx == $focus_index ) {
+        $row = "\e[7m" . $row . "\e[27m";
+    }
+
+    push @lines, $row;
+    $data_row_idx++;
+}
+
+my $block = join "\n", @lines;
+
+my %values = (
+    SLOT_COUNT  => $count,
+    SLOTS_BLOCK => $block,
+);
+
+my $rendered = <[ascii.frame.render]>->(
+    {   descriptor => $descriptor,
+        values     => \%values,
+    }
+);
+
+return {
+    'rendered' => $rendered // '',
+    'row_keys' => \@row_keys,
+};
+
+#,,.,,..,,,..,...,,,.,.,,,,..,,.,,,.,,,..,.,,,..,,...,...,,.,,,,.,,,,,.,.,,,,,
+#4ULHANVCT52SRJW7U2QNBRCNLCGGRSUWBVC4TFCPKYJHNDMU46I3DZ24U2S75S23X5HLSF66M33IW
+#\\\|F6FHEULX54N7RBRGA555P6BVDUI7UW4MA5Z76GFBOTUQRQJ3FML \ / AMOS7 \ YOURUM ::
+#\[7]F4EHEZCEPMLN6UHGCRTLQJ7CM27QF3LHIENK2WR3QRKVF7IBWGDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
