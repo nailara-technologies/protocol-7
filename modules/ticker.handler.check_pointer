@@ -187,7 +187,8 @@ eval {
 ## delayed leave: GTK signal handler sets this, we expire it ##
     if (    not <ticker.mouse.inside>
         and defined <ticker.mouse.leave_pending_until>
-        and <[base.time]>->(5) >= <ticker.mouse.leave_pending_until> ) {
+        and <[base.time]>->(5) >= <ticker.mouse.leave_pending_until>
+        and ( <ticker.display.mode> // qw| continuous | ) ne qw| notify | ) {
         delete <ticker.mouse.leave_pending_until>;
         <ticker.mouse.outside_count> = 0;
         <ticker.mouse.inside_count>  = 0;
@@ -255,21 +256,24 @@ eval {
     return if <ticker.mouse.outside_count> < 3;
 
 ## pointer left ticker window [poll] ##
-    <ticker.mouse.inside>              = FALSE;
-    <ticker.mouse.outside_count>       = 0;
-    <ticker.mouse.inside_count>        = 0;
-    <ticker.mouse.leave_pending_until> = <[base.time]>->(5) + 0.3;
-    <[base.log]>->(
-        1, ': pointer left ticker window (poll), fade-in delayed 300ms'
-    );
+    <ticker.mouse.inside>        = FALSE;
+    <ticker.mouse.outside_count> = 0;
+    <ticker.mouse.inside_count>  = 0;
+
+    if ( ( <ticker.display.mode> // qw| continuous | ) ne qw| notify | ) {
+        <ticker.mouse.leave_pending_until> = <[base.time]>->(5) + 0.3;
+        <[base.log]>->(
+            1, ': pointer left ticker window (poll), fade-in delayed 300ms'
+        );
+    }
 
 };
 
 <[base.log]>->( 0, ': pointer check failed: ' . $EVAL_ERROR )
     if length $EVAL_ERROR;
 
-#,,.,,...,..,,,,,,,,.,,.,,.,,,,..,.,.,,,.,.,.,.,.,...,.,.,.,,,...,.,.,,,.,..,,
-#IQ46GX4ANMNFWAXLX4UCHXTPJRSTBYQJMYVB45KQOYKFMOP5N533G432X6FSJOTWDM6CBD2F4RGR2
-#\\\|X2ZLHFN7ZJST7PVP6QWVEKOFGCPXS3QNOFBMNQU2GHZUOFK4RKJ \ / AMOS7 \ YOURUM ::
-#\[7]ERB2GIVAIE4S4V77XPVIC2IZTIAHAGIS3H7ZK2DU45RDXUZCHWDI 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,...,,,,,,.,,.,,,,..,..,,...,..,,.,.,...,...,.,.,,.,,...,,..,..,,
+#4LMS5RZT5MB7EBQM5Y62IH36GD5MBVDXIZXDILNIRROQANGXIZT3WSXOH6RCMTFCHO77EPKLXMQ3Q
+#\\\|JMMAAVEYLM7BSZXLCM4CEZ26QFYEGNX2I6JP5FUFHSC5F3YC5U6 \ / AMOS7 \ YOURUM ::
+#\[7]VNIZ3LCLKM5ACDRUIUZI2N6IZY5SCCNV7TYGH4JJ7Z3YN7LKYIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

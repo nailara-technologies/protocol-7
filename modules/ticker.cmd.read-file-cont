@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = ticker.cmd.read-file-cont
+# param = <path>
+# descr = update ticker from file in continuous scroll mode
+
+my $file_path = $call->{'args'};
+
+my $loaded = <[ticker.load_file_content]>->($file_path);
+
+if ( defined $loaded->{'error'} ) {
+    <[base.log]>->(
+        0, "[$call->{'session_id'}] $loaded->{'error'} [ $file_path ]"
+    );
+    return { 'mode' => qw| false |, 'data' => $loaded->{'error'} };
+}
+
+<ticker.display.mode> = qw| continuous |;
+delete <ticker.notify.dismissed>;
+
+<[ticker.start_animation]>
+    if !<ticker.animation_started> or $loaded->{'updated'};
+
+return { 'mode' => qw| true |, 'data' => 'ticker display content updated' };
+
+#,,..,..,,..,,..,,.,,,...,.,.,,,.,..,,.,.,,..,.,.,...,..,,...,,,,,,..,,..,...,
+#VU3LZGDJ42RCUUEJG3AKE2MNES6HIVE6FZ3FBVVRS7CCJBM4ST5NFK6T4VACMITKANRUYTBH2UX6E
+#\\\|KAI3DKWBLAIO7SA3OWWC4GLB6OSNKE2EEKAIVDLMQXC72OILZDQ \ / AMOS7 \ YOURUM ::
+#\[7]JVDE7JDTGJQECVEQ2VI5V4WSTOC3HODF5RO2QRMNJWXV54BYGQAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

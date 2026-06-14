@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = ticker.cmd.read-file-notify
+# param = <path>
+# descr = show a one-shot ticker message that dismisses on hover
+
+my $file_path = $call->{'args'};
+
+my $loaded = <[ticker.load_file_content]>->($file_path);
+
+if ( defined $loaded->{'error'} ) {
+    <[base.log]>->(
+        0, "[$call->{'session_id'}] $loaded->{'error'} [ $file_path ]"
+    );
+    return { 'mode' => qw| false |, 'data' => $loaded->{'error'} };
+}
+
+<ticker.display.mode>     = qw| notify |;
+<ticker.notify.dismissed> = FALSE;
+
+my $window     = <ticker.obj.window>;
+my $need_start = (
+           $loaded->{'updated'}
+        or not <ticker.animation_started>
+        or ( defined $window and not $window->get_visible )
+);
+
+<[ticker.start_animation]> if $need_start;
+
+return { 'mode' => qw| true |, 'data' => 'ticker notify content displayed' };
+
+#,,.,,...,,..,,,.,,..,,.,,.,.,.,,,.,,,,,,,,,.,.,.,...,...,,..,,.,,.,.,,,.,,,,,
+#YVMWH6CRGDXPD32HQR2BPLQSLQPENTCRGGCYGBSAITBGEAVZWPA3EHWN7TPSANM4VPXTM5VDUOBH4
+#\\\|QZSA2S4ANESAMCMYKGADUPGCPUI3IFKNZREQDRBRV4RF2EPHNQ5 \ / AMOS7 \ YOURUM ::
+#\[7]3LTOHYBTBANZ6OY7RNLQOIEB27YRMCTSVFSN2PEMR4BHEY6QHOAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
