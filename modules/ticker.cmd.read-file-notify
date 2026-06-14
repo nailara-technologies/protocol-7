@@ -1,16 +1,15 @@
 ## [:< ##
 
 # name  = ticker.cmd.read-file-notify
-# param = [ :wait-dismissed: | :wait: ] <path>
+# param = [:wait-seen:] <path>
 # descr = show a one-shot ticker message that dismisses on hover
 
 my $args = $call->{'args'} // '';
 
 ## strip the optional deferred-reply flag from the front of the arguments ##
+## [:wait: is silently accepted as a short alias]                         ##
 my $wait_for_dismiss = 0;
-if ( $args =~ s{^\s*:wait-dismissed:\s+}{} ) {
-    $wait_for_dismiss = 1;
-} elsif ( $args =~ s{^\s*:wait:\s+}{} ) {
+if ( $args =~ s{^\s*:wait(?:-seen)?:\s+}{} ) {
     $wait_for_dismiss = 1;
 }
 
@@ -27,6 +26,12 @@ if ( defined $loaded->{'error'} ) {
 
 <ticker.display.mode>     = qw| notify |;
 <ticker.notify.dismissed> = FALSE;
+<ticker.hidden>           = FALSE;
+
+if (<ticker.paused>) {
+    <ticker.paused>    = FALSE;
+    <ticker.last_time> = <[base.time]>->(5);
+}
 
 my $window      = <ticker.obj.window>;
 my $was_visible = defined $window && $window->get_visible;
@@ -77,8 +82,8 @@ if ($wait_for_dismiss) {
 
 return { 'mode' => qw| true |, 'data' => 'ticker notify content displayed' };
 
-#,,,.,,,,,,,.,..,,,,.,,,.,,.,,,.,,,.,,..,,.,,,.,.,...,...,..,,..,,,,,,,,,,,..,
-#MMIABNAAB65HI67VYVQNS5Z4K7IYOT4VH4L46YEPLJAVGTOBDQAQALYSATIITI72QHMWDG22LTVZ4
-#\\\|4EQKXWWL6H4LIMYJWKGN6VXOI3XZTIW62VSVUVOHBCPKZKX2SU5 \ / AMOS7 \ YOURUM ::
-#\[7]OOFWZ464DIITRVYHXKBZ2X6RDH2CS2I7S5FQDPEBDWXNJEWWVMCY 7  DATA SIGNATURE ::
+#,,,,,...,...,..,,.,.,...,,..,,..,.,.,,..,,..,.,.,...,...,,,.,.,.,.,.,,,.,,,.,
+#EBGMITDFIKG6J3JQNZPHY7FZA5VACW6WPCOJN2YZDT3VPJC3BYRWUR7OJLM2QOBFUTYQ4C6XQV7K2
+#\\\|IMXK2ZFAV2CWH47MEP2Y3XZ4RPJOM5XXM5IAIBTHTPVHXR43FCQ \ / AMOS7 \ YOURUM ::
+#\[7]6SNRDZSHEDWKUS5FW7DIIYSR47WR2HOCD7LGFBJHJE5FHQGXL4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

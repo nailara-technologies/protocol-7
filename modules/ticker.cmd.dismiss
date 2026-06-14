@@ -1,0 +1,67 @@
+## [:< ##
+
+# name  = ticker.cmd.dismiss
+# param = [:fade:]
+# descr = hide the ticker [either mode] until next update
+
+my $args = $call->{'args'} // '';
+
+## [:fade:] fades out smoothly before hiding; default is immediate ##
+my $fade = 0;
+if ( $args =~ s{^\s*:fade:\s*}{} ) {
+    $fade = 1;
+}
+
+my $window = <ticker.obj.window>;
+
+if ( <ticker.hidden> and ( not defined $window or not $window->get_visible ) )
+{
+    return { 'mode' => qw| true |, 'data' => 'ticker already dismissed' };
+}
+
+## fade out smoothly [if requested, composited and currently visible],     ##
+## then let ticker.handler.fade_out's completion do the actual hide/pause/ ##
+## cleanup via <ticker.dismiss.pending>. otherwise hide immediately.       ##
+if (    $fade
+    and <ticker.is_composited>
+    and defined $window
+    and $window->get_visible
+    and ( $window->get_opacity() // 1 ) > 0.05 ) {
+
+    <ticker.dismiss.pending> = TRUE;
+
+    if ( defined <ticker.timer.fade> ) {
+        <ticker.timer.fade>->cancel;
+        delete <ticker.timer.fade>;
+    }
+    delete <ticker.time.fade_view>;
+
+    <ticker.fade_opacity> = $window->get_opacity();
+    <ticker.fade.handler> = qw| fade_out |;
+    <ticker.timer.fade>   = <[event.add_timer]>->(
+        {   'after'    => 0,
+            'interval' => 0.017,
+            'handler'  => qw| ticker.handler.fade_out |
+        }
+    );
+
+    ## deferred reply: the caller waits until the fade-out completes and    ##
+    ## the ticker is actually hidden [useful for smooth desktop             ##
+    ## transitions].                                                        ##
+    if ( defined $call->{'reply_id'} ) {
+        push @{<ticker.dismiss.pending_reply_ids>}, $call->{'reply_id'};
+        return { 'mode' => qw| deferred | };
+    }
+
+    return { 'mode' => qw| true |, 'data' => 'ticker dismissing' };
+}
+
+<[ticker.dismiss_now]>;
+
+return { 'mode' => qw| true |, 'data' => 'ticker dismissed' };
+
+#,,.,,.,,,..,,.,.,,,.,..,,,.,,.,.,...,..,,.,,,..,,...,...,,..,,.,,,,,,,..,.,.,
+#KVXPX3PFAFVGJSWKYHLFD54CZMMKTYZIFOZPUP6UYDCCYB3DO6ZZ72BLE5GPED4EUNJFSGIRCO3B4
+#\\\|CVYEJFNOVYJNVIZM2TLNJVIT6MXBTNIIDWV3SEJ3XMLHNV7QO6Y \ / AMOS7 \ YOURUM ::
+#\[7]6VRCYMYUYS4S2C4MFDINRC5SJQKX22ZACAMTY4POKYZKBYAE4YCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

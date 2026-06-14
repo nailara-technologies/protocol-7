@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = ticker.dismiss_now
+# descr = immediately hide+pause the ticker [continuous or notify mode] and
+#         resolve any pending :wait-seen: replies as cancelled. shared by
+#         ticker.cmd.dismiss [immediate path] and ticker.handler.fade_out
+#         [fade-then-dismiss completion].
+
+my $window = <ticker.obj.window>;
+
+$window->hide if defined $window;
+
+delete <ticker.dismiss.pending>;
+<ticker.hidden> = TRUE;
+<ticker.paused> = TRUE;
+delete <ticker.animation_started>;
+delete <ticker.draw.x_pos>;
+
+if ( defined <ticker.timer.fade> ) {
+    <ticker.timer.fade>->cancel;
+    delete <ticker.timer.fade>;
+}
+delete <ticker.time.fade_view>;
+delete <ticker.fade.handler>;
+delete <ticker.fade_opacity>;
+
+## :wait-seen: callers were waiting for the user to see the message - it    ##
+## was dismissed programmatically before that happened, so reply FALSE.    ##
+my $pending = <ticker.notify.pending_reply_ids> // [];
+if ( scalar @{$pending} ) {
+    foreach my $reply_id ( @{$pending} ) {
+        <[base.callback.cmd_reply]>->(
+            $reply_id,
+            {   'mode' => qw| false |,
+                'data' =>
+                    'notify cancelled [ticker.dismiss before user interaction]'
+            }
+        );
+    }
+    <ticker.notify.pending_reply_ids> = [];
+}
+
+## resolve any deferred ticker.dismiss :fade: replies now that the ticker  ##
+## is actually hidden.                                                     ##
+my $dismiss_pending = <ticker.dismiss.pending_reply_ids> // [];
+if ( scalar @{$dismiss_pending} ) {
+    foreach my $reply_id ( @{$dismiss_pending} ) {
+        <[base.callback.cmd_reply]>->(
+            $reply_id, { 'mode' => qw| true |, 'data' => 'ticker dismissed' }
+        );
+    }
+    <ticker.dismiss.pending_reply_ids> = [];
+}
+
+#,,..,,..,.,,,,,,,..,,.,,,.,,,.,,,,.,,.,.,,.,,..,,...,...,,,.,,.,,,,,,..,,.,,,
+#NAVHEZX4PT3U6IBRQVYBXZIW3BJQIAP5VTNFM66SLSPSZFNGZBGYNSX65AKFB7HIKD23WJM5KK4B6
+#\\\|ODVHPH64ZSI2MEPLIG4ZBK2AY4XYX56OT3HDYMCKLVUJNH4A3EX \ / AMOS7 \ YOURUM ::
+#\[7]BJNH45IQLI4QNPAMEGA4NNND7IMSEG27BZK24UUJ26RBXDLEQIDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

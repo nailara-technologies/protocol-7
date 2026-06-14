@@ -12,6 +12,10 @@
 return if not <ticker.mouse.avoid>;
 return if not <ticker.obj.window>->get_visible;
 
+## a fade-out triggered by ticker.dismiss is in progress - let it run to    ##
+## completion without the swap-edge logic below restarting a fade-in.      ##
+return if <ticker.dismiss.pending>;
+
 my $window = <ticker.obj.window>;
 
 eval {
@@ -188,7 +192,8 @@ eval {
     if (    not <ticker.mouse.inside>
         and defined <ticker.mouse.leave_pending_until>
         and <[base.time]>->(5) >= <ticker.mouse.leave_pending_until>
-        and ( <ticker.display.mode> // qw| continuous | ) ne qw| notify | ) {
+        and ( <ticker.display.mode> // qw| continuous | ) ne qw| notify |
+        and not <ticker.hidden> ) {
         delete <ticker.mouse.leave_pending_until>;
         <ticker.mouse.outside_count> = 0;
         <ticker.mouse.inside_count>  = 0;
@@ -260,7 +265,8 @@ eval {
     <ticker.mouse.outside_count> = 0;
     <ticker.mouse.inside_count>  = 0;
 
-    if ( ( <ticker.display.mode> // qw| continuous | ) ne qw| notify | ) {
+    if ( ( <ticker.display.mode> // qw| continuous | ) ne qw| notify |
+        and not <ticker.hidden> ) {
         <ticker.mouse.leave_pending_until> = <[base.time]>->(5) + 0.3;
         <[base.log]>->(
             1, ': pointer left ticker window (poll), fade-in delayed 300ms'
@@ -272,8 +278,8 @@ eval {
 <[base.log]>->( 0, ': pointer check failed: ' . $EVAL_ERROR )
     if length $EVAL_ERROR;
 
-#,,.,,,.,,,,.,...,,,,,,.,,.,,,,..,..,,...,..,,.,.,...,...,.,.,,.,,...,,..,..,,
-#4LMS5RZT5MB7EBQM5Y62IH36GD5MBVDXIZXDILNIRROQANGXIZT3WSXOH6RCMTFCHO77EPKLXMQ3Q
-#\\\|JMMAAVEYLM7BSZXLCM4CEZ26QFYEGNX2I6JP5FUFHSC5F3YC5U6 \ / AMOS7 \ YOURUM ::
-#\[7]VNIZ3LCLKM5ACDRUIUZI2N6IZY5SCCNV7TYGH4JJ7Z3YN7LKYIAQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,,,,,,,.,.,.,.,,,...,.,,,.,.,..,,.,.,...,...,...,.,,,,,,,.,,,,.,,
+#GONM72SPVSELOKTEUI7TMLGMO3PYFYFI4OKBILQYREBVKH3OIVGZEB6GLQGQZITKF6GNHAVRVUBGU
+#\\\|LT7FD5DOK2FD2EQ7S5EX33KWIRMTAVSNG4OFGHW4HXIGNRPVWZR \ / AMOS7 \ YOURUM ::
+#\[7]OVHR32JHGFDHZGCCZSJDURJCU7OJL5IQ752TFUOGDRWDD7BRKSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
