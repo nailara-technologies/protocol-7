@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = cred-mesh.ui.query.slot_detail
+# descr = return full metadata for a single slot, or undef if unknown
+
+my $params = shift             // {};
+my $slot   = $params->{'slot'} // '';
+
+return undef unless length $slot;
+
+my $meta = <cred-mesh.registry>->{$slot};
+return undef unless defined $meta;
+
+## subscribers ##
+my @subscribers;
+my $subs_ref = <cred-mesh.rotation_subscribers>->{$slot} // [];
+push @subscribers, @$subs_ref;
+
+## wildcard subscribers ##
+my $wild_ref = <cred-mesh.rotation_subscribers> {qw| * |} // [];
+push @subscribers, @$wild_ref;
+
+## dedupe ##
+my %seen;
+@subscribers = grep { not $seen{$ARG}++ } @subscribers;
+
+my $rotate   = $meta->{'rotate'}     // {};
+my $interval = $rotate->{'interval'} // qw| manual |;
+
+return {
+    'slot'            => $slot,
+    'owner'           => $meta->{'owner'}       // qw| cred-mesh |,
+    'type'            => $meta->{'type'}        // qw| api-key |,
+    'sensitivity'     => $meta->{'sensitivity'} // qw| low |,
+    'storage'         => $meta->{'storage'}     // qw| local |,
+    'registered'      => $meta->{'registered'}  // '',
+    'last_rotated'    => $meta->{'rotated'}     // qw| never |,
+    'rotate_interval' => $interval,
+    'subscribers'     => \@subscribers,
+};
+
+#,,,.,...,,,.,..,,...,,.,,,.,,...,.,.,,..,.,.,..,,...,...,...,,.,,,..,,,,,,..,
+#3NPASREXCAVTN7YXVO4XAFA6IOJW4GL3M57VKRQSFESIEGBUBXT5I4GFNJMPIAPSBCGCCZ4DPZLYQ
+#\\\|5GA5Q24YNTKK2ZOKTZK6IJHWF77DYNZO466R256MUTEPQPOHAXR \ / AMOS7 \ YOURUM ::
+#\[7]KHMLOQH56ZURJEJKPX5PM6ZBRV2BFA7CONXST6FD4AXW56FTQEAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

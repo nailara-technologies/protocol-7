@@ -24,20 +24,22 @@ if ( defined $data{'proxy'}{'listen_sock'} ) {
     my $good_fd   = fileno( $data{'proxy'}{'listen_sock'} );
     my $good_port = <proxy.cfg.listen_port> // 8118;
     if ( defined $good_fd and opendir my $dh, '/proc/self/fd' ) {
-        for my $entry ( grep { m{^\d+$} } readdir $dh ) {
+        for my $entry ( grep {m{^\d+$}} readdir $dh ) {
             my $fd = int($entry);
             next if $fd == $good_fd;
             my $target = readlink("/proc/self/fd/$fd") // '';
             next unless $target =~ m{^socket:};
             ## dup fd to inspect without risking close of original ##
             open( my $fh, '+<&', $fd ) or next;
-            my $sa   = getsockname($fh);
+            my $sa = getsockname($fh);
             close $fh;
             my $port = eval {
-                defined $sa ? ( Socket::unpack_sockaddr_in($sa) )[0] : undef
+                defined $sa ? ( Socket::unpack_sockaddr_in($sa) )[0] : undef;
             };
             next unless defined $port and $port == $good_port;
-            <[base.logs]>->( 1, 'proxy: closing stale listen socket fd %d', $fd );
+            <[base.logs]>->(
+                1, 'proxy: closing stale listen socket fd %d', $fd
+            );
             POSIX::close($fd);
         }
         closedir $dh;
@@ -45,8 +47,8 @@ if ( defined $data{'proxy'}{'listen_sock'} ) {
 }
 
 ## subscribe to credential rotation events ##
-if ( exists $code{'credential_fabric.subscribe_rotation'} ) {
-    <[credential_fabric.subscribe_rotation]>->(
+if ( exists $code{'cred-mesh.subscribe_rotation'} ) {
+    <[cred-mesh.subscribe_rotation]>->(
         {   'slot'    => '*',
             'handler' => 'proxy.handler.cred_rotated',
         }
@@ -55,8 +57,8 @@ if ( exists $code{'credential_fabric.subscribe_rotation'} ) {
 
 0;
 
-#,,,,,.,,,,,.,...,,,.,,.,,.,.,..,,.,.,...,..,,..,,...,...,..,,...,..,,..,,.,.,
-#E3PCVMTHWQDUJGJJ5CIY6JPXH3P4PD4SR5FMNSIGBTNMKM5ILQ6A5NJHQU6SH3OJUTELESVGAENJG
-#\\\|WIIHS3VFWYF3STF6634R7VK5BGLLADM3WXGUSLVFKWIMPMO7YPZ \ / AMOS7 \ YOURUM ::
-#\[7]DBSEGIXDFBVN5RHWNCBEWYHQ7NUIGFPYG6YEOWNPNPIAOQOYPWCI 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,,,.,..,,.,,,,.,,...,,,.,.,,,.,.,..,,...,...,.,,,,.,,.,,,,,.,.,.,
+#3HE2GMIKKRX7EOLVUZ5JINWS2DPIY52DQ6IYRFCTX4LH4FPYMUCVNVFYVSIHWPGSJBU5JLH37GD4Q
+#\\\|IYCMU2SEU5URD6UUZ6P3GSMALTZ5RG7B2DPP3ZBMTQFNOBUAGN6 \ / AMOS7 \ YOURUM ::
+#\[7]NJDKR6O3KIODRHTOHYJ3MZXZMBMEXXXBDECD6LWJCTD3OLOAS4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,10 +1,10 @@
 ## [:< ##
 
 # name  = proxy.handler.auth_lookup_reply
-# descr = handle credential_fabric.resolve reply, populate auth context,
+# descr = handle cred-mesh.resolve reply, populate auth context,
 #         call post_auth to continue request processing.
 
-my $reply     = shift // {};
+my $reply     = shift              // {};
 my $params    = $reply->{'params'} // {};
 my $client_id = $params->{'client_id'};
 my $domain    = $params->{'domain'} // '';
@@ -49,8 +49,8 @@ $client->{'state'} = 'processing';
 
 return;
 
-#,,..,.,.,,.,,,.,,,.,,,.,,.,,,,.,,,,,,,,.,.,,,..,,...,...,.,,,.,,,,,,,..,,,.,,
-#3JSV4NMW2STMEMLVXPIBKD2Q3YYNRR4CNI5XAUEWFREAF5QGWMPLEI6ZSEYRQ2GAGGJIBOCV2EG4I
-#\\\|GMJ7IVP5BA2ZEA4LQXE3XOUE3XJ2WWWHUK2VRSFB6L7DZGLD4VZ \ / AMOS7 \ YOURUM ::
-#\[7]RG2SHFDSYQBGM6DYMOC75JYLPMG34X2Z2RFLMQDR6Z6RQRCNXSCQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,.,,,..,,.,,,,..,.,,,,,.,.,.,,..,..,,...,...,,.,,,,.,,,,,,..,.,,,
+#NL3PP3ZTCSRROXW6WZOPNLD57BJN74ISPTPEJBVQHNEMFLP2DZVWXTCXN5CONGIZS75FWTVBWUI7S
+#\\\|PD3NYUG2CS6RBGZOOEKXUYPTYTFUCWAOGNV4BXM7AWRK7UW4YH6 \ / AMOS7 \ YOURUM ::
+#\[7]FBZX26UN4PLR4GWCZUOKZFYLMZGDZW4TLDWLNOGRIABHBFINO2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

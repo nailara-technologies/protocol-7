@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = cred-mesh.ui.interactive.down
+# descr = move credential-fabric ui focus down one row, clamp to row_count - 1
+
+my $call_args = shift // {};
+
+my $session_id = $call_args->{'session_id'} // '';
+if ( defined $call_args->{'args'}
+    and $call_args->{'args'} =~ m|session_id=(\d{3,17})| ) {
+    $session_id = $1;
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => 'missing session_id'
+    }
+    unless length $session_id;
+
+my $ui    = $data{'session'}{$session_id}{'cred-mesh'}{'ui'};
+my $focus = $ui->{'focus'};
+return {
+    'mode' => qw| false |,
+    'data' => 'no active ui focus'
+    }
+    if not defined $focus
+    or ref $focus ne qw| HASH |;
+
+my $max_index = $focus->{'row_count'} > 0 ? $focus->{'row_count'} - 1 : 0;
+$focus->{'row_index'}++;
+$focus->{'row_index'} = $max_index if $focus->{'row_index'} > $max_index;
+
+return <[cred-mesh.ui.interactive.refresh]>->($call_args);
+
+#,,.,,...,,..,..,,,,.,...,.,.,..,,,.,,.,.,,,,,.,.,...,...,..,,,,,,,,,,,,,,,,,,
+#2DSO2ZZYDPE5YFVY6VCEIUW6DYDWZUMN6UCMNIRDNBIQYVJJROVINFJTK7RCGQCX2SNJH3LMTVQ22
+#\\\|4BAKZM6JKILROVJOWXBBOD2HQUXXSL7LMPL37EH22SG3MM56Y4T \ / AMOS7 \ YOURUM ::
+#\[7]ZNAQNRFRL3AWTVDURZQ426EZJLJBRK6OSCPKEVXU35FNRQK5YYAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
