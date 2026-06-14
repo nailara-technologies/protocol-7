@@ -18,6 +18,17 @@ return 0 unless defined $cmd and length $cmd;
 <[base.buffer.add_line]>->( qw| no-tty-debug |, "shell_loop: cmd=$cmd" )
     if <nshell.mode.no_tty_debug>;
 
+## detect credential-fabric ui entry and attach session_id for focus state ##
+my $nshell_state = <nshell.state> // {};
+if ( $cmd =~ m{^\s*credential_fabric\.ui[.-]show(?:\s|$) } ) {
+    $nshell_state->{'credential_fabric_ui_active'}  = TRUE;
+    $nshell_state->{'credential_fabric_ui_pending'} = undef;
+    $nshell_state->{'credential_fabric_ui_session'} = $cube_sid
+        if defined $cube_sid;
+    $cmd =~ s/\s+$/ /;
+    $cmd .= ' session_id=' . $cube_sid if defined $cube_sid;
+}
+
 ## Log command to terminal-history with endline padding
 ## One blank line before, then command block with : borders, blank line after
 ## Encode control characters for safe history storage
@@ -43,8 +54,8 @@ if ( defined $cube_sid and exists $data{'session'}{$cube_sid} ) {
 
 return 0;
 
-#,,..,.,.,,.,,,.,,,,,,.,.,,.,,,,.,,.,,...,.,,,.,.,...,...,.,,,..,,.,,,,..,,,.,
-#3QBHQOTI23CJTZJMIFJF2W33KQZKGLJKWAFF2SDNJOFOXA6ER436GM22WVRSLEG5LHHVJ7DMWMH3O
-#\\\|KQSDKUGEWQP5WFXJ2UZ7QV6RVKNU7V2IYHAKKDSMIWCBAUY4I53 \ / AMOS7 \ YOURUM ::
-#\[7]QOT75HFJYEX4CRT2GEXKSLAPKP4JN23F62FV2LVMXYZYU4QGXYDA 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,.,,,..,,,.,,.,.,.,,,,,.,,,,,,.,,.,.,...,...,.,,,,..,,..,..,,,.,,
+#V3RYQGG4CB7ZDOANZFTNYHR6O6DK2YODMCXL4OQ4FIH6QYT3FX6P7EL5QE24RQSQEBOCXUBJMII5K
+#\\\|OVAQFEFQETBDIJRCOJRPN4SXWZRDTGB3JZW3BL2QWKCHB3O7W52 \ / AMOS7 \ YOURUM ::
+#\[7]SD6ETQDA24YOZPJ3P2FJTPXMBZE3VOTMDU2RFEECCNZFPP6MD2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
