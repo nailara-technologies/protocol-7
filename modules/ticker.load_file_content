@@ -21,7 +21,9 @@ if ( $content_chksum eq <ticker.content.chksum> ) {
     ## the parsed text map; if the map is gone, re-parse the cached text.   ##
     if ( not defined <ticker.content.current.txt_map>
         and length <ticker.content.txt> ) {
-        <[base.log]>->( 2, "content unchanged but txt map missing, re-parsing.," );
+        <[base.log]>->(
+            2, "content unchanged but txt map missing, re-parsing.,"
+        );
         <[ticker.parse_text]>->(<ticker.content.txt>);
     } else {
         <[base.log]>->( 2, "content unchanged, update skipped.," );
@@ -32,6 +34,18 @@ if ( $content_chksum eq <ticker.content.chksum> ) {
 <ticker.content.chksum> = $content_chksum;
 <ticker.content.txt>    = ${ <[file.slurp]>->($file_path) };
 <ticker.content.len>    = length(<ticker.content.txt>);
+
+## harmonized L13 checksum [ for notify-dismiss reply tagging ] ##
+my $bmw512 = <[chk-sum.bmw.ctx]>->(512);
+open( my $BMW_FD, qw| <:raw |, $file_path )
+    or return {
+    'updated' => FALSE,
+    'error'   => <[base.format_error]>->($OS_ERROR)
+    };
+$bmw512->addfile($BMW_FD);
+close($BMW_FD);
+<ticker.content.chksum_L13>
+    = <[chk-sum.bmw.calculate_L13_sum]>->( $bmw512->digest );
 
 <ticker.content.txt> =~ s|\s+| |sg;
 <ticker.content.txt> =~ s,^ | $,,g;
@@ -49,8 +63,8 @@ if ( $content_chksum eq <ticker.content.chksum> ) {
 
 return { 'updated' => TRUE, 'error' => undef };
 
-#,,,.,...,..,,...,,.,,,,,,...,,.,,.,.,,,.,,,.,.,.,...,...,,,,,,,.,,,.,..,,.,.,
-#5YCB7QBIFSSSC25WLLYMIRTXLB5OXY7U3BTN32WXWAM4URDMTTXPDGTYTWFYS5MYO7OYHYKI4DCCG
-#\\\|AKDU5FXJBNFR2EYSXQU2ZN6TVA2MYK72SOR7KPP27NLKK22DDO7 \ / AMOS7 \ YOURUM ::
-#\[7]D36DRGEMXAGF545I6LZ7BSFLLGLWPJLXC3VDPTQXODPCZIXBZCBA 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,,.,,.,,,,.,,,,,.,.,.,,,..,,,..,.,.,...,...,,.,,.,,,,,.,,..,.,.,
+#GMVJABHP2HJAKX36TGG6HWPUEHMBJU6KOJWO7CAJG7FED2QGHP4LTMMTQIHUWR2UZGUNTZMMPHWBY
+#\\\|O6SO3OLUYZ3K2N42EUERZ2VI3YY5APWA2DBLFRAED6Z6PO3OOBL \ / AMOS7 \ YOURUM ::
+#\[7]2NS4ZUAPFCMHTQUHN33ZRN62OQKQYNKULEDVJ6D5S3PNKD7PJUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

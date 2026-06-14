@@ -18,13 +18,20 @@ if ( defined $loaded->{'error'} ) {
 <ticker.display.mode> = qw| continuous |;
 delete <ticker.notify.dismissed>;
 
+## restore the configured placement profile after a notify-mode top-strip  ##
+## override. if the profile was not overridden this is a harmless no-op.   ##
+if ( defined <ticker.window.profile> ) {
+    <[ticker.cmd.set-window-profile]>
+        ->( { 'args' => <ticker.window.profile> } );
+}
+
 <[ticker.start_animation]>
     if !<ticker.animation_started> or $loaded->{'updated'};
 
 return { 'mode' => qw| true |, 'data' => 'ticker display content updated' };
 
-#,,..,..,,..,,..,,.,,,...,.,.,,,.,..,,.,.,,..,.,.,...,..,,...,,,,,,..,,..,...,
-#VU3LZGDJ42RCUUEJG3AKE2MNES6HIVE6FZ3FBVVRS7CCJBM4ST5NFK6T4VACMITKANRUYTBH2UX6E
-#\\\|KAI3DKWBLAIO7SA3OWWC4GLB6OSNKE2EEKAIVDLMQXC72OILZDQ \ / AMOS7 \ YOURUM ::
-#\[7]JVDE7JDTGJQECVEQ2VI5V4WSTOC3HODF5RO2QRMNJWXV54BYGQAA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,...,,.,,,,.,,,,,,.,,.,,,,,.,,,.,.,.,...,..,,..,,...,,,,,,..,..,,
+#CTREJJ34EDGUUI6XJBSRCPBMQ546O5SKP5QC3BJ6XZQCCWEAACXNKMP4UDDORMXQPKD54FGFJXBVM
+#\\\|DNGNXUSGXLOSUHSEXF7PYTMRMXP5M2NVJMOV7RX2N2PY374MIHW \ / AMOS7 \ YOURUM ::
+#\[7]Q6NEX74RSYUEFGJDGLIKH5A4PEAUKASO76JCWFQY4ORGUSZNUADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

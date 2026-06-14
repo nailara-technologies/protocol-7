@@ -47,6 +47,28 @@ if ( <ticker.fade_opacity> == 0 ) {
         delete <ticker.animation_started>;
         delete <ticker.draw.x_pos>;
 
+        ## resolve any deferred :wait-dismissed: replies, including all      ##
+        ## pending ones from back-to-back notify calls.                      ##
+        my $pending = <ticker.notify.pending_reply_ids> // [];
+        if ( scalar @{$pending} ) {
+            my $chksum     = <ticker.content.chksum_L13> // '';
+            my $reply_data = "notify dismissed [$chksum]";
+            foreach my $reply_id ( @{$pending} ) {
+                <[base.callback.cmd_reply]>->(
+                    $reply_id,
+                    {   'mode' => qw| true |,
+                        'data' => $reply_data
+                    }
+                );
+            }
+            <ticker.notify.pending_reply_ids> = [];
+            <[base.log]>->(
+                1,
+                sprintf( ': notify resolved %d deferred reply(s)',
+                    scalar @{$pending} )
+            );
+        }
+
         if ( <[base.cfg_bool]>->(<ticker.notify.terminate_after_dismiss>) ) {
             <[base.log]>->(
                 1, ': notify terminate_after_dismiss enabled, exiting'
@@ -74,8 +96,8 @@ if ( <ticker.fade_opacity> == 0 ) {
     $timer->cancel;
 }
 
-#,,,,,..,,,.,,...,,,.,,.,,.,.,,.,,.,.,,..,,..,.,.,...,...,,..,,,.,...,...,,,,,
-#SEIXJVRD45BRIFIMW7L37Z6CTMCUQY3F5MKMYYZFHIFRPTZRDZPVZL55LCBKLBX7LIEMH4RM4DXEG
-#\\\|WSN77LBMEJVFHA5RLL7S2IS22K6KNHLPVP4PGWIQDFH4GGQJTQI \ / AMOS7 \ YOURUM ::
-#\[7]CACCPCRYE2UV3SBBNFBAICNELWFRQMXRGIAAKIBJMHJVGBMXKEDY 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,.,.,.,,,...,,,.,..,,,,.,,.,,..,,.,.,...,..,,...,...,...,,,,,...,
+#BHKPAYNO2NXUGPDZKY2G7EFDVESJ7KTOZMBZSG5GPCTL5MWDH74QLDMSUVFA7YWFDCQHYBXUG3MHG
+#\\\|A6WZ5V3GKHYVY4AAKU3WWESBTQRGDSVL4UWXUTR2WRF4NJOZQ6X \ / AMOS7 \ YOURUM ::
+#\[7]RJJ3B5V63ZHYFWFDUIDOUVXWEREZFWV6LD6HCOG3R7MDWI55TIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

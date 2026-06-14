@@ -1,10 +1,20 @@
 ## [:< ##
 
 # name  = ticker.cmd.read-file-notify
-# param = <path>
+# param = [ :wait-dismissed: | :wait: ] <path>
 # descr = show a one-shot ticker message that dismisses on hover
 
-my $file_path = $call->{'args'};
+my $args = $call->{'args'} // '';
+
+## strip the optional deferred-reply flag from the front of the arguments ##
+my $wait_for_dismiss = 0;
+if ( $args =~ s{^\s*:wait-dismissed:\s+}{} ) {
+    $wait_for_dismiss = 1;
+} elsif ( $args =~ s{^\s*:wait:\s+}{} ) {
+    $wait_for_dismiss = 1;
+}
+
+my $file_path = $args;
 
 my $loaded = <[ticker.load_file_content]>->($file_path);
 
@@ -18,6 +28,18 @@ if ( defined $loaded->{'error'} ) {
 <ticker.display.mode>     = qw| notify |;
 <ticker.notify.dismissed> = FALSE;
 
+## notify messages use the top strip by default so they do not overlap the ##
+## continuous-mode ticker. swap-edge mode manages its own placement, so    ##
+## skip the override there.                                                ##
+if ( <[base.cfg_bool]>->(<ticker.notify.use_top_position>)
+    and not <[base.cfg_bool]>->(<ticker.mouse.swap_edge>) ) {
+    my $previous_profile = <ticker.window.profile> // qw| bottom-strip |;
+    <[ticker.cmd.set-window-profile]>->( { 'args' => qw| top-strip | } );
+
+    ## restore the configured profile so continuous mode later returns to it ##
+    <ticker.window.profile> = $previous_profile;
+}
+
 my $window     = <ticker.obj.window>;
 my $need_start = (
            $loaded->{'updated'}
@@ -27,10 +49,22 @@ my $need_start = (
 
 <[ticker.start_animation]> if $need_start;
 
+## deferred reply: the caller waits until the user hovers/dismisses        ##
+if ($wait_for_dismiss) {
+    if ( defined $call->{'reply_id'} ) {
+        push @{<ticker.notify.pending_reply_ids>}, $call->{'reply_id'};
+        <[base.log]>->( 1, ': notify deferred reply registered' );
+        return { 'mode' => qw| deferred | };
+    }
+    <[base.log]>->(
+        0, ': :wait-dismissed: requested but no reply_id available'
+    );
+}
+
 return { 'mode' => qw| true |, 'data' => 'ticker notify content displayed' };
 
-#,,.,,...,,..,,,.,,..,,.,,.,.,.,,,.,,,,,,,,,.,.,.,...,...,,..,,.,,.,.,,,.,,,,,
-#YVMWH6CRGDXPD32HQR2BPLQSLQPENTCRGGCYGBSAITBGEAVZWPA3EHWN7TPSANM4VPXTM5VDUOBH4
-#\\\|QZSA2S4ANESAMCMYKGADUPGCPUI3IFKNZREQDRBRV4RF2EPHNQ5 \ / AMOS7 \ YOURUM ::
-#\[7]3LTOHYBTBANZ6OY7RNLQOIEB27YRMCTSVFSN2PEMR4BHEY6QHOAA 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,,,,,.,.,.,,,,,,,,.,,,,.,,,.,,,,,.,.,...,...,...,.,.,,..,...,,,.,
+#VZGJPJYVUSP2I75XSORCMTEOGTUII7GF62VDSBVNV4X4KPMUZE3DCOKHYFAIQDTTFC3Q4IZYUEQI2
+#\\\|ASE7TLFTRR5ZBR3TGY6BJVROAZNG3HEABAOSZPO6M7W7U74SOVI \ / AMOS7 \ YOURUM ::
+#\[7]357Q7EOLZDNEMLPHQ6UID4CHZNMSNHUKGYKVQIEZPLTCMOD36YBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
