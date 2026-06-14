@@ -30,6 +30,21 @@ if ( not defined $window ) {
         my @geo = eval { $X->GetGeometry($window_id) };
         if ( not length $EVAL_ERROR and @geo >= 6 ) {
             my %geo = @geo;
+
+            ## GetGeometry returns x/y relative to the window's parent, not ##
+            ## the root window. under WSLg/Weston the client is reparented  ##
+            ## into a small WM/decoration frame, so this is a near-constant ##
+            ## offset [eg 32,32] regardless of the window's screen position.##
+            ## translate (0,0) of the window into root coordinates to get   ##
+            ## the actual on-screen position.                               ##
+            my ( $same_screen, $child, $dst_x, $dst_y ) = eval {
+                $X->TranslateCoordinates( $window_id, $X->root, 0, 0 );
+            };
+            if ( not length $EVAL_ERROR and defined $dst_x ) {
+                $geo{'x'} = $dst_x;
+                $geo{'y'} = $dst_y;
+            }
+
             ## keep the same "w h x y" ordering the WM path has always used ##
             return {
                 'mode' => qw| true |,
@@ -44,8 +59,8 @@ return { 'mode' => qw| false |, 'data' => 'no such window' }
 
 return { 'mode' => qw| true |, 'data' => join( ' ', $window->geometry ) };
 
-#,,.,,,..,..,,,,,,,,.,.,,,,.,,,..,...,,,.,..,,..,,...,...,...,...,.,,,...,,,,,
-#ZKFVUEFR644FPDS776OLTUZYDJUVUOEX4B2AMJQ6EWT353XTNBO4EUZSCBQNISPTG4PWAPSV75DKQ
-#\\\|UUB2MVEOFMHI3C6LOEBLGIFOC5KSX7FX5GQPHYG7EIHFM4PEXN2 \ / AMOS7 \ YOURUM ::
-#\[7]KBOKT4GUOCE2WGZGLNRSDCRXE7BXNY3DTFCXU46KUHR5GXOENQBA 7  DATA SIGNATURE ::
+#,,.,,.,,,...,.,.,,,.,.,,,,.,,,,,,.,.,,,,,,,.,..,,...,...,..,,,..,.,.,,.,,,,.,
+#45M6DLP6STKANCAWGDJ3ZQLFNYHC3Q46APSH46AWX5WK44AHMIY44BETRQIKZNZVF4Q2O4J4YN3D6
+#\\\|55XALYATPCDDJUATU74KUKZ4VUWR7NKKMINWHB3WSLCQDHHMG36 \ / AMOS7 \ YOURUM ::
+#\[7]MEG4D7LLE6MM4KYLKNOGGNMT3HQZWMK4V6UT3N2HUNLPEGKJSGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -23,12 +23,12 @@ my $window = <ticker.obj.window>;
 #    <ticker.obj.window>->queue_draw();
 #}
 
-if (<ticker.status.initialized>
-    and (  not $window->get_property('visible')
-        or not <ticker.animation_started> )
-) {
+if ( <ticker.status.initialized> and not <ticker.animation_started> ) {
 
-    if ( not <ticker.is-iconified>++ ) {
+    ## hide the visible window until content/animation is ready, but do not  ##
+    ## proceed to draw (there is no content yet).                             ##
+    if ( $window->get_property('visible')
+        and not <ticker.is-iconified>++ ) {
         <[base.log]>->( 1, 'hiding window..,' );
         <ticker.obj.window>->hide;
     }
@@ -295,8 +295,8 @@ if (<ticker.animation_started>) {
 
 return TRUE;
 
-#,,.,,.,.,.,.,,,.,,,.,...,...,,..,,.,,..,,.,,,..,,...,...,,..,,..,...,,..,,,.,
-#P54H4MHPIGVXKFGYOU2VCEVJALAE2W5YP3JDIYO3UR4PX6VB5P6BE7UGTG5PY3UUAXTDHBTKBSNGA
-#\\\|PYSUIECEREG36ULJ6KXWAT5TGULZPPLLF2MQNWPD74VJOFAGXIK \ / AMOS7 \ YOURUM ::
-#\[7]2TBPJR7YRPIE664MNOX4I5FKVQLOIRTZ2TGOUNCIH6K5HFEPIQAI 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,,,,,,,,.,,,,,,,,.,,,.,,..,,,.,,..,,...,...,.,,,...,.,,,,.,,.,,,
+#FXYRUWTWG6YKIEKYD3Y3ZTENC7LJYZIYURGVLQPVKGL6TR2RVC3QPJDVKQCC3TYA6FCHC4KLYUBG4
+#\\\|H4EYXH7ICZ3F2EZQ2L6I7S3X3RJFKTGPZPWEB4XU4FC6PF74TWN \ / AMOS7 \ YOURUM ::
+#\[7]VHC7QBZXGWRCKV64GFUIDCMBHN7TL3K2QJV5VSXHBTYHJDAAZYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

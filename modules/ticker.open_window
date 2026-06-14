@@ -11,8 +11,12 @@ Gtk3->init;
 
 <ticker.is-iconified> //= FALSE;
 
-my $window_mode = <ticker.window.force_above> ? qw|popup| : qw|toplevel|;
-my $is_popup    = $window_mode eq qw| popup |;
+my $swap_enabled = <[base.cfg_bool]>->(<ticker.mouse.swap_edge>);
+my $window_mode
+    = $swap_enabled               ? qw| toplevel |
+    : <ticker.window.force_above> ? qw| popup |
+    :                               qw| toplevel |;
+my $is_popup = $window_mode eq qw| popup |;
 
 my $window = <ticker.obj.window> = Gtk3::Window->new($window_mode);
 
@@ -79,7 +83,7 @@ my $geo = {
 $window->set_title(<x11.title_str>);
 $window->set_border_width(0);
 $window->set_decorated(0);
-$window->set_keep_above(1) if <ticker.window.force_above>;
+$window->set_keep_above(1) if <ticker.window.force_above> or $swap_enabled;
 $window->set_app_paintable(1);
 $window->set_accept_focus(0);
 $window->set_focus_on_map(0);
@@ -88,8 +92,11 @@ $window->set_skip_taskbar_hint(1);
 
 ## dock type hint makes WSLg/Weston take over positioning and ignore client   ##
 ## moves; override-redirect popup windows must not carry it.                  ##
+## keep the dock hint for the non-swap toplevel so it behaves like a panel;  ##
+## for swap mode a normal toplevel is used so client moves are honored.        ##
 $window->set_type_hint('dock')
-    if not $is_popup;    ## don't steal focus/taskbar entry ##
+    if not $is_popup
+    and not $swap_enabled;    ## don't steal focus/taskbar entry ##
 
 ## mouse-avoidance: fade out + lower on hover, raise + fade in on leave ##
 <ticker.mouse.avoid>  //= TRUE;
@@ -102,7 +109,8 @@ my $start_fade = sub {
     <ticker.timer.fade>->cancel if defined <ticker.timer.fade>;
     delete <ticker.time.fade_view>
         ;    ## reset time, keep opacity for smooth switch ##
-    <ticker.timer.fade> = <[event.add_timer]>->(
+    <ticker.fade.handler> = $handler;
+    <ticker.timer.fade>   = <[event.add_timer]>->(
         {   'after'    => 0,
             'interval' => 0.017,
             'handler'  => $handler
@@ -124,6 +132,24 @@ $window->signal_connect(
         }
         <ticker.mouse.inside> = TRUE;
         delete <ticker.mouse.leave_pending_until>;
+        delete <ticker.mouse.swap_left_at>;
+
+        ## in swap mode start the fade-out immediately; the fade itself now  ##
+        ## lasts ticker.swap.delay seconds, and the swap happens when it ends.##
+        if ( <[base.cfg_bool]>->(<ticker.mouse.swap_edge>)
+            and not <ticker.swap.disabled> ) {
+            <[base.log]>->(
+                2, ': mouse entered ticker window (swap), fading out'
+            );
+            if ( <ticker.use_transparency> and <ticker.do_custom_fade_in> ) {
+                <ticker.fade.handler> = qw| fade_out |;
+                $start_fade->(qw| ticker.handler.fade_out |);
+            } elsif ( defined <x11.id> ) {
+                <[base.X-11.keep_below]>->(<x11.id>);
+            }
+            return FALSE;
+        }
+
         <[base.log]>->( 1, ': mouse entered ticker window, fading out' );
         if ( <ticker.use_transparency> and <ticker.do_custom_fade_in> ) {
             $start_fade->(qw| ticker.handler.fade_out |);
@@ -141,11 +167,31 @@ $window->signal_connect(
         return FALSE
             if defined $event
             and $event->detail =~ /^(inferior|virtual|nonlinear-virtual)$/;
-        <ticker.mouse.inside>              = FALSE;
-        <ticker.mouse.leave_pending_until> = <[base.time]>->(5) + 0.3;
-        <[base.log]>->(
-            1, ': mouse left ticker window, fade-in delayed 300ms'
-        );
+        <ticker.mouse.inside> = FALSE;
+
+        ## in swap mode fade back in immediately when the cursor leaves,      ##
+        ## aborting an in-progress fade-out so the ticker does not swap.       ##
+        if ( <[base.cfg_bool]>->(<ticker.mouse.swap_edge>)
+            and not <ticker.swap.disabled> ) {
+            <ticker.mouse.swap_left_at> = <[base.time]>->(3);
+            delete <ticker.swap.pending_until>
+                if defined <ticker.swap.pending_until>;
+            <[base.log]>->(
+                2, ': mouse left ticker window (swap), fading in'
+            );
+            if ( <ticker.use_transparency> and <ticker.do_custom_fade_in> ) {
+                <ticker.fade.handler> = qw| fade_in |;
+                $start_fade->(qw| ticker.handler.fade_in |);
+            } elsif ( defined <x11.id> ) {
+                <[base.X-11.raise_window]>->(<x11.id>);
+                <[base.X-11.keep_above]>->(<x11.id>);
+            }
+        } else {
+            <ticker.mouse.leave_pending_until> = <[base.time]>->(5) + 0.3;
+            <[base.log]>->(
+                1, ': mouse left ticker window, fade-in delayed 300ms'
+            );
+        }
         return FALSE;
     }
 );
@@ -180,6 +226,108 @@ $window->signal_connect(
         <[base.log]>->( 1, ': ticker window mapped, assigning X11 id' );
         <x11.id> = $window->get_toplevel()->get_window()->get_xid();
         <[base.X-11.assign_window]>;
+
+        ## GTK's initial placement can be off under WSLg. at the time         ##
+        ## set-window-profile first ran [just after Gtk3->init], the GDK      ##
+        ## display's monitor list/geometry may not have settled yet, so the   ##
+        ## computed <x11.coordinates.*> can be based on the wrong monitor's   ##
+        ## offset. unlike the swap case, the window has *just* been mapped     ##
+        ## here, so a ConfigureWindow issued immediately races with Weston's  ##
+        ## own initial-placement handshake and gets clobbered even with a     ##
+        ## short sleep. defer to a one-shot timer so the display has time to  ##
+        ## settle, recompute the profile geometry [picks up correct monitor   ##
+        ## offsets], then double-apply the move as in swap_profile.           ##
+        if ( defined <x11.coordinates.left> ) {
+
+            ## the GDK monitor list/geometry can take longer than 0.3s to ##
+            ## settle on the very first query after Gtk3->init [especially ##
+            ## for non-primary monitors with a host-configured vertical    ##
+            ## offset]. instead of a single deferred recompute, poll the   ##
+            ## monitor geometry via select_monitor every 0.2s until two    ##
+            ## consecutive reads agree [or a max attempt count is reached],##
+            ## then apply the profile + double-move once with that stable  ##
+            ## geometry. swap-time recomputes are unaffected - this only   ##
+            ## guards the startup placement.                               ##
+            my $last_geo;
+            my $attempts     = 0;
+            my $max_attempts = 10;
+            <ticker.timer.startup_settle> = <[event.add_timer]>->(
+                {   'after'    => 0.2,
+                    'interval' => 0.2,
+                    'cb'       => sub {
+                        return if not defined <x11.id>;
+                        $attempts++;
+
+                        my $mon = <[ticker.cmd.select_monitor]>;
+                        my $cur
+                            = defined $mon
+                            ? sprintf( '%d,%d,%d,%d',
+                            $mon->{'x'},     $mon->{'y'},
+                            $mon->{'width'}, $mon->{'height'} )
+                            : 'undef';
+
+                        <[base.logs]>->(
+                            2,
+                            ': startup-debug: settle attempt %d monitor geo=%s',
+                            $attempts,
+                            $cur
+                        );
+
+                        my $stable
+                            = ( defined $last_geo and $last_geo eq $cur );
+                        $last_geo = $cur;
+
+                        return
+                            if not $stable
+                            and $attempts < $max_attempts;
+
+                        <ticker.timer.startup_settle>->cancel
+                            if defined <ticker.timer.startup_settle>;
+                        delete <ticker.timer.startup_settle>;
+
+                        ## debug instrumentation: where is the window      ##
+                        ## actually placed before/after the corrective     ##
+                        ## move, vs the computed target?                   ##
+                        my $before
+                            = <[base.X-11.get_window_geometry]>->(<x11.id>);
+                        <[base.logs]>->(
+                            2,
+                            ': startup-debug: before-move actual x=%d y=%d, target x=%d y=%d',
+                            $before->{'x'} // -1,
+                            $before->{'y'} // -1,
+                            <x11.coordinates.left>,
+                            <x11.coordinates.top>
+                        );
+
+                        <[ticker.cmd.set-window-profile]>
+                            ->( { 'args' => <ticker.window.profile> } );
+                        <[base.X-11.move_window]>->(
+                            <x11.id>,              <x11.coordinates.left>,
+                            <x11.coordinates.top>, <x11.window.width>,
+                            <x11.window.height>
+                        );
+                        <[base.sleep]>->(0.05);
+                        <[base.X-11.move_window]>->(
+                            <x11.id>,              <x11.coordinates.left>,
+                            <x11.coordinates.top>, <x11.window.width>,
+                            <x11.window.height>
+                        );
+
+                        <[base.sleep]>->(0.05);
+                        my $after
+                            = <[base.X-11.get_window_geometry]>->(<x11.id>);
+                        <[base.logs]>->(
+                            2,
+                            ': startup-debug: after-move actual x=%d y=%d, target x=%d y=%d',
+                            $after->{'x'} // -1,
+                            $after->{'y'} // -1,
+                            <x11.coordinates.left>,
+                            <x11.coordinates.top>
+                        );
+                    }
+                }
+            );
+        }
 
         return FALSE;
     }
@@ -261,8 +409,8 @@ my $ft_face   = $freetype->face($font_path);
 
 <ticker.obj.window>->queue_draw;
 
-#,,,,,.,.,,,,,.,,,.,.,,..,,,,,,,,,.,.,.,,,..,,..,,...,...,,..,.,,,.,.,.,.,,..,
-#JBAGZL2BNZFLE6RD72UI23NA4AYNTUXKJVDIJYX6UP6MZVE3BWCXHBBHC6WYABRP4FRDJBD6J3WQ4
-#\\\|IBHNVUQWIY3F6MU43IV4SVC2BGFGFPH2HCXXZNXAVRQCG4VTLCU \ / AMOS7 \ YOURUM ::
-#\[7]NORYDPDHIWJ73KDUPNPCDPLERJ4FJNBICZ3QQ3I2SLZPVIMFIEDQ 7  DATA SIGNATURE ::
+#,,,,,,,,,...,..,,..,,..,,..,,.,.,.,.,.,.,.,,,..,,...,...,,..,,.,,,..,,.,,.,.,
+#FALVTWTS3N3KRTS2KXBDAW4H6YLZSX23JPX5M2SNJUBNHVDRABQP7M6UKPNIN5OQVXNDNYYDLNWRQ
+#\\\|P2ZOGAJBT66EXWRITNDMD2AZAVIMCH26UDFWL3DHZJ4OMA5HNQF \ / AMOS7 \ YOURUM ::
+#\[7]MZY4XTIXWP2ERAE42SMGOT6LLWBEWEHCVIMOZGNRYC54WD6DL2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

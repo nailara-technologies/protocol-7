@@ -1,0 +1,65 @@
+## [:< ##
+
+# name  = ticker.cmd.list_monitors
+# descr = list available Gdk monitors and their geometry
+
+my $display = eval { Gtk3::Gdk::Display::get_default() };
+return {
+    'mode' => qw| false |,
+    'data' => 'no default display'
+    }
+    if not defined $display;
+
+my $n_monitors = eval { $display->get_n_monitors } // 0;
+return {
+    'mode' => qw| false |,
+    'data' => 'no monitors found'
+    }
+    if $n_monitors <= 0;
+
+my @lines = (
+    sprintf(
+        'found %d monitor%s:', $n_monitors, $n_monitors == 1 ? '' : 's'
+    )
+);
+
+for my $idx ( 0 .. $n_monitors - 1 ) {
+    my $monitor = eval { $display->get_monitor($idx) };
+    next if not defined $monitor;
+
+    my $geometry = eval { $monitor->get_geometry };
+    next if not defined $geometry;
+
+    my ( $x, $y, $w, $h );
+    if ( ref($geometry) eq qw| HASH | ) {
+        ( $x, $y, $w, $h ) = @$geometry{qw| x y width height |};
+    } else {
+        ( $x, $y, $w, $h ) = (
+            $geometry->x,     $geometry->y,
+            $geometry->width, $geometry->height
+        );
+    }
+
+    my $primary = '';
+    $primary = ' [primary]'
+        if defined eval { $display->get_primary_monitor }
+        and $monitor == $display->get_primary_monitor;
+
+    push @lines,
+        sprintf( '  index=%d x=%d y=%d w=%d h=%d%s',
+        $idx, $x // 0, $y // 0, $w, $h, $primary );
+}
+
+my $msg = join "\n", @lines;
+<[base.log]>->( 1, "\n$msg" );
+
+return {
+    'mode' => qw| true |,
+    'data' => $msg
+};
+
+#,,,.,,,,,.,.,.,.,.,,,,,,,,..,,.,,,.,,,,.,,,,,.,.,...,...,,,,,,.,,.,,,.,.,...,
+#5MNUFAXBAM25JDIDVSLZFXY3A45PZFHLWQSVA6ZMQ2MVFY5RJBD5RPYHH6X35QE7E7KAY4N57GLLW
+#\\\|KMVPANUDTWQF6RTYSX4JLVYXOYMB4CHV5AZYTUZZUQ2NQAUND6F \ / AMOS7 \ YOURUM ::
+#\[7]3YJOPLHE3MG73QX27ZZ7U6IPBCBAPZ66GJC4IB6Z3L24JOIFKYDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

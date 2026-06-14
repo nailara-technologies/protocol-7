@@ -47,55 +47,115 @@ eval {
     ## fade_out handler then moves the window to the opposite edge, and we
     ## fade in there as long as the mouse is not covering it.
 
-    if (    <[base.cfg_bool]>->(<ticker.mouse.swap_edge>)
-        and not <ticker.swap.move_failed>
+    ## remove any leftover pending timer from earlier code that used a      ##
+    ## separate delay-before-fade stage.                                   ##
+    delete <ticker.swap.pending_until>
+        if defined <ticker.swap.pending_until>;
+
+    ## note: a failed move attempt (ticker.swap.move_failed) does not gate   ##
+    ## this branch - swap_profile retries each time and only sets           ##
+    ## ticker.swap.disabled after several consecutive failures.             ##
+    ##                                                                       ##
+    ## startup grace period: right after (re)show, the corrected window     ##
+    ## position can land directly under the cursor before the user has had ##
+    ## a chance to move it away. the GTK enter-notify handler already        ##
+    ## checks ticker.mouse.grace_until, but this poll-based fallback did     ##
+    ## not - so it could immediately trigger a swap/fail loop at startup     ##
+    ## and burn through the failure count before the grace period elapses.  ##
+    if ( defined <ticker.mouse.grace_until>
+        and <[base.time]>->(5) < <ticker.mouse.grace_until> ) {
+        return;
+    }
+
+    if ( <[base.cfg_bool]>->(<ticker.mouse.swap_edge>)
         and not <ticker.swap.disabled> ) {
-        return if defined <ticker.timer.fade>;    ## transition in progress ##
 
         my $opacity
             = <ticker.is_composited>
             ? $window->get_opacity()
             : 1;
 
-        if ($inside) {
-            <ticker.mouse.inside>              = TRUE;
+        ## combine GTK event state with pointer geometry:                    ##
+        ## arm if either says the cursor is over the ticker.                 ##
+        ## after a leave signal we trust the event and ignore geometry until ##
+        ## the next enter signal (geometry can stick to TRUE under WSLg).    ##
+        my $event_inside = <ticker.mouse.inside> // FALSE;
+        my $cursor_over  = ( $inside || $event_inside )
+            && not defined <ticker.mouse.swap_left_at>;
+
+        my $timer_running = defined <ticker.timer.fade>;
+        my $timer_dir     = <ticker.fade.handler> // '';
+
+        if ($cursor_over) {
+            <ticker.mouse.inside> = TRUE;
+            delete <ticker.mouse.swap_left_at>;
             <ticker.mouse.leave_pending_until> = undef;
 
-            ## if already invisible, stay invisible; do not bounce back       ##
-            ## immediately because the cursor is covering the swapped edge.   ##
+            ## already faded and cursor still over the swapped edge -> stay    ##
+            ## invisible; do not bounce back and forth.                        ##
             if ( $opacity < 0.05 ) {
                 <[base.log]>->(
-                    1, ': swapped edge still under cursor, staying invisible'
+                    2, ': swapped edge still under cursor, staying invisible'
                 );
                 return;
             }
 
+            ## fade-out already in progress -> let it run                      ##
+            return if $timer_running and $timer_dir eq qw| fade_out |;
+
+            ## a fade-in is running -> abort it and fade back out              ##
+            if ($timer_running) {
+                <ticker.timer.fade>->cancel;
+                delete <ticker.timer.fade>;
+                delete <ticker.fade.handler>;
+                delete <ticker.time.fade_view>;
+            }
+
             <[base.log]>->(
-                1, ': pointer over current edge (swap), fading out'
+                2, ': pointer over current edge (swap), fading out'
             );
 
             <ticker.fade_opacity> = $opacity;
-            delete <ticker.time.fade_view>;
-            <ticker.timer.fade> = <[event.add_timer]>->(
+            <ticker.fade.handler> = qw| fade_out |;
+            <ticker.timer.fade>   = <[event.add_timer]>->(
                 {   'after'    => 0,
                     'interval' => 0.017,
                     'handler'  => qw| ticker.handler.fade_out |
                 }
             );
+
+            if ( defined <x11.id> ) {
+                <[base.X-11.keep_below]>->(<x11.id>);
+            }
         } else {
             <ticker.mouse.inside> = FALSE;
+
+            ## remember that the cursor is outside so geometry alone cannot    ##
+            ## override a leave event and restart the fade-out.                ##
+            <ticker.mouse.swap_left_at> = <[base.time]>->(3)
+                if not defined <ticker.mouse.swap_left_at>;
             delete <ticker.mouse.leave_pending_until>;
 
-            ## already visible -> nothing to do                                   ##
+            ## already visible -> nothing to do                               ##
             return if $opacity > 0.99;
 
-            <[base.log]>->( 1, ': edge free (swap), fading in' );
+            ## fade-in already in progress -> let it finish                   ##
+            return if $timer_running and $timer_dir eq qw| fade_in |;
+
+            ## a fade-out is running -> abort it and fade back in             ##
+            if ($timer_running) {
+                <ticker.timer.fade>->cancel;
+                delete <ticker.timer.fade>;
+                delete <ticker.fade.handler>;
+                delete <ticker.time.fade_view>;
+            }
+
+            <[base.log]>->( 2, ': edge free (swap), fading in' );
 
             <ticker.fade_opacity> = $opacity;
             $window->set_opacity($opacity) if <ticker.is_composited>;
-            delete <ticker.time.fade_view>;
-
-            <ticker.timer.fade> = <[event.add_timer]>->(
+            <ticker.fade.handler> = qw| fade_in |;
+            <ticker.timer.fade>   = <[event.add_timer]>->(
                 {   'after'    => 0,
                     'interval' => 0.017,
                     'handler'  => qw| ticker.handler.fade_in |
@@ -208,8 +268,8 @@ eval {
 <[base.log]>->( 0, ': pointer check failed: ' . $EVAL_ERROR )
     if length $EVAL_ERROR;
 
-#,,.,,,.,,.,,,,,,,,.,,.,.,.,,,,.,,..,,..,,,..,.,.,...,..,,..,,,,,,.,,,.,.,.,.,
-#EDCU7UW2XUJCSTFTZH7L3GWMP27DPAJXR4QOPPY6PZEWS4YGMMYBXFNJPHRQLAZWOF5NMGR7KNB5M
-#\\\|MUW2WATUWK7GBHVQIJTKBYJFT7PW2DMA6TUCU5R3TVESYZHGBNA \ / AMOS7 \ YOURUM ::
-#\[7]2SRKRESRZ4LWJIZNCQI7U6Z5VWEVIWLH2C5Y3F5BYDYWHQKLOQAY 7  DATA SIGNATURE ::
+#,,.,,...,..,,,,,,,,.,,.,,.,,,,..,.,.,,,.,.,.,.,.,...,.,.,.,,,...,.,.,,,.,..,,
+#IQ46GX4ANMNFWAXLX4UCHXTPJRSTBYQJMYVB45KQOYKFMOP5N533G432X6FSJOTWDM6CBD2F4RGR2
+#\\\|X2ZLHFN7ZJST7PVP6QWVEKOFGCPXS3QNOFBMNQU2GHZUOFK4RKJ \ / AMOS7 \ YOURUM ::
+#\[7]ERB2GIVAIE4S4V77XPVIC2IZTIAHAGIS3H7ZK2DU45RDXUZCHWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
