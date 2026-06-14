@@ -1,0 +1,56 @@
+## [:< ##
+
+# name = ticker.load_file_content
+
+my $file_path = shift;
+
+my $error;
+$error = 'no read permission on file' if -f $file_path and !-r _;
+$error = 'no such file path exists'   if !-f $file_path;
+
+if ( defined $error ) {
+    <[base.log]>->( 0, "ticker load_file_content: $error [ $file_path ]" );
+    return { 'updated' => FALSE, 'error' => $error };
+}
+
+<ticker.content.chksum> //= '';
+my $content_chksum = <[chk-sum.bmw.filesum]>->( 224, $file_path );
+
+if ( $content_chksum eq <ticker.content.chksum> ) {
+    ## a previous dismiss may have stopped the animation without removing  ##
+    ## the parsed text map; if the map is gone, re-parse the cached text.   ##
+    if ( not defined <ticker.content.current.txt_map>
+        and length <ticker.content.txt> ) {
+        <[base.log]>->( 2, "content unchanged but txt map missing, re-parsing.," );
+        <[ticker.parse_text]>->(<ticker.content.txt>);
+    } else {
+        <[base.log]>->( 2, "content unchanged, update skipped.," );
+    }
+    return { 'updated' => FALSE, 'error' => undef };
+}
+
+<ticker.content.chksum> = $content_chksum;
+<ticker.content.txt>    = ${ <[file.slurp]>->($file_path) };
+<ticker.content.len>    = length(<ticker.content.txt>);
+
+<ticker.content.txt> =~ s|\s+| |sg;
+<ticker.content.txt> =~ s,^ | $,,g;
+
+<[ticker.parse_text]>->(<ticker.content.txt>);
+
+<ticker.current_file> = $file_path;
+
+<[base.log]>->(
+    1,
+    sprintf( ': ticker text content updated [ %d bytes ]',
+        <ticker.content.len> )
+);
+<[base.log]>->( 2, "[ $content_chksum ]" );
+
+return { 'updated' => TRUE, 'error' => undef };
+
+#,,,.,...,..,,...,,.,,,,,,...,,.,,.,.,,,.,,,.,.,.,...,...,,,,,,,.,,,.,..,,.,.,
+#5YCB7QBIFSSSC25WLLYMIRTXLB5OXY7U3BTN32WXWAM4URDMTTXPDGTYTWFYS5MYO7OYHYKI4DCCG
+#\\\|AKDU5FXJBNFR2EYSXQU2ZN6TVA2MYK72SOR7KPP27NLKK22DDO7 \ / AMOS7 \ YOURUM ::
+#\[7]D36DRGEMXAGF545I6LZ7BSFLLGLWPJLXC3VDPTQXODPCZIXBZCBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -36,7 +36,24 @@ if (<ticker.is_composited>) {
 if ( <ticker.fade_opacity> == 0 ) {
     <[base.log]>->( 2, ":: fade-out complete." );
 
-    if ( <[base.cfg_bool]>->(<ticker.mouse.swap_edge>)
+    if ( ( <ticker.display.mode> // qw| continuous | ) eq qw| notify | ) {
+        ## notify mode: hovering fully faded the message out -> dismiss it ##
+        <[base.log]>->( 1, ': notify message dismissed, hiding ticker' );
+
+        my $notify_window = <ticker.obj.window>;
+        $notify_window->hide if defined $notify_window;
+
+        <ticker.notify.dismissed> = TRUE;
+        delete <ticker.animation_started>;
+        delete <ticker.draw.x_pos>;
+
+        if ( <[base.cfg_bool]>->(<ticker.notify.terminate_after_dismiss>) ) {
+            <[base.log]>->(
+                1, ': notify terminate_after_dismiss enabled, exiting'
+            );
+            Gtk3->main_quit;
+        }
+    } elsif ( <[base.cfg_bool]>->(<ticker.mouse.swap_edge>)
         and not <ticker.swap.disabled> ) {
         ## move the ticker to the opposite edge as soon as the fade ends.  ##
         <[ticker.cmd.swap_profile]>->(<ticker.window.profile>);
@@ -57,8 +74,8 @@ if ( <ticker.fade_opacity> == 0 ) {
     $timer->cancel;
 }
 
-#,,,,,..,,.,.,,,,,...,,,.,..,,,,.,,.,,.,.,...,.,.,...,...,.,,,,,.,..,,,,,,,.,,
-#QUCKJEAJ5EYXRZXKTFVZEVLE7NX42EPWTYLTE5RCBIB5MRQDXE3C7I4J7BAE3W2AWJSPKIKULYQBQ
-#\\\|ISPC4UIYJLG6AZ7AEGEU7HF3DPTFZ5XL4JHGVXN4Z5Y7A3URPEM \ / AMOS7 \ YOURUM ::
-#\[7]RUQNC3Y2QCQ642JO7QH7GK4K5FW435K4G6L23OR4RM7LAP4EJWAY 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,...,,,.,,.,,.,.,,.,,.,.,,..,,..,.,.,...,...,,..,,,.,...,...,,,,,
+#SEIXJVRD45BRIFIMW7L37Z6CTMCUQY3F5MKMYYZFHIFRPTZRDZPVZL55LCBKLBX7LIEMH4RM4DXEG
+#\\\|WSN77LBMEJVFHA5RLL7S2IS22K6KNHLPVP4PGWIQDFH4GGQJTQI \ / AMOS7 \ YOURUM ::
+#\[7]CACCPCRYE2UV3SBBNFBAICNELWFRQMXRGIAAKIBJMHJVGBMXKEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
