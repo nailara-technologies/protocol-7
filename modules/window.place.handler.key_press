@@ -8,16 +8,16 @@ my ( $widget, $event ) = @ARG;
 my $keyval = $event->keyval;
 my $state  = $event->state;
 
-my $SHIFT_MASK   = eval {Gtk3::Gdk::SHIFT_MASK}   // 1;
-my $CONTROL_MASK = eval {Gtk3::Gdk::CONTROL_MASK} // 4;
+my $SHIFT_MASK   = eval { Gtk3::Gdk::SHIFT_MASK() }   // 1;
+my $CONTROL_MASK = eval { Gtk3::Gdk::CONTROL_MASK() } // 4;
 
-my $KEY_ESC    = eval {Gtk3::Gdk::KEY_Escape}   // 65307;
-my $KEY_RET    = eval {Gtk3::Gdk::KEY_Return}   // 65293;
-my $KEY_KP_RET = eval {Gtk3::Gdk::KEY_KP_Enter} // 65421;
-my $KEY_UP     = eval {Gtk3::Gdk::KEY_Up}       // 65362;
-my $KEY_DOWN   = eval {Gtk3::Gdk::KEY_Down}     // 65364;
-my $KEY_LEFT   = eval {Gtk3::Gdk::KEY_Left}     // 65361;
-my $KEY_RIGHT  = eval {Gtk3::Gdk::KEY_Right}    // 65363;
+my $KEY_ESC    = eval { Gtk3::Gdk::KEY_Escape() }   // 65307;
+my $KEY_RET    = eval { Gtk3::Gdk::KEY_Return() }   // 65293;
+my $KEY_KP_RET = eval { Gtk3::Gdk::KEY_KP_Enter() } // 65421;
+my $KEY_UP     = eval { Gtk3::Gdk::KEY_Up() }       // 65362;
+my $KEY_DOWN   = eval { Gtk3::Gdk::KEY_Down() }     // 65364;
+my $KEY_LEFT   = eval { Gtk3::Gdk::KEY_Left() }     // 65361;
+my $KEY_RIGHT  = eval { Gtk3::Gdk::KEY_Right() }    // 65363;
 
 my $shift = $state & $SHIFT_MASK   ? 10 : 1;
 my $ctrl  = $state & $CONTROL_MASK ? 1  : 0;
@@ -81,8 +81,8 @@ $widget->queue_draw;
 
 return TRUE;
 
-#,,,.,,,,,,,,,..,,,,.,,,,,.,.,,,,,,,,,,..,..,,.,.,...,...,...,,,.,,,,,,.,,.,,,
-#YRONEQKHLOEDATYP7EOIM6S7763363XNGDAAT3PUPUUH3HNIGQHP5ZPFRL75SMQPRCAS7K6RU4EYK
-#\\\|RTOEE5M3YDXHULP5RMR6AHRKI2WI6DV7XF6G5UZ2LVUVLL35WVC \ / AMOS7 \ YOURUM ::
-#\[7]2MNTQLJYCUXIFAGV4JHSQSV32VOY3ALTCJZFSYC7KFTCGZL7V6CI 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,...,,,,,...,..,,,.,,...,,..,,,.,.,.,...,...,.,,,.,.,,.,,,,,,.,,,
+#IH4LIS5GXG7TLRYJTAFFPTA57BETC2WPL64V7II4IBYK3EAY6PN5GPYNGIEENNKP533V5VWJZL4RI
+#\\\|RSM3TJPKKAPOOSSDIJ36REBQR46OH4RS6VTVKZJTXGJGXP7UWKZ \ / AMOS7 \ YOURUM ::
+#\[7]WO2TBAOUYMKVGFDCNMGD7M6IBHFKU3FAKPGYNYVND3OYZRLUM4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
