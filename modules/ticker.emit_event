@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = ticker.emit_event
+# descr = push a single-line event to all registered ticker.events
+#         listeners [ see ticker.cmd.events ]; prunes listeners whose
+#         stream has gone away
+# param = <event name>
+
+my $event_name = shift // return;
+
+## WSLg/XWayland frequently delivers duplicate GTK events [enter/leave,    ##
+## button-press, scroll]; drop an immediate repeat of the same event name. ##
+my $now = <[base.time]>->(3);
+if (    defined <ticker.event.last_name>
+    and <ticker.event.last_name> eq $event_name
+    and $now - ( <ticker.event.last_time> // 0 ) < 0.05 ) {
+    return;
+}
+<ticker.event.last_name> = $event_name;
+<ticker.event.last_time> = $now;
+
+my $listeners = <ticker.event.listeners> // return;
+return if not @{$listeners};
+
+my $line = "$event_name\n";
+
+my @keep;
+foreach my $listener ( @{$listeners} ) {
+    my $h = $listener->{'handle'};
+
+    if ( not <[base.stream.push]>->( $h, \$line ) ) {
+        next;    ## stream gone - drop listener ##
+    }
+
+    if ($listener->{'auto_close'}
+        and ( not defined $listener->{'match'}
+            or $listener->{'match'} eq $event_name )
+    ) {
+        <[base.stream.close]>->($h);
+        next;
+    }
+
+    push @keep, $listener;
+}
+
+<ticker.event.listeners> = \@keep;
+
+#,,,,,..,,,.,,.,,,,..,,.,,.,,,..,,,.,,,,.,.,.,..,,...,...,,..,,,.,,,,,.,,,,,,,
+#OGTAWRGXUPZKSST7RAMIP7YDGKZTFGFXJLUZEI7H2HSRGWQCLDSFGOARI5NG3B4HJL7LTOGNZOU4A
+#\\\|N2UZBSNZSKL7KL5KLQEZISZTKZA54QYIYAZA7ZV4AFAJSY67CP6 \ / AMOS7 \ YOURUM ::
+#\[7]ITE5HKG4QE3EUVX2ZSXNGZU57YNMZL7LRNAMVCVMNJSD6CVD46CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

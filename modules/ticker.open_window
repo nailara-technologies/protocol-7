@@ -90,10 +90,10 @@ $window->set_focus_on_map(0);
 $window->set_can_focus(0);
 $window->set_skip_taskbar_hint(1);
 
-## dock type hint makes WSLg/Weston take over positioning and ignore client   ##
-## moves; override-redirect popup windows must not carry it.                  ##
-## keep the dock hint for the non-swap toplevel so it behaves like a panel;  ##
-## for swap mode a normal toplevel is used so client moves are honored.        ##
+## dock type hint makes WSLg/Weston take over positioning and ignore client ##
+## moves; override-redirect popup windows must not carry it.                ##
+## keep the dock hint for the non-swap toplevel so it behaves like a panel; ##
+## for swap mode a normal toplevel is used so client moves are honored.     ##
 $window->set_type_hint('dock')
     if not $is_popup
     and not $swap_enabled;    ## don't steal focus/taskbar entry ##
@@ -101,7 +101,11 @@ $window->set_type_hint('dock')
 ## mouse-avoidance: fade out + lower on hover, raise + fade in on leave ##
 <ticker.mouse.avoid>  //= TRUE;
 <ticker.mouse.inside> //= FALSE;
-$window->add_events( [qw| enter-notify-mask leave-notify-mask |] );
+$window->add_events(
+    [   qw| enter-notify-mask leave-notify-mask
+            button-press-mask scroll-mask |
+    ]
+);
 
 my $start_fade = sub {
     my ($handler) = @ARG;
@@ -134,8 +138,9 @@ $window->signal_connect(
         delete <ticker.mouse.leave_pending_until>;
         delete <ticker.mouse.swap_left_at>;
 
-        ## in swap mode start the fade-out immediately; the fade itself now  ##
-        ## lasts ticker.swap.delay seconds, and the swap happens when it ends.##
+        ## in swap mode start the fade-out immediately; the fade itself now ##
+        ## lasts ticker.swap.delay seconds, and the swap happens when it    ##
+        ## ends.                                                            ##
         if ( <[base.cfg_bool]>->(<ticker.mouse.swap_edge>)
             and not <ticker.swap.disabled> ) {
             <[base.log]>->(
@@ -169,8 +174,8 @@ $window->signal_connect(
             and $event->detail =~ /^(inferior|virtual|nonlinear-virtual)$/;
         <ticker.mouse.inside> = FALSE;
 
-        ## in swap mode fade back in immediately when the cursor leaves,      ##
-        ## aborting an in-progress fade-out so the ticker does not swap.       ##
+        ## in swap mode fade back in immediately when the cursor leaves,    ##
+        ## aborting an in-progress fade-out so the ticker does not swap.    ##
         if ( <[base.cfg_bool]>->(<ticker.mouse.swap_edge>)
             and not <ticker.swap.disabled> ) {
             <ticker.mouse.swap_left_at> = <[base.time]>->(3);
@@ -187,7 +192,7 @@ $window->signal_connect(
                 <[base.X-11.keep_above]>->(<x11.id>);
             }
         } else {
-            ## a dismissed notification, or a ticker.dismiss'd ticker in   ##
+            ## a dismissed notification, or a ticker.dismiss'd ticker in  ##
             ## either mode, stays hidden; do not fade back in             ##
             if (
                 (   ( <ticker.display.mode> // qw| continuous | ) eq
@@ -203,6 +208,46 @@ $window->signal_connect(
                 1, ': mouse left ticker window, fade-in delayed 300ms'
             );
         }
+        return FALSE;
+    }
+);
+
+## generic button/wheel events: always emitted on ticker.events for       ##
+## external listeners [LMB info popup, continuous-mode RMB menu, wheel-   ##
+## driven HUD, etc.]. RMB additionally toggles top/bottom in notify mode, ##
+## mirroring the swap-edge top/bottom switch already available in         ##
+## continuous mode.                                                       ##
+my %button_name = ( 1 => qw| left |, 2 => qw| middle |, 3 => qw| right | );
+
+$window->signal_connect(
+    'button-press-event' => sub {
+        my ( undef, $event ) = @ARG;
+        my $name = $button_name{ $event->button } // $event->button;
+        <[ticker.emit_event]>->("click:$name");
+
+        if (    $name eq qw| right |
+            and ( <ticker.display.mode> // qw| continuous | ) eq qw| notify |
+            and defined <ticker.obj.window>
+            and <ticker.obj.window>->get_visible ) {
+
+            my $current = <ticker.window.profile> // qw| top-strip |;
+            my $target
+                = $current eq qw| top-strip |
+                ? qw| bottom-strip |
+                : qw| top-strip |;
+
+            <[ticker.move_to_profile]>->( $target, $current );
+        }
+
+        return FALSE;
+    }
+);
+
+$window->signal_connect(
+    'scroll-event' => sub {
+        my ( undef, $event ) = @ARG;
+        my $direction = $event->direction;    ## up|down|left|right|smooth ##
+        <[ticker.emit_event]>->("scroll:$direction");
         return FALSE;
     }
 );
@@ -238,19 +283,19 @@ $window->signal_connect(
         <x11.id> = $window->get_toplevel()->get_window()->get_xid();
         <[base.X-11.assign_window]>;
 
-        ## GTK's initial placement can be off under WSLg. at the time         ##
-        ## set-window-profile first ran [just after Gtk3->init], the GDK      ##
-        ## display's monitor list/geometry may not have settled yet, so the   ##
-        ## computed <x11.coordinates.*> can be based on the wrong monitor's   ##
-        ## offset. unlike the swap case, the window has *just* been mapped     ##
-        ## here, so a ConfigureWindow issued immediately races with Weston's  ##
-        ## own initial-placement handshake and gets clobbered even with a     ##
-        ## short sleep. defer to a one-shot timer so the display has time to  ##
-        ## settle, recompute the profile geometry [picks up correct monitor   ##
-        ## offsets], then double-apply the move as in swap_profile.           ##
+        ## GTK's initial placement can be off under WSLg. at the time        ##
+        ## set-window-profile first ran [just after Gtk3->init], the GDK     ##
+        ## display's monitor list/geometry may not have settled yet, so the  ##
+        ## computed <x11.coordinates.*> can be based on the wrong monitor's  ##
+        ## offset. unlike the swap case, the window has *just* been mapped   ##
+        ## here, so a ConfigureWindow issued immediately races with Weston's ##
+        ## own initial-placement handshake and gets clobbered even with a    ##
+        ## short sleep. defer to a one-shot timer so the display has time to ##
+        ## settle, recompute the profile geometry [picks up correct monitor  ##
+        ## offsets], then double-apply the move as in swap_profile.          ##
         if ( defined <x11.coordinates.left> ) {
 
-            ## the GDK monitor list/geometry can take longer than 0.3s to ##
+            ## the GDK monitor list/geometry can take longer than 0.3s to  ##
             ## settle on the very first query after Gtk3->init [especially ##
             ## for non-primary monitors with a host-configured vertical    ##
             ## offset]. instead of a single deferred recompute, poll the   ##
@@ -303,7 +348,8 @@ $window->signal_connect(
                             = <[base.X-11.get_window_geometry]>->(<x11.id>);
                         <[base.logs]>->(
                             2,
-                            ': startup-debug: before-move actual x=%d y=%d, target x=%d y=%d',
+                            ': startup-debug: before-move actual'
+                                . ' x=%d y=%d, target x=%d y=%d',
                             $before->{'x'} // -1,
                             $before->{'y'} // -1,
                             <x11.coordinates.left>,
@@ -329,7 +375,8 @@ $window->signal_connect(
                             = <[base.X-11.get_window_geometry]>->(<x11.id>);
                         <[base.logs]>->(
                             2,
-                            ': startup-debug: after-move actual x=%d y=%d, target x=%d y=%d',
+                            ': startup-debug: after-move actual'
+                                . ' x=%d y=%d, target x=%d y=%d',
                             $after->{'x'} // -1,
                             $after->{'y'} // -1,
                             <x11.coordinates.left>,
@@ -345,8 +392,8 @@ $window->signal_connect(
 );
 
 ## keep input shape in sync with the actual window size. under Wayland the ##
-## allocation at map time can differ from the final compositor placement, ##
-## so we refresh the shape on every resize/configure. ##
+## allocation at map time can differ from the final compositor placement , ##
+## so we refresh the shape on every resize/configure.                      ##
 my $update_input_shape = sub {
     eval {
         return if not $window->get_realized;
@@ -368,7 +415,7 @@ my $update_input_shape = sub {
         ## set input shape to the full allocation. on Wayland            ##
         ## gtk_window_get_position returns (0,0), so a position-relative ##
         ## clip would end up empty. the log shows the allocation already ##
-        ## matches the intended ticker geometry, so full-window input     ##
+        ## matches the intended ticker geometry, so full-window input    ##
         ## shape is correct here.                                        ##
         my $shape_w = $alloc_w;
         my $shape_h = $alloc_h;
@@ -420,8 +467,8 @@ my $ft_face   = $freetype->face($font_path);
 
 <ticker.obj.window>->queue_draw;
 
-#,,..,..,,,..,,.,,,.,,,.,,,.,,..,,.,.,.,.,..,,..,,...,...,.,.,..,,,..,,.,,.,.,
-#VX7CY5EM7BWUJWZV3HRRCVXGSIPH4LBXHN6WMCBGRNEW44PEGDUHWQNNWX5YDUUSMYHDHI3SVRC3G
-#\\\|GIUZ5QBBFBE4XJV4BKUWJSRTWU3UGMHBSY7XIXO6FQ6HRVUKAGX \ / AMOS7 \ YOURUM ::
-#\[7]XRITH455FFLZIG4C2FW3SFV2HY5E4QKYNWCKQ3DTBBM5X2VTSQAY 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,...,...,...,.,.,,..,,..,.,,,,..,..,,...,.,.,...,,,.,...,,,,,,..,
+#747IIBPRXCC4SQDO7OM4YM3464ZSZQJSBIJL2LHRBMAYDMDVFBJL5PW5J6MSSPFH2SS3XRU7XBF6G
+#\\\|LSTAEQCYPIJPGLKHKPSKTPXK6PI6CE4UKXKFLWMJMEOZ4BC7F7D \ / AMOS7 \ YOURUM ::
+#\[7]HGJKFIXZOSZUJC4V4W5LDH5E6CVUN37HGCFYPQLL6WVJTIQAF4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
