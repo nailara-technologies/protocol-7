@@ -1,4 +1,5 @@
 ## CRITICAL
+- [cmd reply must be string](feedback-cmd-data-must-be-string.md) — .cmd./whitelisted routines must return {mode=>true|false, data=>STRING}; split internal helpers (raw hash/undef) into separate non-.cmd. routines + thin wrapper
 - [kimi reload baseline noise](feedback-kimi-reload-baseline-noise.md) — don't make kimi prove pre-existing reload errors are pre-existing; check baseline yourself first
 - [kimi v7 console hint](feedback-kimi-v7-console-hint.md) — combined v7 console at `/dev/shm/.7/STDOUT/NIW7OAQ`, give kimi this path for live verification
 - [File Creation](feedback-file-io-api.md) — never add `#,,.,,,...` stub — blocks signing
@@ -153,8 +154,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,..,.,.,,..,,,.,...,.,.,.,,,.,,,...,..,,.,.,..,,...,...,...,,..,,,,,..,,.,,,
-#7BKG2LAT6HMVFXUIPZXBCZINW4HS2UXTORYFXEP2YF3254ZOWCMCXI6CYHQMW4TKOF4SASAVQCIFE
-#\\\|H3YRHUFZORB7OYK2KKI2UFMRNQWJLBANIRB6LEV5PJOZUOJNCXO \ / AMOS7 \ YOURUM ::
-#\[7]CBH6PQ4FHAXG24DHWGDJRFPHYS4BPWQJHMVOKHL2YEAZRICUX6AA 7  DATA SIGNATURE ::
+#,,.,,...,.,,,.,.,.,,,,.,,...,.,.,.,,,..,,.,.,..,,...,...,...,.,,,,.,,.,.,,,.,
+#6GO46HSX6IGNJHTNPYNHY2IRJS67YX4Z5OHJB4VUCIF55EDWJBOF6KKZ7NTD2I37ONLASJOMFIBMG
+#\\\|N3EGLBLMCYNZ46R7RJUX3SY7DO42HM4YYERCQ4INK6D3CXJPDVB \ / AMOS7 \ YOURUM ::
+#\[7]EL223G2W4ECIA6T2MBIF7MD52A3Y2JYQMLMWOXJLTUUNQTMOWYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
