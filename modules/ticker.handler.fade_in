@@ -9,6 +9,7 @@ if ( not defined <ticker.time.fade_view> ) {
     <[base.log]>->( 2, ":. fade-in started.," );
     <ticker.fade_opacity> //= 0;    ## resume from current opacity if any ##
     <ticker.time.fade_view> = <[base.time]>->(3);
+    <[ticker.emit_event]>->(qw| fading-in |);
 }
 
 my $delta_t = sprintf( '%.3f', <[base.time]>->(3) - <ticker.time.fade_view> );
@@ -27,10 +28,11 @@ if ( <ticker.fade_opacity> == 1 ) {
     delete <ticker.fade.handler>;
     delete <ticker.swap.move_failed>;
     $timer->cancel;
+    <[ticker.emit_event]>->(qw| shown |);
 }
 
-#,,..,.,.,,..,.,,,...,.,.,,.,,,.,,,,.,.,.,,,.,..,,...,...,,,,,,,.,...,.,,,,.,,
-#T5J7UCHJPBOTLW6QKVXHUKE55KJUEZHHYTEAYNZI6CPAATDM7XPIT5CEWNYZJKYLHRMUTIOPL4YOO
-#\\\|KTDTVUT7EXPMHP2FLX2VZKT7VJ2HAIKQLEJNZRRALYXDHUDFZ7J \ / AMOS7 \ YOURUM ::
-#\[7]VQIXZYWWCBWYIONDOBXAXKPQPWTEBLFATCPSPKHQVS6G7K5MP2CI 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,..,,.,,,..,.,.,.,,,..,,.,,,.,.,..,,...,...,,,.,..,,...,...,..,,
+#ZRRHWZZGOG6ZSMGGKXWJ2HTJM4LC4KRGB6N6P4JN453QP5F7OMLDBJ4HW4UZ63BZ7O47EWR6TKPY6
+#\\\|HFBC7RONRLKIBP3CRD43D6U6DNQPNGEHGV2XEQ253A4HPQB4GLH \ / AMOS7 \ YOURUM ::
+#\[7]BNP563KPPKMABBEJCXLXPMUGJD6B2JED4STXEBLXFAJX3TYTV6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
