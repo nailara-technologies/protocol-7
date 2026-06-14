@@ -26,6 +26,26 @@ if ( $mode eq qw| follow-pointer | ) {
         if not defined $monitor and $n_monitors > 0;
 } elsif ( $mode =~ m{^index:(\d+)$} ) {
     my $idx = $1;
+
+    ## clamp out-of-range monitor indices instead of silently falling back  ##
+    ## to full-desktop: an off-by-one config value would otherwise span the ##
+    ## whole virtual screen [oversized window, doubled font, swap appears   ##
+    ## to do nothing since the geometry never changes].                     ##
+    if ( $idx >= $n_monitors ) {
+        if ( not <ticker.window.monitor_out_of_range_logged>++ ) {
+            <[base.logs]>->(
+                0, ': ticker.window.monitor = index:%d is out of range', $idx
+            );
+            <[base.logs]>->(
+                0,
+                ':. [ 0..%d available ] < using monitor %d instead >',
+                $n_monitors - 1,
+                $n_monitors - 1
+            );
+        }
+        $idx = $n_monitors - 1;
+    }
+
     $monitor = $display->get_monitor($idx)
         if $idx >= 0 and $idx < $n_monitors;
 } elsif ( $mode eq qw| cycle | ) {
@@ -58,8 +78,8 @@ return {
     'source' => sprintf( 'monitor[%s]', $mode )
 };
 
-#,,..,,.,,,.,,,..,,,.,,,.,,..,...,,,,,...,..,,.,.,...,...,..,,,,.,.,.,.,,,,,,,
-#WH5GJWB2X4R2HSIRZWC6XXBUWNGFHFAUUYTUGKKMYPMNJKN7W22SZQFXT63RV3AY6PNIXMAQ4QH4S
-#\\\|CVN52ZJWFBS3YDSMHUAKSGNNMAJPMT4YSUA3WGFC35UBUG6443B \ / AMOS7 \ YOURUM ::
-#\[7]LMZR6Y7UVTA7THHNJ74O2OAPLCUHPCMVT55N7P67IEKCTX565MBQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,..,,..,.,.,..,,.,,,.,.,,,.,..,,.,.,...,...,.,.,...,..,,...,...,
+#4HDYAHNMYADEMCNQNCXQSFITZYETIR2ZGRM6SISPFJIWCZ77MQ3YWI3JEHS4YUOP2M2LE2446GOGE
+#\\\|HHYENAPHRELJ5MGSLQLEYXF2D33N75NFHAKTSA7KKIEDQ54F7GS \ / AMOS7 \ YOURUM ::
+#\[7]RFWBRGXLNDCXZ4UJC4BWCFVUT6LI4VC6HO5RZUQIOMBZ6EUXZ2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
