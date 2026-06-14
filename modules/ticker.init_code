@@ -39,6 +39,21 @@ Glib::Object::Introspection->setup(
 <ticker.slowdown.percent>    //= 0;
 <ticker.request_rss_updates> //= FALSE;
 
+## zenka subname override: 'v7.start ticker[screen:N]' sets                ##
+## <system.zenka.subname> = 'screen:N', selecting monitor index N for this ##
+## instance without touching the configured default [ overrides whatever   ##
+## ticker.window.monitor would otherwise default to in set_default_values, ##
+## since that uses //= ].                                                  ##
+if ( defined <system.zenka.subname>
+    and <system.zenka.subname> =~ m{^screen:(\d+)$} ) {
+    my $screen_index = $1;
+    <[base.logs]>->(
+        0, "<< overriding ticker monitor [ with 'index:%d' ] >>",
+        $screen_index
+    );
+    <ticker.window.monitor> = "index:$screen_index";
+}
+
 ## window placement profile ##
 <ticker.window.profile> //= 'bottom-strip';
 <ticker.window.anchor>  //= 'bottom-left';
@@ -84,8 +99,8 @@ Glib::Object::Introspection->setup(
 
 0;
 
-#,,,,,,,.,,,,,,..,,.,,.,,,,..,,,,,,,,,,..,.,.,..,,...,...,,.,,..,,...,,,.,...,
-#GCWTWKGE55P6Q553OBUAHSYTWMVE5YF27CWS4U2CI7FZRPJ3TIX2MSANARLTB4EC4WLYQWA6AUNSI
-#\\\|HZI2GYLGS76BRNW2NILFRVH34YYF5WBKJGMCW2BHOLV2DEH2QYO \ / AMOS7 \ YOURUM ::
-#\[7]ZVDNXRCXLZ2FZ5AKNCPANU4SXVRT4GKDVAC72Q4WEA6DFX5VPMDQ 7  DATA SIGNATURE ::
+#,,..,,,.,...,,.,,,.,,...,.,.,,.,,.,.,,..,.,.,..,,...,...,...,...,,,,,,,.,..,,
+#FI246GUZAWBXXULSTRXLFLO5KGGRGLW2W7T7RDULVNG4HZ6YEUHS66VLKO4DI4PDMUME3U2BK6PWE
+#\\\|LI5G2GCKQ2EUMQMBSKCM3QTRKG6RNJSYQMCFJ2LDXCECAUHWFQJ \ / AMOS7 \ YOURUM ::
+#\[7]OQ3QA2KUI6TGSI7MWE6V4TVECEH2OX2JP2YOQQ4Q2IQVP47CU2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
