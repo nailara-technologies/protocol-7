@@ -29,12 +29,16 @@ if ( not defined $window ) {
 
 my $screen = <[window.gtk.get_screen_size]>;
 
-## in swap mode the ticker should live on the selected monitor instead of      ##
-## spanning the entire virtual desktop (which can push it onto a disabled or   ##
-## differently-positioned display after hot-plugging).                        ##
+## in swap mode the ticker can be constrained to a selected monitor.  the    ##
+## default is to span the full virtual desktop because WSLg/XWayland monitor  ##
+## geometry is not always reliable; set ticker.window.monitor to follow-     ##
+## pointer, primary, index:N or cycle to enable per-monitor placement.       ##
 my ( $base, $monitor );
 if ( <[base.cfg_bool]>->(<ticker.mouse.swap_edge>) ) {
-    $monitor = <[ticker.cmd.select_monitor]>;
+    my $mode = <ticker.window.monitor> // qw| full-desktop |;
+    if ( $mode ne qw| full-desktop | ) {
+        $monitor = <[ticker.cmd.select_monitor]>;
+    }
 }
 $base = $monitor // $screen;
 
@@ -60,13 +64,23 @@ if ( defined $monitor ) {
 <x11.coordinates.right>  = $geo->{'x'} + $geo->{'width'};
 <x11.coordinates.bottom> = $geo->{'y'} + $geo->{'height'};
 
+<[base.logs]>->(
+    2,
+    ': ticker geometry set: x=%d y=%d w=%d h=%d [monitor=%s]',
+    $geo->{'x'},
+    $geo->{'y'},
+    $geo->{'width'},
+    $geo->{'height'},
+    $monitor->{'source'} // 'full-desktop'
+);
+
 return {
     'mode' => qw| true |,
     'data' => "window profile: $profile"
 };
 
-#,,.,,,.,,,,.,,..,,,.,...,,,.,,,.,..,,..,,.,,,..,,...,...,..,,,..,,..,,,,,.,.,
-#DT2AHYCEWC3C36FHY44OAW3F5DCJUYBZQENUT6VLAYG6WPJZP3QYGOMWAX5TRZOJ5GVZQUV5DEHSS
-#\\\|GXVV3DB6PHMVZ22FTSKUS5YF7BHZBTT5IUKPLWDIGGP3HWCEB6F \ / AMOS7 \ YOURUM ::
-#\[7]NG4AMHUC7WQWRJVHFQW56FF6UYGBPH6IFR4EWVI3S5WC2SFTMQCA 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,.,,...,...,,.,,..,,...,,..,,,.,.,.,...,...,,,.,.,.,,.,,,,,,,..,
+#5JYHJF5AS6CIZO2UF5NU2RXCG6YLF42V2A7NZMQFGPDSE4JRBIDCE4KXHUWCG734EFUQQLUOGSY5S
+#\\\|Y6BSC7EWCNHS43GHIMQHP4U256CPMFP3FQF7CO3IVZ4HTRFJWUY \ / AMOS7 \ YOURUM ::
+#\[7]NSIRQQMRXPZPQVUADHF6CUGGMBXEKSU6CEENIURYJNFRZDXE6WAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

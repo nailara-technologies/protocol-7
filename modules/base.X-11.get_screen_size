@@ -23,15 +23,15 @@ while ( !$matched_reply ) {
 
 if ( $reply_string =~ m{^\($cmd_id\)TRUE ([^\n]+) ([^\n]+)\n$} ) {
     ( <x11.screen.width>, <x11.screen.height> ) = ( $1, $2 );
-    <[base.log]>->( 1, "received screen size [$1x$2]" );
+    <[base.log]>->( 2, "received screen size [$1x$2]" );
     return ( <x11.screen.width>, <x11.screen.height> );
 } else {
     <[base.log]>->( 0, "not expected X-11 reply ['$reply_string']" );
     return undef;
 }
 
-#,,..,,,.,,.,,,,,,...,...,,..,.,,,.,,,,.,,,,,,..,,...,...,.,,,,..,,,,,,.,,.,.,
-#SPEKVQ3NS7HHUEYYGIPEFFZTZBMCFCYIIWOZAXRGMMAEKBDR7UX73RI2OCMHXGAUJHDZDRSZYOUZ2
-#\\\|HVSTSNUMFJGVW2I3HEH4ZWVSFDY26YMKDUDAXZK4KPRVUCXSWTN \ / AMOS7 \ YOURUM ::
-#\[7]N44XWIHQ6W425LKX4UIQP4L34WGEK4OGI7TGQ7T5QPKZVP3GIQDI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,.,.,..,,,,,,.,,,...,,.,,...,.,.,..,,...,...,.,,,,..,,.,,..,,..,,
+#Z3KYS2TRLWFLNWYEBYPGQJPFU2KPTWFWRHEJ3MZVKAVCY2RP4LNTJCNNZDU7E7KDNYWJEMMEV5H7Q
+#\\\|QQP4U742YIKLCXTN2OBE5AJCRY7NN5NTMPGAGKLJFLONMG6TF3B \ / AMOS7 \ YOURUM ::
+#\[7]UNSSJW5CF7FQVYBGVWIXY7BJR3774CWGRXSAHAZ7PMOCNWV764CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

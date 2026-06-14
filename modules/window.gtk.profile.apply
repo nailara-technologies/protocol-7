@@ -8,8 +8,10 @@ my ( $window, $geometry ) = @ARG;
 return undef if not defined $window;
 return undef if not defined $geometry;
 
-$window->move( $geometry->{'x'}, $geometry->{'y'} );
-
+## set size before position: under Wayland the initial-placement configure   ##
+## request GTK sends on realize/map is computed from the default size, so a  ##
+## move() issued before the size is known can be off by the difference       ##
+## between the default (pre-size) and final window size.                     ##
 ## resize() on an unrealized window can hang under Wayland; use set_default_size ##
 if ( $window->get_realized ) {
     $window->resize( $geometry->{'width'}, $geometry->{'height'} );
@@ -17,8 +19,10 @@ if ( $window->get_realized ) {
     $window->set_default_size( $geometry->{'width'}, $geometry->{'height'} );
 }
 
+$window->move( $geometry->{'x'}, $geometry->{'y'} );
+
 <[base.logs]>->(
-    1,
+    2,
     'applied window geometry: x=%d y=%d w=%d h=%d [profile=%s]',
     $geometry->{'x'},
     $geometry->{'y'},
@@ -29,8 +33,8 @@ if ( $window->get_realized ) {
 
 return 1;
 
-#,,,.,,.,,,..,.,.,,,,,..,,.,.,...,,,,,,,,,,,.,..,,...,...,.,,,,.,,.,,,,..,,,.,
-#7MLM5VZZ3BQDNA36JOIRAHPAO3QQ64KM5VT2RZQATCXAELH5HVJO53UWF3CLT2ST2V5DZGK6KYINI
-#\\\|TIZJQVGP3ZXRLWNQMJ3R3TSRHYPH7N5KT4VV47QRWGI2JYYL3EI \ / AMOS7 \ YOURUM ::
-#\[7]77X56WSARNKVT6JPV5M3I6CPUDH4QC3237TSCBO3FJOFESU5ZAAY 7  DATA SIGNATURE ::
+#,,,,,...,,,.,..,,.,,,,..,,,,,,,.,,.,,.,,,,,.,..,,...,...,...,.,.,,,.,,,,,.,,,
+#MJFQMQ4ISV5NWPG5OQHOFTJHLDGQAHO46X2AKRP55UBMTG5GEXB3BK6XBAE2MLZ5MZ7OJT4RDS4CU
+#\\\|DFGFPOM7654GDCOSDII45YKFJ7LXGFPJX3OC5THL6BDGOPCLXFG \ / AMOS7 \ YOURUM ::
+#\[7]T2CGBC6DODQQQKNNAPQYU5AHWCO36VJOISXVKIJ5YBCBSC5ZJOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
