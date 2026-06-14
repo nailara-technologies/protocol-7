@@ -187,9 +187,14 @@ $window->signal_connect(
                 <[base.X-11.keep_above]>->(<x11.id>);
             }
         } else {
-            ## a dismissed notification stays hidden; do not fade back in ##
-            if ( ( <ticker.display.mode> // qw| continuous | ) eq qw| notify |
-                and <ticker.notify.dismissed> ) {
+            ## a dismissed notification, or a ticker.dismiss'd ticker in   ##
+            ## either mode, stays hidden; do not fade back in             ##
+            if (
+                (   ( <ticker.display.mode> // qw| continuous | ) eq
+                    qw| notify | and <ticker.notify.dismissed>
+                )
+                or <ticker.hidden>
+            ) {
                 return FALSE;
             }
 
@@ -415,8 +420,8 @@ my $ft_face   = $freetype->face($font_path);
 
 <ticker.obj.window>->queue_draw;
 
-#,,.,,..,,...,,..,.,,,,.,,,..,,.,,.,.,,,.,,,,,..,,...,...,...,.,,,...,..,,.,,,
-#U75BVKSDZXGSYE5IW7JOAJIRF6PPVMTZLOL2OICN6FYJKDCPOUUCJUI534SXDR2YWURHHVZQEKYPC
-#\\\|OWXFICV7X2VSCDTCEUJKN66FIC3GCBVFJIUCOUNAA6XIQCWIC6P \ / AMOS7 \ YOURUM ::
-#\[7]ER3PAW3NEHB5D4RRFOG3B6ICQLPB3IO626YJPFBTQ3BMAA7HYGDI 7  DATA SIGNATURE ::
+#,,..,..,,,..,,.,,,.,,,.,,,.,,..,,.,.,.,.,..,,..,,...,...,.,.,..,,,..,,.,,.,.,
+#VX7CY5EM7BWUJWZV3HRRCVXGSIPH4LBXHN6WMCBGRNEW44PEGDUHWQNNWX5YDUUSMYHDHI3SVRC3G
+#\\\|GIUZ5QBBFBE4XJV4BKUWJSRTWU3UGMHBSY7XIXO6FQ6HRVUKAGX \ / AMOS7 \ YOURUM ::
+#\[7]XRITH455FFLZIG4C2FW3SFV2HY5E4QKYNWCKQ3DTBBM5X2VTSQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

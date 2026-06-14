@@ -36,7 +36,11 @@ if (<ticker.is_composited>) {
 if ( <ticker.fade_opacity> == 0 ) {
     <[base.log]>->( 2, ":: fade-out complete." );
 
-    if ( ( <ticker.display.mode> // qw| continuous | ) eq qw| notify | ) {
+    if ( delete <ticker.dismiss.pending> ) {
+        ## ticker.dismiss requested a fade-out before hiding/pausing ##
+        <[ticker.dismiss_now]>;
+    } elsif ( ( <ticker.display.mode> // qw| continuous | ) eq qw| notify | )
+    {
         ## notify mode: hovering fully faded the message out -> dismiss it ##
         <[base.log]>->( 1, ': notify message dismissed, hiding ticker' );
 
@@ -96,8 +100,8 @@ if ( <ticker.fade_opacity> == 0 ) {
     $timer->cancel;
 }
 
-#,,,,,,..,.,.,.,.,.,,,...,,,.,..,,,,.,,.,,..,,.,.,...,..,,...,...,...,,,,,...,
-#BHKPAYNO2NXUGPDZKY2G7EFDVESJ7KTOZMBZSG5GPCTL5MWDH74QLDMSUVFA7YWFDCQHYBXUG3MHG
-#\\\|A6WZ5V3GKHYVY4AAKU3WWESBTQRGDSVL4UWXUTR2WRF4NJOZQ6X \ / AMOS7 \ YOURUM ::
-#\[7]RJJ3B5V63ZHYFWFDUIDOUVXWEREZFWV6LD6HCOG3R7MDWI55TIBQ 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,,,,.,,,,,.,,..,.,,,,.,,..,,..,,.,.,...,...,,..,,,.,,..,,,,,..,,
+#ODLKG6MFA7P7Y75SU4M4GLVZ2ZOILDZIZLK37AG2H75MRAOXROVZ5MLTLOX27OQTIGXLHVVIMEDUO
+#\\\|XTHGB273I2ZIGEC3FOUPHJSCAOVWZ25UMNWIQKKM35NOUX6G4EU \ / AMOS7 \ YOURUM ::
+#\[7]YNUBKCCKCSCOOOH3F4KKQE7BUPZB6XGFVBQAKOXH4XJMKUXBWSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
