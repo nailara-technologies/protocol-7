@@ -5,14 +5,25 @@
 
 <X-11.obj>->choose_screen(0);    # LLL: doesn't support multiple screens yet!
 
-my %screen_geom = <X-11.obj>->GetGeometry( <X-11.obj>->root );
+my %screen_geom = eval { <X-11.obj>->GetGeometry( <X-11.obj>->root ) };
 
 my ( $width, $height ) = ( $screen_geom{'width'}, $screen_geom{'height'} );
 
+if ( length $EVAL_ERROR or not defined $width or not defined $height ) {
+    my $err
+        = length $EVAL_ERROR
+        ? <[base.str.eval_error]>
+        : 'no geometry returned';
+    return {
+        'mode' => qw| false |,
+        'data' => "could not get root window geometry: $err"
+    };
+}
+
 return { 'mode' => qw| true |, 'data' => "$width $height" }
 
-#,,,,,...,,.,,..,,.,,,.,.,.,.,...,,,,,,,,,.,.,..,,...,...,.,,,,..,...,,,,,,,,,
-#RAVSGXWKYGPLF2ZV4F7PYD6QW6NXJ7SYDD5NK2TBDNYIRMBZNZYCSBVXIWKW76A4RC6QSV7CDKRDM
-#\\\|ZWGDJDHD4AJUVEMEXBM4SWRV7EDRLLFTEZROW7TK5QT7O5JFU7V \ / AMOS7 \ YOURUM ::
-#\[7]7SDIP2ECKWE7OS6W3Y446TVI2WFI2C2AJURMQVV3TJPZC576LQDA 7  DATA SIGNATURE ::
+#,,.,,...,,,.,,,,,..,,,..,.,.,.,,,,,.,,.,,..,,..,,...,...,,,,,,,,,,,.,..,,,.,,
+#WBNGHQRMEPPUBAZTC2E3K3VYAYA3ZKC3JYEBPMKMOSGOGLGG4KJXBOLMF47ZTYOUZRMB323E73TF2
+#\\\|BWSX2K26OFXDDAH5FUO7J7RGT7TTDWOBRE7WQIE4WIOQ6JAE22A \ / AMOS7 \ YOURUM ::
+#\[7]AO4HSVOMOXOE6NGLL75W3HMLWGVAZD6EV3EPS7JXOY3JZIWM4SAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
