@@ -15,7 +15,7 @@ die "expected numerical window id" if not defined $id or $id !~ /^\d+$/;
 
 my ($local_sid) = keys( %{ $data{'user'}{$user}{'session'} } );
 
-<[base.log]>->( 1, "moving window '$id' to x=$x y=$y w=$width h=$height" );
+<[base.log]>->( 2, "moving window '$id' to x=$x y=$y w=$width h=$height" );
 
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
@@ -45,8 +45,8 @@ if ( $reply_string =~ /^\($cmd_id\)FALSE (.+)$/ ) {
     return TRUE;
 }
 
-#,,..,.,,,,.,,...,,,,,.,.,,..,...,,..,,..,..,,..,,...,...,,,.,,.,,,..,,..,.,,,
-#FBTET6TOQB3LDK4XYDB364GOVLJ2YT4IAMAWXAC3FB3JKWLMEEQP5DK4T4YIDTP7TWJV6UTEJEHOY
-#\\\|ZJOCV5TU6JPQVLSOOVI437VSCX3ZGK7HFCME276XD5CR44GJT4L \ / AMOS7 \ YOURUM ::
-#\[7]MUBWXLLOI4FBIRYANKJVYE4J36SRCIQ7IPCSK6LPNESH5MDX44CA 7  DATA SIGNATURE ::
+#,,,.,,.,,...,,,.,,,,,,,.,,.,,,,.,...,.,,,..,,..,,...,..,,...,,.,,,,,,,,,,,.,,
+#IKQ6L4KPRJUFCMQ45X53ERC6PLXMPKIA3XKPJGRFRUD7SBIUMXER26MGIIHE5XHQWKZQE4FKS7GVU
+#\\\|T23JUAKKW3XH7JEGAJ46L2I7Y4C2VCKWXMHTH3RLHG7MA2AWNTY \ / AMOS7 \ YOURUM ::
+#\[7]VJ6O2QZMXSBABNCDWGHLBQE5WIQSTCDHPZ5QWO2CDGGRSU4YGWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
