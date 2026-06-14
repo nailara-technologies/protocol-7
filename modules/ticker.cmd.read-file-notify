@@ -28,26 +28,40 @@ if ( defined $loaded->{'error'} ) {
 <ticker.display.mode>     = qw| notify |;
 <ticker.notify.dismissed> = FALSE;
 
-## notify messages use the top strip by default so they do not overlap the ##
-## continuous-mode ticker. swap-edge mode manages its own placement, so    ##
-## skip the override there.                                                ##
-if ( <[base.cfg_bool]>->(<ticker.notify.use_top_position>)
-    and not <[base.cfg_bool]>->(<ticker.mouse.swap_edge>) ) {
-    my $previous_profile = <ticker.window.profile> // qw| bottom-strip |;
-    <[ticker.cmd.set-window-profile]>->( { 'args' => qw| top-strip | } );
-
-    ## restore the configured profile so continuous mode later returns to it ##
-    <ticker.window.profile> = $previous_profile;
-}
-
-my $window     = <ticker.obj.window>;
-my $need_start = (
+my $window      = <ticker.obj.window>;
+my $was_visible = defined $window && $window->get_visible;
+my $need_start  = (
            $loaded->{'updated'}
         or not <ticker.animation_started>
-        or ( defined $window and not $window->get_visible )
+        or not $was_visible
 );
 
 <[ticker.start_animation]> if $need_start;
+
+## notify messages use the top strip by default so they do not overlap the ##
+## continuous-mode ticker, even under swap-edge. the previous profile is   ##
+## remembered so read-file-cont can restore it - <ticker.window.profile>   ##
+## itself is left at 'top-strip' [it tracks the active profile].           ##
+if ( <[base.cfg_bool]>->(<ticker.notify.use_top_position>) ) {
+    my $previous_profile = <ticker.window.profile> // qw| bottom-strip |;
+    if ( $previous_profile ne qw| top-strip | ) {
+        <ticker.notify.previous_profile> = $previous_profile;
+        if ($was_visible) {
+            ## window already mapped: move it ourselves via the X11 retry  ##
+            ## sequence [GTK moves alone aren't honored once mapped].      ##
+            <[ticker.move_to_profile]>
+                ->( qw| top-strip |, $previous_profile );
+        } else {
+            ## window was hidden/unmapped: moving it now would fail        ##
+            ## verification and revert. just set the profile - start_     ##
+            ## animation's remap-settle timer applies <ticker.window       ##
+            ## .profile> [top-strip] with the X11 move retries once the    ##
+            ## remap has finished.                                         ##
+            <[ticker.cmd.set-window-profile]>
+                ->( { 'args' => qw| top-strip | } );
+        }
+    }
+}
 
 ## deferred reply: the caller waits until the user hovers/dismisses        ##
 if ($wait_for_dismiss) {
@@ -63,8 +77,8 @@ if ($wait_for_dismiss) {
 
 return { 'mode' => qw| true |, 'data' => 'ticker notify content displayed' };
 
-#,,,,,,..,,.,,,,,,.,.,.,,,,,,,,.,,,,.,,,.,,,,,.,.,...,...,...,.,.,,..,...,,,.,
-#VZGJPJYVUSP2I75XSORCMTEOGTUII7GF62VDSBVNV4X4KPMUZE3DCOKHYFAIQDTTFC3Q4IZYUEQI2
-#\\\|ASE7TLFTRR5ZBR3TGY6BJVROAZNG3HEABAOSZPO6M7W7U74SOVI \ / AMOS7 \ YOURUM ::
-#\[7]357Q7EOLZDNEMLPHQ6UID4CHZNMSNHUKGYKVQIEZPLTCMOD36YBQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,..,,,,.,,,.,,.,,,.,,,.,,..,,.,,,.,.,...,...,..,,..,,,,,,,,,,,..,
+#MMIABNAAB65HI67VYVQNS5Z4K7IYOT4VH4L46YEPLJAVGTOBDQAQALYSATIITI72QHMWDG22LTVZ4
+#\\\|4EQKXWWL6H4LIMYJWKGN6VXOI3XZTIW62VSVUVOHBCPKZKX2SU5 \ / AMOS7 \ YOURUM ::
+#\[7]OOFWZ464DIITRVYHXKBZ2X6RDH2CS2I7S5FQDPEBDWXNJEWWVMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
