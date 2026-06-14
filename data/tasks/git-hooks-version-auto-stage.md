@@ -1,5 +1,12 @@
 # task: pre-commit hook should auto-stage version-bump files
 
+## status
+
+landed in b9e4c7a23 — stage-only variant (no auto-bump-via-update-version,
+since that produces unsigned files the signature check rejects). full
+auto-bump still depends on a future signing-service zenka per the design
+discussed with the user.
+
 ## problem
 
 every commit leaves these three files modified-but-unstaged afterward:
@@ -99,8 +106,8 @@ watch out for:
 do not add the `#,,..` stub to any new file. the signing system writes
 it. lowercase comments, `[ word ]` annotations.
 
-#,,,,,..,,.,.,...,...,,.,,,,.,,.,,,,.,.,.,...,..,,...,...,...,..,,...,,,,,.,.,
-#Z3LVV2YGLBXUMMM5TSM6W3D2532TSTPH4CMDMPEERCYZ5JI5372NZB6B2FYHFLDXCT4V2VRFLOOQQ
-#\\\|4OMWGOQUS6HKEAP3EGU26ZQSV22MBLK46NHYLYR4XQLZ5N42MU5 \ / AMOS7 \ YOURUM ::
-#\[7]NVW2CYXDDUTAVUYVNSTC53ILYTODDA4UQ6L6TF3RSWSCNW3KE2DQ 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,..,..,,,,,,.,.,.,.,,,,,,.,,.,.,..,,...,...,...,,..,..,,,.,,..,,
+#CCH6655SETC5WKRUVZ5ZQTFPXNTGEBJ64WOF6LUL5SXVGKPA74ZO5AQXANB6VM22ESL37OP3QI7V4
+#\\\|U2LRXMSZJSMENBKOLJUQQFRLUGTCDPKLQUFOZP5UGFWDJ6MM3HW \ / AMOS7 \ YOURUM ::
+#\[7]UTALLTOM2OBZUJCT6DTJOXWXNKWEH5IUFKD5VTFDBNTDQLSHXWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
