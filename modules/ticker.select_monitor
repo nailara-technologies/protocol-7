@@ -1,0 +1,103 @@
+## [:< ##
+
+# name  = ticker.select_monitor
+# descr = select Gdk monitor geometry for swap ticker [ internal helper ]
+
+my $mode = <ticker.window.monitor> // qw| primary |;
+
+my $display = eval { Gtk3::Gdk::Display::get_default() };
+return undef if not defined $display;
+
+my $n_monitors = eval { $display->get_n_monitors } // 0;
+return undef if $n_monitors <= 0;
+
+my $monitor;
+my $source = sprintf( 'monitor[%s]', $mode );
+
+if ( $mode eq qw| follow-pointer | ) {
+    eval {
+        my $seat    = $display->get_default_seat;
+        my $pointer = $seat->get_pointer;
+        my ( undef, $px, $py ) = $pointer->get_position;
+        $monitor = $display->get_monitor_at_point( $px, $py );
+    };
+} elsif ( $mode eq qw| primary | ) {
+    $monitor = eval { $display->get_primary_monitor };
+    $monitor = $display->get_monitor(0)
+        if not defined $monitor and $n_monitors > 0;
+} elsif ( $mode =~ m{^index:([\d,.]+)$} ) {
+    ## tolerant priority-list parser: 'index:2.1' or 'index:2,1' both mean ##
+    ## "try monitor 2, fall back to monitor 1 if not available" - separator ##
+    ## is not locked down yet, '.' and ',' are both accepted.               ##
+    ## [ future: '1:2' / '1..2' could mean "span monitors 1-2" ]            ##
+    my @candidates = split m{[,.]}, $1;
+    my $idx;
+
+    for my $candidate (@candidates) {
+        if ( $candidate < $n_monitors ) {
+            $idx = $candidate;
+            last;
+        }
+    }
+
+    ## clamp out-of-range monitor indices instead of silently falling back  ##
+    ## to full-desktop: an off-by-one config value would otherwise span the ##
+    ## whole virtual screen [oversized window, doubled font, swap appears   ##
+    ## to do nothing since the geometry never changes].                     ##
+    if ( not defined $idx ) {
+        $idx = $candidates[-1];
+        if ( not <ticker.window.monitor_out_of_range_logged>++ ) {
+            <[base.logs]>->(
+                0, ': ticker.window.monitor = index:%d is out of range', $idx
+            );
+            <[base.logs]>->(
+                0,
+                ':. [ 0..%d available ] < using monitor %d instead >',
+                $n_monitors - 1,
+                $n_monitors - 1
+            );
+        }
+        $idx = $n_monitors - 1;
+    }
+
+    $monitor = $display->get_monitor($idx)
+        if $idx >= 0 and $idx < $n_monitors;
+
+    ## report which candidate actually got picked, not the raw config string ##
+    $source = sprintf( 'monitor[index:%d]', $idx )
+        if defined $monitor and @candidates > 1;
+} elsif ( $mode eq qw| cycle | ) {
+    my $idx = <ticker.window.monitor_index> // 0;
+    $idx     = 0 if $idx >= $n_monitors;
+    $monitor = $display->get_monitor($idx);
+    <ticker.window.monitor_index> = ( $idx + 1 ) % $n_monitors;
+}
+
+return undef if not defined $monitor;
+
+my $geometry = eval { $monitor->get_geometry };
+return undef if not defined $geometry;
+
+my ( $x, $y, $w, $h );
+if ( ref($geometry) eq qw| HASH | ) {
+    ( $x, $y, $w, $h ) = @$geometry{qw| x y width height |};
+} else {
+    ( $x, $y, $w, $h )
+        = ( $geometry->x, $geometry->y, $geometry->width, $geometry->height );
+}
+
+return undef if not defined $w or not defined $h;
+
+return {
+    'x'      => $x // 0,
+    'y'      => $y // 0,
+    'width'  => $w,
+    'height' => $h,
+    'source' => $source
+};
+
+#,,,,,,,,,..,,..,,,..,,.,,,.,,,,.,.,.,,,.,,,.,..,,...,...,...,,,,,,,.,.,,,,..,
+#Y3PODDWCIDDQQO7PPI4WVLMVTFZNC33SUM647JWN6PELWGQASWBLFIBPLPNK2PHAZC7IW7YEVGRLA
+#\\\|QKOV5FDJNKPA5PK4ZD3AORFR2266WBBYEDDL5RQBDWAUEYOO4V6 \ / AMOS7 \ YOURUM ::
+#\[7]SAKR2ZKEAHCUAZM3P5TWGMWN7FS3FAQ5U5VVJGYXVZFQWOYVLCCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
