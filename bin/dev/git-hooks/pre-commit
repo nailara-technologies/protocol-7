@@ -140,6 +140,39 @@ unless ( -f $vers_file ) {
 ## Get current git commit count
 my $commit_count = eval { $git->log } - 1;
 
+## [ auto-stage already-bumped version files for upcoming commit ]
+## note: only stages -- never runs update-version itself. update-version
+## rewrites these files without re-signing them, which the signature
+## check below would then reject. bumping + signing remains a manual
+## step ( update-version && v7.sourcecode update-signatures ) until a
+## signing-service zenka exists for that. <{C1}>
+unless ( $skip_version_check or $is_amend ) {
+    my $expected_count = $commit_count + 1;
+
+    my $current_version = '';
+    if ( open my $tmp_fh, '<', $vers_file ) {
+        $current_version = <$tmp_fh>;
+        close $tmp_fh;
+        $current_version =~ s|\n+.+$||sg;
+    }
+
+    my $current_count = 0;
+    if ( $current_version =~ m|-(\d+)\.(\d+)$| ) {
+        $current_count = $1;
+    }
+
+    if ( $current_count == $expected_count ) {
+        print ": [ staging version files ]\n:\n";
+        my @version_files = (
+            $vers_file,
+            File::Spec->catfile( $root_path, 'read-me', 'md', 'README.md' ),
+            File::Spec->catfile( $root_path, 'read-me', 'project-identity',
+                'source-code-versions.md' ),
+        );
+        $git->add(@version_files);
+    }
+}
+
 ## Read version string from file
 open my $fh, '<', $vers_file or do {
     print STDERR
@@ -277,8 +310,8 @@ unless ($skip_signature_check) {
 print ":\n: done.\n:\n";
 exit 0;
 
-#,,,,,,,.,,,,,..,,...,...,..,,,,.,...,,,,,...,..,,...,...,..,,,..,,,,,,,,,,.,,
-#RGMAPDFAKQVAKW5TAYTJMYLZX7GUMY2TEJVSNAKIRHGW4IMRKHWWQYI2QHEJRXVANKTHBKNB5WJZE
-#\\\|4AU7PQ77LWVNAO4KNEQZ7TEGX24HMQZE2AM6UHVSTT6BE2LEXOF \ / AMOS7 \ YOURUM ::
-#\[7]AI6LUF7EFODKGN7LXA6MS6BQVNFKANDVVO25VK77NQ5AZ3GA42BY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,,,,...,,,.,.,,,.,.,...,.,.,.,,,..,,...,...,...,,.,,.,,,.,,,..,,
+#EREGUDVORV5AHVX4WVI4XNVCYHUUQABMX7BH2SPOGXEMGSNZBWAXNX6SYPMFDMGRMWFPFLUL6RK6C
+#\\\|2G2AF254ZWMO5RIHWPXKO5UFYPA4VPL57NRBCCUP7AVOKTXLTXP \ / AMOS7 \ YOURUM ::
+#\[7]MNJ7M3BRZ332VI3HTN5VVMZMDXDFUAYCHZUNSNGWZKG7LB6VZGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
