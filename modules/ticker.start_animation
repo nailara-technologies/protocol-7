@@ -21,6 +21,15 @@ if ( not $window->get_visible or <ticker.is-iconified>-- ) {
     <ticker.is-iconified>      = 0;
     <ticker.mouse.inside>      = FALSE;
     <ticker.mouse.grace_until> = <[base.time]>->(5) + 1.5;
+
+    ## the cursor may already be resting where the ticker is about to        ##
+    ## appear [e.g. notify mode's top-strip]. without this, check_pointer's   ##
+    ## swap-edge cursor_over check [ ($inside||$event_inside) && not defined  ##
+    ## swap_left_at ] treats that as a fresh edge-arrival on the very first   ##
+    ## poll and immediately swaps/dismisses the ticker before it's seen. seed ##
+    ## swap_left_at as if the cursor had just left, so a real enter-notify is ##
+    ## required [same as on subsequent shows] before a swap-out can trigger. ##
+    <ticker.mouse.swap_left_at> = <[base.time]>->(3);
     <[base.log]>->( 1, 'showing window' );
 
     ## re-mapping the window [ MapWindow / GTK show after hide ] makes      ##
@@ -81,8 +90,8 @@ if ( defined <x11.id> ) {
 
 $window->queue_draw();
 
-#,,..,,..,,..,...,.,.,.,,,,.,,.,,,,,.,.,,,,.,,..,,...,...,,.,,,..,.,,,,.,,..,,
-#7YGCRQY3OXLR5OUA52K344JLRHHLBPUON7DKIWPBRGMUT44LST7NHEP3R5U4QOA2OXXM4SFLEAHHI
-#\\\|EINZ24QO4YB4JBCRFIKL7DN4N3WUVERFSYIPBA2DCDERRD7UIDF \ / AMOS7 \ YOURUM ::
-#\[7]WLEG64TQDEMNLLKRQ2XDDJDMCPUTGFH2K3QMOL65CMPD7LDOCMBI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,.,,.,,,..,,,..,.,,,,,,,,,,,,..,..,,...,..,,.,,,,,.,,.,,...,...,
+#KOFYRPMOWT5WQXSDECB6OTBNUS3NVFUTHWD7ABXQXBCO2U6UOI4NJNHNM3PBZCIIYF7UMEG5JHUFS
+#\\\|A5XLLVVBPH6CQRVNQT2WT7HMIVTDCPFTM2X5TUURLLHGODBCUJV \ / AMOS7 \ YOURUM ::
+#\[7]6M73X624A3LO5LUA5343M4NBGMIEXW7NSQTFIPI5CSUTAGD3QMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

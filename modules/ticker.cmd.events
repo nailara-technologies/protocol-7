@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = ticker.cmd.events
+# param = [:auto-close[:<name>]:]
+# descr = stream ticker specific state-change events
+
+my $args = $call->{'args'} // '';
+
+## [:auto-close:] closes the stream once 'dismissed' is seen; a name      ##
+## [e.g. :auto-close:shown:] waits for that specific event instead.       ##
+my $auto_close_match;
+my $auto_close = 0;
+if ( $args =~ s{^\s*:auto-close(?::([\w-]+))?:\s*}{} ) {
+    $auto_close       = 1;
+    $auto_close_match = $1 // qw| dismissed |;
+}
+
+my $sid    = $call->{'session_id'};
+my $cmd_id = $call->{'command_id'};
+
+return { 'mode' => qw| false |, 'data' => 'requires cmd_id > 0' }
+    if not defined $cmd_id or $cmd_id == 0;
+
+my $h = <[base.stream.open]>->(
+    {   'sid'    => $sid,
+        'cmd_id' => $cmd_id,
+        'type'   => qw| STRM |,
+        'total'  => undef,        ## unbounded ##
+    }
+);
+
+return { 'mode' => qw| false |, 'data' => 'base.stream.open refused' }
+    if not defined $h;
+
+push @{ <ticker.event.listeners> //= [] },
+    {
+    'handle'     => $h,
+    'auto_close' => $auto_close,
+    'match'      => $auto_close_match,
+    };
+
+<[base.log]>->( 1, ': events listener registered' );
+
+return { 'mode' => qw| deferred | };
+
+#,,.,,,..,.,,,,,.,.,,,..,,.,.,,,.,,.,,,,,,,.,,..,,...,..,,,..,,,,,,..,.,,,.,,,
+#36XCUFTNTD62FIS6JNJYCPTYDOCZIX4UFPYRGGWNR3X5D74ZORSSVE6COW4I3QYAXHQSTKLRTMYT4
+#\\\|7H537ZUG5ZONT3AD5BNID5EYO5RFWPFLYLMRPASEO5AAR6ZR7ZR \ / AMOS7 \ YOURUM ::
+#\[7]ESHAAMNLCGVHPATSY57X6HGMSVHHY644UXYCJJVLAZHFRTPMISCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

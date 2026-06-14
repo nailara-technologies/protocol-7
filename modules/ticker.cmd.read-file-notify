@@ -26,7 +26,9 @@ if ( defined $loaded->{'error'} ) {
 
 <ticker.display.mode>     = qw| notify |;
 <ticker.notify.dismissed> = FALSE;
-<ticker.hidden>           = FALSE;
+
+<[ticker.emit_event]>->(qw| shown |) if <ticker.hidden>;
+<ticker.hidden> = FALSE;
 
 if (<ticker.paused>) {
     <ticker.paused>    = FALSE;
@@ -82,8 +84,8 @@ if ($wait_for_dismiss) {
 
 return { 'mode' => qw| true |, 'data' => 'ticker notify content displayed' };
 
-#,,,,,...,...,..,,.,.,...,,..,,..,.,.,,..,,..,.,.,...,...,,,.,.,.,.,.,,,.,,,.,
-#EBGMITDFIKG6J3JQNZPHY7FZA5VACW6WPCOJN2YZDT3VPJC3BYRWUR7OJLM2QOBFUTYQ4C6XQV7K2
-#\\\|IMXK2ZFAV2CWH47MEP2Y3XZ4RPJOM5XXM5IAIBTHTPVHXR43FCQ \ / AMOS7 \ YOURUM ::
-#\[7]6SNRDZSHEDWKUS5FW7DIIYSR47WR2HOCD7LGFBJHJE5FHQGXL4DY 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,..,.,,,..,,.,.,.,.,,,,,.,.,.,.,.,.,...,..,,..,,..,,...,,.,,.,,,
+#GZQ2VIVNMZREPT66AMW2523KORPLW7XHLEIZAKAPY2N2EINSS23PC3RIM33S5R4J3BZLECCJC4PDE
+#\\\|HBX2JWKDNJYRY3ZFJLQAD6M77R6JJM63WHTGJFNVS4DNJIHP5NE \ / AMOS7 \ YOURUM ::
+#\[7]XDKJSGYTKPIVKW5HY3HATDOQEYR5ARCUJPP3NSIHSBX4FZCA64CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
