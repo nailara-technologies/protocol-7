@@ -238,8 +238,103 @@ With it live:
   cache-flush logs not observed during rotation, scenario 5 502 HTML
   handling (harness-side fix, not a zenka bug).
 
-#,,..,.,.,.,.,,.,,,..,.,.,,,.,,.,,.,.,,..,,,,,..,,...,...,...,..,,,,.,..,,,,,,
-#MP6ZHR2WLE5MXGJ4HH7PZ3Z2ZTRKLSUDVDCUG7CDHBQOAZQT7IVWU7DHMWRL2H2SQLV5SF4CSSQJA
-#\\\|IZ2U3MLA5373DNEZ7U4Y2BBWGUEXHTJNG4SZ6FQYI2BNPKRE3FU \ / AMOS7 \ YOURUM ::
-#\[7]BJ3RABG4W5XEI2KPWRB2LCMVNU6LR7NGMSQWVVVCQ5SZDVXJMABY 7  DATA SIGNATURE ::
+**2026-06-15 — scenario 1 header-injection LANDED via claude_dispatch
+(opus):**
+- Root cause of "injected x-api-key: got ''": `modules/cred-mesh.cmd.resolve`
+  called `cred-mesh.resolve` with a hashref arg
+  (`{slot=>$slot, context=>{}}`), which selects `$as_size_reply = FALSE`
+  and returns the raw `{mode=>'true', data=>$auth_result_hashref, ...}`.
+  `base.handler.command` then sent a stringified-hashref `TRUE` reply
+  instead of a `SIZE`/YAML reply, so `proxy.handler.auth_lookup_reply`
+  (which only handles `cmd eq 'size'`) silently fell through to an empty
+  result. Fixed by calling `<[cred-mesh.resolve]>->($slot)` (string-arg
+  form, selects `$as_size_reply=TRUE`). Committed `2882f7ad5`. Verified:
+  scenario 1 went from 2/5 → 4/5 (only "no relay pending" still fails,
+  pre-existing stale `/var/protocol-7/cred-mesh/relay_pending.yaml` from an
+  old scenario-5 run, separate/lower-priority).
+- Second fix landed same session, commit `6b535bf8a`: proxy zenka log was
+  flooded with `no perm. [ src 'cube' cmd|usr 'handler.cred_rotated' ]` on
+  every `cred-mesh.rotate` (via `cred-mesh.handler.rotation_strm` ->
+  `proxy.handler.cred_rotated` notification, relayed by cube with
+  `src='cube'`). Root cause: `base.parser.access_conf` compiles a bare `*`
+  in an access mask to regex `[^\.]+` (no-dots-allowed), so it never
+  matches dotted command names like `handler.cred_rotated`. Fixed by
+  explicitly listing `handler.cred_rotated` in
+  `configuration/zenki/proxy/start`'s `access.cmd.usr.cube` mask, ahead of
+  the trailing `*`. Verified live: rotating `test.fixcheck` no longer logs
+  "no perm".
+
+**Open — intermittent race, scenario 1 still ~3/8 fails after both fixes
+above:** when seeding BOTH `openweathermap.api-key` AND `session.<domain>`
+slots (as scenario-1 does) and then immediately issuing the proxied
+request, ~1/3 of runs return `status=500 / error="read timeout"` from the
+LWP client (proxy never responds within 8s) instead of `status=200` with
+`x-api-key` injected. A single-slot manual repro (`session.*` only, no
+`openweathermap.api-key`) was reliably fast (0.1s). The `no perm` fix
+above reduced but did NOT eliminate this race (3/8 failures after the fix,
+vs failures also seen before it).
+
+Also re-observed **F13's exact error string** —
+`undefined value as subroutine reference [proxy.template.passthrough:74`
+(now `:75` after a line shifted) `] [EV:[pid] input buffer]` — repeatedly
+in **cred-mesh's** zenka log (not proxy's), across many timestamps spanning
+before/during/after this session's restarts. `p7c proxy.list-subs
+clients.http.request` confirms `clients.http.request` IS compiled in
+proxy. cred-mesh's `modules.load` includes `proxy` (so
+`proxy.template.passthrough` is compiled into cred-mesh's `%code` too) but
+NOT `clients.http`/`clients.https` — so if cred-mesh ever locally executes
+`proxy.template.passthrough` (mechanism unclear — `proxy.handler.cred_rotated`
+itself doesn't call it), `<[clients.http.request]>` would be undef in
+cred-mesh's context, producing exactly this error. F13 was previously
+dismissed as a stale-process false alarm, but it has now recurred
+post-restart — **may be a real, separate bug**: something is routing/
+executing `proxy.template.passthrough` inside the `cred-mesh` zenka. Needs
+investigation: how/why would cred-mesh ever invoke a `proxy.*` module
+locally — check `cred-mesh`'s `subroutine.white-list` (it includes
+`proxy.handler.cred_rotated` per cred-mesh's whitelist line 336 — was this
+copied wholesale from proxy's whitelist, and does cube ever route a
+`proxy.handler.cred_rotated`-addressed message to **cred-mesh** instead of
+**proxy** because cred-mesh's whitelist also matches it?). This may also be
+the root cause of the 3/8 race above (the "EV input buffer" exception could
+be killing/corrupting an in-flight event handler mid-request).
+
+**Next:** dispatch a focused opus session for the cred-mesh/`proxy.template.
+passthrough` cross-execution mystery + the 3/8 race — these are likely the
+same bug. Budget note: previous opus dispatch (session
+`6c88ecdb-0616-475c-ac85-a7c64effeb44`) hit the $3 max_budget mid-investigation
+after finding the `no perm`/`*` regex root cause but before testing; a fresh
+dispatch with a higher budget (e.g. $5) and the cred-mesh-whitelist lead
+above should make faster progress.
+
+**RESOLVED 2026-06-15 (claude_dispatch opus, session
+`73005c88-feb7-4856-8e0f-2e2b66842a82`):** the two bugs above WERE the same
+bug. `modules/proxy.init_code` runs `<[proxy.listen]>` (binds the
+SO_REUSEPORT listener on port 8118) unconditionally for ANY zenka that
+loads the `proxy` module namespace — and `cred-mesh`'s `modules.load`
+includes `proxy` (for `cred-mesh.subscribe_rotation`'s
+`proxy.handler.cred_rotated` side effect). So **cred-mesh was ALSO binding
+a duplicate listener on 8118**, and the kernel round-robins SO_REUSEPORT
+connections across both listeners. ~1/3 of proxied requests landed in
+cred-mesh's event loop, which ran `proxy.handler.connection` ->
+`proxy.template.passthrough` correctly up to the `direct-tcp-fallback`
+branch, then died on `<[clients.http.request]>` (undef in cred-mesh's
+`%code` — `clients.http`/`clients.https` aren't in cred-mesh's
+`modules.load`) — the exact `proxy.template.passthrough:75` error, and the
+client-side request just hung until the 8s LWP timeout.
+
+Fix: `modules/proxy.init_code` now guards both `<[proxy.listen]>` and the
+stale-listen-socket cleanup block with
+`my $is_proxy_zenka = (<system.zenka.name> // '') eq qw| proxy |;` — only
+the zenka actually named `proxy` binds/owns the listen socket.
+`cred-mesh.subscribe_rotation` registration is unaffected (no listener
+needed for that). Repro loop: **8/8 status=200** (was ~5/8).
+`proxy.template.passthrough` error no longer appears in cred-mesh's log
+after triggering rotations. Full scenario-1 re-run 2-3x: stable 4/5 (only
+the pre-existing unrelated "no relay pending" assertion still fails).
+Change is unstaged in `modules/proxy.init_code` — review and commit.
+
+#,,,,,,,.,,,.,.,.,.,.,.,,,,.,,.,.,,,,,,.,,,,,,..,,...,...,...,,..,,..,,.,,,,.,
+#T7VFK4O35YFJ4GK43HD6XJ4XQJTVBTH7HYAPXCLUESA4CL7DEWHX347VL4LKLC4VCY26JV2GJJRX2
+#\\\|PP54TBXZSQK5CEEPQ4SMTZ2ICHH3ALVOQB6BRN3UQUYQ4RERHRI \ / AMOS7 \ YOURUM ::
+#\[7]QXHGT2FJVG5VRSZESQHLTIFOFAMVWSGUNTHNU6UFX5EWEOAMQ4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
