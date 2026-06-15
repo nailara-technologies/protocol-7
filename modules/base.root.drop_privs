@@ -237,6 +237,11 @@ if ( not length( $user // '' ) ) {
                 if not defined <system.zenka-user.current>
                 or $user ne <system.zenka-user.current>;
 
+            ## recording selected primary-group override [ used by   ##
+            ## check-zenka-paths / zenka_dir.write gid-override logic ]
+            <system.zenka-group.current> = $override_primary_group
+                if defined $override_primary_group;
+
             <[base.logs]>->( "switched to unix user '%s'.,", $user );
 
             ## log group configuration only when explicitly specified
@@ -254,8 +259,8 @@ if ( not length( $user // '' ) ) {
     }
 }
 
-#,,,.,.,.,,,.,,,,,.,.,,,,,...,.,,,.,,,,,,,,,.,..,,...,...,...,,.,,,.,,,,.,,.,,
-#BUO5PYJFKKDTUXXAKKW2FLFS2QVUOUT7AJMLZTCNC4LCPTH2NRNW2GTYE5UHAHXCEID7UB24ZZRA6
-#\\\|LNYM6WXWM66PE6FGURIQINDKQB2I3NBIRTSHHUVQIM2QCKFOTQQ \ / AMOS7 \ YOURUM ::
-#\[7]QJX4JPNDFWUMSDJCTX7NJSDPWYGR3WXYXMSPFM4EUDYLDSQXDMAA 7  DATA SIGNATURE ::
+#,,..,...,..,,..,,,.,,...,.,,,...,.,,,...,..,,..,,...,...,,,,,.,,,..,,,,.,...,
+#YGUMYXWOBBHXJGMS3FNGCNRQHACURQ34QXZVEO2WXSQKGBKV3RHFH6EPUWBSPIQA332QM6LCKSJCW
+#\\\|FBZ6M45A6LEOJRCZASZYKQHAK4H24MABKEE2PEUNDET6IOBLMWY \ / AMOS7 \ YOURUM ::
+#\[7]XXPBRWHM4UBPITME24NWB4SHIRUYPTJUZ76KGCHZB25BVE234MDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

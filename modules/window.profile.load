@@ -5,9 +5,20 @@
 
 <[base.perlmod.load]>->( 'YAML::XS', qw| Load | );
 
-<[base.log]>->( 1, "[profile.load] attempting to load window/position.yaml" );
+my $caller = shift;
 
-my $yaml_content_ref = <[file.zenka_dir.load]>->('window/position.yaml');
+unless ( defined $caller and length $caller ) {
+    <[base.s_warn]>->( 'caller required for load <{C1}>', '' );
+    return undef;
+}
+
+## same per-caller path as window.profile.save ##
+my $caller_chksum = <[chk-sum.amos]>->($caller);
+my $position_path = sprintf 'window/position.%s.yaml', $caller_chksum;
+
+<[base.logs]>->( 1, '[profile.load] attempting to load %s', $position_path );
+
+my $yaml_content_ref = <[file.zenka_dir.load]>->($position_path);
 
 unless ( defined $yaml_content_ref ) {
     <[base.log]>->( 1, "[profile.load] file not found or unreadable" );
@@ -63,8 +74,8 @@ if ( defined $position and ref($position) eq qw| HASH | ) {
 );
 return undef;
 
-#,,.,,...,..,,.,,,,.,,,..,..,,,.,,..,,,..,...,..,,...,...,..,,.,.,,.,,,.,,..,,
-#34T23CTM5KTYWNXWR36YIHHZS7F2M25YRED6VE2U4GEJEWEWAPWMFN37243TMSNDY6EAQDN3PA5O2
-#\\\|F7MKNCQYN2KNMDGMBIWCZVBKHBQMDGUPS4II5OENFCYFJUZDWER \ / AMOS7 \ YOURUM ::
-#\[7]52E36YHGV2IXZQY55OQZK6XH5DC5SY7DP7BRMYZMGJBHUP6G5KBA 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,,.,.,,,..,,,,.,,,,,...,,,,,,,.,..,,...,...,,,.,,,,,.,.,.,.,.,.,
+#7RPWPOXMBBJ6KW53EXW6P4RTRP5ZSUZ4FXYRQ7QI2HSBHV2SXQXGQ3PXOBDQ677P7IWHSDJKZ37MW
+#\\\|5TY3AXYX5VIMQT4BG7TJB2OSYBCREHCN72VYJIAT62KPJEHBSAY \ / AMOS7 \ YOURUM ::
+#\[7]FDEGTWAYLIBOHLPXHXL2Z2NREEU5CVG54KM3AIGQEBXLHODRDGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

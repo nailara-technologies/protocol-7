@@ -3,7 +3,6 @@
 
 [load_config_file:'shared-params']
 [load_config_file:'X11-vars']
-[root.drop_privs:<system.AMOS-user>]
 
 access.cmd.usr.cube = commands heart reload verify-instance * *.*
 
@@ -12,6 +11,10 @@ modules.load = auth net protocol io.unix ui \
 
 [load_modules:<modules.load>]
 [init_modules]
+
+## drop priviledges to the X-11 user with protocol-7 group, after init ##
+## so the zenka-dir creation/ownership above still runs as root        ##
+[root.drop_privs:<system.AMOS-user>.':'.<system.amos-zenka-user>]
 
 [base.net.connect:'unix']
 
@@ -25,8 +28,8 @@ modules.load = auth net protocol io.unix ui \
 ## main event loop - GTK if graphical mode, zenka event loop if TTY ##
 [base.gtk.main_loop]
 
-#,,,.,,..,,,,,,,.,...,,..,,..,.,.,.,,,,.,,,,,,.,.,...,...,...,,..,,.,,,.,,.,,,
-#P3C3FWRLOXOHYNDZHX2CHLGFIJF6OTSCTX3DUGBIKWDZC2AXV7U3VBEIQICXLHNZWKVGWOM6LSWXY
-#\\\|TPOEZJC3LCB6HAVZWVJ7NX3ZI2IGRXXNNC6PRPVGYYVHJGBLSMF \ / AMOS7 \ YOURUM ::
-#\[7]DCTRJY2JVZJ56DMJOQ4WCW3T7UDWHBXPQJ6B3V5Q4OYUMRYO3ADI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,.,.,,.,,...,,,,,...,,.,,,.,,.,.,.,.,...,...,..,,.,,,..,,,,.,...,
+#6IANFKYC5FMVBNFFWKPF3IORKZS2DQMY7ROLD7YRWQ42YVMRSLZQM7ROM4EBDJVPSUKHND5MYBBAG
+#\\\|M5VHRS2K7UTE2QTF72H6NLR4PSYPS63IR3J6HJFCNZA5TUHF3YZ \ / AMOS7 \ YOURUM ::
+#\[7]D2C5MXXE5YSXJIJCABSWQZTI3A7PLKTABKWZCQTXYAQHZAIDNKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
