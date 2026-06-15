@@ -5,10 +5,17 @@
 
 <[base.perlmod.load]>->( 'YAML::XS', qw| Dump | );
 
-my ( $zenka_name, $x, $y, $width, $height ) = @ARG;
+my ( $caller, $x, $y, $width, $height ) = @ARG;
+
+unless ( defined $caller and length $caller ) {
+    <[base.s_warn]>->( 'caller required for save <{C1}>', '' );
+    return undef;
+}
 
 unless ( defined $x and defined $y and defined $width and defined $height ) {
-    <[base.s_warn]>->('x, y, width and height required for save');
+    <[base.s_warn]>->(
+        'x, y, width and height required for save <{C1}>', $caller
+    );
     return undef;
 }
 
@@ -29,7 +36,10 @@ my $yaml_data = {
     'width'    => $width,
     'height'   => $height,
     'profile'  => 'saved',
-    'metadata' => { 'saved_at' => <[base.time]>->(3) }
+    'metadata' => {
+        'caller'   => $caller,
+        'saved_at' => <[base.time]>->(3)
+    }
 };
 
 my $yaml_content;
@@ -43,12 +53,19 @@ if ($EVAL_ERROR) {
 }
 
 unless ( defined $yaml_content and length $yaml_content ) {
-    <[base.s_warn]>->('YAML serialization produced empty content');
+    <[base.s_warn]>->(
+        'YAML serialization produced empty content <{C1}>', $caller
+    );
     return undef;
 }
 
+## key the saved position file on the caller name so each caller   ##
+## [ e.g. each shell/window kind ] gets its own remembered position ##
+my $caller_chksum = <[chk-sum.amos]>->($caller);
+my $position_path = sprintf 'window/position.%s.yaml', $caller_chksum;
+
 my $bytes_written = <[file.zenka_dir.write]>->(
-    'window/position.yaml',
+    $position_path,
     \$yaml_content,
     '>',       # overwrite mode
     0600,      # permissions
@@ -56,7 +73,10 @@ my $bytes_written = <[file.zenka_dir.write]>->(
 );
 
 unless ( defined $bytes_written ) {
-    <[base.s_warn]>->('failed to write position YAML file');
+    <[base.s_warn]>->(
+        'failed to write position YAML file [ %s ]',
+        $position_path
+    );
     return undef;
 }
 
@@ -67,8 +87,8 @@ unless ( defined $bytes_written ) {
 
 return $bytes_written;
 
-#,,,,,,.,,..,,,..,.,.,,,.,,,.,..,,...,,,,,,..,..,,...,...,.,.,,,.,...,,,.,,..,
-#G2I3SSMW27GUCVVLSF5QHUXIHGTHPT7JTJXNXQEGKQMZ6DUFWJ3FF26WHGTK4YO4NVLBAHXQFD7Z2
-#\\\|XCBRAOGRJ3JUUWOPW7PM4EWLRYZ5PGBA5BNYVNWUUPSFT3A7NWE \ / AMOS7 \ YOURUM ::
-#\[7]DHI5PTYAUG6ZMTUFFNQYTQO6TVMB4GMRSWB4PR33DOV5CYPDUODA 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,...,,,.,,..,,..,..,,.,.,,.,,,,,,..,,...,...,,,.,..,,.,.,,,.,,,,,
+#PSFMIS626YEUKM4MY7Z3HIBGMEUKBVCPTWLHWJIL565KAF4VXFLRZGEBVWN4YRAYOQXJ73MFIHI6U
+#\\\|5E5YGLR4H67KGHOI6DYSP6V3XKQJYNTKJLOCY55NYKKF5CDENO2 \ / AMOS7 \ YOURUM ::
+#\[7]4RTA3PAU2HSQYZCWIPYBJVVGGF4GHHT4P3GURTPTN56DGARWSODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

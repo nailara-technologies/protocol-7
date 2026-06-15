@@ -8,6 +8,7 @@ my $args = shift // {};
 my $profile  = $args->{'profile'}  // 'bottom-strip';
 my $screen_w = $args->{'screen_w'} // 1920;
 my $screen_h = $args->{'screen_h'} // 1080;
+my $caller   = $args->{'caller'}   // '';
 
 my $zenka_name = <system.zenka.name> // '';
 
@@ -25,7 +26,7 @@ my ( $x, $y, $width, $height, $anchor );
 
 ## saved profile: load user-dragged position ##
 if ( $profile eq 'saved' ) {
-    my $saved = <[window.profile.load]>;
+    my $saved = length $caller ? <[window.profile.load]>->($caller) : undef;
     if ( defined $saved ) {
         return {
             'x'       => $saved->{'x'}      // 0,
@@ -35,9 +36,9 @@ if ( $profile eq 'saved' ) {
             'profile' => 'saved'
         };
     }
-    ## no saved position, fall back to bottom-strip ##
-    <[base.log]>->( 1, ': no saved position, falling back to bottom-strip' );
-    $profile = 'bottom-strip';
+    ## no saved position, fall back to the caller-provided default ##
+    $profile = $args->{'fallback'} // 'bottom-strip';
+    <[base.logs]>->( 1, ': no saved position, falling back to %s', $profile );
 }
 
 ## config profile: read from zenka config values ##
@@ -122,8 +123,8 @@ return {
     'profile' => $profile
 };
 
-#,,,,,,,.,.,.,.,.,.,,,,,,,...,...,.,.,.,.,..,,..,,...,...,,..,..,,.,,,,,.,,..,
-#V6HLSGOMH3NEMRA6BYBALXL6JLTGENJQ5G2ZOYJGW5XUIGVR2SESO6BARRLFFKIKKFJEK54NZATOQ
-#\\\|74YHT6ZVOMAXQDRZZKWUUYYLXWNHQBIFVVPBPAJEI2DR5H2T3U6 \ / AMOS7 \ YOURUM ::
-#\[7]OAP2C6HVK42QKFP2DV7KWGC5FESLMQA7TLODTIY6WKIANOD6DKCI 7  DATA SIGNATURE ::
+#,,..,,..,,..,..,,,.,,,.,,,,,,...,,..,,..,,,.,..,,...,...,...,,..,,,.,,,.,,,,,
+#ZZYX2JAAT2Q7GK7BWS52364NKPJA7MIDIKDJQCTVWKN5FNG6OTPTBUXVAM7TCCHHX2PXDJFMISC56
+#\\\|Q5GECTTKOWQG65Y6BDTAUCYMJNZPIJIK3BMJIR6IFDJ5VVAKSBD \ / AMOS7 \ YOURUM ::
+#\[7]CMVBDXJIQYJHEUUMHDJVJRQHMWACTLGFC2VMSGENM53UKBED3SCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
