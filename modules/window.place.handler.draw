@@ -19,10 +19,10 @@ $context->paint;
 
 $context->set_operator('over');
 
-## cyan corner brackets ##
+## corner brackets [ protocol-7 'truth' foreground #0647C3 ] ##
 ## [ arm = 16, matches $corner hit-region in button_press ] ##
 my $arm = 16;
-$context->set_source_rgba( 0.0, 1.0, 1.0, 0.9 );
+$context->set_source_rgba( 0.023529, 0.278431, 0.764706, 0.9 );
 $context->set_line_width(2);
 
 ## top-left ##
@@ -51,40 +51,49 @@ $context->line_to( $w, $h - $arm );
 
 $context->stroke;
 
-## readout + instructions, bottom-right aligned ##
+## text overlay : caller title top-left, geometry readout bottom-right ##
 my $x = <x11.coordinates.left> // 0;
 my $y = <x11.coordinates.top>  // 0;
 
-my $margin = 12;
+my $margin      = <window.place.font-size.margin> //= 10;
+my $title_size  = <window.place.font-size.title>  //= 40;
+my $coords_size = <window.place.font-size.coords> //= 24;
+
+## use the white-rabbit face when it loaded, else the cairo toy font ##
+my $font_face = <window.place.font.face>;
+$context->set_font_face($font_face) if defined $font_face;
+
+## title : the caller name, larger, bottom-left [ against ambiguity ] ##
+my $caller = <window.place.caller>;
+if ( defined $caller and length $caller ) {
+    $context->set_font_size($title_size);
+    $context->set_source_rgba( 0.023529, 0.278431, 0.764706, 0.95 );
+    $context->move_to( $margin, $h - $margin );
+    $context->show_text( sprintf '[%s]', $caller );
+}
 
 ## readout shows the precise target geometry, not the trailing surface ##
 my $rw = <x11.window.width>  // $w;
 my $rh = <x11.window.height> // $h;
 
-my $readout = sprintf 'x=%d y=%d w=%d h=%d', $x, $y, $rw, $rh;
-my $line2   = 'drag/arrows/wheel move, edges/Ctrl resize, Shift=fine 1px';
-my $line3   = 'default 10px, dbl-click/Enter=commit, Esc=cancel';
+my $readout = sprintf '[ W:%d H:%d X:%d Y:%d ]', $rw, $rh, $x, $y;
 
-$context->set_source_rgba( 0.0, 1.0, 1.0, 0.95 );
-
-## stack bottom-up, ~4px gap ##
-my @lines = ( [ $line3, 12 ], [ $line2, 12 ], [ $readout, 16 ], );
-
-my $baseline = $h - $margin;
-for my $line (@lines) {
-    my ( $text, $size ) = @{$line};
-    $context->set_font_size($size);
-    my $extents = $context->text_extents($text);
-    my $tw      = $extents->{'width'};
-    $context->move_to( $w - $margin - $tw, $baseline );
-    $context->show_text($text);
-    $baseline -= $size + 4;
-}
+## center the readout in the window, both axes ##
+$context->set_font_size($coords_size);
+$context->set_source_rgba( 0.023529, 0.278431, 0.764706, 0.95 );
+my $extents = $context->text_extents($readout);
+my $tw      = $extents->{'width'};
+my $th      = $extents->{'height'};
+$context->move_to(
+    ( $w - $tw ) / 2 - $extents->{'x_bearing'},
+    ( $h - $th ) / 2 - $extents->{'y_bearing'}
+);
+$context->show_text($readout);
 
 return TRUE;
 
-#,,.,,...,,.,,..,,.,,,..,,,.,,.,,,.,,,,..,.,,,.,.,...,..,,,..,,,,,,.,,,.,,,.,,
-#IUQONWRRN2VGQ5UFVCYKFDFSBHXR2EJVBXVQV466MTNIRMJ3NQ2XRO4QV46Q5SDCB5AA4YUNAVUIO
-#\\\|S5LQ3MRBGF2L6CB5ARA4PBWVYDVVFGU3HNLSS3APVE2ZQY4VKLI \ / AMOS7 \ YOURUM ::
-#\[7]ZYWZ4TP26TBXNAABJPWR252GFYE4FRTMNLPHFHN5VWWEU4I454BY 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,...,..,,...,,,,,.,,,,,,,...,,..,.,.,...,...,,..,.,,,,..,..,,,.,,
+#VKQGUHU4T5L4ROE666SKQGUG2VZ77RUPON2KHZJDDIRFH6FATZLLCEHJBE5Q4GGOPHTO4C5L6Z3S4
+#\\\|36KYF27ZHTNSGG2ZNDZ4DZAVROUELVU3PT6NFL6W3UFXAHAZKOW \ / AMOS7 \ YOURUM ::
+#\[7]CWQ3TWB2EK5YU45IVDDR2GTW6YUN6277P46BTPCKFYJ5IQZX3GBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
