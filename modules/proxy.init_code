@@ -16,11 +16,17 @@ map { <[base.perlmod.autoload]>->($ARG) } qw| HTTP::Request URI YAML::XS |;
 ## load selector rules ##
 <[proxy.selector.load]>;
 
+## only the proxy zenka itself owns the listen socket — other zenki that load
+## the proxy module namespace [ e.g. cred-mesh, for subscribe_rotation side
+## effect ] must not bind a duplicate SO_REUSEPORT listener on 8118 ##
+my $is_proxy_zenka = ( <system.zenka.name> // '' ) eq qw| proxy |;
+
 ## start listener only once — not re-run on reinit ##
-<[proxy.listen]> if not defined $data{'proxy'}{'listen_sock'};
+<[proxy.listen]>
+    if $is_proxy_zenka and not defined $data{'proxy'}{'listen_sock'};
 
 ## close any stale listen sockets on our port (leaked from prior process runs) ##
-if ( defined $data{'proxy'}{'listen_sock'} ) {
+if ( $is_proxy_zenka and defined $data{'proxy'}{'listen_sock'} ) {
     my $good_fd   = fileno( $data{'proxy'}{'listen_sock'} );
     my $good_port = <proxy.cfg.listen_port> // 8118;
     if ( defined $good_fd and opendir my $dh, '/proc/self/fd' ) {
@@ -57,8 +63,8 @@ if ( exists $code{'cred-mesh.subscribe_rotation'} ) {
 
 0;
 
-#,,,.,.,,,..,,,,.,..,,.,,,,.,,...,,,.,.,,,.,.,..,,...,...,.,,,,.,,.,,,,,.,.,.,
-#3HE2GMIKKRX7EOLVUZ5JINWS2DPIY52DQ6IYRFCTX4LH4FPYMUCVNVFYVSIHWPGSJBU5JLH37GD4Q
-#\\\|IYCMU2SEU5URD6UUZ6P3GSMALTZ5RG7B2DPP3ZBMTQFNOBUAGN6 \ / AMOS7 \ YOURUM ::
-#\[7]NJDKR6O3KIODRHTOHYJ3MZXZMBMEXXXBDECD6LWJCTD3OLOAS4AY 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,,.,,.,,..,,,,.,,,,,..,,,,,,,,,,..,,...,...,,,.,...,.,.,.,,,..,,
+#K4T7GO3KKMGUCXHNTIL5N6MP22A56SISRXTFHD65TI7XOC3AZK6LWY2I7ZKM7XEII7JKSYOESMOVE
+#\\\|L2ADTWX2CYPMOLGO7MEP65IFWPOH4YLSULMMVRPQI37577ICKXR \ / AMOS7 \ YOURUM ::
+#\[7]NP5VPKZKFWYDWG6HE3MGSK55FZPBERXS5ZW62BYPYZ2W24T4AQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
