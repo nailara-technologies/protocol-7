@@ -1120,3 +1120,159 @@ per-scenario assertion counts from the run:
 #\\\|TNHPD3SZTV6ME2YBRO62WUARFT2SODRXBSFRJCJD4UGGP6G3GO4 \ / AMOS7 \ YOURUM ::
 #\[7]C32G76PJJVONRO2IUDYJ25EJ65PEQGAEFYLQENWKBWWSUIW2VMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+---
+
+## follow-up pass — 2026-06-15 (commit `e32ffb386`)
+
+verifier: kimi (harness-only / docs-only, no zenka module edits)
+context: user committed `e32ffb386` adding `$parent_pipe->autoflush(1)` and
+`$child_pipe->autoflush(1)` in `modules/cred-mesh.util.key_holder.start_child`
+to fix F10. cred-mesh was restarted cleanly before this pass. proxy and
+transport were already running from earlier; proxy was restarted mid-pass to
+clear stale compiled state.
+
+### harness re-run result
+
+First run against the already-running proxy (pid 301956, started before the
+F10 commit):
+
+```
+cd /data/projects/protocol-7
+./bin/dev/cred-mesh-test --verbose
+
+[ summary ]
+  scenarios run : 5
+  assertions passed : 8
+  assertions failed : 11
+```
+
+After stopping and restarting proxy (`p7c v7.stop/start proxy`) to load the
+current source against a fresh process (pid 4494007):
+
+```
+[ summary ]
+  scenarios run : 5
+  assertions passed : 10
+  assertions failed : 11
+```
+
+comparison to the previous documented run (commit `bb3b20a36`) of
+**8 passed / 9 failed (17 total)** and the user's reported **8/17**:
+after proxy restart now **10 passed / 11 failed (21 total)**.
+That is **+2 passes, +2 fails**, with the total assertion count rising
+from 17 to 21 because scenario 1 no longer crashes on a 500 LWP read-timeout
+body and scenario 4 no longer times out before its later assertions.
+
+per-scenario assertion counts from the restarted run:
+
+| scenario | pass | fail | notes |
+|----------|------|------|-------|
+| 1 direct-tcp api-key | 3 | 2 | proxy now returns 200 with parseable YAML body; `x-api-key` header is not injected; `relay_pending.yaml` exists unexpectedly |
+| 2 hysteria bearer | 2 | 3 | `transport.eval-code` still denied; handle never returned |
+| 3 transport degrade/promote | 0 | 2 | `transport.eval-code` still denied |
+| 4 rotation invalidation | 3 | 3 | `cred-mesh.rotate` returns `rotated`; no cache-flush logs observed; `wait_for_log` times out on proxy/transport buffers |
+| 5 auth relay console | 2 | 3 | relay pending file empty (`storage failed`); final proxy request returns 502 HTML for unresolvable `auth-relay-test.local` |
+
+### status of previously identified bugs after `e32ffb386`
+
+1. **F3 — `cred-mesh.key_holder.parent`/child response timeout** — **RESOLVED.**
+   `cred-mesh.rotate` now returns `rotated` immediately instead of
+   `failed to store rotated credential`. Scenario 1, 4, and 5 seed steps all
+   show `registered,rotated`. The key_holder child responds on the socketpair
+   after the autoflush fix. No timeout warnings appear in the log during
+   rotate/approve/storage operations.
+
+2. **F13 — `proxy.template.passthrough:74` `undefined value as subroutine reference`** — **NOT REPRODUCED AFTER PROXY RESTART.**
+   The five historical occurrences in `/dev/shm/.7/STDOUT/NIW7OAQ` all have
+   timestamps/EV IDs from before the proxy restart. The restarted proxy
+   (pid 4494007) does not emit new `undefined value as subroutine reference`
+   errors for `proxy.template.passthrough:74`.
+
+   Investigation confirms the runtime environment is correct:
+   - `p7c proxy.show-buffer zenka` shows `clients.http` and `clients.https`
+     loaded with no errors (`..: 134 subs., 238K src., no errors., =)`).
+   - `p7c proxy.eval-code` confirms both `clients.http.request` and
+     `clients.https.request` are present in `%code` as `CODE` refs.
+   - `B::Deparse` of the running `proxy.template.passthrough` coderef shows
+     line 74 compiled as:
+     ```perl
+     $client->{'outbound'} = $code{$request_module}->($request_params);
+     ```
+     so the `bin/Protocol-7` source filter's variable-form transform
+     (`<[$var]>->(...)` → `$code{$var}->(...)`) is working.
+   - Temporary debug logging showed, at the moment line 74 executes,
+     `$request_module = 'clients.http.request'`, `$is_https = ''`,
+     `$url` is defined, and `defined $code{$request_module}` is true.
+     The request completed with HTTP 200.
+
+   **root cause of the historical errors:** stale compiled state in the
+   previously running proxy process (pid 301956). The source loaded into that
+   process predated the variable-form source-filter support (or had been
+   left in a partially-reloaded state), so `<[$request_module]>` was not
+   transformed and evaluated as a readline on an unopened filehandle,
+   producing `undef` and then `undefined value as subroutine reference`.
+   A proxy restart is sufficient to clear them.
+
+   **fix direction:** although the current binary compiles the line correctly,
+   the variable-form dispatch is fragile because it depends entirely on the
+   source filter. Replace line 74 with an explicit conditional using literal
+   `<[...]>` tokens:
+   ```perl
+   if ($is_https) {
+       $client->{'outbound'} = <[clients.https.request]>->($request_params);
+   } else {
+       $client->{'outbound'} = <[clients.http.request]>->($request_params);
+   }
+   ```
+   This removes the runtime variable-hash-lookup path and uses the literal
+   form that the filter has handled reliably for years.
+
+### new / updated findings
+
+#### F15. scenario 1 gets HTTP 200 but `X-API-Key` header is not injected
+
+- **location / error:**
+  - `bin/dev/cred-mesh-test.d/scenario-1-direct-tcp-api-key.pl:78`
+  - echoed request headers do not contain `X-API-Key: test-api-key-12345`
+- **impact:** scenario 1 still fails header injection even though the proxy
+  path itself now works.
+- **hypothesis:** `proxy.auth.lookup` either fails to resolve the
+  `session.127.0.0.1:<port>` slot, returns an `inject_header` structure the
+  proxy does not merge correctly, or the slot was registered under a name
+  that does not match the request domain.
+- **note:** the same run also reports `relay_pending.yaml should not exist`
+  for scenario 1, suggesting an authorization request was created for the
+  echo-server domain even though a slot was seeded.
+
+#### F16. `transport.eval-code` still denied
+
+- **status:** unchanged from F8. Scenarios 2 and 3 remain blocked.
+
+#### F17. scenario 4 rotation storage works but cache-flush logs are not observed
+
+- **status:** `cred-mesh.rotate` returns `rotated` (F3 fixed), but the
+  harness cannot find rotation/flush log entries in proxy or transport
+  buffers. Scenario 4 times out after 25s.
+
+#### F18. scenario 5 `auth-relay-test.local` returns 502 HTML
+
+- **status:** unchanged from F9. The unresolvable `.local` domain still
+  crashes the YAML parser.
+
+### updated prioritized fix list
+
+| # | issue | priority | blocks |
+|---|-------|----------|--------|
+| 1 | fix scenario 1 header injection (`proxy.auth.lookup` / slot matching / inject_header merge) | **p0** | scenario 1 |
+| 2 | enable `transport.eval-code` for console/harness user | **p0** | scenarios 2, 3 |
+| 3 | harden `proxy.template.passthrough:74` against source-filter staleness by replacing `<[$request_module]>` with explicit conditional literal calls | **p1** | scenario 1 robustness |
+| 4 | investigate scenario 4 cache-flush logs after rotation | **p1** | scenario 4 |
+| 5 | make scenario 5 harness resilient to 502 HTML / configure site-yaml or hosts for `auth-relay-test.local` | **p1** | scenario 5 |
+| 6 | tighten harness seed assertions so `"failed to store rotated credential"` is reported as a failure | **p1** | test signal quality |
+
+#,,..,...,.,.,.,,,,..,...,,..,,.,,.,,,..,,,,.,.,.,...,...,...,.,,,...,...,.,.,
+#6LH5LRDH64M6XPEHPAXAKY72V6T3PEISGVN6V2W4E6WHVDHHNC67OHVOTAMBIBOQJWZERATAHMU2S
+#\\\|VAQ4QOZ3CC5U3MOTHWS4Z4SNVK6EBPDJPNQQJNGITKCGAF4JEJS \ / AMOS7 \ YOURUM ::
+#\[7]YVVVIWSZLF66DGAWOCCKL64QYYZN356SUEROJDWKHEVCCST2W6BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
