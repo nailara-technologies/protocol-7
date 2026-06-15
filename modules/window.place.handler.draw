@@ -5,8 +5,10 @@
 
 my ( $widget, $context ) = @ARG;
 
-my $w = <x11.window.width>  // 320;
-my $h = <x11.window.height> // 240;
+## bracket / HUD geometry follows the live cairo surface, which during a   ##
+## damped resize trails the target [ keeps brackets pinned to real edges ] ##
+my $w = $widget->get_allocated_width  // <x11.window.width>  // 320;
+my $h = $widget->get_allocated_height // <x11.window.height> // 240;
 
 ## clear ##
 $context->set_operator('source');
@@ -55,7 +57,11 @@ my $y = <x11.coordinates.top>  // 0;
 
 my $margin = 12;
 
-my $readout = sprintf 'x=%d y=%d w=%d h=%d', $x, $y, $w, $h;
+## readout shows the precise target geometry, not the trailing surface ##
+my $rw = <x11.window.width>  // $w;
+my $rh = <x11.window.height> // $h;
+
+my $readout = sprintf 'x=%d y=%d w=%d h=%d', $x, $y, $rw, $rh;
 my $line2   = 'drag/arrows/wheel move, edges/Ctrl resize, Shift=fine 1px';
 my $line3   = 'default 10px, dbl-click/Enter=commit, Esc=cancel';
 
@@ -77,8 +83,8 @@ for my $line (@lines) {
 
 return TRUE;
 
-#,,,.,,,,,,..,.,.,,,.,,,.,,,,,,,.,.,.,..,,.,,,.,.,...,...,...,,,,,...,,.,,..,,
-#XCBKMHBFVLEDK53V7WDG7E6E5BGQYF6SBQCLYGBXMCIUXV65NIQGTYF3J66JQEEF2UNADUDH6DBMC
-#\\\|URMV5SUHKNQJNWCZIUYKYIN3354NQ5XL6ACU57JPW467JRQQCYS \ / AMOS7 \ YOURUM ::
-#\[7]XVE6QB4OREJ27POOEPSGOYG3A5BWEZL64MNASGTURS7S3PLJK6BI 7  DATA SIGNATURE ::
+#,,.,,...,,.,,..,,.,,,..,,,.,,.,,,.,,,,..,.,,,.,.,...,..,,,..,,,,,,.,,,.,,,.,,
+#IUQONWRRN2VGQ5UFVCYKFDFSBHXR2EJVBXVQV466MTNIRMJ3NQ2XRO4QV46Q5SDCB5AA4YUNAVUIO
+#\\\|S5LQ3MRBGF2L6CB5ARA4PBWVYDVVFGU3HNLSS3APVE2ZQY4VKLI \ / AMOS7 \ YOURUM ::
+#\[7]ZYWZ4TP26TBXNAABJPWR252GFYE4FRTMNLPHFHN5VWWEU4I454BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

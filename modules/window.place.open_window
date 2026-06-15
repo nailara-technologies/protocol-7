@@ -6,8 +6,18 @@
 my $geometry = shift // {};
 
 $ENV{'DISPLAY'}     = <x11.display>;
-$ENV{'GDK_BACKEND'} = 'x11';           ## force XWayland under WSL/Wayland ##
+$ENV{'GDK_BACKEND'} = 'x11';           ## force XWayland under WSL|Wayland ##
 delete $ENV{'WAYLAND_DISPLAY'};
+
+## cursor theme + size: under minimal xwayland|wsl no xsettings daemon     ##
+## propagates a theme, so gdk [ even core-font Cursor->new type nicks ]    ##
+## falls back to the giant unscaled core cursor. naming an installed theme ##
+## and a sane pixel size makes both new_from_name and the core-font nicks  ##
+## resolve to correctly-sized themed cursors. set before Gtk3->init so the ##
+## xcursor library picks them up at display open. [ adwaita is the system  ##
+## default-inherited theme and ships every resize glyph we request. ]      ##
+$ENV{'XCURSOR_THEME'} //= 'Adwaita';
+$ENV{'XCURSOR_SIZE'} = '24';    ## force a sane size over any huge default ##
 
 <[base.perlmod.autoload]>->('Gtk3');
 <[base.perlmod.autoload]>->('Cairo');
@@ -34,9 +44,14 @@ my $screen = $window->get_screen;
 my $rgba   = $screen->get_rgba_visual();
 $window->set_visual($rgba) if $rgba;
 
-## event masks ##
+## event masks #####
+## enter/leave masks are required so gtk primes its pointer-in-window  ##
+## tracking from the crossing event; without them motion-notify is not ##
+## dispatched until a button-press forces the association [ the 'must  ##
+## click first' bug ].                                                 ##
 $window->add_events(
     [   qw| button-press-mask button-release-mask pointer-motion-mask
+            enter-notify-mask leave-notify-mask
             key-press-mask scroll-mask |
     ]
 );
@@ -82,6 +97,19 @@ $window->signal_connect(
     }
 );
 
+## crossing handler: primes gtk pointer tracking and gives immediate  ##
+## hover-cursor feedback on entry, so resize regions work before any  ##
+## click. delegates to the non-drag branch of the motion handler.     ##
+$window->signal_connect(
+    'enter-notify-event' => sub {
+        eval { <[window.place.handler.motion]>->(@ARG) };
+        if ( length $EVAL_ERROR ) {
+            <[base.log]>->( 0, <[base.str.eval_error]>->(1) );
+        }
+        return FALSE;
+    }
+);
+
 $window->signal_connect(
     'key-press-event' => sub {
         my $ret = eval { <[window.place.handler.key_press]>->(@ARG) };
@@ -102,12 +130,44 @@ $window->signal_connect(
     }
 );
 
+## map-time focus + raise: calling grab_focus / set_keep_above right after  ##
+## show_all races the actual map under wslg/xwayland - show_all returning   ##
+## does not mean the window is mapped and focusable yet, so an early grab   ##
+## is silently dropped and the WM treats the user's first click as a mere   ##
+## click-to-focus [ the 'first drag only focuses' bug ]. defer to the map   ##
+## signal so we grab once the X server has actually mapped the surface, and ##
+## use present to both raise and take input focus the gtk-recommended way.  ##
+my $mapped_once = 0;
+$window->signal_connect(
+    qw| map | => sub {
+        return FALSE if $mapped_once++;
+        eval {
+            $window->set_keep_above(1);    ## reassert stay-on-top post-map ##
+            $window->present;              ## raise + take input focus      ##
+            $window->grab_focus;           ## widget keyboard focus         ##
+        };
+        <[base.log]>->( 0, ': map focus failed: ' . $EVAL_ERROR )
+            if length $EVAL_ERROR;
+        return FALSE;
+    }
+);
+
 $window->show_all;
 
-## reassert stay-on-top post-map [ some WMs need it after show ] ##
-$window->set_keep_above(1);
-
-$window->grab_focus;
+## poll-based hover fallback: under wslg/xwayland gtk crossing/motion       ##
+## events for this undecorated rgba keep-above window can be lost until a   ##
+## button-press forces pointer association [ the 'must click first' bug ].  ##
+## a 20fps timer queries the pointer directly and drives the hover cursor   ##
+## while not dragging, mirroring ticker.handler.check_pointer; while a drag ##
+## is active it drives the drag geometry too, so the first drag works even  ##
+## before motion-notify delivery primes [ see handler.poll_pointer ].       ##
+<window.place.poll.timer> = <[event.add_timer]>->(
+    {   after    => 0,
+        interval => 0.05,
+        repeat   => TRUE,
+        handler  => qw| window.place.handler.poll_pointer |,
+    }
+);
 
 <[base.log]>->( 1, '[place.open_window] window shown, entering main loop' );
 
@@ -117,8 +177,8 @@ $window->grab_focus;
 
 0;
 
-#,,.,,.,,,,.,,,,,,,,.,,,.,,,.,..,,.,,,,,,,.,,,.,.,...,...,,,.,,.,,..,,,,.,...,
-#E6KQQXY2GI4RY5HIEPHWXVJM3Q46LGYLZSJBTIWT2K4FGNCO6BUC5LL5LW7U6MWKOG5TUKKGXX5WM
-#\\\|ZHTFDI7WPLYONLVXXNUBVGZCUNYO35ALOYYFCPIJJWENMKM7A7S \ / AMOS7 \ YOURUM ::
-#\[7]ILJMJ7MU7DE7IUQ2L2B6AHHNQGTY2A26AW3B6QTLUULEHL4TSSBQ 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,,.,,,.,,,,,..,,,.,,.,.,,..,.,.,.,.,...,...,.,,,,..,,..,,,,,,..,
+#QQ5LHYHS5RJPF2VFCRRXCZ6QC64SAVQ3NAENQDVNBB3M5KWKK5WFMYOWHVNBWZ52DSNO6CVMKJW7I
+#\\\|26XFHHRNUU3SUTOEOOOFPTEWETJAUWMPCWFGSUYMKMJJGUXRABG \ / AMOS7 \ YOURUM ::
+#\[7]ID3THLK5TNSNJ47OB2II7LG3ILGW34B73SG7ESVCXL2OJ4XQLWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
