@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = window.place.adjust
+# descr = apply a move/resize action by step to the placement window
+
+my ( $widget, $action, $step ) = @ARG;
+
+my $x = <x11.coordinates.left> // 0;
+my $y = <x11.coordinates.top>  // 0;
+my $w = <x11.window.width>     // 320;
+my $h = <x11.window.height>    // 240;
+
+if ( $action eq qw| up | ) {
+    $y -= $step;
+} elsif ( $action eq qw| down | ) {
+    $y += $step;
+} elsif ( $action eq qw| left | ) {
+    $x -= $step;
+} elsif ( $action eq qw| right | ) {
+    $x += $step;
+} elsif ( $action eq qw| ctrl_up | ) {
+    $h -= $step;
+    $y += $step;
+} elsif ( $action eq qw| ctrl_down | ) {
+    $h += $step;
+    $y -= $step;
+} elsif ( $action eq qw| ctrl_left | ) {
+    $w -= $step;
+    $x += $step;
+} elsif ( $action eq qw| ctrl_right | ) {
+    $w += $step;
+    $x -= $step;
+} else {
+    return FALSE;
+}
+
+## clamp ##
+$w = 32 if $w < 32;
+$h = 32 if $h < 32;
+
+<[window.place.apply_geometry]>->(
+    $widget,
+    {   'x'      => $x,
+        'y'      => $y,
+        'width'  => $w,
+        'height' => $h
+    }
+);
+
+$widget->queue_draw;
+
+return TRUE;
+
+#,,,,,..,,,,,,...,.,,,,,,,,.,,...,...,...,,.,,.,.,...,..,,..,,.,,,,,.,,.,,,,.,
+#7C37PJHTGNAJCHMXU2WTAFRHYZQVTIT25KS6UQVI56M6OMN3K3NRHXZD42UNJQQGA762FXUQGKVT6
+#\\\|2F6M2JQWMKQ7N67NC426EUH6GECWIZNTFBKZWCXV7M5QA6NCAC5 \ / AMOS7 \ YOURUM ::
+#\[7]76NMJP6WU2TEDTQ3FVSM72OVJOLPSESBUOS26AMORES4S67IS6BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
