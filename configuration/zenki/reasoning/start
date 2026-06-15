@@ -1,14 +1,26 @@
 .:[ reasoning tree zenka ]:.
 
-[load_modules:reasoning.tree.node reasoning.tree.insert reasoning.tree.lookup
-              reasoning.tree.traverse reasoning.tree.narrate reasoning.tree.summarize
-              reasoning.tree.render]
+[load_config_file:'shared-params']
+
+access.cmd.usr.cube   = verify-instance commands heart reload \
+                        show-buffer src-age src-ver list \
+                        list-subs deparse-code dump get # \
+                        # set del exec-sub eval-code  ## <-- dev only
+
+modules.load = auth net protocol io.unix reasoning devmod
+[load_modules:<modules.load>]
 [init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+
+[base.get_session_id]
 
 [zenka.loop]
 
-#,,,,,,..,,,.,...,...,,..,.,,,.,,,,,.,..,,,,.,..,,...,.,.,...,...,,..,,,,,,,,,
-#FM3BMOGLNE5OECFRX3IE33RAFLZXX2VLFTJH76XRFYBGY46LSC6P7U6MJ4HREIK2IJSE4MGFQ5QYG
-#\\\|QS4T7HU2DFB753H4QGRCX5EM44UXY3ODAJRFWWHYWWJZYIOGQDA \ / AMOS7 \ YOURUM ::
-#\[7]BUYIXBSQHTNZZFA4NUFSCQ46CJQESTFRQSB7BT2YCMRAKQZIY4AI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,.,,..,,,,.,.,,,,.,,,,.,..,,,,.,..,,...,...,.,.,,,.,,,,,..,,.,,,
+#VGCM3V6HENNL6I3WJSR5YAPLF4B3F36T7OTVAAX7TTBEIWGR7ZYRTXSOI4OJVB6RJQHQ6TG6KDNDU
+#\\\|SF2KS6GSIZ3TF3UNNQ5U3F3YCMCTBZ646XEKDHBTD76QOJVSSYN \ / AMOS7 \ YOURUM ::
+#\[7]6GHPM6KWT33P2YLCB6QYJELZS3Z2YWBAZYMIGMDM7EH67LIHPYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
