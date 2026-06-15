@@ -17,41 +17,68 @@ $context->paint;
 
 $context->set_operator('over');
 
-## bright cyan border ##
+## cyan corner brackets ##
+## [ arm = 16, matches $corner hit-region in button_press ] ##
+my $arm = 16;
 $context->set_source_rgba( 0.0, 1.0, 1.0, 0.9 );
 $context->set_line_width(2);
-$context->rectangle( 1, 1, $w - 2, $h - 2 );
+
+## top-left ##
+$context->move_to( 0, 0 );
+$context->line_to( $arm, 0 );
+$context->move_to( 0, 0 );
+$context->line_to( 0, $arm );
+
+## top-right ##
+$context->move_to( $w, 0 );
+$context->line_to( $w - $arm, 0 );
+$context->move_to( $w, 0 );
+$context->line_to( $w, $arm );
+
+## bottom-left ##
+$context->move_to( 0, $h );
+$context->line_to( $arm, $h );
+$context->move_to( 0, $h );
+$context->line_to( 0, $h - $arm );
+
+## bottom-right ##
+$context->move_to( $w, $h );
+$context->line_to( $w - $arm, $h );
+$context->move_to( $w, $h );
+$context->line_to( $w, $h - $arm );
+
 $context->stroke;
 
-## outer glow ##
-$context->set_source_rgba( 0.0, 1.0, 1.0, 0.25 );
-$context->set_line_width(6);
-$context->rectangle( -2, -2, $w + 4, $h + 4 );
-$context->stroke;
-
-## readout text ##
+## readout + instructions, bottom-right aligned ##
 my $x = <x11.coordinates.left> // 0;
 my $y = <x11.coordinates.top>  // 0;
 
+my $margin = 12;
+
 my $readout = sprintf 'x=%d y=%d w=%d h=%d', $x, $y, $w, $h;
+my $line2   = 'drag/arrows/wheel move, edges/Ctrl resize, Shift=fine 1px';
+my $line3   = 'default 10px, dbl-click/Enter=commit, Esc=cancel';
 
 $context->set_source_rgba( 0.0, 1.0, 1.0, 0.95 );
-$context->set_font_size(14);
-$context->move_to( 12, 24 );
-$context->show_text($readout);
 
-## instructions ##
-$context->set_font_size(11);
-$context->move_to( 12, 44 );
-$context->show_text('drag body to move, edges/corners to resize');
-$context->move_to( 12, 60 );
-$context->show_text(
-    'arrows move, Ctrl+arrows resize, Shift*10, Enter=commit, Esc=cancel');
+## stack bottom-up, ~4px gap ##
+my @lines = ( [ $line3, 12 ], [ $line2, 12 ], [ $readout, 16 ], );
+
+my $baseline = $h - $margin;
+for my $line (@lines) {
+    my ( $text, $size ) = @{$line};
+    $context->set_font_size($size);
+    my $extents = $context->text_extents($text);
+    my $tw      = $extents->{'width'};
+    $context->move_to( $w - $margin - $tw, $baseline );
+    $context->show_text($text);
+    $baseline -= $size + 4;
+}
 
 return TRUE;
 
-#,,.,,..,,..,,,..,,..,,,,,,,,,..,,,,,,,,,,,.,,.,.,...,...,,,,,...,.,,,..,,,,.,
-#3M5MUYEYQNMYKI4ATM7LWCAQ6GKVI7K6CSSK6L6HL7JJ6SJFTWJJDXEJWLWVC64CI7VCVYILIHQSO
-#\\\|KDPGOSH5EUB6LVWZYYBEGUXZYYMYLM3RRCXLZBRJ3DRFBTS4KEV \ / AMOS7 \ YOURUM ::
-#\[7]BVK774TOMUVRO2MSWVWZAMTXRXU6QATP3MCDX226ORWCJYD7PYBQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,.,.,,,.,,,.,,,,,,,.,.,.,..,,.,,,.,.,...,...,...,,,,,...,,.,,..,,
+#XCBKMHBFVLEDK53V7WDG7E6E5BGQYF6SBQCLYGBXMCIUXV65NIQGTYF3J66JQEEF2UNADUDH6DBMC
+#\\\|URMV5SUHKNQJNWCZIUYKYIN3354NQ5XL6ACU57JPW467JRQQCYS \ / AMOS7 \ YOURUM ::
+#\[7]XVE6QB4OREJ27POOEPSGOYG3A5BWEZL64MNASGTURS7S3PLJK6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
