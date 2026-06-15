@@ -34,7 +34,7 @@ if ( defined $ev_data->{'dep_id'}
 <[base.logs]>->( "<%s> '%s' [%s]", $action_type, $event_name, uc($ev_type) );
 
 die "'tile_group_name' parameter is missing from '$action_type' setup"
-    if index( $action_type, qw| tile-groups- | ) == 0
+    if index( $action_type, qw| tile- | ) == 0
     and not defined $action->{'tile-group-name'};    ## <-- check \ test [LLL]
 
 <events.stack.playlist>->{ $action->{'b32id'} }->{'action'}->{'type'}
@@ -113,17 +113,17 @@ if ( $action_type eq qw| zenka-present | ) {
 
 ### TILE-GROUP EVENTS ###
 ##
-} elsif ( $action_type eq qw| tile-groups-show | ) {
+} elsif ( $action_type eq qw| tile-show | ) {
     my $l_name = $action->{'tile-group-name'};  ## --- TILE-GROUPS SHOW --- ##
-    <events.stack.tile-groups.visibility>->{$l_name} //= 0;
+    <events.stack.tile.visibility>->{$l_name} //= 0;
     my $change = $ev_type eq qw| end | ? -1 : 1;
-    <events.stack.tile-groups.visibility>->{$l_name} += $change;
+    <events.stack.tile.visibility>->{$l_name} += $change;
 
-} elsif ( $action_type eq qw| tile-groups-hide | ) {
+} elsif ( $action_type eq qw| tile-hide | ) {
     my $l_name = $action->{'tile-group-name'};  ## --- TILE-GROUPS HIDE --- ##
-    <events.stack.tile-groups.visibility>->{$l_name} //= 0;
+    <events.stack.tile.visibility>->{$l_name} //= 0;
     my $change = $ev_type eq qw| end | ? -1 : 1;
-    <events.stack.tile-groups.visibility>->{$l_name} -= $change;
+    <events.stack.tile.visibility>->{$l_name} -= $change;
 } elsif ( $action_type eq qw| overlay-show | ) {    ## -- OVERLAY SHOW -- ##
     my $l_name = $action->{'tile-group-name'};
     <events.stack.overlay.visibility>->{$l_name} //= 0;
@@ -148,30 +148,27 @@ if ( $ev_type eq qw| at | or $ev_type eq qw| end | ) {
     ->( { 'command' => qw| cube.content.update | } )
     if index( $action_type, qw| playlist- | ) == 0;
 
-<events.tile-groups.cfg_directory> //= qw|/etc/protocol-7/zenki/tile-groups|;
+<events.tile.cfg_directory> //= qw|/etc/protocol-7/zenki/tile|;
 
-if ( index( $action_type, qw| tile-groups- | ) == 0 ) {
+if ( index( $action_type, qw| tile- | ) == 0 ) {
 
-    delete <events.stack.tile-groups.visibility>
-        ->{ $action->{'tile-group-name'} }
-        if 0 == (
-        <events.stack.tile-groups.visibility>->{
-            $action->{'tile-group-name'}
-        } // -1
-        );
+    delete <events.stack.tile.visibility>->{ $action->{'tile-group-name'} }
+        if 0
+        == ( <events.stack.tile.visibility>->{ $action->{'tile-group-name'} }
+            // -1 );
 
     my @tile_groups_stack = sort {
-        <events.stack.tile-groups.visibility>->{$a} <=>
-            <events.stack.tile-groups.visibility>->{$b}
-    } keys %{<events.stack.tile-groups.visibility>};
+        <events.stack.tile.visibility>->{$a} <=>
+            <events.stack.tile.visibility>->{$b}
+    } keys %{<events.stack.tile.visibility>};
     my $current_tile_group = pop @tile_groups_stack;
     my $restore_config
-        = -d <events.tile-groups.cfg_directory>
-        ? <events.tile-groups.cfg_directory> . '/tile-group.current'
+        = -d <events.tile.cfg_directory>
+        ? <events.tile.cfg_directory> . '/tile-group.current'
         : undef;
 
     if ( defined $current_tile_group
-        and <events.stack.tile-groups.visibility>->{$current_tile_group} ) {
+        and <events.stack.tile.visibility>->{$current_tile_group} ) {
         <[base.log]>->(
             1, "writing 'tile-group.current' configuration., [ active event ]"
         );
@@ -180,7 +177,7 @@ if ( index( $action_type, qw| tile-groups- | ) == 0 ) {
             sprintf( "%.4f %s\n", <[base.time]>->(4), $current_tile_group )
         ) if defined $restore_config;
         <[protocol-7.command.send.local]>->(
-            {   'command'   => qw| cube.tile-groups.switch-tile-group |,
+            {   'command'   => qw| cube.tile.switch-tile-group |,
                 'call_args' => { 'args' => $current_tile_group }
             }
         );
@@ -188,7 +185,7 @@ if ( index( $action_type, qw| tile-groups- | ) == 0 ) {
         unlink $restore_config
             if defined $restore_config and -f $restore_config;
         <[protocol-7.command.send.local]>
-            ->( { 'command' => qw| cube.tile-groups.reset-tile-group | } );
+            ->( { 'command' => qw| cube.tile.reset-tile-group | } );
     }
 }
 
@@ -203,14 +200,14 @@ if ( $action_type =~ m,^overlay\-(show|hide)$, ) {
     if ( $command_str eq qw| add |
         and <events.stack.overlay.visibility>->{$overlay_name} ) {
         <[protocol-7.command.send.local]>->(
-            {   'command'   => qw| cube.tile-groups.add_overlay |,
+            {   'command'   => qw| cube.tile.add_overlay |,
                 'call_args' => { 'args' => $overlay_name }
             }
         );
     } elsif ( $command_str eq qw| remove |
         and !<events.stack.overlay.visibility>->{$overlay_name} ) {
         <[protocol-7.command.send.local]>->(
-            {   'command'   => qw| cube.tile-groups.remove_overlay |,
+            {   'command'   => qw| cube.tile.remove_overlay |,
                 'call_args' => { 'args' => $overlay_name }
             }
         );
@@ -219,8 +216,8 @@ if ( $action_type =~ m,^overlay\-(show|hide)$, ) {
         if 0 == ( <events.stack.overlay.visibility>->{$overlay_name} // -1 );
 }
 
-#,,,.,,,,,.,.,,,.,,..,,.,,,..,,,,,,,.,...,,,,,..,,...,...,,..,...,,.,,,..,,,.,
-#KXCZLPA6W3H3N2BBYROEZRQV6IX2J4ZC4DTPYDSNOYTMW644OP7EIAN4LDLPYQDU7SKWRBQIFBJWQ
-#\\\|GQL3DHWDEJYRLTAVA6BZGBJ77C2TTHMHBX22IL2IV7U3UQUVBAW \ / AMOS7 \ YOURUM ::
-#\[7]R75K62RU5WQ75ZNUB6PFL3WE3K7V34CVN3WGE3U37TS6H2IHQ4CY 7  DATA SIGNATURE ::
+#,,..,..,,,..,,,,,.,,,,,,,,,,,,,,,,.,,,.,,...,..,,...,..,,...,..,,...,..,,,,.,
+#7DLRLCLFDPYIY5UWS3MIHDVDX5FEBEOFF4FV2HTW3PLA5YWRUSFV2HFPUYOOPEXZZQXBYPYV7EQ7A
+#\\\|MWQQT7LVRWRQQEPR6ZHV32F2XXEGZLIKQZ5EVANYZQRYVA6UTN7 \ / AMOS7 \ YOURUM ::
+#\[7]BAE2Q32VJSF7PD3NNPISD5SXPRNKXVIY6UKZVVVRBI5IQB6A3WDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

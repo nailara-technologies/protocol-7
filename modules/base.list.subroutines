@@ -158,6 +158,7 @@ return [ qw[
         ui.render.tree
         ui.cmd.ui-show
         udev.init_code
+        tile.init_code
         ticker.startup
         ticker.rgb_col
         task.post_init
@@ -340,6 +341,7 @@ return [ qw[
         ui.estimate.cost
         transport.select
         transport.demote
+        tile.sort_layers
         ticker.main_loop
         ticker.init_code
         ticker.cmd.pause
@@ -651,6 +653,7 @@ return [ qw[
         universal.pre_init
         ui.render.fallback
         ui.fields.fallback
+        tile.cmd.get-layer
         ticker.open_window
         ticker.dismiss_now
         ticker.cmd.get-xid
@@ -844,6 +847,8 @@ return [ qw[
         v7.check_zenka_deps
         universal.init_code
         transport.init_code
+        tile.merge_multiple
+        tile.cmd.tile-count
         ticker.calc-col.RGB
         system.cmd.hostname
         storage.map-dirs.fs
@@ -1018,6 +1023,11 @@ return [ qw[
         v7.process_zenka_end
         v7.parser.process_id
         tree.route.page.read
+        tile.cmd.sort_layers
+        tile.cmd.size_hint_y
+        tile.cmd.size_hint_x
+        tile.cmd.show-active
+        tile.cmd.add_overlay
         ticker.cmd.slow_down
         ticker.cmd.set_speed
         ticker.cmd.read_file
@@ -1251,7 +1261,8 @@ return [ qw[
         universal.start_zenka
         universal.hide_except
         transport.probe.timer
-        tile-groups.init_code
+        tile.handler.sig_term
+        tile.cmd.get_geometry
         ticker.select_monitor
         ticker.process_subcfg
         storchencam.init_code
@@ -1491,6 +1502,11 @@ return [ qw[
         universal.cmd.get_list
         tree.route.page.attach
         transport.profile.load
+        tile.switch-tile-group
+        tile.cmd.loaded-config
+        tile.cmd.get_subconfig
+        tile.cmd.get-underscan
+        tile.cmd.assign_window
         ticker.start_animation
         ticker.move_to_profile
         ticker.handler.fade_in
@@ -1718,7 +1734,12 @@ return [ qw[
         transport.quality.probe
         transport.profile.match
         transport.handle.socks5
-        tile-groups.sort_layers
+        tile.stop_display_zenki
+        tile.process-tile-group
+        tile.handler.transition
+        tile.cmd.remove_overlay
+        tile.cmd.gpu_load_alert
+        tile.cmd.get-tile-color
         ticker.handler.fade_out
         ticker.cmd.swap_profile
         ticker.cmd.place_window
@@ -1961,6 +1982,10 @@ return [ qw[
         udev.set-up.export_rules
         tree.route.page.rollover
         tree.route.page.navigate
+        tile.set-up.import_rules
+        tile.set-up.export_rules
+        tile.cmd.get_coordinates
+        tile.cmd.base-tile-group
         ticker.load_file_content
         ticker.enable_auto_speed
         ticker.content_substring
@@ -2181,7 +2206,8 @@ return [ qw[
         tree.route.page.encode_56
         tree.route.page.decode_56
         transport.quality.measure
-        tile-groups.cmd.get-layer
+        tile.cmd.show-tile-groups
+        tile.cmd.reset-tile-group
         ticker.set_default_values
         ticker.request_rss_update
         ticker.font.offsets_table
@@ -2394,8 +2420,8 @@ return [ qw[
         universal.cmd.get_geometry
         tree.sort.trunk.field_self
         tree.route.page.word_route
-        tile-groups.merge_multiple
-        tile-groups.cmd.tile-count
+        tile.cmd.switch-tile-group
+        tile.calculate_coordinates
         ticker.set-up.import_rules
         ticker.handler.place_reply
         ticker.cmd.current_content
@@ -2620,11 +2646,7 @@ return [ qw[
         universal.cmd.report_paused
         transport.handle.udt-tunnel
         transport.handle.direct-tcp
-        tile-groups.cmd.sort_layers
-        tile-groups.cmd.size_hint_y
-        tile-groups.cmd.size_hint_x
-        tile-groups.cmd.show-active
-        tile-groups.cmd.add_overlay
+        tile.handler.bg_color_reply
         ticker.cmd.read-file-notify
         system.process.cmd.cpu-load
         system.handler.X-11_stopped
@@ -2848,8 +2870,7 @@ return [ qw[
         universal.cmd.get_list_types
         tree.sort.trunk.layer_to_col
         tree.sort.trunk.col_to_layer
-        tile-groups.handler.sig_term
-        tile-groups.cmd.get_geometry
+        tile.callback.start_osd_logo
         ticker.handler.check_pointer
         ticker.handler.auto_slowdown
         ticker.cmd.current_substring
@@ -3038,11 +3059,7 @@ return [ qw[
         universal.cmd.playlist_update
         universal.cmd.get_coordinates
         tree.route.page.bit_direction
-        tile-groups.switch-tile-group
-        tile-groups.cmd.loaded-config
-        tile-groups.cmd.get_subconfig
-        tile-groups.cmd.get-underscan
-        tile-groups.cmd.assign_window
+        tile.callback.poll_tile_color
         ticker.handler.gpu_load_reply
         ticker.cmd.set-window-profile
         terminal.curses_ui.app.models
@@ -3261,12 +3278,7 @@ return [ qw[
         tree.route.page.word_graphical
         transport.handler.cred_rotated
         transport.handle.quic-hysteria
-        tile-groups.stop_display_zenki
-        tile-groups.process-tile-group
-        tile-groups.handler.transition
-        tile-groups.cmd.remove_overlay
-        tile-groups.cmd.gpu_load_alert
-        tile-groups.cmd.get-tile-color
+        tile.handler.stack_order_reply
         ticker.load_font_offsets_table
         ticker.handler.get-layer_reply
         terminal.curses_ui.widget.list
@@ -3448,10 +3460,7 @@ return [ qw[
         v7.callback.object.root.session
         universal.handler.cur-pid_reply
         tree.sort.trunk.halve_frequency
-        tile-groups.set-up.import_rules
-        tile-groups.set-up.export_rules
-        tile-groups.cmd.get_coordinates
-        tile-groups.cmd.base-tile-group
+        tile.handler.root_restart_reply
         ticker.callback.request_updates
         system.handler.mod_reload_reply
         storage.amos_chksum.open_socket
@@ -3607,8 +3616,6 @@ return [ qw[
         universal.handler.get_list_reply
         tree.sort.trunk.cancel_symmetric
         transport.quality.derive_passive
-        tile-groups.cmd.show-tile-groups
-        tile-groups.cmd.reset-tile-group
         ticker.cfg.font.calc_outline_col
         terminal.curses_ui.widget.detail
         system.xcrash_hostreboot_trigger
@@ -3749,8 +3756,9 @@ return [ qw[
         v7.handler.stdio_multiplex_listen
         v7.callback.delete_instance_cache
         universal.callback.mpv_idle_check
-        tile-groups.cmd.switch-tile-group
-        tile-groups.calculate_coordinates
+        tile.handler.get-tile-color_reply
+        tile.handler.check_playlist_reply
+        tile.gpu_alerts.enable_auto_speed
         system.process.callback.send_kill
         start-anim.callback.report_online
         session.parent.check_minimal_deps
@@ -3861,7 +3869,7 @@ return [ qw[
         v7.handler.verify_instance_timeout
         v7.callback.cleanup_instance_cache
         universal.handler.image2html_reply
-        tile-groups.handler.bg_color_reply
+        tile.handler.poll_tile_color_reply
         ticker.handler.resend_update_reply
         storage.visual.util.list_workflows
         sourcecode.console.update-sub-list
@@ -3987,7 +3995,7 @@ return [ qw[
         vision-batch.parent.collect_results
         v7.zenka.instance.cmd.change-status
         v7.handler.heartbeat_timer_response
-        tile-groups.callback.start_osd_logo
+        tile.impressive.increase_light_mode
         terminal.curses_ui.modified.english
         route.bmw384.visual.wheel.arc-width
         route.bmw384.visual.separator-pulse
@@ -4089,7 +4097,7 @@ return [ qw[
         vision-batch.child.cmd.analyze_image
         universal.handler.start-anim_timeout
         universal.handler.start-anim_started
-        tile-groups.callback.poll_tile_color
+        tile.tile_activity.change_poll_timer
         system.process.handler.collect_table
         space.search.util.fallback_resonance
         sourcecode.console.update-signatures
@@ -4177,7 +4185,6 @@ return [ qw[
         vision-batch.parent.generate_batch_id
         v7.handler.heartbeat_response_timeout
         universal.handler.extract_frame_reply
-        tile-groups.handler.stack_order_reply
         session.parent.check_and_resolve_deps
         reasoning.branch.internal.check_stuck
         proxy.handler.tunnel_target_to_client
@@ -4256,7 +4263,6 @@ return [ qw[
         web-browser.start-up.init_window_title
         web-browser.handler.signal.load_failed
         weather.parent.wind.calculate_beaufort
-        tile-groups.handler.root_restart_reply
         storage.protocol.SFTP.open_unix_socket
         route.bmw384.visual.wheel.oscilloscope
         protocol.sftp.terminate_server_process
@@ -4365,9 +4371,6 @@ return [ qw[
         workspace-transfer.util.ensure_workspace
         weather.parent.handler.coordinates_reply
         v7.verify_and_install_zenka_dependencies
-        tile-groups.handler.get-tile-color_reply
-        tile-groups.handler.check_playlist_reply
-        tile-groups.gpu_alerts.enable_auto_speed
         sourcecode.console.verify-dev-signatures
         sourcecode.console.read-sig-footer-state
         protocol.sftp.handler.read_server_output
@@ -4405,7 +4408,6 @@ return [ qw[
         base.stdio.frame.decode.decode_byte_pack
         base.log.send-buffer.idle-callback-clear
         web-browser.callback.scroll_start_js_exec
-        tile-groups.handler.poll_tile_color_reply
         sourcecode.console.undo-checksum-symlinks
         sourcecode.console.strip-signature-footer
         protocol.protocol-7.auth.select-size-mode
@@ -4435,7 +4437,6 @@ return [ qw[
         web-browser.handler.withheld_entries_reply
         weather.widget.util.get_weather_widget_css
         weather.current.util.format_current_widget
-        tile-groups.impressive.increase_light_mode
         sourcecode.console.test-sign-with-temp-key
         sourcecode.console.test-restore-signatures
         sourcecode.console.regen-checksum-symlinks
@@ -4459,7 +4460,6 @@ return [ qw[
         web-browser.callback.query_withheld_entries
         weather.parent.handler.update_current_timer
         weather.parent.handler.update_current_reply
-        tile-groups.tile_activity.change_poll_timer
         plugin.storage.util.visual.extract_temporal
         plugin.storage.util.create_overflow_cluster
         mpv.handler.event.property-change.core-idle
@@ -4594,8 +4594,8 @@ return [ qw[
     ]
 ];
 
-#,,.,,,,,,.,,,...,...,,.,,..,,,..,,.,,...,,..,.,.,...,...,,,.,.,.,,..,.,.,,.,,
-#2VL4CLA66HY6WPX54ILLAU6YG4SGGFCF33VQSKXK7NLLKB6J72XOBAVDODB7LJHHTAC4IJB52FKVA
-#\\\|ATDTRXXYM3WZXP46D226MDHLJ53GZBM2I4UCPRGQBFQHAWLR7TQ \ / AMOS7 \ YOURUM ::
-#\[7]GEBV2DZLVDIHJPUQTNKSYLD67NHKHWAXCZ6GT6KQMUJGBQLIRYBQ 7  DATA SIGNATURE ::
+#,,.,,...,,..,.,.,..,,,.,,,,.,.,,,..,,...,..,,.,.,...,...,.,,,.,,,.,.,,,.,.,,,
+#RVXJFPVHCIYN6WCOIZKP7YBFSPQKXIYYGNGZH35DGF3KGAT36H364SOVUQWSL3AGALB5HJZG7DFOA
+#\\\|IBV73SEM5PUBAR5DS6YPCWS4JQ2V43NW5YNERD57EJYIDTZOC35 \ / AMOS7 \ YOURUM ::
+#\[7]PUESMIQI5QZF4YOQB2FJHV4E47ZO4VYRF6F7ULIE27NGVJSYIIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

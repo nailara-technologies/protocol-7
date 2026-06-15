@@ -1,0 +1,66 @@
+
+ .:[ X-11 desktop 'tile' zenka ]:.
+
+[load_config_file:'shared-params']
+
+access.cmd.usr.cube = commands heart reload verify-instance * # <-- [LLL]
+
+## [ ./cfg/zenki/tile/tile-group-setup.<name> ] ##
+
+tile.setup_file_name   =   base     ##[  tile set-up file to load  ]##
+
+## tile.fallback_tile_group = none-defined  ##  <-- configure to start
+
+tile.chksum_file  =  /etc/protocol-7/zenki/tile/set-up.chksum.bmw
+tile.tiles_visible_file = '/etc/protocol-7/import/playlist.tiles_visible'
+tile.restore_tile_enabled  = 5 # select last used cfg on start-up
+tile.restore_tile_timeout  = 242 # seconds
+
+tile.watch_tiles.poll_tile_color  = 0     # [0|1] monitor tile activity?
+tile.watch_tiles.comparison_mode  = bgcol # [bgcol|last]
+tile.watch_tiles.inactive_action  = restart # [warn|restart] timeout act.
+tile.watch_tiles.check_playlist   = 1 # skip restart on empty playlist
+tile.watch_tiles.poll_int_start   = 33 # start delay <first 'interval'>
+tile.watch_tiles.inactive_timeout = 127 # seconds
+
+tile.startup.stop_zenki  = universal mpv web-browser start-anim \
+                                   ticker rss-ticker impressive \
+                                   storchencam remote-cam
+
+tile.startup.restart_zenki   = osd-logo # [LLL] rotate.,
+
+tile.mapped_subcfg.web-browser= adblock noscript scroll_speed auto_speed
+tile.mapped_subcfg.universal  = adblock noscript scroll_speed auto_speed
+tile.mapped_subcfg.impressive = light_mode
+
+modules.preload = tile.set-up set-up.json
+[load_modules:<modules.preload>]
+[init_modules]
+
+[set-up.json.import_file:'tile.set-up.json']
+[set-up.json.import_file:'tile.tile.json']
+
+modules.load = auth net protocol io.unix ui tile set-up.json
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+
+[base.X-11.get_display]
+[base.X-11.get_screen_size]
+[base.X-11.get_orientation]
+[base.get_session_id]
+
+[tile.stop_display_zenki]
+
+[tile.process-tile-group:<tile.fallback_tile_group>]
+
+[zenka.loop]
+
+#,,,,,,..,,,,,,,.,..,,.,,,,,,,,..,,.,,,.,,,,,,..,,...,...,.,.,...,,.,,,.,,,.,,
+#KGVZ2D5JZPTZAGET3AMFD5T6ZDZ3JLSA7GVQJTP4I63QDH35QC6KU7BDJQBPSZJYNQBQGUNPHFZJY
+#\\\|DK47UBAYOJMJ7BYUZF34QZEAGEBKQRRHREZYNSPJ66IVHRWN7PX \ / AMOS7 \ YOURUM ::
+#\[7]7DA7CFHFKJQPURRBVNVGUU25EFP7H2JW4YOP67CLXJKOKVN6AYBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

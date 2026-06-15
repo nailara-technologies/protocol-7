@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = tile.cmd.get_subconfig
+# param = <zenka[+tile]_name>
+# descr = return 'subconfig' for zenka or tile name
+
+return {
+    'mode' => qw| false |,
+    'data' => "expected syntax is 'zenka[subname]'"
+    }
+    if not defined $call->{'args'}
+    or $call->{'args'} !~ m|^(\S+)( +(\S+))?$|;
+
+my ( $source_zenka, $zenka_name ) = ( ${^CAPTURE}[0], ${^CAPTURE}[2] );
+$source_zenka =~ s|^.+\.||g;
+$zenka_name = $source_zenka if not defined $zenka_name;
+
+if ( not exists <tile.subconfig>->{$zenka_name} ) {
+    my $last_match;
+    my $match   = 0;
+    my $msg_str = sprintf "no set-up for zenka '%s'", $zenka_name;
+    if ( $zenka_name !~ m|[\[\]]+| ) {
+        map {
+            if ( $ARG =~ m|^([^\[]+)\[| and ${^CAPTURE}[0] eq $zenka_name ) {
+                $last_match = $ARG;
+                $match++;
+            }
+        } keys <tile.subconfig>->%*;
+    }
+    $msg_str
+        = sprintf( "multiple '%s' instances defined, zenka subname required.",
+        $zenka_name )
+        if $match > 1;
+    return {
+        'mode' => qw| false |,
+        'data' => $msg_str
+        }
+        if $match != 1;
+    $zenka_name = $last_match;
+}
+
+my $maxlen = max map {length} keys <tile.subconfig>->{$zenka_name}->%*;
+
+return {
+    'mode' => qw| size |,
+    'data' => join(
+        '',
+        map {
+            sprintf( "%-*s = %s\n",
+                $maxlen, $ARG, <tile.subconfig>->{$zenka_name}->{$ARG} )
+            }
+            sort keys <tile.subconfig>->{$zenka_name}->%*
+    )
+    }
+
+#,,..,..,,,..,..,,,,,,..,,,,,,,,,,,,.,..,,,.,,..,,...,...,...,..,,..,,...,.,.,
+#W4BKX7A7ZD3O7V4L22UITCEPGHIVKOFYZD7MRV5C3MOBPKOLEWHJQJX3NRE6UGK72J3YCR3HSPWUI
+#\\\|A7ZMMVWZIMWEQ2M3QJ763MMHRZINJHNHLZ35BHLL264VFR66TOX \ / AMOS7 \ YOURUM ::
+#\[7]GI4C6KFQBOKX24FFGDY2JPZZNSJP5YFOVMRF2GAWNOVCQGTQMKAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
