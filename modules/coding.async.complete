@@ -43,8 +43,7 @@ if ( not defined $state ) {
                 }
             );
         }
-    }
-    elsif ( $meta->{'is_chunked_summary'} and defined $parent_id ) {
+    } elsif ( $meta->{'is_chunked_summary'} and defined $parent_id ) {
         my $pstate = <[coding.async.state_manager]>->( 'get', $parent_id );
         if ( defined $pstate
             and ( $pstate->{'chunked_summary_pending'} // '' ) eq $task_id ) {
@@ -146,18 +145,17 @@ if ( defined $result && $result->{'success'} ) {
             }
             ## chunked summary sub-task: fold result, enqueue next or complete ##
             elsif ( ( $parent_state->{'chunked_summary_pending'} // '' ) eq
-                $task_id )
-            {
+                $task_id ) {
                 my $parent_task = <coding.task.queue>->{$parent_id} // {};
                 my $chunk_state
                     = $parent_task->{'metadata'}->{'chunked_summary_state'}
                     // {};
 
-                my $current_idx = ( $chunk_state->{'current_idx'} // 0 ) + 1;
+                my $current_idx  = ( $chunk_state->{'current_idx'} // 0 ) + 1;
                 my $total_chunks = $chunk_state->{'total_chunks'} // 1;
                 my $running_summary = $result_text;
-                my $backend = $parent_state->{'backend'} // qw| gpu |;
-                my $sys = $chunk_state->{'system_prompt'} // '';
+                my $backend = $parent_state->{'backend'}      // qw| gpu |;
+                my $sys     = $chunk_state->{'system_prompt'} // '';
 
                 $chunk_state->{'current_idx'}     = $current_idx;
                 $chunk_state->{'running_summary'} = $running_summary;
@@ -174,20 +172,17 @@ if ( defined $result && $result->{'success'} ) {
                     ## guard: hard-truncate if still too big ##
                     my $chars_per_token = 3.2;
                     my $prompt_est
-                        = int( bytes::length($child_prompt)
-                        / $chars_per_token );
+                        = int(
+                        bytes::length($child_prompt) / $chars_per_token );
                     my $p_srv_key = $parent_state->{'backend'} // qw| gpu |;
                     my $p_srv_info
-                        = ( <coding.inference_servers> // {} )
-                        ->{$p_srv_key} // {};
-                    my $p_n_ctx
-                        = $p_srv_info->{'n_ctx'}
-                        // <inference.model.context_length>
-                        // 7777;
+                        = ( <coding.inference_servers> // {} )->{$p_srv_key}
+                        // {};
+                    my $p_n_ctx = $p_srv_info->{'n_ctx'}
+                        // <inference.model.context_length> // 7777;
                     if ( $prompt_est > $p_n_ctx - 500 ) {
                         my $max_prompt_bytes
-                            = int( ( $p_n_ctx - 500 )
-                            * $chars_per_token );
+                            = int( ( $p_n_ctx - 500 ) * $chars_per_token );
                         my $head
                             = "running summary so far:\n$running_summary\n\n";
                         my $tail
@@ -197,7 +192,7 @@ if ( defined $result && $result->{'success'} ) {
                             = $max_prompt_bytes
                             - bytes::length($head)
                             - bytes::length($tail);
-                        $available = 500 if $available < 500;
+                        $available  = 500 if $available < 500;
                         $next_chunk = substr( $next_chunk, 0, $available )
                             . "\n\n...[truncated: chunk exceeded safe size]";
                         $child_prompt
@@ -209,12 +204,14 @@ if ( defined $result && $result->{'success'} ) {
                             0,
                             "chunk_and_summarize: chunk %d/%d hard-truncated "
                                 . "[ est=%d > n_ctx-500 ]",
-                            $current_idx + 1, $total_chunks, $prompt_est
+                            $current_idx + 1,
+                            $total_chunks,
+                            $prompt_est
                         );
                     }
 
                     my $child_task_id
-                        = <[coding.helper.task_id_generator]>->( qw| chunk | );
+                        = <[coding.helper.task_id_generator]>->(qw| chunk |);
                     my $enqueue_result = <[coding.task.enqueue]>->(
                         {   id       => $child_task_id,
                             type     => qw| general |,
@@ -244,13 +241,16 @@ if ( defined $result && $result->{'success'} ) {
 
                     if ( defined $child_id and length $child_id ) {
                         <coding.task.parent>->{$child_id} = $parent_id;
-                        $parent_state->{'chunked_summary_pending'} = $child_id;
-                        $parent_state->{'pending_subtask'}         = $child_id;
-                        <coding.async.task_state>->{$parent_id} = $parent_state;
+                        $parent_state->{'chunked_summary_pending'}
+                            = $child_id;
+                        $parent_state->{'pending_subtask'} = $child_id;
+                        <coding.async.task_state>->{$parent_id}
+                            = $parent_state;
                         <[base.logs]>->(
                             1,
                             "chunk_and_summarize: chunk %d/%d → child %s",
-                            $current_idx + 1, $total_chunks, $child_id
+                            $current_idx + 1,
+                            $total_chunks, $child_id
                         );
                     } else {
                         ## enqueue failed: complete parent with what we have ##
@@ -265,10 +265,11 @@ if ( defined $result && $result->{'success'} ) {
                         <coding.async.task_state>->{$parent_id}
                             = $parent_state;
                         <[jobqueue.move_job]>->(
-                            $chunk_state->{'parent_job_id'}, 'completed' )
-                            if defined $chunk_state->{'parent_job_id'};
-                        <[coding.task.complete]>->( $parent_id,
-                            $running_summary );
+                            $chunk_state->{'parent_job_id'}, 'completed'
+                        ) if defined $chunk_state->{'parent_job_id'};
+                        <[coding.task.complete]>->(
+                            $parent_id, $running_summary
+                        );
                     }
                 } else {
                     ## all chunks done ##
@@ -276,10 +277,10 @@ if ( defined $result && $result->{'success'} ) {
                     $parent_state->{'pending_subtask'} = undef;
                     <coding.async.task_state>->{$parent_id} = $parent_state;
                     <[jobqueue.move_job]>->(
-                        $chunk_state->{'parent_job_id'}, 'completed' )
-                        if defined $chunk_state->{'parent_job_id'};
-                    <[coding.task.complete]>->( $parent_id,
-                        $running_summary );
+                        $chunk_state->{'parent_job_id'}, 'completed'
+                    ) if defined $chunk_state->{'parent_job_id'};
+                    <[coding.task.complete]>
+                        ->( $parent_id, $running_summary );
                 }
                 $skip_standard_resume = 1;
             } else {
@@ -293,89 +294,94 @@ if ( defined $result && $result->{'success'} ) {
             }
 
             unless ($skip_standard_resume) {
-            ## check subtask queue for more work ##
-            my $queue = <coding.task.subtask_queue>->{$parent_id} // [];
-            ## remove completed subtask from front of queue ##
-            while ( @$queue && $queue->[0] eq $task_id ) {
-                shift @$queue;
-            }
-            <coding.task.subtask_queue>->{$parent_id} = $queue;
+                ## check subtask queue for more work ##
+                my $queue = <coding.task.subtask_queue>->{$parent_id} // [];
+                ## remove completed subtask from front of queue ##
+                while ( @$queue && $queue->[0] eq $task_id ) {
+                    shift @$queue;
+                }
+                <coding.task.subtask_queue>->{$parent_id} = $queue;
 
-            if (@$queue) {
-                ## check if parent was stopped while this subtask ran ##
-                my $parent_task_rec = <coding.task.queue>->{$parent_id};
-                if ( defined $parent_task_rec
-                    && $parent_task_rec->{'stop_requested'} ) {
-                    <[base.logs]>->(
-                        1,
-                        "async.complete: parent %s was stopped,"
-                            . " clearing %d remaining subtask(s)",
-                        $parent_id,
-                        scalar @$queue
-                    );
-                    ## clear remaining queue so they don't start later ##
-                    for my $orphan_id (@$queue) {
-                        my $orphan = delete <coding.task.queue>->{$orphan_id};
-                        if ( defined $orphan ) {
-                            $orphan->{'execution'}->{'status'}
-                                = qw| cancelled |;
-                            push @{ <coding.task.completed> //= [] },
-                                $orphan_id;
+                if (@$queue) {
+                    ## check if parent was stopped while this subtask ran ##
+                    my $parent_task_rec = <coding.task.queue>->{$parent_id};
+                    if ( defined $parent_task_rec
+                        && $parent_task_rec->{'stop_requested'} ) {
+                        <[base.logs]>->(
+                            1,
+                            "async.complete: parent %s was stopped,"
+                                . " clearing %d remaining subtask(s)",
+                            $parent_id,
+                            scalar @$queue
+                        );
+                        ## clear remaining queue so they don't start later ##
+                        for my $orphan_id (@$queue) {
+                            my $orphan
+                                = delete <coding.task.queue>->{$orphan_id};
+                            if ( defined $orphan ) {
+                                $orphan->{'execution'}->{'status'}
+                                    = qw| cancelled |;
+                                push @{ <coding.task.completed> //= [] },
+                                    $orphan_id;
+                            }
+                            delete <coding.task.parent>->{$orphan_id};
                         }
-                        delete <coding.task.parent>->{$orphan_id};
-                    }
-                    <coding.task.subtask_queue>->{$parent_id} = [];
-                    $parent_state->{'pending_subtask'} = undef;
-                    $parent_state->{'state'}           = qw| streaming |;
-                    <coding.async.task_state>->{$parent_id} = $parent_state;
-                } else {
-                    my $next_subtask = $queue->[0];
-                    $parent_state->{'pending_subtask'} = $next_subtask;
-                    ## stay in subtask state : next queued task will run ##
-                    <coding.async.task_state>->{$parent_id} = $parent_state;
-                    ## enqueue the next subtask so the task queue picks it up ##
-                    ## [ remove from queue first to avoid duplicate rejection ] ##
-                    my $next_task
-                        = delete <coding.task.queue>->{$next_subtask};
-                    if ( defined $next_task ) {
-                        my $enq = <[coding.task.enqueue]>->($next_task);
-                        if ( !$enq->{'success'} ) {
-                            ## restore if enqueue failed ##
-                            <coding.task.queue>->{$next_subtask} = $next_task;
+                        <coding.task.subtask_queue>->{$parent_id} = [];
+                        $parent_state->{'pending_subtask'} = undef;
+                        $parent_state->{'state'}           = qw| streaming |;
+                        <coding.async.task_state>->{$parent_id}
+                            = $parent_state;
+                    } else {
+                        my $next_subtask = $queue->[0];
+                        $parent_state->{'pending_subtask'} = $next_subtask;
+                        ## stay in subtask state : next queued task will run ##
+                        <coding.async.task_state>->{$parent_id}
+                            = $parent_state;
+                        ## enqueue the next subtask so the task queue picks it up ##
+                        ## [ remove from queue first to avoid duplicate rejection ] ##
+                        my $next_task
+                            = delete <coding.task.queue>->{$next_subtask};
+                        if ( defined $next_task ) {
+                            my $enq = <[coding.task.enqueue]>->($next_task);
+                            if ( !$enq->{'success'} ) {
+                                ## restore if enqueue failed ##
+                                <coding.task.queue>->{$next_subtask}
+                                    = $next_task;
+                                <[base.logs]>->(
+                                    0,
+                                    "async.complete: enqueue of %s failed: %s",
+                                    $next_subtask,
+                                    $enq->{'error'} // 'unknown'
+                                );
+                            }
+                        } else {
                             <[base.logs]>->(
                                 0,
-                                "async.complete: enqueue of %s failed: %s",
-                                $next_subtask,
-                                $enq->{'error'} // 'unknown'
+                                "async.complete: next subtask %s not found in queue",
+                                $next_subtask
                             );
                         }
-                    } else {
                         <[base.logs]>->(
-                            0,
-                            "async.complete: next subtask %s not found in queue",
+                            1,
+                            "async.complete: parent %s starting next queued subtask %s",
+                            $parent_id,
                             $next_subtask
                         );
                     }
+                } else {
+                    $parent_state->{'pending_subtask'} = undef;
+                    ## transition parent from subtask back to streaming ##
+                    $parent_state->{'state'} = qw| streaming |;
+                    <coding.async.task_state>->{$parent_id} = $parent_state;
+                    <[coding.task.enqueue_round]>->(
+                        $parent_id, $parent_state->{'round'}
+                    );
                     <[base.logs]>->(
                         1,
-                        "async.complete: parent %s starting next queued subtask %s",
-                        $parent_id,
-                        $next_subtask
+                        "async.complete: resumed parent %s from subtask %s",
+                        $parent_id, $task_id
                     );
                 }
-            } else {
-                $parent_state->{'pending_subtask'} = undef;
-                ## transition parent from subtask back to streaming ##
-                $parent_state->{'state'} = qw| streaming |;
-                <coding.async.task_state>->{$parent_id} = $parent_state;
-                <[coding.task.enqueue_round]>->(
-                    $parent_id, $parent_state->{'round'}
-                );
-                <[base.logs]>->(
-                    1, "async.complete: resumed parent %s from subtask %s",
-                    $parent_id, $task_id
-                );
-            }
             }
         } elsif ( defined $parent_state
             and $parent_state->{'state'} eq qw| subtask | ) {
@@ -416,8 +422,15 @@ if ( defined $result && $result->{'success'} ) {
     }
     my $aref_pending_f = <coding.task.pending> // [];
     my $aref_active_f  = <coding.task.active>  // [];
+    my $aref_failed_f  = <coding.task.failed> //= [];
     $aref_pending_f->@* = grep { $ARG ne $task_id } $aref_pending_f->@*;
     $aref_active_f->@*  = grep { $ARG ne $task_id } $aref_active_f->@*;
+    push $aref_failed_f->@*, $task_id
+        unless grep { $ARG eq $task_id } $aref_failed_f->@*;
+
+    ## resolve reasoning branch as failed [ else it stays 'running' forever ] ##
+    <[reasoning.branch.resolve]>
+        ->( { id => $task_id, output => "failed: $error_msg" } );
 
     ## fire any deferred reply waiting on this task (ask-reply, etc.) ##
     my $deferred_replies = $data{'coding'}{'deferred_replies'} // {};
@@ -439,17 +452,17 @@ if ( defined $result && $result->{'success'} ) {
             and ( $parent_state->{'pending_subtask'} // '' ) eq $task_id ) {
             my $skip_standard_resume_fail = 0;
 
-            if ( ( $parent_state->{'compaction_pending'} // '' ) eq $task_id ) {
+            if ( ( $parent_state->{'compaction_pending'} // '' ) eq $task_id )
+            {
                 ## compaction child failed: clear markers, let parent resume ##
                 delete $parent_state->{'compaction_pending'};
                 delete $parent_state->{'compact_start'};
                 delete $parent_state->{'compact_end'};
-            }
-            elsif ( ( $parent_state->{'chunked_summary_pending'} // '' ) eq
-                $task_id )
-            {
+            } elsif ( ( $parent_state->{'chunked_summary_pending'} // '' ) eq
+                $task_id ) {
                 ## chunked summary child failed ##
-                my $parent_task = <coding.task.queue>->{$parent_id_fail} // {};
+                my $parent_task = <coding.task.queue>->{$parent_id_fail}
+                    // {};
                 my $chunk_state
                     = $parent_task->{'metadata'}->{'chunked_summary_state'}
                     // {};
@@ -461,36 +474,42 @@ if ( defined $result && $result->{'success'} ) {
 
                 if ( length $running_summary ) {
                     <[jobqueue.move_job]>->(
-                        $chunk_state->{'parent_job_id'}, 'completed' )
-                        if defined $chunk_state->{'parent_job_id'};
-                    <[coding.task.complete]>->( $parent_id_fail,
-                        $running_summary );
+                        $chunk_state->{'parent_job_id'}, 'completed'
+                    ) if defined $chunk_state->{'parent_job_id'};
+                    <[coding.task.complete]>->(
+                        $parent_id_fail, $running_summary
+                    );
                     <[base.logs]>->(
                         1,
                         "async.complete: chunked summary parent %s completed "
                             . "with partial summary after child %s failed",
-                        $parent_id_fail, $task_id
+                        $parent_id_fail,
+                        $task_id
                     );
                 } else {
                     my $err = "chunked summary failed: $error_msg";
                     if ( defined $parent_task ) {
-                        $parent_task->{'execution'}->{'status'} = qw| failed |;
-                        $parent_task->{'execution'}->{'error'}  = $err;
+                        $parent_task->{'execution'}->{'status'}
+                            = qw| failed |;
+                        $parent_task->{'execution'}->{'error'} = $err;
                     }
                     my $pending_f = <coding.task.pending> // [];
                     my $active_f  = <coding.task.active>  // [];
-                    $pending_f->@* = grep { $ARG ne $parent_id_fail }
-                        $pending_f->@*;
-                    $active_f->@* = grep { $ARG ne $parent_id_fail }
-                        $active_f->@*;
+                    $pending_f->@*
+                        = grep { $ARG ne $parent_id_fail } $pending_f->@*;
+                    $active_f->@*
+                        = grep { $ARG ne $parent_id_fail } $active_f->@*;
                     <[jobqueue.move_job]>->(
-                        $chunk_state->{'parent_job_id'}, qw| error | )
-                        if defined $chunk_state->{'parent_job_id'};
+                        $chunk_state->{'parent_job_id'},
+                        qw| error |
+                    ) if defined $chunk_state->{'parent_job_id'};
                     <[base.logs]>->(
                         0,
                         "async.complete: chunked summary parent %s failed "
                             . "after child %s failed: %s",
-                        $parent_id_fail, $task_id, $error_msg
+                        $parent_id_fail,
+                        $task_id,
+                        $error_msg
                     );
                 }
                 $skip_standard_resume_fail = 1;
@@ -498,98 +517,104 @@ if ( defined $result && $result->{'success'} ) {
                 push @{ $parent_state->{'messages'} },
                     {
                     'role'    => 'user',
-                    'content' => "[SUBTASK FAILED: $task_id]\n\n" . $error_msg
+                    'content' => "[SUBTASK FAILED: $task_id]\n\n"
+                        . $error_msg
                     };
             }
 
             unless ($skip_standard_resume_fail) {
-            ## check subtask queue for more work ##
-            my $queue = <coding.task.subtask_queue>->{$parent_id_fail} // [];
-            while ( @$queue && $queue->[0] eq $task_id ) {
-                shift @$queue;
-            }
-            <coding.task.subtask_queue>->{$parent_id_fail} = $queue;
+                ## check subtask queue for more work ##
+                my $queue = <coding.task.subtask_queue>->{$parent_id_fail}
+                    // [];
+                while ( @$queue && $queue->[0] eq $task_id ) {
+                    shift @$queue;
+                }
+                <coding.task.subtask_queue>->{$parent_id_fail} = $queue;
 
-            if (@$queue) {
-                ## check if parent was stopped while this subtask ran ##
-                my $parent_task_rec = <coding.task.queue>->{$parent_id_fail};
-                if ( defined $parent_task_rec
-                    && $parent_task_rec->{'stop_requested'} ) {
-                    <[base.logs]>->(
-                        1,
-                        "async.complete: parent %s was stopped,"
-                            . " clearing %d remaining subtask(s) after failure",
-                        $parent_id_fail,
-                        scalar @$queue
-                    );
-                    for my $orphan_id (@$queue) {
-                        my $orphan = delete <coding.task.queue>->{$orphan_id};
-                        if ( defined $orphan ) {
-                            $orphan->{'execution'}->{'status'}
-                                = qw| cancelled |;
-                            push @{ <coding.task.completed> //= [] },
-                                $orphan_id;
+                if (@$queue) {
+                    ## check if parent was stopped while this subtask ran ##
+                    my $parent_task_rec
+                        = <coding.task.queue>->{$parent_id_fail};
+                    if ( defined $parent_task_rec
+                        && $parent_task_rec->{'stop_requested'} ) {
+                        <[base.logs]>->(
+                            1,
+                            "async.complete: parent %s was stopped,"
+                                . " clearing %d remaining subtask(s) after failure",
+                            $parent_id_fail,
+                            scalar @$queue
+                        );
+                        for my $orphan_id (@$queue) {
+                            my $orphan
+                                = delete <coding.task.queue>->{$orphan_id};
+                            if ( defined $orphan ) {
+                                $orphan->{'execution'}->{'status'}
+                                    = qw| cancelled |;
+                                push @{ <coding.task.completed> //= [] },
+                                    $orphan_id;
+                            }
+                            delete <coding.task.parent>->{$orphan_id};
                         }
-                        delete <coding.task.parent>->{$orphan_id};
-                    }
-                    <coding.task.subtask_queue>->{$parent_id_fail} = [];
-                    $parent_state->{'pending_subtask'} = undef;
-                    $parent_state->{'state'}           = qw| streaming |;
-                    <coding.async.task_state>->{$parent_id_fail}
-                        = $parent_state;
-                } else {
-                    my $next_subtask = $queue->[0];
-                    $parent_state->{'pending_subtask'} = $next_subtask;
-                    ## stay in subtask state : next queued task will run ##
-                    <coding.async.task_state>->{$parent_id_fail}
-                        = $parent_state;
-                    ## enqueue the next subtask so the task queue picks it up ##
-                    ## [ remove from queue first to avoid duplicate rejection ] ##
-                    my $next_task
-                        = delete <coding.task.queue>->{$next_subtask};
-                    if ( defined $next_task ) {
-                        my $enq = <[coding.task.enqueue]>->($next_task);
-                        if ( !$enq->{'success'} ) {
-                            ## restore if enqueue failed ##
-                            <coding.task.queue>->{$next_subtask} = $next_task;
+                        <coding.task.subtask_queue>->{$parent_id_fail} = [];
+                        $parent_state->{'pending_subtask'} = undef;
+                        $parent_state->{'state'}           = qw| streaming |;
+                        <coding.async.task_state>->{$parent_id_fail}
+                            = $parent_state;
+                    } else {
+                        my $next_subtask = $queue->[0];
+                        $parent_state->{'pending_subtask'} = $next_subtask;
+                        ## stay in subtask state : next queued task will run ##
+                        <coding.async.task_state>->{$parent_id_fail}
+                            = $parent_state;
+                        ## enqueue the next subtask so the task queue picks it up ##
+                        ## [ remove from queue first to avoid duplicate rejection ] ##
+                        my $next_task
+                            = delete <coding.task.queue>->{$next_subtask};
+                        if ( defined $next_task ) {
+                            my $enq = <[coding.task.enqueue]>->($next_task);
+                            if ( !$enq->{'success'} ) {
+                                ## restore if enqueue failed ##
+                                <coding.task.queue>->{$next_subtask}
+                                    = $next_task;
+                                <[base.logs]>->(
+                                    0,
+                                    "async.complete: enqueue of %s failed : %s",
+                                    $next_subtask,
+                                    $enq->{'error'} // qw| unknown |
+                                );
+                            }
+                        } else {
                             <[base.logs]>->(
                                 0,
-                                "async.complete: enqueue of %s failed : %s",
-                                $next_subtask,
-                                $enq->{'error'} // qw| unknown |
+                                "async.complete: next subtask %s not found in queue",
+                                $next_subtask
                             );
                         }
-                    } else {
                         <[base.logs]>->(
-                            0,
-                            "async.complete: next subtask %s not found in queue",
+                            1,
+                            "async.complete: parent %s starting"
+                                . " next queued subtask %s after failure",
+                            $parent_id_fail,
                             $next_subtask
                         );
                     }
+                } else {
+                    $parent_state->{'pending_subtask'} = undef;
+                    ## transition parent from subtask back to streaming ##
+                    $parent_state->{'state'} = qw| streaming |;
+                    <coding.async.task_state>->{$parent_id_fail}
+                        = $parent_state;
+                    <[coding.task.enqueue_round]>->(
+                        $parent_id_fail, $parent_state->{'round'}
+                    );
                     <[base.logs]>->(
                         1,
-                        "async.complete: parent %s starting"
-                            . " next queued subtask %s after failure",
+                        "async.complete: resumed parent"
+                            . " %s after subtask %s failed",
                         $parent_id_fail,
-                        $next_subtask
+                        $task_id
                     );
                 }
-            } else {
-                $parent_state->{'pending_subtask'} = undef;
-                ## transition parent from subtask back to streaming ##
-                $parent_state->{'state'} = qw| streaming |;
-                <coding.async.task_state>->{$parent_id_fail} = $parent_state;
-                <[coding.task.enqueue_round]>->(
-                    $parent_id_fail, $parent_state->{'round'}
-                );
-                <[base.logs]>->(
-                    1,
-                    "async.complete: resumed parent"
-                        . " %s after subtask %s failed",
-                    $parent_id_fail,
-                    $task_id
-                );
-            }
             }
         } elsif ( defined $parent_state
             and $parent_state->{'state'} eq qw| subtask | ) {
@@ -606,8 +631,8 @@ if ( defined $result && $result->{'success'} ) {
     return { success => FALSE, error => $error_msg, task_id => $task_id };
 }
 
-#,,.,,,..,,.,,.,.,,.,,...,.,,,..,,..,,..,,.,.,.,.,...,...,,.,,,.,,...,..,,,,.,
-#YOYZOI3QGJRXCBJE4YHAUPDRRX2UJF3XSXUZ3KRVMU2QJXUMQ2BVTFK7RXF6WPSJ4F35QO3YDNOSI
-#\\\|ZVGXCJT5S3PHH3P37C5KQIDBGLXF35ZB3GXA7ATO276OEN2OS5W \ / AMOS7 \ YOURUM ::
-#\[7]VTO565B45KHBPHM3FL3F2TLEUS67WSX3YXSUTA3RHHWJVWUTR2AA 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,...,,.,,.,.,,..,.,.,,,.,...,...,.,.,...,...,..,,...,.,,,.,.,,,.,
+#6MQ7KTFRVTWMBUT5A4M7B3C3L45DFA3XEVVYLEKU3IGHGBM4FYU6DZTYHZDVXF5TCAEFQUQTNB4LS
+#\\\|MXBH4XGSK23USVE57WUS6RZDNZ5IOM45TRR6YW2KQSQA5TZDWXW \ / AMOS7 \ YOURUM ::
+#\[7]6CHODOBZVASBLWNGCNAPGWSVVZA2SDOG4WSLNBXWBMUIORVJNSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
