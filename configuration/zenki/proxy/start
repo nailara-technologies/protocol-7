@@ -12,7 +12,14 @@ proxy.cfg.transport       = direct
 access.cmd.usr.cube = commands heart reload verify-instance \
                       list show-buffer buffer-erase buffer-erase-level \
                       show-access src-ver src-age subname name status \
-                      deparse-code dump core-subs change-log-verbosity * # <-- !!!
+                      deparse-code dump core-subs change-log-verbosity \
+                      handler.cred_rotated * # <-- !!!
+
+## [ note ] bare '*' matches single-segment commands only [ regex [^\.]+ ] ;
+## dotted callback names like 'handler.cred_rotated' [ cred-mesh rotation
+## notification, cube relays as src='cube' cmd='handler.cred_rotated' ] must
+## be granted explicitly here, mirroring cube/access.zenki's grant of
+## 'proxy.handler.cred_rotated' to user 'cred-mesh' at the relay layer.
 
 modules.load = auth net protocol io.unix io.ip ui clients.http clients.https \
                                      format.yaml httpd.status_codes proxy devmod
@@ -28,8 +35,8 @@ modules.load = auth net protocol io.unix io.ip ui clients.http clients.https \
 
 [zenka.loop]
 
-#,,,.,.,.,,,,,.,,,,,,,,,.,...,,.,,..,,..,,,.,,..,,...,...,.,,,.,,,,,,,,.,,..,,
-#6VAXIRMUCIRXWXXCBDDHHGJB7INGN3QQ5JISGMIXVASN2VR5SLHVVH7YWQVOVK3GOMYIFBL3BQ5LO
-#\\\|NAJ3N3VSWHPGVP5DHGRC4OAYOQAMVSRGGPUTERYBQ4MAK7CDPXB \ / AMOS7 \ YOURUM ::
-#\[7]QXOR2HU63RI6U2E4TUGZ6OTDJDQLAK3GNW7TM2L5FZ5MYBI6M2DQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,..,,,,,...,,..,,.,,...,,,,,..,,..,,...,...,...,...,,.,,.,.,.,,,
+#T62TWBYBEEGSIZ3SQFJTLX2KFP6F6P4S6IYWM7HASRLQLO4YX7H5ESWCW7RKEFIATPSES5YKXSF76
+#\\\|J7RXYOE7YZOLW4DL37NQEVYSZADLOQGZLWOQQ7MAJLXUY35LPOQ \ / AMOS7 \ YOURUM ::
+#\[7]IWSLVZLLB7OORYQII6S5M7UHXQI6JXNHNGP6H3BTMS7YDUMNCYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
