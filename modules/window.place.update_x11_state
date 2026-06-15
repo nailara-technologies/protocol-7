@@ -1,23 +1,29 @@
 ## [:< ##
 
 # name  = window.place.update_x11_state
-# descr = write geometry into x11 state without moving the window
+# descr = write geometry into the per-instance state without moving the window
 
-my $geometry = shift;
+my ( $id, $geometry ) = @ARG;
 
+return undef if not defined $id;
 return undef if not defined $geometry;
 
-<x11.window.width>       = $geometry->{'width'};
-<x11.window.height>      = $geometry->{'height'};
-<x11.coordinates.left>   = $geometry->{'x'};
-<x11.coordinates.top>    = $geometry->{'y'};
-<x11.coordinates.right>  = $geometry->{'x'} + $geometry->{'width'};
-<x11.coordinates.bottom> = $geometry->{'y'} + $geometry->{'height'};
+my $inst = $data{window}{place}{instances}{$id};
+return undef if not defined $inst;
+
+$inst->{'geom'} = {
+    'width'  => $geometry->{'width'},
+    'height' => $geometry->{'height'},
+    'x'      => $geometry->{'x'},
+    'y'      => $geometry->{'y'},
+    'right'  => $geometry->{'x'} + $geometry->{'width'},
+    'bottom' => $geometry->{'y'} + $geometry->{'height'},
+};
 
 return TRUE;
 
-#,,..,.,.,,,,,,,,,,..,,.,,,..,,,.,..,,...,,..,..,,...,...,...,,..,...,,.,,,..,
-#FWSQFTG73QSM4QVVQF2FJYIEBGVWGGJ3MPOEDATVEWOXJFFDPKP42BCWQQGQ4CD6U3TUZTWWNZHR2
-#\\\|GPLGRPCZQ2BWQK7LOCKI3YN7Y3KD3M4ZZU6QUQSEMAHKUBZR2IC \ / AMOS7 \ YOURUM ::
-#\[7]IKNJAULZCKVRV2N4POD3L6YH43TPXVDBNDMXRNA4JMHTCTNOZECQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,.,,..,,.,.,.,.,...,.,,,..,,.,.,..,,...,...,..,,,..,...,.,,,...,
+#F2WVY3W7N6FFHLXS32R6QN5F3IJDPF7PNFU5WL5GHUCJFKR5NIDKBRUZQNJAZSUIYJKOWAQGAZ6YC
+#\\\|JKUUEPVH3FGRKFX5PEGENMQITDP77O5QLLGAJFQ3WGFRZTFN2LL \ / AMOS7 \ YOURUM ::
+#\[7]3FX56U72P6ONIVYYLNGSGCG4MGZSIMCRLDKIVBM4IJBBT63W6WAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

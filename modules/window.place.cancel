@@ -3,7 +3,14 @@
 # name  = window.place.cancel
 # descr = cancel placement and notify caller
 
-my $reply_id = <window.place.reply_id>;
+my $id = shift;
+
+return undef if not defined $id;
+
+my $inst = $data{window}{place}{instances}{$id};
+return undef if not defined $inst;
+
+my $reply_id = $inst->{'reply_id'};
 
 if ( defined $reply_id and $reply_id =~ m|^\d+$| ) {
     <[base.callback.cmd_reply]>->(
@@ -13,17 +20,41 @@ if ( defined $reply_id and $reply_id =~ m|^\d+$| ) {
         }
     );
 } else {
-    <[base.log]>->( 1, '[place.cancel] no reply_id, skipping direct reply' );
+    <[base.logs]>->(
+        1, '[place.cancel] id=%s no reply_id, skipping direct reply', $id
+    );
 }
 
-<[base.log]>->( 1, '[place.cancel] placement cancelled' );
+<[base.logs]>->( 1, '[place.cancel] id=%s placement cancelled', $id );
 
-Gtk3->main_quit;
+## destroy the window if still alive ##
+my $window = $inst->{'window'};
+if ( defined $window and $window->get_visible ) {
+    $window->destroy;
+}
 
-<[base.exit]>->( 0, 'window.place cancelled', 2 );
+## stop instance timers ##
+my $poll_timer = $inst->{'poll'}{'timer'};
+$poll_timer->cancel if defined $poll_timer;
 
-#,,,.,..,,..,,,,.,.,.,...,...,..,,,.,,,.,,,,.,.,.,...,...,..,,...,.,.,,,,,.,.,
-#7GHTURIXB5FAJ742D5HREVHFXBOMELDWRZLQVF33SBNWDA3LRZ32MJ5VG566BO3G4YLPTFRHIW4CA
-#\\\|KTNZMPGMU3ORUAFOHNZGQDK3MJ2OVUL7C32RZPLTWNLZHPR6D5W \ / AMOS7 \ YOURUM ::
-#\[7]TWIFQCXGPYPG3XGE45C4B7FBLMEYJRP2JB5NLJT5WLO4OLRQBEAA 7  DATA SIGNATURE ::
+my $damp_timer = $inst->{'damp'}{'timer'};
+$damp_timer->cancel if defined $damp_timer;
+
+## remove instance state ##
+delete $data{window}{place}{instances}{$id};
+
+## only exit the process when no instances remain ##
+my $remaining = scalar keys %{ $data{window}{place}{instances} // {} };
+if ( $remaining == 0 ) {
+    <[base.log]>->( 1, '[place.cancel] no instances remain, exiting' );
+    Gtk3->main_quit;
+    <[base.exit]>->( 0, 'window.place cancelled', 2 );
+}
+
+return TRUE;
+
+#,,.,,,..,..,,,,.,..,,..,,,,.,.,,,.,,,,.,,...,.,.,...,..,,..,,...,...,..,,.,.,
+#IWTJ4HHOEZB4EVZIOZTSPYJGUN57AMWQ4DQOWV6W6ZKWUEGA6TITXVYI5YGMKBWFP2ORLQTJN2FW4
+#\\\|ITNW7WVE32CDU7QGJOS7RUKP3S7J4PFPDG7HESNFWIYX3HMZ64P \ / AMOS7 \ YOURUM ::
+#\[7]DR6EEGHIXW6YAIEXUVQHLOG3QEQRS43XI6BR5LX6B2AZD3RPH2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

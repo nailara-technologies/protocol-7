@@ -28,11 +28,18 @@ my ( $x, $y, $width, $height, $anchor );
 if ( $profile eq 'saved' ) {
     my $saved = length $caller ? <[window.profile.load]>->($caller) : undef;
     if ( defined $saved ) {
+        ## no saved size hint: default to 70% of screen, centered ##
+        my $default_w = sprintf( '%.0f', $screen_w * 0.7 );
+        my $default_h = sprintf( '%.0f', $screen_h * 0.7 );
+        my $width     = $saved->{'width'}  // $default_w;
+        my $height    = $saved->{'height'} // $default_h;
         return {
-            'x'       => $saved->{'x'}      // 0,
-            'y'       => $saved->{'y'}      // 0,
-            'width'   => $saved->{'width'}  // $screen_w,
-            'height'  => $saved->{'height'} // $screen_h,
+            'x' => $saved->{'x'}
+                // sprintf( '%.0f', ( $screen_w - $width ) / 2 ),
+            'y' => $saved->{'y'}
+                // sprintf( '%.0f', ( $screen_h - $height ) / 2 ),
+            'width'   => $width,
+            'height'  => $height,
             'profile' => 'saved'
         };
     }
@@ -123,8 +130,8 @@ return {
     'profile' => $profile
 };
 
-#,,..,,..,,..,..,,,.,,,.,,,,,,...,,..,,..,,,.,..,,...,...,...,,..,,,.,,,.,,,,,
-#ZZYX2JAAT2Q7GK7BWS52364NKPJA7MIDIKDJQCTVWKN5FNG6OTPTBUXVAM7TCCHHX2PXDJFMISC56
-#\\\|Q5GECTTKOWQG65Y6BDTAUCYMJNZPIJIK3BMJIR6IFDJ5VVAKSBD \ / AMOS7 \ YOURUM ::
-#\[7]CMVBDXJIQYJHEUUMHDJVJRQHMWACTLGFC2VMSGENM53UKBED3SCQ 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,,,,...,,.,,,,,,,..,,,.,,..,,,.,..,,...,...,..,,,,,,.,.,,..,.,.,
+#FAR6JUFMBVCOYWV4OWRJB37TU5DUTHLLUIK4CZF2WJFAAPCNUYHNVJEZSVTFRXDZ2C47G4CRQ3IL4
+#\\\|SLK5W5VR7P7K4XHQO44Y7XOD5XZR2SIJO4CSPOZD72LYX7KPTWD \ / AMOS7 \ YOURUM ::
+#\[7]6DXDKNSY57POAPGJYXSZQU2KGN4R6BIUAWA2AQLIJYIS6QM442AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
