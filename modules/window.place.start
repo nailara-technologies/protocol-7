@@ -27,8 +27,12 @@ foreach my $token (@tokens) {
     }
 }
 
-$caller  //= '';
-$profile //= 'center';
+$caller //= '';
+
+## no explicit profile: try the caller's last saved position first, ##
+## falling back to 'center' [ window-place's prior default ]        ##
+my $fallback_profile = 'center';
+$profile //= 'saved';
 <window.place.reply_handler> = $reply_handler // '';
 
 if ( not length $caller ) {
@@ -52,6 +56,8 @@ if ( $geom_str =~ m|^\s*(\d+)\s*x\s*(\d+)| ) {
 
 my $geo = <[window.profile.calculate]>->(
     {   profile  => $profile,
+        fallback => $fallback_profile,
+        caller   => $caller,
         screen_w => $screen_geom->{'width'},
         screen_h => $screen_geom->{'height'}
     }
@@ -66,8 +72,8 @@ my $geo = <[window.profile.calculate]>->(
 
 return { 'mode' => qw| deferred | };
 
-#,,,,,,,,,,,,,...,.,,,...,,,,,,,,,.,,,...,..,,.,.,...,...,.,.,,.,,.,.,,,,,.,.,
-#LGHQPH7ZXQIP7P6WMTJF23F2WDNYNMJUFM5KJPWVYWGSJ2JSGLX764APKGHM5EEKY7VLS656DAHFW
-#\\\|7ULV3ULAJEETXWY322QNSRDKVMUTVDD2IL4GQGM2HL52KCJSHHF \ / AMOS7 \ YOURUM ::
-#\[7]GPE6AIMQUTOGN5ONY56JRLZWOBYZIGESR3JDSU6RTABZIPK4MSAA 7  DATA SIGNATURE ::
+#,,.,,...,,,.,...,,,,,,.,,,.,,.,,,,..,,..,,,,,.,.,...,...,...,..,,,.,,..,,,.,,
+#MC4TBHXDCZK5OOCIS5ZTL7ZAV5JGF6UA77EOPSPODVQHGB6ICBDTFDVZTPGVFDWBBMEWIQKVXEWS6
+#\\\|UM6UQXT2KGD5FRS2WUBHGPCYVCMEDMYEL2BPVQ3K46LAZIVPYAS \ / AMOS7 \ YOURUM ::
+#\[7]J5N5CFNFQXOMYAOP35MYIZ7G2XLLDQTPZTLP4J7B4HDQ2FBO44CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
