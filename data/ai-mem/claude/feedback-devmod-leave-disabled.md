@@ -1,0 +1,20 @@
+---
+name: devmod-leave-disabled
+description: "when adding devmod to a zenka for diagnostics, leave eval-code/exec-sub/set/del commented out by default"
+metadata: 
+  node_type: memory
+  type: feedback
+  originSessionId: 1fae67f1-7fe7-41e7-9119-372afacccc2b
+---
+
+When adding `devmod` to a zenka's `modules.load` (for `eval-code`/`list-subs`/`deparse-code`/etc.), only enable read-only commands (`list-subs`, `deparse-code`, `dump`, `get`) in `access.cmd.usr.cube` by default. Leave `exec-sub`, `eval-code`, `set`, `del` commented out as `## <-- dev only`.
+
+**Why:** user explicitly chose to disable these on the `reasoning` zenka after I'd enabled them during debugging — even though only `taeki` has wildcard access to invoke them, leaving arbitrary-code-eval enabled by default is easy to forget about. (2026-06-16, [[feedback-ondemand-zenka-start-checklist]])
+
+**How to apply:** they can be enabled on demand by editing `access.cmd.usr.cube` and reloading config — don't leave them live after debugging is done.
+
+#,,,.,,..,,,,,,,.,.,.,..,,,,.,...,.,,,,.,,.,,,..,,...,...,..,,..,,,,,,,.,,..,,
+#ROFVTFNHBH6LH7VDK2NQOCHBFVAZ2KJ3JSXVKVHCX6FDF35AEWRT67W755GN6IO2VRDLR255VZAI2
+#\\\|BPNE6GQG6FR7SBJYZO57OOKC5IBWOEJMP2CNHRP72ABZOLK7SM6 \ / AMOS7 \ YOURUM ::
+#\[7]OZHKEUVZYIM2SSQRUJIKEZ7CSWKYITVASCCMPN6PPKL3RP3X3YBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

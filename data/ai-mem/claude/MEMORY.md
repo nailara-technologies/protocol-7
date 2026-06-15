@@ -10,6 +10,8 @@
 - [P7 data nesting](feedback-p7-data-nesting.md) — `<a.b.c>` = `$data{a}{b}{c}`; use underscore for siblings not dot
 - [s_warn single-arg](feedback-s-warn-single-arg.md) — single fixed-message warn fixes: use plain `warn 'msg <{C1}>'`, NOT `base.s_warn` padded with `<{C1}>, ''`
 - [access grant scope](feedback-access-grant-scope.md) — taeki has wildcard access; "no perm" fixes need `<zenka>/start` modules.load + subroutine.white-list only, not per-zenka access.zenki
+- [ondemand zenka start checklist](feedback-ondemand-zenka-start-checklist.md) — full start-file recipe (shared-params, namespaces, drop_privs, net.connect+get_session_id, cube auth.zenki + access.cmd.usr.cube); reasoning zenka LANDED 2026-06-16
+- [devmod leave disabled](feedback-devmod-leave-disabled.md) — when adding devmod for diagnostics, leave eval-code/exec-sub/set/del commented out by default
 - [timer undef interval](feedback-timer-undef-interval.md) — undef after/interval = IO::Async max-rate loop; always guard with fallback
 - [each+continue+keys](feedback-each-continue-keys.md) — `continue{keys %h}` on `while(each %h)` resets iterator = infinite loop — `AMEND=1 git filter-repo ...`; also clear `.git/filter-repo/already_ran` if interrupted
 - [ntime](feedback-ntime.md) — `encode_b32r` is reverse-byte-order, NOT sortable; use `<[base.ntime_BASE32_to_numerical]>`
@@ -160,8 +162,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,,,,...,,.,,...,.,,,,..,.,.,.,.,,,,,..,,,.,,..,,...,.,.,...,,.,,.,,,,,.,.,.,
-#FU6QFUNB7BYXERBA7K5KACY4CIMRTM5ZJW4SEZSSD52DADLW576FDONHLXO4RLQ7IOZSDDMRRTZAQ
-#\\\|IPM5WF7VZN7ZUCLKPPMVWDXTT3LVM6LNOESDHHVUABG666NTTG6 \ / AMOS7 \ YOURUM ::
-#\[7]WKXUFAYL2PIT2YBNBMJBPWGHABSHLULNHX5PQXZPUMI3QP7TYMCY 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,,.,..,,..,,,.,,...,..,,.,,,,,,,..,,...,.,.,...,..,,,..,...,..,,
+#D3NGKIEWYCQOG2K2KVLCFME4JRY7HXPFXT53GDTNIUBAVMMNYRWUQFOFZLLYQISQAHGBWXYNFGUH2
+#\\\|QT36UJN6ZV5EZRL7RG2AHI3HSY634HAC5ZHWZ3FFXVWBJNHDHO7 \ / AMOS7 \ YOURUM ::
+#\[7]LQNFVG4T34ZSXYP6LROGITEVZAKAJDUWJUPUCYU6PS7AEJXJK6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
