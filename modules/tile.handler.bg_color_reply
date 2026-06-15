@@ -1,0 +1,20 @@
+## [:< ##
+
+# name = tile.handler.bg_color_reply
+
+my $answer = shift;
+
+return warn "unexpected (FALSE) reply from X-11 zenka!"
+    if $answer->{'cmd'} ne qw| TRUE |;
+
+<tile.x11_bg_color> = $answer->{'call_args'}->{'args'};
+
+<[base.log]>->(
+    1, " : received X-11 background color '" . <tile.x11_bg_color> . "'"
+);
+
+#,,,.,..,,...,.,.,.,.,..,,..,,.,,,,..,,..,,.,,..,,...,...,...,..,,,..,..,,,,,,
+#AS4XCSQLHCDLE74MCAR2IJ3RC2PLMFZJVASR56JNDJ5PHAH7EQNBNWWYEXRGSZ7G67MUOCH42R6JO
+#\\\|ZLNE5NHZRPT45ZIFCWXN4U2ILIPCOOQ3KKLA6XW3II2GKYL5NSH \ / AMOS7 \ YOURUM ::
+#\[7]KNJP7Q3ZDZMQD7E7OFDOTQQ3R6TXL3VBFJSQHCWE5BSNILPES4AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

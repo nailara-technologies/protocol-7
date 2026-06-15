@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = zenka-startup.v7
+# descr = 'tile' zenka startup configuration used by 'v7' zenka
+
+dependencies = cube X-11 openbox set-up
+start.on-demand = 1
+max_concurrency = 1
+
+: v7-init :
+  start_mode = stdin-zenka
+  cube.key = [base.prng.chars-anum:44]
+  [v7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<cube.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{cube.key}>']
+
+#,,,,,,..,.,.,,,.,.,.,...,,,.,..,,,.,,,.,,,,,,..,,...,...,.,.,.,.,,,.,,..,,..,
+#BA2LCKAXRHZHZOCFPFJ2473JZSLZZSR2TOBGKKL7XFMA2EGHFQFORTF5WGREOW446FMM6ZBL37LGQ
+#\\\|FBUVJPZVOOUFNXLYL66AI2UC3SWN4BY34K3WFODHQMTCFEVE7J6 \ / AMOS7 \ YOURUM ::
+#\[7]VV6MK7XQ6CKEBTIG2GFNYP27F5FDK3X3ZRMOAD4P63RLWT77A2CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

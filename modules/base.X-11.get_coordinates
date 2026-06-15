@@ -27,10 +27,7 @@ my $sn_log_str = length($sn_str) ? sprintf( ' for zenka%s', $sn_str ) : '';
 my $cube_fh = $data{'session'}{$local_sid}{'handle'};
 <[base.net.send_to_socket]>->(
     $cube_fh,
-    sprintf(
-        "(%u)%stile-groups.get_coordinates%s\n",
-        $cmd_id, $cmd_path, $sn_str
-    )
+    sprintf( "(%u)%stile.get_coordinates%s\n", $cmd_id, $cmd_path, $sn_str )
 );
 
 my $reply_string;
@@ -61,8 +58,8 @@ if ( $reply_string =~ m{^\($cmd_id\)TRUE (-?\d+) (-?\d+) (-?\d+) (-?\d+)\n$} )
     return [ @{^CAPTURE} ];
 }
 
-# else [ tile-groups zenka not present or no coordinates for current zenka ]
-my $err_msg = sprintf "not expected reply from tile-groups zenka ['%s']",
+# else [ tile zenka not present or no coordinates for current zenka ]
+my $err_msg = sprintf "not expected reply from tile zenka ['%s']",
     $reply_string;
 
 $err_msg = ': coordinates undefined'
@@ -130,8 +127,8 @@ if ( $reply_string =~ m{^\($cmd_id\)TRUE (\d+) (\d+)\n$} ) {
     return undef;
 }
 
-#,,,,,,,.,,.,,.,,,,,.,,.,,...,.,.,,.,,...,.,,,..,,...,...,..,,,..,,,.,...,...,
-#FKX3ZMTS2JC3M6DDMOSB4ZNKEXHXOPEIZIAYPMG5QWHY32UQ4QKNGNBORLBPHZONAPIL2VJGLT6VS
-#\\\|6TQVM6P2GYO7DIEOTJYUEFA5DDN4AQ6B5HVRTNGVXFLOQESMT7X \ / AMOS7 \ YOURUM ::
-#\[7]SKUZAHM6TJKC6GOYIDJSDUAYABOPOMNQO5IRCMSCXT3K3WXL6WAI 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,,,,,.,,.,,,,.,,,,.,.,,,,..,,,.,..,,...,..,,...,.,,,,.,,.,,,...,
+#UVRSJXUA4QZDZI7YHAWJAYR3IEFNBCBO5J7MHWHINEROLQIXHA6JRG46QTR32EIXUEEZJCVADSSLA
+#\\\|SPGL436QGFZTAQHMN3NG2MMB456JS3JLPBD2UWYPYRGV4HOYC5Y \ / AMOS7 \ YOURUM ::
+#\[7]CZEYPLMR57DYESHSKLBF7BKIOUJYL6U5OCQIKOKTBHTMUYE4NEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

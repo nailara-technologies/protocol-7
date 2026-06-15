@@ -12,12 +12,12 @@ my $zenka_name
 my $subname  = <system.zenka.subname>;
 my $name_str = defined $subname ? "$zenka_name\[$subname]" : $zenka_name;
 
-<[base.log]>->( 1, "requesting $name_str tile-groups tile subcfg" );
+<[base.log]>->( 1, "requesting $name_str tile tile subcfg" );
 
 my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
 my $cube_fh = $data{'session'}{$local_sid}{'handle'};
 <[base.net.send_to_socket]>->(
-    $cube_fh, "($cmd_id)tile-groups.get_subconfig $name_str\n"
+    $cube_fh, "($cmd_id)tile.get_subconfig $name_str\n"
 );
 
 my $reply_string;
@@ -37,7 +37,7 @@ if ( $reply_string =~ m|^\($cmd_id\)SIZE (\d+)\n$| ) {
     my $bytes_total = $bytes_to_go;
     if ( !$bytes_to_go ) {
         <[base.log]>->(
-            2, "tile-groups subconfig for '$name_str' was empty [ 0 bytes ]"
+            2, "tile subconfig for '$name_str' was empty [ 0 bytes ]"
         );
         return {};
     }
@@ -59,7 +59,7 @@ if ( $reply_string =~ m|^\($cmd_id\)SIZE (\d+)\n$| ) {
 } elsif (
     $reply_string =~ m|^\($cmd_id\)FALSE no set-up for zenka '([^ ]+)'| ) {
     <[base.logs]>->(
-        ": << tile-groups zenka has no set-up for '%s' >>",
+        ": << tile zenka has no set-up for '%s' >>",
         ${^CAPTURE}[0]
     );
     return undef;
@@ -72,14 +72,14 @@ if ( $reply_string =~ m|^\($cmd_id\)SIZE (\d+)\n$| ) {
     <[base.logs]>->(
         1,
         "[ protocol mismatch ] not expected reply"
-            . " from tile-groups zenka ['%s']",
+            . " from tile zenka ['%s']",
         $reply_string
     );
     return undef;
 }
 
-#,,..,...,,..,,.,,,.,,...,,.,,,.,,.,,,,,,,.,,,..,,...,...,,..,..,,.,.,,,.,,,.,
-#P7WWMM7AAPMURJN6QJ3ATDZHRB5ERDUYGVNILCAQXOHDAZK32TB7WH54AOH5V2YCNXPQTZZY2KCMS
-#\\\|V7F6BCMZH7A6574WQRQGZKO7KPRPWD5KIEQP526JTK232DEOPEB \ / AMOS7 \ YOURUM ::
-#\[7]PMRIJI6LKAIIEW6ERNAWDUH4ZG4UKCTDR24O33F5XJAXW4LDQMBY 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,.,,..,,,,.,...,,.,,,,.,...,...,..,,...,...,,,,,..,,..,,,.,,.,.,
+#Y24ZVGNVKCHZETNINKPGBVFAWULNXTUZALH7LZCFWSCJISK3FYR3TFDJEWJQKGS3B2CBDPJ23GVNO
+#\\\|N3DJIPYH5P4MDUDCDXSKMQC6R7ASZB5F5OKGSZBQNWEPVIS2JOE \ / AMOS7 \ YOURUM ::
+#\[7]VPPJKVBM4TOMMUEYDK5G65KRFFHEU3ZE43FITK6PPYBCQMS4OWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

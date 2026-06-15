@@ -9,6 +9,7 @@
 - [filter-repo prefix](feedback-filter-repo-amend.md)
 - [P7 data nesting](feedback-p7-data-nesting.md) — `<a.b.c>` = `$data{a}{b}{c}`; use underscore for siblings not dot
 - [s_warn single-arg](feedback-s-warn-single-arg.md) — single fixed-message warn fixes: use plain `warn 'msg <{C1}>'`, NOT `base.s_warn` padded with `<{C1}>, ''`
+- [access grant scope](feedback-access-grant-scope.md) — taeki has wildcard access; "no perm" fixes need `<zenka>/start` modules.load + subroutine.white-list only, not per-zenka access.zenki
 - [timer undef interval](feedback-timer-undef-interval.md) — undef after/interval = IO::Async max-rate loop; always guard with fallback
 - [each+continue+keys](feedback-each-continue-keys.md) — `continue{keys %h}` on `while(each %h)` resets iterator = infinite loop — `AMEND=1 git filter-repo ...`; also clear `.git/filter-repo/already_ran` if interrupted
 - [ntime](feedback-ntime.md) — `encode_b32r` is reverse-byte-order, NOT sortable; use `<[base.ntime_BASE32_to_numerical]>`
@@ -21,7 +22,9 @@
 - [config reload clobber](feedback-config-reload-clobber.md) — placeholder `key=val` in start config gets re-applied by `reload config/all`, silently overwriting runtime-resolved values; debug via on-disk zenka log not ring buffer
 
 ## Active Topics
-- [zenka-naming-cleanup](topic-zenka-naming-cleanup.md) — cred-mesh + window-place renames landed; pattern for spotting/fixing more underscore/dotted zenka names
+- [zenka-naming-cleanup](topic-zenka-naming-cleanup.md) — cred-mesh + window-place renames landed; pattern for spotting/fixing more underscore/dotted zenka names; tile-groups->tile in progress 2026-06-15
+- [ondemand-heartbeat-upgrade](topic-ondemand-heartbeat-upgrade.md) — tile set up on-demand+heartbeat-enabled+no-timeout as test case; two v7 follow-ups identified (exclude heartbeats from idle timer; pre-exit termination notification)
+- [tile-window-place-hybrid-desktop](topic-tile-window-place-hybrid-desktop.md) — roadmap: tile as dynamic placement relay, minimal-desktop->menu->kiosk; blocked on window-place multi-window refactor (dispatched to kimi 2026-06-15)
 - [cube-tree-dashboard](topic-cube-tree-dashboard.md) — planned ascii tree-view dashboard: per-zenka command/state trees, capability interrogation, push-registry watcher cache, zoom/crop
 - [ascii-minimap](topic-ascii-minimap.md) — planned btop2-style ascii minimap: proportional density bars, anti-aliased gaps, glow color, spotlight, placeholder-template borders
 - [dot-path-case-notation](topic-dot-path-case-notation.md) — uppercase=path level, lowercase-run=dotted key; %DATA/%CODE meta-namespace idea; design doc written
@@ -157,8 +160,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,..,,..,,..,,,,,,,,,,,.,,,.,...,.,.,,,.,.,.,..,,...,...,..,,.,,,,,,,.,,,,..,
-#7DTH66HQKXTR25MTX3D6WHSWDNCTTFKUY54VDQULVQBMJFDVD33W3HOQ2FRFIOFNZGAKQP7N3SHA2
-#\\\|QKWXJC6HAIR4K76JVLNCYADYR3CZF5GUFNKJI2UY7DYTZMGC6JO \ / AMOS7 \ YOURUM ::
-#\[7]SPJIPVOS7W6C2RXTG2WIILMMVLO4AHW3S2ZDMBK53XYTB5GE2ECQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,.,,,,,,,,.,.,.,...,...,,.,,.,,,..,,...,...,,.,,,..,...,..,,...,
+#XUGFXOMDFPNVRV4LR4GXYIS3IVLA5A3BFW22ZRTYATMABNRCG33F2ACMVB5BS4JNIVFSUPGXPHDRM
+#\\\|AA3QWUGXEFJIV3V2UZVEEM7G53XXPBD6A656JGBT7ROXKZG3WY2 \ / AMOS7 \ YOURUM ::
+#\[7]4XWIPIIY6RA7MOKKDHXHBUDH3HTCUZ2DDSYW6Q57FKMAOJMUN2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

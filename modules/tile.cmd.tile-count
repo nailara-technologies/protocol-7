@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = tile.cmd.tile-count
+# descr = number of tiles in selected tile group
+
+my $tile_group_name = <tile.current_tile_group>;
+my $err_str;
+
+$err_str = "no tile configured"
+    if !keys( %{<tile.setup.tile>} );
+$err_str //= "\<tile.current_tile_group> not defined"
+    if not defined $tile_group_name;
+$err_str //= "no setup found for tile '$tile_group_name'"
+    if not exists <tile.setup.tile>->{$tile_group_name};
+
+return { 'mode' => qw| false |, 'data' => $err_str } if defined $err_str;
+
+return {
+    'mode' => qw| true |,
+    'data' => scalar keys( %{ <tile.setup.tile>->{$tile_group_name} } )
+};
+
+#,,.,,.,,,,,.,.,.,,..,.,,,..,,.,,,,,.,,..,.,,,..,,...,...,...,.,.,..,,,..,,,.,
+#PEVDLTQJKOM3GJGMBMXT67RQ2QPBYKAJNRC7H7ADMVCFCWCFZUNPAEM264SLYUS34QOC3CJJXVEQC
+#\\\|QY6VDTFPFAUCLJH6SV7S7HGH7SKZLNBWTV2GQONT7DZLQYJYQ6J \ / AMOS7 \ YOURUM ::
+#\[7]DHY2X32GKS33KPYOGRXBBSIN7P6KPQJKM7KKN5EUFUO6CM5XWIBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
