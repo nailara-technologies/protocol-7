@@ -33,17 +33,28 @@ $caller //= '';
 ## falling back to 'center' [ window-place's prior default ]        ##
 my $fallback_profile = 'center';
 $profile //= 'saved';
-<window.place.reply_handler> = $reply_handler // '';
 
 if ( not length $caller ) {
     <[base.log]>->( 0, '[place.start] caller required' );
     return { 'mode' => qw| false |, 'data' => 'caller required' };
 }
 
-<window.place.caller>   = $caller;
-<window.place.reply_id> = $call->{'reply_id'};
+## unique per-request identifier ##
+my $id;
+do { $id = <[base.prng.chars-anum]>->(8) }
+    while exists $data{window}{place}{instances}{$id};
 
-<[base.logs]>->( 1, '[place.start] caller=%s profile=%s', $caller, $profile );
+## store per-request state keyed by id ##
+$data{window}{place}{instances}{$id} = {
+    'caller'        => $caller,
+    'reply_handler' => $reply_handler // '',
+    'reply_id'      => $call->{'reply_id'},
+};
+
+<[base.logs]>->(
+    1,   '[place.start] id=%s caller=%s profile=%s',
+    $id, $caller, $profile
+);
 
 ## use screen geometry from x11.geometry ##
 my $screen_geom;
@@ -66,14 +77,20 @@ my $geo = <[window.profile.calculate]>->(
 ## schedule window opening after command handler returns ##
 <[event.add_timer]>->(
     {   'after' => 0,
-        'cb'    => sub { <[window.place.open_window]>->($geo) }
+        'cb'    => sub {
+            <[window.place.open_window]>->(
+                {   'id'       => $id,
+                    'geometry' => $geo
+                }
+            );
+        }
     }
 );
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,...,,,.,...,,,,,,.,,,.,,.,,,,..,,..,,,,,.,.,...,...,...,..,,,.,,..,,,.,,
-#MC4TBHXDCZK5OOCIS5ZTL7ZAV5JGF6UA77EOPSPODVQHGB6ICBDTFDVZTPGVFDWBBMEWIQKVXEWS6
-#\\\|UM6UQXT2KGD5FRS2WUBHGPCYVCMEDMYEL2BPVQ3K46LAZIVPYAS \ / AMOS7 \ YOURUM ::
-#\[7]J5N5CFNFQXOMYAOP35MYIZ7G2XLLDQTPZTLP4J7B4HDQ2FBO44CQ 7  DATA SIGNATURE ::
+#,,,,,.,.,...,...,,,.,.,.,.,,,,.,,.,,,,.,,...,.,.,...,..,,..,,.,.,,.,,...,...,
+#RP3XYRUD7CNIBKVT474YOTRFRD55X3JCKHUEH3BTLNXCQD4PE5RTGQWFEMD6OW6KPJDTPYJJ3QLWG
+#\\\|H4Y3MWJH3G62KCK4BIDJX5ODLUYQOPIZOSOCAK4ZVRZKZOFMREN \ / AMOS7 \ YOURUM ::
+#\[7]H2T5C4QK5AQBH5FNX6TEFR22D3E6DPZ2SR3KKCGSPBWLDOO2CADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

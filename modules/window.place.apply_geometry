@@ -1,21 +1,22 @@
 ## [:< ##
 
 # name  = window.place.apply_geometry
-# descr = apply current geometry to placement window and x11 state
+# descr = apply current geometry to placement window and per-instance state
 
-my ( $window, $geometry ) = @ARG;
+my ( $id, $window, $geometry ) = @ARG;
 
+return undef if not defined $id;
 return undef if not defined $window;
 return undef if not defined $geometry;
 
 <[window.gtk.profile.apply]>->( $window, $geometry );
 
-<[window.place.update_x11_state]>->($geometry);
+<[window.place.update_x11_state]>->( $id, $geometry );
 
 return 1;
 
-#,,,.,.,.,,,.,,..,,,,,.,.,...,..,,,..,...,.,.,.,.,...,...,,,,,,..,..,,,,,,...,
-#OPYLLMGZ6FJEMMOIZWIPMKEB5RJ3GUOJ7EXFXNGQVRFQDWZQKVSDN4ADCRE3FRMERN2NLYNMQXBDM
-#\\\|O4WZTZXFJDZ6LVYAO663DYW5TMMVCOPHUDGP6FL6I37OJQ7WYMT \ / AMOS7 \ YOURUM ::
-#\[7]NSDHRXVQTYQCIAOW5RZJOLTBAPQJCD44QV7Q4TCIUN3S3ZQQ64DY 7  DATA SIGNATURE ::
+#,,,,,,.,,...,.,.,...,..,,,,,,...,,..,,.,,.,,,.,.,...,..,,...,...,...,,,,,,,.,
+#66BXHQL37A6BYJ4QWVKLZYH3MK6HRCNP7JIJAR5I35WBJCE3Q43UURYALWWZPM4GAHOTAZMC4OSV2
+#\\\|3GI56JYGSRUUSS75TXSPA7KF3AWD4QR2U7YL3YJBLZKC7KTQ6P5 \ / AMOS7 \ YOURUM ::
+#\[7]GNJGRH6X6GIRIPCCWMX7LNGXV5EQWZDD4NUBBCQGPHQLDTEFNUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

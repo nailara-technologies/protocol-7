@@ -3,24 +3,30 @@
 # name  = window.place.handler.motion
 # descr = update geometry while dragging
 
-my ( $widget, $event ) = @ARG;
+my ( $id, $widget, $event ) = @ARG;
+
+return TRUE if not defined $id;
+
+my $inst = $data{window}{place}{instances}{$id};
+return TRUE if not defined $inst;
 
 ## not dragging: update the hover cursor for resize-region feedback ##
-if ( not <window.place.drag.active> ) {
-    my $hover = <[window.place.classify_region]>->( $event->x, $event->y );
-    <[window.place.set_hover_cursor]>->( $widget, $hover );
+if ( not $inst->{'drag'}{'active'} ) {
+    my $hover
+        = <[window.place.classify_region]>->( $id, $event->x, $event->y );
+    <[window.place.set_hover_cursor]>->( $id, $widget, $hover );
     return TRUE;
 }
 
 ## dragging: apply geometry from the event's root coordinates. the pointer ##
 ## poller also drives this same helper, so an active drag works even when  ##
 ## motion-notify events are not delivered on the first interaction.        ##
-<[window.place.apply_drag]>->( $event->x_root, $event->y_root );
+<[window.place.apply_drag]>->( $id, $event->x_root, $event->y_root );
 
 return TRUE;
 
-#,,,.,...,,.,,,.,,..,,..,,...,,,,,,.,,,,.,,..,.,.,...,..,,...,,,,,,..,,,.,..,,
-#DA2OHJKFHUFAVYFGOZDEFW7W5QWIT4FF2KUFVVNM7SNVKWXCBXI6G4B6W73CKBCK4J25XRRXFRZOM
-#\\\|EWWDRV2YWOR6DJFTDF64FMF3J36GSFUAHKJSGBOUPZVTVVWGPIE \ / AMOS7 \ YOURUM ::
-#\[7]HQVDW7IAOALPZZKNWWLCQPG6GKK4NYMIFSAD7RM6SJNZ7MGN46CI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,.,,.,.,.,,,,,.,,.,,..,,,.,,.,,,.,.,...,...,.,.,,..,.,,,..,,,,.,
+#LKIRD7GKIKIM5PAVCSK5J66GTFN3TAYLPY36A2THYZ2BGHH5LCTLZ75EP4SQMVOGLGXYUEW3DLBYO
+#\\\|ECP2MPSCRLOODU7EIL5KIT42DWRBQ3R7NB33Q237IBIUEAQKLY3 \ / AMOS7 \ YOURUM ::
+#\[7]UWEORWWVF43RUOXP257FWYMDRB3SAFBKLVIVRGBQPJ73ERI3C2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

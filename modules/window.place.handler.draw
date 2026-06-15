@@ -3,12 +3,17 @@
 # name  = window.place.handler.draw
 # descr = draw translucent placement frame with readout
 
-my ( $widget, $context ) = @ARG;
+my ( $id, $widget, $context ) = @ARG;
+
+return TRUE if not defined $id;
+
+my $inst = $data{window}{place}{instances}{$id};
+return TRUE if not defined $inst;
 
 ## bracket / HUD geometry follows the live cairo surface, which during a   ##
 ## damped resize trails the target [ keeps brackets pinned to real edges ] ##
-my $w = $widget->get_allocated_width  // <x11.window.width>  // 320;
-my $h = $widget->get_allocated_height // <x11.window.height> // 240;
+my $w = $widget->get_allocated_width  // $inst->{'geom'}{'width'}  // 320;
+my $h = $widget->get_allocated_height // $inst->{'geom'}{'height'} // 240;
 
 ## clear ##
 $context->set_operator('source');
@@ -52,8 +57,8 @@ $context->line_to( $w, $h - $arm );
 $context->stroke;
 
 ## text overlay : caller title top-left, geometry readout bottom-right ##
-my $x = <x11.coordinates.left> // 0;
-my $y = <x11.coordinates.top>  // 0;
+my $x = $inst->{'geom'}{'x'} // 0;
+my $y = $inst->{'geom'}{'y'} // 0;
 
 my $margin      = <window.place.font-size.margin> //= 10;
 my $title_size  = <window.place.font-size.title>  //= 40;
@@ -64,7 +69,7 @@ my $font_face = <window.place.font.face>;
 $context->set_font_face($font_face) if defined $font_face;
 
 ## title : the caller name, larger, bottom-left [ against ambiguity ] ##
-my $caller = <window.place.caller>;
+my $caller = $inst->{'caller'};
 if ( defined $caller and length $caller ) {
     $context->set_font_size($title_size);
     $context->set_source_rgba( 0.023529, 0.278431, 0.764706, 0.95 );
@@ -73,8 +78,8 @@ if ( defined $caller and length $caller ) {
 }
 
 ## readout shows the precise target geometry, not the trailing surface ##
-my $rw = <x11.window.width>  // $w;
-my $rh = <x11.window.height> // $h;
+my $rw = $inst->{'geom'}{'width'}  // $w;
+my $rh = $inst->{'geom'}{'height'} // $h;
 
 my $readout = sprintf '[ W:%d H:%d X:%d Y:%d ]', $rw, $rh, $x, $y;
 
@@ -92,8 +97,8 @@ $context->show_text($readout);
 
 return TRUE;
 
-#,,,,,.,.,,.,,...,..,,...,,,,,.,,,,,,,...,,..,.,.,...,...,,..,.,,,,..,..,,,.,,
-#VKQGUHU4T5L4ROE666SKQGUG2VZ77RUPON2KHZJDDIRFH6FATZLLCEHJBE5Q4GGOPHTO4C5L6Z3S4
-#\\\|36KYF27ZHTNSGG2ZNDZ4DZAVROUELVU3PT6NFL6W3UFXAHAZKOW \ / AMOS7 \ YOURUM ::
-#\[7]CWQ3TWB2EK5YU45IVDDR2GTW6YUN6277P46BTPCKFYJ5IQZX3GBI 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,,,,,...,.,.,,,.,,,,,,.,,,..,,,,,.,.,...,...,,..,.,.,.,,,,.,,,..,
+#Z5TGGO4EPJMZIWVW3UOOQGO6NRARLX2CWZXGC6PQSKOXL7J2KHFKPWDKY6RUODGSNRAZU5ZXTG664
+#\\\|GSGICWNSKFJIGZNHIRNHFRPLKLJPXOBIEYO6OOJLHOQDA3BU7TL \ / AMOS7 \ YOURUM ::
+#\[7]6XRWTQSHWTUTN7SWEDM6W7OSDSCF4QHMOV34O2XOT7WD27DELCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
