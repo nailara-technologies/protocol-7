@@ -23,6 +23,28 @@ $ENV{'XCURSOR_SIZE'} = '24';    ## force a sane size over any huge default ##
 <[base.perlmod.autoload]>->('Cairo');
 <[base.perlmod.autoload]>->('Glib');
 
+## custom display font [ white-rabbit ] : try once, cache the face, fall  ##
+## back to the cairo toy font api if anything in the load chain fails.    ##
+if ( not exists <window.place.font.face> ) {
+    <window.place.font.face> = undef;    ## mark attempted, default = none ##
+    eval {
+        <[base.perlmod.autoload]>->('Font::FreeType');
+        <[base.perlmod.autoload]>->('Cairo::GObject');
+        my $font_path
+            = sprintf qw| %s/data/ttf/console/white-rabbit.flipped.ttf |,
+            <system.root_path>;
+        my $ft_face = Font::FreeType->new->face($font_path);
+        <window.place.font.face> = Cairo::FtFontFace->create($ft_face);
+    };
+    if ( length $EVAL_ERROR ) {
+        <[base.log]>->(
+            2,
+            '[place] white-rabbit font load failed, '
+                . 'using default cairo font'
+        );
+    }
+}
+
 Gtk3->init;
 
 my $window = <window.place.obj.window> = Gtk3::Window->new('toplevel');
@@ -177,8 +199,8 @@ $window->show_all;
 
 0;
 
-#,,..,,,.,,,.,,,.,,,.,,,,,..,,,.,,.,.,,..,.,.,.,.,...,...,.,,,,..,,..,,,,,,..,
-#QQ5LHYHS5RJPF2VFCRRXCZ6QC64SAVQ3NAENQDVNBB3M5KWKK5WFMYOWHVNBWZ52DSNO6CVMKJW7I
-#\\\|26XFHHRNUU3SUTOEOOOFPTEWETJAUWMPCWFGSUYMKMJJGUXRABG \ / AMOS7 \ YOURUM ::
-#\[7]ID3THLK5TNSNJ47OB2II7LG3ILGW34B73SG7ESVCXL2OJ4XQLWBY 7  DATA SIGNATURE ::
+#,,,,,..,,..,,..,,,,.,,,,,,,.,,..,,.,,..,,.,,,.,.,...,..,,..,,,,.,..,,.,,,...,
+#K6OIFS2FHCBJZARRGMNZKC5CTLPSBZX5M6JRBFZA7Z7CNDVSIETACBK76ZPQKCKS7X2TCZHENBQZO
+#\\\|QKDCBXH4CBXWSFSMQIB3IRAMNIDVXXLEOHSR44QAPMBHBNJA5FJ \ / AMOS7 \ YOURUM ::
+#\[7]JXGY4ST4V7KVHQHA5J6DSWHEWC5FHA2XYTYCKRIAWEOU2BQNKWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
