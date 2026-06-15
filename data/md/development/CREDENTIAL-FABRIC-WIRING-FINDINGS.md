@@ -619,8 +619,136 @@ independent confirmation of kimi's finding, still **p0**:
 
 ---
 
-#,,,.,,..,.,,,...,,,,,,,,,..,,..,,.,,,,.,,.,.,.,.,...,...,...,,..,,..,,,.,.,.,
-#EG2XBJ4UC6LY6KYJU67BU3DOBBBJY2SUT7UH4XHORFCG7ZXP5WKR5G2QKCRGLQSL6UMS5OLTQ6UM2
-#\\\|7Z3GMY42JVOXFRIYEV2ICKR63ZEEJ2DGBQRCVNCI4W6IPBWRDGW \ / AMOS7 \ YOURUM ::
-#\[7]VKN2SRNND3D3ZEX6Z5VR7LLEIHZNGYKKTZJY6ZSDQDVSH6X4Z2DQ 7  DATA SIGNATURE ::
+## follow-up pass — 2026-06-15 (commit 15518f0b0)
+
+verifier: kimi (harness-only pass, no zenka module edits)
+context: user added `site-yaml.fetch` to `access.cmd.usr.cred-mesh` in
+`configuration/zenki/cube/access.zenki` and reloaded cube to unblock the
+specific "no perm. [ src 'cred-mesh' cmd|usr 'site-yaml.fetch' ]" error
+seen in earlier runs.
+
+### harness re-run result
+
+```
+cd /data/projects/protocol-7
+./bin/dev/cred-mesh-test --verbose
+
+[ summary ]
+  scenarios run : 5
+  assertions passed : 8
+  assertions failed : 9
+```
+
+previous run was **10 passed / 16 failed**. the absolute number of
+assertions dropped from 26 to 17 because scenario 4 now times out before
+making its later assertions, and scenarios 1/5 crash with "Can't use
+string as HASH ref" before completing all checks.
+
+per-scenario assertion counts from the run:
+
+| scenario | pass | fail | notes |
+|----------|------|------|-------|
+| 1 direct-tcp api-key | 1 | 2 | proxy returns 500 instead of 200; body is a timeout string that crashes YAML parse |
+| 2 hysteria bearer | 1 | 3 | `transport.eval-code` denied; handle never returned |
+| 3 transport degrade/promote | 0 | 2 | `transport.eval-code` denied; cannot inject/read demoted state |
+| 4 rotation invalidation | 2 | 2 | `cred-mesh.rotate` returns "failed to store rotated credential"; `wait_for_log` times out after 25s |
+| 5 auth relay console | 4 | 2 | relay pending file empty; approve returns "storage failed"; final proxy request returns 502 HTML string |
+
+### status of previously-identified bugs
+
+1. **`proxy.template.passthrough:74 undefined subroutine reference`** — **not reproduced / appears fixed.** the current proxy zenka boots cleanly; `proxy.show-buffer zenka` shows `proxy.selector.load: 4 rules loaded [fallback=generic.proxy]` and `proxy listening on 127.0.0.1:8118`. no `undefined subroutine` / `Global symbol '$proxy'` errors appear in `/dev/shm/.7/STDOUT/NIW7OAQ` during this run.
+
+2. **`key_holder` child process surviving parent termination** — **not observed in this pass.** `ps -eo pid,ppid,user,comm` shows the current root-owned key_holder child (pid 297432) is a direct child of the cred-mesh parent (pid 297431). no parentless orphan key_holder processes were found. this bug may have been incidentally fixed by the rename/reload or may require an explicit parent-kill test to reproduce.
+
+3. **`"failed to store rotated credential"` / `"key_holder is not ready"` rotation errors** — **still present.** every `cred-mesh.rotate` call in the harness returns `failed to store rotated credential`. the v7 log shows a repeated warning:
+   ```
+   :. cr.,.sh :  : warn : sprintf parameter expected
+   :. cr.,.sh :  :.    .: [cred-mesh.key_holder.parent:76]
+   ```
+   immediately following each rotate attempt. the key_holder child is forked (log shows `key_holder.child forked (pid ...)`) but the parent times out waiting for a response on the socketpair. additionally, the v7 log contains a historical (possibly intermittent) failure:
+   ```
+   : 'undefined subroutine &main::AF_UNIX called [cred-mesh.util.key_holder.start_child:10]
+   ```
+   indicating the `Socket` constants used at `cred-mesh.util.key_holder.start_child:6-9` are not always loaded when the module is first invoked.
+
+4. **scenario 2 (hysteria) transport `eval-code` failure and `YAML::XS::Load` returning a string instead of `HASH`** — **the transport `eval-code` failure is still present, now manifesting as an access denial.** scenario 2 logs:
+   ```
+   :. tr.,.rt :  [7023317] no perm. [ src 'cube' cmd|usr 'eval-code' ]
+   ```
+   repeated for every `transport.eval-code` call. the original `YAML::XS::Load` string-vs-HASH issue was not reached because the handle is never returned; scenario 1 still crashes on a string body ("read timeout ...") at `scenario-1-direct-tcp-api-key.pl:71`, but that is the proxy path, not the transport path.
+
+### new findings from this pass
+
+#### F1. proxy auth lookup denied for `credential_fabric.resolve` despite `access.cmd.usr.proxy` granting `cred-mesh.resolve`
+
+- **location / error:**
+  - `modules/proxy.auth.lookup:33` sends `command => 'cred-mesh.resolve'` via `protocol-7.route-send`.
+  - `configuration/zenki/cube/access.zenki:361-364` grants `cred-mesh.resolve` to `proxy`.
+  - v7 log shows:
+    ```
+    :. cube    :  [1200301] no perm. [ src 'proxy' cmd|usr 'credential_fabric.resolve' ]
+    ```
+- **impact:** proxy cannot resolve session/api-key slots, so `proxy.auth.lookup` fails and proxied requests either return 500/502 or proceed without injected headers.
+- **hypothesis:** command canonicalization still uses the pre-rename namespace `credential_fabric.resolve` for routed cross-zenka calls even though the zenka, modules, and access entries were renamed to `cred-mesh`. console `p7c cred-mesh.resolve <slot>` works because the wildcard `access.cmd.usr.*` (line 6) grants `cred-mesh.resolve`, but the proxy-specific grant is checked against the old canonical name.
+- **repro:** start proxy and cred-mesh, issue any HTTP request through the proxy to a domain with a seeded `session.<domain>` slot, watch `/dev/shm/.7/STDOUT/NIW7OAQ` for the `credential_fabric.resolve` denial.
+
+#### F2. transport zenka lacks `eval-code` access/devmod, blocking scenarios 2 and 3
+
+- **location / error:**
+  - `configuration/zenki/transport/access.zenki:4-19` grants transport internal commands but does not include `eval-code`.
+  - `configuration/zenki/transport/source/ui` exists but `configuration/zenki/transport/source/devmod.cmd.eval-code` does not (cred-mesh has it).
+  - v7 log shows on every `transport.eval-code` call:
+    ```
+    :. tr.,.rt :  [7023317] no perm. [ src 'cube' cmd|usr 'eval-code' ]
+    ```
+- **impact:** scenarios 2 and 3 cannot introspect or drive the transport zenka; `transport.select`, `transport.demote`, `transport.probe.timer`, etc. cannot be exercised through the harness.
+- **repro:** `p7c transport.eval-code 'return 42'` returns a permission refusal (or command-not-known) while `p7c cred-mesh.eval-code 'return 42'` succeeds.
+
+#### F3. key_holder child forks but does not respond, breaking encrypt/rotate/approve storage
+
+- **location / error:**
+  - `modules/cred-mesh.key_holder.parent:75-78` logs a timeout after 7 seconds.
+  - v7 log warning:
+    ```
+    : warn : sprintf parameter expected
+    :.    .: [cred-mesh.key_holder.parent:76]
+    ```
+  - `modules/cred-mesh.util.key_holder.start_child:6-9` uses bare `AF_UNIX()`, `SOCK_STREAM()`, `PF_UNSPEC()`; the log also contains an intermittent `undefined subroutine &main::AF_UNIX` error at line 10.
+- **impact:** `cred-mesh.rotate` returns `failed to store rotated credential`; `cred-mesh.cmd.approve` returns `storage failed`; encrypted slots cannot be persisted.
+- **repro:** `p7c cred-mesh.eval-code '$code{"cred-mesh.key_holder.parent"}->("ENCRYPT","x","y")'` times out; `cred-mesh.key_holder.parent` returns undef and the warning above appears in the log.
+
+#### F4. proxy direct-tcp fallback fails for fake test domains with `Invalid argument`
+
+- **location / error:**
+  - `modules/proxy.outbound.connect_or_use:46-51`
+  - v7 log:
+    ```
+    proxy.outbound.connect_or_use: direct tcp to auth-relay-test.local:80 failed: Invalid argument
+    ```
+- **impact:** scenario 5's retried request after approval returns a 502 Bad Gateway HTML body, crashing the YAML parser in `scenario-5-auth-relay-console.pl:72`.
+- **note:** this is partly expected for an unresolvable test domain, but it may also indicate that `IO::Socket::IP` is being passed an option it rejects (e.g. missing `Family`/`AI` params) rather than simply getting a DNS failure.
+
+#### F5. harness seed assertions are too permissive
+
+- **location:** `bin/dev/cred-mesh-test.d/scenario-1-direct-tcp-api-key.pl:45`, `scenario-2-hysteria-bearer.pl:97`, `scenario-4-rotation-invalidation.pl:39`.
+- **issue:** `$seed_ok = ( defined $seed_out and $seed_out =~ m{rotated} );` matches the substring "rotated" inside `"failed to store rotated credential"`, so the harness reports `[ OK ]` for seed/rotate steps that actually failed.
+- **impact:** pass count is inflated; failures are not surfaced until later assertions crash or timeout.
+- **repro:** inspect any run where rotate returns `"registered,failed to store rotated credential"`; the seed assertion still passes.
+
+### prioritized fix list for follow-up task
+
+| # | issue | priority | blocks |
+|---|-------|----------|--------|
+| 1 | resolve proxy `credential_fabric.resolve` access denial (canonical name mismatch or add grant) | **p0** | scenarios 1, 3, 5 header injection / proxy path |
+| 2 | enable `eval-code` for transport zenka (devmod source or access.zenki grant) | **p0** | scenarios 2, 3 |
+| 3 | fix `cred-mesh.key_holder.parent`/child response timeout and intermittent `AF_UNIX` undefined sub | **p0** | all rotate/approve/storage operations |
+| 4 | tighten harness seed assertions so "failed to store rotated credential" is reported as a failure | **p1** | test signal quality |
+| 5 | investigate `proxy.outbound.connect_or_use` `Invalid argument` for unresolvable test hosts | **p1** | scenario 5 retry path |
+
+---
+
+#,,.,,,,.,...,.,,,..,,...,...,.,.,,.,,.,,,,..,.,.,...,...,...,...,,..,,.,,.,.,
+#COTCBYTZLBFNOSPXPL2SN5S5T5IWEUASWPRBO7AMS7JCRFLETHUI2RWDESBKLO2PI3EF7CIVKXYR4
+#\\\|NKCAG4COQF2E3PBQBUAB46ZUGBZCYC7ADXIF4G3CFELD27PUT4K \ / AMOS7 \ YOURUM ::
+#\[7]J7UYWO4FKARSTEXG7AUKW5TSLERQDWWFBD2TSETMHHRLWGLXV4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
