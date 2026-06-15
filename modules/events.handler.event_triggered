@@ -177,7 +177,7 @@ if ( index( $action_type, qw| tile- | ) == 0 ) {
             sprintf( "%.4f %s\n", <[base.time]>->(4), $current_tile_group )
         ) if defined $restore_config;
         <[protocol-7.command.send.local]>->(
-            {   'command'   => qw| cube.tile.switch-tile-group |,
+            {   'command'   => qw| cube.tile.switch-group |,
                 'call_args' => { 'args' => $current_tile_group }
             }
         );
@@ -185,7 +185,7 @@ if ( index( $action_type, qw| tile- | ) == 0 ) {
         unlink $restore_config
             if defined $restore_config and -f $restore_config;
         <[protocol-7.command.send.local]>
-            ->( { 'command' => qw| cube.tile.reset-tile-group | } );
+            ->( { 'command' => qw| cube.tile.reset-group | } );
     }
 }
 
@@ -216,8 +216,8 @@ if ( $action_type =~ m,^overlay\-(show|hide)$, ) {
         if 0 == ( <events.stack.overlay.visibility>->{$overlay_name} // -1 );
 }
 
-#,,..,..,,,..,,,,,.,,,,,,,,,,,,,,,,.,,,.,,...,..,,...,..,,...,..,,...,..,,,,.,
-#7DLRLCLFDPYIY5UWS3MIHDVDX5FEBEOFF4FV2HTW3PLA5YWRUSFV2HFPUYOOPEXZZQXBYPYV7EQ7A
-#\\\|MWQQT7LVRWRQQEPR6ZHV32F2XXEGZLIKQZ5EVANYZQRYVA6UTN7 \ / AMOS7 \ YOURUM ::
-#\[7]BAE2Q32VJSF7PD3NNPISD5SXPRNKXVIY6UKZVVVRBI5IQB6A3WDA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,,.,,,.,..,,.,,,..,,..,,,,.,,,.,..,,...,..,,.,.,...,,,,,,.,,,..,
+#QCK6UV2ZZY6LESAUIGUR6L5VX75AOOYRADCLTUTGLNNOHDGTCUSQVZXDZ3RALST5MGNJ3ZTPRXZTW
+#\\\|CLCBSYOMWGOD2LE5GYWZZZ3NNQACZLEACTY74L2DB7FHCO24YCO \ / AMOS7 \ YOURUM ::
+#\[7]RVAVKPQTNVDPLSLERP66CXYFSRNOXIND74AWISZMJGXHXPIO6QAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

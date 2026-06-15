@@ -623,7 +623,7 @@ modules/X-11.cmd.wait_visible                — window visibility detection
 
 ```
 modules/tile.init_code                — tile group config loader, checksum validation
-modules/tile.cmd.switch-tile-group    — switch between tile configurations
+modules/tile.cmd.switch-group    — switch between tile configurations
 modules/tile.cmd.add_overlay          — add translucent overlay layer
 modules/tile.cmd.remove_overlay       — remove overlay layer
 modules/tile.cmd.sort_layers          — reorder layer stacking
@@ -841,8 +841,8 @@ D3 (lmstudio inference)  ·  independent, low priority
 E1-E3 (bugs)  ·  independent, opportunistic
 ```
 
-#,,.,,,..,,.,,.,.,.,,,..,,.,,,...,.,,,,.,,.,,,..,,...,...,,,,,,..,,.,,,..,,.,,
-#RVRYOS66VQUEZ5ETXIGJIAS26BFLIX2OL67RZ7QYYA72AEOWEIFJNQ7UIB5PESB2FT26QRU7CATPS
-#\\\|TXDYF53SAACJTB5HIGST7AD2S2GWJPVASZW52UUYGWJFR7GIDNY \ / AMOS7 \ YOURUM ::
-#\[7]JMYEHDKCJDXIKVIBP5VEI3XALM2DPR4TYKFWEMSK2KZ6P7XCLABY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,...,,..,...,,.,,..,,,..,..,,,,.,..,,...,...,.,.,,.,,,..,.,.,.,.,
+#RZ2KSYEKJSU3TFKYOVU3VHR2BATAKMPZVAPM3WRQYPGKGC4L3UHU7W7RROXG23JX4FPHJPMLYY7L2
+#\\\|AVMMNFVN3RAZ2ZORFE5ROJPMGYMZQFQVG26YQSGRB2ELUHDVKDN \ / AMOS7 \ YOURUM ::
+#\[7]3ZR7VID3BVELBOMRXE4QJDMHFF4WUTCHMPRZHYOAPKGGI2KO4GDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

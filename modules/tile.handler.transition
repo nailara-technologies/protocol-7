@@ -258,7 +258,7 @@ if ( defined <tile.transition.status.waiting> ) {    ## in progress? ##
             my $trans_count = scalar @{<tile.transition_queue>};
             my $s           = $trans_count > 1 ? 's' : '';
             <[base.log]>->( 1, "found $trans_count queued transition$s.." );
-            <[tile.cmd.switch-tile-group]>
+            <[tile.cmd.switch-group]>
                 ->( { 'args' => shift @{<tile.transition_queue>} } );
         } elsif ( defined <tile.restore.overlays>
             and @{<tile.restore.overlays>} ) {
@@ -275,8 +275,8 @@ if ( defined <tile.transition.status.waiting> ) {    ## in progress? ##
 #print STDERR ">---\n" . Dumper( $cube_reply, <tile.transition> ) . "<---\n";
 #     if $event_type eq 'fade_out';
 
-#,,,,,,..,..,,,,,,,,,,,..,,..,.,,,...,,,,,,,,,..,,...,...,,..,,.,,,,.,,,,,,,,,
-#P4BIXBKGWWIAXCWGQDB6EGUWSJPXEZYOK5XQK7QGQTSMI4DSY54BBY4A47YNZIYW7ZGOUVSY42YSI
-#\\\|P4S356XSKDHQJGH5RZKML2L3BTPKLRT2LMDJ2J2B4EAZKRUJWQX \ / AMOS7 \ YOURUM ::
-#\[7]FMF5RBGQGP74AHDH6ZXUPEGZ344MREJUHK4N6GR3DIJQAFPB7QDQ 7  DATA SIGNATURE ::
+#,,,,,,..,,..,..,,..,,.,,,...,..,,,.,,.,.,.,,,..,,...,..,,...,,,,,,.,,.,.,,,,,
+#LR3M2SUWFC5EHXDHEAOLOJQ4UMKZ5Q3J6PQW7OIYH4D6L7E73TBNZY4GRDLDQORPRGOGJOTTXV6ZO
+#\\\|NDOG4H7I4KPPH2H64VSJWBWJCSE3MENVFJ5WDOX4CQQYQQJKZ76 \ / AMOS7 \ YOURUM ::
+#\[7]7UFRP4R7ITEVWAZUTBLLKJUE6MULDEC3YHUCWPYCTCO3L42UE2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
