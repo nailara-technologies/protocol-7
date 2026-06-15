@@ -68,18 +68,10 @@ $damp_timer->cancel if defined $damp_timer;
 ## remove instance state ##
 delete $data{window}{place}{instances}{$id};
 
-## only exit the process when no instances remain ##
-my $remaining = scalar keys %{ $data{window}{place}{instances} // {} };
-if ( $remaining == 0 ) {
-    <[base.log]>->( 1, '[place.commit] no instances remain, exiting' );
-    Gtk3->main_quit;
-    <[base.exit]>->( 0, 'window.place committed', 2 );
-}
-
 return TRUE;
 
-#,,.,,,,,,...,.,.,,.,,,,.,...,,,.,..,,,.,,,,,,.,.,...,.,.,...,,.,,,,.,..,,,,.,
-#SLYMMMYTIOYO7X52P6GCHG4LZPZL7TJDIGNBRRUPR7CRGZQV3ITKBPK52WDPRDLQEF4SVSMQVTAJK
-#\\\|WTIA5R6YZIEQIUPTT5VBSC4AA6EKQJNJR7A6ADOAH67NO6XYL7Z \ / AMOS7 \ YOURUM ::
-#\[7]XK3XQ6LAAOMYYR7PORC27DGJUONE3DYZGVYP6XNHNRCA4WH5EGAY 7  DATA SIGNATURE ::
+#,,.,,..,,...,,.,,,,.,...,,.,,...,...,,..,.,.,.,.,...,...,..,,..,,...,.,.,,,,,
+#5453R7MYDHNHR5AAPKWQUAG2ZKSNUPMRWJQK2KKFO6HY46D7YEU2AE6U5KNQAEUA4BPOTGLZLUSSS
+#\\\|KYYQXPQGYYBBLL4GA3AENSS76XH6QLRS6NZMT5FZCSQG5DEJEDE \ / AMOS7 \ YOURUM ::
+#\[7]27C46ZOQLA5PJL77TS5V3FDTGIEMOOCX4QUWOOSMPP5ZGH66UWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
