@@ -19,70 +19,41 @@ my $KEY_DOWN   = eval { Gtk3::Gdk::KEY_Down() }     // 65364;
 my $KEY_LEFT   = eval { Gtk3::Gdk::KEY_Left() }     // 65361;
 my $KEY_RIGHT  = eval { Gtk3::Gdk::KEY_Right() }    // 65363;
 
+## shift = fine 1px, default = 10px [ intentional inversion ] ##
 my $shift = $state & $SHIFT_MASK   ? 1 : 10;
 my $ctrl  = $state & $CONTROL_MASK ? 1 : 0;
 
-my $x = <x11.coordinates.left> // 0;
-my $y = <x11.coordinates.top>  // 0;
-my $w = <x11.window.width>     // 320;
-my $h = <x11.window.height>    // 240;
-
 my $step = $shift;
 
+## commit / cancel handled directly ##
 if ( $keyval == $KEY_ESC ) {
     <[window.place.cancel]>;
     return TRUE;
 } elsif ( $keyval == $KEY_RET or $keyval == $KEY_KP_RET ) {
     <[window.place.commit]>;
     return TRUE;
-} elsif ( $keyval == $KEY_UP ) {
-    if ($ctrl) {
-        $h -= $step;
-        $y += $step;
-    } else {
-        $y -= $step;
-    }
+}
+
+## map arrow + ctrl to a move/resize action ##
+my $action;
+if ( $keyval == $KEY_UP ) {
+    $action = $ctrl ? qw| ctrl_up | : qw| up |;
 } elsif ( $keyval == $KEY_DOWN ) {
-    if ($ctrl) {
-        $h += $step;
-    } else {
-        $y += $step;
-    }
+    $action = $ctrl ? qw| ctrl_down | : qw| down |;
 } elsif ( $keyval == $KEY_LEFT ) {
-    if ($ctrl) {
-        $w -= $step;
-        $x += $step;
-    } else {
-        $x -= $step;
-    }
+    $action = $ctrl ? qw| ctrl_left | : qw| left |;
 } elsif ( $keyval == $KEY_RIGHT ) {
-    if ($ctrl) {
-        $w += $step;
-    } else {
-        $x += $step;
-    }
+    $action = $ctrl ? qw| ctrl_right | : qw| right |;
 } else {
     return FALSE;
 }
 
-## clamp ##
-$w = 32 if $w < 32;
-$h = 32 if $h < 32;
-
-my $new_geom = {
-    'x'      => $x,
-    'y'      => $y,
-    'width'  => $w,
-    'height' => $h
-};
-
-<[window.place.apply_geometry]>->( $widget, $new_geom );
-$widget->queue_draw;
+<[window.place.adjust]>->( $widget, $action, $step );
 
 return TRUE;
 
-#,,.,,...,.,.,,,.,,,,,.,,,,..,..,,.,.,,,,,,,.,.,.,...,...,..,,,,.,,,.,,,.,.,.,
-#5NVLSQM45VTMHRTGYVSKZ3DAIP22AMYQR36647TYTSILXLUSBZ3CN4FHRDKMRSQ3FU7WE4YDGYWYU
-#\\\|B2FOU7BCDUBIPDHCFSLHFPGQVJVC5XAWJ5IXBM3WUQRLNWLZTPR \ / AMOS7 \ YOURUM ::
-#\[7]3R4ED4EUIPVVA5FEA4ASR5CO4KCWU6MEYUV26ZZYWMCQXCSJ2SDI 7  DATA SIGNATURE ::
+#,,,.,..,,...,,..,,.,,,,,,..,,..,,,,.,,,.,...,.,.,...,...,.,,,,,,,,,.,.,.,,,,,
+#KQNPKHFE5CNDSTJZ7GZBXCFXSOLUROPTQIDKTEWLZSV4MV36WFH7UKZWRYQZ2BAPULL2JCLUOXR56
+#\\\|KTY7UFMBC2CANRY6CSBLL75ZY47I7HUI3CH4WWVQTU27DUADZAQ \ / AMOS7 \ YOURUM ::
+#\[7]4K7WVG3BD7C7SPLT672Z6VJYTXT6Y2S6OUFELU4HOS5WSHVRJQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

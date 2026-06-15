@@ -36,7 +36,8 @@ $window->set_visual($rgba) if $rgba;
 
 ## event masks ##
 $window->add_events(
-    [   qw| button-press-mask button-release-mask pointer-motion-mask key-press-mask |
+    [   qw| button-press-mask button-release-mask pointer-motion-mask
+            key-press-mask scroll-mask |
     ]
 );
 
@@ -91,7 +92,21 @@ $window->signal_connect(
     }
 );
 
+$window->signal_connect(
+    'scroll-event' => sub {
+        eval { <[window.place.handler.scroll]>->(@ARG) };
+        if ( length $EVAL_ERROR ) {
+            <[base.log]>->( 0, <[base.str.eval_error]>->(1) );
+        }
+        return TRUE;
+    }
+);
+
 $window->show_all;
+
+## reassert stay-on-top post-map [ some WMs need it after show ] ##
+$window->set_keep_above(1);
+
 $window->grab_focus;
 
 <[base.log]>->( 1, '[place.open_window] window shown, entering main loop' );
@@ -102,8 +117,8 @@ $window->grab_focus;
 
 0;
 
-#,,,.,..,,,,.,...,.,,,,..,..,,.,.,.,,,.,.,..,,.,.,...,...,..,,...,.,,,,.,,..,,
-#3FY3ZCIJHUEMYZ2REED4SJDOWYJWPXES44S2QTLKJVYKGT7DZRAYTCASR3FVW5PY3TK6TOBZVXNFS
-#\\\|P4S7XLUPRFHNXQZCTX55XD2NJHNBCWONCPD23YDBJUS5FEPXOW7 \ / AMOS7 \ YOURUM ::
-#\[7]H7Z3NOWMGORU75BRRGZIU2NN7GLMJ5HQLPS3A4QQ5QM5JC4K7ACI 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,,,,,,.,,,.,,,.,..,,.,,,,,,,.,,,.,.,...,...,,,.,,.,,..,,,,.,...,
+#E6KQQXY2GI4RY5HIEPHWXVJM3Q46LGYLZSJBTIWT2K4FGNCO6BUC5LL5LW7U6MWKOG5TUKKGXX5WM
+#\\\|ZHTFDI7WPLYONLVXXNUBVGZCUNYO35ALOYYFCPIJJWENMKM7A7S \ / AMOS7 \ YOURUM ::
+#\[7]ILJMJ7MU7DE7IUQ2L2B6AHHNQGTY2A26AW3B6QTLUULEHL4TSSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

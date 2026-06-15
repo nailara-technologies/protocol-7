@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = window.place.handler.scroll
+# descr = wheel move/resize via scroll direction + modifiers
+
+my ( $widget, $event ) = @ARG;
+
+my $dir   = $event->direction;   ## stringifies to up/down/left/right ##
+my $state = ${ $event->state };  ## deref Glib::Flags blessed scalar to int ##
+
+my $SHIFT_MASK   = eval { Gtk3::Gdk::SHIFT_MASK() }   // 1;
+my $CONTROL_MASK = eval { Gtk3::Gdk::CONTROL_MASK() } // 4;
+
+my $shift = $state & $SHIFT_MASK   ? 1 : 0;
+my $ctrl  = $state & $CONTROL_MASK ? 1 : 0;
+
+my $step = 10;
+
+## only the vertical wheel is mapped ##
+return TRUE if $dir ne qw| up | and $dir ne qw| down |;
+
+## inverted: wheel up = down/shrink-from-top, wheel down = up/grow-from-top ##
+## [ more intuitive ] ##
+my $up = $dir eq qw| down |;
+
+my $action;
+if ($ctrl) {
+    $action = $up ? qw| ctrl_right | : qw| ctrl_left |;
+} elsif ($shift) {
+    $action = $up ? qw| right | : qw| left |;
+} else {
+    $action = $up ? qw| ctrl_up | : qw| ctrl_down |;
+}
+
+<[window.place.adjust]>->( $widget, $action, $step );
+
+return TRUE;
+
+#,,,,,.,,,,.,,,..,,,.,,..,.,,,,,,,,,.,,.,,.,.,.,.,...,...,,..,,..,.,.,,,.,..,,
+#T3WLBD5I3EAICDW6SOJE7JCWCFHLWZ6BFTF6VMADA6SNI2LMXV2D7ERYD6EP4SFE3M65XH3NGMOY6
+#\\\|OYBO3OR7P5WZJ67Q2IYFCKORMKH62WVLRUXDLE7QT3AG4VN2XUC \ / AMOS7 \ YOURUM ::
+#\[7]ZMQPZL2H7B6PZG6SV2JJLZHO4EOMXMPFGOKCJILQTZATTQOX3EBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
