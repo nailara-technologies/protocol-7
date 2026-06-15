@@ -11,10 +11,17 @@ delete <window.place.drag.start_x>;
 delete <window.place.drag.start_y>;
 delete <window.place.drag.start_geom>;
 
+## right-click release : submit, same as the enter key [ see          ##
+## handler.button_press for why this is deferred to release ]         ##
+if ( $event->button == 3 ) {
+    <[base.log]>->( 1, '[place.button_release] right-click commit' );
+    <[window.place.commit]>;
+}
+
 return TRUE;
 
-#,,.,,.,,,...,.,,,..,,...,.,,,.,.,...,.,,,,,,,.,.,...,...,,..,...,.,.,,,.,..,,
-#Y3CCU2TXGCD5KZMNZGVU5M4MWJXLOK6FWGCN6HLPAMCJNMBU5DFGBSUJUQ7G4DYWB5X6ZLCYTZL3O
-#\\\|7YMIFZ2LGHTZ6NCHD2KVNPQSLHL5VVKQ2DW35XFIBH34TLERHIT \ / AMOS7 \ YOURUM ::
-#\[7]HK4VXGJ2H4STDMBGMAVTYBQ4MTZWB2OJ4VRVAVPZV4T4IFW7PADI 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,.,,,,..,,,.,,,,,.,.,.,,,..,,.,.,.,.,...,..,,,..,.,.,...,,,.,..,,
+#WA36OOPRU7ZG7WGYFXXH6DXIDJA6ODFCL6ASGBJWY3FDYWDKQ66ZAKODXIVKVYMFERN2LGKVSLWNK
+#\\\|MDRFX5LNZGGFGSMEQIEXK3DAWTWKJB2INRQP7L7Z5GSEBWZS7JT \ / AMOS7 \ YOURUM ::
+#\[7]77ZYT4EGAH47P2BONCDXC4ESN6DTPD22TARKZNSQDB2HDIX7R6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
