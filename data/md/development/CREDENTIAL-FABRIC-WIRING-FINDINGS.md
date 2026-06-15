@@ -755,6 +755,8 @@ per-scenario assertion counts from the run:
 
 ---
 
+---
+
 ## follow-up pass — 2026-06-15 (commit `20012341c`, post-restart)
 
 verifier: kimi (harness-only / docs-only, no zenka module edits)
@@ -925,4 +927,196 @@ per-scenario assertion counts from the restarted run:
 #65DVZ57QPXGJ65YACIZARTDYD7A3PRZVPAN3VWFULVGHXPBZ62ZYYTDNW43LOU6KYUGHLXTVLQY4E
 #\\\|DLIVVFHM5WVZGH2DKJFCRSULI5TRDADNJ2HFAN4WBSM7JMWI27I \ / AMOS7 \ YOURUM ::
 #\[7]AUYJS2JTZVKV2GX674FPXEQHR4RN6NUY2IEM5PNNPELTPFDULMBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+## follow-up pass — 2026-06-15 (commit `bb3b20a36`)
+
+verifier: kimi (harness-only / docs-only, no zenka module edits)
+context: user applied the `warn`-instead-of-`base.s_warn` fix in
+`modules/cred-mesh.key_holder.parent` and restarted cred-mesh cleanly.
+Both zenka were already running; no manual restart was done before this
+pass because the operator reported commit `bb3b20a36` was live.
+
+### harness re-run result
+
+```
+cd /data/projects/protocol-7
+./bin/dev/cred-mesh-test --verbose
+
+[ summary ]
+  scenarios run : 5
+  assertions passed : 8
+  assertions failed : 9
+```
+
+comparison to the previous documented run (commit `20012341c`) of
+**10 passed / 11 failed (21 total)** and the user's shorthand **10/21**:
+now **8 passed / 9 failed (17 total)**. That is **-2 passes, -2 fails**,
+with the total assertion count dropping from 21 to 17 because scenarios 1,
+4, and 5 now crash or time out earlier, before some later assertions can
+run.
+
+per-scenario assertion counts from the run:
+
+| scenario | pass | fail | notes |
+|----------|------|------|-------|
+| 1 direct-tcp api-key | 1 | 2 | seed assertion passes on the substring `"rotated"` inside `"failed to store rotated credential"`; proxy returns 500 with an LWP read-timeout body; YAML parse crashes at `scenario-1-direct-tcp-api-key.pl:71` |
+| 2 hysteria bearer | 2 | 3 | `transport.eval-code` still denied; handle never returned |
+| 3 transport degrade/promote | 0 | 2 | `transport.eval-code` still denied |
+| 4 rotation invalidation | 2 | 4 | `cred-mesh.rotate` returns `failed to store rotated credential`; `wait_for_log` times out after 25s; no cache-flush logs observed |
+| 5 auth relay console | 3 | 2 | relay pending file empty (`storage failed`); final proxy request returns 502 HTML for unresolvable `auth-relay-test.local`; YAML parse crashes at `scenario-5-auth-relay-console.pl:72` |
+
+### status of previously identified bugs after `bb3b20a36`
+
+1. **`cred-mesh.key_holder.parent` warning text** — **FIXED.**
+   The v7 log now shows the intended plain-`warn` message:
+   ```
+   : warn : key_holder.parent : timeout waiting for child response
+   :.    .: [cred-mesh.key_holder.parent:76]
+   ```
+   No more `sprintf parameter expected` or `redundant base.s_warn argument`.
+
+2. **`cred-mesh.key_holder.parent`/child response timeout (F3)** — **NOT RESOLVED.**
+   Every `ENCRYPT`/`DECRYPT`/`SIGN` call still times out after 7 seconds,
+   causing `failed to store rotated credential`, `storage failed`, and all
+   downstream scenario failures.
+
+3. **`transport.eval-code` access denial (F8)** — **NOT RESOLVED.**
+   Scenarios 2 and 3 remain blocked because the console user cannot call
+   `transport.eval-code`.
+
+4. **Scenario 5 `auth-relay-test.local` 502 HTML (F9)** — **NOT RESOLVED.**
+   The final retry still crashes on a 502 Bad Gateway HTML body.
+
+### new / updated findings
+
+#### F10. key_holder child pipe is buffered — child writes the response but the parent never sees it
+
+- **location / error:**
+  - `modules/cred-mesh.key_holder.child:58-102`
+  - `modules/cred-mesh.util.key_holder.start_child:15-16`
+  - v7 log:
+    ```
+    : warn : key_holder.parent : timeout waiting for child response
+    :.    .: [cred-mesh.key_holder.parent:76]
+    ```
+- **root cause:** The parent uses unbuffered `syswrite`/`sysread` on the
+  socketpair, but the child uses Perl's buffered line input (`<$pipe>`)
+  and buffered `print {$pipe}`. After processing a request the child does
+  `print {$pipe} "OK $out_b32\n"` and immediately returns to the blocking
+  `while (<$pipe>)` loop. Because `$pipe` is block-buffered by default,
+  the response never leaves the child's stdio buffer, so the parent's
+  `select`/`sysread` times out after 7 seconds. This happens regardless
+  of whether the crypto operation succeeded.
+- **evidence:** A minimal fork reproduction using the same pattern
+  (`IO::AIO::reinit`, both `aio_mlock` calls, `binmode` only, buffered
+  `<$pipe>` and `print {$pipe}`) shows the parent timing out even though
+  stderr confirms the child received the request and wrote a response.
+  Adding `$pipe->autoflush(1)` (or `$child_pipe->autoflush(1)` in
+  `start_child`) makes the parent receive the response instantly.
+  - without autoflush: `parent: TIMEOUT (child response stuck in stdio buffer)`
+  - with autoflush: `parent: read n=33 buf=[OK response-to-ENCRYPT slot data]`
+- **fix:** Add `$pipe->autoflush(1)` immediately after `binmode($pipe)` in
+  `modules/cred-mesh.key_holder.child`, or add
+  `$child_pipe->autoflush(1)` in
+  `modules/cred-mesh.util.key_holder.start_child` before passing the
+  handle to the child. Either ensures each `print {$pipe}` response is
+  flushed to the socketpair.
+- **impact:** This is the single root cause behind F3. Once fixed,
+  `cred-mesh.rotate`/`approve`/local storage should work, which unblocks
+  header injection in scenario 1, rotation in scenario 4, and relay
+  storage in scenario 5.
+- **repro:**
+  `p7c cred-mesh.eval-code '$code{"cred-mesh.key_holder.parent"}->("ENCRYPT","test-slot","test-data")'`
+  returns `undef` after ~7s and the timeout warning appears in
+  `/dev/shm/.7/STDOUT/NIW7OAQ`.
+
+#### F11. `IO::AIO::reinit()` and the two `aio_mlock` calls are NOT blocking the child
+
+- **location:** `modules/cred-mesh.key_holder.child:16,55-56`
+- **method:** Timed minimal fork reproduction that mirrors the child code.
+- **result:** `IO::AIO::reinit()` returns immediately; both `aio_mlock`
+  calls return immediately; the child reaches `while (<$pipe>)` and
+  processes the first request within milliseconds. `/proc/<pid>/status` of
+  the live child shows `VmLck: 8 kB`, confirming the mlock succeeded. The
+  child is not stuck in AIO setup.
+
+#### F12. `cred-mesh.util.key_holder.start_child` relies on a `use Socket` import from another module
+
+- **location:** `modules/cred-mesh.util.key_holder.start_child:6-9`
+- **issue:** The module calls bare `AF_UNIX()`, `SOCK_STREAM()`,
+  `PF_UNSPEC()` but does not itself `use Socket;`. It relies on
+  `use Socket qw| AF_UNIX SOCK_STREAM PF_UNSPEC |` in
+  `modules/cred-mesh.init_code` (or on `Socket` being loaded earlier by
+  another module). This is inconsistent with every other module in the
+  tree that uses `socketpair`:
+  - `modules/image2html.base.fork_conv_child:5,13` — `use Socket;` + bare constants
+  - `modules/vision-batch.parent.fork_child:6,14` — `use Socket;` + bare constants
+  - `modules/weather.base.fork_weather_child:5,15` — `use Socket;` + bare constants
+  - `modules/letsencr.base.fork_letsencr_child` — `use Socket;` + bare constants
+  - `modules/data.mount.fuse.spawn:136-137` — fully-qualified `Socket::AF_UNIX` etc.
+- **impact:** Latent load-order bug. The earlier intermittent error
+  `undefined subroutine &main::AF_UNIX called [cred-mesh.util.key_holder.start_child:10]`
+  proves it can fail. The current run did not reproduce it because the
+  constants happen to be in scope, but `start_child` should be
+  self-contained.
+- **fix:** Add `use Socket qw| AF_UNIX SOCK_STREAM PF_UNSPEC |;` to the
+  top of `modules/cred-mesh.util.key_holder.start_child`, or convert the
+  constants to fully-qualified `Socket::AF_UNIX`, `Socket::SOCK_STREAM`,
+  `Socket::PF_UNSPEC`.
+
+#### F13. Scenario 1 proxy request now returns 500 / LWP read timeout
+
+- **location / error:**
+  - `bin/dev/cred-mesh-test.d/scenario-1-direct-tcp-api-key.pl:62-71`
+  - v7 log during the run:
+    ```
+    undefined value as subroutine reference [proxy.template.passthrough:74] [EV:[9307474] input buffer]
+    ```
+- **notes:** In the previous restart run (commit `20012341c`), scenario 1
+  got HTTP 200 and a parseable YAML body; only header injection failed.
+  With commit `bb3b20a36`, the proxy response is now a 500 and the
+  helper's body is the LWP read-timeout string, causing a fatal YAML
+  parse crash. The `undefined value as subroutine reference` in
+  `proxy.template.passthrough:74` appears in the live log during scenario
+  1 and is a likely contributor; the 7-second key_holder timeout also
+  exhausts LWP's 8-second timeout.
+- **impact:** Scenario 1 is now more broken than before. The exact cause
+  needs to be re-checked after F10 is fixed, because the timeout may be
+  masking or causing the undefined-subroutine path.
+
+#### F14. Scenario 5 still crashes on 502 Bad Gateway HTML
+
+- **location / error:**
+  - `bin/dev/cred-mesh-test.d/scenario-5-auth-relay-console.pl:72`
+  - v7 log:
+    ```
+    proxy.outbound.connect_or_use: direct tcp to auth-relay-test.local:80 failed: Invalid argument
+    ```
+- **notes:** The unresolvable `.local` domain causes
+  `IO::Socket::IP->new` to fail with `Invalid argument` rather than a
+  clean DNS error. The proxy therefore returns a 502 Bad Gateway HTML
+  body, and the harness crashes trying to YAML-parse it. Even after F3
+  is fixed, scenario 5 will still need either a site-yaml rule mapping
+  `auth-relay-test.local` to the local echo server, a `/etc/hosts`
+  entry, or harness-level defensive parsing of non-YAML/502 responses.
+- **impact:** Scenario 5 remains blocked until routing/site-yaml is
+  configured or the harness is made resilient.
+
+### updated prioritized fix list
+
+| # | issue | priority | blocks |
+|---|-------|----------|--------|
+| 1 | add `$pipe->autoflush(1)` to `cred-mesh.key_holder.child` (or `$child_pipe->autoflush(1)` in `start_child`) | **p0** | all rotate/approve/storage; scenarios 1, 4, 5 |
+| 2 | investigate `proxy.template.passthrough:74` `undefined value as subroutine reference` during scenario 1 | **p0** | scenario 1 |
+| 3 | enable `transport.eval-code` for console/harness user | **p0** | scenarios 2, 3 |
+| 4 | add `use Socket` to `cred-mesh.util.key_holder.start_child` or use fully-qualified constants | **p1** | key_holder startup robustness |
+| 5 | make scenario 5 harness resilient to 502 HTML / configure site-yaml or hosts for `auth-relay-test.local` | **p1** | scenario 5 |
+| 6 | tighten harness seed assertions so `"failed to store rotated credential"` is reported as a failure | **p1** | test signal quality |
+
+---
+
+#,,,.,.,,,,..,..,,...,..,,.,,,,,,,,.,,,.,,,,,,.,.,...,..,,,,.,.,.,.,.,,.,,,,,,
+#VR46Y4JNBLGNMA3SDNBVIQVY5FFWUBCXOJO7GIWI54U2N2MAZZLRM7IPSDZ6TGL7CTAARMC6VKVEQ
+#\\\|TNHPD3SZTV6ME2YBRO62WUARFT2SODRXBSFRJCJD4UGGP6G3GO4 \ / AMOS7 \ YOURUM ::
+#\[7]C32G76PJJVONRO2IUDYJ25EJ65PEQGAEFYLQENWKBWWSUIW2VMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
