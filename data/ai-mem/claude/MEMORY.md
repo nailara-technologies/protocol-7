@@ -30,7 +30,7 @@
 - [dot-path-case-notation](topic-dot-path-case-notation.md) — uppercase=path level, lowercase-run=dotted key; %DATA/%CODE meta-namespace idea; design doc written
 - [deparse-code-features](topic-deparse-code-features.md) — REMINDER: ask user about their planned tree of deparse-code-based features (not yet elaborated)
 - [global-ui-menu-tree](topic-global-ui-menu-tree.md) — addressable stdio slots + menu tree; settings (new)/configure (stub) zenki as starting points
-- [credential-fabric-proxy-transport](topic-credential-fabric-proxy-transport.md) — proxy round-trip WORKING (200 OK verified 2026-06-09); boot/UI fixes through b27ebb655; stale-socket issue clears on full P7 restart
+- [credential-fabric-proxy-transport](topic-credential-fabric-proxy-transport.md) — scenario-1 fully LANDED 2026-06-15 (2882f7ad5, 6b535bf8a, 0427e08cf); SO_REUSEPORT dup-listener race fixed, 8/8 + 4/5; remaining: F2 transport.eval-code access (scenarios 2/3), stale relay_pending.yaml
 - [ascii-frame-system](topic-ascii-frame-system.md) — reverse parser, elastic renderer, DRC validator
 - [frame-plugin-slots](topic-frame-plugin-slots.md) — status-bar plugin slots + context-aware selector; variable border width; vertical-slot roadmap
 - [ascii-desktop-domains](topic-ascii-desktop-domains.md) — border glyphs are domain-scoped; nested domains = nested planes = ascii desktop; role-vs-glyph descriptor is the windowing unlock
@@ -160,8 +160,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,,.,.,.,,,.,...,,.,,,.,,..,,..,,,,,,.,.,..,,..,,...,...,..,,,.,,.,,,,,,,..,,
-#GBA4XLCBSMYVWA7WRCKBE4UGNOLXI76S223XXS2JY3YVTGUBQHW6JMTXXAO45E4AGL4YJ4ZSEJWJI
-#\\\|2OZL77JE6NT6VBK4EC33OGVLBQTBS35C2MGMPV4BTUPMPWY7WD5 \ / AMOS7 \ YOURUM ::
-#\[7]ITRQEAJS5M5DBJFUZVKHJI27U45TMMURJFHE4E2LIZF4VFVCNGCQ 7  DATA SIGNATURE ::
+#,,,,,...,,.,,...,.,,,,..,.,.,.,.,,,,,..,,,.,,..,,...,.,.,...,,.,,.,,,,,.,.,.,
+#FU6QFUNB7BYXERBA7K5KACY4CIMRTM5ZJW4SEZSSD52DADLW576FDONHLXO4RLQ7IOZSDDMRRTZAQ
+#\\\|IPM5WF7VZN7ZUCLKPPMVWDXTT3LVM6LNOESDHHVUABG666NTTG6 \ / AMOS7 \ YOURUM ::
+#\[7]WKXUFAYL2PIT2YBNBMJBPWGHABSHLULNHX5PQXZPUMI3QP7TYMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
