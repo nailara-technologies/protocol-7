@@ -1,0 +1,282 @@
+## [:< ##
+
+# name = tile.handler.transition
+
+my $cube_reply = shift // {};
+
+die "[!] no tile transition data defined"
+    if not defined <tile.transition.status>
+    or !keys %{<tile.transition.status>};
+<tile.transition.status>->{'start_time'} //= <[base.time]>->(4);
+
+my $fade_out_duration = 0.8;    # --> config
+
+### removing zenki not present in new tile / present before zenka restart ###
+
+if ( not defined <tile.transition.status.waiting.stop>
+    and defined <tile.transition.status.zenki.stop> ) {
+    my @stop_zenki = keys %{<tile.transition.status.zenki.stop>};
+    <tile.transition.status.waiting.stop> = scalar @stop_zenki;
+    <tile.transition.status.waiting.i_id> = 0;
+    <tile.transition.status.zenki.fade_out> //= {};
+    my @stop_now_zenki;
+    foreach my $zenka (@stop_zenki) {
+        my $tile_group_name = <tile.transition.status.zenki.stop>->{$zenka};
+        my $tile_groups_data
+            = <tile.setup.tile>->{$tile_group_name}->{$zenka};
+        my $fade = 0;
+        if ( defined $tile_groups_data->{'fade'}
+            and $tile_groups_data->{'fade'} eq '1' ) {
+            <tile.transition.status.zenki.fade_out>->{$zenka} = $fade = 1;
+        }
+        if ( !$fade ) {    ## instance_id (no_fade) ##
+            <[protocol-7.route-send]>->(
+                {   'command'   => "v7.get-instance-ids",
+                    'call_args' => { 'args' => $zenka },
+                    'reply'     => {
+                        'handler' => qw| tile.handler.transition |,
+                        'params'  => {
+                            'event_type' => 'instance_id',
+                            'zenka_name' => $zenka
+                        }
+                    }
+                }
+            );
+        } else {    ## window_id(s) (fade) ##
+            <[protocol-7.route-send]>->(
+                {   'command'   => "X-11.get_window_ids",
+                    'call_args' => { 'args' => $zenka },
+                    'reply'     => {
+                        'handler' => qw| tile.handler.transition |,
+                        'params'  => {
+                            'event_type' => 'window_id',
+                            'zenka_name' => $zenka
+                        }
+                    }
+                }
+            );
+            <tile.transition.status.waiting.fade_out>++;
+        }
+        <tile.transition.status.waiting.i_id>++;
+    }
+}
+
+my $event_type
+    = defined $cube_reply->{'params'}->{'event_type'}
+    ? $cube_reply->{'params'}->{'event_type'}
+    : 'init';
+
+if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
+
+    # print STDERR Dumper($cube_reply);
+
+    <tile.transition.status.waiting.i_id>--;
+    my $zenka = $cube_reply->{'params'}->{'zenka_name'};
+    if (    $cube_reply->{'cmd'} eq qw| TRUE |
+        and $cube_reply->{'call_args'}->{'args'} =~ /^\d+/ ) {
+        my $instance_id = $cube_reply->{'call_args'}->{'args'};
+        ## notify_offline ##
+        <[protocol-7.route-send]>->(
+            {   'command'   => "v7.notify_offline",
+                'call_args' => { 'args' => $instance_id },
+                'reply'     => {
+                    'handler' => qw| tile.handler.transition |,
+                    'params'  => {
+                        'event_type'  => 'is_offline',
+                        'zenka_name'  => $zenka,
+                        'instance_id' => $instance_id
+                    }
+                }
+            }
+        );
+        if ( not defined <tile.transition.status.zenki.fade_out>->{$zenka}
+            or <tile.transition.status.zenki.fade_out>->{$zenka} ne '1' ) {
+            <[protocol-7.route-send]>->(    ## stop (no fade) ##
+                {   'command'   => "v7.stop_implicit",
+                    'call_args' => { 'args' => $instance_id }
+                }
+            );
+        } else {
+            my $window_ids = $cube_reply->{'params'}->{'window_ids'};
+            <[protocol-7.route-send]>->(
+                {   'command'   => "X-11.fade_out",
+                    'call_args' => {
+                        'args' => join( ' ', $fade_out_duration, $window_ids )
+                    },
+                    'reply' => {
+                        'handler' => qw| tile.handler.transition |,
+                        'params'  => {
+                            'event_type'  => 'fade_out',
+                            'zenka_name'  => $zenka,
+                            'instance_id' => $instance_id
+                        }
+                    }
+                }
+            );
+
+        }
+    } else {    ## no such zenka online ##
+        if ( exists <tile.transition.status.zenki.fade_out>->{$zenka} ) {
+            delete <tile.transition.status.zenki.fade_out>->{$zenka};
+            <tile.transition.status.waiting.fade_out>--;
+        }
+        delete <tile.transition.status.zenki.stop>->{$zenka};
+        <tile.transition.status.waiting.stop>--;
+    }
+} elsif ( $event_type eq 'window_id' ) {    ### window id(s) reply ###
+    my $zenka       = $cube_reply->{'params'}->{'zenka_name'};
+    my $instance_id = $cube_reply->{'params'}->{'instance_id'};
+    my $window_ids
+        = (     $cube_reply->{'cmd'} eq qw| TRUE |
+            and $cube_reply->{'call_args'}->{'args'} =~ /^\d+/ )
+        ? $cube_reply->{'call_args'}->{'args'}
+        : 0;    # <-- 0 == failed, fade will be skipped!
+
+    <[protocol-7.route-send]>->(
+        {   'command'   => "v7.get-instance-ids",
+            'call_args' => { 'args' => $zenka },
+            'reply'     => {
+                'handler' => qw| tile.handler.transition |,
+                'params'  => {
+                    'event_type' => 'instance_id',
+                    'zenka_name' => $zenka,
+                    'window_ids' => $window_ids
+                }
+            }
+        }
+    );
+} elsif ( $event_type eq 'fade_out' ) {
+    my $zenka       = $cube_reply->{'params'}->{'zenka_name'};
+    my $instance_id = $cube_reply->{'params'}->{'instance_id'};
+    <[protocol-7.route-send]>->(    ## stop (fading complete) ##
+        {   'command'   => "v7.stop_implicit",
+            'call_args' => { 'args' => $instance_id }
+        }
+    );
+} elsif (
+    $event_type eq 'is_offline'     ## zenka stopped or not running ##
+    and defined $cube_reply->{'params'}->{'zenka_name'}
+) {
+    my $zenka = $cube_reply->{'params'}->{'zenka_name'};
+    if ( exists <tile.transition.status.zenki.fade_out>->{$zenka} ) {
+        delete <tile.transition.status.zenki.fade_out>->{$zenka};
+        <tile.transition.status.waiting.fade_out>--;
+    }
+    delete <tile.transition.status.zenki.stop>->{$zenka};
+    <tile.transition.status.waiting.stop>--;
+    ( my $zenka_stripped = $zenka ) =~ s|\[.+$||;
+    map {
+        if ( exists <tile.transition.status.zenki.concurrency>->{$ARG} ) {
+            <[protocol-7.route-send]>->(
+                {   'command'   => "v7.start",
+                    'call_args' => { 'args' => $ARG },
+                    'reply'     => {
+                        'handler' => qw| tile.handler.transition |,
+                        'params'  => {
+                            'event_type' => 'start',
+                            'zenka_name' => $ARG
+                        }
+                    }
+                }
+            );
+        }
+    } ( $zenka, $zenka_stripped );
+
+} elsif ( $event_type eq 'is_online' ) {    # new zenka started successfully
+    my $zenka = $cube_reply->{'params'}->{'zenka_name'};
+    delete <tile.transition.status.zenki.start>->{$zenka};
+    <tile.transition.status.waiting.start>--;
+} elsif ( $event_type eq 'start' ) {
+    my $zenka = $cube_reply->{'params'}->{'zenka_name'};
+    if ( $cube_reply->{'cmd'} eq qw| FALSE | ) {
+        my $reason = $cube_reply->{'call_args'}->{'args'};
+        if ( $reason =~ /concurrency/ ) {
+            $zenka =~ s|\[.+$|| if $reason !~ /subname/;
+            <tile.transition.status.zenki.concurrency>->{$zenka} = 1;
+        } else {
+
+            # failed - log! retry?
+        }
+    } else {
+        ( my $job_id = $cube_reply->{'call_args'}->{'args'} ) =~ s|^\D+||;
+        ## notify_online ##
+        <[protocol-7.route-send]>->(
+            {   'command'   => "v7.notify_online",
+                'call_args' => { 'args' => "job:$job_id" },
+                'reply'     => {
+                    'handler' => qw| tile.handler.transition |,
+                    'params'  => {
+                        'event_type' => 'is_online',
+                        'zenka_name' => $zenka
+                    }
+                }
+            }
+        );
+    }
+}
+
+if (    ( $event_type eq 'instance_id' or $event_type eq 'init' )
+    and !<tile.transition.status.waiting.i_id>
+    and defined <tile.transition.status.zenki.start> ) {
+    my @start_zenki = keys %{<tile.transition.status.zenki.start>};
+    <tile.transition.status.waiting.start> = scalar @start_zenki;
+
+    foreach my $zenka (@start_zenki) {
+        ## start ##
+        <[protocol-7.route-send]>->(
+            {   'command'   => "v7.start",
+                'call_args' => { 'args' => $zenka },
+                'reply'     => {
+                    'handler' => qw| tile.handler.transition |,
+                    'params'  => {
+                        'event_type' => 'start',
+                        'zenka_name' => $zenka
+                    }
+                }
+            }
+        );
+    }
+
+}
+
+if ( defined <tile.transition.status.waiting> ) {    ## in progress? ##
+    my $still_waiting = 0;
+    map { $still_waiting += <tile.transition.status.waiting>->{$ARG} }
+        keys %{<tile.transition.status.waiting>};
+    if ( !$still_waiting ) {                         ## all done! ##
+        delete <tile.transition.status.waiting>;
+        <tile.transition_in_progress> = 0;
+        <[base.log]>->( 1, "transition complete." );
+
+        # cleaning up merged tile [see overlays]
+        my $prev_tile_groups = <tile.previous_tile_groups>;
+        delete <tile.setup.tile>->{$prev_tile_groups}
+            if defined $prev_tile_groups and $prev_tile_groups =~ /\+/;
+
+        if ( defined <tile.transition_queue>
+            and @{<tile.transition_queue>} ) {
+            my $trans_count = scalar @{<tile.transition_queue>};
+            my $s           = $trans_count > 1 ? 's' : '';
+            <[base.log]>->( 1, "found $trans_count queued transition$s.." );
+            <[tile.cmd.switch-tile-group]>
+                ->( { 'args' => shift @{<tile.transition_queue>} } );
+        } elsif ( defined <tile.restore.overlays>
+            and @{<tile.restore.overlays>} ) {
+            my $count = scalar @{<tile.restore.overlays>};
+            my $s     = $count > 1 ? 's' : '';
+            <[base.log]>->( 1, "restoring $count tile overlay$s.." );
+            <[tile.cmd.add_overlay]>
+                ->( { 'args' => join( ' ', @{<tile.restore.overlays>} ) } );
+            delete <tile.restore.overlays>;
+        }
+    }
+}
+
+#print STDERR ">---\n" . Dumper( $cube_reply, <tile.transition> ) . "<---\n";
+#     if $event_type eq 'fade_out';
+
+#,,,,,,..,..,,,,,,,,,,,..,,..,.,,,...,,,,,,,,,..,,...,...,,..,,.,,,,.,,,,,,,,,
+#P4BIXBKGWWIAXCWGQDB6EGUWSJPXEZYOK5XQK7QGQTSMI4DSY54BBY4A47YNZIYW7ZGOUVSY42YSI
+#\\\|P4S356XSKDHQJGH5RZKML2L3BTPKLRT2LMDJ2J2B4EAZKRUJWQX \ / AMOS7 \ YOURUM ::
+#\[7]FMF5RBGQGP74AHDH6ZXUPEGZ344MREJUHK4N6GR3DIJQAFPB7QDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

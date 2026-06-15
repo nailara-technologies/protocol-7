@@ -60,12 +60,10 @@ if ( !-f $cfg_full_path ) {
 
 <[set-up.json.import_file]>->('events.set-up.json');
 $config_data = merge( $config_data, <import.playlist> );
-$config_data = merge( $config_data, <import.tile-groups> );
+$config_data = merge( $config_data, <import.tile> );
 
-map { <events.enabled>->{$ARG} = 1 } (
-    keys <import.playlist.events>->%*,
-    keys <import.tile-groups.events>->%*
-);
+map { <events.enabled>->{$ARG} = 1 }
+    ( keys <import.playlist.events>->%*, keys <import.tile.events>->%* );
 
 my @enabled;
 map { <events.enabled>->{$ARG} = 1; push( @enabled, $ARG ) }
@@ -147,8 +145,8 @@ foreach my $event_name ( keys %{ $config_data->{'events'} } ) {
 
 0;
 
-#,,,,,..,,,,.,,.,,,,,,...,,,.,,.,,.,.,,..,.,,,..,,...,...,...,,,,,...,,,.,..,,
-#TGPHZGWFW5QZI3XRFC5AGGH7PVDXZMVA47ABJOU3TYUVVOWQNFYHV7LRZE6ZMM37SRY7I72VN2LXA
-#\\\|OWAFCFHLKIHAAAPFSLWYTPAXVCFFMFDKUEZ2PFVCIJLTFNYBVKJ \ / AMOS7 \ YOURUM ::
-#\[7]YBSH4GUZP5IWPB7HEUKINJU6C5CQNGL3ASQCIMTQZ5WIVLIIXQAY 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,.,,,,.,,,,,,.,,,,,,,..,,,,.,,..,..,,...,...,...,,.,,.,,,.,.,...,
+#F4SSRPCY42YLJ66YZ5VP5SWJ3P54YB6ZHC5KPFZL6WPAUYK4XGGGAH7S4YPMIPIZ77IFD6XALUYR4
+#\\\|VQO6WM2DV77EUYPE33MXC7QF5E6ZZRFTRTCEWAG2OWAYB735VKZ \ / AMOS7 \ YOURUM ::
+#\[7]SBMG3AQKKXWCJFJVMJXBZWSYNQ2OTZ7SHQ5YQA7BAI4OORS66GBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

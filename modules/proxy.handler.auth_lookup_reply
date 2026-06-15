@@ -18,7 +18,7 @@ if ( not defined $client ) {
 }
 
 my $context = $client->{'context'};
-my $mode    = $reply->{'mode'} // '';
+my $mode    = lc( $reply->{'cmd'} // '' );
 my $data_r  = $reply->{'data'};
 
 my $auth_result;
@@ -49,8 +49,8 @@ $client->{'state'} = 'processing';
 
 return;
 
-#,,..,.,.,,,.,.,,,..,,.,,,,..,.,,,,,.,.,.,,..,..,,...,...,,.,,,,.,,,,,,..,.,,,
-#NL3PP3ZTCSRROXW6WZOPNLD57BJN74ISPTPEJBVQHNEMFLP2DZVWXTCXN5CONGIZS75FWTVBWUI7S
-#\\\|PD3NYUG2CS6RBGZOOEKXUYPTYTFUCWAOGNV4BXM7AWRK7UW4YH6 \ / AMOS7 \ YOURUM ::
-#\[7]FBZX26UN4PLR4GWCZUOKZFYLMZGDZW4TLDWLNOGRIABHBFINO2CA 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,..,,..,.,.,...,,,.,,..,.,,,,,.,..,,...,...,..,,,..,.,.,,.,,.,.,
+#CS4BQG6PJXGZRRIYRWFN5F45LVK6YYVYQEW7UJQC4NRZWTBAO6QT5YBS267B72J7LDSUBDLTPYG6W
+#\\\|KXNHPHMJJ6HGSGJDSV2BJ5P5IG3GSL6UDWTA6OROOXWKK663MNE \ / AMOS7 \ YOURUM ::
+#\[7]MB5LF3KUYF7GMXFRLZI7I5FWRP7KDWRG7B5XQ5M57SNQJE23REAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

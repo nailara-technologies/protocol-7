@@ -619,21 +619,21 @@ modules/X-11.cmd.wait_visible                — window visibility detection
 + 80 more modules (DPMS, backgrounds, WM, pointer, display state)
 ```
 
-### tile-groups zenka (42 modules, formerly 'layout')
+### tile zenka (42 modules, formerly 'layout')
 
 ```
-modules/tile-groups.init_code                — tile group config loader, checksum validation
-modules/tile-groups.cmd.switch-tile-group    — switch between tile configurations
-modules/tile-groups.cmd.add_overlay          — add translucent overlay layer
-modules/tile-groups.cmd.remove_overlay       — remove overlay layer
-modules/tile-groups.cmd.sort_layers          — reorder layer stacking
-modules/tile-groups.cmd.assign_window        — assign window to tile position
-modules/tile-groups.cmd.get-layer            — query layer state
-modules/tile-groups.cmd.get_geometry         — tile geometry calculation
-modules/tile-groups.process-tile-group       — tile group activation engine
-modules/tile-groups.merge_multiple           — multi-config merge
-modules/tile-groups.callback.poll_tile_color — tile activity monitoring
-modules/tile-groups.gpu_alerts.*             — GPU load alert system
+modules/tile.init_code                — tile group config loader, checksum validation
+modules/tile.cmd.switch-tile-group    — switch between tile configurations
+modules/tile.cmd.add_overlay          — add translucent overlay layer
+modules/tile.cmd.remove_overlay       — remove overlay layer
+modules/tile.cmd.sort_layers          — reorder layer stacking
+modules/tile.cmd.assign_window        — assign window to tile position
+modules/tile.cmd.get-layer            — query layer state
+modules/tile.cmd.get_geometry         — tile geometry calculation
+modules/tile.process-tile-group       — tile group activation engine
+modules/tile.merge_multiple           — multi-config merge
+modules/tile.callback.poll_tile_color — tile activity monitoring
+modules/tile.gpu_alerts.*             — GPU load alert system
 + 30 more modules (handlers, setup, coordinates, transitions)
 ```
 
@@ -653,9 +653,9 @@ modules/compton.init_code / compton.startup  — X11 compositor (picom)
 modules/openbox.init_code / openbox.start_wm — window manager with P7 control
 ```
 
-together with tile-groups, these provide **full composited desktop control**:
+together with tile, these provide **full composited desktop control**:
 openbox manages windows, compton composites them with transparency and
-transitions, tile-groups orchestrates the layout and layer stacking — all
+transitions, tile orchestrates the layout and layer stacking — all
 controlled through P7 commands. layers and transitions included.
 
 ### the rendering stack (already assembled)
@@ -666,7 +666,7 @@ the full stack from bottom to top:
 X-11 zenka          →  display server (real or xvfb virtual)
 openbox             →  window management
 compton             →  compositing (transparency, shadows, transitions)
-tile-groups         →  layout orchestration (tiles, overlays, layer sorting)
+tile         →  layout orchestration (tiles, overlays, layer sorting)
 web-browser         →  rendering surface (WebKit2, multi-view, translucency)
 grid-v14.html       →  cubic space visualization (canvas, 6 zoom layers)
 graphics-matrix     →  data model (namespace → visual state)
@@ -678,7 +678,7 @@ controllable through P7 commands. overlays are composited with translucency.
 transitions between configurations are smooth.
 
 ```
-namespace state → graphics-matrix → grid-v14.html → web-browser → tile-groups
+namespace state → graphics-matrix → grid-v14.html → web-browser → tile
                                                          ↕              ↕
                                             JS execution from      layer control
                                             P7 commands             overlay add/remove
@@ -826,7 +826,7 @@ G (graphics-matrix zenka)  ←→  all visual initiatives (bidirectional)
 RENDERING STACK (existing, enables G + P + B visuals):
     X-11 zenka (95+ modules)  →  display management, xvfb virtual display
     web-browser zenka (78 modules)  →  WebKit2 rendering surface, multi-layer
-    tile-groups (42 modules)  →  composited tiling, overlays, layer sorting
+    tile (42 modules)  →  composited tiling, overlays, layer sorting
     compton (4 modules)  →  X11 compositor (transparency, shadows, transitions)
     openbox (6 modules)  →  window manager with P7 command control
     grid-v14.html  →  already-functional cubic space visualization
@@ -841,8 +841,8 @@ D3 (lmstudio inference)  ·  independent, low priority
 E1-E3 (bugs)  ·  independent, opportunistic
 ```
 
-#,,..,.,,,..,,,.,,...,.,.,,..,..,,,.,,..,,.,,,..,,...,...,.,,,,,,,,..,,,,,,..,
-#RHR3ZYEJU7WK6Z4WGFETU2Z6X4ER7U3VN2I756MZCYSF2S66BOUR2HJZLADRPPHLCQM5QMGDUQAQK
-#\\\|3AS3TVZZCZ2DMPGUWLERGMKVE6ETIXTUIMJ4MMRELKIABLQTZHK \ / AMOS7 \ YOURUM ::
-#\[7]HGSLQMULQIHR2LBDIWDZMALKK53UAY3TAMOXZKKL4TTG7V6NTUCI 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,.,.,.,,,..,,.,,,...,.,,,,.,,.,,,..,,...,...,,,,,,..,,.,,,..,,.,,
+#RVRYOS66VQUEZ5ETXIGJIAS26BFLIX2OL67RZ7QYYA72AEOWEIFJNQ7UIB5PESB2FT26QRU7CATPS
+#\\\|TXDYF53SAACJTB5HIGST7AD2S2GWJPVASZW52UUYGWJFR7GIDNY \ / AMOS7 \ YOURUM ::
+#\[7]JMYEHDKCJDXIKVIBP5VEI3XALM2DPR4TYKFWEMSK2KZ6P7XCLABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

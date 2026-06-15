@@ -1,0 +1,35 @@
+## [:< ##
+
+# name = tile.handler.check_playlist_reply
+
+my $reply = shift // {};
+
+my $zenka_name = $reply->{'params'}->{'zenka_name'};
+my $tile_name  = $reply->{'params'}->{'tile_name'};
+
+warn 'unexpected [FALSE] reply from playlist zenka'
+    if $reply->{'cmd'} eq qw| FALSE |;
+
+if ( $reply->{'cmd'} eq qw|SIZE| and $reply->{'call_args'}->{'args'} == 0 ) {
+
+    <[base.log]>->(
+        0, " :  playlist for tile '$tile_name' is empty <-> skipping restart"
+    );
+
+} else {
+
+    <[base.log]>->( 1, " : : tile '$tile_name' does have playlist entries" );
+    <[base.log]>->( 0, " :  restarting zenka '$zenka_name' ..." );
+
+    <[protocol-7.command.send.local]>->(
+        {   'command'   => qw| cube.v7.restart |,
+            'call_args' => { 'args' => $zenka_name }
+        }
+    );
+}
+
+#,,,,,,..,...,.,,,...,..,,,.,,,..,...,.,.,..,,..,,...,...,...,,.,,.,,,,,.,,,.,
+#VJHEWN7CUBS2PAA24OBNKFW2F2ZY34YG5B5OTGUV3HRQ777ASXEW5AIUZFTRPYCDPN3TGTZ7TTM2A
+#\\\|U7GRBKJLV6KRN74MK4OD47ASM7ZJCXDOT46PCFUOFZQ2RAPFYJM \ / AMOS7 \ YOURUM ::
+#\[7]2B6PGT66KABZT4MIW6ALZD7KF4V4UMEYURFE7GA46AGQAGIX74DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

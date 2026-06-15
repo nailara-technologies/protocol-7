@@ -1,0 +1,29 @@
+## [:< ##
+
+# name = tile.tile_activity.change_poll_timer
+
+my $tile_name  = shift;
+my $in_seconds = shift;
+
+<[base.log]>->(
+    2, "inactivity timer interval for '$tile_name' is now ${in_seconds}s"
+);
+
+<tile.timer.poll_tile_color>->{$tile_name}->cancel;
+<tile.timer.poll_tile_color>->{$tile_name} = <[event.add_timer]>->(
+    {   'after'    => $in_seconds,
+        'interval' => $in_seconds,
+        'repeat'   => 1,
+        'handler'  => qw| tile.callback.poll_tile_color |,
+        'data'     => {
+            'tile_name'        => $tile_name,
+            'current_interval' => $in_seconds
+        }
+    }
+);
+
+#,,..,,,.,.,,,,.,,,..,,,,,.,.,,..,.,,,,,,,...,..,,...,...,..,,,..,.,.,..,,,..,
+#FLY3AFHOSJWNBGBAYAC3PC5JQQTGSTAMKXQVZBUAISEPH2KGGLKIH4SQSBO7XWLE3EBBX3GUAIHQE
+#\\\|7CAFFZUYSRURIIO4AXCRVLIS2PCU5O5JHLWU63UFRGUJH2PTALD \ / AMOS7 \ YOURUM ::
+#\[7]GV36VGVWMUDYLCRAEALEJB7E3S7CVCPG4QMVMCIVF2JE7EEGPKCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = tile.cmd.gpu_load_alert
+# param = <secs> <percent>
+# descr = activate GPU load countermeasures
+# todo  = ask web-browser and ticker zenka to slow down ..,
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected <secs> <percent> parameters'
+    }
+    if not defined $call->{'args'}
+    or $call->{'args'} !~ m|^\d+ +\d+(\.\d+)?$|;
+
+my ( $sec, $percent ) = split( / +/, $call->{'args'}, 2 );
+my $perc_str = sprintf( '%.2f', $percent );
+<[base.log]>
+    ->( 1, "<< received GPU load alert [ ${sec}s at $perc_str% ] >>" );
+
+my $restart_delay = 0;
+<tile.counter.gpu_alerts> //= 0;
+if ( !<tile.counter.gpu_alerts> ) {
+    my $warn_txt = "'GPU Load Alert' 'activating countermeasures .,'";
+    <[protocol-7.command.send.local]>->(
+        {   'command'   => "cube.notify.warn",
+            'call_args' => { 'args' => $warn_txt }
+        }
+    );
+    $restart_delay = 3;
+}
+<tile.counter.gpu_alerts>++;
+
+<[tile.gpu_alerts.enable_auto_speed]>;
+
+<[event.add_timer]>->(
+    {   'after'   => $restart_delay,
+        'handler' => 'tile.impressive.increase_light_mode'
+    }
+);
+
+return { 'mode' => qw| true |, 'data' => 'countermeasures activated' }
+
+#,,.,,,,,,,.,,.,,,..,,,,.,.,,,.,.,,.,,...,,,.,..,,...,...,.,.,...,,.,,..,,,..,
+#6DT4MCP6KHCGG6SY4SOCL4BYZKFXPJ53ANEL7U7AR6X4OZI42Z2GHAYK2KZVPGYH66BXGUC7YTXXE
+#\\\|WTGVBGR3HZRQ6NHHG5SBGDRCHUHHRAURAIAPJ4BI6NMCMIZLMEH \ / AMOS7 \ YOURUM ::
+#\[7]3FHXLN2M3B523PXHITWKAHUSO5LYLCXQQV3HBWEEYS4Z36K53EBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

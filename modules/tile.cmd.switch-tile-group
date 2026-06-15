@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = tile.cmd.switch-tile-group
+# param = <name>
+# descr = switch to the specified tile-\window group
+# todo  = actually process the tile switch ['fallback_tile_group'.,]
+
+my $tile_group_name = $call->{'args'};
+
+<tile.transition_queue> //= [];
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected tile group name'
+    }
+    if not defined $tile_group_name or !length($tile_group_name);
+return {
+    'mode' => qw| false |,
+    'data' => "tile group '$tile_group_name' not found."
+    }
+    if not exists <tile.setup.tile>->{$tile_group_name};
+
+if (<tile.transition_in_progress>) {
+    push( @{<tile.transition_queue>}, $tile_group_name );
+    return {
+        'mode' => qw| true |,
+        'data' => 'transition queued..,'
+    };
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => "tile group '$tile_group_name' is already active."
+    }
+    if $tile_group_name eq <tile.current_tile_group>;
+
+<tile.transition_in_progress> = 1;
+
+<[tile.switch-tile-group]>->($tile_group_name);
+
+return {
+    'mode' => qw| true |,
+    'data' => "switching to tile group '$tile_group_name'"
+};
+
+#,,,.,...,..,,.,,,,,.,,,.,,,,,.,.,,.,,..,,.,.,..,,...,...,..,,,.,,,,,,.,,,..,,
+#TO2G24D3HZWBCYDBJUV4V2IDF6K442PPQSCGL2YOCLBMMRAMPIEZEGUDZMJ7X4633V7UW4BE2T6YE
+#\\\|PIYYDMIORZ2OXQMREEWTZ6IM6C66FFDBS3IYUF23H5G7LHSVJ54 \ / AMOS7 \ YOURUM ::
+#\[7]HBFHAXI6I7GGDMSDMYBS2YOM7BZQYSZ3J4QUOVPEXK6GR33LX4BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

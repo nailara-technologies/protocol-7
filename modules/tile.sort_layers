@@ -1,0 +1,21 @@
+## [:< ##
+
+# name = tile.sort_layers
+
+my $reply_id = shift;
+
+<[base.log]>->( 2, "requesting window stacking order.." );
+<[protocol-7.command.send.local]>->(
+    {   'command' => "cube.X-11.get_stack_order",
+        'reply'   => {
+            'params'  => $reply_id,
+            'handler' => 'tile.handler.stack_order_reply'
+        }
+    }
+);
+
+#,,,,,,,,,,,.,..,,,,,,,.,,.,,,..,,.,.,..,,..,,..,,...,..,,..,,,,.,...,,..,..,,
+#MVIDKL54DUANNTRNWOISQHHZBO2XCNUKJSLSOSHLCFDR5H4MWI3K6AFBNR4DQ2YPH47O56LGGWRGA
+#\\\|MZ5C4LKIAM7JZQJYVLKWLDA5OCHWOX4VM2STNJHUZ4QXIZRWN2F \ / AMOS7 \ YOURUM ::
+#\[7]RDIEREKNOELPTZ26RSFDHMGELVGALWCOFH3UPUCMWF4YJMHMUUDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

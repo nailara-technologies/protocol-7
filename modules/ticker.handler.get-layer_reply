@@ -5,10 +5,10 @@
 my $reply = shift;
 
 if ( $reply->{'cmd'} eq qw| TRUE | ) {
-    <ticker.tile-groups.layer> = $reply->{'call_args'}->{'args'};
-    if ( <ticker.tile-groups.layer> == 100 ) {
+    <ticker.tile.layer> = $reply->{'call_args'}->{'args'};
+    if ( <ticker.tile.layer> == 100 ) {
         <[base.log]>->(
-            1, "tile-groups layer == 100 << ! >> [enabling 'force_above']"
+            1, "tile layer == 100 << ! >> [enabling 'force_above']"
         );
         <ticker.window.force_above> = TRUE;
     }
@@ -24,8 +24,8 @@ if ( not <ticker.window.force_above>
 
 <[ticker.open_window]>;
 
-#,,..,...,,,.,.,.,,,,,,,.,..,,,,,,,,,,,,,,.,.,..,,...,...,,,.,.,,,,.,,..,,,.,,
-#S3C3YLAFYJLKMZGTI7TWIWWNYEZOEX3PCXP3OKQQH2LJSQ4KUQC3P6DIOBNB2AXHG5JAQLQ65UUXE
-#\\\|GB3KDX64DFG4NGMNKE6YPHHJJQMG4FKCG2CYUG7XEQQBWFCHO5M \ / AMOS7 \ YOURUM ::
-#\[7]TYM2TWXPYPQOMHEYILFUYTZCZJNHHW5AW5RIH7I7KMEHQ3FCB2CQ 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,,,,,,.,.,.,,..,,,.,.,.,,,,,.,,,..,,...,...,,..,,..,,,,,..,,,,.,
+#H6EOF3QZBF5HX5KCCYZVWA3HWC6ZYL3LCGKB25VEH7YTPWJGYL5AQLQ24V74JRNGFX4ONQCXLNZBI
+#\\\|JOCIC2EL4ORFBLZEAGTDAWLSP2CJG4CWBWRCQM2Y6WMIENSDMX7 \ / AMOS7 \ YOURUM ::
+#\[7]THPYMTV6XLVURGWTRM4LFONLSLM3GW5OSI4IAQ55YTILDQEU3ICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
