@@ -1,0 +1,79 @@
+## [:< ##
+
+# name  = window.place.apply_drag
+# descr = compute + apply drag/resize geometry from root pointer coordinates
+
+## shared by the motion-notify drag branch and the pointer poller, so the   ##
+## active drag never depends on motion-notify events alone - those are       ##
+## unreliable for this undecorated rgba keep-above window under wslg/xwayland ##
+## [ the same reason the hover path is poll-driven ]. given a root-relative   ##
+## pointer position it derives the delta from the drag-start anchor, applies  ##
+## the region's move/resize, clamps, then sets the damp target + x11 state.   ##
+
+my ( $root_x, $root_y ) = @ARG;
+
+return undef if not <window.place.drag.active>;
+
+my $region  = <window.place.drag.region>;
+my $start_x = <window.place.drag.start_x>;
+my $start_y = <window.place.drag.start_y>;
+my $geom    = <window.place.drag.start_geom>;
+
+return undef
+    if not defined $region
+    or not defined $start_x
+    or not defined $start_y
+    or not defined $geom;
+
+my $dx = $root_x - $start_x;
+my $dy = $root_y - $start_y;
+
+my $x = $geom->{'x'};
+my $y = $geom->{'y'};
+my $w = $geom->{'width'};
+my $h = $geom->{'height'};
+
+if ( $region eq 'body' ) {
+    $x += $dx;
+    $y += $dy;
+} else {
+    if ( $region =~ m|e| ) {
+        $w += $dx;
+    }
+    if ( $region =~ m|w| ) {
+        $w -= $dx;
+        $x += $dx;
+    }
+    if ( $region =~ m|s| ) {
+        $h += $dy;
+    }
+    if ( $region =~ m|n| ) {
+        $h -= $dy;
+        $y += $dy;
+    }
+}
+
+## clamp ##
+$w = 32 if $w < 32;
+$h = 32 if $h < 32;
+
+my $new_geom = {
+    'x'      => $x,
+    'y'      => $y,
+    'width'  => $w,
+    'height' => $h
+};
+
+## write the target into x11 state at once so the readout / commit       ##
+## reflect the precise intended geometry, then let the damp tick ease the ##
+## on-screen window toward it [ coalesces rapid motion to the 50ms tick ] ##
+<[window.place.damp.set_target]>->($new_geom);
+<[window.place.update_x11_state]>->($new_geom);
+
+return TRUE;
+
+#,,..,.,.,,,,,..,,,..,...,,,.,,,,,,,.,,.,,,.,,..,,...,...,.,.,,,,,,,,,.,.,,.,,
+#X5SLJV5R5CL7ML6RX2BDVB52GZ6J5Q7GWPEQBZXEDD3ESLBVTLBW3SIOD3CZ3HQ4MUPQJ47FGPBJQ
+#\\\|BMVSP2BSJOLTVOL44FVVFN3MEMSX4KITHCEGTLTP26LZNAVCIL2 \ / AMOS7 \ YOURUM ::
+#\[7]PQLCGXMSXQLXPVDX3NNCW4ZCBIDKCPH63A7PTJZ5W6KT5HUR4KCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

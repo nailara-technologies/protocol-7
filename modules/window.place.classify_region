@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = window.place.classify_region
+# descr = map an x/y point inside the window to a drag/resize region
+
+my ( $ex, $ey ) = @ARG;
+
+my $w = <x11.window.width>  // 320;
+my $h = <x11.window.height> // 240;
+
+## hit-zone widths [ corner matches the 16px bracket arm in draw ] ##
+my $corner = 16;
+my $edge   = 8;
+
+my $region = 'body';
+
+if ( $ex < $corner and $ey < $corner ) {
+    $region = 'nw';
+} elsif ( $ex > $w - $corner and $ey < $corner ) {
+    $region = 'ne';
+} elsif ( $ex < $corner and $ey > $h - $corner ) {
+    $region = 'sw';
+} elsif ( $ex > $w - $corner and $ey > $h - $corner ) {
+    $region = 'se';
+} elsif ( $ey < $edge ) {
+    $region = 'n';
+} elsif ( $ey > $h - $edge ) {
+    $region = 's';
+} elsif ( $ex < $edge ) {
+    $region = 'w';
+} elsif ( $ex > $w - $edge ) {
+    $region = 'e';
+}
+
+return $region;
+
+#,,,.,.,.,.,,,.,.,.,.,.,,,,.,,.,,,,.,,..,,..,,..,,...,...,...,,..,.,.,.,,,,.,,
+#BPBYYMAW4IE3DKJYCGCOOPEVEMTVA3U2JG76HFVCPMIKQF2O4VTHIO6HOEGJM7OZFVWDPYACS5L4K
+#\\\|24GAAW6LJ36LP3UERDZYVEGOAKTNXQMVXHFETIDTN3SCWN3RORX \ / AMOS7 \ YOURUM ::
+#\[7]OYZYJ7FGFKCQD2GDZZOIDQ7BY53CZLQ7RUYERHFP6BU4VJN272AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
