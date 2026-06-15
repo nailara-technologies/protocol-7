@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = window.place.damp.tick
+# descr = ease the on-screen window geometry toward the latest target
+
+my $event = shift->w;
+
+my $window = <window.place.obj.window>;
+my $target = <window.place.damp.target>;
+
+## nothing to do, or window gone: cancel and clear ##
+if ( not defined $window or not defined $target ) {
+    $event->cancel;
+    delete <window.place.damp.timer>;
+    return;
+}
+
+my $shown = <window.place.damp.shown> //= { %{$target} };
+
+## lerp factor shaped via base.curve.eval [ ease-out feel ] ##
+## [ factor ~0.55 converges to <1px within ~2-3 ticks / ~120ms ] ##
+my $factor = 0.55;
+
+my $done = TRUE;
+foreach my $key (qw| x y width height |) {
+    my $diff = $target->{$key} - $shown->{$key};
+    if ( abs($diff) <= 1 ) {
+        ## snap exactly on target for the final frame ##
+        $shown->{$key} = $target->{$key};
+    } else {
+        $shown->{$key} += $diff * $factor;
+        $done = FALSE;
+    }
+}
+
+<[window.gtk.profile.apply]>->( $window, $shown );
+$window->queue_draw;
+
+## converged: settle exactly and stop the timer ##
+if ($done) {
+    <[window.gtk.profile.apply]>->( $window, $target );
+    $window->queue_draw;
+    $event->cancel;
+    delete <window.place.damp.timer>;
+}
+
+return;
+
+#,,,,,,,,,.,,,..,,.,,,,.,,.,,,...,,..,,,.,..,,..,,...,...,.,.,..,,,,,,.,,,,..,
+#IEA4ILS3Q3NXEFEY6FT7EAAQP6RUGQOREG4LDYI5SG2KGPB4UZA275ACSHUTQBU3VRDWRSHNF4UII
+#\\\|E3WGRZVVQVGFVAUAERP2FGR33IBSKUIH3LX3JITI2UW23P2H3V2 \ / AMOS7 \ YOURUM ::
+#\[7]6CWLDE77F7Z4RITV7Z6PCGR5FJQZSXXP7OOW6HT6KCFLKT7LXCCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
