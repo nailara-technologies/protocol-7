@@ -56,19 +56,26 @@ $data{window}{place}{instances}{$id} = {
     $id, $caller, $profile
 );
 
-## use screen geometry from x11.geometry ##
-my $screen_geom;
-my $geom_str = <x11.geometry> // '1920x1080+0+0';
-if ( $geom_str =~ m|^\s*(\d+)\s*x\s*(\d+)| ) {
-    $screen_geom = { 'width' => $1, 'height' => $2 };
-} else {
-    $screen_geom = { 'width' => 1920, 'height' => 1080 };
+## prefer the geometry of the monitor under the pointer [ multi-monitor ##
+## setups otherwise compute percentages against the full virtual       ##
+## screen bounding box, which is far larger than any single display ]  ##
+my $screen_geom = <[window.gtk.get_pointer_monitor_geometry]>->();
+
+if ( not defined $screen_geom ) {
+    my $geom_str = <x11.geometry> // '1920x1080+0+0';
+    if ( $geom_str =~ m|^\s*(\d+)\s*x\s*(\d+)| ) {
+        $screen_geom = { 'width' => $1, 'height' => $2 };
+    } else {
+        $screen_geom = { 'width' => 1920, 'height' => 1080 };
+    }
 }
 
 my $geo = <[window.profile.calculate]>->(
     {   profile  => $profile,
         fallback => $fallback_profile,
         caller   => $caller,
+        screen_x => $screen_geom->{'x'} // 0,
+        screen_y => $screen_geom->{'y'} // 0,
         screen_w => $screen_geom->{'width'},
         screen_h => $screen_geom->{'height'}
     }
@@ -89,8 +96,8 @@ my $geo = <[window.profile.calculate]>->(
 
 return { 'mode' => qw| deferred | };
 
-#,,,,,.,.,...,...,,,.,.,.,.,,,,.,,.,,,,.,,...,.,.,...,..,,..,,.,.,,.,,...,...,
-#RP3XYRUD7CNIBKVT474YOTRFRD55X3JCKHUEH3BTLNXCQD4PE5RTGQWFEMD6OW6KPJDTPYJJ3QLWG
-#\\\|H4Y3MWJH3G62KCK4BIDJX5ODLUYQOPIZOSOCAK4ZVRZKZOFMREN \ / AMOS7 \ YOURUM ::
-#\[7]H2T5C4QK5AQBH5FNX6TEFR22D3E6DPZ2SR3KKCGSPBWLDOO2CADQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,,,,,,,,.,.,,..,.,.,,..,.,.,..,,.,.,...,...,..,,,..,,,.,...,,,.,
+#BOGXPJN2WU35LVRA3MU2OF5Q2PX3CG46LEACB65JU75CQYKY6PLXHPS6BUBAZXYZXOW4MDYTDWY4A
+#\\\|I5DMRM7E4X2T36IJMKSTTDEI5OVYORG7C3YP3NJS37FRMG6RTQD \ / AMOS7 \ YOURUM ::
+#\[7]XMNVO3IQQOMD76EGV2FEF4UQKDEKLOZYHOSLGWU5OCODHPPR7YDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

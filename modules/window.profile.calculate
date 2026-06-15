@@ -8,6 +8,8 @@ my $args = shift // {};
 my $profile  = $args->{'profile'}  // 'bottom-strip';
 my $screen_w = $args->{'screen_w'} // 1920;
 my $screen_h = $args->{'screen_h'} // 1080;
+my $screen_x = $args->{'screen_x'} // 0;
+my $screen_y = $args->{'screen_y'} // 0;
 my $caller   = $args->{'caller'}   // '';
 
 my $zenka_name = <system.zenka.name> // '';
@@ -19,7 +21,7 @@ my %profiles = (
     'top-strip'    => { x => 0,  y => 0,  w => 100, h => 5 },
     'bottom-right' => { x => 75, y => 90, w => 25,  h => 8 },
     'top-right'    => { x => 75, y => 0,  w => 25,  h => 8 },
-    'center'       => { x => 25, y => 25, w => 50,  h => 50 },
+    'center'       => { x => 25, y => 25, w => 70,  h => 70 },
 );
 
 my ( $x, $y, $width, $height, $anchor );
@@ -35,9 +37,9 @@ if ( $profile eq 'saved' ) {
         my $height    = $saved->{'height'} // $default_h;
         return {
             'x' => $saved->{'x'}
-                // sprintf( '%.0f', ( $screen_w - $width ) / 2 ),
+                // sprintf( '%.0f', $screen_x + ( $screen_w - $width ) / 2 ),
             'y' => $saved->{'y'}
-                // sprintf( '%.0f', ( $screen_h - $height ) / 2 ),
+                // sprintf( '%.0f', $screen_y + ( $screen_h - $height ) / 2 ),
             'width'   => $width,
             'height'  => $height,
             'profile' => 'saved'
@@ -123,15 +125,15 @@ if ( $anchor eq 'top-left' ) {
 }
 
 return {
-    'x'       => $x,
-    'y'       => $y,
+    'x'       => sprintf( '%.0f', $screen_x + $x ),
+    'y'       => sprintf( '%.0f', $screen_y + $y ),
     'width'   => $width,
     'height'  => $height,
     'profile' => $profile
 };
 
-#,,..,,,.,.,.,,,,,...,,.,,,,,,,..,,,.,,..,,,.,..,,...,...,..,,,,,,.,.,,..,.,.,
-#FAR6JUFMBVCOYWV4OWRJB37TU5DUTHLLUIK4CZF2WJFAAPCNUYHNVJEZSVTFRXDZ2C47G4CRQ3IL4
-#\\\|SLK5W5VR7P7K4XHQO44Y7XOD5XZR2SIJO4CSPOZD72LYX7KPTWD \ / AMOS7 \ YOURUM ::
-#\[7]6DXDKNSY57POAPGJYXSZQU2KGN4R6BIUAWA2AQLIJYIS6QM442AI 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,,,,,.,,,,,,.,,,,,,,,..,..,,,.,,..,,...,...,,.,,,,,,.,.,,.,,...,
+#3ASF5VOSBYW42IWVNRWBTKXYC4CWLXULAERFQWXJ7X6L2G4MU2BTTXXCO2DBDJTTI2662OM3TXNTG
+#\\\|BQ4XTCQMYFMIW3WZAS6TACV764N2QDA37RDUZOGQPNG2LW4LWOD \ / AMOS7 \ YOURUM ::
+#\[7]AOGRPHQTWRMAIUIXJS3UROMLTTAAZSQUFQ5JZJBOQ2QKP45VKIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
