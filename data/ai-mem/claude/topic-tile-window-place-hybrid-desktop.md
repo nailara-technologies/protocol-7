@@ -55,13 +55,43 @@ object triggered it. Once this lands:
   startup time
 - this is the concrete unlock for the tile-hybrid-relay vision above
 
-**Status:** design captured, multi-window refactor dispatched to kimi
-2026-06-15 (see kimi task / commit history for outcome). Tile hybrid
-relay and minimal-desktop/kiosk-mode work are NOT yet scoped further —
-revisit once multi-window lands.
+**Status — multi-window refactor LANDED 2026-06-15** (commits 82e65f2d6
+tile rename, 9c899f360 multi-window state/Event.pm fixes, 68dec757b
+resident-after-commit/cancel + multi-monitor sizing; all pushed). Kimi's
+keyed `data{window}{place}{instances}{$id}` refactor was structurally
+right but had two Event.pm bugs (watcher accessor order, `->cancel` vs
+`->stop`) - fixed by taeki. Verified live: two simultaneous placements
+(mpv + nshell callers) opened independently, each draggable/committable
+on its own.
 
-#,,,.,,.,,,,,,..,,,..,..,,,,,,.,.,.,,,,,.,,..,..,,...,...,...,,..,,..,..,,.,,,
-#GJ4UOHR5HILZODDKYSFF24P6RNAEJJIJ4DABRNHRFEU7AMV2XPHLKPFTP4HIMSYMZ4X76KRHHPYOO
-#\\\|N4HIDR66ENUX3SQUFF5CNIX5POJGNG7AROTLI5GFZ3PU45VJVUW \ / AMOS7 \ YOURUM ::
-#\[7]OCGGFKVNTDPOA6X26KR4RCUTMFMXA6NPNSSAK3NPPQ6Y4OJNGYAA 7  DATA SIGNATURE ::
+Follow-up fixes landed in the same pass:
+- removed legacy self-`Gtk3->main_quit`+exit-on-empty-instances from
+  `window.place.commit`/`cancel` - zenka now stays resident (on-demand +
+  heartbeat per [[ondemand-heartbeat-upgrade]]), so subsequent placements
+  open instantly with no startup cost
+- `window.profile.calculate`: 'center' fallback profile now 70%/70%
+  (was 50%/50%); 'saved' profile's no-size-hint fallback also defaults to
+  70% centered (was 100%)
+- multi-monitor fix: `window.place.start` now uses
+  `window.gtk.get_pointer_monitor_geometry` (monitor under pointer) for
+  screen_w/h/x/y instead of the full virtual-screen bounding box, and
+  `window.profile.calculate` applies that monitor's x/y offset to the
+  final position - previously windows could be sized for one monitor but
+  positioned on another
+
+**Open follow-up (not yet addressed):** taeki noted commit/cancel
+currently act on "all" rather than a specific instance in some path
+during the crash-induced two-window-closed-together observation - revisit
+whether an optional dismiss-target-id param (ticker.dismiss-style) is
+still needed now that instances are properly keyed; may already be moot
+since cancel/commit already take `$id`.
+
+**Next:** tile-hybrid-relay implementation (tile calls out to window-place
+when no configured placement hints exist) and minimal-desktop/kiosk-mode
+work can now proceed - no longer blocked.
+
+#,,,.,,..,.,,,...,,..,.,.,,.,,,,.,,..,.,.,...,..,,...,...,..,,.,.,,..,,,,,,..,
+#4AVLAHCRB5A3J45ULG2XVA2ICIZ4XKHOZMUCO4YT2472UR7GFHBWPNAATS4RNGZXYJVTIPYH6GNL4
+#\\\|GVRMFVXVYBXOKUORIRVIUCWOH4BGHPJFOLA2KXMVWG56Z3EAZFX \ / AMOS7 \ YOURUM ::
+#\[7]LF3YEPTWNBK4EW6O3INYZJLMMUPQ7F5PJ2JK5EPAG4TAQQDW5MAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

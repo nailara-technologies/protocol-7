@@ -22,9 +22,9 @@
 - [config reload clobber](feedback-config-reload-clobber.md) — placeholder `key=val` in start config gets re-applied by `reload config/all`, silently overwriting runtime-resolved values; debug via on-disk zenka log not ring buffer
 
 ## Active Topics
-- [zenka-naming-cleanup](topic-zenka-naming-cleanup.md) — cred-mesh + window-place renames landed; pattern for spotting/fixing more underscore/dotted zenka names; tile-groups->tile in progress 2026-06-15
+- [zenka-naming-cleanup](topic-zenka-naming-cleanup.md) — cred-mesh + window-place renames landed; pattern for spotting/fixing more underscore/dotted zenka names; tile-groups->tile LANDED 2026-06-15 (82e65f2d6); command-name cleanup pass LANDED (switch-group, reset-group, base-group, show-groups, count)
 - [ondemand-heartbeat-upgrade](topic-ondemand-heartbeat-upgrade.md) — tile set up on-demand+heartbeat-enabled+no-timeout as test case; two v7 follow-ups identified (exclude heartbeats from idle timer; pre-exit termination notification)
-- [tile-window-place-hybrid-desktop](topic-tile-window-place-hybrid-desktop.md) — roadmap: tile as dynamic placement relay, minimal-desktop->menu->kiosk; blocked on window-place multi-window refactor (dispatched to kimi 2026-06-15)
+- [tile-window-place-hybrid-desktop](topic-tile-window-place-hybrid-desktop.md) — window-place multi-window UNBLOCKED & landed 2026-06-15 (9c899f360, 68dec757b); resident after commit/cancel, 70% centering, multi-monitor fix; tile-as-relay next
 - [cube-tree-dashboard](topic-cube-tree-dashboard.md) — planned ascii tree-view dashboard: per-zenka command/state trees, capability interrogation, push-registry watcher cache, zoom/crop
 - [ascii-minimap](topic-ascii-minimap.md) — planned btop2-style ascii minimap: proportional density bars, anti-aliased gaps, glow color, spotlight, placeholder-template borders
 - [dot-path-case-notation](topic-dot-path-case-notation.md) — uppercase=path level, lowercase-run=dotted key; %DATA/%CODE meta-namespace idea; design doc written
@@ -160,8 +160,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,.,,,,,,,,.,,.,,,,,,,,.,.,.,...,...,,.,,.,,,..,,...,...,,.,,,..,...,..,,...,
-#XUGFXOMDFPNVRV4LR4GXYIS3IVLA5A3BFW22ZRTYATMABNRCG33F2ACMVB5BS4JNIVFSUPGXPHDRM
-#\\\|AA3QWUGXEFJIV3V2UZVEEM7G53XXPBD6A656JGBT7ROXKZG3WY2 \ / AMOS7 \ YOURUM ::
-#\[7]4XWIPIIY6RA7MOKKDHXHBUDH3HTCUZ2DDSYW6Q57FKMAOJMUN2AI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,...,,.,,,.,,..,,..,,,,,,.,.,..,,..,,...,...,..,,,.,,.,,,,,,,..,,
+#GBA4XLCBSMYVWA7WRCKBE4UGNOLXI76S223XXS2JY3YVTGUBQHW6JMTXXAO45E4AGL4YJ4ZSEJWJI
+#\\\|2OZL77JE6NT6VBK4EC33OGVLBQTBS35C2MGMPV4BTUPMPWY7WD5 \ / AMOS7 \ YOURUM ::
+#\[7]ITRQEAJS5M5DBJFUZVKHJI27U45TMMURJFHE4E2LIZF4VFVCNGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
