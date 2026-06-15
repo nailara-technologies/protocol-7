@@ -752,3 +752,177 @@ per-scenario assertion counts from the run:
 #\\\|NKCAG4COQF2E3PBQBUAB46ZUGBZCYC7ADXIF4G3CFELD27PUT4K \ / AMOS7 \ YOURUM ::
 #\[7]J7UYWO4FKARSTEXG7AUKW5TSLERQDWWFBD2TSETMHHRLWGLXV4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+---
+
+## follow-up pass — 2026-06-15 (commit `20012341c`, post-restart)
+
+verifier: kimi (harness-only / docs-only, no zenka module edits)
+context: user reported proxy/cred-mesh had been restarted and commit `20012341c`
+(containing the `key_holder.parent` s_warn arity fix and the `site-yaml.fetch`
+grant) was already applied. on starting this pass, `proxy.src-age` and
+`cred-mesh.src-age` both showed ~2h 29m, indicating the running instances were
+started *before* `20012341c`. to test the committed code rather than stale
+binaries, both zenki were stopped and restarted (`p7c v7.stop/start proxy`
+and `cred-mesh`) at the beginning of this pass. transport was left running.
+
+### harness re-run result
+
+```
+cd /data/projects/protocol-7
+./bin/dev/cred-mesh-test --verbose
+
+[ summary ]
+  scenarios run : 5
+  assertions passed : 10
+  assertions failed : 11
+```
+
+comparison to the user's reported previous run of **8 passed / 17 failed**:
+**+2 passes, -6 fails**. the absolute assertion count dropped from 25 to 21
+because scenario 4 still times out before completing its later checks.
+
+per-scenario assertion counts from the restarted run:
+
+| scenario | pass | fail | notes |
+|----------|------|------|-------|
+| 1 direct-tcp api-key | 3 | 2 | proxy now returns 200 and echoes body, but `x-api-key` header is not injected (slot value never stored due to key_holder timeout) |
+| 2 hysteria bearer | 2 | 3 | `transport.eval-code` still denied; handle never returned |
+| 3 transport degrade/promote | 0 | 2 | `transport.eval-code` still denied |
+| 4 rotation invalidation | 2 | 4 | `cred-mesh.rotate` returns `failed to store rotated credential`; `wait_for_log` times out; no cache-flush logs observed |
+| 5 auth relay console | 3 | 2 | relay pending file empty (`storage failed`); final proxy request returns 502 HTML for unresolvable `auth-relay-test.local` |
+
+### status of previously-identified bugs after restart
+
+1. **F1 — `no perm. [ src 'proxy' cmd|usr 'credential_fabric.resolve' ]`** — **RESOLVED.**
+   After restarting proxy with the current commit's code, the v7 console log
+   no longer contains any `credential_fabric.resolve` access denials. proxy
+   now sends `cred-mesh.resolve` and cube accepts it. the remaining scenario 1
+   header-injection failure is downstream of F3 (the slot value is never
+   stored), not an access denial.
+
+2. **F3 — `cred-mesh.key_holder.parent` timeout / "key_holder is not ready"** — **NOT RESOLVED.**
+   The committed fix changed the warning text but did not fix the underlying
+   failure. `cred-mesh.key_holder.parent:76` now logs:
+   ```
+   : warn : redundant base.s_warn argument
+   :.    .: [cred-mesh.key_holder.parent:76]
+   ```
+   instead of the previous `sprintf parameter expected`. this confirms the
+   running code picked up commit `20012341c`, but the format string
+   `'key_holder.parent: timeout waiting for child response <{C1}>'` has no
+   `%s` placeholder to consume the added second argument (`''`). the deeper
+   problem remains: the key_holder child forks (pid visible in `ps` and in the
+   log) but does not respond on the socketpair, so every `ENCRYPT`/`DECRYPT`
+   call times out after 7s. every `cred-mesh.rotate` still returns
+   `failed to store rotated credential`; `cred-mesh.approve` returns
+   `storage failed`.
+
+3. **proxy passthrough-vs-site-yaml routing (scenarios 1/4/5)** — **PARTIALLY IMPROVED.**
+   - scenario 1 now gets HTTP 200 through the proxy (was 500), and the echo
+     body is parsed successfully. header injection is the only remaining
+     failure, caused by F3.
+   - scenario 4 proxy requests complete, but the rotated value is never stored
+     (F3), so the after-rotation header assertion fails.
+   - scenario 5's retry request still fails with
+     `proxy.outbound.connect_or_use: direct tcp to auth-relay-test.local:80 failed: Invalid argument`,
+     returning a 502 Bad Gateway HTML body that crashes the YAML parser in
+     `scenario-5-auth-relay-console.pl:72`.
+
+### new / updated findings
+
+#### F6. `cred-mesh.key_holder.parent:76` s_warn fix is incomplete
+
+- **location / error:**
+  - `modules/cred-mesh.key_holder.parent:76-78`
+  - v7 log:
+    ```
+    : warn : redundant base.s_warn argument
+    :.    .: [cred-mesh.key_holder.parent:76]
+    ```
+- **root cause:** `base.s_warn` requires at least two arguments
+  (`return warn 'sprintf parameter expected <{C1}>' if @ARG < 2`). commit
+  `20012341c` added the missing second argument (`''`) but did not add a
+  matching `%s` placeholder to the format string. `sprintf` therefore warns
+  about the redundant argument.
+- **fix:** change the format string to
+  `'key_holder.parent: timeout waiting for child response %s'` so the empty
+  string is consumed, or restructure the call to avoid passing an unused
+  argument.
+- **repro:** start cred-mesh, trigger any `cred-mesh.rotate` call, watch
+  `/dev/shm/.7/STDOUT/NIW7OAQ` for the redundant-argument warning.
+
+#### F7. key_holder child forks but never responds on the socketpair
+
+- **location / error:**
+  - `modules/cred-mesh.key_holder.parent:52-80`
+  - `modules/cred-mesh.key_holder.child:61-102`
+  - `modules/cred-mesh.util.key_holder.start_child:6-35`
+- **impact:** all encrypted storage operations (`rotate`, `approve`, and any
+  local-storage write) fail. this is the actual blocker behind scenario 1's
+  missing header, scenario 4's rotation failure, and scenario 5's
+  `storage failed`.
+- **observed state:**
+  - `cred-mesh.key_holder.start_child` forks a child (e.g. pid 301960).
+  - the child process exists, is a direct child of cred-mesh, runs as root,
+    and is in state `S (sleeping)`.
+  - `cred-mesh.key_holder.parent` times out after 7 seconds waiting for a
+    response and returns `undef`.
+  - no "failed to write to child pipe" warning is emitted, so the parent
+    believes it wrote the request.
+- **possible causes to investigate:**
+  1. `start_child` calls `socketpair(..., AF_UNIX(), SOCK_STREAM(), PF_UNSPEC())`
+     without `use Socket;`. the intermittent historical error
+     `undefined subroutine &main::AF_UNIX called` suggests the constants are
+     not always loaded when the module is first invoked.
+  2. the parent uses unbuffered `syswrite`/`sysread` while the child uses
+     buffered `<$pipe>`/`print {$pipe}`; a mismatched filehandle or
+     buffering/descriptor issue could leave the child blocked on read.
+  3. the child may be stuck in `IO::AIO::reinit`, key generation, or
+     `IO::AIO::aio_mlock` before it reaches the read loop.
+- **repro:** `p7c cred-mesh.eval-code '$code{"cred-mesh.key_holder.parent"}->("ENCRYPT","test-slot","test-data")'` returns `undef` after ~7s and the redundant-argument warning appears in the log.
+
+#### F8. `transport.eval-code` still denied for the console user
+
+- **location / error:**
+  - `configuration/zenki/transport/access.zenki` / `configuration/zenki/cube/access.zenki`
+  - v7 log:
+    ```
+    :. tr.,.rt :  [7023317] no perm. [ src 'cube' cmd|usr 'eval-code' ]
+    ```
+- **impact:** scenarios 2 and 3 remain blocked; the transport zenka cannot be
+  introspected or driven through the harness.
+- **repro:** `p7c transport.eval-code 'return 42'` returns a permission
+  refusal while `p7c cred-mesh.eval-code 'return 42'` succeeds.
+
+#### F9. scenario 5 crashes on 502 Bad Gateway HTML body
+
+- **location / error:**
+  - `bin/dev/cred-mesh-test.d/scenario-5-auth-relay-console.pl:72`
+  - v7 log:
+    ```
+    proxy.outbound.connect_or_use: direct tcp to auth-relay-test.local:80 failed: Invalid argument
+    ```
+- **impact:** after `cred-mesh.approve`, the harness retries the request
+  through the proxy and receives a 502 HTML string instead of a YAML/hash
+  response, causing a fatal `Can't use string as HASH ref` crash.
+- **note:** this is partly expected for an unresolvable test domain, but the
+  harness should defensively handle non-YAML/502 responses rather than crash.
+
+### updated prioritized fix list
+
+| # | issue | priority | blocks |
+|---|-------|----------|--------|
+| 1 | fix key_holder child socketpair / response timeout so `ENCRYPT`/`DECRYPT`/`SIGN` work | **p0** | all rotate/approve/storage; scenarios 1, 4, 5 |
+| 2 | correct `cred-mesh.key_holder.parent:76` `base.s_warn` format string (`%s` placeholder) | **p1** | log noise / same bug class as F3 |
+| 3 | enable `transport.eval-code` for the console/harness user | **p0** | scenarios 2, 3 |
+| 4 | make scenario 5 harness resilient to 502 HTML responses | **p2** | scenario 5 crash |
+| 5 | tighten harness seed assertions so "failed to store rotated credential" is reported as a failure (retained from prior pass) | **p1** | test signal quality |
+
+---
+
+#,,,.,..,,...,.,,,..,,,.,,...,,,,,,..,.,,,,.,,.,.,...,...,.,.,.,,,,,.,,,.,.,.,
+#65DVZ57QPXGJ65YACIZARTDYD7A3PRZVPAN3VWFULVGHXPBZ62ZYYTDNW43LOU6KYUGHLXTVLQY4E
+#\\\|DLIVVFHM5WVZGH2DKJFCRSULI5TRDADNJ2HFAN4WBSM7JMWI27I \ / AMOS7 \ YOURUM ::
+#\[7]AUYJS2JTZVKV2GX674FPXEQHR4RN6NUY2IEM5PNNPELTPFDULMBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
