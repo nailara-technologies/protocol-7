@@ -1,9 +1,18 @@
 ## [:< ##
 
 # name  = window.place.open_window
-# descr = create and run the interactive placement window
+# descr = create and run an interactive placement window instance
 
-my $geometry = shift // {};
+my $params   = shift // {};
+my $id       = $params->{'id'};
+my $geometry = $params->{'geometry'} // {};
+
+if ( not defined $id or not exists $data{window}{place}{instances}{$id} ) {
+    <[base.log]>->( 0, '[place.open_window] missing or unknown instance id' );
+    return undef;
+}
+
+my $inst = $data{window}{place}{instances}{$id};
 
 $ENV{'DISPLAY'}     = <x11.display>;
 $ENV{'GDK_BACKEND'} = 'x11';           ## force XWayland under WSL|Wayland ##
@@ -22,6 +31,10 @@ $ENV{'XCURSOR_SIZE'} = '24';    ## force a sane size over any huge default ##
 <[base.perlmod.autoload]>->('Gtk3');
 <[base.perlmod.autoload]>->('Cairo');
 <[base.perlmod.autoload]>->('Glib');
+
+## one-time global Gtk3 initialization [ idempotent in Gtk, cheap guard ] ##
+Gtk3->init if not <window.place.gtk.inited>;
+<window.place.gtk.inited> = TRUE;
 
 ## custom display font [ white-rabbit ] : try once, cache the face, fall  ##
 ## back to the cairo toy font api if anything in the load chain fails.    ##
@@ -45,21 +58,28 @@ if ( not exists <window.place.font.face> ) {
     }
 }
 
-Gtk3->init;
+my $window = Gtk3::Window->new('toplevel');
+$inst->{'window'} = $window;
 
-my $window = <window.place.obj.window> = Gtk3::Window->new('toplevel');
-
-$window->signal_connect( delete_event => sub {<[window.place.cancel]>} );
+$window->signal_connect(
+    delete_event => sub {
+        eval { <[window.place.cancel]>->($id) };
+        if ( length $EVAL_ERROR ) {
+            <[base.log]>->( 0, <[base.str.eval_error]>->(1) );
+        }
+        return TRUE;
+    }
+);
 
 $window->set_decorated(0);
 $window->set_keep_above(1);
 $window->set_app_paintable(1);
 $window->set_accept_focus(1);
 $window->set_focus_on_map(1);
-$window->set_title('window.place');
+$window->set_title( 'window.place [' . ( $inst->{'caller'} // '' ) . ']' );
 
 ## apply initial geometry ##
-<[window.place.apply_geometry]>->( $window, $geometry );
+<[window.place.apply_geometry]>->( $id, $window, $geometry );
 
 ## RGBA visual ##
 my $screen = $window->get_screen;
@@ -78,10 +98,10 @@ $window->add_events(
     ]
 );
 
-## connect signals ##
+## connect signals, closing over this instance's $id ##
 $window->signal_connect(
     draw => sub {
-        eval { <[window.place.handler.draw]>->(@ARG) };
+        eval { <[window.place.handler.draw]>->( $id, @ARG ) };
         if ( length $EVAL_ERROR ) {
             <[base.log]>->( 0, <[base.str.eval_error]>->(1) );
         }
@@ -91,7 +111,7 @@ $window->signal_connect(
 
 $window->signal_connect(
     'button-press-event' => sub {
-        eval { <[window.place.handler.button_press]>->(@ARG) };
+        eval { <[window.place.handler.button_press]>->( $id, @ARG ) };
         if ( length $EVAL_ERROR ) {
             <[base.log]>->( 0, <[base.str.eval_error]>->(1) );
         }
@@ -101,7 +121,7 @@ $window->signal_connect(
 
 $window->signal_connect(
     'button-release-event' => sub {
-        eval { <[window.place.handler.button_release]>->(@ARG) };
+        eval { <[window.place.handler.button_release]>->( $id, @ARG ) };
         if ( length $EVAL_ERROR ) {
             <[base.log]>->( 0, <[base.str.eval_error]>->(1) );
         }
@@ -111,7 +131,7 @@ $window->signal_connect(
 
 $window->signal_connect(
     'motion-notify-event' => sub {
-        eval { <[window.place.handler.motion]>->(@ARG) };
+        eval { <[window.place.handler.motion]>->( $id, @ARG ) };
         if ( length $EVAL_ERROR ) {
             <[base.log]>->( 0, <[base.str.eval_error]>->(1) );
         }
@@ -124,7 +144,7 @@ $window->signal_connect(
 ## click. delegates to the non-drag branch of the motion handler.     ##
 $window->signal_connect(
     'enter-notify-event' => sub {
-        eval { <[window.place.handler.motion]>->(@ARG) };
+        eval { <[window.place.handler.motion]>->( $id, @ARG ) };
         if ( length $EVAL_ERROR ) {
             <[base.log]>->( 0, <[base.str.eval_error]>->(1) );
         }
@@ -134,7 +154,7 @@ $window->signal_connect(
 
 $window->signal_connect(
     'key-press-event' => sub {
-        my $ret = eval { <[window.place.handler.key_press]>->(@ARG) };
+        my $ret = eval { <[window.place.handler.key_press]>->( $id, @ARG ) };
         if ( length $EVAL_ERROR ) {
             <[base.log]>->( 0, <[base.str.eval_error]>->(1) );
         }
@@ -144,7 +164,7 @@ $window->signal_connect(
 
 $window->signal_connect(
     'scroll-event' => sub {
-        eval { <[window.place.handler.scroll]>->(@ARG) };
+        eval { <[window.place.handler.scroll]>->( $id, @ARG ) };
         if ( length $EVAL_ERROR ) {
             <[base.log]>->( 0, <[base.str.eval_error]>->(1) );
         }
@@ -183,24 +203,30 @@ $window->show_all;
 ## while not dragging, mirroring ticker.handler.check_pointer; while a drag ##
 ## is active it drives the drag geometry too, so the first drag works even  ##
 ## before motion-notify delivery primes [ see handler.poll_pointer ].       ##
-<window.place.poll.timer> = <[event.add_timer]>->(
+$inst->{'poll'}{'timer'} = <[event.add_timer]>->(
     {   after    => 0,
         interval => 0.05,
         repeat   => TRUE,
         handler  => qw| window.place.handler.poll_pointer |,
+        data     => $id,
     }
 );
 
-<[base.log]>->( 1, '[place.open_window] window shown, entering main loop' );
+<[base.logs]>->( 1, '[place.open_window] id=%s window shown', $id );
 
-<[base.gtk.main_loop]>;
-
-<[base.log]>->( 1, '[place.open_window] left main loop' );
+## run the shared Gtk3 main loop only once; further instances open while   ##
+## the loop is already pumping [ Glib::Event integrates Event watchers ].   ##
+if ( not <window.place.gtk.main_running> ) {
+    <window.place.gtk.main_running> = TRUE;
+    <[base.log]>->( 1, '[place.open_window] entering Gtk3 main loop' );
+    Gtk3->main;
+    <[base.log]>->( 1, '[place.open_window] left Gtk3 main loop' );
+}
 
 0;
 
-#,,,,,..,,..,,..,,,,.,,,,,,,.,,..,,.,,..,,.,,,.,.,...,..,,..,,,,.,..,,.,,,...,
-#K6OIFS2FHCBJZARRGMNZKC5CTLPSBZX5M6JRBFZA7Z7CNDVSIETACBK76ZPQKCKS7X2TCZHENBQZO
-#\\\|QKDCBXH4CBXWSFSMQIB3IRAMNIDVXXLEOHSR44QAPMBHBNJA5FJ \ / AMOS7 \ YOURUM ::
-#\[7]JXGY4ST4V7KVHQHA5J6DSWHEWC5FHA2XYTYCKRIAWEOU2BQNKWAY 7  DATA SIGNATURE ::
+#,,..,,,.,,..,,.,,...,.,.,,,.,.,.,,,,,,,,,,..,.,.,...,...,..,,.,,,..,,.,,,.,.,
+#43MG2Y3QUMVUHC3WM4FFLZ4TK7NMSNSPSC6IMNZJIGLEDVLP5ZCWZFRXVDDK2TMMIPAOMO73UGKEY
+#\\\|VTVE2DWCMI7DTKRVTCPNEQXSPB4CM5GUI76A354BT2CBOPXQLKW \ / AMOS7 \ YOURUM ::
+#\[7]ZRB3EUDVMF5KMICQWWHBCP3KK4RD4XTCDHVVBEHLG7FY7MCFDSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

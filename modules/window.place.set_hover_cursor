@@ -3,14 +3,18 @@
 # name  = window.place.set_hover_cursor
 # descr = set the window cursor for a region, only when it changes
 
-my ( $widget, $region ) = @ARG;
+my ( $id, $widget, $region ) = @ARG;
 
+return undef if not defined $id;
 return undef if not defined $widget;
+
+my $inst = $data{window}{place}{instances}{$id};
+return undef if not defined $inst;
 
 ## skip when the region has not changed since last motion ##
 return TRUE
-    if defined <window.place.hover.region>
-    and <window.place.hover.region> eq $region;
+    if defined $inst->{'hover'}{'region'}
+    and $inst->{'hover'}{'region'} eq $region;
 
 my $gdk_window = $widget->get_window;
 return TRUE if not defined $gdk_window;    ## not realized yet ##
@@ -26,12 +30,12 @@ my $cursor = Gtk3::Gdk::Cursor->new($name);
 $gdk_window->set_cursor($cursor);
 
 ## record only after a successful set so a pre-realize hover retries ##
-<window.place.hover.region> = $region;
+$inst->{'hover'}{'region'} = $region;
 
 return TRUE;
 
-#,,.,,..,,,,.,,,.,,..,,.,,,.,,,,.,..,,.,,,.,,,..,,...,...,...,..,,,.,,...,,,.,
-#B24MM5NKOILVARMX4POWQC5QULCVOEN2632ZNG5IC2YIT6ZHL6CCCWY23JFNXQWPHECW7UJ27CJYW
-#\\\|QXOYNITQQW6KJUEBSG3C4QAYRBTI4CS4DTYQ5HNPGJU3EYPX2Y2 \ / AMOS7 \ YOURUM ::
-#\[7]SYRYSVQLFY5S6K6U5Q5HYGV7637S26XAELAVQQ32QWBOMEAZFWDI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,...,..,,..,,.,.,.,.,,..,,..,,..,.,.,...,...,,..,,..,,..,,,,,,,.,
+#5O4RPUXEIWJXCYKB3NABHIMGJOXNA5F5IHUAJ3EKVNRYL77ZPPNNZVNPYMJ5GSFI43444ZO7AZDG6
+#\\\|2WURWITWKPC7HHM54RVO5OSNO2MJIR3L5LFI6RHFPANWGWQ4TF3 \ / AMOS7 \ YOURUM ::
+#\[7]LMEC5ALO33HH7562D4ZIDTU7PYJRXTTB4BBF37WIVB7GVI3WVWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

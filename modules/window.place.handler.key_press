@@ -3,7 +3,9 @@
 # name  = window.place.handler.key_press
 # descr = keyboard move/resize/commit/cancel
 
-my ( $widget, $event ) = @ARG;
+my ( $id, $widget, $event ) = @ARG;
+
+return FALSE if not defined $id;
 
 my $keyval = $event->keyval;
 my $state  = ${ $event->state }; ## deref Glib::Flags blessed scalar to int ##
@@ -27,10 +29,10 @@ my $step = $shift;
 
 ## commit / cancel handled directly ##
 if ( $keyval == $KEY_ESC ) {
-    <[window.place.cancel]>;
+    <[window.place.cancel]>->($id);
     return TRUE;
 } elsif ( $keyval == $KEY_RET or $keyval == $KEY_KP_RET ) {
-    <[window.place.commit]>;
+    <[window.place.commit]>->($id);
     return TRUE;
 }
 
@@ -48,12 +50,12 @@ if ( $keyval == $KEY_UP ) {
     return FALSE;
 }
 
-<[window.place.adjust]>->( $widget, $action, $step );
+<[window.place.adjust]>->( $id, $widget, $action, $step );
 
 return TRUE;
 
-#,,,.,..,,...,,..,,.,,,,,,..,,..,,,,.,,,.,...,.,.,...,...,.,,,,,,,,,.,.,.,,,,,
-#KQNPKHFE5CNDSTJZ7GZBXCFXSOLUROPTQIDKTEWLZSV4MV36WFH7UKZWRYQZ2BAPULL2JCLUOXR56
-#\\\|KTY7UFMBC2CANRY6CSBLL75ZY47I7HUI3CH4WWVQTU27DUADZAQ \ / AMOS7 \ YOURUM ::
-#\[7]4K7WVG3BD7C7SPLT672Z6VJYTXT6Y2S6OUFELU4HOS5WSHVRJQCA 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,..,,,,.,..,,...,.,,,,,.,,..,,..,.,.,...,...,.,,,.,.,,,.,..,,..,,
+#6V7HWQDKE4FDFUV6TQBVPQJZN6HYTUE66QNFLCO32OCU4XECDWN5D7KJBBXVSSSEYCXT5YU2IG23S
+#\\\|RBXIAHSGS7XPLCBLX246QDEGLO73DITGSDNYZXFQL7VBEV2UYGW \ / AMOS7 \ YOURUM ::
+#\[7]24CRJY7F4VPCWIH4G2YNN6AU6W2NSOJMYPXMOK27JBY5QW6WV2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
