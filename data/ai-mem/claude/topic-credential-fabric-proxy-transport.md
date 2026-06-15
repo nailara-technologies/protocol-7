@@ -209,8 +209,37 @@ With it live:
   started manually (`v7.start credential_fabric`) each P7 restart until
   that's added
 
-#,,,,,,,,,,..,,,.,,,.,,,,,,..,.,.,.,,,,,.,,,,,..,,...,...,.,,,.,,,,.,,,,.,.,,,
-#72UOGNRKEPZS3GEBN52OFQNDOMRNS3ZFJTZE3FXBYM3KNRLZL5RILG5GWGA3TXQ6UVLOVSHDFQBIK
-#\\\|2NJCVVVGTPE7TLVQVTX6T6A24SVGXMDIW2QNR6UB2XFTMNK2LGL \ / AMOS7 \ YOURUM ::
-#\[7]D7KZKEX5BBRLQZDIFBCUUD4QIS4ZPNPZGHSLCVVAZI3E474JKACY 7  DATA SIGNATURE ::
+**2026-06-15 update — cred-mesh integration harness + key_holder fixes:**
+- kimi built `bin/dev/cred-mesh-test` (orchestrator +
+  `bin/dev/cred-mesh-test.d/lib/CredMeshTest.pm`, 5 scenario scripts) per
+  `data/tasks/credential-fabric-integration-test.md`. Findings logged to
+  `data/md/development/CREDENTIAL-FABRIC-WIRING-FINDINGS.md` (F1-F14).
+  Current best: 10/21 assertions passing.
+- Landed 3 commits: `20012341c` (access.zenki grant of `site-yaml.fetch`
+  to `access.cmd.usr.cred-mesh` + harness files), `bb3b20a36` (fixed two
+  `<[base.s_warn]>->('single string')` calls in
+  `modules/cred-mesh.key_holder.parent` → "sprintf parameter expected" —
+  replaced with plain `warn 'msg <{C1}>';`, see
+  [[feedback-s-warn-single-arg]]), `e32ffb386` (root-cause fix: added
+  `->autoflush(1)` on both ends of the socketpair in
+  `modules/cred-mesh.util.key_holder.start_child` after `binmode` — child's
+  `print {$pipe}` responses were sitting unflushed, causing
+  `cred-mesh.rotate`/`.encrypt` to always hit the 7s timeout = F3/F10,
+  RESOLVED).
+- **Stale-process lesson**: F1 (`proxy` denied `credential_fabric.resolve`)
+  and F13 (`proxy.template.passthrough:74` undefined subroutine ref) were
+  both false alarms — `proxy`/`cred-mesh` sessions were running 1-2 day old
+  pre-rename/pre-fix code. `p7c v7.restart <zenka>` after landing fixes,
+  before re-verification, resolved both with no code change needed.
+- Remaining open items for next kimi round: scenario 1 header-injection
+  (x-api-key not reaching upstream via `proxy.auth.lookup`/slot-matching),
+  `transport.eval-code` access denial blocking scenarios 2/3 (F2, needs an
+  access.zenki grant similar to the site-yaml.fetch fix), scenario 4
+  cache-flush logs not observed during rotation, scenario 5 502 HTML
+  handling (harness-side fix, not a zenka bug).
+
+#,,..,.,.,.,.,,.,,,..,.,.,,,.,,.,,.,.,,..,,,,,..,,...,...,...,..,,,,.,..,,,,,,
+#MP6ZHR2WLE5MXGJ4HH7PZ3Z2ZTRKLSUDVDCUG7CDHBQOAZQT7IVWU7DHMWRL2H2SQLV5SF4CSSQJA
+#\\\|IZ2U3MLA5373DNEZ7U4Y2BBWGUEXHTJNG4SZ6FQYI2BNPKRE3FU \ / AMOS7 \ YOURUM ::
+#\[7]BJ3RABG4W5XEI2KPWRB2LCMVNU6LR7NGMSQWVVVCQ5SZDVXJMABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
