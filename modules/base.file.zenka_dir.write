@@ -36,7 +36,7 @@ if (   not length $filepath_rel
 my $zenka_dir_href = <system.path.zenka-dirs>;
 
 my $zenka_write_dir = $global_config_path
-    ? $zenka_dir_href->{'etc_P7'}     ##[  /etc/protocol-7/  ]##
+    ? $zenka_dir_href->{'etc_P7'}     ##[  /etc/protocol-7  ]##
     : $zenka_dir_href->{'var_P7'};    ##[  /var/protocol-7  ]##
 
 if ($zenkaname_path_prefix) {    ## use zenka subdirectory ? ##
@@ -123,6 +123,14 @@ if ( not defined $fh or not length fileno($fh) ) {
 
 my ( undef, undef, $uid, $gid ) = getpwnam $current_zenka_username;
 
+## override gid when zenka has a configured group [ e.g. drop_privs to ##
+## <user>:protocol-7 ] - mirrors base.path-set-up.check-zenka-paths    ##
+if ( defined <system.zenka-group.current> ) {
+    my ( undef, undef, $override_gid )
+        = getgrnam <system.zenka-group.current>;
+    $gid = $override_gid if defined $override_gid;
+}
+
 my $fstat = File::stat::stat($file_abs_path);
 
 if ( ( $fstat->uid != $uid or $fstat->gid != $gid )
@@ -153,8 +161,8 @@ if ( not close($fh) ) {
 ##  returning ammount of characters written  ##
 return length $content_sref->$*;
 
-#,,,,,...,,.,,..,,..,,,,,,...,,,.,.,.,,..,,.,,..,,...,.,.,..,,..,,,,,,,,.,,,,,
-#H72E4AMDCKJEY3ONKRWB5KRAS42DWLKQLOT4OJS5TY4GNXSGYLIYWKL5KF2FJXRJV4HKPFK43DRQG
-#\\\|JJ3S5AAXSN2PATYSP7PNFIWWULN7DZ6UG42LRKOCNIKWABYE5QA \ / AMOS7 \ YOURUM ::
-#\[7]F7ARKFJCKV66AHFVQLMVJGP642XPKSN3D3NJNIFZ6SXR3AC4WWCA 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,..,..,,,,,,.,,,,.,,,,,,..,,..,,..,,...,...,,,.,,..,,..,,,,,..,,
+#53P3FSLCZTDHGKC35OHFJNK3IWDFSRC37BLLSKXFAY3NCRXQ4UWLYQIAFITWZQBZBZVGKPGWO7HNK
+#\\\|F3ADQTLOD4VID3TZL2CTECAHQVPLOTHZTUOCBSCOW33UVSZFODP \ / AMOS7 \ YOURUM ::
+#\[7]OYG5MLMNA7ISEJ2JPUHPII3HORXGQ4PWO5PFDFNU5633ZQBNIQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
