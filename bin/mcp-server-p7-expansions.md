@@ -445,7 +445,7 @@ zenka-desk
   │
   └── x11 layer          — optional graphical desktop via X11 zenka
         ├── Xvfb virtual display (headless or forwarded)
-        ├── openbox window manager + tile-groups zenka for layout
+        ├── openbox window manager + tile zenka for layout
         ├── web-browser zenka for page rendering
         ├── screenshot zenka for capturing rendered output
         └── image pipeline → vision model → context injection
@@ -467,7 +467,7 @@ zenka-desk
     - context.* for memory and note access
     - coding zenka tools for task/note/tree operations
     - protocol-7-menu zenka for interactive routines
-    - X11/Xvfb + openbox + tile-groups for graphical layer
+    - X11/Xvfb + openbox + tile for graphical layer
     - screenshot + web-browser zenki (needed anyway for job-site screenshots)
 
 
@@ -516,7 +516,7 @@ phase 2 — panel.notes + panel.tasks + menu layer
   protocol-7-menu integration for command palette
 
 phase 3 — x11 layer
-  X11 zenka + Xvfb + openbox + tile-groups
+  X11 zenka + Xvfb + openbox + tile
   web-browser zenka (headless chromium)
   screenshot zenka
   image → vision pipeline
@@ -527,8 +527,8 @@ phase 4 — node-transcending sessions
   roaming panels follow the user
 ```
 
-#,,..,,,.,,,,,...,,,,,.,,,.,.,,..,...,,,.,..,,.,.,...,...,...,.,.,...,,,,,,,.,
-#XHZG424ZUBYJGJJI5LAIFCRZDSEPIHM3GSGLN6G3YJP5JNZ3CYOQGKLLJF7WEZPQELAKXNFGP3FNM
-#\\\|2ZGNARDTFR64IU2VZC3SU7KUJPWUYQO4PLJBMWFM5KCAEUVOBFA \ / AMOS7 \ YOURUM ::
-#\[7]C6RQ6ZHYLAYJZAQP6RRMBZ6TI3CZO3HIABVLELZP7N6O5DHWBSAI 7  DATA SIGNATURE ::
+#,,..,..,,,..,,,.,,,,,...,..,,.,.,,.,,...,...,.,.,...,...,...,.,,,,.,,..,,..,,
+#X4GMH2DTQM5IBF4D54SVAW2GEP6V2SMMMSPTTZSYHAQJRMM6WCVJMPMAPCDDTPOTY6RUUAWLFBGBK
+#\\\|H43YNAN2LDXL4CRWHQAGZ6UFP477WRQNYB4IZI47QZZMQA42GE3 \ / AMOS7 \ YOURUM ::
+#\[7]DX623DAIHPWK7TXNOGPWEWCNXHANLHKKVQBFPRMNEIOXBGT2O4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = tile.switch-tile-group
+
+my $tile_group_name = shift;
+die "tile group name expected"
+    if not defined $tile_group_name or !length($tile_group_name);
+die "tile '$tile_group_name' does not exist"
+    if not exists <tile.setup.tile>->{$tile_group_name};
+
+<tile.overlays.current> //= [];
+$tile_group_name =~ s|\+.*$||;
+my $lay_plain = $tile_group_name;
+$tile_group_name = join( '+', $tile_group_name, @{<tile.overlays.current>} );
+
+if ( not exists <tile.setup.tile>->{$tile_group_name} ) {
+
+    map {
+        <tile.setup.tile>->{$tile_group_name}
+            = merge( <tile.setup.tile>->{$lay_plain},
+            <tile.setup.tile>->{$ARG} );
+    } @{<tile.overlays.current>};
+
+}
+
+if ( $tile_group_name eq <tile.current_tile_group> ) {
+    <[base.log]>->(
+        0, "'$tile_group_name' already active, tile group transition skipped."
+    );
+    shift @{<tile.transition_queue>};
+    <tile.transition_in_progress> = 0
+        if !@{<tile.transition_queue>};
+    return FALSE;
+}
+
+<tile.previous_tile_groups> = <tile.current_tile_group>;
+<tile.current_tile_group>   = $tile_group_name;
+
+<[file.put]>->(
+    <tile.cfg_directory> . '/tile-group.current',
+    sprintf( "%.4f %s\n", <[base.time]>->(4), $tile_group_name )
+);
+
+<[tile.process-tile-group]>->($tile_group_name);
+
+<[base.log]>->( 1, "switching to tile group '$tile_group_name'.," );
+return TRUE;
+
+#,,,.,..,,,,,,,..,,,.,.,.,..,,...,.,,,,.,,,,,,..,,...,...,...,.,,,,,,,,..,,..,
+#SKIZS5YA3TBAKDBYPZPWVW2TQ477KDJPTBCYUAEZC7LNL7RF4DN5TXQQYI6FHXO2VO737Q4UB2FZC
+#\\\|HKYTF3Z3L47PYAPHGT56GX6NZSTC4FFKXMRDYYFXIR3EMZ3CAZZ \ / AMOS7 \ YOURUM ::
+#\[7]GQVZFDS5B45BGPMASLBKST6AWZMQHSNCS2MKD74EW4XAQQYZSWBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

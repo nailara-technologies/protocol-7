@@ -1,0 +1,76 @@
+## [:< ##
+
+# name  = tile.cmd.remove_overlay
+# param = <tile-group[s]>
+# descr = remove previously added tile overlay
+
+my $overlay_str = $call->{'args'} // '';
+
+<tile.transition_queue> //= [];
+<tile.overlays.current> //= [];
+<tile.overlays.previous> = [ @{<tile.overlays.current>} ];
+
+return {
+    'mode' => qw| false |,
+    'data' => 'no tile group overlay is active'
+    }
+    if !@{<tile.overlays.current>};
+map {
+    return {
+        'mode' => qw| false |,
+        'data' => "tile group '$overlay_str' is not active"
+        }
+        if <tile.current_tile_group> !~ m|$ARG|;
+} split m| +|, $overlay_str;
+
+my %del_overlays = map { $ARG => 1 } split m| +|, $overlay_str;
+my @del_overlays = sort keys %del_overlays;
+
+map {
+    return {
+        'mode' => qw| false |,
+        'data' => 'expected tile group name'
+        }
+        if not defined $ARG or !length($ARG);
+    return {
+        'mode' => qw| false |,
+        'data' => "tile group \"$overlay_str\" not found"
+        }
+        if not exists <tile.setup.tile>->{$ARG};
+    push( @{<tile.overlays.current>}, $ARG );
+} @del_overlays;
+
+( my $current_one = <tile.current_tile_group> ) =~ s|\+.*$||;
+
+my $prev_count = scalar @{<tile.overlays.current>};
+
+my %active = map { $ARG => 1 }
+    grep { length($ARG) and $ARG ne $current_one } @{<tile.overlays.current>};
+map { delete $active{$ARG} if exists $active{$ARG} } @del_overlays;
+@{<tile.overlays.current>} = sort keys %active;
+
+return {
+    'mode' => qw| false |,
+    'data' => "no match for tile group '$overlay_str'"
+    }
+    if scalar @{<tile.overlays.current>} == $prev_count;
+
+my $merged_name = join( '+', $current_one, @{<tile.overlays.current>} );
+
+<[base.log]>->( 2, "creating merged [ overlay ] tile group '$merged_name'" );
+
+<tile.setup.tile>->{$merged_name} = <tile.setup.tile>->{$current_one};
+
+map {
+    <tile.setup.tile>->{$merged_name}
+        = merge( <tile.setup.tile>->{$merged_name},
+        <tile.setup.tile>->{$ARG} );
+} @{<tile.overlays.current>};
+
+return <[tile.cmd.switch-tile-group]>->( { 'args' => $merged_name } );
+
+#,,..,.,,,,,,,..,,,,.,,,.,,.,,...,,,.,..,,,,,,..,,...,...,...,,.,,,..,...,...,
+#JE4AGKFE7MXEKVGS7JJDLG6MHOBPABJ6R7LHINLYX35K2QBCAXHMMPCUJJX3HDXVVGMD46BY2EILM
+#\\\|3FVCSOJSGXIHECCHJDKH7FZSQTFQGXSUQRYBQD7PTG5QNTST6L5 \ / AMOS7 \ YOURUM ::
+#\[7]LDCDD3NV5SVPUUHFB4FB2DXBJJ63A7WFQJ4WLYBSBGOIRZFY7YAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

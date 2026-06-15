@@ -50,8 +50,6 @@ my $sock = $conn->{'socket'};
 if ( $conn->{'type'} eq 'direct-tcp-fallback' ) {
 
     ## use existing http client for direct fallback ##
-    my $request_module
-        = $is_https ? 'clients.https.request' : 'clients.http.request';
 
     ## merge injected headers into request headers ##
     my $merged_headers = { %{ $context->{'request'}{'headers'} } };
@@ -71,7 +69,11 @@ if ( $conn->{'type'} eq 'direct-tcp-fallback' ) {
         },
     };
 
-    $client->{'outbound'} = <[$request_module]>->($request_params);
+    if ($is_https) {
+        $client->{'outbound'} = <[clients.https.request]>->($request_params);
+    } else {
+        $client->{'outbound'} = <[clients.http.request]>->($request_params);
+    }
 
     if ( not defined $client->{'outbound'} ) {
         <[proxy.client.send_error]>->( $client_id, 502, 'Bad Gateway' );
@@ -154,8 +156,8 @@ $client->{'outbound'} = $state;
 
 return;
 
-#,,,,,...,...,.,.,...,,,.,,.,,,.,,..,,,,.,,,.,..,,...,..,,,,,,..,,...,...,...,
-#TXGEBXT6PN64F3WFPRISNREIOXU36Z55QOE36SXINSVMBX23NSKQPBTVYMOAMILXYF4XTCL7NH6G2
-#\\\|HDTZJ55BIGX7OMNEBULOO4DTLALOFXEWLEDWVMSKWBZZCGMCOTZ \ / AMOS7 \ YOURUM ::
-#\[7]RJTDMFBF5Z5HJYYQDPC3UAUQ2YGJX6NA7SSJJHCTCGXDDNNISWAI 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,...,...,...,.,,,,..,,,.,,,.,,..,..,,...,...,.,.,,,.,..,,,..,.,.,
+#UU5YNEAXXUSUKH7HGIJJN4OWIZOYZFOSDJAVGIBZAD23EJSVUDBOMTOJXY7SJS6EQ7JNXNPGBHPUW
+#\\\|PSLA6JVGLJM2TV2PH6BNQ54IRGSDXIZ3DKP4DOEWZL2CQGRBOPT \ / AMOS7 \ YOURUM ::
+#\[7]G62YEZ5QS26HF4DQVVNAG3U2D37BSWZZBDM5DJMMUQVJKN45PSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

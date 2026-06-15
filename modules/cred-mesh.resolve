@@ -5,12 +5,27 @@
 #         args: { slot => '...', context => $request_context }
 #         returns auth result hash or undef
 
-my $params = shift;
+my $params = shift // {};
 
-return undef if ref $params ne qw| HASH |;
+my ( $slot, $context, $as_size_reply );
 
-my $slot    = $params->{'slot'}    // '';
-my $context = $params->{'context'} // {};
+if ( ref $params eq qw| HASH | ) {
+    if ( length $params->{'slot'} ) {
+        $slot          = $params->{'slot'};
+        $context       = $params->{'context'} // {};
+        $as_size_reply = FALSE;
+    } elsif ( length $params->{'args'} ) {
+        ## routed / console form: args string is the slot name ##
+        $slot          = $params->{'args'};
+        $context       = {};
+        $as_size_reply = TRUE;
+    }
+} elsif ( defined $params and length $params ) {
+    ## direct string form (slot name only) ##
+    $slot          = "$params";
+    $context       = {};
+    $as_size_reply = TRUE;
+}
 
 return undef unless length $slot;
 
@@ -52,27 +67,29 @@ my $auth_result
     = <[cred-mesh.util.perform_auth]>->( $type, $cred_value, $context );
 return undef if not defined $auth_result;
 
-## low-sensitivity: return auth result without sealed flag ##
-if ( $sensitivity eq qw| low | ) {
+my $result = {
+    'mode'  => qw| true |,
+    'data'  => $auth_result,
+    'type'  => $type,
+    'owner' => $owner,
+};
+
+## medium/high sensitivity: mark as sealed ##
+$result->{'sealed'} = TRUE if $sensitivity ne qw| low |;
+
+## routed / console form: serialize as SIZE-reply payload so the caller ##
+## (e.g. proxy auth lookup) can receive structured data over protocol-7. ##
+if ($as_size_reply) {
     return {
-        'mode'  => qw| true |,
-        'data'  => $auth_result,
-        'type'  => $type,
-        'owner' => $owner,
+        'mode' => qw| size |,
+        'data' => YAML::XS::Dump($result),
     };
 }
 
-## medium/high sensitivity: return with sealed flag ##
-return {
-    'mode'   => qw| true |,
-    'data'   => $auth_result,
-    'type'   => $type,
-    'owner'  => $owner,
-    'sealed' => TRUE,
-};
+return $result;
 
-#,,..,,,,,,..,.,.,,..,...,,,.,,,.,,.,,.,.,,,.,..,,...,...,,..,,..,,,,,...,.,.,
-#BXA3QV5TFRUC5ZAKGBX7IJQ4MIQ5WRRAEFHIKLZVDJSTPDR4N43PPAY3NRPSJW6QFTZN4DDPCW2FC
-#\\\|4FDMELEZCX2C2YBPNXZ64SGN2RCCDWNVLMM4E2XXTMOUVBRLJ73 \ / AMOS7 \ YOURUM ::
-#\[7]LADMWC4SGYOZH2QI3AGWECTLQNG2IXQRFZYXEYIRT2A6F2UVNQDI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,.,.,.,,,..,,,.,,,,,,.,.,.,,,...,..,,...,...,..,,,,,,..,,,..,.,,,
+#TJKLQO2MUWUNPLSWPPRKHXW3YPIOC3QC2V3GDADUEOLCAX7FIHBAFZDOETWMEUIYR2RFZBQMMSCGS
+#\\\|PNYVCL7LROSQMGMH24VORUMQLGZRPDG7ODGQBY6KBW6T4EATVOZ \ / AMOS7 \ YOURUM ::
+#\[7]NMECSVWIQOSLVKFQ5C5LIZUR2CVEOLC5OQ2WAIX3UCP4RAHLYGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

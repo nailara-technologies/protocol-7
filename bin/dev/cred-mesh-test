@@ -94,6 +94,13 @@ if ($keep_running) {
     exit 0;
 }
 
+# [ clear stale auth-relay pending file from previous runs ]
+my $relay_pending_file = '/var/protocol-7/cred-mesh/relay_pending.yaml';
+if ( -f $relay_pending_file ) {
+    print "[ cleanup ] removing stale $relay_pending_file\n";
+    unlink $relay_pending_file;
+}
+
 # [ run scenarios ]
 my @scenario_files = (
     'scenario-1-direct-tcp-api-key.pl',
@@ -153,8 +160,8 @@ exit 1;
 
 # [ end ]
 
-#,,..,,,,,..,,,,,,,,.,.,,,...,,..,...,,..,.,.,..,,...,...,..,,...,..,,,.,,.,,,
-#7GF2X6FLWZVQJQGHMUL6ZWZTDH7F6IGNPFSL6IOP4L4NTM4ICVHL45OXD7IJEPT3QEG56BE37VXYC
-#\\\|IA4UAJ55QCWKESS2K3L4GONEGML2WRB7JFA27TZHUTKRMHJ4K5S \ / AMOS7 \ YOURUM ::
-#\[7]DDNU6P3PXWUDXVM6WDJN7ISN4XEK4UNJ7TMLUPSSNL3RTNYPJMAA 7  DATA SIGNATURE ::
+#,,..,,..,.,,,.,,,...,,..,,,.,...,,..,,..,,..,..,,...,...,...,,..,..,,,..,,,,,
+#RI2OFFFWNYNHVOPGGD2KXQ5YRXKHY3LKCFXI4PIAYLIVQDQPWWIX53QAMWEOAJDQAJL2N776YHGM6
+#\\\|Y2JGQKKPPJPYUKQTQ6PPHLWTRQO3TMKK27QO3BEYJTQJYGAFMK3 \ / AMOS7 \ YOURUM ::
+#\[7]RYG3SKJS2VZ65T2EGMAJGOG3LJ5PCIZCGEDETOKSIIBHLTHQMCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
