@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = window.place.damp.set_target
+# descr = record the latest drag target and ensure the damp timer runs
+
+my $target = shift;
+
+return undef if not defined $target;
+
+## copy so later mutation of caller hash cannot leak in ##
+<window.place.damp.target> = { %{$target} };
+
+## seed the shown geometry on first use from current x11 state ##
+<window.place.damp.shown> //= {
+    'x'      => <x11.coordinates.left> // $target->{'x'},
+    'y'      => <x11.coordinates.top>  // $target->{'y'},
+    'width'  => <x11.window.width>     // $target->{'width'},
+    'height' => <x11.window.height>    // $target->{'height'},
+};
+
+## lazily start the 50ms damp tick ##
+if (   not defined <window.place.damp.timer>
+    or not <window.place.damp.timer>->is_active ) {
+    <window.place.damp.timer> = <[event.add_timer]>->(
+        {   after    => 0,
+            interval => 0.05,
+            repeat   => TRUE,
+            handler  => qw| window.place.damp.tick |,
+        }
+    );
+}
+
+return TRUE;
+
+#,,,.,,.,,..,,,,,,,,.,..,,.,.,,,,,...,...,,.,,..,,...,...,,..,,,,,...,,..,...,
+#FSBS3IXPO4CC5SRZ4C7L4TLJJXZMZMNDNLAUWOZWU2S2VFT5BHTCK4DGTJDCGOIMC5VSRUZWI45OI
+#\\\|RROU6UVGN2P2LUNF7QCNUB7VWRMRHC4OTHWZG7I4GWD5GAPA7AT \ / AMOS7 \ YOURUM ::
+#\[7]BIRAJNPM67SMKKT2UUEOWWOER5J3PBWSD4L3PT57UVYPYYNOWIBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

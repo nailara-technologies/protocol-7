@@ -11,27 +11,7 @@ my $ey = $event->y;
 my $w = <x11.window.width>  // 320;
 my $h = <x11.window.height> // 240;
 
-my $region = 'body';
-my $corner = 16;
-my $edge   = 8;
-
-if ( $ex < $corner and $ey < $corner ) {
-    $region = 'nw';
-} elsif ( $ex > $w - $corner and $ey < $corner ) {
-    $region = 'ne';
-} elsif ( $ex < $corner and $ey > $h - $corner ) {
-    $region = 'sw';
-} elsif ( $ex > $w - $corner and $ey > $h - $corner ) {
-    $region = 'se';
-} elsif ( $ey < $edge ) {
-    $region = 'n';
-} elsif ( $ey > $h - $edge ) {
-    $region = 's';
-} elsif ( $ex < $edge ) {
-    $region = 'w';
-} elsif ( $ex > $w - $edge ) {
-    $region = 'e';
-}
+my $region = <[window.place.classify_region]>->( $ex, $ey );
 
 <window.place.drag.active>     = TRUE;
 <window.place.drag.region>     = $region;
@@ -60,8 +40,8 @@ if ( $region eq 'body' ) {
 
 return TRUE;
 
-#,,.,,...,..,,..,,...,.,.,,.,,,..,,,.,,..,.,,,.,.,...,...,..,,,,,,,,.,.,.,,.,,
-#WAUBQVPKSW5EFZSZUI6XIGVEPGEZEBGG6L4K4FUMOOFXSLIDQOBNETPL2DMAV6DCSOVBAR7HBEHF2
-#\\\|XRPU3NSJYW7SCI37NFUYQK5EUXTBKLFL57CK6K6MBJIBDMVEEVP \ / AMOS7 \ YOURUM ::
-#\[7]ZWN3JUOEUJYFGCRPXBDQ7K7X3LU6OODXLE5IE4TLWLMY6QSW66DI 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,..,.,.,,.,,,..,.,,,.,.,,..,,,,,.,.,...,...,...,,.,,,..,,,,,..,,
+#F3P2BIIDKFPVYGGTQSVWWHQVY46IVTXRDCMMLFPUD2DOYAC4HBNBQ3YHT5PSD6UGC6EUY36IKO24K
+#\\\|O5TZGHVPKH7OWES6UKEI7J6QOL2Q3KN4ZJ5SSZUJ2MPZUOTDSQE \ / AMOS7 \ YOURUM ::
+#\[7]WPXVRZ5V3KGW2B4A6FIB5LA3I52G4XC272MBS5U42KZONNKWEICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

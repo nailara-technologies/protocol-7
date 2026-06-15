@@ -5,59 +5,22 @@
 
 my ( $widget, $event ) = @ARG;
 
-return TRUE if not <window.place.drag.active>;
-
-my $region  = <window.place.drag.region>;
-my $start_x = <window.place.drag.start_x>;
-my $start_y = <window.place.drag.start_y>;
-my $geom    = <window.place.drag.start_geom>;
-
-my $dx = $event->x_root - $start_x;
-my $dy = $event->y_root - $start_y;
-
-my $x = $geom->{'x'};
-my $y = $geom->{'y'};
-my $w = $geom->{'width'};
-my $h = $geom->{'height'};
-
-if ( $region eq 'body' ) {
-    $x += $dx;
-    $y += $dy;
-} else {
-    if ( $region =~ m|e| ) {
-        $w += $dx;
-    }
-    if ( $region =~ m|w| ) {
-        $w -= $dx;
-        $x += $dx;
-    }
-    if ( $region =~ m|s| ) {
-        $h += $dy;
-    }
-    if ( $region =~ m|n| ) {
-        $h -= $dy;
-        $y += $dy;
-    }
+## not dragging: update the hover cursor for resize-region feedback ##
+if ( not <window.place.drag.active> ) {
+    my $hover = <[window.place.classify_region]>->( $event->x, $event->y );
+    <[window.place.set_hover_cursor]>->( $widget, $hover );
+    return TRUE;
 }
 
-## clamp ##
-$w = 32 if $w < 32;
-$h = 32 if $h < 32;
-
-my $new_geom = {
-    'x'      => $x,
-    'y'      => $y,
-    'width'  => $w,
-    'height' => $h
-};
-
-<[window.place.apply_geometry]>->( $widget, $new_geom );
-$widget->queue_draw;
+## dragging: apply geometry from the event's root coordinates. the pointer ##
+## poller also drives this same helper, so an active drag works even when  ##
+## motion-notify events are not delivered on the first interaction.        ##
+<[window.place.apply_drag]>->( $event->x_root, $event->y_root );
 
 return TRUE;
 
-#,,,,,...,.,.,,,.,.,.,...,.,,,...,..,,,,.,.,.,.,.,...,...,..,,,.,,..,,,.,,,..,
-#QL2FM7UNA23KASLQIZKSZJJZOT7LBDPFCYUDRI7JW3QE3X5SGVYNI6ELEX37R3LBKM363P5STNBBY
-#\\\|D2O25F2THWF56M6FN3VTSTWMAL5KEZ2PVUGUKZFKJGNLJVU3S5P \ / AMOS7 \ YOURUM ::
-#\[7]VCHGMUHSQ5A6CH2L27W6B2B3OM24SXMTZ6V63XPGBBSTXSC4F4BA 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,.,,..,,..,,...,,,,,,.,,,,.,,..,.,.,...,..,,...,,,,,,..,,,.,..,,
+#DA2OHJKFHUFAVYFGOZDEFW7W5QWIT4FF2KUFVVNM7SNVKWXCBXI6G4B6W73CKBCK4J25XRRXFRZOM
+#\\\|EWWDRV2YWOR6DJFTDF64FMF3J36GSFUAHKJSGBOUPZVTVVWGPIE \ / AMOS7 \ YOURUM ::
+#\[7]HQVDW7IAOALPZZKNWWLCQPG6GKK4NYMIFSAD7RM6SJNZ7MGN46CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
