@@ -15,6 +15,11 @@ socketpair(
 binmode($parent_pipe);
 binmode($child_pipe);
 
+## unbuffered : parent reads via select/sysread, child writes responses ##
+## that must arrive immediately rather than sitting in stdio buffers    ##
+$parent_pipe->autoflush(1);
+$child_pipe->autoflush(1);
+
 my $pid = <[base.fork]>;
 if ( not defined $pid ) {
     <[base.s_warn]>->( 'key_holder.parent: fork failed: %s', $! );
@@ -36,8 +41,8 @@ close($child_pipe);
 
 return TRUE;
 
-#,,..,...,.,.,,..,..,,,,.,.,.,...,,,.,,,.,,.,,..,,...,...,...,...,...,..,,,.,,
-#IAMIGMQGHXIDTOUJVWTCYQJLIZVSU7KFJXE5YGHPJSQVLMLRQRJ6244RKI3AKIUMC7KQPBJFXEDP4
-#\\\|SNYTWBUVX4L5N4NARYUX2GR57XCWOI2EFBXN5FTUEIE3FR2SXXA \ / AMOS7 \ YOURUM ::
-#\[7]IM453FCGHKNZSWLBYTVJUZWO7JRO2SEQF7NHZ6XSNOELCRA5M2DA 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,..,,,,,..,,..,,,..,..,,,,.,,..,..,,...,...,...,..,,,,,,...,,,,,
+#WLZ26IKO7XAOQUK7BBELKJKDJ7TYGLMVL6KZJTXQ6HN7MM3KSALS7ACB2J7GVEGFIN6HSXNNPYH4C
+#\\\|DJWPPJMDJ77KLUPZQV2YFG47MFKP2TFZO7OAUOTHKYPR5HZDO77 \ / AMOS7 \ YOURUM ::
+#\[7]BI6V6D6CPOP2VVRJP4ZH3UUCI2FFHK7KVCSLGN5OXAAVLKCKKUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
