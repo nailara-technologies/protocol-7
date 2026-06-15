@@ -15,8 +15,10 @@ $slot //= '';
 return { 'mode' => qw| false |, 'data' => 'missing slot name' }
     unless length $slot;
 
-my $result
-    = <[cred-mesh.resolve]>->( { 'slot' => $slot, 'context' => {} } );
+## pass slot as plain string : selects the SIZE-reply [ args ] path in    ##
+## cred-mesh.resolve, yaml-encoding the result as a STRING for the        ##
+## console / cross-zenka reply protocol.                                  ##
+my $result = <[cred-mesh.resolve]>->($slot);
 
 return $result
     if defined $result and ref $result eq qw| HASH |;
@@ -25,8 +27,8 @@ return { 'mode' => qw| false |, 'data' => 'resolve failed' };
 
 ## [ end ] ###################################################################
 
-#,,..,,.,,...,.,,,,.,,..,,...,,..,...,.,.,.,,,..,,...,...,...,,,,,,..,,.,,...,
-#UHWRDPTDMOZEY5SCH4BRCXB65BY7QHZECOK5EZSBPUJ6NWZUJFC2VHAJCGCMW764TBS45QBAIJS74
-#\\\|RBKOW5JJ46YRE65NRU6JJ2IA37XEGSDNJ6SK77XHWSFV57DGG4N \ / AMOS7 \ YOURUM ::
-#\[7]G27VWCE67SE4UT626QBJO2NN2AE6CH5S2ZXXTCMUTSUMEJBMOECY 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,..,...,,.,,.,.,.,.,,,.,.,,,...,..,,...,...,.,.,,,,,,,.,.,,,,,,,
+#BBSIRSKFA7BG3UV4HMIVOGCWLIBCYD6CTIR7A7LVGAWUYXD664P2VP3SFKLRQO3HGLVZPOISNXH24
+#\\\|K6BYMY2TSWZTEVURF5Q533WOEXJ3C4FELP2C2GL7DSIUJHZOXFS \ / AMOS7 \ YOURUM ::
+#\[7]LC2XRZRT2IZRYJ3SQTHVAMH4SGKCUBNW7UKDL35G2ZXFIZKB2KCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
