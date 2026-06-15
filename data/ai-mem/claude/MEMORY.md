@@ -8,6 +8,7 @@
 - [.cmd. segment stripped](feedback-cmd-segment-stripped.md) — `<zenka>.cmd.<name>` on disk = callable as `<zenka>.<name>`; verifying live 2026-06-08
 - [filter-repo prefix](feedback-filter-repo-amend.md)
 - [P7 data nesting](feedback-p7-data-nesting.md) — `<a.b.c>` = `$data{a}{b}{c}`; use underscore for siblings not dot
+- [s_warn single-arg](feedback-s-warn-single-arg.md) — single fixed-message warn fixes: use plain `warn 'msg <{C1}>'`, NOT `base.s_warn` padded with `<{C1}>, ''`
 - [timer undef interval](feedback-timer-undef-interval.md) — undef after/interval = IO::Async max-rate loop; always guard with fallback
 - [each+continue+keys](feedback-each-continue-keys.md) — `continue{keys %h}` on `while(each %h)` resets iterator = infinite loop — `AMEND=1 git filter-repo ...`; also clear `.git/filter-repo/already_ran` if interrupted
 - [ntime](feedback-ntime.md) — `encode_b32r` is reverse-byte-order, NOT sortable; use `<[base.ntime_BASE32_to_numerical]>`
@@ -156,8 +157,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,..,.,.,,,.,.,,,,,.,,..,.,.,,,.,..,,,,,,,,,,..,,...,...,.,.,.,,,..,,,,,,.,,,
-#CAFZMK663IQ3MOMZ2RFQAN5LWATYTDA4AXHSL76LBXMB7PVSM6OPNIBBOHFMOGYQJDFZT2YKMI4AG
-#\\\|CGRSCE3LGAPS3JO5DFEWL67TOKQ7FXEUNY3I5F6RAMLHTGIJ3UM \ / AMOS7 \ YOURUM ::
-#\[7]CKGE4GPGDPCUMCXQBHHFQ3WXWXQ2ATHTLBI3RG5E5IB7YRSPUKCY 7  DATA SIGNATURE ::
+#,,..,,..,,..,,,,,,,,,,,.,,,.,...,.,.,,,.,.,.,..,,...,...,..,,.,,,,,,,.,,,,..,
+#7DTH66HQKXTR25MTX3D6WHSWDNCTTFKUY54VDQULVQBMJFDVD33W3HOQ2FRFIOFNZGAKQP7N3SHA2
+#\\\|QKWXJC6HAIR4K76JVLNCYADYR3CZF5GUFNKJI2UY7DYTZMGC6JO \ / AMOS7 \ YOURUM ::
+#\[7]SPJIPVOS7W6C2RXTG2WIILMMVLO4AHW3S2ZDMBK53XYTB5GE2ECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

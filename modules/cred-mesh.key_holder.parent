@@ -45,7 +45,7 @@ my $data_b32 = encode_b32r($data);
 my $req_line = sprintf( "%s %s %s\n", $op, $slot_b32, $data_b32 );
 my $written  = syswrite( $pipe, $req_line );
 if ( not defined $written or $written != length($req_line) ) {
-    <[base.s_warn]>->('key_holder.parent: failed to write to child pipe');
+    warn 'key_holder.parent: failed to write to child pipe <{C1}>';
     return undef;
 }
 
@@ -73,9 +73,7 @@ while ( ( <[base.time]>->(1) - $start ) < $timeout ) {
 }
 
 if ( not defined $response ) {
-    <[base.s_warn]>->(
-        'key_holder.parent: timeout waiting for child response <{C1}>', ''
-    );
+    warn 'key_holder.parent: timeout waiting for child response <{C1}>';
     return undef;
 }
 
@@ -87,8 +85,8 @@ if ( $response =~ s|^OK\s+|| ) {
     return undef;
 }
 
-#,,,.,,..,,.,,,.,,,..,,.,,,.,,,,,,,,.,.,.,,,,,..,,...,..,,...,,.,,.,,,..,,,..,
-#FPOYZAEKNNQIPBJXFXR7NJS3IQ443PT4XVLSQXPMPQM34NN6G33CSPKFJEXRJRIO7OSSGOJKZ7DLM
-#\\\|XJ5EPASOHPAY5S7DDDPPP5OUA2Y7OG3T6ZDNOHSHVF3VWGK45H6 \ / AMOS7 \ YOURUM ::
-#\[7]UPW3EKQUAUPL54BBFQ5AHSUK2SEMRZ4WJT5LHARXNBKRBPINZSDA 7  DATA SIGNATURE ::
+#,,.,,..,,,..,..,,,..,...,,,.,.,,,,..,,,.,.,.,..,,...,...,.,,,,.,,.,.,...,.,.,
+#SDCVLUTKAVYR2WAU44QYI5EKVD2HN23IXIZ45557SMJ4MIJFPIFWK5Z6D6ZYU7H5P2ZEJDDUWWHRC
+#\\\|XTAFHKCYGWFZUTDYRBPEULWOG4NJ3P26Q3DXOS3SY6QWYADOJGV \ / AMOS7 \ YOURUM ::
+#\[7]XD7NPTDAZGGPOWD25ILPK63PKMVHICIISGPJO7J3PPGQM2DBVWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
