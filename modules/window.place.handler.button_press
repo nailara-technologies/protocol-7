@@ -3,13 +3,18 @@
 # name  = window.place.handler.button_press
 # descr = begin drag or commit on double-click
 
-my ( $widget, $event ) = @ARG;
+my ( $id, $widget, $event ) = @ARG;
+
+return TRUE if not defined $id;
+
+my $inst = $data{window}{place}{instances}{$id};
+return TRUE if not defined $inst;
 
 my $ex = $event->x;
 my $ey = $event->y;
 
-my $w = <x11.window.width>  // 320;
-my $h = <x11.window.height> // 240;
+my $w = $inst->{'geom'}{'width'}  // 320;
+my $h = $inst->{'geom'}{'height'} // 240;
 
 ## right-click anywhere : submit, same as the enter key. commit is      ##
 ## deferred to button-release [ committing here would Gtk3->main_quit   ##
@@ -24,15 +29,15 @@ if ( $event->button == 3 ) {
     return TRUE;
 }
 
-my $region = <[window.place.classify_region]>->( $ex, $ey );
+my $region = <[window.place.classify_region]>->( $id, $ex, $ey );
 
 ## double-click on body : re-center the window on the cursor [ also     ##
 ## compensates for the missed first drag under wslg/xwayland, letting   ##
 ## the user land the window without relying on drag at all ]            ##
 if ( $region eq 'body' ) {
     my $now = <[base.time]>->(5);
-    if ( defined <window.place.last_click>
-        and ( $now - <window.place.last_click> ) < 0.3 ) {
+    if ( defined $inst->{'last_click'}
+        and ( $now - $inst->{'last_click'} ) < 0.3 ) {
         <[base.log]>->( 1, '[place.button_press] double-click re-center' );
         my $new_geom = {
             'x'      => int( $event->x_root - $w / 2 ),
@@ -40,31 +45,31 @@ if ( $region eq 'body' ) {
             'width'  => $w,
             'height' => $h
         };
-        <[window.place.damp.set_target]>->($new_geom);
-        <[window.place.update_x11_state]>->($new_geom);
-        delete <window.place.last_click>;
+        <[window.place.damp.set_target]>->( $id, $new_geom );
+        <[window.place.update_x11_state]>->( $id, $new_geom );
+        delete $inst->{'last_click'};
         return TRUE;
     }
-    <window.place.last_click> = $now;
+    $inst->{'last_click'} = $now;
 }
 
-<window.place.drag.active>     = TRUE;
-<window.place.drag.region>     = $region;
-<window.place.drag.start_x>    = $event->x_root;
-<window.place.drag.start_y>    = $event->y_root;
-<window.place.drag.start_geom> = {
-    'x'      => <x11.coordinates.left> // 0,
-    'y'      => <x11.coordinates.top>  // 0,
-    'width'  => <x11.window.width>     // $w,
-    'height' => <x11.window.height>    // $h
+$inst->{'drag'}{'active'}     = TRUE;
+$inst->{'drag'}{'region'}     = $region;
+$inst->{'drag'}{'start_x'}    = $event->x_root;
+$inst->{'drag'}{'start_y'}    = $event->y_root;
+$inst->{'drag'}{'start_geom'} = {
+    'x'      => $inst->{'geom'}{'x'}      // 0,
+    'y'      => $inst->{'geom'}{'y'}      // 0,
+    'width'  => $inst->{'geom'}{'width'}  // $w,
+    'height' => $inst->{'geom'}{'height'} // $h
 };
 
-<[base.logs]>->( 2, '[place.button_press] region=%s', $region );
+<[base.logs]>->( 2, '[place.button_press] id=%s region=%s', $id, $region );
 
 return TRUE;
 
-#,,,,,.,.,,..,.,,,,,.,,.,,,,.,.,.,.,,,,,,,..,,.,.,...,..,,...,.,,,.,,,,,,,.,.,
-#C4HRR5DJ74FMS4LK44VMIMXPUOHHISRWEXO3TILJXNIMFISFIIHVEE2VVERJ2P42NOWTMQ5HYXY4M
-#\\\|B7OWPIY4INY4ITYC6HCXY3HSHWDSSAA5RQXTC5PX5EBEMPO4USB \ / AMOS7 \ YOURUM ::
-#\[7]YBT6VMUG3OQU5EJL3C2DSIIVIK3UFI5BQCKXHRWS4BNULKYXQSAQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,.,,,.,.,,.,,...,.,,,.,,,.,,,..,,.,.,...,.,.,..,,,..,..,,,,.,,,.,
+#KGFINF2TJBJKVUBGLJH7R7BQSM6CPJ5JG7OKT3T3WRVHN4QBVQ32RRDHKAVAJJMFLBURRM6CCQFUM
+#\\\|LKLZMJFEK23JSL6KADA6CJEUNUL6ZTCTUEWY5UY6KV2F6BHEG2H \ / AMOS7 \ YOURUM ::
+#\[7]KT6UN5UKHZJDDCVD7L2CTUHT4UQ25BQ6EGXOPNCH6SMUTPQJNKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

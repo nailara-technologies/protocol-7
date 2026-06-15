@@ -3,7 +3,9 @@
 # name  = window.place.handler.scroll
 # descr = wheel move/resize via scroll direction + modifiers
 
-my ( $widget, $event ) = @ARG;
+my ( $id, $widget, $event ) = @ARG;
+
+return TRUE if not defined $id;
 
 my $dir   = $event->direction;   ## stringifies to up/down/left/right ##
 my $state = ${ $event->state };  ## deref Glib::Flags blessed scalar to int ##
@@ -32,12 +34,12 @@ if ($ctrl) {
     $action = $up ? qw| ctrl_up | : qw| ctrl_down |;
 }
 
-<[window.place.adjust]>->( $widget, $action, $step );
+<[window.place.adjust]>->( $id, $widget, $action, $step );
 
 return TRUE;
 
-#,,,,,.,,,,.,,,..,,,.,,..,.,,,,,,,,,.,,.,,.,.,.,.,...,...,,..,,..,.,.,,,.,..,,
-#T3WLBD5I3EAICDW6SOJE7JCWCFHLWZ6BFTF6VMADA6SNI2LMXV2D7ERYD6EP4SFE3M65XH3NGMOY6
-#\\\|OYBO3OR7P5WZJ67Q2IYFCKORMKH62WVLRUXDLE7QT3AG4VN2XUC \ / AMOS7 \ YOURUM ::
-#\[7]ZMQPZL2H7B6PZG6SV2JJLZHO4EOMXMPFGOKCJILQTZATTQOX3EBA 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,..,,.,.,.,,,.,,,..,,.,.,...,,.,,.,.,...,...,.,.,,,.,.,,,,..,,,.,
+#DOOAERWJWV37QVKPXE4G3XACUAQTPQ7WMQEF2CWUWFZ5AKGDX2SOBQWUXEGGZ2TUDB2NZ6WNHDNMA
+#\\\|WMONELOARNI7VO3P5FJYYRZ7X32X5HGEO7YXIZTD7IEGBELRTHN \ / AMOS7 \ YOURUM ::
+#\[7]HXILGV4CG67KMHWPIDB5N6AARSEZPMRAUONBCFUCUGWG6SN2LOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,14 +13,26 @@
 ## updates the resize-region hover cursor - so both proximity feedback and  ##
 ## the very first drag work without relying on motion-notify delivery.      ##
 
-my $event = shift->w;
+my $event   = shift;
+my $watcher = $event->w;
+my $id      = $watcher->data;
 
-my $window = <window.place.obj.window>;
+return if not defined $id;
+
+my $inst = $data{window}{place}{instances}{$id};
+
+## instance gone: stop the poll and clear ##
+if ( not defined $inst ) {
+    $watcher->stop;
+    return;
+}
+
+my $window = $inst->{'window'};
 
 ## window gone or hidden: stop the poll and clear ##
 if ( not defined $window or not $window->get_visible ) {
-    $event->cancel;
-    delete <window.place.poll.timer>;
+    $watcher->stop;
+    delete $inst->{'poll'}{'timer'};
     return;
 }
 
@@ -43,22 +55,22 @@ eval {
     ## dragging: the screen-relative pointer position is in the same frame  ##
     ## as the button-press x_root/y_root anchor, so feed it straight to the ##
     ## shared drag helper and skip the hover-cursor work below.             ##
-    if (<window.place.drag.active>) {
-        <[window.place.apply_drag]>->( $px, $py );
+    if ( $inst->{'drag'}{'active'} ) {
+        <[window.place.apply_drag]>->( $id, $px, $py );
         return;
     }
 
     ## convert absolute pointer position to window-local coordinates ##
-    my $wx = <x11.coordinates.left> // 0;
-    my $wy = <x11.coordinates.top>  // 0;
+    my $wx = $inst->{'geom'}{'x'} // 0;
+    my $wy = $inst->{'geom'}{'y'} // 0;
 
     my $ex = $px - $wx;
     my $ey = $py - $wy;
 
     ## only update when the pointer is actually within the window bounds; ##
     ## outside, leave the last cursor as-is [ gtk resets it off-window ]. ##
-    my $w = <x11.window.width>  // $window->get_allocated_width;
-    my $h = <x11.window.height> // $window->get_allocated_height;
+    my $w = $inst->{'geom'}{'width'}  // $window->get_allocated_width;
+    my $h = $inst->{'geom'}{'height'} // $window->get_allocated_height;
 
     return
            if $ex < 0
@@ -66,8 +78,8 @@ eval {
         or $ex >= $w
         or $ey >= $h;
 
-    my $hover = <[window.place.classify_region]>->( $ex, $ey );
-    <[window.place.set_hover_cursor]>->( $window, $hover );
+    my $hover = <[window.place.classify_region]>->( $id, $ex, $ey );
+    <[window.place.set_hover_cursor]>->( $id, $window, $hover );
 };
 
 <[base.log]>->( 0, ': pointer poll failed: ' . $EVAL_ERROR )
@@ -75,8 +87,8 @@ eval {
 
 return;
 
-#,,.,,,,.,..,,,..,,..,..,,,,.,,..,...,,.,,,,,,..,,...,...,...,,,.,,.,,...,...,
-#6NIH3F7D4YKVAADRISFN5VL7ON5IZEIKFDVNGVTILB2VFP4VXBDUTFDRPISRLXTLXXMI4JDZZO562
-#\\\|TATN3QCB4OYCOFNUF27JMUM2PDXUF3L2YUAAJJXDZBYFDBE4FRT \ / AMOS7 \ YOURUM ::
-#\[7]6QNGWMVFZZMARZYEUYWWBNCFL3YTV44B73HC5ARKCREMKSZO6YBA 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,.,,,,.,,.,.,,,,,,.,,,..,.,,,,..,.,.,...,...,..,,,.,,.,.,...,.,,,
+#GCRAOIYD4SBMF2WBUJ7A7LJRXAJ242YCN4DK2EC62JZXCLQJKIXYQGLGTVZLYYDBKU4JDBX523E74
+#\\\|TZ3YJECPNILSGCEHHCQJ3654KHGQFJZV7NL72O2UTWEDSTQ4NC6 \ / AMOS7 \ YOURUM ::
+#\[7]GWA3KV3QNILYFOWL4KMTLSWV5SPMFKIYDYZPX2Z33XQ4LERFUSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
