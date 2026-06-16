@@ -141,15 +141,43 @@ marker vs. "hand-configured" so the two sources remain distinguishable.
 4. Over time, intent-first entries get reviewed and promoted to
    persistent config — or auto-promoted after N successful placements
 
-**Current priority:** establish the two-path API contract first (what
-does a client send to request standalone vs. tile-integrated placement),
-then implement tile's ability to hold and serve intent-first entries,
-then add persistence. The X-11 infrastructure improvements in this
-session (window enumeration, get-windows, GDK_BACKEND) are a prerequisite
-that is now complete.
+**API contract LANDED 2026-06-16:**
 
-#,,,,,,,,,...,.,,,,,.,.,,,,..,,.,,,.,,,..,..,,..,,...,...,...,,,,,,,,,.,.,..,,
-#AKF7TAAERAGSCERTXIHE6HSX7ISYDRU52RO4D73FAGMKMW6M4YYZ75V5C3TYXIUCVCNK3EJAZQ4UO
-#\\\|DBDIY3D3IFQQ7QW7LBPRGCHTSJKZ7XYKYEQKIO7T34533BKLESF \ / AMOS7 \ YOURUM ::
-#\[7]JTCAWOPSOAUDWH76OFZGKSGRFKKSZTPCPNMQK5ROEC467FKINUCQ 7  DATA SIGNATURE ::
+Path A (standalone oracle) was already working — client calls
+`window-place.place_window caller=X` and gets geometry back.
+
+Path B (tile-integrated) API contract is now implemented:
+- `window.place.start` accepts a generic opaque `tag=X` param (stored
+  in instance; window-place stays agnostic — no tile semantics baked in)
+- `window.place.commit` echoes `tag=X` in reply_args whenever set; tag
+  also flows through the `reply_id`-based deferred reply, giving any
+  handler-based caller request correlation for concurrent placements
+- `tile.handler.receive_placement` (new) — receives the reply from
+  window-place, parses tag+geometry, stores into `<tile.coordinates>`
+  with `intent_authored => TRUE` marker; existing `get_geometry` /
+  `get_coordinates` serve intent-first entries transparently since they
+  only read `left/top/right/bottom`
+- `tile.cmd.show_intent` (new) — lists all intent-first entries for
+  inspection via `p7c tile.show_intent`
+
+**Path B test invocation:**
+```
+p7c window-place.place_window \
+  'caller=tile reply_handler=tile.handler.receive_placement tag=mpv'
+# drag window to position, press Enter to commit
+p7c tile.show_intent
+```
+
+**Next — Phase 2 (tile fall-through):**
+Modify `tile.cmd.get_geometry` to fall back to window-place when no
+configured entry exists: return `{mode => deferred}`, call
+`window-place.place_window caller=tile reply_handler=...
+tag=<zenka_name>`, store `reply_id` to complete the original caller's
+reply once `tile.handler.receive_placement` is triggered. Same deferred
+pattern window-place itself uses.
+
+#,,,,,,,.,,..,,..,,,.,...,..,,,,,,.,.,,..,..,,..,,...,...,...,.,.,,..,,..,.,,,
+#5P2QJ3YCR3C3QNTIEVCFXLFCI6OD2LJRFUK5DBVZ3TNEN5HAPNKOLR2TODSRVDACNWYYAXBA6UPZK
+#\\\|XITP66TDHVWIGXJGD4FHYSI5XH4NUYGWTVNBSFAONSYSSQPWN2I \ / AMOS7 \ YOURUM ::
+#\[7]LUAA7VEGQHUD63QZNGZJBIJFSZ6GR6TJ6UU5ZVBNYWRDVOHDJEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
