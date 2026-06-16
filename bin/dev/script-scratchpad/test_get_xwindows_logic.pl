@@ -1,28 +1,32 @@
-## [:< ##
+#!/usr/bin/perl -w
+use strict;
+use warnings;
+use feature 'say';
 
-# name  = X-11.cmd.get-xwindows
-# descr = enumerate X11 windows via QueryTree root walk
-#         WSL/no-WM fallback; use when _NET_CLIENT_LIST is empty
+## standalone test of the get-xwindows recursive title logic ##
 
-my $X    = <X-11.obj>;
-my $root = <X-11.obj>->root;
+use English;
+use X11::Protocol;
 
+my $X = eval { X11::Protocol->new( $ENV{'DISPLAY'} // ':0' ) };
+die "cannot connect to X server: $@" if $EVAL_ERROR or not $X;
+
+my $root        = $X->root;
 my $wm_name     = $X->atom('WM_NAME');
 my $net_wm_name = $X->atom('_NET_WM_NAME');
 my $utf8_string = $X->atom('UTF8_STRING');
 my $string      = $X->atom('STRING');
 
-## [ helper: fetch a property value, ignoring errors and empty replies ] ##
 my $fetch_title = sub {
     my ( $wid, $atom, $req_type ) = @_;
     return undef unless defined $wid and defined $atom;
-    my ($val)
-        = eval { $X->GetProperty( $wid, $atom, $req_type, 0, 256, 0 ); };
+    my ($val) = eval {
+        $X->GetProperty( $wid, $atom, $req_type, 0, 256, 0 );
+    };
     return undef if $EVAL_ERROR or not defined $val or not length $val;
     return $val;
 };
 
-## [ helper: try atom with explicit type and fall back to any type ] ##
 my $try_title = sub {
     my ( $wid, $atom, $type ) = @_;
     return undef unless defined $atom;
@@ -31,7 +35,6 @@ my $try_title = sub {
     return $fetch_title->( $wid, $atom, 'AnyPropertyType' );
 };
 
-## [ helper: find first non-empty title on $wid or any descendant ] ##
 my $find_title;
 $find_title = sub {
     my ($wid) = @_;
@@ -69,19 +72,15 @@ eval {
     }
 };
 
-if ($EVAL_ERROR) {
-    warn <[base.str.eval_error]>;
-    return { 'mode' => qw| false |, 'data' => 'QueryTree failed' };
-}
+die "QueryTree failed: $@" if $EVAL_ERROR;
 
-return @entries
-    ? { 'mode' => qw| size |,  'data' => join( "\n", sort @entries ) . "\n" }
-    : { 'mode' => qw| false |, 'data' => 'no titled windows found' };
+say join "\n", sort @entries;
+say '[ no mapped windows found ]' if not @entries;
 
-#,,.,,.,,
+exit;
 
-#,,.,,...,...,,..,..,,,,.,,.,,,.,,,.,,..,,...,..,,...,...,.,.,,,,,,,.,,..,,.,,
-#X5V7EBVPHZ2PJACFKBKTQCJ5DVT6D4TPXMDMZ5SAUM6OGFBZMEBRO6PB2SYFKE2RWFBANW26LVFIW
-#\\\|PB2ZFOPPG62IQXBK6JIC2NTXMIXB6O22YSAABG5YWM6W4V2NINA \ / AMOS7 \ YOURUM ::
-#\[7]WMFFDRGOLQYC5QJV46H2ID65C2CGHRC3N5KNB2IV4PPZPXWL3ADY 7  DATA SIGNATURE ::
+#,,,,,...,,.,,..,,.,,,..,,,,.,.,,,,,,,...,,,.,..,,...,...,,,,,...,,.,,..,,.,,,
+#RJ3U5JJX7FOAWVJBOP6SKQ3UQX4OQ6UJCYIAIQ2QB4TY5NCDRH3XJTZ3GB4CTFYRQLJ3ATDNFA4FY
+#\\\|UVDYUGRRDM3V4JZ2DAWD3LIVDPIFD7S3OGMAA6UZOG5YOMMASVC \ / AMOS7 \ YOURUM ::
+#\[7]BOI443ZQY2SQ5JIWHFBW3HEUFTIGTGL73JKNYP7DQWUESIIVJ6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
