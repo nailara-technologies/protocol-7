@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = tile.handler.receive_placement
+# descr = receive window-place geometry and store as intent-first tile entry
+
+my $answer = shift;
+
+return
+    if not defined $answer
+    or ( $answer->{'cmd'} // '' ) ne qw| TRUE |;
+
+my $args = $answer->{'call_args'}{'args'} // '';
+
+my ( $caller, $x, $y, $w, $h );
+$caller = $1 if $args =~ m|\bcaller=(\S+)|;
+$x      = $1 if $args =~ m|\bx=(\d+)|;
+$y      = $1 if $args =~ m|\by=(\d+)|;
+$w      = $1 if $args =~ m|\bwidth=(\d+)|;
+$h      = $1 if $args =~ m|\bheight=(\d+)|;
+
+if ( not defined $caller or not length $caller ) {
+    <[base.log]>->( 0, '[tile.receive_placement] caller missing in reply' );
+    return;
+}
+
+if ( not defined $x or not defined $y or not defined $w or not defined $h ) {
+    <[base.log]>->(
+        0, '[tile.receive_placement] geometry incomplete in reply'
+    );
+    return;
+}
+
+<tile.coordinates>->{$caller} = {
+    'left'            => $x,
+    'top'             => $y,
+    'right'           => $x + $w,
+    'bottom'          => $y + $h,
+    'intent_authored' => TRUE,
+};
+
+<[base.logs]>->(
+    1, '[tile.receive_placement] stored caller=%s x=%d y=%d w=%d h=%d',
+    $caller, $x, $y, $w, $h
+);
+
+return TRUE;
+
+#,,.,,,..,,,.,...,,,,,...,.,,,,..,..,,.,,,.,.,..,,...,...,.,,,..,,,.,,..,,..,,
+#CZV7FW2VVBDPKTCYDTGGWACN54WJPTLEC23Y4PREILX27OB75R7TLKMAACLG7FEUCIUJ7433E2UOK
+#\\\|26MLNUGBW7WEWZK7GBZLUOHUQ7BH73SFHTIFM73C2ZW5JREDA7G \ / AMOS7 \ YOURUM ::
+#\[7]GR5ROKOREZXZMV7WUKC635DRYB7OW332I62TYM65MEBGITFRJGAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,20 +4,23 @@
 # descr = handle geometry reply from window-place zenka
 
 my $reply = shift;
-my $args  = $reply->{'data'} // '';
+
+return
+    if not defined $reply
+    or ( $reply->{'cmd'} // '' ) ne qw| TRUE |;
+
+my $args = $reply->{'call_args'}{'args'} // '';
 
 <[base.logs]>->( 1, '[ticker.place_reply] received: %s', $args );
 
-if ( $args =~ m|^x=(\d+)\s+y=(\d+)\s+width=(\d+)\s+height=(\d+)| ) {
+if ( $args =~ m|x=(\d+).*y=(\d+).*width=(\d+).*height=(\d+)| ) {
     my ( $x, $y, $w, $h ) = ( $1, $2, $3, $4 );
     <[base.logs]>->(
         1,  '[ticker.place_reply] saved geometry x=%d y=%d w=%d h=%d',
         $x, $y, $w, $h
     );
     <[base.log]>->(
-        1,
-        'restart ticker with ticker.window.profile'
-            . ' = saved to use new placement'
+        1, 'restart ticker with ticker.window.profile = saved to apply'
     );
 } else {
     <[base.log]>->(
@@ -25,10 +28,8 @@ if ( $args =~ m|^x=(\d+)\s+y=(\d+)\s+width=(\d+)\s+height=(\d+)| ) {
     );
 }
 
-return { 'mode' => qw| true |, 'data' => 'reply handled' };
-
-#,,..,..,,.,.,...,,.,,..,,.,.,,,,,,,,,,.,,..,,.,.,...,...,.,.,,..,,,,,.,.,,..,
-#VTEMBL464APCU7ELBXIXZTMBKRFT6MATQDBSXEXFBZTMROTPX6KGICFNHVA7SEJOFCS6HZOBAJCOA
-#\\\|K74WCTKMUKTI7IGSRKCABDQVUNR4V3E5MZXMDFYCN24HIH6FBR6 \ / AMOS7 \ YOURUM ::
-#\[7]DLTF2NJNLUGNRXCZ5EPNEJ6QPGT5ZECTUQGMEYKSEI5VBO22F4CA 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,.,.,.,.,,,.,...,...,.,,,.,.,,.,,.,.,...,...,,,,,,,.,.,.,,,,,,.,,
+#HKN2B6HC2P7LFPXKTDIK3OJIJY5TTYTCZXU5QM52I2JVSGB3UYW6BFKUPMMERYCACDFL25FP5GND4
+#\\\|65CMJQFSLGSY3HN45SZR2E3BPZCMS56JVLK4IHUP52YDS45ORNN \ / AMOS7 \ YOURUM ::
+#\[7]J6MJ4MKKZUBQTZYOTQV4TOC3PCAD4GLR7VMB75MO62BIYS7WKGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
