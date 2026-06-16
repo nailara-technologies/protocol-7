@@ -2,83 +2,109 @@
 
 # name  = transport.handle.quic-hysteria
 # descr = hysteria tunnel via local SOCKS5 proxy (external QUIC client)
-# args  = $entry, $context
-# returns transport handle hashref or undef
+# args  = $entry, $context, $continue
+# invokes $continue->( $handle_or_undef ) once resolution + connect complete.
 
-my ( $entry, $ctx ) = @ARG;
+my ( $entry, $ctx, $continue ) = @ARG;
 
 my $endpoint = $entry->{'endpoint'} // $ctx->{'request'}{'domain'} // '';
-return undef unless length $endpoint;
+if ( not length $endpoint ) {
+    $continue->(undef) if ref $continue eq qw| CODE |;
+    return;
+}
 
-## resolve credential if present ##
-my $cred;
-if ( exists $entry->{'credential'}
-    and defined $entry->{'credential'} ) {
-    $cred = <[cred-mesh.resolve]>->(
-        {   'slot'    => $entry->{'credential'},
-            'context' => $ctx,
+## finalize handle once credential resolution (if any) completes ##
+my $build_handle = sub {
+    my $cred = shift;
+
+    if ( exists $entry->{'credential'}
+        and defined $entry->{'credential'} ) {
+        if (   not defined $cred
+            or ref $cred ne qw| HASH |
+            or ( $cred->{'mode'} // '' ) ne qw| true | ) {
+            <[base.logs]>->(
+                1,
+                'transport.handle.quic-hysteria: credential %s resolution failed',
+                $entry->{'credential'}
+            );
+            $continue->(undef) if ref $continue eq qw| CODE |;
+            return;
         }
-    );
-}
-
-## validate credential resolution ##
-if ( exists $entry->{'credential'}
-    and defined $entry->{'credential'} ) {
-    if (   not defined $cred
-        or ref $cred ne qw| HASH |
-        or $cred->{'mode'} ne qw| true | ) {
-        <[base.logs]>->(
-            1,
-            'transport.handle.quic-hysteria: credential %s resolution failed',
-            $entry->{'credential'}
-        );
-        return undef;
     }
-}
 
-## hysteria proxy configuration ##
-## default to local SOCKS5 proxy if not configured otherwise ##
-my $proxy_host = $entry->{'proxy_host'} // '127.0.0.1';
-my $proxy_port = $entry->{'proxy_port'} // 1040;
+    my $proxy_host = $entry->{'proxy_host'} // '127.0.0.1';
+    my $proxy_port = $entry->{'proxy_port'} // 1040;
 
-## optionally try a lightweight TCP connect to proxy to verify it's up ##
-my $test_sock = IO::Socket::IP->new(
-    PeerHost => $proxy_host,
-    PeerPort => $proxy_port,
-    Type     => SOCK_STREAM(),
-    Timeout  => 3,
-);
-
-if ( not $test_sock ) {
-    <[base.logs]>->(
-        1, 'transport.handle.quic-hysteria: proxy %s:%d unreachable',
-        $proxy_host, $proxy_port
+    my $test_sock = IO::Socket::IP->new(
+        PeerHost => $proxy_host,
+        PeerPort => $proxy_port,
+        Type     => SOCK_STREAM(),
+        Timeout  => 3,
     );
-    return undef;
-}
-$test_sock->close;
 
-my $dest = $ctx->{'session'}{'destination'} // $ctx->{'request'}{'domain'}
-    // $endpoint;
+    if ( not $test_sock ) {
+        <[base.logs]>->(
+            1, 'transport.handle.quic-hysteria: proxy %s:%d unreachable',
+            $proxy_host, $proxy_port
+        );
+        $continue->(undef) if ref $continue eq qw| CODE |;
+        return;
+    }
+    $test_sock->close;
 
-my $handle = {
-    'type'       => 'quic-hysteria',
-    'endpoint'   => $endpoint,
-    'proxy_url'  => sprintf( 'socks5://%s:%d', $proxy_host, $proxy_port ),
-    'proxy_host' => $proxy_host,
-    'proxy_port' => $proxy_port,
-    'quality'    => <transport.registry>->{'quality'}{'quic-hysteria'}{$dest}
-        // {},
-    'credential' => $cred,
+    my $dest = $ctx->{'session'}{'destination'}
+        // $ctx->{'request'}{'domain'} // $endpoint;
+
+    my $handle = {
+        'type'       => 'quic-hysteria',
+        'endpoint'   => $endpoint,
+        'proxy_url'  => sprintf( 'socks5://%s:%d', $proxy_host, $proxy_port ),
+        'proxy_host' => $proxy_host,
+        'proxy_port' => $proxy_port,
+        'quality' => <transport.registry>->{'quality'}{'quic-hysteria'}{$dest}
+            // {},
+        'credential' => $cred,
+    };
+
+    <transport.registry>->{'stats'}{'connections_ok'}++;
+
+    $continue->($handle) if ref $continue eq qw| CODE |;
+    return;
 };
 
-## update stats ##
-<transport.registry>->{'stats'}{'connections_ok'}++;
+## no credential to resolve: build synchronously ##
+if (   not exists $entry->{'credential'}
+    or not defined $entry->{'credential'} ) {
+    $build_handle->(undef);
+    return;
+}
 
-return $handle;
+## async credential resolve via cred-mesh ##
+my $req_id = sprintf( 'qh-%d-%d-%d',
+    <[base.time]>->(0) // 0,
+    $PROCESS_ID, int( rand(1_000_000) ) );
 
-#,,..,.,,,,..,...,,,,,..,,,..,.,.,,..,,.,,..,,..,,...,...,.,,,,,,,.,.,.,,,,,.,
-#D2LTNTY2KPS6ZXSTE3ZJ7LEHQFSMQXQF7NQXYYL7EAFZW6XQYX4PIFU45QM7S42TA5BBTIEORL6LI
-#\\\|X2UQ7XZJPBZNSBMZAE53AI5EPDMIHYZUBACCWPPPTEFBCC74U43 \ / AMOS7 \ YOURUM ::
-#\[7]3X7YNPFKSOW7VY2R73E2FTXVHCEPEYFUENTDLYBJ7GO2WDTZ7ABA 7  DATA SIGNATURE ::
+<transport.registry>->{'pending_resolve'}{$req_id} = {
+    'build'    => $build_handle,
+    'continue' => $continue,
+    'slot'     => $entry->{'credential'},
+    'handler'  => qw| transport.handle.quic-hysteria |,
+};
+
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| cred-mesh.resolve |,
+        'call_args' => { 'args' => $entry->{'credential'} },
+        'reply'     => {
+            'handler' => qw| transport.handler.credential_resolved |,
+            'params'  => { 'req_id' => $req_id },
+        },
+    }
+);
+
+return;
+
+#,,.,,..,,..,,,,.,,,,,...,.,,,,,,,,.,,,,,,.,,,..,,...,...,,..,..,,,..,..,,..,,
+#V2VWWMZ6OTMNCCDH43TTRGRJELN5EIKGDNJ275WXBK4O3N5BT4XTLTKGF67WLL2YSM634EYFGUR6E
+#\\\|AQFD3AM4WZBLZ57CEVAD5PLI4HKF63KALC42AZ56MUTWHKFVMJ6 \ / AMOS7 \ YOURUM ::
+#\[7]EUVOT77NUNYNLLMNYXQGS7Y33AHZ4LQZHG4G6SYRSCVBICUDXCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -20,34 +20,44 @@ if ( not exists $code{$handler} ) {
 );
 
 ## try a lightweight connection ##
-my $ctx    = { 'session' => { 'destination' => $dest } };
-my $handle = $code{$handler}->( $entry, $ctx );
+my $ctx = { 'session' => { 'destination' => $dest } };
 
-if ( defined $handle ) {
-    ## success: promote ##
-    <[transport.promote]>->( $dest, $type );
+my $on_handle = sub {
+    my $handle = shift;
+    if ( defined $handle ) {
+        ## success: promote ##
+        <[transport.promote]>->( $dest, $type );
 
-    ## close probe handle unless it's a persistent socket we can reuse ##
-    if ( ref $handle eq qw| HASH |
-        and defined $handle->{'socket'} ) {
-        eval { $handle->{'socket'}->close };
+        ## close probe handle unless it's a persistent socket we can reuse ##
+        if ( ref $handle eq qw| HASH |
+            and defined $handle->{'socket'} ) {
+            eval { $handle->{'socket'}->close };
+        }
+        return;
     }
 
-    return 1;
+    ## probe failed: keep demoted, update quality ##
+    <[transport.quality.measure]>->(
+        $dest, $type,
+        {   'success'   => FALSE,
+            'loss_rate' => 1.0,
+        }
+    );
+    return;
+};
+
+my %async_handlers = map { $_ => 1 } qw| quic-hysteria udt-tunnel |;
+if ( $async_handlers{$type} ) {
+    $code{$handler}->( $entry, $ctx, $on_handle );
+} else {
+    my $handle = $code{$handler}->( $entry, $ctx );
+    $on_handle->($handle);
 }
 
-## probe failed: keep demoted, update quality ##
-<[transport.quality.measure]>->(
-    $dest, $type,
-    {   'success'   => FALSE,
-        'loss_rate' => 1.0,
-    }
-);
+return 1;
 
-return 0;
-
-#,,,,,..,,,,,,,,,,,.,,.,,,...,,,.,,,,,..,,...,..,,...,...,,..,.,.,,,,,,,,,...,
-#WG2LN4YSQRUYFNQVMF7KDW6LQ7H63LHVWG3PNAQKG5Y3RFBW5FHC3POV2NDUXKV46BBOANGIBHL24
-#\\\|WDZG7IALFZ33IKZO2XBAD4INII4POLFSPS5K3JHXRZ2PAHW3ZEA \ / AMOS7 \ YOURUM ::
-#\[7]OZC6ARR5E2UDL5GN47Y726FNAT62M6CABTU3RXXQEWN523DWS2CQ 7  DATA SIGNATURE ::
+#,,.,,...,,,,,..,,,..,,..,.,.,.,,,,.,,..,,,,.,..,,...,...,..,,...,.,.,.,.,,,.,
+#PRMAB5VKXOYP22CPTYHK22ORCH4526KSKBMPPQIIIZOBJ3EIYT7ABEHBRAMSTGI2RBGYLFYXGWRIO
+#\\\|L6S4C2KTRGMO7HO7KPCRFXJQ3H46K3U4ZXI2BS2OUEPHERDR3TB \ / AMOS7 \ YOURUM ::
+#\[7]EM3WCHPUYDYXL4GOGH7RZN44LTWIOE6H4VU75OSJIM2MRBEZROCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

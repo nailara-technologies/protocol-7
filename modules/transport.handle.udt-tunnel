@@ -2,92 +2,123 @@
 
 # name  = transport.handle.udt-tunnel
 # descr = UDT tunnel handler (stub, full impl when UDT::Simple available)
-# args  = $entry, $context
-# returns transport handle hashref or undef
+# args  = $entry, $context, $continue
+# invokes $continue->( $handle_or_undef ) once resolution + connect complete.
 
-my ( $entry, $ctx ) = @ARG;
+my ( $entry, $ctx, $continue ) = @ARG;
 
 my $endpoint = $entry->{'endpoint'} // $ctx->{'request'}{'domain'} // '';
-return undef unless length $endpoint;
+if ( not length $endpoint ) {
+    $continue->(undef) if ref $continue eq qw| CODE |;
+    return;
+}
 
 ## check if UDT is available ##
 my $udt_registry = <transport.registry>->{'registry'}{'udt'};
 if (   not defined $udt_registry
     or not $udt_registry->{'available'} ) {
     <[base.logs]>->( 1, 'transport.handle.udt-tunnel: UDT not available' );
-    return undef;
+    $continue->(undef) if ref $continue eq qw| CODE |;
+    return;
 }
 
 my ( $host, $port ) = split /:/, $endpoint, 2;
 $port //= 9000;
 
-## resolve credential if present ##
-my $cred;
-if ( exists $entry->{'credential'}
-    and defined $entry->{'credential'} ) {
-    $cred = <[cred-mesh.resolve]>->(
-        {   'slot'    => $entry->{'credential'},
-            'context' => $ctx,
+## finalize handle once credential resolution (if any) completes ##
+my $build_handle = sub {
+    my $cred = shift;
+
+    if ( exists $entry->{'credential'}
+        and defined $entry->{'credential'} ) {
+        if (   not defined $cred
+            or ref $cred ne qw| HASH |
+            or ( $cred->{'mode'} // '' ) ne qw| true | ) {
+            <[base.logs]>->(
+                1,
+                'transport.handle.udt-tunnel: credential %s resolution failed',
+                $entry->{'credential'}
+            );
+            $continue->(undef) if ref $continue eq qw| CODE |;
+            return;
         }
-    );
-}
-
-## validate credential resolution ##
-if ( exists $entry->{'credential'}
-    and defined $entry->{'credential'} ) {
-    if (   not defined $cred
-        or ref $cred ne qw| HASH |
-        or $cred->{'mode'} ne qw| true | ) {
-        <[base.logs]>->(
-            1,
-            'transport.handle.udt-tunnel: credential %s resolution failed',
-            $entry->{'credential'}
-        );
-        return undef;
     }
-}
 
-## UDT::Simple stub: attempt connection if module loaded ##
-my $has_udt = <[base.perlmod.loaded]>->('UDT::Simple')
-    || <[base.perlmod.autoload]>->('UDT::Simple');
+    my $has_udt = <[base.perlmod.loaded]>->('UDT::Simple')
+        || <[base.perlmod.autoload]>->('UDT::Simple');
 
-my $sock;
-if ($has_udt) {
-    eval {
-        $sock = UDT::Simple->new( AF_INET(), SOCK_DGRAM() );
-        $sock->connect( $host, $port );
+    my $sock;
+    if ($has_udt) {
+        eval {
+            $sock = UDT::Simple->new( AF_INET(), SOCK_DGRAM() );
+            $sock->connect( $host, $port );
+        };
+        if ( $@ or not defined $sock ) {
+            <[base.logs]>->(
+                0,
+                'transport.handle.udt-tunnel: UDT connect failed: %s',
+                $@ // 'unknown'
+            );
+            $sock = undef;
+        }
+    }
+
+    if ( not defined $sock ) {
+        $continue->(undef) if ref $continue eq qw| CODE |;
+        return;
+    }
+
+    my $dest = $ctx->{'session'}{'destination'}
+        // $ctx->{'request'}{'domain'} // $endpoint;
+
+    my $handle = {
+        'type'     => 'udt-tunnel',
+        'socket'   => $sock,
+        'endpoint' => $endpoint,
+        'quality'  => <transport.registry>->{'quality'}{'udt-tunnel'}{$dest}
+            // {},
+        'credential' => $cred,
     };
-    if ( $@ or not defined $sock ) {
-        <[base.logs]>->(
-            0,
-            'transport.handle.udt-tunnel: UDT connect failed: %s',
-            $@ // 'unknown'
-        );
-        $sock = undef;
-    }
-}
 
-if ( not defined $sock ) {
-    return undef;
-}
+    <transport.registry>->{'stats'}{'connections_ok'}++;
 
-my $dest = $ctx->{'session'}{'destination'} // $ctx->{'request'}{'domain'}
-    // $endpoint;
-
-my $handle = {
-    'type'     => 'udt-tunnel',
-    'socket'   => $sock,
-    'endpoint' => $endpoint,
-    'quality' => <transport.registry>->{'quality'}{'udt-tunnel'}{$dest} // {},
-    'credential' => $cred,
+    $continue->($handle) if ref $continue eq qw| CODE |;
+    return;
 };
 
-<transport.registry>->{'stats'}{'connections_ok'}++;
+## no credential to resolve: build synchronously ##
+if (   not exists $entry->{'credential'}
+    or not defined $entry->{'credential'} ) {
+    $build_handle->(undef);
+    return;
+}
 
-return $handle;
+## async credential resolve via cred-mesh ##
+my $req_id = sprintf( 'udt-%d-%d-%d',
+    <[base.time]>->(0) // 0,
+    $PROCESS_ID, int( rand(1_000_000) ) );
 
-#,,,,,,,.,...,,,.,,..,,..,.,,,..,,...,,.,,...,..,,...,...,,,,,,.,,...,,,,,..,,
-#7V4VG2VIGW53VI2SEXKJMZT6T2MQBOJ6EK7KOPWMFEYRXLXBUEDYK7QGJ5AI4IJTGDSFLPYZXGDWQ
-#\\\|W5LWSABTTF5RT4EJSCTU6HERHDWDOLYLNXLZYOBXQFGUH4IVYYV \ / AMOS7 \ YOURUM ::
-#\[7]IQFDEOMOKVAGOFOJ6TZDD7U7C6YWQ7AYVZ4Z2UIKC6T2MCNUTQCA 7  DATA SIGNATURE ::
+<transport.registry>->{'pending_resolve'}{$req_id} = {
+    'build'    => $build_handle,
+    'continue' => $continue,
+    'slot'     => $entry->{'credential'},
+    'handler'  => qw| transport.handle.udt-tunnel |,
+};
+
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| cred-mesh.resolve |,
+        'call_args' => { 'args' => $entry->{'credential'} },
+        'reply'     => {
+            'handler' => qw| transport.handler.credential_resolved |,
+            'params'  => { 'req_id' => $req_id },
+        },
+    }
+);
+
+return;
+
+#,,..,..,,,,,,.,.,,,.,.,,,.,,,..,,..,,...,.,.,..,,...,...,.,.,.,,,..,,..,,,..,
+#CONUDK3DPCFCT6GNHLDYRCMDXTVTCSVLIXMJR3MGLIMLUZKXIYBCRZTQJ2MN6KUNLGK4MWW3K3J6A
+#\\\|CBOLG6KKVYX5LQHMF3OYEH23OFIT7HG4TYHBBYK6DDCF645EK5X \ / AMOS7 \ YOURUM ::
+#\[7]YSGF2F5EIITYLLRZ2ZRTF67NXVHLWPWNF6EHETFL4JK7EGKXE2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
