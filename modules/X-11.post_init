@@ -187,6 +187,17 @@ if ( $randr_expected and <X-11.obj>->init_extension('RANDR') ) {
     <X-11.has_randr> = FALSE;
 }
 
+## subscribe to screen-change events in host mode so cached screen dims ##
+## stay current when monitors are plugged, unplugged, or powered on/off  ##
+if ( <X-11.has_randr> and <X-11.mode> eq qw| host | ) {
+    eval { <X-11.obj>->RRSelectInput( <X-11.obj>->root, 1 ) };
+    if ($EVAL_ERROR) {
+        <[base.log]>->( 1, ': : RANDR screen-change subscription failed' );
+    } else {
+        <[base.log]>->( 1, ': : RANDR screen-change notifications enabled' );
+    }
+}
+
 if ( <X-11.obj>->init_extension('DPMS') and <X-11.obj>->DPMSCapable ) {
     <[base.log]>->( 1, ': : DPMS is supported =)' );
     eval { <X-11.obj>->DPMSGetVersion() };
@@ -399,8 +410,8 @@ if (<X-11.window_enumeration>) {
 
 return 0;    ## success
 
-#,,,.,,,.,,.,,.,,,,,.,,,,,,,,,,..,...,,.,,...,..,,...,...,,,,,.,.,,..,,.,,.,,,
-#CICPSOUJCWEZ5Q5I36GNO453M2HSHN4WYH2L7VOOM4EOAOFJNRJG7555RD4CXVSQ3IJOPATOUUK6I
-#\\\|5D3YFBQH6RCOBKRL6MF6IVIDRRKM3IHTWDLBJ4WZIETZO2CQZJF \ / AMOS7 \ YOURUM ::
-#\[7]LF2JJPHGMMI7622QNG6ZAVIOTIO52LLZWN65W2YZBKRXQW2FNSBY 7  DATA SIGNATURE ::
+#,,,.,.,.,...,...,.,.,,,,,,,.,,..,.,.,..,,,,,,..,,...,...,..,,...,,..,,.,,,.,,
+#LAX7WXV46QCUZJYQQIK2CSTAUVTQQUHNOKJAOFI5C3UIE5PVG3WA2HVP2OSHG7NYV6TRTQTNO7Y2A
+#\\\|LBMVRCHQE37SNVX26BZBQPIS4MHM4EKCKZ7PL6PFGS64PJU36BZ \ / AMOS7 \ YOURUM ::
+#\[7]BZJ36XLLYHGMLOBDEEHJR6FIXN3T3C5IKB6VLK6FX2ITNR4I4SDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = X-11.handler.screen_change
+# descr = refresh cached screen size on RANDR screen-change notification
+
+my $event = shift // {};
+
+my $new_w = $event->{'width'}  // 0;
+my $new_h = $event->{'height'} // 0;
+
+if ( $new_w and $new_h ) {
+    <[base.logs]>->(
+        1,      ': screen change notification [ %dx%d ]',
+        $new_w, $new_h
+    );
+    <x11.screen.width>  = $new_w;
+    <x11.screen.height> = $new_h;
+} else {
+    ## dimensions absent in event — requery root geometry ##
+    my %geom = eval { <X-11.obj>->GetGeometry( <X-11.obj>->root ) };
+    if ( not $EVAL_ERROR and $geom{'width'} and $geom{'height'} ) {
+        <x11.screen.width>  = $geom{'width'};
+        <x11.screen.height> = $geom{'height'};
+        <[base.logs]>->(
+            1,              ': screen change [ %dx%d ] [ requeried ]',
+            $geom{'width'}, $geom{'height'}
+        );
+    } else {
+        <[base.log]>->( 1, ': screen change notification [ no dimensions ]' );
+    }
+}
+
+#,,,.,,,,,,,,,,,,,..,,,..,,,,,,,.,,,.,.,,,.,,,..,,...,..,,.,.,,.,,,.,,,,,,.,,,
+#VBRE7SFD37AZWEBRZZRWNZYFRDDTRZN7O3JC5H7GN6CYNFEC7RGYNKXKZAJQXJHTFHMXS4NYPYJJE
+#\\\|WYH5AKSPQCX4Z6B5ZBMZHQ3ZHOAPLJAQE25QOSDRYB6HBE3HTFD \ / AMOS7 \ YOURUM ::
+#\[7]RYZ4XGP4PQV3OSW7ZDPEBPH2OJQFVCFBBLPT4JTQK6Q7FW6C4GAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
