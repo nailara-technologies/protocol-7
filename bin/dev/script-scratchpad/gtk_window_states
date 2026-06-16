@@ -1,0 +1,112 @@
+#!/usr/bin/env perl
+# standalone scratchpad: test GTK3 window iconify/deiconify/present/raise on WSLg
+# usage:
+#   GDK_BACKEND=x11 perl bin/dev/script-scratchpad/gtk_window_states
+#   perl bin/dev/script-scratchpad/gtk_window_states
+
+use strict;
+use warnings;
+use Gtk3 '-init';
+use Glib qw(TRUE FALSE);
+
+# GdkWindowState flag bits (stable since GTK2/GDK3)
+use constant {
+    WITHDRAWN  => 1,
+    ICONIFIED  => 2,
+    MAXIMIZED  => 4,
+    STICKY     => 8,
+    FULLSCREEN => 16,
+    ABOVE      => 32,
+    BELOW      => 64,
+    FOCUSED    => 128,
+};
+
+my $window;    # shared with report_state helper
+
+sub state_str {
+    my ($state_obj) = @_;
+    return 'no-window' unless defined $state_obj;
+    # the flags object is a blessed scalar ref; dereference to get the numeric value
+    my $n = $$state_obj;
+    my @bits;
+    push @bits, 'withdrawn'  if $n & WITHDRAWN;
+    push @bits, 'iconified'  if $n & ICONIFIED;
+    push @bits, 'maximized'  if $n & MAXIMIZED;
+    push @bits, 'sticky'     if $n & STICKY;
+    push @bits, 'fullscreen' if $n & FULLSCREEN;
+    push @bits, 'above'      if $n & ABOVE;
+    push @bits, 'below'      if $n & BELOW;
+    push @bits, 'focused'    if $n & FOCUSED;
+    return sprintf('0x%x (%s)', $n, @bits ? join(',', @bits) : 'none');
+}
+
+sub report_state {
+    my ($label) = @_;
+    my $gdk = $window->get_window;
+    my $state = $gdk ? $gdk->get_state : undef;
+    printf "  [check] %-12s active=%s visible=%s state=%s\n",
+        $label,
+        $window->is_active ? 'yes' : 'no',
+        $gdk ? ($gdk->is_visible ? 'yes' : 'no') : 'n/a',
+        state_str($state);
+}
+
+my $backend = $ENV{GDK_BACKEND} // '(default)';
+print "GDK_BACKEND=$backend\n";
+print "DISPLAY=" . ($ENV{DISPLAY} // '(unset)') . "\n";
+print "WAYLAND_DISPLAY=" . ($ENV{WAYLAND_DISPLAY} // '(unset)') . "\n";
+print "\n";
+
+$window = Gtk3::Window->new('toplevel');
+$window->set_title("GTK window-state test [$backend]");
+$window->set_default_size(400, 200);
+$window->set_position('center');
+
+my $label = Gtk3::Label->new("backend: $backend");
+$window->add($label);
+
+$window->signal_connect('destroy' => sub { Gtk3->main_quit; });
+
+# Track state changes reported by the toolkit/compositor.
+$window->signal_connect(
+    'window-state-event' => sub {
+        my ($w, $event) = @_;
+        printf "  [state-event] %s\n", state_str($event->new_window_state);
+        return FALSE;
+    }
+);
+
+my @schedule = (
+    [ 0,    'show_all',   sub { print "-> show_all\n"; $window->show_all(); report_state('after-show'); } ],
+    [ 1500, 'iconify #1', sub { print "-> iconify\n";  $window->iconify(); report_state('after-iconify-1'); } ],
+    [ 1500, 'deiconify',  sub { print "-> deiconify\n"; $window->deiconify(); report_state('after-deiconify'); } ],
+    [ 1500, 'iconify #2', sub { print "-> iconify\n";  $window->iconify(); report_state('after-iconify-2'); } ],
+    [ 1500, 'present',    sub { print "-> present\n";  $window->present(); report_state('after-present'); } ],
+    [ 1500, 'raise',      sub {
+        print "-> raise (gdk_window_raise)\n";
+        my $gdk = $window->get_window;
+        $gdk->raise() if $gdk;
+        report_state('after-raise');
+    } ],
+    [ 1500, 'quit',       sub { print "-> done, quitting\n"; Gtk3->main_quit; } ],
+);
+
+my $delay = 0;
+for my $item (@schedule) {
+    my ($offset, $name, $cb) = @$item;
+    $delay += $offset;
+    Glib::Timeout->add($delay, sub {
+        $cb->();
+        return FALSE; # one-shot
+    });
+}
+
+print "Starting GTK main loop...\n";
+Gtk3->main();
+print "Finished.\n";
+
+#,,.,,..,,.,,,...,.,.,..,,.,.,,,,,..,,,.,,,.,,..,,...,..,,..,,...,,.,,..,,,.,,
+#L67U7LXOIQWDPE66GYO3AH76IQVJ3R5O3EL43BNIDDXTM6XYJNUM7FXUETR4QSVYZJOY2CIDZLNR6
+#\\\|VTKCOO4HM54WC4HNY63PPH77LCWNP3ZMWNRMLG6KGY4DQI7N4IW \ / AMOS7 \ YOURUM ::
+#\[7]VZVNZUXF62CLSTDHICMUU6LVLS22FKJ5OEUA5TFFRZUVXFJGMMDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
