@@ -127,6 +127,136 @@ if ($xid) {
         } else {
             say "could not connect X11::Protocol to $ENV{DISPLAY}: $@";
         }
+
+        ## [ title fetching investigation ] ##
+        if ($X) {
+            say '';
+            say '=== title fetching investigation ===';
+
+            my $wm_name     = $X->atom('WM_NAME');
+            my $net_wm_name = $X->atom('_NET_WM_NAME');
+            my $utf8_string = $X->atom('UTF8_STRING');
+            my $string      = $X->atom('STRING');
+            my $any         = 0;    ## AnyPropertyType
+
+            say "atoms: WM_NAME=$wm_name  _NET_WM_NAME=$net_wm_name  "
+                . "UTF8_STRING=$utf8_string  STRING=$string";
+
+            my ( undef, undef, @root_children )
+                = $X->QueryTree( $X->root );
+
+            ## helper to fetch a property and return ( value, type_name ) ##
+            my $fetch_title = sub {
+                my ( $wid, $atom, $req_type ) = @_;
+                return () unless defined $atom and defined $wid;
+                my ( $val, $type, $format, $bytes_after ) = eval {
+                    $X->GetProperty( $wid, $atom, $req_type, 0, 256, 0 );
+                };
+                return () if $@ or not defined $val or not length $val;
+                my $type_name
+                    = defined $type ? $X->atom_name($type) // $type : '<undef>';
+                return ( $val, $type_name, $format, $bytes_after );
+            };
+
+            ## probe own window first ##
+            if ($xid) {
+                say '';
+                say "probe window $xid:";
+                for my $spec (
+                    [ 'WM_NAME',      $wm_name,     $any ],
+                    [ 'WM_NAME',      $wm_name,     $string ],
+                    [ '_NET_WM_NAME', $net_wm_name, $any ],
+                    [ '_NET_WM_NAME', $net_wm_name, $utf8_string ],
+                    )
+                {
+                    my ( $label, $atom, $req_type ) = @$spec;
+                    my ( $val, $type, $format, $bytes_after )
+                        = $fetch_title->( $xid, $atom, $req_type );
+                    printf "  %-18s req=%-12s => val=[%s] type=%s fmt=%s left=%s\n",
+                        $label,
+                        (   $req_type == 0
+                            ? 'Any'
+                            : $X->atom_name($req_type) // $req_type
+                        ),
+                        ( defined $val ? $val : '<undef>' ),
+                        ( $type   // '<undef>' ),
+                        ( $format // '<undef>' ),
+                        ( $bytes_after // '<undef>' );
+                }
+            }
+
+            ## enumerate direct root children ##
+            say '';
+            say 'direct root children:';
+            foreach my $wid (@root_children) {
+                next unless defined $wid and $wid ne 'None' and $wid =~ m|^\d+$|;
+                my %wa = eval { $X->GetWindowAttributes($wid) };
+                next if $@ or not %wa;
+                next if ( $wa{'map_state'} // '' ) eq 'Unmapped';
+
+                my $title = '';
+                my $src   = '';
+                for my $spec (
+                    [ '_NET_WM_NAME/UTF8', $net_wm_name, $utf8_string ],
+                    [ '_NET_WM_NAME/Any',  $net_wm_name, $any ],
+                    [ 'WM_NAME/String',    $wm_name,     $string ],
+                    [ 'WM_NAME/Any',       $wm_name,     $any ],
+                    )
+                {
+                    my ( $label, $atom, $req_type ) = @$spec;
+                    my ($val) = $fetch_title->( $wid, $atom, $req_type );
+                    next unless defined $val and length $val;
+                    $title = $val;
+                    $src   = $label;
+                    last;
+                }
+                printf "  %d  map=%s  title=[%s] (src=%s)\n",
+                    $wid, $wa{'map_state'}, $title, $src;
+            }
+
+            ## recursive walk looking for any window carrying a title ##
+            say '';
+            say 'recursive tree walk (windows with non-empty titles):';
+            my @stack = ( $X->root );
+            my %seen;
+            my @titled;
+            while ( my $wid = shift @stack ) {
+                next if not defined $wid or $wid eq 'None' or $seen{$wid}++;
+                my ( undef, undef, @children ) = eval { $X->QueryTree($wid) };
+                next if $@;
+
+                my $title = '';
+                for my $spec (
+                    [ '_NET_WM_NAME/UTF8', $net_wm_name, $utf8_string ],
+                    [ '_NET_WM_NAME/Any',  $net_wm_name, $any ],
+                    [ 'WM_NAME/String',    $wm_name,     $string ],
+                    [ 'WM_NAME/Any',       $wm_name,     $any ],
+                    )
+                {
+                    my ( undef, $atom, $req_type ) = @$spec;
+                    my ($val) = $fetch_title->( $wid, $atom, $req_type );
+                    next unless defined $val and length $val;
+                    $title = $val;
+                    last;
+                }
+                push @titled, [ $wid, $title ] if length $title;
+                unshift @stack, @children;
+            }
+            if (@titled) {
+                printf "  %d  [%s]\n", @$_[ 0, 1 ] for @titled;
+            } else {
+                say '  (none)';
+            }
+
+            ## compare with xprop for the probe window ##
+            say '';
+            say 'external xprop check:';
+            if ($xid) {
+                my $out = eval { `xprop -id $xid WM_NAME _NET_WM_NAME 2>&1` };
+                say "  probe $xid:";
+                say "    $_" for split /\n/, ( $out // '' );
+            }
+        }
     } else {
         say 'X11::Protocol not installed; skipping XID query';
     }
@@ -136,8 +266,8 @@ if ($xid) {
 
 exit;
 
-#,,.,,.,.,,,,,..,,,.,,..,,...,.,,,...,..,,,,,,.,.,...,...,,.,,...,.,.,,,,,,,.,
-#TG3UY57HC6BUQZRS5JNTWUE5BQM3ABMPKGR4YOEXQWO3M7EB4EHCUYINU5MCUPMFQ7MZ2IP4RRSAO
-#\\\|6TRAE3RLRPRNUAOK2XB4T3QZTFPJIU7DZ5EQLZCOX2XEYHHFHHC \ / AMOS7 \ YOURUM ::
-#\[7]VWC6XKZYXHTUHRUUPINAPQJYC52AXRD5RDBB6M76RZZICEZF6KAA 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,,.,..,,.,,,.,,,,.,,,..,..,,,,,,.,.,...,...,,..,.,.,,,,,,..,.,.,
+#GK6ZOE5FPY4W7SI46RK3F3GME2UOWZUP3CS7BSDHUJLZFHJUHLJIFLBQTYOJDELK66FTQXRX2NDDQ
+#\\\|Q34IWDSI4MDY2CDZ6PPVIHTKU5V2EHZPBXX55ZU3MYOYT7X6ET2 \ / AMOS7 \ YOURUM ::
+#\[7]WT7WWBZEZF6PK3B5UHAYBHIKOQKO3DKCS2LF3Y2SLKO4CVS6OUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
