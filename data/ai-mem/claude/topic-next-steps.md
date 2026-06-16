@@ -7,6 +7,44 @@ metadata:
   originSessionId: 56cce73a-933a-4992-96e4-4d88e138e8f6
 ---
 
+## done (2026-06-16, cont.)
+
+- **nshell.shell_loop `$cube_sid` fix** ✓ — credential-fabric UI block was
+  inserted before the `my ($cube_sid)` declaration; moved declaration above
+  the block. Signed + staged.
+- **WSL window enumeration — diagnosis only, not yet fixed** — GTK zenki run
+  as `GdkWaylandWindow` (no XIDs); `_NET_CLIENT_LIST` empty (no EWMH WM in
+  WSLg). Attempted: global `GDK_BACKEND=x11` (reverted — broke `Gtk3->init`
+  in `window.place.init_code` which runs before DISPLAY is set from X-11);
+  QueryTree fallback in `get_window_ids` (reverted — compositor internals set
+  `window_enumeration=TRUE`, causing `wait_visible` to poll forever).
+  `X-11.cmd.get-xwindows` added as safe diagnostic command (QueryTree walk,
+  not in hot path). **Correct approach**: iterate in
+  `bin/dev/script-scratchpad/gtk_get_windows` until a method returns real app
+  window XIDs on this WSL setup, then bring that one path into the zenki.
+- **x11-wait-visible-host-mode-skip** ✓ — already implemented (was in
+  needs-testing/); moved to completed/
+- **zenka-window-placement-profiles** ✓ — pre-implementation task for
+  `base.window.profile.*`; actual modules landed as `window.profile.*` +
+  `window.gtk.profile.*`; ticker integrated; moved needs-testing/ → completed/
+- **zenka-side-stdio-multiplex-emitter** ✓ — `base.stdio_multiplex.connect` +
+  `emit_eout` + `emit_str` + `emit_num` all in modules/; moved to completed/
+
+## done (2026-06-16)
+
+- **weather-forecast-humidity** ✓ — humidity field re-enabled in forecast API;
+  `weather.parent.extract_forecast` + `format_current_widget` already wired;
+  task file in `data/tasks/completed/`
+- **diff-modified-no-color-mode** ✓ — `--no-color` flag already in
+  `bin/dev/diff-modified` (lines 85-98): `$args->{'no-color'}` → `$no_color_mode`,
+  strips all ANSI escapes; no task file was ever created
+- **x11-wait-visible-host-mode-skip** ✓ — `X-11.cmd.wait_visible` lines 28-38
+  already check `<X-11.window_enumeration>` and return false+log when unavailable
+  (host-mode / WSL headless); no task file was ever created
+- **mpv-xephyr-vo-override** ✓ — `mpv.init_code` line 51 sets
+  `<mpv.xmode.xephyr.vo> //= qw| gpu |`; `mpv.open_player` passes `-vo=<mpv.vo_backend>`;
+  gpu default for xephyr mode already live; no task file was ever created
+
 ## done (2026-06-13, cont.)
 
 - UI-SHOW-SECURITY-LEVELS queue steps 1-4 ALL COMPLETE: `ui.caller.security-level`
@@ -74,11 +112,11 @@ what it should actually invoke.
   rollover validity windows + checksum-based search/route/cache protocol,
   (3) coding zenka model self-test cycle / model-cycling fallback +
   consensus ranking. needs folding into 2-3 task files.
-- still pending from tranche-1: `data/tasks/stdio-multiplex-type-tag-codec.md`
-  (never dispatched), `console-fold-primitive.md` overlap decision vs
-  `console-foldable-render-baseline` (landed `2560c5499`), and
-  `amos7-template-epoch-exclusion.md` acceptance-criteria check (landed
-  `8cf4fda11`)
+- `stdio-multiplex-type-tag-codec.md` already in `data/tasks/completed/`;
+  `zenka-side-stdio-multiplex-emitter.md` is the live follow-up (pending,
+  task file exists on disk). `console-fold-primitive.md` resolved vs
+  `console-foldable-render-baseline` (landed `2560c5499`);
+  `amos7-template-epoch-exclusion.md` landed `8cf4fda11`
 
 ## completed this session (2026-06-09)
 
@@ -129,13 +167,10 @@ what it should actually invoke.
 
 ## pending tasks (from session 37 queue)
 
-- `data/tasks/weather-forecast-humidity.md` — re-enable humidity API field
-- `data/tasks/mpv-xephyr-vo-override.md` — test gpu vs sdl under xephyr
-- `data/tasks/diff-modified-no-color-mode.md` — --no-color flag
-- `data/tasks/kimi-zenka-multiplexer.md` — STRM dispatch + queue + sudo auto-decline
-- `data/tasks/credentials-zenka.md` — encrypted credential store, per-zenka authorization
-- `data/tasks/x11-wait-visible-host-mode-skip.md` — capability flag, skip on WSL
-- `data/tasks/zenka-window-placement-profiles.md` — window.* namespace (re-dispatch after rename)
+- **zenka-side-stdio-multiplex-emitter** ✓ — `base.stdio_multiplex.connect` + `emit_eout` + `emit_str` + `emit_num` all present in `modules/`; task file moved to `data/tasks/completed/`
+- `data/tasks/kimi-zenka-multiplexer.md` — STRM dispatch + queue + sudo auto-decline (no task file yet)
+- `data/tasks/credentials-zenka.md` — encrypted credential store, per-zenka authorization (no task file yet)
+- `data/tasks/zenka-window-placement-profiles.md` — window.* namespace (re-dispatch after rename; no task file yet)
 
 ## infrastructure
 
@@ -289,8 +324,8 @@ what it should actually invoke.
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,.,,,..,,..,,.,,.,,,,,.,,,.,..,,,.,,,,.,.,,,..,,...,...,..,,.,.,.,,,,,.,...,
-#VHTPAI2U4XKIPXO3D56WJIGNHSU6N5OESHZMGEULXEQN7SEIIJFOZ7YALHDP4MDEM43KXZ4K5GQF2
-#\\\|AS6GYL76JJ2U7ANIRRHVVQDOLSQIAYND6DLECD3TSRPQEBZ64TZ \ / AMOS7 \ YOURUM ::
-#\[7]3J3JWQIKCBP3SOBOS6SMNTOFCHNUCAJZDIA3JAJWBZP3UOM6HMBY 7  DATA SIGNATURE ::
+#,,,.,..,,,..,.,.,,.,,.,.,..,,..,,,.,,...,,..,..,,...,..,,,.,,.,.,...,.,.,..,,
+#GCZ3EEFO7J3HOCCLAZWV3EFERUFA7Q5XK5C7G6UF77I623LFO6IBXM3KF352CGENQ35UTH3SR4E2Q
+#\\\|O5Y2DTYWKZTMARGJWKFGWRZ4SIXZLYRVNTDIOS5IZR57STZ3VSI \ / AMOS7 \ YOURUM ::
+#\[7]OHTARDMSPUHCTABZSN7C5IQVBYVUDCQZASTZCMJ7GE7IOPBE46AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
