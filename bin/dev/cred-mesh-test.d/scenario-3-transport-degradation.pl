@@ -23,7 +23,7 @@ my $type = 'direct-tcp';
 
 # [ shorten probe interval so the cycle is fast ]
 p7c_eval( 'transport',
-    '<transport.cfg.probe_interval> = 1; return "ok";' );
+    '$data{transport}{cfg}{probe_interval} = 1; return "ok";' );
 
 # [ inject a demotion ]
 my $demote_code = sprintf(
@@ -36,7 +36,7 @@ print "[ demote ] $demote_out\n" if $verbose;
 
 # [ verify demoted state ]
 my $demoted_yaml = p7c_eval( 'transport',
-    'return YAML::XS::Dump(<transport.registry>->{demoted});' );
+    'return YAML::XS::Dump($data{transport}{registry}{demoted});' );
 print "[ demoted state ] $demoted_yaml\n" if $verbose;
 my $demoted = eval { YAML::XS::Load($demoted_yaml) } // {};
 my $is_demoted = ( ref $demoted eq 'HASH'
@@ -50,9 +50,9 @@ harness_assert( $scenario, 'transport demote recorded',
 # [ run one probe cycle: because direct-tcp to fake host fails, it stays demoted ]
 # [ then clear the demotion and probe again to trigger promote ]
 p7c_eval( 'transport',
-    'delete <transport.registry>->{demoted}{"' . $dest . '"}{"' . $type . '"}; '
-    . 'delete <transport.registry>->{demoted}{"' . $dest . '"} '
-    . 'if not keys %{<transport.registry>->{demoted}{"' . $dest . '"}//{}}; '
+    'delete $data{transport}{registry}{demoted}{"' . $dest . '"}{"' . $type . '"}; '
+    . 'delete $data{transport}{registry}{demoted}{"' . $dest . '"} '
+    . 'if not keys %{$data{transport}{registry}{demoted}{"' . $dest . '"}//{}}; '
     . 'return "cleared";' );
 
 sleep 1;
@@ -62,7 +62,7 @@ print "[ probe ] $probe_out\n" if $verbose;
 
 # [ verify demotion removed ]
 my $after_yaml = p7c_eval( 'transport',
-    'return YAML::XS::Dump(<transport.registry>->{demoted});' );
+    'return YAML::XS::Dump($data{transport}{registry}{demoted});' );
 my $after = eval { YAML::XS::Load($after_yaml) } // {};
 my $is_cleared = ( ref $after eq 'HASH' and not exists $after->{$dest}{$type} );
 
@@ -74,8 +74,8 @@ exit 0;
 
 # [ end ]
 
-#,,..,,,.,..,,..,,...,,,,,,..,.,.,...,,..,..,,..,,...,...,.,.,.,,,..,,.,.,,..,
-#YSRNT2HDUKFAXDUFX5OIZMUBAXMTPYN4HKP7FZCCOE5QDSQFH4X5ESIFNKDAMIQRILEEJQRRVPG3U
-#\\\|TMIW22T3Z6FLASPSZEBBTXK5OGMMPPH76WCWHWWFMYRQ5R4HMP7 \ / AMOS7 \ YOURUM ::
-#\[7]TD45KG3RXPQAYZI3ODAYXIIQLFI5PNTOWFHXC24UWIBZ5CUT6CCQ 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,..,.,,,..,,.,.,..,,...,,.,,,,.,..,,...,...,.,.,...,...,.,,,..,,
+#PALL2UHE7T6DIT5IESTWGO5GNK66SJVUYIOGF5M3DAV26U4DC754FLOKS67DJT6PCW7VJQBSW6BK4
+#\\\|J7LLUOUNEX5VNVFHRAVZW5RDYRT2W5Z7PCLNEUMJ5ZNRU2R6DY7 \ / AMOS7 \ YOURUM ::
+#\[7]FRECPSMI57OOGJIMYWXWBPJIADSYC7Y7T64YLO2O65KDDTSQIKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

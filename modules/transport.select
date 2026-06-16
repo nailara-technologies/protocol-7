@@ -1,15 +1,39 @@
 ## [:< ##
 
 # name  = transport.select
-# descr = select and connect best transport for given context
-# args  = $context_hash
-# returns transport handle hashref or undef
+# descr = select and connect best transport for given context (async)
+# args  = $context_hash, $reply
+#         $reply may be a coderef invoked as $reply->( $handle_or_undef ),
+#         or a hashref { handler => 'name', params => {...} } that is
+#         dispatched as $code{handler}->({ handle => ..., params => ... }).
+# returns nothing meaningful; result delivered via $reply.
 
-my $ctx = shift // return undef;
+my ( $ctx, $reply ) = @ARG;
+return undef if not defined $ctx;
+
+## deliver final result to caller ##
+my $finish = sub {
+    my $handle = shift;
+    if ( ref $reply eq qw| CODE | ) {
+        $reply->($handle);
+    } elsif ( ref $reply eq qw| HASH |
+        and defined $reply->{'handler'}
+        and exists $code{ $reply->{'handler'} } ) {
+        $code{ $reply->{'handler'} }->(
+            {   'handle' => $handle,
+                'params' => $reply->{'params'} // {},
+            }
+        );
+    }
+    return;
+};
 
 ## get profile name ##
 my $profile_name = <[transport.profile.match]>->($ctx);
 my $profile      = <[transport.profile.load]>->($profile_name);
+
+my $dest = $ctx->{'session'}{'destination'} // $ctx->{'request'}{'domain'}
+    // $profile_name;
 
 ## fallback to hardcoded direct-tcp if no profile ##
 if ( not defined $profile ) {
@@ -17,18 +41,76 @@ if ( not defined $profile ) {
         1, 'transport.select: no profile for %s, using direct-tcp',
         $profile_name
     );
-    return <[transport.handle.direct-tcp]>->( {}, $ctx );
+    my $handle = <[transport.handle.direct-tcp]>->( {}, $ctx );
+    $finish->($handle);
+    return;
 }
-
-my $dest = $ctx->{'session'}{'destination'} // $ctx->{'request'}{'domain'}
-    // $profile_name;
 
 my $transports = $profile->{'transports'} // [];
 my $fallback   = $profile->{'fallback'}   // 'direct-tcp';
 
-## walk priority list ##
-for my $entry (@$transports) {
-    my $type = $entry->{'type'} // next;
+## async handlers that take a continuation as third arg ##
+my %async_handlers = map { $_ => 1 } qw|
+    quic-hysteria
+    udt-tunnel
+    |;
+
+my @queue = @$transports;
+my $try_next;
+$try_next = sub {
+
+    if ( not @queue ) {
+        ## all primary transports failed: try fallback ##
+        <[base.logs]>->(
+            1,
+            'transport.select: all primary transports failed for %s,'
+                . ' trying fallback %s',
+            $dest,
+            $fallback
+        );
+
+        my $fallback_handler = sprintf 'transport.handle.%s', $fallback;
+        if ( exists $code{$fallback_handler} ) {
+            my $fb_entry    = { 'type' => $fallback, 'endpoint' => $dest };
+            my $on_fallback = sub {
+                my $handle = shift;
+                if ( defined $handle ) {
+                    <transport.registry>->{'active'}{$dest} = {
+                        'type'    => 'fallback:' . $fallback,
+                        'handle'  => $handle,
+                        'started' => <[base.time]>->(4),
+                    };
+                    $ctx->{'transport'}{'degraded'} = TRUE;
+                    $finish->($handle);
+                    return;
+                }
+                <[base.logs]>->(
+                    0, 'transport.select: fallback also failed for %s', $dest
+                );
+                $finish->(undef);
+                return;
+            };
+            if ( $async_handlers{$fallback} ) {
+                $code{$fallback_handler}->( $fb_entry, $ctx, $on_fallback );
+            } else {
+                my $handle = $code{$fallback_handler}->( $fb_entry, $ctx );
+                $on_fallback->($handle);
+            }
+            return;
+        }
+        <[base.logs]>->(
+            0, 'transport.select: fallback also failed for %s', $dest
+        );
+        $finish->(undef);
+        return;
+    }
+
+    my $entry = shift @queue;
+    my $type  = $entry->{'type'};
+    if ( not defined $type ) {
+        $try_next->();
+        return;
+    }
 
     ## check demotion ##
     my $demoted = <transport.registry>->{'demoted'}{$dest}{$type};
@@ -37,7 +119,8 @@ for my $entry (@$transports) {
             2,     'transport.select: %s demoted for %s, skipping',
             $type, $dest
         );
-        next;
+        $try_next->();
+        return;
     }
 
     ## check min_quality if we have quality data ##
@@ -56,75 +139,63 @@ for my $entry (@$transports) {
                 <[transport.demote]>->(
                     $dest, $type, 'quality_below_threshold'
                 );
-                next;
+                $try_next->();
+                return;
             }
         }
     }
 
-    ## try to connect ##
     my $handler = sprintf 'transport.handle.%s', $type;
     if ( not exists $code{$handler} ) {
         <[base.logs]>->( 0, 'transport.select: no handler for %s', $type );
-        next;
+        $try_next->();
+        return;
     }
 
-    my $handle = $code{$handler}->( $entry, $ctx );
-    if ( defined $handle ) {
-        ## success: record as active, initialize quality ##
-        <transport.registry>->{'active'}{$dest} = {
-            'type'    => $type,
-            'handle'  => $handle,
-            'started' => <[base.time]>->(4),
-        };
+    my $on_handle = sub {
+        my $handle = shift;
+        if ( defined $handle ) {
+            <transport.registry>->{'active'}{$dest} = {
+                'type'    => $type,
+                'handle'  => $handle,
+                'started' => <[base.time]>->(4),
+            };
 
-        <transport.registry>->{'quality'}{$type}{$dest} //= {
-            'loss_rate'            => 0.0,
-            'rtt_ms'               => 0,
-            'goodput_kbps'         => 0,
-            'last_measured'        => <[base.time]>->(4),
-            'consecutive_failures' => 0,
-        };
+            <transport.registry>->{'quality'}{$type}{$dest} //= {
+                'loss_rate'            => 0.0,
+                'rtt_ms'               => 0,
+                'goodput_kbps'         => 0,
+                'last_measured'        => <[base.time]>->(4),
+                'consecutive_failures' => 0,
+            };
 
-        <[base.logs]>->(
-            2,     'transport.select: %s active for %s',
-            $type, $dest
-        );
-        return $handle;
+            <[base.logs]>->(
+                2,     'transport.select: %s active for %s',
+                $type, $dest
+            );
+            $finish->($handle);
+            return;
+        }
+        <[transport.demote]>->( $dest, $type, 'connection_failed' );
+        $try_next->();
+        return;
+    };
+
+    if ( $async_handlers{$type} ) {
+        $code{$handler}->( $entry, $ctx, $on_handle );
+    } else {
+        my $handle = $code{$handler}->( $entry, $ctx );
+        $on_handle->($handle);
     }
+    return;
+};
 
-    ## connection failed: demote ##
-    <[transport.demote]>->( $dest, $type, 'connection_failed' );
-}
+$try_next->();
 
-## all primary transports failed: try fallback ##
-<[base.logs]>->(
-    1,
-    'transport.select: all primary transports failed for %s,'
-        . ' trying fallback %s',
-    $dest,
-    $fallback
-);
+return;
 
-my $fallback_handler = sprintf 'transport.handle.%s', $fallback;
-if ( exists $code{$fallback_handler} ) {
-    my $handle = $code{$fallback_handler}
-        ->( { 'type' => $fallback, 'endpoint' => $dest }, $ctx );
-    if ( defined $handle ) {
-        <transport.registry>->{'active'}{$dest} = {
-            'type'    => 'fallback:' . $fallback,
-            'handle'  => $handle,
-            'started' => <[base.time]>->(4),
-        };
-        $ctx->{'transport'}{'degraded'} = TRUE;
-        return $handle;
-    }
-}
-
-<[base.logs]>->( 0, 'transport.select: fallback also failed for %s', $dest );
-return undef;
-
-#,,,,,,..,,,,,..,,.,.,,,.,,..,,..,..,,...,...,..,,...,.,,,..,,,.,,,,,,...,,..,
-#BNQW3RCRK6X2GIZMPBVKSRIQKMDS24WYTURJ4WUUZQ2NPHOSGWE6MZWABREI5FMVTXEVM6VRFRYNE
-#\\\|RLYCHWONFMWMCF6VOALM7HJZ6JFF3QU6JF5LMKDGY747RA3PV7X \ / AMOS7 \ YOURUM ::
-#\[7]XMZG44C4JPWSKC7T5SSL6XCGHFHTC7SGVXOSHQYPARKSY2UEUEBY 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,,.,.,.,,,.,,,.,.,,,,,.,,.,,..,,..,,...,..,,...,...,.,.,,,,,,.,,
+#X4PWJCQ6P2OJ3J7IVCEYGBFYRJCY7UTPTTFY4YYC3L77WFQ7VRWLCXEB7L4W2WSSFC5RNSAXT5BJ4
+#\\\|MRMZUJ65WAAZTDUW5TMJM5F6G3JKS3YPWJ6HHU7X2LAN6ARAQJJ \ / AMOS7 \ YOURUM ::
+#\[7]TYYW2LQSHIYNMY2LBWAPNVI75NDEOEEXYPU43L5VSBCFSB4PCYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

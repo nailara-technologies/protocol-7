@@ -298,6 +298,14 @@ copied wholesale from proxy's whitelist, and does cube ever route a
 the root cause of the 3/8 race above (the "EV input buffer" exception could
 be killing/corrupting an in-flight event handler mid-request).
 
+**RESOLVED 2026-06-16 (`26bae092c`):** F2/F8 — `transport.eval-code` "no perm"
+blocking harness scenarios 2/3. Fix was a 1-line `access.cmd.usr.cube` grant
+in `configuration/zenki/transport/start` (mirroring cred-mesh's pattern,
+`## <-- dev only` per [[feedback-devmod-leave-disabled]]). Took effect live
+without restart (`p7c transport.eval-code 'return 42'` -> `42`). Next:
+re-run cred-mesh-test scenarios 2/3 to confirm they now progress past the
+access-denial point.
+
 **Next:** dispatch a focused opus session for the cred-mesh/`proxy.template.
 passthrough` cross-execution mystery + the 3/8 race — these are likely the
 same bug. Budget note: previous opus dispatch (session
@@ -333,8 +341,8 @@ after triggering rotations. Full scenario-1 re-run 2-3x: stable 4/5 (only
 the pre-existing unrelated "no relay pending" assertion still fails).
 Change is unstaged in `modules/proxy.init_code` — review and commit.
 
-#,,,,,,,.,,,.,.,.,.,.,.,,,,.,,.,.,,,,,,.,,,,,,..,,...,...,...,,..,,..,,.,,,,.,
-#T7VFK4O35YFJ4GK43HD6XJ4XQJTVBTH7HYAPXCLUESA4CL7DEWHX347VL4LKLC4VCY26JV2GJJRX2
-#\\\|PP54TBXZSQK5CEEPQ4SMTZ2ICHH3ALVOQB6BRN3UQUYQ4RERHRI \ / AMOS7 \ YOURUM ::
-#\[7]QXHGT2FJVG5VRSZESQHLTIFOFAMVWSGUNTHNU6UFX5EWEOAMQ4BY 7  DATA SIGNATURE ::
+#,,,,,..,,..,,,.,,,,.,,..,.,,,..,,,,,,,,.,...,..,,...,.,.,.,,,,,.,..,,,.,,..,,
+#4ED77ZVQ5G3QTTD72LYYLFF4IY4VIUELQD5AJZOYXLOVZINYRKDQR2LS2OPQTMSWPNEXTRPAD3V4Q
+#\\\|6TXY4TXNGERX7OGXMMWDA77FPG57MYSV3BUQZJEUMSKLJK4YPTA \ / AMOS7 \ YOURUM ::
+#\[7]LTKILTDN2ORDLIJ5QGZ3BIX3XJPHCOTUF7AUGDHZAGCBWD5MHQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
