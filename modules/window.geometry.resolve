@@ -56,6 +56,29 @@ if ( defined $local_sid ) {
     }
 }
 
+## fallback: xrandr primary [ or first active ] monitor — no cube needed, ##
+## always a valid single-monitor rect regardless of virtual desktop size  ##
+if ( not defined $screen_w and -x qw| /usr/bin/xrandr | ) {
+    my $xrandr = qx| /usr/bin/xrandr --listmonitors 2>/dev/null | // '';
+    my ( $first_x, $first_y, $first_w, $first_h );
+    for my $line ( split /\n/, $xrandr ) {
+        next if $line !~ m{ (\d+)/\d+x(\d+)/\d+\+(-?\d+)\+(-?\d+) }x;
+        my ( $lw, $lh, $lx, $ly ) = ( $1 + 0, $2 + 0, $3 + 0, $4 + 0 );
+        next if not $lw or not $lh;
+        ( $first_x, $first_y, $first_w, $first_h ) = ( $lx, $ly, $lw, $lh )
+            if not defined $first_w;
+        if ( $line =~ m{\+\*} ) {    ## primary monitor ##
+            ( $screen_x, $screen_y, $screen_w, $screen_h )
+                = ( $lx, $ly, $lw, $lh );
+            last;
+        }
+    }
+    ( $screen_x, $screen_y, $screen_w, $screen_h )
+        = ( $first_x, $first_y, $first_w, $first_h )
+        if not defined $screen_w and defined $first_w;
+}
+
+## last resort: virtual screen bounds or hardcoded defaults ##
 if ( not defined $screen_w ) {
     my $c = <x11.coordinates>;
     if ( defined $c ) {
@@ -90,8 +113,8 @@ $data{$zenka}{'geometry'} = sprintf '%dx%d+%d+%d', $w, $h, $x, $y;
 
 return $data{$zenka}{'geometry'};
 
-#,,..,,,,,,..,,..,.,.,,..,.,,,.,,,.,,,,,,,,..,..,,...,...,.,,,,,,,...,,.,,.,,,
-#CMWIKG676HRSZIIOMPOUUMLSOEE6SZTDC5DSFZWIY6GPRX3HMTUQKIZ57JN3JSPWTPLDF3YN55JCE
-#\\\|UPN4NX4EZO34DOM6C4NORJGG6LFJAS74BQGCXF6N3WGBYMELG4R \ / AMOS7 \ YOURUM ::
-#\[7]WG7CBIKVR4OGTHAKR5JNYY5P6BFJZVM6CCMAWCR2WY6ZFGFSNGBI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,.,,.,,,,,.,.,.,,.,,.,,,...,.,,,..,,...,...,..,,.,.,,..,...,.,,,
+#VRBSHALYGMFG5SSMDFSULOSTEAJWYAXBXZB74VNVZETWTEKCAXW4OQKXGTZZB2P6MIDXT4PCPAPYO
+#\\\|LM2Q3RVHZLGTZ4BCYTLB7IDJHEPMMLO3GUDMJCZ6ZABW57RUQPO \ / AMOS7 \ YOURUM ::
+#\[7]BAEKJGVVHNCZFU6QZ45S3QKNLXQWKMIDCPKXO6FMQB53MGCTY2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
