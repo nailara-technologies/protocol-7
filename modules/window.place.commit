@@ -17,6 +17,7 @@ my $w    = $geom->{'width'}  // 1;
 my $h    = $geom->{'height'} // 1;
 
 my $caller = $inst->{'caller'} // '';
+my $tag    = $inst->{'tag'}    // '';
 
 if ( length $caller ) {
     <[window.profile.save]>->( $caller, $x, $y, $w, $h );
@@ -27,6 +28,7 @@ my $reply_id = $inst->{'reply_id'};
 my $reply_args = sprintf 'x=%d y=%d width=%d height=%d profile=saved',
     $x, $y, $w, $h;
 $reply_args .= " caller=$caller" if length $caller;
+$reply_args .= " tag=$tag"       if defined $tag and length $tag;
 
 if ( defined $reply_id and $reply_id =~ m|^\d+$| ) {
     <[base.callback.cmd_reply]>->(
@@ -61,8 +63,8 @@ delete $data{window}{place}{instances}{$id};
 
 return TRUE;
 
-#,,,.,.,,,.,,,,.,,,,.,...,..,,,.,,,..,,.,,,,.,.,.,...,...,...,...,,,.,,,.,.,,,
-#MSAKCSJGK5AU6MJMWOELD76PWARTYTU2SNQZWULIUU3EI4DKEFPQJTCFMS4BQSHU2YG3K4E2JYBMU
-#\\\|4AWM5AQWAUCSRKQR3DYEH6YOYD5LNBAHYD6VVALSYTOFYWBNHTS \ / AMOS7 \ YOURUM ::
-#\[7]77G2E4BVLD2OXR2FKBJTIMYX5KKCYR7DB3CVFYJV32LH7UGQBUAQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,,,.,,..,.,,,.,,,...,,,,,.,,,..,,.,.,...,...,.,,,.,.,,.,,,.,,...,
+#7QSYQ4RLYJK53DBJTDQ3Z4QAALSKWALE7HJYOLAUX4ESP5BJXUQF77YI75ACYQ6J6YKOC7OR5VJXO
+#\\\|ORGBQPXKSMMYQQRSOVSOXYSJUBMI5QTY5RAZVDNCNXGJOG6XBLL \ / AMOS7 \ YOURUM ::
+#\[7]JVUVBX6EX3X26HSGBRJ24M7UOB2A7QYMQUCUS735NC3NM4K6NMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

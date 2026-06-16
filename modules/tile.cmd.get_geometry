@@ -50,6 +50,26 @@ if ( not exists <tile.coordinates>->{$zenka_name} ) {
     $zenka_name = $last_match;
 }
 
+## fall-through: no tile entry — spawn window-place for interactive placement ##
+if ( not exists <tile.coordinates>->{$zenka_name} ) {
+    <tile.deferred_replies> //= {};
+    <tile.deferred_replies>->{$zenka_name} = $call->{'reply_id'};
+
+    <[protocol-7.command.send.local]>->(
+        {   'command'   => 'window-place.place_window',
+            'call_args' => { 'args' => "caller=$zenka_name tag=$zenka_name" },
+            'reply'     => { 'handler' => 'tile.handler.receive_placement' }
+        }
+    );
+
+    <[base.logs]>->(
+        1, '[get_geometry] no entry for %s — deferring to window-place',
+        $zenka_name
+    );
+
+    return { 'mode' => qw| deferred | };
+}
+
 my $coordinates_data = <tile.coordinates>->{$zenka_name};
 
 my @coordinates;
@@ -68,8 +88,8 @@ return {
     'data' => <[base.X-11.coordinates_to_geometry]>->(@coordinates)
     }
 
-#,,,,,,..,.,,,.,.,,..,,,,,...,.,,,,,,,.,,,,..,..,,...,...,...,...,,.,,,..,.,.,
-#S6TRAGWBZAJTFCNMKA5MUQRDIJMYH6336WT4OHJVI5BFILKCGNYHFGYRPXFRYCQ2US2M6G46HJTIW
-#\\\|34A5D4GFYDX4BICIUZSB7OHVDUN5JWQHFKMYLIHF3TLSBYZH6NB \ / AMOS7 \ YOURUM ::
-#\[7]PTL5OKEH7VOMCI4TZUGPXAONOLRMOS5YJNKIBEKQGQUWFPTNHQBQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,.,,,,.,,,,,,,,.,,..,.,,,,,.,,,.,..,,...,..,,...,...,.,.,.,,,..,,
+#6PV3TCOGJKMFU7MZCN5BL3JFKWASNM5WLDPTVBL7CIPMYJHYU2H475HH2RJWQGZJ6Y2A5CQIUWRUA
+#\\\|UZMZVPWXDS2722WUX36MB6JYL2SJXLIJHLI65PJ4SAASYYAFEAY \ / AMOS7 \ YOURUM ::
+#\[7]SRSSUV32YSD42AT36FAFT64BABY5X7FCGW42DN4ADZOS6YB3C4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
