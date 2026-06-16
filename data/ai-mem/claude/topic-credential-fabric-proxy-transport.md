@@ -300,49 +300,38 @@ be killing/corrupting an in-flight event handler mid-request).
 
 **RESOLVED 2026-06-16 (`26bae092c`):** F2/F8 — `transport.eval-code` "no perm"
 blocking harness scenarios 2/3. Fix was a 1-line `access.cmd.usr.cube` grant
-in `configuration/zenki/transport/start` (mirroring cred-mesh's pattern,
-`## <-- dev only` per [[feedback-devmod-leave-disabled]]). Took effect live
-without restart (`p7c transport.eval-code 'return 42'` -> `42`). Next:
-re-run cred-mesh-test scenarios 2/3 to confirm they now progress past the
-access-denial point.
+in `configuration/zenki/transport/start`.
 
-**Next:** dispatch a focused opus session for the cred-mesh/`proxy.template.
-passthrough` cross-execution mystery + the 3/8 race — these are likely the
-same bug. Budget note: previous opus dispatch (session
-`6c88ecdb-0616-475c-ac85-a7c64effeb44`) hit the $3 max_budget mid-investigation
-after finding the `no perm`/`*` regex root cause but before testing; a fresh
-dispatch with a higher budget (e.g. $5) and the cred-mesh-whitelist lead
-above should make faster progress.
+**RESOLVED 2026-06-15 (claude_dispatch opus, `0427e08cf`):** proxy.init_code
+now guards `<[proxy.listen]>` with `zenka.name eq 'proxy'` so cred-mesh
+(which loads the proxy module namespace) no longer steals SO_REUSEPORT
+connections. Scenario-1 stable 4/5 (only pre-existing "no relay pending"
+still fails — stale relay_pending.yaml, out of scope).
 
-**RESOLVED 2026-06-15 (claude_dispatch opus, session
-`73005c88-feb7-4856-8e0f-2e2b66842a82`):** the two bugs above WERE the same
-bug. `modules/proxy.init_code` runs `<[proxy.listen]>` (binds the
-SO_REUSEPORT listener on port 8118) unconditionally for ANY zenka that
-loads the `proxy` module namespace — and `cred-mesh`'s `modules.load`
-includes `proxy` (for `cred-mesh.subscribe_rotation`'s
-`proxy.handler.cred_rotated` side effect). So **cred-mesh was ALSO binding
-a duplicate listener on 8118**, and the kernel round-robins SO_REUSEPORT
-connections across both listeners. ~1/3 of proxied requests landed in
-cred-mesh's event loop, which ran `proxy.handler.connection` ->
-`proxy.template.passthrough` correctly up to the `direct-tcp-fallback`
-branch, then died on `<[clients.http.request]>` (undef in cred-mesh's
-`%code` — `clients.http`/`clients.https` aren't in cred-mesh's
-`modules.load`) — the exact `proxy.template.passthrough:75` error, and the
-client-side request just hung until the 8s LWP timeout.
+**RESOLVED 2026-06-16 (`ef11aaec3`):** async transport.select refactor —
+scenarios 2 (5/5) and 3 (2/2) now pass. Key fixes in this commit:
+- `transport.handle.quic-hysteria` + `transport.handle.udt-tunnel`: converted
+  from sync `<[cred-mesh.resolve]>` (broken cross-zenka call) to
+  continuation-passing via `protocol-7.route-send` + new reply handler
+  `transport.handler.credential_resolved`; uses `pending_resolve` registry
+  table to stash continuations across the async gap
+- `transport.select`: converted from sync return-value loop to async callback
+  style `($ctx, $reply)` — all demote/quality/active-recording logic preserved
+- `proxy.handler.post_auth` + `proxy.transport.select`: updated to new async
+  convention, guarded so transport stays not-co-loaded in proxy production
+- `configuration/zenki/transport/start`: `profile_dir` was a relative path
+  (`data/yaml/transport/profiles`) unreachable from cwd `/home/protocol-7` —
+  fixed to `<system.root_path>/data/yaml/transport/profiles`
+- test harness scenarios 2/3: updated to `$data{transport}{registry}` syntax
+  (eval-code doesn't pre-process `<transport.registry>` angle-bracket notation)
 
-Fix: `modules/proxy.init_code` now guards both `<[proxy.listen]>` and the
-stale-listen-socket cleanup block with
-`my $is_proxy_zenka = (<system.zenka.name> // '') eq qw| proxy |;` — only
-the zenka actually named `proxy` binds/owns the listen socket.
-`cred-mesh.subscribe_rotation` registration is unaffected (no listener
-needed for that). Repro loop: **8/8 status=200** (was ~5/8).
-`proxy.template.passthrough` error no longer appears in cred-mesh's log
-after triggering rotations. Full scenario-1 re-run 2-3x: stable 4/5 (only
-the pre-existing unrelated "no relay pending" assertion still fails).
-Change is unstaged in `modules/proxy.init_code` — review and commit.
+**Current harness state:** scenario 1: 4/5 (stale relay_pending.yaml, OOS);
+scenario 2: 5/5; scenario 3: 2/2. Remaining OOS items: credential_fabric
+no v7 always-on/on-demand registration; on-demand auth 407/pending/approve
+end-to-end not verified.
 
-#,,,,,..,,..,,,.,,,,.,,..,.,,,..,,,,,,,,.,...,..,,...,.,.,.,,,,,.,..,,,.,,..,,
-#4ED77ZVQ5G3QTTD72LYYLFF4IY4VIUELQD5AJZOYXLOVZINYRKDQR2LS2OPQTMSWPNEXTRPAD3V4Q
-#\\\|6TXY4TXNGERX7OGXMMWDA77FPG57MYSV3BUQZJEUMSKLJK4YPTA \ / AMOS7 \ YOURUM ::
-#\[7]LTKILTDN2ORDLIJ5QGZ3BIX3XJPHCOTUF7AUGDHZAGCBWD5MHQAQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,.,,,,,,,,,,,,,,,.,.,,..,...,,..,..,,...,...,...,,,,,..,,,,.,..,,
+#GD2GUQDMSZI5CX6MHR4QCEJ4URXELYJKTMKKBFRP7MN7MTUV7EH74UI3GYQCUXGTHV24GPC5FMQUA
+#\\\|BMVEAT6B2P5HMZP2FANM5CKX5DBCR2LD3JSPZ75WB63C7HJYKJE \ / AMOS7 \ YOURUM ::
+#\[7]I5EQSHSFZP7NYQR5IO77Q5FZOI7OLEUO55KLKBYA44P5SAVIJWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
