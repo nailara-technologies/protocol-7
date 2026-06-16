@@ -11,8 +11,9 @@ return
 
 my $args = $answer->{'call_args'}{'args'} // '';
 
-my ( $caller, $x, $y, $w, $h );
+my ( $caller, $tag, $x, $y, $w, $h );
 $caller = $1 if $args =~ m|\bcaller=(\S+)|;
+$tag    = $1 if $args =~ m|\btag=(\S+)|;
 $x      = $1 if $args =~ m|\bx=(\d+)|;
 $y      = $1 if $args =~ m|\by=(\d+)|;
 $w      = $1 if $args =~ m|\bwidth=(\d+)|;
@@ -43,10 +44,32 @@ if ( not defined $x or not defined $y or not defined $w or not defined $h ) {
     $caller, $x, $y, $w, $h
 );
 
+## complete any pending deferred get_geometry reply ##
+$tag //= '';
+my $deferred_zenka = length $tag ? $tag : $caller;
+my $deferred_id;
+$deferred_id = delete <tile.deferred_replies>->{$deferred_zenka}
+    if defined <tile.deferred_replies>;
+
+if ( defined $deferred_id ) {
+    my $geom_str
+        = <[base.X-11.coordinates_to_geometry]>->( $x, $y, $x + $w, $y + $h );
+    <[base.callback.cmd_reply]>->(
+        $deferred_id,
+        {   'mode' => qw| true |,
+            'data' => $geom_str
+        }
+    );
+    <[base.logs]>->(
+        1, '[tile.receive_placement] completed deferred reply for %s',
+        $deferred_zenka
+    );
+}
+
 return TRUE;
 
-#,,.,,,..,,,.,...,,,,,...,.,,,,..,..,,.,,,.,.,..,,...,...,.,,,..,,,.,,..,,..,,
-#CZV7FW2VVBDPKTCYDTGGWACN54WJPTLEC23Y4PREILX27OB75R7TLKMAACLG7FEUCIUJ7433E2UOK
-#\\\|26MLNUGBW7WEWZK7GBZLUOHUQ7BH73SFHTIFM73C2ZW5JREDA7G \ / AMOS7 \ YOURUM ::
-#\[7]GR5ROKOREZXZMV7WUKC635DRYB7OW332I62TYM65MEBGITFRJGAY 7  DATA SIGNATURE ::
+#,,,,,..,,..,,...,.,.,...,,,,,.,.,.,.,,,,,,..,..,,...,...,...,,..,,.,,...,,,.,
+#Y4OKTE7I2O4CJEDBP5CK4JLT3MSCFDPKEBR6CTC2I3QBANVAS3MZTENBXMTM7M6SNB6CDM26BIVWC
+#\\\|5L77RE5OGTILESB2P2RQNGOAU2KVTTVWJSLIG662FPBV2RVLX2C \ / AMOS7 \ YOURUM ::
+#\[7]LT7A3KAEUEBKMYLQKCPVZUQODBMIGZHFMBE2CP3IX4LHRLHGCGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
