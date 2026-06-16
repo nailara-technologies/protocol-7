@@ -8,6 +8,7 @@ use feature 'say';
 
 use Gtk3 -init;
 use Glib::Object::Introspection;
+use X11::Protocol::WM;
 Glib::Object::Introspection->setup(
     basename => 'GdkX11',
     version  => '3.0',
@@ -26,6 +27,9 @@ say "WAYLAND_DISPLAY=" . ( $ENV{WAYLAND_DISPLAY} // '<unset>' );
 say '';
 
 my $screen_gdk = Gtk3::Gdk::Screen::get_default();
+
+my $X;            ## [ X11::Protocol connection, shared with deiconify test ] ##
+my @titled;       ## [ titled windows from recursive tree walk ] ##
 
 if ( $have_wnck ) {
     my $screen = Wnck::Screen::get_default();
@@ -79,7 +83,7 @@ if ( $gdk_window and $gdk_window->can('get_xid') ) {
 if ($xid) {
     my $have_x11_proto = eval { require X11::Protocol; 1 };
     if ($have_x11_proto) {
-        my $X = eval { X11::Protocol->new( $ENV{'DISPLAY'} ) };
+        $X = eval { X11::Protocol->new( $ENV{'DISPLAY'} ) };
         if ($X) {
             say "  X11::Protocol root = " . $X->root;
             my @children = $X->QueryTree( $X->root );
@@ -98,7 +102,7 @@ if ($xid) {
                 say "  _NET_CLIENT_LIST atom not found";
             }
 
-            my @found = grep { $_ == $xid } @children;
+            my @found = grep { defined $_ and $_ ne 'None' and $_ == $xid } @children;
             my @found_client = grep { $_ == $xid } @client_ids;
 
             ## recursive tree walk fallback (like updated X-11.window_id_found) ##
@@ -219,7 +223,7 @@ if ($xid) {
             say 'recursive tree walk (windows with non-empty titles):';
             my @stack = ( $X->root );
             my %seen;
-            my @titled;
+            @titled = ();
             while ( my $wid = shift @stack ) {
                 next if not defined $wid or $wid eq 'None' or $seen{$wid}++;
                 my ( undef, undef, @children ) = eval { $X->QueryTree($wid) };
@@ -262,12 +266,164 @@ if ($xid) {
     }
 }
 
+## [ deiconify testing on XWayland / WSLg ] ##
+if ($X) {
+    say '';
+    say '=== deiconify approach testing ===';
+
+    my $target_xid;
+    my $target_title;
+    foreach my $pair (@titled) {
+        next unless defined $pair and @$pair == 2;
+        my ($id, $title) = @$pair;
+        next unless defined $id and defined $title;
+        if ( index( lc($title), 'mpv' ) != -1 ) {
+            $target_xid   = $id;
+            $target_title = $title;
+            last;
+        }
+    }
+    if ( not defined $target_xid and defined $xid ) {
+        $target_xid   = $xid;
+        $target_title = 'probe window';
+    }
+
+    if ($target_xid) {
+        say "target XID = $target_xid ($target_title)";
+
+        my $root           = $X->root;
+        my $wm_change_state = $X->atom('WM_CHANGE_STATE');
+        my $net_active_win  = $X->atom('_NET_ACTIVE_WINDOW');
+        my $net_wm_state    = $X->atom('_NET_WM_STATE');
+        my $net_wm_state_hidden = $X->atom('_NET_WM_STATE_HIDDEN');
+        my $wm_state_atom   = $X->atom('WM_STATE');
+
+        my $show_target_state = sub {
+            my ($label) = @_;
+            my %wa = eval { $X->GetWindowAttributes($target_xid) };
+            my $wm_state = eval {
+                my ($val) = $X->GetProperty($target_xid, $wm_state_atom, 'AnyPropertyType', 0, 2, 0);
+                defined $val ? join(',', unpack('L2', $val)) : 'undef';
+            };
+            say "  $label: map_state=$wa{map_state} WM_STATE=$wm_state";
+        };
+
+        ## [ approach 0: iconify via X11::Protocol::WM::iconify ] ##
+        say '';
+        say 'approach 0: X11::Protocol::WM::iconify';
+        $show_target_state->('before');
+        eval { X11::Protocol::WM::iconify($X, $target_xid) };
+        say "  iconify error: $@" if $@;
+        select( undef, undef, undef, 1.0 );
+        $show_target_state->('after');
+
+        ## [ helper: walk up to direct root-child container ] ##
+        my $find_container = sub {
+            my ($wid) = @_;
+            return undef unless defined $wid and $wid ne 'None';
+            my $current = $wid;
+            while ( defined $current and $current ne 'None' ) {
+                my (undef, $parent, @siblings) = eval { $X->QueryTree($current) };
+                return $current if $@ or not defined $parent or $parent == $root;
+                return undef    if $parent == $current;    ## root reached somehow ##
+                $current = $parent;
+            }
+            return undef;
+        };
+        my $container = $find_container->($target_xid);
+        say "  container (direct root child) = " . ( $container // '<none>' );
+
+        my @approaches = (
+            [ 'wmctrl -ia (not available)', sub { } ],
+            [ 'wmctrl -ir -b remove,hidden (not available)', sub { } ],
+            [ 'WM_CHANGE_STATE NormalState=1 ClientMessage',
+              sub {
+                  $X->SendEvent(
+                      $root, 0,
+                      $X->pack_event_mask(qw| SubstructureNotify SubstructureRedirect |),
+                      $X->pack_event(
+                          'name'   => 'ClientMessage',
+                          'window' => $target_xid,
+                          'type'   => $wm_change_state,
+                          'format' => 32,
+                          'data'   => pack('L5', 1, 0, 0, 0, 0)
+                      )
+                  );
+              }
+            ],
+            [ '_NET_WM_STATE remove _NET_WM_STATE_HIDDEN ClientMessage',
+              sub {
+                  return if not defined $net_wm_state_hidden;
+                  $X->SendEvent(
+                      $root, 0,
+                      $X->pack_event_mask(qw| SubstructureNotify SubstructureRedirect |),
+                      $X->pack_event(
+                          'name'   => 'ClientMessage',
+                          'window' => $target_xid,
+                          'type'   => $net_wm_state,
+                          'format' => 32,
+                          'data'   => pack('L5', 0, $net_wm_state_hidden, 0, 0, 0)
+                      )
+                  );
+              }
+            ],
+            [ 'MapWindow on container + ConfigureWindow Above',
+              sub {
+                  return if not defined $container;
+                  $X->MapWindow($container);
+                  $X->ConfigureWindow($container, 'stack_mode' => 'Above');
+              }
+            ],
+            [ 'set WM_STATE NormalState=1 + MapWindow container + MapWindow target',
+              sub {
+                  return if not defined $container;
+                  $X->ChangeProperty(
+                      $target_xid, $wm_state_atom, $wm_state_atom, 32, 'Replace',
+                      pack('L2', 1, 0)
+                  );
+                  $X->MapWindow($container);
+                  $X->MapWindow($target_xid);
+                  $X->ConfigureWindow($container, 'stack_mode' => 'Above');
+              }
+            ],
+            [ '_NET_ACTIVE_WINDOW ClientMessage',
+              sub {
+                  $X->SendEvent(
+                      $root, 0,
+                      $X->pack_event_mask(qw| SubstructureNotify SubstructureRedirect |),
+                      $X->pack_event(
+                          'name'   => 'ClientMessage',
+                          'window' => $target_xid,
+                          'type'   => $net_active_win,
+                          'format' => 32,
+                          'data'   => pack('L5', 1, 0, 0, 0, 0)
+                      )
+                  );
+              }
+            ],
+        );
+
+        foreach my $approach (@approaches) {
+            my ($name, $code) = @$approach;
+            say '';
+            say "approach: $name";
+            $show_target_state->('before');
+            eval { $code->() };
+            say "  error: $@" if $@;
+            select( undef, undef, undef, 1.0 );
+            $show_target_state->('after');
+        }
+    } else {
+        say 'no target window found for deiconify testing';
+    }
+}
+
 # Gtk3->main;
 
 exit;
 
-#,,.,,,.,,,.,,,,.,..,,.,,,.,,,,.,,,..,..,,,,,,.,.,...,...,,..,.,.,,,,,,..,.,.,
-#GK6ZOE5FPY4W7SI46RK3F3GME2UOWZUP3CS7BSDHUJLZFHJUHLJIFLBQTYOJDELK66FTQXRX2NDDQ
-#\\\|Q34IWDSI4MDY2CDZ6PPVIHTKU5V2EHZPBXX55ZU3MYOYT7X6ET2 \ / AMOS7 \ YOURUM ::
-#\[7]WT7WWBZEZF6PK3B5UHAYBHIKOQKO3DKCS2LF3Y2SLKO4CVS6OUDQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,..,,.,,.,,,,.,,,..,,,.,,.,,.,.,.,.,...,...,.,,,.,.,,..,.,,,..,,
+#EWTHUPQ5ZH466L3CNNMUH7WQFKERTWLSEXDBF2HYPIDLJODQCWT2SIH5B5C6ZH5KYA34LMZ4MLW6G
+#\\\|6BFUYSTLKFX7KKHGLAAP5HTOGTWWTXQ76PETBG5V4CX5L7OFBOK \ / AMOS7 \ YOURUM ::
+#\[7]3YWB6YPDG42OZ77KW7BPTCVJAWTKYSPTUHABRVC33Q5LVWX3U6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

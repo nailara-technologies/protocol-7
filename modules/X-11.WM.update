@@ -22,8 +22,94 @@ while ( $rescan_retries-- > 0 ) {
     }
 }
 
-#,,,,,...,.,,,..,,...,.,,,,,.,...,..,,,,,,.,,,..,,...,..,,.,.,..,,,.,,,,,,,..,
-#5KVMDSSW6ZVJ3NWD6DB73UG4TFSMTF2THB7X5UEU2ISX5V26P4GBRX4LWEJNG76HJ5ZXHKPZ5BNUC
-#\\\|IHEINPHB7QTKFLXGSAAQYZVAPZUZPTQTER2SZGFJAAQI5THLPGU \ / AMOS7 \ YOURUM ::
-#\[7]JPVSCEE7JQWOVAWXE6XAKEFXSORM4MX6KEH3ESLNY2PJSIQLDQCY 7  DATA SIGNATURE ::
+## [ WSL / no-WM fallback: build registry from root window tree ] ##
+if ( not keys %{ <X-11.WM>->byid } ) {
+    my $X    = <X-11.obj>;
+    my $root = $X->root;
+
+    my $wm_name     = $X->atom('WM_NAME');
+    my $net_wm_name = $X->atom('_NET_WM_NAME');
+    my $utf8_string = $X->atom('UTF8_STRING');
+    my $string      = $X->atom('STRING');
+
+    ## [ helper: fetch a property value, ignoring errors and empty replies ] ##
+    my $fetch_title = sub {
+        my ( $wid, $atom, $req_type ) = @ARG;
+        return undef unless defined $wid and defined $atom;
+        my ($val)
+            = eval { $X->GetProperty( $wid, $atom, $req_type, 0, 256, 0 ); };
+        return undef if $EVAL_ERROR or not defined $val or not length $val;
+        return $val;
+    };
+
+    ## [ helper: try atom with explicit type and fall back to any type ] ##
+    my $try_title = sub {
+        my ( $wid, $atom, $type ) = @ARG;
+        return undef unless defined $atom;
+        my $val = $fetch_title->( $wid, $atom, $type );
+        return $val if defined $val;
+        return $fetch_title->( $wid, $atom, 'AnyPropertyType' );
+    };
+
+    ## [ helper: find first titled descendant, returns ( xid, title ) ] ##
+    my $find_title;
+    $find_title = sub {
+        my ($wid) = @ARG;
+        return undef unless defined $wid and $wid ne 'None';
+
+        my $title;
+        $title = $try_title->( $wid, $net_wm_name, $utf8_string );
+        return [ $wid, $title ] if defined $title;
+        $title = $try_title->( $wid, $wm_name, $string );
+        return [ $wid, $title ] if defined $title;
+
+        my ( undef, undef, @children ) = eval { $X->QueryTree($wid) };
+        return undef if $EVAL_ERROR;
+        foreach my $child (@children) {
+            next unless defined $child and $child ne 'None';
+            my $pair = $find_title->($child);
+            return $pair if defined $pair;
+        }
+        return undef;
+    };
+
+    eval {
+        my ( undef, undef, @root_children ) = $X->QueryTree($root);
+        foreach my $wid (@root_children) {
+            next unless defined $wid and $wid ne 'None' and $wid =~ m|^\d+$|;
+            my %wa = eval { $X->GetWindowAttributes($wid) };
+            next if $EVAL_ERROR or not %wa;
+            next if ( $wa{'map_state'} // '' ) eq 'Unmapped';
+
+            my $pair = $find_title->($wid);
+            next unless defined $pair;
+            my ( $titled_id, $title ) = @$pair;
+            next
+                unless defined $titled_id
+                and defined $title
+                and length $title;
+
+            my $wm_c = bless { wm => <X-11.WM>, id => $titled_id },
+                'X11::WM::class';
+            $wm_c->{'instance'} = '';
+            <X-11.WM>->choosechar($wm_c);
+            <X-11.WM>->{'byid'}{$titled_id} = $wm_c;
+        }
+    };
+
+    if ($EVAL_ERROR) {
+        <[base.logs]>->( 0, 'QueryTree fallback failed: %s', $EVAL_ERROR );
+    } else {
+        <X-11.WM>->sort;
+        my $injected = scalar keys %{ <X-11.WM>->byid };
+        <[base.logs]>->(
+            2, 'injected %d window(s) via QueryTree fallback', $injected
+        ) if $injected;
+    }
+}
+
+#,,,.,,,,,,..,,..,,,,,,..,..,,.,.,,,,,.,,,..,,..,,...,..,,,.,,.,.,,,,,.,.,..,,
+#HTSO5FFTCEEN7VXZ6CEEL7FPMDAJHBEWBB6WS432HBWOM2DC676NSQTGQNP3MIERHGFDJZQN4EAB2
+#\\\|LH6BRWN3QAYGDLQLAI4LB6XCS24SQISYZYVW47IYH42BZPIQUXN \ / AMOS7 \ YOURUM ::
+#\[7]HIUHW5MHWIALRSW74EUHA3ZESS56D3TAFTSK6G5ODZFHYK7YZUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

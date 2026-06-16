@@ -1,8 +1,8 @@
 ## [:< ##
 
-# name  = X-11.cmd.get_window_title
-# param = <w_id>
-# descr = resolve title string for given window id
+# name  = X-11.cmd.iconify-window
+# param = <window_id>
+# descr = iconify the specified window
 
 my $window_id = $call->{'args'};
 
@@ -25,10 +25,14 @@ for my $w ( @{ $xtops->sorted } ) {
 return { 'mode' => qw| false |, 'data' => 'no such window' }
     if not defined $window;
 
-return { 'mode' => qw| true |, 'data' => $window->title };
+X11::Protocol::WM::iconify( <X-11.obj>, $window_id );
 
-#,,,.,,.,,..,,...,,,.,...,.,.,,,,,,,.,..,,,,.,..,,...,...,...,.,.,..,,.,,,.,.,
-#3FCR6PX6UMQZDHAHGN654K7LLZP7NFMENTO6F3NK3UYI74EW5EOWOCA4GCZCOQOJL4C2RQBY7JHT6
-#\\\|Q4AUVLVOSIVYJL3XBFGSWS2FQRCQS32M4WFFJVRM7WTCCS6L2IZ \ / AMOS7 \ YOURUM ::
-#\[7]3GAKHRPK2NTZLLNSFUZOPJE23KOM2OIIIHRJUJJG4DQQPDGK5KAI 7  DATA SIGNATURE ::
+<[X-11.get_window_ids]>;    ## <-- update to visualize action ##
+
+return { 'mode' => qw| true |, 'data' => 'window iconified' };
+
+#,,,,,..,,,,.,...,..,,,,.,.,,,.,.,,.,,,..,..,,..,,...,...,.,,,.,,,,,.,..,,,..,
+#EE36ZDASOPZCBQ35B5ONDDQAUCGTHLRZBHPCOOFLRGPY32EBILV4HU4PJMSK2BUU2HOMDYSD5M4AY
+#\\\|4WVA4RURF3LPQVJKKQH27XQP6UPWCKPHJNBSKN2BCKXSZB5KYBU \ / AMOS7 \ YOURUM ::
+#\[7]CS6M2L63VGXTI4K4AVYGXLSBMRC7XLVRN6ERI5ZZTHJOB5S7KQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

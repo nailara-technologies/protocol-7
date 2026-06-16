@@ -188,7 +188,7 @@ $window->signal_connect(
                 <ticker.fade.handler> = qw| fade_in |;
                 $start_fade->(qw| ticker.handler.fade_in |);
             } elsif ( defined <x11.id> ) {
-                <[base.X-11.raise_window]>->(<x11.id>);
+                <[base.X-11.raise-window]>->(<x11.id>);
                 <[base.X-11.keep_above]>->(<x11.id>);
             }
         } else {
@@ -358,13 +358,13 @@ $window->signal_connect(
 
                         <[ticker.cmd.set-window-profile]>
                             ->( { 'args' => <ticker.window.profile> } );
-                        <[base.X-11.move_window]>->(
+                        <[base.X-11.move-window]>->(
                             <x11.id>,              <x11.coordinates.left>,
                             <x11.coordinates.top>, <x11.window.width>,
                             <x11.window.height>
                         );
                         <[base.sleep]>->(0.05);
-                        <[base.X-11.move_window]>->(
+                        <[base.X-11.move-window]>->(
                             <x11.id>,              <x11.coordinates.left>,
                             <x11.coordinates.top>, <x11.window.width>,
                             <x11.window.height>
@@ -467,8 +467,8 @@ my $ft_face   = $freetype->face($font_path);
 
 <ticker.obj.window>->queue_draw;
 
-#,,,.,.,,,.,,,...,...,...,.,.,,..,,..,.,,,,..,..,,...,.,.,...,,,.,...,,,,,,..,
-#747IIBPRXCC4SQDO7OM4YM3464ZSZQJSBIJL2LHRBMAYDMDVFBJL5PW5J6MSSPFH2SS3XRU7XBF6G
-#\\\|LSTAEQCYPIJPGLKHKPSKTPXK6PI6CE4UKXKFLWMJMEOZ4BC7F7D \ / AMOS7 \ YOURUM ::
-#\[7]HGJKFIXZOSZUJC4V4W5LDH5E6CVUN37HGCFYPQLL6WVJTIQAF4AY 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,,,.,..,,.,,,,,.,,,.,,,.,.,.,.,,,..,,...,...,.,.,...,,..,,,.,.,,,
+#GBEST5CAFJMCBS24OJ32WGXJEOOVIMX5BPMNXHQEBGDEKR4BYE27UIRQTVSA7JKRXK4H5JQKSSJDG
+#\\\|3EEOYIT4O22ALNGVHQ3CY5Y5REPBZLBOBXLHGGXDRSZ2RLHHCVZ \ / AMOS7 \ YOURUM ::
+#\[7]H77FZVQHW6P53HIBQAFWNJBBB4BEJ6F6T2L6QTHO6JL5MUVSY4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

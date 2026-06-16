@@ -1,0 +1,120 @@
+## [:< ##
+
+# name  = X-11.cmd.deiconify-window
+# param = <w_id>
+# descr = restore an iconified window to normal state
+
+my $X         = <X-11.obj>;
+my $window_id = $call->{'args'};
+
+return { 'mode' => qw| false |, 'data' => 'x11 window id required' }
+    if not defined $window_id;
+return { 'mode' => qw| false |, 'data' => 'invalid x11 window id syntax' }
+    if $window_id !~ m|^\d+$|;
+
+return { 'mode' => qw| false |, 'data' => 'no such window' }
+    if not <[X-11.window_id_found]>->($window_id);
+
+my $root = $X->root;
+
+## [ helper: walk up the tree to the direct root-child container ] ##
+my $find_container;
+$find_container = sub {
+    my ($wid) = @ARG;
+    return undef unless defined $wid and $wid ne qw| None |;
+    my ( undef, $parent, @children ) = eval { $X->QueryTree($wid) };
+    return undef if $EVAL_ERROR or not defined $parent;
+    return $wid  if $parent == $root;
+    return undef if $parent == $wid;
+    return $find_container->($parent);
+};
+my $container = $find_container->($window_id);
+
+my $wm_change_state     = $X->atom('WM_CHANGE_STATE');
+my $net_active_win      = $X->atom('_NET_ACTIVE_WINDOW');
+my $net_wm_state        = $X->atom('_NET_WM_STATE');
+my $net_wm_state_hidden = $X->atom('_NET_WM_STATE_HIDDEN');
+my $wm_state_atom       = $X->atom('WM_STATE');
+
+## [ approach 1: WM_CHANGE_STATE NormalState=1 (mirror of iconify) ] ##
+## [ this is the XWayland/xwm counterpart to X11::Protocol::WM::iconify ] ##
+eval {
+    $X->SendEvent(
+        $root, 0,
+        $X->pack_event_mask(qw| SubstructureNotify SubstructureRedirect |),
+        $X->pack_event(
+            'name'   => 'ClientMessage',
+            'window' => $window_id,
+            'type'   => $wm_change_state,
+            'format' => 32,
+            'data'   => pack( 'L5', 1, 0, 0, 0, 0 )
+        )
+    );
+};
+
+return {
+    'mode' => qw| false |,
+    'data' => 'deiconify failed: ' . $EVAL_ERROR
+    }
+    if $EVAL_ERROR;
+
+## [ approach 2: remove _NET_WM_STATE_HIDDEN if the wm supports it ] ##
+if ( defined $net_wm_state_hidden ) {
+    eval {
+        $X->SendEvent(
+            $root, 0,
+            $X->pack_event_mask(
+                qw| SubstructureNotify SubstructureRedirect |),
+            $X->pack_event(
+                'name'   => 'ClientMessage',
+                'window' => $window_id,
+                'type'   => $net_wm_state,
+                'format' => 32,
+                'data'   => pack( 'L5', 0, $net_wm_state_hidden, 0, 0, 0 )
+            )
+        );
+    };
+    warn <[base.str.eval_error]> if length $EVAL_ERROR;
+}
+
+## [ approach 3: set WM_STATE NormalState and map the container / window ] ##
+## [ needed on WSLg / Weston where xwm does not process WM_CHANGE_STATE ] ##
+if ( defined $container ) {
+    eval {
+        $X->ChangeProperty( $window_id, $wm_state_atom, $wm_state_atom, 32,
+            'Replace', pack( 'L2', 1, 0 ) );
+        $X->MapWindow($container);
+        $X->ConfigureWindow( $container, 'stack_mode' => 'Above' );
+        $X->MapWindow($window_id);
+    };
+    warn <[base.str.eval_error]> if length $EVAL_ERROR;
+}
+
+## [ approach 4: _NET_ACTIVE_WINDOW as a last resort ] ##
+if ( defined $net_active_win ) {
+    eval {
+        $X->SendEvent(
+            $root, 0,
+            $X->pack_event_mask(
+                qw| SubstructureNotify SubstructureRedirect |),
+            $X->pack_event(
+                'name'   => 'ClientMessage',
+                'window' => $window_id,
+                'type'   => $net_active_win,
+                'format' => 32,
+                'data'   => pack( 'L5', 1, 0, 0, 0, 0 )
+            )
+        );
+    };
+    warn <[base.str.eval_error]> if length $EVAL_ERROR;
+}
+
+<[X-11.get_window_ids]>;    ## <-- update to visualize action ##
+
+return { 'mode' => qw| true |, 'data' => 'window deiconified' };
+
+#,,,.,.,.,.,.,...,,..,..,,...,.,.,,..,,..,.,.,..,,...,...,..,,,.,,..,,,,.,,,.,
+#JWORYKQX2ZNWRNR5LTKTWZ2YMB75IKSRHFYYU3OYIQPUPUKAXN2VHHOA47SKQKYHKLUN34J2PDB7A
+#\\\|775HRP7AUVQSD2PL437ZTTIXLDLBIWJKUGUESILLS2MPELHPOG2 \ / AMOS7 \ YOURUM ::
+#\[7]QZLGSTYVJEVDZ5NMBZBJZEOLHRVZE3PLYASWSNRLEAKRGE7KIYBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
