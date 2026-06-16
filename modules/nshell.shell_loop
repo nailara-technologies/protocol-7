@@ -18,6 +18,8 @@ return 0 unless defined $cmd and length $cmd;
 <[base.buffer.add_line]>->( qw| no-tty-debug |, "shell_loop: cmd=$cmd" )
     if <nshell.mode.no_tty_debug>;
 
+my ($cube_sid) = keys <user.cube.session>->%*;
+
 ## detect credential-fabric ui entry and attach session_id for focus state ##
 my $nshell_state = <nshell.state> // {};
 if ( $cmd =~ m{^\s*cred-mesh\.ui[.-]show(?:\s|$) } ) {
@@ -38,7 +40,6 @@ map { <[base.buffer.add_line]>->( qw| terminal-history |, $ARG ) }
 
 ## pass command directly to cube's input buffer
 ## this is transparent relay - cube sees it as local input
-my ($cube_sid) = keys <user.cube.session>->%*;
 
 if ( defined $cube_sid and exists $data{'session'}{$cube_sid} ) {
     ## append command directly to cube's output buffer [ cube input stream ]
@@ -54,8 +55,8 @@ if ( defined $cube_sid and exists $data{'session'}{$cube_sid} ) {
 
 return 0;
 
-#,,..,...,.,,,,,,,,,,,.,,,,.,,..,,,,,,,..,,..,.,.,...,...,.,.,,,,,..,,.,.,.,,,
-#GCKJBCOGOOE7CW7AECM37IUQFEAXIITCTIU5QFQMVZVCE54M3QDBX2JWBCUGLQK2XJJQSEBXDZH2W
-#\\\|TGJSLMI4QQM3NV4VXA7C2AFXFGVZPMGCGWNDOTVZ5LIRZWDDEUG \ / AMOS7 \ YOURUM ::
-#\[7]ZABMVSIXJN3BJXVBBCFV57CGWOUEF2JBTW7AU53LOW72STJOD2CA 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,..,,.,,,,.,,,.,,,.,,,.,,...,.,,,.,.,...,..,,.,.,,,.,..,,..,,...,
+#I5AXIKU4FLA6GVVTFLVSPVSJSC365GB2MHGV44BSABAKZPR4W7YNV65ZMJCMEU7SWX342AZJMCLTM
+#\\\|NF6FJG45KZQNNDZMV4H2MRBRPAB7G3MF7EDBLEFF2F6XR7YXRGV \ / AMOS7 \ YOURUM ::
+#\[7]ZSKA7LIRM5JVRCQOOR2T7YE3BHGTBHJQO4K7TWJB53LCVMQXPCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
