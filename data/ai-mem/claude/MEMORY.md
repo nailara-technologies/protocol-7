@@ -15,6 +15,8 @@
 - [timer undef interval](feedback-timer-undef-interval.md) — undef after/interval = IO::Async max-rate loop; always guard with fallback
 - [each+continue+keys](feedback-each-continue-keys.md) — `continue{keys %h}` on `while(each %h)` resets iterator = infinite loop — `AMEND=1 git filter-repo ...`; also clear `.git/filter-repo/already_ran` if interrupted
 - [ntime](feedback-ntime.md) — `encode_b32r` is reverse-byte-order, NOT sortable; use `<[base.ntime_BASE32_to_numerical]>`
+- [eval-code no angle-brackets](feedback-eval-code-no-angle-brackets.md) — `<registry>` not pre-processed in eval-code strings; use `$data{...}` directly
+- [zenka config relative paths](feedback-zenka-config-relative-paths.md) — cfg paths must use `<system.root_path>/...`; cwd is /home/protocol-7, not project root
 - [Cross-zenka](feedback-cross-zenka-deferred-reply.md) — route-send + SIZE reply only; FS access forbidden
 - [Access control](feedback-buffer-access-control.md) — cube/access.zenki is REAL gate
 - [httpd](feedback-httpd-deferred-reply.md) — thin proxy; never load plugin.web.*
@@ -32,7 +34,7 @@
 - [dot-path-case-notation](topic-dot-path-case-notation.md) — uppercase=path level, lowercase-run=dotted key; %DATA/%CODE meta-namespace idea; design doc written
 - [deparse-code-features](topic-deparse-code-features.md) — REMINDER: ask user about their planned tree of deparse-code-based features (not yet elaborated)
 - [global-ui-menu-tree](topic-global-ui-menu-tree.md) — addressable stdio slots + menu tree; settings (new)/configure (stub) zenki as starting points
-- [credential-fabric-proxy-transport](topic-credential-fabric-proxy-transport.md) — scenario-1 LANDED 2026-06-15; F2/F8 transport.eval-code fixed 2026-06-16 (26bae092c); remaining: re-run scenarios 2/3, stale relay_pending.yaml
+- [credential-fabric-proxy-transport](topic-credential-fabric-proxy-transport.md) — scenarios 1/2/3 all passing at max (4/5, 5/5, 2/2); async transport.select LANDED 2026-06-16 (ef11aaec3)
 - [ascii-frame-system](topic-ascii-frame-system.md) — reverse parser, elastic renderer, DRC validator
 - [frame-plugin-slots](topic-frame-plugin-slots.md) — status-bar plugin slots + context-aware selector; variable border width; vertical-slot roadmap
 - [ascii-desktop-domains](topic-ascii-desktop-domains.md) — border glyphs are domain-scoped; nested domains = nested planes = ascii desktop; role-vs-glyph descriptor is the windowing unlock
@@ -162,8 +164,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,..,...,.,,,.,,,,,.,.,.,,..,,,,,...,,,.,,..,..,,...,...,.,,,...,..,,,,.,,..,
-#WQT7XUM4XLZJCGX7R2PKDDRLCFUN5IPK23OV7K4RDB2UOTYT3YQK4KKZA5F5VBHS2HYXXTTI7NVHK
-#\\\|YFK2JHGDJX3EDQ36UKANAH5IJDDEH57N4VBKM7TVKA7NK6BM4HV \ / AMOS7 \ YOURUM ::
-#\[7]BF4VZSWSOTFY2BUTVOLAWK7X6GNR632R32CT4HAMZN4YHDMQF4AY 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,,.,.,,,,,,,.,.,...,..,,...,,,.,..,,...,...,,..,..,,..,,.,.,,..,
+#62LPQBMTQMYKHJDVKNHT26LX5E4KOM5MHFHY72N55LZYFDVVJZH4J5FAMFBOJGGLZA57WGZ3RARTQ
+#\\\|ADZIY7YGOQUH753PKKHWYF6GK2KSL7PVWTZ3VLZIDQLSFV6C6W7 \ / AMOS7 \ YOURUM ::
+#\[7]7QVPSQQWRQDTJ2DWLO26T54ELZJ2TTYRWJMBQ7L3U33PYVEBDQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

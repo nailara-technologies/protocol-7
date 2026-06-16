@@ -148,6 +148,16 @@ my @external_tools = (
             [ 'prompt', 'the next instruction for the resumed session', 1 ],
             [ 'model',  'model: haiku|sonnet|opus (default: sonnet)',   0 ],
             [ 'max_budget', 'max USD to spend (default: 1.00)',         0 ],
+            [   'auto_summarize',
+                'summarize output via local 9B model before returning '
+                    . '(default: true)',
+                0
+            ],
+            [   'keep',
+                'keep stored summary focus after use for verification '
+                    . '(default: false)',
+                0
+            ],
         ],
         'timeout' => 2400,    ## 40 minutes
     },
@@ -2517,7 +2527,7 @@ sub tool_external_command {
 
     ## auto_summarize: compress large dispatch output via local 9B model ##
     if ( not length($error)
-        and $ext->{'name'} =~ m{^(?:claude|kimi)_dispatch$} ) {
+        and $ext->{'name'} =~ m{^(?:claude|kimi)_(?:dispatch|continue)$} ) {
         my $auto_sum = $args->{'auto_summarize'} // '';
         my $do_sum
             = !length($auto_sum)                                ? 1
@@ -2564,8 +2574,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,,,,.,,,,,,.,.,...,,,.,,,.,.,,,,,,,,.,,.,.,..,,...,...,,,.,,,,,..,,,.,,.,,,
-#RKQRI4ZYEXJ55GGLUA2F3PTGQXHLUP4OYKSMIJRQCTRBEXWVZBMKYTU2LWGR6MO5CAN5ZQQSHUVVO
-#\\\|SQYSGLLHP7MGW4J7C77RYKMTV2SBKNF5ZSU5LAR3CL5TOQKTDTQ \ / AMOS7 \ YOURUM ::
-#\[7]HZKSZFM7YDF2TWDKVFIEQVFNBUIMIWWJYILLU7ZAU46STUNLNABQ 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,,,,,...,,..,,..,,,,,...,...,.,.,..,,...,...,...,,,,,,,.,..,,..,,
+#KFA33ZDUNKRA5T2B2PUBMV36ZPFC3YYCFIWNIDNN2Y2L43C6TWWWXNAVSRLAQNROMZ3E32K2UA3BA
+#\\\|OKGOVVETMLAH2MRJ2JS5TIIYFYMYYS52PGJ6EB2FGC5VRFQXENM \ / AMOS7 \ YOURUM ::
+#\[7]TKE6WKM4PP5RI5RLQTQCHRG5SWTCZEV63ISJQNO3QCT3KM4QDICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
