@@ -6,23 +6,18 @@
 my $profile = $call->{'args'} // 'bottom-strip';
 $profile = 'bottom-strip' if not length $profile;
 
-my $reply_handler = 'ticker.handler.place_reply';
-
 <[protocol-7.command.send.local]>->(
     {   'command'   => qw| cube.window-place.place_window |,
-        'call_args' => {
-            'args' => sprintf(
-                'caller=ticker profile=%s reply_handler=%s',
-                $profile, $reply_handler
-            )
-        }
+        'call_args' =>
+            { 'args' => sprintf( 'caller=ticker profile=%s', $profile ) },
+        'reply' => { 'handler' => qw| ticker.handler.place_reply | }
     }
 );
 
 return { 'mode' => qw| true |, 'data' => 'placement requested' };
 
-#,,,,,...,,,,,.,,,.,.,.,.,,,.,.,.,,.,,,.,,,..,.,.,...,...,.,,,.,.,.,,,...,...,
-#Z6VFF5534SKGVD2E2TL7VRHRZCQMOSCUZJL5YRJG5UIG4QEJJAM26VMZEV5V743FUSTQSJPHTVPXY
-#\\\|5SDMG2443FJ4PAKTXR3XAJKOFKIR7JEJLDJHSRXWRQIVW2WYMO6 \ / AMOS7 \ YOURUM ::
-#\[7]TGR7F25KO35IE6DAXKFM2R3OTUM2DRZ7D7WWDAA5WS7QP25R6GCI 7  DATA SIGNATURE ::
+#,,,,,,.,,...,...,..,,,,,,.,,,.,.,.,,,,,.,..,,.,.,...,.,.,..,,,.,,,,.,..,,.,.,
+#RQYAQXLZ4LEJH5M2FLU6HDUAXBUXUUYNJMNU5MWOKJSHW7ZHTK4434V2QD2LZGFUGM5BQVQ2STBT2
+#\\\|O4CFSVUXB2S5C5CDPFU5UD5TD4CU2Q73SAGBLAOY67D43GN7M6U \ / AMOS7 \ YOURUM ::
+#\[7]N54YIE7OSP4YUVGFY3QHWXR2Y3FPRQIJ2PY5SS5WSNLVUUH7DWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

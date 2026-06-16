@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = tile.cmd.show_intent
+# descr = list intent-first tile entries from window-place zenka
+
+my $coords = <tile.coordinates> // {};
+
+my @intent_keys = sort grep {
+    ref( $coords->{$ARG} ) eq 'HASH'
+        and $coords->{$ARG}{'intent_authored'}
+    }
+    keys %{$coords};
+
+return {
+    'mode' => qw| false |,
+    'data' => 'no intent-first placements stored'
+    }
+    if not @intent_keys;
+
+my $output = '';
+for my $name (@intent_keys) {
+    my $c = <tile.coordinates>->{$name};
+    $output .= sprintf "%-24s  left=%-5d top=%-5d right=%-5d bottom=%d\n",
+        $name, $c->{'left'}, $c->{'top'}, $c->{'right'}, $c->{'bottom'};
+}
+chomp $output;
+
+return { 'mode' => qw| size |, 'data' => $output };
+
+#,,.,,.,.,...,..,,.,.,.,,,...,..,,,,,,,,,,.,,,..,,...,...,,,.,...,,.,,,,.,...,
+#2XCEHH3C324REMMQSHL6XXDSRAMTFQNUID4A2VPO5GXNJ2A2HVNBIH6RAST47YUUCXQJZJW7F3FHE
+#\\\|O3526S2QHBCKZFMTJSXV6UKSOU2CU3X3Z3EQTAUOK4E2FMFK6QO \ / AMOS7 \ YOURUM ::
+#\[7]6TI2N6SPQHF35JWPIWTNFV7D4S3M3VWL54CBSDTJTEYDNGIUXICQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

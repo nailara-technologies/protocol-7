@@ -26,6 +26,7 @@ my $reply_id = $inst->{'reply_id'};
 
 my $reply_args = sprintf 'x=%d y=%d width=%d height=%d profile=saved',
     $x, $y, $w, $h;
+$reply_args .= " caller=$caller" if length $caller;
 
 if ( defined $reply_id and $reply_id =~ m|^\d+$| ) {
     <[base.callback.cmd_reply]>->(
@@ -37,16 +38,6 @@ if ( defined $reply_id and $reply_id =~ m|^\d+$| ) {
 } else {
     <[base.logs]>->(
         1, '[place.commit] id=%s no reply_id, skipping direct reply', $id
-    );
-}
-
-## optional notification handler ##
-my $reply_handler = $inst->{'reply_handler'} // '';
-if ( length $reply_handler and length $caller ) {
-    <[protocol-7.command.send.local]>->(
-        {   'command' => sprintf( qw| cube.%s.%s |, $caller, $reply_handler ),
-            'call_args' => { 'args' => $reply_args }
-        }
     );
 }
 
@@ -70,8 +61,8 @@ delete $data{window}{place}{instances}{$id};
 
 return TRUE;
 
-#,,.,,..,,...,,.,,,,.,...,,.,,...,...,,..,.,.,.,.,...,...,..,,..,,...,.,.,,,,,
-#5453R7MYDHNHR5AAPKWQUAG2ZKSNUPMRWJQK2KKFO6HY46D7YEU2AE6U5KNQAEUA4BPOTGLZLUSSS
-#\\\|KYYQXPQGYYBBLL4GA3AENSS76XH6QLRS6NZMT5FZCSQG5DEJEDE \ / AMOS7 \ YOURUM ::
-#\[7]27C46ZOQLA5PJL77TS5V3FDTGIEMOOCX4QUWOOSMPP5ZGH66UWBA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,,.,,,,.,...,..,,,.,,,..,,.,,,,.,.,.,...,...,...,...,,,.,,,.,.,,,
+#MSAKCSJGK5AU6MJMWOELD76PWARTYTU2SNQZWULIUU3EI4DKEFPQJTCFMS4BQSHU2YG3K4E2JYBMU
+#\\\|4AWM5AQWAUCSRKQR3DYEH6YOYD5LNBAHYD6VVALSYTOFYWBNHTS \ / AMOS7 \ YOURUM ::
+#\[7]77G2E4BVLD2OXR2FKBJTIMYX5KKCYR7DB3CVFYJV32LH7UGQBUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
