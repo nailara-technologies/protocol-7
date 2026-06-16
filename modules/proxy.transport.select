@@ -1,18 +1,34 @@
 ## [:< ##
 
 # name  = proxy.transport.select
-# descr = delegate to transport.select if co-loaded, else return undef
-# args  = $context_hash
-# returns transport handle hashref or undef
+# descr = async delegate to transport.select if co-loaded, else no-op.
+# args  = $context_hash, $reply
+#         $reply is a coderef or { handler => 'name', params => {...} }.
+# returns nothing meaningful; result delivered via $reply.
 
-my $ctx = shift // return undef;
+my ( $ctx, $reply ) = @ARG;
+return undef if not defined $ctx;
 
-return undef unless exists $code{'transport.select'};
+if ( not exists $code{'transport.select'} ) {
+    if ( ref $reply eq qw| CODE | ) {
+        $reply->(undef);
+    } elsif ( ref $reply eq qw| HASH |
+        and defined $reply->{'handler'}
+        and exists $code{ $reply->{'handler'} } ) {
+        $code{ $reply->{'handler'} }->(
+            {   'handle' => undef,
+                'params' => $reply->{'params'} // {},
+            }
+        );
+    }
+    return;
+}
 
-return <[transport.select]>->($ctx);
+<[transport.select]>->( $ctx, $reply );
+return;
 
-#,,..,.,,,.,,,,.,,,,.,...,..,,..,,.,,,,.,,,..,..,,...,...,,.,,,..,..,,,.,,,.,,
-#GCDMK7BL6IVOI72AHEVJBNX5YOQKZ6JETFCFGAV2M7A7JZUCWDVSABHYC7ASGC7FGKRJHG7QCWDIO
-#\\\|BU3CGBD3TSX25KC5KSLGTXOCWMJDX4FJLUIVZIYK4RSFOG4VLVV \ / AMOS7 \ YOURUM ::
-#\[7]YMRAQSTYN5YUKMDRGMAMTHK6PDZXO6Y5LL26VVCLCBHHJRY6LIDA 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,...,...,..,,,..,,,.,,,,,,,,,,,.,..,,...,...,...,,,,,..,,,..,.,,,
+#QWFQNSYGM5N2ICMYWY4G23D6AVVOCS5PW6D5IXIR5A3TWJYPYHLST6V75QKF4O24VZRZV5UGINRPM
+#\\\|RHFAUYJF6ODSULRBBS6UIHN6QBLSOV7QKWH4NVBWXFW4DUKRFSW \ / AMOS7 \ YOURUM ::
+#\[7]JIE3OX22RB4YY7C3CYZPUXGZHIXVBSQWFFSVRXUHMYTYF7DSHGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

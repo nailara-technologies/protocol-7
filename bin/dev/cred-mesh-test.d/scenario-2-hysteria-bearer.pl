@@ -99,13 +99,26 @@ harness_assert( $scenario, 'seed bearer slot',
     $seed_ok,
     "register + rotate bearer slot (output: $seed_out)" );
 
-# [ call transport.select in the transport zenka directly ]
-my $select_code = sprintf(
+# [ call async transport.select; stash result in registry, then poll ]
+my $kick_code =
     'my $ctx = { request => { domain => "atom-test.host" }, session => { destination => "atom-test.host" } }; '
-    . 'my $h = $code{"transport.select"}->($ctx); '
-    . 'return defined $h ? YAML::XS::Dump($h) : "undef";'
-);
-my $handle_yaml = p7c_eval( 'transport', $select_code );
+    . 'delete $data{transport}{registry}{test_last_result}; '
+    . '$code{"transport.select"}->($ctx, sub { my $h = shift; '
+    . '$data{transport}{registry}{test_last_result} = defined $h ? YAML::XS::Dump($h) : "undef"; }); '
+    . 'return "submitted";';
+p7c_eval( 'transport', $kick_code );
+
+my $handle_yaml = 'undef';
+my $deadline    = time + 5;
+while ( time < $deadline ) {
+    my $poll = p7c_eval( 'transport',
+        'return $data{transport}{registry}{test_last_result} // "pending";' );
+    if ( defined $poll and $poll ne 'pending' ) {
+        $handle_yaml = $poll;
+        last;
+    }
+    select undef, undef, undef, 0.1;
+}
 print "[ handle ] $handle_yaml\n" if $verbose;
 my $handle = eval { YAML::XS::Load($handle_yaml) };
 $handle = undef if defined $handle and not ref $handle;
@@ -150,8 +163,8 @@ exit 0;
 
 # [ end ]
 
-#,,,,,..,,..,,...,...,.,.,,,,,.,,,.,.,,..,,..,..,,...,...,...,,,.,.,.,,,.,,,.,
-#C5XJH6BFDVEVGWS227WX6Z4LA76N4WLZW342ML4FTPDO4FG3A6WRPSNNX2NEA7C7CFCM2GVP4YFDQ
-#\\\|GQ5FJOFUDXTUXUCDXUDZ6QVLJJVZLZXBOYLPAXMLNP7BTB4ZDQK \ / AMOS7 \ YOURUM ::
-#\[7]CII2JSCGJI547PL2DRLODT7PFJZWNHYOVRTQJSTZICE5YWUH7SBQ 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,,.,..,,...,,,,,,,,,...,...,,,,,..,,...,...,.,,,,,.,,,,,.,,,.,.,
+#WU2EA5LFVRAUWQNOASB2WKTIWZEOQCYVYXINMCQDJLRDHVVU7WW7ZYRCSL25CFPZP5GEHCKYX5H6E
+#\\\|UUVW664O5AKAXNROGBEYRASYXTH7XMALWKKLJA3A55PLWKSUG5D \ / AMOS7 \ YOURUM ::
+#\[7]XA44D2QPEJSNYFJ5LPY4WHN7NEH3U7WCPDO7INY72GXTELKF3QAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
