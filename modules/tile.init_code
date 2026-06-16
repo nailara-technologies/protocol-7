@@ -260,10 +260,14 @@ map {
     );
 } (qw|  int  term  quit  |);
 
+## subscribe to X-11 screen-change events once connected to cube ##
+push @{ <system.callbacks.initialized> //= [] },
+    'tile.subscribe-screen-change';
+
 0;
 
-#,,..,,,,,.,,,,..,..,,...,,,,,,.,,.,.,.,.,.,,,..,,...,...,,..,.,.,..,,...,.,.,
-#OXSXZJP6GI3EUYHE7F66IUJRM35KQIHRIPP5G67POZA6UOEGMD2K3ZHBMIXVW75CIL4IYBM7BZBQU
-#\\\|7K2TL22JAON6N2GO7WFN55PUBXZ2SC6D5G4IEG5X7PORIQ63UJO \ / AMOS7 \ YOURUM ::
-#\[7]FIBUXANXMKFQBC5A67GATQ2GBXYOTSX2FEWUK6QH2VHEODB57ICI 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,..,,,.,,,,.,,,,,.,.,,,.,..,,.,,,..,,...,...,...,...,...,.,.,..,,
+#TLUHZSUDIAFE5CVJN5WXZ56OU4FNTLW4TZYF2ZZA3RUVZYJPFI62XNPAUKP3VNHD3WBMWT3E7ZY5K
+#\\\|N7UR2PEBXWXZ545EW2236KWNZMRNEIZHCS6SRAATCFSLLUJQJNN \ / AMOS7 \ YOURUM ::
+#\[7]XA5AKHWK3FOROQUS3YLJQGPCHCG5JCHHZPVMPASL7PFOGCAPZUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

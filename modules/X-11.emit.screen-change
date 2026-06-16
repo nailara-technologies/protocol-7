@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = X-11.emit.screen-change
+# descr = push screen-change event to all registered handler subscribers.
+#         args: $width, $height (optional; reads cached dims if omitted)
+
+my $width  = shift // <x11.screen.width>  // 0;
+my $height = shift // <x11.screen.height> // 0;
+
+my $subs = <X-11.screen_change_subscribers> // [];
+return unless @$subs;
+
+my $ntime   = <[base.time]>->(3);
+my $payload = YAML::XS::Dump(
+    {   'event'  => 'screen.change',
+        'width'  => $width + 0,
+        'height' => $height + 0,
+        'ntime'  => $ntime,
+    }
+);
+
+foreach my $handler (@$subs) {
+    <[protocol-7.route-send]>->(
+        {   'command'   => $handler,
+            'call_args' => { 'args' => $payload },
+        }
+    );
+}
+
+<[base.logs]>->(
+    2, ': screen-change emitted [ %dx%d ] to %d subscriber(s)',
+    $width, $height, scalar @$subs
+);
+
+#,,,,,...,.,.,,,,,.,.,,,,,,.,,.,,,,,,,..,,.,,,..,,...,...,.,,,.,,,,..,,,.,..,,
+#CP57JRF56AMOUVJIRVIB3LZMPHPMQS5SPXHXMTBEC2KEFIYPIB7LODDGTNISGJOL5I3EGZTXBJOBY
+#\\\|ZQY2H5XWLOWSCSGSS6JMRAXUP52LXC27BCMBLZD7UKEO2JH43EC \ / AMOS7 \ YOURUM ::
+#\[7]PN63ZPOGSBRVZAYMIIKXPHPXTNRN7TEXHZ44KT7HGKSEROIW5SBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
