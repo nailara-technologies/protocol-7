@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = X-11.cmd.get-windows
+# param = [pattern]
+# descr = list mapped windows with XID and title
+
+my $pattern = $call->{'args'};
+
+<[X-11.WM.update]>;
+
+my $reply_msg = '';
+for my $win ( <X-11.WM>->sorted->@* ) {
+
+    my $title    = <[base.utf8.sanitize]>->( $win->title    // '' );
+    my $instance = <[base.utf8.sanitize]>->( $win->instance // '' );
+
+    next
+        if defined $pattern
+        and index( $instance, $pattern ) == -1
+        and index( $title,    $pattern ) == -1;
+
+    $reply_msg .= sprintf( "%d %s\n", $win->id, $title );
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( "no match for '%s'", $pattern )
+    }
+    if defined $pattern and not length $reply_msg;
+
+return { 'mode' => qw| size |, 'data' => $reply_msg };
+
+#,,,,,..,,...,,..,.,.,..,,..,,...,,..,,,.,.,,,..,,...,..,,.,.,,.,,,..,.,,,,,,,
+#JAST3D6W37FGY5U3J5PNJHOEVJF2AUVWT4B7OUX4T2UTNMJL5Y6SCJCLXDLYFGYDEZ7AJBDKSHAKG
+#\\\|TTWNIQM5JRSRMTB4CCUVH2EGOBFICKFSC3SNE5NMJ3VKUS2GT64 \ / AMOS7 \ YOURUM ::
+#\[7]DXRTS5UBIQTCZHNAWWOOD4E5M7VCNAB3IZSNZMCVLKKQSYPYFQBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

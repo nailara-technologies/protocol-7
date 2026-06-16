@@ -1,30 +1,22 @@
 ## [:< ##
 
-# name = base.X-11.move_window
+# name = base.X-11.iconify-window
 
-my $id     = shift;
-my $x      = shift;
-my $y      = shift;
-my $width  = shift;
-my $height = shift;
+my $id = shift;
 
 my $user     = shift // 'cube';
 my $cmd_path = shift // '';
 $cmd_path .= '.'                   if length($cmd_path);
 die "expected numerical window id" if not defined $id or $id !~ /^\d+$/;
-
 my ($local_sid) = keys( %{ $data{'user'}{$user}{'session'} } );
 
-<[base.log]>->( 2, "moving window '$id' to x=$x y=$y w=$width h=$height" );
+<[base.log]>->( 1, "iconifying window '$id'.," );
 
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
-my $args = join( ',',
-    map { defined $_ ? $_ : '' } ( $id, $x, $y, $width, $height ) );
-
 my $cube_fh = $data{'session'}{$local_sid}{'handle'};
 <[base.net.send_to_socket]>->(
-    $cube_fh, "($cmd_id)${cmd_path}X-11.move_window $args\n"
+    $cube_fh, "($cmd_id)${cmd_path}X-11.iconify-window $id\n"
 );
 
 my $reply_string;
@@ -32,21 +24,21 @@ my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string = <$cube_fh>;
     die "cube handle had an exception!" if not defined $reply_string;
-    $matched_reply = 1 if $reply_string =~ /^\($cmd_id\)(TRUE|FALSE) /;
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(TRUE|FALSE) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
 if ( $reply_string =~ /^\($cmd_id\)FALSE (.+)$/ ) {
-    <[base.log]>->( 0, "move_window command failed with '$1'.." );
+    <[base.log]>->( 0, "iconify_window command failed with '$1'.," );
     return FALSE;
 } else {
     return TRUE;
 }
 
-#,,,.,,.,,...,,,.,,,,,,,.,,.,,,,.,...,.,,,..,,..,,...,..,,...,,.,,,,,,,,,,,.,,
-#IKQ6L4KPRJUFCMQ45X53ERC6PLXMPKIA3XKPJGRFRUD7SBIUMXER26MGIIHE5XHQWKZQE4FKS7GVU
-#\\\|T23JUAKKW3XH7JEGAJ46L2I7Y4C2VCKWXMHTH3RLHG7MA2AWNTY \ / AMOS7 \ YOURUM ::
-#\[7]VJ6O2QZMXSBABNCDWGHLBQE5WIQSTCDHPZ5QWO2CDGGRSU4YGWBY 7  DATA SIGNATURE ::
+#,,,,,,..,...,,,.,.,,,,..,,.,,...,,,,,,.,,..,,..,,...,..,,..,,..,,..,,...,...,
+#VLIA3NAO56YZPTOO2SST264ABKFRCNETZKKMKMSN6SMHHDLNDYBO2BWLSPW4GBFD6UGVSEGKI557S
+#\\\|VOZ3SWV6QSXQCTZYSVAZ3PSVCF2AEMK6APW37RQOH47GKSEQMLX \ / AMOS7 \ YOURUM ::
+#\[7]WU3THGSCMPFYLSIR2O64BGYOHI6OUYIADRGKWJNKORRT3OVESUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
