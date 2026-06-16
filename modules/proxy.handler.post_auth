@@ -1,12 +1,12 @@
 ## [:< ##
 
 # name  = proxy.handler.post_auth
-# descr = run transport selection then dispatch to handler.request.
-#         called after auth lookup completes (or is skipped).
+# descr = run async transport selection then dispatch to handler.request.
+#         called after auth lookup completes [or is skipped].
 #         args: $client_id
 
 my $client_id = shift;
-my $client    = $data{'proxy'}{'clients'}{$client_id};
+my $client    = <proxy.clients>->{$client_id};
 return if not defined $client;
 
 ## client half-closed during auth wait: nothing to respond to ##
@@ -17,20 +17,31 @@ if ( $client->{'half_closed'} ) {
 
 my $context = $client->{'context'};
 
-## transport integration point ##
+## transport integration point [async; no-op when transport not co-loaded] ##
 if ( exists $code{'proxy.transport.select'} ) {
-    my $transport_result = <[proxy.transport.select]>->($context);
-    if ( defined $transport_result and ref $transport_result eq 'HASH' ) {
-        $context->{'transport'}{'handle'} = $transport_result;
-    }
+    <[proxy.transport.select]>->(
+        $context,
+        sub {
+            my $transport_result = shift;
+            my $client_now       = <proxy.clients>->{$client_id};
+            return if not defined $client_now;
+            if ( defined $transport_result
+                and ref $transport_result eq qw| HASH | ) {
+                $context->{'transport'}{'handle'} = $transport_result;
+            }
+            <[proxy.handler.request]>->($client_id);
+            return;
+        }
+    );
+    return;
 }
 
 <[proxy.handler.request]>->($client_id);
 
 return;
 
-#,,..,..,,..,,,.,,,,.,...,..,,,.,,,.,,.,.,.,,,..,,...,...,,,.,,.,,,,.,,.,,,,.,
-#OF63IECJAI2VYJAHQMXKCY4PJ4F2SO6FHCYNQVCDOMYLJCRG6OCRPKJT35SQXGGUQTG7B4J45ZQWG
-#\\\|LA5QPLOQDQYLDOPXGDKE7AETK6RL4YLQBN2LFCIWFZVSEQPGMZU \ / AMOS7 \ YOURUM ::
-#\[7]MNRBWQZTMM4RVCZ6WVYFZEDUVLFEZLPRKSENIEVOXZSZGCFGROAA 7  DATA SIGNATURE ::
+#,,..,,,,,,..,,,,,,.,,.,.,..,,,,.,...,.,,,,.,,..,,...,..,,,.,,..,,,,,,,.,,.,,,
+#G2Y6AJXRD4LN2WV4VQGDNBSCWXO7Z3X6PD3V7WRPWGS7LJOTT64OEMCLKA3HJUJOLCOPGK5YFYIRE
+#\\\|VA53474I4EZUCEFNVDO76YIPFSTHN2P5OOWP5CBC5K5JWLWJ2QY \ / AMOS7 \ YOURUM ::
+#\[7]VIRITBLG5WGEPU6QBTZGIMZH7KHU7MR4RRR6CQNSCFJE4DTFF4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
