@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = base.X-11.get_pointer_monitor_rect
+
+my ($local_sid)
+    = keys %{ $data{'user'}{'cube'}{'session'} // {} };
+return undef if not defined $local_sid;
+
+my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
+my $cube_fh = $data{'session'}{$local_sid}{'handle'};
+<[base.net.send_to_socket]>->(
+    $cube_fh, "($cmd_id)X-11.get_pointer_monitor_rect\n"
+);
+
+my $reply_string;
+my $matched_reply = FALSE;
+while ( not $matched_reply ) {
+    $reply_string = readline($cube_fh);
+    return undef
+        if not defined $reply_string or not length $reply_string;
+    $matched_reply = TRUE if $reply_string =~ m{^\($cmd_id\)(TRUE|FALSE) };
+    if ( not $matched_reply ) {
+        $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
+    }
+}
+
+if ( $reply_string =~ m{^\($cmd_id\)TRUE (-?\d+) (-?\d+) (\d+) (\d+)\n$} ) {
+    return {
+        'x'      => $1 + 0,
+        'y'      => $2 + 0,
+        'width'  => $3 + 0,
+        'height' => $4 + 0,
+    };
+}
+
+<[base.log]>->( 1, 'get_pointer_monitor_rect: no result' );
+return undef;
+
+#,,,.,...,,.,,,,,,..,,,,.,,.,,...,..,,.,.,.,.,..,,...,...,..,,,,,,.,,,,,,,,.,,
+#RHX67ZYB27ZPS2X2VQR5P65QVLTGPQRW7D34AZXW3MOVDYN7PPW76IETHX7X7ODCUKYTYSGNIGECS
+#\\\|DCJJ3LOUPBM3DRJWX2I5SZWYLMNLB4J6DWDW3Q4QET3KE4XUS3X \ / AMOS7 \ YOURUM ::
+#\[7]FGXLCZRZZK3AZVSEAWVU34XBPI7BBLPBULE3DT6D2MNUD2N2XGBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
