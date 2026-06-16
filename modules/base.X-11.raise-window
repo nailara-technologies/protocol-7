@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name = base.X-11.lower_window
+# name = base.X-11.raise-window
 
 my $id = shift;
 
@@ -10,13 +10,13 @@ $cmd_path .= '.'                   if length($cmd_path);
 die "expected numerical window id" if not defined $id or $id !~ m|^\d+$|;
 my ($local_sid) = keys( %{ $data{'user'}{$user}{'session'} } );
 
-<[base.log]>->( 1, "lowering window '$id'.," );
+<[base.log]>->( 2, "raising window '$id'.." );
 
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
 my $cube_fh = $data{'session'}{$local_sid}{'handle'};
 <[base.net.send_to_socket]>->(
-    $cube_fh, "($cmd_id)${cmd_path}X-11.lower_window $id\n"
+    $cube_fh, "($cmd_id)${cmd_path}X-11.raise-window $id\n"
 );
 
 my $reply_string;
@@ -31,14 +31,14 @@ while ( !$matched_reply ) {
 }
 
 if ( $reply_string =~ m|^\($cmd_id\)FALSE (.+)$| ) {
-    <[base.log]>->( 0, "lower_window command failed with '$1'.," );
+    <[base.log]>->( 0, "raise_window command failed with '$1'.." );
     return FALSE;
 } else {
     return TRUE;
 }
 
-#,,.,,..,,..,,...,,,,,,,,,...,,,.,,..,,,.,...,..,,...,...,.,.,..,,.,,,,..,..,,
-#IYPVQRWHDKG5LL6ZV5Q5TY3WI6XPGSGDWM4VAZMOKTEIC5WLVOSSSFCYVY5KEBC24DU25YJHTZUR4
-#\\\|VF3TLEMXVHZTWJF5PKCJP7DLEQB5MSJN4N6HPN57MKQMWVBTUWB \ / AMOS7 \ YOURUM ::
-#\[7]PEQJLETX5NGD4Y3C62BNPJBK2IARC52BKAAKOHZBKR7TBQBQVIAA 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,,.,,.,.,,.,,,,.,..,,..,,.,,,,,.,..,,...,...,..,,...,...,..,,...,
+#B3IZFF3A55HY3QJZGK6UXN6FEJROSLXSKHIJCGRCNI7P2RYAGG6V7KU32WGQ3XPN2KENAQRC63AGU
+#\\\|ULBZ36M445CFQF6KGACJD4V4ODJVJSKA4MUAZ5ALTWK2TFFQ6U7 \ / AMOS7 \ YOURUM ::
+#\[7]DW7EFXDJLR4YIPDBHILGXMQ6AV6KWNKHNZBHWPBWE6GHKMAJKYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
