@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = X-11.cmd.get_pointer_monitor_rect
+# descr = return monitor rect containing pointer position
+
+my %ptr = eval { <X-11.obj>->QueryPointer( <X-11.obj>->root ) };
+return { 'mode' => qw| false |, 'data' => 'QueryPointer failed' }
+    if $EVAL_ERROR
+    or not defined $ptr{'root_x'};
+
+my ( $px, $py ) = @ptr{qw| root_x root_y |};
+
+## xrandr --listmonitors output: "  N: +[*]NAME WPX/MMMxHPX/MMM+X+Y" ##
+my $xrandr_out = qx| /usr/bin/xrandr --listmonitors 2>/dev/null | // '';
+
+my ( $first_x, $first_y, $first_w, $first_h );
+
+for my $line ( split /\n/, $xrandr_out ) {
+    next if $line !~ m{ (\d+)/\d+x(\d+)/\d+\+(-?\d+)\+(-?\d+) }x;
+    my ( $w, $h, $x, $y ) = ( $1 + 0, $2 + 0, $3 + 0, $4 + 0 );
+    next if not $w or not $h;
+
+    ## keep first active monitor as fallback ##
+    ( $first_x, $first_y, $first_w, $first_h ) = ( $x, $y, $w, $h )
+        if not defined $first_w;
+
+    if (    $px >= $x
+        and $px < $x + $w
+        and $py >= $y
+        and $py < $y + $h ) {
+        return { 'mode' => qw| true |, 'data' => "$x $y $w $h" };
+    }
+}
+
+## pointer not within any monitor rectangle — use first active ##
+return defined $first_w
+    ? {
+    'mode' => qw| true |,
+    'data' => "$first_x $first_y $first_w $first_h"
+    }
+    : { 'mode' => qw| false |, 'data' => 'no monitors in xrandr output' };
+
+#,,,,,,,.,,..,.,,,.,.,...,...,...,,.,,,.,,.,.,..,,...,...,.,,,,.,,,,,,,.,,,.,,
+#AQV7QI7D2VM6NH2TPJCGMRCTGCE3L7OZOJYKHM3PEYB3DGWJ63NWYF2IKRF3XMBEJZPXQTZFMNP24
+#\\\|G4WVNEYMZOCGC7JHC4P5T3L5JPD3RJV2H7U2OQ4GL2CQ2FOBHWU \ / AMOS7 \ YOURUM ::
+#\[7]EDV6T7HPIGHDKU2YLTJEGB2WD2MUC6HW2U66ND22L44WGXTJ2ODA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

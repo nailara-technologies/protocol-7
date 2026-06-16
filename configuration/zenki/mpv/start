@@ -23,7 +23,8 @@ access.cmd.usr.cube = name commands heart subname reload verify-instance play \
                       current-hwdec current-vo current-ao drop_buffers fade \
                       buffer-erase buffer-erase-level cur-pid  ##  *
 
-modules.load = auth net protocol io.unix io.ip ui set-up.json chk-sum mpv
+modules.load = auth net protocol io.unix io.ip ui set-up.json chk-sum mpv \
+              window.profile window.geometry
 [load_modules:<modules.load>]
 
 mpv.network.skip_proxy = yes      ## ignore proxy variables from %ENV ? ##
@@ -92,12 +93,9 @@ mpv.audio_params = -vo null -ao=<mpv.ao> --idle=yes <mpv.loop_plist_param> \
 
 [base.X-11.get_mode]
 [base.X-11.get_display]
-# mpv.geometry = [base.X-11.get_geometry]
-# mpv.coordinates = [base.X-11.get_coordinates]
-
 # [set-up.json.import_file:'mpv.set-up.json'] # ..from /etc/protocol-7/import/..,
 
-mpv.geometry = 1280x720+0+0
+mpv.geometry = [window.geometry.resolve]
 
 [mpv.open_player]
 # [base.X-11.keep_below:<x11.id>]
@@ -112,8 +110,8 @@ mpv.geometry = 1280x720+0+0
 
 [zenka.loop]
 
-#,,.,,...,..,,,,,,,,.,,..,,,,,...,.,,,.,,,.,,,..,,...,...,..,,,,,,,..,,,,,.,.,
-#EJJSC5IZ4OBW3VTRRH7R2MW4KZ6CLKY2K5RLXSYBR5ZUA2R5MEPIUHIM5LEMQHPJPT5P4435G7BFE
-#\\\|ETUWJNP7JDP4XROZQKU2FGIDBHXD57LYVIX66HNCUYPP4VEUL32 \ / AMOS7 \ YOURUM ::
-#\[7]V3ASNRBDY4LJR5V4CJTIPSVTER4FM2RNN4HOOAQO4MAM6KEMYIDA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,...,.,,,,.,,,.,,,.,,,.,,.,.,,,,,..,,...,...,.,,,,..,.,,,,.,,,,.,
+#WF7K4DD3Q7VKDF4VLQSYBPWP5D6XJ6XIQTD27LQXXUZFYCKABHUY4OID6W6AO7GJF33NNS7HCT6PG
+#\\\|VZINPOY4ALFGGVNB4FL3OFRXJPIMM2E5RVVBWTQO7UODIZLBH5R \ / AMOS7 \ YOURUM ::
+#\[7]D7XJV3QKYGC54BA4S6AIEASVS5YZ2RGSEJFGYFUQ4ZKL75B6JMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
