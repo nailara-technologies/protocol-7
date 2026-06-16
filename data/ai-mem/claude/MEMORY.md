@@ -1,4 +1,7 @@
 ## CRITICAL
+- [WSLg deiconify limitation](feedback-wslg-deiconify-limitation.md) — Weston/WSLg blocks deiconify at compositor level; iconify works, nothing deiconifies (X11 or GTK); don't re-investigate unless Weston version changes
+
+
 - [gtk ondemand zenka startup](feedback-gtk-ondemand-zenka-startup.md) — on-demand gtk3 zenka needs Gtk3->init in init_code + [base.get_session_id] before [base.gtk.main_loop], else silent hang
 - [cmd reply must be string](feedback-cmd-data-must-be-string.md) — .cmd./whitelisted routines must return {mode=>true|false, data=>STRING}; split internal helpers (raw hash/undef) into separate non-.cmd. routines + thin wrapper
 - [kimi reload baseline noise](feedback-kimi-reload-baseline-noise.md) — don't make kimi prove pre-existing reload errors are pre-existing; check baseline yourself first
@@ -164,8 +167,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,.,,.,,,,.,,,,.,.,,,,,,,.,.,...,..,,...,,,.,..,,...,...,,..,..,,..,,.,.,,..,
-#62LPQBMTQMYKHJDVKNHT26LX5E4KOM5MHFHY72N55LZYFDVVJZH4J5FAMFBOJGGLZA57WGZ3RARTQ
-#\\\|ADZIY7YGOQUH753PKKHWYF6GK2KSL7PVWTZ3VLZIDQLSFV6C6W7 \ / AMOS7 \ YOURUM ::
-#\[7]7QVPSQQWRQDTJ2DWLO26T54ELZJ2TTYRWJMBQ7L3U33PYVEBDQCQ 7  DATA SIGNATURE ::
+#,,,,,...,,.,,...,,.,,,,,,.,.,...,,,,,.,,,,,.,..,,...,...,.,,,,,,,,,.,.,.,,,.,
+#5BUD5B3SHWGKWJHUWZ2IMCQ5XGJM45DDHLP2V6L7TNQJE4FFLEBW6YZWFTLLETSTF4ELWTNB3HE3M
+#\\\|MPHIVKDVZFNEVEDFJHIOFGHCP2NOMXOMMZXDFCOYI45T7NZMKXI \ / AMOS7 \ YOURUM ::
+#\[7]F7H3JUFG34Y2IWVBJQNI6FKRCYFJHU3BJOBLDHFWOHKLJTBWLCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

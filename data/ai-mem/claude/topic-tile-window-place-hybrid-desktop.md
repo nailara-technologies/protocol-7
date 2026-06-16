@@ -90,8 +90,66 @@ since cancel/commit already take `$id`.
 when no configured placement hints exist) and minimal-desktop/kiosk-mode
 work can now proceed - no longer blocked.
 
-#,,,.,,..,.,,,...,,..,.,.,,.,,,,.,,..,.,.,...,..,,...,...,..,,.,.,,..,,,,,,..,
-#4AVLAHCRB5A3J45ULG2XVA2ICIZ4XKHOZMUCO4YT2472UR7GFHBWPNAATS4RNGZXYJVTIPYH6GNL4
-#\\\|GVRMFVXVYBXOKUORIRVIUCWOH4BGHPJFOLA2KXMVWG56Z3EAZFX \ / AMOS7 \ YOURUM ::
-#\[7]LF3YEPTWNBK4EW6O3INYZJLMMUPQ7F5PJ2JK5EPAG4TAQQDW5MAQ 7  DATA SIGNATURE ::
+---
+
+**2026-06-16 — integration architecture design**
+
+Two integration paths identified, both sharing the same window-place
+interaction — the difference is only what happens to the resulting geometry:
+
+**Path A — standalone (geometry oracle)**
+Client asks window-place directly → gets geometry back → uses it
+immediately. No tile dependency. Suited for one-off placements, temporary
+windows, anything that doesn't need coordination or persistence. window-place
+as a pure interactive geometry oracle.
+
+**Path B — tile-integrated (intent → configuration)**
+Placement result flows into tile as a new or updated tile definition. This
+inverts the kiosk model: instead of a separate tool producing a config that
+tile consumes, window-place IS the configuration act. The drag gesture
+authors the tile definition in real time.
+
+This requires tile to accept **intent-first entries**: tiles that know their
+geometry but were authored by dragging rather than edited in a config file.
+Two sub-variants:
+- **geometry-only tile**: knows position/size, waiting for a window match
+  to be assigned later
+- **matched tile**: has both geometry (from window-place) and a window
+  pattern — fully resolved, just not persisted yet
+
+**The "half-configured tile" design question:**
+A tile with geometry but no window assignment is a valid intermediate state.
+tile currently requires full config. Introducing intent-first tiles means
+tile needs to hold runtime state for placements it *received* but hasn't
+persisted. This is new territory — the kiosk system always had complete
+configs before tile started.
+
+**Persistence question (open):**
+For a true "start from intent" flow, tile needs to persist new entries to
+disk so the layout survives a restart without re-dragging. Runtime-only
+state is easier to implement first, persistence is the eventual goal.
+The config format tile uses on disk would need an "authored via placement"
+marker vs. "hand-configured" so the two sources remain distinguishable.
+
+**Lifecycle picture:**
+1. System boots with minimal desktop + protocol-7-menu
+2. User opens an app → no tile entry exists → tile falls through to
+   window-place → user drags to position → geometry returned
+3. tile stores result as a runtime intent-first entry (Path B) or
+   discards after use (Path A), depending on whether the app is
+   "managed" by tile or not
+4. Over time, intent-first entries get reviewed and promoted to
+   persistent config — or auto-promoted after N successful placements
+
+**Current priority:** establish the two-path API contract first (what
+does a client send to request standalone vs. tile-integrated placement),
+then implement tile's ability to hold and serve intent-first entries,
+then add persistence. The X-11 infrastructure improvements in this
+session (window enumeration, get-windows, GDK_BACKEND) are a prerequisite
+that is now complete.
+
+#,,,,,,,,,...,.,,,,,.,.,,,,..,,.,,,.,,,..,..,,..,,...,...,...,,,,,,,,,.,.,..,,
+#AKF7TAAERAGSCERTXIHE6HSX7ISYDRU52RO4D73FAGMKMW6M4YYZ75V5C3TYXIUCVCNK3EJAZQ4UO
+#\\\|DBDIY3D3IFQQ7QW7LBPRGCHTSJKZ7XYKYEQKIO7T34533BKLESF \ / AMOS7 \ YOURUM ::
+#\[7]JTCAWOPSOAUDWH76OFZGKSGRFKKSZTPCPNMQK5ROEC467FKINUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
