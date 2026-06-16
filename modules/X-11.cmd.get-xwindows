@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = X-11.cmd.get-xwindows
+# descr = enumerate X11 windows via QueryTree root walk
+#         WSL/no-WM fallback; use when _NET_CLIENT_LIST is empty
+
+my $X    = <X-11.obj>;
+my $root = <X-11.obj>->root;
+
+my $wm_name     = $X->atom('WM_NAME');
+my $net_wm_name = $X->atom('_NET_WM_NAME');
+
+my @entries;
+eval {
+    my ( undef, undef, @root_children ) = $X->QueryTree($root);
+    foreach my $wid (@root_children) {
+        next unless defined $wid and $wid ne 'None' and $wid =~ m|^\d+$|;
+        my %wa = eval { $X->GetWindowAttributes($wid) };
+        next if $EVAL_ERROR or not %wa;
+        next if ( $wa{'map_state'} // '' ) eq 'Unmapped';
+
+        my $title = '';
+        for my $atom ( $net_wm_name, $wm_name ) {
+            next unless defined $atom;
+            my ( $val ) = eval {
+                $X->GetProperty( $wid, $atom, 'AnyPropertyType', 0, 256, 0 );
+            };
+            next if $EVAL_ERROR or not defined $val or not length $val;
+            $title = $val;
+            last;
+        }
+
+        push @entries, sprintf '%d  %s', $wid, $title;
+    }
+};
+
+if ($EVAL_ERROR) {
+    warn <[base.str.eval_error]>;
+    return { 'mode' => qw| false |, 'data' => 'QueryTree failed' };
+}
+
+return @entries
+    ? { 'mode' => qw| size |, 'data' => join( "\n", sort @entries ) . "\n" }
+    : { 'mode' => qw| false |, 'data' => 'no mapped windows found' };
+
+#,,.,,.,,
+
+#,,,,,...,,.,,,,.,,,.,.,.,,,.,...,.,,,,.,,,,,,..,,...,...,,..,..,,,..,,,,,..,,
+#MWTJ6VMF7RTKKPY2J6T7OMGNSEGCISG6SZXW5RZFCZ2OHEF5NGA22CFR5AKBI7REZT5BR7QXL7S6G
+#\\\|DOVROAIJQFPFMQCCDLG3GQEAX5EF2WGKQ4MMQSQNIP7DPTICJJ4 \ / AMOS7 \ YOURUM ::
+#\[7]5KGON6ZARGZHJ5Y5MR5NG3KNXR2Z7AWRCJ4E5CIFRK6RY57MO2DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
