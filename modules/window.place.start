@@ -7,7 +7,7 @@ my $call = shift // {};
 
 my $args = $call->{'args'} // '';
 
-my ( $caller, $profile );
+my ( $caller, $profile, $tag );
 
 ## parse key=value or positional args ##
 my @tokens = split /\s+/, $args;
@@ -16,6 +16,8 @@ foreach my $token (@tokens) {
         $caller = $1;
     } elsif ( $token =~ m|^profile=(.+)$| ) {
         $profile = $1;
+    } elsif ( $token =~ m|^tag=(.+)$| ) {
+        $tag = $1;
     } elsif ( not defined $caller ) {
         $caller = $token;
     } elsif ( not defined $profile ) {
@@ -43,6 +45,7 @@ do { $id = <[base.prng.chars-anum]>->(8) }
 ## store per-request state keyed by id ##
 $data{window}{place}{instances}{$id} = {
     'caller'   => $caller,
+    'tag'      => $tag,
     'reply_id' => $call->{'reply_id'},
 };
 
@@ -91,8 +94,8 @@ my $geo = <[window.profile.calculate]>->(
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,.,.,,.,,,,.,.,,,,,.,.,,,.,,,,,,,,,.,,.,,.,.,...,.,.,...,.,.,...,,,.,,..,
-#G7OL4Z6MX3H6ZZIS4NBJUDBPMEIILWN5NVE4BWC3UBA7HFQOGU7U7NMZI6KITZ3XE53VW2XVILVY4
-#\\\|TOIDSW7IYASO7UJJNPVYES4HO7VT2FEV5IC5Q7KPY2D2YZMXB47 \ / AMOS7 \ YOURUM ::
-#\[7]JTWP32ULW2ATQSWL6JPKUHWWYZEJJGER4DEFNX4ERGAZSQ4ECOBI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,.,,,...,,,.,.,,,,..,,..,,.,,.,,,.,.,...,...,.,.,,,.,.,.,...,,,,,
+#L6CL2CBSMR5H4UXVLBMS2OTR6T4E5PDL2ORBRI4J7WRD4WSD5A2IN6ZPXZC3M3VV2ZSPPJLNHNMIC
+#\\\|PXEKBKCPNASFJE3VMIM6TJIUZVFKSZJKPC4DSBU7IDRJXH7NGUF \ / AMOS7 \ YOURUM ::
+#\[7]Z7F5I4QTAEZSERPHR2JBFYOFUVXTEPZOEVFBMPJEWT3EF2TSKUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
