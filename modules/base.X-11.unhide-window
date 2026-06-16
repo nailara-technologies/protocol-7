@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name = base.X-11.unhide_window
+# name = base.X-11.unhide-window
 
 my $id = shift;
 
@@ -16,7 +16,7 @@ my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
 my $cube_fh = $data{'session'}{$local_sid}{'handle'};
 <[base.net.send_to_socket]>->(
-    $cube_fh, "($cmd_id)${cmd_path}X-11.unhide_window $id\n"
+    $cube_fh, "($cmd_id)${cmd_path}X-11.unhide-window $id\n"
 );
 
 my $reply_string;
@@ -37,8 +37,8 @@ if ( $reply_string =~ m|^\($cmd_id\)FALSE (.+)$| ) {
     return TRUE;
 }
 
-#,,,,,,..,,.,,.,.,,,,,.,,,,..,,,,,,..,,,.,.,.,.,.,...,...,...,.,.,,,.,...,,.,,
-#BVCZEZHVRWTIH6U4UL6ZMI43LMFYSE42PUNUWEQYY7P445WHLXNEITVC64PIB5WCWJAQU6IAX274Q
-#\\\|RI3YQ5NZRGFT5SY335CZES6NVO7E6BGVTTK6MPAXGZIFPMHJREP \ / AMOS7 \ YOURUM ::
-#\[7]HWZ63DNYEDTL7HTK6IZFRTL6P3HPC2JOLDRGOJUOBRPBO5EL7QDY 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,.,.,,..,,,,,.,,,..,,...,,,.,,..,.,.,...,...,,.,,...,.,.,,,.,.,.,
+#56XPFYBBCN7IRAEUPJXFAVWOOE4XR5MACTU3TPTACRXUDL3UBT5ESCCAAUH73XBFRXQVLNFQXVJ6Y
+#\\\|5ABN4OUVTYPIB5QARSFRATMATGQNBFZTUBOBGOYIBN6QADP54Z5 \ / AMOS7 \ YOURUM ::
+#\[7]XL7TEWDCI64OWYQ7HVV5LGBM35HD4JBMNILJMAPB77RWC4RJR2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

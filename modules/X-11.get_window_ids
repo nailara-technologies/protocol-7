@@ -21,10 +21,13 @@ eval {
 
 warn <[base.str.eval_error]> if length $EVAL_ERROR;
 
-return sort @window_ids;
+## [ fall back to WM registry when _NET_CLIENT_LIST is empty ] ##
+@window_ids = map { $_->id } <X-11.WM>->sorted->@* if not @window_ids;
 
-#,,,,,,,,,.,.,,,,,.,.,..,,,..,.,,,...,.,,,,.,,..,,...,..,,.,,,.,.,...,.,,,,..,
-#PD4LBMTWB2QUS7EV63E2IH3UKOLSU74ILGBPIDKWUUMBYWFDYR56QMGD6D6KKODAMS6OW2UZZHWUA
-#\\\|PAPHFSR4WXLG4QUD5KQBRFQVTAI2EBVJ54WZJ55U2URPHPBRE7N \ / AMOS7 \ YOURUM ::
-#\[7]U7MRPGYDHUW6DLIW3M7AZLYMIQ6PQ7N3IHGIP5MKFRZCAP2VHEAQ 7  DATA SIGNATURE ::
+return sort { $a <=> $b } @window_ids;
+
+#,,.,,,,,,,..,,..,.,.,,,.,,..,,,.,,.,,.,,,..,,..,,...,...,..,,...,.,,,...,.,,,
+#SGBFJIR2BG4CIFTD7A4AZFQ6W3PRL47KFZQW5MMG56LFS5C2CIPQDT4ETFQCKXANJDXD6L65DHXUM
+#\\\|XOX7D2ZSOWWQB3L4M56NWWGYBVPOSVX3JGI2TNSBA4STZZU5SQY \ / AMOS7 \ YOURUM ::
+#\[7]KDM4GBWUT7Q43YPSYSHBTQH2AGBO55YMZN5TYKKIWENHNYSNPACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
