@@ -47,7 +47,7 @@
 - [plugin-web-jobs](topic-plugin-web-jobs.md) — delta sync WORKING; open: ?since=N, remote deploy
 - [clients-http](topic-clients-http.md) — clients.http.* + clients.https.* async; kimi-web parallel dispatch
 - [reasoning-chain-repository](topic-reasoning-chain-repository.md) — native model; dedup-based self-improvement
-- [reasoning-namespace](topic-reasoning-namespace.md) — `reasoning.*` namespace; 21 templates
+- [reasoning-namespace](topic-reasoning-namespace.md) — `reasoning.*` namespace; 27 templates
 - [job-pipeline](topic-job-pipeline.md) — WORKING: jobs.vhost live, German reason+summary
 - [task-coordination](topic-task-coordination.md) — task zenka coordinator; dispatch flow
 - [checksum-parenting-namespace-trees](topic-checksum-parenting-namespace-trees.md) — `<C0>:<C1>` auto-parenting collision protection; user-trunk/transit-ring/parabolic-mirror riff; design doc dispatched
@@ -109,6 +109,8 @@
 - [usb-backup-zenka](topic-usb-backup-zenka.md) — udev insertion → task tree → restore
 - [git-watch-zenka](topic-git-watch-zenka.md) — force-push detection; git alternates dedup
 - [reasoning-design-templates](topic-reasoning-design-templates.md) — 7 viz designs
+- [harmonic-silence-active-cancellation](topic-harmonic-silence.md) — silence via waveform cancellation = sensing event horizon; regex library as "negative of the world"; canvas of absence for anomaly detection
+- [key-tree-ring-routing](topic-key-tree-ring-routing.md) — namespace=C25519 key-tree (authority outward); rings=shared keys (self-removing layers inward); tree answers "who", ring answers "through what"
 - [fetch-files-zenka](topic-fetch-files-zenka.md) — fetch-files LIVE; huggingface.* namespace
 - [tls-acme](topic-tls-acme.md) — SNI/SSL internals; ACME/letsencrypt
 - [amos7-p7-loader](topic-amos7-p7-loader.md) — AMOS7::P7 callable from standalone
@@ -167,8 +169,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,,,,...,,.,,...,,.,,,,,,.,.,...,,,,,.,,,,,.,..,,...,...,.,,,,,,,,,.,.,.,,,.,
-#5BUD5B3SHWGKWJHUWZ2IMCQ5XGJM45DDHLP2V6L7TNQJE4FFLEBW6YZWFTLLETSTF4ELWTNB3HE3M
-#\\\|MPHIVKDVZFNEVEDFJHIOFGHCP2NOMXOMMZXDFCOYI45T7NZMKXI \ / AMOS7 \ YOURUM ::
-#\[7]F7H3JUFG34Y2IWVBJQNI6FKRCYFJHU3BJOBLDHFWOHKLJTBWLCCY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,.,,,,..,,,.,,..,,,,,.,.,,,,,,.,,..,,...,...,,.,,,..,,,,,.,.,.,,,
+#GHDMGMTPGRKKRROUQD6RGP7WAXDXWN35DVSDVXQIFYILBQJRJ2WHYFSOZ7GMDSCRSN5HETJOLR3RU
+#\\\|4SWPZFOHSYCBZYSMI6Z27EUESQEFDSVRPZHYIEBVOZXEZ4DJMCF \ / AMOS7 \ YOURUM ::
+#\[7]ZXBJQB3XRKRFB3EQZL3YM7BHBGAQWH7JG23CQQO4UVDCXEM7TGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
