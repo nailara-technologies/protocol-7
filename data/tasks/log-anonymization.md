@@ -91,11 +91,12 @@ returns decrypted value for single entry.
 
 ## integration points
 
-### base.logt
-primary integration point. after the log line is assembled and before it is
-written to the ring buffer or archive, pass through log.anon.replace.
-store resulting pairs via log.anon.store.
-write anonymized line to ring buffer.
+### p7-log zenka
+primary integration point. p7-log receives every log line before it reaches
+the ring buffer or disk archive — it is the natural owner of the anonymization
+pipeline. after the line is received and before writing, pass through the
+enabled transform stages (classify → replace → timestamp_encrypt → sign →
+full_encrypt). store resulting pairs via log.anon.store.
 
 ### log archival
 when archiving ring buffer to disk, anonymized lines are written directly.
@@ -131,6 +132,78 @@ epoch:  rotates with v7 epoch for temporal scoping
 
 flat binary allows fast mmap access; LMDB preferred for concurrent writes.
 
+## optional protection layers (all disabled by default)
+
+four independently toggleable modes, stackable in any combination:
+
+```
+$data{log}{anon}{enabled}           = 0  ## fragment anonymization (base)
+$data{log}{anon}{timestamp_encrypt} = 0  ## encrypt timestamp field
+$data{log}{anon}{sign}              = 0  ## C25519 chain signing
+$data{log}{anon}{full_encrypt}      = 0  ## encrypt full line (max privacy)
+```
+
+### timestamp encryption
+
+the timestamp `[1234567]` reveals activity patterns even when content is
+anonymized — timing side-channels expose usage habits, session boundaries,
+and operational rhythms.
+
+```
+before:  [1234567] read file [L:X7KQMNS4] (4200 bytes)
+after:   [T:A3FQNMKL] read file [L:X7KQMNS4] (4200 bytes)
+```
+
+encrypted timestamp: Twofish( raw_timestamp, user_system_key ).
+token `[T:XXXXXXXX]` uses same 8-char BMW-L12 format as fragment tokens.
+plaintext timestamp stored in same anonymization table — resolved by same
+`log.anon.resolve` lookup. log remains structurally readable; timing is
+opaque without the key.
+
+### C25519 chain signing
+
+each log line is signed with the user's C25519 private key. the signature
+covers: line content + HMAC of the previous line's signature (chain).
+
+```
+[T:A3FQNMKL] read file [L:X7KQMNS4] (4200 bytes) [S:BVQK3M7R]
+```
+
+`[S:XXXXXXXX]` is an 8-char prefix of the Ed25519 signature (full sig
+stored in a parallel signature log). chain property: any tampered line
+breaks verification of all subsequent lines. provides:
+- tamper evidence for the full log sequence
+- proof of origin (user key, not any zenka key)
+- auditable log integrity without bulk decryption
+
+### full line encryption
+
+```
+$data{log}{anon}{full_encrypt} = 1
+```
+
+entire assembled log line is encrypted with Twofish before writing to the
+ring buffer. only a fixed-width encrypted blob + BMW-L12 index token is
+stored. log is completely opaque without decryption pass.
+
+investigatability requires: `p7c log.anon.decrypt-range <from> <to>` which
+decrypts a time range into a temporary buffer for inspection — the buffer
+is not persisted.
+
+when combined with timestamp_encrypt: the index token itself is the only
+visible structure. when combined with sign: signatures are over plaintext
+before encryption, verified after decryption.
+
+### mode interactions
+
+```
+fragment only:          partial privacy, full investigatability
++ timestamp_encrypt:    timing hidden, structure visible, fast grep
++ sign:                 tamper-evident, auditable chain
+full_encrypt only:      max privacy, requires decryption to investigate
+full_encrypt + sign:    max privacy + tamper evidence (sign before encrypt)
+```
+
 ## implementation phases
 
 ```
@@ -143,11 +216,16 @@ phase 2:  log.anon.cmd.resolve command
           resolve-line reconstruction
           p7c integration for investigation workflow
 
-phase 3:  entropy-based classifier (Shannon threshold)
+phase 3:  timestamp encryption (timestamp_encrypt flag)
+          C25519 chain signing (sign flag)
+
+phase 4:  entropy-based classifier (Shannon threshold)
           LMDB table for concurrent write performance
           table rotation with epoch boundary
 
-phase 4:  export mode: decrypt full archived log for authorized recipient
+phase 5:  full line encryption (full_encrypt flag)
+          decrypt-range command for investigation
+          export mode: decrypt full archived log for authorized recipient
           audit trail: which resolutions happened, when, by whom
 ```
 
@@ -168,7 +246,7 @@ implement phase 1 of log anonymization:
 4. create `log.anon.resolve` and `log.anon.cmd.resolve` — lookup + decrypt
    single entry by checksum. return plaintext or FALSE if not found.
 
-5. wire into `base.logt` as opt-in: if `$data{log}{anon}{enabled}` is set,
+5. wire into `p7-log` zenka as opt-in: if `$data{log}{anon}{enabled}` is set,
    pass line through replace + store before writing to ring buffer.
 
 verify: enable anon, run a command with a file path argument, confirm log
@@ -177,8 +255,8 @@ returns the original path.
 
 #,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-#,,.,,,..,,.,,,.,,,.,,,,,,..,,,,.,,.,,...,...,..,,...,...,,..,.,,,,..,,..,.,.,
-#6KKZAGE3HUE6WHJQBXOFSB2R4BKLYZCLCKCZTGSFS5KVGUV5WHGSLWF36WKDQR63G5FDWJJN7NIDW
-#\\\|YXT2PBULKOQMNRZ3VMKQ47AVNYXMTCAUFJEN4V3ZKX22MVZIKZX \ / AMOS7 \ YOURUM ::
-#\[7]K6SMN5RBTKPSRIEWEIJZN6WPAF72SIZHQOQEQZPSOTGWPPRHLOBY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,..,,,.,...,,,.,...,,,.,,,,,.,.,..,,...,...,,,,,,.,,...,,,.,,,,,
+#75Z3FRCAJFRIXCOWPOFEKF5QITH5L4K47EAIHUGXVVTLQ4MCCWJ23SGYON75Q5UVMM7ZJIOUJTOHK
+#\\\|H26MCHBMVOBAFRPUAMQJPPLQ5A4PU5QV2FHQ5JC4XDEEVCEGKZD \ / AMOS7 \ YOURUM ::
+#\[7]GABWU5PP5KTCD2BYI3VIOSPSP5XSJA2XW3I2LYAHT7AO3P4GFOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
