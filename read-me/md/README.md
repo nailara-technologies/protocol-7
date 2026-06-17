@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 3TNNZTEQAQ-8284.0 :::
+::: SOURCE-CODE VERSION :: 3TNN3ZFPLI-8285.0 :::
 
 # [ [nailara 'protocol seven' project](http://protocol-7.network/) ]
 
@@ -155,7 +155,7 @@ Three primary methods for interacting with the Protocol-7 network:
 
 1. **nshell Zenka Terminal Interface** (Recommended) ✅ Fully Refactored
    ```bash
-   p7.nshell
+   v7.nshell
    ```
    or equivalently:
    ```bash
@@ -362,8 +362,8 @@ The full vision document explores Protocol-7's unique approach to distributed co
 
 ```
 
-#,,,,,,.,,.,,,,.,,...,..,,,.,,,,.,,..,.,,,.,,,..,,...,...,...,,,.,,,.,,.,,.,,,
-#UITWA4DEZJJKI7FZRMNLHYC42G4FR4NSPVUG3Z66JZAL66OS6LPOTTIX3AYCJFZQNDWIWNDWXDON4
-#\\\|JZ7KN72VOR5KNU2AUXQIECH4OI6PXEF5JYOOIAD3F7X6WPCS4MG \ / AMOS7 \ YOURUM ::
-#\[7]UHZZZYX2LRO4OQLFCS7HYA4XUPJCR6ZACVXM7AYM2AKHMF6QVEDQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,..,.,,,.,.,.,,,,..,,.,,.,,,..,,..,,...,..,,,.,,...,..,,,.,,...,
+#MNXZYEV7O6YRLG5RSM2MT3RWXRQHTZ4JQO7CC7MZP4MQ2LCR6CRJVAKT6FZQ4LCC5BDZUZ2D2OECY
+#\\\|UAUXOYSVXBVYICPV25E7PFMQLCG4EUAIJBFUVTJDNX4VFNLLK5S \ / AMOS7 \ YOURUM ::
+#\[7]WW7UY3BKWAJYRDVRGEGADPCLUGID2QZ3EHUGW5FQETRRKE6NOYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

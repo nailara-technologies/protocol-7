@@ -8,7 +8,7 @@ hardcoded in `index.rank`, so `index.cmd.search` cannot distinguish interior
 N-gram fragments from true terminals.
 
 signatures_note: do NOT attempt to sign any files — only the repo owner can
-sign via `p7.sourcecode update-signatures`.
+sign via `v7.sourcecode update-signatures`.
 
 kimi session bdd0dfe4 has the full analysis — dispatch there for review if needed.
 
@@ -125,8 +125,8 @@ if ($self_match) {
 - `index.cmd.lookup` already reads `terminates` correctly from the trie node —
   no change needed there once `index.rank` is fixed
 
-#,,,.,...,.,.,.,,,,,.,,.,,,.,,.,.,..,,,..,,..,.,.,...,..,,...,,,.,,,,,,,,,,.,,
-#WAUYKCJN66VHAXVEST7SCEYR4RHR3DIBCBUI2HCWQ4FPV2JHR5DEMZL3UHPJBAYOX7YKGPG6NBQVW
-#\\\|4UYBN7DM3XZ7Z2FSO25HSETPZKTTL7D6BNBJ36ZR4PZZSQ6HC2S \ / AMOS7 \ YOURUM ::
-#\[7]ZEME6GDT7ZPBR7LJFFVO56EIUV3YCRLLKZB5U5UI7SHO437S4SDQ 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,..,,,.,.,.,,,.,.,.,,..,,.,,,.,,.,.,...,...,,.,,.,.,..,,..,,..,,
+#3CTNQKVXX23DA4N7LAIPOQYMTKPGLCRVKPKXQWDOC5AWMQX6X6WLM56D4C3V5PTLDNQME2BSPSWWW
+#\\\|XIH5SMGA7WT55CNNHEYPXU6PFL6A5B6Q77GBYP6ZG6ERVA3JXPG \ / AMOS7 \ YOURUM ::
+#\[7]WHKNQJLTUWMM46OVU24LB3KUPG3CQC7OE6YWJO3CHKWWQ3KBNOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
