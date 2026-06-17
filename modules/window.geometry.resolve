@@ -25,7 +25,7 @@ if ( defined $profile ) {
 my ($local_sid) = keys %{ $data{'user'}{'cube'}{'session'} // {} };
 
 if ( defined $local_sid ) {
-    <[base.X-11.get_coordinates]>->();
+    <[base.X-11.get_coordinates]>;
     if ( not <x11.coordinates_were_undefined> ) {
         my $c = <x11.coordinates>;
         my $x = $c->{'left'};
@@ -49,7 +49,7 @@ if ( defined $local_sid ) {
 my ( $screen_x, $screen_y, $screen_w, $screen_h );
 
 if ( defined $local_sid ) {
-    my $mon = <[base.X-11.get_pointer_monitor_rect]>->();
+    my $mon = <[base.X-11.get_pointer_scr_rect]>;
     if ( defined $mon ) {
         ( $screen_x, $screen_y, $screen_w, $screen_h )
             = @{$mon}{qw| x y width height |};
@@ -113,8 +113,8 @@ $data{$zenka}{'geometry'} = sprintf '%dx%d+%d+%d', $w, $h, $x, $y;
 
 return $data{$zenka}{'geometry'};
 
-#,,.,,,.,,.,.,,.,,.,,,,,.,.,.,,.,,.,,,...,.,,,..,,...,...,..,,.,.,,..,...,.,,,
-#VRBSHALYGMFG5SSMDFSULOSTEAJWYAXBXZB74VNVZETWTEKCAXW4OQKXGTZZB2P6MIDXT4PCPAPYO
-#\\\|LM2Q3RVHZLGTZ4BCYTLB7IDJHEPMMLO3GUDMJCZ6ZABW57RUQPO \ / AMOS7 \ YOURUM ::
-#\[7]BAEKJGVVHNCZFU6QZ45S3QKNLXQWKMIDCPKXO6FMQB53MGCTY2CA 7  DATA SIGNATURE ::
+#,,..,,..,...,.,.,,,.,,..,...,..,,,.,,,,.,.,.,..,,...,...,...,.,,,,,,,,..,,.,,
+#S4PVM6U53WBW32O2SHRYQUCCPVYHVTRSW2GSEHWHOOILADQLR3XBB76EIXVSEKUWUK4VRAKIYO5SE
+#\\\|OUB2ZB7U44QKJ742RZJFHTIUQ6IFCLNG6JENXBXSF5YG6765MV6 \ / AMOS7 \ YOURUM ::
+#\[7]WNZQIDG3AS6BCNGF575GMKSTSINWGYPCRTU27D237B7L3E7P7ECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

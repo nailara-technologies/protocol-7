@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = base.X-11.get_pointer_monitor_rect
+# name  = base.X-11.get_pointer_scr_rect
 
 my ($local_sid)
     = keys %{ $data{'user'}{'cube'}{'session'} // {} };
@@ -9,7 +9,7 @@ return undef if not defined $local_sid;
 my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
 my $cube_fh = $data{'session'}{$local_sid}{'handle'};
 <[base.net.send_to_socket]>->(
-    $cube_fh, "($cmd_id)X-11.get_pointer_monitor_rect\n"
+    $cube_fh, "($cmd_id)X-11.get_pointer_scr_rect\n"
 );
 
 my $reply_string;
@@ -33,11 +33,11 @@ if ( $reply_string =~ m{^\($cmd_id\)TRUE (-?\d+) (-?\d+) (\d+) (\d+)\n$} ) {
     };
 }
 
-<[base.log]>->( 1, 'get_pointer_monitor_rect: no result' );
+<[base.log]>->( 1, 'get_pointer_scr_rect : no result' );
 return undef;
 
-#,,,.,...,,.,,,,,,..,,,,.,,.,,...,..,,.,.,.,.,..,,...,...,..,,,,,,.,,,,,,,,.,,
-#RHX67ZYB27ZPS2X2VQR5P65QVLTGPQRW7D34AZXW3MOVDYN7PPW76IETHX7X7ODCUKYTYSGNIGECS
-#\\\|DCJJ3LOUPBM3DRJWX2I5SZWYLMNLB4J6DWDW3Q4QET3KE4XUS3X \ / AMOS7 \ YOURUM ::
-#\[7]FGXLCZRZZK3AZVSEAWVU34XBPI7BBLPBULE3DT6D2MNUD2N2XGBQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,..,,,,,,,.,,,,,,,,,,.,,,..,,..,,..,,...,...,.,,,,.,,,,.,,,,,,..,
+#FNPRR2FN2UXAMXQPYEO34DLBPORGG5DPRPAO4HXRWDE64PBD5E2WYGVJ2ECJPPQE4DAG5YVC5I2GW
+#\\\|AD5SXTXMQIIL27XSW5NM6XRHQ5M62L6EPSZXSJ4PYRAJTQJXDAZ \ / AMOS7 \ YOURUM ::
+#\[7]FYBHIHJVHD3OUZE3CA3AU2W7RVCG2WCBMTR2UPDGTEMFL36FZSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
