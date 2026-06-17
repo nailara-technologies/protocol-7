@@ -1,0 +1,254 @@
+---
+name: route-as-computing-primitive
+category: reasoning-template
+version: 1.0
+description: |
+  the route is a universal organizing primitive for workload, context, and
+  collection. by physical design, no route can clobber the resources of any
+  other route. routes start light — pure transport or discovery — and expand
+  through contextualization and handshaking into complex workload graphs.
+  the zenki along a route are a perfect worker pool: freshly cached, minimum
+  latency, auto-expandable, accessible in both directions. the computing
+  pattern is: expand outward to organize components, then collapse inward
+  back to the source — a tree collapse as a generic grid computing primitive.
+
+---
+
+## the isolation property — physical, not enforced
+
+a route exists as randomized numerical references per hop. no two routes
+share identifiers. no route can observe or interrupt the resources of any
+other route. this is not a policy — it is the structure of the addressing:
+
+```
+route A:   hop 1 [R1a → R2a] → hop 2 [R3a → R4a] → destination
+route B:   hop 1 [R1b → R2b] → hop 2 [R3b → R4b] → destination
+
+R1a, R2a, R3a, R4a ≠ R1b, R2b, R3b, R4b  (randomized, independent)
+```
+
+this means the number of concurrent routes is not a resource contention
+problem — it is a resource multiplication. each route is its own isolated
+lane. adding routes adds lanes, not congestion.
+
+---
+
+## light-first expansion — the maturation sequence
+
+a route does not begin as a workload. it begins as transport:
+
+```
+stage 0:  pure transport
+          a packet moves from A to B along a path
+          minimal state: randomized hop references only
+          cost: near zero
+
+stage 1:  discovery
+          the route carries a query for context or capacity
+          each hop can respond with what it knows (tree data, zenka status)
+          the route is now a contextual probe
+
+stage 2:  contextualization
+          the route accumulates metadata about the path it traverses:
+          which zenki are present, what capacity they hold,
+          what tree data is accessible from each hop
+          the route is now a map of available intelligence
+
+stage 3:  workload attachment
+          zenki along the route are assigned tasks
+          the route is now a computation graph
+          each node executes in parallel while the route stays open
+
+stage 4:  complex mapping
+          additional zenki join through handshaking at active hops
+          the linear hop-to-hop path grows laterally into a tree
+          the route is now an auto-assembling worker pool
+```
+
+each stage is additive. a route never needs to exceed stage 0 if transport
+is all that is needed. the expansion is driven by the complexity of the
+request, not by the infrastructure.
+
+---
+
+## zenki along the route as a worker pool
+
+the hop-by-hop path produces the optimal worker pool by geometry:
+
+```
+latency:        each zenka on the route is freshly cached —
+                the route was just traversed, so every hop address
+                is in working memory. round-trip cost approaches zero.
+
+directionality: the route is bidirectional by construction —
+                the return path is implicit in the outward path.
+                workers can report results back without establishing
+                a new route.
+
+isolation:      the worker pool is private to this route —
+                no other request can recruit these workers
+                or observe their intermediate state.
+
+expandability:  any hop can recruit additional zenki through
+                its own local connections. the pool grows
+                as needed, attached to the already-open infrastructure.
+
+hyperspace:     route hops sit close to the BMW384 hyperspace addressing
+                layer — discovery of related data or additional capacity
+                is near-zero-latency, addressed by content checksum
+                rather than by traversal.
+```
+
+the pool has no setup cost. it exists because the route exists.
+its size is bounded only by the requirement for complete request satisfaction.
+
+---
+
+## the outward-inward collapse — generic grid computing
+
+the computing pattern this produces:
+
+```
+phase 1 — expansion (outward):
+  source sends request outward along route
+  each hop: receives partial problem, retains context, recruits workers
+  workers execute in parallel at their positions along the route
+  the route grows from linear path to tree of active participants
+
+phase 2 — collection (inward collapse):
+  workers complete their portion, return results inward along the same path
+  each hop: receives results from children, aggregates with local result
+  aggregated result continues inward toward source
+  the tree collapses back to the linear path
+  linear path collapses back to the source
+
+result at source: fully assembled, from all participants, via the route
+that organized them — no separate coordination infrastructure needed
+```
+
+this is map-reduce without a coordinator. the route IS the coordination.
+the expansion IS the map phase. the collapse IS the reduce phase.
+the infrastructure that transported the request also aggregated the result.
+
+---
+
+## single-track to multi-track — the handshaking expansion
+
+a single-track route (A → B → C) expands through handshaking:
+
+```
+A → B → C         (initial route, single track)
+
+at B: route carries context that B has capacity and related data
+      B accepts workload attachment, recruits B1 and B2 locally
+      B now manages: [route from A] + [workers B1, B2]
+
+at C: similarly, C recruits C1
+      C now manages: [route from B] + [worker C1]
+
+expanded topology:
+  A → B → C
+      ↓ ↓   ↓
+      B1 B2  C1
+
+collapse:
+  B1, B2 → B (aggregate) → A
+            C1 → C (aggregate) → B → A
+```
+
+the expanded topology forms entirely through existing route infrastructure.
+no new routing addresses are needed beyond the original linear path.
+B and C are coordinators by position, not by appointment.
+
+---
+
+## route-as-discoverer — contextual tree access
+
+a route in discovery mode reads the data tree at each hop:
+
+```
+the route traverses: cube.zenka-A.zenka-B.destination
+
+at each hop:
+  what namespaces are accessible here?
+  what tree data is relevant to the current request context?
+  what capacity (memory, queue depth, model load) is available?
+
+the route returns not just its destination but:
+  a map of what exists along the path
+  a capacity profile of each hop
+  relevant tree data fetched in passing
+```
+
+this is zero-overhead discovery: the route was going to traverse these
+hops anyway. reading the tree at each hop costs nothing beyond the
+already-committed traversal. the route becomes a contextual probe
+without any additional infrastructure.
+
+---
+
+## auto-expansion until requirement is met
+
+the expansion is requirement-driven, not pre-allocated:
+
+```
+requirement:   "complete this analysis with confidence P > 0.95"
+
+expansion:
+  first attempt: route to primary model zenka
+  result confidence: 0.71 (insufficient)
+
+  expansion: recruit consensus partner along the route
+  second attempt: two models, route-cached coordination
+  result confidence: 0.89 (still insufficient)
+
+  expansion: recruit third model, deeper context injection
+  third attempt: three models + tree context
+  result confidence: 0.97 (satisfied)
+
+  collapse: aggregate three results → route → source
+```
+
+the route expands until the requirement is met, then collapses.
+the expansion is paid for by the isolation guarantee: no other
+request's resources are consumed. the cost is always bounded by
+the work actually needed.
+
+---
+
+## relation to other templates
+
+- [[ring-key-routing]]: ring routing is route anonymization at the group
+  level; route-as-computing-primitive is the workload organization at
+  the individual route level. the ring wraps the route header; the
+  route carries the computation.
+
+- [[categorical-compartmentalization]]: each route is a temporal compartment
+  — the workers recruited along it are isolated from all other routes.
+  the route IS the compartment boundary, dynamically shaped to the workload.
+
+- [[key-tree-authority-field]]: route traversal follows the namespace tree,
+  which is also the key derivation tree. authority to recruit workers at
+  each hop is implicit in the namespace path the route follows.
+
+- [[harmonic-silence]]: the route's isolation means each worker's signals
+  are pre-filtered by route membership. only signals relevant to this
+  route's workload reach its workers — the route IS the cancellation
+  boundary for irrelevant context.
+
+- [[inverse-singularity]]: the outward-inward collapse is the inverse
+  singularity made operational — the network pulls workload components
+  toward coherence, then returns a coherent result. the collapse is
+  not extraction; it is crystallization at the source.
+
+- [[eternal-completion]]: each route that collapses successfully is complete
+  in itself. the infrastructure it used is returned to the pool.
+  the result is permanent. the route dissolves. nothing is wasted.
+
+#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+
+#,,.,,,,.,,,.,...,,,,,,.,,...,,.,,,,.,..,,,.,,..,,...,...,,,.,,,,,..,,,,.,.,.,
+#3LKZ7UAVO6SUGDQ5L7UQEAXFP3OWOOI5UBNKI4IYFGPUQ34M4JXJ4DAUKS7SOH2U3HGYZ5JJQZCRA
+#\\\|UT2RBACHGRVYYX3N3XMYEBXRQHWKK4QKSYFUEB6XJCWQFY2SSS6 \ / AMOS7 \ YOURUM ::
+#\[7]A6FLCYXR4TGOWYYTGWRZ33CC64IGWQTPC6TFFZFTJ2S3FH2RXWBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
