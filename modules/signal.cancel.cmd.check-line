@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = signal.cancel.cmd.check-line
+# param = <log line>
+# descr = check one log line against cancellation library
+
+my $line = $call->{'args'} // '';
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected a log line'
+    }
+    if not length $line;
+
+my $result = <[signal.cancel.match]>->($line);
+
+if ( $result->{'matched'} ) {
+    return {
+        'mode' => qw| true |,
+        'data' => sprintf 'MATCH %s',
+        $result->{'pattern_id'}
+    };
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => 'NO MATCH'
+};
+
+#,,,.,.,,,.,,,,..,,..,,,.,..,,.,.,,.,,..,,..,,.,.,...,...,.,,,.,.,,,.,,,.,...,
+#NBNQ7NURYE32XUYBT4G5ZPKGAAOUA3UMUHWZ7J6UF4OTVEBFJECLNRC26AF63WGVCTSJG6NWCG3I4
+#\\\|CKWDY5YZD7QJKAIC3TLJXVEJOIB7E4YG5GKA3THOERRUP75ITNS \ / AMOS7 \ YOURUM ::
+#\[7]4EUULPQQFQ7BTFAURHEOYXWCGFZYOESJNE5K4IBJB2Z6KDMK5ADY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

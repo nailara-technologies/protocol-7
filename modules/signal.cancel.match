@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = signal.cancel.match
+# descr = apply signal cancellation library to one log line
+
+my $line = $ARG[0] // '';
+
+return { 'matched' => 0 } if not length $line;
+
+if ( ref( $data{'signal'}{'cancel'}{'library'} ) ne qw| HASH |
+    or not exists $data{'signal'}{'cancel'}{'library'}{'compiled'} ) {
+    <[signal.cancel.load]>->();
+}
+
+my $library = $data{'signal'}{'cancel'}{'library'};
+
+foreach my $entry ( $library->{'compiled'}->@* ) {
+    next if not defined $entry->{'compiled'};
+    if ( $line =~ $entry->{'compiled'} ) {
+        my $pattern_id = sprintf qw| %s.%s |, $entry->{'category'},
+            $entry->{'name'};
+        return {
+            'matched'    => 1,
+            'category'   => $entry->{'category'},
+            'pattern'    => $entry->{'name'},
+            'pattern_id' => $pattern_id,
+            'label'      => $pattern_id
+        };
+    }
+}
+
+return { 'matched' => 0 };
+
+#,,,,,,,.,.,.,,..,,..,..,,,.,,.,,,...,,,.,,,,,.,.,...,...,...,.,,,...,,..,.,.,
+#DMTVGZZEX4DAFNNCOSXSIL6LBXQ36I74OV2YYY62UU7XB3EZEXVZUSJ6UQ7QTWGLEBCXF62LLCOM4
+#\\\|SQFTLPBJUY6DHKAR7ZK2YYHGQF47E27NMQCWBRMZK7YMEBIP4NO \ / AMOS7 \ YOURUM ::
+#\[7]FAVZT63A27NI32GHMOZLIZF5I2UJMPZXYESSBF2DUTHJIQODRCCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

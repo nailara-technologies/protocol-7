@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = ncode.cmd.parse-headers
+# descr = extract name and descr from a module header
+
+my $call_args = $ARG                 // {};
+my $args      = $call_args->{'args'} // '';
+
+my @parts = split m|\s+|, $args;
+my $file  = shift @parts // '';
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage: parse-headers <file-path>'
+    }
+    if not length $file;
+
+my $root = <system.root_path> // '';
+my $path = $file;
+$path = "$root/$file" if $root and $file !~ m|^/|;
+
+return { 'mode' => qw| false |, 'data' => "file not found: $file" }
+    if not -f $path;
+
+open my $fh, '<', $path
+    or return { 'mode' => qw| false |, 'data' => "cannot read: $file" };
+
+my ( $name, $descr );
+while ( my $line = <$fh> ) {
+    last if $line =~ m|^\s*$| and defined $name;
+    if ( $line =~ m|^#\s+name\s+=\s+(.+)$| ) {
+        $name = $1;
+    } elsif ( $line =~ m|^#\s+descr\s+=\s+(.+)$| ) {
+        $descr = $1;
+    }
+}
+close $fh;
+
+my $out = sprintf "file  : %s\n", $file;
+$out .= sprintf "name  : %s\n", $name  // '';
+$out .= sprintf "descr : %s\n", $descr // '';
+
+return { 'mode' => qw| size |, 'data' => $out };
+
+#,,,,,,..,,..,.,.,,,.,,,.,.,,,.,,,...,,..,..,,.,.,...,...,..,,..,,.,,,..,,,,,,
+#VFEMUOAGAKJMGFL55X6SMYGKNJ25X7URNHDJVHX5IWRNBJYB2ASC2ZRJPBPOEXW2ZMMPQDKTZCJTI
+#\\\|GHIHI54LEJGINUCXFNBTZMIE6HA3YVRPRSIO75FIZOTHCKHDMUH \ / AMOS7 \ YOURUM ::
+#\[7]QB4Y5ELSZACNXKILUMZ567ZVMY7JFUY6J65DTSKCMFSDFLW5BYCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

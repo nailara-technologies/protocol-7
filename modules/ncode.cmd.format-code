@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = ncode.cmd.format-code
+# descr = run perltidy on a source file
+
+my $call_args = $ARG                 // {};
+my $args      = $call_args->{'args'} // '';
+
+my @parts = split m|\s+|, $args;
+my $file  = shift @parts // '';
+
+return { 'mode' => qw| false |, 'data' => 'usage: format-code <file-path>' }
+    if not length $file;
+
+my $root = <system.root_path> // '';
+my $path = $file;
+$path = "$root/$file" if $root and $file !~ m|^/|;
+
+return { 'mode' => qw| false |, 'data' => "file not found: $file" }
+    if not -f $path;
+
+my @cmd = (
+    qw| perltidy -q -pbp -wc=13 -cs -utf8 -l=78 -bar -sot -ce -nst |,
+    qw| -sil=0 -b -bext=.bak |, $path
+);
+
+my $output = $code{'ncode.util.run_cmd'}->(@cmd);
+
+my $bak = "$path.bak";
+unlink $bak if -f $bak;
+
+if ( $? == 0 ) {
+    return { 'mode' => qw| true |, 'data' => "formatted $file" };
+} else {
+    return { 'mode' => qw| false |, 'data' => $output };
+}
+
+#,,,,,,,.,.,.,,..,,..,..,,,.,,.,.,,.,,..,,.,.,.,.,...,...,...,..,,,..,.,,,...,
+#3NPWU2YHGI7JSKMGR7WWBOHPU6FYAXHASVO4CWZGF6TUY2FGK34YW5QCSP4QDFLLYT5MKBDQ46WVE
+#\\\|U765CQWHSUS3ECJPMQVETG5AQ7WHPRM2ELVHDAGS32RPQXGUMX5 \ / AMOS7 \ YOURUM ::
+#\[7]ZSUDBM2XH6B6RLIGYTWKQJ763N46NFIRW6TPKFWOKCCS3DL4RCCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

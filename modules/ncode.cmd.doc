@@ -1,123 +1,25 @@
 ## [:< ##
 
 # name  = ncode.cmd.doc
-# descr = unified doc lookup: perldoc, introspection, p7 source
-# param = $call [ args => '<arg>' ]
+# descr = look up documentation for a p7 module or perl symbol
 
-my $call_args = shift;
+my $call_args = $ARG                 // {};
 my $args      = $call_args->{'args'} // '';
 
 my @parts = split m|\s+|, $args;
 my $arg   = shift @parts // '';
 
-if ( not length $arg ) {
-    return {
-        'mode' => 'false',
-        'data' =>
-            'usage: doc <arg>  (perl class, built-in function, or p7 module)'
-    };
-}
+return { 'mode' => qw| false |, 'data' => 'usage: doc <module-or-symbol>' }
+    if not length $arg;
 
-my @gobject_roots = qw( Gtk3 Glib Gdk Pango Cairo Gio GObject GLib );
-my $root          = <system.root_path> // '';
-my $dump_class    = "$root/bin/dev/dump-class";
-my $out           = '';
+my @cmd = ( <ncode.bin>, qw| doc |, $arg );
 
-## 1. P7 module: contains '.' but no '::'
-if ( $arg =~ m|\.| and $arg !~ m|::| ) {
-    my $mod_path = "$root/modules/$arg";
-    if ( -f $mod_path ) {
-        open my $fh, '<', $mod_path
-            or return { 'mode' => 'false',
-                        'data' => "cannot read module '$arg'" };
-        my @lines = <$fh>;
-        close $fh;
+my $output = $code{'ncode.util.run_cmd'}->(@cmd);
 
-        my %header;
-        for my $line (@lines) {
-            if ( $line =~ m{^#\s+(name|descr|param|todo)\s+=\s+(.+)$} ) {
-                $header{$1} = $2;
-            }
-            last if $line =~ m|^\s*$| and %header;
-        }
+return { 'mode' => qw| size |, 'data' => $output };
 
-        $out = "[ p7 module ]\n\n";
-        $out .= "name  : $header{name}\n"  if $header{name};
-        $out .= "descr : $header{descr}\n" if $header{descr};
-        $out .= "param : $header{param}\n" if $header{param};
-        $out .= "\n" . join( '', @lines );
-    }
-}
-
-## 2. GObject: delegate to bin/dev/dump-class (handles Gtk3 init correctly)
-if ( not length $out and grep { $arg =~ m|^$_| } @gobject_roots ) {
-    if ( -x $dump_class ) {
-        my $dump = qx( '$dump_class' '$arg' 2>/dev/null );
-        $out = "[ introspection: $arg ]\n\n$dump" if length $dump;
-    }
-}
-
-## 3. contains '::' -> perldoc + optional introspection supplement
-if ( not length $out and $arg =~ m|::| ) {
-    my $pdoc = qx( perldoc -t '$arg' 2>/dev/null );
-
-    my $idoc = '';
-    if ( -x $dump_class and grep { $arg =~ m|^$_| } @gobject_roots ) {
-        $idoc = qx( '$dump_class' '$arg' 2>/dev/null );
-    }
-
-    $out .= "[ perldoc: $arg ]\n\n$pdoc"          if length $pdoc;
-    $out .= "\n\n[ introspection: $arg ]\n\n$idoc" if length $idoc;
-}
-
-## 4. single word -> perldoc -f then perldoc
-if ( not length $out and $arg !~ m|::| and $arg !~ m|\.| ) {
-    my $fdoc = qx( perldoc -t -f '$arg' 2>/dev/null );
-    if ( length $fdoc ) {
-        $out = "[ perldoc -f: $arg ]\n\n$fdoc";
-    } else {
-        my $mdoc = qx( perldoc -t '$arg' 2>/dev/null );
-        $out = "[ perldoc: $arg ]\n\n$mdoc" if length $mdoc;
-    }
-}
-
-## 5. fallback: try as p7 module or perldoc
-if ( not length $out ) {
-    my $mod_path = "$root/modules/$arg";
-    if ( -f $mod_path ) {
-        open my $fh, '<', $mod_path
-            or return { 'mode' => 'false',
-                        'data' => "cannot read module '$arg'" };
-        my @lines = <$fh>;
-        close $fh;
-
-        my %header;
-        for my $line (@lines) {
-            if ( $line =~ m{^#\s+(name|descr|param|todo)\s+=\s+(.+)$} ) {
-                $header{$1} = $2;
-            }
-            last if $line =~ m|^\s*$| and %header;
-        }
-
-        $out = "[ p7 module ]\n\n";
-        $out .= "name  : $header{name}\n"  if $header{name};
-        $out .= "descr : $header{descr}\n" if $header{descr};
-        $out .= "param : $header{param}\n" if $header{param};
-        $out .= "\n" . join( '', @lines );
-    }
-
-    if ( not length $out ) {
-        my $mdoc = qx( perldoc -t '$arg' 2>/dev/null );
-        $out = "[ perldoc: $arg ]\n\n$mdoc" if length $mdoc;
-    }
-}
-
-return length $out
-    ? { 'mode' => 'size',  'data' => $out }
-    : { 'mode' => 'false', 'data' => "no documentation found for '$arg'" };
-
-#,,,.,,,,,.,,,,.,,,..,.,.,.,.,,..,.,.,,.,,.,,,..,,...,...,,.,,..,,,,,,,,,,,,.,
-#3O4NHGDB6WNI6H762DBMPFMVFX6YKPQQJZXLW7N3MOP2FQVTXUCKBBSRUY7QH2C7OLEG5FCOMMLPE
-#\\\|ZACHAWN2E3PFZP2Y5AUZ2EFUO5FAY63GKKY5Z5ZCRBCYMDJVD5B \ / AMOS7 \ YOURUM ::
-#\[7]DFS2UPWI54EVWULJJKJV5CPPTQFX2RLIDXWQNROLUGMFFCUYGIAA 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,,,.,,,.,.,.,,,,,,.,,,.,,,,,,,,,,.,.,...,...,,,,,...,.,.,,,.,..,,
+#BA76FVGKRNF6ZRJ2SGHWC3PJHQXHPNAT6UNGIHZUXKNBOABY72NRMC4K7ETUOB3Z7JAMQDBXSB4CM
+#\\\|F5K73PB3JUDCPFA2AI565WBJOTEBH3BSA5OLQVOB2UJGITFIQE3 \ / AMOS7 \ YOURUM ::
+#\[7]MXMDCMS3FGTRRFUEIFKBDOL72HQMYGPR22LKWUGUWM67MF5STUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

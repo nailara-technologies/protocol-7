@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = signal.cancel.cmd.filter
+# param = [file path]
+# descr = emit only unmatched log lines (anomaly surface)
+
+my $args  = $call->{'args'} // '';
+my $input = '';
+
+if ( length $args and -f $args ) {
+    $input = <[base.file.read]>->($args) // '';
+} else {
+    local $/ = undef;
+    $input = <STDIN> // '';
+}
+
+my @lines = split( m|\n|, $input );
+my @unmatched;
+
+foreach my $line (@lines) {
+    next if not length $line;
+    my $result = <[signal.cancel.match]>->($line);
+    push @unmatched, $line if not $result->{'matched'};
+}
+
+my $output = join( "\n", @unmatched );
+$output .= "\n" if length $output;
+
+return {
+    'mode' => qw| size |,
+    'data' => $output
+};
+
+#,,.,,,..,...,,,,,,..,.,,,,,.,...,,.,,...,..,,.,.,...,...,.,.,..,,.,,,,,,,.,.,
+#5EOBK556WVPHBJEKRZWIEADTZVDXTQZXPTLWB6PC3G5UHOQZT67K54MPCZF7ZIRNUPBAH5B3BZLHK
+#\\\|7KT3DSUWP23HS447UMJHKITG7Q2YW3W3I4KCVTAW3BWMKFNSUVK \ / AMOS7 \ YOURUM ::
+#\[7]EP2WMUCLZ7XSJCK4AYNBC6QFD6TTL4AKJINSJUCUSKDPCBPNUACA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

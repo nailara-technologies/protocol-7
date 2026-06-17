@@ -166,8 +166,10 @@ unless ( $skip_version_check or $is_amend ) {
         my @version_files = (
             $vers_file,
             File::Spec->catfile( $root_path, 'read-me', 'md', 'README.md' ),
-            File::Spec->catfile( $root_path, 'read-me', 'project-identity',
-                'source-code-versions.md' ),
+            File::Spec->catfile(
+                $root_path,         'read-me',
+                'project-identity', 'source-code-versions.md'
+            ),
         );
         $git->add(@version_files);
     }
@@ -232,11 +234,25 @@ unless ($skip_signature_check) {
         . ( $staged_count == 1 ? '' : 's' )
         . " — checking signatures ]\n:\n";
 
+    ## load exclusion paths from sourcecode.source_path_set_up ##
+    my @sig_exclude_paths;
+    my $sps_file = File::Spec->catfile( $root_path,
+        'modules', 'sourcecode.source_path_set_up' );
+    if ( open my $sps_fh, '<', $sps_file ) {
+        while ( my $line = <$sps_fh> ) {
+            if ( $line =~ m{^\s+!(.+?)\s*$} ) {
+                push @sig_exclude_paths, $1;
+            }
+        }
+        close $sps_fh;
+    }
+
     ## pass 1: check staged files for missing signatures [ presence check ] ##
     my @unsigned_files;
     for my $file (@staged_files) {
         next if $skip_backup_files and $file =~ m|~$|;
-        next if $file =~ m{^data/chat/};    ## runtime chat data — not signed ##
+        next if $file =~ m{^data/chat/};  ## runtime chat data — not signed ##
+        next if grep { my $e = $_; $e =~ /\$$/ ? $file =~ m{$e} : $file =~ m{^\Q$e\E} } @sig_exclude_paths;
         next
             unless $file =~ /\.(pl|pm|yaml|sh)$/
             or $file =~ m{^(modules|bin|configuration)/}
@@ -310,8 +326,8 @@ unless ($skip_signature_check) {
 print ":\n: done.\n:\n";
 exit 0;
 
-#,,,.,,,,,,,.,,,,,...,,,.,.,,,.,.,...,.,.,.,,,..,,...,...,...,,.,,.,,,.,,,..,,
-#EREGUDVORV5AHVX4WVI4XNVCYHUUQABMX7BH2SPOGXEMGSNZBWAXNX6SYPMFDMGRMWFPFLUL6RK6C
-#\\\|2G2AF254ZWMO5RIHWPXKO5UFYPA4VPL57NRBCCUP7AVOKTXLTXP \ / AMOS7 \ YOURUM ::
-#\[7]MNJ7M3BRZ332VI3HTN5VVMZMDXDFUAYCHZUNSNGWZKG7LB6VZGBI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,..,,,.,,,,.,,.,,.,,,...,.,,,,..,..,,...,...,,,,,..,,...,...,,,.,
+#AJ26OIRWB6NUXG6YQRYHEAQOKQSLVC36YYGNBVIVF5DXQV5G6TYIHRIC4KG7MCDRW37EKRM3VY6EM
+#\\\|5YGYJ5LKUBTFRKRZGTCFTRVXB44XVFIXUAZFNKISLKXEDNIWZT7 \ / AMOS7 \ YOURUM ::
+#\[7]LTJLV4NWT5HGS7MKENICDKOTDHYHNBM7OTDJYIDQFJIDCOL77WCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,7 +1,14 @@
 ## [:< ##
 
 # name  = ncode.init_code
-# descr = initialize ncode regex engine state and config
+# descr = initialize ncode config, paths and regex engine state
+
+## set up project paths for ncode command modules ##
+<ncode.root> = <system.root_path>;
+<ncode.bin>  = <system.root_path> . '/bin/ncode';
+
+return FALSE
+    if not -x <ncode.bin>;
 
 ## config defaults ##
 <ncode.cfg.pattern_dir>          //= 'data/yaml/ncode-patterns';
@@ -54,8 +61,8 @@ my $total = scalar keys <ncode.patterns>->%*;
 
 return TRUE;
 
-#,,,,,...,,,.,...,,..,,,,,..,,...,,.,,,,.,,,,,..,,...,..,,...,.,,,,.,,.,,,,,.,
-#ES2LXAUB6UEMRVRFZSLD5CSKTJG3VPYF24NPXBZQEPHQ5VNKO5JELBNDNI5KP5UGZOCEOLCSDUUOC
-#\\\|QNFKQHRHJCDQFF5MOFYBNUJIMKNLRKI7TADL4VMS5MWECCBHIVE \ / AMOS7 \ YOURUM ::
-#\[7]CEQLLO7SKC7IKM62ES2RHPK7SD4VBUHILA32WMUQCNMOV2VKWUBI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,,,,,..,,,,,,,.,.,,,,.,,.,.,,.,,.,.,...,...,,.,,.,.,..,,...,.,.,
+#S2RLHOZNSRRIWUCWPMNCZ4H3O75AGXYEQUHBSHX66WMDWBRM33FR5GU2IJYMAQ26X5SGDQZ45KVWM
+#\\\|BY3E53KITHGGPVXO5QYFWOAZEYG2RERGTHFRSAILV4GIMVYU4T7 \ / AMOS7 \ YOURUM ::
+#\[7]RRX2MLOG7UIXEGOXMFKPZTY5HBN4EJG2GYCWRGHXZLHSLYZLQYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

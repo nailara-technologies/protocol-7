@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = window.profile.color.get
+# descr = return hex value for given role from currently loaded color theme
+
+my $role = shift;
+
+unless ( defined $role and length $role ) {
+    <[base.s_warn]>->( 'role name required for color.get <{C1}>', '' );
+    return undef;
+}
+
+my $zenkaname = <system.zenka.name>;
+
+my $colors_href = $data{$zenkaname}{'color'}{'theme'}{'colors'};
+
+if ( ref $colors_href ne qw| HASH | ) {
+    <[base.log]>->( 1, '[color.get] no theme currently loaded' );
+    return undef;
+}
+
+if ( not defined $colors_href->{$role} ) {
+    <[base.logs]>->(
+        1,     '[color.get] role [%s] not present in theme [%s]',
+        $role, $data{$zenkaname}{'color'}{'theme'}{'name'} // '<unnamed>'
+    );
+    return undef;
+}
+
+return $colors_href->{$role};
+
+#,,..,,,,,.,,,...,,,.,.,,,,..,..,,,,,,...,,,,,..,,...,...,,.,,,.,,,,,,...,..,,
+#GIPAM7V4F5HDRAJTGQGGT4MU4HT4SMIC236FCU42Q4IPXOYVPXW6FKGXZH4JUCWKE5I7KELCD5H2Y
+#\\\|XZ7SBP2MFZWHOL6Z5YYTFK3FFJAJ3KIGOJ6SODHOAMSLBFBE53B \ / AMOS7 \ YOURUM ::
+#\[7]FCUUUWTSTA5SKISQ2B7RGF573KXP5KMZZHTLOQTG4LICQ5AT3YCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = ncode.cmd.sign
+# descr = sign a single source file with sourcecode key
+
+my $call_args = $ARG                 // {};
+my $args      = $call_args->{'args'} // '';
+
+my @parts = split m|\s+|, $args;
+my $file  = shift @parts // '';
+
+return { 'mode' => qw| false |, 'data' => 'usage: sign <file-path>' }
+    if not length $file;
+
+my $protocol7_bin = <system.root_path> . '/bin/Protocol-7';
+
+return {
+    'mode' => qw| false |,
+    'data' => 'bin/Protocol-7 not found or not executable'
+    }
+    if not -x $protocol7_bin;
+
+my @cmd = ( $protocol7_bin, qw| sourcecode sign |, $file );
+
+my $output = $code{'ncode.util.run_cmd'}->(@cmd);
+
+if ( $output =~ m|success|i or $output =~ m|signature|i or $? == 0 ) {
+    return { 'mode' => qw| true |, 'data' => $output };
+} else {
+    return { 'mode' => qw| false |, 'data' => $output };
+}
+
+#,,..,...,,.,,,,,,.,.,..,,,,,,,,.,,,,,,,.,..,,.,.,...,...,...,,.,,,.,,.,,,..,,
+#EW5XDGZH4ZCH7PEGM5WQS7VKJP42JHJJKLREI5AV3TR4EMOSJHUGNQMYZ4AQG5AFNOPQ3ZN4VNUMM
+#\\\|37BENLV565NWVF3Q2UKEKLW2D4UI7MCJLEHW5JGRJH2FQLR6AYN \ / AMOS7 \ YOURUM ::
+#\[7]BGC7WQVGDDDVSD2IY53NYHLR53N3IQ5WHIBCYFEQSNGXAYFCLYBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
