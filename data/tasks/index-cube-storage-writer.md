@@ -10,7 +10,7 @@ demand-loading.
 design reference: `data/md/design/INDEX-CUBE-STORAGE.md`
 
 signatures_note: do NOT attempt to sign any files — only the repo owner can
-sign via `p7.sourcecode update-signatures`.
+sign via `v7.sourcecode update-signatures`.
 
 ---
 
@@ -134,8 +134,8 @@ as fallback until migration is complete.
   with no corpus presence. these are still written to the directory to preserve
   the arithmetic address space
 
-#,,..,.,.,,,,,...,,.,,...,...,,.,,,,.,..,,,,,,..,,...,...,,,.,,..,.,.,...,,..,
-#EN3SJJWO64CIGU7BP3DJ46JRBZBEQCIM2TR4F4Z3OEG3WNQHJNGMX7KGGREJNJPKCFFFLWHB4BXUK
-#\\\|RL5FZ3QNCP4BXUE466HI63STIE3UKIZ4K6ZNL4WWYCH6KWG6V5S \ / AMOS7 \ YOURUM ::
-#\[7]4DVH6HLFMQFH57L34GOMVWZYEWNVVTPGEU3HDRHAWCSRYKLVI4BY 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,..,,,..,,,,,,,,,,.,,,..,,.,,.,.,..,,...,...,,..,..,,..,,...,.,,,
+#D4KWPKOLGYTO2KVAIPIRP4M4Z6GVE7M4MEWD5EGIHD4VUIZVSFHUMG7BKZSQCGJK4ZEJ7VKIMQATG
+#\\\|6WDIV7AVQIUQWLFPHYJZ3BJZ3KPNKHKZUHJCWFVFZRZMYUDIR7G \ / AMOS7 \ YOURUM ::
+#\[7]WHGFKACMJUT5566PEMENFMKJBZYRNRCFG4DND4I5MXPIPB3E2WBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

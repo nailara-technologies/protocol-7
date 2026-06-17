@@ -10,7 +10,7 @@ trie.
 design reference: `data/md/design/INDEX-CUBE-STORAGE.md`
 
 signatures_note: do NOT attempt to sign any files — only the repo owner can
-sign via `p7.sourcecode update-signatures`.
+sign via `v7.sourcecode update-signatures`.
 
 ---
 
@@ -188,8 +188,8 @@ return { 'mode' => 'size', 'data' => join("\n", @lines) . "\n" };
   covered by the compartment's own checksum frame. this means the chain link
   cannot be altered without invalidating the compartment.
 
-#,,.,,.,,,,,,,.,.,,..,,,.,,.,,,..,.,.,,,,,..,,..,,...,...,..,,,..,,.,,...,,,,,
-#WAPDF6PHCNKUTWXWAO3MIZBXFCE7GNVESYJWFXT7Z2HX2T5I736OYDMRFNI5RXPSF7X63KIQ3PSDQ
-#\\\|6KW26EJJYIKMKBMFJQ2PZTFPPHNGRWXSAGBEDGD6CULUWVAYSYT \ / AMOS7 \ YOURUM ::
-#\[7]BILNJPV3EJXQCJ7D6RKC4OND6VRUSZBZBVYJNBKSBW56OKSMRUBQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,.,.,...,.,.,,,.,,.,,.,,,,,.,,,.,..,,...,...,.,.,,,,,,,,,..,,...,
+#QUZPOR4AL5XORM76HI72DHQ3SHIFKOPHJ4SZ424ZXOD4XST4BTEUQP6ZA6SPSLZIGXB7LOZIFAFWU
+#\\\|QQ6O4JU4QTOSX2QECZ5UJVEJHJVDGWACFFKQX2REYBAAPRCFSGF \ / AMOS7 \ YOURUM ::
+#\[7]UJRYZL3EAMBXSEEJMFFS3N74KNLQB4JKCY4EOVXYEGU55WPM2MBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,7 +10,7 @@ under `<index.jobs>->{$job_id}` — no global flags modified by callbacks.
 design reference: `data/md/design/INDEX-CORPUS-VERSIONING.md`
 
 signatures_note: do NOT attempt to sign any files — only the repo owner can
-sign via `p7.sourcecode update-signatures`.
+sign via `v7.sourcecode update-signatures`.
 
 ---
 
@@ -278,8 +278,8 @@ needed.
   adding a dispatch branch in `index.callback.tick` and a corresponding
   `index.tick.*` module
 
-#,,..,.,,,,.,,...,,,.,...,,,,,..,,,,.,...,...,.,.,...,...,.,.,...,,,.,,.,,.,,,
-#ZBTRKL5HXZP6Z5TUU756UCJO7OSFEEWQHLS7M5WUR655DIOEC7GH4DA4HXOIQJS7233QW56VNNQT6
-#\\\|MW4N55YACU5HBH3J2LC5JXASL6KWHPSM2NGDKSPMOVD5GFI4GJC \ / AMOS7 \ YOURUM ::
-#\[7]3UUXK3PRSY6LLE222T64NX24ZFTNIQ7XL4BEWZUW7UZG64JRN6CQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,,.,,..,,..,...,.,,,.,.,,,.,,,,,.,.,...,...,,..,,.,,,,.,,,.,.,,,
+#D54BX6DEJLB4AFR4W7CIQMHB4T3JHVNVU36Q23CSINPAQWQZPP4WOPAC3DROM3XLRFXPYMVFYUST2
+#\\\|XJFYDWS6NOOF2QMZQXA5ATNVMJCJMFSPEUQ3X7R43R5FY67B7F3 \ / AMOS7 \ YOURUM ::
+#\[7]ULG4JGWLJAIG5RL5MPOHKNETIOXVZ3Z4WBA5TFWFQMKECD5VYYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

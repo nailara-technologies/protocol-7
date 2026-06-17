@@ -9,7 +9,7 @@ IS the navigation path, and compartment location is pure arithmetic.
 design reference: `data/md/design/INDEX-CUBE-STORAGE.md`
 
 signatures_note: do NOT attempt to sign any files — only the repo owner can
-sign via `p7.sourcecode update-signatures`.
+sign via `v7.sourcecode update-signatures`.
 
 ---
 
@@ -146,8 +146,8 @@ directory IS the index, and the index IS the directory.
   16 bytes uses exactly 17 bits for its span; with a 6-bit depth selector, the
   full compartment address fits in 19 bits.
 
-#,,.,,...,...,,,.,..,,,..,,..,.,.,...,,,,,.,,,..,,...,.,,,.,.,.,.,.,.,..,,...,
-#2GLKJCZC4ZXNZ2EUPFCK2V2O4VT5AXQQL4C7FIFLZUEA4WSGTFJXDOS7IJXHUQ3N3FNDTRG26L2TE
-#\\\|43M4I2W5SWUTD6OETL4K7SNILVTCKECVB7XWAC4LMK73WXEEZZU \ / AMOS7 \ YOURUM ::
-#\[7]RTEUCGUXY4IGMR54EDBJMLPVFTKLRSM3Z3Q7ZZXTG5P37XARWICQ 7  DATA SIGNATURE ::
+#,,..,,..,,,,,,,,,...,,,,,,..,,..,.,.,...,,,.,..,,...,...,.,.,.,,,.,,,,..,,,,,
+#Q5XSPYFYCW5P2TV7VI5LX5AX2TPIV24GHWDKYDC3U4M2RHLSZQUKZT2G5V574PXIBSFC4IUVGB2G6
+#\\\|JBDI74UAVPFEERDKJUKSPJMAGXYNUFJCNYK7YO2T3YI5XACJYOK \ / AMOS7 \ YOURUM ::
+#\[7]GSOPEA7GZCULQHZJH2DPCBAKBOTNKIWOSGSJR4CINCLZGVGWIEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
