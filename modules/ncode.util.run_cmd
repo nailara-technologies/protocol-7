@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = ncode.util.run_cmd
+# descr = run subprocess via IPC::Open3, return output
+
+use IPC::Open3;
+use Symbol qw| gensym |;
+
+my @cmd = @ARG;
+
+return '' if not @cmd;
+
+my ( $out, $err ) = ( undef, Symbol::gensym() );
+my $pid = eval { IPC::Open3::open3( undef, $out, $err, @cmd ) };
+
+if ( not $pid or $EVAL_ERROR ) {
+    return sprintf 'error: failed to spawn %s [ %s ]',
+        $cmd[0], $EVAL_ERROR // 'unknown error';
+}
+
+local $/;
+my $stdout = readline($out) // '';
+my $stderr = readline($err) // '';
+close $out;
+close $err;
+waitpid( $pid, 0 );
+
+my $output = $stdout;
+$output .= "\n" . $stderr if length $stderr;
+return $output;
+
+#,,..,.,.,...,..,,.,,,...,.,.,..,,,,,,,,.,,.,,.,.,...,...,...,,..,,..,...,,,,,
+#2WLO63VJJBGQDQIYTXPKF4LJUYUFR4CEZ6AZAI6XNI6NFLTEOM3BVSK4NETE6RHNA36Z7WFPIWVBA
+#\\\|FO4LVO3KTL6WAXS6FNWTNHHBO4RVL2NYPWHOYWXZ3BEJLLAUF7S \ / AMOS7 \ YOURUM ::
+#\[7]7WLGBLZ2B7CSTB5ZKLOQPWBDGUFPWC6TV6VKX2FGVI4OS2IRXKAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

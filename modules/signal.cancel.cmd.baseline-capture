@@ -1,0 +1,70 @@
+## [:< ##
+
+# name  = signal.cancel.cmd.baseline-capture
+# param = <line count> [output path]
+# descr = capture last N lines from p7-log ring buffer
+
+my $args = $call->{'args'} // '';
+
+my @parts = split( m| +|, $args, 2 );
+my $line_count
+    = @parts && $parts[0] =~ m|^\d+$|
+    ? int( $parts[0] )
+    : 1000;
+my $output_path = @parts > 1 ? $parts[1] : '';
+
+my $log_path = <signal.cancel.baseline.log_path>
+    // '/dev/shm/.7/STDOUT/NIW7OAQ';
+
+return {
+    'mode' => qw| false |,
+    'data' => 'p7-log ring buffer not readable'
+    }
+    if not -r $log_path;
+
+my $content = <[base.file.read]>->($log_path);
+return {
+    'mode' => qw| false |,
+    'data' => 'could not read p7-log ring buffer'
+    }
+    if not defined $content;
+
+my @lines = split( m|\n|, $content );
+if ( @lines > $line_count ) {
+    my $start = @lines - $line_count;
+    @lines = @lines[ $start .. $#lines ];
+}
+
+my $baseline_dir = <system.root_path> . '/data/signal-cancel/baseline';
+<[base.file.make_path]>->( $baseline_dir, 0750 );
+
+if ( not length $output_path ) {
+    $output_path = $baseline_dir . '/' . <[base.time]>->(7) . '.log';
+} elsif ( $output_path !~ m|^/| ) {
+    $output_path = $baseline_dir . '/' . $output_path;
+}
+
+my $out_content  = join( "\n", @lines ) . "\n";
+my $write_result = <[base.file.write]>->( $output_path, $out_content );
+
+return {
+    'mode' => qw| false |,
+    'data' => 'failed to write baseline file'
+    }
+    if not $write_result;
+
+## also keep a stable 'latest.log' reference ##
+my $latest_path = $baseline_dir . '/latest.log';
+<[base.file.write]>->( $latest_path, $out_content );
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf 'captured %d lines to %s',
+    scalar(@lines), $output_path
+};
+
+#,,,.,,.,,,.,,,,.,,..,,..,.,.,..,,,,,,.,.,.,,,.,.,...,...,.,,,...,,..,.,,,...,
+#LLC6AT2CAJEAPPWHXLYQSJSLQ3OQTJV24YYFPKSE6K25SJ7PLXMJ2IFH22D2IR7GTD7KA43HMQFVS
+#\\\|46HYEUMWPDHJQPLRNCU4EY25RTBK6ET2C45XGXS5ETTASZNNCWA \ / AMOS7 \ YOURUM ::
+#\[7]LJ5JNM7NZOL2GPWJSGJKWN37XKO6F3AFQV7T23ZTL4PITBGFGGBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

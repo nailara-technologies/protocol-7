@@ -1,0 +1,92 @@
+## [:< ##
+
+# name  = window.profile.color.load
+# descr = load named color theme from zenka-local yaml [ global fallback ]
+
+<[base.perlmod.load]>->( 'YAML::XS', qw| Load | );
+
+my $theme_name = shift;
+
+unless ( defined $theme_name and length $theme_name ) {
+    <[base.s_warn]>->( 'theme name required for color.load <{C1}>', '' );
+    return undef;
+}
+
+if ( $theme_name =~ m|[/\.\s]| ) {
+    <[base.s_warn]>->(
+        'invalid theme name [ contains separators or whitespace ] <{C1}>',
+        $theme_name
+    );
+    return undef;
+}
+
+my $rel_path = sprintf 'color-theme/%s.yaml', $theme_name;
+
+<[base.logs]>->( 1, '[color.load] loading theme [%s]', $theme_name );
+
+## try zenka-local first ##
+my $yaml_ref = <[file.zenka_dir.load]>->($rel_path);
+
+## fallback to global data/color-themes/ ##
+if ( not defined $yaml_ref ) {
+    my $global_path = sprintf '%s/data/color-themes/%s.yaml',
+        <system.root_path>, $theme_name;
+    if ( -e $global_path and -r $global_path ) {
+        $yaml_ref = <[file.slurp]>->( $global_path, undef, qw| :utf8 | );
+    }
+}
+
+if ( ref $yaml_ref ne qw| SCALAR | ) {
+    <[base.logs]>->(
+        1, '[color.load] theme [%s] not found in local or global path',
+        $theme_name
+    );
+    return undef;
+}
+
+my $parsed;
+eval { $parsed = Load( ${$yaml_ref} ); };
+if ($EVAL_ERROR) {
+    <[base.s_warn]>->(
+        'YAML parse error on theme [%s]: <{C1}>',
+        <[base.str.eval_error]>
+    );
+    return undef;
+}
+
+if ( ref $parsed ne qw| HASH | or ref $parsed->{'colors'} ne qw| HASH | ) {
+    <[base.s_warn]>->( 'theme [%s] missing colors hash <{C1}>', $theme_name );
+    return undef;
+}
+
+my $zenkaname = <system.zenka.name>;
+
+$data{$zenkaname}{'color'}{'theme'}{'name'} = $parsed->{'name'}
+    // $theme_name;
+
+## clear previous theme colors so removed roles do not linger ##
+delete $data{$zenkaname}{'color'}{'theme'}{'colors'};
+
+foreach my $role ( keys %{ $parsed->{'colors'} } ) {
+    my $hex = $parsed->{'colors'}{$role};
+    next if not defined $hex;
+    $hex =~ s|^#||;    ##  strip leading # if present  ##
+    $data{$zenkaname}{'color'}{'theme'}{'colors'}{$role} = $hex;
+}
+
+<[base.logs]>->(
+    1, '[color.load] loaded theme [%s] [ %d roles ]',
+    $theme_name,
+    scalar keys %{ $data{$zenkaname}{'color'}{'theme'}{'colors'} }
+);
+
+return {
+    'name'   => $data{$zenkaname}{'color'}{'theme'}{'name'},
+    'colors' => $data{$zenkaname}{'color'}{'theme'}{'colors'}
+};
+
+#,,,.,,.,,,,,,.,,,,.,,,..,,.,,,,,,...,.,.,,,.,..,,...,...,.,,,..,,,..,.,.,,,,,
+#AGTAWUGEKNK3G6LZE4YDAANJV2WX6FXJDJ6XQ5K4L2YCJVWGGLVOD7QM3TP62HCRBDFLFWT54OWB4
+#\\\|YPHFE76UFEIA7C3IWUGKB7XR7OMX67R3WFATXG76UZTODIMTZMC \ / AMOS7 \ YOURUM ::
+#\[7]RITC2K4ZJCTRNRLXZN3ZUI5UM7EY4DOTSPJ5BLKS42CKS25BNOBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
