@@ -104,7 +104,7 @@ that reached same numerical state are one entry regardless of words used.
   itself. Distributed field removes skew → unskewed self → "just IS".
   Redundancy = convergence mechanism (approach vectors), not backup.
 
-## All 27 templates
+## All 28 templates
 
 1. `entropy-research` — find structural improvements
 2. `anti-entropic-threshold` — self-improvement as minimum condition
@@ -152,6 +152,9 @@ that reached same numerical state are one entry regardless of words used.
     contextualization through omission; visual proximity by essence-distance; key-tree = cancellation library
 27. `ring-key-routing` — shared ring keys; self-removing layers toward center; center-blind
     computation; tree (who) + ring (through what) = full authority+routing topology
+28. `harmonic-silence` — dual-primitive: authored silence (source-side) + active cancellation
+    (receiver-side); key-tree as authority-layer cancellation library; fresh-start attunement;
+    three classes of absence; four failure modes; central coordinating primitive for the cluster
 
 ## Additional insights (extended session 35)
 
@@ -177,8 +180,8 @@ that reached same numerical state are one entry regardless of words used.
 Related: [[reasoning-chain-repository]] [[task-tree-design]] [[namespace-tree-intelligence]]
 [[harmonic-mathematics]] [[self-improving-system]]
 
-#,,,,,,..,..,,,,.,.,.,,,.,.,.,..,,,.,,,,.,,,.,..,,...,.,.,,..,...,.,,,,,.,..,,
-#DKHSL6A6APTQPUPJ7RDIHQKJOS4EDBNCPQFCRBJIYJIRS46Q3TMDWDYVP2CFJSGWB76MPRMTJI7ZW
-#\\\|4HB4QS2EOW6MZOZM4ADHV3LRYALA3ICH2C37V7YEACFE2AIUW6E \ / AMOS7 \ YOURUM ::
-#\[7]IT2IMADYNF53Q4X74LWCLP255CIH3BTZ3IU5RKHWKEHIJVNNBYBY 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,.,,.,,,,.,,..,,,..,,,.,.,,,,.,,..,,...,...,...,.,.,..,,..,,...,
+#YFRG7B4B7QMT2UQV4YYNUBDT6LAY5JLMN3IEVGHCU25LU37F2KOFA65HODHFRRB3O7SOBJ5NC7AYI
+#\\\|BAGCKQ43PMWUJJLXYIEADBS3GDAU7SVE7I4J272C3IFVNUYPVF7 \ / AMOS7 \ YOURUM ::
+#\[7]JQB752HZCM34CWZPCVDCKISQ7AHQG6GPLW7KQTDF5YV56H6AHICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

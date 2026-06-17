@@ -47,7 +47,7 @@
 - [plugin-web-jobs](topic-plugin-web-jobs.md) — delta sync WORKING; open: ?since=N, remote deploy
 - [clients-http](topic-clients-http.md) — clients.http.* + clients.https.* async; kimi-web parallel dispatch
 - [reasoning-chain-repository](topic-reasoning-chain-repository.md) — native model; dedup-based self-improvement
-- [reasoning-namespace](topic-reasoning-namespace.md) — `reasoning.*` namespace; 27 templates
+- [reasoning-namespace](topic-reasoning-namespace.md) — `reasoning.*` namespace; 28 templates
 - [job-pipeline](topic-job-pipeline.md) — WORKING: jobs.vhost live, German reason+summary
 - [task-coordination](topic-task-coordination.md) — task zenka coordinator; dispatch flow
 - [checksum-parenting-namespace-trees](topic-checksum-parenting-namespace-trees.md) — `<C0>:<C1>` auto-parenting collision protection; user-trunk/transit-ring/parabolic-mirror riff; design doc dispatched
@@ -169,8 +169,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,,.,,,,,,,,,.,,,,..,,,.,,..,,,,,.,.,,,,,,.,,..,,...,...,,.,,,..,,,,,.,.,.,,,
-#GHDMGMTPGRKKRROUQD6RGP7WAXDXWN35DVSDVXQIFYILBQJRJ2WHYFSOZ7GMDSCRSN5HETJOLR3RU
-#\\\|4SWPZFOHSYCBZYSMI6Z27EUESQEFDSVRPZHYIEBVOZXEZ4DJMCF \ / AMOS7 \ YOURUM ::
-#\[7]ZXBJQB3XRKRFB3EQZL3YM7BHBGAQWH7JG23CQQO4UVDCXEM7TGBQ 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,.,,..,,.,.,..,,,,,,,,.,,.,,,,.,..,,...,...,.,,,...,...,.,.,.,.,
+#2SSU55WCJZH3DMPWRNTN7ZGFTYUL7FLUEPWF3I7LFJLC37XXSEBL5VGRIAPAFNNWY5RJBC6YSDTM6
+#\\\|U746Y6ENUYP4IFE4UUIM4DB2LIFNCZBUDLKGHXF6FYILVYFE7EE \ / AMOS7 \ YOURUM ::
+#\[7]BGJTWRBH62XIP5ILKRYS3OIYGP3GEXYJU6WU4X7Q5JV5B3ZVK4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
