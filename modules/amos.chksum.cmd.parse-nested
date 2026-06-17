@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = amos.chksum.cmd.parse-nested
+# descr = parse [child:parent] checksum notation
+# param = <[child:parent]>
+
+my $notation = $call->{'args'} // '';
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected [child:parent] notation'
+    }
+    if not length $notation;
+
+my $parsed = AMOS7::CHKSUM::Nested::parse_nested($notation);
+
+return {
+    'mode' => qw| false |,
+    'data' => 'notation not valid'
+    }
+    if not defined $parsed;
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        'child: %s, parent: %s',
+        $parsed->{'child'}, $parsed->{'parent'}
+    )
+};
+
+#,,,,,.,,,,..,,.,,.,.,,..,.,,,.,.,,,.,,,,,,,.,..,,...,...,.,,,..,,,,,,,..,..,,
+#NPHTJ34IINSWWZL2BV3JFR5KJY5522MPA44NWGPEQKIYQKHXQNG3CQTLZM45RKNUNVX5RMRJRUQRK
+#\\\|C5IQ7PHYTDKMVU6RY4ETJSHMAMY5J623Q4FO776G73KMT5XPUDQ \ / AMOS7 \ YOURUM ::
+#\[7]JSCMQMVOLLJLHPDVSE3FSVKIE5X6OOBW5W4P7JLN7AH3PXHVYEAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

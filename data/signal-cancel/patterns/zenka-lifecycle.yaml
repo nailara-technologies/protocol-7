@@ -1,0 +1,66 @@
+category: zenka-lifecycle
+description: zenka start/stop/restart/reload and instance status events
+patterns:
+  - name: zenka-starting
+    regex: "starting zenka '[^']+' \.,"
+    entropy: low
+  - name: zenka-start-initiated
+    regex: 'starting of [^\[]+ zenka initiated'
+    entropy: low
+  - name: zenka-started
+    regex: '[^\[]+ zenka started \[ pid : \d+ \]'
+    entropy: low
+  - name: zenka-start-timeout
+    regex: "instance \d+ \['[^']+'\] start timeout = [\d.]+s"
+    entropy: low
+  - name: zenka-start-timeout-adjust
+    regex: ': increased instance start timeout to [\d.]+ s \[ verbosity \]'
+    entropy: low
+  - name: zenka-init-code
+    regex: 'executing start init-code for instance \d+ \[[^\]]+\]'
+    entropy: low
+  - name: zenka-init-code-error
+    regex: "<< errors in zenka [^\[]+ init-code, aborting start-up >>"
+    entropy: low
+  - name: zenka-delay
+    regex: 'delaying next [^\[]+ zenka instance'
+    entropy: low
+  - name: zenka-handover
+    regex: 'handover instance \d+ starting alongside existing \[concurrent mode\]'
+    entropy: low
+  - name: zenka-start-failed
+    regex: "cannot start [^\[]+ zenka"
+    entropy: low
+  - name: zenka-process-end
+    regex: ': processing end of [^\[]+-zenka \[ instance : \d+.*\]'
+    entropy: low
+  - name: zenka-status-was
+    regex: ': was instance \d+'
+    entropy: low
+  - name: zenka-status-had
+    regex: ": had status : '[^']+'"
+    entropy: low
+  - name: zenka-term-handler
+    regex: ': calling term handler for [^\[]+ zenka'
+    entropy: low
+  - name: zenka-external-exit
+    regex: "\[terminated\] : external binary : '[^']+' : \[ exit : \d+ \]"
+    entropy: low
+  - name: zenka-external-exit-zero
+    regex: ": \[ exit 0 \] : external binary : '[^']+' : completed =\)\."
+    entropy: low
+  - name: zenka-disabled
+    regex: "disabled zenka '[^']+' \[ no more instances present \]"
+    entropy: low
+  - name: zenka-auto-cleanup
+    regex: 'dependency based auto-start cleanup \[[^\]]+\]'
+    entropy: low
+  - name: zenka-start-timed-out
+    regex: "instance \d+ \['[^']+'\] start timed out after [\d.]+s"
+    entropy: low
+  - name: zenka-orphan-job
+    regex: 'removed orphaned start job \[\d+\]'
+    entropy: low
+  - name: zenka-shutdown
+    regex: 'shutting down \d+ zenka instance'
+    entropy: low
