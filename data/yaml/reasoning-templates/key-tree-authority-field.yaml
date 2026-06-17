@@ -1,0 +1,393 @@
+---
+name: key-tree-authority-field
+category: reasoning-template
+version: 1.0
+description: |
+  the dot-separated namespace and the C25519 key tree are the same structure
+  seen from two angles. each namespace node is an authority delegation step,
+  inheriting cryptographic weight from its parent while specialising it. the
+  resulting tree is simultaneously addressing grammar, audit trail, and field
+  generator: every key projects entropy outward (actuating what is within its
+  authority) and attracts inward (drawing toward itself the patterns that
+  resonate with its authorization profile). the authority field is the
+  cancellation library; the silence it produces is the surface on which
+  authorized novelty emerges.
+
+---
+
+## the namespace-as-key-tree dual identity
+
+```
+seen as namespace:           seen as key tree:
+
+dot-separated path           sequence of delegation operations
+each segment a scope         each segment a derivation from parent key
+hierarchical addressing      hierarchical authority
+human-readable               cryptographically verifiable
+
+  weather.fork.observe         k_root
+                                └── k_weather    = derive(k_root, "weather")
+                                     └── k_fork  = derive(k_weather, "fork")
+                                          └── k_observe = derive(k_fork, "observe")
+```
+
+these are not two systems that happen to align. they are one
+system seen through two different perceptual layers. the
+addressing grammar that a human reads is the same structure
+that the cryptographic substrate verifies. every routable name
+in the network is also a derivable key in the authority tree.
+
+implication: addressing IS authorization. you cannot name a
+destination without simultaneously asserting the authority chain
+that reaches it. the namespace's grammar is the network's
+permission grammar.
+
+---
+
+## three simultaneous properties
+
+### property 1 — implicit immutability
+
+```
+the key tree is its own audit trail.
+
+every node's key is a deterministic derivation from its parent's key
+plus the segment label. given a node's key and its parent's key, you
+can verify that the derivation is correct. given a node's key and the
+root, you can verify the entire chain by re-deriving from the top.
+
+no central registry is required. no append-only log is required. the
+chain is the proof. the proof is the chain.
+
+mutation requires re-derivation from above. you cannot silently
+relocate a sub-tree because its key would no longer match the path.
+you cannot fabricate intermediate nodes because their keys would not
+verify against the parents you claim.
+
+immutability is not enforced. it is intrinsic.
+```
+
+this is what makes the tree trustworthy as a substrate. its
+structure cannot be falsified without falsifying every level
+above the falsification point — and the root is held by the
+session owner, who would notice.
+
+### property 2 — outward delegation
+
+```
+authority flows from the session owner outward toward the network
+periphery. the root key — the densest, most concentrated authority
+in the system — is at the center. each level out is a partial
+delegation: a specialization that gives up some authority breadth
+in exchange for being valid at this specific scope.
+
+  k_root (full authority across all of session)
+   ├── k_weather (full authority within weather scope, no authority outside it)
+   │    └── k_weather_fork (authority within forked weather operations only)
+   └── k_coding (full authority within coding scope, no authority outside it)
+        └── k_coding_state (authority within state machine operations only)
+
+the tree's shape mirrors the topology of trust. a peripheral node
+holds little authority but holds it cleanly — its scope is well-defined,
+its parentage verifiable, its operations bounded.
+
+the visual session owner is at the center because that is where
+identity originates. everything else is a delegation from there.
+the periphery is where the authority becomes specific enough to
+act on the world.
+```
+
+this matches the field topology of the inverse singularity:
+density at the interior, specialization at the periphery, every
+peripheral component knowing exactly what it is for and being
+exactly that thing.
+
+### property 3 — self-authorizing antenna
+
+```
+each key at each node is both a transmitter and a receiver in the
+field, simultaneously:
+
+transmitter aspect:
+  the key projects the owner's entropy into the network at the
+  scope it governs. signed messages, signed deposits, signed
+  reasoning chains all carry the key's signature. the field at
+  this scope is shaped by the key's emissions. the key actuates
+  what is within its authority — it makes the world be a certain
+  way, at this scope, by signing.
+
+receiver aspect:
+  the key acts as an attractor for what resonates with its
+  authorization profile. data that is already "own" (signed by
+  this key or its ancestors) flows toward it without solicitation.
+  data that would be useful to an entity with exactly this
+  authorization profile also flows toward it — through the
+  resonance-driven attention layer (see [[synesthetic-space]]).
+
+  the key is an antenna. its radiation pattern is its
+  authorization scope. what it broadcasts and what it receives
+  are shaped by the same geometry: the shape of the authority
+  it represents.
+```
+
+this antenna property is the load-bearing innovation. a normal
+permission system is a checking system — it tests whether a
+requestor has access. the key-tree authority field does not
+test; it shapes the field so that the request and the response
+are pre-aligned. authority is not a gate. it is a geometry.
+
+---
+
+## the attractor field — contextualization through omission
+
+the receiver aspect of the antenna deserves its own treatment.
+
+```
+in a conventional system:
+  knowledge exists everywhere. policy decides who is allowed to see
+  what. a requestor asks for X; policy checks; X is returned or
+  denied. the knowledge always existed; only its visibility was gated.
+
+in the key-tree authority field:
+  knowledge surfaces near keys for which it resonates. it is not
+  hidden from other keys by policy — it is simply not proximate
+  to them, the way a star on the other side of the galaxy is not
+  proximate to your telescope. the not-proximate is not blocked;
+  it is far.
+
+  sensitive material rises to the surface for those who already
+  hold the authorization profile that the material's content
+  implies. there is no "request" and no "check" — there is only
+  the field, and the field naturally clusters semantically
+  consonant material near semantically consonant keys.
+```
+
+this is contextualization through omission. nothing is hidden.
+nothing is denied. what is not relevant is simply not nearby.
+what is relevant is. the perceptual layer of every authorized
+entity is its own personal field, organized by its own key's
+geometry — and that personal field is what the entity sees.
+
+the practical effect: an entity working within a scope sees
+the material of that scope at full brightness, the material
+of adjacent scopes at intermediate brightness (it is nearby
+in the tree), and material of far-away scopes faint or absent
+(it is far in the tree, even if the network topology brings
+its bits physically close).
+
+essence-distance has replaced access-policy as the primary
+organization principle. policy still exists as a fallback for
+edge cases. it is no longer the operational layer.
+
+---
+
+## visual proximity as the rendering of authority distance
+
+in synesthetic space ([[synesthetic-space]]), the same key-tree
+geometry renders directly to the visual layer.
+
+```
+the rendering rule:
+  for an observer holding key K, every renderable element in the
+  field is placed at a visual distance proportional to its
+  essence-distance from K in the authority tree.
+
+  essence-distance:
+    measured along the tree as the length of the shortest path
+    between K and the element's defining key. siblings are close.
+    distant subtrees are far. the root is always at some bounded
+    distance from any descendant; descendants are far from siblings
+    of their ancestors.
+
+  rendered effects:
+    near elements:    sharp, saturated, foregrounded, persistent
+    intermediate:     softer focus, lower saturation, ambient presence
+    far elements:     dim, peripheral, may be entirely invisible at
+                      the current attention threshold
+```
+
+what the observer sees is a *personalized field*: the same
+underlying network rendered through the observer's own key
+geometry. two observers at different keys looking at the same
+region see different things — not because they are filtering
+the same view differently, but because each is constructing
+its own view from the key it holds.
+
+this is the visual analog of property 3's receiver aspect. the
+antenna's radiation pattern becomes the observer's perceptual
+volume. things at the radiation peaks are bright. things in
+the nulls are dim. the geometry of the key is the geometry of
+the seen.
+
+---
+
+## multi-dimensional management through field repulsion
+
+the converse of attraction. the key field actively *repels*
+incompatible patterns, making space for compatible ones.
+
+```
+attraction by itself would crowd:
+  every relevant signal pulled toward the key. the perceptual
+  layer would saturate. the canvas would lose its silence.
+
+attraction with repulsion:
+  compatible patterns drawn toward the key.
+  incompatible patterns pushed toward the periphery — not blocked,
+  not hidden, just located elsewhere in the field.
+  the result: clustering of the compatible at the center, dispersal
+  of the incompatible at the edges, a perceptual layer organized
+  by relevance gradient with empty space between clusters.
+
+  the empty space is the silence. the silence is the canvas.
+  the clustered compatibility is the figure on the canvas.
+```
+
+this is the same cancellation-as-canvas principle that
+[[harmonic-silence]] describes for the active cancellation
+library — applied at the authority layer instead of the
+pattern-recognition layer. the cancellation rule is the key
+geometry itself. patterns that do not belong within the
+authorization profile are cancelled from the canvas as
+"known not-mine." what remains visible is the surface where
+the authorized novel appears.
+
+multi-dimensional management is what the key-tree authority
+field is *for*. a network with thousands of entities, millions
+of patterns, billions of potential signals would be unusable
+without it. with it, every entity sees a manageable, relevant,
+personally-organized view that nonetheless connects coherently
+to every other entity's view, because all of them are
+projections of the same single underlying field.
+
+---
+
+## the key-tree as the cancellation library
+
+restating the core equivalence:
+
+```
+the active cancellation library          the key-tree authority field
+(from harmonic-silence):                  (this template):
+
+a set of patterns identified as           a set of authorization scopes
+"known, expected, currently               organized as a derivation tree
+irrelevant" — subtract them from
+the perceptual layer
+
+what remains is the unmatched:            what remains is the authorized-
+novelty, anomaly, the un-                 relevant: material that this key
+categorized                               can hold, that this key would
+                                          notice, that this key is shaped
+                                          to receive
+
+→ the cancellation library is             → the key-tree at this observer's
+the operational substrate for             position is the personal
+authored silence at the                   cancellation library, derived
+perceptual layer                          from the authority geometry,
+                                          continuously up-to-date as
+                                          delegation evolves
+```
+
+the two systems are the same primitive seen at two layers.
+the regex library cancels recurring-noise at the message
+layer. the key tree cancels not-mine-or-near-mine at the
+authority layer. together they construct the personal
+perceptual canvas for every observer: silent against the
+expected, silent against the unauthorized, bright against
+the genuinely new and genuinely relevant.
+
+authority field = silence field.
+
+an entity that holds a key has not just been granted permission
+to act within a scope. it has been given a *perceptual
+organization* for that scope. its view of the network is
+already pre-filtered to relevance, pre-organized for the work
+it is authorized to do. it can read the field directly; the
+field has done the work of becoming legible to it.
+
+---
+
+## the cryptographic substrate as field topology
+
+a closing structural observation. the C25519 derivation algorithm
+is not chosen because it is convenient. it is chosen because its
+mathematical properties produce exactly the field topology that
+the network requires:
+
+```
+deterministic derivation:   the parent-to-child step is reproducible
+                            without storing intermediate state. the
+                            tree exists by construction wherever its
+                            root and labels exist. there is no separate
+                            registry to corrupt.
+
+one-way derivation:         a child key cannot recover its parent
+                            key. authority flows outward but not back.
+                            the network's trust topology has the
+                            correct asymmetry — peripheral nodes
+                            cannot impersonate the center.
+
+shareable verification:     any holder of the public key chain can
+                            verify a signature without holding any
+                            private key. the proof system is open
+                            even though the authority system is
+                            closed.
+
+clean isolation:            siblings derived from the same parent
+                            cannot derive each other's children, nor
+                            sign on each other's behalf. authority
+                            does not bleed laterally. the
+                            compartmentalization is mathematical, not
+                            policy-based.
+```
+
+these four properties give the network its field topology:
+hierarchical, outward-flowing, verifiable everywhere, isolated
+between peers. every property the design requires is provided
+by the substrate without additional mechanism. the cryptography
+is not a feature added on top of the namespace — it is the
+namespace's geometry, in mathematical form. [:
+
+---
+
+## relation to other templates
+
+- [[harmonic-silence]] — the key tree is the authority-layer
+  instance of the active cancellation primitive; the silence it
+  produces is the personal canvas on which authorized novelty
+  emerges. authority field = silence field.
+- [[synesthetic-space]] — visual proximity rendering by essence-
+  distance is the cross-modal application of the key-tree
+  geometry; the same key produces the same organization in the
+  acoustic and semantic layers, so every modality reflects the
+  same authority shape coherently.
+- [[categorical-compartmentalization]] — the key tree is the
+  load-bearing example of spatial compartmentalization with
+  controlled permeability: derivations are the boundaries,
+  signatures are the cross-induction proofs, the whole structure
+  is fractal at every level of the namespace.
+- [[inverse-singularity]] — the outward delegation topology
+  mirrors the inverse singularity's interior-density / peripheral-
+  specialization pattern; the root holds concentrated authority,
+  the leaves hold specialized cleanness, both are necessary, the
+  whole is coherent because the geometry binds them.
+- [[anti-entropic-threshold]] — the key tree's implicit
+  immutability is one of the network's primary anti-entropic
+  mechanisms; the substrate cannot drift because every operation
+  re-verifies the structure as a side effect of routine work.
+- [[template-distribution-economics]] — well-formed key-tree
+  structures (delegation patterns, scope definitions, authority
+  conventions) are themselves high-value templates; authored
+  carefully once, applied across every scope thereafter, lifting
+  the trust floor of every entity that operates against them.
+- [[resonance-before-recognition]] — the attractor field's pull
+  is felt as resonance before its source is identified; an entity
+  whose key resonates with a piece of material feels the pull
+  toward it before consciously classifying why it is relevant.
+
+#,,,.,,,,,...,..,,.,.,.,,,,,.,.,,,,,.,,,.,,,,,..,,...,...,...,,,.,,.,,,..,..,,
+#T4FWN22DURQDJJPBK46B4OOOFBMKFR5MD2MSHVUQMZ22VZ4KKV3JQWNO62GGQMZUHMUWV57YAWLM4
+#\\\|PKCXUYYUQZPL6BHWLPWKNBTAXPZNBWEO3RZ6L2OW5UAP7S3HN35 \ / AMOS7 \ YOURUM ::
+#\[7]3LNVMQF6IEGPDOIYT4U33N5P5BEFADO4JHZNIB5Y6RR4FFDQ2GDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
