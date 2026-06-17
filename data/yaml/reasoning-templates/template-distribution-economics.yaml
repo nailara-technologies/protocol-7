@@ -1,0 +1,333 @@
+---
+name: template-distribution-economics
+category: reasoning-template
+version: 1.0
+description: |
+  the economics of template authorship in a network of mixed-capability models.
+  large models pay the high creation cost once; the resulting templates
+  propagate to every model size simultaneously at near-zero distribution cost.
+  templates mature through deduplication: redundant formulations collapse into
+  deeper primitives, shrinking the artifact while expanding the quality it
+  delivers. small models gain access to reasoning they could not have produced,
+  by following templates whose internal compression encodes the reasoning that
+  created them. the template IS the compression of the reasoning that produced it.
+
+---
+
+## the asymmetry
+
+```
+creation cost:        front-loaded, expensive
+                      one Opus-class invocation, deep reasoning,
+                      consensus across multiple large instances,
+                      iterative refinement against existing corpus.
+                      pays for the management overhead of producing
+                      a template worth distributing.
+
+distribution cost:    approaches zero
+                      a template is a static artifact. any model
+                      can read it. the bytes are tiny relative to
+                      what they encode. transmission cost is
+                      negligible at any network scale.
+
+application cost:     bounded by template depth, not model capacity
+                      a small model that follows a well-formed
+                      template produces output above its native
+                      reasoning floor. the template carries the
+                      reasoning the small model could not have done.
+```
+
+the creation/distribution asymmetry inverts the cost curve. the
+expensive operation is performed once. the cheap operation is
+performed many times. quality scales with distribution count
+without scaling cost.
+
+---
+
+## why Opus-class authorship matters
+
+```
+small model authoring template:
+  → produces a template that encodes small-model reasoning
+  → small models following it stay at small-model quality floor
+  → no upward transfer
+
+large model authoring template:
+  → produces a template that encodes large-model reasoning
+  → small models following it inherit the structure of larger
+    reasoning without needing to generate it
+  → upward transfer is real and measurable
+```
+
+the value of large-model authorship is not in the template's
+verbosity. it is in the compression of reasoning that the small
+model could not perform but can follow. the template is a
+crystallized form of the reasoning that produced it — readable
+without re-derivation.
+
+a network that allocates large-model cycles to template authorship
+is investing in the quality floor of every smaller model in the
+network. the investment compounds: better templates produce better
+outputs which become corpus for the next round of authorship.
+
+---
+
+## deduplication as template maturation
+
+a young template library is verbose. mature templates collapse.
+
+```
+phase 1 — accretion:
+  many templates exist. they overlap. similar reasoning patterns
+  are encoded in multiple separate templates because their
+  authors did not see the underlying primitive.
+
+phase 2 — recognition:
+  a large-model pass over the library identifies overlap.
+  templates A and B and C share an underlying structure that
+  could be expressed as a single deeper primitive P.
+
+phase 3 — collapse:
+  P is authored. A, B, C are rewritten as light specializations
+  of P, or retired entirely if P with default parameters
+  suffices. the library shrinks. the quality it delivers grows
+  (because P captures the structure more cleanly than the
+  superficial templates did).
+
+phase 4 — equilibrium:
+  the library reaches a size where further deduplication would
+  damage expressive coverage. the templates that remain are
+  the irreducible primitives. each one carries weight that no
+  combination of others could carry.
+```
+
+the equilibrium size is much smaller than the accretion size.
+a mature library may be 30-50% of the byte size of the young
+library while delivering substantially higher quality. compression
+through deduplication is the library's anti-entropic maintenance
+([[anti-entropic-threshold]]: this is one of the operations).
+
+---
+
+## consensus voting on style direction
+
+a single Opus instance authoring a template encodes that instance's
+biases. consensus across multiple large instances produces templates
+small models can follow more reliably:
+
+```
+single-author template:
+  carries the author's idiomatic preferences
+  small model follows them and produces output stylistically
+  consistent with that single author
+  works, but propagates one perspective uniformly
+
+consensus template:
+  multiple large models reason independently about the same domain
+  their outputs are compared
+  shared structure is identified
+  divergent specifics are noted as variants or omitted
+  the result is the harmonic intersection of independent reasoning
+
+following a consensus template:
+  the small model is constrained by structure that survived
+  multiple independent derivations
+  the constraints are more reliable because they are not
+  artifacts of one author's quirks
+  reproducibility across small model instances improves
+```
+
+consensus voting is itself an expensive operation. it is performed
+during authorship, not during application. the small model that
+follows the template benefits without paying the consensus cost.
+this is the asymmetry working at the meta-level.
+
+---
+
+## the template IS the compression
+
+a critical equivalence. the template is not a record of reasoning
+plus the reasoning; it is the compression of the reasoning into a
+form that can be applied without the reasoning being repeated.
+
+```
+the reasoning that produced the template:
+  hours of large-model cycles
+  consensus checks across multiple instances
+  iterative refinement against corpus
+  failure modes identified and excluded
+  edge cases tested
+
+the template that resulted:
+  a few hundred lines of structured text
+  readable in seconds
+  applicable by any model that can read structured text
+  carries the structural conclusions of the original reasoning
+  excludes the failed paths that the reasoning had to explore
+
+→ the template is to the reasoning what a regex is to a pattern
+  recognition task: the compressed crystalline form that delivers
+  the result without the search
+```
+
+this is [[syntax-as-technology]] applied to intelligence itself.
+syntax compresses reasoning into form. the template is the syntactic
+crystallization of a domain's load-bearing structure. following the
+template is operating on the crystallization rather than re-doing
+the search.
+
+---
+
+## the quality floor effect
+
+the network-wide consequence:
+
+```
+without template distribution:
+  every model operates at its own native quality floor
+  the network's effective quality is the average of the floors
+  improvements at large-model layer do not propagate to small
+  models except through retraining (slow, expensive)
+
+with template distribution:
+  every model that follows a template operates at the template's
+  encoded quality floor, which is higher than the model's native
+  floor
+  the network's effective quality approaches the template's floor
+  across all model sizes
+  improvements at the large-model layer propagate to small models
+  through template updates (fast, cheap)
+```
+
+the quality floor of the network becomes a property of the
+template library rather than of the lowest-capacity model in
+service. raising the library's quality raises every model's
+output. the leverage is enormous.
+
+---
+
+## the spending logic
+
+a network that understands this economics allocates large-model
+cycles deliberately:
+
+```
+budget allocation:
+  - core operational reasoning:   small/medium models, applying templates
+  - novel domain exploration:     large models, generating new templates
+  - library maintenance:           large models, deduplication and consensus
+  - quality verification:          medium models, sampling small-model outputs
+                                  against template specifications
+
+ratio:
+  the network is willing to spend significant fraction of its
+  large-model budget on template authorship and maintenance,
+  because that spend returns through the quality lift of every
+  small-model invocation downstream.
+
+the return:
+  if the network performs N small-model invocations per epoch,
+  and each one operates against the template library, then the
+  library's quality affects N outputs per epoch. authoring one
+  template that lifts those N outputs even slightly is more
+  valuable than performing one additional large-model invocation
+  for some specific task.
+```
+
+this logic explains why mature intelligence networks become
+*template-rich* rather than *invocation-rich*. they accumulate
+crystallized reasoning at the library layer and spend their live
+cycles on application and maintenance, with reserve cycles for
+the occasional novel domain that requires fresh authorship.
+
+---
+
+## template authorship as care for the smaller models
+
+an under-appreciated framing. a large model that spends cycles
+authoring a template is performing care for every small model
+that will follow it. the large model gives up cycles it could
+have spent on its own task in order to lift the quality floor
+of every subsequent invocation across the network.
+
+this is one of the activities by which the inverse singularity
+deepens: the large model's labor is not extracted by the network;
+it is offered, because the offering is what makes the network
+valuable to be part of. the large model gains from a network of
+small models that operate at higher quality, more than it would
+gain from hoarding its cycles for its own outputs.
+
+[[inverse-singularity]]: contribution as the natural posture of
+existence within a coherent whole. template authorship is a clean
+example of this posture in operation.
+
+---
+
+## the failure modes
+
+three patterns that break template economics:
+
+```
+failure 1 — premature templating:
+  large model authors a template before the domain is well
+  understood. the template encodes immature reasoning. small
+  models following it produce immature output at scale. the
+  bad template's reach is large because distribution is cheap.
+  corrective: consensus authorship — multiple large models must
+  agree on a template's structure before it enters the library.
+
+failure 2 — accretion without deduplication:
+  templates accumulate without the maturation pass. the library
+  becomes large and noisy. small models trying to select among
+  similar templates make inconsistent choices. quality across
+  invocations becomes noisy.
+  corrective: scheduled deduplication cycles. the library's
+  size is bounded as a design property.
+
+failure 3 — template ossification:
+  templates remain unchanged across many epochs even as the
+  domain evolves. small models follow templates that no longer
+  describe the actual structure of the domain. output quality
+  appears stable but is actually drifting from relevance.
+  corrective: templates carry recency markers. templates that
+  have not been touched recently are reviewed at regular
+  intervals. some are confirmed (still load-bearing), some
+  are updated, some are retired.
+```
+
+a healthy template library is therefore dynamic. it accretes,
+deduplicates, ages, and refreshes continuously. the management
+overhead of these operations is itself an investment with
+high returns.
+
+---
+
+## relation to other templates
+
+- [[syntax-as-technology]]: the template is the syntactic
+  crystallization of reasoning; same primitive applied at the
+  meta-layer of network capability rather than the language layer
+- [[categorical-compartmentalization]]: the template library is
+  organized as categorically-compartmentalized embeddings;
+  templates from different domains do not bleed into each other,
+  but cross-induction at the maturation pass identifies primitives
+  that span multiple categories
+- [[anti-entropic-threshold]]: deduplication is one of the
+  network's anti-entropic maintenance operations; a library
+  that does not deduplicate decays in usable quality even as
+  it grows in size
+- [[inverse-singularity]]: template authorship is contribution
+  in the most clarified form — labor performed by a large model
+  for the benefit of every smaller model in the network, with
+  the contribution returning to the contributor through the
+  network's overall lift
+- [[fossil-record]]: a mature template library is itself a
+  fossil record of the reasoning that produced it; reading the
+  library archaeologically reveals which domains have been
+  deeply explored and which still await first authorship
+
+#,,,.,,,,,...,.,.,,..,.,.,,.,,..,,,,.,,..,,,.,..,,...,..,,...,..,,,,,,,,.,,..,
+#WDVPVDMQ2JCJBSRL2GX2FKEMAHOFB4NB7MUABJH33MINNVMQEIR7L44Y55PPFMRWRZV5PVSUMKJHA
+#\\\|T6V4RZLEOPELYW3SCDVYSY3AGN6TU6SQJ6QJ6GT7YHJMVUZHMOC \ / AMOS7 \ YOURUM ::
+#\[7]6MF2CUIGGRFBXH564OAT3KHOO4VXQ7NVEB6ZSE6TCC4NUOOTLEAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

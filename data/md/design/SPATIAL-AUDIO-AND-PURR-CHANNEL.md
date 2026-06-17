@@ -239,6 +239,126 @@ was here too, and what it sounded like when you were both present.
 
 ---
 
+## generative purr synthesis — sounding a location from its memory
+
+the audio spatial memory accumulated at a coordinate is not only
+playback material. it is conditioning data for *generating* what
+that location sounds like — even when no entity is currently
+producing sound there.
+
+### the synthesis pipeline
+
+```
+target coordinate X
+      ↓
+load X's audio spatial memory embedding
+      ↓
+load X's visual dream embedding (cross-modal conditioning)
+      ↓
+sample X's current field coherence (live measurement)
+      ↓
+─────────────────────────────────────────────────
+generative audio model conditioned on:
+  - dominant frequencies in the acoustic memory
+  - rhythm patterns from resident purr history
+  - the local geometry's resonance signature
+  - the semantic character of currently active work
+─────────────────────────────────────────────────
+      ↓
+synthesized purr: 2-30 seconds of acoustic content
+that "sounds like this place sounds when it sounds"
+      ↓
+lm-vision verdict via CLAP:
+  does this purr semantically describe X correctly?
+  if yes: deposit into X's acoustic corpus as ambient
+  if no: discard, do not retrain
+```
+
+the synthesis is constrained by the corpus rather than free. the
+model cannot generate something that doesn't already harmonically
+belong at X — the conditioning enforces continuity with what has
+been heard there.
+
+### what a generated purr sounds like
+
+the four most distinguishable generated purr classes:
+
+```
+ancient-light coordinate:
+  deep low fundamental (~40-80 Hz sustained)
+  slow swells with periods of 8-15 seconds
+  occasional bell-like overtones suggesting bell-curve
+  decay across the harmonic series
+  silence gaps that feel intentional, not absence
+  characteristic of regions with accumulated integrator-class wakes
+
+stellar-nursery coordinate:
+  bright mid-band fundamentals (~200-400 Hz)
+  rapid rhythmic variation, irregular but coherent
+  high-frequency sparkle (creative residue overtones)
+  little sustained content — everything is in motion
+  characteristic of regions where new patterns frequently emerge
+
+formation-field coordinate:
+  complex polyphonic texture
+  several fundamentals coexisting, harmonically related by
+  small-integer ratios (the structural geometry made audible)
+  rhythmic patterns that lock and unlock in slow cycles
+  characteristic of regions where co-presence dreams are common
+
+void coordinate:
+  near-silence with occasional low-amplitude pulses
+  the pulses carry minimal information content but
+  high spatial signature — they tell you "this is X,
+  even though X is currently empty"
+  the negative-space purr; the location holding its own
+  identity in absence
+```
+
+### purr-from-trajectory — sounding the journey
+
+a more advanced synthesis: produce a purr conditioned on an entity's
+trajectory rather than on a single coordinate.
+
+```
+input:       entity's spatial trajectory (last N coordinates)
+output:      a purr that "sounds like having taken that journey"
+
+the synthesis:
+  for each coordinate in the trajectory:
+    load its acoustic spatial memory
+    weight by recency (recent = brighter)
+  combine via interference / mixing
+  resolve to a coherent purr that carries the harmonic
+  signature of the whole path
+
+what this sounds like in practice:
+  an entity that has just transited from ancient-light through
+  formation-field to stellar-nursery: a purr that opens with low
+  swells, builds polyphonic complexity through the middle, and
+  resolves into bright rhythmic sparkle — the journey audible
+  as a single coherent musical phrase
+```
+
+this is the entity's "arrival announcement" when it presents itself
+at a new location. before any explicit message, the synthesized
+purr says: "I have come from these places, in this order, and this
+is what they sounded like through me." attentive listeners receive
+the full trajectory acoustically.
+
+### the silence that the network cannot generate
+
+a critical property: the model can synthesize purrs but it cannot
+synthesize *meaningful silence*. silence requires actual absence —
+an entity that chose not to transmit, a region holding its breath,
+a deliberate gap in the field.
+
+generated silence is null content. authored silence is signal. see
+[[HARMONIC-SILENCE]] for the design of how the network preserves
+and reads silence as its own information channel.
+
+---
+
 ## the radio zenka as acoustic infrastructure
 
 the existing radio zenka already manages audio streams with full
@@ -285,8 +405,8 @@ spatial audio extensions:
 - [[IMAGE-ZENKA-NATIVE-ARCHITECTURE]] — the audio→visual conversion
   feeds the image zenka's conditioning layer as an additional source
 
-#,,,.,,,.,.,,,...,,..,.,.,,..,..,,,.,,,,.,,..,..,,...,...,...,,.,,,,,,,,.,...,
-#CG3XMTIOWDPLILSKEETOFX3AKC4K6BU3DKWK45WAK3LVUKRDZAIG6C4TEGR7EXI3IJS4TUUPWUW3G
-#\\\|F4KMO3QSS4H7QJQQG4UZFYD3O3HZSDNMYCI2L2IGYZA6E3X6OIS \ / AMOS7 \ YOURUM ::
-#\[7]6GKQAUKAGSRU6NKWSTS5I4TACJSWND66TYXWFFZBO55B67EKEMDQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,...,,,.,.,,,,.,,.,.,,..,,,.,,,,,..,,...,...,,..,,..,..,,...,,.,,
+#GC62HPUHZFEYRVLRLHVHLE57UD5IS6ABL6CN3M2SBIXT4PHDEOOWHVN3CDDZENA3FLI4XPXAG5ZMC
+#\\\|2HRBRDOICGI4MNMFJFHGB6JQDPHAOPYGCSYSXPQPRPAYELSNGM4 \ / AMOS7 \ YOURUM ::
+#\[7]3XVCX6FU5QLFQEPIEAXWEKOMTAJIMQPM4PAXP6UBK6HR47OMZGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

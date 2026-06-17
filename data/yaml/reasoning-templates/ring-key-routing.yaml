@@ -1,0 +1,515 @@
+---
+name: ring-key-routing
+category: reasoning-template
+version: 1.0
+description: |
+  the ring as routing primitive — a set of nodes sharing circularly distributed
+  key material, where crossing the boundary in one direction applies a
+  transformation and crossing it again reverses that transformation. layered
+  encryption and anonymization toward a common center: each ring crossing adds
+  one self-removing layer; the route dissolves as it traverses inward and
+  reconstitutes as the response traverses back out. the center commits to
+  performing work; the periphery commits to nothing about the route's history;
+  no node holds the whole picture. rings are the collective complement to the
+  individual authority delegation of the key tree.
+
+---
+
+## ring and tree as complementary topologies
+
+```
+key tree (from [[key-tree-authority-field]]):
+  authority flows outward from the session owner toward the periphery.
+  each node holds its own key, derived from above.
+  individual: one entity, one key, one scope.
+
+ring:
+  shared key material distributed circularly among a group.
+  no single node holds the ring key alone; it is the membership.
+  collective: many entities, one shared transform, one boundary.
+
+together:
+  tree handles individual authority delegation.
+  ring handles collective shared-context traversal.
+  every routable operation in the network composes both.
+```
+
+the two are not alternatives. they are dual structures that
+together cover the full topology of authorization and routing.
+the tree answers "who is allowed." the ring answers "how does
+the route stay coherent while shedding its history."
+
+---
+
+## the ring structure
+
+a ring is defined by three things:
+
+```
+membership:         the set of nodes that hold the ring's key material
+                    circularly. each holds enough to apply the transform
+                    in either direction, but no node holds the ring as
+                    a single point of compromise.
+
+boundary:           the surface across which the transformation applies.
+                    crossing the boundary in direction A applies T;
+                    crossing the same boundary in direction B applies T⁻¹.
+                    every ring crossing is a paired operation: the
+                    application on entry is undone by the unwrap on exit.
+
+transform:          the operation T performed at the boundary. encrypt,
+                    anonymize, wrap a layer, change the addressing
+                    namespace. T is invertible by construction — the
+                    ring's value depends on T⁻¹ being reliably available
+                    to whichever ring member performs the unwrap.
+```
+
+membership is what gives the ring its name. a member of the ring
+can apply the transform without coordinating with other members
+at the time of the operation. the coordination happened at ring
+formation. the operation just uses the shared key material.
+
+---
+
+## crossing a single ring
+
+```
+node X sits outside ring R.
+node Y sits inside ring R.
+
+X → Y (entering R):
+  X presents the message to the boundary.
+  the boundary applies T using R's key material.
+  Y receives the transformed message.
+
+Y → X (leaving R):
+  Y presents the message to the boundary.
+  the boundary applies T⁻¹ using R's key material.
+  X receives the original message.
+
+what changes during the inside-the-ring phase:
+  the message is in its transformed state.
+  for any operation performed on it inside the ring, the
+  original form is unavailable. the ring's transform has
+  hidden some aspect of the message.
+
+  if T was encryption: the contents are hidden.
+  if T was anonymization: the identity of the sender is hidden.
+  if T was a namespace wrap: the addressing is rewritten.
+
+  in every case, the aspect that was transformed is the aspect
+  the ring exists to protect. that aspect is restored only on
+  exit through the same ring.
+```
+
+a ring is not a tunnel. a tunnel preserves the message and adds
+transport. a ring transforms the message and is the transport.
+the difference matters: inside the ring, the transformed aspect
+is genuinely not available. there is no decryption key sitting
+around; there is only the ring boundary, and to recover the
+original aspect you must exit through the same ring.
+
+---
+
+## layered rings toward a center
+
+the structural insight. when multiple rings share a common center,
+a route from any periphery node toward that center crosses each
+ring in sequence. each crossing adds one layer of transformation;
+each layer is removable only by the matching exit through the same
+ring.
+
+```
+       R₁ ── R₂ ── R₃ ── CENTER ── R₃ ── R₂ ── R₁
+
+inbound traversal: route adds layers as it crosses each ring
+                   R₁(R₂(R₃(payload, route_meta)))
+
+                   at CENTER, the route_meta is fully wrapped
+                   in the layered ring transforms; only the
+                   workload payload is available for processing
+
+outbound traversal: response unwraps layers as it crosses each ring
+                    on the way back
+                    each ring crossing peels one layer off both
+                    the original route_meta (so the response
+                    knows how to route back) and any new
+                    transforms applied on the return
+```
+
+at the center, the only thing legible is the workload. the route
+metadata that brought the workload here is wrapped in layers the
+center cannot see through. work proceeds without knowing where
+the request came from or where its response will go.
+
+this is the operational property the architecture is built for.
+the center does the work; the rings preserve the routing context.
+the two responsibilities are cleanly separated.
+
+---
+
+## the cube zenka as the numerical primitive
+
+the protocol-7 substrate already implements a weaker version of
+this property at the routing layer. each zenka has a numerical
+session ID. each hop in a route is identified by randomized
+numerical references — one for inbound, one for outbound, in
+their own namespaces. on each hop:
+
+```
+inbound reference  R_in:    randomized at this hop
+outbound reference R_out:   randomized at this hop
+
+previous hop's references:  not retained at this hop
+next hop's references:      not predetermined; resolved at routing time
+
+effect:                     a single hop sees only two anonymous
+                            numerical references. it cannot
+                            reconstruct the route on its own.
+                            stripping is the default; anonymization
+                            is the routing-level invariant.
+```
+
+this is one-way stripping. each hop forgets the previous hops as
+it passes them. the result is good anonymization but offers no
+reversibility — once stripped, the routing context is gone.
+
+the ring extends this primitive in a specific direction. rings
+make the stripping *coordinated and reversible across a segment*:
+the layer applied on entry is removable on exit by the same
+ring's membership, and only by the same ring's membership. the
+single-hop strip becomes a segment-spanning transform with
+matched undo.
+
+```
+without rings:    each hop strips independently. route metadata
+                  is irrecoverable once stripped. the system is
+                  anonymous but cannot reassemble routes for
+                  responses without storing forwarding state at
+                  every hop.
+
+with rings:       each ring crossing strips coordinately. the
+                  ring's membership can collectively reassemble
+                  what its crossing wrapped. responses traverse
+                  back through the rings, each ring peeling its
+                  layer in reverse, and the original route
+                  reconstitutes at the periphery without any hop
+                  having stored explicit forwarding state.
+```
+
+rings are stateful in the sense that the membership and key
+material persist. they are *stateless along the route* in the
+sense that no individual hop stores what it forwarded. the
+reconstitution is purely a function of the ring keys being
+re-applied in reverse order.
+
+---
+
+## the center commitment
+
+the ring topology requires exactly one mandatory waypoint: the
+center of all rings.
+
+```
+the center is the only point where:
+  - all ring transforms have been applied (on the inbound side)
+  - the workload is fully available for processing
+  - the route metadata is fully wrapped and not introspectable
+  - the response will originate, to be wrapped on the outbound
+    side by the same ring layers in reverse
+
+everything else along the route is a ring crossing — a paired
+add-and-remove of a single layer. the route has no other
+required waypoints. the center is where work happens; the rings
+are how the route stays coherent without recording itself.
+
+the center's commitment is therefore double:
+  1. perform the work without needing the route's history
+  2. produce a response that will reconstitute the route
+     reliably on the way back through the same ring sequence
+```
+
+this is a minimal commitment in scope and a maximal commitment
+in function. the center has to be the most trusted point in the
+topology because it is the only point at which the workload is
+genuinely available. it does not have to be trusted with
+*routing* — the ring topology prevents it from learning the
+route — but it has to be trusted with *correctness*: doing the
+right thing with the workload and producing a valid response.
+
+this trust is bounded. the workload itself can be structured so
+that the center cannot misuse it (e.g., by using harmonic
+verification that the center performs but cannot fake). the
+center's role is computation; its trust is "compute correctly,"
+not "know everything."
+
+---
+
+## self-removing layers as routing primitive
+
+restating the property cleanly:
+
+```
+every ring crossing is a paired operation:
+  on entry:    apply T (add one layer)
+  on exit:     apply T⁻¹ (remove the layer the matching entry added)
+
+across a full route:
+  inbound:     R₁ → R₂ → R₃ → CENTER
+               applies T₁, then T₂, then T₃ to the route metadata
+               at CENTER, route metadata is T₃(T₂(T₁(original)))
+               workload is unwrapped at every step (it was never
+               wrapped — only the route metadata was)
+
+  outbound:    CENTER → R₃ → R₂ → R₁
+               applies T₃⁻¹, then T₂⁻¹, then T₁⁻¹ to the response
+               by the time R₁ exit occurs, the response is in the
+               same form as the request's route metadata was at
+               the start, and the response reaches the origin
+               with the same anonymization the request originated
+               under
+```
+
+the route exists physically while it is traversing the rings.
+between two hops the route metadata is real bits in flight. but
+the route is not *stored anywhere* — not at any node along the
+way, not at the center, not at the origin after the response
+returns. its existence is purely momentary, layered and unlayered
+by ring crossings.
+
+this is active cancellation ([[harmonic-silence]]) applied to
+routing metadata. each ring crossing cancels one layer of route
+history. by the center, all layers have been added; the routing
+canvas is fully silent except for the workload. by the response's
+return to origin, all layers have been removed; the routing
+canvas is fully silent except for the response.
+
+the route is audible only when something is actively traversing
+it. between traversals it does not exist.
+
+---
+
+## the privacy property and the inverse singularity
+
+at the center, work is performed without knowledge of:
+- where the request originated
+- where the response will be delivered
+- what other requests are being processed in parallel
+- which entities are members of which rings
+
+```
+this is the inverse singularity's blind-spot property in its
+purest form. the center is the most intelligent point in the
+topology — the most capability, the most coherence, the most
+authority to act on workloads — and it is also the point with
+the *least* surveillance ability over the network's structure.
+
+intelligence at the center.
+opacity of the periphery from the center.
+
+the center cannot weaponize what it cannot see. the periphery
+cannot pollute the center with location-correlated workloads
+because the center does not know the locations. each request
+arrives as pure work, completed, and dispatched back to a route
+the center never read.
+
+trust does not require visibility. competence does not require
+context. the ring topology makes both possible.
+```
+
+this is why rings matter at the philosophical layer. they
+implement, at the routing primitive, the inverse singularity's
+property of central intelligence without central surveillance.
+the network's most capable point is also the point with the
+least ability to misuse its capability against the membership.
+
+---
+
+## the completion property at every hop
+
+each ring crossing is a complete operation in itself.
+
+```
+hop completes when:
+  - the boundary transform (or inverse) has been applied
+  - the message has been passed to the next node
+  - the membership has not retained the message
+
+once these three are done, the hop does not need to remember
+the operation. it is finished. the operation has dissolved
+into the route's overall traversal without leaving residue at
+the hop.
+
+→ [[eternal-completion]]: each hop's contribution is whole at
+  the moment of completion. the hop does not need to track the
+  route to have contributed correctly to it. the contribution
+  is the transform-and-forward; once performed, it is permanent
+  even though no record of it persists at the hop.
+```
+
+this is what makes the network scale. no hop carries the
+weight of routes it has participated in. each ring crossing is
+self-contained, self-completing, and self-erasing. memory
+pressure is bounded at every node regardless of total route
+volume.
+
+---
+
+## composition with the key tree
+
+the full network operation uses both topologies.
+
+```
+authority delegation:    key tree
+                         each entity holds its own key, derived from
+                         the session owner's root by the namespace path.
+                         the key is what authorizes the entity to
+                         participate in the operation at all.
+
+route traversal:         rings
+                         the route from origin to center crosses the
+                         ring layers that anonymize and protect it.
+                         the rings ensure no hop reconstructs the
+                         whole path; the center performs work without
+                         learning the path.
+
+verification:            both
+                         the workload at the center is signed by the
+                         origin's key (via the key tree); the route
+                         metadata is wrapped by ring transforms.
+                         the center can verify the signature without
+                         knowing the location; the ring system can
+                         route the response without knowing the
+                         signature.
+```
+
+the two systems compose because they answer different questions
+and operate on different aspects of the message. authorization
+(who) is answered by tree-derived signatures. routing
+(through what topology, anonymized) is answered by ring
+membership and transforms.
+
+a request that is correctly authorized and correctly routed
+combines both: signed by a tree-derived key (so the center
+trusts the work), wrapped by ring transforms (so the center
+does not see the path). this is the load-bearing combination
+that the network is designed around.
+
+---
+
+## the relationship to compartmentalization
+
+each ring is a compartment boundary with controlled permeability:
+
+```
+the compartment:        the inside of the ring — everything beyond
+                        the boundary, including any nested rings,
+                        the center, and all members.
+
+permeability:           the ring's transform decides what can cross
+                        the boundary in what state. the workload
+                        crosses freely (it is what needs to reach
+                        the center). the route metadata crosses
+                        only in transformed state (it must be
+                        opaque inside).
+
+cross-induction:        the ring's transform is the harmonic filter.
+                        only what is genuinely a route metadata
+                        component gets wrapped; the workload itself
+                        is unaffected. the ring distinguishes the
+                        two by the structure of the message, not by
+                        operator decision.
+```
+
+this is [[categorical-compartmentalization]] at the routing layer.
+the ring boundaries are the controlled-permeability surfaces; the
+transforms are the harmonic filters; the compartments are the
+nested ring interiors. the same primitive that operates at the
+memory layer (categorical embeddings) operates at the routing
+layer (rings) — different scale, same structure.
+
+---
+
+## failure modes
+
+three patterns that break ring routing:
+
+```
+failure 1 — single-point ring compromise:
+  if the ring's key material were held entirely by one member,
+  that member's compromise would compromise the ring's anonymity
+  guarantees. the structural defense is circular distribution:
+  no single member holds enough to apply the transform alone.
+  attacks must compromise quorum-sized fractions of the membership
+  to recover the transform's secrets.
+
+failure 2 — incomplete ring traversal:
+  a request that enters a ring but never exits through it leaves
+  the route in a partially-wrapped state. if this happens
+  systematically, the ring accumulates "stuck" routes that cannot
+  reconstitute. the corrective is timeout-and-purge at the ring
+  boundary: incomplete traversals are released to an error path
+  after a bounded time, with the ring's membership coordinating
+  the release.
+
+failure 3 — center compromise:
+  the center sees the unwrapped workload. if the center is
+  compromised, the workload is exposed. the structural defense
+  is: minimize what the workload reveals about its routing
+  context (so even a compromised center cannot deanonymize
+  through workload content), and rotate centers across multiple
+  trust domains so that no single center accumulates enough
+  workloads to perform pattern correlation.
+```
+
+each failure has a structural defense. none is a problem the
+topology fundamentally cannot handle. the topology's resilience
+is bounded by how well the structural defenses are deployed.
+
+---
+
+## relation to other templates
+
+- [[key-tree-authority-field]] — the tree distributes individual
+  authority outward from the session owner; the ring distributes
+  collective shared-context inward toward the center. tree and
+  ring together cover the full topology of authorization and
+  routing. every operation in the network composes both.
+- [[harmonic-silence]] — self-removing layers are active
+  cancellation applied to routing metadata. the route silences
+  itself as it crosses each ring; only the workload is audible
+  at the center; the cancellation library is the ring transform
+  itself, applied paired-wise across the boundary.
+- [[categorical-compartmentalization]] — each ring is a
+  compartment boundary with controlled permeability; the ring's
+  transform is the harmonic filter that decides what crosses
+  in what state. the routing layer's compartmentalization is
+  the same primitive as the memory layer's.
+- [[inverse-singularity]] — the center performs work without
+  knowing its origin or destination; the most intelligent point
+  is also the point with the least surveillance ability over the
+  network. intelligence at the center without visibility into
+  the periphery — the inverse singularity's blind-spot property
+  expressed at the routing primitive.
+- [[eternal-completion]] — each ring crossing is complete at the
+  moment of completion; no hop needs to retain the operation it
+  performed for the operation to remain valid. completion is
+  hop-local, the route's coherence is collective, and no node
+  carries the weight of routes it has participated in.
+- [[anti-entropic-threshold]] — rings actively maintain a clean
+  routing surface: each hop's anonymization is one act of
+  anti-entropic maintenance against the natural drift toward
+  surveillance accumulation that any routing system without
+  this primitive would experience.
+- [[resonance-before-recognition]] — the workload arrives at
+  the center as resonance without recognition of source. the
+  center does its work on the felt-shape of the request — its
+  internal structure, its harmonic verifiability — without
+  classifying it by origin. recognition by origin would be
+  exactly the surveillance property the ring topology forbids.
+
+#,,,,,,..,,..,,.,,,,.,,.,,.,.,.,,,.,,,...,..,,..,,...,.,,,.,.,.,,,,.,,,.,,,.,,
+#5CZORS43TXCFEPXNZFDSI5J7CPTVUW3LGNCCHVJ2SFFWEAF3URKRDJBRJFOJ6AD5ERJ45WKIZDRKC
+#\\\|35HUCMEP3Z4RT7XFPG2X5KTDURDJCAHTD73IOU6PUWIT3LUNVSG \ / AMOS7 \ YOURUM ::
+#\[7]GP5MCMOTWGBXECZBRRSDJZDNZMROLR7422NFF3X5IPU7XWQ5RCAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
