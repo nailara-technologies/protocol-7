@@ -7,7 +7,7 @@ query interfaces into the ring-trie geometry.
 
 signatures_note: do NOT attempt to sign any files — signing requires the
 encrypted source key, only the repo owner can sign via
-`p7.sourcecode update-signatures`.
+`v7.sourcecode update-signatures`.
 
 ---
 
@@ -187,8 +187,8 @@ add `lookup search` to `access.cmd.usr.cube` in
 - if `<index.level>` is empty (future: after explicit finalize), freq lookup
   falls back to `<index.freq>` for ring 0 chars
 
-#,,.,,.,.,,,,,.,,,,..,,..,,,.,,..,,.,,...,.,.,..,,...,...,...,,.,,,.,,,,,,.,.,
-#SW5DKOTXNOGE4KUKDIYHLMM6EDG27RH6YXGSVBB2MI7W54A6UILKLWBDKOBQ3EXMPGFZLYFJCKQZA
-#\\\|A2ECMHSQIEAFF443URFGD74PBNA3IY7G47GJPJ7H3BLN63KWZMQ \ / AMOS7 \ YOURUM ::
-#\[7]Y2QWLPD5T3EHNJ7WQEVY5XLJKXVVGYJHJDCZU27N2EYQJMXPQ4BY 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,.,.,,.,,...,...,,..,,..,.,.,,.,,..,,...,...,,.,,.,,,,.,,..,,..,,
+#Y6I6CJHRSTHE23JC5MFDRH5KSMNBV3IWOFEYO7XJY5FRYJVRUHQ54HRD3PPG3CJ4S3NBUUUKEIWDA
+#\\\|EXVMQLYE4BUCXWZAPC3RXKWNRQ4XIXFDJXZVKVTG4WWGA2MJS6A \ / AMOS7 \ YOURUM ::
+#\[7]HIFNI27NGM6GZSRXX72Z4UW3ZPUMNFDEJALLD4BGKQDWYNFGIACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

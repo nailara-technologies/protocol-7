@@ -10,7 +10,7 @@ monolithic storable), build a schema v3 `.zxpc` cube in one pass, and update
 design reference: `data/md/design/INDEX-CUBE-STORAGE.md`
 
 signatures_note: do NOT attempt to sign any files — only the repo owner can
-sign via `p7.sourcecode update-signatures`.
+sign via `v7.sourcecode update-signatures`.
 
 ---
 
@@ -170,8 +170,8 @@ sub index.persist.cube {
   it is not already a separate module, so that both `index.init_code` and
   `index.migrate.v2-to-v3` can call it directly.
 
-#,,,.,,.,,..,,,.,,...,,,.,,,,,..,,.,,,..,,,,,,..,,...,...,,,,,,.,,.,,,...,,..,
-#MO7ZXFRYPDXHQAQQZ3ROYCFMQ36443GMOQP73BU2JAGD4DLBGNVWFH3NXRAFSDQL4URTMCT5OUICC
-#\\\|RRHRGBOUJHBGQKOIDXY52YOJLI56DLTYCK3TXMRYVZVFPM4BWAE \ / AMOS7 \ YOURUM ::
-#\[7]MUGVKU3KQUGZ32WQBJWWMWB7GTSNSK27AQU4HKFRF54MCQMXFKCQ 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,..,.,,,,..,...,..,,.,,,...,...,..,,...,...,...,..,,..,,.,.,,..,
+#AV7ITDPYWO33VV4XQZHAKRJ2AO4A5RZDTURL4D7MZHMAULYHYEAKOK3PV66K5RYIIRQW6YOM4CTE4
+#\\\|FIINS7QWYQTX4E5KAVVTDXXNU6TGOZX3F5U4B5VULP3N4UAGFCJ \ / AMOS7 \ YOURUM ::
+#\[7]5B6M7HPOAWYUN73WFKM2AQUPMB274JSHW5IZB3Q6NAIIRZQIYWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

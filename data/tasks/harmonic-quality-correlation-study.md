@@ -32,9 +32,9 @@ scan all ~3900 signed modules:
 
 tools already available:
 - `<[amos7.decode_octal_bit_header]>->($footer_first_line)` for decoding
-- `p7.sourcecode report-endline-state` already iterates modules this way
+- `v7.sourcecode report-endline-state` already iterates modules this way
 - extend `sourcecode.console.report-endline-state` or write new command:
-  `p7.sourcecode report-harmonic-steps [pattern]`
+  `v7.sourcecode report-harmonic-steps [pattern]`
 
 ## phase 2: llm quality scoring
 
@@ -129,8 +129,8 @@ automated pipeline (future):
 - batch scoring: `no_tools: true`, single round, structured json output
 - results stored in data tree: `tree_write harmonics.quality_study.*`
 
-#,,..,.,.,...,,,,,,..,.,.,,,.,,,,,,,,,,,.,...,..,,...,...,.,.,.,,,,..,...,,.,,
-#DHX474UM6MRYZATAPO2ICEX2JNVMFMS4XW342F62UL32HRFDPQLGGYWA7NISNKW2F47DIG5SVEN5G
-#\\\|NH65ODE2NZYKKN7HL2IIWJHSGSZRAKL2DFY45LGSU63MR2BJHH4 \ / AMOS7 \ YOURUM ::
-#\[7]ZKONZOJZNM2TTSSGZEOPJ54ESD4UJZMYKRRM7RU5N2FAA56FBCBQ 7  DATA SIGNATURE ::
+#,,,.,.,.,...,.,,,,..,..,,...,,..,,,.,.,.,.,,,..,,...,...,.,,,,.,,..,,,.,,.,.,
+#DX5EFN5DBOZWYDVCDLHQA4Y3JRAWRXSITYCQMRCQFK4Z3XPO62YJXKS2XVZ5ZF5J67KQA5HKJRDGE
+#\\\|EVHSETQDETWXGNQG5BDRHOGN7TEII5S2XQQUORBYDKU6L6GX2PM \ / AMOS7 \ YOURUM ::
+#\[7]Z6WQDTH7JZY2R5KU4GNRIRNCTQSVIMONER5BMKNZPRBPM26MUQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,7 +10,7 @@ and ring 1 are eager-loaded; outer rings are lazy. fall back to schema v2
 design reference: `data/md/design/INDEX-CUBE-STORAGE.md`
 
 signatures_note: do NOT attempt to sign any files — only the repo owner can
-sign via `p7.sourcecode update-signatures`.
+sign via `v7.sourcecode update-signatures`.
 
 ---
 
@@ -173,8 +173,8 @@ its own v2 fallback internally, simply swap the module name in `init_code`.
 - the root concept `''` does not have a compartment — it is the header itself,
   the 0 that generates the address space without occupying it.
 
-#,,,,,,,,,,,,,...,...,,,.,,.,,...,.,.,,.,,,.,,..,,...,...,...,.,,,.,.,...,,.,,
-#DJ2SJCV3C6GKXZUF2A3FLSUF4FLXJF5YES6PFQBL7SWVDJX7TRUYUEIEWMI4OBO5KZRXVDYJS53H6
-#\\\|PYMUSGKYJN3DB5KA2UHFODSKVOFW4SV4RBUSTNQY3GQ4SY4IYVY \ / AMOS7 \ YOURUM ::
-#\[7]6G3MDJGYFDKRLA4XLPXOOAU3IU6HG5CMRMDDZOULPVDTFHCQJYAA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,..,..,,,,,,.,.,.,,,,..,,.,,.,,,..,,...,...,..,,...,.,,,.,.,,,,,
+#OFUQPJJ5RTW7NTXFF6TFZ5ZSNF3O4T2OBX2KZHOZLJLHM5HCFTKG62BYCCXZFYCYXQGF7C6AR4CUM
+#\\\|37L227RN25L53EHRPPVM2TNPRGG2VR6VI5S2QNF34A36BHMZ3DI \ / AMOS7 \ YOURUM ::
+#\[7]Y6CLJMTLBRGN5U7B3ESW4HEG5K3B4PKC5VQ5HHULENO5I54YTMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

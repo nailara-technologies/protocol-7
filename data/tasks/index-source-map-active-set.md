@@ -11,7 +11,7 @@ design reference: `data/md/design/INDEX-CORPUS-VERSIONING.md`
 prerequisite: `data/tasks/index-contribution-vector-store.md`
 
 signatures_note: do NOT attempt to sign any files — only the repo owner can
-sign via `p7.sourcecode update-signatures`.
+sign via `v7.sourcecode update-signatures`.
 
 ---
 
@@ -180,8 +180,8 @@ restore:
 - existing corpus (7.2M chars) has no source map; populate incrementally as
   files are re-fed with the new instrumented ingest
 
-#,,..,,,.,,,.,..,,,,.,,..,,,,,..,,,,,,.,,,,.,,.,.,...,...,..,,,..,.,.,,,.,,..,
-#XKRB6HY3JVZN5XQRWC7LJATTBPATN7REMJTYTHYU2G6EZFEOFPYEJAEAFZQJCQKHWVEJDVX5ITKW6
-#\\\|4HNI42JE7UEFTK6EZPOADNUVGWDDZQORGQ2ZMYSPPOSMRPNLW66 \ / AMOS7 \ YOURUM ::
-#\[7]YYV5FVZ4A6F3DZC3OGYXQ4DVPRO3RVL4VLD33Q2UZGK6UVNNTABY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,..,,,,,,,,.,,..,..,,,..,.,,,,..,.,.,...,...,..,,,,.,.,.,,,,,,,,,
+#ZSNJBE2RTZCHJJ3UD64KPI3XUYICO5PZKBYLERXTVLFS7ZDY4B247XBIBW5ELMOLGLPYTK2KJEN4K
+#\\\|AJTF5QK5PDKZLPJGZK4VX2MFEEVV3WXNYG2XQDWA5WVNENYHOAK \ / AMOS7 \ YOURUM ::
+#\[7]UED7WE5HGB5SQG2R3B7LPK4Q2GZD6AOODC5YPTBUYTAZCS472GBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

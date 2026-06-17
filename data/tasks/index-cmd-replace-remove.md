@@ -11,7 +11,7 @@ prerequisites:
   - `data/tasks/index-source-map-active-set.md`
 
 signatures_note: do NOT attempt to sign any files — only the repo owner can
-sign via `p7.sourcecode update-signatures`.
+sign via `v7.sourcecode update-signatures`.
 
 ---
 
@@ -142,8 +142,8 @@ index.activate index.deactivate index.source.register
   deactivate all ancestors, not just HEAD; under snapshot policy it is always
   exactly one deactivate call
 
-#,,..,.,,,,,.,.,.,,,.,..,,,,.,.,.,,,.,,..,,,,,.,.,...,...,.,.,.,,,,,,,,,,,,,.,
-#JVQ5PVJYT63NVASMMQA6C25QBNVSSHLAXORSYBO4C4WYPVOU4RS2VTZHICPC23O4GOOGQ3YPJYE3Q
-#\\\|FS5CE343CRINQGRN2SQBPQO2DFUBIU6GF4BD33Y6QDN3YSC23WW \ / AMOS7 \ YOURUM ::
-#\[7]BPY2NCDTKC4UNQYTAB7L2QDQLQLKO23NC3DZBQ4CDQHKP5PP6YDQ 7  DATA SIGNATURE ::
+#,,,.,...,.,,,...,.,,,,,,,.,,,.,,,,.,,,.,,.,,,.,.,...,...,..,,.,.,...,,,,,.,,,
+#4N27OFFBLVMJLXX4EJMM72VIR53BZBGHSIUBHGL3EFXACDNL6TO5K5BYN7VH2D3UHUUIZIIXN6Z3A
+#\\\|DKDAHSL66TN5XPYEL5JGSOEDCPPJ4EB4YQ3OF4HHL53RVDLFKFC \ / AMOS7 \ YOURUM ::
+#\[7]AGCESZXI2L5YLGWNEHRHUTEPZGFUZM3TSXEB6DUI4GVREXBRGEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

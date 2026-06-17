@@ -106,14 +106,14 @@ after implementation:
 
 ```bash
 ## check no state 7 files remain in canonical paths after normalize
-p7.sourcecode normalize-endline-state -vvq
-p7.sourcecode report-endline-state modules/ -vvq | grep 'state 7'
+v7.sourcecode normalize-endline-state -vvq
+v7.sourcecode report-endline-state modules/ -vvq | grep 'state 7'
 ## should return empty
 
 ## check signing a newly-created file without trailing \n stays canonical
 echo -n 'return TRUE;' > /tmp/test-no-newline
-p7.sourcecode update-signatures /tmp/test-no-newline
-p7.sourcecode report-endline-state /tmp/test-no-newline -vvq
+v7.sourcecode update-signatures /tmp/test-no-newline
+v7.sourcecode report-endline-state /tmp/test-no-newline -vvq
 ## should show state 6
 
 ## check the underflow guard fires for a hand-crafted state 4 footer
@@ -121,8 +121,8 @@ p7.sourcecode report-endline-state /tmp/test-no-newline -vvq
 ## should log warning and not corrupt the file
 ```
 
-#,,.,,.,,,..,,..,,..,,,,,,...,,,.,.,.,..,,,.,,..,,...,...,,.,,,..,.,,,.,,,,..,
-#DA74IHLIKLMZXYERI6SLXEJURFP5JNZ4Z3SYJQC3FPW3GXZURROAXZCGGERN2Y5XJ7VQT6UVUTXEI
-#\\\|55U4DTRKX27MUC7QP4ZYVB4MAGKIUOL7GFA45RFHJQZEYQFFB6F \ / AMOS7 \ YOURUM ::
-#\[7]DOQKR345WPE4VSMUYP5ALJXY4S75BPRSK3JABN34SAESQVWOVGBY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,.,,,.,,,..,,..,,..,,...,,,.,...,..,,...,...,..,,,,,,,..,...,..,,
+#SCN5HFGYHFHGRWI4WNJICB466OGKKV2SJUZGSBE5CROSOREVBLTMNMBFVF523HSPOFZVJNKQIYBCY
+#\\\|AL5NUDFJIBV3CUU3W7SY3SGAGX2SDY2RPZNIPPQYTQYUKOBMDWA \ / AMOS7 \ YOURUM ::
+#\[7]RP2I7SIW2VPXYH4N5R434WNT5YYNC62P3S73THVJS6G2EDKYXWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
