@@ -32,6 +32,7 @@ BEGIN {
 
 use AMOS7;
 use AMOS7::CHKSUM;
+use AMOS7::CHKSUM::Nested;
 use AMOS7::TEMPLATE;
 use AMOS7::CHKSUM::ELF;
 use AMOS7::Assert::Truth;
@@ -66,14 +67,40 @@ my $option_list = <<'EOL';
     -t  .......  template validation timeout [ seconds ]
     -T  .......  sprintf template[s] for truth verification
 
+    -nest .....  nested checksum [ parent-chksum child-name ]
+
     -VCS  .....  show AMOS checksum algorithm version and exit
     -VL7  .....  calculate inline elf output checksum and exit
     -VS   .....  calculate inline elf sourcecode version and exit
 
     -elf-mode[s]=<elf-mode[s]>  .....  comma seperated elf modes list
 
-
 EOL
+
+##[ NESTED CHECKSUM MODE ]####################################################
+
+my @nest_pairs;
+my @remaining_argv;
+
+while (@ARGV) {
+    my $arg = shift @ARGV;
+    if ( $arg eq '-nest' ) {
+        my $parent_chksum = shift @ARGV;
+        my $child_name    = shift @ARGV;
+
+        error_exit('-nest requires parent-chksum and child-name <{NC}>')
+            if not defined $parent_chksum
+            or not length $parent_chksum
+            or not defined $child_name
+            or not length $child_name;
+
+        push( @nest_pairs, [ $parent_chksum, $child_name ] );
+    } else {
+        push( @remaining_argv, $arg );
+    }
+}
+
+@ARGV = @remaining_argv;
 
 ##[ INITIALIZATION \ OPTIONS ]################################################
 
@@ -84,6 +111,8 @@ $SIG{'__WARN__'} = \&error_exit;
 use warnings FATAL => qw| all |;
 
 getopts( qw| vt:e:Sbnsqo:L:V:T: |, \my %option );
+
+$AMOS7::CHKSUM::algorithm_set_up{'return_modbits'} = 1 if $option{'v'};
 
 if ( defined $option{'o'} and $option{'o'} eq qw| ptions | ) {
     list_options();
@@ -165,6 +194,48 @@ if ( defined $option{'L'} ) {
     }
 }
 
+##[ NESTED CHECKSUM OUTPUT ]##################################################
+
+if (@nest_pairs) {
+    my @output;
+    foreach my $pair (@nest_pairs) {
+        my ( $parent_chksum, $child_name ) = @$pair;
+
+        my $child_chksum
+            = AMOS7::CHKSUM::Nested::child_chksum( $parent_chksum,
+            $child_name );
+
+        error_exit('failed to compute nested checksum <{NC}>')
+            if not defined $child_chksum;
+
+        my $out_value;
+        if ( $option{'n'} or $option{'b'} ) {
+            my $chksum_num = $AMOS7::CHKSUM::num_amos_csum;
+            $out_value
+                = $option{'b'}
+                ? sprintf( qw| %032b |, $chksum_num )
+                : sprintf( qw| %010d |, $chksum_num );
+        } else {
+            $out_value = AMOS7::CHKSUM::Nested::format_nested(
+                $child_chksum, $parent_chksum );
+        }
+
+        if ( $option{'q'} ) {
+            push( @output, $out_value );
+        } else {
+            push(
+                @output,
+                sprintf
+                    "$C{0}:\n:$C{b} $C{T}%s$C{0} $C{R}\n$C{0}:$C{R}",
+                $out_value
+            );
+        }
+    }
+
+    say join( "\n", @output );
+    exit(0);
+}
+
 ### move version calculation to AMOS7::CHKSUM module ### [LLL]
 
 ## display source versions ## [ calculated ]
@@ -220,8 +291,6 @@ error_exit('expected input string for AMOS-checksum [ -options ] <{NC}>')
     and not $option{'S'}
     and not $option{'s'}
     and not @ARGV;
-
-$AMOS7::CHKSUM::algorithm_set_up{'return_modbits'} = 1 if $option{'v'};
 
 if ( not defined $data_str and not $option{'s'} and not $option{'S'} ) {
     $data_str = join( ' ', @ARGV );    ## COMMAND LINE INPUT ##
@@ -498,8 +567,8 @@ sub true_bits {    ## not numerical ##
         : "$C{0}$visualize_data$C{R}";
 }
 
-#,,.,,,.,,,..,,..,,.,,...,...,...,,,.,,,.,,,.,..,,...,...,..,,,,.,,..,,,,,,,,,
-#LFGHASATBHOCNPUYISVPPZANSWTLC7BGV3RZKDPCGTRGLQJXHXCLUEACPPPN7J3BSHEVNDXDNBLEC
-#\\\|FRXVKP3KZB4SCEAKOR3KFMSGMQQ2FNU6EVI2ZY25XUFETF22TJL \ / AMOS7 \ YOURUM ::
-#\[7]TY2FJRDKNSYVMAEHS23AQNR2TMRK7NWWEEYZOEBQ7CT6AZ3NQOAQ 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,.,,,..,,.,,,,,,..,,,,.,,,.,.,,,..,,...,...,.,,,,,.,.,.,...,,.,,
+#PFY6YEJWSQRCE4EJCGRWC7VS4ASBEEH7YJNHZ2AVSQMXADJVYXPEWZW2IOIASWCSCIMZNTGQWOOJA
+#\\\|A2MQO7ZDK3OD7D4UEEKYA2GYRUGVDRLICS26I563LIGRYPAFYQJ \ / AMOS7 \ YOURUM ::
+#\[7]ZRYK76K7FVB6JJMAGNOYBXNCFRWZWQLD4BTGL4C6VP7FNGC3NKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

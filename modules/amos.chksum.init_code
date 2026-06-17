@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = amos.chksum.init_code
+# descr = initialize AMOS7 nested checksum command namespace
+
+<[base.perlmod.load]>->(qw| AMOS7::CHKSUM::Nested |);
+
+## register nested checksum commands under the amos.chksum namespace ##
+foreach my $cmd_suffix (qw| nest verify-nested parse-nested |) {
+    my $sub_name = sprintf qw| amos.chksum.cmd.%s |, $cmd_suffix;
+    next if not exists $code{$sub_name};
+
+    <base.cmd>->{ sprintf qw| amos.chksum.%s |, $cmd_suffix } = $sub_name;
+}
+
+## move amos.chksum.cmd.* subroutines into the amos.chksum namespace ##
+<[base.swap_subs]>->(qw| amos.chksum.cmd amos.chksum |);
+
+## remove stale short command names left by auto-registration ##
+foreach my $stale_cmd (qw| nest verify-nested parse-nested |) {
+    delete <base.cmd>->{$stale_cmd}
+        if exists <base.cmd>->{$stale_cmd}
+        and <base.cmd>->{$stale_cmd} =~ m|^amos\.chksum\.|;
+}
+
+## alias amos.chksum.verify to amos.chksum.verify-nested ##
+if ( exists $code{'amos.chksum.verify-nested'} ) {
+    $code{'amos.chksum.verify'} = $code{'amos.chksum.verify-nested'};
+    <base.cmd>->{'amos.chksum.verify'} = qw| amos.chksum.verify-nested |;
+}
+
+0;
+
+#,,..,..,,,.,,..,,,..,,..,...,,,.,,,.,...,.,,,..,,...,...,.,.,...,,.,,.,.,...,
+#JNBTECFFDDUICTMG2XJAKULG2UZVAYGTUV6IJVSRPL6W2ZVNM67WON7ECR7MGAFQH5QZEQAU4GPEC
+#\\\|N5K2TQ7QYY7BYF7Y6CV5KFVSX6STJT4TNXQFTOOKHED6XRPSGOG \ / AMOS7 \ YOURUM ::
+#\[7]RVBPFHBSORWIRN3RNFUY65C4T7XOH2VSQMCJOX26XAO4AH4ZT4CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

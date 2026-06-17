@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = amos.chksum.cmd.verify-nested
+# descr = verify nested checksum notation against parent and name
+# param = <[child:parent]> <parent-chksum> <child-name>
+
+my $args = $call->{'args'} // '';
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected notation, parent-chksum and child-name'
+    }
+    if not length $args;
+
+my @parts = split( / +/, $args, 3 );
+return {
+    'mode' => qw| false |,
+    'data' => 'expected notation, parent-chksum and child-name'
+    }
+    if @parts < 3;
+
+my ( $notation, $parent_chksum, $child_name ) = @parts;
+
+my $result = AMOS7::CHKSUM::Nested::verify_nesting( $notation, $parent_chksum,
+    $child_name );
+
+return {
+    'mode' => $result ? qw| true | : qw| false |,
+    'data' => $result ? qw| TRUE | : qw| FALSE |
+};
+
+#,,.,,,.,,.,.,...,..,,,,.,,.,,..,,...,..,,...,..,,...,...,.,,,,,,,.,,,,,.,.,.,
+#JT5JGV5PGLQRTNJKIKBZWQNK3YIF5PRYS3FOE6HNY3Q6JWKVTZBVHCAPJZ2XWUACH65G3TJXJZV5M
+#\\\|GFUFJ4C54LHY2BDOL5S3PUSDHCXVAPEMTKVTH3BL2JQ7Q3EBKVI \ / AMOS7 \ YOURUM ::
+#\[7]Q6WS7IXEKSRD7GQUY4C3SJMMBDVBHHYTPXBASMFCARS53PYDHMDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

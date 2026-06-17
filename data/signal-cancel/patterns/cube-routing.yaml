@@ -1,0 +1,30 @@
+category: cube-routing
+description: cube zenka route/session lifecycle and command routing events
+patterns:
+  - name: route-command-log
+    regex: '\[\d+\] \S+ \.\.:\. \S+ \.\.:\. \S+( \[M=\d+\])?'
+    entropy: low
+  - name: network-command-log
+    regex: ':network: \S+ \.\.:\. \S+ \.\.:\. \S+'
+    entropy: low
+  - name: route-create
+    regex: 'setting up route'
+    entropy: low
+  - name: ondemand-request
+    regex: "ondemand zenka '[^']+' requested"
+    entropy: low
+  - name: dependency-enable
+    regex: 'zenka enabled by dependency \[[^\]]+\]'
+    entropy: low
+  - name: outgoing-nexthop
+    regex: "outgoing : nexthop : '[^']+' command : '[^']+'"
+    entropy: low
+  - name: session-uninitialized
+    regex: 'session not initialized'
+    entropy: low
+  - name: refusal-type
+    regex: "\[\d+\] :\. refusal type : [^\.]+ \.:"
+    entropy: low
+  - name: route-added
+    regex: ': route added'
+    entropy: low
