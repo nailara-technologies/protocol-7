@@ -6,7 +6,7 @@ save the current index to disk and restore on startup — avoiding full re-feed
 after restart. save the raw corpus data; derived structures rebuild from it.
 
 signatures_note: do NOT attempt to sign any files — only the repo owner can
-sign via `p7.sourcecode update-signatures`.
+sign via `v7.sourcecode update-signatures`.
 
 ---
 
@@ -164,8 +164,8 @@ add `index.persist index.restore` to
 - the storable file will be ~10-50MB for a full data/md corpus
 - index.init_code already loads the path config before this runs
 
-#,,..,,..,.,.,.,.,.,.,...,,,,,..,,,..,.,,,,,.,..,,...,...,.,,,,,.,,..,...,,..,
-#MLCCJN3ZOTR2TMOGTONB74T7T7CZIMBODQRD4KKAWKCTBWZAW6KRTZ5BER6ISA6HTFPKYJSQ3HKOE
-#\\\|DMUTDR57PLG6UTPR6MPRC23LHJMOYPPMKUSQLHNDLGZ3GHXXMFB \ / AMOS7 \ YOURUM ::
-#\[7]EMAXXETF66XUBWITBCAKLK6BK53SF45C45KKMJOM34CCJAHFF2AQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,,,,..,,..,,,,.,,,.,,,.,...,,,.,..,,...,...,..,,,..,.,.,.,,,..,,
+#IMTK7JNK3EY63SX6UDPKEHY3RIOXRHJF3QE6TJK2BPL663KBTDNIPWTGIURCJRDMW2TUXBXDSKKTE
+#\\\|OGTX6YYAOA4RKZOGQVKIO7MZPVFXV5SZBJJ5QYFUC7JKP6HKW25 \ / AMOS7 \ YOURUM ::
+#\[7]ELWD7PFVCLE6WRKHNJMRBSN2657N5OVJC6JEMJAZL5F3BA5PGKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

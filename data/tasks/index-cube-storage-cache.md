@@ -10,7 +10,7 @@ structure; the mmap'd bytes remain forever.
 design reference: `data/md/design/INDEX-CUBE-STORAGE.md`
 
 signatures_note: do NOT attempt to sign any files — only the repo owner can
-sign via `p7.sourcecode update-signatures`.
+sign via `v7.sourcecode update-signatures`.
 
 ---
 
@@ -151,8 +151,8 @@ return { 'mode' => 'size', 'data' => join("\n", @lines) . "\n" };
 - the LRU list stores only `(depth, rank)` tuples — the actual compartment
   data lives in `<index.cube.loaded>`. this keeps the eviction metadata small.
 
-#,,..,,.,,.,,,...,...,.,.,.,.,...,...,,.,,,.,,..,,...,..,,.,.,.,.,,.,,,,,,..,,
-#KIVYGVI3YLKVHAPTVWIY5UQHEDNEAKSCR6NUSHGDKERCRJ36HMKY2RALLIWD5ORJT4W5XV3WKDWA6
-#\\\|AAKZDBZ26F7RSMNQEBVND2WYVQNNHGQOFIO7RNPIU54TMIBIB4V \ / AMOS7 \ YOURUM ::
-#\[7]F7TTBSYCJSQCR7IPAR4AMZ5PQESNGUN5BFH2VLY43OQ34JD5UGCY 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,..,.,.,,,,,...,.,.,,,,,...,,,,,..,,...,...,...,,.,,,..,,,,,.,.,
+#MO3X46KG2IPKRPJFTUUL6SQABOSGV3FUEPV2JKKD6T5ATNP6Q2LL5FC3WXDWVRN4IEL2AMOAWYPYG
+#\\\|5JAXJI4SEQE7LHG6IXD75D5GAXGK4JLR3J6ITAVJUUSJCNEOIUH \ / AMOS7 \ YOURUM ::
+#\[7]232QZRVBY35422QUJ7XXYSAH2S22XNMXDM54T7K7DY2WF5LEMQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

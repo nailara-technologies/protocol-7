@@ -10,7 +10,7 @@ content version contributed to the trie.
 design reference: `data/md/design/INDEX-CORPUS-VERSIONING.md`
 
 signatures_note: do NOT attempt to sign any files — only the repo owner can
-sign via `p7.sourcecode update-signatures`.
+sign via `v7.sourcecode update-signatures`.
 
 ---
 
@@ -149,8 +149,8 @@ return { 'mode' => 'size', 'data' => join("\n", @lines) . "\n" };
   be rebuilt from scratch by re-feeding with the new instrumented ingest;
   or populated lazily on next replacement/removal operation
 
-#,,,,,,,,,,.,,,,.,,,.,.,,,.,,,,,.,.,,,,..,,,,,.,.,...,...,,,,,.,.,.,.,.,.,,.,,
-#5JLNWKPDFHJSMSG3VPHCGLWXH3RAZK3IKMBCAJLPLMZJGKMOMZ63CBKWJTBNGU5BTEPRMHK6CRDPA
-#\\\|JESTYKI4QKGWYEEEIRTK6O7HSYNJPUBRLJBN3SPZWFCCEFR5L3V \ / AMOS7 \ YOURUM ::
-#\[7]MVY2WQZCGCCBHDR76JB75L3KMXMBUYZMRF7Q4MJFR3FBAAS6FYAY 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,,,,..,,..,,,,.,.,,,.,.,...,,.,,.,.,...,...,...,,,.,,..,...,,,,,
+#RBNS3KYSQKGDRBMRBAMRIKEFUHTH3TYDLPNDKIZNJQZ5ZN526SPCNHXBKD7BD6BLI35C7VCU552O2
+#\\\|WX3XQ6SH3IY6OTCD7FZKHB46HBWQSATLBI2INQUDN4CBNIPNMX4 \ / AMOS7 \ YOURUM ::
+#\[7]WCUKHFHYR4GBDKNZWNRRMPQXMLV2WTZ5VTY3FUULZ4B4XEKNIICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
