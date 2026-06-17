@@ -7,6 +7,26 @@ metadata:
   originSessionId: 56cce73a-933a-4992-96e4-4d88e138e8f6
 ---
 
+## done (2026-06-17)
+
+- **tile kiosk-mode stop_display_zenki disabled** ✓ — commented out
+  `tile.startup.stop_zenki`, `tile.startup.restart_zenki`, and
+  `[tile.stop_display_zenki]` in `configuration/zenki/tile/start`; mpv
+  and display zenki survive tile restart cleanly
+- **X-11.get_pointer_scr_rect rename** ✓ — was `get_pointer_monitor_rect`
+  (24 chars, too long for 23-char protocol limit); renamed + cube/access.zenki
+  updated; window.geometry.resolve uses it for pointer-monitor fallback
+- **27 reasoning templates batch** ✓ (`d1ed02aad`) — Opus dispatch session
+  produced: FOUR-VISUAL-DOMAINS.md, HARMONIC-SILENCE.md (incl. active
+  cancellation as sensing event horizon), THE-VIEW-FROM-OUTSIDE.md;
+  templates: fossil-record, resonance-before-recognition,
+  template-distribution-economics, key-tree-authority-field (namespace as
+  C25519 key-tree + self-authorizing antenna + cancellation library),
+  ring-key-routing (shared ring keys, self-removing layers, center-blind
+  computation, tree+ring = full authority+routing topology); expansions to
+  synesthetic-space, DREAM-EMBEDDING-LAYER, HYPERSPACE-RAMJET-SIGNATURE,
+  SPATIAL-AUDIO-AND-PURR-CHANNEL, LLM-EXOSKELETON-INTEGRATION
+
 ## done (2026-06-16, cont.)
 
 - **nshell.shell_loop `$cube_sid` fix** ✓ — credential-fabric UI block was
@@ -324,8 +344,8 @@ what it should actually invoke.
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,,.,..,,,..,.,.,,.,,.,.,..,,..,,,.,,...,,..,..,,...,..,,,.,,.,.,...,.,.,..,,
-#GCZ3EEFO7J3HOCCLAZWV3EFERUFA7Q5XK5C7G6UF77I623LFO6IBXM3KF352CGENQ35UTH3SR4E2Q
-#\\\|O5Y2DTYWKZTMARGJWKFGWRZ4SIXZLYRVNTDIOS5IZR57STZ3VSI \ / AMOS7 \ YOURUM ::
-#\[7]OHTARDMSPUHCTABZSN7C5IQVBYVUDCQZASTZCMJ7GE7IOPBE46AI 7  DATA SIGNATURE ::
+#,,..,...,,.,,,,.,.,.,...,,.,,,..,.,.,,,.,,,.,..,,...,...,..,,...,,,.,,..,.,.,
+#3Q7BSLY6FRLV7ET5OK6V3OTKEBPT4XRRNI6KBZJWOXLAAEXCUFB2ACILFDLZRVMCQHUTZSGNM7F44
+#\\\|7RWW4MM424KOE6UL3VI5FBAARLDNC2OE7T3WLPKJ2CALYUNYKOX \ / AMOS7 \ YOURUM ::
+#\[7]P2AHMXNZ6N4HE6Z5LM5PZ7BRKSZGBGPGCQRHWKGPXXX4XEYQGIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
