@@ -1,0 +1,34 @@
+
+ .:[ 'ncode' source-code command zenka ]:.
+
+[load_config_file:'shared-params']
+system.access.wildcards.allow = false
+
+access.cmd.usr.cube = commands heart verify-instance \
+                      list show-buffer get_url reload \
+                      child.cur-pid
+
+access.cmd.usr.parent = commands show-buffer cur-pid
+
+access.cmd.usr.child = cube.v7.notify_online cube.p7-log.append
+
+modules.load = auth net protocol io.unix ui ncode.init_code \
+               ncode.util.run_cmd \
+               ncode.cmd.search ncode.cmd.replace \
+               ncode.cmd.parse-headers ncode.cmd.format-code \
+               ncode.cmd.sign ncode.cmd.sign-batch \
+               ncode.cmd.diff ncode.cmd.diff-staged ncode.cmd.doc
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+
+[zenka.loop]
+
+#,,.,,,.,,,.,,,..,,,.,.,.,.,,,,.,,,,.,.,.,,,.,.,.,...,...,.,,,...,,,,,,..,,..,
+#HNGCYKMPZTJCBVCPFGINTLOQ3ZWLI5YQBDTZR7SLXMQWC6EZWURQAHQ55USLVB2JODRQ4F33N7GE4
+#\\\|QBT77WUAQ5NIGR47V23U3LPNJZDF4QHKU4VSH2HXT5L6HNVDBRJ \ / AMOS7 \ YOURUM ::
+#\[7]QM6P6E22WE2I6OTI2DNGA7BYQ7LDAFFJ4FA3QFYD6H7A27MMJSDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

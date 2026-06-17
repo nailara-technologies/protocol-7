@@ -1,0 +1,72 @@
+## [:< ##
+
+# name  = signal.cancel.cmd.scan-baseline
+# param = [baseline file path]
+# descr = scan baseline file and report cancellation stats
+
+my $args = $call->{'args'} // '';
+
+my $baseline_path = '';
+
+if ( length $args ) {
+    $baseline_path = $args;
+    $baseline_path = <system.root_path> . '/' . $baseline_path
+        if $baseline_path !~ m|^/|;
+} else {
+    my $baseline_dir = <system.root_path> . '/data/signal-cancel/baseline';
+    my @files        = sort grep { -f $_ }
+        @{ <[base.file.glob]>->( $baseline_dir . '/*.log' ) // [] };
+    $baseline_path = $files[-1] // '';
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => 'no baseline file found or specified'
+    }
+    if not length $baseline_path
+    or not -f $baseline_path;
+
+my $content = <[base.file.read]>->($baseline_path);
+return {
+    'mode' => qw| false |,
+    'data' => 'could not read baseline file'
+    }
+    if not defined $content;
+
+my @lines = split( m|\n|, $content );
+my ( $total, $matched ) = ( 0, 0 );
+my @unmatched_samples;
+
+foreach my $line (@lines) {
+    next if not length $line;
+    $total++;
+    my $result = <[signal.cancel.match]>->($line);
+    if ( $result->{'matched'} ) {
+        $matched++;
+    } else {
+        push @unmatched_samples, $line
+            if @unmatched_samples < 20;
+    }
+}
+
+my $unmatched = $total - $matched;
+
+my $report = sprintf "total lines: %d\nmatched: %d\nunmatched: %d\n",
+    $total, $matched, $unmatched;
+
+if (@unmatched_samples) {
+    $report .= "unmatched sample (up to 20):
+"
+        . join( "\n", map { sprintf '  %s', $_ } @unmatched_samples ) . "\n";
+}
+
+return {
+    'mode' => qw| size |,
+    'data' => $report
+};
+
+#,,..,.,.,.,.,,..,,,,,...,,..,..,,..,,,,,,,..,.,.,...,...,,.,,...,.,,,.,,,...,
+#TY4JLGXPPI6GFMB35T24E4R4ZTMGE33TNHAHBI5XBWY2HD5SOIYVFXJERBBIVHGC2FZNN3RQSEH7S
+#\\\|AZX2N3H4TDMTP2SXZF52UZYHY6PMZOSLP3QK467K6OWYW4VDT5Q \ / AMOS7 \ YOURUM ::
+#\[7]V575J4B5D37DTINKXSN37YCTECOBMS7YPRCP6V3HYNQNQMOCKIBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

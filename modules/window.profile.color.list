@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = window.profile.color.list
+# descr = list available color themes [ global + zenka-local, local wins ]
+
+my %seen;
+my @themes;
+
+## zenka-local first [ takes precedence on dedup ] ##
+my $zenkaname      = <system.zenka.name>;
+my $zenka_dir_href = <system.path.zenka-dirs>;
+my $local_dir      = catfile $zenka_dir_href->{'var_P7'}, $zenkaname,
+    'color-theme';
+
+if ( -d $local_dir and -r $local_dir ) {
+    if ( opendir my $dh, $local_dir ) {
+        while ( my $entry = readdir $dh ) {
+            next if $entry !~ m|^(.+)\.yaml$|;
+            my $name = $1;
+            next if exists $seen{$name};
+            $seen{$name} = TRUE;
+            push @themes, $name;
+        }
+        closedir $dh;
+    }
+}
+
+## global built-in themes ##
+my $global_dir = sprintf '%s/data/color-themes', <system.root_path>;
+
+if ( -d $global_dir and -r $global_dir ) {
+    if ( opendir my $dh, $global_dir ) {
+        while ( my $entry = readdir $dh ) {
+            next if $entry !~ m|^(.+)\.yaml$|;
+            my $name = $1;
+            next if exists $seen{$name};
+            $seen{$name} = TRUE;
+            push @themes, $name;
+        }
+        closedir $dh;
+    }
+}
+
+@themes = sort @themes;
+
+<[base.logs]>->( 1, '[color.list] found %d color theme[s]', scalar @themes );
+
+return \@themes;
+
+#,,..,,,,,.,.,,.,,.,.,...,...,...,,,.,...,,..,..,,...,...,..,,.,,,,,,,.,,,...,
+#RMGPYUPWOKYXF45ND52H4EW3SQRVYYYJGBBLYYLGXZYSQ37CZBBJ6CP7ULZNWEYLGO5BQZ75CEFI4
+#\\\|3ZD4UPDUJESTEWVHWWX7F3O5DMZOEWPAITJIICZTJRESR6DQQPU \ / AMOS7 \ YOURUM ::
+#\[7]Z2SGZ3P2RFEXJ5KBOB6CC5VW2YFKTMDP27OXX6BU2FOUCPBH3GCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -21,10 +21,11 @@ access.cmd.usr.cube = name commands heart subname reload verify-instance play \
                       get-speed set-speed get-volume set-volume show-buffer \
                       start_autoskip stop_autoskip autoskip_interval loop pos \
                       current-hwdec current-vo current-ao drop_buffers fade \
-                      buffer-erase buffer-erase-level cur-pid  ##  *
+                      buffer-erase buffer-erase-level cur-pid \
+                      src-ver src-age  ##  *
 
 modules.load = auth net protocol io.unix io.ip ui set-up.json chk-sum mpv \
-              window.profile window.geometry
+              window.profile window.profile.color window.geometry
 [load_modules:<modules.load>]
 
 mpv.network.skip_proxy = yes      ## ignore proxy variables from %ENV ? ##
@@ -41,16 +42,15 @@ mpv.rescale_max_width = 720   # <-- max. limit of ffmpeg reencoding video size
 mpv.cleanup_rescaled_after = 8 # days [removes converted videos if not played.,]
 mpv.resume_timeout = 8         # 'universal'-child resume timeout [ in seconds ]
 
-  mpv.fade_idle_volume = 0
-# mpv.fade_idle_volume = 1  # silence / fade-in on mpv player 'core-idle' state
+# mpv.fade_idle_volume = 0
+mpv.fade_idle_volume   = 1  # silence / fade-in on mpv player 'core-idle' state
 
 mpv.audio.fade_speed = 24 # <-- audio volume fade speed [ 0..100 ]  [default]
 mpv.start_volume  = 77 # % <-- volume at startup ; fading to after 'core-idle'
 
 mpv.vo_backend = gpu#,sdl # [gpu-hq|gpu|sdl|...]   [ see mpv -vo help for list ]
-# mpv.hwdec    = auto     # [no|auto|gpu|...]   [ ..more with mpv --hwdec=help ]
-
-mpv.hwdec = nvdec
+mpv.hwdec = auto         # [no|auto|nvdec|...]  [ ..more with mpv --hwdec=help ]
+# mpv.hwdec = nvdec      # nvdec blacks out without x11egl [ needs cuda+egl ]
 mpv.ao = pulse,sdl
 
 [set_env:'PULSE_SERVER','tcp:10.0.110.7']  ## <-- current local config [improve]
@@ -60,8 +60,8 @@ mpv.xmode.nxagent.vo = sdl
 
 mpv.playlist_type = video # <-- changed to audio if started with 'audio' subname
 
-mpv.fade_start_geom = 1x1--0--0 ## opening window size to hide X11-flickering ..
-#mpv.fade_start_geom = 31x31--0--0 # use this if above geometry fails at startup
+mpv.fade_start_geom = 31x31--0--0 ## opening window size to hide X11-flickering ..
+# mpv.fade_start_geom = 1x1--0--0  # 1x1 freezes EGL surface at 1px [ x11egl ]
 
 [init_modules]
 
@@ -77,13 +77,71 @@ mpv.preset = wsl-pulse   ##  <--  <kiosk|linux|wsl-nv-sdl|wsl-nv-pusle|...>
 
 # mpv.params = [mpv.retrieve_params:<mpv.preset>] ## [LLL] implement ..,.
 
-mpv.params =  -idle -force-window -keep-open=yes \ #<mpv.loop_plist_param> \
-              -no-config -vo=gpu \ # --no-window-dragging --no-border \
-              -no-border -ytdl-format=hls-1058 -ao=<mpv.ao> -gpu-api=opengl \
-              -hwdec=nvdec -gpu-context=x11egl -ao=<mpv.ao> \
+mpv.idle_logo_script = <system.root_path>/configuration/zenki/mpv/lua/p7-idle-logo.lua
+mpv.osc_script       = <system.root_path>/configuration/zenki/mpv/lua/p7-osc.lua
+mpv.idle_logo_image  = <system.root_path>/data/gfx/logos/nailara.jpg
+mpv.idle_logo_text   = .:mpv.play:.
+
+## load p7-blue color theme [ provides defaults for roles below ] ##
+[window.profile.color.load:'p7-blue']
+
+## idle logo text style [ p7 purple + deep cobalt glow ] ##
+mpv.idle_text_color         = 4427AC   # p7 accent purple
+mpv.idle_text_outline_color = 001EBB   # deep cobalt outline
+mpv.idle_text_shadow_color  = 000208   # near-black
+
+## OSC color theme — p7 blacklight blue [ passed to Lua for '#' prefixing ] ##
+mpv.osc_bg_color      = 000510   # near-black with blue cast
+mpv.osc_boxalpha      = 45       # semi-opaque [ 0=opaque 255=clear ]
+mpv.osc_time_color    = 002FDD   # deep cobalt — timecode
+mpv.osc_title_color   = 001AC4   # dark cobalt — title
+mpv.osc_timepos_color = 003AFF   # cobalt — position marker
+mpv.osc_btn_color     = 001EBB   # cobalt blue — main buttons
+mpv.osc_sbtnL_color   = C58D07   # gold — warm contrast accent
+mpv.osc_sbtnR_color   = C58D07   # gold — warm contrast accent
+mpv.osc_topbtn_color  = 000EA0   # very dark blue — top buttons
+mpv.osc_held_color    = 05082A   # near-black blue — held state
+mpv.osc_outline_color = 000208   # near-black outline
+mpv.osc_layout        = topbar   # topbar centers title at top of window
+
+## native OSD colors [ arrow-key seek bar, status text ] ##
+mpv.osd_color      = 002FDD   # deep cobalt - seek bar fill + OSD text
+mpv.osd_back_color = 000510   # near-black - seek bar background
+
+mpv.script_opts = osc-idlescreen=no,\
+   p7_idle-logo_image=<mpv.idle_logo_image>,\
+   p7_idle-logo_text=<mpv.idle_logo_text>,\
+   p7_idle-text_color=<mpv.idle_text_color>,\
+   p7_idle-text_outline_color=<mpv.idle_text_outline_color>,\
+   p7_idle-text_shadow_color=<mpv.idle_text_shadow_color>,\
+   p7_idle-osc_bg=<mpv.osc_bg_color>,\
+   p7_idle-osc_boxalpha=<mpv.osc_boxalpha>,\
+   p7_idle-osc_timecode=<mpv.osc_time_color>,\
+   p7_idle-osc_title=<mpv.osc_title_color>,\
+   p7_idle-osc_timepos=<mpv.osc_timepos_color>,\
+   p7_idle-osc_btn=<mpv.osc_btn_color>,\
+   p7_idle-osc_sbtnL=<mpv.osc_sbtnL_color>,\
+   p7_idle-osc_sbtnR=<mpv.osc_sbtnR_color>,\
+   p7_idle-osc_topbtn=<mpv.osc_topbtn_color>,\
+   p7_idle-osc_held=<mpv.osc_held_color>,\
+   p7_idle-osc_outline=<mpv.osc_outline_color>,\
+   p7_idle-osc_layout=<mpv.osc_layout>,\
+   p7_idle-osd_color=<mpv.osd_color>,\
+   p7_idle-osd_back_color=<mpv.osd_back_color>
+
+mpv.params = -idle -force-window -keep-open=yes \
+             -no-config -vo=<mpv.vo_backend> \
+             -no-border -ao=<mpv.ao> -gpu-api=opengl \
+             -hwdec=<mpv.hwdec> -gpu-context=x11egl \
+             -audio-client-name=mpv-wsl \
+             -ytdl-format=hls-1058 \
+             --no-osc \
+             --script=<mpv.idle_logo_script> \
+             --script=<mpv.osc_script> \
+             --script-opts=<mpv.script_opts>
+
 ##            --ytdl-raw-options='--cookies=/data/video/cookies.yt'
               # -audio-wait-open=3.0 \
-              -audio-client-name=mpv-wsl
               # --no-input-terminal --no-input-cursor --input-vo-keyboard
 
 mpv.audio_params = -vo null -ao=<mpv.ao> --idle=yes <mpv.loop_plist_param> \
@@ -110,8 +168,8 @@ mpv.geometry = [window.geometry.resolve]
 
 [zenka.loop]
 
-#,,,.,.,.,.,.,...,.,,,,.,,,.,,,.,,,.,,.,.,,,,,..,,...,...,.,,,,..,.,,,,.,,,,.,
-#WF7K4DD3Q7VKDF4VLQSYBPWP5D6XJ6XIQTD27LQXXUZFYCKABHUY4OID6W6AO7GJF33NNS7HCT6PG
-#\\\|VZINPOY4ALFGGVNB4FL3OFRXJPIMM2E5RVVBWTQO7UODIZLBH5R \ / AMOS7 \ YOURUM ::
-#\[7]D7XJV3QKYGC54BA4S6AIEASVS5YZ2RGSEJFGYFUQ4ZKL75B6JMAQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,.,,,..,,.,.,,..,.,.,,,.,,,.,...,..,,...,...,..,,,.,,...,,,,,..,,
+#GC3CUVNUTDD343Z3ZOBWU36SBOE3DPPHVCHVAHKQUKFKOJT3BI2OV6QWEWO2CR6BFR6W7WPUSLM5Q
+#\\\|DTTSZPEML2JIO3IUXPRFK7O4RT6JVTKDJ6BSZHNN6PN4DLAMSEV \ / AMOS7 \ YOURUM ::
+#\[7]I2XBYXZNHLKM7TNRQHTSLBX7U5PYGXBWQ4X4534DOHIPNVM25CDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

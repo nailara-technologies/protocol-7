@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = ncode.cmd.diff
+# descr = show git diff for a file against a ref
+
+my $call_args = $ARG                 // {};
+my $args      = $call_args->{'args'} // '';
+
+my @parts = split m|\s+|, $args;
+
+return { 'mode' => qw| false |, 'data' => 'usage: diff <file> [ref]' }
+    if @parts < 1;
+
+my $file = shift @parts;
+my $ref  = shift @parts // qw| HEAD |;
+
+my @cmd = ( qw| git diff |, $ref, qw| -- |, $file );
+
+my $output = $code{'ncode.util.run_cmd'}->(@cmd);
+
+return { 'mode' => qw| size |, 'data' => $output };
+
+#,,,,,,..,.,.,.,,,.,.,,,.,,..,,,.,,,,,,,.,.,.,.,.,...,...,,..,.,,,,,,,,.,,,.,,
+#CJDNEYS6VYLWAOCD25OTHXS7YIWRIQ7HEENZGN6JAKESGF5O2NZVSBCHL2NYE2PAFEF3TUL7TDYRK
+#\\\|FBRM4P6APCE5TYSBQGT34YA7VWBOMBHZH2D7LTAK5CTXM7VQAEC \ / AMOS7 \ YOURUM ::
+#\[7]C35I7ZXOMS2PHCH6TDY2CIBXREDG5QJE5V6UXMXMSPTVBZWEJWBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
