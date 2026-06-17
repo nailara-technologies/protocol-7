@@ -1,0 +1,76 @@
+## [:< ##
+
+# name  = window.profile.color.apply
+# descr = apply color theme [ by name or hashref ] and populate shorthand keys
+
+my $arg = shift;
+
+unless ( defined $arg ) {
+    <[base.s_warn]>->(
+        'theme name or hashref required for color.apply <{C1}>', ''
+    );
+    return FALSE;
+}
+
+my $zenkaname = <system.zenka.name>;
+my $colors_href;
+my $theme_name;
+
+if ( ref $arg eq qw| HASH | ) {
+
+    ## direct hashref [ either { colors => {..} } or flat role => hex ] ##
+    if ( ref $arg->{'colors'} eq qw| HASH | ) {
+        $colors_href = $arg->{'colors'};
+        $theme_name  = $arg->{'name'} // '<inline>';
+    } else {
+        $colors_href = $arg;
+        $theme_name  = '<inline>';
+    }
+
+    ## populate the loaded-theme registry [ mirror color.load behavior ] ##
+    $data{$zenkaname}{'color'}{'theme'}{'name'} = $theme_name;
+    delete $data{$zenkaname}{'color'}{'theme'}{'colors'};
+    foreach my $role ( keys %{$colors_href} ) {
+        my $hex = $colors_href->{$role};
+        next if not defined $hex;
+        $hex =~ s|^#||;
+        $data{$zenkaname}{'color'}{'theme'}{'colors'}{$role} = $hex;
+    }
+    $colors_href = $data{$zenkaname}{'color'}{'theme'}{'colors'};
+
+} elsif ( not ref $arg and length $arg ) {
+
+    my $loaded = <[window.profile.color.load]>->($arg);
+    if ( not defined $loaded ) {
+        <[base.s_warn]>->(
+            'color.apply: theme load failed [ %s ] <{C1}>', $arg
+        );
+        return FALSE;
+    }
+    $colors_href = $loaded->{'colors'};
+    $theme_name  = $loaded->{'name'};
+
+} else {
+    <[base.s_warn]>->(
+        'color.apply: argument must be theme name or hashref <{C1}>', ''
+    );
+    return FALSE;
+}
+
+## populate shorthand <{zenka}.color.*> keys ##
+foreach my $role ( keys %{$colors_href} ) {
+    $data{$zenkaname}{'color'}{$role} = $colors_href->{$role};
+}
+
+<[base.logs]>->(
+    1,           '[color.apply] applied theme [%s] [ %d roles ]',
+    $theme_name, scalar keys %{$colors_href}
+);
+
+return TRUE;
+
+#,,.,,..,,..,,,,.,,,.,..,,,,.,.,,,...,.,,,..,,..,,...,...,,,.,.,,,..,,,..,..,,
+#GJYYGZAH6GPKMBN3JRF6XDTEJJBCYRBHCJL55R4TVO7VMVZ26H5VRWFPMSHRGNAQPUIVWMWY7MYXU
+#\\\|JQ2KFC2VBKTCMZ5ZY5HP357QSOHW525JRC2GV3RPQURXZSEFYWH \ / AMOS7 \ YOURUM ::
+#\[7]6NNNWV7UR4IRUCNGRQP5WRA6S3TREJZW5FOES77ODIXQJHUABYDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

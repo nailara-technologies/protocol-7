@@ -1,0 +1,81 @@
+## [:< ##
+
+# name  = window.profile.color.save
+# descr = save named color theme to zenka-local yaml
+
+<[base.perlmod.load]>->( 'YAML::XS', qw| Dump | );
+
+my ( $theme_name, $colors_href ) = @ARG;
+
+unless ( defined $theme_name and length $theme_name ) {
+    <[base.s_warn]>->( 'theme name required for color.save <{C1}>', '' );
+    return FALSE;
+}
+
+if ( $theme_name =~ m|[/\.\s]| ) {
+    <[base.s_warn]>->(
+        'invalid theme name [ contains separators or whitespace ] <{C1}>',
+        $theme_name
+    );
+    return FALSE;
+}
+
+unless ( ref $colors_href eq qw| HASH | and keys %{$colors_href} ) {
+    <[base.s_warn]>->(
+        'colors hashref [ non-empty ] required for color.save <{C1}>',
+        $theme_name
+    );
+    return FALSE;
+}
+
+## normalize : strip leading # and lowercase keys ##
+my %clean_colors;
+foreach my $role ( keys %{$colors_href} ) {
+    my $hex = $colors_href->{$role};
+    next if not defined $hex;
+    $hex =~ s|^#||;
+    $clean_colors{$role} = $hex;
+}
+
+my $yaml_data = {
+    'name'     => $theme_name,
+    'colors'   => \%clean_colors,
+    'metadata' => { 'saved_at' => <[base.time]>->(3) }
+};
+
+my $yaml_content;
+eval { $yaml_content = Dump($yaml_data); };
+if ($EVAL_ERROR) {
+    <[base.s_warn]>->(
+        'YAML serialization failed: <{C1}>',
+        <[base.str.eval_error]>
+    );
+    return FALSE;
+}
+
+my $rel_path = sprintf 'color-theme/%s.yaml', $theme_name;
+
+my $bytes_written = <[file.zenka_dir.write]>->(
+    $rel_path, \$yaml_content, '>', 0600, ':utf8'
+);
+
+unless ( defined $bytes_written ) {
+    <[base.s_warn]>->(
+        'failed to write color theme YAML [ %s ] <{C1}>',
+        $rel_path, $theme_name
+    );
+    return FALSE;
+}
+
+<[base.logs]>->(
+    1,           '[color.save] saved theme [%s] [bytes:%d]',
+    $theme_name, $bytes_written
+);
+
+return TRUE;
+
+#,,,,,...,...,,.,,...,...,,,.,,,.,,.,,,..,..,,..,,...,...,.,.,,..,.,,,,,,,,,,,
+#MHML2LPDDZ6FJTWJIB65M5JVU6EZ6CG45R7UZQSDFE4EHE6V4PFZAMQINUT5FWA3CI45CKIPHSJJK
+#\\\|IENW3UKQQPHAHLWO3LBK4USKSONFP4RXC7R6H2DHTXL32MDCPZT \ / AMOS7 \ YOURUM ::
+#\[7]NHCA52B3YYFWX53N6K47CTOWX3DCU2CBUHJSXMBWYMUN3DJRWGCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

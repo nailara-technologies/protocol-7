@@ -1,0 +1,92 @@
+## [:< ##
+
+# name  = signal.cancel.load
+# descr = load and compile signal cancellation pattern library
+
+my $force_reload = $ARG[0] // 0;
+
+return $data{'signal'}{'cancel'}{'library'}
+    if not $force_reload
+    and ref( $data{'signal'}{'cancel'}{'library'} ) eq qw| HASH |
+    and exists $data{'signal'}{'cancel'}{'library'}{'compiled'};
+
+<[base.perlmod.load]>->('YAML::XS')
+    if not <[base.perlmod.loaded]>->('YAML::XS');
+
+my $pattern_dir = <system.root_path> . '/data/signal-cancel/patterns';
+my @pattern_files
+    = sort @{ <[base.file.glob]>->( $pattern_dir . '/*.yaml' ) // [] };
+
+my $library = {
+    'loaded_at'   => <[base.time]>->(5),
+    'pattern_dir' => $pattern_dir,
+    'categories'  => {},
+    'compiled'    => []
+};
+
+my $loaded_count = 0;
+
+foreach my $file_path (@pattern_files) {
+    my $yaml_text = <[base.file.read]>->($file_path);
+    next if not defined $yaml_text;
+
+    my $doc = eval { YAML::XS::Load($yaml_text) };
+    if ( $@ or ref $doc ne qw| HASH | ) {
+        <[base.logs]>->(
+            0, 'signal.cancel.load: failed to parse %s', $file_path
+        );
+        next;
+    }
+
+    my $category = $doc->{'category'} // '';
+    next if not length $category;
+
+    $library->{'categories'}{$category} = {
+        'description' => $doc->{'description'} // '',
+        'patterns'    => []
+    };
+
+    foreach my $pattern ( @{ $doc->{'patterns'} // [] } ) {
+        next if ref $pattern ne qw| HASH |;
+
+        my $name  = $pattern->{'name'}  // '';
+        my $regex = $pattern->{'regex'} // '';
+        next if not length $name or not length $regex;
+
+        my $compiled = <[base.eval.comp_regex]>->($regex);
+        if ( not defined $compiled ) {
+            <[base.logs]>->(
+                0, 'signal.cancel.load: invalid regex in %s pattern %s',
+                $category, $name
+            );
+            next;
+        }
+
+        my $entry = {
+            'category' => $category,
+            'name'     => $name,
+            'regex'    => $regex,
+            'entropy'  => $pattern->{'entropy'} // qw| low |,
+            'compiled' => $compiled
+        };
+
+        push $library->{'categories'}{$category}{'patterns'}->@*, $entry;
+        push $library->{'compiled'}->@*,                          $entry;
+        $loaded_count++;
+    }
+}
+
+$data{'signal'}{'cancel'}{'library'} = $library;
+
+<[base.logs]>->(
+    2, 'signal.cancel.load: loaded %d patterns from %d categories',
+    $loaded_count, scalar keys %{ $library->{'categories'} }
+);
+
+return $loaded_count;
+
+#,,,.,..,,..,,...,.,.,,..,,,.,.,.,.,,,,,.,.,,,.,.,...,...,,..,,,.,,,.,,.,,.,.,
+#6N3KQIZROE75FDSMAC4GEK3TOOVDMKFLMCSMOFOMVEG7WECIRWHXEDK6GISTHSUWBOL52VXJ42TTY
+#\\\|M5MWCMJTBRPADKZS65DZBRPIRJ3QDT4IXRE4HSUB7INEKD6WPFZ \ / AMOS7 \ YOURUM ::
+#\[7]SJTQNEFSJ4IBY3EH6BCPTUXG42IPO3UTTOVCI5TKXMODKLTNBUAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

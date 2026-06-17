@@ -1014,7 +1014,30 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 } else {    ## insufficient access permissions ##
 
-    $output->$* .= <[base.sprint_t]>->( qw| AUJWOPY |, $cmd_id_str, $cmd );
+    ##  contextual reply for '.cmd.' in routed command names  ##
+    if ( index( $cmd, qw| .cmd. | ) >= 0
+        and not defined $data{'base'}{'cmd'}{$cmd} ) {
+
+        if ( exists $data{'diag'}{'cmd_anomalies'}{$cmd} ) {
+            my $reason = $data{'diag'}{'cmd_anomalies'}{$cmd};
+            $output->$* .= <[base.sprint_t]>->(
+                qw| MALFORMED_CMD |,
+                $cmd_id_str, $cmd, $reason
+            );
+        } else {
+            ( my $corrected_cmd = $cmd ) =~ s|\.cmd\.|.|g;
+            $output->$* .= <[base.sprint_t]>->(
+                qw| CMD_HAS_DOT |,
+                $cmd_id_str, $corrected_cmd
+            );
+        }
+
+    } else {
+
+        $output->$*
+            .= <[base.sprint_t]>->( qw| AUJWOPY |, $cmd_id_str, $cmd );
+    }
+
     <[base.logt]>->( 0, qw| VSY5TBA |, $id, $user, $cmd ); ##  no perm. .., ##
     <[base.logs]>->(
         2,   '[%d] :. refusal type : %s .:',
@@ -1029,8 +1052,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,..,...,..,,,.,,,,,,,,,,,.,,,..,...,.,,,,,.,..,,...,...,...,..,,.,,,,,.,...,
-#UZXWAKLQYODC7ZEH6EGMZSJZLBLMJ3NXFZH4HRAKL2ANBHQZX5ZX3DGXKG5S34TAIAUISNUKRXL7E
-#\\\|Q77TFLR3354BVRE3DFJVBC5EJAJUST7JI5WKXY7NURRRQSHYN6E \ / AMOS7 \ YOURUM ::
-#\[7]JGX5EBRCG6VM5JBQJT5NC5TD3J5GJSTJDBOA2XRXIGBH5LB6MMCI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,...,,,,,.,.,,,,,,.,,,..,...,,,,,..,,...,..,,..,,,.,,.,.,.,.,,,,,
+#22S7EDBTPJKCTYXC2PRBUWSBNB3X6AYXCPTCIH223KJNWHSBGZ6R6ZQEPEQPW7C73OOQWTORJBBBU
+#\\\|JXNBKNPGJZPRY4LDUPH7YB4EPBY7MEEEEB3JS7Z3POLB5BRZVGL \ / AMOS7 \ YOURUM ::
+#\[7]ZT3R5HFTWOM3DQOLYXFU4GQ3FGUNLL3CGFCL73OT67IQU5FVCQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

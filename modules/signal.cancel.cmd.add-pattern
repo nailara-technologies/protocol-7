@@ -1,0 +1,134 @@
+## [:< ##
+
+# name  = signal.cancel.cmd.add-pattern
+# param = <category> <name> <regex>  or  <category.name> <regex>
+# descr = append a regex pattern to a cancellation category file
+
+my $args = $call->{'args'} // '';
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected category, pattern name and regex'
+    }
+    if not length $args;
+
+my @parts = split( m| +|, $args, 3 );
+my ( $category, $pattern_name, $regex );
+
+if ( @parts == 3 ) {
+    ( $category, $pattern_name, $regex ) = @parts;
+} elsif ( @parts == 2 ) {
+    my $label = $parts[0];
+    $regex = $parts[1];
+    if ( $label =~ m|^([a-z0-9_-]+)\.([a-z0-9_.-]+)$| ) {
+        $category     = $1;
+        $pattern_name = $2;
+    } else {
+        return {
+            'mode' => qw| false |,
+            'data' => 'label must be category.name'
+        };
+    }
+} else {
+    return {
+        'mode' => qw| false |,
+        'data' => 'expected category, name and regex'
+    };
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => 'invalid category name'
+    }
+    if $category !~ m|^[a-z0-9_-]+$|;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'invalid pattern name'
+    }
+    if $pattern_name !~ m|^[a-z0-9_.-]+$|;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'empty regex'
+    }
+    if not length $regex;
+
+my $compiled = <[base.eval.comp_regex]>->($regex);
+return {
+    'mode' => qw| false |,
+    'data' => 'regex did not compile'
+    }
+    if not defined $compiled;
+
+my $pattern_dir  = <system.root_path> . '/data/signal-cancel/patterns';
+my $pattern_file = $pattern_dir . '/' . $category . '.yaml';
+my $new_file     = not -f $pattern_file;
+
+if ( not $new_file ) {
+    my $existing = <[base.file.read]>->($pattern_file);
+    if ( defined $existing and length $existing ) {
+        my $doc = eval { YAML::XS::Load($existing) };
+        if ( !$@ and ref $doc eq qw| HASH | ) {
+            foreach my $p ( @{ $doc->{'patterns'} // [] } ) {
+                next if ref $p ne qw| HASH |;
+                if ( ( $p->{'name'} // '' ) eq $pattern_name ) {
+                    return {
+                        'mode' => qw| false |,
+                        'data' => 'pattern name already exists in category'
+                    };
+                }
+            }
+        }
+    }
+}
+
+my $regex_yaml;
+if ( index( $regex, q|'| ) == -1 ) {
+    $regex_yaml = sprintf q|'%s'|, $regex;
+} else {
+    my $escaped = $regex;
+    $escaped =~ s|\\|\\\\|g;
+    $escaped =~ s|"|\\"|g;
+    $regex_yaml = sprintf q|"%s"|, $escaped;
+}
+
+my $entry_lines;
+if ($new_file) {
+    $entry_lines
+        = sprintf(
+        "category: %s\ndescription: user added patterns\npatterns:\n  - name: %s\n    regex: %s\n    entropy: low\n",
+        $category, $pattern_name, $regex_yaml );
+} else {
+    $entry_lines = sprintf( "  - name: %s\n    regex: %s\n    entropy: low\n",
+        $pattern_name, $regex_yaml );
+}
+
+my $write_result;
+if ($new_file) {
+    $write_result = <[base.file.write]>->( $pattern_file, $entry_lines );
+} else {
+    $write_result
+        = <[base.file.append]>->( $pattern_file, "\n" . $entry_lines );
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => 'failed to write pattern file'
+    }
+    if not $write_result;
+
+## invalidate cached library so the new pattern is picked up ##
+delete $data{'signal'}{'cancel'}{'library'};
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf 'added %s.%s',
+    $category, $pattern_name
+};
+
+#,,,.,.,.,,,.,,,,,.,,,.,,,.,.,,,.,,,,,.,,,.,.,.,.,...,...,,,.,,,,,,..,,,,,.,,,
+#2JYK6VEYTMNIEJZFG3SA43QII6VVULN5CCEWDN6UFOE6ZPRFAXW266XGKN52AKQOKXOVRMVWA4KGQ
+#\\\|6FQEIAE4KDFP5M5HQLJDEU2PNJJBVSNAI7QW43VZZZJPE6KTRSQ \ / AMOS7 \ YOURUM ::
+#\[7]3XFUBANDLKJUZXUWG7QSAH2GMZHPVT3BF77KHPG46C3V5V7RDCBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
