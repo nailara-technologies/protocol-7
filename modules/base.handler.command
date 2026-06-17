@@ -623,7 +623,8 @@ if (   $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$,
 
     ### local command ###
 
-    if ( $cmd =~ $re->{'cmd'} ) {
+    if ( $cmd =~ $re->{'cmd'}
+        or defined $data{'base'}{'cmd'}{$cmd} ) {
 
         if ( defined $data{'base'}{'cmd'}{$cmd} ) {
             if ( defined $code{ $data{'base'}{'cmd'}{$cmd} } ) {
@@ -1028,8 +1029,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,,.,,,,,,,.,..,,,,,,,.,,..,,..,,.,.,,,.,..,,..,,...,...,,..,,,.,,.,,.,.,.,,,
-#PORXDYX77BCOYAVBUPP6CL6BY356462E3OPMQK6LCDRR6ABG4PQ342JCRZRLO2M5XG3HLE3TVMKY6
-#\\\|5Z6PFBRL5F5BDRV6USSK6WTQWK62FL6WIGKLHBLQG3S6JJZPQ5V \ / AMOS7 \ YOURUM ::
-#\[7]775M5DM4BZWUBEUA5RSC5ZRLNF7L7RFIBRSYAF7C3XPCTC7RG6AA 7  DATA SIGNATURE ::
+#,,..,...,..,,,.,,,,,,,,,,,.,,,..,...,.,,,,,.,..,,...,...,...,..,,.,,,,,.,...,
+#UZXWAKLQYODC7ZEH6EGMZSJZLBLMJ3NXFZH4HRAKL2ANBHQZX5ZX3DGXKG5S34TAIAUISNUKRXL7E
+#\\\|Q77TFLR3354BVRE3DFJVBC5EJAJUST7JI5WKXY7NURRRQSHYN6E \ / AMOS7 \ YOURUM ::
+#\[7]JGX5EBRCG6VM5JBQJT5NC5TD3J5GJSTJDBOA2XRXIGBH5LB6MMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

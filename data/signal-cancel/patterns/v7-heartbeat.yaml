@@ -1,0 +1,18 @@
+category: v7-heartbeat
+description: v7 zenka heartbeat send/receive/timeout events
+patterns:
+  - name: heartbeat-response-timeout
+    regex: 'instance \d+ \[ [^\]]+ \] response timeout'
+    entropy: low
+  - name: heartbeat-timeout-adjust
+    regex: 'increased [^\[]+ heartbeat response timeout to [\d.]+ s \[ verbosity \]'
+    entropy: low
+  - name: heartbeat-timer-cancel
+    regex: '\[\d+\] instance gone - stopping status-timer'
+    entropy: low
+  - name: heartbeat-retry
+    regex: 'retrying [\.]+'
+    entropy: low
+  - name: heartbeat-status-timer
+    regex: ': cancelled instance \d+ timer \[ heartbeat-\w+ \]'
+    entropy: low

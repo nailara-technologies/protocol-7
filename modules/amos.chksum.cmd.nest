@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = amos.chksum.cmd.nest
+# descr = compute nested AMOS checksum [parent-chksum child-name]
+# param = <parent-chksum> <child-name>
+
+my $args = $call->{'args'} // '';
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected parent-chksum and child-name'
+    }
+    if not length $args;
+
+my @parts = split( / +/, $args, 2 );
+return {
+    'mode' => qw| false |,
+    'data' => 'expected parent-chksum and child-name'
+    }
+    if @parts < 2;
+
+my ( $parent_chksum, $child_name ) = @parts;
+
+my $child_chksum
+    = AMOS7::CHKSUM::Nested::child_chksum( $parent_chksum, $child_name );
+
+return {
+    'mode' => qw| false |,
+    'data' => 'failed to compute nested checksum'
+    }
+    if not defined $child_chksum;
+
+return {
+    'mode' => qw| true |,
+    'data' =>
+        AMOS7::CHKSUM::Nested::format_nested( $child_chksum, $parent_chksum )
+};
+
+#,,..,,,,,,.,,.,.,.,,,.,.,...,,,,,.,,,,,,,.,,,..,,...,...,..,,..,,.,.,,.,,..,,
+#2TVDNDJOJNIQCGEPHTNTLC36BHEZNMIZ3R4NQMKHXE4PJ6QTG6ZLZ7Q26DGIYUG3MEXVY5KMZDKQE
+#\\\|T4XYQ25EE262DKUZFCQYFVD4JLHSMTZC6SO6NBAZ7KVR6CYUTYS \ / AMOS7 \ YOURUM ::
+#\[7]I3AOFYKO2PPVR3AZ7VS5DBL367N4MXTR7GSQNR3XTYFAEGFIIWBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
