@@ -27,11 +27,12 @@
 - [Deferred Init](feedback-deferred-init.md) — push onto system.callbacks.initialized
 - [Timer Args](feedback-timer-module-args.md) — timer modules get event as $ARG[0]; use `@ARG > 1`
 - [config reload clobber](feedback-config-reload-clobber.md) — placeholder `key=val` in start config gets re-applied by `reload config/all`, silently overwriting runtime-resolved values; debug via on-disk zenka log not ring buffer
+- [route-send command format](feedback-route-send-command-format.md) — route-send uses bare `X-11.wait_visible` (no cube. prefix); cube.X-11.xxx is send.local only; mixing these causes "no perm" from cube
 
 ## Active Topics
 - [zenka-naming-cleanup](topic-zenka-naming-cleanup.md) — cred-mesh + window-place renames landed; pattern for spotting/fixing more underscore/dotted zenka names; tile-groups->tile LANDED 2026-06-15 (82e65f2d6); command-name cleanup pass LANDED (switch-group, reset-group, base-group, show-groups, count)
 - [ondemand-heartbeat-upgrade](topic-ondemand-heartbeat-upgrade.md) — tile set up on-demand+heartbeat-enabled+no-timeout as test case; two v7 follow-ups identified (exclude heartbeats from idle timer; pre-exit termination notification)
-- [mpv-jobqueue-startup](topic-mpv-jobqueue-startup.md) — async startup state machine LANDED 2026-06-18; dep chain fork_player→finalize; send_command no longer exit(2); deferred command queue; open: snapshot/restore + visual curves + player restart job
+- [mpv-jobqueue-startup](topic-mpv-jobqueue-startup.md) — placement flow + geometry enforcement LANDED 2026-06-18; Weston ignores --geometry offset: fixed via X-11.wait_visible→set_geometry after socket ready; open: snapshot/restore + monitor registry
 - [mpv-persistence](topic-mpv-persistence.md) — planned: full state snapshot + visual curve automation + cross-mapped parameter routing; restore via deferred send_command queue
 - [x11-multi-server](topic-x11-multi-server.md) — X-11 multi-server jobqueue arch LANDED 2026-06-18; display registry keyed by display str; x11_display_flag dep type; host-mode timing bug fixed; tile display-awareness; xvfb cmds open
 - [tile-window-place-hybrid-desktop](topic-tile-window-place-hybrid-desktop.md) — window-place multi-window UNBLOCKED & landed 2026-06-15 (9c899f360, 68dec757b); resident after commit/cancel, 70% centering, multi-monitor fix; tile-as-relay next
@@ -172,8 +173,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,..,,,.,,,,,.,,,.,,,,.,,,,.,.,.,.,.,,..,...,..,,...,...,,,,,..,,.,.,.,,,.,.,
-#PFNCEJP4HZYARIKWDP5DDBD7VPJFTHFR3CC76EWCFNDEEBMUZQZJH2LJTAUYYI46X7KBJUHJD6HP4
-#\\\|QZFCRMJO7LVJYADUZTWEB3KNDFXPXA2EJO773NP5PTZVMMS7IQK \ / AMOS7 \ YOURUM ::
-#\[7]2F4BHSG4UUAKO6WJ6GSFHTZWJE7YBBKYSX22EHVPHT4ZMDI67IBY 7  DATA SIGNATURE ::
+#,,..,,,.,,..,.,.,,.,,,,,,,,,,.,,,...,...,.,,,..,,...,...,...,..,,,.,,,,.,,,,,
+#JJ72YWDQM4RUDDWQK323BIDEMAO5QARYD4FCJDUDWLTR3IJVU366RS6SAW43BYGAN4SVQYHUW2B3Q
+#\\\|QBLVCZUUVSYRQRWAH47HTUONDM36RWGLM2RSZKIM2UJTR6DD3YQ \ / AMOS7 \ YOURUM ::
+#\[7]3LSARLHOHXG35UIHZYCQWVHF5WDPYRRPYIUASFWB6WGJJBZGDSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
