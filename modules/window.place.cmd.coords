@@ -80,14 +80,33 @@ if ( defined $base_saved ) {
         'profile' => 'saved',
     };
 } else {
-    $geo = <[window.profile.calculate]>->(
-        {   'profile'  => 'center',
-            'screen_x' => $screen_geom->{'x'} // 0,
-            'screen_y' => $screen_geom->{'y'} // 0,
-            'screen_w' => $screen_geom->{'width'},
-            'screen_h' => $screen_geom->{'height'},
-        }
-    );
+    ## per-caller configured initial geometry overrides auto-detect ##
+    my $cfg_geo_str = $data{'window'}{'place'}{'initial_geometry'}{$caller};
+    if ( defined $cfg_geo_str
+        and $cfg_geo_str =~ m|^(\d+)x(\d+)\+(-?\d+)\+(-?\d+)$| ) {
+        $geo = {
+            'width'   => $1 + 0,
+            'height'  => $2 + 0,
+            'x'       => $3 + 0,
+            'y'       => $4 + 0,
+            'profile' => 'configured',
+        };
+        <[base.logs]>->(
+            1,
+            '[place.coords] id=%s caller=%s : using configured initial geometry',
+            $id,
+            $caller
+        );
+    } else {
+        $geo = <[window.profile.calculate]>->(
+            {   'profile'  => 'center',
+                'screen_x' => $screen_geom->{'x'} // 0,
+                'screen_y' => $screen_geom->{'y'} // 0,
+                'screen_w' => $screen_geom->{'width'},
+                'screen_h' => $screen_geom->{'height'},
+            }
+        );
+    }
 }
 
 <[event.add_timer]>->(
@@ -101,8 +120,8 @@ if ( defined $base_saved ) {
 
 return { 'mode' => qw|deferred| };
 
-#,,.,,..,,,,.,,.,,..,,,..,,..,.,,,...,..,,,.,,..,,...,...,..,,...,..,,...,.,,,
-#MKLB6SHVXGTGLGYZQ34LMGJG5T3WFRFNNV2J5PGJSJI5M2TFW32YKEBNPIQQD5OHTO2MCLXZNERGA
-#\\\|QVOUY5ENYHF44ACUNMFR3HS356V3Z6YRBN3RVKAJ2IN6RRDNHAQ \ / AMOS7 \ YOURUM ::
-#\[7]ONYG2TOGGPLJUIR5GJURMRKBYR3CVAJYU4JGCOT5BECBUKFD54AQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,,,.,.,.,...,.,.,...,.,.,,,,,,..,..,,...,...,.,.,,.,,.,.,,..,..,,
+#UN4J7OPZJYXFEIAQ364A7EWWYTUHVMX67WWTHVGIVTYQUWO4ZECD42NAM2YF7EJJTLAAQFYAIHAL4
+#\\\|74TH3WTV2E6V5MTTAO3NC5IIDQD4QOIVM726F7JLLVLD5CEGB64 \ / AMOS7 \ YOURUM ::
+#\[7]RX27WYJXCBJWCE7A7SKPUXLZ74CBBQB4ZF55FHBSUJDX6Y4WPUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
