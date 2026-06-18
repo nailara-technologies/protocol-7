@@ -1,0 +1,94 @@
+## [:< ##
+
+# name  = X-11.cmd.xvfb-start
+# param = <display_num> <width> <height> [depth=24]
+# descr = start an xvfb instance on the given display
+
+my @args
+    = ref( $call->{'args'} ) eq qw| ARRAY |
+    ? $call->{'args'}->@*
+    : split( m| +|, $call->{'args'} );
+
+my ( $display_num, $width, $height, $depth ) = @args;
+$depth //= 24;
+
+return { 'mode' => qw| false |, 'data' => 'display number required' }
+    if not defined $display_num;
+return { 'mode' => qw| false |, 'data' => 'width and height required' }
+    if not defined $width or not defined $height;
+return { 'mode' => qw| false |, 'data' => 'invalid display number' }
+    if $display_num !~ m|^\d+$|;
+return { 'mode' => qw| false |, 'data' => 'invalid geometry values' }
+    if grep { not defined $_ or $_ !~ m|^\d+$| or $_ == 0 }
+    ( $width, $height, $depth );
+
+my $display_str = sprintf qw| :%s |, $display_num;
+
+if (    defined <X-11.servers>->{$display_str}
+    and defined <X-11.servers>->{$display_str}->{'pid'} ) {
+    my $stored_pid = <X-11.servers>->{$display_str}->{'pid'};
+    if ( kill 0, $stored_pid ) {
+        return {
+            'mode' => qw| false |,
+            'data' => sprintf(
+                'xvfb %s already running [ pid %d ]',
+                $display_str, $stored_pid
+            )
+        };
+    }
+}
+
+my $xvfb_bin = <X-11.bin_path>->{'Xvfb'};
+return { 'mode' => qw| false |, 'data' => 'Xvfb binary not found' }
+    if not defined $xvfb_bin;
+
+## register server entry and its dependency object ##
+<X-11.servers>->{$display_str} //= {};
+my $server = <X-11.servers>->{$display_str};
+$server->{'mode'}     = qw| xvfb |;
+$server->{'display'}  = $display_str;
+$server->{'bin_name'} = qw| Xvfb |;
+
+my $dep_id = <[dependency.add_object]>
+    ->( { 'type' => 'x11_display_flag', 'display' => $display_str } );
+<[dependency.add]>->( $dep_id, $dep_id );
+$server->{'dep_id'} = $dep_id;
+
+my $params_str = sprintf '-screen 0 %dx%dx%d', $width, $height, $depth;
+
+## queue start and finalize jobs against this display's own dependency ##
+<[jobqueue.add_job]>->(
+    {   'name'            => "X-11 start server $display_str",
+        'job_callback'    => qw| X-11.job.start_server |,
+        'object_id'       => $dep_id,
+        'callback_params' => {
+            'display'  => $display_str,
+            'mode'     => qw| xvfb |,
+            'params'   => $params_str,
+            'bin_name' => qw| Xvfb |,
+            'primary'  => FALSE
+        }
+    }
+);
+
+<[jobqueue.add_job]>->(
+    {   'name'            => "X-11 finalize server $display_str",
+        'job_callback'    => qw| X-11.job.finalize_server |,
+        'object_id'       => $dep_id,
+        'callback_params' => {
+            'display' => $display_str,
+            'primary' => FALSE
+        }
+    }
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => $display_str
+};
+
+#,,,.,,..,.,.,,,.,...,...,.,,,.,.,,..,,,.,,..,..,,...,...,.,.,,..,,..,,..,..,,
+#64CJLG5VVRGZLAAPAH6TZGQL5TMRBHM6HM27C3KTV4DAW33ZDOJWCNODVHK5RY2ZZR2PDRJAMKA52
+#\\\|B3TEU7USDCAAENIO3UMUBQUUHGIU6DHYRHIENNWHZNKW4CO4V45 \ / AMOS7 \ YOURUM ::
+#\[7]UAESTOHT2JEKXPGSASPCDVB5OVWHUCGXCMIUQUWBBE2EDAXCSUDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

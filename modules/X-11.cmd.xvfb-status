@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = X-11.cmd.xvfb-status
+# param = [display_num]
+# descr = report status of one or all known xvfb instances
+
+my @args
+    = ref( $call->{'args'} ) eq qw| ARRAY |
+    ? $call->{'args'}->@*
+    : split( m| +|, $call->{'args'} );
+
+my @displays;
+if ( @args and defined $args[0] and length $args[0] ) {
+    my $display_num = $args[0];
+    return { 'mode' => qw| false |, 'data' => 'invalid display number' }
+        if $display_num !~ m|^\d+$|;
+    push @displays, $display_num;
+} else {
+    @displays = sort { $a <=> $b }
+        keys %{ $data{'X-11'}{'xvfb'}{'pid'} // {} };
+}
+
+return { 'mode' => qw| true |, 'data' => 'no xvfb instances known' }
+    if @displays == 0;
+
+my @rows;
+foreach my $display_num (@displays) {
+    my $pid    = $data{'X-11'}{'xvfb'}{'pid'}{$display_num};
+    my $status = ( defined $pid and kill 0, $pid ) ? 'running' : 'stopped';
+    push @rows, sprintf( ":%s\t%d\t%s", $display_num, $pid // 0, $status );
+}
+
+return { 'mode' => qw| size |, 'data' => join( "\n", @rows ) };
+
+#,,,.,,..,,.,,,..,,..,,,.,,.,,...,.,,,...,,..,..,,...,...,,..,,..,,.,,.,.,,.,,
+#NNC64TBHQVE6AI4CAPXROYRLVUYZITLT5JJ64FYNJJIGXJBVE5DF6RAQ6QLDHWDDZYZELN5DVEIF4
+#\\\|HANKSMKZGE7WCW53M7IOPOIHRMYHWYMTXJZHT72HRLN6MTMJWKM \ / AMOS7 \ YOURUM ::
+#\[7]SOPN7QVDOMI52MF7NOBBJCXMIZHUT3GDZWIWE7RALG5C5YHBZIBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
