@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = mpv.cmd.reposition
+# descr = clear profile, reposition player via window-place ui
+
+my $caller = <mpv.startup.caller> // <system.zenka.name> // 'mpv';
+
+## clear local mpv profile first ##
+<[window.profile.delete]>->($caller);
+
+## clear window-place's copy of the profile ##
+<[protocol-7.route-send]>->(
+    {   'command'   => 'window-place.clear-profile',
+        'call_args' => { 'args' => sprintf 'caller=%s', $caller }
+    }
+);
+
+## request new coords — opens placement ui ##
+<[protocol-7.route-send]>->(
+    {   'command'   => 'window-place.coords',
+        'call_args' => { 'args'    => sprintf 'caller=%s', $caller },
+        'reply'     => { 'handler' => 'mpv.handler.reposition_reply' }
+    }
+);
+
+return {
+    'mode' => 'true',
+    'data' => sprintf( 'repositioning requested [caller=%s]', $caller )
+};
+
+#,,..,.,.,,.,,.,,,,,.,,,.,,,.,...,,,.,,,.,,,,,..,,...,.,.,..,,,..,,,.,..,,..,,
+#HR2HX25XRA5S2HBVG5NKNGNRU6VDI2LETXDQ27EELSZA5UXCWOA2FBWUMXP4AZHRKCF7M4NBO2736
+#\\\|RO2T5FACBFFHPYUAOAITQZ7MEBGOUEUEAN6VN5NVPVP4E4LRUNN \ / AMOS7 \ YOURUM ::
+#\[7]JSMTNOOGGZJI5XNF3EIVAGQP25UVWJALKZ4BTE7MUX5CIKGRGOBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

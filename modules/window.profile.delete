@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = window.profile.delete
+# param = caller name
+# descr = delete saved window position for caller from zenka-local yaml
+
+my $caller = shift;
+
+unless ( defined $caller and length $caller ) {
+    <[base.s_warn]>->( 'caller required for delete <{C1}>', '' );
+    return undef;
+}
+
+my $caller_chksum = <[chk-sum.amos]>->($caller);
+my $position_path = sprintf 'window/position.%s.yaml', $caller_chksum;
+
+my $deleted = <[base.file.zenka_dir.unlink_file]>->( $position_path, TRUE );
+
+if ( defined $deleted ) {
+    <[base.logs]>->( 1, '[profile.delete] removed [%s]', $position_path );
+    return TRUE;
+} else {
+    <[base.logs]>->( 1, '[profile.delete] not found [%s]', $position_path );
+    return FALSE;
+}
+
+#,,,.,,..,.,,,,..,,,.,,.,,,,,,,.,,..,,.,.,.,.,..,,...,..,,,..,,,,,...,,.,,,,.,
+#EUXSWPTR3ABQBHKDLQE4M2IOKW325LPRRJOQVCJWNXLB45IGWCMY33LKKJI2EW7557NDKHA4GIGEK
+#\\\|OYPIH3UHH74CWNY6VT3GAIXNMIOIE4GHFQKAVN2OR7G3K45DVHS \ / AMOS7 \ YOURUM ::
+#\[7]BZNJ3BV3KYDDF5XKABUAPWSZTZTZ6KY2D4OZOULNZOZAQ47SBIBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
