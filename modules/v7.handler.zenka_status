@@ -324,6 +324,19 @@ $target_queue = 'queued'  if $status eq qw|offline| or $status eq qw|restart|;
 <[jobqueue.move_job]>->( $instance->{'job_id'}, $target_queue )
     if defined $target_queue and $target_queue ne qw| queued |;
 
+# send set-initialized before notify_online replies to avoid race
+if (    defined $instance->{'cube_sid'}
+    and $old_status ne qw| online |
+    and $status eq qw| online | ) {
+    my $root_sid = $instance->{'root_sid'};
+    my $cube_sid = $instance->{'cube_sid'};
+    <[protocol-7.command.send.local]>->(
+        {   'command'   => sprintf( qw| %d.set-initialized |, $root_sid ),
+            'call_args' => { 'args' => $cube_sid }
+        }
+    );
+}
+
 # replying to startup notification requests.,
 
 my @check_keys
@@ -509,19 +522,6 @@ if ( $old_status ne qw| online | and $status eq qw| online | ) { # LLL extbin?
     # cleaning up temporary zenka instance start-up data
     delete $instance->{'init_data'};
 
-    # setting cube session to 'initialized'
-    if (    defined $instance->{'cube_sid'}
-        and $old_status ne qw| online |
-        and $status eq qw| online | ) {
-        my $root_sid = $instance->{'root_sid'};
-        my $cube_sid = $instance->{'cube_sid'};
-        <[protocol-7.command.send.local]>->(
-            {   'command'   => sprintf( qw| %d.set-initialized |, $root_sid ),
-                'call_args' => { 'args' => $cube_sid }
-            }
-        );
-    }
-
     # starting next delayed zenka of the same name ..,
     foreach my $id ( <[zenka.instance.get_ids]>->($zenka_id)->@* ) {
         next
@@ -550,8 +550,8 @@ if ( $old_status ne qw| online | and $status eq qw| online | ) { # LLL extbin?
 
 <[jobqueue.check_dependencies]>;
 
-#,,..,...,.,.,,,,,,,,,...,,.,,,,,,.,.,.,,,.,.,..,,...,...,...,,,.,..,,.,,,,.,,
-#FLULMMNSNXDV4GBZBVWBEIQ6BPQB6CWDD2J6QONLWZII6BDCYA3PFYTYRG7YEFLOPBDX5XRQGBARA
-#\\\|ZUKIQAMTHC5A55GGUIDQ3YQEBKKACQOCIT5CNXDHKIVVO463E64 \ / AMOS7 \ YOURUM ::
-#\[7]BTL35O673B5YXQ5E2UPCWSJSE4BUQQHZOTLKHCO3EBH2DDAITGAA 7  DATA SIGNATURE ::
+#,,..,..,,,,.,..,,,.,,..,,,,.,,,,,.,,,.,,,.,.,..,,...,...,,.,,.,,,,,.,,,,,.,.,
+#IZELHOJTNVNPDFAWQY5IYDW7ZWUAGRDWAJPC7EIZNXOGBZKE7LVJT5IS4CEOGU7WR5OFWMJ3OZGBY
+#\\\|WWUKVQ3MNERRQTCZFSYPQ2SIYAUV7FX4I6GSTGRKK7BQN3WRNO7 \ / AMOS7 \ YOURUM ::
+#\[7]HW3QZWGHENJHKLE4PPMRGFAYASDBNMKY7PVQ7ECXZHUJQ2GSTODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
