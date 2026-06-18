@@ -69,6 +69,20 @@ sections:
       - qw| true | for boolean success
       - qw| deferred | for async results
 
+      ### special case: deferred / async replies ###
+
+      a `qw| deferred |` return means "i will reply later".  the event loop stays
+      alive, the route id is remembered, and the real data is sent once it has been
+      collected.  therefore a deferred return must be exactly:
+
+      ```perl
+      return { 'mode' => qw| deferred | };
+      ```
+
+      do NOT add a `'data'` key to a deferred return — the later reply carries the
+      data.  also do not turn a deferred return into `qw| true |` just to satisfy
+      the mode+data rule.
+
       flag any bare returns: `return;` or `return $string;`
 
       ### 4. default args: always // '' ###
@@ -106,8 +120,8 @@ on_complete:
     action: memory_update
     topic: "fix:cmd-style"
 
-#,,,.,...,.,.,..,,,,,,,..,...,.,,,..,,,..,,..,..,,...,...,.,.,..,,,.,,..,,,.,,
-#YUZMR4YWAUWJEZFTWH3HPN5F4GTAQ4GIMYYJ7DH5373NALYSQHUSOXEZGTHMCNLGYRUBOMJYJ3W4C
-#\\\|5AZEM2MAXWHOOULSSZCRZHUX4FZSWJSND3YOLJW4RWQ73EC4FEN \ / AMOS7 \ YOURUM ::
-#\[7]ZUSZ3AADXKYBQDNWZCQMYJH43YWVV23HJH57LSRPOHQNOWBJCABY 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,..,,..,,,,,.,.,,,,,..,,,..,,,,,..,,...,...,..,,..,,,.,,,.,,...,
+#YFYT4VJUAI5PX2TRXO547CXGVICUI67WGHXLOBMQX4IRINCYQUN4MIJWITXEA23TIM47YXOO2FKCA
+#\\\|U7WBB4HDHX65ICMUOXRJNNLSPMWMUP47P7E32D2KUUTJXCKYSJE \ / AMOS7 \ YOURUM ::
+#\[7]VDJJIYBU4CIB7MSSPERIR7XZQK6PT553T6CWYZYB5DP7XVXI5QBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,7 +4,7 @@
 # param = <y-offset>
 # descr = vertical video position [-1..1]
 
-my $offset = $call->{'args'};
+my $offset = $call->{'args'} // '';
 
 return {
     'mode' => qw| false |,
@@ -24,10 +24,10 @@ if ( $offset == 0 ) {
 
 <[mpv.send_command]>->( 'set_property_string', 'video-align-y', "$offset" );
 
-return { 'mode' => 'deferred' };
+return { 'mode' => qw| deferred | };
 
-#,,,.,,.,,,.,,.,,,...,,,,,..,,,,.,,.,,,..,,.,,..,,...,...,..,,.,,,.,,,..,,.,.,
-#MQZIAGVUFLMGH2YBRXS3ZPXNJXNYI6XX4UZJ4RV6KOOZJLA4TX5CBM3KSBWO2LGKVCTJHIMKSBZSM
-#\\\|B6MDIRAXA5NS3RQQ6H47CSRQJ6EBTMVV53STCUE3BFNA4UUXPWH \ / AMOS7 \ YOURUM ::
-#\[7]62PVWSMALCBYCOEESA7PWOG3CPHF7RSZGH3A6B7EPLE33P2BQEDI 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,..,.,.,,.,,,,,,..,,,,,,.,,,.,.,..,,...,..,,.,,,,.,,,..,,,.,,.,,
+#BAZNHI3FRHN7ORXIYW72NDJVUEFARUDS2GIAFRHBMUTXL2WPRPBSFX4ZU4YMZS4ZI523WH5HCXZ76
+#\\\|53JGE3SZK6KE2DOJQ5ENXXYLZRIAJNUPFK7H6WBPBTZ5XHDV5I4 \ / AMOS7 \ YOURUM ::
+#\[7]7OUPBE3C5TJDG2KIJA7RQF6KP56R77CGODCHHGJQRODFGJGLJOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

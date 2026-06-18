@@ -1,0 +1,19 @@
+## [:< ##
+
+# name  = mpv.callback.object.mpv_flag
+# descr = dep callback: resolves TRUE when the named data key is defined
+
+my $obj_id = shift                          // return FALSE;
+my $obj    = <dependency.object>->{$obj_id} // return FALSE;
+my @keys   = split /\./, ( $obj->{'flag_key'} // '' );
+return FALSE if not @keys;
+
+my $val = $data{ shift @keys };
+$val = $val->{ shift @keys } while @keys and ref $val eq 'HASH';
+return defined $val ? TRUE : FALSE;
+
+#,,..,,.,,...,..,,,..,,.,,.,.,...,.,.,.,,,,.,,.,.,...,...,..,,...,.,.,...,,,,,
+#3VAMEYW23F3S2QXUHVJGC4IKJQH5FC7TUECSCRBJU3UGHPHHRN7VAGS726C4CZ63QOMHUWVQHML6K
+#\\\|NPN2S2YUYM33TN5ONDU3MJINAB7JBNEJZPWY2KG5FBDIRNBQX4H \ / AMOS7 \ YOURUM ::
+#\[7]4FXVBQIUVB2NFEUQTN5DYPB3WZYQ37YOLDAR7CYZXOK57P4L4WDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = mpv.job.deferred_send_command
+# descr = send a buffered mpv ipc command once the socket dep resolves
+
+my $job = shift                         // {};
+my $cmd = $job->{'params'}->{'command'} // return;
+
+if ( not defined <mpv.socket> ) {
+    <[base.log]>->( 0, '[deferred_send_command] socket still unavailable' );
+    return;
+}
+
+<[base.s_write]>->( <mpv.socket>, $cmd );
+
+#,,,.,..,,.,,,.,.,,..,,,,,,,.,...,,,,,..,,.,.,.,.,...,...,,..,..,,,.,,,.,,,.,,
+#E4DV4H3G5ACNTB2EJ6AZTU7DWKP326LO5BSK5774P2OONTFYBFRSYAKAFF7P22NISJLJV5KSAUCNK
+#\\\|BQ6XOMZT6OMLJIQKLDXKFLXLZIYJDMOSBOWMIYZDAR5GIXL3CUJ \ / AMOS7 \ YOURUM ::
+#\[7]ZHGH7QUDR4H4RALIDIJ6YFGX6SYDTKJHDJHDOHJUMEINEQ4ELIBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,10 +3,10 @@
 # name  = mpv.cmd.change_subname
 # descr = change zenka subname [and fetch new playlist]
 
-my $new_subname = $call->{'args'};
+my $new_subname = $call->{'args'} // '';
 
 return { 'mode' => qw| false |, 'data' => 'subname parameter expected' }
-    if not defined $new_subname or !length($new_subname);
+    if !length($new_subname);
 return {
     'mode' => qw| false |,
     'data' => 'subnames identical - no changes'
@@ -25,8 +25,8 @@ return {
     'data' => 'subname changed, playlist reloaded'
     }
 
-#,,..,,..,,,,,.,.,,.,,,,.,,.,,.,,,,..,,..,.,,,..,,...,...,...,,,,,,,,,,..,...,
-#HT6V3ERCO6RESN7LOYGUTV5BEATH5YHKJOUE4LR7CQQNPM7YXWRVZ2RRUY3V4E65HIFJWL2HMI566
-#\\\|6LAZUH567JY77WIAJI5PTB5QP55ERU6DZCUIIU7BDZUXDZTMSLR \ / AMOS7 \ YOURUM ::
-#\[7]35AMCTEQJSXO6LAAZD2NHBAVDDVQD4JRYVA53DGG2QAE5RS6PUAY 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,.,.,,,,,,,.,,..,...,,.,,,..,,,,,..,,...,...,,,.,,..,,,.,,.,,.,.,
+#T7JLIXSQJTXFZFCA6UGAM7AVXZVCVYXJ2OZQVS3SLQL4WSFR4G6AOQYNVPEALCZBWQUFRMBGIXDVE
+#\\\|57LKMOBAOEQG7EIL4AZ24XH2C23HDFMPX5PSVGEVLPQWG2IDZTO \ / AMOS7 \ YOURUM ::
+#\[7]2ZW5LJQV2FJSWIHGSYBJT5UB2BLZUXBIB4S7JJPX2BRSETYJ5ICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

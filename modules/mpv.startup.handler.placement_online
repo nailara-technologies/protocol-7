@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = mpv.startup.handler.placement_online
+# descr = v7.notify_online reply: forward to placement coords or open with fallback
+
+my $reply = shift            // {};
+my $mode  = $reply->{'mode'} // qw| false |;
+
+if ( $mode ne qw| true | ) {
+    <[base.logs]>->(
+        1, '[startup] %s unavailable — opening with fallback [%s]',
+        <mpv.placement_mode>, <mpv.geometry>
+    );
+    <[mpv.startup.job.fork_player]>;
+    return;
+}
+
+my $caller = <mpv.startup.caller> // '';
+<[base.logs]>->(
+    1, '[startup] %s online — requesting coords [caller=%s]',
+    <mpv.placement_mode>, $caller
+);
+
+<[protocol-7.route-send]>->(
+    {   'command'   => <mpv.placement_mode> . '.coords',
+        'call_args' => { 'args'    => 'caller=' . $caller },
+        'reply'     => { 'handler' => 'mpv.startup.handler.coords_reply' }
+    }
+);
+
+#,,.,,,.,,...,,,,,,..,.,,,...,,.,,...,,.,,,.,,..,,...,...,..,,,,.,.,.,...,..,,
+#4OE646JSDF3JY2B2DH2CWZYMLV5M4RZLWDY7JU2Z46YNDGJS5RXCWAGCC2UKFTJPDGYZ6R2OXD6ZK
+#\\\|XUJMVWOMZFACKHTUVCGET3DNKULDXWTX7KRNCE4SIWD7EVPS26N \ / AMOS7 \ YOURUM ::
+#\[7]WK2MWQKR7DHUXUE2TBD43RPQUEOQN3DOOYBOZNBNSDAGKGGVNYCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

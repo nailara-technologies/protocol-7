@@ -7,6 +7,26 @@ metadata:
   originSessionId: 56cce73a-933a-4992-96e4-4d88e138e8f6
 ---
 
+## done (2026-06-18)
+
+- **mpv async startup + jobqueue** ✓ — all paths deferred; open_control_socket
+  async; dep chain fork_player→finalize; send_command no longer exit(2); deferred
+  command queue; doc: `MPV-ASYNC-STARTUP-JOBQUEUE.md`
+
+## open — mpv
+
+- **sign all mpv session modules** — mpv.send_command, mpv.job.deferred_send_command,
+  mpv.startup.job.fork_player, mpv.startup.job.finalize, mpv.callback.object.mpv_flag,
+  mpv.open_control_socket, mpv.open_player, mpv.startup.handler.socket_poll,
+  mpv.startup.init, mpv.init_code + configs
+- **mpv state snapshot/restore** — full property map + curve phase; restore via
+  deferred send_command queue on restart [[topic-mpv-persistence]]
+- **visual curve automation** — extend base.curve.* to brightness/contrast/gamma/
+  saturation/shader; same shape as existing volume fade
+- **cross-mapped curve routing** — param driven by another param or external signal
+- **player restart job** — re-fork binary on death, zenka stays alive, restore from snapshot
+- **`:twin:` restart integration** — zero-downtime config reload
+
 ## done (2026-06-17)
 
 - **tile kiosk-mode stop_display_zenki disabled** ✓ — commented out
@@ -344,8 +364,8 @@ what it should actually invoke.
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,..,...,,.,,,,.,.,.,...,,.,,,..,.,.,,,.,,,.,..,,...,...,..,,...,,,.,,..,.,.,
-#3Q7BSLY6FRLV7ET5OK6V3OTKEBPT4XRRNI6KBZJWOXLAAEXCUFB2ACILFDLZRVMCQHUTZSGNM7F44
-#\\\|7RWW4MM424KOE6UL3VI5FBAARLDNC2OE7T3WLPKJ2CALYUNYKOX \ / AMOS7 \ YOURUM ::
-#\[7]P2AHMXNZ6N4HE6Z5LM5PZ7BRKSZGBGPGCQRHWKGPXXX4XEYQGIDQ 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,,.,,,,,...,..,,,,,,...,...,,..,..,,...,...,..,,..,,,.,,,,,,.,.,
+#HYWL77CXUASCQGCSU7WIQJVFBQDX25MLLYIQ4PCHPWYC7UYZMTB3JH7KGPMYSLF37EXQ6ZKIBNANQ
+#\\\|7GUYFBP3YWIIKLFDGB5N2MGN2YKC4AYJ7SZ3UBOU5HEC3XZ6WDB \ / AMOS7 \ YOURUM ::
+#\[7]QRUYPCPN4VWOK4PNZ6RVFAIDFGDGKFTNXHPK73IPVL4CIELHOOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
