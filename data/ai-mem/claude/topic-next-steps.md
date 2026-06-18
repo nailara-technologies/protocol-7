@@ -12,6 +12,20 @@ metadata:
 - **mpv async startup + jobqueue** ✓ — all paths deferred; open_control_socket
   async; dep chain fork_player→finalize; send_command no longer exit(2); deferred
   command queue; doc: `MPV-ASYNC-STARTUP-JOBQUEUE.md`
+- **mpv command rename (snake→kebab)** ✓ — 10 modules true-renamed via git mv;
+  parse-headers fixed headers; ncode replace all swept callers; whitelist + start
+  configs updated; playlist_update → playlist-update extended to universal,
+  web-browser, impressive, remote-cam (14 caller replacements with word boundary)
+- **ncode TTY auto-detect** ✓ — `$AI_FRIENDLY = 1 if not -t STDOUT;` added after
+  flag parsing; prevents stty ioctl errors when run from tools/pipes/scripts
+- **X-11 multi-server + jobqueue architecture** ✓ — `<X-11.servers>` display
+  registry; `x11_display_flag` dep type; `X-11.job.start_server`, `display_poll`
+  handler, `X-11.job.finalize_server`; host-mode timing bug fixed (connected=TRUE
+  only in callbacks.initialized coderef after X11::Protocol->new); WM.update guard
+  added; tile display-awareness additions from kimi
+- **cube command_aliases tile fix** ✓ — tile.get_geometry / assign_window /
+  get_coordinates moved from source_zenka → source_zenka_sid; tile.get-screen-size
+  added to source_zenka_sid (fixes "no zenka name received" errors in tile)
 
 ## open — mpv
 
@@ -364,8 +378,8 @@ what it should actually invoke.
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,,.,.,.,..,,,,.,,,,,...,..,,,,,,...,...,,..,..,,...,...,..,,..,,,.,,,,,,.,.,
-#HYWL77CXUASCQGCSU7WIQJVFBQDX25MLLYIQ4PCHPWYC7UYZMTB3JH7KGPMYSLF37EXQ6ZKIBNANQ
-#\\\|7GUYFBP3YWIIKLFDGB5N2MGN2YKC4AYJ7SZ3UBOU5HEC3XZ6WDB \ / AMOS7 \ YOURUM ::
-#\[7]QRUYPCPN4VWOK4PNZ6RVFAIDFGDGKFTNXHPK73IPVL4CIELHOOBA 7  DATA SIGNATURE ::
+#,,..,,..,...,...,,.,,.,,,.,,,,..,,,,,...,,..,..,,...,...,,,.,,.,,.,,,,..,,..,
+#MY3F3JM6YTI2G7YEB7RFZJTXWGY2HFQ2SIMXTMORHDQXYOL55TFBF5E2XNRHB6OAFRXSMCKAX6WVI
+#\\\|26WYGH2MMCHYTEKYZ2LJVSSAHLCSYNYUJ5LG5MRCUTVK34ZSDRQ \ / AMOS7 \ YOURUM ::
+#\[7]H75MLTP6J23RNBEPHJVARNLJDWMML5MSSGVCLKQYZ4R6OPGXNIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
