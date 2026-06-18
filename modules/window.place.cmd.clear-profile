@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = window.place.cmd.clear-profile
+# param = caller=<name>
+# descr = delete saved placement profile for caller
+
+my $args   = $call->{'args'} // '';
+my $caller = '';
+for my $token ( split m|\s+|, $args ) {
+    if    ( $token =~ m|^caller=(.+)$| ) { $caller = $1; }
+    elsif ( not length $caller )         { $caller = $token; }
+}
+
+return { 'mode' => 'false', 'data' => 'caller required' }
+    if not length $caller;
+
+my $result = <[window.profile.delete]>->($caller);
+
+return {
+    'mode' => ( defined $result and $result ) ? 'true' : 'false',
+    'data' => ( defined $result and $result )
+    ? sprintf( 'profile cleared [caller=%s]',  $caller )
+    : sprintf( 'no profile found [caller=%s]', $caller )
+};
+
+#,,,,,,,,,,..,,,,,..,,.,.,..,,.,,,.,,,.,.,,,,,..,,...,...,,,.,.,,,...,.,.,,..,
+#3CAQICL6G57QA3WWH6UKHVIMURBMS5H4KV2TNEDMNDZKGDOU6SBHSBVXUXEHCDJUN3IJZTLOHT5NY
+#\\\|FL2IAJH75LSASBMFIF65GIU337QLHHPM7KUNPCYOWSYLJITSOJN \ / AMOS7 \ YOURUM ::
+#\[7]I2Z4KI3RCTMUHUP5ZRQOXRY6M5GMEB4TXIECDR6AXJFTJYTVSMBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

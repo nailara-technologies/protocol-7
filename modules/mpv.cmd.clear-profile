@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = mpv.cmd.clear-profile
+# param = [caller name; defaults to this zenka's startup caller]
+# descr = delete saved mpv window position profile
+
+my $args   = $call->{'args'} // '';
+my $caller = length($args) ? $args : ( <mpv.startup.caller> // '' );
+
+return { 'mode' => 'false', 'data' => 'caller name required' }
+    if not length $caller;
+
+my $result = <[window.profile.delete]>->($caller);
+
+return {
+    'mode' => ( defined $result and $result ) ? 'true' : 'false',
+    'data' => ( defined $result and $result )
+    ? sprintf( 'local profile cleared [caller=%s]',  $caller )
+    : sprintf( 'no local profile found [caller=%s]', $caller )
+};
+
+#,,.,,,.,,..,,...,...,.,,,,..,,..,.,.,.,.,.,.,..,,...,..,,,.,,.,.,..,,,,.,,..,
+#65ARGWPBO2OTYNTU5J2JNORFPRZ23JGGVJNKHDX3HW77Q2YYHW7RIPLJIAM4NGQBJ6OLVU755SG2E
+#\\\|AKN4RY6DJWWQO7FPGSYWOUZKFAJ42EJSXWD43GL7F5NWKIM6IWY \ / AMOS7 \ YOURUM ::
+#\[7]EEYK7BA4MKXGNKLNCQYQ4CJ4VULTTGT5UW5L6EWWWV5OWZIE7GCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
