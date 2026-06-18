@@ -21,6 +21,24 @@ full async startup state machine for mpv zenka using jobqueue + dependency syste
 - `jobqueue` added to mpv `modules.load`
 - doc: `data/md/documentation/MPV-ASYNC-STARTUP-JOBQUEUE.md`
 
+## window placement (2026-06-18)
+
+full startup geometry flow landed:
+- `mpv.startup.init` checks local profile first → fast path skips window-place
+- placement mode: requests window-place.coords after cube connects; caches result locally
+- `mpv.cmd.clear-profile` — clears both local + window-place saved profiles (fire-and-forget route-send)
+- `mpv.cmd.reposition` — clears profiles, triggers placement UI, applies via reply handler
+- `mpv.handler.reposition_reply` — parses x/y/w/h, saves profile, calls X-11.set_geometry
+- `window-place.cmd.clear-profile` + `window.profile.delete` helper
+- `window.place.cmd.coords` — configurable `window.place.initial_geometry.<caller>` escape hatch
+
+**Weston/XWayland ignores `--geometry` position offset** (size is honored, position is not):
+- GTK windows under XWayland position correctly; pure X11 clients (mpv x11egl) do not
+- fix: after IPC socket ready (`socket_poll`), request `X-11.wait_visible`, then `X-11.set_geometry`
+- `mpv.startup.handler.socket_poll` now does this when `fade_in` is disabled
+- `mpv.handler.window_id_reply` — new handler; stores `<x11.id>` + calls `cube.X-11.set_geometry`
+- note: `mpv.await_window_presence` is commented out in `mpv.open_player`; `x11.id` was never set before
+
 ## open work
 
 - **state snapshot/restore**: full property map save on shutdown; restore via deferred queue
@@ -29,6 +47,7 @@ full async startup state machine for mpv zenka using jobqueue + dependency syste
 - **player restart job**: re-fork on binary death, zenka stays alive, restore from snapshot
 - **active curve state in snapshot**: resume automation mid-transition on restore
 - **`:twin:` restart**: zero-downtime reload via v7 twin parameter
+- **async X-11 monitor registry**: replace all xrandr/synchronous monitor queries; user flagged as "next on the list"
 
 ## architecture notes
 
@@ -46,8 +65,8 @@ logic that needs the player socket uses mpv.dep.socket as its dependency.
 [[topic-self-improving-system]]
 [[topic-mpv-persistence]]
 
-#,,,.,,,,,.,,,,,,,,.,,..,,,,,,,,,,,..,,,.,.,.,..,,...,...,.,.,..,,.,.,,,.,..,,
-#KFOMFDHQRLE47JJ6LCF5V3P6QRRRSJMT5JZ2YZWJ5D34TCIURYPLGQ35QHCYBEYG47J3VTS55IBKM
-#\\\|U3WKOTXW7O3LOMK3WZCTUTDMPYK2PCU6CEAKO5W7EH53OV42FOQ \ / AMOS7 \ YOURUM ::
-#\[7]O24XJRTJYKQKK37RT5R5IBTHVONLQNHBBPTQ37UWU2VC2WNBH6AA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,,,,,,,.,,,.,,..,,.,,,.,,,.,,,,,,..,,...,...,.,.,..,,.,.,.,.,,,.,
+#HZQFBCUGROIVFEEG3TIPGOHML6EXCXLHY5J6SBGJ6YPRBLBK6I4GDC367SVWUSIVXU5LZVU2I3HZ2
+#\\\|ZRJAE3JXIRT55I653OIM5IBFXMP7SHDYQO47ULVG2HNFTJ7DOZL \ / AMOS7 \ YOURUM ::
+#\[7]B7ISWJDR4GIGCF6EOBEM6SMDBQWK43XYCHTLLMNIYCULRCJHW2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
