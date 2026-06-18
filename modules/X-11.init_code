@@ -48,6 +48,13 @@ for my $bin_name (qw[ intel_gpu_top intel_gpu_frequency ]) {
     ( <X-11.bin_path>->{$bin_name} ) = <[file.which]>->($bin_name);
 }
 
+## dependency callbacks for per-display x11_display_flag objects ##
+<[dependency.install_callbacks]>->('X-11');
+
+## multi-server registry ##
+<X-11.servers>         //= {};
+<X-11.primary_display> //= undef;
+
 ## auto-detect gpu vendor
 my $nvidia_bin = <X-11.bin_path>->{'nvidia-smi'};
 my $intel_bin  = <X-11.bin_path>->{'intel_gpu_top'};
@@ -101,8 +108,8 @@ if ( <X-11.mode> eq qw| auto-xephyr | ) { ## detect if Xorg running --> xephyr
 
 0;
 
-#,,,.,.,.,.,,,,,.,...,,.,,...,.,,,,.,,,,.,,..,..,,...,...,..,,,..,.,.,.,,,.,,,
-#C7XGVSMTA4RUVEKPPD5NNXBTI7CC5ANIDQPZXXW3M7SDJXZ3SMAYWXOPFXGB5WMSOBHPLZWUOXRVW
-#\\\|62LPUUGJKIEP22R3VCIX2JN5KJPICSYVRNUWW3COVNMJNCUVB74 \ / AMOS7 \ YOURUM ::
-#\[7]4DXXZU75USOFBNAP25GX4ZOLOF6KQ44574I5K2XRWC46BTMASUCI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,,,,.,,,,..,.,.,,,,,,,.,,,.,..,,..,,...,...,.,.,.,.,...,,..,.,,,
+#HBQZBAIACGVMIJA6YYXMDMA24VRJZHMBVUESEIT4CI4LQZWN3WYADYSYS2RBPQ3N2YMWCGWS6OG42
+#\\\|3HZKEVEWLGO6OLWHLBBINFLD6FI2K3AKSQDJAFVGFAYIBU4YBZL \ / AMOS7 \ YOURUM ::
+#\[7]7NX6BPUBRYQVONHSFLP54K5XUW5TDU45CLJDV3JJYAZNAT45L2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

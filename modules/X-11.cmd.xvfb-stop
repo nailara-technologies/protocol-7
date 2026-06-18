@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = X-11.cmd.xvfb-stop
+# param = <display_num>
+# descr = stop a running xvfb instance
+
+my @args
+    = ref( $call->{'args'} ) eq qw| ARRAY |
+    ? $call->{'args'}->@*
+    : split( m| +|, $call->{'args'} );
+my ($display_num) = @args;
+
+return { 'mode' => qw| false |, 'data' => 'display number required' }
+    if not defined $display_num;
+return { 'mode' => qw| false |, 'data' => 'invalid display number' }
+    if $display_num !~ m|^\d+$|;
+
+my $stored_pid = $data{'X-11'}{'xvfb'}{'pid'}{$display_num};
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf( 'xvfb :%s not running', $display_num )
+    }
+    if not defined $stored_pid
+    or not kill 0, $stored_pid;
+
+if ( kill 15, $stored_pid ) {
+    delete $data{'X-11'}{'xvfb'}{'pid'}{$display_num};
+    return {
+        'mode' => qw| true |,
+        'data' => sprintf(
+            'xvfb :%s stopped [ pid %d ]',
+            $display_num, $stored_pid
+        )
+    };
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf(
+        'failed to stop xvfb :%s [ pid %d ]',
+        $display_num, $stored_pid
+    )
+};
+
+#,,..,.,,,.,,,,.,,..,,..,,,..,.,,,...,,,.,,.,,..,,...,...,.,.,,..,.,.,,..,,,.,
+#IUAOGHMF6H3LLHQZ3OCTEKUXOWVGRZ7LTSSHGEUI4A6DLVN2WOCYXFWBVX6ARQFV6POMFMOKM6YDO
+#\\\|RFAXK4HL5OH4PZFXDUTAQ735RDDXN3TZ2EUK3N4I2RVKXYOILTW \ / AMOS7 \ YOURUM ::
+#\[7]RSM5XPQYD32GDRLK6AXVKYUI5KUHJVF3LG4ZM7VHJCGKKZCBL6CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

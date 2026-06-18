@@ -5,11 +5,16 @@
 
 <v7.patterns.zenka_output> //= {};
 
-my $event   = shift->w;
-my $read_fh = $event->fd;
-my $server  = $event->data;
-my $bin     = $server->{'bin'};
-my $pid     = $server->{'pid'};
+my $event       = shift->w;
+my $read_fh     = $event->fd;
+my $server      = $event->data;
+my $bin         = $server->{'bin'};
+my $pid         = $server->{'pid'};
+my $display_str = $server->{'display'} // '';
+my $is_primary
+    = (     $display_str ne ''
+        and defined <X-11.primary_display>
+        and $display_str eq <X-11.primary_display> );
 
 <X-11.output_buffer> //= '';
 
@@ -28,7 +33,8 @@ if ( $read_bytes < 1 ) {    ## [ assumed filehandle exception ] ##
         : ' unexpectedly. [ unknown reason ]';
     <[base.logs]>->( 0, "%s-server shut down%s", $bin, $err_str );
     <[base.log]>->( 1, "done." );
-    exit(2);
+    exit(2) if $is_primary;
+    return;                 ## auxiliary server: do not terminate zenka ##
 }
 
 while ( <X-11.output_buffer> =~ s|^([^\n]*)\n||s ) {
@@ -42,8 +48,8 @@ while ( <X-11.output_buffer> =~ s|^([^\n]*)\n||s ) {
     # LLL: terminate server here ?
 }
 
-#,,,,,,.,,..,,,.,,,.,,,.,,..,,.,,,,,,,..,,.,.,..,,...,...,.,.,...,.,.,..,,...,
-#HGPDACZQMWFTNZU6P7IR52AIA3YF4VTOH2QCFCAIFGRKD5FEFSJTD3GJOVMPYDBOE23JIOMGPDFIY
-#\\\|AAW6O2I6XGYZJEVZLIM4VQVIRZZHDFW6P3ZYSLW3B746NSZG6EC \ / AMOS7 \ YOURUM ::
-#\[7]ZMPP7XQE6GKAZGXHFOYJHTOWONH7FZRILLQY6TNFPHJYFIZRC6AI 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,..,,,,,,,,,.,,,.,.,,,.,.,.,..,,..,,...,...,.,.,,,,,,,,,,.,,,..,
+#EFTR5ODD5JQPUVMHRNAGSAPJJGELNSBJHS2WE7SFV3LG5U2XH2RCRPFY4XGWBMGH4HHTO5YPXPE2U
+#\\\|PG352VBND3UYPE2XN6DWPTQO2HRQ7OIMTFH3YDE4NT6UPWINLDT \ / AMOS7 \ YOURUM ::
+#\[7]A2VNRRYB7MDYB5FHIS6WPFVZKEEIL5LTX3PGP37JYCDTNFUY4QAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

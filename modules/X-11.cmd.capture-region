@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = X-11.cmd.capture-region
+# param = <x> <y> <w> <h> <output_path>
+# descr = capture a screen region to an image file
+
+my @args
+    = ref( $call->{'args'} ) eq qw| ARRAY |
+    ? $call->{'args'}->@*
+    : split( m| +|, $call->{'args'}, 5 );
+
+my ( $x, $y, $w, $h, $output_path ) = @args;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'x y w h and output path required'
+    }
+    if not defined $output_path;
+return { 'mode' => qw| false |, 'data' => 'invalid geometry values' }
+    if grep { not defined $_ or $_ !~ m|^\d+$| } ( $x, $y, $w, $h );
+
+my $capture_bin;
+my @capture_args;
+
+my $scrot_bin = <[base.file.which]>->('scrot');
+if ( defined $scrot_bin ) {
+    $capture_bin  = $scrot_bin;
+    @capture_args = ( qw| -a |, "$x,$y,$w,$h", $output_path );
+} else {
+    my $import_bin = <[base.file.which]>->('import');
+    return {
+        'mode' => qw| false |,
+        'data' => 'scrot or imagemagick import not found'
+        }
+        if not defined $import_bin;
+    $capture_bin = $import_bin;
+    @capture_args
+        = ( qw| -window root -crop |, "${w}x${h}+${x}+${y}", $output_path );
+}
+
+if ( system( $capture_bin, @capture_args ) != 0 ) {
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( 'capture failed [ %s ]', $CHILD_ERROR )
+    };
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        'captured region %dx%d+%d+%d to %s',
+        $w, $h, $x, $y, $output_path
+    )
+};
+
+#,,..,,,.,,,,,..,,..,,.,.,,,,,,,,,,..,..,,,,.,..,,...,...,.,.,.,.,...,.,,,,.,,
+#UG374IYYSRL3UOU5TXPIE55NFVC5RYVRZPQUL2EKQI2LUSAB33F3J2CQN6AI7MH2LPN6QHJK6IBC6
+#\\\|2Z3LK7A63UTQ72NLZXGASMLGUX7TAS3YDJYSXOQDTRDTIYC2GIT \ / AMOS7 \ YOURUM ::
+#\[7]6I23HNZDEV75WEKKEYCHLA7KK3FTEEJEWPC5Q26QRYLD5ZCBUGDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

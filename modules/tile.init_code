@@ -112,6 +112,9 @@ chown( $uid, $gid, <tile.chksum_file> )
 
 # use Data::Dumper 'Dumper'; print Dumper(<tile.setup>);
 
+## current display this tile zenka is managing ##
+<tile.current_display> //= <X-11.display> // ':0';
+
 skip_load:    # <-- jumping here if tile has already been imported as json
 
 my $current_cfg_path = <tile.cfg_directory> . '/tile-group.current';
@@ -266,8 +269,8 @@ push @{ <system.callbacks.initialized> //= [] },
 
 0;
 
-#,,..,,..,,,,,...,...,.,.,,,,,.,,,,,.,,.,,,,.,..,,...,..,,,,,,..,,..,,,,.,,,,,
-#DSFHOIQ43BMSKMQXOJPHRSMMSUFCWRDCNNIG7VDRSI3GCRYA222YRY6NYP26HWGZ5C62YYDU5VVZK
-#\\\|EKYLV7H5RPZK4DC6SMSUKYDKCMKKIMB5W6UAZSJXHGMG3IO7E4V \ / AMOS7 \ YOURUM ::
-#\[7]5CCDZTHW43VNQALSZIYYJASCHPRT7EBVXIBZWYZLMLDIQ4T76WBA 7  DATA SIGNATURE ::
+#,,..,...,,,,,,.,,..,,..,,,,.,...,...,.,,,.,.,..,,...,..,,..,,,,,,...,,,.,...,
+#YJ3DMTAQK4PR5ZXOVKFI2GXRAFSS76XGZPECH7HL2KZHMVEIQOTISNFGUGMEB3HJ4MKXPPLLM7BGG
+#\\\|UEE6GSOZKJGZMQX6PMKYGYB4ORFCAERWREILGA73WDPOWNXKD33 \ / AMOS7 \ YOURUM ::
+#\[7]SJM5JAWZL5DG2GCJGQPVDJXDBTKMM5W2DMRS7KL3RAUA44WY66CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
