@@ -55,7 +55,7 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
         <universal.timer.playlist_retry> = <[event.add_timer]>->(
             {   'after'   => $retry_secs,
                 'repeat'  => 0,
-                'handler' => 'universal.cmd.playlist_update'
+                'handler' => 'universal.cmd.playlist-update'
             }
         );
     } else {
@@ -97,7 +97,7 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
         <universal.playlist_bmw>       = $playlist_bmw;
         map {
             <[protocol-7.command.send.local]>
-                ->( { 'command' => "$ARG.playlist_update" } )
+                ->( { 'command' => "$ARG.playlist-update" } )
         } @{<universal.display_zenki>};
     }
     return;
@@ -187,7 +187,7 @@ if ( @file_list and <universal.playlist_was_empty> ) {
 ) {
     map {
         <[protocol-7.command.send.local]>
-            ->( { 'command' => "$ARG.playlist_update" } )
+            ->( { 'command' => "$ARG.playlist-update" } )
     } @{<universal.display_zenki>};
 } elsif ( !<universal.cfg.fade_on_switch> ) {
     <[universal.startup_sub_zenki]>;
@@ -195,8 +195,8 @@ if ( @file_list and <universal.playlist_was_empty> ) {
     <[universal.collect_video_frames]>; # need to extract video frames first.,
 }
 
-#,,,,,,..,,..,,..,...,.,.,,..,,.,,.,.,,,,,,,.,..,,...,...,.,,,,,.,,..,,..,..,,
-#AFHHCYBVONZIP7NCHUWSOHFGUNDAY5OQJGUT76773LLXOPHV26RPHLC5CFRGRGE7IVP65FDNN5C52
-#\\\|R6YENEZFOSJJ75FD3ZYOTCCNME6ORYZ6EWDPJCQRTEL65C6MBVY \ / AMOS7 \ YOURUM ::
-#\[7]NSRAEASYK24ZJVP6XPQ52ZFIU2KNHQUHWAW7EAUEFAFS5MDY7OBQ 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,,,.,,.,,.,,,,,,,.,,,...,,..,,..,..,,...,...,...,...,.,,,.,.,..,,
+#Y3TMARS7XRSH5V73HYVUYKPDXH6VOU4V3BMKAY4NZYKANFPLPL45FA36WZ4FAJSRIQGCATAOIGXOC
+#\\\|MBTLBHSWK4JN4JC2V2U7IBZFSFNBVM5W2NY3T2VWA3VANB4QVPB \ / AMOS7 \ YOURUM ::
+#\[7]N22UHQCXTKH6XZ46EPWERQ5TT3J6VQPZFYROXNMMI6K7C3SQBOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
