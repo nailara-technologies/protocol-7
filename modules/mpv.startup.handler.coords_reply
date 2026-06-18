@@ -3,9 +3,9 @@
 # name  = mpv.startup.handler.coords_reply
 # descr = placement coords reply: apply geometry, cache to local profile, open player
 
-my $reply = shift            // {};
-my $mode  = $reply->{'mode'} // qw| false |;
-my $rdata = $reply->{'data'} // '';
+my $reply = shift // {};
+my $mode  = lc( $reply->{'cmd'} // '' );
+my $rdata = $reply->{'call_args'}->{'args'} // '';
 
 if ( $mode ne qw| true | ) {
     <[base.logs]>->(
@@ -51,8 +51,8 @@ if (    defined $geo{'x'}
 
 <[mpv.startup.job.fork_player]>;
 
-#,,,,,,.,,,.,,..,,,,.,...,...,..,,,..,,.,,.,.,..,,...,...,..,,,..,..,,.,.,..,,
-#R2ZZSTTQT2V6Q3VG6RIFHWYAORMTLNJKGNSVKFRONQPLV52PLIK5WVDXUKBD23Q6BHJNOI27E7WGY
-#\\\|HHADJKACWMHF7MQXGV4DDTROZNI7GDVAOCSGFCN6KVRZOLIWQGH \ / AMOS7 \ YOURUM ::
-#\[7]JZ43HJDNAGLJRHP3LBHIPANJXEQHTTPPHNDIKJIFIJTI3RBLSMBQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,...,.,.,,.,,..,,.,.,.,,,,,.,,.,,..,,...,...,,..,...,,..,.,.,.,.,
+#DQCILREP5IVRGC4AKNYK7Z3PNG6Z7IGCHBWKJUYFICBJQA5SMHXGYMJZNB5IZVI3WE462AKDJST2Y
+#\\\|V3EFA6XA6USU7DXNGIJTAB2OGTUNOGQY4BOIO4BEWZRM2MVLN2R \ / AMOS7 \ YOURUM ::
+#\[7]B2EM2PDFA7R5T4LP7LQ4QRBT5RPTVYK2V5GO74VN5SISHJTKIECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
