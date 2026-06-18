@@ -108,7 +108,6 @@ if ( $mode ne qw| host | ) {
 
 } else {
     $server->{'bin_name'}   = '[host] x11';
-    $server->{'connected'}  = TRUE;
     $server->{'host_ready'} = FALSE;
 
     ## queue finalize job now; it runs once the host display is verified ##
@@ -138,15 +137,15 @@ if ( $mode ne qw| host | ) {
         }
         $host_server->{'connected'}  = TRUE;
         $host_server->{'host_ready'} = TRUE;
-        <[base.log]>->( 1, 'host display %s connected', $display_str );
+        <[base.logs]>->( 1, 'host display %s connected', $display_str );
         <[jobqueue.check_dependencies]>;
     };
 }
 
 return 0;    ## success
 
-#,,,,,.,,,.,,,,.,,...,,,.,...,.,.,...,.,.,,..,..,,...,...,...,.,,,,,,,.,,,,..,
-#4ZML4MMQF2MSK4UHE5AJZYHCICCJEN44S4UXHDXGRJNCW7TIPKFZFE3JK6MCS5U2QGOQCHJHFF7FU
-#\\\|342IS3EIK4OQTL2DWGMHJOKPMIX3JWY73BQJLMRR72G76OUUDWV \ / AMOS7 \ YOURUM ::
-#\[7]SRPENSTQQS5UPFFGKZY4RDQWK5APRC3PMBYYBWKADKNGHX6GXKAA 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,,,,...,,,.,.,.,..,,,,,,,,.,..,,..,,...,..,,...,,..,,.,,.,,,,..,
+#OEISGQ2QVXOYANF4SNS27RXXZJC66LXUB2OX5WKJLQQXMIMVWP3XOJAU7PYVNUNFKFOII37GKTGCO
+#\\\|73PFP77HWQU6V5G3DTNSFZ35FOL3IAJ4CBPIJCNIA4F4JPWACG4 \ / AMOS7 \ YOURUM ::
+#\[7]G25VHVCWD2OXYKJHTRK5M3QFTFWZU2KMZXJEWHOEYU7QLH54QQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

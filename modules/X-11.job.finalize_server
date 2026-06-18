@@ -59,7 +59,9 @@ $data{'base'}{'warn-match-handler'}{'X11/Protocol.pm:75'}
 };
 ##
 
-<[base.logs]>->( ': : link to %s established [ responsive ]', $bin_name_lc );
+<[base.logs]>->(
+    1, ": : link to '%s' established [ responsive ]", $bin_name_lc
+);
 
 ## extensions ##
 
@@ -85,7 +87,7 @@ if ( $randr_expected and <X-11.obj>->init_extension('RANDR') ) {
         <X-11.has_randr> = TRUE;
     }
 } else {
-    <[base.logs]>->( ': : no RANDR support %s', $randr_reason );
+    <[base.logs]>->( 1, ': : no RANDR support %s', $randr_reason );
     <X-11.has_randr> = FALSE;
 }
 
@@ -241,8 +243,9 @@ if (    <X-11.has_dpms>
     ## default timeout [seconds] ##[ 13 minutes ]##
     ##
     my $t_sec = <X-11.blank_timeout> //= 780;
-    <[base.logs]>
-        ->( ': configured DPMS screen blanking [%03ds] ..,', $t_sec );
+    <[base.logs]>->(
+        1, ': configured DPMS screen blanking [%03ds] ..,', $t_sec
+    );
     <X-11.obj>->DPMSInfo();
     <X-11.obj>->DPMSSetTimeouts( $t_sec, $t_sec, $t_sec );
     <X-11.obj>->DPMSInfo();
@@ -277,7 +280,7 @@ if ( not defined $bg_col or $bg_col !~ m|^\#?[0-9A-F]{6}$|i ) {
 if ( <X-11.bg_fade> //= TRUE and $bg_col ne '#000000' ) {
     <[X-11.fade_in_bg_col]>->($bg_col);
 } else {
-    <[base.logs]>->( "setting background color to '%s'", $bg_col );
+    <[base.logs]>->( 1, "setting background color to '%s'", $bg_col );
     X11::Protocol::XSetRoot->set_background(
         'color'        => $bg_col,
         'use_esetroot' => TRUE
@@ -292,7 +295,7 @@ if ( defined $bg_image ) {
     } else {
         my $amos_chksum = <[X-11.backgrounds.set_random_image]>;
         <[base.logs]>->(
-            'selected random background image : %s', $amos_chksum
+            1, 'selected random background image : %s', $amos_chksum
         );
     }
 }
@@ -312,8 +315,8 @@ if (<X-11.window_enumeration>) {
     );
 }
 
-#,,,,,,,,,,,.,,..,,,.,..,,,,,,,,,,,..,...,...,..,,...,...,..,,,,,,,.,,.,,,.,,,
-#DVJBAWWKNPLMY7HNE4SRSZPQGZNRZTPDYUZ7PQJSBXX6ZO3C4G2HNTB3FCIDWXWYIOUCSOLLJYNXA
-#\\\|564ZIP72VH2XE3FQPDFURWJ5NZYNHHOPIC22ZT474NDAFQNKPEL \ / AMOS7 \ YOURUM ::
-#\[7]QDCX7Z2PYCJGHAAU4VDUY7YHBPKURVVC6HV5MJWADKLRP3WMSUBI 7  DATA SIGNATURE ::
+#,,..,,..,,..,,,,,.,.,..,,,,.,.,.,.,.,.,.,...,..,,...,...,,.,,...,,,.,,.,,,,.,
+#4ILI47XLS7BAVX7TB5M6DKNV3B7KLN7BVEP523FXAEDADLJMZGWJITCDEJTXEEWJ426HNJ3GFZ43Y
+#\\\|ARAIJCNYBTE6YNNGB24EJGA3LPKN5C6RLDJBHDMF6KJSMRZXY6W \ / AMOS7 \ YOURUM ::
+#\[7]YSL3RV3FVYLHUHDM4F6TYDQ4ERGJI3FOC4LJIIGNWH4U6IV2XSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
