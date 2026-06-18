@@ -1,0 +1,17 @@
+## [:< ##
+
+# name  = X-11.callback.object.x11_display_flag
+# descr = dep callback: resolves TRUE when the named display is connected
+
+my $obj_id  = shift                          // return FALSE;
+my $obj     = <dependency.object>->{$obj_id} // return FALSE;
+my $display = $obj->{'display'}              // return FALSE;
+
+return defined <X-11.servers>->{$display}->{'connected'}
+    && <X-11.servers>->{$display}->{'connected'} == TRUE ? TRUE : FALSE;
+
+#,,.,,,.,,.,.,...,,,.,,,,,,..,...,,.,,,.,,...,..,,...,..,,.,.,.,,,,,,,...,,,.,
+#RD3HEPJBVG6ZKBSBWMD6XEOHS3LT2GAXG7GTVQTRUKXZUCVJHTWZ3Y56FTJBC4ZL75M3YYCAGSANY
+#\\\|2QO4XGKX6GXQMJMADHTSPI2CSDJMZVTIQJIAC375S5NFWPEHYG7 \ / AMOS7 \ YOURUM ::
+#\[7]SQAPSU7KVVQ4SIHVPQTG3RRN5CHAIT36LW2RFSVGY47BWDWWRIAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

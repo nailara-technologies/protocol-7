@@ -41,6 +41,9 @@ while ( @params && $params[0] =~ m{^-} ) {
     }
 }
 
+## auto-enable ai-friendly when stdout is not a terminal (pipe, tool, script)
+$AI_FRIENDLY = 1 if not -t STDOUT;
+
 ###[ PROTOCOL-7 COLOR SCHEME ]################################################
 #
 # p7_fg_0000 => \e[38;2;68;39;172m   (purple)
@@ -3144,8 +3147,8 @@ sub print_usage {
     print "\n    " . $C{'T'} . $usage_txt . $C{'R'};
 }
 
-#,,,.,...,,,,,...,.,,,..,,..,,,.,,.,.,..,,.,,,..,,...,...,.,.,.,,,.,.,,,.,.,.,
-#G4YN2HJOSIOXXDVZB3PKP7FRDUXLDC4GMXPRWQ2BDOIJW7H5HORYNABYB4EQNG3HRM6SYYNF7AJ4W
-#\\\|QK4L6NQVWTD5I4KATSIVHP2F753GZOTZXCKJUNJ3K7556LQT4TP \ / AMOS7 \ YOURUM ::
-#\[7]FGKKQRJ774SKTO5O7OLLZERJ5N3DC6QZNFHYBR7RA2WOQRHS2CCY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,.,,,,,.,,,,,,,,,...,,,.,,..,,..,..,,...,...,.,,,,.,,,.,,...,...,
+#OTVXEZBL6QACXBRLEWGK6HTYWOBQWAL7NCT4WC52APGP3T7RARLLHF5ERCG7HGUG7DYJKIOWH3YH4
+#\\\|SROUXZUZ42GZIXAJYMWZDHICC4K3345VSAYN44KIINCFE6GLVGD \ / AMOS7 \ YOURUM ::
+#\[7]VE425IFTP2N2ZA5NEZAUIOGQK7STAE2LWPZARKPCG3J7LN3EKEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

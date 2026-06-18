@@ -67,9 +67,13 @@ if (exists <tile.window_ids>->{$zenka_name}
     if ( defined $tile_groups_data->{'alpha'} ) {
         my $alpha_str
             = sprintf( '%.2f', ( 100 - $tile_groups_data->{'alpha'} ) / 100 );
+        my $fade_args = "0.8:$alpha_str $wid_str";
+        my $display   = <tile.current_display> // ':0';
+        $fade_args .= " $display" if $display ne ':0';
+
         <[protocol-7.command.send.local]>->(
             {   'command'   => "cube.X-11.fade_out",
-                'call_args' => { 'args' => "0.8:$alpha_str $wid_str" }
+                'call_args' => { 'args' => $fade_args }
             }
         );
 
@@ -93,8 +97,8 @@ if (exists <tile.window_ids>->{$zenka_name}
     };
 }
 
-#,,.,,...,..,,,.,,,..,...,,,.,,,.,.,.,,,.,,..,..,,...,...,.,,,.,.,,,,,.,.,,..,
-#LM62MODAIQIW5RYWD46YD2LEAQWOSQDBQHZRMV75I6AVUM4MVSS73CPAVJYVKZDVMDEF5DB6OZO54
-#\\\|XMEIFT7F2TQ5T2JEYNKZHBNY6YJ3JZMMQFKKWA2LPFUFYGEUYYA \ / AMOS7 \ YOURUM ::
-#\[7]FQHV4MULRJ4NVOV6VFYXSC5HPYEFFB7AESJ3EHW64R7WSBUEV6AQ 7  DATA SIGNATURE ::
+#,,..,..,,.,.,.,,,.,.,,..,,..,,..,,.,,,..,,,.,..,,...,...,,..,.,.,..,,.,.,,,.,
+#LWX4TWOOUXLNVEUNMWRDP3LAX6ZTJVVATTVWHNP6M5A4T76LRO5KJAMZ24XAIPIJHRJIKE6JFYBX6
+#\\\|3IRPQSCCXP7UQASD6DWJCSXCLCWXQICLM3G6EJI5ZKZSKWHM72M \ / AMOS7 \ YOURUM ::
+#\[7]PGHRCFHAFJ6H2HAVQ2YVGVGZ2PE2JRMW2OGVRHF2Q754OZFTS6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

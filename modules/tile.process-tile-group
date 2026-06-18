@@ -90,6 +90,14 @@ if (<tile.startup.initializing>) {
 <tile.layers>      = {};
 <tile.tiles>       = {};
 
+## tag this group with the display it was loaded for ##
+<tile.groups> //= {};
+<tile.groups>->{$tile_group_name}->{'display'} //= <tile.current_display>
+    // ':0';
+
+## update current display from X-11 if now known ##
+<tile.current_display> = <X-11.display> // <tile.current_display> // ':0';
+
 foreach my $zenka_name ( <[base.sort]>->($tile_groups_data) ) {
 
     <tile.coordinates>->{$zenka_name}
@@ -250,8 +258,8 @@ if (<tile.watch_tiles.poll_tile_color>) {
 
 <[tile.handler.transition]>;
 
-#,,,.,..,,,,.,...,...,...,..,,...,,,,,...,,,,,..,,...,...,,.,,.,,,,.,,,,.,.,.,
-#7VLGOKE7YAO3KTEYLWBHV7MNPDKV74U757GEGDTPKDVXSFCO3IVM7I7PVJ5DO7WYBKWBPHFSE44TC
-#\\\|T4UIFNWJVAT4NKG6BMUWA5AQLJ2EYCZ74ESHZPCJHUYONAOTP77 \ / AMOS7 \ YOURUM ::
-#\[7]BOUKMSYR4OGLTCCQ4XLICBGGFYNI65Z3F7ALR76IXE5PLT4ARUDY 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,,.,,,..,..,,,,.,.,,,.,,,,..,.,.,..,,...,...,..,,...,.,.,...,,,.,
+#B5QING5DEZECDBYI3RLVTXUSJIUZWKOWM3AMUW7MTDF4UODOPYJC4ONVUORH4DJFGQKAG5OEHVXPM
+#\\\|X5TO3JHKLIZGHGOMZQT42MBUXZ425OUBQXPTHWWIIHJTPRG4PDQ \ / AMOS7 \ YOURUM ::
+#\[7]UFRLZFSPD24BWDLX3E2KRJ5L7C33NGRJKY2ZWC7ZSEC33OJDG2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

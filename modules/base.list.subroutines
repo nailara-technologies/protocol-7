@@ -823,6 +823,8 @@ return [ qw[
         ascii.frame.render
         X-11.update_X11_WM
         X-11.start_gpu_top
+        X-11.cmd.xvfb-stop
+        X-11.cmd.xvfb-list
         USR.taeki.base-key
         zenki.console.start
         work.get_todo_stats
@@ -1013,6 +1015,7 @@ return [ qw[
         amos-term.fuse.read
         X-11.get_window_ids
         X-11.fade_in_bg_col
+        X-11.cmd.xvfb-start
         X-11.cmd.keep_below
         X-11.cmd.keep_above
         X-11.cmd.get_params
@@ -1093,9 +1096,9 @@ return [ qw[
         ncode.cmd.sign-batch
         nameserv.zone.lookup
         mpv.loop_plist_param
-        mpv.cmd.pipe_cmd_raw
+        mpv.cmd.pipe-cmd-raw
         mpv.cmd.pause-toggle
-        mpv.cmd.drop_buffers
+        mpv.cmd.drop-buffers
         mpv.cmd.current-file
         mpv.callback.fade_in
         models.resolve.entry
@@ -1244,6 +1247,7 @@ return [ qw[
         amos.chksum.cmd.nest
         X-11.window_id_found
         X-11.max_screen_size
+        X-11.cmd.xvfb-status
         X-11.cmd.set_opacity
         X-11.cmd.set_gravity
         X-11.cmd.move-window
@@ -1321,8 +1325,8 @@ return [ qw[
         ncode.cmd.format-code
         ncode.cmd.diff-staged
         mpv.init_settings_map
-        mpv.cmd.stop_autoskip
-        mpv.cmd.show_playlist
+        mpv.cmd.stop-autoskip
+        mpv.cmd.show-playlist
         mpv.cmd.current-hwdec
         mpv.callback.silenced
         models.registry.empty
@@ -1470,6 +1474,7 @@ return [ qw[
         amos-term.window-move
         amos-term.plugin-load
         amos-term.cursor-move
+        X-11.job.start_server
         X-11.get_window_title
         X-11.get_video_driver
         X-11.get_modifier_map
@@ -1567,9 +1572,9 @@ return [ qw[
         mpv.handler.pipe.float
         mpv.handler.path_reply
         mpv.handler.audio_fade
-        mpv.cmd.start_autoskip
-        mpv.cmd.clear_playlist
-        mpv.cmd.change_subname
+        mpv.cmd.start-autoskip
+        mpv.cmd.clear-playlist
+        mpv.cmd.change-subname
         mpv.check_rescale_path
         mpv.callback.play_next
         models.registry.lookup
@@ -1820,8 +1825,8 @@ return [ qw[
         mpv.open_control_socket
         mpv.handler.pipe_output
         mpv.handler.event.pause
-        mpv.cmd.reload_playlist
-        mpv.cmd.playlist_update
+        mpv.cmd.reload-playlist
+        mpv.cmd.playlist-update
         models.storage.discover
         models.list_attachments
         models.escape.interpret
@@ -1975,6 +1980,8 @@ return [ qw[
         X-11.cmd.get-window-pid
         X-11.cmd.get-window-ids
         X-11.cmd.dpms-force-off
+        X-11.cmd.capture-window
+        X-11.cmd.capture-region
         zulum.cmd.export-streams
         zenki.parent.ensure_cube
         work.parent.scan_history
@@ -2010,6 +2017,7 @@ return [ qw[
         tile.set-up.import_rules
         tile.set-up.export_rules
         tile.cmd.get_coordinates
+        tile.cmd.get-screen-size
         ticker.load_file_content
         ticker.enable_auto_speed
         ticker.content_substring
@@ -2186,6 +2194,7 @@ return [ qw[
         X-11.set-up.import_rules
         X-11.set-up.export_rules
         X-11.scan_display_states
+        X-11.job.finalize_server
         X-11.init_display_states
         X-11.cmd.set_screen_size
         X-11.cmd.select-bg-image
@@ -2278,7 +2287,7 @@ return [ qw[
         mpv.handler.reenc_refresh
         mpv.handler.pipe.playlist
         mpv.handler.event.unpause
-        mpv.cmd.autoskip_interval
+        mpv.cmd.autoskip-interval
         mpv.await_window_presence
         models.task.do-delegation
         models.storage.move_model
@@ -2406,6 +2415,7 @@ return [ qw[
         X-11.set_background_image
         X-11.handler.wait_visible
         X-11.handler.read_gpu_top
+        X-11.handler.display_poll
         X-11.cmd.list-backgrounds
         X-11.cmd.get-window-title
         X-11.cmd.get-window-count
@@ -4306,6 +4316,7 @@ return [ qw[
         base.handler.check_strm_size_timeouts
         ascii.frame.render.data.border_string
         ascii.frame.render.color.content_line
+        X-11.callback.object.x11_display_flag
         workspace-transfer.console.todo-commit
         web-browser.start-up.init_window_title
         web-browser.handler.signal.load_failed
@@ -4641,8 +4652,8 @@ return [ qw[
     ]
 ];
 
-#,,.,,,.,,...,...,.,.,.,,,.,,,,..,.,.,..,,.,.,.,.,...,...,.,.,,..,,,.,.,,,..,,
-#J3SXLJ5OXTPLEJJOLLY3MRENVCLVHO4M37ZOB7QFLXUTPVSTZIZKP7NO2YOJIUFU6DHZ7QP44XEZG
-#\\\|YBQIHD4QTJ4MQHMAHQP2YNSDX5LVMFXRWYT7XIJJP4IXKH4PTQF \ / AMOS7 \ YOURUM ::
-#\[7]FKPJKNM7L7TDWS2PHBC5MKLT2UYVL4LLTDP2J5FKLLLQPEVR7ADQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,,,,,,.,,..,,.,,,.,,,,,.,...,,,,,.,.,...,...,...,.,,,.,,,,.,,,,,,
+#5K27Y5IEX5B6W43B6C2STWECQVXKMB3OAN3FNQZHKY6T7DQQTLWRT2WVZPQH4J34XDCCBPFRPZU6Q
+#\\\|ABCWNARBP5F2RFNF23T76UCKJWVBNTNV6CBXJY4W4DEORBQYDQV \ / AMOS7 \ YOURUM ::
+#\[7]YZUATOUPKCLYITEAINLV3DDUJ275XMSGAWUE5EJMD3IGYYIDBQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

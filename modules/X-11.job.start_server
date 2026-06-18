@@ -1,0 +1,106 @@
+## [:< ##
+
+# name  = X-11.job.start_server
+# descr = fork an X server binary and register a poll for its display socket
+
+my $job    = shift            // {};
+my $params = $job->{'params'} // {};
+
+## primary path populates globals before callbacks.initialized fires ##
+my $display_str  = $params->{'display'} // <X-11.startup.display> // return;
+my $mode         = $params->{'mode'}    // <X-11.startup.mode>    // return;
+my $extra_params = $params->{'params'}  // <X-11.startup.server_params> // '';
+my $bin_name     = $params->{'bin_name'} // <X-11.startup.bin_name> // return;
+my $is_primary   = $params->{'primary'}  // <X-11.startup.primary>  // FALSE;
+
+my $server = <X-11.servers>->{$display_str} //= {};
+$server->{'mode'}   = $mode;
+$server->{'params'} = $extra_params;
+
+my $server_bin = <X-11.bin_path>->{$bin_name};
+if ( not defined $server_bin or not -x $server_bin ) {
+    <[base.logs]>->(
+        0, "X-11 binary '%s' not found [ installed ? ]", $bin_name
+    );
+    return;
+}
+
+<[base.logs]>->( 2, ':: xsrv-bin-path :: %s', $server_bin );
+
+my $server_params = join( ' ', $display_str, $extra_params );
+my $bin_name_lc   = lc $bin_name;
+my $cmd_line      = sprintf '%s %s 2>&1 |', $server_bin, $server_params;
+
+<[base.logs]>->(
+    1,            "starting '%s' server process on %s .,",
+    $bin_name_lc, $display_str
+);
+
+my $server_pid = open( my $out_fh, $cmd_line );
+binmode( $out_fh, ':raw' )
+    if defined $out_fh;    ## strip :utf8 from pipe-open ##
+
+if ( not defined $server_pid or length $EVAL_ERROR ) {
+    my $err_reason
+        = length $OS_ERROR
+        ? sprintf( ': %s', <[base.str.os_err]> )
+        : qw| ! |;
+    <[base.logs]>->(
+        0,            ': cannot start %s-server%s',
+        $bin_name_lc, $err_reason
+    );
+    return;
+}
+
+<[base.logs]>->(
+    ": '%s' process started [PID:%s] on %s",
+    $bin_name_lc, $server_pid, $display_str
+);
+
+$server->{'pid'} = $server_pid;
+$server->{'fh'}  = $out_fh;
+<X-11.pid> = $server_pid if $is_primary;
+
+### registering server process id ###
+push <system.kill_list>->@*, $server_pid;
+<[base.zenki.report_child_pid]>->($server_pid);
+
+if ( $mode eq qw| xorg | and $EFFECTIVE_USER_ID == 0 ) {
+    <[base.change_prio]>->( <X-11.change_priority>, $server_pid );
+}    ## use prio child otherwise ## [ LLL ]
+
+## create dependency object for this display if not already present ##
+if ( not defined $server->{'dep_id'} ) {
+    my $dep_id = <[dependency.add_object]>
+        ->( { 'type' => 'x11_display_flag', 'display' => $display_str } );
+    <[dependency.add]>->( $dep_id, $dep_id );
+    $server->{'dep_id'} = $dep_id;
+}
+
+## start async socket poll ##
+$server->{'poll_retries'} = 0;
+$server->{'poll_timer'}   = <[event.add_timer]>->(
+    {   'after'    => 0.05,
+        'interval' => 0.1,
+        'handler'  => qw| X-11.handler.display_poll |,
+        'data'     => { 'display' => $display_str }
+    }
+);
+
+## queue finalize job to run once the display is connected ##
+<[jobqueue.add_job]>->(
+    {   'name'            => "X-11 finalize server $display_str",
+        'job_callback'    => qw| X-11.job.finalize_server |,
+        'object_id'       => $server->{'dep_id'},
+        'callback_params' => {
+            'display' => $display_str,
+            'primary' => $is_primary
+        }
+    }
+);
+
+#,,..,..,,..,,.,.,,,.,...,,,,,,,,,,..,,.,,.,.,..,,...,.,.,..,,,.,,,..,,.,,,,.,
+#DFLESZM2LKBKLIJPTW7752ODXYV6RHCXRJNJI2LLE546GCB2NGG6WS2QSZI2I4DZL47CSL7XDTI62
+#\\\|HOPAJS4GEKJDV54E6FRYM36LRSJHSQWCDJ4WMGH7NTM6U6BGMSZ \ / AMOS7 \ YOURUM ::
+#\[7]RZOCYCACDQXZEFXE2BF4ZTB7RIBOQMKBPDUYUR3GEPC2CFLRF4CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
