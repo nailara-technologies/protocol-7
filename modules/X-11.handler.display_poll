@@ -1,0 +1,78 @@
+## [:< ##
+
+# name  = X-11.handler.display_poll
+# descr = async poll: connect to X display when its socket appears;
+#          abort on crash or timeout; then resolve display dependency
+
+my $event       = shift->w;
+my $display_str = $event->data->{'display'}      // return;
+my $server      = <X-11.servers>->{$display_str} // return;
+my $max_retries = 80;    ## 80 x 100ms = 8s ##
+
+my $cancel_poll = sub {
+    if ( defined $server->{'poll_timer'} ) {
+        $server->{'poll_timer'}->cancel;
+        delete $server->{'poll_timer'};
+    }
+};
+
+## check if server process died ##
+my $pid = $server->{'pid'};
+if ( defined $pid ) {
+    my $wait_res = <[base.waitpid]>->($pid);    ## WNOHANG ##
+    if ( $wait_res < 0 or $wait_res == $pid ) {
+        $cancel_poll->();
+        <[base.logs]>->(
+            0, "X-11 server on %s terminated unexpectedly [ pid %s ]",
+            $display_str, $pid
+        );
+        return;
+    }
+}
+
+## timeout ##
+if ( ++$server->{'poll_retries'} > $max_retries ) {
+    $cancel_poll->();
+    <[base.logs]>->(
+        0, "[!] X-11 display %s socket connection timed out", $display_str
+    );
+    return;
+}
+
+## derive socket path ##
+my $display_num = $display_str;
+$display_num =~ s|^:||;
+my $socket_path = sprintf qw| /tmp/.X11-unix/X%s |, $display_num;
+
+return unless -S $socket_path;
+
+## attempt X11::Protocol connection ##
+my $conn;
+eval { $conn = X11::Protocol->new($display_str); };
+
+if ( length $EVAL_ERROR or not defined $conn ) {
+    <[base.logs]>->(
+        2, ": display %s socket exists, protocol connection failed: %s",
+        $display_str, $EVAL_ERROR
+    ) if $server->{'poll_retries'} % 7 == 0;
+    return;
+}
+
+## connection established ##
+$cancel_poll->();
+
+$server->{'conn'}      = $conn;
+$server->{'connected'} = TRUE;
+
+<[base.logs]>->(
+    1, "display %s connected [ X11::Protocol ready ]", $display_str
+);
+
+## resolve jobs waiting on this display ##
+<[jobqueue.check_dependencies]>;
+
+#,,,.,...,.,.,,..,,,.,..,,,,.,..,,,,,,,,.,,..,..,,...,...,,,,,,,,,,..,,..,.,.,
+#YPDD3P3PXHFJKZEARKWFWMCLVNBUG2MWF3UVFAUCATXKRVNMZ6WWSPL72DQL7QAC5YXO5GHBSZPJO
+#\\\|2LLNS447UL6WR2MV6APWXZK67FJJAGT7BVQBPAG33CPNXTWSGCX \ / AMOS7 \ YOURUM ::
+#\[7]JLFLJHGR6UZHW2FPXZAWKNTNESLORZJRUMCHJQWB4R235SVEGSCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

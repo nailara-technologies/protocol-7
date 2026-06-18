@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = X-11.cmd.capture-window
+# param = <window_id> <output_path>
+# descr = capture an x11 window to an image file
+
+my @args
+    = ref( $call->{'args'} ) eq qw| ARRAY |
+    ? $call->{'args'}->@*
+    : split( m| +|, $call->{'args'}, 2 );
+
+my ( $window_id, $output_path ) = @args;
+
+return { 'mode' => qw| false |, 'data' => 'window id required' }
+    if not defined $window_id;
+return { 'mode' => qw| false |, 'data' => 'invalid window id syntax' }
+    if $window_id !~ m|^\d+$|;
+return { 'mode' => qw| false |, 'data' => 'output path required' }
+    if not defined $output_path or not length $output_path;
+
+my $capture_bin;
+my @capture_args;
+
+my $scrot_bin = <[base.file.which]>->('scrot');
+if ( defined $scrot_bin ) {
+    $capture_bin  = $scrot_bin;
+    @capture_args = ( qw| -u -d 0 -w |, $window_id, $output_path );
+} else {
+    my $import_bin = <[base.file.which]>->('import');
+    return {
+        'mode' => qw| false |,
+        'data' => 'scrot or imagemagick import not found'
+        }
+        if not defined $import_bin;
+    $capture_bin  = $import_bin;
+    @capture_args = ( qw| -window |, $window_id, $output_path );
+}
+
+if ( system( $capture_bin, @capture_args ) != 0 ) {
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( 'capture failed [ %s ]', $CHILD_ERROR )
+    };
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf( 'captured window %d to %s', $window_id, $output_path )
+};
+
+#,,,.,,,,,...,.,.,,,.,..,,,..,,.,,.,.,..,,,,.,..,,...,...,...,,..,,,,,,,.,,.,,
+#UMHRPJFDCYATTZTDXVCPAFAGW3QEVCC4KRKNNXD5DOOCPYGUFPOL4ICVNFLWQFLEM6MSQXKVPUCSI
+#\\\|Y52YYOAO5LRVBKXSFRUB7MN2PQYJF5DXN3BDL6CXT376IYMXG7F \ / AMOS7 \ YOURUM ::
+#\[7]RPDLMSRNEMCX3LJ2JN5JXLDBRUG4THMRUCCU4R64RIVBTLA54KCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
