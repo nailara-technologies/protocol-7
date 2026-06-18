@@ -5,10 +5,10 @@
 # descr = adjust playback position
 
 my $seek_mode  = 'absolute';
-my $seek_value = $call->{'args'};
+my $seek_value = $call->{'args'} // '';
 
 return { 'mode' => qw| false |, 'data' => 'expected seek value' }
-    if not defined $seek_value or !length($seek_value);
+    if !length($seek_value);
 return { 'mode' => qw| false |, 'data' => 'invalid seek value' }
     if $seek_value !~ /^[\-\+]?\d+(\.\d{1,5})?%?$/;
 return {
@@ -33,10 +33,10 @@ push( @{<mpv.reply_ids>}, $call->{'reply_id'} );
 
 <[mpv.send_command]>->( 'seek', $seek_value, $seek_mode, 'exact' );
 
-return { 'mode' => 'deferred' }
+return { 'mode' => qw| deferred | }
 
-#,,.,,,..,.,.,,,.,,..,.,.,.,,,,..,.,,,,.,,,.,,..,,...,...,..,,,.,,,,.,,.,,,,,,
-#H2KJSIAW4S3L3NIDL5OXHVORRACNSYIYOAZ3K664RFXDTTWZDAJFSWO2OJGOPUH3TCG7THVLPDZAI
-#\\\|X4CAESTBAAIWXSLDC3JTVTHWZIV7G2IUHAES26XGTKGT5CSOV72 \ / AMOS7 \ YOURUM ::
-#\[7]CIZMVJ5U3JS72GKGWJLSHC6VPDL6NJNKTKM3YUE4RQIPGFEENYCQ 7  DATA SIGNATURE ::
+#,,..,,.,,..,,.,,,,..,,,.,.,,,,.,,,..,,,.,...,..,,...,..,,..,,...,,..,,,.,..,,
+#U5RL6R7GTH5GBLXALU5KJQLH2MQLG7UUVT32EFKUVF2T6GCK2FSVRE6EKD7GTJ7S7LFSNSZT6C7DS
+#\\\|JIC72DS2U77WPGAUHAKMK4NCHFPMDJP4VWCNTZSSVTG6VAXMT54 \ / AMOS7 \ YOURUM ::
+#\[7]OAUAIG4WE7XPTGN7PVGBY3MSQZ43N7EXCOJYFVRW36REX672A6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

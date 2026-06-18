@@ -5,10 +5,10 @@
 # descr = sends raw strings through mpv control pipe
 
 my $mpv_socket = <mpv.socket>;
-my $cmd_str    = $call->{'args'};
+my $cmd_str    = $call->{'args'} // '';
 
 return { 'mode' => qw| false |, 'data' => 'expected mpv command string' }
-    if not defined $cmd_str or not length $cmd_str;
+    if !length $cmd_str;
 
 return {
     'mode' => qw| false |,
@@ -29,8 +29,8 @@ return { 'mode' => qw| false |, 'data' => 'write error.' }
 
 return { 'mode' => qw| true |, 'data' => 'command string sent' };
 
-#,,,.,,,,,,,.,,,.,,,.,...,,,,,,,,,..,,,,,,,..,..,,...,...,.,.,,,,,.,,,.,,,.,.,
-#N6NENLM67NMHUBN5ZMGQ7E3CINQIWU5ALY2I7WLXIOQFEE2SROR6R46HJWFAE3LZCMUW4FHXGL2RI
-#\\\|HCMV3JG3FSUNPVH3WTHXSJRSAFSXDDLZKDUHNG66PXQ4RWHQEHP \ / AMOS7 \ YOURUM ::
-#\[7]6QNSUYWWOMGEL542TTGKULP7EI4OAVVKEDTOYMZND7LY7V3S26BA 7  DATA SIGNATURE ::
+#,,,.,...,..,,..,,..,,,..,,,.,,..,.,.,..,,...,..,,...,..,,,..,..,,,,.,...,...,
+#7JT3A4DTJXMNQS45EOP7NJEYS5O5SH2G6GAQZE4T4AV6IJDZM2H7X6ZPBON6A3JHMYIKLTGAC42XE
+#\\\|6ZG74I36YZO7WYEP7TSWV42QHX5RZNM4QJJY3YNTCXECZ5XAWI3 \ / AMOS7 \ YOURUM ::
+#\[7]W2Z7YRUKNXFPBKZ6ZXWPA2QJXSMZTGVLDAQPUS3XNCSHCBHOSWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

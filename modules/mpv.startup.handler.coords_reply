@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = mpv.startup.handler.coords_reply
+# descr = placement coords reply: apply geometry, cache to local profile, open player
+
+my $reply = shift            // {};
+my $mode  = $reply->{'mode'} // qw| false |;
+my $rdata = $reply->{'data'} // '';
+
+if ( $mode ne qw| true | ) {
+    <[base.logs]>->(
+        1, '[startup] coords unavailable — opening with fallback [%s]',
+        <mpv.geometry>
+    );
+    <[mpv.startup.job.fork_player]>;
+    return;
+}
+
+my %geo;
+for my $token ( split m|\s+|, $rdata ) {
+    $geo{$1} = $2 + 0 if $token =~ m{^(x|y|width|height)=(-?\d+)$};
+}
+
+if (    defined $geo{'x'}
+    and defined $geo{'y'}
+    and defined $geo{'width'}
+    and defined $geo{'height'} ) {
+
+    <mpv.geometry> = sprintf '%dx%d+%d+%d',
+        $geo{'width'}, $geo{'height'}, $geo{'x'}, $geo{'y'};
+
+    ## cache to mpv-local profile — fast path on next startup ##
+    my $caller = <mpv.startup.caller> // '';
+    if ( length $caller ) {
+        <[window.profile.save]>->(
+            $caller, $geo{'x'}, $geo{'y'}, $geo{'width'}, $geo{'height'}
+        );
+    }
+
+    <[base.logs]>->(
+        1,                    '[startup] geometry from %s : [%s]',
+        <mpv.placement_mode>, <mpv.geometry>
+    );
+
+} else {
+    <[base.logs]>->(
+        0,      '[startup] unparseable coords [%s] — using fallback [%s]',
+        $rdata, <mpv.geometry>
+    );
+}
+
+<[mpv.startup.job.fork_player]>;
+
+#,,,,,,.,,,.,,..,,,,.,...,...,..,,,..,,.,,.,.,..,,...,...,..,,,..,..,,.,.,..,,
+#R2ZZSTTQT2V6Q3VG6RIFHWYAORMTLNJKGNSVKFRONQPLV52PLIK5WVDXUKBD23Q6BHJNOI27E7WGY
+#\\\|HHADJKACWMHF7MQXGV4DDTROZNI7GDVAOCSGFCN6KVRZOLIWQGH \ / AMOS7 \ YOURUM ::
+#\[7]JZ43HJDNAGLJRHP3LBHIPANJXEQHTTPPHNDIKJIFIJTI3RBLSMBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

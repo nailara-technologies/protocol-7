@@ -1,0 +1,78 @@
+## [:< ##
+
+# name  = mpv.startup.handler.socket_poll
+# descr = async poll: open ipc socket when mpv creates it;
+#          abort on crash or timeout; then complete startup sequence
+
+my $socket_path = <mpv.path.ipc_socket> // '';
+my $max_retries = 84;                            ## 84 × 50ms = 4.2s ##
+
+my $cancel_poll = sub {
+    if ( defined <mpv.startup.socket_poll_timer> ) {
+        <mpv.startup.socket_poll_timer>->cancel;
+        delete $data{mpv}{startup}{socket_poll_timer};
+    }
+};
+
+## check if mpv process died ##
+my $wait_res = <[base.waitpid]>->(<mpv.pid>);    ## WNOHANG ##
+if ( $wait_res < 0 or $wait_res == <mpv.pid> ) {
+    $cancel_poll->();
+    my $level = ( defined <mpv.fh.stdout> and <mpv.fh.stdout>->eof ) ? 0 : 1;
+    <[base.log]>->(
+        $level, '<<< ! >>> mpv process terminated unexpectedly.,'
+    );
+    <[base.log]>->( 1, ":. no further output : is 'really-quiet' enabled?" );
+    <[mpv.handler.error_output]>;
+    <[mpv.callback.abort_startup]>;
+    return;
+}
+
+## timeout ##
+if ( ++<mpv.startup.socket_retries> > $max_retries ) {
+    $cancel_poll->();
+    <[base.log]>->(
+        0, "[!] mpv socket creation error [ '$socket_path' does not exist ]"
+    );
+    <[mpv.callback.abort_startup]>;
+    return;
+}
+
+## not ready yet ##
+return unless -e $socket_path;
+
+## socket ready ##
+$cancel_poll->();
+
+<[base.log]>->( 1, "opening unix domain socket '$socket_path'.," );
+<mpv.socket> = <[base.open]>->( 'unix', 'output', $socket_path );
+<[base.log]>->( 1, "unlinking socket $socket_path.," );
+unlink($socket_path) or warn("unlink($socket_path) : \l$OS_ERROR");
+
+if ( not defined <mpv.socket> or !-S <mpv.socket> ) {
+    <[base.log]>->(
+        0, '[!] mpv socket creation error [ not a valid socket ]'
+    );
+    <[mpv.callback.abort_startup]>;
+    return;
+}
+
+<[event.add_io]>->(
+    {   'fd'      => <mpv.socket>,
+        'handler' => qw| mpv.handler.pipe_output |,
+        'data'    => { 'pid' => <mpv.pid> }
+    }
+);
+
+<[mpv.callback.fade_in]> if <mpv.fade_in> and not <mpv.audio_only>;
+
+<[base.log]>->( 1, 'player startup successful., =)' );
+
+## release finalize job — observe_properties + get_playlist run from there ##
+<[jobqueue.check_dependencies]>;
+
+#,,.,,..,,...,.,,,.,.,,,.,..,,,..,.,,,...,.,.,.,.,...,...,...,..,,...,.,.,.,,,
+#5J74P6DP4YTOW7JVV7KRBK7HK4QSVZ4E572XIR7JNGVF6NBIFQ46KCYH6J4NQDICT3PXQM4YR6CCG
+#\\\|K75KYTJRYPSMA3TUNBIZZ5SCFZ6XUXCJKYVHHCVOY62DPDCDNJ5 \ / AMOS7 \ YOURUM ::
+#\[7]GEIKJWPROGOOFFW7KSD66PWJXED42X7FVNEY5H7EHF5GJRBMLABA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

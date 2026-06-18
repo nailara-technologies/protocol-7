@@ -62,6 +62,7 @@ base.cfg_bool
 ui.render.tree
 mpv.cmd.resume
 mpv.cmd.append
+jobqueue.count
 base.wrap_text
 base.swap_subs
 base.ssl.write
@@ -109,9 +110,11 @@ base.calc_gauss
 ui.estimate.cost
 set-up.init_code
 plugin.auth.unix
+mpv.startup.init
 mpv.send_command
 mpv.json.command
 mpv.get_playlist
+jobqueue.add_job
 chk-sum.md5.b64u
 base.stream.push
 base.stream.open
@@ -139,6 +142,9 @@ net.read_bytewise
 mpv.handler.event
 mpv.cmd.set-speed
 mpv.cmd.get-speed
+jobqueue.pre_init
+jobqueue.move_job
+jobqueue.exec_job
 chk-sum.init_code
 base.stream.close
 base.session.user
@@ -168,6 +174,8 @@ mpv.cmd.set-volume
 mpv.cmd.get-volume
 mpv.cmd.current-vo
 mpv.cmd.current-ao
+jobqueue.init_code
+jobqueue.find_jobs
 base.reload_values
 base.reload_config
 base.parser.config
@@ -180,6 +188,7 @@ base.file.pre_init
 base.file.line_map
 base.file.all_dirs
 base.event.add_var
+base.dependency.ok
 base.clear_p7_mods
 base.clean_unicode
 base.clean_hashref
@@ -190,6 +199,7 @@ window.profile.save
 window.profile.load
 plugin.auth.twofish
 mpv.cmd.append-play
+jobqueue.remove_job
 io.ip.tcp.init_code
 base.utf8.clean_str
 base.str.eval_error
@@ -208,6 +218,7 @@ base.file.all_files
 base.extract_values
 base.event.pre_init
 base.diff.hash_keys
+base.dependency.add
 base.curve.register
 base.calc_unix_path
 mpv.loop_plist_param
@@ -247,6 +258,8 @@ mpv.cmd.stop_autoskip
 mpv.cmd.show_playlist
 mpv.cmd.current-hwdec
 mpv.callback.silenced
+jobqueue.get_next_job
+jobqueue.get_job_data
 io.ip.tcp.output.open
 io.ip.tcp.input.close
 format.yaml.load_file
@@ -265,6 +278,7 @@ base.load_config_file
 base.list.element.add
 base.file.match_files
 base.event.add_signal
+base.dependency.setup
 base.console.commands
 base.cmd.buffer-erase
 base.balanced-average
@@ -291,6 +305,7 @@ auth.unix.authenticate
 window.geometry.resolve
 set-up.json.import_file
 protocol.sftp.init_code
+mpv.startup.open_player
 mpv.set-up.import_rules
 mpv.set-up.export_rules
 mpv.open_control_socket
@@ -298,6 +313,7 @@ mpv.handler.pipe_output
 mpv.handler.event.pause
 mpv.cmd.reload_playlist
 mpv.cmd.playlist_update
+jobqueue.queue_template
 io.unix.socket.end_code
 io.ip.tcp.input.connect
 crypt.C25519.key_exists
@@ -327,6 +343,7 @@ window.profile.calculate
 ui.caller.security-level
 protocol.https.init_code
 plugin.auth.auth-keypair
+mpv.startup.job.finalize
 mpv.handler.pipe.version
 mpv.handler.pipe.command
 mpv.handler.error_output
@@ -342,6 +359,7 @@ base.protocol-7.pre_init
 base.parser.command_list
 base.file.zulum_tmp_file
 base.file.zenka_dir.load
+base.dependency.pre_init
 base.cmd.verify-instance
 base.chk-sum.from_substr
 base.chk-sum.bmw.L13-str
@@ -357,6 +375,8 @@ mpv.handler.pipe.playlist
 mpv.handler.event.unpause
 mpv.cmd.autoskip_interval
 mpv.await_window_presence
+jobqueue.priorities_table
+jobqueue.joblist_template
 io.unix.socket.input.open
 base.stream.advance_drain
 base.sourcecode.init_code
@@ -395,9 +415,12 @@ base.ntime.epoch_timestamp
 base.max-len.val-hash-keys
 base.handler.session_error
 base.event.io_idle_restart
+base.dependency.add_object
 base.check_dependency_dirs
 net.read_linewise_estimated
+mpv.startup.job.fork_player
 mpv.callback.reenc_finished
+jobqueue.check_dependencies
 io.unix.socket.output.close
 base.zenki.report_child_pid
 base.templates.register_add
@@ -414,9 +437,11 @@ base.chk-sum.elf.vax-BASE32
 base.chk-sum.amos.init_code
 protocol.protocol-7.pre_init
 protocol.amos_term.init_code
+mpv.startup.request_geometry
 mpv.handler.pipe.val_percent
 mpv.handler.pipe.single_line
 mpv.callback.start_reenc_msg
+mpv.callback.object.mpv_flag
 io.unix.socket.input.connect
 crypt.C25519.keystr_is_valid
 crypt.C25519.compare_keypair
@@ -430,6 +455,7 @@ base.handler.heart_ack_reply
 base.access.special-user-map
 base.X-11.set_window_opacity
 protocol.protocol-7.init_code
+mpv.job.deferred_send_command
 mpv.handler.event.file-loaded
 crypt.C25519.load_from_string
 crypt.C25519.get_usr_keys_dir
@@ -454,6 +480,7 @@ protocol.amos-chksum.init_code
 mpv.handler.scan_encoded_timer
 mpv.handler.reenc_notify_reply
 mpv.callback.check_parent_dirs
+jobqueue.handler.queue_counter
 crypt.C25519.key_bin_checksums
 base.zenki.ondemand_registered
 base.session.send_init_reports
@@ -465,11 +492,13 @@ base.chk-sum.bmw.encode_digest
 base.cache.refaddr-prefix.init
 base.X-11.get_pointer_scr_rect
 ascii.frame.render.border_line
+mpv.startup.handler.socket_poll
 mpv.handler.rescale_video_reply
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
 base.buffer.local_logfile_write
 set-up.json.cmd.get-config-names
+mpv.startup.handler.coords_reply
 crypt.C25519.decrypt_priv_keystr
 base.perlmod.install_cpan_module
 base.perlmod.get_collision_index
@@ -487,6 +516,7 @@ base.sourcecode.in-mem.sub-source
 base.perlmod.init_install_buffers
 base.parser.center_ellipse_string
 base.file.matching_path_linknames
+base.dependency.install_callbacks
 base.callback.expire_code_version
 protocol.sftp.server.start-process
 protocol.sftp.callback.kill_server
@@ -496,6 +526,7 @@ protocol.amos-chksum.ext-cmd.close
 protocol.amos-chksum.ext-cmd.clear
 protocol.amos-chksum.ext-cmd.bytes
 plugin.auth.auth-keypair.init_code
+jobqueue.event.register_job_queues
 crypt.C25519.get_type_from_key_str
 base.protocol-7.command.send.local
 base.path-set-up.zenka-directories
@@ -518,6 +549,7 @@ base.event.callback.io-idle-restart
 base.callback.reset_strm_size_timer
 protocol.amos-chksum.ext-cmd.version
 protocol.amos-chksum.command-handler
+mpv.startup.handler.placement_online
 graphics-3d.calc.cursor-translucency
 base.warnings.compact_diff_to_pragma
 base.warnings.compact_diff_from_bits
@@ -570,8 +602,8 @@ protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 mpv.handler.event.property-change.video-aspect-override
 
-#,,,.,,,.,.,.,,..,...,..,,.,.,..,,,,.,,..,.,,,..,,...,...,,..,.,,,,.,,...,.,,,
-#PSRF6BGAEUD2LZL2TG6RX5VGUPDVNLVIFIDQJLYEY2CBRKGFL3OQZMBFSCATNA5QGKLEMHA3QS6QQ
-#\\\|V7WD2KSM3PSGAI3J5DB5BQABSPVH7ZGCFF436KBY57H5ID7RAE3 \ / AMOS7 \ YOURUM ::
-#\[7]5RKSPTGNP3FZDDTQNAINXVMUOS5TIN7PO3HCJMWAXZZQVJJKGQCI 7  DATA SIGNATURE ::
+#,,.,,..,,...,...,..,,..,,...,.,.,.,.,.,,,,,,,..,,...,...,,.,,,..,...,,..,..,,
+#MC4PPVA7LRS4GOI5CTKU3XJ52RDVUJBEKNBUN6ASUNZEMHHMI2FGVKGSCPR32IAQBVVNEQHPRC262
+#\\\|P6EMD3IU7MQU65ZOODLGCVWXCWMOFOVGFGB4VR4BN6RJ6LFNUQC \ / AMOS7 \ YOURUM ::
+#\[7]XUHJLZRAPWWGDMJLMJJZXAPWVKV2HXITXOQIGXUWUY5MCAD7ECCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

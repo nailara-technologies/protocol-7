@@ -127,6 +127,10 @@ template at `data/yaml/context-templates/footer-cleanup.yaml` — duplicate sigs
 
 kimi vs coding: both use dynamic system messages + base32r encoding; task queue + tool calling are coding-only; session persistence is kimi-only.
 
+## Command Return Style — Deferred Replies (June 2026)
+
+`qw| deferred |` returns keep the route open and reply later via the remembered route id.  They must **not** include a `'data'` key.  Args must always default with `// ''`.  See [topic-cmd-style-notes.md](topic-cmd-style-notes.md).
+
 ## Kimi + Kimi-Web Integration (April 2026)
 
 local agent spawn via `kimi-web.bridge.ensure_local_agent`; `kimi.cfg.use_local_agent = 1` in `configuration/zenki/kimi/start`.
@@ -171,8 +175,8 @@ see [topic-language-detection.md](topic-language-detection.md)
 phase 1 operational (~950 lines); file-backed history at `data/chat/channel/*/history`; `data/ai-mem/handover.txt` retired.
 open: kimi zenka state machine upgrade (backend reconnect), coding zenka as third dispatch target, phase 2 channels zenka.
 
-#,,,,,..,,.,,,..,,,.,,,.,,,..,.,,,,,,,.,,,,..,..,,...,...,,,,,..,,.,,,.,,,.,.,
-#GJVCL4HKEKM4MBU2INXTGHP5CJX742GAVPQ5CRKEV266M4EE36HWNRLEAYHEQJWX4RNX42HEY7LPY
-#\\\|XWSEB3WJ6ZB2XSO2N7BDFRASSFLJZHFXPHROYZ5IYKXE2SMVTQ5 \ / AMOS7 \ YOURUM ::
-#\[7]CQRIIICYO2AMTBOJT55BQOCQTAQOWACAC3DJHNAYROVJOZR252AY 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,..,.,.,.,.,,,,,..,,.,.,,,.,,.,,..,,...,...,,..,,..,,..,...,,.,,
+#5V6IDLWP4OBFPOE3NCWN5BMJ5ZYXNZA6JOFQVPXDCYQN3WDA47VRVIXXDDI6F426SW3DGBHP4SUBK
+#\\\|DP6UL2252BMNWMRBER27RHQLKPXWB6SVX5CV57VWYA6XIEDQMXL \ / AMOS7 \ YOURUM ::
+#\[7]JM3K5Y6S3DBMWHHSE7W5S4KIQXYPJDFY7USBXR57KFE7TJB3UABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
