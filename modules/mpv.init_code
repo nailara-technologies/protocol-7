@@ -67,6 +67,16 @@ die "[!] mpv binary not found, aborting startup.,"
 # eventually changed to audio ['audio' subname]
 <mpv.playlist_type> //= qw| video |;
 
+<mpv.placement_mode> //= '';    ## zenka name to use for window placement ##
+
+## dependency setup — callbacks auto-discovered from mpv.callback.object.* ##
+<[dependency.install_callbacks]>->('mpv');
+
+## socket dep: resolves when mpv ipc socket handle is open ##
+<mpv.dep.socket> //= <[dependency.add_object]>
+    ->( { 'type' => 'mpv_flag', 'flag_key' => 'mpv.socket' } );
+<[dependency.add]>->( <mpv.dep.socket>, <mpv.dep.socket> );
+
 ## overriding ## no audio fade in 'universal-child' mode ## [LLL] change later ?
 <mpv.fade_idle_volume> = FALSE if <system.zenka.mode> eq qw|universal-child|;
 
@@ -89,8 +99,8 @@ if ( <mpv.autorescale> and defined <mpv.rescale_path> ) {
 
 0;
 
-#,,.,,.,,,.,,,,.,,,..,,,.,.,,,,,,,.,.,,..,,,.,..,,...,...,...,..,,..,,...,,,,,
-#DHWOYPENIPIPVFIXQPJN2AWHG2RXPYMI4FOMF2QNAIASRKIJ7DXCF6G5CTLMAGE7VMEGS77IN5FJK
-#\\\|MELTDIO56HV5JDC4ZA5EKZ3PPQETJXNBSNX2AQ2BPIOXU34VBKN \ / AMOS7 \ YOURUM ::
-#\[7]K7YPWJO7POLMU67STK66GJBR2NDML7M6UKKIZUSBWYQ2TQ4I64DQ 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,.,,,...,,.,,..,,,.,,,,.,...,,,,,..,,...,...,.,.,.,,,.,.,...,..,,
+#VEG4ZQIIYADFX7WBZXV7FUSG3H6LUTLHENIGWBVJDVFNP7J5UR5IPF7U3OEMWOM4QE6WXGDOOKRE2
+#\\\|VUH2O5JV36PNURIPHXX3HD66NYBK2Q3PVX67ILPFTYYU62CTBUU \ / AMOS7 \ YOURUM ::
+#\[7]UQ3GNMFAUMSJU2IFSEA7MQYX3EQD4QD2WBMPRLUBUINROOH2WSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

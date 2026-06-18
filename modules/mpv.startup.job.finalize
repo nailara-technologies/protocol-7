@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = mpv.startup.job.finalize
+# descr = socket dep resolved: observe mpv properties and schedule playlist load
+
+<[mpv.initialize.observe_properties]>;
+
+<[event.add_timer]>->(
+    {   'after' => 0,
+        'cb'    => sub { <[mpv.get_playlist]>->(<mpv.playlist_type>) }
+    }
+);
+
+<[base.log]>->( 1, '[startup] player startup complete' );
+
+#,,,.,.,.,...,,..,...,,,,,...,,,.,.,.,.,,,.,,,.,.,...,...,,.,,...,...,,..,,,,,
+#SX2GGKCVD6272FO6GCX3LQPBHS3EHJINPNWQKILZQ7MIB2SGXHBRH6GPZBI7YH4M4QIACYEXVCJUO
+#\\\|VHHMKNTBN5IKK4G2GIMDFDHSRZ5ZGIK7YJ7RDQXITIW2XYLHYWJ \ / AMOS7 \ YOURUM ::
+#\[7]A4Z63JDU2SNUKNWI2GUCHIVZJXGQBDXBNAKSA44IF6HUDIC76CAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

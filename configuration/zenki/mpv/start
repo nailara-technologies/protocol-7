@@ -25,7 +25,7 @@ access.cmd.usr.cube = name commands heart subname reload verify-instance play \
                       src-ver src-age  ##  *
 
 modules.load = auth net protocol io.unix io.ip ui set-up.json chk-sum mpv \
-              window.profile window.profile.color window.geometry
+              jobqueue window.profile window.profile.color window.geometry
 [load_modules:<modules.load>]
 
 mpv.network.skip_proxy = yes      ## ignore proxy variables from %ENV ? ##
@@ -74,6 +74,8 @@ mpv.loop_plist_param = [mpv.loop_plist_param]
 #            --idle=once # with start on demand ..,
 
 mpv.preset = wsl-pulse   ##  <--  <kiosk|linux|wsl-nv-sdl|wsl-nv-pusle|...>
+
+mpv.placement_mode = window-place  ## uncomment to use placement on startup
 
 # mpv.params = [mpv.retrieve_params:<mpv.preset>] ## [LLL] implement ..,.
 
@@ -153,23 +155,16 @@ mpv.audio_params = -vo null -ao=<mpv.ao> --idle=yes <mpv.loop_plist_param> \
 [base.X-11.get_display]
 # [set-up.json.import_file:'mpv.set-up.json'] # ..from /etc/protocol-7/import/..,
 
-mpv.geometry = [window.geometry.resolve]
-
-[mpv.open_player]
-# [base.X-11.keep_below:<x11.id>]
-
-[mpv.initialize.observe_properties]
+[mpv.startup.init]
 
 [base.get_session_id]
-
-[mpv.get_playlist:<mpv.playlist_type>] ## <-- replace with following line.,, ##
 
 # [mpv.get_optional_playlist:<mpv.playlist_type>]
 
 [zenka.loop]
 
-#,,,.,,..,.,,,,,.,.,,,,,,,.,,,..,,,..,.,.,...,..,,...,...,...,...,,,.,,.,,,..,
-#WBLRXBFIKQNG46RTHWUTZAHG7IBX7AT52OC6KM2WLKK4YRS72KGMQ5KTG5K6I7TQDDOYPPJRKPRF6
-#\\\|CQ357LS5SBEQFRFS4KAWTIE52DC5XH22ZQSVNKKHQZNIRCTSR6G \ / AMOS7 \ YOURUM ::
-#\[7]UPBANN7SVRBFUSXNND44RQ2MNEUVIDUQMKMW723JJYYG42ADD6BI 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,.,,,,,,,...,,.,,.,.,,,,,,,,,,,.,..,,...,...,..,,..,,,,.,.,,,.,.,
+#BLNXDHE2QCDDBI5OI3SLBQGXAHWCNVEV3JHK2PR62DI4AI6UP5UDH4XB5IFWI7V47TVJW6AKPBPCS
+#\\\|ZSSMD6ZTPHEVQ5NOZ7KKGMFXHAXCSPMXQGRNEHOO7QCKJO43EY3 \ / AMOS7 \ YOURUM ::
+#\[7]KUVAE42TRZO6THW3K4CZFJCAIXFDMVPH5SEMMTUOEZZWIQ5RGOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

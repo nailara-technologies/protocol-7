@@ -4,11 +4,11 @@
 # param = [!]<mpv_cmd>
 # descr = send raw command through mpv control pipe
 
-my $cmd_str
-    = $call->{'args'};    # LLL: implement parameter quoting instead of '!'
+my $cmd_str = $call->{'args'}
+    // '';    # LLL: implement parameter quoting instead of '!'
 
 return { 'mode' => qw| false |, 'data' => 'expected mpv command' }
-    if not defined $cmd_str or !length($cmd_str);
+    if !length($cmd_str);
 return {
     'mode' => qw| false |,
     'data' => 'requested command matches blacklist!'
@@ -25,10 +25,10 @@ if ( $cmd_str !~ s|^\!|| ) {
         ;    # i.e. !show-text foo bar
 }
 
-return { 'mode' => 'deferred' };
+return { 'mode' => qw| deferred | };
 
-#,,.,,.,.,,..,.,,,,..,,.,,.,,,,,,,,,.,..,,...,..,,...,...,...,,..,,,.,..,,.,,,
-#4VWHFQGUT34UMHLRE5AWHECVLCDY5N4XX6OOJRHK6MJKFXVBY3JC5DQNRYQMHKGUVEXUVZGDNJ4IU
-#\\\|OITZRAR5VEMFXY2EG3KBOIJUCCK5WQBZF3SALQ7NH34Z4VTITGZ \ / AMOS7 \ YOURUM ::
-#\[7]T6FXTRKLQMDGYSJAVLECFEF6VADAMGSWLWYAZ5FWSCMXGL4UKSDI 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,...,,,,,,,.,.,.,,..,,.,,.,.,..,,..,,...,...,.,.,...,.,.,,.,,,..,
+#VHAK6VQSVFHE3B5LHCPS2YZ2H453G5DHULAXM3DJWJYI3OOZYTQOJH7TBQIFTVWLJYAOJUMBXT7MS
+#\\\|XSR3525PCVY6SQVXXXL7EWBJ5BPGLQCUPUCALHEPVUR2SSETNM2 \ / AMOS7 \ YOURUM ::
+#\[7]HLHHQJTPDTQVIMQ2W66HBWBXMJZD475FRSCS3UOROD4GLXT42MBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

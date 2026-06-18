@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = mpv.startup.request_geometry
+# descr = initialized callback: contact placement zenka for window geometry
+
+my $caller = <mpv.startup.caller> // '';
+
+unless ( length $caller ) {
+    <[base.log]>->(
+        0, '[startup.request_geometry] caller not set, opening with fallback'
+    );
+    <[mpv.startup.job.fork_player]>;
+    return;
+}
+
+<[base.logs]>->(
+    1, '[startup] requesting placement from %s [caller=%s]',
+    <mpv.placement_mode>, $caller
+);
+
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| v7.notify_online |,
+        'call_args' => { 'args'    => ':start: ' . <mpv.placement_mode> },
+        'reply'     => { 'handler' => 'mpv.startup.handler.placement_online' }
+    }
+);
+
+#,,..,.,.,...,.,,,.,,,.,.,,,.,.,,,...,.,,,,..,..,,...,...,,.,,.,.,.,.,.,,,..,,
+#2EGD3722NYDNXL4KHTVHTIUR2KNQ24UPFSQEDZRT4H52URVF4VD36UHEXDGETKIK36JEYIDACVGGE
+#\\\|3AK2FBNZEUHQ2H7PK7CGFDUKHFNYXMRZTED3BPVOPMI6244VQ3D \ / AMOS7 \ YOURUM ::
+#\[7]ZYTRZWZMHJRBN72FQBFLVXMN7BOJH2YNKW5PLGEAEFKU5F6MROCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
