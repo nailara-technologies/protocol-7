@@ -1,5 +1,16 @@
 # Completed Work Sessions — Index
 
+## 2026-06-18
+- session — mpv async startup state machine + jobqueue integration: all startup
+  paths deferred via `system.callbacks.initialized`; `open_control_socket`
+  rewritten as async 50ms poll timer; `mpv.dep.socket` dep object + `mpv_flag`
+  callback type; `startup.job.fork_player` + `startup.job.finalize` job chain;
+  `mpv.send_command` exit(2) replaced with deferred job queue
+  (`mpv.job.deferred_send_command`); `jobqueue` added to mpv modules.load;
+  vision discussion: mpv state persistence + visual curve automation +
+  cross-mapped parameter routing + self-healing LLM fallback chain +
+  `:twin:` zero-downtime restart; doc: `MPV-ASYNC-STARTUP-JOBQUEUE.md`
+
 ## 2026-06-13
 - session — base.handler.command split (5dcbf0296, dispatched to opus via claude_dispatch, fable rejected as unavailable): 2319→1037 lines, extracted base.handler.command.process_reply (1004 lines, reply-type dispatch TRUE/FALSE/WAIT/SIZE/CHRSIZE/STRM/STRM-SIZE/GET/TERM) + base.handler.command.route_to_target (361 lines, outbound routing/ondemand-zenka queueing); registered in base.list.subroutines + module-dependency-graph.asc; verified live via cube reload + coding.heart + list sessions, no behavior change; cost ~5% weekly tokens. optional cleanup still open: route-delete dedupe (4x repeated ~10-line block) + SIZE/CHRSIZE merge in process_reply, deferred to a future pass
 
@@ -116,8 +127,8 @@
 ## Full Archive
 - [Complete session archive](archive/topic-completed-archive.md) — all detailed session summaries preserved
 
-#,,,,,,,.,,,.,.,.,,..,,.,,,,.,.,,,.,,,,,.,,,,,..,,...,...,,.,,...,.,,,,..,,..,
-#DYZPBMRX4V7IACVPVCEW5RMEEC4XM537NELSBDLQNYXDYFMOMBFYWJFVQPFW3KMPRSLVX56ANYAU4
-#\\\|C5XGJLCD72QB657ZASXH3AJ5RMLIZLIVD27WPY3B3H5JDGRD6OI \ / AMOS7 \ YOURUM ::
-#\[7]GQZ7DEXDU4SFB2RYO5TTAKRPKCQGSASIRQLWB25HEJY4H2SJLSDY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,...,,,,,,,.,...,,,,,..,,,.,,...,..,,...,...,...,.,,,..,,.,,,,..,
+#P366YSAT277AWPLQBOYLZYOGX3KKURIT2CMYI5TORAD4S4VLZSOGJN7WRTZUYZUAQHQ5HTCUMVCAG
+#\\\|T6EWT7SIWQMKRYXTZH2XPBU4WIVBYEUYB52E4QTF35T6REHIFVB \ / AMOS7 \ YOURUM ::
+#\[7]SHKDC6ULP4YJWGILYNVDGWEO64UDIEJ2LY7PL6WNGWKDV7TBBGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

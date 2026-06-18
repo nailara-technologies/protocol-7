@@ -9,14 +9,21 @@ return <[base.log]>->( 0, 'no command defined' ) if not $json_string;
 <[base.logs]>->( 2, '<send_command> %s', $json_string );
 
 if ( not defined <mpv.socket> ) {
-    warn 'mpv control socket has been lost';
-    exit(2);    # TERM / KILL mpv in END code
+    <[base.log]>->( 1, '[send_command] player not ready — queuing command' );
+    <[jobqueue.add_job]>->(
+        {   'name'            => 'mpv deferred command',
+            'job_callback'    => 'mpv.job.deferred_send_command',
+            'object_id'       => <mpv.dep.socket>,
+            'callback_params' => { 'command' => $json_string },
+        }
+    );
+    return;
 }
 
 <[base.s_write]>->( <mpv.socket>, $json_string );
 
-#,,.,,.,,,,.,,.,.,...,.,,,.,,,.,,,..,,,,,,,.,,..,,...,...,...,..,,,.,,..,,..,,
-#5MVXKJ72J24S7EOZ7GXK7ITCR5ILRZUU26DZD33WURQ2YDSU42EFMLMB3OEITZOCU2D7WUB3IUU7G
-#\\\|Y7ZVIZ27A2KTCTIMBVR5LUHZSGG2LN6BCZIVRU6RCNJXR2D3WVD \ / AMOS7 \ YOURUM ::
-#\[7]PVLYSQOIKZONO2IHSRUYMKFPLRSSIK26P5HWA2NSP6D3EY3E2KDI 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,.,,,,.,..,,,..,,.,,,.,,,,,,,..,..,,...,.,.,,.,,,,.,,..,,,,,..,,
+#EUM3DP4ZMG4OFMONSLH7MHRUQLRQ52AJTW7LXAWBUFZHE6XOM2GFSXQXKYBN3255P4RBIPI74FUGK
+#\\\|DXZGPCLTY2FWK67USSJEJBWCDUFR6HOEURVOUJ5ZFBHOBN7VJ2I \ / AMOS7 \ YOURUM ::
+#\[7]ZIAONSWN5V7MGFZ4PQUOZ235FKBS3TKD6QNTN6YP2SPLBWH7WADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

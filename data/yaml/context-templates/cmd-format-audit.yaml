@@ -45,7 +45,10 @@ sections:
       ### return format ###
       - must return a hashref: `{ 'mode' => $m, 'data' => $d }`
       - mode values: 'size' [ normal output ], 'false' [ error/empty ],
-        'true' [ boolean success ]
+        'true' [ boolean success ], 'deferred' [ async reply later ]
+      - `qw| deferred |` returns are special: they keep the route open and reply
+        later via the remembered route id.  deferred returns must NOT contain a
+        `'data'` key; the eventual async reply supplies the data.
       - bare string returns cause "broken command" errors
       - `return;` without value causes "broken command"
 
@@ -81,8 +84,8 @@ on_complete:
     action: memory_update
     topic: "audit:cmd-format"
 
-#,,..,,.,,,,,,,,,,,,.,,..,...,,,.,..,,,.,,...,.,.,...,...,.,,,,,,,...,..,,,,.,
-#ECKYZE3NLFL67TKELAQZRRAXIP3KCXMCUSYWYYV6QKMPBNMYAFGR34KFKTAOJYXTIGFNYR5PBXZ4O
-#\\\|HD6GUSKRZ357G56EJZNQCB23PDMMAKKYJSOEUKEC7WTMP2GOOWT \ / AMOS7 \ YOURUM ::
-#\[7]ZO6G3WVXNOQN6RFGFWFGMNBLMM25RLJXF2KPLB76BDGK35QPSYCQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,.,,.,.,..,,...,,.,,,,,,,.,,..,,.,.,...,...,..,,,.,,.,,,.,.,.,,,
+#3UP3BWZTNS7OCCS35XBHNLOH3HQNLQ2EKQXQEHL36HACWVYASKVDM2VGICPNOZSQOTZOSCBKOONGY
+#\\\|BJQQBZBM3OHCYVTLSGF3DYAXR4XZUZN2WRILZRSZXZUZ45Q3B5S \ / AMOS7 \ YOURUM ::
+#\[7]WUOOHUPECNKOCGWUKR4BLVPTSM4IND3AGXB5QX5G4MPOKGXVXIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

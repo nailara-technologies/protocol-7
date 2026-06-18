@@ -4,7 +4,7 @@
 # param = <level>
 # descr = set video zoom level [-10..20]
 
-my $zoom_level = $call->{'args'};
+my $zoom_level = $call->{'args'} // '';
 
 return { 'mode' => qw| false |, 'data' => 'invalid zoom value! [-10..20]' }
     if $zoom_level !~ /^\-?\d+(\.\d+)?$/
@@ -21,10 +21,10 @@ if ( $zoom_level == 0 ) {
 
 <[mpv.send_command]>->( 'set_property_string', 'video-zoom', "$zoom_level" );
 
-return { 'mode' => 'deferred' };
+return { 'mode' => qw| deferred | };
 
-#,,,.,,.,,,,.,.,,,,,,,.,,,,..,..,,.,.,...,.,,,..,,...,...,...,...,,,.,.,.,,..,
-#XXMTA3LFDGZNO377VHZMFWZZFLPTBR5OG4DCNKCB2XSEOQGRSCCGF3SC6ZAW5U7DIQBJPENDJPYMQ
-#\\\|IVXANPTUTL37MLDXNVAD6E3FFWAYTVKJTFSJKRTYIKSIZZLBLZY \ / AMOS7 \ YOURUM ::
-#\[7]EC2ANHY5AT6PIKYG5SWPSD7NW4JKKHHBHFPSE4CK6KGQLEGIUICQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,..,,,,,,,.,,,..,.,,,...,.,,,..,,..,,...,..,,...,...,.,.,,..,,.,,
+#K26BKXVR2XWP5KPBM24XLWT7T4IYY5JS2X6ORM5PEQXS3P7J7Y44B6IO75F2NK3I5SNQODYKC2QY2
+#\\\|LNMVMKF7RNQDZHCH2F6CD6AHFHFOBND3FUJCKN4FEMFENRYGRFO \ / AMOS7 \ YOURUM ::
+#\[7]5YUWAYZ6WHYTUQMSZ2AI2F3M6WCQ43D4OCZVLTDLVSOW3U6S4QAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,70 @@
+## [:< ##
+
+# name  = mpv.startup.init
+# descr = geometry-aware startup: audio bypass,
+#          local profile fast path, deferred placement
+##
+## all paths push onto system.callbacks.initialized —
+## open_player is never called before the event loop
+my $zenka  = <system.zenka.name> // '';
+my $sub    = <system.zenka.subname>;
+my $caller = defined $sub ? "${zenka}[${sub}]" : $zenka;
+
+<mpv.startup.caller> = $caller;
+
+## audio mode: no geometry needed — defer open until event loop ##
+if (    <system.zenka.mode> eq qw| stand-alone |
+    and defined $sub
+    and $sub =~ m|^audio(?:-\d+)?$| ) {
+
+    <[base.logs]>->(
+        1, '[startup] audio mode [%s] — deferring open', $caller
+    );
+    push @{ <system.callbacks.initialized> //= [] },
+        qw| mpv.startup.job.fork_player |;
+    return;
+}
+
+## graphical mode: check mpv-local saved profile first ##
+my $profile = <[window.profile.load]>->($caller);
+
+if ( defined $profile ) {
+    my ( $x, $y, $w, $h ) = @{$profile}{qw| x y width height |};
+    <mpv.geometry> = sprintf qw| %dx%d+%d+%d |, $w, $h, $x, $y;
+    <[base.logs]>->(
+        1, '[startup] local profile [%s] — deferring open',
+        <mpv.geometry>
+    );
+    push @{ <system.callbacks.initialized> //= [] },
+        qw| mpv.startup.job.fork_player |;
+    return;
+}
+
+## no local profile — resolve fallback geometry now,
+##                       before cube is available ##
+<mpv.geometry> = <[window.geometry.resolve]>;
+
+if ( length( <mpv.placement_mode> // '' ) ) {
+    ## defer interactive placement until after cube connection ##
+    <[base.logs]>->(
+        1,                    '[startup] deferring to %s [fallback: %s]',
+        <mpv.placement_mode>, <mpv.geometry>
+    );
+    push @{ <system.callbacks.initialized> //= [] },
+        qw| mpv.startup.request_geometry |;
+    return;
+}
+
+## no placement mode — defer open with resolved geometry ##
+<[base.logs]>->(
+    1, '[startup] deferring open with resolved geometry [%s]',
+    <mpv.geometry>
+);
+push @{ <system.callbacks.initialized> //= [] },
+    qw| mpv.startup.job.fork_player |;
+
+#,,,,,...,,..,.,,,.,.,.,,,.,.,,..,,..,...,,..,..,,...,..,,.,.,,..,.,,,.,,,.,.,
+#6JDBX4RGNHRKCMZWKDIU6K3NX553OLF6KBDZ7M6ZWMCO2PNV4XBDAZIB35HP6UOPPJ3C6ROOGKJLQ
+#\\\|ILQO7QQADEMUDH34KGXB222U3YKRJFSH5P5V27ILTDQDL4IZK7Y \ / AMOS7 \ YOURUM ::
+#\[7]HQYYZ3R2FHA6QX3Q6KHJCYFED36YI6BXIEEYSZK6HRGRDN7D4GDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

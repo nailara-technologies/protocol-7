@@ -1,0 +1,108 @@
+## [:< ##
+
+# name  = window.place.cmd.coords
+# param = caller=<name> [tag=<tag>]
+# descr = req coords : instant [saved], UI [first use]
+
+my $args = $call->{'args'} // '';
+
+my ( $caller, $tag );
+my @tokens = split /\s+/, $args;
+foreach my $token (@tokens) {
+    if    ( $token =~ m|^caller=(.+)$| ) { $caller = $1; }
+    elsif ( $token =~ m|^tag=(.+)$| )    { $tag    = $1; }
+    elsif ( not defined $caller )        { $caller = $token; }
+}
+$caller //= '';
+
+if ( not length $caller ) {
+    <[base.log]>->( 0, '[place.coords] caller required' );
+    return { 'mode' => qw|false|, 'data' => 'caller required' };
+}
+
+## try saved profile for exact caller — return immediately if found ##
+my $saved = <[window.profile.load]>->($caller);
+if ( defined $saved ) {
+    my ( $x, $y, $w, $h ) = @{$saved}{qw| x y width height |};
+    my $reply_data = sprintf 'x=%d y=%d width=%d height=%d profile=saved',
+        $x, $y, $w, $h;
+    $reply_data .= " caller=$caller";
+    $reply_data .= " tag=$tag" if defined $tag and length $tag;
+    <[base.logs]>->(
+        1, '[place.coords] caller=%s : returning saved profile', $caller
+    );
+    return { 'mode' => qw|true|, 'data' => $reply_data };
+}
+
+## no saved profile — use base caller's saved profile as starting geometry ##
+my $base_caller = $caller;
+$base_caller =~ s|\[.+\]$||;
+my $base_saved
+    = ( $base_caller ne $caller )
+    ? <[window.profile.load]>->($base_caller)
+    : undef;
+
+## unique per-request id ##
+my $id;
+do { $id = <[base.prng.chars-anum]>->(8) }
+    while exists $data{window}{place}{instances}{$id};
+
+$data{window}{place}{instances}{$id} = {
+    'caller'   => $caller,
+    'tag'      => $tag,
+    'reply_id' => $call->{'reply_id'},
+};
+
+<[base.logs]>->(
+    1,   '[place.coords] id=%s caller=%s : opening placement ui',
+    $id, $caller
+);
+
+## prefer the monitor under the pointer for screen reference geometry ##
+my $screen_geom = <[window.gtk.get_pointer_monitor_geometry]>;
+if ( not defined $screen_geom ) {
+    my $geom_str = <x11.geometry> // '1920x1080+0+0';
+    if ( $geom_str =~ m|^\s*(\d+)\s*x\s*(\d+)| ) {
+        $screen_geom = { 'width' => $1, 'height' => $2 };
+    } else {
+        $screen_geom = { 'width' => 1920, 'height' => 1080 };
+    }
+}
+
+## starting geometry: base-caller's saved profile, falling back to center ##
+my $geo;
+if ( defined $base_saved ) {
+    $geo = {
+        'x'       => $base_saved->{'x'},
+        'y'       => $base_saved->{'y'},
+        'width'   => $base_saved->{'width'},
+        'height'  => $base_saved->{'height'},
+        'profile' => 'saved',
+    };
+} else {
+    $geo = <[window.profile.calculate]>->(
+        {   'profile'  => 'center',
+            'screen_x' => $screen_geom->{'x'} // 0,
+            'screen_y' => $screen_geom->{'y'} // 0,
+            'screen_w' => $screen_geom->{'width'},
+            'screen_h' => $screen_geom->{'height'},
+        }
+    );
+}
+
+<[event.add_timer]>->(
+    {   'after' => 0,
+        'cb'    => sub {
+            <[window.place.open_window]>
+                ->( { 'id' => $id, 'geometry' => $geo } );
+        }
+    }
+);
+
+return { 'mode' => qw|deferred| };
+
+#,,.,,..,,,,.,,.,,..,,,..,,..,.,,,...,..,,,.,,..,,...,...,..,,...,..,,...,.,,,
+#MKLB6SHVXGTGLGYZQ34LMGJG5T3WFRFNNV2J5PGJSJI5M2TFW32YKEBNPIQQD5OHTO2MCLXZNERGA
+#\\\|QVOUY5ENYHF44ACUNMFR3HS356V3Z6YRBN3RVKAJ2IN6RRDNHAQ \ / AMOS7 \ YOURUM ::
+#\[7]ONYG2TOGGPLJUIR5GJURMRKBYR3CVAJYU4JGCOT5BECBUKFD54AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -31,6 +31,8 @@
 ## Active Topics
 - [zenka-naming-cleanup](topic-zenka-naming-cleanup.md) — cred-mesh + window-place renames landed; pattern for spotting/fixing more underscore/dotted zenka names; tile-groups->tile LANDED 2026-06-15 (82e65f2d6); command-name cleanup pass LANDED (switch-group, reset-group, base-group, show-groups, count)
 - [ondemand-heartbeat-upgrade](topic-ondemand-heartbeat-upgrade.md) — tile set up on-demand+heartbeat-enabled+no-timeout as test case; two v7 follow-ups identified (exclude heartbeats from idle timer; pre-exit termination notification)
+- [mpv-jobqueue-startup](topic-mpv-jobqueue-startup.md) — async startup state machine LANDED 2026-06-18; dep chain fork_player→finalize; send_command no longer exit(2); deferred command queue; open: snapshot/restore + visual curves + player restart job
+- [mpv-persistence](topic-mpv-persistence.md) — planned: full state snapshot + visual curve automation + cross-mapped parameter routing; restore via deferred send_command queue
 - [tile-window-place-hybrid-desktop](topic-tile-window-place-hybrid-desktop.md) — window-place multi-window UNBLOCKED & landed 2026-06-15 (9c899f360, 68dec757b); resident after commit/cancel, 70% centering, multi-monitor fix; tile-as-relay next
 - [cube-tree-dashboard](topic-cube-tree-dashboard.md) — planned ascii tree-view dashboard: per-zenka command/state trees, capability interrogation, push-registry watcher cache, zoom/crop
 - [ascii-minimap](topic-ascii-minimap.md) — planned btop2-style ascii minimap: proportional density bars, anti-aliased gaps, glow color, spotlight, placeholder-template borders
@@ -169,8 +171,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,.,,..,,,,,,,.,,..,,.,.,..,,,,,,,,.,,.,,,,.,..,,...,...,.,,,...,...,.,.,.,.,
-#2SSU55WCJZH3DMPWRNTN7ZGFTYUL7FLUEPWF3I7LFJLC37XXSEBL5VGRIAPAFNNWY5RJBC6YSDTM6
-#\\\|U746Y6ENUYP4IFE4UUIM4DB2LIFNCZBUDLKGHXF6FYILVYFE7EE \ / AMOS7 \ YOURUM ::
-#\[7]BGJTWRBH62XIP5ILKRYS3OIYGP3GEXYJU6WU4X7Q5JV5B3ZVK4BA 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,,,,,.,,.,,,,..,..,,.,.,,..,...,..,,...,...,.,,,,,,,,,.,.,.,,,.,
+#SYIE5GSFMPTTCLDQ34ZXYIXJY3ZS6WUNROVFFQFZARUSFJ4BDOF3ZC64DRMLRTLMFMLMOGMYB5BQW
+#\\\|646NS6WS4MT4N36G5MVS4BRHTYTRXSRMV4P3I7LLOC7DZHJTMTD \ / AMOS7 \ YOURUM ::
+#\[7]7D6DLIPPJULD3UYDFPUL5LBJTQPMFZ6KIYUA54FYMKHWC47RXSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

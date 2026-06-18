@@ -378,6 +378,7 @@ return [ qw[
         ncode.regex.save
         ncode.regex.load
         ncode.cmd.search
+        mpv.startup.init
         mpv.send_command
         mpv.json.command
         mpv.get_playlist
@@ -1714,6 +1715,7 @@ return [ qw[
         work.console.sig-verify
         work.console.sig-update
         work.check_dependencies
+        window.place.cmd.coords
         window.place.apply_drag
         window.geometry.resolve
         web.handler.drain_check
@@ -1812,6 +1814,7 @@ return [ qw[
         nameserv.cmd.set-record
         nameserv.cmd.list-zones
         nameserv.cmd.get-record
+        mpv.startup.open_player
         mpv.set-up.import_rules
         mpv.set-up.export_rules
         mpv.open_control_socket
@@ -2046,6 +2049,7 @@ return [ qw[
         notify-warn.send_message
         notify-info.send_message
         nodes.cmd.add-group-user
+        mpv.startup.job.finalize
         mpv.handler.pipe.version
         mpv.handler.pipe.command
         mpv.handler.error_output
@@ -2711,6 +2715,7 @@ return [ qw[
         nshell.execute_cube_command
         net.read_linewise_estimated
         nameserv.cmd.discover-nodes
+        mpv.startup.job.fork_player
         mpv.callback.reenc_finished
         models.task.fallback-direct
         models.task.delegate_bridge
@@ -2938,9 +2943,11 @@ return [ qw[
         pager.buffer.page.invalidate
         osd-logo.set-up.import_rules
         nshell.handler.command_reply
+        mpv.startup.request_geometry
         mpv.handler.pipe.val_percent
         mpv.handler.pipe.single_line
         mpv.callback.start_reenc_msg
+        mpv.callback.object.mpv_flag
         models.test.end_to_end_local
         models.storage.resolve_model
         models.storage.get_tier_path
@@ -3133,6 +3140,7 @@ return [ qw[
         nodes.cmd.update-protocol-elf
         nameserv.orbital.auto_publish
         nameserv.handler.p7ref_lookup
+        mpv.job.deferred_send_command
         mpv.handler.event.file-loaded
         models.storage.create_symlink
         models.handler.task-poll-step
@@ -3518,6 +3526,7 @@ return [ qw[
         nshell.hook.unknown_reply_route
         nodes.send_host_details_request
         nodes.cmd.orbital-grid-fragment
+        mpv.startup.handler.socket_poll
         mpv.handler.rescale_video_reply
         models.test.api_limit_detection
         models.registry.list_by_context
@@ -3680,6 +3689,7 @@ return [ qw[
         osd-logo.callback.download_image
         openbox.callback.already_running
         nshell.no-tty-debug.cmd.char-add
+        mpv.startup.handler.coords_reply
         models.registry.find_alternative
         models.gguf.file.is_garbage_name
         models.cmd.test_end_to_end_local
@@ -4152,6 +4162,7 @@ return [ qw[
         nshell.history.find_session_boundary
         nshell.handler.ctrl_o_render_preload
         nodes.handler.discover_details_reply
+        mpv.startup.handler.placement_online
         models.storage.adapter.invoke.repair
         models.storage.adapter.invoke.import
         models.storage.adapter.invoke.export
@@ -4630,8 +4641,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,,,,,.,,,,.,,,..,,,.,,..,.,,,,,,,,..,...,.,.,...,...,.,,,.,,,,.,,,,,,,..,
-#TJFO5N5EPBSJ7WBREOM32A4O62UDQM2CETV66YPAFUGNPFRH3AG7E6CWFLQPTBNNGYAOV2FIG52C4
-#\\\|IMOCDQ42GD7NZCNUX3UXWUTGHUWTZNVTJPQCLTIRLANLUZ7JXRQ \ / AMOS7 \ YOURUM ::
-#\[7]HD2KPRAOMW5I2XYVLOX4AML4EZNVLIHALBAKL24DESOPZEPOC2BY 7  DATA SIGNATURE ::
+#,,.,,,.,,...,...,.,.,.,,,.,,,,..,.,.,..,,.,.,.,.,...,...,.,.,,..,,,.,.,,,..,,
+#J3SXLJ5OXTPLEJJOLLY3MRENVCLVHO4M37ZOB7QFLXUTPVSTZIZKP7NO2YOJIUFU6DHZ7QP44XEZG
+#\\\|YBQIHD4QTJ4MQHMAHQP2YNSDX5LVMFXRWYT7XIJJP4IXKH4PTQF \ / AMOS7 \ YOURUM ::
+#\[7]FKPJKNM7L7TDWS2PHBC5MKLT2UYVL4LLTDP2J5FKLLLQPEVR7ADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

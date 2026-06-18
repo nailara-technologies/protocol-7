@@ -158,11 +158,9 @@ close( delete <mpv.fh.stdin> );    # input fd not required
     }
 );
 
-<[mpv.open_control_socket]>;
+<[mpv.open_control_socket]>;       ## async: starts poll timer, returns ##
 
 # <[mpv.await_window_presence]> if not <mpv.audio_only>;
-
-<[mpv.callback.fade_in]> if <mpv.fade_in> and not <mpv.audio_only>;
 
 <[event.add_io]>->(
     {   'fd'      => <mpv.fh.stdout>,
@@ -195,10 +193,11 @@ close( delete <mpv.fh.stdin> );    # input fd not required
     }
 );
 
-<[base.log]>->( 1, 'player startup successful., =)' );
+## 'player startup successful' log + fade_in + observe + get_playlist
+##  are deferred to mpv.startup.handler.socket_poll
 
-#,,.,,..,,..,,,,.,,.,,,.,,,.,,..,,...,..,,..,,..,,...,...,...,,..,,..,.,.,,.,,
-#ZUMGRDZEA7BZ72OKWEN653BAF6ZO4HAJVFPI4UHOOBKD2JTWKZDRNCAFBG5PTUP4EJQH36GKJ3TJS
-#\\\|W5SUCN2E4SJ63352MJP6CHOCKZFGSI7R66LH6ZK34L2BYPVMMPC \ / AMOS7 \ YOURUM ::
-#\[7]4Y7J2LGNEGZWKYWYNPBKDIABTNN5MTLS46WAARJXLCEWJRHQTSBA 7  DATA SIGNATURE ::
+#,,..,.,,,...,,..,...,,,.,.,.,,..,,.,,,..,.,.,..,,...,...,..,,.,,,..,,.,.,,.,,
+#XNK75GNSAXNLLDUM63X7W55RGPQSGQULBQGAOKETK44DQHLBFKNT7PKJEADTBB52LJ7FI7JU3GQBS
+#\\\|KVGX3QEUXW23U4DL7YZZFMPIAVUYAN2AMD6NSTPLNZTEMINXEC2 \ / AMOS7 \ YOURUM ::
+#\[7]HX32YHDAI5JTMGZWHDCDDU36FRZY36XSDPZ3JJ6YKJBCCM7A42AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,10 +4,10 @@
 # param = <file|url>
 # descr = play a file or url, replaces current playlist
 
-my $file_path = $call->{'args'};
+my $file_path = $call->{'args'} // '';
 
 return { 'mode' => qw| false |, 'data' => 'expected path or url' }
-    if not defined $file_path or !length($file_path);
+    if !length($file_path);
 
 $file_path =~ s|/+$|| if -d $file_path;
 
@@ -17,10 +17,10 @@ push( @{<mpv.reply_ids>}, $call->{'reply_id'} );
 <[mpv.send_command]>->( 'loadfile', $file_path, 'replace' );
 <[mpv.send_command]>->( 'set_property_string', 'pause', 'no' );
 
-return { 'mode' => 'deferred' };
+return { 'mode' => qw| deferred | };
 
-#,,.,,...,...,..,,,,.,,,.,,,,,.,.,,,,,,..,.,,,..,,...,...,..,,..,,.,,,.,.,.,.,
-#2N3ZLZOFSVMXFKNWHL4VSQQYBSVZ63YCQMLT5V7SJ3MNRKBBEJYZFNEYS7G27REB5DQYVML5PWAII
-#\\\|X3BUKVLRGK25AWIUBC4UUMNYOCOWEYNJDLV5XE4BMUHPXMZITQZ \ / AMOS7 \ YOURUM ::
-#\[7]7SHRKJ5OQI5FX3ZGXTRQ63BZT7YCNCHLURPQKHXOSL5EMVKRIMAA 7  DATA SIGNATURE ::
+#,,..,,.,,...,..,,,,.,...,,.,,...,.,.,.,,,,,,,..,,...,...,,..,...,,,.,,.,,,,.,
+#BVLU5F26TKONKQTVZYGIPJJXCXTA2P2Y2OCOBLT62G6P6GL2244XY7PLUIVVSXZ6LJSOAPRPULHM4
+#\\\|3N35ZR7HNNJDFM6D5Q2OZOT4HUB5Y4MQKQXQ4OANEHRR2HTDO37 \ / AMOS7 \ YOURUM ::
+#\[7]IF45PDLTGVQGMYJBEZQL56XYR7BBESR3EDFREUWESRKPYIL5JABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
