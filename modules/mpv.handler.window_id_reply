@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = mpv.handler.window_id_reply
+# descr = x11 wait_visible reply: store window id and enforce startup geometry
+
+my $reply = shift // {};
+my $mode  = lc( $reply->{'cmd'} // '' );
+my $rdata = $reply->{'call_args'}->{'args'} // '';
+
+if ( $mode ne qw| true | or not length $rdata ) {
+    <[base.log]>->(
+        1, '[window_id] x11 window not found — geometry not enforced'
+    );
+    return;
+}
+
+<x11.id> = $rdata;
+<[base.logs]>->(
+    1, '[window_id] x11 id=%s — applying startup geometry', <x11.id>
+);
+
+return unless defined <mpv.geometry>;
+
+<[protocol-7.command.send.local]>->(
+    {   'command'   => 'cube.X-11.set_geometry',
+        'call_args' => { 'args' => join( ' ', <x11.id>, <mpv.geometry> ) }
+    }
+);
+
+#,,,,,,.,,.,.,,,.,.,,,.,.,,,.,,..,,.,,,,.,...,.,.,...,...,.,,,.,,,.,.,,,.,..,,
+#GE6GEHZ3GYHXA3DDTUTGV7KRX2G3A3DNVSX4K3EG7SUFOLF3UFGCCV2TO5XDWFFGVTZJTD5VMA27Q
+#\\\|RTO27NTIGZK6KFBDRYV6RXCGZPIOOAYPNVC4JRXWXS2ZKAVKA6X \ / AMOS7 \ YOURUM ::
+#\[7]YHWIMA33VETF5M7QAXN5VNDOABDFR4EK5EPERKELCH65ESIO7CBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

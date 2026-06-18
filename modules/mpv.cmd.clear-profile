@@ -1,8 +1,8 @@
 ## [:< ##
 
 # name  = mpv.cmd.clear-profile
-# param = [caller name; defaults to startup caller]
-# descr = delete saved mpv window position profile
+# param = [caller]
+# descr = clear saved window position profile [both sides]
 
 my $args   = $call->{'args'} // '';
 my $caller = length($args) ? $args : ( <mpv.startup.caller> // '' );
@@ -10,17 +10,25 @@ my $caller = length($args) ? $args : ( <mpv.startup.caller> // '' );
 return { 'mode' => 'false', 'data' => 'caller name required' }
     if not length $caller;
 
+## clear local mpv copy ##
 my $result = <[window.profile.delete]>->($caller);
+
+## clear window-place's copy — fire and forget ##
+<[protocol-7.route-send]>->(
+    {   'command'   => 'window-place.clear-profile',
+        'call_args' => { 'args' => sprintf 'caller=%s', $caller }
+    }
+);
 
 return {
     'mode' => ( defined $result and $result ) ? 'true' : 'false',
     'data' => ( defined $result and $result )
-    ? sprintf( 'local profile cleared [caller=%s]',  $caller )
+    ? sprintf( 'profile cleared [caller=%s]',        $caller )
     : sprintf( 'no local profile found [caller=%s]', $caller )
 };
 
-#,,,,,..,,.,,,,.,,,.,,..,,.,,,,,.,,,.,..,,,..,..,,...,...,,..,.,.,,.,,,,.,...,
-#UAXGWF6XAYEQGVU5AK3YXBRYA35PNWTGYWM7FGG7RGT6AMQ4ABO62LXYQTPKQTLQ4DA5PC6XGARKO
-#\\\|DMLZXXYIK4WWGWNRBY22U2JT5P4VIQYCJFJMCCJJDP7PP46VRNU \ / AMOS7 \ YOURUM ::
-#\[7]ZJVTLW7SI53FYP5GSUPBIJXHCV7YXW6BNYGCLJEJ43SOOH2JPOCY 7  DATA SIGNATURE ::
+#,,,.,..,,,..,...,,..,...,..,,..,,.,.,,.,,.,,,..,,...,...,,..,,,,,...,..,,...,
+#5PH3MWKOM4CLT5WMJHBOWDCSBG2ZQSNO5Z3C6F3UOHZRGZ66XDHWYMLOQX3MWKN6FIL6GDXZFPM2M
+#\\\|HS7RLLHS7FAFV42WP3KTEOKVPKCCPUORVFNQMUQIHGDKOM523LX \ / AMOS7 \ YOURUM ::
+#\[7]MX3KHAJOPM7MMS2HHZ2FRQKNDXMVDPQBYMTUYLA7DOSV6SALLCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
