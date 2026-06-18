@@ -66,13 +66,27 @@ if ( not defined <mpv.socket> or !-S <mpv.socket> ) {
 
 <[mpv.callback.fade_in]> if <mpv.fade_in> and not <mpv.audio_only>;
 
+## when fade_in is off, enforce window position explicitly after startup ##
+if ( not <mpv.fade_in> and not <mpv.audio_only> and defined <mpv.geometry> ) {
+    my $title = <mpv.zenka_title> // '';
+    $title .= '[' . <system.zenka.subname> . ']'
+        if exists <system.zenka.subname> and length <system.zenka.subname>;
+    $title =~ s|([\[\]\.])|\\$1|g;
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'cube.X-11.wait_visible',
+            'call_args' => { 'args'    => sprintf '7 %s', $title },
+            'reply'     => { 'handler' => 'mpv.handler.window_id_reply' },
+        }
+    );
+}
+
 <[base.log]>->( 1, 'player startup successful., =)' );
 
 ## release finalize job — observe_properties + get_playlist run from there ##
 <[jobqueue.check_dependencies]>;
 
-#,,.,,..,,...,.,,,.,.,,,.,..,,,..,.,,,...,.,.,.,.,...,...,...,..,,...,.,.,.,,,
-#5J74P6DP4YTOW7JVV7KRBK7HK4QSVZ4E572XIR7JNGVF6NBIFQ46KCYH6J4NQDICT3PXQM4YR6CCG
-#\\\|K75KYTJRYPSMA3TUNBIZZ5SCFZ6XUXCJKYVHHCVOY62DPDCDNJ5 \ / AMOS7 \ YOURUM ::
-#\[7]GEIKJWPROGOOFFW7KSD66PWJXED42X7FVNEY5H7EHF5GJRBMLABA 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,...,,.,,.,.,,..,,,.,..,,,..,..,,.,.,...,...,,,.,,..,.,.,,,,,...,
+#L5BUNVPB5QVJM5VOFDVALAFWTZS5PEJC5YWQLSNIEBSJFXX2LIYK6YFROUGWZPXJY2IZP7UOIPQ6Y
+#\\\|LVY5LHM3XM4WJC6SVNNEWN6JK2HEGTOST4LQUR76HHRJS24ZL6F \ / AMOS7 \ YOURUM ::
+#\[7]2OK3R27JRBZGNJ55L2PIHBY7AO5SIOXGEODTW56RJQFG6NLPHWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
