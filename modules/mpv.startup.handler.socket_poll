@@ -73,7 +73,7 @@ if ( not <mpv.fade_in> and not <mpv.audio_only> and defined <mpv.geometry> ) {
         if exists <system.zenka.subname> and length <system.zenka.subname>;
     $title =~ s|([\[\]\.])|\\$1|g;
     <[protocol-7.route-send]>->(
-        {   'command'   => 'cube.X-11.wait_visible',
+        {   'command'   => 'X-11.wait_visible',
             'call_args' => { 'args'    => sprintf '7 %s', $title },
             'reply'     => { 'handler' => 'mpv.handler.window_id_reply' },
         }
@@ -85,8 +85,8 @@ if ( not <mpv.fade_in> and not <mpv.audio_only> and defined <mpv.geometry> ) {
 ## release finalize job — observe_properties + get_playlist run from there ##
 <[jobqueue.check_dependencies]>;
 
-#,,,,,.,.,,..,...,,.,,.,.,,..,,,.,..,,,..,..,,.,.,...,...,,,.,,..,.,.,,,,,...,
-#L5BUNVPB5QVJM5VOFDVALAFWTZS5PEJC5YWQLSNIEBSJFXX2LIYK6YFROUGWZPXJY2IZP7UOIPQ6Y
-#\\\|LVY5LHM3XM4WJC6SVNNEWN6JK2HEGTOST4LQUR76HHRJS24ZL6F \ / AMOS7 \ YOURUM ::
-#\[7]2OK3R27JRBZGNJ55L2PIHBY7AO5SIOXGEODTW56RJQFG6NLPHWDQ 7  DATA SIGNATURE ::
+#,,.,,...,,,.,,.,,,,,,,.,,...,,,,,...,.,.,...,.,.,...,...,.,,,..,,,..,..,,,.,,
+#2HEQAID7WP47K6SBUB2YZ4F3RM7B6Q5BJTRRKT3HSQT7VURDC3SXPKMM4NZUVQKZ32PXN2R5IIGSI
+#\\\|7AQBAYTFT5JMIKBBQRSXXRYY2T3SM7ZRAQCNA6W3FAAKX5WYFFK \ / AMOS7 \ YOURUM ::
+#\[7]VFWDMLWQFFHFAO2OHZVSZZ45IH3Y7H2OHQUME3ANLPC6BEIC5OAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
