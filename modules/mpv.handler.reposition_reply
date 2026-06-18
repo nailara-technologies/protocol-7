@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = mpv.handler.reposition_reply
+# descr = window-place coords reply: apply new geometry to running player
+
+my $reply = shift // {};
+my $mode  = lc( $reply->{'cmd'} // '' );
+my $rdata = $reply->{'call_args'}->{'args'} // '';
+
+if ( $mode ne qw| true | ) {
+    <[base.logs]>->( 1, '[reposition] coords unavailable — no change' );
+    return;
+}
+
+my %geo;
+for my $token ( split m|\s+|, $rdata ) {
+    $geo{$1} = $2 + 0 if $token =~ m{^(x|y|width|height)=(-?\d+)$};
+}
+
+unless (defined $geo{'x'}
+    and defined $geo{'y'}
+    and defined $geo{'width'}
+    and defined $geo{'height'} ) {
+    <[base.logs]>->( 0, '[reposition] unparseable coords [%s]', $rdata );
+    return;
+}
+
+my $geometry = sprintf '%dx%d+%d+%d',
+    $geo{'width'}, $geo{'height'}, $geo{'x'}, $geo{'y'};
+
+## cache the new profile ##
+my $caller = <mpv.startup.caller> // <system.zenka.name> // 'mpv';
+<[window.profile.save]>->(
+    $caller, $geo{'x'}, $geo{'y'}, $geo{'width'}, $geo{'height'}
+);
+
+## apply to running player via X-11 ##
+my $window_id = <x11.id>;
+if ( defined $window_id ) {
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'cube.X-11.set_geometry',
+            'call_args' =>
+                { 'args' => sprintf '%d %s', $window_id, $geometry }
+        }
+    );
+    <[base.logs]>->( 1, '[reposition] applied geometry [%s]', $geometry );
+} else {
+    <[base.logs]>->(
+        0, '[reposition] no x11 window id — geometry not applied'
+    );
+}
+
+#,,,.,...,,,.,,,,,,.,,.,,,.,,,...,.,,,,,,,.,,,..,,...,...,...,,.,,,,.,...,.,,,
+#6OAPLACFMC2ACAAUJGFKNNA7RS2SWYPOBC22WT6AUOE6FESJFO3PQXOLUI4P5TXZSVFBOWR6KCY3S
+#\\\|D326M4KSPMVQUQAFKMHKAWNMS5QSGAS4ZJER25MUZISXOMU2WIK \ / AMOS7 \ YOURUM ::
+#\[7]JMVIO26RHNWQAWPFWWKRGHJROEZU7GNM2O7VYD32IOPAV6LKDMDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
