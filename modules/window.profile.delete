@@ -14,7 +14,7 @@ unless ( defined $caller and length $caller ) {
 my $caller_chksum = <[chk-sum.amos]>->($caller);
 my $position_path = sprintf 'window/position.%s.yaml', $caller_chksum;
 
-my $deleted = <[base.file.zenka_dir.unlink_file]>->( $position_path, TRUE );
+my $deleted = <[file.zenka_dir.unlink_file]>->( $position_path, TRUE );
 
 if ( defined $deleted ) {
     <[base.logs]>->( 1, '[profile.delete] removed [%s]', $position_path );
@@ -24,8 +24,8 @@ if ( defined $deleted ) {
     return FALSE;
 }
 
-#,,,.,,..,.,,,,..,,,.,,.,,,,,,,.,,..,,.,.,.,.,..,,...,..,,,..,,,,,...,,.,,,,.,
-#EUXSWPTR3ABQBHKDLQE4M2IOKW325LPRRJOQVCJWNXLB45IGWCMY33LKKJI2EW7557NDKHA4GIGEK
-#\\\|OYPIH3UHH74CWNY6VT3GAIXNMIOIE4GHFQKAVN2OR7G3K45DVHS \ / AMOS7 \ YOURUM ::
-#\[7]BZNJ3BV3KYDDF5XKABUAPWSZTZTZ6KY2D4OZOULNZOZAQ47SBIBA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,,,,..,,,,,,,,.,,,,,.,.,,,.,...,..,,...,..,,,..,,,.,.,.,..,,..,,
+#VHQFINLQLD5FWXAEVUP3WO6A2UDNBG7YV6QTTZCRJ2UPKUPRWN2SKJ52GYOIRSRR7PPPZHES6JP6C
+#\\\|XKQMIIZQVHO762LSTSQINGYFMB42FPRGEEJQDU7VMJLHSOUHME6 \ / AMOS7 \ YOURUM ::
+#\[7]H7LXHBRBMDXSSAI3RN5Y67LLGM4JYNJLORBWYWLTQ4GW22GT34CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
