@@ -3,8 +3,8 @@
 # name  = mpv.startup.handler.placement_online
 # descr = v7.notify_online reply: forward to placement coords or open with fallback
 
-my $reply = shift            // {};
-my $mode  = $reply->{'mode'} // qw| false |;
+my $reply = shift // {};
+my $mode  = lc( $reply->{'cmd'} // '' );
 
 if ( $mode ne qw| true | ) {
     <[base.logs]>->(
@@ -28,8 +28,8 @@ my $caller = <mpv.startup.caller> // '';
     }
 );
 
-#,,.,,,.,,...,,,,,,..,.,,,...,,.,,...,,.,,,.,,..,,...,...,..,,,,.,.,.,...,..,,
-#4OE646JSDF3JY2B2DH2CWZYMLV5M4RZLWDY7JU2Z46YNDGJS5RXCWAGCC2UKFTJPDGYZ6R2OXD6ZK
-#\\\|XUJMVWOMZFACKHTUVCGET3DNKULDXWTX7KRNCE4SIWD7EVPS26N \ / AMOS7 \ YOURUM ::
-#\[7]WK2MWQKR7DHUXUE2TBD43RPQUEOQN3DOOYBOZNBNSDAGKGGVNYCA 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,,,,,,,,..,,.,,,,,.,,,.,.,.,,.,,..,,...,...,.,.,.,.,,.,,.,.,,,,,
+#SJTVDZ2I3HGM7QYICNZN7GJWIOEJK332VVMADNEMNDKFOWJOP27Z5X7DMDAVZFIM2O4SOVVIAXIYI
+#\\\|EYUK2EKH6KPWVGXN3FV735TUEVODUZ3IK7GMVQDWBJMI7TMR2HH \ / AMOS7 \ YOURUM ::
+#\[7]KELF4CUCCHQBY5KK7O5OMMP2O6PT6KIVABLMZYIV23Z45YQUAGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
