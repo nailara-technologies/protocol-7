@@ -8,8 +8,8 @@ my $zenka_id;
 my $zenka_name;
 my $zenka_subname;
 
-my $call_params = shift           // {};
-my $zenka_param = $call->{'args'} // '';
+my $call_params = shift // {};
+my $zenka_param = $call_params->{'args'} // $call->{'args'} // '';
 
 return { 'mode' => qw| false |, 'data' => 'zenka name or id expected' }
     if not length $zenka_param;
@@ -230,8 +230,8 @@ return {
     'data' => sprintf( "job queued [ID=%d]", $job_id )
     }
 
-#,,.,,,.,,...,,,.,...,,.,,.,.,.,,,...,.,.,.,.,..,,...,...,,..,...,...,..,,.,,,
-#7DB4637EXSP3EAN6NHOA664WKCW2GTTXJHPJYUZ4EZKRMB22MY6GJSFLXHHYJTXCADYGUJ2KZDIS4
-#\\\|2U6UUQIGSBZERQTPFGVEYXXQ3I3KSQUHH7AGD5E5MTF2LB3RHRM \ / AMOS7 \ YOURUM ::
-#\[7]S7PK5HGE4BE67U2Z3P7FXF6G2BSUT6X4M6MSUI5LDFUGS2HNWWCI 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,..,,,..,,,,,,.,,...,.,.,,,.,,.,,..,,...,..,,,..,,,,,,.,,.,,,,..,
+#3JTRE4PNQPZFZ6GA2BF7BCJLDZPV4E5WBCESCRN6QU2ZJUI724M7SKZ7DBELUXGTWIBB2B33DLAUQ
+#\\\|WNIVSEBFLJUZ4OIV7T2NVIAONY3AHNGTGQ6NDYULK2T5KGHCF74 \ / AMOS7 \ YOURUM ::
+#\[7]XP3JZZ6EHKGNZC74M7D4OTXVJI752MITQRZ3N3VVK4CVGAVWYWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
