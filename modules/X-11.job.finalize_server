@@ -31,7 +31,7 @@ if ( defined $fh and defined $pid ) {
     );
 }
 
-<[base.logs]>->( 1, "display %s ready", $display_str );
+<[base.logs]>->( 1, "[%s] : .. display ready .. :", $display_str );
 
 return unless $is_primary;
 
@@ -60,7 +60,7 @@ $data{'base'}{'warn-match-handler'}{'X11/Protocol.pm:75'}
 ##
 
 <[base.logs]>->(
-    1, ": : link to '%s' established [ responsive ]", $bin_name_lc
+    1, ": : link to '%s' established [responsive]", $bin_name_lc
 );
 
 ## extensions ##
@@ -90,6 +90,9 @@ if ( $randr_expected and <X-11.obj>->init_extension('RANDR') ) {
     <[base.logs]>->( 1, ': : no RANDR support %s', $randr_reason );
     <X-11.has_randr> = FALSE;
 }
+
+## build in-memory monitor registry from RANDR ##
+<[X-11.build_monitor_registry]> if <X-11.has_randr>;
 
 ## subscribe to screen-change events in host mode so cached screen dims ##
 ## stay current when monitors are plugged, unplugged, or powered on/off  ##
@@ -221,7 +224,7 @@ if (<X-11.has_randr>) {
 <X-11.obj>->{'event_handler'} = qw| queue |;
 <[event.add_io]>->(
     {   'fd'      => <X-11.obj>->{'connection'}->fh,
-        'handler' => 'X-11.handler.global_hotkeys'
+        'handler' => qw| X-11.handler.global_hotkeys |
     }
 );
 
@@ -280,7 +283,7 @@ if ( not defined $bg_col or $bg_col !~ m|^\#?[0-9A-F]{6}$|i ) {
 if ( <X-11.bg_fade> //= TRUE and $bg_col ne '#000000' ) {
     <[X-11.fade_in_bg_col]>->($bg_col);
 } else {
-    <[base.logs]>->( 1, "setting background color to '%s'", $bg_col );
+    <[base.logs]>->( 1, ": setting background color to '%s'", $bg_col );
     X11::Protocol::XSetRoot->set_background(
         'color'        => $bg_col,
         'use_esetroot' => TRUE
@@ -308,15 +311,15 @@ my @test_ids = eval {<[X-11.get_window_ids]>};
 <X-11.window_enumeration> = ( !$@ && @test_ids ) ? TRUE : FALSE;
 
 if (<X-11.window_enumeration>) {
-    <[base.log]>->( 2, 'window enumeration: available' );
+    <[base.log]>->( 2, ': window enumeration : available' );
 } else {
     <[base.log]>->(
-        1, 'window enumeration: unavailable [ host/wayland mode ]'
+        1, ': window enumeration : unavailable [ host/wayland mode ]'
     );
 }
 
-#,,..,,..,,..,,,,,.,.,..,,,,.,.,.,.,.,.,.,...,..,,...,...,,.,,...,,,.,,.,,,,.,
-#4ILI47XLS7BAVX7TB5M6DKNV3B7KLN7BVEP523FXAEDADLJMZGWJITCDEJTXEEWJ426HNJ3GFZ43Y
-#\\\|ARAIJCNYBTE6YNNGB24EJGA3LPKN5C6RLDJBHDMF6KJSMRZXY6W \ / AMOS7 \ YOURUM ::
-#\[7]YSL3RV3FVYLHUHDM4F6TYDQ4ERGJI3FOC4LJIIGNWH4U6IV2XSAI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,.,,,,,,,,,.,,.,,,,.,..,,,.,,,,.,..,,...,...,.,.,,,,,,,,,,,.,..,,
+#52MQJONFHJVM7MLNFLRKLFONTQXBPKLV7AN4MWFEJUPG7Z3XJAMDUYRG2XC6IDDKOWJSQIQGT5CFQ
+#\\\|NNYFE4B7KOAULLE767WBGPQCSSRVLNJY2L53VOX5UIFZM55GBKA \ / AMOS7 \ YOURUM ::
+#\[7]XQGTHPKKC3UQZHPOKOL2EP4BFTDZ7WMFDTJUQNOUG4G3MHOHMACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
