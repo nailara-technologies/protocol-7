@@ -1,53 +1,97 @@
 ## [:< ##
 
 # name  = X-11.cmd.move-window
-# descr = move and/or resize an X11 window
+# descr = move an x11 window to an absolute or relative position
+# param = <win_id> <pos-change>
+#
+## pos-change : <x> <y>      — absolute positional
+## pos-change : +<dx> -<dy>  — relative positional [ sign = relative ]
+## pos-change : x<v> y<v>    — labeled [ one or both axes; sign = relative ]
 
-my ( $window_id, $x, $y, $width, $height )
+my @parts
     = ref( $call->{'args'} ) eq qw| ARRAY |
     ? $call->{'args'}->@*
-    : split( /,/, $call->{'args'} );
+    : split( m| +|, $call->{'args'} // '' );
 
-return { 'mode' => qw| false |, 'data' => 'no window id given' }
-    if not defined $window_id;
+my $window_id = shift @parts;
+
+return { 'mode' => qw| false |, 'data' => 'expected : <id> <x> <y>' }
+    if not defined $window_id or not @parts;
+
+return { 'mode' => qw| false |, 'data' => 'invalid window id' }
+    if $window_id !~ m|^\d+$|;
+
+my ( $xarg, $yarg );
+
+## labeled args : x<val> or y<val> [with optional sign] ##
+if ( grep {m|^[xy][+-]?\d+$|} @parts ) {
+    for my $a (@parts) {
+        $xarg = $1 if $a =~ m|^x([+-]?\d+)$|;
+        $yarg = $1 if $a =~ m|^y([+-]?\d+)$|;
+    }
+} else {
+    ## positional : both x and y required ##
+    ( $xarg, $yarg ) = @parts;
+    return {
+        'mode' => qw| false |,
+        'data' => 'positional mode requires both x and y'
+        }
+        if not defined $xarg or not defined $yarg;
+}
+
+for my $pair ( [ x => $xarg ], [ y => $yarg ] ) {
+    my ( $axis, $val ) = @$pair;
+    next unless defined $val;
+    return { 'mode' => qw| false |, 'data' => "invalid $axis value" }
+        if $val !~ m|^[+-]?\d+$|;
+}
 
 my $X = <X-11.obj>;
-
 return { 'mode' => qw| false |, 'data' => 'X-11 connection not available' }
     if not defined $X;
 
-my %configure;
-$configure{'x'}      = $x      if defined $x;
-$configure{'y'}      = $y      if defined $y;
-$configure{'width'}  = $width  if defined $width;
-$configure{'height'} = $height if defined $height;
+## fetch current geometry if any axis needs a relative delta ##
+my $need_geom = ( defined $xarg and $xarg =~ m|^[+-]| )
+    || ( defined $yarg and $yarg =~ m|^[+-]| );
 
-my $result;
-eval { $result = $X->ConfigureWindow( $window_id, %configure ); };
-
-if ( length $EVAL_ERROR ) {
-    return {
-        'mode' => qw| false |,
-        'data' => 'ConfigureWindow failed: ' . $EVAL_ERROR
-    };
+my %cur;
+if ($need_geom) {
+    %cur = eval { $X->GetGeometry( $window_id + 0 ) };
+    if ( $EVAL_ERROR or not exists $cur{'x'} ) {
+        <[base.logs]>->(
+            1,          '[move-window] GetGeometry id=%s : %s',
+            $window_id, <[base.str.eval_error]>
+        );
+        return { 'mode' => qw| false |, 'data' => 'GetGeometry failed' };
+    }
 }
 
-<[X-11.get_window_ids]>;    ## <-- update to visualize action ##
+my %configure;
+if ( defined $xarg ) {
+    $configure{'x'}
+        = $xarg =~ m|^[+-]| ? $cur{'x'} + ( $xarg + 0 ) : $xarg + 0;
+}
+if ( defined $yarg ) {
+    $configure{'y'}
+        = $yarg =~ m|^[+-]| ? $cur{'y'} + ( $yarg + 0 ) : $yarg + 0;
+}
 
-return {
-    'mode' => qw| true |,
-    'data' => sprintf(
-        'moved window %d to x=%s y=%s w=%s h=%s',
-        $window_id,
-        defined $x      ? $x      : '-',
-        defined $y      ? $y      : '-',
-        defined $width  ? $width  : '-',
-        defined $height ? $height : '-'
-    )
-};
+eval { $X->ConfigureWindow( $window_id + 0, %configure ) };
 
-#,,..,..,,..,,.,,,,,,,.,.,,..,.,.,.,,,..,,.,,,.,.,...,...,...,,.,,...,,,,,,,.,
-#MTPCRFGDN4I63QNJEC5DDEGALG2JSTQ2WYPXOQ5M6EL3PDY3UE3CBBGCYXQFGWWSTQUGHIUZPHUEI
-#\\\|ORR7GGU2HMBLURN47KI3YSUBLKMUJRHECMCNAQ5ZAE7VFBT2DHV \ / AMOS7 \ YOURUM ::
-#\[7]64CCBO3IM7PKMOP7OA52XDPIW7TLAWFJ2ZPUXNF5AZQ7IVQ2KCAQ 7  DATA SIGNATURE ::
+if ( length $EVAL_ERROR ) {
+    <[base.logs]>->(
+        1,          '[move-window] ConfigureWindow id=%s : %s',
+        $window_id, <[base.str.eval_error]>
+    );
+    return { 'mode' => qw| false |, 'data' => 'ConfigureWindow failed' };
+}
+
+my $pos_str = join ' ', map {"$_=$configure{$_}"} sort keys %configure;
+<[base.logs]>->( 2, '[move-window] id=%s %s', $window_id, $pos_str );
+return { 'mode' => qw| true |, 'data' => $pos_str };
+
+#,,,,,,..,...,.,,,..,,...,,.,,.,,,,..,..,,,,.,.,.,...,...,,.,,.,,,.,,,.,.,...,
+#FZRSG2QLALXTUXZVQNC43P3HYRD74KQQ6KQDKW76KO72GHY6MNFDBJCBUH3KR7Q6ECEZYSF5ZRWKS
+#\\\|6ZUFUYQYCIPDX2Z4AFRU5V5FNLSFIKFA2HVXWMKJBIM6O6MVKQF \ / AMOS7 \ YOURUM ::
+#\[7]PNGAPZYUPF6X73N6VSZKP53JAXNI5FYSN7V6FSUGMGIOOHIYV2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

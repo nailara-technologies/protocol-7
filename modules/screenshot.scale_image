@@ -1,25 +1,33 @@
 ## [:< ##
 
 # name  = screenshot.scale_image
+# descr = scale an Imager object to given pixel dimensions
 
-( my $image, my $width, my $height ) = @_;
+my ( $image, $width, $height ) = @ARG;
 
-die "expected image as 'Imager' object" if ref( $image // '' ) ne 'Imager';
-die "expected width and height in pixels"
-    if not defined $width
-    or $width !~ /^\d+$/
+if ( ref( $image // '' ) ne qw| Imager | ) {
+    warn 'expected image as Imager object <{C1}>';
+    return undef;
+}
+if (   not defined $width
+    or $width !~ m|^\d+$|
     or not defined $height
-    or $height !~ /^\d+$/;
+    or $height !~ m|^\d+$| ) {
+    warn 'expected width and height in pixels <{C1}>';
+    return undef;
+}
 
-return $image->scale(
+my $scaled = $image->scale(
     'xpixels' => $width,
     'ypixels' => $height,
     'qtype'   => 'mixing',
     'type'    => 'nonprop'
-) or return Imager->errstr;
+);
+return $scaled if $scaled;
+return Imager->errstr;
 
-#,,,.,,,.,,..,..,,,,.,.,.,...,,,,,...,,,,,.,.,..,,...,...,...,...,.,,,.,.,.,,,
-#DCPZSXYLYIFE372YOMMTSSCOXPYF2MWYYF5EBC7MUNRHUWOFUAJRNLHZGRGSSVHMRSOQXAYTVJ576
-#\\\|M5VNAN4O727PBCOC7SIKABPYSNRTHUKUIVTMR6K4MOIFMJ4MRF5 \ / AMOS7 \ YOURUM ::
-#\[7]UJYFTKS22L7TLTNXZEYVUIJBHB2HOSJT32JCFC7FDZEO3S5MSSCY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,.,,.,.,...,,,.,,,.,.,.,,..,...,..,,...,...,,..,,.,,,.,,,.,,.,,,
+#AP5GD24JXW6V6PM3RTWROEQDGHEAMBLOTMKOJYPNFQTPZFVUKQGHHOLF3T6AFXHR36HBEYQD5AGO2
+#\\\|6AV73UYJS3245PUYJCN6QIAN4FMLMHJC42JF6S3H7YG5LFPXO4I \ / AMOS7 \ YOURUM ::
+#\[7]7O7LFNUPHHC55KZQMIWSK6TO6YAHXLZS2HCPMK45BXSZ6MXRXKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
