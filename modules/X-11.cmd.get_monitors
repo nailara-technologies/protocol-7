@@ -1,0 +1,18 @@
+## [:< ##
+
+# name  = X-11.cmd.get_monitors
+# descr = return all known monitor rects from registry
+
+my $monitors = <X-11.monitors> // [];
+return { 'mode' => qw| false |, 'data' => 'monitor registry empty' }
+    unless @$monitors;
+
+my @parts
+    = map { sprintf '%d %d %d %d', @{$_}{qw| x y width height |} } @$monitors;
+return { 'mode' => qw| true |, 'data' => join( "\n", @parts ) };
+
+#,,..,,.,,,.,,.,,,.,.,,,.,.,,,.,.,..,,.,.,,,.,..,,...,.,.,...,..,,,,,,.,,,.,.,
+#HO2ZQL32GLZGC3MVDWSXXNWZ2WC45QJTRE5CQHTOYYAM7GCUQV2ISA7CULMZGSGFNK7KHHOI4NFAG
+#\\\|WFGC7OIO6YKAIEXVUVQ4CCCLX6O67RMFQAB5FFF4OV2F5OQNGYM \ / AMOS7 \ YOURUM ::
+#\[7]NP75HF3YEJ7Q4RBHXGT2DQQMNWKE6UECCUISXDNQ73OBE57RYICA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
