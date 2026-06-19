@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = select.region.handler.scroll
+# descr = wheel move/resize via scroll direction + modifiers
+
+my ( $id, $widget, $event ) = @ARG;
+
+return TRUE if not defined $id;
+
+my $dir   = $event->direction;   ## stringifies to up/down/left/right ##
+my $state = ${ $event->state };  ## deref Glib::Flags blessed scalar to int ##
+
+my $SHIFT_MASK   = eval { Gtk3::Gdk::SHIFT_MASK() }   // 1;
+my $CONTROL_MASK = eval { Gtk3::Gdk::CONTROL_MASK() } // 4;
+
+my $shift = $state & $SHIFT_MASK   ? TRUE : FALSE;
+my $ctrl  = $state & $CONTROL_MASK ? TRUE : FALSE;
+
+my $step = 10;
+
+## only the vertical wheel is mapped ##
+return TRUE if $dir ne qw| up | and $dir ne qw| down |;
+
+## inverted: wheel up = down/shrink-from-top, wheel down = up/grow-from-top ##
+## [ more intuitive ] ##
+my $up = $dir eq qw| down |;
+
+my $action;
+if ($ctrl) {
+    $action = $up ? qw| ctrl_right | : qw| ctrl_left |;
+} elsif ($shift) {
+    $action = $up ? qw| right | : qw| left |;
+} else {
+    $action = $up ? qw| ctrl_up | : qw| ctrl_down |;
+}
+
+<[select.region.adjust]>->( $id, $widget, $action, $step );
+
+return TRUE;
+
+#,,..,,,.,,,.,,..,,..,,.,,.,,,.,.,,,,,...,.,.,..,,...,..,,...,,.,,,.,,,.,,...,
+#BO6Q2ZWDN4ETALVZTUEVVXS7MFZQDSZZTSPSAEMOTGCVFXHU3DSPNWMVGT5W2E6DLH3V7BJ5HQXFA
+#\\\|XEWFG6BHNDV5ZTTVBYZEHO4BCHH32JXULLBUAEBUW5YX3LGCOUD \ / AMOS7 \ YOURUM ::
+#\[7]BEHRDPFBHSRO5ONZPFD72PSWTG3OFNE6NU6Q5K6WV632SG3C2ECI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

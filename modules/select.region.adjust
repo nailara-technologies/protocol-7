@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = select.region.adjust
+# descr = apply a move/resize action by step to the selection window
+
+my ( $id, $widget, $action, $step ) = @ARG;
+
+return undef if not defined $id;
+
+my $inst = $data{select}{region}{instances}{$id};
+return undef if not defined $inst;
+
+my $x = $inst->{'geom'}{'x'}      // 0;
+my $y = $inst->{'geom'}{'y'}      // 0;
+my $w = $inst->{'geom'}{'width'}  // 320;
+my $h = $inst->{'geom'}{'height'} // 240;
+
+if ( $action eq qw| up | ) {
+    $y -= $step;
+} elsif ( $action eq qw| down | ) {
+    $y += $step;
+} elsif ( $action eq qw| left | ) {
+    $x -= $step;
+} elsif ( $action eq qw| right | ) {
+    $x += $step;
+} elsif ( $action eq qw| ctrl_up | ) {
+    $h -= $step;
+    $y += $step;
+} elsif ( $action eq qw| ctrl_down | ) {
+    $h += $step;
+    $y -= $step;
+} elsif ( $action eq qw| ctrl_left | ) {
+    $w -= $step;
+    $x += $step;
+} elsif ( $action eq qw| ctrl_right | ) {
+    $w += $step;
+    $x -= $step;
+} else {
+    return FALSE;
+}
+
+## clamp ##
+$w = 32 if $w < 32;
+$h = 32 if $h < 32;
+
+<[select.region.apply_geometry]>->(
+    $id, $widget,
+    {   'x'      => $x,
+        'y'      => $y,
+        'width'  => $w,
+        'height' => $h
+    }
+);
+
+$widget->queue_draw;
+
+return TRUE;
+
+#,,,.,...,,..,,.,,,.,,,,.,,,,,...,..,,,,,,,..,..,,...,...,,,,,,,.,..,,,,,,.,,,
+#DRB5NQDLIJ3QBV3KRD6ZEDUK346GDB7TB3JS7STCD3PW6TCKOEJ3JGCOYJTR2DPCRAPZSLE5AC74K
+#\\\|Y5BRXPFFXRVT4AAPYIYG6TRNJRPIOB7VC34VA2JY2UFC4K4VX55 \ / AMOS7 \ YOURUM ::
+#\[7]ZITSEO4VOH4FJJAJ2TOSBXA3WG6UDVOWABUMJ7M7V5O45RALHYAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
