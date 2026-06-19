@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = powershell.plugin.screenshot-capture.invoke
+# descr = capture the windows host's screen via .NET GDI directly into this zenka's var dir; returns the linux-side png path
+
+## mixed-case names are discouraged project-wide [ same reasoning behind
+## BASE32 over BASE64 ]; a high-resolution network timestamp also doubles
+## as a natural collision-free sort key, unlike a random suffix ##
+my $screenshot_dir = <[file.zenka_dir.data_path]> . '/screenshot';
+my ( $linux_abs, $rel_path );
+while ( not defined $linux_abs or -e $linux_abs ) {
+    <[base.sleep]>->(0.0007) if defined $linux_abs;  ## only delay on retry ##
+    my $tstamp = <[base.ntime.b32]>->( 5, TRUE );
+    $rel_path  = "screenshot/p7-capture-$tstamp.png";
+    $linux_abs = "$screenshot_dir/p7-capture-$tstamp.png";
+}
+
+## pre-create the destination with its final mode/ownership before handing
+## windows a path to write into [ also auto-creates 'screenshot' if missing ];
+## if Save() truncates the existing file in place rather than recreating it,
+## this closes the brief window in which it would otherwise carry whatever
+## default permissions the 9p interop layer applies ##
+if ( not defined <[file.zenka_dir.write]>->( $rel_path, \'', '>', 0640 ) ) {
+    warn "could not pre-create capture destination [ $linux_abs ] <{C1}>";
+    return undef;
+}
+
+my $win_unc_path = <[powershell.to_unc_path]>->($linux_abs);
+return undef if not defined $win_unc_path;
+
+## PowerShell's default $ErrorActionPreference is 'Continue', so an uncaught
+## .NET exception [ e.g. Save() failing ] would print to stderr and still
+## report a successful exit. the try/catch + explicit exit 1 makes failure
+## deterministic instead of a silently-wrong success.
+my $ps_script = <<"PS1";
+\$ErrorActionPreference = 'Stop'
+try {
+    Add-Type -AssemblyName System.Windows.Forms,System.Drawing
+    \$vs  = [System.Windows.Forms.SystemInformation]::VirtualScreen
+    \$bmp = New-Object System.Drawing.Bitmap(\$vs.Width, \$vs.Height)
+    \$gfx = [System.Drawing.Graphics]::FromImage(\$bmp)
+    \$gfx.CopyFromScreen(\$vs.Left, \$vs.Top, 0, 0, \$bmp.Size)
+    \$bmp.Save('$win_unc_path', [System.Drawing.Imaging.ImageFormat]::Png)
+} catch {
+    Write-Error \$_.Exception.Message
+    exit 1
+}
+PS1
+
+my $raw_out = <[powershell.exec]>->($ps_script);
+return undef if not defined $raw_out;
+
+return $linux_abs;
+
+#,,,.,,..,,.,,,,.,.,,,.,.,,.,,.,,,..,,,.,,.,,,..,,...,...,,,,,,,,,...,,,.,,..,
+#NSWYCXZDFK34HC2HC3Y43EBEZWM7V2HY6U2KZYL3FEJKMGAE2IOUJ2E7XVPQ64QPWHSHG6C7HFGJC
+#\\\|JWA52HEX6LYKEJR2N7FBISAAQUAWQG54O4M35EIWX3IXMHKLD62 \ / AMOS7 \ YOURUM ::
+#\[7]ZJGA2OGSPY5OYQPTQERSSUL4AYLZGT6ZSDLFXFCPADORAC2DZ6CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
