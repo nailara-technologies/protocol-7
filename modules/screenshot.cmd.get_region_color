@@ -4,22 +4,26 @@
 # param = <X1> <Y1> <X2> <Y2>
 # descr = return average color for given region
 
-my $param_str = shift->{'args'} // '';
+my $param_str = $call->{'args'} // '';
 return {
     'mode' => qw| false |,
     'data' => 'expected valid region coordinates'
     }
-    if $param_str !~ /^(\d+ +){3}\d+$/;
-my @coords = ( split( / +/, $param_str ) );
+    if $param_str !~ m|^(\d+ +){3}\d+$|;
+my @coords = ( split( m| +|, $param_str ) );
 
-my $img     = <[screenshot.grab_region]>->(@coords);
-my $err_str = $img if ref($img) ne 'Imager';
+my $err_str;
 
-$img = <[screenshot.scale_image]>->( $img, 1, 1 ) if not defined $err_str;
-my $err_str = $img if not defined $err_str and ref($img) ne 'Imager';
+my $img = <[screenshot.grab_region]>->(@coords);
+$err_str = $img if ref($img) ne qw| Imager |;
 
-my @RGB     = <[screenshot.pixel_color]>->( $img, 0, 0 );
-my $err_str = shift @RGB if @RGB == 1;
+$img     = <[screenshot.scale_image]>->( $img, 1, 1 ) if not defined $err_str;
+$err_str = $img
+    if not defined $err_str
+    and ref($img) ne qw| Imager |;
+
+my @RGB = <[screenshot.pixel_color]>->( $img, 0, 0 );
+$err_str = shift @RGB if @RGB == 1;
 
 return {
     'mode' => qw| false |,
@@ -31,8 +35,8 @@ pop(@RGB);    # removing alpha
 
 return { 'mode' => qw| true |, 'data' => sprintf( '#%02X%02X%02X', @RGB ) };
 
-#,,,,,,..,,,.,...,,,.,,,.,,,.,,.,,.,,,,.,,...,..,,...,...,..,,.,.,,..,.,,,,,.,
-#AXHO4MEJVPIYHCRW6E55Z6PT7PYRLPXMQA7ZUXVGONJSZ6BSIYEC64TVWYWVNITXV5GNBSKSJRD3O
-#\\\|KMMEZRG6RPM37R2NZZA2ZAWHCFGIO3LVNDVAPDTQ33IGTSA2463 \ / AMOS7 \ YOURUM ::
-#\[7]TRKJYZC4HVBENITO2S26HHLCNNU5IFM6STOZQH6WCD6HSKUFT4AI 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,,.,.,.,..,,.,.,.,,,..,,.,.,.,,,..,,...,...,...,,..,,.,,...,...,
+#D4HAARWSUYFVVAAIQVDUWOACWA4MKA7XAGHR6XQ3NARHTDRENMUDNDRUXKRIGYUSYAMCFY2ISEY7S
+#\\\|EPRPB6YMGDFP7GBDZ5LMCQQ6HLZADFYZSFNT34FLZYZWDOAS55O \ / AMOS7 \ YOURUM ::
+#\[7]LIB4YV26VQREESNKJBH6VDZBERA5IX5P6UXBKR5ZG5VCPGZW3ECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,16 +4,16 @@
 # param = [coords]
 # descr = grab screen or region and return path
 
-my $param_str = shift->{'args'} // '';
+my $param_str = $call->{'args'} // '';
 return {
     'mode' => qw| false |,
     'data' => 'expected screen region coordinates'
     }
-    if $param_str !~ /^(\d+ +){3}\d+$/;
-my @coords = ( split( / +/, $param_str ) );
+    if $param_str !~ m|^(\d+ +){3}\d+$|;
+my @coords = ( split( m| +|, $param_str ) );
 
 my $image   = <[screenshot.grab_region]>->(@coords);
-my $err_str = $image if ref($image) ne 'Imager';
+my $err_str = $image if ref($image) ne qw| Imager |;
 
 return {
     'mode' => qw| false |,
@@ -23,7 +23,8 @@ return {
 
 my $out_dir = <screenshot.cfg.output_dir>;
 <[file.make_path]>->($out_dir) unless -d $out_dir;
-my $out_path = sprintf '%s/screenshot_%d_%d.png', $out_dir, time, $$;
+my $stamp    = <[base.ntime]>->(0) // time;
+my $out_path = sprintf '%s/screenshot_%s.png', $out_dir, $stamp;
 
 my $write_ok = $image->write(
     'file' => $out_path,
@@ -41,8 +42,8 @@ return {
     'data' => $out_path
 };
 
-#,,,.,,.,,..,,..,,,.,,,,,,,..,.,,,.,.,,,.,,,.,..,,...,...,,..,,..,,,.,.,,,,.,,
-#EHP2PYECWWVM2ZIEH4VIYOTECSM6PJRVSEV6OTCHDSQV7Q7R7NINCJLDPPWQINDTWXBDN2VDOVDPY
-#\\\|K5G2KZQK333NTGPITKJCXNBT36IECUL3QRO6DQK4LTUJGWXE3HR \ / AMOS7 \ YOURUM ::
-#\[7]IE2MG5LKKF7SQJYJETY6N7SZ2WWQIUG534A44455PAJSREKB52BI 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,,.,...,.,.,,..,.,.,..,,.,.,,,.,..,,...,...,,..,.,.,,,,,,,.,,,.,
+#5EPM6JEZWX2E6NY2WAY2OWUNJOLXPBA245SLJWYCNA674X3GHSI57QSHNUF7QEHHMLD4PLMURICMC
+#\\\|HQZ474UQFBGNYTDLRSZDNKIVJ6PM7Q3EUU6NPXCYAWBZBFWPHIH \ / AMOS7 \ YOURUM ::
+#\[7]J2MQITWQHB7LUGP6TWH335PH4KBNGMIH42NSB32ACYULIMKQY4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

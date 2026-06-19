@@ -1,21 +1,25 @@
 ## [:< ##
 
 # name  = screenshot.grab_region
+# descr = grab a screen region; returns Imager object or error string
 
-my @coords = @_;
-die "expected region coordinates" if @coords != 4;
+my @coords = @ARG;
+if ( @coords != 4 ) {
+    warn 'expected four region coordinates <{C1}>';
+    return undef;
+}
 
-$ENV{'DISPLAY'} = <x11.display>;
-
-return screenshot(
+my $image = screenshot(
     'left'   => $coords[0],
     'top'    => $coords[1],
     'right'  => $coords[2],
     'bottom' => $coords[3]
-) or return Imager->errstr;
+);
+return $image if $image;
+return Imager->errstr;
 
-#,,,.,.,,,,,,,,,,,,.,,..,,..,,,.,,,,.,.,,,,,,,..,,...,...,.,,,..,,.,.,..,,,,.,
-#OZOLC6N5KKFRXYDGYFTC3QGB3UG246UHNOWBOW4VTTZE6YNFDZU7XN3A46BUQHXMG3KBK4P6JBGRM
-#\\\|EW5BQ3NLDQE5IZCWDO3D2ARVRELJ4OY273MYAQI5YKZ3656ZGF7 \ / AMOS7 \ YOURUM ::
-#\[7]4OFOQLCC5XOWZVNOG54PQFGPPJJMDIOM4ZZ4QVVFVJNUZPOO5KCA 7  DATA SIGNATURE ::
+#,,..,,..,...,,.,,.,.,.,,,,..,,..,,.,,,,,,,.,,..,,...,...,,.,,.,.,...,,.,,...,
+#ZL6BC7GLMC36LCIJHH7I7ZURA4SSYKTQH6F33L6V7NWZMZEELLABYDHYHJOK7PHXA5IQC4UATXWR6
+#\\\|RMSFMHM3ONBLESEKFZKLIYNURXLCQPRDSGXU2H2DS6PWP3ED6WW \ / AMOS7 \ YOURUM ::
+#\[7]DAVKOCANA4DMDIVXKMRNDEDJC5O4U5FYWQEAAY6V4ZFOUM6NR6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
