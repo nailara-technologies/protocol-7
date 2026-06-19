@@ -882,6 +882,7 @@ return [ qw[
         site-yaml.init_code
         site-yaml.cmd.fetch
         signal.cancel.match
+        select.region.start
         remote-cam.sdl_loop
         reenc-msg.init_code
         reasoning.tree.node
@@ -1067,6 +1068,9 @@ return [ qw[
         smtpd.cmd.reclassify
         site-yaml.cmd.search
         site-yaml.cmd.import
+        select.region.commit
+        select.region.cancel
+        select.region.adjust
         screenshot.init_code
         rss.ticker.post_init
         rss.ticker.init_code
@@ -1796,6 +1800,8 @@ return [ qw[
         site-yaml.cmd.list-jobs
         signal.cancel.init_code
         set-up.json.import_file
+        select.region.init_code
+        select.region.damp.tick
         rss.ticker.fetch.single
         route.bmw384.route.find
         route.bmw384.index.init
@@ -2040,6 +2046,7 @@ return [ qw[
         signal.cancel.cmd.filter
         set-up.cmd.export-config
         session.parent.init_code
+        select.region.apply_drag
         rss.ticker.get_feed_urls
         rss.ticker.fetch_content
         route.bmw384.index.stats
@@ -2262,6 +2269,7 @@ return [ qw[
         source.load_signature_key
         smtpd.parse_mail.fallback
         set-up.cmd.create-profile
+        select.region.open_window
         rss.ticker.fetch.multiple
         route.bmw384.visual.wheel
         route.bmw384.route.vortex
@@ -2486,6 +2494,7 @@ return [ qw[
         set-up.cmd.install-profile
         session.console.setup-keys
         session.console.check-deps
+        select.region.handler.draw
         radio.handler.stream-chunk
         proxy.template.passthrough
         proxy.handler.cred_rotated
@@ -2935,6 +2944,9 @@ return [ qw[
         source.cmd.update-to-current
         site-yaml.handler.fetch_tick
         signal.cancel.cmd.check-line
+        select.region.handler.scroll
+        select.region.handler.motion
+        select.region.apply_geometry
         rss.ticker.cmd.resend_update
         route.bmw384.index.query-arc
         route.bmw384.index.from-path
@@ -3126,6 +3138,9 @@ return [ qw[
         source.create_harmonic_footer
         signal.cancel.cmd.add-pattern
         set-up.cmd.fetch-zenka-config
+        select.region.damp.set_target
+        select.region.cmd.last-coords
+        select.region.classify_region
         route.bmw384.negotiation.tick
         route.bmw384.ledger.increment
         route.bmw384.ledger.decrement
@@ -3345,6 +3360,8 @@ return [ qw[
         ssh.parser.profile_connections
         ssh.handler.heartbeat_response
         smtpd.internal.message_id_hash
+        select.region.update_x11_state
+        select.region.set_hover_cursor
         screenshot.cmd.capture-to-disk
         rss.ticker.warn_urls_undefined
         rss-ticker.set-up.import_rules
@@ -3526,6 +3543,9 @@ return [ qw[
         system.handler.mod_reload_reply
         storage.amos_chksum.open_socket
         signal.cancel.cmd.scan-baseline
+        select.region.handler.key_press
+        select.region.cursor_for_region
+        select.region.cmd.window-coords
         route.bmw384.visual.wheel.gauss
         route.bmw384.route.hamming-dist
         route.bmw384.ledger.warning_map
@@ -3826,6 +3846,7 @@ return [ qw[
         system.process.callback.send_kill
         start-anim.callback.report_online
         session.parent.check_minimal_deps
+        select.region.cmd.screenshot-rect
         rss.ticker.handler.get_list_reply
         route.bmw384.visual.wheel.overlay
         route.bmw384.visual.wheel.heatmap
@@ -3941,6 +3962,9 @@ return [ qw[
         sourcecode.console.subroutine-list
         source.harmonize_payload_line_feed
         signal.cancel.cmd.baseline-capture
+        select.region.handler.poll_pointer
+        select.region.handler.button_press
+        select.region.cmd.window-placement
         screenshot.cmd.return-region-color
         route.bmw384.visual.wheel.vertical
         route.bmw384.visual.wheel.temporal
@@ -4065,6 +4089,7 @@ return [ qw[
         v7.handler.heartbeat_timer_response
         tile.impressive.increase_light_mode
         terminal.curses_ui.modified.english
+        select.region.cmd.last-image-coords
         route.bmw384.visual.wheel.arc-width
         route.bmw384.visual.separator-pulse
         route.bmw384.visual.flying-elements
@@ -4170,6 +4195,9 @@ return [ qw[
         space.search.util.fallback_resonance
         sourcecode.console.update-signatures
         source.restore_payload_endline_state
+        select.region.handler.scr_rect_reply
+        select.region.handler.button_release
+        select.region.cmd.last-window-coords
         route.bmw384.visual.route-commitment
         reenc-msg.window.util.screen_changed
         protocol.amos-chksum.ext-cmd.version
@@ -4335,6 +4363,7 @@ return [ qw[
         web-browser.handler.signal.load_failed
         weather.parent.wind.calculate_beaufort
         storage.protocol.SFTP.open_unix_socket
+        select.region.cmd.clear-window-profile
         route.bmw384.visual.wheel.oscilloscope
         protocol.sftp.terminate_server_process
         protocol.protocol-7.auth.select-method
@@ -4669,8 +4698,8 @@ return [ qw[
     ]
 ];
 
-#,,..,...,...,,.,,,,,,,..,,.,,,.,,,,.,.,,,,,,,.,.,...,...,.,,,,.,,,.,,,.,,,..,
-#JI3J7NCIPZIUOCBCQLJKGMCTD2LDTBCIHT7IIXKOKRBI2TA5BHJU2ABA7JKNTORWG2OGTBFHP6KWO
-#\\\|HK6YIGG5K2FVVENZJG2EJB7KR7MLLM5L2BAS4OSNM5DT7FBYRV4 \ / AMOS7 \ YOURUM ::
-#\[7]BBCRTBZLH7LFYGTOOTMAQ2A62QUN6OGKJZGOGTVS6QWW2DR7SYCA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,,.,.,,,..,,,,.,,..,..,,,.,,,,,,.,.,...,..,,..,,.,.,.,,,.,.,.,.,
+#N6ZN5Y2O7TSQWNNCKSZQQA7CYCSZ7T2GX74BUTXG5DRP5D6TUEADIL6FLHYMSUBUODSCX247WMI24
+#\\\|PX6JEFGSC5IHAQ6HLMOPDHXHPWIOOTQYWAVG3HR5SNQ5TZ6ZN3Q \ / AMOS7 \ YOURUM ::
+#\[7]QS6WVOYYR35KJ3KV5W6MZICQWBQSRQDYGQS563TYLZCLWZVHYADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

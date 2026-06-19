@@ -55,7 +55,11 @@ if ( defined $err_msg ) {
 my $default_mode = qw| ntime-b32 |;
 <log.timestamp_mode> //= $default_mode;
 
-my $log_file = join qw| . |, $node_zenka, $buffer_name;
+## host-namespacing comes from our own node name, not the wire identity   ##
+## [ SOURCE_ZENKA no longer carries a hostname prefix - see base.handler. ##
+## command - so $node_zenka alone would collide across hosts in a multi- ##
+## host network ] ##
+my $log_file = join qw| . |, <system.node.name>, $node_zenka, $buffer_name;
 
 ##[  input  ]##
 ##
@@ -111,8 +115,8 @@ return { 'mode' => qw| true |, 'data' => sprintf 'wrote %u bytes', $msg_len }
 <[base.log]>->( 0, $err_msg );
 return { 'mode' => qw| false |, 'data' => $err_msg };
 
-#,,,.,,,.,,.,,.,,,.,,,...,,,.,.,.,,,.,,,,,,,,,..,,...,..,,...,.,.,,..,,,,,,.,,
-#UFUD54JO76MVQKGX6PS4PRW62H4BRMWYLZMH33Y6LLLIXZ3XON7C7EKHIWUCJYXA3XUM5FUQM2XHE
-#\\\|XUE2Q46SHHWNMDT5AE4K43MECGVDPPUXFEEVIKO4ENLZFJBWBLR \ / AMOS7 \ YOURUM ::
-#\[7]AZLB3LZ7J5PA3D5NQ4CXEURJQKSXH4OPYFUCDBCMX7WWOQ4GI6BY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,.,.,.,,,.,.,.,,,,.,,,,.,.,.,,.,,..,,...,...,..,,..,,,.,,,..,..,,
+#CZ4CSPHQLT2CW6MJ3N5OEHJ4FQJBGL2E5M37ZKLUZRRWW623YBDMIEO42NF7BH26P2FB2VJJY5ZPK
+#\\\|PVHBX2JPWJD4XGJOXZYU65UUEWM6BT5FDUR6EUTMSNSSIIS4CZ4 \ / AMOS7 \ YOURUM ::
+#\[7]BQTRHIIBRJEJ4FFIJ2Q5BEYJKLZMIF5TWY2GSEACN3VTXQE5IGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

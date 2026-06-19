@@ -110,13 +110,16 @@ if ( $input->$* =~ s|^(auth\.)?close\n|| ) {
             return 1;        ## continue protocol ##
         }
     }
-} elsif ( $input->$* =~ s{^(auth\.)?(declare|select)-(\S+)\s*(.*?)\n}{} ) {
-    ## capability negotiation dispatcher ##
-
-    my $prefix     = $1 // '';
-    my $action     = $2;
-    my $capability = $3;
-    my $args       = $4 // '';
+} elsif ( $input->$* =~ s{^auth\.(declare|select)-(\S+)\s*(.*?)\n}{} ) {
+    ## capability negotiation dispatcher : 'auth.' prefix is mandatory here  ##
+    ## [ not optional ] - a bare '(declare|select)-\S+' line collides with   ##
+    ## the zenka-auth wire format '<zenka_name> <key>\n', since any zenka   ##
+    ## named e.g. 'select-region' or 'declare-foo' produces a line this     ##
+    ## branch would otherwise swallow before the real auth plugin sees it   ##
+    ## [ found live 2026-06-19, select-region zenka auth timeout ] ##
+    my $action     = $1;
+    my $capability = $2;
+    my $args       = $3 // '';
 
     $event->w->start;
 
@@ -290,8 +293,8 @@ elsif ( defined $auth_method
     return 2;               ##  no auth method selected + session closing  ##
 }
 
-#,,,,,...,,.,,,.,,,..,,,.,...,.,,,.,.,.,.,..,,..,,...,...,...,.,,,,,,,.,.,,.,,
-#HMAJYNDJYRHQNYM2SDSSYT4LR5WL2MLKF6747W755LCPTEDVFIQW53FPSLPO4ASWPQQFK2AZKMSQ2
-#\\\|N6BOMQDCVXUGICASFDZFXD76RNLZMK3GZ4HWMIX2WHXJPPGEZWJ \ / AMOS7 \ YOURUM ::
-#\[7]OZMHXXMFW7DV4X4RNEB5YIP3ZZBHX45R5YRVKAMODK7ZPGYEQ2CQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,.,.,.,.,,.,,,,.,.,.,.,.,,.,,,.,,..,,...,...,,..,...,.,.,,,.,,,.,
+#TMDISY75BUJPN6WRUJTDDBI5VNNBFUXZFJVIIQPP64WVDTAIU3KIH5ZMIIQGBD24F3BNH57CJ3X3S
+#\\\|LJIAQO6FNWSX7FEQXVIR5KRAU3DONYD2YGPVURCAYJ64L4JJUAV \ / AMOS7 \ YOURUM ::
+#\[7]UC3S5LJOT7PS3RW63BXR3I6UERWOVMYAB7MDCKTZILOO5YURYUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
