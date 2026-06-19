@@ -127,6 +127,7 @@
 - [migration](topic-migration.md) — Windows 11 instability; KVM/Debian migration
 
 ## Feedback
+- [ondemand timeout tiering](feedback-ondemand-timeout-tiering.md) — survey existing set_ondemand_timeout values by tier before picking a new one; screenshot+powershell bumped 69s->147s 2026-06-19
 - [claude_dispatch summarize hang](feedback-claude-dispatch-summarize-hang.md) — coding_summarize prompt-overflow leaves outer session stuck forever (near-zero CPU); check ps + coding zenka log, kill PID, work is safe on disk
 - [init-code-return-values](feedback-init-code-return-values.md) — TRUE(5) AND FALSE(0) both = success; only undef/exception = failure
 - [memory-sync-timing](feedback-memory-sync-timing.md) — sync at ~42K context remaining
@@ -173,8 +174,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,..,,,.,,..,.,.,,.,,,,,,,,,,.,,,...,...,.,,,..,,...,...,...,..,,,.,,,,.,,,,,
-#JJ72YWDQM4RUDDWQK323BIDEMAO5QARYD4FCJDUDWLTR3IJVU366RS6SAW43BYGAN4SVQYHUW2B3Q
-#\\\|QBLVCZUUVSYRQRWAH47HTUONDM36RWGLM2RSZKIM2UJTR6DD3YQ \ / AMOS7 \ YOURUM ::
-#\[7]3LSARLHOHXG35UIHZYCQWVHF5WDPYRRPYIUASFWB6WGJJBZGDSAA 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,...,.,,,,,.,,,.,,,.,,.,,.,,,.,.,..,,...,...,,.,,...,..,,,..,.,.,
+#JGTXVLJ2VRRMFK66KLQIUA75G45THWKL6LGOYQPBUNYVIG4LLZDIJEWXUCM2NRZC4Y2K7XFGTBARQ
+#\\\|OXJG6O43KU5UZ2QY63QF5PB2ETEFQELNQFPG7YXQZVHHNSI2UNS \ / AMOS7 \ YOURUM ::
+#\[7]FN5ZO7VAUP2II4E246UOP6M4ZBNW4QLRBDASB45W5WTEAKXKEWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
