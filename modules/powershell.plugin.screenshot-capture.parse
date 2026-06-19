@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = powershell.plugin.screenshot-capture.parse
+# descr = sanity-check a captured png file written directly
+#         by the windows host into this zenka's var dir
+
+my ($linux_path) = @ARG;
+
+if ( not defined $linux_path or not length $linux_path ) {
+    warn 'expected a linux path string <{C1}>';
+    return undef;
+}
+
+if ( not -f $linux_path ) {
+    warn "captured file not found at [ $linux_path ] <{C1}>";
+    return undef;
+}
+
+## a real screen capture is always far larger than this; catches the case
+## where powershell.exe reported success but wrote a truncated/empty file
+my $min_bytes = 1024;
+if ( -s $linux_path < $min_bytes ) {
+    warn "captured file suspiciously small [ $linux_path ] <{C1}>";
+    return undef;
+}
+
+## the file is written by the windows-side powershell.exe process via the
+## unc mount, not by any of our usual file.* helpers, so it lands with
+## whatever default mode/ownership the 9p interop layer applies - tighten
+## it to match this zenka's usual [ user:group ] convention ##
+if ( not chmod( 0640, $linux_path ) ) {
+    my $os_err = <[base.str.os_err]>;
+    warn "chmod 0640 [ $linux_path ] failed : $os_err <{C1}>";
+}
+
+my $uid = ( getpwnam <system.zenka-user.current> )[2];
+my $gid
+    = defined <system.zenka-group.current>
+    ? ( getgrnam <system.zenka-group.current> )[2]
+    : undef;
+
+if ( defined $uid and defined $gid and not chown( $uid, $gid, $linux_path ) )
+{
+    my $os_err = <[base.str.os_err]>;
+    warn "chown [$uid:$gid] $linux_path : $os_err <{C1}>";
+}
+
+return $linux_path;
+
+#,,..,...,,,.,,,.,,.,,.,.,,..,,,,,..,,,.,,.,.,..,,...,...,...,.,,,,,.,.,.,,.,,
+#5BJQKRHEJ6PDDH6NKQCEYUPCFHVKBGPZ36H4N3QFFEG5SWYDKDHGV5GNJQV7OIMVJMHZ4UNARGJN6
+#\\\|BYILXRR5NMP7ZFYBZTUJYDP5XF4LRGEIO6ODN3RVPASML2QU4U2 \ / AMOS7 \ YOURUM ::
+#\[7]P26YOHAXES22YEFMIK42VAI2BCS62J2RCXCGDII4JS4PFPRCIOAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

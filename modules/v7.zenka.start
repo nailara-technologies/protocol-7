@@ -216,6 +216,29 @@ if ( exists $init_result_data->{'start_mode'}
             chdir( qw| $privs->{'home'} | );
         EOT
 
+        ## %ENV is wiped above for exec-external zenki [ clean environment ];
+        ## env_include lets a zenka's v7-init config whitelist additional
+        ## keys to copy through from the live v7 process's own environment ##
+        my $env_include_str = $init_result_data->{'env_include'};
+        if ( defined $env_include_str and length $env_include_str ) {
+            my @included;
+            for my $env_key ( split m| +|, $env_include_str ) {
+                next if not defined $ENV{$env_key};
+                ( my $env_val = $ENV{$env_key} ) =~ s|'|'\\''|g;
+                $prepare_code .= "\$ENV{'$env_key'}='$env_val';";
+                push @included, $env_key;
+            }
+            <[base.logs]>->(
+                1,           "'%s' exec-external env_include : [ %s ]",
+                $zenka_name, join( ' ', @included )
+            );
+        } else {
+            <[base.logs]>->(
+                2, "'%s' exec-external : no env_include configured",
+                $zenka_name
+            );
+        }
+
         <[base.logs]>->(
             "starting external '%s' program as '%s' ..,",
             $zenka_sn_str, $prog_usr
@@ -346,8 +369,8 @@ close($in_fh);    ## <-- no further use for zenka stdin handle [ for now ] ##
 
 <[base.logs]>->( '%s zenka started [ pid : %d ]', $zenka_sn_str, $pid );
 
-#,,.,,,..,,,,,,..,,,,,...,.,.,...,...,,,.,.,,,..,,...,...,,,.,,.,,.,,,,,.,,,,,
-#RUTYWNQGILJ5UUCDJJTMNAFMMX2X74E52SXHA2P3DENJPSWQ7XV5YEWDXZUXLQZFCZEH6NGP277BE
-#\\\|CYHGANVRYHLWZ3RGHEEZEUXGYYNLCKTULQUL5K62JLVPDY75Z5N \ / AMOS7 \ YOURUM ::
-#\[7]T7L2YR6TFIFJM72YUHSTZ4PS2TPVOUJSUE55RFAKEEDPIJEFWUAA 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,..,,..,,.,.,,,,,.,,,,..,.,,,,.,,..,,...,...,,..,,..,,,,,..,,..,,
+#PGCKX5CKV746J4AFOQB5TY5NZQE3ME6SE7DURUO5MVIWM5EFIBEEGWWN27ITSU5LGQC4KNGWLFUJS
+#\\\|PUQUSDQH5W5LWCXAGKYRLJIY5UAEIHLONFGQ4ZELNMGOF5ADY3D \ / AMOS7 \ YOURUM ::
+#\[7]5EM4IGW2N2ZEZP24HSKVIFCI5CYDD4YO2TRJ4N4QV72TJ6LXUKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
