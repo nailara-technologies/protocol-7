@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = select.region.classify_region
+# descr = map an x/y point inside the window to a drag/resize region
+
+my ( $id, $ex, $ey ) = @ARG;
+
+my $inst = defined $id ? $data{select}{region}{instances}{$id} : undef;
+my $w    = $inst->{'geom'}{'width'}  // 320;
+my $h    = $inst->{'geom'}{'height'} // 240;
+
+## hit-zone widths [ corner matches the 16px bracket arm in draw ] ##
+my $corner = 16;
+my $edge   = 8;
+
+my $region = 'body';
+
+if ( $ex < $corner and $ey < $corner ) {
+    $region = 'nw';
+} elsif ( $ex > $w - $corner and $ey < $corner ) {
+    $region = 'ne';
+} elsif ( $ex < $corner and $ey > $h - $corner ) {
+    $region = 'sw';
+} elsif ( $ex > $w - $corner and $ey > $h - $corner ) {
+    $region = 'se';
+} elsif ( $ey < $edge ) {
+    $region = 'n';
+} elsif ( $ey > $h - $edge ) {
+    $region = 's';
+} elsif ( $ex < $edge ) {
+    $region = 'w';
+} elsif ( $ex > $w - $edge ) {
+    $region = 'e';
+}
+
+return $region;
+
+#,,.,,.,,,...,,.,,,,,,..,,,,,,,.,,..,,,..,,,,,..,,...,...,..,,..,,.,.,,..,...,
+#D43PVADMFPPZ243CCJ6ICC2HQDE5Y45ZALW6N2NMTF7NEBYXY3OSZOWLOKNDUT5AIQTXUTEQIKJL4
+#\\\|IQTEVJXKDQZXGNUGOVZWEIWZLX26H4JKPEERXFML63I2VF2RR3A \ / AMOS7 \ YOURUM ::
+#\[7]MFEPODNH5LFZWSBBB6FQADQ5SIN42J6TDGGFRBHEB6577NVLDUDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

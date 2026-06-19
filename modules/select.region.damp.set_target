@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = select.region.damp.set_target
+# descr = record the latest drag target and ensure the damp timer runs
+
+my ( $id, $target ) = @ARG;
+
+return undef if not defined $id;
+return undef if not defined $target;
+
+my $inst = $data{select}{region}{instances}{$id};
+return undef if not defined $inst;
+
+## copy so later mutation of caller hash cannot leak in ##
+$inst->{'damp'}{'target'} = { %{$target} };
+
+## seed the shown geometry on first use from current instance geometry ##
+$inst->{'damp'}{'shown'} //= {
+    'x'      => $inst->{'geom'}{'x'}      // $target->{'x'},
+    'y'      => $inst->{'geom'}{'y'}      // $target->{'y'},
+    'width'  => $inst->{'geom'}{'width'}  // $target->{'width'},
+    'height' => $inst->{'geom'}{'height'} // $target->{'height'},
+};
+
+## lazily start the 50ms damp tick ##
+if (   not defined $inst->{'damp'}{'timer'}
+    or not $inst->{'damp'}{'timer'}->is_active ) {
+    $inst->{'damp'}{'timer'} = <[event.add_timer]>->(
+        {   after    => 0,
+            interval => 0.05,
+            repeat   => TRUE,
+            handler  => qw| select.region.damp.tick |,
+            data     => $id,
+        }
+    );
+}
+
+return TRUE;
+
+#,,,.,.,,,.,.,.,,,..,,..,,,..,.,,,,,,,..,,...,..,,...,..,,...,..,,...,...,.,.,
+#EPUXYH5OLZHRX7YNBMEV3KNH4VBW653R7FOQSV6LCPC6T72FNM2CIGY5HHZZR7F6UZVIHHYCP4Z6G
+#\\\|E3BCPM4KLEUL7R233JKJFUX4BGK6KNXNALU6CJ5CDGRLDTSAADY \ / AMOS7 \ YOURUM ::
+#\[7]4FRHYWBCSJEPP2JNRTL7ACMKT6R7447XBNXFHDNJIOKG3DCL62DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

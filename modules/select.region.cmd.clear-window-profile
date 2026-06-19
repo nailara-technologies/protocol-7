@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = select.region.cmd.clear-window-profile
+# param = caller=<name>
+# descr = delete saved placement profile for caller
+
+my $args   = $call->{'args'} // '';
+my $caller = '';
+for my $token ( split m|\s+|, $args ) {
+    if    ( $token =~ m|^caller=(.+)$| ) { $caller = $1; }
+    elsif ( not length $caller )         { $caller = $token; }
+}
+
+return { 'mode' => qw| false |, 'data' => 'caller required' }
+    if not length $caller;
+
+my $result = <[window.profile.delete]>->($caller);
+
+return {
+    'mode' => ( defined $result and $result ) ? qw| true | : qw| false |,
+    'data' => ( defined $result and $result )
+    ? sprintf( 'profile cleared [caller=%s]',  $caller )
+    : sprintf( 'no profile found [caller=%s]', $caller )
+};
+
+#,,,.,,,.,,..,..,,.,,,,.,,,..,,,.,,..,,.,,,,,,..,,...,...,..,,,.,,.,,,...,,,.,
+#EAN3NNNHGY5YVTMF3NQT26MHQKTZP2WLSQM63KE4KTBUQW3JAKAYDDJ4OGZH2TJ3GEBRPPUFXELEK
+#\\\|6UWLXZJFVUDWVS2PBWMNQHKKB66L3COGWQNKVJSEQH3NKOOU74O \ / AMOS7 \ YOURUM ::
+#\[7]E5JRFQP7P3G47MIGU3VIRDKHVFALJ4NTE2OAMLKM2POAWSOBFYAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,94 @@
+## [:< ##
+
+# name  = select.region.handler.poll_pointer
+# descr = poll the pointer and drive the hover cursor [ wslg/xwayland fix ]
+
+## poll-based hover + drag fallback for wslg/xwayland: gtk enter/leave and  ##
+## motion events can be lost for this undecorated rgba keep-above window    ##
+## until a button-press forces pointer association - and even the first     ##
+## button-held drag's motion can be starved the same way [ the 'first drag  ##
+## only focuses' bug ]. this recurring timer queries the pointer directly   ##
+## and either drives the active drag geometry [ via apply_drag, with the    ##
+## screen-relative position used as root coords ] or, while not dragging,   ##
+## updates the resize-region hover cursor - so both proximity feedback and  ##
+## the very first drag work without relying on motion-notify delivery.      ##
+
+my $event   = shift;
+my $watcher = $event->w;
+my $id      = $watcher->data;
+
+return if not defined $id;
+
+my $inst = $data{select}{region}{instances}{$id};
+
+## instance gone: stop the poll and clear ##
+if ( not defined $inst ) {
+    $watcher->stop;
+    return;
+}
+
+my $window = $inst->{'window'};
+
+## window gone or hidden: stop the poll and clear ##
+if ( not defined $window or not $window->get_visible ) {
+    $watcher->stop;
+    delete $inst->{'poll'}{'timer'};
+    return;
+}
+
+eval {
+    ## query pointer position via the default pointer device. under       ##
+    ## wslg/xwayland this is screen-relative, so we also compare screens  ##
+    ## for multi-monitor safety [ matches ticker.handler.check_pointer ]. ##
+    my $display = Gtk3::Gdk::Display::get_default;
+    my $seat    = $display->get_default_seat;
+    my $pointer = $seat->get_pointer;
+    my ( $ptr_screen, $px, $py ) = $pointer->get_position;
+
+    my $win_screen = $window->get_screen;
+
+    ## ignore samples on a different screen ##
+    return
+        if not defined $ptr_screen
+        or $ptr_screen != $win_screen;
+
+    ## dragging: the screen-relative pointer position is in the same frame  ##
+    ## as the button-press x_root/y_root anchor, so feed it straight to the ##
+    ## shared drag helper and skip the hover-cursor work below.             ##
+    if ( $inst->{'drag'}{'active'} ) {
+        <[select.region.apply_drag]>->( $id, $px, $py );
+        return;
+    }
+
+    ## convert absolute pointer position to window-local coordinates ##
+    my $wx = $inst->{'geom'}{'x'} // 0;
+    my $wy = $inst->{'geom'}{'y'} // 0;
+
+    my $ex = $px - $wx;
+    my $ey = $py - $wy;
+
+    ## only update when the pointer is actually within the window bounds; ##
+    ## outside, leave the last cursor as-is [ gtk resets it off-window ]. ##
+    my $w = $inst->{'geom'}{'width'}  // $window->get_allocated_width;
+    my $h = $inst->{'geom'}{'height'} // $window->get_allocated_height;
+
+    return
+           if $ex < 0
+        or $ey < 0
+        or $ex >= $w
+        or $ey >= $h;
+
+    my $hover = <[select.region.classify_region]>->( $id, $ex, $ey );
+    <[select.region.set_hover_cursor]>->( $id, $window, $hover );
+};
+
+<[base.log]>->( 0, ': pointer poll failed: ' . $EVAL_ERROR )
+    if length $EVAL_ERROR;
+
+return;
+
+#,,.,,.,.,..,,.,.,...,,,,,.,,,...,,.,,,,.,,.,,..,,...,...,..,,.,,,...,,,,,,..,
+#THNPNNW66SMY6PDWBMGXMKL3YORFPAWWVX4SYBAFF7AWRYUZDNSFKKBOM6LQU2WAHVIMLQWHHH5W4
+#\\\|BHXJAZNZ7RTSMHZDMIRUIZTZJAYJECJARNBVCHUQ4MANBXWMVH6 \ / AMOS7 \ YOURUM ::
+#\[7]TZUBXQDQR3DA3CQAGMUMBUUIQ5XJQUI3357F5OYBNAAS7BEUD2CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

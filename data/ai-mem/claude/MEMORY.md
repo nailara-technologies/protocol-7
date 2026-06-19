@@ -70,6 +70,7 @@
 - [memory-tree-zenka](topic-memory-tree-zenka.md) — tree LIVE; IDF search LIVE; digest pipeline LIVE (2026-06-05); cube.coding.* routing; base. prefix stripped
 
 ## Vision / Design
+- [source-identity-spoofing](feedback-source-identity-spoofing.md) — self-reported hostname/zenka-name strings aren't a security boundary; C25519 key-tree identity is the real fix, revisit p7-log host-namespacing then
 - [incidental-signal-channels](topic-incidental-signal-channels.md) — entropic modulation: alignment/sort/serialization choices double as free statistical-shape signals
 - [project-vision-origin](project-vision-origin.md) — 24-year vision; threshold reached Apr 2026
 - [layer-matrix-convergence](project-layer-matrix-convergence.md) — self-restart/migration/branching/diff-addressing = one reversible layer-matrix algebra; commutativity is the crux
@@ -174,8 +175,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,,,,,,,,,..,...,.,,,,,.,,,.,,,.,,.,,.,,,.,.,..,,...,...,,.,,...,..,,,..,.,.,
-#JGTXVLJ2VRRMFK66KLQIUA75G45THWKL6LGOYQPBUNYVIG4LLZDIJEWXUCM2NRZC4Y2K7XFGTBARQ
-#\\\|OXJG6O43KU5UZ2QY63QF5PB2ETEFQELNQFPG7YXQZVHHNSI2UNS \ / AMOS7 \ YOURUM ::
-#\[7]FN5ZO7VAUP2II4E246UOP6M4ZBNW4QLRBDASB45W5WTEAKXKEWDI 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,...,,.,,.,,,,,,,.,,,,,,,,,.,,.,,..,,...,...,..,,...,.,,,,,,,..,,
+#2BQ6JOF56656GBGZ4HS6373WBNMY2VYTG3WTVAN5BWYFPKR3W636DKHGML4YXWGP5QBIXORX4AIYQ
+#\\\|TZFNNTKNXK5UZSUEFJTXRIBS7YG2BACOSIIHEVM7DD5M5JOWDVZ \ / AMOS7 \ YOURUM ::
+#\[7]QSNU6U6DBQXR3IKWBEKBVX7MKLJYXXY3YRYI2XA54SPNYBWVTWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

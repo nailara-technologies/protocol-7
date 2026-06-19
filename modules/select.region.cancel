@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = select.region.cancel
+# descr = cancel region selection and notify caller
+
+my $id = shift;
+
+return undef if not defined $id;
+
+my $inst = $data{select}{region}{instances}{$id};
+return undef if not defined $inst;
+
+my $reply_id = $inst->{'reply_id'};
+
+if ( defined $reply_id and $reply_id =~ m|^\d+$| ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => qw| false |,
+            'data' => 'cancelled'
+        }
+    );
+} else {
+    <[base.logs]>->(
+        1, '[region.cancel] id=%s no reply_id, skipping direct reply', $id
+    );
+}
+
+<[base.logs]>->( 1, '[region.cancel] id=%s selection cancelled', $id );
+
+## destroy the window if still alive ##
+my $window = $inst->{'window'};
+if ( defined $window and $window->get_visible ) {
+    $window->destroy;
+}
+
+## stop instance timers ##
+my $poll_timer = $inst->{'poll'}{'timer'};
+$poll_timer->cancel if defined $poll_timer;
+
+my $damp_timer = $inst->{'damp'}{'timer'};
+$damp_timer->cancel if defined $damp_timer;
+
+## remove instance state ##
+delete $data{select}{region}{instances}{$id};
+
+return TRUE;
+
+#,,,.,,,,,,..,..,,,..,,..,,,,,,..,.,,,,,,,,..,..,,...,...,,..,.,.,,,,,.,,,...,
+#JUNXIOEJEL2IIBV47QAQPATGL66CXMVWLDG3KXJY55ASFMWNQYYHINX2EL6LEHFUPGOSWKAF2RZAM
+#\\\|5J2ARI24WBK4TXFLFL5HMIIB2YDPKWDM3TFDMFYDI5SCA6LKIJ6 \ / AMOS7 \ YOURUM ::
+#\[7]4RO67WPYWX7YDRUX3MEKK7IRF3YW7TIK5DQMKBFHOCJHDHMMEWBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

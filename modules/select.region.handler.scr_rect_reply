@@ -1,0 +1,107 @@
+## [:< ##
+
+# name  = select.region.handler.scr_rect_reply
+# descr = async reply from X-11.get_pointer_scr_rect : continue opening region UI
+
+my $reply = shift // {};
+my $mode  = lc( $reply->{'cmd'} // '' );
+my $rdata = $reply->{'call_args'}->{'args'} // '';
+my $id    = $reply->{'params'}->{'id'}      // '';
+
+if ( not length $id or not exists $data{select}{region}{instances}{$id} ) {
+    <[base.log]>->(
+        0, '[region.scr_rect_reply] missing or unknown instance id'
+    );
+    return;
+}
+
+my $inst = $data{select}{region}{instances}{$id};
+my ( $caller, $tag, $base_saved )
+    = @{$inst}{qw| caller tag base_saved |};
+
+## resolve monitor geometry from reply, falling back to virtual screen bounds ##
+my $screen_geom;
+if ( $mode eq qw| true | and $rdata =~ m|^(-?\d+) (-?\d+) (\d+) (\d+)$| ) {
+    $screen_geom
+        = { x => $1 + 0, y => $2 + 0, width => $3 + 0, height => $4 + 0 };
+    <[base.logs]>->(
+        1,
+        '[region.scr_rect_reply] id=%s caller=%s : monitor %dx%d+%d+%d',
+        $id,
+        $caller // '',
+        $screen_geom->{'width'},
+        $screen_geom->{'height'},
+        $screen_geom->{'x'},
+        $screen_geom->{'y'}
+    );
+} else {
+    ## fallback: centered on screen as before ##
+    my $geom_str = <x11.geometry> // '1920x1080+0+0';
+    $geom_str =~ m|^\s*(\d+)\s*x\s*(\d+)|;
+    $screen_geom
+        = { width => $1 // 1920, height => $2 // 1080, x => 0, y => 0 };
+    <[base.logs]>->(
+        1,
+        '[region.scr_rect_reply] id=%s caller=%s : fallback screen %dx%d',
+        $id,
+        $caller // '',
+        $screen_geom->{'width'},
+        $screen_geom->{'height'}
+    );
+}
+
+## starting geometry: base-caller's saved profile, falling back to center ##
+my $geo;
+if ( defined $base_saved ) {
+    $geo = {
+        'x'       => $base_saved->{'x'},
+        'y'       => $base_saved->{'y'},
+        'width'   => $base_saved->{'width'},
+        'height'  => $base_saved->{'height'},
+        'profile' => 'saved',
+    };
+} else {
+    ## per-caller configured initial geometry overrides auto-detect ##
+    my $cfg_geo_str
+        = $data{'select'}{'region'}{'initial_geometry'}{ $caller // '' };
+    if ( defined $cfg_geo_str
+        and $cfg_geo_str =~ m|^(\d+)x(\d+)\+(-?\d+)\+(-?\d+)$| ) {
+        $geo = {
+            'width'   => $1 + 0,
+            'height'  => $2 + 0,
+            'x'       => $3 + 0,
+            'y'       => $4 + 0,
+            'profile' => 'configured',
+        };
+        <[base.logs]>->(
+            1,
+            '[region.scr_rect_reply] id=%s caller=%s : using configured initial geometry',
+            $id,
+            $caller // ''
+        );
+    } else {
+        $geo = <[window.profile.calculate]>->(
+            {   'profile'  => 'center',
+                'screen_x' => $screen_geom->{'x'} // 0,
+                'screen_y' => $screen_geom->{'y'} // 0,
+                'screen_w' => $screen_geom->{'width'},
+                'screen_h' => $screen_geom->{'height'},
+            }
+        );
+    }
+}
+
+<[event.add_timer]>->(
+    {   'after' => 0,
+        'cb'    => sub {
+            <[select.region.open_window]>
+                ->( { 'id' => $id, 'geometry' => $geo } );
+        }
+    }
+);
+
+#,,,,,.,,,.,,,,,,,,,.,..,,.,,,,.,,.,,,,..,,.,,..,,...,...,...,.,,,.,.,,,,,.,,,
+#IP4CDQTFCGBRSBH6RYG6TFEYNHR5QCACLZ7BNXS75GMQUUXWUOS72MSMKVHNWCU6G63W2LHD6YAVC
+#\\\|FS5HJ6QB3EET6KAEFAZGLPWI22PXMMZKKTNN2TBLPP3DLXFBTPZ \ / AMOS7 \ YOURUM ::
+#\[7]3J7XMHFRBB6OUD2UZNHRW6VUE7GTY654VMRDLAUCEP7IDAFIMWAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

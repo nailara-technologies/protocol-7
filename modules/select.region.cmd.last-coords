@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = select.region.cmd.last-coords
+# descr = return most recently committed selection coords
+
+my $last = $data{select}{region}{last_commit};
+
+if ( not defined $last ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'no selection committed yet'
+    };
+}
+
+my $tag = $last->{'tag'} // '';
+
+my $reply_data = sprintf
+    'kind=%s x=%d y=%d width=%d height=%d',
+    $last->{'kind'}   // '',
+    $last->{'x'}      // 0,
+    $last->{'y'}      // 0,
+    $last->{'width'}  // 0,
+    $last->{'height'} // 0;
+
+$reply_data .= " tag=$tag" if length $tag;
+
+return { 'mode' => qw| true |, 'data' => $reply_data };
+
+#,,..,,.,,,,,,..,,.,,,..,,.,,,,.,,,.,,..,,...,..,,...,...,...,,,.,,,,,,..,,,.,
+#ABECK6X5ZNL2BXJZFCAEVDSG2VDOR3QUHL5P7NBYBGJFDQSI7HFHAAITT4DKFPW75GZ5UTDVZOBRG
+#\\\|Y2MYZNGFQ44KOQEAY5TNBB7NURRB5J2LKXDZLV5NLDVSEJRJ6PL \ / AMOS7 \ YOURUM ::
+#\[7]SE3GX2G6M3ATKEUB66H7RREZIFRG3EGLUUAKMJZPLAX67HGZCYBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

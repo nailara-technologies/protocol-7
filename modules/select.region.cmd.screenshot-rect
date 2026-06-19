@@ -1,0 +1,74 @@
+## [:< ##
+
+# name  = select.region.cmd.screenshot-rect
+# param = [name]
+# descr = open UI to select a screen rect for screenshots
+
+my $args = $call->{'args'} // '';
+
+## single optional positional argument ##
+my $name   = '';
+my @tokens = split m|\s+|, $args;
+foreach my $token (@tokens) {
+    $name = $token if length $token;
+}
+
+## unique per-request identifier ##
+my $id;
+do { $id = <[base.prng.chars-anum]>->(8) }
+    while exists $data{select}{region}{instances}{$id};
+
+$data{select}{region}{instances}{$id} = {
+    'kind'     => qw| screenshot |,
+    'tag'      => ( length $name ? $name : undef ),
+    'reply_id' => $call->{'reply_id'},
+};
+
+<[base.logs]>->(
+    1,   '[region.screenshot-rect] id=%s name=%s : opening region ui',
+    $id, $name // ''
+);
+
+## prefer the geometry of the monitor under the pointer ##
+my $screen_geom = <[window.gtk.get_pointer_monitor_geometry]>;
+
+if ( not defined $screen_geom ) {
+    my $geom_str = <x11.geometry> // '1920x1080+0+0';
+    if ( $geom_str =~ m|^\s*(\d+)\s*x\s*(\d+)| ) {
+        $screen_geom = { 'width' => $1, 'height' => $2 };
+    } else {
+        $screen_geom = { 'width' => 1920, 'height' => 1080 };
+    }
+}
+
+my $geo = <[window.profile.calculate]>->(
+    {   profile  => 'center',
+        fallback => 'center',
+        caller   => $name               // '',
+        screen_x => $screen_geom->{'x'} // 0,
+        screen_y => $screen_geom->{'y'} // 0,
+        screen_w => $screen_geom->{'width'},
+        screen_h => $screen_geom->{'height'}
+    }
+);
+
+## schedule window opening after command handler returns ##
+<[event.add_timer]>->(
+    {   'after' => 0,
+        'cb'    => sub {
+            <[select.region.open_window]>->(
+                {   'id'       => $id,
+                    'geometry' => $geo
+                }
+            );
+        }
+    }
+);
+
+return { 'mode' => qw| deferred | };
+
+#,,,.,,..,,..,,,,,,,.,,.,,,..,,.,,.,,,,..,..,,..,,...,...,,..,,,,,,.,,,,.,,,.,
+#AH5GX3SUM3RL7EPPCKODP4O46F455WYV6HTZVDVDVMB3HAHGDBK2J7BT2PLNW46Y7POWNMW3DUZ2W
+#\\\|VC2USJFS4AOPMY2T5HAKQRU74NLN6USLXDPS27ONUDVK422RC2N \ / AMOS7 \ YOURUM ::
+#\[7]2KMJLRYHA7RGPJAM5UC4G66KKCTBOL6B4GYB2Q5BTSIBSTIMMCBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

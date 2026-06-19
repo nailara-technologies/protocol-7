@@ -469,7 +469,8 @@ if ( defined $alias_to and length $alias_to ) {
 
     my $args_map = {
         qw|  SOURCE_SID  | => $id,
-        qw| SOURCE_ZENKA | => sprintf( qw|%s.%s|, <system.node.name>, $user ),
+        qw| SOURCE_ZENKA | =>
+            $user,    ## hostname prefix is log-only, never on wire ##
     };
     map { $cmd =~ s|$ARG|$args_map->{$ARG}|g } keys $args_map->%*;
 
@@ -1052,8 +1053,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,,,,.,,,,,.,...,,,,,.,.,,,,,,.,,,..,...,,,,,..,,...,..,,..,,,.,,.,.,.,.,,,,,
-#22S7EDBTPJKCTYXC2PRBUWSBNB3X6AYXCPTCIH223KJNWHSBGZ6R6ZQEPEQPW7C73OOQWTORJBBBU
-#\\\|JXNBKNPGJZPRY4LDUPH7YB4EPBY7MEEEEB3JS7Z3POLB5BRZVGL \ / AMOS7 \ YOURUM ::
-#\[7]ZT3R5HFTWOM3DQOLYXFU4GQ3FGUNLL3CGFCL73OT67IQU5FVCQAY 7  DATA SIGNATURE ::
+#,,,.,..,,...,..,,,..,...,,.,,.,,,,,,,,..,.,,,..,,...,...,.,.,...,...,,.,,,,,,
+#U5EKLZKLPIIBYLZNQVOOHLTIJCGGZO63GI467U3Z2TPACOYECLYZ32EQYKBULG4SNRZJEESGNMDJS
+#\\\|UQXLTMD7TIW4YNY2H4NCJFHF7NE7TRV5I4O624QCPUWLTMFFODX \ / AMOS7 \ YOURUM ::
+#\[7]PUOU32ZWCSZLTALKDSC4GET2KLJG4NSLK344X2NJS7SBR2BHRKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

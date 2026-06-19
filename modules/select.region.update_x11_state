@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = select.region.update_x11_state
+# descr = write geometry into the per-instance state without moving the window
+
+my ( $id, $geometry ) = @ARG;
+
+return undef if not defined $id;
+return undef if not defined $geometry;
+
+my $inst = $data{select}{region}{instances}{$id};
+return undef if not defined $inst;
+
+$inst->{'geom'} = {
+    'width'  => $geometry->{'width'},
+    'height' => $geometry->{'height'},
+    'x'      => $geometry->{'x'},
+    'y'      => $geometry->{'y'},
+    'right'  => $geometry->{'x'} + $geometry->{'width'},
+    'bottom' => $geometry->{'y'} + $geometry->{'height'},
+};
+
+return TRUE;
+
+#,,..,,..,..,,,..,...,,,.,.,.,.,.,,,,,..,,...,..,,...,...,.,.,...,..,,,..,,,.,
+#2325GWGQMIIEA3DAJTFNLMXYFV7LVD3OQN4YN57UXSEAYKC2SE2OJGP2SXNF2F76GT235F5PVHARE
+#\\\|GIUWZBONNVNSUF7Q3IKIKBFMTC2A3W7CT6NHALHZ7OZZSEP7QRC \ / AMOS7 \ YOURUM ::
+#\[7]J7KCFNBHCRRMP3HL6LY7FB7ZX4SJQBHXI4JKQ45YLT7IHNQTLSAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

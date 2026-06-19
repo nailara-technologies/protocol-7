@@ -3,18 +3,19 @@
 # name  = tile.cmd.show-groups
 # descr = list available and active tile groups
 
-my $reply_str = '';
+my $reply_str     = '';
+my $current_group = <tile.current_tile_group> // '';
 
 map {
-    my $marker_l = $ARG eq <tile.current_tile_group> ? '-->'  : '   ';
-    my $marker_r = $marker_l =~ m|\S|                ? ' <--' : '';
+    my $marker_l = $ARG eq $current_group ? '-->'  : '   ';
+    my $marker_r = $marker_l =~ m|\S|     ? ' <--' : '';
     $reply_str .= sprintf( " %s %s%s\n", $marker_l, $ARG, $marker_r )
 } <[base.sort]>->(<tile.setup.tile>);
 
 return { 'mode' => qw| size |, 'data' => $reply_str }
 
-#,,..,,..,,..,.,.,,,,,...,...,,..,,..,,..,,..,..,,...,...,,,.,.,.,,,.,...,.,.,
-#RXSBLV7ZOGLGODQU3QJWYORZRTQD5P6KYPAG2TB2TTKBZBECIQAXP5634T3OPIYW4N4J5AZDPNDUQ
-#\\\|H5MFH5BI3ZMKVT22H3TWXQ2SOOX3Q7MTRBBLQMGWE45QSN4SVSG \ / AMOS7 \ YOURUM ::
-#\[7]KTQFZUHC6DVU6HYPKGR5NG4BQ2IT6XPMYHB6EOS7HMUVB5RMKUCI 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,.,.,...,,.,,,,.,,,,,.,,,,,,,,..,..,,...,...,,.,,,,.,...,.,,,...,
+#2GYAGA7BIEWTKXHHPCZB3EINWJR4SSVVMOFT7XM7MJHTHXB7EVX7RORWMWJCLXEBRE6GMUFMEEEJC
+#\\\|FRD2MFIQKWMJC53QTEBGA6LUOIXYWDSQYJKEGJ3GA7Z4XNT3LCW \ / AMOS7 \ YOURUM ::
+#\[7]QFOADQ6WVBRQP6CHUN3TCGE7MCPS4UIXR5BNZVXVWLHQV4TZRUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

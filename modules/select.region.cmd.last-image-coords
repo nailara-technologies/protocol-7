@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = select.region.cmd.last-image-coords
+# param = [name]
+# descr = return last screenshot rect by name or all
+
+my $args = $call->{'args'} // '';
+
+## optional positional name ##
+my $name   = '';
+my @tokens = split m|\s+|, $args;
+foreach my $token (@tokens) {
+    $name = $token if length $token;
+}
+
+my $last;
+if ( length $name ) {
+    $last = $data{select}{region}{last_image_coords}{'by_name'}{$name};
+} else {
+    $last = $data{select}{region}{last_image_coords}{'global'};
+}
+
+if ( not defined $last ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'no image coordinates available'
+    };
+}
+
+my ( $x, $y, $w, $h ) = @{$last}{qw| x y width height |};
+
+my $reply_data = sprintf 'x=%d y=%d width=%d height=%d', $x, $y, $w, $h;
+$reply_data .= " name=$name" if length $name;
+
+return { 'mode' => qw| true |, 'data' => $reply_data };
+
+#,,..,..,,...,,,,,,..,,,,,,,.,,..,..,,,..,,,,,..,,...,...,,..,,..,.,.,,,.,..,,
+#DQKYNMKBFBAGN6PTMNCLBQH6BRCGERNEWFQXJLZ5XIGGTUETJHGHRIONXKUN5XH6NVUF2LL5ZHGNY
+#\\\|NF2TU7OGV77M6WAR6RVW7O4EYIJ74X2N2NEW2TERZQVTJNNHYA2 \ / AMOS7 \ YOURUM ::
+#\[7]M5NM37IAC2KA25U7U6MTTSA3E3YDRUCYYOXYZ3LPZKFL6VJZ2QDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
