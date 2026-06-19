@@ -1,0 +1,27 @@
+
+.:[ windows host bridge zenka : plugin-mapped powershell.exe capabilities ]:.
+
+[load_config_file:'shared-params']
+[load_config_file:'X11-vars']
+
+modules.load     = auth net protocol.protocol-7 io.unix ui powershell
+access.cmd.usr.* = commands heart name verify-instance reload src-age \
+                   show-buffer buffer-erase buffer-erase-level \
+                   screenshot-capture
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.AMOS-user>.':'.<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,..,.,.,.,.,...,...,...,.,.,,..,,..,,.,,,.,,.,.,...,...,..,,.,,,,.,,..,,..,,
+#YDHZU6Z4HB6YPHZOUHA4DAOCJ6T3T4Z65CVMHFURNO7N2GM6QRTLC4ITUFTLQUS47JK35BA5GXLR4
+#\\\|BEB6YTO4EI55J4NBXXGRHONA6CVXCLAS4EZAUF5VCKDBMSM5QVE \ / AMOS7 \ YOURUM ::
+#\[7]3PLBTRVE6EXJAOQZ5DFBZ4L4KWHMMG5AC7DR5X3VP5DBPEPTQQAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
