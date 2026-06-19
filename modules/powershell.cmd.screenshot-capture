@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = powershell.cmd.screenshot-capture
+# descr = capture the windows host screen + return path
+
+my $win_path = <[powershell.plugin.screenshot-capture.invoke]>;
+return { 'mode' => qw| false |, 'data' => 'capture failed' }
+    if not defined $win_path;
+
+my $wsl_path = <[powershell.plugin.screenshot-capture.parse]>->($win_path);
+return { 'mode' => qw| false |, 'data' => 'capture result invalid' }
+    if not defined $wsl_path;
+
+return { 'mode' => qw| true |, 'data' => $wsl_path };
+
+#,,..,.,,,,.,,,,.,.,,,...,,,.,,,,,.,.,,,.,,,.,.,.,...,...,...,...,.,.,,..,.,.,
+#KWHDONIRF774HMIN2QLTBGMG2O4VQVHRXMTETK5Y5GWO6UTEMRDHBO533AC3ST7UDB7WFX24AAFUS
+#\\\|P7YC5FM5EXHB6YRTWXVY3R6YQKCYCKATTF4BRA45IAPDEEVU3WD \ / AMOS7 \ YOURUM ::
+#\[7]U5IZM55ZK7HS5TNPBCNKUXZUMUYCPCJOCMYCLAUD34UNPKQQNADQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

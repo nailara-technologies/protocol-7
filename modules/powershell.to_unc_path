@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = powershell.to_unc_path
+# descr = convert an absolute linux path on this wsl distro to
+#         its windows-side \\wsl.localhost\<distro> unc equivalent
+
+my ($linux_abs_path) = @ARG;
+
+if ( not defined $linux_abs_path or $linux_abs_path !~ m|^/| ) {
+    warn 'expected an absolute linux path <{C1}>';
+    return undef;
+}
+
+## resolved at init time from $ENV{'WSL_DISTRO_NAME'} or, when v7 itself
+## was started without it [ e.g. a manual 'sudo -s' root shell instead of
+## a systemd service ], from /etc/wsl-distribution.conf as a fallback ##
+my $distro = <powershell.cfg.wsl_distro>;
+if ( not defined $distro or not length $distro ) {
+    warn 'wsl distro name could not be determined <{C1}>';
+    return undef;
+}
+
+( my $win_tail = $linux_abs_path ) =~ s|/|\\|g;
+
+return "\\\\wsl.localhost\\$distro$win_tail";
+
+#,,..,,..,.,,,,..,,,.,,,.,..,,,.,,..,,.,,,...,..,,...,...,.,,,.,.,...,,.,,..,,
+#H3TOJLRD26APWULC3XWYCFC5KQ34EAKY3VZCAF4FS6V23YDRGUMTL4A6J3ZGTWGCD3OMUOWSMFVBO
+#\\\|USO22GWKKBJH2QXCV2NZR5B7YCJTM2H6LMMEU4XTJ42NGIVVOJE \ / AMOS7 \ YOURUM ::
+#\[7]MSOKAA437SZMJL2BFQQOY4VTZHEYKV6OSGIWNF5HRF62IDDXG2BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
