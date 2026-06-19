@@ -10,20 +10,20 @@ return { 'mode' => qw| false |, 'data' => 'QueryPointer failed' }
 
 my ( $px, $py ) = @ptr{qw| root_x root_y |};
 
-## xrandr --listmonitors output: "  N: +[*]NAME WPX/MMMxHPX/MMM+X+Y" ##
-my $xrandr_out = qx| /usr/bin/xrandr --listmonitors 2>/dev/null | // '';
+## lookup monitor rect from in-memory RANDR registry ##
+my $monitors = <X-11.monitors>;
+if ( not defined $monitors or not @$monitors ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'monitor registry not available'
+    };
+}
 
 my ( $first_x, $first_y, $first_w, $first_h );
-
-for my $line ( split /\n/, $xrandr_out ) {
-    next if $line !~ m{ (\d+)/\d+x(\d+)/\d+\+(-?\d+)\+(-?\d+) }x;
-    my ( $w, $h, $x, $y ) = ( $1 + 0, $2 + 0, $3 + 0, $4 + 0 );
-    next if not $w or not $h;
-
-    ## keep first active monitor as fallback ##
+for my $m (@$monitors) {
+    my ( $x, $y, $w, $h ) = @{$m}{qw| x y width height |};
     ( $first_x, $first_y, $first_w, $first_h ) = ( $x, $y, $w, $h )
         if not defined $first_w;
-
     if (    $px >= $x
         and $px < $x + $w
         and $py >= $y
@@ -31,17 +31,15 @@ for my $line ( split /\n/, $xrandr_out ) {
         return { 'mode' => qw| true |, 'data' => "$x $y $w $h" };
     }
 }
-
-## pointer not within any monitor rectangle — use first active ##
 return defined $first_w
     ? {
     'mode' => qw| true |,
     'data' => "$first_x $first_y $first_w $first_h"
     }
-    : { 'mode' => qw| false |, 'data' => 'no monitors in xrandr output' };
+    : { 'mode' => qw| false |, 'data' => 'no monitors in registry' };
 
-#,,.,,..,,.,.,.,.,.,,,,..,,,,,,,,,,,.,..,,,.,,..,,...,...,...,,,.,.,.,...,.,,,
-#3HTO5OY6FYVWT3TG5BIA6SQ7LC6ANEBHUZDIIAQ7G5ZD3P3K4ZF6ZERPWDEVRVBA5RM7AXBDS3TII
-#\\\|ROMVTW5TLQK2KNCF4R5ACCXPZFR3NVQGBHOSZCVFQ73UPHMOGZC \ / AMOS7 \ YOURUM ::
-#\[7]IXM56E4KDUH5PDZS3QTEFTYJMYP4MNPHSQX4JC7NEFCVZD22RKDY 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,,,.,..,,..,,,..,.,,,..,,,.,,,,.,..,,...,...,.,.,,.,,.,,,.,,,..,,
+#N4AU5SCNPRMOKTJ2I4G6N4TL5VFXRZRCH7Y26FPOURRCLEL4FM7Z4OZGWPLUWSDSYNXVJQOHAX7U2
+#\\\|YVZ6B2JLDDP2MBLIHFCSXIPVW6FJ6RSBEQB6QRMAXNEWSQF4OQP \ / AMOS7 \ YOURUM ::
+#\[7]XXLUGNKXI3GZHPQ45UIZT6CU4R5ZG27UB7XW3Y3CPZ2YAHLGG2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -300,29 +300,98 @@ my $reqs = [
         }
     ],
 
-    # RRGetScreenResources	    8
-    # RRGetOutputInfo	    9
-    # RRListOutputProperties    10
-    # RRQueryOutputProperty	    11
-    # RRConfigureOutputProperty 12
-    # RRChangeOutputProperty    13
-    # RRDeleteOutputProperty    14
-    # RRGetOutputProperty	    15
-    # RRCreateMode		    16
-    # RRDestroyMode		    17
-    # RRAddOutputMode	    18
-    # RRDeleteOutputMode	    19
-    # RRGetCrtcInfo		    20
-    # RRSetCrtcConfig	    21
-    # RRGetCrtcGammaSize	    22
-    # RRGetCrtcGamma	    23
-    # RRSetCrtcGamma	    24
-    #
-    # version 1.3
-    #
-    # RRGetScreenResourcesCurrent	25
-    # RRSetCrtcTransform	    26
-    # RRGetCrtcTransform	    27
+    [   'RRGetScreenResources',    # 8
+        sub { shift; pack 'L', @_ },    # ($X, $window)
+        sub {
+            my ( $X, $data ) = @_;
+            my (
+                $timestamp, $configTimestamp, $numCrtcs,
+                $numOutputs, $numModes,      $namesLen
+            ) = unpack 'x8LLS4', $data;
+            my $pos = 32;
+            my @crtcs = unpack( 'L*',
+                substr( $data, $pos, $numCrtcs * 4 ) );
+            $pos += $numCrtcs * 4;
+            my @outputs = unpack( 'L*',
+                substr( $data, $pos, $numOutputs * 4 ) );
+            $pos += $numOutputs * 4;
+            my @modes;
+            foreach ( 1 .. $numModes ) {
+                my (
+                    $id,        $width,       $height,
+                    $dotClock,  $hSyncStart,  $hSyncEnd,
+                    $hTotal,    $hSkew,       $vSyncStart,
+                    $vSyncEnd,  $vTotal,      $nameLen,
+                    $modeFlags
+                ) = unpack 'LSSLLSSSSSSSSL',
+                    substr( $data, $pos, 32 );
+                $pos += 32;
+                push @modes, {
+                    'id'         => $id,
+                    'width'      => $width,
+                    'height'     => $height,
+                    'dot_clock'  => $dotClock,
+                    'h_sync_start' => $hSyncStart,
+                    'h_sync_end'   => $hSyncEnd,
+                    'h_total'      => $hTotal,
+                    'h_skew'       => $hSkew,
+                    'v_sync_start' => $vSyncStart,
+                    'v_sync_end'   => $vSyncEnd,
+                    'v_total'      => $vTotal,
+                    'name_len'     => $nameLen,
+                    'mode_flags'   => $modeFlags,
+                };
+            }
+            return (
+                $timestamp, $configTimestamp, undef,
+                \@crtcs, \@outputs, \@modes
+            );
+        }
+    ],
+
+    undef,    # 9  - RRGetOutputInfo
+    undef,    # 10 - RRListOutputProperties
+    undef,    # 11 - RRQueryOutputProperty
+    undef,    # 12 - RRConfigureOutputProperty
+    undef,    # 13 - RRChangeOutputProperty
+    undef,    # 14 - RRDeleteOutputProperty
+    undef,    # 15 - RRGetOutputProperty
+    undef,    # 16 - RRCreateMode
+    undef,    # 17 - RRDestroyMode
+    undef,    # 18 - RRAddOutputMode
+    undef,    # 19 - RRDeleteOutputMode
+
+    [   'RRGetCrtcInfo',    # 20
+        sub { shift; pack 'LL', @_ },    # ($X, $crtc, $configTimestamp)
+        sub {
+            my ( $X, $data ) = @_;
+            my (
+                $timestamp, $x,      $y,         $width,
+                $height,    $mode,   $rotation,  $rotations,
+                $numOutputs, $numPossibleOutputs
+            ) = unpack 'x8LssSSLS2S2', $data;
+            return (
+                'timestamp'      => $timestamp,
+                'x'              => $x,
+                'y'              => $y,
+                'width'          => $width,
+                'height'         => $height,
+                'mode'           => $mode,
+                'rotation'       => $rotation,
+                'rotations'      => $rotations,
+                'num_outputs'    => $numOutputs,
+                'num_possible_outputs' => $numPossibleOutputs,
+            );
+        }
+    ],
+
+    undef,    # 21 - RRSetCrtcConfig
+    undef,    # 22 - RRGetCrtcGammaSize
+    undef,    # 23 - RRGetCrtcGamma
+    undef,    # 24 - RRSetCrtcGamma
+    undef,    # 25 - RRGetScreenResourcesCurrent
+    undef,    # 26 - RRSetCrtcTransform
+    undef,    # 27 - RRGetCrtcTransform
 
     [   'RRGetPanning',        # 28
         \&_request_card32s,    # ($X, $crtc)
@@ -588,8 +657,8 @@ X11-Protocol-Other.  If not, see <http://www.gnu.org/licenses/>.
 
 =cut
 
-#,,,.,,.,,,,.,,,.,...,...,,,,,.,,,,..,..,,,,,,..,,...,...,.,,,.,,,.,.,,.,,,,.,
-#YZVXYK6CLLMXXEHOOMJU7Z3D2RJNXWAJ2QWKK6VNB6N6XNTWZDOUF6ILJVN3F53REVTFR3IP2NSYC
-#\\\|E7G2INUFMSXTOPJOY4ZRMLJFUTGB5JFFKIOMB76WR57AZVHKNTA \ / AMOS7 \ YOURUM ::
-#\[7]EI4I63IEKN2YX5E5KZXM6R3XRE24SGLFQXIBUM2XT6OTVKXS2QCQ 7  DATA SIGNATURE ::
+#,,..,,,.,...,.,.,,,,,,..,,,.,.,,,...,,,.,,,.,..,,...,...,...,,,.,.,.,,,,,.,.,
+#JIUQQIRRT52UE5ARY66B5LQ2TWDR5XG5CXVO5ACTG4WVKVLAVB7IJIKKWLRFRPYYRBGD7QWEDOFBK
+#\\\|IG6MTFCD6T65V4U2NHTMDORAPH5K6DQTXC7DRKTDPKNQTKIXDIY \ / AMOS7 \ YOURUM ::
+#\[7]BM7ZDNFNQQR2SM3GLEEIQDBF5IWFW4KO2D3Y2BHDNFQEHWQE4UDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

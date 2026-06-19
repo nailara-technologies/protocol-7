@@ -48,9 +48,10 @@ do { $id = <[base.prng.chars-anum]>->(8) }
     while exists $data{window}{place}{instances}{$id};
 
 $data{window}{place}{instances}{$id} = {
-    'caller'   => $caller,
-    'tag'      => $tag,
-    'reply_id' => $call->{'reply_id'},
+    'caller'     => $caller,
+    'tag'        => $tag,
+    'reply_id'   => $call->{'reply_id'},
+    'base_saved' => $base_saved,
 };
 
 <[base.logs]>->(
@@ -58,70 +59,21 @@ $data{window}{place}{instances}{$id} = {
     $id, $caller
 );
 
-## prefer the monitor under the pointer for screen reference geometry ##
-my $screen_geom = <[window.gtk.get_pointer_monitor_geometry]>;
-if ( not defined $screen_geom ) {
-    my $geom_str = <x11.geometry> // '1920x1080+0+0';
-    if ( $geom_str =~ m|^\s*(\d+)\s*x\s*(\d+)| ) {
-        $screen_geom = { 'width' => $1, 'height' => $2 };
-    } else {
-        $screen_geom = { 'width' => 1920, 'height' => 1080 };
-    }
-}
-
-## starting geometry: base-caller's saved profile, falling back to center ##
-my $geo;
-if ( defined $base_saved ) {
-    $geo = {
-        'x'       => $base_saved->{'x'},
-        'y'       => $base_saved->{'y'},
-        'width'   => $base_saved->{'width'},
-        'height'  => $base_saved->{'height'},
-        'profile' => 'saved',
-    };
-} else {
-    ## per-caller configured initial geometry overrides auto-detect ##
-    my $cfg_geo_str = $data{'window'}{'place'}{'initial_geometry'}{$caller};
-    if ( defined $cfg_geo_str
-        and $cfg_geo_str =~ m|^(\d+)x(\d+)\+(-?\d+)\+(-?\d+)$| ) {
-        $geo = {
-            'width'   => $1 + 0,
-            'height'  => $2 + 0,
-            'x'       => $3 + 0,
-            'y'       => $4 + 0,
-            'profile' => 'configured',
-        };
-        <[base.logs]>->(
-            1,
-            '[place.coords] id=%s caller=%s : using configured initial geometry',
-            $id,
-            $caller
-        );
-    } else {
-        $geo = <[window.profile.calculate]>->(
-            {   'profile'  => 'center',
-                'screen_x' => $screen_geom->{'x'} // 0,
-                'screen_y' => $screen_geom->{'y'} // 0,
-                'screen_w' => $screen_geom->{'width'},
-                'screen_h' => $screen_geom->{'height'},
-            }
-        );
-    }
-}
-
-<[event.add_timer]>->(
-    {   'after' => 0,
-        'cb'    => sub {
-            <[window.place.open_window]>
-                ->( { 'id' => $id, 'geometry' => $geo } );
+## ask X-11 zenka for the monitor rect under the pointer ##
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| X-11.get_pointer_scr_rect |,
+        'call_args' => { 'args' => '' },
+        'reply'     => {
+            'handler' => qw| window.place.handler.scr_rect_reply |,
+            'params'  => { 'id' => $id }
         }
     }
 );
 
 return { 'mode' => qw|deferred| };
 
-#,,.,,.,,,,,,,,,.,.,.,...,.,.,...,.,.,,,,,,..,..,,...,...,.,.,,.,,.,.,,..,..,,
-#UN4J7OPZJYXFEIAQ364A7EWWYTUHVMX67WWTHVGIVTYQUWO4ZECD42NAM2YF7EJJTLAAQFYAIHAL4
-#\\\|74TH3WTV2E6V5MTTAO3NC5IIDQD4QOIVM726F7JLLVLD5CEGB64 \ / AMOS7 \ YOURUM ::
-#\[7]RX27WYJXCBJWCE7A7SKPUXLZ74CBBQB4ZF55FHBSUJDX6Y4WPUCY 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,..,,,,,.,.,.,,,.,.,.,.,,.,,.,.,..,,...,..,,.,.,...,..,,,.,,,,,,
+#DTUKDDDW46HJBEIU4LKVRZEOBT675HMFIKT4DUXB2NCODWSN235R33BQJUDIKSZLCQXZK3YM6IQ4S
+#\\\|Y6JKVEO6FTIHBLNOB3QPK2QUJ4GTLPBG3XMQUCGVKR7FV23YHOB \ / AMOS7 \ YOURUM ::
+#\[7]2YFV7QME2TLYSCLNGCS7DLHIDQKNQRJCP2DJZDLSUK6SH2V7O4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
