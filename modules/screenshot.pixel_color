@@ -1,23 +1,31 @@
 ## [:< ##
 
 # name  = screenshot.pixel_color
+# descr = return rgba values for a pixel in an Imager object
 
-( my $image, my $pos_x, my $pos_y ) = @_;
+my ( $image, $pos_x, $pos_y ) = @ARG;
 
-die "expected image as 'Imager' object" if ref( $image // '' ) ne 'Imager';
-die "expected pixel position parameters"
-    if not defined $pos_x
-    or $pos_x !~ /^\d+$/
+if ( ref( $image // '' ) ne qw| Imager | ) {
+    warn 'expected image as Imager object <{C1}>';
+    return undef;
+}
+if (   not defined $pos_x
+    or $pos_x !~ m|^\d+$|
     or not defined $pos_y
-    or $pos_y !~ /^\d+$/;
+    or $pos_y !~ m|^\d+$| ) {
+    warn 'expected pixel position parameters <{C1}>';
+    return undef;
+}
 
 my $pixel = $image->getpixel( 'x' => $pos_x, 'y' => $pos_y )
     or return Imager->errstr;
 
-return $pixel->rgba or return Imager->errstr;
+my @rgba = $pixel->rgba;
+return @rgba if @rgba;
+return Imager->errstr;
 
-#,,,.,.,,,,,,,...,..,,,.,,...,,..,..,,..,,,..,..,,...,...,,.,,..,,...,,..,,,.,
-#I6R2IJTD6H3GTYD5XMZ3AG3EEWK2VNVHYAYG3VTRHKDKHYY246JOZ2MLFHCKJN2RXPZIQ7UCXSJLA
-#\\\|TJ5X5XJAOJGF6GUN4GJWKLEZTXILKE5K4MRRWWZL5VZ2DA2FWEO \ / AMOS7 \ YOURUM ::
-#\[7]ZCZUHZ3Z5E43FDAWJ5C3IPIYH4FTQAT62NT56T575FK7X4KMDEAI 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,..,.,,,.,,,,,.,.,,,...,.,,,,,,,..,,...,..,,.,.,,,,,.,,,,,,,,,,,
+#TCVKJ2AMX7YBMVNTFFLTDPRWH2YADPGVORONKWVQYQYBFE45WQI2FSSCWGPL5Q2UFRKAUTQQOA3FY
+#\\\|F2LNDGR5PASEYCJPGHF5C76W2I3HBGQER5523TOHAUYROTRPXBB \ / AMOS7 \ YOURUM ::
+#\[7]DS7B3WQ2PSCFSI22M63ETAWSK4TXDN75WZ4QUETXRDMEGW7DOQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

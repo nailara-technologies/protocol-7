@@ -4,7 +4,7 @@
 # param = <win_id> <geom.>
 # descr = apply a given geometry to window
 
-my ( $id, $geometry ) = split( / +/, $call->{'args'}, 2 );
+my ( $id, $geometry ) = split( m| +|, $call->{'args'}, 2 );
 
 return {
     'mode' => qw| false |,
@@ -12,31 +12,38 @@ return {
     }
     if not defined $id or not defined $geometry;
 return { 'mode' => qw| false |, 'data' => 'invalid <id> syntax' }
-    if $id !~ /^\d+$/;
+    if $id !~ m|^\d+$|;
 return { 'mode' => qw| false |, 'data' => 'invalid <geometry> syntax' }
-    if $geometry !~ /^(\d+)x(\d+)([+-]-?\d+)([+-]-?\d+)$/;
+    if $geometry !~ m|^(\d+)x(\d+)([+-]-?\d+)([+-]-?\d+)$|;
 
-my $xtops = <X-11.WM>;
-<[X-11.update_X11_WM]>;
+my ( $w, $h, $x, $y ) = ( $1 + 0, $2 + 0, $3 + 0, $4 + 0 );
 
-my $window;
-for my $w ( @{ $xtops->sorted } ) {
-    if ( $w->id eq $id ) {
-        $window = $w;
-        last;
-    }
+eval {
+    <X-11.obj>->ConfigureWindow(
+        $id + 0,
+        'x'      => $x,
+        'y'      => $y,
+        'width'  => $w,
+        'height' => $h,
+    );
+};
+
+if ($EVAL_ERROR) {
+    <[base.logs]>->(
+        1,   '[set_geometry] id=%s : %s',
+        $id, <[base.str.eval_error]>
+    );
+    return { 'mode' => qw| false |, 'data' => 'ConfigureWindow error' };
 }
 
-return { 'mode' => qw| false |, 'data' => 'no such window' }
-    if not defined $window;
-
-$window->move($geometry);
-<[X-11.update_X11_WM]>;
-
+<[base.logs]>->(
+    2,   '[set_geometry] id=%s geometry=%s applied',
+    $id, $geometry
+);
 return { 'mode' => qw| true |, 'data' => 'window updated' };
 
-#,,..,,,,,..,,,,,,,,,,,,.,,.,,,..,.,.,..,,,,.,..,,...,...,,.,,.,.,.,.,,,,,...,
-#56SL2LMGGPEQVROSVK36CO67BU4P72XMQNYQUV2YLQUPNWJHNMKIQ34ORDW3IZFI5KEOGXMBT3SDM
-#\\\|LTZPLM7ECZE5MLNRDNCJD6BI64NUJ6DJEKJTNYSAV5TMJ7PVGUV \ / AMOS7 \ YOURUM ::
-#\[7]6AR4HMRBDJ3IP2MJVWRGDI63ENAKS3GGGM5RANHDOWW52M2BVUBI 7  DATA SIGNATURE ::
+#,,..,,..,,,,,,.,,..,,,..,.,.,...,,,.,,.,,.,.,..,,...,.,.,..,,,,,,,..,.,.,.,.,
+#RXRWHGJQ2T672ONLZAW2PJLEUGFP433JK6BZDFXHXCBAX6J6GJD2Y2I25DSSBS7Y2L3ROT475OSVE
+#\\\|QK2LN34ZA4PTWE5GGXSYCBPV4N5QC46XMSRP2TPJI5UZHUXJGHJ \ / AMOS7 \ YOURUM ::
+#\[7]CID7NZIIISMXSHIDPCZN5BWUUBTKJQYOUESEXF7BD44YMYJJRGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
