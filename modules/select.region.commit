@@ -1,0 +1,111 @@
+## [:< ##
+
+# name  = select.region.commit
+# descr = finalize region selection and reply to caller
+
+my $id = shift;
+
+return undef if not defined $id;
+
+my $inst = $data{select}{region}{instances}{$id};
+return undef if not defined $inst;
+
+my $geom = $inst->{'geom'}   // {};
+my $x    = $geom->{'x'}      // 0;
+my $y    = $geom->{'y'}      // 0;
+my $w    = $geom->{'width'}  // 1;
+my $h    = $geom->{'height'} // 1;
+
+my $kind   = $inst->{'kind'}   // qw| window |;
+my $caller = $inst->{'caller'} // '';
+my $tag    = $inst->{'tag'}    // '';
+
+my $reply_id = $inst->{'reply_id'};
+my $reply_args;
+
+if ( $kind eq qw| window | ) {
+    if ( length $caller ) {
+        <[window.profile.save]>->( $caller, $x, $y, $w, $h );
+    }
+
+    $reply_args = sprintf 'x=%d y=%d width=%d height=%d profile=saved',
+        $x, $y, $w, $h;
+    $reply_args .= " caller=$caller" if length $caller;
+    $reply_args .= " tag=$tag"       if defined $tag and length $tag;
+
+    $data{select}{region}{last_window_commit} = {
+        'x'      => $x,
+        'y'      => $y,
+        'width'  => $w,
+        'height' => $h,
+        'caller' => $caller,
+    };
+} else {
+    $reply_args = sprintf 'x=%d y=%d width=%d height=%d', $x, $y, $w, $h;
+    $reply_args .= " name=$tag"
+        if defined $tag and length $tag;
+
+    $data{select}{region}{last_image_coords}{'global'} = {
+        'x'      => $x,
+        'y'      => $y,
+        'width'  => $w,
+        'height' => $h,
+    };
+
+    if ( defined $tag and length $tag ) {
+        $data{select}{region}{last_image_coords}{'by_name'}{$tag} = {
+            'x'      => $x,
+            'y'      => $y,
+            'width'  => $w,
+            'height' => $h,
+        };
+    }
+}
+
+$data{select}{region}{last_commit} = {
+    'kind'   => $kind,
+    'x'      => $x,
+    'y'      => $y,
+    'width'  => $w,
+    'height' => $h,
+    'tag'    => ( length $tag ? $tag : undef ),
+};
+
+if ( defined $reply_id and $reply_id =~ m|^\d+$| ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => qw| true |,
+            'data' => $reply_args
+        }
+    );
+} else {
+    <[base.logs]>->(
+        1, '[region.commit] id=%s no reply_id, skipping direct reply', $id
+    );
+}
+
+<[base.logs]>->( 1, '[region.commit] id=%s kind=%s committed', $id, $kind );
+
+## destroy the window if still alive ##
+my $window = $inst->{'window'};
+if ( defined $window and $window->get_visible ) {
+    $window->destroy;
+}
+
+## stop instance timers ##
+my $poll_timer = $inst->{'poll'}{'timer'};
+$poll_timer->cancel if defined $poll_timer;
+
+my $damp_timer = $inst->{'damp'}{'timer'};
+$damp_timer->cancel if defined $damp_timer;
+
+## remove instance state ##
+delete $data{select}{region}{instances}{$id};
+
+return TRUE;
+
+#,,..,..,,,,.,,,,,,..,,..,,,.,,,,,..,,...,,,.,..,,...,.,,,..,,,,.,.,,,.,.,,,,,
+#BNFHVT52UO6Y56NCL4NQW72AV7V4PWMCTJ5DCANKBSRBU3XUD6FESJQ6PV2C4RIJEC7VCNFSTKEOU
+#\\\|FUSXFCJHUIPWZS76ZHOIHBIKS7EK7ELLQ36OOAPSCOTNUFLH4WS \ / AMOS7 \ YOURUM ::
+#\[7]BU65SPGA5FYEKKD335QNFFH2ASURY6EMY6QVKQTFT5IXFNUAAQCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

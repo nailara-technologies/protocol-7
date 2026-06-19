@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = select.region.handler.key_press
+# descr = keyboard move/resize/commit/cancel
+
+my ( $id, $widget, $event ) = @ARG;
+
+return FALSE if not defined $id;
+
+my $keyval = $event->keyval;
+my $state  = ${ $event->state }; ## deref Glib::Flags blessed scalar to int ##
+
+my $SHIFT_MASK   = eval { Gtk3::Gdk::SHIFT_MASK() }   // 1;
+my $CONTROL_MASK = eval { Gtk3::Gdk::CONTROL_MASK() } // 4;
+
+my $KEY_ESC    = eval { Gtk3::Gdk::KEY_Escape() }   // 65307;
+my $KEY_RET    = eval { Gtk3::Gdk::KEY_Return() }   // 65293;
+my $KEY_KP_RET = eval { Gtk3::Gdk::KEY_KP_Enter() } // 65421;
+my $KEY_UP     = eval { Gtk3::Gdk::KEY_Up() }       // 65362;
+my $KEY_DOWN   = eval { Gtk3::Gdk::KEY_Down() }     // 65364;
+my $KEY_LEFT   = eval { Gtk3::Gdk::KEY_Left() }     // 65361;
+my $KEY_RIGHT  = eval { Gtk3::Gdk::KEY_Right() }    // 65363;
+
+## shift = fine 1px, default = 10px [ intentional inversion ] ##
+my $shift = $state & $SHIFT_MASK   ? TRUE : FALSE;
+my $ctrl  = $state & $CONTROL_MASK ? TRUE : FALSE;
+
+my $step = $shift ? 1 : 10;
+
+## commit / cancel handled directly ##
+if ( $keyval == $KEY_ESC ) {
+    <[select.region.cancel]>->($id);
+    return TRUE;
+} elsif ( $keyval == $KEY_RET or $keyval == $KEY_KP_RET ) {
+    <[select.region.commit]>->($id);
+    return TRUE;
+}
+
+## map arrow + ctrl to a move/resize action ##
+my $action;
+if ( $keyval == $KEY_UP ) {
+    $action = $ctrl ? qw| ctrl_up | : qw| up |;
+} elsif ( $keyval == $KEY_DOWN ) {
+    $action = $ctrl ? qw| ctrl_down | : qw| down |;
+} elsif ( $keyval == $KEY_LEFT ) {
+    $action = $ctrl ? qw| ctrl_left | : qw| left |;
+} elsif ( $keyval == $KEY_RIGHT ) {
+    $action = $ctrl ? qw| ctrl_right | : qw| right |;
+} else {
+    return FALSE;
+}
+
+<[select.region.adjust]>->( $id, $widget, $action, $step );
+
+return TRUE;
+
+#,,,.,,.,,,,,,...,,,.,,.,,..,,.,,,,,,,,,,,.,.,..,,...,..,,.,.,,,.,,,,,,,.,.,,,
+#G6NORZ33OLNUTX76RMAXU32AWKULCBP4W5K6UPHFLHOK3XSLKL5NWWN2FPOABAVEWUPTOETNVN3MC
+#\\\|UY6TFWVXYCZQ5GRZGGO2ICGNNHGOWWZJJ4E7OIGFSGKD6OXGTP2 \ / AMOS7 \ YOURUM ::
+#\[7]WMKB4TIMLFCIDQEADQL3EHBIGGNHE5IXUO7DQFHRD5MY7VCCFEAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

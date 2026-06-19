@@ -1,0 +1,36 @@
+
+  .:[ 'select-region' interactive region selection zenka ]:.
+
+[load_config_file:'shared-params']
+[load_config_file:'X11-vars']
+
+access.cmd.usr.cube = commands heart reload verify-instance * *.*
+
+modules.load = auth net protocol io.unix ui \
+               window.profile window.gtk select.region
+
+[load_modules:<modules.load>]
+[init_modules]
+
+## drop priviledges to the X-11 user with protocol-7 group, after init ##
+## so the zenka-dir creation/ownership above still runs as root        ##
+[root.drop_privs:<system.AMOS-user>.':'.<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+
+[base.X-11.get_display]
+[base.X-11.get_geometry]
+
+[base.get_session_id]
+
+## idle: region window is opened on-demand via screenshot-rect or      ##
+## window-placement commands                                           ##
+
+## main event loop - GTK if graphical mode, zenka event loop if TTY ##
+[base.gtk.main_loop]
+
+#,,..,...,...,,,.,.,.,,..,,,.,,,,,,..,.,.,,.,,..,,...,...,..,,...,...,.,.,.,.,
+#7O3ZOY2HIEQBGXFAYH444OP5Y4OIHS2XETCNDR6JTGGQW2LETFHVDY6BMVNF3SHU5H3ZKYGNGXLYS
+#\\\|N257W2Q73SR3XPIWM4GSI66YIGQ7QIBCKN4G4NUN5RKNX46D7UQ \ / AMOS7 \ YOURUM ::
+#\[7]6FFDZLVKLR7IU5WEGEQRSSALVLHAAR6THZ5RTF3MR53QXM6ANACY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

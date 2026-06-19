@@ -1,0 +1,102 @@
+## [:< ##
+
+# name  = select.region.start
+# descr = parse window-placement request and schedule region window opening
+
+my $call = shift // {};
+
+my $args = $call->{'args'} // '';
+
+my ( $caller, $profile, $tag );
+
+## parse key=value or positional args ##
+my @tokens = split m|\s+|, $args;
+foreach my $token (@tokens) {
+    if ( $token =~ m|^caller=(.+)$| ) {
+        $caller = $1;
+    } elsif ( $token =~ m|^profile=(.+)$| ) {
+        $profile = $1;
+    } elsif ( $token =~ m|^tag=(.+)$| ) {
+        $tag = $1;
+    } elsif ( not defined $caller ) {
+        $caller = $token;
+    } elsif ( not defined $profile ) {
+        $profile = $token;
+    }
+}
+
+$caller //= '';
+
+## no explicit profile: try the caller's last saved position first, ##
+## falling back to 'center' [ select-region's default for window ]  ##
+my $fallback_profile = 'center';
+$profile //= 'saved';
+
+if ( not length $caller ) {
+    <[base.log]>->( 0, '[region.start] caller required' );
+    return { 'mode' => qw| false |, 'data' => 'caller required' };
+}
+
+## unique per-request identifier ##
+my $id;
+do { $id = <[base.prng.chars-anum]>->(8) }
+    while exists $data{select}{region}{instances}{$id};
+
+## store per-request state keyed by id ##
+$data{select}{region}{instances}{$id} = {
+    'kind'     => qw| window |,
+    'caller'   => $caller,
+    'tag'      => $tag,
+    'reply_id' => $call->{'reply_id'},
+};
+
+<[base.logs]>->(
+    1,   '[region.start] id=%s caller=%s profile=%s',
+    $id, $caller, $profile
+);
+
+## prefer the geometry of the monitor under the pointer [ multi-monitor ##
+## setups otherwise compute percentages against the full virtual       ##
+## screen bounding box, which is far larger than any single display ]  ##
+my $screen_geom = <[window.gtk.get_pointer_monitor_geometry]>;
+
+if ( not defined $screen_geom ) {
+    my $geom_str = <x11.geometry> // '1920x1080+0+0';
+    if ( $geom_str =~ m|^\s*(\d+)\s*x\s*(\d+)| ) {
+        $screen_geom = { 'width' => $1, 'height' => $2 };
+    } else {
+        $screen_geom = { 'width' => 1920, 'height' => 1080 };
+    }
+}
+
+my $geo = <[window.profile.calculate]>->(
+    {   profile  => $profile,
+        fallback => $fallback_profile,
+        caller   => $caller,
+        screen_x => $screen_geom->{'x'} // 0,
+        screen_y => $screen_geom->{'y'} // 0,
+        screen_w => $screen_geom->{'width'},
+        screen_h => $screen_geom->{'height'}
+    }
+);
+
+## schedule window opening after command handler returns ##
+<[event.add_timer]>->(
+    {   'after' => 0,
+        'cb'    => sub {
+            <[select.region.open_window]>->(
+                {   'id'       => $id,
+                    'geometry' => $geo
+                }
+            );
+        }
+    }
+);
+
+return { 'mode' => qw| deferred | };
+
+#,,..,,,,,..,,,,,,...,,,,,.,,,,,,,,,.,,..,.,.,..,,...,.,.,.,,,.,.,,..,,,,,,,,,
+#UHYB5KZ6JIW4HPD7T5JALX6WSPDYEFFVXGLW5QSWZJNAVOBZCQ2UVBZ5HWIMGOMGZQ333SBZVDKBE
+#\\\|XOQGIYEY3YFQLZ4JV45CLULA3WI5COOGBCG74FQY5YRCGFZMVEE \ / AMOS7 \ YOURUM ::
+#\[7]5LHZWYJR42YRMRZ2JFVUYQPTMPUFHN32ZX2RHLBUBGDBYKDMICAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

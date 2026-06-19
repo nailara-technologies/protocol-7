@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = select.region.cmd.last-window-coords
+# param = [name]
+# descr = return last window coords by caller or most recent
+
+my $args = $call->{'args'} // '';
+
+## optional positional caller name ##
+my $name   = '';
+my @tokens = split m|\s+|, $args;
+foreach my $token (@tokens) {
+    $name = $token if length $token;
+}
+
+my ( $x, $y, $w, $h, $source );
+
+if ( length $name ) {
+    my $saved = <[window.profile.load]>->($name);
+    if ( defined $saved ) {
+        ( $x, $y, $w, $h ) = @{$saved}{qw| x y width height |};
+        $source = 'profile';
+    }
+}
+
+if ( not defined $source ) {
+    my $last = $data{select}{region}{last_window_commit};
+    if ( defined $last ) {
+        ( $x, $y, $w, $h ) = @{$last}{qw| x y width height |};
+        $source = 'last-commit';
+    }
+}
+
+if ( not defined $source ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'no window coordinates available'
+    };
+}
+
+my $reply_data = sprintf 'x=%d y=%d width=%d height=%d', $x, $y, $w, $h;
+$reply_data .= " source=$source";
+$reply_data .= " caller=$name" if length $name;
+
+return { 'mode' => qw| true |, 'data' => $reply_data };
+
+#,,,.,,..,,,.,,..,..,,.,,,,,,,.,.,.,,,...,,..,..,,...,..,,,.,,.,.,,.,,,..,.,,,
+#K7AN2KHTF3LIGH3C6ISRNK42RI4Q77X2G7DDHASLSC3XPSBKOHNHLPNP2HPBWHWQOSUIPSDW75MRW
+#\\\|QFWVGR2DRBEWWSN73TENZN7RYZXFNER56DP5ZCZ2I3KS34P2F74 \ / AMOS7 \ YOURUM ::
+#\[7]XAC4VWZOMSF7GMLNP2JBTXDC4H67FHZ7WIGLZV3YHYMQ6XWIKYBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

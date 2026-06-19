@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = zenka-startup.v7
+# descr = 'select-region' zenka startup configuration used by 'v7' zenka
+
+dependencies = cube X-11
+  start.on-demand = 1
+  max_concurrency = 1
+
+: v7-init :
+  start_mode = stdin-zenka
+  command_line_modules = Gtk3 ##init##
+  cube.key = [base.prng.chars-anum:44]
+  [v7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<cube.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{cube.key}>']
+
+#,,,.,.,.,.,,,,,.,,..,..,,,.,,..,,,,.,,,.,,..,..,,...,...,.,,,,..,.,,,...,.,.,
+#E5VJH2YU55KJE3TNOT2VMLWQ7KJACRIWVQEJ4ICECFWYMSRUVU2S4ICBDBOUTTVTK35T2HEI7N4HU
+#\\\|2WBFJ6Q6NZGGAIORYGWWSSXHJL4UQS4HRAW26DU5TKX4OY74A3Z \ / AMOS7 \ YOURUM ::
+#\[7]34PPAPWFISUOYHETB2CXWVOV74WJKEQ2TAF4R2R6Y24OBEBDRIAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

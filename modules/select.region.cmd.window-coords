@@ -1,0 +1,81 @@
+## [:< ##
+
+# name  = select.region.cmd.window-coords
+# param = caller=<name> [tag=<tag>]
+# descr = req coords : instant [saved], UI [first use]
+
+my $args = $call->{'args'} // '';
+
+my ( $caller, $tag );
+my @tokens = split m|\s+|, $args;
+foreach my $token (@tokens) {
+    if    ( $token =~ m|^caller=(.+)$| ) { $caller = $1; }
+    elsif ( $token =~ m|^tag=(.+)$| )    { $tag    = $1; }
+    elsif ( not defined $caller )        { $caller = $token; }
+}
+$caller //= '';
+
+if ( not length $caller ) {
+    <[base.log]>->( 0, '[region.window-coords] caller required' );
+    return { 'mode' => qw| false |, 'data' => 'caller required' };
+}
+
+## try saved profile for exact caller — return immediately if found ##
+my $saved = <[window.profile.load]>->($caller);
+if ( defined $saved ) {
+    my ( $x, $y, $w, $h ) = @{$saved}{qw| x y width height |};
+    my $reply_data = sprintf 'x=%d y=%d width=%d height=%d profile=saved',
+        $x, $y, $w, $h;
+    $reply_data .= " caller=$caller";
+    $reply_data .= " tag=$tag" if defined $tag and length $tag;
+    <[base.logs]>->(
+        1, '[region.window-coords] caller=%s : returning saved profile',
+        $caller
+    );
+    return { 'mode' => qw| true |, 'data' => $reply_data };
+}
+
+## no saved profile — use base caller's saved profile as starting geometry ##
+my $base_caller = $caller;
+$base_caller =~ s|\[.+\]$||;
+my $base_saved
+    = ( $base_caller ne $caller )
+    ? <[window.profile.load]>->($base_caller)
+    : undef;
+
+## unique per-request id ##
+my $id;
+do { $id = <[base.prng.chars-anum]>->(8) }
+    while exists $data{select}{region}{instances}{$id};
+
+$data{select}{region}{instances}{$id} = {
+    'kind'       => qw| window |,
+    'caller'     => $caller,
+    'tag'        => $tag,
+    'reply_id'   => $call->{'reply_id'},
+    'base_saved' => $base_saved,
+};
+
+<[base.logs]>->(
+    1,   '[region.window-coords] id=%s caller=%s : opening region ui',
+    $id, $caller
+);
+
+## ask X-11 zenka for the monitor rect under the pointer ##
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| X-11.get_pointer_scr_rect |,
+        'call_args' => { 'args' => '' },
+        'reply'     => {
+            'handler' => qw| select.region.handler.scr_rect_reply |,
+            'params'  => { 'id' => $id }
+        }
+    }
+);
+
+return { 'mode' => qw| deferred | };
+
+#,,..,..,,...,,.,,...,,.,,.,.,.,.,,..,..,,.,.,..,,...,...,...,.,.,,,,,...,,.,,
+#FO2DMM5UNRMZA3SFX7R435KAOB5AELQZLGL4CVSF52Q6AVCQRV7EHP3ZALNGAS6LQXQQ3HAFDA434
+#\\\|5A3I6L3G6QQ5BDC3XM6CJD2A3ZZESRL4DY5VMPCWOXY4UOG2W5Z \ / AMOS7 \ YOURUM ::
+#\[7]CSHNMSAQMRQVPOLJN5HKOBSMVISOZW3TTP73HZYYOPTMXMODBYBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

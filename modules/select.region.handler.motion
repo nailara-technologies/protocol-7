@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = select.region.handler.motion
+# descr = update geometry while dragging
+
+my ( $id, $widget, $event ) = @ARG;
+
+return TRUE if not defined $id;
+
+my $inst = $data{select}{region}{instances}{$id};
+return TRUE if not defined $inst;
+
+## not dragging: update the hover cursor for resize-region feedback ##
+if ( not $inst->{'drag'}{'active'} ) {
+    my $hover
+        = <[select.region.classify_region]>->( $id, $event->x, $event->y );
+    <[select.region.set_hover_cursor]>->( $id, $widget, $hover );
+    return TRUE;
+}
+
+## dragging: apply geometry from the event's root coordinates. the pointer ##
+## poller also drives this same helper, so an active drag works even when  ##
+## motion-notify events are not delivered on the first interaction.        ##
+<[select.region.apply_drag]>->( $id, $event->x_root, $event->y_root );
+
+return TRUE;
+
+#,,,,,,..,...,.,,,.,,,,,,,,.,,,.,,,..,,..,.,,,..,,...,...,..,,,,,,,,.,,,.,,.,,
+#366BBMZOGUI3YR2TMOCO2D6LXDC5364T5QKZLDDBQ6MU5DRYU2OJP2KSKOXPT5O3UCGENKFBZ4ZKU
+#\\\|WOYX5FQ23PSZVLQ4Z4GKYMEAM6XAB3FBLMSOH4MR2QYTWTATIIK \ / AMOS7 \ YOURUM ::
+#\[7]IDA4Q2S42SDXEAFRT2KC4NFMM6BBEEAWVEHVORWWQWP3GCHKSWDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
