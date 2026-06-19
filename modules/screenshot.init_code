@@ -11,10 +11,23 @@ $ENV{'DISPLAY'} = <x11.display>;
 
 <screenshot.cfg.output_dir> //= '/var/protocol-7/screenshot/';
 
+## native x11 capture is silently non-functional under WSLg [ no error, no
+## hang detection possible - exhaustively proven elsewhere ]; /proc/version
+## is a stable, env-independent WSL marker, unlike $ENV{WSL_DISTRO_NAME}
+## which is absent when v7 itself was started from a non-interactive root
+## shell. detected once here rather than per-call, since there is no
+## reliable failure signal to fall back on after the fact ##
+<screenshot.cfg.use_powershell_passthrough> //= FALSE;
+if ( -r '/proc/version' ) {
+    my $version_sref = <[file.slurp]>->( '/proc/version', qw| :raw | );
+    <screenshot.cfg.use_powershell_passthrough> = TRUE
+        if defined $version_sref and $version_sref->$* =~ m|microsoft|i;
+}
+
 return FALSE;
 
-#,,,,,.,,,...,,,,,,,.,.,.,.,,,,,,,,.,,,,.,.,.,..,,...,..,,..,,.,,,...,.,.,..,,
-#72R4UTELSW3BADLUREKEDISR6BS6DHA37FCDCKVMPGKG4HBBRKIRTO36R2DP4HS6247U46DAEFXRA
-#\\\|Y2LRIJF5TKBKZV63MLKD6MN6JY6UKOKNYAXLXJFS37IRCNZZELM \ / AMOS7 \ YOURUM ::
-#\[7]WX2SRVVTBXQDH4FRALQPMW2XFX7HKAX5ZWYYN6TUMM55YUYYM4BY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,..,,,.,,,..,,,.,,.,,...,,.,,,.,,..,,...,...,..,,.,,,,.,,.,,,.,.,
+#FFVEBSRVO62N4KGETQNFTIXQ35KZ4RNXYOS3KVP4V2WILIIMSJU7HY2KHWEOLZ7V4UXXJPUIZCI7Y
+#\\\|SINAEFXCXDHIQIKBLBR255FCG2E4DEUTWU33R75OFZ7AKPNP45S \ / AMOS7 \ YOURUM ::
+#\[7]G7MBETJGUGAEJWYISNC7T3F6WLOBWKA4NUXPBISHUFD47O5BA4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

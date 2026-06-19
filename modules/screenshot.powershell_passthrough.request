@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = screenshot.powershell_passthrough.request
+# descr = route a capture through powershell zenka when
+#                     native x11 capture is unavailable
+
+my ( $call, $action, $coords_aref ) = @ARG;
+
+my $id;
+do { $id = <[base.prng.chars-anum]>->(8) }
+    while exists <screenshot.passthrough>->{$id};
+
+<screenshot.passthrough>->{$id} = {
+    'reply_id' => $call->{'reply_id'},
+    'action'   => $action,
+    'coords'   => $coords_aref,
+};
+
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| powershell.screenshot-capture |,
+        'call_args' => { 'args' => '' },
+        'reply'     => {
+            'handler' => qw| screenshot.handler.powershell_capture_reply |,
+            'params'  => { 'id' => $id }
+        }
+    }
+);
+
+return TRUE;
+
+#,,,,,,,.,,,.,..,,.,.,,,.,...,,..,.,.,,.,,,..,..,,...,...,...,.,,,,,,,..,,.,,,
+#GMOAAXAMMNW4763ULNYOWKRHAL54ATIPGGSI3LULTVVQMLSELSSNEGSUYUMUPYHRLYB6XYF2KIZ4U
+#\\\|54I6J6UK7WC422NH4NAXGGW77KUGMCTAVRGI4SQLIHFRNVUTTCR \ / AMOS7 \ YOURUM ::
+#\[7]LZ4SPEWVEXT7XXFRWGKAXDNHVZPF5ZGC7ELH75WXWYKKX5IGXABI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

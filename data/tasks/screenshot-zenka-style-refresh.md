@@ -13,7 +13,7 @@ also: `data/yaml/docs/protocol-7-coding-style.md`
 
 ## bugs to fix
 
-### screenshot.cmd.get_region_color — triple `my $err_str` (critical)
+### screenshot.cmd.return-region-color — triple `my $err_str` (critical)
 
 lines 16, 19, and 22 each declare `my $err_str`, creating three distinct
 lexicals in the same scope. perl silently shadows each previous one, so the
@@ -119,22 +119,14 @@ remove the `$ENV{'DISPLAY'} = <x11.display>;` line from `screenshot.grab_region`
 
 ### output filename
 
-`write_png` generates filename with `time, $$`. use `<[base.ntime]>` for
-higher resolution:
-
-```perl
-## wrong
-my $out_path = sprintf '%s/screenshot_%d_%d.png', $out_dir, time, $$;
-
-## correct
-my $stamp    = <[base.ntime]>->(0) // time;
-my $out_path = sprintf '%s/screenshot_%s.png', $out_dir, $stamp;
-```
+DONE — `capture-to-disk` now uses `<[base.ntime.b32]>->( 5, TRUE )`,
+matching the BASE32 high-res timestamp convention used elsewhere
+(mixed-case/random filename entropy is discouraged project-wide).
 
 ## acceptance
 
-- `p7c screenshot.write_png "0 0 100 100"` succeeds and returns a path
-- `p7c screenshot.get_region_color "0 0 100 100"` returns correct hex color
+- `p7c screenshot.capture-to-disk "0 0 100 100"` succeeds and returns a path
+- `p7c screenshot.return-region-color "0 0 100 100"` returns correct hex color
 - no `my $err_str` re-declarations remain
 - all regex uses `m||` or `m{}` delimiters
 - `bin/ptd -c` passes on all 5 modules
@@ -143,12 +135,12 @@ my $out_path = sprintf '%s/screenshot_%s.png', $out_dir, $stamp;
 ## dispatch
 
 ## kimi: apply the style and bug fixes above to all 5 screenshot zenka modules.
-## start with the critical bug in get_region_color, then work through the
+## start with the critical bug in return-region-color, then work through the
 ## style fixes. verify each module with bin/ptd -c before moving to the next.
 ## do not modify signature footer lines.
 
-#,,..,..,,,.,,..,,,.,,,,.,,,,,,,,,,,.,,.,,.,,,..,,...,...,..,,.,.,...,,..,,,.,
-#2ATEWVBBBQUGMT5G4V6JP4DPQ65XKMXZNLW4UMFL43BRR3HX6DXU3HI6ENPTHRZXUXFUGE2ZXI2EM
-#\\\|LOAULFJZIRYMDVXYJAG4GCQLRDUYX6R2AGZKRG2FE5JJO2XVE2V \ / AMOS7 \ YOURUM ::
-#\[7]SEZYEHOYN22XSWVX2QFFIZAD63JQWWSPE7DMXFI7NA3NYEVXDCCA 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,...,.,.,.,,,,..,,..,.,,,,..,,..,..,,...,...,.,.,.,,,...,,..,.,,,
+#EZBV4SI5IHGQGSJNFEX2LKKO4AWVX3GAQ3PYGFUBO7YO4E6X3KGTAP7T743DCQOFZZDTCXBM6FEXC
+#\\\|CMMMIYKHRUM7VJM756XOMFSCVGFG32LJVASRLEN4OCUM26E7YHS \ / AMOS7 \ YOURUM ::
+#\[7]26H6PSDU5IDN54R7AXT6ZNUYJSCXSWLP5B66BHTZSLLR6FGRHABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
