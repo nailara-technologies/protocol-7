@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = screenshot.cmd.get_region_color
+# name  = screenshot.cmd.return-region-color
 # param = <X1> <Y1> <X2> <Y2>
 # descr = return average color for given region
 
@@ -11,6 +11,13 @@ return {
     }
     if $param_str !~ m|^(\d+ +){3}\d+$|;
 my @coords = ( split( m| +|, $param_str ) );
+
+if (<screenshot.cfg.use_powershell_passthrough>) {
+    <[screenshot.powershell_passthrough.request]>->(
+        $call, 'return_region_color', \@coords
+    );
+    return { 'mode' => qw| deferred | };
+}
 
 my $err_str;
 
@@ -35,8 +42,8 @@ pop(@RGB);    # removing alpha
 
 return { 'mode' => qw| true |, 'data' => sprintf( '#%02X%02X%02X', @RGB ) };
 
-#,,,.,,.,,.,,,,,.,.,.,..,,.,.,.,,,..,,.,.,.,,,..,,...,...,...,,..,,.,,...,...,
-#D4HAARWSUYFVVAAIQVDUWOACWA4MKA7XAGHR6XQ3NARHTDRENMUDNDRUXKRIGYUSYAMCFY2ISEY7S
-#\\\|EPRPB6YMGDFP7GBDZ5LMCQQ6HLZADFYZSFNT34FLZYZWDOAS55O \ / AMOS7 \ YOURUM ::
-#\[7]LIB4YV26VQREESNKJBH6VDZBERA5IX5P6UXBKR5ZG5VCPGZW3ECI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,.,,,.,.,,.,,,.,,..,,.,,,..,,.,,,..,,...,...,,,,,.,,,,,.,.,.,..,,
+#E66EYMLWWNC6I7QGGCUKXKN3WZKLKY3N26IDQSJZWV5IGJBWRYISWFQLEWI4ZP2LMOUP2F3H6IY6U
+#\\\|IYQJSU54V6ZGHIFGRAW4XFN7FCNIAW22XH3S6AE4S34SU4SSKBU \ / AMOS7 \ YOURUM ::
+#\[7]ZJ2G2FIKH2ETHLB6HNMAD7LLZRNSS3TBOC3U64D5Q7C4YK2KCECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

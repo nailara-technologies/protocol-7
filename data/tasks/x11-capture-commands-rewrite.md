@@ -15,7 +15,7 @@ also: `data/yaml/docs/protocol-7-coding-style.md`
 
 ## design
 
-`screenshot.cmd.write_png` accepts four space-separated integers:
+`screenshot.cmd.capture-to-disk` accepts four space-separated integers:
 `left top right bottom` (screen coordinates, not x/y/w/h).
 
 conversion from x/y/w/h to left/top/right/bottom:
@@ -26,7 +26,7 @@ right  = x + w
 bottom = y + h
 ```
 
-both commands route-send to `screenshot.write_png` and return deferred.
+both commands route-send to `screenshot.capture-to-disk` and return deferred.
 the reply from screenshot comes back via `X-11.handler.capture_reply`,
 which forwards the result to the original caller using `base.callback.cmd_reply`.
 
@@ -42,7 +42,7 @@ remove the `output_path` param and all subprocess logic. new flow:
 1. validate `$window_id` (digits only)
 2. `GetGeometry($window_id)` on `<X-11.obj>` to get x, y, width, height
 3. compute region: `left=x, top=y, right=x+w, bottom=y+h`
-4. route-send to `screenshot.write_png` with `"$left $top $right $bottom"`
+4. route-send to `screenshot.capture-to-disk` with `"$left $top $right $bottom"`
 5. pass `reply_id` via `reply.params` so the handler can forward the response
 6. return `{ mode => 'deferred' }`
 
@@ -71,7 +71,7 @@ my ( $x, $y, $w, $h )
 my $region = sprintf '%d %d %d %d', $x, $y, $x + $w, $y + $h;
 
 <[protocol-7.route-send]>->(
-    {   'command'   => qw| screenshot.write_png |,
+    {   'command'   => qw| screenshot.capture-to-disk |,
         'call_args' => { 'args' => $region },
         'reply'     => {
             'handler' => qw| X-11.handler.capture_reply |,
@@ -86,7 +86,7 @@ return { 'mode' => qw| deferred | };
 ### X-11.cmd.capture-region
 
 remove `output_path` param and subprocess logic. validate x y w h, convert
-to left/top/right/bottom, route-send to screenshot.write_png.
+to left/top/right/bottom, route-send to screenshot.capture-to-disk.
 
 ```perl
 ## [:< ##
@@ -104,7 +104,7 @@ my ( $x, $y, $w, $h ) = ( $1 + 0, $2 + 0, $3 + 0, $4 + 0 );
 my $region = sprintf '%d %d %d %d', $x, $y, $x + $w, $y + $h;
 
 <[protocol-7.route-send]>->(
-    {   'command'   => qw| screenshot.write_png |,
+    {   'command'   => qw| screenshot.capture-to-disk |,
         'call_args' => { 'args' => $region },
         'reply'     => {
             'handler' => qw| X-11.handler.capture_reply |,
@@ -124,7 +124,7 @@ forwards the screenshot zenka reply to the original caller:
 ## [:< ##
 
 # name  = X-11.handler.capture_reply
-# descr = forward screenshot.write_png reply to original capture caller
+# descr = forward screenshot.capture-to-disk reply to original capture caller
 
 my $reply    = shift // {};
 my $params   = $reply->{'params'} // {};
@@ -185,8 +185,8 @@ X-11.handler.capture_reply
 ## create X-11.handler.capture_reply as described above.
 ## verify with p7c after each module. do not modify signature footer lines.
 
-#,,,,,,,.,,,,,..,,,.,,.,,,.,.,.,.,,,.,,,,,...,..,,...,...,,..,...,.,,,..,,,.,,
-#AJEDTH3ZB7XAVADTOFNNQVRG2YAE7HT7EPQBDA7B7SHVI6I5A2AWWLZO2RXBYKDODY7GDUIYMOZH2
-#\\\|DPYSJ46QY63XJNER5MPJL7CF373247GN7CSQPW5GBSBFJAO3A4P \ / AMOS7 \ YOURUM ::
-#\[7]SBHQGVXZPKTW7EZ7OBAXTEFE5X4SVR2HYHDC3VP3OINBW46PRUBA 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,.,.,..,,,..,,.,,...,...,.,,,.,.,..,,...,,..,,..,.,,,,.,,.,.,..,,
+#52QSSWRGKTHIPHD6TZBBOTO7H5AMJO4G6KRKU7J7XYD54S4EEF7EMA7JYQ6SLIZIBX2Q6RR5JEDPC
+#\\\|YCG5FIU2E27YFZNUM6EIVGC4PSSEWEOFC4G7LB2NWWB6NHMEILE \ / AMOS7 \ YOURUM ::
+#\[7]NF7TUBMUIBRCNXBJQWHUVT223SK5S4OIVEJ6YIWMSCLESU63Q2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
