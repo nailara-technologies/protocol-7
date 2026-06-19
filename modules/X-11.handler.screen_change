@@ -10,7 +10,7 @@ my $new_h = $event->{'height'} // 0;
 
 if ( $new_w and $new_h ) {
     <[base.logs]>->(
-        1,      ': screen change notification [ %dx%d ]',
+        1,      ': screen change notification [ %d X %d ]',
         $new_w, $new_h
     );
     <x11.screen.width>  = $new_w;
@@ -22,13 +22,16 @@ if ( $new_w and $new_h ) {
         <x11.screen.width>  = $geom{'width'};
         <x11.screen.height> = $geom{'height'};
         <[base.logs]>->(
-            1,              ': screen change [ %dx%d ] [ requeried ]',
+            1,              ': screen change [ %d X %d ] [ requeried ]',
             $geom{'width'}, $geom{'height'}
         );
     } else {
         <[base.log]>->( 1, ': screen change notification [ no dimensions ]' );
     }
 }
+
+## refresh per-monitor geometry registry ##
+<[X-11.build_monitor_registry]> if <X-11.has_randr>;
 
 <[X-11.emit.screen-change]>->(
     <x11.screen.width>  // 0,
@@ -37,8 +40,8 @@ if ( $new_w and $new_h ) {
     if <X-11.screen_change_subscribers>
     and @{<X-11.screen_change_subscribers>};
 
-#,,,,,.,.,,,.,,..,,,,,,,.,..,,,,,,,,.,,,,,...,..,,...,...,..,,,,.,,.,,,,.,.,,,
-#YV7WOOVQ3Y6RWYYGQ6PZT5HI2YKSYDHPNSQNWHA3XHWTYD6TQL3YGE7AVJQ4ULKZK34Y6V7HL2ORS
-#\\\|3L6K2MMGEM2S3XBXHIJXQEX4NF63GYMRKGROECJGOFN4W6WRLUM \ / AMOS7 \ YOURUM ::
-#\[7]ATWBAW74RVZ25EWHHMWPBQ356RZDBCA3LNGHW25EN3VYZVGEZIAY 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,.,,,..,,,,,,..,,..,,...,,,,,.,.,..,,...,...,,,,,.,.,,.,,...,.,.,
+#43HMGR4VJAVTNPLDREHEJYIJ55YHHAORULCJ5AU4NH5BSCN7SFLE2MAWHTNXXRQ2LEPHD7LMU6622
+#\\\|NLY2HWK3RYBIWJFPRU3UCLUHNIISSGVGKPISH3BM3PUAF325MA3 \ / AMOS7 \ YOURUM ::
+#\[7]GNNMSCL3ADE6BRSY26RDUVKQKUHH4YSTOR5XPSLDKIYH2DLLHADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
