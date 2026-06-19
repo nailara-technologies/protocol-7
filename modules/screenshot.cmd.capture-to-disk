@@ -1,0 +1,62 @@
+## [:< ##
+
+# name  = screenshot.cmd.capture-to-disk
+# param = [coords]
+# descr = grab screen or region; write png, return its path
+
+my $param_str = $call->{'args'} // '';
+return {
+    'mode' => qw| false |,
+    'data' => 'expected screen region coordinates'
+    }
+    if length $param_str and $param_str !~ m|^(\d+ +){3}\d+$|;
+
+## coords are optional [ see param doc ] - all-zero matches
+## Imager::Screenshot's own convention for "whole window" ##
+my @coords
+    = length $param_str
+    ? ( split( m| +|, $param_str ) )
+    : ( 0, 0, 0, 0 );
+
+if (<screenshot.cfg.use_powershell_passthrough>) {
+    <[screenshot.powershell_passthrough.request]>->(
+        $call, 'capture_to_disk', \@coords
+    );
+    return { 'mode' => qw| deferred | };
+}
+
+my $image   = <[screenshot.grab_region]>->(@coords);
+my $err_str = $image if ref($image) ne qw| Imager |;
+
+return {
+    'mode' => qw| false |,
+    'data' => "unable to acquire screenshot [ $err_str ]"
+    }
+    if defined $err_str;
+
+my $out_dir = <screenshot.cfg.output_dir>;
+<[file.make_path]>->($out_dir) unless -d $out_dir;
+my $stamp    = <[base.ntime.b32]>->( 5, TRUE );
+my $out_path = sprintf '%s/screenshot-%s.png', $out_dir, $stamp;
+
+my $write_ok = $image->write(
+    'file' => $out_path,
+    'type' => 'png'
+);
+
+return {
+    'mode' => qw| false |,
+    'data' => "unable to write PNG [ " . Imager->errstr . " ]"
+    }
+    if not $write_ok;
+
+return {
+    'mode' => qw| true |,
+    'data' => $out_path
+};
+
+#,,,.,...,..,,.,,,..,,.,,,.,.,,..,...,.,,,,.,,..,,...,...,,,.,,,,,,,,,...,,,,,
+#PH3PPMDP36ZX3JJ4NCYQ72I4HBONJNYFN5QLNON36BWVGT5HI77D62KGQ6KT5F66EPADAXDYLCNYS
+#\\\|OPXDJWS7SPEMA5AWL736HHVQPQYGEK2EMGOND7GL7YANMDL2CWX \ / AMOS7 \ YOURUM ::
+#\[7]QR33IXKJRGNGILG5A3BIQPCNQ4GPOYBXLSDTLOZRC4ISRLOIGMAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
