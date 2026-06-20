@@ -6,9 +6,12 @@
 my $params   = shift // {};
 my $model_id = $params->{'args'} // $params->{'model_id'} // '';
 
+## model_id is optional - default to whatever is currently loaded ##
+$model_id = <inference.model.amos_id> // '' if !length $model_id;
+
 return {
     mode => qw| false |,
-    data => 'usage: coding.self-test-run <model_id>'
+    data => 'usage: coding.self-test-run [model_id] (no model currently loaded)'
     }
     if !length $model_id;
 
@@ -40,8 +43,8 @@ if ( !$data->{'all_passed'} ) {
 
 return { mode => qw| size |, data => $summary };
 
-#,,,.,.,,,,.,,..,,...,,.,,,,,,,,.,..,,,,,,,,,,..,,...,...,...,,,,,...,,..,,,,,
-#CLTS7EEHOGKKB6CI5DONUQUPIALQLXTS27YDQO57FWSLDWGSFL77J7CB4XXB4YFFKAOD65BC3UUXW
-#\\\|VXBK4AMRQL2E77M7L46ZTVMX2OOXLI4FHRMEGU4RK4UBMU7X53Y \ / AMOS7 \ YOURUM ::
-#\[7]2BPTLVGDP2VSGBMLRK77RRU3BPQIM4KKLEHTAVYFEXGCB5DNVCBY 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,,.,.,.,,,,,,.,,.,.,,..,.,,,,.,,..,,...,...,,..,,..,.,.,.,.,,,,,
+#AOTRS7UJ4OH7OTOIAR2YXJLSNIONIV2TPXP4VO2LZB44QJMNSSMVLFFGVOUS6AQR7RVSZOX4SOBZW
+#\\\|AVNSYZWMA75WSDLJHJJ6WPJN6DKXRT4L6QARRR3YNYIFJCU3WYS \ / AMOS7 \ YOURUM ::
+#\[7]QZG6RAB4KYZJM5TW3JDP4QWW2SCPGMRT5MWKGLFXYORLEI47F6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
