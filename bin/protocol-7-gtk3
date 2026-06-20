@@ -19,6 +19,7 @@ BEGIN {
         =~ s|/[^/]+/[^/]+$|/data/lib-path/pm|;
     unshift( @INC, $local_lib_path ) if -d $local_lib_path;
     $ENV{'P7_GTK3_INIT'} = qw| true |;
+    $ENV{'GDK_BACKEND'}  = qw| x11 |;
 }
 
 my $zenkaname;
@@ -53,8 +54,8 @@ $zenkaname //= qw| protocol-7 |;
 exec( $perl_path, qw| -C31 -MGtk3 |, $protocol_7_path, @call_args )
     or die "failed to start $zenkaname zenka [ \l$OS_ERROR ]";
 
-#,,..,,,.,...,...,..,,,.,,.,.,..,,,,.,..,,.,,,..,,...,...,...,.,,,...,,,,,,..,
-#ZAPZNRKYV7GISWNTNM2WTNM3W4D6BQDDEVWKLDVRLJBFPRG6TOKIXWXIBTB32BQWKAHNFYCM5SGRY
-#\\\|I5IF7O7TZKSSCH5L7CP33OL3IDFEP5M46ZHJA4WLO27XXCU3IR6 \ / AMOS7 \ YOURUM ::
-#\[7]NZYEF5KCGQJBUHXBV63QETJNMAKTFIX5RSPDWHQYT33Q5RHUGKAQ 7  DATA SIGNATURE ::
+#,,..,.,,,...,.,.,.,,,,.,,.,.,,..,,.,,.,.,...,..,,...,...,.,.,..,,...,.,.,.,,,
+#QAYQCJR4IOP2Y7YFYK6PAHWBG4UNFCW4JZW5D2NLZYL5BPQQSJFU5ZT5DKQNGS4ZCIWZFDZU4RSR2
+#\\\|SDJYBBHYC4XLDLIVMMMZSNEXZLQHLRAAH75VKHKSDOJRPXAGAWP \ / AMOS7 \ YOURUM ::
+#\[7]VBRXFAV7XUDUDQNNIQWLWT7TQPPNXH6QAXISI6D74JLEE4RXSEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

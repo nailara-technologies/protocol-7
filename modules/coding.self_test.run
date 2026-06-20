@@ -1,0 +1,135 @@
+## [:< ##
+
+# name  = coding.self_test.run
+# descr = execute model self-test cycle: calibration prompts, timing, evaluation
+
+my $params   = shift                 // {};
+my $model_id = $params->{'model_id'} // '';
+my $timeout  = $params->{'timeout'}  // 30;
+my $url      = $params->{'url'}
+    // ( <inference.backend.http_server_url> // 'http://127.0.0.1:8000' );
+
+return { mode => qw| false |, data => 'model_id required' }
+    if !length $model_id;
+
+my $epoch = <[base.time]>->(3);
+
+## calibration prompt sequence ##
+my @prompts = (
+    {   id       => 1,
+        text     => 'What is 7 × 13? Reply with only the number.',
+        expected => '91'
+    },
+    {   id   => 2,
+        text => 'put a cat and a mouse in a room, close the door and wait.., '
+            . 'who is the remaining animal?',
+        expected => 'cat'
+    },
+);
+
+my $test_count = 0;
+my $pass_count = 0;
+my $all_passed = TRUE;
+my @results;
+
+for my $prompt_def (@prompts) {
+    $test_count++;
+    my $prompt_id   = $prompt_def->{'id'};
+    my $prompt_text = $prompt_def->{'text'};
+    my $expected    = $prompt_def->{'expected'};
+
+    my $start      = <[base.time]>->(9);
+    my $ttft_start = $start;
+
+    my $result = <[coding.tools.http_inference_client]>->(
+        {   url      => $url,
+            model_id => $model_id,
+            prompt   => $prompt_text,
+            timeout  => $timeout,
+        }
+    );
+
+    my $ttft    = 0;
+    my $total   = 0;
+    my $answer  = '';
+    my $passed  = FALSE;
+    my $anomaly = '';
+
+    if ( !$result || $result->{'mode'} ne qw| true | ) {
+        <[base.logs]>->(
+            0,         'self_test.run: model %s prompt %d inference failed',
+            $model_id, $prompt_id
+        );
+        $total      = <[base.time]>->(9) - $start;
+        $all_passed = FALSE;
+    } else {
+        $ttft   = <[base.time]>->(9) - $ttft_start;
+        $total  = <[base.time]>->(9) - $start;
+        $answer = $result->{'data'} // '';
+        $answer =~ s/[\x00-\x08\x0b\x0c\x0e-\x1f]//g;
+    }
+
+    my $eval = <[coding.self_test.evaluate]>->(
+        {   model_id => $model_id,
+            prompt   => $prompt_text,
+            answer   => $answer,
+            expected => $expected,
+        }
+    );
+
+    if ( $eval && $eval->{'mode'} eq qw| true | ) {
+        $passed = TRUE;
+        $pass_count++;
+    } else {
+        $passed     = FALSE;
+        $all_passed = FALSE;
+        $anomaly    = $eval->{'anomaly'} // $eval->{'data'} // 'mismatch';
+    }
+
+    my $result_record = {
+        prompt_id => $prompt_id,
+        prompt    => $prompt_text,
+        answer    => $answer,
+        expected  => $expected,
+        ttft      => $ttft,
+        total     => $total,
+        passed    => $passed,
+        timestamp => <[base.time]>->(3),
+    };
+
+    push @results, $result_record;
+
+    <[coding.self_test.archive]>->(
+        {   epoch    => $epoch,
+            model_id => $model_id,
+            result   => $result_record,
+            anomaly  => $anomaly,
+        }
+    );
+
+    <[coding.self_test.multiplier]>->(
+        {   model_id => $model_id,
+            ttft     => $ttft,
+        }
+    ) if $ttft > 0;
+}
+
+my $summary = {
+    model_id   => $model_id,
+    epoch      => $epoch,
+    pass_count => $pass_count,
+    total      => $test_count,
+    all_passed => $all_passed,
+    results    => \@results,
+};
+
+return {
+    mode => $all_passed ? qw| true | : qw| false |,
+    data => $summary,
+};
+
+#,,,,,.,,,.,,,...,.,.,.,.,...,,.,,.,,,.,,,,..,..,,...,...,..,,,..,.,.,...,..,,
+#FPZ4RPVWDG3NXRI7IS3RHDB5YJFSCNGJ7SR7T6PTXGCZX2UVOSI3PP67XUQXWXDDARGFOWM2D3QJY
+#\\\|RSZZOFCAU5F6AKNPZAZNRTSOUQQZCP2BXEX63HXD5QK3OO2AIUG \ / AMOS7 \ YOURUM ::
+#\[7]R3B273P5ZG3BOMHEKI6SGIML623U6MBPBKZ77QSUAOQVRONVAUDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

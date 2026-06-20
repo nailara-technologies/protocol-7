@@ -118,6 +118,17 @@ if ( not length( $user // '' ) ) {
         <[base.logs]>->(
             2, "< drop_privs > already '%s', doing nothing.", $user
         );
+
+        ## recording confirmed identity [ same as the real-drop branch ##
+        ## below ] - downstream owner-checks [ file.zenka_dir.write etc ] ##
+        ## expect this to be set whenever we genuinely run as $user,     ##
+        ## whether or not an actual privilege drop happened ##
+        <system.zenka-user.current> = $user
+            if not defined <system.zenka-user.current>
+            or $user ne <system.zenka-user.current>;
+        <system.zenka-group.current> = $override_primary_group
+            if defined $override_primary_group;
+
         return -2;
     } elsif ($UID) {
         <[base.logs]>->(
@@ -259,8 +270,8 @@ if ( not length( $user // '' ) ) {
     }
 }
 
-#,,..,...,..,,..,,,.,,...,.,,,...,.,,,...,..,,..,,...,...,,,,,.,,,..,,,,.,...,
-#YGUMYXWOBBHXJGMS3FNGCNRQHACURQ34QXZVEO2WXSQKGBKV3RHFH6EPUWBSPIQA332QM6LCKSJCW
-#\\\|FBZ6M45A6LEOJRCZASZYKQHAK4H24MABKEE2PEUNDET6IOBLMWY \ / AMOS7 \ YOURUM ::
-#\[7]XXPBRWHM4UBPITME24NWB4SHIRUYPTJUZ76KGCHZB25BVE234MDQ 7  DATA SIGNATURE ::
+#,,.,,...,,,.,...,...,.,.,...,.,.,.,.,,,.,,,,,..,,...,...,,.,,,,.,.,.,...,,,,,
+#BXKTZLD46VSF3NFU26HKYRZXSRIKLVBKKXLOOUQVAGAWJBNBW45E5FLRJJS3IFOUJ7XNHBGO2DOQY
+#\\\|IGF44FCSYTGSQXKGND3W37GBKCGIJ72NA6MJQ5NRCZ2QP3PQTCO \ / AMOS7 \ YOURUM ::
+#\[7]LFFAWKHVFSJVH67AWHVT7QD62ME65VZVHIB6WXK45YQZXEOL2KDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
