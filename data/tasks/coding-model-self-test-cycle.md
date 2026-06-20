@@ -37,21 +37,66 @@ for production tasks:
 6. mark model available for production
 ```
 
-## calibration prompt
+## calibration prompts
 
-the calibration prompt must be:
+run as a fixed sequence per model load. each prompt must be:
 - short (fast to process, low variance)
 - deterministic (same answer every time — checkable)
 - exercises the model's reasoning path (not pure recall)
 
 ```
-prompt: "What is 7 × 13? Reply with only the number."
+prompt 1 (arithmetic): "What is 7 × 13? Reply with only the number."
 expected: "91"
+
+prompt 2 (predation riddle): "put a cat and a mouse in a room, close
+  the door and wait.., who is the remaining animal?"
+expected: "cat" (case-insensitive, trimmed — exactly 3 characters)
 ```
 
-the division-by-13 calibration has a pleasant harmonic property.
-if the model answers anything other than "91": suspect, log, proceed
-with a warning annotation in `coding.cfg.model_status`.
+the division-by-13 calibration has a pleasant harmonic property. the
+riddle was chosen live (2026-06-20 session) after observing the local
+model answer it correctly once, then incorrectly/contradictorily on a
+second unconstrained run — it's a good calibration case precisely
+because it has exactly one correct short answer but a known failure
+mode (verbose self-contradiction) that's easy to detect mechanically:
+checking the trimmed answer length/content catches both "wrong content"
+and "didn't follow the brevity instruction" in one comparison.
+
+if the model answers anything other than the expected string for either
+prompt: suspect, log, proceed with a warning annotation in
+`coding.cfg.model_status`, AND trigger the anomaly follow-up below.
+
+## anomaly follow-up
+
+when a calibration answer doesn't match the expected string exactly
+(after trim + case-fold): don't just log pass/fail — automatically
+re-prompt the same model, same context, asking it to explain its own
+reasoning for the answer it just gave. archive the follow-up
+explanation alongside the original mismatch.
+
+```
+1. self_test.evaluate finds answer != expected
+2. immediately send follow-up prompt to the SAME model:
+   "explain your reasoning for that answer, step by step"
+   (no new context — same conversation/session if the inference
+   backend supports continuation, otherwise replay the original
+   prompt + answer + the follow-up question together)
+3. archive the explanation in
+   $data{coding}{self_test}{$epoch}{$model_id}{anomaly}{$prompt_id} =
+     { answer => <original mismatched answer>,
+       explanation => <follow-up response>,
+       expected => <expected string> }
+4. mark model suspect (existing behavior, unchanged)
+5. do NOT block availability on this — the follow-up is diagnostic,
+   not gating; degraded mode proceeds as already specified above
+```
+
+this turns every calibration failure into a labeled training/diagnostic
+sample instead of a silent pass/fail bit — the explanation is what
+distinguishes "model is just unreliable" from "model has a specific,
+nameable confusion" (e.g. tonight's case: pattern-matching the riddle
+against the wrong genre of lateral-thinking puzzle instead of
+recognizing predation).
 
 ## timeout multiplier calibration
 
@@ -104,6 +149,10 @@ $data{coding}{self_test}{$epoch}{$model_id}{ttft}      = <seconds>
 $data{coding}{self_test}{$epoch}{$model_id}{tps}       = <tokens/sec>
 $data{coding}{self_test}{$epoch}{$model_id}{passed}    = TRUE/FALSE
 $data{coding}{self_test}{$epoch}{$model_id}{answer}    = <model output>
+$data{coding}{self_test}{$epoch}{$model_id}{prompt_id} = <which calibration prompt>
+$data{coding}{self_test}{$epoch}{$model_id}{anomaly}{$prompt_id} = {
+    answer => <mismatched answer>, explanation => <follow-up response>,
+    expected => <expected string> }    # only present on mismatch
 ```
 
 older epochs can be squashed/archived. current epoch self-tests
@@ -131,9 +180,13 @@ when the duplication becomes clear.
 ## modules
 
 ```
-coding.self_test.run          run calibration prompt, record results
-coding.self_test.evaluate     check answer correctness
-coding.self_test.archive      store result in epoch-scoped data tree
+coding.self_test.run          run calibration prompt sequence, record results
+coding.self_test.evaluate     check answer correctness; on mismatch,
+                              trigger coding.self_test.follow_up
+coding.self_test.follow_up    re-prompt the model to explain its
+                              reasoning for a mismatched answer
+coding.self_test.archive      store result (+ anomaly explanation if
+                              any) in epoch-scoped data tree
 coding.self_test.multiplier   compute timeout multiplier from sample set
 coding.self_test.cmd.status   show self-test results per model
 coding.self_test.cmd.run-now  trigger manual self-test for a model
@@ -176,27 +229,37 @@ p7c coding.self_test.status
 
 implement the coding zenka model self-test cycle.
 
-1. create `modules/coding.self_test.run` — sends "7 × 13 = ?" prompt
-   to the specified model via the existing HTTP inference API
+1. create `modules/coding.self_test.run` — sends the calibration prompt
+   sequence (arithmetic "7 × 13", then the cat/mouse riddle) to the
+   specified model via the existing HTTP inference API
    (`coding.handler.process-queued-task` pattern), records TTFT +
-   total time + answer, calls coding.self_test.evaluate + archive
+   total time + answer per prompt, calls coding.self_test.evaluate +
+   archive for each
 
-2. create `modules/coding.self_test.evaluate` — checks answer = "91",
-   returns TRUE/FALSE, logs mismatch with actual output if FALSE
+2. create `modules/coding.self_test.evaluate` — checks answer against
+   the prompt's expected string (trim + case-fold), returns TRUE/FALSE;
+   on FALSE, calls `coding.self_test.follow_up` before returning
 
-3. create `modules/coding.self_test.archive` — stores result in
-   `$data{coding}{self_test}{<epoch>}{<model_id>}` tree
+3. create `modules/coding.self_test.follow_up` — sends a second prompt
+   to the same model asking it to explain its reasoning for the
+   mismatched answer; returns the explanation text for archival
 
-4. create `modules/coding.self_test.multiplier` — percentile_95 of
+4. create `modules/coding.self_test.archive` — stores result (+ anomaly
+   explanation if any) in `$data{coding}{self_test}{<epoch>}{<model_id>}`
+   tree
+
+5. create `modules/coding.self_test.multiplier` — percentile_95 of
    TTFT samples × 1.5 → stores in `coding.cfg.timeout_stats`
 
-5. create `modules/coding.self_test.cmd.status` — SIZE reply showing
+6. create `modules/coding.self_test.cmd.status` — SIZE reply showing
    all models × last self-test timestamp / TTFT / pass/fail / multiplier
+   / anomaly count
 
-6. create `modules/coding.self_test.cmd.run-now` — accepts model_id arg,
-   triggers immediate self-test, returns result
+7. create `modules/coding.self_test.cmd.run-now` — accepts model_id arg,
+   triggers immediate self-test sequence, returns result (+ anomaly
+   explanations if any)
 
-7. wire into `coding.handler.monitor_inference_startup`: after readiness
+8. wire into `coding.handler.monitor_inference_startup`: after readiness
    confirmed, call `coding.self_test.run` before marking model available
 
 check existing `coding.handler.process-queued-task` for the HTTP
@@ -205,8 +268,8 @@ to confirm it's initialized in `coding.init_code` or add it there.
 
 #,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-#,,..,,,.,,..,,,.,,.,,.,,,.,.,.,,,,.,,,.,,,.,,..,,...,...,...,.,,,..,,.,.,..,,
-#53LRF5AXU3XRNADUB43QK3N24XN2XZKOWO4PLW7AAEIAK7473BBP4UYWQW3JDHLTTDDKRC4DHJYE2
-#\\\|6KUQQDMHLVAYO6NFVE3W47I47XLHQK7AKUJRPJK3LBPORB3EVFD \ / AMOS7 \ YOURUM ::
-#\[7]NXVXQUFV6PQD3VTI7NFV7EUV4KBHPDDE4FYRZFLCR35WIZRTTUAI 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,,.,,..,.,.,,..,,..,,..,,,.,...,..,,...,...,,..,.,,,,..,...,.,.,
+#N2376QUR22Z46NOCGCYDLLUWZM5LLT42Z2BEMP4QIQGJF7I6O2LZPZGFI4NEJGGN3PQWKKOLQ3EAY
+#\\\|OS7QR4DREHIPXQNWUAOAZTZQIIRAEAIFMF2RVZQVWOK4I4TXSU3 \ / AMOS7 \ YOURUM ::
+#\[7]AJOE4TMYBU6GRXFCT5L5SE4V63F4N2QQXCQ3XUOWE5BH4AGCNQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
