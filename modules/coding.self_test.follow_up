@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = coding.self_test.follow_up
+# descr = re-prompt model to explain reasoning for mismatched answer
+
+my $params   = shift                 // {};
+my $model_id = $params->{'model_id'} // '';
+my $prompt   = $params->{'prompt'}   // '';
+my $answer   = $params->{'answer'}   // '';
+my $timeout  = $params->{'timeout'}  // 30;
+
+return { mode => qw| false |, data => 'model_id required' }
+    if !length $model_id;
+
+my $server_url = <inference.backend.http_server_url>
+    // 'http://127.0.0.1:8000';
+
+## replay original question + answer, then ask for reasoning ##
+my $follow_prompt;
+if ( length $prompt && length $answer ) {
+    $follow_prompt = "For the question '$prompt', you answered '$answer'. "
+        . "Explain your reasoning for that answer, step by step.";
+} else {
+    $follow_prompt = 'Explain your reasoning for that answer, step by step.';
+}
+
+my $result = <[coding.tools.http_inference_client]>->(
+    {   url      => $server_url,
+        model_id => $model_id,
+        prompt   => $follow_prompt,
+        timeout  => $timeout,
+    }
+);
+
+if ( !$result || $result->{'mode'} ne qw| true | ) {
+    <[base.logs]>->(
+        0, 'self_test.follow_up: model %s follow-up failed', $model_id
+    );
+    return { mode => qw| false |, data => 'follow_up_failed' };
+}
+
+return { mode => qw| true |, data => $result->{'data'} // '' };
+
+#,,,,,,..,.,,,.,,,,,.,,..,,..,..,,.,.,,,,,,..,..,,...,..,,.,.,..,,,..,..,,..,,
+#7MP7Q6UPL2E7EOFB7H23T3HUMVPJ6YMXYEPLUBZFNHXARVWV2CADWPJCRJHQAW2OEGR4NXM377FUW
+#\\\|HVXBVT2JCHL4SB4SCXTIOZALX75UAKDDE2ZJPBL77I7QPJGDCIF \ / AMOS7 \ YOURUM ::
+#\[7]RDYQ6C5VV6EO6BMNNMQXEAJJ7LWW7YUO562BXWCDFTAZPLN5Z2DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

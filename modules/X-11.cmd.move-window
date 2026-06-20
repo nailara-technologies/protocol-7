@@ -50,6 +50,10 @@ my $X = <X-11.obj>;
 return { 'mode' => qw| false |, 'data' => 'X-11 connection not available' }
     if not defined $X;
 
+## window may still be unmapped/unrealized under weston/wslg - actualize  ##
+## before touching it, same as X-11.cmd.set_geometry / window_id_found    ##
+<[X-11.WM.update]>;
+
 ## fetch current geometry if any axis needs a relative delta ##
 my $need_geom = ( defined $xarg and $xarg =~ m|^[+-]| )
     || ( defined $yarg and $yarg =~ m|^[+-]| );
@@ -86,12 +90,15 @@ if ( length $EVAL_ERROR ) {
     return { 'mode' => qw| false |, 'data' => 'ConfigureWindow failed' };
 }
 
+## push the new position through to the wm/compositor - see set_geometry ##
+<[X-11.WM.update]>;
+
 my $pos_str = join ' ', map {"$_=$configure{$_}"} sort keys %configure;
 <[base.logs]>->( 2, '[move-window] id=%s %s', $window_id, $pos_str );
 return { 'mode' => qw| true |, 'data' => $pos_str };
 
-#,,,,,,..,...,.,,,..,,...,,.,,.,,,,..,..,,,,.,.,.,...,...,,.,,.,,,.,,,.,.,...,
-#FZRSG2QLALXTUXZVQNC43P3HYRD74KQQ6KQDKW76KO72GHY6MNFDBJCBUH3KR7Q6ECEZYSF5ZRWKS
-#\\\|6ZUFUYQYCIPDX2Z4AFRU5V5FNLSFIKFA2HVXWMKJBIM6O6MVKQF \ / AMOS7 \ YOURUM ::
-#\[7]PNGAPZYUPF6X73N6VSZKP53JAXNI5FYSN7V6FSUGMGIOOHIYV2AQ 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,,..,,,,,.,,,,.,,,,.,,..,,.,,,..,.,.,...,...,..,,,..,,..,..,,,,,,
+#EC344W4A7JBCGKRRJR626VFW3FG5SJZRQ6W7AG5VXNV2E5U5MZ5H3L45M4TGRW54CNEXFSPVYNNWA
+#\\\|XDHNG23KKFWNAM4V4UTTTY5VKY5EL2WM2TEQFSMCS4U4BEIZGQN \ / AMOS7 \ YOURUM ::
+#\[7]ODVI3NDDXMSJULKS6D6Z42DQN6UBWBFHD5A4TWWMJ7SOVBE5YKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

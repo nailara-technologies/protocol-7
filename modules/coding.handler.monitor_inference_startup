@@ -90,6 +90,13 @@ if (
         ## of normal prefill — independent of prompt size. http_client      ##
         ## grants this request extra data-start grace ; cleared on the      ##
         ## first chunk actually received [ coding.callback.http_chunk ]     ##
+        ## run model self-test cycle after server is ready [ timeout_stats, TTFT, anomaly detection ]
+        <[coding.self_test.run]>->(
+            {   model_id => $server->{'model'} // '',
+                url      => sprintf( 'http://127.0.0.1:%d',
+                    $server->{'port'} // 8000 ),
+            }
+        );
         $server->{'cold_start'} = TRUE;
         $server->{'url'}
             = sprintf( 'http://127.0.0.1:%d', $server->{'port'} // 8000 );
@@ -185,8 +192,8 @@ if ( $bytes <= 0 ) {
     }
 }
 
-#,,.,,,.,,,..,,,.,,..,..,,,,.,,,,,,,,,,,,,,.,,..,,...,...,...,,,.,,..,...,,,.,
-#236F42VDFY25DEHSYGW4JVQSJ4MUICLI2D3DB625GZVDKDOMFD5Z7SX6LNVVB36F7FFJRFQGX2ZYA
-#\\\|IIGXQCNUZOSBBPBCFTAORJWXRPBO52BJ2FYRNN3YE7EMMA7OKDP \ / AMOS7 \ YOURUM ::
-#\[7]2BPOFWDHSOYM5UZECMFY5OLZX4HGBNUG2J35D2K36UOHNK6JTSCY 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,,,,,,..,.,.,,..,,,,,.,,,,.,,..,,..,,...,...,..,,..,,,.,,.,.,,..,
+#RW3YUTHBOEZTNWHM4VZ5AGKDDXRG2Y3S7PLB6OSQNVPRVXTMDS7FI45DRJ6DR3UJFTPFVLH6XQT5G
+#\\\|OHHAOYWBAFW3HFJPA6NW6746RPLCD6V44IFBEYSVRXAQHDXWREZ \ / AMOS7 \ YOURUM ::
+#\[7]6ECDT3XBMN4MF7WYS4UYRKZTCKNGR2V2DY2KWZBCP6EI2XW636BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

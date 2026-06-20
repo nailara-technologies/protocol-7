@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = coding.self_test.archive
+# descr = store one self-test result in epoch-scoped data tree
+
+my $params   = shift                 // {};
+my $epoch    = $params->{'epoch'}    // <[base.time]>->(3);
+my $model_id = $params->{'model_id'} // '';
+my $result   = $params->{'result'}   // {};
+my $anomaly  = $params->{'anomaly'}  // '';
+
+return { mode => qw| false |, data => 'model_id required' }
+    if !length $model_id;
+return { mode => qw| false |, data => 'empty result' }
+    if !%$result;
+
+my $store = <coding.self_test>->{$epoch}{$model_id} //= {};
+
+$store->{'timestamp'} = $result->{'timestamp'} // <[base.time]>->(3);
+$store->{'ttft'}      = $result->{'ttft'}      // 0;
+$store->{'tps'}       = $result->{'tps'}       // 0;
+$store->{'passed'}    = $result->{'passed'}    // FALSE;
+$store->{'answer'}    = $result->{'answer'}    // '';
+$store->{'prompt_id'} = $result->{'prompt_id'} // 0;
+
+if ( length $anomaly ) {
+    my $prompt_id = $result->{'prompt_id'} // 0;
+    $store->{'anomaly'}{$prompt_id} = {
+        answer      => $result->{'answer'} // '',
+        explanation => $anomaly,
+        expected    => $result->{'expected'} // '',
+    };
+}
+
+<coding.self_test>->{$epoch}{$model_id} = $store;
+
+return { mode => qw| true |, data => 'archived' };
+
+#,,..,..,,,,.,.,,,..,,,,.,..,,..,,,..,.,,,.,.,..,,...,..,,.,.,,..,.,,,..,,...,
+#KXR4NP2BHGNHYP4UBTPCF2AVEURG2CASF5KVYKWMA3QX52AYQKQTKG3FFJWX6R4AD36DIUCLHHTYO
+#\\\|SQCEVWKNIN6HIHH6POPN3WUTB26T4ZV3PO3EG6OTI4SCN4ARG2D \ / AMOS7 \ YOURUM ::
+#\[7]QLNXOR2DRYLWXDHAF6X246G2CMNX2HIBDFIJBCQB6KEAHUNNW2BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

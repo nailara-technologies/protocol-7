@@ -18,6 +18,12 @@ return { 'mode' => qw| false |, 'data' => 'invalid <geometry> syntax' }
 
 my ( $w, $h, $x, $y ) = ( $1 + 0, $2 + 0, $3 + 0, $4 + 0 );
 
+## window may still be unmapped/unrealized under weston/wslg at this point ##
+## [ get_window_ids does the same before reading _NET_CLIENT_LIST ] - skip ##
+## this and ConfigureWindow can throw bad-window on a window that exists  ##
+## but isn't actualized yet                                              ##
+<[X-11.WM.update]>;
+
 eval {
     <X-11.obj>->ConfigureWindow(
         $id + 0,
@@ -36,14 +42,19 @@ if ($EVAL_ERROR) {
     return { 'mode' => qw| false |, 'data' => 'ConfigureWindow error' };
 }
 
+## push the new geometry through to the wm/compositor - without this the  ##
+## configurewindow request can silently not take visual effect [ known    ##
+## weston/wslg behaviour, confirmed live ]                                ##
+<[X-11.WM.update]>;
+
 <[base.logs]>->(
     2,   '[set_geometry] id=%s geometry=%s applied',
     $id, $geometry
 );
 return { 'mode' => qw| true |, 'data' => 'window updated' };
 
-#,,..,,..,,,,,,.,,..,,,..,.,.,...,,,.,,.,,.,.,..,,...,.,.,..,,,,,,,..,.,.,.,.,
-#RXRWHGJQ2T672ONLZAW2PJLEUGFP433JK6BZDFXHXCBAX6J6GJD2Y2I25DSSBS7Y2L3ROT475OSVE
-#\\\|QK2LN34ZA4PTWE5GGXSYCBPV4N5QC46XMSRP2TPJI5UZHUXJGHJ \ / AMOS7 \ YOURUM ::
-#\[7]CID7NZIIISMXSHIDPCZN5BWUUBTKJQYOUESEXF7BD44YMYJJRGCQ 7  DATA SIGNATURE ::
+#,,,,,...,,,.,.,.,...,..,,..,,.,.,,..,..,,,..,..,,...,...,...,,.,,..,,,,,,,..,
+#2WQ4HGQKG7DD2FYC3GYNLOS7CV4FBNF77N7XRX4X5ECLP7IH2PBJUNE3VWJIUNI46X6KYB7CEG7NW
+#\\\|ZC2R2AMJ3VGBWBPQOS4U65H6HG6E75ERWIYD3HOP34KQ7EN7DT3 \ / AMOS7 \ YOURUM ::
+#\[7]ZUQ4ZO4UBQWCL56AEMFE42XW3SQR3RV2RCCNP5CU7JBNIS5D2SDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

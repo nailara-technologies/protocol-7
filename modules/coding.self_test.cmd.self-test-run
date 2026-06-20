@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = coding.self_test.cmd.self-test-run
+# descr = trigger immediate self-test for a model
+
+my $params   = shift // {};
+my $model_id = $params->{'args'} // $params->{'model_id'} // '';
+
+return {
+    mode => qw| false |,
+    data => 'usage: coding.self-test-run <model_id>'
+    }
+    if !length $model_id;
+
+my $result = <[coding.self_test.run]>->( { model_id => $model_id } );
+
+if ( !$result || $result->{'mode'} ne qw| true | ) {
+    return {
+        mode => qw| size |,
+        data => sprintf "self-test failed for %s: %s\n",
+        $model_id, $result->{'data'} // 'unknown'
+    };
+}
+
+my $data    = $result->{'data'};
+my $summary = sprintf "self-test complete for %s: %d/%d passed\n",
+    $model_id, $data->{'pass_count'} // 0, $data->{'total'} // 0;
+
+if ( !$data->{'all_passed'} ) {
+    for my $r ( @{ $data->{'results'} // [] } ) {
+        next if $r->{'passed'};
+        $summary .= sprintf "  prompt %d mismatch: got '%s', expected '%s'\n",
+            $r->{'prompt_id'}, $r->{'answer'}, $r->{'expected'};
+    }
+}
+
+return { mode => qw| size |, data => $summary };
+
+#,,.,,..,,,..,,,,,,.,,,,,,,.,,.,.,,.,,,,,,..,,..,,...,...,..,,,,,,,,,,,,.,.,.,
+#HLO2NMYYDELJRBQSM2JMJKDU4KVGUBEKXFQ3JN6YO6H34SL7IYTZBDXQXXXZTZY3FXJDNGBBEGKDS
+#\\\|ANN627ELSNUMIXCCD6EUITIJ3ZKFSIS7ROFHDB3S7XJETBMODQE \ / AMOS7 \ YOURUM ::
+#\[7]X6I7YWJV43MUBCC453MF7PIRC4OMWI6NN2VTVLLTB7HZRLRWJYAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
