@@ -33,6 +33,11 @@ if ( $new_w and $new_h ) {
 ## refresh per-monitor geometry registry ##
 <[X-11.build_monitor_registry]> if <X-11.has_randr>;
 
+## monitor topology changed - windows that were on a now-vanished/restored ##
+## screen need the wm to re-actualize their state [ same need as after a   ##
+## set_geometry/move-window call, see X-11.cmd.set_geometry ]              ##
+<[X-11.WM.update]>;
+
 <[X-11.emit.screen-change]>->(
     <x11.screen.width>  // 0,
     <x11.screen.height> // 0
@@ -40,8 +45,8 @@ if ( $new_w and $new_h ) {
     if <X-11.screen_change_subscribers>
     and @{<X-11.screen_change_subscribers>};
 
-#,,,,,..,,,.,,.,,,..,,,,,,..,,..,,...,,,,,.,.,..,,...,...,,,,,.,.,,.,,...,.,.,
-#43HMGR4VJAVTNPLDREHEJYIJ55YHHAORULCJ5AU4NH5BSCN7SFLE2MAWHTNXXRQ2LEPHD7LMU6622
-#\\\|NLY2HWK3RYBIWJFPRU3UCLUHNIISSGVGKPISH3BM3PUAF325MA3 \ / AMOS7 \ YOURUM ::
-#\[7]GNNMSCL3ADE6BRSY26RDUVKQKUHH4YSTOR5XPSLDKIYH2DLLHADI 7  DATA SIGNATURE ::
+#,,,,,...,,..,...,.,,,...,,,.,...,...,,,.,.,.,..,,...,...,,..,,,.,,..,,,,,,..,
+#XRNZ3OO27CJ2CLKXT3OU2DYCVWDR237OMBXD5L3XRG2UB5BZODNAUEMU7HF556UDKNAHB54LH6AQY
+#\\\|WKA4ABP6LR3I66AJZ5A5ESGZVHOB7TFRZMS6AZMIV47ASV57JQN \ / AMOS7 \ YOURUM ::
+#\[7]OV65WMURTUMGNKH5KTO2V4U3WUNWO4TZ4ZRPUVSMIYWHMND4X2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

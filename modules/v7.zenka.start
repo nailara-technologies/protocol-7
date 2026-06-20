@@ -201,8 +201,6 @@ if ( exists $init_result_data->{'start_mode'}
         my $display = <x11.display>;
         $prepare_code .= "\$ENV{'DISPLAY'}='$display';"
             if defined $display;
-        $prepare_code .= "\$ENV{'GDK_BACKEND'}='x11';"
-            if defined $display;
         ## implement env set-up \ templates ? ##  [ <-- [LLL] ]
         $prepare_code .= <<~"EOT";
             \$EGID        = qw| $privs->{'all_gids'} |;
@@ -369,8 +367,8 @@ close($in_fh);    ## <-- no further use for zenka stdin handle [ for now ] ##
 
 <[base.logs]>->( '%s zenka started [ pid : %d ]', $zenka_sn_str, $pid );
 
-#,,.,,..,,,,.,..,,..,,.,.,,,,,.,,,,..,.,,,,.,,..,,...,...,,..,,..,,,,,..,,..,,
-#PGCKX5CKV746J4AFOQB5TY5NZQE3ME6SE7DURUO5MVIWM5EFIBEEGWWN27ITSU5LGQC4KNGWLFUJS
-#\\\|PUQUSDQH5W5LWCXAGKYRLJIY5UAEIHLONFGQ4ZELNMGOF5ADY3D \ / AMOS7 \ YOURUM ::
-#\[7]5EM4IGW2N2ZEZP24HSKVIFCI5CYDD4YO2TRJ4N4QV72TJ6LXUKBQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,,,.,,,.,,.,,.,.,,..,,..,..,,,,,,..,,...,...,...,.,.,,,,,,..,,,.,
+#S3FX3A4FP43TMPYPHNWMCLWUL2XSXF6BNHOCLLKAWC4YE6XSKI5NCWCA7P5G6MKFX4G2Y6EBN32K4
+#\\\|LXN72Y2Z6S42SDER6X6NQ62MUVTMSVVTRFLBEQRP6TA7OPYXLCD \ / AMOS7 \ YOURUM ::
+#\[7]PFE3S7Y2XTW3ISQN4MMTDFE7ICFSBLFQNE65OIICNJFCU343W2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

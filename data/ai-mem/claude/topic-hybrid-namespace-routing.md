@@ -94,6 +94,16 @@ filenames in `modules/` stay preempting/prioritized over any future
 nested submodule-directory form, same precedence rule one layer down).
 full sketch: `data/md/design/HYBRID-CONNECTION-TYPE-ROUTING.md`.
 
+## concrete consumer identified (2026-06-21): command-relay zenka
+
+`data/tasks/command-relay-zenka.md` — a new zenka requirement noted:
+maps input commands/routes to output routes, primarily for
+interconnecting a local/trusted core cube with a DMZ-facing cube where
+externally-reachable zenki (httpd, httpsd, etc.) connect. this is
+likely the concrete zenka that ends up needing the `tunnel`/`route`
+connection type once `HYBRID-CONNECTION-TYPE-ROUTING.md` gets built —
+not designed in detail yet, just noted as the natural first consumer.
+
 ## the meta-point, worth remembering on its own
 
 the user's framing for *when* to actually build this: wait for a second
@@ -108,8 +118,8 @@ watch for the next one or two before raising it again.
 [[feedback-access-grant-scope]] · [[topic-dot-path-case-notation]] ·
 [[coding-zenka-improvement-pipeline]]
 
-#,,,,,.,,,,,.,.,,,.,,,.,,,,..,,.,,,.,,,.,,,.,,..,,...,...,,.,,,,,,..,,,,.,,,.,
-#BFWH5MWFH5ICVIZNZGD4FOQTCY3S4TXMM2LNY6HHBTIC5PDTW3AQCTPYKVH5W7GW7BSB6LCU4W6VY
-#\\\|S53ESDZ2SSF2OT4DKH42H4OTJWTUFBK6ADY2WSEZ7WJQQD5S64R \ / AMOS7 \ YOURUM ::
-#\[7]HEI6E7HAVXMW5O32233II3JJHYFH2R5LZCJIPPMBWVNXR2SM7GAI 7  DATA SIGNATURE ::
+#,,,.,...,.,.,...,,,,,,..,...,,.,,,.,,.,,,,,.,..,,...,...,...,,.,,.,,,,..,,.,,
+#4P2D542P2P5E7BDPMYKE2XD5YOJPG676DDVEEU5UEQ2LMTPJ7G3VVY3AZYY3PWJ6MD3HBRAQIQESE
+#\\\|7RXXWYVQEEEKZ5TFLXRTPLELP77NLITI2U2LWLTGJ6DMKPCUDBW \ / AMOS7 \ YOURUM ::
+#\[7]7BGDV3ZNH3JVF237K6QJO6F4NKMBWQNHA3IKRNDCQ4URM4BZREDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

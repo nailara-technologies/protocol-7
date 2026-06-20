@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = mpv.handler.event.property-change.window-id
+# descr = mpv's own window-id ipc property: pushes 'null' until the real
+#          window opens [ vo-dependent ], then the numerical x11 id - async
+#          replacement for X-11.wait_visible's title-regex polling, scoped
+#          to mpv only [ wait_visible itself stays untouched, other zenki
+#          depend on it ]
+
+my $id = shift->{'data'};
+
+return if not defined $id or $id !~ m|^\d+$|;     ## window not open yet ##
+return if exists <x11.id> and <x11.id> == $id;    ## already applied ##
+
+<x11.id> = $id;
+<[base.logs]>->(
+    1, '[window_id] x11 id=%s [via mpv ipc] — applying startup geometry',
+    <x11.id>
+);
+
+if (<mpv.fade_in>) {
+
+    ## fade_in's own callback already does both the opacity ramp and the  ##
+    ## set_geometry call once <x11.id> exists - just fire it once         ##
+    return if <mpv.startup.fade_started>++;
+    <[mpv.callback.fade_in]>;
+
+} elsif ( defined <mpv.geometry> ) {
+
+    <[protocol-7.command.send.local]>->(
+        {   'command'   => 'cube.X-11.set_geometry',
+            'call_args' => { 'args' => join( ' ', <x11.id>, <mpv.geometry> ) }
+        }
+    );
+}
+
+#,,,.,,.,,,,.,,.,,,,,,.,.,.,.,,.,,,,.,.,,,...,..,,...,...,,,.,,,.,...,.,,,,,.,
+#7VHEVKBLPHWTIS3ARTGMGDSWLDUXC5NDTHLNRFRHNC6VWJ7ZEJOTHP6JBLACU4AENIV25AKZWM2HY
+#\\\|U3S4YHPT5WRINSLYAMWFJDIBR7CLCX5TK7FKM2IUQUG6W2KQ4FR \ / AMOS7 \ YOURUM ::
+#\[7]3WDGPR5A3BGJX6ZXTWOX2WUCXMCDRFVHSAQ5UEDHXUAQ2CVLTUDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

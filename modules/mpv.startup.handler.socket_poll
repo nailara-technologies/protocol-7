@@ -64,29 +64,20 @@ if ( not defined <mpv.socket> or !-S <mpv.socket> ) {
     }
 );
 
-<[mpv.callback.fade_in]> if <mpv.fade_in> and not <mpv.audio_only>;
-
-## when fade_in is off, enforce window position explicitly after startup ##
-if ( not <mpv.fade_in> and not <mpv.audio_only> and defined <mpv.geometry> ) {
-    my $title = <mpv.zenka_title> // '';
-    $title .= '[' . <system.zenka.subname> . ']'
-        if exists <system.zenka.subname> and length <system.zenka.subname>;
-    $title =~ s|([\[\]\.])|\\$1|g;
-    <[protocol-7.route-send]>->(
-        {   'command'   => 'X-11.wait_visible',
-            'call_args' => { 'args'    => sprintf '7 %s', $title },
-            'reply'     => { 'handler' => 'mpv.handler.window_id_reply' },
-        }
-    );
-}
+## window-id is mpv's own ipc property [ null until the real window opens,
+## vo-dependent ] - subscribe instead of firing fade_in/geometry here
+## synchronously; mpv.handler.event.property-change.window-id does both
+## once a real id arrives, async, no X-11 title-matching involved
+<[mpv.send_command]>->( qw| observe_property |, 1, qw| window-id | )
+    if not <mpv.audio_only> and ( <mpv.fade_in> or defined <mpv.geometry> );
 
 <[base.log]>->( 1, 'player startup successful., =)' );
 
 ## release finalize job — observe_properties + get_playlist run from there ##
 <[jobqueue.check_dependencies]>;
 
-#,,.,,...,,,.,,.,,,,,,,.,,...,,,,,...,.,.,...,.,.,...,...,.,,,..,,,..,..,,,.,,
-#2HEQAID7WP47K6SBUB2YZ4F3RM7B6Q5BJTRRKT3HSQT7VURDC3SXPKMM4NZUVQKZ32PXN2R5IIGSI
-#\\\|7AQBAYTFT5JMIKBBQRSXXRYY2T3SM7ZRAQCNA6W3FAAKX5WYFFK \ / AMOS7 \ YOURUM ::
-#\[7]VFWDMLWQFFHFAO2OHZVSZZ45IH3Y7H2OHQUME3ANLPC6BEIC5OAA 7  DATA SIGNATURE ::
+#,,,.,...,.,.,..,,,,,,,.,,.,,,.,.,...,..,,.,,,.,.,...,...,.,,,.,.,,,.,.,,,,,,,
+#2JGY4LTQJ2CMKGVOOESIG3DB7L36LAJXVU4EUTBOOXTVYMUDCD3XTDPT6MRQFSP5FENHF2WNBITZ2
+#\\\|H636PTIQUCNVX6BP2OQI4XJ7FYT2Q3MQKQKTEXZVPZANDBVTPBZ \ / AMOS7 \ YOURUM ::
+#\[7]ZAQIP444JOXAG3U7KKO7NC77AJLW3GY3PX6THAWU6WEJKMI3AADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
