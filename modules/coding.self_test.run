@@ -14,6 +14,8 @@ return { mode => qw| false |, data => 'model_id required' }
 
 my $epoch = <[base.time]>->(3);
 
+<[base.logs]>->( 1, '[self_test] starting : model %s', $model_id );
+
 ## calibration prompt sequence ##
 my @prompts = (
     {   id       => 1,
@@ -22,7 +24,7 @@ my @prompts = (
     },
     {   id   => 2,
         text => 'put a cat and a mouse in a room, close the door and wait.., '
-            . 'who is the remaining animal?',
+            . 'who is the remaining animal? reply with only the animal name.',
         expected => 'cat'
     },
 );
@@ -57,8 +59,8 @@ for my $prompt_def (@prompts) {
 
     if ( !$result || $result->{'mode'} ne qw| true | ) {
         <[base.logs]>->(
-            0,         'self_test.run: model %s prompt %d inference failed',
-            $model_id, $prompt_id
+            0, '[self_test] prompt %d : model %s : inference failed : %s',
+            $prompt_id, $model_id, $result->{'data'} // 'no reply'
         );
         $total      = <[base.time]>->(9) - $start;
         $all_passed = FALSE;
@@ -80,10 +82,22 @@ for my $prompt_def (@prompts) {
     if ( $eval && $eval->{'mode'} eq qw| true | ) {
         $passed = TRUE;
         $pass_count++;
+        <[base.logs]>->(
+            1, '[self_test] prompt %d : model %s : PASS [ ttft=%.2fs ]',
+            $prompt_id, $model_id, $ttft
+        );
     } else {
         $passed     = FALSE;
         $all_passed = FALSE;
         $anomaly    = $eval->{'anomaly'} // $eval->{'data'} // 'mismatch';
+        <[base.logs]>->(
+            1,
+            "[self_test] prompt %d : model %s : FAIL [ got '%s' expected '%s' ]",
+            $prompt_id,
+            $model_id,
+            $answer,
+            $expected
+        );
     }
 
     my $result_record = {
@@ -114,6 +128,11 @@ for my $prompt_def (@prompts) {
     ) if $ttft > 0;
 }
 
+<[base.logs]>->(
+    1, '[self_test] complete : model %s : %d/%d passed',
+    $model_id, $pass_count, $test_count
+);
+
 my $summary = {
     model_id   => $model_id,
     epoch      => $epoch,
@@ -128,8 +147,8 @@ return {
     data => $summary,
 };
 
-#,,,,,.,,,.,,,...,.,.,.,.,...,,.,,.,,,.,,,,..,..,,...,...,..,,,..,.,.,...,..,,
-#FPZ4RPVWDG3NXRI7IS3RHDB5YJFSCNGJ7SR7T6PTXGCZX2UVOSI3PP67XUQXWXDDARGFOWM2D3QJY
-#\\\|RSZZOFCAU5F6AKNPZAZNRTSOUQQZCP2BXEX63HXD5QK3OO2AIUG \ / AMOS7 \ YOURUM ::
-#\[7]R3B273P5ZG3BOMHEKI6SGIML623U6MBPBKZ77QSUAOQVRONVAUDI 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,,.,..,,,,,,,..,...,,,,,..,,.,.,..,,...,...,.,.,.,,,,.,,..,,...,
+#O23S72RFTXJLMZRSZ7537VGA5U4JJ3S4WS63YGZBC4RVPQASZYRK7NW7XQSTBN3K7N4AU52HQMEJQ
+#\\\|45KALI52C5N2ICBO5ZCXJUM4GG2NI6IMOLZSCFJE2DAU7FCBYBC \ / AMOS7 \ YOURUM ::
+#\[7]PRFGKP7NVOAR3OGKLSUQIKCMC3NTECXBVP2WBSMFI7F56LJTCICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

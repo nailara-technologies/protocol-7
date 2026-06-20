@@ -8,6 +8,10 @@ my $url      = $params->{'url'}      // 'http://127.0.0.1:8000';
 my $model_id = $params->{'model_id'} // '';
 my $prompt   = $params->{'prompt'}   // '';
 my $timeout  = $params->{'timeout'}  // 30;
+## reasoning models spend tokens on a <think> trace before any visible    ##
+## content - 128 was getting fully consumed by reasoning, leaving the     ##
+## actual answer empty [ confirmed live 2026-06-21 ]                      ##
+my $max_tokens = $params->{'max_tokens'} // 1024;
 
 return { mode => qw| false |, data => 'prompt required' }
     if !length $prompt;
@@ -22,7 +26,7 @@ if ( $completion_url !~ m{/v1/chat/completions$} ) {
 my $request_body = {
     model       => $model_id,
     messages    => [ { role => 'user', content => $prompt } ],
-    max_tokens  => 128,
+    max_tokens  => $max_tokens,
     temperature => 0.3,
     stream      => JSON::PP::false,
 };
@@ -63,8 +67,8 @@ if ($@) {
 
 return $reply;
 
-#,,,.,,..,.,,,...,,,,,,,.,,.,,,.,,,,.,,..,..,,..,,...,...,,..,...,.,.,,..,,,,,
-#7Z6FGBDO2EHS6L4H6LQT45AHPLGINHO6K4AQCCBZ5I7UGKUN2C6G7I4BSAGK5QF3SJXKIEJGGDL6U
-#\\\|2K42YN3EYKDN2E5P74R3K4WFDUUT35BAJU7444OAQF5XUDNTACI \ / AMOS7 \ YOURUM ::
-#\[7]4UAVKI2DC3JQAOK52C6DF5MOC4J4G7RGZEJD45CDP6QMVO2EJOAQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,..,,,.,,...,,..,.,,,,,,,...,,..,..,,...,...,,.,,,,.,,..,,.,,,,.,
+#IJCLTTYRGZXA53OREE4D6E5ERDOJB3M5Z4EGIRUZB23ZXF7DKFLWEMO7CCPHDZZ7QBAQQ2NRGR7S4
+#\\\|QI6X754TMQUCDW3RNTUQKDWDOZABJVGYJULCQJXS5EJIMQL26DX \ / AMOS7 \ YOURUM ::
+#\[7]DIWCFMP3E2GFONRJOMY4NYG34FXNBW43H36PUKH6CWEYBI2J6GCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
