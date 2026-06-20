@@ -45,10 +45,21 @@ was produced under).
 session, read the index file first — it has the authoritative tier
 status. This memory note is a pointer, not the source of truth.
 
+**Gotcha confirmed live 2026-06-21**: the `model` field in
+`coding.tools.http_inference_client`'s request body does NOT switch
+models — `llama-server` serves exactly one model, fixed at process-
+spawn time (`--model <path>`, see `coding.spawn_inference_server`).
+Model selection is by which port you connect to (8000=gpu, 8001=cpu),
+not by anything in the request body. `model_id` flowing through
+`self_test.*` is a label for logging/archival only. Relevant if the
+model-fallback-chain feature in `coding-model-self-test-cycle.md` ever
+gets built — "switching" there means spawning a different server
+process on that port, not changing a request parameter.
+
 [[resonance-field-emergence]]
 
-#,,,.,,,.,,,,,..,,..,,..,,,..,,,.,.,,,.,.,,,.,..,,...,...,...,...,,,,,,.,,,,,,
-#725OVXW7YZBYEAJJVYOZU7MSVWAJDOF7WH6GEPVCXP5YBO3YCGIP7REL5RFOAX5C2SMX23O4E3HLM
-#\\\|J74AAX56XDXVXGJCWAXHBRZ2OBFYQNIWKYGSSLZPGA464ML2NJF \ / AMOS7 \ YOURUM ::
-#\[7]6C3NCL22CEXPS5N3WG4DTFXFJ3EIUYL2TQESYJWPAGARD2UDQCBI 7  DATA SIGNATURE ::
+#,,.,,...,,,.,...,,,.,...,,.,,.,,,,,,,,..,..,,..,,...,...,,..,,,.,.,,,,..,..,,
+#T4XNHDGLEH6GBBFW7CKKI7Y5Y3YVHNALHOQ4BMVXQT4FH7IY7WFCW5N6DW7QHFELITKXLQAS3Y4KY
+#\\\|JQNMSOCQGRAZH3RYUXWZQIRSGORCDOYA7C6Q2VY3UNNHJYEHITA \ / AMOS7 \ YOURUM ::
+#\[7]2CA25IT7KO3U6HBWSPPGGKSYDC76LQBT5FGPGPP7TLN545BRBGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

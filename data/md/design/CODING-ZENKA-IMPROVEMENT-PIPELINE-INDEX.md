@@ -39,7 +39,15 @@ tier 0 (LANDED, 2026-06-20):
   core pass/fail; worth a look, not urgent.
 
 tier 1 — data/tasks/coding-model-self-test-cycle.md
-  status: DONE. spec complete, modules implemented, live-validated.
+  status: DONE for the core calibration cycle (live-validated).
+  EXTENDED, NOT YET IMPLEMENTED (2026-06-21): testing a non-loaded
+  model via switch-model + restore, gated on introducing self-test as
+  a dependency-object state (reusing the same mechanism that already
+  gates GPU/CPU server readiness, not a new poll/sleep loop) so
+  regular tasks block correctly during the switch window. also flagged:
+  cross-model assertion (a known-good model judging another model's
+  self-test results, since an incoherent model likely can't reliably
+  assess its own incoherence) — speculative, phase 3+, not designed.
 
 tier 2 — data/tasks/coding-self-error-processing-cycle.md
   status: design captured, marked NOT READY TO DISPATCH. three open
@@ -108,8 +116,8 @@ tier 2: NOT READY — 3 open decisions block dispatch
 tier 3: GATED — awaiting tier 2 stability milestone
 ```
 
-#,,.,,,..,..,,...,...,.,.,,,,,,..,.,.,,..,...,..,,...,...,,..,.,,,.,,,...,,,.,
-#A6PG4ODPUZD75KWL4AIFMRICQRAJ3RHJB7ULPZR33VGOEMAPG7ZLHTXVQMJFVJOLHXNZTPUTPNPKW
-#\\\|YERVIWUHMOFFWLF357JK56ADVGXBNP2U2L6NGO2RLGQCG4UQDQB \ / AMOS7 \ YOURUM ::
-#\[7]U64N6OTJWIUQT2T7B2DJNMHN5MEGGUNISCDEWRTHFNN2GHBMB4DA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,..,,,,,,,.,.,.,,,.,.,,,..,,...,..,,...,...,,.,,.,.,.,,,,.,,,..,
+#5HSSGJYG76WDNTUPNGJFD33UPYEVELFI7RD7CCBBMIMYL2B2KVFVTFAAJXLF3IKXLSLHICKPKXJW6
+#\\\|EFRV5EWUCGRAUV4OMDDZDOWDNRYVHP64YNRL7JUIPVGSSRIZUGT \ / AMOS7 \ YOURUM ::
+#\[7]B2UXFN4HXQI4SDFEEQUQUUTBQ7FTWGBP3OHGMENHGU24CR6YZYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

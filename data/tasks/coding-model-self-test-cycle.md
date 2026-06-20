@@ -139,6 +139,90 @@ coding.cfg.model_fallback.DVEAZIA = CSABG4A   # Glitter fails → DeepSeek
 coding.cfg.model_fallback.CSABG4A = none       # DeepSeek is the last resort
 ```
 
+## testing a non-loaded model (2026-06-21, open design)
+
+`coding.self-test-run`'s `model_id` is now optional (DONE) — defaults
+to `<inference.model.amos_id>`, the currently-loaded model, via the
+data tree (no need to already know the checksum).
+
+if a `model_id` IS given and differs from the currently-loaded one,
+the natural next step is: switch to it, run the self-test, switch back
+— using the existing `coding.cmd.switch-model` machinery. NOT yet
+implemented; three real design decisions block it:
+
+```
+1. switch-model is async with no fixed completion bound (kills the old
+   process, spawns fresh, readiness detected by monitor_inference_startup
+   polling stdout for a log pattern - no timeout in that code path).
+   self_test.run currently blocks synchronously via LWP::UserAgent
+   calls already, so a poll-loop extension wouldn't be a new category
+   of problem - but poll against what, exactly? coding.cmd.inference-status
+   (status flips unknown -> starting -> ready|crashed) is the existing
+   query surface; use that, don't invent a second one.
+
+2. MUST switch back to the original model afterward, including on
+   failure/crash during the test - the original model_id has to be
+   captured before switching and restoration attempted unconditionally
+   (a self-test run must never silently leave a different model loaded
+   than what was running before it started).
+
+3. while the switch+test+switch-back window is open, regular production
+   tasks must not be routed to that backend and silently fail or hang -
+   see dependency-state section below, this is the actual blocking
+   mechanism, not a queue/sleep inside self_test.run itself.
+```
+
+## self-test as a dependency state (2026-06-21, open design, architecture
+agreed)
+
+user's call, and the right one: don't hand-roll blocking/polling inside
+`self_test.run` for the switch-and-test window above. reuse the EXACT
+mechanism that already gates "is the GPU/CPU server ready" -
+`<dependency.object>` + `jobqueue.check_dependencies` (see
+`coding.handler.monitor_inference_startup`'s existing
+`<coding.dep.gpu_server>` / `<coding.dep.cpu_server>` pattern).
+
+```
+add a new dependency (e.g. coding.dep.gpu_self_test_pending) that:
+  - gets marked "not ready" the moment a self-test-triggered model
+    switch begins
+  - any task that would route to that backend during this window waits
+    on it, via the same dependency-checking path normal tasks already
+    go through for server-readiness - no new task-routing logic needed,
+    just one more dependency entry in the same check
+  - gets marked "ready" again once: the test completes AND (if a
+    switch happened) the original model is confirmed restored and
+    ready - not just when the test's own HTTP calls return
+
+this is the actual mechanism that satisfies "block regular tasks until
+complete" - not a sleep loop, not a manual queue. tasks already know
+how to wait on dependency objects; self-test-in-progress just becomes
+one more state expressible in that same system.
+```
+
+still open: exact hook point for marking this dependency not-ready
+(inside self_test.run itself, vs. wherever the switch-model-for-testing
+decision is made one level up) - needs the same care
+`coding-self-error-processing-cycle.md`'s open hook-point question
+already flagged for a different reason. likely the same investigation
+answers both.
+
+## cross-model assertion (2026-06-21, speculative, phase 3+)
+
+raised alongside the above: a model producing incoherent output likely
+also can't reliably assess its own incoherence — self-assessment is
+exactly the capability most likely to degrade together with general
+output quality, not independently of it. the switch-mechanism above
+makes a different angle available: once switching is reliable, a
+KNOWN-GOOD model could be the one performing the assertion/analysis
+step on another model's self-test results, instead of relying on
+consensus_vote across models that might share the same failure mode,
+or relying on the model under test to judge itself.
+
+not designed in detail - flagged because it's a natural extension once
+switch-and-restore exists, not because it's ready to build. revisit
+after the dependency-state mechanism above actually ships.
+
 ## result archival
 
 each self-test result archived with epoch-scoped key:
@@ -268,8 +352,8 @@ to confirm it's initialized in `coding.init_code` or add it there.
 
 #,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-#,,,.,,..,,.,,,,.,,..,.,.,,..,,..,,..,,,.,...,..,,...,...,,..,.,,,,..,...,.,.,
-#N2376QUR22Z46NOCGCYDLLUWZM5LLT42Z2BEMP4QIQGJF7I6O2LZPZGFI4NEJGGN3PQWKKOLQ3EAY
-#\\\|OS7QR4DREHIPXQNWUAOAZTZQIIRAEAIFMF2RVZQVWOK4I4TXSU3 \ / AMOS7 \ YOURUM ::
-#\[7]AJOE4TMYBU6GRXFCT5L5SE4V63F4N2QQXCQ3XUOWE5BH4AGCNQCQ 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,,,,,,.,,,..,..,,,.,,,.,,,,,,.,.,..,,...,...,...,..,,,,,,,..,,.,,
+#6FGHCL3KE5PAUBGE4U2WUKP65Q3FCDPQXWTLCEQK3SEVIGSVGKKDMGOH24IPVJTKYDKBTW7YP5OME
+#\\\|VCIIIIUTKMIK7GJ474DF7BD6TMYAEDYZXWL45UH4DQ3HAYRB74M \ / AMOS7 \ YOURUM ::
+#\[7]ZRKKCEEWV6GPCLKCJDBKRWEHIE3PTKFJTHE3JTUAIMDZZ67SJWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
