@@ -14,14 +14,18 @@ return {
 
 my $result = <[coding.self_test.run]>->( { model_id => $model_id } );
 
-if ( !$result || $result->{'mode'} ne qw| true | ) {
+if ( !$result ) {
     return {
         mode => qw| size |,
-        data => sprintf "self-test failed for %s: %s\n",
-        $model_id, $result->{'data'} // 'unknown'
+        data => sprintf "self-test failed for %s: no reply\n",
+        $model_id
     };
 }
 
+## self_test.run always returns data => $summary [ a hashref ], even on   ##
+## mode=false [ "false" just means not all prompts passed ] - the prior  ##
+## code mistakenly treated $result->{'data'} as a string on mode=false,  ##
+## stringifying the hashref into 'HASH(0x...)' in the output             ##
 my $data    = $result->{'data'};
 my $summary = sprintf "self-test complete for %s: %d/%d passed\n",
     $model_id, $data->{'pass_count'} // 0, $data->{'total'} // 0;
@@ -36,8 +40,8 @@ if ( !$data->{'all_passed'} ) {
 
 return { mode => qw| size |, data => $summary };
 
-#,,.,,..,,,..,,,,,,.,,,,,,,.,,.,.,,.,,,,,,..,,..,,...,...,..,,,,,,,,,,,,.,.,.,
-#HLO2NMYYDELJRBQSM2JMJKDU4KVGUBEKXFQ3JN6YO6H34SL7IYTZBDXQXXXZTZY3FXJDNGBBEGKDS
-#\\\|ANN627ELSNUMIXCCD6EUITIJ3ZKFSIS7ROFHDB3S7XJETBMODQE \ / AMOS7 \ YOURUM ::
-#\[7]X6I7YWJV43MUBCC453MF7PIRC4OMWI6NN2VTVLLTB7HZRLRWJYAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,..,,...,,.,,,,,,,,.,..,,,,,,,,,,..,,...,...,...,,,,,...,,..,,,,,
+#CLTS7EEHOGKKB6CI5DONUQUPIALQLXTS27YDQO57FWSLDWGSFL77J7CB4XXB4YFFKAOD65BC3UUXW
+#\\\|VXBK4AMRQL2E77M7L46ZTVMX2OOXLI4FHRMEGU4RK4UBMU7X53Y \ / AMOS7 \ YOURUM ::
+#\[7]2BPTLVGDP2VSGBMLRK77RRU3BPQIM4KKLEHTAVYFEXGCB5DNVCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

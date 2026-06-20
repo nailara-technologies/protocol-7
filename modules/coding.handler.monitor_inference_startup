@@ -90,18 +90,19 @@ if (
         ## of normal prefill — independent of prompt size. http_client      ##
         ## grants this request extra data-start grace ; cleared on the      ##
         ## first chunk actually received [ coding.callback.http_chunk ]     ##
-        ## run model self-test cycle after server is ready [ timeout_stats, TTFT, anomaly detection ]
-        <[coding.self_test.run]>->(
-            {   model_id => $server->{'model'} // '',
-                url      => sprintf( 'http://127.0.0.1:%d',
-                    $server->{'port'} // 8000 ),
-            }
-        );
         $server->{'cold_start'} = TRUE;
         $server->{'url'}
             = sprintf( 'http://127.0.0.1:%d', $server->{'port'} // 8000 );
         $server->{'model'}       = <inference.model.amos_id>     // '';
         $server->{'mmproj_path'} = <inference.model.mmproj_path> // '';
+
+        ## run model self-test cycle after server is ready [ timeout_stats, TTFT, anomaly detection ]
+        ## must come after $server->{'model'} is set above, not before     ##
+        <[coding.self_test.run]>->(
+            {   model_id => $server->{'model'} // '',
+                url      => $server->{'url'},
+            }
+        );
 
         ## reset dependency object (may have been marked failed by a previous
         ## server that was killed mid-startup, e.g. during switch-model)     ##
@@ -192,8 +193,8 @@ if ( $bytes <= 0 ) {
     }
 }
 
-#,,,.,,,.,..,,,,,,,..,.,.,,..,,,,,.,,,,.,,..,,..,,...,...,..,,..,,,.,,.,.,,..,
-#RW3YUTHBOEZTNWHM4VZ5AGKDDXRG2Y3S7PLB6OSQNVPRVXTMDS7FI45DRJ6DR3UJFTPFVLH6XQT5G
-#\\\|OHHAOYWBAFW3HFJPA6NW6746RPLCD6V44IFBEYSVRXAQHDXWREZ \ / AMOS7 \ YOURUM ::
-#\[7]6ECDT3XBMN4MF7WYS4UYRKZTCKNGR2V2DY2KWZBCP6EI2XW636BY 7  DATA SIGNATURE ::
+#,,..,,,,,,..,,,.,,..,...,...,...,.,,,,.,,,..,..,,...,...,...,,,.,,..,.,.,,,.,
+#OIPRVVKFNWDOFHO6M5K3M3OTIKIRLCYWNMQHXBVZQ6MNLDM3GO4ZXL626JI6PTFEUI4ICXZTV3KLK
+#\\\|GY2XLQR4VSITZTBKJGDYMXSHQHQPCFPMBTBOZJA7OPJJIFP44OQ \ / AMOS7 \ YOURUM ::
+#\[7]A3N46KWMJ72UQD2BXNREN2N2VMZ55GJQCBCPGBINXU6ZLPHGO2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
