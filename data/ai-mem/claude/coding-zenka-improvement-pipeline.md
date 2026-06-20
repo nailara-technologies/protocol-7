@@ -19,11 +19,14 @@ Tier status as of last update (re-check the index file itself, this is
 a point-in-time snapshot):
 - tier 0 (LANDED): X-11 `WM.update` before/after `ConfigureWindow` fix
   (set_geometry, move-window, screen_change) — confirmed live by user
-- tier 1 (BUILT, not live-tested end-to-end): `coding.self_test.*` +
-  `coding.tools.http_inference_client` — two dispatch passes, first had
-  fatal bugs (wrong `<x>` vs `<[x]>` syntax, `->method` on plain
-  hashrefs, closure/factory mismatch), second pass fixed all, verified
-  on disk by direct read, not yet run live against the inference server
+- tier 1 (DONE, live-validated 2026-06-21): `coding.self_test.*` +
+  `coding.tools.http_inference_client` — three real passes total; first
+  two dispatches fixed syntax/structural bugs, but two more bugs only
+  surfaced under an actual live run (monitor_inference_startup calling
+  self_test.run before the model_id field was set; max_tokens=128
+  starving a reasoning model's answer). both fixed, confirmed live
+  "2/2 passed" with clean logging added. also confirmed: the
+  extract-inline-subs coding-task template works correctly end-to-end.
 - tier 2 (NOT READY): `coding-self-error-processing-cycle.md` — 3 open
   decisions block dispatch (error-surfacing hook point, confidence
   threshold mechanism, assertion-criteria rubric format)
@@ -44,8 +47,8 @@ status. This memory note is a pointer, not the source of truth.
 
 [[resonance-field-emergence]]
 
-#,,..,,,.,.,,,..,,.,,,...,,..,,.,,,.,,..,,.,,,..,,...,...,.,,,,..,.,.,...,,..,
-#KFQV4CPPF474XTPUM32BAUHACG6GSKTHNCUZJCPOVUEHHT2YCKXMDS3E54XDQ7MMO5Z5VEVWU6WLA
-#\\\|ZEYIN4KAFNIOSJ6WVLKG4WOGHGFCG6GW67K3U4TOE7SGEZVCEUD \ / AMOS7 \ YOURUM ::
-#\[7]2VLFIXYNWYA4W2AZI7JZKUVMFWCVAA77L4W6ETYWUKAWPWPVOYBI 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,..,,..,,..,,,..,,,.,.,,,.,.,,,.,..,,...,...,...,...,,,,,,.,,,,,,
+#725OVXW7YZBYEAJJVYOZU7MSVWAJDOF7WH6GEPVCXP5YBO3YCGIP7REL5RFOAX5C2SMX23O4E3HLM
+#\\\|J74AAX56XDXVXGJCWAXHBRZ2OBFYQNIWKYGSSLZPGA464ML2NJF \ / AMOS7 \ YOURUM ::
+#\[7]6C3NCL22CEXPS5N3WG4DTFXFJ3EIUYL2TQESYJWPAGARD2UDQCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
