@@ -39,6 +39,41 @@ full startup geometry flow landed:
 - `mpv.handler.window_id_reply` — new handler; stores `<x11.id>` + calls `cube.X-11.set_geometry`
 - note: `mpv.await_window_presence` is commented out in `mpv.open_player`; `x11.id` was never set before
 
+## mpv window positioning bug RESOLVED (2026-06-19)
+
+Symptom: mpv's window landed at the wrong/random position despite the
+2026-06-18 `X-11.wait_visible` → `cube.X-11.set_geometry` fix landing —
+size was honored, position wasn't. Live log showed a `Bad Window` X11
+protocol error on `ConfigureWindow` (id `25165827`), forcing an X11
+reconnect (the recently-added [[topic-x11-multi-server]] reconnect logic
+absorbed what used to be a hard crash/restart — confirmed working as
+designed).
+
+Root cause (confirmed by user, recalled from ~11 years ago): under
+Weston/WSLg, a freshly-created X11 window can exist as a resource but not
+yet be "actualized"/mapped until something forces a WM refresh — `X-11.
+get_window_ids` already calls `<[X-11.WM.update]>` before reading
+`_NET_CLIENT_LIST` for exactly this reason, but `X-11.cmd.set_geometry`
+called `ConfigureWindow` directly with no `WM.update` before *or* after.
+Two distinct failures from one missing call:
+- before: window not yet realized → `ConfigureWindow` throws `BadWindow`.
+- after: even when `ConfigureWindow` succeeds, the new geometry doesn't
+  visually take effect without a follow-up `WM.update` to push it through
+  to the compositor.
+
+Fix (landed, uncommitted): `modules/X-11.cmd.set_geometry` now calls
+`<[X-11.WM.update]>` both immediately before and immediately after
+`ConfigureWindow`. User-confirmed live: mpv window now appears mapped,
+correctly positioned, on the correct screen, matching the
+`window-place`-selected coordinates exactly.
+
+Note: `window.place` itself never touched mpv's actual window — it only
+repositions its own decoy GTK HUD overlay and saves the resulting
+coordinates to a profile (`window.profile.save`), which mpv reads back as
+`<mpv.geometry>` on next startup. The `X-11.wait_visible` →
+`set_geometry` chain is the only thing that ever touches mpv's real
+window.
+
 ## open work
 
 - **state snapshot/restore**: full property map save on shutdown; restore via deferred queue
@@ -65,8 +100,8 @@ logic that needs the player socket uses mpv.dep.socket as its dependency.
 [[topic-self-improving-system]]
 [[topic-mpv-persistence]]
 
-#,,,.,,,.,.,,,,,,,,,.,,,.,,..,,.,,,.,,,.,,,,,,..,,...,...,.,.,..,,.,.,.,.,,,.,
-#HZQFBCUGROIVFEEG3TIPGOHML6EXCXLHY5J6SBGJ6YPRBLBK6I4GDC367SVWUSIVXU5LZVU2I3HZ2
-#\\\|ZRJAE3JXIRT55I653OIM5IBFXMP7SHDYQO47ULVG2HNFTJ7DOZL \ / AMOS7 \ YOURUM ::
-#\[7]B7ISWJDR4GIGCF6EOBEM6SMDBQWK43XYCHTLLMNIYCULRCJHW2CQ 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,..,,..,,,.,.,.,..,,,,.,,,,,..,,..,,...,..,,,,.,,.,,...,,,,,,,.,
+#ZF6AEEPVF3LOLEJHHPXB52YTCZ7LHKWTERCUFGAW6WUVLGV3SUBTSXOY5CROQAKOWE2EGJWJTAVPM
+#\\\|UBQZS5EVFUMYLDOV7OZND3MR55IBTOEMMC2FKBWVX4BC34QNAES \ / AMOS7 \ YOURUM ::
+#\[7]4OCTFOGOQXINU5S2J3LVECMLE5AKAKGP5ASFLPZOABX6YARC4UAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

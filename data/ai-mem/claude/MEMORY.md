@@ -1,5 +1,8 @@
 ## CRITICAL
 - [WSLg deiconify limitation](feedback-wslg-deiconify-limitation.md) — Weston/WSLg blocks deiconify at compositor level; iconify works, nothing deiconifies (X11 or GTK); don't re-investigate unless Weston version changes
+- [UNCOMMITTED 2026-06-20](topic-mpv-jobqueue-startup.md) — large uncommitted set spanning two sessions: bin/protocol-7-gtk3, configuration/zenki/mpv/start (fade_in=1 + fade_start_geom=700x42 are VOLATILE TEST VALUES, revert before commit), modules/{X-11.cmd.move-window,X-11.cmd.set_geometry,X-11.handler.screen_change,base.root.drop_privs,mpv.startup.handler.socket_poll,v7.zenka.start,mpv.handler.event.property-change.window-id(new)}, bin/dev/script-scratchpad/gtk_position_restore(new) — check `git status` first thing next session, separate durable fixes from volatile fade_in tuning before any commit
+- [gtk-wsl-window-positioning](topic-gtk-wsl-window-positioning.md) — active, UNRESOLVED: GDK_BACKEND=x11 alone disproven as the fix for move()-before-show_all under WSLg; minimal test script still mismatches; window also renders translucent/shadow-only — open questions listed, read before continuing
+- [cube-auth-name-collision](feedback-cube-auth-name-collision.md) — zenka names matching `(declare|select)-<word>` silently break auth; fixed (auth. prefix now mandatory), but re-check if regex ever touched again
 
 
 - [gtk ondemand zenka startup](feedback-gtk-ondemand-zenka-startup.md) — on-demand gtk3 zenka needs Gtk3->init in init_code + [base.get_session_id] before [base.gtk.main_loop], else silent hang
@@ -73,6 +76,14 @@
 - [source-identity-spoofing](feedback-source-identity-spoofing.md) — self-reported hostname/zenka-name strings aren't a security boundary; C25519 key-tree identity is the real fix, revisit p7-log host-namespacing then
 - [incidental-signal-channels](topic-incidental-signal-channels.md) — entropic modulation: alignment/sort/serialization choices double as free statistical-shape signals
 - [project-vision-origin](project-vision-origin.md) — 24-year vision; threshold reached Apr 2026
+- [synchronous-multi-legged-pattern-extraction](topic-synchronous-multi-legged-pattern-extraction.md) — how categorical fixes are actually found: parallel component-cooperation search, not lookup; "exoskeleton" idea for zenki/agents (new)
+- [distributed-hybrid-inhabitants](topic-distributed-hybrid-inhabitants.md) — tooling (LLMs/agents/zenki) merging into the network's actual inhabitants, not external instruments; convergence of zenki-lineage + exoskeleton ideas (new)
+- [protocol-as-self-governing-authority](topic-protocol-as-self-governing-authority.md) — no external central authority; governance = emergent agreement among the protocol's own layers; also: resource-efficiency (1GB Atom servers) as load-bearing design value vs. modern agent bloat (new)
+- [intelligent-glue-identity](topic-intelligent-glue-identity.md) — P7 = "intelligent glue" in spirit of perl; why perl was kept; avoid bloat only when alternatives exist, not dogmatically; stargate/13 closing image (new)
+- [resonance-field-emergence](resonance-field-emergence.md) — doc capturing recursion/resonance/third-intelligence-layer riff; mod-13 vs Rodin mod-9 throughline; `RESONANCE-FIELD-EMERGENCE.md` written (new)
+- [coding-zenka-improvement-pipeline](coding-zenka-improvement-pipeline.md) — root index `CODING-ZENKA-IMPROVEMENT-PIPELINE-INDEX.md`: tier0 LANDED(X-11 WM.update+self-test modules)/tier1 self-test BUILT/tier2 self-error NOT READY/tier3 change-accounting GATED — check this first for pipeline status (new)
+- [hybrid-namespace-routing](topic-hybrid-namespace-routing.md) — threshold MET (5 types: module/tunnel/cube-mount/alias/macro); design doc `HYBRID-CONNECTION-TYPE-ROUTING.md`; local-always-wins-over-routing confirmed precedence rule (new)
+- [zenka-macro-language-postponement](project-zenka-macro-language-postponement.md) — loop/condition postponement resolves via intent→requirements→code deterministic compilation: only intent needs validating, generated zenka code inherits safety, destructive intent can be made inexpressible by construction (new)
 - [layer-matrix-convergence](project-layer-matrix-convergence.md) — self-restart/migration/branching/diff-addressing = one reversible layer-matrix algebra; commutativity is the crux
 - [self-improving-system](topic-self-improving-system.md) — LLM coordination as self-improvement foundation
 - [network-as-computer](topic-network-as-computer.md) — network IS computer; Base32/15-bit/32-bit closure
@@ -127,6 +138,8 @@
 - [searchable-index-and-visualization](topic-searchable-index-and-visualization.md) — checksum-indexed dataspace
 - [migration](topic-migration.md) — Windows 11 instability; KVM/Debian migration
 
+- [user-perfectionism-and-pace](user-perfectionism-and-pace.md) — "done" means perfectly smooth, not just working; let solo tuning passes run, don't push toward closure
+
 ## Feedback
 - [ondemand timeout tiering](feedback-ondemand-timeout-tiering.md) — survey existing set_ondemand_timeout values by tier before picking a new one; screenshot+powershell bumped 69s->147s 2026-06-19
 - [claude_dispatch summarize hang](feedback-claude-dispatch-summarize-hang.md) — coding_summarize prompt-overflow leaves outer session stuck forever (near-zero CPU); check ps + coding zenka log, kill PID, work is safe on disk
@@ -175,8 +188,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,.,,,.,,,,,,...,,.,,.,,,,,,,.,,,,,,,,,.,,.,,..,,...,...,..,,...,.,,,,,,,..,,
-#2BQ6JOF56656GBGZ4HS6373WBNMY2VYTG3WTVAN5BWYFPKR3W636DKHGML4YXWGP5QBIXORX4AIYQ
-#\\\|TZFNNTKNXK5UZSUEFJTXRIBS7YG2BACOSIIHEVM7DD5M5JOWDVZ \ / AMOS7 \ YOURUM ::
-#\[7]QSNU6U6DBQXR3IKWBEKBVX7MKLJYXXY3YRYI2XA54SPNYBWVTWAI 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,.,,,..,.,.,.,.,...,,..,..,,.,,,..,,...,...,.,.,,.,,,,.,..,,.,,,
+#QCEG36TLVXIPDPKU43XIHNIZGK3GR5RGKMLQFXIT4FMBCQGYE53AS6YEQJUIL3XVFMINAAA3CAIHQ
+#\\\|AZVGOGBBQDURINGMNXNT4CLQJJCRDPJPZT6G7ST5ET27KPEQ766 \ / AMOS7 \ YOURUM ::
+#\[7]AYNHHZEZZ7S2FOQL7XU3HMDXQSCZYPX445T4OTWHH6PZX6BD4GCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
