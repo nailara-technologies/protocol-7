@@ -21,15 +21,25 @@ tier 0 (LANDED, 2026-06-20):
   modules/coding.tools.http_inference_client, coding.self_test.run,
   coding.self_test.evaluate, coding.self_test.follow_up,
   coding.self_test.archive, coding.self_test.multiplier,
-  coding.self_test.cmd.status, coding.self_test.cmd.run-now
-  — implemented + reviewed this session (two passes: first dispatch
-  had fatal bugs, second dispatch fixed all of them, verified on disk).
-  status: built, not yet live-tested end-to-end against the real
-  inference server.
+  coding.self_test.cmd.self-test-status, coding.self_test.cmd.self-test-run
+  — implemented this session across three real passes: first dispatch
+  had fatal bugs (wrong call syntax, hashref-as-object bugs, closure
+  mismatch); second dispatch fixed those but two more bugs only
+  surfaced under a real live run: monitor_inference_startup called
+  self_test.run before $server->{'model'} was set (silent no-op every
+  time), and max_tokens=128 left a reasoning model's answer empty
+  (entire budget spent on the <think> trace). both fixed and
+  RECONFIRMED LIVE 2026-06-21: "2/2 passed", clean [self_test]-prefixed
+  logging added throughout. also live-confirmed: extracting an inline
+  helper sub via the extract-inline-subs coding-task template works
+  correctly end-to-end (coding.self_test.multiplier's _percentile_95).
+
+  open, non-blocking: coding.self_test.follow_up hit one live http_500
+  from the inference server — diagnostic-explanation path only, not
+  core pass/fail; worth a look, not urgent.
 
 tier 1 — data/tasks/coding-model-self-test-cycle.md
-  status: spec complete, modules implemented (see tier 0). pending:
-  live validation run.
+  status: DONE. spec complete, modules implemented, live-validated.
 
 tier 2 — data/tasks/coding-self-error-processing-cycle.md
   status: design captured, marked NOT READY TO DISPATCH. three open
@@ -93,13 +103,13 @@ whether this index itself should become one of its tracked groups.
 
 ```
 tier 0: LANDED
-tier 1: MODULES BUILT — awaiting live end-to-end validation
+tier 1: DONE — live-validated 2026-06-21, "2/2 passed"
 tier 2: NOT READY — 3 open decisions block dispatch
 tier 3: GATED — awaiting tier 2 stability milestone
 ```
 
-#,,.,,,.,,,,,,,,,,,.,,...,,.,,,..,.,,,,.,,,.,,..,,...,...,..,,..,,,..,,,,,.,.,
-#764UTNADO4EVLGFFAXT7DEJYZAX3ODDLVLYZLVTZF4VNL6F4JOX6GSR7T4J3P5F2TQGUJD7WFL4V2
-#\\\|F2GX73TJBT73JZIK26VUIIIL3VMF2EWK53AU2WEIU7K5AIAYVRV \ / AMOS7 \ YOURUM ::
-#\[7]YQROLXCU3PENZTYDX4BZC74HUERP3E4XWKU2HFKN7JXEWVDCBGAQ 7  DATA SIGNATURE ::
+#,,.,,,..,..,,...,...,.,.,,,,,,..,.,.,,..,...,..,,...,...,,..,.,,,.,,,...,,,.,
+#A6PG4ODPUZD75KWL4AIFMRICQRAJ3RHJB7ULPZR33VGOEMAPG7ZLHTXVQMJFVJOLHXNZTPUTPNPKW
+#\\\|YERVIWUHMOFFWLF357JK56ADVGXBNP2U2L6NGO2RLGQCG4UQDQB \ / AMOS7 \ YOURUM ::
+#\[7]U64N6OTJWIUQT2T7B2DJNMHN5MEGGUNISCDEWRTHFNN2GHBMB4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

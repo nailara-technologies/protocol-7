@@ -34,15 +34,20 @@ my $result = <[coding.tools.http_inference_client]>->(
 
 if ( !$result || $result->{'mode'} ne qw| true | ) {
     <[base.logs]>->(
-        0, 'self_test.follow_up: model %s follow-up failed', $model_id
+        1,         '[self_test] follow_up : model %s : %s',
+        $model_id, $result->{'data'} // 'no reply'
     );
     return { mode => qw| false |, data => 'follow_up_failed' };
 }
 
+<[base.logs]>->(
+    2, '[self_test] follow_up : model %s : explained', $model_id
+);
+
 return { mode => qw| true |, data => $result->{'data'} // '' };
 
-#,,,,,,..,.,,,.,,,,,.,,..,,..,..,,.,.,,,,,,..,..,,...,..,,.,.,..,,,..,..,,..,,
-#7MP7Q6UPL2E7EOFB7H23T3HUMVPJ6YMXYEPLUBZFNHXARVWV2CADWPJCRJHQAW2OEGR4NXM377FUW
-#\\\|HVXBVT2JCHL4SB4SCXTIOZALX75UAKDDE2ZJPBL77I7QPJGDCIF \ / AMOS7 \ YOURUM ::
-#\[7]RDYQ6C5VV6EO6BMNNMQXEAJJ7LWW7YUO562BXWCDFTAZPLN5Z2DI 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,,,,,,.,.,.,..,,,,,,..,,,.,,,,.,..,,...,...,...,,,,,,..,,..,..,,
+#U5H6GEFYJ3MRTWSFYWCEHLRLT5D3XHO7NEZ6DGIGE4YNELHVIEW7BPH7J4VNXZLOAXO5DDPHQ7E7I
+#\\\|OZKEQFVR6KDWBFLR5G3WRBBJKKBHYJLMSA2NDKXSLIJDBUQFKHE \ / AMOS7 \ YOURUM ::
+#\[7]LELHY3IZQZ4OO6M7D6DE5ELFZFXE2H7JVXCV37ZWFGJJK7OR6IBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
