@@ -23,6 +23,12 @@ if ( $completion_url !~ m{/v1/chat/completions$} ) {
     $completion_url .= '/v1/chat/completions';
 }
 
+## NOTE: llama-server serves exactly one model, fixed at process-spawn
+## time via --model <path> [ see coding.spawn_inference_server ]. it does
+## NOT route by this 'model' field - which port you connect to (8000=gpu,
+## 8001=cpu) is what actually selects the model, not this request body.
+## $model_id here is a label for logging/archival only - confirmed live
+## 2026-06-21 after the field was mistaken for a working switch param.
 my $request_body = {
     model       => $model_id,
     messages    => [ { role => 'user', content => $prompt } ],
@@ -67,8 +73,8 @@ if ($@) {
 
 return $reply;
 
-#,,,,,,,.,,..,..,,,.,,...,,..,.,,,,,,,...,,..,..,,...,...,,.,,,,.,,..,,.,,,,.,
-#IJCLTTYRGZXA53OREE4D6E5ERDOJB3M5Z4EGIRUZB23ZXF7DKFLWEMO7CCPHDZZ7QBAQQ2NRGR7S4
-#\\\|QI6X754TMQUCDW3RNTUQKDWDOZABJVGYJULCQJXS5EJIMQL26DX \ / AMOS7 \ YOURUM ::
-#\[7]DIWCFMP3E2GFONRJOMY4NYG34FXNBW43H36PUKH6CWEYBI2J6GCY 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,,.,,,.,..,,,,,,,.,,,.,,...,,.,,..,,...,...,..,,...,.,.,,,.,,.,,
+#GEKGQWRX33HIWCEDOK6WFLZEVFKAJTZLCRCAKF6RVWI6HQYHTEHXJTE6SIOHKRDWQKHCGPO53Y5BE
+#\\\|EF7LU2BTPGTVS6Z6BWNT5JBFMMVJJJQ7N727TM7BUBZMH3S7W3O \ / AMOS7 \ YOURUM ::
+#\[7]UDHAJFP2ZWVRIAG7W75RKFJKNAVMAIBLZHP2LXSBCPHVIO5PQ2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
