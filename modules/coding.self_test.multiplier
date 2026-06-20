@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = coding.self_test.multiplier
+# descr = compute timeout multiplier from TTFT samples
+
+my $params   = shift                 // {};
+my $model_id = $params->{'model_id'} // '';
+my $ttft     = $params->{'ttft'}     // 0;
+
+return { mode => qw| false |, data => 'model_id required' }
+    if !length $model_id;
+
+## add sample to rolling window ##
+my $models_ref = $data{'coding'}{'cfg'}{'timeout_stats'}{'models'} //= {};
+$models_ref->{$model_id}{'ttft_samples'} //= [];
+push @{ $models_ref->{$model_id}{'ttft_samples'} }, $ttft
+    if $ttft > 0;
+
+my @samples
+    = @{ $models_ref->{$model_id}{'ttft_samples'} // [] };
+
+return { mode => qw| true |, data => 'no samples' }
+    if !@samples;
+
+my $p95        = _percentile_95(@samples);
+my $multiplier = $p95 * 1.5;
+
+$models_ref->{$model_id}{'ttft_p95'}     = $p95;
+$models_ref->{$model_id}{'baseline_tps'} = 0;
+$models_ref->{$model_id}{'multiplier'}   = $multiplier;
+$models_ref->{$model_id}{'last_update'}  = <[base.time]>->(3);
+
+## update global aggregate values ##
+$data{'coding'}{'cfg'}{'timeout_stats'}{'percentile_95'} = $p95;
+$data{'coding'}{'cfg'}{'timeout_stats'}{'multiplier'}    = $multiplier;
+$data{'coding'}{'cfg'}{'timeout_stats'}{'last_update'}   = <[base.time]>->(3);
+
+return { mode => qw| true |, data => $multiplier };
+
+sub _percentile_95 {
+    my @vals = sort { $a <=> $b } @_;
+    return $vals[0] if @vals == 1;
+    my $idx = int( 0.95 * ( scalar(@vals) - 1 ) + 0.5 );
+    $idx = $#vals if $idx > $#vals;
+    return $vals[$idx];
+}
+
+#,,,.,,,.,,,.,,,,,...,.,.,,,,,..,,,,,,,,,,,,.,..,,...,...,..,,..,,,..,.,.,,,.,
+#C5J7YY7UZ35ALYOFWYEKYRZVUMVFXSJ76U4TFRRXX7VMBGNP7CQSDPEPWUOER42BX5IZQNDBLLOZW
+#\\\|UB2WH24CTHF2FOBZVAFCRJHFVTJCQWK4QFBJ5IMAQ2XHQYIPMJM \ / AMOS7 \ YOURUM ::
+#\[7]BOPSZY772DELS43MEQBJV5TXQWXCCFACGWS5SNLNZ23O5UO2I6CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

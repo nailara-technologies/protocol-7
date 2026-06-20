@@ -171,6 +171,14 @@ if ( defined $saved_budget_ref && length $saved_budget_ref->$* ) {
     cache_hits   => 0
 };
 
+# Initialize timeout statistics [ percentile_95 of TTFT samples x 1.5 ]
+<coding.cfg.timeout_stats> //= {
+    multiplier    => 2.25,
+    percentile_95 => 1.5,
+    last_update   => undef,
+    models        => {}
+};
+
 # Initialize learning state
 <coding.learning.patterns>              //= {};
 <coding.learning.success_rate>          //= {};
@@ -493,8 +501,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,.,,,,,,,,,,,,.,.,,,.,,,,.,,,..,..,,...,.,,,.,.,...,...,,..,,..,...,...,.,.,
-#2THJ47WYIHFD3CAZ6TKRS6YKG6LJ5BP5UP4V7GPQ3DSEEI254PJKZEOV2PHYDHCUEMOL2QIXI6OLK
-#\\\|YNDA6IX6NY6DK3GFFS5ZSRC6VWG4XMRW7DCHTRE5TIRAOOBKLYE \ / AMOS7 \ YOURUM ::
-#\[7]7UXLHLF73OMOTHME4QANVLPRGLOQIDGUKAR46ZKHHTVCDNUDBSBQ 7  DATA SIGNATURE ::
+#,,,,,...,.,,,.,.,,.,,,..,,..,,..,..,,,..,,,,,.,.,...,...,..,,...,,,,,,.,,,,,,
+#XXZA2HB57NF5I2VVZKQVL54K5DAQDYUI4XX4OO6TTOXGJ3Y2XYQ7NHGF6WFIIAQERJDPZJL3J2EDQ
+#\\\|WC4ZJXIYB32R56XTCA4TOZNSFVVRNP43ULMD7YBZFJXEEMDN2E6 \ / AMOS7 \ YOURUM ::
+#\[7]HS4QSALEWJG4EZXU3I64UYHUO6SJE7JDOS6P56FVDEZLKS6DRIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

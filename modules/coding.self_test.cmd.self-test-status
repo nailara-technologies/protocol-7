@@ -1,0 +1,62 @@
+## [:< ##
+
+# name  = coding.self_test.cmd.self-test-status
+# descr = show self-test results per model
+
+my $self_test = <coding.self_test>                                // {};
+my $stats     = $data{'coding'}{'cfg'}{'timeout_stats'}{'models'} // {};
+
+## collect all known model ids ##
+my %model_ids = map { $_ => 1 } keys %$stats;
+for my $epoch ( keys %$self_test ) {
+    $model_ids{$_} = 1 for keys %{ $self_test->{$epoch} // {} };
+}
+
+my @lines;
+push @lines, sprintf '%-20s %-12s %-8s %-6s %-10s %-8s %s',
+    'model_id', 'timestamp', 'ttft', 'passed', 'multiplier', 'anomalies',
+    'prompt_id';
+
+for my $model_id ( sort keys %model_ids ) {
+    ## find latest epoch record for this model ##
+    my $last_epoch = 0;
+    my $record;
+    for my $epoch ( keys %$self_test ) {
+        next if !exists $self_test->{$epoch}{$model_id};
+        if ( $epoch > $last_epoch ) {
+            $last_epoch = $epoch;
+            $record     = $self_test->{$epoch}{$model_id};
+        }
+    }
+
+    my $timestamp = $record->{'timestamp'} // '-';
+    my $ttft
+        = defined $record->{'ttft'}
+        ? sprintf( '%.3f', $record->{'ttft'} )
+        : '-';
+    my $passed
+        = defined $record->{'passed'}
+        ? ( $record->{'passed'} ? 'PASS' : 'FAIL' )
+        : '-';
+    my $multiplier
+        = defined $stats->{$model_id}{'multiplier'}
+        ? sprintf( '%.3f', $stats->{$model_id}{'multiplier'} )
+        : '-';
+    my $anomaly_count
+        = ( $record && $record->{'anomaly'} )
+        ? scalar keys %{ $record->{'anomaly'} }
+        : 0;
+    my $prompt_id = $record->{'prompt_id'} // '-';
+
+    push @lines, sprintf '%-20s %-12s %-8s %-6s %-10s %-8s %s',
+        $model_id, $timestamp, $ttft, $passed, $multiplier, $anomaly_count,
+        $prompt_id;
+}
+
+return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
+
+#,,.,,,,,,.,,,,..,..,,,,.,,..,.,.,.,,,.,,,,..,..,,...,...,...,,..,,.,,,,.,.,,,
+#4YNOT3TMSU3Y7N3Q6V5HZO4JWRQO3OHEWDLLC5X5SR2CM7ZULV72D2GKO6D3QDWOPQCW6ZI4FMEMM
+#\\\|O5WU3TYGPIS5OAZJOW7G64RDNHYBHVFR4SSAQ5Q4U4QBCCGHXDC \ / AMOS7 \ YOURUM ::
+#\[7]ZAB7ZVTAX3A72CH2B2DSFELKUMHTHIRPUILZLEDHCFURHZ3PZEDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

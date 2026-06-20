@@ -1,0 +1,70 @@
+## [:< ##
+
+# name  = coding.tools.http_inference_client
+# descr = one-shot HTTP client for llama-server chat completions API
+
+my $params   = shift                 // {};
+my $url      = $params->{'url'}      // 'http://127.0.0.1:8000';
+my $model_id = $params->{'model_id'} // '';
+my $prompt   = $params->{'prompt'}   // '';
+my $timeout  = $params->{'timeout'}  // 30;
+
+return { mode => qw| false |, data => 'prompt required' }
+    if !length $prompt;
+
+## normalize base url to completions endpoint ##
+my $completion_url = $url;
+if ( $completion_url !~ m{/v1/chat/completions$} ) {
+    $completion_url =~ s{/+$}{};
+    $completion_url .= '/v1/chat/completions';
+}
+
+my $request_body = {
+    model       => $model_id,
+    messages    => [ { role => 'user', content => $prompt } ],
+    max_tokens  => 128,
+    temperature => 0.3,
+    stream      => JSON::PP::false,
+};
+
+my $json_body = eval { JSON::PP->new->utf8->encode($request_body) };
+if ($@) {
+    <[base.logs]>->( 0, 'http_inference_client: JSON encode error: %s', $@ );
+    return { mode => qw| false |, data => 'encode_error' };
+}
+
+my $reply = eval {
+    use LWP::UserAgent;
+    my $ua       = LWP::UserAgent->new( timeout => $timeout );
+    my $response = $ua->post(
+        $completion_url,
+        'Content-Type' => 'application/json',
+        Content        => $json_body,
+    );
+
+    if ( !$response->is_success ) {
+        return {
+            mode => qw| false |,
+            data => 'http_' . $response->code
+        };
+    }
+
+    my $data    = JSON::PP::decode_json( $response->decoded_content );
+    my $content = $data->{'choices'}[0]{'message'}{'content'} // '';
+    return { mode => qw| true |, data => $content };
+};
+
+if ($@) {
+    my $err = $@;
+    $err =~ s|\s+at\s+\S+\s+line\s+\d+.*||s;
+    <[base.logs]>->( 0, 'http_inference_client: request failed: %s', $err );
+    return { mode => qw| false |, data => 'request_failed' };
+}
+
+return $reply;
+
+#,,,.,,..,.,,,...,,,,,,,.,,.,,,.,,,,.,,..,..,,..,,...,...,,..,...,.,.,,..,,,,,
+#7Z6FGBDO2EHS6L4H6LQT45AHPLGINHO6K4AQCCBZ5I7UGKUN2C6G7I4BSAGK5QF3SJXKIEJGGDL6U
+#\\\|2K42YN3EYKDN2E5P74R3K4WFDUUT35BAJU7444OAQF5XUDNTACI \ / AMOS7 \ YOURUM ::
+#\[7]4UAVKI2DC3JQAOK52C6DF5MOC4J4G7RGZEJD45CDP6QMVO2EJOAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
