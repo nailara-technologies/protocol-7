@@ -1,0 +1,76 @@
+## [:< ##
+
+# name  = task.cmd.summary-tree-query
+# descr = look up a cached summary-tree entry by content checksum
+# usage = p7c task.summary-tree-query chk=<chk> [callback_query_id=<id>]
+#         [callback_query_id] : cross-zenka fire-style call [ e.g. from the
+#         coding zenka ] — reply is route-sent back to
+#         coding.tree-query-reply instead of [ or in addition to ]
+#         this call's own direct reply
+
+my $args_str = $call->{'args'} // '';
+
+my $chk               = '';
+my $callback_query_id = '';
+
+if ( $args_str =~ s|chk=(\S+)|| )               { $chk               = $1 }
+if ( $args_str =~ s|callback_query_id=(\S+)|| ) { $callback_query_id = $1 }
+$args_str =~ s{^\s+|\s+$}{}g;
+
+## legacy bare-arg form : whole remaining string is the chk ##
+$chk = $args_str if not length $chk and length $args_str;
+
+return { 'mode' => 'false', 'data' => 'chk required' } unless length $chk;
+
+<task.summary_tree.entries> //= {};
+my $entry = <task.summary_tree.entries>->{$chk};
+
+if ( length $callback_query_id ) {
+    if ( defined $entry ) {
+        <[base.logs]>->( 2, ':. summary-tree-query hit [ %s ]', $chk );
+        <[protocol-7.route-send]>->(
+            {   command   => 'coding.tree-query-reply',
+                call_args => {
+                    args => join(
+                        ' ',
+                        "query_id=$callback_query_id",
+                        'hit=1',
+                        ':B32:'
+                            . encode_b32r(
+                            Encode::encode(
+                                'UTF-8', $entry->{'result'} // ''
+                            )
+                            ),
+                    ),
+                },
+            }
+        );
+    } else {
+        <[base.logs]>->( 2, ':. summary-tree-query miss [ %s ]', $chk );
+        <[protocol-7.route-send]>->(
+            {   command   => 'coding.tree-query-reply',
+                call_args => { args => "query_id=$callback_query_id hit=0" },
+            }
+        );
+    }
+    return { 'mode' => 'true', 'data' => 'relayed' };
+}
+
+## direct synchronous caller [ e.g. mcp-server-p7 via blocking cube_command ] ##
+return { 'mode' => 'false', 'data' => 'miss' } unless defined $entry;
+
+<[base.logs]>->( 2, ':. task.summary-tree-query hit [ %s ]', $chk );
+
+## stored result is utf8-decoded perl text [ see summary-tree-notify ] :
+## re-encode to bytes before handing to the raw 'size' wire reply, same as
+## the cross-zenka branch above does ##
+return {
+    'mode' => 'size',
+    'data' => Encode::encode( 'UTF-8', $entry->{'result'} // '' ),
+};
+
+#,,.,,.,,,...,,.,,.,.,.,.,...,.,.,,,,,,,.,..,,..,,...,.,.,,,.,,,.,,,.,.,,,..,,
+#4FDNP2L2EGCV3FWC65YBURYH7ULNZXCSXQ22Z3EV35ILPAIBFXAORM7WPPXTTAWNQ44V5HG63KVR6
+#\\\|AXEX3E2QSWOZ4CLS4S7WGRQXNIJHXV3BWYVGXPPG22USUJN7CJY \ / AMOS7 \ YOURUM ::
+#\[7]KHE2HZOS6PWFH5TZW3SQA2IFMBNIQW6BIBQFNYQOT4NUTXQBYUDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,5 +1,23 @@
 # task: task-zenka semantic topic tree for self-improving summaries
 
+## status [ 2026-06-21 ]
+
+**phase 1 is implemented and live-verified.** the relay mechanism described
+below is real, working code, not a plan — see "phase 1 — actual
+implementation" for the file list, what was verified, and two known
+limitations [ collision risk on the cache key, cross-zenka path unexercised ].
+phases 2-4 [ tree structure/routing, formal delta storage, idle integration ]
+are still design only.
+
+**the relay origin split below is the as-built architecture**, not the
+original design. the original draft put cache-query/notify entirely in the
+coding zenka. that broke for the actual motivating case — large sessions are
+chunked by `bin/mcp-server-p7`'s `_do_summarize` rolling-window loop, so the
+coding zenka never sees the whole session text and never holds the final
+summary to relay from. the fix: relay from whichever side actually owns the
+finished content. read "why the relay differs by origin" below before
+touching either path.
+
 ## signatures note
 
 do NOT add the single-line `#,,.,,,...` stub at end of new files.
@@ -37,29 +55,91 @@ pattern this project already runs for its own ai memory
 [ `data/ai-mem/kimi/MEMORY.md` + per-topic `.md` files ] — give the task/coding
 zenka pair the architecture that already works, rather than inventing a new one.
 
+## why the relay differs by origin
+
+two earlier drafts were tried and rejected in sequence before landing here —
+both rejections came from reading the actual code, not preference:
+
+**draft 1**: `bin/mcp-server-p7` itself notifies the task zenka via a new
+`task.summary-reference` command + a note-based correlation registry, after
+dispatching a summarize job to the coding zenka. rejected: that correlation
+problem is already solved. `modules/task.cmd.summarize` already dispatches to
+`modules/coding.cmd.summarize-context` with a `callback_id=$task_id`, and
+`modules/coding.handler.deferred_reply` already routes the completed result
+back to `task.cmd.summarize-done` by that id [ task-context case ]. a parallel
+note-prefix registry would duplicate working, tested infrastructure instead of
+extending it.
+
+**draft 2**: make the **coding zenka** the relay for every caller, including
+`session_catchup` — extend `coding.cmd.summarize-context` with a `tree=1`
+flag and have `coding.handler.deferred_reply` do the query/notify. rejected
+for the `session_catchup` case specifically: `_do_summarize`
+(`bin/mcp-server-p7:2242+`) chunks any session past the local model's
+VRAM-safe context size into a rolling-window loop — *N separate*
+`coding.summarize-context` calls, each seeing one chunk + a running summary,
+with the **final summary assembled in the MCP server itself**. the coding
+zenka never receives the whole session text and never produces "the session
+summary" as a single task to relay from. for the case that motivated this
+whole feature [ large sessions ], draft 2 structurally cannot work.
+
+**the landed design**: relay from whichever side actually holds the finished
+content, two origins:
+
+  - **`session_catchup` → `bin/mcp-server-p7`'s `_do_summarize` itself.** it
+    already assembles the full content and the final summary, so it computes
+    `chk` over the full instruction+text, does a **synchronous**
+    `cube_command("task.summary-tree-query ...")` *before* any chunking or
+    inference at all [ hit → return cached, skip the entire chunking loop ],
+    and on miss, notifies *after* assembling the final result. both calls are
+    best-effort [ short `alarm()`, any failure is treated as a miss / silently
+    skipped ] — a down task zenka never breaks or delays catch-up. this is
+    *simpler* than the coding-relay version: a synchronous query needs no
+    timer/continuation dance, since the MCP server already blocks on
+    `cube_command` for everything else it does.
+  - **coding-zenka-native top-level tasks → `coding.cmd.summarize-context` +
+    `coding.handler.deferred_reply`.** here the coding zenka genuinely owns
+    the whole task and summary [ no chunking involved ], so the `tree=1`/
+    `origin` flag + dual-action `deferred_reply` design is correct as
+    originally drafted. **this mechanism is built [ phase 1 ] but nothing
+    triggers it automatically yet** — wiring an auto-trigger into
+    `coding.task.queue` completion needs its own design pass [ which tasks
+    qualify, what "origin" means for a task with no session/focus ] and was
+    deliberately left out of phase 1 rather than bundled in underspecified.
+
+no separate cache lives in the coding zenka, and none lives in `mcp-server-p7`
+either. single source of truth is the task-zenka-owned tree; both origins
+query it. a second store would only buy invalidation bugs [ which one wins
+when they disagree ] for no benefit.
+
 ## what to read first
 
 ```bash
 sed -n '1,104p' data/tasks/valued-tree-task-zenka-integration.md  ## format + tone twin
-grep -n 'session_catchup\|store_summary_focus' bin/mcp-server-p7  ## summarize dispatch + task_id return
-head -60 modules/task.init_code                                   ## task data layout to match
-ls modules/task.cmd.*                                             ## existing .cmd. command shape
-ls modules/coding.tools.handler.note_*                            ## note_write/read/list to reuse
-ls modules/coding.self_test.*                                     ## tier-0/tier-1 escalation to mirror
+grep -n 'session_catchup\|store_summary_focus' bin/mcp-server-p7  ## summarize dispatch + cube_command
+cat modules/coding.cmd.summarize-context     ## existing dispatch : focus/store/callback_id parsing
+cat modules/coding.handler.deferred_reply    ## existing coding->task relay : extend this, don't replace it
+cat modules/task.cmd.summarize                ## existing task->coding dispatch pattern [ task-context case ]
+cat modules/task.cmd.summarize-done           ## existing coding->task callback receiver
+head -60 modules/task.init_code               ## task data layout to match
+ls modules/task.cmd.*                         ## existing .cmd. command shape
+ls modules/coding.self_test.*                 ## tier-0/tier-1 escalation to mirror
 ```
 
 ## context
 
 ### what exists
 
-- MCP server: `bin/mcp-server-p7` — `session_catchup`, `store_summary_focus`,
-  and the memory/summary tools dispatch to the coding zenka and get a
-  `task_id` back synchronously on submit
-- coding zenka note tools [ already listed in CLAUDE.md, on disk as
-  `modules/coding.tools.handler.note_write` / `note_read` / `note_list` ] —
-  per-`task_id` note storage; reuse these, do NOT build a new registry
+- MCP server: `bin/mcp-server-p7` — `session_catchup` etc. call
+  `coding.summarize-context` via blocking `cube_command`, unchanged by this design
+- existing coding<->task relay for the task-context case [ the pattern this
+  design extends, not replaces ]:
+  `modules/task.cmd.summarize` -> `modules/coding.cmd.summarize-context`
+  [ `callback_id=$task_id` ] -> `modules/coding.handler.deferred_reply`
+  [ cross-zenka route-send ] -> `modules/task.cmd.summarize-done`
+  [ stores `$task->{'summary'}`, fires original caller's reply ]
 - task zenka: `configuration/zenki/task/`, `modules/task.init_code`,
-  `modules/task.cmd.*` [ create/claim/complete/result/... already present ]
+  `modules/task.cmd.*` [ create/claim/complete/result/summarize/... already
+  present ]
 - coding self-test tiered escalation: `modules/coding.self_test.*`
   [ tier-0 local / tier-1 / tier-2 ] — the classification step below mirrors
   this escalation shape
@@ -73,11 +153,18 @@ ls modules/coding.self_test.*                                     ## tier-0/tier
 
 ### what is needed
 
-  1. `modules/task.cmd.summary-reference` — correlation-note recorder
-  2. topic-tree on-disk structure + routing/classification of a delta to a
+  1. `coding.cmd.summarize-context`: new tree flag + origin params; store
+     origin in the `deferred_replies` record at submit time
+  2. `coding.handler.deferred_reply`: best-effort cache query before inference
+     [ skip inference on hit ], fire-and-forget notify-to-task after completion
+     — dual action [ reply-to-caller AND notify ], not callback-XOR-local-reply
+  3. new task-zenka commands: a content-checksum-keyed cache query, and a
+     delta-receive [ phase 1 stores deltas flat; phase 2 adds routing ]
+  4. topic-tree on-disk structure + routing/classification of a delta to a
      subtopic
-  3. checksum-indexed focus-variant deltas
-  4. idle-detection + integration-pass merge
+  5. checksum-indexed focus-variant deltas [ same checksum doubles as cache key
+     and dedup key ]
+  6. idle-detection + integration-pass merge
 
 ## namespace
 
@@ -103,81 +190,103 @@ not filenames typed by a caller. on disk these map under a tree root, e.g.:
 the namespace is the addressing key; the path is one rendering of it. keep them
 consistent so the index can list a subtopic by its dotted name.
 
-## the correlation problem and its solution
+## the cache key is content-aware — this is the part that must not be skipped
 
-the coding zenka knows its own `task_id`, but when a summarize task originates
-from the MCP server the **originating context** [ session_id, client, focus
-instruction, or memory-file path ] is known only to `bin/mcp-server-p7` at
-request time. it is not passed into the coding-zenka task content, and the
-coding zenka has no reason to know it.
-
-solution — reuse the existing task-note mechanism, no new registry:
-
-  1. MCP server submits the summarize job to the coding zenka and gets
-     `task_id` back synchronously
-  2. immediately after, it calls the **new task-zenka command**
-     `task.summary-reference`, passing `task_id` plus the correlation context
-     [ session_id / client / focus / memory-path, whichever applies ]
-  3. `task.summary-reference`'s only job is to record "task `<task_id>`'s
-     output is a summary input destined for the topic tree, here is its origin
-     context." it does NOT fetch or process the coding-zenka output
-  4. later, lazily, on its own schedule [ see idle pass, phase 4 ] the task
-     zenka reads the completed coding-zenka output by `task_id`, recovers the
-     correlation context recorded in step [3], and uses both together to route
-     the content into the correct subtopic file [ creating the subtopic if none
-     fits yet ]
-
-correlation notes are stored via `note_write` under a **reserved note key /
-prefix** [ e.g. `summary-ref:` ] so they do not collide with user-facing or
-llm-facing notes already living under the same `task_id`. the task zenka finds
-pending references by scanning that prefix [ via `note_list` / `note_read` ].
-
-## task.cmd.summary-reference module
+session files grow day to day. a cache keyed on `(session_id, focus)` alone
+would hand back yesterday's summary for a session that has grown since —
+silently defeating "catch up". the cache key [ and the delta dedup key, same
+value ] must be:
 
 ```
-my $params  = shift // {};
-my $task_id = $params->{'id'}        // return undef;
-my $origin  = $params->{'origin'}    // {};   ## session_id / client / focus / memory_path
-my $source  = $params->{'source'}    // 'mcp';  ## 'mcp' | 'coding-native'
+  checksum( focus . content )    ## as built: plain 7-char base.chk-sum.amos
+                                  ## [ AMOS::CHKSUM::amos_chksum ], the same
+                                  ## function task.cmd.create already uses
+                                  ## for task ids
 ```
 
-- validates `task_id` is a known coding-zenka task id
-- writes a correlation note under the reserved prefix:
-  `summary-ref:<task_id>` → `{ origin => $origin, source => $source,
-  state => 'pending', time => ntime() }`
-- does NOT block on, fetch, or summarize the coding-zenka output
-- returns `{ mode => true, data => "<task_id> referenced for topic tree" }`
-  [ `.cmd.` reply must be a string — split any raw-hash helper into a separate
-  non-`.cmd.` routine + thin wrapper ]
+content grows -> checksum changes -> cache miss -> fresh summary, automatically.
+each relay origin computes this checksum itself, at the point it has both the
+final content and the moment to check before spending an inference call — the
+coding zenka for the coding-native case, `_do_summarize` for the
+`session_catchup` case [ see "why the relay differs by origin" above ].
 
-## notification default policy [ asymmetric ]
+**known limitation, not yet fixed**: the design originally called for
+AMOS/BMW-L13 stacked entropy [ matching `topic-checksum-addressing.md` ].
+what's actually built is plain `amos_chksum`, hard-capped at 7 base32 chars by
+`AMOS7::CHKSUM` itself [ `str_length + sstr_start > 7` is an error in that
+module — this is a project-wide ceiling, not a choice made here ]. for a
+*cache*, a collision silently returns the wrong cached summary for different
+content — low probability at current volume, but a silent-failure mode, not a
+loud one. BMW-L13 stacking for collision hardening is deferred to a later
+phase, not phase 1.
 
-- **mcp-server-triggered tasks** [ `session_catchup` etc. dispatching to the
-  coding zenka ]: `task.summary-reference` is sent **by default, automatically**
-  for every newly-dispatched summarize task. exceptions [ no notification ]:
-    - the call was served from an already-cached / already-integrated
-      topic-tree summary, with no new coding-zenka task dispatched at all
+## coding.cmd.summarize-context: new params
+
+```
+  tree=1                 ## opt the calling context into the summary tree
+  origin=<B32 JSON>       ## { session_id|client|focus|memory_path, source }
+```
+
+when `tree` is absent: behavior is unchanged from today, byte for byte.
+
+when `tree=1`:
+
+  1. before enqueueing the inference task, compute
+     `chk = checksum(focus . content)` and issue a **best-effort** query to the
+     task zenka for an existing tree entry under `chk` [ short timeout; on
+     timeout or miss, fall through to inference exactly as if `tree` were
+     absent — never block the caller on a slow/unreachable task zenka ]
+  2. on cache hit: skip the inference enqueue entirely, reply immediately with
+     the cached text [ same reply shape as a fresh summary, caller can't tell
+     the difference ]
+  3. on cache miss: proceed with the existing enqueue, but store `chk` and
+     `origin` in the `deferred_replies` record alongside the fields already
+     stored there [ `reply_id`, `callback_id`, `task_id`, ... ] so they survive
+     to completion
+
+## coding.handler.deferred_reply: dual action, not XOR
+
+today this routine is callback-XOR-local-reply [ `if length $callback_id ...
+else ...` ]. the tree case needs **both**, run in this order on completion:
+
+  1. **reply to the original caller** exactly as today [ local reply via
+     `base.callback.cmd_reply`, unchanged code path — the MCP caller never
+     waits on the task zenka ]
+  2. **then**, if this deferred record carries `chk`/`origin` [ i.e. `tree=1`
+     was set and this was a cache miss ], fire a **non-blocking** notify
+     [ `protocol-7.route-send`, not a call that waits for a reply ] to the task
+     zenka with `chk`, `origin`, and the result text, so the task zenka can
+     record it as a pending delta. this happens after the caller already has
+     their answer — it must never delay or risk the caller's reply.
+
+## notification default policy [ asymmetric, same intent as before, new mechanism ]
+
+- **mcp-server-triggered tasks** [ `session_catchup` etc. ]: `tree=1` is passed
+  **by default, automatically**, for every newly-dispatched summarize call.
+  exceptions [ `tree` omitted / no notify ]:
     - the caller explicitly passed a parameter disabling it
-- **coding-zenka-native tasks** [ the zenka's own internal task tree — subtasks,
-  tool-call loops, self-test polling, vastly outnumbering anything worth
-  indexing ]: default is **off**. only an explicit opt-in flag on submission of
-  a *top-level*, user-meaningful task enables the notification.
+    - note: a cache *hit* still counts as tree-aware — it's not "no
+      notification", it's "no new delta", which is correct: nothing changed
+- **coding-zenka-native tasks** [ the zenka's own internal task tree —
+  subtasks, tool-call loops, self-test polling, vastly outnumbering anything
+  worth indexing ]: default is **off**. only an explicit opt-in [ `tree=1` on
+  submission of a *top-level*, user-meaningful task ] enables it.
   rationale: auto-notifying on every internal subtask floods the tree with
   noise; only whoever creates a top-level task can judge whether its outcome is
   summary-worthy.
 
 ## focus-variant indexing
 
-when a different summarization focus / instruction is requested for what is
+when a different summarization focus/instruction is requested for what is
 otherwise the same session/topic, store it as an **additional indexed delta**,
-never an overwrite. index each delta via the project's existing **AMOS / BMW-L13
-checksum-addressing** scheme [ `topic-checksum-addressing.md`,
-`topic-checksum-tree-wire.md` — content-addressed, not sequential ids ] over
-`focus + content`, so:
+never an overwrite. the checksum `chk = checksum(focus . content)` [ same value
+used as the cache key above ] means:
 
 - the same focus+content combination dedupes naturally [ same checksum = same
-  file, write is idempotent ]
-- lookups stay consistent with how the rest of the project addresses content
+  cache entry / same delta file, write is idempotent ]
+- a different focus, or grown content, produces a distinct checksum and a
+  distinct delta — lookups stay consistent with how the rest of the project
+  addresses content
 
 deltas live at `data/topic-tree/<ns-path>/deltas/<chksum>.md` and carry a small
 header [ source, origin context, focus, ntime, integrated-flag ].
@@ -230,28 +339,100 @@ landed ] so the strong model is selected deterministically for the write step.
 
 ## phased implementation
 
-### phase 1 — correlation: task.cmd.summary-reference + reserved notes
+### phase 1 — DONE, live-verified 2026-06-21
 
-- `modules/task.cmd.summary-reference` per the module sketch above
-- reserved note prefix `summary-ref:` written via the existing coding-zenka
-  note tools; task zenka scans the prefix to find pending references
-- `bin/mcp-server-p7`: after a summarize dispatch returns `task_id`, call
-  `task.summary-reference` by default, honoring the two exceptions
-  [ cache-hit, caller-disabled ]
-- coding-zenka-native opt-in flag on top-level task submission [ default off ]
+**task zenka** [ flat storage, no routing/classification yet — that's phase 2 ]:
+- `modules/task.cmd.summary-tree-query` — lookup by `chk`. two call shapes:
+  direct synchronous reply [ `mode=>size|false` ] for `cube_command` callers,
+  and a `callback_query_id=` cross-zenka fire-style variant that route-sends
+  the result to `coding.tree-query-reply` instead
+- `modules/task.cmd.summary-tree-notify` — upsert-by-`chk` store; decodes
+  B32-wrapped `result`/`origin`/`focus` [ focus is free text, must be
+  B32-wrapped by every sender — seeBug note below ]
+- `modules/task.persist.summary_tree.{save,load}` — yaml persistence,
+  mirroring `task.persist.{save,load}`; wired into `task.init_code`
+- `configuration/zenki/task/start`: whitelisted both new commands; added
+  `format.json` to `modules.load` [ needed for `format.json.decode` ]
+- `configuration/zenki/cube/access.zenki`: `access.cmd.usr.coding` can call
+  both task commands; `access.cmd.usr.task` can call `coding.tree-query-reply`
 
-acceptance:
-- dispatching `session_catchup` records a `summary-ref:<task_id>` note with the
-  session origin context
-- a cache-hit `session_catchup` records no note
-- `task.summary-reference` returns a string reply, never a raw hash
+**coding zenka** [ mechanism for the coding-native origin; not yet triggered
+by anything — see "why the relay differs by origin" ]:
+- `modules/coding.cmd.summarize-context`: `tree=1` + `origin=` params; on
+  `tree=1`, computes `chk`, fires the cross-zenka query with a 3s fallback
+  timer [ `modules/coding.handler.tree_query_timeout` ], registers a pending
+  entry in `$data{'coding'}{'tree_query_pending'}`
+- `modules/coding.cmd.tree-query-reply` — receives the async query result;
+  hit → reply directly, skip inference; miss → proceed to enqueue
+- `modules/coding.tools.handler.summarize_enqueue` — the original inference-
+  enqueue body, extracted into a shared helper so the tree-absent path, the
+  query-miss path, and the timeout path all call the identical code
+- `modules/coding.handler.deferred_reply`: dual action — reply to caller
+  first [ unchanged ], then fire-and-forget notify to the task zenka when
+  `chk` is present
+- `configuration/zenki/coding/start`: whitelisted `tree-query-reply`
+
+**mcp server** [ the actual `session_catchup` relay — see status note at top
+of this doc for why it ended up here instead of the coding zenka ]:
+- `bin/mcp-server-p7`: added `AMOS7::CHKSUM` [ standalone lib-path BEGIN
+  block, same pattern as `bin/amos-chksum` ]; `_tree_chk`/`_tree_query`/
+  `_tree_notify` helpers; `_do_summarize` takes an optional `$origin` param —
+  query before chunking, notify after assembling the final result, both
+  best-effort with a short `alarm()`; `tool_session_catchup` builds `$origin`
+  by default [ `{session_id, client}` ] unless the new `no_tree=1` tool param
+  is set; `no_tree` added to the tool's `inputSchema`
+
+**bug found + fixed during verification, worth keeping in mind for phase 2+**:
+a double-UTF8-encode bug — `Encode::encode('UTF-8', $x)` was being called on
+`$x` that was already a raw UTF-8 byte string [ everything `cube_command`
+returns in this codebase is unflagged bytes, never perl-decoded chars ].
+calling `encode()` on already-encoded bytes treats each byte as a separate
+Latin-1 codepoint and re-encodes it — classic mojibake [ "—" became "â" ].
+fixed in `_tree_notify`. rule going forward: only `Encode::encode()` text that
+is *known* to be real perl character data [ e.g. MCP JSON-RPC args, which
+*are* decoded by `$json->decode` ] — never something that already came back
+from `cube_command` or `$json->encode`.
+
+**known limitations** [ not blockers, but real ]:
+- cache key collisions: see "the cache key is content-aware" above [ 7-char
+  AMOS only, BMW-L13 stacking deferred ]
+- the cross-zenka tree path [ `callback_id` branch of
+  `coding.cmd.tree-query-reply` / `coding.handler.deferred_reply`'s
+  `task.summarize-done` route ] is built but **not yet exercised** — every
+  live test used the direct/local-reply branch [ no `callback_id` ]. nothing
+  currently calls `coding.summarize-context` with both `tree=1` and
+  `callback_id` set, so this path has no live confirmation yet
+- `data/ai-mem`-style topic routing [ phase 2 ] doesn't exist yet — all
+  entries currently live flat in `<task.summary_tree.entries>`, addressed only
+  by `chk`, with no subtopic/namespace structure
+- the debug session used to verify this (`e5968ecb...`) has a handful of test
+  entries in the live `summary-tree.yaml`, including two corrupted ones from
+  the focus/UTF-8 bug hunt before the fix landed — harmless [ unique test foci
+  won't collide with real use ] but worth clearing before considering this
+  fully clean
+
+acceptance — all confirmed live:
+- with `tree` absent, `coding.summarize-context` behaves exactly as before
+  [ regression check — confirmed ]
+- with `tree=1` and no prior entry: cache query misses, inference runs, caller
+  gets their reply first, task zenka receives the delta-notify afterward
+  [ confirmed, direct/local-reply branch only ]
+- a repeated identical call [ same focus, same content ] produces a cache hit
+  and skips inference entirely [ confirmed — 27ms repeat vs full inference ]
+- a query timeout / unreachable task zenka falls through to inference, caller
+  is never blocked or errored by it [ confirmed by stopping the task zenka
+  mid-test ]
+- `session_catchup` cache-hits and skips the entire chunking loop on repeat
+  [ confirmed, identical text returned instantly ]
+- `.cmd.` replies are always strings, never raw hashes [ confirmed by code
+  review of all new modules ]
 
 ### phase 2 — tree structure + routing/classification
 
 - on-disk layout under `data/topic-tree/` [ subtopic file, deltas/, INDEX.md ]
-- `task.*` routine that, given a completed `task_id` + recovered origin,
-  classifies the content [ tier-0 local, escalate on ambiguity ] to an existing
-  subtopic or a new checksum-parented one
+- `task.*` routine that, given a pending flat delta from phase 1, classifies the
+  content [ tier-0 local, escalate on ambiguity ] to an existing subtopic or a
+  new checksum-parented one
 - INDEX.md maintained ai-mem style [ dotted subtopic name + one-line descriptor ]
 
 acceptance:
@@ -261,8 +442,9 @@ acceptance:
 
 ### phase 3 — checksum-indexed focus-variant deltas
 
-- compute AMOS/BMW-L13 checksum over `focus + content`; write delta at
-  `deltas/<chksum>.md` with header [ source, origin, focus, ntime, integrated:0 ]
+- deltas already carry `chk` from phase 1; this phase formalizes on-disk
+  storage at `deltas/<chksum>.md` with header [ source, origin, focus, ntime,
+  integrated:0 ]
 - identical focus+content re-writes are idempotent [ same checksum ]
 
 acceptance:
@@ -297,21 +479,27 @@ acceptance:
 - TRUE/FALSE constants, never literal 0/1
 - check `modules/task.init_code` for the existing task data layout before
   writing — match the keys it already uses
+- never let a task-zenka query/notify block or fail the MCP caller's reply —
+  every new task-zenka touchpoint in phase 1 is best-effort with a fallback
 
 ## acceptance [ overall ]
 
-- [ ] `session_catchup` auto-records a correlation reference by default; cache
-      hits and explicit opt-out do not
+- [ ] `coding.summarize-context` is unchanged when `tree` is absent
+- [ ] `session_catchup` passes `tree=1` + origin by default; explicit opt-out
+      suppresses it
 - [ ] coding-zenka-native tasks record nothing unless top-level opt-in is set
-- [ ] deltas are checksum-addressed and dedupe on identical focus+content
+- [ ] cache queries and notifies are best-effort and never block/break the
+      caller's reply, even when the task zenka is unreachable
+- [ ] deltas are checksum-addressed [ `focus . content` ] and dedupe on
+      identical focus+content; growing content produces a fresh checksum
 - [ ] routing places deltas under correct dotted semantic subtopics; new topics
       get collision-safe checksum-parented names
 - [ ] idle pass merges per-subtopic via the strong model [ synthesis, not
       concatenation ], retains raw deltas, and bounds per-topic growth
 - [ ] a repeated catch-up on the same session reuses the integrated subtopic
       rather than re-summarizing from scratch
-- [ ] no regression in `task.init_code` loading or existing `task.cmd.*` / note
-      tools
+- [ ] no regression in `task.init_code` loading or existing `task.cmd.*` /
+      `coding.cmd.summarize-context` task-context behavior
 
 ### dispatch
 
@@ -319,25 +507,33 @@ model: opus
 reasoning: high
 
 prompt: |
-  Implement the task at data/tasks/task-summary-topic-tree.md
+  Phase 1 of data/tasks/task-summary-topic-tree.md is DONE and live-verified
+  (see "phase 1 — DONE" section for the full file list, what was verified,
+  and known limitations). Implement phase 2 (tree structure +
+  routing/classification) next.
 
-  Read the two reference task files in data/tasks/ for format, then read
-  modules/task.init_code, the existing modules/task.cmd.* commands, and the
-  coding-zenka note tools (modules/coding.tools.handler.note_*) before writing
-  anything. Also read modules/coding.self_test.* for the tier-0/tier-1
-  escalation shape this design reuses for classification.
+  Read the "phase 1 — DONE" section first to see what already exists:
+  modules/task.cmd.summary-tree-query, modules/task.cmd.summary-tree-notify,
+  modules/task.persist.summary_tree.{save,load}, the coding-zenka relay
+  mechanism (coding.cmd.summarize-context, coding.cmd.tree-query-reply,
+  coding.tools.handler.summarize_enqueue, coding.handler.tree_query_timeout,
+  coding.handler.deferred_reply), and the mcp-server-p7 relay (_tree_chk,
+  _tree_query, _tree_notify, _do_summarize, tool_session_catchup). Phase 2
+  extends task.cmd.summary-tree-notify's flat storage into the dot-separated
+  namespace + on-disk tree under data/topic-tree/ described in "namespace"
+  and "topic routing / classification" above — it does not replace phase 1's
+  wiring. Also read modules/coding.self_test.* for the tier-0/tier-1
+  escalation shape the routing/classification step reuses.
 
-  Build it in the four phases described, in order. Phase 1 (the new
-  task.cmd.summary-reference command + reserved summary-ref: notes + the
-  mcp-server-p7 default notification) is the unblocking piece — land and verify
-  it before the tree structure. Reuse existing mechanisms: the note tools for
-  correlation (no new registry), AMOS/BMW-L13 checksum addressing for deltas,
-  the self-test escalation pattern for classification, model-pinning for the
-  strong-model write. Follow the project's lowercase-comment, dot-notation
-  style exactly. No signature stubs — the signing system adds them.
+  Before writing tree-routing code, be aware of two phase-1 limitations
+  that phase 2 inherits unless addressed: the cache/dedup key is a plain
+  7-char AMOS checksum (collision risk, BMW-L13 stacking deferred), and the
+  cross-zenka tree path (callback_id branch) has never been exercised by a
+  live caller. Follow the project's lowercase-comment, dot-notation style
+  exactly. No signature stubs — the signing system adds them.
 
-#,,,.,,,.,,,.,,.,,,..,..,,...,,.,,..,,..,,..,,..,,...,...,...,,.,,,,.,.,,,.,,,
-#KUN3SCSV2A7T7IRMYXDZGRGP5AYRJQ5JTXXSSPHL6X7RPEYQUSK2CSJJWTMCFJ63FU2PHJ4PSETDM
-#\\\|QQPOQLNJYC56KJDAWVLYHY2734AP7AGBL523NYWLWBMAB44O2W7 \ / AMOS7 \ YOURUM ::
-#\[7]JJYVCKKK2WCPAKPO6Z5HCN3BUYOFULVX7Q2QVQV3LJDJISIIX2DI 7  DATA SIGNATURE ::
+#,,.,,..,,...,,,,,.,.,.,.,.,,,.,,,.,,,,..,.,,,..,,...,...,,..,,..,,,,,.,,,,..,
+#7JR6WJKBV3A6VNZWON4UM26F4RBP6U3VE2SV2SUIER3PNQGZAF3MWEX4JTFNBZKWFUL67XZIXHSWS
+#\\\|IXLA7U7E7S46VGFVWB2ZJQKNIU2MIJ3E5N7NM5SCPM32GLI7HVV \ / AMOS7 \ YOURUM ::
+#\[7]2U4CWEOC5AKCBUEDH5265KL4GFBJR4QVBGMCD3TBKWE23DMIF4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

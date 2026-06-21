@@ -1,0 +1,93 @@
+## [:< ##
+
+# name  = coding.cmd.tree-query-reply
+# descr = async cache-query result from the task zenka
+
+## resolves a pending tree query as a hit [ reply cached text, skip
+## inference ] or a miss [ proceed to inference, same as the timeout
+## fallback ]
+
+my $args_str = $call->{'args'} // '';
+
+my $query_id = '';
+my $hit      = 0;
+
+if ( $args_str =~ s|query_id=(\S+)|| ) { $query_id = $1 }
+if ( $args_str =~ s|hit=(\d+)|| )      { $hit      = $1 }
+$args_str =~ s{^\s+|\s+$}{}g;
+
+return { 'mode' => 'false', 'data' => 'query_id required' }
+    unless length $query_id;
+
+my $pending = delete $data{'coding'}{'tree_query_pending'}->{$query_id};
+
+## already resolved by the timeout fallback : ignore this late reply ##
+return { 'mode' => 'true', 'data' => 'no longer pending' }
+    unless defined $pending;
+
+if ( eval { $pending->{'timeout_timer'}->is_active } ) {
+    $pending->{'timeout_timer'}->cancel;
+}
+
+if ($hit) {
+    my $cached = $args_str;
+    if ( $cached =~ s|^:B32:||i ) {
+        my $decoded = decode_b32r($cached);
+        $cached = Encode::decode( 'UTF-8', $decoded ) if defined $decoded;
+    }
+
+    <[base.logs]>->(
+        2,
+        ':. tree-query-reply hit [ chk=%s query_id=%s ]',
+        $pending->{'chk'} // '?', $query_id
+    );
+
+    ## reply directly to the original caller : same shape as a fresh
+    ## summary, no inference spent, no further tree-notify needed ##
+    if ( length $pending->{'callback_id'} ) {
+        <[protocol-7.route-send]>->(
+            {   command   => 'task.summarize-done',
+                call_args => {
+                    args => join( ' ',
+                        "callback_id=$pending->{'callback_id'}",
+                        'mode=size',
+                        ':B32:'
+                            . encode_b32r(
+                            Encode::encode( 'UTF-8', $cached ) ),
+                    ),
+                },
+            }
+        );
+    } else {
+        <[base.callback.cmd_reply]>->(
+            $pending->{'reply_id'},
+            { 'mode' => 'size', 'data' => $cached }
+        );
+    }
+
+    return { 'mode' => 'true', 'data' => 'hit delivered' };
+}
+
+<[base.logs]>->(
+    2,
+    ':. tree-query-reply miss [ chk=%s query_id=%s ]',
+    $pending->{'chk'} // '?', $query_id
+);
+
+<[coding.tools.handler.summarize_enqueue]>->(
+    {   content     => $pending->{'enqueue'}{'content'},
+        focus       => $pending->{'enqueue'}{'focus'},
+        reply_id    => $pending->{'reply_id'},
+        callback_id => $pending->{'callback_id'},
+        chk         => $pending->{'chk'},
+        origin      => $pending->{'origin'},
+    }
+);
+
+return { 'mode' => 'true', 'data' => 'miss : enqueued' };
+
+#,,..,,,,,,,,,..,,.,,,,,.,,.,,.,.,,,.,,,.,..,,..,,...,...,,.,,...,.,.,,..,.,.,
+#AC7CCV2CQOQ2D5D5PHX5BGVVFAL6MXYVVD56JAJHYU63525GXNNVX77SM2PHQHBDLI5RQPPJNGHO6
+#\\\|O74ZUBUWWAQF5I7BFVPYKUAM534QH5MBQWZO7C2GFQOYIGFIKHE \ / AMOS7 \ YOURUM ::
+#\[7]V3HWYQHCYF4GLCIMHH6VU7KXDYC5YZVFTCWDDI2WYKOAF7I35MBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,76 @@
+## [:< ##
+
+# name  = coding.tools.handler.summarize_enqueue
+# descr = build + enqueue a single-round summarize inference task and
+#         register its deferred reply [ shared by the direct path and the
+#         tree query-miss / timeout continuations in coding.cmd.summarize-context ]
+
+my $p = shift // {};
+
+my $content = $p->{'content'} // '';
+my $focus   = $p->{'focus'}   // '';
+
+return { mode => qw| false |, data => 'content required' }
+    unless length $content;
+
+## build system prompt : compaction-style, focus-aware ##
+my $system_prompt
+    = 'you are a context compaction assistant. '
+    . 'your response IS the summary : output it directly as plain text. '
+    . 'no tool calls, no apologies, no explanation of what you are doing. '
+    . 'preserve all load-bearing specifics: module names, line numbers, '
+    . 'decisions, open questions. omit narrative filler. '
+    . ( length($focus) ? "focus on: $focus. " : '' )
+    . 'target length: 2-4 paragraphs.';
+
+## enqueue single-round no-tools inference task ##
+my $task = {
+    'id'      => <[base.gen_id]>->(<coding.task.queue>),
+    'type'    => 'summary',
+    'request' =>
+        { description => "summarize the following content:\n\n$content" },
+    'metadata' => {
+        raw_request => {
+            type        => 'gpu',
+            description => "summarize the following content:\n\n$content"
+        },
+        allow_chunking => 1,
+    },
+    'system'     => $system_prompt,
+    'no_tools'   => TRUE,
+    'max_rounds' => 1,
+};
+
+my $queue_result = <[coding.task.enqueue]>->($task);
+return {
+    mode => qw| false |,
+    data => "enqueue failed: $queue_result->{'error'}\n"
+    }
+    unless $queue_result->{'success'};
+
+## register deferred completion : on_task_complete routes result back ##
+$data{'coding'}{'deferred_replies'} //= {};
+my $deferred_id = <[base.gen_id]>->( $data{'coding'}{'deferred_replies'} );
+$data{'coding'}{'deferred_replies'}->{$deferred_id} = {
+    'deferred_id' => $deferred_id,
+    'reply_id'    => $p->{'reply_id'},
+    'callback_id' => $p->{'callback_id'}
+        // '',    ## task zenka callback key if cross-zenka ##
+    'task_id'   => $task->{'id'},
+    'submitted' => <[base.time]>->(3),
+    'status'    => qw| waiting |,
+    ## summary-tree relay fields : set only when tree=1 was requested.
+    ## coding.handler.deferred_reply fires a tree-notify on completion when
+    ## 'chk' is non-empty here ##
+    'chk'    => $p->{'chk'}    // '',
+    'origin' => $p->{'origin'} // '',
+    'focus'  => $focus,
+};
+
+return { mode => qw| deferred | };
+
+#,,,.,...,..,,.,,,.,.,..,,,,.,..,,.,,,,,,,,,,,..,,...,...,.,,,..,,...,,.,,.,.,
+#QZSRMUYWW2LE5FSXHZFSMCYE7FP47HHLV6AIYF5IEA2F3TWWTE5NJ3JLMD2JLE6PWDLGJICO2DBGI
+#\\\|YCNEKW4JBGUSOKP52PWTGLCTQTN7XROJL7SLV5GKRWWQU7UQ4ST \ / AMOS7 \ YOURUM ::
+#\[7]GDMOYUBMVS7W3VETUZWQWPHKD6FYAEX7Z77A23O43I6MKAVHBSAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

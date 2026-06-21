@@ -26,7 +26,14 @@ BEGIN {
     use FindBin qw| $RealBin |;
     sub c_dir  { File::Spec->catdir(@ARG) }
     sub r2_abs { File::Spec->rel2abs(@ARG) }
+
+    ## local AMOS7 lib path : standalone checksum use, same as bin/amos-chksum ##
+    my $root_path      = abs_path( r2_abs( c_dir( $RealBin, File::Spec->updir ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, qw| data/lib-path/pm | ) );
+    unshift( @INC, $local_lib_path ) if defined $local_lib_path and -d $local_lib_path;
 }
+
+use AMOS7::CHKSUM;
 
 my $ROOT_PATH = abs_path( r2_abs( c_dir( $RealBin, File::Spec->updir ) ) );
 
@@ -528,6 +535,13 @@ our @tools = (
                         'summarize only the last N characters of the session '
                         . '(default: 0 = full session; for large sessions '
                         . 'set to e.g. 200000 to focus on recent content)'
+                },
+                'no_tree' => {
+                    'type'        => 'integer',
+                    'description' =>
+                        'set 1 to skip the summary-tree cache lookup/notify '
+                        . '(default: 0 = on; cache hits skip inference, '
+                        . 'misses re-summarize and feed the tree)'
                 },
             },
             'additionalProperties' => \0
@@ -2162,10 +2176,91 @@ sub _extract_stream_content {
     return $text;
 }
 
+## summary-tree cache key : content-addressed over instruction+text, so
+## growing content [ same session, more days of conversation ] always
+## misses and re-summarizes rather than returning a stale cached answer ##
+sub _tree_chk {
+    my ( $instruction, $text ) = @ARG;
+    my $input = ( $instruction // '' ) . "\x00" . ( $text // '' );
+    return AMOS7::CHKSUM::amos_chksum( \$input );
+}
+
+## best-effort cache lookup : short alarm, any failure is a plain miss —
+## never let a slow/unreachable task zenka delay or break the catch-up ##
+sub _tree_query {
+    my ($chk) = @ARG;
+    return undef unless length $chk;
+    my $result;
+    eval {
+        local $SIG{'ALRM'} = sub { die "timeout\n" };
+        alarm(3);
+        my ( $ok, $data ) = cube_command("task.summary-tree-query chk=$chk");
+        alarm(0);
+        $result = $data if $ok;
+    };
+    if ($@) {
+        cube_disconnect() if $@ eq "timeout\n";
+        log_msg( '[tree] query failed/timed out [ chk=%s ] : %s', $chk, $@ );
+        return undef;
+    }
+    return $result;
+}
+
+## best-effort delta notify : fired after the final summary already exists,
+## never on the hot path of returning it to the caller ##
+sub _tree_notify {
+    my ( $chk, $origin, $focus, $result ) = @ARG;
+    return unless length $chk and length($result // '');
+    eval {
+        local $SIG{'ALRM'} = sub { die "timeout\n" };
+        alarm(5);
+        ## $origin_json [ JSON::XS ->utf8 encode ] and $result [ raw bytes
+        ## back from cube_command ] are already byte strings — do NOT
+        ## Encode::encode them again, that double-encodes any non-ASCII
+        ## char [ classic "Ã©" corruption ]. only $focus is real perl
+        ## character text [ decoded from the incoming MCP JSON-RPC args ]
+        ## and needs the one real encode ##
+        my $origin_json = $json->encode( $origin // {} );
+        my $args        = join(
+            ' ',
+            "chk=$chk",
+            'source=mcp',
+            ## focus is free text [ the full instruction, may contain
+            ## spaces ] : always B32-wrap, never pass as a bare \S+ token ##
+            ( length($focus)
+                ? 'focus=:B32:'
+                    . encode_b32r( encode( 'UTF-8', $focus ) )
+                : ()
+            ),
+            'origin=:B32:' . encode_b32r($origin_json),
+            ':B32:' . encode_b32r($result),
+        );
+        cube_command("task.summary-tree-notify $args");
+        alarm(0);
+    };
+    if ($@) {
+        cube_disconnect() if $@ eq "timeout\n";
+        log_msg( '[tree] notify failed/timed out [ chk=%s ] : %s', $chk, $@ );
+    }
+    return;
+}
+
 sub _do_summarize {
-    my ( $text, $instruction, $max_tokens ) = @ARG;
+    my ( $text, $instruction, $max_tokens, $origin ) = @ARG;
     $instruction //= 'summarize concisely';
     $max_tokens  //= 500;
+
+    ## tree caching only when the caller opted in [ $origin defined ] —
+    ## every other _do_summarize caller is unaffected, behavior unchanged ##
+    my $chk;
+    if ( defined $origin ) {
+        $chk = _tree_chk( $instruction, $text );
+        my $cached = _tree_query($chk);
+        if ( defined $cached and length $cached ) {
+            log_msg( '[tree] cache hit [ chk=%s ]', $chk );
+            return $cached;
+        }
+    }
 
     my $chunk_size = _model_chunk_size();
     my $threshold  = int( $chunk_size * 1.1 );
@@ -2176,6 +2271,8 @@ sub _do_summarize {
         return cube_command(
             "coding.summarize-context max_len=$max_tokens :B32:$encoded");
     };
+
+    my $final_result;
 
     if ( length($text) > $threshold ) {
         ## rolling-window: each chunk carries forward the previous summary ##
@@ -2211,11 +2308,18 @@ sub _do_summarize {
                 length($running)
             );
         }
-        return $running;
+        $final_result = $running;
     } else {
         my ( $ok, $result ) = $_b32_cmd->("$instruction:\n\n$text");
-        return $ok ? $result : undef;
+        return undef unless $ok;
+        $final_result = $result;
     }
+
+    ## best-effort : never block/break the return on a down task zenka ##
+    _tree_notify( $chk, $origin, $instruction, $final_result )
+        if defined $origin and length( $chk // '' );
+
+    return $final_result;
 }
 
 ## =========================================================================
@@ -2420,6 +2524,7 @@ sub tool_session_catchup {
     my $instruction = $args->{'instruction'} // '';
     my $limit       = $args->{'limit'}       // 10;
     my $tail_chars  = $args->{'tail_chars'}  // 0;
+    my $no_tree     = $args->{'no_tree'}     // 0;
 
     ## summarize mode: direct lookup first, avoid scanning all sessions ##
     my $s;
@@ -2521,12 +2626,18 @@ sub tool_session_catchup {
             $auto_tail, length($text) + $cut;
     }
 
+    ## summary-tree origin : on by default, opt-out via no_tree=1 ##
+    my $origin
+        = $no_tree
+        ? undef
+        : { 'session_id' => $session_id, 'client' => $s->{'client'} };
+
     my $result = '';
     my $error  = '';
     eval {
         local $SIG{ALRM} = sub { die "timeout\n" };
         alarm(590);
-        $result = _do_summarize( $text, $inst, 600 );
+        $result = _do_summarize( $text, $inst, 600, $origin );
         alarm(0);
     };
     if ($@) {
@@ -2735,8 +2846,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,,,,..,.,.,,.,,,..,,,,,.,.,.,,,,,.,.,.,..,,..,,...,...,.,,,.,,,...,,.,,,..,
-#GXKFOUFOM3PLPLJPYTJRWRJ7PVRG2R2RTRIUH3FEXCKYGKE7465GZFZ4JFEOSKSV2B46GR4PTLDIK
-#\\\|PMUJRKWYRK37HJURX3L65GXJGJDD75CR2BI4CCFUYZVXIKD7D72 \ / AMOS7 \ YOURUM ::
-#\[7]SAODMAFNHI5KKAMXSRL3T6LZOUSNFI4BQ7GUNBBSX3ILU6H44ECQ 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,..,.,.,...,,,,,,,.,,..,.,.,,,,,..,,...,...,,,.,.,,,,.,,.,.,.,.,
+#RBNVCY7QSBVGDI7PDE6ZE4AJ22VWYO2ASRGHDXCGP3AFVKIGJ2VBJY24SCBR5IGTQSTIN4O72AJYW
+#\\\|P2RZYK4477TK374JFW2UFSZAWCWDVL6JRS722LTSGVXB2VIAZIT \ / AMOS7 \ YOURUM ::
+#\[7]YFV3QO4VAYEZFFTRV2DCIFR6DNIMBZRB32E4SF6XKD3IFCN7EYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
