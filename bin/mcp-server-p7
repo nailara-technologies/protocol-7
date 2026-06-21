@@ -187,7 +187,7 @@ my @external_tools = (
                 'target summary length in tokens (default: 500)', 0
             ],
         ],
-        'timeout' => 494,
+        'timeout' => 590,
     },
     ## additional external tools can be added here
     ## format: name, description, command (%s = shell-quoted first arg),
@@ -1651,7 +1651,7 @@ sub tool_coding_summarize {
     my $error  = '';
     eval {
         local $SIG{ALRM} = sub { die "timeout\n" };
-        alarm(494);
+        alarm(590);
         if ( length $file ) {
             $result = _do_summarize_file( $file, $instruction, $max_tokens );
         } else {
@@ -1663,7 +1663,7 @@ sub tool_coding_summarize {
         cube_disconnect();    ## socket may be mid-write — force fresh connect
         $error
             = $@ eq "timeout\n"
-            ? 'summarization timed out after 494s — model may still be '
+            ? 'summarization timed out after 590s — model may still be '
             . 'loading'
             : "error: $@";
     }
@@ -1756,7 +1756,7 @@ sub tool_p7_memory_summary {
 
     eval {
         local $SIG{ALRM} = sub { die "timeout\n" };
-        alarm(494);
+        alarm(590);
 
         if ( $agent eq 'claude' or $agent eq 'both' ) {
             if ( -f $claude_mem ) {
@@ -1786,7 +1786,7 @@ sub tool_p7_memory_summary {
         cube_disconnect();
         $error
             = $@ eq "timeout\n"
-            ? 'summarization timed out after 494s'
+            ? 'summarization timed out after 590s'
             : "error: $@";
     }
 
@@ -1958,9 +1958,9 @@ sub tool_p7_memory_update {
 
     eval {
         local $SIG{ALRM} = sub { die "timeout\n" };
-        ## 7 minutes — memory review fetches git + summarizes file +
+        ## ~9.8 minutes — memory review fetches git + summarizes file +
         ## sessions ##
-        alarm(420);
+        alarm(590);
 
         ## 1. recent git changes ##
         if ($git_changes) {
@@ -2087,7 +2087,7 @@ sub tool_p7_memory_digest {
     my $error  = '';
     eval {
         local $SIG{ALRM} = sub { die "timeout\n" };
-        alarm(494);
+        alarm(590);
         $result = _do_summarize( $tree, $instruction, $max_tokens );
         alarm(0);
     };
@@ -2095,7 +2095,7 @@ sub tool_p7_memory_digest {
         cube_disconnect();
         $error
             = $@ eq "timeout\n"
-            ? 'digest timed out after 494s'
+            ? 'digest timed out after 590s'
             : "error: $@";
     }
 
@@ -2353,7 +2353,7 @@ sub tool_session_catchup {
         my $error  = '';
         eval {
             local $SIG{ALRM} = sub { die "timeout\n" };
-            alarm(494);
+            alarm(590);
             $result = _do_summarize( $text, $inst, 600 );
             alarm(0);
         };
@@ -2361,7 +2361,7 @@ sub tool_session_catchup {
             cube_disconnect();
             $error
                 = $@ eq "timeout\n"
-                ? 'summarization timed out after 494s'
+                ? 'summarization timed out after 590s'
                 : "error: $@";
         }
         if ( length $error ) {
@@ -2574,8 +2574,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,.,.,,,.,.,,,,,...,,..,,..,,,,,...,...,.,.,..,,...,...,...,,,,,,,.,..,,..,,
-#KFA33ZDUNKRA5T2B2PUBMV36ZPFC3YYCFIWNIDNN2Y2L43C6TWWWXNAVSRLAQNROMZ3E32K2UA3BA
-#\\\|OKGOVVETMLAH2MRJ2JS5TIIYFYMYYS52PGJ6EB2FGC5VRFQXENM \ / AMOS7 \ YOURUM ::
-#\[7]TKE6WKM4PP5RI5RLQTQCHRG5SWTCZEV63ISJQNO3QCT3KM4QDICI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,..,.,.,,,.,,.,,.,.,,.,,.,.,...,..,,...,...,.,,,...,,..,,.,,,..,
+#RXV4BUEGKXXXNRSD6VHKFBFOX3GPV6JCIAMZFXDULSENTIG6HACXS6DKTOTRSNXV43BSVEGQUZCY6
+#\\\|SUVWLIJHGCWMJAUAMSGUR2K52XWCBUKS3YHJ3YZENIKXOK36TLW \ / AMOS7 \ YOURUM ::
+#\[7]3NQKSF5WUW3GLTRUBY6WBY5CY5E2VMDTKJY3YSGX5R3X65NGK6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
