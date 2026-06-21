@@ -1,0 +1,77 @@
+## [:< ##
+
+# name  = task.cmd.summary-tree-notify
+# descr = store a summary-tree entry keyed by content checksum
+# usage = p7c task.summary-tree-notify chk=<chk> source=<mcp|coding> \
+#         [focus=<topic>] [origin=:B32:<json>] <result-text>
+
+my $args_str = $call->{'args'} // '';
+
+my $chk        = '';
+my $source     = 'mcp';
+my $focus      = '';
+my $origin_raw = '';
+
+if ( $args_str =~ s|chk=(\S+)|| )    { $chk        = $1 }
+if ( $args_str =~ s|source=(\S+)|| ) { $source     = $1 }
+if ( $args_str =~ s|focus=(\S+)|| )  { $focus      = $1 }
+if ( $args_str =~ s|origin=(\S+)|| ) { $origin_raw = $1 }
+$args_str =~ s{^\s+|\s+$}{}g;    ## trim remaining whitespace ##
+
+return { 'mode' => 'false', 'data' => 'chk required' } unless length $chk;
+
+## focus is free text [ the full instruction, may contain spaces ] :
+## always b32-wrapped by the sender, never a bare \S+ token ##
+if ( $focus =~ s|^:B32:||i ) {
+    my $decoded = decode_b32r($focus);
+    $focus = Encode::decode( 'UTF-8', $decoded ) if defined $decoded;
+}
+
+## content : multiline data takes precedence, else remaining args ##
+my $result = $call->{'data'} // $args_str;
+
+if ( $result =~ s|^:B32:||i ) {
+    my $decoded = decode_b32r($result);
+    $result = Encode::decode( 'UTF-8', $decoded ) if defined $decoded;
+}
+
+return { 'mode' => 'false', 'data' => 'result content required' }
+    unless length $result;
+
+## origin context : optional, b32-wrapped json [ session_id/client/focus/path ] ##
+my $origin = {};
+if ( length $origin_raw ) {
+    my $origin_str = $origin_raw;
+    if ( $origin_str =~ s|^:B32:||i ) {
+        my $decoded = decode_b32r($origin_str);
+        $origin_str = Encode::decode( 'UTF-8', $decoded ) if defined $decoded;
+    }
+    $origin = <[format.json.decode]>->($origin_str);
+}
+
+## same checksum twice = same entry : idempotent upsert, never a new id ##
+<task.summary_tree.entries> //= {};
+<task.summary_tree.entries>->{$chk} = {
+    'chk'        => $chk,
+    'source'     => $source,
+    'focus'      => $focus,
+    'origin'     => $origin,
+    'result'     => $result,
+    'ntime'      => <[base.ntime.b32]>,
+    'integrated' => FALSE,
+};
+
+<[task.persist.summary_tree.save]>;
+
+<[base.logs]>->(
+    1,    ':. task.summary-tree-notify stored [ %s : source=%s focus=%s ]',
+    $chk, $source, $focus || '-'
+);
+
+return { 'mode' => 'true', 'data' => "stored $chk" };
+
+#,,.,,,,.,.,,,..,,,.,,,,,,...,...,,.,,,,,,,,,,..,,...,...,..,,...,.,.,,,.,.,.,
+#S62DJXG2L5FET2MLAVTDYALVTAYNVMEGFOOZABGNKJAY3K5HB42BXU6V5SPBMYJ76RG7G7G422YYS
+#\\\|VKNIHJGW2SPE7PRLNLG5F564QXA5E5INSQDFCI4WXOHPX3X43JF \ / AMOS7 \ YOURUM ::
+#\[7]D2WW2LX5KDDXGYBWI4OCA3BOCIREE6YKNR2FVSSWRIR3V4JUS4DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

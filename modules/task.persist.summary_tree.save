@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = task.persist.summary_tree.save
+# descr = save summary-tree entries to disk as yaml
+
+my $saved_at = <[base.time]>->(3);
+
+my $yaml = <[format.yaml.dump_str]>->(
+    {   'entries'  => <task.summary_tree.entries>,
+        'saved_at' => $saved_at,
+    }
+);
+
+return FALSE unless defined $yaml and length $yaml;
+
+utf8::encode($yaml);
+
+return
+    defined <[file.zenka_dir.write]>->( 'summary-tree.yaml', \$yaml )
+    ? TRUE
+    : FALSE;
+
+#,,,.,,..,,.,,,,,,...,,..,..,,.,.,..,,,,,,.,.,..,,...,...,...,...,,..,.,,,.,,,
+#LNKLGTLU436GPMBD7VSV2O7WBLTH5TMTKH24VU5GQJO7NU5L3QY3YHAMK25UY2DQYU2VARBRBI7IU
+#\\\|3M44NGUKAFJ5JJZAVOY2RL3YSKIZPQHNEXGTWBDFLN3AIEXR7ZN \ / AMOS7 \ YOURUM ::
+#\[7]KW5LMVDMYT5WAO5TGUC7A73SHUUQJ5U7QY6HXHGKXURXIQ3XBKCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
