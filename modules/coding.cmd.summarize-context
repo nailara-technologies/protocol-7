@@ -80,9 +80,9 @@ unless ($tree) {
 ## before spending an inference call. content-addressed so growing content
 ## [ same session, more days of conversation ] always misses and re-summarizes ##
 my $chk_input = "$focus\x00$content";
-## use swap-boundary safe dispatch [ see CLAUDE.md ] ##
-my $amos_chksum = $code{'chk-sum.amos'} // $code{'base.chk-sum.amos'};
-my $chk         = $amos_chksum->( \$chk_input );
+## bmw-L13 : 13-char base32 [ ~65 bits ], far lower collision risk than the
+## 7-char amos chksum cap ##
+my $chk = <[chk-sum.bmw.L13-str]>->($chk_input);
 
 $data{'coding'}{'tree_query_pending'} //= {};
 my $query_id = <[base.gen_id]>->( $data{'coding'}{'tree_query_pending'} );
@@ -134,8 +134,8 @@ unless ($sent) {
 
 return { mode => qw| deferred | };
 
-#,,..,,,,,.,,,,..,,.,,.,.,.,.,,..,,,,,,..,.,,,..,,...,..,,...,,.,,.,.,,,.,,,,,
-#54LVWFHCO4DXDKTJI627XJK7NANURJQ6P2SGKL2BHVGTF2UL6COZTRLJU7PGF2SKZ466ECWYEDEDS
-#\\\|7754LLTNMVMY6MGPCLLNQHLMNU7P54ADJA2OPKQRBCJ4NNJS5OA \ / AMOS7 \ YOURUM ::
-#\[7]KEBLXOUBZULHLMBZUMPVS7OTVUU6L7FVLLNNSCJXKYBB3HBEUQAY 7  DATA SIGNATURE ::
+#,,..,,,.,...,.,,,,,.,,,,,.,,,,..,,..,...,,..,..,,...,...,...,,,,,,,.,,.,,,.,,
+#VQDGJOE7U36NHVFMIEAFDEVFEYX7QBFFLRSRQS4JWH3PSKHPPIIVX5HWM4ORJJTQUYPL5YWVXJS6Y
+#\\\|3GITFYUHPRZPFXIBWNGO6HGEL6RMIKFAWJWVRPZK7P7TESZULGA \ / AMOS7 \ YOURUM ::
+#\[7]KQQN64FYLG6P7NPKRONM4QPQJQDOVSB6AXJ7UWWAEO2CVL2KPWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

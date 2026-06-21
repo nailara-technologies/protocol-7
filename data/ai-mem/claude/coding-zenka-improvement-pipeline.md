@@ -108,8 +108,20 @@ in the same session, even after the user did a swap thrash fix
 
 [[resonance-field-emergence]]
 
-#,,.,,...,,..,.,.,,..,,,.,,.,,..,,.,,,.,.,,..,..,,...,...,.,,,,,.,.,.,,.,,,,,,
-#IVLIMUSE6DJSDNGVA6J2WHA3474RFEPDSL3HRBV2CGG4FURKOI2LQ3V4S7CLANH27WWERHEO5SXO4
-#\\\|ZMVDJ4DJG3JQNPIQ4VP2CRHFXD36RGZGZSSK6XAWTYHIZGQAFLJ \ / AMOS7 \ YOURUM ::
-#\[7]2F2CTUCYKYLQITM4P5QTIDGLIELNXN3W6ADBKGCHJN4PTVZVBCAA 7  DATA SIGNATURE ::
+## Active: task-zenka summary topic tree (started + phase 1 landed 2026-06-21)
+
+See [[topic-summary-tree-phase1]] for full detail — architecture, three real
+bugs found+fixed live, two known limitations. Design doc:
+`data/tasks/task-summary-topic-tree.md`. Phase 1 committed once (661d225bc),
+then a BMW-L13 checksum switch was made on top — **uncommitted at session
+end, needs sign+commit next session** (3 files: `bin/mcp-server-p7`,
+`modules/coding.cmd.summarize-context`, `data/tasks/task-summary-topic-tree.md`).
+
+Read [[topic-summary-tree-phase1]] before touching this area again — don't
+re-derive the architecture or re-hit the same bugs.
+
+#,,.,,,,.,,.,,,,,,...,..,,,.,,.,,,.,.,.,,,..,,..,,...,...,.,,,.,.,,.,,,,.,,..,
+#HQSCVPG7NMZWD5VFUTPF44EEN52CVCRWQTWVGDB7PZPUOWHMEXCCH23MLQEFRB2CUGUMWRZNMSIBS
+#\\\|ML4V6OA5P2L35ERAU6S43TZ5GKCOMMGCZAKJRQO5FJBOTDQ77N3 \ / AMOS7 \ YOURUM ::
+#\[7]ODOYC2N6RFMDBRJ7LODILI74T6BYRATUFRJE7N75UNLQELBK72CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
