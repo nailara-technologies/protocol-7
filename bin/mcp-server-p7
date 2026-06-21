@@ -27,13 +27,19 @@ BEGIN {
     sub c_dir  { File::Spec->catdir(@ARG) }
     sub r2_abs { File::Spec->rel2abs(@ARG) }
 
-    ## local AMOS7 lib path : standalone checksum use, same as bin/amos-chksum ##
+    ## local AMOS7 lib path : standalone bmw-L13 use, same pattern as
+    ## bin/amos-chksum. computed LOCALLY, never sent over the wire — cube's
+    ## single-line command buffer caps at 242707 bytes [ base.handler.command ],
+    ## and tail-truncated session content can run to ~400KB ##
     my $root_path      = abs_path( r2_abs( c_dir( $RealBin, File::Spec->updir ) ) );
     my $local_lib_path = abs_path( c_dir( $root_path, qw| data/lib-path/pm | ) );
     unshift( @INC, $local_lib_path ) if defined $local_lib_path and -d $local_lib_path;
 }
 
-use AMOS7::CHKSUM;
+use Digest::BMW;
+use AMOS7::Assert::Truth;
+use AMOS7::TEMPLATE;
+use Time::HiRes;
 
 my $ROOT_PATH = abs_path( r2_abs( c_dir( $RealBin, File::Spec->updir ) ) );
 
@@ -2179,10 +2185,75 @@ sub _extract_stream_content {
 ## summary-tree cache key : content-addressed over instruction+text, so
 ## growing content [ same session, more days of conversation ] always
 ## misses and re-summarizes rather than returning a stale cached answer ##
+## bmw-L13 harmony loop, ported from modules/base.chk-sum.bmw.harmonize_L13 +
+## calculate_L13_sum + L13-str. computed LOCALLY — see the BEGIN block note
+## above for why this must never go over the cube wire as one command line ##
+sub _bmw_l13_harmonize {
+    my ( $bmw_512_bin, $validator ) = @ARG;
+    return undef unless length($bmw_512_bin // '') == 64;
+
+    state $start_seed_num;
+    $start_seed_num //= unpack qw| Q |, pack qw| B64 |, '10000000' x 8;
+    my $bits_num = $start_seed_num;
+
+    foreach my $segment_num ( unpack qw| Q8 |, $bmw_512_bin ) {
+        while ( not AMOS7::Assert::Truth::true_int($segment_num) ) {
+            $segment_num = sprintf qw| %u |, $segment_num / 13;
+        }
+        $bits_num ^= $segment_num;
+        while ( not AMOS7::Assert::Truth::true_int($bits_num) ) {
+            $bits_num <<= 1;
+        }
+    }
+
+    my $result_str_B32 = encode_b32r( pack qw| Q |, $bits_num );
+
+    my $time_start;
+    $time_start = sprintf qw| %.1f |, Time::HiRes::time
+        if AMOS7::TEMPLATE::template_count() > 0;
+
+    ## fallback cap : guards cycles that never satisfy [ validator AND
+    ## true_int ] when no truth template is assigned [ matches the original
+    ## module's iteration cap, same rationale ] ##
+    my $max_iterations_num = 100_000;
+    my $iteration_num      = 0;
+
+    while (not $validator->( $result_str_B32, $bits_num )
+        or not AMOS7::Assert::Truth::true_int($bits_num) ) {
+
+        if ( AMOS7::TEMPLATE::template_count()
+            and sprintf( qw| %.1f |, Time::HiRes::time ) - $time_start
+            > AMOS7::TEMPLATE::template_timeout() ) {
+            return undef;
+        }
+        if ( ++$iteration_num > $max_iterations_num ) {
+            return undef;
+        }
+
+        $bits_num = sprintf qw| %u |, $bits_num / 13;
+        $bits_num <<= 5;
+        $bits_num = 13 if $bits_num == 0;
+        $result_str_B32 = encode_b32r( pack qw| Q |, $bits_num );
+    }
+
+    return $result_str_B32;    ## 13 characters ##
+}
+
+sub _bmw_l13 {
+    my ($input) = @ARG;
+    return undef unless length($input // '');
+    return _bmw_l13_harmonize(
+        Digest::BMW::bmw_512($input),
+        sub { AMOS7::Assert::Truth::is_true( $ARG[0], 0, 1 ) }
+    );
+}
+
+## bmw-L13 : 13-char base32 [ ~65 bits ], far lower collision risk than the
+## 7-char amos chksum cap. computed locally — never shipped over the wire ##
 sub _tree_chk {
     my ( $instruction, $text ) = @ARG;
     my $input = ( $instruction // '' ) . "\x00" . ( $text // '' );
-    return AMOS7::CHKSUM::amos_chksum( \$input );
+    return _bmw_l13($input);
 }
 
 ## best-effort cache lookup : short alarm, any failure is a plain miss —
@@ -2846,8 +2917,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,..,.,,,.,,,,..,.,.,...,,,,,,,.,,..,.,.,,,,,..,,...,...,,,.,.,,,,.,,.,.,.,.,
-#RBNVCY7QSBVGDI7PDE6ZE4AJ22VWYO2ASRGHDXCGP3AFVKIGJ2VBJY24SCBR5IGTQSTIN4O72AJYW
-#\\\|P2RZYK4477TK374JFW2UFSZAWCWDVL6JRS722LTSGVXB2VIAZIT \ / AMOS7 \ YOURUM ::
-#\[7]YFV3QO4VAYEZFFTRV2DCIFR6DNIMBZRB32E4SF6XKD3IFCN7EYCI 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,..,,,,,,,.,..,,.,,,.,,,,.,,...,..,,...,..,,...,...,,..,,..,...,
+#NBAYJCXGWUG6IENGEHVEGNS3T7MOHOCLYMIZ2PQZMBLO4VYYHF4DZYQXXIMFIXFCAWXJZ3SSH7KIM
+#\\\|SDTWKXI77MXDYVZPRA5KJ6ZJON3RS7QCPTQCYJN4X553ZZ4KBOE \ / AMOS7 \ YOURUM ::
+#\[7]K3IMZVKDJFQ74TC3OZHONQNV2QEUI6EX53ZNAJK75IAAHQXMRABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
