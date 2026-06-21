@@ -455,13 +455,14 @@ POSIX::setpgid( $pid, $pid );
     'pid'     => $pid,
     'binary'  => $binary,
     'seed'    => $seed,
-    'n_ctx'   => $ctx_size,       ## actual context window passed to server ##
-    'status'  => qw| starting |,
-    'start_time'  => <[base.time]>->(3),
-    'stdout'      => $server_out,
-    'stderr'      => $server_err,
-    'mmproj_path' => $mmproj_path,
-    'model_path'  => $model_path,
+    'n_ctx'   => $ctx_size,    ## actual context window passed to server ##
+    'calculated_ctx' => $safe->{'calculated'}, ## VRAM-safe auto-calc value ##
+    'status'         => qw| starting |,
+    'start_time'     => <[base.time]>->(3),
+    'stdout'         => $server_out,
+    'stderr'         => $server_err,
+    'mmproj_path'    => $mmproj_path,
+    'model_path'     => $model_path,
 };
 
 ## Register I/O handlers to monitor startup
@@ -514,8 +515,8 @@ return {
     'port'    => $port
 };
 
-#,,,.,.,,,,,,,.,.,,,.,,.,,..,,..,,..,,,,,,.,.,..,,...,...,...,...,.,.,,,,,,,.,
-#P3NXZFLGHZFY6F2KIGIHKHL24GOFI3VGNB35HEATUQNFOWALRUQL7TZNRX2PMPHTCIXL34VQHO2PK
-#\\\|V4EQGZV4A3BGNPNYG663H7KSG2HJFB7M6ELFHWJV7WBBHSRESX6 \ / AMOS7 \ YOURUM ::
-#\[7]2NQTAAMH4ECHGJVOHCRKI4IKDER7YBWSPSFA5IYLDCTYWPO3S4CY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,.,.,..,,,,,,,,,,.,,,,.,,.,.,..,,..,,...,...,.,,,,..,..,,.,.,.,.,
+#RGV66PXTMWKWDFTULEOIVEVHSDQHINMEHI7PEZJ3XD6YV3TP5RSOEOPVJJ2KC4HLUA6O72HE7FXBC
+#\\\|WZJYS2YTYLZAU4YT3FKTHOV4W4PUUMAKRNDHSXGG3NNXTEADGJO \ / AMOS7 \ YOURUM ::
+#\[7]VJLYZDY75CPZEG3Z64UN5YJEFF47YGMPRKHKUD2BCAND7RXSXMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
