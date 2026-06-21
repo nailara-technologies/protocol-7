@@ -12,6 +12,8 @@
 <task.wait.timeout> //= {};    ## { task_id => timeout_secs } : for cleanup
 <task.summarize.pending>
     //= {};                    ## { task_id => reply_id } : summarize replies
+<task.summary_tree.entries>
+    //= {};    ## { chk(focus.content) => entry } : summary-tree cache/deltas
 
 ## reasoning branch registry [ generic parallel orchestration ] ##
 <reasoning.branch.registry>        //= {};
@@ -20,6 +22,7 @@
 
 ## load existing queue from disk [ zenka_dir handles /var/protocol-7/task/ ]
 <[task.persist.load]>;
+<[task.persist.summary_tree.load]>;
 
 <[base.logs]>->(
     1,
@@ -29,8 +32,8 @@
 
 return TRUE;
 
-#,,,,,.,.,,.,,,,,,,,.,,.,,,..,,,,,...,...,,,,,..,,...,...,.,,,,,.,.,,,,,.,..,,
-#H4DZR3IOUN4HTRFEH4KISIK7AZPKHJYMFAJWKX5B3J47L5TRZL3356XNHJVFVPMGKH2QUIUEWESKY
-#\\\|VMAZC2QLPRH6QCSVQFSYBURD6PY7PCSMKOKEI2OV4Q7J6AYSLB4 \ / AMOS7 \ YOURUM ::
-#\[7]BCMUBEE7JOKARDRNNHFV4SKV3ZYKFZQLQN2VK4F4NCLVS2WW5MAQ 7  DATA SIGNATURE ::
+#,,,.,..,,..,,.,,,.,,,...,,,.,..,,.,,,,..,,,,,..,,...,...,..,,,,.,,,,,,..,..,,
+#VFUSSHN2ZZRV2AYGZRGR2G4ZRT2B2PWNZNBRHCPHS3XI33NBMVMP325XQRPPG6RRGPGUEP3JRSVII
+#\\\|F63K44SMH6ACPT2PIAAIL4FHIBKGPS5BDDKL6XHQBMAGZSQKMSW \ / AMOS7 \ YOURUM ::
+#\[7]TBX7JCNESTPRD65JSS6Q3FHQSG5UE3MQDJAOZM4ZWL7DN33MCIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
