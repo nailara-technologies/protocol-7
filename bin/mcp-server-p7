@@ -2441,6 +2441,18 @@ sub tool_session_catchup {
             return send_tool_result( $id, "session not found: $session_id", 1 )
                 unless defined $s;
         } else {
+            ## summarize-only params given without a session_id usually
+            ## mean the caller mistyped/omitted session_id — warn instead
+            ## of silently falling back to list mode ##
+            if ( length($instruction) or $tail_chars > 0 ) {
+                return send_tool_result(
+                    $id,
+                    'no session_id given — instruction/tail_chars are '
+                        . 'ignored in list mode; pass session_id to '
+                        . 'summarize a specific session',
+                    1
+                );
+            }
             my @out;
             push @out, '.:[ recent sessions ]:.';
             my $n = 0;
@@ -2723,8 +2735,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,,,,..,,.,,,,.,,,.,,..,,.,,,.,,,,,,,.,,,.,,..,,...,...,,..,,..,.,,,.,.,...,
-#IQSR2ZN64CLL5ZTGK4VB3EXEFP4AJ7WUCAQ23JTIDOIRX73STHHKZYVFBL3BASRO7YU346WIASONS
-#\\\|DUHEEEXVIKRDYAQ6E5JRUBUJ3KVUIHGNGTKRVWO3GMBQOGJ2OG2 \ / AMOS7 \ YOURUM ::
-#\[7]SOFO6V5EJGKDKG5447NGQXBPTA2ZCYYUSJSINCZQ7PE5NJ4BN6CI 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,,.,,,..,,,,,.,.,.,,,,,.,.,.,..,,..,,...,...,.,,,.,,,...,,.,,,..,
+#GXKFOUFOM3PLPLJPYTJRWRJ7PVRG2R2RTRIUH3FEXCKYGKE7465GZFZ4JFEOSKSV2B46GR4PTLDIK
+#\\\|PMUJRKWYRK37HJURX3L65GXJGJDD75CR2BI4CCFUYZVXIKD7D72 \ / AMOS7 \ YOURUM ::
+#\[7]SAODMAFNHI5KKAMXSRL3T6LZOUSNFI4BQ7GUNBBSX3ILU6H44ECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
