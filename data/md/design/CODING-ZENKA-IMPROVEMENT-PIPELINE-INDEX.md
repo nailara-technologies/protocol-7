@@ -39,14 +39,40 @@ tier 0 (LANDED, 2026-06-20):
   core pass/fail; worth a look, not urgent.
 
 tier 1 — data/tasks/coding-model-self-test-cycle.md
-  status: DONE for the core calibration cycle (live-validated).
-  EXTENDED, NOT YET IMPLEMENTED (2026-06-21): testing a non-loaded
-  model via switch-model + restore, gated on introducing self-test as
-  a dependency-object state (reusing the same mechanism that already
-  gates GPU/CPU server readiness, not a new poll/sleep loop) so
-  regular tasks block correctly during the switch window. also flagged:
-  cross-model assertion (a known-good model judging another model's
-  self-test results, since an incoherent model likely can't reliably
+  status: DONE, including switch-to-a-non-loaded-model + restore, live-
+  confirmed end to end 2026-06-21: "self-test complete for
+  KVRBYTQ:BZHYASQ: 2/2 passed" while IXNBXVI:U2XBEXQ was loaded,
+  correctly switched/tested/restored. async state machine via
+  event.add_timer (no blocking poll), deferred-reply pattern copied
+  from coding.cmd.ask-reply, dependency-object blocking reused from the
+  existing GPU/CPU server-readiness mechanism.
+
+  along the way, found and fixed THREE real pre-existing bugs in core
+  switch-model infrastructure (not scoped to self-test, but only
+  surfaced by exercising it live): (1) shared global pending-state in
+  switch_model_reply got clobbered by overlapping switch-model calls —
+  fixed by passing checksum/name/backend through base.route.add's
+  existing 'params' plumbing instead; (2) <inference.model.amos_id>
+  (what monitor_inference_startup/inference-status actually label the
+  running model from) was never updated by any switch path — fixed by
+  updating it from every successful spawn; (3) the default 'auto'
+  backend mode updated neither per-backend model_id field at all (only
+  literal 'gpu'/'cpu'/'both' matched) — fixed alongside (2). readiness
+  detection itself also hardened: keys off a CHANGED pid rather than
+  the model_id label, since the label updates earlier than the actual
+  process swap completes.
+
+  still open, not a regression: self-test auto-fires on EVERY
+  readiness event with no suppression for switches it itself caused —
+  now actually OBSERVED live (a visible duplicate test during the
+  switch window), confirming the issue is real, not just theoretical.
+  fix unchanged: a suppression marker. also still open: task
+  model-pinning verification (may already exist, untested) and
+  configurable test suites.
+
+  also flagged: cross-model assertion (a known-good model judging
+  another model's self-test results, since an incoherent model likely
+  can't reliably
   assess its own incoherence) — speculative, phase 3+, not designed.
 
 tier 2 — data/tasks/coding-self-error-processing-cycle.md
@@ -116,8 +142,8 @@ tier 2: NOT READY — 3 open decisions block dispatch
 tier 3: GATED — awaiting tier 2 stability milestone
 ```
 
-#,,,,,,.,,.,,,,..,,,,,,,.,.,.,,,.,.,,,..,,...,..,,...,...,,.,,.,.,.,,,,.,,,..,
-#5HSSGJYG76WDNTUPNGJFD33UPYEVELFI7RD7CCBBMIMYL2B2KVFVTFAAJXLF3IKXLSLHICKPKXJW6
-#\\\|EFRV5EWUCGRAUV4OMDDZDOWDNRYVHP64YNRL7JUIPVGSSRIZUGT \ / AMOS7 \ YOURUM ::
-#\[7]B2UXFN4HXQI4SDFEEQUQUUTBQ7FTWGBP3OHGMENHGU24CR6YZYBQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,,,,..,,,,,,.,,,..,,..,,,,.,,.,,..,,...,...,.,,,,,.,,..,,,.,,,.,
+#AAYDFEM62GXGJNBNJSYY3XQZZKCVWVU3IPXTYE2YRY54LXG6AVJSD4PMA5CEBCHYHPLCAFSMDDNLK
+#\\\|UIFDL2IUZC4MHM4APAKTBVDSPDJMOV3JSYJXLC5QDYASMATGKYB \ / AMOS7 \ YOURUM ::
+#\[7]DWAJMJIETW7ZTTPIBUZKJICNWQ6OHJADIRPZLHVU4OYUCFGTG2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
