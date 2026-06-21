@@ -20,6 +20,11 @@ see [topic-round-scheduling-subtasks.md](topic-round-scheduling-subtasks.md)
 `coding.inject-message <task_id> <msg>` injects user message into active task. `coding.wait-done <task_id> [timeout]` blocks until done.
 see [topic-coding-zenka-massive-cleanup.md](topic-coding-zenka-massive-cleanup.md)
 
+## MCP session_catchup + Self-Test Verification (June 2026)
+
+MCP timeout bumped, `session_catchup` now does direct UUID/prefix lookup and supports `tail_chars` for large sessions. Coding self-test tier-0/1/2 verified live; tier-1 retry confirmed on DVEAZIA:GPAKBLA.
+see [2026-06-21-session-catchup-mcp-and-self-test-verification.md](2026-06-21-session-catchup-mcp-and-self-test-verification.md)
+
 ## Coding Zenka Fixes (April 2025)
 
 major fixes to tool dispatch, error handling, context management, loop detection, pagination.
@@ -175,8 +180,8 @@ see [topic-language-detection.md](topic-language-detection.md)
 phase 1 operational (~950 lines); file-backed history at `data/chat/channel/*/history`; `data/ai-mem/handover.txt` retired.
 open: kimi zenka state machine upgrade (backend reconnect), coding zenka as third dispatch target, phase 2 channels zenka.
 
-#,,,.,..,,.,.,,..,.,.,.,.,,,,,..,,.,.,,,.,,.,,..,,...,...,,..,,..,,..,...,,.,,
-#5V6IDLWP4OBFPOE3NCWN5BMJ5ZYXNZA6JOFQVPXDCYQN3WDA47VRVIXXDDI6F426SW3DGBHP4SUBK
-#\\\|DP6UL2252BMNWMRBER27RHQLKPXWB6SVX5CV57VWYA6XIEDQMXL \ / AMOS7 \ YOURUM ::
-#\[7]JM3K5Y6S3DBMWHHSE7W5S4KIQXYPJDFY7USBXR57KFE7TJB3UABQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,.,.,...,,,,,.,.,,,.,,,,,.,,,.,,,..,,...,...,.,,,,,,,,,.,...,,,.,
+#HH2KF3NFNDTBAL2CRUKMF5QYFKCARE44FIZ3ITJSQI2L6JYBFP5BFD5UTZELUU2SBYGHJLVQETOPO
+#\\\|7NJDRBSY5CKNQTVB4EWIHJNQQO2CNDX2BQ42FGMUFKYJ27METKH \ / AMOS7 \ YOURUM ::
+#\[7]HZ23HCRPK4CTUZXKZV6QB43SLCWEHHFWKJETFSQBXU3X5O7SO4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
