@@ -60,22 +60,28 @@ unless ( defined $model_name ) {
 }
 
 ## Get model path from models zenka ##
+## pending switch identity travels with THIS request via 'params' -    ##
+## not shared globals - so overlapping switch-model calls [ e.g. a      ##
+## self-test switching to model A, then restoring to model B before A's ##
+## reply lands ] can never clobber each other. confirmed live 2026-06-21:##
+## shared <coding.pending_model_switch_*> globals caused exactly this   ##
+## race - inference.backend.gpu.model_id could be set to the WRONG      ##
+## request's checksum while the actually-spawned server ran the OTHER   ##
+## request's model file.                                                ##
 $reply = <[protocol-7.command.send.local]>->(
     {   'command'   => 'cube.models.get_path_by_amos',
         'call_args' => { 'args' => $model_checksum },
         'reply'     => {
             'timeout' => 5,
-            'params'  => {},
+            'params'  => {
+                'checksum' => $model_checksum,
+                'name'     => $model_name,
+                'backend'  => $backend_opt,
+            },
             'handler' => 'coding.handler.switch_model_reply'
         }
     }
 );
-
-## Store switch request pending reply in task for retrieval ##
-<coding.pending_model_switch_checksum> = $model_checksum;
-<coding.pending_model_switch_name>     = $model_name;
-<coding.pending_model_switch_backend>  = $backend_opt;
-<coding.pending_model_switch_time>     = <[base.time]>->(3);
 
 return {
     'mode' => qw| size |,
@@ -83,8 +89,8 @@ return {
         . "Restarting inference servers. This may take a moment.\n"
 };
 
-#,,,.,,,,,,..,,,.,..,,,,.,,..,,,.,.,.,,,,,...,.,.,...,...,,,.,,..,.,.,,..,,..,
-#HHZFAFOGKYQ33EU2U5G7N5ZCGRJ4MA43P6JCX4BUDNJL53IE4UCGWXYCMPTWEGLC2U2CCGV4HDSKU
-#\\\|NC2WSBASHWA7ABEPU44D7XWEVZFQS3D33PBUJLCH4UNJN66K54W \ / AMOS7 \ YOURUM ::
-#\[7]CBI3L3KOEEGSWCV5IV4SC3ASUHYKDDY3P36FWTL32SSY44NAX6AI 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,,,,.,.,,..,,..,.,,,,,.,,,.,,..,.,.,...,...,..,,.,.,,..,..,,.,,,
+#2SFBLOHTLYILH4IRYBBQ27VSRITV5FAP627ER5DHN25JDASCCQJJWINFHBSMJ656PMILWA7MBIT42
+#\\\|5WFF4ADGM5XURFUCCF5A7RORRKD26W7ANMJ2XNBGCQKJ2XWYWD2 \ / AMOS7 \ YOURUM ::
+#\[7]PFNKXLW6FQIOL7MYQOUW7C5HZCZWUA4PVF633KTR32CQ5EWUUWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

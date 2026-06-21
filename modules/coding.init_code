@@ -280,6 +280,15 @@ if ( exists $code{'coding.callback.object_memory_gpu'} ) {
     <[base.logs]>->( 2, '[init] registered memory_gpu callback' );
 }
 
+## register self-test pending callback [ blocks backends during model switch ] ##
+if ( exists $code{'coding.callback.object_self_test_pending'} ) {
+    <[dependency.setup]>->(
+        'self_test_pending',
+        { 'callback' => $code{'coding.callback.object_self_test_pending'} }
+    );
+    <[base.logs]>->( 2, '[init] registered self_test_pending callback' );
+}
+
 ## create dependency objects [ only on first init to avoid leaks ] ##
 if ( not $already_initialized ) {
 
@@ -298,11 +307,24 @@ if ( not $already_initialized ) {
         }
     );
 
+    ## create self-test pending dependency [ blocks backends during model switch ] ##
+    <coding.dep.gpu_self_test_pending> = <[dependency.add_object]>->(
+        {   'type'        => 'self_test_pending',
+            'description' => 'No self-test model switch in progress'
+        }
+    );
+
     ## add self-chains for memory callbacks ##
     <[dependency.add]>->(
         <coding.dep.memory_system>, <coding.dep.memory_system>
     );
     <[dependency.add]>->( <coding.dep.memory_gpu>, <coding.dep.memory_gpu> );
+
+    ## add self-chain so dependency.ok actually calls our callback ##
+    <[dependency.add]>->(
+        <coding.dep.gpu_self_test_pending>,
+        <coding.dep.gpu_self_test_pending>
+    );
 
     ## create dependency objects for inference server ports ##
     my $gpu_port = <inference.backend.gpu.port> // 8000;
@@ -336,6 +358,14 @@ if ( not $already_initialized ) {
     ## CPU server needs system memory ##
     <[dependency.add]>->(
         <coding.dep.cpu_server>, <coding.dep.memory_system>
+    );
+
+    ## block backend tasks while a self-test-triggered model switch is in progress ##
+    <[dependency.add]>->(
+        <coding.dep.gpu_server>, <coding.dep.gpu_self_test_pending>
+    );
+    <[dependency.add]>->(
+        <coding.dep.cpu_server>, <coding.dep.gpu_self_test_pending>
     );
 }
 
@@ -501,8 +531,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,,,,...,.,,,.,.,,.,,,..,,..,,..,..,,,..,,,,,.,.,...,...,..,,...,,,,,,.,,,,,,
-#XXZA2HB57NF5I2VVZKQVL54K5DAQDYUI4XX4OO6TTOXGJ3Y2XYQ7NHGF6WFIIAQERJDPZJL3J2EDQ
-#\\\|WC4ZJXIYB32R56XTCA4TOZNSFVVRNP43ULMD7YBZFJXEEMDN2E6 \ / AMOS7 \ YOURUM ::
-#\[7]HS4QSALEWJG4EZXU3I64UYHUO6SJE7JDOS6P56FVDEZLKS6DRIDQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,,,,..,,,.,,.,,,..,,.,,,,,.,,..,.,.,...,..,,..,,,,,,...,.,.,,,.,
+#RHHGTEWSFHXYKNB5RDWIYF43ZH5YVUGPJGKNWOO4FOOU2PCUI6FIEBUCHWOMIRM4JAWLOJTHTIN6G
+#\\\|2JCBPZRX72GPJEYSA435DINF66WBUBWOVIFYLEPDGFV23OGWD3Z \ / AMOS7 \ YOURUM ::
+#\[7]ENY2AOVA4PHSM22A4VMBAXX65MMK7SCKJIJDPSWKQ4SNG6N5VWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
