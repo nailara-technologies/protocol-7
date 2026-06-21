@@ -1,0 +1,110 @@
+## [:< ##
+
+# name  = coding.self_test.apply_tier2
+# descr = run tier-2 semantic judgment + anomaly follow_up on deferred results
+
+my $params         = shift                       // {};
+my $summary        = $params->{'summary'}        // {};
+my $judge_model_id = $params->{'judge_model_id'} // '';
+my $epoch          = $params->{'epoch'} // ( $summary->{'epoch'} // 0 );
+my $test_model_id  = $params->{'test_model_id'}
+    // ( $summary->{'model_id'} // '' );
+
+return { mode => qw| true |, data => 'no_summary' }
+    if !ref $summary
+    or !exists $summary->{'results'};
+
+my $results = $summary->{'results'};
+
+for my $r (@$results) {
+    next if $r->{'passed'};
+    next if !$r->{'needs_tier2'};
+
+    ## fall-through guard : need a judge_model_id to call tier-2 at all ##
+    if ( !length $judge_model_id ) {
+        $r->{'tier'} //= 'tier2_skipped_no_judge';
+        next;
+    }
+
+    my $verdict_reply = <[coding.self_test.tier2_judge]>->(
+        {   judge_model_id => $judge_model_id,
+            prompt         => $r->{'prompt'}   // '',
+            answer         => $r->{'answer'}   // '',
+            expected       => $r->{'expected'} // '',
+        }
+    );
+
+    my $verdict = $verdict_reply->{'verdict'} // 'ambiguous';
+    $r->{'tier2_verdict'}  = $verdict;
+    $r->{'tier2_judge_by'} = $judge_model_id;
+
+    if ( $verdict eq 'YES' ) {
+        $r->{'passed'} = TRUE;
+        $r->{'tier'}   = 'tier2_semantic';
+        <[base.logs]>->(
+            1, '[self_test] tier2 PASS : model %s prompt %d : judged by %s',
+            $test_model_id, $r->{'prompt_id'} // 0,
+            $judge_model_id
+        );
+
+        ## re-archive with updated passed=true + tier annotation ##
+        <[coding.self_test.archive]>->(
+            {   epoch    => $epoch,
+                model_id => $test_model_id,
+                result   => $r,
+                anomaly  => '',
+            }
+        );
+        next;
+    }
+
+    ## NO or ambiguous - run existing anomaly follow_up against the      ##
+    ## ORIGINAL test model [ not the judge ] : the explanation we want    ##
+    ## is what the test model "thought" when it produced the bad answer  ##
+    my $anomaly = '';
+    if ( length $test_model_id ) {
+        my $explain = <[coding.self_test.follow_up]>->(
+            {   model_id => $test_model_id,
+                prompt   => $r->{'prompt'} // '',
+                answer   => $r->{'answer'} // '',
+            }
+        );
+        if ( $explain && $explain->{'mode'} eq qw| true | ) {
+            $anomaly = $explain->{'data'} // '';
+        }
+    }
+
+    $r->{'tier'} = 'tier2_fail';
+    <[base.logs]>->(
+        1, '[self_test] tier2 FAIL : model %s prompt %d : verdict=%s',
+        $test_model_id, $r->{'prompt_id'} // 0, $verdict
+    );
+
+    <[coding.self_test.archive]>->(
+        {   epoch    => $epoch,
+            model_id => $test_model_id,
+            result   => $r,
+            anomaly  => $anomaly,
+        }
+    );
+}
+
+## recompute aggregate fields on the summary ##
+my $pass_count = 0;
+my $total      = scalar @$results;
+my $all_passed = TRUE;
+for my $r (@$results) {
+    if   ( $r->{'passed'} ) { $pass_count++ }
+    else                    { $all_passed = FALSE }
+}
+$summary->{'pass_count'} = $pass_count;
+$summary->{'total'}      = $total;
+$summary->{'all_passed'} = $all_passed;
+
+return { mode => qw| true |, data => $summary };
+
+#,,.,,,..,,..,.,,,,.,,.,.,.,.,...,.,,,,,.,,..,..,,...,...,.,.,,.,,...,,,,,,.,,
+#SMF22BMB2C5M653GKVOBZQPW3OKQBUVP5HSBQ7ZMC2QXFFE7KQJ6DS5PFKXEJBTUPIZYWWAQNARIW
+#\\\|GKJMOONN4M3NBQVDXAIJN7QB6NUKVERKS4SZY4IRLQIRQFZ35AI \ / AMOS7 \ YOURUM ::
+#\[7]VI5MX2EBHVJ5G53N6LM4OKV2D2YZVIA6FM7YPYUTYZRJCDWTDGCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

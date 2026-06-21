@@ -1,48 +1,178 @@
 ## [:< ##
 
 # name  = coding.self_test.evaluate
-# descr = check answer against expected; returns TRUE/FALSE
+# descr = structural-check + tier-1 reformat; returns needs_tier2 if both fail
 
-my $params   = shift                 // {};
-my $model_id = $params->{'model_id'} // '';
-my $prompt   = $params->{'prompt'}   // '';
-my $answer   = $params->{'answer'}   // '';
-my $expected = $params->{'expected'} // '';
+my $params     = shift                 // {};
+my $model_id   = $params->{'model_id'} // '';
+my $prompt     = $params->{'prompt'}   // '';
+my $answer     = $params->{'answer'}   // '';
+my $expected   = $params->{'expected'} // '';
+my $constraint = $params->{'constraint'}
+    // { type => 'exact', value => $expected };
+my $timeout = $params->{'timeout'} // 30;
 
-## trim and case-fold both sides ##
-$answer =~ s/^\s+//;
-$answer =~ s/\s+$//;
-$answer = lc $answer;
-
-$expected =~ s/^\s+//;
-$expected =~ s/\s+$//;
-$expected = lc $expected;
-
-if ( $answer eq $expected ) {
-    return { mode => qw| true |, data => $answer };
-}
-
-## mismatch: ask the model to explain its reasoning ##
-my $anomaly   = '';
-my $follow_up = <[coding.self_test.follow_up]>->(
-    {   model_id => $model_id,
-        prompt   => $prompt,
-        answer   => $answer,
+## tier 0 : deterministic structural check, no inference ##
+my $check = <[coding.self_test.check_constraint]>->(
+    {   answer     => $answer,
+        constraint => $constraint,
+        expected   => $expected,
     }
 );
 
-if ( $follow_up && $follow_up->{'mode'} eq qw| true | ) {
-    $anomaly = $follow_up->{'data'} // '';
+if ( $check && $check->{'mode'} eq qw| true | ) {
+    return {
+        mode             => qw| true |,
+        data             => $answer,
+        tier             => 'literal',
+        constraint_check => $check->{'data'} // '',
+    };
 }
 
-return {
-    mode    => qw| false |,
-    data    => 'mismatch',
-    anomaly => $anomaly,
+my $structural_reason = ( $check->{'data'} // 'mismatch' );
+
+## tier 1 : same-context reformat request to the same model, up to two   ##
+## attempts. neither hint may disclose $expected - only the constraint   ##
+## itself [ type / max_words / template ] and, on the retry, the prior   ##
+## violation [ eg "you used 56 words, limit is 2" ] may be cited, so a   ##
+## stricter retry can never amount to "the answer is X" - confirmed      ##
+## acceptable scope with the user 2026-06-21.                            ##
+my $type = $constraint->{'type'} // 'exact';
+
+my $base_hint = sub {
+    if ( $type eq 'numeric' ) {
+        return 'Please restate your final answer as only the number, '
+            . 'with no other text.';
+    } elsif ( $type eq 'word_count' ) {
+        my $max = $constraint->{'max_words'} // $constraint->{'max'} // 1;
+        return $max <= 1
+            ? 'Please restate your final answer in exactly one word, '
+            . 'with no other text.'
+            : sprintf
+            'Please restate your final answer in at most %d words, '
+            . 'with no other text.', $max;
+    } elsif ( $type eq 'sprintf' ) {
+        my $tmpl = $constraint->{'template'} // '';
+        return
+            sprintf 'Please restate your final answer matching this exact '
+            . 'format: %s', $tmpl;
+    }
+    return 'Please restate your final answer as only the short '
+        . 'expected phrase, with no other text.';
 };
 
-#,,,,,,..,,,.,,..,.,.,..,,...,,,,,,.,,.,,,,..,..,,...,...,,,.,,.,,,.,,.,.,..,,
-#FG6JC3IHX25FWVQA2X77N2FXAQX4GFSBSOWNPAZQDQ75E4H7LZ6CVC65EL2YXRLMILGZMHF4VGJQU
-#\\\|FQX2UNXRDAJGIMQMTXCANDRLYMPACEVMXL7P2KWZIPPE5SJ5HHD \ / AMOS7 \ YOURUM ::
-#\[7]LIM24LISKDYDIIC2T6DGF327HBHFDY5PK3F77OLAXPVF6UMTCYCI 7  DATA SIGNATURE ::
+## stricter retry hint, built only from the prior structural violation - ##
+## never from $expected ##
+my $strict_hint = sub {
+    my ($reason) = @_;
+    if ( $type eq 'word_count' && $reason =~ m{over_word_limit:(\d+)>(\d+)} )
+    {
+        my ( $got, $max ) = ( $1, $2 );
+        return
+            sprintf
+            'Your reply still contained %d words and explanation - the '
+            . 'limit is %d. Remove ALL explanation and reply with at '
+            . 'most %d word%s and nothing else.', $got, $max, $max,
+            $max == 1 ? '' : 's';
+    }
+    if ( $type eq 'numeric' ) {
+        return
+              'Your reply still contained extra text. Reply with '
+            . 'ONLY the digits of the number - no words, punctuation, '
+            . 'or explanation.';
+    }
+    if ( $type eq 'sprintf' ) {
+        my $tmpl = $constraint->{'template'} // '';
+        return
+            sprintf
+            'Your reply still did not match the required format. Reply '
+            . 'using EXACTLY this format and nothing else: %s', $tmpl;
+    }
+    return 'Your reply still contained extra text. Reply with nothing '
+        . 'but the short phrase itself, no explanation.';
+};
+
+my $server_url = <inference.backend.http_server_url>
+    // 'http://127.0.0.1:8000';
+
+## one reformat round-trip + recheck; returns (ok, reformatted, reason) ##
+my $try_reformat = sub {
+    my ( $prior_answer, $hint ) = @_;
+    my $reformat_prompt
+        = "For the question: $prompt\n"
+        . "You answered: $prior_answer\n\n"
+        . $hint;
+
+    my $tier1 = <[coding.tools.http_inference_client]>->(
+        {   url      => $server_url,
+            model_id => $model_id,
+            prompt   => $reformat_prompt,
+            timeout  => $timeout,
+        }
+    );
+
+    if ( !$tier1 || $tier1->{'mode'} ne qw| true | ) {
+        return ( FALSE, '',
+            'tier1_inference_failed: ' . ( $tier1->{'data'} // 'no reply' ) );
+    }
+
+    my $reformatted = $tier1->{'data'} // '';
+    $reformatted =~ s/[\x00-\x08\x0b\x0c\x0e-\x1f]//g;
+
+    my $recheck = <[coding.self_test.check_constraint]>->(
+        {   answer     => $reformatted,
+            constraint => $constraint,
+            expected   => $expected,
+        }
+    );
+
+    return ( TRUE, $reformatted, '' )
+        if $recheck && $recheck->{'mode'} eq qw| true |;
+    return ( FALSE, $reformatted,
+        $recheck->{'data'} // 'tier1_recheck_mismatch' );
+};
+
+my ( $tier1_ok, $reformatted, $tier1_reason )
+    = $try_reformat->( $answer, $base_hint->() );
+
+if ( !$tier1_ok && $tier1_reason !~ m{^tier1_inference_failed} ) {
+    <[base.logs]>->(
+        1, '[self_test] tier1 reformat attempt 1 failed : model %s : %s',
+        $model_id, $tier1_reason
+    );
+    ( $tier1_ok, $reformatted, $tier1_reason )
+        = $try_reformat->( $reformatted, $strict_hint->($tier1_reason) );
+}
+
+if ($tier1_ok) {
+    <[base.logs]>->(
+        1, '[self_test] tier1 reformat PASS : model %s : %s -> %s',
+        $model_id, $answer, $reformatted
+    );
+    return {
+        mode               => qw| true |,
+        data               => $reformatted,
+        tier               => 'tier1_reformat',
+        original_answer    => $answer,
+        reformatted_answer => $reformatted,
+        structural_reason  => $structural_reason,
+    };
+}
+
+## both tier 0 and tier 1 [ two attempts ] failed - defer to caller for   ##
+## tier 2 ##
+return {
+    mode               => qw| false |,
+    data               => 'mismatch',
+    needs_tier2        => TRUE,
+    original_answer    => $answer,
+    reformatted_answer => $reformatted,
+    structural_reason  => $structural_reason,
+    tier1_reason       => $tier1_reason // 'tier1_recheck_mismatch',
+};
+
+#,,..,.,.,...,,,,,,,.,,..,,..,.,,,,,.,...,,..,..,,...,...,.,,,...,.,.,,,,,.,,,
+#AVWQ5DEZWWVW22SBP6TUO3D7FVG4PHNLOEOQYZSPFUQW4SLAIQHRCXX4UGYXO72UL7CWTWH57MII6
+#\\\|ERZEBE6KZGJTCDQIYGS5K2FY5WSIN752PWRM2XXT2B5ZNMZ33X7 \ / AMOS7 \ YOURUM ::
+#\[7]FOSMTEQHGOCDDLH6X2UGN5PVHLCSXDJLW5IOZNN6KA263ERUYCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
