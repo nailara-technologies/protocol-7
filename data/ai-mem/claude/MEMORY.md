@@ -1,5 +1,5 @@
 ## CRITICAL
-- [UNCOMMITTED 2026-06-21, context-limit handover](coding-zenka-improvement-pipeline.md) — only doc/memory edits uncommitted (data/ai-mem/claude/MEMORY.md, coding-zenka-improvement-pipeline.md, data/tasks/coding-model-self-test-cycle.md) — all actual code already committed through `7c7c65676`. NEXT TASK: implement the generic `result_constraint` + tiered-escalation design (captured, not yet built) — read `coding-model-self-test-cycle.md`'s last major section first.
+- [UNCOMMITTED 2026-06-21](coding-zenka-improvement-pipeline.md) — `result_constraint`+tiered-escalation feature fully implemented + live-verified (tier-0/tier-1 confirmed firing correctly); found+fixed a real timeout-path tier-2 gap in poll_switch same session; NOT YET SIGNED/COMMITTED — check this file for exact pending file list before doing anything else with this feature.
 - [WSLg deiconify limitation](feedback-wslg-deiconify-limitation.md) — Weston/WSLg blocks deiconify at compositor level; iconify works, nothing deiconifies (X11 or GTK); don't re-investigate unless Weston version changes
 - [UNCOMMITTED 2026-06-20](topic-mpv-jobqueue-startup.md) — large uncommitted set spanning two sessions: bin/protocol-7-gtk3, configuration/zenki/mpv/start (fade_in=1 + fade_start_geom=700x42 are VOLATILE TEST VALUES, revert before commit), modules/{X-11.cmd.move-window,X-11.cmd.set_geometry,X-11.handler.screen_change,base.root.drop_privs,mpv.startup.handler.socket_poll,v7.zenka.start,mpv.handler.event.property-change.window-id(new)}, bin/dev/script-scratchpad/gtk_position_restore(new) — check `git status` first thing next session, separate durable fixes from volatile fade_in tuning before any commit
 - [gtk-wsl-window-positioning](topic-gtk-wsl-window-positioning.md) — active, UNRESOLVED: GDK_BACKEND=x11 alone disproven as the fix for move()-before-show_all under WSLg; minimal test script still mismatches; window also renders translucent/shadow-only — open questions listed, read before continuing
@@ -67,6 +67,7 @@
 - [stream-reply-modes](topic-stream-reply-modes.md) — bounded scalar, unbounded live, scalar-ref/filehandle
 - [radio-relay-zenka](topic-radio-relay-zenka.md) — radio COMPLETE; phase 5 (buffer-fill) next
 - [vhost-install](topic-vhost-install.md) — space.v7.ax live; open items remain
+- [model-load-time-statistics](topic-model-load-time-statistics.md) — planned: per-model fastest/avg/longest load stats to replace fixed switch/cold-start timeouts (new)
 - [cursor-model](topic-cursor-model.md) — true cursor from hyperspace plane density
 - [iris-spoke-labels](topic-iris-spoke-labels.md) — 63-ring spoke sequence; dot-fold; BASE32/bottom
 - [stream-framing-protocol](topic-stream-framing-protocol.md) — 3+1 bit frame; separator inversion on 000
@@ -189,8 +190,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,..,,.,,,,,,,.,,..,,.,.,,.,,,,.,...,..,,...,..,,...,...,.,,,,.,,,,.,...,...,
-#XIJMMVAU4ZW7KECUNOYFZW22HXYPTG464GP6V5AI2TZPMSTPMJOEMZ2XZMBZFV2RFIEKXKZYSCPN6
-#\\\|JSU67TJBDALJ5PI6TX3CWBHGYQSZRRIL2HOJ4PH2DVOJWDPYSZW \ / AMOS7 \ YOURUM ::
-#\[7]VZCX3V5ZEPQN4JW6QLBC7RKH3GPNHJEFUOTUKS7QKX3UAQXLG2AA 7  DATA SIGNATURE ::
+#,,,.,.,.,...,...,.,,,..,,..,,..,,..,,,.,,.,.,..,,...,...,..,,,,,,,.,,,..,...,
+#6H43KTXI3PW3FMINMQTPRUW7OWZOGAPS2HVZDY55S5TNO3MI2EY7ZI7STPSI5B3XXD3PP22YVQZX6
+#\\\|FG2ZLJWG4EHCLW5ANSQZCQMMWH3EBNRIHEGUVQ2C5M4AH5KZMY2 \ / AMOS7 \ YOURUM ::
+#\[7]RKKPOLDKUZTXQSHMTQT6FAUSE6A6ZU7SHX6NJ52AENGIRJESNSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
