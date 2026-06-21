@@ -78,6 +78,35 @@ if ($async_mode) {
         return { success => FALSE, error => $task->{'execution'}->{'error'} };
     }
 
+    ## task-level model pin enforcement : a ':model:CHECKSUM:' marker in   ##
+    ## the prompt requests a SPECIFIC model. coding.prompt.assemble        ##
+    ## already echoes it into backend_info.model unconditionally, but     ##
+    ## never checks whether it's actually loaded - that enforcement lives ##
+    ## here. $assembled->{'parsed'}{'model'} is defined ONLY when an       ##
+    ## explicit pin was requested [ distinct from backend_info.model,      ##
+    ## which is also populated for auto-selected models ].                 ##
+    my $pinned_model = $assembled->{'parsed'}->{'model'};
+    if ( defined $pinned_model and length $pinned_model ) {
+        my $pin_backend  = $backend_info->{'backend'} // 'gpu';
+        my $defer_dep_id = <[coding.task.ensure_model_pinned]>
+            ->( { 'checksum' => $pinned_model, 'backend' => $pin_backend } );
+        if ( defined $defer_dep_id ) {
+            <[base.logs]>->(
+                1,
+                '[model_pin] task %s deferred : waiting for model %s on %s',
+                $task_id, $pinned_model, $pin_backend
+            );
+            my $job_data = <[jobqueue.get_job_data]>->($job_id);
+            $job_data->{'object_id'} = $defer_dep_id;
+            <[jobqueue.move_job]>->( $job_id, qw| depending | );
+            return {
+                success => TRUE,
+                mode    => qw| deferred |,
+                task_id => $task_id
+            };
+        }
+    }
+
     ## Update task with routing info ##
     $task->{'execution'}->{'backend'}    = $backend_info->{'backend'};
     $task->{'execution'}->{'port'}       = $backend_info->{'port'};
@@ -104,7 +133,8 @@ if ($async_mode) {
     if ( $max_tokens_safe <= 0 ) {
         if ( <[coding.task.chunked_summary_eligible]>->($task) ) {
             return <[coding.task.chunk_and_summarize]>->(
-                $task_id, $task, $est_tokens, $n_ctx, $job_id );
+                $task_id, $task, $est_tokens, $n_ctx, $job_id
+            );
         }
         my $overflow = $est_tokens - $n_ctx;
         my $err
@@ -200,8 +230,8 @@ if ($async_mode) {
 ## unreachable : async block always returns before here ##
 return FALSE;
 
-#,,,,,.,,,.,.,,,,,,,.,..,,,,.,,.,,,,.,...,..,,.,.,...,...,,.,,.,.,..,,..,,..,,
-#DAB7JZITZO2SDQZN4ABXBUIW5DUTQV73D7PAXPCB46YSYNWTHQLBSVFT6FFTICQXKC7QG2HN3CMAG
-#\\\|WUQ3PB3J5J3ELULJVG3DCHFMJ4C3EOINSD6S2RLOQXWIDAAIOHQ \ / AMOS7 \ YOURUM ::
-#\[7]VCT42JWHJS6MLQDXG2IH7KVWWNMOSCQUVPN4TBU4KTMQSZYW7GCY 7  DATA SIGNATURE ::
+#,,..,..,,,,.,.,,,..,,,..,,..,,.,,..,,,.,,,..,.,.,...,..,,..,,.,,,,..,,.,,,..,
+#MFABVHRK2FEOLIV6XKHXVBJ6H6QKRSMK6MNSYYV5TOPV6YHOZDQFWJUVZVTVQVCULP5TQRZIQEZOA
+#\\\|OFEGIVANC3XUB62NFGQDWMRUTTYYHD5ZR7ROKT3NN7H72GKXYZ2 \ / AMOS7 \ YOURUM ::
+#\[7]IDWXS5ZFFYXBTZZR5QMPPIPT5DCB7RSIPWVCNUJAR3WKKSQVFUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

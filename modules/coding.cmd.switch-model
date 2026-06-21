@@ -59,6 +59,15 @@ unless ( defined $model_name ) {
     };
 }
 
+## mark a switch as in-flight, generically - lets unrelated watchers     ##
+## (e.g. coding.handler.await_resources's twin-handover poller) tell a   ##
+## deliberate switch-in-progress apart from a genuinely unexpected gpu    ##
+## server loss. cleared by coding.handler.switch_model_reply on every    ##
+## exit path. confirmed live 2026-06-21: without this, await_resources   ##
+## reacted to spawn_smart's kill-old-server step by respawning the OLD,  ##
+## stale-config model, racing against this function's own intended spawn.##
+<coding.switch_model_active> = TRUE;
+
 ## Get model path from models zenka ##
 ## pending switch identity travels with THIS request via 'params' -    ##
 ## not shared globals - so overlapping switch-model calls [ e.g. a      ##
@@ -89,8 +98,8 @@ return {
         . "Restarting inference servers. This may take a moment.\n"
 };
 
-#,,..,.,,,.,.,,,,,.,.,,..,,..,.,,,,,.,,,.,,..,.,.,...,...,..,,.,.,,..,..,,.,,,
-#2SFBLOHTLYILH4IRYBBQ27VSRITV5FAP627ER5DHN25JDASCCQJJWINFHBSMJ656PMILWA7MBIT42
-#\\\|5WFF4ADGM5XURFUCCF5A7RORRKD26W7ANMJ2XNBGCQKJ2XWYWD2 \ / AMOS7 \ YOURUM ::
-#\[7]PFNKXLW6FQIOL7MYQOUW7C5HZCZWUA4PVF633KTR32CQ5EWUUWDA 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,...,,..,,,.,,,,,..,,...,.,,,,,,,.,.,...,..,,.,,,,,.,,,,,,.,,...,
+#YZ7ELVA4BY6KARCPJXU6H7B4TCANAAXKMY4VHI6X4Y57GCQ6CLXGCUEQM5B3VNVMTMR2INQTMVF3A
+#\\\|LOS4BL4VDD6S4F665YAB2PZGLDL7OC574GN54SDNLGSKV2T2B2V \ / AMOS7 \ YOURUM ::
+#\[7]73GE5MNWIEQHYVX2YDTP6VCIIETUGLW24XNFI7VE7ZIJF6M6DEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = coding.task.ensure_model_pinned
+# descr = check a pinned model against what's currently loaded; if it
+#         mismatches, trigger a switch (once, guarded against redundant
+#         firing) and return a dependency object id the caller should
+#         re-queue the task against. returns undef if no defer is
+#         needed [ already correct, or no checksum given ].
+
+my $params   = shift                 // {};
+my $checksum = $params->{'checksum'} // '';
+my $backend  = $params->{'backend'}  // qw| gpu |;
+
+return undef if !length $checksum;
+
+my $server = ( <coding.inference_servers> // {} )->{$backend} // {};
+if (    ( $server->{'status'} // '' ) eq qw| ready |
+    and ( $server->{'model'} // '' ) eq $checksum ) {
+    delete <coding.model_switch_in_flight>->{$checksum};    ## hygiene ##
+    return undef;
+}
+
+## get-or-create a dependency object for this specific checksum+backend - ##
+## reused across future pins of the same checksum, never recreated       ##
+<coding.dep.model_checksum> //= {};
+<coding.dep.model_checksum>->{$backend} //= {};
+my $dep_id = <coding.dep.model_checksum>->{$backend}{$checksum};
+
+unless ( defined $dep_id ) {
+    $dep_id = <[dependency.add_object]>->(
+        {   'type'     => qw| model_checksum_loaded |,
+            'checksum' => $checksum,
+            'backend'  => $backend,
+        }
+    );
+    <[dependency.add]>->( $dep_id, $dep_id )
+        ;    ## self-chain : invokes the callback ##
+    <coding.dep.model_checksum>->{$backend}{$checksum} = $dep_id;
+}
+
+## fire switch-model only if not already in flight for this checksum -   ##
+## avoids redundant respawns when multiple tasks pin the same not-yet-   ##
+## loaded model concurrently                                             ##
+unless ( <coding.model_switch_in_flight>->{$checksum} ) {
+    <coding.model_switch_in_flight>->{$checksum} = TRUE;
+    <[base.logs]>->(
+        1,         '[model_pin] switching to %s on %s for pinned task',
+        $checksum, $backend
+    );
+    eval {
+        <[coding.cmd.switch-model]>
+            ->( { 'args' => "$checksum backend=$backend" } );
+        1;
+    } or do {
+        my $err = $@ || 'unknown error';
+        <[base.logs]>->(
+            0, '[model_pin] switch-model call failed : %s', $err
+        );
+        delete <coding.model_switch_in_flight>->{$checksum};
+    };
+}
+
+return $dep_id;
+
+#,,,.,.,,,,.,,.,.,.,.,,..,,..,..,,,..,..,,,,.,..,,...,,.,,,,.,...,.,,,.,,,..,,
+#HMUJB7I3FEUM5OV3QVHGPLA4LSQWYQETPOSCWLTD2Y7PVDRM7BHNFQZ47ZR52K6LFAST6D75DR5DW
+#\\\|ZGHMODIPBDSJQLPN6ECZJW2HFQS76BIR3AZHUXGVTOAF4Y5HBLJ \ / AMOS7 \ YOURUM ::
+#\[7]5NB7D2IR565GFB6KO2SE4KSNER7F5M2Q5BZ2OU2VMHEUH2ZRBSBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
