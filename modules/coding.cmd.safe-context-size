@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = coding.cmd.safe-context-size
+# descr = return VRAM-safe calculated context size in tokens
+
+my $backend = $call->{'args'} // qw| gpu |;
+$backend = qw| gpu | unless $backend =~ m{^(gpu|cpu)$}i;
+
+my $server = ( <coding.inference_servers> // {} )->{$backend} // {};
+
+## if we have a stored calculated value from spawn, return it ##
+if ( defined $server->{'calculated_ctx'} and $server->{'calculated_ctx'} > 0 )
+{
+    return {
+        'mode' => qw| true |,
+        'data' => $server->{'calculated_ctx'}
+    };
+}
+
+## fallback: recalculate from current model info ##
+my $safe = <[coding.helper.calculate_safe_context]>->(
+    {   model_path  => $server->{'model_path'}  // '',
+        mmproj_path => $server->{'mmproj_path'} // '',
+        backend     => $backend,
+    }
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => $safe->{'calculated'} // $safe->{'context_length'} // 18267
+};
+
+#,,.,,.,,,...,.,,,...,.,,,.,.,,.,,..,,.,.,,,.,..,,...,...,.,,,.,,,,,.,,.,,,,.,
+#JH4JDS43XPT7AQBJZNJ6GPTTPJPKBZ6IA3OIXXZKI4PW5UWHMTXGLKKMMUPZW24D43VZVPJC32PDU
+#\\\|7XAJVWBY6JLLVMM6KWIHPJ7SAWY65JR6YNESNBA44GJPV6AMX5E \ / AMOS7 \ YOURUM ::
+#\[7]X7TWMZEW6WFOK6NHI4OW2QZRLAU7N432JFU7YJ4K7RNUEAI7PIDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
