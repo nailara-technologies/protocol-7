@@ -198,10 +198,13 @@ silently defeating "catch up". the cache key [ and the delta dedup key, same
 value ] must be:
 
 ```
-  checksum( focus . content )    ## as built: plain 7-char base.chk-sum.amos
-                                  ## [ AMOS::CHKSUM::amos_chksum ], the same
-                                  ## function task.cmd.create already uses
-                                  ## for task ids
+  checksum( focus . content )    ## as built: bmw-L13 [ 13-char base32,
+                                  ## ~65 bits — modules/base.chk-sum.bmw.* /
+                                  ## the harmonize_L13 division-by-13 loop ],
+                                  ## switched from the original 7-char
+                                  ## amos_chksum [ ~35 bits, project-wide
+                                  ## 7-char ceiling ] for materially lower
+                                  ## collision risk
 ```
 
 content grows -> checksum changes -> cache miss -> fresh summary, automatically.
@@ -210,15 +213,36 @@ final content and the moment to check before spending an inference call — the
 coding zenka for the coding-native case, `_do_summarize` for the
 `session_catchup` case [ see "why the relay differs by origin" above ].
 
-**known limitation, not yet fixed**: the design originally called for
-AMOS/BMW-L13 stacked entropy [ matching `topic-checksum-addressing.md` ].
-what's actually built is plain `amos_chksum`, hard-capped at 7 base32 chars by
-`AMOS7::CHKSUM` itself [ `str_length + sstr_start > 7` is an error in that
-module — this is a project-wide ceiling, not a choice made here ]. for a
-*cache*, a collision silently returns the wrong cached summary for different
-content — low probability at current volume, but a silent-failure mode, not a
-loud one. BMW-L13 stacking for collision hardening is deferred to a later
-phase, not phase 1.
+**how each origin computes bmw-L13 — this is load-bearing, read before
+touching either side**: the coding zenka calls `<[chk-sum.bmw.L13-str]>`
+**in-process** [ no cube command line involved ]. `bin/mcp-server-p7`
+[ a standalone script, no zenka `%code` ] does **not** call the cube-exposed
+`bmw-L13` command for this — that command's single-line input goes through
+`base.handler.command`'s buffer, hard-capped at **242707 bytes**. tail-
+truncated session content can run to ~400KB, so shipping it as one command
+line either errors or — what we actually hit live — leaves the connection in
+a bad state with no clean error in the log. `bin/mcp-server-p7` instead
+ports the harmonize_L13 loop standalone [ `Digest::BMW::bmw_512` +
+`AMOS7::Assert::Truth` + `AMOS7::TEMPLATE`, all reachable via the same
+lib-path `BEGIN` block `bin/amos-chksum` uses ] and computes the checksum
+**locally** — verified byte-identical to the live cube command's output for
+the same input, and ~0.13s for a 400KB string. **never route content-sized
+input through a cube command line** — short values [ the 13-char `chk`
+itself, used for the actual cache query/notify ] are fine.
+
+**known limitation, not yet fixed**: the two origins are not guaranteed to
+produce the *same* `chk` for byte-identical content. the coding zenka hashes
+`$content` directly [ raw bytes, decoded from its own `:B32:` input ].
+`bin/mcp-server-p7`'s `_tree_chk` builds its input from `$instruction`/`$text`
+which are perl-decoded character strings [ from JSON::XS decode and
+`utf8::decode` respectively ] — same logical text, not necessarily the same
+byte sequence fed into `Digest::BMW::bmw_512`. invisible in phase 1 [ the two
+origins' cache entries never need to match each other — coding-native
+auto-trigger doesn't exist yet, session and task-context caches don't
+overlap ], but it **will** silently defeat cross-origin dedup the moment
+phase 2's shared tree assumes `chk` is a true content-address across origins.
+unify deliberately in phase 2 — don't rush it, the byte-vs-char mismatch that
+caused the UTF-8 double-encode bug above lurks in any unification attempt too.
 
 ## coding.cmd.summarize-context: new params
 
@@ -394,8 +418,17 @@ is *known* to be real perl character data [ e.g. MCP JSON-RPC args, which
 from `cube_command` or `$json->encode`.
 
 **known limitations** [ not blockers, but real ]:
-- cache key collisions: see "the cache key is content-aware" above [ 7-char
-  AMOS only, BMW-L13 stacking deferred ]
+- chk now uses bmw-L13 [ 13-char, ~65 bits ] — switched from the original
+  7-char amos_chksum for materially lower collision risk. see "the cache key
+  is content-aware" above for why `bin/mcp-server-p7` computes it locally
+  rather than via the cube-exposed `bmw-L13` command [ a real incident during
+  this work : a single command line near the tail-truncation cap (~400KB)
+  hit `base.handler.command`'s 242707-byte buffer ceiling, with no clean
+  error in the log — the connection was just left in a bad state ]
+- the two relay origins do not yet guarantee the same `chk` for identical
+  content [ byte-string vs perl-character-string input — see "how each
+  origin computes bmw-L13" above ]. invisible in phase 1, blocks cross-origin
+  dedup in phase 2 if not unified deliberately first
 - the cross-zenka tree path [ `callback_id` branch of
   `coding.cmd.tree-query-reply` / `coding.handler.deferred_reply`'s
   `task.summarize-done` route ] is built but **not yet exercised** — every
@@ -526,14 +559,18 @@ prompt: |
   escalation shape the routing/classification step reuses.
 
   Before writing tree-routing code, be aware of two phase-1 limitations
-  that phase 2 inherits unless addressed: the cache/dedup key is a plain
-  7-char AMOS checksum (collision risk, BMW-L13 stacking deferred), and the
-  cross-zenka tree path (callback_id branch) has never been exercised by a
-  live caller. Follow the project's lowercase-comment, dot-notation style
-  exactly. No signature stubs — the signing system adds them.
+  that phase 2 inherits unless addressed: chk now uses bmw-L13 (13-char,
+  ~65 bits) but the two relay origins compute it from different input
+  representations (byte string vs perl character string) and are not
+  guaranteed to produce the same chk for identical content — see "how each
+  origin computes bmw-L13" above before assuming cross-origin dedup works.
+  Also, the cross-zenka tree path (callback_id branch) has never been
+  exercised by a live caller. Follow the project's lowercase-comment,
+  dot-notation style exactly. No signature stubs — the signing system adds
+  them.
 
-#,,.,,..,,...,,,,,.,.,.,.,.,,,.,,,.,,,,..,.,,,..,,...,...,,..,,..,,,,,.,,,,..,
-#7JR6WJKBV3A6VNZWON4UM26F4RBP6U3VE2SV2SUIER3PNQGZAF3MWEX4JTFNBZKWFUL67XZIXHSWS
-#\\\|IXLA7U7E7S46VGFVWB2ZJQKNIU2MIJ3E5N7NM5SCPM32GLI7HVV \ / AMOS7 \ YOURUM ::
-#\[7]2U4CWEOC5AKCBUEDH5265KL4GFBJR4QVBGMCD3TBKWE23DMIF4DY 7  DATA SIGNATURE ::
+#,,.,,,,,,...,.,,,,,.,,,,,..,,..,,,,.,,,.,,..,..,,...,...,..,,,,,,.,,,,,,,.,.,
+#7STJEVQZDXXIXKSPZ6F5MAA6PDSJSNEWAOFVTGNQE5PUEAHZI63FUAAN46ATJT6ASUO5MCFMZVKUA
+#\\\|EV573UHYOVI5ZR4ENSOGEBHKGSKGV3ZLFWG6DW4RGDHWKS7DT4E \ / AMOS7 \ YOURUM ::
+#\[7]TQVTVEL4XZHS2FZY67VVKIGMXX72FERUU6TKY5HCTEAKE33XKYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
