@@ -1,0 +1,88 @@
+## [:< ##
+
+# name  = coding.self_test.check_constraint
+# descr = deterministic structural check of an answer against a result_constraint
+
+my $params     = shift                   // {};
+my $answer     = $params->{'answer'}     // '';
+my $constraint = $params->{'constraint'} // {};
+my $expected   = $params->{'expected'}   // '';
+
+## default constraint preserves prior strict behaviour ##
+my $type = $constraint->{'type'} // 'exact';
+
+my $trimmed = $answer;
+$trimmed =~ s/^\s+//;
+$trimmed =~ s/\s+$//;
+my $folded = lc $trimmed;
+
+## helper : case-insensitive whole-token containment ##
+my $contains_token = sub {
+    my ( $hay, $needle ) = @_;
+    return TRUE if !length $needle;
+    return $hay =~ m{(?:^|[^a-z0-9])\Q$needle\E(?:[^a-z0-9]|$)}i
+        ? TRUE
+        : FALSE;
+};
+
+if ( $type eq 'exact' ) {
+    my $want = lc( $constraint->{'value'} // $expected );
+    $want =~ s/^\s+//;
+    $want =~ s/\s+$//;
+    return { mode => qw| true |, data => $folded }
+        if $folded eq $want;
+    return { mode => qw| false |, data => 'exact_mismatch' };
+}
+
+if ( $type eq 'numeric' ) {
+    my @nums = ( $trimmed =~ m{(-?\d+(?:\.\d+)?)}g );
+    my $must = $constraint->{'must_contain'};
+    my @required
+        = ref $must eq 'ARRAY' ? @$must : ( defined $must ? ($must) : () );
+    @required = ($expected) if !@required && length $expected;
+    return { mode => qw| false |, data => 'no_numbers' } if !@nums;
+    for my $req (@required) {
+        return { mode => qw| false |, data => "missing_number:$req" }
+            if !grep { $_ eq $req } @nums;
+    }
+    return { mode => qw| true |, data => join( ',', @nums ) };
+}
+
+if ( $type eq 'word_count' ) {
+    my $max   = $constraint->{'max_words'} // $constraint->{'max'} // 1;
+    my @words = grep {length} split m{\s+}, $trimmed;
+    return {
+        mode => qw| false |,
+        data => sprintf 'over_word_limit:%d>%d',
+        scalar(@words), $max
+        }
+        if scalar(@words) > $max;
+    my $must = $constraint->{'must_contain'} // $expected;
+    if ( length $must ) {
+        return { mode => qw| false |, data => "missing_token:$must" }
+            if !$contains_token->( $trimmed, $must );
+    }
+    return { mode => qw| true |, data => $folded };
+}
+
+if ( $type eq 'sprintf' ) {
+    my $tmpl = $constraint->{'template'} // '';
+    my $re   = quotemeta $tmpl;
+    $re =~ s{\\%d}{\\d+}g;
+    $re =~ s{\\%s}{\\S+}g;
+    $re =~ s{\\%f}{-?\\d+(?:\\.\\d+)?}g;
+    return { mode => qw| false |, data => 'sprintf_mismatch' }
+        if $trimmed !~ m{\A$re\z};
+    my $must = $constraint->{'must_contain'} // $expected;
+    return { mode => qw| false |, data => "missing_token:$must" }
+        if length $must and !$contains_token->( $trimmed, $must );
+    return { mode => qw| true |, data => $folded };
+}
+
+return { mode => qw| false |, data => "unknown_constraint_type:$type" };
+
+#,,,,,,,,,,,.,,.,,...,.,,,,..,,,,,...,.,,,,,.,..,,...,...,.,.,,.,,,,,,,,.,...,
+#IWYEFXCZVGKYUHIH4RAMZ2556JVUOWY7EFD3VOTAP53UFILPXRT7ADKSHGUQEGNZ4VF7I4KMU7OSO
+#\\\|IAMZNTLPQCQJYYLJXSSYPYHTY4SSM2SKLS3X6FQYLFTZN6OY2DX \ / AMOS7 \ YOURUM ::
+#\[7]X6OENA5ZEQBBO6W2LQCDL2OJAQ6YT4DHKYSHKI5F5FQA42DEL4AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
