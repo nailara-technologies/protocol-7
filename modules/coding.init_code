@@ -212,9 +212,17 @@ $params->{'gpu_layers'}  = <inference.backend.gpu.gpu_layers> // 32;
 <coding.spawn_params.lib_path> = <coding.lib_path>;
 
 ## check if GPU port already occupied (another coding instance running)
+## ONLY meaningful on a genuine first boot [ :twin: handover scenario ] -  ##
+## on every later reload/reinit of an already-running instance, the port  ##
+## is legitimately busy with THIS instance's own server, which needs no   ##
+## re-spawning at all. without gating on $already_initialized, every      ##
+## `coding.reload` re-armed a fresh await_resources watchdog that would   ##
+## later misfire on any future switch-model kill - confirmed live         ##
+## 2026-06-21, this undid the per-instance retirement fix on every reload.##
 my $gpu_port = <inference.backend.gpu.port> // 8000;
 my $gpu_busy = 0;
-{
+
+if ( not $already_initialized ) {
     use IO::Socket::INET;
     my $probe = IO::Socket::INET->new(
         PeerAddr => '127.0.0.1',
@@ -287,6 +295,19 @@ if ( exists $code{'coding.callback.object_self_test_pending'} ) {
         { 'callback' => $code{'coding.callback.object_self_test_pending'} }
     );
     <[base.logs]>->( 2, '[init] registered self_test_pending callback' );
+}
+
+## model_checksum_loaded objects are created lazily, per checksum, by    ##
+## coding.task.ensure_model_pinned - only the callback type needs        ##
+## registering here, once                                                ##
+if ( exists $code{'coding.callback.object_model_checksum_loaded'} ) {
+    <[dependency.setup]>->(
+        'model_checksum_loaded',
+        {   'callback' =>
+                $code{'coding.callback.object_model_checksum_loaded'}
+        }
+    );
+    <[base.logs]>->( 2, '[init] registered model_checksum_loaded callback' );
 }
 
 ## create dependency objects [ only on first init to avoid leaks ] ##
@@ -531,8 +552,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,,,,.,,,,.,,,,,,..,,,.,,.,,,..,,.,,,,,.,,..,.,.,...,..,,..,,,,,,...,.,.,,,.,
-#RHHGTEWSFHXYKNB5RDWIYF43ZH5YVUGPJGKNWOO4FOOU2PCUI6FIEBUCHWOMIRM4JAWLOJTHTIN6G
-#\\\|2JCBPZRX72GPJEYSA435DINF66WBUBWOVIFYLEPDGFV23OGWD3Z \ / AMOS7 \ YOURUM ::
-#\[7]ENY2AOVA4PHSM22A4VMBAXX65MMK7SCKJIJDPSWKQ4SNG6N5VWDI 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,.,,,.,.,..,,..,,,.,,..,,...,,,,,.,.,...,...,,..,...,.,,,,,,,,,.,
+#G7K5CRSRQP3D36H56METQLBABNHYK7JLWSBJUGG2HAIENQS7DXGXG3Z5MREKAJJGILKAFCKOR4R5E
+#\\\|LYFWKBZWSAQD5QTQFRTODCL64RZJPCLDLQCAO3U4IPFHUB6JSHL \ / AMOS7 \ YOURUM ::
+#\[7]AH6YAMFRZIMJE2GO5IO5DNSUUMVQY6LO3UUNZOHOGG6ZWYBZ5AAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

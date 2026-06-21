@@ -62,18 +62,37 @@ tier 1 — data/tasks/coding-model-self-test-cycle.md
   the model_id label, since the label updates earlier than the actual
   process swap completes.
 
-  still open, not a regression: self-test auto-fires on EVERY
-  readiness event with no suppression for switches it itself caused —
-  now actually OBSERVED live (a visible duplicate test during the
-  switch window), confirming the issue is real, not just theoretical.
-  fix unchanged: a suppression marker. also still open: task
-  model-pinning verification (may already exist, untested) and
-  configurable test suites.
+  FIXED + LIVE CONFIRMED: self-test no longer auto-fires redundantly
+  during a self-test-driven switch (coding.self_test_switch_in_progress
+  suppression flag, checked by monitor_inference_startup). a full
+  cycle now shows exactly one self-test execution, not two.
+
+  still open: configurable test suites (the calibration prompt list is
+  still hardcoded to the arithmetic+riddle pair).
 
   also flagged: cross-model assertion (a known-good model judging
   another model's self-test results, since an incoherent model likely
   can't reliably
   assess its own incoherence) — speculative, phase 3+, not designed.
+
+tier 1.5 — data/tasks/coding-task-model-pinning.md
+  status: DONE, live-verified via direct /proc/<pid>/cmdline inspection
+  (not label/self-test trust alone). was genuinely half-built (a
+  :model:CHECKSUM: marker was parsed but never enforced), and the
+  upstream intake parser was silently destroying the marker before it
+  ever reached working code. fixed: the intake collision, the missing
+  enforcement (new coding.task.ensure_model_pinned + a
+  model_checksum_loaded dependency type, hooked into coding.task.execute
+  via the same get_job_data+move_job('depending') re-defer pattern
+  coding.callback.http_error already uses), and a deep pre-existing bug
+  in coding.handler.await_resources (a :twin:-handover watchdog that
+  never retired itself and got re-armed on every coding.reload,
+  silently substituting the boot-default model during any switch while
+  showing a correct-looking label — this is what made earlier passes
+  at this LOOK done when they weren't). still open, deliberately
+  deferred per the user: automatic batch-grouping of multiplexed tasks
+  by pinned model, to avoid switch overhead — a latency optimization,
+  not required for functional correctness.
 
 tier 2 — data/tasks/coding-self-error-processing-cycle.md
   status: design captured, marked NOT READY TO DISPATCH. three open
@@ -142,8 +161,8 @@ tier 2: NOT READY — 3 open decisions block dispatch
 tier 3: GATED — awaiting tier 2 stability milestone
 ```
 
-#,,.,,.,.,,,,,,,,,..,,,,,,.,,,..,,..,,,,.,,.,,..,,...,...,.,,,,,.,,..,,,.,,,.,
-#AAYDFEM62GXGJNBNJSYY3XQZZKCVWVU3IPXTYE2YRY54LXG6AVJSD4PMA5CEBCHYHPLCAFSMDDNLK
-#\\\|UIFDL2IUZC4MHM4APAKTBVDSPDJMOV3JSYJXLC5QDYASMATGKYB \ / AMOS7 \ YOURUM ::
-#\[7]DWAJMJIETW7ZTTPIBUZKJICNWQ6OHJADIRPZLHVU4OYUCFGTG2CA 7  DATA SIGNATURE ::
+#,,..,...,,,,,.,.,.,,,.,,,,.,,,,,,.,,,...,,,.,..,,...,...,.,.,,,.,,,.,.,,,...,
+#HGLX2PGAS4G2MK62M7LH36KA2IVWUDWZAC6WE7GYVWSKJ4XUNJ5UNYFDH5ES3CSRTCDA4SEPXH2L2
+#\\\|KJQJLB3F3ZNNIWSL4EDK5ZT4F6R2DZI3HNOPMRTZZYKDSTWLEFK \ / AMOS7 \ YOURUM ::
+#\[7]4QMTNESKLHGR24TB6XCW2DVLLRHKTKRDFGLHBPKTZAONLHIWK2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
