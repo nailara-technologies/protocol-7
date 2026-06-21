@@ -352,17 +352,21 @@ call missing an `is_active` guard). possibly self-resolves once the
 double-kill race above is fixed (no more overlapping kill+respawn
 cycles to race against) — worth a guard regardless, cheap insurance.
 
-## two more triggers that compound the race (2026-06-21 — #2 FIXED + live
-confirmed, #1 and #3 still open)
+## two more triggers that compound the race (2026-06-21 — #1 and #2 FIXED
++ live confirmed, #3 still open)
 
 ```
-1. STILL OPEN: task model-pinning: tasks may already support pinning to
-   a specific model_id, with an implicit switch-model call on mismatch -
-   per the user, this exists but "was never fully tested potentially."
-   if real, this is a THIRD path that can call switch-model concurrently
-   with self-test's own explicit switch - the suppression flag below
-   only covers self-test-driven switches; a pinned-task-triggered switch
-   racing against a self-test switch is not yet accounted for.
+1. FIXED + LIVE CONFIRMED (see data/tasks/coding-task-model-pinning.md
+   for the full account): task model-pinning was real but half-built -
+   parsed, never enforced, and the upstream intake parser was actually
+   destroying the :model: marker before it ever reached enforcement
+   code. now fully implemented, and live-verified via direct
+   /proc/<pid>/cmdline inspection (not just label/self-test trust) that
+   the pinned model actually loads. along the way, also found and fixed
+   a deeper pre-existing bug: coding.handler.await_resources's twin-
+   handover watchdog never retired itself and got re-armed on every
+   coding.reload, silently substituting the boot-default model during
+   any switch while showing a correct-looking label.
 
 2. FIXED + LIVE CONFIRMED: self-test no longer auto-fires redundantly
    during a self-test-driven switch. added <coding.self_test_switch_in_progress>
@@ -584,8 +588,8 @@ to confirm it's initialized in `coding.init_code` or add it there.
 
 #,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-#,,.,,,.,,,..,,,.,,.,,.,.,.,.,,..,,,,,,,,,.,,,..,,...,...,,..,,..,.,,,,..,.,.,
-#UEUWMMCILZMQCKSAHO6KFXTNFFXUQ44EZUVMUOIOJBOQQQ2ZHPH66PCHG54YLD5F7HTE5DABKVLDA
-#\\\|Q6VHMXKK6352AKH6SWX7M2GKSMFHYTPLBKQZZHSZAUQPID5F7JN \ / AMOS7 \ YOURUM ::
-#\[7]VV2BUQM34NQAQXTAP7ESD7ETE5RKXP3NWSOAT4M6ORCFOCBI54CI 7  DATA SIGNATURE ::
+#,,..,,,,,,..,,,,,,.,,,,.,.,,,.,.,,.,,,,.,.,.,..,,...,.,,,..,,..,,,,,,...,...,
+#BV45KNXETK4QMJ4TB4FEIUDEA7MZZUQU5XVJ7FM3ORJGO2NBPMLDEUPIOE5UHAEQP7W5FRYOBSHDO
+#\\\|R634PJAN6UK5G6YKKBZHOZFKBU3IF6V5IDSGXR3ZHTTGHQPFCQY \ / AMOS7 \ YOURUM ::
+#\[7]HJFKURZB7KRJGQNWOJYESJMPN7F32SHYBAW64UH2TL4NG2WRQQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

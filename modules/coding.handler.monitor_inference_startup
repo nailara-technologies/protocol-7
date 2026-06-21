@@ -85,6 +85,23 @@ if (
         $server->{'status'}       = qw| ready |;
         $server->{'ready_logged'} = TRUE;
 
+        ## await_resources exists ONLY for the one-time :twin: handover     ##
+        ## scenario at boot - once THIS instance's own server has become    ##
+        ## ready even once, that purpose is permanently fulfilled. without  ##
+        ## retiring it here, it stays armed indefinitely and re-fires on    ##
+        ## every future incidental gpu-server loss (e.g. a switch-model     ##
+        ## kill), racing against the legitimate respawn with a stale-config ##
+        ## default model. a flag-based in-flight guard alone isn't enough - ##
+        ## await_resources polls on a 3s interval, which can be slower than ##
+        ## an entire switch+respawn cycle, so the flag can already be       ##
+        ## cleared by the time it next checks. confirmed live 2026-06-21.   ##
+        my $await_timer = <coding.timer.await_resources>;
+        if ( defined $await_timer ) {
+            $await_timer->cancel if eval { $await_timer->is_active };
+            delete <coding.timer.await_resources>;
+            delete <coding.awaiting_resources>;
+        }
+
         ## mark cold-start : the first request to a freshly-(re)spawned     ##
         ## server pays model-load / first-inference warmup latency on top   ##
         ## of normal prefill — independent of prompt size. http_client      ##
@@ -204,8 +221,8 @@ if ( $bytes <= 0 ) {
     }
 }
 
-#,,.,,...,,,,,,,,,,,.,.,.,,.,,...,,,.,,,,,,,.,..,,...,...,.,,,,..,,,.,..,,,,.,
-#DJRZROHKMAXNPS5PXHVKSAXNEVO3KPPICMKHOAZXCMLIWRDWY5GNA47PKB45ZXSJIIPSMDDVA5IPI
-#\\\|EQT6LUD3XWZHWGFQH5BUAFC4KAOIT7JRJD5V33WWTN5UTUVJXTX \ / AMOS7 \ YOURUM ::
-#\[7]4HCU2LVBDXAI3QWO5OO5G2WDCEMSUD3Q337JSRG4CFPUY6DUUWBQ 7  DATA SIGNATURE ::
+#,,,.,..,,...,.,.,,,.,.,,,.,,,,,.,,..,.,,,,.,,..,,...,..,,...,,.,,.,.,,,,,,..,
+#WK5W36P2GGDKVZHWW4P3C7NDOEFQHDOWR4FG2WTTUTJZV54UJF3XWUVKYT4MADAY32RJ2KHXGNZ7Q
+#\\\|E3NKZ27GIBWPBJEISHMW3TQS6S2RC4ADXXAPZG5GVEJYQZPQAWN \ / AMOS7 \ YOURUM ::
+#\[7]VDDGHU4MJ6C2TV6THHFDKQFTX3OAVDGAYKYMSILRWVBA32ANJADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

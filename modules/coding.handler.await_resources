@@ -53,6 +53,17 @@ if ( !$old_pid ) {
     return;    ## timer continues ##
 }
 
+## a deliberate switch-model is in flight - the gpu server being gone   ##
+## right now is THAT operation's own kill-old-server step, not a twin   ##
+## handover completing. spawning here would race switch_model_reply's   ##
+## own intended spawn using stale/default config - confirmed live       ##
+## 2026-06-21. stay armed, re-check next tick instead of firing.        ##
+if (<coding.switch_model_active>) {
+    <[base.logs]>
+        ->( 2, 'await_resources: switch-model in flight, deferring' );
+    return;
+}
+
 ## old server is gone — cancel timer and spawn
 $event->w->cancel if defined $event->w;
 delete <coding.timer.await_resources>;
@@ -69,8 +80,8 @@ if ($spawn_ok) {
 
 return TRUE;
 
-#,,,,,,.,,,,,,,.,,,..,...,,,,,.,.,,.,,,..,.,,,..,,...,...,.,.,,,,,,,.,..,,.,,,
-#N5QJ65ZAC3PE5I7V77GT3P7UOQQDF2BAU2DJJ7L2HRZWWTO7LW6MLIBWXQ63BKCJYOY6NJC3FNTYK
-#\\\|MK7KFIYPC3YT7FYABFVYEDQ5P73SULNQGZPNY42CWZSTNC4DWLC \ / AMOS7 \ YOURUM ::
-#\[7]UFNQMQXKTRKELMX6BSRV5C6I3T4TFYPMMHU4JD75CDUQ6NLBIIDA 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,.,,,,,.,..,,,,.,...,,,,,...,..,,..,,...,...,..,,,..,.,,,...,,..,
+#OCXCNQYCSN5PRDA3KYZT2VFJUODQRZBE5B5PYWNY2LABU35SNO32POYX5HEQD4NVYC7HVEPW5BHMM
+#\\\|4Y5X3YIYE5DMGMHBUPBWL7BKAUF6VAU4V2TOTNJ4TIB55CZKHRR \ / AMOS7 \ YOURUM ::
+#\[7]VL2ALBZUECEKGJT7IYVE4M2SHZCC5FXHL5KSAER2QMHOSFYDIIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

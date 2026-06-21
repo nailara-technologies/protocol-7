@@ -13,6 +13,7 @@ my $reply_params = $reply->{'params'} // {};
 my $checksum = $reply_params->{'checksum'};
 unless ( defined $checksum ) {
     <[base.logs]>->( 1, "[switch_model_reply] no pending switch request" );
+    delete <coding.switch_model_active>;
     return FALSE;
 }
 
@@ -21,6 +22,7 @@ my $entry = eval { YAML::XS::Load($reply_data) };
 if ( $@ || !ref $entry ) {
     <[base.logs]>
         ->( 0, "[switch_model_reply] failed to parse reply: %s", $@ );
+    delete <coding.switch_model_active>;
     return FALSE;
 }
 
@@ -32,6 +34,7 @@ unless ( length $model_path && -f $model_path ) {
         0, "[switch_model_reply] model file not found or invalid: '%s'",
         $model_path
     );
+    delete <coding.switch_model_active>;
     return FALSE;
 }
 
@@ -68,8 +71,19 @@ my $mark_backend_updated = sub {
 };
 
 ## use spawn_smart for memory-aware server restart ##
+## NOTE: $mark_backend_updated fires BEFORE each spawn_smart call, not    ##
+## after success. spawn_smart's kill-old-server step opens a window      ##
+## where the gpu backend is briefly down; anything reacting to that gap  ##
+## (e.g. coding.handler.await_resources's twin-handover watchdog) reads   ##
+## whatever the config currently says. updating AFTER success leaves     ##
+## that window pointed at the OLD model - confirmed live 2026-06-21:      ##
+## await_resources fired during exactly this gap and respawned the OLD   ##
+## (stale-config) model, racing against this function's own intended     ##
+## spawn. updating first closes the window to (at worst) the NEW target, ##
+## never the old one.                                                    ##
 if ( $backend eq qw| auto | ) {
     ## try gpu first : fall back to cpu if gpu has insufficient resources ##
+    $mark_backend_updated->('gpu');
     my $gpu_ok = <[coding.handler.spawn_smart]>->(
         {   'backend'     => qw| gpu |,
             'model_path'  => $model_path,
@@ -78,40 +92,39 @@ if ( $backend eq qw| auto | ) {
         }
     );
     ## spawn_smart returns FALSE [ not TRUE ] when resources are insufficient ##
-    if ($gpu_ok) {
-        $mark_backend_updated->('gpu');
-    } else {
+    unless ($gpu_ok) {
         <[base.logs]>->(
             1, '[switch_model_reply] gpu unavailable, trying cpu'
         );
-        my $cpu_ok = <[coding.handler.spawn_smart]>->(
+        $mark_backend_updated->('cpu');
+        <[coding.handler.spawn_smart]>->(
             {   'backend'     => qw| cpu |,
                 'model_path'  => $model_path,
                 'mmproj_path' => $mmproj_path,
                 'force'       => 1,
             }
         );
-        $mark_backend_updated->('cpu') if $cpu_ok;
     }
 } else {
     ## expand 'both' into separate gpu + cpu spawns ##
     my @backends = $backend eq qw| both | ? qw| gpu cpu | : ($backend);
     for my $b (@backends) {
-        my $ok = <[coding.handler.spawn_smart]>->(
+        $mark_backend_updated->($b);
+        <[coding.handler.spawn_smart]>->(
             {   'backend'     => $b,
                 'model_path'  => $model_path,
                 'mmproj_path' => $mmproj_path,
                 'force'       => 1,
             }
         );
-        $mark_backend_updated->($b) if $ok;
     }
 }
 
+delete <coding.switch_model_active>;
 return TRUE;
 
-#,,,,,...,.,,,.,,,,..,,..,,.,,..,,.,,,,,,,..,,.,.,...,...,.,.,,..,...,.,,,,,,,
-#QLGIPZDYBUTX33R7L7EZFZYE7NDCJX2L4T2BSMPRF7K7UUF37YQ6X6OLW4DAZOC5R5DS7X5UI62BK
-#\\\|HPGYKVN4EYSJJRURBU3N6M3UNO54VZAPIGOJH33OFHWMS5HFVOE \ / AMOS7 \ YOURUM ::
-#\[7]6KZ2DYQFJAVI36DMWV7EMDXADZQCNVEH2VGW3AGL46MCYCHBP4BY 7  DATA SIGNATURE ::
+#,,,.,,..,...,,..,,,,,..,,,..,.,,,.,,,.,,,...,.,.,...,...,...,,..,,.,,.,.,.,.,
+#ZSPGX724L4BMDCBX5RDOHEGLKUBFTUQFEWO35QKZC67XIQSYLYMDCCB6MZNVJLRL3T6GT3IK7UIGY
+#\\\|KQX4M6D56GP5OSG3EP2NJ5MZMZWHB5HMIIBUODWGIHFNK7K46Z7 \ / AMOS7 \ YOURUM ::
+#\[7]7OFUYNQ3DZL2PY6GRD5EDNSSZFBY3G5CNXQTCYGUXVZHBD5PW2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
