@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = coding.callback.object_model_checksum_loaded
+# descr = dependency callback : true when the object's checksum is the
+#         currently-loaded, ready model on the object's backend - live
+#         self-computing check, no manual flag to flip
+
+my $object_id = shift;
+my $obj       = <dependency.object>->{$object_id} // {};
+my $checksum  = $obj->{'checksum'}                // '';
+my $backend   = $obj->{'backend'}                 // qw| gpu |;
+
+return FALSE if !length $checksum;
+
+my $server = ( <coding.inference_servers> // {} )->{$backend} // {};
+my $status = $server->{'status'}                              // '';
+my $model  = $server->{'model'}                               // '';
+
+return $status eq qw| ready | && $model eq $checksum;
+
+#,,,.,,..,,,,,,,,,.,,,.,,,,..,.,,,.,,,.,.,,,.,..,,...,...,...,,.,,...,.,,,...,
+#EQZEATD2A775ZTJUFDAGW5G2SBOV4IODEYA72YEQ7WZ4GPSWNROYQQOOW5VB6R7PU3AIWVXT446ZK
+#\\\|5WRKIKBLYRSKLPGQWZXIRORW3KSIXBXPDOVZOYBZSIGZ55KMDZC \ / AMOS7 \ YOURUM ::
+#\[7]2C5POEUEU4YGF62XXDNRYXSCPDMJYVC3PI7ESUNXBDUAJMIOQKAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

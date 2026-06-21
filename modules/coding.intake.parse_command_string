@@ -8,7 +8,13 @@ my ($cmd) = @ARG;
 
 ## strip leading :template-name: prefix and promote to type ##
 ## example: ":bug-fix: investigate kimi approval reconnect" ##
-if ( $cmd =~ s{^:([\w-]+):\s*}{} ) {
+## EXCLUDES :model: - that's a distinct marker [ ":model:CHECKSUM:CHECKSUM:" ]
+## owned by coding.prompt.assemble, which runs later. without this        ##
+## exclusion, this generic stripper consumed just the word "model" as if  ##
+## it were a template name, leaving the checksum behind mangled and never##
+## recognized by assemble's own regex - confirmed live 2026-06-21, this   ##
+## is why task-level model pinning never actually worked end to end.      ##
+if ( $cmd =~ s{^:(?!model:)([\w-]+):\s*}{} ) {
     my $forced_type = $1;
     return {
         type        => $forced_type,
@@ -46,8 +52,8 @@ return {
     description => $cmd
 };
 
-#,,,.,..,,,..,.,.,.,,,...,,,,,,,.,,,,,,..,.,.,..,,...,..,,..,,...,,.,,,.,,...,
-#AJCHWRERICQOWSD2KGWDXLMQIRTO6WSSRGPZVZZR4NLKNBVJQNDM43ON3TQQH7ZZI4GOD5D5R34E4
-#\\\|F4YDL6CYQIVEQKQLAMNCVID5YIZQIMF3YAP56QK3PY3QYZYPFSF \ / AMOS7 \ YOURUM ::
-#\[7]56FZW2TUOKQYYVKDSBXJ2MO5MVK7JW7PAUBULNJKAL3DA4WAFWDI 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,...,...,...,.,.,...,,,,,,..,..,,..,,...,...,,,.,.,.,...,.,.,.,,,
+#IRFPBV3B67EBYLM3DEPBZYRDTV5A6R53BKBVUVQL5K2HJ5ZSR4GEHVDZ3HKOLS66KOLYQSGBYQQJG
+#\\\|KETKJTISL22UP257BUM4NO26SBBLMFNG23AUCMCHSV6HKHL3YKQ \ / AMOS7 \ YOURUM ::
+#\[7]R26MSHIJQKLFWXJEYEAJ7UMSIJFAMUYVRGPHMIJVFACQRSNHDSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
