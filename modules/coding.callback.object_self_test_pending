@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = coding.callback.object_self_test_pending
+# descr = Dependency callback to block backend tasks during a self-test model switch
+
+my $object_id = shift;
+return undef if not exists <dependency.object>->{$object_id};
+
+my $object = <dependency.object>->{$object_id};
+
+## default: not blocking (ready / satisfied) ##
+return TRUE if not $object->{'pending'};
+
+<[base.logs]>->(
+    2, '[self_test] dependency %s pending : blocking backend tasks',
+    $object_id
+);
+
+return FALSE;
+
+#.,..,.,,,...,,.,..,,.,,,.,,,.,.,,..,..,,....,..,.,.,.,,.,,,,,,.,
+#QSAHQA2YOFKUDZ2XOWSJWRDX37NVKZISAHOZ4RA42USF6NMRABXMB257YVUMAWJ2
+#\\\|JHOO734AF7YC6NV6GKKYLDGPOV6FP6YFCKZMQHK \ / AMOS7 \ YOURUM ::
+#\[7]LFB2ONKB5AEVRTJI4D7JB5ZJDMQDT4HDCKBAPKL 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,.,,,.,,,.,.,,,,,,,,,,,,..,.,,,...,.,.,,,.,..,,...,...,..,,...,,,,,,..,,,.,
+#WDZES62JDIXSMZLEO3WMF5534GQLFAESSJPVTVHF33HZBEZYH7Q5E56GFSHIMSQHWLKJDXPPFRJCI
+#\\\|6TN75NTK76YNOW52HAO65JV77UVH4BBN6JSKYOHOUKETEYZBOUO \ / AMOS7 \ YOURUM ::
+#\[7]OMWBDU4KRY4ZCV5MKHD5UL5DML33YR672U2Q5WOCQQ2VB7YMQYAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,11 +3,14 @@
 # name  = coding.handler.switch_model_reply
 # descr = Handle model path reply and execute server restart for switch-model
 
-my $reply      = shift;
-my $reply_data = $reply->{'data'} // '';
+my $reply        = shift;
+my $reply_data   = $reply->{'data'}   // '';
+my $reply_params = $reply->{'params'} // {};
 
-## Get pending switch request ##
-my $checksum = <coding.pending_model_switch_checksum>;
+## request identity travels with THIS reply via 'params' - not shared    ##
+## globals, see coding.cmd.switch-model for why [ race condition fix,    ##
+## confirmed live 2026-06-21 ]                                           ##
+my $checksum = $reply_params->{'checksum'};
 unless ( defined $checksum ) {
     <[base.logs]>->( 1, "[switch_model_reply] no pending switch request" );
     return FALSE;
@@ -32,27 +35,37 @@ unless ( length $model_path && -f $model_path ) {
     return FALSE;
 }
 
-my $name    = <coding.pending_model_switch_name>;
-my $backend = <coding.pending_model_switch_backend>;
+my $name    = $reply_params->{'name'};
+my $backend = $reply_params->{'backend'} // 'auto';
 
 <[base.logs]>->(
     1,     "[switch_model_reply] switching to %s on %s",
     $name, $backend
 );
 
-## Update configuration ##
-if ( $backend eq 'gpu' || $backend eq 'both' ) {
-    <inference.backend.gpu.model_id> = $checksum;
-    <[base.logs]>->(
-        2, "[switch_model_reply] updated GPU model to %s", $checksum
-    );
-}
-if ( $backend eq 'cpu' || $backend eq 'both' ) {
-    <inference.backend.cpu.model_id> = $checksum;
-    <[base.logs]>->(
-        2, "[switch_model_reply] updated CPU model to %s", $checksum
-    );
-}
+## helper: update config for a backend that actually got a spawn attempt ##
+## covers 'auto' too [ previously only literal 'gpu'/'cpu'/'both' matched, ##
+## so the default 'auto' mode never updated either field - confirmed live ##
+## 2026-06-21, alongside <inference.model.amos_id> never being updated at ##
+## all, which is what monitor_inference_startup/inference-status actually ##
+## label the running model from ]                                         ##
+my $mark_backend_updated = sub {
+    my ($b) = @_;
+    if ( $b eq qw| gpu | ) {
+        <inference.backend.gpu.model_id> = $checksum;
+        <[base.logs]>->(
+            2, "[switch_model_reply] updated GPU model to %s", $checksum
+        );
+    } elsif ( $b eq qw| cpu | ) {
+        <inference.backend.cpu.model_id> = $checksum;
+        <[base.logs]>->(
+            2, "[switch_model_reply] updated CPU model to %s", $checksum
+        );
+    }
+    ## generic "current model" label - monitor_inference_startup reads    ##
+    ## this for BOTH backends, regardless of which one actually switched  ##
+    <inference.model.amos_id> = $checksum;
+};
 
 ## use spawn_smart for memory-aware server restart ##
 if ( $backend eq qw| auto | ) {
@@ -65,37 +78,40 @@ if ( $backend eq qw| auto | ) {
         }
     );
     ## spawn_smart returns FALSE [ not TRUE ] when resources are insufficient ##
-    unless ($gpu_ok) {
+    if ($gpu_ok) {
+        $mark_backend_updated->('gpu');
+    } else {
         <[base.logs]>->(
             1, '[switch_model_reply] gpu unavailable, trying cpu'
         );
-        <[coding.handler.spawn_smart]>->(
+        my $cpu_ok = <[coding.handler.spawn_smart]>->(
             {   'backend'     => qw| cpu |,
                 'model_path'  => $model_path,
                 'mmproj_path' => $mmproj_path,
                 'force'       => 1,
             }
         );
+        $mark_backend_updated->('cpu') if $cpu_ok;
     }
 } else {
     ## expand 'both' into separate gpu + cpu spawns ##
     my @backends = $backend eq qw| both | ? qw| gpu cpu | : ($backend);
     for my $b (@backends) {
-        <[coding.handler.spawn_smart]>->(
+        my $ok = <[coding.handler.spawn_smart]>->(
             {   'backend'     => $b,
                 'model_path'  => $model_path,
                 'mmproj_path' => $mmproj_path,
                 'force'       => 1,
             }
         );
+        $mark_backend_updated->($b) if $ok;
     }
 }
 
-## Clear pending state (will be overwritten on next switch anyway) ##
 return TRUE;
 
-#,,,,,,,,,.,.,.,.,...,...,..,,,.,,,,,,,..,,..,.,.,...,..,,,..,,..,,,.,,,,,.,,,
-#3W3HSSWJLHNVXPV77WMFWR2BPTGU2TYXE67CS5M6BQ7IXPXWS5XPVJ4RAQTVOYPNJ6UKXLVC2YWJE
-#\\\|HBOMEJC5PHFBINBBUMXZXOIQFELRCTCUXE2RD5IHRNDXVCZPY76 \ / AMOS7 \ YOURUM ::
-#\[7]YFUZEON2EMYJIJ4MJ7XSWJW5CYN2KJMKVOS7PXVQS44S6SK56IBY 7  DATA SIGNATURE ::
+#,,,,,...,.,,,.,,,,..,,..,,.,,..,,.,,,,,,,..,,.,.,...,...,.,.,,..,...,.,,,,,,,
+#QLGIPZDYBUTX33R7L7EZFZYE7NDCJX2L4T2BSMPRF7K7UUF37YQ6X6OLW4DAZOC5R5DS7X5UI62BK
+#\\\|HPGYKVN4EYSJJRURBU3N6M3UNO54VZAPIGOJH33OFHWMS5HFVOE \ / AMOS7 \ YOURUM ::
+#\[7]6KZ2DYQFJAVI36DMWV7EMDXADZQCNVEH2VGW3AGL46MCYCHBP4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,270 @@
+## [:< ##
+
+# name  = coding.self_test.handler.poll_switch
+# descr = timer-driven state machine for switch -> test -> restore
+
+my $event = shift;
+## data lives on the watcher, not the raw event wrapper - same pattern  ##
+## as coding.handler.monitor_inference_startup's $event->w->data       ##
+my $timer_data = eval { $event->w->data }   // {};
+my $switch_id  = $timer_data->{'switch_id'} // '';
+
+my $state = $data{'coding'}{'self_test_switch_state'}{$switch_id};
+if ( !defined $state ) {
+    <[base.logs]>->(
+        0, '[poll_switch] no state for switch_id=%s, stopping timer',
+        $switch_id
+    );
+    $event->w->cancel if defined $event->w and $event->w->is_active;
+    return;
+}
+
+my $now       = <[base.time]>->(3);
+my $elapsed   = $now - ( $state->{'started'} // $now );
+my $max_wait  = 120;    ## 120s per phase, same as prior 240 x 0.5s ##
+my $timed_out = $elapsed > $max_wait;
+
+## cheap status read : no blocking i/o ##
+my $reply  = <[coding.cmd.inference-status]>->();
+my $yaml   = $reply->{'data'}               // '';
+my $status = eval { YAML::XS::Load($yaml) } // {};
+
+my $gpu_status = $status->{'gpu'}{'status'}   // 'unknown';
+my $gpu_model  = $status->{'gpu'}{'model_id'} // '';
+my $gpu_pid    = $status->{'gpu'}{'pid'}      // 0;
+
+my $phase = $state->{'phase'} // 'switching';
+
+my $target_model   = $state->{'target_model'}   // '';
+my $test_model     = $state->{'test_model'}     // $target_model;
+my $original_model = $state->{'original_model'} // '';
+my $prior_pid      = $state->{'prior_pid'}      // 0;
+
+my $is_ready   = $gpu_status eq qw| ready |;
+my $is_crashed = $gpu_status eq qw| crashed |;
+
+## the real confirmation a switch landed: a DIFFERENT pid than the one  ##
+## running before THIS phase started, now reporting ready. model_id is  ##
+## set by switch_model_reply as soon as it starts processing - well     ##
+## before the actual kill+respawn completes - so it can read "correct"  ##
+## while the OLD process is still the one genuinely serving. confirmed  ##
+## live 2026-06-21.                                                     ##
+my $pid_changed = $gpu_pid && $gpu_pid != $prior_pid;
+
+## helper: resolve the deferred reply and clean up ##
+my $finish = sub {
+    my ($reply_data) = @_;
+
+    ## dependency MUST be released even on total failure ##
+    my $dep_id = $state->{'dep_id'} // 0;
+    if ( $dep_id && exists <dependency.object>->{$dep_id} ) {
+        <dependency.object>->{$dep_id}->{'pending'} = FALSE;
+    }
+
+    ## wake any tasks that were waiting on the dependency ##
+    <[jobqueue.check_dependencies]>;
+
+    ## send reply back to the original caller ##
+    if ( length $state->{'reply_id'} ) {
+        <[base.callback.cmd_reply]>->( $state->{'reply_id'}, $reply_data );
+    }
+
+    $event->w->cancel if defined $event->w and $event->w->is_active;
+    delete $data{'coding'}{'self_test_switch_state'}{$switch_id};
+
+    return TRUE;
+};
+
+## helper: format self_test.run result for reply ##
+my $format_result = sub {
+    my ( $id, $result ) = @_;
+    if ( !$result || ref $result ne qw| HASH | ) {
+        return {
+            mode => qw| size |,
+            data => sprintf "self-test failed for %s: no reply\n",
+            $id
+        };
+    }
+
+    my $data    = $result->{'data'};
+    my $summary = sprintf "self-test complete for %s: %d/%d passed\n",
+        $id, $data->{'pass_count'} // 0, $data->{'total'} // 0;
+
+    if ( !$data->{'all_passed'} ) {
+        for my $r ( @{ $data->{'results'} // [] } ) {
+            next if $r->{'passed'};
+            $summary .= sprintf
+                "  prompt %d mismatch: got '%s', expected '%s'\n",
+                $r->{'prompt_id'}, $r->{'answer'}, $r->{'expected'};
+        }
+    }
+
+    return { mode => qw| size |, data => $summary };
+};
+
+if ( $phase eq qw| switching | ) {
+    ## pid_changed + ready is the load-bearing check. model_id is logged  ##
+    ## for visibility only, not AND'd in - it shares one generic global   ##
+    ## (<inference.model.amos_id>) across both gpu/cpu backends, so it is ##
+    ## not reliably authoritative per-backend even once correctly updated ##
+    my $target_ready = $is_ready && $pid_changed;
+    <[base.logs]>->(
+        2, '[poll_switch] switching : pid=%s model_id=%s [expected model=%s]',
+        $gpu_pid, $gpu_model, $target_model
+    ) if $is_ready;
+
+    if ($target_ready) {
+        <[base.logs]>->(
+            1, '[poll_switch] switch confirmed ready : model %s [pid=%s]',
+            $target_model, $gpu_pid
+        );
+
+        ## run calibration against the target model ##
+        my $result;
+        eval {
+            $result
+                = <[coding.self_test.run]>->( { model_id => $target_model } );
+            1;
+        } or do {
+            my $err = $@ || 'unknown error';
+            <[base.logs]>->(
+                0, '[self_test] self-test run errored : %s', $err
+            );
+        };
+        $state->{'result'} = $result;
+
+        ## begin unconditional restore to original model ##
+        <[base.logs]>->(
+            1,             '[poll_switch] restore initiated : %s -> %s',
+            $target_model, $original_model
+        );
+        eval {
+            <[coding.cmd.switch-model]>->( { args => $original_model } );
+            1;
+        } or do {
+            my $err = $@ || 'unknown error';
+            <[base.logs]>->(
+                0, '[self_test] restore switch-model call failed : %s', $err
+            );
+        };
+
+        $state->{'phase'}        = qw| restoring |;
+        $state->{'started'}      = $now;
+        $state->{'target_model'} = $original_model; ## now we wait for this ##
+        $state->{'prior_pid'}
+            = $gpu_pid;    ## restoring waits for a NEW pid than this ##
+        return TRUE;
+    }
+
+    if ( $is_crashed || $timed_out ) {
+        my $reason = $is_crashed ? qw| crashed | : qw| timeout |;
+        <[base.logs]>->(
+            0,             '[poll_switch] switch failed : model %s : %s',
+            $target_model, $reason
+        );
+
+        $state->{'error'} = sprintf 'switch failed: %s', $reason;
+
+        ## still attempt restore so we do not leave the wrong model loaded ##
+        <[base.logs]>->(
+            1,             '[poll_switch] restore initiated : %s -> %s',
+            $target_model, $original_model
+        );
+        eval {
+            <[coding.cmd.switch-model]>->( { args => $original_model } );
+            1;
+        } or do {
+            my $err = $@ || 'unknown error';
+            <[base.logs]>->(
+                0, '[self_test] restore switch-model call failed : %s', $err
+            );
+        };
+
+        $state->{'phase'}        = qw| restoring |;
+        $state->{'started'}      = $now;
+        $state->{'target_model'} = $original_model;
+        $state->{'prior_pid'}
+            = $gpu_pid;    ## restoring waits for a NEW pid than this ##
+        return TRUE;
+    }
+
+    ## still waiting for target model to become ready ##
+    <[base.logs]>->(
+        2, '[poll_switch] switching : waiting for %s [gpu=%s model=%s]',
+        $target_model, $gpu_status, $gpu_model
+    ) if int($elapsed) % 5 == 0;
+
+    return TRUE;
+}
+
+if ( $phase eq qw| restoring | ) {
+    ## same rationale as the switching phase above - pid is load-bearing ##
+    my $original_ready = $is_ready && $pid_changed;
+    <[base.logs]>->(
+        2, '[poll_switch] restoring : pid=%s model_id=%s [expected model=%s]',
+        $gpu_pid, $gpu_model, $original_model
+    ) if $is_ready;
+
+    if ($original_ready) {
+        <[base.logs]>->(
+            1, '[poll_switch] restore confirmed ready : model %s [pid=%s]',
+            $original_model, $gpu_pid
+        );
+        if ( my $switch_error = $state->{'error'} ) {
+            return $finish->(
+                {   mode => qw| false |,
+                    data => sprintf(
+                        "self-test failed for %s: %s\n",
+                        $test_model, $switch_error
+                    )
+                }
+            );
+        }
+        return $finish->(
+            $format_result->( $test_model, $state->{'result'} ) );
+    }
+
+    if ( $is_crashed || $timed_out ) {
+        my $reason = $is_crashed ? qw| crashed | : qw| timeout |;
+        <[base.logs]>->(
+            0,               '[poll_switch] restore failed : model %s : %s',
+            $original_model, $reason
+        );
+        return $finish->(
+            {   mode => qw| false |,
+                data => sprintf(
+                    "self-test failed for %s: switch/restore failed (%s)\n",
+                    $test_model, $reason
+                )
+            }
+        );
+    }
+
+    ## still waiting for original model to come back ##
+    <[base.logs]>->(
+        2, '[poll_switch] restoring : waiting for %s [gpu=%s model=%s]',
+        $original_model, $gpu_status, $gpu_model
+    ) if int($elapsed) % 5 == 0;
+
+    return TRUE;
+}
+
+## unknown phase : defensive cleanup ##
+<[base.logs]>->(
+    0,      '[poll_switch] unknown phase %s for switch_id=%s, aborting',
+    $phase, $switch_id
+);
+return $finish->(
+    {   mode => qw| size |,
+        data =>
+            sprintf(
+            "self-test failed for %s: internal state machine error\n",
+            $test_model || 'unknown' )
+    }
+);
+
+#,,,,,,.,,..,,.,.,,,.,.,,,...,..,,.,.,..,,,,,,..,,...,...,.,,,,..,,,,,,,,,..,,
+#JEISPRHYXLXDMFOBFFS2FOGW4NAHPXBB4ZRVWQIRYNYPHKMCZ6ZVQ5ZGVJLY6VYQTRPSIK7D7T2RW
+#\\\|ZXXBIVYMDUYZOEYJFWIX52FQDQ5TV56AOY7HFYGIEYAWKIOIIUK \ / AMOS7 \ YOURUM ::
+#\[7]UAKO4FMRS2DYMWFYH2KFM4ODAJG7NKVMCPMGMQKNNEHDFFMR7MAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

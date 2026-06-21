@@ -11,40 +11,138 @@ $model_id = <inference.model.amos_id> // '' if !length $model_id;
 
 return {
     mode => qw| false |,
-    data => 'usage: coding.self-test-run [model_id] (no model currently loaded)'
+    data =>
+        'usage: coding.self-test-run [model_id] (no model currently loaded)'
     }
     if !length $model_id;
 
-my $result = <[coding.self_test.run]>->( { model_id => $model_id } );
+my $current_model_id = <inference.model.amos_id> // '';
 
-if ( !$result ) {
+## normalize: accept "checksum" or "checksum backend=..." ##
+my $model_checksum = $model_id;
+$model_checksum = $1
+    if $model_id =~ m{^([A-Z2-7]{7}:[A-Z2-7]{7})(?:\s+backend=\w+)?$}i;
+
+## helper to format self_test.run result for reply ##
+my $format_result = sub {
+    my ( $id, $result ) = @_;
+    if ( !$result || ref $result ne qw| HASH | ) {
+        return {
+            mode => qw| size |,
+            data => sprintf "self-test failed for %s: no reply\n",
+            $id
+        };
+    }
+
+    ## self_test.run always returns data => $summary [ a hashref ], even on   ##
+    ## mode=false [ "false" just means not all prompts passed ] - the prior  ##
+    ## code mistakenly treated $result->{'data'} as a string on mode=false,  ##
+    ## stringifying the hashref into 'HASH(0x...)' in the output             ##
+    my $data    = $result->{'data'};
+    my $summary = sprintf "self-test complete for %s: %d/%d passed\n",
+        $id, $data->{'pass_count'} // 0, $data->{'total'} // 0;
+
+    if ( !$data->{'all_passed'} ) {
+        for my $r ( @{ $data->{'results'} // [] } ) {
+            next if $r->{'passed'};
+            $summary
+                .= sprintf "  prompt %d mismatch: got '%s', expected '%s'\n",
+                $r->{'prompt_id'}, $r->{'answer'}, $r->{'expected'};
+        }
+    }
+
+    return { mode => qw| size |, data => $summary };
+};
+
+## common case: requested model is already loaded - run directly ##
+if ( $model_checksum eq $current_model_id ) {
+    my $result
+        = <[coding.self_test.run]>->( { model_id => $model_checksum } );
+    return $format_result->( $model_checksum, $result );
+}
+
+## non-loaded model: require a current model to restore to ##
+if ( !length $current_model_id ) {
+    <[base.logs]>->(
+        0,
+        '[self_test] cannot test %s : no currently loaded model to restore to',
+        $model_checksum
+    );
     return {
         mode => qw| size |,
-        data => sprintf "self-test failed for %s: no reply\n",
-        $model_id
+        data =>
+            "cannot test $model_checksum: no currently loaded model to restore to\n"
     };
 }
 
-## self_test.run always returns data => $summary [ a hashref ], even on   ##
-## mode=false [ "false" just means not all prompts passed ] - the prior  ##
-## code mistakenly treated $result->{'data'} as a string on mode=false,  ##
-## stringifying the hashref into 'HASH(0x...)' in the output             ##
-my $data    = $result->{'data'};
-my $summary = sprintf "self-test complete for %s: %d/%d passed\n",
-    $model_id, $data->{'pass_count'} // 0, $data->{'total'} // 0;
+## switch-test-restore wrapper : async state machine ##
+my $pending_dep = <coding.dep.gpu_self_test_pending> // 0;
 
-if ( !$data->{'all_passed'} ) {
-    for my $r ( @{ $data->{'results'} // [] } ) {
-        next if $r->{'passed'};
-        $summary .= sprintf "  prompt %d mismatch: got '%s', expected '%s'\n",
-            $r->{'prompt_id'}, $r->{'answer'}, $r->{'expected'};
-    }
+## mark dependency not-ready BEFORE initiating the switch ##
+if ( $pending_dep && exists <dependency.object>->{$pending_dep} ) {
+    <dependency.object>->{$pending_dep}->{'pending'} = TRUE;
 }
 
-return { mode => qw| size |, data => $summary };
+<[base.logs]>->(
+    1,                 '[self_test] switch initiated : %s -> %s',
+    $current_model_id, $model_checksum
+);
 
-#,,.,,,,,,...,,,.,.,.,,,,,,.,,.,.,,..,.,,,,.,,..,,...,...,,..,,..,.,.,.,.,,,,,
-#AOTRS7UJ4OH7OTOIAR2YXJLSNIONIV2TPXP4VO2LZB44QJMNSSMVLFFGVOUS6AQR7RVSZOX4SOBZW
-#\\\|AVNSYZWMA75WSDLJHJJ6WPJN6DKXRT4L6QARRR3YNYIFJCU3WYS \ / AMOS7 \ YOURUM ::
-#\[7]QZG6RAB4KYZJM5TW3JDP4QWW2SCPGMRT5MWKGLFXYORLEI47F6DA 7  DATA SIGNATURE ::
+## create tracking state for the timer-driven state machine ##
+$data{'coding'}{'self_test_switch_state'} //= {};
+my $switch_id
+    = <[base.gen_id]>->( $data{'coding'}{'self_test_switch_state'} );
+
+## capture the CURRENT pid before switching - readiness is confirmed by
+## a NEW pid appearing+ready, not by the model_id label, which gets set
+## by switch_model_reply as soon as it starts processing, well before
+## the actual kill+respawn completes [ confirmed live 2026-06-21: the
+## model_id label can already say the new checksum while the old PID is
+## still the one actually serving ]
+my $pre_switch_pid = ( <coding.inference_servers> // {} )->{'gpu'}{'pid'}
+    // 0;
+
+$data{'coding'}{'self_test_switch_state'}{$switch_id} = {
+    'reply_id'       => $call->{'reply_id'} // '',
+    'target_model'   => $model_checksum,
+    'test_model'     => $model_checksum,
+    'original_model' => $current_model_id,
+    'phase'          => qw| switching |,
+    'started'        => <[base.time]>->(3),
+    'dep_id'         => $pending_dep,
+    'result'         => undef,
+    'prior_pid'      => $pre_switch_pid,
+};
+
+## initiate switch to requested model [ already async ] ##
+eval {
+    <[coding.cmd.switch-model]>->( { args => $model_checksum } );
+    1;
+} or do {
+    my $err = $@ || 'unknown error';
+    <[base.logs]>->( 0, '[self_test] switch-model call failed : %s', $err );
+};
+
+## poll the switch asynchronously : one repeating timer, no blocking sleep ##
+<[event.add_timer]>->(
+    {   'interval' => 0.5,
+        'repeat'   => TRUE,
+        'handler'  => qw| coding.self_test.handler.poll_switch |,
+        'data'     => { 'switch_id' => $switch_id },
+        'desc'     => "self-test switch $switch_id"
+    }
+);
+
+return { mode => qw| deferred | };
+
+#,.,.,,,....,,,,,.,..,,,,,..,,.,,,.,..,,,...,.,.,.,.,,.,.,...,,,.
+#BL2TO6D7VT5OLVBLVENOHW5RYQ2BQUYZYYXRT3EP2TBLTWDG7HAKJ3F7N32JCCDP
+#\\\|IVUYY23HVZJE22XEW6PHSOYOL2LYQRAZPKJKYSI \ / AMOS7 \ YOURUM ::
+#\[7]6CTAA7SKMHL6YP6ZXMBRKAK56CL4JXFWKS3OSQF 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,.,,,,,,,,,,..,,,,,,..,,,,,,,,,..,,.,.,,,,,..,,...,...,...,,..,.,,,,,,,.,,,
+#423FQG2CGDMA4XCTASB4YA7P5OKHGEHQ4I6MVUOJWIWNMUIGNREFUV3KZRZLX5BJCURMF3JIDZIMO
+#\\\|ZYFHDGDPKPDOJ4MTIHC2PL3K7JAQGEOMRGYHLYVNWCQBJ6M5LZ6 \ / AMOS7 \ YOURUM ::
+#\[7]6HEVQ2SDFQBWIU23LZPJRYQSSTFN6CYZF7BB6RCGD6WFKOPR7EBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
