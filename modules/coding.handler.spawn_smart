@@ -81,6 +81,13 @@ if ($force) {
             my $w = $old->{$w_key};
             $w->cancel() if defined $w && $w->is_active();
         }
+        ## cancel drain watchers BEFORE closing their fds : otherwise the   ##
+        ## event loop tries to re-arm a watcher on a dead fd and warns       ##
+        for my $w_key (qw| watcher_drain_stdout watcher_drain_stderr |) {
+            my $w = $old->{$w_key};
+            $w->cancel() if defined $w && $w->is_active();
+            delete $old->{$w_key};
+        }
         for my $fh_key (qw| io_stdout io_stderr |) {
             my $fh = $old->{$fh_key};
             close($fh) if defined $fh;
@@ -231,8 +238,8 @@ if ( defined $model_path && -f $model_path ) {
 
 return FALSE;
 
-#,,.,,.,,,.,,,,,.,,.,,.,.,,..,..,,..,,.,,,,.,,.,.,...,.,,,..,,...,.,,,.,.,,..,
-#VDHFVIQYR2KMJ3VDH2WUVLEE4OPRQBU4NXKK77G3LXG65KWYVPEJHURLE5ED3XGYM7MZHSPSUOVI2
-#\\\|SB3S2D6Z7EXANUEX4DRCIT6ZTBMDG2YCDBQZJUPMN424T2U3J2F \ / AMOS7 \ YOURUM ::
-#\[7]O4W4RVLATT7U6KNMMMF7WFBDQG5KIMIEHRKURIWHYEPBO3JBCACI 7  DATA SIGNATURE ::
+#,,,.,...,..,,.,,,,,,,,,.,,..,.,.,,,.,..,,.,.,.,.,...,..,,.,.,,.,,,.,,,..,...,
+#JBCOQ3ZDOORWJHOGAUDDV2NWXURQUN7C5YHUIOU54QG65PFIPTJMA7RTMARTBKIWHVSX6YQT4UAPK
+#\\\|XN22YUHGW7LSOKCYEVL2GE3GPWD2D4TXJJ42AJDF7LABW45WLG2 \ / AMOS7 \ YOURUM ::
+#\[7]KHKPSWAJ6BKDGIDBVNJXIFMVGUPSTKX2VLBDVJMN5GJGBXY35YAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

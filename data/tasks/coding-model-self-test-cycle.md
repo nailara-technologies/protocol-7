@@ -139,37 +139,247 @@ coding.cfg.model_fallback.DVEAZIA = CSABG4A   # Glitter fails → DeepSeek
 coding.cfg.model_fallback.CSABG4A = none       # DeepSeek is the last resort
 ```
 
-## testing a non-loaded model (2026-06-21, open design)
+## testing a non-loaded model (2026-06-21, DONE — live-confirmed end to end)
 
-`coding.self-test-run`'s `model_id` is now optional (DONE) — defaults
-to `<inference.model.amos_id>`, the currently-loaded model, via the
-data tree (no need to already know the checksum).
+`coding.self-test-run`'s `model_id` is optional — defaults to
+`<inference.model.amos_id>`, the currently-loaded model.
 
-if a `model_id` IS given and differs from the currently-loaded one,
-the natural next step is: switch to it, run the self-test, switch back
-— using the existing `coding.cmd.switch-model` machinery. NOT yet
-implemented; three real design decisions block it:
+if a `model_id` IS given and differs from the currently-loaded one: it
+switches to it, runs the self-test, and switches back — via
+`coding.cmd.switch-model`, as a proper async timer-driven state machine
+(see "blocking poll bug" section below for the implementation), with
+dependency-state blocking for regular tasks during the window (see
+"self-test as a dependency state" below). all three original blocking
+design questions are resolved and live-tested:
 
 ```
-1. switch-model is async with no fixed completion bound (kills the old
-   process, spawns fresh, readiness detected by monitor_inference_startup
-   polling stdout for a log pattern - no timeout in that code path).
-   self_test.run currently blocks synchronously via LWP::UserAgent
-   calls already, so a poll-loop extension wouldn't be a new category
-   of problem - but poll against what, exactly? coding.cmd.inference-status
-   (status flips unknown -> starting -> ready|crashed) is the existing
-   query surface; use that, don't invent a second one.
+live confirmation (2026-06-21): coding.self-test-run KVRBYTQ:BZHYASQ
+(while IXNBXVI:U2XBEXQ was loaded) correctly: switched to KVRBYTQ,
+spawned it, ran the calibration against it under its OWN correctly-
+labeled identity (2/2 passed), then unconditionally switched back to
+IXNBXVI (2/2 passed), and delivered "self-test complete for
+KVRBYTQ:BZHYASQ: 2/2 passed" as the final deferred reply. full
+sequence verified in the live console log, not just trusted from a
+summary.
+```
 
-2. MUST switch back to the original model afterward, including on
-   failure/crash during the test - the original model_id has to be
-   captured before switching and restoration attempted unconditionally
-   (a self-test run must never silently leave a different model loaded
-   than what was running before it started).
+remaining known issue, not a regression: the auto-trigger from
+`monitor_inference_startup` (which fires self_test.run on EVERY
+readiness event, with no suppression yet) ALSO ran during this same
+window, causing a visible duplicate test — this is exactly the
+already-documented "two more triggers" suppression issue below, now
+actually observed live instead of theoretical. not a new bug; fix
+remains the same (a suppression marker self-test-run sets before
+switching, that the auto-trigger checks and skips on).
 
-3. while the switch+test+switch-back window is open, regular production
-   tasks must not be routed to that backend and silently fail or hang -
-   see dependency-state section below, this is the actual blocking
-   mechanism, not a queue/sleep inside self_test.run itself.
+## switch-model race condition (2026-06-21, FIXED — also found+fixed:
+model_id staleness AND a completely disconnected model-id field)
+
+status: the shared-global race below is FIXED (params now travel with
+each reply via base.route.add's existing 'params' plumbing, confirmed
+delivered to handlers per coding.handler.command.process_reply). the
+async-rewrite (blocking-poll bug, separate section below) is also
+FIXED and live-tested. ONE MORE issue found during live-testing the
+fixed version: `inference-status`'s `model_id` field reflects
+configured INTENT (set by switch_model_reply the instant it starts
+processing), not actual serving state (only true once spawn_smart's
+kill+respawn completes) — confirmed live: a readiness check using
+model_id alone could pass while the OLD process was still genuinely
+serving. FIXED: poll_switch and self-test-run now track the PID
+running before each phase started, and require BOTH ready-status AND a
+DIFFERENT pid than before — model_id checks were dropped from the
+AND-condition entirely (kept only as a non-blocking log line), because
+of the SECOND, deeper issue found next.
+
+**second issue, also FIXED**: `inference-status`'s `model_id` field
+(`coding.inference_servers.gpu.model`) is sourced from
+`<inference.model.amos_id>` (set by `monitor_inference_startup`), which
+is a SEPARATE global from `<inference.backend.gpu.model_id>` (the one
+`switch_model_reply` was updating) — `<inference.model.amos_id>` was
+never updated by switch-model at all, so it stayed frozen at whatever
+`coding.cfg.start_model` was at boot, regardless of how many switches
+happened. this explained BOTH the model-id-based readiness check never
+matching (since it could never become the target checksum) AND the
+earlier "self-test auto-fires mislabeled" observation (monitor_startup
+always labelled the model from this same frozen field). separately,
+**also found**: the `backend eq 'auto'` mode (the default, used by
+every test) updated neither `inference.backend.gpu.model_id` nor
+`cpu.model_id` either — the update logic only matched literal
+`'gpu'`/`'cpu'`/`'both'`, never `'auto'`. all three now fixed in
+`coding.handler.switch_model_reply`: a `$mark_backend_updated` helper
+updates the correct per-backend field AND `<inference.model.amos_id>`,
+called from every successful spawn path including auto's gpu-then-cpu
+fallback.
+
+original race description below, for context:
+
+confirmed live via the switch-test-restore wrapper above: a real,
+pre-existing concurrency bug in `coding.cmd.switch-model` /
+`coding.handler.switch_model_reply`, not introduced by self-test but
+reliably triggered by it.
+
+```
+<coding.pending_model_switch_checksum> (+_name +_backend) are single
+SHARED globals, never actually cleared (switch_model_reply line 94 has
+a comment claiming clearing "happens anyway on next switch" - it does
+not, there is no clearing code at all). if a second switch-model call
+fires before the first's async model-path-lookup reply arrives, the
+second call's globals overwrite the first's. when the FIRST reply
+finally lands, switch_model_reply reads the (now-clobbered) globals -
+so it can set <inference.backend.gpu.model_id> to the SECOND request's
+checksum while the server actually spawned is running the FIRST
+request's model file [ confirmed: log showed Kimi-K2's actual gguf path
+loading while the log line said "switching to IXNBXVI:U2XBEXQ" ]. this
+is a real config/reality mismatch, not just a cosmetic log confusion -
+inference-status's model_id field can lie about which model is
+genuinely loaded during the race window.
+
+root fix (not yet implemented): protocol-7.command.send.local's reply
+registration already has an unused 'params' => {} field
+(coding.cmd.switch-model:66-70) that flows through base.route.add's
+reply config (confirmed: base.protocol-7.command.send.local:57-65)
+specifically for passing request-scoped context to a reply handler -
+switch_model_reply should read checksum/name/backend from there instead
+of the shared globals. NOT yet confirmed: the exact mechanism by which
+'params' actually reaches the handler function when the reply arrives -
+needs tracing the remaining base.route.* reply-dispatch side before
+implementing.
+
+this is core, widely-used model-switching infrastructure, not scoped to
+self-test - fix it as its own task, not bundled into the self-test
+wrapper's narrower concerns below.
+```
+
+## blocking poll bug — root cause of "switch never completes" (2026-06-21,
+RESOLVED design, not yet implemented)
+
+confirmed live, twice: the switch+restore wrapper's `$poll_model_ready`
+helper uses `<[base.sleep]>->(0.5)` in a tight loop. this BLOCKS THE
+ENTIRE EVENT LOOP for up to 120s. the things being polled for —
+the models-zenka reply arriving over the cube connection,
+`monitor_inference_startup`'s `event.add_io` watcher reading the new
+server's stdout to detect "ready" — only get processed when control
+returns to the event loop. while blocked in `base.sleep`, NONE of that
+runs, so the condition being polled for can never become true until
+the poll loop itself gives up and the function returns. confirmed via
+log: two switch-model calls (test target, then restore) both got
+silently queued and only processed back-to-back once the blocking
+function finally returned — not when they should have, sequentially,
+as each actually completed.
+
+this is fundamentally different from `self_test.run`'s blocking HTTP
+calls to llama-server (those block on a FOREIGN process's socket —
+llama-server keeps computing independently regardless of our event
+loop, so blocking on it is fine, if non-ideal). blocking on our OWN
+event loop's continued operation is self-defeating and can never work,
+at any timeout value.
+
+**the fix**: rewrite the switch path as a proper async state machine,
+reusing the exact deferred-reply pattern already established in this
+exact codebase by `coding.cmd.ask-reply` / `coding.handler.deferred_reply`:
+
+```
+1. coding.self_test.cmd.self-test-run, when a switch is needed:
+   - capture $call->{'reply_id'}
+   - store tracking state (reply_id, target checksum, original
+     checksum, phase, started timestamp) keyed by a generated id
+   - mark coding.dep.gpu_self_test_pending NOT ready (existing mechanism)
+   - fire-and-forget the switch-model call (unchanged - it's already
+     async by design)
+   - register ONE event.add_timer (interval ~0.5-1s, repeat=>TRUE,
+     handler=>coding.self_test.handler.poll_switch, data=>{the tracking
+     id}) - NOT a blocking sleep loop
+   - return { mode => qw| deferred | } immediately
+
+2. new module coding.self_test.handler.poll_switch (timer tick, fires
+   without blocking anything else):
+   - read tracking state by id from timer data
+   - call coding.cmd.inference-status (cheap, just reads already-
+     updated $data tree state, no blocking I/O of its own)
+   - phase 'switching' + status ready+model matches  -> cancel timer,
+     run coding.self_test.run [ still does blocking HTTP to llama-server
+     - acceptable, same as the already-working calibration-only case -
+     transition phase to 'restoring', re-register the SAME timer
+   - phase 'switching' + crashed/elapsed-too-long -> log, skip the test,
+     transition straight to 'restoring', re-register the timer
+   - phase 'restoring' + status ready+model matches original -> mark
+     dependency ready again, call jobqueue.check_dependencies, resolve
+     via <[base.callback.cmd_reply]>->( $reply_id, {...} ) with the
+     self-test result (or an error summary if the switch/restore itself
+     failed), cancel timer, delete tracking state
+   - phase 'restoring' + crashed/elapsed-too-long -> same resolution
+     path but with a failure summary - dependency MUST still be marked
+     ready and check_dependencies MUST still fire, even on total failure,
+     so a stuck gpu_self_test_pending dependency can never block regular
+     tasks forever
+```
+
+the "model already matches, no switch needed" common-case path is
+UNCHANGED — it stays a direct synchronous call to `coding.self_test.run`,
+since that path never depended on this process's own event loop for
+anything (only on llama-server, a foreign process).
+
+## recurring http_500 specifically on prompt 2 after fresh spawn (2026-06-21,
+flagged, pattern not yet root-caused)
+
+observed at least twice tonight: prompt 1 (arithmetic) succeeds cleanly
+shortly after a fresh server spawn, but prompt 2 (the riddle) fails
+with a raw `http_500` from llama-server itself — not an empty/wrong
+answer, an actual server error. follow_up's request for the same
+prompt also gets http_500. pattern: always the SECOND request shortly
+after spawn, never the first. possible causes, not yet investigated:
+the server logging "ready" before it's actually fully settled (some
+internal init still finishing in the background), or a per-request
+state issue specific to this reasoning model when a second request
+arrives in quick succession after the first. worth a dedicated
+investigation once the async rewrite above is confirmed stable —
+don't conflate this with the blocking-poll bug, it's a different
+failure mode (a real llama-server error, not a stuck poll).
+
+## drain_pipe resilience (2026-06-21, flagged, smaller, likely related)
+
+observed alongside the blocking-poll bug's double-kill race: `event`
+warnings `'coding.handler.drain_pipe' was unexpectedly closed` and
+`cannot restart 'coding.handler.drain_pipe' because there is nothing to
+watch`. `coding.handler.drain_pipe` itself already handles closed-fd
+cases defensively (checks `fileno`, handles EBADF/EINVAL/EOF, cancels
+cleanly) — the warning text ("cannot restart") suggests something
+ELSE is calling a restart/re-arm on a drain watcher reference without
+checking `is_active` first, most likely in whatever kills the old
+server during a model switch (`coding.cancel_watcher.backend_monitor`
+creates the drain watchers; trace forward from there for a restart
+call missing an `is_active` guard). possibly self-resolves once the
+double-kill race above is fixed (no more overlapping kill+respawn
+cycles to race against) — worth a guard regardless, cheap insurance.
+
+## two more triggers that compound the race (2026-06-21, flagged, not designed)
+
+```
+1. task model-pinning: tasks may already support pinning to a specific
+   model_id, with an implicit switch-model call on mismatch - per the
+   user, this exists but "was never fully tested potentially." if real,
+   this is a THIRD path that can call switch-model concurrently with
+   self-test's own explicit switch - any race fix above must account
+   for pinned-task-triggered switches racing against self-test-triggered
+   ones, not just self-test racing against itself.
+
+2. self-test auto-fires on EVERY readiness event via
+   monitor_inference_startup, with no way to distinguish "genuine fresh
+   cold-start" from "this readiness event was caused by self-test's own
+   switch-test-restore wrapper" (or by a pinned-task-triggered switch).
+   without suppression, switching models for an explicit self-test run
+   would cause monitor_inference_startup to auto-fire ANOTHER self-test
+   against the same newly-switched model, redundantly, possibly
+   overlapping with the explicit one already in progress.
+   needs: a suppression marker self-test-run sets before switching, that
+   monitor_inference_startup's auto-trigger checks and skips on - cleared
+   afterward the same way the dependency-pending marker is.
+
+3. follow-on requirement once suppression exists: the explicit
+   self-test-run command should support specifying an alternate test
+   suite/prompt list (not just the hardcoded 2-prompt calibration
+   array), since switch-test-restore used for model evaluation rather
+   than pure calibration would want different prompts per invocation.
 ```
 
 ## self-test as a dependency state (2026-06-21, open design, architecture
@@ -200,12 +410,34 @@ how to wait on dependency objects; self-test-in-progress just becomes
 one more state expressible in that same system.
 ```
 
-still open: exact hook point for marking this dependency not-ready
-(inside self_test.run itself, vs. wherever the switch-model-for-testing
-decision is made one level up) - needs the same care
-`coding-self-error-processing-cycle.md`'s open hook-point question
-already flagged for a different reason. likely the same investigation
-answers both.
+**RESOLVED (2026-06-21)** — the dependency-chain mechanism already
+supports this with zero changes to routing/enqueue/check_dependencies:
+
+```
+coding.task.enqueue gates every gpu-routed task on coding.dep.gpu_server's
+object_id (modules/coding.task.enqueue:60-76). base.dependency.ok walks
+EVERY dependency chained to that object_id and ANDs their type-callbacks
+together (modules/base.dependency.ok:33-64) - same pattern already used
+for memory_gpu/memory_system (modules/coding.init_code:~307-334).
+
+minimal integration:
+1. register a new dependency type/object: coding.dep.gpu_self_test_pending,
+   with a type callback (dependency.setup.type pattern) that returns
+   false while a self-test-triggered switch+test+restore is in flight,
+   true otherwise
+2. one new line near the existing memory_gpu/memory_system chain adds:
+   <[dependency.add]>->( <coding.dep.gpu_server>, <coding.dep.gpu_self_test_pending> );
+3. mark the new dependency object not-ready at the start of a switch-
+   triggered self-test, ready again once the test completes AND (if a
+   switch happened) the original model is confirmed restored and ready
+4. call jobqueue.check_dependencies after marking it ready again [ same
+   as monitor_inference_startup already does after server readiness ]
+
+no changes needed to coding.routing.decide_service, coding.task.enqueue,
+or jobqueue.check_dependencies - any task already routed to gpu and
+depending on coding.dep.gpu_server is automatically blocked the moment
+this new chained dependency exists and returns false.
+```
 
 ## cross-model assertion (2026-06-21, speculative, phase 3+)
 
@@ -352,8 +584,8 @@ to confirm it's initialized in `coding.init_code` or add it there.
 
 #,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-#,,,,,,..,,.,,,,,,,.,,,..,..,,,.,,,.,,,,,,.,.,..,,...,...,...,..,,,,,,,..,,.,,
-#6FGHCL3KE5PAUBGE4U2WUKP65Q3FCDPQXWTLCEQK3SEVIGSVGKKDMGOH24IPVJTKYDKBTW7YP5OME
-#\\\|VCIIIIUTKMIK7GJ474DF7BD6TMYAEDYZXWL45UH4DQ3HAYRB74M \ / AMOS7 \ YOURUM ::
-#\[7]ZRKKCEEWV6GPCLKCJDBKRWEHIE3PTKFJTHE3JTUAIMDZZ67SJWAA 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,.,,,,,,,.,,,,,,,,,,.,.,,,,,,..,..,,...,...,,..,,..,.,.,,.,,.,,,
+#5DAQLG5DM72OD3T5SX2NOWW43T2KM3G7MFKJ6YYSIZK4NGQ3T3VN2O7D4U67VIZGYYMG6VG727CH6
+#\\\|2HBYCVECMCBZEEUP7LP7EKKGTA7J33DCTVWSN3G36AB2NBW5CBT \ / AMOS7 \ YOURUM ::
+#\[7]WGYES535VTPSFZJ42DCYSLDISUXZQCYSVT64ZEHKOEERU2LY2SDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
