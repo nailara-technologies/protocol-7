@@ -173,6 +173,14 @@ coding.cfg.prefill_margin_sec     = 5
 ## on first chunk received [ coding.callback.http_chunk ]                 ##
 coding.cfg.cold_start_data_start_timeout = 150
 
+## switch-model poll_switch per-phase timeout : the prior flat 120s        ##
+## covers spawn + disk load + ready, not just inference - a large model   ##
+## (9GB+) cold-loading from disk can outrun 120s outright, confirmed live  ##
+## 2026-06-21 [ DVEAZIA:GPAKBLA switch timed out mid-load ]. raised, kept  ##
+## configurable rather than re-hardcoded - see feedback-ondemand-timeout-  ##
+## tiering ]                                                               ##
+coding.cfg.switch_model_max_wait = 300
+
 ## Model Configuration ##
 ## Context length: floor value — auto-calculated from VRAM, but never below this ##
 ## smaller models expand above this automatically; large models use this as a min ##
@@ -229,8 +237,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,,,,,..,..,,,.,,,,,,,..,,,.,,,,,.,,,,,,,,.,,.,.,...,...,...,.,.,,,.,,,,,,..,
-#6SGLB5RZ6NT244R5P5W4G6ED2XDPIWZZGMXD4PERCIONPSC66LB2YMOU5JOMCIN26LPNWQCHN2H5U
-#\\\|HF7LJLZKCJGTAPB4FQKIRX53DNBDIUXTSUIETUQF3IOKXP7QSDU \ / AMOS7 \ YOURUM ::
-#\[7]4377MNMHQIHA26MGY7IR6NDWAWMWBE6OKJWMCBZVEWCVQYEPS6BI 7  DATA SIGNATURE ::
+#,,..,...,,..,,,.,,,.,,,.,..,,...,.,,,,..,..,,.,.,...,...,,.,,,.,,,..,.,.,,..,
+#FKPQ2J776LPQ3YG5CMSO6JMKD3VV4E6XNZK6JU2LY7IR5KA5OMWDVLN5MI2W27LNME6EL5KTGYDOG
+#\\\|XU62ET5BKFSLLRJVTQCGHP6KXW5TXMLVPIR7VBRQLOXSM65T2XI \ / AMOS7 \ YOURUM ::
+#\[7]LXOGDV4F37OJ2HR4O2EZDEOSW46KKQ73LMWTPYHADIBB5OZCL6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

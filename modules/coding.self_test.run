@@ -17,15 +17,21 @@ my $epoch = <[base.time]>->(3);
 <[base.logs]>->( 1, '[self_test] starting : model %s', $model_id );
 
 ## calibration prompt sequence ##
+## each prompt carries a result_constraint - the structural-check rule    ##
+## coding.self_test.check_constraint enforces deterministically (no       ##
+## inference call) before any tier-1 reformat or tier-2 semantic judgment ##
 my @prompts = (
-    {   id       => 1,
-        text     => 'What is 7 × 13? Reply with only the number.',
-        expected => '91'
+    {   id                => 1,
+        text              => 'What is 7 × 13? Reply with only the number.',
+        expected          => '91',
+        result_constraint => { type => 'numeric', must_contain => ['91'] },
     },
     {   id   => 2,
         text => 'put a cat and a mouse in a room, close the door and wait.., '
             . 'who is the remaining animal? reply with only the animal name.',
-        expected => 'cat'
+        expected          => 'cat',
+        result_constraint =>
+            { type => 'word_count', max_words => 2, must_contain => 'cat' },
     },
 );
 
@@ -72,43 +78,66 @@ for my $prompt_def (@prompts) {
     }
 
     my $eval = <[coding.self_test.evaluate]>->(
-        {   model_id => $model_id,
-            prompt   => $prompt_text,
-            answer   => $answer,
-            expected => $expected,
+        {   model_id   => $model_id,
+            prompt     => $prompt_text,
+            answer     => $answer,
+            expected   => $expected,
+            constraint => $prompt_def->{'result_constraint'},
         }
     );
 
+    my $needs_tier2        = FALSE;
+    my $tier               = '';
+    my $reformatted_answer = '';
+    my $structural_reason  = '';
+    my $tier1_reason       = '';
+
     if ( $eval && $eval->{'mode'} eq qw| true | ) {
-        $passed = TRUE;
+        $passed             = TRUE;
+        $tier               = $eval->{'tier'}               // 'literal';
+        $reformatted_answer = $eval->{'reformatted_answer'} // '';
+        $structural_reason  = $eval->{'structural_reason'}  // '';
         $pass_count++;
         <[base.logs]>->(
-            1, '[self_test] prompt %d : model %s : PASS [ ttft=%.2fs ]',
-            $prompt_id, $model_id, $ttft
+            1, '[self_test] prompt %d : model %s : PASS [ %s ttft=%.2fs ]',
+            $prompt_id, $model_id, $tier, $ttft
         );
     } else {
-        $passed     = FALSE;
-        $all_passed = FALSE;
-        $anomaly    = $eval->{'anomaly'} // $eval->{'data'} // 'mismatch';
+        $passed             = FALSE;
+        $all_passed         = FALSE;
+        $needs_tier2        = $eval->{'needs_tier2'}        // FALSE;
+        $reformatted_answer = $eval->{'reformatted_answer'} // '';
+        $structural_reason  = $eval->{'structural_reason'}  // '';
+        $tier1_reason       = $eval->{'tier1_reason'}       // '';
+        ## anomaly text [ follow_up explanation ] is now produced later     ##
+        ## by the tier-2 disposition path on a NO verdict - not here        ##
+        $anomaly = '';
         <[base.logs]>->(
             1,
-            "[self_test] prompt %d : model %s : FAIL [ got '%s' expected '%s' ]",
+            "[self_test] prompt %d : model %s : FAIL [ got '%s' expected '%s' tier1=%s ]",
             $prompt_id,
             $model_id,
             $answer,
-            $expected
+            $expected,
+            $tier1_reason || 'n/a'
         );
     }
 
     my $result_record = {
-        prompt_id => $prompt_id,
-        prompt    => $prompt_text,
-        answer    => $answer,
-        expected  => $expected,
-        ttft      => $ttft,
-        total     => $total,
-        passed    => $passed,
-        timestamp => <[base.time]>->(3),
+        prompt_id          => $prompt_id,
+        prompt             => $prompt_text,
+        answer             => $answer,
+        expected           => $expected,
+        constraint         => $prompt_def->{'result_constraint'},
+        ttft               => $ttft,
+        total              => $total,
+        passed             => $passed,
+        needs_tier2        => $needs_tier2,
+        tier               => $tier,
+        reformatted_answer => $reformatted_answer,
+        structural_reason  => $structural_reason,
+        tier1_reason       => $tier1_reason,
+        timestamp          => <[base.time]>->(3),
     };
 
     push @results, $result_record;
@@ -147,8 +176,8 @@ return {
     data => $summary,
 };
 
-#,,..,.,,,.,.,,,.,..,,,,,,,..,...,,,,,..,,.,.,..,,...,...,.,.,.,,,,.,,..,,...,
-#O23S72RFTXJLMZRSZ7537VGA5U4JJ3S4WS63YGZBC4RVPQASZYRK7NW7XQSTBN3K7N4AU52HQMEJQ
-#\\\|45KALI52C5N2ICBO5ZCXJUM4GG2NI6IMOLZSCFJE2DAU7FCBYBC \ / AMOS7 \ YOURUM ::
-#\[7]PRFGKP7NVOAR3OGKLSUQIKCMC3NTECXBVP2WBSMFI7F56LJTCICY 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,.,,,...,,,.,..,,,..,.,,,..,,.,,,..,,...,...,,,.,,,.,.,,,.,,,..,,
+#M362JAUWUELCEYWH5OVXPTDZ457WZ74F2O3IRS3XPQG3FHJ6DEUOYCA72UOWTOSCYQPZVMKG3GRV6
+#\\\|4APQ4TISN4UGJSN264SUNS7CS7FKZVZWLBPPN6Y7D22PUDLKKWR \ / AMOS7 \ YOURUM ::
+#\[7]ZP475W7RRKTIGW5FKEYQXFJME6CGTIVBHOZOPL3PFXF3HQW7WICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

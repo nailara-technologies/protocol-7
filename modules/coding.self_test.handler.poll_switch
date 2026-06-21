@@ -19,9 +19,13 @@ if ( !defined $state ) {
     return;
 }
 
-my $now       = <[base.time]>->(3);
-my $elapsed   = $now - ( $state->{'started'} // $now );
-my $max_wait  = 120;    ## 120s per phase, same as prior 240 x 0.5s ##
+my $now     = <[base.time]>->(3);
+my $elapsed = $now - ( $state->{'started'} // $now );
+## flat 120s was too short for a large model's cold disk-load, not just  ##
+## inference readiness - confirmed live 2026-06-21 [ DVEAZIA:GPAKBLA ].  ##
+## configurable, see coding.cfg.cold_start_data_start_timeout for the    ##
+## same pattern applied to the inference-request side of cold-start.    ##
+my $max_wait  = <coding.cfg.switch_model_max_wait> // 300;
 my $timed_out = $elapsed > $max_wait;
 
 ## cheap status read : no blocking i/o ##
@@ -104,6 +108,43 @@ my $format_result = sub {
     }
 
     return { mode => qw| size |, data => $summary };
+};
+
+## helper: dispatch deferred tier-2 judgment if any results need it.    ##
+## shared by the restore-success AND restore-timeout/crash paths - a    ##
+## captured self_test result with needs_tier2 entries should still get  ##
+## judged even if the restore itself never confirmed ready, rather than ##
+## silently dropping it. tier2_judge/apply_tier2 already degrade to an  ##
+## 'ambiguous' verdict (-> anomaly follow_up) on a failed inference     ##
+## call, so this is safe to attempt unconditionally. confirmed live     ##
+## 2026-06-21 [ restore exceeded even the raised 300s timeout ].        ##
+my $apply_pending_tier2 = sub {
+    my ($result) = @_;
+    return $result if !$result or ref $result->{'data'} ne qw| HASH |;
+
+    my $summary = $result->{'data'};
+    my $any_pending
+        = grep { $_->{'needs_tier2'} } @{ $summary->{'results'} // [] };
+    return $result if !$any_pending;
+
+    <[base.logs]>->(
+        1,
+        '[poll_switch] tier2 : %s judging %d deferred result(s) for %s',
+        $original_model,
+        scalar(
+            grep { $_->{'needs_tier2'} } @{ $summary->{'results'} // [] }
+        ),
+        $test_model
+    );
+    <[coding.self_test.apply_tier2]>->(
+        {   summary        => $summary,
+            judge_model_id => $original_model,
+            test_model_id  => $test_model,
+            epoch          => $summary->{'epoch'},
+        }
+    );
+    $result->{'mode'} = $summary->{'all_passed'} ? qw| true | : qw| false |;
+    return $result;
 };
 
 if ( $phase eq qw| switching | ) {
@@ -224,8 +265,14 @@ if ( $phase eq qw| restoring | ) {
                 }
             );
         }
-        return $finish->(
-            $format_result->( $test_model, $state->{'result'} ) );
+
+        ## tier-2 disposition : original model is now active again, so it   ##
+        ## judges any deferred mismatches from the just-tested model -      ##
+        ## cross-model assertion as a side effect of the restore, no extra  ##
+        ## switch needed                                                    ##
+        my $result = $apply_pending_tier2->( $state->{'result'} );
+
+        return $finish->( $format_result->( $test_model, $result ) );
     }
 
     if ( $is_crashed || $timed_out ) {
@@ -234,6 +281,20 @@ if ( $phase eq qw| restoring | ) {
             0,               '[poll_switch] restore failed : model %s : %s',
             $original_model, $reason
         );
+
+        ## restore never confirmed ready, but a captured self_test result  ##
+        ## with deferred tier2 entries should still get judged rather than ##
+        ## lost - best effort, degrades gracefully if inference fails too  ##
+        my $result = $apply_pending_tier2->( $state->{'result'} );
+        if ( $result && ref $result->{'data'} eq qw| HASH | ) {
+            my $summary = $result->{'data'};
+            my $note    = sprintf
+                "self-test for %s: %d/%d passed [ restore to %s %s, tier2 attempted best-effort ]\n",
+                $test_model, $summary->{'pass_count'} // 0,
+                $summary->{'total'} // 0, $original_model, $reason;
+            return $finish->( { mode => $result->{'mode'}, data => $note } );
+        }
+
         return $finish->(
             {   mode => qw| false |,
                 data => sprintf(
@@ -267,8 +328,8 @@ return $finish->(
     }
 );
 
-#,,.,,...,.,.,,..,,,,,,.,,,..,..,,,,.,,,.,..,,..,,...,...,...,,,.,,,.,,..,..,,
-#YVJYMWSVTSDCWSRMRLV43HTR2YKDZ22AHLXSAJOS4DYJ5VULQ5Z3XG7QXOPAGOJQ2N3EDH3G7E656
-#\\\|6BNLKEC7QVWHGTIPBQDL7DRANHF3A2B3A5MYGXB4776T4N5YY2U \ / AMOS7 \ YOURUM ::
-#\[7]QDWK54OWL2XQQZXLTIS473EORWS76XDTTXU7LI5YMGG3T5L732CY 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,...,.,.,,,.,,.,,..,,,..,,,,,,..,..,,...,...,,,,,...,.,,,...,,.,,
+#EIFEEMHGIHWZ2JJSJMPVCZ7U7MROVNMGIWWU6UCL3FGCPL4NLYRIVSRJMGG7KO6ZQA533F7AL34JQ
+#\\\|AAALGTQJ4JNC53X4WCQJPYOE5B2P3KBRTTPSUY3EOB4RSLSHA7E \ / AMOS7 \ YOURUM ::
+#\[7]2RVK5IOFCTDO2D2LZ2ZKRFPI2LVIX2UH4OBUCMCU5MOC665XTUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

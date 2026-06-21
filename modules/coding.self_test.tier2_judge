@@ -1,0 +1,77 @@
+## [:< ##
+
+# name  = coding.self_test.tier2_judge
+# descr = semantic YES/NO judgment of an answer's correctness via a judge model
+
+my $params         = shift                       // {};
+my $judge_model_id = $params->{'judge_model_id'} // '';
+my $prompt         = $params->{'prompt'}         // '';
+my $answer         = $params->{'answer'}         // '';
+my $expected       = $params->{'expected'}       // '';
+my $timeout        = $params->{'timeout'}        // 30;
+
+return { mode => qw| false |, data => 'judge_model_id required' }
+    if !length $judge_model_id;
+
+my $server_url = <inference.backend.http_server_url>
+    // 'http://127.0.0.1:8000';
+
+## fresh one-shot context : no prior history appended ##
+my $judge_prompt
+    = "Question: $prompt\n"
+    . "Expected short answer: '$expected'\n"
+    . "Given answer: '$answer'\n\n"
+    . "Does the given answer correctly convey the expected answer, "
+    . "even if phrased verbosely or with extra explanation? "
+    . "Reply with only one word: YES or NO.";
+
+my $result = <[coding.tools.http_inference_client]>->(
+    {   url      => $server_url,
+        model_id => $judge_model_id,
+        prompt   => $judge_prompt,
+        timeout  => $timeout,
+    }
+);
+
+if ( !$result || $result->{'mode'} ne qw| true | ) {
+    <[base.logs]>->(
+        1, '[self_test] tier2_judge : model %s : inference failed : %s',
+        $judge_model_id, ( $result->{'data'} // 'no reply' )
+    );
+    return {
+        mode     => qw| false |,
+        data     => 'judge_failed',
+        verdict  => 'ambiguous',
+        judge_by => $judge_model_id,
+    };
+}
+
+my $raw     = $result->{'data'} // '';
+my $trimmed = $raw;
+$trimmed =~ s/^\s+//;
+$trimmed =~ s/\s+$//;
+
+## YES / NO parser : tolerate leading punctuation/quotes/markdown ##
+my $verdict = 'ambiguous';
+if ( $trimmed =~ m{\b(YES|NO)\b}i ) {
+    $verdict = uc $1;
+}
+
+<[base.logs]>->(
+    1, '[self_test] tier2_judge : model %s : verdict=%s [ raw: %s ]',
+    $judge_model_id, $verdict, substr( $trimmed, 0, 80 )
+);
+
+return {
+    mode     => $verdict eq 'YES' ? qw| true | : qw| false |,
+    data     => $verdict,
+    verdict  => $verdict,
+    raw      => $raw,
+    judge_by => $judge_model_id,
+};
+
+#,,,.,,,,,,,,,,..,,..,..,,,,.,.,,,,.,,...,...,..,,...,...,...,.,.,...,.,,,...,
+#AE32Y4DTMNCSA7EC64Z22NYCW6ZGVY3OY3HUCK6VG6QWIPB6CWIWLAYFTMPGWTOGMIYGU77P3RNZ2
+#\\\|FLYZEMTKFQGO7H7IODMFYYK7C6XKRRALZEX27T3KRCSHNJ2AVGL \ / AMOS7 \ YOURUM ::
+#\[7]MG3ZYXTJJQB3RAPO36CU6DKUO2ABRIS6DKU73S4ZFG5V4RXJVEAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

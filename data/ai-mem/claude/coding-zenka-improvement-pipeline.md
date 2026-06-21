@@ -9,82 +9,107 @@ metadata:
 
 File: `data/md/design/CODING-ZENKA-IMPROVEMENT-PIPELINE-INDEX.md`
 
-Root index written 2026-06-20, applying the catch-all/bounded-nesting
-completeness principle from `CODING-CHANGE-ACCOUNTING-ARCHITECTURE.md`
-to the design-doc set itself, so this cluster of docs doesn't become
-the kind of orphaned/forgotten reference the mechanism exists to
-prevent.
-
 Tier status as of last update (re-check the index file itself, this is
 a point-in-time snapshot):
-- tier 0 (LANDED): X-11 `WM.update` before/after `ConfigureWindow` fix
-  (set_geometry, move-window, screen_change) — confirmed live by user
-- tier 1 (DONE, live-validated 2026-06-21): `coding.self_test.*` +
-  `coding.tools.http_inference_client` — three real passes total; first
-  two dispatches fixed syntax/structural bugs, but two more bugs only
-  surfaced under an actual live run (monitor_inference_startup calling
-  self_test.run before the model_id field was set; max_tokens=128
-  starving a reasoning model's answer). both fixed, confirmed live
-  "2/2 passed" with clean logging added. also confirmed: the
-  extract-inline-subs coding-task template works correctly end-to-end.
-- tier 2 (NOT READY): `coding-self-error-processing-cycle.md` — 3 open
-  decisions block dispatch (error-surfacing hook point, confidence
-  threshold mechanism, assertion-criteria rubric format)
-- tier 3 (GATED): `CODING-CHANGE-ACCOUNTING-ARCHITECTURE.md` — awaiting
-  tier 2 stability milestone (a confirmed-pattern library entry actually
-  promoted upstream)
+- tier 0 (LANDED): X-11 WM.update fix; coding.self_test.* core +
+  http_inference_client — all confirmed live.
+- tier 1 (DONE): switch-to-non-loaded-model + restore, async state
+  machine, live-confirmed 2026-06-21.
+- tier 1.5 (DONE): task-level model pinning (`:model:CHECKSUM:`).
+- tier 2 (NOT READY): self-error-processing-cycle — 3 open decisions.
+- tier 3 (GATED): change-accounting architecture.
 
-Lateral docs in the same cluster: `TASK-CUBE-CONSENSUS-ARCHITECTURE.md`
-(BFT consensus + rotation scheduling, extended by tier 3's priority
-queue), `NETWORK-RESOURCE-TOKEN-ARCHITECTURE.md` + `NRT.NRD.asc`
-(epoch-scoped archival shape origin), `demystification-through-
-correspondence.yaml` (the discipline this whole cluster's design work
-was produced under).
+**UNCOMMITTED 2026-06-21, near context-limit handover: generic
+`result_constraint` + tiered escalation — IMPLEMENTED, MOSTLY VERIFIED,
+NOT YET COMMITTED.**
 
-**How to apply**: before resuming any of this pipeline work in a future
-session, read the index file first — it has the authoritative tier
-status. This memory note is a pointer, not the source of truth.
+`modules/coding.self_test.check_constraint` (round 1, tier-0 structural
+checker) is already **COMMITTED as `a54280245`**.
 
-**Tier 1.5 added and DONE (2026-06-21)**: task-level model pinning
-(`:model:CHECKSUM:` marker) — see `data/tasks/coding-task-model-pinning.md`.
-Was genuinely half-built (parsed, never enforced), plus the upstream
-intake parser was silently destroying the marker before it ever
-reached working code. Also found+fixed a deep pre-existing bug:
-`coding.handler.await_resources` (a `:twin:`-handover watchdog) never
-retired itself and got re-armed on every `coding.reload`, silently
-substituting the boot-default model during any switch while showing a
-correct-looking label — this is why earlier passes at pinning LOOKED
-done while actually running the wrong model. Verified via direct
-`/proc/<pid>/cmdline` inspection, not by trusting labels/self-test
-alone — that discipline is what actually caught it.
+All remaining files for this feature are **signed + staged by the user
+right now** (confirmed via `git status --short` showing all `M`/`A`
+with zero unstaged diff) — committing only awaits a clean final live
+verification round, not a sign-off blocker:
+- `modules/coding.self_test.run` (M) — 2 calibration prompts now carry
+  `result_constraint` (numeric/word_count types).
+- `modules/coding.self_test.evaluate` (M) — tier-0 check, then **tier-1
+  reformat with up to TWO attempts**: attempt 1 uses a generic
+  constraint-type hint; if it fails, attempt 2 uses a STRICTER hint
+  built only from the constraint type + the prior violation (e.g. "you
+  used 56 words, limit is 2") — **never from the expected answer**,
+  scope explicitly confirmed with user 2026-06-21. Returns
+  `needs_tier2=>TRUE` only if both attempts fail.
+- `modules/coding.self_test.apply_tier2` (NEW) — judges deferred
+  `needs_tier2` results, re-archives, falls through to existing
+  `follow_up` anomaly explainer on NO/ambiguous.
+- `modules/coding.self_test.tier2_judge` (NEW) — fresh one-shot YES/NO
+  semantic judgment via `http_inference_client`; degrades to
+  `verdict=>'ambiguous'` on inference failure (load-bearing for the fix
+  below — never throws).
+- `modules/coding.self_test.cmd.self-test-run` (M) — no-switch fast
+  path: same model judges its own deferred tier2 results in a fresh
+  context.
+- `modules/coding.self_test.handler.poll_switch` (M) — cross-model
+  case: tier-2 dispatch factored into a shared `$apply_pending_tier2`
+  closure, called from **BOTH** the restore-success branch AND the
+  restore-timeout/crash branch (this second call site is a same-session
+  bugfix, see below).
+- `configuration/zenki/coding/start` (M) — added
+  `coding.cfg.switch_model_max_wait = 300` (was hardcoded 120).
 
-**NOT YET IMPLEMENTED, designed and captured (2026-06-21, end of
-session, context-limit handover)**: generic `result_constraint` +
-tiered escalation for tasks whose answer doesn't match a required
-format (word-count/numeric/sprintf) but may be substantively correct
-(e.g. DVEAZIA answering "## Solution... 91" instead of "91"). Two-tier:
-cheap same-context reformat request first, full semantic judgment only
-if that fails — and the semantic judgment, when a model switch
-happened, runs AFTER switch-back, making it cross-model assertion for
-free. Full design captured in `coding-model-self-test-cycle.md`'s
-"generic result-constraint + tiered escalation" section — read that
-first before implementing, it's intent-level, not yet a precise spec.
+**Real bug found+fixed same session**: `poll_switch`'s tier-2 dispatch
+originally only ran in the restore-SUCCESS branch. If the restore timed
+out (which it did, repeatedly, live), the deferred tier-2 judgment for
+the just-tested model was silently dropped — `finish()` returned a
+failure reply without ever reaching the tier2 block. Fixed by factoring
+dispatch into `$apply_pending_tier2`, called from both branches;
+`tier2_judge`/`apply_tier2` already degrade gracefully on a failed
+inference call, so calling it even when the restore itself isn't
+confirmed ready is safe. **Confirmed live 2026-06-21**: a restore that
+hit `timeout` still logged `[poll_switch] tier2 : IXNBXVI:U2XBEXQ
+judging 1 deferred result(s) for DVEAZIA:GPAKBLA` — dispatch fires
+correctly. (The verdict outcome itself wasn't captured that run because
+the user's manual v7/swap restart interrupted it mid-judgment — that's
+an infra interruption, not a code bug.)
 
-**Gotcha confirmed live 2026-06-21**: the `model` field in
-`coding.tools.http_inference_client`'s request body does NOT switch
-models — `llama-server` serves exactly one model, fixed at process-
-spawn time (`--model <path>`, see `coding.spawn_inference_server`).
-Model selection is by which port you connect to (8000=gpu, 8001=cpu),
-not by anything in the request body. `model_id` flowing through
-`self_test.*` is a label for logging/archival only. Relevant if the
-model-fallback-chain feature in `coding-model-self-test-cycle.md` ever
-gets built — "switching" there means spawning a different server
-process on that port, not changing a request parameter.
+**Live verification status at this handover**: tier-0 and tier-1
+(single-attempt) both confirmed firing correctly earlier in the
+session, against real DVEAZIA verbose answers (cat/mouse riddle,
+"## Solution... 91" style answers). The timeout-path tier2 dispatch fix
+is confirmed firing (see above). **The tier-1 TWO-ATTEMPT retry (just
+added) has NOT yet been exercised live** — the last 2-3 attempts to
+re-run `p7c coding.self-test-run DVEAZIA:GPAKBLA` all hit a
+switch/restore TIMEOUT before DVEAZIA's self-test even got to run (this
+WSL system's model loads from `/mnt/ext-xfs-data` are intermittently
+*very* slow — single loads have taken anywhere from ~15s to ~7 minutes
+in the same session, even after the user did a swap thrash fix
+`swapoff -a; swapon -a` mid-session). [[topic-model-load-time-statistics]]
+
+**NEXT SESSION / NEXT STEPS** (in order):
+1. Re-run `p7c coding.self-test-run DVEAZIA:GPAKBLA` (background it,
+   poll via `p7c coding.self-test-status` + tail of
+   `/dev/shm/.7/STDOUT/NIW7OAQ` — note: this log file's permissions
+   have been flapping root/taeki-owned during this session's manual
+   restarts, check `ls -la` first).
+2. Look for `[self_test] tier1 reformat attempt 1 failed` followed by
+   either a tier1 PASS (retry worked) or escalation to tier2 (already
+   verified working). Confirm the constraint-violation-only stricter
+   hint doesn't leak `expected` — re-read the hint text in the log if
+   visible.
+3. Once a clean DVEAZIA cycle completes end-to-end without an
+   infra-induced switch/restore timeout swallowing the test, report to
+   user and ask for final go-ahead to `git commit` (all 17 files are
+   ALREADY signed+staged — do not re-stage, do not amend, do not push).
+4. If switch/restore timeouts keep preventing a clean live run despite
+   retries, that itself is evidence for prioritizing
+   [[topic-model-load-time-statistics]] (adaptive per-model timeout)
+   sooner rather than later — flag this tradeoff to the user rather
+   than just retrying indefinitely.
 
 [[resonance-field-emergence]]
 
-#,,..,..,,,.,,,.,,.,.,.,.,.,,,...,,,,,,,,,.,.,..,,...,..,,,..,,,,,,.,,.,.,...,
-#QTQESMM5RVUZF5FTVMMQPLLQT42RFHF7232ZV35PC74LLS4DZRGZJB57F6XUGLSQ63M6BODLOLS26
-#\\\|OP5I7MFUWRLJ6YCVPO75KZHQS52KP3KL7ADJ2T7X2XDOWDIIV6S \ / AMOS7 \ YOURUM ::
-#\[7]WKT4VTRKYB2L54DTTALLDTLRRLME46YBUL6ZIQI2DMBBJGY66WBY 7  DATA SIGNATURE ::
+#,,.,,...,,..,.,.,,..,,,.,,.,,..,,.,,,.,.,,..,..,,...,...,.,,,,,.,.,.,,.,,,,,,
+#IVLIMUSE6DJSDNGVA6J2WHA3474RFEPDSL3HRBV2CGG4FURKOI2LQ3V4S7CLANH27WWERHEO5SXO4
+#\\\|ZMVDJ4DJG3JQNPIQ4VP2CRHFXD36RGZGZSSK6XAWTYHIZGQAFLJ \ / AMOS7 \ YOURUM ::
+#\[7]2F2CTUCYKYLQITM4P5QTIDGLIELNXN3W6ADBKGCHJN4PTVZVBCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
