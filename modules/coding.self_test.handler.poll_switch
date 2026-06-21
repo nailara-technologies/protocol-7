@@ -61,6 +61,10 @@ my $finish = sub {
         <dependency.object>->{$dep_id}->{'pending'} = FALSE;
     }
 
+    ## release the auto-self-test suppression set in self-test-run -      ##
+    ## covers both the switch's and the restore's readiness events       ##
+    <coding.self_test_switch_in_progress> = FALSE;
+
     ## wake any tasks that were waiting on the dependency ##
     <[jobqueue.check_dependencies]>;
 
@@ -263,8 +267,8 @@ return $finish->(
     }
 );
 
-#,,,,,,.,,..,,.,.,,,.,.,,,...,..,,.,.,..,,,,,,..,,...,...,.,,,,..,,,,,,,,,..,,
-#JEISPRHYXLXDMFOBFFS2FOGW4NAHPXBB4ZRVWQIRYNYPHKMCZ6ZVQ5ZGVJLY6VYQTRPSIK7D7T2RW
-#\\\|ZXXBIVYMDUYZOEYJFWIX52FQDQ5TV56AOY7HFYGIEYAWKIOIIUK \ / AMOS7 \ YOURUM ::
-#\[7]UAKO4FMRS2DYMWFYH2KFM4ODAJG7NKVMCPMGMQKNNEHDFFMR7MAQ 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,..,,,,,,.,,,..,..,,,,.,,,.,..,,..,,...,...,...,,,.,,,.,,..,..,,
+#YVJYMWSVTSDCWSRMRLV43HTR2YKDZ22AHLXSAJOS4DYJ5VULQ5Z3XG7QXOPAGOJQ2N3EDH3G7E656
+#\\\|6BNLKEC7QVWHGTIPBQDL7DRANHF3A2B3A5MYGXB4776T4N5YY2U \ / AMOS7 \ YOURUM ::
+#\[7]QDWK54OWL2XQQZXLTIS473EORWS76XDTTXU7LI5YMGG3T5L732CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

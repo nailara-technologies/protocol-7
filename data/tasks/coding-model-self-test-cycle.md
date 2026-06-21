@@ -352,34 +352,34 @@ call missing an `is_active` guard). possibly self-resolves once the
 double-kill race above is fixed (no more overlapping kill+respawn
 cycles to race against) — worth a guard regardless, cheap insurance.
 
-## two more triggers that compound the race (2026-06-21, flagged, not designed)
+## two more triggers that compound the race (2026-06-21 — #2 FIXED + live
+confirmed, #1 and #3 still open)
 
 ```
-1. task model-pinning: tasks may already support pinning to a specific
-   model_id, with an implicit switch-model call on mismatch - per the
-   user, this exists but "was never fully tested potentially." if real,
-   this is a THIRD path that can call switch-model concurrently with
-   self-test's own explicit switch - any race fix above must account
-   for pinned-task-triggered switches racing against self-test-triggered
-   ones, not just self-test racing against itself.
+1. STILL OPEN: task model-pinning: tasks may already support pinning to
+   a specific model_id, with an implicit switch-model call on mismatch -
+   per the user, this exists but "was never fully tested potentially."
+   if real, this is a THIRD path that can call switch-model concurrently
+   with self-test's own explicit switch - the suppression flag below
+   only covers self-test-driven switches; a pinned-task-triggered switch
+   racing against a self-test switch is not yet accounted for.
 
-2. self-test auto-fires on EVERY readiness event via
-   monitor_inference_startup, with no way to distinguish "genuine fresh
-   cold-start" from "this readiness event was caused by self-test's own
-   switch-test-restore wrapper" (or by a pinned-task-triggered switch).
-   without suppression, switching models for an explicit self-test run
-   would cause monitor_inference_startup to auto-fire ANOTHER self-test
-   against the same newly-switched model, redundantly, possibly
-   overlapping with the explicit one already in progress.
-   needs: a suppression marker self-test-run sets before switching, that
-   monitor_inference_startup's auto-trigger checks and skips on - cleared
-   afterward the same way the dependency-pending marker is.
+2. FIXED + LIVE CONFIRMED: self-test no longer auto-fires redundantly
+   during a self-test-driven switch. added <coding.self_test_switch_in_progress>
+   - set TRUE in self-test-run right before initiating the switch, checked
+   in coding.handler.monitor_inference_startup's readiness branch (skips
+   the auto <[coding.self_test.run]> call when set), cleared FALSE in
+   poll_switch's $finish helper [ covers both the switch's and the
+   restore's readiness events, since $finish only runs once at the very
+   end of the whole cycle ]. confirmed live: a full switch-test-restore
+   run now shows exactly ONE self-test execution (the explicit one), not
+   two - previously every cycle ran the test twice.
 
-3. follow-on requirement once suppression exists: the explicit
-   self-test-run command should support specifying an alternate test
-   suite/prompt list (not just the hardcoded 2-prompt calibration
-   array), since switch-test-restore used for model evaluation rather
-   than pure calibration would want different prompts per invocation.
+3. STILL OPEN, now genuinely the next thing: the explicit self-test-run
+   command should support specifying an alternate test suite/prompt list
+   (not just the hardcoded 2-prompt calibration array), since switch-
+   test-restore used for model evaluation rather than pure calibration
+   would want different prompts per invocation.
 ```
 
 ## self-test as a dependency state (2026-06-21, open design, architecture
@@ -584,8 +584,8 @@ to confirm it's initialized in `coding.init_code` or add it there.
 
 #,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-#,,.,,..,,,.,,,.,,,,,,,.,,,,,,,,,,.,.,,,,,,..,..,,...,...,,..,,..,.,.,,.,,.,,,
-#5DAQLG5DM72OD3T5SX2NOWW43T2KM3G7MFKJ6YYSIZK4NGQ3T3VN2O7D4U67VIZGYYMG6VG727CH6
-#\\\|2HBYCVECMCBZEEUP7LP7EKKGTA7J33DCTVWSN3G36AB2NBW5CBT \ / AMOS7 \ YOURUM ::
-#\[7]WGYES535VTPSFZJ42DCYSLDISUXZQCYSVT64ZEHKOEERU2LY2SDQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,,.,,.,,.,.,.,.,,..,,,,,,,,,.,,,..,,...,...,,..,,..,.,,,,..,.,.,
+#UEUWMMCILZMQCKSAHO6KFXTNFFXUQ44EZUVMUOIOJBOQQQ2ZHPH66PCHG54YLD5F7HTE5DABKVLDA
+#\\\|Q6VHMXKK6352AKH6SWX7M2GKSMFHYTPLBKQZZHSZAUQPID5F7JN \ / AMOS7 \ YOURUM ::
+#\[7]VV2BUQM34NQAQXTAP7ESD7ETE5RKXP3NWSOAT4M6ORCFOCBI54CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
