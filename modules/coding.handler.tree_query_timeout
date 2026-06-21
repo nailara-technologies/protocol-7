@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = coding.handler.tree_query_timeout
+# descr = summary-tree cache query fallback : treat as a miss and proceed
+#         to inference exactly as if tree had been absent
+
+my $event = shift;
+my $data  = eval { $event->data } // {};
+
+my $query_id = $data->{'query_id'} // '';
+return unless length $query_id;
+
+## remove pending entry so a late reply finds nothing and is ignored ##
+my $pending = delete $data{'coding'}{'tree_query_pending'}->{$query_id};
+return unless defined $pending;
+
+<[base.logs]>->(
+    1,
+    'tree_query_timeout: chk=%s query_id=%s : treating as miss',
+    $pending->{'chk'} // '?', $query_id
+);
+
+<[coding.tools.handler.summarize_enqueue]>->(
+    {   content     => $pending->{'enqueue'}{'content'},
+        focus       => $pending->{'enqueue'}{'focus'},
+        reply_id    => $pending->{'reply_id'},
+        callback_id => $pending->{'callback_id'},
+        chk         => $pending->{'chk'},
+        origin      => $pending->{'origin'},
+    }
+);
+
+return;
+
+#,,,,,.,,,...,,,,,,.,,.,.,,,,,.,.,,,.,,.,,..,,..,,...,...,.,,,,.,,...,..,,,,,,
+#HK5TDLFYKE3HTULDUKZPZNGYUW4PQWFBDXUTYGC2KRHCAX4SJOZZLYHSOEWAV77BN6XANZXPYQY2C
+#\\\|2XRNRUFVKSEP57652A2HSTFHEQERTQYHPOWPHUDZAXJ3PEN5O7T \ / AMOS7 \ YOURUM ::
+#\[7]HOORO5RMY4SZKG5ODZTKUHPZHIAN42LDCOVULPILGXGFLPKK4AAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

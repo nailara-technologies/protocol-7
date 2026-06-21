@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = task.persist.summary_tree.load
+# descr = load summary-tree entries from disk yaml
+
+my $sref = <[file.zenka_dir.load]>->('summary-tree.yaml');
+unless ( defined $sref ) {
+    <[base.logs]>->( 2, ': summary-tree file not found, starting fresh' );
+    return TRUE;
+}
+
+my $data = <[format.yaml.load_str]>->( $sref->$* );
+if ( not defined $data or ref $data ne 'HASH' ) {
+    <[base.logs]>->( 1, ': summary-tree file invalid : removing' );
+    <[file.zenka_dir.unlink_file]>->('summary-tree.yaml');
+    return TRUE;
+}
+
+<task.summary_tree.entries> = $data->{'entries'} // {};
+
+<[base.logs]>->(
+    2,
+    ': summary-tree loaded [ %d entries ]',
+    scalar( keys %{<task.summary_tree.entries>} )
+);
+
+return TRUE;
+
+#,,,.,,..,.,,,.,.,..,,.,,,,,,,,.,,,,.,,.,,,..,..,,...,...,,..,,.,,,.,,...,,,,,
+#UBPTXPBEPL6V6O6I77DTHDCPKWDJ6E7SGS6Z64XKJPUY4Q6L243ZF5OZGYI7TY4XYT6C2U45TMYUU
+#\\\|6METFGMUHFTY7XXGACN2CSNBE6IPIMK4TQVZ52JONQ7IXXVZXUK \ / AMOS7 \ YOURUM ::
+#\[7]CRQEPYJFMDEKFLRVQULFK2M7ZZCM5556BK7RH7UP542OEBQEBWBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

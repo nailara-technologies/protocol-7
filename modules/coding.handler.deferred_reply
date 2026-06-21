@@ -54,7 +54,8 @@ unless ( defined $task ) {
     }
 }
 
-## cross-zenka callback: route result back to task zenka ##
+## reply to the original caller first : unchanged from before the tree
+## feature existed — the caller never waits on the task zenka ##
 if ( length $callback_id ) {
     <[protocol-7.route-send]>->(
         {   command   => 'task.summarize-done',
@@ -78,11 +79,44 @@ if ( length $callback_id ) {
     );
 }
 
+## then, best-effort, fire-and-forget notify the task-zenka summary tree :
+## only on success, only when tree=1 was requested [ chk non-empty ]. never
+## delays or risks the reply above — it already went out ##
+my $chk = $deferred->{'chk'} // '';
+if ( not $is_error and length $chk ) {
+    <[protocol-7.route-send]>->(
+        {   command   => 'task.summary-tree-notify',
+            call_args => {
+                args => join(
+                    ' ',
+                    "chk=$chk",
+                    'source=coding',
+                    ## focus may contain spaces : always b32-wrap ##
+                    (   length( $deferred->{'focus'} // '' ) ? 'focus=:B32:'
+                            . encode_b32r(
+                            Encode::encode( 'UTF-8', $deferred->{'focus'} )
+                            )
+                        : ()
+                    ),
+                    (   length( $deferred->{'origin'} // '' )
+                        ? "origin=$deferred->{'origin'}"
+                        : ()
+                    ),
+                    ':B32:'
+                        . encode_b32r(
+                        Encode::encode( 'UTF-8', $result_data )
+                        ),
+                ),
+            },
+        }
+    );
+}
+
 $deferred->{'status'} = $is_error ? 'error' : 'complete';
 delete $data{"coding"}{"deferred_replies"}->{$deferred_id};
 
-#,,,.,..,,.,,,,,.,,,.,.,.,.,.,..,,,,.,,,,,,,.,.,.,...,.,.,.,.,,,.,,..,,..,.,,,
-#ZW7BFERH73X6J6AV3O75LQ62BIT77IMQJZAFMFVSSXWEQX54JRYL4Z7QXVPWFZTMZIY4E4QMAPZVS
-#\\\|ZZOYH42LE2F36XAYAOFN3WIT2FAWZGNOE266KKIJOVXF7CVBIQV \ / AMOS7 \ YOURUM ::
-#\[7]PN52VLWUEVTRTTNXCA6C2SOMYRECHV2MWJ7XYPRMZXPMUZBDSIDI 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,...,,,,,...,...,.,.,,..,,..,.,.,.,.,...,...,...,.,,,,,,,.,.,,.,,
+#ROQ3EDKGJO4ARE3IYCYM7CWB5FT3BDAMMTL2QSBTQ5W75I3ACHAKRYK7CMG64LGHNBTFWGZIME6PG
+#\\\|MZTMYDIPJDKB3KREUOMH5UIR6HYU25GGBDUFH7VUOXQNCUACLWO \ / AMOS7 \ YOURUM ::
+#\[7]CQDYDT55Z2XVFQ4FDMTI2FDBS2NI5NIH3ZGLDSFOUX7FU54OVCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

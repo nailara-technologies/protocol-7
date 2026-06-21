@@ -15,6 +15,8 @@ my $max_len = 800;
 my $path    = '';
 
 my $callback_id = '';
+my $tree        = 0;
+my $origin      = '';
 
 if ( $args_str =~ s|focus=(\S+)|| )         { $focus       = $1 }
 if ( $args_str =~ s|model=(\S+:\S+)|| )     { $model       = $1 }
@@ -24,6 +26,8 @@ if ( $args_str =~ s|node_id=(\S+)|| )       { $node_id     = $1 }
 if ( $args_str =~ s|max_len=(\d+)|| )       { $max_len     = $1 }
 if ( $args_str =~ s|path=(\S+)|| )          { $path        = $1 }
 if ( $args_str =~ s|callback_id=(\S+)|| )   { $callback_id = $1 }
+if ( $args_str =~ s|tree=(\d+)|| )          { $tree        = $1 }
+if ( $args_str =~ s|origin=(\S+)|| )        { $origin      = $1 }
 $args_str =~ s{^\s+|\s+$}{}g;    ## trim remaining whitespace ##
 
 ## content: multiline data takes precedence, else remaining args ##
@@ -61,58 +65,77 @@ elsif ( $content =~ m|^[2-7A-Z]+=*$| ) {
 return { mode => qw| false |, data => 'content required' }
     unless length $content;
 
-## build system prompt : compaction-style, focus-aware ##
-my $system_prompt
-    = 'you are a context compaction assistant. '
-    . 'your response IS the summary : output it directly as plain text. '
-    . 'no tool calls, no apologies, no explanation of what you are doing. '
-    . 'preserve all load-bearing specifics: module names, line numbers, '
-    . 'decisions, open questions. omit narrative filler. '
-    . ( length($focus) ? "focus on: $focus. " : '' )
-    . 'target length: 2-4 paragraphs.';
+## tree=0 [ default ] : unchanged direct path, byte-for-byte as before ##
+unless ($tree) {
+    return <[coding.tools.handler.summarize_enqueue]>->(
+        {   content     => $content,
+            focus       => $focus,
+            reply_id    => $call->{'reply_id'},
+            callback_id => $callback_id,
+        }
+    );
+}
 
-## enqueue single-round no-tools inference task ##
-my $task = {
-    'id'      => <[base.gen_id]>->(<coding.task.queue>),
-    'type'    => 'summary',
-    'request' =>
-        { description => "summarize the following content:\n\n$content" },
-    'metadata' => {
-        raw_request => {
-            type        => 'gpu',
-            description => "summarize the following content:\n\n$content"
-        },
-        allow_chunking => 1,
-    },
-    'system'     => $system_prompt,
-    'no_tools'   => TRUE,
-    'max_rounds' => 1,
-};
+## tree=1 : best-effort cache query against the task-zenka summary tree
+## before spending an inference call. content-addressed so growing content
+## [ same session, more days of conversation ] always misses and re-summarizes ##
+my $chk_input = "$focus\x00$content";
+## use swap-boundary safe dispatch [ see CLAUDE.md ] ##
+my $amos_chksum = $code{'chk-sum.amos'} // $code{'base.chk-sum.amos'};
+my $chk         = $amos_chksum->( \$chk_input );
 
-my $queue_result = <[coding.task.enqueue]>->($task);
-return {
-    mode => qw| false |,
-    data => "enqueue failed: $queue_result->{'error'}\n"
-    }
-    unless $queue_result->{'success'};
+$data{'coding'}{'tree_query_pending'} //= {};
+my $query_id = <[base.gen_id]>->( $data{'coding'}{'tree_query_pending'} );
 
-## register deferred completion : on_task_complete routes result back ##
-$data{'coding'}{'deferred_replies'} //= {};
-my $deferred_id = <[base.gen_id]>->( $data{'coding'}{'deferred_replies'} );
-$data{'coding'}{'deferred_replies'}->{$deferred_id} = {
-    'deferred_id' => $deferred_id,
+my $pending = {
+    'query_id'    => $query_id,
     'reply_id'    => $call->{'reply_id'},
-    'callback_id' =>
-        $callback_id,    ## task zenka callback key if cross-zenka ##
-    'task_id'   => $task->{'id'},
-    'submitted' => <[base.time]>->(3),
-    'status'    => qw| waiting |,
+    'callback_id' => $callback_id,
+    'chk'         => $chk,
+    'origin'      => $origin,
+    'enqueue'     => { content => $content, focus => $focus },
 };
+
+## fallback timer : query is best-effort, never block the caller on a
+## slow/unreachable task zenka — proceed to inference exactly as if tree
+## had been absent ##
+$pending->{'timeout_timer'} = <[event.add_timer]>->(
+    {   'after'   => 3,
+        'repeat'  => FALSE,
+        'handler' => qw| coding.handler.tree_query_timeout |,
+        'data'    => { 'query_id' => $query_id },
+    }
+);
+
+$data{'coding'}{'tree_query_pending'}->{$query_id} = $pending;
+
+my $sent = <[protocol-7.route-send]>->(
+    {   'command'   => 'task.summary-tree-query',
+        'call_args' => { 'args' => "chk=$chk callback_query_id=$query_id", },
+    }
+);
+
+## task zenka unreachable right now : don't wait on the timer, miss now ##
+unless ($sent) {
+    if ( eval { $pending->{'timeout_timer'}->is_active } ) {
+        $pending->{'timeout_timer'}->cancel;
+    }
+    delete $data{'coding'}{'tree_query_pending'}->{$query_id};
+    return <[coding.tools.handler.summarize_enqueue]>->(
+        {   content     => $content,
+            focus       => $focus,
+            reply_id    => $call->{'reply_id'},
+            callback_id => $callback_id,
+            chk         => $chk,
+            origin      => $origin,
+        }
+    );
+}
 
 return { mode => qw| deferred | };
 
-#,,.,,.,,,...,..,,.,.,.,.,.,.,...,.,,,,..,,.,,..,,...,...,.,,,...,,,,,..,,,..,
-#WXYZKM3VOCH3BDDYV634YACWHT7AQFUNXJQVEFJWE3HXX3PCNPHOJHDXBZLRBF7GJFPEVTSEXZIZC
-#\\\|SQMLSTYZVRRQMQVJSAQJA4Q5DWB5BP7NSZWG6REUVSFVECBEVDL \ / AMOS7 \ YOURUM ::
-#\[7]ZGN6QVMQ7CA7LVILKZKRNVRH4CIBKPX6SAF4A5EZI2UV3DPACYBQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,..,,.,,.,.,.,.,,..,,,,,,..,.,,,..,,...,..,,...,,.,,.,.,,,.,,,,,
+#54LVWFHCO4DXDKTJI627XJK7NANURJQ6P2SGKL2BHVGTF2UL6COZTRLJU7PGF2SKZ466ECWYEDEDS
+#\\\|7754LLTNMVMY6MGPCLLNQHLMNU7P54ADJA2OPKQRBCJ4NNJS5OA \ / AMOS7 \ YOURUM ::
+#\[7]KEBLXOUBZULHLMBZUMPVS7OTVUU6L7FVLLNNSCJXKYBB3HBEUQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
