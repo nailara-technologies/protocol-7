@@ -45,6 +45,31 @@ was produced under).
 session, read the index file first — it has the authoritative tier
 status. This memory note is a pointer, not the source of truth.
 
+**Tier 1.5 added and DONE (2026-06-21)**: task-level model pinning
+(`:model:CHECKSUM:` marker) — see `data/tasks/coding-task-model-pinning.md`.
+Was genuinely half-built (parsed, never enforced), plus the upstream
+intake parser was silently destroying the marker before it ever
+reached working code. Also found+fixed a deep pre-existing bug:
+`coding.handler.await_resources` (a `:twin:`-handover watchdog) never
+retired itself and got re-armed on every `coding.reload`, silently
+substituting the boot-default model during any switch while showing a
+correct-looking label — this is why earlier passes at pinning LOOKED
+done while actually running the wrong model. Verified via direct
+`/proc/<pid>/cmdline` inspection, not by trusting labels/self-test
+alone — that discipline is what actually caught it.
+
+**NOT YET IMPLEMENTED, designed and captured (2026-06-21, end of
+session, context-limit handover)**: generic `result_constraint` +
+tiered escalation for tasks whose answer doesn't match a required
+format (word-count/numeric/sprintf) but may be substantively correct
+(e.g. DVEAZIA answering "## Solution... 91" instead of "91"). Two-tier:
+cheap same-context reformat request first, full semantic judgment only
+if that fails — and the semantic judgment, when a model switch
+happened, runs AFTER switch-back, making it cross-model assertion for
+free. Full design captured in `coding-model-self-test-cycle.md`'s
+"generic result-constraint + tiered escalation" section — read that
+first before implementing, it's intent-level, not yet a precise spec.
+
 **Gotcha confirmed live 2026-06-21**: the `model` field in
 `coding.tools.http_inference_client`'s request body does NOT switch
 models — `llama-server` serves exactly one model, fixed at process-
@@ -58,8 +83,8 @@ process on that port, not changing a request parameter.
 
 [[resonance-field-emergence]]
 
-#,,.,,...,,,.,...,,,.,...,,.,,.,,,,,,,,..,..,,..,,...,...,,..,,,.,.,,,,..,..,,
-#T4XNHDGLEH6GBBFW7CKKI7Y5Y3YVHNALHOQ4BMVXQT4FH7IY7WFCW5N6DW7QHFELITKXLQAS3Y4KY
-#\\\|JQNMSOCQGRAZH3RYUXWZQIRSGORCDOYA7C6Q2VY3UNNHJYEHITA \ / AMOS7 \ YOURUM ::
-#\[7]2CA25IT7KO3U6HBWSPPGGKSYDC76LQBT5FGPGPP7TLN545BRBGCI 7  DATA SIGNATURE ::
+#,,..,..,,,.,,,.,,.,.,.,.,.,,,...,,,,,,,,,.,.,..,,...,..,,,..,,,,,,.,,.,.,...,
+#QTQESMM5RVUZF5FTVMMQPLLQT42RFHF7232ZV35PC74LLS4DZRGZJB57F6XUGLSQ63M6BODLOLS26
+#\\\|OP5I7MFUWRLJ6YCVPO75KZHQS52KP3KL7ADJ2T7X2XDOWDIIV6S \ / AMOS7 \ YOURUM ::
+#\[7]WKT4VTRKYB2L54DTTALLDTLRRLME46YBUL6ZIQI2DMBBJGY66WBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
