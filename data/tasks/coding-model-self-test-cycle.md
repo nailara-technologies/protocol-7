@@ -336,6 +336,65 @@ investigation once the async rewrite above is confirmed stable —
 don't conflate this with the blocking-poll bug, it's a different
 failure mode (a real llama-server error, not a stuck poll).
 
+## generic result-constraint + tiered escalation (2026-06-21, DESIGNED,
+NOT YET IMPLEMENTED — capture before context handover)
+
+user's design, fully thought through, not yet built. generalizes the
+self-test strict-match problem (DVEAZIA answering "## Solution... **91**"
+instead of "91", "The cat will catch the mouse... the cat is the
+remaining animal" instead of "cat" — both substantively CORRECT,
+flagged FAIL only by literal string comparison) into a reusable
+mechanism for ANY task, not just self-test calibration.
+
+```
+1. generic `result_constraint` field on a task (self-test's calibration
+   check becomes just one consumer of this, not a special case):
+   - word_count (e.g. max 1 word)
+   - numeric (one or more numbers)
+   - sprintf-style template the answer must match
+
+2. on task completion, check the result against the constraint with a
+   plain DETERMINISTIC structural check first (regex / word-count /
+   sprintf-match) - cheap, no inference call. only escalate if this
+   fails.
+
+3. tier 1 escalation (cheap): if structural check fails, ask the SAME
+   model, SAME context (no new prompt needed, just a short follow-up -
+   "please summarize your final answer in one word" or whatever the
+   constraint implies) to reformat its OWN answer. re-check the
+   structural constraint against THIS new answer. this must happen
+   BEFORE switching back to the original model (only relevant when a
+   switch occurred) - it needs the test model still loaded.
+
+4. tier 2 escalation (only if tier 1 also fails): a full inference-based
+   semantic judgment - "does this answer correctly convey X, despite
+   not matching the literal format" - asked AFTER switching back (when
+   a switch occurred), or in a FRESH context with the same model (when
+   no switch occurred, to avoid anchoring the judge on the model's own
+   already-wrong framing from the contaminated original context).
+
+key insight, possibly not yet obvious even to the user when they
+proposed it: sequencing tier 2 AFTER switch-back means the judging
+model is whichever model is now active going forward ANYWAY - this is
+cross-model assertion (already flagged elsewhere in this doc as
+speculative/phase-3+) arriving for free as a side effect of timing,
+not a separate mechanism requiring its own switch. directly resolves
+the "can an incoherent model reliably judge its own incoherence"
+concern.
+
+cost ordering is deliberately cheap-first: most real-world mismatches
+(verbose-but-correct answers, the common case) resolve at tier 1's
+reformat request, which is far cheaper than a full semantic-judgment
+pass. tier 2 stays rare.
+
+NOT YET DESIGNED IN DETAIL: exact data shape for `result_constraint`,
+where structural-check code lives, exact wiring into self_test.evaluate
+vs. a more general coding.task.* hook, exact follow-up prompt wording
+per constraint type. this section is the captured INTENT, not a spec
+ready to dispatch - needs the same level of precision pass the other
+features in this doc got before implementation.
+```
+
 ## drain_pipe resilience (2026-06-21, flagged, smaller, likely related)
 
 observed alongside the blocking-poll bug's double-kill race: `event`
@@ -588,8 +647,8 @@ to confirm it's initialized in `coding.init_code` or add it there.
 
 #,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-#,,..,,,,,,..,,,,,,.,,,,.,.,,,.,.,,.,,,,.,.,.,..,,...,.,,,..,,..,,,,,,...,...,
-#BV45KNXETK4QMJ4TB4FEIUDEA7MZZUQU5XVJ7FM3ORJGO2NBPMLDEUPIOE5UHAEQP7W5FRYOBSHDO
-#\\\|R634PJAN6UK5G6YKKBZHOZFKBU3IF6V5IDSGXR3ZHTTGHQPFCQY \ / AMOS7 \ YOURUM ::
-#\[7]HJFKURZB7KRJGQNWOJYESJMPN7F32SHYBAW64UH2TL4NG2WRQQCI 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,..,.,.,.,,,,..,...,.,,,,.,,.,,,..,,...,...,.,.,,,.,,..,,,.,,..,
+#N6XB7GU5JU7BXBEVX76YM6UYX3QLLXYQZTA35HMOLAXYAR54QGYGQYORUSTURR4UCOIUPO564JOYO
+#\\\|LPE57MQZ5ZXL7AQES3G6A7HMHUW7LEADYV2YO5TPRPSEERWCE2W \ / AMOS7 \ YOURUM ::
+#\[7]UE7QR4EGAVCJENVEYZMTJCR5WADNPYCJQQFEELADFPLKV5JNI2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
