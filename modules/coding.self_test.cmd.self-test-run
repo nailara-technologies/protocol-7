@@ -83,6 +83,11 @@ if ( $pending_dep && exists <dependency.object>->{$pending_dep} ) {
     <dependency.object>->{$pending_dep}->{'pending'} = TRUE;
 }
 
+## suppress monitor_inference_startup's auto-self-test for the readiness ##
+## event this switch is about to cause - poll_switch runs its OWN        ##
+## explicit test instead. cleared in poll_switch's $finish helper.       ##
+<coding.self_test_switch_in_progress> = TRUE;
+
 <[base.logs]>->(
     1,                 '[self_test] switch initiated : %s -> %s',
     $current_model_id, $model_checksum
@@ -141,8 +146,8 @@ return { mode => qw| deferred | };
 #\[7]6CTAA7SKMHL6YP6ZXMBRKAK56CL4JXFWKS3OSQF 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,.,,,,,,,,,,..,,,,,,..,,,,,,,,,..,,.,.,,,,,..,,...,...,...,,..,.,,,,,,,.,,,
-#423FQG2CGDMA4XCTASB4YA7P5OKHGEHQ4I6MVUOJWIWNMUIGNREFUV3KZRZLX5BJCURMF3JIDZIMO
-#\\\|ZYFHDGDPKPDOJ4MTIHC2PL3K7JAQGEOMRGYHLYVNWCQBJ6M5LZ6 \ / AMOS7 \ YOURUM ::
-#\[7]6HEVQ2SDFQBWIU23LZPJRYQSSTFN6CYZF7BB6RCGD6WFKOPR7EBA 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,..,,.,,,..,...,,,.,.,.,,,.,.,,,..,,...,...,...,,,.,,,.,,.,,.,,,
+#IVYDH3RI2ZUBQSTS3JLXKY5DXCAYCXGYGIWKFGS67IC5MJXCNFY3UJYJHPGBYXUEC4LBBYPI4N7SS
+#\\\|Q5PHMDLD5XUBJBJYBWGPCPATPTLZ5RFNIYZ5ISCTYRTGND46PZS \ / AMOS7 \ YOURUM ::
+#\[7]R25ZTUKUVZ6RRY3RFYNBJPG5FBPIRERJ2MQDMEYEOYHJSE4EUGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

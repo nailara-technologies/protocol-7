@@ -98,11 +98,22 @@ if (
 
         ## run model self-test cycle after server is ready [ timeout_stats, TTFT, anomaly detection ]
         ## must come after $server->{'model'} is set above, not before     ##
-        <[coding.self_test.run]>->(
-            {   model_id => $server->{'model'} // '',
-                url      => $server->{'url'},
-            }
-        );
+        ## SKIP if a self-test-driven switch-test-restore cycle is already ##
+        ## running its own explicit test against this exact readiness      ##
+        ## event - without this, every switch self-test triggers caused a  ##
+        ## redundant duplicate auto-test [ confirmed live 2026-06-21 ]      ##
+        if (<coding.self_test_switch_in_progress>) {
+            <[base.logs]>->(
+                2,
+                '[monitor_startup] skipping auto self-test : switch-driven cycle in progress'
+            );
+        } else {
+            <[coding.self_test.run]>->(
+                {   model_id => $server->{'model'} // '',
+                    url      => $server->{'url'},
+                }
+            );
+        }
 
         ## reset dependency object (may have been marked failed by a previous
         ## server that was killed mid-startup, e.g. during switch-model)     ##
@@ -193,8 +204,8 @@ if ( $bytes <= 0 ) {
     }
 }
 
-#,,..,,,,,,..,,,.,,..,...,...,...,.,,,,.,,,..,..,,...,...,...,,,.,,..,.,.,,,.,
-#OIPRVVKFNWDOFHO6M5K3M3OTIKIRLCYWNMQHXBVZQ6MNLDM3GO4ZXL626JI6PTFEUI4ICXZTV3KLK
-#\\\|GY2XLQR4VSITZTBKJGDYMXSHQHQPCFPMBTBOZJA7OPJJIFP44OQ \ / AMOS7 \ YOURUM ::
-#\[7]A3N46KWMJ72UQD2BXNREN2N2VMZ55GJQCBCPGBINXU6ZLPHGO2CQ 7  DATA SIGNATURE ::
+#,,.,,...,,,,,,,,,,,.,.,.,,.,,...,,,.,,,,,,,.,..,,...,...,.,,,,..,,,.,..,,,,.,
+#DJRZROHKMAXNPS5PXHVKSAXNEVO3KPPICMKHOAZXCMLIWRDWY5GNA47PKB45ZXSJIIPSMDDVA5IPI
+#\\\|EQT6LUD3XWZHWGFQH5BUAFC4KAOIT7JRJD5V33WWTN5UTUVJXTX \ / AMOS7 \ YOURUM ::
+#\[7]4HCU2LVBDXAI3QWO5OO5G2WDCEMSUD3Q337JSRG4CFPUY6DUUWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
