@@ -1,0 +1,18 @@
+## [:< ##
+
+# name = data.mount.shm.feedback.create
+# descr = Create the native notify fifo alongside a paged SHM segment
+
+# thin zenka wrapper -> AMOS7::SHM::Feedback::create_notify_fifo
+# the fifo's lifecycle follows the segment's; data.mount.shm.unlink now also
+# removes the sibling .notify path.
+
+my $mount = shift;
+
+return AMOS7::SHM::Feedback::create_notify_fifo($mount);
+
+#,,..,,,,,,..,,..,,..,.,,,.,.,,,.,.,,,,.,,.,.,..,,...,...,,,.,...,,,,,...,...,
+#R6Y4PV22UFCOPYSXCESCNTEXFK4DU73IBHVCGIA7NOJZN4W33QEJ6W7KJP2PJT3VXWF5435XXG3LE
+#\\\|EURREIIUC5COKYS2Q74AYCF4VTDYDPEOLVTPRDW3X5XDVO6W6CT \ / AMOS7 \ YOURUM ::
+#\[7]IEBW4KYSS2MKY5D5QMFUYUOY7OH5CU5JS27HEUU6BUPGG4QC6QAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

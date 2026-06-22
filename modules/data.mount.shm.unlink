@@ -20,10 +20,16 @@ if ( -f $shm_path ) {
     $unlinked = unlink($shm_path);
 }
 
+## the phase-3 notify fifo shares the segment's lifecycle ##
+my $notify_path = $shm_path . '.notify';
+if ( -p $notify_path ) {
+    unlink($notify_path);
+}
+
 return $unlinked;
 
-#,,,,,..,,...,..,,...,.,.,,,,,,,,,,,,,..,,,,.,..,,...,...,,,,,...,,.,,,,.,,,.,
-#A4XX2XFGQ3HBFZZ5M4CUS5WFHC3ATH7IJD6JTQQKNYDLBWTDO4EMHAAG3XRVXPEEQAMJGPKYMRLNC
-#\\\|3E3I4AXK3SUKP3UCI7FIMBWPB77K3OUTX2PJ5VQH46NYHYOKHOU \ / AMOS7 \ YOURUM ::
-#\[7]3B2P5OGSMWQMM2UHYRYPOJAVBPVMK72B7SI75STYD4RFIQEPFSDY 7  DATA SIGNATURE ::
+#,,..,..,,,.,,,,,,,,.,.,.,.,,,...,,,.,.,.,...,..,,...,...,..,,.,.,..,,,,,,,.,,
+#QTXGEBDQBCX5HYSBFQVFDUOX36GVPVK4WTLVXOK6TI6RNH2D6NNU7TGIPNYFORPYHUSTDHWMH4WZW
+#\\\|TDVQLWR2BPEHF27GE7U6JRXEHW5SWFZ7ZU73MWO7OQXYURFCYQO \ / AMOS7 \ YOURUM ::
+#\[7]PVJFLNIORUCE4LIBNBJ7DHMUNGDBJQNMCKZIMKUX2OSEYAJ2XMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

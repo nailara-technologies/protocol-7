@@ -1,0 +1,54 @@
+## [:< ##
+
+# name = data.mount.shm.feedback.watch
+# descr = Writer-side Event->io watcher on the notify fifo [ zenka path ]
+
+# thin zenka wrapper around base.event.add_io for the feedback notify fifo.
+# opens the fifo read end non-blocking and registers it with Event->io so a
+# reader ding wakes the writer's event loop. the stalled-reader case is handled
+# by base.event.add_io's existing timeout / timeout_cb parameters; there is no
+# polling loop anywhere in this design.
+
+my ( $mount, $params ) = @ARG;
+
+$params //= {};
+
+my $fh = AMOS7::SHM::Feedback::open_notify_fifo_reader($mount);
+return { 'error' => 'fifo_open_failed' } unless defined $fh;
+
+my $fd = fileno($fh);
+
+## wrap a code-ref callback so the fifo is drained before the caller runs ##
+my $user_cb = $params->{'cb'};
+my $wrapped_cb;
+if ( defined $user_cb and ref($user_cb) eq qw| CODE | ) {
+    $wrapped_cb = sub {
+        my $e       = shift;
+        my $data    = $e->data // {};
+        my $fifo_fh = $data->{'fh'};
+        if ( defined $fifo_fh ) {
+            my $buf;
+            sysread( $fifo_fh, $buf, 64 );    ## drain the ding byte[s] ##
+        }
+        $user_cb->($e);
+    };
+}
+
+my %call = (
+    'fd'      => $fd,
+    'timeout' => $params->{'timeout'} // 0,
+    'data'    => { %{ $params->{'data'} // {} }, 'fh' => $fh },
+);
+
+$call{'handler'}    = $params->{'handler'} if defined $params->{'handler'};
+$call{'cb'}         = $wrapped_cb          if defined $wrapped_cb;
+$call{'timeout_cb'} = $params->{'timeout_cb'}
+    if defined $params->{'timeout_cb'};
+
+return <[base.event.add_io]>->( \%call );
+
+#,,.,,.,.,.,,,.,.,,..,...,,,,,.,,,..,,..,,..,,..,,...,.,.,.,.,,,.,,,.,...,,.,,
+#3O3EZ5CCHSF6M73TDX6UCYYILEHQKIO7THEADOJZ43HNKGB6GYLF4J54H42W2L4P6HTDTDRW72ZDK
+#\\\|BTB46E6I4BIZUE5GUW6WDJBEZHC4TFLYOYBZNLOMRQ54L7GKB65 \ / AMOS7 \ YOURUM ::
+#\[7]R73VS2IGETREXBAQRVOQLHBDRMT2SZZGUMAZXE367OP5FWY5KUBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

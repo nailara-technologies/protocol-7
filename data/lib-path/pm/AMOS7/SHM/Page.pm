@@ -8,6 +8,7 @@ use English;
 use warnings;
 
 use AMOS7::SHM;
+use AMOS7::SHM::Feedback;
 
 ##[ global constants ]##
 use constant TRUE  => 5;    ##  TRUE.  ##
@@ -199,7 +200,11 @@ sub create {
     my $total_pages = int( ( $content_size + $page_size - 1 ) / $page_size );
     $total_pages = 1 if $total_pages < 1;    ## always at least one page ##
 
-    my $payload_size = PAGE_INDEX_SIZE + $total_pages * $page_size;
+    ## segment sized for header + page index + all pages + feedback region ##
+    my $payload_size
+        = PAGE_INDEX_SIZE
+        + $total_pages * $page_size
+        + AMOS7::SHM::Feedback::FEEDBACK_SIZE;
 
     my $mount = AMOS7::SHM::shm_create( $pub_key_b32, $payload_size, $options );
     return undef unless defined $mount;
@@ -214,8 +219,8 @@ sub create {
 
 return TRUE;
 
-#,,,,,...,,,,,,.,,.,.,,,,,,..,,..,...,..,,,..,..,,...,...,..,,..,,...,.,,,..,,
-#HFAY22T7KLASCZHNBWWMRW5XS674LPKL3GDC3FES6WBSWGNNJURQR4FXFMBHNRBXNP2LDRQ4QL53W
-#\\\|7E2YWK2HPDQKXWRFGLRJENEIT6IKL3QPE7UEWPWHHB5VCFHUDVI \ / AMOS7 \ YOURUM ::
-#\[7]6R27NERWO7S3VG3YEQQIHA7BX6WXIXYRQBQIHEPVKSM5NTZBUUAI 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,,,,,...,...,.,,,..,,,.,,,,.,,.,,..,,...,...,...,,,.,...,,.,,..,,
+#VM5ECSKCIQUQ34GVBQ7PBCVMYW32SSOUEMFW6CMHQEYXRH5ESVB3MNFDY2VKUCQZLXHZG7OVOWLD6
+#\\\|R4GAUBSY53GL45XDTVBZGLMA5LSXRBKPIU44QR2NKRZ4MXOBFEV \ / AMOS7 \ YOURUM ::
+#\[7]2K7WGPR7SPRTLXOKPFUVZEF3BYATFYZ7A76TFW6RBQBFHNIZ3KCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
