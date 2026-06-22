@@ -3,52 +3,15 @@
 # name = data.mount.shm.lock.unlock
 # descr = Unlock (release) a locked region of SHM
 
+# thin zenka wrapper -> AMOS7::SHM::unlock_memory [ zero behavior change ;
+# the ported body was already zenka-agnostic pure perl ]
+
 my ( $mmap_ref, $offset, $size ) = @ARG;
 
-return undef unless defined $mmap_ref && ref($mmap_ref) eq 'SCALAR';
+return AMOS7::SHM::unlock_memory( $mmap_ref, $offset, $size );
 
-use constant SHM_HEADER_SIZE => 512;
-
-$offset //= 0;
-$size   //= ( length($$mmap_ref) - SHM_HEADER_SIZE );
-
-# Apply offset for header
-$offset += SHM_HEADER_SIZE;
-
-# Platform-specific unlock using munlock
-my $unlocked = 0;
-
-if ( eval { require BSD::Resource; 1 } ) {
-
-    # BSD::Resource doesn't directly expose munlock
-    # but we can try to use the underlying system call
-    # via syscall() if available
-    if ( defined &SYS_munlock ) {
-        eval {
-            syscall( &SYS_munlock, $$mmap_ref + $offset, $size );
-            $unlocked = 1;
-        };
-    }
-}
-
-# Also try with IPC::Shm::Simple if available
-if ( !$unlocked && eval { require IPC::Shm::Simple; 1 } ) {
-    eval {
-        # IPC::Shm::Simple manages its own locking
-        # This is a no-op for file-based SHM
-        $unlocked = 1;
-    };
-}
-
-# For file-based SHM without munlock support,
-# we just mark it as unlocked in the header flags
-# The actual memory will be freed when the segment is unlinked
-
-return $unlocked
-    || 1;    # Return success even if platform doesn't support explicit unlock
-
-#,,,,,,..,..,,.,.,,..,,,,,.,.,,,,,,..,,.,,..,,..,,...,...,...,,,,,...,,,,,,..,
-#IR7DW7LPHWEBPDBGW2LGSFFGFYGYHM4Z7XWBZLZT5TD7KHYQZQ5GXMBGHWIL7BB4GJ4CQK75C5XXU
-#\\\|6WUVEJYH7YDTKZ3SYFINOIYN2FDQ7HW5MCW7SASYJ7IWGAQ6F4M \ / AMOS7 \ YOURUM ::
-#\[7]PRHWZEP7X6TCFRWMAHBDSDHHNFIDMWBIR22IYQSIZCLDVEF35KAA 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,..,,..,.,.,...,,.,,,,.,.,.,,.,,..,,...,..,,..,,,,,,.,.,,,,,,,,,
+#NTA675XEFAJBV53F3GUAFD27EGWQPLIFJQMGRDGXKOGGC4MMZDJTL7R6X6HEWDDAV5QI5PP7STG6Q
+#\\\|MSPYLQHLYUXPYFZ3N4VJZXWARGEWSXSMPY7ORUFYXAA33EI4ZFW \ / AMOS7 \ YOURUM ::
+#\[7]W5GZBBXIHWLELX4KU5WTLRGHYP7OAVRCLWG7LWTZH6GTM3E5RICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,18 +3,13 @@
 # name = data.mount.shm.permission.verify.rights_sufficient
 # descr = Check if allowed rights cover requested rights
 
+# thin zenka wrapper -> AMOS7::SHM core
 my ( $requested, $allowed ) = @ARG;
 
-my %allowed = map { $_ => 1 } @$allowed;
+return AMOS7::SHM::_rights_sufficient( $requested, $allowed );
 
-for my $right (@$requested) {
-    return 0 unless $allowed{$right};
-}
-
-return 1;
-
-#,,.,,,..,.,,,,.,,,.,,,,,,.,,,,..,,,.,.,.,.,.,..,,...,...,..,,,,.,.,,,,,.,...,
-#MU6NPJE2RMUSOUTNVF2QNRNZKACDFUI326BN5TZMN6GO35NXO6EPU6NXXDPEJWLSFGLK3SJSGIGPC
-#\\\|4IJROMCQ7PMDYSXGQCHY2PO6ZLSJBQO47BIQXY4FV6P7RQ6AQCU \ / AMOS7 \ YOURUM ::
-#\[7]NI7M7PPXDB46ISYJSWSMATYYRZCVVFIJPWSDLX752JMPKCFWWOCQ 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,,,,..,,...,...,,,,,,..,,,,,,,,,..,,...,...,,.,,.,,,,..,,,,,,,,,
+#CFVAFFZTUDUWFKC4HRQA7MYTJBXEGZALFRKP45RRHWPHCBWQ2K5RMDASXNDYGG7T5RRBGB7TO36XQ
+#\\\|VXGAG6YYJ4GOPFBUAZ53O7DOQKG6SM5HESXTLATCJ7FXTKIJSM4 \ / AMOS7 \ YOURUM ::
+#\[7]JG4W2H6XH2YZZOI753GSXVBP4MS6WRS7N5DLYBGRLPU2BNRIGAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

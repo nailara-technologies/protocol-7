@@ -466,6 +466,35 @@ lessons fold into this task:
      surfaces its one comparable assumption [ reader-paced vs writer-paced ]
      explicitly and refuses to resolve it silently — see OPEN FORK above.
 
+a third, smaller incident happened live during phase 1 itself, after the
+`fileno()` mmap bug fix and the mlock-standalone-gap fix [ both landed,
+verified live ]: a verification test that called `lock_memory` [ which uses
+`IO::AIO::aio_mlock` ] and then `fork()`'d hung a child process at 100% CPU
+indefinitely. **root cause**: `IO::AIO`'s background worker-thread state does
+not survive `fork()` cleanly — this is a known, already-solved problem in this
+codebase, just not yet documented inside `AMOS7::SHM` itself.
+`modules/base.process-into-background`, `modules/vision-batch.parent.fork_child`,
+and `modules/weather.base.fork_weather_child` all call `IO::AIO::reinit()`
+immediately after `fork()` for exactly this reason — confirmed live, adding it
+resolves the hang completely.
+
+rather than push that as a caller-responsibility convention to remember
+[ the first draft of this fix did exactly that, then was improved live ],
+`AMOS7::SHM` **self-detects** the fork instead: `_io_aio_fork_guard()` tracks
+the pid it last touched `IO::AIO` from in a package variable, and compares
+against `$PID` [ `$$`, a cached interpreter value — one integer comparison,
+not a syscall, negligible overhead ] on every `lock_memory` call. a mismatch
+means a fork happened since the last touch, and it calls `IO::AIO::reinit()`
+automatically before proceeding. **confirmed live with no manual reinit call
+in the caller at all**: parent creates + mlocks, forks, child calls
+`lock_memory` again with zero awareness of the fork-safety concern, and it
+just works. this converts "callers must remember a convention" into "callers
+cannot get it wrong" — strictly better than documenting the requirement.
+**relevant to phases 2-4**: this guard already covers any streaming-source or
+child-zenka-forking code path that goes through `lock_memory`; no further
+action needed there unless a *different* IO::AIO-touching entry point is
+added that bypasses it.
+
 ## style
 
 - lowercase comments, `[ word ]` bracket annotations [ never `( word )` ]
@@ -547,8 +576,8 @@ prompt: |
   Follow the project's lowercase-comment, dot-notation style exactly. No
   signature stubs — the signing system adds them.
 
-#,,..,,,,,,.,,...,,.,,.,.,.,,,,,.,,..,..,,..,,..,,...,...,...,.,.,...,,.,,...,
-#NFGOAAQREEIG35STBQMDQZK5J7MDCCC5W5QBCPDXEVP7AXI6HYXVHELPQYC35AFT42EH7H3WROR4A
-#\\\|AYY376P4SOSJSME2TK4HD6LHQ652JGZHBU5PUHNY3PP7AFASEZF \ / AMOS7 \ YOURUM ::
-#\[7]H3LX2OKEL4N4PVK6RXTK7PWMBTQ5ZTIHRXB6ZNBGPLUICWQRNOBA 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,.,,,,.,...,.,,,..,,,..,,,,,,,.,..,,...,...,,..,,,.,.,,,,,.,,..,
+#HTUXIP2RVNCU35D5QTFSXWCRIS2RYOV5HS2BR7YVDQZODJQSL3R3M6522GOHBUCGPKRPAHRAHXPG4
+#\\\|BNCCOI2ALYWWYVWDSQXTREC5W5FTZ7SNKGTJ3IYHZ2FPD6OY2QK \ / AMOS7 \ YOURUM ::
+#\[7]S7DWDXCKJVL3F53XOL5JONEXMZGUAHV257XJ3CJQMNUOCCXIRYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

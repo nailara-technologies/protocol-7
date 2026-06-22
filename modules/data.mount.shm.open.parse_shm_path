@@ -3,16 +3,13 @@
 # name = data.mount.shm.open.parse_shm_path
 # descr = Parse SHM path into pub-key and sub-path components
 
+# thin zenka wrapper -> AMOS7::SHM::parse_shm_path
 my $path = shift;
 
-if ( $path =~ m{/dev/shm/p7:M:([A-Z0-9]+)(?::(.+))?} ) {
-    return ( $1, $2 );
-}
+return AMOS7::SHM::parse_shm_path($path);
 
-return undef;
-
-#,,,.,,..,,..,,..,,,.,.,,,.,,,..,,..,,,.,,...,..,,...,.,.,.,.,,,.,,.,,..,,,.,,
-#T4HVN5VTEULUUTUG7IY6VRXO5BMG47MWMJDGLL7E26SXU2KCLRUX25KTFMUDMXCC6B5PIPX6ERWQ4
-#\\\|QSMLZI32KCE4FSQFSOWBYI6T6DDDWUNLK4QY4IFHA7JZHTEZMEA \ / AMOS7 \ YOURUM ::
-#\[7]Y3Y447TV4UDMJNMLIIYHDBZEVFVCCTDOLCRTWTTYBX4EMQ5QK2DI 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,.,,,.,,,,,,,,,,,,,,,..,,,.,,...,..,,...,...,.,.,.,.,..,,.,,,,.,,
+#3CDJBBNBPQ5YCWOIRSIX3P5KZKEGTAKD6T6LNN7F2FBFVKPR2JHZ4RKRNQURWWQMMCB72DGM7ZDFE
+#\\\|BORQ6WBFSUHG5WWEDQ3BRQLZRTERN3J4CYCC4JJY7JSKO2HM74P \ / AMOS7 \ YOURUM ::
+#\[7]7WPPF4ZJWNZRZ5FPGZ25BPMW4AIZWTNZ6STWP2JQWL7OS3ND6GDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

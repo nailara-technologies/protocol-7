@@ -3,14 +3,13 @@
 # name = data.mount.shm.open.derive_pubkey
 # descr = Derive public key from private key
 
+# thin zenka wrapper -> AMOS7::SHM::derive_pubkey
 my $priv_key = shift;
 
-# Placeholder - use proper Ed25519 key derivation
-# Reference: plugin.auth.auth-keypair*
-return substr( $priv_key, 0, 32 );
+return AMOS7::SHM::derive_pubkey($priv_key);
 
-#,,..,,.,,..,,.,,,..,,...,,.,,..,,...,,,.,..,,..,,...,...,,..,,.,,,..,.,.,,.,,
-#E32RTVA3GJFSFG3SIQPLSBXRHDQW4UJZWNRTBHQURWT6S7MPZ77BUGRABKJIE5LXM3AJTLAMZX5PU
-#\\\|PVGUYSO5ZZWSMUP2QLIKOCQQ6SJUMJMUS5TUK7OXWWJNS3NWB47 \ / AMOS7 \ YOURUM ::
-#\[7]KQKV77ZGOHZN5NIFK4CWSUPM5DDYCMJHBQES2IU2V5EAJRKYDGCQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,.,,..,,,,.,,..,,,,,,,.,.,,,.,.,..,,...,...,.,.,...,,.,,,.,,,.,,
+#2QSGLPA4UR4EID2V5LLMCRX7GBQWLPWGIDGXWFIAEQAPPOWRNXMIGW5FYDCPWUIOXNIONVNNXWYOE
+#\\\|FGAU7AGX33EQWQJ4FE7BFRDDYA4HXO2TOZLIJLLOUIXJ324XOE3 \ / AMOS7 \ YOURUM ::
+#\[7]BOFVJ7DZBYGLD22DZD5CENWNACZOQDLTYIM5ZWIPOVXQRFKTY6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

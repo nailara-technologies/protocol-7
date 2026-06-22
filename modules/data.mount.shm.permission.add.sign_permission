@@ -3,28 +3,13 @@
 # name = data.mount.shm.permission.add.sign_permission
 # descr = Sign permission with owner's private key (simplified)
 
+# thin zenka wrapper -> AMOS7::SHM::sign_permission
 my ( $perm, $priv_key ) = @ARG;
 
-# Build canonical string
-my $canonical
-    = $perm->{'to'} . ':'
-    . $perm->{'branch'} . ':'
-    . join( ',', @{ $perm->{'rights'} } ) . ':'
-    . $perm->{'expiry'} . ':'
-    . $perm->{'granted'};
+return AMOS7::SHM::sign_permission( $perm, $priv_key );
 
-# Simple hash signature (placeholder - use proper crypto in production)
-my $sig = 0;
-for my $i ( 0 .. length($canonical) - 1 ) {
-    $sig = ( $sig * 31 + ord( substr( $canonical, $i, 1 ) ) ) & 0xFFFFFFFF;
-}
-$sig = ( $sig * length( $priv_key || '' ) ) & 0xFFFFFFFF
-    if length( $priv_key || '' );
-
-return sprintf( "%08X", $sig );
-
-#,,.,,,,.,,,.,,.,,...,.,,,...,.,,,,,,,.,,,.,.,..,,...,...,...,,,.,..,,.,,,...,
-#VZY7YGAC5ORWJPUNZMEXYKHSXH3PM66ZJ5O5RIGDTBU5X72XHSRZQZKJWLNJG5YJFGPPFOGZXPVXS
-#\\\|HKCVRITARM6NWSEG6FAGDLQSHBTPH6KZ57SLX6MLTPZVWHJKVJY \ / AMOS7 \ YOURUM ::
-#\[7]XRTDW7MVI4QDJESF4UKYHOOJFJVVFBB2AA46J2DSG4M7E5FOE6CI 7  DATA SIGNATURE ::
+#,,,.,..,,,..,.,.,.,.,.,.,,..,,,.,.,.,...,...,..,,...,...,...,,,,,..,,,,.,,..,
+#N3HL3HHO7ZKKAJDMIPFVZIBX2XYAF4MOHZ7A3LZGEYW3Z7EFEV2WJEZA54A5GRWAPPUCNBP7M2BSG
+#\\\|APLYADJTYLEFQXEMTHMCNEP2DXZLQLVLVLTW3I7D33HNCLUONV2 \ / AMOS7 \ YOURUM ::
+#\[7]ZVIN4G5I3UWUU436Q5GTB3IEVRSPARAEGHNB7MUKOB4DQNFHFOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

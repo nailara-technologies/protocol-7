@@ -3,46 +3,21 @@
 # name = data.mount.shm.permission.verify
 # descr = Verify requester has permission to access SHM path
 
+# thin zenka wrapper -> AMOS7::SHM::permission_verify
+# inject the zenka group registry [ $data{'groups'} ] so the core stays
+# branch-free ; matches the original group_contains lookup target exactly
 my $header           = shift;
 my $requester_pubkey = shift;
 my $requested_path   = shift;
 my $requested_rights = shift;
 
-return 0 unless defined $header && defined $requester_pubkey;
+return AMOS7::SHM::permission_verify(
+    $header,           $requester_pubkey, $requested_path,
+    $requested_rights, $data{'groups'},
+);
 
-return 1 if $requester_pubkey eq $header->{'owner_pubkey'};
-
-for my $perm ( @{ $header->{'permissions'} } ) {
-    next if $perm->{'expiry'} < time();
-
-    next
-        unless $perm->{'to'} eq $requester_pubkey
-        || <[data.mount.shm.permission.verify.group_contains]>->(
-        $perm->{'to'}, $requester_pubkey
-        );
-
-    next
-        unless <[data.mount.shm.permission.verify.path_pattern_match]>->(
-        $requested_path, $perm->{'branch'}
-        );
-
-    next
-        unless <[data.mount.shm.permission.verify.rights_sufficient]>->(
-        $requested_rights, $perm->{'rights'}
-        );
-
-    next
-        unless <[data.mount.shm.permission.verify.verify_permission_sig]>->(
-        $perm, $header->{'owner_pubkey'}
-        );
-
-    return 1;
-}
-
-return 0;
-
-#,,..,.,.,...,,.,,...,,,.,,,,,,..,,..,.,.,,..,.,.,...,...,..,,..,,.,.,..,,,,,,
-#355T44FM6F6QKIBWHQ3EVODEBWGRHUN3BUB3SZT2DSM5ESXWUDV6KETOIF4XLKDYKAOFPNZQVHSWK
-#\\\|SMSBWE6VBKRLKVNRXZQXYRJ65ITNIXTOARQ47EHJ2MXZUAAQRKH \ / AMOS7 \ YOURUM ::
-#\[7]7TFSS2YWHSZWVOGUTX2ID2ORJMXRNBMRZD7ADW6AZC4IFGUPUUAA 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,..,,,,.,,,,,...,.,,,,,.,..,,...,.,.,...,...,,,,,,,,,.,.,,,,,,.,,
+#JL3IYU5GLIOMU7I77THVFPYT4BOLW2PLH7D75HNKAYLGRZFVRUO7LFTYU34JOM7GMJGNHSZOYJGRW
+#\\\|GK5P5ABE2Z5B72LK24ZFP467YEWRE6GGEZHQOXB73RGAYGV25R5 \ / AMOS7 \ YOURUM ::
+#\[7]YZKSNG3VYJE2VFWB4OAIMEGRMF7FRISTUW6BSK2QRZ73HFY65QBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
