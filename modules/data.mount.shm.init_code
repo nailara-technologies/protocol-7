@@ -88,27 +88,21 @@ if ( eval { require POSIX } ) {
 
 ##[ CLEANUP HANDLER ]#######################################################
 
-# Register cleanup for shutdown
-$SIG{'INT'} = sub {
-    <[base.log]>->( 2, "SHM subsystem cleaning up on interrupt" );
-
-    # Unlock all mlocked segments
-    for my $path ( keys %{ $data{'mount'}{'shm'}{'segments'} } ) {
-        my $seg = $data{'mount'}{'shm'}{'segments'}{$path};
-        if ( $seg && $seg->{'mlocked'} ) {
-            eval { <[data.mount.shm.lock.unlock]>->( $seg->{'mmap_ptr'} ) };
-        }
-    }
-    exit(0);
-};
+## phase 4 : register a normal end_code callback rather than assigning
+## $SIG{'INT'}/$SIG{'TERM'} directly — direct assignment would clobber
+## base.sig_int / base.sig_term [ v7 teardown, cross-zenka shutdown notify,
+## <system.kill_list> killing ]. end_code callbacks run on every exit path
+## via bin/Protocol-7's own END block regardless of how exit was reached,
+## same precedent as v7.setup_stdout_redir -> v7.stdout_log.close ##
+push <callbacks.end_code>->@*, qw| data.mount.shm.cleanup |;
 
 <[base.log]>->( 2, "SHM mounting subsystem initialized" );
 
 # Init codes must return 0 or 5 for success
 return TRUE;
 
-#,,,.,.,,,,,,,.,,,,,,,,,,,.,,,..,,.,.,,,,,,..,.,.,...,...,,,.,,.,,...,,..,.,,,
-#SM7GBOUWAZOGOLCCRDMO5WLOFKO4URZTYOOFOYE7M4UL3TPZWQOS5ZKR2LF5EPB2B273NVKUIGEE2
-#\\\|S42XWZILZWTBPOMMDFZUCCNMXHXM377VNAF2IDM7PQVIWOIRJP2 \ / AMOS7 \ YOURUM ::
-#\[7]WN4VSNUFQNERZOEDE72S3W36YMTFUWAGAOGSUQ5TZZT2MGO3O4BI 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,..,...,,,.,.,,,,.,,.,.,,.,,.,,,.,.,...,.,.,,..,.,,,..,,.,,,,..,
+#4RWWYEHA4HJMNRLHHEYIYSKI5DTTDXVO3AT25IVXS6UCOY3T5RBYG6QEOIHJ5U7V5GVKZHLY6L2NI
+#\\\|E6LME3MZQ7SUMM4RDLMOWJPJ4Q7YOWZVUDVP3AFMHHVPC3XJTPO \ / AMOS7 \ YOURUM ::
+#\[7]742KFJDO2AOVOPAUTQQUARGG6STLEVNGSBWOKLKWUGWUBGDG6EBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
