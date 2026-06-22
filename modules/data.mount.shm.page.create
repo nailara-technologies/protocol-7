@@ -1,0 +1,38 @@
+## [:< ##
+
+# name = data.mount.shm.page.create
+# descr = Create a paged SHM segment sized for content_size bytes across pages
+
+# thin zenka wrapper -> AMOS7::SHM::Page::create [ same relationship
+# data.mount.shm.create has to AMOS7::SHM::shm_create — the core stays
+# mechanics-only, the zenka path injects the time source and adds mlock
+# for the same reason data.mount.shm.create's wrapper does : Page::create
+# calls shm_create internally, and shm_create's standalone-only self-mlock
+# branch does not fire in zenka mode ]
+
+my $pub_key_b32  = shift;
+my $content_size = shift;
+my $page_size    = shift;
+my $checksum     = shift;
+my $options      = shift // {};
+
+$options->{'time_source'} //= sub { <[base.time]>->(2) };
+
+my $mount = AMOS7::SHM::Page::create( $pub_key_b32, $content_size, $page_size,
+    $checksum, $options );
+
+return undef unless defined $mount;
+
+if ( $mount->{'header'}{'flags'}{'mlocked'} ) {
+    <[data.mount.shm.lock.memory]>->(
+        $mount->{'mmap_ptr'}, 0, $mount->{'total_size'}
+    );
+}
+
+return $mount;
+
+#,,,.,,,.,,,,,.,,,..,,.,,,,,.,,..,.,,,,..,,.,,..,,...,..,,.,.,.,,,..,,..,,.,,,
+#HGVYZX5NNA47CWZSHH5V7MOLX4TOROS3Z4JPZSEHBKQBJO7PGQ7EMIKISLQVGAQINDQXQTZTJJXKU
+#\\\|6OBED74HIGX3KRLCL7S367ZC53GYWEBQ4OGIOBVASQJQDJOPWL7 \ / AMOS7 \ YOURUM ::
+#\[7]35SHZGTWCDVDUXQPKXFMNTFDEIUCJRF3TX6QZCMDQZJT2MVL42CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
