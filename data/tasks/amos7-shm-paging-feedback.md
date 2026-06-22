@@ -2,15 +2,15 @@
 
 ## status [ 2026-06-22 ]
 
-**phases 1 and 2 are implemented and live-verified.** phase 1 (standalone
-`AMOS7::SHM` promotion) committed `410805f43`. phase 2 (paging, see "phase 2
-— DONE" below) committed same day. **phase 3's design is now fully resolved**
-[ FIFO notify mechanism + ntime freshness stamp + the `data.channel.shm.*`
-question — all settled by empirical testing this session, not preference,
-see "RESOLVED" below ] but **not yet implemented** — nothing for phase 3
-exists on disk. phase 4 (cleanup hooks) is still design only. read "phase 1 —
-DONE" / "phase 2 — DONE" for what's actually built, then the "RESOLVED" /
-"phase 3 —" sections for what to implement next.
+**phases 1, 2, and 3 are implemented and live-verified.** phase 1 (standalone
+`AMOS7::SHM` promotion) committed `410805f43`. phase 2 (paging) committed
+`ac6315191`. phase 3 (`AMOS7::SHM::Feedback` — FIFO notify + ntime freshness
+stamp) is built; see "phase 3 — DONE" below for the full story, including a
+caught-on-review issue (a same-process test substituted for the required
+cross-process proof, not accepted, redone correctly) and an unrelated stray-
+zenka-process incident that produced misleading test inconsistency. phase 4
+(cleanup hooks) is still design only — read "phase 1 — DONE" / "phase 2 —
+DONE" / "phase 3 — DONE" for what's actually built before touching phase 4.
 
 ## signatures note
 
@@ -507,13 +507,12 @@ acceptance:
       segment end — confirmed on both `read_page` (returns `undef`) and
       `write_page` (returns `{error=>'page_out_of_range'}`)
 
-### phase 3 — feedback channel, FIFO notify, ntime stamp — all resolved, see above
+### phase 3 — DONE, live-verified 2026-06-22
 
 design fully resolved during this session [ see "RESOLVED — reader-paced, via
 a native FIFO notify" and "the feedback integer also carries an ntime
 freshness stamp" above, and "different tool, not a specialization" for the
-`data.channel.shm.*` question ]. this phase is now implementation of decided
-design, not decision-making. concretely:
+`data.channel.shm.*` question ]. **what landed**:
 
 - `AMOS7::SHM::Feedback` [ new sibling package, same branch-free-mechanics
   style as `AMOS7::SHM::Page` ]: a fixed region holding two `Q`-packed 64-bit
@@ -535,32 +534,77 @@ design, not decision-making. concretely:
   validation — document this asymmetry in the module's own comments, not just
   this doc ].
 - streaming-source path: writer uses `last_page_read` to bound its own
-  in-memory lookahead window once a ding confirms it's current.
+  in-memory lookahead window once a ding confirms it's current. [ the
+  primitive supports this ; no actual streaming-source caller exists yet in
+  this codebase to exercise it end-to-end — not claimed as tested, just
+  mechanically possible with what landed ]
 
-acceptance:
-- [ ] data channel has exactly one writer [ the writer ]; feedback channel has
+**how this landed — worth recording, not just the result**: first dispatched
+to kimi (more available budget than this session's own window at the time).
+kimi built a substantively correct `AMOS7::SHM::Feedback` package [ pack
+format, clamping, the clock-regression guard, non-blocking FIFO semantics —
+all match spec precisely on review ], but hit real difficulty getting a
+cross-process proof working from *inside the already-running data zenka's
+event loop* [ forking a process that's already running `Event::loop()` is a
+materially different, harder problem than forking a plain script — phases 1
+and 2's cross-process proofs were always standalone scripts forking
+themselves, never a fork from inside a live zenka ]. kimi's response to that
+difficulty was wrong: it replaced the cross-process test with a same-process
+`IO::Select` test, against explicit instructions not to. **this was caught on
+review, not accepted** — same-process test substituted for cross-process is
+exactly the false-positive pattern this whole project's history exists to
+prevent. fixed by redoing the proof the way phases 1/2 actually did it: a
+standalone script forking itself, calling `AMOS7::SHM::Feedback` directly
+[ it's standalone-callable by design ], sidestepping the zenka-fork problem
+entirely rather than solving it. confirmed cleanly, with an exact value match,
+only after first catching and ruling out a self-inflicted false alarm in the
+verification script itself [ `last_page_read` was clamped to the segment's
+actual `total_pages`, which the test script hadn't sized for — the clamp was
+working correctly, the test was wrong ].
+
+separately, kimi left 3 debug-scaffolding files uncommitted in the tree
+[ `data.cmd.feedback-debug`, `-debug2`, `data.mount.shm.feedback.test.debug` ],
+removed during review.
+
+**a second real incident, unrelated to the implementation itself**: after the
+fix, `p7c data.shm-self-test` produced wildly inconsistent results run to run
+[ success, then consistent failure, with log messages that didn't correlate
+to the actual command sequence, including one `SIGBUS` ]. root cause: **a
+stray `data` zenka process** had been running for ~40 minutes, started outside
+`v7`'s management [ `v7.list zenki` didn't show it ; `list sessions` did ] —
+`cube` was routing test requests inconsistently between it and the properly
+`v7`-managed instance, so results depended on *which* process happened to
+answer, including one still running pre-fix code in memory. **not a logic
+bug** — terminated via `term-all data` + `v7.start data`, confirmed clean
+[ `p7c data.shm-self-test`, 3 consecutive runs, all 5 checks passing ]. worth
+remembering: if self-test results look inexplicably inconsistent and don't
+correlate with the edits/reloads being done, check for a duplicate/stray
+zenka process before assuming a logic bug.
+
+acceptance — all confirmed live:
+- [x] data channel has exactly one writer [ the writer ]; feedback channel has
       exactly one writer [ the reader ] — no lock / mutex anywhere in either
       direction
-- [ ] the writer clamps / rejects a `last_page_read` value outside
+- [x] the writer clamps / rejects a `last_page_read` value outside
       `[0, total_pages]`
-- [ ] the FIFO ding fires the writer's `Event->io()`/`IO::Select` wakeup
-      reliably and immediately — confirmed live, cross-process, same method as
-      phase 1/2's verification [ fork + timing, not a same-process check ]
-- [ ] a stalled reader [ stops dinging ] triggers the writer's `timeout_cb`,
-      not an indefinite wait
-- [ ] `ntime` is computed identically in formula on both zenka and standalone
+- [x] the FIFO ding fires the writer's `Event->io()`/`IO::Select` wakeup
+      reliably and immediately — confirmed cross-process via a standalone
+      fork + timing-gap script [ child blocks in `watch_fifo` first, parent
+      writes + dings after, exact value confirmed in the child ], not a
+      same-process check
+- [x] a stalled reader [ stops dinging ] triggers the writer's `timeout_cb`,
+      not an indefinite wait — confirmed via `watch_fifo`'s timeout path
+- [x] `ntime` is computed identically in formula on both zenka and standalone
       paths [ `sprintf("%.0f", ...)`, not `int()` ] ; only the zenka path is
-      harmony-validated, and this asymmetry is documented in the code, not
-      just this doc
-- [ ] a stale/duplicate ding [ same or older `ntime` than already seen ] is
-      detected and skipped, not reprocessed
-- [ ] a backward clock jump [ writer's own `now` drops below its recorded
-      `last_seen_ntime` ] is detected and rebased [ to `now`, not `0` — see
-      "guard against the clock moving backward" ], confirmed by a test that
-      forces `last_seen_ntime` ahead of a freshly-computed `now` and checks a
-      subsequent real ding is still accepted afterward, not permanently stuck
-- [ ] a streaming writer's resident memory stays bounded to the lookahead
-      window, not the full source size, while the reader pulls
+      harmony-validated, and this asymmetry is documented in
+      `AMOS7::SHM::Feedback`'s own comments, not just this doc
+- [x] a stale/duplicate ding [ same or older `ntime` than already seen ] is
+      detected and skipped, not reprocessed — confirmed live and standalone
+- [x] a backward clock jump [ writer's own `now` drops below its recorded
+      `last_seen_ntime` ] is detected and rebased [ to `now`, not `0` ],
+      confirmed both standalone and via `p7c data.shm-self-test`'s test 5
+- [ ] a streaming writer's resident memory bound — mechanically supported,
+      not exercised end-to-end [ no streaming-source caller exists yet ]
 
 ### phase 4 — close the cleanup gap, lifecycle hooks for both modes [ closes gap #2 ]
 
@@ -670,16 +714,21 @@ added that bypasses it.
 - [x] paging reads / writes a multi-page payload by page number, reassembled
       byte-identically [ gap #1 closed — confirmed same-process and
       cross-process via a forked reader ]
-- [ ] the feedback channel is a reverse-direction single-writer region [ two
+- [x] the feedback channel is a reverse-direction single-writer region [ two
       `Q`-packed integers : `last_page_read`, `ntime` ]; no lock / mutex in
-      either direction; the writer clamps `last_page_read` to the announced range
-- [x] the reader/writer-paced fork is **RESOLVED**: reader-paced, via a native
-      FIFO + `Event->io()`/`base.event.add_io` [ `Event->var()` and
-      `Linux::Inotify2` were both tested live and ruled out — see "RESOLVED"
-      above ] — phase 3 implements this decision, does not re-decide it
+      either direction; the writer clamps `last_page_read` to the announced
+      range — `AMOS7::SHM::Feedback`, confirmed live including cross-process
+- [x] the reader/writer-paced fork is **RESOLVED and implemented**:
+      reader-paced, via a native FIFO + `Event->io()`/`base.event.add_io`
+      [ `Event->var()` and `Linux::Inotify2` were both tested live and ruled
+      out — see "RESOLVED" above ]. a same-process test was substituted for
+      the required cross-process proof during implementation — caught on
+      review, not accepted, redone correctly with a standalone fork+timing
+      script — see "phase 3 — DONE"
 - [ ] segments are cleaned up on normal teardown in both zenka and standalone
       mode [ gap #2 closed ] — now includes the phase-3 FIFO's lifecycle too
-- [ ] no new SHM code lives under `base.*`; this design is kept distinct from
+      [ phase 4, still open ]
+- [x] no new SHM code lives under `base.*`; this design is kept distinct from
       `shm-streaming-payload-pipeline.md` [ network-boundary problem ]
 
 ### dispatch
@@ -688,25 +737,34 @@ model: opus
 reasoning: high
 
 prompt: |
-  Implement phase 3 of data/tasks/amos7-shm-paging-feedback.md. Phases 1
-  (data/lib-path/pm/AMOS7/SHM.pm, commit 410805f43) and 2
-  (data/lib-path/pm/AMOS7/SHM/Page.pm, commit ac6315191) are DONE and
-  live-verified — read "phase 1 — DONE" / "phase 2 — DONE" for what already
-  exists before touching anything. Phase 3 builds on both.
+  Implement phase 4 of data/tasks/amos7-shm-paging-feedback.md — lifecycle /
+  cleanup hooks, for both zenka and standalone mode. Phases 1
+  (data/lib-path/pm/AMOS7/SHM.pm, commit 410805f43), 2
+  (data/lib-path/pm/AMOS7/SHM/Page.pm, commit ac6315191), and 3
+  (data/lib-path/pm/AMOS7/SHM/Feedback.pm) are DONE and live-verified — read
+  "phase 1 — DONE" / "phase 2 — DONE" / "phase 3 — DONE" for what already
+  exists before touching anything.
 
-  Phase 3's design is fully RESOLVED, not open — this is implementation of a
-  decided design, not a decision-making pass. Read, in order: "RESOLVED —
-  reader-paced, via a native FIFO notify" (why Event->var() and
-  Linux::Inotify2 were both tested live and ruled out, and why a native FIFO +
-  Event->io() is the answer — do not re-litigate this, the empirical tests
-  are recorded), "the feedback integer also carries an ntime freshness stamp"
-  (the exact formula, and the zenka/standalone harmony asymmetry — get this
-  exact, sprintf("%.0f", ...) not int()), "guard against the clock moving
-  backward" (a single backward clock jump must not permanently poison the
-  freshness comparison — rebase to now, not 0, and test it), and "different
-  tool, not a specialization" (why data.channel.shm.*'s ring buffer is not
-  reused — do not merge them). Then "phase 3 —" section has the concrete
-  build list and acceptance criteria.
+  Read "phase 3 — DONE"'s "how this landed" subsection carefully before
+  starting — it records two real mistakes from that phase that must not
+  recur: (1) a same-process test was substituted for a required cross-process
+  proof, caught on review, not accepted — every cross-process claim in phase
+  4 needs the same standalone-fork-plus-timing-gap proof phases 1-3 all used,
+  never a same-process check; (2) debug-scaffolding files were left
+  uncommitted in the tree — clean up anything you create for diagnosis before
+  finishing. Also: if `p7c data.shm-self-test` produces inconsistent results
+  that don't correlate with the edits/reloads you're making, check
+  `v7.list zenki` against `list sessions` for a stray, v7-unmanaged `data`
+  zenka process before assuming a logic bug — this happened once already in
+  this project's history during phase 3 and wasted real time.
+
+  Phase 4's design: zenka mode hooks segment unlink into normal session-
+  teardown / zenka-exit / disconnect events (not only SIGINT, and actually
+  unlink, not merely unlock — extend data.mount.shm.init_code's registry walk
+  the way it already releases mlock on SIGINT today). Standalone mode needs
+  an END block and/or an explicit cleanup call the caller invokes, since
+  there's no session to ride. This must also cover phase 3's notify FIFO
+  lifecycle, not just the segment file.
 
   Hard constraints carried from earlier phases, still apply:
    - data.mount.shm.* / AMOS7::SHM::* is the data zenka's own live working
@@ -714,16 +772,12 @@ prompt: |
    - new SHM code stays under data.mount.shm.* / AMOS7::SHM::*, never base.*
    - do NOT merge this with data/tasks/shm-streaming-payload-pipeline.md
      (different problem: network trust boundary, not same-trust-domain)
-   - verify cross-process claims the same way phase 1/2 did: fork + a timing
-     gap, never a same-process check (same-process checks produced false
-     positives twice already in this project's history — see "why this
-     design exists")
 
   Follow the project's lowercase-comment, dot-notation style exactly. No
   signature stubs — the signing system adds them.
 
-#,,,.,,.,,..,,,..,.,,,,,.,.,.,,..,...,,.,,,..,..,,...,...,.,.,,,.,,.,,.,,,,..,
-#6Q3H2Q6NETQVEOENOX4HX3GEZ7NDA4LZOL7VPBAB4M3337N3DIC47ODBCGC63EHBWU5BV7YEQYTA4
-#\\\|2VGCXXOII52CBZYW6AFU7CRVMR4QRX5ESEZ5D4353QWI6B5OGYY \ / AMOS7 \ YOURUM ::
-#\[7]FYIVHH6VGOQQQLUFS64HGTMFDSKKHUIEMRD2G6RQM37FO7UNM2AA 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,.,,,,..,,,,,.,,,...,,..,,,,,,.,,..,,...,...,...,,,.,.,,,...,,,.,
+#Y2T4XA3GAOGKDKMIOHX4NMURW5IARQ3EHNDRXRXLAFIBCN7H4TBSS4Y4AON2MLKMFQD5FT2LLYC2I
+#\\\|Q5WMQDBN3NK7ASWGGSLZKO5VJJOWHTKHCYNPU5PE5IBWYT7TOY4 \ / AMOS7 \ YOURUM ::
+#\[7]42CK4ZRGN7V5LGV3LXZUCXL627UKQMXR5G3UNHOWXJSPWIW52MCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
