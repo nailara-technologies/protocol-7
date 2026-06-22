@@ -3,22 +3,13 @@
 # name = data.mount.shm.open.mmap_file_read
 # descr = mmap file for read access
 
+# thin zenka wrapper -> AMOS7::SHM::mmap_file_read
 my $fh = shift;
 
-if ( eval { require Sys::Mmap } ) {
-    my $var;
-    Sys::Mmap::mmap( $var, 0, Sys::Mmap::PROT_READ(), Sys::Mmap::MAP_SHARED(),
-        fileno($fh), 0 );
-    return \$var if length($var) > 0;
-}
+return AMOS7::SHM::mmap_file_read($fh);
 
-# Fallback: slurp
-local $/;
-my $data = <$fh>;
-return \$data;
-
-#,,.,,,.,,,..,.,.,,,,,,.,,.,,,,,,,,,,,,,.,,,.,..,,...,...,,.,,,.,,,,.,,,.,,,,,
-#3LWL7BFF7UFYOSMYLLAA5BJAUHUUIUGP22PFFE4LC6YBK2T65NOM7BR4KB5X3KNPDZQHT2HYZBPZK
-#\\\|N7TWJEV7URYZT2IWMFOOQVGE43M424EMJ6YP72F7CV4K2IDHADQ \ / AMOS7 \ YOURUM ::
-#\[7]AROPKXAWQOIWCKKQC5F4KEHCLIN735MMWXLEMKDZNMN7LSNNMIDA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,...,...,,.,,.,.,,,,,,.,,,.,,,.,,..,,...,...,.,,,.,,,,.,,...,...,
+#6RFIVGQ4IJAU2PUL6U5BNVZPYVKRPYPJDUI4VPZ2HAOTKLCLLW3S52FOTIJJJO2JLEDBP3YROULT4
+#\\\|KLNFK225USKEPHN3MVYR5UMTLQUNZ4SM6IASZRVR6ZTY7LCKYHF \ / AMOS7 \ YOURUM ::
+#\[7]FLCO62JTEDBIKEE62ZAV23EWMXSO6BYURM46NOAASOEXAIMFB4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

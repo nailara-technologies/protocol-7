@@ -3,26 +3,14 @@
 # name = data.mount.shm.header.write
 # descr = Write cryptographic header to SHM segment
 
-use constant SHM_HEADER_SIZE => 512;
-
+# thin zenka wrapper -> AMOS7::SHM::header_write
 my $mmap_ref = shift;
 my $header   = shift;
 
-return undef unless defined $mmap_ref && ref($mmap_ref) eq 'SCALAR';
-return undef unless defined $header   && ref($header) eq 'HASH';
+return AMOS7::SHM::header_write( $mmap_ref, $header );
 
-my $packed = <[data.mount.shm.header.write.pack_shm_header]>->($header);
-return undef unless length($packed) == SHM_HEADER_SIZE;
-
-substr( $$mmap_ref, 0, SHM_HEADER_SIZE ) = $packed;
-
-return {
-    'written' => SHM_HEADER_SIZE,
-    'version' => $header->{'version'},
-};
-
-#,,,,,.,,,,,,,,..,..,,,..,,..,..,,...,...,.,,,.,.,...,..,,.,.,...,..,,,..,,.,,
-#6ZHNVL2FEBIWCZGNCLU62HCUWZUKDNMJKIFCV5TH5BG4XEDGKC6BQJNXHY3URK5VCSLQAUH4T54YI
-#\\\|C7ZEK7KLVGK6U3TT7QFGO6TX4CBQHQDTJVH7GDW5J3NV3R7MQYK \ / AMOS7 \ YOURUM ::
-#\[7]URLTQDVQLBZKANKSY4QWGHXPLYLFGE4DOYQHTLUKMQLPT57SEKDQ 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,..,,.,.,.,.,.,.,...,...,.,,,,,.,.,.,...,...,..,,,,,,.,.,.,,,..,,
+#NXCPSDXB3SMQAAWEWPUBSYQLSEZK6KRIO7K2Z2BUP6H4A7SZ6HG7JQU7M7M3L2LCLZ37AMEKZC7VQ
+#\\\|3E75GIH7NWFIOPKSAWTEK3K23YIYGQ2Z5BZTLUDQ7RI62TUZNRK \ / AMOS7 \ YOURUM ::
+#\[7]FK62YVCA7TSTJEFARF5EWKOLRHOFFV3MZBAKV6QLQGTDTCARTUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

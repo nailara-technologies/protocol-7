@@ -3,38 +3,13 @@
 # name = data.mount.shm.header.write.pack_shm_header
 # descr = Pack header with permissions for writing
 
-use constant SHM_HEADER_SIZE => 512;
-
+# thin zenka wrapper -> AMOS7::SHM::pack_shm_header
 my $header = shift;
 
-my @perm_strings;
-for my $perm ( @{ $header->{'permissions'} } ) {
-    push @perm_strings,
-        sprintf(
-        "%s|%s|%s|%d|%d|%s",
-        $perm->{'to'}, $perm->{'branch'}, join( ',', @{ $perm->{'rights'} } ),
-        $perm->{'expiry'}, $perm->{'granted'}, $perm->{'sig'} // '0',
-        );
-}
-my $perms_str = join( ';', @perm_strings );
+return AMOS7::SHM::pack_shm_header($header);
 
-my $flags_str = join( ',',
-    map { $_ . '=' . ( $header->{'flags'}{$_} ? 1 : 0 ) }
-    sort keys %{ $header->{'flags'} } );
-
-my $packed = sprintf(
-    "P7SH:%d:%s:%d:%d:%d:%s:%s:\n",
-    $header->{'version'} // 1,                   $header->{'owner_pubkey'},
-    $header->{'created'},                        $header->{'data_size'},
-    $header->{'header_size'} // SHM_HEADER_SIZE, $flags_str,
-    $perms_str,
-);
-
-$packed .= "\0" x ( SHM_HEADER_SIZE - length($packed) );
-return substr( $packed, 0, SHM_HEADER_SIZE );
-
-#,,..,,..,,.,,..,,,.,,,..,,..,,.,,...,.,.,,,.,..,,...,...,,,.,,.,,,..,,,,,,,,,
-#7ZWTATYA5RYIN44HUQH3ZTCOP62JETDAPTYQIV5GR4RE7RAWBUPC4LGBGAEQABVDYNY2VUF5L7DLU
-#\\\|TGLGZMRBZPHFQQ27Z2XJU4JXOANL4QERYJA3B5AXQ3LDGTKHGSD \ / AMOS7 \ YOURUM ::
-#\[7]LO3NKDE43GZVXYGTPXMLXTTUYLBRGEVOVAUT2BXJQUTRW2LEMQDY 7  DATA SIGNATURE ::
+#,,..,,..,,..,,,,,.,,,,,.,,,.,..,,.,,,.,.,,.,,..,,...,...,...,...,,.,,,.,,.,,,
+#J6I3Y7IZFKRXU2M3EZFNIYVAUWWKTK5SFA3EB3DFBSWIKVVWLE4ASRHZQT6BCLMRHOZH7BTSDKQOY
+#\\\|MGWZOFPGKQZWERLMDH2QANYRVHFH2ZUB4J4ZZBHCH7ODFTT2YUW \ / AMOS7 \ YOURUM ::
+#\[7]PXBMGBUFVH2QMPHY4ZCIBEMNSBVBUFWMKNXUYYD6C52VGX3VAMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

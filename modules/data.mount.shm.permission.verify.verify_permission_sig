@@ -3,30 +3,13 @@
 # name = data.mount.shm.permission.verify.verify_permission_sig
 # desc: Verify permission signature (simplified)
 
+# thin zenka wrapper -> AMOS7::SHM core
 my ( $perm, $owner_pubkey ) = @ARG;
 
-# Build canonical string (same as signing)
-my $canonical
-    = $perm->{'to'} . ':'
-    . $perm->{'branch'} . ':'
-    . join( ',', @{ $perm->{'rights'} } ) . ':'
-    . $perm->{'expiry'} . ':'
-    . $perm->{'granted'};
+return AMOS7::SHM::_verify_permission_sig( $perm, $owner_pubkey );
 
-# Calculate expected signature (placeholder)
-my $sig = 0;
-for my $i ( 0 .. length($canonical) - 1 ) {
-    $sig = ( $sig * 31 + ord( substr( $canonical, $i, 1 ) ) ) & 0xFFFFFFFF;
-}
-$sig = ( $sig * length( $owner_pubkey || '' ) ) & 0xFFFFFFFF
-    if length( $owner_pubkey || '' );
-
-my $expected_sig = sprintf( "%08X", $sig );
-
-return $perm->{'sig'} eq $expected_sig;
-
-#,,..,..,,,..,...,.,.,...,...,,.,,,,.,,..,,.,,..,,...,...,.,.,,..,...,.,,,,.,,
-#ZAQ2WIVCDMBD3QNU3R5DG66RMYN5IRTABB5HVLWVZRE3QXN5BVNCMO5JKNMYALGISIR3V4AUQOS5G
-#\\\|55HSYPEH5KHGVJ37PD5XAODWVYWDHOHL72ZCDUYECY3RODL4LPX \ / AMOS7 \ YOURUM ::
-#\[7]B57M532PMQR4RSDE3X6MIZFPOKFFLA5SLSOUSQDHAAAYZYPF4QDQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,,,.,..,,,..,.,,,.,,,,,.,.,.,,.,,..,,...,...,...,,,.,.,,,.,,,.,,,
+#FITB7WLRY34BNLDW5SD6MXBLIZE4KQHJUFM7IRIEWXWCVBYPBKQLYKEMYMTJ452SI7YVLQVZ2MPIG
+#\\\|5ZGPD3Q75ABKWBI2Y2L35PWWVUOOLZS7VME37QPXN7EMI7DKW2T \ / AMOS7 \ YOURUM ::
+#\[7]FRROCADANCUKRGWI2AXJWVM7EVUHWT3L4GH4AJOIEVBEC3OQQ6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
