@@ -4,10 +4,13 @@
 
 **phases 1 and 2 are implemented and live-verified.** phase 1 (standalone
 `AMOS7::SHM` promotion) committed `410805f43`. phase 2 (paging, see "phase 2
-— DONE" below) committed same day. phases 3 (feedback channel) and 4
-(cleanup hooks) are still design only — read "phase 1 — DONE" / "phase 2 —
-DONE" for what's actually on disk before touching either, then phases 3/4
-below for what's still a plan.
+— DONE" below) committed same day. **phase 3's design is now fully resolved**
+[ FIFO notify mechanism + ntime freshness stamp + the `data.channel.shm.*`
+question — all settled by empirical testing this session, not preference,
+see "RESOLVED" below ] but **not yet implemented** — nothing for phase 3
+exists on disk. phase 4 (cleanup hooks) is still design only. read "phase 1 —
+DONE" / "phase 2 — DONE" for what's actually built, then the "RESOLVED" /
+"phase 3 —" sections for what to implement next.
 
 ## signatures note
 
@@ -55,7 +58,7 @@ cat modules/data.mount.shm.test.basic                 ## current access = bare s
 cat configuration/zenki/data/start                     ## confirms data.* = the data zenka's own load set
 cat modules/data.channel.shm.create                    ## existing ring-buffer ; read before phase 3
 cat modules/data.cmd.shm-self-test                      ## the regression gate every phase must keep passing
-cat modules/jobqueue.event.register_job_queues        ## polling-free var watcher : candidate for writer-paced
+cat modules/jobqueue.event.register_job_queues        ## tested as a candidate, ruled out -- see RESOLVED
 cat modules/base.event.add_var                         ## generic Event->var() wrapper jobqueue calls
 cat data/lib-path/pm/AMOS7/CHKSUM.pm                   ## the standalone/hybrid precedent to mirror
 cat modules/base.chk-sum.amos                          ## thin zenka wrapper -> standalone package fn
@@ -120,13 +123,20 @@ same investigation:
   prior-art sibling to this task's reader/writer-feedback idea**: same
   single-writer-per-counter shape, but framed as a continuous ring buffer
   (bytes wrap, low-latency channel) rather than discrete numbered pages
-  (bulk one-shot transfer, announce-then-pull). **Read `data.channel.shm.*` in
-  full before phase 3** — decide explicitly whether the new paging/feedback
-  channel is a different tool for a different job (likely: ring buffers suit
-  ongoing bidirectional traffic, paging suits "move this one large scalar
-  once"), or whether the feedback-variable mechanic should actually be built
-  as a thin specialization of the existing ring-buffer counters instead of a
-  parallel mechanism. Don't silently duplicate without making that call.
+  (bulk one-shot transfer, announce-then-pull).
+
+  **RESOLVED: different tool, not a specialization — do not merge.** a ring
+  buffer's `read_pos`/`write_pos` describe a continuous byte stream that wraps
+  and has no natural concept of "page N of M" or an announced, checksummed
+  index — that's a structurally different access pattern from
+  announce-then-pull paging, not a parameterization of the same one. forcing
+  the feedback mechanism into a ring-buffer specialization would mean bending
+  wrap-around byte-stream semantics to fit random/sequential page-pull, for no
+  benefit — they solve different problems [ ring buffer: ongoing bidirectional
+  low-latency channel traffic; paging: move one large scalar once, pull-based ].
+  build the feedback channel as its own thing, sized for two `Q`-packed
+  integers [ see "the feedback integer also carries an ntime freshness stamp"
+  below ], not on top of `data.channel.shm.*`.
 - **`data.cmd.shm-self-test`** is the existing regression check — it runs
   `data.mount.shm.test.basic` and `data.channel.shm.test.basic` and reports
   pass/fail. **Treat a clean `p7c data.shm-self-test` run as a hard phase
@@ -295,52 +305,135 @@ materializing** pages the reader has already consumed, keeping only pages from
 the reader's current position forward — bounding the writer's own memory use to
 roughly the **lookahead window** rather than the full source size.
 
-### OPEN FORK — reader-paced vs writer-paced — DO NOT RESOLVE IN THIS DOC
+### RESOLVED — reader-paced, via a native FIFO notify + ntime freshness stamp
 
-this is flagged **prominently and left deliberately unresolved**. it is exactly
-the category of decision that, made implicitly under time pressure, caused the
-BMW-L13 / cube-buffer-cap incident this task generalizes a fix for. whoever
-implements **must decide this consciously, up front**, not let it fall out of
-whatever the first code happens to do.
+this was flagged as an open fork, deliberately unresolved, in an earlier draft
+of this doc. it is now resolved — by empirical testing during this session,
+not by preference — because the testing eliminated reader-paced's only stated
+downside. record of how it got resolved, since the *process* matters as much
+as the conclusion here:
 
-the question: who drives the feedback pointer?
+**`Event->var()` was tested and ruled out first.** the candidate considered
+for writer-paced [ a polling-free variable watcher, mirroring `jobqueue`'s use
+of `base.event.add_var` ] was verified live with a fork+write test: a child
+process wrote into the watched mmap'd region while the parent ran
+`Event::loop()` for 3 seconds. **the watcher fired zero times**, despite the
+write landing correctly in shared memory [ confirmed by reading it back
+afterward ]. `man Event`'s own description of `var` watchers explains why —
+they fire on Perl-level reads/writes to the SV in the watching process's own
+interpreter, never on an external process's raw memory write. this rules out
+`Event->var()` for cross-process use entirely, not just for this design.
 
-  - **reader-paced**: the reader writes / updates the feedback integer
-    **proactively, immediately after consuming each page**.
-    - tradeoff: the writer always has fresh progress with no polling cost; but
-      a stalled / slow reader that stops updating the pointer can leave the
-      writer guessing whether the reader is dead or merely slow.
-  - **writer-paced**: the writer **polls** the feedback integer on its own
-    schedule.
-    - tradeoff: the writer controls its own cadence and overhead and can apply
-      its own timeout / abandonment policy; but progress visibility lags the
-      poll interval, and a naive poll loop needs its own fallback guard
-      [ undef interval = max-rate loop ].
-    - **candidate to investigate, not assumed working**: `jobqueue.*` already
-      has a *polling-free* variable-watcher pattern for its own queue
-      counters — `jobqueue.event.register_job_queues` registers via the
-      generic `<[event.add_var]>->({ var=>\$scalar, poll=>'w', handler=>...,
-      repeat=>1, prio=>0 })` [ `base.event.add_var`, wrapping Perl's
-      `Event->var()` ], firing `jobqueue.handler.queue_counter` the instant
-      the watched scalar is written — no poll loop, event-driven. **This
-      would make writer-paced strictly better than the naive-poll tradeoff
-      above IF it works** — but `Event->var()` watches *Perl-level variable
-      writes in the watching process's own interpreter*. The feedback integer
-      here is written by a **different process** (the reader zenka) via a
-      raw mmap'd-memory write, not a Perl assignment opcode executing inside
-      the writer's interpreter. **Verify empirically, before relying on it,
-      whether `Event->var()` actually fires on an externally-mmap-modified
-      scalar, or only on in-process Perl writes** — if it's the latter, this
-      pattern doesn't transfer to the cross-process case and writer-paced
-      reduces to plain polling after all. Read `jobqueue.event.register_job_queues`
-      / `base.event.add_var` / `jobqueue.handler.queue_counter` and test this
-      specific question before assuming it resolves the fork "for free."
+**`Linux::Inotify2` was tested next, also ruled out** — confirmed live that
+`IN_MODIFY` does **not** fire reliably for an mmap'd write [ even on `/dev/shm`,
+which does support inotify fine for *regular* writes — confirmed separately ].
+the kernel only reliably reports mmap'd changes around `msync()`/`munmap()`,
+and `Sys::Mmap` does not even expose `msync()`. not worth the syscall
+complexity for an unreliable signal.
 
-each choice determines **who can stall whom under what failure mode**. present
-both; **pick neither here**. the implementation phase [ phase 3 ] owns this
-decision and must record which was chosen and why — including the outcome of
-the `Event->var()` cross-process verification above, since it changes which
-option is actually viable.
+**the actual answer**: a native FIFO + `Event->io()`, the same technique
+`IPC::Notify` (CPAN) uses internally [ confirmed by reading its source —
+`_read_from_fifo` is exactly `IO::Select->can_read($timeout)` on a `mkfifo`'d
+filehandle ] — but reimplemented directly in `AMOS7::SHM`, not taken as a
+dependency, same as `lock_memory`/`unlock_memory` were ported rather than
+pulled in from a library. a FIFO write is a **regular** file write, not an
+mmap write, so it has none of the `Event->var()` / inotify unreliability —
+it fires immediately, every time, for both mechanisms tried above.
+
+**why this resolves the fork, not just adds a mechanism to it**: reader-paced's
+only downside was never "polling cost" [ it never polls — the reader pushes ];
+the actual gap was *how the writer learns the push happened* without itself
+polling the feedback integer to notice. the FIFO ding is exactly that —
+zero-cost, event-driven, no poll loop anywhere. the stalled-reader liveness
+concern [ reader dies mid-transfer, never dings again ] is **already solved**
+by `base.event.add_io`'s existing `timeout` / `timeout_cb` parameters — the
+writer's wait degrades cleanly into "fire after N seconds of silence," no new
+plumbing needed. writer-paced gains nothing from any of this [ it doesn't
+depend on the reader signaling at all ] and is strictly worse once reader-paced
+has a real push mechanism. **decision: reader-paced, FIFO + `Event->io()` +
+`base.event.add_io`'s built-in timeout for the stall case.**
+
+**a FIFO sits alongside each segment**, named consistently with the existing
+scheme [ e.g. `/dev/shm/p7:M:<pubkey>:<subpath>.notify` ], created in
+`AMOS7::SHM::Page::create` / cleaned up in the same lifecycle hooks phase 4
+already plans to build — not a new category of lifecycle problem, the same one.
+
+### the feedback integer also carries an ntime freshness stamp
+
+resolves "who has the latest data" with the project's own addressing
+convention [ checksum + timestamp ], not a new scheme. the feedback region is
+not just `last_page_read` — it is `(last_page_read, ntime)`, both packed as
+64-bit integers [ `Q` — `last_page_read` alone would fit in 32 bits, but the
+real `ntime` value does not [ see below ], so both fields use `Q` for one
+consistent pack format ]. the writer, on waking via the FIFO ding, compares
+the ntime stamp against the last one it acted on — a stamp that is not
+strictly newer is a stale/duplicate ding and is skipped.
+
+**the exact formula** [ confirmed live from two independent existing
+implementations, not approximated ] — `bin/Protocol-7`'s `p7_ntime` /
+`bin/atom-delta-term`'s `calc_ntime`:
+
+```
+ntime = sprintf( "%.0f", ( unix_time - 1023228000 ) * 4200 )   ## integer form
+```
+
+`1023228000` is the protocol-7 epoch [ 2002-06-05 ]; `4200` is the network-time
+scale factor. **this must be exact, not `int()`** — `sprintf("%.0f", ...)`
+rounds to nearest, `int()` truncates toward zero; they disagree on the
+fractional half, and the two sides [ zenka / standalone ] must compute the
+*same* value for the *same* instant or the comparison is meaningless.
+
+**the harmony question — be explicit in the API, this is the part that must
+not be glossed over**:
+- **zenka side**: inject the **real** `<[base.ntime]>` [ no param — integer
+  precision, higher resolution than unix time, per the project's own usage
+  convention ] via the existing `time_source` option [ same injection point
+  `created` already uses ]. this goes through `p7_ntime`'s real harmony-retry
+  loop [ `base.assert.harmony` ] — a fully validated, "true" network time.
+- **standalone side**: the bare arithmetic above, **no harmony validation at
+  all** — there is no zenka/network context to validate against standalone,
+  and `bin/atom-delta-term`'s `calc_ntime` already establishes this as an
+  accepted, existing pattern [ not an invention for this task ].
+- **document this asymmetry explicitly wherever the timestamp field is
+  described** — the value is "network-time-shaped" for comparability and
+  consistency with the rest of the project's addressing conventions, but only
+  the zenka-computed value carries actual harmonic-truth / collision-retry
+  guarantees. the standalone value is a comparator, not a security primitive.
+  do not let either side's caller assume the other guarantee applies.
+
+### guard against the clock moving backward
+
+a freshness comparator is only correct if the clock it's built on only moves
+forward. it doesn't always — NTP correction, a manual clock change, a VM
+snapshot restore. without a guard, a single backward jump poisons the
+comparison **permanently, not just once**: if the writer's own recorded
+`last_seen_ntime` is left sitting above what the clock now reports as `now`,
+every *subsequent real update* looks "older" than that stale high-water-mark
+and is silently skipped forever, not just during the jump itself.
+
+**the guard**: on each ding, before comparing, the writer also checks its own
+freshly-computed `now` against its own `last_seen_ntime` bookkeeping —
+independent of whatever `ntime` the incoming feedback region carries:
+
+```
+if last_seen_ntime > now:      ## the writer's clock has regressed ##
+    last_seen_ntime = now      ## rebase to current clock, not 0 — see why below
+```
+
+**rebase to `now`, not `0`**: resetting to `0` would make the *next* ding —
+whatever its `ntime`, even one from well before the jump — look unconditionally
+fresher than `0` and get accepted, which is *more* permissive than the
+ordering check is supposed to allow; it throws away the ordering guarantee
+entirely rather than just absorbing the jump. rebasing to `now` keeps the
+comparison meaningful going forward — the next real ding still has to clear
+a real bar, just one rebased to the clock's current [ lower ] reading, not the
+stale higher one.
+
+**this is still a judgment call worth recording explicitly when implemented**,
+not a settled fact — note in the implementing code which choice was made and
+why, the same way phase 3's other resolved decisions are recorded, in case a
+future situation [ e.g. a detected anomaly far larger than an NTP correction ]
+argues for the more distrustful `0` reset instead.
 
 ## phased implementation
 
@@ -414,41 +507,60 @@ acceptance:
       segment end — confirmed on both `read_page` (returns `undef`) and
       `write_page` (returns `{error=>'page_out_of_range'}`)
 
-### phase 3 — feedback-variable channel + the reader/writer-paced decision
+### phase 3 — feedback channel, FIFO notify, ntime stamp — all resolved, see above
 
-- **before writing any of this**: read `data.channel.shm.*` in full [ see "this
-  is the data zenka's own working internals" above ] and make an explicit,
-  recorded call — is the new feedback-variable mechanic a different tool for a
-  different job than the existing ring-buffer `read_pos`/`write_pos` counters
-  [ likely: ring buffer = ongoing bidirectional channel traffic, paging =
-  one-shot bulk transfer ], or should it be built as a specialization of the
-  ring-buffer counters instead of a parallel mechanism? Don't duplicate
-  silently either way.
-- `AMOS7::SHM::Feedback`: a second, reverse-direction single-integer channel —
-  reader writes its last-read page number, writer reads / clamps it against the
-  announced `[0, total_pages]` range.
-- **resolve the reader-paced vs writer-paced fork** [ see OPEN FORK above ]
-  consciously and **record the choice + rationale in the implementing commit /
-  this doc** — do not leave it implicit.
-- streaming-source path: writer uses the feedback pointer to bound its own
-  in-memory lookahead window.
+design fully resolved during this session [ see "RESOLVED — reader-paced, via
+a native FIFO notify" and "the feedback integer also carries an ntime
+freshness stamp" above, and "different tool, not a specialization" for the
+`data.channel.shm.*` question ]. this phase is now implementation of decided
+design, not decision-making. concretely:
+
+- `AMOS7::SHM::Feedback` [ new sibling package, same branch-free-mechanics
+  style as `AMOS7::SHM::Page` ]: a fixed region holding two `Q`-packed 64-bit
+  integers — `last_page_read`, `ntime` — reverse flow from the data channel
+  [ reader is the sole writer of this region ; the writer/page-source is the
+  sole reader ]. the writer clamps `last_page_read` against the announced
+  `[0, total_pages]` range from the page index [ phase 2 ] before trusting it.
+- a FIFO created alongside the segment [ `<path>.notify`, `mkfifo` ], cleaned
+  up in the same lifecycle hooks as phase 4. reader: write the feedback region,
+  then write one byte to the FIFO. writer: `base.event.add_io` [ zenka ] /
+  `IO::Select` [ standalone ] on the FIFO's read end, with a `timeout`/
+  `timeout_cb` for the stalled-reader case — no poll loop anywhere.
+- on each ding, the writer reads the feedback region and compares `ntime`
+  against the last value it acted on ; not strictly newer = stale/duplicate
+  ding, skip. `ntime` computed via the project's real formula
+  [ `sprintf("%.0f", (unix_time - 1023228000) * 4200)` ] — zenka side injects
+  the real `<[base.ntime]>` [ harmony-validated ] via the existing
+  `time_source` option ; standalone computes the bare arithmetic [ no harmony
+  validation — document this asymmetry in the module's own comments, not just
+  this doc ].
+- streaming-source path: writer uses `last_page_read` to bound its own
+  in-memory lookahead window once a ding confirms it's current.
 
 acceptance:
-- [ ] the relationship to `data.channel.shm.*`'s ring-buffer counters is
-      explicitly decided and recorded [ different tool vs. specialization ] —
-      not silently duplicated
 - [ ] data channel has exactly one writer [ the writer ]; feedback channel has
       exactly one writer [ the reader ] — no lock / mutex anywhere in either
       direction
-- [ ] the writer clamps / rejects a feedback value outside `[0, total_pages]`
+- [ ] the writer clamps / rejects a `last_page_read` value outside
+      `[0, total_pages]`
+- [ ] the FIFO ding fires the writer's `Event->io()`/`IO::Select` wakeup
+      reliably and immediately — confirmed live, cross-process, same method as
+      phase 1/2's verification [ fork + timing, not a same-process check ]
+- [ ] a stalled reader [ stops dinging ] triggers the writer's `timeout_cb`,
+      not an indefinite wait
+- [ ] `ntime` is computed identically in formula on both zenka and standalone
+      paths [ `sprintf("%.0f", ...)`, not `int()` ] ; only the zenka path is
+      harmony-validated, and this asymmetry is documented in the code, not
+      just this doc
+- [ ] a stale/duplicate ding [ same or older `ntime` than already seen ] is
+      detected and skipped, not reprocessed
+- [ ] a backward clock jump [ writer's own `now` drops below its recorded
+      `last_seen_ntime` ] is detected and rebased [ to `now`, not `0` — see
+      "guard against the clock moving backward" ], confirmed by a test that
+      forces `last_seen_ntime` ahead of a freshly-computed `now` and checks a
+      subsequent real ding is still accepted afterward, not permanently stuck
 - [ ] a streaming writer's resident memory stays bounded to the lookahead
       window, not the full source size, while the reader pulls
-- [ ] the chosen pacing model [ reader-paced or writer-paced ] is documented,
-      not implicit
-- [ ] if writer-paced via `Event->var()`/`base.event.add_var` was considered,
-      the cross-process question [ does it fire on an externally-mmap-modified
-      scalar, or only in-process Perl writes ] was actually tested, not
-      assumed — record the result either way
 
 ### phase 4 — close the cleanup gap, lifecycle hooks for both modes [ closes gap #2 ]
 
@@ -491,8 +603,10 @@ lessons fold into this task:
      precedent, not just as the pain that prompted the work.
   2. **decide the load-bearing fork deliberately.** the incident came from a
      transfer-path assumption made implicitly under time pressure. this design
-     surfaces its one comparable assumption [ reader-paced vs writer-paced ]
-     explicitly and refuses to resolve it silently — see OPEN FORK above.
+     surfaced its one comparable assumption [ reader-paced vs writer-paced ]
+     explicitly rather than resolving it silently — and resolved it only once
+     the empirical evidence was in [ see "RESOLVED — reader-paced, via a
+     native FIFO notify" above ], not before.
 
 a third, smaller incident happened live during phase 1 itself, after the
 `fileno()` mmap bug fix and the mlock-standalone-gap fix [ both landed,
@@ -549,18 +663,22 @@ added that bypasses it.
       promotion [ zero regression — `p7c data.shm-self-test` is the data
       zenka's own existing gate, this is its live working code, not a neutral
       shared library ]
-- [ ] the relationship between the new paging/feedback design and
+- [x] the relationship between the new paging/feedback design and
       `data.channel.shm.*`'s existing ring-buffer counters is explicit, not
-      silently duplicated [ still open — required before phase 3, not phase 2 ]
+      silently duplicated [ RESOLVED: different tool, not a specialization —
+      see "different tool, not a specialization — do not merge" above ]
 - [x] paging reads / writes a multi-page payload by page number, reassembled
       byte-identically [ gap #1 closed — confirmed same-process and
       cross-process via a forked reader ]
-- [ ] the feedback channel is a reverse-direction single-writer integer; no lock
-      / mutex in either direction; the writer clamps it to the announced range
-- [ ] the reader-paced vs writer-paced fork is decided **consciously** and
-      recorded, not left implicit
+- [ ] the feedback channel is a reverse-direction single-writer region [ two
+      `Q`-packed integers : `last_page_read`, `ntime` ]; no lock / mutex in
+      either direction; the writer clamps `last_page_read` to the announced range
+- [x] the reader/writer-paced fork is **RESOLVED**: reader-paced, via a native
+      FIFO + `Event->io()`/`base.event.add_io` [ `Event->var()` and
+      `Linux::Inotify2` were both tested live and ruled out — see "RESOLVED"
+      above ] — phase 3 implements this decision, does not re-decide it
 - [ ] segments are cleaned up on normal teardown in both zenka and standalone
-      mode [ gap #2 closed ]
+      mode [ gap #2 closed ] — now includes the phase-3 FIFO's lifecycle too
 - [ ] no new SHM code lives under `base.*`; this design is kept distinct from
       `shm-streaming-payload-pipeline.md` [ network-boundary problem ]
 
@@ -570,43 +688,42 @@ model: opus
 reasoning: high
 
 prompt: |
-  Implement data/tasks/amos7-shm-paging-feedback.md. This is design only today
-  — NOTHING in it is built yet. The foundation it extends, modules/data.mount.shm.*
-  (27 modules), IS real landed code — read it first (see "what to read first").
+  Implement phase 3 of data/tasks/amos7-shm-paging-feedback.md. Phases 1
+  (data/lib-path/pm/AMOS7/SHM.pm, commit 410805f43) and 2
+  (data/lib-path/pm/AMOS7/SHM/Page.pm, commit ac6315191) are DONE and
+  live-verified — read "phase 1 — DONE" / "phase 2 — DONE" for what already
+  exists before touching anything. Phase 3 builds on both.
 
-  Start with phase 1: promote the core mmap / header / permission-signature
-  mechanics of data.mount.shm.* into a standalone-loadable AMOS7::SHM package
-  under data/lib-path/pm/AMOS7/SHM.pm, following the AMOS7::CHKSUM /
-  base.chk-sum.amos hybrid precedent exactly (defined $main::PROTOCOL_SEVEN
-  gates ONLY cleanup behavior — mechanics stay branch-free). Existing
-  data.mount.shm.* modules become thin wrappers; zero behavior change on the
-  zenka path is the phase-1 bar.
+  Phase 3's design is fully RESOLVED, not open — this is implementation of a
+  decided design, not a decision-making pass. Read, in order: "RESOLVED —
+  reader-paced, via a native FIFO notify" (why Event->var() and
+  Linux::Inotify2 were both tested live and ruled out, and why a native FIFO +
+  Event->io() is the answer — do not re-litigate this, the empirical tests
+  are recorded), "the feedback integer also carries an ntime freshness stamp"
+  (the exact formula, and the zenka/standalone harmony asymmetry — get this
+  exact, sprintf("%.0f", ...) not int()), "guard against the clock moving
+  backward" (a single backward clock jump must not permanently poison the
+  freshness comparison — rebase to now, not 0, and test it), and "different
+  tool, not a specialization" (why data.channel.shm.*'s ring buffer is not
+  reused — do not merge them). Then "phase 3 —" section has the concrete
+  build list and acceptance criteria.
 
-  Three hard constraints carried from the doc:
-   - do NOT merge this with data/tasks/shm-streaming-payload-pipeline.md — that
-     is a DIFFERENT problem (authenticating a large POST body across a network
-     trust boundary); this is same-trust-domain scalar passing.
-   - new SHM code stays under data.mount.shm.* / AMOS7::SHM::*, NEVER base.*
-     (base.* is auto-loaded by every zenka — see the namespace lesson).
-   - data.mount.shm.* is the data zenka's own live working code TODAY (loaded
-     via the bare `data` modules.load token), not a neutral shared library —
-     `p7c data.shm-self-test` passing unchanged is a hard gate on every phase,
-     and before phase 3 you must read data.channel.shm.* and explicitly decide
-     whether the new feedback-variable mechanic duplicates its existing
-     ring-buffer read_pos/write_pos counters or is genuinely a different tool.
-
-  When you reach phase 3, the reader-paced vs writer-paced feedback-pointer fork
-  is DELIBERATELY UNRESOLVED in the doc. Decide it consciously, up front, and
-  record the choice + rationale — do not let it fall out of whatever the first
-  code happens to do. The whole design exists because exactly that kind of
-  transfer-path assumption, made implicitly, caused the BMW-L13 / cube-buffer-cap
-  incident (see "why this design exists").
+  Hard constraints carried from earlier phases, still apply:
+   - data.mount.shm.* / AMOS7::SHM::* is the data zenka's own live working
+     code — p7c data.shm-self-test passing unchanged is a hard gate
+   - new SHM code stays under data.mount.shm.* / AMOS7::SHM::*, never base.*
+   - do NOT merge this with data/tasks/shm-streaming-payload-pipeline.md
+     (different problem: network trust boundary, not same-trust-domain)
+   - verify cross-process claims the same way phase 1/2 did: fork + a timing
+     gap, never a same-process check (same-process checks produced false
+     positives twice already in this project's history — see "why this
+     design exists")
 
   Follow the project's lowercase-comment, dot-notation style exactly. No
   signature stubs — the signing system adds them.
 
-#,,.,,.,,,.,,,,,.,,..,,.,,,,,,,,,,..,,...,...,..,,...,...,..,,,,,,.,.,.,.,...,
-#EH5OBE2UAMV4I34OI2RUTIVHXWL4RNVDSRDJPGNHPRMKZ2IY3AAZZY7JPCZAHMCJ2H3LSRVU2W2VK
-#\\\|WGYVIVECLMWUIRDJJEXJOOOQSICFFI5LM62EODNYRXN4DN46XLT \ / AMOS7 \ YOURUM ::
-#\[7]XUXZP3BFTK6NRQIKNZYHAE62PGG3OSF2YOCMU5MGYUIE5GWLLSAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,..,.,,,,,.,.,.,,..,...,,.,,,..,..,,...,...,.,.,,,.,,.,,.,,,,..,
+#6Q3H2Q6NETQVEOENOX4HX3GEZ7NDA4LZOL7VPBAB4M3337N3DIC47ODBCGC63EHBWU5BV7YEQYTA4
+#\\\|2VGCXXOII52CBZYW6AFU7CRVMR4QRX5ESEZ5D4353QWI6B5OGYY \ / AMOS7 \ YOURUM ::
+#\[7]FYIVHH6VGOQQQLUFS64HGTMFDSKKHUIEMRD2G6RQM37FO7UNM2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
