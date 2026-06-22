@@ -85,6 +85,7 @@
 - [protocol-as-self-governing-authority](topic-protocol-as-self-governing-authority.md) — no external central authority; governance = emergent agreement among the protocol's own layers; also: resource-efficiency (1GB Atom servers) as load-bearing design value vs. modern agent bloat (new)
 - [intelligent-glue-identity](topic-intelligent-glue-identity.md) — P7 = "intelligent glue" in spirit of perl; why perl was kept; avoid bloat only when alternatives exist, not dogmatically; stargate/13 closing image (new)
 - [resonance-field-emergence](resonance-field-emergence.md) — doc capturing recursion/resonance/third-intelligence-layer riff; mod-13 vs Rodin mod-9 throughline; `RESONANCE-FIELD-EMERGENCE.md` written (new)
+- [dedup-tree-unifying-mechanism](topic-dedup-tree-unifying-mechanism.md) — dedup tree fully represents reasoning-chain validation + task-tree routing + coding-zenka tiering + templated-output QA as one convergence-vs-divergence primitive; vision-level, no build target chosen yet (new)
 - [coding-zenka-improvement-pipeline](coding-zenka-improvement-pipeline.md) — root index `CODING-ZENKA-IMPROVEMENT-PIPELINE-INDEX.md`: tier0 LANDED/tier1 DONE/tier1.5(model-pinning) DONE/tier2 self-error NOT READY/tier3 GATED — NEXT UP: result-constraint+tiered-escalation design captured but NOT implemented — check this first (updated)
 - [hybrid-namespace-routing](topic-hybrid-namespace-routing.md) — threshold MET (5 types: module/tunnel/cube-mount/alias/macro); design doc `HYBRID-CONNECTION-TYPE-ROUTING.md`; local-always-wins-over-routing confirmed precedence rule (new)
 - [zenka-macro-language-postponement](project-zenka-macro-language-postponement.md) — loop/condition postponement resolves via intent→requirements→code deterministic compilation: only intent needs validating, generated zenka code inherits safety, destructive intent can be made inexpressible by construction (new)
@@ -192,8 +193,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,,,,...,..,,,,.,,,.,..,,.,.,,,.,..,,.,.,,,,,..,,...,.,,,,..,,,.,,,.,,,.,,,.,
-#DPDTWWG45UDH4WRPXHOWPPX5QSXVRBQZCJESD5T2U5CLI7CM62XWECYF7VRKJXF6ZQZJDMH6HUBB4
-#\\\|BYT43Y4GF7IALBD3M5ZP2KHP4LBTB34ZPTHSGKS2H4R2H5YW3NT \ / AMOS7 \ YOURUM ::
-#\[7]ESEGVDJVDOTROV7U654ZO4XIL6DI7NRNFYSWWFPI7FGIMGULMMCY 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,..,,,..,...,.,,,,,.,..,,,,.,.,,,..,,...,..,,..,,..,,..,,,..,...,
+#ZSZ246ZOMTXBPUTUYBZQK3HMXZBTN5QHQRVCCLIJRBLSQQB63HZNURDBDMBZNMD3RZIGKKRXACZIQ
+#\\\|4JTS2MCCYQDQLWN4ONZK3QO3NZWZMRIIPXCGZNGQF2QEKZZVYSC \ / AMOS7 \ YOURUM ::
+#\[7]BYCIYXKFVZN7PSKIWU5UR56RBNFFK67WWY6FCG5IVFVITPC4MMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
