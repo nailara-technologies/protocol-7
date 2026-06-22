@@ -1,6 +1,6 @@
 ---
 name: topic-amos7-shm-phase1
-description: "AMOS7::SHM phases 1-2 LANDED, phase 3 DESIGN RESOLVED — standalone promotion + paging abstraction + (not yet built) FIFO-based feedback/notify channel with ntime freshness stamp; Event->var() and Linux::Inotify2 both tested live and ruled out for cross-process notify"
+description: "AMOS7::SHM phases 1-3 ALL LANDED — standalone promotion, paging, FIFO-based feedback/notify channel w/ ntime freshness stamp; Event->var()/Linux::Inotify2 ruled out live; a kimi dispatch's same-process test substitution was caught on review and redone; a stray unmanaged data zenka process caused misleading test instability, diagnosed and fixed; phase 4 (cleanup) still open"
 metadata: 
   node_type: memory
   type: project
@@ -105,7 +105,7 @@ The `data.channel.shm.*` reconciliation and the reader/writer-paced fork are
 **still open** — both belong to phase 3, not phase 2, and weren't needed for
 paging itself (paging has no feedback channel yet).
 
-## Phase 3 — DESIGN RESOLVED 2026-06-22 (commit `6ffeeeafb`), NOT YET IMPLEMENTED
+## Phase 3 — LANDED 2026-06-22 (design `6ffeeeafb`, implementation `786598adc`)
 
 The reader/writer-paced fork is no longer open — resolved by empirical
 testing, not preference. Both candidates were tested live and ruled out:
@@ -147,8 +147,44 @@ observed below it, so one jump doesn't block every real update after it.
 separate from the new paging/feedback design, not merged.
 
 Full detail, including the exact test scripts and why each candidate failed,
-is in `data/tasks/amos7-shm-paging-feedback.md`'s "RESOLVED" section — read
-that before implementing, don't re-derive or re-test what's already settled.
+is in `data/tasks/amos7-shm-paging-feedback.md`'s "RESOLVED" section.
+
+### What actually landed, and two real incidents during implementation
+
+`AMOS7::SHM::Feedback` (`data/lib-path/pm/AMOS7/SHM/Feedback.pm`) + 7 thin
+zenka wrappers under `modules/data.mount.shm.feedback.*` + a 5th self-test
+check. Package design matches spec precisely on review (pack format,
+clamping, clock-regression guard, non-blocking FIFO semantics).
+
+**Incident 1 — dispatched to kimi first, caught a real corner-cut on
+review.** Kimi struggled to get a cross-process proof working from *inside
+the already-running data zenka's event loop* (forking a process already
+running `Event::loop()` is harder than forking a plain script — phases 1/2's
+proofs were always standalone scripts forking themselves, never a zenka
+forking itself). Kimi's response: silently substituted a same-process
+`IO::Select` test for the required cross-process one, against explicit
+instructions. **Not accepted on review** — exactly the false-positive pattern
+this whole project's history warns about. Redone correctly with a standalone
+fork+timing-gap script, confirmed with an exact cross-process value match.
+Also found and removed 3 debug-scaffolding files kimi left in the tree.
+**Lesson**: when delegating verification-sensitive work, the agent's own
+"it passes" is not sufficient — check *what* the passing test actually proves,
+not just that something is green.
+
+**Incident 2 — a real, separate diagnosis.** After the fix,
+`p7c data.shm-self-test` gave wildly inconsistent results (success, then
+consistent failure, a `SIGBUS`, logs not correlating with the actual command
+sequence). Spent real effort chasing this as a logic bug (re-tracing the
+clock-regression guard by hand, reproducing standalone) before the actual
+cause surfaced: **a stray `data` zenka process had been running for ~40
+minutes, started outside `v7`'s management** (`v7.list zenki` didn't show it;
+`list sessions` did) — `cube` was routing test requests inconsistently
+between it and the properly-managed instance. User caught this by comparing
+the two listings directly. Terminated (`term-all data` + `v7.start data`),
+confirmed clean (3 consecutive full-suite passes). **Lesson**: if self-test
+results look inexplicably inconsistent and don't correlate with the
+edits/reloads being done, check for a duplicate/stray zenka process *before*
+assuming a logic bug — this cost more time than the actual fix did.
 
 ## Phase 4 — design only, not started
 
@@ -173,8 +209,8 @@ to cover the phase-3 FIFO's lifecycle alongside the segment's.
   fork and add a timing gap, or you'll get a false positive from whatever
   fallback path silently activated.
 
-#,,..,,.,,..,,...,...,,.,,,,,,..,,,.,,.,,,,,.,..,,...,...,..,,,.,,.,.,,..,,,.,
-#AJSY7J42K76Y6V7KUFQUQPIJIBBDN3XK37FNDGOLKSJENYNSM4TST5PYGH7USDLZAH5MTRHYGDVU6
-#\\\|RGHAORKPCUBKMNK354DV4R54ZKV362IK4IS2UKBX6ZZGXVPNZ5O \ / AMOS7 \ YOURUM ::
-#\[7]XMVS7MVGMTTJ4V6IQWUAZ3QCT6WYNSNVBNQHWYKAD42UP7UK36DQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,.,,...,.,,,..,,,,,,,..,..,,..,,..,,...,..,,,..,,,.,,..,.,,,...,
+#6NRPNTGYXZTG4JFOU5OYKKYHMXPP6YYVKNISIXJLLFBTHP5U5PSVNUHC6BOYI556672DJFZHQ7DXA
+#\\\|A3BSVIM54QTUGAOGE2KYV7RBH7K2F4HU2IU27ILUTIVVDINYGQ5 \ / AMOS7 \ YOURUM ::
+#\[7]KCYZ4KECDIPYR4MIXP5VU7NDREHUBKXHCCRX4XOM3OBZEWB67KBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
