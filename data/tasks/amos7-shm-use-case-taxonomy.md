@@ -43,17 +43,22 @@ phase 3 at all** [ doc #2 scopes Feedback out explicitly ].
 
 ### shape 2 — continuous append-only stream, exactly-once [ doc #3 ]
 
-an **unbounded ordered stream of frames, ack-then-shift, identity-proven
-handshake.** the writer frames records into a ring; the reader drains them in
-write order and publishes a durable read-position the writer trusts as an ack;
-nothing is removed from the writer's queue until acked, so a mid-stream failure
-degrades to the old cube path losslessly. a one-time nonce-in-trusted-reply /
-echo-as-first-frame handshake proves the same authenticated peer opened the new
-channel. **uses all of phase 3.**
+an **unbounded ordered stream of records, ack-then-shift, identity-proven
+handshake.** the writer packs records into a **pool of fixed-size segments**
+[ each holding a batch of length-framed records ; **revised 2026-06-22 — was a
+ring, now a segment pool**, see doc #3 "ARCHITECTURE CHANGE" ]; the reader drains
+slots in pool order and publishes the durable slot index it has consumed through,
+which the writer trusts as an ack; nothing is removed from the writer's queue
+until acked, so a mid-stream failure degrades to the old cube path losslessly. a
+one-time nonce-in-trusted-reply / nonce-as-first-active-slot handshake proves the
+same authenticated peer opened the new channel. **uses all of phase 3.**
 
-- proposed primitive: **`AMOS7::SHM::Channel`** [ ring + read-position feedback
-  + key-echo confirmation ] — **not built yet**, composes a promoted/corrected
-  `data.channel.shm.*` ring + `AMOS7::SHM::Feedback` + a generic key-echo step.
+- proposed primitive: **`AMOS7::SHM::Channel`** [ segment pool +
+  ack-by-slot-index feedback + key-echo confirmation ] — **not built yet**,
+  composes a **dynamic pool of `AMOS7::SHM::shm_create` segments** [ NOT the
+  legacy `data.channel.shm.*` ring, which is rejected and unused at runtime ] +
+  `AMOS7::SHM::Feedback`'s atoms [ position value = slot index ] + a generic
+  key-echo step.
 
 ### shape 3 — live-mounted current state [ NEW — not written up anywhere before ]
 
@@ -292,8 +297,8 @@ atoms**, and each shape uses a different subset. this subset table **is** the
 | atom [ landed sub ] | source | shape 1 Transport | shape 2 Channel | shape 3 Mount |
 |---|---|---|---|---|
 | segment create / open / perm | `AMOS7::SHM::{shm_create, shm_open, permission_verify, sign_permission}` | yes | yes | yes |
-| paging [ index + clip ] | `AMOS7::SHM::Page::{create, write_page, read_page, write_index, read_index}` | yes | n/a [ ring frames, not pages ] | **optional** [ only large live state, + index-rewrite-on-change — see caveat ] |
-| ring framing [ length-prefix ] | `data.channel.shm.write/read` [ to be promoted+fixed ] | no | **yes** | no |
+| paging [ index + clip ] | `AMOS7::SHM::Page::{create, write_page, read_page, write_index, read_index}` | yes | n/a [ length-framed records in pool slots, not pages ] | **optional** [ only large live state, + index-rewrite-on-change — see caveat ] |
+| segment-pool + intra-slot framing | new `AMOS7::SHM::Channel` over `shm_create` [ length-prefix framing moves *inside* each fixed-size slot ; legacy `data.channel.shm.*` ring rejected ] | no | **yes** | no |
 | notify-FIFO atom | `AMOS7::SHM::Feedback::{create_notify_fifo, ding, watch_fifo, open_notify_fifo_reader}` | **no** [ phase 3 out of scope ] | yes | **optional** [ "changed" ding ] |
 | position region atom [ ack ] | `AMOS7::SHM::Feedback::{write_feedback, read_feedback}` | no | **yes** [ position = ack ] | **no** [ nothing to ack ] |
 | ntime freshness atom | `AMOS7::SHM::Feedback::{compute_ntime, process_feedback}` | no | yes [ guards ack ordering ] | **optional** [ freshness marker ] |
@@ -331,16 +336,21 @@ lives **at the atom layer** [ already landed ], not at the shape layer.
 - **`AMOS7::SHM::Transport`** [ shape 1 ] : `shm_announce` composes
   `Page::create` + `Page::write_page` + `sign_permission` + header grant add ;
   `shm_receive` composes `shm_open` + `permission_verify` + `Page::read_index` +
-  `Page::read_page` ×N + checksum compare. **needs a new read-only `shm_open`
-  mode** [ see "the read-only-open gap" — currently `shm_open` opens `'+<'` only,
-  `SHM.pm:599` ]. uses **no** Feedback atom.
-- **`AMOS7::SHM::Channel`** [ shape 2 ] : composes the promoted/corrected ring
-  framing + **all three** Feedback atoms [ `create_notify_fifo`/`ding`/`watch_fifo`
-  for notify ; `write_feedback`/`read_feedback` for the read-position ack region ;
-  `compute_ntime`/`process_feedback` for freshness-guarded ordering ] + a generic
-  key-echo confirmation step. **also needs the read-only `shm_open` mode**, and
-  hits the **reader-write cross-user tension** [ doc #3 OQ1 ] because the reader
-  must *write* its ack region into a possibly-other-user-owned segment.
+  `Page::read_page` ×N + checksum compare. uses the **read-only `shm_open` mode**
+  [ `{ mode => 'read' }`, already present — `SHM.pm:609` ]. uses **no** Feedback
+  atom.
+- **`AMOS7::SHM::Channel`** [ shape 2 ] : composes a **dynamic pool of
+  fixed-size `shm_create` segments** [ each holding length-framed records ; the
+  three-state slot lifecycle active/drained-and-erased-warm-spare/released with
+  secure-erase-on-drain — **NOT the legacy ring** ] + **all three** Feedback atoms
+  [ `create_notify_fifo`/`ding`/`watch_fifo` for notify ;
+  `write_feedback`/`read_feedback` for the ack region, position value = slot
+  index ; `compute_ntime`/`process_feedback` for freshness-guarded ordering ] + a
+  generic key-echo confirmation step. uses the read-only `shm_open` mode for the
+  slots [ already present, `SHM.pm:609` ], but still hits the **reader-write
+  cross-user tension** [ doc #3 OQ1 ] because the reader must *write* its ack
+  region into a possibly-other-user-owned channel — read-only-open does not
+  resolve that.
 - **`AMOS7::SHM::Mount`** [ shape 3 ] : composes a writer-keeps-content-current
   segment [ **either** `Page::create`/`write_page` with index-rewrite-on-change
   for large live state, **or** bare `substr`-at-512 for small fixed-size state —
@@ -352,17 +362,22 @@ lives **at the atom layer** [ already landed ], not at the shape layer.
   cross-user-write tension at all — the simplest shape on the ack/ordering/security
   axes [ the one open mechanics question is Page-reuse-vs-bare-segment, OQ6 ].
 
-### the read-only-open gap — shared by shapes 1 and 3, blocked for shape 2
+### the read-only `shm_open` mode — present, used by shapes 1 and 3
 
-verified this session: `AMOS7::SHM::shm_open` opens **`'+<'` [ read-write,
-`SHM.pm:599` ]** and there is no read-only path. `shm_create` opens `'+>'`
-[ `SHM.pm:514` ] so the file lands writable only by its owner UID ; `/dev/shm` is
-world-*readable* not world-*writable*. consequence:
+**update [ 2026-06-22 ]: the read-only `shm_open` mode is now PRESENT, not a
+gap.** verified this session — `AMOS7::SHM::shm_open` selects the open mode by
+option: `my $open_mode = ( ( $options->{'mode'} // '' ) eq 'read' ) ? '<' :
+'+<'` [ `SHM.pm:609` ]. so `{ mode => 'read' }` → `'<'` already exists ; the
+default remains `'+<'` [ read-write ]. `shm_create` opens `'+>'` so the file
+lands writable only by its owner UID ; `/dev/shm` is world-*readable* not
+world-*writable*. consequence:
 
-- **shapes 1 and 3** [ reader only reads ] both want a **read-only `'<'` open**,
-  which a world-readable `/dev/shm` file permits **cross-user** with no OS-perm
-  tension. **API gap: add `{ mode => 'read' }` → `'<'` to `shm_open`.** this is
-  the single shared prerequisite both read-only shapes need.
+- **shapes 1 and 3** [ reader only reads ] both use the **read-only `'<'` open**
+  [ `{ mode => 'read' }` ], which a world-readable `/dev/shm` file permits
+  **cross-user** with no OS-perm tension. this is **no longer a prerequisite to
+  build** — it is already landed ; just pass the option. [ this section and OQ2
+  originally listed it as an absent API gap citing `SHM.pm:599` ; that drift is
+  corrected here. ]
 - **shape 2** [ reader *writes* its ack region ] cannot use read-only for that
   region and therefore inherits the genuine cross-user-write problem [ doc #3
   OQ1 — recommended fix: a separate p7-log-owned ack segment so each region stays
@@ -458,17 +473,22 @@ given everything now known:
    gets built now or waits for the workspace use case. not blocked by anything
    shape 2 needs.
 
-4. **shape 2 [ `AMOS7::SHM::Channel` ] is last — it carries the most blocking
-   pre-existing bugs and the only genuine cross-user-write problem.** before it
-   can carry real log traffic it needs: the ring's **wrap-around data-corruption
-   bug fixed** [ `data.channel.shm.write:26-45` overwrites unread frames on a
-   sustained stream — doc #3 gap #2, a real correctness defect, not a limitation ]
-   ; **notify added** to the poll-only ring [ doc #3 gap #1 ] ; the
-   **reader→writer ack path** [ doc #3 gap #3 ] ; and a real answer to the
-   **cross-user reader-write ack-region ownership** [ doc #3 OQ1 ]. it is the
-   richest shape [ all three Feedback atoms + ring + handshake + lossless
-   fallback ] and the one most worth getting last, after the atom layer has been
-   exercised by the two simpler shapes.
+4. **shape 2 [ `AMOS7::SHM::Channel` ] is last — it is the richest shape and
+   carries the only genuine cross-user-write problem.** **revised 2026-06-22**:
+   the old framing here was "fix the ring's pre-existing bugs first." the ring is
+   now **rejected, not fixed** [ doc #3 "ARCHITECTURE CHANGE" ] — its
+   wrap-around data-corruption bug [ `data.channel.shm.write:26-45` ] is the
+   *motivation* for the redesign, **designed out** by the segment-pool model
+   rather than patched [ no shared free-space arithmetic → the bug class cannot
+   exist ]. what shape 2 still needs: **pool management** [ create/seal/rotate/
+   erase/retire of fixed-size slots, the three-state lifecycle ] ; **notify**
+   [ doc #3 gap #1, composed from the landed Feedback FIFO atom ] ; the
+   **reader→writer ack path** [ doc #3 gap #3, the Feedback position atom with a
+   slot-index value ] ; and a real answer to the **cross-user reader-write
+   ack-region ownership** [ doc #3 OQ1 — unchanged in force ]. it composes all
+   three Feedback atoms + the pool + handshake + lossless fallback, and is most
+   worth getting last, after the atom layer has been exercised by the two simpler
+   shapes.
 
 5. **speculative/future candidates gate nothing.** mpv stdin-pipe audio,
    graphics-matrix buffer-move, and future OSD zenki have **no code today** and
@@ -499,10 +519,10 @@ given everything now known:
    is actually implemented — grounded in that caller's real requirements, not
    speculated in advance of one.
 
-2. **the read-only `shm_open` mode** — verified absent [ `shm_open` opens `'+<'`
-   only, `SHM.pm:599` ]. shapes 1 and 3 both need it ; it is small and
-   high-leverage. confirm it is added as the **first** primitive change [ ahead of
-   any shape-layer ], since it is the shared unblock for the two simplest shapes.
+2. **RESOLVED — the read-only `shm_open` mode is already present** [ `SHM.pm:609`,
+   `{ mode => 'read' }` → `'<'`, verified 2026-06-22 ; an earlier draft of this
+   doc mis-cited it as absent at `SHM.pm:599` ]. shapes 1 and 3 just pass the
+   option ; no primitive change is needed to unblock them. nothing to confirm.
 
 3. **shape 2's cross-user reader-write ack-region ownership** [ carried from
    doc #3 OQ1, restated here because it is the **one** place the shapes diverge
@@ -570,8 +590,8 @@ given everything now known:
   `AMOS7::SHM::*`, **never** `base.*`
 - guard any timer with a fallback interval [ undef interval = max-rate loop ]
 
-#,,,.,...,,.,,...,.,.,,,,,...,,..,,,.,,.,,,,,,..,,...,..,,.,.,.,,,.,.,,,,,.,.,
-#6OAAN5IXHY5U54KAWZWBLVBRHEWK2QZAHTUPP5WHD4QQUWXCA6GDSMNVJXZIR23UGWZWHL3P27OCE
-#\\\|SY5KQIFVLQCLSM7URLZKDXHGP3QGQ6FTD4C2YZYCLSHAWPSWPED \ / AMOS7 \ YOURUM ::
-#\[7]HGRW7ISXGGARFZ6MLVMIQDJOG23QSNUPHF4ONO254GTU2YVMH4CY 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,..,,,,.,.,,,..,,...,,,,,,..,..,,..,,...,...,...,,,.,,,,,..,,.,.,
+#3TULCFTTLOMT2UNF6RMB6OJ2PDX7U5MOJV724V2YRJGLMMB3RACUO5B3GGCAZ3Q45YAUZGRXBY3HM
+#\\\|ET7OPJN3UAXC7LH5AYXPBWEA7ME3HXXQCMEG3EDQALHK44TYVSN \ / AMOS7 \ YOURUM ::
+#\[7]P47EVXGOXXL37MGTD332CUN7644RH3JRO6WJ4KPANJ3VFXSUKCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
