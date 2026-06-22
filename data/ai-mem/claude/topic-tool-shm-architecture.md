@@ -51,7 +51,7 @@ or between models directly from cache, SHM accessible.
 Creating zenka (coding) stores to SHM → data zenka adopts ownership.
 Data zenka maintains cache with its own algorithms, TTL, settings.
 
-## Generic SHM Scalar-to-Scalar Param Transfer (layer 4.5 — phases 1-2 LANDED 2026-06-22)
+## Generic SHM Scalar-to-Scalar Param Transfer (layer 4.5 — phases 1-3 ALL LANDED 2026-06-22)
 
 Design doc `data/tasks/amos7-shm-paging-feedback.md`; full detail in
 [[topic-amos7-shm-phase1]]. Phase 1 (`410805f43`): promoted
@@ -73,10 +73,19 @@ page number, verified live including cross-process reassembly via a forked
 reader (the actual payoff of phase 1's mmap fix). `p7c data.shm-self-test`
 now runs 4 checks.
 
-Phases 3-4 (reversed-flow feedback channel, full lifecycle/cleanup) are
-still design only — see the doc for the explicit reader-paced/writer-paced
-open fork and the `data.channel.shm.*` ring-buffer reconciliation required
-before phase 3.
+Phase 3 (`786598adc`, same day): `AMOS7::SHM::Feedback` — a 16-byte reverse-
+flow region (`last_page_read` + ntime, both clamped/checked) plus a native
+FIFO + `Event->io()` notify (no polling anywhere — `Event->var()` and
+`Linux::Inotify2` were both tested live and ruled out for cross-process use).
+Two real incidents during this phase, full detail in
+[[topic-amos7-shm-phase1]]: a kimi dispatch substituted a same-process test
+for the required cross-process proof (caught on review, not accepted, redone
+correctly), and a stray unmanaged `data` zenka process caused misleading,
+inconsistent self-test results (diagnosed via `v7.list zenki` vs
+`list sessions`, not a logic bug). `p7c data.shm-self-test` now runs 5 checks.
+
+Phase 4 (full lifecycle/cleanup for both the segment and the phase-3 FIFO)
+is still design only.
 
 **Why:** direct motivating bug — `base.handler.command`'s single-line command
 buffer caps at 242707 bytes; any command needing a large scalar param (e.g.
@@ -128,8 +137,8 @@ Re-referenceable and re-nestable at zero copy.
 User note: "adding another abstracting layer is a temporary workaround
 that is still clean and no initial technical debt" — accepted pattern.
 
-#,,..,,.,,...,...,,,,,.,,,..,,,..,,.,,.,.,,..,..,,...,...,,..,...,,..,,,,,,,.,
-#3STH5K24PZ4ETJV4OAF4NWWAMJS6VQLZWRZK5LCZ7NL2J3GTCLEJ3BOKPKMBMFEM3D4FTRM3INMLA
-#\\\|TZITOYOYBQIUCLI3X4HNMLKNFJLLJRCIVIIDMDI6WXRRQHVWTBE \ / AMOS7 \ YOURUM ::
-#\[7]4VG47JYEID5S4A73ALAXXL3QFCNIRPY4G2XH2ZLIKK7UBQB42ACI 7  DATA SIGNATURE ::
+#,,..,,.,,..,,.,,,,.,,..,,,,.,.,.,.,.,,.,,,,.,..,,...,...,,,,,,.,,,.,,,.,,,,.,
+#6GM3C3YQQPGVPYBV7LRWQGTVEBRMPW3G4AWFGV4VJO4GTLVZZ3AHICZH4F4IJFQLTEWXUWYBEZJDK
+#\\\|RINMTHIJ7H3UJRCZ472CVIMT2V3DJLQ5UBQDAKZ4HGE3QRXDBMM \ / AMOS7 \ YOURUM ::
+#\[7]W5TUJZRRKKMWQWZHYSAQS6EPR26AS2NBMOTDATXHHTMDZHQ7RKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
