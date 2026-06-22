@@ -13,6 +13,12 @@ return undef unless $shm_path =~ m{^/dev/shm/};
 ## unlink the SHM file ##
 my $result = unlink($shm_path);
 
+## the phase-3 notify fifo shares the segment's lifecycle ##
+my $notify_path = $shm_path . '.notify';
+if ( -p $notify_path ) {
+    unlink($notify_path);
+}
+
 if ($result) {
     <[base.logs]>->( 2, ":. SHM removed: %s", $shm_path );
 } else {
@@ -21,8 +27,8 @@ if ($result) {
 
 return $result;
 
-#,,..,,,,,,,.,,..,,,,,,,.,,,.,,..,.,.,,.,,..,,.,.,...,...,,.,,,,,,,,,,.,.,,,,,
-#YDTPFTECNO3LP2OMWDYVNBW7LESXXPZUOIOPJRFYAL7UTFZSCYMZ647GKGHXKJ4RIXZJIUUJM7YDM
-#\\\|M5WGZ7HYE3DQGPSJ26HSHQZOOSZHFVJHGX4PDUZZQRFTVVKNVBR \ / AMOS7 \ YOURUM ::
-#\[7]JBB3H3MKCV5HDA3Z5X27Q4PQPBL7HLKLWYWW54MYNMEY7L7HGECQ 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,,,,,,.,...,..,,.,,,..,,,.,,,..,.,.,...,..,,,,.,,,,,,,.,...,,,.,
+#DWDKIKNYETBSSCOJ2HX5OGFIOJDI5B2QSV2SWCU3YMZXU3AYBJJXLBPH25Y4A2C2GGJYJHQIEE4RM
+#\\\|H7NK5MIOXRXXFVMH4LDKM3U4T2MVTKLWRPXAHRFATAVKIZM2YCA \ / AMOS7 \ YOURUM ::
+#\[7]Y5XZW6BGAYBJGYSS77TZYUPBVZ4EBNKF5ZQDWN5YV73EHZYRSOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

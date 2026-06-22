@@ -1,0 +1,18 @@
+## [:< ##
+
+# name = data.mount.shm.feedback.read
+# descr = Read and clamp the feedback region from the writer side
+
+# thin zenka wrapper -> AMOS7::SHM::Feedback::read_feedback
+# the writer is the sole reader of the feedback region; the core clamps
+# last_page_read against the announced [ 0, total_pages ] range.
+
+my $mount = shift;
+
+return AMOS7::SHM::Feedback::read_feedback($mount);
+
+#,,,,,,.,,,.,,,.,,.,,,.,,,.,.,.,.,.,.,.,.,...,..,,...,.,,,...,.,,,,.,,.,,,.,.,
+#C4ML3G6W2T7JHLTUMACVRD72SQN4STODW4BOX24WYHHISJXY4TXFVLAHBWCTT4N7EAGPYS5ZAHQP4
+#\\\|T7WT5CPN5NZGZTGFLE33G7JVPQFKWRXXLYBUABRZGZ3XKLM2QRD \ / AMOS7 \ YOURUM ::
+#\[7]IDRBJBE72B4DFRPNXLTQ5GPNHKDRS3DBWXTACQPNVK3EV46LBMAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
