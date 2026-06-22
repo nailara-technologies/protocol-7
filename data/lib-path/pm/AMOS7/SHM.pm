@@ -45,6 +45,12 @@ our $VERSION = qw| AMOS7::SHM-VERSION.AAAAAAA |;
 ## logging shim — zenka wrapper injects <[base.log]>, standalone is silent ##
 our $log_handler;
 
+## phase 4, standalone only : track creator-owned segment paths for an END-  ##
+## time cleanup. zenka mode handles this via its own SIGINT/TERM handler    ##
+## [ modules/data.mount.shm.init_code ] instead — this list stays empty     ##
+## whenever $main::PROTOCOL_SEVEN is defined.                               ##
+my @_standalone_owned_paths;
+
 sub _log {
     my ( $level, $msg ) = @ARG;
     return unless defined $log_handler;
@@ -560,9 +566,11 @@ sub shm_create {
     ## externally [ that's how the zenka path gets it — see
     ## modules/data.mount.shm.create ] ; do it here instead so the
     ## mlock=>1 default behaves the same whether a zenka is running or not ##
-    if ( not defined $main::PROTOCOL_SEVEN and $header->{'flags'}{'mlocked'} )
-    {
-        lock_memory( $mmap_ptr, 0, $total_size );
+    if ( not defined $main::PROTOCOL_SEVEN ) {
+        push @_standalone_owned_paths, $shm_path;
+        if ( $header->{'flags'}{'mlocked'} ) {
+            lock_memory( $mmap_ptr, 0, $total_size );
+        }
     }
 
     return {
@@ -635,10 +643,44 @@ sub shm_open {
     };
 }
 
+##[ STANDALONE CLEANUP ]######################################################
+
+## remove a creator-owned segment [ + its phase-3 notify FIFO ] on graceful  ##
+## exit. this is the standalone counterpart to data.mount.shm.unlink/remove; ##
+## it is intentionally self-contained because standalone code cannot reach   ##
+## the zenka <[...]> dispatcher.                                             ##
+sub _standalone_unlink_segment {
+    my $shm_path = shift;
+    unlink($shm_path) if -f $shm_path;
+    my $notify_path = $shm_path . '.notify';
+    unlink($notify_path) if -p $notify_path;
+    return;
+}
+
+## install graceful-shutdown signal handlers in standalone mode so that
+## SIGINT/SIGTERM run END blocks and therefore clean up creator-owned
+## segments. without a handler Perl's default signal action terminates the
+## process without invoking END. zenka mode handles cleanup in
+## modules/data.mount.shm.init_code instead.
+if ( not defined $main::PROTOCOL_SEVEN ) {
+    my $graceful_exit = sub { exit(0) };
+    $SIG{'INT'}  = $graceful_exit;
+    $SIG{'TERM'} = $graceful_exit;
+}
+
+END {
+    ## explicit skip in zenka mode — defense in depth alongside the fact
+    ## that @_standalone_owned_paths is only ever populated when standalone ;
+    ## zenka cleanup runs via modules/data.mount.shm.cleanup instead ##
+    unless ( defined $main::PROTOCOL_SEVEN ) {
+        _standalone_unlink_segment($_) for @_standalone_owned_paths;
+    }
+}
+
 return TRUE  #################################################################
 
-#,,,.,.,,,.,,,.,,,..,,,.,,,..,,..,,,.,,,.,..,,..,,...,...,..,,,..,,..,..,,,..,
-#GD7EBFM7ZN2DN2XHJXAS6C63GUQAPU7RVIPEORQFJMIOSGDGS2FZNM6UYKQ5TYJOKYWHUZ5TBVKX2
-#\\\|XUYYVVXT5ZLLEAQMDB5J66FF2RVFZYCQIWAZ57GW2NXJGHZ5G2I \ / AMOS7 \ YOURUM ::
-#\[7]5SINJTI6HYI4JZAQZJYQPHELZKQ3ZHGYLNFSYX3GAVJSCGC6BUBI 7  DATA SIGNATURE ::
+#,,,,,,..,..,,.,.,...,,..,.,.,,.,,,.,,,,.,.,,,..,,...,...,,,.,.,,,,..,,,.,.,,,
+#SH4TNSQEEMR536AL4BTZYOFXNTO2VZ7J6FC5OWMM5YYBM46ZCFHEQSBI5SEUOF7DQT7M7UY2EVOXO
+#\\\|XSEGKJA7XQMQVWBNK2U3YTD6XOFLBKMOJ3H5UTFHEDY4SARMEX7 \ / AMOS7 \ YOURUM ::
+#\[7]EQBRKEIB4WMXH6ELDJMYURJ2C7TMKBGJ6UMBSI6TIFDRY5NRW4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

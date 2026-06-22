@@ -4,6 +4,7 @@
 - [UNCOMMITTED 2026-06-20](topic-mpv-jobqueue-startup.md) — large uncommitted set spanning two sessions: bin/protocol-7-gtk3, configuration/zenki/mpv/start (fade_in=1 + fade_start_geom=700x42 are VOLATILE TEST VALUES, revert before commit), modules/{X-11.cmd.move-window,X-11.cmd.set_geometry,X-11.handler.screen_change,base.root.drop_privs,mpv.startup.handler.socket_poll,v7.zenka.start,mpv.handler.event.property-change.window-id(new)}, bin/dev/script-scratchpad/gtk_position_restore(new) — check `git status` first thing next session, separate durable fixes from volatile fade_in tuning before any commit
 - [gtk-wsl-window-positioning](topic-gtk-wsl-window-positioning.md) — active, UNRESOLVED: GDK_BACKEND=x11 alone disproven as the fix for move()-before-show_all under WSLg; minimal test script still mismatches; window also renders translucent/shadow-only — open questions listed, read before continuing
 - [cube-auth-name-collision](feedback-cube-auth-name-collision.md) — zenka names matching `(declare|select)-<word>` silently break auth; fixed (auth. prefix now mandatory), but re-check if regex ever touched again
+- [zenka shutdown end_code](feedback-zenka-shutdown-end-code-callback.md) — never assign $SIG{INT}/$SIG{TERM} directly in a zenka module, it clobbers base.sig_int/sig_term; use `push <callbacks.end_code>->@*, qw|module.name|` instead
 
 
 - [gtk ondemand zenka startup](feedback-gtk-ondemand-zenka-startup.md) — on-demand gtk3 zenka needs Gtk3->init in init_code + [base.get_session_id] before [base.gtk.main_loop], else silent hang
@@ -191,8 +192,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,,.,,..,.,,,.,.,.,.,..,,.,.,...,.,.,.,.,,,.,..,,...,...,.,.,.,,,.,,,.,,,,,.,
-#MWOSER2XDBAZEKJRJKHODG4PDHOA5CKQ2MCBFSCJ2YYBD32J5UF32IZYB54T2Q2ZMVVVEBWYHS4N6
-#\\\|42L3TJLZ5EHWIZW7C5BALPBDF647BQKGZ237ULL7JSTW5SVQMTO \ / AMOS7 \ YOURUM ::
-#\[7]QRQRVH6A7EKQW2F4IX24F5NOZ6R6Y2KT5BNYEPWJBC7T6HNN76AA 7  DATA SIGNATURE ::
+#,,,,,...,..,,,,.,,,.,..,,.,.,,,.,..,,.,.,,,,,..,,...,.,,,,..,,,.,,,.,,,.,,,.,
+#DPDTWWG45UDH4WRPXHOWPPX5QSXVRBQZCJESD5T2U5CLI7CM62XWECYF7VRKJXF6ZQZJDMH6HUBB4
+#\\\|BYT43Y4GF7IALBD3M5ZP2KHP4LBTB34ZPTHSGKS2H4R2H5YW3NT \ / AMOS7 \ YOURUM ::
+#\[7]ESEGVDJVDOTROV7U654ZO4XIL6DI7NRNFYSWWFPI7FGIMGULMMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

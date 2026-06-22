@@ -29,10 +29,19 @@ if ( $mount->{'header'}{'flags'}{'mlocked'} ) {
     );
 }
 
+## phase 4 : track creator-owned segments for cleanup-on-shutdown.        ##
+## shm_open must NEVER write into this registry — only the creator may ;  ##
+## see "the critical correctness rule" in the phase-4 task doc.           ##
+$data{'mount'}{'shm'}{'segments'}{ $mount->{'path'} } = {
+    'mmap_ptr' => $mount->{'mmap_ptr'},
+    'mlocked'  => $mount->{'header'}{'flags'}{'mlocked'},
+    'pub_key'  => $mount->{'pub_key'},
+};
+
 return $mount;
 
-#,,,,,.,,,..,,,,.,.,,,,,.,,,,,...,.,,,,.,,.,.,..,,...,...,.,.,.,.,,,.,,,,,,,.,
-#E3UQO3GN6I6LXRUFFY75ZBAE4AR5W6QMRWSI73YY4R6KQMT3EBWW2ZIRP2GO2C4NBZ4VT2YACIAAW
-#\\\|JFESNNTDC7AKFED7QHK6UQCSUMZQBUOENNL6EXT27NC7RMP5TMY \ / AMOS7 \ YOURUM ::
-#\[7]P4NC6PAMQGMSTNRYL3P6PGTDQBTE2LQTBF6UKS4P6RHTKHZTBABQ 7  DATA SIGNATURE ::
+#,,,,,,..,,..,.,,,,,,,.,,,.,,,,,.,...,..,,,..,..,,...,..,,,,,,...,..,,..,,,,,,
+#CXJKAIWXZKCHIQNXYXUHIINYIHOXWNXGNIKFUDCKKYJBGQY43ZUWPZIHENJXEZXKSJ3TV2F32DJL2
+#\\\|WFILDBJ7KKPBDB22IA5YICRNO5MEYJYJVVWNFUQVMQKWFSA67RA \ / AMOS7 \ YOURUM ::
+#\[7]4DXBUMB32NU2PX2I43PZAKPN5B447PQRDOZ5EIM3SXNKFZJMXMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
