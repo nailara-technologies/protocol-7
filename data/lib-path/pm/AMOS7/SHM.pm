@@ -27,6 +27,7 @@ use vars qw| @EXPORT_OK $VERSION |;
     parse_shm_path derive_pubkey
     mmap_file mmap_file_read
     lock_memory unlock_memory
+    sweep_stale_segments
     |;
 
 ### use AMOS7::Version; ## to generate new version string ###
@@ -643,6 +644,79 @@ sub shm_open {
     };
 }
 
+##[ STALE SEGMENT SWEEP [ phase 4 part B ] ]##################################
+
+## scan a directory [ default /dev/shm ] for p7:M:* segments and unlink any
+## that are both stale [ created more than $ttl_seconds ago ] AND owned by
+## the current effective UID. never attempts to unlink a file owned by a
+## different UID -- the sticky bit on /dev/shm would refuse it anyway, and
+## attempting it would just be noise. returns a summary hashref, never dies.
+sub sweep_stale_segments {
+
+    my $options     = shift                     // {};
+    my $dir         = $options->{'dir'}         // '/dev/shm';
+    my $ttl_seconds = $options->{'ttl_seconds'} // 3600;
+
+    my %summary = (
+        'scanned'             => 0,
+        'reaped'              => 0,
+        'skipped_fresh'       => 0,
+        'skipped_other_owner' => 0,
+        'skipped_unreadable'  => 0,
+        'errors'              => [],
+    );
+
+    opendir( my $dh, $dir ) or return \%summary;
+    my @candidates = grep {/^p7:M:[^.]/} readdir($dh);
+    closedir($dh);
+
+    for my $name (@candidates) {
+        my $path = "$dir/$name";
+        $summary{'scanned'}++;
+
+        # ownership check FIRST [ -O is "owned by effective uid" ] ; never
+        # attempt to even open-for-read-then-stat a file we can't reap, to
+        # keep this cheap and to keep the "skipped, not failed" count honest
+        if ( not -O $path ) {
+            $summary{'skipped_other_owner'}++;
+            next;
+        }
+
+        my $header = _read_header_only($path);
+        if ( not defined $header ) {
+            $summary{'skipped_unreadable'}++;
+            next;
+        }
+
+        my $age = time() - ( $header->{'created'} // 0 );
+        if ( $age <= $ttl_seconds ) {
+            $summary{'skipped_fresh'}++;
+            next;
+        }
+
+        _standalone_unlink_segment($path)
+            ;    # already removes the .notify FIFO too
+        $summary{'reaped'}++;
+    }
+
+    return \%summary;
+}
+
+## lightweight header peek : open + read first 512 bytes, no mmap, no lock.
+## this is a maintenance scan, not a real mount -- it should never need the
+## weight of shm_open's full mmap_file_read + permission_verify machinery.
+sub _read_header_only {
+    my $path = shift;
+    open( my $fh, '<', $path ) or return undef;
+    binmode($fh);
+    my $raw;
+    my $got = read( $fh, $raw, SHM_HEADER_SIZE );
+    close($fh);
+    return undef unless defined $got and $got == SHM_HEADER_SIZE;
+    return undef unless substr( $raw, 0, 4 ) eq 'P7SH';
+    return unpack_shm_header($raw);
+}
+
 ##[ STANDALONE CLEANUP ]######################################################
 
 ## remove a creator-owned segment [ + its phase-3 notify FIFO ] on graceful  ##
@@ -679,8 +753,8 @@ END {
 
 return TRUE  #################################################################
 
-#,,,,,,..,..,,.,.,...,,..,.,.,,.,,,.,,,,.,.,,,..,,...,...,,,.,.,,,,..,,,.,.,,,
-#SH4TNSQEEMR536AL4BTZYOFXNTO2VZ7J6FC5OWMM5YYBM46ZCFHEQSBI5SEUOF7DQT7M7UY2EVOXO
-#\\\|XSEGKJA7XQMQVWBNK2U3YTD6XOFLBKMOJ3H5UTFHEDY4SARMEX7 \ / AMOS7 \ YOURUM ::
-#\[7]EQBRKEIB4WMXH6ELDJMYURJ2C7TMKBGJ6UMBSI6TIFDRY5NRW4CY 7  DATA SIGNATURE ::
+#,,..,..,,,,,,.,,,..,,.,,,,..,.,.,,,,,...,,,,,..,,...,...,..,,,.,,...,,,,,,,.,
+#CBXFZ7QEWHLXW3MYILVFWNHTVIQMH4QJDHT356D3S6SBGBL7WXGYKUETQLCJJAZOLKR5ASPEOVGXK
+#\\\|73L6MJAGFHWNA5SIRNCMZIAGB2TU7THQWW25BDEWF5EYQDVPNPE \ / AMOS7 \ YOURUM ::
+#\[7]OFDG2ZLQPHNJ4V3QMFV4YCGV7IZN7P7UNAYNZ62SLCSLZIJHHCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
