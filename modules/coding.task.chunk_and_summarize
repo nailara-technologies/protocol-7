@@ -12,7 +12,7 @@ return { success => FALSE, error => 'task required' }
     unless defined $task and ref $task eq qw| HASH |;
 
 ## extract raw text from task ##
-my $description = $task->{'request'}->{'description'} // '';
+my $description = $task->{'request'}->{'description'}  // '';
 my $raw_request = $task->{'metadata'}->{'raw_request'} // {};
 $description = $raw_request->{'description'}
     if length( $raw_request->{'description'} // '' )
@@ -58,7 +58,11 @@ my $n_chunks = scalar @chunks;
     1,
     "chunk_and_summarize: %s → %d chunks "
         . "[ est=%d n_ctx=%d max_chunk=%d ]",
-    $task_id, $n_chunks, $est_tokens, $n_ctx, $max_chunk_chars
+    $task_id,
+    $n_chunks,
+    $est_tokens,
+    $n_ctx,
+    $max_chunk_chars
 );
 
 ## store chunk state in parent task metadata for resume handler ##
@@ -102,33 +106,57 @@ my $child_prompt
     . "produce an updated running summary that preserves information from "
     . "both, information-dense, no preamble.";
 
-## guard: truncate if single chunk still overflows [ prevents recursion ] ##
-my $est_child_tokens = int( ( length($child_prompt) * 1.4 ) / $chars_per_token );
-if ( $est_child_tokens > $n_ctx - 500 ) {
-    my $overrun     = $est_child_tokens - ( $n_ctx - 500 );
-    my $truncate_to = length($first_chunk)
-        - int( $overrun * $chars_per_token / 1.4 ) - 100;
-    $truncate_to = 1000 if $truncate_to < 1000;
-    $first_chunk = substr( $first_chunk, 0, $truncate_to );
+## guard: if the single chunk still overflows once wrapped, split the
+## excess back into the chunk queue as an additional chunk instead of
+## discarding it -- true rolling-window behavior, no content is ever lost.
+## @chunks is referenced by $chunk_state->{'chunks'}, so splicing here is
+## seen by the resume handler in coding.async.complete automatically.
+## the estimate must include the system prompt's length too -- it rides
+## in the same messages array coding.task.execute measures, and omitting
+## it is exactly what let chunks slip through this guard while still
+## overflowing for real downstream ##
+my $sys_prompt_len = length( $task->{'system'} // '' );
+my $est_child_tokens
+    = int( ( ( length($child_prompt) + $sys_prompt_len ) * 1.6 )
+    / $chars_per_token );
+
+if ( $est_child_tokens > $n_ctx - 1000 ) {
+    my $overrun = $est_child_tokens - ( $n_ctx - 1000 );
+    my $split_at
+        = length($first_chunk)
+        - int( $overrun * $chars_per_token / 1.6 )
+        - 100;
+    $split_at = 1000 if $split_at < 1000;
+
+    my $overflow_text = substr( $first_chunk, $split_at );
+    $first_chunk = substr( $first_chunk, 0, $split_at );
+    $chunks[0]   = $first_chunk;    ## keep stored state consistent ##
+    splice( @chunks, 1, 0, $overflow_text );
+    $n_chunks = scalar @chunks;
+    $chunk_state->{'total_chunks'} = $n_chunks;
+
     $child_prompt
         = "running summary so far:\n\nnew text to fold in:\n$first_chunk\n\n"
         . "produce an updated running summary that preserves information from "
         . "both, information-dense, no preamble.";
     <[base.logs]>->(
         0,
-        "chunk_and_summarize: chunk 0 truncated to %d chars "
-            . "[ overrun %d tokens ]",
-        length($first_chunk), $overrun
+        "chunk_and_summarize: chunk 0 split at %d chars [ overrun %d tokens, "
+            . "%d bytes carried forward as a new chunk, now %d total chunks ]",
+        length($first_chunk),
+        $overrun,
+        length($overflow_text),
+        $n_chunks
     );
 }
 
-my $child_task_id = <[coding.helper.task_id_generator]>->( qw| chunk | );
-my $child_task = {
+my $child_task_id = <[coding.helper.task_id_generator]>->(qw| chunk |);
+my $child_task    = {
     id       => $child_task_id,
     type     => qw| general |,
     request  => { description => $child_prompt },
     metadata => {
-        raw_request        => {
+        raw_request => {
             type        => $backend,
             description => $child_prompt
         },
@@ -146,12 +174,14 @@ my $child_task = {
 my $enqueue_result = <[coding.task.enqueue]>->($child_task);
 if ( !$enqueue_result->{'success'} ) {
     <[base.logs]>->(
-        0, "chunk_and_summarize: first chunk enqueue failed: %s",
+        0,
+        "chunk_and_summarize: first chunk enqueue failed: %s",
         $enqueue_result->{'error'} // 'unknown'
     );
     ## fall back to hard fail with original error format ##
     my $overflow = $est_tokens - $n_ctx;
-    my $err = sprintf(
+    my $err
+        = sprintf(
         'initial prompt overflow: estimated %d tokens exceeds n_ctx=%d '
             . 'by %d'
             . ' : reduce task description or tool output size',
@@ -173,14 +203,14 @@ $parent_state->{'pending_subtask'}         = $child_task_id;
 <coding.async.task_state>->{$task_id} = $parent_state;
 
 <[base.logs]>->(
-    1, "chunk_and_summarize: enqueued chunk 1/%d as child %s",
+    1,         "chunk_and_summarize: enqueued chunk 1/%d as child %s",
     $n_chunks, $child_task_id
 );
 
 return { success => TRUE, mode => qw| deferred |, task_id => $task_id };
 
-#,,..,...,,..,.,,,,.,,,.,,,.,,.,,,,.,,...,,,.,.,.,...,...,.,,,,.,,,,.,,.,,.,.,
-#ZLL4725B32UM7LMIUALP3RRQMIAAIK4G3MIG45O73ENY7Z2QSOVQ6TICEZD443CXLODBLOPOHVEIS
-#\\\|MM6E3Y5RMUKGECT3YBWQTGV75O4HYPCCDIUNN3TY6GWMVLKY324 \ / AMOS7 \ YOURUM ::
-#\[7]O4VOU5TJFTQMIANXIMHXYO5IDX5NB34FAHDMQEQQFRZX2TDTR2DY 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,,.,,..,,.,,,,,,...,...,..,,,.,,.,.,...,...,..,,.,,,,,,,,,,,,.,,
+#NE37OWR2VTEAWM5QQXRDHSXCIHXB52QLJ4ZEDISBSLNGESLFVK4Q6H3DMADSYCCCXFNAE5B7RR7TM
+#\\\|IZWR4YB632H6X5BLNUXBU6BMIQTNCO2LVJCJ2N4DQEEFL4MAKRS \ / AMOS7 \ YOURUM ::
+#\[7]XVKLAN7PKPIQIIIF2FHRELWMNFVAYQN3I54ZIJQSSZ2HXX73KOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

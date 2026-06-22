@@ -144,10 +144,16 @@ if ($async_mode) {
                 . ' : reduce task description or tool output size',
             $est_tokens, $n_ctx, $overflow > 0 ? $overflow : 0 );
         <[base.logs]>->( 0, "coding.task.execute: %s [%s]", $err, $task_id );
-        $task->{'execution'}->{'status'} = 'failed';
-        $task->{'execution'}->{'error'}  = $err;
-        <[jobqueue.move_job]>->( $job_id, 'error' );
-        <[coding.task.fail]>->( $task_id, $err );
+        ## route through coding.async.fail_task [ -> coding.async.complete ]
+        ## rather than calling coding.task.fail directly : that is the only
+        ## path that notifies a parent waiting via chunked_summary_pending /
+        ## compaction_pending -- calling coding.task.fail alone leaves any
+        ## such parent permanently hung, since nothing else ever clears its
+        ## pending marker. coding.async.complete's failure branch already
+        ## does the task.fail-equivalent bookkeeping itself [ see its own
+        ## "coding.task.fail has a P7 data-path bug, so we inline this" ],
+        ## so this is not a duplicate of that bookkeeping, it is the fix. ##
+        <[coding.async.fail_task]>->( $task_id, $err );
         return { success => FALSE, error => $err };
     }
 
@@ -230,8 +236,8 @@ if ($async_mode) {
 ## unreachable : async block always returns before here ##
 return FALSE;
 
-#,,..,..,,,,.,.,,,..,,,..,,..,,.,,..,,,.,,,..,.,.,...,..,,..,,.,,,,..,,.,,,..,
-#MFABVHRK2FEOLIV6XKHXVBJ6H6QKRSMK6MNSYYV5TOPV6YHOZDQFWJUVZVTVQVCULP5TQRZIQEZOA
-#\\\|OFEGIVANC3XUB62NFGQDWMRUTTYYHD5ZR7ROKT3NN7H72GKXYZ2 \ / AMOS7 \ YOURUM ::
-#\[7]IDWXS5ZFFYXBTZZR5QMPPIPT5DCB7RSIPWVCNUJAR3WKKSQVFUDI 7  DATA SIGNATURE ::
+#,,,.,...,...,,..,,.,,.,.,,..,,..,,..,,,,,,,,,.,.,...,...,,,,,,,,,,,,,,,.,,..,
+#AS5AVCHEZHXTGAAKINVUF4Q6X6G3AMHQFCUTLN7PCFFUFZO4TL2HS4WEH6DJ7CHY3ZXNQWX7HJBYC
+#\\\|DBXV6HNPOD4HJ7B7I4BASCHLDN3RBYIV7RY5QCBFAGWDHKBRLAS \ / AMOS7 \ YOURUM ::
+#\[7]77V6OZNKRPLJNTNXEJMO3WHO2WBZ7ML52LO6YQZBICZXI2QTQIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
