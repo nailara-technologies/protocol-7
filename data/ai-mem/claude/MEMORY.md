@@ -34,7 +34,7 @@
 - [route-send command format](feedback-route-send-command-format.md) — route-send uses bare `X-11.wait_visible` (no cube. prefix); cube.X-11.xxx is send.local only; mixing these causes "no perm" from cube
 
 ## Active Topics
-- [amos7-shm-phase1](topic-amos7-shm-phase1.md) — AMOS7::SHM phases 1-2 LANDED 2026-06-22 (410805f43, ac6315191); phase 1 found+fixed data.mount.shm.* never actually shared memory (fileno() bug) + mlock unreachable standalone + IO::AIO/fork hang (self-healing pid-guard fix); phase 2 paging live-verified cross-process; phases 3-4 (feedback channel, cleanup) still design-only in data/tasks/amos7-shm-paging-feedback.md
+- [amos7-shm-phase1](topic-amos7-shm-phase1.md) — AMOS7::SHM phases 1-2 LANDED 2026-06-22 (410805f43, ac6315191); phase 3 DESIGN RESOLVED (6ffeeeafb, not yet built) — native FIFO+Event->io() notify (Event->var()/Linux::Inotify2 both tested live, ruled out for cross-process), ntime freshness stamp w/ clock-regression guard, data.channel.shm.* kept separate; phase 4 (cleanup) still open
 - [zenka-naming-cleanup](topic-zenka-naming-cleanup.md) — cred-mesh + window-place renames landed; pattern for spotting/fixing more underscore/dotted zenka names; tile-groups->tile LANDED 2026-06-15 (82e65f2d6); command-name cleanup pass LANDED (switch-group, reset-group, base-group, show-groups, count)
 - [ondemand-heartbeat-upgrade](topic-ondemand-heartbeat-upgrade.md) — tile set up on-demand+heartbeat-enabled+no-timeout as test case; two v7 follow-ups identified (exclude heartbeats from idle timer; pre-exit termination notification)
 - [mpv-jobqueue-startup](topic-mpv-jobqueue-startup.md) — placement flow + geometry enforcement LANDED 2026-06-18; Weston ignores --geometry offset: fixed via X-11.wait_visible→set_geometry after socket ready; open: snapshot/restore + monitor registry
@@ -191,8 +191,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,.,,,..,,.,,...,,,,,...,..,,...,,.,,,..,,.,,..,,...,...,.,,,,..,,,,,,,,,,,.,
-#32S7QDTXTGL4LAZEMC3QPTOOL4QQO2IUXRXGBRWHY3SPYJVJ65RGEIHSZWRQCOJ3KRHHKCVMRD7QW
-#\\\|SKAGTNRCNYH26KDOTRJFIGNKXVIOH64DZS2MVSKPOJQ5QAOWI5H \ / AMOS7 \ YOURUM ::
-#\[7]KYR6HCPRZM4PPP56GMJIAT2HJP7SXNO6SRCIBOH3E7OUWOUKMABA 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,..,,.,,,,..,.,.,...,,,,,,,,,.,,,..,,...,..,,...,...,,,.,.,,,..,,
+#IUU7DNTCTZHJGRKVAAY6MKO6BZDC5BXUPC52IYDNM6AYK56HMKQBDQI7DN5I53O5D47KRH63VFB24
+#\\\|LDFDBNNINRBYIKFKK365NMGMTVVGDH6DIEUS3UABAZBWUVDS6M4 \ / AMOS7 \ YOURUM ::
+#\[7]DLWZJD47CPM2P44IMOZK4QCDSS45X7XX5YSHNU4JZPXBAQQOZOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

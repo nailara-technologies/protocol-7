@@ -1,6 +1,6 @@
 ---
 name: topic-amos7-shm-phase1
-description: "AMOS7::SHM phases 1-2 — standalone promotion of data.mount.shm.* + paging abstraction; two real bugs found+fixed in phase 1 (mmap never shared, mlock unreachable standalone), self-healing IO::AIO fork guard; phase 2 paging live-verified cross-process"
+description: "AMOS7::SHM phases 1-2 LANDED, phase 3 DESIGN RESOLVED — standalone promotion + paging abstraction + (not yet built) FIFO-based feedback/notify channel with ntime freshness stamp; Event->var() and Linux::Inotify2 both tested live and ruled out for cross-process notify"
 metadata: 
   node_type: memory
   type: project
@@ -105,16 +105,56 @@ The `data.channel.shm.*` reconciliation and the reader/writer-paced fork are
 **still open** — both belong to phase 3, not phase 2, and weren't needed for
 paging itself (paging has no feedback channel yet).
 
-## What's still open (phases 3-4, design only)
+## Phase 3 — DESIGN RESOLVED 2026-06-22 (commit `6ffeeeafb`), NOT YET IMPLEMENTED
 
-- Feedback-variable channel — the reader-paced vs writer-paced fork is
-  deliberately unresolved in the doc; a candidate (`jobqueue`'s polling-free
-  `Event->var()` watcher, via `base.event.add_var`) is flagged but its
-  cross-process applicability is *unverified* — `Event->var()` watches
-  in-process Perl variable writes; whether it fires on an externally
-  mmap-modified scalar from a different process has not been tested.
-- Full lifecycle/cleanup hooks (currently only `data.mount.shm.init_code`'s
-  `$SIG{'INT'}` handler, which unlocks but does not unlink).
+The reader/writer-paced fork is no longer open — resolved by empirical
+testing, not preference. Both candidates were tested live and ruled out:
+- `Event->var()` (the `jobqueue`/`base.event.add_var` polling-free watcher
+  candidate): fired **zero times** on a cross-process mmap write in a
+  fork+3s-event-loop test, despite the write landing correctly in shared
+  memory. `man Event` confirms why — it watches in-process Perl-level SV
+  reads/writes only, never external memory mutation.
+- `Linux::Inotify2` (already integrated elsewhere in this codebase via
+  `base.inotify.install_io_watcher`): confirmed live to work fine on
+  `/dev/shm` for *regular* writes, but does **not** reliably fire `IN_MODIFY`
+  for an *mmap'd* write without an explicit `msync()` — which `Sys::Mmap`
+  doesn't even expose. Ruled out for the same reason in a separate test.
+
+**The answer**: a native FIFO + `Event->io()`/`base.event.add_io` — the same
+technique `IPC::Notify` (CPAN) uses internally (confirmed by reading its
+source: `_read_from_fifo` is `IO::Select->can_read($timeout)` on a
+`mkfifo`'d filehandle), reimplemented directly rather than taken as a
+dependency, same pattern as `lock_memory`/`unlock_memory` in phase 1. A FIFO
+write is a *regular* write, immune to both gaps above. `base.event.add_io`'s
+existing `timeout`/`timeout_cb` covers the stalled-reader liveness case for
+free — no new plumbing.
+
+**Also resolved**: the feedback region carries an ntime freshness stamp
+(`last_page_read` + `ntime`, both `Q`-packed) to resolve "who has the latest
+data." Exact formula confirmed from two independent existing implementations
+(`bin/Protocol-7`'s `p7_ntime`, `bin/atom-delta-term`'s `calc_ntime`):
+`sprintf("%.0f", (unix_time - 1023228000) * 4200)` — **not** `int()`, they
+round differently. Zenka side injects the real `<[base.ntime]>` (no param,
+harmony-validated via `p7_ntime`'s retry loop); standalone computes the bare
+arithmetic with **no** harmony validation — this asymmetry must be documented
+in the code, not assumed away. **User-caught edge case**: a backward clock
+jump must not permanently poison the comparison — guard by rebasing the
+writer's `last_seen_ntime` to current `now` (not `0`) when `now` is ever
+observed below it, so one jump doesn't block every real update after it.
+
+**Also resolved**: `data.channel.shm.*`'s ring buffer is a different tool
+(continuous bidirectional channel), not a specialization target — kept
+separate from the new paging/feedback design, not merged.
+
+Full detail, including the exact test scripts and why each candidate failed,
+is in `data/tasks/amos7-shm-paging-feedback.md`'s "RESOLVED" section — read
+that before implementing, don't re-derive or re-test what's already settled.
+
+## Phase 4 — design only, not started
+
+Full lifecycle/cleanup hooks (currently only `data.mount.shm.init_code`'s
+`$SIG{'INT'}` handler, which unlocks but does not unlink) — now also needs
+to cover the phase-3 FIFO's lifecycle alongside the segment's.
 - The two relay origins in [[topic-summary-tree-phase1]]'s BMW-L13 work
   compute their checksums differently (byte string vs perl character
   string) — unrelated mechanism, but the same "verify cross-process/
@@ -133,8 +173,8 @@ paging itself (paging has no feedback channel yet).
   fork and add a timing gap, or you'll get a false positive from whatever
   fallback path silently activated.
 
-#,,..,.,,,,,,,.,,,,..,,,,,.,.,,,,,,..,.,,,,..,..,,...,...,...,.,.,.,.,.,.,,..,
-#GZ5UKFGMKOBHIJRP7DSHCL7UETO46KE2HIVPSOYMVDD2G55T665NSJEYM5LBBTWAXIYQLHNLU5QTY
-#\\\|25SARZXDGT2SFW73KDL64SEO6QQHUYVRWZXK2TFXWDEJXO2ZI4K \ / AMOS7 \ YOURUM ::
-#\[7]7Y7RSB4P6DCINB5VLQ525TQTODONWXGDNPYK5N3DVY4L25Q75EDI 7  DATA SIGNATURE ::
+#,,..,,.,,..,,...,...,,.,,,,,,..,,,.,,.,,,,,.,..,,...,...,..,,,.,,.,.,,..,,,.,
+#AJSY7J42K76Y6V7KUFQUQPIJIBBDN3XK37FNDGOLKSJENYNSM4TST5PYGH7USDLZAH5MTRHYGDVU6
+#\\\|RGHAORKPCUBKMNK354DV4R54ZKV362IK4IS2UKBX6ZZGXVPNZ5O \ / AMOS7 \ YOURUM ::
+#\[7]XMVS7MVGMTTJ4V6IQWUAZ3QCT6WYNSNVBNQHWYKAD42UP7UK36DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
