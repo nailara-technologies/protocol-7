@@ -34,6 +34,7 @@
 - [route-send command format](feedback-route-send-command-format.md) — route-send uses bare `X-11.wait_visible` (no cube. prefix); cube.X-11.xxx is send.local only; mixing these causes "no perm" from cube
 
 ## Active Topics
+- [amos7-shm-phase1](topic-amos7-shm-phase1.md) — AMOS7::SHM phase 1 LANDED 2026-06-22 (410805f43); found+fixed data.mount.shm.* never actually shared memory (fileno() bug) + mlock unreachable standalone + IO::AIO/fork hang (self-healing pid-guard fix); phases 2-4 (paging, feedback channel, cleanup) still design-only in data/tasks/amos7-shm-paging-feedback.md
 - [zenka-naming-cleanup](topic-zenka-naming-cleanup.md) — cred-mesh + window-place renames landed; pattern for spotting/fixing more underscore/dotted zenka names; tile-groups->tile LANDED 2026-06-15 (82e65f2d6); command-name cleanup pass LANDED (switch-group, reset-group, base-group, show-groups, count)
 - [ondemand-heartbeat-upgrade](topic-ondemand-heartbeat-upgrade.md) — tile set up on-demand+heartbeat-enabled+no-timeout as test case; two v7 follow-ups identified (exclude heartbeats from idle timer; pre-exit termination notification)
 - [mpv-jobqueue-startup](topic-mpv-jobqueue-startup.md) — placement flow + geometry enforcement LANDED 2026-06-18; Weston ignores --geometry offset: fixed via X-11.wait_visible→set_geometry after socket ready; open: snapshot/restore + monitor registry
@@ -190,8 +191,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,,.,.,.,...,...,.,,,..,,..,,..,,..,,,.,,.,.,..,,...,...,..,,,,,,,.,,,..,...,
-#6H43KTXI3PW3FMINMQTPRUW7OWZOGAPS2HVZDY55S5TNO3MI2EY7ZI7STPSI5B3XXD3PP22YVQZX6
-#\\\|FG2ZLJWG4EHCLW5ANSQZCQMMWH3EBNRIHEGUVQ2C5M4AH5KZMY2 \ / AMOS7 \ YOURUM ::
-#\[7]RKKPOLDKUZTXQSHMTQT6FAUSE6A6ZU7SHX6NJ52AENGIRJESNSCI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,.,,,.,.,,,,,..,,,,.,,..,...,.,,,..,,...,...,..,,,.,,..,,,,.,...,
+#GZYGUNTQ5MQCSLU7B2TN6WMSQMLVK7XY33CQTFS5T2IYS3UU7PCEJ3CRE46JXBGMUFHMMIF2JYTSC
+#\\\|WMG2VTVJR7LQAB2O4PMRKWMKPZAULM4CIWYWK2QMFYKQE54H5KU \ / AMOS7 \ YOURUM ::
+#\[7]VSBDOJGM4I6NLAS2L2BNYDA4GLTEG7KQM64TP3NUUWRHQESVAAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

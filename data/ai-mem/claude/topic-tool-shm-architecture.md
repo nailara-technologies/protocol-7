@@ -51,7 +51,25 @@ or between models directly from cache, SHM accessible.
 Creating zenka (coding) stores to SHM → data zenka adopts ownership.
 Data zenka maintains cache with its own algorithms, TTL, settings.
 
-## Generic SHM Scalar-to-Scalar Param Transfer (planned — layer 4.5, 2026-06-21)
+## Generic SHM Scalar-to-Scalar Param Transfer (layer 4.5 — phase 1 LANDED 2026-06-22)
+
+Design doc `data/tasks/amos7-shm-paging-feedback.md`; full detail in
+[[topic-summary-tree-phase1]]'s sibling memory — see
+[[topic-amos7-shm-phase1]] (new). Phase 1 committed `410805f43`: promoted
+`data.mount.shm.*` core to standalone `AMOS7::SHM`
+(`data/lib-path/pm/AMOS7/SHM.pm`), zero behavior change on the zenka path
+(`p7c data.shm-self-test` verified unchanged), plus found+fixed two real
+pre-existing bugs along the way: `data.mount.shm.*` "shared memory" never
+actually worked cross-process (`Sys::Mmap::mmap` called with `fileno($fh)`
+instead of `$fh` — silently fell back to a private per-process copy, in
+*both* standalone and zenka mode, since this code existed), and mlock was
+unreachable standalone. Also closed an `IO::AIO`+`fork()` hang found live
+during verification — `AMOS7::SHM` self-detects the fork via a pid
+comparison and calls `IO::AIO::reinit()` automatically, no caller
+convention to remember. Phases 2-4 (paging abstraction, reversed-flow
+feedback channel, full lifecycle/cleanup) are still design only — see the
+doc for the explicit reader-paced/writer-paced open fork and the
+`data.channel.shm.*` ring-buffer reconciliation required before phase 3.
 
 **Why:** direct motivating bug — `base.handler.command`'s single-line command
 buffer caps at 242707 bytes; any command needing a large scalar param (e.g.
@@ -103,8 +121,8 @@ Re-referenceable and re-nestable at zero copy.
 User note: "adding another abstracting layer is a temporary workaround
 that is still clean and no initial technical debt" — accepted pattern.
 
-#,,.,,,.,,,..,.,,,.,,,,,.,.,,,,,.,..,,.,,,,.,,..,,...,...,.,.,.,,,...,,..,..,,
-#CKW4SEZ5U32V2JRNIOL4RP32AE5XI4JFH4YECONHL5UDTOFF3TKZQOGR7HYRMT4XUTVQ3KRMZNR2E
-#\\\|MICUVUV5NTOY2WVDSWXWICM3VUOJ34MNIFNFXK3N3H4NGLFWIJ2 \ / AMOS7 \ YOURUM ::
-#\[7]QPZJBDEQ4NT7MKTSGQUT7TPD627XMHB2PWVKVICIJKSD5YN3F4CA 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,.,,.,.,..,,..,,...,.,.,,,.,,,.,..,,...,..,,...,...,...,,..,,,.,
+#NPMBRWLZD54PUW6NYAAZ7XDFOT2UFBATHOLVQ2WK7JLG7AVVONLUZMRNZ6KCUTZRN7K4MTQZRWEWK
+#\\\|ZRQZNKILBBGNHQRT55GKKNWZC4D6DETKTFVG4UWHC7EMXRI2XS7 \ / AMOS7 \ YOURUM ::
+#\[7]LMICNKMLXN2OCXNGC4S22FIYHS6UG73IEOCCOZZAUWNPI6Y7IEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
