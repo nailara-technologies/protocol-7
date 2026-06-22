@@ -169,32 +169,49 @@ if ( defined $result && $result->{'success'} ) {
                         . "produce an updated running summary that preserves "
                         . "information from both, information-dense, no preamble.";
 
-                    ## guard: hard-truncate if still too big ##
+                    ## guard: if still too big once wrapped, split the
+                    ## excess back into the chunk queue as an additional
+                    ## chunk instead of discarding it -- mirrors the chunk-0
+                    ## guard in coding.task.chunk_and_summarize : same 1.4
+                    ## conservative factor, same "never lose content" rule.
+                    ## also include the system prompt's length -- it rides
+                    ## in the same messages array coding.task.execute
+                    ## measures, and omitting it understated the real cost ##
                     my $chars_per_token = 3.2;
-                    my $prompt_est
-                        = int(
-                        bytes::length($child_prompt) / $chars_per_token );
+                    my $prompt_est      = int(
+                        (   ( bytes::length($child_prompt) + length($sys) )
+                            * 1.6
+                        ) / $chars_per_token
+                    );
                     my $p_srv_key = $parent_state->{'backend'} // qw| gpu |;
                     my $p_srv_info
                         = ( <coding.inference_servers> // {} )->{$p_srv_key}
                         // {};
                     my $p_n_ctx = $p_srv_info->{'n_ctx'}
                         // <inference.model.context_length> // 7777;
-                    if ( $prompt_est > $p_n_ctx - 500 ) {
-                        my $max_prompt_bytes
-                            = int( ( $p_n_ctx - 500 ) * $chars_per_token );
+                    if ( $prompt_est > $p_n_ctx - 1000 ) {
+                        my $overrun = $prompt_est - ( $p_n_ctx - 1000 );
                         my $head
                             = "running summary so far:\n$running_summary\n\n";
-                        my $tail
-                            = "\n\nproduce an updated running summary that preserves "
-                            . "information from both, information-dense, no preamble.";
-                        my $available
-                            = $max_prompt_bytes
-                            - bytes::length($head)
-                            - bytes::length($tail);
-                        $available  = 500 if $available < 500;
-                        $next_chunk = substr( $next_chunk, 0, $available )
-                            . "\n\n...[truncated: chunk exceeded safe size]";
+                        my $split_at
+                            = length($next_chunk)
+                            - int( $overrun * $chars_per_token / 1.6 )
+                            - 100;
+                        $split_at = 500 if $split_at < 500;
+
+                        my $overflow_text = substr( $next_chunk, $split_at );
+                        $next_chunk = substr( $next_chunk, 0, $split_at );
+
+                        ## re-insert the overflow as the next chunk in the
+                        ## queue -- never lost, just deferred one pass ##
+                        splice(
+                            @{ $chunk_state->{'chunks'} },
+                            $current_idx + 1,
+                            0, $overflow_text
+                        );
+                        $total_chunks = scalar @{ $chunk_state->{'chunks'} };
+                        $chunk_state->{'total_chunks'} = $total_chunks;
+
                         $child_prompt
                             = $head
                             . "new text to fold in:\n$next_chunk\n\n"
@@ -202,11 +219,15 @@ if ( defined $result && $result->{'success'} ) {
                             . "information from both, information-dense, no preamble.";
                         <[base.logs]>->(
                             0,
-                            "chunk_and_summarize: chunk %d/%d hard-truncated "
-                                . "[ est=%d > n_ctx-500 ]",
+                            "chunk_and_summarize: chunk %d split at %d chars "
+                                . "[ overrun %d tokens, %d bytes carried "
+                                . "forward as a new chunk, now %d total "
+                                . "chunks ]",
                             $current_idx + 1,
-                            $total_chunks,
-                            $prompt_est
+                            length($next_chunk),
+                            $overrun,
+                            length($overflow_text),
+                            $total_chunks
                         );
                     }
 
@@ -631,8 +652,8 @@ if ( defined $result && $result->{'success'} ) {
     return { success => FALSE, error => $error_msg, task_id => $task_id };
 }
 
-#,,.,,.,,,,.,,...,,.,,.,.,,..,.,.,,,.,...,...,.,.,...,...,..,,...,.,,,.,.,,,.,
-#6MQ7KTFRVTWMBUT5A4M7B3C3L45DFA3XEVVYLEKU3IGHGBM4FYU6DZTYHZDVXF5TCAEFQUQTNB4LS
-#\\\|MXBH4XGSK23USVE57WUS6RZDNZ5IOM45TRR6YW2KQSQA5TZDWXW \ / AMOS7 \ YOURUM ::
-#\[7]6CHODOBZVASBLWNGCNAPGWSVVZA2SDOG4WSLNBXWBMUIORVJNSDY 7  DATA SIGNATURE ::
+#,,,.,.,.,...,.,.,,.,,,..,..,,..,,.,.,..,,.,.,.,.,...,...,,,,,,,.,.,.,...,..,,
+#RIFB7GS6TJXZJAE4JWLDL465CXGLQOWYSPWG6BV6WSOCT7R5AHLH5KWESMIXLGIXVFYSVWQMX64JW
+#\\\|OPVDVYV4NEXOC4NOQOP36MAD6HQTF6G42YJGK2S3DKVGQ6YR6MY \ / AMOS7 \ YOURUM ::
+#\[7]RFPHZ3AXBBDD3CLOQ7VBBLGTIM2EC6RPG4HOPP5RCL3KE2PNOMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
