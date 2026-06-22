@@ -4,85 +4,35 @@
 # descr = Create SHM segment with cryptographic identity header
 #         Uses file-based SHM in /dev/shm (tmpfs) - portable across systems
 
-use constant SHM_HEADER_SIZE      => 512;
-use constant DEFAULT_SEGMENT_SIZE => 63 * 1024;
+# thin zenka wrapper -> AMOS7::SHM::shm_create
+# [ same relationship base.chk-sum.amos has to AMOS7::CHKSUM::amos_chksum ]
+# mechanics live in the standalone-loadable core ; the zenka path adds the
+# two context-specific concerns the core deliberately stays out of :
+#   - the 'created' time source [ <[base.time]>->(2) ]
+#   - mlock + the in-memory segment registry [ lifecycle, zenka-owned ]
 
 my $pub_key_b32 = shift;
-my $size        = shift // DEFAULT_SEGMENT_SIZE;
+my $size        = shift;
 my $options     = shift // {};
 
-return undef unless defined $pub_key_b32 && length($pub_key_b32) >= 32;
+# inject the zenka time source ; core defaults to time() standalone
+$options->{'time_source'} //= sub { <[base.time]>->(2) };
 
-my $shm_path = sprintf( "/dev/shm/p7:M:%s", $pub_key_b32 );
+my $mount = AMOS7::SHM::shm_create( $pub_key_b32, $size, $options );
 
-if ( $options->{'sub_path'} ) {
-    $shm_path .= ":" . $options->{'sub_path'};
-    $shm_path =~ s{[^a-zA-Z0-9_:/\-]}{_}g;
+return undef unless defined $mount;
+
+# mlock if requested [ zenka-side lifecycle, not core mechanics ]
+if ( $mount->{'header'}{'flags'}{'mlocked'} ) {
+    <[data.mount.shm.lock.memory]>->(
+        $mount->{'mmap_ptr'}, 0, $mount->{'total_size'}
+    );
 }
 
-my $total_size = $size + SHM_HEADER_SIZE;
+return $mount;
 
-# Use file-based SHM in /dev/shm (tmpfs)
-# This is more portable than POSIX::shm_open
-open( my $fh, '+>', $shm_path ) or return undef;
-binmode($fh);
-
-truncate( $fh, $total_size );
-
-my $header = {
-    'magic'        => 'P7SH',
-    'version'      => 1,
-    'owner_pubkey' => $pub_key_b32,
-    'created'      => <[base.time]>->(2),
-    'data_size'    => $size,
-    'header_size'  => SHM_HEADER_SIZE,
-    'flags'        => {
-        'mlocked'    => $options->{'mlock'}      // 1,
-        'encrypted'  => $options->{'encrypted'}  // 0,
-        'compressed' => $options->{'compressed'} // 0,
-    },
-    'permissions' => [],
-};
-
-my $header_packed = <[data.mount.shm.create.pack_shm_header]>->($header);
-syswrite( $fh, $header_packed );
-
-# Flush to ensure data is on disk before mmap
-$fh->flush();
-
-# mmap the file for zero-copy access
-my $mmap_ptr = <[data.mount.shm.create.mmap_file]>->( $fh, $total_size );
-
-# If mmap fails, use scalar reference (data copied to memory)
-if ( !defined $mmap_ptr ) {
-    seek( $fh, 0, 0 );
-    my $data;
-    {
-        local $/;
-        $data = <$fh>;
-    }
-    $mmap_ptr = \$data;
-}
-
-close($fh);
-
-# mlock if requested
-if ( $header->{'flags'}{'mlocked'} ) {
-    <[data.mount.shm.lock.memory]>->( $mmap_ptr, 0, $total_size );
-}
-
-return {
-    'path'       => $shm_path,
-    'pub_key'    => $pub_key_b32,
-    'size'       => $size,
-    'total_size' => $total_size,
-    'mmap_ptr'   => $mmap_ptr,
-    'header'     => $header,
-    'type'       => 'file',
-};
-
-#,,.,,,..,.,.,.,.,..,,..,,,..,..,,,.,,,..,,,,,..,,...,...,...,,,.,..,,,..,,,,,
-#JZM3FF7VXFQS3A6BZN7PB3FGOD5NTT2FHRE73MU4LIX3HWV7XU327ZZLX3PE7ISMG4P65DX57AM4G
-#\\\|UVH3QU4N5HBNPNSX3UNG3QZ6UPY2BENL3HQOLX3GDF3AGF33QLY \ / AMOS7 \ YOURUM ::
-#\[7]NT7F7U3UWOM2CTELHYFQYFK6I5P7Q5P2JEW7OBFLFXYIKAFQE6DA 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,,.,.,,,,,.,,,,,...,.,,,,.,,.,.,..,,...,...,.,.,.,.,,,.,,,,,,,.,
+#E3UQO3GN6I6LXRUFFY75ZBAE4AR5W6QMRWSI73YY4R6KQMT3EBWW2ZIRP2GO2C4NBZ4VT2YACIAAW
+#\\\|JFESNNTDC7AKFED7QHK6UQCSUMZQBUOENNL6EXT27NC7RMP5TMY \ / AMOS7 \ YOURUM ::
+#\[7]P4NC6PAMQGMSTNRYL3P6PGTDQBTE2LQTBF6UKS4P6RHTKHZTBABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

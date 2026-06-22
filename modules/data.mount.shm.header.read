@@ -3,27 +3,13 @@
 # name = data.mount.shm.header.read
 # descr = Read and parse cryptographic header from SHM segment
 
-use constant SHM_HEADER_SIZE => 512;
-
+# thin zenka wrapper -> AMOS7::SHM::header_read
 my $mmap_ref = shift;
 
-return undef unless defined $mmap_ref && ref($mmap_ref) eq 'SCALAR';
+return AMOS7::SHM::header_read($mmap_ref);
 
-my $header_raw = substr( $$mmap_ref, 0, SHM_HEADER_SIZE );
-return undef unless length($header_raw) >= SHM_HEADER_SIZE;
-
-return undef unless substr( $header_raw, 0, 4 ) eq 'P7SH';
-
-my $header = <[data.mount.shm.header.read.unpack_shm_header]>->($header_raw);
-return undef unless defined $header;
-
-$header->{'checksum_verified'} = 1;
-$header->{'permissions'} //= [];
-
-return $header;
-
-#,,..,,..,...,,.,,..,,,,,,,,,,..,,...,...,,,,,..,,...,..,,,..,.,,,,,,,.,.,,,.,
-#IGYAH7RLN3WP2JAYJ2SG7GKT3EDQ2HQGPMCGIUUBYEGMEYEF27VBYJXUXG5IBPBA43YQBHOIQAXF2
-#\\\|5O2KKAFZYTBSJYUVCNERCHGTKAWVKQ43STWL7FX6CK5B3VGHOXY \ / AMOS7 \ YOURUM ::
-#\[7]XOC3N4MFS7WAB24V64NZDKI2GFYUIFQWA2PHVSQ276L47TGTR4BY 7  DATA SIGNATURE ::
+#,,.,,...,.,,,.,,,,..,,.,,,..,,.,,..,,..,,,.,,..,,...,...,..,,..,,.,.,.,.,,,.,
+#P5FLRB6VFZXVDPEJBR532GQJSQELLKXSXI7Z7L7EXNLBPIBY2YPNE6AVLLUGC4WXHM65GEE3GMJUU
+#\\\|4KDF3MGSQJY2QDMYNWB23QKSVZ7755FZ45QTRRQBWD7NFTT3QWW \ / AMOS7 \ YOURUM ::
+#\[7]GMD3TIZ4U2SCXRU6CVJTYMPS2A5IJN3AELJF5WAD35E6JC7SGODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

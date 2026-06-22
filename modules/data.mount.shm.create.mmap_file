@@ -3,24 +3,13 @@
 # name = data.mount.shm.create.mmap_file
 # descr = mmap file-based SHM
 
+# thin zenka wrapper -> AMOS7::SHM::mmap_file
 my ( $fh, $size ) = @ARG;
 
-return undef unless defined $fh;
+return AMOS7::SHM::mmap_file( $fh, $size );
 
-if ( eval { require Sys::Mmap } ) {
-    my $var;
-    eval {
-        Sys::Mmap::mmap( $var, $size,
-            Sys::Mmap::PROT_READ() | Sys::Mmap::PROT_WRITE(),
-            Sys::Mmap::MAP_SHARED(), fileno($fh), 0 );
-    };
-    return \$var if !$@ && length($var) > 0;
-}
-
-return undef;
-
-#,,.,,.,.,..,,.,,,.,,,.,.,.,,,,.,,...,..,,...,..,,...,...,,..,,..,.,.,,..,.,.,
-#5YNANM5XA3HC5AI7YAEGMHLUZGIIE66XKHJJDW35XIP4AVFDCR5YCTPEGON3EL5O2IV5U37LAICOK
-#\\\|Z4GEWEWDZGBYMAZDSRGBCJVZBOI2ZF6STHV3KV5NX2FVV7M2JAJ \ / AMOS7 \ YOURUM ::
-#\[7]GUEBKJ27K6U6ZWUNZCOAIMNJW3RMF47FOA5YVBGIV452OHCCS4CI 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,.,.,,.,,...,,..,,,.,.,.,..,,,,,,..,,...,..,,,,.,..,,,..,,,,,..,,
+#ZTZS552K4I7GOHBBGWKYKFHZNZ7ACMDTV7NDS3G6V5AKS7PDUMDL6QEWTWYNKWBZZJQALCLMKHG6E
+#\\\|NRCY367GQXPIOOGOEV5JJQLX25MHHOA3WWTIAS4G3JOGVFRQC5K \ / AMOS7 \ YOURUM ::
+#\[7]JBAV62EPNRUKTIOQYEWI3W5P2AATZQB2PBCE6RSWVXZDZ32CHGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

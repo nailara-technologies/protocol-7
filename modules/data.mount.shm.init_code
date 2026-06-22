@@ -15,6 +15,14 @@
 <[base.perlmod.autoload]>->('Sys::Mmap')
     unless exists $INC{'Sys/Mmap.pm'};
 
+## standalone-loadable core : mmap / header / permission mechanics ##
+## [ same hybrid precedent as AMOS7::CHKSUM ; wrappers call into it ] ##
+<[base.perlmod.autoload]>->('AMOS7::SHM')
+    unless exists $INC{'AMOS7/SHM.pm'};
+
+## inject the zenka log handler into the package logging shim ##
+$AMOS7::SHM::log_handler = sub { <[base.log]>->( $ARG[0], $ARG[1] ) };
+
 ##[ NAMESPACE INITIALIZATION ]##############################################
 
 # SHM mount registry
@@ -89,8 +97,8 @@ $SIG{'INT'} = sub {
 # Init codes must return 0 or 5 for success
 return TRUE;
 
-#,,,.,,..,,,.,.,.,,,.,.,.,,,,,,,.,...,,,,,...,.,.,...,...,.,.,,,.,.,.,,.,,,,,,
-#VLHYBRSJ7IKCPQNIJIFSFZBTJ7PZ7T7VSHXKPPJPMWJYKXWRSEH5EM2JFRLJACEWNMCLB5KOBU7JC
-#\\\|2SWFG4B62TC4PM4YH62BGP74YHM7EBDCSEK2SA2UBQ5CNZBZ5FP \ / AMOS7 \ YOURUM ::
-#\[7]NH4MITMFZ6TDLKFHCRPCLFBUS4WJOW5563W4FE4I3C7B74OLJUCI 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,..,,,,.,,,.,,..,,..,,,,,,,.,,..,.,.,...,...,,,,,,,.,,.,,.,,,,.,,
+#TEMRW3DSMQS6NIJYOGQ2DUH327HOXGYEQMTHQIMQQCA3AFPRPLTB52WX7FK7S6NDJV76D7E7ATRNU
+#\\\|T5R4K2UPBC5XCP66JMXPQN3DZIC3K4PLGV4WQH5EG4I4YIN7MZT \ / AMOS7 \ YOURUM ::
+#\[7]IDMVJTTUFOXXS3XPNPBFUDOK654XM62HGDDFSSWBQUSLHAREZIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

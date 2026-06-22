@@ -3,13 +3,13 @@
 # name = data.mount.shm.permission.verify.group_contains
 # descr = Check if member is in group
 
+# thin zenka wrapper -> AMOS7::SHM core ; inject $data{'groups'} registry
 my ( $group_id, $member_key ) = @ARG;
 
-return 0 unless exists $data{'groups'}{$group_id};
-return grep { $_ eq $member_key } @{ $data{'groups'}{$group_id}{'members'} };
+return AMOS7::SHM::_group_contains( $group_id, $member_key, $data{'groups'} );
 
-#,,,.,.,,,,..,,,,,,..,.,,,,,,,,,.,...,,..,,,.,..,,...,...,.,.,,,,,..,,..,,..,,
-#OQTZMJSFH74XII4VSANEDMPNX2JOANVWKX46T46PQX6IFNCXPKVBEB3ZBRSCLRMMTOANBVEOCT5UU
-#\\\|JJD7CGMJYSLMCHVQ7CC2GQJYY5PBZRCMG6WFRFBCOW4XAGNRNRP \ / AMOS7 \ YOURUM ::
-#\[7]X3EAJZNB2YFK5Y4SXFX6OTKDM4V4WOSDOKHBZTSOAB43565CY2AY 7  DATA SIGNATURE ::
+#,,..,..,,..,,,.,,,.,,.,,,..,,,..,,.,,..,,,,,,..,,...,..,,..,,,,.,..,,,,.,,,.,
+#GNSZ5JCEDTSGFQY7DCQ5RQ6AL264ZBIG3LCPTKOGUVVYHI2GFUG4RLROQNNN6SMAJREXLQTRGANPO
+#\\\|QZCTPQLAGHMQPZPRMPNWWDMZINENDDXYF6JW35ULPCDUOERDWH3 \ / AMOS7 \ YOURUM ::
+#\[7]RXYQ4CM5BUKODZ4LJU2MHOLF2FA567GYNHR4S4IIJFIPM6XH2MDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
