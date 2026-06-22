@@ -596,7 +596,9 @@ sub shm_open {
 
     my $requested_rights = $options->{'rights'} // ['read'];
 
-    open( my $fh, '+<', $shm_path )
+    my $open_mode = ( ( $options->{'mode'} // '' ) eq 'read' ) ? '<' : '+<';
+
+    open( my $fh, $open_mode, $shm_path )
         or return { 'error' => 'open_failed', 'path' => $shm_path };
     binmode($fh);
 
@@ -635,8 +637,8 @@ sub shm_open {
 
 return TRUE  #################################################################
 
-#,,,,,,.,,..,,.,.,,.,,.,.,,,.,,,.,,.,,.,.,..,,..,,...,...,..,,.,.,.,,,,.,,,.,,
-#KKLOGONLVP3CN2EV2KDRENHTLROMIQNXMJB75NJEOQW7KGCDEJMXQLJDRWOVWH4OIOHF7PM5UFKAW
-#\\\|UVKLTKLHDGS4CCV4LJNJXQA4GSVUJFGZ6XK6GFTMETOPNWKU2PN \ / AMOS7 \ YOURUM ::
-#\[7]MEFV3557NYS65K5TGR35WYR6WRRAISZC3ORF7Z4FV4ZZ34SJYACA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,.,,,..,,,.,,,..,,..,,,.,,,.,..,,..,,...,...,..,,,..,,..,..,,,..,
+#GD7EBFM7ZN2DN2XHJXAS6C63GUQAPU7RVIPEORQFJMIOSGDGS2FZNM6UYKQ5TYJOKYWHUZ5TBVKX2
+#\\\|XUYYVVXT5ZLLEAQMDB5J66FF2RVFZYCQIWAZ57GW2NXJGHZ5G2I \ / AMOS7 \ YOURUM ::
+#\[7]5SINJTI6HYI4JZAQZJYQPHELZKQ3ZHGYLNFSYX3GAVJSCGC6BUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
