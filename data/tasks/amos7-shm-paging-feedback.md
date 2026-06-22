@@ -2,14 +2,12 @@
 
 ## status [ 2026-06-22 ]
 
-**design only — nothing here is implemented yet.** every phase below is a
-plan, not an accomplishment. the *foundation* this builds on
-[ `modules/data.mount.shm.*` ] is real, landed code [ see "what already
-exists" ] — but the standalone promotion, the paging abstraction, the
-feedback channel, and the lifecycle/cleanup hooks described here do **not**
-exist on disk yet. read "what already exists vs what is new" carefully before
-touching anything — this is an extension of working infrastructure, not a
-green field.
+**phases 1 and 2 are implemented and live-verified.** phase 1 (standalone
+`AMOS7::SHM` promotion) committed `410805f43`. phase 2 (paging, see "phase 2
+— DONE" below) committed same day. phases 3 (feedback channel) and 4
+(cleanup hooks) are still design only — read "phase 1 — DONE" / "phase 2 —
+DONE" for what's actually on disk before touching either, then phases 3/4
+below for what's still a plan.
 
 ## signatures note
 
@@ -370,21 +368,51 @@ acceptance:
 - [ ] cleanup-behavior selection keys on `defined $main::PROTOCOL_SEVEN` and
       nothing else branches on context
 
-### phase 2 — paging abstraction over an existing segment [ closes gap #1 ]
+### phase 2 — DONE, live-verified 2026-06-22 [ closes gap #1 ]
 
-- `AMOS7::SHM::Page` [ + a thin `data.mount.shm.page.*` wrapper if zenka callers
-  want dotted access ]: read / write by **page number** above the raw
-  `substr()` the test module currently does by hand at hardcoded offset 512.
-- writer announces an index [ total pages, page size, content checksum ] via
-  the header's `data_size` and a small index region; reader pulls page N.
+**what landed**:
+- `AMOS7::SHM::Page` (`data/lib-path/pm/AMOS7/SHM/Page.pm`) — sibling package
+  to `AMOS7::SHM`, same branch-free-mechanics style. a fixed **32-byte page
+  index** [ `P7PG` magic + `total_pages` + `page_size`, both packed `N`, +
+  13-byte bmw-L13 checksum ] sits between the 512-byte mount header and the
+  first page of data — `data_offset() == SHM_HEADER_SIZE + 32 == 544`.
+  `create($pubkey, $content_size, $page_size, $checksum, $options)` computes
+  `total_pages`, sizes the underlying `AMOS7::SHM::shm_create` segment to
+  fit index+all pages, then **overwrites the mount header's `data_size`** to
+  the real content length [ not the padded index+pages region ] — this is
+  what lets `read_page` clip the final, possibly-partial page correctly
+  without picking up trailing zero-padding.
+- thin zenka wrappers, same pattern as phase 1: `modules/data.mount.shm.page.{create,write,read}`,
+  `.page.index.{write,read}`. `page.create`'s wrapper injects the time source
+  and re-adds the external mlock call, mirroring `data.mount.shm.create`'s
+  wrapper exactly — `shm_create`'s standalone-only self-mlock branch
+  [ phase 1 ] does not fire when called this way in zenka mode, same reason
+  the original wrapper needed it.
+- `modules/data.mount.shm.page.test.basic` + a 4th test wired into
+  `data.cmd.shm-self-test` (`p7c data.shm-self-test` now runs mount / channel
+  / stats / **page** in one pass).
+- `modules/data.mount.shm.init_code` autoloads `AMOS7::SHM::Page` alongside
+  `AMOS7::SHM`.
+
+**verified live, not just unit-tested**: byte-identical reassembly with a
+content length that is *not* an exact multiple of `page_size` [ exercises the
+last-page clip ]; out-of-range rejection on both `read_page` and `write_page`;
+header region [ first 512 bytes ] confirmed untouched after paging; and —
+the actual point of phase 1 — **cross-process**: a forked child re-opens the
+segment via `shm_open` and reassembles all pages written by the parent,
+byte-identical. `p7c data.shm-self-test` passes all 4 tests.
 
 acceptance:
-- [ ] a writer can page out a multi-page payload and a reader can reassemble it
-      byte-identically by pulling pages in order
-- [ ] page boundaries respect the 512-byte header offset [ no payload written
-      into the header region ]
-- [ ] a pulled page out of the announced range is rejected, not read past the
-      segment end
+- [x] a writer can page out a multi-page payload and a reader can reassemble it
+      byte-identically by pulling pages in order — confirmed same-process and
+      cross-process (forked reader)
+- [x] page boundaries respect the 512-byte header offset [ no payload written
+      into the header region ] — confirmed: index occupies bytes 512-543,
+      page data starts at 544, mount header magic/fields verified intact
+      after writing all pages
+- [x] a pulled page out of the announced range is rejected, not read past the
+      segment end — confirmed on both `read_page` (returns `undef`) and
+      `write_page` (returns `{error=>'page_out_of_range'}`)
 
 ### phase 3 — feedback-variable channel + the reader/writer-paced decision
 
@@ -514,18 +542,19 @@ added that bypasses it.
 
 ## acceptance [ overall ]
 
-- [ ] `AMOS7::SHM` is loadable both standalone and in-zenka via the
+- [x] `AMOS7::SHM` is loadable both standalone and in-zenka via the
       `$main::PROTOCOL_SEVEN` precedent; mechanics are branch-free, only cleanup
       differs by mode
-- [ ] every existing `data.mount.shm.*` behavior is unchanged after the phase-1
+- [x] every existing `data.mount.shm.*` behavior is unchanged after the phase-1
       promotion [ zero regression — `p7c data.shm-self-test` is the data
       zenka's own existing gate, this is its live working code, not a neutral
       shared library ]
 - [ ] the relationship between the new paging/feedback design and
       `data.channel.shm.*`'s existing ring-buffer counters is explicit, not
-      silently duplicated
-- [ ] paging reads / writes a multi-page payload by page number, reassembled
-      byte-identically [ gap #1 closed ]
+      silently duplicated [ still open — required before phase 3, not phase 2 ]
+- [x] paging reads / writes a multi-page payload by page number, reassembled
+      byte-identically [ gap #1 closed — confirmed same-process and
+      cross-process via a forked reader ]
 - [ ] the feedback channel is a reverse-direction single-writer integer; no lock
       / mutex in either direction; the writer clamps it to the announced range
 - [ ] the reader-paced vs writer-paced fork is decided **consciously** and
@@ -576,8 +605,8 @@ prompt: |
   Follow the project's lowercase-comment, dot-notation style exactly. No
   signature stubs — the signing system adds them.
 
-#,,,.,,.,,,..,,.,,,,.,...,.,,,..,,,..,,,,,,,.,..,,...,...,,..,,,.,.,,,,,.,,..,
-#HTUXIP2RVNCU35D5QTFSXWCRIS2RYOV5HS2BR7YVDQZODJQSL3R3M6522GOHBUCGPKRPAHRAHXPG4
-#\\\|BNCCOI2ALYWWYVWDSQXTREC5W5FTZ7SNKGTJ3IYHZ2FPD6OY2QK \ / AMOS7 \ YOURUM ::
-#\[7]S7DWDXCKJVL3F53XOL5JONEXMZGUAHV257XJ3CJQMNUOCCXIRYDI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,,.,,..,,.,,,,,,,,,,..,,...,...,..,,...,...,..,,,,,,.,.,.,.,...,
+#EH5OBE2UAMV4I34OI2RUTIVHXWL4RNVDSRDJPGNHPRMKZ2IY3AAZZY7JPCZAHMCJ2H3LSRVU2W2VK
+#\\\|WGYVIVECLMWUIRDJJEXJOOOQSICFFI5LM62EODNYRXN4DN46XLT \ / AMOS7 \ YOURUM ::
+#\[7]XUXZP3BFTK6NRQIKNZYHAE62PGG3OSF2YOCMU5MGYUIE5GWLLSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
