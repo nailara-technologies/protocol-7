@@ -1,0 +1,249 @@
+## [:< ##
+
+# name  = data.mount.shm.feedback.test.basic
+# descr = Basic test for paged SHM feedback channel and fifo notify
+
+use IO::Select;
+
+<[base.log]>->( 2, "=== SHM Feedback Test ===" );
+
+my $test_pubkey = 'FEEDBACK' . ( 'Y' x 24 );
+my $content     = ( "FEEDBACK-TEST-DATA-" x 100 );
+my $page_size   = 512;
+my $checksum    = 'TESTCHKSUML13';
+my $sub_path    = 'feedback_basic';
+
+my $mount = <[data.mount.shm.page.create]>->(
+    $test_pubkey, length($content), $page_size, $checksum,
+    { 'mlock' => 0, 'sub_path' => $sub_path }
+);
+
+if ( !defined $mount ) {
+    <[base.log]>->( 0, "TEST FAIL: Could not create paged segment" );
+    return 0;
+}
+
+my $index = <[data.mount.shm.page.index.read]>->($mount);
+
+if ( !defined $index ) {
+    <[base.log]>->( 0, "TEST FAIL: Page index missing" );
+    <[data.mount.shm.unlink]>->( $test_pubkey, $sub_path );
+    return 0;
+}
+
+<[base.log]>->( 2, "segment created, total_pages=$index->{'total_pages'}" );
+
+##[ TEST 1: Notify FIFO creation ]##########################################
+
+my $fifo = <[data.mount.shm.feedback.create]>->($mount);
+
+if ( !defined $fifo or $fifo->{'error'} ) {
+    <[base.log]>->( 0, "TEST FAIL: could not create notify fifo" );
+    <[data.mount.shm.unlink]>->( $test_pubkey, $sub_path );
+    return 0;
+}
+
+my $notify_path = AMOS7::SHM::Feedback::notify_path($mount);
+
+if ( !-p $notify_path ) {
+    <[base.log]>->( 0, "TEST FAIL: notify fifo path is not a fifo" );
+    <[data.mount.shm.unlink]>->( $test_pubkey, $sub_path );
+    return 0;
+}
+
+<[base.log]>->( 2, "TEST PASS: notify fifo exists at $notify_path" );
+
+##[ TEST 2: Feedback write / read via wrappers ]############################
+
+my $wr = <[data.mount.shm.feedback.write]>->( $mount, 0 );
+
+if ( !defined $wr or !defined $wr->{'ntime'} ) {
+    <[base.log]>->( 0, "TEST FAIL: feedback write failed" );
+    <[data.mount.shm.unlink]>->( $test_pubkey, $sub_path );
+    return 0;
+}
+
+my $rd = <[data.mount.shm.feedback.read]>->($mount);
+
+if ( !defined $rd or $rd->{'last_page_read'} != 0 ) {
+    <[base.log]>->( 0, "TEST FAIL: feedback read back wrong value" );
+    <[data.mount.shm.unlink]>->( $test_pubkey, $sub_path );
+    return 0;
+}
+
+<[base.log]>->( 2, "TEST PASS: feedback write/read round-trip" );
+
+##[ TEST 3: Writer clamps last_page_read to [0, total_pages] ]##############
+
+AMOS7::SHM::Feedback::write_feedback( $mount, 999, { 'ntime' => 100 } );
+
+my $clamped = <[data.mount.shm.feedback.read]>->($mount);
+
+if ( !defined $clamped
+    or $clamped->{'last_page_read'} != $index->{'total_pages'} ) {
+    <[base.log]>->(
+        0, "TEST FAIL: last_page_read not clamped to total_pages"
+    );
+    <[data.mount.shm.unlink]>->( $test_pubkey, $sub_path );
+    return 0;
+}
+
+<[base.log]>->( 2, "TEST PASS: last_page_read clamped to total_pages" );
+
+##[ TEST 4: Stale / duplicate ding is skipped ]#############################
+
+AMOS7::SHM::Feedback::write_feedback( $mount, 1, { 'ntime' => 50 } );
+
+my $state = {};
+my $p1    = AMOS7::SHM::Feedback::process_feedback( $mount, $state,
+    { 'time_source' => sub {100} } );
+
+if ( !$p1->{'fresh'} or $p1->{'feedback'}{'ntime'} != 50 ) {
+    <[base.log]>->( 0, "TEST FAIL: first ding was not accepted" );
+    <[data.mount.shm.unlink]>->( $test_pubkey, $sub_path );
+    return 0;
+}
+
+## same ntime : duplicate ##
+AMOS7::SHM::Feedback::write_feedback( $mount, 2, { 'ntime' => 50 } );
+
+my $p2 = AMOS7::SHM::Feedback::process_feedback( $mount, $state,
+    { 'time_source' => sub {100} } );
+
+if ( $p2->{'fresh'} or !$p2->{'skipped'} ) {
+    <[base.log]>->( 0, "TEST FAIL: duplicate ding was not skipped" );
+    <[data.mount.shm.unlink]>->( $test_pubkey, $sub_path );
+    return 0;
+}
+
+## older ntime : stale ##
+AMOS7::SHM::Feedback::write_feedback( $mount, 3, { 'ntime' => 49 } );
+
+my $p3 = AMOS7::SHM::Feedback::process_feedback( $mount, $state,
+    { 'time_source' => sub {100} } );
+
+if ( $p3->{'fresh'} or !$p3->{'skipped'} ) {
+    <[base.log]>->( 0, "TEST FAIL: stale ding was not skipped" );
+    <[data.mount.shm.unlink]>->( $test_pubkey, $sub_path );
+    return 0;
+}
+
+<[base.log]>->( 2, "TEST PASS: stale/duplicate dings skipped" );
+
+##[ TEST 5: Clock-regression guard rebases to now, not 0 ]##################
+
+my $state2 = { 'last_seen_ntime' => 1000 };
+
+AMOS7::SHM::Feedback::write_feedback( $mount, 4, { 'ntime' => 200 } );
+
+my $p4 = AMOS7::SHM::Feedback::process_feedback( $mount, $state2,
+    { 'time_source' => sub {100} } );
+
+if (  !$p4->{'fresh'}
+    or $p4->{'last_seen_ntime'} != 200
+    or $state2->{'last_seen_ntime'} != 200 ) {
+    <[base.log]>->(
+        0, "TEST FAIL: clock-regression rebase did not accept fresh ding"
+    );
+    <[data.mount.shm.unlink]>->( $test_pubkey, $sub_path );
+    return 0;
+}
+
+## after the rebase, an ntime at or below the rebased bar is still stale ##
+AMOS7::SHM::Feedback::write_feedback( $mount, 5, { 'ntime' => 100 } );
+
+my $p5 = AMOS7::SHM::Feedback::process_feedback( $mount, $state2,
+    { 'time_source' => sub {100} } );
+
+if ( $p5->{'fresh'} or !$p5->{'skipped'} ) {
+    <[base.log]>->( 0, "TEST FAIL: stale ding accepted after rebase" );
+    <[data.mount.shm.unlink]>->( $test_pubkey, $sub_path );
+    return 0;
+}
+
+<[base.log]>->( 2, "TEST PASS: clock-regression guard rebased to now" );
+
+##[ TEST 6: FIFO ding wakes a waiting reader ]##############################
+
+my $reader_fh = AMOS7::SHM::Feedback::open_notify_fifo_reader($mount);
+
+if ( !defined $reader_fh ) {
+    <[base.log]>->( 0, "TEST FAIL: could not open fifo read end" );
+    <[data.mount.shm.unlink]>->( $test_pubkey, $sub_path );
+    return 0;
+}
+
+AMOS7::SHM::Feedback::write_feedback( $mount, 2, { 'ntime' => 300 } );
+
+my $ding = <[data.mount.shm.feedback.ding]>->($mount);
+
+if ( !defined $ding or $ding->{'error'} ) {
+    <[base.log]>->(
+        0, "TEST FAIL: ding failed : " . ( $ding->{'error'} // 'undef' )
+    );
+    close($reader_fh);
+    <[data.mount.shm.unlink]>->( $test_pubkey, $sub_path );
+    return 0;
+}
+
+my $select = IO::Select->new($reader_fh);
+my @ready  = $select->can_read(2);
+
+if ( !@ready ) {
+    <[base.log]>->( 0, "TEST FAIL: fifo watcher did not wake on ding" );
+    close($reader_fh);
+    <[data.mount.shm.unlink]>->( $test_pubkey, $sub_path );
+    return 0;
+}
+
+my $buf;
+my $n = sysread( $reader_fh, $buf, 1 );
+close($reader_fh);
+
+if ( !defined $n or $n != 1 or $buf ne "\x01" ) {
+    <[base.log]>->( 0, "TEST FAIL: did not read expected ding byte" );
+    <[data.mount.shm.unlink]>->( $test_pubkey, $sub_path );
+    return 0;
+}
+
+my $after_ding = AMOS7::SHM::Feedback::read_feedback($mount);
+
+if ( !defined $after_ding or $after_ding->{'last_page_read'} != 2 ) {
+    <[base.log]>->( 0, "TEST FAIL: feedback after ding wrong" );
+    <[data.mount.shm.unlink]>->( $test_pubkey, $sub_path );
+    return 0;
+}
+
+<[base.log]>->( 2, "TEST PASS: fifo ding wakes waiting reader" );
+
+##[ TEST 7: Stalled-reader timeout on watch_fifo ]##########################
+
+my $tout = AMOS7::SHM::Feedback::watch_fifo(
+    $mount,
+    {   'timeout'    => 0.3,
+        'timeout_cb' => sub { }
+    }
+);
+
+if ( !$tout->{'timeout'} ) {
+    <[base.log]>
+        ->( 0, "TEST FAIL: watch_fifo did not time out with no ding" );
+    <[data.mount.shm.unlink]>->( $test_pubkey, $sub_path );
+    return 0;
+}
+
+<[base.log]>->( 2, "TEST PASS: stalled-reader timeout fired" );
+
+##[ CLEANUP ]###############################################################
+
+<[data.mount.shm.unlink]>->( $test_pubkey, $sub_path );
+
+<[base.log]>->( 2, "=== All SHM Feedback Tests Passed ===" );
+
+return TRUE;    ## [success] ##
+
+#,,.,,,,,,,,.,,..,,.,,.,.,,,.,.,.,,,,,,..,,.,,..,,...,...,..,,.,.,.,,,...,,..,
+#M4AKQROKJY4ZP5MYUMY7HCWEVYTZGYD6JFTCOVPJ4LQ7SWTSYRVJA7GZAVTE2HPJIAACLMU3FOUBM
+#\\\|5LH5XMKCS7ITLWQG2UZ7CCMT34KEQD4VPSI4YCE56ZZ23HOUGMR \ / AMOS7 \ YOURUM ::
+#\[7]T7ERWRZ24NU2VH5TQSQLHAURIW5QYUG2SV6M7HUGTFCXL5DQIQBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

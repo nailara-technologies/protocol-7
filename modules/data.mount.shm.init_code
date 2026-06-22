@@ -25,6 +25,11 @@
 <[base.perlmod.autoload]>->('AMOS7::SHM::Page')
     unless exists $INC{'AMOS7/SHM/Page.pm'};
 
+## feedback layer : reverse-flow single-writer region + native fifo notify,
+## same branch-free-mechanics style as the page layer ##
+<[base.perlmod.autoload]>->('AMOS7::SHM::Feedback')
+    unless exists $INC{'AMOS7/SHM/Feedback.pm'};
+
 ## inject the zenka log handler into the package logging shim ##
 $AMOS7::SHM::log_handler = sub { <[base.log]>->( $ARG[0], $ARG[1] ) };
 
@@ -102,8 +107,8 @@ $SIG{'INT'} = sub {
 # Init codes must return 0 or 5 for success
 return TRUE;
 
-#,,,,,.,,,...,..,,,..,..,,..,,,,,,.,.,,..,.,,,.,.,...,...,,,.,,,.,..,,.,,,.,,,
-#ILHTYEXZ7VH7EMJLNTGDWSSVMNI3DFPOZFAHDFJAHOBLNFKYRWLGMXORB2UJ7O2SOH4HYEGOIMGJU
-#\\\|WFPZZWH2TDESLZRYQBXMWUPTK4SYU4OCZCH6B5OXGZRM3B6MHLF \ / AMOS7 \ YOURUM ::
-#\[7]4NUOF3WF2VPIXOTYGSLWWRKRYGJHXOLDV6D4MKOOQJANM2YBXACQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,.,,,,,,,,,,,.,,,..,,.,.,,,,,,..,.,.,...,...,,,.,,.,,...,,..,.,,,
+#SM7GBOUWAZOGOLCCRDMO5WLOFKO4URZTYOOFOYE7M4UL3TPZWQOS5ZKR2LF5EPB2B273NVKUIGEE2
+#\\\|S42XWZILZWTBPOMMDFZUCCNMXHXM377VNAF2IDM7PQVIWOIRJP2 \ / AMOS7 \ YOURUM ::
+#\[7]WN4VSNUFQNERZOEDE72S3W36YMTFUWAGAOGSUQ5TZZT2MGO3O4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

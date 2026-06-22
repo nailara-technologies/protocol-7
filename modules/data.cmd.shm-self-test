@@ -38,6 +38,14 @@ my $page_ok     = ( defined $page_result && $page_result == 5 );
 $output .= sprintf "%s shm page test     [ %s ]\n", $prefix,
     $page_ok ? 'success' : ' fail  ';
 
+##[ TEST 5: SHM Feedback [ phase 3 ] ]######################################
+
+<[base.log]>->( 2, 'running SHM feedback test..,' );
+my $feedback_result = <[data.mount.shm.feedback.test.basic]>;
+my $feedback_ok     = ( defined $feedback_result && $feedback_result == 5 );
+$output .= sprintf "%s shm feedback test [ %s ]\n", $prefix,
+    $feedback_ok ? 'success' : ' fail  ';
+
 ##[ OUTPUT ]################################################################
 
 $output .= "$prefix\n";
@@ -45,8 +53,8 @@ $output .= "$prefix\n";
 # Return as size reply for proper protocol handling
 return { 'mode' => qw| size |, 'data' => $output };
 
-#,,,.,.,,,.,.,,.,,.,.,.,.,...,,,,,,.,,...,...,..,,...,...,,,.,...,,.,,,,.,,,.,
-#B6IBJZFP5R44YM6MSL676I4MC3PXNPYAQCW6UPZULWYALFMZAZEVH5RDKHJR7HQS26IVHB3BZDB6I
-#\\\|IG2NKWXU4ABKSAQPEIEHSP3TW42W6QQBF7745FSZFKMDXO477Y2 \ / AMOS7 \ YOURUM ::
-#\[7]KHJZAYKI3FOOEB5ZZUEJBELMH6TPW43SLJ2XOBDWORPHBLE4CYBI 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,,,,,.,,,.,,..,,,,,,,,,,...,,,.,..,,...,..,,.,,,,.,,,.,,...,...,
+#XAF53PCFTKONXNMJKECASDGT7BVHZVVGD3ZP6TIPSXYH2WMZRCKCMLFHSEF2TXTT2TU5IYNLS4IJS
+#\\\|HHBSLGTCBF3SDO4Y5AGWKBA3WG2ODBSLBMWDA5DPAPNEXYOWFXP \ / AMOS7 \ YOURUM ::
+#\[7]EVK7NFNIXHYYJA5L2RKXRZQTPLL5XPD63JSOOOMVWUGK4VVYUICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
