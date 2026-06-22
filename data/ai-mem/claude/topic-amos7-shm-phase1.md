@@ -1,6 +1,6 @@
 ---
 name: topic-amos7-shm-phase1
-description: "AMOS7::SHM phase 1 — standalone promotion of data.mount.shm.*, two real bugs found+fixed (mmap never shared, mlock unreachable standalone), self-healing IO::AIO fork guard"
+description: "AMOS7::SHM phases 1-2 — standalone promotion of data.mount.shm.* + paging abstraction; two real bugs found+fixed in phase 1 (mmap never shared, mlock unreachable standalone), self-healing IO::AIO fork guard; phase 2 paging live-verified cross-process"
 metadata: 
   node_type: memory
   type: project
@@ -85,9 +85,28 @@ is strictly better than documentation — it converts "callers must remember"
 into "callers cannot get it wrong." Don't default to documentation when
 self-detection is this cheap; ask whether it's possible first.
 
-## What's still open (phases 2-4, design only)
+## Phase 2 — DONE, same day, commit `ac6315191`
 
-- Paging abstraction above raw `substr()` — not built.
+Paging abstraction landed: `AMOS7::SHM::Page`
+(`data/lib-path/pm/AMOS7/SHM/Page.pm`), a 32-byte page index (`P7PG` magic +
+`total_pages`/`page_size` + 13-byte bmw-L13 checksum) between the 512-byte
+mount header and page data. `create()` bridges the two layers by overwriting
+the mount header's `data_size` to the *real* content length (not the padded
+index+pages region) — that's what lets `read_page` clip the final partial
+page without picking up zero-padding. 5 thin wrappers under
+`data.mount.shm.page.*`, a 4th self-test wired into `data.cmd.shm-self-test`.
+
+Verified live (not just unit-tested): byte-identical reassembly with a
+non-page-aligned content length, out-of-range rejection on read AND write,
+header region confirmed untouched, and — the actual payoff of phase 1's mmap
+fix — **cross-process reassembly via a forked reader**, byte-identical.
+
+The `data.channel.shm.*` reconciliation and the reader/writer-paced fork are
+**still open** — both belong to phase 3, not phase 2, and weren't needed for
+paging itself (paging has no feedback channel yet).
+
+## What's still open (phases 3-4, design only)
+
 - Feedback-variable channel — the reader-paced vs writer-paced fork is
   deliberately unresolved in the doc; a candidate (`jobqueue`'s polling-free
   `Event->var()` watcher, via `base.event.add_var`) is flagged but its
@@ -114,8 +133,8 @@ self-detection is this cheap; ask whether it's possible first.
   fork and add a timing gap, or you'll get a false positive from whatever
   fallback path silently activated.
 
-#,,,.,,..,.,.,.,,,.,,,.,.,,,,,.,.,,.,,,.,,...,..,,...,...,.,,,,,,,...,.,.,,,.,
-#2JTIQMHRPDJEHFJRJP2IOQYKCL7ALNKQTPYJBW56D53THYRSONTDVSEBI4LGFF2E67T5GIMDMPMCY
-#\\\|VFSOXDM3NXPEFBVTUSY6IM4SHJWO7GCBCWEALQCO2EZIMAT5OHP \ / AMOS7 \ YOURUM ::
-#\[7]D5U7PQ4AA4GMOTY7QS5SUFICP3HXYC7DSCSM5FEKMS6WIF4WKEDA 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,.,,,,..,,,,,.,.,,,,,,..,.,,,,..,..,,...,...,...,.,.,.,.,.,.,,..,
+#GZ5UKFGMKOBHIJRP7DSHCL7UETO46KE2HIVPSOYMVDD2G55T665NSJEYM5LBBTWAXIYQLHNLU5QTY
+#\\\|25SARZXDGT2SFW73KDL64SEO6QQHUYVRWZXK2TFXWDEJXO2ZI4K \ / AMOS7 \ YOURUM ::
+#\[7]7Y7RSB4P6DCINB5VLQ525TQTODONWXGDNPYK5N3DVY4L25Q75EDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -51,11 +51,10 @@ or between models directly from cache, SHM accessible.
 Creating zenka (coding) stores to SHM → data zenka adopts ownership.
 Data zenka maintains cache with its own algorithms, TTL, settings.
 
-## Generic SHM Scalar-to-Scalar Param Transfer (layer 4.5 — phase 1 LANDED 2026-06-22)
+## Generic SHM Scalar-to-Scalar Param Transfer (layer 4.5 — phases 1-2 LANDED 2026-06-22)
 
 Design doc `data/tasks/amos7-shm-paging-feedback.md`; full detail in
-[[topic-summary-tree-phase1]]'s sibling memory — see
-[[topic-amos7-shm-phase1]] (new). Phase 1 committed `410805f43`: promoted
+[[topic-amos7-shm-phase1]]. Phase 1 (`410805f43`): promoted
 `data.mount.shm.*` core to standalone `AMOS7::SHM`
 (`data/lib-path/pm/AMOS7/SHM.pm`), zero behavior change on the zenka path
 (`p7c data.shm-self-test` verified unchanged), plus found+fixed two real
@@ -66,10 +65,18 @@ instead of `$fh` — silently fell back to a private per-process copy, in
 unreachable standalone. Also closed an `IO::AIO`+`fork()` hang found live
 during verification — `AMOS7::SHM` self-detects the fork via a pid
 comparison and calls `IO::AIO::reinit()` automatically, no caller
-convention to remember. Phases 2-4 (paging abstraction, reversed-flow
-feedback channel, full lifecycle/cleanup) are still design only — see the
-doc for the explicit reader-paced/writer-paced open fork and the
-`data.channel.shm.*` ring-buffer reconciliation required before phase 3.
+convention to remember.
+
+Phase 2 (`ac6315191`, same day): paging abstraction, `AMOS7::SHM::Page` — a
+32-byte page index between the mount header and page data, read/write by
+page number, verified live including cross-process reassembly via a forked
+reader (the actual payoff of phase 1's mmap fix). `p7c data.shm-self-test`
+now runs 4 checks.
+
+Phases 3-4 (reversed-flow feedback channel, full lifecycle/cleanup) are
+still design only — see the doc for the explicit reader-paced/writer-paced
+open fork and the `data.channel.shm.*` ring-buffer reconciliation required
+before phase 3.
 
 **Why:** direct motivating bug — `base.handler.command`'s single-line command
 buffer caps at 242707 bytes; any command needing a large scalar param (e.g.
@@ -121,8 +128,8 @@ Re-referenceable and re-nestable at zero copy.
 User note: "adding another abstracting layer is a temporary workaround
 that is still clean and no initial technical debt" — accepted pattern.
 
-#,,..,.,,,,,.,,.,,.,.,..,,..,,...,.,.,,,.,,,.,..,,...,..,,...,...,...,,..,,,.,
-#NPMBRWLZD54PUW6NYAAZ7XDFOT2UFBATHOLVQ2WK7JLG7AVVONLUZMRNZ6KCUTZRN7K4MTQZRWEWK
-#\\\|ZRQZNKILBBGNHQRT55GKKNWZC4D6DETKTFVG4UWHC7EMXRI2XS7 \ / AMOS7 \ YOURUM ::
-#\[7]LMICNKMLXN2OCXNGC4S22FIYHS6UG73IEOCCOZZAUWNPI6Y7IEAY 7  DATA SIGNATURE ::
+#,,..,,.,,...,...,,,,,.,,,..,,,..,,.,,.,.,,..,..,,...,...,,..,...,,..,,,,,,,.,
+#3STH5K24PZ4ETJV4OAF4NWWAMJS6VQLZWRZK5LCZ7NL2J3GTCLEJ3BOKPKMBMFEM3D4FTRM3INMLA
+#\\\|TZITOYOYBQIUCLI3X4HNMLKNFJLLJRCIVIIDMDI6WXRRQHVWTBE \ / AMOS7 \ YOURUM ::
+#\[7]4VG47JYEID5S4A73ALAXXL3QFCNIRPY4G2XH2ZLIKK7UBQB42ACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
