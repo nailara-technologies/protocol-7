@@ -1,0 +1,16 @@
+## [:< ##
+
+# name  = data.mount.shm.reap
+# descr = on-demand TTL sweep for crashed/SIGKILL'd SHM writers
+
+my $ttl = shift // <data.cfg.shm-reap-ttl-seconds> // 3600;
+
+my $summary = AMOS7::SHM::sweep_stale_segments( { 'ttl_seconds' => $ttl } );
+
+return $summary;
+
+#,,..,...,.,,,,,.,.,,,.,.,,,,,,,,,.,.,.,.,.,.,..,,...,...,,..,.,,,,.,,,,,,.,,,
+#KOVXVHNKNOBQG63SOS4KZ5ZQP4RLKAMTZ3HA2FFSPHUSHHYH36XSZZ3L2TLBSSFHXX6P3E5Z75IGK
+#\\\|L2KBPCUMAP4EZXV2PKD73S3JC555I72PQLKRGC7EMQ42FUDJZQW \ / AMOS7 \ YOURUM ::
+#\[7]ZSSKMDMLCKCH4LMM7I4PVYJDRMRSC65MXLP2FCT4GTYZJ7IMV4CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
