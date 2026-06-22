@@ -4,65 +4,20 @@
 # descr = Open SHM segment with cryptographic verification
 #         Uses file-based SHM in /dev/shm (tmpfs) - portable
 
-use constant SHM_HEADER_SIZE => 512;
+# thin zenka wrapper -> AMOS7::SHM::shm_open
+# inject the zenka group registry [ %data slice ] for permission.verify ;
+# the core stays branch-free by taking groups as a parameter
 
 my $shm_path           = shift;
 my $options            = shift // {};
 my $requester_priv_key = shift;
 
-return undef unless defined $shm_path;
+$options->{'groups'} //= $data{'groups'};
 
-if ( $shm_path !~ m{^/} ) {
-    $shm_path = "/dev/shm/p7:M:$shm_path";
-}
+return AMOS7::SHM::shm_open( $shm_path, $options, $requester_priv_key );
 
-my ( $pub_key, $sub_path )
-    = <[data.mount.shm.open.parse_shm_path]>->($shm_path);
-return undef unless defined $pub_key;
-
-my $requested_rights = $options->{'rights'} // ['read'];
-
-# Open file-based SHM
-open( my $fh, '+<', $shm_path )
-    or return { 'error' => 'open_failed', 'path' => $shm_path };
-binmode($fh);
-
-my $mmap_ref = <[data.mount.shm.open.mmap_file_read]>->($fh);
-close($fh) unless defined $mmap_ref;
-
-return { 'error' => 'segment_not_found', 'path' => $shm_path }
-    unless defined $mmap_ref;
-
-my $header = <[data.mount.shm.header.read]>->($mmap_ref);
-return { 'error' => 'invalid_header' } unless defined $header;
-
-return { 'error' => 'ownership_mismatch' }
-    unless $header->{'owner_pubkey'} eq $pub_key;
-
-my $requester_pubkey
-    = <[data.mount.shm.open.derive_pubkey]>->($requester_priv_key);
-
-my $has_access = <[data.mount.shm.permission.verify]>->(
-    $header, $requester_pubkey, $sub_path // '',
-    $requested_rights,
-);
-
-return { 'error' => 'access_denied' } unless $has_access;
-
-return {
-    'path'        => $shm_path,
-    'pub_key'     => $pub_key,
-    'sub_path'    => $sub_path,
-    'mmap_ptr'    => $mmap_ref,
-    'header'      => $header,
-    'type'        => 'file',
-    'data_offset' => SHM_HEADER_SIZE,
-    'data_size'   => $header->{'data_size'},
-    'requester'   => $requester_pubkey,
-};
-
-#,,,.,...,,..,,..,.,,,,,.,..,,,.,,...,,.,,,,,,..,,...,...,,..,..,,.,.,..,,.,.,
-#7A535EII4Q4O2PCA7CTE2I2AKOYINRGNYGFWH7LSF6WRHPETGBHNQFVC6MT35BBRCHOJ2N4HXHSTA
-#\\\|6Z4AOZEHK3Y4BRC3JML4UXTODJEVFVDZJP2GSUKONU5CCWQTK7N \ / AMOS7 \ YOURUM ::
-#\[7]Q5O7GMKILFAHBO2IJ4EXUY4PGUCCHVVU3MUJPFEZW2IVCRSEMGAQ 7  DATA SIGNATURE ::
+#,,..,...,...,.,.,,.,,,,,,..,,...,.,,,,,.,,,,,..,,...,...,,.,,,..,,.,,,.,,,..,
+#2GPZDGKD5Y473WH3LL7LXVB6B3YXQALSZ5AEKBG43P4NYUYUHVHMFGOCLPPMVKYWE33RWMY7X4P6K
+#\\\|DJHVZJN2P2GZACZHPPWBEDZ2C3N7N6TUXWBK662IIIXZDU5CCTJ \ / AMOS7 \ YOURUM ::
+#\[7]NKCGJTUWMWDR44WDGKJWN2LSEYJXLJ45BLTGHFLDI2N5EDIUO2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

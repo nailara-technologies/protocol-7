@@ -3,40 +3,13 @@
 # name = data.mount.shm.create.pack_shm_header
 # descr = Pack SHM header structure into binary format
 
-use constant SHM_HEADER_SIZE => 512;
-
+# thin zenka wrapper -> AMOS7::SHM::pack_shm_header
 my $header = shift;
 
-# Build fields separately to avoid sprintf format issues with colons
-my $version   = $header->{'version'} // 1;
-my $pubkey    = $header->{'owner_pubkey'};
-my $created   = $header->{'created'};
-my $data_size = $header->{'data_size'};
-my $hdr_size  = $header->{'header_size'} // SHM_HEADER_SIZE;
+return AMOS7::SHM::pack_shm_header($header);
 
-# Build flags string
-my @flags;
-for my $key ( keys %{ $header->{'flags'} } ) {
-    push @flags, $key . '=' . ( $header->{'flags'}{$key} ? 1 : 0 );
-}
-my $flags_str = join( ',', @flags );
-
-# Concatenate directly instead of sprintf (avoids colon interpretation)
-my $packed
-    = 'P7SH:'
-    . $version . ':'
-    . $pubkey . ':'
-    . $created . ':'
-    . $data_size . ':'
-    . $hdr_size . ':'
-    . $flags_str . ":\n";
-
-# Pad to fixed header size
-$packed .= "\0" x ( SHM_HEADER_SIZE - length($packed) );
-return substr( $packed, 0, SHM_HEADER_SIZE );
-
-#,,,.,,,,,.,.,...,.,,,,.,,,,.,...,..,,,..,.,,,..,,...,..,,.,.,,..,..,,.,,,,,,,
-#RCBVMOA4Z3NODOCZCIMRT3NRDR634HRSOPNPAXR2JLTBWRJ5F3SV5CEUWHQ377OBEIV5MPDKBINDW
-#\\\|ZYKPQHSFEQY7LP3VOGWSOMSB32CKH4EZCD4AKEJGEXHWOYALJUU \ / AMOS7 \ YOURUM ::
-#\[7]A2JRBJPS2AUFSN445ACOCDVTEXSFLW6JFLLIGCPANMVWEZKY2YBQ 7  DATA SIGNATURE ::
+#,,.,,.,,,...,..,,...,,.,,,..,.,.,.,.,,,,,.,.,..,,...,...,,,,,,.,,..,,.,.,...,
+#VBWKORECLFCQPW2GMF2MF44QJ7KYHWVSXX6ISUW5H64TUQ6T2EFTJBMUBYERKNDZM4XZQ623V3I72
+#\\\|POUYRCJRS6V7YJNGUPBRNIPY66RCBRYD3KI6NPWW6FGL3XDOPLI \ / AMOS7 \ YOURUM ::
+#\[7]RDK7N5LXSEQGINC2DX2KVZND2S6L7GUU4EUWK3FDEL4LWRX67SBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
