@@ -54,33 +54,49 @@ return { 'mode' => qw| false |, 'data' => 'X-11 connection not available' }
 ## before touching it, same as X-11.cmd.set_geometry / window_id_found    ##
 <[X-11.WM.update]>;
 
+my $target_id = $window_id + 0;
+
 ## fetch current geometry if any axis needs a relative delta ##
 my $need_geom = ( defined $xarg and $xarg =~ m|^[+-]| )
     || ( defined $yarg and $yarg =~ m|^[+-]| );
 
 my %cur;
 if ($need_geom) {
-    %cur = eval { $X->GetGeometry( $window_id + 0 ) };
-    if ( $EVAL_ERROR or not exists $cur{'x'} ) {
+    ## GetGeometry returns x/y relative to the window's parent, which is   ##
+    ## useless when the client is reparented into a WM frame. Translate    ##
+    ## the client's (0,0) into root coordinates to get the actual screen   ##
+    ## position that ConfigureWindow expects for a top-level window.       ##
+    my ( $same_screen, $child, $dst_x, $dst_y )
+        = eval { $X->TranslateCoordinates( $target_id, $X->root, 0, 0 ); };
+    if ( $EVAL_ERROR or not defined $dst_x ) {
         <[base.logs]>->(
-            1,          '[move-window] GetGeometry id=%s : %s',
+            1,          '[move-window] TranslateCoordinates id=%s : %s',
             $window_id, <[base.str.eval_error]>
         );
-        return { 'mode' => qw| false |, 'data' => 'GetGeometry failed' };
+        return {
+            'mode' => qw| false |,
+            'data' => 'TranslateCoordinates failed'
+        };
     }
+    $cur{'x'} = $dst_x;
+    $cur{'y'} = $dst_y;
 }
 
 my %configure;
 if ( defined $xarg ) {
     $configure{'x'}
         = $xarg =~ m|^[+-]| ? $cur{'x'} + ( $xarg + 0 ) : $xarg + 0;
+} elsif ($need_geom) {
+    $configure{'x'} = $cur{'x'};
 }
 if ( defined $yarg ) {
     $configure{'y'}
         = $yarg =~ m|^[+-]| ? $cur{'y'} + ( $yarg + 0 ) : $yarg + 0;
+} elsif ($need_geom) {
+    $configure{'y'} = $cur{'y'};
 }
 
-eval { $X->ConfigureWindow( $window_id + 0, %configure ) };
+eval { $X->ConfigureWindow( $target_id, %configure ) };
 
 if ( length $EVAL_ERROR ) {
     <[base.logs]>->(
@@ -97,8 +113,8 @@ my $pos_str = join ' ', map {"$_=$configure{$_}"} sort keys %configure;
 <[base.logs]>->( 2, '[move-window] id=%s %s', $window_id, $pos_str );
 return { 'mode' => qw| true |, 'data' => $pos_str };
 
-#,,.,,..,,,,.,,..,,,,,.,,,,.,,,,.,,..,,.,,,..,.,.,...,...,..,,,..,,..,..,,,,,,
-#EC344W4A7JBCGKRRJR626VFW3FG5SJZRQ6W7AG5VXNV2E5U5MZ5H3L45M4TGRW54CNEXFSPVYNNWA
-#\\\|XDHNG23KKFWNAM4V4UTTTY5VKY5EL2WM2TEQFSMCS4U4BEIZGQN \ / AMOS7 \ YOURUM ::
-#\[7]ODVI3NDDXMSJULKS6D6Z42DQN6UBWBFHD5A4TWWMJ7SOVBE5YKBY 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,..,,,..,,.,,,..,,,.,,,,,.,.,.,,,.,.,...,...,..,,,.,,.,.,...,,.,,
+#4YYAH5W5STWD23SVBFLRQMDXK3LCMUMRL6PZ4ZXBAZT77WS5CFN3PGUXBF7KKTUWDV3DA2IL6GRQW
+#\\\|QTJELUBVSVACK7PKBXQZQGJ7PXC2W666OMDQOC6I7GVV55J7WRP \ / AMOS7 \ YOURUM ::
+#\[7]6PXN3KOAQXMI2AOEKNSPDUGW2G4K6FMVWKHFVZK7FZABJ6F7M6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

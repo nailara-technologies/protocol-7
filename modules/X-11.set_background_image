@@ -35,10 +35,10 @@ if ( index( $bg_image, qw| / |, 0 ) != 0 ) {    ##[ relative path ]##
 }
 
 if ( not -f $bg_image ) {
-    <[base.s_warn]>->( ': image not found : %s <{C1}>', $bg_image );
+    <[base.logs]>->( 0, ': background image %s not found', $bg_image );
     return FALSE;
 } elsif ( not -r $bg_image ) {
-    <[base.s_warn]>->( ': image not readable : %s <{C1}>', $bg_image );
+    <[base.logs]>->( 0, ': background image %s not readable', $bg_image );
     return FALSE;
 } elsif ( index( $bg_image, qw| / |, 0 ) != 0 ) {    ##[ relative path ]##
     my $bg_image_path_rel = $bg_image;
@@ -114,8 +114,8 @@ if ( system( $hsetroot_bin, @hsetroot_params ) != 0 ) {
     return TRUE;                             ##  return success  ##
 }
 
-#,,,.,...,...,,.,,.,,,,..,.,,,...,,,.,.,,,,,,,..,,...,..,,,.,,..,,...,,.,,,..,
-#NPYZKKJXUKZHUDND3FQJGQ4KKHSUAPGIZO3L4OIXJBKIH3NIF2ZVZFYTVYHGQVL3CDJJNMYC6MMBU
-#\\\|NLZMMR6ICK4HNSBDXN26J2EOOXXW4EDZHVOUPCYGETI3ZJYEEZY \ / AMOS7 \ YOURUM ::
-#\[7]LUKZ5LCUAJC7B2YHN6EEWMCXK3JXO35UBSGFTLSTGD3Y53MJBYDQ 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,..,,...,,.,,,..,..,,..,,.,.,..,,..,,...,...,...,..,,..,,,.,,...,
+#BHXDDBAQYCMDOGKWKEIUWI7MJZAG5X4BYVYDFVGX5NCCCFXA3DKM4R6RDUDIONHRNXO57CN2J6QQK
+#\\\|WIJLQDVBUZVXQ2J4TMBKQBKXLXNCKCBRJCT53OIZ2HJTM5TTZXT \ / AMOS7 \ YOURUM ::
+#\[7]FQS2HOCCRIROXFRAATL6VIZDCWRWN75HF3VDP4QM6ZXCSOM3NWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
