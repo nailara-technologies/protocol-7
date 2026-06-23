@@ -1,10 +1,16 @@
 ## [:< ##
 
 # name  = protocol-7-menu.position.load
-# descr = Load window position from YAML file in zenka directory
+# param = $screen_key ("<w>x<h>"), optional
+# descr = load window position from YAML file in zenka directory; positions
+#         are grouped by screen resolution so a position saved on one
+#         screen size [ eg. host display ] is never applied on another
+#         [ eg. a small xephyr screen ] where it might fall off-screen
 # return = hash with x,y coordinates or undef on error
 
 use YAML::XS qw| Load |;
+
+my $screen_key = shift // qw| default |;
 
 ## Load YAML content from zenka directory [ window/position.yaml ]
 <[base.log]>->(
@@ -32,8 +38,9 @@ my $position = undef;
 if ( defined $yaml_content && length $yaml_content ) {
     eval {
         my $parsed = Load($yaml_content);
-        if ( ref($parsed) eq qw| HASH | && exists $parsed->{position} ) {
-            $position = $parsed->{position};
+        if (   ref($parsed) eq qw| HASH |
+            && ref( $parsed->{positions} ) eq qw| HASH | ) {
+            $position = $parsed->{positions}->{$screen_key};
         }
     };
     if ($EVAL_ERROR) {
@@ -48,8 +55,8 @@ if ( defined $yaml_content && length $yaml_content ) {
 if ( defined $position && ref($position) eq qw| HASH | ) {
     if ( defined $position->{x} && defined $position->{y} ) {
         <[base.logs]>->(
-            1, '[position.load] successfully loaded position: x=%d y=%d',
-            $position->{x}, $position->{y}
+            1, '[position.load] successfully loaded position [%s]: x=%d y=%d',
+            $screen_key, $position->{x}, $position->{y}
         );
         return $position;
     } else {
@@ -60,13 +67,13 @@ if ( defined $position && ref($position) eq qw| HASH | ) {
     }
 }
 
-<[base.log]>->(
-    1, "[position.load] position data is not a hash or is undefined"
+<[base.logs]>->(
+    1, "[position.load] no saved position for screen [%s]", $screen_key
 );
 return undef;
 
-#,,..,,,,,..,,..,,...,,,,,..,,,..,.,,,..,,..,,..,,...,...,...,,,,,,,.,,,.,..,,
-#YRE3DUO7P7G62EEO5VTIV6JDNLS3RO72BR33NMIFDDSGPC6KD5VISW6OFJU5XOXJXCAL4DSTIGNWS
-#\\\|2KKS2XB2YQRDHWMDDV4CETEJYM67CQWFO5G3YF5F7OHH2CUCNZX \ / AMOS7 \ YOURUM ::
-#\[7]I2TGIM6OEXP2H3QMJJAZSSPLNHAU6YRBR7RZ7YUEJUMBO6R7L6AQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,,.,...,,,.,..,,.,,,..,,,,.,,..,..,,...,...,.,.,,,.,,..,.,.,...,
+#A5ENHKXWPHCOMHTOJATMOYGHSQB3FWQSSFE4IX2LQOB2A64EUPUJMSNXY6JOVXFAINNCBDZTZ32QQ
+#\\\|Q3IP2N2ZPC2AF4O7ZTDUE6ENZ5W22R7RF233YW7OCI6YNZWVXTH \ / AMOS7 \ YOURUM ::
+#\[7]RRT5FNPVRMZAB7CIYTB4UQOOO7YYLH73ZT33YWAP76PKKSX2NCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
