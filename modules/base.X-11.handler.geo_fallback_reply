@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = base.X-11.handler.geo_fallback_reply
+# descr = reply handler for the X-11.get_screen_size fallback request
+#         issued by base.X-11.handler.geo_reply -- stores the resulting
+#         geometry [ or logs failure ] and runs the caller's continuation
+
+my $reply = shift;
+
+my $continuation_handler = $reply->{'params'}{'continuation_handler'};
+my $continuation_params  = $reply->{'params'}{'continuation_params'};
+
+if ( defined $reply and ( $reply->{'cmd'} // '' ) eq qw| TRUE | ) {
+    ( my $size_str = $reply->{'call_args'}{'args'} ) =~ s| |x|;
+    <x11.geometry>               = "$size_str+0+0";
+    <x11.geometry_was_undefined> = 1;
+    <[base.log]>->( 1, "geometry taken from X-11 screen size [$size_str]" );
+} else {
+    <[base.log]>->( 1, '<< window geometry not defined >>' );
+}
+
+return $code{$continuation_handler}->($continuation_params)
+    if defined $continuation_handler and exists $code{$continuation_handler};
+
+#,,,.,,.,,.,.,,,,,.,,,,..,...,,,.,,..,,,.,,,.,..,,...,...,..,,..,,.,,,.,,,...,
+#UYLGSHZIWW6UTO3JMKOYUK2OVD3X2EXJUN42LX2VFDH5BPXJ5V7ASYWZ25FDEGZNBJOG76D762ONS
+#\\\|JXJQBYR3X2ASVGEDNJ6OQ5DTH2PWQX4IW2KDV6A4YJC7H3I7DM5 \ / AMOS7 \ YOURUM ::
+#\[7]TX3C4GNXBXNXG3LP6CWKIWTQQU62Y5HMTSPEQDQXYUQGOT5RRKBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
