@@ -53,6 +53,11 @@ my $img_h = $pbuf->get_height();
 my $scr_w = $screen->get_width();
 my $scr_h = $screen->get_height();
 
+## positions are grouped by screen resolution: a position saved on one ##
+## screen size [ eg. host display ] must never apply on another        ##
+## [ eg. a small xephyr screen ], where it could fall off-screen        ##
+my $screen_key = sprintf( qw| %dx%d |, $scr_w, $scr_h );
+
 my $win_width = sprintf( qw|%.0f|, $scr_w * $scale_factor );
 my $win_height
     = sprintf( qw|%.0f|, $img_h * ( ( $scr_w / $img_w ) * $scale_factor ) );
@@ -137,7 +142,7 @@ $window->signal_connect(
                     $save_pos_x, $save_pos_y
                 );
                 <[protocol-7-menu.position.save]>->(
-                    $save_pos_x, $save_pos_y
+                    $save_pos_x, $save_pos_y, $screen_key
                 );
             }
             return 1;    # Consume event
@@ -164,12 +169,19 @@ $window->signal_connect(
 
 # Load saved position or use default
 <[base.log]>->( 1, "attempting to load saved position" );
-my $saved_position = <[protocol-7-menu.position.load]>;
+my $saved_position = <[protocol-7-menu.position.load]>->($screen_key);
 my ( $pos_x, $pos_y );
 
 if ( defined $saved_position ) {
     $pos_x = $saved_position->{'x'};
     $pos_y = $saved_position->{'y'};
+
+    ## defensive clamp [ eg. screen resized since this was saved ] ##
+    $pos_x = 0                    if $pos_x < 0;
+    $pos_y = 0                    if $pos_y < 0;
+    $pos_x = $scr_w - $win_width  if $pos_x > $scr_w - $win_width;
+    $pos_y = $scr_h - $win_height if $pos_y > $scr_h - $win_height;
+
     <[base.logs]>->( 1, "loaded saved position : x=%d y=%d", $pos_x, $pos_y );
 } else {
 
@@ -228,8 +240,8 @@ $menu->show_all;
 
 return 0;
 
-#,,..,.,.,,.,,,..,,..,,..,,..,...,.,.,...,...,.,.,...,...,..,,...,..,,,.,,..,,
-#D3JROYQVFHPEAJSGQDUKERLX3CZT5UKMNW5G3XVCZYRWEDY6YUAE5P55IYFVL2MHG3UFOZYPVQYRW
-#\\\|C3R3V3VUB3U4YEWHO46OTBWXSP5BCXLQ35AOLHHL3NIWPWQBMTL \ / AMOS7 \ YOURUM ::
-#\[7]IHCITKWAURR4EYHVXMCACEK3CM23UC67FMSHPIDKFBT4HY4ZYADY 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,..,,,,,...,,..,,,,,...,...,,,.,.,.,...,..,,...,,,,,,..,,,.,,,.,
+#266334NKODLHUFX5TDA4YOKNBNMZJY5I3KW4WFSDOKCK4ECARUNXDL4QX7EEFMFKMSZGBRQOF6LFA
+#\\\|ARDNPLSZ3ZM645VZ2U6Z5KN723GCKKA2VWOELM67GWJEZYWKWOT \ / AMOS7 \ YOURUM ::
+#\[7]3FLEJX4NX27XVMBQYEUJFH2A7ZNIYCLHEY7YOYLBFQ7X4GQSKGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
