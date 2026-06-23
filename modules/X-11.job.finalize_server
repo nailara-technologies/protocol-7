@@ -50,12 +50,23 @@ $data{'base'}{'warn-match-handler'}{'X11/Protocol.pm:75'}
 
 <X-11.obj>->{'error_handler'} = sub {
     ( my $self, my $err_data ) = @ARG;
-    chomp( my $err_str = $self->format_error_msg( $err_data // '' ) );
+
+    ## an empty/malformed error means the connection state itself is in  ##
+    ## question [ eg. server crashed ] -- a normal, well-formed protocol ##
+    ## error [ BadAtom/BadWindow/.. from a single bad request, common    ##
+    ## during early WM-detection races ] means the connection is fine,   ##
+    ## only that one request failed -- no need to reconnect over it      ##
+    if ( !length($err_data) ) {
+        warn(
+            sprintf '[protocol-error] unknown protocol error'
+                . ' [ X-server crashed ? ] <{C7}>' );
+        <[X-11.reconnect]>;
+        return;
+    }
+
+    chomp( my $err_str = $self->format_error_msg($err_data) );
     $err_str =~ s|\s*\n+\s*| << ! >> |g;
-    $err_str = 'unknown protocol error [ X-server crashed ? ]'
-        if !length($err_data);
     warn( sprintf '[protocol-error] %s <{C7}>', $err_str );
-    <[X-11.reconnect]>;
 };
 ##
 
@@ -313,13 +324,13 @@ my @test_ids = eval {<[X-11.get_window_ids]>};
 if (<X-11.window_enumeration>) {
     <[base.log]>->( 2, ': window enumeration : available' );
 } else {
-    <[base.log]>->(
-        1, ': window enumeration : unavailable [ host/wayland mode ]'
+    <[base.logs]>->(
+        1, ': window enumeration : unavailable [ %s mode ]', $mode
     );
 }
 
-#,,,,,.,,,...,.,,,,,,,,,.,,.,,,,.,..,,,.,,,,.,..,,...,...,.,.,,,,,,,,,,,.,..,,
-#52MQJONFHJVM7MLNFLRKLFONTQXBPKLV7AN4MWFEJUPG7Z3XJAMDUYRG2XC6IDDKOWJSQIQGT5CFQ
-#\\\|NNYFE4B7KOAULLE767WBGPQCSSRVLNJY2L53VOX5UIFZM55GBKA \ / AMOS7 \ YOURUM ::
-#\[7]XQGTHPKKC3UQZHPOKOL2EP4BFTDZ7WMFDTJUQNOUG4G3MHOHMACI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,..,,,,.,,,.,..,,,..,.,.,.,,,,,.,..,,...,...,...,,,,,,,.,.,,,.,.,
+#HUIKX76ENISRJUSWSWSAQLZFD6XRQ6WCMRIOELSU4CGRBGA3D2J6KRQXC4BMYIE4KBLURIPWOPOF6
+#\\\|G6M4N3Y5LCKYQQZACTJ2GB7RTIQSJ3JDTIQQGFK63IQXP66HYMR \ / AMOS7 \ YOURUM ::
+#\[7]65WCHIOQN7OPA4A5FU6OB4DXVVV3NGL5WDYDWAGZWZVAH2SJNOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

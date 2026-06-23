@@ -44,11 +44,50 @@ if ( $X11_start_mode eq qw| xorg | ) {
     }
 }
 
+## ensure /tmp/.X11-unix has the sticky bit so a nested X server can     ##
+## create its filesystem socket -- without it, some servers fall back   ##
+## to the abstract-namespace socket only, which X11::Protocol cannot    ##
+## connect to ; this is the last point still running as root [ checked  ##
+## unconditionally of mode -- <X-11.mode> may still read the static     ##
+## config value here, before X-11.init_code applies a mode override ]  ##
+my $x11_unix_dir = qw| /tmp/.X11-unix |;
+
+## under WSLg, /tmp/.X11-unix is its own dedicated read-only tmpfs mount ##
+## [ used to expose the host display's socket ] -- chmod alone cannot   ##
+## succeed there regardless of privilege, it must be remounted rw first ##
+if ( open( my $mounts_fh, '<', '/proc/mounts' ) ) {
+    while ( my $mount_line = <$mounts_fh> ) {
+        my @field = split( ' ', $mount_line );
+        next unless ( $field[1] // '' ) eq $x11_unix_dir;
+        next unless ( $field[3] // '' ) =~ m{(?:^|,)ro(?:,|$)};
+        system( 'mount', '-o', 'remount,rw', $x11_unix_dir );
+        <[base.logs]>->(
+            ( $CHILD_ERROR == 0 ? 1 : 0 ),
+            ': remounted %s rw [ %s ]',
+            $x11_unix_dir, ( $CHILD_ERROR == 0 ? 'ok' : 'failed' )
+        );
+    }
+    close($mounts_fh);
+}
+
+my $x11_unix_stat = File::stat::stat($x11_unix_dir);
+if ( defined $x11_unix_stat and ( $x11_unix_stat->mode & 07777 ) != 01777 ) {
+    if ( chmod( 01777, $x11_unix_dir ) ) {
+        <[base.logs]>
+            ->( 1, ': fixed %s permissions [ 1777 ]', $x11_unix_dir );
+    } else {
+        <[base.logs]>->(
+            0,             'could not fix %s permissions: %s',
+            $x11_unix_dir, $OS_ERROR
+        );
+    }
+}
+
 ##  dropping root priviledges to configured user  ##
 return <[base.root.drop_privs]>->($X11_user_name);
 
-#,,..,,..,,,,,.,.,..,,...,..,,..,,,,,,,..,,,,,..,,...,...,,,,,..,,,.,,..,,,,,,
-#YMI6B4ON22A6TABAV7URVXAYLK73TVNSRB2W3CJRP6A6H3H2ZJXWFZUPIFULX5JS6XF7ALX6CVTBQ
-#\\\|QGHDWMJVU2EZBMPMAFPEYLGPJOVHU44WYHKIQPCP6H7LVF5ABYJ \ / AMOS7 \ YOURUM ::
-#\[7]ME7RU6YYN4J4FWFUTC623SXAUXLTXR2ZSCE5MGHBNCPHUTDPNSAA 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,..,,,,.,,..,,,.,..,,.,,,...,,,.,..,,...,...,.,.,.,.,...,..,,.,,,
+#TEJNVM64UG6VGLADF2CY2VIK3XNQ5J2JCKT6EWMC5QM2UURQHWTZ4GXSJHM36IV6WPVPVTJSIA76W
+#\\\|TOPU54QQAJRUZ2PE52AODUV4DWFKRMTCHRKN4L56YZENYOGCLO4 \ / AMOS7 \ YOURUM ::
+#\[7]S4IKPX3XWTDCOSJU46C7Q2KYXMVI33R2JTZDV34MOHXX7E4FJCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,21 +13,38 @@ state $type_utf8   //= $X->InternAtom( qw| UTF8_STRING |, 1 );
 <[X-11.WM.update]>;
 
 my @window_ids;
-eval {
-    my ( $value, $type, $format, $bytes_after )
-        = $X->GetProperty( $root, $client_list, 'AnyPropertyType', 0, -1, 0 );
-    @window_ids = unpack( qw| L* |, $value );
-};
 
-warn <[base.str.eval_error]> if length $EVAL_ERROR;
+## InternAtom( ..., 1 ) [ only-if-exists ] returns 0 [ None ] when no   ##
+## client has created the atom yet [ eg. a freshly started display,    ##
+## before any window manager has run ] -- querying property 0 is a     ##
+## protocol error [ BadAtom ], not simply an empty/missing property    ##
+##                                                                       ##
+## ListProperties only needs a valid window [ $root is never invalid ], ##
+## no atom is passed in, so it cannot itself raise BadAtom -- check     ##
+## $client_list is actually SET on $root before ever using it in a     ##
+## GetProperty call, instead of catching the protocol error after the  ##
+## fact [ such errors have been seen to disrupt the X11 connection ]   ##
+if ( $client_list and $client_list ne qw| None | ) {
+    my @root_properties = eval { $X->ListProperties($root) };
+    if ( not $EVAL_ERROR and grep { $_ eq $client_list } @root_properties ) {
+        eval {
+            my ( $value, $type, $format, $bytes_after )
+                = $X->GetProperty( $root, $client_list, 'AnyPropertyType', 0,
+                -1, 0 );
+            @window_ids = unpack( qw| L* |, $value );
+        };
+
+        warn <[base.str.eval_error]> if length $EVAL_ERROR;
+    }
+}
 
 ## [ fall back to WM registry when _NET_CLIENT_LIST is empty ] ##
 @window_ids = map { $_->id } <X-11.WM>->sorted->@* if not @window_ids;
 
 return sort { $a <=> $b } @window_ids;
 
-#,,.,,,,,,,..,,..,.,.,,,.,,..,,,.,,.,,.,,,..,,..,,...,...,..,,...,.,,,...,.,,,
-#SGBFJIR2BG4CIFTD7A4AZFQ6W3PRL47KFZQW5MMG56LFS5C2CIPQDT4ETFQCKXANJDXD6L65DHXUM
-#\\\|XOX7D2ZSOWWQB3L4M56NWWGYBVPOSVX3JGI2TNSBA4STZZU5SQY \ / AMOS7 \ YOURUM ::
-#\[7]KDM4GBWUT7Q43YPSYSHBTQH2AGBO55YMZN5TYKKIWENHNYSNPACY 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,,.,,.,,,,,,,,,,,,.,,,,,..,,,..,..,,...,...,...,,,,,..,,..,,,.,,
+#BSV73IS65IICMJHXPMHEFTNJORRXHLZDUMLKK4JBYJTVK7VVZGX55YSFGS77OPY7QEBCFTSCHSEXU
+#\\\|Q3DLLJLIW66BLHOQWWKAGRJO6U6UMV5DTA6PX7AVFOXOQEHZQ4H \ / AMOS7 \ YOURUM ::
+#\[7]DRMC23PXR2QWMUUTUOY2NYIGMHYELFOZXGERS5ADN3GO5H3Q2OAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
