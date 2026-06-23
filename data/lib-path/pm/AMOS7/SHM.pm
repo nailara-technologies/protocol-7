@@ -99,9 +99,8 @@ sub pack_shm_header {
 
 ## unpack 512-byte text header into hash structure ##
 ## identical mechanics to data.mount.shm.header.read.unpack_shm_header ##
-## NOTE: the regex stops after flags_str, so permissions are NOT parsed back
-## out — this returns permissions => [] always. this is preserved exactly
-## from the existing on-disk behavior [ do not change the header format ]. ##
+## permissions are parsed back out so that standalone shm_open can verify
+## signed grants; the on-disk header format is unchanged. ##
 sub unpack_shm_header {
 
     my $raw = shift;
@@ -117,9 +116,12 @@ sub unpack_shm_header {
     }
 
     ## try regex match ##
-    if ( $raw =~ m{^P7SH:(\d+):([A-Z0-9]+):([\d.]+):(\d+):(\d+):([^:]+):} ) {
-        my ( $version, $pubkey, $created, $data_size, $hdr_size, $flags_str )
-            = ( $1, $2, $3, $4, $5, $6 );
+    if ( $raw
+        =~ m{^P7SH:(\d+):([A-Z0-9]+):([\d.]+):(\d+):(\d+):([^:]+):([^:\n]*):}
+    ) {
+        my ($version,  $pubkey,    $created, $data_size,
+            $hdr_size, $flags_str, $perms_str
+        ) = ( $1, $2, $3, $4, $5, $6, $7 );
 
         _log( 2, "unpack: matched! version=$version, pubkey=$pubkey" );
 
@@ -127,6 +129,22 @@ sub unpack_shm_header {
         for my $flag_pair ( split( /,/, $flags_str ) ) {
             my ( $key, $val ) = split( /=/, $flag_pair );
             $flags{$key} = $val if defined $key;
+        }
+
+        my @permissions;
+        for my $perm_str ( split( /;/, $perms_str // '' ) ) {
+            next unless length($perm_str);
+            my ( $to, $branch, $rights, $expiry, $granted, $sig )
+                = split( /\|/, $perm_str );
+            push @permissions,
+                {
+                'to'      => $to,
+                'branch'  => $branch,
+                'rights'  => [ split( /,/, $rights // '' ) ],
+                'expiry'  => $expiry,
+                'granted' => $granted,
+                'sig'     => $sig,
+                };
         }
 
         return {
@@ -137,7 +155,7 @@ sub unpack_shm_header {
             'data_size'    => $data_size,
             'header_size'  => $hdr_size,
             'flags'        => \%flags,
-            'permissions'  => [],
+            'permissions'  => \@permissions,
         };
     }
 
@@ -379,7 +397,9 @@ sub _permission_canonical {
 }
 
 ## sign a permission grant with the owner's private key [ placeholder hash,
-## identical mechanics to data.mount.shm.permission.add.sign_permission ] ##
+## identical mechanics to data.mount.shm.permission.add.sign_permission ].
+## the multiplier matches the verifier's use of the derived owner pubkey so
+## that privkey/pubkey fixtures of different lengths still verify. ##
 sub sign_permission {
 
     my ( $perm, $priv_key ) = @ARG;
@@ -391,8 +411,9 @@ sub sign_permission {
         $sig
             = ( $sig * 31 + ord( substr( $canonical, $i, 1 ) ) ) & 0xFFFFFFFF;
     }
-    $sig = ( $sig * length( $priv_key || '' ) ) & 0xFFFFFFFF
-        if length( $priv_key || '' );
+    my $multiplier_key = derive_pubkey($priv_key) // $priv_key;
+    $sig = ( $sig * length( $multiplier_key || '' ) ) & 0xFFFFFFFF
+        if length( $multiplier_key || '' );
 
     return sprintf( "%08X", $sig );
 }
@@ -753,8 +774,8 @@ END {
 
 return TRUE  #################################################################
 
-#,,..,..,,,,,,.,,,..,,.,,,,..,.,.,,,,,...,,,,,..,,...,...,..,,,.,,...,,,,,,,.,
-#CBXFZ7QEWHLXW3MYILVFWNHTVIQMH4QJDHT356D3S6SBGBL7WXGYKUETQLCJJAZOLKR5ASPEOVGXK
-#\\\|73L6MJAGFHWNA5SIRNCMZIAGB2TU7THQWW25BDEWF5EYQDVPNPE \ / AMOS7 \ YOURUM ::
-#\[7]OFDG2ZLQPHNJ4V3QMFV4YCGV7IZN7P7UNAYNZ62SLCSLZIJHHCDY 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,...,.,,,,.,,..,,,,.,,,,,..,,,.,,..,,...,.,.,,..,,,,,,..,...,,,.,
+#7CTYTNAV3CXH7QDSA33BHCSO5XDGTJ5J7GR3A2SXROE47D4KWFQGLEMX4W3RA4WIXS2EFC7BL4QW4
+#\\\|IPO7MGQ42HX2TTPOVZH6AIHZA2CINU4RZQP7QX2YNLHWRX53AVJ \ / AMOS7 \ YOURUM ::
+#\[7]AUZGXZQHZXAT4G36ANAAFEAONBGW3QIR4XLUUC6EEMVZ4Q3ETECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
