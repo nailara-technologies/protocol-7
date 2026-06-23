@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = base.X-11.get_geo_async
+# param = <continuation-handler-name>, [continuation-params-href]
+# descr = async variant of base.X-11.get_geometry -- requests this zenka's
+#         saved window geometry from the tile zenka via cube, and invokes
+#         the given continuation handler once geometry is resolved [ via
+#         tile.get_geometry, or the X-11.get_screen_size fallback if no
+#         entry is configured ], instead of blocking on a manual
+#         readline() loop, which cannot resolve a deferred reply [ eg.
+#         an interactive placement triggered by tile.get_geometry ]
+
+my $continuation_handler = shift;
+my $continuation_params  = shift;
+
+return warn 'expected continuation handler name <{C1}>'
+    if not defined $continuation_handler;
+
+my $zenka_subname = <system.zenka.subname>;
+my $sn_str
+    = defined $zenka_subname
+    ? ' ' . <system.zenka.name> . "[$zenka_subname]"
+    : '';
+
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| tile.get_geometry |,
+        'call_args' => { 'args' => $sn_str },
+        'reply'     => {
+            'handler' => qw| base.X-11.handler.geo_reply |,
+            'params'  => {
+                'continuation_handler' => $continuation_handler,
+                'continuation_params'  => $continuation_params
+            }
+        }
+    }
+);
+
+return TRUE;
+
+#,,,.,.,,,.,.,..,,,,,,.,,,..,,,.,,.,,,.,,,,..,..,,...,...,,,.,.,,,,..,...,.,.,
+#KEXYM744NDV5YLJNVARQ3XLHFSAVIOYUH556W7PRTTAFPTTWU65OFAOEDNN6MBC3VRWDEVBARYAWU
+#\\\|QIJRSQCY2HA5BMOENMZNN2RGNOIYPZZ2XGFJS7VRIVMC6IMPMZV \ / AMOS7 \ YOURUM ::
+#\[7]DMLFGIAKHSK6OMAJ6UMJ5LEZJGKJZNSUBIJCIWTDFNDLSDCREUAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,19 @@
+## [:< ##
+
+# name  = window.place.startup
+# descr = post-connect startup: acquire session id, then resolve window
+#         geometry asynchronously [ window-place is itself the 'tile'
+#         zenka, so its own geometry request routes back to itself --
+#         it must not block here, or it can never service that request ]
+
+<[base.get_session_id]>;
+
+<[base.X-11.get_geo_async]>->(qw| window.place.startup.geo_ready |);
+
+return 0;
+
+#,,..,,..,,,,,,,,,...,,,,,,.,,,..,,,.,..,,,.,,..,,...,...,.,.,.,.,,..,..,,...,
+#FG4LMEGJT2U5PIJHFSP35DNWMB6OPOVUXD6WSIGAGZQSZZSBREPJ4KJR2JI7G73Z5AZT4ONVWEWC6
+#\\\|JIX5PJNPUFPV75H4D5YWHDAEYBOKNKDQKW4EE5H2ZW5XAV5WHAU \ / AMOS7 \ YOURUM ::
+#\[7]E7HKD2OEW4AAYRQWBJJBQPPIHMQXXFKNUOAI72MOZ6YA4JQ6UCBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
