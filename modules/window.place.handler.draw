@@ -57,8 +57,13 @@ $context->line_to( $w, $h - $arm );
 $context->stroke;
 
 ## text overlay : caller title top-left, geometry readout bottom-right ##
-my $x = $inst->{'geom'}{'x'} // 0;
-my $y = $inst->{'geom'}{'y'} // 0;
+## prefer the window's live position -- $inst->{geom} only refreshes at  ##
+## button_release [ compositor-driven move/resize grabs don't go through ##
+## update_x11_state ], so it goes stale during an active drag, same as   ##
+## width/height below.                                                   ##
+my ( $live_x, $live_y ) = $widget->get_position;
+my $x = $live_x // $inst->{'geom'}{'x'} // 0;
+my $y = $live_y // $inst->{'geom'}{'y'} // 0;
 
 my $margin      = <window.place.font-size.margin> //= 10;
 my $title_size  = <window.place.font-size.title>  //= 40;
@@ -77,9 +82,11 @@ if ( defined $caller and length $caller ) {
     $context->show_text( sprintf '[%s]', $caller );
 }
 
-## readout shows the precise target geometry, not the trailing surface ##
-my $rw = $inst->{'geom'}{'width'}  // $w;
-my $rh = $inst->{'geom'}{'height'} // $h;
+## readout shows the live size [ $w/$h above, from the actual widget      ##
+## allocation, already correct -- the previous version preferred the     ##
+## stale $inst->{geom} value instead, which only refreshes at release ]  ##
+my $rw = $w;
+my $rh = $h;
 
 my $readout = sprintf '[ W:%d H:%d X:%d Y:%d ]', $rw, $rh, $x, $y;
 
@@ -97,8 +104,8 @@ $context->show_text($readout);
 
 return TRUE;
 
-#,,..,,,.,.,,,,,,,...,.,.,,,.,,,,,,.,,,..,,,,,.,.,...,...,,..,.,.,.,,,,.,,,..,
-#Z5TGGO4EPJMZIWVW3UOOQGO6NRARLX2CWZXGC6PQSKOXL7J2KHFKPWDKY6RUODGSNRAZU5ZXTG664
-#\\\|GSGICWNSKFJIGZNHIRNHFRPLKLJPXOBIEYO6OOJLHOQDA3BU7TL \ / AMOS7 \ YOURUM ::
-#\[7]6XRWTQSHWTUTN7SWEDM6W7OSDSCF4QHMOV34O2XOT7WD27DELCBA 7  DATA SIGNATURE ::
+#,,.,,,,.,...,..,,,,.,,.,,.,.,..,,,,,,,,.,,,.,.,.,...,...,.,.,,,,,,,.,,,.,,,.,
+#EPJYJ7QUB5ZKOHM7YXQCWRQBK3I2E4DBARJASO6C3U3M3VJMAQ2EPNTSDLWY5LDZ3TQ2HUGVSE7AG
+#\\\|GCTUAWPHJQ5B3PSRINOLGTQAZUPM3N7YZXO5NOWDYW2BBXVAUGJ \ / AMOS7 \ YOURUM ::
+#\[7]5QNVEVZSDLGQXYNCYI3Y3UZM37TFSEEVC5ET76BZWUXSJRLQBSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
