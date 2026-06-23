@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = base.X-11.handler.geo_reply
+# descr = reply handler for base.X-11.get_geo_async's tile.get_geometry
+#         request -- on TRUE, stores the geometry and runs the caller's
+#         continuation; on FALSE [ no entry configured ], falls back to
+#         X-11.get_screen_size, async, before running the continuation
+
+my $reply = shift;
+
+my $continuation_handler = $reply->{'params'}{'continuation_handler'};
+my $continuation_params  = $reply->{'params'}{'continuation_params'};
+
+if ( defined $reply and ( $reply->{'cmd'} // '' ) eq qw| TRUE | ) {
+    <x11.geometry> = $reply->{'call_args'}{'args'};
+    <[base.logs]>->( 1, 'received window geometry ., [%s]', <x11.geometry> );
+
+    return $code{$continuation_handler}->($continuation_params)
+        if defined $continuation_handler
+        and exists $code{$continuation_handler};
+    return;
+}
+
+## no tile entry / no geometry configured -- use full X server geometry ##
+## as window geometry, same fallback base.X-11.get_geometry used [LLL]  ##
+<[protocol-7.route-send]>->(
+    {   'command' => qw| X-11.get_screen_size |,
+        'reply'   => {
+            'handler' => qw| base.X-11.handler.geo_fallback_reply |,
+            'params'  => {
+                'continuation_handler' => $continuation_handler,
+                'continuation_params'  => $continuation_params
+            }
+        }
+    }
+);
+
+#,,.,,,,,,...,.,.,.,.,,,.,,,.,,.,,,,.,.,.,..,,..,,...,...,.,.,.,.,.,.,,.,,,,.,
+#C4PTSBRTSSNKATLLQGDYSGEXRHK6UK6JP7XFBUS6KOHV6VNKY7TTPFQKVMEJI5GGSCXVFJAEC6T3M
+#\\\|EEV5FECUVFCCIZX2SZWBWGVQJ6BX2UFRG3SFDLSMIQJ5GG5S3P3 \ / AMOS7 \ YOURUM ::
+#\[7]AIINZKC5BBM5MTUDN7SDQNQTADP7B6LGTCIQ4IKVGT5XD2Z6VQDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
