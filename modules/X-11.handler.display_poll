@@ -39,20 +39,14 @@ if ( ++$server->{'poll_retries'} > $max_retries ) {
     return;
 }
 
-## derive socket path ##
-my $display_num = $display_str;
-$display_num =~ s|^:||;
-my $socket_path = sprintf qw| /tmp/.X11-unix/X%s |, $display_num;
-
-return unless -S $socket_path;
-
-## attempt X11::Protocol connection ##
+## attempt X11::Protocol connection [ also matches an abstract-namespace ##
+## socket, which never shows up as a /tmp/.X11-unix/X<n> filesystem entry ] ##
 my $conn;
 eval { $conn = X11::Protocol->new($display_str); };
 
 if ( length $EVAL_ERROR or not defined $conn ) {
     <[base.logs]>->(
-        2, ": display %s socket exists, protocol connection failed: %s",
+        2,            ": display %s connection not ready yet: %s",
         $display_str, $EVAL_ERROR
     ) if $server->{'poll_retries'} % 7 == 0;
     return;
@@ -71,8 +65,8 @@ $server->{'connected'} = TRUE;
 ## resolve jobs waiting on this display ##
 <[jobqueue.check_dependencies]>;
 
-#,,,.,...,.,.,,..,,,.,..,,,,.,..,,,,,,,,.,,..,..,,...,...,,,,,,,,,,..,,..,.,.,
-#YPDD3P3PXHFJKZEARKWFWMCLVNBUG2MWF3UVFAUCATXKRVNMZ6WWSPL72DQL7QAC5YXO5GHBSZPJO
-#\\\|2LLNS447UL6WR2MV6APWXZK67FJJAGT7BVQBPAG33CPNXTWSGCX \ / AMOS7 \ YOURUM ::
-#\[7]JLFLJHGR6UZHW2FPXZAWKNTNESLORZJRUMCHJQWB4R235SVEGSCI 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,...,,,.,,.,,.,.,,.,,.,.,..,,..,,..,,...,..,,,.,,,.,,,,,,,..,,..,
+#DED7VHYDYTSCSMPP5VNLS7UJC4OAZCDRYIP6TXWUSPNCRLRF7ZHECJSRF3HRBJQ4RFAA2OTX2OG3S
+#\\\|OWES7DXEK6GAXCMR6T6RUDPIEBIOG4D5VA5UL2GQHOAW2XL7RC2 \ / AMOS7 \ YOURUM ::
+#\[7]DOONGRRMKMTW2Z67PUQGOK4OKAFASERFOAGK6LSE3TNKRKGTFMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

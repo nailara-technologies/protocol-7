@@ -3,7 +3,8 @@
 # name  = X-11.job.start_server
 # descr = fork an X server binary and register a poll for its display socket
 
-my $job    = shift            // {};
+my $arg    = shift;
+my $job    = ref($arg) eq qw| HASH | ? $arg : {};
 my $params = $job->{'params'} // {};
 
 ## primary path populates globals before callbacks.initialized fires ##
@@ -99,8 +100,8 @@ $server->{'poll_timer'}   = <[event.add_timer]>->(
     }
 );
 
-#,,..,.,.,,.,,,..,,.,,...,,..,.,.,,.,,,.,,,,,,..,,...,..,,.,.,..,,...,.,,,.,,,
-#C77YOV3XSDWC3PM7SG47GDHW3DEWJQ6UBJNLWKVBU7AWHAJFEEZAI6AI7H4IBCHCCGBGXXSDZUZZI
-#\\\|GTSNZCLQCKCJMXJAQY4YPD5FDG7JJ2IL2IUYSJ5OFH5M36WG45E \ / AMOS7 \ YOURUM ::
-#\[7]VTVXE5UPED7VV6EILEHZFKIXWW6SQZHENZ6QDUU3LLQXQQTDUIBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,.,,,,,,,.,,,.,,,...,,.,,,,,,,,.,..,,...,...,.,,,,,,,,,.,...,.,.,
+#HNTXIWLPMK3JPMER5XJCV57TLOCQGY4BXIU3YLQ657COE6QXVGSRIAMYNHADCDRJJJRCU3ZKEGSVK
+#\\\|IW2LBXDXF6V5GMCVPYRQJTRXQH43CQ5W4BTLIADMCPTUCC73AFD \ / AMOS7 \ YOURUM ::
+#\[7]EFTIQZNQEROSMZIQCN6LMUCWEAFISKKVZ2CEFN27PIE2ZHDCS6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
