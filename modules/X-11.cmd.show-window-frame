@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = X-11.cmd.show-window-frame
+# param = <w_id>
+# descr = show the window manager frame/decoration of a window
+
+my $X         = <X-11.obj>;
+my $window_id = $call->{'args'};
+
+return { 'mode' => qw| false |, 'data' => 'x11 window id required' }
+    if not defined $window_id;
+return { 'mode' => qw| false |, 'data' => 'invalid x11 window id syntax' }
+    if $window_id !~ m|^\d+$|;
+
+return { 'mode' => qw| false |, 'data' => 'no such window' }
+    if not <[X-11.window_id_found]>->($window_id);
+
+## under WSLg/Weston the registry may hold the client window; find the    ##
+## top-level frame so we can re-map the window the wm/compositor manages.  ##
+my $frame_id = <[X-11.find_top_level_frame]>->($window_id);
+
+my $target_id   = $window_id + 0;
+my $motif_hints = $X->atom('_MOTIF_WM_HINTS');
+
+## remove the hint from both the client and the frame; absence means the  ##
+## wm/compositor should use its default decoration policy.               ##
+eval {
+    $X->DeleteProperty( $target_id, $motif_hints );
+    $X->DeleteProperty( $frame_id,  $motif_hints );
+};
+
+if ( length $EVAL_ERROR ) {
+    <[base.logs]>->(
+        1,          '[show-window-frame] DeleteProperty id=%s : %s',
+        $window_id, <[base.str.eval_error]>
+    );
+    return { 'mode' => qw| false |, 'data' => 'DeleteProperty failed' };
+}
+
+<[X-11.WM.update]>;
+
+## trigger the wm/compositor to apply the decoration change ##
+## [ +0 +0 move is a no-op positionally but forces re-evaluation ] ##
+<[X-11.cmd.move-window]>->( { 'args' => "$window_id x+0 y+0" } );
+<[X-11.cmd.move-window]>->( { 'args' => "$window_id x+0 y+0" } );
+
+<[X-11.WM.update]>;
+
+return { 'mode' => qw| true |, 'data' => 'window frame shown' };
+
+#,,.,,,.,,.,.,.,.,.,,,,,,,,,,,...,,,.,,..,,,.,.,.,...,...,.,.,.,,,,.,,.,.,,,,,
+#57R2EWSOGMO27NZXHLCXVAQWB2NX22RYB4C4CWG6GMJERTHLV5INXAGIV45LR6MQY7H7I3OKSNQRS
+#\\\|5NGUMG624EIVX65DDTB46K3DTHH47TA7RFIVE7E3O7KTSYD7UDS \ / AMOS7 \ YOURUM ::
+#\[7]FKATV3ODMUCPZZC7XWVOACPG2Z4EKEMOU6ZJB232ZOF4PNKQREAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = X-11.find_top_level_frame
+# param = <w_id>
+# descr = walk up the window tree to find the top-level wm/compositor
+#         frame for a given window id [ returns the window id itself
+#         when it has no parent other than root, ie. undecorated ]
+
+my $X         = <X-11.obj>;
+my $window_id = shift;
+
+return undef if not defined $window_id;
+
+my $frame_id = $window_id + 0;
+while (1) {
+    my ( $root, $parent, @children ) = eval { $X->QueryTree($frame_id) };
+    last
+        if $EVAL_ERROR
+        or not defined $parent
+        or $parent == $X->root
+        or $parent == 0;
+    $frame_id = $parent;
+}
+
+return $frame_id;
+
+#,,..,,,.,,.,,,,.,,..,.,,,..,,.,,,.,,,.,,,,..,..,,...,...,,,,,,.,,...,..,,..,,
+#7GFFOT6I3EZMRURMZMLE2XFVN5QQWTOBFOTZ63DPJDREO4GAAWYRXIYUOE3QG5BK23VXUPFKVJ5CY
+#\\\|DERA66GGIMK4CBTJG3JHXISWWHCVJI4T45CZXLWWZQEK2FKYBYA \ / AMOS7 \ YOURUM ::
+#\[7]44UUAEA2JI6ASHXIS4KGI7P5TXIWXCHPOIHWQCDNBXIATX7HR4AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
