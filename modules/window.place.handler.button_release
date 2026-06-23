@@ -16,6 +16,25 @@ delete $inst->{'drag'}{'start_x'};
 delete $inst->{'drag'}{'start_y'};
 delete $inst->{'drag'}{'start_geom'};
 
+## [ testing ] a move/resize may have just been driven by the compositor's##
+## own interactive grabs [ begin_move_drag / begin_resize_drag ], neither ##
+## of which go through update_x11_state -- re-read the real geometry so   ##
+## the readout/commit reflect where the window actually ended up, not a   ##
+## stale pre-drag value.                                                  ##
+my $window = $inst->{'window'};
+if ( defined $window ) {
+    my ( $real_x, $real_y ) = $window->get_position;
+    if ( defined $real_x and defined $real_y ) {
+        $inst->{'geom'}{'x'} = $real_x;
+        $inst->{'geom'}{'y'} = $real_y;
+    }
+    my ( $real_w, $real_h ) = $window->get_size;
+    if ( defined $real_w and defined $real_h ) {
+        $inst->{'geom'}{'width'}  = $real_w;
+        $inst->{'geom'}{'height'} = $real_h;
+    }
+}
+
 ## right-click release : submit, same as the enter key [ see          ##
 ## handler.button_press for why this is deferred to release ]         ##
 if ( $event->button == 3 ) {
@@ -27,8 +46,8 @@ if ( $event->button == 3 ) {
 
 return TRUE;
 
-#,,..,,,.,,.,,,..,,.,,...,,,,,..,,.,,,.,.,,..,.,.,...,...,..,,,.,,,..,...,,.,,
-#AWIDZIZ3WQSPRJSF3WVEYSHLZJBYI37TGD7URRAUJIGMQBP7V4U2B3R5R4KU4S5SIN43BVEHHLIYO
-#\\\|4PPYHIRCU7YARUBBPTGBSAIB42XKJUX76FUZG6C476JP32WOJJP \ / AMOS7 \ YOURUM ::
-#\[7]GZJ5Y7K3TO5FOYJYXKKDUSBMESUCQD74OZT4ITGZJHUB2336BSCA 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,,.,,..,..,,.,.,,,,,.,,,,.,,,.,,.,.,...,...,.,.,.,,,.,.,...,.,,,
+#WW6QIGHAXSZXQJSRPO5ZL4JVY4Q5BGGE352KHWCLNSKBZN3DGQEEMOXP77U56L6P7ZW67SYRCEHMK
+#\\\|7GI5DVZZ6JVJJXIFWAPCBOPYNMBOKB6GATGIL3QCW5XIF5FFKMB \ / AMOS7 \ YOURUM ::
+#\[7]QJSKUOOI3JPGOXUYYOBOOQ7BLQWUP7WMCPCBTISRUQHISKWXLWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

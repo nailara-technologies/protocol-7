@@ -36,6 +36,13 @@ if ( not defined $window or not $window->get_visible ) {
     return;
 }
 
+## force a redraw every tick so the HUD readout keeps refreshing from     ##
+## live position/size during a compositor-driven move/resize grab --     ##
+## weston appears to only request a repaint at the start/end of such a   ##
+## grab [ visually stretching the last frame as a live preview in       ##
+## between ], so 'draw' alone doesn't fire often enough on its own.       ##
+$window->queue_draw;
+
 eval {
     ## query pointer position via the default pointer device. under       ##
     ## wslg/xwayland this is screen-relative, so we also compare screens  ##
@@ -87,8 +94,8 @@ eval {
 
 return;
 
-#,,,,,..,,,,.,.,,,,.,,.,.,,,,,,.,,,..,.,,,,..,.,.,...,...,..,,,.,,.,.,...,.,,,
-#GCRAOIYD4SBMF2WBUJ7A7LJRXAJ242YCN4DK2EC62JZXCLQJKIXYQGLGTVZLYYDBKU4JDBX523E74
-#\\\|TZ3YJECPNILSGCEHHCQJ3654KHGQFJZV7NL72O2UTWEDSTQ4NC6 \ / AMOS7 \ YOURUM ::
-#\[7]GWA3KV3QNILYFOWL4KMTLSWV5SPMFKIYDYZPX2Z33XQ4LERFUSDA 7  DATA SIGNATURE ::
+#,,..,,..,..,,..,,,,.,,.,,...,,,,,,,.,...,,.,,.,.,...,...,...,.,,,,,,,,.,,,.,,
+#KBZ5HL22ACMVL74JCZMWGVBSL6UFRNVOJLREJSYGBT4VIDGUZO6F7QWFB2K3RU7QVPKR25FQH2EF2
+#\\\|MRTHVD4ZPDZS73TPISJ7FRYA7NRHTKRJRL4CVTYLAP4PGKZP36S \ / AMOS7 \ YOURUM ::
+#\[7]5BFZMILACLMA7YA4XQLOF3N7HMT5MYZOGKSPIC2LJC3WYPUM2ABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

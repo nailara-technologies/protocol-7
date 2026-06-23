@@ -53,23 +53,45 @@ if ( $region eq 'body' ) {
     $inst->{'last_click'} = $now;
 }
 
-$inst->{'drag'}{'active'}     = TRUE;
-$inst->{'drag'}{'region'}     = $region;
-$inst->{'drag'}{'start_x'}    = $event->x_root;
-$inst->{'drag'}{'start_y'}    = $event->y_root;
-$inst->{'drag'}{'start_geom'} = {
-    'x'      => $inst->{'geom'}{'x'}      // 0,
-    'y'      => $inst->{'geom'}{'y'}      // 0,
-    'width'  => $inst->{'geom'}{'width'}  // $w,
-    'height' => $inst->{'geom'}{'height'} // $h
-};
+## [ testing ] hand both move and resize to the compositor via the        ##
+## Wayland-sanctioned interactive grabs instead of our own move()/resize() ##
+## calls -- repositioning [ and, for west/north edges, resizing, which     ##
+## also shifts the origin ] an already-mapped toplevel via plain calls has ##
+## proven unreliable under this WSLg/Weston build, while a genuine         ##
+## compositor-driven grab is the same mechanism protocol-7-menu uses for   ##
+## move. begin_resize_drag takes the edge being dragged and lets the       ##
+## compositor apply the correct position+size combination itself.         ##
+if ( $region eq 'body' ) {
+    $widget->begin_move_drag( $event->button, $event->x_root, $event->y_root,
+        $event->time );
+    return TRUE;
+}
+
+my %region_to_edge = (
+    'nw' => qw| north-west |,
+    'n'  => qw| north |,
+    'ne' => qw| north-east |,
+    'w'  => qw| west |,
+    'e'  => qw| east |,
+    'sw' => qw| south-west |,
+    's'  => qw| south |,
+    'se' => qw| south-east |,
+);
+
+my $edge = $region_to_edge{$region};
+if ( defined $edge ) {
+    $widget->begin_resize_drag(
+        $edge, $event->button, $event->x_root,
+        $event->y_root, $event->time
+    );
+}
 
 <[base.logs]>->( 2, '[place.button_press] id=%s region=%s', $id, $region );
 
 return TRUE;
 
-#,,.,,.,.,,,,,.,,,.,.,,.,,...,.,,,.,,,.,,,..,,.,.,...,.,.,..,,,..,..,,,,.,,,.,
-#KGFINF2TJBJKVUBGLJH7R7BQSM6CPJ5JG7OKT3T3WRVHN4QBVQ32RRDHKAVAJJMFLBURRM6CCQFUM
-#\\\|LKLZMJFEK23JSL6KADA6CJEUNUL6ZTCTUEWY5UY6KV2F6BHEG2H \ / AMOS7 \ YOURUM ::
-#\[7]KT6UN5UKHZJDDCVD7L2CTUHT4UQ25BQ6EGXOPNCH6SMUTPQJNKCY 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,.,.,,,.,...,,,,,,,.,,.,,,.,,,.,,.,.,...,..,,..,,.,.,,,,,..,,.,.,
+#EDH7CCDJXCNOSGAGLSC6WV65RH4RNBHR7GU5QQL4VMGTABDA7TB42WCERQBZOGU6VYCV46P6A2AI6
+#\\\|W2YKQDNZAG36GLWJSUHZZKXYUE3IX5OVLE74TWXVMVWHAESPMRA \ / AMOS7 \ YOURUM ::
+#\[7]PVGQIUZRPLYRSFHIZW2BIE374IYW3J4ZNRNVMZITEB37DTBGZIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
