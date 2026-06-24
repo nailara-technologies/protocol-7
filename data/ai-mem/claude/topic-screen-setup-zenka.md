@@ -1,14 +1,14 @@
 ---
 name: screen-setup-zenka
-description: "new screen-setup zenka with display-layouts command — scaled minimap of monitor rects; built 2026-06-24, UNSIGNED/UNCOMMITTED"
+description: "screen-setup zenka, display-layouts scaled monitor minimap; LANDED 2026-06-24 commit ce80398d5"
 metadata: 
   node_type: memory
   type: project
   originSessionId: e46832a1-30ee-4a35-b48d-ba1e45979b28
 ---
 
-**Built 2026-06-24 (this session), WORKED FIRST TRY clean once signed;
-NOT YET COMMITTED, re-sign needed after the iteration below.** New
+**LANDED 2026-06-24, commit `ce80398d5` (branch base). Worked first try
+once signed; refined over two iterations + an optical pass, all below.** New
 on-demand GTK zenka `screen-setup` cloned/simplified from `window-place`,
 providing a `display-layouts` command that opens a scaled translucent
 *minimap* of the discovered monitor rects (blue, dim backdrop), with the
@@ -119,6 +119,28 @@ muted labels + outer drag band matched to the dark monitor-glass tone
 accent giving the dark screens edge-definition against the field; taeki
 likes it, do not "fix"/dim it.
 
+**Iteration 3 — shared placement sanitizer, 2026-06-24 (post-commit
+ce80398d5, NEW uncommitted):** trigger = protocol-7-menu crash-looped on
+this staggered layout. Its default = top-right of the VIRTUAL box
+(`5360-230-20=5110, 20`), which is a VOID (rightmost monitor XWAYLAND1 sits
+at the bottom; the top row only reaches x=2982) → window mapped off all
+outputs → verification timeout → restart loop. General gap taeki named:
+placement code clamps to the virtual bounding box, but the box has holes on
+offset layouts — sanitization must snap to a real MONITOR. Built TWO shared
+helpers in **`base.gtk.*`** (universally available — menu/screen-setup both
+use `base.gtk.main_loop` with no explicit load, confirming): `base.gtk.
+list_monitors` (canonical GDK enumeration, returns index/x/y/width/height/
+name/primary) and `base.gtk.snap_to_monitor($x,$y,$w,$h)` → returns an
+(x,y) guaranteed on a monitor (containing-monitor by window centre, else
+nearest by edge-distance, then clamp fully inside). Wired into: protocol-7-
+menu.graphical-startup-init (before its move()), screen.setup.open_window
+(restore path — replaces the crude top/left clamp, also closes the
+cross-monitor-restore gap), and screen.setup.enumerate-monitors now
+DELEGATES to base.gtk.list_monitors (deduped, one enumerator). Menu's
+(5110,20) now snaps to (5110,1080) = top-right of the ultrawide. Both
+white-lists regen'd (screen-setup 527, menu 462). NEEDS SIGNING; menu was
+crash-looping so `p7c v7.stop protocol-7-menu` while iterating.
+
 **Deferred (planned next):** (1) overlay detected window rects from
 `X-11.get-windows` — note that cmd returns only XID+title, needs
 `get_window_geometry`/`get_geo_async` per-window async fan-out; (2) the
@@ -134,8 +156,8 @@ from static diagram into live instrument.
 
 [[feedback-weston-move-unreliable-use-compositor-grab]] · [[topic-gtk-wsl-window-positioning]] · [[topic-tile-window-place-hybrid-desktop]]
 
-#,,,,,,.,,,.,,,..,..,,.,,,.,.,,..,...,,..,,.,,..,,...,...,..,,,,.,.,,,,,,,.,.,
-#MZ3EX7DS7TWM3GASCH2QEXFDGHT74W54YVSXMIZIMBYTTD5VJ2L2LSDSVTNBVISIGSN7VETQD2CUY
-#\\\|WIHKSEDFYW46HCVGCAWNYVKZKEETINGQDC4DJNUB7AIEOAXUOG6 \ / AMOS7 \ YOURUM ::
-#\[7]UVRMWKZUYEMJ7R27LBLVW6OPQZ2XKUFD3SONBVJUPHZBIRBQHQCI 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,..,.,.,...,,.,,.,,,.,.,,,.,.,.,..,,...,.,,,...,...,...,...,..,,
+#6ZAPACTLVBAGJVQBZNKZ567WAXEGNMFKKZ563Z5VHCQNHSZKCXEYA6O3BMWKO3QGAOBOZDXKZU62K
+#\\\|GUG6KOHY2N5K3QO2BZCQRQS3JZOPCA5GYZ7G6B5VZED7PWSORFH \ / AMOS7 \ YOURUM ::
+#\[7]5W7Y7UKPRV43M4H7YM25FKUCPKL2COXZ45ZTF5AVCWZ2MHWS4OCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

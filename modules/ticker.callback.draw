@@ -124,6 +124,13 @@ if ( not <ticker.status.initialized> ) {
 
     <[base.async.get_session_id]>;    # agent status -> 'online'
 
+    ## fetch the tile subconfig now that the window is live + online : it
+    ## drives runtime auto_speed only [ ticker.process_subcfg ], never window
+    ## opening, so it must not sit on the startup-critical path. get_subconfig
+    ## is bounded, so a stuck tile degrades to defaults instead of blocking.
+    <ticker.subcfg> = <[base.X-11.get_subconfig]>;
+    <[ticker.process_subcfg]>;
+
     return FALSE;
 }
 
@@ -295,8 +302,8 @@ if (<ticker.animation_started>) {
 
 return TRUE;
 
-#,,.,,,,,,,..,,,,,,,,,.,,,,,,,,.,,,.,,..,,,.,,..,,...,...,.,,,...,.,,,,.,,.,,,
-#FXYRUWTWG6YKIEKYD3Y3ZTENC7LJYZIYURGVLQPVKGL6TR2RVC3QPJDVKQCC3TYA6FCHC4KLYUBG4
-#\\\|H4EYXH7ICZ3F2EZQ2L6I7S3X3RJFKTGPZPWEB4XU4FC6PF74TWN \ / AMOS7 \ YOURUM ::
-#\[7]VHC7QBZXGWRCKV64GFUIDCMBHN7TL3K2QJV5VSXHBTYHJDAAZYDA 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,.,,.,,,.,,,.,,,..,,,,,,..,,.,.,..,,...,...,,..,,,.,,.,,.,.,..,,
+#CAMHCLNGGUZMVBFPMOTZSIKHKRQFFSW6CMPWET4XKE7B233E5WOCDNS3VTSBDO6FD4P35XDZTMKQM
+#\\\|HNHJMJA3D2VGJ2QF4G34JFI53IBUSDT546FAMCSWPUFJYCN6AC3 \ / AMOS7 \ YOURUM ::
+#\[7]YOAFNYQELZMXQPYC6I3VXQAKQJ6CJN2U7ZSLRK2PU7DOAPO7OUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

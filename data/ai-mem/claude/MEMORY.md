@@ -13,6 +13,8 @@
 - [kimi reload baseline noise](feedback-kimi-reload-baseline-noise.md) — don't make kimi prove pre-existing reload errors are pre-existing; check baseline yourself first
 - [kimi v7 console hint](feedback-kimi-v7-console-hint.md) — combined v7 console at `/dev/shm/.7/STDOUT/NIW7OAQ`, give kimi this path for live verification
 - [File Creation](feedback-file-io-api.md) — never add `#,,.,,,...` stub — blocks signing
+- [version files every commit](feedback-version-files-every-commit.md) — protocol-7.src-ver + README.md + source-code-versions.md ride every commit (version bump); never sort into a feature batch
+- [tile openbox dep redundant](feedback-tile-openbox-dependency-redundant.md) — tile restart/hang was the openbox dependency (redundant under Weston), NOT on-demand config; fix = drop openbox+set-up deps, keep cube X-11; SUPERSEDES the "make tile always-on" handoff theory
 - [base. prefix stripped](feedback-base-prefix-stripped.md) — use `<[protocol-7.command.send.local]>` not `base.` prefix; check with `<zenka>.list-subs`
 - [.cmd. segment stripped](feedback-cmd-segment-stripped.md) — `<zenka>.cmd.<name>` on disk = callable as `<zenka>.<name>`; verifying live 2026-06-08
 - [filter-repo prefix](feedback-filter-repo-amend.md)
@@ -36,6 +38,7 @@
 - [route-send command format](feedback-route-send-command-format.md) — route-send uses bare `X-11.wait_visible` (no cube. prefix); cube.X-11.xxx is send.local only; mixing these causes "no perm" from cube
 
 ## Active Topics
+- [async-window-startup-transition](topic-async-window-startup-transition.md) — ticker RESILIENCE LIVE-VERIFIED 2026-06-24 (tile SIGSTOP'd): 3 bounded fallbacks + resolve-once guards (coords 7s, get-layer 7s, subconfig 3s) all fire, ticker online w/ one window. See CURRENT TRUTH banner atop file. UNCOMMITTED-pending-sign. PATTERN = template for 9 more zenki. STILL OPEN: centered-on-wrong-monitor regression (open_window initial-placement-before-show_all); parallelize get-layer optimization
 - [screen-setup-zenka](topic-screen-setup-zenka.md) — NEW 2026-06-24, UNSIGNED/UNCOMMITTED: screen-setup zenka + display-layouts scaled-minimap of monitor rects (GDK source); gives window.place the monitor-awareness it lacks; file has bring-up steps + deferred window-rects overlay & _NET_WM_MOVERESIZE move fix
 - [amos7-shm-phase1](topic-amos7-shm-phase1.md) — AMOS7::SHM phases 1-3 ALL LANDED 2026-06-22 (410805f43, ac6315191, 786598adc); phase 3 caught kimi substituting a same-process test for cross-process (not accepted, redone) + a stray unmanaged data zenka process causing misleading test failures (diagnosed via v7.list zenki vs list sessions); phase 4 (cleanup) still open
 - [zenka-naming-cleanup](topic-zenka-naming-cleanup.md) — cred-mesh + window-place renames landed; pattern for spotting/fixing more underscore/dotted zenka names; tile-groups->tile LANDED 2026-06-15 (82e65f2d6); command-name cleanup pass LANDED (switch-group, reset-group, base-group, show-groups, count)
@@ -195,8 +198,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,.,,...,...,,..,,.,,,,.,,..,,,,,.,,,..,,..,,..,,...,...,.,,,.,,,,..,,,,,.,.,
-#KQMJDXWYPF4JROEQL72XPBBPX22LCFMUGZN3U6G4OPYWF5P6UVCTSEXWMQCA54AN3PVYEJFMX2ZTM
-#\\\|CPSZ5ISTM6WESMQNH3VE723JVHSVFLM5QDPM2EVIQFMJ56TXNL3 \ / AMOS7 \ YOURUM ::
-#\[7]EEZBUUR4BE4V43GJQQEKZRTSP3EYNRKWZUP3NOO26TMA32RP64DQ 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,,.,..,,...,...,.,,,...,.,.,..,,..,,...,...,.,,,,,.,,..,,.,,...,
+#MKEZ2M557CC3X6KEVVXZDQT76GTZHS7Z5SHIM6GVUJGDD4RPOBGOAWQ2GA7TFCXLGDTQNFCVVWCXE
+#\\\|JPFVZ3MTQCRBM6OSXASI2TCK62YKIFA2HMATMBG34LGPMAVYOQG \ / AMOS7 \ YOURUM ::
+#\[7]Z4VII6NHUMADT4UCZUOXPIQ36ISZRQATZBW55ZQF3MBY5OIX6MBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
