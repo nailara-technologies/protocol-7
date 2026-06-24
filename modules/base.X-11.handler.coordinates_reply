@@ -1,0 +1,77 @@
+## [:< ##
+
+# name  = base.X-11.handler.coordinates_reply
+# descr = reply handler for base.X-11.get_coordinates_async's
+#         tile.get_coordinates request. on TRUE parses + stores
+#         <x11.coordinates> [ left top right bottom ] and clears the
+#         undefined flag; on FALSE / unparseable marks coordinates undefined
+#         so the continuation shapes its own fallback. either way runs the
+#         continuation so startup proceeds.
+
+my $reply = shift;
+
+## the fallback timer may have already fired + run the continuation [ tile  ##
+## was stuck, then a late reply arrives once it resumes ]. the timeout       ##
+## handler deletes the stored continuation when it fires, so its absence is  ##
+## the signal that startup already proceeded -- a late reply must NOT run    ##
+## the continuation a second time [ would re-open the window ]. mirrors the  ##
+## guard in base.X-11.handler.coordinates_timeout.                           ##
+return if not defined <x11.coordinates_async_continuation>;
+
+## real reply arrived -- cancel the fallback timer and clear pending state  ##
+## so the timer callback does not fire the continuation a second time        ##
+if ( defined <x11.coordinates_async_timer> ) {
+    <x11.coordinates_async_timer>->cancel
+        if <x11.coordinates_async_timer>->is_active;
+    delete <x11.coordinates_async_timer>;
+}
+delete <x11.coordinates_async_continuation>;
+
+my $continuation_handler = $reply->{'params'}{'continuation_handler'};
+my $continuation_params  = $reply->{'params'}{'continuation_params'};
+
+<[base.logs]>->(
+    1,
+    '[coordinates_reply] cmd=%s -> continuation %s',
+    $reply->{'cmd'} // 'undef',
+    $continuation_handler // 'undef'
+);
+
+my $parsed = FALSE;
+
+if ( defined $reply and ( $reply->{'cmd'} // '' ) eq qw| TRUE | ) {
+    my $args = $reply->{'call_args'}{'args'} // '';
+    if ( $args =~ m{(-?\d+)\s+(-?\d+)\s+(-?\d+)\s+(-?\d+)} ) {
+        <x11.coordinates> = {
+            'left'   => $1,
+            'top'    => $2,
+            'right'  => $3,
+            'bottom' => $4
+        };
+        <x11.coordinates_were_undefined> = FALSE;
+        <[base.logs]>->(
+            1,  'received window coordinates ., [%d,%d,%d,%d]',
+            $1, $2, $3, $4
+        );
+        $parsed = TRUE;
+    }
+}
+
+if ( not $parsed ) {
+    <x11.coordinates_were_undefined> = TRUE;
+    <[base.log]>->(
+        1, ': no tile coordinates -- continuation will shape the fallback'
+    );
+}
+
+return $code{$continuation_handler}->($continuation_params)
+    if defined $continuation_handler
+    and exists $code{$continuation_handler};
+
+return;
+
+#,,.,,,,.,,,.,,.,,...,.,,,,,.,,,,,,..,.,,,,,,,..,,...,...,.,.,.,,,,,.,,..,,..,
+#5TTFLOX3BGHYML5VHLE6BFIAY5ZVXAEUDYUADIZDSED5Y2WYF5OWR6HHXYURPBGPVOAL3S5WQPJTO
+#\\\|MRDG4N6L66PENUOUXW5ZZQ3R3VG2ICKUMUIPRJH5CYAEEII4DVT \ / AMOS7 \ YOURUM ::
+#\[7]R6OJOIBWGNAQZX2SMN6M4V63YMCCNE4MPQWHIJLCHDMP2ZTCU4BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

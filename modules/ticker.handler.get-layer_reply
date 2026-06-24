@@ -4,6 +4,17 @@
 
 my $reply = shift;
 
+## the fallback timer may have already opened the window [ tile was stuck, ##
+## then a late reply arrives once it resumes ]. resolve-once : if the timer ##
+## got here first, bail -- the window is already open.                      ##
+return if <ticker.layer_resolved>;
+<ticker.layer_resolved> = TRUE;
+
+if ( defined <ticker.layer_timer> ) {
+    <ticker.layer_timer>->cancel if <ticker.layer_timer>->is_active;
+    delete <ticker.layer_timer>;
+}
+
 if ( $reply->{'cmd'} eq qw| TRUE | ) {
     <ticker.tile.layer> = $reply->{'call_args'}->{'args'};
     if ( <ticker.tile.layer> == 100 ) {
@@ -24,8 +35,8 @@ if ( not <ticker.window.force_above>
 
 <[ticker.open_window]>;
 
-#,,.,,,,.,..,,,,,,,,.,.,.,,..,,,.,.,.,,,,,.,,,..,,...,...,,..,,..,,,,,..,,,,.,
-#H6EOF3QZBF5HX5KCCYZVWA3HWC6ZYL3LCGKB25VEH7YTPWJGYL5AQLQ24V74JRNGFX4ONQCXLNZBI
-#\\\|JOCIC2EL4ORFBLZEAGTDAWLSP2CJG4CWBWRCQM2Y6WMIENSDMX7 \ / AMOS7 \ YOURUM ::
-#\[7]THPYMTV6XLVURGWTRM4LFONLSLM3GW5OSI4IAQ55YTILDQEU3ICA 7  DATA SIGNATURE ::
+#,,..,.,.,...,,..,,,,,.,,,...,,,,,,,,,.,,,,.,,..,,...,...,,..,,,.,..,,,,,,,..,
+#QXO3DXCTV7T7OH2OECQSVTTRABXD7RWD5IBYOFDRAPQYSRZRLEOFMCBCWGSQDXKB6CQICV6F4GAOY
+#\\\|G4TKNKRUQRQSRKEQNCUEHLYKDZNYISFD7KW2JVQHUWSIETOHJTY \ / AMOS7 \ YOURUM ::
+#\[7]C4DXSE6FOXR2SSV5DG2QERVUYTNINSFHUKKBXHYCFNSAB4M3FMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

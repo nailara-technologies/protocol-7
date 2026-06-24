@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = ticker.handler.get-layer_timeout
+# descr = bounded-fallback timer handler for the cube.tile.get-layer request
+#         sent from ticker.startup. fires when the tile layer reply does not
+#         arrive within the configured window [ tile offline / stuck ]: opens
+#         the ticker window with the default stacking layer instead of hanging
+#         until the v7 start-up timeout. the real reply [ get-layer_reply ]
+#         resolves + cancels this timer first, so this only runs when no reply
+#         was processed.
+
+## real reply already opened the window -- nothing to do ##
+return if <ticker.layer_resolved>;
+<ticker.layer_resolved> = TRUE;
+
+delete <ticker.layer_timer>;
+
+<[base.log]>->(
+    1, '[get-layer] fallback timer fired -- opening with default layer'
+);
+
+## same swap-edge decision as get-layer_reply : a popup is invisible under  ##
+## WSLg without a parent, so swap mode needs a managed toplevel window.      ##
+if ( not <ticker.window.force_above>
+    and <[base.cfg_bool]>->(<ticker.mouse.swap_edge>) ) {
+    <[base.log]>->( 1, ': swap mode enabled, using managed toplevel window' );
+    <ticker.window.force_above> = TRUE;
+}
+
+<[ticker.open_window]>;
+
+#,,.,,.,,,,..,,,.,,.,,.,,,..,,,,,,..,,...,,,.,..,,...,...,,,,,,,.,.,.,,,,,,.,,
+#3XA7MEXOHR75MWUQ22DN4KPW4QUUYZMCDK4EVVTE5V3HPFWTFTCBMIWPMQBUDVNPTRUWA2FQVVMWC
+#\\\|BMMCAFOJVRXPDDUP34IQMQKLFKXCPAW7I37GUVLIEV4YEC3GS3I \ / AMOS7 \ YOURUM ::
+#\[7]TX2N63EOSXEACAUAPEOJUF7JI7LY3BH7S7XWW6G5W3ZQGBCYIADQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -81,16 +81,18 @@ X.fb_vp = 95  ## vertical fallback position [top] ##
 X.fb_h  =  5  ## fallback height [ in percent ] ##
 
 [base.X-11.get_display]
-[base.X-11.get_coordinates:undef,undef,undef,undef,<X.fb_vp>,<X.fb_h>]
-[base.X-11.get_geometry]
 
-ticker.subcfg = [base.X-11.get_subconfig]
-[ticker.process_subcfg]
+## resolve tile coordinates asynchronously, then finish startup in the      ##
+## continuation. the event loop is entered right away so verify-instance is  ##
+## answered [ no more start-timeout crash ], and a missing tile entry no     ##
+## longer blocks or drops the window in a multi-monitor void -- the          ##
+## continuation shapes a fallback strip on the configured monitor instead.   ##
+[base.X-11.get_coordinates_async:'ticker.startup.geo_ready']
 
-[ticker.startup]
+[base.gtk.main_loop]
 
-#,,..,,,.,,..,,,,,,.,,...,...,..,,.,,,,.,,.,,,..,,...,...,...,...,,,.,..,,,,.,
-#QRSJPJ6LBU5LED7QIJG6Y72SALEWY3PR3SCQYWQDSKKYKUQHLSKPJR23GUPHEDT6JD7FMBGBCXX7O
-#\\\|L2KYHTRLOHFYTJ3HMYJPKN42NT4VEW4Y3O2MESEE3Y3N6QVUGKC \ / AMOS7 \ YOURUM ::
-#\[7]ABKUY7JNR2PZIXTL4CZVUMBZ3V5S4PFHGHW44KY4PA25SK3FSCDQ 7  DATA SIGNATURE ::
+#,,,,,...,,,,,.,,,..,,,.,,.,.,.,.,...,..,,...,..,,...,.,.,.,,,,,.,,.,,,,.,,..,
+#GB35EO2FFKDLH66G7ACJADZBUPSEGAOSISKOAVUJ3HXMISPTP3XZO4BOCIPKY5XE7FYCCXGK2U7DI
+#\\\|K4JUAZ7LLEMHLQGBOC4D2VBOI3MMQNRDV4AJQ2RKQ7J3LUQF2FJ \ / AMOS7 \ YOURUM ::
+#\[7]SRKS2D3JL7GWBVSJXSQE3BALRUIW36AEL3MDYY64NV5SRAXYJMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

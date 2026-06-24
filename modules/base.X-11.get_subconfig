@@ -20,18 +20,33 @@ my $cube_fh = $data{'session'}{$local_sid}{'handle'};
     $cube_fh, "($cmd_id)tile.get_subconfig $name_str\n"
 );
 
+## bounded wait for the reply : tile answers this immediately when alive    ##
+## [ from its own <tile.subconfig> ], so silence here means tile is offline  ##
+## or stuck. without the timeout the readline blocks the event loop forever  ##
+## -> zenka start-up timeout. on timeout return undef so the caller falls    ##
+## back to defaults. each received line re-arms the wait. configurable.      ##
+my $read_timeout = <x11.subconfig_read_timeout> // 3;
+my $fd_mask      = '';
+vec( $fd_mask, fileno($cube_fh), 1 ) = 1;
+
 my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
-    $reply_string  = readline($cube_fh);    ### [LLL] improve ###
+    if ( !select( my $rout = $fd_mask, undef, undef, $read_timeout ) ) {
+        <[base.logs]>->(
+            1, 'tile subconfig request timed out [%ss] -- using fallback',
+            $read_timeout
+        );
+        return undef;
+    }
+    $reply_string  = readline($cube_fh);
     $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(SIZE|FALSE) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-my $subcfg_data  = {};
-my $read_timeout = 2;
+my $subcfg_data = {};
 if ( $reply_string =~ m|^\($cmd_id\)SIZE (\d+)\n$| ) {
     my $bytes_to_go = $1;
     my $bytes_total = $bytes_to_go;
@@ -78,8 +93,8 @@ if ( $reply_string =~ m|^\($cmd_id\)SIZE (\d+)\n$| ) {
     return undef;
 }
 
-#,,.,,.,.,...,,.,,..,,,,.,...,,.,,,,.,...,...,..,,...,...,,,,,..,,..,,,.,,.,.,
-#Y24ZVGNVKCHZETNINKPGBVFAWULNXTUZALH7LZCFWSCJISK3FYR3TFDJEWJQKGS3B2CBDPJ23GVNO
-#\\\|N3DJIPYH5P4MDUDCDXSKMQC6R7ASZB5F5OKGSZBQNWEPVIS2JOE \ / AMOS7 \ YOURUM ::
-#\[7]VPPJKVBM4TOMMUEYDK5G65KRFFHEU3ZE43FITK6PPYBCQMS4OWAQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,...,,,,,,..,,,.,,,.,,..,,..,,,.,..,,...,...,,..,.,,,.,.,,,.,.,.,
+#NA57I3TWBSPUTM7YJOHVVTKCNHPDI4IDVY4QFD7ZHHF7JGDABYXILBOPPVH2TCV7PME22FNQZFBDQ
+#\\\|IGGILW4QY7U4YYAZKQFPXANZYNX2JXNZU46VYLO27PWNWLLUPVC \ / AMOS7 \ YOURUM ::
+#\[7]73EGXHTCX3LHH6XPDP6IUJHX7W7HBRJZADTMJOXTN7FJOKTRDODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
