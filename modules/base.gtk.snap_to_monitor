@@ -1,0 +1,86 @@
+## [:< ##
+
+# name  = base.gtk.snap_to_monitor
+# param = $x, $y, $width, $height
+# descr = sanitize a desired window position against the real monitor rects:
+#         return an ( x, y ) guaranteed to sit on a monitor. snapped to the
+#         monitor containing the window centre, or -- when the centre falls
+#         in a void between staggered monitors -- to the nearest monitor,
+#         then clamped fully inside it.
+#
+#         the virtual bounding box has holes on offset multi-monitor
+#         layouts, so clamping to [ 0 .. screen_w ] is not enough: a window
+#         placed off all outputs cannot be mapped and hangs the compositor
+#         [ eg. protocol-7-menu's top-right-of-virtual default landed in
+#         such a void on a staggered set-up ].
+
+my ( $x, $y, $w, $h ) = @ARG;
+
+return ( $x, $y )
+    if not defined $x
+    or not defined $y
+    or not defined $w
+    or not defined $h;
+
+my $monitors = <[base.gtk.list_monitors]>;
+return ( $x, $y ) if not defined $monitors or not @$monitors;
+
+## reference point : the window centre ##
+my $cx = $x + $w / 2;
+my $cy = $y + $h / 2;
+
+## the monitor containing the centre, else the nearest by edge distance ##
+my $target;
+for my $m (@$monitors) {
+    next
+        unless $cx >= $m->{'x'}
+        and $cx < $m->{'x'} + $m->{'width'}
+        and $cy >= $m->{'y'}
+        and $cy < $m->{'y'} + $m->{'height'};
+    $target = $m;
+    last;
+}
+
+if ( not defined $target ) {
+    my $best_dist;
+    for my $m (@$monitors) {
+        ## nearest point inside this rect to the centre ##
+        my $nx = $cx;
+        $nx = $m->{'x'}                 if $nx < $m->{'x'};
+        $nx = $m->{'x'} + $m->{'width'} if $nx > $m->{'x'} + $m->{'width'};
+        my $ny = $cy;
+        $ny = $m->{'y'}                  if $ny < $m->{'y'};
+        $ny = $m->{'y'} + $m->{'height'} if $ny > $m->{'y'} + $m->{'height'};
+
+        my $dist = ( $cx - $nx )**2 + ( $cy - $ny )**2;
+        if ( not defined $best_dist or $dist < $best_dist ) {
+            $best_dist = $dist;
+            $target    = $m;
+        }
+    }
+}
+
+return ( $x, $y ) if not defined $target;    ## defensive ##
+
+## clamp the window fully inside the target monitor. if the window is      ##
+## larger than the monitor, align to its top-left and let it overflow the  ##
+## far edge rather than the near one                                       ##
+my $mx    = $target->{'x'};
+my $my    = $target->{'y'};
+my $max_x = $mx + $target->{'width'} - $w;
+my $max_y = $my + $target->{'height'} - $h;
+$max_x = $mx if $max_x < $mx;
+$max_y = $my if $max_y < $my;
+
+$x = $mx    if $x < $mx;
+$x = $max_x if $x > $max_x;
+$y = $my    if $y < $my;
+$y = $max_y if $y > $max_y;
+
+return ( $x, $y );
+
+#,,..,,.,,.,,,..,,,,,,.,.,.,.,,..,,..,,,.,,,,,..,,...,..,,...,,,,,.,,,,.,,,.,,
+#EAOHRS7TZ4NBSTOXTOKH5QMOFKRMDM2HVIAQOSPGL2HZ6QURNASW2APX4T4Y3BJWC6SUICN2MNQB4
+#\\\|AKTQE54DYOFUWJRFY4G2QAM3YCE5SSMOATZIYKUYJERC7PQ65UE \ / AMOS7 \ YOURUM ::
+#\[7]TYDRLG2RBVUUCTOBH7TFGXFPDNMSVVKHG7DV5L7R6274MPZQGEDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

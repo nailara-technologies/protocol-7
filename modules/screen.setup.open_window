@@ -52,9 +52,11 @@ if ( defined $saved ) {
     $win_y = $pm_y + int( ( $pm_h - $win_h ) / 2 );
 }
 
-## never restore off the top/left edge ##
-$win_x = 0 if $win_x < 0;
-$win_y = 0 if $win_y < 0;
+## sanitize against the real monitor rects : a saved position can land in ##
+## a void if the layout changed, and this also keeps a cross-monitor       ##
+## restore honest [ snap onto a real device, never an off-output coord ]   ##
+( $win_x, $win_y )
+    = <[base.gtk.snap_to_monitor]>->( $win_x, $win_y, $win_w, $win_h );
 
 my $window = Gtk3::Window->new('toplevel');
 $inst->{'window'} = $window;
@@ -165,8 +167,8 @@ if ( not <screen.setup.gtk.main_running> ) {
 
 return 0;
 
-#,,,,,..,,..,,,,,,..,,,.,,,.,,.,.,..,,.,,,..,,..,,...,...,,,,,,,,,..,,,,.,..,,
-#HVBQFTMLTQ3IOKXSGNEWFNNFOM46S32P2VM4YUOTPAHS3WKCCE2ZPEFHPY5Q7AI7A7ZGFBFYHORD6
-#\\\|G7XVGIKYOE3M2FRGXE5CBL2JMN623BCNATSB77ZB75LZBY7U46P \ / AMOS7 \ YOURUM ::
-#\[7]7RXXY5HSQNDVU6VHRY6ZGTFTAJFOYKABXIMW7KO3YBNNF26NE2CA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,...,,..,..,,,..,...,,..,..,,,..,..,,...,...,.,,,.,.,,..,,,.,,,,,
+#SYHPFDJMDG75ZGLEY6TEUWYJEPEL7IXI67H5LMS3IUF7V2OTEZSFXOO2FLPH3JEXTG2VDXXQHF5VS
+#\\\|5JRXH7C3XVJJD24S5F56ZKJ5UXH3RBWLZBUTMKXRC5U7ZHLNWIC \ / AMOS7 \ YOURUM ::
+#\[7]DBESEAC6PPPKFGSCLLY2MQOZ5XSZNCVGTMKUE5FMBZNQ7ELNRCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
