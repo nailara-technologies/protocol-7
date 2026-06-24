@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = screen.setup.handler.button_press
+# descr = border band = drag handle [ compositor grab, crosses monitor
+#         seams ]; right-click dismisses; the center is reserved free for
+#         future functions [ hit-testing the rects, relative repositioning ]
+
+my ( $id, $widget, $event ) = @ARG;
+
+return TRUE if not defined $id;
+
+my $inst = $data{'screen-setup'}{'instances'}{$id};
+return TRUE if not defined $inst;
+
+## right-click dismisses, same as Escape ##
+if ( $event->button == 3 ) {
+    <[screen.setup.close]>->($id);
+    return TRUE;
+}
+
+my $ex = $event->x;
+my $ey = $event->y;
+my $w  = $widget->get_allocated_width  // 900;
+my $h  = $widget->get_allocated_height // 620;
+
+## the translucent border band is the drag handle -- must match the      ##
+## border width in screen.setup.handler.draw                             ##
+my $border = 26;
+
+my $in_border
+    = (    $ex < $border
+        || $ey < $border
+        || $ex > $w - $border
+        || $ey > $h - $border );
+
+if ($in_border) {
+    ## hand the move to the compositor's interactive grab : the one       ##
+    ## mechanism that repositions reliably -- and crosses monitor seams -- ##
+    ## under this wslg/weston build [ see window.place.handler.button_press ] ##
+    ## mark the drag so button_release knows to persist the new position   ##
+    $inst->{'dragging'} = TRUE;
+    $widget->begin_move_drag( $event->button, $event->x_root,
+        $event->y_root, $event->time );
+    return TRUE;
+}
+
+## center : reserved, no-op for now ##
+return TRUE;
+
+#,,,.,..,,,.,,,,,,...,...,,..,,,.,.,.,.,.,,.,,..,,...,...,.,.,,.,,,.,,,.,,,..,
+#URYGP753PYF5I4AWRL3BBB6SLBI2QIE5CZ57IWKEZVKR3LSSS73EKK2OYO3BA2DWTRYUMC2KRKQ36
+#\\\|BUIKBT5C3DXW4ICN52TZ5CON7FKESS6P4AS4Q5ZFDMWE62CYMV3 \ / AMOS7 \ YOURUM ::
+#\[7]24OMAKMVW3FY5G4SZ5SCRKASJULJMPW2UBFYUA3OHF7FHW63EMBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

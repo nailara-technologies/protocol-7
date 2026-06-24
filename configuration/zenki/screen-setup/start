@@ -1,0 +1,34 @@
+## [:< ##
+
+  .:[ 'screen-setup' display-layout visualiser zenka ]:.
+
+[load_config_file:'shared-params']
+[load_config_file:'X11-vars']
+
+access.cmd.usr.cube = commands heart reload verify-instance * *.*
+
+modules.load = auth net protocol io.unix ui \
+               window.profile window.gtk screen.setup
+
+[load_modules:<modules.load>]
+[init_modules]
+
+## drop priviledges to the X-11 user with protocol-7 group, after init ##
+## so the zenka-dir creation/ownership above still runs as root        ##
+[root.drop_privs:<system.AMOS-user>.':'.<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+
+[base.X-11.get_display]
+[screen.setup.startup]
+
+## idle: the layout map window is opened on-demand via display-layouts ##
+
+## main event loop - GTK if graphical mode, zenka event loop if TTY ##
+[base.gtk.main_loop]
+
+#,,,,,..,,,,.,,..,.,.,,.,,.,.,,,.,,..,..,,..,,..,,...,...,,..,.,.,,.,,,,.,,,.,
+#LV6K6TGTWYB76LOQPRCPJC5ZASLHJFFN5F5VRMTNTXKQIV5RIOXQSLRXKBYI6PLBC3HDKVEHHG4XO
+#\\\|AODKQB7ASTONIXJHPXADBCG4Z65PBEJUXPM3NK4KAZAC2NRSJJQ \ / AMOS7 \ YOURUM ::
+#\[7]ZNVSAOOFZ7NVL4CBEQRRASB5CZ2IVQCK5N2DHSGCIYZB27IZMABQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = screen.setup.layout-model
+# descr = derive the virtual-desktop bounding box from a list of monitor
+#         rects [ the relational model the flat registry list lacks : the
+#         minimap scales against it, and window.place can step against it ]
+
+my $monitors = shift // [];
+
+return undef if not @$monitors;
+
+my ( $min_x, $min_y, $max_x, $max_y );
+for my $m (@$monitors) {
+    my $right  = $m->{'x'} + $m->{'width'};
+    my $bottom = $m->{'y'} + $m->{'height'};
+    $min_x = $m->{'x'} if not defined $min_x or $m->{'x'} < $min_x;
+    $min_y = $m->{'y'} if not defined $min_y or $m->{'y'} < $min_y;
+    $max_x = $right    if not defined $max_x or $right > $max_x;
+    $max_y = $bottom   if not defined $max_y or $bottom > $max_y;
+}
+
+return {
+    'min_x'    => $min_x,
+    'min_y'    => $min_y,
+    'max_x'    => $max_x,
+    'max_y'    => $max_y,
+    'width'    => $max_x - $min_x,
+    'height'   => $max_y - $min_y,
+    'monitors' => $monitors,
+};
+
+#,,,.,.,,,...,.,.,,.,,...,,,.,,,.,...,,..,,,.,..,,...,...,,.,,,..,,..,,.,,..,,
+#2GEDXUMOHOUL5TRC2YTCGQY7UDE3L6GY54ZL6DVVUD3TT7A732OX33XSGD255AZTH5QOUBZC3AYAE
+#\\\|LVSIFCCKVNCDQHTFIZQUAQIHIEG6CURT22R3WGVSZIMEUT7OSN4 \ / AMOS7 \ YOURUM ::
+#\[7]55H7M2SLOAOA7WPRUZMU7LYSM3KC3JKIP3VLADTXC36BU2BV52CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = screen.setup.monitor-at-point
+# descr = return the monitor rect containing a virtual-desktop point, or
+#         undef when the point falls in a void between monitors [ the
+#         containment primitive window.place.adjust needs to step across
+#         seams deliberately instead of walking into the gaps ]
+
+my ( $monitors, $px, $py ) = @ARG;
+
+return undef
+    if not defined $monitors
+    or not defined $px
+    or not defined $py;
+
+for my $m (@$monitors) {
+    return $m
+        if $px >= $m->{'x'}
+        and $px < $m->{'x'} + $m->{'width'}
+        and $py >= $m->{'y'}
+        and $py < $m->{'y'} + $m->{'height'};
+}
+
+return undef;    ## point lies in a void between the monitors ##
+
+#,,..,,.,,,,.,...,,,.,,,.,.,,,.,,,.,.,,..,,..,..,,...,...,..,,,,.,.,.,.,,,.,,,
+#FUDZWHHTKUXYRNBZB6KTA554N7KVO6QUBZVXZ64UNMTPZVNWVZ5MCIKA4E5VFZ3MSL3NS3GAALY5M
+#\\\|FXU2R3PCLKLJ6UELYPJX4SA24VFZE6LHYIZR7VMZ62BAAA4VJ7G \ / AMOS7 \ YOURUM ::
+#\[7]OBTWASAQRN6M4T4ORCO56KOMU2C7FAL3TI5WIQ2VQCDPK3P4R2AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
