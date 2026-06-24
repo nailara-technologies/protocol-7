@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = ticker.startup.geo_ready
+# descr = continuation after the async tile-coordinate request resolves
+#         [ base.X-11.get_coordinates_async ]. when no tile entry exists,
+#         shape a fallback strip on the ticker's configured monitor via the
+#         shared base.gtk.strip_on_monitor -- replacing the old (0,0)
+#         virtual-screen fallback that landed in a void on staggered multi-
+#         monitor layouts. then run the remaining startup, now that the
+#         placement is resolved.
+
+<[base.log]>->( 1, '[ticker.geo_ready] continuation fired' );
+
+## open the gdk display now so ticker.select_monitor [ pure gdk ] can     ##
+## resolve the configured monitor here -- open_window's own Gtk3->init is  ##
+## later in the chain, too late for the fallback shaping below             ##
+<[base.gtk.ensure_display]>;
+
+## fallback shaping : a full-width strip on the configured / selected ##
+## monitor [ ticker.window.monitor, eg. index:1 ]                     ##
+if (<x11.coordinates_were_undefined>) {
+    my $mon = <[ticker.select_monitor]>;
+    if ( defined $mon ) {
+        my ( $x, $y, $w, $h )
+            = <[base.gtk.strip_on_monitor]>->( $mon, <X.fb_vp>, <X.fb_h> );
+        <x11.coordinates> = {
+            'left'   => $x,
+            'top'    => $y,
+            'right'  => $x + $w,
+            'bottom' => $y + $h
+        };
+        <[base.logs]>->(
+            1,  '[ticker.geo_ready] fallback strip on monitor [%d,%d,%d,%d]',
+            $x, $y, $x + $w, $y + $h
+        );
+    } else {
+        <[base.log]>->(
+            0, '[ticker.geo_ready] no monitor available for fallback strip'
+        );
+    }
+}
+
+## make the window dimensions available immediately from the resolved    ##
+## coordinate rect. open_window's set-window-profile sets these too, but   ##
+## later in the async open chain -- without this, a command arriving first ##
+## [ eg. read_file -> parse_text's font-size calc ] sees height 0 and      ##
+## aborts. dims = the coordinate extent [ width=right-left, etc. ].        ##
+my $c = <x11.coordinates>;
+if ( defined $c ) {
+    <x11.window.width>  = $c->{'right'} - $c->{'left'};
+    <x11.window.height> = $c->{'bottom'} - $c->{'top'};
+}
+
+## remaining startup, now that coordinates are resolved. NB: the old sync
+## <[base.X-11.get_geometry]> was removed here -- nothing in ticker reads
+## <x11.geometry>, and it routes to tile [ on-demand ], so when tile was
+## offline it blocked this event-loop callback forever -> start-timeout.
+##
+## the tile subconfig fetch [ get_subconfig + process_subcfg ] also routes to
+## tile and used to sit here, on the startup-critical path. it only drives
+## runtime auto_speed, never window opening, so it now runs post-online from
+## the draw-init block [ ticker.callback.draw ] : the window comes up first
+## and a stuck tile can no longer block start-up. get_subconfig is bounded too.
+
+<[ticker.startup]>;
+
+return TRUE;
+
+#,,,,,,.,,,,,,,,.,.,.,.,,,,,.,,,,,,,,,,.,,.,.,..,,...,...,..,,...,...,.,.,.,.,
+#63WHIYNYXVM2AUDAJJHBLO7WR6DIMZIJERKKK6EU36AFZGJTRFVVK6G5PG25TX73DA5I5EYGHJ2US
+#\\\|3C5W2WPGTDVAUY4GNM3Q5U6DMNJOS7GOGNV2SVYPLM5J5NLUECD \ / AMOS7 \ YOURUM ::
+#\[7]ER5TWR63CXDWDD3VHP4ZV2Y2NBNQ3L2BD2AXTJNHKQ7KT24XPQDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
