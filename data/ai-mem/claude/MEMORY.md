@@ -2,7 +2,8 @@
 - [UNCOMMITTED 2026-06-21](coding-zenka-improvement-pipeline.md) — `result_constraint`+tiered-escalation feature fully implemented + live-verified (tier-0/tier-1 confirmed firing correctly); found+fixed a real timeout-path tier-2 gap in poll_switch same session; NOT YET SIGNED/COMMITTED — check this file for exact pending file list before doing anything else with this feature.
 - [WSLg deiconify limitation](feedback-wslg-deiconify-limitation.md) — Weston/WSLg blocks deiconify at compositor level; iconify works, nothing deiconifies (X11 or GTK); don't re-investigate unless Weston version changes
 - [UNCOMMITTED 2026-06-20](topic-mpv-jobqueue-startup.md) — large uncommitted set spanning two sessions: bin/protocol-7-gtk3, configuration/zenki/mpv/start (fade_in=1 + fade_start_geom=700x42 are VOLATILE TEST VALUES, revert before commit), modules/{X-11.cmd.move-window,X-11.cmd.set_geometry,X-11.handler.screen_change,base.root.drop_privs,mpv.startup.handler.socket_poll,v7.zenka.start,mpv.handler.event.property-change.window-id(new)}, bin/dev/script-scratchpad/gtk_position_restore(new) — check `git status` first thing next session, separate durable fixes from volatile fade_in tuning before any commit
-- [gtk-wsl-window-positioning](topic-gtk-wsl-window-positioning.md) — active, UNRESOLVED: GDK_BACKEND=x11 alone disproven as the fix for move()-before-show_all under WSLg; minimal test script still mismatches; window also renders translucent/shadow-only — open questions listed, read before continuing
+- [gtk-wsl-window-positioning](topic-gtk-wsl-window-positioning.md) — active, partially resolved 2026-06-24: see [[weston-move-unreliable-use-compositor-grab]] for the drag/resize-freeze breakthrough; initial-placement-before-show_all question still separately open
+- [weston-move-unreliable-use-compositor-grab](feedback-weston-move-unreliable-use-compositor-grab.md) — GTK move() on an already-mapped toplevel unreliable under this WSLg/Weston build; use begin_move_drag/begin_resize_drag instead; keyboard-stepping path still has unresolved drift (read-back via get_position/get_size proved unreliable, two attempts failed)
 - [cube-auth-name-collision](feedback-cube-auth-name-collision.md) — zenka names matching `(declare|select)-<word>` silently break auth; fixed (auth. prefix now mandatory), but re-check if regex ever touched again
 - [zenka shutdown end_code](feedback-zenka-shutdown-end-code-callback.md) — never assign $SIG{INT}/$SIG{TERM} directly in a zenka module, it clobbers base.sig_int/sig_term; use `push <callbacks.end_code>->@*, qw|module.name|` instead
 
@@ -193,8 +194,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,.,,,..,,.,,..,,,..,...,.,,,,,.,..,,,,.,.,,,..,,...,..,,..,,..,,..,,,..,...,
-#ZSZ246ZOMTXBPUTUYBZQK3HMXZBTN5QHQRVCCLIJRBLSQQB63HZNURDBDMBZNMD3RZIGKKRXACZIQ
-#\\\|4JTS2MCCYQDQLWN4ONZK3QO3NZWZMRIIPXCGZNGQF2QEKZZVYSC \ / AMOS7 \ YOURUM ::
-#\[7]BYCIYXKFVZN7PSKIWU5UR56RBNFFK67WWY6FCG5IVFVITPC4MMDA 7  DATA SIGNATURE ::
+#,,..,..,,.,.,.,,,..,,..,,,,.,...,..,,.,.,,.,,..,,...,...,..,,...,.,,,...,,,.,
+#4LOQCXE6PCXKOKNYCRNGSLG4KTMQYFBATWZFUTNPFLEENR254AEZKMWF7SISLA5WOJFEOPLHJLBIG
+#\\\|DTTLF6H4TZRSULBDBAHDKF5EN7B3W2MJWLDRHDSUH67HOEKLS35 \ / AMOS7 \ YOURUM ::
+#\[7]TMEYB2R6KE5KIKG2XBNRUIW2JW37IFRRYJ7DCVDSSSBA6YXSAWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
