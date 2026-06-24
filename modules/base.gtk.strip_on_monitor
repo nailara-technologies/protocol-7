@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = base.gtk.strip_on_monitor
+# param = $monitor_rect, $vpos_percent, $height_percent
+# descr = a full-monitor-width horizontal strip [ eg. a ticker bar ] on a
+#         monitor [ shared fallback shaper for strip-shaped zenki ].
+#         vpos_percent = strip top edge as % of monitor height,
+#         height_percent = strip height as % of monitor height. the strip is
+#         kept fully inside the monitor. returns ( x, y, width, height ).
+
+my ( $mon, $vpos_pct, $height_pct ) = @ARG;
+
+return undef if not defined $mon;
+
+$vpos_pct   //= 95;
+$height_pct //= 5;
+
+my $w = $mon->{'width'};
+my $h = int( $mon->{'height'} * $height_pct / 100 );
+$h = 1 if $h < 1;
+
+my $x = $mon->{'x'};
+my $y = $mon->{'y'} + int( $mon->{'height'} * $vpos_pct / 100 );
+
+## keep the strip fully on-monitor ##
+my $bottom = $mon->{'y'} + $mon->{'height'};
+$y = $bottom - $h if $y + $h > $bottom;
+$y = $mon->{'y'}  if $y < $mon->{'y'};
+
+return ( $x, $y, $w, $h );
+
+#,,..,,..,.,,,,..,.,,,...,,,,,,.,,.,.,,,.,,,.,..,,...,...,,,,,,.,,,,,,,,,,.,,,
+#ZTUIEILHNWSOHVIG2CQXDSOEMPUZ7KJFAME3SJIJ5OAFBPDDEYXTC5U7HUKPP7RLPOGX4KBC2VB72
+#\\\|BECC5IFLDA45ITWPO3CK2HSMJOYZSCVAF2KYOQW5CQCKKUCLYS4 \ / AMOS7 \ YOURUM ::
+#\[7]HAVB4FCTGOLBIUHQA2WTQL2GLZNVRWTF7JKWGIHIDRB6CWTU3ABA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
