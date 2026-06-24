@@ -2,11 +2,13 @@
 
 # name  = X-11.cmd.move-window
 # descr = move an x11 window to an absolute or relative position
-# param = <win_id> <pos-change>
+# param = <win_id> <pos-change> [width height]
 #
-## pos-change : <x> <y>      — absolute positional
-## pos-change : +<dx> -<dy>  — relative positional [ sign = relative ]
-## pos-change : x<v> y<v>    — labeled [ one or both axes; sign = relative ]
+## pos-change : <x> <y>           — absolute positional
+## pos-change : +<dx> -<dy>       — relative positional [ sign = relative ]
+## pos-change : x<v> y<v>         — labeled [ one or both axes; sign = relative ]
+## optional width/height are applied together with x/y so the WM receives ##
+## a complete geometry ConfigureWindow request [ needed under WSLg/Weston ].
 
 my @parts
     = ref( $call->{'args'} ) eq qw| ARRAY |
@@ -15,13 +17,14 @@ my @parts
 
 my $window_id = shift @parts;
 
-return { 'mode' => qw| false |, 'data' => 'expected : <id> <x> <y>' }
-    if not defined $window_id or not @parts;
+return { 'mode' => qw| false |, 'data' => 'expected : <id> <x> <y> [w h]' }
+    if not defined $window_id
+    or scalar @parts < 2;
 
 return { 'mode' => qw| false |, 'data' => 'invalid window id' }
     if $window_id !~ m|^\d+$|;
 
-my ( $xarg, $yarg );
+my ( $xarg, $yarg, $width, $height );
 
 ## labeled args : x<val> or y<val> [with optional sign] ##
 if ( grep {m|^[xy][+-]?\d+$|} @parts ) {
@@ -30,8 +33,8 @@ if ( grep {m|^[xy][+-]?\d+$|} @parts ) {
         $yarg = $1 if $a =~ m|^y([+-]?\d+)$|;
     }
 } else {
-    ## positional : both x and y required ##
-    ( $xarg, $yarg ) = @parts;
+    ## positional : x and y required; w and h optional ##
+    ( $xarg, $yarg, $width, $height ) = @parts;
     return {
         'mode' => qw| false |,
         'data' => 'positional mode requires both x and y'
@@ -44,6 +47,13 @@ for my $pair ( [ x => $xarg ], [ y => $yarg ] ) {
     next unless defined $val;
     return { 'mode' => qw| false |, 'data' => "invalid $axis value" }
         if $val !~ m|^[+-]?\d+$|;
+}
+
+for my $pair ( [ width => $width ], [ height => $height ] ) {
+    my ( $dim, $val ) = @$pair;
+    next unless defined $val;
+    return { 'mode' => qw| false |, 'data' => "invalid $dim value" }
+        if $val !~ m|^\d+$|;
 }
 
 my $X = <X-11.obj>;
@@ -95,6 +105,8 @@ if ( defined $yarg ) {
 } elsif ($need_geom) {
     $configure{'y'} = $cur{'y'};
 }
+$configure{'width'}  = $width + 0  if defined $width;
+$configure{'height'} = $height + 0 if defined $height;
 
 eval { $X->ConfigureWindow( $target_id, %configure ) };
 
@@ -104,17 +116,99 @@ if ( length $EVAL_ERROR ) {
         $window_id, <[base.str.eval_error]>
     );
     return { 'mode' => qw| false |, 'data' => 'ConfigureWindow failed' };
+} else {
+    my $increased_verbosity    ## log move-window evens for debugging ##
+        = <[base.cfg_bool]>->( <X-11.log-cfg.verbose.move-window> //= FALSE );
+    my $log_level = $increased_verbosity ? 1 : 2;
+    <[base.logs]>->(
+        $log_level,          ': [%s] h:%d w:%d x:%d y:%d [move]',
+        $window_id,          $configure{'height'},
+        $configure{'width'}, $configure{'x'},
+        $configure{'y'}
+    );
 }
 
 ## push the new position through to the wm/compositor - see set_geometry ##
 <[X-11.WM.update]>;
 
+## NOTE: a _NET_WM_MOVERESIZE_WINDOW ClientMessage was tried here to coax ##
+## cross-output placement, but Weston's minimal xwm mishandled it and the ##
+## window vanished [ window 'did not open' ]. removed. cross-output runtime ##
+## moves are clamped per-output under this WSLg/Weston build regardless;   ##
+## the real fix is monitor-correct INITIAL placement before show_all       ##
+## [ see screen-setup / protocol-7-menu ], not a runtime move.             ##
+
+## verify the move actually took effect - weston has been observed to     ##
+## silently no-op a ConfigureWindow [ geometry left at the window's PRIOR  ##
+## position, eg y stuck at the secondary monitor's bottom-strip when the   ##
+## target was the same monitor's top-strip - an INTRA-output move, not    ##
+## cross-output ] while still reporting success. compare intended vs      ##
+## actual geometry and log any mismatch always, independent of verbose    ##
+## move-window logging.                                                   ##
+my $read_actual_geometry = sub {
+    my @geo = eval { $X->GetGeometry($target_id) };
+    return undef if length $EVAL_ERROR or @geo < 6;
+    my %g = @geo;
+    my ( $same_screen, $child, $dst_x, $dst_y )
+        = eval { $X->TranslateCoordinates( $target_id, $X->root, 0, 0 ); };
+    if ( not length $EVAL_ERROR and defined $dst_x ) {
+        $g{'x'} = $dst_x;
+        $g{'y'} = $dst_y;
+    }
+    return \%g;
+};
+
+my $mismatches_vs_intent = sub {
+    my ($g) = @_;
+    return ['geometry query failed'] if not defined $g;
+    my @mismatches;
+    for my $key ( sort keys %configure ) {
+        push @mismatches, "$key:want=$configure{$key},got=$g->{$key}"
+            if defined $g->{$key} and $g->{$key} != $configure{$key};
+    }
+    return \@mismatches;
+};
+
+my $actual     = $read_actual_geometry->();
+my @mismatches = @{ $mismatches_vs_intent->($actual) };
+
+## confirmed live: an immediate read right after ConfigureWindow can race   ##
+## ahead of Xwayland's own position bookkeeping [ which likely updates only ##
+## after an async round-trip to weston ] even when the move genuinely lands ##
+## a moment later - observed as alternating want/got pairs across separate, ##
+## seconds-apart calls that each individually succeed shortly after being   ##
+## checked. a brief recheck filters that transient case out while still     ##
+## catching the OTHER, persistent failure mode [ a Y-range genuinely        ##
+## unreachable due to output overlap - confirmed it does NOT self-correct,  ##
+## even across 0.15s-spaced retries in ticker.move_to_profile ].           ##
+if (@mismatches) {
+    <[base.sleep]>->(0.1);
+    $actual     = $read_actual_geometry->();
+    @mismatches = @{ $mismatches_vs_intent->($actual) };
+}
+
+## two fallbacks were tried live and both proved ineffective against the    ##
+## PERSISTENT failure mode [ resize-nudge bundled with the move; unmap/     ##
+## configure/map on the same X11 window id ] - the mismatch persisted       ##
+## identically either way, which rules out "needs a nudge" or "needs a     ##
+## remap to rebind" and points at weston caching/restoring this surface's   ##
+## last-known position rather than deciding placement fresh per             ##
+## ConfigureWindow or per map. the one thing confirmed to work              ##
+## [ ticker.open_window's pre-show_all placement ] uses a brand-new,        ##
+## never-before-mapped window/surface - a genuinely different code path    ##
+## from moving an already-mapped window, so a fix here would need to       ##
+## recreate the window rather than move it.                                ##
+<[base.logs]>->(
+    1,          '[move-window] id=%s geometry mismatch after move - %s',
+    $window_id, join( ' ', @mismatches )
+) if @mismatches;
+
 my $pos_str = join ' ', map {"$_=$configure{$_}"} sort keys %configure;
 <[base.logs]>->( 2, '[move-window] id=%s %s', $window_id, $pos_str );
 return { 'mode' => qw| true |, 'data' => $pos_str };
 
-#,,,,,,.,,,,.,..,,,..,,.,,,..,,,.,,,,,.,.,.,,,.,.,...,...,..,,,.,,.,.,...,,.,,
-#4YYAH5W5STWD23SVBFLRQMDXK3LCMUMRL6PZ4ZXBAZT77WS5CFN3PGUXBF7KKTUWDV3DA2IL6GRQW
-#\\\|QTJELUBVSVACK7PKBXQZQGJ7PXC2W666OMDQOC6I7GVV55J7WRP \ / AMOS7 \ YOURUM ::
-#\[7]6PXN3KOAQXMI2AOEKNSPDUGW2G4K6FMVWKHFVZK7FZABJ6F7M6BQ 7  DATA SIGNATURE ::
+#,,,.,,,.,...,.,.,...,.,,,,,,,.,,,,.,,..,,.,.,.,.,...,...,...,.,.,,,,,,,,,,.,,
+#GKEEJ7NZZEMYE66EFYRY44JJIUXY4ZGI5HJV7SVOYWO45X5VXI6OUZNYW3TTSWOOGXA2E7RUA6JXU
+#\\\|3HYIWI2OUQG6WBHCINA2WZU5UNYZS7E2GFZPFN7OYBCJY5DLLZP \ / AMOS7 \ YOURUM ::
+#\[7]BZF7DSEOYWIVNLWQRS2MCYCI6H5OL6SJKA6VZS3UXCVACY2NHOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,13 +10,17 @@ my $height = shift // <x11.screen.height> // 0;
 my $subs = <X-11.screen_change_subscribers> // [];
 return unless @$subs;
 
+## a single-line format is required here, not YAML::XS::Dump's multi-line  ##
+## output - confirmed live: each YAML line got misread as a separate stray ##
+## command by cube's line-oriented protocol, corrupting the command stream ##
+## on every screen-change event. never caught before since the subscriber ##
+## list was always empty until tonight.                                   ##
 my $ntime   = <[base.time]>->(3);
-my $payload = YAML::XS::Dump(
-    {   'event'  => 'screen.change',
-        'width'  => $width + 0,
-        'height' => $height + 0,
-        'ntime'  => $ntime,
-    }
+my $payload = sprintf(
+    'event=screen.change width=%d height=%d ntime=%s',
+    $width + 0,
+    $height + 0,
+    $ntime
 );
 
 foreach my $handler (@$subs) {
@@ -32,8 +36,8 @@ foreach my $handler (@$subs) {
     $width, $height, scalar @$subs
 );
 
-#,,,,,...,.,.,,,,,.,.,,,,,,.,,.,,,,,,,..,,.,,,..,,...,...,.,,,.,,,,..,,,.,..,,
-#CP57JRF56AMOUVJIRVIB3LZMPHPMQS5SPXHXMTBEC2KEFIYPIB7LODDGTNISGJOL5I3EGZTXBJOBY
-#\\\|ZQY2H5XWLOWSCSGSS6JMRAXUP52LXC27BCMBLZD7UKEO2JH43EC \ / AMOS7 \ YOURUM ::
-#\[7]PN63ZPOGSBRVZAYMIIKXPHPXTNRN7TEXHZ44KT7HGKSEROIW5SBY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,.,,,.,,,,,,,.,,,...,.,.,.,,,,,.,..,,...,..,,..,,,,.,.,.,..,,,.,,
+#OBUJZ2GBPTSXRBJVABJILEOAQD44JFNF6HFGG6AKGLSLXPK2EENRAPH7MHB5T7J6Q4J2RTOXISR62
+#\\\|C2RPGMFXHIWEZPR6FCZUNMBNMDCWGIOFU77LOQXJEYR72XQRA22 \ / AMOS7 \ YOURUM ::
+#\[7]M5YOPQYHFS57ZV64W6NS5YH4KPURK3WBXGCXAB4SAW7WXI4GQ2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

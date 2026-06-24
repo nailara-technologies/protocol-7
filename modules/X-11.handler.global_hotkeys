@@ -19,7 +19,28 @@ if ( not defined $qkmap ) {    # LLL: implement reconnect \ restart procedure
     return;
 }
 
-my $dq_e = [ <X-11.obj>->dequeue_event ];
+## RandR's RRNotify sub-events [ CrtcChangeNotify / OutputChangeNotify -    ##
+## fired by a host-side display reconfiguration, eg the powershell display- ##
+## switch toggle ] aren't decoded by the bundled, stripped-down             ##
+## X11::Protocol::Ext::RANDR copy, so X11::Protocol's dequeue_event/        ##
+## unpack_event carps 'Unknown event (code N)!' for each one. our own       ##
+## screen-change handling relies on the separately and correctly-registered ##
+## RRScreenChangeNotify event instead [ see X-11.handler.screen_change ],   ##
+## so this is a harmless, expected gap - downgrade it to a quiet log line   ##
+## instead of a console warning, while letting any OTHER warning through.  ##
+my $dq_e = do {
+    local $SIG{'__WARN__'} = sub {
+        my ($msg) = @ARG;
+        if ( $msg =~ m|^Unknown event \(code (\d+)\)!| ) {
+            <[base.logs]>->(
+                2, ': : unhandled RandR sub-event [ code %d ] - ignored', $1
+            );
+        } else {
+            warn $msg;
+        }
+    };
+    [ <X-11.obj>->dequeue_event ];
+};
 
 if ( @{$dq_e} ) {
     $watcher->now;    # <-- again, there might be more events queued.,
@@ -137,8 +158,8 @@ if ($no_key_pressed) {
     delete <X-11.hotkeys.triggered>;
 }
 
-#,,,.,,,,,,..,,,.,,,.,..,,,,.,,.,,,.,,...,.,,,..,,...,..,,..,,,,,,,.,,.,,,,,,,
-#MXKEVTUIDRAYHG6H6YWP4EBLSXFL2ROPGSF5B2F7ABB2DKDYSPTP6KWKXH2KUANZ2FMJJGTYLAY5K
-#\\\|M67JO2ZUP5IZWKDIFAGINS3T6XM5QZZOIKJZUSBAYVH4MA66NHT \ / AMOS7 \ YOURUM ::
-#\[7]SKGQLYQGNUAHS6PP5INMBCYH3TQ6OSFSN4WPQ6WHWCLZ6S6TXMDQ 7  DATA SIGNATURE ::
+#,,,,,,,,,...,..,,,,,,,..,..,,...,,.,,.,.,,,.,..,,...,..,,...,,,,,,.,,...,.,,,
+#LTGLRRUNWTSVFMF6W74DOYKOXXRLA3GVN3AE6O2U5W3MZ6NGOY64Z2VSVX2GS5RJOKLTE47MMH6OE
+#\\\|X6XQ6DBH7AJDI5OTE3TQGXF7ZPPNU75ET24Y6EWR3H22WPEGUIV \ / AMOS7 \ YOURUM ::
+#\[7]IIBRXFL7PSB5QYYOS4P7PZ5K6B44BHE7HU27IW44O44E75OYJEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

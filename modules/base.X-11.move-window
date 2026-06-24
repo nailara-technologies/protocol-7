@@ -19,7 +19,11 @@ my ($local_sid) = keys( %{ $data{'user'}{$user}{'session'} } );
 
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
-my $args = join( ',',
+## include width/height when available: the original position-only      ##
+## change broke WSLg/Weston placement for managed ticker windows.        ##
+## X-11.cmd.move-window now accepts optional w/h and passes them to      ##
+## ConfigureWindow so the WM gets a complete geometry request.           ##
+my $args = join( ' ',
     map { defined $_ ? $_ : '' } ( $id, $x, $y, $width, $height ) );
 
 my $cube_fh = $data{'session'}{$local_sid}{'handle'};
@@ -45,8 +49,8 @@ if ( $reply_string =~ /^\($cmd_id\)FALSE (.+)$/ ) {
     return TRUE;
 }
 
-#,,.,,..,,.,,,.,,,,,.,,.,,,.,,,..,.,,,,,,,..,,..,,...,...,..,,,..,,,,,...,,,.,
-#OFWGPUJVQQ7FV3YHM3MZMSDWPKZNWHPFR4ROAV5PFGOS6KZLPCLYQ66IGBMILUI4AOYM5G6Z5DVIW
-#\\\|POFI5SQGKF62O7TZOVTTTZ75TNSRB7NRJHPIVFYAPDTPUDFEKS7 \ / AMOS7 \ YOURUM ::
-#\[7]TTIEMYVF5V6ZGBUFEPXXJ2HX75F2L2TITXOQULBGRWK5SDY2TWCQ 7  DATA SIGNATURE ::
+#,,.,,..,,...,..,,.,,,.,,,...,.,,,.,.,,..,,,.,..,,...,...,...,...,.,.,,,.,,,,,
+#MQVMF55YKB4CBZ47UT7JPKZG2LFBXNN63MHBO2ZTOIHEZF2NXQMI4JZ3A3QSR6L5SOEFTTSKIJQAU
+#\\\|2DP7LBT4PATGBGNQ45X47UKIEXO4EI4KYTEWX4YKN4JB3UDYV4C \ / AMOS7 \ YOURUM ::
+#\[7]H2FLRGXQZ5RGD2CVFSAMMUQCNZXZYUGNIOVQVPNJNIP2Q6EKTUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
