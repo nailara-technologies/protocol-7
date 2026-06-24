@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = screen.setup.handler.button_release
+# descr = on the end of a border drag, persist the window's new position +
+#         size for this layout via window.profile [ keyed by the resolution
+#         caller set in open_window ]
+
+my ( $id, $widget, $event ) = @ARG;
+
+return TRUE if not defined $id;
+
+my $inst = $data{'screen-setup'}{'instances'}{$id};
+return TRUE if not defined $inst;
+
+## only persist if this release ends a drag we started ##
+return TRUE if not $inst->{'dragging'};
+$inst->{'dragging'} = FALSE;
+
+my $caller = $inst->{'caller'};
+return TRUE if not defined $caller or not length $caller;
+
+## read the real geometry the compositor settled on after the grab ##
+my ( $x, $y ) = $widget->get_position;
+my ( $w, $h ) = $widget->get_size;
+
+return TRUE
+    if not defined $x
+    or not defined $y
+    or not defined $w
+    or not defined $h;
+
+<[base.logs]>->(
+    1,  '[screen-setup.button_release] saving position x=%d y=%d w=%d h=%d',
+    $x, $y, $w, $h
+);
+
+<[window.profile.save]>->( $caller, $x, $y, $w, $h );
+
+return TRUE;
+
+#,,,,,...,,.,,,..,.,,,...,.,.,.,,,...,...,.,,,..,,...,...,.,.,...,..,,,,.,.,,,
+#XTRNRSAMXODKRSPUDZK6JIVNV7XSW2GSXWN3M4LDOEQLUOGXNZH65U62DKC52HBK673RBLLB46KEQ
+#\\\|ENZIAFPY3WNTRNIXXM6HKXOPP5Q6ASK6VJJ2ZFV77SYUAX57LKP \ / AMOS7 \ YOURUM ::
+#\[7]QBRU2CPFR2GV5NVX4IPZIZQSFVJ5JK6INISJBVZC44PJMHRIGUDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -79,12 +79,36 @@ attempt to both, reverted on both) — **likely has the same freeze bug,
 unverified, not yet fixed** — same fix should apply directly if/when it's
 hit there too.
 
+**Sharpened 2026-06-24 (multi-monitor seam):** the "virtual boundary" the
+keyboard move-handler hits is the *same* per-output confinement. User
+confirmed `X-11.move-window` (which is `$X->ConfigureWindow`, raw X11
+absolute through XWayland) hits the wall, while mouse drag does not.
+Mechanism table on this WSLg/Weston build:
+- coordinate-based positioning — `ConfigureWindow` / GTK `move()` /
+  `X-11.cmd.set_geometry` — is **clamped to the window's current output**;
+  cannot walk or jump a window across the monitor offset seam.
+- only a **compositor-driven interactive grab** crosses the seam:
+  `begin_move_drag` for own windows (proven); `_NET_WM_MOVERESIZE` (EWMH)
+  is the equivalent for *foreign* windows — **NOT implemented anywhere in
+  the codebase**, and it is pointer-anchored (starts a drag that follows
+  the cursor, not a clean set-absolute-coords), so keyboard cross-seam
+  stepping stays awkward even with it.
+**Consequence for the planned screen-setup/display-layouts visualizer:** a
+read-only cairo map of the monitor rects is worth building (diagnostic +
+the coordinate model `window.place.adjust` totally lacks today — it does
+free x/y arithmetic with no monitor awareness), BUT it will NOT fix
+cross-monitor *movement* by itself, because commit still routes through
+the clamped `ConfigureWindow`/`set_geometry` path. Two unrun probes that
+decide feasibility: (1) is the boundary the current-monitor edge or the
+global-desktop edge; (2) does this Weston honor `_NET_WM_MOVERESIZE` at
+all. If (2) is no, there is no programmatic cross-seam path on this build.
+
 ## related
 
 [[topic-tile-window-place-hybrid-desktop]] · [[topic-gtk-wsl-window-positioning]] · [[feedback-wslg-deiconify-limitation]]
 
-#,,,.,,..,.,.,,,,,..,,.,.,...,,,.,.,,,,,.,,.,,..,,...,...,.,.,.,.,...,..,,.,,,
-#7HSCPHAGGMIJA3HXQP4TVPVFQF7SEBUFFYURRCL56EPJERCVANYB5UFKSIM4QFD6PPXLUPK6URAWM
-#\\\|7JAFQQYIG42Q7YR3KVM5ZWS5CAGAYALF4D3YXQ5YF7BEWZ4OOH7 \ / AMOS7 \ YOURUM ::
-#\[7]3KOUOORAH3OVT4ULGIKWVMFIWNOZMKUGJV4C7O3RKHSHF4CFXYCQ 7  DATA SIGNATURE ::
+#,,,,,,..,..,,.,,,,,.,,.,,,.,,,.,,.,.,...,,.,,..,,...,...,,.,,,,.,,.,,,..,,,,,
+#7ZVQFYT2XVAPSXUO66Z2WF2DSDXFZP465OFI5SQFSD2JUZJ7BUCTIFM44DBR6HUFVTSTO44PY2DTK
+#\\\|XUIFXOCX42557ERUKTLTHBJYQI5MFG7RMCQQOZFDADGML2YL7LF \ / AMOS7 \ YOURUM ::
+#\[7]4KOI6FG3UZ4EPPKGC62WVBOK5PGIL2HNECMTJ3UN7TQEPLAN2WAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

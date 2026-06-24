@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = screen.setup.cmd.display-layouts
+# descr = open a scaled minimap of the discovered monitor layout
+# note  = returns a xrandr-like text summary of the rects and their offsets
+
+my $monitors = <[screen.setup.enumerate-monitors]>;
+
+return { 'mode' => qw| false |, 'data' => 'no monitors enumerated' }
+    if not defined $monitors or not @$monitors;
+
+my $model = <[screen.setup.layout-model]>->($monitors);
+
+## text summary [ name WxH+x+y, one per line ] + the virtual bounds ##
+my @lines;
+for my $m (@$monitors) {
+    push @lines,
+        sprintf(
+        '%-14s %dx%d+%d+%d%s',
+        length $m->{'name'} ? $m->{'name'} : "monitor-$m->{'index'}",
+        $m->{'width'},
+        $m->{'height'},
+        $m->{'x'},
+        $m->{'y'},
+        $m->{'primary'} ? ' [primary]' : ''
+        );
+}
+push @lines,
+    sprintf( '%-14s %dx%d', 'virtual', $model->{'width'},
+    $model->{'height'} );
+
+my $summary = join "\n", @lines;
+
+## unique per-request id, mirrors window.place instance handling ##
+my $id;
+do { $id = <[base.prng.chars-anum]>->(8) }
+    while exists $data{'screen-setup'}{'instances'}{$id};
+
+$data{'screen-setup'}{'instances'}{$id} = {
+    'monitors' => $monitors,
+    'model'    => $model,
+};
+
+## open the window after the command handler has returned ##
+<[event.add_timer]>->(
+    {   'after' => 0,
+        'cb'    => sub { <[screen.setup.open_window]>->($id) },
+    }
+);
+
+return { 'mode' => qw| size |, 'data' => $summary };
+
+#,,..,,,.,,.,,,,,,,,.,,..,...,.,,,,.,,.,.,,.,,..,,...,...,...,.,,,.,,,.,.,.,.,
+#4KMDV4H242PL2QCDPPXLA3WM2OJ5Q6VGXTGX2UBPYTQFJTVNNBCG3UUQCN7W3EIADHSHHXNLIXHUW
+#\\\|6Y5F7EWZQ463EET76BF4CFVTCOUGE26O5CQKZEB5ENJWIJQ3QQY \ / AMOS7 \ YOURUM ::
+#\[7]GDC2NXZQ23F6VNFDI56HBDJ73QXJRFCW7NU2ATIXOIUN3QLBV2BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
