@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = base.gtk.ensure_display
+# descr = point gdk at the xwayland display and initialise gtk once, so
+#         in-process gdk queries [ monitor enumeration / selection ] work
+#         BEFORE the window is created -- eg. from a coordinate-resolved
+#         geo_ready continuation that needs to shape a monitor-aware
+#         fallback. idempotent. requires <x11.display> [ base.X-11.get_display ].
+
+$ENV{'DISPLAY'}     = <x11.display>;
+$ENV{'GDK_BACKEND'} = 'x11';           ## force XWayland under WSL|Wayland ##
+delete $ENV{'WAYLAND_DISPLAY'};
+
+## sane themed cursor under minimal xwayland|wsl [ see window.place ] ##
+$ENV{'XCURSOR_THEME'} //= 'Adwaita';
+$ENV{'XCURSOR_SIZE'} = '24';
+
+<[base.perlmod.autoload]>->('Gtk3');
+
+Gtk3->init if not <base.gtk.inited>;
+<base.gtk.inited> = TRUE;
+
+return TRUE;
+
+#,,,.,,,.,..,,,,,,..,,..,,.,,,.,.,..,,.,.,.,,,..,,...,...,..,,,.,,..,,..,,.,,,
+#6VF6CFPAVVWFU7PA53LDDFBBURTX37YXNNCW7DN4TNUPZFKNYPADUDG3FF7XGIMGNVH4XN2SHTRAA
+#\\\|FB4OJ3QVSGVGAQWZNKAA3D5RCOV7USMWREQSMXMFDBXQ2K3IM44 \ / AMOS7 \ YOURUM ::
+#\[7]XIATMA7DOXO76ES4BRPZN4VTIC7NK6ZCI5EMMASVWXQH54YHCWDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

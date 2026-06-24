@@ -202,6 +202,15 @@ if ( defined $saved_position ) {
 ## Position BEFORE show_all
 # [ must set position before window is mapped to window  manager ]
 $window->set_gravity('north-west');
+
+## sanitize against the real monitor rects : the default + restore clamps ##
+## above only bound to the virtual screen, which has voids on offset multi- ##
+## monitor layouts -- an off-all-outputs position cannot map and hangs the ##
+## compositor [ the top-right-of-virtual default landed in such a void ]   ##
+( $pos_x, $pos_y )
+    = <[base.gtk.snap_to_monitor]>
+    ->( $pos_x, $pos_y, $win_width, $win_height );
+
 <[base.logs]>->(
     1,      "moving window to x=%d y=%d [before show_all]",
     $pos_x, $pos_y
@@ -240,8 +249,8 @@ $menu->show_all;
 
 return 0;
 
-#,,,,,,..,,,,,,..,,,,,...,,..,,,,,...,...,,,.,.,.,...,..,,...,,,,,,..,,,.,,,.,
-#266334NKODLHUFX5TDA4YOKNBNMZJY5I3KW4WFSDOKCK4ECARUNXDL4QX7EEFMFKMSZGBRQOF6LFA
-#\\\|ARDNPLSZ3ZM645VZ2U6Z5KN723GCKKA2VWOELM67GWJEZYWKWOT \ / AMOS7 \ YOURUM ::
-#\[7]3FLEJX4NX27XVMBQYEUJFH2A7ZNIYCLHEY7YOYLBFQ7X4GQSKGBY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,..,...,,,.,.,.,.,.,,.,,,.,,,..,.,.,...,...,..,,,..,,,,,,..,.,.,
+#5TUSCO2H2HZRYZ5GI2PEOBX7DSAXVISB5XYDNGXQIWGLUA76CE56FL3LFJBT2CQIGV6B4G3WFUEQ2
+#\\\|QIXPZVHROTEIYJFVDDLWCHRZ7J2DXCD4HQGLRECAV2LVUM2IKHN \ / AMOS7 \ YOURUM ::
+#\[7]ZVIPTSPLEVJ4FOW4LPM6SVLINIOXAW3ZPZ46K7MGVM73KGZDCEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

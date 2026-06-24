@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = base.gtk.centered_on_monitor
+# param = $monitor_rect, $width, $height
+# descr = centre a window of the given size within a monitor rect, clamped
+#         fully inside it [ shared fallback shaper for window-shaped zenki ].
+#         returns ( x, y, width, height ).
+
+my ( $mon, $w, $h ) = @ARG;
+
+return undef
+    if not defined $mon
+    or not defined $w
+    or not defined $h;
+
+## never larger than the monitor ##
+$w = $mon->{'width'}  if $w > $mon->{'width'};
+$h = $mon->{'height'} if $h > $mon->{'height'};
+
+my $x = $mon->{'x'} + int( ( $mon->{'width'} - $w ) / 2 );
+my $y = $mon->{'y'} + int( ( $mon->{'height'} - $h ) / 2 );
+
+return ( $x, $y, $w, $h );
+
+#,,.,,..,,..,,.,,,,..,..,,.,.,.,,,,..,,..,,,,,..,,...,...,,..,,..,.,.,...,...,
+#QU345O66XCQ2GRRUGDTAUPMXKNJEMMY6COZGHX27IHANRBJEFQE4EM45RK6RSLSQGWSSG2CT2US7G
+#\\\|VXB23BZ2VE4R43GGYQSGU55AZZTCW273HSOQAITDLJAJBW7W5ZF \ / AMOS7 \ YOURUM ::
+#\[7]TOPO5FNBGDWWAROFAWGLZKV75RU64YDVIGWEE2PZUAGQZ6C57GBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
