@@ -20,10 +20,12 @@ On WSLg (Weston + XWayland), `iconify-window` works via `X11::Protocol::WM::icon
 
 **Why:** Weston/WSLg responds to iconify requests but does not expose a reverse path via either X11 or Wayland protocols for client-initiated deiconification.
 
-**How to apply:** Do not re-investigate deiconify on WSLg unless the WSLg/Weston version changes. The 4-approach fallback in `modules/X-11.cmd.deiconify-window` is the ceiling. On a real WM (GNOME, KDE, i3, etc.) these approaches will work.
+**How to apply:** Do not re-investigate deiconify on WSLg unless the WSLg/Weston version changes. The 4-approach fallback in `modules/X-11.cmd.deiconify-window` is the ceiling for client-initiated (X11/GTK) deiconify. On a real WM (GNOME, KDE, i3, etc.) these approaches will work.
 
-#,,,,,,.,,.,.,,..,,,,,,..,..,,,,,,,,,,.,.,.,,,..,,...,...,...,,,.,,,,,,,.,.,,,
-#MYXKHOBRLBDCPTGRCRJAV6OKLW7ASVSMZQKWL2XHKA5LCOJQPMLNBCOHY5CGGUWP6QN6WEJCL5POM
-#\\\|VMW72YX5VDZGVIZKH7OOTQ5D53352NRCRMLYRRGLIALCJGU6Z6E \ / AMOS7 \ YOURUM ::
-#\[7]VZ5CY5JC3H3XJYYE3ZLZTRJ6ARZ2LY64XMR4HQW4IOPMTAIY5KAQ 7  DATA SIGNATURE ::
+**Update 2026-06-24:** the host-side Windows taskbar restore path is NOT blocked by this limitation — clicking a minimized window's entry in the Windows taskbar successfully restored a `protocol-7-menu` window that had gone iconic (confirmed live). So the compositor-level block is specific to deiconify requests issued *from within* Linux/X11/Wayland; the host (Windows/WSLg integration) has its own restore path that still works. If a window gets stuck minimized, try the host taskbar before assuming it's permanently lost.
+
+#,,..,...,...,,,,,,..,,,.,,.,,...,,,.,,.,,..,,..,,...,...,...,.,,,,.,,.,,,..,,
+#NHQNOOZWKCJEDGX64LCL67ODYZ5UHXLXZ2WCAZDYFQIRICLLSOAKDLWZKJSVRWI3P7RKE7QWA7FCQ
+#\\\|DJSTWXIGNLJAIOOD7AWNRLAMYY6Y3AUXXF3JGKJ4XDWVXZUMQ3F \ / AMOS7 \ YOURUM ::
+#\[7]RE56I7EV3ONGUHW6BHD2CPBJGFVSISO3DZEKKA7W2COAOCI4NUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

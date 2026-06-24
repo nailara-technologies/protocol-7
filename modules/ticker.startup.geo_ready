@@ -49,6 +49,19 @@ my $c = <x11.coordinates>;
 if ( defined $c ) {
     <x11.window.width>  = $c->{'right'} - $c->{'left'};
     <x11.window.height> = $c->{'bottom'} - $c->{'top'};
+
+    ## snapshot this [ correct ] startup rect for open_window's pre-show_all ##
+    ## initial placement. open_window's set-window-profile recomputes coords ##
+    ## from select_monitor before GDK has settled and can clobber this with  ##
+    ## the wrong monitor [ centered-on-wrong-screen regression ], so keep a  ##
+    ## separate snapshot it cannot overwrite. runtime top/bottom-strip swap  ##
+    ## still goes through set-window-profile -- only startup uses this.       ##
+    <ticker.startup_coordinates> = {
+        'x'      => $c->{'left'},
+        'y'      => $c->{'top'},
+        'width'  => $c->{'right'} - $c->{'left'},
+        'height' => $c->{'bottom'} - $c->{'top'},
+    };
 }
 
 ## remaining startup, now that coordinates are resolved. NB: the old sync
@@ -66,8 +79,8 @@ if ( defined $c ) {
 
 return TRUE;
 
-#,,,,,,.,,,,,,,,.,.,.,.,,,,,.,,,,,,,,,,.,,.,.,..,,...,...,..,,...,...,.,.,.,.,
-#63WHIYNYXVM2AUDAJJHBLO7WR6DIMZIJERKKK6EU36AFZGJTRFVVK6G5PG25TX73DA5I5EYGHJ2US
-#\\\|3C5W2WPGTDVAUY4GNM3Q5U6DMNJOS7GOGNV2SVYPLM5J5NLUECD \ / AMOS7 \ YOURUM ::
-#\[7]ER5TWR63CXDWDD3VHP4ZV2Y2NBNQ3L2BD2AXTJNHKQ7KT24XPQDI 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,,,,.,.,,,.,.,.,,..,.,.,.,.,.,,,..,,...,...,,,.,,.,,,,,,,,,,...,
+#2CESYYKX4Z4ELSHIN7OGOS7KADMIHOCBZ4AMYWZP6CYKJ6PZISHVHDMY7NWLXVEQQHBU22RUUT4NG
+#\\\|FTXVUB3AVN3NHPJ5ZUWKX4HBB3Z7BNEND562DO45KGIPFYGAR2M \ / AMOS7 \ YOURUM ::
+#\[7]GV6PNKDVQS3GHMXYEW5ZIPMXSHHP4DV5USIT2PHDWSYUE3LRI4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

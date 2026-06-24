@@ -215,19 +215,21 @@ eval {
         return;
     }
 
-## pointer re-entered before delayed leave expired -> cancel leave ##
-    if ( not <ticker.mouse.inside> and $inside ) {
-        delete <ticker.mouse.leave_pending_until>;
-    }
-
     if ( not <ticker.mouse.inside> ) {
 
-        ## debounced enter detection [for missed GTK enter events] ##
+        ## debounced enter detection [for missed GTK enter events] - also   ##
+        ## the only point that cancels a pending delayed-leave on re-entry: ##
+        ## cancelling it on the FIRST raw $inside sample [ no debounce ]    ##
+        ## let one incidental/imprecise reading [ likely on a thin 72px    ##
+        ## strip near a screen edge the cursor passes through ] kill the    ##
+        ## 300ms grace before it ever got a chance to fire - confirmed live ##
+        ## as the cause of fade getting permanently stuck on "entered".    ##
         if ($inside) {
             <ticker.mouse.inside_count>++;
             if ( <ticker.mouse.inside_count> >= 3 ) {
                 <ticker.mouse.inside>       = TRUE;
                 <ticker.mouse.inside_count> = 0;
+                delete <ticker.mouse.leave_pending_until>;
                 <[base.log]>->(
                     1, ': pointer entered ticker window (poll), fading out'
                 );
@@ -278,8 +280,8 @@ eval {
 <[base.log]>->( 0, ': pointer check failed: ' . $EVAL_ERROR )
     if length $EVAL_ERROR;
 
-#,,.,,,,,,,..,,,,,,,.,.,,,,..,..,,,,,,,.,,.,.,.,.,...,...,..,,,.,,...,,..,.,.,
-#VFVOQDJ4OP5FBVEAKKJVHHF4WLAHATSHGDIWAXYQUGO5MDDVF4AWGN7YBH3ZGQWOUNO3OZSECXIHQ
-#\\\|LTHR6OXWDYJMMGFXRZRXNIHGOZRO2XX23XZHSHF2LIIK6QFPPSD \ / AMOS7 \ YOURUM ::
-#\[7]PQJ7QF7L4HMRW2TE74LF64W76XO3CVQCGN4IISN5BBQ4DOAJS2DQ 7  DATA SIGNATURE ::
+#,,,.,...,...,.,.,..,,,..,.,.,...,...,,..,...,.,.,...,..,,..,,.,.,.,,,.,.,,..,
+#QYOD4BXYBY3477PNQSLQD4UEVCVAPZX2PTMINWRGWLMRRPACNPLUI6B4RN2VCK7L5Z4ZODINRBALC
+#\\\|QKZPP4T2I6SXHULP7BBSMCMWY3ZJLDLQ7JOSR4BA3LWODPQI5RM \ / AMOS7 \ YOURUM ::
+#\[7]GQUVRJ4Q6DZANBZ372665CNPBSXYASS6FQIC2XN32AR6DLQWOECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
