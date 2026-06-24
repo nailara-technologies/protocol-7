@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = screen.setup.enumerate-monitors
+# descr = enumerate every gdk monitor as a { x y width height name } rect,
+#         in-process [ same source window.place already reads for the
+#         pointer-monitor geometry, so the map matches what placement sees ]
+
+<[screen.setup.ensure-display]>;
+
+my $display = eval { Gtk3::Gdk::Display::get_default() };
+if ( not defined $display ) {
+    <[base.log]>->( 0, '[screen-setup] no default gdk display available' );
+    return undef;
+}
+
+my $count = eval { $display->get_n_monitors } // 0;
+
+my @monitors;
+for my $i ( 0 .. $count - 1 ) {
+    my $mon = eval { $display->get_monitor($i) };
+    next if not defined $mon;
+
+    my $geo = eval { $mon->get_geometry };
+    next if not defined $geo;
+
+    my ( $x, $y, $w, $h );
+    if ( ref($geo) eq qw| HASH | ) {
+        ( $x, $y, $w, $h ) = @$geo{qw| x y width height |};
+    } else {
+        ( $x, $y, $w, $h ) = ( $geo->x, $geo->y, $geo->width, $geo->height );
+    }
+    next if not defined $w or not defined $h;
+
+    my $name    = eval { $mon->get_model } // '';
+    my $primary = eval { $mon->is_primary } ? TRUE : FALSE;
+
+    push @monitors,
+        {
+        'index'   => $i,
+        'x'       => $x + 0,
+        'y'       => $y + 0,
+        'width'   => $w + 0,
+        'height'  => $h + 0,
+        'name'    => $name,
+        'primary' => $primary,
+        };
+}
+
+return \@monitors;
+
+#,,..,.,.,.,.,,..,..,,,,.,,,,,,..,,..,...,,,.,..,,...,...,..,,,,.,,.,,,,,,,,,,
+#XP7C6CJ4VCEBPUAR6U745D2EJLEHUZLEG7WWGGHUGWYXTKGFQO5KE4LWNEKVZ6ZOLUOTVQ6AR6WSQ
+#\\\|G7ILSCUR6HGJT2VTIOFMPJL74RMK5JJIIEG7R7D7VCU6PNN3X6L \ / AMOS7 \ YOURUM ::
+#\[7]PTDBFNLDKUYPS337MKOYSHE4QWXLHX3RLENNE7K4TRB2HSJZRMCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

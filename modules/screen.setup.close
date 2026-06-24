@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = screen.setup.close
+# descr = destroy a layout-map window instance [ leaves the gtk main loop
+#         running so later display-layouts calls reuse it ]
+
+my $id = shift;
+return undef if not defined $id;
+
+my $inst = delete $data{'screen-setup'}{'instances'}{$id};
+return undef if not defined $inst;
+
+my $window = $inst->{'window'};
+eval { $window->destroy } if defined $window;
+
+return TRUE;
+
+#,,..,...,...,.,,,.,.,,,,,,..,..,,...,,.,,..,,..,,...,..,,..,,,.,,...,,.,,.,,,
+#KGXAYENVM3ZYCLSQ4MATM5JW6OFDDAVMEPE47ETVI6VRHYOROUXHCBBWYEV3EIMUSDYBYL237D264
+#\\\|HQZNVOVQRRH7KHPC7B6VLXV3QJC26BE76J27TYQFDPGDYKSGPZC \ / AMOS7 \ YOURUM ::
+#\[7]PTY5YVY3XKJUVGTSTTEEVEXUMBORQ34HCEX4RLMK3EYUY2XK4KDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

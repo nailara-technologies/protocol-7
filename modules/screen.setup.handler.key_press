@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = screen.setup.handler.key_press
+# descr = Escape / Return / q dismisses the layout map
+
+my ( $id, $widget, $event ) = @ARG;
+
+return FALSE if not defined $id;
+
+my $keyval = $event->keyval;
+
+my $KEY_ESC = eval { Gtk3::Gdk::KEY_Escape() } // 65307;
+my $KEY_RET = eval { Gtk3::Gdk::KEY_Return() } // 65293;
+my $KEY_Q   = eval { Gtk3::Gdk::KEY_q() }      // 113;
+
+if ( $keyval == $KEY_ESC or $keyval == $KEY_RET or $keyval == $KEY_Q ) {
+    <[screen.setup.close]>->($id);
+    return TRUE;
+}
+
+return FALSE;
+
+#,,.,,,,,,.,,,...,,.,,,,,,,,.,.,.,.,,,...,,.,,..,,...,...,.,.,..,,,..,..,,.,.,
+#IVCGV6JBQF3SBTTPM7DJA55E56W5FD4SPUAOHPASCHRIW4VYU5Y6CLEV7A2BBEKW7KZOGDJZ6HZYS
+#\\\|2WUAKO5FZ24FZ2QNXLUCGIFYDMM37RJJMOXIDPE2HB327CJ5HU7 \ / AMOS7 \ YOURUM ::
+#\[7]6HKOP6VNTKN35RNL3FEGRTMDZE3XU26KL7K3WKXKPIS5SUUDSKAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
