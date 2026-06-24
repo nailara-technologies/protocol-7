@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = base.X-11.handler.coordinates_timeout
+# descr = bounded-fallback timer handler for base.X-11.get_coordinates_async.
+#         fires when the tile coordinate reply does not arrive within the
+#         configured window [ tile offline / stuck ]: marks coordinates
+#         undefined and runs the stored continuation once, so startup proceeds
+#         on fallback geometry instead of hanging until the v7 start-up
+#         timeout. the real reply [ base.X-11.handler.coordinates_reply ]
+#         cancels this timer + clears the continuation first, so this only
+#         runs when no reply was processed.
+
+## real reply already consumed the continuation -- nothing to do ##
+return if not defined <x11.coordinates_async_continuation>;
+
+<[base.log]>->(
+    1,
+    '[coordinates_async] fallback timer fired -- '
+        . 'continuing with undefined coordinates'
+);
+<x11.coordinates_were_undefined> = TRUE;
+
+my $cont = delete <x11.coordinates_async_continuation>;
+delete <x11.coordinates_async_timer>;
+
+return $code{ $cont->{'handler'} }->( $cont->{'params'} )
+    if defined $cont->{'handler'}
+    and exists $code{ $cont->{'handler'} };
+
+return;
+
+#,,..,,,,,,.,,.,,,...,.,.,,.,,,..,..,,,,.,,.,,..,,...,...,.,.,...,.,.,.,.,.,.,
+#LGSHPK7RDXHT7INXQSGVYEUQFW6U2RLANC6F3ARUHLOSUUOKMDFRKM2HYFP6WXYP2RQGKURPUZDKE
+#\\\|VTWIV7CT2N2RKC67C4LI7CGZTJKPEWVPBWWDXKY4VLZV52QJCRZ \ / AMOS7 \ YOURUM ::
+#\[7]TRZHYX5E5PPCYMML77MTQF7BGVLOQTFUV25KBV7N2LPG3RZZBCAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
