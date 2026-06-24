@@ -176,8 +176,79 @@ tag=<zenka_name>`, store `reply_id` to complete the original caller's
 reply once `tile.handler.receive_placement` is triggered. Same deferred
 pattern window-place itself uses.
 
-#,,,,,,,.,,..,,..,,,.,...,..,,,,,,.,.,,..,..,,..,,...,...,...,.,.,,..,,..,.,,,
-#5P2QJ3YCR3C3QNTIEVCFXLFCI6OD2LJRFUK5DBVZ3TNEN5HAPNKOLR2TODSRVDACNWYYAXBA6UPZK
-#\\\|XITP66TDHVWIGXJGD4FHYSI5XH4NUYGWTVNBSFAONSYSSQPWN2I \ / AMOS7 \ YOURUM ::
-#\[7]LUAA7VEGQHUD63QZNGZJBIJFSZ6GR6TJ6UU5ZVBNYWRDVOHDJEAA 7  DATA SIGNATURE ::
+---
+
+**2026-06-24 — self-referential startup deadlock fixed; drag/resize
+freeze root-caused and fixed; keyboard drift still open; Weston
+multi-monitor constrain bug precisely characterized**
+
+**Startup deadlock (FIXED, commit `2ba903b7c`):** `window-place` is
+itself the `tile` zenka, so its own startup geometry fetch
+(`base.X-11.get_geometry`, blocking `readline()`) routed back to itself
+through cube — but it can't service that request while blocked waiting
+on it, deadlocking forever the first time its own `tile.coordinates`
+entry was missing (which triggers `tile.cmd.get_geometry`'s deferred
+interactive-placement fallback instead of an immediate reply). Fixed via
+new async helpers `base.X-11.get_geo_async` +
+`base.X-11.handler.geo_reply`/`geo_fallback_reply`, and
+`window.place.startup`/`.geo_ready` replacing the blocking calls in the
+start file. General lesson: **any zenka that might query itself through
+cube needs an async-callback path, not a blocking one** — a blocking
+self-query can never resolve, deferred-or-not.
+
+**Drag/resize freeze (FIXED, commit `6cb99b0c8`):** see
+[[feedback-weston-move-unreliable-use-compositor-grab]] for the full
+investigation and fix (switch to `begin_move_drag`/`begin_resize_drag`
+compositor grabs instead of plain `move()`/`resize()`). Also fixed in
+the same pass: HUD readout was showing stale tracked geometry instead of
+live widget state during an active resize (`window.place.handler.draw`),
+and the readout wasn't refreshing continuously during a grab at all
+since Weston only requests a repaint at grab start/end, not
+continuously (`window.place.handler.poll_pointer` now forces a redraw
+every tick).
+
+**Keyboard move/resize drift — still UNRESOLVED.** `window.place.adjust`
+(arrow-key stepping) has the identical "tracked state advances past
+where the window actually stopped" bug as the old mouse-drag freeze, but
+the mouse fix (compositor grabs) doesn't transfer — grabs need a real
+button-press serial, keyboard can't trigger one. Two read-back attempts
+both failed (see [[feedback-weston-move-unreliable-use-compositor-grab]]
+"what did NOT work" section) — `$window->get_position()`/`get_size()`
+themselves are unreliable for this in this environment, not just a
+timing issue. Needs a fix that bypasses GTK's own position cache
+entirely (eg. direct X11 protocol query) — not yet attempted.
+
+**Weston multi-monitor constrain bug — precisely characterized, NOT
+fixable from our code, confirmed via two independent code paths.**
+On a real 3-monitor host setup with an irregular/staggered layout (one
+monitor offset at x=1062 not aligned with anything else), both
+`window.place.adjust` (keyboard) and the raw X11 zenka's `move-window`
+command hit a boundary that doesn't correspond to the window's actual
+current monitor — it uses the **primary monitor's bounds** (both height
+and left edge) regardless of which monitor the window is really on.
+Confirmed by removing the 3rd monitor entirely (clean `xrandr --query`
+snapshot taken *during* the test, not after): with just 2 simple
+top-aligned monitors, the bug disappears completely. This isolates it
+to Weston's own multi-monitor constrain logic mishandling non-trivial
+topologies — not a bug in `<X-11.monitors>` (verified byte-for-byte
+accurate against `xrandr` independently), not in window-place, not in
+the X-11 zenka. Don't chase this further in our code if it recurs;
+it's a platform limitation tied specifically to irregular monitor
+offsets, same category as [[feedback-wslg-deiconify-limitation]].
+
+**Process note:** several "platform limitation, can't fix" conclusions
+in this session were premature and walked back after pushback —
+worth remembering that "it used to work" is strong evidence against a
+platform-limitation explanation, and git-history bisection (`git log
+--oneline -- <file>`, diffing each candidate commit) found the real,
+fixable regression (`06c710952`, an unrelated ticker fix that reordered
+`move()`/`resize()` in a function window-place's drag tick also calls)
+when guessing at new fixes had repeatedly failed. Don't accept "platform
+limitation" without testing the actual mechanism (eg. the xrandr
+before/after snapshot above) when the user says something regressed.
+
+#,,,.,.,.,,..,,,.,,,.,,..,,.,,.,.,,,.,...,..,,..,,...,...,.,,,,..,,,,,.,.,,.,,
+#OAD3CM5TMB4QISQ6INQFU2H2J7AUD7U26NPFBOEOHTG4IL74L4KGFHAJSBPMMPGK6P6RU3NO3OCWU
+#\\\|2NIWUAWWAE5F4CIKQHZYFI3OWV5LG3G5OS5LMHXLESW24YTT3H6 \ / AMOS7 \ YOURUM ::
+#\[7]UEZAEM7UODOHRAAPNO3HUKNPMXLNDPSXCAA7EWCSJTTI4WHEOICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
