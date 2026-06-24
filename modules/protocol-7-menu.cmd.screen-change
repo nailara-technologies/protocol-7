@@ -1,0 +1,110 @@
+## [:< ##
+
+# name  = protocol-7-menu.cmd.screen-change
+# descr = receive X-11 screen-change and relocate if unreachable
+
+## a monitor disappearing/topology changing while already mapped can leave ##
+## this window stuck invisible - confirmed live: only a full zenka restart ##
+## recovered it before. relocate via a real move+verify instead.          ##
+
+## single-line key=value payload, not YAML [ see X-11.emit.screen-change ] ##
+my %event = $call->{'args'} =~ m|(\w+)=(\S*)|g;
+my $w     = $event{'width'}  // 0;
+my $h     = $event{'height'} // 0;
+
+<[base.logs]>->( 1, '[screen-change] %dx%d', $w, $h );
+
+return { 'mode' => qw| true |, 'data' => 'not initialized' }
+    if not <protocol-7-menu.graphical-initialized>;
+
+my $window = <protocol-7-menu.graphical-window>;
+return { 'mode' => qw| true |, 'data' => 'no window' }
+    if not defined $window;
+
+my $xid = eval { $window->get_window->get_xid };
+return { 'mode' => qw| true |, 'data' => 'no xid yet' }
+    if not defined $xid;
+
+my $current = <[base.X-11.get_window_geometry]>->($xid);
+return { 'mode' => qw| true |, 'data' => 'no current geometry' }
+    if not defined $current;
+
+my $monitors = <[base.gtk.list_monitors]> // [];
+return { 'mode' => qw| true |, 'data' => 'no monitors' }
+    if not @$monitors;
+
+## preferred monitor = whichever one currently contains the window centre ##
+my $cx = $current->{'x'} + $current->{'width'} / 2;
+my $cy = $current->{'y'} + $current->{'height'} / 2;
+my $preferred_index;
+for my $i ( 0 .. $#$monitors ) {
+    my $m = $monitors->[$i];
+    if (    $cx >= $m->{'x'}
+        and $cx < $m->{'x'} + $m->{'width'}
+        and $cy >= $m->{'y'}
+        and $cy < $m->{'y'} + $m->{'height'} ) {
+        $preferred_index = $i;
+        last;
+    }
+}
+
+## candidate 1 : the current position, re-verified - a cheap no-op when    ##
+## nothing actually broke. candidates 2+ : the same top-right-with-margin  ##
+## default graphical-startup-init uses, repeated per monitor [ preferred   ##
+## monitor first ], so a freely-positioned window still has somewhere      ##
+## known-reachable to land on whichever monitor remains.                  ##
+my $margin          = 20;
+my @ordered_indices = ( 0 .. $#$monitors );
+if ( defined $preferred_index ) {
+    @ordered_indices = (
+        $preferred_index, grep { $ARG != $preferred_index } @ordered_indices
+    );
+}
+
+my @candidates = (
+    {   'x'      => $current->{'x'},
+        'y'      => $current->{'y'},
+        'width'  => $current->{'width'},
+        'height' => $current->{'height'},
+    }
+);
+for my $i (@ordered_indices) {
+    my $m = $monitors->[$i];
+    push @candidates,
+        {
+        'x'      => $m->{'x'} + $m->{'width'} - $current->{'width'} - $margin,
+        'y'      => $m->{'y'} + $margin,
+        'width'  => $current->{'width'},
+        'height' => $current->{'height'},
+        'monitor_index' => $i,
+        };
+}
+
+my $safe = <[window.place.find_safe_position]>->( $xid, \@candidates );
+
+if ( not defined $safe ) {
+    <[base.logs]>->(
+        0, '[screen-change] no reachable position found for id=%s', $xid
+    );
+    return { 'mode' => qw| false |, 'data' => 'no reachable position' };
+}
+
+if ( $safe->{'x'} != $current->{'x'} or $safe->{'y'} != $current->{'y'} ) {
+    <[base.logs]>->(
+        1,    '[screen-change] relocated id=%s from x=%d y=%d to x=%d y=%d',
+        $xid, $current->{'x'}, $current->{'y'}, $safe->{'x'}, $safe->{'y'}
+    );
+
+    my $screen_key = sprintf( qw| %dx%d |, $w, $h );
+    <[protocol-7-menu.position.save]>->(
+        $safe->{'x'}, $safe->{'y'}, $screen_key
+    );
+}
+
+return { 'mode' => qw| true |, 'data' => 'ok' };
+
+#,,.,,,.,,.,,,.,,,,..,,..,,..,,,,,..,,..,,.,.,..,,...,..,,.,,,,,,,,.,,...,.,.,
+#7KQCI6ECX6Z6GEIQM4EL6ZSSO5GH2L64UFQBJA5AJARBCLPIA3ZIIHQLVY6E5EZJLFNLN5UNOYGIQ
+#\\\|T4BC6OWCNVOTRLFPISO7IJCGARJEXRCD7DZ7V3QF2GZ22SXZONO \ / AMOS7 \ YOURUM ::
+#\[7]DLLSRWAGMA34P6SMBJEACMG7HRW342TJO52FETJWDJSPUQWKXKDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -16,8 +16,6 @@ my $previous = shift // <ticker.window.profile> // qw| bottom-strip |;
 
 return TRUE if not defined <x11.id>;
 
-my $before_geo = <[base.X-11.get_window_geometry]>->(<x11.id>);
-
 <[base.X-11.move-window]>->(
     <x11.id>,              <x11.coordinates.left>,
     <x11.coordinates.top>, <x11.window.width>,
@@ -55,14 +53,14 @@ my $dx         = abs( $actual->{'x'} - <x11.coordinates.left> );
 my $dy         = abs( $actual->{'y'} - <x11.coordinates.top> );
 my $off_target = ( $dx > $tol or $dy > $tol );
 
-my $did_not_move = 0;
-if ( defined $before_geo ) {
-    my $bdx = abs( $actual->{'x'} - $before_geo->{'x'} );
-    my $bdy = abs( $actual->{'y'} - $before_geo->{'y'} );
-    $did_not_move = ( $bdx <= $tol and $bdy <= $tol );
-}
-
-return TRUE if not( $off_target or $did_not_move );
+## pre-existing bug, found live: $did_not_move only compares actual vs the  ##
+## PRIOR position, with no regard for whether the target equals the prior  ##
+## position too [ eg a redundant/duplicate swap call landing on the edge   ##
+## it's already on ]. that misclassified an already-correct position as a  ##
+## failure whenever before_geo happened to equal the target, triggering    ##
+## an unnecessary fallback cascade. success must only depend on whether we  ##
+## actually reached the TARGET, not on whether the prior position differed. ##
+return TRUE if not $off_target;
 
 <[base.log]>->(
     1,
@@ -74,23 +72,92 @@ return TRUE if not( $off_target or $did_not_move );
     )
 );
 
-<[ticker.cmd.set-window-profile]>->( { 'args' => $previous } );
-<[base.X-11.keep_below]>->(<x11.id>);
+## before giving up entirely, try a list of known-alternate positions via  ##
+## a real move+verify [ window.place.find_safe_position ] - generic        ##
+## recovery for the class of bug move-window's own mismatch detector       ##
+## catches: a position can silently fail to apply for reasons not fully    ##
+## modeled analytically, so probe real alternates instead of computing     ##
+## whether one SHOULD work. a same-monitor-only candidate list can't help  ##
+## if the WHOLE monitor it's anchored to is unavailable, so cycle through  ##
+## every known monitor too [ window.place.build_strip_candidates ], not    ##
+## just the alternate edge of the one ticker is currently on.              ##
+my $monitors = <[base.gtk.list_monitors]> // [];
 
-if ( defined <ticker.timer.fade> ) {
-    <ticker.timer.fade>->cancel;
-    delete <ticker.timer.fade>;
+## prefer whichever monitor currently contains ticker's position, so the   ##
+## common case [ same monitor, alternate edge ] is still tried first ##
+my $cur_x = <x11.coordinates.left>;
+my $cur_y = <x11.coordinates.top>;
+my $preferred_index;
+for my $i ( 0 .. $#$monitors ) {
+    my $m = $monitors->[$i];
+    if (    defined $cur_x
+        and $cur_x >= $m->{'x'}
+        and $cur_x < $m->{'x'} + $m->{'width'}
+        and $cur_y >= $m->{'y'}
+        and $cur_y < $m->{'y'} + $m->{'height'} ) {
+        $preferred_index = $i;
+        last;
+    }
 }
-delete <ticker.time.fade_view>;
-delete <ticker.fade.handler>;
-<ticker.fade_opacity> = 1;
-<ticker.obj.window>->set_opacity(1)
-    if <ticker.is_composited> and defined <ticker.obj.window>;
+
+my $candidates = <[window.place.build_strip_candidates]>->(
+    $monitors, $target, $preferred_index
+);
+
+my $safe = <[window.place.find_safe_position]>->( <x11.id>, $candidates );
+
+if ( defined $safe and defined $safe->{'profile'} ) {
+    ## a fallback candidate landed somewhere real - the window is visible  ##
+    ## and correctly placed there, just not at the ORIGINALLY requested    ##
+    ## profile. raise it and leave fade/visibility state alone instead of  ##
+    ## forcing keep_below + opacity=1 below, which would push a correctly-  ##
+    ## placed, fully-opaque window BEHIND other windows - confirmed live   ##
+    ## this looked identical to "stuck invisible, needs a restart" even    ##
+    ## though the window was technically fine, just hidden behind others.  ##
+    <ticker.window.profile> = $safe->{'profile'};
+
+    <[base.X-11.raise-window]>->(<x11.id>);
+    <[base.X-11.keep_above]>->(<x11.id>);
+} else {
+    ## nothing landed at all - revert the profile name even though the     ##
+    ## geometry itself never verified, and force full visibility so the    ##
+    ## caller doesn't end up stuck at opacity 0 with nothing left to fade   ##
+    ## it back in.                                                         ##
+    <[ticker.cmd.set-window-profile]>->( { 'args' => $previous } );
+    <[base.X-11.keep_below]>->(<x11.id>);
+
+    if ( defined <ticker.timer.fade> ) {
+        <ticker.timer.fade>->cancel;
+        delete <ticker.timer.fade>;
+    }
+    delete <ticker.time.fade_view>;
+    delete <ticker.fade.handler>;
+    <ticker.fade_opacity> = 1;
+    <ticker.obj.window>->set_opacity(1)
+        if <ticker.is_composited> and defined <ticker.obj.window>;
+}
+
+## resync tracked coordinates to GROUND TRUTH regardless of which branch   ##
+## above ran - confirmed live: trusting set-window-profile/find_safe_      ##
+## position's COMPUTED values [ rather than re-querying the window's REAL  ##
+## position ] left ticker.handler.check_pointer's hover-detection box      ##
+## wrong, so it could never register the pointer as "outside" again no     ##
+## matter where the mouse actually was - the fade-stuck bug.               ##
+my $ground_truth = <[base.X-11.get_window_geometry]>->(<x11.id>);
+if ( defined $ground_truth ) {
+    <x11.coordinates.left>  = $ground_truth->{'x'};
+    <x11.coordinates.top>   = $ground_truth->{'y'};
+    <x11.coordinates.right> = $ground_truth->{'x'} + $ground_truth->{'width'};
+    <x11.coordinates.bottom>
+        = $ground_truth->{'y'} + $ground_truth->{'height'};
+    <x11.window.width>  = $ground_truth->{'width'};
+    <x11.window.height> = $ground_truth->{'height'};
+}
 
 return FALSE;
 
-#,,,,,...,,,,,,,,,..,,..,,.,.,...,,,.,,,.,.,.,..,,...,.,,,..,,,..,..,,..,,,,.,
-#LVRFCO2ICIFUQGGSFW2COXAFNHWYLE2OHJC5AZNXUFD4TBVDEHS6GO5QYJ4DZB76Z5ND4R345PVTC
-#\\\|2EXBGZXQ3UFTI2LN6ZDRPGGO6IZZPNUO7ZDDY5OTRRUKAKQBBRW \ / AMOS7 \ YOURUM ::
-#\[7]3IOP5NGNQYFF7LFAX3AJDCUXDWZJMLI6GGUKCJNTL7YBSSZOEMAI 7  DATA SIGNATURE ::
+#,,..,,,.,...,,..,,.,,...,,,.,.,.,,.,,,,.,..,,..,,...,...,,..,,.,,,,,,...,...,
+#AUCYDLTJAOOMCVTNY7I26GULIFTK2JN74OLLAEVWYLCLE63V4LFN3EMJ3HCLOZORLNHNLQTP3UBDG
+#\\\|ORHH6YBWRFNE57KMW3LJA5Q7NUDV7XWC7MGS6NN6G6QRW2NCMJ3 \ / AMOS7 \ YOURUM ::
+#\[7]LNO3M6UUYNQLXWCR7OR26INEITKZA3ICMFF3ZNCVAJQJG3CAKODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

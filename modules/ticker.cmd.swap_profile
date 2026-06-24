@@ -3,14 +3,19 @@
 # name  = ticker.cmd.swap_profile
 # descr = toggle ticker between top and bottom edge
 
-my $current = shift // <ticker.window.profile> // qw| bottom-strip |;
+## the compiled-in .cmd. header normalizes BOTH call styles [ cube dispatch ##
+## passing a $call hashref, or an internal <[...]> call passing a plain    ##
+## string profile name ] into $call->{'args'} - bare shift here bypassed   ##
+## that and grabbed the raw $call hashref instead when dispatched via cube. ##
+my $current = $call->{'args'} // <ticker.window.profile>
+    // qw| bottom-strip |;
 my $target;
 if ( $current =~ m{^bottom-strip$} ) {
     $target = qw| top-strip |;
 } elsif ( $current =~ m{^top-strip$} ) {
     $target = qw| bottom-strip |;
 } else {
-    return;
+    return { 'mode' => qw| false |, 'data' => "no swap edge for '$current'" };
 }
 
 <[base.log]>->(
@@ -25,6 +30,7 @@ if ( <[ticker.move_to_profile]>->( $target, $current ) ) {
     delete <ticker.swap.move_failed>;
     delete <ticker.swap.fail_count>;
     delete <ticker.swap.previous_profile>;
+    return { 'mode' => qw| true |, 'data' => "swapped to $target" };
 } else {
     <ticker.swap.fail_count> = ( <ticker.swap.fail_count> // 0 ) + 1;
     my $max_fails = 3;
@@ -39,10 +45,14 @@ if ( <[ticker.move_to_profile]>->( $target, $current ) ) {
     <ticker.swap.disabled>    = 1
         if <ticker.swap.fail_count> >= $max_fails;
     delete <ticker.swap.previous_profile>;
+    return {
+        'mode' => qw| false |,
+        'data' => "swap move to $target failed"
+    };
 }
 
-#,,,.,..,,,,.,..,,.,,,.,.,,..,...,,,.,...,,,.,.,.,...,...,,..,,.,,,,,,.,,,...,
-#G64HJP5X3ONIJQNF6WINSMGS37RSVOZTCAP3BPW3PWA5MN4QUWMZPAOEUNK4ILVRBOPMRWZEH4R6C
-#\\\|57NF7HI6KCRIEPCYDZCYYB3DCW5WZPV7MYPAPWLCS3QC35XUTXF \ / AMOS7 \ YOURUM ::
-#\[7]XELDOQZTJPM4QT6WZVCIEO7ADG7XLOR7QBHM6J2EXYRQTKESZQCQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,.,,,.,.,,.,,..,,.,.,,,,,...,..,,.,.,...,...,..,,.,,,...,.,.,,,.,
+#YCHD4QELNC5XBI6K54OSRLGP2YYRUEJZJLZGIPN6AM5YAYW7GUYHAF3AZ5CFHJQGSS65DVI7Z76N2
+#\\\|336PBQE2AG66ERWBJTOYCYT4UV6XM27SPFM6L3PT4QKQNKRVLP7 \ / AMOS7 \ YOURUM ::
+#\[7]REFO4EJ4NI3XWHSEE6D6QDW2F7HAKESCM3UEVJY3HTNGCPMD66DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

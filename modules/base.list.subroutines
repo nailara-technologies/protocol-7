@@ -1541,6 +1541,7 @@ return [ qw[
         tree.route.page.attach
         transport.profile.load
         tile.switch-tile-group
+        tile.cmd.screen-change
         tile.cmd.loaded-config
         tile.cmd.get_subconfig
         tile.cmd.get-underscan
@@ -1728,10 +1729,12 @@ return [ qw[
         amos-term.buffer-clear
         X-11.process-x11-error
         X-11.cmd.unhide-window
+        X-11.cmd.show-log-move
         X-11.cmd.set_mouse_pos
         X-11.cmd.rotate-screen
         X-11.cmd.record_hotkey
         X-11.cmd.is-composited
+        X-11.cmd.hide-log-move
         X-11.cmd.dpms-force-on
         X-11-pointer.init_code
         zulum.cmd.stream-status
@@ -2452,6 +2455,7 @@ return [ qw[
         X-11.handler.read_gpu_top
         X-11.handler.display_poll
         X-11.find_top_level_frame
+        X-11.cmd.refresh-monitors
         X-11.cmd.list-backgrounds
         X-11.cmd.get-window-title
         X-11.cmd.get-window-count
@@ -2493,7 +2497,6 @@ return [ qw[
         universal.cmd.get_geometry
         tree.sort.trunk.field_self
         tree.route.page.word_route
-        tile.handler.screen-change
         tile.calculate_coordinates
         ticker.set-up.import_rules
         ticker.handler.place_reply
@@ -3569,6 +3572,7 @@ return [ qw[
         X-11.background.next-rnd-index
         workspace-transfer.console.todo
         work.console.regenerate-indexes
+        window.place.find_safe_position
         web-browser.set-up.import_rules
         web-browser.handler.auto_scroll
         web-browser.handler.2html_reply
@@ -3913,6 +3917,7 @@ return [ qw[
         protocol-7-menu.structure-changed
         protocol-7-menu.provider-register
         protocol-7-menu.cmd.test-provider
+        protocol-7-menu.cmd.screen-change
         powershell.cmd.screenshot-capture
         plugin.web.space.orbital.to_cells
         plugin.web.attention.switch_state
@@ -3996,6 +4001,7 @@ return [ qw[
         base.X-11.coordinates_to_geometry
         X-11.maximize_intel_gpu_frequency
         X-11.handler.wait_visible_timeout
+        X-11.handler.monitor_settle_check
         X-11.callback.force_driver_reload
         X-11.bg-image.cached-path-look-up
         X-11.backgrounds.set_random_image
@@ -4142,6 +4148,7 @@ return [ qw[
         work.calculate_suggestion_relevance
         window.place.handler.scr_rect_reply
         window.place.handler.button_release
+        window.place.build_strip_candidates
         web-browser.handler.snapshot_result
         web-browser.callback.load_fail_page
         weather.parent.handler.update_timer
@@ -4266,6 +4273,7 @@ return [ qw[
         protocol.amos-chksum.ext-cmd.version
         protocol.amos-chksum.command-handler
         protocol-7-menu.graphical-menu-popup
+        powershell.cmd.display-switch-toggle
         plugin.web.space.handler.state_reply
         plugin.storage.visual.proximity-calc
         plugin.storage.visual.extract-floats
@@ -4498,6 +4506,7 @@ return [ qw[
         sourcecode.console.report-endline-state
         route.bmw384.visual.wheel.alpha-density
         route.bmw384.visual.negotiation-overlay
+        protocol-7-menu.subscribe-screen-change
         protocol-7-menu.handler.fetch-menu-data
         protocol-7-menu.cmd.show-graphical-menu
         plugin.web.space.template-resolver.json
@@ -4770,8 +4779,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,,.,,,.,,.,,,,..,,..,,.,,...,,,.,...,.,,,.,.,...,..,,...,...,..,,...,...,
-#W6FPL3SHUIVN2GJKV2DPP32VOCKXSQGESYJ5TZVGFG5WDX25VIOC4W27UUMR3CEE7RZ7A3FMZVWXI
-#\\\|RN4ZI2VRZQGTMEZDRMJPJWB57WUEPEQ3M4PX22XE3G5NR3RKTQZ \ / AMOS7 \ YOURUM ::
-#\[7]Q4JQQY7QBHROGUXS63EHW7773GHHHYOAV7DY2ZZKWDHA5OBR7WCA 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,..,..,,,,.,,,,,...,.,,,.,,,.,,,.,.,...,..,,.,.,,,.,,,,,..,,,,,,
+#6KHDPFKMGITIIEBC5KYQYD2RROTNUYSGEKGFJEVQZSNT7KJ6VIEW6AVJJRF3E73QIEFKY5FCHQ2US
+#\\\|7RRMOUHIA6KV342WE7W3DO5ZAXAGWZMYP2CQKV7KQNSFBRBSKBA \ / AMOS7 \ YOURUM ::
+#\[7]TFICJ7PSYH65QXBEG7BGQC2QMUWFG4DBJZQ6JE3WWFZLUXJTWUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
