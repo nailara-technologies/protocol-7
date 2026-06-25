@@ -13,8 +13,10 @@ when writing modules for any zenka, the `base.` prefix is stripped from subrouti
 
 **How to apply:** always use the short form — `<[protocol-7.command.send.local]>` not `<[base.protocol-7.command.send.local]>`. to check what name a subroutine is registered under inside a running zenka, use `p7c <zenka>.list-subs <pattern>` — e.g. `memory.list-subs send.local` → shows `protocol-7.command.send.local`.
 
-#,,,,,...,.,,,,,.,,,.,,..,,..,.,.,...,..,,..,,..,,...,...,..,,.,.,.,,,.,,,,,.,
-#U3RGXXCU2CQL37WK4GKFVVFWDTGD6OXWP5VC232BPHXRFMZIKUTJENG5QKCM5XNU26BAG533KWR62
-#\\\|6SOYRV6WBUM4ZCCGTO5LSR672EYIYBJZGO2K3JPGYBJNFGNURC4 \ / AMOS7 \ YOURUM ::
-#\[7]S3FZCMTI5XIGAS7I7TEUX5VGE5FKYDMSOOXWODPDJZX2UNKGK4AQ 7  DATA SIGNATURE ::
+**recurrence 2026-06-25**: user found+fixed 5 more latent instances of this exact bug (`base.chk-sum.amos` called with the prefix) in `base.chk-sum.reference`, `plugin.storage.checksum.map-file`, `plugin.storage.checksum.verify`, `plugin.web.auth.create_session`, `reasoning.tree.node` — landed same commit as [[topic-jobsite-stray-recovery]] (a52a6a4b8). These had been silently broken with nobody noticing. Worth a periodic grep sweep (`grep -rn '<\[base\.' modules/`) cross-checked against each name's actual whitelist/registration form.
+
+#,,,,,..,,.,.,.,.,...,.,,,...,,,.,,,,,...,.,.,..,,...,..,,,..,,..,,.,,,,.,.,.,
+#ILTWEZMZPZWVMI6LVDC27VKKQMP53C3ZMVGKYEGOGOSAYLYNWXPGPDO247FMVX6Y3SJFGPBMVETWI
+#\\\|PFQO2PKIUCDAISDIBEKJ64JTLXE5KZND6VUH2NRL7AWF7GT6J6I \ / AMOS7 \ YOURUM ::
+#\[7]7QCDNF3RI2PR2TWEOL2U762HP7TEU47M2Q6NGB3TRS7A3RE2Q2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
