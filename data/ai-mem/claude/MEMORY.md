@@ -6,6 +6,7 @@
 - [weston-move-unreliable-use-compositor-grab](feedback-weston-move-unreliable-use-compositor-grab.md) — GTK move() on an already-mapped toplevel unreliable under this WSLg/Weston build; use begin_move_drag/begin_resize_drag instead; keyboard-stepping path still has unresolved drift (read-back via get_position/get_size proved unreliable, two attempts failed)
 
 ## Active Topics
+- [orbital-strm-push-rollout](topic-orbital-strm-push-rollout.md) — LANDED 139cacef2 2026-06-25: discover/external/nodes/graphics-matrix push to web via STRM instead of 13s poll-everyone; fixed the offline-spam that kept making taeki stop the zenka; external zenka wiring gaps closed too; gap open: who gets connect/disconnect-orbital access
 - [async-window-startup-transition](topic-async-window-startup-transition.md) — UNCOMMITTED 2026-06-24 (late session): root cause = primary/secondary Y-range overlap clamp on WSLg/Weston, defeats EVERY placement method; built generic find_safe_position+build_strip_candidates recovery (works for ticker runtime swap, NOT YET reliable for startup); found+fixed 6+ pre-existing latent bugs (subscribe-screen-change, .handler. dispatch gap, YAML-over-line-protocol corruption, swap_profile args, move_to_profile false-failure, check_pointer race). OPEN: startup void-landing non-deterministic; new unexplained "shadow only, no content" compositor glitch. Check this file FIRST next session.
 - [screen-setup-zenka](topic-screen-setup-zenka.md) — NEW 2026-06-24, UNSIGNED/UNCOMMITTED: screen-setup zenka + display-layouts scaled-minimap of monitor rects (GDK source); gives window.place the monitor-awareness it lacks; file has bring-up steps + deferred window-rects overlay & _NET_WM_MOVERESIZE move fix
 - [amos7-shm-phase1](topic-amos7-shm-phase1.md) — AMOS7::SHM phases 1-3 ALL LANDED 2026-06-22 (410805f43, ac6315191, 786598adc); phase 3 caught kimi substituting a same-process test for cross-process (not accepted, redone) + a stray unmanaged data zenka process causing misleading test failures (diagnosed via v7.list zenki vs list sessions); phase 4 (cleanup) still open
@@ -203,8 +204,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,..,,,.,,,.,,,,,,..,.,.,...,..,,...,,,,,...,..,,...,...,..,,,,.,,,.,..,,.,.,
-#3GMFSNUNW4GAZEV4N3HTHVFOFKMGGW4GSW5IMJ2I6OF3DNGXC6PMVQ43MRGWVL3SIHBLU6ZYZUUJY
-#\\\|QMXHYBUG32MHMABU4E3IFCR24D2GWDE5DC3WJNOAPDIMD3US3WF \ / AMOS7 \ YOURUM ::
-#\[7]JTPCCFILB6A525MCEDS4NYCLRSV7NFDMPL2D6R6LDOAJAP5R4WDA 7  DATA SIGNATURE ::
+#,,.,,...,...,...,.,,,...,.,,,.,,,.,.,..,,..,,..,,...,...,,.,,,,,,.,.,,..,,,.,
+#7WTBJSZ3F6C3YCJECLAS3XHNCUMYI3QD54FUOADN5PFTRXPC7BT3MJ7GS6CF5FC7VQC6CL4ONTJ3U
+#\\\|HLMEJMA2KS7QIHKWFUIQHA5XTOFHRGLFWIGORUQYAY3MJ5XDFK2 \ / AMOS7 \ YOURUM ::
+#\[7]XNPU3A7V2JZQDPXQ2YTMQCOY6P2XMOTT55J5FQGST2GTLJ4NNSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
