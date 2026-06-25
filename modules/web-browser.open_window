@@ -51,6 +51,28 @@ $window->signal_connect( destroy => sub { Gtk3->main_quit() } );
 
 # my $atom_id = Gtk3::Gdk->atom_intern_static_string('WM_CLASS'); # <-- set
 
+## restore saved window position if available and enabled
+my $wb_caller = <system.zenka.name> // '';
+if ( length $wb_caller
+    and <[base.cfg_bool]>->(<web-browser.restore_last_position>) ) {
+    my $saved = <[window.profile.load]>->($wb_caller);
+    if (    defined $saved
+        and ref($saved) eq qw| HASH |
+        and defined $saved->{'x'}
+        and defined $saved->{'y'}
+        and defined $saved->{'width'}
+        and defined $saved->{'height'} ) {
+        ( $pos_x, $pos_y, $size_x, $size_y )
+            = @{$saved}{qw| x y width height |};
+        <web-browser.window.pos>  = { 'x' => $pos_x,  'y' => $pos_y };
+        <web-browser.window.size> = { 'x' => $size_x, 'y' => $size_y };
+        <[base.logs]>->(
+            1, '[startup] restoring saved position [%dx%d+%d+%d]',
+            $size_x, $size_y, $pos_x, $pos_y
+        );
+    }
+}
+
 $window->move( $pos_x, $pos_y ) if defined $pos_x and defined $pos_y;
 
 $window->set_default_size( $size_x, $size_y )
@@ -155,6 +177,44 @@ $window->signal_connect(
 
 $window->show_all;
 
+## debounced position+size save on move or resize
+$window->signal_connect(
+    'configure-event' => sub {
+        my ( $widget, $event ) = @_;
+        <web-browser.pos_save.geo> = {
+            'x'      => $event->x,
+            'y'      => $event->y,
+            'width'  => $event->width,
+            'height' => $event->height
+        };
+        eval { <web-browser.pos_save.timer>->cancel }
+            if defined <web-browser.pos_save.timer>;
+        <web-browser.pos_save.timer> = <[event.add_timer]>->(
+            {   'after' => 0.7,
+                'cb'    => sub {
+                    <web-browser.pos_save.timer> = undef;
+                    my $geo = <web-browser.pos_save.geo> // return;
+                    return if not length $wb_caller;
+                    <[window.profile.save]>->(
+                        $wb_caller,      $geo->{'x'}, $geo->{'y'},
+                        $geo->{'width'}, $geo->{'height'}
+                    );
+                    <[base.logs]>->(
+                        1,
+                        '[position] saved [caller=%s] x=%d y=%d w=%d h=%d',
+                        $wb_caller,
+                        $geo->{'x'},
+                        $geo->{'y'},
+                        $geo->{'width'},
+                        $geo->{'height'}
+                    );
+                }
+            }
+        );
+        return FALSE;
+    }
+);
+
 ##  register signal handlers  ##
 ##
 foreach my $signal_name (qw|  INT  TERM  |) {
@@ -166,8 +226,8 @@ foreach my $signal_name (qw|  INT  TERM  |) {
     );
 }
 
-#,,..,..,,..,,.,.,.,.,.,,,..,,,,,,...,,,.,,.,,..,,...,...,..,,,..,...,,.,,,.,,
-#VQCTDEURDCV6AUF5DQHOES4O2CQTBU5AXVWMW7777HRUHWHSO73LW2PF7YCBBSBFPF5ZPT6NBIRIM
-#\\\|ZALPD44Q5EDTSDEU4W7PZA7UDQYV3GZEXQLLDQP4KTA4YMALR3Z \ / AMOS7 \ YOURUM ::
-#\[7]2MVJF33V2UB3HTWIUJLU2SA25LTXOPF7NRV7TMIXSDX7YMT4GIBY 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,,.,,.,,.,,,,,.,,,,,..,,,,,,,,,,..,,...,...,.,,,.,,,,..,,,,,..,,
+#AWFODP4QWYT6M7F44JWRDMTJV4FCOR3MYQEFBLFCYQ6SDFYKLEDBKWB5VSM67XUQ3EIMBHHEX643E
+#\\\|BYCF3ZAYMZXB7X2DGVWYY4VGQVK7X3RHDAZXB6QBFB4XBZ7BPBD \ / AMOS7 \ YOURUM ::
+#\[7]FNTXMB4WC4NKF5X4FCTJYMXUBMOZSRPVMVJLYSIZPF66HXX6RKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
