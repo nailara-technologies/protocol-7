@@ -1,0 +1,79 @@
+## [:< ##
+
+# name  = site-yaml.job.scan_stray
+# descr = build a manifest of job files stranded in this zenka's var dir
+#
+# notes = stale-code path resolution from before a jobsite.job.write fix ;
+#         transfer id = AMOS checksum over size:ntime, chained on
+#         collision ; caches id -> {name,status} for later lookup by id
+
+<[base.perlmod.autoload]>->('YAML::XS');
+
+my $jobs_root = <[file.zenka_dir.data_path]> . '/jobs';
+
+my @active_statuses
+    = qw| new assessed review apply applied interviewed rejected |;
+
+<site-yaml.stray_manifest> = {};
+
+my @stray;
+my %seen_id;
+for my $status (@active_statuses) {
+    my $dir = "$jobs_root/$status";
+    next if not -d $dir;
+
+    opendir my $dh, $dir or next;
+    my @files = grep { /\.yaml$/ and !/^\./ } readdir($dh);
+    closedir $dh;
+
+    for my $file (@files) {
+        my $job_file = "$dir/$file";
+        my $name     = $file =~ s/\.yaml$//r;
+
+        my $size = -s $job_file;
+        next if not defined $size;
+
+        my $job = eval { YAML::XS::LoadFile($job_file) };
+        if ($EVAL_ERROR) {
+            <[base.logs]>->(
+                0,         'scan_stray: load error for %s: %s',
+                $job_file, <[base.str.eval_error]>
+            );
+            next;
+        }
+        my $ntime_b32 = $job->{'last_modified'} // '';
+        my $ntime
+            = length($ntime_b32)
+            ? <[base.ntime_BASE32_to_numerical]>->($ntime_b32)
+            : 0;
+
+        my $input = "$size:$ntime";
+        my $id    = <[chk-sum.amos]>->( \$input );
+        while ( exists $seen_id{$id} ) {
+            $input = "$id:$size:$ntime";
+            $id    = <[chk-sum.amos]>->( \$input );
+        }
+        $seen_id{$id} = TRUE;
+
+        <site-yaml.stray_manifest>->{$id} = {
+            'name'   => $name,
+            'status' => $status,
+        };
+
+        push @stray,
+            {
+            'id'     => $id,
+            'size'   => $size,
+            'ntime'  => $ntime,
+            'status' => $status,
+            };
+    }
+}
+
+return \@stray;
+
+#,,..,,.,,..,,.,.,..,,,,,,,,,,,,,,,,,,.,.,.,.,..,,...,...,,..,..,,,..,.,,,...,
+#5KINB6PJZZVF2UQDBXZLKHPDA5PYM4RPICFFYJODNDAWYH56KA3AERZLDAKTWK7SKSJXXDCZOUPNQ
+#\\\|R2QV7NMGTU5HOF6FIPW7FUVM6TC2N7L2CW5QIS4V2SF4NDOCAM3 \ / AMOS7 \ YOURUM ::
+#\[7]SQ2Y55TUMQW6FMLTB44IKGDNYQM2YDLDX3XVB3TZPDX7E7ZB42AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
