@@ -70,11 +70,10 @@ my $view
 
 <web-browser.scr_win>->{$view} = $scrolled_window;
 
-##[LLL] seems to not work., check why..,
-# my $bg_rgba = Gtk3::Gdk::RGBA->new();
-# $bg_rgba->parse('#0000FF');
-# $view->set_background_color($bg_rgba);
-##
+## set webkit base background -- prevents white flash on page transitions ##
+my $bg_rgba = Gtk3::Gdk::RGBA->new;
+( my $bg_css = $bg_color ) =~ s{^#?}{#};
+$view->set_background_color($bg_rgba) if $bg_rgba->parse($bg_css);
 
 $view->load_alternate_html( "<html><body bgcolor=\"$bg_color\"></body><html>",
     '[init:blank]' );
@@ -94,15 +93,69 @@ $view->signal_connect
     sub {
         my $v    = shift;
         my $evt  = shift;
-        my $type = $evt->type();
+        my $type = eval { $evt->type() };
+        return FALSE if $@ or not defined $type;
+
+        ## drag-scroll: poll-based, no dependency on motion-notify delivery ##
+        if ( <web-browser.cfg.user_can_scroll>
+            && !<web-browser.cfg.links_clickable> ) {
+            if ( $type eq 'button-press' ) {
+                ## cancel any stale timer from previous drag ##
+                if ( defined <web-browser.drag.timer> ) {
+                    <web-browser.drag.timer>->cancel;
+                    <web-browser.drag.timer> = undef;
+                }
+                ## capture pointer device once -- avoid repeated static lookup ##
+                my $ptr = eval {
+                    Gtk3::Gdk::Display::get_default()
+                        ->get_default_seat->get_pointer;
+                };
+                my ( undef, $ix, $iy ) = eval { $ptr->get_position } if $ptr;
+                <web-browser.drag.x>     = $ix // 0;
+                <web-browser.drag.y>     = $iy // 0;
+                <web-browser.drag.held>  = 1;
+                <web-browser.drag.timer> = <[event.add_timer]>->(
+                    {   after    => 0.007,
+                        interval => 0.007,
+                        repeat   => TRUE,
+                        cb       => sub {
+                            unless (<web-browser.drag.held>) {
+                                <web-browser.drag.timer>->cancel;
+                                <web-browser.drag.timer> = undef;
+                                return;
+                            }
+                            my ( undef, $x, $y )
+                                = eval { $ptr->get_position };
+                            return unless defined $x;
+                            my $dx = int( <web-browser.drag.x> - $x );
+                            my $dy = int( <web-browser.drag.y> - $y );
+                            <web-browser.drag.x> = $x;
+                            <web-browser.drag.y> = $y;
+                            return unless $dx || $dy;
+                            ## run_javascript goes through webkit rendering path ##
+                            eval {
+                                $v->run_javascript(
+                                    "window.scrollBy($dx,$dy)",
+                                    undef, undef, undef );
+                            };
+                        }
+                    }
+                );
+                return FALSE;  ## pass to webkit: symmetric press/release pair
+            } elsif ( $type eq 'button-release' ) {
+                <web-browser.drag.held> = 0; ## timer cancels itself next tick
+                return FALSE;  ## pass to webkit: clears its button-held state
+            }
+        }
 
         return TRUE
             if exists <web-browser.blocked_event_types>->{$type};    # block
         ## say "\n [ event : $type ]\n";
-        if ( index( $type, 'key' ) == 0 )
-        {    # block key presses outside input fields
-            return TRUE            if !$v->can_paste_clipboard();
-            $v->delete_selection() if $v->can_copy_clipboard();
+        if ( index( $type, 'key' ) == 0 ) {
+            ## block key presses outside input fields; guard webkit2 calls ##
+            my $can_paste = eval { $v->can_paste_clipboard() };
+            return TRUE if !$@ && !$can_paste;
+            eval { $v->delete_selection() if $v->can_copy_clipboard() };
         }
 
       # elsif ( index( $type, 'visibility-notify' ) == 0 ) {  ## track visible
@@ -180,8 +233,8 @@ $overlay->add_overlay($scrolled_window);
 <web-browser.gtk_obj.scrolled_window>->{$id} = $scrolled_window;
 <web-browser.gtk_obj.view>->{$id}            = $view;
 
-#,,..,...,,.,,.,,,,..,.,.,,,,,,..,,,.,,.,,,,.,..,,...,...,,.,,,..,,..,.,,,.,.,
-#3T5MNVUR2NFGEVD2CI6VV5UQVWB2XI27SSF4MBZCEQKG7EXKQZ6QQFPJJZ3DQMLUAX5VSPL2RLKGI
-#\\\|BVSUM3UCWTP5HR3VG3A6SU3YK7JPC34YAO7U37GHN6SPPWJOP7L \ / AMOS7 \ YOURUM ::
-#\[7]GGIPPD4CSMLGNIEYPAGMAK52Q47J77WCHFEDL5PUIDNZHY3LGWDA 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,...,,..,.,.,..,,,.,,,..,.,.,,,.,..,,...,...,..,,.,,,,..,,,,,.,,,
+#THFVRRSDWZ3IT6B6II4DVKADUQDLE7ACW453GV3SRM6M4TKAAP3PMK7QYFJ244ZM6TO5SY6S52FOG
+#\\\|IGKNKAOVDHBH3TRTMVFSLTTVWHJ4LD5SY64CGXGCORFCSH2GMOT \ / AMOS7 \ YOURUM ::
+#\[7]PIMXNI74P5MZOA5CIVOZT22CNT6J763JMVUAZLK6E23OH6FKSOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

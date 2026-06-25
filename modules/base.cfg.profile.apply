@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = base.cfg.profile.apply
+# descr = apply a named UI control profile for the current zenka
+
+my $profile_name = shift // '';
+
+my $zenka = <system.zenka.name> // '';
+
+return if not length $zenka;
+return if not length $profile_name;
+
+my $profiles_ref = $data{$zenka}{cfg}{profiles} // {};
+
+return if not exists $profiles_ref->{$profile_name};
+return if ref( $profiles_ref->{$profile_name} ) ne qw| HASH |;
+
+my $profile_data = $profiles_ref->{$profile_name};
+
+my @changed_keys;
+
+foreach my $cfg_key ( sort keys %{$profile_data} ) {
+    my $new_value = $profile_data->{$cfg_key};
+    my $old_value = $data{$zenka}{cfg}{$cfg_key};
+
+    next
+        if defined $old_value
+        and defined $new_value
+        and $old_value eq $new_value;
+    next if not defined $old_value and not defined $new_value;
+
+    $data{$zenka}{cfg}{$cfg_key} = $new_value;
+    push @changed_keys, $cfg_key;
+}
+
+## store active profile and changed-key list for callbacks ##
+$data{$zenka}{cfg}{profile}{active}       = $profile_name;
+$data{$zenka}{cfg}{profile}{changed_keys} = \@changed_keys;
+
+## fire registered profile-changed callbacks ##
+map {
+    ref($ARG) eq 'CODE'
+        ? <[event.add_timer]>->( { 'after' => 0, 'cb'      => $ARG } )
+        : <[event.add_timer]>->( { 'after' => 0, 'handler' => $ARG } );
+} @{ <system.callbacks.profile_changed> //= [] };
+
+<[base.logs]>->(
+    1,      'profile applied: %s.%s [changed: %s]',
+    $zenka, $profile_name,
+    @changed_keys ? join( ', ', @changed_keys ) : 'none'
+);
+
+return $profile_name;
+
+#,,.,,,,,,.,,,,.,,.,,,,..,,.,,,,.,,,,,.,,,.,.,..,,...,...,.,,,...,,.,,...,,,.,
+#Z22PGXQYSKPERC7ZNFMIBN2ADOKM2JXOXVN2SGWKWKYRD3FDFJW6A7WDWFK42IEQ7ZU3J3PTXERUU
+#\\\|7QYWPADFNH5VF6CMLJRFMEK7UKXM6CV4G3ZVGRMTGX5T2N3DFA2 \ / AMOS7 \ YOURUM ::
+#\[7]G7LH2TH6IKYXGI5ETCIIZD7KHUQPXH3PWYCRGRWN2LW6OLA2NEBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

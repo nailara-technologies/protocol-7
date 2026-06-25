@@ -63,6 +63,7 @@ $ENV{'GDK_DEBUG'}    = qw| no |;
 <web-browser.cfg.max_gpu_load> //= 67;    # % [ auto-speed mode load target ]
 <web-browser.cfg.snapshot_dir> //= '/var/protocol-7/visual-feedback/capture/';
 <web-browser.cfg.snapshot_region> //= 'WEBKIT_SNAPSHOT_REGION_VISIBLE';
+<web-browser.cfg.profile.active>  //= qw| kiosk |;
 
 <[web-browser.calc_scroll_speed]>
     if not defined <web-browser.subcfg>
@@ -97,14 +98,24 @@ if (<web-browser.open_gtk_inspector>) {
 
 package Browser::ScrolledWindow;
 
-use Glib::Object::Subclass qw| Gtk3::ScrolledWindow |;
-
-sub INIT_INSTANCE {
-    my $self = shift;
-    $self->set_policy(qw|  never  never  |);
+## guard against re-registration on module reload -- glib types are permanent ##
+## use eval STRING: Glib::Object::Subclass has no callable ->import(); it relies
+## on compile-time BEGIN magic which only fires correctly inside a string eval  ##
+unless ( eval { Browser::ScrolledWindow->isa('Gtk3::ScrolledWindow') } ) {
+    eval 'package Browser::ScrolledWindow;
+          use Glib::Object::Subclass qw| Gtk3::ScrolledWindow |;';
+    die $@ if $@;
+}
+{
+    no warnings qw| redefine |;
+    *Browser::ScrolledWindow::INIT_INSTANCE = sub {
+        my $self = shift;
+        $self->set_policy(qw|  never  never  |);
+    };
 }
 
 package Browser::WebView;
+use English;
 
 #[ AUTOSCROLL WITHOUT JS ]######################################################
 # web extension to access DOM coming later: needs webkit2/webkit-web-extension.h
@@ -117,18 +128,32 @@ Glib::Object::Introspection->setup(
 Glib::Object::Introspection->setup(
     qw| basename JavaScriptCore version 4.1 package JSC |);
 
-use Glib::Object::Subclass qw| Gtk3::WebKit2::WebView |,
-    properties => [
-    Glib::ParamSpec->boolean(
-        qw|  self-scrolling  undefined  undefined  |, 0,
-        [qw| readable writable |]
-    ),
-    ];
-
-sub INIT_INSTANCE {
-    my $self = shift;
-    $self->set_property( qw| self-scrolling |, 0 );
+unless ( eval { Browser::WebView->isa('Gtk3::WebKit2::WebView') } ) {
+    eval q{
+        package Browser::WebView;
+        use Glib::Object::Subclass 'Gtk3::WebKit2::WebView',
+            properties => [
+                Glib::ParamSpec->boolean(
+                    'self-scrolling', 'undefined', 'undefined', 0,
+                    [qw| readable writable |]
+                ),
+            ];
+    };
+    die $@ if $@;
 }
+{
+    no warnings qw| redefine |;
+    *Browser::WebView::INIT_INSTANCE = sub {
+        my $self = shift;
+        $self->set_property( qw| self-scrolling |, 0 );
+    };
+}
+
+## guard against duplicate registration on module reload ##
+my $profile_cb = 'web-browser.callback.profile_changed';
+push @{ <system.callbacks.profile_changed> //= [] }, $profile_cb
+    unless grep { $ARG eq $profile_cb }
+    <system.callbacks.profile_changed>->@*;
 
 $code{'base.handler.end_code'} = sub {
     <[base.log]>->( 1, ': closing window ..,' );
@@ -143,8 +168,8 @@ $code{'base.handler.end_code'} = sub {
 
 0;
 
-#,,.,,,.,,.,.,,,.,.,.,...,..,,..,,,..,,..,.,.,..,,...,..,,...,.,.,.,.,,..,..,,
-#37VOKPKDIS3V3I63CI65NYKCE6HEGRHBSZKNZ7BOKEHGDT5RJ6SJCOIIBP3DUDPSUCFDYBEELTG3E
-#\\\|JQ4CLJDL4EPK66LLCB5LHGNLVBFZMV45M7GUKUHMSFY6TKIVV4D \ / AMOS7 \ YOURUM ::
-#\[7]P6OL2XSZTBXUEJ36E7D3ID7NEC7TSXSTGPNYJHJJBPTAQTX3SEDY 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,...,,.,,,,.,.,.,,,,,.,.,,.,,,,,,..,,...,...,..,,..,,,,,,...,,..,
+#23G6D7THGAMKFM37HGW3XUDLZHK2DSFLWHNZJJKTSSQGLRWA3FPZTL3T6CL3WFUOZRRHJRFD42QXY
+#\\\|UOPARAKX33U2IMVR52PCVNU4HD7QWWRSHOXI5CZL7BJKFXBX62X \ / AMOS7 \ YOURUM ::
+#\[7]OA3XUF6DPYDOMSNF6YPEIP7Z44IZSXKU7AY4VTYHLBGKXTSGVUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

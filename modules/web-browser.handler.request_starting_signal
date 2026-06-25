@@ -7,6 +7,15 @@ my ( $view, $decision, $decision_type ) = @_;
 ## only intercept navigation decisions (not resource loads)
 return FALSE unless $decision_type eq 'navigation-action';
 
+## block user-initiated navigation when links_clickable is off ##
+if ( !<[base.cfg_bool]>->(<web-browser.cfg.links_clickable>) ) {
+    my $nav_action = eval { $decision->get_navigation_action };
+    if ( defined $nav_action && eval { $nav_action->is_user_gesture } ) {
+        $decision->ignore;
+        return TRUE;
+    }
+}
+
 my $request = $decision->get_request;
 my $uri     = $request->get_uri;
 
@@ -30,8 +39,8 @@ $decision->ignore;
 
 return TRUE;    ## TRUE = handled (blocks default action)
 
-#,,,,,,.,,.,,,,..,...,,,.,...,.,,,...,,,.,..,,..,,...,...,,.,,..,,.,.,..,,.,.,
-#2SAKVKDE2K7XL2R4CKB4V3EL7CGFWRMNI7GRNTL4MRU5OSRP3PI6MYRQ4N4DCWD35STYYPZFMAHYG
-#\\\|WV6W3NUFRU2GTOBTKJAS2WFNC24R7JFWKF4GVPLE76UGLZI6GUG \ / AMOS7 \ YOURUM ::
-#\[7]I5P7S2KJMZQ7CR6OZ3AZP72RYLVDWXRYGREVKNKWXQHYXBAPMAAY 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,,,,.,.,...,,,.,.,,,,..,...,,,.,..,,...,...,...,,,.,,.,,...,...,
+#CIGHC4L7ZWQRMJNLYTMRR6FPENR624VDQZMEJDCBD2JE5U7R4ETNW3RBW36CVFM3JOY5P7JLKZ7FA
+#\\\|6NC5LRD5IS2ZGLLW3MVFIA73DEUJUMPIQVBITDVUETGR6P3JHUE \ / AMOS7 \ YOURUM ::
+#\[7]PHUA4XQJN6KSUIGXLMSYOLSGGRXSLU7F6EI7FTHJL5XICUE4N6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
