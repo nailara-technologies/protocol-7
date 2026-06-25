@@ -53,13 +53,7 @@ for my $i ( 0 .. $#$monitors ) {
 ## default graphical-startup-init uses, repeated per monitor [ preferred   ##
 ## monitor first ], so a freely-positioned window still has somewhere      ##
 ## known-reachable to land on whichever monitor remains.                  ##
-my $margin          = 20;
-my @ordered_indices = ( 0 .. $#$monitors );
-if ( defined $preferred_index ) {
-    @ordered_indices = (
-        $preferred_index, grep { $ARG != $preferred_index } @ordered_indices
-    );
-}
+my $margin = 20;
 
 my @candidates = (
     {   'x'      => $current->{'x'},
@@ -68,17 +62,17 @@ my @candidates = (
         'height' => $current->{'height'},
     }
 );
-for my $i (@ordered_indices) {
-    my $m = $monitors->[$i];
-    push @candidates,
-        {
-        'x'      => $m->{'x'} + $m->{'width'} - $current->{'width'} - $margin,
-        'y'      => $m->{'y'} + $margin,
-        'width'  => $current->{'width'},
-        'height' => $current->{'height'},
-        'monitor_index' => $i,
-        };
-}
+
+## candidates 2+ : top-right-with-margin per monitor [ preferred first ].   ##
+## use the shared corner builder and keep only the top-right corner so the  ##
+## ordering matches the original screen-change behavior.                    ##
+my $corner_candidates = <[window.place.build_corner_candidates]>->(
+    $monitors, $current->{'width'}, $current->{'height'}, $margin,
+    $preferred_index
+) // [];
+
+push @candidates,
+    grep { $ARG->{'corner'} eq qw| top-right | } @$corner_candidates;
 
 my $safe = <[window.place.find_safe_position]>->( $xid, \@candidates );
 
@@ -103,8 +97,8 @@ if ( $safe->{'x'} != $current->{'x'} or $safe->{'y'} != $current->{'y'} ) {
 
 return { 'mode' => qw| true |, 'data' => 'ok' };
 
-#,,.,,,.,,.,,,.,,,,..,,..,,..,,,,,..,,..,,.,.,..,,...,..,,.,,,,,,,,.,,...,.,.,
-#7KQCI6ECX6Z6GEIQM4EL6ZSSO5GH2L64UFQBJA5AJARBCLPIA3ZIIHQLVY6E5EZJLFNLN5UNOYGIQ
-#\\\|T4BC6OWCNVOTRLFPISO7IJCGARJEXRCD7DZ7V3QF2GZ22SXZONO \ / AMOS7 \ YOURUM ::
-#\[7]DLLSRWAGMA34P6SMBJEACMG7HRW342TJO52FETJWDJSPUQWKXKDI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,..,,,,.,,.,,,,.,,..,...,,..,...,..,,...,...,,..,,.,,.,,,,,,,.,.,
+#HHVZNTSK4ZFXG565IXKAETJQLP577FX2BBBLSIKJQSJS6TG5HWB7YJ5WBXPHVXHYIXFDHZRBO242Q
+#\\\|TC7MUPM7QG3RHAFSIALCXPBOQUAWTDNTPMKLLGNFYSNQXAJTRJO \ / AMOS7 \ YOURUM ::
+#\[7]CZNCQ4SBYAGETJ2OCUQHIUI3WCWOKA2L542YO7FO63F6HW5EYECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

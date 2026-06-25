@@ -172,6 +172,9 @@ $window->signal_connect(
 my $saved_position = <[protocol-7-menu.position.load]>->($screen_key);
 my ( $pos_x, $pos_y );
 
+## margin used for the no-saved-position default and for post-map recovery ##
+my $margin = 20;
+
 if ( defined $saved_position ) {
     $pos_x = $saved_position->{'x'};
     $pos_y = $saved_position->{'y'};
@@ -186,7 +189,6 @@ if ( defined $saved_position ) {
 } else {
 
     # Default: top-right with equal margin
-    my $margin = 20;
     $pos_x = $scr_w - ( $win_width + $margin );
     $pos_y = $margin;
     <[base.logs]>->(
@@ -219,6 +221,133 @@ $window->move( $pos_x, $pos_y );
 
 $window->show_all;
 
+## when no saved position exists, the pre-show_all default is only a best   ##
+## guess. weston can silently place the window in a void, so verify post-map ##
+## with real move+readback and cycle through corner candidates until one     ##
+## lands. fall back to a random unverified placement if nothing works.       ##
+if ( not defined $saved_position ) {
+    my $placement_attempts     = 0;
+    my $max_placement_attempts = 10;
+    my $placement_timer;
+    $placement_timer = <[event.add_timer]>->(
+        {   'after'    => 0.2,
+            'interval' => 0.2,
+            'cb'       => sub {
+                return if not defined $placement_timer;
+
+                $placement_attempts++;
+
+                my $xid = eval {
+                    $window->get_toplevel()->get_window()->get_xid();
+                };
+                if ( not defined $xid ) {
+                    <[base.log]>->(
+                        0,
+                        'graphical menu startup: no xid yet, deferring '
+                            . 'placement'
+                    );
+                    $placement_timer->cancel
+                        if $placement_attempts >= $max_placement_attempts;
+                    return;
+                }
+
+                my $monitors = <[base.gtk.list_monitors]> // [];
+                if ( not @$monitors ) {
+                    <[base.log]>->(
+                        0, 'graphical menu startup: no monitors detected'
+                    );
+                    $placement_timer->cancel
+                        if $placement_attempts >= $max_placement_attempts;
+                    return;
+                }
+
+                my $current = <[base.X-11.get_window_geometry]>->($xid);
+                my $preferred_index;
+                if ( defined $current ) {
+                    my $cx = $current->{'x'} + $current->{'width'} / 2;
+                    my $cy = $current->{'y'} + $current->{'height'} / 2;
+                    for my $i ( 0 .. $#$monitors ) {
+                        my $m = $monitors->[$i];
+                        if (    $cx >= $m->{'x'}
+                            and $cx < $m->{'x'} + $m->{'width'}
+                            and $cy >= $m->{'y'}
+                            and $cy < $m->{'y'} + $m->{'height'} ) {
+                            $preferred_index = $i;
+                            last;
+                        }
+                    }
+                }
+
+                ## use actual mapped size for candidate generation ##
+                my $use_width
+                    = defined $current ? $current->{'width'} : $win_width;
+                my $use_height
+                    = defined $current ? $current->{'height'} : $win_height;
+
+                my $candidates = <[window.place.build_corner_candidates]>->(
+                    $monitors, $use_width, $use_height, $margin,
+                    $preferred_index
+                );
+
+                my $safe = <[window.place.find_safe_position]>
+                    ->( $xid, $candidates );
+
+                if ( defined $safe ) {
+                    <[base.logs]>->(
+                        1,
+                        'graphical menu startup: landed at x=%d y=%d on '
+                            . 'monitor %d',
+                        $safe->{'x'},
+                        $safe->{'y'},
+                        $safe->{'monitor_index'} // -1
+                    );
+                    <[base.X-11.raise-window]>->($xid);
+                    <[base.X-11.keep_above]>->($xid);
+                    $placement_timer->cancel;
+                    return;
+                }
+
+                <[base.logs]>->(
+                    0,
+                    'graphical menu startup: placement attempt %d/%d failed',
+                    $placement_attempts,
+                    $max_placement_attempts
+                );
+
+                return if $placement_attempts < $max_placement_attempts;
+
+                ## exhausted: one random unverified placement as last resort ##
+                my $random_mon
+                    = $monitors->[ int( rand( scalar @$monitors ) ) ];
+                my $rand_x = $random_mon->{'x'};
+                my $rand_y = $random_mon->{'y'};
+                if ( $random_mon->{'width'} > $use_width ) {
+                    $rand_x
+                        += int( rand( $random_mon->{'width'} - $use_width ) );
+                }
+                if ( $random_mon->{'height'} > $use_height ) {
+                    $rand_y += int(
+                        rand( $random_mon->{'height'} - $use_height ) );
+                }
+
+                <[base.X-11.move-window]>->(
+                    $xid, $rand_x, $rand_y, $use_width, $use_height
+                );
+                <[base.logs]>->(
+                    1,
+                    'graphical menu startup: random fallback to x=%d y=%d '
+                        . 'on monitor %s',
+                    $rand_x,
+                    $rand_y,
+                    $random_mon->{'index'} // '?'
+                );
+
+                $placement_timer->cancel;
+            }
+        }
+    );
+}
+
 # Create menu with menu-commands items
 my $menu = Gtk3::Menu->new();
 
@@ -249,8 +378,8 @@ $menu->show_all;
 
 return 0;
 
-#,,,,,,.,,.,.,,..,...,,,.,.,.,.,.,,.,,,.,,,..,.,.,...,...,..,,,..,,,,,,..,.,.,
-#5TUSCO2H2HZRYZ5GI2PEOBX7DSAXVISB5XYDNGXQIWGLUA76CE56FL3LFJBT2CQIGV6B4G3WFUEQ2
-#\\\|QIXPZVHROTEIYJFVDDLWCHRZ7J2DXCD4HQGLRECAV2LVUM2IKHN \ / AMOS7 \ YOURUM ::
-#\[7]ZVIPTSPLEVJ4FOW4LPM6SVLINIOXAW3ZPZ46K7MGVM73KGZDCEAA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,,.,...,,,.,..,,.,.,,.,,...,.,.,.,.,...,...,...,,..,..,,...,,,,,
+#RYD3CXGW44C7E4YPNBCCVJWBZD4KLU5CCLLHW26W7WKMWY523RGRXMORSO6NNNRMNZAVKFC4LR2XM
+#\\\|HM2UUUNX4WXOOMB5TBCFLP7KEMCXDRI6KJR6SP2FCVEBZZ6CXJS \ / AMOS7 \ YOURUM ::
+#\[7]GKGOUF3UQNPRSKR54L6XO7ZWNACCNYAI5DGLRKLQJIDOEEUIWWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
