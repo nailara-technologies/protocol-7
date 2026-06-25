@@ -321,9 +321,11 @@ for my $arm_key (@run_arms) {
     printf "RESULT [%s]: target=(%d,%d) actual=(%s,%s) -> %s\n",
         $arm_key, $arm->{'x'}, $arm->{'y'},
         $geo2->{'x'} // '?', $geo2->{'y'} // '?',
-        ( $matched
+        (
+        $matched
         ? 'MATCH - recreate placed correctly'
-        : 'MISMATCH - recreate did not help' );
+        : 'MISMATCH - recreate did not help'
+        );
 
     ## offset-correction probe : if the WM applies a STABLE transform to our ##
     ## request, overshooting by the measured error [ target + (target -    ##
@@ -395,17 +397,18 @@ for my $arm_key (@run_arms) {
 
     printf
         "RESULT [%s, child process]: target=(%d,%d) actual=(%s,%s) -> %s\n\n",
-        $arm_key, $arm->{'x'}, $arm->{'y'},
-        $cx // '?', $cy // '?',
-        ( $matched
+        $arm_key, $arm->{'x'}, $arm->{'y'}, $cx // '?', $cy // '?',
+        (
+        $matched
         ? 'MATCH - fresh connection placed correctly'
-        : 'MISMATCH - still not honored' );
+        : 'MISMATCH - still not honored'
+        );
 }
 
 say 'done.';
 
-#,,..,..,,,.,,,.,,,.,,..,,,..,..,,,,.,.,,,...,..,,...,...,.,.,,.,,.,,,,,,,,.,,
-#2AHH3GGI6QWRJKAVJHT6RS4TTNBHOW52IFCW5TTRKOKRPWVOEELHO3JX4EQXMI44RQDSB35B3XWLQ
-#\\\|KATGV3IBR3OECM6ZQNO5UPKLOYYZLSGPETE2RRD6JNJUZPNYMII \ / AMOS7 \ YOURUM ::
-#\[7]XXNK3ZB4SGWYC7LBCEA6MYOKLPCGRYWX2IV2RGM55YJSVBRB2KAI 7  DATA SIGNATURE ::
+#,,..,..,,,.,,,,.,.,.,..,,.,,,.,,,,,.,,,,,.,,,..,,...,...,,..,.,,,.,,,...,...,
+#WNFIUTR4XV25HRTDPRQNDX6EAJA4TFFCF4H5PBUV37C7WY7PMEHHSKTP2HT4XOU4CAQPKL4N4JP6K
+#\\\|2V2JZGZFQDFBCVSYVVZBSNVNA35KIIIORV2HPB7MFP6NXCG2C6S \ / AMOS7 \ YOURUM ::
+#\[7]ZSBVZTROIKBYBEZ536WZC253HAM6VZMFNEXCRHXI2QREN45QNEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

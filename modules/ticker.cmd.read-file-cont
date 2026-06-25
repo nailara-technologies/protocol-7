@@ -6,6 +6,22 @@
 
 my $file_path = $call->{'args'};
 
+## a read_file can arrive before the window is sized -- <ticker.font.size> ##
+## is 0 until the first draw callback computes it from the real window     ##
+## height, and parse_text dies on a 0 font size. defer instead of         ##
+## crashing; ticker.callback.draw replays the queue once initialized.     ##
+if ( not <ticker.status.initialized> ) {
+    push @{ <ticker.pending_read_calls> //= [] }, $call;
+    <[base.logs]>->(
+        1, ': read_file received before window initialized, deferring [ %s ]',
+        $file_path
+    );
+    return {
+        'mode' => qw| true |,
+        'data' => 'deferred, window not yet initialized'
+    };
+}
+
 my $loaded = <[ticker.load_file_content]>->($file_path);
 
 if ( defined $loaded->{'error'} ) {
@@ -56,8 +72,8 @@ if ( defined <ticker.notify.previous_profile> ) {
 
 return { 'mode' => qw| true |, 'data' => 'ticker display content updated' };
 
-#,,.,,,,.,.,,,,,,,.,,,..,,...,..,,.,,,,.,,..,,.,.,...,...,...,.,,,,.,,...,..,,
-#HFDQDQXNH5BCJOMPCETXVL7APWMRZ57YBNIDPE3WHOBZZ524CAMFBUPTGUTSJWVLEJUNHWC2UNMXA
-#\\\|DJZAMP255ODZAVNR75D5BFAWFF5SFSC23UMTBIXJ2OTWOR5QTMD \ / AMOS7 \ YOURUM ::
-#\[7]ZKB56SELD3TDXS73XRE3CXAY2R7TVX3HYMUMA5QKF5TMVXFWLWAI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,,,,,.,,.,.,.,.,,.,,.,.,,,,,,.,,.,.,...,...,.,,,.,,,,,,,...,..,,
+#SMRTRQHPWCJ5BV5U2XRMPWBEOMVPW2FAIFVIEGX4L5PI2TUEKBKRLTFQUCUEM5GFWTV3OOPGC2OCS
+#\\\|IDNXHEET4ANVCJUHXRJPYVF45ZD67B2EEYBVTQTIDSBQQEYJHY4 \ / AMOS7 \ YOURUM ::
+#\[7]QBQJQ256CFD23ASFH7JIFZLHQN4QRHW7A6GOV5TLQZDK2VHEJGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
