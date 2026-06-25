@@ -17,8 +17,14 @@ if (<mpv.fade_idle_volume>) {
     <[mpv.send_command]>->( qw| observe_property |, 1, qw| core-idle | );
 }
 
-#,,,.,..,,,..,...,.,,,...,..,,,.,,,,,,..,,,.,,..,,...,...,...,...,,,,,,..,,,,,
-#ZH3TQMVVN2AOFHHLABYKNQBWF5LVKUI4HWSXESNSESFIEJPRALEYXOTANO45RXKIYIVYCM2M2BJXI
-#\\\|O276HETK5E5BJCWU3XVZIDJ65VS65RJQEKE6OZZU2IJ3AGDVDVH \ / AMOS7 \ YOURUM ::
-#\[7]QI4MT3J36G3QRAUFBLBIK7EMKHWITALP5FZDC2UL6GKUF5ZIDEAA 7  DATA SIGNATURE ::
+## client-message isn't one of the events enabled by default -- without    ##
+## this our control socket never receives the 'protocol7-window-released'  ##
+## script-message p7-osc.lua sends, even though mpv.handler.pipe_output    ##
+## would dispatch it correctly if it ever arrived.                         ##
+<[mpv.send_command]>->( qw| enable_event |, qw| client-message | );
+
+#,,,,,,.,,.,.,.,,,.,.,,..,...,,.,,,.,,.,.,,,,,..,,...,...,..,,,..,..,,.,.,..,,
+#E445XS5E6YOOLIK4SQ4LFGVR2FGSH25WZABMLGF4OALJ2XLBJ4DEHVDMSNKUZCTADOH3PW5PB5MZK
+#\\\|6TULUOR7ORFLLJGTSLAPMJ5KOLMBUOSGZPEZYILBJK7U746JYNY \ / AMOS7 \ YOURUM ::
+#\[7]OX6YESJY33EBZTYBCLORM7S63KSL2JSJRRGJAH2DLY6HYNUTQCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

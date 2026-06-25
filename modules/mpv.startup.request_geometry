@@ -13,6 +13,29 @@ unless ( length $caller ) {
     return;
 }
 
+if ( <[base.cfg_bool]>->(<mpv.restore_last_position>) and length $caller ) {
+    my $loaded = <[window.profile.load]>->($caller);
+    if (    defined $loaded
+        and ref($loaded) eq qw| HASH |
+        and defined $loaded->{'x'}
+        and defined $loaded->{'y'}
+        and defined $loaded->{'width'}
+        and defined $loaded->{'height'} ) {
+
+        <mpv.geometry> = sprintf '%dx%d+%d+%d',
+            $loaded->{'width'}, $loaded->{'height'},
+            $loaded->{'x'},     $loaded->{'y'};
+
+        <[base.logs]>->(
+            1,       '[startup] restoring cached position [caller=%s] : %s',
+            $caller, <mpv.geometry>
+        );
+
+        <[mpv.startup.job.fork_player]>;
+        return;
+    }
+}
+
 <[base.logs]>->(
     1, '[startup] requesting placement from %s [caller=%s]',
     <mpv.placement_mode>, $caller
@@ -25,8 +48,8 @@ unless ( length $caller ) {
     }
 );
 
-#,,..,.,.,...,.,,,.,,,.,.,,,.,.,,,...,.,,,,..,..,,...,...,,.,,.,.,.,.,.,,,..,,
-#2EGD3722NYDNXL4KHTVHTIUR2KNQ24UPFSQEDZRT4H52URVF4VD36UHEXDGETKIK36JEYIDACVGGE
-#\\\|3AK2FBNZEUHQ2H7PK7CGFDUKHFNYXMRZTED3BPVOPMI6244VQ3D \ / AMOS7 \ YOURUM ::
-#\[7]ZYTRZWZMHJRBN72FQBFLVXMN7BOJH2YNKW5PLGEAEFKU5F6MROCQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,..,,..,,,..,,.,,...,,..,,,.,.,,,..,,...,...,...,.,,,.,.,,,,,.,.,
+#LAJ3QHVMETJWN3SYTCSUJLWQZ6HICMLFC6YO32D7YWX5Z4ZC4CTXEZEFUAZ7VYWT7OYQVUPDRH4M4
+#\\\|DEHTXJI25H37IP65N6WEVLORXSKFA6CQJ5TSKPK7KG2AIORKKOG \ / AMOS7 \ YOURUM ::
+#\[7]VQ6RJTMS7RPYE3QGMVNUVPLINF5TQVSRZNO4HXZ5Z5J6OWWQDQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
