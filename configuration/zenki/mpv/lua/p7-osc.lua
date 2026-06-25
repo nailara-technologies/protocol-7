@@ -3306,6 +3306,26 @@ mp.set_key_bindings({
 }, "input", "force")
 mp.enable_key_bindings("input")
 
+-- protocol-7 hook: window-position tracking needs mbtn_left release
+-- regardless of OSC visibility, but the "input" section above is disabled
+-- whenever the OSC overlay isn't shown [ see update_input_area's
+-- mp.enable_key_bindings("input")/mp.disable_key_bindings("input") toggle
+-- driven by state.osc_visible ] -- a plain click on the bare video window
+-- would never reach a binding placed there. add_forced_key_binding bypasses
+-- section enable/disable state entirely, so this fires unconditionally.
+-- complex=true gives real up/down state [ a plain JSON-IPC keybind can't
+-- distinguish them ], so this only fires on actual release, whether that's
+-- a plain click or the end of a window drag. consumed by
+-- mpv.handler.event.client-message.
+mp.add_forced_key_binding("mbtn_left", "protocol7-window-tracking",
+    function(event_tbl)
+        if event_tbl.event == "up" then
+            mp.commandv('script-message', 'protocol7-window-released')
+        end
+    end,
+    {complex = true}
+)
+
 mp.set_key_bindings({
     {"mbtn_left",           function() process_event("mbtn_left", "up") end,
                             function() process_event("mbtn_left", "down")  end},

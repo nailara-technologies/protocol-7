@@ -1,0 +1,192 @@
+## [:< ##
+
+# name = mpv.handler.event.client-message
+
+## hook point for protocol-7 extensions to mpv's own input handling -- the   ##
+## 'protocol7-window-released' message from p7-osc.lua's forced mbtn_left    ##
+## up-handler is used as a reliable 'window may have moved' trigger. on       ##
+## receipt we (re)start a polling cascade:                                    ##
+##   phase 1 [ 0.15s ]: track movement, do NOT save yet                      ##
+##   settle  [ 4 stable ticks ~0.6s ]: save settled position, enter phase 2  ##
+##   phase 2 [ 1s ]: save on any further movement, re-enter phase 1 if moved ##
+##   phase 3 [ 2..8s widening ]: same, give up after 13s with no change      ##
+my $params = shift;
+my $args   = $params->{'args'} // [];
+
+return if not @$args or $args->[0] ne qw| protocol7-window-released |;
+return if not defined <x11.id>;
+
+## cancel any in-progress poll timer and restart tracking from phase 1
+if ( defined <mpv.pos_tracker.timer> ) {
+    eval { <mpv.pos_tracker.timer>->cancel };
+    <mpv.pos_tracker.timer> = undef;
+}
+
+<mpv.pos_tracker.phase>    = 1;
+<mpv.pos_tracker.no_chg>   = 0;
+<mpv.pos_tracker.t_last>   = time;
+<mpv.pos_tracker.slow_int> = 2;
+
+## stored in data slot so re-scheduling never creates a closure self-reference
+<mpv.pos_tracker.cb> = sub {
+
+    return if not defined <x11.id>;
+
+    my $geo = <[base.X-11.get_window_geometry]>->(<x11.id>);
+    if ( not defined $geo ) {
+        eval { <mpv.pos_tracker.timer>->cancel }
+            if defined <mpv.pos_tracker.timer>;
+        <mpv.pos_tracker.timer> = undef;
+        <mpv.pos_tracker.cb>    = undef;
+        return;
+    }
+
+    my $sig = sprintf '%d,%d,%d,%d',
+        $geo->{'x'}, $geo->{'y'}, $geo->{'width'}, $geo->{'height'};
+
+    my $changed = !defined(<mpv.last_saved_geometry>)
+        || <mpv.last_saved_geometry> ne $sig;
+
+    if ($changed) {
+        <mpv.last_saved_geometry> = $sig;
+        <mpv.pos_tracker.no_chg>  = 0;
+        <mpv.pos_tracker.t_last>  = time;
+
+        ## phase 1 is fast-tracking only -- position not yet stable, don't save
+        return if <mpv.pos_tracker.phase> == 1;
+
+        ## in phases 2+ save immediately on any movement, then re-enter phase 1
+        my $caller = <mpv.startup.caller> // <system.zenka.name> // '';
+        if ( length $caller ) {
+            <[window.profile.save]>->(
+                $caller,         $geo->{'x'}, $geo->{'y'},
+                $geo->{'width'}, $geo->{'height'}
+            );
+            <[base.logs]>->(
+                1,
+                '[position] saved [phase=%d caller=%s] x=%d y=%d w=%d h=%d',
+                <mpv.pos_tracker.phase>,
+                $caller,
+                $geo->{'x'},
+                $geo->{'y'},
+                $geo->{'width'},
+                $geo->{'height'}
+            );
+        }
+        eval { <mpv.pos_tracker.timer>->cancel }
+            if defined <mpv.pos_tracker.timer>;
+        <mpv.pos_tracker.phase>  = 1;
+        <mpv.pos_tracker.no_chg> = 0;
+        <mpv.pos_tracker.timer>  = <[event.add_timer]>->(
+            {   'after'    => 0.15,
+                'interval' => 0.15,
+                'repeat'   => TRUE,
+                'cb'       => <mpv.pos_tracker.cb>
+            }
+        );
+        <[base.logs]>->(
+            1, '[position] movement detected, back to fast phase'
+        );
+        return;
+    }
+
+    ## no change this tick
+    <mpv.pos_tracker.no_chg>++;
+
+    ## absolute cutoff: 13s since last detected change
+    if ( time - <mpv.pos_tracker.t_last> > 13 ) {
+        <[base.logs]>->( 1, '[position] poll ended (13s idle)' );
+        eval { <mpv.pos_tracker.timer>->cancel }
+            if defined <mpv.pos_tracker.timer>;
+        <mpv.pos_tracker.timer> = undef;
+        <mpv.pos_tracker.cb>    = undef;
+        return;
+    }
+
+    my $phase  = <mpv.pos_tracker.phase>;
+    my $no_chg = <mpv.pos_tracker.no_chg>;
+
+    if ( $phase == 1 and $no_chg >= 4 ) {
+        ## stable for ~0.6s -- save settled position and enter 1s phase
+        my $caller = <mpv.startup.caller> // <system.zenka.name> // '';
+        if ( length $caller ) {
+            <[window.profile.save]>->(
+                $caller,         $geo->{'x'}, $geo->{'y'},
+                $geo->{'width'}, $geo->{'height'}
+            );
+            <[base.logs]>->(
+                1,
+                '[position] saved on settle [caller=%s] x=%d y=%d w=%d h=%d',
+                $caller,
+                $geo->{'x'},
+                $geo->{'y'},
+                $geo->{'width'},
+                $geo->{'height'}
+            );
+        }
+        eval { <mpv.pos_tracker.timer>->cancel }
+            if defined <mpv.pos_tracker.timer>;
+        <mpv.pos_tracker.phase>  = 2;
+        <mpv.pos_tracker.no_chg> = 0;
+        <mpv.pos_tracker.timer>  = <[event.add_timer]>->(
+            {   'after'    => 0.7,
+                'interval' => 0.7,
+                'repeat'   => TRUE,
+                'cb'       => <mpv.pos_tracker.cb>
+            }
+        );
+        <[base.logs]>->( 1, '[position] poll 1->2 [settled, 0.7s]' );
+
+    } elsif ( $phase == 2 and $no_chg >= 3 ) {
+        ## 3s stable at 1s -- enter slow/widening phase starting at 2s
+        eval { <mpv.pos_tracker.timer>->cancel }
+            if defined <mpv.pos_tracker.timer>;
+        <mpv.pos_tracker.phase>    = 3;
+        <mpv.pos_tracker.no_chg>   = 0;
+        <mpv.pos_tracker.slow_int> = 2;
+        <mpv.pos_tracker.timer>    = <[event.add_timer]>->(
+            {   'after'    => 2,
+                'interval' => 2,
+                'repeat'   => TRUE,
+                'cb'       => <mpv.pos_tracker.cb>
+            }
+        );
+        <[base.logs]>->( 1, '[position] poll 2->3 [quiet, 2s]' );
+
+    } elsif ( $phase == 3 ) {
+        ## widen interval each stable tick: 2 -> 4 -> 8s (max)
+        my $cur = <mpv.pos_tracker.slow_int> // 2;
+        my $new = ( $cur * 2 > 8 ) ? 8 : $cur * 2;
+        if ( $new > $cur ) {
+            eval { <mpv.pos_tracker.timer>->cancel }
+                if defined <mpv.pos_tracker.timer>;
+            <mpv.pos_tracker.slow_int> = $new;
+            <mpv.pos_tracker.no_chg>   = 0;
+            <mpv.pos_tracker.timer>    = <[event.add_timer]>->(
+                {   'after'    => $new,
+                    'interval' => $new,
+                    'repeat'   => TRUE,
+                    'cb'       => <mpv.pos_tracker.cb>
+                }
+            );
+            <[base.logs]>
+                ->( 1, '[position] slow poll widening to %ds', $new );
+        }
+    }
+};
+
+<mpv.pos_tracker.timer> = <[event.add_timer]>->(
+    {   'after'    => 0.15,
+        'interval' => 0.15,
+        'repeat'   => TRUE,
+        'cb'       => <mpv.pos_tracker.cb>
+    }
+);
+
+<[base.logs]>->( 1, '[position] tracking started [id=%s]', <x11.id> );
+
+#,,,.,.,,,...,,,.,...,,.,,.,,,,..,,,.,.,,,.,,,.,.,...,...,...,,,,,,..,.,,,,..,
+#Y3ZDX6J4WUCXZMUECBNAG7HNLUSLFIOGPRZUL2XIM52VDMOCPOVIFTEUDMKOWKNKUF2QUXJDUY5YW
+#\\\|AJX5LDKI74RE6NCKWJN4KNJ2QOYWC3OCBJN7SXVMIOBD7RRIMS2 \ / AMOS7 \ YOURUM ::
+#\[7]27CEHIF4UMBMSF7JI7NPL7PHIRHRMC6GX7UFNU6TPH3DAMQX5EDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
