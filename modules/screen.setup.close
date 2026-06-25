@@ -10,13 +10,16 @@ return undef if not defined $id;
 my $inst = delete $data{'screen-setup'}{'instances'}{$id};
 return undef if not defined $inst;
 
+my $timer = delete $inst->{'placement_timer'};
+eval { $timer->cancel } if defined $timer;
+
 my $window = $inst->{'window'};
 eval { $window->destroy } if defined $window;
 
 return TRUE;
 
-#,,..,...,...,.,,,.,.,,,,,,..,..,,...,,.,,..,,..,,...,..,,..,,,.,,...,,.,,.,,,
-#KGXAYENVM3ZYCLSQ4MATM5JW6OFDDAVMEPE47ETVI6VRHYOROUXHCBBWYEV3EIMUSDYBYL237D264
-#\\\|HQZNVOVQRRH7KHPC7B6VLXV3QJC26BE76J27TYQFDPGDYKSGPZC \ / AMOS7 \ YOURUM ::
-#\[7]PTY5YVY3XKJUVGTSTTEEVEXUMBORQ34HCEX4RLMK3EYUY2XK4KDI 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,.,,..,,,,,,.,.,,,.,.,.,,..,.,.,..,,...,...,,..,...,,..,...,..,,
+#2XW4O32AI6BFYA37YCFFUI7EF4YPYIV2JKXXPMG5VOYA6ZCYA3EFDNPKKBCG4K4OBPJXVSSKRXL4A
+#\\\|YBH36ZFIP3UIIN5IUI6UGKRUQF2TNX6CET53XL2UNOBIZKW5PRP \ / AMOS7 \ YOURUM ::
+#\[7]YGKJ5YAR4THRN636GHUDMQLEQ4JEAG3IRH7OCWTVEULNCVWUGIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

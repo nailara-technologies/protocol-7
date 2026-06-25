@@ -156,6 +156,138 @@ $window->show_all;
     $id, $win_w, $win_h
 );
 
+## when no saved position exists, the pre-show_all centered default is    ##
+## only a best guess. weston can silently place the window in a void, so  ##
+## verify post-map with real move+readback and cycle through corner       ##
+## candidates until one lands. fall back to a random unverified placement ##
+## if nothing works. saved-position startup path is unchanged.            ##
+if ( not defined $saved ) {
+    my $placement_attempts     = 0;
+    my $max_placement_attempts = 10;
+    my $margin                 = 20;
+    my $placement_timer;
+    $placement_timer = <[event.add_timer]>->(
+        {   'after'    => 0.2,
+            'interval' => 0.2,
+            'cb'       => sub {
+                return
+                    if not exists $data{'screen-setup'}{'instances'}{$id};
+
+                my $live_inst = $data{'screen-setup'}{'instances'}{$id};
+                return if not defined $live_inst->{'window'};
+
+                $placement_attempts++;
+
+                my $xid
+                    = eval { $live_inst->{'window'}->get_window->get_xid };
+                if ( not defined $xid ) {
+                    <[base.log]>->(
+                        0,
+                        '[screen-setup.open_window] no xid yet, deferring placement'
+                    );
+                    $placement_timer->cancel
+                        if $placement_attempts >= $max_placement_attempts;
+                    return;
+                }
+
+                my $monitors = <[base.gtk.list_monitors]> // [];
+                if ( not @$monitors ) {
+                    <[base.log]>->(
+                        0, '[screen-setup.open_window] no monitors detected'
+                    );
+                    $placement_timer->cancel
+                        if $placement_attempts >= $max_placement_attempts;
+                    return;
+                }
+
+                my $current = <[base.X-11.get_window_geometry]>->($xid);
+                my $preferred_index;
+                if ( defined $current ) {
+                    my $cx = $current->{'x'} + $current->{'width'} / 2;
+                    my $cy = $current->{'y'} + $current->{'height'} / 2;
+                    for my $i ( 0 .. $#$monitors ) {
+                        my $m = $monitors->[$i];
+                        if (    $cx >= $m->{'x'}
+                            and $cx < $m->{'x'} + $m->{'width'}
+                            and $cy >= $m->{'y'}
+                            and $cy < $m->{'y'} + $m->{'height'} ) {
+                            $preferred_index = $i;
+                            last;
+                        }
+                    }
+                }
+
+                my $use_width
+                    = defined $current ? $current->{'width'} : $win_w;
+                my $use_height
+                    = defined $current ? $current->{'height'} : $win_h;
+
+                my $candidates = <[window.place.build_corner_candidates]>->(
+                    $monitors, $use_width, $use_height, $margin,
+                    $preferred_index
+                );
+
+                my $safe = <[window.place.find_safe_position]>
+                    ->( $xid, $candidates );
+
+                if ( defined $safe ) {
+                    <[base.logs]>->(
+                        1,
+                        '[screen-setup.open_window] id=%s landed at x=%d y=%d',
+                        $id,
+                        $safe->{'x'},
+                        $safe->{'y'}
+                    );
+                    <[base.X-11.raise-window]>->($xid);
+                    <[base.X-11.keep_above]>->($xid);
+                    $placement_timer->cancel;
+                    delete $live_inst->{'placement_timer'};
+                    return;
+                }
+
+                <[base.logs]>->(
+                    0,
+                    '[screen-setup.open_window] id=%s placement attempt %d/%d failed',
+                    $id,
+                    $placement_attempts,
+                    $max_placement_attempts
+                );
+
+                return if $placement_attempts < $max_placement_attempts;
+
+                ## exhausted: one random unverified placement as last resort ##
+                my $random_mon
+                    = $monitors->[ int( rand( scalar @$monitors ) ) ];
+                my $rand_x = $random_mon->{'x'};
+                my $rand_y = $random_mon->{'y'};
+                if ( $random_mon->{'width'} > $use_width ) {
+                    $rand_x
+                        += int( rand( $random_mon->{'width'} - $use_width ) );
+                }
+                if ( $random_mon->{'height'} > $use_height ) {
+                    $rand_y += int(
+                        rand( $random_mon->{'height'} - $use_height ) );
+                }
+
+                <[base.X-11.move-window]>->(
+                    $xid, $rand_x, $rand_y, $use_width, $use_height
+                );
+                <[base.logs]>->(
+                    1,
+                    '[screen-setup.open_window] id=%s random fallback to x=%d y=%d',
+                    $id,
+                    $rand_x,
+                    $rand_y
+                );
+
+                $placement_timer->cancel;
+                delete $live_inst->{'placement_timer'};
+            }
+        }
+    );
+    $inst->{'placement_timer'} = $placement_timer;
+}
+
 ## run the shared Gtk3 main loop only once; further maps open while the   ##
 ## loop is already pumping [ Glib::Event integrates Event watchers ]      ##
 if ( not <screen.setup.gtk.main_running> ) {
@@ -167,8 +299,8 @@ if ( not <screen.setup.gtk.main_running> ) {
 
 return 0;
 
-#,,,,,,,,,,,.,...,,..,..,,,..,...,,..,..,,,..,..,,...,...,.,,,.,.,,..,,,.,,,,,
-#SYHPFDJMDG75ZGLEY6TEUWYJEPEL7IXI67H5LMS3IUF7V2OTEZSFXOO2FLPH3JEXTG2VDXXQHF5VS
-#\\\|5JRXH7C3XVJJD24S5F56ZKJ5UXH3RBWLZBUTMKXRC5U7ZHLNWIC \ / AMOS7 \ YOURUM ::
-#\[7]DBESEAC6PPPKFGSCLLY2MQOZ5XSZNCVGTMKUE5FMBZNQ7ELNRCCI 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,..,,..,,..,,.,,,,,,.,.,.,,,..,,..,,...,...,...,,,.,.,.,.,.,,,.,
+#64ZEH352F7KRVGYBH7QJQR3B3HRJMGZIOFZV2QFE7P44YO7KKPU3VUEGZ2UCWXLSVRO3VNDQQMX3K
+#\\\|B2KMAG5YL2QN2ZL4CFWCW3XYYHSKEAZYBPVOIHI2AC5FGB7C7IV \ / AMOS7 \ YOURUM ::
+#\[7]RZ2BN2Z4INAB4ZMYM5ENXTGDM5HVXINWQPAS6U7MUSE73DQWISBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
