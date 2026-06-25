@@ -1,0 +1,94 @@
+## [:< ##
+
+# name  = jobsite.handler.stray-job-exported
+# descr = receive one claimed job, merge into the canonical store
+#
+# notes = requested by jobsite.stray.claim_next ; confirms back to the
+#         source [ by transfer id ] so it can drop its local copy ;
+#         reply arrives via 'size' mode [ auto-fragmented if large ],
+#         so $call carries the complete reassembled data already
+
+<[base.perlmod.autoload]>->('JSON::XS');
+
+my $call        = shift                       // {};
+my $cmd         = $call->{'cmd'}              // '';
+my $source      = $call->{'params'}{'source'} // '';
+my $transfer_id = $call->{'params'}{'id'}     // '';
+
+if ( $cmd ne qw| SIZE | ) {
+    my $detail = $call->{'call_args'}{'args'} // $cmd;
+    <[base.logs]>->(
+        0, 'stray-claim [%s] : export failed [%s] cmd=%s : %s',
+        $source, $transfer_id, $cmd,
+        <[base.parser.ellipse_center]>->( $detail, 120 )
+    );
+    <[jobsite.stray.claim_next]>;
+    return;
+}
+
+my $raw = $call->{'data'} // '';
+$raw = $raw->$* if ref $raw eq qw| SCALAR |;
+
+my $payload = eval { JSON::XS::decode_json($raw) };
+
+if ( $EVAL_ERROR or ref $payload ne qw| HASH | ) {
+    <[base.logs]>->(
+        0, 'stray-claim [%s] : decode error [%s] : %s',
+        $source, $transfer_id, <[base.str.eval_error]>
+    );
+    <[jobsite.stray.claim_next]>;
+    return;
+}
+
+my $job = $payload->{'job'} // {};
+my $id  = $job->{'id'} // $payload->{'name'} // '';
+
+if ( not length $id or ref $job ne qw| HASH | ) {
+    <[base.logs]>->(
+        0,       'stray-claim [%s] : malformed export [%s]',
+        $source, $transfer_id
+    );
+    <[jobsite.stray.claim_next]>;
+    return;
+}
+
+my $existing = <[jobsite.job.read]>->($id);
+
+if ( not defined $existing ) {
+    <[jobsite.job.write]>->( $id, $job );
+    <jobsite.stray_claim_recovered> = TRUE;
+    <[base.logs]>->( 1, 'stray-claim [%s] : recovered %s', $source, $id );
+} else {
+    my @ignore_keys = qw| last_modified fetched_at |;
+    my %a           = %{$job};
+    my %b           = %{$existing};
+    delete $a{$_}, delete $b{$_} for @ignore_keys;
+
+    if ( YAML::XS::Dump( \%a ) eq YAML::XS::Dump( \%b ) ) {
+        <[base.logs]>->(
+            1,       'stray-claim [%s] : %s already known, dropping',
+            $source, $id
+        );
+    } else {
+        <[base.logs]>->(
+            0, 'stray-claim [%s] : %s content conflict, keeping canonical',
+            $source, $id
+        );
+    }
+}
+
+<[protocol-7.route-send]>->(
+    {   'command'   => "$source.confirm-stray-claimed",
+        'call_args' => { 'args' => $transfer_id },
+    }
+) if length $transfer_id;
+
+<[jobsite.stray.claim_next]>;
+
+return;
+
+#,,..,,,,,.,,,.,.,,..,,.,,.,,,.,,,,,,,..,,..,,..,,...,...,...,,,.,,,.,,.,,,,.,
+#FPWFFQJSBHSHUMEGZEMVGOKVWMYZHQLO77CKCIZ3V2IY2TGANWJ7OQY4YZKJRHFSQZGKEXALN7DP4
+#\\\|4OS5PF2KOP2D7H27DQK66B4WOCMJWFA64UYDK2EIQN5GYDJW4ME \ / AMOS7 \ YOURUM ::
+#\[7]UYOHZVECS7GLSVK2WE5ZW4EUB5LAAFQ2QHHWCS6DRHO35MCS44DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

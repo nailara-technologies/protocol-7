@@ -928,6 +928,7 @@ return [ qw[
         keys.console.rename
         keys.console.remove
         keys.console.create
+        jobsite.stray.check
         jobsite.store.prune
         jobsite.stage.fetch
         jobsite.cmd.approve
@@ -2056,6 +2057,7 @@ return [ qw[
         system.cleanup.init_code
         source.acquire_checksums
         site-yaml.jobs.init_code
+        site-yaml.job.scan_stray
         site-yaml.fetch.schedule
         site-yaml.cmd.set-status
         signal.cancel.cmd.filter
@@ -2121,6 +2123,7 @@ return [ qw[
         kimi-web.cmd.list_agents
         keys.select_archive_path
         keys.console.remove-type
+        jobsite.stray.claim_next
         iteration.template.delta
         io.unix.socket.init_code
         invoke.handler.poll_jobs
@@ -3177,6 +3180,7 @@ return [ qw[
         sourcecode.source_path_set_up
         sourcecode.console.test-cycle
         source.create_harmonic_footer
+        site-yaml.cmd.list-stray-jobs
         signal.cancel.cmd.add-pattern
         set-up.cmd.fetch-zenka-config
         select.region.damp.set_target
@@ -3407,6 +3411,7 @@ return [ qw[
         ssh.parser.profile_connections
         ssh.handler.heartbeat_response
         smtpd.internal.message_id_hash
+        site-yaml.cmd.export-stray-job
         select.region.update_x11_state
         select.region.set_hover_cursor
         screenshot.cmd.capture-to-disk
@@ -3948,6 +3953,7 @@ return [ qw[
         kimi-web.cmd.read-session-context
         keys.pack_format.user_key_archive
         keys.console.downgrade-enc-status
+        jobsite.handler.stray-jobs-listed
         index.cube.format.parse_dir_entry
         impressive.handler.stop_lsp_reply
         impressive.handler.get_list_reply
@@ -4085,6 +4091,7 @@ return [ qw[
         letsencr.child.acme_finalize_order
         kimi-web.bridge.ensure_local_agent
         keys.select_archive_path.term_Clui
+        jobsite.handler.stray-job-exported
         jobqueue.event.register_job_queues
         invoke-web.handler.monitor_startup
         image2html.child.cmd.convert_image
@@ -4157,6 +4164,7 @@ return [ qw[
         v7.handler.heartbeat_timer_response
         tile.impressive.increase_light_mode
         terminal.curses_ui.modified.english
+        site-yaml.cmd.confirm-stray-claimed
         select.region.cmd.last-image-coords
         screen.setup.handler.button_release
         route.bmw384.visual.wheel.arc-width
@@ -4779,8 +4787,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,..,,.,.,,..,..,,,,.,,,,,...,.,,,.,,,.,,,.,.,...,..,,.,.,,,.,,,,,..,,,,,,
-#6KHDPFKMGITIIEBC5KYQYD2RROTNUYSGEKGFJEVQZSNT7KJ6VIEW6AVJJRF3E73QIEFKY5FCHQ2US
-#\\\|7RRMOUHIA6KV342WE7W3DO5ZAXAGWZMYP2CQKV7KQNSFBRBSKBA \ / AMOS7 \ YOURUM ::
-#\[7]TFICJ7PSYH65QXBEG7BGQC2QMUWFG4DBJZQ6JE3WWFZLUXJTWUDI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,,,,,,..,,,.,.,.,,,,,,.,,.,.,,,,,.,.,...,...,..,,,..,..,,,.,,..,,
+#JFXBJTZPQELLQRHUKTUNHZ5377KWNOAEH6CQCEU3O3SR374GY2CGBQ75OYKDSV7PDWNNZHUD4ZE2W
+#\\\|IGHZREJEDKKQW7ZMLKVEXE6HYQH6FBIXLBB2QA2OSP7CIJJ5BWH \ / AMOS7 \ YOURUM ::
+#\[7]B6BLXXNYWOGHGXPHP2IZPAZ6DPTF5NLFKAVSELBIJE6RDEXPVADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

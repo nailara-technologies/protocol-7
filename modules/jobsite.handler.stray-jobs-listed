@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = jobsite.handler.stray-jobs-listed
+# descr = receive a stray-job manifest, claim entries one at a time
+#
+# notes = requested by jobsite.stray.check ; reply arrives via 'size'
+#         mode [ auto-fragmented if large ], so $call carries the
+#         complete reassembled data already - no manual chunk handling
+
+<[base.perlmod.autoload]>->('JSON::XS');
+
+my $call   = shift                       // {};
+my $cmd    = $call->{'cmd'}              // '';
+my $source = $call->{'params'}{'source'} // '';
+
+if ( $cmd ne qw| SIZE | ) {
+    my $detail = $call->{'call_args'}{'args'} // $cmd;
+    <[base.logs]>->(
+        0, 'check-stray-jobs [%s] : listing failed cmd=%s : %s',
+        $source, $cmd, <[base.parser.ellipse_center]>->( $detail, 120 )
+    );
+    return;
+}
+
+my $raw = $call->{'data'} // '';
+$raw = $raw->$* if ref $raw eq qw| SCALAR |;
+
+my $entries = eval { JSON::XS::decode_json($raw) };
+
+if ( $EVAL_ERROR or ref $entries ne qw| ARRAY | ) {
+    <[base.logs]>->(
+        0,       'check-stray-jobs [%s] : decode error : %s',
+        $source, <[base.str.eval_error]>
+    );
+    return;
+}
+
+if ( not @{$entries} ) {
+    <[base.logs]>->( 2, 'check-stray-jobs [%s] : nothing to claim', $source );
+    return;
+}
+
+<[base.logs]>->(
+    1, 'check-stray-jobs [%s] : claiming %d job file%s',
+    $source,
+    scalar @{$entries},
+    <[base.cnt_s]>->( scalar @{$entries} )
+);
+
+<jobsite.stray_claim_queue>  = $entries;
+<jobsite.stray_claim_source> = $source;
+
+<[jobsite.stray.claim_next]>;
+
+return;
+
+#,,.,,,,.,,.,,.,,,.,.,,,.,..,,.,.,..,,,..,,..,..,,...,..,,,,.,.,.,...,,,.,,,,,
+#W5KG357QSSQJIHUJHNPTVD3AHZAELMTYVCDAUQIK6PGDYA2UXQT5JWGLIQRRUBKTIXU2CIVNVFANA
+#\\\|J2P44NC6I7SNKGHCL7ZXE7FF2SFOZUFAPXKSPWDK5Y7OG5CKYPY \ / AMOS7 \ YOURUM ::
+#\[7]IQT26VEA4OEBADOML7SUZQIEQMZDYHGNFDCLHMJCFQBUXCWPK4CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
