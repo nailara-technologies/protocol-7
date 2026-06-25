@@ -1,0 +1,78 @@
+## [:< ##
+
+# name  = web-browser.callback.profile_changed
+# descr = apply live cfg changes after UI control profile switch
+
+my $active  = <web-browser.cfg.profile.active>       // 'unknown';
+my $changed = <web-browser.cfg.profile.changed_keys> // [];
+
+<[base.logs]>->(
+    1,       'profile changed to [%s], changed: %s',
+    $active, @{$changed} ? join( ', ', @{$changed} ) : 'none'
+);
+
+## blocked_event_types is checked dynamically by the event handler on every
+## event -- updating the shared hash here takes effect immediately without
+## recreating or reconnecting any views                                     ##
+my @scroll_block = qw| scroll |;
+my @key_block    = qw| key-press key-release |;
+my @button_block
+    = qw| button-press 2button-press 3button-press button-release |;
+my @motion_block = qw| motion-notify |;
+
+## reset to full-block baseline then remove what is now allowed ##
+@{<web-browser.blocked_event_types>}{@scroll_block} = (1) x @scroll_block;
+@{<web-browser.blocked_event_types>}{@key_block}    = (1) x @key_block;
+@{<web-browser.blocked_event_types>}{@button_block} = (1) x @button_block;
+@{<web-browser.blocked_event_types>}{@motion_block} = (1) x @motion_block;
+
+delete @{<web-browser.blocked_event_types>}{@scroll_block}
+    if <[base.cfg_bool]>->(<web-browser.cfg.user_can_scroll>);
+
+delete @{<web-browser.blocked_event_types>}{@key_block}
+    if <[base.cfg_bool]>->(<web-browser.cfg.allow_text_edit>);
+
+delete @{<web-browser.blocked_event_types>}{@button_block}
+    if <[base.cfg_bool]>->(<web-browser.cfg.links_clickable>);
+
+## clear any in-progress drag state on profile switch ##
+<web-browser.drag.active> = 0;
+
+## motion-notify needed for drag/pan when clicking or scrolling is active ##
+delete @{<web-browser.blocked_event_types>}{@motion_block}
+    if <[base.cfg_bool]>->(<web-browser.cfg.links_clickable>)
+    || <[base.cfg_bool]>->(<web-browser.cfg.user_can_scroll>);
+
+## update scrolled window policy and kinetic scrolling on existing views ##
+my $can_scroll      = <[base.cfg_bool]>->(<web-browser.cfg.user_can_scroll>);
+my $show_scrollbars = <[base.cfg_bool]>->(<web-browser.cfg.allow_scrollbars>);
+
+foreach my $id ( 1, 2 ) {
+    my $sw = <web-browser.gtk_obj.scrolled_window>->{$id};
+    next if not defined $sw;
+    $sw->set_kinetic_scrolling( $can_scroll ? 1 : 0 );
+    if ( $can_scroll && $show_scrollbars ) {
+        $sw->set_policy( 'automatic', 'automatic' );
+    } else {
+        $sw->set_policy( 'external', 'external' );
+    }
+}
+
+## javascript_enabled has an existing runtime toggle ##
+if ( grep { $ARG eq 'javascript_enabled' } @{$changed} ) {
+    if ( <[base.cfg_bool]>->(<web-browser.cfg.javascript_enabled>) ) {
+        <[web-browser.enable_javascript]>;
+    } else {
+        <[web-browser.disable_javascript]>;
+    }
+}
+
+## use_transparency and show_progress_bar take effect on next event ##
+
+0;
+
+#,,..,,..,,..,.,,,.,,,.,,,..,,,,,,..,,.,,,.,.,..,,...,...,...,,.,,,,.,..,,..,,
+#NJVIWSXBRSB3OO6OKIX6WF6H5ENQAFNB4LXEPQ7XB4MRSQOSADMF35UHXVLXUYSBW5HM6O3ZIBZJK
+#\\\|JAGXPG6DXVA7H6UI464OWVPYYIMONGSOIRULJK33ITD6F42MCL5 \ / AMOS7 \ YOURUM ::
+#\[7]IA472AJRSCRQNW4VKD2ODRRHGRNDPFYQYBNQIMYDTWEYIFWHAADI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

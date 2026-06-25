@@ -34,6 +34,27 @@ web-browser.cfg.javascript_enabled = 1  # <1|0>
 web-browser.cfg.plugins_enabled    = 0  # <0|1>
 web-browser.cfg.no_memory_cache    = 0  # <0|1>
 
+## ui control profiles ##
+web-browser.cfg.profiles.kiosk.user_can_scroll   = 0
+web-browser.cfg.profiles.kiosk.links_clickable   = 0
+web-browser.cfg.profiles.kiosk.allow_text_edit   = 0
+web-browser.cfg.profiles.kiosk.allow_scrollbars  = 0
+web-browser.cfg.profiles.kiosk.javascript_enabled = 1
+web-browser.cfg.profiles.kiosk.show_progress_bar  = 0
+web-browser.cfg.profiles.interactive.user_can_scroll   = 1
+web-browser.cfg.profiles.interactive.links_clickable   = 1
+web-browser.cfg.profiles.interactive.allow_text_edit   = 1
+web-browser.cfg.profiles.interactive.allow_scrollbars  = 1
+web-browser.cfg.profiles.interactive.javascript_enabled = 1
+web-browser.cfg.profiles.interactive.show_progress_bar  = 1
+web-browser.cfg.profiles.readonly.user_can_scroll   = 1
+web-browser.cfg.profiles.readonly.links_clickable   = 0
+web-browser.cfg.profiles.readonly.allow_text_edit   = 0
+web-browser.cfg.profiles.readonly.allow_scrollbars  = 1
+web-browser.cfg.profiles.readonly.javascript_enabled = 1
+web-browser.cfg.profiles.readonly.show_progress_bar  = 0
+web-browser.cfg.profile.active = kiosk  ## startup profile ##
+
 # web-browser.cfg.change_cursor = blank-cursor
 # custom mouse cursor for current X-server
 ## web-browser.cfg.change_cursor = circle
@@ -61,7 +82,7 @@ web-browser.adjust_scroll_delay = 1
 ## apply 'zoom_text_only' if matches.., ##
 web-browser.keep_text_zoom_path = /var/cache/
 
-access.cmd.usr.cube = commands heart reload verify-instance * *.*
+access.cmd.usr.cube = commands heart reload verify-instance set-profile * *.*
 
 web-browser.templates_path ='<system.root_path>/data/web-root/shared/templates/web-browser'
 web-browser.loading_page   = '<web-browser.templates_path>/loading.html'
@@ -105,8 +126,8 @@ web-browser.bg_color = [base.X-11.get_bg_color]
 
 [base.gtk.main_loop]
 
-#,,.,,,.,,,,,,,.,,.,,,...,,,,,,,,,.,,,...,...,..,,...,...,.,.,,..,,..,,.,,.,.,
-#SXM67L5V4MPXGNYSOUXDDFU2OQAIEVBA45ZTUSGN45VRF2L5HFNUFNIJLMVPPQIVKSNR5IHHDHTFM
-#\\\|4BEVYCMR6M3KPEHTSIGY47QPENNPT4M2SINZ7FRMNQGI63OAFGW \ / AMOS7 \ YOURUM ::
-#\[7]FOCVUNAYSRWVGP4FDEV5O7GUSICHTDE227GPZF3MLC6FYDHC2ODY 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,..,,.,.,,..,...,..,,..,,.,,,,.,,..,,...,...,...,,,,,,,,,..,,,,.,
+#UST2HEJX3SVOQ5QUMPFKDQTX6D4JUE3SN5YPSC7F3EN6SSLM3NXSAIFRCPYQT7622OF5MK2533P4S
+#\\\|WFCMSUOW75DPDLI2D2LWU74QPG4MM4EP2P4RLTHUCD7J5KVXQ54 \ / AMOS7 \ YOURUM ::
+#\[7]HZSN77MIDHZMMQ4ZHK67MNYLLXJ3ELQKCGMP52WVW6KJVQIXLEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

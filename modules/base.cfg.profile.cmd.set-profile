@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = base.cfg.profile.cmd.set-profile
+# descr = switch to a named UI control profile
+
+my $profile_name = $call->{'args'} // '';
+
+$profile_name =~ s|^\s+||;
+$profile_name =~ s|\s+$||;
+
+return { 'mode' => qw| false |, 'data' => 'no profile name supplied' }
+    if not length $profile_name;
+
+my @known_profiles = <[base.cfg.profile.list]>->();
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( "unknown profile '%s'", $profile_name )
+    }
+    if not grep { $ARG eq $profile_name } @known_profiles;
+
+<[base.cfg.profile.apply]>->($profile_name);
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf( 'profile set: %s', $profile_name )
+};
+
+#,,.,,,,.,.,,,,..,..,,,..,.,,,,,,,..,,.,,,,..,..,,...,...,.,.,...,,,,,,,.,,.,,
+#7VEZ77KG6JQWPZBXHCIH3MXZ5FZVQAE2T2DYCBK7SVD33SZZISBULT3BGRDQA5QG2F42M62SEK5Y2
+#\\\|3NZIT7XDEEDXXCQ2SVD6CNEBQO3RWBT67NLGIMNO75W473TELO3 \ / AMOS7 \ YOURUM ::
+#\[7]URZSH4ZYEQYYI4BWXBONSN2QQZNIZSRVQWGOAVJKL34SSKTBYYDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
