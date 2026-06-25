@@ -4,38 +4,6 @@
 - [UNCOMMITTED 2026-06-20](topic-mpv-jobqueue-startup.md) — large uncommitted set spanning two sessions: bin/protocol-7-gtk3, configuration/zenki/mpv/start (fade_in=1 + fade_start_geom=700x42 are VOLATILE TEST VALUES, revert before commit), modules/{X-11.cmd.move-window,X-11.cmd.set_geometry,X-11.handler.screen_change,base.root.drop_privs,mpv.startup.handler.socket_poll,v7.zenka.start,mpv.handler.event.property-change.window-id(new)}, bin/dev/script-scratchpad/gtk_position_restore(new) — check `git status` first thing next session, separate durable fixes from volatile fade_in tuning before any commit
 - [gtk-wsl-window-positioning](topic-gtk-wsl-window-positioning.md) — active, partially resolved 2026-06-24: see [[weston-move-unreliable-use-compositor-grab]] for the drag/resize-freeze breakthrough; initial-placement-before-show_all question still separately open
 - [weston-move-unreliable-use-compositor-grab](feedback-weston-move-unreliable-use-compositor-grab.md) — GTK move() on an already-mapped toplevel unreliable under this WSLg/Weston build; use begin_move_drag/begin_resize_drag instead; keyboard-stepping path still has unresolved drift (read-back via get_position/get_size proved unreliable, two attempts failed)
-- [cube-auth-name-collision](feedback-cube-auth-name-collision.md) — zenka names matching `(declare|select)-<word>` silently break auth; fixed (auth. prefix now mandatory), but re-check if regex ever touched again
-- [zenka shutdown end_code](feedback-zenka-shutdown-end-code-callback.md) — never assign $SIG{INT}/$SIG{TERM} directly in a zenka module, it clobbers base.sig_int/sig_term; use `push <callbacks.end_code>->@*, qw|module.name|` instead
-
-
-- [gtk ondemand zenka startup](feedback-gtk-ondemand-zenka-startup.md) — on-demand gtk3 zenka needs Gtk3->init in init_code + [base.get_session_id] before [base.gtk.main_loop], else silent hang
-- [cmd reply must be string](feedback-cmd-data-must-be-string.md) — .cmd./whitelisted routines must return {mode=>true|false, data=>STRING}; split internal helpers (raw hash/undef) into separate non-.cmd. routines + thin wrapper
-- [kimi reload baseline noise](feedback-kimi-reload-baseline-noise.md) — don't make kimi prove pre-existing reload errors are pre-existing; check baseline yourself first
-- [kimi v7 console hint](feedback-kimi-v7-console-hint.md) — combined v7 console at `/dev/shm/.7/STDOUT/NIW7OAQ`, give kimi this path for live verification
-- [File Creation](feedback-file-io-api.md) — never add `#,,.,,,...` stub — blocks signing
-- [version files every commit](feedback-version-files-every-commit.md) — protocol-7.src-ver + README.md + source-code-versions.md ride every commit (version bump); never sort into a feature batch
-- [tile openbox dep redundant](feedback-tile-openbox-dependency-redundant.md) — tile restart/hang was the openbox dependency (redundant under Weston), NOT on-demand config; fix = drop openbox+set-up deps, keep cube X-11; SUPERSEDES the "make tile always-on" handoff theory
-- [base. prefix stripped](feedback-base-prefix-stripped.md) — use `<[protocol-7.command.send.local]>` not `base.` prefix; check with `<zenka>.list-subs`
-- [.cmd. segment stripped](feedback-cmd-segment-stripped.md) — `<zenka>.cmd.<name>` on disk = callable as `<zenka>.<name>`; verifying live 2026-06-08
-- [filter-repo prefix](feedback-filter-repo-amend.md)
-- [P7 data nesting](feedback-p7-data-nesting.md) — `<a.b.c>` = `$data{a}{b}{c}`; use underscore for siblings not dot
-- [s_warn single-arg](feedback-s-warn-single-arg.md) — single fixed-message warn fixes: use plain `warn 'msg <{C1}>'`, NOT `base.s_warn` padded with `<{C1}>, ''`
-- [access grant scope](feedback-access-grant-scope.md) — taeki has wildcard access; "no perm" fixes need `<zenka>/start` modules.load + subroutine.white-list only, not per-zenka access.zenki
-- [ondemand zenka start checklist](feedback-ondemand-zenka-start-checklist.md) — full start-file recipe (shared-params, namespaces, drop_privs, net.connect+get_session_id, cube auth.zenki + access.cmd.usr.cube); reasoning zenka LANDED 2026-06-16
-- [devmod leave disabled](feedback-devmod-leave-disabled.md) — when adding devmod for diagnostics, leave eval-code/exec-sub/set/del commented out by default
-- [timer undef interval](feedback-timer-undef-interval.md) — undef after/interval = IO::Async max-rate loop; always guard with fallback
-- [each+continue+keys](feedback-each-continue-keys.md) — `continue{keys %h}` on `while(each %h)` resets iterator = infinite loop — `AMEND=1 git filter-repo ...`; also clear `.git/filter-repo/already_ran` if interrupted
-- [ntime](feedback-ntime.md) — `encode_b32r` is reverse-byte-order, NOT sortable; use `<[base.ntime_BASE32_to_numerical]>`
-- [eval-code no angle-brackets](feedback-eval-code-no-angle-brackets.md) — `<registry>` not pre-processed in eval-code strings; use `$data{...}` directly
-- [zenka config relative paths](feedback-zenka-config-relative-paths.md) — cfg paths must use `<system.root_path>/...`; cwd is /home/protocol-7, not project root
-- [Cross-zenka](feedback-cross-zenka-deferred-reply.md) — route-send + SIZE reply only; FS access forbidden
-- [Access control](feedback-buffer-access-control.md) — cube/access.zenki is REAL gate
-- [httpd](feedback-httpd-deferred-reply.md) — thin proxy; never load plugin.web.*
-- [Timers](feedback-timer-module-args.md) — need after + interval + repeat:TRUE
-- [Deferred Init](feedback-deferred-init.md) — push onto system.callbacks.initialized
-- [Timer Args](feedback-timer-module-args.md) — timer modules get event as $ARG[0]; use `@ARG > 1`
-- [config reload clobber](feedback-config-reload-clobber.md) — placeholder `key=val` in start config gets re-applied by `reload config/all`, silently overwriting runtime-resolved values; debug via on-disk zenka log not ring buffer
-- [route-send command format](feedback-route-send-command-format.md) — route-send uses bare `X-11.wait_visible` (no cube. prefix); cube.X-11.xxx is send.local only; mixing these causes "no perm" from cube
 
 ## Active Topics
 - [async-window-startup-transition](topic-async-window-startup-transition.md) — UNCOMMITTED 2026-06-24 (late session): root cause = primary/secondary Y-range overlap clamp on WSLg/Weston, defeats EVERY placement method; built generic find_safe_position+build_strip_candidates recovery (works for ticker runtime swap, NOT YET reliable for startup); found+fixed 6+ pre-existing latent bugs (subscribe-screen-change, .handler. dispatch gap, YAML-over-line-protocol corruption, swap_profile args, move_to_profile false-failure, check_pointer race). OPEN: startup void-landing non-deterministic; new unexplained "shadow only, no content" compositor glitch. Check this file FIRST next session.
@@ -148,9 +116,44 @@
 - [searchable-index-and-visualization](topic-searchable-index-and-visualization.md) — checksum-indexed dataspace
 - [migration](topic-migration.md) — Windows 11 instability; KVM/Debian migration
 
+### Settled conventions (relocated from CRITICAL 2026-06-25, no longer active)
+- [cube-auth-name-collision](feedback-cube-auth-name-collision.md) — zenka names matching `(declare|select)-<word>` silently break auth; fixed (auth. prefix now mandatory), re-check if regex ever touched again
+- [zenka shutdown end_code](feedback-zenka-shutdown-end-code-callback.md) — never assign $SIG{INT}/$SIG{TERM} directly in a zenka module, it clobbers base.sig_int/sig_term; use `push <callbacks.end_code>->@*, qw|module.name|` instead
+- [gtk ondemand zenka startup](feedback-gtk-ondemand-zenka-startup.md) — on-demand gtk3 zenka needs Gtk3->init in init_code + [base.get_session_id] before [base.gtk.main_loop], else silent hang
+- [cmd reply must be string](feedback-cmd-data-must-be-string.md) — .cmd./whitelisted routines must return {mode=>true|false, data=>STRING}; split internal helpers (raw hash/undef) into separate non-.cmd. routines + thin wrapper
+- [kimi reload baseline noise](feedback-kimi-reload-baseline-noise.md) — don't make kimi prove pre-existing reload errors are pre-existing; check baseline yourself first
+- [kimi v7 console hint](feedback-kimi-v7-console-hint.md) — combined v7 console at `/dev/shm/.7/STDOUT/NIW7OAQ`, give kimi this path for live verification
+- [File Creation](feedback-file-io-api.md) — never add `#,,.,,,...` stub — blocks signing
+- [version files every commit](feedback-version-files-every-commit.md) — protocol-7.src-ver + README.md + source-code-versions.md ride every commit (version bump); never sort into a feature batch
+- [tile openbox dep redundant](feedback-tile-openbox-dependency-redundant.md) — tile restart/hang was the openbox dependency (redundant under Weston), NOT on-demand config; fix = drop openbox+set-up deps, keep cube X-11; SUPERSEDES the "make tile always-on" handoff theory
+- [base. prefix stripped](feedback-base-prefix-stripped.md) — use `<[protocol-7.command.send.local]>` not `base.` prefix; check with `<zenka>.list-subs`
+- [.cmd. segment stripped](feedback-cmd-segment-stripped.md) — `<zenka>.cmd.<name>` on disk = callable as `<zenka>.<name>`
+- [filter-repo prefix](feedback-filter-repo-amend.md)
+- [P7 data nesting](feedback-p7-data-nesting.md) — `<a.b.c>` = `$data{a}{b}{c}`; use underscore for siblings not dot
+- [s_warn single-arg](feedback-s-warn-single-arg.md) — single fixed-message warn fixes: use plain `warn 'msg <{C1}>'`, NOT `base.s_warn` padded with `<{C1}>, ''`
+- [access grant scope](feedback-access-grant-scope.md) — taeki has wildcard access; "no perm" fixes need `<zenka>/start` modules.load + subroutine.white-list only, not per-zenka access.zenki
+- [ondemand zenka start checklist](feedback-ondemand-zenka-start-checklist.md) — full start-file recipe (shared-params, namespaces, drop_privs, net.connect+get_session_id, cube auth.zenki + access.cmd.usr.cube)
+- [devmod leave disabled](feedback-devmod-leave-disabled.md) — when adding devmod for diagnostics, leave eval-code/exec-sub/set/del commented out by default
+- [timer undef interval](feedback-timer-undef-interval.md) — undef after/interval = IO::Async max-rate loop; always guard with fallback
+- [each+continue+keys](feedback-each-continue-keys.md) — `continue{keys %h}` on `while(each %h)` resets iterator = infinite loop — `AMEND=1 git filter-repo ...`; also clear `.git/filter-repo/already_ran` if interrupted
+- [ntime](feedback-ntime.md) — `encode_b32r` is reverse-byte-order, NOT sortable; use `<[base.ntime_BASE32_to_numerical]>`
+- [eval-code no angle-brackets](feedback-eval-code-no-angle-brackets.md) — `<registry>` not pre-processed in eval-code strings; use `$data{...}` directly
+- [zenka config relative paths](feedback-zenka-config-relative-paths.md) — cfg paths must use `<system.root_path>/...`; cwd is /home/protocol-7, not project root
+- [Cross-zenka](feedback-cross-zenka-deferred-reply.md) — route-send + SIZE reply only; FS access forbidden
+- [Access control](feedback-buffer-access-control.md) — cube/access.zenki is REAL gate
+- [httpd](feedback-httpd-deferred-reply.md) — thin proxy; never load plugin.web.*
+- [Timer Args](feedback-timer-module-args.md) — need after + interval + repeat:TRUE; timer modules get event as $ARG[0], use `@ARG > 1`
+- [Deferred Init](feedback-deferred-init.md) — push onto system.callbacks.initialized
+- [config reload clobber](feedback-config-reload-clobber.md) — placeholder `key=val` in start config gets re-applied by `reload config/all`, silently overwriting runtime-resolved values; debug via on-disk zenka log not ring buffer
+- [route-send command format](feedback-route-send-command-format.md) — route-send uses bare `X-11.wait_visible` (no cube. prefix); cube.X-11.xxx is send.local only; mixing these causes "no perm" from cube
+
 - [user-perfectionism-and-pace](user-perfectionism-and-pace.md) — "done" means perfectly smooth, not just working; let solo tuning passes run, don't push toward closure
 
 ## Feedback
+- [p7 route-send wire protocol](feedback-p7-route-send-wire-protocol.md) — call_args only sends 'args' string; reply shape keyed by cmd not mode; SIZE auto-fragments, no base32 needed; cross-zenka access is two-sided
+- [oversize single-line protocol](feedback-oversize-single-line-protocol.md) — TRUE/FALSE/WAIT wire path has no framing; oversized content there wedges the buffer irresolvably
+- [no unsolicited cross-zenka push](feedback-no-unsolicited-cross-zenka-push.md) — data-holding zenka only announces/lists; consuming (more-trusted) zenka always initiates the pull
+- [log string hygiene](feedback-log-string-hygiene.md) — base.str.eval_error not raw $EVAL_ERROR; base.parser.ellipse_center not substr; .cmd. descr<=55 chars, rest goes in notes=
 - [ondemand timeout tiering](feedback-ondemand-timeout-tiering.md) — survey existing set_ondemand_timeout values by tier before picking a new one; screenshot+powershell bumped 69s->147s 2026-06-19
 - [claude_dispatch summarize hang](feedback-claude-dispatch-summarize-hang.md) — coding_summarize prompt-overflow leaves outer session stuck forever (near-zero CPU); check ps + coding zenka log, kill PID, work is safe on disk
 - [init-code-return-values](feedback-init-code-return-values.md) — TRUE(5) AND FALSE(0) both = success; only undef/exception = failure
@@ -182,6 +185,8 @@
 
 ## Completed Sessions
 - [topic-completed](topic-completed.md) — all session summaries (Feb 2026 → present)
+- [httpd route-arg parsing fix](topic-httpd-route-arg-parsing-fix.md) — LANDED 20bdf36ff 2026-06-25: comma-greedy regex bug + web zenka on-demand
+- [jobsite stray-job recovery](topic-jobsite-stray-recovery.md) — LANDED a52a6a4b8 2026-06-25: cross-zenka pull-based recovery, AMOS checksum manifest ids
 
 ## System Status
 - [next-steps](topic-next-steps.md) — full queue, roadmap, open bugs, dispatched
@@ -198,8 +203,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,.,,,.,,,..,,.,,...,.,.,,..,,,.,.,.,,,.,,,.,..,,...,...,...,...,.,,,,..,..,,
-#AAK6PKNCJT7Q75YGIWP72VDJHAHGR7LEX7RTPQUQJSPS4NW5P7ZNBAO34722GG33EZBZXYNP2PXGK
-#\\\|XBGXYQXAYPRH34KLWR3VRBQACGOQFT2GFPJ3XCBK2HUEARLVS4R \ / AMOS7 \ YOURUM ::
-#\[7]PWM56MMMGWB3KZGQUDVGQZ73NNOZUU7DCHUCITRZZVKFIMIWOEAA 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,,,,,..,.,.,...,..,,...,,,,,...,..,,...,...,..,,,,.,,,.,..,,.,.,
+#3GMFSNUNW4GAZEV4N3HTHVFOFKMGGW4GSW5IMJ2I6OF3DNGXC6PMVQ43MRGWVL3SIHBLU6ZYZUUJY
+#\\\|QMXHYBUG32MHMABU4E3IFCR24D2GWDE5DC3WJNOAPDIMD3US3WF \ / AMOS7 \ YOURUM ::
+#\[7]JTPCCFILB6A525MCEDS4NYCLRSV7NFDMPL2D6R6LDOAJAP5R4WDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
