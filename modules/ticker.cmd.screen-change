@@ -1,0 +1,100 @@
+## [:< ##
+
+# name  = ticker.cmd.screen-change
+# descr = receive X-11 screen-change and relocate if unreachable
+
+## a monitor disappearing/topology changing while already mapped can leave ##
+## the strip stuck in a void [ primary/secondary Y-range overlap clamp, see ##
+## the async-window-startup-transition findings ] - relocate via a real    ##
+## move+verify instead of trusting whatever Weston did with the old rect.  ##
+
+## single-line key=value payload, not YAML [ see X-11.emit.screen-change ] ##
+my %event = $call->{'args'} =~ m|(\w+)=(\S*)|g;
+my $w     = $event{'width'}  // 0;
+my $h     = $event{'height'} // 0;
+
+<[base.logs]>->( 1, '[screen-change] %dx%d', $w, $h );
+
+return { 'mode' => qw| true |, 'data' => 'no window' }
+    if not defined <x11.id>;
+
+my $current = <[base.X-11.get_window_geometry]>->(<x11.id>);
+return { 'mode' => qw| true |, 'data' => 'no current geometry' }
+    if not defined $current;
+
+my $monitors = <[base.gtk.list_monitors]> // [];
+return { 'mode' => qw| true |, 'data' => 'no monitors' }
+    if not @$monitors;
+
+## preferred monitor = whichever one currently contains the strip's centre ##
+my $cx = $current->{'x'} + $current->{'width'} / 2;
+my $cy = $current->{'y'} + $current->{'height'} / 2;
+my $preferred_index;
+for my $i ( 0 .. $#$monitors ) {
+    my $m = $monitors->[$i];
+    if (    $cx >= $m->{'x'}
+        and $cx < $m->{'x'} + $m->{'width'}
+        and $cy >= $m->{'y'}
+        and $cy < $m->{'y'} + $m->{'height'} ) {
+        $preferred_index = $i;
+        last;
+    }
+}
+
+## candidate 1 : the current rect, re-verified - a cheap no-op when nothing ##
+## actually broke. candidates 2+ : top/bottom-strip on every monitor       ##
+## [ preferred monitor + preferred profile first ], same primitive the     ##
+## startup void-recovery path in ticker.open_window uses.                  ##
+my @candidates = (
+    {   'x'      => $current->{'x'},
+        'y'      => $current->{'y'},
+        'width'  => $current->{'width'},
+        'height' => $current->{'height'},
+    },
+    @{  <[window.place.build_strip_candidates]>->(
+            $monitors, <ticker.window.profile> // qw| bottom-strip |,
+            $preferred_index
+        )
+    }
+);
+
+my $safe = <[window.place.find_safe_position]>->( <x11.id>, \@candidates );
+
+if ( not defined $safe ) {
+    <[base.logs]>->(
+        0, '[screen-change] no reachable position found for id=%s', <x11.id>
+    );
+    return { 'mode' => qw| false |, 'data' => 'no reachable position' };
+}
+
+if ( $safe->{'x'} != $current->{'x'} or $safe->{'y'} != $current->{'y'} ) {
+    <[base.logs]>->(
+        1,
+        '[screen-change] relocated id=%s from x=%d y=%d to x=%d y=%d',
+        <x11.id>,
+        $current->{'x'},
+        $current->{'y'},
+        $safe->{'x'},
+        $safe->{'y'}
+    );
+
+    <ticker.window.profile> = $safe->{'profile'}
+        if defined $safe->{'profile'};
+    <x11.coordinates.left>   = $safe->{'x'};
+    <x11.coordinates.top>    = $safe->{'y'};
+    <x11.coordinates.right>  = $safe->{'x'} + $safe->{'width'};
+    <x11.coordinates.bottom> = $safe->{'y'} + $safe->{'height'};
+    <x11.window.width>       = $safe->{'width'};
+    <x11.window.height>      = $safe->{'height'};
+
+    <[base.X-11.raise-window]>->(<x11.id>);
+    <[base.X-11.keep_above]>->(<x11.id>);
+}
+
+return { 'mode' => qw| true |, 'data' => 'ok' };
+
+#,,.,,..,,.,.,...,,,,,,,,,.,,,.,,,,..,,..,.,,,..,,...,...,.,.,,,.,.,.,,,.,,,,,
+#PZCTYWZRKLMHQ5VGBZSUJSKYFQ437E4SYJ3GV5OBRBWRTBH6R3IMGCPLSVWX3ZK5YH3ZSRWTC2VO6
+#\\\|4YI7C2U36MVQYSFGJQJBIJBE7DW2BMFFNA6EXC6CYRUNSVPSEAO \ / AMOS7 \ YOURUM ::
+#\[7]NGPUNSMHEUNRW5YIHDEY7AFYCZFXFIXRH27LWBISOBP44EUG26AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -131,6 +131,15 @@ if ( not <ticker.status.initialized> ) {
     <ticker.subcfg> = <[base.X-11.get_subconfig]>;
     <[ticker.process_subcfg]>;
 
+    ## drain any read_file calls that arrived before font.size existed [ they ##
+    ## were deferred instead of crashing parse_text - see ticker.cmd.        ##
+    ## read-file-cont ]; now that the window is sized/initialized, replay    ##
+    ## them in arrival order.                                               ##
+    if ( defined <ticker.pending_read_calls> ) {
+        my $pending = delete <ticker.pending_read_calls>;
+        <[ticker.cmd.read-file-cont]>->($ARG) for @$pending;
+    }
+
     return FALSE;
 }
 
@@ -302,8 +311,8 @@ if (<ticker.animation_started>) {
 
 return TRUE;
 
-#,,..,,.,,.,.,,.,,.,,,.,,,.,,,..,,,,,,..,,.,.,..,,...,...,,..,,,.,,.,,.,.,..,,
-#CAMHCLNGGUZMVBFPMOTZSIKHKRQFFSW6CMPWET4XKE7B233E5WOCDNS3VTSBDO6FD4P35XDZTMKQM
-#\\\|HNHJMJA3D2VGJ2QF4G34JFI53IBUSDT546FAMCSWPUFJYCN6AC3 \ / AMOS7 \ YOURUM ::
-#\[7]YOAFNYQELZMXQPYC6I3VXQAKQJ6CJN2U7ZSLRK2PU7DOAPO7OUBQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,..,,..,,.,.,,.,,.,,,.,.,,,.,,,.,..,,...,...,.,.,..,,,,.,,,,,,,,,
+#Y4UV66X32L6TKNHQZUB5JM6KIXYOUR6TYAOJ4KOMYM45GVUZ2NO6NBPH7EPJ5RVML32UMFDYXIB2A
+#\\\|FJYHONGJQUPB5I2MSSXRB5K2JLIPGL4INWA777EN6VJ5E6EYW52 \ / AMOS7 \ YOURUM ::
+#\[7]26SHBQ2T2HTLZ6ATZ7OTDVVN23YLTQBMVA4ZJF3Y4HWPUKEG2YAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

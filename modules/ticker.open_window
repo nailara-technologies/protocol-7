@@ -293,7 +293,13 @@ $window->signal_connect(
         ## short sleep. defer to a one-shot timer so the display has time to ##
         ## settle, recompute the profile geometry [picks up correct monitor  ##
         ## offsets], then double-apply the move as in swap_profile.          ##
-        if ( defined <x11.coordinates.left> ) {
+        ## startup initial placement now happens pre-show_all from the     ##
+        ## geo_ready snapshot [ ticker.startup_coordinates ], which Weston  ##
+        ## honors at map time. skip the post-map settle/move correction in  ##
+        ## that case -- a post-map cross-output move only gets clamped and  ##
+        ## would clobber the correct initial placement.                     ##
+        if ( defined <x11.coordinates.left>
+            and not defined <ticker.startup_coordinates> ) {
 
             ## the GDK monitor list/geometry can take longer than 0.3s to  ##
             ## settle on the very first query after Gtk3->init [especially ##
@@ -385,6 +391,118 @@ $window->signal_connect(
                     }
                 }
             );
+        } elsif ( defined <ticker.startup_coordinates> ) {
+
+            ## verify the pre-show_all snapshot placement actually landed -  ##
+            ## confirmed live: even this previously-reliable path can land   ##
+            ## in a VOID [ no monitor contains the actual position at all ]  ##
+            ## when the snapshot target falls in the primary/secondary       ##
+            ## Y-range overlap zone - a never-before-mapped window is not    ##
+            ## immune either. a never-mapped window's own initial-placement  ##
+            ## handshake with Weston can still be in progress for a while,   ##
+            ## so a single delayed check+correct is unreliable [ confirmed   ##
+            ## live: the very first recheck can itself still land in the     ##
+            ## void ]. retry with the same patience as the no-snapshot       ##
+            ## settle-timer branch above instead of a single shot, and only  ##
+            ## give up [ leaving whatever the last attempt produced ] after  ##
+            ## repeated failures.                                            ##
+            my $attempts     = 0;
+            my $max_attempts = 10;
+            <ticker.timer.startup_void_recovery> = <[event.add_timer]>->(
+                {   'after'    => 0.2,
+                    'interval' => 0.2,
+                    'cb'       => sub {
+                        return if not defined <x11.id>;
+                        $attempts++;
+
+                        my $actual
+                            = <[base.X-11.get_window_geometry]>->(<x11.id>);
+                        my $sc  = <ticker.startup_coordinates>;
+                        my $tol = 50;
+
+                        my $landed
+                            = defined $actual
+                            && abs( $actual->{'x'} - $sc->{'x'} ) <= $tol
+                            && abs( $actual->{'y'} - $sc->{'y'} ) <= $tol;
+
+                        if ($landed) {
+                            <ticker.timer.startup_void_recovery>->cancel
+                                if defined
+                                <ticker.timer.startup_void_recovery>;
+                            delete <ticker.timer.startup_void_recovery>;
+                            return;
+                        }
+
+                        <[base.logs]>->(
+                            0,
+                            ': startup placement failed (attempt %d/%d,'
+                                . ' actual x=%s y=%s, target x=%d y=%d)',
+                            $attempts,
+                            $max_attempts,
+                            $actual->{'x'} // '?',
+                            $actual->{'y'} // '?',
+                            $sc->{'x'},
+                            $sc->{'y'}
+                        );
+
+                        my $monitors = <[base.gtk.list_monitors]> // [];
+                        my $preferred_index;
+                        for my $i ( 0 .. $#$monitors ) {
+                            my $m = $monitors->[$i];
+                            if (    $sc->{'x'} >= $m->{'x'}
+                                and $sc->{'x'} < $m->{'x'} + $m->{'width'}
+                                and $sc->{'y'} >= $m->{'y'}
+                                and $sc->{'y'} < $m->{'y'} + $m->{'height'} )
+                            {
+                                $preferred_index = $i;
+                                last;
+                            }
+                        }
+
+                        my $candidates
+                            = <[window.place.build_strip_candidates]>->(
+                            $monitors,
+                            <ticker.window.profile> // qw| bottom-strip |,
+                            $preferred_index
+                            );
+                        my $safe = <[window.place.find_safe_position]>->(
+                            <x11.id>, $candidates
+                        );
+
+                        if ( defined $safe and defined $safe->{'profile'} ) {
+                            <ticker.window.profile> = $safe->{'profile'};
+                            <x11.coordinates.left>  = $safe->{'x'};
+                            <x11.coordinates.top>   = $safe->{'y'};
+                            <x11.coordinates.right>
+                                = $safe->{'x'} + $safe->{'width'};
+                            <x11.coordinates.bottom>
+                                = $safe->{'y'} + $safe->{'height'};
+                            <x11.window.width>  = $safe->{'width'};
+                            <x11.window.height> = $safe->{'height'};
+
+                            <[base.X-11.raise-window]>->(<x11.id>);
+                            <[base.X-11.keep_above]>->(<x11.id>);
+
+                            <ticker.timer.startup_void_recovery>->cancel
+                                if defined
+                                <ticker.timer.startup_void_recovery>;
+                            delete <ticker.timer.startup_void_recovery>;
+                            return;
+                        }
+
+                        return if $attempts < $max_attempts;
+
+                        <[base.log]>->(
+                            0,
+                            ': startup placement recovery exhausted'
+                                . ' all attempts, window may be in a void'
+                        );
+                        <ticker.timer.startup_void_recovery>->cancel
+                            if defined <ticker.timer.startup_void_recovery>;
+                        delete <ticker.timer.startup_void_recovery>;
+                    }
+                }
+            );
         }
 
         return FALSE;
@@ -443,6 +561,23 @@ my $update_input_shape = sub {
 $window->signal_connect( 'configure-event' => $update_input_shape );
 $window->signal_connect( 'size-allocate'   => $update_input_shape );
 
+## initial placement BEFORE show_all, from geo_ready's snapshot -- Weston   ##
+## honors a client move issued before map but clamps/centers a post-map     ##
+## cross-output move [ the centered-on-wrong-monitor regression ]. mirrors   ##
+## protocol-7-menu's pre-show_all gravity+default_size+move. set-window-     ##
+## profile [ above ] may have recomputed wrong coords from an unsettled GDK; ##
+## the snapshot is geo_ready's correct rect, so use it here.                 ##
+if ( defined <ticker.startup_coordinates> ) {
+    my $sc = <ticker.startup_coordinates>;
+    $window->set_gravity('north-west');
+    $window->set_default_size( $sc->{'width'}, $sc->{'height'} );
+    $window->move( $sc->{'x'}, $sc->{'y'} );
+    <[base.logs]>->(
+        1, ': initial placement [before show_all] x=%d y=%d w=%d h=%d',
+        $sc->{'x'}, $sc->{'y'}, $sc->{'width'}, $sc->{'height'}
+    );
+}
+
 $window->show_all;
 
 ## set initial input shape once allocation is known ##
@@ -467,8 +602,8 @@ my $ft_face   = $freetype->face($font_path);
 
 <ticker.obj.window>->queue_draw;
 
-#,,,,,,..,.,.,,,.,..,,.,,,,,.,,,.,,,.,.,.,.,,,..,,...,...,.,.,...,,..,,,.,.,,,
-#GBEST5CAFJMCBS24OJ32WGXJEOOVIMX5BPMNXHQEBGDEKR4BYE27UIRQTVSA7JKRXK4H5JQKSSJDG
-#\\\|3EEOYIT4O22ALNGVHQ3CY5Y5REPBZLBOBXLHGGXDRSZ2RLHHCVZ \ / AMOS7 \ YOURUM ::
-#\[7]H77FZVQHW6P53HIBQAFWNJBBB4BEJ6F6T2L6QTHO6JL5MUVSY4AI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,,.,,..,,,.,..,,,..,,,.,,,,,.,.,..,,...,...,.,,,,.,,,,,,,,,,...,
+#646KALFU3NEOBKLGDJJJSL7REBVZ45LHBCMI67QQ4FH3WLF7K5GFBBHY2NHBLE4LUOWG4MIVQFDB2
+#\\\|RQA4V6RAYUTV4OITCWYQXZREKZIL3JTBZF6EOAVDBBTZTAE5OIE \ / AMOS7 \ YOURUM ::
+#\[7]7UGPOE7MA5OTZDFYLXQGUCOHSTX6DJASTMUYY63SCAIAQ24MJGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

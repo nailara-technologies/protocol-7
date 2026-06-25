@@ -65,6 +65,12 @@ if ( defined <system.zenka.subname>
 
 <base.callback_hooks.async_online> = ['ticker.callback.request_updates'];
 
+## subscribe to X-11 screen-change events once connected to cube - lets a  ##
+## monitor reconfigure relocate the strip if it's left in an unreachable   ##
+## position [ same deferred-init pattern as tile/menu's subscriptions ].  ##
+push @{ <system.callbacks.initialized> //= [] },
+    'ticker.subscribe-screen-change';
+
 ## LLL ###
 
 <ticker.speed> = <ticker.redraw_delay>
@@ -99,8 +105,8 @@ if ( defined <system.zenka.subname>
 
 0;
 
-#,,..,,,.,...,,.,,,.,,...,.,.,,.,,.,.,,..,.,.,..,,...,...,...,...,,,,,,,.,..,,
-#FI246GUZAWBXXULSTRXLFLO5KGGRGLW2W7T7RDULVNG4HZ6YEUHS66VLKO4DI4PDMUME3U2BK6PWE
-#\\\|LI5G2GCKQ2EUMQMBSKCM3QTRKG6RNJSYQMCFJ2LDXCECAUHWFQJ \ / AMOS7 \ YOURUM ::
-#\[7]OQ3QA2KUI6TGSI7MWE6V4TVECEH2OX2JP2YOQQ4Q2IQVP47CU2AQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,.,,,,,,,.,,,.,.,,,.,..,,,..,..,,..,,...,...,.,,,,..,.,.,.,.,,,.,
+#IGG65UT2LAYNS6KJRYWC3RL6WZZMHSZXCJ7PLR7WH2P4GXSF2TO6UHH3UB2SZWHXZ33M26JMTBIFC
+#\\\|ALZIWFHQDOIXPNO4HIWQF2DF7QR7PIX76RYKQZCEVIBGPP4KVTK \ / AMOS7 \ YOURUM ::
+#\[7]ON6UTSVHTS3RZ2KTPXXBJRFPJS76WTHUYBWMUL757KAOQXE36ICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
