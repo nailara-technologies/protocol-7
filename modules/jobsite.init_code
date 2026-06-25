@@ -172,8 +172,20 @@ my $job_count = scalar keys %{$tasks};
     <jobsite.cycle>, $job_count
 );
 
-#,,,.,.,,,.,.,,,.,.,,,.,.,.,.,,,.,...,,,,,,..,..,,...,...,.,.,,,,,,..,.,.,.,.,
-#XMGE6AMBBMWWFQN2HNEYKGYMOUADSPMEAIIU7KJTOXCGQJZ4H2ZPVKCEPQK3ZXRXMCT3WYPVFK7SC
-#\\\|HMNYZSBLHVEUGF35EJWBPUXR3QHSBJEJD27SBK5NHPN2G2LXRRF \ / AMOS7 \ YOURUM ::
-#\[7]GP6YTOGGMGHPJICQ464UGTFJM3B7FRYXKVIX54TIOXNNOH2F7MAA 7  DATA SIGNATURE ::
+## on its own startup schedule, check configured zenki for job files
+## stranded under their own var dir [ eg from a past path-resolution
+## desync ] ; jobsite decides when to look, never an unsolicited push ##
+<[event.add_timer]>->(
+    {   'after'   => 2,
+        'repeat'  => FALSE,
+        'handler' => 'jobsite.stray.check',
+    }
+);
+
+TRUE;
+
+#,,..,.,.,...,,.,,...,,,,,,..,.,,,,,,,,..,.,,,..,,...,...,.,.,,,,,..,,..,,,.,,
+#AUPUHSLEITED6H6ADEPTBV4ABIJ73EQZ5UTCRI3YV2QDYHEXJCYOF4NTFEHPM3LWWPYIL6FEJDWRW
+#\\\|WJREMI75BMDE3ARVMYEASOQQII23K5GIWQTHARC6PLYPI7UHKWN \ / AMOS7 \ YOURUM ::
+#\[7]DJMTMCCCWBM3VHOTJZUCWRCOL7SFSGDVLFYVGYKQQPMSNDZ7Y4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

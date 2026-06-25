@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = site-yaml.cmd.confirm-stray-claimed
+# descr = jobsite confirmed it stored a stray job, safe to delete
+#
+# notes = see site-yaml.cmd.export-stray-job
+
+my $id = $call->{'args'} // '';
+
+return { 'mode' => 'false', 'data' => 'id required' } if not length $id;
+
+my $entry = <site-yaml.stray_manifest>->{$id};
+return { 'mode' => 'true', 'data' => 'already gone' } if not defined $entry;
+
+my $jobs_root = <[file.zenka_dir.data_path]> . '/jobs';
+my $job_file  = "$jobs_root/$entry->{'status'}/$entry->{'name'}.yaml";
+
+unlink $job_file if -f $job_file;
+delete <site-yaml.stray_manifest>->{$id};
+
+return { 'mode' => 'true', 'data' => "claimed: $id" };
+
+#,,..,..,,,.,,.,.,.,.,...,,,.,.,,,.,.,.,.,.,.,..,,...,..,,.,.,,.,,...,,,.,,,,,
+#FBVWPELMSMEB3PD6YXPDBUVD2GM7UMUVKJ64LOCXMO522WXHTJOBC4PGZ5KYKWRR65AVGOUWVHIOM
+#\\\|HURH2THUX3U5P4OYPQLA7H2VQ4CLVR37YX7ESXQX4XUZSVRGDTM \ / AMOS7 \ YOURUM ::
+#\[7]JUGE2U55KMTNCKEVYTFRKASABIFD2FELASQCLYS6POZ2WYHKBGDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
