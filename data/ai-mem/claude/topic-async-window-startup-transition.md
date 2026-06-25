@@ -519,7 +519,70 @@ impressive, ticker[done]. get_screen_size: tile.
 #\[7]RRBTZKEQOJL7444QNB7FJHXVQGSWBB5QL4YWOUBVX4IPLZYKGKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-**>>> SESSION 2026-06-25 — confirmed root cause + patience fix for the void-landing fallback:**
+**>>> SESSION 2026-06-25 (LATER) — LANDED `531aa14db`: ticker subscribed to
+screen-change + startup retry timer actually retries now + read_file race
+fixed. LIVE-VERIFIED by taeki: ticker starts on bottom-strip of secondary
+monitor, swap-to-top works, screen-change recovery path exercised. CONSIDER
+THIS THREAD CLOSED unless a NEW failure mode shows up — don't re-open
+"check this file first" urgency for the startup-void/screen-change work
+specifically; only the items still listed as STILL OPEN below (the
+"shadow only, no content" compositor-paint glitch) remain unresolved.**
+Three fixes landed together:
+1. **ticker never subscribed to X-11 screen-change at all** — tile,
+   reenc-msg, and protocol-7-menu all had `<zenka>.subscribe-screen-change`
+   + `<zenka>.cmd.screen-change` wired into `callbacks.initialized`; ticker
+   had neither, so "our new callbacks on monitor reconfigure" could never
+   reach it regardless of how good the recovery logic was. Added
+   `ticker.subscribe-screen-change` + `ticker.cmd.screen-change` (relocate
+   via `find_safe_position`/`build_strip_candidates`, mirroring
+   protocol-7-menu.cmd.screen-change but using strip candidates since
+   ticker is a strip window, not a movable corner window), pushed onto
+   `<system.callbacks.initialized>` in ticker.init_code. Added
+   `ticker.screen-change` to cube `access.cmd.usr.X-11`.
+2. **the startup void-recovery timer (added 2026-06-25 earlier this
+   session, see below) never actually retried** — `my $landed = defined
+   $actual and abs(...) <= $tol and abs(...) <= $tol;` is Perl-precedence
+   `(my $landed = defined $actual) and ...`, so `$landed` was just `defined
+   $actual` — true on literally the first tick after map (geometry always
+   resolves) — so the timer always believed it had landed and cancelled on
+   attempt 1, `find_safe_position` never ran. THIS, not "GDK not settled,"
+   is most of why the user's complaint ("only tries the same position
+   multiple times, nothing recovers automatically") was true — the retry
+   loop was dead on arrival despite looking complete. Fixed: `and` → `&&`
+   (binds tighter than `=`, so the assignment captures the full boolean).
+   **General lesson for future P7 code review: `my $x = A and B` is a
+   precedence trap — `and`/`or` bind LOOSER than `=`, `&&`/`||` bind
+   TIGHTER; always use `&&`/`||` when the result of a multi-term boolean
+   needs to land in a `my` assignment.**
+3. **read_file crash race, found live during this session's test**: a
+   `read_file` command (default content load) arrived while tile was
+   still replying to the coordinates-fallback timer, before ticker's first
+   draw callback had computed `<ticker.font.size>` from real window
+   height (`ticker.open_window` sets it to 0 placeholder) — `ticker.
+   parse_text` unconditionally `die`s on a 0 font size, crashing the
+   zenka. Fixed by deferring: `ticker.cmd.read-file-cont` now checks
+   `<ticker.status.initialized>` (the same flag that gates the
+   `get_session_id`/online flip in `ticker.callback.draw`) and if not yet
+   set, pushes `$call` onto `<ticker.pending_read_calls>` and returns a
+   "deferred" reply instead of proceeding; `ticker.callback.draw`'s
+   init block drains and replays the queue right after it flips
+   `status.initialized` TRUE. This is the lightweight version of the
+   "wait_for_window→session_id re-sequencing" fix that was flagged as
+   still-needed in the 2026-06-24 session notes below — scoped to just the
+   read_file entrypoint rather than a full re-sequencing project.
+**Also confirmed same session: protocol-7-menu's "working" recovery from
+the 2026-06-24 notes below was NOT proven by relocate-logic success** —
+taeki clarified live that what was observed was the window minimizing
+itself (Weston-level, not protocol-7-menu code) while staying clickable
+via the host taskbar [ see [[feedback-wslg-deiconify-limitation]] ], not
+`find_safe_position` necessarily landing it. Don't cite protocol-7-menu as
+proof the relocate-on-screen-change primitive *works* in the overlap-void
+case specifically — only that the subscription plumbing pattern is sound
+to copy. taeki separately tested protocol-7-menu again this session: visible
+but suboptimal starting placement, and it correctly remembered a manual
+move across restart.
+
+**>>> SESSION 2026-06-25 (EARLIER) — confirmed root cause + patience fix for the void-landing fallback:**
 taeki confirmed via screen-setup zenka: with beamer off (2-monitor layout) the
 two side-by-side screens are TOP-ALIGNED (no Y overlap) — matches the earlier
 "works cleanly with 3rd screen off" observation. With beamer on (3-monitor),
@@ -546,8 +609,8 @@ commented out) and configuration/zenki/v7/start-set-up.base
 ticker (graphics-matrix isn't referenced anywhere in ticker's modules), just
 a leftover debug toggle from a prior session, taeki wants it disabled for now.
 
-#,,..,.,.,,.,,,,,,...,.,,,...,..,,.,,,,..,,,.,..,,...,...,...,.,,,..,,.,,,,,.,
-#E5YOXPKTEN44UCKVCNU4LU65J5EOJEHSK6F5L7PCQMXLZE57SDFAETES4LZDQFJAWQTOLTJMDRTCI
-#\\\|N4SPPLJBCXMEJQYHEMLATF7BIHIRH7VRU3LIZMP6AR2YNQP75Y4 \ / AMOS7 \ YOURUM ::
-#\[7]J2Y6WUO63GIGYIKDBJ4F65PHULEUGF4HWMLI3KZY2ZUZ5WLM2OCY 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,.,.,,,.,,.,,.,,,.,.,,..,.,,,,..,..,,...,...,...,,.,,..,,,,,,,,.,
+#2HM54SAGMB4F6J4VA6RWTGCJ2RB55J7FMZ2G2LF7637GSMEW3LTOUOAOBTIJ4GBWF6HZEHSDG2WZI
+#\\\|PHBY5MXTRSDFYCKCGWIC3TF5JU7UMYXDGHU3TGLUG7XNUC7D7U3 \ / AMOS7 \ YOURUM ::
+#\[7]U46CMMWVERW72KBGQOQ6CHVFFHMNITJFJ73GIIN27M76VDTCRUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
