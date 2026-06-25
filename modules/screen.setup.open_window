@@ -255,19 +255,19 @@ if ( not defined $saved ) {
 
                 return if $placement_attempts < $max_placement_attempts;
 
-                ## exhausted: one random unverified placement as last resort ##
+                ## exhausted: one random unverified placement as last resort, ##
+                ## still inset by margin so it never lands flush against the ##
+                ## screen border.                                            ##
                 my $random_mon
                     = $monitors->[ int( rand( scalar @$monitors ) ) ];
-                my $rand_x = $random_mon->{'x'};
-                my $rand_y = $random_mon->{'y'};
-                if ( $random_mon->{'width'} > $use_width ) {
-                    $rand_x
-                        += int( rand( $random_mon->{'width'} - $use_width ) );
-                }
-                if ( $random_mon->{'height'} > $use_height ) {
-                    $rand_y += int(
-                        rand( $random_mon->{'height'} - $use_height ) );
-                }
+                my $rand_x = $random_mon->{'x'} + $margin;
+                my $rand_y = $random_mon->{'y'} + $margin;
+                my $rand_x_range
+                    = $random_mon->{'width'} - $use_width - 2 * $margin;
+                my $rand_y_range
+                    = $random_mon->{'height'} - $use_height - 2 * $margin;
+                $rand_x += int( rand($rand_x_range) ) if $rand_x_range > 0;
+                $rand_y += int( rand($rand_y_range) ) if $rand_y_range > 0;
 
                 <[base.X-11.move-window]>->(
                     $xid, $rand_x, $rand_y, $use_width, $use_height
@@ -299,8 +299,8 @@ if ( not <screen.setup.gtk.main_running> ) {
 
 return 0;
 
-#,,..,,.,,,.,,,..,,..,,..,,.,,,,,,.,.,.,,,..,,..,,...,...,...,,,.,.,.,.,.,,,.,
-#64ZEH352F7KRVGYBH7QJQR3B3HRJMGZIOFZV2QFE7P44YO7KKPU3VUEGZ2UCWXLSVRO3VNDQQMX3K
-#\\\|B2KMAG5YL2QN2ZL4CFWCW3XYYHSKEAZYBPVOIHI2AC5FGB7C7IV \ / AMOS7 \ YOURUM ::
-#\[7]RZ2BN2Z4INAB4ZMYM5ENXTGDM5HVXINWQPAS6U7MUSE73DQWISBA 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,..,,,..,,,.,..,,,.,,,..,...,,.,,..,,...,...,.,,,...,..,,,,.,.,.,
+#L5MAXCJEX6W2JUKRTINWB3EDTPN72IORGW4S24WBL6TIVJUHEYAG75TKQSKREZZKTRCGDOKT4V6CO
+#\\\|AU5JLCDZOLYC3I5PNIGHQIFCRVF4MCWHZ4HLPCF55H56ZTJLB7I \ / AMOS7 \ YOURUM ::
+#\[7]BCLSSL5CGJRQTIOPT5H3IR7WECG32MVHDN3H2QSHX32UO7TD4ABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
