@@ -13,32 +13,44 @@ return { 'mode' => qw| false |, 'data' => 'no active view' }
     unless defined $view;
 
 ## determine output path
-my $snap_dir  = <web-browser.cfg.snapshot_dir>;
+my $snap_dir = <web-browser.cfg.snapshot_dir>
+    // ( <system.root_path> . '/data/snapshots' );
 my $timestamp = time;
 my $out_path  = "$snap_dir/snapshot_${timestamp}_$$.png";
 
 ## ensure output directory exists
 <[file.make_path]>->($snap_dir) unless -d $snap_dir;
 
-my $region = <web-browser.cfg.snapshot_region>;
+my $region = <web-browser.cfg.snapshot_region> // 'visible';
 
 ## async snapshot : result delivered via handler
 <web-browser.snapshot.pending_path>  = $out_path;
 <web-browser.snapshot.pending_reply> = $reply_id;
 
-$view->get_snapshot(
-    $region,
-    'WEBKIT_SNAPSHOT_OPTIONS_NONE',
-    undef,    ## cancellable
-    $code{'web-browser.handler.snapshot_result'},
-    undef     ## user_data
-);
+eval {
+    $view->get_snapshot(
+        $region,
+        'WEBKIT_SNAPSHOT_OPTIONS_NONE',
+        undef,    ## cancellable
+        $code{'web-browser.handler.snapshot_result'},
+        undef     ## user_data
+    );
+};
+
+if ($EVAL_ERROR) {
+    <web-browser.snapshot.pending_path>  = undef;
+    <web-browser.snapshot.pending_reply> = undef;
+    return {
+        'mode' => qw| false |,
+        'data' => <[base.str.eval_error]>
+    };
+}
 
 ## return deferred : handler sends reply when snapshot completes
 return { 'mode' => 'deferred' };
 
-#,,,.,.,.,.,,,,,,,,,.,...,,,,,,,.,,..,...,...,..,,...,...,...,...,..,,,,.,.,.,
-#DRT4EQO375H7BJPMBYWEEQJ5M47MJY3HJFZGPAD6YWIJ2ETRAPKR5GWVNN36BIRZSJNB26CU522UE
-#\\\|DSUD32CN6PUHHIKXRSZJTM2B7XRMCDE7GBJGZD2E26KO5PLM4NT \ / AMOS7 \ YOURUM ::
-#\[7]2YNHFTUNIEHJRB554QK7UC4BGFVTHPQNBGQKKDDE7ARGCW7LUSCI 7  DATA SIGNATURE ::
+#,,..,,..,,,,,,..,,,.,..,,,..,,,,,,.,,.,.,..,,..,,...,...,..,,.,,,,,,,,,,,.,,,
+#OOSI7MH74VAOURGWLAKVHQHR5HLLP5Y67PSAY77VLPQYJ7STAPBEIZBQZDODSCFDL3DBABDVHGHFW
+#\\\|GHGOP25VXYCNUCZ6UXQ3XKUTJKP5LKVJYAGZNNQJ4F34JBDW2GP \ / AMOS7 \ YOURUM ::
+#\[7]K5OODO63DHITIYD2X2GHDUAU64G624KS76PNKRXWISCETU2OWOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
