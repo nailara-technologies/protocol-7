@@ -36,9 +36,22 @@ while ( my $line = <$fh> ) {
 
     my $handler_args = {};
     if ( defined $arg_str and length $arg_str ) {
-        ## parse [key=value] or key=value pairs ##
-        while ( $arg_str =~ m/\[?([a-zA-Z0-9_.-]+)=([^\]\s]+)\]?/g ) {
-            $handler_args->{$1} = $2;
+        ## parse [command:value,key=value,...] : strip brackets, split on comma
+        ## first pair uses directive syntax 'key:value' [ see load_modules: ],
+        ## remaining pairs use 'key=value' ##
+        my $inner = $arg_str;
+        $inner =~ s|^\[||;
+        $inner =~ s|\]$||;
+        my @pairs = split /,/, $inner;
+        my $first = shift @pairs;
+        if ( defined $first and length $first ) {
+            my ( $key, $val ) = split /:/, $first, 2;
+            $handler_args->{$key} = $val if defined $key and defined $val;
+        }
+        for my $pair (@pairs) {
+            my ( $key, $val ) = split /=/, $pair, 2;
+            next unless defined $key and defined $val and length $key;
+            $handler_args->{$key} = $val;
         }
     }
 
@@ -65,8 +78,8 @@ close $fh;
 
 0;
 
-#,,,.,.,.,...,...,.,,,,..,.,,,.,,,,,,,,,.,.,.,..,,...,...,.,,,.,.,,.,,,,,,,.,,
-#3JH5OG2CNR32DTIA6D3QXMGUYR2BNNFH72GHPVH2C74H2M5WWDBPSKW7EDMG73ANAJLMQUXJVLB5I
-#\\\|HBZUWEASFLTPSDWRJUOEMFBBIUYKCXENF4S4HRWROSHSPE3HKDF \ / AMOS7 \ YOURUM ::
-#\[7]Z5FBBM3XFKYVGODKHR7WZT2GROYIQBPT3XWWZFVDRVYL67GKIUAA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,.,,,,..,.,.,.,,,.,.,.,.,.,,,..,,..,,...,...,..,,...,...,...,,.,,
+#35DTBCKBMX3BZJQZ3CJ5PLFBG5XW7JJVL6B7WSTAZVKUPG55V7QZRSFMGLRQZ5TQWZKZ5KCEHM7OM
+#\\\|GVET2OU5YKEUZHV627AJGK5UN2ESYD3HAILYB36AHNO77TDBH6Y \ / AMOS7 \ YOURUM ::
+#\[7]K3VSNC2OKHYNTDG3R634GUTUSMPUZ2GSDLSLIQLPC5YBMCQ2ZYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
