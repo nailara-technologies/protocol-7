@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = site-yaml.cmd.export-stray-job
+# descr = hand a single stranded job record back to jobsite
+#
+# notes = see site-yaml.job.scan_stray ; record stays on disk until
+#         jobsite confirms it was claimed ; 'size' mode reply
+#         auto-fragments via STRM-SIZE if large, no manual chunking
+
+<[base.perlmod.autoload]>->('YAML::XS');
+<[base.perlmod.autoload]>->('JSON::XS');
+
+my $id = $call->{'args'} // '';
+
+return { 'mode' => 'false', 'data' => 'id required' } if not length $id;
+
+my $entry = <site-yaml.stray_manifest>->{$id};
+return { 'mode' => 'false', 'data' => 'unknown stray id [ re-list first ]' }
+    if not defined $entry;
+
+my $jobs_root = <[file.zenka_dir.data_path]> . '/jobs';
+my $job_file  = "$jobs_root/$entry->{'status'}/$entry->{'name'}.yaml";
+
+return { 'mode' => 'false', 'data' => 'no such stray job' }
+    if not -f $job_file;
+
+my $job = eval { YAML::XS::LoadFile($job_file) };
+return {
+    'mode' => 'false',
+    'data' => 'load error: ' . <[base.str.eval_error]>
+    }
+    if $EVAL_ERROR;
+
+my $payload = JSON::XS::encode_json(
+    {   'name'   => $entry->{'name'},
+        'status' => $entry->{'status'},
+        'job'    => $job
+    }
+);
+
+return { 'mode' => 'size', 'data' => $payload };
+
+#,,..,.,.,.,,,,.,,.,,,,..,,..,,,.,.,,,,.,,...,..,,...,...,..,,,.,,..,,...,,,,,
+#4ME2XENVERY7TZ43IBIFF3PBCCHBX34IY4K4KE34V5YWG6POSU2OPSJATLGWN4OMPV5P3UCNFXVA2
+#\\\|TKF2OF7D4S2747F52IYNGHGVCUNPTJE6GIRM2QJ7ENQ7WTMGIHJ \ / AMOS7 \ YOURUM ::
+#\[7]EPNNUVCURWUDA5HFCDKTPRPG5D4EPZC6D36I4MT76SOI7FXKHCAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

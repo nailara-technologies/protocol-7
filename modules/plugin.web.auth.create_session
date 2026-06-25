@@ -22,7 +22,7 @@ my $node_id = <system.node.name> // qw| protocol-7 |;
 my $ntime   = <[base.ntime.b32]> // '';
 
 ## token = AMOS checksum of (node_id + ntime + secret) ##
-my $token = <[base.chk-sum.amos]>->("$node_id $ntime $secret");
+my $token = <[chk-sum.amos]>->("$node_id $ntime $secret");
 return undef if not defined $token;
 
 my $token_hash = <[chk-sum.bmw.L13-str]>->($token);
@@ -57,8 +57,8 @@ return {
     'expires_at_epoch' => $session_data->{'expires_at_epoch'},
 };
 
-#,,,.,.,.,.,,,...,..,,,,.,.,,,...,,,.,,,,,.,,,..,,...,...,.,,,.,,,,..,.,,,.,.,
-#LCFHWPGTAFODM4GDKXSZRLJYQQCBQHLRREMSKZG7AUZ3YSEOEA5WQ7I5MVUDDLIMB73KQKDOIWUAA
-#\\\|YEHWR32GK2V247EP54P7B7W7K742GVHRYN2K2S3VC3RVSSMQ4TA \ / AMOS7 \ YOURUM ::
-#\[7]STXJMHO6EKNMV5E5T2XI27TPCCT4AOEHEN554DA2SWDCKANJSEDA 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,..,,,..,,.,,...,.,,,.,.,,,.,.,,,..,,...,...,..,,,,,,...,.,,,.,.,
+#3TTBIKXUQYKEDMS3ITMDWN3CJTQTQLLXRHUIMSRP5COABMOFJVN6WPLUVZCU3MB7AKWXLVS3EFACG
+#\\\|ULRY623RZF77UYETKRCR3T3KGTM6BU7K43IRO44ZJMNWTSELUV4 \ / AMOS7 \ YOURUM ::
+#\[7]N6HMMYTCCUDEG6EMS6M4KXB7PEZ7NXPQDBOIWPGQKQRLGC5KT4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

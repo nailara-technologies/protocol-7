@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = jobsite.stray.check
+# descr = on its own initiative, ask configured zenki for stray jobs
+#
+# notes = stray = job files stranded under a zenka's own var dir [ eg
+#         from a past path-resolution desync ] ; claimed back one at a
+#         time once a listing reply names any
+
+my $targets_cfg = <jobsite.cfg.stray_check_targets> // qw| site-yaml |;
+my @targets     = split m|\s+|, $targets_cfg;
+
+for my $target (@targets) {
+    <[protocol-7.route-send]>->(
+        {   'command' => "$target.list-stray-jobs",
+            'reply'   => {
+                'handler' => 'jobsite.handler.stray-jobs-listed',
+                'params'  => { 'source' => $target },
+            },
+        }
+    );
+}
+
+return scalar @targets;
+
+#,,.,,..,,.,.,,.,,...,,..,...,,,.,,,.,.,,,,.,,..,,...,...,.,.,,,,,.,.,,..,,.,,
+#76YYIHQL6VG23MHLHYIGNH6LB3O4Q6B3XDCWHR5KQFFYWC5ZYYT4W2UG2MREQUXZZC6MWQR76NMWW
+#\\\|JFI6XNAILLZH3UIPGSSLO3VYRVGLRISVCERBLSWODRFOHAJHWFL \ / AMOS7 \ YOURUM ::
+#\[7]LF2QL2NLOMK5SGS356HD3GT3UQD5BRTUUDKUU45RI6N6BQYXWUBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
