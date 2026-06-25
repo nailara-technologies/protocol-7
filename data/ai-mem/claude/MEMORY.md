@@ -7,7 +7,7 @@
 
 ## Active Topics
 - [orbital-strm-push-rollout](topic-orbital-strm-push-rollout.md) — LANDED 139cacef2 2026-06-25: discover/external/nodes/graphics-matrix push to web via STRM instead of 13s poll-everyone; fixed the offline-spam that kept making taeki stop the zenka; external zenka wiring gaps closed too; gap open: who gets connect/disconnect-orbital access
-- [async-window-startup-transition](topic-async-window-startup-transition.md) — UNCOMMITTED 2026-06-24 (late session): root cause = primary/secondary Y-range overlap clamp on WSLg/Weston, defeats EVERY placement method; built generic find_safe_position+build_strip_candidates recovery (works for ticker runtime swap, NOT YET reliable for startup); found+fixed 6+ pre-existing latent bugs (subscribe-screen-change, .handler. dispatch gap, YAML-over-line-protocol corruption, swap_profile args, move_to_profile false-failure, check_pointer race). OPEN: startup void-landing non-deterministic; new unexplained "shadow only, no content" compositor glitch. Check this file FIRST next session.
+- [async-window-startup-transition](topic-async-window-startup-transition.md) — LANDED `531aa14db` 2026-06-25: ticker subscribed to screen-change (was missing entirely) + startup-void retry timer's dead `and`/`=` precedence bug fixed (see [[feedback-perl-and-or-precedence-in-my-assignment]]) + read_file pre-init crash deferred/replayed; live-verified by taeki (bottom-strip start, top-swap, recovery path all work). Thread CLOSED except the still-open "shadow only, no content" compositor-paint glitch (unconfirmed/rare).
 - [screen-setup-zenka](topic-screen-setup-zenka.md) — NEW 2026-06-24, UNSIGNED/UNCOMMITTED: screen-setup zenka + display-layouts scaled-minimap of monitor rects (GDK source); gives window.place the monitor-awareness it lacks; file has bring-up steps + deferred window-rects overlay & _NET_WM_MOVERESIZE move fix
 - [amos7-shm-phase1](topic-amos7-shm-phase1.md) — AMOS7::SHM phases 1-3 ALL LANDED 2026-06-22 (410805f43, ac6315191, 786598adc); phase 3 caught kimi substituting a same-process test for cross-process (not accepted, redone) + a stray unmanaged data zenka process causing misleading test failures (diagnosed via v7.list zenki vs list sessions); phase 4 (cleanup) still open
 - [zenka-naming-cleanup](topic-zenka-naming-cleanup.md) — cred-mesh + window-place renames landed; pattern for spotting/fixing more underscore/dotted zenka names; tile-groups->tile LANDED 2026-06-15 (82e65f2d6); command-name cleanup pass LANDED (switch-group, reset-group, base-group, show-groups, count)
@@ -151,6 +151,7 @@
 - [user-perfectionism-and-pace](user-perfectionism-and-pace.md) — "done" means perfectly smooth, not just working; let solo tuning passes run, don't push toward closure
 
 ## Feedback
+- [perl and/or precedence in my-assignment](feedback-perl-and-or-precedence-in-my-assignment.md) — `my $x = A and B` only assigns A (and/or bind looser than =); use && / || for multi-term booleans landing in an assignment
 - [p7 route-send wire protocol](feedback-p7-route-send-wire-protocol.md) — call_args only sends 'args' string; reply shape keyed by cmd not mode; SIZE auto-fragments, no base32 needed; cross-zenka access is two-sided
 - [oversize single-line protocol](feedback-oversize-single-line-protocol.md) — TRUE/FALSE/WAIT wire path has no framing; oversized content there wedges the buffer irresolvably
 - [no unsolicited cross-zenka push](feedback-no-unsolicited-cross-zenka-push.md) — data-holding zenka only announces/lists; consuming (more-trusted) zenka always initiates the pull
@@ -204,8 +205,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,.,,...,...,...,.,,,...,.,,,.,,,.,.,..,,..,,..,,...,...,,.,,,,,,.,.,,..,,,.,
-#7WTBJSZ3F6C3YCJECLAS3XHNCUMYI3QD54FUOADN5PFTRXPC7BT3MJ7GS6CF5FC7VQC6CL4ONTJ3U
-#\\\|HLMEJMA2KS7QIHKWFUIQHA5XTOFHRGLFWIGORUQYAY3MJ5XDFK2 \ / AMOS7 \ YOURUM ::
-#\[7]XNPU3A7V2JZQDPXQ2YTMQCOY6P2XMOTT55J5FQGST2GTLJ4NNSAQ 7  DATA SIGNATURE ::
+#,,.,,...,..,,,,,,.,,,..,,..,,.,,,.,,,...,,.,,..,,...,..,,...,.,,,...,..,,,.,,
+#VCQ6TM7EXUWUSZNX2PV2CSBG4HED7M573V6HOHFVAIKXON4Z2C6Z76NVQFC4QENRVLF7OR3UTIYG4
+#\\\|TKT4YU6BZAH2JLN7NBTWQRBI4IWS4UHEOMIJU4P6W5OCN74RKZZ \ / AMOS7 \ YOURUM ::
+#\[7]FTRWNIHIMFBS35CH4CGERKX3BANV6T7FOFOL4BLI2RNBAMTHLMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
