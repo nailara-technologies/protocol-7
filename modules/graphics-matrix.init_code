@@ -45,10 +45,26 @@ map {
 ## initialize harmonic voxel density grid ##
 <[graphics-matrix.harmonic.density]>;
 
+##  orbital STRM push : disable in zenki/graphics-matrix/start when     ##
+##  required                                                            ##
+##
+<graphics-matrix.cfg.orbital_push_enabled> //= TRUE;
+
+## no discrete mutation event covers this summary : poll our own ##
+## listeners on a slow timer instead, gated to a no-op when nobody is  ##
+## subscribed                                                          ##
+<[event.add_timer]>->(
+    {   qw| interval | => 45,
+        qw| repeat   | => TRUE,
+        qw| handler  | =>
+            qw| graphics-matrix.orbital.push_state_if_subscribed |,
+    }
+);
+
 0;
 
-#,,,,,,,.,,.,,,..,,,,,,,,,...,,,.,.,.,.,.,.,,,..,,...,...,...,.,.,.,,,,.,,...,
-#ETTMT26FH3FA3I5NQGQMG3N6BGAO5VS3R6TCMJW7TVYRFKQZVSZ673E4F42QS6VVHVFYZMB3PP3EE
-#\\\|6MTHBPL5W5XKO2KFLFMU22UJDY4GLEWWFBIR3ZQUHWLP42XJSX7 \ / AMOS7 \ YOURUM ::
-#\[7]G2UX7LZXSFGAOGKRNQRRTDOFFMV7AOL5DD4YTNCJWGCAH3RXPWDA 7  DATA SIGNATURE ::
+#,,,,,,..,..,,.,,,.,.,,.,,.,.,,,.,,..,,,.,.,,,..,,...,...,.,.,,..,,..,..,,,.,,
+#77NHFUK4YE4DUGG7GXJ2EYATUVKOJCE4VGIG4EMGSTO2YXAPPHID4TQIMSL2DOHHDCL4AVUXUJ372
+#\\\|ZG7LKFSKEQIAQGU2OST5N7MIW4ZAJL4MOJM3YUGRRH6C4DN4GIM \ / AMOS7 \ YOURUM ::
+#\[7]V2K7AKZ6FBNHNUP5OE57SMP36CBH6PW2VSTYEQC3KJZIWYQGVKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

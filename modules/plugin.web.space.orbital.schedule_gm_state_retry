@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = plugin.web.space.orbital.schedule_gm_state_retry
+# descr = exponential backoff retry for the gm_state orbital subscribe
+#         call ; mirrors v7.handler.zenka_status's restart_delay shape
+#         [ *1.2, capped, never a fixed-interval retry ]
+
+<web.space.orbital.gm_state_subscribe> //= {};
+my $sub = <web.space.orbital.gm_state_subscribe>;
+
+$sub->{'retry_delay'} //= 5.0;
+$sub->{'retry_delay'} = sprintf( '%.2f', $sub->{'retry_delay'} * 1.2 );
+$sub->{'retry_delay'} = sprintf( '%.1f', $sub->{'retry_delay'} )
+    if $sub->{'retry_delay'} > 10;
+$sub->{'retry_delay'} = sprintf( '%.0f', $sub->{'retry_delay'} )
+    if $sub->{'retry_delay'} > 20;
+
+my $max_retry_delay = 300;
+$sub->{'retry_delay'} = $max_retry_delay
+    if $sub->{'retry_delay'} > $max_retry_delay;
+
+## do not stack overlapping retry timers ##
+return
+    if exists $sub->{'timer'}->{'retry'}
+    and $sub->{'timer'}->{'retry'}->is_active;
+
+$sub->{'timer'}->{'retry'} = <[event.add_timer]>->(
+    {   'after'   => $sub->{'retry_delay'},
+        'handler' => qw| plugin.web.space.orbital.subscribe_gm_state |,
+    }
+);
+
+<[base.logs]>->(
+    2, qq| scheduled gm_state orbital resubscribe in %.2f seconds |,
+    $sub->{'retry_delay'}
+);
+
+return TRUE;
+
+#,,,.,..,,,..,,,.,,,,,,.,,,,,,...,,,.,,.,,,,.,..,,...,..,,...,.,.,..,,.,.,,..,
+#Z5MW2UQYJ5TZ7SVNKLFTFL6NPTADUOZCBQGDDTO3IGMDVRP5ZQ5W4O32IYPSLHOQGP3XY6WH3LZ4A
+#\\\|KTIRYTYOU2PRENYALGKRJX5ZXC7UHE53VNJ23M2TZMD3PBYVUQX \ / AMOS7 \ YOURUM ::
+#\[7]GUICQUVXTXOG7Q45OY3ZI7GM3A6KAIQQDAMMO7WMN57I2RLRKCBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

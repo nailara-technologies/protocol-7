@@ -13,7 +13,6 @@ base.fork
 base.exit
 base.regex
 base.cnt_s
-devmod.dump
 base.s_warn
 base.s_read
 base.minmax
@@ -41,12 +40,9 @@ base.sig_PIPE
 base.pre_init
 base.n2u_time
 base.get_file
-base.cmd.name
 base.cmd.list
-base.cmd.exit
 base.cfg_bool
 ui.render.tree
-ui.cmd.ui-show
 base.wrap_text
 base.swap_subs
 base.ssl.write
@@ -64,11 +60,9 @@ base.file.open
 base.dump_data
 base.conf-wrap
 base.cmd.heart
-base.cmd.clear
 auth.auth_list
 plugin.auth.pwd
 net.read_binary
-devmod.pre_init
 base.zenka.push
 base.zenka.loop
 base.str.os_err
@@ -80,13 +74,10 @@ base.file.which
 base.file.slurp
 base.event.once
 base.event.loop
-base.cmd.whoami
 base.cmd.reload
 base.calc_gauss
 ui.estimate.cost
 plugin.auth.unix
-devmod.post_init
-devmod.init_code
 base.stream.push
 base.stream.open
 base.stream.gate
@@ -103,8 +94,6 @@ base.cmd.subname
 base.cmd.src-ver
 base.cmd.src-age
 base.cmd.rel-ver
-base.cmd.ptl-ver
-base.cmd.present
 base.cmd.cur-pid
 base.chk-sum.elf
 base.call_filter
@@ -129,9 +118,6 @@ base.get_warnings
 base.file.content
 base.event.add_io
 base.context.list
-base.cmd.term-all
-base.cmd.last-sid
-base.cmd.cpu-time
 base.cmd.commands
 base.chk-sum.amos
 ascii.frame.parse
@@ -149,14 +135,12 @@ base.get_file.aref
 base.file.pre_init
 base.file.line_map
 base.event.add_var
-base.cmd.verbosity
 base.clear_p7_mods
 base.clean_unicode
 base.clean_hashref
 ascii.frame.render
 plugin.auth.twofish
 io.ip.tcp.init_code
-devmod.console-dump
 base.utf8.clean_str
 base.str.eval_error
 base.round_truncate
@@ -196,8 +180,6 @@ base.eval.comp_regex
 base.disable_command
 base.devmod.dump_var
 base.cmd.show-buffer
-base.cmd.show-access
-base.cmd.amos-chksum
 base.chk-sum.bmw.ctx
 base.buffer.add_line
 auth.zenka.init_code
@@ -218,10 +200,7 @@ base.load_config_file
 base.list.element.add
 base.file.match_files
 base.event.add_signal
-base.console.describe
 base.console.commands
-base.cmd.when-present
-base.cmd.dependencies
 base.cmd.buffer-erase
 base.balanced-average
 io.ip.tcp.output.close
@@ -231,11 +210,9 @@ base.register_src_deps
 base.register_bin_deps
 base.perlmod.init_code
 base.path.resolved_abs
-base.net.cmd.timestamp
 base.get_max_verbosity
 base.file.get-non-dirs
 base.comp-int.is_valid
-base.cmd.cancel-stream
 auth.unix.authenticate
 protocol.sftp.init_code
 io.unix.socket.end_code
@@ -255,9 +232,6 @@ base.exists.sub-process
 base.execute_zenka_code
 base.dump.data_key_list
 base.convert.hex_to_int
-base.cmd.set-name-width
-base.cmd.ondemand-zenka
-base.cmd.loaded-configs
 base.chk-sum.elf.inline
 base.chk-sum.bmw.strsum
 base.auth.set_zenka_key
@@ -309,10 +283,8 @@ base.max-len.val-hash-keys
 base.handler.session_error
 base.event.io_idle_restart
 base.check_dependency_dirs
-auth.zenka.cmd.session-key
 net.read_linewise_estimated
 io.unix.socket.output.close
-external.cmd.orbital-status
 base.templates.register_add
 base.stream.record_emission
 base.session.calc_cmd_stats
@@ -328,7 +300,7 @@ base.chk-sum.amos.init_code
 protocol.protocol-7.pre_init
 protocol.amos_term.init_code
 io.unix.socket.input.connect
-external.cmd.connect-orbital
+external.orbital.push_update
 crypt.C25519.keystr_is_valid
 crypt.C25519.compare_keypair
 base.validate.composite_name
@@ -341,7 +313,6 @@ base.handler.heart_ack_reply
 base.access.special-user-map
 protocol.protocol-7.init_code
 plugin.external.udt.init_code
-external.cmd.list-connections
 crypt.C25519.load_from_string
 crypt.C25519.get_usr_keys_dir
 base.validate.data_key_syntax
@@ -371,7 +342,7 @@ base.chk-sum.bmw.harmonize_L13
 base.chk-sum.bmw.encode_digest
 base.cache.refaddr-prefix.init
 ascii.frame.render.border_line
-crypt.C25519.cmd.get-public-key
+external.orbital.schedule_retry
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
 base.buffer.local_logfile_write
@@ -399,6 +370,7 @@ protocol.amos-chksum.ext-cmd.close
 protocol.amos-chksum.ext-cmd.clear
 protocol.amos-chksum.ext-cmd.bytes
 plugin.auth.auth-keypair.init_code
+external.handler.reset_retry_delay
 crypt.C25519.get_type_from_key_str
 base.protocol-7.command.send.local
 base.path-set-up.zenka-directories
@@ -468,8 +440,8 @@ auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,.,,.,.,.,,,.,.,,,.,...,,,.,,,.,,.,,.,,,,..,..,,...,...,,..,,,.,,..,.,,,,..,
-#7UKDJTBI2TA36EKWFWFFAO4X7BQA422FI4ZBDOPYGNSTUZZFOITYL4AY73DKBH5W5ML4ATE26CIKY
-#\\\|XAPDRKZTWAM2M355SOTVNZLUGKZY7PODG4GV5OL4E2ZQHWWEIYV \ / AMOS7 \ YOURUM ::
-#\[7]RX2IEYBXR327NE352RDKXYYGPJIPXPHFQ4BVAB737Z32TNQ23GBA 7  DATA SIGNATURE ::
+#,,,.,...,,..,...,..,,,,.,...,,.,,,,.,,,.,,..,..,,...,...,..,,,.,,,,.,..,,.,,,
+#WD5X4GENU7NSBBRE6IOVDXBDMDB7FAYGJ75NEPR5JRQ3MRRFJGKZWVYDCP6H4DH4FRJKYY7TRHJ5S
+#\\\|6LCVRZHYLLEXXQWCLBSQLLGKHF7NR6UWZUKG3G3GBQUGSWOCS5Y \ / AMOS7 \ YOURUM ::
+#\[7]POKKY3FACZYXQKTH7Q5INCRDDZASFEBSMZ3R7O75DNMCTI72NACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

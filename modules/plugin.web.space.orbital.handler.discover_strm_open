@@ -1,0 +1,72 @@
+## [:< ##
+
+# name  = plugin.web.space.orbital.handler.discover_strm_open
+# descr = reply handler for the discover orbital subscribe call ; registers
+#         a local STRM consumer that merges incoming lines into the orbital
+#         cache's 'known' field incrementally
+
+my $reply = shift;
+
+## subscribe refused [ discover offline, or push disabled there ] ##
+if ( $reply->{'cmd'} eq qw| FALSE | ) {
+    <[base.logs]>->(
+        2,
+        qq| orbital discover subscribe refused: %s |,
+        $reply->{'call_args'}->{'args'} // 'unknown error'
+    );
+    <[plugin.web.space.orbital.schedule_discover_retry]>;
+    return;
+}
+
+return if $reply->{'cmd'} ne qw| STRM |;
+return if $reply->{'args'} ne qw| open |;
+
+my $cmd_id = $reply->{'cmd_id'};
+return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
+
+## subscribe succeeded : drop any backoff state from prior failures ##
+<web.space.orbital.discover_subscribe> //= {};
+delete <web.space.orbital.discover_subscribe>->{'retry_delay'};
+
+my $cache = <web.space.orbital.cache>;
+<web.space.orbital.known_index> //= {};
+
+<[base.strm.local.register]>->(
+    $cmd_id,
+    {   'watcher' => sub {
+            my $lc = shift;
+            return if not length $lc->{'buf'};
+
+            my $data = $lc->{'buf'};
+            $lc->{'buf'} = '';
+
+            for my $line ( split /\n/, $data ) {
+                next if not length $line;
+                next if $line !~ m|^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)|;
+                <web.space.orbital.known_index>->{$1} = {
+                    qw| hostname | => $1,
+                    qw| pkey7    | => $2,
+                    qw| p7ref    | => $3,
+                    qw| age      | => $4,
+                };
+            }
+
+            ## rebuild the array shape to_cells/orbital.json expect ##
+            $cache->{'data'}{'known'}
+                = [ values %{<web.space.orbital.known_index>} ];
+            $cache->{'received_fields'}{'known'} = 1;
+        },
+    }
+);
+
+<[base.logs]>->(
+    2, qq| orbital discover STRM subscribed [cmd_id=%d] |, $cmd_id
+);
+
+return;
+
+#,,,,,,..,...,,.,,,,,,,.,,.,,,,,,,,..,..,,.,,,..,,...,...,...,,.,,.,.,,,.,,..,
+#S3BQMHGUNE34ZVLHLZJMLCYDOVVSNZK7RHXNPOH47P3N6WMTUXFPXKYMUW77FEMQJ5RRYE2B44IYE
+#\\\|KBAWLWE47Q2RAVPUPIQDDPZTE5JJ6YF7YK6WMYH4FP6PRTN6444 \ / AMOS7 \ YOURUM ::
+#\[7]V627T4KQMWOSEXEPPL3A2Y2XK74HW7L4X77SY2RB44AJMLR2CEDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
