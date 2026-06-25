@@ -49,6 +49,19 @@ if ( defined <web-browser.cfg.change_cursor> ) {
 
 $window->signal_connect( destroy => sub { Gtk3->main_quit() } );
 
+$window->set_decorated(FALSE)
+    if <[base.cfg_bool]>->(<web-browser.cfg.no_decorations>);
+
+## pre-set window background to page color -- prevents white flash on startup ##
+my $bg = <web-browser.bg_color> // '';
+if ( length $bg ) {
+    $bg =~ s{^#?}{#};
+    my $css_bg = Gtk3::CssProvider->new;
+    $css_bg->load_from_data("window { background-color: $bg; }");
+    $window->get_style_context->add_provider( $css_bg,
+        Gtk3::STYLE_PROVIDER_PRIORITY_APPLICATION );
+}
+
 # my $atom_id = Gtk3::Gdk->atom_intern_static_string('WM_CLASS'); # <-- set
 
 ## restore saved window position if available and enabled
@@ -226,8 +239,8 @@ foreach my $signal_name (qw|  INT  TERM  |) {
     );
 }
 
-#,,.,,,,,,,..,,,.,,.,,.,,,,,.,,,,,..,,,,,,,,,,..,,...,...,.,,,.,,,,..,,,,,..,,
-#AWFODP4QWYT6M7F44JWRDMTJV4FCOR3MYQEFBLFCYQ6SDFYKLEDBKWB5VSM67XUQ3EIMBHHEX643E
-#\\\|BYCF3ZAYMZXB7X2DGVWYY4VGQVK7X3RHDAZXB6QBFB4XBZ7BPBD \ / AMOS7 \ YOURUM ::
-#\[7]FNTXMB4WC4NKF5X4FCTJYMXUBMOZSRPVMVJLYSIZPF66HXX6RKCY 7  DATA SIGNATURE ::
+#,,..,..,,...,.,,,,,,,,.,,,..,,,.,.,,,.,.,,,,,..,,...,.,.,...,,..,...,,,.,,..,
+#AWB5L5Y34YLDVX3OHRM72FJBS4LBVV4OJGGODIQZH3SOOHJHPCWV24JJ4EADDZ3TGPBOZNZODROTM
+#\\\|VZ4XPTVB5LQ2V46IPBRRI77QDCXNUY6C7GOSKUZNEBFIS5RAQ55 \ / AMOS7 \ YOURUM ::
+#\[7]XLYMT3HCEIJBG3CJOXQ6W7GRZULZGBFGYP73JBEXQGZKL6WFBEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
