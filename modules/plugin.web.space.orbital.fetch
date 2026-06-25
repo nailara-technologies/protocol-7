@@ -1,40 +1,10 @@
 ## [:< ##
 
 # name  = plugin.web.space.orbital.fetch
-# descr = async fetch orbital data from all orbital layer zenki
-
-## request self position from nodes zenka ##
-<[protocol-7.route-send]>->(
-    {   qw| command |   => qw| nodes.orbital-position |,
-        qw| call_args | => { qw| args | => '' },
-        qw| reply |     => {
-            qw| handler | => qw| plugin.web.space.orbital.handler.reply |,
-            qw| params |  => { qw| field | => qw| self | },
-        }
-    }
-);
-
-## request known orbital nodes from discover zenka ##
-<[protocol-7.route-send]>->(
-    {   qw| command |   => qw| discover.list-orbital |,
-        qw| call_args | => { qw| args | => '' },
-        qw| reply |     => {
-            qw| handler | => qw| plugin.web.space.orbital.handler.reply |,
-            qw| params |  => { qw| field | => qw| known | },
-        }
-    }
-);
-
-## request connections from external zenka ##
-<[protocol-7.route-send]>->(
-    {   qw| command |   => qw| external.list-connections |,
-        qw| call_args | => { qw| args | => '' },
-        qw| reply |     => {
-            qw| handler | => qw| plugin.web.space.orbital.handler.reply |,
-            qw| params |  => { qw| field | => qw| connections | },
-        }
-    }
-);
+# descr = async fetch orbital data from orbital layer zenki not yet on
+#         STRM push ; 'known'/'connections'/'self'/'gm_state' arrive via
+#         push instead [ see plugin.web.space.orbital.subscribe_* ] -
+#         only nameserv remains polled here
 
 ## request nameserv data if configured ##
 my $nameserv_domain = <nameserv.cfg.auto_publish_domain> // '';
@@ -50,23 +20,12 @@ if ( length $nameserv_domain ) {
     );
 }
 
-## request graphics-matrix summary for orbital enrichment ##
-<[protocol-7.route-send]>->(
-    {   qw| command |   => qw| graphics-matrix.orbital-sync |,
-        qw| call_args | => { qw| args | => '' },
-        qw| reply |     => {
-            qw| handler | => qw| plugin.web.space.orbital.handler.reply |,
-            qw| params |  => { qw| field | => qw| gm_state | },
-        }
-    }
-);
-
 <[base.log]>->( 3, qq| orbital fetch dispatched | );
 
 return 1;
 
-#,,..,,,.,.,,,,,.,...,.,,,,,,,,.,,,..,,.,,,,.,..,,...,...,,.,,.,.,,..,,..,,,.,
-#GXGONMJCELI7GKUEHGU2ZGV5IUG5WMOPC2K32KLLOIG5BHGP2WHGNUVN4PF2Z4HYJDV425L2OX2C2
-#\\\|6CJ4BSWF3XLGVAL5QXSMKUCRCT4XVCVEUNQSPHK3AF4WIKOPRHZ \ / AMOS7 \ YOURUM ::
-#\[7]PVPHGWKHAJO4IOLETLZ6Y7DWMMSTCX2OCW5I7UWVKVXBPENZDSAI 7  DATA SIGNATURE ::
+#,,..,..,,,,,,.,.,.,.,..,,,,,,,,,,.,,,.,,,.,,,..,,...,...,..,,...,,,,,,..,,,,,
+#XZ5EX4Z2MYH3FXRAE2UAH6SLMLDPBWHZQFCM3DU4OCAND7LU7F3YORLU7JNDBQ5RDCUEBAICSFEZU
+#\\\|CPPEOZPYOOGMEXL27LMWUKOFAVQHMHY5CWAWESBG4GVLPRD5V6C \ / AMOS7 \ YOURUM ::
+#\[7]Z745MAKD5TWSSGCRSOJALUAB3YPUMG7G3QMAOUXOZTC5VIZAY6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

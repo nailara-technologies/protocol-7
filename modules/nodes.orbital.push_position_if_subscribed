@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = nodes.orbital.push_position_if_subscribed
+# descr = push current orbital position to STRM subscribers
+#
+# notes = called on its own slow timer [ see nodes.init_code ] since this
+#         value has no discrete mutation event ; no-ops [ cheap check only ]
+#         when nobody is subscribed
+
+return unless <[base.cfg_bool]>->(<nodes.cfg.orbital_push_enabled>);
+return
+    unless defined <nodes.orbital.listeners>
+    and @{<nodes.orbital.listeners>};
+
+my $result = <[nodes.orbital.current_position]>;
+return unless ( $result->{'mode'} // '' ) eq qw| true |;
+
+my $payload = <[nodes.orbital.format_strm_payload]>->( $result->{'data'} );
+return unless length $payload;
+
+my @keep;
+for my $h ( @{<nodes.orbital.listeners>} ) {
+    push @keep, $h if <[base.stream.push]>->( $h, \$payload );
+}
+<nodes.orbital.listeners> = \@keep;
+
+return TRUE;
+
+#,,..,,..,.,.,,..,.,.,..,,.,.,,,.,,,.,...,,,,,..,,...,...,,.,,..,,.,.,,,,,,,,,
+#G6BAXHEWULUBOVBHIZMPCARFP6FAE5A7CRCDKBWTCID74W2GVWG6ML5RA5RRBCIY5DK54PR4RLHLA
+#\\\|AQXT23YSC3VCURDDSIUFWIV4Q4YRBFWZPO4UG64IRQYGP2FD6ZZ \ / AMOS7 \ YOURUM ::
+#\[7]GPELJKJW472W5KTSJ2OGTGLZDV4ZY3B5QZSL4GRZBPZC26UPO2CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

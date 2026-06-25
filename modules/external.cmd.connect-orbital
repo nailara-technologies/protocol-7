@@ -98,15 +98,34 @@ if ( not defined $name or not length $name ) {
 ## encode public key to base32 ##
 my $pkey_b32 = Crypt::Misc::encode_b32r($pkey_bin);
 
+## preserve retry state from any previous attempt ##
+my $old_conn = $data{'external'}{'connections'}->{$name} // {};
+
+## cancel stale retry / reset timers before resetting state ##
+if ( exists $old_conn->{'timer'}->{'retry'} ) {
+    $old_conn->{'timer'}->{'retry'}->cancel
+        if $old_conn->{'timer'}->{'retry'}->is_active;
+    delete $old_conn->{'timer'}->{'retry'};
+}
+if ( exists $old_conn->{'timer'}->{'reset_retry_delay'} ) {
+    $old_conn->{'timer'}->{'reset_retry_delay'}->cancel
+        if $old_conn->{'timer'}->{'reset_retry_delay'}->is_active;
+    delete $old_conn->{'timer'}->{'reset_retry_delay'};
+}
+delete $old_conn->{'timer'} if not keys $old_conn->{'timer'}->%*;
+
 ## store preliminary connection state ##
 $data{'external'}{'connections'} //= {};
 $data{'external'}{'connections'}->{$name} = {
-    'p7ref'     => $p7ref,
-    'ip'        => $ip,
-    'hostname'  => $hostname,
-    'status'    => qw| connecting |,
-    'encrypted' => FALSE,
+    'p7ref'       => $p7ref,
+    'ip'          => $ip,
+    'hostname'    => $hostname,
+    'status'      => qw| connecting |,
+    'encrypted'   => FALSE,
+    'retry_delay' => $old_conn->{'retry_delay'},
+    'timer'       => $old_conn->{'timer'},
 };
+eval { <[external.orbital.push_update]>->($name); };
 
 ## initiate trunc registration via nodes zenka ##
 my $sent = eval {
@@ -131,6 +150,8 @@ if ($EVAL_ERROR) {
         1, qq| connect-orbital route-send error: %s |, $EVAL_ERROR
     );
     $data{'external'}{'connections'}->{$name}->{'status'} = qw| error |;
+    eval { <[external.orbital.push_update]>->($name); };
+    eval { <[external.orbital.schedule_retry]>->($name); };
     return {
         'mode' => qw| false |,
         'data' => qq| failed to initiate connection to $name |
@@ -139,6 +160,8 @@ if ($EVAL_ERROR) {
 
 if ( not $sent ) {
     $data{'external'}{'connections'}->{$name}->{'status'} = qw| error |;
+    eval { <[external.orbital.push_update]>->($name); };
+    eval { <[external.orbital.schedule_retry]>->($name); };
     return {
         'mode' => qw| false |,
         'data' => qq| nodes zenka unavailable for $name |
@@ -155,8 +178,8 @@ return {
     'data' => qq| connecting to $name |
 };
 
-#,,..,..,,..,,...,,,,,.,.,.,.,..,,.,,,.,,,.,,,..,,...,...,.,,,,,.,.,,,,..,...,
-#4M3BKWVOKCANG4W6WP5D42ISWLN5V45H3PY2OJTBD7EIGAHJWYYQ43SNTXXIQPK5GSRCEFSFIUO76
-#\\\|XUHP2ZT5NBV6SHRLU4ZFI4QPSWCLLDED2Y7TRRDS6CMLXFXE2GY \ / AMOS7 \ YOURUM ::
-#\[7]NXEGCHCOYWZNT2IECJ3Z4QVKMIVKKPDNC77KRJ5FUDTXKVNTIWCI 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,...,,,.,,,,,,.,,,..,..,,..,,,.,,..,,...,.,.,...,.,.,...,...,,.,,
+#RZG374TCEQW77EYZD6YDVNX66UDVD63BEV3MGAQSCO2K3PL4PDDAJS4DCX2JWWGOPN5VLERGGPBQE
+#\\\|IFCIL5SILZZNVNPDSBVTXHGUSEPODQXKDX4UDPJ232FPU4L46JP \ / AMOS7 \ YOURUM ::
+#\[7]QEUSPQ3LLWS4R6QQFUP3QPRGT3HFAPHAILINY4LBYR6BR3HS7WBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

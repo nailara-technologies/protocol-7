@@ -182,6 +182,7 @@ web.cmd.auth-logout
 web.assets.registry
 web.assets.register
 plugin.auth.twofish
+jobsite.stray.check
 jobsite.store.prune
 jobsite.stage.fetch
 jobsite.assert.init
@@ -324,11 +325,13 @@ web.assets.load_registry
 ui.caller.security-level
 protocol.https.init_code
 plugin.auth.auth-keypair
+jobsite.stray.claim_next
 io.unix.socket.init_code
 crypt.C25519.verify_sign
 base.zenka.push.pre_init
 base.zenka.is_v7_started
 base.templates.init_code
+base.strm.local.register
 base.session.check.close
 base.protocol-7.pre_init
 base.parser.command_list
@@ -515,6 +518,7 @@ plugin.web.space.orbital.to_cells
 plugin.web.attention.switch_state
 plugin.web.attention.blend_states
 plugin.auth.zenka.no-keys-defined
+jobsite.handler.stray-jobs-listed
 base.sourcecode.in-mem.sub-source
 base.perlmod.init_install_buffers
 base.parser.center_ellipse_string
@@ -531,6 +535,7 @@ plugin.web.space.orbital.init_code
 plugin.web.space.index.cmd.rebuild
 plugin.web.attention.cmd.set-state
 plugin.auth.auth-keypair.init_code
+jobsite.handler.stray-job-exported
 crypt.C25519.get_type_from_key_str
 base.protocol-7.command.send.local
 base.path-set-up.zenka-directories
@@ -589,6 +594,7 @@ base.init_zenka.install_signal_handlers
 base.handler.strm_size_absolute_timeout
 base.chk-sum.amos.truth_template_chksum
 protocol.sftp.handler.read_server_output
+plugin.web.space.orbital.subscribe_nodes
 plugin.web.content.util.generate_submenu
 jobsite.util.fix_encoding.mojibake-table
 protocol.protocol-7.auth.select-size-mode
@@ -600,10 +606,14 @@ plugin.web.space.template-resolver.resolve
 plugin.web.content.util.calculate_checksum
 plugin.auth.auth-keypair.tofu-notification
 auth.callback.cap-neg.declare-strm-support
+plugin.web.space.orbital.subscribe_gm_state
+plugin.web.space.orbital.subscribe_external
+plugin.web.space.orbital.subscribe_discover
 base.zenka.push.reply-handler.notify-online
 base.referenced_subroutines.clear_from_disk
 plugin.web.space.template-resolver.init_code
 plugin.web.space.orbital.synthetic-zenka-node
+plugin.web.space.orbital.schedule_nodes_retry
 base.log.send-buffer.reply-handler.send-reply
 plugin.auth.auth-keypair.load-authorized-users
 plugin.auth.auth-keypair.cleanup-incoming-keys
@@ -611,12 +621,19 @@ plugin.auth.auth-keypair.validate-incoming-tofu
 auth.callback.cap-neg.declare-strm-size-timeout
 auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
+plugin.web.space.orbital.schedule_gm_state_retry
+plugin.web.space.orbital.schedule_external_retry
+plugin.web.space.orbital.schedule_discover_retry
+plugin.web.space.orbital.handler.nodes_strm_open
 base.log.send-buffer.reply-handler.notify-online
 plugin.web.space.template-resolver.update_context
 plugin.web.space.template-resolver.available_data
+plugin.web.space.orbital.handler.gm_state_strm_open
+plugin.web.space.orbital.handler.external_strm_open
+plugin.web.space.orbital.handler.discover_strm_open
 
-#,,.,,...,.,,,,,.,,..,,,.,.,,,...,,,,,,..,.,,,..,,...,...,..,,.,.,.,.,,,,,.,.,
-#P67PMUOMHZNIQCFSGBVNOMACBJCKJXGDE7YRPQ27U3K4LRHWYTZU2DBYHOIRUHKZ4Q6EKYW4SMPBC
-#\\\|TOYMO5WQKIXOVZYJHKAHBRGVXH3MVRZSALIUTI7O6UPTNLCRD7X \ / AMOS7 \ YOURUM ::
-#\[7]272RRNOD6VFR3ZBOCHA4GFVRJYM5R6GSHSMIXKBY7XBC5TPAQ6DI 7  DATA SIGNATURE ::
+#,,,.,..,,..,,.,.,,.,,,..,.,.,..,,,,.,.,.,..,,..,,...,...,...,.,.,...,.,.,,,,,
+#4YU52ATMVRS5C4XPPDYRRLTUHJYZWPGAGIW6OPS2AJQURBLXVOWGVEGSXFD5OQL3X2JY7PYNGZ6BE
+#\\\|E2VOA52H2OQ5FQ4LP3FOCQEEDZJQLCHYZGLA4SJDEYR7XJL3AL6 \ / AMOS7 \ YOURUM ::
+#\[7]QJXIBFP53WSRPDS4ZT46SSGHLOLTD26LMSXMWHEMBYH63ESNEOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

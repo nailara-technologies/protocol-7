@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = external.handler.reset_retry_delay
+# descr = reset per-connection retry delay after stable success
+
+my $name = shift->w->data // '';
+return if not length $name;
+
+my $conn_ref = $data{'external'}{'connections'} // {};
+return unless exists $conn_ref->{$name};
+
+<[base.logs]>->( 2, qq| resetting retry delay for %s |, $name );
+
+delete $conn_ref->{$name}->{'retry_delay'};
+delete $conn_ref->{$name}->{'timer'}->{'reset_retry_delay'};
+delete $conn_ref->{$name}->{'timer'}
+    if not keys $conn_ref->{$name}->{'timer'}->%*;
+
+return TRUE;
+
+#,,..,,.,,.,.,..,,.,,,..,,.,,,,..,.,,,,..,.,.,..,,...,...,,..,.,,,,..,,..,,..,
+#J7ES3G7KZEWAZK5QIAQKKOHU2ZP2FDIFOJ6PW2JXNXUR4356RFY63WTSQVR4SOJI4O34I4CGOSVNY
+#\\\|KZKFYKV7IQGWNXYILLHCGHRJFWX4FKTRFD3EHNPCGKBCYH2JFFR \ / AMOS7 \ YOURUM ::
+#\[7]BLLUKLV7VB7SAU6HBF6NGLUEBEEL2Z224DS56D6HR7Y6GNT5X2DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

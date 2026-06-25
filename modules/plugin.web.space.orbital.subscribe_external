@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = plugin.web.space.orbital.subscribe_external
+# descr = subscribe to external's orbital connections STRM push ; retried
+#         with backoff via schedule_external_retry on failure
+
+<web.space.orbital.external_subscribe> //= {};
+my $sub = <web.space.orbital.external_subscribe>;
+
+## cancel any pending retry timer before issuing a fresh attempt ##
+if ( exists $sub->{'timer'}->{'retry'} ) {
+    $sub->{'timer'}->{'retry'}->cancel
+        if $sub->{'timer'}->{'retry'}->is_active;
+    delete $sub->{'timer'}->{'retry'};
+}
+
+my $sent = eval {
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'external.cmd.list-connections',
+            'call_args' => { 'args' => qw| subscribe | },
+            'reply'     => {
+                'handler' =>
+                    qw| plugin.web.space.orbital.handler.external_strm_open |,
+            }
+        }
+    );
+};
+
+if ( $EVAL_ERROR or not $sent ) {
+    <[base.logs]>->( 2, qq| orbital external subscribe failed, retrying | );
+    <[plugin.web.space.orbital.schedule_external_retry]>;
+}
+
+return TRUE;
+
+#,,..,,.,,...,,,.,,.,,,..,.,,,...,..,,.,,,,,,,..,,...,...,.,,,,,.,,,.,,,,,..,,
+#7QZ6PRFDMNTHG5CKUWNAHMQUUB47KJGU6L4BRXJ6ZC7UWAL2SOQCAYGBU4QGX5F4D7IBTFTZVLE2U
+#\\\|E2KRY346DB5HS2HMDSTR6MFAO73I5NOYUY2W2EPFQCATJQCCIST \ / AMOS7 \ YOURUM ::
+#\[7]AIKLRVLO7DWRMLJDWC27MVUZQT3KUUKDCEZG2DOZTBL76F6B2ADY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

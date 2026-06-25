@@ -1,0 +1,68 @@
+## [:< ##
+
+# name  = plugin.web.space.orbital.handler.nodes_strm_open
+# descr = reply handler for the nodes orbital subscribe call ; registers a
+#         local STRM consumer that overwrites the cache's 'self' field
+
+my $reply = shift;
+
+## subscribe refused [ nodes offline, or push disabled there ] ##
+if ( $reply->{'cmd'} eq qw| FALSE | ) {
+    <[base.logs]>->(
+        2,
+        qq| orbital nodes subscribe refused: %s |,
+        $reply->{'call_args'}->{'args'} // 'unknown error'
+    );
+    <[plugin.web.space.orbital.schedule_nodes_retry]>;
+    return;
+}
+
+return if $reply->{'cmd'} ne qw| STRM |;
+return if $reply->{'args'} ne qw| open |;
+
+my $cmd_id = $reply->{'cmd_id'};
+return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
+
+## subscribe succeeded : drop any backoff state from prior failures ##
+<web.space.orbital.nodes_subscribe> //= {};
+delete <web.space.orbital.nodes_subscribe>->{'retry_delay'};
+
+my $cache = <web.space.orbital.cache>;
+
+<[base.strm.local.register]>->(
+    $cmd_id,
+    {   'watcher' => sub {
+            my $lc = shift;
+            return if not length $lc->{'buf'};
+
+            my $data = $lc->{'buf'};
+            $lc->{'buf'} = '';
+
+            my %kv;
+            for my $line ( split /\n/, $data ) {
+                $kv{$1} = $2 if $line =~ m|^\s*(\w+)\s+(.+)$|;
+            }
+            return if not keys %kv;
+
+            $cache->{'data'}{'self'} = {
+                qw| p7ref | => ( $kv{'p7ref'} // '' ),
+                qw| theta | => ( $kv{'theta'} // 0 ) + 0,
+                qw| phi   | => ( $kv{'phi'}   // 0 ) + 0,
+                qw| psi   | => ( $kv{'psi'}   // 0 ) + 0,
+                qw| omega | => ( $kv{'omega'} // 0 ) + 0,
+            };
+            $cache->{'received_fields'}{'self'} = 1;
+        },
+    }
+);
+
+<[base.logs]>
+    ->( 2, qq| orbital nodes STRM subscribed [cmd_id=%d] |, $cmd_id );
+
+return;
+
+#,,.,,..,,..,,,,,,,.,,.,,,,.,,,.,,..,,,..,.,.,..,,...,...,,,.,.,,,,,,,..,,.,.,
+#5ZPPTPUC6FM23NNAQY64X44OTLGNIJBLU74NTDCIHCBKBNCHIUO2CMDLSYN3UQPMA6HKKWASKQ3X4
+#\\\|MDOQF7GACM5EUTHL7QPLGLMFFKLZYJDOCT4MV7SRJAGA52F2CEL \ / AMOS7 \ YOURUM ::
+#\[7]RL4YFBW4L5UUKPVCHXFV3BKG6P6RVCLPSHFNN2TJUNEZBMB2KQAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

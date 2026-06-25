@@ -3067,6 +3067,7 @@ return [ qw[
         graphics-matrix.channel.init
         graphics-matrix.address.init
         fetch-files.cmd.hf-lan-check
+        external.orbital.push_update
         external.cmd.connect-orbital
         download.set-up.import_rules
         download.set-up.export_rules
@@ -3671,6 +3672,8 @@ return [ qw[
         graphics-matrix.address.resolve
         fetch.file.huggingface.pre_init
         fetch.file.huggingface.download
+        external.orbital.schedule_retry
+        external.cmd.disconnect-orbital
         events.cmd.get_overlays_visible
         discover.load_update_notify_rqs
         devmod.cmd.change-log-verbosity
@@ -3933,6 +3936,7 @@ return [ qw[
         pdf.html.child.handler.conversion
         pager.util.buffer.load_page_items
         pager.filter.division-13-harmonic
+        nodes.orbital.format_strm_payload
         mpv.initialize.observe_properties
         mpv.handler.event.property-change
         models.storage.discover_directory
@@ -4100,6 +4104,7 @@ return [ qw[
         httpd.route.handler.iris-negotiate
         httpd.handler.input.body_remainder
         graphics-matrix.cmd.filter-rep-col
+        external.handler.reset_retry_delay
         discover.handler.anounce_host_addr
         discover.cmd.reset-broadcast-timer
         data.mount.shm.open.parse_shm_path
@@ -4402,6 +4407,7 @@ return [ qw[
         graphics.matrix.visual.vision-batches
         graphics.matrix.visual.group-by-color
         graphics.matrix.visual.cluster-center
+        graphics-matrix.orbital.build_summary
         graphics-matrix.cmd.assert-similarity
         graphics-matrix.cell.util.cell_output
         discover.format_discover_mcast_packet
@@ -4560,6 +4566,7 @@ return [ qw[
         sourcecode.console.verify-dev-signatures
         sourcecode.console.read-sig-footer-state
         protocol.sftp.handler.read_server_output
+        plugin.web.space.orbital.subscribe_nodes
         plugin.web.content.util.generate_submenu
         plugin.storage.util.visual.path_distance
         plugin.storage.checksum.cluster.traverse
@@ -4602,6 +4609,7 @@ return [ qw[
         plugin.storage.checksum.cluster.init-code
         plugin.httpd.radio.handler.stream_request
         pdf.html.parent.handler.convert_pdf_reply
+        nodes.orbital.push_position_if_subscribed
         nodes.callback.local_network.offline-node
         ncode.regex.expand.util.process_candidate
         ncode.regex.expand.util.evict_and_replace
@@ -4651,6 +4659,9 @@ return [ qw[
         weather.parent.handler.update_current_reply
         screenshot.handler.powershell_capture_reply
         powershell.plugin.screenshot-capture.invoke
+        plugin.web.space.orbital.subscribe_gm_state
+        plugin.web.space.orbital.subscribe_external
+        plugin.web.space.orbital.subscribe_discover
         plugin.storage.util.visual.extract_temporal
         plugin.storage.util.create_overflow_cluster
         mpv.handler.event.property-change.window-id
@@ -4691,6 +4702,7 @@ return [ qw[
         coding.handler.models_find_alternative_reply
         coding.callback.object_model_checksum_loaded
         plugin.web.space.orbital.synthetic-zenka-node
+        plugin.web.space.orbital.schedule_nodes_retry
         letsencr.parent.install_certificate_to_httpsd
         letsencr.parent.determine_certificate_domains
         image2html.parent.handler.convert_image_reply
@@ -4723,8 +4735,13 @@ return [ qw[
         auth.callback.cap-neg.declare-strm-size-support
         source.signature.util.verify_signature_with_data
         protocol.protocol-7.protocol-version-path-set-up
+        plugin.web.space.orbital.schedule_gm_state_retry
+        plugin.web.space.orbital.schedule_external_retry
+        plugin.web.space.orbital.schedule_discover_retry
+        plugin.web.space.orbital.handler.nodes_strm_open
         plugin.storage.util.inference.update_branch_meta
         models.decision.cost_base.get_latency_importance
+        graphics-matrix.orbital.push_state_if_subscribed
         fetch.file.huggingface.handler.download_progress
         base.log.send-buffer.reply-handler.notify-online
         plugin.web.space.template-resolver.update_context
@@ -4747,6 +4764,9 @@ return [ qw[
         data.mount.shm.permission.verify.rights_sufficient
         data.init_holographic.calculate_workhole_bandwidth
         v7.handler.stdio_multiplex_demux.encode_payload_hex
+        plugin.web.space.orbital.handler.gm_state_strm_open
+        plugin.web.space.orbital.handler.external_strm_open
+        plugin.web.space.orbital.handler.discover_strm_open
         models.decision.cost_base.has_available_alternative
         models.decision.cost_base.can_link_to_group_storage
         data.mount.shm.permission.verify.path_pattern_match
@@ -4787,8 +4807,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,.,,,.,.,,,,,,..,,,.,.,.,,,,,,.,,.,.,,,,,.,.,...,...,..,,,..,..,,,.,,..,,
-#JFXBJTZPQELLQRHUKTUNHZ5377KWNOAEH6CQCEU3O3SR374GY2CGBQ75OYKDSV7PDWNNZHUD4ZE2W
-#\\\|IGHZREJEDKKQW7ZMLKVEXE6HYQH6FBIXLBB2QA2OSP7CIJJ5BWH \ / AMOS7 \ YOURUM ::
-#\[7]B6BLXXNYWOGHGXPHP2IZPAZ6DPTF5NLFKAVSELBIJE6RDEXPVADQ 7  DATA SIGNATURE ::
+#,,,,,...,.,.,...,,.,,.,,,.,.,,,.,..,,,.,,.,.,.,.,...,...,...,.,.,,.,,...,...,
+#EIYH22J54QXG3RRO4FJFEI4VECTPSGH5JI7FT6YFOKCXHJ7SYKNTCDUGB47VUEIY7CNS5YZ2SCJWU
+#\\\|GCUJZUWTPUZVJ52DMFFYHL6OP3B2B3VTKX36G4NQTAGG2FKBLGG \ / AMOS7 \ YOURUM ::
+#\[7]QADWMATYZND6EM6XDVERDA4BASGRVH46RDPRB5PTDO4ZXK2O32CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

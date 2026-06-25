@@ -2,6 +2,42 @@
 
 # name  = nodes.cmd.orbital-position
 # descr = return current orbital position and P7REF
+#
+# notes = args 'subscribe' opens a STRM push channel instead, fed by
+#         nodes.orbital.push_position_if_subscribed's own slow timer
+#         [ this value is time-derived, no discrete mutation event exists ]
+
+if ( defined $call->{'args'} and $call->{'args'} eq qw| subscribe | ) {
+    return { 'mode' => qw| false |, 'data' => 'orbital push disabled' }
+        unless <[base.cfg_bool]>->(<nodes.cfg.orbital_push_enabled>);
+
+    my $h = <[base.stream.open]>->(
+        {   'sid'    => $call->{'session_id'},
+            'cmd_id' => $call->{'command_id'},
+            'type'   => qw| STRM |,
+            'total'  => undef,
+        }
+    );
+    return { 'mode' => qw| false |, 'data' => 'stream open refused' }
+        if not defined $h;
+
+    <nodes.orbital.listeners> //= [];
+    push @{<nodes.orbital.listeners>}, $h;
+    <[base.logs]>->(
+        2, 'orbital position listener added [sid=%d]',
+        $call->{'session_id'}
+    );
+
+    ## push the current snapshot immediately ##
+    my $snapshot = <[nodes.orbital.current_position]>;
+    if ( ( $snapshot->{'mode'} // '' ) eq qw| true | ) {
+        my $payload
+            = <[nodes.orbital.format_strm_payload]>->( $snapshot->{'data'} );
+        <[base.stream.push]>->( $h, \$payload ) if length $payload;
+    }
+
+    return { 'mode' => qw| deferred | };
+}
 
 my $result = <[nodes.orbital.current_position]>;
 
@@ -21,8 +57,8 @@ for my $key (@keys) {
 
 return { qw| mode | => qw| size |, qw| data | => $out };
 
-#,,..,.,,,,,,,,.,,,..,,.,,,,.,,,.,,.,,,,.,,,.,..,,...,...,,,.,.,.,.,.,.,,,...,
-#DBCSFNUHUNTLLAEYA4ULHG6AU63OCFH63M5VDJ2JWXJS4HBDCJMCLASAFJLAAXXCLST5NZAOHDAKG
-#\\\|MB3II4A6L2XDZ7IRGE4GCEI4S23ZXMWV63BRNUWX7ATHQXRPG2A \ / AMOS7 \ YOURUM ::
-#\[7]ECXPMNRBDX5XTMKNFYCTE4XQYTJNJ7FEFFTH7N256FMDZNNWYMCI 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,,.,,,,.,,,.,,,,,,..,,.,,.,,,,..,..,,...,.,.,.,,,.,.,.,.,,.,,.,,,
+#BM4WHWFRYCFODM4A7QDNOCM3OJEIFA2QKFDOXFOYOZNXSDM6MXIWF5VS4HNFSGBGHJUNOVRSP6FTG
+#\\\|AKQZ67P6NEAZ5YFW2MLDSPDOYB2SG5CVHE2ZUPW6ZI53POKVLVZ \ / AMOS7 \ YOURUM ::
+#\[7]LDA2TB4ZQVC6CSEEVK2LEVJPUHNZZ3B2OP76XPRHRNYURWI6C6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

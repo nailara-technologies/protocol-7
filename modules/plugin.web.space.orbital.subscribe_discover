@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = plugin.web.space.orbital.subscribe_discover
+# descr = subscribe to discover's orbital STRM push ; retried with backoff
+#         via plugin.web.space.orbital.schedule_discover_retry on failure
+
+<web.space.orbital.discover_subscribe> //= {};
+my $sub = <web.space.orbital.discover_subscribe>;
+
+## cancel any pending retry timer before issuing a fresh attempt ##
+if ( exists $sub->{'timer'}->{'retry'} ) {
+    $sub->{'timer'}->{'retry'}->cancel
+        if $sub->{'timer'}->{'retry'}->is_active;
+    delete $sub->{'timer'}->{'retry'};
+}
+
+my $sent = eval {
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'discover.cmd.list-orbital',
+            'call_args' => { 'args' => qw| subscribe | },
+            'reply'     => {
+                'handler' =>
+                    qw| plugin.web.space.orbital.handler.discover_strm_open |,
+            }
+        }
+    );
+};
+
+if ( $EVAL_ERROR or not $sent ) {
+    <[base.logs]>->( 2, qq| orbital discover subscribe failed, retrying | );
+    <[plugin.web.space.orbital.schedule_discover_retry]>;
+}
+
+return TRUE;
+
+#,,,,,...,,..,,,,,...,,..,...,..,,..,,,,,,.,,,..,,...,...,.,.,...,.,.,,,,,,,.,
+#DWEZS72HXUS63EUTKE2SVIMSUMWIEP3C6GBDHII2QXIGJOUG2E54VEJZSBJ4RNVBMH3H24VINFNTG
+#\\\|E4ZSY64WG2NFSSTACSSWLM4GTFKTG4HCHDBB4J4BAJAMG32GC66 \ / AMOS7 \ YOURUM ::
+#\[7]MXB6BOPZ4SNDQYIT2FZUMXBN4V5PCITCJY2Y56VWXUREC33PLYBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

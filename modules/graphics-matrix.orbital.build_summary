@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = graphics-matrix.orbital.build_summary
+# descr = build the cells/glow/graph/channel summary for orbital enrichment
+# return = JSON-encoded string
+
+## get current cell count ##
+my $cell_list = <[graphics-matrix.cell.list]>->( {} );
+my $cells     = scalar @$cell_list;
+
+## refresh glow ##
+<[graphics-matrix.glow.compute]>;
+
+## build glow_shells array for hops 0..5 ##
+my $glow_shells = [];
+for my $hop ( 0 .. 5 ) {
+    push @$glow_shells, ( <[graphics-matrix.glow.query]>->($hop) // 0 ) + 0;
+}
+
+my $glow_total = 0.0;
+$glow_total += $_ for @$glow_shells;
+
+## get graph survey ##
+my $graph = <[graphics-matrix.graph.survey]>->( {} );
+
+## get channel with palette ##
+my $channel     = eval {<[graphics-matrix.channel.current]>} // {};
+my $palette_raw = eval {<[graphics-matrix.channel.palette]>} // [];
+$channel->{'palette'}
+    = [ map { $ARG->{'color'}{'hex'} // '' } @$palette_raw ];
+
+my $summary = {
+    qw| cells       | => $cells,
+    qw| glow_shells | => $glow_shells,
+    qw| glow_total  | => $glow_total + 0,
+    qw| graph       | => $graph,
+    qw| channel     | => $channel,
+};
+
+return JSON::XS::encode_json($summary);
+
+#,,,.,,.,,,,,,,..,.,.,.,.,..,,.,.,,..,,..,,.,,..,,...,...,,..,,..,,,,,,,.,.,,,
+#34QBB25LZT2ZZF2TOWDRH66BF2HXW35TMIKXMLCXONFTWGHLO5ZNBVZLVWRZ5R7WZAYUXH6R2ADA4
+#\\\|ZSMQOVKNL6GDMQM3TRARNM25C6XPH6FPTOP7EBHB7X7WWJ6S5PU \ / AMOS7 \ YOURUM ::
+#\[7]44HRPZCOEWDBOWDE4W5L5WVUDMMU4G3NXHSFVHUZ3EMLK7S4QSAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

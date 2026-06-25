@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = plugin.web.space.orbital.handler.gm_state_strm_open
+# descr = reply handler for the graphics-matrix orbital subscribe call ;
+#         registers a local STRM consumer that overwrites the cache's
+#         'gm_state' field from each JSON-encoded line
+
+my $reply = shift;
+
+## subscribe refused [ graphics-matrix offline, or push disabled there ] ##
+if ( $reply->{'cmd'} eq qw| FALSE | ) {
+    <[base.logs]>->(
+        2,
+        qq| orbital gm_state subscribe refused: %s |,
+        $reply->{'call_args'}->{'args'} // 'unknown error'
+    );
+    <[plugin.web.space.orbital.schedule_gm_state_retry]>;
+    return;
+}
+
+return if $reply->{'cmd'} ne qw| STRM |;
+return if $reply->{'args'} ne qw| open |;
+
+my $cmd_id = $reply->{'cmd_id'};
+return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
+
+## subscribe succeeded : drop any backoff state from prior failures ##
+<web.space.orbital.gm_state_subscribe> //= {};
+delete <web.space.orbital.gm_state_subscribe>->{'retry_delay'};
+
+my $cache = <web.space.orbital.cache>;
+
+<[base.strm.local.register]>->(
+    $cmd_id,
+    {   'watcher' => sub {
+            my $lc = shift;
+            return if not length $lc->{'buf'};
+
+            my $data = $lc->{'buf'};
+            $lc->{'buf'} = '';
+
+            for my $line ( split /\n/, $data ) {
+                next if not length $line;
+                my $decoded = eval { JSON::XS::decode_json($line) };
+                next if ref $decoded ne qw| HASH |;
+                $cache->{'data'}{'gm_state'}            = $decoded;
+                $cache->{'received_fields'}{'gm_state'} = 1;
+            }
+        },
+    }
+);
+
+<[base.logs]>->(
+    2, qq| orbital gm_state STRM subscribed [cmd_id=%d] |, $cmd_id
+);
+
+return;
+
+#,,,,,,,,,,.,,,..,,.,,,,.,,,.,,..,...,,,.,.,,,..,,...,...,,..,,.,,.,,,,.,,.,,,
+#7J3ATIUUE7JSZA5SR4C3EG33AANWBUJXA56B4KFGZGGMZ5T5GIWHDXDLHRSXJSCGA6ADZRW2UIFTM
+#\\\|UOE3QFD73CXOIJOJHE2XOOM6VJPWPDTVRYNZ43MKDGUH7SXJ7R7 \ / AMOS7 \ YOURUM ::
+#\[7]KSUGXMQJIA4RMIV5YDDC4CQGVNI4ZAILNH2347G3T46LYTK742CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

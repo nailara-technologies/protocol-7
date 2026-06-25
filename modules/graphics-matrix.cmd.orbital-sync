@@ -2,48 +2,47 @@
 
 # name  = graphics-matrix.cmd.orbital-sync
 # descr = sync orbital state and return graphics-matrix summary
+#
+# notes = args 'subscribe' opens a STRM push channel instead, fed by
+#         graphics-matrix.orbital.push_state_if_subscribed's own slow
+#         timer [ no discrete mutation event exists for this summary ]
 
-## get current cell count ##
-my $cell_list = <[graphics-matrix.cell.list]>->( {} );
-my $cells     = scalar @$cell_list;
+if ( defined $call->{'args'} and $call->{'args'} eq qw| subscribe | ) {
+    return { 'mode' => qw| false |, 'data' => 'orbital push disabled' }
+        unless
+        <[base.cfg_bool]>->(<graphics-matrix.cfg.orbital_push_enabled>);
 
-## refresh glow ##
-<[graphics-matrix.glow.compute]>;
+    my $h = <[base.stream.open]>->(
+        {   'sid'    => $call->{'session_id'},
+            'cmd_id' => $call->{'command_id'},
+            'type'   => qw| STRM |,
+            'total'  => undef,
+        }
+    );
+    return { 'mode' => qw| false |, 'data' => 'stream open refused' }
+        if not defined $h;
 
-## build glow_shells array for hops 0..5 ##
-my $glow_shells = [];
-for my $hop ( 0 .. 5 ) {
-    push @$glow_shells, ( <[graphics-matrix.glow.query]>->($hop) // 0 ) + 0;
+    <graphics-matrix.orbital.listeners> //= [];
+    push @{<graphics-matrix.orbital.listeners>}, $h;
+    <[base.logs]>->(
+        2, 'orbital sync listener added [sid=%d]',
+        $call->{'session_id'}
+    );
+
+    ## push the current snapshot immediately ##
+    my $payload = <[graphics-matrix.orbital.build_summary]> . "\n";
+    <[base.stream.push]>->( $h, \$payload );
+
+    return { 'mode' => qw| deferred | };
 }
-
-my $glow_total = 0.0;
-$glow_total += $_ for @$glow_shells;
-
-## get graph survey ##
-my $graph = <[graphics-matrix.graph.survey]>->( {} );
-
-## get channel with palette ##
-my $channel     = eval {<[graphics-matrix.channel.current]>} // {};
-my $palette_raw = eval {<[graphics-matrix.channel.palette]>} // [];
-$channel->{'palette'}
-    = [ map { $ARG->{'color'}{'hex'} // '' } @$palette_raw ];
-
-## build summary : JSON-encoded for reliable transport over size reply ##
-my $summary = {
-    qw| cells       | => $cells,
-    qw| glow_shells | => $glow_shells,
-    qw| glow_total  | => $glow_total + 0,
-    qw| graph       | => $graph,
-    qw| channel     | => $channel,
-};
 
 return {
     qw| mode | => qw| size |,
-    qw| data | => JSON::XS::encode_json($summary),
+    qw| data | => <[graphics-matrix.orbital.build_summary]>,
 };
 
-#,,.,,,.,,,,.,,.,,..,,,..,,,,,..,,..,,,,.,,,.,..,,...,..,,..,,..,,,..,,,.,,.,,
-#YFDBL3O6HYSJGQEBE2OEI7BY7LEN7DH6S6MICQKNT6W2WTWP6VUX4GL3TZIY4Q3M3FVRDE7W7KFCG
-#\\\|TD3AIYTOHIVAHP62IUSW27LLVCQJOIU7KLDSE5SPWRKSRTW275F \ / AMOS7 \ YOURUM ::
-#\[7]LEBBTEN2EIJI5FUPZYJMACZLDLDAV4JJVNZBTHDRTXKJ6RIFYABY 7  DATA SIGNATURE ::
+#,,..,,,,,,..,.,,,,..,,,.,.,,,...,,..,..,,..,,..,,...,...,...,.,,,..,,,..,,..,
+#CZC2AGGZNW2LMTJICECH4K6SDYW6XGKCONWJKNFNRHZMIH4XQ6BCNT6IICLTMQD5VE6QJGCEAJ456
+#\\\|J4DANB5INW6F4RWYOON6BKAQ57QVNG5CBJWGFNNVZF36Q7AGQCZ \ / AMOS7 \ YOURUM ::
+#\[7]H5RP4D45E4SXXLJJG2RVWON7QAWR35C3A4HWCSZKGFFOWGKM6OCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
