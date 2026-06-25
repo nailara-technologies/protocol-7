@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = external.orbital.push_update
+# descr = push a single connection's current state to orbital STRM
+#         subscribers ; call after any mutation of $data{external}{connections}
+# param = <name>
+
+my $name = shift // '';
+return if not length $name;
+
+return
+    unless <[base.cfg_bool]>->(<external.cfg.orbital_push_enabled>);
+return
+    unless defined <external.orbital.listeners>
+    and @{<external.orbital.listeners>};
+
+my $conn_ref = $data{'external'}{'connections'} // {};
+return unless exists $conn_ref->{$name};
+my $c = $conn_ref->{$name};
+
+my $payload = sprintf "%s %s %s %s %s\n",
+    $name,
+    $c->{'p7ref'}  // '',
+    $c->{'ip'}     // '',
+    $c->{'status'} // '',
+    $c->{'encrypted'} ? qw| yes | : qw| no |;
+
+my @keep;
+for my $h ( @{<external.orbital.listeners>} ) {
+    push @keep, $h if <[base.stream.push]>->( $h, \$payload );
+}
+<external.orbital.listeners> = \@keep;
+
+return TRUE;
+
+#,,,.,,.,,,,,,.,,,,,,,,..,,,,,,.,,.,,,.,,,,,,,..,,...,...,.,,,.,.,,..,..,,...,
+#NB5SPBJYICKERN3LP6D5ZUKQVRBYCSHUCJHPMCP6W44YPTSOF6CI3V47IZQGQPWEBYLHJV762J2EA
+#\\\|C3WRGND6B3MDXHRERW6NM7NQ6WBXCCDZOJSSVSXCAVOVIBJORPR \ / AMOS7 \ YOURUM ::
+#\[7]N6TTGILHCRIHALSUBQ2LNI74EAFGRRTDTFYE5GHWYRIYAM6TGCDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

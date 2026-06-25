@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = plugin.web.space.orbital.subscribe_nodes
+# descr = subscribe to nodes's orbital self-position STRM push ; retried
+#         with backoff via schedule_nodes_retry on failure
+
+<web.space.orbital.nodes_subscribe> //= {};
+my $sub = <web.space.orbital.nodes_subscribe>;
+
+## cancel any pending retry timer before issuing a fresh attempt ##
+if ( exists $sub->{'timer'}->{'retry'} ) {
+    $sub->{'timer'}->{'retry'}->cancel
+        if $sub->{'timer'}->{'retry'}->is_active;
+    delete $sub->{'timer'}->{'retry'};
+}
+
+my $sent = eval {
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'nodes.cmd.orbital-position',
+            'call_args' => { 'args' => qw| subscribe | },
+            'reply'     => {
+                'handler' =>
+                    qw| plugin.web.space.orbital.handler.nodes_strm_open |,
+            }
+        }
+    );
+};
+
+if ( $EVAL_ERROR or not $sent ) {
+    <[base.logs]>->( 2, qq| orbital nodes subscribe failed, retrying | );
+    <[plugin.web.space.orbital.schedule_nodes_retry]>;
+}
+
+return TRUE;
+
+#,,..,,.,,,..,...,.,,,..,,.,.,,,.,..,,..,,...,..,,...,...,...,,.,,,,,,,,,,.,.,
+#DSGAD6WDZ7R6R7QWEWVEAVZJKUWIEQ6KMKQATLE5IQH7FBHUZUGYXTMYYHBTH4367JVXH3J3LHG64
+#\\\|2NVL4F7IOR6WH3GC7TKKJCWYPGPS27NPOKBDFDUCI7TMZJL4FFK \ / AMOS7 \ YOURUM ::
+#\[7]PTROH2LU75FQDQSIKM3JBIUJ6TXIBF3Y2UFSIGK42Y5FMEZGR2AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

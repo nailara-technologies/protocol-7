@@ -19,6 +19,8 @@ if ( length $nameserv_domain ) {
 }
 
 ## set up repeating fetch timer [ interval 13, repeat TRUE ] ##
+## NOTE: only 'nameserv' is still polled here, everything else moved to ##
+## STRM push below                                                      ##
 <[event.add_timer]>->(
     {   qw| interval | => 13,
         qw| repeat   | => TRUE,
@@ -26,12 +28,18 @@ if ( length $nameserv_domain ) {
     }
 );
 
+## subscribe to each orbital producer's STRM push instead of polling it ##
+<[plugin.web.space.orbital.subscribe_discover]>;
+<[plugin.web.space.orbital.subscribe_external]>;
+<[plugin.web.space.orbital.subscribe_nodes]>;
+<[plugin.web.space.orbital.subscribe_gm_state]>;
+
 <[base.log]>->( 2, qq| orbital data endpoint initialized | );
 
 0;
 
-#,,,.,,,,,,,,,,..,,..,.,,,.,.,,..,.,.,,.,,,.,,..,,...,...,.,.,.,,,...,,,.,,,,,
-#GYUNLV7NO7FKD3M4EEG3ATWTQPPMMOCY27JTH4BCHUJWPH2UTZWJ5RG6ZPVKJXBPU6WV4TO54JCD6
-#\\\|VYL4IPTPWZLVMCYFTPYUX74XXHV5FRZF4X4ZI2BL7LNFTCREIKD \ / AMOS7 \ YOURUM ::
-#\[7]427YINHOWLEVAM5H4VHTPJFXWPBG4HL2ZPT7FRXT67LNNBIEDSBY 7  DATA SIGNATURE ::
+#,,,.,...,...,..,,.,.,,.,,...,,..,,.,,,,,,...,..,,...,.,,,,.,,,.,,...,,..,...,
+#CHRCYZ7GJW7NQZ3DSQWYVXFQKVA2DRL73F3GME7BYAJSJ55LIXMZC67A3MQVHINRNUAFMHQ3YMUD6
+#\\\|URBXRMHW4PXVCIDF4GCB37WJ2FRM6KNHEGKRAK75Z6D6YHNWIUH \ / AMOS7 \ YOURUM ::
+#\[7]G3KSZE3FTODYD3G4FUIUSDUINHLEC43ZZ4FIFZWJ55N7BBII2WCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

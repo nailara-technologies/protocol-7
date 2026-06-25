@@ -11,6 +11,20 @@
 
 <nodes.cfg.host_details_command> //= qw| cube.discover.host_details |;
 
+##  orbital STRM push : disable in zenki/nodes/start when required  ##
+##
+<nodes.cfg.orbital_push_enabled> //= TRUE;
+
+## position has no discrete mutation event [ time-derived ] : poll our own ##
+## listeners on a slow timer instead, gated to a no-op when nobody is      ##
+## subscribed                                                              ##
+<[event.add_timer]>->(
+    {   qw| interval | => 45,
+        qw| repeat   | => TRUE,
+        qw| handler  | => qw| nodes.orbital.push_position_if_subscribed |,
+    }
+);
+
 <nodes.local-network.online-hosts> //= {};
 
 <list.lan-nodes> = {    ## todo : repair 'sort_key' param for '<key>' case ##
@@ -115,8 +129,8 @@
 
 0;
 
-#,,,.,,,.,,..,.,,,,,.,,,.,,..,.,,,,,,,,.,,...,..,,...,..,,.,.,..,,,,.,,..,..,,
-#2KMT5QJOQ7SKFBG67EGSTN6VQR73P5TD6EE2U5CJZCTAPVTPZTFSKV6HT35G77OOMRYRBJ3JFGH66
-#\\\|OU2YIARW3N5BQ6WGVT64ZJACOVH55I3T3NYJ57VRIEPCQD7WBAW \ / AMOS7 \ YOURUM ::
-#\[7]L3NJ6BB6DSHNLERJVRHJN2FL3YQWRLJP3DYWU7DWGEDS3MXKGEBY 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,..,,,,,,,,.,.,.,.,,,..,,...,,..,..,,...,..,,,.,,.,.,,.,,,.,,..,,
+#7BS2YGOIPJV7WEOOVPH67OMHQL4JCVU253YL6DZUNJQP7NZYAKWJEU2AVVWFH3S3GTEL4ETXARGBS
+#\\\|5GBWYINTORJWR2SVLH6CQCNYQPEMG7WNXACFD7ZPKLICUQTT7PK \ / AMOS7 \ YOURUM ::
+#\[7]TCS4YTT6TH6RMKKGTGOPTJXOO2A633A6WTOPZEFGAZRJN2UMDSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

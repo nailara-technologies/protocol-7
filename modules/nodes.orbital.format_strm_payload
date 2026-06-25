@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = nodes.orbital.format_strm_payload
+# descr = format orbital position data as a STRM push payload
+# param = \%data [ theta/phi/psi/omega/p7ref/session_start/computed_at ]
+
+my $d = shift // {};
+
+my $payload = '';
+for my $key ( sort keys %$d ) {
+    my $val = $d->{$key} // '';
+    $val = sprintf '%.6f', $val
+        if $val =~ m|^\d+\.\d+$| and $key =~ m{^(theta|phi|psi|omega)$};
+    $payload .= sprintf "  %s  %s\n", $key, $val;
+}
+
+return $payload;
+
+#,,.,,,..,..,,...,,,,,,.,,,..,,,,,,.,,..,,.,,,..,,...,..,,...,,.,,,.,,,,.,,,,,
+#ZWKH455SHQBTQKSLS2ZQS3MZQKW77VCZCIUDPNHRT67DMIBWAMGPNXWF2ALOWXSM5RNDVP2KYEHDG
+#\\\|5VJCSV3BFA4WFKEVNKTBQDTY4X4JCDTM7ZSHIITAWWSZLEH2H2J \ / AMOS7 \ YOURUM ::
+#\[7]WF2HY73RRTVLKRWFZBTTHKSK55ATMDIBW5FDIXHCRWDLAGHCNOAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

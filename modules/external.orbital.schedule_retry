@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = external.orbital.schedule_retry
+# descr = schedule an exponential-backoff retry for a failed orbital connection
+
+my $name = shift // '';
+return if not length $name;
+
+my $conn_ref = $data{'external'}{'connections'} // {};
+return if not exists $conn_ref->{$name};
+
+my $conn = $conn_ref->{$name};
+
+## initialize / increment per-connection retry delay ##
+$conn->{'retry_delay'} //= 5.0;
+$conn->{'retry_delay'} = sprintf( '%.2f', $conn->{'retry_delay'} * 1.2 );
+$conn->{'retry_delay'} = sprintf( '%.1f', $conn->{'retry_delay'} )
+    if $conn->{'retry_delay'} > 10;
+$conn->{'retry_delay'} = sprintf( '%.0f', $conn->{'retry_delay'} )
+    if $conn->{'retry_delay'} > 20;
+
+my $max_retry_delay = 300;
+$conn->{'retry_delay'} = $max_retry_delay
+    if $conn->{'retry_delay'} > $max_retry_delay;
+
+## do not stack overlapping retry timers ##
+return
+    if exists $conn->{'timer'}->{'retry'}
+    and $conn->{'timer'}->{'retry'}->is_active;
+
+my $p7ref = $conn->{'p7ref'} // '';
+return if not length $p7ref;
+
+$conn->{'timer'}->{'retry'} = <[event.add_timer]>->(
+    {   'after'   => $conn->{'retry_delay'},
+        'handler' => qw| external.cmd.connect-orbital |,
+        'data'    => { 'args' => "$p7ref $name" }
+    }
+);
+
+<[base.logs]>->(
+    2,     qq| scheduled orbital retry for %s in %.2f seconds |,
+    $name, $conn->{'retry_delay'}
+);
+
+return TRUE;
+
+#,,..,,,.,,.,,...,.,,,,..,.,.,,,,,,.,,,.,,.,.,..,,...,...,..,,,..,,.,,...,,,.,
+#WZZYG6O5D4LA4E37IYQB3VT6RGX4FZEWYR2JTLKGIWO4PUKZEVU6KBKNCCBRAKYQCKX3NPQITVETG
+#\\\|Y77WPHL3KRYMRWCLV5BBK5WGRLVRYSHRD2WQA6476OZMFMDFBFF \ / AMOS7 \ YOURUM ::
+#\[7]XDWMIM4UZJ5NUFZ5HCDR3HGS2ZRKEUCTJ62MB5EH2ODKDNO7QODI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

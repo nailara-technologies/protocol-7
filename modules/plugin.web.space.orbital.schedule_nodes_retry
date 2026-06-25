@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = plugin.web.space.orbital.schedule_nodes_retry
+# descr = exponential backoff retry for the nodes orbital subscribe call ;
+#         mirrors v7.handler.zenka_status's restart_delay shape [ *1.2,
+#         capped, never a fixed-interval retry ]
+
+<web.space.orbital.nodes_subscribe> //= {};
+my $sub = <web.space.orbital.nodes_subscribe>;
+
+$sub->{'retry_delay'} //= 5.0;
+$sub->{'retry_delay'} = sprintf( '%.2f', $sub->{'retry_delay'} * 1.2 );
+$sub->{'retry_delay'} = sprintf( '%.1f', $sub->{'retry_delay'} )
+    if $sub->{'retry_delay'} > 10;
+$sub->{'retry_delay'} = sprintf( '%.0f', $sub->{'retry_delay'} )
+    if $sub->{'retry_delay'} > 20;
+
+my $max_retry_delay = 300;
+$sub->{'retry_delay'} = $max_retry_delay
+    if $sub->{'retry_delay'} > $max_retry_delay;
+
+## do not stack overlapping retry timers ##
+return
+    if exists $sub->{'timer'}->{'retry'}
+    and $sub->{'timer'}->{'retry'}->is_active;
+
+$sub->{'timer'}->{'retry'} = <[event.add_timer]>->(
+    {   'after'   => $sub->{'retry_delay'},
+        'handler' => qw| plugin.web.space.orbital.subscribe_nodes |,
+    }
+);
+
+<[base.logs]>->(
+    2, qq| scheduled nodes orbital resubscribe in %.2f seconds |,
+    $sub->{'retry_delay'}
+);
+
+return TRUE;
+
+#,,..,,,,,...,,,,,,..,.,,,,.,,.,,,...,,,,,..,,..,,...,...,...,...,,,.,,..,,.,,
+#L3564DEZETGD26RWK652VLEJ53UW6EACXQWMDQ2HIXZOBJMEYDZSQHESSWIS5F2MSWF77LFCNSF2I
+#\\\|6323GD7VXASAR6HCP5HLT5TUIDMHYJC6WJ4SVFX4XKVZEW7MF22 \ / AMOS7 \ YOURUM ::
+#\[7]FSXC6JCLZ5XM3KUK53KSGJXPW4FDM43KIOQEIDJTMIFLQYJ654BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
