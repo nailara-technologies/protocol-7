@@ -87,6 +87,25 @@ if ( $reply_href->{'mode'} eq qw| true | ) {
         : qw| plaintext |
     );
 
+    ## cancel any pending retry timer ##
+    if ( exists $conn_ref->{$name}->{'timer'}->{'retry'} ) {
+        $conn_ref->{$name}->{'timer'}->{'retry'}->cancel
+            if $conn_ref->{$name}->{'timer'}->{'retry'}->is_active;
+        delete $conn_ref->{$name}->{'timer'}->{'retry'};
+    }
+
+    ## reset retry delay after a stable success window ##
+    $conn_ref->{$name}->{'timer'}->{'reset_retry_delay'}
+        = <[event.add_timer]>->(
+        {   'repeat'  => FALSE,
+            'after'   => 60,
+            'handler' => qw| external.handler.reset_retry_delay |,
+            'data'    => $name
+        }
+        );
+
+    eval { <[external.orbital.push_update]>->($name); };
+
     ## request grid fragment sync ##
     eval { <[external.orbital.sync_grid_fragment]>->($name); };
 } else {
@@ -96,12 +115,14 @@ if ( $reply_href->{'mode'} eq qw| true | ) {
         1,     qq| orbital connection to %s failed: %s |,
         $name, $reason
     );
+    eval { <[external.orbital.push_update]>->($name); };
+    eval { <[external.orbital.schedule_retry]>->($name); };
 }
 
 return;
 
-#,,,.,...,.,,,...,.,,,,..,.,.,,.,,,,.,...,.,.,..,,...,...,,,,,..,,,..,...,.,.,
-#7LR42NVRX55APBDDEBTMUUKLNAX3PNZOJ4U7FSMWCH3T3TREZFNCOFUDMWUOOQ3RSS3GMZJAHBGTW
-#\\\|6I4GYNO5BRURBAFFMNJRLCJWWXM3ILAGJH4OVQDR4A3AWNOBO6X \ / AMOS7 \ YOURUM ::
-#\[7]DKTJPAPVA6J4AF2TWCENURN6H3KACKNJS62SATTZMSF7ZJB2FYAQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,..,,,..,,.,,,,.,.,,,...,..,,.,,,..,,...,...,,,,,,..,.,.,,,,,.,.,
+#C67XMJNFTMADJOGUNME3IFOGBAOVIO6BIKCVZJZ352WAIMSTOATIQAZLP76IM6VPGGAY436SSKM3Q
+#\\\|PV36GXXBYMR3YG4ZN5P4TNPGPRCLJ5EAUH4VWOR73OTK7EZRWZF \ / AMOS7 \ YOURUM ::
+#\[7]3WM2U6ZJWBZKMKQYTX3E6RSMIPBWYVRGOKNGA4Y6XCPLCLDJHQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

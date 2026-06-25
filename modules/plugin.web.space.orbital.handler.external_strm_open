@@ -1,0 +1,79 @@
+## [:< ##
+
+# name  = plugin.web.space.orbital.handler.external_strm_open
+# descr = reply handler for the external orbital connections subscribe call ;
+#         registers a local STRM consumer that merges incoming lines into
+#         the orbital cache's 'connections' field incrementally
+
+my $reply = shift;
+
+## subscribe refused [ external offline, or push disabled there ] ##
+if ( $reply->{'cmd'} eq qw| FALSE | ) {
+    <[base.logs]>->(
+        2,
+        qq| orbital external subscribe refused: %s |,
+        $reply->{'call_args'}->{'args'} // 'unknown error'
+    );
+    <[plugin.web.space.orbital.schedule_external_retry]>;
+    return;
+}
+
+return if $reply->{'cmd'} ne qw| STRM |;
+return if $reply->{'args'} ne qw| open |;
+
+my $cmd_id = $reply->{'cmd_id'};
+return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
+
+## subscribe succeeded : drop any backoff state from prior failures ##
+<web.space.orbital.external_subscribe> //= {};
+delete <web.space.orbital.external_subscribe>->{'retry_delay'};
+
+my $cache = <web.space.orbital.cache>;
+<web.space.orbital.connections_index> //= {};
+
+<[base.strm.local.register]>->(
+    $cmd_id,
+    {   'watcher' => sub {
+            my $lc = shift;
+            return if not length $lc->{'buf'};
+
+            my $data = $lc->{'buf'};
+            $lc->{'buf'} = '';
+
+            for my $line ( split /\n/, $data ) {
+                next if not length $line;
+
+                if (    $line =~ m|^(\S+)\s+(\S+)$|
+                    and $2 eq qw| DISCONNECTED | ) {
+                    delete <web.space.orbital.connections_index>->{$1};
+                    next;
+                }
+
+                next if $line !~ m|^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)|;
+                <web.space.orbital.connections_index>->{$1} = {
+                    qw| name      | => $1,
+                    qw| p7ref     | => $2,
+                    qw| status    | => $4,
+                    qw| encrypted | => ( $5 eq qw| yes | ? TRUE : FALSE ),
+                };
+            }
+
+            ## rebuild the array shape to_cells/orbital.json expect ##
+            $cache->{'data'}{'connections'}
+                = [ values %{<web.space.orbital.connections_index>} ];
+            $cache->{'received_fields'}{'connections'} = 1;
+        },
+    }
+);
+
+<[base.logs]>->(
+    2, qq| orbital external STRM subscribed [cmd_id=%d] |, $cmd_id
+);
+
+return;
+
+#,,.,,,..,.,,,.,.,,,.,..,,,.,,,.,,,,.,..,,.,.,..,,...,.,.,.,.,,,,,,..,...,,,.,
+#D2WXPJD2TX2IVM23N2SGCCLQZ3AT7PVGH273P6TMS6GRW3Q5ZUWKKYA2XABA5NNHOBFBPIYF6SWTG
+#\\\|E6YAGSHL2MBPF7SOKUYPJ47YRDAATFX7OUAJ3BBMDCNVCP6ERSP \ / AMOS7 \ YOURUM ::
+#\[7]YWO5JNNGDAIMQ54ZEPXFCFB6WN6P5FKCT76OZMWZO4APDQVHASBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

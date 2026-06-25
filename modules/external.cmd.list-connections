@@ -2,6 +2,46 @@
 
 # name  = external.cmd.list-connections
 # descr = list all orbital connections
+#
+# notes = args 'subscribe' opens a STRM push channel instead, fed by
+#         every connection mutation point
+
+if ( defined $call->{'args'} and $call->{'args'} eq qw| subscribe | ) {
+    return { 'mode' => qw| false |, 'data' => 'orbital push disabled' }
+        unless <[base.cfg_bool]>->(<external.cfg.orbital_push_enabled>);
+
+    my $h = <[base.stream.open]>->(
+        {   'sid'    => $call->{'session_id'},
+            'cmd_id' => $call->{'command_id'},
+            'type'   => qw| STRM |,
+            'total'  => undef,
+        }
+    );
+    return { 'mode' => qw| false |, 'data' => 'stream open refused' }
+        if not defined $h;
+
+    <external.orbital.listeners> //= [];
+    push @{<external.orbital.listeners>}, $h;
+    <[base.logs]>->(
+        2, 'orbital connections listener added [sid=%d]',
+        $call->{'session_id'}
+    );
+
+    ## push the current snapshot immediately ##
+    my $conn_ref = $data{'external'}{'connections'} // {};
+    for my $name ( <[base.sort]>->($conn_ref) ) {
+        my $c       = $conn_ref->{$name};
+        my $payload = sprintf "%s %s %s %s %s\n",
+            $name,
+            $c->{'p7ref'}  // '',
+            $c->{'ip'}     // '',
+            $c->{'status'} // '',
+            $c->{'encrypted'} ? qw| yes | : qw| no |;
+        <[base.stream.push]>->( $h, \$payload );
+    }
+
+    return { 'mode' => qw| deferred | };
+}
 
 my $conn_ref = $data{'external'}{'connections'} // {};
 my @names    = <[base.sort]>->($conn_ref);
@@ -26,8 +66,8 @@ foreach my $name (@names) {
 
 return { 'mode' => qw| size |, 'data' => $output };
 
-#,,.,,.,.,,,,,...,..,,,..,..,,,,,,..,,.,.,...,..,,...,..,,...,,,.,,,,,.,,,..,,
-#ZDRXAWQ44N6Z7A7EEH24YB4XY7UR2NJYVL5UGP2DQDUUVQPY6BFLB6MBV2LTBDQK3VUKNPU7JVBTW
-#\\\|HE55WUNT4VSKSZ4CVGDELG43JHCAQIK5BCRTSJX3DCUMSNBTQA4 \ / AMOS7 \ YOURUM ::
-#\[7]TXFVQY5LTGHMR234LLQMAMUQ2MKVCCCZTIV72V34742K3DXLPGAA 7  DATA SIGNATURE ::
+#,,,.,..,,..,,...,,.,,...,.,.,...,..,,...,...,..,,...,..,,,.,,...,...,..,,,,,,
+#3DXFANFPHHWXWILI5HBE4IPQTKJTEVG6HZVHQCEDLAYM6K4NWX236CMCBQSGTBMWJVLLRD4ZB4EXO
+#\\\|WWCHUW3GKY5FECUVFHBYQJR2I4B3ZYYZRNSVU547IPKCIZ4JTS7 \ / AMOS7 \ YOURUM ::
+#\[7]T3IXNN25YAQI77RZVRTIYZAHJER22AL3US7Q5YFCTB3M6GLQ34DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

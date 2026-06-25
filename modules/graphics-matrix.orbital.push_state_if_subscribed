@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = graphics-matrix.orbital.push_state_if_subscribed
+# descr = push current cells/glow/graph/channel summary to STRM subscribers
+#
+# notes = called on its own slow timer [ see graphics-matrix.init_code ]
+#         since no discrete mutation event covers this summary ; no-ops
+#         [ cheap check only ] when nobody is subscribed
+
+return
+    unless <[base.cfg_bool]>->(<graphics-matrix.cfg.orbital_push_enabled>);
+return
+    unless defined <graphics-matrix.orbital.listeners>
+    and @{<graphics-matrix.orbital.listeners>};
+
+my $payload = <[graphics-matrix.orbital.build_summary]> . "\n";
+
+my @keep;
+for my $h ( @{<graphics-matrix.orbital.listeners>} ) {
+    push @keep, $h if <[base.stream.push]>->( $h, \$payload );
+}
+<graphics-matrix.orbital.listeners> = \@keep;
+
+return TRUE;
+
+#,,.,,...,,,,,.,,,,..,,.,,.,,,.,.,.,.,...,,.,,..,,...,...,...,..,,,..,.,,,.,,,
+#ZGT2Y2ZZANJHSILCZPGKW57WKWRWC6YVQKHANZ27F2YMKFSX3WT7MHMSZUARBVLS63FJCZLOWBM3K
+#\\\|TI5OZQ3WXKO3LTXF55OQ3QFWGHJPMFVETOCSG4OGYICTB2C2GOW \ / AMOS7 \ YOURUM ::
+#\[7]XCBQYXTPHUVLYLVHT6TQ4NGOWSKJEWJ3G5JVOD23GXN3RAMJXQDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

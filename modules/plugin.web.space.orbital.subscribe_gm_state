@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = plugin.web.space.orbital.subscribe_gm_state
+# descr = subscribe to graphics-matrix's orbital summary STRM push ;
+#         retried with backoff via schedule_gm_state_retry on failure
+
+<web.space.orbital.gm_state_subscribe> //= {};
+my $sub = <web.space.orbital.gm_state_subscribe>;
+
+## cancel any pending retry timer before issuing a fresh attempt ##
+if ( exists $sub->{'timer'}->{'retry'} ) {
+    $sub->{'timer'}->{'retry'}->cancel
+        if $sub->{'timer'}->{'retry'}->is_active;
+    delete $sub->{'timer'}->{'retry'};
+}
+
+my $sent = eval {
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'graphics-matrix.cmd.orbital-sync',
+            'call_args' => { 'args' => qw| subscribe | },
+            'reply'     => {
+                'handler' =>
+                    qw| plugin.web.space.orbital.handler.gm_state_strm_open |,
+            }
+        }
+    );
+};
+
+if ( $EVAL_ERROR or not $sent ) {
+    <[base.logs]>->( 2, qq| orbital gm_state subscribe failed, retrying | );
+    <[plugin.web.space.orbital.schedule_gm_state_retry]>;
+}
+
+return TRUE;
+
+#,,.,,.,.,..,,...,,.,,,.,,,..,..,,,.,,..,,.,,,..,,...,..,,,.,,..,,...,,,,,,.,,
+#AEQZQRATYHZKVIADSV5XJAXIFYABSNVUFZT27C5UANZ4AX3PYLCPR7OCFIMKUUF6T4SLFHKQSTOQG
+#\\\|BQDZT7YHP47CEMHTRJQBGV5UPGJUGMGQKXRK4UP5LYUH7LUYZP2 \ / AMOS7 \ YOURUM ::
+#\[7]3CJLDVCPRBBAMKDWKFU4QIMEOGOSB6SAU7EWZCCIYLUCIDOTRGCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

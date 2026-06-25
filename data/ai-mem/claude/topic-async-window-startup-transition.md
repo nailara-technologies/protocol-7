@@ -518,3 +518,36 @@ impressive, ticker[done]. get_screen_size: tile.
 #\\\|XZ644EOG3GIRP7YCH5IUHFO4M3LLRBI5BCBOMIIZJPRKG7BAXJJ \ / AMOS7 \ YOURUM ::
 #\[7]RRBTZKEQOJL7444QNB7FJHXVQGSWBB5QL4YWOUBVX4IPLZYKGKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+**>>> SESSION 2026-06-25 — confirmed root cause + patience fix for the void-landing fallback:**
+taeki confirmed via screen-setup zenka: with beamer off (2-monitor layout) the
+two side-by-side screens are TOP-ALIGNED (no Y overlap) — matches the earlier
+"works cleanly with 3rd screen off" observation. With beamer on (3-monitor),
+the left monitor sits HALF-BELOW the right one, which is what produces the
+Y-range overlap (`y:[1860,2520)`-style) that Weston mis-attributes/clamps.
+So the overlap bug is purely a function of THIS PARTICULAR layout's vertical
+offsets, not something inherent to having 3 monitors — a 3-monitor layout
+with all tops aligned should not exhibit it.
+Fixed open issue #1 from the prior session: `ticker.open_window`'s startup
+void-recovery `elsif` branch was a single 0.2s-delayed check+correct shot,
+which the prior session had already diagnosed as unreliable (a fresh
+never-mapped window's own Weston initial-placement handshake can still be in
+progress at 0.2s, so even the recheck can land in the void). Rewrote it to
+poll every 0.2s up to 10 attempts (same cadence as the no-snapshot
+settle-timer branch above it), calling `find_safe_position` fresh each
+attempt and only giving up + logging after exhaustion. NOT YET LIVE-VERIFIED
+against the real 3-monitor overlap layout (needs beamer on to reproduce) —
+open issue #2 (the separate "shadow only, no content"/"no draw callback"
+compositor-paint glitch that followed void-landing recoveries) is UNCHANGED,
+still unconfirmed whether placement patience reduces or fixes it.
+Left configuration/zenki/graphics-matrix/zenka-startup.v7 (on-demand
+commented out) and configuration/zenki/v7/start-set-up.base
+(`zenki.disabled = graphics-matrix`) AS-IS per taeki — confirmed unrelated to
+ticker (graphics-matrix isn't referenced anywhere in ticker's modules), just
+a leftover debug toggle from a prior session, taeki wants it disabled for now.
+
+#,,..,.,.,,.,,,,,,...,.,,,...,..,,.,,,,..,,,.,..,,...,...,...,.,,,..,,.,,,,,.,
+#E5YOXPKTEN44UCKVCNU4LU65J5EOJEHSK6F5L7PCQMXLZE57SDFAETES4LZDQFJAWQTOLTJMDRTCI
+#\\\|N4SPPLJBCXMEJQYHEMLATF7BIHIRH7VRU3LIZMP6AR2YNQP75Y4 \ / AMOS7 \ YOURUM ::
+#\[7]J2Y6WUO63GIGYIKDBJ4F65PHULEUGF4HWMLI3KZY2ZUZ5WLM2OCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
