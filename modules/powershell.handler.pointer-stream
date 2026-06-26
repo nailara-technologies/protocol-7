@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = powershell.handler.pointer-stream
+# descr = read pointer coordinates from hook stdout, write packed x,y to shm
+
+my $event   = shift;
+my $fh      = $event->w->fd;
+my $buf_key = 'buf_' . ( fileno($fh) // 'x' );
+
+$data{'powershell'}{'pointer'}{$buf_key} //= '';
+my $buf_ref = \$data{'powershell'}{'pointer'}{$buf_key};
+
+my $bytes = <[base.s_read]>->( $fh, $buf_ref, 512 );
+
+if ( not defined $bytes or $bytes < 1 ) {
+    $event->w->cancel;
+    close $fh;
+    if ( defined <powershell.pointer.pid> ) {
+        undef <powershell.pointer.pid>;
+        ## restore ondemand timeout that was suspended during stream
+        if ( defined <powershell.pointer.saved_timeout> ) {
+            $data{'system'}{'ondemand_timeout'}
+                = delete $data{'powershell'}{'pointer'}{'saved_timeout'};
+        }
+    }
+    <[base.logs]>->( 1, 'pointer-stream : fd closed' );
+    return;
+}
+
+$$buf_ref =~ s|\r||g;    ## normalize crlf before parsing
+
+<powershell.pointer.coord_count> //= 0;
+while ( $$buf_ref =~ s|^(-?\d+) (-?\d+)\n|| ) {
+    my ( $x, $y ) = ( $1 + 0, $2 + 0 );
+    my $shm_ref = $data{'powershell'}{'pointer'}{'shm'};
+    if ( not defined $shm_ref ) {
+        <[base.logs]>->(
+            1,  'pointer-stream : shm undef at coord %d %d',
+            $x, $y
+        ) if ++<powershell.pointer.coord_count> % 50 == 1;
+        next;
+    }
+    substr( $$shm_ref, 0, 8 ) = pack( 'l<l<', $x, $y );
+    <[base.logs]>->( 2, 'pointer-stream : shm %d %d', $x, $y )
+        if <powershell.pointer.coord_count>++ % 50 == 0;
+}
+
+$$buf_ref =~ s|^[^\n]*\n||g;    ## discard complete non-coord lines
+
+#
+
+#,,.,,.,,,,,.,.,,,,.,,,..,,,.,..,,,.,,...,.,.,..,,...,...,.,.,,..,.,,,,..,.,,,
+#FGYVJMY5CYTK7Z4LZ5OSALCZAFWI4WXLDONHE4O3HRKTNBEHMYY5W5Z6J6OXEYL43EKI4WF7YG7OS
+#\\\|SVRHC2YHHTWLVEEHA4SW7FEXN35YEC3DLEYXWOH3Y3VD7X4YE5U \ / AMOS7 \ YOURUM ::
+#\[7]NZMMBMM7PENHEPSKEZONFIKQVB37U54K2FOSIQDTOPISUM5AOWBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
