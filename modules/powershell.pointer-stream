@@ -1,0 +1,118 @@
+## [:< ##
+
+# name  = powershell.pointer-stream
+# descr = spawn persistent pointer-hook.ps1 and wire stdout to shm
+
+return FALSE if defined <powershell.pointer.pid>;    ## already running
+
+my $exe = <powershell.cfg.exe_path>;
+if ( not defined $exe or not length $exe ) {
+    <[base.logs]>->( 0, 'pointer-stream : powershell.exe not configured' );
+    return undef;
+}
+
+my $script_linux = File::Spec->catfile( <system.root_path>,
+    qw| data scripts pointer-hook.ps1 | );
+
+my $script_win = <[powershell.to_unc_path]>->($script_linux);
+if ( not defined $script_win ) {
+    <[base.logs]>->( 0, 'pointer-stream : cannot resolve unc path' );
+    return undef;
+}
+
+<[base.logs]>->( 2, 'pointer-stream : script path : %s', $script_win );
+
+## create shm file if absent : 8 bytes [ two signed int32 : x, y ]
+my $shm_path = '/dev/shm/.p7-pointer-pos';
+if ( not -f $shm_path ) {
+    open( my $init_fh, '>', $shm_path ) or do {
+        <[base.logs]>
+            ->( 0, "pointer-stream : cannot create shm : $OS_ERROR" );
+        return undef;
+    };
+    print $init_fh "\x00" x 8;
+    close $init_fh;
+}
+
+## mmap shm segment for writing
+<[base.perlmod.autoload]>->(
+    'Sys::Mmap', qw| mmap PROT_READ PROT_WRITE MAP_SHARED |
+);
+
+open( my $shm_fh, '+<', $shm_path ) or do {
+    <[base.logs]>->( 0, "pointer-stream : cannot open shm : $OS_ERROR" );
+    return undef;
+};
+
+my $shm_scalar;
+mmap( $shm_scalar, 8, PROT_READ() | PROT_WRITE(), MAP_SHARED(), $shm_fh )
+    or do {
+    <[base.logs]>->( 0, "pointer-stream : mmap failed : $OS_ERROR" );
+    close $shm_fh;
+    return undef;
+    };
+
+<powershell.pointer.shm>    = \$shm_scalar; ## ref keeps mmap'd scalar alive
+<powershell.pointer.shm_fh> = $shm_fh;      ## keep fh alive for mmap lifetime
+
+## spawn persistent hook process
+<[base.perlmod.autoload]>->( 'IPC::Open3', qw| open3 | );
+
+my $stdout_fh = IO::Handle->new();
+my $stderr_fh = IO::Handle->new();
+my $pid       = eval {
+    open3(
+        undef,              $stdout_fh,
+        $stderr_fh,         $exe,
+        '-NoProfile',       '-NonInteractive',
+        '-ExecutionPolicy', 'Bypass',
+        '-File',            $script_win
+    );
+};
+if ( not defined $pid or $EVAL_ERROR ) {
+    <[base.logs]>->(
+        0, 'pointer-stream : spawn failed : %s',
+        <[base.str.eval_error]>
+    );
+    return undef;
+}
+
+<powershell.pointer.pid>       = $pid;
+<powershell.pointer.stdout_fh> = $stdout_fh;
+
+<[base.zenki.report_child_pid]>->($pid);
+
+## disable idle shutdown for the lifetime of the pointer stream
+if ( defined $data{'system'}{'ondemand_timeout'} ) {
+    <powershell.pointer.saved_timeout> = $data{'system'}{'ondemand_timeout'};
+    delete $data{'system'}{'ondemand_timeout'};
+}
+if ( defined <base.timer.ondemand_timeout>
+    and <base.timer.ondemand_timeout>->is_active ) {
+    <base.timer.ondemand_timeout>->cancel;
+    delete $data{'base'}{'timer'}{'ondemand_timeout'};
+}
+
+<[event.add_io]>->(
+    {   'fd'      => $stdout_fh,
+        'handler' => 'powershell.handler.pointer-stream',
+        'data'    => { 'pid' => $pid },
+    }
+);
+<[event.add_io]>->(
+    {   'fd'      => $stderr_fh,
+        'handler' => 'powershell.handler.pointer-stream',
+        'data'    => { 'pid' => $pid },
+    }
+);
+
+<[base.logs]>->( 1, 'pointer-stream : started [pid %d]', $pid );
+return TRUE;
+
+#
+
+#,,,,,,.,,,,,,.,.,,,,,.,,,,,.,,,,,.,,,.,,,,.,,..,,...,...,..,,,,.,.,,,.,.,,,.,
+#VIBUFH2ONUPCAPW4KMXBUQJ4DSUXDYITWCLS2VREXOIIJYSRIBR3PGEBOYHECTHJ6KCUIDPU6KYHY
+#\\\|4Y55WTSKGLISDORLMR2DKVB6VQYYB2FEJNUBOXDCUV7B5TSZRND \ / AMOS7 \ YOURUM ::
+#\[7]CM4267R5WYVJD27PQEUYF2NZLI4NG4PCDG3ZQ6LSCIKHD6MBPIBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
