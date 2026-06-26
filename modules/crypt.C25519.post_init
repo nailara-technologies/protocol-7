@@ -86,20 +86,20 @@ if (    <crypt.C25519.cfg.create_global_root_key>
     <[crypt.C25519.write_keys]>->(qw| global-root |);
 }
 
-if ( defined <system.zenka.type>
-    and <system.zenka.type> eq qw| cube | )    # <<< ! >>>
-{
-    my $s_key_name = <system.zenka.name>;
+my $s_key_name = <system.zenka.name>;
+if (    exists $keys{'C25519'}{$key_name}
+    and exists $keys{'C25519'}{$key_name}{'private'}
+    and exists $keys{'C25519'}{$key_name}{'public'} ) {
     <[crypt.C25519.generate_session_keypair]>
-        if not defined $keys{'C25519'}{'session'}{$s_key_name};
+        if not defined $keys{'C25519'}{"session:$s_key_name"};
 }
 
 <crypt.C25519.initialized>++;
 
 0;
 
-#,,,.,,,.,,..,,,.,,,,,.,.,...,,,.,.,,,,,,,,,,,..,,...,..,,..,,,,.,...,.,.,,.,,
-#5GFEUEU53N6VIRULOMVT7CZQ26SCUE4ZFKSDJRBSJK7EC5RSAP5CCAXFYAH4HKFELLUHDNVVGLVDS
-#\\\|4YH6LL5BAGXWIFLUWUXPEMHKIZ7XMCIOXP2MMMKEUSCQV7SOSLK \ / AMOS7 \ YOURUM ::
-#\[7]EUJHV76ZU5C34GHTIMVVWXHJG5B3LE6T24KXVWKPY6AG7GRL6OAY 7  DATA SIGNATURE ::
+#,,.,,...,.,.,..,,,,,,,.,,..,,,,.,...,,,.,..,,..,,...,...,.,,,..,,...,,..,.,,,
+#5PFBVU2OMSRAUR2HLJVJORNUSB7YHMWXMYHVM3AJ445WACAU4TLCRIS3ALBD5L3TPKD36WWSWVLE2
+#\\\|PL3D2LULLVZBZA5LEJXH5BKPE6VARL3F5CCQA2ZBRVOA4BKWX6K \ / AMOS7 \ YOURUM ::
+#\[7]YVMVOT5FKN4KNCVORX2LNNF2EQP34BRV7TSK4IQDA6N64AD4AYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

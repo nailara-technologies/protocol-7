@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = base.X-11.get_pointer_pos
+# descr = get pointer x,y via X-11 zenka
+
+my ($local_sid)
+    = keys %{ $data{'user'}{'cube'}{'session'} // {} };
+return undef if not defined $local_sid;
+
+my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
+my $cube_fh = $data{'session'}{$local_sid}{'handle'};
+<[base.net.send_to_socket]>->( $cube_fh, "($cmd_id)X-11.get_pointer_pos\n" );
+
+my $reply_string;
+my $matched_reply = FALSE;
+while ( not $matched_reply ) {
+    $reply_string = readline($cube_fh);
+    return undef
+        if not defined $reply_string or not length $reply_string;
+    $matched_reply = TRUE if $reply_string =~ m{^\($cmd_id\)(TRUE|FALSE) };
+    if ( not $matched_reply ) {
+        $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
+    }
+}
+
+if ( $reply_string =~ m{^\($cmd_id\)TRUE (-?\d+) (-?\d+)\n$} ) {
+    return { 'x' => $1 + 0, 'y' => $2 + 0 };
+}
+
+<[base.log]>->( 1, 'get_pointer_pos : no result' );
+return undef;
+
+#
+
+#,,.,,,..,..,,.,,,,,.,..,,,,,,,,.,,.,,..,,.,.,..,,...,...,.,.,.,.,,,.,.,.,.,,,
+#2E6AXWVJ4AJYTABJLGA6V5BFNOABYLWKJN6QYDU2FUVX5MZIJNB64ZRB3S2ZT6C6E23LYVGOU4EQM
+#\\\|K6XHYVNNY6GWY4DQWPB7MGDFKDNWLTVBIFCD3F4AYFBXNQAFIFF \ / AMOS7 \ YOURUM ::
+#\[7]H2WS4LXXHSV3COTD2KJIND4WKFMMB667B54XIA2EIJLKW2LVDCBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
