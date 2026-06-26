@@ -1,104 +1,153 @@
 ## [:< ##
 
 # name  = protocol-7-menu.cmd.screen-change
-# descr = receive X-11 screen-change and relocate if unreachable
+# descr = receive X-11 screen-change for deferred relocation
 
-## a monitor disappearing/topology changing while already mapped can leave ##
-## this window stuck invisible - confirmed live: only a full zenka restart ##
-## recovered it before. relocate via a real move+verify instead.          ##
+## rapid monitor topology changes (connect/disconnect/resolution) fire multiple
+## events in quick succession. each one previously triggered a chain of blocking
+## X-11 readline calls that froze the GTK event loop long enough for
+## button-release events to be missed, leaving the compositor in a stuck state.
+## now: the handler returns immediately and defers the actual check by 700ms.
+## if another event arrives before the timer fires, it resets the timer — so
+## only the last event in a burst actually does the position check.
+##
+## when the window is off all monitors, find_safe_position cycles through
+## corner candidates [ build_corner_candidates ] with X11 move+verify on each,
+## same as startup placement, so relocation is confirmed, not just attempted.
 
 ## single-line key=value payload, not YAML [ see X-11.emit.screen-change ] ##
 my %event = $call->{'args'} =~ m|(\w+)=(\S*)|g;
 my $w     = $event{'width'}  // 0;
 my $h     = $event{'height'} // 0;
 
-<[base.logs]>->( 1, '[screen-change] %dx%d', $w, $h );
+<[base.logs]>->( 1, '[screen-change] %dx%d [deferred]', $w, $h );
 
 return { 'mode' => qw| true |, 'data' => 'not initialized' }
     if not <protocol-7-menu.graphical-initialized>;
 
-my $window = <protocol-7-menu.graphical-window>;
-return { 'mode' => qw| true |, 'data' => 'no window' }
-    if not defined $window;
+## cancel any pending debounce timer from a previous event in this burst
+my $prev_id = $data{'protocol-7-menu'}{'screen_change_timer_id'};
+Glib::Source->remove($prev_id) if defined $prev_id;
 
-my $xid = eval { $window->get_window->get_xid };
-return { 'mode' => qw| true |, 'data' => 'no xid yet' }
-    if not defined $xid;
+my $scr_w = $w;
+my $scr_h = $h;
 
-my $current = <[base.X-11.get_window_geometry]>->($xid);
-return { 'mode' => qw| true |, 'data' => 'no current geometry' }
-    if not defined $current;
+$data{'protocol-7-menu'}{'screen_change_timer_id'} = Glib::Timeout->add(
+    700,
+    sub {
+        delete $data{'protocol-7-menu'}{'screen_change_timer_id'};
 
-my $monitors = <[base.gtk.list_monitors]> // [];
-return { 'mode' => qw| true |, 'data' => 'no monitors' }
-    if not @$monitors;
+        my $window = <protocol-7-menu.graphical-window>;
+        return FALSE unless defined $window;
 
-## preferred monitor = whichever one currently contains the window centre ##
-my $cx = $current->{'x'} + $current->{'width'} / 2;
-my $cy = $current->{'y'} + $current->{'height'} / 2;
-my $preferred_index;
-for my $i ( 0 .. $#$monitors ) {
-    my $m = $monitors->[$i];
-    if (    $cx >= $m->{'x'}
-        and $cx < $m->{'x'} + $m->{'width'}
-        and $cy >= $m->{'y'}
-        and $cy < $m->{'y'} + $m->{'height'} ) {
-        $preferred_index = $i;
-        last;
-    }
-}
+        ## use cached window metrics [ written by graphical-startup-init into
+        ## %data via configure-event and motion-notify ] - fully non-blocking
+        my $cached = $data{'protocol-7-menu'}{'window'} // {};
+        my $cur_x  = $cached->{'x'}                     // 0;
+        my $cur_y  = $cached->{'y'}                     // 0;
+        my $cur_w  = $cached->{'w'}                     // 100;
+        my $cur_h  = $cached->{'h'}                     // 100;
 
-## candidate 1 : the current position, re-verified - a cheap no-op when    ##
-## nothing actually broke. candidates 2+ : the same top-right-with-margin  ##
-## default graphical-startup-init uses, repeated per monitor [ preferred   ##
-## monitor first ], so a freely-positioned window still has somewhere      ##
-## known-reachable to land on whichever monitor remains.                  ##
-my $margin = 20;
+        my $monitors = <[base.gtk.list_monitors]> // [];
+        return FALSE unless @$monitors;
 
-my @candidates = (
-    {   'x'      => $current->{'x'},
-        'y'      => $current->{'y'},
-        'width'  => $current->{'width'},
-        'height' => $current->{'height'},
+        ## check if the window centre is on any monitor
+        my $cx         = $cur_x + $cur_w / 2;
+        my $cy         = $cur_y + $cur_h / 2;
+        my $on_monitor = 0;
+        my $best_mon;
+        for my $m (@$monitors) {
+            if (    $cx >= $m->{'x'}
+                and $cx < $m->{'x'} + $m->{'width'}
+                and $cy >= $m->{'y'}
+                and $cy < $m->{'y'} + $m->{'height'} ) {
+                $on_monitor = 1;
+                $best_mon   = $m;
+                last;
+            }
+        }
+
+        if ($on_monitor) {
+            <[base.logs]>->(
+                1,
+                '[screen-change] window still on monitor, no relocation needed'
+            );
+            return FALSE;
+        }
+
+        ## window centre is off all monitors [ disconnected output, void, etc ] —
+        ## use find_safe_position with corner cycling, same as startup placement.
+        ## brief blocking is acceptable here : screen-change is rare and the
+        ## window is already invisible / in an undefined compositor state.
+        my $margin = 20;
+
+        my $xid = eval { $window->get_toplevel()->get_window()->get_xid() };
+        if ( not defined $xid ) {
+            <[base.log]>->(
+                1, '[screen-change] no xid yet, skipping relocation'
+            );
+            return FALSE;
+        }
+
+        ## preferred = monitor containing the old position, else index 0 ##
+        my $preferred_index = 0;
+        for my $i ( 0 .. $#$monitors ) {
+            my $m = $monitors->[$i];
+            if (    $cx >= $m->{'x'} - 100
+                and $cx < $m->{'x'} + $m->{'width'} + 100
+                and $cy >= $m->{'y'} - 100
+                and $cy < $m->{'y'} + $m->{'height'} + 100 ) {
+                $preferred_index = $i;
+                last;
+            }
+        }
+
+        my $candidates = <[window.place.build_corner_candidates]>->(
+            $monitors, $cur_w, $cur_h, $margin, $preferred_index
+        );
+
+        my $safe = <[window.place.find_safe_position]>->( $xid, $candidates );
+
+        my $screen_key = sprintf( qw| %dx%d |, $scr_w, $scr_h );
+
+        if ( defined $safe ) {
+            my $new_x = $safe->{'x'};
+            my $new_y = $safe->{'y'};
+            $data{'protocol-7-menu'}{'window'}{'x'} = $new_x;
+            $data{'protocol-7-menu'}{'window'}{'y'} = $new_y;
+            <[base.logs]>->(
+                1, '[screen-change] relocated to x=%d y=%d (mon %d)',
+                $new_x, $new_y, $safe->{'monitor_index'} // -1
+            );
+            <[protocol-7-menu.position.save]>
+                ->( $new_x, $new_y, $screen_key );
+        } else {
+            ## all candidates failed - fall back to first monitor top-right ##
+            my $target = $monitors->[0];
+            my $new_x
+                = $target->{'x'} + $target->{'width'} - $cur_w - $margin;
+            my $new_y = $target->{'y'} + $margin;
+            $window->move( $new_x, $new_y );
+            $data{'protocol-7-menu'}{'window'}{'x'} = $new_x;
+            $data{'protocol-7-menu'}{'window'}{'y'} = $new_y;
+            <[base.logs]>->(
+                1, '[screen-change] fallback to x=%d y=%d on first monitor',
+                $new_x, $new_y
+            );
+            <[protocol-7-menu.position.save]>
+                ->( $new_x, $new_y, $screen_key );
+        }
+
+        return FALSE;
     }
 );
 
-## candidates 2+ : top-right-with-margin per monitor [ preferred first ].   ##
-## use the shared corner builder and keep only the top-right corner so the  ##
-## ordering matches the original screen-change behavior.                    ##
-my $corner_candidates = <[window.place.build_corner_candidates]>->(
-    $monitors, $current->{'width'}, $current->{'height'}, $margin,
-    $preferred_index
-) // [];
+return { 'mode' => qw| true |, 'data' => 'deferred' };
 
-push @candidates,
-    grep { $ARG->{'corner'} eq qw| top-right | } @$corner_candidates;
+#
 
-my $safe = <[window.place.find_safe_position]>->( $xid, \@candidates );
-
-if ( not defined $safe ) {
-    <[base.logs]>->(
-        0, '[screen-change] no reachable position found for id=%s', $xid
-    );
-    return { 'mode' => qw| false |, 'data' => 'no reachable position' };
-}
-
-if ( $safe->{'x'} != $current->{'x'} or $safe->{'y'} != $current->{'y'} ) {
-    <[base.logs]>->(
-        1,    '[screen-change] relocated id=%s from x=%d y=%d to x=%d y=%d',
-        $xid, $current->{'x'}, $current->{'y'}, $safe->{'x'}, $safe->{'y'}
-    );
-
-    my $screen_key = sprintf( qw| %dx%d |, $w, $h );
-    <[protocol-7-menu.position.save]>->(
-        $safe->{'x'}, $safe->{'y'}, $screen_key
-    );
-}
-
-return { 'mode' => qw| true |, 'data' => 'ok' };
-
-#,,.,,,,.,.,.,..,,,,.,,.,,,,.,,..,...,,..,...,..,,...,...,,..,,.,,.,,,,,,,.,.,
-#HHVZNTSK4ZFXG565IXKAETJQLP577FX2BBBLSIKJQSJS6TG5HWB7YJ5WBXPHVXHYIXFDHZRBO242Q
-#\\\|TC7MUPM7QG3RHAFSIALCXPBOQUAWTDNTPMKLLGNFYSNQXAJTRJO \ / AMOS7 \ YOURUM ::
-#\[7]CZNCQ4SBYAGETJ2OCUQHIUI3WCWOKA2L542YO7FO63F6HW5EYECI 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,,,,,,,,,,.,.,.,,,,,,,,,,.,,,.,,..,,...,...,,..,.,,,.,.,,,.,.,,,
+#JSHXIY2ABCNEJUK6SBIQSPHPJNWGMDQI65HLOOQ25DQEKUKQPXVXIG3DIEFQFDD24W5X4XUYFLNOU
+#\\\|YYF5CL45ZBRLWK6BBUTTO5LCPDAXNTTG3T325P33ZINGUV7CP2H \ / AMOS7 \ YOURUM ::
+#\[7]TPMTRSYMMHFNXGTKMMBVWLBWPRGZCLN3CAMGM2NFUMCYMLBCPCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

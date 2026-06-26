@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = protocol-7-menu.handler.pointer-stream-start
+# descr = on pointer-stream reply, request shm path with session pubkey
+
+my $reply = shift           // {};
+my $cmd   = $reply->{'cmd'} // '';
+
+## TRUE = started, FALSE = already running — either way request the path
+return if $cmd ne qw| TRUE | and $cmd ne qw| FALSE |;
+
+my $session_key = $keys{'C25519'}{'session:protocol-7-menu'};
+if ( not defined $session_key or not defined $session_key->{'key-reply'} ) {
+    <[base.log]>->( 0, 'pointer-stream-start : session key not ready' );
+    return;
+}
+
+<[protocol-7.route-send]>->(
+    {   'command'   => 'powershell.pointer-stream-path',
+        'call_args' => { 'args' => $session_key->{'key-reply'} },
+        'reply'     =>
+            { 'handler' => 'protocol-7-menu.handler.pointer-stream-path' },
+    }
+);
+
+#
+
+#,,..,..,,,,,,.,,,..,,,,.,...,..,,...,,,,,,.,,..,,...,...,.,.,,,,,,.,,.,.,..,,
+#FEQMZYTH4KFSETXEJ6FKNLXAKCOJT6OCWIMBR2MJ2DYXNEMVOJ2YJNNWRC2XF2YBQQPOW4P57FNLS
+#\\\|OYRREILSF47FV54JCU5XUZOCSMYICTH2JPD2XJMUS6TUXYSOWO4 \ / AMOS7 \ YOURUM ::
+#\[7]CG73I4VMFMYLWYKEVECHSXBTGVZOBNIYRUQYQNTCQFGITUQGOODA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

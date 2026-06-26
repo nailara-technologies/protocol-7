@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = powershell.cmd.pointer-stream-path
+# descr = return shm path after granting read to caller pubkey
+
+my $pubkey = $call->{'args'} // '';
+my $path   = <[powershell.pointer-stream-path]>->($pubkey);
+
+return {
+    'mode' => defined $path ? qw| true | : qw| false |,
+    'data' => defined $path ? $path      : 'not available',
+};
+
+#
+
+#,,,,,,,,,...,...,.,,,,,,,,,.,...,.,.,,,.,,..,..,,...,...,,..,,.,,..,,.,,,.,.,
+#OEH6O7H3SIWZS2ZPR5TQNGMHZWMB2QA7277ZK7H326JYQT6HPLVSWAT6JMPMZ65NDTVJZLXQMYGU2
+#\\\|RJAQSZE43WINKYB6FZMJ5IPAX6GFXKJZAQO4QRP45ADZHBNNL32 \ / AMOS7 \ YOURUM ::
+#\[7]BQYFVHBZK7OW6YITZXFNJ36A26KNDBSXJYVGPLSVY2MSBOSGDOAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

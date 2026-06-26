@@ -107,6 +107,10 @@ $window->set_events(
 ## Drag-to-move detection: circular zones based on distance from center
 my $menu_radius = $win_width * 0.35;    # ~35% of window width = menu zone
 my $is_dragging = FALSE;
+
+## forward-declare: assigned below after opacity config, used in button-release
+my $menu_deactivate_connected = 0;
+my $connect_menu_deactivate;
 my ( $drag_offset_x, $drag_offset_y, $window_x, $window_y ) = ( 0, 0, 0, 0 );
 my $window_center_x = $win_width / 2;
 my $window_center_y = $win_height / 2;
@@ -199,8 +203,11 @@ $window->signal_connect(
         if ( $dist < $menu_radius ) {
             <[base.log]>->( 1, "  → opening menu" );
             my $menu = <protocol-7-menu.graphical-menu>;
-            $menu->popup_at_widget( $widget, qw| east east | )
-                if defined $menu;
+            if ( defined $menu ) {
+                $connect_menu_deactivate->();
+                <protocol-7-menu.menu_open> = TRUE;
+                $menu->popup_at_widget( $widget, qw| east east | );
+            }
             return 1;
         }
         return 0;
@@ -218,12 +225,121 @@ $window->move( $screen_width - $margin, $margin );
 <protocol-7-menu.graphical-window> = $window;
 <protocol-7-menu.graphical-screen> = $screen;
 
+## distance-aware opacity defaults
+my $opacity_min      = <protocol-7-menu.cfg.opacity.min>      //= 0.47;
+my $opacity_max      = <protocol-7-menu.cfg.opacity.max>      //= 0.70;
+my $opacity_distance = <protocol-7-menu.cfg.opacity.distance> //= 420;
+
+## menu-open state and fade re-enable timer
+<protocol-7-menu.menu_open> = FALSE
+    unless defined <protocol-7-menu.menu_open>;
+
+$connect_menu_deactivate = sub {
+    my $menu = <protocol-7-menu.graphical-menu>;
+    return if not defined $menu;
+    return if $menu_deactivate_connected;
+    eval {
+        $menu->signal_connect(
+            'deactivate' => sub {
+                <[base.log]>->( 1, "menu deactivated, delaying fade resume" );
+                my $rt = <protocol-7-menu.opacity.reenable_timer>;
+                $rt->cancel if defined $rt;
+                Glib::Timeout->add(
+                    400,
+                    sub {
+                        <protocol-7-menu.menu_open> = FALSE;
+                        return FALSE;    ## one-shot
+                    }
+                );
+            }
+        );
+        $menu_deactivate_connected = 1;
+    };
+};
+
+$connect_menu_deactivate->();
+
+## update window opacity based on cursor distance from window center
+my $opacity_log_tick = 0;
+my $update_opacity   = sub {
+    if (<protocol-7-menu.menu_open>) {
+        eval { $window->set_opacity($opacity_max) };
+        return;
+    }
+
+    my $display = eval { Gtk3::Gdk::Display::get_default() };
+    if ( not defined $display ) {
+        <[base.log]>->( 1, "opacity: no display" )
+            if ++$opacity_log_tick % 20 == 1;
+        return;
+    }
+
+    my $seat = eval { $display->get_default_seat };
+    if ( not defined $seat ) {
+        <[base.log]>->( 1, "opacity: no seat" )
+            if $opacity_log_tick % 20 == 1;
+        return;
+    }
+
+    my $pointer = eval { $seat->get_pointer };
+    if ( not defined $pointer ) {
+        <[base.log]>->( 1, "opacity: no pointer" )
+            if $opacity_log_tick % 20 == 1;
+        return;
+    }
+
+    my $gdk_win = eval { $window->get_window };
+    if ( not defined $gdk_win ) {
+        <[base.log]>->( 1, "opacity: no gdk_win" )
+            if $opacity_log_tick % 20 == 1;
+        return;
+    }
+
+    my ( undef, $rel_x, $rel_y )
+        = eval { $gdk_win->get_device_position($pointer) };
+    if ( not defined $rel_x or not defined $rel_y ) {
+        <[base.log]>->( 1, "opacity: get_device_position failed: $@" )
+            if $opacity_log_tick % 20 == 1;
+        return;
+    }
+
+    my $dist = sqrt(
+        ( $rel_x - $win_width / 2 )**2 + ( $rel_y - $win_height / 2 )**2 );
+
+    my $t = $dist / $opacity_distance;
+    $t = 1 if $t > 1;
+    $t = 0 if $t < 0;
+
+    my $curved  = ( 1 - cos( $t * 3.14159 ) ) / 2;
+    my $opacity = $opacity_max - $curved * ( $opacity_max - $opacity_min );
+
+    if ( $opacity_log_tick++ % 20 == 0 ) {
+        <[base.log]>->(
+            1,
+            "opacity: rel=(%.0f,%.0f) center=(%.0f,%.0f)"
+                . " dist=%.0f t=%.2f opacity=%.2f",
+            $rel_x,
+            $rel_y,
+            $win_width / 2,
+            $win_height / 2,
+            $dist,
+            $t,
+            $opacity
+        );
+    }
+
+    eval { $window->set_opacity($opacity) };
+};
+
+## start repeating opacity update timer (Glib loop, not IO::Async)
+Glib::Timeout->add( 50, sub { $update_opacity->(); return TRUE } );
+
 $window->show_all;
 
 return 0;
 
-#,,.,,,.,,,.,,.,.,.,,,,,,,,,,,,..,...,.,,,..,,.,.,...,..,,.,.,,..,,..,.,,,...,
-#ASGVWFXIL6TDLIRY7QC5FI2DWIUCOY2UWA5JYVGVC3QY4YYFOAAWOOGPXCT6MQU5T6FITKWMNMQUU
-#\\\|A3BD74HNI5RCZLDDX2WFARRCQ2AMRFVA7HPV3RY6AE2U6JNC4DM \ / AMOS7 \ YOURUM ::
-#\[7]TAOFY6NUSRFBUUJLDOTDVT6GRN2C4SBQ74MQO2PCGUQYV7TPGWDY 7  DATA SIGNATURE ::
+#,,,.,..,,...,.,,,,,.,.,.,...,.,.,.,.,...,...,.,.,...,...,...,...,..,,,..,,..,
+#4ODQCLNWRO2YISBBFZV4F2SDLWBVZIBDZXELET74NFKWEY4S5S4IYOMR5CMUU4OA3A6KF57BITD5U
+#\\\|PFZLB6PZOA2VLHOOQBSEPAU6T4G37GYLHNWB6J65NT5TXLV67YX \ / AMOS7 \ YOURUM ::
+#\[7]3D6QCDUPM3VQUIIS46E3UEVGP4KRL5VKEOSHE2JGOBEYIA6BEADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
