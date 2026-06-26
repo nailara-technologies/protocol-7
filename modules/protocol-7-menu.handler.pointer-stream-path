@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = protocol-7-menu.handler.pointer-stream-path
+# descr = receive shm path, open with session pubkey, store mmap_ptr
+
+my $reply = shift                         // {};
+my $cmd   = $reply->{'cmd'}               // '';
+my $path  = $reply->{'call_args'}{'args'} // '';
+
+if ( $cmd ne qw| TRUE | or not length $path ) {
+    <[base.log]>->( 1, 'pointer-stream-path : path not available' );
+    return;
+}
+
+<[base.perlmod.autoload]>->( 'AMOS7::SHM', qw| shm_open | );
+
+my $session_key = $keys{'C25519'}{'session:protocol-7-menu'};
+if ( not defined $session_key or not defined $session_key->{'public'} ) {
+    <[base.log]>->( 0, 'pointer-stream-path : session public key missing' );
+    return;
+}
+
+my $mount = AMOS7::SHM::shm_open(
+    $path,
+    { 'mode' => 'read' },
+    $session_key->{'public'}
+);
+
+if ( not defined $mount or exists $mount->{'error'} ) {
+    my $err
+        = ref $mount eq 'HASH' ? ( $mount->{'error'} // 'undef' ) : 'undef';
+    <[base.logs]>->( 0, 'pointer-stream-path : shm_open failed : %s', $err );
+    return;
+}
+
+<protocol-7-menu.pointer.shm_ptr> = $mount->{'mmap_ptr'};
+<[base.logs]>->( 1, 'pointer-stream-path : shm open : %s', $path );
+
+#
+
+#,,,,,,.,,,,.,,,,,,,.,,,.,,,,,,,.,..,,.,,,.,,,..,,...,...,..,,...,,,,,,,.,..,,
+#ZFHLYI24X7BPX53NGJIVV263PN4F3HC2HZPEOPUU7DEBJVWJE5GGQY65BW67QI2JF4TRVUCRDKV56
+#\\\|ZCNDNBMESEVOXUNSUJQEKCN2ATBQGZXDFC7SW4YMHMM7JFD4NEG \ / AMOS7 \ YOURUM ::
+#\[7]CX57OU7MAW7GCY5UTNQ6PIVEFJAHRSAV36A5JEBJUCT4B7EASUBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

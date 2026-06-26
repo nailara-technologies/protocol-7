@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = X-11.cmd.get_pointer_pos
+# descr = return current pointer screen coordinates as x y
+
+my %ptr = eval { <X-11.obj>->QueryPointer( <X-11.obj>->root ) };
+return { 'mode' => qw| false |, 'data' => 'QueryPointer failed' }
+    if $EVAL_ERROR
+    or not defined $ptr{'root_x'};
+
+return {
+    'mode' => qw| true |,
+    'data' => "$ptr{root_x} $ptr{root_y}"
+};
+
+#
+
+#,,..,...,.,,,.,.,.,,,,,.,,.,,,,,,,.,,,.,,.,,,..,,...,...,.,,,,..,.,,,,.,,,,,,
+#J7JEAMOIWTNKXKRCENT52ATQ332BUJGUMVUU4HTJ4K3YWADEOPKV6WHFVXAO2TUFUKYVX5Y7ZBDFM
+#\\\|V2SHJWAZPOA6BHBTWQKB2QMC7FTPIR4OIMQHNUCOSKOCAXKIQAQ \ / AMOS7 \ YOURUM ::
+#\[7]KXJA4ELZZ4HMP5NUPWFINQMKYDDNW3AGTRGONQ3YXHRUPPRAZOBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

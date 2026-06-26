@@ -66,9 +66,10 @@ return { 'mode' => qw| false |, 'data' => 'X-11 connection not available' }
 
 my $target_id = $window_id + 0;
 
-## fetch current geometry if any axis needs a relative delta ##
-my $need_geom = ( defined $xarg and $xarg =~ m|^[+-]| )
-    || ( defined $yarg and $yarg =~ m|^[+-]| );
+## fetch current geometry only when a relative ( + -prefixed ) delta is given;
+## bare negative values are absolute coordinates [ secondary monitor above/left ]
+my $need_geom = ( defined $xarg and $xarg =~ m|^\+| )
+    || ( defined $yarg and $yarg =~ m|^\+| );
 
 my %cur;
 if ($need_geom) {
@@ -95,13 +96,13 @@ if ($need_geom) {
 my %configure;
 if ( defined $xarg ) {
     $configure{'x'}
-        = $xarg =~ m|^[+-]| ? $cur{'x'} + ( $xarg + 0 ) : $xarg + 0;
+        = $xarg =~ m|^\+| ? $cur{'x'} + ( $xarg + 0 ) : $xarg + 0;
 } elsif ($need_geom) {
     $configure{'x'} = $cur{'x'};
 }
 if ( defined $yarg ) {
     $configure{'y'}
-        = $yarg =~ m|^[+-]| ? $cur{'y'} + ( $yarg + 0 ) : $yarg + 0;
+        = $yarg =~ m|^\+| ? $cur{'y'} + ( $yarg + 0 ) : $yarg + 0;
 } elsif ($need_geom) {
     $configure{'y'} = $cur{'y'};
 }
@@ -120,12 +121,10 @@ if ( length $EVAL_ERROR ) {
     my $increased_verbosity    ## log move-window evens for debugging ##
         = <[base.cfg_bool]>->( <X-11.log-cfg.verbose.move-window> //= FALSE );
     my $log_level = $increased_verbosity ? 1 : 2;
-    <[base.logs]>->(
-        $log_level,          ': [%s] h:%d w:%d x:%d y:%d [move]',
-        $window_id,          $configure{'height'},
-        $configure{'width'}, $configure{'x'},
-        $configure{'y'}
-    );
+    my $geo_str   = join( ' ',
+        map { defined $configure{$_} ? "$_:$configure{$_}" : () }
+            qw| x y width height | );
+    <[base.logs]>->( $log_level, ': [%s] %s [move]', $window_id, $geo_str );
 }
 
 ## push the new position through to the wm/compositor - see set_geometry ##
@@ -207,8 +206,8 @@ my $pos_str = join ' ', map {"$_=$configure{$_}"} sort keys %configure;
 <[base.logs]>->( 2, '[move-window] id=%s %s', $window_id, $pos_str );
 return { 'mode' => qw| true |, 'data' => $pos_str };
 
-#,,,.,,,.,...,.,.,...,.,,,,,,,.,,,,.,,..,,.,.,.,.,...,...,...,.,.,,,,,,,,,,.,,
-#GKEEJ7NZZEMYE66EFYRY44JJIUXY4ZGI5HJV7SVOYWO45X5VXI6OUZNYW3TTSWOOGXA2E7RUA6JXU
-#\\\|3HYIWI2OUQG6WBHCINA2WZU5UNYZS7E2GFZPFN7OYBCJY5DLLZP \ / AMOS7 \ YOURUM ::
-#\[7]BZF7DSEOYWIVNLWQRS2MCYCI6H5OL6SJKA6VZS3UXCVACY2NHOAI 7  DATA SIGNATURE ::
+#,,..,..,,..,,,.,,...,..,,.,,,,..,...,...,,,.,.,.,...,...,,..,...,...,.,.,..,,
+#ZUXWQW4CIYRDWE56N2BS32YSSQLBL2TCMD4UT5TB3IYSRRT2FLO2TYLEFVFTZPQ2UEWSKO33KCSPA
+#\\\|DLTCKBDUZZKCOXTT4RDTOP7D5PCPYBSBNCF5SGIFCRMS4M2BRAP \ / AMOS7 \ YOURUM ::
+#\[7]VRJUGES7U2TGXBAUAI6SJU7S2C4F6CR2JDOFXG33WOY2RPC3QGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

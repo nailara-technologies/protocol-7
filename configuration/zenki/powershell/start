@@ -4,10 +4,13 @@
 [load_config_file:'shared-params']
 [load_config_file:'X11-vars']
 
-modules.load     = auth net protocol.protocol-7 io.unix ui powershell # devmod
+crypt.C25519.autocreate-user-key = yes
+
+modules.load     = auth net protocol.protocol-7 io.unix ui crypt.C25519 powershell # devmod
 access.cmd.usr.* = commands heart name verify-instance reload src-age \
                    show-buffer buffer-erase buffer-erase-level \
                    screenshot-capture display-switch-toggle pointer-stream \
+                   pointer-stream-path \
                    list-subs ## <-- devmod commands
 
 [load_modules:<modules.load>]
@@ -21,8 +24,8 @@ access.cmd.usr.* = commands heart name verify-instance reload src-age \
 
 [zenka.loop]
 
-#,,.,,,.,,..,,.,,,,,.,...,,..,,..,,..,,,.,.,.,.,.,...,...,,.,,,,,,,,.,.,.,.,,,
-#E3W6D6VDU66U7HD42GX7OTF7KOIQYTRWE37MFMFO4K5PGGGM527HYHDQJ5BVRXDQZ6ZPJ3M7EDMVU
-#\\\|YRQSDZBUJPFOZ6JU2M56LFQJQYMESFUNLL5CBDQYQJG6NFHXXCT \ / AMOS7 \ YOURUM ::
-#\[7]VNZI2LUYZ7BRGJQLJ52TSIWNI453IO6Q2AKL3LZAYD2NTO7PL6BY 7  DATA SIGNATURE ::
+#,,.,,,,.,...,.,,,.,.,.,,,,,.,,,,,,.,,..,,,..,.,.,...,...,.,.,.,.,..,,..,,.,,,
+#E5ODQPLS354E2HQR74WSLKX4XATWUGNSVUAK5BCFZH4CFKEMCHHWSJ2FXKW3ULCYJCKKII7G3MIDQ
+#\\\|766KNI2LGV23BJKBYOAYPORXPM6DLGFJCATUDEUGUEIZZUKIEOI \ / AMOS7 \ YOURUM ::
+#\[7]VYAT4PZE3GL72RQRXIET3OSGDAXGIUOUCTNA4RUXDBEA2RTMWICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
