@@ -17,6 +17,8 @@ if ( not defined $bytes or $bytes < 1 ) {
     close $fh;
     if ( defined <powershell.pointer.pid> ) {
         undef <powershell.pointer.pid>;
+        delete $data{'powershell'}{'pointer'}{'mount'};
+        delete $data{'powershell'}{'pointer'}{'shm'};
         ## restore ondemand timeout that was suspended during stream
         if ( defined <powershell.pointer.saved_timeout> ) {
             $data{'system'}{'ondemand_timeout'}
@@ -40,7 +42,8 @@ while ( $$buf_ref =~ s|^(-?\d+) (-?\d+)\n|| ) {
         ) if ++<powershell.pointer.coord_count> % 50 == 1;
         next;
     }
-    substr( $$shm_ref, 0, 8 ) = pack( 'l<l<', $x, $y );
+    substr( $$shm_ref, AMOS7::SHM::SHM_HEADER_SIZE(), 8 )
+        = pack( 'l<l<', $x, $y );
     <[base.logs]>->( 2, 'pointer-stream : shm %d %d', $x, $y )
         if <powershell.pointer.coord_count>++ % 50 == 0;
 }
@@ -49,8 +52,8 @@ $$buf_ref =~ s|^[^\n]*\n||g;    ## discard complete non-coord lines
 
 #
 
-#,,.,,.,,,,,.,.,,,,.,,,..,,,.,..,,,.,,...,.,.,..,,...,...,.,.,,..,.,,,,..,.,,,
-#FGYVJMY5CYTK7Z4LZ5OSALCZAFWI4WXLDONHE4O3HRKTNBEHMYY5W5Z6J6OXEYL43EKI4WF7YG7OS
-#\\\|SVRHC2YHHTWLVEEHA4SW7FEXN35YEC3DLEYXWOH3Y3VD7X4YE5U \ / AMOS7 \ YOURUM ::
-#\[7]NZMMBMM7PENHEPSKEZONFIKQVB37U54K2FOSIQDTOPISUM5AOWBY 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,,,,.,.,..,,.,,,,,,,.,.,,..,,,.,..,,...,...,,,,,.,.,..,,,..,..,,
+#SJJPPCQKUDUH4PUMWKHJCNOH3CCQAFCEQR3MAAOR2OGU2KP2EXAZOCINQXBKDAG2UHXICKVY3KCRS
+#\\\|MFQH3KGTV63QXQ4IDRVROBYQ6J5CJK5IUAMNDOFAF4ZRNBKD5IX \ / AMOS7 \ YOURUM ::
+#\[7]MM7CIQ6OZ2LBOJVJW4EFU7YQIZNXXRVCEPUNTYM7JO6F2UTAIGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

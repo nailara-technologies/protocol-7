@@ -9,9 +9,10 @@
 protocol-7-menu.cfg.position_save_offset_x = 38
 protocol-7-menu.cfg.position_save_offset_y = 58
 
-protocol-7-menu.cfg.opacity.min      = 0.13
-protocol-7-menu.cfg.opacity.max      = 1.0
-protocol-7-menu.cfg.opacity.distance = 420
+protocol-7-menu.cfg.opacity.min      = 0.37
+protocol-7-menu.cfg.opacity.max      = 0.67
+protocol-7-menu.cfg.opacity.click    = 0.77
+protocol-7-menu.cfg.opacity.distance = 2000
 
 # buffer.zenka.log_cmd = ''    ## clear log zenka path [ no remote logging ]
 
@@ -32,7 +33,9 @@ access.cmd.usr.cube = commands heart verify-instance \
                                          dump set get exec-sub ## <-- devmod
 
 
-modules.load = auth net protocol io.unix ui \
+crypt.C25519.autocreate-user-key = yes
+
+modules.load = auth net protocol io.unix ui crypt.C25519 \
                window.place.find_safe_position \
                window.place.build_corner_candidates \
                protocol-7-menu   devmod #####
@@ -52,8 +55,8 @@ modules.load = auth net protocol io.unix ui \
 ## Main event loop - GTK if graphical mode, zenka event loop if TTY
 [base.gtk.main_loop]
 
-#,,.,,..,,,,.,...,,..,,,,,.,,,,,.,,,.,..,,,,.,..,,...,..,,...,...,.,.,..,,.,.,
-#MYNFBEAOVIESSMY3S4BQ33FHYHDBOZNRK3JV63OV7FNV5PJ23ANYH4EXMZP3ZB7FX7INDIVCKJ37I
-#\\\|YRWV7VFFBQKUX2BLAWUJHRPYM2YZQVUT4SXYIS7BBBQYSQCTWOT \ / AMOS7 \ YOURUM ::
-#\[7]XOH7B3MH6QJ3C5SZZAA7QDDCSR5RZ3GOICWMB2YCDI5TPBBOJEAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,..,,,,,.,,,...,,,.,..,,...,,,.,..,,...,...,..,,.,,,,,,,,,.,,,,,
+#52MYKBB2O6AJ2A7EIJ7MGM5YKVT442EFN4TLWY4LVG4VK4VFI2U6O3T5DGPS6QVSH6MFTFRFB2JJE
+#\\\|VYEYDJ3545WDCRZ65KCW56RVHGAABWAQAQARUASKDQF4GYE6BXE \ / AMOS7 \ YOURUM ::
+#\[7]SGECVZCWCQSZFYDAHBC2X6UXMVFCZB5D44RIJGLDMFX4NXDFJEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -28,6 +28,7 @@ use vars qw| @EXPORT_OK $VERSION |;
     mmap_file mmap_file_read
     lock_memory unlock_memory
     sweep_stale_segments
+    SHM_HEADER_SIZE DEFAULT_SEGMENT_SIZE MAX_PERMISSIONS
     |;
 
 ### use AMOS7::Version; ## to generate new version string ###
@@ -66,35 +67,68 @@ sub pack_shm_header {
 
     my $header = shift;
 
-    my @perm_strings;
-    for my $perm ( @{ $header->{'permissions'} } ) {
-        push @perm_strings,
-            sprintf(
-            "%s|%s|%s|%d|%d|%s",
-            $perm->{'to'},                       $perm->{'branch'},
-            join( ',', @{ $perm->{'rights'} } ), $perm->{'expiry'},
-            $perm->{'granted'},                  $perm->{'sig'} // '0',
-            );
-    }
-    my $perms_str = join( ';', @perm_strings );
-
     my $flags_str = join( ',',
         map { $_ . '=' . ( $header->{'flags'}{$_} ? 1 : 0 ) }
-        sort keys %{ $header->{'flags'} } );
+        sort keys %{ $header->{'flags'} // {} } );
 
-    my $packed = sprintf(
-        "P7SH:%d:%s:%d:%d:%d:%s:%s:\n",
-        $header->{'version'} // 1,
-        $header->{'owner_pubkey'},
-        $header->{'created'},
-        $header->{'data_size'},
-        $header->{'header_size'} // SHM_HEADER_SIZE,
-        $flags_str,
-        $perms_str,
-    );
+    my @perms = @{ $header->{'permissions'} // [] };
 
-    $packed .= "\0" x ( SHM_HEADER_SIZE - length($packed) );
-    return substr( $packed, 0, SHM_HEADER_SIZE );
+    ## retry dropping the oldest permission until the header fits within
+    ## SHM_HEADER_SIZE [ accumulated grants across restarts would otherwise
+    ## overflow the fixed-size header, corrupting it ]
+    while (1) {
+        my @perm_strings;
+        for my $perm (@perms) {
+            push @perm_strings,
+                sprintf(
+                "%s|%s|%s|%d|%d|%s",
+                unpack( 'H*', $perm->{'to'} ),       $perm->{'branch'},
+                join( ',', @{ $perm->{'rights'} } ), $perm->{'expiry'},
+                $perm->{'granted'},                  $perm->{'sig'} // '0',
+                );
+        }
+
+        my $packed = sprintf(
+            "P7SH:%d:%s:%d:%d:%d:%s:%s:\n",
+            $header->{'version'} // 1,
+            $header->{'owner_pubkey'},
+            $header->{'created'},
+            $header->{'data_size'},
+            $header->{'header_size'} // SHM_HEADER_SIZE,
+            $flags_str,
+            join( ';', @perm_strings ),
+        );
+
+        if ( length($packed) <= SHM_HEADER_SIZE ) {
+            $packed .= "\0" x ( SHM_HEADER_SIZE - length($packed) );
+            return $packed;
+        }
+
+        if (@perms) {
+            _log( 1,
+                'pack_shm_header: header overflow, dropping oldest permission'
+            );
+            shift @perms;
+        } else {
+            ## base header without any permissions still exceeds SHM_HEADER_SIZE
+            ## [ should never happen — owner_pubkey or flags are unexpectedly long ]
+            _log( 0,
+                'pack_shm_header: base header exceeds SHM_HEADER_SIZE, truncating'
+            );
+            my $packed_base = sprintf(
+                "P7SH:%d:%s:%d:%d:%d:%s::\n",
+                $header->{'version'} // 1,
+                $header->{'owner_pubkey'},
+                $header->{'created'},
+                $header->{'data_size'},
+                $header->{'header_size'} // SHM_HEADER_SIZE,
+                $flags_str,
+            );
+            $packed_base .= "\0" x ( SHM_HEADER_SIZE - length($packed_base) )
+                if length($packed_base) < SHM_HEADER_SIZE;
+            return substr( $packed_base, 0, SHM_HEADER_SIZE );
+        }
+    }
 }
 
 ## unpack 512-byte text header into hash structure ##
@@ -134,11 +168,11 @@ sub unpack_shm_header {
         my @permissions;
         for my $perm_str ( split( /;/, $perms_str // '' ) ) {
             next unless length($perm_str);
-            my ( $to, $branch, $rights, $expiry, $granted, $sig )
+            my ( $to_hex, $branch, $rights, $expiry, $granted, $sig )
                 = split( /\|/, $perm_str );
             push @permissions,
                 {
-                'to'      => $to,
+                'to'      => pack( 'H*', $to_hex // '' ),
                 'branch'  => $branch,
                 'rights'  => [ split( /,/, $rights // '' ) ],
                 'expiry'  => $expiry,
@@ -430,8 +464,9 @@ sub _verify_permission_sig {
         $sig
             = ( $sig * 31 + ord( substr( $canonical, $i, 1 ) ) ) & 0xFFFFFFFF;
     }
-    $sig = ( $sig * length( $owner_pubkey || '' ) ) & 0xFFFFFFFF
-        if length( $owner_pubkey || '' );
+    my $verify_key = derive_pubkey($owner_pubkey) // $owner_pubkey;
+    $sig = ( $sig * length( $verify_key || '' ) ) & 0xFFFFFFFF
+        if length( $verify_key || '' );
 
     my $expected_sig = sprintf( "%08X", $sig );
 
@@ -774,8 +809,8 @@ END {
 
 return TRUE  #################################################################
 
-#,,,,,,..,.,.,...,.,,,,.,,..,,,,.,,,,,..,,,.,,..,,...,.,.,,..,,,,,,..,...,,,.,
-#7CTYTNAV3CXH7QDSA33BHCSO5XDGTJ5J7GR3A2SXROE47D4KWFQGLEMX4W3RA4WIXS2EFC7BL4QW4
-#\\\|IPO7MGQ42HX2TTPOVZH6AIHZA2CINU4RZQP7QX2YNLHWRX53AVJ \ / AMOS7 \ YOURUM ::
-#\[7]AUZGXZQHZXAT4G36ANAAFEAONBGW3QIR4XLUUC6EEMVZ4Q3ETECI 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,,.,,.,,,,.,,,,,.,.,...,...,.,,,..,,...,...,..,,.,.,...,.,,,.,.,
+#LEB7C7PPWZFTADHQR2YYP7VIRBEPVRNEIKKUPKU7FK22YCNLK7EAQJ26G4VTLGYYERCSLBIEI3AWA
+#\\\|EHEQQPHZKK74W6GNIMFCPKFR2JIC5EDPDENLHHATDWIKYACYXAZ \ / AMOS7 \ YOURUM ::
+#\[7]AG535LNHRRHZJ6P4PLRHYZFIIST5SBSGOP25PMODBG4CEJN7JMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -81,10 +81,17 @@ my $menu_radius = $win_width
 my $window_center_x = $win_width / 2;
 my $window_center_y = $win_height / 2;
 
-# Track if we initiated a drag this click
+## drag tracking state [ begin_move_drag avoided : it takes a compositor grab
+## that weston sometimes does not release, freezing mouse input to this window ]
 my $is_dragging = FALSE;
+my ( $drag_start_xr,    $drag_start_yr )    = ( 0, 0 );
+my ( $drag_win_start_x, $drag_win_start_y ) = ( 0, 0 );
 
-# Button press handler - detect drag or menu zone
+## forward-declared : real values assigned after saved-position load
+## [ closures below capture these variables; declaration must precede them ]
+my ( $win_x_cache, $win_y_cache ) = ( 0, 0 );
+
+## button press handler : detect drag or menu zone
 $window->signal_connect(
     'button-press-event' => sub {
         my ( $widget, $event ) = @ARG;
@@ -95,20 +102,57 @@ $window->signal_connect(
 
         if ( $dist < $menu_radius ) {
 
-            # MENU ZONE - bright mandala, allow menu to open on click
-            return 0; # Don't consume - let button-release handle menu opening
+            ## menu zone - bright mandala, allow menu to open on click
+            return 0; # don't consume - let button-release handle menu opening
 
         } else {
 
-            # DRAG ZONE - use GTK3 native drag-to-move
-            # This handles all coordinate system issues automatically
-            $is_dragging = TRUE;
-            $widget->begin_move_drag(
-                $event->button, $event->x_root,
-                $event->y_root, $event->time
-            );
-            return 1;    # Consume event - prevent menu open
+            ## drag zone - left button only [ other buttons fall through ]
+            return 0 unless $event->button == 1;
+
+            ## Weston's XWM sends ConfigureNotify with WM-frame-relative coords
+            ## instead of root coords, so $win_x/y_cache may be wrong [ eg 230
+            ## when the actual root pos is 4635 ]. get_origin() calls
+            ## XTranslateCoordinates which returns the true root position.
+            my $gdk_win = eval { $widget->get_window() };
+            if ( defined $gdk_win ) {
+                my ( $rx, $ry ) = eval { $gdk_win->get_origin() };
+                if ( defined $rx ) {
+                    $win_x_cache = $rx;
+                    $win_y_cache = $ry;
+                }
+            }
+
+            $is_dragging      = TRUE;
+            $drag_start_xr    = $event->x_root;
+            $drag_start_yr    = $event->y_root;
+            $drag_win_start_x = $win_x_cache;
+            $drag_win_start_y = $win_y_cache;
+            return 1;    # consume event - prevent menu open
         }
+    }
+);
+
+## manual drag : update window position on each pointer-motion during drag.
+## $drag_win_start_x/y set from get_origin() at button-press = true X11 root
+## position, not the WM-frame-relative coords that configure-event gives.
+$window->signal_connect(
+    'motion-notify-event' => sub {
+        return 0 unless $is_dragging;
+        my ( $widget, $event ) = @ARG;
+        my $new_x = $drag_win_start_x + ( $event->x_root - $drag_start_xr );
+        my $new_y = $drag_win_start_y + ( $event->y_root - $drag_start_yr );
+        ## two-call approach for cross-output boundary : first move anchors X
+        ## at the last get_origin()-confirmed Y [ always valid ] so X still
+        ## moves even when the second call's Y is rejected at the compositor
+        ## per-output boundary
+        $widget->move( $new_x, $win_y_cache );
+        $widget->move( $new_x, $new_y );
+        ## update X immediately; Y follows configure-event [ which now queries
+        ## get_origin() for true root coords ]
+        $win_x_cache = $new_x;
+        $data{'protocol-7-menu'}{'window'}{'x'} = $new_x;
+        return 1;
     }
 );
 
@@ -118,34 +162,32 @@ $window->signal_connect(
     'button-release-event' => sub {
         my ( $widget, $event ) = @ARG;
 
-        # Save position only if we were actually dragging
+        ## save position only if we were actually dragging
         if ($is_dragging) {
             $is_dragging = FALSE;
 
-            my $cfg_val = <protocol-7-menu.cfg> // {};
-
-       # Apply position save offset correction
-       # NOTE: Root cause of offset unknown. When subtracting from image size:
-       #   128 - 38 = 90, 128 - 58 = 70 (no clear correlation identified yet)
-       # If offset occurs, adjust config values until root cause is determined
+            my $cfg_val       = <protocol-7-menu.cfg> // {};
             my $save_offset_x = $cfg_val->{'position_save_offset_x'} //= 38;
             my $save_offset_y = $cfg_val->{'position_save_offset_y'} //= 58;
 
-            my @pos = $widget->get_position();
+            ## drag-calculated final position : start was set from get_origin()
+            ## [ true X11 root coords ] + root-coord delta from events = exact
+            my $final_x
+                = $drag_win_start_x + ( $event->x_root - $drag_start_xr );
+            my $final_y
+                = $drag_win_start_y + ( $event->y_root - $drag_start_yr );
 
-            my $save_pos_x = $pos[0] + $save_offset_x;
-            my $save_pos_y = $pos[1] + $save_offset_y;
+            my $save_pos_x = $final_x + $save_offset_x;
+            my $save_pos_y = $final_y + $save_offset_y;
 
-            if ( @pos && defined $pos[0] && defined $pos[1] ) {
-                <[base.logs]>->(
-                    1, "SAVE: window position on button-release: x=%d y=%d",
-                    $save_pos_x, $save_pos_y
-                );
-                <[protocol-7-menu.position.save]>->(
-                    $save_pos_x, $save_pos_y, $screen_key
-                );
-            }
-            return 1;    # Consume event
+            <[base.logs]>->(
+                1, "SAVE: window position on button-release: x=%d y=%d",
+                $save_pos_x, $save_pos_y
+            );
+            <[protocol-7-menu.position.save]>->(
+                $save_pos_x, $save_pos_y, $screen_key
+            );
+            return 1;    # consume event
         }
 
         # Check if click was in menu zone (for non-drag clicks)
@@ -158,8 +200,10 @@ $window->signal_connect(
 
             # Menu zone - open menu
             my $menu = <protocol-7-menu.graphical-menu>;
-            $menu->popup_at_widget( $widget, qw| east east | )
-                if defined $menu;
+            if ( defined $menu ) {
+                <protocol-7-menu.menu_open> = TRUE;
+                $menu->popup_at_widget( $widget, qw| east east | );
+            }
             return 1;    # Consume event
         }
 
@@ -179,12 +223,9 @@ if ( defined $saved_position ) {
     $pos_x = $saved_position->{'x'};
     $pos_y = $saved_position->{'y'};
 
-    ## defensive clamp [ eg. screen resized since this was saved ] ##
-    $pos_x = 0                    if $pos_x < 0;
-    $pos_y = 0                    if $pos_y < 0;
-    $pos_x = $scr_w - $win_width  if $pos_x > $scr_w - $win_width;
-    $pos_y = $scr_h - $win_height if $pos_y > $scr_h - $win_height;
-
+    ## no manual clamp here : snap_to_monitor [ called below ] handles
+    ## off-screen and void positions correctly, and negative coordinates
+    ## are valid for secondary monitors positioned above or left of primary
     <[base.logs]>->( 1, "loaded saved position : x=%d y=%d", $pos_x, $pos_y );
 } else {
 
@@ -218,6 +259,39 @@ $window->set_gravity('north-west');
     $pos_x, $pos_y
 );
 $window->move( $pos_x, $pos_y );
+
+## assign real initial values now that pos_x/pos_y are resolved
+( $win_x_cache, $win_y_cache ) = ( $pos_x, $pos_y );
+
+$data{'protocol-7-menu'}{'window'} = {
+    'x' => $pos_x,
+    'y' => $pos_y,
+    'w' => $win_width,
+    'h' => $win_height,
+};
+
+$window->signal_connect(
+    'configure-event' => sub {
+        my ( $widget, $event ) = @ARG;
+        ## Weston XWM sends ConfigureNotify with WM-frame-relative coords,
+        ## not root coords. use get_origin() [ XTranslateCoordinates ] for
+        ## the true root position [ $event->x/y would give ~230 while the
+        ## real root X11 position is ~4635 in a multi-monitor setup ].
+        ## guard against the X11 "not yet mapped" sentinel (-32736) that
+        ## XTranslateCoordinates returns during the initial-map configure-event
+        ## before weston has committed the surface position.
+        my $gdk_win = eval { $widget->get_window() };
+        if ( defined $gdk_win ) {
+            my ( $rx, $ry ) = eval { $gdk_win->get_origin() };
+            if ( defined $rx and $rx >= -32736 and $ry >= -32736 ) {   ##[LLL]
+                ( $win_x_cache, $win_y_cache ) = ( $rx, $ry );
+                $data{'protocol-7-menu'}{'window'}{'x'} = $win_x_cache;
+                $data{'protocol-7-menu'}{'window'}{'y'} = $win_y_cache;
+            }
+        }
+        return 0;
+    }
+);
 
 $window->show_all;
 
@@ -369,6 +443,160 @@ foreach my $mapping_id ( sort keys %$menu_commands ) {
 
 $menu->show_all;
 
+$menu->signal_connect(
+    'deactivate' => sub {
+        Glib::Timeout->add( 400,
+            sub { <protocol-7-menu.menu_open> = FALSE; return FALSE } );
+    }
+);
+
+## distance-aware opacity via windows pointer hook + shm
+if ($use_transparency) {
+    use YAML::XS qw| Load Dump |;
+
+    my $opacity_min   = <protocol-7-menu.cfg.opacity.min>   //= 0.47;
+    my $opacity_max   = <protocol-7-menu.cfg.opacity.max>   //= 0.63;
+    my $opacity_click = <protocol-7-menu.cfg.opacity.click> //= 0.77;
+
+    ## calibration : offset aligns windows virtual-screen coords to x11 coords
+    ## [ negative pointer values reveal the offset : offset = -min_ptr ]
+    ## max_dist scales the opacity curve to the observed reachable range
+    ## both are keyed by screen_key and self-correct as the mouse explores
+    my $ptr_offset_x = 0;
+    my $ptr_offset_y = 0;
+    my $max_dist     = $scr_w;    ## screen-width as sensible baseline ##
+    my $calib_dirty  = 0;
+    my $existing_ref = <[file.zenka_dir.load]>->('window/position.yaml');
+    if ( defined $existing_ref ) {
+        eval {
+            my $c
+                = ref($existing_ref) eq 'SCALAR'
+                ? $$existing_ref
+                : $existing_ref;
+            my $p = Load($c);
+            if ( ref($p) eq 'HASH' and ref( $p->{'calibration'} ) eq 'HASH' )
+            {
+                my $cal = $p->{'calibration'}{$screen_key} // {};
+                $ptr_offset_x = $cal->{'offset_x'} // 0;
+                $ptr_offset_y = $cal->{'offset_y'} // 0;
+                $max_dist     = $cal->{'max_dist'} // $scr_w;
+            }
+        };
+    }
+    <[base.logs]>->(
+        1, 'opacity : calibration offset x=%d y=%d max_dist=%.0f [%s]',
+        $ptr_offset_x, $ptr_offset_y, $max_dist, $screen_key
+        )
+        if $ptr_offset_x
+        or $ptr_offset_y
+        or $max_dist;
+
+    ## save calibration when dirty, debounced to every 30s
+    <[event.add_timer]>->(
+        {   'after'    => 30,
+            'interval' => 30,
+            'repeat'   => TRUE,
+            'cb'       => sub {
+                return unless $calib_dirty;
+                $calib_dirty = 0;
+                my $positions = {};
+                my $ref = <[file.zenka_dir.load]>->('window/position.yaml');
+                if ( defined $ref ) {
+                    eval {
+                        my $c = ref($ref) eq 'SCALAR' ? $$ref : $ref;
+                        my $p = Load($c);
+                        if ( ref($p) eq 'HASH' ) {
+                            $positions = $p->{'positions'} // {};
+                        }
+                    };
+                }
+                my $yaml;
+                eval {
+                    $yaml = Dump(
+                        {   'positions'   => $positions,
+                            'calibration' => {
+                                $screen_key => {
+                                    'offset_x' => int($ptr_offset_x),
+                                    'offset_y' => int($ptr_offset_y),
+                                    'max_dist' => int($max_dist),
+                                }
+                            },
+                            'metadata' =>
+                                { 'saved_at' => <[base.time]>->(3) },
+                        }
+                    );
+                };
+                <[file.zenka_dir.write]>->(
+                    'window/position.yaml', \$yaml, '>', 0600, ':utf8'
+                ) if defined $yaml and length $yaml;
+            }
+        }
+    );
+
+    my $current_opacity = $opacity_max;
+    my $set_opacity     = sub {
+        my $o = int( shift() * 100 + 0.5 ) / 100;
+        return if abs( $o - $current_opacity ) < 0.01;
+        $current_opacity = $o;
+        eval { $window->set_opacity($o) };
+    };
+
+    Glib::Timeout->add(
+        50,
+        sub {
+            ## shm_ptr set by handler.pointer-stream-path once handshake done
+            my $shm_ptr = $data{'protocol-7-menu'}{'pointer'}{'shm_ptr'};
+            return TRUE unless defined $shm_ptr;
+            if ( <protocol-7-menu.menu_open> && $menu->get_visible ) {
+                $set_opacity->($opacity_click);
+                return TRUE;
+            }
+
+            my ( $ptr_x, $ptr_y )
+                = unpack( 'l<l<',
+                substr( $$shm_ptr, AMOS7::SHM::SHM_HEADER_SIZE(), 8 ) );
+            ## self-correcting offset : negative ptr coords are impossible
+            ## in x11 space [ screen starts at 0 ] so they reveal the offset
+            if ( $ptr_x < -$ptr_offset_x ) {
+                $ptr_offset_x = -$ptr_x;
+                $calib_dirty  = 1;
+            }
+            if ( $ptr_y < -$ptr_offset_y ) {
+                $ptr_offset_y = -$ptr_y;
+                $calib_dirty  = 1;
+            }
+
+            my $cx   = $win_x_cache + $win_width / 2;
+            my $cy   = $win_y_cache + $win_height / 2;
+            my $dist = sqrt( ( $ptr_x + $ptr_offset_x - $cx )**2
+                    + ( $ptr_y + $ptr_offset_y - $cy )**2 );
+
+            ## grow instantly on new max; gentle decay otherwise so calibration
+            ## self-corrects when cursor consistently stays closer over time
+            ## [ ~1.7% per minute at 50ms tick rate ]
+            if ( $dist > $max_dist ) {
+                $max_dist    = $dist;
+                $calib_dirty = 1;
+            } else {
+                $max_dist *= 0.9999;
+                $calib_dirty = 1;
+            }
+            my $scale = $max_dist > 1 ? $max_dist : 1;
+
+            my $t      = $dist >= $scale ? 1 : $dist / $scale;
+            my $curved = ( 1 - cos( $t * 3.14159 ) ) / 2;
+            my $target
+                = $opacity_max - $curved * ( $opacity_max - $opacity_min );
+            $set_opacity->($target);
+            return TRUE;
+        }
+    );
+
+    ## trigger shm handshake after zenka is fully initialized
+    push <system.callbacks.initialized>->@*,
+        qw| protocol-7-menu.pointer-stream-init |;
+}
+
 # Store references
 <protocol-7-menu.graphical-window>      = $window;
 <protocol-7-menu.graphical-menu>        = $menu;
@@ -378,8 +606,8 @@ $menu->show_all;
 
 return 0;
 
-#,,,,,,..,,.,,,.,,.,,,,..,,,.,,,.,.,,,,.,,..,,.,.,...,...,,,.,,.,,...,...,,,.,
-#G6FVSRA66M3O5VXYJ4OMYNQU6A7DFBKQRJUZ27IYK4P42QFAUBXG6BT2PEAGRHDLBRHRJXW5UE3FS
-#\\\|KXFASDUXJGLFPBDJKG4O76MO55SYEAO76QOS555XS2SCG5JWPAP \ / AMOS7 \ YOURUM ::
-#\[7]CBIKWNHSPKQY64RCCRXTBRNSWKLJJOXOKQEHURFRYX64KNPXA4DA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,.,.,,..,,,.,,,,,...,..,,...,..,,.,.,...,...,,,,,...,,,.,..,,,,.,
+#V6ADTMV3MXU4KNXLSZX3GQOAOW5POGTIPAXZY7PHENQUIXPEOST5H53IBABWT4THH4F4AMKJT5RB2
+#\\\|2GX2V6OGOWHR6LPNTZRPHJBQ5MDH6XEITHRHEICR2CIK2743TNZ \ / AMOS7 \ YOURUM ::
+#\[7]PXWKH3VITM7MEIQI25UBI3OZUJKHUMVGEZ4VMNFKNOCCVQP75QCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

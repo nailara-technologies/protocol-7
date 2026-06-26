@@ -22,38 +22,38 @@ if ( not defined $script_win ) {
 
 <[base.logs]>->( 2, 'pointer-stream : script path : %s', $script_win );
 
-## create shm file if absent : 8 bytes [ two signed int32 : x, y ]
-my $shm_path = '/dev/shm/.p7-pointer-pos';
-if ( not -f $shm_path ) {
-    open( my $init_fh, '>', $shm_path ) or do {
-        <[base.logs]>
-            ->( 0, "pointer-stream : cannot create shm : $OS_ERROR" );
-        return undef;
-    };
-    print $init_fh "\x00" x 8;
-    close $init_fh;
-}
-
-## mmap shm segment for writing
+## create amos7 shm segment [ 8 bytes data : two signed int32 x, y ]
 <[base.perlmod.autoload]>->(
-    'Sys::Mmap', qw| mmap PROT_READ PROT_WRITE MAP_SHARED |
+    'AMOS7::SHM', qw| shm_create header_read header_write sign_permission |
 );
 
-open( my $shm_fh, '+<', $shm_path ) or do {
-    <[base.logs]>->( 0, "pointer-stream : cannot open shm : $OS_ERROR" );
+my $session_key = $keys{'C25519'}{'session:powershell'};
+if ( not defined $session_key or not defined $session_key->{'key-reply'} ) {
+    <[base.log]>->( 0, 'pointer-stream : session key not available' );
     return undef;
-};
+}
 
-my $shm_scalar;
-mmap( $shm_scalar, 8, PROT_READ() | PROT_WRITE(), MAP_SHARED(), $shm_fh )
-    or do {
-    <[base.logs]>->( 0, "pointer-stream : mmap failed : $OS_ERROR" );
-    close $shm_fh;
+my $mount = AMOS7::SHM::shm_create(
+    $session_key->{'key-reply'},
+    8,
+    {   'mlock'       => 0,
+        'time_source' => sub { <[base.time]>->(2) },
+    }
+);
+if ( not defined $mount ) {
+    <[base.log]>->( 0, 'pointer-stream : shm_create failed' );
     return undef;
-    };
+}
 
-<powershell.pointer.shm>    = \$shm_scalar; ## ref keeps mmap'd scalar alive
-<powershell.pointer.shm_fh> = $shm_fh;      ## keep fh alive for mmap lifetime
+<powershell.pointer.mount> = $mount;
+<powershell.pointer.shm>   = $mount->{'mmap_ptr'};   ## scalar ref for handler
+
+## register shm path with v7 for automatic cleanup on zenka exit
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| v7.report-temp-path |,
+        'call_args' => { 'args' => $mount->{'path'} },
+    }
+);
 
 ## spawn persistent hook process
 <[base.perlmod.autoload]>->( 'IPC::Open3', qw| open3 | );
@@ -111,8 +111,8 @@ return TRUE;
 
 #
 
-#,,,,,,.,,,,,,.,.,,,,,.,,,,,.,,,,,.,,,.,,,,.,,..,,...,...,..,,,,.,.,,,.,.,,,.,
-#VIBUFH2ONUPCAPW4KMXBUQJ4DSUXDYITWCLS2VREXOIIJYSRIBR3PGEBOYHECTHJ6KCUIDPU6KYHY
-#\\\|4Y55WTSKGLISDORLMR2DKVB6VQYYB2FEJNUBOXDCUV7B5TSZRND \ / AMOS7 \ YOURUM ::
-#\[7]CM4267R5WYVJD27PQEUYF2NZLI4NG4PCDG3ZQ6LSCIKHD6MBPIBY 7  DATA SIGNATURE ::
+#,,.,,,,.,...,.,,,,.,,..,,,..,.,.,,,,,.,.,,,.,..,,...,...,,,.,,..,.,.,.,.,.,,,
+#5VX5LOOFFHUYKL4XFWFT3S7ANI2GYVVUMPN6IPLINJXLUGQELOLDFZVLW7GJ643CBZ5N5UD6AAJ3U
+#\\\|BLKZ5DIDTNJZQXQGCSX3BT7ATOE26TEAEPIVJCHFVXQD5FP3ULI \ / AMOS7 \ YOURUM ::
+#\[7]FQJEIQ2WHPUBVU6QQGB7KCGC2GG5RQ4UZ3ONNJTPYMVUSY4OPOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
