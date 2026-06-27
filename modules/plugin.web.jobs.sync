@@ -58,6 +58,8 @@ for my $job_data (@job_list) {
             }
         }
         if (%changed) {
+            ## bump last_modified so delta queries on other browsers pick up this change ##
+            $cached->{'last_modified'} = <[base.ntime.b32]>;
             <[plugin.web.jobs.reverse.queue]>
                 ->( { 'id' => $job_id, %changed } );
         }
@@ -113,8 +115,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,.,,...,,..,...,.,,,..,,,..,..,,,,,,...,,,.,..,,...,...,,.,,,..,,.,,,.,,..,,
-#4S4U7NYXM3LY7KTLEY6L3PTERZQETPD4GFRJ6KWPZPNUKB4BFMS3NRFNZFGIDHKGN3HJZIGK53FYU
-#\\\|AMWSPXC5SFZLQREDQFJEKTDFBPHLXX36VRDQZYHCOJPBRDSQBWB \ / AMOS7 \ YOURUM ::
-#\[7]VFP2ORJ2RQKGS7C5GBNWXTHWUNXPAYWXYNGQ4ISFTICVP35K5OAQ 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,.,,,,..,.,.,,,.,,..,,.,,.,,,,,,,..,,...,..,,.,,,,..,,,,,,,.,.,.,
+#RD2R2WY64NQNXW5YTXPNHUQRRIIZMBATBEDFQF2TTTJ5LDRPI6O463FMFDXRS7KGSEK6OKNGTYALS
+#\\\|EEM32ZNSRCFEZ4ZN2MKBZGS546LDJ2XTEOBDBRGJT5LJFMPIML7 \ / AMOS7 \ YOURUM ::
+#\[7]M3SW2PXVYGVHV7CYGBC2W2ENDKHQ3W5FLZJUMVIIMOCSHLF32QCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
