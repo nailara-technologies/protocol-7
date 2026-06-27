@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = screen.setup.cmd.screen-change
+# descr = retry pending window-move intents on screen-change
+
+## single-line key=value payload, not YAML [ see X-11.emit.screen-change ] ##
+my %event = $call->{'args'} =~ m|(\w+)=(\S*)|g;
+my $w     = $event{'width'}  // 0;
+my $h     = $event{'height'} // 0;
+
+<[base.logs]>->( 1, '[screen-setup.screen-change] %dx%d', $w, $h );
+
+## retry every window with an intended_geo that has not been applied yet  ##
+for my $id ( keys %{ $data{'screen-setup'}{'instances'} // {} } ) {
+    my $inst = $data{'screen-setup'}{'instances'}{$id};
+    for my $win ( @{ $inst->{'windows'} // [] } ) {
+        next if not defined $win->{'intended_geo'};
+
+        my $ig    = $win->{'intended_geo'};
+        my $winid = $win->{'winid'};
+        my $x     = int( $ig->{'x'} + 0.5 );
+        my $y     = int( $ig->{'y'} + 0.5 );
+
+        <[base.logs]>->(
+            1,
+            '[screen-setup.screen-change] id=%s winid=%s retry intent x=%d y=%d',
+            $id,
+            $winid,
+            $x,
+            $y
+        );
+
+        <[protocol-7.route-send]>->(
+            {   'command'   => qw| X-11.move-window |,
+                'call_args' => { 'args' => "$winid $x $y" },
+                'reply'     => {
+                    'handler' => qw| screen.setup.handler.move_reply |,
+                    'params'  => { 'id' => $id, 'winid' => $winid }
+                }
+            }
+        );
+    }
+}
+
+return { 'mode' => qw| true |, 'data' => 'ok' };
+
+#,,,,,,.,,.,,,,,,,,.,,.,.,...,.,,,.,.,.,.,,..,.,.,...,...,..,,...,..,,...,..,,
+#ODLJSZRWFBZTS7M2EWPZGG3U3DM5ON4SYJ72TMB3PAJMRDXV2XRKJSE6ZAGG2UM7ZHNM7QQEWOLUI
+#\\\|HBGGO6W4TBM6AZNQSF4QV3OTR5QI4JA663UJALLBLLZ6QUGPC44 \ / AMOS7 \ YOURUM ::
+#\[7]24MJIWJ5MNWI7UNW2CTJ5IDFAHUZTOQXEFPJUB3UW5Y6K2GQT6DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

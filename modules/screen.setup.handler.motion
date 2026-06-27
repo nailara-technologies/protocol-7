@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = screen.setup.handler.motion
+# descr = update the dragged window's intended_geo as it moves in the
+#         minimap; the intent is drawn dashed until the compositor honours it
+
+my ( $id, $widget, $event ) = @ARG;
+
+return TRUE if not defined $id;
+
+my $inst = $data{'screen-setup'}{'instances'}{$id};
+return TRUE if not defined $inst;
+
+my $idx = $inst->{'drag_win_idx'};
+return TRUE if not defined $idx;
+
+my $start = $inst->{'drag_start_minimap'};
+my $base  = $inst->{'drag_start_geo'};
+my $mp    = $inst->{'map_params'};
+
+return TRUE
+    if not defined $start
+    or not defined $base
+    or not defined $mp;
+
+## map the pixel delta back into virtual desktop space [ mirror of draw ] ##
+my $dx_minimap = $event->x - $start->{'x'};
+my $dy_minimap = $event->y - $start->{'y'};
+my $dx_virtual = $dx_minimap / $mp->{'scale'};
+my $dy_virtual = $dy_minimap / $mp->{'scale'};
+
+$inst->{'windows'}[$idx]{'intended_geo'} = {
+    'x' => $base->{'x'} + $dx_virtual,
+    'y' => $base->{'y'} + $dy_virtual,
+    'w' => $base->{'w'},
+    'h' => $base->{'h'}
+};
+
+my $window = $inst->{'window'};
+$window->queue_draw if defined $window;
+
+return TRUE;
+
+#,,.,,...,,.,,,..,,,.,..,,...,,..,..,,..,,,,,,.,.,...,...,,..,,..,.,,,...,,,.,
+#FPYMD3ZF5H7CGWJIV2PCWTMQCZAITGXJHAPG66CXZXOKT7RYORZ7MRYKZ4D2445DDGI7CNJN3MBCO
+#\\\|VDUMZB2FHR62QBVYETG525JEUYI3QBXAWYOJQSHUMH2YLKTWQ2U \ / AMOS7 \ YOURUM ::
+#\[7]OD62MMRPHFPDGH4NFHDTLSYH5OOGDRJFLEZNXBWW7T6A6SQNACCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
