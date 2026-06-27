@@ -1,0 +1,65 @@
+## [:< ##
+
+# name  = window.place.handler.wingeom_reply
+# descr = X-11.get_geometry reply for place-for-window: open overlay on success
+
+my $reply = shift // {};
+
+my $id   = $reply->{'params'}{'instance_id'} // '';
+my $inst = $data{window}{place}{instances}{$id};
+
+if ( not defined $inst ) {
+    <[base.logs]>->( 1, '[wingeom_reply] instance %s gone, discarding', $id );
+    return;
+}
+
+if ( ( $reply->{'cmd'} // '' ) ne qw| TRUE | ) {
+    <[base.logs]>->(
+        1,   '[wingeom_reply] id=%s geometry query failed [%s]',
+        $id, $reply->{'call_args'}{'args'} // 'no data'
+    );
+    my $reply_id = $inst->{'reply_id'};
+    if ( defined $reply_id and $reply_id =~ /^\d+$/ ) {
+        <[base.callback.cmd_reply]>->(
+            $reply_id,
+            { 'mode' => 'false', 'data' => 'window geometry unavailable' }
+        );
+    }
+    delete $data{window}{place}{instances}{$id};
+    return;
+}
+
+## X-11.get_geometry returns "w h x y" ##
+my $args = $reply->{'call_args'}{'args'} // '';
+my ( $w, $h, $x, $y ) = split /\s+/, $args;
+
+if ( not defined $w or not defined $h ) {
+    <[base.logs]>->(
+        1,   '[wingeom_reply] id=%s unparseable geometry [%s]',
+        $id, $args
+    );
+    delete $data{window}{place}{instances}{$id};
+    return;
+}
+
+my $geo = { 'x' => $x // 0, 'y' => $y // 0, 'width' => $w, 'height' => $h };
+
+<[base.logs]>->(
+    1,   '[wingeom_reply] id=%s opening overlay at %dx%d+%d+%d',
+    $id, $w, $h, $x // 0, $y // 0
+);
+
+<[event.add_timer]>->(
+    {   'after' => 0,
+        'cb'    => sub {
+            <[window.place.open_window]>
+                ->( { 'id' => $id, 'geometry' => $geo } );
+        }
+    }
+);
+
+#,,.,,.,.,...,,.,,,..,.,.,,..,,..,,.,,.,.,..,,..,,...,...,,.,,,,,,,,.,..,,..,,
+#Z2ALCL2NXWBCTF7UOORLHR5OUAZXLR554XSZLVDVYA5IK5I6CPSDVKWNDYTUBWCEX2N5JU3BD7ISW
+#\\\|54HJNY7KDC23SOWONS7WFWL53E5NB6KAH3G3IHA5VVFDVNQB6PM \ / AMOS7 \ YOURUM ::
+#\[7]Q74NNGJXJEJ4NNSEI5NCQFILTSEQ6ZWQT6665PFOVUHROCQ4N6AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
