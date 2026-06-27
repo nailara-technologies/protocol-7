@@ -122,6 +122,50 @@ for my $m (@$monitors) {
     $context->show_text($offs);
 }
 
+## window overlay : translucent amber rects showing where open windows sit ##
+## inside the virtual desktop, warmer and more transparent than monitors   ##
+my $windows = $inst->{'windows'} // [];
+my $own_xid = $inst->{'own_xid'};
+
+for my $win (@$windows) {
+    next if $win->{'width'} <= 0 or $win->{'height'} <= 0;
+
+    ## skip the minimap's own window once its xid is known ##
+    next if defined $own_xid and $win->{'winid'} eq $own_xid;
+
+    my $wx = $map_x->( $win->{'x'} );
+    my $wy = $map_y->( $win->{'y'} );
+    my $ww = $win->{'width'} * $scale;
+    my $wh = $win->{'height'} * $scale;
+
+    ## warm translucent fill : reads as content inside the dark monitor panels ##
+    $context->set_source_rgba( 0.8, 0.5, 0.1, 0.18 );
+    $context->rectangle( $wx, $wy, $ww, $wh );
+    $context->fill;
+
+    ## crisper warm stroke so individual rects separate visually ##
+    $context->set_source_rgba( 0.9, 0.6, 0.2, 0.55 );
+    $context->set_line_width(1);
+    $context->rectangle( $wx + 0.5, $wy + 0.5, $ww - 1, $wh - 1 );
+    $context->stroke;
+
+    ## tiny muted title label when the rect is large enough to hold text ##
+    my $label = $win->{'title'} // '';
+    if ( length $label and $ww > 48 and $wh > 18 ) {
+        $context->set_source_rgba( 0.85, 0.65, 0.35, 0.70 );
+        $context->set_font_size(9);
+        $label = substr( $label, 0, 26 ) . '...' if length $label > 29;
+        my $te = $context->text_extents($label);
+        my $lx = $wx + 3;
+        my $ly = $wy + 11;
+        if ( $lx + $te->{'width'} > $wx + $ww - 3 ) {
+            $lx = $wx + $ww - $te->{'width'} - 3;
+        }
+        $context->move_to( $lx, $ly );
+        $context->show_text($label);
+    }
+}
+
 ## title line, centered on the top drag band ##
 $context->set_source_rgba( 0.023529, 0.278431, 0.764706, 0.95 );
 $context->set_font_size(14);
@@ -134,8 +178,8 @@ $context->show_text($title);
 
 return TRUE;
 
-#,,.,,,.,,,,,,.,.,,..,,..,.,.,,..,..,,.,,,.,,,..,,...,...,...,.,.,.,.,.,.,,,.,
-#UDHA6GYDZC7T3MGPYDNP7NBVFUFCEHCZFGOEWIGX2PNHDB47OHQSGDIMB7OWPVMDMZMJ2J6XVDIGE
-#\\\|PG4EOTOBDSAXAXQ75KRPTTCKNJIMZYNS4ZVHIBHHUQSBB3DW6RK \ / AMOS7 \ YOURUM ::
-#\[7]EDD2XXABIDD2ZZHUJ2JLYRKBAXIELEJA4HYJZGFUCIZ4SHG7PGAI 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,.,.,.,.,.,.,.,,,,..,,,,,,..,,.,,..,,...,...,...,,..,..,,.,,,,,.,
+#CJ574QOCSQV273ZJSVXSV72R2EU5HPIFCB7R34ID6IFG4BHSKIQW3WCGBOMH2ZKPEEJM3VDAQWIRO
+#\\\|LQYZQPVDRIVZMO2RWINKTG6WZWMSNBVUUAQK3XNSHUMPB4T7GRI \ / AMOS7 \ YOURUM ::
+#\[7]2REEZEIK5SNCJ6ATZKCBQEHOZA7PBFCC3FKRPA6IEHKGLUAR7GBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

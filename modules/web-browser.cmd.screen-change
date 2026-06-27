@@ -1,0 +1,98 @@
+## [:< ##
+
+# name  = web-browser.cmd.screen-change
+# descr = relocate window to nearest monitor if off-screen
+
+## rapid topology changes fire bursts of events; defer the check 700ms and  ##
+## reset the timer on each arrival so only the last event in a burst acts.  ##
+
+my %event = $call->{'args'} =~ m|(\w+)=(\S*)|g;
+my $scr_w = $event{'width'}  // 0;
+my $scr_h = $event{'height'} // 0;
+
+<[base.logs]>->( 1, '[screen-change] %dx%d [deferred]', $scr_w, $scr_h );
+
+return { 'mode' => qw| true |, 'data' => 'not initialized' }
+    if not defined <web-browser.gtk_obj.window>;
+
+my $prev_id = <web-browser.screen_change_timer_id>;
+Glib::Source->remove($prev_id) if defined $prev_id;
+
+<web-browser.screen_change_timer_id> = Glib::Timeout->add(
+    700,
+    sub {
+        <web-browser.screen_change_timer_id> = undef;
+
+        my $window = <web-browser.gtk_obj.window>;
+        return FALSE unless defined $window;
+
+        my $cached = <web-browser.pos_save.geo> // {};
+        my $cur_x  = $cached->{'x'}             // 0;
+        my $cur_y  = $cached->{'y'}             // 0;
+        my $cur_w  = $cached->{'width'}         // 800;
+        my $cur_h  = $cached->{'height'}        // 600;
+
+        my $monitors = <[base.gtk.list_monitors]> // [];
+        return FALSE unless @$monitors;
+
+        ## check if window centre is on any monitor ##
+        my $cx         = $cur_x + $cur_w / 2;
+        my $cy         = $cur_y + $cur_h / 2;
+        my $on_monitor = 0;
+        for my $m (@$monitors) {
+            if (    $cx >= $m->{'x'}
+                and $cx < $m->{'x'} + $m->{'width'}
+                and $cy >= $m->{'y'}
+                and $cy < $m->{'y'} + $m->{'height'} ) {
+                $on_monitor = 1;
+                last;
+            }
+        }
+
+        if ($on_monitor) {
+            <[base.logs]>->(
+                1, '[screen-change] window still on monitor, no relocation'
+            );
+            return FALSE;
+        }
+
+        ## find nearest monitor by distance from old window centre ##
+        my $best   = $monitors->[0];
+        my $best_d = 9e18;
+        for my $m (@$monitors) {
+            my $mc_x = $m->{'x'} + $m->{'width'} / 2;
+            my $mc_y = $m->{'y'} + $m->{'height'} / 2;
+            my $d    = ( $cx - $mc_x )**2 + ( $cy - $mc_y )**2;
+            if ( $d < $best_d ) { $best_d = $d; $best = $m }
+        }
+
+        my ( $mx, $my, $mw, $mh ) = @{$best}{qw| x y width height |};
+        my ( $new_x, $new_y, $new_w, $new_h )
+            = ( $cur_x, $cur_y, $cur_w, $cur_h );
+
+        ## move first, clamp size only when window exceeds monitor ##
+        $new_x = $mx + $mw - $new_w if $new_x + $new_w > $mx + $mw;
+        $new_y = $my + $mh - $new_h if $new_y + $new_h > $my + $mh;
+        if ( $new_x < $mx ) { $new_x = $mx; $new_w = $mw }
+        if ( $new_y < $my ) { $new_y = $my; $new_h = $mh }
+
+        <[base.logs]>->(
+            1, '[screen-change] relocating to %dx%d+%d+%d',
+            $new_w, $new_h, $new_x, $new_y
+        );
+
+        $window->move( $new_x, $new_y );
+
+        return FALSE;
+    }
+);
+
+return { 'mode' => qw| true |, 'data' => 'deferred' };
+
+#
+
+#,,.,,,.,,.,,,,..,.,.,..,,,..,,,,,,..,.,,,,..,..,,...,...,...,..,,.,.,...,.,,,
+#AXERQ6VG74YP6IXEY2W6OH6PDZRQBXI7GDFYMXF3TFJUKI6R3CHP33AHSSYNIC2MXWJZ3TM2DIDTS
+#\\\|J5RIGO3P7ESKE7R33P54Z5YBOAOG7SLWSYM3FNULQEYZSHQQ3LC \ / AMOS7 \ YOURUM ::
+#\[7]DYMLJXEUOWQH42UZG2TFDE4YV57S6NRO7OH3KIBWWKSVTFSQMUDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
