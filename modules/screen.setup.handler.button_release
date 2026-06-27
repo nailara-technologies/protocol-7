@@ -1,9 +1,8 @@
 ## [:< ##
 
 # name  = screen.setup.handler.button_release
-# descr = on the end of a border drag, persist the window's new position +
-#         size for this layout via window.profile [ keyed by the resolution
-#         caller set in open_window ]
+# descr = on the end of a window-intent drag, ask X-11 to move the window;
+#         on the end of a border drag, persist the minimap's new position
 
 my ( $id, $widget, $event ) = @ARG;
 
@@ -12,7 +11,43 @@ return TRUE if not defined $id;
 my $inst = $data{'screen-setup'}{'instances'}{$id};
 return TRUE if not defined $inst;
 
-## only persist if this release ends a drag we started ##
+## window-intent drag end : attempt to apply the intended position        ##
+my $idx = delete $inst->{'drag_win_idx'};
+if ( defined $idx ) {
+    my $start = delete $inst->{'drag_start_minimap'};
+    my $base  = delete $inst->{'drag_start_geo'};
+
+    my $win = $inst->{'windows'}[$idx];
+    if ( defined $win and defined $win->{'intended_geo'} ) {
+        my $ig    = $win->{'intended_geo'};
+        my $winid = $win->{'winid'};
+        my $x     = int( $ig->{'x'} + 0.5 );
+        my $y     = int( $ig->{'y'} + 0.5 );
+
+        <[base.logs]>->(
+            1,
+            '[screen-setup.button_release] id=%s winid=%s move intent x=%d y=%d',
+            $id,
+            $winid,
+            $x,
+            $y
+        );
+
+        <[protocol-7.route-send]>->(
+            {   'command'   => qw| X-11.move-window |,
+                'call_args' => { 'args' => "$winid $x $y" },
+                'reply'     => {
+                    'handler' => qw| screen.setup.handler.move_reply |,
+                    'params'  => { 'id' => $id, 'winid' => $winid }
+                }
+            }
+        );
+    }
+
+    return TRUE;
+}
+
+## only persist if this release ends a border drag we started ##
 return TRUE if not $inst->{'dragging'};
 $inst->{'dragging'} = FALSE;
 
@@ -38,8 +73,8 @@ return TRUE
 
 return TRUE;
 
-#,,,,,...,,.,,,..,.,,,...,.,.,.,,,...,...,.,,,..,,...,...,.,.,...,..,,,,.,.,,,
-#XTRNRSAMXODKRSPUDZK6JIVNV7XSW2GSXWN3M4LDOEQLUOGXNZH65U62DKC52HBK673RBLLB46KEQ
-#\\\|ENZIAFPY3WNTRNIXXM6HKXOPP5Q6ASK6VJJ2ZFV77SYUAX57LKP \ / AMOS7 \ YOURUM ::
-#\[7]QBRU2CPFR2GV5NVX4IPZIZQSFVJ5JK6INISJBVZC44PJMHRIGUDI 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,,,,,.,,..,,,,.,,..,...,.,.,.,.,.,.,...,...,.,.,.,,,,,,,,,,,,.,,
+#BXL5XCWIVZP7HHE6G3OZDURJ2MAY2WXWY573AMVMG3SJL3DSQPXELQ4S2UDJC74U2MAZWQDK3DGNE
+#\\\|DGJCT4MLLAW56OEX4VLHUS35E2H6UXXIAUZ7UFNHAJZ5PIQTQ4W \ / AMOS7 \ YOURUM ::
+#\[7]2XNU6Q6TEZBGZCCM3JABEBIMDM6TR473JWRBX65GMCIWKK6VMICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
