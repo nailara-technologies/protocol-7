@@ -25,7 +25,9 @@ if ( exists $_web_zenka_identity{<system.zenka.name>} ) {
     <system.zenka-user.current>  //= $id->{'user'};
     <system.zenka-group.current> //= $id->{'group'};
 }
-<[base.path-set-up.check-zenka-paths]>->( TRUE, 0750, FALSE, 0700, 'jobs' );
+<[base.path-set-up.check-zenka-paths]>->(
+    TRUE, 0750, FALSE, 0700, 'jobs', TRUE
+);
 
 ## ensure status subdirectories exist under web jobs root ##
 my $cache_dir = <[plugin.web.jobs.cache.path]>;
@@ -49,8 +51,8 @@ my $count  = scalar keys %{$loaded};
 
 0;
 
-#,,..,,.,,,,.,,,,,,,.,.,,,...,...,,.,,,..,,,,,..,,...,...,...,,,,,.,,,,.,,,,.,
-#O25WHXKG7QWPZ3MAASC6U3ZM3XTMWSLVSWKNWOTBVS2KSAWKNWLMYF2F5EV37WTGRLDORXNNMSPY2
-#\\\|CRXSDTHP3ZO5YNXXEQDK3ERY74ZWI5HMK6SSDOAW7ITTLG5XF2P \ / AMOS7 \ YOURUM ::
-#\[7]4Q2Z2AVPJAGIT4SYVOVBFSCVV7IGUDTGBV65DZMOKT7YOVD37AAY 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,,.,.,,,,.,,,,.,..,,,..,,,,,.,,,..,,...,...,...,..,,..,,,,.,,.,,
+#6JZ7D2SUIFX7H4DGUELI2YXSHSLLES6JKPPHL6QUOKLQQUPBEVR3HJR3LQ7VX7MYQY6CVYYXBNP54
+#\\\|NV5M4JYDTWZBAMWXTFUSPA5Y3ZV5XHCWEFPCRRLE5552UK7RM6G \ / AMOS7 \ YOURUM ::
+#\[7]ISMWGIQ3RHTMZF52FFEMVNXJBU4EHGOCOYCXFK7WQJJONNDFVWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

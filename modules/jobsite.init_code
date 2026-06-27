@@ -7,6 +7,11 @@
 <[base.perlmod.autoload]>->('File::Path');
 <[base.perlmod.autoload]>->('JSON::XS');
 
+## ensure jobs storage paths are owned by the jobsite zenka user ##
+<[base.path-set-up.check-zenka-paths]>->(
+    TRUE, 0750, FALSE, 0700, 'jobs', TRUE
+);
+
 ## cycle-level state
 <jobsite.cycle>         = 'idle';
 <jobsite.last_scan>     = 0;
@@ -211,8 +216,8 @@ my $job_count = scalar keys %{$tasks};
 
 TRUE;
 
-#,,.,,,,.,,,,,,..,,,.,,,.,,,,,..,,.,,,.,.,.,,,..,,...,...,..,,..,,,..,,.,,..,,
-#URITGQV5SVAQ2SEVAF2FTR34LXMA6DZD4QMXINK3V6JZGFNNCI7L6C6QGVDTHOAHO6RSB4Q44PBJU
-#\\\|IFAPYBRWUDONVICMJSTXV3BRV4RKSSAGMSOWQDOZ7VIRMQIWDR5 \ / AMOS7 \ YOURUM ::
-#\[7]6KVVQHFEILXYBRRIHUP5JEF6DEXJSEUFO3AFPNN3JV7MV7T5IEAA 7  DATA SIGNATURE ::
+#,,..,,,.,...,.,,,,..,,,.,.,.,,,,,,,.,...,,.,,..,,...,...,...,,,,,,..,.,.,.,.,
+#DLFVMFBGGP44CKXDTGZ7JPMAJWQKAZUE2QPHUQBW5E7YMGPVAONEHA55I5V3ONSZVK4BJCPDSYUSE
+#\\\|PJBU6W4YY2G43P4SEBPQSPHKNVHCJOXHNHIIC4XZUAEUQPSE2RR \ / AMOS7 \ YOURUM ::
+#\[7]KH5NO4T3STF6HRRQ72G4LK6ZKJ2BHSXRAXEQUJ3V6TSAS67A3SAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
