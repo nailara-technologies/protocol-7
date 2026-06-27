@@ -3,6 +3,9 @@
 # name  = web-browser.open_window
 
 $ENV{'DISPLAY'} = <x11.display>;
+$ENV{'GDK_BACKEND'}
+    = 'x11';    ## force XWayland — deiconify blocked on native Wayland ##
+delete $ENV{'WAYLAND_DISPLAY'};
 
 my ( $size_x, $size_y, $pos_x, $pos_y )
     = ( $1, $2, sprintf( qw| %.0f |, $4 ), sprintf( qw| %.0f |, $5 ) )
@@ -77,6 +80,33 @@ if ( length $wb_caller
         and defined $saved->{'height'} ) {
         ( $pos_x, $pos_y, $size_x, $size_y )
             = @{$saved}{qw| x y width height |};
+
+        ## skip position restore if saved coords are entirely off the         ##
+        ## current virtual screen — stale from a different monitor layout.   ##
+        ## weston cannot move windows across compositor outputs via x11      ##
+        ## configurerequest, so there is no reliable programmatic recovery.  ##
+        ## fall back to default geometry and let the user reposition via     ##
+        ## the window-place overlay (alt+.) once the window is visible.      ##
+        my ( $sw, $sh )
+            = ( <x11.geometry> // '1920x1080' ) =~ m|^(\d+)x(\d+)|;
+        $sw //= 1920;
+        $sh //= 1080;
+        if ( $pos_x >= $sw or $pos_y >= $sh ) {
+            <[base.logs]>->(
+                1,
+                '[startup] saved position [%dx%d+%d+%d] is off-screen'
+                    . ' [screen:%dx%d] — using default geometry',
+                $size_x,
+                $size_y,
+                $pos_x,
+                $pos_y,
+                $sw,
+                $sh
+            );
+            ( $pos_x, $pos_y, $size_x, $size_y )
+                = ( undef, undef, undef, undef );
+        }
+
         <web-browser.window.pos>  = { 'x' => $pos_x,  'y' => $pos_y };
         <web-browser.window.size> = { 'x' => $size_x, 'y' => $size_y };
         <[base.logs]>->(
@@ -155,8 +185,11 @@ if ( <system.zenka.mode> eq qw| universal-child | ) {
     <web-browser.slideshow.autostart> = 5;    ## true ##
     $window->iconify();
 } else {
-    $window->iconify()
-        ;    ## [LLL] create exception? wait for bg-color being set.,
+    ## hide during page load without iconifying (deiconify is blocked under WSLg) ##
+    if ( $window->is_composited ) {
+        $window->set_opacity(0);
+        <web-browser.start-up.opacity_hidden> = TRUE;
+    }
 
     ## raise window when ready ##  .. background color properly set .,  ##
     <web-browser.start-up.raise_delay> //= 0.13747;
@@ -208,6 +241,24 @@ $window->signal_connect(
                     <web-browser.pos_save.timer> = undef;
                     my $geo = <web-browser.pos_save.geo> // return;
                     return if not length $wb_caller;
+                    ## skip save if window is entirely off the virtual screen ##
+                    ## — prevents perpetuating stale multi-monitor positions  ##
+                    do {
+                        my ( $ssw, $ssh )
+                            = ( <x11.geometry> // '1920x1080' )
+                            =~ m|^(\d+)x(\d+)|;
+                        if ( defined $ssh ) {
+                            my ( $gx, $gy )
+                                = @{$geo}{qw| x y |};
+                            return
+                                   if ( $gx // 0 ) >= $ssw
+                                or ( $gy    // 0 ) >= $ssh
+                                or ( $gx    // 0 ) + ( $geo->{'width'} // 0 )
+                                <= 0
+                                or ( $gy // 0 ) + ( $geo->{'height'} // 0 )
+                                <= 0;
+                        }
+                    };
                     <[window.profile.save]>->(
                         $wb_caller,      $geo->{'x'}, $geo->{'y'},
                         $geo->{'width'}, $geo->{'height'}
@@ -243,8 +294,8 @@ foreach my $signal_name (qw|  INT  TERM  |) {
     );
 }
 
-#,,.,,,.,,.,,,...,.,,,,,,,,.,,,,.,,.,,,,,,,,,,..,,...,...,...,.,,,.,.,.,,,,,,,
-#SIGG7UJZBJ6P7WBL4NVQSOZ2OCX7DDBVDTFBGQ7VTIZRIBYNKXTV3MCGXFEUJOBCEJD6BS72XMV56
-#\\\|CH7QI5NSXQD2XWASKTZ7ZZDJVKHM7WMGRNGLXBPPZKICZY352CW \ / AMOS7 \ YOURUM ::
-#\[7]OH5WDSN7NTIFA4N2TYWLBYPUV5F5JKKN67GSHBG47JJNX2D3MKDY 7  DATA SIGNATURE ::
+#,,,.,,,,,...,.,.,,..,.,,,,,,,,..,,..,,,,,,,.,..,,...,...,...,.,.,,..,,..,,,,,
+#SLJV7JY7CDQ2HPCF7PFJMOWOKLVBIO6FAFTXVEPSLXVFJ6UHJ2F5I2I3IYRME7HDJUADDSNYHPT4U
+#\\\|GQWCPZJWRD6PPHPJAY4TDTHLEHOBVHFXR3DXMCXR7BY6BOKMHLJ \ / AMOS7 \ YOURUM ::
+#\[7]2RSC3QJ5FGIS5CLGWZ7INVHMBGTVJ6WOSTJBH6CJLY2OMZGJCICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

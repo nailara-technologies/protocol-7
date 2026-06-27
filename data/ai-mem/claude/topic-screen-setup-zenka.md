@@ -141,23 +141,67 @@ DELEGATES to base.gtk.list_monitors (deduped, one enumerator). Menu's
 white-lists regen'd (screen-setup 527, menu 462). NEEDS SIGNING; menu was
 crash-looping so `p7c v7.stop protocol-7-menu` while iterating.
 
-**Deferred (planned next):** (1) overlay detected window rects from
-`X-11.get-windows` — note that cmd returns only XID+title, needs
-`get_window_geometry`/`get_geo_async` per-window async fan-out; (2) the
-actual move-handler fix — live-probe whether Weston honors
-`_NET_WM_MOVERESIZE` direction 10 (MOVE_KEYBOARD) to cross seams; (3)
-taeki's idea — make the thin per-monitor border **dynamic**: react to
-state + mouse proximity (brighten on hover, colour by active/drag-target/
-pointer-over-screen). Reuses the same per-monitor hit-testing
-(`screen.setup.monitor-at-point`) the placement fix needs — turns the map
-from static diagram into live instrument.
+**LANDED 2026-06-27 (unsigned): window rect overlay + PNG snapshot.**
+
+Window rects: `screen.setup.cmd.display-layouts` fires `X-11.get-windows`
+via route-send (added to `access.cmd.usr.*` wildcard); reply handler
+`screen.setup.handler.windows_reply` fans out `X-11.get_geometry` per
+window; `screen.setup.handler.geometry_reply` collects and triggers
+`queue_draw`. Draw handler renders amber rects (fill rgba 0.8,0.5,0.1,0.18 /
+stroke 0.9,0.6,0.2,0.55) after monitor panels; skips own XID. KEY BUG
+FOUND: SIZE replies carry payload in `$reply->{'data'}`, not
+`$reply->{'call_args'}{'args'}` (that's TRUE-mode only) — see
+`base.handler.command.process_reply` line 146. Verified live: off-screen
+web-browser window shows below both monitors, confirmed accurate.
+
+PNG snapshot: `screen.setup.cmd.snapshot [instance_id]` creates a
+`Cairo::ImageSurface` at 1200×800 (configurable via
+`screen.setup.cfg.snapshot_width/height`), runs the draw handler with a
+fake widget bless, saves via `$surface->write_to_png`. Snapshots go to
+`screen.setup.cfg.snapshot_dir` (default `<root>/data/snapshots/`).
+Confirmed working — first snapshot showed off-screen web-browser rect
+clearly below both monitor panels. White-list updated (+3 entries).
+
+**Deferred — next kimi task: minimap drag/resize with intent layer.**
+
+Design (confirmed by taeki 2026-06-27):
+
+Each window entry carries two geometry slots:
+- `actual_geo` — always refreshed from X-11.get_geometry, never user-touched
+- `intended_geo` — set on drag/resize in the minimap, cleared only on
+  successful move application
+
+Draw handler renders `intended_geo` when set, `actual_geo` otherwise.
+Pending rects use a visually distinct border (dimmer/dashed) to signal
+"not yet applied". Once the move lands, `intended_geo` clears and the rect
+reverts to `actual_geo` (which matches at that point).
+
+Coordinate inversion from minimap mouse coords to virtual desktop coords:
+  `virtual_x = (minimap_x - off_x) / scale + model.min_x`
+  `virtual_y = (minimap_y - off_y) / scale + model.min_y`
+`off_x`, `off_y`, `scale`, `model.min_x/y` cached on instance per draw.
+
+Hit-testing: window rect click → identify which window, begin drag tracking
+in minimap space. Release → compute intended virtual geometry → attempt
+X-11.move-window. If cross-output (Weston can't honor ConfigureWindow),
+mark pending. Retry on screen-change events (already subscribed) — iterate
+all windows with pending `intended_geo`, attempt move, clear on success,
+request fresh get_geometry to confirm actual.
+
+Geometry refresh: on each display-layouts open or periodic timer, re-fetch
+`actual_geo` for all windows BUT skip windows with pending `intended_geo`
+so user intent isn't overwritten by a stale X-11 snapshot.
+
+Other deferred: (1) STRM-based live window list (X-11 pushes on
+open/close); (2) dynamic per-monitor border (brighten on hover, colour by
+active/drag-target); (3) `_NET_WM_MOVERESIZE` direction-10 cross-seam probe.
 
 ## related
 
 [[feedback-weston-move-unreliable-use-compositor-grab]] · [[topic-gtk-wsl-window-positioning]] · [[topic-tile-window-place-hybrid-desktop]]
 
-#,,..,,,,,..,,,..,.,.,...,,.,,.,,,.,.,,,.,.,.,..,,...,.,,,...,...,...,...,..,,
-#6ZAPACTLVBAGJVQBZNKZ567WAXEGNMFKKZ563Z5VHCQNHSZKCXEYA6O3BMWKO3QGAOBOZDXKZU62K
-#\\\|GUG6KOHY2N5K3QO2BZCQRQS3JZOPCA5GYZ7G6B5VZED7PWSORFH \ / AMOS7 \ YOURUM ::
-#\[7]5W7Y7UKPRV43M4H7YM25FKUCPKL2COXZ45ZTF5AVCWZ2MHWS4OCY 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,.,.,,,,,,.,,,..,...,,.,,,.,,,,,,..,,...,...,.,.,...,..,,.,,,.,.,
+#AP7IKBZIPEXJDWL6HRYLXOPTWVW6SEF6KQRESLYJUH5RSZVAA4NBGNPEGVQ52DU63NMEUP5OXMYGA
+#\\\|TX5VFIAIAWCEVQYFFGVMO5OQGNRGDHENJRZH57LQ6QSOQC4BH3X \ / AMOS7 \ YOURUM ::
+#\[7]ZG53T2JU334OCYUOD2PBHGY64LWZ67NGAFMQLNRI2A7GYP2D5GCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

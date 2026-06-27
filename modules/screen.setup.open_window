@@ -144,6 +144,10 @@ $window->signal_connect(
             $window->set_keep_above(1);
             $window->present;
             $window->grab_focus;
+
+            ## remember our own xid so the draw handler can skip self-overlay ##
+            my $xid = eval { $window->get_window->get_xid };
+            $inst->{'own_xid'} = $xid if defined $xid;
         };
         return FALSE;
     }
@@ -299,8 +303,8 @@ if ( not <screen.setup.gtk.main_running> ) {
 
 return 0;
 
-#,,.,,.,,,,,,,..,,,..,,,.,..,,,.,,,..,...,,.,,..,,...,...,.,,,...,..,,,,.,.,.,
-#L5MAXCJEX6W2JUKRTINWB3EDTPN72IORGW4S24WBL6TIVJUHEYAG75TKQSKREZZKTRCGDOKT4V6CO
-#\\\|AU5JLCDZOLYC3I5PNIGHQIFCRVF4MCWHZ4HLPCF55H56ZTJLB7I \ / AMOS7 \ YOURUM ::
-#\[7]BCLSSL5CGJRQTIOPT5H3IR7WECG32MVHDN3H2QSHX32UO7TD4ABI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,..,,..,,..,,.,,,..,,,.,..,,,..,..,,...,...,,..,,,.,,,.,,,.,,,.,
+#2XZ2PYLM72ZMASKHN7G3DIH5PKVYLXILMW57DVMUNTGOJS52PLBSRDJOTMJSB6FE6GNGJKD5ZYZL6
+#\\\|TXRWEV5PIVSEB6OYB2V2TVPBHO7URZAMM36I42QUII33E2WJY7N \ / AMOS7 \ YOURUM ::
+#\[7]5BRQ7VOLMC65O7ITBKHGWQKO4I25WD3ZP2AGUWAPIHELXUZIWEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
