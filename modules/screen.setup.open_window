@@ -89,7 +89,9 @@ $window->set_default_size( $win_w, $win_h );
 $window->move( $win_x, $win_y );
 
 $window->add_events(
-    [qw| key-press-mask button-press-mask button-release-mask |] );
+    [   qw| key-press-mask button-press-mask button-release-mask pointer-motion-mask |
+    ]
+);
 
 $window->signal_connect(
     draw => sub {
@@ -112,7 +114,7 @@ $window->signal_connect(
 );
 
 ## border = drag handle [ compositor grab, crosses seams ], right-click   ##
-## dismisses, center is reserved for future hit-testing on the rects      ##
+## dismisses, center left-drags window rects to set intended geometry     ##
 $window->signal_connect(
     'button-press-event' => sub {
         eval { <[screen.setup.handler.button_press]>->( $id, @ARG ) };
@@ -127,6 +129,17 @@ $window->signal_connect(
 $window->signal_connect(
     'button-release-event' => sub {
         eval { <[screen.setup.handler.button_release]>->( $id, @ARG ) };
+        if ( length $EVAL_ERROR ) {
+            <[base.log]>->( 0, <[base.str.eval_error]>->(1) );
+        }
+        return TRUE;
+    }
+);
+
+## window rect drag inside the minimap [ center zone, not the border ] ##
+$window->signal_connect(
+    'motion-notify-event' => sub {
+        eval { <[screen.setup.handler.motion]>->( $id, @ARG ) };
         if ( length $EVAL_ERROR ) {
             <[base.log]>->( 0, <[base.str.eval_error]>->(1) );
         }
@@ -303,8 +316,8 @@ if ( not <screen.setup.gtk.main_running> ) {
 
 return 0;
 
-#,,.,,,,,,.,.,,..,,..,,..,,.,,,..,,,.,..,,,..,..,,...,...,,..,,,.,,,.,,,.,,,.,
-#2XZ2PYLM72ZMASKHN7G3DIH5PKVYLXILMW57DVMUNTGOJS52PLBSRDJOTMJSB6FE6GNGJKD5ZYZL6
-#\\\|TXRWEV5PIVSEB6OYB2V2TVPBHO7URZAMM36I42QUII33E2WJY7N \ / AMOS7 \ YOURUM ::
-#\[7]5BRQ7VOLMC65O7ITBKHGWQKO4I25WD3ZP2AGUWAPIHELXUZIWEAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,,,.,..,,,,.,,,,,,.,,,,,,.,,,,,,,..,,...,...,.,.,,.,,,..,,,.,,,.,
+#BSYM2LK3NIFM7LGNEGTZN2FZ3F7AYREAT27CGI7NUY6WDMZLHMTNORN6KFADNWRGX4DTXN4WBZCRU
+#\\\|4LWABR45QS37UEK3J3NXRXUZTK53RQYJG3NITBFXJBBVMD6EU43 \ / AMOS7 \ YOURUM ::
+#\[7]5USAXPBPVH2YDJMCF4SZLBDMRHZFJQHJGGLIHHQXAEFMVOLZCWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
