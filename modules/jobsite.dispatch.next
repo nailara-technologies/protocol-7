@@ -15,8 +15,8 @@ my $job_id = $entry->{'job_id'};
 my $desc   = $entry->{'desc'};
 
 <[base.logs]>->(
-    1,       'dispatching assessment for job %s (%d remaining)',
-    $job_id, scalar @{$queue}
+    1,       '[job:%s] dispatching assessment [ remaining : %d ]',
+    $job_id, scalar $queue->@*
 );
 
 ## encode multiline args as base32 to avoid protocol framing issues
@@ -34,8 +34,8 @@ my $encoded
     }
 );
 
-#,,,,,,..,,..,..,,,,,,.,,,,,,,.,,,..,,,,,,,,.,..,,...,...,.,,,.,.,,.,,,.,,..,,
-#KVRL36KJH6BVF5TFGE5Z75ZG7UMGUSJ7NO7WDJGOGUFNKD4AHT62P56BCQ54R2VUKKU3BQWQUMADI
-#\\\|R3A2H5MDHHSZZSM3ANO6OPJJEPLQ3ODLAOYZUFI4BBLN2IZRVJ4 \ / AMOS7 \ YOURUM ::
-#\[7]6DCWHOQ6BBGWFNJL4TUUF3TOUMWRI7T5G5PN3KPMGF6TTPLIBSDY 7  DATA SIGNATURE ::
+#,,,,,..,,..,,..,,.,.,.,,,...,,,,,..,,,,.,.,,,..,,...,...,...,..,,,.,,...,,.,,
+#LYUL33UVUUIPQN5IO3KWOQQSMLP3DIHQUPJZKQKVLRX6OZGVQBAN35HSBUXPICSLJJ4PQYBDVYKRY
+#\\\|GIAIWYMMRGQJGRWRGT4B2V253GKX4JDKPVZOCKKIC4PU6M4LIXG \ / AMOS7 \ YOURUM ::
+#\[7]USFLLBPINXDB43MCTXE5ICALKMZJB4FB6DSTPA56B3JIMPB64SAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

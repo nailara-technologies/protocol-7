@@ -4,14 +4,15 @@
 # descr = send next chunk from queue, or finish cycle when all chunks sent
 
 my $queue = <jobsite.sync.push_queue> // [];
-my $item  = shift @{$queue};
+my $item  = shift $queue->@*;
 
 if ( not defined $item ) {
     ## all chunks done : advance local watermark to cycle start ntime ##
     my $cycle_ntime = delete <jobsite.sync.push_cycle_ntime> // '';
     my $urls        = delete <jobsite.sync.push_urls>        // [];
-    for my $url ( @{$urls} ) {
-        <jobsite.sync.last_ntime>->{$url} = $cycle_ntime if length $cycle_ntime;
+    for my $url ( $urls->@* ) {
+        <jobsite.sync.last_ntime>->{$url} = $cycle_ntime
+            if length $cycle_ntime;
     }
     <jobsite.sync.last_server_ntime> = $cycle_ntime if length $cycle_ntime;
 
@@ -21,7 +22,7 @@ if ( not defined $item ) {
     <[jobsite.state.persist]>;
     <[base.logs]>->(
         1,
-        'jobsite: sync push complete, reverse=%d',
+        'sync push complete [reverse:%d]',
         scalar @{$reverse}
     );
     <[jobsite.sync.apply_reverse]>->($reverse);
@@ -50,14 +51,14 @@ if ( not length $body ) {
 <[clients.http.post]>->(
     {   'url'     => $url,
         'body'    => $body,
-        'timeout' => 30,
-        'on_done' => 'jobsite.handler.sync-response',
-        'params'  => { 'chunk_size' => scalar @{$chunk} },
+        'timeout' => 32,
+        'on_done' => qw| jobsite.handler.sync-response |,
+        'params'  => { 'chunk_size' => scalar $chunk->@* },
     }
 );
 
-#,,..,,..,.,,,,,,,...,,,,,,,.,,,.,.,,,..,,.,.,..,,...,...,,,.,,,.,.,.,.,,,,.,,
-#EKJSE2UILFEIY77BQJ2QDEDFAHX5OLTALTOIGF6OWZCWB4O5DANOF24BHMZRJSNOZRSUJLAITXCU2
-#\\\|I3WZ2DXFLVZDIJSF6RALVECGMZB7VP7GJXLFCJKS6G6U5HUYHWG \ / AMOS7 \ YOURUM ::
-#\[7]YWG6TAZOIJ7EVVOWFECI3ZE4M34GC6JYOTQGRWY6SWMO7FWOKECQ 7  DATA SIGNATURE ::
+#,,.,,..,,..,,.,.,.,.,,.,,...,,.,,.,,,,.,,..,,..,,...,...,,,,,,,,,..,,..,,.,,,
+#3XJOZXFYXB5H7GW66L55QJZJRMIPUO53WW455VGYJ6VOF44IUG24LQFROI4XQ7SYRGF7GPBAOHSVS
+#\\\|4XAEMSBK52H2YKQQFISIMLJDEC25P5CYBA7TM43P2YGXX3ZCXZT \ / AMOS7 \ YOURUM ::
+#\[7]ZJRL6KP4PCCZFJBGE3CO5EJ44QT3VJDSO2DZHF5QP3AL2REI34BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
