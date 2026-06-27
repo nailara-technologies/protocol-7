@@ -155,6 +155,11 @@ push @{ <system.callbacks.profile_changed> //= [] }, $profile_cb
     unless grep { $ARG eq $profile_cb }
     <system.callbacks.profile_changed>->@*;
 
+push @{ <system.callbacks.initialized> //= [] },
+    'web-browser.subscribe-screen-change'
+    unless grep { $ARG eq 'web-browser.subscribe-screen-change' }
+    ( <system.callbacks.initialized> // [] )->@*;
+
 $code{'base.handler.end_code'} = sub {
     <[base.log]>->( 1, ': closing window ..,' );
     <[event.once]>;
@@ -168,8 +173,8 @@ $code{'base.handler.end_code'} = sub {
 
 0;
 
-#,,,,,.,.,,.,,...,,.,,,,.,.,.,,,,,.,.,,.,,,,,,..,,...,...,..,,..,,,,,,...,,..,
-#23G6D7THGAMKFM37HGW3XUDLZHK2DSFLWHNZJJKTSSQGLRWA3FPZTL3T6CL3WFUOZRRHJRFD42QXY
-#\\\|UOPARAKX33U2IMVR52PCVNU4HD7QWWRSHOXI5CZL7BJKFXBX62X \ / AMOS7 \ YOURUM ::
-#\[7]OA3XUF6DPYDOMSNF6YPEIP7Z44IZSXKU7AY4VTYHLBGKXTSGVUBY 7  DATA SIGNATURE ::
+#,,.,,,..,...,,..,.,,,.,,,...,.,.,,.,,,.,,,,.,..,,...,...,...,,..,...,..,,,,.,
+#X7KF7TLDGIXWPPYZM7UZYMHQM3BKUV3DKX4GHIR7RRSIWQAO3KFUUKDT6HQHQ77QUGQ33JRPE54SK
+#\\\|M4CR72MQ3V5LNSF4CQFS3N2JBSAIP5U723XREF4HCKGXJEFKWKW \ / AMOS7 \ YOURUM ::
+#\[7]H7XWHEC7YF7KSOHADAZ73NIU5YSHRNYH2POI57BB6BBMJX4G6WBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

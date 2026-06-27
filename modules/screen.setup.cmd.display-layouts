@@ -37,9 +37,23 @@ do { $id = <[base.prng.chars-anum]>->(8) }
     while exists $data{'screen-setup'}{'instances'}{$id};
 
 $data{'screen-setup'}{'instances'}{$id} = {
-    'monitors' => $monitors,
-    'model'    => $model,
+    'monitors'       => $monitors,
+    'model'          => $model,
+    'windows'        => [],
+    'windows_temp'   => {},
+    'window_pending' => 0,
 };
+
+## fetch currently-open windows so the minimap can overlay them ##
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| X-11.get-windows |,
+        'call_args' => { 'args' => '' },
+        'reply'     => {
+            'handler' => qw| screen.setup.handler.windows_reply |,
+            'params'  => { 'id' => $id }
+        }
+    }
+);
 
 ## open the window after the command handler has returned ##
 <[event.add_timer]>->(
@@ -50,8 +64,8 @@ $data{'screen-setup'}{'instances'}{$id} = {
 
 return { 'mode' => qw| size |, 'data' => $summary };
 
-#,,..,,,.,,.,,,,,,,,.,,..,...,.,,,,.,,.,.,,.,,..,,...,...,...,.,,,.,,,.,.,.,.,
-#4KMDV4H242PL2QCDPPXLA3WM2OJ5Q6VGXTGX2UBPYTQFJTVNNBCG3UUQCN7W3EIADHSHHXNLIXHUW
-#\\\|6Y5F7EWZQ463EET76BF4CFVTCOUGE26O5CQKZEB5ENJWIJQ3QQY \ / AMOS7 \ YOURUM ::
-#\[7]GDC2NXZQ23F6VNFDI56HBDJ73QXJRFCW7NU2ATIXOIUN3QLBV2BY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,,,,,,,,,.,,,.,,,..,,,,,.,.,...,..,,...,...,...,.,,,,.,,,.,,,,,,
+#IXRTAQSCVMKLXBN2JQ2XQD5B2TGQKBBXLDSFGOIEB6YFM6OR5BWGTWUUCLDVOOFY5LWZI3GLIDQDI
+#\\\|YZVYGLNRAGWESJWEYWMHWYYZAIYDIUFWIN6RKNCQHMYR5ZX3TLZ \ / AMOS7 \ YOURUM ::
+#\[7]I7NSEY73FBWP2NYJERWNWD43OPUDIHGFCUASVUC3VLBA4MBW34BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
