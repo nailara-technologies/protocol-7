@@ -38,24 +38,25 @@ for my $line ( split /\n/, $list ) {
         };
 }
 
-$inst->{'windows'}        = [];
-$inst->{'windows_temp'}   = {};
-$inst->{'window_pending'} = scalar @entries;
+## merge : only add windows not already tracked, so periodic re-queries  ##
+## don't clobber intended_geo on windows with in-flight move intents     ##
+my %existing_ids = map  { $_->{'winid'} => 1 } @{ $inst->{'windows'} // [] };
+my @new_entries  = grep { not $existing_ids{ $_->{'winid'} } } @entries;
 
-if ( not @entries ) {
-    <[base.logs]>->(
-        2, '[screen-setup.windows_reply] id=%s no windows to overlay', $id
-    );
+if ( not @new_entries ) {
     return;
 }
 
 <[base.logs]>->(
-    1,
-    '[screen-setup.windows_reply] id=%s fetching geometry for %d window(s)',
-    $id, scalar @entries
+    1,   '[screen-setup.windows_reply] id=%s %d new window(s) discovered',
+    $id, scalar @new_entries
 );
 
-for my $e (@entries) {
+$inst->{'windows_temp'} //= {};
+$inst->{'window_pending'}
+    = ( $inst->{'window_pending'} // 0 ) + scalar @new_entries;
+
+for my $e (@new_entries) {
     my $winid = $e->{'winid'};
     $inst->{'windows_temp'}{$winid} = { 'title' => $e->{'title'} };
 
@@ -92,8 +93,8 @@ for my $e (@entries) {
 
 #
 
-#,,..,.,,,...,,.,,...,,.,,.,.,.,,,.,.,...,.,.,.,.,...,...,.,,,.,,,...,,,,,.,.,
-#CFAEOU66V36FX5DIESLQWDVQ5EIAE63VNEO7FB6MZA6D6XULHVBOSPFONNYJGV5HFFZ3AY5FOVIVE
-#\\\|PBKPWWLWBHKSJ7FXFDZ33W7UDXGSJ6PUSAIQWCPUI7EECRWLTDV \ / AMOS7 \ YOURUM ::
-#\[7]EHKRLPDL6QCX67RCWZC4TBBX3TMICQCQUUIM3MOMBH4EMDXK3OAI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,.,,.,.,..,,...,,,,,..,,,.,,.,,,.,.,...,...,.,.,,.,,..,,.,.,.,,,
+#YMQHCOPFTCRA6XFXPG3IOTSGJCHZ3M57COTQW2FFOW23TWTDASAZUVXD2R7VUJSHM6QO3ASN3US5M
+#\\\|EUE7KXBHT567F23MII5SDRM2YW37TIQ44BQEDCE74YHTQ7KMG2T \ / AMOS7 \ YOURUM ::
+#\[7]YI4F64KVCT7A67SI2UPTHYDPRORLDGOC2MG4OF324HCU5ZZI7QAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
