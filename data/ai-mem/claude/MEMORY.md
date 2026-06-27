@@ -28,7 +28,7 @@
 - [frame-idiom-convergence](topic-frame-idiom-convergence.md) — NEW frame features: margin/vertical-padding/self-invalidating-cache/corner-pinning-spring; `.:[ ]::[ ]:.` idiom; 5 frames still need conversion (REQUIRED)
 - [ui-show-security-levels](topic-ui-show-security-levels.md) — steps 1-5 ALL LIVE (36d605896, 2026-06-13); credential_fabric slot name/meta gated; step 6 open
 - [os-command-zenka](topic-os-command-zenka.md) — planned: networked command/script templates, security levels, STRM streaming, vterm result buffers
-- [plugin-web-jobs](topic-plugin-web-jobs.md) — delta sync WORKING; open: ?since=N, remote deploy
+- [plugin-web-jobs](topic-plugin-web-jobs.md) — LANDED 39c5626d1 2026-06-28: apply_reverse memory fix + last_modified bump + userDecisions localStorage layer + dblclick undo toast; multi-backend ready via sync_urls
 - [clients-http](topic-clients-http.md) — clients.http.* + clients.https.* async; kimi-web parallel dispatch
 - [reasoning-chain-repository](topic-reasoning-chain-repository.md) — native model; dedup-based self-improvement
 - [reasoning-namespace](topic-reasoning-namespace.md) — `reasoning.*` namespace; 28 templates
@@ -205,8 +205,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,.,,...,..,,,,,,.,,,..,,..,,.,,,.,,,...,,.,,..,,...,..,,...,.,,,...,..,,,.,,
-#VCQ6TM7EXUWUSZNX2PV2CSBG4HED7M573V6HOHFVAIKXON4Z2C6Z76NVQFC4QENRVLF7OR3UTIYG4
-#\\\|TKT4YU6BZAH2JLN7NBTWQRBI4IWS4UHEOMIJU4P6W5OCN74RKZZ \ / AMOS7 \ YOURUM ::
-#\[7]FTRWNIHIMFBS35CH4CGERKX3BANV6T7FOFOL4BLI2RNBAMTHLMBA 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,..,..,,,,.,...,...,,.,,,,,,,..,..,,...,...,.,,,.,,,,,.,.,,,...,
+#3MWKNG24RMWQXVUSLECJF47IYOVXVOQTJV7GPP4D56WMV2XSMUWNUGTXWCSNQ3UPIUOHKGPF37M56
+#\\\|NX4GFM7355R4TBYIFI22JRHBQJCWGZ6CGB4WOLTCGED2WP3MGZB \ / AMOS7 \ YOURUM ::
+#\[7]IV7UAOV7FREYJSHVCK3UB2VVORY3WVZHY3KCXEM2SZTIBHP5BICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
