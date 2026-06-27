@@ -16,7 +16,7 @@ unless ( defined $caller and length $caller ) {
 my $caller_chksum = <[chk-sum.amos]>->($caller);
 my $position_path = sprintf 'window/position.%s.yaml', $caller_chksum;
 
-<[base.logs]>->( 1, '[profile.load] attempting to load %s', $position_path );
+<[base.logs]>->( 2, '[profile.load] attempting to load %s', $position_path );
 
 my $yaml_content_ref = <[file.zenka_dir.load]>->($position_path);
 
@@ -53,7 +53,7 @@ if ( defined $position and ref($position) eq qw| HASH | ) {
         and defined $position->{'width'}
         and defined $position->{'height'} ) {
         <[base.logs]>->(
-            1,
+            2,
             '[profile.load] loaded position: x=%d y=%d w=%d h=%d',
             $position->{'x'},
             $position->{'y'},
@@ -74,8 +74,8 @@ if ( defined $position and ref($position) eq qw| HASH | ) {
 );
 return undef;
 
-#,,..,.,.,.,,,,,.,.,,,..,,,,.,,,,,...,,,,,,,.,..,,...,...,,,.,,,,,.,.,.,.,.,.,
-#7RPWPOXMBBJ6KW53EXW6P4RTRP5ZSUZ4FXYRQ7QI2HSBHV2SXQXGQ3PXOBDQ677P7IWHSDJKZ37MW
-#\\\|5TY3AXYX5VIMQT4BG7TJB2OSYBCREHCN72VYJIAT62KPJEHBSAY \ / AMOS7 \ YOURUM ::
-#\[7]FDEGTWAYLIBOHLPXHXL2Z2NREEU5CVG54KM3AIGQEBXLHODRDGDY 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,,..,...,,.,,,,,,..,,..,,,..,.,,,..,,...,...,...,..,,.,.,.,.,,..,
+#PEBAVKIJO52RLLAGAWCLRJDQMMWWEZNE6TF4IETPYN7YFWSCRI5S6YYELHSQ65L5QFU4C3TRQ2Z3U
+#\\\|VUA2EJ5T3SXTIEEMIV5HXYRMYJYYH43G4U37W46BOZC2US2MJA6 \ / AMOS7 \ YOURUM ::
+#\[7]FF3FMU5OYUNLPCMWV5BC3NT2P52JGZMQESV4HYAWBCODPVIPL2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -271,6 +271,14 @@ mp.observe_property("osd-height", "native", function()
     if mp.get_property_native("idle-active") then render() end
 end)
 
+-- protocol-7 hotkeys --
+mp.add_key_binding("Alt+.", "p7-open-window-place", function()
+    mp.commandv("script-message", "protocol7-open-window-place")
+end)
+mp.add_key_binding("Alt+,", "p7-toggle-input-lock", function()
+    mp.commandv("script-message", "protocol7-toggle-input-lock")
+end)
+
 mp.register_event("shutdown", function()
     hide()
     if logo_bgra ~= "" then

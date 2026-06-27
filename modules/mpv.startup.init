@@ -18,7 +18,7 @@ if (    <system.zenka.mode> eq qw| stand-alone |
     and $sub =~ m|^audio(?:-\d+)?$| ) {
 
     <[base.logs]>->(
-        1, '[startup] audio mode [%s] — deferring open', $caller
+        2, '[startup] audio mode [%s] — deferring open', $caller
     );
     push @{ <system.callbacks.initialized> //= [] },
         qw| mpv.startup.job.fork_player |;
@@ -32,7 +32,7 @@ if ( defined $profile ) {
     my ( $x, $y, $w, $h ) = @{$profile}{qw| x y width height |};
     <mpv.geometry> = sprintf qw| %dx%d+%d+%d |, $w, $h, $x, $y;
     <[base.logs]>->(
-        1, '[startup] local profile [%s] — deferring open',
+        2, '[startup] local profile [%s] — deferring open',
         <mpv.geometry>
     );
     push @{ <system.callbacks.initialized> //= [] },
@@ -63,8 +63,8 @@ if ( length( <mpv.placement_mode> // '' ) ) {
 push @{ <system.callbacks.initialized> //= [] },
     qw| mpv.startup.job.fork_player |;
 
-#,,,,,...,,..,.,,,.,.,.,,,.,.,,..,,..,...,,..,..,,...,..,,.,.,,..,.,,,.,,,.,.,
-#6JDBX4RGNHRKCMZWKDIU6K3NX553OLF6KBDZ7M6ZWMCO2PNV4XBDAZIB35HP6UOPPJ3C6ROOGKJLQ
-#\\\|ILQO7QQADEMUDH34KGXB222U3YKRJFSH5P5V27ILTDQDL4IZK7Y \ / AMOS7 \ YOURUM ::
-#\[7]HQYYZ3R2FHA6QX3Q6KHJCYFED36YI6BXIEEYSZK6HRGRDN7D4GDY 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,.,,,.,.,..,,..,,...,,.,,.,,,,.,,..,,...,...,,,.,.,,,,..,...,,,.,
+#DFVNW6ZVK6SNFF5JECCUDEAFBAJSHKMMPJUMTMB73YT7NO5DKHJ6W6GMJWQ3KMOMCAJNBYT3AWBHA
+#\\\|2JASXSLSIHKWH2X5OWFGY7NCLCZMUTQ2JKEHD2F66ZTJCIXYZOX \ / AMOS7 \ YOURUM ::
+#\[7]4O2QWEXWUJVG2RIFPWWFNGT7XNZHYBYWGK4WS2NLYDFK35YFXCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

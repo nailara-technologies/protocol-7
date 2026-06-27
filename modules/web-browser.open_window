@@ -80,7 +80,7 @@ if ( length $wb_caller
         <web-browser.window.pos>  = { 'x' => $pos_x,  'y' => $pos_y };
         <web-browser.window.size> = { 'x' => $size_x, 'y' => $size_y };
         <[base.logs]>->(
-            1, '[startup] restoring saved position [%dx%d+%d+%d]',
+            2, '[startup] restoring saved position [%dx%d+%d+%d]',
             $size_x, $size_y, $pos_x, $pos_y
         );
     }
@@ -213,7 +213,7 @@ $window->signal_connect(
                         $geo->{'width'}, $geo->{'height'}
                     );
                     <[base.logs]>->(
-                        1,
+                        2,
                         '[position] saved [caller=%s] x=%d y=%d w=%d h=%d',
                         $wb_caller,
                         $geo->{'x'},
@@ -228,6 +228,10 @@ $window->signal_connect(
     }
 );
 
+$window->add_events( ['key-press-mask'] );
+$window->signal_connect(
+    'key-press-event' => $code{'web-browser.handler.key_press'} );
+
 ##  register signal handlers  ##
 ##
 foreach my $signal_name (qw|  INT  TERM  |) {
@@ -239,8 +243,8 @@ foreach my $signal_name (qw|  INT  TERM  |) {
     );
 }
 
-#,,..,..,,...,.,,,,,,,,.,,,..,,,.,.,,,.,.,,,,,..,,...,.,.,...,,..,...,,,.,,..,
-#AWB5L5Y34YLDVX3OHRM72FJBS4LBVV4OJGGODIQZH3SOOHJHPCWV24JJ4EADDZ3TGPBOZNZODROTM
-#\\\|VZ4XPTVB5LQ2V46IPBRRI77QDCXNUY6C7GOSKUZNEBFIS5RAQ55 \ / AMOS7 \ YOURUM ::
-#\[7]XLYMT3HCEIJBG3CJOXQ6W7GRZULZGBFGYP73JBEXQGZKL6WFBEDQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,...,.,,,,,,,,.,,,,.,,.,,,,,,,,,,..,,...,...,...,.,,,.,.,.,,,,,,,
+#SIGG7UJZBJ6P7WBL4NVQSOZ2OCX7DDBVDTFBGQ7VTIZRIBYNKXTV3MCGXFEUJOBCEJD6BS72XMV56
+#\\\|CH7QI5NSXQD2XWASKTZ7ZZDJVKHM7WMGRNGLXBPPZKICZY352CW \ / AMOS7 \ YOURUM ::
+#\[7]OH5WDSN7NTIFA4N2TYWLBYPUV5F5JKKN67GSHBG47JJNX2D3MKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

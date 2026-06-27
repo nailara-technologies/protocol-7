@@ -14,10 +14,19 @@
 
 Gtk3->init;    ## initialize explicitly, required before Gtk3->main ##
 
+## needed for $window->get_window->get_xid - without this setup the method  ##
+## isn't exposed at all under the plain Gtk3 binding [ same as ticker and   ##
+## protocol-7-menu init_code ].                                             ##
+Glib::Object::Introspection->setup(
+    qw| basename | => qw| GdkX11 |,
+    qw| version  | => qw|  3.0   |,
+    qw| package  | => qw| Gtk3::Gdk |
+);
+
 return 0;
 
-#,,,,,,,,,,.,,...,.,,,..,,,,,,,..,..,,.,.,.,.,..,,...,.,,,,,,,,,.,.,,,.,,,,,,,
-#LO3IQ5ABSPTXLYCBUE2WHHYPVNV6BMOSBFCQ2PGBJ4SKRUFV4HW7D2UX7PUZUXV3F3BUCZO5DO46Q
-#\\\|OHTT5XE3JBXSTFYBDP3XRX4DEIZWS62JT45N3NDKTAJXGDX4LXC \ / AMOS7 \ YOURUM ::
-#\[7]L4ASRXHFFQGPZCTPAZJ4PWW4UXOHA4KJKEJQ3CEJ2X5TQENWCUBI 7  DATA SIGNATURE ::
+#,,,.,,,.,...,...,,,.,...,...,,,.,,.,,...,...,..,,...,...,.,.,,,.,,.,,,,.,,..,
+#ICKUUF2G2X7GQFI2W5QTEZHQZUIMIG573GC7KFFWZHER6ZJI3455ZMTUQU3Y3UYE6JXTBZFEBYBRU
+#\\\|F44LZRF2GQC6GTVSTNEVMVSIFZNLCNKHYDKTPFBRAXIBWIYXN5R \ / AMOS7 \ YOURUM ::
+#\[7]JCTM5LCBQFNFZTIJ5UAJSC4ZT6XEL332ILUUGJOHQ73BSFR7R2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

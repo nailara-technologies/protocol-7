@@ -10,6 +10,48 @@ return undef if not defined $id;
 my $inst = $data{window}{place}{instances}{$id};
 return undef if not defined $inst;
 
+## final geometry recheck: if the user dragged or resized the overlay,    ##
+## read its actual X11 root geometry at commit time. this corrects any    ##
+## residual GTK/Wayland coordinate-space mismatch that the button_release ##
+## fallback may have left in inst->{geom} [ especially for resizes ].     ##
+my $window = $inst->{'window'};
+if ( $inst->{'placement_interacted'} and defined $window ) {
+    my $eval_err   = '';
+    my $actual_geo = eval {
+        my $gdk_window = $window->get_window;
+        return undef if not defined $gdk_window;
+        my $xid = $gdk_window->get_xid;
+        return undef if not defined $xid or $xid !~ /^\d+$/;
+        <[base.X-11.get_window_geometry]>->($xid);
+    };
+    if ( length $EVAL_ERROR ) {
+        $eval_err = <[base.str.eval_error]>->(1);
+    }
+    if (    defined $actual_geo
+        and defined $actual_geo->{'x'}
+        and defined $actual_geo->{'y'} ) {
+        $inst->{'geom'}{'x'}      = $actual_geo->{'x'};
+        $inst->{'geom'}{'y'}      = $actual_geo->{'y'};
+        $inst->{'geom'}{'width'}  = $actual_geo->{'width'};
+        $inst->{'geom'}{'height'} = $actual_geo->{'height'};
+        <[base.logs]>->(
+            2,
+            '[place.commit] id=%s rechecked from X11 x=%d y=%d w=%d h=%d',
+            $id,
+            $actual_geo->{'x'},
+            $actual_geo->{'y'},
+            $actual_geo->{'width'},
+            $actual_geo->{'height'}
+        );
+    } else {
+        <[base.logs]>->(
+            1,   '[place.commit] id=%s X11 recheck failed: %s',
+            $id, length $eval_err ? $eval_err : 'unknown'
+        );
+    }
+    delete $inst->{'placement_interacted'};
+}
+
 my $geom = $inst->{'geom'}   // {};
 my $x    = $geom->{'x'}      // 0;
 my $y    = $geom->{'y'}      // 0;
@@ -21,6 +63,19 @@ my $tag    = $inst->{'tag'}    // '';
 
 if ( length $caller ) {
     <[window.profile.save]>->( $caller, $x, $y, $w, $h );
+}
+
+## when opened over a specific window, apply the committed geometry to it ##
+my $target_winid = $inst->{'target_winid'};
+if ( defined $target_winid and $target_winid =~ /^\d+$/ ) {
+    <[base.logs]>->(
+        1,   '[place.commit] id=%s moving winid=%s to x=%d y=%d w=%d h=%d',
+        $id, $target_winid, $x, $y, $w, $h
+    );
+    <[base.X-11.move-window]>->( $target_winid, $x, $y, $w, $h );
+    <[base.logs]>->(
+        2, '[place.commit] id=%s move-window call complete', $id
+    );
 }
 
 my $reply_id = $inst->{'reply_id'};
@@ -46,7 +101,7 @@ if ( defined $reply_id and $reply_id =~ m|^\d+$| ) {
 <[base.logs]>->( 1, '[place.commit] id=%s placement committed', $id );
 
 ## destroy the window if still alive ##
-my $window = $inst->{'window'};
+$window = $inst->{'window'};
 if ( defined $window and $window->get_visible ) {
     $window->destroy;
 }
@@ -63,8 +118,8 @@ delete $data{window}{place}{instances}{$id};
 
 return TRUE;
 
-#,,.,,..,,.,,,,,.,,..,.,,,.,,,...,,,,,.,,,..,,.,.,...,...,.,,,.,.,,.,,,.,,...,
-#7QSYQ4RLYJK53DBJTDQ3Z4QAALSKWALE7HJYOLAUX4ESP5BJXUQF77YI75ACYQ6J6YKOC7OR5VJXO
-#\\\|ORGBQPXKSMMYQQRSOVSOXYSJUBMI5QTY5RAZVDNCNXGJOG6XBLL \ / AMOS7 \ YOURUM ::
-#\[7]JVUVBX6EX3X26HSGBRJ24M7UOB2A7QYMQUCUS735NC3NM4K6NMCY 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,...,.,.,.,,,.,,,,,,,,,.,,.,,,,,,.,.,...,...,,,.,.,.,..,,...,,.,,
+#UAPK3LSJHJNO36SG5QE3FPCRUWI2M6PUNQAUZEZZ6QOQ3HMGMDJIF5KTWC3AG4IWD3KKMR7MYGMYO
+#\\\|XTF2BLMCNDZDFCHVOWFUPFHVT7TN54M3B32H7P2XCY5A5OSGSCA \ / AMOS7 \ YOURUM ::
+#\[7]T6WF6ANX744YNGXQJWD7TEILJS6VSTO2CAUPDOYXR7YPNAKHUECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
