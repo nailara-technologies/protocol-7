@@ -25,6 +25,32 @@ if ( not length $winid or $winid !~ /^\d+$/ ) {
     return { 'mode' => 'false', 'data' => 'numeric winid required' };
 }
 
+## guard: deduplicate requests for same caller+winid ##
+for my $eid ( keys %{ $data{window}{place}{instances} } ) {
+    my $e = $data{window}{place}{instances}{$eid};
+    next if ( $e->{'caller'}       // '' ) ne $caller;
+    next if ( $e->{'target_winid'} // '' ) ne $winid;
+    ## overlay already shown: raise it rather than blocking ##
+    my $win = $e->{'window'};
+    if ( defined $win ) {
+        eval { $win->set_keep_above(1); $win->present; $win->grab_focus };
+        <[base.logs]>->(
+            1,
+            '[place-for-window] raising existing overlay [caller=%s winid=%s]',
+            $caller,
+            $winid
+        );
+    } else {
+        <[base.logs]>->(
+            1,
+            '[place-for-window] overlay already active [caller=%s winid=%s]',
+            $caller,
+            $winid
+        );
+    }
+    return { 'mode' => qw| true |, 'data' => 'placement already active' };
+}
+
 ## unique per-request identifier ##
 my $id;
 do { $id = <[base.prng.chars-anum]>->(8) }
@@ -54,8 +80,8 @@ $data{window}{place}{instances}{$id} = {
 
 return { 'mode' => 'deferred' };
 
-#,,,.,...,.,,,,,,,,.,,,,.,.,.,,,,,..,,.,.,...,..,,...,...,...,,..,,,.,,,,,..,,
-#FQH3P3GRJSGCRJBJ6ZNXQYDMWMGY3RPK46VI3KN7PHM2RIHWBVO3UZM4DGURA2M6ZHEDJQ6LHPBF6
-#\\\|REXXCRTCBBL5H4R6FN7I5JXEDU7FPBXV23F6NBX5MLBQFNY54EQ \ / AMOS7 \ YOURUM ::
-#\[7]47XWDLOFTLSGFHOOCEAWSPYBTXLZSDUQE2I42F6NUN5QJIAOZMCA 7  DATA SIGNATURE ::
+#,,.,,,,,,...,...,,..,,..,..,,,,,,,.,,,.,,.,.,..,,...,..,,,,,,..,,...,,.,,,,,,
+#J7XG6A63CT5JBVEI6I22FFIRAGK4SWMJ4NPQEPNVHQBWV6QXXF3YAGVBNHWD264GQPMBKKAAMNO3W
+#\\\|WX4ATPL6V7MKPTRPNKRVYIZSQHBTHFPRKH42VHSIHBJ4NKQETUT \ / AMOS7 \ YOURUM ::
+#\[7]65AJUXBPP2ZGTZS2OLXKVUDEN2TNHLUSOXEQN6ATAU4PASFD7YCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

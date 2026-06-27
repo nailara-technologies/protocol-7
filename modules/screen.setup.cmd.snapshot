@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = screen.setup.cmd.snapshot
+# descr = render display-layout minimap to PNG file
+
+<[base.perlmod.autoload]>->('Cairo');
+
+## use the instance id from args, or the most recently opened one ##
+my $inst_id
+    = ( defined $call->{'args'} and length $call->{'args'} )
+    ? $call->{'args'}
+    : ( sort keys %{ $data{'screen-setup'}{'instances'} // {} } )[0];
+
+return {
+    'mode' => qw| false |,
+    'data' => 'no active display-layout instance'
+    }
+    unless defined $inst_id
+    and exists $data{'screen-setup'}{'instances'}{$inst_id};
+
+my $snap_dir = <screen.setup.cfg.snapshot_dir>
+    // join( '/', <system.root_path>, qw| data snapshots | );
+
+<[file.make_path]>->($snap_dir) unless -d $snap_dir;
+
+my $path = sprintf '%s/display-layout_%d_%d.png', $snap_dir, time, $$;
+
+my $snap_w = <screen.setup.cfg.snapshot_width>  // 1200;
+my $snap_h = <screen.setup.cfg.snapshot_height> // 800;
+
+my $surface = Cairo::ImageSurface->create( 'argb32', $snap_w, $snap_h );
+my $cr      = Cairo::Context->create($surface);
+
+## minimal fake widget so the draw handler gets the snapshot dimensions ##
+my $fake = bless { w => $snap_w, h => $snap_h },
+    'Screen::Setup::SnapshotWidget';
+{
+    no strict 'refs';
+    no warnings 'redefine';
+    *{'Screen::Setup::SnapshotWidget::get_allocated_width'}
+        = sub { $_[0]{'w'} };
+    *{'Screen::Setup::SnapshotWidget::get_allocated_height'}
+        = sub { $_[0]{'h'} };
+}
+
+<[screen.setup.handler.draw]>->( $inst_id, $fake, $cr );
+
+my $status = $surface->write_to_png($path);
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( 'PNG write failed : %s', $status )
+    }
+    if $status ne qw| success |;
+
+<[base.logs]>->( 1, '[snapshot] saved %s', $path );
+
+return { 'mode' => qw| size |, 'data' => $path };
+
+#
+
+#,,,,,.,.,..,,,,.,,.,,,,.,,,,,,,.,,,,,...,.,,,.,.,...,...,...,..,,,.,,...,,,,,
+#BBEXCD4PSSZU2RAMEAG7XBIFIEAD3J3ZA4A2JSYOPXFD63OBFPN5LLQLWM3L5MWPUDLAMU5DG7HQQ
+#\\\|Z5XO7JVIV2GGQUXMTF7EZNZ4YLIQXSEVWXVKVSFUIYCQ4ALMYMZ \ / AMOS7 \ YOURUM ::
+#\[7]SCUMBSK2QZN3H37ZQ57W72W6RD7EBJKPBP42ABIQQFQWLJ33E2DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

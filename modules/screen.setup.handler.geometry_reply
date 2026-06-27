@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = screen.setup.handler.geometry_reply
+# descr = collect per-window geometry replies and redraw the minimap
+
+my $reply = shift                       // {};
+my $id    = $reply->{'params'}{'id'}    // '';
+my $winid = $reply->{'params'}{'winid'} // '';
+
+return if not length $id or not length $winid;
+return if not exists $data{'screen-setup'}{'instances'}{$id};
+
+my $inst = $data{'screen-setup'}{'instances'}{$id};
+
+my $mode = lc( $reply->{'cmd'} // '' );
+if ( $mode eq qw| true | ) {
+    my $args = $reply->{'call_args'}{'args'} // '';
+    my ( $w, $h, $x, $y ) = split /\s+/, $args;
+
+    if ( defined $w and defined $h and $w > 0 and $h > 0 ) {
+        my $title = '';
+        if ( defined $inst->{'windows_temp'}{$winid} ) {
+            $title = $inst->{'windows_temp'}{$winid}{'title'} // '';
+        }
+
+        push @{ $inst->{'windows'} },
+            {
+            'winid'  => $winid,
+            'x'      => $x // 0,
+            'y'      => $y // 0,
+            'width'  => $w + 0,
+            'height' => $h + 0,
+            'title'  => $title
+            };
+
+        <[base.logs]>->(
+            2,   '[screen-setup.geometry_reply] id=%s winid=%s %dx%d+%d+%d',
+            $id, $winid, $w, $h, $x // 0, $y // 0
+        );
+    }
+} else {
+    <[base.logs]>->(
+        2,
+        '[screen-setup.geometry_reply] id=%s winid=%s geometry unavailable',
+        $id, $winid
+    );
+}
+
+delete $inst->{'windows_temp'}{$winid}
+    if exists $inst->{'windows_temp'}{$winid};
+
+$inst->{'window_pending'}-- if ( $inst->{'window_pending'} // 0 ) > 0;
+
+## all replies in : refresh the overlay ##
+if ( ( $inst->{'window_pending'} // 0 ) <= 0 ) {
+    delete $inst->{'windows_temp'};
+    my $window = $inst->{'window'};
+    if ( defined $window ) {
+        eval { $window->queue_draw };
+        <[base.logs]>->(
+            1,   '[screen-setup.geometry_reply] id=%s drew %d window rect(s)',
+            $id, scalar @{ $inst->{'windows'} // [] }
+        );
+    }
+}
+
+#
+
+#,,..,.,.,...,...,,,.,..,,...,...,.,,,...,..,,.,.,...,.,.,,,.,,.,,..,,,.,,.,,,
+#CA45UBVME5GCIV4WXM4WDWPLZTA7PQKXM7M7UNULZM2KDAQL54JDLO75X737ACKQOJ6NMGFYSL4F6
+#\\\|SHM26ZKMSFJDAJ5RV523YKUY2SBSCAE6KSSAMJB6T522UGNDKZW \ / AMOS7 \ YOURUM ::
+#\[7]DZEFSDRYOPIUYAWNRYTJB4HWLV2WPWFH7ZR66ZNL77XY3F7YTOAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,10 +4,15 @@
 
 <[base.log]>->( 1, 'initialization complete, ..raising window..,' );
 
-<web-browser.gtk_obj.window>->deiconify;
+my $window = <web-browser.gtk_obj.window>;
+if (<web-browser.start-up.opacity_hidden>) {
+    $window->set_opacity( <web-browser.fg_opacity> // 1 );
+    <web-browser.start-up.opacity_hidden> = FALSE;
+}
+$window->present;
 
-#,,..,..,,,,,,...,,..,.,.,.,.,,..,,.,,,,.,,.,,..,,...,..,,..,,,..,.,.,,,.,...,
-#YR6ORXYD7PZAAOVYJ4J7ZNRJEACOU32CSYUHLIGUQMDVJNECTB5VZBMFSZSRTUKXATQ5QWFHFRQIU
-#\\\|EQHJ7NIUNIEPRMKRYIGVDIJWN67HINKUCW4Z7EY6ESYOUDDO46Y \ / AMOS7 \ YOURUM ::
-#\[7]BN6LLRQIHYYLH3QE37CCMPNSSFPSXQIQDJ6SRO3MV47AZC7D4YDQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,,.,...,,.,,.,,,..,,,,.,.,,,,,.,..,,...,...,..,,,..,...,.,.,,.,,
+#7ZTPFZUY2AO3KAA3A6LE355IHWKET245KNZFP2PMUHVVIMRPKQVAN3WA76YUZ5GSNMP2XEMLIZ6EU
+#\\\|ODOWAN4BVO42KWWTFRYUE3TPAJJIZXDSGBHJ2LKQZ46PSRXT5MT \ / AMOS7 \ YOURUM ::
+#\[7]SMJOZJLH4WY2GHHFSMXQBEKQEEFW5FDST7247DQ5F3VXRNVD2CAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
