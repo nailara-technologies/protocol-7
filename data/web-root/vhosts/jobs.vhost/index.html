@@ -615,6 +615,8 @@ const STORAGE_KEY = 'jobs_[vhost]_v1';
 const JOBS_JSON   = '/jobs.json';
 const JOBS_SYNC   = '/jobs-sync';
 const POLL_MS     = 30000;
+const USER_DECISIONS_KEY = 'jobs_user_decisions_v1';
+const USER_OWNED_STAGES  = new Set(['to_apply','applied','interviewed','responded','rejected','skipped','archived']);
 
 /* ── state ── */
 let jobs = {};           // id → job object (in-memory, server is source of truth)
@@ -625,6 +627,7 @@ let minScore = 7;
 let showArchived = false;
 let dragSrcId = null;
 let pollTimer = null;
+let userDecisions = {};  // id → { stage?, notes?, date_applied?, ts }
 
 /* ── localStorage — reload cache only, not source of truth ── */
 function saveCache() {
@@ -644,6 +647,16 @@ function loadCache() {
             jobs = parsed; /* old format — treat as jobs map, ntime unknown */
         }
     } catch(e) { jobs = {}; lastNtime = 0; }
+    loadUserDecisions();
+}
+function saveUserDecisions() {
+    try { localStorage.setItem(USER_DECISIONS_KEY, JSON.stringify(userDecisions)); } catch(e) {}
+}
+function loadUserDecisions() {
+    try {
+        const d = localStorage.getItem(USER_DECISIONS_KEY);
+        if (d) userDecisions = JSON.parse(d) || {};
+    } catch(e) { userDecisions = {}; }
 }
 
 /* ── merge server data into local map ── */
@@ -654,10 +667,22 @@ function mergeJobs(serverJobs) {
         if (!id) continue;
         if (!jobs[id]) {
             jobs[id] = { ...sj, id };
+            const ud = userDecisions[id];
+            if (ud) {
+                if (ud.stage && USER_OWNED_STAGES.has(ud.stage)) jobs[id].stage = ud.stage;
+                if (ud.notes        != null) jobs[id].notes        = ud.notes;
+                if (ud.date_applied != null) jobs[id].date_applied = ud.date_applied;
+            }
             added++;
         } else {
-            /* server is authoritative — overwrite all fields */
+            /* server provides base data; user decisions overlay user-owned fields */
             jobs[id] = { ...jobs[id], ...sj, id };
+            const ud = userDecisions[id];
+            if (ud) {
+                if (ud.stage && USER_OWNED_STAGES.has(ud.stage)) jobs[id].stage = ud.stage;
+                if (ud.notes        != null) jobs[id].notes        = ud.notes;
+                if (ud.date_applied != null) jobs[id].date_applied = ud.date_applied;
+            }
             updated++;
         }
     }
@@ -867,6 +892,8 @@ function renderCard(j) {
     };
     const setStage = (id, stage) => {
         jobs[id].stage = stage;
+        userDecisions[id] = { ...(userDecisions[id] || {}), stage, ts: Date.now() };
+        saveUserDecisions();
         saveCache(); render();
         pushChange(id, { stage });
     };
@@ -891,10 +918,20 @@ function renderCard(j) {
     let longPressTimer = null;
     const isInteractive = e => !!e.target.closest('.card-actions, select, input, textarea, a, button');
 
-    el.addEventListener('dblclick', e => {
+    let lastClickMs = 0;
+    el.addEventListener('click', e => {
         if (isInteractive(e)) return;
-        const fn = dblActions[jobs[j.id].stage];
-        if (fn) fn();
+        const now = Date.now();
+        if (now - lastClickMs < 260) {
+            lastClickMs = 0;
+            const prevStage = jobs[j.id].stage;
+            const fn = dblActions[prevStage];
+            if (!fn) return;
+            fn();
+            notifyUndo(j.id, prevStage, setStage);
+        } else {
+            lastClickMs = now;
+        }
     });
     el.addEventListener('pointerdown', e => {
         if (isInteractive(e)) return;
@@ -957,6 +994,8 @@ function renderCard(j) {
     const dateInput = el.querySelector('.date-applied-input');
     if (dateInput) dateInput.addEventListener('change', e => {
         jobs[j.id].date_applied = e.target.value;
+        userDecisions[j.id] = { ...(userDecisions[j.id] || {}), date_applied: e.target.value, ts: Date.now() };
+        saveUserDecisions();
         saveCache();
         pushChange(j.id, { date_applied: e.target.value });
     });
@@ -977,6 +1016,8 @@ function renderCard(j) {
     let noteDebounce = null;
     el.querySelector('.card-note-input').addEventListener('input', e => {
         jobs[j.id].note = e.target.value;
+        userDecisions[j.id] = { ...(userDecisions[j.id] || {}), notes: e.target.value, ts: Date.now() };
+        saveUserDecisions();
         const preview = el.querySelector('.card-note-preview');
         preview.textContent = e.target.value;
         preview.classList.toggle('visible', !!e.target.value);
@@ -993,6 +1034,8 @@ function renderCard(j) {
         btnReassess.addEventListener('click', async () => {
             btnReassess.textContent = '…';
             btnReassess.disabled = true;
+            delete userDecisions[j.id];
+            saveUserDecisions();
             await pushChange(j.id, { action: 'reassess' });
             btnReassess.textContent = '↺';
             btnReassess.disabled = false;
@@ -1294,6 +1337,28 @@ function notify(msg, err) {
     document.body.appendChild(n);
     setTimeout(() => n.remove(), 3000);
 }
+function notifyUndo(id, prevStage, restoreFn) {
+    const n = document.createElement('div');
+    n.style.cssText = `position:fixed;bottom:1rem;right:1rem;padding:8px 14px;border-radius:4px;
+      font-size:0.8rem;z-index:9999;background:rgba(5,8,35,0.9);border:1px solid rgba(68,39,172,0.55);
+      color:#6a8cff;box-shadow:0 0 14px rgba(68,39,172,0.35);font-family:'Courier New',Courier,monospace;
+      display:flex;gap:0.7rem;align-items:center;`;
+    const msg = document.createElement('span');
+    msg.textContent = stageLabel(prevStage) + ' → ' + stageLabel(jobs[id] && jobs[id].stage);
+    const undo = document.createElement('span');
+    undo.textContent = 'rückgängig';
+    undo.style.cssText = 'cursor:pointer;text-decoration:underline;color:#a0b8ff;';
+    let done = false;
+    undo.addEventListener('click', () => {
+        if (done) return;
+        done = true;
+        restoreFn(id, prevStage);
+        n.remove();
+    });
+    n.appendChild(msg); n.appendChild(undo);
+    document.body.appendChild(n);
+    setTimeout(() => { done = true; n.remove(); }, 3000);
+}
 
 /* ── event wiring ── */
 const minScoreInput = document.getElementById('min-score');
@@ -1313,7 +1378,9 @@ minScoreInput.addEventListener('wheel', e => {
     minScoreInput.dispatchEvent(new Event('input'));
 }, { passive: false });
 
-document.getElementById('btn-sync').addEventListener('click', syncPipeline);
+document.getElementById('btn-sync').addEventListener('click', () => {
+    lastNtime = 0; saveCache(); syncPipeline();
+});
 
 document.getElementById('btn-add-toggle').addEventListener('click', () => {
     document.getElementById('add-form').classList.toggle('open');
@@ -1389,8 +1456,9 @@ document.getElementById('btn-show-table').addEventListener('click', () => {
 });
 
 document.getElementById('btn-clear-local').addEventListener('click', () => {
-    if (confirm('Lokale Daten wirklich löschen? Pipeline-Daten bleiben erhalten (sync).')) {
-        jobs = {}; lastNtime = 0; saveCache(); syncPipeline();
+    if (confirm('Alle lokalen Entscheidungen löschen? (Notizen, Bewerbungsdaten, eigene Status werden zurückgesetzt)')) {
+        jobs = {}; userDecisions = {}; lastNtime = 0;
+        saveCache(); saveUserDecisions(); syncPipeline();
     }
 });
 

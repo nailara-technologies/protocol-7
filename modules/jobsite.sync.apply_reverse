@@ -122,13 +122,19 @@ for my $entry ( @{$entries} ) {
     }
 
     if ($updated) {
+        ## keep in-memory task record in sync so assess-done protect check sees current stage ##
+        if ( exists $entry->{'stage'} ) {
+            my $tasks = <jobsite.tasks>;
+            $tasks->{$id}{'stage'} = $entry->{'stage'}
+                if ref $tasks eq 'HASH' and defined $tasks->{$id};
+        }
         <[jobsite.job.write]>->( $id, $job );
         <[base.logs]>->( 1, 'jss.sync.apply: updated %s', $id );
     }
 }
 
-#,,,.,,..,..,,.,.,...,,..,,,.,..,,.,,,,.,,.,.,..,,...,...,..,,,..,...,...,.,.,
-#7O2MZUPQXO4PQQQZM7767EVBF5OX5XFCLP4XYZXJWFY747TYQZNARRIUEICLP26X2QN3MOLVUG63O
-#\\\|U5TF7TWTGFSNCQBWRGIL5KDS2XILYPZUCK2JZS7R77X6PCPSOXS \ / AMOS7 \ YOURUM ::
-#\[7]7NEHWJ6I5SUUJMNXHFN25VHVELGYDIKLB5AXAS2WJCONYOXSNIBQ 7  DATA SIGNATURE ::
+#,,..,.,,,..,,,,.,,,.,.,,,,,,,...,,.,,.,,,,,.,..,,...,...,.,.,..,,,,.,,..,..,,
+#EOIGKHONTST26NWBFS4D5Z2Z25RTLCM526KGXAIQVNZFFM4GXJKXJG6QKUUOSAR4OCJ2U35VRMKZG
+#\\\|65AXYRS7LTC4CEQP6VMQZ3X5RWSWDSEXVHUQAUXT5PFYDE4V4XA \ / AMOS7 \ YOURUM ::
+#\[7]ZNCOZW53RJD7AIC3WMIGG7ILSVTJVVIAIKD2OTKKMIFAQMHMU6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
