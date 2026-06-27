@@ -19,29 +19,51 @@ if ( lc($mode) eq qw| false | ) {
     <[base.logs]>->( 1, 'jss.fetch-done [%s]: %s', $category, $data_str );
 }
 
+## accumulate total items queued in site-yaml across all category replies ##
+if ( lc($mode) ne qw| false | ) {
+    my ($n_new) = $data_str =~ /(\d+) new/;
+    <jobsite.fetch_total_queued> //= 0;
+    <jobsite.fetch_total_queued> += ( $n_new // 0 );
+}
+
 ## decrement fetch counter : only proceed when all categories replied
 <jobsite.fetch_pending> //= 1;
 <jobsite.fetch_pending>--;
 
 return if <jobsite.fetch_pending> > 0;
 
-## all imports replied : check if async detail fetches are still running ##
-my $queue = $data{'site-yaml'}{'fetch_queue'} // [];
-if ( @{$queue} ) {
+my $total_queued = delete <jobsite.fetch_total_queued> // 0;
+
+if ( $total_queued > 0 ) {
+
+    ## site-yaml is still async-fetching job details : poll until drained ##
     <[base.logs]>->(
-        1,
-        '%d detail fetches in progress, waiting for queue drain',
-        scalar @{$queue}
+        1, 'fetch: %d items queued in site-yaml, polling for drain',
+        $total_queued
     );
-    $data{'site-yaml'}{'fetch_drain_cb'} = 'jobsite.handler.fetch-drain';
+
+    if ( defined $data{'jobsite'}{'queue_poll_timer'} ) {
+        $data{'jobsite'}{'queue_poll_timer'}->cancel;
+        $data{'jobsite'}{'queue_poll_timer'} = undef;
+    }
+
+    $data{'jobsite'}{'queue_poll_timer'} = <[event.add_timer]>->(
+        {   after    => 3,
+            repeat   => TRUE,
+            interval => 3,
+            handler  => qw| jobsite.handler.queue-poll |,
+        }
+    );
     return;
 }
 
-## queue empty : proceed to assessments immediately ##
+## nothing queued : check for any pre-existing strays and assess ##
+<[base.logs]>->( 1, 'fetch: nothing new queued, checking strays' );
+<[jobsite.stray.check]>;
 <[jobsite.dispatch.assessments]>;
 
-#,,,.,..,,,.,,.,,,.,.,.,.,,.,,,,.,...,,..,...,..,,...,...,...,...,.,.,...,.,,,
-#XYW7QU22UL5LXJJYNWYEXZJAWSZSRJNVR5RFUJI5TSRXR3K6EKJOWWMIUUOLEJMY25X3FLMNBHJII
-#\\\|ILZRECZSN5YIDEL2W4KV4IWOXHGMMVSPB7C2FVVYN34D6577UFT \ / AMOS7 \ YOURUM ::
-#\[7]RETLQZ47QSQL44X3C3LCQOVM4BIBIEZG33NA2OM7HQO3D6ARAGBQ 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,..,,..,,,,,,,..,.,.,.,.,,..,...,..,,...,...,...,,..,,,,,.,,,,..,
+#J7STWXUBR6JPQ2EQ6NYPQAMAMOZPPAQXRSLOXTS6JHTLTYGSIFH642UWXCJJBVTSACHSUU3GBPKBG
+#\\\|IPCNI7N5GEIUCESFA5HB25ZETRCGM6D2RSKVY5UK6SNINRVOYTU \ / AMOS7 \ YOURUM ::
+#\[7]MQCP4PVJCP5DWM3SLR5HAJ2PEI4MCXWZL5UJVWNXDUVM7XUT66AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
