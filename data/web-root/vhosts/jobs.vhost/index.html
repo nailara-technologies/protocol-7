@@ -686,7 +686,12 @@ async function syncPipeline() {
         render();
         if (tableVisible) showPrintTable();
         lbl.textContent = 'sync';
-        if (added > 0) notify(`${added} ${wasInitial ? 'jobs geladen' : 'neue jobs geladen'}`);
+        if (added > 0) {
+            const msg = added === 1
+                ? (wasInitial ? '1 job geladen' : '1 neuer job geladen')
+                : `${added} ${wasInitial ? 'jobs geladen' : 'neue jobs geladen'}`;
+            notify(msg);
+        }
     } catch(e) {
         lbl.textContent = 'sync';
         notify('sync fehler: ' + e.message, true);
