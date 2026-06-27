@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = window.place.cmd.place-for-window
+# descr = overlay placement over target window current geometry
+
+my $args = $call->{'args'} // '';
+
+my ( $caller, $winid );
+foreach my $token ( split /\s+/, $args ) {
+    if    ( $token =~ m|^caller=(.+)$| ) { $caller = $1 }
+    elsif ( $token =~ m|^winid=(\d+)$| ) { $winid  = $1 }
+    elsif ( not defined $caller )        { $caller = $token }
+    elsif ( not defined $winid )         { $winid  = $token }
+}
+
+$caller //= '';
+$winid  //= '';
+
+if ( not length $caller ) {
+    <[base.log]>->( 0, '[place-for-window] caller required' );
+    return { 'mode' => 'false', 'data' => 'caller required' };
+}
+if ( not length $winid or $winid !~ /^\d+$/ ) {
+    <[base.log]>->( 0, '[place-for-window] numeric winid required' );
+    return { 'mode' => 'false', 'data' => 'numeric winid required' };
+}
+
+## unique per-request identifier ##
+my $id;
+do { $id = <[base.prng.chars-anum]>->(8) }
+    while exists $data{window}{place}{instances}{$id};
+
+$data{window}{place}{instances}{$id} = {
+    'caller'       => $caller,
+    'reply_id'     => $call->{'reply_id'},
+    'target_winid' => $winid,
+    'fill_alpha'   => 0.52,
+};
+
+<[base.logs]>->(
+    1,   '[place-for-window] id=%s caller=%s winid=%s — querying geometry',
+    $id, $caller, $winid
+);
+
+<[protocol-7.route-send]>->(
+    {   'command'   => 'X-11.get_geometry',
+        'call_args' => { 'args' => $winid },
+        'reply'     => {
+            'handler' => 'window.place.handler.wingeom_reply',
+            'params'  => { 'instance_id' => $id }
+        }
+    }
+);
+
+return { 'mode' => 'deferred' };
+
+#,,,.,...,.,,,,,,,,.,,,,.,.,.,,,,,..,,.,.,...,..,,...,...,...,,..,,,.,,,,,..,,
+#FQH3P3GRJSGCRJBJ6ZNXQYDMWMGY3RPK46VI3KN7PHM2RIHWBVO3UZM4DGURA2M6ZHEDJQ6LHPBF6
+#\\\|REXXCRTCBBL5H4R6FN7I5JXEDU7FPBXV23F6NBX5MLBQFNY54EQ \ / AMOS7 \ YOURUM ::
+#\[7]47XWDLOFTLSGFHOOCEAWSPYBTXLZSDUQE2I42F6NUN5QJIAOZMCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

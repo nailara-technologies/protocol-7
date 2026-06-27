@@ -13,7 +13,42 @@
 my $params = shift;
 my $args   = $params->{'args'} // [];
 
-return if not @$args or $args->[0] ne qw| protocol7-window-released |;
+return if not @$args;
+
+if ( $args->[0] eq 'protocol7-open-window-place' ) {
+    return if not defined <x11.id>;
+    my $caller = <mpv.startup.caller> // <system.zenka.name> // '';
+    return if not length $caller;
+    my $winid = <x11.id>;
+    <[base.logs]>->(
+        1, '[client-message] opening window-place for winid=%s caller=%s',
+        $winid, $caller
+    );
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'window-place.place-for-window',
+            'call_args' => { 'args' => "caller=$caller winid=$winid" }
+        }
+    );
+    return;
+}
+
+if ( $args->[0] eq 'protocol7-toggle-input-lock' ) {
+    my $locked = !<mpv.input.locked>;
+    <mpv.input.locked> = $locked;
+    <[base.logs]>->(
+        1,
+        '[client-message] input lock -> %s',
+        $locked ? 'on' : 'off'
+    );
+    ## lua handles the actual key-swallow via its own lock state tracking ##
+    ## the input-default-bindings toggle provides a native mpv-side block  ##
+    <[mpv.send_command]>->(
+        'set_property', 'input-default-bindings', $locked ? 'no' : 'yes'
+    );
+    return;
+}
+
+return if $args->[0] ne qw| protocol7-window-released |;
 return if not defined <x11.id>;
 
 ## cancel any in-progress poll timer and restart tracking from phase 1
@@ -63,7 +98,7 @@ if ( defined <mpv.pos_tracker.timer> ) {
                 $geo->{'width'}, $geo->{'height'}
             );
             <[base.logs]>->(
-                1,
+                2,
                 '[position] saved [phase=%d caller=%s] x=%d y=%d w=%d h=%d',
                 <mpv.pos_tracker.phase>,
                 $caller,
@@ -95,7 +130,7 @@ if ( defined <mpv.pos_tracker.timer> ) {
 
     ## absolute cutoff: 13s since last detected change
     if ( time - <mpv.pos_tracker.t_last> > 13 ) {
-        <[base.logs]>->( 1, '[position] poll ended (13s idle)' );
+        <[base.logs]>->( 2, '[position] poll ended [ idle : 13s ]' );
         eval { <mpv.pos_tracker.timer>->cancel }
             if defined <mpv.pos_tracker.timer>;
         <mpv.pos_tracker.timer> = undef;
@@ -115,7 +150,7 @@ if ( defined <mpv.pos_tracker.timer> ) {
                 $geo->{'width'}, $geo->{'height'}
             );
             <[base.logs]>->(
-                1,
+                2,
                 '[position] saved on settle [caller=%s] x=%d y=%d w=%d h=%d',
                 $caller,
                 $geo->{'x'},
@@ -135,7 +170,7 @@ if ( defined <mpv.pos_tracker.timer> ) {
                 'cb'       => <mpv.pos_tracker.cb>
             }
         );
-        <[base.logs]>->( 1, '[position] poll 1->2 [settled, 0.7s]' );
+        <[base.logs]>->( 2, '[position] poll 1->2 [settled, 0.7s]' );
 
     } elsif ( $phase == 2 and $no_chg >= 3 ) {
         ## 3s stable at 1s -- enter slow/widening phase starting at 2s
@@ -151,7 +186,7 @@ if ( defined <mpv.pos_tracker.timer> ) {
                 'cb'       => <mpv.pos_tracker.cb>
             }
         );
-        <[base.logs]>->( 1, '[position] poll 2->3 [quiet, 2s]' );
+        <[base.logs]>->( 2, '[position] poll 2->3 [quiet, 2s]' );
 
     } elsif ( $phase == 3 ) {
         ## widen interval each stable tick: 2 -> 4 -> 8s (max)
@@ -170,7 +205,7 @@ if ( defined <mpv.pos_tracker.timer> ) {
                 }
             );
             <[base.logs]>
-                ->( 1, '[position] slow poll widening to %ds', $new );
+                ->( 2, '[position] slow poll widening to %ds', $new );
         }
     }
 };
@@ -183,10 +218,10 @@ if ( defined <mpv.pos_tracker.timer> ) {
     }
 );
 
-<[base.logs]>->( 1, '[position] tracking started [id=%s]', <x11.id> );
+<[base.logs]>->( 2, '[position] tracking started [id=%s]', <x11.id> );
 
-#,,,.,.,,,...,,,.,...,,.,,.,,,,..,,,.,.,,,.,,,.,.,...,...,...,,,,,,..,.,,,,..,
-#Y3ZDX6J4WUCXZMUECBNAG7HNLUSLFIOGPRZUL2XIM52VDMOCPOVIFTEUDMKOWKNKUF2QUXJDUY5YW
-#\\\|AJX5LDKI74RE6NCKWJN4KNJ2QOYWC3OCBJN7SXVMIOBD7RRIMS2 \ / AMOS7 \ YOURUM ::
-#\[7]27CEHIF4UMBMSF7JI7NPL7PHIRHRMC6GX7UFNU6TPH3DAMQX5EDQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,...,.,,,,,,,,.,,,,.,..,,.,,,,.,,.,.,...,...,,,.,..,,,..,,..,,,,,
+#SWLH4SSSVUHHSYT2OKN3IPOPTMYFCA67ZB2R4XFTBVXD2J2RK54HZOYFS7PTY7OEXGP3ESZLAPGCI
+#\\\|RF3UPLHXJJR2PVTTZF7FCFCVP4AZRFIG6A2CVUCKONTRP3HHK3A \ / AMOS7 \ YOURUM ::
+#\[7]DVJMNX7TXBUUL4BN7HLZWFOSKCDITWKPK5K5ILBHH6DIXATGSIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

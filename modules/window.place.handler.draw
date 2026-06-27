@@ -18,8 +18,9 @@ my $h = $widget->get_allocated_height // $inst->{'geom'}{'height'} // 240;
 ## clear ##
 $context->set_operator('source');
 
-## translucent deep blue fill ##
-$context->set_source_rgba( 0.0, 0.0, 0.24, 0.72 );
+## translucent deep blue fill [ reduced alpha when pinned over a target window ] ##
+my $fill_alpha = $inst->{'fill_alpha'} // 0.72;
+$context->set_source_rgba( 0.0, 0.0, 0.24, $fill_alpha );
 $context->paint;
 
 $context->set_operator('over');
@@ -104,8 +105,8 @@ $context->show_text($readout);
 
 return TRUE;
 
-#,,.,,,,.,...,..,,,,.,,.,,.,.,..,,,,,,,,.,,,.,.,.,...,...,.,.,,,,,,,.,,,.,,,.,
-#EPJYJ7QUB5ZKOHM7YXQCWRQBK3I2E4DBARJASO6C3U3M3VJMAQ2EPNTSDLWY5LDZ3TQ2HUGVSE7AG
-#\\\|GCTUAWPHJQ5B3PSRINOLGTQAZUPM3N7YZXO5NOWDYW2BBXVAUGJ \ / AMOS7 \ YOURUM ::
-#\[7]5QNVEVZSDLGQXYNCYI3Y3UZM37TFSEEVC5ET76BZWUXSJRLQBSCQ 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,..,,,,,,..,.,.,..,,.,.,..,,.,,,.,.,...,...,,..,,.,,,.,,...,..,,
+#EOAFK4UBCHSLAB7BCFEFDLEQ6B7QH6EZJY5ILM6GCZUMA7M6SSMZIL75M3OZLBHL44ED6RLQNC4ZO
+#\\\|XCMZKIBURLSPOJ3KKIB2DL6ZXCBMACANTMIAFEZ6RFZWJVYG6LT \ / AMOS7 \ YOURUM ::
+#\[7]GHQ2QRVXRTWZJHWESEZLP33NRWRAHSXLF7SUEHTAY7RTGKGXBQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

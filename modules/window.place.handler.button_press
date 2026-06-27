@@ -31,6 +31,11 @@ if ( $event->button == 3 ) {
 
 my $region = <[window.place.classify_region]>->( $id, $ex, $ey );
 
+## track that a left-button interaction (drag/resize) happened so that   ##
+## button_release knows whether to re-sync geometry. a pure right-click  ##
+## commit should leave the original geometry untouched.                  ##
+$inst->{'placement_interacted'} = 1;
+
 ## double-click on body : re-center the window on the cursor [ also     ##
 ## compensates for the missed first drag under wslg/xwayland, letting   ##
 ## the user land the window without relying on drag at all ]            ##
@@ -62,6 +67,18 @@ if ( $region eq 'body' ) {
 ## move. begin_resize_drag takes the edge being dragged and lets the       ##
 ## compositor apply the correct position+size combination itself.         ##
 if ( $region eq 'body' ) {
+    ## anchor the pre-drag position so button_release can compute final   ##
+    ## placement from the pointer delta -- get_position returns the       ##
+    ## reparenting frame's root coords (GDK-tracked), which differ from  ##
+    ## the X11 client position that TranslateCoordinates / move-window   ##
+    ## use. inst->geom is already in the TranslateCoordinates system      ##
+    ## (set by update_x11_state from X-11.get_geometry), so use that.    ##
+    $inst->{'drag_move_start'} = {
+        'ptr_x'  => $event->x_root,
+        'ptr_y'  => $event->y_root,
+        'geom_x' => $inst->{'geom'}{'x'} // 0,
+        'geom_y' => $inst->{'geom'}{'y'} // 0,
+    };
     $widget->begin_move_drag( $event->button, $event->x_root, $event->y_root,
         $event->time );
     return TRUE;
@@ -90,8 +107,8 @@ if ( defined $edge ) {
 
 return TRUE;
 
-#,,..,,,.,,,,,.,.,,,.,...,,,,,,,.,,.,,,.,,,.,,.,.,...,..,,..,,.,.,,,,,..,,.,.,
-#EDH7CCDJXCNOSGAGLSC6WV65RH4RNBHR7GU5QQL4VMGTABDA7TB42WCERQBZOGU6VYCV46P6A2AI6
-#\\\|W2YKQDNZAG36GLWJSUHZZKXYUE3IX5OVLE74TWXVMVWHAESPMRA \ / AMOS7 \ YOURUM ::
-#\[7]PVGQIUZRPLYRSFHIZW2BIE374IYW3J4ZNRNVMZITEB37DTBGZIBI 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,,,,,,.,...,..,,...,...,.,.,,.,,.,.,...,...,,,,,,,.,,..,.,.,,.,,
+#SBGRID2UZ4O3RE5EVHJJSSGX3OPI2Y62IKDJGKG3WOZXRZPUP7IYK54AIMHJZLFWAL3WUPUPXNPQK
+#\\\|D22PVHWUET2YWBJLP2WGVGEF46S5YR2HYXBAYYDLGI45L4RDQPA \ / AMOS7 \ YOURUM ::
+#\[7]U5HNHPHBL5CJ6IE5EHB2XXXHFOPNINVAPLW2AIBTVT2C23L2DEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
