@@ -9,6 +9,7 @@ my $create_zenka_etc  = shift // FALSE;
 my $etc_zenka_dirmode = shift // 0700;
 
 my $sub_directory = shift // '';  ##  optional sub directory in zenka path  ##
+my $recursive     = shift // FALSE;   ##  recurse into subdirs / fix files  ##
 
 if (length $sub_directory
     and (  index( $sub_directory, qw| / |, 0 ) == 0
@@ -72,6 +73,64 @@ if ( defined <system.zenka-group.current> ) {
 my $fs_changes_made = 0;
 my $error_count     = 0;
 my $report_level    = 1;    ## reporting changes at this log level ##
+
+## recursive owner/permission repair for existing content ##
+my $fix_recursive;
+$fix_recursive = sub {
+    my ( $path, $uid, $gid, $dir_mode, $file_mode, $owner_name ) = @_;
+    opendir( my $dh, $path ) or return;
+    my @entries = grep { $_ ne '.' && $_ ne '..' } readdir($dh);
+    closedir($dh);
+
+    for my $entry (@entries) {
+        my $full = catfile( $path, $entry );
+        my $stat = File::stat::stat($full);
+        next if not defined $stat;
+
+        if ( $stat->uid != $uid or $stat->gid != $gid ) {
+            <[base.logs]>->(
+                $report_level, ': %s : change owner [\'%s\']',
+                $full,         $owner_name
+            );
+            chown( $uid, $gid, $full )
+                or ++$error_count and <[base.logs]>->(
+                0, ': :. %s [%s]', <[base.str.os_err]>, $full
+                );
+            $fs_changes_made++;
+        }
+
+        if ( -d $full ) {
+            my $cur_mode = $stat->mode & 07777;
+            if ( $cur_mode != $dir_mode ) {
+                <[base.logs]>->(
+                    $report_level, ': %s : change  mode [ %#o ]',
+                    $full,         $dir_mode
+                );
+                chmod( $dir_mode, $full )
+                    or ++$error_count and <[base.logs]>->(
+                    0, ': :. %s [%s]', <[base.str.os_err]>, $full
+                    );
+                $fs_changes_made++;
+            }
+            $fix_recursive->(
+                $full, $uid, $gid, $dir_mode, $file_mode, $owner_name
+            );
+        } else {
+            my $cur_mode = $stat->mode & 07777;
+            if ( $cur_mode != $file_mode ) {
+                <[base.logs]>->(
+                    $report_level, ': %s : change  mode [ %#o ]',
+                    $full,         $file_mode
+                );
+                chmod( $file_mode, $full )
+                    or ++$error_count and <[base.logs]>->(
+                    0, ': :. %s [%s]', <[base.str.os_err]>, $full
+                    );
+                $fs_changes_made++;
+            }
+        }
+    }
+};
 
 <[base.log]>->( $report_level + 1, 'checking configured zenka paths.,' );
 
@@ -148,6 +207,16 @@ foreach my $chk_path ( <[base.sort]>->($paths_and_modes) ) {
             ->( $log_level, ': :. %s mode : %s .,', $was, $cur_mode );
         $fs_changes_made++;
     }
+
+    if ($recursive
+        and
+        ( $chk_path eq $zenka_write_dir or $chk_path eq $zenka_config_dir )
+    ) {
+        my $file_mode = $dir_mode & 0666;
+        $fix_recursive->(
+            $chk_path, $uid, $gid, $dir_mode, $file_mode, $uname
+        );
+    }
 }
 
 <[base.log]>->( $report_level + 1, ':.. no changes required =)' )
@@ -159,8 +228,8 @@ return ( $error_count == 0 ? TRUE : FALSE, $fs_changes_made, $error_count )
 ##[ success status in scalar context ]##
 return $error_count == 0 ? TRUE : FALSE;
 
-#,,,.,,.,,,.,,,,,,...,.,.,.,,,..,,,..,,.,,.,.,..,,...,...,.,,,...,...,,,,,.,.,
-#SN4JLS5DK4DCWTGCZ7EVQFTTIVI6LDW7IDSDHIJ2GV36D6UCEHELM4J3JV4ZQZQFNEKRZW27ZQAII
-#\\\|XX6FHQQGP5TOGFQKYBFWPYGIATG5AO7KLNMQRIWEK7XJ6XQH3EM \ / AMOS7 \ YOURUM ::
-#\[7]BMUTPZVJ57JGMFDOEIU7ATGUWXESF6GC65GO5I55QEWCTVC6BSCA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,.,,,,..,,,,,..,,,,,,,..,...,.,.,..,,...,...,..,,,.,,,.,,.,,,,,,,
+#PGJVFCPEZQ6WJOMC4NX6EA6NUI3D4FHAQ4ZQ6HRKKSDUZJ3W57VTUB6RYNZK2NW2TAKR7VWQFBCH6
+#\\\|SR7B2OVI4TNWWZPVXJBTAWX7VCANJ4ZZ3RUGNFDQSQEGMIXVK32 \ / AMOS7 \ YOURUM ::
+#\[7]RRSRHSELVAV2VQSPFEFJHNB64BKGUMWQ5KZE6X3JLAP5WAUXYKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
