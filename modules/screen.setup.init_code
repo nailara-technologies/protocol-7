@@ -11,12 +11,17 @@
 
 <[base.gtk.attempt_load.glib_event]>;  ##  load Glib::Event when installed  ##
 
+## subscribe to X-11 screen-change events once connected to cube - lets a  ##
+## monitor reconfigure retry any pending window-intent moves               ##
+push @{ <system.callbacks.initialized> //= [] },
+    'screen.setup.subscribe-screen-change';
+
 Gtk3->init;    ## initialize explicitly, required before Gtk3->main ##
 
 return 0;
 
-#,,..,,,,,,.,,,..,.,,,,.,,,..,.,.,,,,,,.,,,..,..,,...,...,..,,.,,,,,.,,,,,,.,,
-#ARTSYQ6HUIZAFAZFRHAUYISSY2Q5LN5FQVGF7KGCZY7QDS3UHSU7TERAFIPQUMJRLJBBLNQCRBUGC
-#\\\|M6GREGBQ3KPQLI6YPLKOTA3BUEI5OAX4QM4G7SXBUOBZ6NSDRIW \ / AMOS7 \ YOURUM ::
-#\[7]M57SZDMU6VY5UE66JR5TDVDS2H7MQ3ADPLFRKW32UODM6HG4GAAY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,,,,,,,,.,.,...,,..,.,.,.,,,.,.,..,,...,...,...,,.,,,..,...,.,.,
+#2MVGNEMFRFKKJE6X2TSOFVD6XZZKJSJ7DWGN4LKPOVD2NAD72X4HSB3R2SYXHBFLQRWOJGVH46XQO
+#\\\|AFL52L3EQOFP5LRNOLXHIS36UJ6A4SGQMOPC5AFWKTDPZE7BJYM \ / AMOS7 \ YOURUM ::
+#\[7]553UNGV2TE3ICJYR44WXDQQYJPMOT4V76VXXNUEB44EAYD2RIYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

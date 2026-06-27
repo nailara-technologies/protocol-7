@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = screen.setup.handler.move_reply
+# descr = X-11.move-window reply : on success clear the intent and refresh
+#         actual geometry; on failure leave intent pending for retry
+
+my $reply = shift                       // {};
+my $id    = $reply->{'params'}{'id'}    // '';
+my $winid = $reply->{'params'}{'winid'} // '';
+
+return if not length $id or not length $winid;
+return if not exists $data{'screen-setup'}{'instances'}{$id};
+
+my $inst = $data{'screen-setup'}{'instances'}{$id};
+
+my $entry;
+for my $win ( @{ $inst->{'windows'} // [] } ) {
+    if ( $win->{'winid'} eq $winid ) {
+        $entry = $win;
+        last;
+    }
+}
+return if not defined $entry;
+
+my $mode = lc( $reply->{'cmd'} // '' );
+if ( $mode eq qw| true | ) {
+    <[base.logs]>->(
+        1,
+        '[screen-setup.move_reply] id=%s winid=%s move applied, clearing intent',
+        $id,
+        $winid
+    );
+
+    $entry->{'intended_geo'} = undef;
+
+    ## refresh actual geometry so the rect snaps to the real position   ##
+    <[protocol-7.route-send]>->(
+        {   'command'   => qw| X-11.get_geometry |,
+            'call_args' => { 'args' => $winid },
+            'reply'     => {
+                'handler' => qw| screen.setup.handler.geometry_reply |,
+                'params'  => { 'id' => $id, 'winid' => $winid }
+            }
+        }
+    );
+} else {
+    <[base.logs]>->(
+        1,
+        '[screen-setup.move_reply] id=%s winid=%s move failed, intent stays pending',
+        $id,
+        $winid
+    );
+}
+
+my $window = $inst->{'window'};
+$window->queue_draw if defined $window;
+
+#
+
+#,,.,,..,,,,.,.,.,...,.,.,.,,,..,,.,.,...,.,.,.,.,...,...,.,,,.,.,,.,,,,.,,,,,
+#2OM2TLAIVGM37PGEIDSM3AGAUAXP3TXS6IVUU65QJO2HFKNRMR5LQ64YKEHCZGNAD5R7K5FD5LBQA
+#\\\|P5UVBAFWRMCO3ZKMBAWB6ZI24MWAJB6ZMSHPVZJU4K4ISO4456H \ / AMOS7 \ YOURUM ::
+#\[7]HBNBYQAYYODMPCP5J35TMGUWX7FLDKIPJQGROREFKHLDWSH6EAAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -23,15 +23,34 @@ if ( $mode eq qw| true | ) {
             $title = $inst->{'windows_temp'}{$winid}{'title'} // '';
         }
 
-        push @{ $inst->{'windows'} },
-            {
-            'winid'  => $winid,
-            'x'      => $x // 0,
-            'y'      => $y // 0,
-            'width'  => $w + 0,
-            'height' => $h + 0,
-            'title'  => $title
-            };
+        my $new_geo = {
+            'x' => $x // 0,
+            'y' => $y // 0,
+            'w' => $w + 0,
+            'h' => $h + 0
+        };
+
+        ## update an existing entry if present, else create it [ keeps any  ##
+        ## intended_geo intact so a move-in-progress is not overwritten ]    ##
+        my $existing;
+        for my $win ( @{ $inst->{'windows'} // [] } ) {
+            if ( $win->{'winid'} eq $winid ) {
+                $existing = $win;
+                last;
+            }
+        }
+
+        if ( defined $existing ) {
+            $existing->{'actual_geo'} = $new_geo;
+        } else {
+            push @{ $inst->{'windows'} },
+                {
+                'winid'        => $winid,
+                'actual_geo'   => $new_geo,
+                'intended_geo' => undef,
+                'title'        => $title
+                };
+        }
 
         <[base.logs]>->(
             2,   '[screen-setup.geometry_reply] id=%s winid=%s %dx%d+%d+%d',
@@ -66,8 +85,8 @@ if ( ( $inst->{'window_pending'} // 0 ) <= 0 ) {
 
 #
 
-#,,..,.,.,...,...,,,.,..,,...,...,.,,,...,..,,.,.,...,.,.,,,.,,.,,..,,,.,,.,,,
-#CA45UBVME5GCIV4WXM4WDWPLZTA7PQKXM7M7UNULZM2KDAQL54JDLO75X737ACKQOJ6NMGFYSL4F6
-#\\\|SHM26ZKMSFJDAJ5RV523YKUY2SBSCAE6KSSAMJB6T522UGNDKZW \ / AMOS7 \ YOURUM ::
-#\[7]DZEFSDRYOPIUYAWNRYTJB4HWLV2WPWFH7ZR66ZNL77XY3F7YTOAY 7  DATA SIGNATURE ::
+#,,..,,,.,..,,.,.,,,,,.,.,,,.,.,,,...,,.,,,..,.,.,...,...,,..,,.,,,..,...,...,
+#B4JOJDI3SQTAJKP7Q6Q34HPJQWBK5UN3ISMD5JGEAEOWLNZ4NKOS2GZG2ZDAE2TVRTAPCA3GX5HFI
+#\\\|JVTSFKFLMFUUFRJDW25CJYHSC2523K3WIRTXKGVYI2F6HLYK2UL \ / AMOS7 \ YOURUM ::
+#\[7]E2XSAUWZDT3QMPZT76JCQEOROI5EQ3I7PQ42VELQ677IX7VPIYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

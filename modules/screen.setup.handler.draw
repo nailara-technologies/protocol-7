@@ -66,6 +66,17 @@ $scale = $scale_y if $scale_y < $scale;
 my $off_x = $pad + ( $inner_w - $bbox_w * $scale ) / 2;
 my $off_y = $pad + ( $inner_h - $bbox_h * $scale ) / 2;
 
+## cache the transform so button_press can invert minimap pixels back to  ##
+## virtual desktop coordinates [ keep this in sync with the map subs ]    ##
+$inst->{'map_params'} = {
+    'off_x'  => $off_x,
+    'off_y'  => $off_y,
+    'scale'  => $scale,
+    'min_x'  => $model->{'min_x'},
+    'min_y'  => $model->{'min_y'},
+    'border' => $border
+};
+
 ## map a virtual coordinate to device space ##
 my $map_x = sub { $off_x + ( $_[0] - $model->{'min_x'} ) * $scale };
 my $map_y = sub { $off_y + ( $_[0] - $model->{'min_y'} ) * $scale };
@@ -128,26 +139,47 @@ my $windows = $inst->{'windows'} // [];
 my $own_xid = $inst->{'own_xid'};
 
 for my $win (@$windows) {
-    next if $win->{'width'} <= 0 or $win->{'height'} <= 0;
+    my $geo = $win->{'intended_geo'} // $win->{'actual_geo'};
+    next if not defined $geo;
+    next if $geo->{'w'} <= 0 or $geo->{'h'} <= 0;
 
     ## skip the minimap's own window once its xid is known ##
     next if defined $own_xid and $win->{'winid'} eq $own_xid;
 
-    my $wx = $map_x->( $win->{'x'} );
-    my $wy = $map_y->( $win->{'y'} );
-    my $ww = $win->{'width'} * $scale;
-    my $wh = $win->{'height'} * $scale;
+    my $wx = $map_x->( $geo->{'x'} );
+    my $wy = $map_y->( $geo->{'y'} );
+    my $ww = $geo->{'w'} * $scale;
+    my $wh = $geo->{'h'} * $scale;
 
-    ## warm translucent fill : reads as content inside the dark monitor panels ##
-    $context->set_source_rgba( 0.8, 0.5, 0.1, 0.18 );
-    $context->rectangle( $wx, $wy, $ww, $wh );
-    $context->fill;
+    my $pending = defined $win->{'intended_geo'};
 
-    ## crisper warm stroke so individual rects separate visually ##
-    $context->set_source_rgba( 0.9, 0.6, 0.2, 0.55 );
-    $context->set_line_width(1);
-    $context->rectangle( $wx + 0.5, $wy + 0.5, $ww - 1, $wh - 1 );
-    $context->stroke;
+    if ($pending) {
+        ## pending intent : dimmer amber fill + dashed stroke so it reads ##
+        ## as a target not yet applied by the compositor                   ##
+        $context->set_source_rgba( 0.7, 0.4, 0.05, 0.12 );
+        $context->rectangle( $wx, $wy, $ww, $wh );
+        $context->fill;
+
+        $context->save;
+        $context->set_source_rgba( 0.8, 0.5, 0.1, 0.40 );
+        $context->set_line_width(1);
+        $context->set_dash( [ 4, 3 ], 0 );
+        $context->rectangle( $wx + 0.5, $wy + 0.5, $ww - 1, $wh - 1 );
+        $context->stroke;
+        $context->restore;
+    } else {
+        ## warm translucent fill : reads as content inside the dark monitor ##
+        ## panels                                                          ##
+        $context->set_source_rgba( 0.8, 0.5, 0.1, 0.18 );
+        $context->rectangle( $wx, $wy, $ww, $wh );
+        $context->fill;
+
+        ## crisper warm stroke so individual rects separate visually ##
+        $context->set_source_rgba( 0.9, 0.6, 0.2, 0.55 );
+        $context->set_line_width(1);
+        $context->rectangle( $wx + 0.5, $wy + 0.5, $ww - 1, $wh - 1 );
+        $context->stroke;
+    }
 
     ## tiny muted title label when the rect is large enough to hold text ##
     my $label = $win->{'title'} // '';
@@ -178,8 +210,8 @@ $context->show_text($title);
 
 return TRUE;
 
-#,,,,,..,,.,.,.,.,.,.,.,.,.,,,,..,,,,,,..,,.,,..,,...,...,...,,..,..,,.,,,,,.,
-#CJ574QOCSQV273ZJSVXSV72R2EU5HPIFCB7R34ID6IFG4BHSKIQW3WCGBOMH2ZKPEEJM3VDAQWIRO
-#\\\|LQYZQPVDRIVZMO2RWINKTG6WZWMSNBVUUAQK3XNSHUMPB4T7GRI \ / AMOS7 \ YOURUM ::
-#\[7]2REEZEIK5SNCJ6ATZKCBQEHOZA7PBFCC3FKRPA6IEHKGLUAR7GBY 7  DATA SIGNATURE ::
+#,,..,..,,,.,,,..,,,,,.,.,..,,...,.,.,.,,,...,..,,...,...,...,.,.,...,,.,,,,.,
+#GSS33XENTCM5KAW7VSMWEU4AAUDGRKZVESNDAP5L7US4YMZX2VS5DB63FG2GO55XTJIMUKQMOXVZE
+#\\\|WT66KNQEJE23LXNJXI5KHK6ZAXAT62BBU2CO4K6TSILSKJOXE5J \ / AMOS7 \ YOURUM ::
+#\[7]M6SBUPWQU634AX7SOHJBLVNF5BUVA6CDU5XBUDTFVQ5XK7MZE4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
