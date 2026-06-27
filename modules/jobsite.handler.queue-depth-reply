@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = jobsite.handler.queue-depth-reply
+# descr = receive site-yaml queue depth; when zero, stop polling and claim strays
+
+my $call  = shift           // {};
+my $raw   = $call->{'data'} // '0';
+my $depth = ref $raw ? $raw->$* : $raw;
+$depth =~ s/\D//g;
+$depth = 0 if not length $depth;
+
+return if $depth > 0;
+
+## queue drained : cancel poll timer, pull stray jobs, then assess ##
+if ( defined $data{'jobsite'}{'queue_poll_timer'} ) {
+    $data{'jobsite'}{'queue_poll_timer'}->cancel;
+    $data{'jobsite'}{'queue_poll_timer'} = undef;
+}
+
+<[base.logs]>->( 1, 'fetch: site-yaml queue empty, claiming strays' );
+<[jobsite.stray.check]>;
+<[jobsite.dispatch.assessments]>;
+
+return;
+
+#,,.,,,,.,..,,.,,,...,,.,,...,.,.,,,.,,,.,..,,..,,...,...,,.,,.,,,.,.,...,.,,,
+#PK7LGCOY3TBMDBEOLMT3DEQMAFUIT26LGHRXRL5PDBOGIJYB4MCF7ZPTLCNRGZRSNS5G5OH3YUUFO
+#\\\|K7D7NW3CSWVCKP4C3TVCLN6I7TXY5MDN3TJAMHQ45XY6B4IPEMC \ / AMOS7 \ YOURUM ::
+#\[7]O6DFINTH3NPP4HUCFQSEOXTZQZBNEQ6DGG4W5REMDELPM4P6ZOCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

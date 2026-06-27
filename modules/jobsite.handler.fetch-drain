@@ -1,16 +1,17 @@
 ## [:< ##
 
 # name  = jobsite.handler.fetch-drain
-# descr = called when site-yaml fetch queue drains : proceed to assessments
+# descr = called when site-yaml fetch queue drains : pull strays then assess
 
-<[base.logs]>->( 1, 'fetch queue drained, proceeding to assessments' );
+<[base.logs]>->( 1, 'fetch queue drained, claiming strays' );
 
+<[jobsite.stray.check]>;
 <[jobsite.dispatch.assessments]>;
 
 return;
 
-#,,..,,.,,...,..,,..,,.,.,..,,,.,,..,,..,,...,..,,...,...,.,.,,.,,...,...,.,,,
-#AU4FXTHTPIQBSMB7353CMNP27DP5LBDFAAQZHHOKQGV3UKWZYJCTHR7GMHNNWHTSOV7EM5KYQIN4I
-#\\\|7RKD3ZPH7CVSFDVDXSJD64P3ZN5RNEVZJKKGKQ6KU6CXWE2WHMK \ / AMOS7 \ YOURUM ::
-#\[7]J56OPCNPX5NQVRMNNTPZX53JVKDVCBIDYPTUQF5NV6IXZKKCQWBA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,..,,...,,,,,,,,,,,,,,.,,...,..,,..,,...,...,,.,,,..,,.,,.,,,,..,
+#PDOZRJNOBO4GUVRVNESLTVQXW3SV6IL4ZO5NGMUXYSNEAAJ23YAQIQ7T7T7YCPWNDI4RBL34GNICS
+#\\\|EJOQJVN5Z3IHKOUOJUXION6CPJ2O4AGBVIAT6QUXY6ZZNKI2MQT \ / AMOS7 \ YOURUM ::
+#\[7]3PYRZEXBGHPXYFMF442JKBBOVTABMGUTRHOF3BHQ6BXY557QDIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
