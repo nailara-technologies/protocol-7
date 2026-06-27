@@ -101,6 +101,12 @@ if ( <X-11.mode> eq qw| auto-xephyr | ) { ## detect if Xorg running --> xephyr
 <X-11.reconnect.initial_delay> //= 1;
 <X-11.reconnect.max_delay>     //= 60;
 
+## silence bad-drawable protocol errors : dead window XIDs queried after  ##
+## a zenka shuts down return false via eval [ X-11.cmd.get_geometry ],    ##
+## this blacklist suppresses the warn log before it reaches process-x11-  ##
+## error [ the $SIG{__WARN__} handler in bin/Protocol-7 checks this ]    ##
+<sig_warn_blacklist.pattern> = qr{bad \d+ \(Drawable\)}i;
+
 <[X-11.maximize_intel_gpu_frequency]>
     if <[base.cfg_bool]>->(<X-11.max_intel_gpu_freq>)
     and <X-11.mode> eq qw| xorg |
@@ -108,8 +114,8 @@ if ( <X-11.mode> eq qw| auto-xephyr | ) { ## detect if Xorg running --> xephyr
 
 0;
 
-#,,,.,,,.,.,.,,,,,.,,,,..,.,.,,,,,,,.,,,.,..,,..,,...,...,.,.,.,.,...,,..,.,,,
-#HBQZBAIACGVMIJA6YYXMDMA24VRJZHMBVUESEIT4CI4LQZWN3WYADYSYS2RBPQ3N2YMWCGWS6OG42
-#\\\|3HZKEVEWLGO6OLWHLBBINFLD6FI2K3AKSQDJAFVGFAYIBU4YBZL \ / AMOS7 \ YOURUM ::
-#\[7]7NX6BPUBRYQVONHSFLP54K5XUW5TDU45CLJDV3JJYAZNAT45L2AY 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,,..,,,.,,,,,,.,,,,.,.,,,,,,,.,.,..,,...,...,,,.,..,,.,.,..,,,.,,
+#DHC7ZOO4P7OJN3NGNPGBWFV4OGXIQZMIC5MS4JGFG5WYMC5RIEOPREKDQN2XQ4XUGKNYO7MQ4QIGW
+#\\\|2PYJFSWZY5G5KWPIG4RFNNGHO7S5ODOCWWQSPT2JTUZX25USCG5 \ / AMOS7 \ YOURUM ::
+#\[7]OLSGU7BWOSBSR42PWH5DWEJ67IQMP4L4RAO4LQMYJ3HVDNPJ36AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

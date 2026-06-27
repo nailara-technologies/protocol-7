@@ -305,6 +305,45 @@ if ( not defined $saved ) {
     $inst->{'placement_timer'} = $placement_timer;
 }
 
+## periodic refresh : re-query the window list to discover new windows,  ##
+## then update geometry for all confirmed (non-pending) windows           ##
+Glib::Timeout->add_seconds(
+    3,
+    sub {
+        return 0
+            unless exists $data{'screen-setup'}{'instances'}{$id};
+        my $live_inst = $data{'screen-setup'}{'instances'}{$id};
+
+        ## discover any windows opened since the last scan ##
+        <[protocol-7.route-send]>->(
+            {   'command'   => qw| X-11.get-windows |,
+                'call_args' => { 'args' => '' },
+                'reply'     => {
+                    'handler' => qw| screen.setup.handler.windows_reply |,
+                    'params'  => { 'id' => $id }
+                }
+            }
+        );
+
+        ## refresh geometry for windows already tracked and not pending move ##
+        for my $win ( @{ $live_inst->{'windows'} // [] } ) {
+            next if defined $win->{'intended_geo'};
+            my $winid = $win->{'winid'};
+            <[protocol-7.route-send]>->(
+                {   'command'   => qw| X-11.get_geometry |,
+                    'call_args' => { 'args' => $winid },
+                    'reply'     => {
+                        'handler' =>
+                            qw| screen.setup.handler.geometry_reply |,
+                        'params' => { 'id' => $id, 'winid' => $winid }
+                    }
+                }
+            );
+        }
+        return 1;
+    }
+);
+
 ## run the shared Gtk3 main loop only once; further maps open while the   ##
 ## loop is already pumping [ Glib::Event integrates Event watchers ]      ##
 if ( not <screen.setup.gtk.main_running> ) {
@@ -316,8 +355,8 @@ if ( not <screen.setup.gtk.main_running> ) {
 
 return 0;
 
-#,,,.,,,.,.,,,,,.,..,,,,.,,,,,,.,,,,,,.,,,,,,,..,,...,...,.,.,,.,,,..,,,.,,,.,
-#BSYM2LK3NIFM7LGNEGTZN2FZ3F7AYREAT27CGI7NUY6WDMZLHMTNORN6KFADNWRGX4DTXN4WBZCRU
-#\\\|4LWABR45QS37UEK3J3NXRXUZTK53RQYJG3NITBFXJBBVMD6EU43 \ / AMOS7 \ YOURUM ::
-#\[7]5USAXPBPVH2YDJMCF4SZLBDMRHZFJQHJGGLIHHQXAEFMVOLZCWCA 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,.,.,,,,,...,,,.,...,,,.,..,,..,,..,,...,...,.,,,,,.,,.,,,,,,,..,
+#QZRGJ67W7TM4JX3IDQZ7IEH5YAJWULO3E7OSVSFMYWZDU7DRWT7QE7REDMUICVKPQTFQAKH5WNCVC
+#\\\|BUU2RBP5JNAE7SRYTBEPJDVHSUDNA5TUCRQBWBEMWTX66DSH6LS \ / AMOS7 \ YOURUM ::
+#\[7]LNBLENCK7CCJMUJJU4BL4DCZIBNA7XQSLIK65BSWH6JXQO4LKADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
