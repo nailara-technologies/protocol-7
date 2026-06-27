@@ -1,10 +1,68 @@
 ---
 name: plugin-web-jobs-web-jobs-data-plugin
-description: plugin.web.jobs.* for bi-directional job pipeline sync via web zenka
+description: plugin.web.jobs.* for bi-directional job pipeline sync via web zenka — sync bugs, localStorage layer, multi-backend
 metadata: 
   node_type: memory
   type: project
   originSessionId: 095ef9b6-c744-46c5-bac8-4d54a2d5ce45
+---
+
+## Session 2026-06-28 — sync fixes + browser localStorage layer (39c5626d1)
+
+### Root bugs fixed
+
+**Bug 1 (apply_reverse memory gap)**: `apply_reverse` updated job file stage on
+disk but not `<jobsite.tasks>` in memory. `assess-done` protect check reads
+`<jobsite.tasks>` — so it saw stale `stage: review` and clobbered browser-set
+`stage: applied`. Fix: after writing job file, sync stage into `<jobsite.tasks>`:
+```perl
+my $tasks = <jobsite.tasks>;
+$tasks->{$id}{'stage'} = $entry->{'stage'}
+    if ref $tasks eq 'HASH' and defined $tasks->{$id};
+```
+Guard with `ref ... eq 'HASH'` — `//` only protects against undef, not `1` (which
+`<jobsite.tasks>` can be in certain code paths, causing "string ('1') as HASH ref").
+
+**Bug 2 (last_modified not bumped on browser updates)**: when browser POSTs stage
+change to `/jobs-sync`, web cache was updated but `last_modified` was not bumped.
+Other browsers' `?since=<ntime>` delta queries missed those changes. Fix: set
+`$cached->{'last_modified'} = <[base.ntime.b32]>` in the browser-update path of
+`plugin.web.jobs.sync` when `%changed` is non-empty.
+
+### Browser localStorage layer (`jobs_user_decisions_v1`)
+
+`userDecisions` map in localStorage tracks explicit user choices: `{id: {stage, notes, date_applied, ts}}`.
+
+- `setStage()` writes to `userDecisions` before `saveCache()`
+- note + date_applied input handlers also write to `userDecisions`
+- `mergeJobs()` applies server data first, then overlays `userDecisions` on top for
+  user-owned stages: `to_apply applied interviewed responded rejected skipped archived`
+- reassess button clears `userDecisions[id]` so fresh assessment result can land
+- user decisions survive server batch pushes — stage drift is eliminated
+
+**Reset button** now clears BOTH `jobs` and `userDecisions` (and dialog is honest
+about what's lost). The ↻ **sync button** now does `lastNtime = 0` full resync
+without touching `jobs` or `userDecisions` — use this instead of reset for stale data.
+
+### dblclick undo toast
+
+Native `dblclick` replaced with custom 260ms timing on `click` events (tighter
+than OS threshold). On trigger: shows `prevStage → newStage  rückgängig` toast for
+3s. Clicking "rückgängig" calls `setStage(id, prevStage)` via `restoreFn` callback
+passed to `notifyUndo(id, prevStage, setStage)`.
+
+### Multi-backend readiness
+
+Push side already supports multiple backends via `sync_urls` (space-separated).
+Per-URL watermarks in `<jobsite.sync.last_ntime>->{$url}`. Reverse entries
+accumulated from all backends into one `push_reverse` list. To enable:
+```
+jobsite.cfg.sync_url      =
+jobsite.cfg.sync_urls     = http://host-a/jobs-sync http://host-b/jobs-sync
+```
+Web caches between backends are NOT peer-synced — jobsite is the hub. Changes on
+backend A reach backend B only after next jobsite push cycle.
+
 ---
 
 ## Current State (session 34, 2026-05-19) — SYNC FULLY WORKING ✓
@@ -25,111 +83,58 @@ scanned/assessed jobs automatically appear in next incremental sync.
 
 **chunked 30 jobs/POST** — stays within 242KB session buffer ceiling.
 
-## Previous state (session 32, 2026-05-18) — WORKING END-TO-END
-
-**Working**: GET /jobs.json and POST /jobs-sync fully operational via web zenka.
-Verified with curl. Cache at var_P7/web/jobs/ (web zenka owns it, not httpd).
-
-## Route flow (session 63 — STRM migration WORKING ✓)
+## Route flow
 
 httpd route registry → httpd.route.handler.web-relay → route-send to web zenka
 → web.cmd.jobs-data / web.cmd.jobs-sync → plugin.web.jobs.data/sync → STRM reply
-→ httpd.handler.web-relay.strm_open (new) → HTTP client
-
-SIZE reply path (old): → httpd.handler.web-relay.response → flush_shutdown → client
-STRM path working (session 63). cosmetic: cube logs "STRM-reply to unknown route"
-after each stream (web zenka TRUE reply after STRM close hits dead route). harmless.
-fix: skip fall-through TRUE reply in base.handler.command STRM send path.
-
-Key fix: reply handler reads params from `$reply->{'params'}` not second shift arg.
-`shift // {}` was silently masking missing http_sid causing early return with no response.
+→ httpd.handler.web-relay.strm_open → HTTP client
 
 ## Module layout
 
 - `plugin.web.jobs.init_code` — preloads JSON::XS + YAML::XS, creates var_P7/web/jobs/
-- `plugin.web.jobs.data` — SIZE reply handler: reads web cache, returns JSON array
-- `plugin.web.jobs.sync` — SIZE reply handler: merges browser/jobsite fields, writes cache
-- `plugin.web.jobs.state.save` — merge browser-owned fields into a job record
-- `plugin.web.jobs.state.load` — thin pass-through to jobsite.job.load_all
-- `plugin.web.jobs.list` / `.stats` — utility commands
+- `plugin.web.jobs.data` — STRM reply handler: reads web cache, returns JSON
+- `plugin.web.jobs.sync` — handles batch jobsite push OR single browser update
+- `plugin.web.jobs.cache.write` / `cache.read_all` — in-memory + disk cache ops
+- `plugin.web.jobs.reverse.queue` / `.flush` — browser reverse sync queue
 
-## Storage (jobsite zenka owns)
+## Storage
 
 ```
-/var/protocol-7/jobsite/jobs/{job_id}.yaml   # one file per job
-/var/protocol-7/jobsite/index.yaml           # lightweight index
+/var/protocol-7/jobsite/jobs/{status}/{job_id}.yaml  # directory = authoritative status
+/var/protocol-7/web/jobs/{status}/{job_id}.yaml      # web cache (per httpd instance)
 ```
 
-Path always hardcoded as `var_P7 + '/jobsite'` in jobsite.job.* modules —
-NOT using file.zenka_dir.data_path because modules are called cross-zenka
-(from httpd context where zenka.name would be 'httpd' not 'jobsite').
-
-## Route registry
-
-`configuration/zenki/httpd/routes`:
-```
-GET   /jobs.json    plugin.web.jobs.data
-POST  /jobs-sync    plugin.web.jobs.sync
-```
-
-Plugin registered in httpd start via `[base.white-list.register:'plugin.web.jobs']`
-because plugin.web.* belongs to web module namespace (dep graph doesn't auto-pull
-it into httpd). plugin.httpd.* work without explicit registration.
-
-## httpd route registry (new, session 25)
-
-`httpd.route.init_code` parses `configuration/zenki/httpd/routes` at startup.
-Route 0 in route_dispatcher — checked before ACME/radio/template/static.
-Format: `METHOD PATH SUBROUTINE` with ANY wildcard and prefix: prefix routes.
-Context/cursor also moved here from http_post hardcoded branches.
+Status dirs: new assessed review apply applied interviewed rejected blocked deleted
 
 ## Merge strategy
 
-Pipeline owns: score, score_reason, score_summary, fetched_at, status
-Browser owns: stage, notes, date_applied
+Pipeline fields (batch push from jobsite): title company url score score_reason
+score_summary fetched_at status stage description last_modified blocked_epoch checksum_hit
 
-## Client-side sync (session 25)
+Browser fields (POST from browser): stage notes date_applied
 
-- `lastNtime = 0` watermark in JS (in-memory, not localStorage)
-- Full fetch on first load; `?since=lastNtime` on polls (server-side filtering NOT YET implemented)
-- `pushChange(id, fields)` async POST to /jobs-sync on stage/note/date changes
-- 30s auto-poll via `startPoll()`
-- localStorage = reload cache only, server is source of truth
+stage appears in both — pipeline sets it, browser can override via reverse sync.
+`userDecisions` localStorage ensures browser override survives subsequent pipeline pushes.
 
-## Distributed deployment — open design question
+## Config (jobsite start)
 
-Current: httpd + jobsite on same host → direct file reads work.
-Future (separate hosts): jobsite pushes job YAML via HTTP(S) to an httpd
-endpoint after each write. httpd/web zenka caches it locally. GET /jobs.json
-served from cache — synchronous, no deferred reply needed.
+```
+jobsite.cfg.sync_url      = http://172.24.33.224/jobs-sync   # single backend
+jobsite.cfg.sync_urls     =                                   # multi: space-separated
+jobsite.cfg.sync_interval = 300
+```
 
-**NOT route-send**: route-send requires both ends connected to the same cube
-(existing P7 network connection). Cross-host push must use HTTP since that
-link doesn't exist yet. Same sync channel as browser but from server side.
+## Client-side architecture
 
-**nameserv integration**: nameserv zenka runs on remote hosts, handles service
-discovery + key storage. jobsite asks nameserv for the remote httpd's public key
-and endpoint → no hardcoded addresses or manually distributed keys. Zero-config:
-new host registers with nameserv, existing nodes discover and trust it automatically.
-HTTP is the transport; auth + discovery are fully P7-native via nameserv.
-Link-upgrade can later promote the HTTP push to a native P7 connection.
+- `jobs_[vhost]_v1` localStorage: full jobs map + lastNtime watermark + minScore
+- `jobs_user_decisions_v1` localStorage: user-owned field overrides (survives mergeJobs)
+- `jobs_user_decisions_v1` is NOT cleared by sync button, only by reset button
+- ↻ sync button: resets lastNtime=0, does full `/jobs.json` fetch, keeps all local data
+- reset button: clears jobs + userDecisions + lastNtime (destructive, dialog warns)
+- 30s auto-poll via `startPoll()` using `?since=lastNtime` delta
 
-## Toolbar UI (session 25)
-
-- Two-row layout: stats+slider|manuell top, sort|export|reset+sync bottom
-- Sync button: `min-width` + label span — icon stays, only text flips to '…'
-- Score slider: custom webkit/moz pseudo-elements, dark track, blue glow thumb
-- Buttons: 0.72rem to match filter tab visual weight (tabs stay at 0.78rem)
-
-## Remaining work
-
-- Server-side `?since=N` delta filtering (index.yaml needs last_modified per entry)
-- ntime watermark in POST sync response
-- Deploy jobs.vhost to remote server (DNS + letsencr cert install)
-- When jobsite distributes: web zenka push/cache model
-
-#,,..,,,.,...,,,.,..,,,..,...,...,,,.,...,,,,,..,,...,...,..,,.,.,,..,.,,,..,,
-#5KJMA62UZX6EXBLURS6VF6R6ONSVF4UUTHVHVMYBTP2O4STLQG6RBU2N3GNGGYJOZZJD4TXGL2CHC
-#\\\|PP2XMWBUE5IPYDAWWWTMGKHEL6GIGQNA3PQY6VTX72USFMOTZLZ \ / AMOS7 \ YOURUM ::
-#\[7]TMI6VL6RRGJPG3PDZ2AJZ2YVL3IMAP4LEWIRM77RL2MX3BK3CKDI 7  DATA SIGNATURE ::
+#,,..,...,.,.,,..,,,,,.,,,..,,,..,,,.,,,.,.,.,..,,...,...,...,,.,,...,,.,,.,,,
+#7XCYPR2QHWIELLB4WVWYMAUXXPKAG7LNIRUVXELZNVLJ2ESYWNNMJGE7ORDC2Z3JWUWRMH5RPS25K
+#\\\|XVED355QMD2FP57MU57U3AWZPMULAJUM6EXNK7CXXXENS7CA4IA \ / AMOS7 \ YOURUM ::
+#\[7]BI72QIP46ZY3MCC46TG6XWYYT243Q4APA4AU4W3FDLLDCVAE54BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
