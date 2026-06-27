@@ -44,6 +44,9 @@ if ( not %cat_urls ) {
     $full_mode, join( ', ', sort keys %cat_urls )
 );
 
+## reset per-cycle counters before sending imports
+<jobsite.fetch_total_queued> = 0;
+
 for my $cat ( sort keys %cat_urls ) {
     <[protocol-7.route-send]>->(
         {   'command'   => qw| site-yaml.import |,
@@ -60,8 +63,8 @@ for my $cat ( sort keys %cat_urls ) {
 ## track how many fetch replies we expect
 <jobsite.fetch_pending> = scalar keys %cat_urls;
 
-#,,.,,.,,,,..,.,,,..,,...,,,.,,.,,,,.,.,,,.,,,..,,...,...,..,,,..,.,.,,,.,,,,,
-#KG6HOPHUTTLL4OYTQDWPXJB42WKANIXHOMR567UEGZGK3UZ2Q774P6SO5YGHXHUHIBL536KEICMZ6
-#\\\|HQ47YH6QDUBS2YRPIFHHE27FRIZKTDHV3JZWDTMOWCOSBLBIYVJ \ / AMOS7 \ YOURUM ::
-#\[7]KWV73KR3JN5ZMG22JUCIKS3YEI5OFYUBVSXOSFYYIG4TFHWZU6CI 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,,,.,..,,.,,,,.,,..,,,,.,.,.,.,.,..,,...,...,.,.,.,,,.,,,,,.,...,
+#R7U4DMAQP7WZ4OD63Q2TAC24UMP3C27W7ZKLG2XXZSQ4IBISG5UBH5L3NVKNRUQZ5DA2ATEZTDE7K
+#\\\|TQ6S2GOCFD2Y6MQPKYLGYQZ3BNMNMN3ODSOCTODAASCWSFBK36M \ / AMOS7 \ YOURUM ::
+#\[7]574LELIWDQHV6QBKR2DO3M4QYTUE26H2FX3Z33JXS6BT7QU2LWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
