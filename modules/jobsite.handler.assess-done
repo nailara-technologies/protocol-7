@@ -215,7 +215,8 @@ $job_rec->{'score'}         = $score;
 $job_rec->{'score_reason'}  = $reason  // '';
 $job_rec->{'score_summary'} = $summary // '';
 
-my $threshold = <jobsite.cfg.threshold> // 6;
+my $threshold = <jobsite.cfg.threshold> //= 7;
+
 if ( length($score) and $score >= $threshold ) {
     $job_rec->{'status'} = 'review';
     $job_rec->{'stage'}  = 'review';
@@ -259,8 +260,8 @@ if ( <jobsite.pending_count> <= 0 ) {
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.next]>
 
-#,,..,...,.,,,,,.,.,,,,..,.,.,,.,,,,,,,..,...,..,,...,..,,.,,,.,.,.,.,.,.,,.,,
-#4HZ7BI3UZL7I3X66WBXRJT4TGEA332RZXLSB6KVMBEADA5MWHHFBWDQDC4TBO5TSUI72R4JV4YBBW
-#\\\|UBN3EHLPRYETVLKNHVWWFHW6CAUS6AAO63SVY4UOWZVRXBTA7B3 \ / AMOS7 \ YOURUM ::
-#\[7]6SNDNJREZEHB5LN4AWRIQUKRUZQ4U6UYUZ6AWVP375T7VFSXUUDA 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,.,.,,..,.,.,.,.,,..,..,,...,...,..,,...,...,..,,,..,..,,,..,,,.,
+#MPAXFO7IFBHCT2NANLPOQAEKWN3E3MCISSJUOQRHAC5ZG5M54J63AFABT76DCCGXEXC4B33NC2FFM
+#\\\|EYRA5W7VHJXN57LJR4ZTXELUD74J3NYDG3CWMPATZ5XKIKWEONB \ / AMOS7 \ YOURUM ::
+#\[7]RANO2LAJ5NSS4O6Y5OU5GX5SBBSZ5X6TY66MQXPLMBENYAA5KQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

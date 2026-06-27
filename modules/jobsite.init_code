@@ -166,6 +166,33 @@ if (@orphans) {
     );
 }
 
+## reset tasks stuck in 'queued' with no task_id : dispatch was interrupted
+## before the task zenka created the actual task ; clear so dispatch.assessments
+## can re-queue them on the deferred startup pass ##
+my @stuck_queued = grep {
+    ( $tasks->{$ARG}{'stage'} // '' ) eq 'queued'
+        and not length( $tasks->{$ARG}{'task_id'} // '' )
+    }
+    keys %{$tasks};
+
+if (@stuck_queued) {
+    <[base.logs]>->(
+        1,
+        'jobsite: resetting %d stuck-queued jobs for re-dispatch',
+        scalar @stuck_queued
+    );
+    delete $tasks->{$ARG} for @stuck_queued;
+}
+
+## deferred dispatch on startup : picks up any status=new jobs that survived
+## reload (rescan_interval=0 means nothing else triggers this) ##
+<[event.add_timer]>->(
+    {   'after'   => 4,
+        'repeat'  => FALSE,
+        'handler' => 'jobsite.dispatch.assessments',
+    }
+);
+
 my $job_count = scalar keys %{$tasks};
 <[base.logs]>->(
     1,               'jobsite: ready, cycle=%s, jobs=%d',
@@ -184,8 +211,8 @@ my $job_count = scalar keys %{$tasks};
 
 TRUE;
 
-#,,..,.,.,...,,.,,...,,,,,,..,.,,,,,,,,..,.,,,..,,...,...,.,.,,,,,..,,..,,,.,,
-#AUPUHSLEITED6H6ADEPTBV4ABIJ73EQZ5UTCRI3YV2QDYHEXJCYOF4NTFEHPM3LWWPYIL6FEJDWRW
-#\\\|WJREMI75BMDE3ARVMYEASOQQII23K5GIWQTHARC6PLYPI7UHKWN \ / AMOS7 \ YOURUM ::
-#\[7]DJMTMCCCWBM3VHOTJZUCWRCOL7SFSGDVLFYVGYKQQPMSNDZ7Y4CA 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,..,,,.,,,.,,,,,..,,.,,,.,.,.,,,..,,...,...,..,,..,,,..,,.,,..,,
+#URITGQV5SVAQ2SEVAF2FTR34LXMA6DZD4QMXINK3V6JZGFNNCI7L6C6QGVDTHOAHO6RSB4Q44PBJU
+#\\\|IFAPYBRWUDONVICMJSTXV3BRV4RKSSAGMSOWQDOZ7VIRMQIWDR5 \ / AMOS7 \ YOURUM ::
+#\[7]6KVVQHFEILXYBRRIHUP5JEF6DEXJSEUFO3AFPNN3JV7MV7T5IEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

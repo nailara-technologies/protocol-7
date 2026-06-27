@@ -1,4 +1,5 @@
-.:[ jobsite — job search scan and assessment coordinator ]:.
+
+ .:[ jobsite — job search scan and assessment coordinator ]:.
 
 [load_config_file:'shared-params']
 
@@ -20,10 +21,10 @@ jobsite.cfg.url.security-engineer = https://www.stepstone.de/jobs/security-engin
 jobsite.cfg.url.ki-infrastruktur  = https://www.stepstone.de/jobs/ki-infrastruktur/in-deutschland
 jobsite.cfg.url.backend-architect = https://www.stepstone.de/jobs/softwarearchitekt/in-deutschland
 
-## minimum llm score (0-10) to flag job for review
-jobsite.cfg.threshold       = 6
+## minimum llm score [ 0..10 ] to flag job for review
+jobsite.cfg.threshold       = 7
 
-## seconds between automatic rescans (0 = manual trigger only)
+## seconds between automatic rescans [ 0 = manual trigger only ]
 jobsite.cfg.rescan_interval = 0
 
 ## seconds between sync pushes to httpd cache
@@ -42,7 +43,7 @@ access.cmd.usr.cube = heart subname name commands reload verify-instance \
                       scan status list approve reject reset set-threshold \
                       clear-tasks blacklist-add blacklist-stats show-prompt \
                       progress report-stray-jobs \
-                      get set dump del exec-sub eval-code # <-- devmod commands !!
+                      get set dump del exec-sub eval-code # <-- devmod cmds !!
 
 modules.load = auth net protocol io.unix ui jobsite clients.http devmod
 [load_modules:<modules.load>]
@@ -56,8 +57,8 @@ modules.load = auth net protocol io.unix ui jobsite clients.http devmod
 
 [zenka.loop]
 
-#,,..,,.,,.,.,.,.,,,.,,,,,..,,.,,,,..,...,,.,,..,,...,...,,..,,..,,.,,,.,,.,.,
-#CC2NC5XUCYEVGGRYRSCEWDI5L2ALS6T2ULUE5VX2ADA2VWZHBOZKSA5PQUMLTLRS7ZZV4OFJZ6BAK
-#\\\|US5WF4IMVAFADRXEDBJIGVVHYJJCEPGE6HDF3KC6VNPPMY2SJGB \ / AMOS7 \ YOURUM ::
-#\[7]ZZMZK2KEHBRIY3QPMI3WWRQGXZWMNVCMCO4GN7ZPJHXMQ6ZZNSAQ 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,.,,,,..,,,.,...,,..,.,.,,,,,,.,,..,,...,...,..,,,.,,,,.,,..,,..,
+#IFLD5HMSLCMNBH37ONQHFBU4U7L5QGNUUG4TI2XJK6K6M7OHC3SLBHNP3SF4WYQZH5ILQH6UXWRS6
+#\\\|4T5AZTBWVK676RET4BNTBBCWTIAIF5CEQW4HJQDKJUUULEROJ2U \ / AMOS7 \ YOURUM ::
+#\[7]WWRIMLOSYXH22O6DZ6GKFHX2223P7YWNMGKQQ26BFQ52IX4USKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
