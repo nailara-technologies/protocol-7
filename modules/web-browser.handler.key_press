@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = web-browser.handler.key_press
+# descr = key handler: Alt+. opens window-place overlay, Alt+, cycles profile
+
+my ( $widget, $event ) = @ARG;
+my $keyval = $event->keyval;
+my $state  = ${ $event->state }; ## deref Glib::Flags blessed scalar to int ##
+
+my $MOD1_MASK  = eval { Gtk3::Gdk::MOD1_MASK() }  // 8;
+my $KEY_PERIOD = eval { Gtk3::Gdk::KEY_period() } // 46;
+my $KEY_COMMA  = eval { Gtk3::Gdk::KEY_comma() }  // 44;
+
+my $is_alt = $state & $MOD1_MASK ? TRUE : FALSE;
+
+if ( $is_alt and $keyval == $KEY_PERIOD ) {
+
+    return FALSE if not defined <x11.id>;
+    my $winid  = <x11.id>;
+    my $caller = <system.zenka.name>;
+
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'window-place.place-for-window',
+            'call_args' => { 'args' => "caller=$caller winid=$winid" }
+        }
+    );
+
+    return FALSE;
+}
+
+if ( $is_alt and $keyval == $KEY_COMMA ) {
+
+    my @profiles = <[base.cfg.profile.list]>;
+    my $current  = <web-browser.cfg.profile.active> // 'kiosk';
+
+    my $next_profile = 'kiosk';
+    foreach my $index ( 0 .. $#profiles ) {
+        if ( $profiles[$index] eq $current ) {
+            $next_profile = $profiles[ ( $index + 1 ) % @profiles ];
+            last;
+        }
+    }
+
+    <[base.cfg.profile.apply]>->($next_profile);
+    <[base.logs]>->( 1, '[key] profile -> %s', $next_profile );
+
+    return FALSE;
+}
+
+return FALSE;
+
+#,,,.,,.,,..,,..,,.,,,,..,,,.,.,.,.,,,..,,,.,,..,,...,...,...,,,.,...,,,,,..,,
+#IOHMPNGBTZJSVCJIWVLMCYK2H7MROOZVXD4FLW367DQGZCAIHZJIBGJZNEAG3YVDE7Q6WFDH4LBHW
+#\\\|RB7LSXYUH5SWEU4E6GMVFRXUNF3RNW2KHEDMSNB5NR7IET6XQMO \ / AMOS7 \ YOURUM ::
+#\[7]QTDBBRPSTS5JZJQTDONJJRUEWCXJ5J4YS22ZXYPO7D3BE4VS3ICA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
