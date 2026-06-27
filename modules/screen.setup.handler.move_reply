@@ -1,8 +1,7 @@
 ## [:< ##
 
 # name  = screen.setup.handler.move_reply
-# descr = X-11.move-window reply : on success clear the intent and refresh
-#         actual geometry; on failure leave intent pending for retry
+# descr = X-11.move-window reply : verify move landed, clear intent or retry
 
 my $reply = shift                       // {};
 my $id    = $reply->{'params'}{'id'}    // '';
@@ -26,20 +25,38 @@ my $mode = lc( $reply->{'cmd'} // '' );
 if ( $mode eq qw| true | ) {
     <[base.logs]>->(
         1,
-        '[screen-setup.move_reply] id=%s winid=%s move applied, clearing intent',
+        '[screen-setup.move_reply] id=%s winid=%s move sent, verifying position',
         $id,
         $winid
     );
 
-    $entry->{'intended_geo'} = undef;
+    ## keep intended_geo until geometry confirms the move landed [ weston  ##
+    ## silently clamps cross-output moves : actual may still equal old    ##
+    ## coords even though move-window returned true ]                     ##
+    my $target_x = int( $entry->{'intended_geo'}{'x'} + 0.5 );
+    my $target_y = int( $entry->{'intended_geo'}{'y'} + 0.5 );
 
-    ## refresh actual geometry so the rect snaps to the real position   ##
-    <[protocol-7.route-send]>->(
-        {   'command'   => qw| X-11.get_geometry |,
-            'call_args' => { 'args' => $winid },
-            'reply'     => {
-                'handler' => qw| screen.setup.handler.geometry_reply |,
-                'params'  => { 'id' => $id, 'winid' => $winid }
+    ## defer get_geometry so the compositor has time to apply the move   ##
+    <[event.add_timer]>->(
+        {   'after' => 0.2,
+            'cb'    => sub {
+                return
+                    if not exists $data{'screen-setup'}{'instances'}{$id};
+                <[protocol-7.route-send]>->(
+                    {   'command'   => qw| X-11.get_geometry |,
+                        'call_args' => { 'args' => $winid },
+                        'reply'     => {
+                            'handler' =>
+                                qw| screen.setup.handler.geometry_reply |,
+                            'params' => {
+                                'id'       => $id,
+                                'winid'    => $winid,
+                                'target_x' => $target_x,
+                                'target_y' => $target_y
+                            }
+                        }
+                    }
+                );
             }
         }
     );
@@ -57,8 +74,8 @@ $window->queue_draw if defined $window;
 
 #
 
-#,,.,,..,,,,.,.,.,...,.,.,.,,,..,,.,.,...,.,.,.,.,...,...,.,,,.,.,,.,,,,.,,,,,
-#2OM2TLAIVGM37PGEIDSM3AGAUAXP3TXS6IVUU65QJO2HFKNRMR5LQ64YKEHCZGNAD5R7K5FD5LBQA
-#\\\|P5UVBAFWRMCO3ZKMBAWB6ZI24MWAJB6ZMSHPVZJU4K4ISO4456H \ / AMOS7 \ YOURUM ::
-#\[7]HBNBYQAYYODMPCP5J35TMGUWX7FLDKIPJQGROREFKHLDWSH6EAAQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,..,,,..,,.,,,.,,..,,,..,,..,,,.,.,.,...,.,,,,,,,,.,,...,..,,...,
+#5PETHQGVTAN52ICQ3OKSM6HTN73ZAW763NR3MNNR53CJK7O35XUUF26FP5JQXKBBMQ74AWXZOWR3G
+#\\\|QBKJODLNKBGSZFMOCLVO6LKBYVHCNEPVTQSFQ5AHRB4ZQ4F2OKX \ / AMOS7 \ YOURUM ::
+#\[7]V3SVCL7E2OETEFITOXM5H7P3YADHSZVHJZP25ZJYWZUVUKNGFUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

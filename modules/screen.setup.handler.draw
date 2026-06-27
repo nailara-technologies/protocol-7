@@ -160,13 +160,11 @@ for my $win (@$windows) {
         $context->rectangle( $wx, $wy, $ww, $wh );
         $context->fill;
 
-        $context->save;
-        $context->set_source_rgba( 0.8, 0.5, 0.1, 0.40 );
-        $context->set_line_width(1);
-        $context->set_dash( [ 4, 3 ], 0 );
-        $context->rectangle( $wx + 0.5, $wy + 0.5, $ww - 1, $wh - 1 );
+        ## thicker warm-orange stroke distinguishes pending from applied ##
+        $context->set_source_rgba( 1.0, 0.45, 0.05, 0.65 );
+        $context->set_line_width(2);
+        $context->rectangle( $wx + 1, $wy + 1, $ww - 2, $wh - 2 );
         $context->stroke;
-        $context->restore;
     } else {
         ## warm translucent fill : reads as content inside the dark monitor ##
         ## panels                                                          ##
@@ -210,8 +208,8 @@ $context->show_text($title);
 
 return TRUE;
 
-#,,..,..,,,.,,,..,,,,,.,.,..,,...,.,.,.,,,...,..,,...,...,...,.,.,...,,.,,,,.,
-#GSS33XENTCM5KAW7VSMWEU4AAUDGRKZVESNDAP5L7US4YMZX2VS5DB63FG2GO55XTJIMUKQMOXVZE
-#\\\|WT66KNQEJE23LXNJXI5KHK6ZAXAT62BBU2CO4K6TSILSKJOXE5J \ / AMOS7 \ YOURUM ::
-#\[7]M6SBUPWQU634AX7SOHJBLVNF5BUVA6CDU5XBUDTFVQ5XK7MZE4AY 7  DATA SIGNATURE ::
+#,,..,,,,,..,,...,...,..,,..,,,.,,,,,,,,.,,..,..,,...,...,.,,,,..,.,,,..,,.,.,
+#KAXVQSFVOVCX63FT34AX6TB4D7QXGVEFMWAGGBLTBSLTT7RKN5AYOEVYA5WVPN53RM6DBTQK2I57K
+#\\\|PLE7A5EDL7HPYWM6V5SHKCV5LAAXVG5EOG6UXMN3QPGMYHBYKZS \ / AMOS7 \ YOURUM ::
+#\[7]WCRDVA4H3ZKCK44VWA7CWLE6QGNW4LRDIKFAPQTWMTMDLCJFGOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
