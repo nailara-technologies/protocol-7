@@ -15,10 +15,9 @@
 ## corner candidates [ build_corner_candidates ] with X11 move+verify on each,
 ## same as startup placement, so relocation is confirmed, not just attempted.
 
-## single-line key=value payload, not YAML [ see X-11.emit.screen-change ] ##
-my %event = $call->{'args'} =~ m|(\w+)=(\S*)|g;
-my $w     = $event{'width'}  // 0;
-my $h     = $event{'height'} // 0;
+my ( $w, $h ) = split( ' ', $call->{'args'} // '' );
+$w //= 0;
+$h //= 0;
 
 <[base.logs]>->( 1, '[screen-change] %dx%d [deferred]', $w, $h );
 
@@ -146,8 +145,8 @@ return { 'mode' => qw| true |, 'data' => 'deferred' };
 
 #
 
-#,,..,,,,,.,.,,,,,,,,,,,.,.,.,,,,,,,,,,.,,,.,,..,,...,...,,..,.,,,.,.,,,.,.,,,
-#JSHXIY2ABCNEJUK6SBIQSPHPJNWGMDQI65HLOOQ25DQEKUKQPXVXIG3DIEFQFDD24W5X4XUYFLNOU
-#\\\|YYF5CL45ZBRLWK6BBUTTO5LCPDAXNTTG3T325P33ZINGUV7CP2H \ / AMOS7 \ YOURUM ::
-#\[7]TPMTRSYMMHFNXGTKMMBVWLBWPRGZCLN3CAMGM2NFUMCYMLBCPCDI 7  DATA SIGNATURE ::
+#,,..,..,,.,.,.,.,,..,,,.,..,,,.,,.,,,.,,,,,.,..,,...,...,.,,,,.,,.,.,,.,,,..,
+#JAV4NCGQW362LDBD6VUWWDALUCIFBAJVC76H6PI6KUT2FFJGNNSCT3SFKL5XTSNR2FWT54V2VCOOG
+#\\\|MJOAU5CZ5VH773RHULVYF6JQJBSD67DGO2DNYCWPAUWPPOFQNMZ \ / AMOS7 \ YOURUM ::
+#\[7]HLG3YI4A6SCV6BU67Z6R7IRIOOMJQJS6NXVQJXSCN73V2MMKBOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

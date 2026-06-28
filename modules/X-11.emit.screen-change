@@ -1,43 +1,32 @@
 ## [:< ##
 
 # name  = X-11.emit.screen-change
-# descr = push screen-change event to all registered handler subscribers.
+# descr = push screen-change event to all registered STRM listeners.
 #         args: $width, $height (optional; reads cached dims if omitted)
 
 my $width  = shift // <x11.screen.width>  // 0;
 my $height = shift // <x11.screen.height> // 0;
 
-my $subs = <X-11.screen_change_subscribers> // [];
-return unless @$subs;
+my $listeners = <X-11.screen_change_listeners> // [];
+return if not @$listeners;
 
-## a single-line format is required here, not YAML::XS::Dump's multi-line  ##
-## output - confirmed live: each YAML line got misread as a separate stray ##
-## command by cube's line-oriented protocol, corrupting the command stream ##
-## on every screen-change event. never caught before since the subscriber ##
-## list was always empty until tonight.                                   ##
-my $ntime   = <[base.time]>->(3);
-my $payload = sprintf(
-    'event=screen.change width=%d height=%d ntime=%s',
-    $width + 0,
-    $height + 0,
-    $ntime
-);
+my $payload = sprintf( "%d %d\n", $width + 0, $height + 0 );
 
-foreach my $handler (@$subs) {
-    <[protocol-7.route-send]>->(
-        {   'command'   => $handler,
-            'call_args' => { 'args' => $payload },
-        }
-    );
+my @keep;
+for my $h (@$listeners) {
+    push @keep, $h if <[base.stream.push]>->( $h, \$payload );
 }
+<X-11.screen_change_listeners> = \@keep;
 
 <[base.logs]>->(
-    2, ': screen-change emitted [ %dx%d ] to %d subscriber(s)',
-    $width, $height, scalar @$subs
+    2, ': screen-change emitted [ %dx%d ] to %d listener(s)',
+    $width, $height, scalar @keep
 );
 
-#,,.,,.,.,.,,,.,,,.,,,,,,,.,,,...,.,.,.,,,,,.,..,,...,..,,..,,,,.,.,.,..,,,.,,
-#OBUJZ2GBPTSXRBJVABJILEOAQD44JFNF6HFGG6AKGLSLXPK2EENRAPH7MHB5T7J6Q4J2RTOXISR62
-#\\\|C2RPGMFXHIWEZPR6FCZUNMBNMDCWGIOFU77LOQXJEYR72XQRA22 \ / AMOS7 \ YOURUM ::
-#\[7]M5YOPQYHFS57ZV64W6NS5YH4KPURK3WBXGCXAB4SAW7WXI4GQ2CY 7  DATA SIGNATURE ::
+return;
+
+#,,,,,,..,,,.,.,,,...,,,,,,,.,,,.,..,,,.,,..,,..,,...,.,.,,..,.,.,...,.,,,,.,,
+#OCOVFCIEEPVQFRUS6BLQUEAN436QMEOVN6CDIGPPUUSKXQ3TU75Z5FVMX3TBYQMYWA27PSKR7E7LG
+#\\\|IZDCMEOTSCFPVTEMIDH5G5E2MOIYSY7AMF5VWYZXT66NXMYT6UZ \ / AMOS7 \ YOURUM ::
+#\[7]2ZHILOAN4UW2PBLK6DUYZ5O4SRFKTU6QMH6BPWXR7IXJCQCXCKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
