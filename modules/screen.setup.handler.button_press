@@ -13,7 +13,11 @@ my $inst = $data{'screen-setup'}{'instances'}{$id};
 return TRUE if not defined $inst;
 
 ## right-click dismisses, same as Escape ##
+## ungrab before close : begin_move_drag may leave a compositor grab that
+## weston does not release on window destruction, blocking button-1 for
+## all clients [ same hazard documented in protocol-7-menu.graphical-startup-init ]
 if ( $event->button == 3 ) {
+    eval { Gtk3::Gdk::pointer_ungrab( $event->time ) };
     <[screen.setup.close]>->($id);
     return TRUE;
 }
@@ -88,8 +92,8 @@ $inst->{'drag_start_geo'}     = {
 
 return TRUE;
 
-#,,,.,..,,,..,,,,,,,.,,,.,.,,,..,,,.,,..,,..,,.,.,...,..,,...,...,...,,,.,,..,
-#H663NRY6BXHBEBMQX6J2IE6V4U5WCZHCZQBPVZ3YEZDTF65JIVKFZAIVYNQYXLLSL6HY7ACMO6I4O
-#\\\|JFJ7FSOCHBR5KCE5GYKHVSS4LMLRVP7GESXHTZHIIJEPS72OTXO \ / AMOS7 \ YOURUM ::
-#\[7]IYWTSVCRJUHTJCFPRK3OIQRTIGJ64HTY6VUABGM7VWYJNNDYZWBY 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,,.,,,.,,,.,,..,,,,,.,,,.,,,,.,,.,.,...,...,..,,...,,,.,.,.,,.,,
+#DE7S4VITGZT5U3EROCACV6EIIPXRTWLYIOYJDN3Q5RGZ74COH77LZZ2OIEUEXE7D73EA4Z7KMWETQ
+#\\\|2ZAAETIL3UEFQBE7Q5JGJ3Q5YRRXT7GRBJHQ74ELXBOA26VVZZB \ / AMOS7 \ YOURUM ::
+#\[7]JID4ILGBNSSRS6NXRI2LS3RRGY5DTFBRDJK7W2S4KQ7HQ5MXZ4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

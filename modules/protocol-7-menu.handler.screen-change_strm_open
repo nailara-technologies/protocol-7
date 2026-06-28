@@ -2,7 +2,7 @@
 
 # name  = protocol-7-menu.handler.screen-change_strm_open
 # descr = reply handler for X-11 screen-change STRM subscription ;
-#         registers a local consumer that feeds each line to protocol-7-menu.cmd.screen-change
+#         registers a local consumer that feeds each line to protocol-7-menu.screen-change
 
 my $reply = shift;
 
@@ -32,8 +32,7 @@ return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
 
             for my $line ( split /\n/, $data ) {
                 next if not length $line;
-                <[protocol-7-menu.cmd.screen-change]>
-                    ->( { 'args' => $line } );
+                <[protocol-7-menu.screen-change]>->($line);
             }
         },
     }
@@ -46,8 +45,8 @@ return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
 
 return;
 
-#,,..,.,.,..,,,..,,.,,,,.,,,,,,.,,,,.,..,,,.,,..,,...,...,...,,,,,.,,,..,,,..,
-#HY5EPOGNR3YCU243ROF2GFGX27F6XHUAHKFQJJMLXQCBENQV7P4OFYEBZPCWIESJHAYVOIX4GG7IC
-#\\\|GPIEU4Z5C4PRMTS22DBAITRV4ZAKYZYHOAX43ONKX5UE7XBIVPC \ / AMOS7 \ YOURUM ::
-#\[7]T73M5P2ZTUKYFX6TPN3IH4RRQQFVWYTJFLBKBJHINC3L7INMIKBA 7  DATA SIGNATURE ::
+#,,..,...,...,,.,,.,.,.,,,.,.,,,,,,,.,...,,,.,..,,...,..,,,.,,,..,.,,,..,,.,,,
+#3ANOVJ7AYJMQ6AN5PBY6ZWDTHMUUIYBUSJCKAOWG4PPE34QJFLQIQZCNYUNQARNHUXHF2KJFOIVYK
+#\\\|OZLMZH3LFCVXNFJBZIOJHBIOR2CWPPKDQT6MVRHJZGRKUMAG53I \ / AMOS7 \ YOURUM ::
+#\[7]YTVNLFBYG7WOK5UCO23AH3YAKQGRDGY6B72SPYIWBBEQB76XFMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

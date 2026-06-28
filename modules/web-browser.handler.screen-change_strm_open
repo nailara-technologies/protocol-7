@@ -2,7 +2,7 @@
 
 # name  = web-browser.handler.screen-change_strm_open
 # descr = reply handler for X-11 screen-change STRM subscription ;
-#         registers a local consumer that feeds each line to web-browser.cmd.screen-change
+#         registers a local consumer that feeds each line to web-browser.screen-change
 
 my $reply = shift;
 
@@ -32,7 +32,7 @@ return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
 
             for my $line ( split /\n/, $data ) {
                 next if not length $line;
-                <[web-browser.cmd.screen-change]>->( { 'args' => $line } );
+                <[web-browser.screen-change]>->($line);
             }
         },
     }
@@ -45,8 +45,8 @@ return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
 
 return;
 
-#,,.,,,,,,.,,,.,.,,,.,,.,,...,,,.,.,,,...,,,,,..,,...,...,...,..,,,,,,.,,,...,
-#H7SJDEMWFCKYHXZPMJN3TJ7SB76JUBND6OLOIHDLZFPN4JOLC7L35T4OVATHA2IYOLORRFOTS64FE
-#\\\|Y4SLFUPEMBUE3OFBD4NJRYZZTRHCB3CIBNOOUUYGZOGOLLJQNOU \ / AMOS7 \ YOURUM ::
-#\[7]LPJYCM5CEPBGTRU6EIKPBW5CNRDYGWU5SI7YNSPZZWKRKIFANEBY 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,.,,,,,.,.,.,.,.,..,,...,,.,,,,.,..,,...,...,,,,,...,...,,,,,..,,
+#BILO6IJDSDFVOQGV5OG53VFBOM3WFAQYRNBD3JQ6DUGCEWO56Q6HUMMIUKTPTRY7WNFRDT2IFUQP2
+#\\\|XLOM2MMTARHWTECDGXUB4MNBBQWDQ4QCDRDNIUEZKSMIQH4UPLN \ / AMOS7 \ YOURUM ::
+#\[7]L6T4NMFTIMILWTVE4DOXUN3KLCBIOS65TMN2G2XH7LS7YCLLIADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
