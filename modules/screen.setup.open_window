@@ -154,6 +154,12 @@ $window->signal_connect(
     qw| map | => sub {
         return FALSE if $mapped_once++;
         eval {
+            ## clear any stale compositor button-1 grab from another window;
+            ## without this, a stuck begin_move_drag grab from ticker or
+            ## window.place blocks all left-click events to newly-mapped windows
+            eval {
+                Gtk3::Gdk::pointer_ungrab( Gtk3::get_current_event_time() );
+            };
             $window->set_keep_above(1);
             $window->present;
             $window->grab_focus;
@@ -355,8 +361,8 @@ if ( not <screen.setup.gtk.main_running> ) {
 
 return 0;
 
-#,,..,.,,,,.,,.,.,,,,,...,,,.,...,,,.,..,,..,,..,,...,...,.,,,,,.,,.,,,,,,,..,
-#QZRGJ67W7TM4JX3IDQZ7IEH5YAJWULO3E7OSVSFMYWZDU7DRWT7QE7REDMUICVKPQTFQAKH5WNCVC
-#\\\|BUU2RBP5JNAE7SRYTBEPJDVHSUDNA5TUCRQBWBEMWTX66DSH6LS \ / AMOS7 \ YOURUM ::
-#\[7]LNBLENCK7CCJMUJJU4BL4DCZIBNA7XQSLIK65BSWH6JXQO4LKADQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,,.,,,.,,.,,,..,...,.,.,...,,,,,..,,...,...,...,,.,,.,,,,.,,,,.,
+#WGP6I2LXUTWWROMITVF6Q32AJXKRH22IYZKIHA6DFET4PWZCN67O7SCSB5PD7B6LSWAFZXFPXO6UU
+#\\\|HMVZS7M7Q4ESYMAFCYCXW4EWBFRDQFAIF4B7NDRXICHUSP7BUZW \ / AMOS7 \ YOURUM ::
+#\[7]5LGWGPVZJNOGP6ZYKOYLZZM3PR4Z47IAMGACHD6BVKOHCGGDYMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = protocol-7-menu.cmd.screen-change
+# name  = protocol-7-menu.screen-change
 # descr = receive X-11 screen-change for deferred relocation
 
 ## rapid monitor topology changes (connect/disconnect/resolution) fire multiple
@@ -15,13 +15,14 @@
 ## corner candidates [ build_corner_candidates ] with X11 move+verify on each,
 ## same as startup placement, so relocation is confirmed, not just attempted.
 
-my ( $w, $h ) = split( ' ', $call->{'args'} // '' );
+my $args = shift // '';
+my ( $w, $h ) = split( ' ', $args );
 $w //= 0;
 $h //= 0;
 
 <[base.logs]>->( 1, '[screen-change] %dx%d [deferred]', $w, $h );
 
-return { 'mode' => qw| true |, 'data' => 'not initialized' }
+return
     if not <protocol-7-menu.graphical-initialized>;
 
 ## cancel any pending debounce timer from a previous event in this burst
@@ -141,12 +142,12 @@ $data{'protocol-7-menu'}{'screen_change_timer_id'} = Glib::Timeout->add(
     }
 );
 
-return { 'mode' => qw| true |, 'data' => 'deferred' };
+return;
 
 #
 
-#,,..,..,,.,.,.,.,,..,,,.,..,,,.,,.,,,.,,,,,.,..,,...,...,.,,,,.,,.,.,,.,,,..,
-#JAV4NCGQW362LDBD6VUWWDALUCIFBAJVC76H6PI6KUT2FFJGNNSCT3SFKL5XTSNR2FWT54V2VCOOG
-#\\\|MJOAU5CZ5VH773RHULVYF6JQJBSD67DGO2DNYCWPAUWPPOFQNMZ \ / AMOS7 \ YOURUM ::
-#\[7]HLG3YI4A6SCV6BU67Z6R7IRIOOMJQJS6NXVQJXSCN73V2MMKBOAY 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,..,..,,,..,,,.,..,,,,.,...,,..,..,,...,...,.,,,.,.,,..,.,,,.,,,
+#HSDVBATVPHAAL5KHWYW2R6VBOKGQ3SOTNSPMBZZZQRULX6BXB2FXCZ22N6S6ELBVLAIEI574NEXV6
+#\\\|AQ2253FA3GNDJAM4MUYTFRCOHAOGTTOPJ5GWZQFWH4CPJNSW6C6 \ / AMOS7 \ YOURUM ::
+#\[7]B2A457VEK2ENJVZ7PCP2DWK6BRGQ4WLWAXC3NX2ZY5AVONEBNMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
