@@ -1,18 +1,21 @@
 ## [:< ##
 
 # name  = ticker.subscribe-screen-change
-# descr = initialized callback — subscribe ticker to X-11 screen-change events
+# descr = initialized callback — subscribe ticker to X-11 screen-change STRM events
 
-<[base.log]>->( 1, 'subscribing to X-11 screen-change events .,' );
+<[base.log]>->( 1, 'subscribing ticker to X-11 screen-change events .,' );
 
-<[protocol-7.command.send.local]>->(
-    {   'command'   => qw| X-11.subscribe-screen-change |,
-        'call_args' => { 'args' => qw| ticker.screen-change | }
+<[protocol-7.route-send]>->(
+    {   'command' => qw| X-11.subscribe-screen-change |,
+        'reply'   =>
+            { 'handler' => qw| ticker.handler.screen-change_strm_open |, }
     }
 );
 
-#,,,.,..,,...,..,,...,,,,,,,.,.,,,,,,,,,,,..,,..,,...,...,,..,.,.,.,,,,,,,...,
-#HDTZJETV7A5DGSAGT6BGOK6WM4NICD6P2GVH5RRSPY4OTL6KNEXXLAFMKUZZYBWWFLOJBQABR7S7O
-#\\\|5GCOJS7DYAYOLDFM7W3VL6EHEXLJKRFO6D4GTJIXB7RHZEWNX43 \ / AMOS7 \ YOURUM ::
-#\[7]ZZK3AK3X3STHU4MWR5B45PASQCR5OLYUJKP4JVOYUWTPRVCQSQAQ 7  DATA SIGNATURE ::
+return TRUE;
+
+#,,,,,.,,,,..,,.,,,.,,..,,..,,.,,,,..,..,,...,..,,...,...,,,,,.,,,,,.,..,,,.,,
+#YQD3XKO4MPV2DEFPNGGGWUUWN5ODZZXHALDQSNIGZICCBWOVIBNSCTDNZ6L7625MQUMBWWWH7WKEI
+#\\\|KWFVZABBUQXGIA7N4PIW25QVEHD2ULVQK5FU5DEIBFQBHOLBSR2 \ / AMOS7 \ YOURUM ::
+#\[7]Q5343VSKWD2LDDMMSQIQ5QHWJASH4PTH3RVHPSQOAWZVRDV2L2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

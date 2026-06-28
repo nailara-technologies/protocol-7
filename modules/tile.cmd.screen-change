@@ -3,10 +3,9 @@
 # name  = tile.cmd.screen-change
 # descr = handle X-11 screen-change [ layout reaction stub ]
 
-## single-line key=value payload, not YAML [ see X-11.emit.screen-change ] ##
-my %event = $call->{'args'} =~ m|(\w+)=(\S*)|g;
-my $w     = $event{'width'}  // 0;
-my $h     = $event{'height'} // 0;
+my ( $w, $h ) = split( ' ', $call->{'args'} // '' );
+$w //= 0;
+$h //= 0;
 
 <[base.logs]>->( 1, '[screen-change] %dx%d', $w, $h );
 
@@ -14,8 +13,8 @@ my $h     = $event{'height'} // 0;
 
 return { 'mode' => qw| true |, 'data' => 'ok' };
 
-#,,,,,.,,,.,,,...,..,,,,,,,,.,.,.,...,.,.,..,,..,,...,...,,..,,,.,,,.,,,,,.,,,
-#HOK3C6TSN3JLLCFB2WGV2JYJ5YNDGESISRFNTLE3MTRWQAY6EDCRCFD3YXJIUN6BLL34RCQYDX7A6
-#\\\|3MEXVI74M3BJGGNYWXOYFU2Z4RXPZSBM7KCCXMLQZT757YEIYJU \ / AMOS7 \ YOURUM ::
-#\[7]OUVYSIIZWE3RPXOTEUKGN5DJ5IR4YJVRV2VUO7OHYHNI2X3TESAY 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,.,,,.,,,,,,,.,,.,.,,,.,,,,,,,.,..,,...,...,.,,,...,,,.,,..,.,.,
+#YLSUUURVBQO6SV6LATS4GT64N6SXHETFICYORGN2P64YW5GNDQFCFCZUS5WVAPIV7QY2EWRWQN5V6
+#\\\|75TQZONBTVAD542JOBMNX3TXV3ARZFFXJKO6ZSSDUL2XRPNKBAA \ / AMOS7 \ YOURUM ::
+#\[7]GISGLXQTSMGPK7MFGSHFOLC2MTGBOE2XSRA6QYXGPFHZ4RYMQODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

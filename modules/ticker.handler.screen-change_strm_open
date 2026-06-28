@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = ticker.handler.screen-change_strm_open
+# descr = reply handler for X-11 screen-change STRM subscription ;
+#         registers a local consumer that feeds each line to ticker.cmd.screen-change
+
+my $reply = shift;
+
+if ( $reply->{'cmd'} eq qw| FALSE | ) {
+    <[base.logs]>->(
+        2,
+        'ticker screen-change subscribe refused: %s',
+        $reply->{'call_args'}->{'args'} // 'unknown error'
+    );
+    return;
+}
+
+return if $reply->{'cmd'} ne qw| STRM |;
+return if $reply->{'args'} ne qw| open |;
+
+my $cmd_id = $reply->{'cmd_id'};
+return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
+
+<[base.strm.local.register]>->(
+    $cmd_id,
+    {   'watcher' => sub {
+            my $lc = shift;
+            return if not length $lc->{'buf'};
+
+            my $data = $lc->{'buf'};
+            $lc->{'buf'} = '';
+
+            for my $line ( split /\n/, $data ) {
+                next if not length $line;
+                <[ticker.cmd.screen-change]>->( { 'args' => $line } );
+            }
+        },
+    }
+);
+
+<[base.logs]>->(
+    2, 'ticker screen-change STRM consumer registered [cmd_id=%d]', $cmd_id
+);
+
+return;
+
+#,,,,,.,.,...,,..,,,,,..,,...,,,,,,..,.,,,.,,,..,,...,...,,..,...,,..,..,,,,.,
+#DTG5A3J3GNEA3HDNLRACUEKGI4PZJC7YAHN6TOORSXC6PNWQGBW2M5JWR4EYNQBUJHFIRFGQ5RTEK
+#\\\|SMQUCHME5G6QKVFB36O6NQVKEQCXHJRDWRS5WADG6CGEFDO7L35 \ / AMOS7 \ YOURUM ::
+#\[7]5B46OMSXATTMF2KLDQUVYJNCU37WTR5N4NZFROVBP7P6QWYFMKBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

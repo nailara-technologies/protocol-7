@@ -1,23 +1,52 @@
 ## [:< ##
 
 # name  = screen.setup.cmd.screen-change
-# descr = retry pending window-move intents on screen-change
+# descr = refresh layout + retry pending moves on screen-change
+# param = <w> <h>
 
-## single-line key=value payload, not YAML [ see X-11.emit.screen-change ] ##
-my %event = $call->{'args'} =~ m|(\w+)=(\S*)|g;
-my $w     = $event{'width'}  // 0;
-my $h     = $event{'height'} // 0;
+return { 'mode' => qw| false |, 'data' => 'expected : <w> <h>' }
+    if not defined $call->{'args'}
+    or not length $call->{'args'};
+
+my ( $w, $h ) = split( ' ', $call->{'args'} );
+$w //= 0;
+$h //= 0;
 
 <[base.logs]>->( 1, '[screen-setup.screen-change] %dx%d', $w, $h );
 
-## retry every window with an intended_geo that has not been applied yet  ##
+## re-enumerate monitors so every instance sees the new layout; without  ##
+## this the minimap keeps stale min_x/min_y/scale and windows draw        ##
+## outside monitor bounds on topology changes                             ##
+my $new_monitors = <[screen.setup.enumerate-monitors]>;
+
 for my $id ( keys %{ $data{'screen-setup'}{'instances'} // {} } ) {
     my $inst = $data{'screen-setup'}{'instances'}{$id};
-    for my $win ( @{ $inst->{'windows'} // [] } ) {
-        next if not defined $win->{'intended_geo'};
 
-        my $ig    = $win->{'intended_geo'};
-        my $winid = $win->{'winid'};
+    if ( defined $new_monitors and @$new_monitors ) {
+        my $new_model = <[screen.setup.layout-model]>->($new_monitors);
+        if ( defined $new_model ) {
+            $inst->{'monitors'} = $new_monitors;
+            $inst->{'model'}    = $new_model;
+            <[base.logs]>->(
+                1,
+                '[screen-setup.screen-change] id=%s layout updated %dx%d virtual',
+                $id,
+                $new_model->{'width'},
+                $new_model->{'height'}
+            );
+        }
+    }
+
+    ## force a redraw so the minimap reflects the new layout immediately ##
+    my $win = $inst->{'window'};
+    $win->queue_draw if defined $win;
+
+    ## retry every window with an intended_geo not yet applied ##
+    for my $win_entry ( @{ $inst->{'windows'} // [] } ) {
+        next if not defined $win_entry->{'intended_geo'};
+
+        my $ig    = $win_entry->{'intended_geo'};
+        my $winid = $win_entry->{'winid'};
         my $x     = int( $ig->{'x'} + 0.5 );
         my $y     = int( $ig->{'y'} + 0.5 );
 
@@ -44,8 +73,8 @@ for my $id ( keys %{ $data{'screen-setup'}{'instances'} // {} } ) {
 
 return { 'mode' => qw| true |, 'data' => 'ok' };
 
-#,,,,,,.,,.,,,,,,,,.,,.,.,...,.,,,.,.,.,.,,..,.,.,...,...,..,,...,..,,...,..,,
-#ODLJSZRWFBZTS7M2EWPZGG3U3DM5ON4SYJ72TMB3PAJMRDXV2XRKJSE6ZAGG2UM7ZHNM7QQEWOLUI
-#\\\|HBGGO6W4TBM6AZNQSF4QV3OTR5QI4JA663UJALLBLLZ6QUGPC44 \ / AMOS7 \ YOURUM ::
-#\[7]24MJIWJ5MNWI7UNW2CTJ5IDFAHUZTOQXEFPJUB3UW5Y6K2GQT6DY 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,,,,...,,.,,..,,,.,,,.,,,,,,,.,,..,,...,.,.,.,.,,,.,.,,,...,,,,,
+#EWGYVY2AGI7OPISZX2FSY5J4P7G2F5TTMXVPMS6O5OX7X3ZL5RTMFNIPS3WXHON2ACL6PHZGPWPRO
+#\\\|P7NVA6N5O6KOXR7NTDLN5NBFYYMITLCO77L47FJI4BM5RFO4TK4 \ / AMOS7 \ YOURUM ::
+#\[7]O4HUFYTUSD5XDPRMQO6L2PRUNWN2RFIMUZQGU6TNHZRKENEEP6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

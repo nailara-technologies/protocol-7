@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = web-browser.handler.screen-change_strm_open
+# descr = reply handler for X-11 screen-change STRM subscription ;
+#         registers a local consumer that feeds each line to web-browser.cmd.screen-change
+
+my $reply = shift;
+
+if ( $reply->{'cmd'} eq qw| FALSE | ) {
+    <[base.logs]>->(
+        2,
+        'web-browser screen-change subscribe refused: %s',
+        $reply->{'call_args'}->{'args'} // 'unknown error'
+    );
+    return;
+}
+
+return if $reply->{'cmd'} ne qw| STRM |;
+return if $reply->{'args'} ne qw| open |;
+
+my $cmd_id = $reply->{'cmd_id'};
+return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
+
+<[base.strm.local.register]>->(
+    $cmd_id,
+    {   'watcher' => sub {
+            my $lc = shift;
+            return if not length $lc->{'buf'};
+
+            my $data = $lc->{'buf'};
+            $lc->{'buf'} = '';
+
+            for my $line ( split /\n/, $data ) {
+                next if not length $line;
+                <[web-browser.cmd.screen-change]>->( { 'args' => $line } );
+            }
+        },
+    }
+);
+
+<[base.logs]>->(
+    2, 'web-browser screen-change STRM consumer registered [cmd_id=%d]',
+    $cmd_id
+);
+
+return;
+
+#,,.,,,,,,.,,,.,.,,,.,,.,,...,,,.,.,,,...,,,,,..,,...,...,...,..,,,,,,.,,,...,
+#H7SJDEMWFCKYHXZPMJN3TJ7SB76JUBND6OLOIHDLZFPN4JOLC7L35T4OVATHA2IYOLORRFOTS64FE
+#\\\|Y4SLFUPEMBUE3OFBD4NJRYZZTRHCB3CIBNOOUUYGZOGOLLJQNOU \ / AMOS7 \ YOURUM ::
+#\[7]LPJYCM5CEPBGTRU6EIKPBW5CNRDYGWU5SI7YNSPZZWKRKIFANEBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

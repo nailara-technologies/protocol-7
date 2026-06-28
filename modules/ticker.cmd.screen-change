@@ -8,10 +8,9 @@
 ## the async-window-startup-transition findings ] - relocate via a real    ##
 ## move+verify instead of trusting whatever Weston did with the old rect.  ##
 
-## single-line key=value payload, not YAML [ see X-11.emit.screen-change ] ##
-my %event = $call->{'args'} =~ m|(\w+)=(\S*)|g;
-my $w     = $event{'width'}  // 0;
-my $h     = $event{'height'} // 0;
+my ( $w, $h ) = split( ' ', $call->{'args'} // '' );
+$w //= 0;
+$h //= 0;
 
 <[base.logs]>->( 1, '[screen-change] %dx%d', $w, $h );
 
@@ -93,8 +92,8 @@ if ( $safe->{'x'} != $current->{'x'} or $safe->{'y'} != $current->{'y'} ) {
 
 return { 'mode' => qw| true |, 'data' => 'ok' };
 
-#,,.,,..,,.,.,...,,,,,,,,,.,,,.,,,,..,,..,.,,,..,,...,...,.,.,,,.,.,.,,,.,,,,,
-#PZCTYWZRKLMHQ5VGBZSUJSKYFQ437E4SYJ3GV5OBRBWRTBH6R3IMGCPLSVWX3ZK5YH3ZSRWTC2VO6
-#\\\|4YI7C2U36MVQYSFGJQJBIJBE7DW2BMFFNA6EXC6CYRUNSVPSEAO \ / AMOS7 \ YOURUM ::
-#\[7]NGPUNSMHEUNRW5YIHDEY7AFYCZFXFIXRH27LWBISOBP44EUG26AI 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,.,,.,,,.,,,,,,,.,.,,,,,..,,,,.,..,,...,...,..,,.,.,,.,,,,.,,,.,
+#V6ZDB4TEABDZWGJISYG3OHTCTEVS2O3W3GJ23SJAEBN25E4KUDHYW2Y47UINGCNTSYKHLG2WFZ5WA
+#\\\|ZA4Z4XRYMQX6BYLHCPCOO2KPLXAM3YC5V2EZ3Q255MPVZTERV2C \ / AMOS7 \ YOURUM ::
+#\[7]6VTP2V42Q3SY44XWBVVOC4SVX6T7O4CIWYOAWM2JIQ5RG37T6CAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
