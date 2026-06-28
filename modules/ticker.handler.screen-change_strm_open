@@ -2,7 +2,7 @@
 
 # name  = ticker.handler.screen-change_strm_open
 # descr = reply handler for X-11 screen-change STRM subscription ;
-#         registers a local consumer that feeds each line to ticker.cmd.screen-change
+#         registers a local consumer that feeds each line to ticker.screen-change
 
 my $reply = shift;
 
@@ -32,7 +32,7 @@ return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
 
             for my $line ( split /\n/, $data ) {
                 next if not length $line;
-                <[ticker.cmd.screen-change]>->( { 'args' => $line } );
+                <[ticker.screen-change]>->($line);
             }
         },
     }
@@ -44,8 +44,8 @@ return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
 
 return;
 
-#,,,,,.,.,...,,..,,,,,..,,...,,,,,,..,.,,,.,,,..,,...,...,,..,...,,..,..,,,,.,
-#DTG5A3J3GNEA3HDNLRACUEKGI4PZJC7YAHN6TOORSXC6PNWQGBW2M5JWR4EYNQBUJHFIRFGQ5RTEK
-#\\\|SMQUCHME5G6QKVFB36O6NQVKEQCXHJRDWRS5WADG6CGEFDO7L35 \ / AMOS7 \ YOURUM ::
-#\[7]5B46OMSXATTMF2KLDQUVYJNCU37WTR5N4NZFROVBP7P6QWYFMKBI 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,,,.,,,.,,..,,..,,,.,.,.,,..,,,,,..,,...,...,...,,..,..,,,,,,,..,
+#WQBDC3BHDJSPUPTILUN6LFOM46R5SZSTB7Z7TYGVHDAITV7H67HX5UMBAZXTXRFEZTAQXJ3VIAPEU
+#\\\|KA45JA4XFB737NWLFRHRZWV6QUEURJK3YXCO6QRQ7BBSRMECLHT \ / AMOS7 \ YOURUM ::
+#\[7]7AGBU6R4UGXQGH6KW7ZKTF75Z5X3KXCCFM6XBX2JDGPTD6Y356BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

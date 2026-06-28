@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = ticker.cmd.screen-change
+# name  = ticker.screen-change
 # descr = receive X-11 screen-change and relocate if unreachable
 
 ## a monitor disappearing/topology changing while already mapped can leave ##
@@ -8,22 +8,20 @@
 ## the async-window-startup-transition findings ] - relocate via a real    ##
 ## move+verify instead of trusting whatever Weston did with the old rect.  ##
 
-my ( $w, $h ) = split( ' ', $call->{'args'} // '' );
+my $args = shift // '';
+my ( $w, $h ) = split( ' ', $args );
 $w //= 0;
 $h //= 0;
 
 <[base.logs]>->( 1, '[screen-change] %dx%d', $w, $h );
 
-return { 'mode' => qw| true |, 'data' => 'no window' }
-    if not defined <x11.id>;
+return if not defined <x11.id>;
 
 my $current = <[base.X-11.get_window_geometry]>->(<x11.id>);
-return { 'mode' => qw| true |, 'data' => 'no current geometry' }
-    if not defined $current;
+return if not defined $current;
 
 my $monitors = <[base.gtk.list_monitors]> // [];
-return { 'mode' => qw| true |, 'data' => 'no monitors' }
-    if not @$monitors;
+return if not @$monitors;
 
 ## preferred monitor = whichever one currently contains the strip's centre ##
 my $cx = $current->{'x'} + $current->{'width'} / 2;
@@ -63,7 +61,7 @@ if ( not defined $safe ) {
     <[base.logs]>->(
         0, '[screen-change] no reachable position found for id=%s', <x11.id>
     );
-    return { 'mode' => qw| false |, 'data' => 'no reachable position' };
+    return;
 }
 
 if ( $safe->{'x'} != $current->{'x'} or $safe->{'y'} != $current->{'y'} ) {
@@ -90,10 +88,10 @@ if ( $safe->{'x'} != $current->{'x'} or $safe->{'y'} != $current->{'y'} ) {
     <[base.X-11.keep_above]>->(<x11.id>);
 }
 
-return { 'mode' => qw| true |, 'data' => 'ok' };
+return;
 
-#,,..,,,.,.,.,,.,,.,,,.,,,,,,,.,.,,,,,..,,,,.,..,,...,...,..,,.,.,,.,,,,.,,,.,
-#V6ZDB4TEABDZWGJISYG3OHTCTEVS2O3W3GJ23SJAEBN25E4KUDHYW2Y47UINGCNTSYKHLG2WFZ5WA
-#\\\|ZA4Z4XRYMQX6BYLHCPCOO2KPLXAM3YC5V2EZ3Q255MPVZTERV2C \ / AMOS7 \ YOURUM ::
-#\[7]6VTP2V42Q3SY44XWBVVOC4SVX6T7O4CIWYOAWM2JIQ5RG37T6CAY 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,.,.,,,,,.,,,.,.,,..,.,.,,,.,,,,,..,,...,..,,,.,,.,,,,,,,,,.,,.,,
+#BTJSVI436YSBP2GF5BHGK6Z3DZ7MM2NKSCKN6PMYAVJDDUMPQPDUWG452MKU3EXG2SDPUFIQC37E6
+#\\\|MA2JW66UJZ4U4SVCL4GC46EWT4EQIMPEPIK5B6IJITTSYXTLS2M \ / AMOS7 \ YOURUM ::
+#\[7]P7RUZXHPAKOKTZI74LRCYFOGBACN5R25RTVODJ4346TRO5M3OAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
