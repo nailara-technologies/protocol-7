@@ -162,46 +162,56 @@ fake widget bless, saves via `$surface->write_to_png`. Snapshots go to
 Confirmed working — first snapshot showed off-screen web-browser rect
 clearly below both monitor panels. White-list updated (+3 entries).
 
-**Deferred — next kimi task: minimap drag/resize with intent layer.**
+**LANDED 2026-06-27 (kimi): minimap window drag + intent layer.**
 
-Design (confirmed by taeki 2026-06-27):
+Each window entry carries two geometry slots: `actual_geo` (from
+X-11.get_geometry, never user-touched) and `intended_geo` (set on drag,
+cleared only on successful move). Draw handler uses `intended_geo` when set,
+`actual_geo` otherwise; pending rects rendered with dimmer amber fill
+`rgba(0.7,0.4,0.05,0.12)` + dashed stroke `rgba(0.8,0.5,0.1,0.40)` via
+`set_dash([4,3],0)`.
 
-Each window entry carries two geometry slots:
-- `actual_geo` — always refreshed from X-11.get_geometry, never user-touched
-- `intended_geo` — set on drag/resize in the minimap, cleared only on
-  successful move application
+Coordinate inversion caches `map_params` (`off_x`, `off_y`, `scale`,
+`min_x`, `min_y`) per draw call so button_press can invert minimap pixels
+to virtual coords. `handler.button_press` hit-tests the center zone per
+window rect, records drag state. `handler.button_release` fires
+`X-11.move-window` with reply routed to `screen.setup.handler.move_reply`
+(clears `intended_geo` on success). `handler.motion` updates `intended_geo`
+during drag.
 
-Draw handler renders `intended_geo` when set, `actual_geo` otherwise.
-Pending rects use a visually distinct border (dimmer/dashed) to signal
-"not yet applied". Once the move lands, `intended_geo` clears and the rect
-reverts to `actual_geo` (which matches at that point).
+**Screen-change subscription LANDED** (same session): `screen.setup.
+subscribe-screen-change` registers with `X-11.subscribe-screen-change`;
+`screen.setup.cmd.screen-change` fires on each event and retries all
+pending `intended_geo` moves. **NOTE: the subscription mechanism uses
+route-send (a handler name string stored in X-11's subscriber list), NOT
+STRM — this was identified as architecturally wrong; the X-11 emit/subscribe
+pair should be rewritten to use `base.stream.open`/`base.stream.push` like
+`ticker.cmd.events` / `graphics-matrix.cmd.orbital-sync`.** The current
+implementation functions but is not the correct pattern.
 
-Coordinate inversion from minimap mouse coords to virtual desktop coords:
-  `virtual_x = (minimap_x - off_x) / scale + model.min_x`
-  `virtual_y = (minimap_y - off_y) / scale + model.min_y`
-`off_x`, `off_y`, `scale`, `model.min_x/y` cached on instance per draw.
+**BUG fixed 2026-06-28:** `screen.setup.cmd.screen-change` previously only
+retried pending moves — it never re-enumerated monitors or rebuilt the model.
+After a topology change `min_y`/scale etc. were stale so window coords mapped
+into the old virtual space and drew outside monitor bounds. Fix: now calls
+`screen.setup.enumerate-monitors` + `screen.setup.layout-model`, updates
+`$inst->{'monitors'}` + `$inst->{'model'}` for every instance, then calls
+`$win->queue_draw` before retrying pending moves.
 
-Hit-testing: window rect click → identify which window, begin drag tracking
-in minimap space. Release → compute intended virtual geometry → attempt
-X-11.move-window. If cross-output (Weston can't honor ConfigureWindow),
-mark pending. Retry on screen-change events (already subscribed) — iterate
-all windows with pending `intended_geo`, attempt move, clear on success,
-request fresh get_geometry to confirm actual.
+**Resize deferred**: `X-11.resize-window` does not exist; right-drag reserved
+for it but not wired. Right-click still dismisses everywhere; if resize is
+added, button-3 in center zone must be separated from the dismiss path.
 
-Geometry refresh: on each display-layouts open or periodic timer, re-fetch
-`actual_geo` for all windows BUT skip windows with pending `intended_geo`
-so user intent isn't overwritten by a stale X-11 snapshot.
-
-Other deferred: (1) STRM-based live window list (X-11 pushes on
-open/close); (2) dynamic per-monitor border (brighten on hover, colour by
-active/drag-target); (3) `_NET_WM_MOVERESIZE` direction-10 cross-seam probe.
+Deferred: (1) STRM-based screen-change subscription (rewrite X-11 side);
+(2) STRM-based live window list (X-11 pushes on open/close);
+(3) dynamic per-monitor border (brighten on hover);
+(4) `_NET_WM_MOVERESIZE` direction-10 cross-seam probe.
 
 ## related
 
 [[feedback-weston-move-unreliable-use-compositor-grab]] · [[topic-gtk-wsl-window-positioning]] · [[topic-tile-window-place-hybrid-desktop]]
 
-#,,,,,,.,,,.,,.,.,,,,,,.,,,..,...,,.,,,.,,,,,,..,,...,...,.,.,...,..,,.,,,.,.,
-#AP7IKBZIPEXJDWL6HRYLXOPTWVW6SEF6KQRESLYJUH5RSZVAA4NBGNPEGVQ52DU63NMEUP5OXMYGA
-#\\\|TX5VFIAIAWCEVQYFFGVMO5OQGNRGDHENJRZH57LQ6QSOQC4BH3X \ / AMOS7 \ YOURUM ::
-#\[7]ZG53T2JU334OCYUOD2PBHGY64LWZ67NGAFMQLNRI2A7GYP2D5GCY 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,,,,,,,,,,.,.,.,.,,,.,.,,..,,,,,..,,...,...,.,.,,..,,..,,,,,.,,,
+#OFL46ILL54GRR5LV2JRQLLW7AS363TP62CCKFGNPMF22NNBTHGVGWMSJP3CMP6M2OH4KRQ6OZCGTS
+#\\\|YCYEDV64RFGGHAZDJTM2F6LGVQWJYGHWKOZC7K3E42JL6FAMLNT \ / AMOS7 \ YOURUM ::
+#\[7]BKEUL4DSTA5MC4P43B6WIUQOKPSL3TDD2B5PR24LVLXXXOW2W4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

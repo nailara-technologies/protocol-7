@@ -1,21 +1,24 @@
 ## [:< ##
 
 # name  = screen.setup.subscribe-screen-change
-# descr = initialized callback — subscribe screen-setup to X-11 screen-change
-#         events so pending window-intent moves can be retried
+# descr = initialized callback — subscribe screen.setup to X-11 screen-change STRM events
 
 <[base.log]>->(
-    1, 'subscribing screen-setup to X-11 screen-change events .,'
+    1, 'subscribing screen.setup to X-11 screen-change events .,'
 );
 
-<[protocol-7.command.send.local]>->(
-    {   'command'   => qw| X-11.subscribe-screen-change |,
-        'call_args' => { 'args' => qw| screen.setup.cmd.screen-change | }
+<[protocol-7.route-send]>->(
+    {   'command' => qw| X-11.subscribe-screen-change |,
+        'reply'   => {
+            'handler' => qw| screen.setup.handler.screen-change_strm_open |,
+        }
     }
 );
 
-#,,,.,.,.,.,.,.,.,,,.,,.,,..,,..,,...,,,,,.,,,.,.,...,...,,,,,.,.,.,.,.,.,...,
-#64PTRC7RHFADXAZFEMBGHHHA5IC7GPWMMYDWGHNB3FGD5BM4XNA6TLD2LIFZ6AKF63AS2S2AJOIYA
-#\\\|WR534MSUXFAOASNNAEVV64M6UQ47MJO5IWYY3AD3ZJDSRNK5B2Y \ / AMOS7 \ YOURUM ::
-#\[7]2TLLQHQNZGJQXUKSEHSDLVFTRA3HGH4FUF7GRXBDSDACG4OTYMBY 7  DATA SIGNATURE ::
+return TRUE;
+
+#,,..,...,,,.,,..,.,,,,,,,,.,,...,,..,..,,,..,..,,...,..,,,..,,,,,,,.,...,...,
+#CU72NMAHO2TRYHDRWFQSMFSK3HOBQCLOJ6OBUQOQPEVYMUGBAWQGV745RXO3XQVO6N3B3CASJGHFE
+#\\\|OQQAQHSYI2ZHBETWFBUNVP7OJF4NC63NT2MZZUCPBSK3UCRG7JM \ / AMOS7 \ YOURUM ::
+#\[7]HYFKVI57AVAQOLYXV2BDHDX4UEROTAHYD5GMMZQGVSRNSQN736BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

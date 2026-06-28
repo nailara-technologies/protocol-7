@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = tile.handler.screen-change_strm_open
+# descr = reply handler for X-11 screen-change STRM subscription ;
+#         registers a local consumer that feeds each line to tile.cmd.screen-change
+
+my $reply = shift;
+
+if ( $reply->{'cmd'} eq qw| FALSE | ) {
+    <[base.logs]>->(
+        2,
+        'tile screen-change subscribe refused: %s',
+        $reply->{'call_args'}->{'args'} // 'unknown error'
+    );
+    return;
+}
+
+return if $reply->{'cmd'} ne qw| STRM |;
+return if $reply->{'args'} ne qw| open |;
+
+my $cmd_id = $reply->{'cmd_id'};
+return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
+
+<[base.strm.local.register]>->(
+    $cmd_id,
+    {   'watcher' => sub {
+            my $lc = shift;
+            return if not length $lc->{'buf'};
+
+            my $data = $lc->{'buf'};
+            $lc->{'buf'} = '';
+
+            for my $line ( split /\n/, $data ) {
+                next if not length $line;
+                <[tile.cmd.screen-change]>->( { 'args' => $line } );
+            }
+        },
+    }
+);
+
+<[base.logs]>->(
+    2, 'tile screen-change STRM consumer registered [cmd_id=%d]', $cmd_id
+);
+
+return;
+
+#,,,,,..,,,,,,,.,,,,.,..,,,.,,..,,...,,,.,,..,..,,...,..,,..,,.,,,,.,,..,,,..,
+#GBPUVYK2W32QWDQMPQQ26NZ3FOYKNSAA33GSIRENZKYILCZ2HWCEN4GEWH33XHJLB3UZMGBQMGCUQ
+#\\\|LPWVA6XFTHA5UO2B2G55LWKJG3RZ4UGCIU4EBRQZ4CVRJ4XRPED \ / AMOS7 \ YOURUM ::
+#\[7]VKCGKBOGIWTB3YKQOFOQMJ2IZP3547WLHBGDF4EJPXJNWGKSZEAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

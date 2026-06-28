@@ -1,20 +1,23 @@
 ## [:< ##
 
 # name  = web-browser.subscribe-screen-change
-# descr = initialized callback — subscribe to X-11 screen-change events
+# descr = initialized callback — subscribe web-browser to X-11 screen-change STRM events
 
-<[base.log]>->( 1, 'subscribing to X-11 screen-change events .,' );
+<[base.log]>
+    ->( 1, 'subscribing web-browser to X-11 screen-change events .,' );
 
-<[protocol-7.command.send.local]>->(
-    {   'command'   => qw| X-11.subscribe-screen-change |,
-        'call_args' => { 'args' => qw| web-browser.screen-change | }
+<[protocol-7.route-send]>->(
+    {   'command' => qw| X-11.subscribe-screen-change |,
+        'reply'   => {
+            'handler' => qw| web-browser.handler.screen-change_strm_open |,
+        }
     }
 );
 
-#
+return TRUE;
 
-#,,.,,,,,,...,.,,,..,,,,,,.,.,.,,,.,.,,..,,,,,..,,...,...,..,,,..,.,.,..,,..,,
-#77YFPAJB26L63QECEXCITNBAQN2DGB42FCM2FDSF2RGNF2BKPDQJ54ACDYNVMFWOXMIOE37AIQ4KK
-#\\\|NEXSIQOQD7BH36TFBSHI45PZ5ER5GBMBYDZFCKSJQ6DBLGWQA7N \ / AMOS7 \ YOURUM ::
-#\[7]HICB44DH7TAGBOZDUOG6NCKG4QK7QSLIW644FARNY4T2IM44NKDY 7  DATA SIGNATURE ::
+#,,..,,..,.,.,.,.,,..,,,.,..,,...,,..,,..,..,,..,,...,..,,.,,,,.,,,,,,,..,..,,
+#VQ7W6AFEERH6LRCBEMN4D5QWFLVBJUMWOF3UNI53HFM43S7K5IR27NGYPJNSK2FC375PKBHZSCTBQ
+#\\\|RSMLHP35I4LQGFMZ2KB2TMFBVCXTV462VN645PP23SOT3MJ63XQ \ / AMOS7 \ YOURUM ::
+#\[7]3ZJWGZQDFCV5VCHPIICQEA5KBA7JPVLHRLP67ANVKSH773OTLSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

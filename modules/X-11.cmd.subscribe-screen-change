@@ -1,28 +1,36 @@
 ## [:< ##
 
 # name  = X-11.cmd.subscribe-screen-change
-# descr = register a handler for screen-change notifications.
-#         args: handler name (e.g. tile.handler.screen-change)
+# param = subscribe
+# descr = subscribe to screen-change events via STRM
 
-my $params  = shift             // {};
-my $handler = $params->{'args'} // '';
+## subscription mode ##
+if ( not defined $call->{'args'} or $call->{'args'} eq qw| subscribe | ) {
+    my $h = <[base.stream.open]>->(
+        {   sid    => $call->{'session_id'},
+            cmd_id => $call->{'command_id'},
+            type   => qw| STRM |,
+            total  => undef,
+        }
+    );
+    return <[base.callback.cmd_reply]>->(
+        $call->{'reply_id'},
+        { 'mode' => qw| false |, 'data' => 'stream open refused' }
+    ) if not defined $h;
 
-return { 'mode' => qw| false |, 'data' => 'expected handler name' }
-    unless length $handler;
+    <X-11.screen_change_listeners> //= [];
+    push @{<X-11.screen_change_listeners>}, $h;
+    <[base.logs]>->(
+        2, 'screen-change listener added [sid=%d]',
+        $call->{'session_id'}
+    );
+    return { 'mode' => qw| deferred | };
+}
 
-<X-11.screen_change_subscribers> //= [];
+return { 'mode' => qw| false |, 'data' => 'expected args = subscribe' };
 
-my $subs = <X-11.screen_change_subscribers>;
-return { 'mode' => qw| true |, 'data' => 'already subscribed' }
-    if grep { $ARG eq $handler } @$subs;
-
-push @$subs, $handler;
-<[base.logs]>->( 1, ': screen-change subscriber added [ %s ]', $handler );
-
-return { 'mode' => qw| true |, 'data' => 'subscribed' };
-
-#,,..,,..,.,,,,..,..,,..,,..,,,,,,..,,.,,,,..,..,,...,...,.,,,,,.,.,.,..,,.,,,
-#6NHAOSVAQ6X2COEFMCIH3YDQAJCU6JRBTWWEB7NCEBSBXQP2I6WC6IGFOGKRGGT6ZJSLO6FRKVXQU
-#\\\|7I336M6S3LLVQBF5Y4HIYTCYOVMXL2UNERHCZD7MJUOARDKUOMB \ / AMOS7 \ YOURUM ::
-#\[7]Y2XCPCIPBGLT642SG4RQZ5ZLPC2HOWEWZYR6MWOP6YY3EWKIMKAQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,.,,.,.,,,.,,,.,,..,,.,,..,,,.,,..,,...,...,,.,,.,.,,.,,,..,...,
+#4ZBN4OSMXQ34PLHW6D5K4HPYSGVQ6BFRWRFW4726TJE6UVW4FQKBJOIJCTPJNNI7AB6NFZ6W6HF2K
+#\\\|KN3YX673XUKKNJOAV4DB3VRFF4IUQPLOKJX2NRRSZAKXAIQY4DQ \ / AMOS7 \ YOURUM ::
+#\[7]3TVHYU5F27JF6RBSQJCHCWZ7JG3VVJHB7GWWD6XR5SPZKQWYKSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
