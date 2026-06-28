@@ -2,7 +2,7 @@
 
 # name  = screen.setup.handler.screen-change_strm_open
 # descr = reply handler for X-11 screen-change STRM subscription ;
-#         registers a local consumer that feeds each line to screen.setup.cmd.screen-change
+#         registers a local consumer that feeds each line to screen.setup.screen-change
 
 my $reply = shift;
 
@@ -32,7 +32,7 @@ return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
 
             for my $line ( split /\n/, $data ) {
                 next if not length $line;
-                <[screen.setup.cmd.screen-change]>->( { 'args' => $line } );
+                <[screen.setup.screen-change]>->($line);
             }
         },
     }
@@ -45,8 +45,8 @@ return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
 
 return;
 
-#,,,.,...,,.,,,,.,.,,,,..,,.,,,.,,,,,,,.,,,,.,..,,...,...,...,..,,..,,...,,,.,
-#VRTEY5NEREPABWZ6DUT6PMUB2MBB3YIFNNLISHXUKLBMHHOSRYPPLRY24U6CG7FTADWFJA6BTQM56
-#\\\|CDJEBYYIAIXEBP3CDZZCFXSLVP5432CF3UAHCPIGIEPIIDQ6R5M \ / AMOS7 \ YOURUM ::
-#\[7]FUACFRZMJSN2HSFBMZ5QV2NA6HWWVFKYWA4NGHWQUT4E2F3HBIBY 7  DATA SIGNATURE ::
+#,,..,..,,,,.,.,.,,..,,,.,,,.,,.,,,..,...,.,.,..,,...,...,...,.,.,...,,,.,..,,
+#CQ43X5ICWIALLDJIWHLUCZJDBFLBQDIQFODJKIKM7XSU27EEFP4EV7BQ3WST4GNOLTPMW74JME6ZI
+#\\\|DQOWQNFZLFBHHB373FUGJHZ2DNZCU745WNRV6GIVY4A56ZDOEFA \ / AMOS7 \ YOURUM ::
+#\[7]S2RVY34MIRXJIRRQ2OF4QFQLOYFGF42JQ2Q4QM74HCY2W2F3U4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

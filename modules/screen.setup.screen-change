@@ -1,14 +1,12 @@
 ## [:< ##
 
-# name  = screen.setup.cmd.screen-change
+# name  = screen.setup.screen-change
 # descr = refresh layout + retry pending moves on screen-change
-# param = <w> <h>
 
-return { 'mode' => qw| false |, 'data' => 'expected : <w> <h>' }
-    if not defined $call->{'args'}
-    or not length $call->{'args'};
+my $args = shift // '';
+return if not length $args;
 
-my ( $w, $h ) = split( ' ', $call->{'args'} );
+my ( $w, $h ) = split( ' ', $args );
 $w //= 0;
 $h //= 0;
 
@@ -71,10 +69,10 @@ for my $id ( keys %{ $data{'screen-setup'}{'instances'} // {} } ) {
     }
 }
 
-return { 'mode' => qw| true |, 'data' => 'ok' };
+return;
 
-#,,,,,,,,,,..,,,,,...,,.,,..,,,.,,,.,,,,,,,.,,..,,...,.,.,.,.,,,.,.,,,...,,,,,
-#EWGYVY2AGI7OPISZX2FSY5J4P7G2F5TTMXVPMS6O5OX7X3ZL5RTMFNIPS3WXHON2ACL6PHZGPWPRO
-#\\\|P7NVA6N5O6KOXR7NTDLN5NBFYYMITLCO77L47FJI4BM5RFO4TK4 \ / AMOS7 \ YOURUM ::
-#\[7]O4HUFYTUSD5XDPRMQO6L2PRUNWN2RFIMUZQGU6TNHZRKENEEP6AQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,.,,,..,,...,.,,,.,.,..,,,..,..,,..,,...,...,.,,,...,,..,.,,,.,,,
+#GM7F5PJSU7AESOMUCAQJMTGD4BRU2OTUJCWOPFXBNB775E3YXNDOTOSK53BKSER4AHHSWEVE4IC64
+#\\\|5XN45BKYNZF6RXKIMM4DZEZVMBNEQ2GD7HYX23DND2SWVK5JRIA \ / AMOS7 \ YOURUM ::
+#\[7]4TDLNQ6TKUZSMRRTBV5TNFYQBW42HU54XEUZKNLE4KRJBDY4O2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
