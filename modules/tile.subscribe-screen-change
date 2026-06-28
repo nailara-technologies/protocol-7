@@ -1,18 +1,21 @@
 ## [:< ##
 
 # name  = tile.subscribe-screen-change
-# descr = initialized callback — subscribe tile to X-11 screen-change events
+# descr = initialized callback — subscribe tile to X-11 screen-change STRM events
 
-<[base.log]>->( 1, 'subscribing to X-11 screen-change events .,' );
+<[base.log]>->( 1, 'subscribing tile to X-11 screen-change events .,' );
 
-<[protocol-7.command.send.local]>->(
-    {   'command'   => qw| X-11.subscribe-screen-change |,
-        'call_args' => { 'args' => qw| tile.screen-change | }
+<[protocol-7.route-send]>->(
+    {   'command' => qw| X-11.subscribe-screen-change |,
+        'reply'   =>
+            { 'handler' => qw| tile.handler.screen-change_strm_open |, }
     }
 );
 
-#,,,,,,,.,,,,,..,,.,.,,..,.,,,.,,,.,,,...,,.,,..,,...,...,,.,,..,,...,,.,,.,,,
-#ETK7UCZZ34TFHTL24Q34VWC32ES5PGLO4B2AONDUGROR3GLTT2UJR5CLXKB3YRTZYZYGFV5B2PJZQ
-#\\\|JLBP4AAAO2GZOOZTC3QFAXZAMHUGA6472ZGLPNU53DVRFGEYXFA \ / AMOS7 \ YOURUM ::
-#\[7]2HQASTUKGDVCZ3SJJPWASUWNDOQSVCAGWMJR6BUTIUYIGDZULMBA 7  DATA SIGNATURE ::
+return TRUE;
+
+#,,..,,,.,.,.,.,,,..,,..,,,.,,...,,,.,.,,,,..,..,,...,...,,,,,,..,,,,,,..,.,,,
+#H6P6GYG6P3XR6VTQCZH7FP7ASTHC5J6EREOZRCEQYHCX3NFJ2TNTAVIDYIENP2S7ODY3BZ5AREPA4
+#\\\|2YI5KMHB2QKHNEBBO24KIOKHRWMXI4G4TGSJ44VXT5WB7TZVWSC \ / AMOS7 \ YOURUM ::
+#\[7]6NN7BXZ7Y3UFTVAC6Q5GYI4GUGU46QJ4XROTUZ7MF7RNBCR46SDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,9 +6,9 @@
 ## rapid topology changes fire bursts of events; defer the check 700ms and  ##
 ## reset the timer on each arrival so only the last event in a burst acts.  ##
 
-my %event = $call->{'args'} =~ m|(\w+)=(\S*)|g;
-my $scr_w = $event{'width'}  // 0;
-my $scr_h = $event{'height'} // 0;
+my ( $scr_w, $scr_h ) = split( ' ', $call->{'args'} // '' );
+$scr_w //= 0;
+$scr_h //= 0;
 
 <[base.logs]>->( 1, '[screen-change] %dx%d [deferred]', $scr_w, $scr_h );
 
@@ -91,8 +91,8 @@ return { 'mode' => qw| true |, 'data' => 'deferred' };
 
 #
 
-#,,.,,,.,,.,,,,..,.,.,..,,,..,,,,,,..,.,,,,..,..,,...,...,...,..,,.,.,...,.,,,
-#AXERQ6VG74YP6IXEY2W6OH6PDZRQBXI7GDFYMXF3TFJUKI6R3CHP33AHSSYNIC2MXWJZ3TM2DIDTS
-#\\\|J5RIGO3P7ESKE7R33P54Z5YBOAOG7SLWSYM3FNULQEYZSHQQ3LC \ / AMOS7 \ YOURUM ::
-#\[7]DYMLJXEUOWQH42UZG2TFDE4YV57S6NRO7OH3KIBWWKSVTFSQMUDQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,..,...,,.,,.,.,,,.,.,,,..,,,.,,..,,...,...,...,..,,.,,,..,,,,.,
+#OEDE4BPSIMUNFUWTVW2DNVO2472IIHQSYT5TPAXDOXDFQFYCDVRLEK3RIBMEFTKIRQLH7VKLKGWRK
+#\\\|CFPBT4QGLT2PTXPF36IEDSLBVIJ3Z5WSVXY3NIIDFJHPE2LHK6N \ / AMOS7 \ YOURUM ::
+#\[7]W2SQZ4AOEY7EQPQ767L4JIJCAM54BCAKUAIKSVKECPPCJSXM46CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

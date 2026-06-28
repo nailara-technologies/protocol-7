@@ -1,18 +1,25 @@
 ## [:< ##
 
 # name  = protocol-7-menu.subscribe-screen-change
-# descr = initialized callback — subscribe to X-11 screen-change events
+# descr = initialized callback — subscribe protocol-7-menu to X-11 screen-change STRM events
 
-<[base.log]>->( 1, 'subscribing to X-11 screen-change events .,' );
+<[base.log]>->(
+    1, 'subscribing protocol-7-menu to X-11 screen-change events .,'
+);
 
-<[protocol-7.command.send.local]>->(
-    {   'command'   => qw| X-11.subscribe-screen-change |,
-        'call_args' => { 'args' => qw| protocol-7-menu.screen-change | }
+<[protocol-7.route-send]>->(
+    {   'command' => qw| X-11.subscribe-screen-change |,
+        'reply'   => {
+            'handler' =>
+                qw| protocol-7-menu.handler.screen-change_strm_open |,
+        }
     }
 );
 
-#,,..,,,,,,.,,,..,,.,,,,.,,,,,,,,,...,.,.,...,..,,...,...,..,,,.,,...,,,,,..,,
-#OEYYIXZU53WJ77JQYEDOYMAI3VGEU5UT6OBKKZF2EGHHWYF2XANSW3SCLWX26EEJYSDULLC2HVQUK
-#\\\|RYK6A7T44LOTRCCFGO5L7K2W6I5CREASFAVZIZC66UAPL3OYT6V \ / AMOS7 \ YOURUM ::
-#\[7]WM7JBA6QVJCD4J2HP4WQE2SQBX6RXBHA4ZHPZGDQNUCMVVFKYWDI 7  DATA SIGNATURE ::
+return TRUE;
+
+#,,,.,,.,,.,.,...,...,,,.,.,.,..,,,,,,.,.,...,..,,...,...,..,,,,,,,,,,...,.,,,
+#H66ZLKTUW6AMM7JSNNMTRMX6J3T6F3OUDQZ5U4I3A6IL7EVRJEH4YJ3RSA6ONJU6VDN5L7IKUESPS
+#\\\|BW37VGMCLY35WPCF5PY5E4ZM5ZKO6HPRKW27GSZKWMB5RAKXBZ4 \ / AMOS7 \ YOURUM ::
+#\[7]2NB6A7PKZ57KX4ZRXQV7QTDLZ53Y5O4MBPH46YVZTSWCO7EEIKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
