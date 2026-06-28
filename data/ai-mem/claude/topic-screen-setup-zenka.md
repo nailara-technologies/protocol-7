@@ -1,6 +1,6 @@
 ---
 name: screen-setup-zenka
-description: "screen-setup zenka, display-layouts scaled monitor minimap; LANDED 2026-06-24 commit ce80398d5"
+description: "screen-setup zenka: scaled monitor minimap + window rect overlay + PNG snapshot + STRM screen-change; compositor grab fix 2026-06-28"
 metadata: 
   node_type: memory
   type: project
@@ -179,39 +179,50 @@ window rect, records drag state. `handler.button_release` fires
 (clears `intended_geo` on success). `handler.motion` updates `intended_geo`
 during drag.
 
-**Screen-change subscription LANDED** (same session): `screen.setup.
-subscribe-screen-change` registers with `X-11.subscribe-screen-change`;
-`screen.setup.cmd.screen-change` fires on each event and retries all
-pending `intended_geo` moves. **NOTE: the subscription mechanism uses
-route-send (a handler name string stored in X-11's subscriber list), NOT
-STRM — this was identified as architecturally wrong; the X-11 emit/subscribe
-pair should be rewritten to use `base.stream.open`/`base.stream.push` like
-`ticker.cmd.events` / `graphics-matrix.cmd.orbital-sync`.** The current
-implementation functions but is not the correct pattern.
+**Screen-change subscription LANDED 2026-06-28 (`f99e0b7d6`, then cleaned
+up in `0285a96f5`):** full STRM transition. `X-11.cmd.subscribe-screen-change`
+opens a `base.stream.open` handle (replaces the old route-send-to-handler-name
+pattern); emitter `X-11.emit.screen-change` pushes positional `"$w $h\n"` to
+each handle via `base.stream.push` with keep-array pruning. Each subscribing
+zenka (`screen.setup`, `ticker`, `tile`, `web-browser`, `protocol-7-menu`)
+calls `subscribe-screen-change` at init, wires a `*.handler.screen-change_strm_open`
+reply handler that calls `base.strm.local.register` to install a local watcher,
+and routes incoming data to `*.screen-change` (renamed from `*.cmd.screen-change`
+— now plain subs, no `$call`, no cmd-style returns). Geometry fix also LANDED:
+`screen.setup.screen-change` re-enumerates monitors and rebuilds the layout model
+per instance on every event before retrying pending intent moves + `queue_draw`.
 
-**BUG fixed 2026-06-28:** `screen.setup.cmd.screen-change` previously only
-retried pending moves — it never re-enumerated monitors or rebuilt the model.
-After a topology change `min_y`/scale etc. were stale so window coords mapped
-into the old virtual space and drew outside monitor bounds. Fix: now calls
-`screen.setup.enumerate-monitors` + `screen.setup.layout-model`, updates
-`$inst->{'monitors'}` + `$inst->{'model'}` for every instance, then calls
-`$win->queue_draw` before retrying pending moves.
+**Live window discovery LANDED 2026-06-27 (`c40eae816`):** 3s periodic timer
+re-queries `X-11.get-windows` each tick; `windows_reply` merges into existing
+list preserving `intended_geo` for in-flight moves (no longer replaces).
+X-11.init_code sets `sig_warn_blacklist.pattern` to silence bad-Drawable warns
+from geometry queries on just-closed windows.
+
+**Compositor grab fix LANDED 2026-06-28 (`0285a96f5`):** `begin_move_drag`
+can leave a stale Weston button-1 compositor grab that blocks left-click for
+ALL clients if the window is destroyed while the grab is active, or if another
+window had a stale grab when screen-setup first maps. Two fixes:
+(1) `screen.setup.handler.button_press`: calls `Gtk3::Gdk::pointer_ungrab($event->time)`
+before `screen.setup.close` on right-click (clears any active drag grab before destroy);
+(2) `screen.setup.open_window` map signal: calls `pointer_ungrab` before
+`present`/`grab_focus` to clear stale grabs from other windows (ticker/window.place)
+that would block the new window's left-click events. Same hazard documented in
+`protocol-7-menu.graphical-startup-init` ("begin_move_drag avoided").
 
 **Resize deferred**: `X-11.resize-window` does not exist; right-drag reserved
 for it but not wired. Right-click still dismisses everywhere; if resize is
 added, button-3 in center zone must be separated from the dismiss path.
 
-Deferred: (1) STRM-based screen-change subscription (rewrite X-11 side);
-(2) STRM-based live window list (X-11 pushes on open/close);
-(3) dynamic per-monitor border (brighten on hover);
-(4) `_NET_WM_MOVERESIZE` direction-10 cross-seam probe.
+Deferred: (1) STRM-based live window list (X-11 pushes on open/close);
+(2) dynamic per-monitor border (brighten on hover);
+(3) `_NET_WM_MOVERESIZE` direction-10 cross-seam probe.
 
 ## related
 
 [[feedback-weston-move-unreliable-use-compositor-grab]] · [[topic-gtk-wsl-window-positioning]] · [[topic-tile-window-place-hybrid-desktop]]
 
-#,,,,,...,,.,,,,,,,,,,,,.,.,.,.,,,.,.,,..,,,,,..,,...,...,.,.,,..,,..,,,,,.,,,
-#OFL46ILL54GRR5LV2JRQLLW7AS363TP62CCKFGNPMF22NNBTHGVGWMSJP3CMP6M2OH4KRQ6OZCGTS
-#\\\|YCYEDV64RFGGHAZDJTM2F6LGVQWJYGHWKOZC7K3E42JL6FAMLNT \ / AMOS7 \ YOURUM ::
-#\[7]BKEUL4DSTA5MC4P43B6WIUQOKPSL3TDD2B5PR24LVLXXXOW2W4AI 7  DATA SIGNATURE ::
+#,,,,,...,,..,...,,,.,.,,,,..,,,,,,..,...,...,..,,...,..,,..,,,,.,,,,,,,.,,,,,
+#KE3DDXXMAO6HTKDKH7SZW5KEOYAFRKQ5AFEIVMX37UHO2OGRMN7WIOX5HFPSVUTSTAPKQJCH76DAQ
+#\\\|745SG4FZTD3AF3POICTRM55QDDN7ZSEXX5ENFLTI262CVIN4XVG \ / AMOS7 \ YOURUM ::
+#\[7]PPJ66HRSQ2TRSSRALSWYNKUZDIOQ4D7ROLWZWEEYCOR4LISE4OAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
