@@ -8,7 +8,7 @@
 ## Active Topics
 - [orbital-strm-push-rollout](topic-orbital-strm-push-rollout.md) — LANDED 139cacef2 2026-06-25: discover/external/nodes/graphics-matrix push to web via STRM instead of 13s poll-everyone; fixed the offline-spam that kept making taeki stop the zenka; external zenka wiring gaps closed too; gap open: who gets connect/disconnect-orbital access
 - [async-window-startup-transition](topic-async-window-startup-transition.md) — LANDED `531aa14db` 2026-06-25: ticker subscribed to screen-change (was missing entirely) + startup-void retry timer's dead `and`/`=` precedence bug fixed (see [[feedback-perl-and-or-precedence-in-my-assignment]]) + read_file pre-init crash deferred/replayed; live-verified by taeki (bottom-strip start, top-swap, recovery path all work). Thread CLOSED except the still-open "shadow only, no content" compositor-paint glitch (unconfirmed/rare).
-- [screen-setup-zenka](topic-screen-setup-zenka.md) — NEW 2026-06-24, UNSIGNED/UNCOMMITTED: screen-setup zenka + display-layouts scaled-minimap of monitor rects (GDK source); gives window.place the monitor-awareness it lacks; file has bring-up steps + deferred window-rects overlay & _NET_WM_MOVERESIZE move fix
+- [screen-setup-zenka](topic-screen-setup-zenka.md) — LIVE 2026-06-28 (`0285a96f5`): minimap + window rect overlay (draggable in minimap → moves real window, keeps intent on partial fail) + PNG snapshot + STRM screen-change + compositor grab fix; deferred: STRM live window list, hover border, cross-seam probe
 - [amos7-shm-phase1](topic-amos7-shm-phase1.md) — AMOS7::SHM phases 1-3 ALL LANDED 2026-06-22 (410805f43, ac6315191, 786598adc); phase 3 caught kimi substituting a same-process test for cross-process (not accepted, redone) + a stray unmanaged data zenka process causing misleading test failures (diagnosed via v7.list zenki vs list sessions); phase 4 (cleanup) still open
 - [zenka-naming-cleanup](topic-zenka-naming-cleanup.md) — cred-mesh + window-place renames landed; pattern for spotting/fixing more underscore/dotted zenka names; tile-groups->tile LANDED 2026-06-15 (82e65f2d6); command-name cleanup pass LANDED (switch-group, reset-group, base-group, show-groups, count)
 - [ondemand-heartbeat-upgrade](topic-ondemand-heartbeat-upgrade.md) — tile set up on-demand+heartbeat-enabled+no-timeout as test case; two v7 follow-ups identified (exclude heartbeats from idle timer; pre-exit termination notification)
@@ -205,8 +205,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,..,.,.,.,.,,..,..,,,,.,...,...,,.,,,,,,,..,..,,...,...,.,,,.,,,,,.,.,,,...,
-#3MWKNG24RMWQXVUSLECJF47IYOVXVOQTJV7GPP4D56WMV2XSMUWNUGTXWCSNQ3UPIUOHKGPF37M56
-#\\\|NX4GFM7355R4TBYIFI22JRHBQJCWGZ6CGB4WOLTCGED2WP3MGZB \ / AMOS7 \ YOURUM ::
-#\[7]IV7UAOV7FREYJSHVCK3UB2VVORY3WVZHY3KCXEM2SZTIBHP5BICA 7  DATA SIGNATURE ::
+#,,..,...,..,,...,,,.,..,,,,,,,,,,..,,,,.,.,.,..,,...,..,,,.,,...,.,,,.,,,,.,,
+#HARVA7YPSCUAUQ3U4QZ3CV5CDNQSTZQ5MPX4PUTUDLLTKH2CRYGOOL2SNNLWK7BGYC6RJFSHFTVCQ
+#\\\|6G2DTQFJFJTOBCVP34JBNHLDHIRASVFIVO3NUCITMZVB3SGGOYG \ / AMOS7 \ YOURUM ::
+#\[7]UUGR65S7TPQOB7BB3JJWW722S7I7KWJTPF6LYBY3RRPISJP432DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

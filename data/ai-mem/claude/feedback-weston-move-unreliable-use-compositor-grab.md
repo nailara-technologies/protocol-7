@@ -79,6 +79,19 @@ attempt to both, reverted on both) — **likely has the same freeze bug,
 unverified, not yet fixed** — same fix should apply directly if/when it's
 hit there too.
 
+**HAZARD (found 2026-06-28):** `begin_move_drag` can leave a stale Weston
+button-1 compositor grab if the window is destroyed while the grab is still
+active (e.g., user right-clicks to dismiss during or just after a border drag
+before button-1 is fully released). The stale grab blocks left-click delivery
+to ALL clients. `protocol-7-menu.graphical-startup-init` documents the same
+hazard and avoids `begin_move_drag` entirely for this reason; it uses manual
+drag tracking instead (no compositor grab). **Fix pattern:** before destroying
+a window that uses `begin_move_drag`, call `Gtk3::Gdk::pointer_ungrab($time)`
+(wrapped in `eval{}` for safety). Also call it when mapping a new window
+(clears stale grabs from other windows). Landed in `screen.setup.handler.
+button_press` (right-click close) and `screen.setup.open_window` (map signal),
+commit `0285a96f5`.
+
 **Sharpened 2026-06-24 (multi-monitor seam):** the "virtual boundary" the
 keyboard move-handler hits is the *same* per-output confinement. User
 confirmed `X-11.move-window` (which is `$X->ConfigureWindow`, raw X11
@@ -107,8 +120,8 @@ all. If (2) is no, there is no programmatic cross-seam path on this build.
 
 [[topic-tile-window-place-hybrid-desktop]] · [[topic-gtk-wsl-window-positioning]] · [[feedback-wslg-deiconify-limitation]]
 
-#,,,,,,..,..,,.,,,,,.,,.,,,.,,,.,,.,.,...,,.,,..,,...,...,,.,,,,.,,.,,,..,,,,,
-#7ZVQFYT2XVAPSXUO66Z2WF2DSDXFZP465OFI5SQFSD2JUZJ7BUCTIFM44DBR6HUFVTSTO44PY2DTK
-#\\\|XUIFXOCX42557ERUKTLTHBJYQI5MFG7RMCQQOZFDADGML2YL7LF \ / AMOS7 \ YOURUM ::
-#\[7]4KOI6FG3UZ4EPPKGC62WVBOK5PGIL2HNECMTJ3UN7TQEPLAN2WAQ 7  DATA SIGNATURE ::
+#,,.,,..,,..,,.,.,,..,,.,,..,,...,..,,..,,,.,,..,,...,...,.,.,,.,,.,,,...,...,
+#IOYYDC3BMNR3KS257IDEVGXGAOFFFJJRA4PIDLOS7QSC4L2IJ6MX7ZMLD5T4VFUIJNKPQ3YRA2FG2
+#\\\|V7HT43HNZWKIKLL4MAKQ3S65BQHI3K3JIDQS3WMYRLYPCQAAGSQ \ / AMOS7 \ YOURUM ::
+#\[7]DMDAYWRDXD6S7VRCOOUEYGXTIR63CZCQGVADNXDEFI2AGJYUR6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
