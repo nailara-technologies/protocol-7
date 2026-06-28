@@ -105,12 +105,41 @@ my $file_content = "current_url : $load_uri\nurl_flags   : "
 <[file.put]>->( $url_file, $file_content ) or warn "$url_file : \l$OS_ERROR";
 #
 
-$bg_view->load_uri($load_uri);
+##[ bypass WebKit cache when reloading an URI already present in a view ]###
+my $bg_uri = $bg_view->get_uri // '';
+my $fg_uri = $fg_view->get_uri // '';
+
+my $uri_cmp = sub {
+    my $uri = shift // '';
+    $uri =~ s|\#.*$||;
+    $uri =~ s|/$|| if $uri =~ m{^https?://}i;
+    return $uri;
+};
+
+my $load_uri_cmp = $uri_cmp->($load_uri);
+my $bg_uri_cmp   = $uri_cmp->($bg_uri);
+my $fg_uri_cmp   = $uri_cmp->($fg_uri);
+
+if ( $load_uri_cmp eq $bg_uri_cmp and length($bg_uri_cmp) ) {
+    <[base.log]>->(
+        2,
+        ":. uri '$load_uri' already in bg view, reloading with cache bypass.,"
+    );
+    $bg_view->reload_bypass_cache();
+} elsif ( $load_uri_cmp eq $fg_uri_cmp and length($fg_uri_cmp) ) {
+    <[base.log]>->(
+        2, ":. uri '$load_uri' in fg view, clearing cache before bg load.,"
+    );
+    <web-browser.gtk_obj.web_context>->clear_cache();
+    $bg_view->load_uri($load_uri);
+} else {
+    $bg_view->load_uri($load_uri);
+}
 
 return FALSE;
 
-#,,,,,..,,,..,,,.,,.,,,,.,,,,,,..,,,,,,..,,,.,..,,...,...,,,,,,..,,..,.,,,.,,,
-#4PLDTI6LQTNU3J7ONGQUIQZSUJHRPE5T43EUALS4V4IPUBQT2R6WGYQO7WL5OMVJFISTTZS3UV32S
-#\\\|3WLPKPRSCTHPMNXYT3V73AEEJVR7YIN6GXZTUVNDYDYGYFRKTCK \ / AMOS7 \ YOURUM ::
-#\[7]LID2FCSW4BZMQAVLDSFUU3UKMGO2P3IV5MLYAWXLCZLMWPQETOBY 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,...,.,,,..,,,,.,,,.,..,,.,.,,.,,..,,...,..,,.,,,..,,..,,.,,,.,,,
+#PBFTOWXVUHLQBUTQTAFS3RBKVDLV6G6X4J5EYZY7MWPA2HD4XJ7PLNNIB6HEO537TNC54M23F7HSU
+#\\\|REHQANW4S2SXEYOP2UWEQ3JR7H6FR6XHK22UU74DPQUCDE5P2Q7 \ / AMOS7 \ YOURUM ::
+#\[7]BAHIP2PVCUDX3BITGO6EI33OVZLLSNBVV6XSJ42SFHYR7SUSVQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
