@@ -59,7 +59,8 @@ for my $url (@urls) {
             ? ( <[base.ntime_BASE32_to_numerical]>->($mod) // 0 )
             : 0;
         if ( not $last_ntime_num or $mod_num > $last_ntime_num ) {
-            push @changed, { %{$job}, 'id' => $id };
+            push @changed,
+                { %{$job}, 'id' => <[base.vax-int.encode]>->($id) };
         }
     }
 
@@ -118,8 +119,8 @@ $total_jobs += scalar @{ $ARG->{'chunk'} } for @push_queue;
 
 <[jobsite.sync.push_chunk]>;
 
-#,,.,,...,,.,,,,.,,..,,,.,.,.,,.,,,,.,,,.,,..,..,,...,...,.,.,,,.,,,.,.,,,,..,
-#J7IAXAMP3NPSZTFN36LMN7ZAJZ5GPVNGZVCEMFDSQE4GSDFI755QV5IV3U2WVCGMDZMCILQDFP7XK
-#\\\|OCKYLKF7O4EOZHQYLH3KNJLYQQBCOGFZYKNJNFP7O42LMBCHPFQ \ / AMOS7 \ YOURUM ::
-#\[7]E656RE5H745TYZ5SMGBJBZGNOCDL2MOH73E2AIVZIBMVRI4TGGDY 7  DATA SIGNATURE ::
+#,,..,..,,.,.,...,,..,,,.,,.,,.,.,..,,,,.,,,,,..,,...,..,,...,.,,,,..,.,.,,..,
+#6GBOBM5UBUCFWFSSD5QCZDFA4AYU55VVXVQMWHN32QAPJWUIC7PY5NV7XCPTILKHYZE26PWRSB642
+#\\\|RQGNTMREPTGFM5FXSNZQ7SCFQ56MCMTZL3R4CE5YSOEUB6U257W \ / AMOS7 \ YOURUM ::
+#\[7]VA7XLSV63XGFSHZL4SXGYRLIPJXP53HHC6DDSCH4BVY6C4DSUKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
