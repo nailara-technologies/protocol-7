@@ -59,3 +59,22 @@ Updated to current cube command syntax; `list-connections` also added to externa
 #\\\|B66MRGVDKMF2KIS35JVF5JCXKQYYS5W6YRFVHBEQM7QDNV2EG4Z \ / AMOS7 \ YOURUM ::
 #\[7]76WU2WJHZNRIVOGSNPA2USXSWOOJI3IYUO7Q7TWOOVGHIAAV52CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+## Reassess task-record preservation
+`modules/jobsite.sync.apply_reverse` now copies the preserved `stage`/`status` from the on-disk job record into the in-memory task record before re-queuing an assessment. This closes a gap where `jobsite.handler.assess-done` treated reassessed jobs as unprotected and moved them to `assessed` even when they were already in `applied`/`interviewed`/`responded`/`rejected`/`skipped`/`archived`.
+
+## Delete tab scope
+The `löschen` tab and its counter now only show jobs whose `assertions.suggest.delete` is `true` **and** whose stage is not a user-owned decision (`to_apply`, `applied`, `interviewed`, `responded`, `rejected`, `skipped`, `archived`). Previously it also showed protected-state jobs such as `rejected` and `apply`.
+
+## Commit batching
+Changes were committed in four signed version-batched commits:
+1. `jobsite: migrate job IDs and file ops to VAX encoding`
+2. `web/sync: assessment preservation, jobs cache/sync, and orbital/zenki config`
+3. `web-ui: jobs vhost controls, badges, bulk reassess, and dependency graph`
+4. `docs: update kimi memory with jobs-pipeline work`
+plus a follow-up commit `web-ui: keep user-owned stages out of the delete tab`.
+
+#,,..,..,,.,,,.,,,,,.,,..,.,.,,,.,,.,,.,.,,,.,...,...,...,...,,,.,,.,,...,...,
+#33DJ5OE6AZCWDCU5HB32GKQJMHX256QRHZ6M7MQU4GSYTHI5MNAMRZRZGMEUYSPORXGYXGVN2E3LI
+#\\\|3FZYYDBWIR7HGT4B7NN4XYKYKFI64SY7RLVYJALVF6U5KZ2VR6S \ / AMOS7 \ YOURUM ::
+#\[7]2L54YJBQ4GPCHASFTN5DS2PVSDPL3MZHJ3M4ZCOBF2G5NFVDW4AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
