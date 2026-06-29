@@ -9,7 +9,14 @@ my $depth = ref $raw ? $raw->$* : $raw;
 $depth =~ s/\D//g;
 $depth = 0 if not length $depth;
 
-return if $depth > 0;
+if ( $depth > 0 ) {
+    ## queue has been populated for this scan ##
+    <jobsite.fetch_queue_nonempty> = TRUE;
+    return;
+}
+
+## ignore early zero-depth replies that race ahead of the import queueing ##
+return if not <jobsite.fetch_queue_nonempty>;
 
 ## queue drained : cancel poll timer, pull stray jobs, then assess ##
 if ( defined $data{'jobsite'}{'queue_poll_timer'} ) {
@@ -23,8 +30,8 @@ if ( defined $data{'jobsite'}{'queue_poll_timer'} ) {
 
 return;
 
-#,,.,,,,.,..,,.,,,...,,.,,...,.,.,,,.,,,.,..,,..,,...,...,,.,,.,,,.,.,...,.,,,
-#PK7LGCOY3TBMDBEOLMT3DEQMAFUIT26LGHRXRL5PDBOGIJYB4MCF7ZPTLCNRGZRSNS5G5OH3YUUFO
-#\\\|K7D7NW3CSWVCKP4C3TVCLN6I7TXY5MDN3TJAMHQ45XY6B4IPEMC \ / AMOS7 \ YOURUM ::
-#\[7]O6DFINTH3NPP4HUCFQSEOXTZQZBNEQ6DGG4W5REMDELPM4P6ZOCA 7  DATA SIGNATURE ::
+#,,..,,,.,,..,..,,,.,,,,,,.,,,.,.,,,.,..,,.,.,.,.,...,...,...,,,.,..,,...,...,
+#WHFV4BZKSDYSMA42AJTESPCADK2NGMD5LLS2HJKFINT4EGNDDV6MVOG6VY24EVJYWXJIOEV46AELI
+#\\\|7JQWSGRU2XFRH7AYCOUC2HKENR4SI5IW6PZ4JQST365IANVIFJF \ / AMOS7 \ YOURUM ::
+#\[7]QYP66RWICO2AE6KOOGBIPYC37PSP67HESX4FPEIMS5LPNF6DKUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
