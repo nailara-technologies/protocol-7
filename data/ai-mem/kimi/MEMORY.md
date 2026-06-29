@@ -180,8 +180,12 @@ see [topic-language-detection.md](topic-language-detection.md)
 phase 1 operational (~950 lines); file-backed history at `data/chat/channel/*/history`; `data/ai-mem/handover.txt` retired.
 open: kimi zenka state machine upgrade (backend reconnect), coding zenka as third dispatch target, phase 2 channels zenka.
 
-#,,,.,.,.,,,.,.,.,...,,,,,.,.,,,.,,,,,.,,,.,,,..,,...,...,.,,,,,,,,,.,...,,,.,
-#HH2KF3NFNDTBAL2CRUKMF5QYFKCARE44FIZ3ITJSQI2L6JYBFP5BFD5UTZELUU2SBYGHJLVQETOPO
-#\\\|7NJDRBSY5CKNQTVB4EWIHJNQQO2CNDX2BQ42FGMUFKYJ27METKH \ / AMOS7 \ YOURUM ::
-#\[7]HZ23HCRPK4CTUZXKZV6QB43SLCWEHHFWKJETFSQBXU3X5O7SO4CY 7  DATA SIGNATURE ::
+## Jobsite/Web Jobs Pipeline Fixes (2026-06-28)
+
+`skipped` status restored across all index scanners, reassessment now protects manual stages, web sync carries `assertions`, UI delete actions wired, and orbital subscriber `.cmd.` syntax corrected. See [jobs-pipeline-2026-06-28.md](jobs-pipeline-2026-06-28.md). Open: ~6 stale web-cache entries, bulk-delete pending search/filter UI.
+
+#,,,.,,..,..,,...,.,.,,.,,,.,,,.,,.,,,..,,..,,..,,...,...,,,,,.,.,.,,,,,,,,,,,
+#S5ZLKYWX3RSNY6DLFSTZKGG2QYN3UAXKZ4DY6LQBVWVTXNIDS3I4FSARYIN5QCCR7XE22G63PURCC
+#\\\|WOKGEMNIS5IRPT2GTGIMZRB57AFAUUVFP7SSJY7ZOTDHQLRQOJU \ / AMOS7 \ YOURUM ::
+#\[7]MLJTWSQD4CXO453WLRPJER3PFBGFOZPO2YZ55DLCU5DQ47C2YODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
