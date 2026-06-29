@@ -7,6 +7,16 @@ my $job = $ARG[0]      // {};
 my $id  = $job->{'id'} // '';
 return 'no_id' if not length $id;
 
+## never resurrect blocked or deleted jobs ##
+my $idx_status = <jobsite.job.index>->{$id} // '';
+if ( $idx_status =~ m{^(blocked|deleted)(:|$)} ) {
+    <[base.logs]>->(
+        2,   'jobs.upsert: skipping %s (status %s)',
+        $id, $idx_status
+    );
+    return 'exists';
+}
+
 my $store = $data{'jobs'}{'store'};
 
 my $is_new = 0;
@@ -31,8 +41,8 @@ if ( exists $store->{$id} ) {
 
 return $is_new ? 'new' : 'updated';
 
-#,,.,,,.,,,.,,..,,..,,,.,,.,.,,,.,,,,,.,.,.,.,..,,...,...,,..,,..,.,,,..,,,,,,
-#Q6KZVHWNRBBWP6RJPBZAGMI4HGVT2JYYLIDLZBVATNS7NUOB774WYXIX7X4UGZLSMKMNAYPQSDU4I
-#\\\|WUSGGXUOHCS5Q66GTD4VT2BTCS4ROER4WNRISLZ3QFBKAFMM4HX \ / AMOS7 \ YOURUM ::
-#\[7]ZFLPKLLRF6VNS2S3N4H4322YJAAQKCPTNABKJLN5AP3DZUFW7OAQ 7  DATA SIGNATURE ::
+#,,..,,,,,,..,.,,,,..,,,,,,,.,...,,,,,...,,,,,..,,...,...,...,...,.,,,,.,,.,.,
+#KFD5N7NXY4KBJMCTD4UFSWOJWYRNXNMZWKNLNI6X5YCJSBEAX7HCDCVVMLJZ74FJCARN5D6KPGB2A
+#\\\|VW7OIJRACQEHAIUIE4R4MIIB2DM72LOOVJJBQBT44DGXBL2DUD3 \ / AMOS7 \ YOURUM ::
+#\[7]GNRNWL2YB6M5ZNML5O7KFPTNOINN3ONH3B5JWTLHM6HHNXQN2WBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
