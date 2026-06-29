@@ -17,7 +17,7 @@ my $jobs_root = join qw| / |,
 my $status = $job->{'status'} // 'new';
 
 ## determine target path ##
-my ( $rel_path, $abs_path );
+my ( $rel_path, $abs_path, $is_trash );
 if ( $status eq 'blocked' ) {
     my $epoch = $job->{'blocked_epoch'} // <[base.ntime.epoch_timestamp]>;
     $rel_path = "jobs/blocked/$epoch/$enc_id.yaml";
@@ -26,6 +26,11 @@ if ( $status eq 'blocked' ) {
     my $epoch = $job->{'deleted_epoch'} // <[base.ntime.epoch_timestamp]>;
     $rel_path = "jobs/deleted/$epoch/$enc_id.yaml";
     $abs_path = "$jobs_root/deleted/$epoch/$enc_id.yaml";
+} elsif ( $status eq 'trash' ) {
+    my $epoch = $job->{'trash_epoch'} // <[base.ntime.epoch_timestamp]>;
+    $rel_path = "jobs/trash/$epoch/$enc_id.yxz.B32";
+    $abs_path = "$jobs_root/trash/$epoch/$enc_id.yxz.B32";
+    $is_trash = 1;
 } else {
     $rel_path = "jobs/$status/$enc_id.yaml";
     $abs_path = "$jobs_root/$status/$enc_id.yaml";
@@ -45,6 +50,8 @@ my $old_abs_path = '';
 if ( length $old_status ) {
     if ( $old_status =~ m{^(blocked|deleted):(.+)$} ) {
         $old_abs_path = "$jobs_root/$1/$2/$enc_id.yaml";
+    } elsif ( $old_status =~ m{^trash:(.+)$} ) {
+        $old_abs_path = "$jobs_root/trash/$1/$enc_id.yxz.B32";
     } else {
         $old_abs_path = "$jobs_root/$old_status/$enc_id.yaml";
     }
@@ -67,6 +74,41 @@ if ( $status eq 'blocked' ) {
     $write_job->{'last_modified'} = <[base.ntime.b32]>;
 }
 
+## build file payload: plain yaml or xz+base32 for trash ##
+my ( $payload_ref, $write_mode );
+if ($is_trash) {
+    my $yaml;
+    eval { $yaml = YAML::XS::Dump($write_job) };
+    if ($@) {
+        <[base.logs]>->(
+            0,       'jss.job.write: dump error for %s: %s',
+            $job_id, $@
+        );
+        return FALSE;
+    }
+    utf8::encode($yaml) if utf8::is_utf8($yaml);
+    my $compressed;
+    IO::Compress::Xz::xz( \$yaml, \$compressed )
+        or return <[base.logs]>->(
+        0, 'jss.job.write: xz compression failed for %s', $job_id
+        );
+    my $b32 = Crypt::Misc::encode_b32r($compressed);
+    $payload_ref = \$b32;
+    $write_mode  = '>';
+} else {
+    my $yaml;
+    eval { $yaml = YAML::XS::Dump($write_job) };
+    if ($@) {
+        <[base.logs]>->(
+            0,       'jss.job.write: dump error for %s: %s',
+            $job_id, $@
+        );
+        return FALSE;
+    }
+    $payload_ref = \$yaml;
+    $write_mode  = '>';
+}
+
 ## atomic transition: rename if path changed ##
 my $written = FALSE;
 if (    length $old_abs_path
@@ -79,48 +121,22 @@ if (    length $old_abs_path
         );
         return FALSE;
     }
-    ## overwrite with correct content (stub or updated full record) ##
-    my $yaml;
-    eval { $yaml = YAML::XS::Dump($write_job) };
-    if ($@) {
-        <[base.logs]>->(
-            0,       'jss.job.write: dump error for %s: %s',
-            $job_id, $@
-        );
-        return FALSE;
-    }
-    my $wrote = <[file.zenka_dir.write]>->( $rel_path, \$yaml, '>', 0640 );
-    if ( not defined $wrote ) {
-        <[base.logs]>->(
-            0, 'jss.job.write: overwrite failed for %s', $job_id
-        );
-        return FALSE;
-    }
-    $written = TRUE;
-} else {
-    ## write fresh or in-place ##
-    my $yaml;
-    eval { $yaml = YAML::XS::Dump($write_job) };
-    if ($@) {
-        <[base.logs]>->(
-            0,       'jss.job.write: dump error for %s: %s',
-            $job_id, $@
-        );
-        return FALSE;
-    }
-    my $wrote = <[file.zenka_dir.write]>->( $rel_path, \$yaml, '>', 0640 );
-    if ( not defined $wrote ) {
-        <[base.logs]>->( 0, 'jss.job.write: write failed for %s', $job_id );
-        return FALSE;
-    }
-    $written = TRUE;
 }
+
+## write fresh or overwrite in-place ##
+my $wrote = <[file.zenka_dir.write]>
+    ->( $rel_path, $payload_ref, $write_mode, 0640 );
+if ( not defined $wrote ) {
+    <[base.logs]>->( 0, 'jss.job.write: write failed for %s', $job_id );
+    return FALSE;
+}
+$written = TRUE;
 
 ## update in-memory index ##
 <jobsite.job.index>->{$job_id} = do {
-    if ( $status =~ m{^(blocked|deleted)$} ) {
-        my $epoch = $job->{"${status}_epoch"}
-            // <[base.ntime.epoch_timestamp]>;
+    if ( $status =~ m{^(blocked|deleted|trash)$} ) {
+        my $epoch_key = "${status}_epoch";
+        my $epoch     = $job->{$epoch_key} // <[base.ntime.epoch_timestamp]>;
         "$status:$epoch";
     } else {
         $status;
@@ -128,10 +144,12 @@ if (    length $old_abs_path
 };
 
 ## mirror title checksum status in checksum store ##
+## trash is treated as deleted for blocking purposes ##
 if (    length $old_status
     and $old_status ne $status
     and length( $job->{'title'} // '' ) ) {
-    <[jobsite.checksum.index]>->( 'update_status', $job, $status );
+    my $checksum_status = $status eq 'trash' ? 'deleted' : $status;
+    <[jobsite.checksum.index]>->( 'update_status', $job, $checksum_status );
 }
 
 ## update on-disk index.yaml atomically ##
@@ -162,8 +180,8 @@ rename( $index_tmp, $index_file )
 
 return $written;
 
-#,,.,,.,.,...,.,.,..,,...,...,...,,..,...,,,.,..,,...,...,..,,..,,,,.,.,.,...,
-#L5ORV54AXIJ3VU3JLBZMD5N7UOAS2YYELLBCOOXTCUXPB776FER3735HD3VKOFHJXVT5QAWRUXRCG
-#\\\|6NZFODOTWZX3B7DEY5MMYXOW7EWS7VIRFAVYY5OZXLPMIEMTXZY \ / AMOS7 \ YOURUM ::
-#\[7]2RPF3EPR3DLHJRL2D6LBOUYMMLEYJ6QRPUYIHMT3GCBFV3LCX2CY 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,,.,,..,..,,,..,.,,,..,,,,,,..,,..,,...,...,..,,,,.,,,.,.,.,,,,,
+#2NZGKWFOLCEN7V5QB6SU2H24HFEPPQZMW7MBBDFZ6QUWXE2MFJAXW5DTYIULTDU2G3ZOZMWULUCD6
+#\\\|3DWTJIS5CEBWZ6YN4C4OXVXMOYTW6NIU2C7G3JBVQQUWMDPMCDT \ / AMOS7 \ YOURUM ::
+#\[7]SDKXMJMV4IAMBFEOHGG6I26GVRBZE6OVJKATAXV6EBAIJNWOIOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

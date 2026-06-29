@@ -7,7 +7,100 @@ my $jobs_root = join qw| / |,
     <system.path.zenka-dirs>->{'var_P7'}, qw| jobsite jobs |;
 
 my $current_epoch = int(<[base.ntime.epoch_dec]>);
-my ( $blocked_moved, $deleted_pruned ) = ( 0, 0 );
+my $trash_keep    = <jobsite.cfg.trash_keep_epochs>   // 1;
+my $deleted_keep  = <jobsite.cfg.deleted_keep_epochs> // 2;
+my ( $trash_moved, $blocked_moved, $deleted_pruned ) = ( 0, 0, 0 );
+
+## phase 0: trash -> deleted (epoch distance > trash_keep_epochs) ##
+my $trash_root = "$jobs_root/trash";
+if ( -d $trash_root ) {
+    opendir my $dh, $trash_root or goto PHASE1;
+    my @epoch_dirs = grep { !/^\./ && -d "$trash_root/$_" } readdir($dh);
+    closedir $dh;
+
+    for my $ep_dir (@epoch_dirs) {
+        next unless $ep_dir =~ m{^V7[A-Z2-7]{5}$}i;
+        my $ep_num = <[base.ntime.epoch_timestamp]>->($ep_dir);
+        next unless defined $ep_num and $ep_num =~ m{^\d+$};
+        my $distance = $current_epoch - $ep_num;
+        next if $distance <= $trash_keep;
+
+        my $src_dir = "$trash_root/$ep_dir";
+        my $dst_dir = "$jobs_root/deleted/$ep_dir";
+
+        if ( not -d $dst_dir ) {
+            my $p7_user = <system.amos-zenka-user> // qw| protocol-7 |;
+            <[file.make_path]>->( $dst_dir, 0750, $p7_user, $p7_user );
+        }
+
+        opendir my $edh, $src_dir or next;
+        my @stubs = grep { /\.yxz\.B32$/ && !/^\./ } readdir($edh);
+        closedir $edh;
+
+        for my $stub_fn (@stubs) {
+            my $stub_path = "$src_dir/$stub_fn";
+            my $raw       = eval {
+                local $/;
+                open my $fh, '<', $stub_path or die $!;
+                <$fh>;
+            };
+            next unless defined $raw;
+
+            my $compressed = eval { Crypt::Misc::decode_b32r($raw) };
+            if ( $@ or not defined $compressed ) {
+                <[base.logs]>->(
+                    0, 'prune: base32 decode failed for %s', $stub_path
+                );
+                next;
+            }
+            my $yaml;
+            IO::Uncompress::UnXz::unxz( \$compressed, \$yaml )
+                or do {
+                <[base.logs]>->(
+                    0,          'prune: xz decompress failed for %s : %s',
+                    $stub_path, $IO::Uncompress::UnXz::UnXzError
+                );
+                next;
+                };
+
+            my $job = eval { YAML::XS::Load($yaml) };
+            next unless ref $job eq 'HASH';
+
+            my $enc_id = $stub_fn;
+            $enc_id =~ s/\.yxz\.B32$//;
+            my $job_id = <[base.vax-int.decode]>->($enc_id);
+
+            $job->{'status'} = 'deleted';
+            $job->{'stage'}  = 'deleted' if length( $job->{'stage'} // '' );
+            $job->{'deleted_epoch'} //= $ep_dir;
+            delete $job->{'trash_epoch'};
+
+            my $out_yaml;
+            eval { $out_yaml = YAML::XS::Dump($job) };
+            next if $@;
+
+            my $dst_fn   = "$enc_id.yaml";
+            my $dst_path = "$dst_dir/$dst_fn";
+            my $wrote    = <[file.zenka_dir.write]>->(
+                "jobs/deleted/$ep_dir/$dst_fn",
+                \$out_yaml, '>', 0640
+            );
+            next unless defined $wrote;
+
+            unlink $stub_path;
+            $trash_moved++;
+
+            ## keep in-memory index consistent ##
+            <jobsite.job.index>->{$job_id} = "deleted:$ep_dir"
+                if length $job_id;
+        }
+
+        rmdir $src_dir;
+        <[base.logs]>->( 1, 'prune: moved trash/%s to deleted/', $ep_dir );
+    }
+}
+
+PHASE1:
 
 ## phase 1: blocked -> deleted (epoch distance > 0) ##
 my $blocked_root = "$jobs_root/blocked";
@@ -26,13 +119,11 @@ if ( -d $blocked_root ) {
         my $src_dir = "$blocked_root/$ep_dir";
         my $dst_dir = "$jobs_root/deleted/$ep_dir";
 
-        ## ensure destination dir exists ##
         if ( not -d $dst_dir ) {
             my $p7_user = <system.amos-zenka-user> // qw| protocol-7 |;
             <[file.make_path]>->( $dst_dir, 0750, $p7_user, $p7_user );
         }
 
-        ## verify/backfill checksums for each stub, then move ##
         opendir my $edh, $src_dir or next;
         my @stubs = grep { /\.yaml$/ && !/^\./ } readdir($edh);
         closedir $edh;
@@ -46,7 +137,6 @@ if ( -d $blocked_root ) {
             my $hit        = $stub->{'checksum_hit'} // '';
             my $store_root = '/var/protocol-7/jobsite/checksum-store';
 
-            ## backfill title checksum if missing ##
             if ( $hit =~ m{^title:([A-Z2-7]+)$} ) {
                 my $t_sum   = $1;
                 my $t_found = 0;
@@ -68,7 +158,6 @@ if ( -d $blocked_root ) {
                 }
             }
 
-            ## backfill url checksum if missing ##
             if ( length $url ) {
                 utf8::encode( my $url_bytes = $url );
                 my $u_sum = <[chk-sum.bmw.str-b32.L13]>->($url_bytes);
@@ -82,7 +171,6 @@ if ( -d $blocked_root ) {
                 }
             }
 
-            ## move stub to deleted ##
             my $dst_path = "$dst_dir/$stub_fn";
             if ( rename $stub_path, $dst_path ) {
                 $blocked_moved++;
@@ -94,7 +182,6 @@ if ( -d $blocked_root ) {
             }
         }
 
-        ## remove empty blocked epoch dir ##
         rmdir $src_dir;
         <[base.logs]>->( 1, 'prune: moved blocked/%s to deleted/', $ep_dir );
     }
@@ -102,7 +189,7 @@ if ( -d $blocked_root ) {
 
 PHASE2:
 
-## phase 2: deleted -> gone (epoch distance > 1) ##
+## phase 2: deleted -> gone (epoch distance > deleted_keep_epochs) ##
 my $deleted_root = "$jobs_root/deleted";
 if ( -d $deleted_root ) {
     opendir my $dh, $deleted_root or goto DONE;
@@ -114,10 +201,20 @@ if ( -d $deleted_root ) {
         my $ep_num = <[base.ntime.epoch_timestamp]>->($ep_dir);
         next unless defined $ep_num and $ep_num =~ m{^\d+$};
         my $distance = $current_epoch - $ep_num;
-        next if $distance <= 1;
+        next if $distance <= $deleted_keep;
 
         my $dir = "$deleted_root/$ep_dir";
-        unlink glob("$dir/*");
+        opendir my $edh, $dir or next;
+        for my $fn ( grep { !/^\./ } readdir($edh) ) {
+            my $full   = "$dir/$fn";
+            my $enc_id = $fn;
+            $enc_id =~ s/\.(yaml|yxz\.B32)$//;
+            my $job_id = <[base.vax-int.decode]>->($enc_id);
+            unlink $full;
+            delete <jobsite.job.index>->{$job_id}
+                if length $job_id;
+        }
+        closedir $edh;
         rmdir $dir;
         $deleted_pruned++;
         <[base.logs]>->( 1, 'prune: removed deleted/%s', $ep_dir );
@@ -127,17 +224,18 @@ if ( -d $deleted_root ) {
 DONE:
 
 <[base.logs]>->(
-    1,              'jobsite.store.prune: moved=%d pruned=%d',
-    $blocked_moved, $deleted_pruned
+    1, 'jobsite.store.prune: trash_moved=%d blocked_moved=%d pruned=%d',
+    $trash_moved, $blocked_moved, $deleted_pruned
 );
 
 return {
+    'trash_moved'    => $trash_moved,
     'blocked_moved'  => $blocked_moved,
     'deleted_pruned' => $deleted_pruned,
 };
 
-#,,..,,.,,...,.,,,...,,.,,,.,,..,,,..,,,.,...,..,,...,...,..,,...,..,,,..,,.,,
-#GXPTJLVGWXRW43KFIAXFM7YKMGLBBKFMD5GOBBBDYBBGBLD5YJLSS4OGF6CVZCQEXNCAV7NM7D7GA
-#\\\|O7677OYXH55V3LZGONUZVIXTF4SHIMDLDZT6TBPWVBMMMGEP3S2 \ / AMOS7 \ YOURUM ::
-#\[7]L3V4U2PEZXV5JMTFUW6PZWC7K6TUIUPRAPFWLHPQCNMQQKSM2GAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,.,,,,,,,,,,..,,...,..,,...,,..,..,,...,..,,...,.,.,..,,,..,,,,,
+#SUG6SUMUVHDPG4T7H4EA6Q5RIMFXWUK5B52LSWND5I2MY2I5GYZF3M53QD5UENFIVVEKW73Q2JD5Q
+#\\\|7WMXNHIYM2TXKCCEXGALVZ7HKO43L3XITOIBRO2QPAQPJUIJPXE \ / AMOS7 \ YOURUM ::
+#\[7]34INTF2NQXQQDPZNV4T676AUDYRJWNDLYG33DCMDCZA4WUFYHSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
