@@ -26,6 +26,15 @@ if ( not defined $item ) {
         scalar @{$reverse}
     );
     <[jobsite.sync.apply_reverse]>->($reverse);
+
+    ## if assessments completed while a push was running, the updated jobs ##
+    ## were not included in that push; trigger a follow-up push now.       ##
+    if ( delete <jobsite.sync.push_after_assess> ) {
+        <[base.logs]>->(
+            1, 'sync push complete, triggering follow-up after assessment'
+        );
+        <[jobsite.sync.push]>->( undef, FALSE );
+    }
     return;
 }
 
@@ -57,8 +66,8 @@ if ( not length $body ) {
     }
 );
 
-#,,.,,..,,..,,.,.,.,.,,.,,...,,.,,.,,,,.,,..,,..,,...,...,,,,,,,,,..,,..,,.,,,
-#3XJOZXFYXB5H7GW66L55QJZJRMIPUO53WW455VGYJ6VOF44IUG24LQFROI4XQ7SYRGF7GPBAOHSVS
-#\\\|4XAEMSBK52H2YKQQFISIMLJDEC25P5CYBA7TM43P2YGXX3ZCXZT \ / AMOS7 \ YOURUM ::
-#\[7]ZJRL6KP4PCCZFJBGE3CO5EJ44QT3VJDSO2DZHF5QP3AL2REI34BY 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,,,,,,,,,.,,,,,,,,,,,...,,,,,,.,,..,,...,...,,.,,...,.,.,..,,,.,,
+#7KVQQVFK752TOWZYKEUR4KNJSKGGJZOGW6C3ZF2LZESFGKHUYPYLL37BDOUCVE2DEE3H5BVQAD7HS
+#\\\|U26ZNA2CRN2ADCR4HB4P4IUHXYL3MOEK2PTRSTNHH2WSMYXW3VG \ / AMOS7 \ YOURUM ::
+#\[7]JATM2PZS4WYYVFW7R7U6DVPN5YF3WVQX7VCR5SYA5AWW4M55YKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

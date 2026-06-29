@@ -60,10 +60,25 @@ if ( $total_queued > 0 ) {
 ## nothing queued : check for any pre-existing strays and assess ##
 <[base.logs]>->( 1, 'fetch: nothing new queued, checking strays' );
 <[jobsite.stray.check]>;
+
+## reset sync watermark so the next push sends the full jobsite state ;
+## this catches jobs whose last_modified is older than the current   ##
+## watermark (e.g. after a restart or a cache rebuild on the web side) ##
+for my $url ( keys %{ <jobsite.sync.last_ntime> // {} } ) {
+    <jobsite.sync.last_ntime>->{$url} = '';
+}
+<jobsite.sync.last_server_ntime> = '';
+
 <[jobsite.dispatch.assessments]>;
 
-#,,..,.,.,,.,,..,,..,,,,,,,..,.,.,.,.,,..,...,..,,...,...,...,,..,,,,,.,,,,..,
-#J7STWXUBR6JPQ2EQ6NYPQAMAMOZPPAQXRSLOXTS6JHTLTYGSIFH642UWXCJJBVTSACHSUU3GBPKBG
-#\\\|IPCNI7N5GEIUCESFA5HB25ZETRCGM6D2RSKVY5UK6SNINRVOYTU \ / AMOS7 \ YOURUM ::
-#\[7]MQCP4PVJCP5DWM3SLR5HAJ2PEI4MCXWZL5UJVWNXDUVM7XUT66AI 7  DATA SIGNATURE ::
+## if no assessments were queued, push changes immediately so the web
+## cache catches up with whatever the scan produced/changed ##
+if ( <jobsite.pending_count> == 0 ) {
+    <[jobsite.sync.push]>->( undef, FALSE );
+}
+
+#,,,.,...,,,,,,,.,,,.,,..,,,.,,,.,.,,,.,,,..,,..,,...,...,...,.,.,.,,,...,..,,
+#74T32TQM54UR5KBCW754A2Y5QYKI3RZOLTXNP3D6XFSUGGZXUBDUNVPJNOVSDYUDRRZS7SQP3YEBC
+#\\\|RA7KEXOVZDCZKNCDCCXMJ6B5EY3EDNUCS5HNGDQJBSE5OLLZXTW \ / AMOS7 \ YOURUM ::
+#\[7]ZXCWYSMFILCUCHAJBLCNCOHVN3ZLNQMYHKU3GBYBX7XVQSJQH2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
