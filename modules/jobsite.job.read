@@ -11,11 +11,13 @@ return undef unless length $status;
 
 my $enc_id = <[base.vax-int.encode]>->($job_id);
 
-my $rel_path = do {
+my ( $rel_path, $is_trash ) = do {
     if ( $status =~ m{^(blocked|deleted):(.+)$} ) {
-        "jobs/$1/$2/$enc_id.yaml";
+        ( "jobs/$1/$2/$enc_id.yaml", 0 );
+    } elsif ( $status =~ m{^trash:(.+)$} ) {
+        ( "jobs/trash/$1/$enc_id.yxz.B32", 1 );
     } else {
-        "jobs/$status/$enc_id.yaml";
+        ( "jobs/$status/$enc_id.yaml", 0 );
     }
 };
 
@@ -24,6 +26,25 @@ return undef unless defined $raw;
 
 my $bytes = $$raw;
 utf8::encode($bytes) if utf8::is_utf8($bytes);
+
+if ($is_trash) {
+    my $compressed = eval { Crypt::Misc::decode_b32r($bytes) };
+    if ( $@ or not defined $compressed ) {
+        <[base.logs]>->(
+            0,       'jss.job.read: base32 decode error for %s : %s',
+            $job_id, $@ // 'unknown'
+        );
+        return undef;
+    }
+    my $yaml;
+    IO::Uncompress::UnXz::unxz( \$compressed, \$yaml )
+        or return <[base.logs]>->(
+        0,       'jss.job.read: xz decompress error for %s : %s',
+        $job_id, $IO::Uncompress::UnXz::UnXzError
+        );
+    $bytes = $yaml;
+}
+
 my $job = eval { YAML::XS::Load($bytes) };
 if ($@) {
     <[base.logs]>->( 0, 'jss.job.read: load error for %s: %s', $job_id, $@ );
@@ -39,8 +60,8 @@ for my $v ( values %$job ) {
 
 return $job;
 
-#,,..,..,,...,..,,.,,,,,.,,,,,,,.,,.,,,,.,.,.,..,,...,...,,,,,,..,,,.,.,,,,,,,
-#YZVAM6I5SRZIOSA5L3O4DGYYPKABZPSHUJNE4HBWEMHHD7GGYBCODRRHBDAI5NTRIDFZHDEPXMJ66
-#\\\|PBI5FUNB5SH5UNSSLQOX36C6DY2WV2SDADSCEOM4CM2ON6DT7G6 \ / AMOS7 \ YOURUM ::
-#\[7]24JDBA2N42KBLOYXJ7D5SHZ5GY2NB2TIOGWCSASWG7OCIYIMPWAY 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,,.,..,,,..,.,,,...,...,.,,,...,..,,...,...,,..,.,,,,,,,,,,,.,.,
+#JPYWP7VPDCYMC4GJJRVGLDDT6TEJW2UOS5DKXBY4UQ6OKXXCY6BIGZ5YWA442LFP722JLZCQDCUNY
+#\\\|V4BQUFWGMK6VEM5YNI53HUL45Y4FO3MGYYADTJFDPMZTKKFXPC7 \ / AMOS7 \ YOURUM ::
+#\[7]V6TNROI5WLUVBHSB2ASRVT7NZAIOBT7SZVJ3EL3CX3T2PQJMUGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

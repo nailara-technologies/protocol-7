@@ -38,7 +38,7 @@ for my $status (@active_statuses) {
     }
 }
 
-## also index blocked/deleted for completeness, but don't load content ##
+## also index blocked/deleted/trash for completeness, but don't load content ##
 my @epoch_statuses = qw| blocked deleted |;
 for my $status (@epoch_statuses) {
     my $dir = "$jobs_root/$status";
@@ -56,6 +56,25 @@ for my $status (@epoch_statuses) {
     }
     closedir $dh;
 }
+
+## index compressed trash files (.yxz.B32) ##
+my $trash_root = "$jobs_root/trash";
+if ( -d $trash_root ) {
+    opendir my $dh, $trash_root or goto TRASH_DONE;
+    for my $epoch_dir ( grep { !/^\./ && -d "$trash_root/$_" } readdir($dh) )
+    {
+        opendir my $edh, "$trash_root/$epoch_dir" or next;
+        for my $fn ( grep { /\.yxz\.B32$/ && !/^\./ } readdir($edh) ) {
+            my $enc_id = $fn;
+            $enc_id =~ s/\.yxz\.B32$//;
+            my $job_id = <[base.vax-int.decode]>->($enc_id);
+            $index->{$job_id} = "trash:$epoch_dir";
+        }
+        closedir $edh;
+    }
+    closedir $dh;
+}
+TRASH_DONE:
 
 <jobsite.job.index> = $index;
 
@@ -89,8 +108,8 @@ for my $id ( keys %{$tasks} ) {
 
 return \%jobs;
 
-#,,..,,,.,,..,...,.,,,,.,,,..,,.,,,..,,,.,...,..,,...,...,..,,.,,,..,,...,.,,,
-#RXUC7OKXHDQV3MIMGFMVNHTY236L2F5FTNSJ6TB6SU6RGXLJUJ22Q7FJL5O7AJ4ICHXVJBRNBPJ72
-#\\\|SNXUN6TCHMXLX2ZHCAOE4DVIYWNUGPM4S56C3X3DIFJSQRCKG5Q \ / AMOS7 \ YOURUM ::
-#\[7]7YZ4WQ7PL4X5WWEA2HPKZV4RYYXLJ2NJFE24QJS4OBN6UHFWGWCY 7  DATA SIGNATURE ::
+#,,,.,.,,,...,,,,,..,,.,,,,,.,..,,,.,,,.,,,..,..,,...,...,..,,,.,,,,.,,,,,,..,
+#2S32CBLWLN55XL5UJLAFBPZ3MFMYOEFFPVUTDHMRUKDSXUNQTDTVD5C2NBBVKWA3LMOTXOE4ADDYQ
+#\\\|CIZYIWHON2FPJQOEMHHITW5YXQWKMOVNQ55KDX7PT7UQ5E5WCHO \ / AMOS7 \ YOURUM ::
+#\[7]EKXVA5ICVBYGC4JS7DHCHJOHD7SAUKL7B3N2REGSKQY7NGDDOECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
