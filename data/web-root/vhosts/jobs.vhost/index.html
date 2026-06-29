@@ -1154,7 +1154,8 @@ function render() {
     const visible = sorted.filter(j => {
         if (j.stage === 'archived' && !showArchived) return false;
         if (filterMode === 'delete') {
-            return ((j.assertions && j.assertions.suggest && j.assertions.suggest.delete) === 'true') && j.stage !== 'archived';
+            return ((j.assertions && j.assertions.suggest && j.assertions.suggest.delete) === 'true')
+                && !USER_OWNED_STAGES.has(j.stage);
         }
         if (filterMode === 'error') {
             return (j.repair_failed == 5 || j.repair_failed === true) && j.stage !== 'archived';
@@ -1194,7 +1195,7 @@ function render() {
 }
 
 function updateStats(all) {
-    const del = all.filter(j => (j.assertions && j.assertions.suggest && j.assertions.suggest.delete) === 'true' && j.stage !== 'archived').length;
+    const del = all.filter(j => (j.assertions && j.assertions.suggest && j.assertions.suggest.delete) === 'true' && !USER_OWNED_STAGES.has(j.stage)).length;
     const rfl = all.filter(j => j.repair_failed && j.stage !== 'archived').length;
     document.getElementById('stat-total').textContent  = all.length + ' gesamt';
     document.getElementById('stat-review').textContent = all.filter(j=>j.stage==='review').length + ' review';
