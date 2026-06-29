@@ -1,0 +1,165 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use warnings;
+use English;
+use YAML::XS;
+use File::Spec;
+use File::Path  qw| make_path |;
+use Crypt::Misc qw| encode_b32r |;
+
+my @jobs_dirs = ('/var/protocol-7/jobsite/jobs');
+my $dry_run   = 0;
+
+## parse args
+for my $i ( 0 .. $#ARGV ) {
+    if ( $ARGV[$i] eq '-dry-run' ) {
+        $dry_run = 1;
+    } elsif ( $ARGV[$i] eq '-jobsite-dir' and defined $ARGV[ $i + 1 ] ) {
+        @jobs_dirs = ( $ARGV[ $i + 1 ] );
+    } elsif ( $ARGV[$i] eq '-web-dir' and defined $ARGV[ $i + 1 ] ) {
+        push @jobs_dirs, $ARGV[ $i + 1 ];
+    }
+}
+
+my $pack_template = qw| V |;
+
+sub vax_encode {
+    my $id = shift // '';
+    return $id if not length $id;
+    return $id if $id !~ m|^\d+$|;
+    return $id if $id > 4294967295;
+    my $enc = encode_b32r( pack $pack_template, $id );
+    $enc =~ s|A+$||;
+    $enc = qw| A | if not length $enc;
+    return $enc;
+}
+
+my %stage_to_status = (
+    'review'      => 'review',
+    'to_apply'    => 'apply',
+    'applied'     => 'applied',
+    'interviewed' => 'interviewed',
+    'responded'   => 'applied',
+    'rejected'    => 'rejected',
+    'skipped'     => 'skipped',
+    'archived'    => 'rejected',
+);
+
+my ( $examined, $updated, $errors ) = ( 0, 0, 0 );
+
+for my $jobs_dir (@jobs_dirs) {
+    next if not -d $jobs_dir;
+
+## walk status directories, skip blocked/deleted epoch dirs for now ##
+    opendir my $dh, $jobs_dir
+        or do { warn "cannot open $jobs_dir: $!\n"; next; };
+    my @status_dirs
+        = grep { !/^\./ and -d File::Spec->catdir( $jobs_dir, $_ ) }
+        readdir($dh);
+    closedir $dh;
+
+    for my $status_dir (@status_dirs) {
+        next if $status_dir eq 'blocked' or $status_dir eq 'deleted';
+
+        my $dir_path = File::Spec->catdir( $jobs_dir, $status_dir );
+        opendir my $fdh, $dir_path or next;
+        my @files = grep { /\.yaml$/ && !/^\./ } readdir($fdh);
+        closedir $fdh;
+
+        for my $file (@files) {
+            $examined++;
+            my $src_path = File::Spec->catfile( $dir_path, $file );
+
+            my $job = eval { YAML::XS::LoadFile($src_path) };
+            if ($@) {
+                warn "load error $src_path: $@\n";
+                $errors++;
+                next;
+            }
+
+            my $stage = $job->{'stage'} // '';
+            next if not exists $stage_to_status{$stage};
+
+            my $expected_status = $stage_to_status{$stage};
+            my $current_status  = $job->{'status'} // '';
+
+            next if $current_status eq $expected_status;
+
+            my $enc_id = $file;
+            $enc_id =~ s/\.yaml$//;
+
+            my $dst_dir  = File::Spec->catdir( $jobs_dir, $expected_status );
+            my $dst_path = File::Spec->catfile( $dst_dir, $file );
+
+            if ( not -d $dst_dir ) {
+                if ($dry_run) {
+                    print "[dry-run] would create $dst_dir\n";
+                } else {
+                    eval { make_path($dst_dir) };
+                    if ($@) {
+                        warn "mkdir $dst_dir failed: $@\n";
+                        $errors++;
+                        next;
+                    }
+                }
+            }
+
+            if ( -e $dst_path and $src_path ne $dst_path ) {
+                warn
+                    "collision: $dst_path already exists, skipping $src_path\n";
+                $errors++;
+                next;
+            }
+
+            $job->{'status'} = $expected_status;
+
+            if ($dry_run) {
+                print
+                    "[dry-run] $src_path -> $dst_path (status $current_status -> $expected_status)\n";
+                $updated++;
+                next;
+            }
+
+            eval { YAML::XS::DumpFile( "$dst_path.tmp", $job ) };
+            if ($@) {
+                warn "dump $dst_path.tmp failed: $@\n";
+                $errors++;
+                next;
+            }
+
+            if ( rename "$dst_path.tmp", $dst_path ) {
+                if ( $src_path ne $dst_path and unlink($src_path) ) {
+                    print
+                        "moved $src_path -> $dst_path ($current_status -> $expected_status)\n";
+                    $updated++;
+                } elsif ( $src_path eq $dst_path ) {
+                    print
+                        "updated status in place $src_path ($current_status -> $expected_status)\n";
+                    $updated++;
+                } else {
+                    warn
+                        "moved to $dst_path but could not unlink $src_path: $!\n";
+                    $errors++;
+                }
+            } else {
+                warn "rename $dst_path.tmp -> $dst_path failed: $!\n";
+                unlink "$dst_path.tmp";
+                $errors++;
+            }
+        }
+    }
+}
+
+print "\n";
+print "examined: $examined\n";
+print "updated:  $updated\n";
+print "errors:   $errors\n";
+print "dry-run:  yes\n" if $dry_run;
+exit( $errors ? 1 : 0 );
+
+#,,,.,.,.,,.,,..,,,.,,,,.,...,..,,.,.,.,,,...,.,.,...,...,,,.,.,.,..,,.,.,,,,,
+#IE6XWULBRQEYALRUL34H4RRYVDSXYJ5WISX4T4ZYVNCP5MKANBDW2J47IOCI5KHTG4TU6UXLJDFDK
+#\\\|AN5473ARLW7OSBAYXATCZ2U35ZY3ZZP2CER376SNGMI66GHZXEM \ / AMOS7 \ YOURUM ::
+#\[7]2TMZ4VAU56WVFGOCZRRYVTRFVNVEGAYGGSYFARSVDFWULC3VM4DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

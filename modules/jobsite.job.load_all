@@ -9,7 +9,7 @@ my $jobs_root = join qw| / |,
 my %jobs;
 my $index = {};
 my @active_statuses
-    = qw| new assessed review apply applied interviewed rejected |;
+    = qw| new assessed review apply applied interviewed rejected skipped |;
 
 for my $status (@active_statuses) {
     my $dir = "$jobs_root/$status";
@@ -19,8 +19,9 @@ for my $status (@active_statuses) {
     closedir $dh;
 
     for my $file (@files) {
-        my $job_id = $file;
-        $job_id =~ s/\.yaml$//;
+        my $enc_id = $file;
+        $enc_id =~ s/\.yaml$//;
+        my $job_id = <[base.vax-int.decode]>->($enc_id);
 
         my $job_file = "$dir/$file";
         my $job      = eval { YAML::XS::LoadFile($job_file) };
@@ -46,8 +47,9 @@ for my $status (@epoch_statuses) {
     for my $epoch_dir ( grep { !/^\./ && -d "$dir/$_" } readdir($dh) ) {
         opendir my $edh, "$dir/$epoch_dir" or next;
         for my $fn ( grep { /\.yaml$/ && !/^\./ } readdir($edh) ) {
-            my $job_id = $fn;
-            $job_id =~ s/\.yaml$//;
+            my $enc_id = $fn;
+            $enc_id =~ s/\.yaml$//;
+            my $job_id = <[base.vax-int.decode]>->($enc_id);
             $index->{$job_id} = "$status:$epoch_dir";
         }
         closedir $edh;
@@ -87,8 +89,8 @@ for my $id ( keys %{$tasks} ) {
 
 return \%jobs;
 
-#,,.,,.,.,,,,,...,,,.,,,,,,,,,..,,..,,.,.,,,.,..,,...,...,,.,,.,.,.,,,,.,,,,,,
-#EKYBABY3S226VI4W7OWOKOQ2IU5EKWDWQM4VBEBDHK7HAZANWUVY5GOZE2TW5H47P5VEGOTOAJEDC
-#\\\|27MHL5EBFN376R6TDDAW4RCUMGVJI4F6OPJXZG7SG5ENCSDQKUC \ / AMOS7 \ YOURUM ::
-#\[7]JH5Y7HRFDGJ46X2BK7EWFS3FCBNXNIYUMS4B2AOCBSATUAGXKSCA 7  DATA SIGNATURE ::
+#,,..,,,.,,..,...,.,,,,.,,,..,,.,,,..,,,.,...,..,,...,...,..,,.,,,..,,...,.,,,
+#RXUC7OKXHDQV3MIMGFMVNHTY236L2F5FTNSJ6TB6SU6RGXLJUJ22Q7FJL5O7AJ4ICHXVJBRNBPJ72
+#\\\|SNXUN6TCHMXLX2ZHCAOE4DVIYWNUGPM4S56C3X3DIFJSQRCKG5Q \ / AMOS7 \ YOURUM ::
+#\[7]7YZ4WQ7PL4X5WWEA2HPKZV4RYYXLJ2NJFE24QJS4OBN6UHFWGWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

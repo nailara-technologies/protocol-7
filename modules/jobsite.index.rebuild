@@ -9,8 +9,8 @@ my $index_file = '/var/protocol-7/jobsite/index.yaml';
 my $index = {};
 
 ## active statuses ##
-for my $status (qw| new assessed review apply applied interviewed rejected |)
-{
+for my $status (
+    qw| new assessed review apply applied interviewed rejected skipped |) {
     my $dir = "$jobs_dir/$status";
     next if not -d $dir;
     opendir my $dh, $dir or next;
@@ -71,8 +71,8 @@ if ( not rename( $tmp_file, $index_file ) ) {
 
 return TRUE;
 
-#,,.,,.,,,.,,,,,.,...,,..,,..,..,,,.,,...,,.,,..,,...,..,,..,,,,.,,..,,,,,...,
-#THANWE3NSNFEODQ6RQHQMQ2K2F7RUK4RUQRELHZG4PIM76X27UFPDTBLQZBGFKRMGHK3KQXIRCWSA
-#\\\|OGLBJP3GSDIKPV5ZWQI4WSWCN5PLMJEZFUFN6OSG3FVVIL4CFSS \ / AMOS7 \ YOURUM ::
-#\[7]2H3V74TE2POOZY7BT3GUW637T4FO27HQZFAUNV42AIGUGFO6R2AY 7  DATA SIGNATURE ::
+#,,..,..,,,.,,,,.,.,.,.,,,,.,,..,,.,,,,,.,,,,,..,,...,...,.,,,.,,,,.,,,,.,,..,
+#LHBT2QFXK47HKPDQBJYKGWHOJSE5T4KYLODTHIFR3FDQMGXVYIWO4XKNCTWKHIVBCHWVBMRV3NJ62
+#\\\|NQWB77L3SCFREOUUDTCNRULRHT2ACLZC6WVCJ66H6M34JZU26EA \ / AMOS7 \ YOURUM ::
+#\[7]XJFMAO54Q4F5GNI4Q6623LZDAN5KDYQOBH2VR56D5ENF2CBFCKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
