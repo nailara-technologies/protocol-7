@@ -28,26 +28,26 @@ if ( <[base.cfg_bool]>->( <site-yaml.bypass_proxy> // FALSE ) ) {
 ## init fetch queue state ##
 <[site-yaml.fetch.state]>->('load');
 
-## pre-populate job store with known IDs from disk : prevents re-fetching known jobs ##
-my $jobs_dir = join qw| / |,
-    <system.path.zenka-dirs>->{'var_P7'}, qw| jobsite jobs |;
-if ( opendir my $dh, $jobs_dir ) {
-    my $known = 0;
-    $data{'jobs'}{'store'} //= {};
-    while ( my $f = readdir $dh ) {
-        next unless $f =~ s|\.yaml$||;
-        $data{'jobs'}{'store'}{$f}
-            //= {};    ## placeholder : prevents refetch ##
-        $known++;
+## drop stale queue entries from before the generic fetch refactor ##
+## (they lack a reply_handler and would be silently discarded anyway) ##
+my $queue = $data{'site-yaml'}{'fetch_queue'} // [];
+if ( @{$queue} ) {
+    my $stale = scalar grep { not length( $ARG->{'reply_handler'} // '' ) }
+        @{$queue};
+    if ( $stale == @{$queue} ) {
+        <[base.logs]>->(
+            1, 'site-yaml: dropping %d stale fetch-queue entries',
+            scalar @{$queue}
+        );
+        $data{'site-yaml'}{'fetch_queue'} = [];
+        <[site-yaml.fetch.state]>->('save');
     }
-    closedir $dh;
-    <[base.logs]>->( 1, 'site-yaml: %d known job ids pre-loaded', $known );
 }
 
 <[base.logs]>->( 1, 'site-yaml ready' );
 
-#,,.,,.,,,,,,,,.,,..,,..,,...,,..,,.,,,,,,.,,,..,,...,...,.,,,,,,,..,,,,,,,,.,
-#AU5I7C5FMRYR6557ZZGGVTHNTOUTO6SRBXLPGIKHAGROGEW4NDPLW4SGEXZLUFKBT4KKEKT4VWZNA
-#\\\|EOWYMZKWCIOTG5CVVDYCLTC5VQB6I4C4OHT7ZZHKY7JZEZOBJI5 \ / AMOS7 \ YOURUM ::
-#\[7]EFSIBRV7FXFWIHQKSFLTZNXLW4V2V2KKLHAGEDGKSSHUBR42SSCQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,.,.,,,.,,,.,,.,,.,.,,..,...,,..,..,,...,...,,..,,.,,.,.,,..,.,,,
+#462LBCIXCO2WWPH3LTOFRIGK3RO3TSTGDBSEMTH4A5OPICXJ4565RZ4K4CC3PQGDBBR6WVXIMUZ54
+#\\\|UT37DUZRX2FS2QPNBLOZ7KFA73K2XS5L6HHCJXCNHCNKA4UE6ZR \ / AMOS7 \ YOURUM ::
+#\[7]D7EQWRVBRJNIAABMDVJI2UGA3PZWHYK3DFH6PFXH27T4OPM4V2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

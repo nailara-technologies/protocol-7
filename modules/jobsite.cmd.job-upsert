@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = jobsite.cmd.job-upsert
+# descr = insert|update job record from a fetched search result
+# param = job fields in call_args (id, url, title, company, ...)
+
+my $args   = $call->{'args'}                   // '';
+my $job_in = eval { JSON::decode_json($args) } // {};
+if ( $@ or ref $job_in ne 'HASH' ) {
+    return { 'mode' => 'false', 'data' => 'expected json job record' };
+}
+
+my $id = $job_in->{'id'} // '';
+return { 'mode' => 'false', 'data' => 'no id' }
+    if not length $id;
+
+my $job = { %{$job_in} };
+$job->{'id'} = $id;
+
+## never resurrect blocked, deleted or trashed jobs ##
+my $idx_status = <jobsite.job.index>->{$id} // '';
+if ( $idx_status =~ m{^(blocked|deleted|trash)(:|$)} ) {
+    <[base.logs]>->(
+        2,   'jobs.upsert: skipping %s (status %s)',
+        $id, $idx_status
+    );
+    return { 'mode' => 'true', 'data' => 'exists' };
+}
+
+my $store = $data{'jobs'}{'store'} // <[jobsite.job.load_all]>;
+
+my $is_new = 0;
+if ( exists $store->{$id} ) {
+    ## preserve status and score set by user or LLM
+    my $existing = $store->{$id};
+    for my $key (qw| status score score_reason applied_at |) {
+        $job->{$key} = $existing->{$key} if defined $existing->{$key};
+    }
+    $store->{$id} = $job;
+} else {
+    ## new job : set defaults
+    $job->{'status'} //= 'new';
+    $job->{'score'}  //= '';
+    $job->{'fetched_at'} = time;
+    $store->{$id}        = $job;
+    $is_new              = 1;
+}
+
+## write per-job file
+<[jobsite.job.write]>->( $id, $store->{$id} );
+
+return {
+    'mode' => 'true',
+    'data' => $is_new ? 'new' : 'updated'
+};
+
+#,,,.,..,,,..,,,.,...,..,,,..,.,,,..,,..,,,,,,.,.,...,...,,,,,,,,,,..,..,,,.,,
+#CLWJWHBM4V7253UVHT6U222RO4XLU6UN7CNZNA2CPOCAX2FLAC3A4VHKLYYI5LVF3BAHZ4NSZADQM
+#\\\|PKR47AL5ECORZ7WVIC6YCSEBXJVTQBJCVWRISK5OXUECWZHUHWK \ / AMOS7 \ YOURUM ::
+#\[7]NGJDHA7EPFUDQRB7D2EPZPQ5QNR7FKFA7L3JUSYSHAYUJK436SDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
