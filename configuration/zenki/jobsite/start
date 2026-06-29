@@ -30,6 +30,10 @@ jobsite.cfg.rescan_interval = 0
 ## seconds between sync pushes to httpd cache
 jobsite.cfg.sync_interval = 300
 
+## two-stage delete retention (in V7 epochs)
+jobsite.cfg.trash_keep_epochs  = 1  ## recoverable compressed stage
+jobsite.cfg.deleted_keep_epochs = 2  ## plain deleted stage before purging
+
 ## httpd sync endpoint url
 jobsite.cfg.sync_url      = http://172.24.33.224/jobs-sync
 jobsite.cfg.sync_urls     =
@@ -57,8 +61,8 @@ modules.load = auth net protocol io.unix ui jobsite clients.http devmod
 
 [zenka.loop]
 
-#,,.,,,..,.,.,.,,,,..,,,.,...,,..,.,.,,,,,,.,,..,,...,...,..,,,.,,,,.,,..,,..,
-#IFLD5HMSLCMNBH37ONQHFBU4U7L5QGNUUG4TI2XJK6K6M7OHC3SLBHNP3SF4WYQZH5ILQH6UXWRS6
-#\\\|4T5AZTBWVK676RET4BNTBBCWTIAIF5CEQW4HJQDKJUUULEROJ2U \ / AMOS7 \ YOURUM ::
-#\[7]WWRIMLOSYXH22O6DZ6GKFHX2223P7YWNMGKQQ26BFQ52IX4USKCA 7  DATA SIGNATURE ::
+#,,,.,..,,...,...,,,,,,..,.,,,,.,,.,.,.,.,,,,,..,,...,..,,,,,,.,,,.,.,,..,,,,,
+#KBZGIYNU3M3TWES5O3DSKEHKRPZVBS2PKEC4J43QLEN3OK2RBOXKRT6JRUZPQK6B36FZHDSOG4LXA
+#\\\|WY2ODUUT6ZQ3ZA3CA63BM7QP25POSFGAHXOXUCYOIT22UNKOJZ6 \ / AMOS7 \ YOURUM ::
+#\[7]TRYAKIAR55CSB5HSD2VWGFA4XONIUYSCET2PMLCDGGBJIYWBZQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -25,15 +25,14 @@ for my $entry ( @{$entries} ) {
                 ->( 0, 'jss.sync.apply: delete %s — not found', $id );
             next;
         }
-        ## archive to deleted/ instead of unlinking, so checksum/index keeps
-        ## them out ##
-        $job->{'status'} = 'deleted';
-        $job->{'stage'}  = 'deleted' if length( $job->{'stage'} // '' );
-        $job->{'deleted_epoch'} //= <[base.ntime.epoch_timestamp]>;
+        ## stage 1 deletion: recoverable compressed trash ##
+        $job->{'status'} = 'trash';
+        $job->{'stage'}  = 'trash' if length( $job->{'stage'} // '' );
+        $job->{'trash_epoch'} //= <[base.ntime.epoch_timestamp]>;
         <[jobsite.job.write]>->( $id, $job );
         delete <jobsite.tasks>->{$id}
             if ref <jobsite.tasks> eq qw| HASH |;
-        <[base.logs]>->( 1, 'jss.sync.apply: deleted %s', $id );
+        <[base.logs]>->( 1, 'jss.sync.apply: trashed %s', $id );
         next;
     }
 
@@ -165,8 +164,8 @@ for my $entry ( @{$entries} ) {
     }
 }
 
-#,,,,,,,.,,,,,...,,,,,,,,,,..,,,,,,,,,..,,.,,,..,,...,...,..,,..,,.,,,,.,,,,,,
-#BOWIAFSWVTOY2QMCOAU6AHN4VAC4PJLVVPC73FGT2DPMUQZEAYN7R4AHF7RQPRWZBRXVEJPSYMOO4
-#\\\|O4PPO3KG6YMD2GBQ76GWZ4YY4CZDNQPDAHH5XFLSGRHUOIFS4AA \ / AMOS7 \ YOURUM ::
-#\[7]MQZ2VBUJCC72LCYYYYNXCV3CBZS5JGRDGEHK4YYR7Y5GF74D5CDA 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,,,,..,,,,.,...,.,.,...,.,.,.,.,..,,...,...,.,.,,.,,.,,,,.,,,..,
+#RVWYG7XRMPABY2CYZ5T24UJ66IWXGCBGS3SJQUQ5K3UFSVDV32UMF2JG5EJTYLBGN6SSULVX76SX6
+#\\\|KKDHLO7GARKAHDMLA7XUKB64DH6Q2GEJ5GGJNX2QXMZFTQHT7UP \ / AMOS7 \ YOURUM ::
+#\[7]4I564E2PIAIEYLVAEY45WFA4EB2EOP2C5ETHZEZQ6DYJSXKSPWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
