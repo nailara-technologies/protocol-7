@@ -8,7 +8,7 @@ my $call = shift // {};
 my $mode    = $call->{'mode'} // '';
 my $raw     = $call->{'data'} // '';
 my $result  = ref $raw ? $raw->$* : $raw;
-my $job_id  = $call->{'params'}{'job_id'}  // '';
+my $job_id  = <[base.vax-int.decode]>->( $call->{'params'}{'job_id'} // '' );
 my $task_id = $call->{'params'}{'task_id'} // '';
 
 <[base.logs]>->(
@@ -44,17 +44,19 @@ if ( lc($mode) eq qw| false | ) {
 
 ## protected stages : user decisions must survive pipeline activity ##
 my %protected_stage
-    = map { $ARG => 1 } qw| applied interviewed responded rejected archived |;
+    = map { $ARG => 1 }
+    qw| applied interviewed responded rejected skipped archived |;
 
-if ( $protected_stage{ $job_rec->{'stage'} // '' } ) {
-    <[base.logs]>->(
-        1,       'job %s stage=%s protected, skipping overwrite',
-        $job_id, $job_rec->{'stage'}
-    );
-    <jobsite.pending_count>--;
-    <[jobsite.dispatch.next]>;
-    return;
-}
+my %stage_to_status = (
+    'review'      => 'review',
+    'to_apply'    => 'apply',
+    'applied'     => 'applied',
+    'interviewed' => 'interviewed',
+    'responded'   => 'applied',
+    'rejected'    => 'rejected',
+    'skipped'     => 'skipped',
+    'archived'    => 'rejected',
+);
 
 ## parse yaml result : fall back to json regex for backward compat ##
 my ( $score, $reason, $summary, $apply, $parsed ) = ( '', '', '', '', undef );
@@ -215,9 +217,18 @@ $job_rec->{'score'}         = $score;
 $job_rec->{'score_reason'}  = $reason  // '';
 $job_rec->{'score_summary'} = $summary // '';
 
-my $threshold = <jobsite.cfg.threshold> //= 7;
+my $threshold     = <jobsite.cfg.threshold> //= 7;
+my $current_stage = $job_rec->{'stage'} // '';
 
-if ( length($score) and $score >= $threshold ) {
+if ( $protected_stage{$current_stage} ) {
+    ## keep user-selected stage, derive matching status ##
+    $job_rec->{'status'} = $stage_to_status{$current_stage} // 'assessed';
+    $job_rec->{'stage'}  = $current_stage;
+    <[base.logs]>->(
+        1, 'job %s stage=%s protected, preserving stage [score=%s]',
+        $job_id, $current_stage, length($score) ? $score : '?'
+    );
+} elsif ( length($score) and $score >= $threshold ) {
     $job_rec->{'status'} = 'review';
     $job_rec->{'stage'}  = 'review';
     <[base.logs]>->(
@@ -253,15 +264,23 @@ if ( <jobsite.pending_count> <= 0 ) {
     <jobsite.pending_count> = 0;
     <jobsite.cycle>         = 'idle';
     <[base.logs]>->( 1, 'all assessments complete, cycle=idle' );
-    <[jobsite.sync.push]>->( undef, FALSE )    ## push updated job to web ##
-        ;    ## push results to web immediately ##
+    if (<jobsite.sync.push_in_progress>) {
+        ## current push already collected its job list; schedule follow-up ##
+        <jobsite.sync.push_after_assess> = TRUE;
+        <[base.logs]>->(
+            1, 'assess-done: sync push in progress, scheduling follow-up'
+        );
+    } else {
+        <[jobsite.sync.push]>->( undef, FALSE )  ## push updated job to web ##
+            ;    ## push results to web immediately ##
+    }
 }
 
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.next]>
 
-#,,.,,,.,,,..,.,.,,..,.,.,.,.,,..,..,,...,...,..,,...,...,..,,,..,..,,,..,,,.,
-#MPAXFO7IFBHCT2NANLPOQAEKWN3E3MCISSJUOQRHAC5ZG5M54J63AFABT76DCCGXEXC4B33NC2FFM
-#\\\|EYRA5W7VHJXN57LJR4ZTXELUD74J3NYDG3CWMPATZ5XKIKWEONB \ / AMOS7 \ YOURUM ::
-#\[7]RANO2LAJ5NSS4O6Y5OU5GX5SBBSZ5X6TY66MQXPLMBENYAA5KQAI 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,.,,,.,,.,.,.,,,.,,,...,.,,,..,,..,,...,..,,.,.,,.,,,,.,,..,.,,,
+#BKDRQE6JQKR3U4BOXGRBRRH3TWFWCGOQFN7MYAB5Q27UTXIDQ4YY7APMHBHFRCHRZW5HMJPBMDW26
+#\\\|QFKTY3KTIKCSUJWR2ETIDPPWAHGUPXKQCBKLW4ZVEOWQJ6OGKAY \ / AMOS7 \ YOURUM ::
+#\[7]RPPLSE5IVMABIKVPXT6O3VTTU4XLBXB2UF2JBNJ27IGWCI3VLGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

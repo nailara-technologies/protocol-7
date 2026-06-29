@@ -12,7 +12,7 @@ return unless exists $conn_ref->{$name};
 ## request remote node's orbital list ##
 my $sent = eval {
     <[protocol-7.route-send]>->(
-        {   'command'   => 'discover.cmd.list-orbital',
+        {   'command'   => 'discover.list-orbital',
             'call_args' => { 'args' => '' },
             'reply'     => {
                 'handler' => qw| external.handler.orbital_connect_reply |,
@@ -34,8 +34,8 @@ if ( $EVAL_ERROR or not $sent ) {
 
 return TRUE;
 
-#,,..,.,.,,.,,...,,,.,...,,.,,..,,.,,,.,,,,,.,..,,...,...,,.,,..,,...,,,.,,,.,
-#MSHV6E3RX7XDGNNQTASEP2S2J7N75ID3MRMPAAWZYJSRNTMJ5CDCKW74TDW5ARDHPBHJZ75BTZVF2
-#\\\|IIJF62UCKNPYDDJDR4QL4KUTGBFAKFJNKVCZI3LASC57LQRVZQJ \ / AMOS7 \ YOURUM ::
-#\[7]QMVHMSKMWD74JZ4NB4YKBF7K4HZVLQYMW4Z6ZEB5OIGOZUSFGICI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,..,,.,,,.,,,,,,,,..,,,,,.,.,...,..,,...,..,,,,,,,..,,..,.,,,...,
+#DIHBCVUSTHBBN3NELATEJMMKILHSUTRTIQWQ26VUQL4PQZFNVDQRHCIL62TQLPHCSBHJUOH2PH2KS
+#\\\|V2JZRNL4SZRRCE74VFWGWKDCRUMOVAEUMMOSQL6WJWKSCJ3THTR \ / AMOS7 \ YOURUM ::
+#\[7]M2WVB2UIBDYWDDCZ5V3Q555GJZBZUKYT3HJTTXNBQ4WPSQIKBQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
