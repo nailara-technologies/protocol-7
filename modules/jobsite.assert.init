@@ -3,7 +3,8 @@
 # name  = jobsite.assert.init
 # descr = create assertion tree template for a job entry
 
-my $job_id = shift // return;
+my $job_id = <[base.vax-int.decode]>->( shift // '' );
+return if not length $job_id;
 
 my $assertions = {
     'suggest' => {
@@ -51,8 +52,8 @@ my $assertions = {
 
 return $assertions;
 
-#,,..,,,.,...,,..,,..,,,,,.,,,...,...,..,,,,,,..,,...,...,.,,,.,.,,.,,,,.,..,,
-#7PZ7KC6KIREUZI4CC5AHBWYH3TXOEUJURMSLEYYE4JZCON4XLC6TRGTJ5PG2FBEDCOKZGHJPO75AU
-#\\\|2EVDQ2WPCG42MDPKXEZSBSOBZMETO2YK4ZQMWOWFEYSIARZ22UC \ / AMOS7 \ YOURUM ::
-#\[7]VHMVKD53QNX3TNLH75YSYA4WSUO6TMU2KLOPELOFZ6MHGFE6BYDY 7  DATA SIGNATURE ::
+#,,..,.,,,..,,,..,,.,,.,,,..,,,.,,.,,,,.,,,..,..,,...,...,.,,,..,,...,..,,.,.,
+#DFP5TGHAK5T6QDFFTOIXZGATET2COFKIDOGDYH5ZXSPMLWXRGFODOEFLDAQRGA4SCG3WNMLZOFVM6
+#\\\|CUJ7DK5PHYTTP3T2IKOV432CZNUJVSRKEEHHOAXJNSJW57FA2E7 \ / AMOS7 \ YOURUM ::
+#\[7]XGGQGRL43DBQEO7MYH7MGHEHZC4WYCH2XSGCAUFXN3M3MQPB4OCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

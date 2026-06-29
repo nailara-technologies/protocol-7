@@ -68,7 +68,8 @@
                                      nameserv.remove-record \
                                      nameserv.get-record
 
-            access.cmd.usr.httpd  =  web.process_template_ipc web.* \
+            access.cmd.usr.httpd  =  web.process_template_ipc \
+                                     web.jobs-data web.jobs-sync web.* \
                                      v7.notify_offline \
                                      v7.status \
                                      letsencr.request-certificate \
@@ -363,14 +364,13 @@
                                      X-11.move-window X-11.get_geometry
 
    access.cmd.usr.jobsite         =  v7.notify_online \
-                                     site-yaml.import \
+                                     site-yaml.import site-yaml.queue-depth \
                                      site-yaml.list-stray-jobs \
                                      site-yaml.export-stray-job \
                                      site-yaml.confirm-stray-claimed \
                                      task.create task.wait-done \
                                      coding.summarize-context \
-                                     cred-mesh.register \
-                                     cred-mesh.resolve
+                                     cred-mesh.register cred-mesh.resolve
 
       access.cmd.usr.weather      =  cred-mesh.register \
                                      cred-mesh.resolve
@@ -409,8 +409,8 @@
 
       access.cmd.usr.screen-setup  =  X-11.move-window
 
-#,,,.,.,.,,.,,,,,,..,,,,.,.,.,...,..,,...,,.,,.,.,...,..,,,,.,,..,,,.,.,,,,..,
-#KYWX7BMJZZ4EQXVO3TJMFLXC6HYGDDBAEM5EKBWOPDI3HFPNYJHQBCQV76AKF33V4GVP47LHPLAAU
-#\\\|VEWC7O3UNKMVW3BFDPAICZK42PDM6DAOA3DMWMBI6ZI4LKIPNTQ \ / AMOS7 \ YOURUM ::
-#\[7]FCT5XMV2I3MWKUXM7HDB4BOAHQFRO7ZSBETRHME43GNIB2UF7MAI 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,...,,,.,.,,,,..,,.,,,.,,,.,,,.,,.,.,...,...,.,.,.,.,.,.,..,,...,
+#QHXMNAJLDH3ETM6WLIJWYWOAH4VPWUFZJMEOTJRHNLOS5YNOFB3J3USYDJIL6JZGAMW552QME7UTA
+#\\\|LOWPXOQBLIUVH6OTD37TH4S3WAR3JMJYYXFUIQ6JN6NVWDF64XY \ / AMOS7 \ YOURUM ::
+#\[7]ATJLYMFGV6E6D36MZEESB3LBBQI5CLQB762BVFH75GIXUPISISBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

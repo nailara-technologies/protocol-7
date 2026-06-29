@@ -52,10 +52,12 @@ if ( not length $id or ref $job ne qw| HASH | ) {
     return;
 }
 
-my $existing = <[jobsite.job.read]>->($id);
+my $dec_id = <[base.vax-int.decode]>->($id);
+
+my $existing = <[jobsite.job.read]>->($dec_id);
 
 if ( not defined $existing ) {
-    <[jobsite.job.write]>->( $id, $job );
+    <[jobsite.job.write]>->( $dec_id, $job );
     <jobsite.stray_claim_recovered> = TRUE;
     <[base.logs]>->( 1, 'stray-claim [%s] : recovered %s', $source, $id );
 } else {
@@ -71,8 +73,10 @@ if ( not defined $existing ) {
         );
     } else {
         <[base.logs]>->(
-            0, 'stray-claim [%s] : %s content conflict, keeping canonical',
-            $source, $id
+            1,
+            'stray-claim [%s] : %s differs from canonical, dropping stray copy',
+            $source,
+            $id
         );
     }
 }
@@ -87,8 +91,8 @@ if ( not defined $existing ) {
 
 return;
 
-#,,..,,,,,.,,,.,.,,..,,.,,.,,,.,,,,,,,..,,..,,..,,...,...,...,,,.,,,.,,.,,,,.,
-#FPWFFQJSBHSHUMEGZEMVGOKVWMYZHQLO77CKCIZ3V2IY2TGANWJ7OQY4YZKJRHFSQZGKEXALN7DP4
-#\\\|4OS5PF2KOP2D7H27DQK66B4WOCMJWFA64UYDK2EIQN5GYDJW4ME \ / AMOS7 \ YOURUM ::
-#\[7]UYOHZVECS7GLSVK2WE5ZW4EUB5LAAFQ2QHHWCS6DRHO35MCS44DI 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,.,.,.,,,,,.,..,,..,,.,.,.,,,.,,,..,,...,...,.,.,.,,,,,.,,,,,.,,,
+#F4OPBH7YJIBWUKQR3T2TAGONZFCEH2JNG5ZLH26OJSKB22CIAKKD4WEQSF4LY7VLUHQT7UQJN2UAO
+#\\\|34TNNQDVRMHY4MY67BXZPYIJKFREBRJZ3ODVBZEH3EA5F5UI4ES \ / AMOS7 \ YOURUM ::
+#\[7]2GB33YNQVVAVZJF2QXGW4P5GIMLO6I6D3WO7WGAQLZGEOHRWN4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

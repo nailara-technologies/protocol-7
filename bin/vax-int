@@ -35,12 +35,24 @@ if ( $option{'d'}
     warn "input string longer than expected [ 32-bit VAX int ]\n"
         if length($B32_in) > 7;
 
+    ## all-'A' strings encode zero value(s); decode_b32r fails on a single 'A' ##
+    if ( $B32_in =~ m|^A+$| ) {
+        say $option{'q'}
+            ? 0
+            : sprintf "$fg:\n: $bg ${ng}0$fg $rst$fg\n:$rst\n";
+        exit;
+    }
+
     my $B32_decoded = decode_b32r($B32_in);    ## BASE32 ##
 
     warn "BASE32 decoding error\n" if not defined $B32_decoded;
 
     warn "decoded value exceeds 32-bit [ 4 bytes ]\n" and exit(3)
         if length($B32_decoded) > 4;
+
+    ## restore zero bytes stripped by the encoder (trailing 'A' chars) ##
+    $B32_decoded .= "\0" x ( 4 - length($B32_decoded) )
+        if length($B32_decoded) < 4;
 
     my $decoded_integer = unpack( $pack_template, $B32_decoded );  # VAX-INT #
 
@@ -79,8 +91,8 @@ sub error_exit {
     exit(110);
 }
 
-#,,,,,...,..,,,,,,,,,,,,.,,,,,.,,,,,,,,,,,,..,..,,...,...,...,,.,,,,.,,.,,,,.,
-#HOXWYSHQNQ7R7QGTCGODPT5RNL3CJPSZ2RHAGNLI25F542NXFOBAIV4X3E35ZRK64WDIFBODCEOXY
-#\\\|WWCE3G2YJWEZ2IUXN45O4ATKUETDDFAS7AWOZ5ITCD6HGH2BCP6 \ / AMOS7 \ YOURUM ::
-#\[7]Z4FSBJ2HWK54YBMS7IN5OSSUNBMO7DQXDR23TMCRT6NQ3DQ5CACY 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,.,,...,,.,,,,.,,,.,..,,.,.,.,.,..,,...,...,...,,..,,.,,..,,.,.,
+#GTJGMXLY6ZLCG2UYBDC6JNOKGFBXN6ZXEI5JVMWHVKKWYQT32VPX5DAJGCXOZAESZH7HKEBC5MJWG
+#\\\|RQIFG4BW3XSVVI6JLVCNCV4I6TYZNLU5FH3PXWGQ23L5ACQKUAB \ / AMOS7 \ YOURUM ::
+#\[7]Z4HXJGSIPPBYDEZCH4ENSWY5NGNLAHJQ7DGKYYX5DPRDR6EBJQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

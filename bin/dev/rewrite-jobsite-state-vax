@@ -1,0 +1,99 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use warnings;
+use English;
+use YAML::XS;
+use Crypt::Misc qw| encode_b32r |;
+
+my $jobsite_dir   = '/var/protocol-7/jobsite';
+my $site_yaml_dir = '/var/protocol-7/site-yaml';
+
+while ( @ARGV and $ARGV[0] =~ m/^-(jobsite-dir|site-yaml-dir)$/ ) {
+    my $opt = $1;
+    shift @ARGV;
+    my $val = shift @ARGV // '';
+    if ( $opt eq 'jobsite-dir' ) {
+        $jobsite_dir = $val;
+    } else {
+        $site_yaml_dir = $val;
+    }
+}
+
+my $pack_template = qw| V |;
+
+sub vax_encode {
+    my $id = shift // '';
+    return $id if not length $id;
+    return $id if $id !~ m|^\d+$|;
+    return $id if $id > 4294967295;
+    my $enc = encode_b32r( pack $pack_template, $id );
+    $enc =~ s|A+$||;
+    $enc = qw| A | if not length $enc;
+    return $enc;
+}
+
+sub rewrite_index {
+    my $index_file = "$jobsite_dir/index.yaml";
+    return if not -f $index_file;
+
+    my $index = eval { YAML::XS::LoadFile($index_file) };
+    if ($@) {
+        warn "error loading $index_file: $@\n";
+        return;
+    }
+    return if ref $index ne 'HASH';
+
+    my $new_index = {};
+    for my $key ( keys %{$index} ) {
+        my $new_key = vax_encode($key);
+        $new_index->{$new_key} = $index->{$key};
+    }
+
+    eval { YAML::XS::DumpFile( "$index_file.tmp", $new_index ) };
+    if ($@) {
+        warn "error writing $index_file.tmp: $@\n";
+        return;
+    }
+
+    rename "$index_file.tmp", $index_file
+        or warn "error renaming $index_file.tmp: $!\n";
+}
+
+sub rewrite_fetch_state {
+    my $state_file = "$site_yaml_dir/fetch-state.yaml";
+    return if not -f $state_file;
+
+    my $state = eval { YAML::XS::LoadFile($state_file) };
+    if ($@) {
+        warn "error loading $state_file: $@\n";
+        return;
+    }
+    return if ref $state ne 'HASH';
+
+    if ( ref $state->{'queue'} eq 'ARRAY' ) {
+        for my $item ( @{ $state->{'queue'} } ) {
+            next if ref $item ne 'HASH';
+            $item->{'id'} = vax_encode( $item->{'id'} // '' );
+        }
+    }
+
+    eval { YAML::XS::DumpFile( "$state_file.tmp", $state ) };
+    if ($@) {
+        warn "error writing $state_file.tmp: $@\n";
+        return;
+    }
+
+    rename "$state_file.tmp", $state_file
+        or warn "error renaming $state_file.tmp: $!\n";
+}
+
+rewrite_index();
+my $fetch_ok = eval { rewrite_fetch_state(); 1 };
+warn "fetch-state rewrite skipped: $@" if not $fetch_ok;
+
+#,,..,.,,,.,.,,..,.,,,,..,,..,,,,,...,.,.,.,.,.,.,...,...,...,...,.,,,,,.,,,,,
+#2PPIRC7SOVP3L72CAABF7L2UBRP3UI5WWUL66TS4YUEFGH5DHTFDVRFTJA3YARUY5BQRZRYFOQLRO
+#\\\|R5Y7ILNRCFISYDLZ7FRN4SF6IDNT777NOZ2LNUSCZEQCZT2BEWG \ / AMOS7 \ YOURUM ::
+#\[7]DYX5XMXLQEL776LP2FVRMJKIIHQM5FQMCTECJECERN2XCLOP74AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

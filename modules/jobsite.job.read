@@ -9,11 +9,13 @@ return undef if not length $job_id;
 my $status = <jobsite.job.index>->{$job_id} // '';
 return undef unless length $status;
 
+my $enc_id = <[base.vax-int.encode]>->($job_id);
+
 my $rel_path = do {
     if ( $status =~ m{^(blocked|deleted):(.+)$} ) {
-        "jobs/$1/$2/$job_id.yaml";
+        "jobs/$1/$2/$enc_id.yaml";
     } else {
-        "jobs/$status/$job_id.yaml";
+        "jobs/$status/$enc_id.yaml";
     }
 };
 
@@ -37,8 +39,8 @@ for my $v ( values %$job ) {
 
 return $job;
 
-#,,..,,..,,.,,.,,,,..,...,..,,,.,,.,.,,,.,,,,,..,,...,...,,.,,..,,.,.,,.,,,..,
-#QRXVAOWUMZ72C6WJ6QV43HIXLZODBEB44GSWVCQF2WVJU4FUSPAA3K72OJDM3OQOSDQZDHD6C52XA
-#\\\|QU27ZMKAJK7LU3KKKNVBTKJS5FQWIVPFHXSMKNJYUT3X3CWZNHE \ / AMOS7 \ YOURUM ::
-#\[7]ZL7FXTGX6YXTKDDUXOP7OCOCD7PZU5TJ2MRUMCB6LGLERKY4L2BI 7  DATA SIGNATURE ::
+#,,..,..,,...,..,,.,,,,,.,,,,,,,.,,.,,,,.,.,.,..,,...,...,,,,,,..,,,.,.,,,,,,,
+#YZVAM6I5SRZIOSA5L3O4DGYYPKABZPSHUJNE4HBWEMHHD7GGYBCODRRHBDAI5NTRIDFZHDEPXMJ66
+#\\\|PBI5FUNB5SH5UNSSLQOX36C6DY2WV2SDADSCEOM4CM2ON6DT7G6 \ / AMOS7 \ YOURUM ::
+#\[7]24JDBA2N42KBLOYXJ7D5SHZ5GY2NB2TIOGWCSASWG7OCIYIMPWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

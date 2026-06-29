@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = base.vax-int.encode
+# descr = encode a numeric job id to VAX base32 form; pass non-numeric through
+
+my $id = shift // '';
+
+return $id if not length $id;
+return $id if $id !~ m|^\d+$|;
+return $id if $id > 4294967295;
+
+<[base.perlmod.autoload]>->('Crypt::Misc');
+
+my $encoded = Crypt::Misc::encode_b32r( pack qw| V |, $id );
+$encoded =~ s|A+$||;    ## remove zero padding ##
+$encoded = qw| A | if not length $encoded;
+
+return $encoded;
+
+#,,.,,,,.,...,,,,,..,,,..,,,,,,,,,,,.,,,,,,..,.,.,...,...,...,.,.,,,,,,,.,,,,,
+#77MQCH3MULKE3E3YTWI3OOJG6JY5RBDY673NYUD2TZB5CLDCR4ZHJYMAM7JMSLZCTJ7DLTI5KVQWI
+#\\\|BXFNOLH2FN2NZ26AI4SZ4ZM4SZHYARG7VTAT7AM44RGQGVWSXGR \ / AMOS7 \ YOURUM ::
+#\[7]A2XTGH3BFXEFIXU432VLBYFJ2KJRSTV3RYSJF4NK5JEKZU43GWDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

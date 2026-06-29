@@ -24,8 +24,8 @@ if ( $arg eq qw| list | ) {
     ) {
         my $j = $store->{$id};
         push @lines, sprintf "%s | %s | %s | %s",
-            $id, $j->{'status'} // 'new', $j->{'company'} // '',
-            $j->{'title'} // '';
+            <[base.vax-int.encode]>->($id), $j->{'status'} // 'new',
+            $j->{'company'} // '', $j->{'title'} // '';
     }
     return { 'mode' => 'size', 'data' => join( "\n", @lines ) };
 }
@@ -43,7 +43,8 @@ if ( $arg eq qw| new | ) {
         my $j = $store->{$id};
         next unless ( $j->{'status'} // '' ) eq 'new';
         push @lines, sprintf "%s | %s | %s",
-            $id, $j->{'company'} // '', $j->{'title'} // '';
+            <[base.vax-int.encode]>->($id), $j->{'company'} // '',
+            $j->{'title'} // '';
     }
     return {
         'mode' => 'size',
@@ -51,18 +52,21 @@ if ( $arg eq qw| new | ) {
     };
 }
 
+## decode a specific job id if given ##
+my $dec_arg = <[base.vax-int.decode]>->($arg);
+
 ## latest job ##
-if ( $arg eq qw| latest | ) {
+if ( $dec_arg eq qw| latest | ) {
     my @ids = sort {
         $store->{$b}{'fetched_at'} // 0 <=> $store->{$a}{'fetched_at'} // 0
         }
         keys %{$store};
     return { 'mode' => 'false', 'data' => 'no jobs in store' } unless @ids;
-    $arg = $ids[0];
+    $dec_arg = $ids[0];
 }
 
 ## specific job id ##
-my $job = $store->{$arg};
+my $job = $store->{$dec_arg};
 return { 'mode' => 'false', 'data' => "job $arg not found" }
     unless defined $job;
 
@@ -70,8 +74,8 @@ my $prompt = <[jobsite.util.build_prompt]>->($job);
 
 return { 'mode' => 'size', 'data' => $prompt };
 
-#,,.,,,..,,.,,,.,,.,.,.,.,.,.,.,.,,,.,.,.,...,.,.,...,..,,,.,,.,.,,,,,,,,,...,
-#3DVUWZNA74MM3TKBJ3GFVDMFUSHOYSCHTAUOBTXJB7GIMVLAGIIVVXE7XC4NKBYXKLR7TRYDPCZV4
-#\\\|VUCUCTPPNOBE5DWQDZE5OTNO4NBEM6V47CKS5C4L234BAGM42YO \ / AMOS7 \ YOURUM ::
-#\[7]ZDFC433L54KU3IFIPCEGVMOYSY5AXFKCBALFCCYBE6JERDMCQQAA 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,,.,,.,,,.,,,,,.,.,.,,,.,.,.,...,.,.,...,..,,...,.,,,..,,,.,,.,.,
+#5QAWYFAUCI35RLARB7HZS537IZWV7J66CRLIZOCMYFA4APYVHUO4J4L2TTQVLJULFN3NKARRMSQNS
+#\\\|PFTQCVVCXAMEJ6UJ2YVVABGRUQTB2KX5PPW52ATX7WT23JRIFQ2 \ / AMOS7 \ YOURUM ::
+#\[7]33ZO7QEUI3ANMEDXWRL2STQBTX2N2T2AT5ZYBIBUZQ7IFSK6GQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -19,13 +19,19 @@ if ( $op eq qw| load | ) {
     }
     return if ref $loaded ne 'HASH';
 
+    my $queue = $loaded->{'queue'} // [];
+    for my $item ( @{$queue} ) {
+        next if ref $item ne 'HASH';
+        $item->{'id'} = <[base.vax-int.decode]>->( $item->{'id'} // '' );
+    }
+
     $data{'site-yaml'}{'fetch_delay'}     = $loaded->{'delay'}     // 1.5;
     $data{'site-yaml'}{'fetch_delay_min'} = $loaded->{'delay_min'} // 0.5;
     $data{'site-yaml'}{'fetch_delay_max'} = $loaded->{'delay_max'} // 10.0;
     $data{'site-yaml'}{'fetch_errors'}    = $loaded->{'errors'}    // 0;
     $data{'site-yaml'}{'fetch_successes'} = $loaded->{'successes'} // 0;
-    $data{'site-yaml'}{'fetch_queue'}     = $loaded->{'queue'}     // [];
-    $data{'site-yaml'}{'fetch_drain_cb'}  = $loaded->{'drain_cb'}  // '';
+    $data{'site-yaml'}{'fetch_queue'}     = $queue;
+    $data{'site-yaml'}{'fetch_drain_cb'}  = $loaded->{'drain_cb'} // '';
     $data{'site-yaml'}{'fetch_timer'}     = undef;
 
     <[base.logs]>->(
@@ -38,14 +44,22 @@ if ( $op eq qw| load | ) {
 }
 
 if ( $op eq qw| save | ) {
+    my $queue = [];
+    for my $item ( @{ $data{'site-yaml'}{'fetch_queue'} // [] } ) {
+        my $enc_item = { %{$item} };
+        $enc_item->{'id'}
+            = <[base.vax-int.encode]>->( $enc_item->{'id'} // '' );
+        push @{$queue}, $enc_item;
+    }
+
     my $payload = {
         'delay'     => $data{'site-yaml'}{'fetch_delay'}     // 1.5,
         'delay_min' => $data{'site-yaml'}{'fetch_delay_min'} // 0.5,
         'delay_max' => $data{'site-yaml'}{'fetch_delay_max'} // 10.0,
         'errors'    => $data{'site-yaml'}{'fetch_errors'}    // 0,
         'successes' => $data{'site-yaml'}{'fetch_successes'} // 0,
-        'queue'     => $data{'site-yaml'}{'fetch_queue'}     // [],
-        'drain_cb'  => $data{'site-yaml'}{'fetch_drain_cb'}  // '',
+        'queue'     => $queue,
+        'drain_cb'  => $data{'site-yaml'}{'fetch_drain_cb'} // '',
     };
 
     my $yaml;
@@ -61,8 +75,8 @@ if ( $op eq qw| save | ) {
 
 return FALSE;
 
-#,,..,,,,,..,,...,,..,,.,,,..,,.,,,.,,..,,.,.,.,.,...,...,,,,,...,,,,,,..,.,.,
-#HNE5AZ6AAROAFAZSBR54QCLSC6JEU42VIWDUSA7Y2YZ72PYAEBWNXQTUI4LUZ5ZEGEC5YEAEDLABS
-#\\\|NX2YHGARKVXR2I3RWFBMTEJQV4ALUKVU67WS24NZYAI5ONFGNDB \ / AMOS7 \ YOURUM ::
-#\[7]5RFBFJKDP2OP7M7GAYRVOCYWKIVAK627EZEWUZG7TOMAMI7MJ2DY 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,.,,,,..,...,...,,,,,.,,,.,.,...,.,.,...,...,.,.,.,.,.,,,.,.,.,,,
+#7KVFMDND7DLLMVTIXJPA2NUKMHET55QEJ2GZVYFQC6LYY6QMQOUGB7T4ZTM4YNNTH4WGAAJHN6F4C
+#\\\|RV225FSOSEWVM42VXGE5HCHDNZ7WVXVU2LYEL44TOZWX5UVTQ34 \ / AMOS7 \ YOURUM ::
+#\[7]MWZ2LBMLOXYQR3LRB4KCYRTKSPECOJZRDYCMVZMC7S73R2BMHMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

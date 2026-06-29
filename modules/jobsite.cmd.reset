@@ -51,8 +51,8 @@ if ( defined $params{'job_id'} ) {
         my $status_dir = "$jobs_dir/$status_val";
         if ( -d $status_dir and opendir my $dh, $status_dir ) {
             for my $fn ( readdir $dh ) {
-                next unless $fn =~ m{^(\d+)\.yaml$};
-                my $jid = $1;
+                next unless $fn =~ m{^([A-Z2-7]+)\.yaml$};
+                my $jid = <[base.vax-int.decode]>->($1);
                 next if $seen{$jid};
                 push @candidates, $jid;
             }
@@ -99,12 +99,13 @@ for my $job_id (@candidates) {
 
     ## enc_error filter : scan raw file bytes for double-encoded marker ##
     if ( defined $check_encoding ) {
+        my $enc_id   = <[base.vax-int.encode]>->($job_id);
         my $job_file = do {
             my $idx_status = <jobsite.job.index>->{$job_id} // '';
             if ( $idx_status =~ m{^(blocked|deleted):(.+)$} ) {
-                "$jobs_dir/$1/$2/$job_id.yaml";
+                "$jobs_dir/$1/$2/$enc_id.yaml";
             } elsif ( length $idx_status ) {
-                "$jobs_dir/$idx_status/$job_id.yaml";
+                "$jobs_dir/$idx_status/$enc_id.yaml";
             } else {
                 '';
             }
@@ -123,12 +124,13 @@ for my $job_id (@candidates) {
     ## rep-err filter : check YAML field directly ##
     if ( exists $params{'rep-err'} ) {
         my $want     = <[base.cfg_bool]>->( $params{'rep-err'} );
+        my $enc_id   = <[base.vax-int.encode]>->($job_id);
         my $job_file = do {
             my $idx_status = <jobsite.job.index>->{$job_id} // '';
             $idx_status =~ m{^(blocked|deleted):(.+)$}
-                ? "$jobs_dir/$1/$2/$job_id.yaml"
+                ? "$jobs_dir/$1/$2/$enc_id.yaml"
                 : (
-                length $idx_status ? "$jobs_dir/$idx_status/$job_id.yaml"
+                length $idx_status ? "$jobs_dir/$idx_status/$enc_id.yaml"
                 : ''
                 );
         };
@@ -171,8 +173,8 @@ return {
     $n_protected ? " [$n_protected protected skipped]" : ''
 };
 
-#,,.,,.,,,.,.,,,,,.,.,...,,,.,,..,,.,,..,,,,,,..,,...,...,..,,,.,,..,,..,,.,,,
-#MHKIVC6P7AEGOSARHDZRCD3ZKTIYTIFOE4IY6U5KYNHFD43MK6UG6HG5OZOMF3TREXSKXOWPB3RQ4
-#\\\|3K2EBCJ5LUSXQTD5ACUQ5A7LOAZLDFIBGUMU6Q3A5AOR32JWUD2 \ / AMOS7 \ YOURUM ::
-#\[7]ZE7AP25NNAASGNHQ2EXK7DB45JWCZEIZVNH6V53A5VM5S4L2FSDI 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,.,,,,,,,,..,.,.,,,,,,.,,...,,.,,..,,...,...,,.,,..,,,,.,..,,,,.,
+#E4MV4K2XHM36TW7AE2ICVBFS2L56J4LYRWK5HBSGZKAW63U34NJEM2DAITDQG6NO6CCQW6ANMTN3I
+#\\\|NIFAYEOQPNLKL5YCHZHYCI2W72RBMDAOQXUNIHJ5M6JF3H3QZSX \ / AMOS7 \ YOURUM ::
+#\[7]T3UMULBCINUUNFHEJGPMEWMOUK22XFGQQMOZLQHAKJPKJAJ6LAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
