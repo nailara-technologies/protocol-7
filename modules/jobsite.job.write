@@ -9,6 +9,8 @@ my $job    = shift // {};
 return FALSE if not length $job_id;
 return FALSE if ref $job ne 'HASH';
 
+my $enc_id = <[base.vax-int.encode]>->($job_id);
+
 my $jobs_root = join qw| / |,
     <system.path.zenka-dirs>->{'var_P7'}, qw| jobsite jobs |;
 
@@ -18,15 +20,15 @@ my $status = $job->{'status'} // 'new';
 my ( $rel_path, $abs_path );
 if ( $status eq 'blocked' ) {
     my $epoch = $job->{'blocked_epoch'} // <[base.ntime.epoch_timestamp]>;
-    $rel_path = "jobs/blocked/$epoch/$job_id.yaml";
-    $abs_path = "$jobs_root/blocked/$epoch/$job_id.yaml";
+    $rel_path = "jobs/blocked/$epoch/$enc_id.yaml";
+    $abs_path = "$jobs_root/blocked/$epoch/$enc_id.yaml";
 } elsif ( $status eq 'deleted' ) {
     my $epoch = $job->{'deleted_epoch'} // <[base.ntime.epoch_timestamp]>;
-    $rel_path = "jobs/deleted/$epoch/$job_id.yaml";
-    $abs_path = "$jobs_root/deleted/$epoch/$job_id.yaml";
+    $rel_path = "jobs/deleted/$epoch/$enc_id.yaml";
+    $abs_path = "$jobs_root/deleted/$epoch/$enc_id.yaml";
 } else {
-    $rel_path = "jobs/$status/$job_id.yaml";
-    $abs_path = "$jobs_root/$status/$job_id.yaml";
+    $rel_path = "jobs/$status/$enc_id.yaml";
+    $abs_path = "$jobs_root/$status/$enc_id.yaml";
 }
 
 ## ensure parent directory exists ##
@@ -42,9 +44,9 @@ my $old_status   = <jobsite.job.index>->{$job_id} // '';
 my $old_abs_path = '';
 if ( length $old_status ) {
     if ( $old_status =~ m{^(blocked|deleted):(.+)$} ) {
-        $old_abs_path = "$jobs_root/$1/$2/$job_id.yaml";
+        $old_abs_path = "$jobs_root/$1/$2/$enc_id.yaml";
     } else {
-        $old_abs_path = "$jobs_root/$old_status/$job_id.yaml";
+        $old_abs_path = "$jobs_root/$old_status/$enc_id.yaml";
     }
 }
 
@@ -52,7 +54,7 @@ if ( length $old_status ) {
 my $write_job;
 if ( $status eq 'blocked' ) {
     $write_job = {
-        'id'            => $job_id,
+        'id'            => $enc_id,
         'url'           => $job->{'url'} // '',
         'status'        => 'blocked',
         'blocked_epoch' => $job->{'blocked_epoch'}
@@ -60,7 +62,8 @@ if ( $status eq 'blocked' ) {
         'checksum_hit' => $job->{'checksum_hit'} // '',
     };
 } else {
-    $write_job = $job;
+    $write_job                    = $job;
+    $write_job->{'id'}            = $enc_id;
     $write_job->{'last_modified'} = <[base.ntime.b32]>;
 }
 
@@ -141,7 +144,7 @@ if ( -f $index_file ) {
     $index = eval { YAML::XS::LoadFile($index_file) } // {};
 }
 
-$index->{$job_id} = {
+$index->{$enc_id} = {
     'status' => $job->{'status'} // '',
     'score'  => $job->{'score'}  // '',
     'stage'  => $job->{'stage'}  // '',
@@ -159,8 +162,8 @@ rename( $index_tmp, $index_file )
 
 return $written;
 
-#,,.,,...,...,.,.,,..,...,..,,,..,.,,,.,,,,.,,..,,...,...,.,,,,,.,.,.,,,.,,,.,
-#MOGMCNKUJQTFS3RAZMBWKQCNZQ3EFITJROOV5PS3H4OTH4HWHFMEBEX5UAOTQQV4436X54H5SIAAQ
-#\\\|RLIY7JIKSIK2V7QN5RIA4YJSNMNTUP3ZPR6KWNEIZ5A7DKJG3LL \ / AMOS7 \ YOURUM ::
-#\[7]KIF6BRR5EFJ7YPCPBDWJGELKADQPOBFS2RFNQURKPMLBIBB7BKCA 7  DATA SIGNATURE ::
+#,,.,,.,.,...,.,.,..,,...,...,...,,..,...,,,.,..,,...,...,..,,..,,,,.,.,.,...,
+#L5ORV54AXIJ3VU3JLBZMD5N7UOAS2YYELLBCOOXTCUXPB776FER3735HD3VKOFHJXVT5QAWRUXRCG
+#\\\|6NZFODOTWZX3B7DEY5MMYXOW7EWS7VIRFAVYY5OZXLPMIEMTXZY \ / AMOS7 \ YOURUM ::
+#\[7]2RPF3EPR3DLHJRL2D6LBOUYMMLEYJ6QRPUYIHMT3GCBFV3LCX2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

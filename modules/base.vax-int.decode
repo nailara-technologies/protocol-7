@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = base.vax-int.decode
+# descr = decode a VAX base32 job id back to numeric; pass non-encoded through
+
+my $id = shift // '';
+
+return $id if not length $id;
+return $id if $id =~ m|^\d+$|;          ## already numeric ##
+return $id if $id !~ qr|^[A-Z2-7]+$|;
+return $id if length($id) > 7;
+
+## all-'A' strings represent zero value(s); decode_b32r fails on a single 'A' ##
+return 0 if $id =~ m|^A+$|;
+
+<[base.perlmod.autoload]>->('Crypt::Misc');
+
+my $decoded_bytes = Crypt::Misc::decode_b32r($id);
+return $id if not defined $decoded_bytes;
+return $id if length($decoded_bytes) > 4;
+
+## trailing 'A' chars were stripped by the encoder to shorten the string;
+## they represent zero bytes, so pad the decoded bytes back to 32-bit width ##
+$decoded_bytes .= "\0" x ( 4 - length($decoded_bytes) )
+    if length($decoded_bytes) < 4;
+
+my $decoded = eval { unpack qw| V |, $decoded_bytes };
+return $id if not defined $decoded;
+
+return $decoded;
+
+#,,.,,...,.,,,..,,...,...,.,.,...,,,,,.,.,,.,,.,.,...,.,.,..,,,,,,,,.,,.,,..,,
+#5YJL4RCTRW2XLKEVLQ5FGK3F5TFZALL3TWY5KNFDE43BPQGRCAWYUNLVRV2RZBVUISPK3MRISNNR6
+#\\\|YFDP7OU2GEL2JIEVOXUWWREIJ65RLJ64MJVCL5KR4C63FFZRGJM \ / AMOS7 \ YOURUM ::
+#\[7]D2DCMJBJVBPLHCTPMRQUHXPIINXAPRIDTUTHUVF3U4EXBJ5GWEBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

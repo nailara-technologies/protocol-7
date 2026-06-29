@@ -8,7 +8,7 @@ my $call = shift // {};
 my $mode    = $call->{'mode'} // '';
 my $raw     = $call->{'data'} // '';
 my $task_id = ref $raw ? $raw->$* : $raw;
-my $job_id  = $call->{'params'}{'job_id'} // '';
+my $job_id  = <[base.vax-int.decode]>->( $call->{'params'}{'job_id'} // '' );
 
 if ( lc($mode) eq qw| false | ) {
     <[base.logs]>->(
@@ -39,8 +39,8 @@ $task_id = uc( substr( $task_id, 0, 7 ) );
     }
 );
 
-#,,..,..,,,,,,...,.,.,..,,.,.,.,,,,..,,.,,,,.,..,,...,...,...,.,,,.,,,,,.,..,,
-#P2LEMF6FSUMZFV5HQVBBT47Y3XS3VHXC55TKBEP5S3RODW7ZVL7H35IUG22BEZEOVBA73NZHS4VA4
-#\\\|V2TFXSKZTXQR6X2SCZC33TP7OHIVKGHEK3ZM6DNMIVLTJGYMN6J \ / AMOS7 \ YOURUM ::
-#\[7]ESBOO5LHGPFR6T4JFXNRMH2LRUYKWLGH5SU2NELHEUDBXKET2EAA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,..,,.,.,,,,,.,.,..,,,,.,,.,,..,,..,,...,...,,,,,,,,,,,,,,,,,..,,
+#5BO7J36H3FUPIFNQXYQZYIXKFWDP5FBO3M75K7DV5Q3DPYJ53KCKKSZIJZUVSMTPCM3T2TROWBZ2Y
+#\\\|K7CSIWQGO4AJAEPQWKASV3UQAFVXBFYWSZFLFRZJUL2NJBSVU5R \ / AMOS7 \ YOURUM ::
+#\[7]2O4WX2ZJA2W647CEB5KN7A5WH5KZNW4B6XKTJF4C5TICCNHE6ECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

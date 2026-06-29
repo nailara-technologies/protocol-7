@@ -8,7 +8,7 @@ my $call = shift // {};
 my $mode    = $call->{'mode'} // '';
 my $raw     = $call->{'data'} // '';
 my $result  = ref $raw ? $raw->$* : $raw;
-my $job_id  = $call->{'params'}{'job_id'}  // '';
+my $job_id  = <[base.vax-int.decode]>->( $call->{'params'}{'job_id'} // '' );
 my $task_id = $call->{'params'}{'task_id'} // '';
 
 my $job_rec = <jobsite.tasks>->{$job_id};
@@ -212,8 +212,8 @@ if ( <jobsite.pending_count> <= 0 ) {
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.next]>;
 
-#,,,.,..,,.,,,,.,,..,,,..,.,,,,.,,..,,,..,..,,..,,...,..,,...,...,.,.,,..,..,,
-#BXC6346FVHFXEXHO2YZ5U5VYTVRGLFIBA2AWC7OC3YDJBJAQSCGEAWCVYIWSCMMZUCWNLZWPUZ2PU
-#\\\|GKMB6ZHON4ON2DJQLLAIV6Z6ZKX4FJPSL647EXBBXM4LJ42RYHQ \ / AMOS7 \ YOURUM ::
-#\[7]L42FESFOICOYKMP6OF5MNNZCXJPFMQZA7UQU6MWP2S4VY37BRUDY 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,,.,..,,,..,..,,,,,,..,,,,,,..,,..,,...,...,...,.,.,...,,,.,..,,
+#PHXTTXSMUOVUO2KNHJRBZRZRSN3B57TL2DQJETFHUROFDUW26WIQ63NUKI5VUGV3NUOEEC5MUZWBI
+#\\\|QLBOQFWLBKAMIQFQHPSCPJZJAOACV5GHMMUDLFHZOZB6KDOC7TK \ / AMOS7 \ YOURUM ::
+#\[7]DGNC5IBR5JYOZOEIRMC6S2XQ7RHZBXQX7P6HWGP7IMQMHSEIK2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
