@@ -537,6 +537,7 @@ input[type="date"], textarea {
       <button id="btn-show-archive">archiv</button>
       <button id="btn-export-csv" class="orange">CSV export</button>
       <button id="btn-reassess-all" class="orange" style="display:none;" onclick="reassessAllVisible()">↺ alle bewerten</button>
+      <button id="btn-delete-all" class="red" style="display:none;" onclick="deleteAllVisible()">✗ alle löschen</button>
       <span class="spacer"></span>
       <button id="btn-clear-local" class="red" title="lokale Daten löschen">reset</button>
       <button id="btn-sync">↻ <span id="btn-sync-label">sync</span></button>
@@ -912,7 +913,6 @@ function renderCard(j) {
         pushChange(id, { stage });
     };
     const deleteJob = async (id) => {
-        if (!confirm('Job wirklich löschen?')) return;
         delete jobs[id];
         delete userDecisions[id];
         saveUserDecisions();
@@ -1191,6 +1191,15 @@ function render() {
         btnReassessAll.textContent = '↺ alle ' + stageLabel(filterMode) + ' bewerten';
     } else {
         btnReassessAll.style.display = 'none';
+    }
+
+    /* show/hide bulk delete button in delete tab */
+    const btnDeleteAll = document.getElementById('btn-delete-all');
+    if (filterMode === 'delete' && visible.length) {
+        btnDeleteAll.style.display = 'inline-block';
+        btnDeleteAll.textContent = '✗ alle ' + visible.length + ' löschen';
+    } else {
+        btnDeleteAll.style.display = 'none';
     }
 }
 
@@ -1472,6 +1481,38 @@ window.reassessAllVisible = () => {
                 }
             });
     }
+};
+
+window.deleteAllVisible = async () => {
+    const targets = Object.values(jobs).filter(j =>
+        (j.assertions && j.assertions.suggest && j.assertions.suggest.delete) === 'true'
+        && !USER_OWNED_STAGES.has(j.stage)
+    );
+    if (!targets.length) return;
+    const btn = document.getElementById('btn-delete-all');
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    let done = 0;
+    const total = targets.length;
+    const limit = 5;
+    const queue = targets.slice();
+    async function worker() {
+        while (queue.length) {
+            const j = queue.shift();
+            delete jobs[j.id];
+            delete userDecisions[j.id];
+            await pushChange(j.id, { action: 'delete' });
+            done++;
+            btn.textContent = `✗ ${done}/${total} gelöscht …`;
+        }
+    }
+    await Promise.all(Array.from({ length: limit }, worker));
+    saveUserDecisions();
+    saveCache();
+    render();
+    btn.disabled = false;
+    btn.textContent = originalText;
+    notify(`${done}/${total} gelöscht`);
 };
 
 document.getElementById('btn-add-toggle').addEventListener('click', () => {
