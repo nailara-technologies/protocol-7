@@ -44,15 +44,31 @@ if ( not %cat_urls ) {
     $full_mode, join( ', ', sort keys %cat_urls )
 );
 
+## build skip list from the authoritative job index (all known ids) ##
+my $index    = <jobsite.job.index> // {};
+my $skip_ids = join( ' ', sort keys %{$index} );
+
 ## reset per-cycle counters before sending imports
-<jobsite.fetch_total_queued> = 0;
+<jobsite.fetch_total_queued>    = 0;
+<jobsite.fetch_queue_nonempty>  = FALSE;
+
+## cancel any leftover poll timer from a previous scan ##
+if ( defined $data{'jobsite'}{'queue_poll_timer'} ) {
+    $data{'jobsite'}{'queue_poll_timer'}->cancel;
+    $data{'jobsite'}{'queue_poll_timer'} = undef;
+}
 
 for my $cat ( sort keys %cat_urls ) {
+    my $args_str = sprintf 'url=%s handler=%s skip=%s full=%d',
+        $cat_urls{$cat},
+        qw| jobsite.job-upsert |,
+        $skip_ids,
+        ( $full_mode ? 1 : 0 );
+
     <[protocol-7.route-send]>->(
         {   'command'   => qw| site-yaml.import |,
-            'call_args' =>
-                { 'args' => $cat_urls{$cat}, 'full' => $full_mode },
-            'reply' => {
+            'call_args' => { 'args' => $args_str },
+            'reply'     => {
                 'handler' => qw| jobsite.handler.fetch-done |,
                 'params'  => { 'category' => $cat, 'url' => $cat_urls{$cat} },
             },
@@ -63,8 +79,8 @@ for my $cat ( sort keys %cat_urls ) {
 ## track how many fetch replies we expect
 <jobsite.fetch_pending> = scalar keys %cat_urls;
 
-#,,,.,,..,,,,,,,.,..,,.,,,,.,,..,,,,.,.,.,.,.,..,,...,...,.,.,.,,,.,,,,,.,...,
-#R7U4DMAQP7WZ4OD63Q2TAC24UMP3C27W7ZKLG2XXZSQ4IBISG5UBH5L3NVKNRUQZ5DA2ATEZTDE7K
-#\\\|TQ6S2GOCFD2Y6MQPKYLGYQZ3BNMNMN3ODSOCTODAASCWSFBK36M \ / AMOS7 \ YOURUM ::
-#\[7]574LELIWDQHV6QBKR2DO3M4QYTUE26H2FX3Z33JXS6BT7QU2LWAQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,...,..,,,,.,,,.,,,.,,..,,.,,.,.,..,,...,..,,.,,,.,.,...,,..,,.,,
+#U2WXCCG4V4QCW3Q4DK5RRN2ONU3IQ7GJOUUHB233XQSDRW66TMGD6GL42GZHTO5JTKZRMXLW3SINU
+#\\\|6JZLZH6VCZUJ2UHDGMWQVVA7HZYJ5B3KOUMXWHAQ5JWGSH2GGG7 \ / AMOS7 \ YOURUM ::
+#\[7]OVPDF4KTUZLJF5WOCAP5BOOMY5KVNQSQXSXN65HKFMD2HHLQAYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

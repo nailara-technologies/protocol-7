@@ -1,9 +1,11 @@
 ## [:< ##
 
-# name  = site-yaml.cmd.set-status
+# name  = jobsite.cmd.set-status
 # descr = set job status: args = "<id> <status>"
 
 my $args = $call->{'args'} // '';
+$args =~ s/^\s+|\s+$//g;
+
 my ( $id_in, $status ) = split /\s+/, $args, 2;
 my $id = <[base.vax-int.decode]>->( $id_in // '' );
 
@@ -20,7 +22,7 @@ return {
     }
     if not $valid{$status};
 
-my $store = $data{'jobs'}{'store'};
+my $store = $data{'jobs'}{'store'} // <[jobsite.job.load_all]>;
 return { 'mode' => 'false', 'data' => "unknown job id: $id" }
     if not exists $store->{$id};
 
@@ -31,8 +33,8 @@ $store->{$id}{'applied_at'} = time if $status eq 'applied';
 
 return { 'mode' => 'true', 'data' => "ok: $id => $status" };
 
-#,,.,,.,,,...,,,.,,,.,,,,,.,.,..,,,.,,..,,,..,..,,...,...,.,,,,.,,,,.,,,,,,.,,
-#64BMX6X4ZKUELLQXDP26HZA7FK3UCMKD3MCPNAS4KHGQ7BLW7QHKHIPXUUHV2YO5WX7RUDSYTEGJU
-#\\\|O4U2IBRPLZNDTR56CYQCC2IPHY3NYEIYLBTL7PRCH2BIIZR3EOD \ / AMOS7 \ YOURUM ::
-#\[7]IWVZGZB67W5Q7SSACZZ5X2NX54HKWPGIDELGCFFDQHHARFRDZWBQ 7  DATA SIGNATURE ::
+#,,,.,...,,,.,,.,,..,,,..,,..,,,,,.,.,.,.,,,.,.,.,...,...,..,,,..,,,.,,,,,,,,,
+#ZIGY4HCHJV2FDH7VQTHSSIBHVQO5AEDYQ7EOKCH2WXLXY3NGJFIZ46YFK5UCET5P3UAKOWGF5I4Y6
+#\\\|KBLLQXGTZAFPNRFG7F6JY7QONIJE5IHMGHSXTD666XKOLDI5WXL \ / AMOS7 \ YOURUM ::
+#\[7]73V54F7SAB5URPULYDJTL3265T2QK7AMGHUSO76SHS2T5FZTWGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
