@@ -16,7 +16,8 @@ if ( $EVAL_ERROR or ref $payload ne qw| HASH | ) {
 }
 
 my @pipeline_fields = qw| title company url score score_reason score_summary
-    fetched_at status stage description last_modified blocked_epoch checksum_hit |;
+    fetched_at status stage description last_modified blocked_epoch checksum_hit
+    assertions |;
 my @browser_fields = qw| stage notes date_applied |;
 
 my $since    = '';
@@ -33,11 +34,13 @@ if ( ref $payload->{'jobs'} eq qw| ARRAY | ) {
     @job_list = ($payload);
 }
 
-my $mem = <[plugin.web.jobs.cache.read_all]>;
-my $ok  = TRUE;
+my $mem       = <[plugin.web.jobs.cache.read_all]>;
+my $ok        = TRUE;
+my $cache_dir = <[plugin.web.jobs.cache.path]>;
 for my $job_data (@job_list) {
-    my $job_id = $job_data->{'id'} // '';
+    my $job_id = <[base.vax-int.decode]>->( $job_data->{'id'} // '' );
     next if not length $job_id;
+    my $enc_id = <[base.vax-int.encode]>->($job_id);
 
     ## load cached record from memory or start fresh ##
     my $cached
@@ -47,6 +50,14 @@ for my $job_data (@job_list) {
         ## jobsite push : update pipeline fields, keep browser fields ##
         for my $f (@pipeline_fields) {
             $cached->{$f} = $job_data->{$f} if exists $job_data->{$f};
+        }
+
+        ## jobsite only guarantees 'status'; derive UI 'stage' when absent ##
+        ## (jobsite 'apply' corresponds to the UI 'to_apply' stage)      ##
+        if ( not length( $cached->{'stage'} // '' ) ) {
+            my $status = $cached->{'status'} // '';
+            $cached->{'stage'}
+                = ( $status eq qw| apply | ) ? qw| to_apply | : $status;
         }
     } else {
         ## browser update : browser-owned fields only, queue reverse ##
@@ -60,20 +71,44 @@ for my $job_data (@job_list) {
         if (%changed) {
             ## bump last_modified so delta queries on other browsers pick up this change ##
             $cached->{'last_modified'} = <[base.ntime.b32]>;
-            <[plugin.web.jobs.reverse.queue]>
-                ->( { 'id' => $job_id, %changed } );
+            <[plugin.web.jobs.reverse.queue]>->(
+                { 'id' => <[base.vax-int.encode]>->($job_id), %changed } );
         }
 
-        ## action entries (e.g. reassess) bypass browser_fields and queue directly ##
+        ## action entries (e.g. reassess, delete) bypass browser_fields and queue directly ##
         if ( exists $job_data->{'action'}
             and length( $job_data->{'action'} ) ) {
-            <[plugin.web.jobs.reverse.queue]>
-                ->( { 'id' => $job_id, 'action' => $job_data->{'action'} } );
+            <[plugin.web.jobs.reverse.queue]>->(
+                {   'id'     => <[base.vax-int.encode]>->($job_id),
+                    'action' => $job_data->{'action'}
+                }
+            );
+
+            ## delete: remove from web cache immediately so UI reflects it ##
+            if ( $job_data->{'action'} eq 'delete' ) {
+                my $old_status = <plugin.web.jobs.index>->{$job_id} // '';
+                my $old_path   = '';
+                if ( $old_status =~ m{^(blocked|deleted):(.+)$} ) {
+                    $old_path = "$cache_dir/$1/$2/$enc_id.yaml";
+                } elsif ( length $old_status ) {
+                    $old_path = "$cache_dir/$old_status/$enc_id.yaml";
+                }
+                unlink $old_path if length $old_path and -f $old_path;
+                delete <plugin.web.jobs.cache>->{$job_id}
+                    if ref <plugin.web.jobs.cache> eq qw| HASH |;
+                delete <plugin.web.jobs.index>->{$job_id}
+                    if ref <plugin.web.jobs.index> eq qw| HASH |;
+            }
         }
     }
 
-    my $wrote = <[plugin.web.jobs.cache.write]>->( $job_id, $cached );
-    $ok = FALSE if not $wrote;
+    ## delete already removed the on-disk record; do not recreate it ##
+    if (not( exists $job_data->{'action'}
+            and $job_data->{'action'} eq 'delete' )
+    ) {
+        my $wrote = <[plugin.web.jobs.cache.write]>->( $job_id, $cached );
+        $ok = FALSE if not $wrote;
+    }
 }
 
 ## flush reverse queue only for jobsite batch pulls, not browser POSTs ##
@@ -115,8 +150,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,,,,.,.,..,,.,,,,..,.,.,,,.,,..,,.,,.,,,,,,,..,,...,..,,.,,,,..,,,,,,,.,.,.,
-#RD2R2WY64NQNXW5YTXPNHUQRRIIZMBATBEDFQF2TTTJ5LDRPI6O463FMFDXRS7KGSEK6OKNGTYALS
-#\\\|EEM32ZNSRCFEZ4ZN2MKBZGS546LDJ2XTEOBDBRGJT5LJFMPIML7 \ / AMOS7 \ YOURUM ::
-#\[7]M3SW2PXVYGVHV7CYGBC2W2ENDKHQ3W5FLZJUMVIIMOCSHLF32QCQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,,,,,.,,,,,,,,.,,,,,.,.,.,,,.,.,..,,...,..,,..,,,..,,,.,,..,,,,,
+#XRB5YYKTP6DQLXNXZSVCRGTJFSNX3IPQZ5RHQ3MV3I4TEYSB4VEXNRPJIAY7H63VONANCSOKNOLAY
+#\\\|SJTEQCFWVWKNUJJYEWZI7DROGLG2ZDDC77B4GV5QPWHDM5ZYM24 \ / AMOS7 \ YOURUM ::
+#\[7]A7YR7OP2AVMKRFMZQ5EBF7WIPFE34WGMYATYITXTBY47C3D6PWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

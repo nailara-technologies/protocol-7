@@ -1110,11 +1110,14 @@ sub p7_ntime_BASE32_to_numerical {
         my @nt_val = unpack( qw| w* |, $ntime_value );
         $nt_val[1] =~ s|^7|| if @nt_val == 2;    ## <-- saves 0 prefixes
         $ntime_value = join( qw| . |, @nt_val );
+        $ntime_value =~ s|(\.0)+$||;
     };
 
     if ( not defined $ntime_value
         or $ntime_value !~ m|^\d{1,17}(\.\d{1,20})?$| ) {
         warn 'protocol 7 network-time decoding was not successful <{C1}>';
+        warn ':. tstamp : ' . $tstamp      // qw| [undef] |;
+        warn ' :. ntime : ' . $ntime_value // qw| [undef] |;
         return undef;
     }
 
@@ -5695,8 +5698,8 @@ __DATA__
 :
 :.
 
-#,,,.,,.,,...,,..,...,,,,,.,,,...,..,,,,.,.,.,..,,...,...,..,,,,.,,,.,.,.,,,,,
-#OP3HPF6K4427C33ZS5OFWKDNDEOB5QQPFZHZ2WHZF5Y7STFQMM6JRMOQTVSBXRGPEZHQDJU35TFMC
-#\\\|4W6PJ3ZGGWYJLXEYEKO2H66FCLYWKMWWUTIJ252M5C6LZ6K4L6Q \ / AMOS7 \ YOURUM ::
-#\[7]JAXLFAWEVQ7L6A7SK5XUDAFI7NOQSL2X4FI53TCIMVVQSFLZI2BQ 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,,,,..,,.,.,,,.,..,,.,.,...,,,,,..,,...,...,...,,.,,...,,.,,,.,,
+#7CGJEIRNYJW6QE3JUIRAULEU6B65OVBYK3ULCC2HFSZWJAGKKQ4J5Y27IHDVXPKFMRGTCRKEMIOG6
+#\\\|CEIV2VZBYQI4SHCDBYHHVIHE5CEMG7Q62HTATNBPUCFQMVCMP56 \ / AMOS7 \ YOURUM ::
+#\[7]JJWBV2VSCW3TRPO5KEGBPUDDMMDDQE6WITKACI6MTJEVMNRTYSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -9,6 +9,8 @@ my $job    = shift // {};
 return FALSE if not length $job_id;
 return FALSE if ref $job ne 'HASH';
 
+my $enc_id = <[base.vax-int.encode]>->($job_id);
+
 my $cache_dir = <[plugin.web.jobs.cache.path]>;
 
 my $status = $job->{'status'} // 'new';
@@ -18,14 +20,14 @@ my ( $target_dir, $job_file );
 if ( $status eq 'blocked' ) {
     my $epoch = $job->{'blocked_epoch'} // <[base.ntime.epoch_timestamp]>;
     $target_dir = "$cache_dir/blocked/$epoch";
-    $job_file   = "$target_dir/$job_id.yaml";
+    $job_file   = "$target_dir/$enc_id.yaml";
 } elsif ( $status eq 'deleted' ) {
     my $epoch = $job->{'deleted_epoch'} // <[base.ntime.epoch_timestamp]>;
     $target_dir = "$cache_dir/deleted/$epoch";
-    $job_file   = "$target_dir/$job_id.yaml";
+    $job_file   = "$target_dir/$enc_id.yaml";
 } else {
     $target_dir = "$cache_dir/$status";
-    $job_file   = "$target_dir/$job_id.yaml";
+    $job_file   = "$target_dir/$enc_id.yaml";
 }
 
 ## ensure parent directory exists ##
@@ -41,9 +43,9 @@ my $old_status   = <plugin.web.jobs.index>->{$job_id} // '';
 my $old_abs_path = '';
 if ( length $old_status ) {
     if ( $old_status =~ m{^(blocked|deleted):(.+)$} ) {
-        $old_abs_path = "$cache_dir/$1/$2/$job_id.yaml";
+        $old_abs_path = "$cache_dir/$1/$2/$enc_id.yaml";
     } else {
-        $old_abs_path = "$cache_dir/$old_status/$job_id.yaml";
+        $old_abs_path = "$cache_dir/$old_status/$enc_id.yaml";
     }
 }
 
@@ -51,7 +53,7 @@ if ( length $old_status ) {
 my $write_job;
 if ( $status eq 'blocked' ) {
     $write_job = {
-        'id'            => $job_id,
+        'id'            => $enc_id,
         'url'           => $job->{'url'} // '',
         'status'        => 'blocked',
         'blocked_epoch' => $job->{'blocked_epoch'}
@@ -59,9 +61,31 @@ if ( $status eq 'blocked' ) {
         'checksum_hit' => $job->{'checksum_hit'} // '',
     };
 } else {
-    $write_job = $job;
+    $write_job                    = $job;
+    $write_job->{'id'}            = $enc_id;
     $write_job->{'last_modified'} = <[base.ntime.b32]>
         if not exists $write_job->{'last_modified'};
+
+    ## sanitize last_modified: if present but does not decode, replace it ##
+    if ( exists $write_job->{'last_modified'} ) {
+        my $lm = $write_job->{'last_modified'} // '';
+        if ( length $lm ) {
+            my $decoded;
+            {    ## suppress decoder warning while probing ##
+                local $SIG{__WARN__} = sub { };
+                $decoded = <[base.ntime_BASE32_to_numerical]>->($lm);
+            }
+            if ( not defined $decoded ) {
+                <[base.logs]>->(
+                    1,
+                    'web.jobs.cache.write: invalid last_modified <%s> for %s, replacing',
+                    $lm,
+                    $enc_id
+                );
+                $write_job->{'last_modified'} = <[base.ntime.b32]>;
+            }
+        }
+    }
 }
 
 ## atomic transition: rename if path changed ##
@@ -132,8 +156,8 @@ if (    length $old_abs_path
 
 return $written;
 
-#,,.,,,..,,,.,..,,,..,,,.,.,.,.,.,,..,.,,,...,..,,...,...,.,.,,,,,,,,,,.,,..,,
-#ISUCW5WCK5ATWOIJLWPSVG24KRERGBTBIYN4QQNN2VXMKCTRCGJQZESWSWTO2Y3ICKLLFZHAS43N4
-#\\\|LMR4MCE4LZPQQ4TYR36I7VYEJVLVA7OVY52EUSSDPK5IR4MVZAX \ / AMOS7 \ YOURUM ::
-#\[7]QHJLITSS7R77AVAHQIOO62OEKKGXUEH64QH7KSV6THVGI7VRAOAY 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,.,,,,.,..,,,.,,,..,,..,..,,.,.,..,,...,...,...,..,,,,.,,,.,.,.,
+#EUL62265BPHMVISVEVFR5XF3N4B74MIE6XSO6DZJU56ITVTVSZJAQVV3ZWEEP3ASUALFD2GUUBTSW
+#\\\|DCCH5XA3CID2HLEUUPNVNNYNZL7RIDUK5NBI22OPWCWON4KZL5J \ / AMOS7 \ YOURUM ::
+#\[7]DFHU5STH7Z4Z2FNDN7O4GHOMZ5SYMLKYK7RADWV75IBE2XRUWGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

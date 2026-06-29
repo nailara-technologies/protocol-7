@@ -12,21 +12,26 @@ my $jobs_dir = join qw| / |,
 for my $entry ( @{$entries} ) {
     next if ref $entry ne 'HASH';
 
-    my $id = $entry->{'id'} // '';
+    my $id = <[base.vax-int.decode]>->( $entry->{'id'} // '' );
     next if not length $id;
 
     my $action = $entry->{'action'} // '';
+    my $enc_id = <[base.vax-int.encode]>->($id);
 
     if ( $action eq 'delete' ) {
         my $idx_status = <jobsite.job.index>->{$id} // '';
         my $path       = '';
         if ( $idx_status =~ m{^(blocked|deleted):(.+)$} ) {
-            $path = "$jobs_dir/$1/$2/$id.yaml";
+            $path = "$jobs_dir/$1/$2/$enc_id.yaml";
         } elsif ( length $idx_status ) {
-            $path = "$jobs_dir/$idx_status/$id.yaml";
+            $path = "$jobs_dir/$idx_status/$enc_id.yaml";
         }
         if ( length $path and -f $path and unlink($path) ) {
             <[base.logs]>->( 1, 'jss.sync.apply: deleted %s', $id );
+            delete <jobsite.job.index>->{$id}
+                if ref <jobsite.job.index> eq qw| HASH |;
+            delete <jobsite.tasks>->{$id}
+                if ref <jobsite.tasks> eq qw| HASH |;
         } else {
             <[base.logs]>->( 0, 'jss.sync.apply: delete %s failed', $id );
         }
@@ -60,22 +65,23 @@ for my $entry ( @{$entries} ) {
             next;
         }
 
-        ## clear assessment fields, reset to new ##
+        ## clear assessment fields only : keep user stage/status ##
         for my $f (
-            qw| score score_reason score_summary assertions stage
+            qw| score score_reason score_summary assertions
             repair_attempted repair_failed repair_applied |
         ) {
             delete $job->{$f};
         }
-        $job->{'status'} = 'new';
         <[jobsite.job.write]>->( $id, $job );
 
         ## update in-memory task record ##
         my $rec = ( <jobsite.tasks> // {} )->{$id} // {};
         delete $rec->{$ARG}
             for qw| score score_reason score_summary assertions
-            stage repair_attempted repair_failed |;
-        $rec->{'status'} = 'new';
+            repair_attempted repair_failed |;
+        ## keep user-selected stage/status so assess-done treats it as protected ##
+        $rec->{'stage'}  = $job->{'stage'}  if defined $job->{'stage'};
+        $rec->{'status'} = $job->{'status'} if defined $job->{'status'};
         <jobsite.tasks>->{$id} = $rec;
 
         ## inject at front of assess queue (prioritized) ##
@@ -113,6 +119,17 @@ for my $entry ( @{$entries} ) {
         next;
     }
 
+    my %stage_to_status = (
+        'review'      => 'review',
+        'to_apply'    => 'apply',
+        'applied'     => 'applied',
+        'interviewed' => 'interviewed',
+        'responded'   => 'applied',
+        'rejected'    => 'rejected',
+        'skipped'     => 'skipped',
+        'archived'    => 'rejected',
+    );
+
     my $updated = 0;
     for my $field (qw| stage notes date_applied |) {
         if ( exists $entry->{$field} ) {
@@ -121,20 +138,33 @@ for my $entry ( @{$entries} ) {
         }
     }
 
+    ## stage change also drives backend status so jobs don't stay in review forever ##
+    if (    exists $entry->{'stage'}
+        and exists $stage_to_status{ $entry->{'stage'} } ) {
+        my $new_status = $stage_to_status{ $entry->{'stage'} };
+        if ( ( $job->{'status'} // '' ) ne $new_status ) {
+            $job->{'status'} = $new_status;
+            $updated = 1;
+        }
+    }
+
     if ($updated) {
         ## keep in-memory task record in sync so assess-done protect check sees current stage ##
         if ( exists $entry->{'stage'} ) {
             my $tasks = <jobsite.tasks>;
-            $tasks->{$id}{'stage'} = $entry->{'stage'}
-                if ref $tasks eq 'HASH' and defined $tasks->{$id};
+            if ( ref $tasks eq 'HASH' and defined $tasks->{$id} ) {
+                $tasks->{$id}{'stage'}  = $entry->{'stage'};
+                $tasks->{$id}{'status'} = $job->{'status'}
+                    if defined $job->{'status'};
+            }
         }
         <[jobsite.job.write]>->( $id, $job );
         <[base.logs]>->( 1, 'jss.sync.apply: updated %s', $id );
     }
 }
 
-#,,..,.,,,..,,,,.,,,.,.,,,,,,,...,,.,,.,,,,,.,..,,...,...,.,.,..,,,,.,,..,..,,
-#EOIGKHONTST26NWBFS4D5Z2Z25RTLCM526KGXAIQVNZFFM4GXJKXJG6QKUUOSAR4OCJ2U35VRMKZG
-#\\\|65AXYRS7LTC4CEQP6VMQZ3X5RWSWDSEXVHUQAUXT5PFYDE4V4XA \ / AMOS7 \ YOURUM ::
-#\[7]ZNCOZW53RJD7AIC3WMIGG7ILSVTJVVIAIKD2OTKKMIFAQMHMU6BA 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,.,,,.,,,,..,,..,..,,.,.,,..,.,.,..,,...,..,,.,,,..,,..,,,.,,.,.,
+#5UOFFI4OTXJ45GI5LNGOW3RALAV23HIMNHFE4LA77QZG4CHPSID3X56IZXYPU6UFWSVKKS7KEZDSM
+#\\\|BO4XGV5XE2A4SLCUTKHQJ7GSAYDW3REGXFPSDNTVKIRC5IC4LIQ \ / AMOS7 \ YOURUM ::
+#\[7]EL4D3M4UFOEX6YKGHONIDXDIXIY65RZTFYS7ZM6UVKK4J3OXSMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,7 +11,7 @@ my %jobs;
 my $index = {};
 
 my @active_statuses
-    = qw| new assessed review apply applied interviewed rejected |;
+    = qw| new assessed review apply applied interviewed rejected skipped |;
 my @epoch_statuses = qw| blocked deleted |;
 
 ## scan active status dirs ##
@@ -20,9 +20,10 @@ for my $status (@active_statuses) {
     next if not -d $dir;
     opendir my $dh, $dir or next;
     for my $fn ( grep { /\.yaml$/ && !/^\./ } readdir($dh) ) {
-        my $job_id = $fn;
-        $job_id =~ s/\.yaml$//;
-        my $job = eval { YAML::XS::LoadFile("$dir/$fn") };
+        my $enc_id = $fn;
+        $enc_id =~ s/\.yaml$//;
+        my $job_id = <[base.vax-int.decode]>->($enc_id);
+        my $job    = eval { YAML::XS::LoadFile("$dir/$fn") };
         if ($EVAL_ERROR) {
             <[base.logs]>->(
                 0, 'web.jobs.cache.read_all: error %s/%s: %s',
@@ -45,8 +46,9 @@ for my $status (@epoch_statuses) {
     for my $epoch_dir ( grep { !/^\./ && -d "$dir/$_" } readdir($dh) ) {
         opendir my $edh, "$dir/$epoch_dir" or next;
         for my $fn ( grep { /\.yaml$/ && !/^\./ } readdir($edh) ) {
-            my $job_id = $fn;
-            $job_id =~ s/\.yaml$//;
+            my $enc_id = $fn;
+            $enc_id =~ s/\.yaml$//;
+            my $job_id = <[base.vax-int.decode]>->($enc_id);
             $index->{$job_id} = "$status:$epoch_dir";
         }
         closedir $edh;
@@ -59,8 +61,8 @@ for my $status (@epoch_statuses) {
 
 return <plugin.web.jobs.cache>;
 
-#,,..,.,.,..,,.,,,,.,,,.,,,.,,,,.,.,,,,,.,,,.,..,,...,...,,,,,,.,,.,.,,.,,,..,
-#XGTRLDUVHSFBGM7IFCD3RLXQQ7ZFELQY6HB72Z6DUBHRPBE7LX43O5SSF7KUX4W2J7ABWSBFAWXJQ
-#\\\|LWHL22KVXQ6MHYZDBKE3ACBXZ2KGYIRZAUCLD3SA637M7FBV2Q6 \ / AMOS7 \ YOURUM ::
-#\[7]UMFKGONDXOX4ZYM5AZA3SDZUJLFQWKQW6NAJYASXA7R64SOYK4DA 7  DATA SIGNATURE ::
+#,,..,,,.,...,,,.,,,,,,..,,,.,,,,,,..,.,.,.,,,..,,...,..,,,..,.,,,...,.,,,..,,
+#354DNOEDJ5CAMG7OGOYUBKS5Z3FWL2M5ZTZ5GTUORJAJGB45WUW6532SNH2LCMU2RSJEGFVSZYGNY
+#\\\|6SXX5SYYIZLI2VQCLOI2WL2LEIOCNU32WP3LAWXQHT7ZXDNJFP2 \ / AMOS7 \ YOURUM ::
+#\[7]ERY5OPVMVSZHJRXDQUKFAK3PW3Q3GTYYHJ4HFGI7Z2STBDIS6GBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

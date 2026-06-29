@@ -5,7 +5,7 @@
 
 my $call = shift // {};
 
-## parse since=<ntime_b32> from args (forwarded from GET query string) ##
+## parse since=<ntime_b32> from args [forwarded from GET query string] ##
 my $since_str = '';
 my $args      = $call->{'args'} // '';
 if ( $args =~ m{(?:^|&)since=([^&]+)} ) {
@@ -25,7 +25,7 @@ my @ids = sort {
 my @array;
 for my $job_id (@ids) {
     ## delta filter : skip jobs unchanged since the watermark ##
-    ## note: browser-owned fields (stage/notes) don't bump last_modified,
+    ## note: browser-owned fields [stage/notes] don not bump last_modified,
     ##       so multi-device sync of those goes via POST reverse-queue only ##
     if ( defined $since_num ) {
         my $lm_str = $jobs->{$job_id}{'last_modified'} // '';
@@ -36,8 +36,11 @@ for my $job_id (@ids) {
         next if defined $lm_num and $lm_num <= $since_num;
     }
 
-    my $j = { %{ $jobs->{$job_id} }, 'id' => $job_id };
-    ## ui expects reason/summary as short aliases ##
+    my $j = {
+        %{ $jobs->{$job_id} },
+        'id' => <[base.vax-int.encode]>->($job_id)
+    };
+    ## ui expects reason|summary as short aliases ##
     $j->{'reason'} = delete $j->{'score_reason'}
         if exists $j->{'score_reason'};
     $j->{'summary'} = delete $j->{'score_summary'}
@@ -74,8 +77,8 @@ return {
     'content_type' => qw| application/json |
 };
 
-#,,..,.,.,,.,,,.,,.,,,,.,,...,...,..,,.,.,.,,,..,,...,...,,..,,,.,...,,,,,...,
-#K52XK567TLTLB2HL5UKRARCEHLAATIZVNUSGLJUYZMISUNSCYHX2MAAQ2RABYR25FDZI6MROXRSUY
-#\\\|AWPZNHND3RNP7YHI2AE3Z3POW5TOMVJ5F7J5NTD2DDYLLW3NO6L \ / AMOS7 \ YOURUM ::
-#\[7]LU3AZHJWQRHAYI4JPXY5L7BAJLGV3BNINH3NSZGVRITQ2MD57YDA 7  DATA SIGNATURE ::
+#,,,.,...,,.,,..,,.,,,.,.,,,.,...,...,,.,,...,..,,...,...,,.,,.,.,...,,,.,,,.,
+#ISBUA7FHU2QMC4GZT66S5ELJBIGM27LBJ7LE6RAR5FQHM5LK3BLIY2MOZIBAVCUFGYXQNG5XQVK4A
+#\\\|DV3RPVFWAQ4JYKBLVLXCXZDC3Z6PFBT6VB2SUL2M6OGVYWWSOAS \ / AMOS7 \ YOURUM ::
+#\[7]KVEVYNEJSM6KPOKXOU353AE2JEZYONJJHSQPDUSLKTSNQFZPOSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

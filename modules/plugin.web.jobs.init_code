@@ -35,7 +35,8 @@ my $user      = <system.zenka-user.current> // <system.amos-zenka-user>
     // qw| protocol-7 |;
 my $group = <system.zenka-group.current> // $user;
 
-for my $status ( qw| new assessed review apply applied interviewed rejected |,
+for my $status (
+    qw| new assessed review apply applied interviewed rejected skipped |,
     qw| blocked deleted | ) {
     my $dir = "$cache_dir/$status";
     next if -d $dir;
@@ -51,8 +52,8 @@ my $count  = scalar keys %{$loaded};
 
 0;
 
-#,,..,,,,,..,,,,.,.,,,,.,,,,.,..,,,..,,,,,.,,,..,,...,...,...,..,,..,,,,.,,.,,
-#6JZ7D2SUIFX7H4DGUELI2YXSHSLLES6JKPPHL6QUOKLQQUPBEVR3HJR3LQ7VX7MYQY6CVYYXBNP54
-#\\\|NV5M4JYDTWZBAMWXTFUSPA5Y3ZV5XHCWEFPCRRLE5552UK7RM6G \ / AMOS7 \ YOURUM ::
-#\[7]ISMWGIQ3RHTMZF52FFEMVNXJBU4EHGOCOYCXFK7WQJJONNDFVWCQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,...,.,.,..,,,,,,,,,,,..,.,.,,..,..,,...,...,..,,...,,.,,,,,,..,,
+#5DKFBNGFIQDITMXK677SRADOANCNYDRH5SMBUKBV5D5CEPM55ZFZ6TENHNNHCOMITEXVLIKSPMIFS
+#\\\|L4TAFDNSY2RCBWEZPVJLKRKTJLQGNKNIXDRDPERGHT5TJX3C4QZ \ / AMOS7 \ YOURUM ::
+#\[7]T32FD24EZTAXTKZMMGDUKYIIQFWF6NARGPU5PWFLXYEXOE3ILWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
