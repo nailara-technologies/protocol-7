@@ -19,22 +19,21 @@ for my $entry ( @{$entries} ) {
     my $enc_id = <[base.vax-int.encode]>->($id);
 
     if ( $action eq 'delete' ) {
-        my $idx_status = <jobsite.job.index>->{$id} // '';
-        my $path       = '';
-        if ( $idx_status =~ m{^(blocked|deleted):(.+)$} ) {
-            $path = "$jobs_dir/$1/$2/$enc_id.yaml";
-        } elsif ( length $idx_status ) {
-            $path = "$jobs_dir/$idx_status/$enc_id.yaml";
+        my $job = <[jobsite.job.read]>->($id);
+        if ( ref $job ne 'HASH' ) {
+            <[base.logs]>
+                ->( 0, 'jss.sync.apply: delete %s — not found', $id );
+            next;
         }
-        if ( length $path and -f $path and unlink($path) ) {
-            <[base.logs]>->( 1, 'jss.sync.apply: deleted %s', $id );
-            delete <jobsite.job.index>->{$id}
-                if ref <jobsite.job.index> eq qw| HASH |;
-            delete <jobsite.tasks>->{$id}
-                if ref <jobsite.tasks> eq qw| HASH |;
-        } else {
-            <[base.logs]>->( 0, 'jss.sync.apply: delete %s failed', $id );
-        }
+        ## archive to deleted/ instead of unlinking, so checksum/index keeps
+        ## them out ##
+        $job->{'status'} = 'deleted';
+        $job->{'stage'}  = 'deleted' if length( $job->{'stage'} // '' );
+        $job->{'deleted_epoch'} //= <[base.ntime.epoch_timestamp]>;
+        <[jobsite.job.write]>->( $id, $job );
+        delete <jobsite.tasks>->{$id}
+            if ref <jobsite.tasks> eq qw| HASH |;
+        <[base.logs]>->( 1, 'jss.sync.apply: deleted %s', $id );
         next;
     }
 
@@ -79,7 +78,8 @@ for my $entry ( @{$entries} ) {
         delete $rec->{$ARG}
             for qw| score score_reason score_summary assertions
             repair_attempted repair_failed |;
-        ## keep user-selected stage/status so assess-done treats it as protected ##
+        ## keep user-selected stage/status so assess-done treats it as
+        ## protected ##
         $rec->{'stage'}  = $job->{'stage'}  if defined $job->{'stage'};
         $rec->{'status'} = $job->{'status'} if defined $job->{'status'};
         <jobsite.tasks>->{$id} = $rec;
@@ -138,7 +138,8 @@ for my $entry ( @{$entries} ) {
         }
     }
 
-    ## stage change also drives backend status so jobs don't stay in review forever ##
+    ## stage change also drives backend status so jobs don't stay in review
+    ## forever ##
     if (    exists $entry->{'stage'}
         and exists $stage_to_status{ $entry->{'stage'} } ) {
         my $new_status = $stage_to_status{ $entry->{'stage'} };
@@ -149,7 +150,8 @@ for my $entry ( @{$entries} ) {
     }
 
     if ($updated) {
-        ## keep in-memory task record in sync so assess-done protect check sees current stage ##
+        ## keep in-memory task record in sync so assess-done protect check
+        ## sees current stage ##
         if ( exists $entry->{'stage'} ) {
             my $tasks = <jobsite.tasks>;
             if ( ref $tasks eq 'HASH' and defined $tasks->{$id} ) {
@@ -163,8 +165,8 @@ for my $entry ( @{$entries} ) {
     }
 }
 
-#,,,.,..,,.,.,.,,,.,,,,..,,..,..,,.,.,,..,.,.,..,,...,..,,.,,,..,,..,,,.,,.,.,
-#5UOFFI4OTXJ45GI5LNGOW3RALAV23HIMNHFE4LA77QZG4CHPSID3X56IZXYPU6UFWSVKKS7KEZDSM
-#\\\|BO4XGV5XE2A4SLCUTKHQJ7GSAYDW3REGXFPSDNTVKIRC5IC4LIQ \ / AMOS7 \ YOURUM ::
-#\[7]EL4D3M4UFOEX6YKGHONIDXDIXIY65RZTFYS7ZM6UVKK4J3OXSMBQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,...,,,,,,,,,,..,,,,,,,,,..,,.,,,..,,...,...,..,,..,,.,,,,.,,,,,,
+#BOWIAFSWVTOY2QMCOAU6AHN4VAC4PJLVVPC73FGT2DPMUQZEAYN7R4AHF7RQPRWZBRXVEJPSYMOO4
+#\\\|O4PPO3KG6YMD2GBQ76GWZ4YY4CZDNQPDAHH5XFLSGRHUOIFS4AA \ / AMOS7 \ YOURUM ::
+#\[7]MQZ2VBUJCC72LCYYYYNXCV3CBZS5JGRDGEHK4YYR7Y5GF74D5CDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
