@@ -398,11 +398,16 @@ input[type="date"], textarea {
 
 /* assertion apply/skip badge */
 .badge-apply { font-size: 0.72rem; padding: 1px 6px; border-radius: 3px;
-               margin-right: 6px; font-weight: 600; }
+               margin-right: 6px; font-weight: 600; cursor: pointer;
+               font-family: inherit; border: 1px solid transparent;
+               background: transparent; }
+.badge-apply:hover { box-shadow: 0 0 6px rgba(68,39,172,0.25); }
 .badge-yes   { color: #4ac0a0; background: rgba(20,90,60,0.3);
                border: 1px solid #205030; }
+.badge-yes:hover { background: rgba(30,130,80,0.4); }
 .badge-no    { color: #8080a0; background: rgba(20,20,30,0.3);
                border: 1px solid #303040; }
+.badge-no:hover { background: rgba(40,40,55,0.45); }
 
 /* compact dimension score row */
 .card-dims   { font-size: 0.70rem; color: var(--p7-text-mid); margin-top: 3px;
@@ -512,6 +517,7 @@ input[type="date"], textarea {
       <span id="stat-applied"    class="stat applied">0 beworben</span>
       <span id="stat-interviewed" class="stat interviewed">0 interviewed</span>
       <span id="stat-done"        class="stat done">0 erledigt</span>
+      <span id="stat-delete"      class="stat" style="color:#a06060;background:rgba(60,20,20,0.3)">0 löschen</span>
       <span id="stat-error"       class="stat" style="color:#c05050;background:rgba(80,20,20,0.3)">0 err</span>
       <span class="spacer"></span>
       <label class="min-score-wrap">
@@ -530,6 +536,7 @@ input[type="date"], textarea {
       <span class="sep">|</span>
       <button id="btn-show-archive">archiv</button>
       <button id="btn-export-csv" class="orange">CSV export</button>
+      <button id="btn-reassess-all" class="orange" style="display:none;" onclick="reassessAllVisible()">↺ alle bewerten</button>
       <span class="spacer"></span>
       <button id="btn-clear-local" class="red" title="lokale Daten löschen">reset</button>
       <button id="btn-sync">↻ <span id="btn-sync-label">sync</span></button>
@@ -628,6 +635,7 @@ let showArchived = false;
 let dragSrcId = null;
 let pollTimer = null;
 let userDecisions = {};  // id → { stage?, notes?, date_applied?, ts }
+const SCORE_FILTER_STAGES = new Set(['review', 'to_apply', 'applied', 'interviewed', 'responded']);
 
 /* ── localStorage — reload cache only, not source of truth ── */
 function saveCache() {
@@ -766,7 +774,7 @@ function scoreDisplay(s) {
 function stageLabel(s) {
     return {review:'review', to_apply:'bewerben', applied:'beworben',
             interviewed:'interviewed', responded:'rückmeldung', rejected:'absage', skipped:'übersp.',
-            archived:'archiv'}[s] || s;
+            archived:'archiv', delete:'löschen'}[s] || s;
 }
 
 function renderCard(j) {
@@ -797,12 +805,16 @@ function renderCard(j) {
     const sc = scoreDisplay(j.score);
     const scClass = scoreClass(j.score);
 
-    /* assertion badges */
+    /* assertion badges : delete > apply > archive (only one badge shown) */
     const sug = _sug;
     const badges = [];
-    if (sug.apply === 'true')  badges.push('<span class="assert-badge assert-apply">bewerben</span>');
-    if (sug.delete === 'true') badges.push('<span class="assert-badge assert-delete">löschen</span>');
-    if (sug.archive === 'true')badges.push('<span class="assert-badge assert-archive">archiv</span>');
+    if (sug.delete === 'true') {
+        badges.push('<span class="assert-badge assert-delete">löschen</span>');
+    } else if (sug.apply === 'true' && ['review','to_apply'].includes(j.stage)) {
+        badges.push('<span class="assert-badge assert-apply">bewerben</span>');
+    } else if (sug.archive === 'true') {
+        badges.push('<span class="assert-badge assert-archive">archiv</span>');
+    }
     if (j.repair_applied)      badges.push('<span class="repair-badge">repariert</span>');
     if (j.repair_failed)       badges.push('<span class="repair-badge repair-fail">fehler</span>');
 
@@ -858,15 +870,17 @@ function renderCard(j) {
       ${dimHtml}
       ${dimKeys.length ? `<div class="toggle-dim">▼ dimensionen</div>` : ''}
       <div class="card-actions no-print">
-        ${sug.apply === 'true' ? '<span class="badge-apply badge-yes">✓ apply</span>' : sug.apply === 'false' ? '<span class="badge-apply badge-no">✗ skip</span>' : ''}
-        ${!['applied','interviewed','responded','archived'].includes(j.stage) ? `<button class="btn-reassess" data-id="${j.id}" title="re-assess">↺</button>` : ''}
+        ${j.stage === 'review' && sug.apply === 'true' && sug.delete !== 'true' ? `<button class="badge-apply badge-yes" type="button" data-action="to_apply">✓ apply</button>` : ''}
+        ${['review','to_apply'].includes(j.stage) && sug.apply === 'false' && sug.delete !== 'true' ? `<button class="badge-apply badge-no" type="button" data-action="skipped">✗ skip</button>` : ''}
+        <button class="btn-reassess" data-id="${j.id}" title="re-assess">↺</button>
         <div class="stage-dropdown" data-id="${j.id}">
           <button class="stage-dropdown-trigger" type="button">${stageLabel(j.stage)}</button>
           <div class="stage-dropdown-menu">
-            ${['review','to_apply','applied','interviewed','responded','rejected','skipped','archived']
+            ${['review','to_apply','applied','interviewed','responded','rejected','skipped','archived','delete']
               .map(s => `<div class="stage-option${j.stage===s?' active':''}" data-value="${s}" tabindex="-1">${stageLabel(s)}</div>`).join('')}
           </div>
         </div>
+        ${filterMode === 'delete' ? `<button class="btn-delete" data-id="${j.id}" style="padding:2px 8px;font-size:0.72rem; color:#c05050; border-color:#602020;">löschen</button>` : ''}
         ${j.stage === 'applied' || j.stage === 'interviewed' || j.stage === 'responded' ? `
           <input type="date" class="date-applied-input" data-id="${j.id}" value="${j.date_applied||''}"
             title="Bewerbungsdatum" style="width:130px; padding:2px 6px; font-size:0.75rem;
@@ -896,6 +910,25 @@ function renderCard(j) {
         saveUserDecisions();
         saveCache(); render();
         pushChange(id, { stage });
+    };
+    const deleteJob = async (id) => {
+        if (!confirm('Job wirklich löschen?')) return;
+        delete jobs[id];
+        delete userDecisions[id];
+        saveUserDecisions();
+        saveCache(); render();
+        try {
+            const r = await fetch(JOBS_SYNC, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, action: 'delete' }),
+            });
+            if (!r.ok) throw new Error(r.status);
+            const data = await r.json();
+            if (data.ntime) lastNtime = data.ntime;
+        } catch(e) {
+            notify('löschen fehler: ' + e.message, true);
+        }
     };
     const dblActions = {
         review:      () => setStage(j.id, 'skipped'),
@@ -973,13 +1006,25 @@ function renderCard(j) {
         opt.addEventListener('click', e => {
             e.stopPropagation();
             const stage = opt.dataset.value;
-            setStage(j.id, stage);
-            trigger.textContent = stageLabel(stage);
-            menu.querySelectorAll('.stage-option').forEach(o => o.classList.toggle('active', o.dataset.value === stage));
+            if (stage === 'delete') {
+                deleteJob(j.id);
+            } else {
+                setStage(j.id, stage);
+                trigger.textContent = stageLabel(stage);
+                menu.querySelectorAll('.stage-option').forEach(o => o.classList.toggle('active', o.dataset.value === stage));
+            }
             dropdown.classList.remove('open');
         });
     });
 
+
+    /* apply / skip suggestion badges */
+    el.querySelectorAll('.badge-apply').forEach(badge => {
+        badge.addEventListener('click', () => {
+            const action = badge.dataset.action;
+            if (action) setStage(j.id, action);
+        });
+    });
 
     /* status-change button (e.g. ← review) */
     const btnStatus = el.querySelector('.btn-status');
@@ -1028,19 +1073,28 @@ function renderCard(j) {
         }, 1200);
     });
 
-    /* re-assess button */
+    /* re-assess button — available in every stage; preserves user decisions */
     const btnReassess = el.querySelector('.btn-reassess');
     if (btnReassess) {
         btnReassess.addEventListener('click', async () => {
             btnReassess.textContent = '…';
             btnReassess.disabled = true;
-            delete userDecisions[j.id];
-            saveUserDecisions();
-            await pushChange(j.id, { action: 'reassess' });
-            btnReassess.textContent = '↺';
-            btnReassess.disabled = false;
-            notify('re-assessment queued');
+            try {
+                await pushChange(j.id, { action: 'reassess' });
+                notify('re-assessment queued');
+            } catch(e) {
+                notify('re-assess fehler: ' + e.message, true);
+            } finally {
+                btnReassess.textContent = '↺';
+                btnReassess.disabled = false;
+            }
         });
+    }
+
+    /* delete button */
+    const btnDelete = el.querySelector('.btn-delete');
+    if (btnDelete) {
+        btnDelete.addEventListener('click', () => deleteJob(j.id));
     }
 
     /* compact dim row toggle */
@@ -1107,10 +1161,10 @@ function render() {
         }
         if (filterMode !== 'all' && j.stage !== filterMode) return false;
         if (filterMode === 'all' && j.stage === 'archived' && !showArchived) return false;
-        /* min score filter — normalize 0-100 scale to 0-10 */
-        if (j.score != null) {
+        /* min score filter — only for stages where score is relevant */
+        if (SCORE_FILTER_STAGES.has(j.stage) && j.score != null && j.score !== '') {
             const norm = parseFloat(j.score) > 10 ? parseFloat(j.score) / 10 : parseFloat(j.score);
-            if (!isFinite(norm) || norm < minScore) return false;
+            if (isFinite(norm) && norm < minScore) return false;
         }
         return true;
     });
@@ -1126,6 +1180,17 @@ function render() {
     }
 
     updateStats(sorted);
+
+    /* show/hide bulk reassess button for user-owned stages */
+    const btnReassessAll = document.getElementById('btn-reassess-all');
+    const REASSESS_ALL_STAGES = new Set(['applied','interviewed','responded','rejected','skipped']);
+    const hasEmptyCards = visible.some(j => j.score == null || j.score === '' || !j.summary);
+    if (REASSESS_ALL_STAGES.has(filterMode) && hasEmptyCards) {
+        btnReassessAll.style.display = 'inline-block';
+        btnReassessAll.textContent = '↺ alle ' + stageLabel(filterMode) + ' bewerten';
+    } else {
+        btnReassessAll.style.display = 'none';
+    }
 }
 
 function updateStats(all) {
@@ -1137,6 +1202,7 @@ function updateStats(all) {
     document.getElementById('stat-applied').textContent   = all.filter(j=>j.stage==='applied'||j.stage==='responded').length + ' beworben';
     document.getElementById('stat-interviewed').textContent= all.filter(j=>j.stage==='interviewed').length + ' interviewed';
     document.getElementById('stat-done').textContent   = all.filter(j=>j.stage==='rejected'||j.stage==='archived').length + ' erledigt';
+    document.getElementById('stat-delete').textContent = del + ' löschen';
     document.getElementById('stat-error').textContent  = all.filter(j => j.repair_failed == 5 || j.repair_failed === true).length + ' err';
 }
 
@@ -1201,9 +1267,11 @@ function saveLastExportIds(ids) {
 function passesCurrentFilter(j) {
     if (j.stage === 'archived' && !showArchived) return false;
     if (filterMode !== 'all' && j.stage !== filterMode) return false;
-    const norm = parseFloat(j.score) > 10
-        ? parseFloat(j.score)/10 : parseFloat(j.score);
-    if (!isFinite(norm) || norm < minScore) return false;
+    if (SCORE_FILTER_STAGES.has(j.stage) && j.score != null && j.score !== '') {
+        const norm = parseFloat(j.score) > 10
+            ? parseFloat(j.score)/10 : parseFloat(j.score);
+        if (isFinite(norm) && norm < minScore) return false;
+    }
     return true;
 }
 
@@ -1335,7 +1403,7 @@ function notify(msg, err) {
       font-size:0.8rem;z-index:9999;background:${bg};border:1px solid ${border};color:${color};
       box-shadow:0 0 14px ${glow};font-family:'Courier New',Courier,monospace;`;
     document.body.appendChild(n);
-    setTimeout(() => n.remove(), 3000);
+    setTimeout(() => n.remove(), 4000);
 }
 function notifyUndo(id, prevStage, restoreFn) {
     const n = document.createElement('div');
@@ -1357,7 +1425,7 @@ function notifyUndo(id, prevStage, restoreFn) {
     });
     n.appendChild(msg); n.appendChild(undo);
     document.body.appendChild(n);
-    setTimeout(() => { done = true; n.remove(); }, 3000);
+    setTimeout(() => { done = true; n.remove(); }, 8000);
 }
 
 /* ── event wiring ── */
@@ -1381,6 +1449,29 @@ minScoreInput.addEventListener('wheel', e => {
 document.getElementById('btn-sync').addEventListener('click', () => {
     lastNtime = 0; saveCache(); syncPipeline();
 });
+
+window.reassessAllVisible = () => {
+    const targets = Object.values(jobs).filter(j => j.stage === filterMode);
+    if (!targets.length) return;
+    const btn = document.getElementById('btn-reassess-all');
+    btn.disabled = true;
+    btn.textContent = '…';
+    let done = 0;
+    let finished = 0;
+    for (const j of targets) {
+        pushChange(j.id, { action: 'reassess' })
+            .then(() => { done++; })
+            .catch(e => notify('re-assess fehler: ' + e.message, true))
+            .finally(() => {
+                finished++;
+                if (finished >= targets.length) {
+                    btn.disabled = false;
+                    btn.textContent = '↺ alle ' + stageLabel(filterMode) + ' bewerten';
+                    notify(`${done}/${targets.length} neu bewertung(en) eingereiht`);
+                }
+            });
+    }
+};
 
 document.getElementById('btn-add-toggle').addEventListener('click', () => {
     document.getElementById('add-form').classList.toggle('open');
