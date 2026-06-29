@@ -13,7 +13,7 @@ if ( not defined $tstamp or $tstamp !~ m|^$b32_re?$| ) {
 my $ntime_value = <[base.ntime_BASE32_to_numerical]>->($tstamp);
 
 if ( not defined $ntime_value
-    or $ntime_value !~ m|^\d{13,17}(\.\d{1,17})?$| ) {
+    or $ntime_value !~ m|^\d+(\.\d+)?$| ) {
     warn 'BASE32 decoding error [ timestamp not valid ] <{C1}>';
     return undef;
 }
@@ -27,8 +27,8 @@ if ( not defined $time_unix or $time_unix !~ m|^\d{1,17}(\.\d{1,20})?$| ) {
 
 return $time_unix;
 
-#,,,,,,,,,,,,,.,,,,.,,,,,,,..,.,.,.,.,,,,,.,,,..,,...,...,..,,.,.,,.,,,,,,..,,
-#QCHVSDTGMZNVZWZRFEUF6BLLEHSGRQYJRDXZ3LTNXBDJ4XK3AXTBVUQPSFMMR424L254ZOP2IK7G2
-#\\\|YBCNM5JBZZ7BY2JMUB2X3ESDST76QCJ7OFOFGBFBVGXFPSSS6SV \ / AMOS7 \ YOURUM ::
-#\[7]WT3A3QXM522ENHJSWFVL4JJXB2EEDHH3U5DOVDPICLXV42V4BUBY 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,.,,.,,,.,.,...,,,,,,.,,..,,,..,..,,...,...,,,,,,..,,.,,,..,,.,,
+#H66DIGKKW7UBNVT75BMX6KWCPLSSVZJN4R24S4Z7TZ2SFMS6UYT7IO2T6ZSLUK5B6PLAB3LVKSXFW
+#\\\|AIYH6NA6YVR7L7JJNTI5NSLZRF34FS2OR64QJTKRE5OSMRDEHVK \ / AMOS7 \ YOURUM ::
+#\[7]VEV4RYKGVPKESYY24CULDJ3RZKZXYU5I3RM4GUCBJ6RGXJTKBUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

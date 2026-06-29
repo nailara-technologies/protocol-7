@@ -4,7 +4,8 @@
 # descr = set job status: args = "<id> <status>"
 
 my $args = $call->{'args'} // '';
-my ( $id, $status ) = split /\s+/, $args, 2;
+my ( $id_in, $status ) = split /\s+/, $args, 2;
+my $id = <[base.vax-int.decode]>->( $id_in // '' );
 
 return { 'mode' => 'false', 'data' => 'usage: set-status <id> <status>' }
     if not( defined $id and defined $status );
@@ -30,8 +31,8 @@ $store->{$id}{'applied_at'} = time if $status eq 'applied';
 
 return { 'mode' => 'true', 'data' => "ok: $id => $status" };
 
-#,,,,,,.,,,.,,..,,.,,,,.,,,.,,,,.,,,.,.,,,,,,,..,,...,...,,.,,,..,.,,,,..,,,,,
-#5RSDHWLPSCKA5IVNPQI22UXYRXXEY4FDRUYYQIENL4B5I6YJRYS72JIF4DRYGGFOD7UORM5VH4PCW
-#\\\|DYBR3TIGTKDA6653A6CD7H3J2H77XPFWOCFNJDDUCEVIPA4VHEX \ / AMOS7 \ YOURUM ::
-#\[7]UB4VORRXNX5VDFBW5EXSWPBBT46KNVHXIUF4246IUBXFL7NNTSBY 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,,.,,,.,,,,,.,.,..,,,.,,..,,,..,..,,...,...,.,,,,.,,,,.,,,,,,.,,
+#64BMX6X4ZKUELLQXDP26HZA7FK3UCMKD3MCPNAS4KHGQ7BLW7QHKHIPXUUHV2YO5WX7RUDSYTEGJU
+#\\\|O4U2IBRPLZNDTR56CYQCC2IPHY3NYEIYLBTL7PRCH2BIIZR3EOD \ / AMOS7 \ YOURUM ::
+#\[7]IWVZGZB67W5Q7SSACZZ5X2NX54HKWPGIDELGCFFDQHHARFRDZWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

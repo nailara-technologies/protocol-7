@@ -73,9 +73,11 @@ if ( defined $ntime_decoded and not $explicit_ntime ) {
     my @nt_val = unpack( qw| w* |, $ntime_decoded );
     $nt_val[1] =~ s|^7|| if @nt_val == 2;    ## <-- saves 0 prefixes
     $calc_val = join( qw| . |, @nt_val );    ## needs error handling
+    $calc_val =~ s|(\.0)+$||;                ## strip trailing zero components
+    $explicit_ntime = TRUE;    ## BASE32 decoded values are ntime ##
 }
 
-$calc_val = $calc_val_copy    # <<[?]>> deal with false positives <<[?]>>
+$calc_val = $calc_val_copy     # <<[?]>> deal with false positives <<[?]>>
     if not $explicit_unix
     and $calc_val_copy =~ m,$b32_re,
     and ( not defined $calc_val or $EVAL_ERROR );
@@ -126,8 +128,8 @@ return {
     'data' => $ltime_str
     }
 
-#,,..,,,.,..,,..,,.,,,,.,,,.,,,..,.,,,,..,,..,..,,...,..,,,..,.,,,...,...,.,.,
-#PCEVVPPDMPNJ2RPVDJFZW7C4S55HVIVF2IVZO3SCJHWPW4RPWO2UJZ76W2OYPFYH4ZM7TRD3CCFWG
-#\\\|P6QZGWNSWFZDMK6IJ5WQDQ2FLLM65VNTDGAONGN7A4RS7HXKZWI \ / AMOS7 \ YOURUM ::
-#\[7]HPDJRZIVN6BJ4BDPNY5UXH3ZGT2E7TXW32DXO5QIZMXBFSMVIUDI 7  DATA SIGNATURE ::
+#,,.,,...,..,,.,,,,,,,...,...,,.,,,..,..,,,..,..,,...,...,,..,...,,,,,.,.,.,,,
+#ZA5URHUZEMEF3EGDHEVACNJ2SSSHFOGLFJMMJ45S3RN7CYJCKSEP5B4HSAC3Y7KW5I3GJV2WROCLS
+#\\\|LXVXI3ZTVHUNJ74GNRBOV37L5FPSFGB3LRBWF2AGM5GYPAQ43MT \ / AMOS7 \ YOURUM ::
+#\[7]J6MWFS4UUMCI475IGLNNL74R4N5R4U3DWEUYGY3IM2RBXO4VW2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
