@@ -21,8 +21,18 @@ for my $job_id ( keys %{$store} ) {
     if ( $chk->{'is_blocked'} ) {
         my $target = $chk->{'resolved_status'} // '';
         if ( length $target and $target ne 'blocked' ) {
+            ## legacy checksum entries use 'assessed'; map to trash so    ##
+            ## duplicates of old pipeline jobs do not reappear in the UI. ##
+            ## 'deleted' checksum entries are also treated as recoverable ##
+            ## trash to avoid permanent loss on a duplicate match.        ##
+            $target = 'trash'
+                if $target eq 'assessed' or $target eq 'deleted';
             ## inherit status from previous identical title ##
             $job->{'status'} = $target;
+            if ( $target eq 'trash' ) {
+                $job->{'stage'} = 'trash';
+                $job->{'trash_epoch'} //= <[base.ntime.epoch_timestamp]>;
+            }
             <[jobsite.job.write]>->( $job_id, $job );
             <[base.logs]>->(
                 1,       'job %s inherits status=%s from checksum store',
@@ -36,7 +46,8 @@ for my $job_id ( keys %{$store} ) {
             $job_id, join( ', ', $chk->{'hits'}->@* )
         );
 
-        ## backfill checksums if missing (original assessment may predate store) ##
+        ## backfill checksums if missing [ original   ##
+        ##             assessment may predate store ] ##
         my $need_add   = 0;
         my $store_root = '/var/protocol-7/jobsite/checksum-store';
         for my $hit ( $chk->{'hits'}->@* ) {
@@ -130,8 +141,8 @@ for my $job_id (@to_assess) {
 
 return;
 
-#,,,.,..,,.,.,,,.,..,,,.,,.,,,.,,,..,,..,,.,,,..,,...,...,,.,,.,.,,,,,..,,,..,
-#IZHRGYEL5IAPB3KJ6FSQH6BGJI4JYEQZTCCPUBBHPTHCYCL7ZNBX6YTRH3TWEIY3CE7UXJLVU262Q
-#\\\|2ITDVDZFIGWHYSFWEJPEJZHQMRJKLHQU5OXD5ANWSROTKKU2LEG \ / AMOS7 \ YOURUM ::
-#\[7]GMMJ5E3C5NZQQVJGY4667C6BXOJV2CRSWQB377CTLTFGJHHLCCBA 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,..,.,,,,,,,,..,,,,,,,.,.,.,..,,..,,...,...,,,,,..,,.,.,..,,,..,
+#BOULM6BDZVY6CLOTUDJD375ELNP3LGBDSB2KUZUOHWH3OE2GQTDA7SPLIVCFOHR3AITLK7B7FOJD6
+#\\\|IFQRNK3RIMKN6NT2BJHPX5TD4S2BVRRKEJ3WW4ORMMHDNQGCQEK \ / AMOS7 \ YOURUM ::
+#\[7]H6DOHFW24EI3WPGPXHH2MOAA46GIHLEZXS32XIMFW3FTKKAA5QAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
