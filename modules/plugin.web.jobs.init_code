@@ -64,49 +64,83 @@ my $count  = scalar keys %{$loaded};
     1, 'plugin.web.jobs : initialized [ %d jobs loaded ]', $count
 );
 
-## prune web-cache entries that jobsite no longer considers active ##
-## (trash/deleted/blocked jobs whose stale cache files survived sync) ##
+## load jobsite index once for cache cleanup decisions ##
 my $jobsite_index_file = join qw| / |,
     <system.path.zenka-dirs>->{'var_P7'}, qw| jobsite index.yaml |;
+my $js_index = {};
 if ( -f $jobsite_index_file ) {
-    my $js_index = eval { YAML::XS::LoadFile($jobsite_index_file) } // {};
-    if ( ref $js_index eq 'HASH' and %{$js_index} ) {
-        my %active_id;
-        for my $enc_id ( keys %{$js_index} ) {
-            my $rec    = $js_index->{$enc_id} // {};
-            my $status = ref $rec eq 'HASH' ? ( $rec->{'status'} // '' ) : '';
-            next if $status =~ m{^(trash|deleted|blocked)$};
-            my $id = <[base.vax-int.decode]>->($enc_id);
-            $active_id{$id} = 1 if length $id;
-        }
-        my @stale = grep { not exists $active_id{$_} } keys %{$loaded};
-        for my $id (@stale) {
-            my $enc_id    = <[base.vax-int.encode]>->($id);
-            my $st_status = <plugin.web.jobs.index>->{$id} // '';
-            my $st_path   = '';
-            if ( $st_status =~ m{^(blocked|deleted):(.+)$} ) {
-                $st_path = "$cache_dir/$1/$2/$enc_id.yaml";
-            } elsif ( length $st_status ) {
-                $st_path = "$cache_dir/$st_status/$enc_id.yaml";
-            }
-            unlink $st_path if length $st_path and -f $st_path;
-            delete <plugin.web.jobs.cache>->{$id}
-                if ref <plugin.web.jobs.cache> eq 'HASH';
-            delete <plugin.web.jobs.index>->{$id}
-                if ref <plugin.web.jobs.index> eq 'HASH';
-        }
-        <[base.logs]>->(
-            1,
-            'plugin.web.jobs : pruned %d stale cache entries',
-            scalar @stale
-        ) if @stale;
+    $js_index = eval { YAML::XS::LoadFile($jobsite_index_file) } // {};
+}
+$js_index = {} if ref $js_index ne 'HASH';
+
+## prune loaded web-cache entries that jobsite no longer considers active ##
+## (trash/deleted/blocked jobs whose stale cache files survived sync)      ##
+if ( %{$js_index} ) {
+    my %active_id;
+    for my $enc_id ( keys %{$js_index} ) {
+        my $rec    = $js_index->{$enc_id} // {};
+        my $status = ref $rec eq 'HASH' ? ( $rec->{'status'} // '' ) : '';
+        next if $status =~ m{^(trash|deleted|blocked)$};
+        my $id = <[base.vax-int.decode]>->($enc_id);
+        $active_id{$id} = 1 if length $id;
     }
+    my @stale = grep { not exists $active_id{$_} } keys %{$loaded};
+    for my $id (@stale) {
+        my $enc_id    = <[base.vax-int.encode]>->($id);
+        my $st_status = <plugin.web.jobs.index>->{$id} // '';
+        my $st_path   = '';
+        if ( $st_status =~ m{^(blocked|deleted):(.+)$} ) {
+            $st_path = "$cache_dir/$1/$2/$enc_id.yaml";
+        } elsif ( length $st_status ) {
+            $st_path = "$cache_dir/$st_status/$enc_id.yaml";
+        }
+        unlink $st_path if length $st_path and -f $st_path;
+        delete <plugin.web.jobs.cache>->{$id}
+            if ref <plugin.web.jobs.cache> eq 'HASH';
+        delete <plugin.web.jobs.index>->{$id}
+            if ref <plugin.web.jobs.index> eq 'HASH';
+    }
+    <[base.logs]>->(
+        1,
+        'plugin.web.jobs : pruned %d stale cache entries',
+        scalar @stale
+    ) if @stale;
+}
+
+## remove deprecated cache directories that read_all no longer scans      ##
+## (legacy assessed/ and trash epoch dirs left by older sync code)        ##
+for my $dep_dir ( "$cache_dir/assessed", glob("$cache_dir/trash*") ) {
+    next if not -d $dep_dir;
+    my $removed = 0;
+    if ( opendir my $dh, $dep_dir ) {
+        while ( my $fn = readdir($dh) ) {
+            next if $fn =~ m{^\.};
+            my $path = "$dep_dir/$fn";
+            if ( -f $path ) {
+                unlink $path;
+                $removed++;
+            } elsif ( -d $path ) {
+                opendir my $sdh, $path or next;
+                for my $sfn ( grep { !/^\./ } readdir($sdh) ) {
+                    unlink "$path/$sfn" if -f "$path/$sfn";
+                }
+                closedir $sdh;
+                rmdir $path;
+            }
+        }
+        closedir $dh;
+    }
+    rmdir $dep_dir;
+    <[base.logs]>->(
+        1, 'plugin.web.jobs : removed deprecated cache dir %s (%d files)',
+        $dep_dir, $removed
+    ) if $removed;
 }
 
 0;
 
-#,,.,,.,,,,.,,,,.,...,..,,.,.,.,.,,,.,,,,,,..,..,,...,.,.,.,.,.,,,,.,,,,.,,.,,
-#MPBAIZDTP7WCXCQZ3H26HAL5QSNVFRRPHSME5BCHFDJRSDGNLPRBSY3OZ5ES3XBTYSPGCTQL4SW5Q
-#\\\|MZNRFFXGMMVEN33SMADIXYUWI4FSVMNVGNZGY524ECGJP4PU72N \ / AMOS7 \ YOURUM ::
-#\[7]GY2T3ZQ2TEFKJR3EFWG3F3JULLWRCFF3JT7S2YBCF6I3DGZ4A4DA 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,,,,..,,,,.,,,.,..,,...,...,,,,,..,,...,..,,.,.,..,,,,.,..,,...,
+#Q3IOCZ4PL4MDJLEVLIWPHTP2KAJI5GHNFNAHJZXDQFPZPW6IAV3AA7BDY2WCSPUF2YBCGJYHW42HA
+#\\\|SPJEDY6SUXIMH2IV5STBFO62IM6TYFWEPSFPGNVU4VCMSW7JLXR \ / AMOS7 \ YOURUM ::
+#\[7]ZIPPIQ2EL4BI4GQDKN5XAJYOPMW7HNCQYQCZYUUYIIZHDD3ZGODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -20,7 +20,9 @@ my $jobs = <[jobsite.job.load_all]>;
 ## ensure status is set from index before push ##
 for my $id ( keys %{$jobs} ) {
     my $idx_status = <jobsite.job.index>->{$id} // '';
-    $idx_status =~ s{^(?:blocked|deleted):.*}{};
+    ## strip epoch suffix from blocked/deleted/trash so downstream status    ##
+    ## comparisons work; trash jobs are skipped from the push below          ##
+    $idx_status =~ s{^(?:blocked|deleted|trash):.*}{$1};
     $jobs->{$id}{'status'} = $idx_status if length $idx_status;
 }
 
@@ -52,7 +54,7 @@ for my $url (@urls) {
     my @changed;
     for my $id ( keys %{ $jobs // {} } ) {
         my $job = $jobs->{$id};
-        next if ( $job->{'status'} // '' ) =~ m{^(?:blocked|deleted)$};
+        next if ( $job->{'status'} // '' ) =~ m{^(?:blocked|deleted|trash)$};
         my $mod = $job->{'last_modified'} // '';
         my $mod_num
             = length($mod)
@@ -119,8 +121,8 @@ $total_jobs += scalar @{ $ARG->{'chunk'} } for @push_queue;
 
 <[jobsite.sync.push_chunk]>;
 
-#,,..,..,,.,.,...,,..,,,.,,.,,.,.,..,,,,.,,,,,..,,...,..,,...,.,,,,..,.,.,,..,
-#6GBOBM5UBUCFWFSSD5QCZDFA4AYU55VVXVQMWHN32QAPJWUIC7PY5NV7XCPTILKHYZE26PWRSB642
-#\\\|RQGNTMREPTGFM5FXSNZQ7SCFQ56MCMTZL3R4CE5YSOEUB6U257W \ / AMOS7 \ YOURUM ::
-#\[7]VA7XLSV63XGFSHZL4SXGYRLIPJXP53HHC6DDSCH4BVY6C4DSUKCI 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,...,,.,,,,.,..,,,,,,...,,..,.,,,..,,...,..,,...,,,,,...,,.,,,,.,
+#ONLODZ2BWQWLKSUJWZCMZF4RFXK6JRXDYO5YTF2SWK33EOJNITP7WIF56B6MZWWXDW2FE6BQ4XOKY
+#\\\|URGCHK27SPI4Y7NRK7UYVUDJSM5Z266HWF6RU7ABQVMXNDL6KA2 \ / AMOS7 \ YOURUM ::
+#\[7]IUBGHGBBTKKU3VJXPXRR6P4LYNQLDMGIEYPW4WXOCOOSI4PGEABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
