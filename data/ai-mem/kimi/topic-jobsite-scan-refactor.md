@@ -162,3 +162,18 @@ Source-id extraction for `ID:` blocking:
 #\\\|UWCAVN3NXV566M67AB3222R3RNKFP5F7JBAJ43NNIEMDPDF6K4H \ / AMOS7 \ YOURUM ::
 #\[7]EQFY3GBFMXCN6LXKO7MJU6GDUNGZNSXQH54X4GYEYUWE4Q2KJ4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+Persistent block-list seed:
+- `jobsite.stage.fetch` now merges an optional `/var/protocol-7/jobsite/block-list.seed` file before adding current-job entries.
+- The seed file can be generated from backup job directories with `bin/jobsite-generate-blocklist`, preserving known postings across scans.
+- Current seed includes backups from `/tmp/var/protocol-7/web/jobs` and `/tmp/var/protocol-7/jobsite/jobs` (3681 jobs), merged with the live job store.
+- All job statuses are included in the seed; once a posting is known, reposts should be skipped before detail fetches.
+Title blocking removed:
+- Blocking by job title was too broad — it would suppress different jobs at different companies/locations that happen to share a title.
+- The blocklist now only uses `ID` (source/posting id) and `URL`.
+- `site-yaml.cmd.import` no longer checks `title` for pre-fetch blocking.
+
+#,,..,,..,...,,,.,,.,,.,.,..,,.,.,,,.,.,.,...,..,,...,...,...,,,,,.,,,,,,,,..,
+#VSJ3ZLWDFEL2LEZCWU2ELVYH4GG7LM45WYCO6FJ7SJ7KYR32VXZAP7ZC62TCM2LLHR2FSY2GDQE7C
+#\\\|DM6NUE7FXSQSY6CZBPEI7B6FYFOMYCMH233OFU62K6E2R3MLHH3 \ / AMOS7 \ YOURUM ::
+#\[7]UJHTNWSLFORSEDDVOIB2GGEUJOVSZECQHDSVTQ5AB53WC4WKPSDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
