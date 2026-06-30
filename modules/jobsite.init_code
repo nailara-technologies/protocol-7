@@ -110,17 +110,23 @@ for my $id ( keys %{$tasks} ) {
     <[jobsite.job.write]>->( $id, $job );
 }
 
-## migrate stale below-threshold jobs to recoverable trash ##
+## migrate stale assessed jobs to recoverable trash ##
+## jobs with status=assessed and no/assessed stage are leftovers from the old   ##
+## pipeline; the current code writes review (above threshold) or trash (below). ##
 for my $id ( keys %{$tasks} ) {
     my $rec = $tasks->{$id};
-    next unless ( $rec->{'stage'}  // '' ) eq 'assessed';
     next unless ( $rec->{'status'} // '' ) eq 'assessed';
+    my $stage = $rec->{'stage'} // '';
+    next if $stage eq 'review';    ## handled above                       ##
+    next unless $stage eq '' or $stage eq 'assessed';
     my $job = <[jobsite.job.read]>->($id) // next;
     $job->{'status'} = 'trash';
     $job->{'stage'}  = 'trash';
     $job->{'trash_epoch'} //= <[base.ntime.epoch_timestamp]>;
     <[jobsite.job.write]>->( $id, $job );
-    <[base.logs]>->( 1, 'jss.migrate: moved assessed job %s to trash', $id );
+    <[base.logs]>->(
+        1, 'jss.migrate: moved stale assessed job %s to trash', $id
+    );
 }
 
 ## load checksum-based dedup / blacklist index ##
@@ -254,8 +260,8 @@ my $job_count = scalar keys %{$tasks};
 
 TRUE;
 
-#,,,,,,,.,.,.,,,.,,..,.,.,,..,,.,,..,,,..,,..,..,,...,...,,,.,,.,,,.,,.,.,,,.,
-#47RCMSQDAGUN2LPJIRPRSOEPYWAPFD7UUSORXJOKKHXMOX7AGRG24HQCP42IWQADCHNTDL3KZJBWS
-#\\\|FHOF62QKXWBI7SRTQANWH3SRMJQ3WVRPPAE6BNTLUNNC5JWH2NT \ / AMOS7 \ YOURUM ::
-#\[7]HP42OP3ETF76HZQJGNK2LN4JCDEGPYYW6OHK5ND5KMV55EZVGUBY 7  DATA SIGNATURE ::
+#,,..,.,,,...,,,,,.,,,,.,,..,,,,,,,,.,...,,,.,..,,...,...,...,.,.,..,,,,.,..,,
+#3YQEJ4XYAKTGX2EMDJK2W7J6RJG4DOPCWZTBJ3OIJIQFMZ34KR2BF77ONXQTDT7A3XGMZTJXH4SF2
+#\\\|H2XFNWJD7S6GFDFBW3TGLKBDYVAACEJHKG337BINSMJAUMEXLUV \ / AMOS7 \ YOURUM ::
+#\[7]BNAEND2DGL3SLBKZ524Q4CUS7MZKMSIR3M5UQMRHE7O2ZPEGXCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
