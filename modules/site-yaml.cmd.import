@@ -140,7 +140,7 @@ for my $page ( 1 .. $max_pages ) {
         ## optional pre-fetch field blocking ##
         if ( length $block_file ) {
             my $blocked = 0;
-            for my $field (qw| id url title company city |) {
+            for my $field (qw| id url company city |) {
                 my $value = $link->{$field} // '';
                 next if not length $value;
                 my $sum = <[site-yaml.util.field-checksum]>->($value);
@@ -193,8 +193,8 @@ my $summary = sprintf 'import queued: %d new, %d skipped, %d errors',
 
 return { 'mode' => 'size', 'data' => $summary };
 
-#,,,,,...,,,,,,,.,.,.,,..,,,.,,.,,,..,,,.,,..,.,.,...,...,..,,.,.,,.,,,,.,,..,
-#EP5HXTCNTRDIF7K3G3SPUYJ4VYV3WIM3KGZGNBXUU3EIJMXIFRSEPKBGUXLRQAUWJYB7HN7NLHNZ6
-#\\\|BBYSA5WNAALPQOC7TAJOJXQZAWWNLCBQ6TTQ5AY4BQXAKXU2ZMZ \ / AMOS7 \ YOURUM ::
-#\[7]BI4EDWAUA4DKALCLVDYP5JMTV645SWJRBVFCMT5N7DZNMLPEL4AQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,..,.,,,,,,,.,.,,..,.,,,,.,,.,.,.,.,...,...,..,,,.,,,,,,,.,,.,.,
+#LFNRTKZAQCCFCC7WQUI7TFIHA7LHSFWN5BYRGKATKNJX27PBBEHGNH2M7EN75BDUS4ZYPT7HKYPVO
+#\\\|F7F6B5PXCBO5X5BOX3JXGQ2WXWUSUDGRDQLHTFWCXOV4TXE2ADL \ / AMOS7 \ YOURUM ::
+#\[7]OD243P4IGLK6GZSLEVLZSPDDNM5GWMS6M6MOA6IRGZNB63W7POBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
