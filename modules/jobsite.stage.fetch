@@ -48,6 +48,40 @@ if ( not %cat_urls ) {
 my $index    = <jobsite.job.index> // {};
 my $skip_ids = join( ' ', sort keys %{$index} );
 
+##   build a generic field-block file so site-yaml      ##
+##   can skip reposts before paying for detail fetches  ##
+#  [ entries look like "<EPOCH>:<FIELD>:<L13-chksum>" ] ##
+
+my $var_root   = <system.path.zenka-dirs.var_P7>;
+my $block_file = join( '/', $var_root, qw| jobsite block-list | );
+my %block_seen;
+my $epoch_num = <[base.ntime.epoch_dec]>->('current') // '';
+my $epoch_str
+    = length $epoch_num
+    ? <[base.ntime.epoch_timestamp]>->($epoch_num) // ''
+    : '';
+
+if ( open my $bfh, '>', $block_file ) {
+    for my $id ( sort keys %{$index} ) {
+        my $job = <[jobsite.job.read]>->($id) // next;
+        for my $field (qw| id url title |) {
+            my $value = $job->{$field} // '';
+            next if not length $value;
+            my $sum = <[chk-sum.bmw.L13-str]>->($value);
+            next if not length $sum;
+            my $line
+                = length $epoch_str
+                ? "$epoch_str:" . uc($field) . ":$sum"
+                : uc($field) . ":$sum";
+            next if $block_seen{$line}++;
+            print {$bfh} "$line\n";
+        }
+    }
+    close $bfh;
+} else {
+    <[base.logs]>->( 0, 'fetch: cannot write %s: %s', $block_file, $! );
+}
+
 ## reset per-cycle counters before sending imports
 <jobsite.fetch_total_queued> = 0;
 <jobsite.fetch_saw_queue>    = FALSE;
@@ -59,10 +93,12 @@ if ( defined $data{'jobsite'}{'queue_poll_timer'} ) {
 }
 
 for my $cat ( sort keys %cat_urls ) {
-    my $args_str = sprintf 'url=%s handler=%s skip=%s full=%d',
+    my $args_str = sprintf
+        'url=%s handler=%s skip=%s block_file=%s full=%d',
         $cat_urls{$cat},
         qw| jobsite.job-upsert |,
         $skip_ids,
+        $block_file,
         ( $full_mode ? 1 : 0 );
 
     <[protocol-7.route-send]>->(
@@ -79,8 +115,8 @@ for my $cat ( sort keys %cat_urls ) {
 ## track how many fetch replies we expect
 <jobsite.fetch_pending> = scalar keys %cat_urls;
 
-#,,..,.,.,,.,,,,,,,.,,,.,,...,,,.,,.,,,.,,..,,..,,...,...,,..,,.,,..,,,,.,..,,
-#P326LSVZPF5Z7QGUV7JWKPN66XGXVWXUDCFWAC7JMZ423RLBQS35HIXRMQBXEONWWHC45H4UIM2YM
-#\\\|DJKDXAUTBNPXG54MM7YBRLL4KMIRKDU5257T2LSK5EFADH2S325 \ / AMOS7 \ YOURUM ::
-#\[7]75VAPVFMPYOARYHBNOBOPONBVDNHMB2JFFG3IRZEJAQAL3BNXUBI 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,,..,,,,,.,,,,..,.,,,.,,,,,.,.,,,..,,...,...,.,.,...,.,.,,..,..,,
+#KYSABUXVX3PKW7VQGBFT62ZT573GFPIN4YJAN5J6L3CC7NX3SJBNHDSWN7QFOUKRY3VHDCOPWDSO4
+#\\\|FAMDJBXOLH5IMCCZORWF2LFXGV3TEVW6KVCVGIGJWV44EKDRJQW \ / AMOS7 \ YOURUM ::
+#\[7]7IIQWV4KCS5GBKCEVCOZLBQUWT5YNBJQCHRUHXVM2RKA3F5MQ2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

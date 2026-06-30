@@ -103,3 +103,48 @@ Verified: new jobsite instance cycled through `scanning` → `assessing` → `id
 #\\\|5ZN2XTRS77WM45W6QTUUHMHPMOZUYCTIMYMCGFNAHAHOMMUA2DW \ / AMOS7 \ YOURUM ::
 #\[7]YUAXIYX67E4P4IRUUSGGLXXZOCT2DJJI7H7DUPGWCJ57ZVADDABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+## July 2026 pre-fetch field-block design
+
+To avoid fetching detail pages for reposted/deleted jobs, a generic pre-fetch blocking mechanism was added:
+
+- `jobsite.stage.fetch` writes `/var/protocol-7/jobsite/block-list.txt` with lines like `id:<L13>`, `url:<L13>`, `title:<L13>` for every known job.
+- `site-yaml.cmd.import` accepts a `block_file=<path>` argument, reads the entries into a hash, and skips any search-result candidate whose `id`, `url`, `title`, `company`, or `city` field matches a blocked checksum.
+- `modules/site-yaml.util.field-checksum` is a static helper that computes `<[chk-sum.bmw.L13-str]>` directly on raw strings (no extra base32 encoding).
+- `site-yaml.cmd.import` restricts `handler=` to an allow-list (`jobsite.job-upsert`) to prevent routing fetched records to arbitrary subroutines.
+
+`company`/`city` blocking requires `site-yaml.stepstone.search` to extract those fields from the search-result HTML; it currently only returns `id`, `url`, and `title_hint`.
+
+This keeps `site-yaml` generic — it only knows about field checksums, not jobs — while moving all dedup context into the block file produced by `jobsite`.
+## Long-term direction: data zenka / SHM blocklist sharing
+
+The current file-based `block_file=` approach is a local-only intermediate step. The right long-term home for cross-zenka block/skip lists is the existing `data` zenka, which already provides shared-memory mounts and cross-host sync capabilities.
+
+Goals once integrated:
+
+- `jobsite` publishes the blocklist as a named SHM mount or data key (e.g. `jobsite.block-list`).
+- `site-yaml` mounts or reads that blocklist directly from shared memory, with no local file copy and no per-candidate cross-zenka calls.
+- The same mechanism can be reused for other consumers: podcast episode tracking, video channel monitoring, etc.
+- This removes the shared-filesystem assumption and makes `site-yaml` deployable on a remote host with a faster/more stable connection than the consumer zenki.
+
+The field-block format (`<field>:<L13-chksum>` per line) stays the same; only the transport changes from local file to data-zenka SHM.
+Block-list file conventions:
+- Path: `/var/protocol-7/jobsite/block-list` (no `.txt` extension).
+- Entries use uppercase field keys: `ID:<L13>`, `URL:<L13>`, `TITLE:<L13>`.
+- `site-yaml.cmd.import` normalizes keys to lowercase when reading, so callers can use any case.
+
+#,,..,.,,,,,,,...,,..,...,,.,,,,,,,,.,,..,...,..,,...,...,..,,.,,,,,.,,.,,,,,,
+#HHEWXDSSNGY4HS6GFJV7ZD2T6GKH242WSPNEZDYHCYHIO42PONVRHCU4L6OGIAYLA5ZPDFVOVI3LK
+#\\\|7KQTT4M55N6XZHG7UJDTOPYJ42S23SV4CUOIW4DYUXEVLGI2GTU \ / AMOS7 \ YOURUM ::
+#\[7]H5GJVJM3XOWFGD32YANXS3HWZTVDIQWSWNLGQTFYE3EFGRDDQOCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+Block-list entries are now prefixed with the current V7 network epoch:
+- Format: `<EPOCH>:<FIELD>:<L13>` (e.g. `V7L36RQ:ID:24EYSX33KTVEK`).
+- The epoch string is the stripped `base.ntime.epoch_timestamp` value (7 characters, without the 4 harmonization bits).
+- `site-yaml.cmd.import` parses both epoch-prefixed and legacy two-part lines.
+- This allows future TTL-based cleanup of stale block-list entries to keep the file bounded.
+
+#,,,,,,,.,...,.,.,...,,,.,,.,,,..,,,.,.,,,,,,,..,,...,...,..,,..,,...,,..,...,
+#ZMNCJ47QTZI42BFKMEDOKWPFK3XTG7RM3YEUEEZXVHXLLYTPH52GEH42ETPLOLOYNTNQHJHIHS6AU
+#\\\|BKU2VZG2ROTGCGZHAKXFRYGD74FGSTNAHWW4J5SMANJMLQYHVDN \ / AMOS7 \ YOURUM ::
+#\[7]5CXLWAFUYVPQS67DEN3PMAVEKQFJUVZTTPKKZN2JNK6NIDC6L4AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

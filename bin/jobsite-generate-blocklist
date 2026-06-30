@@ -1,0 +1,123 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use warnings;
+use English;
+use File::Spec;
+use Cwd     qw| abs_path |;
+use FindBin qw| $RealBin |;
+
+## generate / refresh jobsite pre-fetch block-list
+## usage: jobsite-generate-blocklist [jobs-root] [block-file]
+## defaults: /var/protocol-7/jobsite/jobs  /var/protocol-7/jobsite/block-list.txt
+
+BEGIN {
+    my $up_dir       = File::Spec->updir;
+    my $data_pm_path = qw| data/lib-path/pm |;
+    my $root_path    = abs_path( File::Spec->catdir( $RealBin, $up_dir ) );
+    my $local_lib_path
+        = abs_path( File::Spec->catdir( $root_path, $data_pm_path ) );
+    die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
+    unshift( @INC, $local_lib_path )               if -d $local_lib_path;
+}
+
+use AMOS7::Assert::Truth qw| is_true |;
+use Crypt::Misc          qw| encode_b32r |;
+use Digest::BMW;
+use YAML::XS;
+use File::Find;
+
+my $jobs_root = $ARGV[0] // '/var/protocol-7/jobsite/jobs';
+my $out_file  = $ARGV[1] // '/var/protocol-7/jobsite/block-list';
+
+die "\n:: jobs root not found : $jobs_root\n:\n" if !-d $jobs_root;
+
+my @yaml_files;
+find(
+    sub {
+        push @yaml_files, $File::Find::name
+            if -f $ARG and $ARG =~ m{\.yaml$};
+    },
+    $jobs_root
+);
+
+sub L13_checksum {
+    my $input = shift // '';
+    return undef if not length $input;
+
+    my $bmw_512_bin = Digest::BMW::bmw_512($input);
+
+    state $start_seed_num;
+    $start_seed_num //= unpack qw| Q |, pack qw| B64 |, '10000000' x 8;
+    my $bits_num = $start_seed_num;
+
+    foreach my $segment_num ( unpack qw| Q8 |, $bmw_512_bin ) {
+        while ( not AMOS7::Assert::Truth::true_int($segment_num) ) {
+            $segment_num = sprintf qw| %u |, $segment_num / 13;
+        }
+        $bits_num ^= $segment_num;
+        while ( not AMOS7::Assert::Truth::true_int($bits_num) ) {
+            $bits_num <<= 1;
+        }
+    }
+
+    my $result_str_B32 = encode_b32r( pack qw| Q |, $bits_num );
+
+    while (not is_true( $result_str_B32, 0, 1 )
+        or not AMOS7::Assert::Truth::true_int($bits_num) ) {
+        $bits_num = sprintf qw| %u |, $bits_num / 13;
+        $bits_num <<= 5;
+        $bits_num       = 13 if $bits_num == 0;
+        $result_str_B32 = encode_b32r( pack qw| Q |, $bits_num );
+    }
+
+    return $result_str_B32;
+}
+
+## current V7 network epoch string (matches base.ntime.epoch_timestamp) ##
+sub current_epoch_v7 {
+    state $ustart       //= 1023228000;    ## protocol-7 network epoch start ##
+    state $epochs_total //= 385280;        ## matches base.ntime.epoch_dec ##
+    my $epoch = int( ( time - $ustart ) / ( 86400 * 365 / 13 ) );
+    $epoch %= $epochs_total;               ## overflow reset ##
+    return encode_b32r( pack qw| w |, 99999999 - $epoch );
+}
+
+my $epoch_str = current_epoch_v7();
+
+my %seen;
+my @lines;
+my $count = 0;
+foreach my $file (@yaml_files) {
+    my $job = eval { YAML::XS::LoadFile($file) };
+    if ($EVAL_ERROR) {
+        warn ":: load error $file : $EVAL_ERROR\n";
+        next;
+    }
+
+    for my $field (qw| id url title |) {
+        my $value = $job->{$field} // '';
+        next if not length $value;
+        my $sum = L13_checksum($value);
+        next if not defined $sum;
+        my $line = "$epoch_str:" . uc($field) . ":$sum";
+        next if $seen{$line}++;
+        push @lines, $line;
+    }
+
+    $count++;
+}
+
+open( my $out, qw| > |, $out_file )
+    or die "\n:: cannot write $out_file : $!\n:\n";
+say {$out} $_ for sort @lines;
+close($out);
+
+printf ":\n: generated %s from %d jobs (%d unique field checksums)\n:\n",
+    $out_file, $count, scalar @lines;
+
+#,,,.,,,.,..,,,,.,...,,.,,.,,,,,.,,.,,...,...,..,,...,...,,.,,...,,.,,,..,,.,,
+#X4BIBLCUMI5XV45TERZCX6WJDQ663YGZU4BDVEXJEIJ7XCF33XKUIEN5QP3SIZ2QWNQ5XZGAQ6MBM
+#\\\|GQ52UBMM5FWP445OJ7LAOUOMRIGYENZKBZEXWLK6JEEFRH26NPJ \ / AMOS7 \ YOURUM ::
+#\[7]4NWS6HQJZUGLFOWWMXJUP5YNIVHF3JTCLHHDQLMGLOMDDMQHZIBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
