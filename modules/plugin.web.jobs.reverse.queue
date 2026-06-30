@@ -12,10 +12,15 @@ $entry->{'ntime'} = <[base.ntime.b32]>;
 <plugin.web.jobs.reverse> //= [];
 push @{<plugin.web.jobs.reverse>}, $entry;
 
+## persist so reverse actions survive a web-zenka restart ##
+my $cache_dir    = <[plugin.web.jobs.cache.path]>;
+my $reverse_file = "$cache_dir/reverse-pending.yaml";
+eval { YAML::XS::DumpFile( $reverse_file, <plugin.web.jobs.reverse> ) };
+
 return TRUE;
 
-#,,.,,,..,,,,,.,,,..,,,,,,..,,,,,,,..,...,,,.,..,,...,...,..,,,.,,..,,,..,,,.,
-#VGWCAMX3BW6BB3AJGM6VDD7HT2G2XNPBAGTIKQCQ3LL4KEA2C5XLG5D3I5HGTA5MULMTBVTE7N33A
-#\\\|G2TEOCLPHASAAN3F7HU6IAQOCEOT7T57KOCU7ZPITPJUUTSDBJ4 \ / AMOS7 \ YOURUM ::
-#\[7]O3IC2IWPWCJZOPDJNMOODNYZ22CAUPKKLGSVJUALKJWEQMSZNCBY 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,,.,,,.,,,.,.,,,,,,,..,,.,.,...,..,,...,.,.,...,,..,..,,..,,...,
+#ERWZDCDFAGJYQVSISFBCB72L74J5GH33JTSNI7JMFJ6B3FTQVXQPLIRTYVWMGCUKCDZOXR5WSZENA
+#\\\|FUKWQQ76556LYGFHEACN2OFPWAUXNUKFLDMVK4BDL6G4SB6CT2P \ / AMOS7 \ YOURUM ::
+#\[7]MSC3ADCY5GLU7VF7CC5FSDHL3Y6ROAQMAUZLV7FMG6TEQT6DICDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -35,12 +35,26 @@ my $user      = <system.zenka-user.current> // <system.amos-zenka-user>
     // qw| protocol-7 |;
 my $group = <system.zenka-group.current> // $user;
 
-for my $status (
-    qw| new assessed review apply applied interviewed rejected skipped |,
+for my $status ( qw| new review apply applied interviewed rejected skipped |,
     qw| blocked deleted | ) {
     my $dir = "$cache_dir/$status";
     next if -d $dir;
     <[file.make_path]>->( $dir, 0750, $user, $group );
+}
+
+## load any reverse-change queue that was persisted before a restart       ##
+## (browser delete/reassess actions would otherwise be lost on web reload) ##
+my $reverse_file = "$cache_dir/reverse-pending.yaml";
+if ( -f $reverse_file ) {
+    my $loaded = eval { YAML::XS::LoadFile($reverse_file) };
+    if ( ref $loaded eq 'ARRAY' and @{$loaded} ) {
+        <plugin.web.jobs.reverse> = $loaded;
+        <[base.logs]>->(
+            1,
+            'plugin.web.jobs : loaded %d pending reverse entries',
+            scalar @{$loaded}
+        );
+    }
 }
 
 ## pre-warm in-memory job cache and index ##
@@ -50,10 +64,49 @@ my $count  = scalar keys %{$loaded};
     1, 'plugin.web.jobs : initialized [ %d jobs loaded ]', $count
 );
 
+## prune web-cache entries that jobsite no longer considers active ##
+## (trash/deleted/blocked jobs whose stale cache files survived sync) ##
+my $jobsite_index_file = join qw| / |,
+    <system.path.zenka-dirs>->{'var_P7'}, qw| jobsite index.yaml |;
+if ( -f $jobsite_index_file ) {
+    my $js_index = eval { YAML::XS::LoadFile($jobsite_index_file) } // {};
+    if ( ref $js_index eq 'HASH' and %{$js_index} ) {
+        my %active_id;
+        for my $enc_id ( keys %{$js_index} ) {
+            my $rec    = $js_index->{$enc_id} // {};
+            my $status = ref $rec eq 'HASH' ? ( $rec->{'status'} // '' ) : '';
+            next if $status =~ m{^(trash|deleted|blocked)$};
+            my $id = <[base.vax-int.decode]>->($enc_id);
+            $active_id{$id} = 1 if length $id;
+        }
+        my @stale = grep { not exists $active_id{$_} } keys %{$loaded};
+        for my $id (@stale) {
+            my $enc_id    = <[base.vax-int.encode]>->($id);
+            my $st_status = <plugin.web.jobs.index>->{$id} // '';
+            my $st_path   = '';
+            if ( $st_status =~ m{^(blocked|deleted):(.+)$} ) {
+                $st_path = "$cache_dir/$1/$2/$enc_id.yaml";
+            } elsif ( length $st_status ) {
+                $st_path = "$cache_dir/$st_status/$enc_id.yaml";
+            }
+            unlink $st_path if length $st_path and -f $st_path;
+            delete <plugin.web.jobs.cache>->{$id}
+                if ref <plugin.web.jobs.cache> eq 'HASH';
+            delete <plugin.web.jobs.index>->{$id}
+                if ref <plugin.web.jobs.index> eq 'HASH';
+        }
+        <[base.logs]>->(
+            1,
+            'plugin.web.jobs : pruned %d stale cache entries',
+            scalar @stale
+        ) if @stale;
+    }
+}
+
 0;
 
-#,,,,,..,,.,.,...,.,.,..,,,,,,,,,,,..,.,.,,..,..,,...,...,..,,...,,.,,,,,,..,,
-#5DKFBNGFIQDITMXK677SRADOANCNYDRH5SMBUKBV5D5CEPM55ZFZ6TENHNNHCOMITEXVLIKSPMIFS
-#\\\|L4TAFDNSY2RCBWEZPVJLKRKTJLQGNKNIXDRDPERGHT5TJX3C4QZ \ / AMOS7 \ YOURUM ::
-#\[7]T32FD24EZTAXTKZMMGDUKYIIQFWF6NARGPU5PWFLXYEXOE3ILWAA 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,,.,...,..,,.,.,.,.,,,.,,,,,,..,..,,...,.,.,.,.,.,,,,.,,,,.,,.,,
+#MPBAIZDTP7WCXCQZ3H26HAL5QSNVFRRPHSME5BCHFDJRSDGNLPRBSY3OZ5ES3XBTYSPGCTQL4SW5Q
+#\\\|MZNRFFXGMMVEN33SMADIXYUWI4FSVMNVGNZGY524ECGJP4PU72N \ / AMOS7 \ YOURUM ::
+#\[7]GY2T3ZQ2TEFKJR3EFWG3F3JULLWRCFF3JT7S2YBCF6I3DGZ4A4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

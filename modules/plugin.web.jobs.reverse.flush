@@ -6,13 +6,18 @@
 my $pending = <plugin.web.jobs.reverse> // [];
 <plugin.web.jobs.reverse> = [];
 
+## clear on-disk persistence ##
+my $cache_dir    = <[plugin.web.jobs.cache.path]>;
+my $reverse_file = "$cache_dir/reverse-pending.yaml";
+unlink $reverse_file if -f $reverse_file;
+
 ## periodic lifecycle prune ##
 <[plugin.web.jobs.store.prune]>;
 
 return $pending;
 
-#,,,,,,.,,.,,,...,..,,,..,.,.,.,.,,,.,,,,,,,,,..,,...,..,,,.,,,..,..,,.,,,...,
-#FPH4M3N2SNONITAXNDFS5G2KIWTAY3BATKJCFZ4HRHHN7OSHEVGJUXDLJCNILSZBYIHKB2U5H5UXE
-#\\\|LSTWTTJAMYBFQOJ2UEAF7O6GIQTF6NP45QGEMIAJEPKOEOH4YLS \ / AMOS7 \ YOURUM ::
-#\[7]KXDKF2NTXQXXRJAS7GQJOJALEUINIHWD4P33R5BYPVNEFLNW3WDY 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,..,..,,.,.,..,,.,.,,.,,,.,,,.,,..,,...,...,.,.,,.,,..,,,,,,.,,,
+#DWROWUKSOV7A3DJEOLBFC7WOPMWS7MXAJHGPPYBBFENWTF4FYKEUFBDYIG47BKQSG66WJELQTNXL4
+#\\\|H6MUQNOCFPLP5DROK7CBDFUIRFYSTEKZHZJ3AYU4HDVLAGPD6GA \ / AMOS7 \ YOURUM ::
+#\[7]PXK7XZUJ7UBSJBJMWH4AMFWJ64TYMEZNXWDTODEBUXDYQMA7P4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

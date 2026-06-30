@@ -111,3 +111,25 @@ Status: code edited, needs `bin/Protocol-7 sourcecode update-signatures` and res
 #\\\|XP5BA7ECMCLRV5Y7LLSKBID37PBEGUMLH4V466XOUKDQYOOKPCI \ / AMOS7 \ YOURUM ::
 #\[7]OS7LU6IIKSW6FSHH4M345OCW2WHQNAW4K3S2FGCXM7XTXPXDHKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+## 2026-06-28 (continued) — Manually deleted jobs resurrected as assessed
+
+After mapping `assessed` → `review`, the review tab filled with jobs the user had manually deleted. Root causes:
+
+1. **Stale jobsite `assessed/` directory:** Old pipeline jobs with `status: assessed` and no `stage` field were never migrated by `jobsite.init_code` (the migration only matched `stage: assessed`). They kept being pushed to the web cache.
+2. **Web cache still read `assessed/`:** `plugin.web.jobs.cache.read_all` treated `assessed` as an active status, so these stale files were loaded.
+3. **Reverse-delete race:** A batch push from jobsite could re-add a job in the same sync cycle that the browser had asked to delete, before jobsite processed the delete.
+4. **Reverse queue not persisted:** Pending browser delete/reassess actions were held only in memory and lost on web-zenka restart.
+
+Additional fixes staged:
+- `modules/jobsite.init_code`: migrate `status=assessed` jobs with empty/missing stage to trash.
+- `modules/plugin.web.jobs.cache.read_all`: drop `assessed` from active statuses so stale files are ignored.
+- `modules/plugin.web.jobs.sync`: skip re-adding jobs that have a pending reverse-delete and remove any resurrected on-disk cache copy.
+- `modules/plugin.web.jobs.reverse.queue/flush` and `plugin.web.jobs.init_code`: persist the reverse queue to `reverse-pending.yaml` and reload it on startup.
+
+Status: staged and version-bumped; needs `bin/Protocol-7 sourcecode update-signatures` and restart of `jobsite` + `web` zenki.
+
+#,,,.,..,,,..,,,,,,.,,.,,,.,.,,..,.,.,,.,,..,,..,,...,..,,.,,,...,.,.,,,.,..,,
+#WSB5IYWYYT3HA4UDAQBW3HSQ645XEIJD5YWDJOUVYJ46P6XI4ESZBX4UTXTESHBGAA2PNRC2NNYXY
+#\\\|N3SZDL6O6YZNBVZ3MMW6LL3CN2ZMPAPEWWZWDYFNRQKMJMT33WA \ / AMOS7 \ YOURUM ::
+#\[7]2BAYZZDI6T243Q65G7ZPEDXQZSQQD4RHYNVRVQY3DL4SMW4X54DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
