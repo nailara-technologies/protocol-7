@@ -133,3 +133,19 @@ Status: staged and version-bumped; needs `bin/Protocol-7 sourcecode update-signa
 #\\\|N3SZDL6O6YZNBVZ3MMW6LL3CN2ZMPAPEWWZWDYFNRQKMJMT33WA \ / AMOS7 \ YOURUM ::
 #\[7]2BAYZZDI6T243Q65G7ZPEDXQZSQQD4RHYNVRVQY3DL4SMW4X54DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+## 2026-06-28 (continued) — Checksum store inherits legacy `assessed`
+
+After restart, the log showed duplicate jobs inheriting `status=assessed` from the checksum store. The checksum store's title dedup still resolves to the old `assessed` directory (and some entries are in `deleted`), so every duplicate title was resurrected as assessed and then migrated to trash.
+
+Fix staged in `modules/jobsite.dispatch.assessments`:
+- Map checksum `resolved_status` `assessed` → `trash`
+- Map checksum `resolved_status` `deleted` → `trash` (keeps duplicates recoverable)
+- Set `stage=trash` and `trash_epoch` when inheriting trash
+
+Status: staged and version-bumped; needs `bin/Protocol-7 sourcecode update-signatures` and restart of `jobsite` zenka.
+
+#,,,,,,,,,,,,,,,,,,.,,.,,,.,.,,.,,.,.,..,,.,.,..,,...,..,,...,,,.,...,,..,.,,,
+#Y4XQFFEUTNMQ6VM3MEXPCZ6XHRMTM55DSPQKRHFJI2CLNJPMX4ZRTBLBR7AHENMO7G3KXWMAIKMYS
+#\\\|TMB7GQQY7K35SHMFQN7O37AEURQRDNBP5YID77S2Q7JJOTGADUL \ / AMOS7 \ YOURUM ::
+#\[7]ROSEJHI2BHUP7ID3J6XTPHQCM534MJCD33I26DNX22ZEQWKCMADA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
