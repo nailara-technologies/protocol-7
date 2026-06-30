@@ -236,10 +236,12 @@ if ( $protected_stage{$current_stage} ) {
         $job_id, $score
     );
 } else {
-    $job_rec->{'status'} = 'assessed';
-    $job_rec->{'stage'}  = 'assessed';
+    ## below threshold : recoverable trash (user can rescue or bulk-delete) ##
+    $job_rec->{'status'} = 'trash';
+    $job_rec->{'stage'}  = 'trash';
+    $job_rec->{'trash_epoch'} //= <[base.ntime.epoch_timestamp]>;
     <[base.logs]>->(
-        1,       'job %s score=%s below threshold',
+        1,       'job %s score=%s below threshold → trash',
         $job_id, length($score) ? $score : '?'
     );
 }
@@ -279,8 +281,8 @@ if ( <jobsite.pending_count> <= 0 ) {
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.next]>
 
-#,,,,,,,,,,..,,.,,,.,,.,.,.,,,.,,,...,.,,,..,,..,,...,..,,.,.,,.,,,,.,,..,.,,,
-#BKDRQE6JQKR3U4BOXGRBRRH3TWFWCGOQFN7MYAB5Q27UTXIDQ4YY7APMHBHFRCHRZW5HMJPBMDW26
-#\\\|QFKTY3KTIKCSUJWR2ETIDPPWAHGUPXKQCBKLW4ZVEOWQJ6OGKAY \ / AMOS7 \ YOURUM ::
-#\[7]RPPLSE5IVMABIKVPXT6O3VTTU4XLBXB2UF2JBNJ27IGWCI3VLGAA 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,,,,..,,,..,...,.,.,,,,,..,,..,,..,,...,...,.,.,...,.,.,.,,,.,,,
+#MVSAWBR3OZFDCCXH4NVVNQRKNY6UCYUWTEUELX5WY4WP2RAUA4NWKEYZAJ32R3PI5H2NRXVVF527O
+#\\\|WHBBZBA32MARV5GOIVE2BGLBBK2APPMDD4JDSLCY2IUMH4KBEOQ \ / AMOS7 \ YOURUM ::
+#\[7]QSK4J3ZDXDBHYK6IHJROVIEONUD4SUHUITNV75EXILIKINBE3ACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
