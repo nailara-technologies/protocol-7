@@ -20,7 +20,7 @@ state $b32_re //= <regex.base.base_32>;
 ## V7 epoch time input ##
 ##
 if (   $calc_val =~ m|^(\d{1,6}(\.\d{1,13})?)$| and $calc_val <= 385279
-    or $calc_val =~ m|^<(V7($b32_re){5})[;:]{4}>$|
+    or $calc_val =~ m|^(V7($b32_re){5})[01]{4}$|
     or $calc_val =~ m|^(V7($b32_re){5})$| ) {
 
     ## decode to ntime ##
@@ -128,8 +128,8 @@ return {
     'data' => $ltime_str
     }
 
-#,,.,,...,..,,.,,,,,,,...,...,,.,,,..,..,,,..,..,,...,...,,..,...,,,,,.,.,.,,,
-#ZA5URHUZEMEF3EGDHEVACNJ2SSSHFOGLFJMMJ45S3RN7CYJCKSEP5B4HSAC3Y7KW5I3GJV2WROCLS
-#\\\|LXVXI3ZTVHUNJ74GNRBOV37L5FPSFGB3LRBWF2AGM5GYPAQ43MT \ / AMOS7 \ YOURUM ::
-#\[7]J6MWFS4UUMCI475IGLNNL74R4N5R4U3DWEUYGY3IM2RBXO4VW2CY 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,,,,..,,..,,,.,,,.,,,..,,.,,.,.,..,,...,..,,..,,...,,.,,,,,,,,.,
+#4Q2SMCQG3NM55TFGND6LLMF5KYD4OUOBNPAE66QZHLKUXMICNXNTN5T5OXKDSFCHTNFGYSPNDECYA
+#\\\|XEBV3GZJYA5XEQKF3TCMVET5DHNYSGK2H2WJVL32J6AW4PZREOO \ / AMOS7 \ YOURUM ::
+#\[7]YG3QGLE7XR2IEYGYDNGQ5HFZKGPTOQKSL7PGRFD5QAAQFDJOQ2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
