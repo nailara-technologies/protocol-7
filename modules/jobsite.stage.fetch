@@ -57,7 +57,20 @@ my $epoch_str
     ? <[base.ntime.epoch_timestamp]>->($epoch_num) // ''
     : '';
 
+my $seed_file = "$block_file.seed";
 if ( open my $bfh, '>', $block_file ) {
+
+    ## merge optional seed blocklist (e.g. from backups) so it persists ##
+    if ( -r $seed_file and open my $sfh, '<', $seed_file ) {
+        while ( my $line = <$sfh> ) {
+            chomp $line;
+            next if $line =~ m{^\s*$};
+            next if $block_seen{$line}++;
+            print {$bfh} "$line\n";
+        }
+        close $sfh;
+    }
+
     for my $id ( sort keys %{$index} ) {
         my $job = <[jobsite.job.read]>->($id) // next;
 
@@ -70,7 +83,7 @@ if ( open my $bfh, '>', $block_file ) {
             push @skip_source_ids, $source_id;
         }
 
-        for my $field (qw| url title |) {
+        for my $field (qw| url |) {
             my $line = <[jobsite.util.block-line]>->(
                 $epoch_str, $field, $job->{$field} // '',
                 \%block_seen
@@ -118,8 +131,8 @@ for my $cat ( sort keys %cat_urls ) {
 ## track how many fetch replies we expect
 <jobsite.fetch_pending> = scalar keys %cat_urls;
 
-#,,..,..,,,.,,,,.,.,.,,.,,,,.,...,..,,,,,,.,,,..,,...,...,.,.,,..,,,,,,.,,,,,,
-#2MBMON42JATB4H6E2ZCKVZQXRIUKTXME2UAK6OZFGBV42FBXJQCJT3ITXMXXHOCSNJL2B57THGDR6
-#\\\|WBKEBWKKC76RJRCUNKRBJMAJDSNWUMNJS6IONQ7QIPGOML2GR2C \ / AMOS7 \ YOURUM ::
-#\[7]456OZ3PRUJK5SP5RY2BWHINE34QWPBA7ABRAD4S6IXIIBH7QAIBY 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,,.,,,,,..,,.,,,...,..,,,.,,,,,,..,,...,...,,,.,,.,,,.,,,,,,,,,,
+#CZRNOSUWV7EMHJCVGPEMOGPFJLHQYIFHTVHMJ7S4DX34SMMBM4M5YAFBPBAINHRRJNXGD4GGUD33M
+#\\\|P5JTPRONCU2CQEYSWSNY6JQAVGZFP7COQKQIPDWJIEOXJYLGWLK \ / AMOS7 \ YOURUM ::
+#\[7]B5HJMRKDDSXZLAET3PQ5CLF75XZBBJM34QUVR357PG4KTRRJNACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

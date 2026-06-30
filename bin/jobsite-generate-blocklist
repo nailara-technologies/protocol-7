@@ -130,9 +130,8 @@ for my $root (@roots) {
                 return;
             }
 
-            add_line( 'ID',    source_id($job), \%seen, \@lines );
-            add_line( 'URL',   $job->{'url'}   // '', \%seen, \@lines );
-            add_line( 'TITLE', $job->{'title'} // '', \%seen, \@lines );
+            add_line( 'ID',  source_id($job),     \%seen, \@lines );
+            add_line( 'URL', $job->{'url'} // '', \%seen, \@lines );
 
             $count++;
         },
@@ -148,8 +147,8 @@ close($out);
 printf ":\n: generated %s from %d jobs (%d unique field checksums)\n:\n",
     $out_file, $count, scalar @lines;
 
-#,,.,,...,...,.,.,,,.,.,.,...,,.,,...,.,.,,,,,..,,...,..,,,.,,,.,,..,,.,.,,.,,
-#K64L3NC7WAWWCIVV67MCJ2QOGQV4OTLAZV63DIZRO5P4D6SDHFXEMXPIWGG5GS27TTTEQQ6JC2EQI
-#\\\|6Z3SHBH2K7UL6IVYU4P7ODTFVOH5ML3B56NXXGIUEYOHOHTYSHA \ / AMOS7 \ YOURUM ::
-#\[7]V2WXVX22F5ZPKI2SBLVYJDRTHZNHCRSOPEOWYDOTAKSPOS2PIKCA 7  DATA SIGNATURE ::
+#,,,,,...,...,,,,,,,,,,,,,...,,..,,.,,,,.,.,.,..,,...,...,,..,.,,,,,,,,,,,...,
+#6SXYNXIQ4HM3GG7HGN34DOTWZRTNZVC5Z3TJSXW4XO6IJC4DIJW4QLBM5F7YZLNNMWGRH75XUK3PE
+#\\\|6C46X3N6R7KWNWCFU4QLFV3UOMVYGPYCIOK7USTVCVE7U27OEKI \ / AMOS7 \ YOURUM ::
+#\[7]YXCF4S3YUS7WLXNKUJ4V4XPBOVLKSIEDKDVUL4PS67VFKHS3GGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
