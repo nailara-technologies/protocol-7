@@ -1182,9 +1182,9 @@ function render() {
 
     updateStats(sorted);
 
-    /* show/hide bulk reassess button for user-owned stages */
+    /* show/hide bulk reassess button for review jobs missing assessment data */
     const btnReassessAll = document.getElementById('btn-reassess-all');
-    const REASSESS_ALL_STAGES = new Set(['applied','interviewed','responded','rejected','skipped']);
+    const REASSESS_ALL_STAGES = new Set(['review']);
     const hasEmptyCards = visible.some(j => j.score == null || j.score === '' || !j.summary);
     if (REASSESS_ALL_STAGES.has(filterMode) && hasEmptyCards) {
         btnReassessAll.style.display = 'inline-block';
@@ -1193,9 +1193,10 @@ function render() {
         btnReassessAll.style.display = 'none';
     }
 
-    /* show/hide bulk delete button in delete tab */
+    /* show/hide bulk delete button in delete and skipped tabs */
     const btnDeleteAll = document.getElementById('btn-delete-all');
-    if (filterMode === 'delete' && visible.length) {
+    const DELETE_ALL_STAGES = new Set(['delete', 'skipped']);
+    if (DELETE_ALL_STAGES.has(filterMode) && visible.length) {
         btnDeleteAll.style.display = 'inline-block';
         btnDeleteAll.textContent = '✗ alle ' + visible.length + ' löschen';
     } else {
@@ -1484,10 +1485,11 @@ window.reassessAllVisible = () => {
 };
 
 window.deleteAllVisible = async () => {
-    const targets = Object.values(jobs).filter(j =>
-        (j.assertions && j.assertions.suggest && j.assertions.suggest.delete) === 'true'
-        && !USER_OWNED_STAGES.has(j.stage)
-    );
+    const targets = (filterMode === 'delete')
+        ? Object.values(jobs).filter(j =>
+            (j.assertions && j.assertions.suggest && j.assertions.suggest.delete) === 'true'
+            && !USER_OWNED_STAGES.has(j.stage))
+        : Object.values(jobs).filter(j => j.stage === filterMode);
     if (!targets.length) return;
     const btn = document.getElementById('btn-delete-all');
     const originalText = btn.textContent;

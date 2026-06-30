@@ -185,3 +185,23 @@ Status: staged and version-bumped; needs `bin/Protocol-7 sourcecode update-signa
 #\\\|VI7K3OMFRYHP4DSS2XQJEF6LHRPXS5RWN2H24B5LJ5EWZ6NATXI \ / AMOS7 \ YOURUM ::
 #\[7]LYHWARWZNRLFMQQRNQ63XTORXOHWDJLOZTCRSHLCMC6QIVBBRCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+## 2026-06-28 (continued) — UI bulk action buttons
+
+The user noticed the bulk action buttons had wrong stage targeting:
+
+- `REASSESS_ALL_STAGES` was `['applied','interviewed','responded','rejected','skipped']`, causing a "re-assess all" button to appear in the skipped tab, which makes little sense.
+- The intended use was for empty cards in the `review` tab.
+- A bulk "delete all" button would be more useful in `skipped`.
+
+Fix staged in `data/web-root/vhosts/jobs.vhost/index.html`:
+- `REASSESS_ALL_STAGES = ['review']` (only when visible cards lack score/summary).
+- New `DELETE_ALL_STAGES = ['delete', 'skipped']`.
+- `deleteAllVisible()` now targets assertion-delete jobs in the delete tab and all visible jobs in other delete-all stages (e.g., skipped).
+
+Status: staged and version-bumped; needs `bin/Protocol-7 sourcecode update-signatures` and restart of `web` zenka (or browser hard-refresh for static file).
+
+#,,..,...,..,,,.,,...,.,,,,,,,,,,,,,.,...,...,..,,...,...,,,.,...,,,.,..,,,..,
+#2HHQXKJSTMXT4CSNTSLDMKR5WTEBJQPD3WAAYG6NQ7Q3RDJO4FYONVBCXIN7BO6TNFPIHRUOIJZSC
+#\\\|M4S5USB23CI5TAVMYQLN52BXODI7HWEWTBPWX2M2Q5BC42GYUIZ \ / AMOS7 \ YOURUM ::
+#\[7]YG4VRY374CDGWO5AOZIYFIMC4LJIZTV5OM2CCCAJD7EPVYAN5YCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
