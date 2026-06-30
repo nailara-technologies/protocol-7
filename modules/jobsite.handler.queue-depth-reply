@@ -6,17 +6,25 @@
 my $call  = shift           // {};
 my $raw   = $call->{'data'} // '0';
 my $depth = ref $raw ? $raw->$* : $raw;
-$depth =~ s/\D//g;
+$depth =~ s|\D||g;
 $depth = 0 if not length $depth;
 
 if ( $depth > 0 ) {
     ## queue has been populated for this scan ##
-    <jobsite.fetch_queue_nonempty> = TRUE;
+    <jobsite.fetch_saw_queue> = TRUE;
+    <[base.logs]>->( 2, 'fetch : site-yaml queue depth = %d', $depth );
     return;
 }
 
-## ignore early zero-depth replies that race ahead of the import queueing ##
-return if not <jobsite.fetch_queue_nonempty>;
+## ignore early zero-depth replies that race ahead of the import queueing ;
+## once fetch-done has reported queued items [ or we have seen depth > 0 ],
+## a zero reply means the queue is drained ##
+<[base.logs]>->(
+    2,
+    'fetch  : site-yaml queue depth = 0 [saw_queue=%s]',
+    <jobsite.fetch_saw_queue> ? 'yes' : 'no'
+);
+return if not <jobsite.fetch_saw_queue>;
 
 ## queue drained : cancel poll timer, pull stray jobs, then assess ##
 if ( defined $data{'jobsite'}{'queue_poll_timer'} ) {
@@ -24,14 +32,14 @@ if ( defined $data{'jobsite'}{'queue_poll_timer'} ) {
     $data{'jobsite'}{'queue_poll_timer'} = undef;
 }
 
-<[base.logs]>->( 1, 'fetch: site-yaml queue empty, claiming strays' );
+<[base.logs]>->( 1, 'fetch : site-yaml queue empty, claiming strays' );
 <[jobsite.stray.check]>;
 <[jobsite.dispatch.assessments]>;
 
 return;
 
-#,,..,,,.,,..,..,,,.,,,,,,.,,,.,.,,,.,..,,.,.,.,.,...,...,...,,,.,..,,...,...,
-#WHFV4BZKSDYSMA42AJTESPCADK2NGMD5LLS2HJKFINT4EGNDDV6MVOG6VY24EVJYWXJIOEV46AELI
-#\\\|7JQWSGRU2XFRH7AYCOUC2HKENR4SI5IW6PZ4JQST365IANVIFJF \ / AMOS7 \ YOURUM ::
-#\[7]QYP66RWICO2AE6KOOGBIPYC37PSP67HESX4FPEIMS5LPNF6DKUCA 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,...,.,.,,,.,,,.,,..,.,.,.,.,,,.,.,.,...,...,,..,,.,,.,.,.,.,...,
+#4DXI2NBBPA3YBV7QCVLXG5EO43YYX7TUK76XBM5GZUJUDKPSYGIV365W2MH63FRWTYAMTIFOGVKWG
+#\\\|5V4STURZEVOMGZFTWNMSQ7ELC4T4IWHXZNSAVWBTCMQ3VO7TV5P \ / AMOS7 \ YOURUM ::
+#\[7]DZL5AEOBGDOAAZ2O5D72E3H264BNRFAQUWYV6QC3N5FTHF7PAUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

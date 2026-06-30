@@ -3,6 +3,8 @@
 # name  = jobsite.handler.queue-poll
 # descr = timer handler : ask site-yaml for its async fetch queue depth
 
+<[base.logs]>->( 2, 'fetch: polling site-yaml queue depth' );
+
 <[protocol-7.route-send]>->(
     {   'command' => qw| site-yaml.queue-depth |,
         'reply' => { 'handler' => qw| jobsite.handler.queue-depth-reply |, },
@@ -11,8 +13,8 @@
 
 return;
 
-#,,.,,,.,,...,..,,..,,,,.,...,...,..,,...,.,,,..,,...,...,...,.,,,,..,.,,,,,.,
-#ECTBZKSRTLJTLVUBJSNXKC7ETKB6L3NIO6RIJUKZJWFMKFEQDHHYNBHYLRK2PS7RWQK5Q2RBD3EZ4
-#\\\|FVRDIHHQEOB6GWLRB6MQ7HCTLRAL4FMNE2EAXUJPVONYK7LBXBA \ / AMOS7 \ YOURUM ::
-#\[7]KZ3ZU5ZA2PB64ZIQIHW4J6X77DBPMANRHOEXXQ7F2N4FDZ6PB4CQ 7  DATA SIGNATURE ::
+#,,.,,..,,...,,,,,.,.,..,,..,,.,,,...,.,,,,..,..,,...,...,.,,,.,,,.,.,,..,,,,,
+#6SN7MQDDLLWEY5SDEWCG5BWTYK6Y4N3TQEX4PEHL6CCIIVPKHDWUCF4TFO2VDW5YK6T6PDGSV7SXS
+#\\\|22MUQCT7AMZVEEDDNO443RWNYZZJVGMNA42NOPDIJVU3NIYTUIT \ / AMOS7 \ YOURUM ::
+#\[7]WQ3XMLGE5JTZBGBVRIO2XFA2DLJNW22QEKRFEX2XBJSPZHETACAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

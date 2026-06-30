@@ -49,8 +49,8 @@ my $index    = <jobsite.job.index> // {};
 my $skip_ids = join( ' ', sort keys %{$index} );
 
 ## reset per-cycle counters before sending imports
-<jobsite.fetch_total_queued>    = 0;
-<jobsite.fetch_queue_nonempty>  = FALSE;
+<jobsite.fetch_total_queued> = 0;
+<jobsite.fetch_saw_queue>    = FALSE;
 
 ## cancel any leftover poll timer from a previous scan ##
 if ( defined $data{'jobsite'}{'queue_poll_timer'} ) {
@@ -79,8 +79,8 @@ for my $cat ( sort keys %cat_urls ) {
 ## track how many fetch replies we expect
 <jobsite.fetch_pending> = scalar keys %cat_urls;
 
-#,,..,.,.,,,.,...,..,,,,.,,,.,,,.,,..,,.,,.,.,..,,...,..,,.,,,.,.,...,,..,,.,,
-#U2WXCCG4V4QCW3Q4DK5RRN2ONU3IQ7GJOUUHB233XQSDRW66TMGD6GL42GZHTO5JTKZRMXLW3SINU
-#\\\|6JZLZH6VCZUJ2UHDGMWQVVA7HZYJ5B3KOUMXWHAQ5JWGSH2GGG7 \ / AMOS7 \ YOURUM ::
-#\[7]OVPDF4KTUZLJF5WOCAP5BOOMY5KVNQSQXSXN65HKFMD2HHLQAYBI 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,,,,,.,,,.,,...,,,.,,.,,,.,,..,,..,,...,...,,..,,.,,..,,,,.,..,,
+#P326LSVZPF5Z7QGUV7JWKPN66XGXVWXUDCFWAC7JMZ423RLBQS35HIXRMQBXEONWWHC45H4UIM2YM
+#\\\|DJKDXAUTBNPXG54MM7YBRLL4KMIRKDU5257T2LSK5EFADH2S325 \ / AMOS7 \ YOURUM ::
+#\[7]75VAPVFMPYOARYHBNOBOPONBVDNHMB2JFFG3IRZEJAQAL3BNXUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
