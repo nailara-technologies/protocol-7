@@ -126,6 +126,25 @@ for my $id ( keys %{$tasks} ) {
 ## load checksum-based dedup / blacklist index ##
 <[jobsite.checksum.index]>->(qw| load |);
 
+## seed checksum store for active jobs that were fetched before the
+## job-upsert checksum-add fix, so future scans skip them even if ids change ##
+my %skip_checksum_status = map { $ARG => 1 } qw| blocked deleted trash |;
+for my $id ( keys %{$tasks} ) {
+    my $rec = $tasks->{$id};
+    next if $skip_checksum_status{ $rec->{'status'} // '' };
+    my $job = <[jobsite.job.read]>->($id) // next;
+    <[jobsite.checksum.index]>->( 'add', $job );
+}
+
+## also seed checksums for deleted/trash jobs so reposts are skipped ##
+my $idx = <jobsite.job.index> // {};
+for my $id ( keys %{$idx} ) {
+    my $st = $idx->{$id} // '';
+    next unless $st =~ m{^(deleted|trash):};
+    my $job = <[jobsite.job.read]>->($id) // next;
+    <[jobsite.checksum.index]>->( 'add', $job );
+}
+
 ## var watcher on pending_count : fires when all assessments land
 <[event.add_var]>->(
     {   'var'     => \<jobsite.pending_count>,
@@ -235,8 +254,8 @@ my $job_count = scalar keys %{$tasks};
 
 TRUE;
 
-#,,,,,.,,,.,,,,.,,,..,,.,,...,,,.,...,,..,.,.,..,,...,...,...,,,.,,,.,,,,,...,
-#XXMUEQ5PLVDDLZ7H2XLCSB5AO67RX6ZSSI27UC7QDIYKPYRJ7KJZL3VG2RNKDYIHUEHR2AIYVLDQC
-#\\\|WCMIY47BJ5K3G5UA2HGP6XMITWMRKRPCGVHYDBGBWHLDFR6WVU2 \ / AMOS7 \ YOURUM ::
-#\[7]L2FIFSYEVWKEXZOGQHZMH3IFSW5EUXCONAJBFQCZ75MCXPCMVGAI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,,.,,..,.,.,,..,,.,,..,,,..,,..,..,,...,...,,,.,,.,,,.,,.,.,,,.,
+#47RCMSQDAGUN2LPJIRPRSOEPYWAPFD7UUSORXJOKKHXMOX7AGRG24HQCP42IWQADCHNTDL3KZJBWS
+#\\\|FHOF62QKXWBI7SRTQANWH3SRMJQ3WVRPPAE6BNTLUNNC5JWH2NT \ / AMOS7 \ YOURUM ::
+#\[7]HP42OP3ETF76HZQJGNK2LN4JCDEGPYYW6OHK5ND5KMV55EZVGUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
