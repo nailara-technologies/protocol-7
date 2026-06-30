@@ -1,0 +1,103 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use warnings;
+use English;
+use File::Spec;
+use Cwd     qw| abs_path |;
+use FindBin qw| $RealBin |;
+
+## compute the protocol-7 L13 BMW checksum for a string
+## usage: bmw-L13 <string>
+##        echo <string> | bmw-L13
+##        bmw-L13 -f <file>    # one checksum per line
+
+BEGIN {
+    my $up_dir       = File::Spec->updir;
+    my $data_pm_path = qw| data/lib-path/pm |;
+    my $root_path    = abs_path( File::Spec->catdir( $RealBin, $up_dir ) );
+    my $local_lib_path
+        = abs_path( File::Spec->catdir( $root_path, $data_pm_path ) );
+    die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
+    unshift( @INC, $local_lib_path )               if -d $local_lib_path;
+}
+
+use AMOS7::Assert::Truth qw| is_true |;
+use Crypt::Misc          qw| encode_b32r |;
+use Digest::BMW;
+
+my $line_mode = 0;
+my $fname;
+if ( @ARGV and $ARGV[0] eq qw| -f | and @ARGV == 2 ) {
+    $line_mode = 1;
+    $fname     = $ARGV[1];
+} elsif ( @ARGV and $ARGV[0] =~ m{^-f} ) {
+    die "\n:: usage: bmw-L13 [-f <file>] [string]\n:\n";
+}
+
+sub L13_checksum {
+    my $input = shift // '';
+    return undef if not length $input;
+
+    my $bmw_512_bin = Digest::BMW::bmw_512($input);
+
+    ## start entropy ##
+    state $start_seed_num;
+    $start_seed_num //= unpack qw| Q |, pack qw| B64 |, '10000000' x 8;
+    my $bits_num = $start_seed_num;
+
+    foreach my $segment_num ( unpack qw| Q8 |, $bmw_512_bin ) {
+
+        while ( not AMOS7::Assert::Truth::true_int($segment_num) ) {
+            $segment_num = sprintf qw| %u |, $segment_num / 13;
+        }
+
+        $bits_num ^= $segment_num;    ## stringwise XOR ##
+
+        while ( not AMOS7::Assert::Truth::true_int($bits_num) ) {
+            $bits_num <<= 1;          ## make true ##
+        }
+
+    }
+
+    my $result_str_B32 = encode_b32r( pack qw| Q |, $bits_num );
+
+    while (not is_true( $result_str_B32, 0, 1 )
+        or not AMOS7::Assert::Truth::true_int($bits_num) ) {
+        $bits_num = sprintf qw| %u |, $bits_num / 13;
+        $bits_num <<= 5;
+        $bits_num = 13 if $bits_num == 0;    ## make sure to exit true if 0 ##
+        $result_str_B32 = encode_b32r( pack qw| Q |, $bits_num );
+    }
+
+    return $result_str_B32;                  ## 13 characters ##
+}
+
+if ($line_mode) {
+    my $fh;
+    if ( $fname eq qw| - | ) {
+        $fh = *STDIN;
+    } else {
+        open( $fh, qw| < |, $fname )
+            or die "\n:: cannot open $fname : $!\n:\n";
+    }
+    while ( my $line = <$fh> ) {
+        chomp $line;
+        next if $line =~ m{^\s*$};
+        say L13_checksum($line) // '';
+    }
+    close($fh) if $fname ne qw| - |;
+} else {
+    my $input = @ARGV ? join( ' ', @ARGV ) : do { local $/; <STDIN> };
+    $input //= '';
+    chomp $input;
+    my $sum = L13_checksum($input);
+    die "\n:: L13 checksum failed\n:\n" if not defined $sum;
+    say $sum;
+}
+
+#,,.,,,.,,..,,.,,,.,.,,,.,..,,,,.,.,,,.,.,..,,..,,...,...,.,.,...,,..,,.,,,.,,
+#K4OH2RZJVXZZDFAZ7B52EVK5GIFUZHWMFTZZBBS4V22EAGWLGCCDL5OHZGUOKDYZSIAYOZEI4KURK
+#\\\|AU4KNPWRIKZP6QRPPESFXZ6UFFUUYZGFHV7AOVWJP7HAKTMKCEO \ / AMOS7 \ YOURUM ::
+#\[7]GXPG43ZJOB5KENLNJ5YYOKRGALOOCQXMCK2M3EFIYBUUUISXI4DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

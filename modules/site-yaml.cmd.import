@@ -4,8 +4,12 @@
 # descr = queue search results for async detail fetching
 #
 # args format (single line, key=value pairs):
-#   url=<search-url> handler=<reply-module> skip=<space-separated-ids> [full=1]
+#   url=<search-url> handler=<reply-module> skip=<space-separated-ids>
+#   [block_file=<path>] [full=1]
 # legacy bare url is also accepted.
+#
+# The reply handler is restricted to a small allow-list to avoid routing
+# fetched records to arbitrary or destructive subroutines.
 
 my $args_str = $call->{'args'} // '';
 $args_str =~ s/^\s+|\s+$//g;
@@ -27,7 +31,16 @@ return { 'mode' => 'false', 'data' => 'no url' }
 my $full_mode = $param{'full'} // 0;
 
 my $reply_handler = $param{'handler'} // $param{'reply_handler'} // '';
-if ( not length $reply_handler ) {
+if ( length $reply_handler ) {
+    my %allowed_handler = map { $ARG => 1 } qw| jobsite.job-upsert |;
+    if ( not $allowed_handler{$reply_handler} ) {
+        <[base.logs]>->(
+            0, 'site-yaml.import: disallowed reply handler %s',
+            $reply_handler
+        );
+        return { 'mode' => 'false', 'data' => 'disallowed reply handler' };
+    }
+} else {
     <[base.logs]>->(
         0,
         'site-yaml.import: no reply_handler set, fetched records will be dropped'
@@ -40,6 +53,29 @@ if ( length $skip_ids_str ) {
     %skip = map { $ARG => 1 } split m|\s+|, $skip_ids_str;
 }
 
+## optional pre-fetch field-block file
+## [ generic: caller provides [<EPOCH>:]<FIELD>:<chksum> ] ##
+my $block_file = $param{'block_file'} // '';
+my %block;
+if ( length $block_file and -r $block_file ) {
+    if ( open my $fh, '<', $block_file ) {
+        while ( my $line = <$fh> ) {
+            chomp $line;
+            next if $line =~ m{^\s*$};
+            my ( $field, $sum );
+            if ( $line =~ m{^([A-Z2-7]+):(\w+):([A-Z2-7]+)$} ) {
+                ( $field, $sum ) = ( lc($2), $3 );    ## epoch-prefixed ##
+            } elsif ( $line =~ m{^(\w+):([A-Z2-7]+)$} ) {
+                ( $field, $sum ) = ( lc($1), $2 );    ## legacy ##
+            } else {
+                next;
+            }
+            $block{"$field:$sum"} = 1;
+        }
+        close $fh;
+    }
+}
+
 ## drop stale queue entries that predate the generic fetch refactor
 my $queue = $data{'site-yaml'}{'fetch_queue'} // [];
 if ( @{$queue} ) {
@@ -47,7 +83,8 @@ if ( @{$queue} ) {
         @{$queue};
     if ( $stale == @{$queue} ) {
         <[base.logs]>->(
-            1, 'site-yaml.import: dropping %d stale fetch-queue entries',
+            1,
+            'site-yaml.import: dropping %d stale fetch-queue entries',
             scalar @{$queue}
         );
         $data{'site-yaml'}{'fetch_queue'} = [];
@@ -100,6 +137,25 @@ for my $page ( 1 .. $max_pages ) {
             next;
         }
 
+        ## optional pre-fetch field blocking ##
+        if ( length $block_file ) {
+            my $blocked = 0;
+            for my $field (qw| id url title company city |) {
+                my $value = $link->{$field} // '';
+                next if not length $value;
+                my $sum = <[site-yaml.util.field-checksum]>->($value);
+                next if not length $sum;
+                if ( $block{"$field:$sum"} ) {
+                    $blocked = 1;
+                    last;
+                }
+            }
+            if ($blocked) {
+                $skip_count++;
+                next;
+            }
+        }
+
         ## queue for async fetch with adaptive backoff ##
         push @{ $data{'site-yaml'}{'fetch_queue'} },
             {
@@ -137,8 +193,8 @@ my $summary = sprintf 'import queued: %d new, %d skipped, %d errors',
 
 return { 'mode' => 'size', 'data' => $summary };
 
-#,,.,,.,.,,,,,..,,,,,,.,,,...,,..,,..,,.,,,,.,.,.,...,...,,..,.,,,..,,,,,,..,,
-#MUWLZSDSP6O7R7T7GUTVBIT4BOROK7Z2KKV3DFUYXFIT75FHJTOMQPA5NVYITLJ5AMS7EPNZD7SCU
-#\\\|GQIRRXTBUL3JXVGWUVN4A7QYZ5LOPZ2NJJKKHOFBZZ5GUD6V6RS \ / AMOS7 \ YOURUM ::
-#\[7]Q4ZKAXV667GYITORWULHCLKUC5EO7YWDVRZVX4TITHAKZYOCJGDQ 7  DATA SIGNATURE ::
+#,,,,,...,,,,,,,.,.,.,,..,,,.,,.,,,..,,,.,,..,.,.,...,...,..,,.,.,,.,,,,.,,..,
+#EP5HXTCNTRDIF7K3G3SPUYJ4VYV3WIM3KGZGNBXUU3EIJMXIFRSEPKBGUXLRQAUWJYB7HN7NLHNZ6
+#\\\|BBYSA5WNAALPQOC7TAJOJXQZAWWNLCBQ6TTQ5AY4BQXAKXU2ZMZ \ / AMOS7 \ YOURUM ::
+#\[7]BI4EDWAUA4DKALCLVDYP5JMTV645SWJRBVFCMT5N7DZNMLPEL4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
