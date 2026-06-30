@@ -61,13 +61,17 @@ if ( exists $store->{$id} ) {
 ## write per-job file
 <[jobsite.job.write]>->( $id, $store->{$id} );
 
+## register title/url checksums so future scans skip this job even if the
+## source site changes the listing id ##
+<[jobsite.checksum.index]>->( 'add', $store->{$id} );
+
 return {
     'mode' => 'true',
     'data' => $is_new ? 'new' : 'updated'
 };
 
-#,,.,,,,,,...,.,.,,.,,.,.,..,,,.,,,,,,,..,...,.,.,...,...,..,,...,...,...,,.,,
-#5JUO4EMCYUGTL3NQVJUYHWUBBJS5KO5XRB4OJZYV5NAFE7Q7MWWKTSKGTWEGTHPUJFTR4TCNZ3LMO
-#\\\|3CE5USQRUWKBGIG27KJKZ4SPGVPFQZVJ3NIN4IB77M3IJBIDXIZ \ / AMOS7 \ YOURUM ::
-#\[7]E5GKBIQ4QXEUXAHSX3A53BYDEZIJJDT5GZH4JXHKHHTQ2THUL2BA 7  DATA SIGNATURE ::
+#,,,,,,..,...,...,,..,..,,.,,,..,,.,,,,.,,.,,,.,.,...,...,.,.,...,...,.,.,,..,
+#GKEVASDQW4P5PK34FFXZJDBW77POEIGWFN2K6SZLMPEVSR6XBPMQCMVYEGTFS5WCTHSOFITJRCEHG
+#\\\|MWZ26KDMPWAPAYWPEGUJKZF2JQEP3OPVZUZA5RVEX44ZZH2SRBC \ / AMOS7 \ YOURUM ::
+#\[7]ZWW6FOAP2M3LFEI7V3XJVB5OYALLEJISG4D5V4JK7KFEWOCPH2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
