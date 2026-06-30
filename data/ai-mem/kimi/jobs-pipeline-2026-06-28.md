@@ -167,3 +167,21 @@ Status: staged and version-bumped; needs `bin/Protocol-7 sourcecode update-signa
 #\\\|ZPYF5STXLXI5IVTBFGCKOZADBAWHBVFG2WHPLBX6ATARXE5OXBW \ / AMOS7 \ YOURUM ::
 #\[7]MCOQ4IINWE25Q53DY2WGELZ7FDXY74RMVNNFTECNVMAKVG3GR6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+## 2026-06-28 (continued) — Cache cleanup used wrong index; regex warning
+
+Two regressions introduced by the previous fix:
+
+1. **`plugin.web.jobs.init_code` used `jobsite/index.yaml`**, which is incomplete (only ~45 entries). The cleanup treated all loaded cache entries as stale and wiped the entire web cache.
+2. **`jobsite.sync.push` regex had no capture group**, causing `undef value $1` warnings because the pattern used non-capturing `(?:blocked|deleted|trash)`.
+
+Fixes staged:
+- `modules/plugin.web.jobs.init_code`: build the active-job set by scanning the jobsite status directories directly.
+- `modules/jobsite.sync.push`: use a capturing group `^((?:blocked|deleted|trash)):.*` so `$1` is defined.
+
+Status: staged and version-bumped; needs `bin/Protocol-7 sourcecode update-signatures` and restart of `jobsite` + `web` zenki.
+
+#,,..,,,.,.,.,,,,,,,,,...,...,,,,,.,,,..,,..,,..,,...,..,,...,...,,.,,,.,,,.,,
+#MOGAROZBLOTRS5MC2Z3VI4F7BNK2VXPUTIJ7Y24QCUJZGUECAJE2LZDIWQMSXLFYU3X3GJ64ZON4A
+#\\\|VI7K3OMFRYHP4DSS2XQJEF6LHRPXS5RWN2H24B5LJ5EWZ6NATXI \ / AMOS7 \ YOURUM ::
+#\[7]LYHWARWZNRLFMQQRNQ63XTORXOHWDJLOZTCRSHLCMC6QIVBBRCCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
