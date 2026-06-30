@@ -36,6 +36,9 @@ my $total_queued = delete <jobsite.fetch_total_queued> // 0;
 
 if ( $total_queued > 0 ) {
 
+    ## remember that we queued items so a later zero-depth reply means drained ##
+    <jobsite.fetch_saw_queue> = TRUE;
+
     ## site-yaml is still async-fetching job details : poll until drained ##
     <[base.logs]>->(
         1, 'fetch: %d items queued in site-yaml, polling for drain',
@@ -77,8 +80,8 @@ if ( <jobsite.pending_count> == 0 ) {
     <[jobsite.sync.push]>->( undef, FALSE );
 }
 
-#,,,.,...,,,,,,,.,,,.,,..,,,.,,,.,.,,,.,,,..,,..,,...,...,...,.,.,.,,,...,..,,
-#74T32TQM54UR5KBCW754A2Y5QYKI3RZOLTXNP3D6XFSUGGZXUBDUNVPJNOVSDYUDRRZS7SQP3YEBC
-#\\\|RA7KEXOVZDCZKNCDCCXMJ6B5EY3EDNUCS5HNGDQJBSE5OLLZXTW \ / AMOS7 \ YOURUM ::
-#\[7]ZXCWYSMFILCUCHAJBLCNCOHVN3ZLNQMYHKU3GBYBX7XVQSJQH2CQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,,,.,,..,...,,,.,,,,,,,.,..,,,.,,..,,...,...,,.,,,.,,,,.,.,.,.,,,
+#33PUNYB3FSVXR4NC4UVBE3MUNODNYVP53SRZUTSD4HAK3NPKCF63J6OTFBIDKLM2H2K2JVUVROT4S
+#\\\|UJD5B3JJ64JJN5NLDDPL2BLYOITL6BIUBZ6BYERUTD2RMW3U4WZ \ / AMOS7 \ YOURUM ::
+#\[7]Y2HPRGZBMPGNR4N3MJ6YMCFWV7VTMJBFU4QA7M7RRGGAYXGKHYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
