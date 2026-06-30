@@ -22,7 +22,7 @@ for my $id ( keys %{$jobs} ) {
     my $idx_status = <jobsite.job.index>->{$id} // '';
     ## strip epoch suffix from blocked/deleted/trash so downstream status    ##
     ## comparisons work; trash jobs are skipped from the push below          ##
-    $idx_status =~ s{^(?:blocked|deleted|trash):.*}{$1};
+    $idx_status =~ s{^((?:blocked|deleted|trash)):.*}{$1};
     $jobs->{$id}{'status'} = $idx_status if length $idx_status;
 }
 
@@ -121,8 +121,8 @@ $total_jobs += scalar @{ $ARG->{'chunk'} } for @push_queue;
 
 <[jobsite.sync.push_chunk]>;
 
-#,,.,,,.,,,,.,...,,.,,,,.,..,,,,,,...,,..,.,,,..,,...,..,,...,,,,,...,,.,,,,.,
-#ONLODZ2BWQWLKSUJWZCMZF4RFXK6JRXDYO5YTF2SWK33EOJNITP7WIF56B6MZWWXDW2FE6BQ4XOKY
-#\\\|URGCHK27SPI4Y7NRK7UYVUDJSM5Z266HWF6RU7ABQVMXNDL6KA2 \ / AMOS7 \ YOURUM ::
-#\[7]IUBGHGBBTKKU3VJXPXRR6P4LYNQLDMGIEYPW4WXOCOOSI4PGEABA 7  DATA SIGNATURE ::
+#,,..,..,,,,,,...,...,.,.,,.,,..,,,,,,.,,,,,,,..,,...,...,.,,,,,,,,,.,,,,,,,,,
+#MQFERZHCWT6RPNBCQF772ZQT4IHTFKOJ43SV23GEH4EGTPOTUG7E3ZRA5JFVXZZ7LGRORBVI6QNDS
+#\\\|JXHD3THXR24ERJCIACH5LANLYNTXVCNIJEWOTRGDS6PO4EASWMS \ / AMOS7 \ YOURUM ::
+#\[7]5BJWIPJLSEU6QQKEGTWL4ZFG25RA37DHWKMAOZYJLJBPNTSZK4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

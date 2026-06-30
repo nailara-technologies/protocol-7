@@ -64,26 +64,26 @@ my $count  = scalar keys %{$loaded};
     1, 'plugin.web.jobs : initialized [ %d jobs loaded ]', $count
 );
 
-## load jobsite index once for cache cleanup decisions ##
-my $jobsite_index_file = join qw| / |,
-    <system.path.zenka-dirs>->{'var_P7'}, qw| jobsite index.yaml |;
-my $js_index = {};
-if ( -f $jobsite_index_file ) {
-    $js_index = eval { YAML::XS::LoadFile($jobsite_index_file) } // {};
-}
-$js_index = {} if ref $js_index ne 'HASH';
-
-## prune loaded web-cache entries that jobsite no longer considers active ##
-## (trash/deleted/blocked jobs whose stale cache files survived sync)      ##
-if ( %{$js_index} ) {
-    my %active_id;
-    for my $enc_id ( keys %{$js_index} ) {
-        my $rec    = $js_index->{$enc_id} // {};
-        my $status = ref $rec eq 'HASH' ? ( $rec->{'status'} // '' ) : '';
-        next if $status =~ m{^(trash|deleted|blocked)$};
+## build active jobsite id set from directory scan (index.yaml is incomplete) ##
+my $jobsite_root = join qw| / |,
+    <system.path.zenka-dirs>->{'var_P7'}, qw| jobsite jobs |;
+my %active_id;
+for my $status (qw| new review apply applied interviewed rejected skipped |) {
+    my $dir = "$jobsite_root/$status";
+    next if not -d $dir;
+    opendir my $dh, $dir or next;
+    for my $fn ( grep { /\.yaml$/ && !/^\./ } readdir($dh) ) {
+        my $enc_id = $fn;
+        $enc_id =~ s/\.yaml$//;
         my $id = <[base.vax-int.decode]>->($enc_id);
         $active_id{$id} = 1 if length $id;
     }
+    closedir $dh;
+}
+
+## prune loaded web-cache entries that jobsite no longer considers active ##
+## (trash/deleted/blocked jobs whose stale cache files survived sync)      ##
+if (%active_id) {
     my @stale = grep { not exists $active_id{$_} } keys %{$loaded};
     for my $id (@stale) {
         my $enc_id    = <[base.vax-int.encode]>->($id);
@@ -139,8 +139,8 @@ for my $dep_dir ( "$cache_dir/assessed", glob("$cache_dir/trash*") ) {
 
 0;
 
-#,,.,,,,,,..,,,,,,..,,,,.,,,.,..,,...,...,,,,,..,,...,..,,.,.,..,,,,.,..,,...,
-#Q3IOCZ4PL4MDJLEVLIWPHTP2KAJI5GHNFNAHJZXDQFPZPW6IAV3AA7BDY2WCSPUF2YBCGJYHW42HA
-#\\\|SPJEDY6SUXIMH2IV5STBFO62IM6TYFWEPSFPGNVU4VCMSW7JLXR \ / AMOS7 \ YOURUM ::
-#\[7]ZIPPIQ2EL4BI4GQDKN5XAJYOPMW7HNCQYQCZYUUYIIZHDD3ZGODY 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,.,,,,,.,.,.,,.,,..,,.,.,,.,,.,,,..,,...,...,.,,,,,,,.,,,...,.,,,
+#KV6FYJPPSIZVENPG6FBX637ISV3BOCXWCRAUMP5WN42DA4YT7HXPGYY4XI2WNYOBFUK3WJWAHLJDM
+#\\\|OVN3VRAWGRIPYAMTHX7JDMFR6VK272OJ5YWHHF7DXTEZDAP4HSL \ / AMOS7 \ YOURUM ::
+#\[7]7DPY23H2PA6JNI5GAMEGKW4WI3JU76GTCABVGUQRZSHUKZNVAACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
