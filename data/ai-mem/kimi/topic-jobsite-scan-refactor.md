@@ -148,3 +148,17 @@ Block-list entries are now prefixed with the current V7 network epoch:
 #\\\|BKU2VZG2ROTGCGZHAKXFRYGD74FGSTNAHWW4J5SMANJMLQYHVDN \ / AMOS7 \ YOURUM ::
 #\[7]5CXLWAFUYVPQS67DEN3PMAVEKQFJUVZTTPKKZN2JNK6NIDC6L4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+Source-id extraction for `ID:` blocking:
+- `jobsite.stage.fetch` and `bin/jobsite-generate-blocklist` now derive the posting/source id for each job.
+- Prefer a numeric `id` field when it looks like an external posting id (>1,000,000).
+- Otherwise extract the numeric id from the URL slug (`--<id>-inline.html`).
+- The `ID:` blocklist entry checksums this source id, so it matches `$link->{'id'}` from `site-yaml.stepstone.search`.
+- The `skip=` argument passed to `site-yaml.import` is now also built from source ids.
+- `bin/jobsite-generate-blocklist` accepts multiple job roots, making it easy to seed the blocklist from a backup directory (e.g. old `assessed/` jobs that predate `blocked`/`deleted` states).
+
+#,,,.,,..,,,,,,.,,,.,,,,,,,.,,,,.,,..,..,,,.,,..,,...,...,,,.,,,,,.,.,..,,,.,,
+#ZE4ILOG4XZBHVKBYZI5ZGVEFUUGOV3MJPI7W25IVI4DQHQ4V6HBH6TNKI623ZGBEDHLA7ZUJCZA5M
+#\\\|UWCAVN3NXV566M67AB3222R3RNKFP5F7JBAJ43NNIEMDPDF6K4H \ / AMOS7 \ YOURUM ::
+#\[7]EQFY3GBFMXCN6LXKO7MJU6GDUNGZNSXQH54X4GYEYUWE4Q2KJ4CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,8 +8,14 @@ use Cwd     qw| abs_path |;
 use FindBin qw| $RealBin |;
 
 ## generate / refresh jobsite pre-fetch block-list
-## usage: jobsite-generate-blocklist [jobs-root] [block-file]
-## defaults: /var/protocol-7/jobsite/jobs  /var/protocol-7/jobsite/block-list.txt
+## usage: jobsite-generate-blocklist [<jobs-root> ...] [<out-file>]
+## defaults: /var/protocol-7/jobsite/jobs  /var/protocol-7/jobsite/block-list
+##
+## directories are treated as job roots; a non-directory path argument is
+## used as the output file.  examples:
+##   jobsite-generate-blocklist
+##   jobsite-generate-blocklist /tmp/jobs-recovery/var/protocol-7/jobsite/jobs
+##   jobsite-generate-blocklist /tmp/.../jobs /var/protocol-7/jobsite/jobs /var/protocol-7/jobsite/block-list
 
 BEGIN {
     my $up_dir       = File::Spec->updir;
@@ -27,19 +33,22 @@ use Digest::BMW;
 use YAML::XS;
 use File::Find;
 
-my $jobs_root = $ARGV[0] // '/var/protocol-7/jobsite/jobs';
-my $out_file  = $ARGV[1] // '/var/protocol-7/jobsite/block-list';
+my $out_file = '/var/protocol-7/jobsite/block-list';
+my @roots;
+for my $arg (@ARGV) {
+    if ( -d $arg ) {
+        push @roots, $arg;
+    } elsif ( $arg =~ m{/} ) {
+        $out_file = $arg;
+    } else {
+        warn ":: ignoring unknown argument '$arg'\n";
+    }
+}
+push @roots, '/var/protocol-7/jobsite/jobs' if not @roots;
 
-die "\n:: jobs root not found : $jobs_root\n:\n" if !-d $jobs_root;
-
-my @yaml_files;
-find(
-    sub {
-        push @yaml_files, $File::Find::name
-            if -f $ARG and $ARG =~ m{\.yaml$};
-    },
-    $jobs_root
-);
+for my $root (@roots) {
+    die "\n:: jobs root not found : $root\n:\n" if !-d $root;
+}
 
 sub L13_checksum {
     my $input = shift // '';
@@ -76,36 +85,59 @@ sub L13_checksum {
 
 ## current V7 network epoch string (matches base.ntime.epoch_timestamp) ##
 sub current_epoch_v7 {
-    state $ustart       //= 1023228000;    ## protocol-7 network epoch start ##
-    state $epochs_total //= 385280;        ## matches base.ntime.epoch_dec ##
+    state $ustart       //= 1023228000;   ## protocol-7 network epoch start ##
+    state $epochs_total //= 385280;       ## matches base.ntime.epoch_dec ##
     my $epoch = int( ( time - $ustart ) / ( 86400 * 365 / 13 ) );
-    $epoch %= $epochs_total;               ## overflow reset ##
+    $epoch %= $epochs_total;              ## overflow reset ##
     return encode_b32r( pack qw| w |, 99999999 - $epoch );
 }
 
-my $epoch_str = current_epoch_v7();
+## stepstone / similar posting id: prefer numeric id field, else url slug ##
+sub source_id {
+    my $job = shift // {};
+
+    my $id = $job->{'id'} // '';
+    return $id if $id =~ m{^\d+$} and $id > 1000000;
+
+    my $url = $job->{'url'} // '';
+    return $1 if $url =~ m{--(\d+)-inline\.html};
+
+    return '';
+}
+
+sub add_line {
+    my ( $key, $value, $seen, $lines ) = @_;
+    return if not length $value;
+    my $sum = L13_checksum($value);
+    return if not defined $sum;
+    my $line = current_epoch_v7() . ":" . uc($key) . ":$sum";
+    return if $seen->{$line}++;
+    push @{$lines}, $line;
+}
 
 my %seen;
 my @lines;
 my $count = 0;
-foreach my $file (@yaml_files) {
-    my $job = eval { YAML::XS::LoadFile($file) };
-    if ($EVAL_ERROR) {
-        warn ":: load error $file : $EVAL_ERROR\n";
-        next;
-    }
+for my $root (@roots) {
+    find(
+        sub {
+            return if not -f $ARG or $ARG !~ m{\.yaml$};
 
-    for my $field (qw| id url title |) {
-        my $value = $job->{$field} // '';
-        next if not length $value;
-        my $sum = L13_checksum($value);
-        next if not defined $sum;
-        my $line = "$epoch_str:" . uc($field) . ":$sum";
-        next if $seen{$line}++;
-        push @lines, $line;
-    }
+            my $file = $File::Find::name;
+            my $job  = eval { YAML::XS::LoadFile($file) };
+            if ($EVAL_ERROR) {
+                warn ":: load error $file : $EVAL_ERROR\n";
+                return;
+            }
 
-    $count++;
+            add_line( 'ID',    source_id($job), \%seen, \@lines );
+            add_line( 'URL',   $job->{'url'}   // '', \%seen, \@lines );
+            add_line( 'TITLE', $job->{'title'} // '', \%seen, \@lines );
+
+            $count++;
+        },
+        $root
+    );
 }
 
 open( my $out, qw| > |, $out_file )
@@ -116,8 +148,8 @@ close($out);
 printf ":\n: generated %s from %d jobs (%d unique field checksums)\n:\n",
     $out_file, $count, scalar @lines;
 
-#,,,.,,,.,..,,,,.,...,,.,,.,,,,,.,,.,,...,...,..,,...,...,,.,,...,,.,,,..,,.,,
-#X4BIBLCUMI5XV45TERZCX6WJDQ663YGZU4BDVEXJEIJ7XCF33XKUIEN5QP3SIZ2QWNQ5XZGAQ6MBM
-#\\\|GQ52UBMM5FWP445OJ7LAOUOMRIGYENZKBZEXWLK6JEEFRH26NPJ \ / AMOS7 \ YOURUM ::
-#\[7]4NWS6HQJZUGLFOWWMXJUP5YNIVHF3JTCLHHDQLMGLOMDDMQHZIBI 7  DATA SIGNATURE ::
+#,,.,,...,...,.,.,,,.,.,.,...,,.,,...,.,.,,,,,..,,...,..,,,.,,,.,,..,,.,.,,.,,
+#K64L3NC7WAWWCIVV67MCJ2QOGQV4OTLAZV63DIZRO5P4D6SDHFXEMXPIWGG5GS27TTTEQQ6JC2EQI
+#\\\|6Z3SHBH2K7UL6IVYU4P7ODTFVOH5ML3B56NXXGIUEYOHOHTYSHA \ / AMOS7 \ YOURUM ::
+#\[7]V2WXVX22F5ZPKI2SBLVYJDRTHZNHCRSOPEOWYDOTAKSPOS2PIKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
