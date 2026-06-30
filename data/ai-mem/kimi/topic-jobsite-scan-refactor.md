@@ -77,3 +77,29 @@
 #\\\|UQSCQY6XWEATRUGR77VNSTOVDFMBHNVETSTUHXWFL2A5RFUQPKJ \ / AMOS7 \ YOURUM ::
 #\[7]4PUPQDJFVXQP7RPFKDTWCWC47A4MMVFEF2NXAMAFJ435EVYDKGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+## June 2026 site-yaml / jobsite boundary refactor
+
+Re-established clean separation: `site-yaml` is generic, `jobsite` owns job semantics.
+
+- New `modules/jobsite.cmd.job-upsert`: receives JSON job records from `site-yaml`, checks `<jobsite.job.index>`, writes/updates per-job YAML, replies `new`/`updated`/`exists`.
+- `modules/site-yaml.cmd.import` is now generic: parses `url=<u> handler=<h> skip=<ids> full=<0|1>` from a single-line args string. Search results are queued as detail fetches; caller-supplied IDs are skipped.
+- `modules/site-yaml.handler.fetch_tick` JSON-encodes each fetched record and route-sends it to the configured `reply_handler`.
+- `modules/jobsite.stage.fetch` builds `skip_ids` from the authoritative `<jobsite.job.index>` (active/blocked/deleted/trash), sends one import per category, and polls the site-yaml fetch queue until drained.
+- Deleted `site-yaml.jobs.{upsert,init_code,save}`, `site-yaml.cmd.{list-jobs,set-status}`; added `jobsite.cmd.set-status`.
+- Updated `base.list.subroutines`, `configuration/zenki/*/start`, source placeholders, and `cube/access.zenki` for the swapped command names.
+- Added `jobsite.job-upsert` to `access.cmd.usr.cube` in `configuration/zenki/jobsite/start` so route-sends from `site-yaml` are accepted.
+
+### Drain-detection race fix (commit `c27c6cf23`)
+The previous `fetch_queue_nonempty` guard only worked if the first queue-depth reply was non-zero. If the poll fired before imports populated the queue, the guard stayed false and the scan never left `scanning` even after the queue drained.
+
+- `jobsite.stage.fetch` now resets `<jobsite.fetch_saw_queue> = FALSE`.
+- `jobsite.handler.fetch-done` sets `<jobsite.fetch_saw_queue> = TRUE` whenever it reports queued items, *before* starting the poll timer.
+- `jobsite.handler.queue-depth-reply` drains on the first zero-depth reply once `fetch_saw_queue` is true, and added debug logging to `queue-poll` / `queue-depth-reply`.
+
+Verified: new jobsite instance cycled through `scanning` → `assessing` → `idle` cleanly after the fix.
+
+#,,..,..,,,,,,,..,,..,...,.,.,,..,,,,,,.,,.,.,..,,...,..,,,,.,..,,,.,,,,,,,.,,
+#Z3Z5OVT5WZH2K6U66XGSWFEAAV24ZKFSNPH67EC7E23TQHNDUU2ZOTZCV5Z7PY25ELKZLQYCEX5C4
+#\\\|5ZN2XTRS77WM45W6QTUUHMHPMOZUYCTIMYMCGFNAHAHOMMUA2DW \ / AMOS7 \ YOURUM ::
+#\[7]YUAXIYX67E4P4IRUUSGGLXXZOCT2DJJI7H7DUPGWCJ57ZVADDABI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
