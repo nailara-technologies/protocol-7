@@ -19,27 +19,27 @@ $data{'storage'}{'mapping'}{'checksum'} = {
 $data{'storage'}{'mapping'}{'checksum'}{'algorithms'} = {
 
     # Standard file checksums
-    'bmw'     => { 'priority' => 1, 'module' => 'base.chk-sum.bmw.filesum' },
-    'bmw-224' => { 'priority' => 2, 'module' => 'base.chk-sum.bmw.224.B32' },
-    'bmw-512' => { 'priority' => 3, 'module' => 'base.chk-sum.bmw.512_32' },
+    'bmw'     => { 'priority' => 1, 'module' => qw| chk-sum.bmw.filesum | },
+    'bmw-224' => { 'priority' => 2, 'module' => qw| chk-sum.bmw.224.B32 | },
+    'bmw-512' => { 'priority' => 3, 'module' => qw| chk-sum.bmw.512_32 | },
 
     # L13 for @INDEXCUBE integration
-    'bmw-L13' => { 'priority' => 4, 'module' => 'base.chk-sum.bmw.L13-str' },
+    'bmw-L13' => { 'priority' => 4, 'module' => qw| chk-sum.bmw.L13-str | },
     'bmw-L13-b32' =>
-        { 'priority' => 5, 'module' => 'base.chk-sum.bmw.str-b32.L13' },
+        { 'priority' => 5, 'module' => qw| chk-sum.bmw.str-b32.L13 | },
 
     # AMOS checksums
-    'amos' => { 'priority' => 6, 'module' => 'base.chk-sum.amos' },
+    'amos' => { 'priority' => 6, 'module' => qw| chk-sum.amos | },
 };
 
 <[base.logs]>->(
-    1, "storage mapping plugin initialized: checksum (BMW/AMOS/L13)"
+    1, "storage mapping plugin initialized: checksum [BMW|AMOS|L13]"
 );
 
 0;
 
-#,,.,,,,.,..,,..,,,,.,,.,,,,,,,.,,...,.,,,,,.,..,,...,...,.,,,.,.,...,.,.,,.,,
-#SA2B3B2ACFDTWKANPQ3PZ336D6R6MEKILUUMMPSHFM7ZRSJFEJARGEFHRLKSJDX37SQYVGQLS6FDY
-#\\\|4JV4VGGY26CCQA7UM2KQY6BPUKMJFMB6ZEGE2RQZZC45WFFSWRR \ / AMOS7 \ YOURUM ::
-#\[7]ASZPA4BLEY4RHTLCJFY7HTD2HNCPJRTRLEMNCZ3F2THRC6NNOYDA 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,,,,,..,,,,,.,.,..,,.,,,...,.,,,..,,...,...,..,,,.,,..,,.,.,.,.,
+#M42L22Y3R7FMLGLHRA6FEMKKHRZVFZ3746CQAUF4UYLYH3CQGCBKS3QXG4RT2C4RUNQLICL2A6BWK
+#\\\|NK3KT3TMNEHDYOVOIUEH6MX7W2BW3IE5MAOIHK6BNBFQZMBQNYN \ / AMOS7 \ YOURUM ::
+#\[7]HEIUQQMZFDB6LFFKIKFPR7HZFTN5JRFXTA4UZLL3VUSEI4G7BUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
