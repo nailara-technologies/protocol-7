@@ -37,6 +37,19 @@ if ( ref $payload->{'jobs'} eq qw| ARRAY | ) {
 my $mem       = <[plugin.web.jobs.cache.read_all]>;
 my $ok        = TRUE;
 my $cache_dir = <[plugin.web.jobs.cache.path]>;
+
+## collect pending reverse-delete IDs so a batch push does not resurrect them ##
+my %pending_delete;
+if ($is_batch) {
+    my $rev = <plugin.web.jobs.reverse> // [];
+    for my $r ( @{$rev} ) {
+        next if ref $r ne 'HASH';
+        next if ( $r->{'action'} // '' ) ne 'delete';
+        my $del_id = <[base.vax-int.decode]>->( $r->{'id'} // '' );
+        $pending_delete{$del_id} = 1 if length $del_id;
+    }
+}
+
 for my $job_data (@job_list) {
     my $job_id = <[base.vax-int.decode]>->( $job_data->{'id'} // '' );
     next if not length $job_id;
@@ -45,6 +58,24 @@ for my $job_data (@job_list) {
     ## load cached record from memory or start fresh ##
     my $cached
         = ref $mem->{$job_id} eq qw| HASH | ? { %{ $mem->{$job_id} } } : {};
+
+    ## skip jobs the browser already asked to delete but jobsite has not yet ##
+    ## processed; remove any resurrected on-disk copy as well                 ##
+    if ( $is_batch and $pending_delete{$job_id} ) {
+        my $old_status = <plugin.web.jobs.index>->{$job_id} // '';
+        my $old_path   = '';
+        if ( $old_status =~ m{^(blocked|deleted):(.+)$} ) {
+            $old_path = "$cache_dir/$1/$2/$enc_id.yaml";
+        } elsif ( length $old_status ) {
+            $old_path = "$cache_dir/$old_status/$enc_id.yaml";
+        }
+        unlink $old_path if length $old_path and -f $old_path;
+        delete <plugin.web.jobs.cache>->{$job_id}
+            if ref <plugin.web.jobs.cache> eq 'HASH';
+        delete <plugin.web.jobs.index>->{$job_id}
+            if ref <plugin.web.jobs.index> eq 'HASH';
+        next;
+    }
 
     if ($is_batch) {
         ## jobsite push : update pipeline fields, keep browser fields ##
@@ -157,8 +188,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,,.,,.,,.,,,...,,.,,...,.,,,,,,,.,,,.,.,,,.,..,,...,...,.,.,.,,,,,,,.,,,..,,
-#4DZJ2ACO2HZ42CW5SHBQRTKP3WHDGM3A4EDYHIWFJTRIWYWR6TBMPOOMNFHGJ3CDMMGP6LBFE4FMK
-#\\\|TPN776X6CRWR36PJ4ME7XO25BH3TAE7YPX6JFSNPS7ZUXRM5ISC \ / AMOS7 \ YOURUM ::
-#\[7]PDVPOPROZXLTY7ID4XDAC5AHKGYODJKWRZKYRDCWVDDHCINPEMDI 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,.,.,...,,,,,,,,,,,.,,..,,.,,.,.,..,,...,...,..,,,,,,...,,.,,...,
+#3WMDJXCROYPJ6YEAT5CS5KT4HFEPWNMPRNMBAPQ6ZLM55GZYIIBIYZY4R52L2EW3X2SV3RXBNFVQY
+#\\\|XKFAJGTCKFYFC2NIL2Y5WRPCOQAPYNHVIFWHKPYNDXYAIJKHOU7 \ / AMOS7 \ YOURUM ::
+#\[7]4FVSYEI7SULI4LDATU7CX3USMILYJLMVFHW6M24MF3UQJWA3X2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
