@@ -29,6 +29,18 @@ if ( $idx_status =~ m{^(blocked|deleted|trash)(:|$)} ) {
 
 my $store = $data{'jobs'}{'store'} // <[jobsite.job.load_all]>;
 
+## checksum-based dedup / blacklist check for new jobs ##
+if ( not exists $store->{$id} ) {
+    my $chk = <[jobsite.checksum.index]>->( 'check', $job );
+    if ( $chk->{'is_blocked'} ) {
+        <[base.logs]>->(
+            2,   'jobs.upsert: skipping %s (checksum %s)',
+            $id, join( ', ', @{ $chk->{'hits'} // [] } )
+        );
+        return { 'mode' => 'true', 'data' => 'exists' };
+    }
+}
+
 my $is_new = 0;
 if ( exists $store->{$id} ) {
     ## preserve status and score set by user or LLM
@@ -54,8 +66,8 @@ return {
     'data' => $is_new ? 'new' : 'updated'
 };
 
-#,,,.,..,,,..,,,.,...,..,,,..,.,,,..,,..,,,,,,.,.,...,...,,,,,,,,,,..,..,,,.,,
-#CLWJWHBM4V7253UVHT6U222RO4XLU6UN7CNZNA2CPOCAX2FLAC3A4VHKLYYI5LVF3BAHZ4NSZADQM
-#\\\|PKR47AL5ECORZ7WVIC6YCSEBXJVTQBJCVWRISK5OXUECWZHUHWK \ / AMOS7 \ YOURUM ::
-#\[7]NGJDHA7EPFUDQRB7D2EPZPQ5QNR7FKFA7L3JUSYSHAYUJK436SDA 7  DATA SIGNATURE ::
+#,,.,,,,,,...,.,.,,.,,.,.,..,,,.,,,,,,,..,...,.,.,...,...,..,,...,...,...,,.,,
+#5JUO4EMCYUGTL3NQVJUYHWUBBJS5KO5XRB4OJZYV5NAFE7Q7MWWKTSKGTWEGTHPUJFTR4TCNZ3LMO
+#\\\|3CE5USQRUWKBGIG27KJKZ4SPGVPFQZVJ3NIN4IB77M3IJBIDXIZ \ / AMOS7 \ YOURUM ::
+#\[7]E5GKBIQ4QXEUXAHSX3A53BYDEZIJJDT5GZH4JXHKHHTQ2THUL2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

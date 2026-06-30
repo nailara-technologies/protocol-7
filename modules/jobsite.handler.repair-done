@@ -161,14 +161,18 @@ if ( $validation->{'is_valid'} ) {
     my $threshold = <jobsite.cfg.threshold> //= 7;
 
     if ( length($score) and $score >= $threshold ) {
-        $job_rec->{'stage'} = 'review';
+        $job_rec->{'stage'}  = 'review';
+        $job_rec->{'status'} = 'review';
         <[base.logs]>->(
             1,       'repair for job %s score=%s → review',
             $job_id, $score
         );
     } else {
+        $job_rec->{'stage'}  = 'trash';
+        $job_rec->{'status'} = 'trash';
+        $job_rec->{'trash_epoch'} //= <[base.ntime.epoch_timestamp]>;
         <[base.logs]>->(
-            1,       'repair for job %s score=%s below threshold',
+            1,       'repair for job %s score=%s below threshold → trash',
             $job_id, length($score) ? $score : '?'
         );
     }
@@ -177,12 +181,19 @@ if ( $validation->{'is_valid'} ) {
 
     ## update per-job file
     my $job = <[jobsite.job.read]>->($job_id) // {};
-    $job->{'status'}        = 'assessed';
+    if ( length($score) and $score >= $threshold ) {
+        $job->{'status'} = 'review';
+        $job->{'stage'}  = $job_rec->{'stage'};
+    } else {
+        ## post-repair still below threshold : recoverable trash ##
+        $job->{'status'} = 'trash';
+        $job->{'stage'}  = 'trash';
+        $job->{'trash_epoch'} //= <[base.ntime.epoch_timestamp]>;
+    }
     $job->{'score'}         = $score;
     $job->{'score_reason'}  = $reason  // '';
     $job->{'score_summary'} = $summary // '';
     $job->{'assertions'}    = $assertions if %{ $assertions // {} };
-    $job->{'stage'}         = $job_rec->{'stage'};
 
     <[jobsite.job.write]>->( $job_id, $job );
 
@@ -212,8 +223,8 @@ if ( <jobsite.pending_count> <= 0 ) {
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.next]>;
 
-#,,,.,..,,.,,,,,.,..,,,..,..,,,,,,..,,,,,,..,,..,,...,...,...,.,.,...,,,.,..,,
-#PHXTTXSMUOVUO2KNHJRBZRZRSN3B57TL2DQJETFHUROFDUW26WIQ63NUKI5VUGV3NUOEEC5MUZWBI
-#\\\|QLBOQFWLBKAMIQFQHPSCPJZJAOACV5GHMMUDLFHZOZB6KDOC7TK \ / AMOS7 \ YOURUM ::
-#\[7]DGNC5IBR5JYOZOEIRMC6S2XQ7RHZBXQX7P6HWGP7IMQMHSEIK2DY 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,..,,,..,.,,,.,.,,,,,,,.,,,,,.,,,..,,...,...,.,.,,..,.,.,.,,,,,,,
+#2JBMJRS5ZQV5ZWTSB5AYMGYM75FSAMBDJ2PBLVFUPPOL2BSAMYQJ4CVGTDQFYHBZCXVRJJLGSCFLI
+#\\\|W5NMO35SXCPCIEJ73GEA3WWQAYQXX46N435LS5JVXS5SAVVORAA \ / AMOS7 \ YOURUM ::
+#\[7]SBOHSLHFH4AVZULJUCPYKNACYYPPFLLYOYS57JLUDF3JCHKK7SCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
