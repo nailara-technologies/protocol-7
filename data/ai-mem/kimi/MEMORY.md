@@ -182,10 +182,10 @@ open: kimi zenka state machine upgrade (backend reconnect), coding zenka as thir
 
 ## Jobsite/Web Jobs Pipeline Fixes (2026-06-28)
 
-`skipped` status restored across all index scanners, reassessment now protects manual stages, web sync carries `assertions`, UI delete actions wired, and orbital subscriber `.cmd.` syntax corrected. See [jobs-pipeline-2026-06-28.md](jobs-pipeline-2026-06-28.md). Open: ~6 stale web-cache entries, bulk-delete pending search/filter UI.
+`skipped` status restored across all index scanners, reassessment now protects manual stages, web sync carries `assertions`, UI delete actions wired, and orbital subscriber `.cmd.` syntax corrected. Assessed jobs now map to the `review` UI stage. See [jobs-pipeline-2026-06-28.md](jobs-pipeline-2026-06-28.md). Open: bulk-delete pending search/filter UI.
 
-#,,,.,,..,..,,...,.,.,,.,,,.,,,.,,.,,,..,,..,,..,,...,...,,,,,.,.,.,,,,,,,,,,,
-#S5ZLKYWX3RSNY6DLFSTZKGG2QYN3UAXKZ4DY6LQBVWVTXNIDS3I4FSARYIN5QCCR7XE22G63PURCC
-#\\\|WOKGEMNIS5IRPT2GTGIMZRB57AFAUUVFP7SSJY7ZOTDHQLRQOJU \ / AMOS7 \ YOURUM ::
-#\[7]MLJTWSQD4CXO453WLRPJER3PFBGFOZPO2YZ55DLCU5DQ47C2YODA 7  DATA SIGNATURE ::
+#,,,.,...,...,,..,...,,,,,..,,.,,,...,,,.,.,.,..,,...,...,,..,,..,...,.,.,,,,,
+#DBTXX64YBYPNROH2O2GLUPP3VQWRRYVMAMJQZNKZZWRKLHJ26L7IQEBF54WRGMU4VFAJAF5NGITU4
+#\\\|MKZABAYU2OO76N2D3Z3CEXZ7UAVYMMDFGFSQHZIHSJCSSDO5HRA \ / AMOS7 \ YOURUM ::
+#\[7]3WKI6G2TOHVZG3HSLOL4OP3ERDJUKWT7VHUTGXKAUUWWPKRNFEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

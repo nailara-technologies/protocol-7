@@ -46,6 +46,14 @@ for my $job_id (@ids) {
     $j->{'summary'} = delete $j->{'score_summary'}
         if exists $j->{'score_summary'};
     $j->{'repair_failed'} = $j->{'repair_failed'} // 0;
+    ## normalize legacy pipeline status names to UI stage names ##
+    my %status_to_stage = (
+        'assessed' => 'review',
+        'apply'    => 'to_apply',
+    );
+    my $stage = $j->{'stage'} // '';
+    $j->{'stage'} = $status_to_stage{$stage} // $stage
+        if length $stage;
     push @array, $j;
 }
 
@@ -77,8 +85,8 @@ return {
     'content_type' => qw| application/json |
 };
 
-#,,,.,...,,.,,..,,.,,,.,.,,,.,...,...,,.,,...,..,,...,...,,.,,.,.,...,,,.,,,.,
-#ISBUA7FHU2QMC4GZT66S5ELJBIGM27LBJ7LE6RAR5FQHM5LK3BLIY2MOZIBAVCUFGYXQNG5XQVK4A
-#\\\|DV3RPVFWAQ4JYKBLVLXCXZDC3Z6PFBT6VB2SUL2M6OGVYWWSOAS \ / AMOS7 \ YOURUM ::
-#\[7]KVEVYNEJSM6KPOKXOU353AE2JEZYONJJHSQPDUSLKTSNQFZPOSCA 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,.,.,.,.,,..,,.,,.,,,,.,,,..,...,..,,...,...,,.,,,..,,..,,,.,,..,
+#BI2SH3ENDSEQDGRSWAR344NJXHY6YCHRZVFAZA3QJM4CMRCIZD7P7LMEARWQ3R4FXUNTDCDBWTH6M
+#\\\|U7C4N2DJI63BGSMP5S2QSST2UA6TZPO3A6LG34LR6PR7Z2HD7TS \ / AMOS7 \ YOURUM ::
+#\[7]5HBBVLZE4LGEB3PPD64K2LSWISV3OQ6DMTLTIKSPOLX76S7XKIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -52,12 +52,19 @@ for my $job_data (@job_list) {
             $cached->{$f} = $job_data->{$f} if exists $job_data->{$f};
         }
 
-        ## jobsite only guarantees 'status'; derive UI 'stage' when absent ##
-        ## (jobsite 'apply' corresponds to the UI 'to_apply' stage)      ##
-        if ( not length( $cached->{'stage'} // '' ) ) {
-            my $status = $cached->{'status'} // '';
-            $cached->{'stage'}
-                = ( $status eq qw| apply | ) ? qw| to_apply | : $status;
+        ## jobsite only guarantees 'status'; derive UI 'stage' from status ##
+        ## (preserve browser/user-owned stages: applied, rejected, etc.)  ##
+        my $status          = $cached->{'status'} // '';
+        my %status_to_stage = (
+            'assessed' => 'review',     ## legacy assessed → review tab  ##
+            'apply'    => 'to_apply',
+        );
+        my %user_owned_stage
+            = map { $ARG => 1 }
+            qw| to_apply applied interviewed responded rejected skipped archived delete |;
+        my $derived = $status_to_stage{$status} // $status;
+        if ( not $user_owned_stage{ $cached->{'stage'} // '' } ) {
+            $cached->{'stage'} = $derived;
         }
     } else {
         ## browser update : browser-owned fields only, queue reverse ##
@@ -150,8 +157,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,..,,,,,.,,,,,,,,.,,,,,,,,.,,,,,.,.,.,,,.,.,..,,...,..,,..,,,..,,,.,,..,,,,,
-#XRB5YYKTP6DQLXNXZSVCRGTJFSNX3IPQZ5RHQ3MV3I4TEYSB4VEXNRPJIAY7H63VONANCSOKNOLAY
-#\\\|SJTEQCFWVWKNUJJYEWZI7DROGLG2ZDDC77B4GV5QPWHDM5ZYM24 \ / AMOS7 \ YOURUM ::
-#\[7]A7YR7OP2AVMKRFMZQ5EBF7WIPFE34WGMYATYITXTBY47C3D6PWAI 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,...,,.,,...,.,,,,,,,.,,,.,.,,,.,..,,...,...,.,.,.,,,,,,,.,,,..,,
+#4DZJ2ACO2HZ42CW5SHBQRTKP3WHDGM3A4EDYHIWFJTRIWYWR6TBMPOOMNFHGJ3CDMMGP6LBFE4FMK
+#\\\|TPN776X6CRWR36PJ4ME7XO25BH3TAE7YPX6JFSNPS7ZUXRM5ISC \ / AMOS7 \ YOURUM ::
+#\[7]PDVPOPROZXLTY7ID4XDAC5AHKGYODJKWRZKYRDCWVDDHCINPEMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
