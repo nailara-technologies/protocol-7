@@ -149,3 +149,21 @@ Status: staged and version-bumped; needs `bin/Protocol-7 sourcecode update-signa
 #\\\|TMB7GQQY7K35SHMFQN7O37AEURQRDNBP5YID77S2Q7JJOTGADUL \ / AMOS7 \ YOURUM ::
 #\[7]ROSEJHI2BHUP7ID3J6XTPHQCM534MJCD33I26DNX22ZEQWKCMADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+## 2026-06-28 (continued) — Web cache rot and trash push bug
+
+After both zenki restarted, the empty review card for the reassessed job (LLF5Q) remained because:
+- `jobsite.sync.push` was setting `status` to `trash:V7L36RQ` (including epoch) for trash jobs, causing `plugin.web.jobs.cache.write` to create a `trash:V7L36RQ/` directory.
+- The web cache cleanup only pruned entries loaded from active directories, so stale files in the deprecated `assessed/` dir and the weird `trash:V7L36RQ/` dir were never removed.
+- Browser localStorage can also keep a deleted job visible until cleared.
+
+Additional fixes staged:
+- `modules/jobsite.sync.push`: strip `trash:<epoch>` to `trash`, and skip trash jobs from the push entirely.
+- `modules/plugin.web.jobs.init_code`: remove the legacy `assessed/` cache directory and any `trash*` directories on startup; also keep the in-memory prune for active dirs.
+
+Status: staged and version-bumped; needs `bin/Protocol-7 sourcecode update-signatures` and restart of `jobsite` + `web` zenki. After restart, clicking the UI "reset" button will clear any leftover localStorage ghosts.
+
+#,,,.,,,,,..,,..,,..,,,..,...,..,,.,,,..,,.,,,..,,...,...,.,,,,,.,,.,,,,.,,.,,
+#K6FR5EV6WSL6BEW4YTYJBZX67XAXNVDLQLLFALRHDRYXOJ2LYN5SAP3UCZ6IAJQ53ZKYIUK4UPK7Q
+#\\\|ZPYF5STXLXI5IVTBFGCKOZADBAWHBVFG2WHPLBX6ATARXE5OXBW \ / AMOS7 \ YOURUM ::
+#\[7]MCOQ4IINWE25Q53DY2WGELZ7FDXY74RMVNNFTECNVMAKVG3GR6CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
