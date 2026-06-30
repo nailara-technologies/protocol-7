@@ -96,3 +96,18 @@ Deletion now uses a recoverable compressed stage before permanent removal:
 #\\\|JRLAJZIC632REGN47VUT4IKV3YA2DQCVFQGFYN3YR5UFEFZ56V5 \ / AMOS7 \ YOURUM ::
 #\[7]6YQDP4RH2DEBGWD4YKSRZFXP5KWG5SWST55YXM2VENDLBQ37QMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+## 2026-06-28 — Assessed jobs missing in web UI
+
+Root cause: `plugin.web.jobs.sync` derived the UI `stage` from backend `status` only when `stage` was absent, and only mapped `apply` → `to_apply`. Legacy jobs with backend status `assessed` were stored in the web cache with `stage: assessed`, which the UI filter tabs do not include, so they never appeared.
+
+Fix:
+- `modules/plugin.web.jobs.sync` now maps `assessed` → `review` and `apply` → `to_apply`, and overwrites pipeline-owned stages (including `assessed`) while preserving user-owned stages (`to_apply`, `applied`, `interviewed`, `responded`, `rejected`, `skipped`, `archived`, `delete`).
+- `modules/plugin.web.jobs.data` normalizes legacy `assessed`/`apply` stage values to UI stages on read, so existing web-cache entries show up immediately without waiting for a fresh jobsite push.
+
+Status: code edited, needs `bin/Protocol-7 sourcecode update-signatures` and restart of `web` and `jobsite` zenki to take effect.
+
+#,,,.,,,.,.,.,.,,,,..,,..,,.,,,,.,.,,,,.,,..,,..,,...,...,.,.,.,.,,.,,,..,..,,
+#KG3YI7JA4SL6CF7ZJEFMKFC32LE4TF5CVMQWC37G4G3UAR3D762FH2P7LGYPAFA3F2FJGDKXSUWGI
+#\\\|XP5BA7ECMCLRV5Y7LLSKBID37PBEGUMLH4V466XOUKDQYOOKPCI \ / AMOS7 \ YOURUM ::
+#\[7]OS7LU6IIKSW6FSHH4M345OCW2WHQNAW4K3S2FGCXM7XTXPXDHKBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
