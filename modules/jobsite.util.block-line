@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = jobsite.util.block-line
+# descr = build a block-list line for a field/value, or undef if duplicate
+
+my ( $epoch_str, $field, $value, $seen_ref ) = @ARG;
+
+return undef if not length $value;
+
+my $sum = <[chk-sum.bmw.L13-str]>->($value);
+return undef if not length $sum;
+
+my $line
+    = length $epoch_str
+    ? "$epoch_str:" . uc($field) . ":$sum"
+    : uc($field) . ":$sum";
+
+return undef if $seen_ref->{$line}++;
+
+return $line;
+
+#,,,.,,.,,...,.,.,,.,,.,.,.,,,.,.,,..,..,,,.,,.,.,...,...,..,,,.,,,,,,,,,,..,,
+#OFGIDBL4XWCDFGMNVL2H6H37F7PQ5I4TBNB3CE3HMHXHPMDY4IQI27GB53P2QHBX2ZFWTTNTABKZM
+#\\\|42JA2KRXJ3YVI3BHR3BRFXO6TGXHVUMFL4XJGAHURQYKF33J5FS \ / AMOS7 \ YOURUM ::
+#\[7]NDXATT3BKE3Z5S3AQAVNFY4DEXC7T5FUN3NG2PE3G3K4TRC23WCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

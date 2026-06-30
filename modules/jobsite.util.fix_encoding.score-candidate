@@ -3,7 +3,7 @@
 # name  = jobsite.util.fix_encoding.score-candidate
 # descr = score a unicode candidate char by bigram context (0..3)
 
-my ( $candidate, $prev, $next, $bigrams ) = @_;
+my ( $candidate, $prev, $next, $bigrams ) = @ARG;
 my $score = 1;    ## base: any special char is a candidate ##
 return $score unless defined $bigrams->{$candidate};
 my $lc_candidate = lc($candidate);
@@ -13,8 +13,8 @@ $score++ if defined $prev and $spec->{'prev'} =~ /\Q$prev\E/i;
 $score++ if defined $next and $spec->{'next'} =~ /\Q$next\E/i;
 return $score;
 
-#,,..,,.,,,..,..,,.,.,.,,,,,.,.,.,,..,.,.,,.,,..,,...,...,..,,.,.,,,.,,,.,...,
-#GN6GSEY5HBVQ4Q3FIYHLOB2DSAHM3LL62F2KM53UJHD3MY34OUJJZAHN74BRVHQGEZH7EWYC6KO76
-#\\\|EFGK5CQDK6UL3NR34SCR4OCG6S7KE3PANXTY6WO7DFXLKDAVHPB \ / AMOS7 \ YOURUM ::
-#\[7]K5KHLKWTGQSZIAL3ETO7NZZ3537B26M4CJ6N5JT4XTT6HRINBYAQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,,.,,.,,.,,,,.,,,,,,.,,,,,.,,.,,..,,...,...,,,.,.,,,,.,,,..,..,,
+#GNOX37G4RMNML2Q3OQGK4AWTAON554L4WR67ZCWT5E6IDDXLJSIWQVY2P6PJ3K323IEJ4QKQHWKBA
+#\\\|SHWBQ673RKWQQ4BEBOPSLBTCJIEOM5HQUMPTIZHYUBEP5Y6OFJ2 \ / AMOS7 \ YOURUM ::
+#\[7]5FKGMXR6D56J4GGRD3RYDNMQDF537UXHMBOR5AZXNWWX3K5U6SBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

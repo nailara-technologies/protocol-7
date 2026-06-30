@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = jobsite.util.source-id
+# descr = extract stepstone-style source/posting id from a job record
+
+my $job = shift // {};
+
+my $id = $job->{'id'} // '';
+return $id if $id =~ m{^\d+$} and $id > 1000000;
+
+my $url = $job->{'url'} // '';
+return $1 if $url =~ m{--(\d+)-inline\.html};
+
+return '';
+
+#,,..,...,,..,,,.,.,.,,,,,,,.,,..,,..,,.,,,,,,.,.,...,...,...,,,,,...,,,.,,.,,
+#UKJUGI4MQ7F6M6PHUXR4ABX5ESBVS3ABFCODYBY7L42D3JCCE7ISDIWWTDMA4AHMDTKVTCFJHTNVA
+#\\\|DNPDFEOK5ZD6QTYAUPSBLRBMUN7WX7R6DRKC2X3H4FSSCGVIDC2 \ / AMOS7 \ YOURUM ::
+#\[7]MDJZKSM5GIGIAS4W2PLCTENQ7VRJ2ED62XSDZRI3FBWU6DVGGWAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

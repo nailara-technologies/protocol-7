@@ -44,17 +44,13 @@ if ( not %cat_urls ) {
     $full_mode, join( ', ', sort keys %cat_urls )
 );
 
-## build skip list from the authoritative job index (all known ids) ##
-my $index    = <jobsite.job.index> // {};
-my $skip_ids = join( ' ', sort keys %{$index} );
-
-##   build a generic field-block file so site-yaml      ##
-##   can skip reposts before paying for detail fetches  ##
-#  [ entries look like "<EPOCH>:<FIELD>:<L13-chksum>" ] ##
+## build skip list and field-block file from authoritative job index ##
+my $index = <jobsite.job.index> // {};
 
 my $var_root   = <system.path.zenka-dirs.var_P7>;
 my $block_file = join( '/', $var_root, qw| jobsite block-list | );
 my %block_seen;
+my @skip_source_ids;
 my $epoch_num = <[base.ntime.epoch_dec]>->('current') // '';
 my $epoch_str
     = length $epoch_num
@@ -64,23 +60,30 @@ my $epoch_str
 if ( open my $bfh, '>', $block_file ) {
     for my $id ( sort keys %{$index} ) {
         my $job = <[jobsite.job.read]>->($id) // next;
-        for my $field (qw| id url title |) {
-            my $value = $job->{$field} // '';
-            next if not length $value;
-            my $sum = <[chk-sum.bmw.L13-str]>->($value);
-            next if not length $sum;
-            my $line
-                = length $epoch_str
-                ? "$epoch_str:" . uc($field) . ":$sum"
-                : uc($field) . ":$sum";
-            next if $block_seen{$line}++;
-            print {$bfh} "$line\n";
+
+        my $source_id = <[jobsite.util.source-id]>->($job);
+        if ( length $source_id ) {
+            my $line = <[jobsite.util.block-line]>->(
+                $epoch_str, 'id', $source_id, \%block_seen
+            );
+            print {$bfh} "$line\n" if length $line;
+            push @skip_source_ids, $source_id;
+        }
+
+        for my $field (qw| url title |) {
+            my $line = <[jobsite.util.block-line]>->(
+                $epoch_str, $field, $job->{$field} // '',
+                \%block_seen
+            );
+            print {$bfh} "$line\n" if length $line;
         }
     }
     close $bfh;
 } else {
     <[base.logs]>->( 0, 'fetch: cannot write %s: %s', $block_file, $! );
 }
+
+my $skip_ids = join( ' ', sort @skip_source_ids );
 
 ## reset per-cycle counters before sending imports
 <jobsite.fetch_total_queued> = 0;
@@ -115,8 +118,8 @@ for my $cat ( sort keys %cat_urls ) {
 ## track how many fetch replies we expect
 <jobsite.fetch_pending> = scalar keys %cat_urls;
 
-#,,.,,..,,.,,,,..,,,,,.,,,,..,.,,,.,,,,,.,.,,,..,,...,...,.,.,...,.,.,,..,..,,
-#KYSABUXVX3PKW7VQGBFT62ZT573GFPIN4YJAN5J6L3CC7NX3SJBNHDSWN7QFOUKRY3VHDCOPWDSO4
-#\\\|FAMDJBXOLH5IMCCZORWF2LFXGV3TEVW6KVCVGIGJWV44EKDRJQW \ / AMOS7 \ YOURUM ::
-#\[7]7IIQWV4KCS5GBKCEVCOZLBQUWT5YNBJQCHRUHXVM2RKA3F5MQ2DA 7  DATA SIGNATURE ::
+#,,..,..,,,.,,,,.,.,.,,.,,,,.,...,..,,,,,,.,,,..,,...,...,.,.,,..,,,,,,.,,,,,,
+#2MBMON42JATB4H6E2ZCKVZQXRIUKTXME2UAK6OZFGBV42FBXJQCJT3ITXMXXHOCSNJL2B57THGDR6
+#\\\|WBKEBWKKC76RJRCUNKRBJMAJDSNWUMNJS6IONQ7QIPGOML2GR2C \ / AMOS7 \ YOURUM ::
+#\[7]456OZ3PRUJK5SP5RY2BWHINE34QWPBA7ABRAD4S6IXIIBH7QAIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
