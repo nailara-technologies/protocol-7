@@ -259,3 +259,51 @@ Status: staged and version-bumped; needs signature + commit + restart `web` and 
 #\\\|QVUK3PGIQLAWM7HNWTZP3GQ4C434UXTYEEVQBVFMU2FUYAJFKI7 \ / AMOS7 \ YOURUM ::
 #\[7]M4TIDIW4GRF3MEDMC2RGMALWU223FAKWFFIPQOAQYNHXPLK5NMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+## 2026-06-28 — Export/city fixes committed
+
+Commit `edda48f11` landed:
+- `data/web-root/vhosts/jobs.vhost/index.html`: print table uses `date_applied`, editable city input, dimension spacing.
+- `modules/plugin.web.jobs.init_code`: backfills missing `city` from jobsite YAML at web zenka startup.
+- `modules/plugin.web.jobs.sync` + `modules/jobsite.sync.apply_reverse`: `city` is a browser-owned field.
+
+Verified: after `v7 restart web jobsite` and browser hard-refresh, city fields populated.
+## 2026-06-28 (continued) — Export rejected usability
+
+- `data/web-root/vhosts/jobs.vhost/index.html`:
+  - Export stage checkboxes now show German labels (e.g., `absage` for `rejected`) with the raw stage as tooltip.
+  - Added a "letzten export vergessen" button in the export panel. This clears `jobsite_last_export_ids` so previously-exported rejected entries can be reported again.
+
+The ability to export rejected entries already existed via the stage checkboxes; the new labels and clear-history button make it discoverable.
+
+Status: staged and version-bumped; needs signature + commit + restart `web` zenka.
+## 2026-06-28 (continued) — Visible export stage toggles
+
+- `data/web-root/vhosts/jobs.vhost/index.html`: added a visible row of stage checkboxes directly in the `.export-section` below the table buttons.
+  - Toggles: `beworben`, `interviewed`, `rückmeldung`, `absage`.
+  - They share the `export-stage-cb` class with the advanced panel, so `saveExportPrefs()` captures both sets.
+  - Toggling updates the print table live if it is open.
+
+Status: staged and version-bumped; needs signature + commit + restart `web` zenka.
+## 2026-06-28 (continued) — Visible age + since-last filters
+
+- `data/web-root/vhosts/jobs.vhost/index.html`: moved the age slider and "bereits exportierte ausblenden" checkbox out of the hidden export panel into the visible `.export-section`.
+  - `max. alter` slider limits included entries by age (default 90 days).
+  - `bereits exportierte ausblenden` hides entries already exported before.
+  - `letzten export vergessen` clears the export history.
+  - The hidden panel now only holds additional stage checkboxes and "current filter only".
+
+Status: staged and version-bumped; needs signature + commit + restart `web` zenka.
+## 2026-06-28 (continued) — date_added backfill + table tweak
+
+- `modules/plugin.web.jobs.init_code`: backfill now also copies `date_added` from jobsite YAML into web cache when missing. It tries `date_posted` first, then `fetched_at`.
+- `data/web-root/vhosts/jobs.vhost/index.html`:
+  - Slider step changed to 1 day; styled to match the min-score slider; clear-history button opacity reduced.
+  - Removed the internal `Bew.` column from the printable overview table.
+
+Status: staged and version-bumped; needs signature + commit + restart `web` zenka.
+
+#,,..,...,.,,,,.,,.,,,,.,,,..,,,,,..,,,,,,...,..,,...,...,.,,,,.,,,.,,..,,,..,
+#GQ7ME37YAUMVUL4RB5WIONRRDCHWSYPKTBWU7DRXQNN5NK2WHS4FWON4B5C5OSGLV7VD2MANV56B6
+#\\\|7VKXWWERBQCXOJ2HYDLNL3R5I2VONGXBXSOGFJRAMNPVPZ54KIS \ / AMOS7 \ YOURUM ::
+#\[7]2SGSTXFPKU4V7WXC2JI6JYKAYCR4MKQIVLQFWGTQNPA4K4KFT4CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
