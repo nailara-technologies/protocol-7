@@ -155,15 +155,6 @@ $written = TRUE;
     }
 };
 
-## mirror title checksum status in checksum store ##
-## trash is treated as deleted for blocking purposes ##
-if (    length $old_status
-    and $old_status ne $status
-    and length( $job->{'title'} // '' ) ) {
-    my $checksum_status = $status eq 'trash' ? 'deleted' : $status;
-    <[jobsite.checksum.index]>->( 'update_status', $job, $checksum_status );
-}
-
 ## update on-disk index.yaml atomically ##
 my $base_dir = join qw| / |,
     <system.path.zenka-dirs>->{'var_P7'}, qw| jobsite |;
@@ -192,8 +183,8 @@ rename( $index_tmp, $index_file )
 
 return $written;
 
-#,,,,,,,.,,.,,,.,,.,,,,,,,,,,,,.,,,..,..,,.,.,..,,...,...,.,.,,..,.,,,...,,..,
-#P7PTEQROP3TORN74LR2BSABJIIIDGO7Z26RZO7L2TQNS4AZURYU6HVTCV72SLO5L65FEHGBCGTEH4
-#\\\|PFONP44QPBBHMU62C7C7YUPOWRAVG66NVQ35Q5V3J2ZCI53CCEZ \ / AMOS7 \ YOURUM ::
-#\[7]PREIDEFRSUYLVQ67P3S7HCD26UHQQXVTG2PEEVEMAN2SV5G2OUDI 7  DATA SIGNATURE ::
+#,,,,,,..,...,,,.,.,,,,..,,,,,...,..,,,,.,..,,..,,...,...,.,,,,,,,...,,,,,.,,,
+#IWMKWTUSVSFQNW3SQ7ITNZJX3ATO72RPC2ZVF5V7TBJGIQTPQLSZCJKIC6MEQGDBGXWHXHKNQ5XZC
+#\\\|ORST3Q7S7LEX5TPGB7JPMTOSAKOBPWA5XNOZ4RFAEHNCLGD4XLE \ / AMOS7 \ YOURUM ::
+#\[7]OFQWLJQJQR2VMRF2HX2WWVUW4APMIJFGAO3NOL3YIET7EQRJC6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
