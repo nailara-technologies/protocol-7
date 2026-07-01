@@ -17,6 +17,13 @@ return { 'mode' => 'false', 'data' => 'no id' }
 my $job = { %{$job_in} };
 $job->{'id'} = $id;
 
+## normalize noisy gender suffixes in titles ##
+if ( length( $job->{'title'} // '' ) ) {
+    $job->{'title'} =~ s{\s*\(all genders\)}{}gi;
+    $job->{'title'} =~ s{\s*\(m/w/d\)}{}gi;
+    $job->{'title'} =~ s{\s+$}{};
+}
+
 ## never resurrect blocked, deleted or trashed jobs ##
 my $idx_status = <jobsite.job.index>->{$id} // '';
 if ( $idx_status =~ m{^(blocked|deleted|trash)(:|$)} ) {
@@ -70,8 +77,8 @@ return {
     'data' => $is_new ? 'new' : 'updated'
 };
 
-#,,,,,,..,...,...,,..,..,,.,,,..,,.,,,,.,,.,,,.,.,...,...,.,.,...,...,.,.,,..,
-#GKEVASDQW4P5PK34FFXZJDBW77POEIGWFN2K6SZLMPEVSR6XBPMQCMVYEGTFS5WCTHSOFITJRCEHG
-#\\\|MWZ26KDMPWAPAYWPEGUJKZF2JQEP3OPVZUZA5RVEX44ZZH2SRBC \ / AMOS7 \ YOURUM ::
-#\[7]ZWW6FOAP2M3LFEI7V3XJVB5OYALLEJISG4D5V4JK7KFEWOCPH2AA 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,.,,,,,,,.,,,,.,..,,.,,,,..,...,.,.,...,...,,.,,.,,,,..,.,,,,,.,
+#SJKWTSNOP4P7ATX6JZMEPECXJNQZW67WKPIG4G5OCXLRLG4UDWSAE2QSVH7XHBX74VCFNMKYHSHIQ
+#\\\|P2ZIROAVTFFT3EJMB2NQEB7S6QLK2JZRS4XVDC5YLKM5XXEIRRD \ / AMOS7 \ YOURUM ::
+#\[7]BKLVQJVVZF7Z674DKVCM6C6JWXK2VN426EQAAESZ7CC6GBB2YUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
