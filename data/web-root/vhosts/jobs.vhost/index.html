@@ -1353,17 +1353,20 @@ function render() {
     const sorted = sortedJobs();
     let hiddenByScore = 0;
     let hiddenMinScore = null;
+    /* archiv toggle is a view-mode swap, not a per-tab modifier : when active,   */
+    /* show only archived cards regardless of the selected tab, so they're always */
+    /* one click away instead of requiring the 'alle' tab specifically            */
     let visible = sorted.filter(j => {
-        if (j.stage === 'archived' && !showArchived) return false;
+        if (showArchived) return j.stage === 'archived';
+        if (j.stage === 'archived') return false;
         if (filterMode === 'delete') {
             return ((j.assertions && j.assertions.suggest && j.assertions.suggest.delete) === 'true')
                 && !USER_OWNED_STAGES.has(j.stage);
         }
         if (filterMode === 'error') {
-            return (j.repair_failed == 5 || j.repair_failed === true) && j.stage !== 'archived';
+            return (j.repair_failed == 5 || j.repair_failed === true);
         }
         if (filterMode !== 'all' && j.stage !== filterMode) return false;
-        if (filterMode === 'all' && j.stage === 'archived' && !showArchived) return false;
         /* min score filter — only for stages where score is relevant */
         if (SCORE_FILTER_STAGES.has(j.stage) && j.score != null && j.score !== '') {
             const norm = parseFloat(j.score) > 10 ? parseFloat(j.score) / 10 : parseFloat(j.score);
