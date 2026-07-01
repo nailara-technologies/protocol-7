@@ -144,6 +144,8 @@ h1 { color: var(--p7-fg-bright); font-size: 1.4rem; margin-bottom: 0.2rem; font-
     vertical-align: middle;
     cursor: pointer;
     transition: all 0.2s;
+    position: relative;
+    display: inline-block;
 }
 #export-filters input[type="checkbox"]:hover,
 #export-panel input[type="checkbox"]:hover,
@@ -157,12 +159,16 @@ h1 { color: var(--p7-fg-bright); font-size: 1.4rem; margin-bottom: 0.2rem; font-
     background: rgba(0,58,255,0.4);
     border-color: rgba(68,39,172,0.65);
     box-shadow: 0 0 8px rgba(0,58,255,0.25);
-    display: inline-flex; align-items: center; justify-content: center;
 }
 #export-filters input[type="checkbox"]:checked::after,
 #export-panel input[type="checkbox"]:checked::after,
 #export-stage-toggles input[type="checkbox"]:checked::after {
     content: '✓';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: #cfe0ff;
     font-size: 0.62rem;
     line-height: 1;
@@ -260,7 +266,12 @@ button:active, .btn-note-toggle:active {
     transition: border-color 0.15s, box-shadow 0.2s;
     cursor: grab;
     box-shadow: 0 0 16px rgba(68,39,172,0.10);
+    position: relative;
 }
+/* opacity on a card (rejected/skipped/archived) creates its own stacking
+   context, trapping the dropdown menu's z-index inside it — the next card
+   then paints over it and steals the click. lift the open one above siblings. */
+.job-card.dropdown-open { z-index: 20; }
 .job-card:hover {
     border-color: rgba(68,39,172,0.55);
     box-shadow: 0 0 22px rgba(68,39,172,0.18);
@@ -1175,7 +1186,9 @@ function renderCard(j) {
     trigger.addEventListener('click', e => {
         e.stopPropagation();
         document.querySelectorAll('.stage-dropdown.open').forEach(d => d.classList.remove('open'));
+        document.querySelectorAll('.job-card.dropdown-open').forEach(c => c.classList.remove('dropdown-open'));
         dropdown.classList.toggle('open');
+        el.classList.toggle('dropdown-open', dropdown.classList.contains('open'));
     });
     menu.querySelectorAll('.stage-option').forEach(opt => {
         opt.addEventListener('click', e => {
@@ -1189,6 +1202,7 @@ function renderCard(j) {
                 menu.querySelectorAll('.stage-option').forEach(o => o.classList.toggle('active', o.dataset.value === stage));
             }
             dropdown.classList.remove('open');
+            el.classList.remove('dropdown-open');
         });
     });
 
