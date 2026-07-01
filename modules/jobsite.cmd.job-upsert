@@ -69,9 +69,15 @@ if ( exists $store->{$id} ) {
 ## write per-job file
 <[jobsite.job.write]>->( $id, $store->{$id} );
 
-## register title/url checksums so future scans skip this job even if the
-## source site changes the listing id ##
-<[jobsite.checksum.index]>->( 'add', $store->{$id} );
+## register url checksum so future scans skip this job even if the source
+## site changes the listing id -- but NOT for a brand-new, still-undecided
+## job : dispatch.assessments' own checksum check runs moments later (via
+## the settle timer below) and would otherwise self-match this job's own
+## just-registered hash, silently "blocking" every genuinely new posting.
+## a checksum means "this job was decided" (blocked or assessed), not
+## "this job was seen" -- assess-done and the dispatch-time backfill both
+## register it once a real decision exists ##
+<[jobsite.checksum.index]>->( 'add', $store->{$id} ) unless $is_new;
 
 ## settle-timer : site-yaml's queue-depth hitting 0 races ahead of the last
 ## few upsert round-trips landing here, which used to strand fresh 'new'
@@ -94,8 +100,8 @@ return {
     'data' => $is_new ? 'new' : 'updated'
 };
 
-#,,,.,,.,,,,,,,,,,,.,,.,,,.,,,,.,,.,,,...,.,,,.,.,...,...,..,,,,.,,.,,,,,,,..,
-#55DLEGT75VKV4Z7LPHK2N4XXIZCG6QAJ5ABFACGBR4OR4F7ZODT67EM5GTAE2SVYY73QA7XQTCF4E
-#\\\|SWTJ55PN6KNW33EQHLK5GUTFTXLYK3ZJKCWOB7QKKF3BIV5X2YX \ / AMOS7 \ YOURUM ::
-#\[7]SRXO2SPK62V2TSE3VUEXKEYA5BMDPRUWRV3V2GTZ4SWQ6DLDUUBI 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,..,,..,,,..,,..,.,.,..,,...,,,,,.,.,...,...,.,.,...,...,...,.,.,
+#WMXENFKS2EKRRCYY74FPEID2RK5POCUL5K7BQXUI3UTRAHLOWGUZZV7IHTUB3SKFFXMFXNH6T6SDW
+#\\\|WMIRXJIIBKBDOOWIUHDWOW23EAV4GY3XVLQNOOXGNI3XBS5HBYI \ / AMOS7 \ YOURUM ::
+#\[7]5MO4EF75ROFEWTGZ3AE2PTQHC2QYSGROSNCH6MIBURSVMUZMIIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

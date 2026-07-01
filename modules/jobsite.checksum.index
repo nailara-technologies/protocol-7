@@ -69,6 +69,16 @@ if ( $action eq 'check' ) {
 if ( $action eq 'add' ) {
     my $job = shift // {};
 
+    ## a checksum means "this job was decided" (blocked or assessed), never
+    ## "this job was seen" -- registering a still-undecided 'new' job's own
+    ## checksum here means the very next dedup check (from any caller : a
+    ## repeat upsert, a startup backfill, dispatch.assessments itself) finds
+    ## its own entry and silently self-blocks it. gate every caller here
+    ## instead of re-guessing which call site is safe each time ##
+    return TRUE
+        if not length( $job->{'status'} // '' )
+        or $job->{'status'} eq 'new';
+
     my $epoch_dir = <[base.ntime.epoch_timestamp]>;
 
     if ( length( $job->{'url'} // '' ) ) {
@@ -149,8 +159,8 @@ if ( $action eq 'persist' ) { return TRUE; }
 
 return { 'mode' => 'false', 'data' => "unknown action: $action" };
 
-#,,..,.,.,,.,,...,.,.,.,.,...,,.,,.,.,,..,,,,,..,,...,...,...,...,,,.,,..,.,.,
-#L5CF4B2KGPDASTSY2E2KKOL6OFSCUR5ZJ7SFWAVOS74DMLDH2LOFIINTIFC3AASHWJFECEG6OA5ZY
-#\\\|HZ2HFYVQSLF77IKR3LM6AISTCYZFEM7BHKFCGWDN5JWURDB2UJO \ / AMOS7 \ YOURUM ::
-#\[7]JHXATDQGN4Z52EHAQVR7PYVNR36GA6JHCY265YKL5OOFOI2AKODA 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,,.,.,,,,.,,,,,,.,.,,,,,...,.,.,..,,...,...,.,,,,..,.,,,,..,.,.,
+#5URHRA7P4LR6QGX6GX7AIEJOO6MN52CMOHI6MZBWTBJAOALHLQGWDHULKG5S4OAOIWLRGYD26I23Y
+#\\\|NTMEP54STM3B2LO7D2RNQO3QGOCNKHUMIM4MZZZ56IV6HRYQU36 \ / AMOS7 \ YOURUM ::
+#\[7]3EML7DXUL3PV7NE43HMKG5ZBUB4IBRV4X457IPBPM5GUXGXV5ECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
