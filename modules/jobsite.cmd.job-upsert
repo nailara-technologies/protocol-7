@@ -17,10 +17,11 @@ return { 'mode' => 'false', 'data' => 'no id' }
 my $job = { %{$job_in} };
 $job->{'id'} = $id;
 
-## normalize noisy gender suffixes in titles ##
+## normalize noisy prefixes / gender suffixes in titles ##
 if ( length( $job->{'title'} // '' ) ) {
+    $job->{'title'} =~ s{^\s*\[Hiring\]\s+}{}i;
     $job->{'title'} =~ s{\s*\(all genders\)}{}gi;
-    $job->{'title'} =~ s{\s*\(m/w/d\)}{}gi;
+    $job->{'title'} =~ s{\s*\((?:m/w/d|w/m/d|m/f/d|f/m/d)\)}{}gi;
     $job->{'title'} =~ s{\s+$}{};
 }
 
@@ -77,8 +78,8 @@ return {
     'data' => $is_new ? 'new' : 'updated'
 };
 
-#,,.,,,..,.,.,,.,,,,,,,.,,,,.,..,,.,,,,..,...,.,.,...,...,,.,,.,,,,..,.,,,,,.,
-#SJKWTSNOP4P7ATX6JZMEPECXJNQZW67WKPIG4G5OCXLRLG4UDWSAE2QSVH7XHBX74VCFNMKYHSHIQ
-#\\\|P2ZIROAVTFFT3EJMB2NQEB7S6QLK2JZRS4XVDC5YLKM5XXEIRRD \ / AMOS7 \ YOURUM ::
-#\[7]BKLVQJVVZF7Z674DKVCM6C6JWXK2VN426EQAAESZ7CC6GBB2YUAA 7  DATA SIGNATURE ::
+#,,,.,...,.,.,,,,,,,,,,..,...,,.,,.,,,..,,,,,,.,.,...,...,.,.,...,...,..,,.,.,
+#GTOJ2VBEKTJLZQ4PSE3BJTJJJ4ZLAI2UKCS7XUVU74WW3U3PJP6WADNOBH35YG3DYZ3LYAJT33EMQ
+#\\\|UBZIFKLZHW7GTFMC2LBPBQTKRXIPPRJTHJJX7RAGZID4PUFOSEQ \ / AMOS7 \ YOURUM ::
+#\[7]IP4MW72KULNSS24XCTD5O5HHAN3LLV5PUWYTTWSWY3VLRIP3LQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
