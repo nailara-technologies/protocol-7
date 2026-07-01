@@ -23,8 +23,16 @@ if ( lc($mode) eq qw| false | ) {
 $task_id = uc( substr( $task_id, 0, 7 ) );
 <[base.logs]>->( 1, 'job %s → task %s', $job_id, $task_id );
 
+## protected stages : a reassess dispatch preserves the user's stage so
+## assess-done/repair-done can treat it as protected — don't clobber it
+## here just to mark the in-flight pipeline state ##
+my %protected_stage
+    = map { $ARG => 1 }
+    qw| applied interviewed responded rejected skipped archived |;
+
 <jobsite.tasks>->{$job_id}{'task_id'} = $task_id;
-<jobsite.tasks>->{$job_id}{'stage'}   = 'assessing';
+<jobsite.tasks>->{$job_id}{'stage'}   = 'assessing'
+    unless $protected_stage{ <jobsite.tasks>->{$job_id}{'stage'} // '' };
 <[jobsite.state.persist]>;
 
 ## deferred watcher : fires when task.complete or task.fail is called
@@ -39,8 +47,8 @@ $task_id = uc( substr( $task_id, 0, 7 ) );
     }
 );
 
-#,,,,,,,.,.,,,..,,.,.,,,,,.,.,..,,,,.,,.,,..,,..,,...,...,,,,,,,,,,,,,,,,,..,,
-#5BO7J36H3FUPIFNQXYQZYIXKFWDP5FBO3M75K7DV5Q3DPYJ53KCKKSZIJZUVSMTPCM3T2TROWBZ2Y
-#\\\|K7CSIWQGO4AJAEPQWKASV3UQAFVXBFYWSZFLFRZJUL2NJBSVU5R \ / AMOS7 \ YOURUM ::
-#\[7]2O4WX2ZJA2W647CEB5KN7A5WH5KZNW4B6XKTJF4C5TICCNHE6ECA 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,,,,.,.,,,,,,..,.,,,,,.,,,,,,.,,..,,...,...,...,,,,,.,.,,,,,..,,
+#WZER7FXDWSNKH7G55HIGMNKUJMV2YTZKXABDOJ4SX7URTAFCR3AQOTVTYE3NURPIDLMMPM3TGA64K
+#\\\|HYMQAT7AN3MVJVDHIAWX6TAL2YQGRRRSXQVVX6VIZZM3KTOHGV3 \ / AMOS7 \ YOURUM ::
+#\[7]S5N3ISG6JEU4IJJYEYYT42IL6VNP5Q56FDJDNHVDKKXM24YNBGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

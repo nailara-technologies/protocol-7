@@ -25,9 +25,18 @@ if ( exists $_web_zenka_identity{<system.zenka.name>} ) {
     <system.zenka-user.current>  //= $id->{'user'};
     <system.zenka-group.current> //= $id->{'group'};
 }
-<[base.path-set-up.check-zenka-paths]>->(
-    TRUE, 0750, FALSE, 0700, 'jobs', TRUE
-);
+## only on a cold start : once privileges are dropped [ reload case ],
+## chown/chmod on files not already owned by us fails noisily and is a no-op ##
+if ( $EFFECTIVE_USER_ID == 0 ) {
+    <[base.path-set-up.check-zenka-paths]>->(
+        TRUE, 0750, FALSE, 0700, 'jobs', TRUE
+    );
+} else {
+    <[base.logs]>->(
+        2,
+        'plugin.web.jobs: skipping zenka-path ownership check [ privileges already dropped ]'
+    );
+}
 
 ## ensure status subdirectories exist under web jobs root ##
 my $cache_dir = <[plugin.web.jobs.cache.path]>;
@@ -211,8 +220,8 @@ for my $dep_dir ( "$cache_dir/assessed", glob("$cache_dir/trash*") ) {
 
 0;
 
-#,,,,,...,,..,,,,,.,,,,,,,.,.,...,...,,,.,..,,..,,...,...,,..,,.,,.,,,,,.,,,,,
-#NAVCFWCTBLGH5VRAETUKQF5N55FOEHBZNQCOXK7BWMAZWR6UB7OMGVQDYMXXJRUU22AYNEW7FAEXO
-#\\\|5YZ2PDJ2DR62PYNZBHU4I6UAGDYGVJTYQ5NV54JQB56MPV5PKCL \ / AMOS7 \ YOURUM ::
-#\[7]OSX3KK432FUBIG4NGVNYHS4J3JEREHERAOVW43S5EL7XNHV6LAAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,...,,..,.,,,,..,.,,,,,,,.,,,,,,,..,,...,...,..,,,.,,...,.,.,,,,,
+#QK7SEH5EP4QZRUPUXK5WU63PJFGU4RD5IRZTG6CWG2CKHMUIRBBOIL2ASXJPMDGQUSUSAJKYEKGEY
+#\\\|Y3GI7M7OGAN6KA3QMQ5UGLM6UCOAERPTTNODHUNJRMY3HVO3FKG \ / AMOS7 \ YOURUM ::
+#\[7]GUZ42GJONLIO3CZZDLXPX4WLLA3EGR54GFHFQXSWBJ4RZHAIE6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

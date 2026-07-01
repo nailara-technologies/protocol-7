@@ -196,12 +196,16 @@ if ( $sync_interval > 0 ) {
     <[base.logs]>->( 1, 'jobsite: sync push timer %ds', $sync_interval );
 }
 
-## re-wire task.wait-done for any jobs stuck in 'assessing' after restart
+## re-wire task.wait-done for any jobs stuck mid-assessment after restart ##
+## KNOWN GAP : task_id is never cleared on completion by assess-done /   ##
+## repair-done, so it can't be used alone as an in-flight signal [ that  ##
+## would re-flag every job ever assessed, every reload ]. stage is the   ##
+## only safe signal for now, but a protected stage [ e.g. applied ] mid- ##
+## reassessment keeps its real stage and would be missed here — narrow,  ##
+## restart-timing-window edge case, left open rather than risking a      ##
+## reload-triggered reassessment storm ##
 $tasks = <jobsite.tasks> // {};
-my @orphans = grep {
-    ( $tasks->{$ARG}{'stage'} // '' ) eq 'assessing'
-        and length( $tasks->{$ARG}{'task_id'} // '' )
-    }
+my @orphans = grep { ( $tasks->{$ARG}{'stage'} // '' ) eq 'assessing' }
     keys %{$tasks};
 
 if (@orphans) {
@@ -269,8 +273,8 @@ my $job_count = scalar keys %{$tasks};
 
 TRUE;
 
-#,,..,.,.,..,,...,.,.,.,,,.,,,.,,,,.,,..,,,.,,..,,...,...,.,,,.,.,,,,,.,.,,.,,
-#LAA3SWJJNGTPK4HWXFTVGCULC2RMH6BWOB4Z63NBLE6H6MH6LWAJD4BR7VBHTE4N3KPA5USQDA4R4
-#\\\|3HIWFRQ7YWSH4WFX4YLIWQYY4KGORKKGOQ7NOPFHW4W4A6GRXHO \ / AMOS7 \ YOURUM ::
-#\[7]EPSTMUMOXY5EZ7RCN6ZTQMZCKE3BGTYBT6RZX2AMBFAVUFQUDECA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,,,,,...,...,.,,,..,,,,.,.,.,,,,,..,,...,..,,,,,,...,..,,,,,,,.,,
+#ESPDGFX2FBJAWL6VUNYHZ4JD5OVZWYPONXITKZLEGX7GXZH2LH6WMYSRG5C5AHOOMMVSWCJS4E5L4
+#\\\|4BQH42RLESL3335HAUGSP7QBUBC7AC5FMH6MQZYIPUUGJ5B3LAP \ / AMOS7 \ YOURUM ::
+#\[7]D4M3HYF5EBZ7FGNZVTNNTBVH7SSKU6V2RPNKY7ORDIX2FJPAN6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
