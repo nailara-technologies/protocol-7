@@ -328,6 +328,13 @@ button:active, .btn-note-toggle:active {
     cursor: pointer;
 }
 .card-reason.expanded { max-height: 30em; }
+/* collapsible assertion text */
+.assert-collapsed .card-summary,
+.assert-collapsed .card-reason {
+    max-height: 0 !important;
+    margin-bottom: 0;
+    overflow: hidden;
+}
 
 .card-actions {
     display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center;
@@ -572,6 +579,8 @@ input[type="date"], textarea {
     </div>
     <!-- row 2: add | sort | export/archive | reset sync -->
     <div class="ctrl-row">
+      <button id="btn-assert-text" title="assertion text ein/aus (einzelkarte: klick)">text</button>
+      <span class="sep">|</span>
       <button id="btn-add-toggle">+ manuell</button>
       <span class="sep">|</span>
       <button id="btn-sort-score" class="active">score ↓</button>
@@ -692,6 +701,9 @@ let dragSrcId = null;
 let pollTimer = null;
 let userDecisions = {};  // id → { stage?, notes?, date_applied?, ts }
 const SCORE_FILTER_STAGES = new Set(['review', 'to_apply', 'applied', 'interviewed', 'responded']);
+const ASSERT_OPEN_STAGES  = new Set(['review', 'to_apply']);
+let collapsedOverrides   = new Set(); // per-card toggles from default
+let assertGlobalInverted = false;
 
 /* ── localStorage — reload cache only, not source of truth ── */
 function saveCache() {
@@ -831,6 +843,12 @@ function stageLabel(s) {
     return {review:'review', to_apply:'bewerben', applied:'beworben',
             interviewed:'interviewed', responded:'rückmeldung', rejected:'absage', skipped:'übersp.',
             archived:'archiv', delete:'löschen'}[s] || s;
+}
+
+function isAssertCollapsed(id, stage) {
+    const def      = !ASSERT_OPEN_STAGES.has(stage);
+    const overridden = collapsedOverrides.has(id);
+    return def ^ assertGlobalInverted ^ overridden ? true : false;
 }
 
 function renderCard(j) {
@@ -1013,9 +1031,11 @@ function renderCard(j) {
     const isInteractive = e => !!e.target.closest('.card-actions, select, input, textarea, a, button');
 
     let lastClickMs = 0;
+    let singleClickTimer = null;
     el.addEventListener('click', e => {
         if (isInteractive(e)) return;
         const now = Date.now();
+        clearTimeout(singleClickTimer);
         if (now - lastClickMs < 260) {
             lastClickMs = 0;
             const prevStage = jobs[j.id].stage;
@@ -1025,6 +1045,11 @@ function renderCard(j) {
             notifyUndo(j.id, prevStage, setStage);
         } else {
             lastClickMs = now;
+            singleClickTimer = setTimeout(() => {
+                if (collapsedOverrides.has(j.id)) { collapsedOverrides.delete(j.id); }
+                else { collapsedOverrides.add(j.id); }
+                el.classList.toggle('assert-collapsed', isAssertCollapsed(j.id, jobs[j.id].stage));
+            }, 270);
         }
     });
     el.addEventListener('pointerdown', e => {
@@ -1178,6 +1203,7 @@ function renderCard(j) {
         });
     }
 
+    el.classList.toggle('assert-collapsed', isAssertCollapsed(j.id, j.stage));
     return el;
 }
 
@@ -1734,6 +1760,16 @@ document.getElementById('btn-show-archive').addEventListener('click', () => {
     showArchived = !showArchived;
     document.getElementById('btn-show-archive').classList.toggle('active', showArchived);
     render();
+});
+
+document.getElementById('btn-assert-text').addEventListener('click', () => {
+    assertGlobalInverted = !assertGlobalInverted;
+    document.getElementById('btn-assert-text').classList.toggle('active', assertGlobalInverted);
+    document.querySelectorAll('.job-card[data-id]').forEach(cardEl => {
+        const id = cardEl.dataset.id;
+        const stage = jobs[id]?.stage;
+        if (stage) cardEl.classList.toggle('assert-collapsed', isAssertCollapsed(id, stage));
+    });
 });
 
 document.getElementById('btn-export-csv').addEventListener('click', () => {
