@@ -27,39 +27,9 @@ if ( -f $old_yaml and not -f $migrated_flag ) {
     <[base.logs]>->( 1, 'checksum-store: migrated old yaml blacklist' );
 }
 
-## migrate flat titles/ to titles/assessed/ (one-time) ##
-my $titles_root = "$store_root/titles";
-if ( -d $titles_root ) {
-    opendir my $dh, $titles_root or goto MIGRATE_DONE;
-    my @files = grep { !/^\./ && -f "$titles_root/$_" } readdir($dh);
-    closedir $dh;
-    if (@files) {
-        my $assessed_dir = "$titles_root/assessed";
-        if ( not -d $assessed_dir ) {
-            my $p7_user = <system.amos-zenka-user> // qw| protocol-7 |;
-            <[file.make_path]>->( $assessed_dir, 0750, $p7_user, $p7_user );
-        }
-        for my $fn (@files) {
-            rename "$titles_root/$fn",
-                "$assessed_dir/$fn"
-                or <[base.logs]>->(
-                0,   'checksum-store: migrate title %s failed: %s',
-                $fn, $!
-                );
-        }
-        <[base.logs]>->(
-            1,
-            'checksum-store: migrated %d flat title entries to assessed/',
-            scalar @files
-        );
-    }
-}
-MIGRATE_DONE:
-
 if ( $action eq 'check' ) {
     my $job = shift // {};
     my @hits;
-    my $resolved_status;
 
     ## company blacklist ##
     if ( length( $job->{'company'} // '' ) ) {
@@ -68,26 +38,6 @@ if ( $action eq 'check' ) {
         if ( length $c_sum ) {
             push @hits, "company:$c_sum"
                 if -e "$store_root/companies/blacklisted/$c_sum";
-        }
-    }
-
-    ## title dedup with status resolution ##
-    if ( length( $job->{'title'} // '' ) ) {
-        utf8::encode( my $ti = $job->{'title'} );
-        my $t_sum = <[chk-sum.bmw.str-b32.L13]>->($ti);
-        if ( length $t_sum ) {
-            if ( opendir my $dh, $titles_root ) {
-                for my $status_dir ( readdir $dh ) {
-                    next if $status_dir =~ m{^\.};
-                    next unless -d "$titles_root/$status_dir";
-                    if ( -e "$titles_root/$status_dir/$t_sum" ) {
-                        push @hits, "title:$t_sum";
-                        $resolved_status //= $status_dir;
-                        last;
-                    }
-                }
-                closedir $dh;
-            }
         }
     }
 
@@ -111,9 +61,8 @@ if ( $action eq 'check' ) {
     }
 
     return {
-        'is_blocked'      => scalar(@hits) > 0,
-        'hits'            => \@hits,
-        'resolved_status' => $resolved_status // '',
+        'is_blocked' => scalar(@hits) > 0,
+        'hits'       => \@hits,
     };
 }
 
@@ -121,21 +70,6 @@ if ( $action eq 'add' ) {
     my $job = shift // {};
 
     my $epoch_dir = <[base.ntime.epoch_timestamp]>;
-
-    if ( length( $job->{'title'} // '' ) ) {
-        utf8::encode( my $ti = $job->{'title'} );
-        my $t_sum = <[chk-sum.bmw.str-b32.L13]>->($ti);
-        if ( length $t_sum ) {
-            my $t_path = "$titles_root/assessed/$t_sum";
-            if ( not -e $t_path ) {
-                my $empty = '';
-                <[file.zenka_dir.write]>->(
-                    "checksum-store/titles/assessed/$t_sum",
-                    \$empty, '>', 0640
-                );
-            }
-        }
-    }
 
     if ( length( $job->{'url'} // '' ) ) {
         utf8::encode( my $url = $job->{'url'} );
@@ -150,54 +84,6 @@ if ( $action eq 'add' ) {
     }
 
     return TRUE;
-}
-
-if ( $action eq 'update_status' ) {
-    my $job        = shift // {};
-    my $new_status = shift // '';
-    return FALSE unless length $new_status;
-
-    if ( length( $job->{'title'} // '' ) ) {
-        utf8::encode( my $ti = $job->{'title'} );
-        my $t_sum = <[chk-sum.bmw.str-b32.L13]>->($ti);
-        if ( length $t_sum ) {
-            my $found = 0;
-            if ( opendir my $dh, $titles_root ) {
-                for my $status_dir ( readdir $dh ) {
-                    next if $status_dir =~ m{^\.};
-                    next unless -d "$titles_root/$status_dir";
-                    my $old_path = "$titles_root/$status_dir/$t_sum";
-                    if ( -e $old_path ) {
-                        my $new_dir = "$titles_root/$new_status";
-                        if ( not -d $new_dir ) {
-                            my $p7_user = <system.amos-zenka-user>
-                                // qw| protocol-7 |;
-                            <[file.make_path]>->(
-                                $new_dir, 0750, $p7_user, $p7_user
-                            );
-                        }
-                        my $new_path = "$new_dir/$t_sum";
-                        if ( $old_path ne $new_path ) {
-                            rename $old_path,
-                                $new_path
-                                or <[base.logs]>->(
-                                0,
-                                'checksum.index: update_status rename %s -> %s failed: %s',
-                                $old_path,
-                                $new_path,
-                                $!
-                                );
-                        }
-                        $found = 1;
-                        last;
-                    }
-                }
-                closedir $dh;
-            }
-            return $found;
-        }
-    }
-    return FALSE;
 }
 
 if ( $action eq 'blacklist_company' ) {
@@ -220,16 +106,6 @@ if ( $action eq 'stats' ) {
         $co_count = scalar grep { !/^\./ } readdir $dh;
         closedir $dh;
     }
-    my $ti_count = 0;
-    if ( opendir my $dh, "$store_root/titles" ) {
-        for my $st ( grep { !/^\./ && -d "$store_root/titles/$_" }
-            readdir $dh ) {
-            opendir my $edh, "$store_root/titles/$st" or next;
-            $ti_count += scalar( grep { !/^\./ } readdir $edh );
-            closedir $edh;
-        }
-        closedir $dh;
-    }
     my $url_count = 0;
     if ( opendir my $dh, "$store_root/urls" ) {
         for my $ep ( grep { !/^\./ } readdir $dh ) {
@@ -239,7 +115,6 @@ if ( $action eq 'stats' ) {
     }
     return {
         'companies' => $co_count,
-        'titles'    => $ti_count,
         'urls'      => $url_count,
     };
 }
@@ -274,8 +149,8 @@ if ( $action eq 'persist' ) { return TRUE; }
 
 return { 'mode' => 'false', 'data' => "unknown action: $action" };
 
-#,,,.,,.,,,.,,.,.,.,,,...,,..,,..,...,...,,.,,..,,...,...,..,,..,,,.,,...,.,,,
-#IQXSEDKMSBZC6A6R55CSX2CNE2SK22L7BMD4HOC5J5TUBJAWUJCEVYNDZZM5IIAGE5POYTTB2PG2A
-#\\\|TI7ZSLYEOZQGATBRFNU7WLEINPO3MBIZO4Y37VHNDLOCTALS22M \ / AMOS7 \ YOURUM ::
-#\[7]GZSVJSMRSHSIT64TNDXAOZ4QYMTCQOZYRH7R6DGFVSNDYNA4KWBI 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,...,.,.,.,.,...,,.,,.,.,,..,,,,,..,,...,...,...,...,,,.,,..,.,.,
+#L5CF4B2KGPDASTSY2E2KKOL6OFSCUR5ZJ7SFWAVOS74DMLDH2LOFIINTIFC3AASHWJFECEG6OA5ZY
+#\\\|HZ2HFYVQSLF77IKR3LM6AISTCYZFEM7BHKFCGWDN5JWURDB2UJO \ / AMOS7 \ YOURUM ::
+#\[7]JHXATDQGN4Z52EHAQVR7PYVNR36GA6JHCY265YKL5OOFOI2AKODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
