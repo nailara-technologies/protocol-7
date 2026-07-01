@@ -86,11 +86,21 @@ TRASH_DONE:
 ) if scalar keys %jobs;
 
 ## populate in-memory task map from loaded job YAMLs ##
+##
+## an in-flight marker ('queued'/'assessing') only ever exists in memory --
+## a still-'new' job on disk has no 'stage' field yet, so refreshing stage
+## unconditionally from the file wipes the marker dispatch.assessments just
+## set, moments before the task it dispatched even replies. that defeats
+## dispatch.assessments' own "already in flight" skip-check, so a re-entrant
+## call (settle-timer, or any repeat call while a batch is running) queues
+## the same job again -- keep the in-flight marker, refresh everything else ##
 for my $id ( keys %jobs ) {
-    my $job = $jobs{$id};
+    my $job           = $jobs{$id};
+    my $prior_stage   = ( <jobsite.tasks>->{$id} // {} )->{'stage'} // '';
+    my $keep_inflight = $prior_stage =~ m{^(?:queued|assessing)$};
     <jobsite.tasks>->{$id} = {
-        'status'           => $job->{'status'}           // 'new',
-        'stage'            => $job->{'stage'}            // '',
+        'status' => $job->{'status'} // 'new',
+        'stage'  => $keep_inflight ? $prior_stage : ( $job->{'stage'} // '' ),
         'score'            => $job->{'score'}            // '',
         'repair_attempted' => $job->{'repair_attempted'} // FALSE,
         'repair_failed'    => $job->{'repair_failed'}    // FALSE,
@@ -108,8 +118,8 @@ for my $id ( keys %{$tasks} ) {
 
 return \%jobs;
 
-#,,,.,.,,,...,,,,,..,,.,,,,,.,..,,,.,,,.,,,..,..,,...,...,..,,,.,,,,.,,,,,,..,
-#2S32CBLWLN55XL5UJLAFBPZ3MFMYOEFFPVUTDHMRUKDSXUNQTDTVD5C2NBBVKWA3LMOTXOE4ADDYQ
-#\\\|CIZYIWHON2FPJQOEMHHITW5YXQWKMOVNQ55KDX7PT7UQ5E5WCHO \ / AMOS7 \ YOURUM ::
-#\[7]EKXVA5ICVBYGC4JS7DHCHJOHD7SAUKL7B3N2REGSKQY7NGDDOECA 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,,,,.,.,..,,,..,,,,,,,,,...,,,.,..,,...,...,,..,.,.,,..,,.,,,.,,
+#FN6VOIZP42R7FCS52N6XGPZM5WB4YXDSQ274K4UXPRGMVWBTILSI56QCDLTQ4HUVAXPNWBPLAWXQO
+#\\\|IV2FBAC3KI65REBIQRPXFGFAM4RMVWOSRCOMJDR5FMTGGRZWEMG \ / AMOS7 \ YOURUM ::
+#\[7]2ABBY3CGZLQMRGTBAVPX25D426PO3N6X3PJFU4A2QGE5BUR2D4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
