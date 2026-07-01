@@ -21,6 +21,12 @@ metadata:
 
 - **New reusable finding**: `p7c` silently mangles/truncates large single-line command arguments somewhere around 2-4KB (a JSON job-upsert payload with a full description at 4361 bytes landed with *only* `status` set — everything else vanished with no error; the same payload capped to ~1.7-1.9KB via truncating `description` to 1200 chars landed perfectly). Matches the known "oversize single-line protocol" limitation ([[feedback-oversize-single-line-protocol]]) but this is the first time it silently ate structured JSON rather than visibly wedging a buffer — worth remembering when scripting any `jobsite.job-upsert`-style call with real description text via `p7c` from the shell.
 
+- **Fourth bug in the same chain, landed (`ba901b488`)**: after the checksum chokepoint fix, the same 5-14 rescued jobs kept getting re-dispatched — log showed `remaining: 46` for what should've been ≤5, and an already-`trash`ed job got assessed a second time. Root cause: `jobsite.job.load_all` refreshed `<jobsite.tasks>{id}{stage}` unconditionally from the on-disk file on every call; a still-`new` job has no `stage` field on disk, so this wiped the in-flight `queued`/`assessing` marker `dispatch.assessments` had just set moments earlier, defeating its own "already in flight" skip-check — any re-entrant call (settle-timer firing again, a manual `exec-sub dispatch.assessments` while a batch was running) re-queued the same jobs, unbounded. Fixed at both ends: `load_all` now preserves the in-flight marker instead of clobbering it from disk, and `dispatch.next` independently rechecks a queue entry's job is still `status=new` before dispatching, so stale duplicates from *any* cause get skipped rather than trusted blindly. **Pattern note**: this was the third guard spawned by the settle-timer re-entrancy chain (stranding-fix → pending_count orphan → duplicate-queue) — advisor flagged that repeatedly patching per-symptom was accumulating interacting guards, and suggested eventually collapsing them into one coalesce flag ("dispatch running? set recheck-when-done instead of re-scanning") rather than adding a fifth guard next time this class of bug resurfaces.
+
+- **Also investigated, ruled out as a red herring**: suspected a numeric-vs-vax-int-encoded job_id mismatch between `dispatch.next` (sends raw numeric id) and `task-created`/`assess-done` (both call `vax-int.decode` on it) could be corrupting `<jobsite.tasks>` lookups. Tested directly: `vax-int.decode('14223340')` returns `14223340` unchanged (passthrough for this input) — not the cause. The "unknown job" log line that prompted the suspicion was just fallout from a manual `jobsite.clear-tasks` call racing an already-in-flight task's reply.
+
+- **Final verification**: after both fixes reloaded, a fresh `dispatch.assessments` pass logged `remaining: 5` (matching the actual pending count exactly) and drained monotonically (5→4→...→1) with no re-growth. All 14 originally wrongly-blocked jobs ended up genuinely assessed with real, distinct titles/companies and content-specific reasoning (1 review/WidasConcepts score 8, rest correctly trashed on real low scores) — hollow "Stellenanzeige fehlt" responses stopped appearing once each job's real content had actually stuck.
+
 ## Session 2026-07-01 (latest) — export-panel twin-control bugs + title-checksum dedup removal
 
 **Landed (commits `87a3469c4`, `5cf4f4855`)**:
@@ -318,8 +324,8 @@ jobsite.cfg.sync_interval = 300
 - reset button: clears jobs + userDecisions + lastNtime (destructive, dialog warns)
 - 30s auto-poll via `startPoll()` using `?since=lastNtime` delta
 
-#,,,,,..,,...,...,..,,,..,.,,,.,,,,..,,,,,..,,..,,...,...,...,,,,,...,...,,.,,
-#SOBQJ3O7EAI552EY6RVFR3NMIU6ZPHMBFXBJGMHNTPEIK3GMYEQYN5JHCW7AQL42KMRTTWCLPYOSA
-#\\\|VD4U7BCU5ZN4B2KQGUB7SJALB6KJAA5HDX6KK4SYL4C4TV4R2VE \ / AMOS7 \ YOURUM ::
-#\[7]WRSS6INZEFJXO43XNBFQG4D45M42IPJ4JPCVSGYOU2QTT3SESMDY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,,,,,..,.,.,.,.,,.,,.,,,.,.,...,..,,...,...,,..,...,,..,,,,,.,,,
+#JKTFMVRIOKLUYYP5IDXWS3QQZ5RCOYFO4R4QLTVZEITEAC6DWBC2YF4EAXTU4M46SLUUCZXVWMVD2
+#\\\|LN4AXSVIPQYQBTVXTIHTAXOY3B7CANX3N2IW2SHETUALMF3OPBA \ / AMOS7 \ YOURUM ::
+#\[7]2Y4THYBFJT7W5QTI4Y7PHFKMLOLKLVQH26WVDNNAFD5MM4JAXKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

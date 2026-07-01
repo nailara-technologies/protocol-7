@@ -29,7 +29,7 @@
 - [frame-idiom-convergence](topic-frame-idiom-convergence.md) — NEW frame features: margin/vertical-padding/self-invalidating-cache/corner-pinning-spring; `.:[ ]::[ ]:.` idiom; 5 frames still need conversion (REQUIRED)
 - [ui-show-security-levels](topic-ui-show-security-levels.md) — steps 1-5 ALL LIVE (36d605896, 2026-06-13); credential_fabric slot name/meta gated; step 6 open
 - [os-command-zenka](topic-os-command-zenka.md) — planned: networked command/script templates, security levels, STRM streaming, vterm result buffers
-- [plugin-web-jobs](topic-plugin-web-jobs.md) — LANDED `c4b6aec62` 2026-07-01: checksum-add gated to decided-status only (fixes self-match "all new jobs vanish" regression), settle-timer dispatch race + orphaned-file cleanup also landed; 14 wrongly-blocked real jobs rescued+re-fetched; pending_count orphan gap still OPEN (see CRITICAL)
+- [plugin-web-jobs](topic-plugin-web-jobs.md) — LANDED `c4b6aec62`+`ba901b488` 2026-07-01: checksum self-match regression + dispatch-queue duplicate-pileup (job.load_all stage-clobber) both fixed+verified; 14 wrongly-blocked real jobs fully rescued/reassessed; pending_count orphan gap still OPEN (see CRITICAL)
 - [clients-http](topic-clients-http.md) — clients.http.* + clients.https.* async; kimi-web parallel dispatch
 - [reasoning-chain-repository](topic-reasoning-chain-repository.md) — native model; dedup-based self-improvement
 - [reasoning-namespace](topic-reasoning-namespace.md) — `reasoning.*` namespace; 28 templates
@@ -209,8 +209,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,.,,.,,,,,,,,,.,,..,,,,,,.,,.,.,.,.,,..,..,,..,,...,...,,.,,,..,..,,..,,,.,,
-#DZLICINZ6BCZU6S6JOKOGO27S6GBWC2AIAEWJZ2FRIWSW4PUBH7CKWVOOXAN6U4JZRJGPZHON2KCG
-#\\\|7MGXIBAOW4RFHUEUUUNTH42VMPWTWRCZLDTV3YLVGWJIQF3FT65 \ / AMOS7 \ YOURUM ::
-#\[7]FVE32743IN7KYCFK2TBMN55YC4F65EVM6UKSHWGUYTT4PESFXEAQ 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,.,,,.,,..,,..,,,.,,,,.,.,.,,..,..,,...,...,..,,..,,,,,,.,.,...,
+#YM3EMEM7BVE4A4KSADXDEU3IXE5NAFL62S6CVGKCY3BFTW4YYYHZORWP5M2XDWOELQFP2VLMWS6OY
+#\\\|OXFZVWLGRXUBMRXAPDRYKHW6IQM6JL5B5NVYEBXHFWQRYPSNWX3 \ / AMOS7 \ YOURUM ::
+#\[7]6PTPQQ4D2MO2LAH3QNXGEKK4TCR6WJ5M2QZC3RIH734DD36THADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
