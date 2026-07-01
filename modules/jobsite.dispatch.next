@@ -5,14 +5,32 @@
 
 my $queue = <jobsite.assess_queue> // [];
 
-if ( not @{$queue} ) {
+my ( $entry, $job_id, $desc );
+while ( @{$queue} ) {
+    $entry  = shift @{$queue};
+    $job_id = $entry->{'job_id'};
+
+    ## a stale duplicate can pile up in the queue if this job was already
+    ## dispatched/decided by the time its turn comes around again (e.g. a
+    ## re-entrant dispatch.assessments call queued it twice) -- skip it
+    ## instead of re-running a job that's no longer pending ##
+    my $current = <[jobsite.job.read]>->($job_id) // {};
+    if ( ( $current->{'status'} // '' ) ne 'new' ) {
+        <[base.logs]>->(
+            1,       '[job:%s] skipping stale queue entry, status=%s',
+            $job_id, $current->{'status'} // '?'
+        );
+        next;
+    }
+
+    $desc = $entry->{'desc'};
+    last;
+}
+
+if ( not defined $desc ) {
     <[base.logs]>->( 1, 'assessment queue empty, waiting for results' );
     return;
 }
-
-my $entry  = shift @{$queue};
-my $job_id = $entry->{'job_id'};
-my $desc   = $entry->{'desc'};
 
 <[base.logs]>->(
     1,       '[job:%s] dispatching assessment [ remaining : %d ]',
@@ -34,8 +52,8 @@ my $encoded
     }
 );
 
-#,,,,,..,,..,,..,,.,.,.,,,...,,,,,..,,,,.,.,,,..,,...,...,...,..,,,.,,...,,.,,
-#LYUL33UVUUIPQN5IO3KWOQQSMLP3DIHQUPJZKQKVLRX6OZGVQBAN35HSBUXPICSLJJ4PQYBDVYKRY
-#\\\|GIAIWYMMRGQJGRWRGT4B2V253GKX4JDKPVZOCKKIC4PU6M4LIXG \ / AMOS7 \ YOURUM ::
-#\[7]USFLLBPINXDB43MCTXE5ICALKMZJB4FB6DSTPA56B3JIMPB64SAY 7  DATA SIGNATURE ::
+#,,.,,...,.,,,.,.,,,,,.,,,,,,,.,,,.,,,.,,,,,.,..,,...,...,...,.,.,,,.,...,..,,
+#HSRSZSX7ZQH4NYTPL26J37KN4COWFSX3K4YUSMY7QDIA437BMAET2MLNVVMQBHNMJ66Z6IM7DNGKM
+#\\\|YCCYLVKUDUSORGB6JJFR5NALABSGZ7J57MHC5WQBWCRO2AID7SQ \ / AMOS7 \ YOURUM ::
+#\[7]IUEZ3F6LGVXADPB6Q52WY7C7QE54V2TC6UPI4X25YAV2HDDAEQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
