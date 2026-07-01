@@ -335,6 +335,14 @@ button:active, .btn-note-toggle:active {
     margin-bottom: 0;
     overflow: hidden;
 }
+/* search match highlight */
+mark.search-hl {
+    background: rgba(180,140,20,0.3);
+    color: #e0c040;
+    border-radius: 2px;
+    padding: 0 1px;
+    font-style: normal;
+}
 
 .card-actions {
     display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center;
@@ -580,6 +588,7 @@ input[type="date"], textarea {
     <!-- row 2: add | sort | export/archive | reset sync -->
     <div class="ctrl-row">
       <button id="btn-assert-text" title="assertion text ein/aus (einzelkarte: klick)">text</button>
+      <button id="btn-filter-apply-sug" title="nur mit Bewerbungsempfehlung">✓ apply</button>
       <span class="sep">|</span>
       <button id="btn-add-toggle">+ manuell</button>
       <span class="sep">|</span>
@@ -629,6 +638,12 @@ input[type="date"], textarea {
     <span class="ftab" data-filter="skipped">übersprungen</span>
     <span class="ftab" data-filter="delete">löschen</span>
     <span class="ftab" data-filter="error">fehler</span>
+    <input type="search" id="search-input" placeholder="suchen…"
+      style="margin-left:0.5rem; padding:1px 6px; font-size:0.62rem; border-radius:3px;
+             background:rgba(5,8,42,0.6); border:1px solid var(--p7-outline);
+             color:var(--p7-text-soft); width:90px; outline:none;"
+      onfocus="this.style.borderColor='var(--p7-accent2)'"
+      onblur="this.style.borderColor='var(--p7-outline)'">
   </div>
 
   <!-- manual add form -->
@@ -704,6 +719,9 @@ const SCORE_FILTER_STAGES = new Set(['review', 'to_apply', 'applied', 'interview
 const ASSERT_OPEN_STAGES  = new Set(['review', 'to_apply']);
 let collapsedOverrides   = new Set(); // per-card toggles from default
 let assertGlobalInverted = false;
+let searchQuery    = '';
+let searchDebounce = null;
+let filterApplySug = false;
 
 /* ── localStorage — reload cache only, not source of truth ── */
 function saveCache() {
@@ -872,9 +890,10 @@ function renderCard(j) {
         el.style.borderLeftColor = `hsl(${hue},${sat}%,${lum}%)`;
     }
 
+    const hlTerms = searchQuery ? searchQuery.toLowerCase().split(/\s+/).filter(Boolean) : [];
     const titleEl = j.url
-        ? `<a class="card-title" href="${escHtml(j.url)}" target="_blank" rel="noopener">${escHtml(j.title)}</a>`
-        : `<span class="card-title">${escHtml(j.title)}</span>`;
+        ? `<a class="card-title" href="${escHtml(j.url)}" target="_blank" rel="noopener">${highlightTerms(j.title, hlTerms)}</a>`
+        : `<span class="card-title">${highlightTerms(j.title, hlTerms)}</span>`;
 
     const sc = scoreDisplay(j.score);
     const scClass = scoreClass(j.score);
@@ -884,7 +903,7 @@ function renderCard(j) {
     const badges = [];
     if (sug.delete === 'true') {
         badges.push('<span class="assert-badge assert-delete">löschen</span>');
-    } else if (sug.apply === 'true' && ['review','to_apply'].includes(j.stage)) {
+    } else if (sug.apply === 'true' && (filterApplySug || ['review','to_apply'].includes(j.stage))) {
         badges.push('<span class="assert-badge assert-apply">bewerben</span>');
     } else if (sug.archive === 'true') {
         badges.push('<span class="assert-badge assert-archive">archiv</span>');
@@ -934,17 +953,17 @@ function renderCard(j) {
         </div>
       </div>
       <div class="card-meta">
-        <span class="city">${fmtCityInline(j.city)}</span>
-        <span class="company">${escHtml(j.company)}</span>
-        ${j.industry ? `<span class="ind">${escHtml(j.industry)}</span>` : ''}
+        <span class="city">${hlTerms.length ? String(j.city||'').split(',').map(s=>highlightTerms(s.trim(),hlTerms)).join(', ') : fmtCityInline(j.city)}</span>
+        <span class="company">${highlightTerms(j.company, hlTerms)}</span>
+        ${j.industry ? `<span class="ind">${highlightTerms(j.industry, hlTerms)}</span>` : ''}
       </div>
-      ${j.summary ? `<div class="card-summary" data-full="${escAttr(j.summary)}">${escHtml(j.summary)}</div>` : ''}
-      ${j.reason  ? `<div class="card-reason"  data-full="${escAttr(j.reason)}">${escHtml(j.reason)}</div>`  : ''}
+      ${j.summary ? `<div class="card-summary" data-full="${escAttr(j.summary)}">${highlightTerms(j.summary, hlTerms)}</div>` : ''}
+      ${j.reason  ? `<div class="card-reason"  data-full="${escAttr(j.reason)}">${highlightTerms(j.reason, hlTerms)}</div>`  : ''}
       ${dimRowHtml}
       ${dimHtml}
       ${dimKeys.length ? `<div class="toggle-dim">▼ dimensionen</div>` : ''}
       <div class="card-actions no-print">
-        ${j.stage === 'review' && sug.apply === 'true' && sug.delete !== 'true' ? `<button class="badge-apply badge-yes" type="button" data-action="to_apply">✓ apply</button>` : ''}
+        ${(filterApplySug ? ['review','to_apply','skipped'].includes(j.stage) : j.stage === 'review') && sug.apply === 'true' && sug.delete !== 'true' ? `<button class="badge-apply badge-yes" type="button" data-action="to_apply">✓ apply</button>` : ''}
         ${['review','to_apply'].includes(j.stage) && sug.apply === 'false' && sug.delete !== 'true' ? `<button class="badge-apply badge-no" type="button" data-action="skipped">✗ skip</button>` : ''}
         <button class="btn-reassess" data-id="${j.id}" title="re-assess">↺</button>
         <div class="stage-dropdown" data-id="${j.id}">
@@ -965,7 +984,7 @@ function renderCard(j) {
       </div>
       <textarea class="card-note-input" data-id="${j.id}"
         placeholder="note…" rows="2">${escHtml(j.note||'')}</textarea>
-      ${j.note ? `<div class="card-note-preview visible">${escHtml(j.note)}</div>` : '<div class="card-note-preview"></div>'}
+      ${j.note ? `<div class="card-note-preview visible">${highlightTerms(j.note, hlTerms)}</div>` : '<div class="card-note-preview"></div>'}
     `;
 
     /* stage-aware gestures:
@@ -1238,7 +1257,7 @@ function render() {
     list.innerHTML = '';
 
     const sorted = sortedJobs();
-    const visible = sorted.filter(j => {
+    let visible = sorted.filter(j => {
         if (j.stage === 'archived' && !showArchived) return false;
         if (filterMode === 'delete') {
             return ((j.assertions && j.assertions.suggest && j.assertions.suggest.delete) === 'true')
@@ -1256,6 +1275,18 @@ function render() {
         }
         return true;
     });
+
+    if (filterApplySug) {
+        visible = visible.filter(j => j.assertions?.suggest?.apply === 'true');
+    }
+    if (searchQuery) {
+        const terms = searchQuery.toLowerCase().split(/\s+/).filter(Boolean);
+        visible = visible.filter(j => {
+            const hay = [j.title, j.company, j.city, j.summary, j.reason, j.industry, j.note]
+                .filter(Boolean).join(' ').toLowerCase();
+            return terms.every(t => hay.includes(t));
+        });
+    }
 
     if (!visible.length) {
         list.innerHTML = '<div class="empty">keine einträge</div>';
@@ -1605,6 +1636,15 @@ function fmtCity(city) {
 function fmtCityInline(city) {
     return String(city || '').split(',').map(s => escHtml(s.trim())).join(', ');
 }
+function highlightTerms(text, terms) {
+    let html = escHtml(text || '');
+    if (!terms.length) return html;
+    for (const t of terms) {
+        const re = new RegExp(escHtml(t).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+        html = html.replace(re, '<mark class="search-hl">$&</mark>');
+    }
+    return html;
+}
 function notify(msg, err) {
     const n = document.createElement('div');
     n.textContent = msg;
@@ -1759,6 +1799,35 @@ document.querySelectorAll('.ftab').forEach(tab => {
 document.getElementById('btn-show-archive').addEventListener('click', () => {
     showArchived = !showArchived;
     document.getElementById('btn-show-archive').classList.toggle('active', showArchived);
+    render();
+});
+
+const searchInput = document.getElementById('search-input');
+searchInput.addEventListener('input', e => {
+    clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(() => { searchQuery = e.target.value.trim(); render(); }, 150);
+});
+searchInput.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { searchInput.value = ''; searchQuery = ''; render(); }
+});
+searchInput.addEventListener('search', () => {
+    /* fires when native × is clicked */
+    searchQuery = searchInput.value.trim(); render();
+});
+/* auto-focus search on any printable keypress; Backspace redirects when query is active */
+document.addEventListener('keydown', e => {
+    if (e.target === searchInput) return;
+    if (e.target.closest('input, textarea, select')) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key === 'Backspace' && searchQuery) { searchInput.focus(); return; }
+    if (e.key.length !== 1) return;
+    searchInput.focus();
+});
+
+document.getElementById('btn-filter-apply-sug').addEventListener('click', () => {
+    filterApplySug = !filterApplySug;
+    document.getElementById('btn-filter-apply-sug').style.color     = filterApplySug ? '#4ac0a0' : '';
+    document.getElementById('btn-filter-apply-sug').style.borderColor = filterApplySug ? '#4ac0a0' : '';
     render();
 });
 
