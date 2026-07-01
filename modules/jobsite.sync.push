@@ -48,13 +48,20 @@ for my $url (@urls) {
         ? ( <[base.ntime_BASE32_to_numerical]>->($last_ntime) // 0 )
         : 0;
 
+    ## real [ non-force ] watermark : terminal-state removal signals ignore  ##
+    ## $force so a manual force-sync doesn't resend every trash/deleted job  ##
+    ## ever seen — only genuinely new transitions since the last real sync   ##
+    my $real_last_ntime_num = $last_ntime_num;
+
     $last_ntime_num = 0 if $force;    ## manual sync : bypass watermark ##
 
     ## filter to jobs changed since last sync watermark ##
+    ## note : trash/deleted/blocked job content is never loaded into %jobs ##
+    ## by job.load_all, so those transitions are picked up separately below ##
+    ## from jobsite.removed_log, not from this loop ##
     my @changed;
     for my $id ( keys %{ $jobs // {} } ) {
         my $job = $jobs->{$id};
-        next if ( $job->{'status'} // '' ) =~ m{^(?:blocked|deleted|trash)$};
         my $mod = $job->{'last_modified'} // '';
         my $mod_num
             = length($mod)
@@ -64,6 +71,20 @@ for my $url (@urls) {
             push @changed,
                 { %{$job}, 'id' => <[base.vax-int.encode]>->($id) };
         }
+    }
+
+    ## forward minimal removal signals : a genuine transition into a       ##
+    ## terminal state, tombstoned by job.write, since the real watermark   ##
+    for my $entry ( @{ <jobsite.removed_log> // [] } ) {
+        next if ref $entry ne 'HASH';
+        my $rn_str = $entry->{'ntime'} // '';
+        my $rn_num
+            = length($rn_str)
+            ? ( <[base.ntime_BASE32_to_numerical]>->($rn_str) // 0 )
+            : 0;
+        next if $real_last_ntime_num and $rn_num <= $real_last_ntime_num;
+        push @changed,
+            { 'id' => $entry->{'id'}, 'status' => 'trash' };
     }
 
     next if not @changed;
@@ -121,8 +142,8 @@ $total_jobs += scalar @{ $ARG->{'chunk'} } for @push_queue;
 
 <[jobsite.sync.push_chunk]>;
 
-#,,..,..,,,,,,...,...,.,.,,.,,..,,,,,,.,,,,,,,..,,...,...,.,,,,,,,,,.,,,,,,,,,
-#MQFERZHCWT6RPNBCQF772ZQT4IHTFKOJ43SV23GEH4EGTPOTUG7E3ZRA5JFVXZZ7LGRORBVI6QNDS
-#\\\|JXHD3THXR24ERJCIACH5LANLYNTXVCNIJEWOTRGDS6PO4EASWMS \ / AMOS7 \ YOURUM ::
-#\[7]5BJWIPJLSEU6QQKEGTWL4ZFG25RA37DHWKMAOZYJLJBPNTSZK4DQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,...,..,,,.,,,,,,.,,,.,,,,,.,,,,,..,,...,...,.,,,.,.,,.,,.,,,.,,,
+#DEPVHUDM7QTF6YKBHGCVLLGDLSE22GTDFPYLHQOPU3VQLE2B75QBXIMTC2IF7I4VJVPSGXENPA22M
+#\\\|RHMQCKIXT3RIHNCPLHCEVYW4ARRAWZFRLRC4NSXKARKGEKOPPM3 \ / AMOS7 \ YOURUM ::
+#\[7]RIHNGZFWLSLIE2IK6HTFVDAIICIZSCFURWDRSYMG4LYZBBCD2YCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

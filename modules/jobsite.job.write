@@ -57,6 +57,18 @@ if ( length $old_status ) {
     }
 }
 
+## tombstone a genuine [ not-already-terminal ] transition into a terminal ##
+## state : jobsite.sync.push forwards this so the web-cache can prune the  ##
+## record instead of holding a stale copy forever [ trash/deleted/blocked ##
+## job content is never loaded into %jobs by job.load_all, so sync.push   ##
+## has no other way to notice the transition ] ##
+if ( $status =~ m{^(?:blocked|deleted|trash)$} ) {
+    ( my $old_base_status = $old_status ) =~ s{:.+$}{};
+    if ( $old_base_status ne $status ) {
+        <[jobsite.removed_log.append]>->($enc_id);
+    }
+}
+
 ## prepare content ##
 my $write_job;
 if ( $status eq 'blocked' ) {
@@ -180,8 +192,8 @@ rename( $index_tmp, $index_file )
 
 return $written;
 
-#,,.,,..,,,,,,,,.,,..,..,,,..,.,,,..,,,,,,..,,..,,...,...,..,,,,.,,,.,.,.,,,,,
-#2NZGKWFOLCEN7V5QB6SU2H24HFEPPQZMW7MBBDFZ6QUWXE2MFJAXW5DTYIULTDU2G3ZOZMWULUCD6
-#\\\|3DWTJIS5CEBWZ6YN4C4OXVXMOYTW6NIU2C7G3JBVQQUWMDPMCDT \ / AMOS7 \ YOURUM ::
-#\[7]SDKXMJMV4IAMBFEOHGG6I26GVRBZE6OVJKATAXV6EBAIJNWOIOAQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,,.,,.,,,,,,,,,,,,.,,,..,..,,.,.,..,,...,...,.,.,,..,.,,,...,,..,
+#P7PTEQROP3TORN74LR2BSABJIIIDGO7Z26RZO7L2TQNS4AZURYU6HVTCV72SLO5L65FEHGBCGTEH4
+#\\\|PFONP44QPBBHMU62C7C7YUPOWRAVG66NVQ35Q5V3J2ZCI53CCEZ \ / AMOS7 \ YOURUM ::
+#\[7]PREIDEFRSUYLVQ67P3S7HCD26UHQQXVTG2PEEVEMAN2SV5G2OUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -105,6 +105,15 @@ if ( glob("$jobs_root/*.yaml") ) {
 <[jobsite.job.index.build]>;
 $data{'jobs'}{'store'} = <[jobsite.job.load_all]>;
 
+## restore the removed-id tombstone log so a reload doesn't lose not-yet- ##
+## pushed removal signals for the web-cache ##
+my $removed_log_file = join qw| / |,
+    <system.path.zenka-dirs>->{'var_P7'}, qw| jobsite removed-log.yaml |;
+if ( -f $removed_log_file ) {
+    my $loaded = eval { YAML::XS::LoadFile($removed_log_file) };
+    <jobsite.removed_log> = $loaded if ref $loaded eq 'ARRAY';
+}
+
 ## rotate trash/deleted files based on configured epoch retention ##
 <[jobsite.store.prune]>;
 
@@ -273,8 +282,8 @@ my $job_count = scalar keys %{$tasks};
 
 TRUE;
 
-#,,,,,.,,,,,,,,,,,...,...,.,,,..,,,,.,.,.,,,,,..,,...,..,,,,,,...,..,,,,,,,.,,
-#ESPDGFX2FBJAWL6VUNYHZ4JD5OVZWYPONXITKZLEGX7GXZH2LH6WMYSRG5C5AHOOMMVSWCJS4E5L4
-#\\\|4BQH42RLESL3335HAUGSP7QBUBC7AC5FMH6MQZYIPUUGJ5B3LAP \ / AMOS7 \ YOURUM ::
-#\[7]D4M3HYF5EBZ7FGNZVTNNTBVH7SSKU6V2RPNKY7ORDIX2FJPAN6BA 7  DATA SIGNATURE ::
+#,,,.,...,,.,,.,.,,..,,,,,,,,,,,.,.,.,,.,,.,,,..,,...,..,,.,.,,,,,.,.,.,,,..,,
+#4YSZB2B36GHDZR2GMMW3OXOQNBUKZASP6OUVFWXJZIV7BF3GGTC5CGKY5ELWNY5UZIWN24H7NTWPK
+#\\\|G74RCTRCKHPOOHHONPL22ZWGLFNENVI4O5BZHKJ6EL3IUZVFUI2 \ / AMOS7 \ YOURUM ::
+#\[7]MHICF3ULOANNNWVWMBF3E36A7KFX57NVUTW3WHWLHRZVP3HY4ACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
