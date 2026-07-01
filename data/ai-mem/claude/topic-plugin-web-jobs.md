@@ -7,6 +7,55 @@ metadata:
   originSessionId: 095ef9b6-c744-46c5-bac8-4d54a2d5ce45
 ---
 
+## Session 2026-07-01 (latest) — export-panel twin-control bugs + title-checksum dedup removal
+
+**Landed (commits `87a3469c4`, `5cf4f4855`)**:
+
+- **Frontend twin-control bug pattern**: the export panel's age-slider and since-last
+  checkbox each exist twice in the DOM (quick CSV panel + bericht/table panel), synced
+  via a shared class and a single `document`-level delegated listener. Two bugs from
+  this pattern: (1) the wheel handler dispatched a synthetic `input` event without
+  `{bubbles:true}` — worked for native drag (bubbles by default) but silently no-op'd
+  for wheel-scroll since the consuming listener is delegated on `document`, not bound
+  directly like `min-score`'s wheel handler. (2) the since-last checkbox's `change`
+  handler called `saveExportPrefs()` *before* syncing its twin — `saveExportPrefs()`
+  re-derives state via `querySelector` (always first DOM match), so toggling the
+  second instance got immediately overwritten by the stale first one. Fix pattern:
+  always sync twins to the new value *before* calling the save/read-back function.
+  **Lesson**: any control duplicated across synced panels via shared class + delegated
+  listener needs this same "sync-before-save" ordering checked on every handler, not
+  just the one that happened to get fixed first.
+
+- **Title-based checksum dedup removed from `jobsite.checksum.index`**: title matching
+  would trash any incoming posting whose exact title matched one seen before,
+  regardless of company/location — flagged as "too broad" and removed from the
+  pre-fetch import path (`site-yaml.cmd.import`) previously, but never removed from
+  the post-fetch checksum store used in `jobsite.dispatch.assessments`. Same root
+  cause as a prior incident (`jobs-pipeline-2026-06-28.md`) where duplicates
+  resurrected as `status=assessed` from stale `titles/assessed`/`titles/deleted`
+  entries. Removed: title check/add in `jobsite.checksum.index`, the title-only
+  `update_status` action + its call site in `jobsite.job.write`, the flat→assessed
+  title migration, title counting in `stats`, and the now-unreachable "inherits
+  status from checksum store" trash branch in `jobsite.dispatch.assessments` (only
+  ever triggered by a title hit). Only company blacklist + URL dedup remain.
+  Verified live: `jss.fetch-done [linux-developer]: import queued: 3 new, 97
+  skipped, 0 errors` post-fix. **On-disk `checksum-store/titles/` (1859 files, 10
+  status dirs) is orphaned but untouched** — separate data cleanup, needs
+  `protocol-7`-owned access, not yet done.
+
+- **Verification technique**: computed checksums standalone via `bin/bmw-L13`
+  (raw-string L13) combined with `perl -MCrypt::Misc=encode_b32r` (base32-encode
+  first, matching `chk-sum.bmw.str-b32.L13`'s two-step algorithm) to cross-check
+  which job IDs were legitimately in `/var/protocol-7/jobsite/block-list.seed`
+  (format `<V7-epoch>:ID:<L13-hash>`, raw-string L13 — no base32 pre-step, unlike
+  the title/url checksum-store hashes) without needing filesystem read access to
+  the `protocol-7`-owned `checksum-store/`.
+
+- **Mistake caught by user**: confused `bin/vax-int` (32-bit VAX-int/BASE32) with
+  the unrelated "V7 epoch" scheme used for epoch-bucket dir names like `V7L36RQ` —
+  see [[feedback-vax-int-vs-v7-epoch]] for the full writeup and the correct tool
+  (`p7c localtime <str>`).
+
 ## Session 2026-07-01 (later) — reassessment-trashing incident: root cause chain, 3-tier cache divergence, fixes
 
 **Trigger**: an already-`applied` job got silently trashed by an automated re-assessment
@@ -255,8 +304,8 @@ jobsite.cfg.sync_interval = 300
 - reset button: clears jobs + userDecisions + lastNtime (destructive, dialog warns)
 - 30s auto-poll via `startPoll()` using `?since=lastNtime` delta
 
-#,,..,,..,.,.,,.,,...,.,.,,..,,,,,,,.,.,.,.,,,..,,...,...,.,.,,..,...,.,,,...,
-#SDYV232YPYD6XKID5HAEHGWY4GYDJMASZE6FEAQR4Q67Z4FCHVWMQDHIWJIPU4S4YNZNO2ETILGQA
-#\\\|H6R2UT5W6MKRNA7O4WYNSDVNR7N6QMLY5EW3RWU4EFBQZBJSWVX \ / AMOS7 \ YOURUM ::
-#\[7]YJRZC443AZAFY522SL25AJKQKPECNPRYWRNWKA65ERMK3TA2TWBI 7  DATA SIGNATURE ::
+#,,.,,,,.,...,..,,.,.,,,,,.,,,,,.,.,.,,,.,.,,,..,,...,...,.,.,...,.,,,,.,,.,.,
+#XILMRCZ6TKDGIOQDJ45OZQLQRU2S737YRK5XNR63ZPODQBNJHIY7L7J4R77AYFCFY6ZQAJEGO6R4S
+#\\\|JJCOTJGH3GIE6IGRG2CA2A4WEUXBKSZE6PPRN64JVHK75E3OK4R \ / AMOS7 \ YOURUM ::
+#\[7]J4M77HJZM5Q7UJ5LPZR4M2VIK5WWF2PYE22NPDKLILQLK67Q5OCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

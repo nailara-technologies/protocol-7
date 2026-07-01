@@ -28,7 +28,7 @@
 - [frame-idiom-convergence](topic-frame-idiom-convergence.md) — NEW frame features: margin/vertical-padding/self-invalidating-cache/corner-pinning-spring; `.:[ ]::[ ]:.` idiom; 5 frames still need conversion (REQUIRED)
 - [ui-show-security-levels](topic-ui-show-security-levels.md) — steps 1-5 ALL LIVE (36d605896, 2026-06-13); credential_fabric slot name/meta gated; step 6 open
 - [os-command-zenka](topic-os-command-zenka.md) — planned: networked command/script templates, security levels, STRM streaming, vterm result buffers
-- [plugin-web-jobs](topic-plugin-web-jobs.md) — LANDED `db26e9960` 2026-07-01: reassessment-trashing incident root-caused+fixed (task-created stage clobber, trash index-scan gap, conflict-guard); 2 Firefox-only CSS bugs fixed; design docs open: jobsite/site-yaml refactor + URL-checksum dedup
+- [plugin-web-jobs](topic-plugin-web-jobs.md) — LANDED `5cf4f4855` 2026-07-01: title-checksum dedup removed (too-broad, false-trash risk) + twin-control sync-before-save bug pattern fixed (`87a3469c4`); design docs open: jobsite/site-yaml refactor + fetch-stage URL-checksum dedup
 - [clients-http](topic-clients-http.md) — clients.http.* + clients.https.* async; kimi-web parallel dispatch
 - [reasoning-chain-repository](topic-reasoning-chain-repository.md) — native model; dedup-based self-improvement
 - [reasoning-namespace](topic-reasoning-namespace.md) — `reasoning.*` namespace; 28 templates
@@ -157,6 +157,7 @@
 - [p7 route-send wire protocol](feedback-p7-route-send-wire-protocol.md) — call_args only sends 'args' string; reply shape keyed by cmd not mode; SIZE auto-fragments, no base32 needed; cross-zenka access is two-sided
 - [oversize single-line protocol](feedback-oversize-single-line-protocol.md) — TRUE/FALSE/WAIT wire path has no framing; oversized content there wedges the buffer irresolvably
 - [no unsolicited cross-zenka push](feedback-no-unsolicited-cross-zenka-push.md) — data-holding zenka only announces/lists; consuming (more-trusted) zenka always initiates the pull
+- [vax-int vs v7-epoch](feedback-vax-int-vs-v7-epoch.md) — vax-int (32-bit VAX-int/BASE32) ≠ V7 epoch scheme; decode epoch-bucket dirs with `p7c localtime`, not vax-int
 - [log string hygiene](feedback-log-string-hygiene.md) — base.str.eval_error not raw $EVAL_ERROR; base.parser.ellipse_center not substr; .cmd. descr<=55 chars, rest goes in notes=
 - [ondemand timeout tiering](feedback-ondemand-timeout-tiering.md) — survey existing set_ondemand_timeout values by tier before picking a new one; screenshot+powershell bumped 69s->147s 2026-06-19
 - [claude_dispatch summarize hang](feedback-claude-dispatch-summarize-hang.md) — coding_summarize prompt-overflow leaves outer session stuck forever (near-zero CPU); check ps + coding zenka log, kill PID, work is safe on disk
@@ -207,8 +208,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,..,...,,..,..,,..,,.,.,,.,,.,,,...,..,,,,.,..,,...,...,..,,,.,,,..,..,,...,
-#T5DYJIVLGH3NKWA3F7ZLGQSPD5K4ZUDINKB4SH52MHX2IYY2CS2V5HE7JARIEUW6ELNHJE4LHP67C
-#\\\|PAGKHRUCW4MWZ2YNIMBM4HUB5BTWCYHC6YZNQNIJPE4SWN4WBEV \ / AMOS7 \ YOURUM ::
-#\[7]MDAW3HYCP2AGUGEBPSGDYLK6AUC4WVMZDQE7TAWC3NGR7VL4FGDQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,...,...,.,.,.,.,...,,,,,,,.,.,,,..,,...,...,,..,..,,..,,..,,,,,,
+#VZDVC7G3SZ7IRBG5ZKXIIC5DKFD5UZBYOYZPJIGID5IFKCA3UOMZZUNTCMQO54I7I7RQA45JVWBEA
+#\\\|PR2RE6HEISRVR563HRCLTFQCGHUVXQZF6VZIOAYTY26Q5GX6H26 \ / AMOS7 \ YOURUM ::
+#\[7]DPDF4MXMW4ELLFHRNTSBWNSDIJBMMGNVOM7G2RGSUOXTNAXFKWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
