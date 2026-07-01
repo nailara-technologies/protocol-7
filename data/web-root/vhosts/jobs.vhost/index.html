@@ -945,7 +945,7 @@ function renderCard(j) {
         <button class="btn-note-toggle" data-id="${j.id}" style="font-size:0.72rem; padding:2px 8px;">note</button>
         <span class="card-date">${j.date_added || ''}</span>
       </div>
-      <textarea class="card-note-input${j.note?' visible':''}" data-id="${j.id}"
+      <textarea class="card-note-input" data-id="${j.id}"
         placeholder="note…" rows="2">${escHtml(j.note||'')}</textarea>
       ${j.note ? `<div class="card-note-preview visible">${escHtml(j.note)}</div>` : '<div class="card-note-preview"></div>'}
     `;
@@ -1425,13 +1425,13 @@ function passesCurrentFilter(j) {
 
 function jobAgeDays(j) {
     let ts = 0;
-    const ft = j.fetched_at;
-    if ( ft != null && /^\d+$/.test(String(ft)) ) {
-        ts = parseInt(ft, 10);
+    const d = j.date_applied || j.date_added || '';
+    if ( /^\d{4}-\d{2}-\d{2}/.test(d) ) {
+        ts = new Date(d).getTime() / 1000;
     } else {
-        const d = j.date_added || j.date_applied || '';
-        if ( /^\d{4}-\d{2}-\d{2}/.test(d) ) {
-            ts = new Date(d).getTime() / 1000;
+        const ft = j.fetched_at;
+        if ( ft != null && /^\d+$/.test(String(ft)) ) {
+            ts = parseInt(ft, 10);
         }
     }
     return ts ? ( Date.now() / 1000 - ts ) / 86400 : Infinity;
