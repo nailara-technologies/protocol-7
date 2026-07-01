@@ -1,0 +1,19 @@
+## [:< ##
+
+# name  = jobsite.handler.new-job-settle
+# descr = timer handler : debounced dispatch once new job-upsert arrivals stop
+
+$data{'jobsite'}{'new_job_settle_timer'} = undef;
+
+<[base.logs]>->(
+    1, 'new-job settle window elapsed, checking for assessments'
+);
+<[jobsite.dispatch.assessments]>;
+
+return;
+
+#,,,.,...,.,.,,,.,,.,,...,,.,,.,.,..,,...,,,.,..,,...,..,,,,.,,,,,,..,..,,.,.,
+#I2GWN4ZLLEGXHWWUSWTGYAQSX5R6OMXE2WMIFBOK3XP2HHXIGZYH2RSSXWVGCFEI4JR7TAOGRYWBO
+#\\\|GBAUPQUP2UJAJPODEGEOBLTP4TBSK27GHCS5B4BKUZ2FVLS45SG \ / AMOS7 \ YOURUM ::
+#\[7]ZPAYCFD4HEEFQKRBQGHSZMAJMFGUMJ22ZISVBQ4QUY4KDODUBQBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

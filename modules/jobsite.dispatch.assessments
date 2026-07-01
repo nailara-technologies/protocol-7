@@ -3,6 +3,13 @@
 # name  = jobsite.dispatch.assessments
 # descr = collect new untracked jobs and queue assessment tasks
 
+## re-entrant safe : a settle-timer (new job-upsert arrivals) or a queue-drain ##
+## signal can both call this while a previous batch is still mid-flight ; only ##
+## the call that finds cycle already idle is allowed to kick dispatch.next -- ##
+## an in-flight chain already re-invokes dispatch.next via assess-done, so a  ##
+## second kick here would double-dispatch a task ##
+my $was_idle = ( <jobsite.cycle> // '' ) ne 'assessing';
+
 ## collect new untracked jobs from per-file store ##
 <[base.perlmod.autoload]>->('HTML::Entities');
 my $store = <[jobsite.job.load_all]>;
@@ -54,6 +61,22 @@ for my $job_id ( keys %{$store} ) {
             'checksum_hit'  => ( $chk->{'hits'}[0] // '' ),
         };
         <[jobsite.job.write]>->( $job_id, $blocked_job );
+
+        ## job.write's rename-based cleanup trusts <jobsite.job.index> for the ##
+        ## old path, which can already point elsewhere if this id was blocked ##
+        ## under a different filename/epoch before (e.g. a resurrected repost ##
+        ## racing an index rebuild) -- that leaves this 'new' copy orphaned,  ##
+        ## re-detected and re-"blocked" forever without ever being removed.   ##
+        ## we know for certain this file lives at new/<enc_id>.yaml since we  ##
+        ## just loaded it from there, so remove it directly instead of       ##
+        ## trusting the index's single-slot memory of the old location ##
+        my $enc_id   = <[base.vax-int.encode]>->($job_id);
+        my $new_path = join( '/',
+            <system.path.zenka-dirs>->{'var_P7'},
+            qw| jobsite jobs new | )
+            . "/$enc_id.yaml";
+        unlink $new_path if -f $new_path;
+
         next;
     }
 
@@ -61,14 +84,17 @@ for my $job_id ( keys %{$store} ) {
 }
 
 if ( not @to_assess ) {
-    <[base.logs]>->( 1, 'no new untracked jobs to assess, idle' );
-    <jobsite.cycle> = 'idle';
-    <[jobsite.state.persist]>;
+    if ($was_idle) {
+        <[base.logs]>->( 1, 'no new untracked jobs to assess, idle' );
+        <jobsite.cycle> = 'idle';
+        <[jobsite.state.persist]>;
+    }
     return;
 }
 
-<jobsite.cycle>         = 'assessing';
-<jobsite.pending_count> = scalar @to_assess;
+<jobsite.cycle> = 'assessing';
+<jobsite.pending_count>
+    = ( <jobsite.pending_count> // 0 ) + scalar @to_assess;
 <[jobsite.state.persist]>;
 
 <[base.logs]>->(
@@ -100,15 +126,19 @@ for my $job_id (@to_assess) {
     push @queue, { 'job_id' => $job_id, 'desc' => $prompt };
 }
 
-<jobsite.assess_queue> = \@queue;
+## append : a batch may already be mid-flight with its own queue tail ##
+<jobsite.assess_queue> //= [];
+push @{<jobsite.assess_queue>}, @queue;
 
-## dispatch first task : task-created handler will call dispatch.next for each
-<[jobsite.dispatch.next]>;
+## dispatch first task only if nothing was already running -- an in-flight
+## chain's own assess-done -> dispatch.next will pick up the appended entries ##
+<[jobsite.dispatch.next]>
+    if $was_idle;
 
 return;
 
-#,,.,,.,.,.,.,,..,.,.,..,,,,.,.,,,,,,,.,.,,.,,..,,...,...,...,,..,,,.,,..,.,.,
-#E73SNCLXT5N2BHNDWKGGLHHNNUVWL2AO2UXKOV3NRCYRH4RYEIPQ2UHLYO4JD24VPG7YESC2M4TQG
-#\\\|7CQIGS7UKKZYGNCUBND5HJ7PG6I5Y5DTOWOSMPBQ3AQXEM7Q73E \ / AMOS7 \ YOURUM ::
-#\[7]ISJ6CNVEHMZTEZZ665GID2WQHVZ2HBMKLZF2R6RBLH4EI7DLVYBA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,...,.,,,,..,..,,..,,,,.,,,.,.,,,..,,...,...,...,.,,,,.,,,,.,,,,,
+#ZMPMRQ4NKCIL45D64SSABGZV26G7TD62JOLKFLXRLTPDPDFQXNIIT464SLYICPAVEXWMKMBA46YNG
+#\\\|JXIF42JODDK5TMLC4UU4GB6E5GNE2J5ZIEZO7R7G45NZ2EV7SFA \ / AMOS7 \ YOURUM ::
+#\[7]6JCJRPKQOC75G3VGHE3DQGEZPECCPU2ASEFZ4NT3YWFPMTUXHECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

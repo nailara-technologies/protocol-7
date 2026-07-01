@@ -73,13 +73,29 @@ if ( exists $store->{$id} ) {
 ## source site changes the listing id ##
 <[jobsite.checksum.index]>->( 'add', $store->{$id} );
 
+## settle-timer : site-yaml's queue-depth hitting 0 races ahead of the last
+## few upsert round-trips landing here, which used to strand fresh 'new'
+## jobs unassessed until the next manual scan. re-arm a short debounce on
+## every new arrival so assessments get dispatched once arrivals actually
+## stop, instead of trusting site-yaml's queue-depth alone ##
+if ($is_new) {
+    if ( defined $data{'jobsite'}{'new_job_settle_timer'} ) {
+        $data{'jobsite'}{'new_job_settle_timer'}->cancel;
+    }
+    $data{'jobsite'}{'new_job_settle_timer'} = <[event.add_timer]>->(
+        {   after   => 2,
+            handler => qw| jobsite.handler.new-job-settle |,
+        }
+    );
+}
+
 return {
     'mode' => 'true',
     'data' => $is_new ? 'new' : 'updated'
 };
 
-#,,,.,...,.,.,,,,,,,,,,..,...,,.,,.,,,..,,,,,,.,.,...,...,.,.,...,...,..,,.,.,
-#GTOJ2VBEKTJLZQ4PSE3BJTJJJ4ZLAI2UKCS7XUVU74WW3U3PJP6WADNOBH35YG3DYZ3LYAJT33EMQ
-#\\\|UBZIFKLZHW7GTFMC2LBPBQTKRXIPPRJTHJJX7RAGZID4PUFOSEQ \ / AMOS7 \ YOURUM ::
-#\[7]IP4MW72KULNSS24XCTD5O5HHAN3LLV5PUWYTTWSWY3VLRIP3LQDI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,,,,,.,,.,,,.,,,,.,,.,,,...,.,,,.,.,...,...,..,,,,.,,.,,,,,,,..,
+#55DLEGT75VKV4Z7LPHK2N4XXIZCG6QAJ5ABFACGBR4OR4F7ZODT67EM5GTAE2SVYY73QA7XQTCF4E
+#\\\|SWTJ55PN6KNW33EQHLK5GUTFTXLYK3ZJKCWOB7QKKF3BIV5X2YX \ / AMOS7 \ YOURUM ::
+#\[7]SRXO2SPK62V2TSE3VUEXKEYA5BMDPRUWRV3V2GTZ4SWQ6DLDUUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
