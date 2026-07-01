@@ -1,0 +1,79 @@
+## [:< ##
+
+# name  = jobsite.cmd.rescue
+# descr = restore a job out of trash : args = "<id> [stage]"
+
+my $args = $call->{'args'} // '';
+$args =~ s/^\s+|\s+$//g;
+
+my ( $id_in, $target_stage ) = split /\s+/, $args, 2;
+my $job_id = <[base.vax-int.decode]>->( $id_in // '' );
+$target_stage //= 'review';
+
+return {
+    'mode' => 'false',
+    'data' => 'usage: rescue <id> [target stage, default review]'
+    }
+    if not length $job_id;
+
+my %valid
+    = map { $ARG => 1 }
+    qw| new review to_apply applied interviewed responded rejected skipped archived |;
+return {
+    'mode' => 'false',
+    'data' => "invalid target stage '$target_stage'; valid: "
+        . join( ' ', sort keys %valid )
+    }
+    if not $valid{$target_stage};
+
+my %stage_to_status = (
+    'new'         => 'new',
+    'review'      => 'review',
+    'to_apply'    => 'apply',
+    'applied'     => 'applied',
+    'interviewed' => 'interviewed',
+    'responded'   => 'applied',
+    'rejected'    => 'rejected',
+    'skipped'     => 'skipped',
+    'archived'    => 'rejected',
+);
+
+## job.read works off the on-disk index regardless of in-memory task state ##
+my $job = <[jobsite.job.read]>->($job_id);
+return { 'mode' => 'false', 'data' => "unknown job: $job_id" }
+    if not defined $job;
+
+my $prev_status = $job->{'status'} // '';
+
+$job->{'status'} = $stage_to_status{$target_stage} // $target_stage;
+$job->{'stage'}  = $target_stage;
+delete $job->{'trash_epoch'};
+delete $job->{'deleted_epoch'};
+delete $job->{'blocked_epoch'};
+
+<[jobsite.job.write]>->( $job_id, $job );
+
+## keep in-memory task record consistent, if one still exists ##
+my $rec = <jobsite.tasks>->{$job_id};
+if ( defined $rec ) {
+    $rec->{'stage'}  = $target_stage;
+    $rec->{'status'} = $job->{'status'};
+}
+
+<[jobsite.state.persist]>;
+
+<[base.logs]>->(
+    1, 'jobsite.rescue: %s %s -> stage=%s status=%s',
+    $job_id, $prev_status, $target_stage, $job->{'status'}
+);
+
+return {
+    'mode' => 'true',
+    'data' => "rescued: $job_id ($prev_status -> $target_stage)"
+};
+
+#,,,.,.,.,,..,..,,,,,,,..,.,.,,,,,,,.,..,,,..,..,,...,...,..,,..,,.,.,,..,,.,,
+#4RMGRN44F45RBJNQDTDZIQQBUYPCQO2HA6MC3FRHWBALVISETCKY4OTS4IPJV4UAFJ6ZC7EHD42GI
+#\\\|BIO42KP7TNLLWOBSJYA7UGRJFNOSAFL45CQ5UHY2VIUNOP4IPFR \ / AMOS7 \ YOURUM ::
+#\[7]IE5MHMRI4KHHM3Q2DGJPXNKPD77V7P4C5UMZ2GYJLN4EMBZ3MIBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -19,6 +19,24 @@ if ( not defined $job_rec ) {
     return;
 }
 
+## protected stages : user decisions must survive repair activity ##
+my %protected_stage
+    = map { $ARG => 1 }
+    qw| applied interviewed responded rejected skipped archived |;
+
+my %stage_to_status = (
+    'review'      => 'review',
+    'to_apply'    => 'apply',
+    'applied'     => 'applied',
+    'interviewed' => 'interviewed',
+    'responded'   => 'applied',
+    'rejected'    => 'rejected',
+    'skipped'     => 'skipped',
+    'archived'    => 'rejected',
+);
+
+my $current_stage = $job_rec->{'stage'} // '';
+
 if ( lc($mode) eq qw| false | ) {
     <[base.logs]>->(
         0,        'jss.repair-done: repair task %s failed for job %s',
@@ -156,11 +174,21 @@ if ( $validation->{'is_valid'} ) {
     $job_rec->{'score'}         = $score;
     $job_rec->{'score_reason'}  = $reason  // '';
     $job_rec->{'score_summary'} = $summary // '';
-    $job_rec->{'stage'}         = 'assessed';
 
     my $threshold = <jobsite.cfg.threshold> //= 7;
 
-    if ( length($score) and $score >= $threshold ) {
+    if ( $protected_stage{$current_stage} ) {
+        ## keep user-selected stage, derive matching status ##
+        $job_rec->{'status'} = $stage_to_status{$current_stage} // 'assessed';
+        $job_rec->{'stage'}  = $current_stage;
+        <[base.logs]>->(
+            1,
+            'repair for job %s stage=%s protected, preserving stage [score=%s]',
+            $job_id,
+            $current_stage,
+            length($score) ? $score : '?'
+        );
+    } elsif ( length($score) and $score >= $threshold ) {
         $job_rec->{'stage'}  = 'review';
         $job_rec->{'status'} = 'review';
         <[base.logs]>->(
@@ -181,15 +209,10 @@ if ( $validation->{'is_valid'} ) {
 
     ## update per-job file
     my $job = <[jobsite.job.read]>->($job_id) // {};
-    if ( length($score) and $score >= $threshold ) {
-        $job->{'status'} = 'review';
-        $job->{'stage'}  = $job_rec->{'stage'};
-    } else {
-        ## post-repair still below threshold : recoverable trash ##
-        $job->{'status'} = 'trash';
-        $job->{'stage'}  = 'trash';
-        $job->{'trash_epoch'} //= <[base.ntime.epoch_timestamp]>;
-    }
+    $job->{'status'}      = $job_rec->{'status'};
+    $job->{'stage'}       = $job_rec->{'stage'};
+    $job->{'trash_epoch'} = $job_rec->{'trash_epoch'}
+        if defined $job_rec->{'trash_epoch'};
     $job->{'score'}         = $score;
     $job->{'score_reason'}  = $reason  // '';
     $job->{'score_summary'} = $summary // '';
@@ -207,7 +230,8 @@ if ( $validation->{'is_valid'} ) {
         $job_id, join( ', ', $validation->{'defects'}->@* )
     );
     my $job_e = <[jobsite.job.read]>->($job_id) // {};
-    $job_e->{'status'}        = 'assessed';
+    $job_e->{'status'} = $stage_to_status{$current_stage} // 'assessed'
+        if not $protected_stage{$current_stage};
     $job_e->{'repair_failed'} = TRUE;
     <[jobsite.job.write]>->( $job_id, $job_e );
 }
@@ -223,8 +247,8 @@ if ( <jobsite.pending_count> <= 0 ) {
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.next]>;
 
-#,,,,,,,.,.,.,..,,,..,.,,,.,.,,,,,,,.,,,,,.,,,..,,...,...,.,.,,..,.,.,.,,,,,,,
-#2JBMJRS5ZQV5ZWTSB5AYMGYM75FSAMBDJ2PBLVFUPPOL2BSAMYQJ4CVGTDQFYHBZCXVRJJLGSCFLI
-#\\\|W5NMO35SXCPCIEJ73GEA3WWQAYQXX46N435LS5JVXS5SAVVORAA \ / AMOS7 \ YOURUM ::
-#\[7]SBOHSLHFH4AVZULJUCPYKNACYYPPFLLYOYS57JLUDF3JCHKK7SCY 7  DATA SIGNATURE ::
+#,,,.,,..,..,,.,,,,,.,.,.,,..,.,.,.,.,.,.,.,.,..,,...,.,.,.,.,.,.,.,,,..,,.,.,
+#LFWLSG5BJXNS35GWVZRWASED2GX7CXBSEKXM3Z36D43Z6V774USAA5DSKENQZ3SGAOIFBMPOGPJQG
+#\\\|S42BHAZSQJZSKYRABOT6FDWHMMQZO6ATAQ3QPMFFHTLRG6EGSEV \ / AMOS7 \ YOURUM ::
+#\[7]Z2SL63KODSVI3JXF3PZIVTWNDK7OWETNFZN3KVTDYUYUTQKKKSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

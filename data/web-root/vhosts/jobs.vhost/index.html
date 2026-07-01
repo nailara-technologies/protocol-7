@@ -134,8 +134,38 @@ h1 { color: var(--p7-fg-bright); font-size: 1.4rem; margin-bottom: 0.2rem; font-
 #export-filters input[type="checkbox"],
 #export-panel input[type="checkbox"],
 #export-stage-toggles input[type="checkbox"] {
-    accent-color: var(--p7-fg);
+    -webkit-appearance: none;
+    appearance: none;
+    width: 0.8rem; height: 0.8rem;
+    border-radius: 2px;
+    border: 1px solid rgba(68,39,172,0.5);
+    background: rgba(0,30,187,0.16);
+    box-shadow: 0 0 5px rgba(0,58,255,0.12);
+    vertical-align: middle;
     cursor: pointer;
+    transition: all 0.2s;
+}
+#export-filters input[type="checkbox"]:hover,
+#export-panel input[type="checkbox"]:hover,
+#export-stage-toggles input[type="checkbox"]:hover {
+    border-color: rgba(68,39,172,0.65);
+    box-shadow: 0 0 10px rgba(68,39,172,0.3);
+}
+#export-filters input[type="checkbox"]:checked,
+#export-panel input[type="checkbox"]:checked,
+#export-stage-toggles input[type="checkbox"]:checked {
+    background: rgba(0,58,255,0.4);
+    border-color: rgba(68,39,172,0.65);
+    box-shadow: 0 0 8px rgba(0,58,255,0.25);
+    display: inline-flex; align-items: center; justify-content: center;
+}
+#export-filters input[type="checkbox"]:checked::after,
+#export-panel input[type="checkbox"]:checked::after,
+#export-stage-toggles input[type="checkbox"]:checked::after {
+    content: '✓';
+    color: #cfe0ff;
+    font-size: 0.62rem;
+    line-height: 1;
 }
 #btn-export-clear-history {
     opacity: 0.65;
@@ -143,41 +173,41 @@ h1 { color: var(--p7-fg-bright); font-size: 1.4rem; margin-bottom: 0.2rem; font-
 .stat {
     font-size: 0.58rem; padding: 1px 2px; border-radius: 3px;
     background: rgba(5,8,42,0.55); color: var(--p7-text-mid);
-    white-space: nowrap;
+    white-space: nowrap; line-height: 1.4; display: inline-block;
 }
-.stat.review  { color: #4ac0a0; background: rgba(20,90,70,0.25); }
-.stat.pending { color: var(--p7-text-soft); background: rgba(0,30,120,0.25); }
-.stat.applied    { color: #d4a830; background: rgba(120,90,0,0.25); }
-.stat.interviewed { color: #c8a040; background: rgba(110,85,0,0.25); }
-.stat.done        { color: #6a70a0; background: rgba(40,40,70,0.3); }
+.stat.review  { color: #4ac0a0; background: rgba(20,90,70,0.25); padding: 1px 6px; }
+.stat.pending { color: var(--p7-text-soft); background: rgba(0,30,120,0.25); padding: 1px 6px; }
+.stat.applied    { color: #d4a830; background: rgba(120,90,0,0.25); padding: 1px 6px; }
+.stat.interviewed { color: #c8a040; background: rgba(110,85,0,0.25); padding: 1px 6px; }
+.stat.done        { color: #6a70a0; background: rgba(40,40,70,0.3); padding: 1px 6px; }
 
 button {
     padding: 1px 4px 1px;
-    border: 1px solid rgba(68,39,172,0.35);
+    border: 1px solid rgba(68,39,172,0.45);
     border-radius: 0.25rem; cursor: pointer;
-    color: var(--p7-text-soft);
-    background: rgba(0,30,187,0.42);
+    color: #7f9fff;
+    background: rgba(0,30,187,0.16);
     box-shadow: 0 0 5px rgba(0,58,255,0.12);
     font-size: 0.58rem;
     transition: all 0.2s;
     white-space: nowrap;
 }
 button:hover {
-    color: #c0d4ff;
-    box-shadow: 0 0 10px rgba(68,39,172,0.25);
-    background: rgba(0,58,255,0.52);
-    border-color: rgba(68,39,172,0.55);
+    color: #cfe0ff;
+    box-shadow: 0 0 10px rgba(68,39,172,0.3);
+    background: rgba(0,58,255,0.3);
+    border-color: rgba(68,39,172,0.65);
 }
 button.active {
-    background: rgba(20,70,90,0.55);
+    background: rgba(20,70,90,0.28);
     box-shadow: 0 0 8px rgba(0,58,255,0.25);
-    color: var(--p7-text-soft);
-    border-color: rgba(0,58,255,0.45);
+    color: #a0c0ff;
+    border-color: rgba(0,58,255,0.55);
 }
-button.orange { background: rgba(150,110,0,0.38); border-color: rgba(197,141,7,0.3); box-shadow: 0 0 5px rgba(197,141,7,0.12); }
-button.orange:hover { background: rgba(197,141,7,0.48); border-color: rgba(197,141,7,0.45); box-shadow: 0 0 10px rgba(197,141,7,0.25); }
-button.red { background: rgba(90,15,15,0.45); border-color: rgba(180,50,50,0.3); box-shadow: 0 0 5px rgba(180,50,50,0.12); }
-button.red:hover { background: rgba(120,20,20,0.55); border-color: rgba(180,50,50,0.45); }
+button.orange { color: #e0c060; background: rgba(150,110,0,0.15); border-color: rgba(197,141,7,0.4); box-shadow: 0 0 5px rgba(197,141,7,0.12); }
+button.orange:hover { color: #ffe08a; background: rgba(197,141,7,0.26); border-color: rgba(197,141,7,0.55); box-shadow: 0 0 10px rgba(197,141,7,0.25); }
+button.red { color: #e08080; background: rgba(90,15,15,0.18); border-color: rgba(180,50,50,0.4); box-shadow: 0 0 5px rgba(180,50,50,0.12); }
+button.red:hover { color: #ffb0b0; background: rgba(120,20,20,0.3); border-color: rgba(180,50,50,0.55); }
 
 .btn-note-toggle {
     color: var(--p7-text-mid); background: rgba(5,8,42,0.55);
@@ -526,6 +556,7 @@ input[type="date"], textarea {
 .export-section {
     background: rgba(3,37,82,0.45); border: 1px solid var(--p7-accent); border-radius: 0.5rem;
     padding: 0.8rem 1rem;
+    font-size: 0.7rem;
 }
 .export-section h3 { font-size: 0.9rem; color: var(--p7-text-mid); margin-bottom: 0.6rem; }
 #print-table { display: none; padding: 1rem; border-radius: 4px; margin-top: 0.8rem; }
@@ -586,6 +617,7 @@ input[type="date"], textarea {
         <span id="min-score-val">7</span>
         <input type="range" id="min-score" min="0" max="10" step="0.5" value="3">
       </label>
+      <span id="min-score-hidden-count" class="stat" style="display:none; margin-left:0.3rem; padding:1px 6px; color:#d4a830; background:rgba(120,90,0,0.25); cursor:pointer;" title="Klick: min score auf niedrigsten ausgeblendeten Wert setzen"></span>
     </div>
     <!-- row 2: add | sort | export/archive | reset sync -->
     <div class="ctrl-row">
@@ -616,6 +648,16 @@ input[type="date"], textarea {
       <div style="margin-top:0.5rem; display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap;">
         <label style="display:flex; align-items:center; gap:0.3rem; cursor:pointer;">
           <input type="checkbox" id="export-current-filter"> current filter only
+        </label>
+      </div>
+      <div style="margin-top:0.5rem; display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span style="color:#7aabcc;">max. alter:</span>
+          <input type="range" class="export-age-slider" min="1" max="365" step="1" value="90" style="width:140px;">
+          <span class="export-age-label" style="color:#6090b0; min-width:3rem;">90 tage</span>
+        </div>
+        <label style="display:flex; align-items:center; gap:0.3rem; cursor:pointer;" title="Einträge ausblenden, die bereits in einem vorherigen Export enthalten waren">
+          <input type="checkbox" class="export-since-last-cb"> bereits exportierte ausblenden
         </label>
       </div>
       <div style="margin-top:0.5rem; display:flex; gap:0.5rem; align-items:center;">
@@ -685,11 +727,11 @@ input[type="date"], textarea {
     <div id="export-filters" style="display:none; gap:1rem; flex-wrap:wrap; align-items:center; margin-top:0.5rem;">
       <div style="display:flex; align-items:center; gap:0.5rem;">
         <span style="color:#7aabcc;">max. alter:</span>
-        <input type="range" id="export-age-days" min="1" max="365" step="1" value="90" style="width:140px;">
-        <span id="export-age-label" style="color:#6090b0; min-width:3rem;">90 tage</span>
+        <input type="range" class="export-age-slider" min="1" max="365" step="1" value="90" style="width:140px;">
+        <span class="export-age-label" style="color:#6090b0; min-width:3rem;">90 tage</span>
       </div>
       <label style="display:flex; align-items:center; gap:0.3rem; cursor:pointer;" title="Einträge ausblenden, die bereits in einem vorherigen Export enthalten waren">
-        <input type="checkbox" id="export-since-last"> bereits exportierte ausblenden
+        <input type="checkbox" class="export-since-last-cb"> bereits exportierte ausblenden
       </label>
       <button id="btn-export-clear-history" style="padding:1px 8px; font-size:0.7rem; color:#a05050; border-color:#602020;">letzten export vergessen</button>
     </div>
@@ -981,7 +1023,7 @@ function renderCard(j) {
           <input type="date" class="date-applied-input" data-id="${j.id}" value="${j.date_applied||''}"
             title="Bewerbungsdatum" style="width:130px; padding:2px 6px; font-size:0.75rem;
             background:#0a1825; border:1px solid #1e3040; color:#90c0d0; border-radius:3px;">` : ''}
-        ${j.stage === 'applied' || j.stage === 'interviewed' ? `<button class="btn-status" data-id="${j.id}" data-action="review" style="padding:2px 8px;font-size:0.72rem;">← review</button>` : ''}
+        ${j.stage === 'applied' || j.stage === 'interviewed' ? `<button class="btn-status" data-id="${j.id}" data-action="review" style="padding:2px 8px;font-size:0.72rem; color:var(--p7-text-dim); background:rgba(0,30,187,0.08); border-color:rgba(68,39,172,0.3);">← review</button>` : ''}
         <button class="btn-note-toggle" data-id="${j.id}" style="font-size:0.72rem; padding:2px 8px;">note</button>
         <span class="card-date">${j.date_added || ''}</span>
       </div>
@@ -1260,6 +1302,8 @@ function render() {
     list.innerHTML = '';
 
     const sorted = sortedJobs();
+    let hiddenByScore = 0;
+    let hiddenMinScore = null;
     let visible = sorted.filter(j => {
         if (j.stage === 'archived' && !showArchived) return false;
         if (filterMode === 'delete') {
@@ -1274,10 +1318,25 @@ function render() {
         /* min score filter — only for stages where score is relevant */
         if (SCORE_FILTER_STAGES.has(j.stage) && j.score != null && j.score !== '') {
             const norm = parseFloat(j.score) > 10 ? parseFloat(j.score) / 10 : parseFloat(j.score);
-            if (isFinite(norm) && norm < minScore) return false;
+            if (isFinite(norm) && norm < minScore) {
+                hiddenByScore++;
+                if (hiddenMinScore === null || norm < hiddenMinScore) hiddenMinScore = norm;
+                return false;
+            }
         }
         return true;
     });
+
+    const hiddenEl = document.getElementById('min-score-hidden-count');
+    if (hiddenEl) {
+        if (hiddenByScore > 0) {
+            hiddenEl.textContent = `${hiddenByScore} < min score`;
+            hiddenEl.style.display = '';
+            hiddenEl.dataset.revealScore = hiddenMinScore;
+        } else {
+            hiddenEl.style.display = 'none';
+        }
+    }
 
     if (filterApplySug) {
         visible = visible.filter(j => j.assertions?.suggest?.apply === 'true');
@@ -1365,9 +1424,9 @@ function loadExportPrefs() {
 }
 
 function saveExportPrefs() {
-    const sinceLast     = document.getElementById('export-since-last')?.checked ?? exportPrefs.sinceLast;
+    const sinceLast     = document.querySelector('.export-since-last-cb')?.checked ?? exportPrefs.sinceLast;
     const currentFilter = document.getElementById('export-current-filter')?.checked ?? exportPrefs.currentFilter;
-    const maxAgeDays    = parseInt(document.getElementById('export-age-days')?.value, 10) || exportPrefs.maxAgeDays;
+    const maxAgeDays    = parseInt(document.querySelector('.export-age-slider')?.value, 10) || exportPrefs.maxAgeDays;
     exportPrefs = { ...exportPrefs, sinceLast, currentFilter, maxAgeDays };
     localStorage.setItem(EXPORT_PREFS_KEY,
         JSON.stringify({ stages: [...exportPrefs.stages], sinceLast, currentFilter, maxAgeDays }));
@@ -1378,6 +1437,13 @@ function syncStageCheckboxes() {
     document.querySelectorAll('.export-stage-cb').forEach(cb => {
         cb.checked = exportPrefs.stages.has(cb.value);
     });
+}
+
+/* keep the top quick-export panel and bottom bericht panel showing the same age/since-last state */
+function syncAgeAndSinceControls() {
+    document.querySelectorAll('.export-age-slider').forEach(s => { s.value = exportPrefs.maxAgeDays; });
+    document.querySelectorAll('.export-age-label').forEach(l => { l.textContent = exportPrefs.maxAgeDays + ' tage'; });
+    document.querySelectorAll('.export-since-last-cb').forEach(cb => { cb.checked = exportPrefs.sinceLast; });
 }
 
 /* stage checkbox toggles — both the quick table toggles and the full CSV panel */
@@ -1395,7 +1461,22 @@ document.addEventListener('change', e => {
         exportPrefs.currentFilter = e.target.checked;
         saveExportPrefs();
         if (tableVisible) showPrintTable();
+        return;
     }
+    if (e.target.classList.contains('export-since-last-cb')) {
+        exportPrefs.sinceLast = e.target.checked;
+        saveExportPrefs();
+        syncAgeAndSinceControls();
+        if (tableVisible) showPrintTable();
+    }
+});
+document.addEventListener('input', e => {
+    if (!e.target.classList.contains('export-age-slider')) return;
+    exportPrefs.maxAgeDays = parseInt(e.target.value, 10) || 90;
+    document.querySelectorAll('.export-age-label').forEach(l => { l.textContent = exportPrefs.maxAgeDays + ' tage'; });
+    document.querySelectorAll('.export-age-slider').forEach(s => { if (s !== e.target) s.value = exportPrefs.maxAgeDays; });
+    saveExportPrefs();
+    if (tableVisible) showPrintTable();
 });
 
 function buildExportPanel() {
@@ -1433,27 +1514,7 @@ function renderExportStageToggles() {
 }
 
 function renderExportFilters() {
-    const slider = document.getElementById('export-age-days');
-    const label  = document.getElementById('export-age-label');
-    if (slider && label) {
-        slider.value = exportPrefs.maxAgeDays;
-        label.textContent = exportPrefs.maxAgeDays + ' tage';
-        slider.oninput = () => {
-            label.textContent = slider.value + ' tage';
-            exportPrefs.maxAgeDays = parseInt(slider.value, 10) || 90;
-            saveExportPrefs();
-            if (tableVisible) showPrintTable();
-        };
-    }
-    const sinceLast = document.getElementById('export-since-last');
-    if (sinceLast) {
-        sinceLast.checked = exportPrefs.sinceLast;
-        sinceLast.onchange = () => {
-            exportPrefs.sinceLast = sinceLast.checked;
-            saveExportPrefs();
-            if (tableVisible) showPrintTable();
-        };
-    }
+    syncAgeAndSinceControls();
 }
 
 function loadLastExportIds() {
@@ -1692,6 +1753,14 @@ minScoreInput.addEventListener('input', () => {
     minScoreVal.textContent = minScore % 1 === 0 ? minScore : minScore.toFixed(1);
     saveCache(); render();
 });
+document.getElementById('min-score-hidden-count').addEventListener('click', e => {
+    const revealScore = parseFloat(e.currentTarget.dataset.revealScore);
+    if (!isFinite(revealScore)) return;
+    minScore = revealScore;
+    minScoreInput.value = 10 - minScore;
+    minScoreVal.textContent = minScore % 1 === 0 ? minScore : minScore.toFixed(1);
+    saveCache(); render();
+});
 minScoreInput.addEventListener('wheel', e => {
     e.preventDefault();
     const step = 0.5;
@@ -1702,16 +1771,17 @@ minScoreInput.addEventListener('wheel', e => {
     minScoreInput.dispatchEvent(new Event('input'));
 }, { passive: false });
 
-const ageSlider = document.getElementById('export-age-days');
-ageSlider.addEventListener('wheel', e => {
-    e.preventDefault();
-    const step = 1;
-    const delta = e.deltaY > 0 ? step : -step;
-    let val = parseInt(ageSlider.value, 10) + delta;
-    val = Math.max(1, Math.min(365, val));
-    ageSlider.value = val;
-    ageSlider.dispatchEvent(new Event('input'));
-}, { passive: false });
+document.querySelectorAll('.export-age-slider').forEach(ageSlider => {
+    ageSlider.addEventListener('wheel', e => {
+        e.preventDefault();
+        const step = 1;
+        const delta = e.deltaY > 0 ? step : -step;
+        let val = parseInt(ageSlider.value, 10) + delta;
+        val = Math.max(1, Math.min(365, val));
+        ageSlider.value = val;
+        ageSlider.dispatchEvent(new Event('input'));
+    }, { passive: false });
+});
 
 document.getElementById('btn-sync').addEventListener('click', () => {
     lastNtime = 0; saveCache(); syncPipeline();
