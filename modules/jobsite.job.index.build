@@ -9,7 +9,12 @@ my $jobs_root = join qw| / |,
 my $index = {};
 my @active_statuses
     = qw| new assessed review apply applied interviewed rejected skipped |;
-my @epoch_statuses = qw| blocked deleted |;
+## trash is xz+base32-packed ( .yxz.B32 ), blocked/deleted are plain yaml ##
+my %epoch_statuses = (
+    blocked => qr/\.yaml$/,
+    deleted => qr/\.yaml$/,
+    trash   => qr/\.yxz\.B32$/
+);
 
 ## scan active status dirs ##
 for my $status (@active_statuses) {
@@ -26,15 +31,16 @@ for my $status (@active_statuses) {
 }
 
 ## scan epoch-bucketed dirs ##
-for my $status (@epoch_statuses) {
+for my $status ( keys %epoch_statuses ) {
     my $dir = "$jobs_root/$status";
     next if not -d $dir;
+    my $file_re = $epoch_statuses{$status};
     opendir my $dh, $dir or next;
     for my $epoch_dir ( grep { !/^\./ && -d "$dir/$_" } readdir($dh) ) {
         opendir my $edh, "$dir/$epoch_dir" or next;
-        for my $fn ( grep { /\.yaml$/ && !/^\./ } readdir($edh) ) {
+        for my $fn ( grep { $ARG =~ $file_re && !/^\./ } readdir($edh) ) {
             my $enc_id = $fn;
-            $enc_id =~ s/\.yaml$//;
+            $enc_id =~ s/$file_re//;
             my $id = <[base.vax-int.decode]>->($enc_id);
             $index->{$id} = "$status:$epoch_dir";
         }
@@ -53,8 +59,8 @@ for my $status (@epoch_statuses) {
 
 return $index;
 
-#,,..,.,.,,,,,,..,..,,..,,,.,,,,.,,,,,..,,,,.,..,,...,..,,.,.,.,,,.,.,,..,.,.,
-#FWLCFSWJBLVPCA5TQL4GYMQPIUB5TDW3XNGGMUHJL6D7VTFCRKNK5VE4DTJGHWOBJPLEB3WFCM45K
-#\\\|LUXOKSF4ATDVJ3Q4VVOLHJ2E7FJ733PE6RMQYCSZ7XKAPMWW7JA \ / AMOS7 \ YOURUM ::
-#\[7]TKAJOVKY2GHDPDYGW7RM2Q3WAVPMOCQWX3M3X7CF3Q5BFD6IFEAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,,,,...,,.,,,,,,.,.,...,..,,,.,,..,,...,..,,,,,,,,.,.,,,...,,..,
+#OUQABJDQW3YDWFSEV4CILQCA7K6VKSLUCXAB6K64N2GO63KQFNCJ6QL4QUFSA6IAIU3IH4O7JCZIW
+#\\\|ICDPVYVRXFRTTZTJZSSIGJ6DJXIHLHIVSYJVONEFUQSKPJIIED4 \ / AMOS7 \ YOURUM ::
+#\[7]S7RBQO25F66GECWASVWQ7PCXNIMAWQ4NP3RZ6DGWLH2N6UZPLOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
