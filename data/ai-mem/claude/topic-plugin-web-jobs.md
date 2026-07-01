@@ -7,6 +7,43 @@ metadata:
   originSessionId: 095ef9b6-c744-46c5-bac8-4d54a2d5ce45
 ---
 
+## Session 2026-07-01 — jobs web UI: collapsible text + search filter + apply filter
+
+### Collapsible assertion text (c4b6dd92c)
+- **Per-stage defaults**: `review` + `to_apply` expanded; all other stages collapsed.
+  Encoded via `ASSERT_OPEN_STAGES = new Set(['review', 'to_apply'])`.
+- **Single click** on card body (outside interactive elements): toggles per-card, 270ms
+  timer so double-click still fires. `collapsedOverrides` Set persists across `render()`.
+- **`text` button** (leftmost in ctrl-row 2): global inversion toggle — updates all visible
+  cards in-place without re-render. `assertGlobalInverted` XOR'd with per-card override.
+- **CSS**: `.assert-collapsed .card-summary, .assert-collapsed .card-reason { max-height:0 !important; }`
+
+### Search-as-you-type filter (this session, staged)
+- Input at right end of filter bar (`type="search"`, 90px, `margin-left:0.5rem`).
+- 150ms debounce on `input` event → updates `searchQuery` → `render()`.
+- ESC clears; native × fires `search` event (also clears).
+- **Auto-focus**: `document keydown` handler — any printable key focuses search input
+  when focus is outside inputs/buttons. Backspace also steals focus when `searchQuery` is
+  non-empty (so editing the query still works after clicking elsewhere).
+- **Search haystack**: title, company, city, summary, reason, industry, note (AND-matched,
+  space-separated terms, case-insensitive).
+- **Match highlight**: `highlightTerms(text, terms)` — escapes first, then wraps matches in
+  `<mark class="search-hl">` (amber glow `#e0c040`). Applied to title, company, city,
+  summary, reason, note-preview in `renderCard`. `hlTerms` computed from global `searchQuery`.
+- **`✓ apply` button** in ctrl-row (after archiv): `filterApplySug` toggle — filters to
+  `j.assertions?.suggest?.apply === 'true'`. Turns teal when active. Stacks with tab +
+  search filters.
+
+### Open design work (not yet implemented)
+- **jobsite/site-yaml refactor** (claude 06-29 design doc): make `site-yaml` a pure fetch
+  service, `jobsite` owns all job-state logic. New modules: `jobsite.cmd.import`,
+  `jobsite.handler.search-done`, `jobsite.handler.job-fetched`, `jobsite.job.upsert`.
+- **Bulk URL-checksum dedup** (claude 06-30 design doc): `jobsite.stage.fetch` computes
+  URL checksums from in-memory index, passes as skip-set to `site-yaml.cmd.import` via
+  file handoff (Variant B) to prevent re-fetching reposted listings with different IDs.
+
+---
+
 ## Session 2026-06-28 — sync fixes + browser localStorage layer (39c5626d1)
 
 ### Root bugs fixed
@@ -133,8 +170,8 @@ jobsite.cfg.sync_interval = 300
 - reset button: clears jobs + userDecisions + lastNtime (destructive, dialog warns)
 - 30s auto-poll via `startPoll()` using `?since=lastNtime` delta
 
-#,,..,...,.,.,,..,,,,,.,,,..,,,..,,,.,,,.,.,.,..,,...,...,...,,.,,...,,.,,.,,,
-#7XCYPR2QHWIELLB4WVWYMAUXXPKAG7LNIRUVXELZNVLJ2ESYWNNMJGE7ORDC2Z3JWUWRMH5RPS25K
-#\\\|XVED355QMD2FP57MU57U3AWZPMULAJUM6EXNK7CXXXENS7CA4IA \ / AMOS7 \ YOURUM ::
-#\[7]BI72QIP46ZY3MCC46TG6XWYYT243Q4APA4AU4W3FDLLDCVAE54BY 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,,,...,,.,,,,.,...,.,.,.,.,..,,..,,...,...,..,,,,,,,..,,..,,..,
+#I2MA62O6CUVXAJ5P7L6XVJEYNZIMKPGHR5J2NFBZUMH64L2YSZUNPEPYCMB7KGXNQXG7ZV6ID6M6O
+#\\\|ERTLZXWMYRYX6UJJ2AJ5ET555DKJYJ7IAON5LPIYJYKKUKYGBIE \ / AMOS7 \ YOURUM ::
+#\[7]QULNYYXHB3GF5ETY7UKXZAQDIILUPRPTWTBP3Z3LY5QNCT3JXIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
