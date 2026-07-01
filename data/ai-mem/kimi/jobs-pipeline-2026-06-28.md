@@ -307,3 +307,19 @@ Status: staged and version-bumped; needs signature + commit + restart `web` zenk
 #\\\|7VKXWWERBQCXOJ2HYDLNL3R5I2VONGXBXSOGFJRAMNPVPZ54KIS \ / AMOS7 \ YOURUM ::
 #\[7]2SGSTXFPKU4V7WXC2JI6JYKAYCR4MKQIVLQFWGTQNPA4K4KFT4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+## 2026-06-28 — Final export/city/date fixes committed
+
+Commit `a8994ac5d` landed:
+- 1-day step age slider, styled like min-score slider.
+- Visible stage toggles + age + since-last filters in export section.
+- Removed internal `Bew.` column from print table.
+- Backfill `city` and `date_added` from jobsite YAML at web zenka startup.
+- `city` editable inline and synced browser ↔ jobsite.
+
+Next: restart `web` zenka and hard-refresh browser.
+
+#,,,.,.,.,.,.,..,,.,.,..,,..,,..,,.,.,.,.,,,,,..,,...,...,,,.,..,,,,.,.,,,.,,,
+#PHYJOKX4YH62ARUAMKSYNEJQZQHLUAVMXBE6HKYWIFYGM22HHLVGAFVHZORE337CMCQTHBZXKABCS
+#\\\|G6D7YLVPZGBOCBKZ2NCC6TQ6W4XVD23XBJ4526SGKZPLW5UOKQ3 \ / AMOS7 \ YOURUM ::
+#\[7]3ES5BAQTHUILCFK4QESC2QSUMO57JBAAUWHXMMPYDJTHITHOGCCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
