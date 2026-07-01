@@ -9,7 +9,7 @@ my %counts;
 my $idx = <jobsite.job.index> // {};
 for my $id ( keys %{$idx} ) {
     my $st = $idx->{$id} // '';
-    $st =~ s{^(blocked|deleted):.*}{$1};
+    $st =~ s{^(blocked|deleted|trash):.*}{$1};
     $counts{$st}++ if length $st;
 }
 my $total = scalar keys %{$idx};
@@ -33,8 +33,8 @@ push @lines, ' :.';
 
 return { 'mode' => 'size', 'data' => join( "\n", @lines ) . "\n" };
 
-#,,..,..,,,.,,,.,,...,...,,..,,,.,.,,,,.,,.,,,..,,...,...,.,.,..,,..,,,.,,,,.,
-#2U6NW33G7DIIZ5ZH5DFLM7AGPCVDICUYYLOKRRDTC34IUWRAAIXGQJMUEP3TG52GGFS5KDPNT5IIC
-#\\\|Q2GZMFH3WBRZMSMTS6BAOKWG7257TERCWHEKSALOOZIHLEGOU4M \ / AMOS7 \ YOURUM ::
-#\[7]3QVOWK6UGZYPK7ZPLULY25JKDZMMBRYWNZC6VC6LKNQKJZIRH4BA 7  DATA SIGNATURE ::
+#,,..,..,,,.,,,.,,..,,..,,,,,,,,.,,..,,..,.,.,..,,...,...,.,,,.,.,,.,,.,.,,,,,
+#TATV62UYBA6MOSNECWPO7CYG7IHDFKVH5IH2B7KPJDIQJJOFR5QJG5STZG327NQ3DSBYP5KVISFN4
+#\\\|CJXHMLOMG7SK3BPB7R73WV52K3EQXEZYG3BTL2OXD7OC6MKWVVW \ / AMOS7 \ YOURUM ::
+#\[7]6EE7P6TYHHXGFCFV7MGAKADY7DJGUV43Z6D4LA3X4U54OFKNGICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
