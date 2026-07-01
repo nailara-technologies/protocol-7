@@ -1520,8 +1520,8 @@ document.addEventListener('change', e => {
     }
     if (e.target.classList.contains('export-since-last-cb')) {
         exportPrefs.sinceLast = e.target.checked;
-        saveExportPrefs();
         syncAgeAndSinceControls();
+        saveExportPrefs();
         if (tableVisible) showPrintTable();
     }
 });
@@ -1834,7 +1834,7 @@ document.querySelectorAll('.export-age-slider').forEach(ageSlider => {
         let val = parseInt(ageSlider.value, 10) + delta;
         val = Math.max(1, Math.min(365, val));
         ageSlider.value = val;
-        ageSlider.dispatchEvent(new Event('input'));
+        ageSlider.dispatchEvent(new Event('input', { bubbles: true }));
     }, { passive: false });
 });
 
