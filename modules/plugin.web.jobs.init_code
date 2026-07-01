@@ -112,7 +112,10 @@ if (%active_id) {
 my $backfilled = 0;
 for my $id ( keys %active_id ) {
     next if not exists $loaded->{$id};
-    next if length( $loaded->{$id}{'city'} // '' );
+
+    my $need_city       = not length( $loaded->{$id}{'city'}       // '' );
+    my $need_date_added = not length( $loaded->{$id}{'date_added'} // '' );
+    next if not $need_city and not $need_date_added;
 
     my $status  = $active_id{$id};
     my $enc_id  = <[base.vax-int.encode]>->($id);
@@ -122,29 +125,58 @@ for my $id ( keys %active_id ) {
     my $js_job = eval { YAML::XS::LoadFile($js_file) };
     next if ref $js_job ne qw| HASH |;
 
-    my $city = $js_job->{'city'} // '';
-    next if not length $city;
-
-    my $now = <[base.ntime.b32]>;
-    $loaded->{$id}{'city'}          = $city;
-    $loaded->{$id}{'last_modified'} = $now;
-
+    my $now          = <[base.ntime.b32]>;
     my $cache_status = <plugin.web.jobs.index>->{$id} // $status;
     my $cache_file   = "$cache_dir/$cache_status/$enc_id.yaml";
-    if ( -f $cache_file ) {
-        my $cached = eval { YAML::XS::LoadFile($cache_file) };
-        if ( ref $cached eq qw| HASH | ) {
-            $cached->{'city'}          = $city;
-            $cached->{'last_modified'} = $now;
-            my $tmp = "$cache_file.tmp";
-            eval { YAML::XS::DumpFile( $tmp, $cached ) };
-            rename $tmp, $cache_file if -f $tmp;
-            $backfilled++;
+    next if not -f $cache_file;
+
+    my $cached = eval { YAML::XS::LoadFile($cache_file) };
+    next if ref $cached ne qw| HASH |;
+
+    my $changed = 0;
+
+    if ($need_city) {
+        my $city = $js_job->{'city'} // '';
+        if ( length $city ) {
+            $loaded->{$id}{'city'} = $city;
+            $cached->{'city'}      = $city;
+            $changed               = 1;
         }
+    }
+
+    if ($need_date_added) {
+        my $date_added  = '';
+        my $date_posted = $js_job->{'date_posted'} // '';
+        if ( length $date_posted
+            and $date_posted =~ m{^(\d{4})-(\d{2})-(\d{2})} ) {
+            $date_added = "$1-$2-$3";
+        } else {
+            my $fetched_at = $js_job->{'fetched_at'} // '';
+            if ( length $fetched_at and $fetched_at =~ m{^\d+$} ) {
+                my ( $d, $m, $y )
+                    = ( localtime($fetched_at) )[ 3, 4, 5 ];
+                $date_added
+                    = sprintf( '%04d-%02d-%02d', $y + 1900, $m + 1, $d );
+            }
+        }
+        if ( length $date_added ) {
+            $loaded->{$id}{'date_added'} = $date_added;
+            $cached->{'date_added'}      = $date_added;
+            $changed                     = 1;
+        }
+    }
+
+    if ($changed) {
+        $loaded->{$id}{'last_modified'} = $now;
+        $cached->{'last_modified'} = $now;
+        my $tmp = "$cache_file.tmp";
+        eval { YAML::XS::DumpFile( $tmp, $cached ) };
+        rename $tmp, $cache_file if -f $tmp;
+        $backfilled++;
     }
 }
 <[base.logs]>->(
-    1, 'plugin.web.jobs : backfilled city for %d cache entries', $backfilled
+    1, 'plugin.web.jobs : backfilled %d cache entries', $backfilled
 ) if $backfilled;
 
 ## remove deprecated cache directories that read_all no longer scans  ##
@@ -179,8 +211,8 @@ for my $dep_dir ( "$cache_dir/assessed", glob("$cache_dir/trash*") ) {
 
 0;
 
-#,,,,,...,..,,..,,.,,,,,,,.,,,,.,,.,.,,.,,,.,,..,,...,...,,,.,,,.,,,.,,,,,,,.,
-#ONV333LFGNYXLA5SH64C6FU4N4TT5AG55ND5XMST4DMZONG4FE6W7JAK3FHIHAOIN3IYV674ZO4MU
-#\\\|X26GJSGC7R3UZI67LP4LDEPCB3DT4LJVSESDGUBV4N6ZB4LML4B \ / AMOS7 \ YOURUM ::
-#\[7]E7W64TJ4LTBZSR7PKA4R3F2IYFMET2GHT6TS2R2TLOUDASIIBEAQ 7  DATA SIGNATURE ::
+#,,,,,...,,..,,,,,.,,,,,,,.,.,...,...,,,.,..,,..,,...,...,,..,,.,,.,,,,,.,,,,,
+#NAVCFWCTBLGH5VRAETUKQF5N55FOEHBZNQCOXK7BWMAZWR6UB7OMGVQDYMXXJRUU22AYNEW7FAEXO
+#\\\|5YZ2PDJ2DR62PYNZBHU4I6UAGDYGVJTYQ5NV54JQB56MPV5PKCL \ / AMOS7 \ YOURUM ::
+#\[7]OSX3KK432FUBIG4NGVNYHS4J3JEREHERAOVW43S5EL7XNHV6LAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
