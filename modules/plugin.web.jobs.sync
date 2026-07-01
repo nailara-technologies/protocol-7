@@ -75,6 +75,29 @@ for my $job_data (@job_list) {
             if ref <plugin.web.jobs.cache> eq 'HASH';
         delete <plugin.web.jobs.index>->{$job_id}
             if ref <plugin.web.jobs.index> eq 'HASH';
+        <[plugin.web.jobs.removed_log.append]>->($enc_id);
+        next;
+    }
+
+    ## jobsite batch push signalling a transition into a terminal state :   ##
+    ## minimal payload [ id + status only ], prune the cache entry instead  ##
+    ## of caching a stale record that would otherwise never get corrected  ##
+    if ( $is_batch
+        and ( $job_data->{'status'} // '' ) =~ m{^(blocked|deleted|trash)$} )
+    {
+        my $old_status = <plugin.web.jobs.index>->{$job_id} // '';
+        my $old_path   = '';
+        if ( $old_status =~ m{^(blocked|deleted):(.+)$} ) {
+            $old_path = "$cache_dir/$1/$2/$enc_id.yaml";
+        } elsif ( length $old_status ) {
+            $old_path = "$cache_dir/$old_status/$enc_id.yaml";
+        }
+        unlink $old_path if length $old_path and -f $old_path;
+        delete <plugin.web.jobs.cache>->{$job_id}
+            if ref <plugin.web.jobs.cache> eq 'HASH';
+        delete <plugin.web.jobs.index>->{$job_id}
+            if ref <plugin.web.jobs.index> eq 'HASH';
+        <[plugin.web.jobs.removed_log.append]>->($enc_id);
         next;
     }
 
@@ -165,6 +188,7 @@ for my $job_data (@job_list) {
                     if ref <plugin.web.jobs.cache> eq qw| HASH |;
                 delete <plugin.web.jobs.index>->{$job_id}
                     if ref <plugin.web.jobs.index> eq qw| HASH |;
+                <[plugin.web.jobs.removed_log.append]>->($enc_id);
             }
         }
     }
@@ -218,8 +242,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,.,,..,,,,.,..,,..,,...,...,...,...,..,,,..,..,,...,...,,,.,,,.,,,.,,,,,.,,,
-#M3B4JLGHY5F6GPTRV4SU5OA2ZU3ACHR6RXLXKJC7SXA6RIMKG3ATY4UYYQRRE7BL5LRUYKKZEN74A
-#\\\|PSKFNDT54MA6XP2EQZBAUT25U7H3JDN3IPHHMDXFKHLQPO2QKZ2 \ / AMOS7 \ YOURUM ::
-#\[7]Z3K557RRTGE2WUCUFVXRCVH6SCHGJMLO756J6KQA2CVSJVVMXECA 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,,.,,,,,.,.,.,,,,..,.,,,.,,,,.,,..,,...,...,..,,..,,.,,,,,.,.,.,
+#KW4XUGTLBI6YFB4DJ3JMMVNMJTWFEHGH4LZLRLMQZAB2SYQLMP3ILII4P6T4QIIH2CZGWAOUVTL2O
+#\\\|KZAQESECD37CT7RXCZO33QYI4U5QYY6JLCFRACMSXRDNU2VIY7N \ / AMOS7 \ YOURUM ::
+#\[7]WPGEES4PK7XD7ZZIPVQLAPTGVSQUJRBH3SRPG5WGYI5OJA4GDKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

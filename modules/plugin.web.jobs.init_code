@@ -66,6 +66,21 @@ if ( -f $reverse_file ) {
     }
 }
 
+## load the removed-id tombstone log so delta-syncing browsers can still  ##
+## learn about removals that happened before this reload ##
+my $removed_log_file = "$cache_dir/removed-log.yaml";
+if ( -f $removed_log_file ) {
+    my $loaded = eval { YAML::XS::LoadFile($removed_log_file) };
+    if ( ref $loaded eq 'ARRAY' ) {
+        <plugin.web.jobs.removed_log> = $loaded;
+        <[base.logs]>->(
+            2,
+            'plugin.web.jobs : loaded %d removed-log entries',
+            scalar @{$loaded}
+        );
+    }
+}
+
 ## pre-warm in-memory job cache and index ##
 my $loaded = <[plugin.web.jobs.cache.read_all]>;
 my $count  = scalar keys %{$loaded};
@@ -220,8 +235,8 @@ for my $dep_dir ( "$cache_dir/assessed", glob("$cache_dir/trash*") ) {
 
 0;
 
-#,,,.,.,,,,,,,...,,..,.,,,,..,.,,,,,,,.,,,,,,,..,,...,...,..,,,.,,...,.,.,,,,,
-#QK7SEH5EP4QZRUPUXK5WU63PJFGU4RD5IRZTG6CWG2CKHMUIRBBOIL2ASXJPMDGQUSUSAJKYEKGEY
-#\\\|Y3GI7M7OGAN6KA3QMQ5UGLM6UCOAERPTTNODHUNJRMY3HVO3FKG \ / AMOS7 \ YOURUM ::
-#\[7]GUZ42GJONLIO3CZZDLXPX4WLLA3EGR54GFHFQXSWBJ4RZHAIE6BQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,...,...,..,,,,.,,..,.,,,.,,,,.,,..,,...,...,...,.,,,.,.,,,,,,,.,
+#DMGAJ5RQVHH2P2OF45SDCCNFFJTBPJPZ562P5F4JBSA74VWGEFLZ5JA5B3CI6VZESFTADG5CSKB7U
+#\\\|QBQ3KI6REJJWGVAPMSQC5PQ6JOHJZKYPMKFFVK4XLIJYCBSJ7VF \ / AMOS7 \ YOURUM ::
+#\[7]F57342V6PSRIXZC5XPCUFAFPS32LA2UOZRUH7DOKXZEJ57FIHUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

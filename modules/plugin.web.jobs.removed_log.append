@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = plugin.web.jobs.removed_log.append
+# descr = tombstone a removed job id so delta-syncing browsers can prune it
+
+my $enc_id = shift // '';
+return FALSE if not length $enc_id;
+
+<plugin.web.jobs.removed_log> //= [];
+push @{<plugin.web.jobs.removed_log>},
+    { 'id' => $enc_id, 'ntime' => <[base.ntime.b32]> };
+
+## cap growth : keep only the most recent entries ##
+my $max_entries = 1000;
+if ( @{<plugin.web.jobs.removed_log>} > $max_entries ) {
+    splice @{<plugin.web.jobs.removed_log>}, 0,
+        @{<plugin.web.jobs.removed_log>} - $max_entries;
+}
+
+my $cache_dir = <[plugin.web.jobs.cache.path]>;
+my $log_file  = "$cache_dir/removed-log.yaml";
+eval { YAML::XS::DumpFile( $log_file, <plugin.web.jobs.removed_log> ) };
+
+return TRUE;
+
+#,,,,,,,,,.,.,,,,,..,,.,.,,,,,,..,,.,,...,,..,.,.,...,...,.,.,...,..,,,..,.,.,
+#QVGT2DXLI6GMC6MAEJ4N6SEES46LMTEXFWCL2V66MLLUAHJ2VWMQ426T4YEBTEIL7EKUWHALZ674C
+#\\\|JR6AXB53SXFJ7TQNHGREDABUDVZEUW7KOQC33A6HE5NG44YKU5I \ / AMOS7 \ YOURUM ::
+#\[7]SRKRD5MJRVNT24JA25AMLBYM2HRQGMRYU55YR22ZV7JOM6CRQKDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

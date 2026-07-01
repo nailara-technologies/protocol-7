@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = jobsite.removed_log.append
+# descr = tombstone a job's transition into a terminal state for sync push
+
+my $enc_id = shift // '';
+return FALSE if not length $enc_id;
+
+<jobsite.removed_log> //= [];
+push @{<jobsite.removed_log>},
+    { 'id' => $enc_id, 'ntime' => <[base.ntime.b32]> };
+
+## cap growth : keep only the most recent entries ##
+my $max_entries = 1000;
+if ( @{<jobsite.removed_log>} > $max_entries ) {
+    splice @{<jobsite.removed_log>}, 0,
+        @{<jobsite.removed_log>} - $max_entries;
+}
+
+my $base_dir = join qw| / |,
+    <system.path.zenka-dirs>->{'var_P7'}, qw| jobsite |;
+my $log_file = "$base_dir/removed-log.yaml";
+eval { YAML::XS::DumpFile( $log_file, <jobsite.removed_log> ) };
+
+return TRUE;
+
+#,,.,,.,.,.,,,.,.,.,.,,..,.,.,...,,.,,...,.,,,..,,...,...,..,,,,,,,,,,,..,,,,,
+#IMWMPIH6W2QUJDEMSNALT5TFXUGYVHAIMU4BOD5QW4ZBWFOQ5TSSX2I2YAOZPZIC6UUSI232A6ZO4
+#\\\|5GBSGHR2RHWNDZYFJLWUYAYGPM6ZELN4DSTPMPAYJLPOJUOR2BH \ / AMOS7 \ YOURUM ::
+#\[7]BDXLQUUTEGFIMHFS5PNJPFDZX7CUDJO4UDPBI7HW75Z3WLFAUQDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

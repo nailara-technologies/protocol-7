@@ -898,6 +898,16 @@ async function syncPipeline() {
         const wasInitial = !lastNtime;
         if (!Array.isArray(data) && data.ntime) lastNtime = data.ntime;
 
+        /* prune ids the backend tombstoned [ trashed/deleted/blocked ] since  */
+        /* our watermark — merge is additive-only, this is the removal path   */
+        if (!Array.isArray(data) && Array.isArray(data.removed)) {
+            for (const id of data.removed) {
+                delete jobs[id];
+                delete userDecisions[id];
+            }
+            if (data.removed.length) saveUserDecisions();
+        }
+
         const { added } = mergeJobs(arr);
         saveCache();
         render();
@@ -1412,9 +1422,9 @@ function render() {
         btnReassessAll.style.display = 'none';
     }
 
-    /* show/hide bulk delete button in delete and skipped tabs */
+    /* show/hide bulk delete button in delete, skipped and rejected tabs */
     const btnDeleteAll = document.getElementById('btn-delete-all');
-    const DELETE_ALL_STAGES = new Set(['delete', 'skipped']);
+    const DELETE_ALL_STAGES = new Set(['delete', 'skipped', 'rejected']);
     if (DELETE_ALL_STAGES.has(filterMode) && visible.length) {
         btnDeleteAll.style.display = 'inline-block';
         btnDeleteAll.textContent = '✗ alle ' + visible.length + ' löschen';
@@ -1432,6 +1442,9 @@ function updateStats(all) {
     document.getElementById('stat-applied').textContent   = all.filter(j=>j.stage==='applied'||j.stage==='responded').length + ' beworben';
     document.getElementById('stat-interviewed').textContent= all.filter(j=>j.stage==='interviewed').length + ' interviewed';
     document.getElementById('stat-done').textContent   = all.filter(j=>j.stage==='rejected'||j.stage==='archived').length + ' erledigt';
+    const archivedCount = all.filter(j=>j.stage==='archived').length;
+    const btnShowArchive = document.getElementById('btn-show-archive');
+    btnShowArchive.textContent = archivedCount ? `archiv (${archivedCount})` : 'archiv';
     document.getElementById('stat-delete').textContent = del + ' löschen';
     document.getElementById('stat-error').textContent  = all.filter(j => j.repair_failed == 5 || j.repair_failed === true).length + ' err';
 }
@@ -1849,6 +1862,11 @@ window.reassessAllVisible = () => {
     }
 };
 
+/* stages where a mass-delete is easy to trigger by accident (bulk button visible
+   right in the ctrl-row) and hard to notice/undo — require typing the exact
+   count instead of a dismissable confirm() */
+const BULK_DELETE_TYPED_CONFIRM_STAGES = new Set(['rejected']);
+
 window.deleteAllVisible = async () => {
     const targets = (filterMode === 'delete')
         ? Object.values(jobs).filter(j =>
@@ -1856,6 +1874,19 @@ window.deleteAllVisible = async () => {
             && !USER_OWNED_STAGES.has(j.stage))
         : Object.values(jobs).filter(j => j.stage === filterMode);
     if (!targets.length) return;
+
+    if (BULK_DELETE_TYPED_CONFIRM_STAGES.has(filterMode)) {
+        const typed = prompt(
+            `${targets.length} Einträge aus '${stageLabel(filterMode)}' werden gelöscht ` +
+            `(wiederherstellbar über trash, solange nicht endgültig bereinigt).\n\n` +
+            `Zur Bestätigung Anzahl eingeben: ${targets.length}`
+        );
+        if (typed === null || typed.trim() !== String(targets.length)) {
+            notify('Löschvorgang abgebrochen', true);
+            return;
+        }
+    }
+
     const btn = document.getElementById('btn-delete-all');
     const originalText = btn.textContent;
     btn.disabled = true;
