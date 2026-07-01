@@ -1,4 +1,5 @@
 ## CRITICAL
+- [jobsite pending_count orphan gap](topic-plugin-web-jobs.md) — OPEN, not fixed: restart mid-assessment-batch orphans persisted pending_count while in-memory assess_queue is lost, sticks cycle on 'assessing' forever; see 2026-07-01 latest-2 section
 - [UNCOMMITTED 2026-06-21](coding-zenka-improvement-pipeline.md) — result_constraint+tiered-escalation implemented+verified but NOT committed; see file for pending list
 - [WSLg deiconify limitation](feedback-wslg-deiconify-limitation.md) — Weston/WSLg blocks deiconify at compositor level; don't re-investigate unless Weston version changes
 - [UNCOMMITTED 2026-06-20](topic-mpv-jobqueue-startup.md) — uncommitted gtk3/mpv/X-11 set, fade_in test values must be reverted before commit; see file for full list
@@ -28,7 +29,7 @@
 - [frame-idiom-convergence](topic-frame-idiom-convergence.md) — NEW frame features: margin/vertical-padding/self-invalidating-cache/corner-pinning-spring; `.:[ ]::[ ]:.` idiom; 5 frames still need conversion (REQUIRED)
 - [ui-show-security-levels](topic-ui-show-security-levels.md) — steps 1-5 ALL LIVE (36d605896, 2026-06-13); credential_fabric slot name/meta gated; step 6 open
 - [os-command-zenka](topic-os-command-zenka.md) — planned: networked command/script templates, security levels, STRM streaming, vterm result buffers
-- [plugin-web-jobs](topic-plugin-web-jobs.md) — LANDED `5cf4f4855` 2026-07-01: title-checksum dedup removed (too-broad, false-trash risk) + twin-control sync-before-save bug pattern fixed (`87a3469c4`); design docs open: jobsite/site-yaml refactor + fetch-stage URL-checksum dedup
+- [plugin-web-jobs](topic-plugin-web-jobs.md) — LANDED `c4b6aec62` 2026-07-01: checksum-add gated to decided-status only (fixes self-match "all new jobs vanish" regression), settle-timer dispatch race + orphaned-file cleanup also landed; 14 wrongly-blocked real jobs rescued+re-fetched; pending_count orphan gap still OPEN (see CRITICAL)
 - [clients-http](topic-clients-http.md) — clients.http.* + clients.https.* async; kimi-web parallel dispatch
 - [reasoning-chain-repository](topic-reasoning-chain-repository.md) — native model; dedup-based self-improvement
 - [reasoning-namespace](topic-reasoning-namespace.md) — `reasoning.*` namespace; 28 templates
@@ -208,8 +209,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,.,,..,,.,.,...,...,.,.,.,.,...,,,,,,,.,.,,,..,,...,...,,..,..,,..,,..,,,,,,
-#VZDVC7G3SZ7IRBG5ZKXIIC5DKFD5UZBYOYZPJIGID5IFKCA3UOMZZUNTCMQO54I7I7RQA45JVWBEA
-#\\\|PR2RE6HEISRVR563HRCLTFQCGHUVXQZF6VZIOAYTY26Q5GX6H26 \ / AMOS7 \ YOURUM ::
-#\[7]DPDF4MXMW4ELLFHRNTSBWNSDIJBMMGNVOM7G2RGSUOXTNAXFKWCY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,,,.,,..,,,,,,.,,.,.,.,.,,..,..,,..,,...,...,,.,,,..,..,,..,,,.,,
+#DZLICINZ6BCZU6S6JOKOGO27S6GBWC2AIAEWJZ2FRIWSW4PUBH7CKWVOOXAN6U4JZRJGPZHON2KCG
+#\\\|7MGXIBAOW4RFHUEUUUNTH42VMPWTWRCZLDTV3YLVGWJIQF3FT65 \ / AMOS7 \ YOURUM ::
+#\[7]FVE32743IN7KYCFK2TBMN55YC4F65EVM6UKSHWGUYTT4PESFXEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
