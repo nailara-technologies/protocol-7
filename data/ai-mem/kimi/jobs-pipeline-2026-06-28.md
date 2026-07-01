@@ -205,3 +205,57 @@ Status: staged and version-bumped; needs `bin/Protocol-7 sourcecode update-signa
 #\\\|M4S5USB23CI5TAVMYQLN52BXODI7HWEWTBPWX2M2Q5BC42GYUIZ \ / AMOS7 \ YOURUM ::
 #\[7]YG4VRY374CDGWO5AOZIYFIMC4LJIZTV5OM2CCCAJD7EPVYAN5YCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+## 2026-06-28 (continued) — Export/print table empty
+
+The export/print table showed 0 entries because `saveExportPrefs()` read checkboxes that only exist after the export panel was opened. If the user clicked "show table" without first opening the CSV export panel, the stage set was empty.
+
+Fix staged in `data/web-root/vhosts/jobs.vhost/index.html`:
+- `saveExportPrefs()` falls back to `DEFAULT_EXPORT_STAGES` when no checkboxes are present.
+- Also guards checkbox reads with optional chaining.
+
+Status: staged and version-bumped; needs `bin/Protocol-7 sourcecode update-signatures` and restart of `web` zenka / browser hard-refresh.
+## 2026-06-28 (continued) — Export table refinements
+
+The export/print table was showing rejected entries and an internal "Del" column, which is unsuitable for a jobcenter report.
+
+Changes staged in `data/web-root/vhosts/jobs.vhost/index.html`:
+- `DEFAULT_EXPORT_STAGES` changed to `['applied','interviewed','responded']` (removed `rejected`).
+- Removed the "Del." column from the print table overview.
+- Added an age slider in the export panel (7–365 days, default 90) to limit how old included entries can be.
+- `getExportRows()` now filters by `maxAgeDays`.
+
+Status: staged and version-bumped; needs `bin/Protocol-7 sourcecode update-signatures` and restart of `web` zenka / browser hard-refresh.
+## 2026-06-28 (continued) — Export date + editable city
+
+Additional staged changes:
+- `data/web-root/vhosts/jobs.vhost/index.html`:
+  - Print table now shows `date_applied` when set, otherwise `date_added`.
+  - Added inline editable city input in each job card; changes persist to `userDecisions`, local cache, and are pushed to the server.
+  - `mergeJobs()` restores user-edited `city` from `userDecisions` after server merge.
+- `modules/plugin.web.jobs.sync`: `city` added to browser-owned fields for single-browser updates.
+- `modules/jobsite.sync.apply_reverse`: `city` added to reverse-applied fields so browser edits reach the jobsite store.
+
+Status: staged and version-bumped; needs `bin/Protocol-7 sourcecode update-signatures`, commit, and restart of `web` and `jobsite` zenki + browser hard-refresh.
+## 2026-06-28 (continued) — Print dimension spacing
+
+- `data/web-root/vhosts/jobs.vhost/index.html`: dimension list in print details now formats as `name : score -` with two spaces between items.
+
+Status: staged and version-bumped; needs signature + commit + restart `web` and `jobsite` zenki.
+## 2026-06-28 (continued) — City backfill from jobsite
+
+Root cause of empty city fields: the web-cache copies of jobs did not contain the `city` field even though the jobsite YAMLs did (the field was likely added to jobsite after the initial sync, so the web cache never received it).
+
+Fix in `modules/plugin.web.jobs.init_code`:
+- When the web zenka initializes, scan active jobsite status directories.
+- For any active web-cache job that is missing `city`, load the corresponding jobsite YAML and copy `city` into the web cache.
+- Bump `last_modified` on the web-cache copy so browsers receive the update via delta sync.
+
+This runs automatically at web zenka startup and is idempotent.
+
+Status: staged and version-bumped; needs signature + commit + restart `web` and `jobsite` zenki.
+
+#,,..,.,.,.,,,.,.,...,..,,.,,,,,,,,..,,,,,...,..,,...,...,.,,,...,,,,,.,.,,.,,
+#HVJ2QAEBJNDJW3MVRX6TGF7VNHD6FRC7ZTG3ICW3CPVX2LSVD7PVCPFZZP5MNOSXOXPLHZSEVJSWA
+#\\\|QVUK3PGIQLAWM7HNWTZP3GQ4C434UXTYEEVQBVFMU2FUYAJFKI7 \ / AMOS7 \ YOURUM ::
+#\[7]M4TIDIW4GRF3MEDMC2RGMALWU223FAKWFFIPQOAQYNHXPLK5NMDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
