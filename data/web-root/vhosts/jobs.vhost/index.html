@@ -831,18 +831,42 @@ function mergeJobs(serverJobs) {
 /* ── POST a single field change to server, advance ntime ── */
 async function pushChange(id, fields) {
     try {
+        const body = { id, ...fields };
+        /* stage pushes carry the last-known last_modified watermark so the  */
+        /* backend can detect + reject a stale write instead of silently    */
+        /* clobbering a stage that moved on since this browser last synced  */
+        if (fields.stage && jobs[id]) body.base_last_modified = jobs[id].last_modified || '';
         const r = await fetch(JOBS_SYNC, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id, ...fields }),
+            body: JSON.stringify(body),
         });
         if (!r.ok) throw new Error(r.status);
         const data = await r.json();
         if (data.ntime) lastNtime = data.ntime;
+        if (Array.isArray(data.conflicts) && data.conflicts.length) applyConflicts(data.conflicts);
         saveCache();
     } catch(e) {
         notify('sync fehler: ' + e.message, true);
     }
+}
+
+/* ── backend rejected a stale stage push : drop the local override and ── */
+/* ── adopt the server's current stage instead of silently disagreeing ── */
+/* c.id is the same vax-int encoded short id jobs/userDecisions are keyed by */
+function applyConflicts(conflicts) {
+    for (const c of conflicts) {
+        const id = c.id;
+        if (userDecisions[id]) delete userDecisions[id].stage;
+        if (jobs[id]) {
+            jobs[id].stage = c.current_stage || jobs[id].stage;
+            if (c.current_status) jobs[id].status = c.current_status;
+        }
+        notify(`abweichung erkannt: ${jobs[id]?.company || id} ist bereits "${c.current_stage}" — lokale änderung verworfen`, true);
+    }
+    saveUserDecisions();
+    saveCache();
+    render();
 }
 
 /* ── sync: full on first load, delta on subsequent polls ── */
@@ -919,7 +943,7 @@ function renderCard(j) {
     const _assert = j.assertions || {};
     const _sug    = _assert.suggest    || {};
     const _dims   = _assert.dimensions || {};
-    el.className = 'job-card' + (_sug.archive === 'true' ? ' suggest-archive' : '');
+    el.className = 'job-card' + (_sug.archive === 'true' && !USER_OWNED_STAGES.has(j.stage) ? ' suggest-archive' : '');
     el.dataset.stage = j.stage;
     el.dataset.id = j.id;
     el.draggable = true;
@@ -944,13 +968,14 @@ function renderCard(j) {
     const scClass = scoreClass(j.score);
 
     /* assertion badges : delete > apply > archive (only one badge shown) */
+    /* delete/archive suggestions don't apply once the user has committed to a stage */
     const sug = _sug;
     const badges = [];
-    if (sug.delete === 'true') {
+    if (sug.delete === 'true' && !USER_OWNED_STAGES.has(j.stage)) {
         badges.push('<span class="assert-badge assert-delete">löschen</span>');
     } else if (sug.apply === 'true' && (filterApplySug || ['review','to_apply'].includes(j.stage))) {
         badges.push('<span class="assert-badge assert-apply">bewerben</span>');
-    } else if (sug.archive === 'true') {
+    } else if (sug.archive === 'true' && !USER_OWNED_STAGES.has(j.stage)) {
         badges.push('<span class="assert-badge assert-archive">archiv</span>');
     }
     if (j.repair_applied)      badges.push('<span class="repair-badge">repariert</span>');
