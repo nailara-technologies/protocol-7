@@ -960,12 +960,18 @@ function renderCard(j) {
         ta.classList.add('visible');
         ta.focus();
     };
+    const STAGES_WITH_DATE = new Set(['applied','interviewed','responded']);
     const setStage = (id, stage) => {
         jobs[id].stage = stage;
+        if (STAGES_WITH_DATE.has(stage) && !jobs[id].date_applied) {
+            const today = new Date().toISOString().slice(0,10);
+            jobs[id].date_applied = today;
+            userDecisions[id] = { ...(userDecisions[id] || {}), date_applied: today, ts: Date.now() };
+        }
         userDecisions[id] = { ...(userDecisions[id] || {}), stage, ts: Date.now() };
         saveUserDecisions();
         saveCache(); render();
-        pushChange(id, { stage });
+        pushChange(id, { stage, ...(jobs[id].date_applied ? { date_applied: jobs[id].date_applied } : {}) });
     };
     const deleteJob = async (id) => {
         delete jobs[id];
@@ -1273,7 +1279,7 @@ function updateStats(all) {
 }
 
 const ALL_EXPORT_STAGES = [
-    'new', 'review', 'to_apply', 'applied', 'interviewed',
+    'new', 'review', 'applied', 'interviewed',
     'responded', 'rejected', 'skipped', 'archived', 'error'
 ];
 
@@ -1281,11 +1287,15 @@ const DEFAULT_EXPORT_STAGES = new Set(['applied','interviewed','responded']);
 const EXPORT_PREFS_KEY = 'jobsite_export_prefs';
 const LAST_EXPORT_KEY  = 'jobsite_last_export_ids';
 
+let exportPrefs = loadExportPrefs();
+
 function loadExportPrefs() {
     try {
         const p = JSON.parse(localStorage.getItem(EXPORT_PREFS_KEY) || '{}');
+        const savedStages = (p.stages || [...DEFAULT_EXPORT_STAGES])
+            .filter(s => ALL_EXPORT_STAGES.includes(s));
         return {
-            stages:        new Set(p.stages || [...DEFAULT_EXPORT_STAGES]),
+            stages:        new Set(savedStages),
             sinceLast:     p.sinceLast != null ? p.sinceLast : true,
             currentFilter: p.currentFilter || false,
             maxAgeDays:    p.maxAgeDays != null ? p.maxAgeDays : 90,
@@ -1295,31 +1305,51 @@ function loadExportPrefs() {
 }
 
 function saveExportPrefs() {
-    const cbNodes = document.querySelectorAll('.export-stage-cb:checked');
-    const stages = cbNodes.length
-        ? [...cbNodes].map(cb => cb.value)
-        : [...DEFAULT_EXPORT_STAGES];
-    const sinceLast     = document.getElementById('export-since-last')?.checked || false;
-    const currentFilter = document.getElementById('export-current-filter')?.checked || false;
-    const maxAgeDays    = parseInt(document.getElementById('export-age-days')?.value, 10) || 90;
+    const sinceLast     = document.getElementById('export-since-last')?.checked ?? exportPrefs.sinceLast;
+    const currentFilter = document.getElementById('export-current-filter')?.checked ?? exportPrefs.currentFilter;
+    const maxAgeDays    = parseInt(document.getElementById('export-age-days')?.value, 10) || exportPrefs.maxAgeDays;
+    exportPrefs = { ...exportPrefs, sinceLast, currentFilter, maxAgeDays };
     localStorage.setItem(EXPORT_PREFS_KEY,
-        JSON.stringify({ stages, sinceLast, currentFilter, maxAgeDays }));
-    return { stages: new Set(stages), sinceLast, currentFilter, maxAgeDays };
+        JSON.stringify({ stages: [...exportPrefs.stages], sinceLast, currentFilter, maxAgeDays }));
+    return exportPrefs;
 }
+
+function syncStageCheckboxes() {
+    document.querySelectorAll('.export-stage-cb').forEach(cb => {
+        cb.checked = exportPrefs.stages.has(cb.value);
+    });
+}
+
+/* stage checkbox toggles — both the quick table toggles and the full CSV panel */
+document.addEventListener('change', e => {
+    const cb = e.target.closest('.export-stage-cb');
+    if (cb) {
+        if (cb.checked) exportPrefs.stages.add(cb.value);
+        else exportPrefs.stages.delete(cb.value);
+        saveExportPrefs();
+        syncStageCheckboxes();
+        if (tableVisible) showPrintTable();
+        return;
+    }
+    if (e.target.id === 'export-current-filter') {
+        exportPrefs.currentFilter = e.target.checked;
+        saveExportPrefs();
+        if (tableVisible) showPrintTable();
+    }
+});
 
 function buildExportPanel() {
     const container = document.getElementById('export-stage-checks');
     container.innerHTML = '';
-    const saved = loadExportPrefs();
     ALL_EXPORT_STAGES.forEach(s => {
-        const checked = saved.stages.has(s) ? 'checked' : '';
+        const checked = exportPrefs.stages.has(s) ? 'checked' : '';
         container.innerHTML += `
             <label style="display:flex;align-items:center;gap:0.25rem;cursor:pointer;" title="${s}">
               <input type="checkbox" class="export-stage-cb" value="${s}" ${checked}>
               <span style="color:#4a7090">${stageLabel(s)}</span>
             </label>`;
     });
-    document.getElementById('export-current-filter').checked = saved.currentFilter;
+    document.getElementById('export-current-filter').checked = exportPrefs.currentFilter;
     const lastExportTime = localStorage.getItem('jobsite_last_export_time');
     document.getElementById('export-last-time').textContent = lastExportTime ? 'letzter export: ' + lastExportTime : 'noch kein export gespeichert';
     renderExportStageToggles();
@@ -1331,41 +1361,35 @@ const QUICK_EXPORT_STAGES = ['applied','interviewed','responded','rejected'];
 function renderExportStageToggles() {
     const container = document.getElementById('export-stage-toggles');
     if (!container) return;
-    const saved = loadExportPrefs();
     container.innerHTML = '<span style="color:#7aabcc;">stufen:</span>';
     QUICK_EXPORT_STAGES.forEach(s => {
-        const checked = saved.stages.has(s) ? 'checked' : '';
+        const checked = exportPrefs.stages.has(s) ? 'checked' : '';
         container.innerHTML += `
             <label style="display:flex;align-items:center;gap:0.25rem;cursor:pointer;" title="${s}">
               <input type="checkbox" class="export-stage-cb" value="${s}" ${checked}>
               <span style="color:#6090b0">${stageLabel(s)}</span>
             </label>`;
     });
-    container.querySelectorAll('.export-stage-cb').forEach(cb => {
-        cb.addEventListener('change', () => {
-            saveExportPrefs();
-            if (tableVisible) showPrintTable();
-        });
-    });
 }
 
 function renderExportFilters() {
-    const saved = loadExportPrefs();
     const slider = document.getElementById('export-age-days');
     const label  = document.getElementById('export-age-label');
     if (slider && label) {
-        slider.value = saved.maxAgeDays;
-        label.textContent = saved.maxAgeDays + ' tage';
+        slider.value = exportPrefs.maxAgeDays;
+        label.textContent = exportPrefs.maxAgeDays + ' tage';
         slider.oninput = () => {
             label.textContent = slider.value + ' tage';
+            exportPrefs.maxAgeDays = parseInt(slider.value, 10) || 90;
             saveExportPrefs();
             if (tableVisible) showPrintTable();
         };
     }
     const sinceLast = document.getElementById('export-since-last');
     if (sinceLast) {
-        sinceLast.checked = saved.sinceLast;
+        sinceLast.checked = exportPrefs.sinceLast;
         sinceLast.onchange = () => {
+            exportPrefs.sinceLast = sinceLast.checked;
             saveExportPrefs();
             if (tableVisible) showPrintTable();
         };
@@ -1400,13 +1424,29 @@ function passesCurrentFilter(j) {
 }
 
 function jobAgeDays(j) {
-    const ts = parseFloat(j.fetched_at || j.date_added || 0);
+    let ts = 0;
+    const ft = j.fetched_at;
+    if ( ft != null && /^\d+$/.test(String(ft)) ) {
+        ts = parseInt(ft, 10);
+    } else {
+        const d = j.date_added || j.date_applied || '';
+        if ( /^\d{4}-\d{2}-\d{2}/.test(d) ) {
+            ts = new Date(d).getTime() / 1000;
+        }
+    }
     return ts ? ( Date.now() / 1000 - ts ) / 86400 : Infinity;
 }
 
+function exportDisplayDate(j) {
+    const today = new Date().toISOString().slice(0,10);
+    const da = j.date_applied || '';
+    if ( /^\d{4}-\d{2}-\d{2}/.test(da) && da <= today ) return da;
+    return j.date_added || '';
+}
+
 const EXPORT_STAGE_ORDER = {
-    to_apply: 0, applied: 1, interviewed: 2, responded: 3,
-    rejected: 4, skipped: 5, archived: 6, error: 7, new: 8, review: 9
+    applied: 0, interviewed: 1, responded: 2,
+    rejected: 3, skipped: 4, archived: 5, error: 6, new: 7, review: 8
 };
 
 function getExportRows(prefs) {
@@ -1439,7 +1479,7 @@ function exportCSV() {
         lines.push([
             i+1, j.date_added||'', j.company, j.title, j.city,
             scoreDisplay(j.score), stageLabel(j.stage),
-            j.date_applied||'', j.note||'', j.url||'',
+            exportDisplayDate(j), j.note||'', j.url||'',
             sug.apply === 'true' ? 'ja' : 'nein',
             sug.delete === 'true' ? 'ja' : 'nein',
             sug.archive === 'true' ? 'ja' : 'nein',
@@ -1462,7 +1502,7 @@ function showPrintTable() {
     const prefs = saveExportPrefs();
     const rows  = getExportRows(prefs);
     const date = new Date().toLocaleDateString('de-DE');
-    const fmtDate = j => j.date_applied || j.date_added || '';
+    const fmtDate = j => exportDisplayDate(j);
     const overview = `
       <h2 style="margin:0 0 0.3rem;font-size:1.1rem">Bewerbungsübersicht — ${date}</h2>
       <p style="margin:0 0 0.8rem;font-size:0.8rem;color:#5080a0">${rows.length} Einträge</p>
