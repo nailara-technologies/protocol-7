@@ -57,10 +57,33 @@ for my $job_id (@ids) {
     push @array, $j;
 }
 
+## tombstoned removals since the watermark : lets a delta-syncing browser
+## prune ids that vanished [ trashed/deleted/blocked ] instead of holding a
+## stale cached copy forever ##
+my @removed;
+if ( defined $since_num ) {
+    my $log = <plugin.web.jobs.removed_log> // [];
+    for my $entry ( @{$log} ) {
+        next if ref $entry ne 'HASH';
+        my $rn_str = $entry->{'ntime'} // '';
+        my $rn_num
+            = length($rn_str)
+            ? <[base.ntime_BASE32_to_numerical]>->($rn_str)
+            : undef;
+        next if not defined $rn_num or $rn_num <= $since_num;
+        push @removed, $entry->{'id'};
+    }
+}
+
 my $current_ntime = <[base.ntime.b32]>;
 
 my $json = eval {
-    JSON::XS::encode_json( { 'jobs' => \@array, 'ntime' => $current_ntime } );
+    JSON::XS::encode_json(
+        {   'jobs'    => \@array,
+            'ntime'   => $current_ntime,
+            'removed' => \@removed,
+        }
+    );
 };
 if ($@) {
     <[base.logs]>->(
@@ -85,8 +108,8 @@ return {
     'content_type' => qw| application/json |
 };
 
-#,,,.,,,,,,..,.,.,.,.,,..,,.,,.,,,,.,,,..,...,..,,...,...,,.,,,..,,..,,,.,,..,
-#BI2SH3ENDSEQDGRSWAR344NJXHY6YCHRZVFAZA3QJM4CMRCIZD7P7LMEARWQ3R4FXUNTDCDBWTH6M
-#\\\|U7C4N2DJI63BGSMP5S2QSST2UA6TZPO3A6LG34LR6PR7Z2HD7TS \ / AMOS7 \ YOURUM ::
-#\[7]5HBBVLZE4LGEB3PPD64K2LSWISV3OQ6DMTLTIKSPOLX76S7XKIAQ 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,,,,,,.,,..,,.,,,,,,.,.,,,,,,,,,..,,...,..,,...,,,.,,.,,,.,,.,,,
+#7ZZD7LEYVOAYNK5PVK7K5GDTNNPVB63YJNXAJFLWKXMAD77DCDCVDZWQRGFL3SPLJ5BYYFCDNRPPQ
+#\\\|YZAHPJEWDDCQFQXPJFB4SFS2M6OBNKGSP2RLCWGNMNL4WREQHZS \ / AMOS7 \ YOURUM ::
+#\[7]WWF55FJKI5P6VTYS5OPHDWA5KY3OZUU2T2DAP7JXX4UKWQBF64CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
