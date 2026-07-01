@@ -37,6 +37,7 @@ if ( ref $payload->{'jobs'} eq qw| ARRAY | ) {
 my $mem       = <[plugin.web.jobs.cache.read_all]>;
 my $ok        = TRUE;
 my $cache_dir = <[plugin.web.jobs.cache.path]>;
+my @conflicts;
 
 ## collect pending reverse-delete IDs so a batch push does not resurrect them ##
 my %pending_delete;
@@ -99,8 +100,36 @@ for my $job_data (@job_list) {
         }
     } else {
         ## browser update : browser-owned fields only, queue reverse ##
+        ## stale-write guard : a stage push is only applied if the browser's ##
+        ## last known last_modified still matches the cache — otherwise the ##
+        ## record moved [ pipeline advance or another browser ] since this  ##
+        ## browser last saw it, and blindly applying would silently revert ##
+        ## a newer state ##
+        my $stage_conflict;
+        if ( exists $job_data->{'stage'} ) {
+            my $base_lm = $job_data->{'base_last_modified'} // '';
+            my $cur_lm  = $cached->{'last_modified'}        // '';
+            if ( length $base_lm and $cur_lm ne $base_lm ) {
+                $stage_conflict = {
+                    'id'             => $enc_id,
+                    'field'          => 'stage',
+                    'current_stage'  => $cached->{'stage'}  // '',
+                    'current_status' => $cached->{'status'} // '',
+                };
+                push @conflicts, $stage_conflict;
+                <[base.logs]>->(
+                    1,
+                    '[web.jobs.sync] stage conflict %s : browser base=%s current=%s, rejecting stage push',
+                    $job_id,
+                    $base_lm,
+                    $cur_lm
+                );
+            }
+        }
+
         my %changed;
         for my $f (@browser_fields) {
+            next if $f eq 'stage' and $stage_conflict;
             if ( exists $job_data->{$f} ) {
                 $cached->{$f} = $job_data->{$f};
                 $changed{$f} = $job_data->{$f};
@@ -170,9 +199,10 @@ my $current_ntime = <[base.ntime.b32]>;
 
 my $rb = eval {
     JSON::XS::encode_json(
-        {   'ok'      => $ok ? JSON::XS::true() : JSON::XS::false(),
-            'reverse' => \@reverse,
-            'ntime'   => $current_ntime,
+        {   'ok'        => $ok ? JSON::XS::true() : JSON::XS::false(),
+            'reverse'   => \@reverse,
+            'ntime'     => $current_ntime,
+            'conflicts' => \@conflicts,
         }
     );
 } // '{"ok":false,"error":"encode failed"}';
@@ -188,8 +218,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,.,,..,,.,,,.,.,...,,,,,,,,,,,.,,..,,.,,.,.,..,,...,...,..,,,,,,...,,.,,...,
-#3WMDJXCROYPJ6YEAT5CS5KT4HFEPWNMPRNMBAPQ6ZLM55GZYIIBIYZY4R52L2EW3X2SV3RXBNFVQY
-#\\\|XKFAJGTCKFYFC2NIL2Y5WRPCOQAPYNHVIFWHKPYNDXYAIJKHOU7 \ / AMOS7 \ YOURUM ::
-#\[7]4FVSYEI7SULI4LDATU7CX3USMILYJLMVFHW6M24MF3UQJWA3X2BY 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,..,,..,,...,...,...,...,..,,,..,..,,...,...,,,.,,,.,,,.,,,,,.,,,
+#M3B4JLGHY5F6GPTRV4SU5OA2ZU3ACHR6RXLXKJC7SXA6RIMKG3ATY4UYYQRRE7BL5LRUYKKZEN74A
+#\\\|PSKFNDT54MA6XP2EQZBAUT25U7H3JDN3IPHHMDXFKHLQPO2QKZ2 \ / AMOS7 \ YOURUM ::
+#\[7]Z3K557RRTGE2WUCUFVXRCVH6SCHGJMLO756J6KQA2CVSJVVMXECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
