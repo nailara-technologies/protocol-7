@@ -1,0 +1,80 @@
+#!/usr/bin/perl
+#| Copyright (C) 2019-2026 Alexander Taute <ataute@protonmail.com>
+#|
+#| This file is part of Protocol-7.
+#|
+#| Protocol-7 is free software: you can redistribute it and/or modify it under
+#| the terms of the GNU Affero General Public License as published by the Free
+#| Software Foundation, either version 3 of the License, or (at your option)
+#| any later version. See ../read-me/license for the full terms.
+#
+#| jobs-normalize-titles
+#| recursively strip noisy prefixes / gender suffixes from job titles
+#| in both the jobsite and web job caches.
+#| keep the patterns in sync with modules/jobsite.cmd.job-upsert
+
+use strict;
+use warnings;
+use File::Find;
+use YAML::XS;
+
+my @patterns = (
+    { re => qr{^\s*\[Hiring\]\s+}i,  name => '[Hiring]' },
+    { re => qr{\s*\(all genders\)}i, name => '(all genders)' },
+    {   re   => qr{\s*\((?:m/w/d|w/m/d|m/f/d|f/m/d)\)}i,
+        name => 'gender suffix'
+    },
+);
+
+sub normalize_title {
+    my $title = shift;
+    return $title unless defined $title and length $title;
+    for my $p (@patterns) { $title =~ s/$p->{re}//g; }
+    $title =~ s{\s+$}{};
+    return $title;
+}
+
+my @roots = ( '/var/protocol-7/jobsite/jobs', '/var/protocol-7/web/jobs', );
+
+my ( $seen, $changed ) = ( 0, 0 );
+
+find(
+    sub {
+        return unless -f $_ and $_ =~ m{\.yaml$};
+        my $file = $File::Find::name;
+        my $job  = eval { YAML::XS::LoadFile($file) };
+        return if ref $job ne 'HASH';
+
+        my $orig = $job->{'title'} // '';
+        my $new  = normalize_title($orig);
+        return if $new eq $orig;
+
+        $job->{'title'} = $new;
+        $seen++;
+
+        my $tmp = "$file.tmp";
+        eval { YAML::XS::DumpFile( $tmp, $job ) };
+        if ( -f $tmp ) {
+            rename $tmp, $file or do {
+                warn "rename $tmp -> $file: $!\n";
+                unlink $tmp;
+                return;
+            };
+            print "[updated] $file\n";
+            print "    '$orig'\n";
+            print " -> '$new'\n";
+            $changed++;
+        } else {
+            warn "failed to write $file\n";
+        }
+    },
+    @roots
+);
+
+print "\n$changed title(s) normalized.\n";
+
+#,,,,,,..,.,,,,,.,,..,,.,,...,..,,..,,,,.,..,,..,,...,...,,,,,,,.,.,.,,,,,...,
+#GEAQDOSHGAHCQSZSZGNWGXR7FZBBUCVVHID3WQLQFLKOTFR6KWOOGUWJDEWH24ZL47KXFJX5ZUGF4
+#\\\|YX3NR4KP42ZI3X4DEBK46M75RJFXZE4WWHIXKCSEAEZI6FEPVXB \ / AMOS7 \ YOURUM ::
+#\[7]LSQFIZQK4OVHZAGNQQIZ4H7TIJ4XELGW3PUCHJTBVH2NR4Z2NQBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
