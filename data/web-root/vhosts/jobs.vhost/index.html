@@ -916,7 +916,7 @@ function renderCard(j) {
         </div>
       </div>
       <div class="card-meta">
-        <span class="city">${escHtml(j.city)}</span>
+        <span class="city">${fmtCityInline(j.city)}</span>
         <span class="company">${escHtml(j.company)}</span>
         ${j.industry ? `<span class="ind">${escHtml(j.industry)}</span>` : ''}
       </div>
@@ -1477,7 +1477,7 @@ function exportCSV() {
         const dim = (j.assertions && j.assertions.dimensions) || {};
         const dscore = d => (dim[d] && dim[d].score != null ? dim[d].score : '');
         lines.push([
-            i+1, j.date_added||'', j.company, j.title, j.city,
+            i+1, j.date_added||'', j.company, j.title, fmtCityInline(j.city),
             scoreDisplay(j.score), stageLabel(j.stage),
             exportDisplayDate(j), j.note||'', j.url||'',
             sug.apply === 'true' ? 'ja' : 'nein',
@@ -1511,7 +1511,7 @@ function showPrintTable() {
         ${rows.map((j,i) => {
             return `<tr>
               <td>${i+1}</td><td>${fmtDate(j)}</td><td>${escHtml(j.company)}</td>
-              <td>${escHtml(j.title)}</td><td>${escHtml(j.city)}</td>
+              <td>${escHtml(j.title)}</td><td>${fmtCity(j.city)}</td>
               <td>${scoreDisplay(j.score)}</td><td>${stageLabel(j.stage)}</td>
             </tr>`;
         }).join('')}
@@ -1530,7 +1530,7 @@ function showPrintTable() {
             <span style="font-size:0.8rem;color:#5080a0">Score: ${scoreDisplay(j.score)}</span>
           </div>
           <div style="font-size:0.82rem;color:#4a6a80;margin:0.1rem 0 0.5rem">
-            ${escHtml(j.company)}${j.city ? ' · ' + escHtml(j.city) : ''}${j.industry ? ' · ' + escHtml(j.industry) : ''}
+            ${escHtml(j.company)}${j.city ? ' · ' + fmtCityInline(j.city) : ''}${j.industry ? ' · ' + escHtml(j.industry) : ''}
             · ${stageLabel(j.stage)}${dateLine ? ' · ' + dateLine : ''}
           </div>
           ${dimList ? `<p style="margin:0.2rem 0;font-size:0.63rem;color:#507060">${escHtml(dimList)}</p>` : ''}
@@ -1572,6 +1572,12 @@ function escHtml(s) {
 }
 function escAttr(s) {
     return String(s||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function fmtCity(city) {
+    return String(city || '').split(',').map(s => '<small>' + escHtml(s.trim()) + '</small>').join('<br>');
+}
+function fmtCityInline(city) {
+    return String(city || '').split(',').map(s => escHtml(s.trim())).join(', ');
 }
 function notify(msg, err) {
     const n = document.createElement('div');
