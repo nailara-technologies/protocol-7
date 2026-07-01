@@ -1633,6 +1633,17 @@ minScoreInput.addEventListener('wheel', e => {
     minScoreInput.dispatchEvent(new Event('input'));
 }, { passive: false });
 
+const ageSlider = document.getElementById('export-age-days');
+ageSlider.addEventListener('wheel', e => {
+    e.preventDefault();
+    const step = 1;
+    const delta = e.deltaY > 0 ? step : -step;
+    let val = parseInt(ageSlider.value, 10) + delta;
+    val = Math.max(1, Math.min(365, val));
+    ageSlider.value = val;
+    ageSlider.dispatchEvent(new Event('input'));
+}, { passive: false });
+
 document.getElementById('btn-sync').addEventListener('click', () => {
     lastNtime = 0; saveCache(); syncPipeline();
 });
