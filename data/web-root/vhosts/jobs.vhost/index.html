@@ -736,7 +736,6 @@ function mergeJobs(serverJobs) {
                 if (ud.stage && USER_OWNED_STAGES.has(ud.stage)) jobs[id].stage = ud.stage;
                 if (ud.notes        != null) jobs[id].notes        = ud.notes;
                 if (ud.date_applied != null) jobs[id].date_applied = ud.date_applied;
-                if (ud.city         != null) jobs[id].city         = ud.city;
             }
             added++;
         } else {
@@ -747,7 +746,6 @@ function mergeJobs(serverJobs) {
                 if (ud.stage && USER_OWNED_STAGES.has(ud.stage)) jobs[id].stage = ud.stage;
                 if (ud.notes        != null) jobs[id].notes        = ud.notes;
                 if (ud.date_applied != null) jobs[id].date_applied = ud.date_applied;
-                if (ud.city         != null) jobs[id].city         = ud.city;
             }
             updated++;
         }
@@ -918,10 +916,8 @@ function renderCard(j) {
         </div>
       </div>
       <div class="card-meta">
+        <span class="city">${escHtml(j.city)}</span>
         <span class="company">${escHtml(j.company)}</span>
-        <input type="text" class="city-input" data-id="${j.id}" value="${escHtml(j.city||'')}" placeholder="Ort"
-          title="Ort bearbeiten" style="width:140px; padding:1px 4px; font-size:0.75rem;
-          background:#0a1825; border:1px solid #1e3040; color:#90c0d0; border-radius:3px;">
         ${j.industry ? `<span class="ind">${escHtml(j.industry)}</span>` : ''}
       </div>
       ${j.summary ? `<div class="card-summary" data-full="${escAttr(j.summary)}">${escHtml(j.summary)}</div>` : ''}
@@ -1102,17 +1098,6 @@ function renderCard(j) {
         saveUserDecisions();
         saveCache();
         pushChange(j.id, { date_applied: e.target.value });
-    });
-
-    /* city */
-    const cityInput = el.querySelector('.city-input');
-    if (cityInput) cityInput.addEventListener('change', e => {
-        const val = e.target.value.trim();
-        jobs[j.id].city = val;
-        userDecisions[j.id] = { ...(userDecisions[j.id] || {}), city: val, ts: Date.now() };
-        saveUserDecisions();
-        saveCache();
-        pushChange(j.id, { city: val });
     });
 
     /* note toggle */
@@ -1419,13 +1404,22 @@ function jobAgeDays(j) {
     return ts ? ( Date.now() / 1000 - ts ) / 86400 : Infinity;
 }
 
+const EXPORT_STAGE_ORDER = {
+    to_apply: 0, applied: 1, interviewed: 2, responded: 3,
+    rejected: 4, skipped: 5, archived: 6, error: 7, new: 8, review: 9
+};
+
 function getExportRows(prefs) {
     const lastIds = prefs.sinceLast ? loadLastExportIds() : new Set();
-    return sortedJobs()
+    const rows = sortedJobs()
         .filter(j => prefs.stages.has(j.stage))
         .filter(j => !prefs.sinceLast || !lastIds.has(j.id))
         .filter(j => !prefs.currentFilter || passesCurrentFilter(j))
         .filter(j => jobAgeDays(j) <= prefs.maxAgeDays);
+    /* secondary grouping: status progression, rejected/absage at the bottom */
+    return rows.sort((a, b) =>
+        (EXPORT_STAGE_ORDER[a.stage] ?? 99) - (EXPORT_STAGE_ORDER[b.stage] ?? 99)
+    );
 }
 
 /* ── CSV export ── */
