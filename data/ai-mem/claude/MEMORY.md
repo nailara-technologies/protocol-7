@@ -28,7 +28,7 @@
 - [frame-idiom-convergence](topic-frame-idiom-convergence.md) — NEW frame features: margin/vertical-padding/self-invalidating-cache/corner-pinning-spring; `.:[ ]::[ ]:.` idiom; 5 frames still need conversion (REQUIRED)
 - [ui-show-security-levels](topic-ui-show-security-levels.md) — steps 1-5 ALL LIVE (36d605896, 2026-06-13); credential_fabric slot name/meta gated; step 6 open
 - [os-command-zenka](topic-os-command-zenka.md) — planned: networked command/script templates, security levels, STRM streaming, vterm result buffers
-- [plugin-web-jobs](topic-plugin-web-jobs.md) — LANDED c4b6dd92c 2026-07-01: collapsible assertion text (per-stage defaults, single-click, global invert); search-as-you-type with highlight + auto-focus + Backspace redirect + ✓apply filter; design docs open: jobsite/site-yaml refactor + URL-checksum dedup
+- [plugin-web-jobs](topic-plugin-web-jobs.md) — LANDED `db26e9960` 2026-07-01: reassessment-trashing incident root-caused+fixed (task-created stage clobber, trash index-scan gap, conflict-guard); 2 Firefox-only CSS bugs fixed; design docs open: jobsite/site-yaml refactor + URL-checksum dedup
 - [clients-http](topic-clients-http.md) — clients.http.* + clients.https.* async; kimi-web parallel dispatch
 - [reasoning-chain-repository](topic-reasoning-chain-repository.md) — native model; dedup-based self-improvement
 - [reasoning-namespace](topic-reasoning-namespace.md) — `reasoning.*` namespace; 28 templates
@@ -151,6 +151,8 @@
 - [user-perfectionism-and-pace](user-perfectionism-and-pace.md) — "done" means perfectly smooth, not just working; let solo tuning passes run, don't push toward closure
 
 ## Feedback
+- [webkit vs firefox css blindspots](feedback-webkit-vs-firefox-css-blindspots.md) — stacking-context click-through + `:checked` display-swap; my WebKit browser can't see either, ask user to verify Firefox-reported bugs
+- [no sudo for privileged fs ops](feedback-no-sudo-privileged-fs-ops.md) — never `sudo` chown/rm a protocol-7-owned file; hand the command to the user, they run it
 - [perl and/or precedence in my-assignment](feedback-perl-and-or-precedence-in-my-assignment.md) — `my $x = A and B` only assigns A (and/or bind looser than =); use && / || for multi-term booleans landing in an assignment
 - [p7 route-send wire protocol](feedback-p7-route-send-wire-protocol.md) — call_args only sends 'args' string; reply shape keyed by cmd not mode; SIZE auto-fragments, no base32 needed; cross-zenka access is two-sided
 - [oversize single-line protocol](feedback-oversize-single-line-protocol.md) — TRUE/FALSE/WAIT wire path has no framing; oversized content there wedges the buffer irresolvably
@@ -205,8 +207,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,,,,.,.,,,,,,,.,,..,..,,.,,,..,,,..,,,.,..,,..,,...,...,.,.,,..,,..,,,.,...,
-#TAQO3A3TMA3L7RYRWNKZABEOKIDGYN7YXWRVICN53JZF7YODK2NSLKBTYOOMWA54JUV5LGKLT2IOU
-#\\\|23B44K75LPHO6IATHQMCRSBWFH6DBGLMLAR44I4OJE7NJZ2ICF5 \ / AMOS7 \ YOURUM ::
-#\[7]Z23BHRGNWMYBVHDOK4NEIWETDE4EZR5OZ2DKJZZVFTPW6HAPY4BQ 7  DATA SIGNATURE ::
+#,,..,...,,..,..,,..,,.,.,,.,,.,,,...,..,,,,.,..,,...,...,..,,,.,,,..,..,,...,
+#T5DYJIVLGH3NKWA3F7ZLGQSPD5K4ZUDINKB4SH52MHX2IYY2CS2V5HE7JARIEUW6ELNHJE4LHP67C
+#\\\|PAGKHRUCW4MWZ2YNIMBM4HUB5BTWCYHC6YZNQNIJPE4SWN4WBEV \ / AMOS7 \ YOURUM ::
+#\[7]MDAW3HYCP2AGUGEBPSGDYLK6AUC4WVMZDQE7TAWC3NGR7VL4FGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

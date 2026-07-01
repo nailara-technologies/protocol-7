@@ -7,6 +7,91 @@ metadata:
   originSessionId: 095ef9b6-c744-46c5-bac8-4d54a2d5ce45
 ---
 
+## Session 2026-07-01 (later) — reassessment-trashing incident: root cause chain, 3-tier cache divergence, fixes
+
+**Trigger**: an already-`applied` job got silently trashed by an automated re-assessment
+pass, despite trash being documented as "recoverable". Investigation escalated into a
+much larger "all data is corrupted" report — three simultaneously-open views (backend
+`jobsite.status`, user's real Firefox, the `web-browser` zenka) showing different
+`beworben`/`interviewed` counts for the same dataset.
+
+**Landed fixes (commits `73891350a`, `5da0f2b99`, `db26e9960`)**:
+- `jobsite.handler.repair-done` / `jobsite.handler.assess-done`: added `%protected_stage`
+  guard (`applied interviewed responded rejected skipped archived`) so pipeline reassessment
+  can no longer silently overwrite a user-committed stage — preserves stage, derives matching
+  status instead of forcing review/trash.
+- `jobsite.handler.task-created`: the actual deepest root cause — was unconditionally setting
+  `stage='assessing'` on reassess dispatch, destroying the protected stage *before*
+  assess-done/repair-done ever got a chance to check it. Now skips the overwrite when the
+  current stage is protected.
+- `jobsite.job.index.build`: never scanned `trash/` at all (only `blocked`/`deleted`), and used
+  the wrong file extension even if it had — trashed jobs became permanently unreachable via
+  `job.read`/`job.write` after every reload. Fixed to scan all three epoch-bucketed dirs with
+  per-status file regexes.
+- New `jobsite.cmd.rescue <id> [stage]` — no recovery mechanism existed before this session;
+  decodes vax-int id, restores status/stage, clears trash/deleted/blocked epoch fields.
+- `plugin.web.jobs.sync`: added optimistic-concurrency guard — a browser's `stage` push is
+  rejected (not silently applied) if the record's `last_modified` has moved since that browser
+  last synced; response includes a `conflicts` array so the frontend can drop its stale local
+  override and adopt the server's current stage instead of disagreeing forever.
+- `jobsite.init_code` / `plugin.web.jobs.init_code`: unconditional root-owned path-ownership
+  fixup (`check-zenka-paths`) ran on *every* reload, not just cold start, spamming "operation
+  not permitted" once privileges were dropped — guarded with `$EFFECTIVE_USER_ID == 0`.
+- Frontend `renderCard()`: `löschen`/`archiv` suggestion badges + card-dimming now respect
+  `USER_OWNED_STAGES` like the `apply` badge already did — were showing on already-committed
+  jobs.
+
+**Structural gap found, NOT fixed (documented as known)**: `jobsite.sync.push` deliberately
+skips jobs with `status` in `blocked|deleted|trash` — meaning a job trashed on the jobsite
+side never gets a "removal" signal propagated to httpd's `plugin.web.jobs` web-cache. A job
+moved to trash stays visible/stale in the web-cache forever unless its cache file is deleted
+by hand. This is why trashing 17 bad `to_apply` entries didn't remove them from `/jobs.json`
+until their cache files were manually `rm`'d and `web` reloaded.
+
+**Three-tier cache architecture, confirmed the hard way**: jobsite's own store
+(`/var/protocol-7/jobsite/jobs/`) → httpd's `plugin.web.jobs` web-cache
+(`/var/protocol-7/web/jobs/`, a *separate* directory tree, fed by periodic
+`jobsite.sync.push`) → each browser's own `localStorage` (`jobs_[vhost]_v1` cache +
+`jobs_user_decisions_v1` overlay). All three can independently drift. `mergeJobs()` always
+lets a browser's local `userDecisions[id].stage` win for `USER_OWNED_STAGES`, so a stale
+local decision silently overrides a genuinely newer server stage forever, with no expiry —
+this is what the new conflict-guard (above) now catches on the write side.
+
+**Frontend key gotcha (cost real time, caused a wrong "fix")**: `jobs`/`userDecisions` in
+the browser are keyed by the **vax-int encoded short id** (e.g. `DEQ5M`), NOT the decoded
+numeric job id (`14033177`) — `/jobs.json`'s `id` field is already encoded via
+`<[base.vax-int.encode]>`. A localStorage console fix using the numeric id silently no-ops.
+Use `bin/vax-int <numeric-id>` to get the right key before touching `userDecisions` by hand.
+
+**Self-inflicted regression, caught and fixed same session**: ran a diagnostic curl POST
+against `plugin.web.jobs.sync` intending to test the new conflict-guard read-only, but had
+only reloaded `httpd` (wrong zenka — httpd is a thin proxy, doesn't load `plugin.web.jobs.*`
+directly, `web` does) — so the request hit the *old*, unpatched code and was processed as a
+genuine browser write, queuing a stale reverse-sync entry. A later `jobsite.manual-sync
+force=true` then applied that stale entry to the authoritative jobsite store, reverting a job
+from `interviewed` back to `applied`. **Lesson: before treating an API call against a running
+zenka as read-only/diagnostic, confirm the code you intend to test is actually the code
+currently loaded there — reload the right zenka first.**
+
+**Decisive verification technique**: when counts disagree across tiers and "just resync"
+doesn't settle it, cross-reference against an independent, out-of-band ground truth by
+numeric job ID (user had sent a CSV report to the Jobcenter). Extract numeric ids from
+stepstone URLs, `bin/vax-int encode` each, `find` the matching file across all status dirs —
+this immediately surfaces (a) genuine misclassifications with a name attached (found N26 GmbH
+wrongly in trash instead of rejected) and (b) stale duplicate files left in the wrong status
+directory from the original incident (directory-scan order happens to make duplicates
+resolve "correctly" by luck — `new < assessed < review < apply < applied < interviewed <
+rejected < skipped`, last dir scanned wins — but they're still landmines).
+
+**Two Firefox-only CSS bugs found by user, WebKit-blind to both (see
+[[feedback-webkit-vs-firefox-css-blindspots]])**: fixed same session (`db26e9960`).
+
+**Aftermath, accepted as unresolved by user's own choice**: 4 of 5 "skipped" jobs never
+recovered — no distinguishing signal exists between "reviewed and skipped due to complexity"
+and any other similarly-scored trashed job; a broad score>=7 sweep of trash returned 89
+candidates, too noisy to act on without a company name or date to anchor the search. User
+explicitly said not worth chasing further.
+
 ## Session 2026-07-01 — jobs web UI: collapsible text + search filter + apply filter
 
 ### Collapsible assertion text (c4b6dd92c)
@@ -170,8 +255,8 @@ jobsite.cfg.sync_interval = 300
 - reset button: clears jobs + userDecisions + lastNtime (destructive, dialog warns)
 - 30s auto-poll via `startPoll()` using `?since=lastNtime` delta
 
-#,,,.,..,,.,.,,,,,...,,.,,,,.,...,.,.,.,.,..,,..,,...,...,..,,,,,,,..,,..,,..,
-#I2MA62O6CUVXAJ5P7L6XVJEYNZIMKPGHR5J2NFBZUMH64L2YSZUNPEPYCMB7KGXNQXG7ZV6ID6M6O
-#\\\|ERTLZXWMYRYX6UJJ2AJ5ET555DKJYJ7IAON5LPIYJYKKUKYGBIE \ / AMOS7 \ YOURUM ::
-#\[7]QULNYYXHB3GF5ETY7UKXZAQDIILUPRPTWTBP3Z3LY5QNCT3JXIDY 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,.,,...,.,.,,..,,,,,,,.,.,.,.,,,..,,...,...,.,.,,..,...,.,,,...,
+#SDYV232YPYD6XKID5HAEHGWY4GYDJMASZE6FEAQR4Q67Z4FCHVWMQDHIWJIPU4S4YNZNO2ETILGQA
+#\\\|H6R2UT5W6MKRNA7O4WYNSDVNR7N6QMLY5EW3RWU4EFBQZBJSWVX \ / AMOS7 \ YOURUM ::
+#\[7]YJRZC443AZAFY522SL25AJKQKPECNPRYWRNWKA65ERMK3TA2TWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
