@@ -788,13 +788,10 @@ function loadCache() {
         const d = localStorage.getItem(STORAGE_KEY);
         if (!d) return;
         const parsed = JSON.parse(d);
-        /* accept both old format (plain object) and new {jobs, lastNtime} */
         if (parsed && parsed.jobs) {
             jobs = parsed.jobs;
             lastNtime = parsed.lastNtime || 0;
             if (parsed.minScore != null) minScore = parsed.minScore;
-        } else if (parsed && typeof parsed === 'object') {
-            jobs = parsed; /* old format — treat as jobs map, ntime unknown */
         }
     } catch(e) { jobs = {}; lastNtime = 0; }
     loadUserDecisions();
