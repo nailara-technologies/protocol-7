@@ -47,6 +47,7 @@ if ( $bytes == 0 ) {
         <[coding.handler.http_io_parse_line]>->(
             $remaining, $state, $callbacks
         );
+        return if $state->{'abort_triggered'};
     }
 
     ## Complete ##
@@ -126,6 +127,7 @@ if ( $state->{'headers_parsed'} ) {
     ## process complete lines [ terminated by \n ] ##
     while ( $state->{'buffer'} =~ s/^([^\r\n]*)\r?\n// ) {
         <[coding.handler.http_io_parse_line]>->( $1, $state, $callbacks );
+        return if $state->{'abort_triggered'};
     }
     ## process remaining buffer if it looks like a complete SSE data line ##
     ## [ handles responses that arrive without trailing newline ] ##
@@ -143,14 +145,15 @@ if ( $state->{'headers_parsed'} ) {
             <[coding.handler.http_io_parse_line]>->(
                 $remaining, $state, $callbacks
             );
+            return if $state->{'abort_triggered'};
         }
     }
 }
 
 return;
 
-#,,,,,..,,,..,.,,,...,,..,.,,,..,,.,.,...,.,,,.,.,...,..,,,..,..,,.,,,...,,.,,
-#MN5DOQTOUMDGAQQHAOLHD5QRLJ2ZTTS5CFJPXW5R2MOT4DHL5XVZGON5PN7OJP4YLIKTEZ6IQEV7A
-#\\\|UCKDBIPSEHQKUI34ND4VONT6S3I7IE4RHCMWM5MF62RUAFYSVJD \ / AMOS7 \ YOURUM ::
-#\[7]5SXHR6ET2UJQP6WDBC2BHFEMAPSVKFHMH2BMR4AE3BJGU3GLASCI 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,,.,,..,,.,,,,.,.,.,.,.,.,,,,,.,.,.,...,.,.,.,.,..,,.,.,,,.,...,
+#77GGXXW6KIEZCMGPLV5DOM3A6U3XV4LQTYKB4QUEJYET2TL34DY7NVMUAWHS3TB5VISTMOUQDTBVO
+#\\\|GTMHDNZTZB5TY7TBUFAZNJFK7XXQGETYFVI6F3FLLNJX2Q3D2NL \ / AMOS7 \ YOURUM ::
+#\[7]NYNWNYEPKRM2ZFLFDWDJAIO4QGXVZG62XEE5Z2XPBKJXRTGEACDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

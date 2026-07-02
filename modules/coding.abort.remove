@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = coding.abort.remove
+# descr = remove an abort-pattern from the store by checksum id
+
+my $c_sum = shift // '';
+return FALSE unless length $c_sum;
+return FALSE if $c_sum =~ m{/};
+
+my $zenka_dir_href = <system.path.zenka-dirs> // {};
+my $zenka_name     = <system.zenka.name>      // 'coding';
+my $path           = catfile( $zenka_dir_href->{'var_P7'},
+    $zenka_name, 'abort-patterns', $c_sum );
+
+return FALSE unless -f $path;
+
+if ( unlink $path ) {
+    <[base.logs]>->( 1, 'abort.remove: removed pattern %s', $c_sum );
+    return TRUE;
+}
+
+<[base.logs]>->(
+    0,      'abort.remove: failed to remove %s : %s',
+    $c_sum, <[base.str.os_err]>
+);
+
+return FALSE;
+
+#,,,.,.,.,,..,..,,,.,,.,,,,.,,.,,,,.,,.,.,,,,,..,,...,...,..,,.,.,,.,,,,,,,,,,
+#USCVVNHI2KN76RAUII6D3BL5NAWFZXJWGQ4ZEJ2IPOZRJM7SFHFLTQGFJNHE67ZCG6Q4CACIIBZ5U
+#\\\|42F7F75XODZLMYB4JODGRVBLJDML7DNZF55KKBET6MKOGA7K5UO \ / AMOS7 \ YOURUM ::
+#\[7]YAORE3DO6QNGHFRNSSJDMRM6FLFJMP4VBCQ4YUM5AE7573DRLACQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
