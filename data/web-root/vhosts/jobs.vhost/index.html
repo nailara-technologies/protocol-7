@@ -1580,11 +1580,17 @@ function renderExportFilters() {
 function loadLastExportIds() {
     try {
         const raw = JSON.parse(localStorage.getItem(LAST_EXPORT_KEY) || '{}');
-        /* legacy format: plain array of ids, no stage recorded -- keep those */
-        /* hidden unconditionally since there is nothing to compare against  */
+        /* legacy format: plain array of ids, no stage was ever recorded --   */
+        /* there is no way to know what stage they were exported at, so      */
+        /* snapshot each one's CURRENT stage as the baseline right now and   */
+        /* persist it : today's export correctly stays quiet about anything  */
+        /* already sent, and any stage change from this point on still      */
+        /* correctly brings it back. one-time migration, never re-triggers  */
+        /* once the new object format is written back                       */
         if (Array.isArray(raw)) {
             const m = {};
-            raw.forEach(id => { m[id] = null; });
+            raw.forEach(id => { if (jobs[id]) m[id] = jobs[id].stage; });
+            saveLastExportIds(m);
             return m;
         }
         return (raw && typeof raw === 'object') ? raw : {};
@@ -1596,10 +1602,9 @@ function saveLastExportIds(map) {
 }
 
 function wasExportedAtCurrentStage(j, lastMap) {
-    /* hidden only if we have a recorded stage AND it still matches now --  */
-    /* legacy entries (migrated from the old bare-id array, no stage known) */
-    /* can't be confirmed unchanged, so they fall through to "include"      */
-    /* rather than hiding forever : that was the actual bug being reported */
+    /* hidden only if a stage was actually recorded for this id AND it     */
+    /* still matches now -- never-exported ids have no entry (undefined), */
+    /* so they always fall through to "include"                           */
     const recordedStage = lastMap[j.id];
     return recordedStage != null && recordedStage === j.stage;
 }
