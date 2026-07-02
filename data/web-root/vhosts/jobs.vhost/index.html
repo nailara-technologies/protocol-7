@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Job Pipeline — Alexander Taute</title>
+<title>Job Pipeline — Application Tracker</title>
 <style>
 :root {
     --p7-bg:        #00040c;
@@ -754,7 +754,7 @@ input[type="date"], textarea {
 <script>
 'use strict';
 
-const STORAGE_KEY = 'jobs_[vhost]_v1';
+const STORAGE_KEY = 'jobs_pipeline_v1';
 const JOBS_JSON   = '/jobs.json';
 const JOBS_SYNC   = '/jobs-sync';
 const POLL_MS     = 30000;
@@ -854,7 +854,10 @@ async function pushChange(id, fields) {
         });
         if (!r.ok) throw new Error(r.status);
         const data = await r.json();
-        if (data.ntime) lastNtime = data.ntime;
+        /* do NOT advance lastNtime from this response : only /jobs.json's  */
+        /* poll ever delivers the 'removed' tombstone list, so jumping the  */
+        /* watermark forward here would silently skip a pending removal    */
+        /* this browser never actually fetched                             */
         if (Array.isArray(data.conflicts) && data.conflicts.length) applyConflicts(data.conflicts);
         saveCache();
     } catch(e) {
@@ -1113,8 +1116,7 @@ function renderCard(j) {
                 body: JSON.stringify({ id, action: 'delete' }),
             });
             if (!r.ok) throw new Error(r.status);
-            const data = await r.json();
-            if (data.ntime) lastNtime = data.ntime;
+            /* do NOT advance lastNtime from this response, see pushChange */
         } catch(e) {
             notify('löschen fehler: ' + e.message, true);
         }
