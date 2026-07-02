@@ -10,15 +10,40 @@ while ( @{$queue} ) {
     $entry  = shift @{$queue};
     $job_id = $entry->{'job_id'};
 
-    ## a stale duplicate can pile up in the queue if this job was already
-    ## dispatched/decided by the time its turn comes around again (e.g. a
-    ## re-entrant dispatch.assessments call queued it twice) -- skip it
-    ## instead of re-running a job that's no longer pending ##
-    my $current = <[jobsite.job.read]>->($job_id) // {};
-    if ( ( $current->{'status'} // '' ) ne 'new' ) {
+    ## a stale duplicate can pile up in the queue if this job was already   ##
+    ## dispatched/decided/re-queued by the time its turn comes around again ##
+    ## [ e.g. a re-entrant dispatch.assessments call, or a repeated reassess ##
+    ## request from the browser ] -- skip it instead of re-running a job    ##
+    ## that's no longer pending. two independent checks, either is fatal:   ##
+    ##  - terminal state : the job left the pool entirely [ trash/deleted/  ##
+    ##    blocked are the only statuses that mean "no longer assessable",   ##
+    ##    unlike the old check this does NOT require status=='new', since   ##
+    ##    a reassess entry's target is never 'new' to begin with ]          ##
+    ##  - stale generation : queue_gen was bumped by a newer enqueue for    ##
+    ##    this same id [ dispatch.assessments or apply_reverse's reassess   ##
+    ##    branch both stamp it ] since this entry was built, so a fresher   ##
+    ##    entry for the same job supersedes it ##
+    my $current     = <[jobsite.job.read]>->($job_id) // {};
+    my $cur_status  = $current->{'status'}            // '';
+    my $entry_gen   = $entry->{'gen'}                 // 0;
+    my $current_gen = ( <jobsite.tasks>->{$job_id} // {} )->{'queue_gen'}
+        // 0;
+
+    if ( $cur_status =~ m{^(?:trash|deleted|blocked)$} ) {
         <[base.logs]>->(
             1,       '[job:%s] skipping stale queue entry, status=%s',
-            $job_id, $current->{'status'} // '?'
+            $job_id, $cur_status
+        );
+        next;
+    }
+    if ( $entry_gen and $entry_gen != $current_gen ) {
+        <[base.logs]>->(
+            1,
+            '[job:%s] skipping stale queue entry, '
+                . 'superseded by newer enqueue [ gen %d -> %d ]',
+            $job_id,
+            $entry_gen,
+            $current_gen
         );
         next;
     }
@@ -52,8 +77,8 @@ my $encoded
     }
 );
 
-#,,.,,...,.,,,.,.,,,,,.,,,,,,,.,,,.,,,.,,,,,.,..,,...,...,...,.,.,,,.,...,..,,
-#HSRSZSX7ZQH4NYTPL26J37KN4COWFSX3K4YUSMY7QDIA437BMAET2MLNVVMQBHNMJ66Z6IM7DNGKM
-#\\\|YCCYLVKUDUSORGB6JJFR5NALABSGZ7J57MHC5WQBWCRO2AID7SQ \ / AMOS7 \ YOURUM ::
-#\[7]IUEZ3F6LGVXADPB6Q52WY7C7QE54V2TC6UPI4X25YAV2HDDAEQDQ 7  DATA SIGNATURE ::
+#,,..,...,...,,.,,.,,,.,,,,..,,,,,..,,,,.,,..,..,,...,...,..,,,,.,,,,,.,,,,..,
+#33BP5W3CE7SKTDUOMXDJJLKQN76ZWYE2KQRHTLQPOJHBWHC5G265GGB2KWVMJPM7UFSJ3TY7ZVCIY
+#\\\|NOGBK7W4ERVA6XSUFXTS6S6TFIPANUYIXEHIOQW7SCJKEU7KYHD \ / AMOS7 \ YOURUM ::
+#\[7]2R4PKPCYNA25HJPTY2L26R3V3K5SNDNKY35E2NXJQ2NUKX4GNKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

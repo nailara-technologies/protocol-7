@@ -25,8 +25,17 @@ right mechanism to route job assessments through when this gets built, rather th
 inventing a separate consensus path. See [[topic-distributed-consensus]] for the
 broader consensus-mechanism context in this project.
 
-#,,.,,,,,,.,,,,.,,..,,.,,,..,,..,,...,,,,,,..,..,,...,...,,..,,,.,...,...,.,.,
-#JJZD6HGXMEZAHYBJB4W5UUMZWMBMERQMP52QPTROPOPBYKDSYTRM7MH2UQ66H4DWJFKTJX6LCZZBE
-#\\\|XVARNSVSF3ALOYSZX2WNVYLI6YCQ3QBBXKCIVBJLCBPBIS6YXQC \ / AMOS7 \ YOURUM ::
-#\[7]F6U4IXIF2JHYLCRBT5V2OBXBSNGPIBE5BL4XUE7WZYCZHLA63KAI 7  DATA SIGNATURE ::
+**Related, separate dependency (2026-07-02)**: when a job gets deleted while its
+assessment task is already in flight, jobsite currently lets the LLM call run to
+completion and discards the result on arrival (`jobsite.handler.assess-done` no-ops
+if `<jobsite.tasks>->{$job_id}` is gone — safe, but wastes the inference call).
+Taeki confirmed actually *aborting* that in-flight call requires the coding zenka
+to gain efficient abort-inference capability first — this is blocked on
+[[coding-zenka-improvement-pipeline]], not a jobsite-side fix. Don't attempt a
+jobsite-side cancellation hack before that infra exists.
+
+#,,,,,.,,,..,,.,.,...,,.,,,..,...,.,,,,,,,.,.,..,,...,...,...,.,,,,,,,.,,,.,.,
+#DKOAQEVZK2DV6GT4N46U7ISJIJZ2CZZ2CO6N65TRHJRKIUVRU3XWBRDC2JRW2UNPFXASGPJWDGWTK
+#\\\|77RPS4N3MKVYOXRKVILOSL7O6NUPURCQWKO3B6WGXMUHWDO3D7H \ / AMOS7 \ YOURUM ::
+#\[7]TK2WMBUKTSEY3NEBAOA4H5JFLDQOWEP5ZHAYDICA6RUT4J6JWUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

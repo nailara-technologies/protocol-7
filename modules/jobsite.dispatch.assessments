@@ -114,16 +114,24 @@ $profile_text = Encode::decode( 'UTF-8', $profile_text )
     unless utf8::is_utf8($profile_text);
 
 ## build queue entries
+## queue_gen : bumped on every enqueue [ here and in apply_reverse's reassess ##
+## branch ] so dispatch.next can tell "still the freshest queued instance of ##
+## this job" from a stale duplicate left behind by a re-queue, uniformly for ##
+## both fresh-new dispatch and reassess -- see dispatch.next for the other  ##
+## half of this contract ##
 my @queue;
 for my $job_id (@to_assess) {
-    <jobsite.tasks>->{$job_id} = { 'stage' => 'queued', 'task_id' => '' };
+    my $gen
+        = 1 + ( ( <jobsite.tasks>->{$job_id} // {} )->{'queue_gen'} // 0 );
+    <jobsite.tasks>->{$job_id}
+        = { 'stage' => 'queued', 'task_id' => '', 'queue_gen' => $gen };
 
     ## initialize assertion tree for this job ##
     <[jobsite.assert.init]>->($job_id);
 
     my $prompt = <[jobsite.util.build_prompt]>->( $store->{$job_id} );
 
-    push @queue, { 'job_id' => $job_id, 'desc' => $prompt };
+    push @queue, { 'job_id' => $job_id, 'desc' => $prompt, 'gen' => $gen };
 }
 
 ## append : a batch may already be mid-flight with its own queue tail ##
@@ -137,8 +145,8 @@ push @{<jobsite.assess_queue>}, @queue;
 
 return;
 
-#,,,.,,,,,,,.,...,.,,,,..,..,,..,,,,.,,,.,.,,,..,,...,...,...,.,,,,.,,,,.,,,,,
-#ZMPMRQ4NKCIL45D64SSABGZV26G7TD62JOLKFLXRLTPDPDFQXNIIT464SLYICPAVEXWMKMBA46YNG
-#\\\|JXIF42JODDK5TMLC4UU4GB6E5GNE2J5ZIEZO7R7G45NZ2EV7SFA \ / AMOS7 \ YOURUM ::
-#\[7]6JCJRPKQOC75G3VGHE3DQGEZPECCPU2ASEFZ4NT3YWFPMTUXHECA 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,.,.,.,,,.,,,.,.,,..,,..,.,,,,,,,..,,...,..,,..,,,,,,,.,,...,..,,
+#T46CTATVFCOIW3TXDM6WK7IX2FPXPN4AIQXAY5YNJZOJ24XQXU4M2UIKS52CL7PDBEEO3KGOOXTKY
+#\\\|4QBG7GDLGI3EA6J6NT6GQRAZ3O7CALWG6ETGXZMYROW4SSAQ6YV \ / AMOS7 \ YOURUM ::
+#\[7]NOWOLYE5GDH725ZYWYM5364PRBWF3T7HAYBGSHYXYVAMULAAKYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
