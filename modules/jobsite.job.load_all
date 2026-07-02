@@ -103,9 +103,16 @@ for my $id ( keys %jobs ) {
     my $job           = $jobs{$id};
     my $prior_stage   = ( <jobsite.tasks>->{$id} // {} )->{'stage'} // '';
     my $keep_inflight = $prior_stage =~ m{^(?:queued|assessing)$};
+    ## queue_gen only ever exists in memory too, same reasoning as the      ##
+    ## in-flight stage marker above -- it has no on-disk field to refresh   ##
+    ## from, so it must be carried over explicitly or dispatch.next's       ##
+    ## staleness check [ see dispatch.next ] loses track of it on every     ##
+    ## single sync cycle and starts treating the current entry as stale ##
+    my $prior_gen = ( <jobsite.tasks>->{$id} // {} )->{'queue_gen'} // 0;
     <jobsite.tasks>->{$id} = {
         'status' => $job->{'status'} // 'new',
         'stage'  => $keep_inflight ? $prior_stage : ( $job->{'stage'} // '' ),
+        'queue_gen'        => $prior_gen,
         'score'            => $job->{'score'}            // '',
         'repair_attempted' => $job->{'repair_attempted'} // FALSE,
         'repair_failed'    => $job->{'repair_failed'}    // FALSE,
@@ -123,8 +130,8 @@ for my $id ( keys %{$tasks} ) {
 
 return \%jobs;
 
-#,,,,,...,,,,,,,.,,,,,...,,,,,.,,,.,.,,.,,,,.,..,,...,...,.,,,,.,,,,.,..,,.,,,
-#TZKPB26QIDUFBFOKJJHY5O3HEAOZ2COZMVGULZY7PCGIXASHKYT4JOXEWEKQNOPHOWOGATMCZ74X6
-#\\\|VYBHOCSSKWPOG4UJKQ6QNZ7YESG4PONFJ2GVVMD64DSNQXHLZ7C \ / AMOS7 \ YOURUM ::
-#\[7]GCRSMPWXWIZSN2RBX5YWLSXJQHWW7WNIECI7CCCRRIPW7IE3OOCQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,..,,..,,,,,,,.,.,.,,.,,...,..,,..,,...,...,,..,.,.,.,.,..,,,.,,
+#5ZWYY7H2DDQ4DAAE3DXJAKBFKUNYXIZVQVFF5XSFQYEEPCE4AS6J7PSPMRYCBKGA5QNJQYWC4T7LE
+#\\\|TLRDCT7L7CCH4JT25O2MAVXTJ5AQRKR3ENEEIRV2PJQBNSTE27M \ / AMOS7 \ YOURUM ::
+#\[7]6U45EO4T3IUES55CMCGGUUVE2KEWGXHIKACBTPIP53AXIU6MKMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

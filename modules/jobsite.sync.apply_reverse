@@ -81,6 +81,16 @@ for my $entry ( @{$entries} ) {
         ## protected ##
         $rec->{'stage'}  = $job->{'stage'}  if defined $job->{'stage'};
         $rec->{'status'} = $job->{'status'} if defined $job->{'status'};
+
+        ## queue_gen : bump on every reassess request for this id, same    ##
+        ## contract as dispatch.assessments -- a repeated/duplicate        ##
+        ## reassess (double-click, retried reverse-sync entry) still lands ##
+        ## a new queue entry here, but only the LAST one [ highest gen ]   ##
+        ## will still match by the time dispatch.next reaches it, so       ##
+        ## earlier duplicates are skipped as stale instead of each firing  ##
+        ## its own real reassessment ##
+        my $gen = 1 + ( $rec->{'queue_gen'} // 0 );
+        $rec->{'queue_gen'} = $gen;
         <jobsite.tasks>->{$id} = $rec;
 
         ## inject at front of assess queue (prioritized) ##
@@ -93,7 +103,7 @@ for my $entry ( @{$entries} ) {
             unless utf8::is_utf8($profile_text);
 
         my $prompt = <[jobsite.util.build_prompt]>->($job);
-        my $entry  = { 'job_id' => $id, 'desc' => $prompt };
+        my $entry  = { 'job_id' => $id, 'desc' => $prompt, 'gen' => $gen };
 
         <jobsite.assess_queue> //= [];
         unshift @{<jobsite.assess_queue>}, $entry;    ## front of queue ##
@@ -164,8 +174,8 @@ for my $entry ( @{$entries} ) {
     }
 }
 
-#,,.,,.,.,,.,,,,,,..,,,,.,...,.,.,...,.,.,.,.,..,,...,...,.,.,,.,,.,,,,.,,,..,
-#RVWYG7XRMPABY2CYZ5T24UJ66IWXGCBGS3SJQUQ5K3UFSVDV32UMF2JG5EJTYLBGN6SSULVX76SX6
-#\\\|KKDHLO7GARKAHDMLA7XUKB64DH6Q2GEJ5GGJNX2QXMZFTQHT7UP \ / AMOS7 \ YOURUM ::
-#\[7]4I564E2PIAIEYLVAEY45WFA4EB2EOP2C5ETHZEZQ6DYJSXKSPWAI 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,,,,...,,.,,.,,,,..,,,,,...,...,..,,...,...,...,,,.,.,,,,..,,..,
+#U7WKATZ2LPTAS7KX2YONFACBM4KJXHW2BSOLKHY7URBSBUCS2DPCT5HIJ3SKPGSFXPZNSDBYJ4H2C
+#\\\|E56JLJTGVRF5CB7Y5PMQ3HJ7NMESGWICENSACMOAYFAQBFD65P6 \ / AMOS7 \ YOURUM ::
+#\[7]4SSJQXLMHH6CXQEM5TOHN2V7DVXUQOQDZVBIE3IB2P53LLEFYGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
