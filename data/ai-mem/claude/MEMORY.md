@@ -29,7 +29,8 @@
 - [frame-idiom-convergence](topic-frame-idiom-convergence.md) — NEW frame features: margin/vertical-padding/self-invalidating-cache/corner-pinning-spring; `.:[ ]::[ ]:.` idiom; 5 frames still need conversion (REQUIRED)
 - [ui-show-security-levels](topic-ui-show-security-levels.md) — steps 1-5 ALL LIVE (36d605896, 2026-06-13); credential_fabric slot name/meta gated; step 6 open
 - [os-command-zenka](topic-os-command-zenka.md) — planned: networked command/script templates, security levels, STRM streaming, vterm result buffers
-- [plugin-web-jobs](topic-plugin-web-jobs.md) — 2026-07-02 UNCOMMITTED: watermark-freeze-on-failure + stale removal-tombstone + unguarded re-trashing migration + index scan-order (terminal-beats-active) all fixed+verified; 54+1 orphan duplicate files cleaned; jobsite=web counts now match exactly; pending_count orphan gap still OPEN (see CRITICAL)
+- [plugin-web-jobs](topic-plugin-web-jobs.md) — LANDED `fc6fcb43a`+`beaf00a87` 2026-07-02: watermark-freeze-on-failure + stale removal-tombstone + unguarded re-trashing migration + index scan-order (terminal-beats-active) + reassess-queue dedup (was fully non-functional) all fixed+verified live; jobsite=web counts match exactly; test-data cleanup confirmed the removal-tombstone path works end-to-end in production; pending_count orphan gap still OPEN (see CRITICAL)
+- [coding-zenka-abort-inference](topic-plugin-web-jobs.md) — LANDED `90537980b` 2026-07-02: AMOS-checksum-addressed abort-pattern registry + streaming-abort hook in coding zenka's http_io, dispatched to Kimi via claude_dispatch+MCP kimi_dispatch, reviewed clean; prerequisite for jobsite-side in-flight-assessment cancellation (still not built, see [[topic-jobsite-assessment-accuracy]])
 - [jobsite-assessment-accuracy](topic-jobsite-assessment-accuracy.md) — single-inference assessment drops/inverts soft profile facts (Stuttgart preference, tenure years); planned fix = multi-inference consensus via existing `llm.service.consensus_vote`, not urgent (new)
 - [clients-http](topic-clients-http.md) — clients.http.* + clients.https.* async; kimi-web parallel dispatch
 - [reasoning-chain-repository](topic-reasoning-chain-repository.md) — native model; dedup-based self-improvement
@@ -210,8 +211,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,,.,,,,,,.,,,..,,.,,,,.,,..,.,.,,.,,,.,,..,,..,,...,...,.,,,,..,...,...,,,,,
-#SFFXGS5MIVLLU3KA2KOT7S2RT2RT4QNYI5QBMJZ7ZL567AZMUCW7KLW6GZDUMNN27Q7322OP3AAVI
-#\\\|74P5HJWVO4TEZYHKWA3QQNZSN4K45YMZ46NCCSLCTQMB5BZWTKN \ / AMOS7 \ YOURUM ::
-#\[7]L6DUBOJ34TLEIKZ3IUT5CB2MR4PMEJAUHLQKSFNL6UT2LAHF34DY 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,.,,.,,,..,,,.,,,..,...,,,.,,.,,..,,...,...,...,,.,,,.,,,,,,...,
+#4Z7F3GK3KABW6HUDP2DMQSPSLUDQTM5VSVA2REMHDUS2JT5GR5VTSQ5ZC2ZZKVBM2FO5EPQKP6REE
+#\\\|G6VYTVODXRTBMYT3HRVITSMMUM7Q2V42PCLFR76EVAXW3BXYR4R \ / AMOS7 \ YOURUM ::
+#\[7]PAL52ZSALTCVNXXS67MZLRNZEFDDIQFU2OVFQI6WZ3TORWWYPMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
