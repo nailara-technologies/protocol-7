@@ -1,0 +1,78 @@
+## [:< ##
+
+# name  = coding.cmd.abort-inference
+# descr = abort the currently-running or specific inference call
+# param = [task_id]
+
+my $args_str  = $call->{'args'} // '';
+my ($task_id) = split m{ +}, $args_str, 2;
+
+## in-flight task identity : reuse <coding.task.active>, the same existing
+## source that coding.cmd.stop-task uses. no parallel tracker is added. ##
+my $aref_active = <coding.task.active> // [];
+my $current_id  = $aref_active->[0];
+
+if ( not defined $current_id or not length $current_id ) {
+    return { mode => qw| false |, data => 'no active inference task' };
+}
+
+## if caller named a task, only abort when it still holds the active slot ##
+if ( defined $task_id and length $task_id ) {
+    if ( $current_id ne $task_id ) {
+        <[base.logs]>->(
+            1,        "abort-inference: target %s superseded by %s, no-op",
+            $task_id, $current_id
+        );
+        return {
+            mode => qw| false |,
+            data => "task $task_id no longer active [current: $current_id]"
+        };
+    }
+} else {
+    $task_id = $current_id;
+}
+
+## verify task exists and is actually running ##
+my $task = <coding.task.queue>->{$task_id};
+return { mode => qw| false |, data => "task not found: $task_id" }
+    unless defined $task;
+
+my $status = $task->{'execution'}->{'status'} // 'unknown';
+return {
+    mode => qw| false |,
+    data => "task not running (status: $status)"
+    }
+    unless $status eq qw| in_progress |;
+
+## confirm there is a live http state for this task before touching anything ##
+my $async_state = <[coding.async.state_manager]>->( qw| get |, $task_id )
+    // {};
+my $http_state = $async_state->{'http_state'} // undef;
+if ( not defined $http_state ) {
+    <[base.logs]>->(
+        1, "abort-inference: no in-flight http state for %s", $task_id
+    );
+    return {
+        mode => qw| false |,
+        data => "no in-flight inference for $task_id"
+    };
+}
+
+## tear down the connection and fail the task cleanly ##
+<[coding.async.http_cleanup]>->($http_state);
+<[coding.async.complete]>->(
+    $task_id, { success => FALSE, error => 'abort requested' }
+);
+
+<[base.logs]>->( 1, "abort-inference: aborted inference for %s", $task_id );
+
+return {
+    mode => qw| true |,
+    data => "inference aborted for $task_id"
+};
+
+#,,..,.,.,,,.,...,,,,,.,.,,..,..,,.,,,,,,,,,.,..,,...,...,..,,,,,,,,,,..,,.,.,
+#NAGSBZGYP46YLTIHM3YVEVADTBFV5AJ2NKH7GQLXDO3RUMACX5YLF64F3DMBSWKHL5TO236H3VHVM
+#\\\|TUALSUHQRE2DBLHXBYXZ3DDQ3G4CIF2Q7534M4TSQH6QCRMTLAO \ / AMOS7 \ YOURUM ::
+#\[7]WFV53UZTQVM5OWCRQTU6RZG5X45QCCLQ6YEEYKQQPFADHQ2CW6BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

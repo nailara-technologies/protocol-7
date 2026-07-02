@@ -61,6 +61,23 @@ if ( $state->{'chunks_received'} < 3 ) {
     <[base.logs]>->( 2, "async.http_io: decoded data type=%s", $type );
 }
 
+## abort-pattern check : terminate stream immediately on match ##
+my $abort_match = <[coding.abort.check_stream]>->( $state, $data );
+if ( defined $abort_match ) {
+    $state->{'abort_triggered'} = TRUE;
+    $state->{'abort_match'}     = $abort_match;
+    <[base.logs]>->(
+        0,
+        "async.http_io: abort triggered for task %s by pattern %s",
+        $abort_match->{'task_id'}    // '',
+        $abort_match->{'pattern_id'} // ''
+    );
+    $callbacks->{'on_abort'}->($state)
+        if exists $callbacks->{'on_abort'};
+    <[coding.async.http_cleanup]>->($state);
+    return;
+}
+
 ## call on_chunk callback ##
 if ( exists $callbacks->{'on_chunk'} ) {
     <[base.logs]>->( 2, "async.http_io: calling on_chunk callback" );
@@ -69,8 +86,8 @@ if ( exists $callbacks->{'on_chunk'} ) {
 
 return;
 
-#,,,.,,.,,,..,,.,,...,...,..,,,..,,.,,.,,,...,.,.,...,..,,.,,,,,.,.,,,,..,.,.,
-#3HEXDMEH3BJGOOHUDEIGDMOJRUDTTLCWIHHGPS7Z6WNDKOWQE6C7LBRQU6GJMKR56BHBFUQ3F2MCQ
-#\\\|BCBLJQ4PIBIMIPBLUQSAII2GR7JVZCUJOE4ASL6BSUTCHEALP36 \ / AMOS7 \ YOURUM ::
-#\[7]WZ64JXXK5TPJ2QOLAPRNNIRHZK3YKGPQCAZSI5ECWMTS3WD27WCQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,,,.,...,.,.,,.,,.,.,..,,,.,,,.,,.,.,...,.,.,,..,,.,,,,.,.,.,,,.,
+#MGPJVE2T7AMKASZOYGNAI2243MAPNWRADHW7VCDS62QYZH5TXFBEMEHEJXALGUBTR34LDTZEO66XO
+#\\\|II7I3FMSW665N3GJOCYT7M6ZVDQ5ZW6ZVC4NKEKZN7HJ5HTNTXZ \ / AMOS7 \ YOURUM ::
+#\[7]I7MDVFFCLX4PLCAHUC4GBFNSTHXK3X4L5QAE4BBJ4B6P7K7GZ6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
