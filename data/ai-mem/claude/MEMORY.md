@@ -1,4 +1,5 @@
 ## CRITICAL
+- [web-browser ephemeral storage](feedback-web-browser-ephemeral-storage.md) — web-browser zenka runs WebKit ephemeral (cfg.ephemeral=1): localStorage/cookies wiped on every restart, silently; treat as volatile, never durable
 - [jobsite pending_count orphan gap](topic-plugin-web-jobs.md) — OPEN, not fixed: restart mid-assessment-batch orphans persisted pending_count while in-memory assess_queue is lost, sticks cycle on 'assessing' forever; see 2026-07-01 latest-2 section
 - [UNCOMMITTED 2026-06-21](coding-zenka-improvement-pipeline.md) — result_constraint+tiered-escalation implemented+verified but NOT committed; see file for pending list
 - [WSLg deiconify limitation](feedback-wslg-deiconify-limitation.md) — Weston/WSLg blocks deiconify at compositor level; don't re-investigate unless Weston version changes
@@ -154,6 +155,7 @@
 - [user-perfectionism-and-pace](user-perfectionism-and-pace.md) — "done" means perfectly smooth, not just working; let solo tuning passes run, don't push toward closure
 
 ## Feedback
+- [nested-dispatch-session-tracking](feedback-nested-dispatch-session-tracking.md) — claude_dispatch/claude_continue auto_summarize is lossy; nested kimi session id can be lost on resume, falls back to fresh kimi_dispatch; always verify via git diff
 - [webkit vs firefox css blindspots](feedback-webkit-vs-firefox-css-blindspots.md) — stacking-context click-through + `:checked` display-swap; my WebKit browser can't see either, ask user to verify Firefox-reported bugs
 - [no sudo for privileged fs ops](feedback-no-sudo-privileged-fs-ops.md) — never `sudo` chown/rm a protocol-7-owned file; hand the command to the user, they run it
 - [perl and/or precedence in my-assignment](feedback-perl-and-or-precedence-in-my-assignment.md) — `my $x = A and B` only assigns A (and/or bind looser than =); use && / || for multi-term booleans landing in an assignment
@@ -211,8 +213,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,,,,,.,,...,,.,,.,,,..,,,.,,,..,...,,,.,,.,,..,,...,...,...,,.,,,.,,,,,,...,
-#4Z7F3GK3KABW6HUDP2DMQSPSLUDQTM5VSVA2REMHDUS2JT5GR5VTSQ5ZC2ZZKVBM2FO5EPQKP6REE
-#\\\|G6VYTVODXRTBMYT3HRVITSMMUM7Q2V42PCLFR76EVAXW3BXYR4R \ / AMOS7 \ YOURUM ::
-#\[7]PAL52ZSALTCVNXXS67MZLRNZEFDDIQFU2OVFQI6WZ3TORWWYPMCI 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,.,,,...,...,...,..,,,,.,,,.,..,,..,,...,...,...,,,.,,.,,,,.,,..,
+#PMVKK6XMBVC57AJP6JODINBCS7DLVHNOFODHZ6TT6ISNDAYAEIPXTZI5UNWNZ4IM6PUPY622NH5CQ
+#\\\|HZL3CJ5DHG4KLWKVNDLSTFG5CB7KXSM666XM3EUMZECWAISH4SX \ / AMOS7 \ YOURUM ::
+#\[7]Z2VRUEQYVLCX6Y4AHTNI6C2RQDXJAP33L2KY6XQVQ6XTA5DQTYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
