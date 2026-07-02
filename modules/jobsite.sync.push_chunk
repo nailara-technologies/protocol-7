@@ -7,14 +7,44 @@ my $queue = <jobsite.sync.push_queue> // [];
 my $item  = shift $queue->@*;
 
 if ( not defined $item ) {
-    ## all chunks done : advance local watermark to cycle start ntime ##
-    my $cycle_ntime = delete <jobsite.sync.push_cycle_ntime> // '';
-    my $urls        = delete <jobsite.sync.push_urls>        // [];
+    ## all chunks done : advance per-url watermark ##
+    ## a url with zero chunk failures this cycle advances fully to cycle   ##
+    ## start ntime, as before. a url that had ANY chunk fail does not      ##
+    ## advance at all this cycle : chunks are not built in timestamp       ##
+    ## order, so a later [ newer ] chunk can succeed while an earlier      ##
+    ## [ older ] one fails -- capping to "highest confirmed" would still   ##
+    ## silently skip that older failed job forever. leaving the watermark ##
+    ## untouched instead re-sends the whole cycle's batch next round,     ##
+    ## which is safe because the receiving write is idempotent ##
+    my $cycle_ntime = delete <jobsite.sync.push_cycle_ntime>     // '';
+    my $urls        = delete <jobsite.sync.push_urls>            // [];
+    my $had_failure = delete <jobsite.sync.push_had_failure>     // {};
+    my $attempted   = delete <jobsite.sync.push_total_attempted> // 0;
+    my $confirmed   = delete <jobsite.sync.push_total_confirmed> // 0;
+
     for my $url ( $urls->@* ) {
-        <jobsite.sync.last_ntime>->{$url} = $cycle_ntime
-            if length $cycle_ntime;
+        if ( $had_failure->{$url} ) {
+            <[base.logs]>->(
+                1,
+                'jss.sync: %s had failures this cycle, watermark unchanged [ retrying whole batch next cycle ]',
+                $url
+            );
+        } elsif ( length $cycle_ntime ) {
+            <jobsite.sync.last_ntime>->{$url} = $cycle_ntime;
+        }
     }
     <jobsite.sync.last_server_ntime> = $cycle_ntime if length $cycle_ntime;
+
+    if ( $attempted and $attempted != $confirmed ) {
+        <[base.logs]>->(
+            1,
+            'jss.sync: reconciliation mismatch [ attempted:%d confirmed:%d ] : %d job%s will retry next cycle',
+            $attempted,
+            $confirmed,
+            $attempted - $confirmed,
+            <[base.cnt_s]>->( $attempted - $confirmed )
+        );
+    }
 
     my $reverse = delete <jobsite.sync.push_reverse> // [];
     delete <jobsite.sync.push_queue>;
@@ -57,17 +87,22 @@ if ( not length $body ) {
     return;
 }
 
+<jobsite.sync.push_total_attempted> += scalar $chunk->@*;
+
 <[clients.http.post]>->(
     {   'url'     => $url,
         'body'    => $body,
         'timeout' => 32,
         'on_done' => qw| jobsite.handler.sync-response |,
-        'params'  => { 'chunk_size' => scalar $chunk->@* },
+        'params'  => {
+            'url'        => $url,
+            'chunk_size' => scalar $chunk->@*,
+        },
     }
 );
 
-#,,,,,.,.,,..,,,,,,,,,.,,,,,,,,,,,...,,,,,,.,,..,,...,...,,.,,...,.,.,..,,,.,,
-#7KVQQVFK752TOWZYKEUR4KNJSKGGJZOGW6C3ZF2LZESFGKHUYPYLL37BDOUCVE2DEE3H5BVQAD7HS
-#\\\|U26ZNA2CRN2ADCR4HB4P4IUHXYL3MOEK2PTRSTNHH2WSMYXW3VG \ / AMOS7 \ YOURUM ::
-#\[7]JATM2PZS4WYYVFW7R7U6DVPN5YF3WVQX7VCR5SYA5AWW4M55YKCI 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,,,.,,.,,.,,,,.,,..,,..,,...,,..,..,,...,..,,.,,,,..,..,,,..,.,,,
+#XPK2WXADYZI2TMN3YWJ4DJLTDBYXX5WBBGX7IWDIHJWBXM5WVRONT4R2MTNZMDC5ZM3YHPD36FJZI
+#\\\|STYZF5H6NXVQ77VFNYXTGTH4DYDAVV7OK4KXM2ZVNCHBQN4DUQO \ / AMOS7 \ YOURUM ::
+#\[7]DDGLI7HFZQBOK4DPZPKYVW7QUNLBSQEVAMMK5II5BI44ZCDFQIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -29,7 +29,8 @@
 - [frame-idiom-convergence](topic-frame-idiom-convergence.md) — NEW frame features: margin/vertical-padding/self-invalidating-cache/corner-pinning-spring; `.:[ ]::[ ]:.` idiom; 5 frames still need conversion (REQUIRED)
 - [ui-show-security-levels](topic-ui-show-security-levels.md) — steps 1-5 ALL LIVE (36d605896, 2026-06-13); credential_fabric slot name/meta gated; step 6 open
 - [os-command-zenka](topic-os-command-zenka.md) — planned: networked command/script templates, security levels, STRM streaming, vterm result buffers
-- [plugin-web-jobs](topic-plugin-web-jobs.md) — LANDED `c4b6aec62`+`ba901b488` 2026-07-01: checksum self-match regression + dispatch-queue duplicate-pileup (job.load_all stage-clobber) both fixed+verified; 14 wrongly-blocked real jobs fully rescued/reassessed; pending_count orphan gap still OPEN (see CRITICAL)
+- [plugin-web-jobs](topic-plugin-web-jobs.md) — 2026-07-02 UNCOMMITTED: watermark-freeze-on-failure + stale removal-tombstone + unguarded re-trashing migration + index scan-order (terminal-beats-active) all fixed+verified; 54+1 orphan duplicate files cleaned; jobsite=web counts now match exactly; pending_count orphan gap still OPEN (see CRITICAL)
+- [jobsite-assessment-accuracy](topic-jobsite-assessment-accuracy.md) — single-inference assessment drops/inverts soft profile facts (Stuttgart preference, tenure years); planned fix = multi-inference consensus via existing `llm.service.consensus_vote`, not urgent (new)
 - [clients-http](topic-clients-http.md) — clients.http.* + clients.https.* async; kimi-web parallel dispatch
 - [reasoning-chain-repository](topic-reasoning-chain-repository.md) — native model; dedup-based self-improvement
 - [reasoning-namespace](topic-reasoning-namespace.md) — `reasoning.*` namespace; 28 templates
@@ -209,8 +210,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,.,,.,,,...,,.,,,.,,..,,..,,,.,,,,.,.,.,,..,..,,...,...,..,,..,,,,,,.,.,...,
-#YM3EMEM7BVE4A4KSADXDEU3IXE5NAFL62S6CVGKCY3BFTW4YYYHZORWP5M2XDWOELQFP2VLMWS6OY
-#\\\|OXFZVWLGRXUBMRXAPDRYKHW6IQM6JL5B5NVYEBXHFWQRYPSNWX3 \ / AMOS7 \ YOURUM ::
-#\[7]6PTPQQ4D2MO2LAH3QNXGEKK4TCR6WJ5M2QZC3RIH734DD36THADQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,..,,.,,,,.,,..,.,.,,.,,,.,,..,,..,,...,...,.,,,,..,...,...,,,,,
+#SFFXGS5MIVLLU3KA2KOT7S2RT2RT4QNYI5QBMJZ7ZL567AZMUCW7KLW6GZDUMNN27Q7322OP3AAVI
+#\\\|74P5HJWVO4TEZYHKWA3QQNZSN4K45YMZ46NCCSLCTQMB5BZWTKN \ / AMOS7 \ YOURUM ::
+#\[7]L6DUBOJ34TLEIKZ3IUT5CB2MR4PMEJAUHLQKSFNL6UT2LAHF34DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

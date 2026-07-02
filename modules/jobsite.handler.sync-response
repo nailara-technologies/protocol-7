@@ -3,37 +3,55 @@
 # name  = jobsite.handler.sync-response
 # descr = called when batch sync post completes : stores server ntime, applies reverse
 
-my $result     = shift                             // {};
-my $ok         = $result->{'ok'}                   // FALSE;
-my $body       = $result->{'body'}                 // '';
-my $chunk_size = $result->{'params'}{'chunk_size'} // 0;
+my $result     = shift                   // {};
+my $ok         = $result->{'ok'}         // FALSE;
+my $body       = $result->{'body'}       // '';
+my $params     = $result->{'params'}     // {};
+my $chunk_size = $params->{'chunk_size'} // 0;
+my $url        = $params->{'url'}        // '';
 
-if ($ok) {
-    my $reply = eval { JSON::XS::decode_json($body) };
-    if ( ref $reply eq 'HASH' ) {
-        my $ntime   = $reply->{'ntime'}   // '';
-        my $reverse = $reply->{'reverse'} // [];
-        ## server ntime stored for reference; local cycle ntime used as filter watermark ##
-        <jobsite.sync.last_remote_ntime> = $ntime if length $ntime;
-        push @{<jobsite.sync.push_reverse>}, @{$reverse};
-        <[base.logs]>->(
-            2,           'jobsite: chunk done (%d jobs), reverse=%d',
-            $chunk_size, scalar @{$reverse}
-        );
-    }
+## a chunk only counts as confirmed if the transport succeeded AND the  ##
+## server's own response body says ok : a 200 wrapping {"ok":false,...} ##
+## [ e.g. a partial write failure on the receiving side ] must NOT be   ##
+## treated as delivered, or the affected jobs get silently skipped from ##
+## every future sync once the watermark moves past them ##
+my $reply   = $ok ? eval { JSON::XS::decode_json($body) }        : undef;
+my $body_ok = ref $reply eq 'HASH' ? ( $reply->{'ok'} // FALSE ) : FALSE;
+
+if ( $ok and ref $reply eq 'HASH' and $body_ok ) {
+    my $ntime   = $reply->{'ntime'}   // '';
+    my $reverse = $reply->{'reverse'} // [];
+    ## server ntime stored for reference; local cycle ntime used as filter watermark ##
+    <jobsite.sync.last_remote_ntime> = $ntime if length $ntime;
+    push @{<jobsite.sync.push_reverse>}, @{$reverse};
+    <[base.logs]>->(
+        2,           'jobsite: chunk done (%d jobs), reverse=%d',
+        $chunk_size, scalar @{$reverse}
+    );
+
+    <jobsite.sync.push_total_confirmed> += $chunk_size if $chunk_size;
 } else {
     <[base.logs]>->(
         0,
-        'jss.sync: chunk failed: %s',
-        $result->{'error'} // $result->{'status'} // '?'
+        'jss.sync: chunk failed [%s]: %s',
+        $url,
+        $ok
+        ? (   ( ref $reply eq 'HASH' )
+            ? ( $reply->{'error'} // 'server ok:false' )
+            : 'invalid response body'
+            )
+        : ( $result->{'error'} // $result->{'status'} // '?' )
     );
+    <jobsite.sync.push_had_failure>->{$url} = TRUE if length $url;
 }
 
-## advance to next chunk regardless of success ##
+## advance to next chunk regardless of success : a failure freezes that ##
+## url's watermark at cycle end instead [ see push_chunk ], so it never ##
+## blocks the rest of the queue from being attempted this cycle ##
 <[jobsite.sync.push_chunk]>;
 
-#,,..,.,.,..,,.,.,...,.,.,,,,,,,,,.,.,..,,.,,,..,,...,...,...,..,,..,,,,,,,,.,
-#LEVMK4K5GE5J4QAPLV5XV6ETJJSNS6B5S3DCA7XPDOE4FDASECH6TRXLOYLVX5526FRFGGXMTABPS
-#\\\|P2LYLA2NT4N2OD2BBIGCISG3WO6FJ5DBFUFCYH6JCE5QP2G5BOJ \ / AMOS7 \ YOURUM ::
-#\[7]4FLSEYWQQEZG6MFJELM5AVAZGMHW5YMCQRT3KWDTAZLOZNRGBGBQ 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,,.,,,.,,,.,,,,,.,,,,,.,,.,,,,,,..,,...,...,.,.,.,,,,..,,,.,,..,
+#3NQAQUBHDA7PQBEOKL5WFPK3WLG4GT3WJMQNSS5HBVJX2TWDDADDNYJMNJJ75LA64YKRBJH36FZXW
+#\\\|WHMKD24I2VESQQ4S2VWGJN2ZJ5ZO4ETCSQP4BMHM63DCJS55434 \ / AMOS7 \ YOURUM ::
+#\[7]65GN74Z2D7WSHKGAXVGITIZFD2EAWQXVNM5YA4NBJUJN2AMQIGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

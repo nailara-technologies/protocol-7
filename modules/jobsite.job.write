@@ -62,11 +62,16 @@ if ( length $old_status ) {
 ## record instead of holding a stale copy forever [ trash/deleted/blocked ##
 ## job content is never loaded into %jobs by job.load_all, so sync.push   ##
 ## has no other way to notice the transition ] ##
+( my $old_base_status = $old_status ) =~ s{:.+$}{};
 if ( $status =~ m{^(?:blocked|deleted|trash)$} ) {
-    ( my $old_base_status = $old_status ) =~ s{:.+$}{};
     if ( $old_base_status ne $status ) {
         <[jobsite.removed_log.append]>->($enc_id);
     }
+} elsif ( $old_base_status =~ m{^(?:blocked|deleted|trash)$} ) {
+    ## rescued/reset out of a terminal state : any earlier tombstone for  ##
+    ## this id is now stale and must stop being forwarded as a removal   ##
+    ## signal, or it keeps clobbering this job's real data on every sync ##
+    <[jobsite.removed_log.prune]>->($enc_id);
 }
 
 ## prepare content ##
@@ -183,8 +188,8 @@ rename( $index_tmp, $index_file )
 
 return $written;
 
-#,,,,,,..,...,,,.,.,,,,..,,,,,...,..,,,,.,..,,..,,...,...,.,,,,,,,...,,,,,.,,,
-#IWMKWTUSVSFQNW3SQ7ITNZJX3ATO72RPC2ZVF5V7TBJGIQTPQLSZCJKIC6MEQGDBGXWHXHKNQ5XZC
-#\\\|ORST3Q7S7LEX5TPGB7JPMTOSAKOBPWA5XNOZ4RFAEHNCLGD4XLE \ / AMOS7 \ YOURUM ::
-#\[7]OFQWLJQJQR2VMRF2HX2WWVUW4APMIJFGAO3NOL3YIET7EQRJC6DQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,.,,..,,,,.,,.,,...,,,.,.,,,,.,,..,,...,.,.,,.,,,.,,,.,,.,,,,.,,
+#DJU4FZKKGIJ3A3MWHA6WWIOAT2HRKKNL76SXBU4MEZ4PWAUUFOSRQDSSELQ5NW4VUOT3QJQM5GLG2
+#\\\|C2OPYRLL5FY6AV53HRCPDDUYAUYHL447BYLAETIAZO2ZMPJWITI \ / AMOS7 \ YOURUM ::
+#\[7]XPCLEGKFWL2XW4DHKPA5OX6RVKYK6HGROGHDAIB7STMUCHDFBSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
