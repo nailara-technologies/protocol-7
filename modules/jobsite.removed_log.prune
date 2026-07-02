@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = jobsite.removed_log.prune
+# descr = drop stale tombstones for an id : called when a job leaves a
+#         terminal state [ rescued/reset ], so sync.push stops forwarding
+#         a removal signal for a record that is active again
+
+my $enc_id = shift // '';
+return FALSE if not length $enc_id;
+
+my $log = <jobsite.removed_log> // [];
+return TRUE if not @{$log};
+
+my $before = scalar @{$log};
+@{$log} = grep { ( $ARG->{'id'} // '' ) ne $enc_id } @{$log};
+return TRUE if @{$log} == $before;    ## nothing pruned : skip the write ##
+
+my $base_dir = join qw| / |,
+    <system.path.zenka-dirs>->{'var_P7'}, qw| jobsite |;
+my $log_file = "$base_dir/removed-log.yaml";
+eval { YAML::XS::DumpFile( $log_file, $log ) };
+
+return TRUE;
+
+#,,..,,,.,.,.,.,.,,,,,,,,,...,...,,..,,..,.,,,..,,...,..,,,..,..,,,,.,,,,,,,.,
+#AALCQV3FCIL5GLXY3ZYLR5SHE6O6NI2RQUTFHJUESA7DN5SABTPMY444EIBKTXWQLGDBJQU5GXMWI
+#\\\|FLZCMC6R3MBDFVGSS7D33OUCRRVQF7QSZFUX5IFVKQUNLV54GJS \ / AMOS7 \ YOURUM ::
+#\[7]VO56C3T4J4NPRFERMMLU55V34KQN5ZF5JPH453CPMAK2DMTXLACA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
