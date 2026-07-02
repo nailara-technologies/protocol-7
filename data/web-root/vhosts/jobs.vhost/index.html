@@ -910,6 +910,12 @@ async function syncPipeline() {
 
         const { added } = mergeJobs(arr);
         saveCache();
+        /* not gated by wasInitial : loadCache() restores lastNtime from a  */
+        /* prior session for any returning browser, so wasInitial is false */
+        /* for the very users who still have legacy history to migrate --  */
+        /* the function itself is idempotent [ self-deletes the legacy key */
+        /* once done ], safe to call on every sync                         */
+        await migrateLegacyExportHistory();
         render();
         if (tableVisible) showPrintTable();
         lbl.textContent = 'sync';
@@ -1458,7 +1464,6 @@ const ALL_EXPORT_STAGES = [
 
 const DEFAULT_EXPORT_STAGES = new Set(['applied','interviewed','responded']);
 const EXPORT_PREFS_KEY = 'jobsite_export_prefs';
-const LAST_EXPORT_KEY  = 'jobsite_last_export_ids';
 
 let exportPrefs = loadExportPrefs();
 
@@ -1545,8 +1550,7 @@ function buildExportPanel() {
             </label>`;
     });
     document.getElementById('export-current-filter').checked = exportPrefs.currentFilter;
-    const lastExportTime = localStorage.getItem('jobsite_last_export_time');
-    document.getElementById('export-last-time').textContent = lastExportTime ? 'letzter export: ' + lastExportTime : 'noch kein export gespeichert';
+    document.getElementById('export-last-time').textContent = '';
     renderExportStageToggles();
     renderExportFilters();
 }
@@ -1571,44 +1575,60 @@ function renderExportFilters() {
     syncAgeAndSinceControls();
 }
 
-/* map of id -> stage as recorded at export time, not just a bare id set --  */
-/* a job whose stage has since changed (e.g. applied -> rejected) is        */
-/* materially different now and should reappear, not stay hidden forever   */
-function loadLastExportIds() {
+/* exported_stage lives on the server-synced job record now. a job is     */
+/* considered "already exported" only when exported_stage matches its     */
+/* current stage; any stage change after export makes it reappear.        */
+/*                                                                        */
+/* legacy per-browser export history in jobsite_last_export_ids is        */
+/* migrated to the server on first load, exactly once per browser, so no  */
+/* export history is lost.                                                */
+function wasExportedAtCurrentStage(j) {
+    return j.exported_stage != null && j.exported_stage === j.stage;
+}
+
+async function migrateLegacyExportHistory() {
+    const raw = localStorage.getItem('jobsite_last_export_ids');
+    if (!raw) return; // already migrated or never existed
+    let map = {};
     try {
-        const raw = JSON.parse(localStorage.getItem(LAST_EXPORT_KEY) || '{}');
-        /* legacy format: plain array of ids, no stage was ever recorded --   */
-        /* there is no way to know what stage they were exported at, so      */
-        /* snapshot each one's CURRENT stage as the baseline right now and   */
-        /* persist it : today's export correctly stays quiet about anything  */
-        /* already sent, and any stage change from this point on still      */
-        /* correctly brings it back. one-time migration, never re-triggers  */
-        /* once the new object format is written back                       */
-        if (Array.isArray(raw)) {
-            const m = {};
-            raw.forEach(id => { if (jobs[id]) m[id] = jobs[id].stage; });
-            saveLastExportIds(m);
-            return m;
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+            // old plain-array format: baseline is the job's current stage
+            for (const id of parsed) {
+                const job = jobs[id];
+                if (job && job.stage) map[id] = job.stage;
+            }
+        } else if (parsed && typeof parsed === 'object') {
+            // newer object-map format: recorded stage directly
+            Object.assign(map, parsed);
         }
-        return (raw && typeof raw === 'object') ? raw : {};
-    } catch(e) { return {}; }
-}
+    } catch (e) {
+        // corrupt legacy data: drop it so this never re-runs
+        localStorage.removeItem('jobsite_last_export_ids');
+        localStorage.removeItem('jobsite_last_export_time');
+        return;
+    }
 
-function saveLastExportIds(map) {
-    localStorage.setItem(LAST_EXPORT_KEY, JSON.stringify(map));
-}
+    for (const [id, stage] of Object.entries(map)) {
+        const job = jobs[id];
+        if (!job) continue;
+        if (job.exported_stage != null) continue; // don't overwrite a fresher server value
+        job.exported_stage = stage;               // reflect migration in current session
+        await pushChange(id, { exported_stage: stage });
+    }
+    saveCache();
 
-function wasExportedAtCurrentStage(j, lastMap) {
-    /* hidden only if a stage was actually recorded for this id AND it     */
-    /* still matches now -- never-exported ids have no entry (undefined), */
-    /* so they always fall through to "include"                           */
-    const recordedStage = lastMap[j.id];
-    return recordedStage != null && recordedStage === j.stage;
-}
-
-function clearExportHistory() {
-    localStorage.removeItem(LAST_EXPORT_KEY);
+    localStorage.removeItem('jobsite_last_export_ids');
     localStorage.removeItem('jobsite_last_export_time');
+}
+
+async function clearExportHistory() {
+    /* clear the server-side marker for every job that has one */
+    const ids = Object.keys(jobs).filter(id => jobs[id].exported_stage != null);
+    await Promise.all(ids.map(id => {
+        delete jobs[id].exported_stage;
+        return pushChange(id, { exported_stage: null });
+    }));
     buildExportPanel();
     notify('export-verlauf zurückgesetzt');
 }
@@ -1651,10 +1671,9 @@ const EXPORT_STAGE_ORDER = {
 };
 
 function getExportRows(prefs) {
-    const lastMap = prefs.sinceLast ? loadLastExportIds() : {};
     const rows = sortedJobs()
         .filter(j => prefs.stages.has(j.stage))
-        .filter(j => !prefs.sinceLast || !wasExportedAtCurrentStage(j, lastMap))
+        .filter(j => !prefs.sinceLast || !wasExportedAtCurrentStage(j))
         .filter(j => !prefs.currentFilter || passesCurrentFilter(j))
         .filter(j => jobAgeDays(j) <= prefs.maxAgeDays);
     /* secondary grouping: status progression, rejected/absage at the bottom */
@@ -1664,7 +1683,7 @@ function getExportRows(prefs) {
 }
 
 /* ── CSV export ── */
-function exportCSV() {
+async function exportCSV() {
     const prefs = saveExportPrefs();
     const rows  = getExportRows(prefs).reverse();
     if (!rows.length) { notify('keine jobs für export'); return; }
@@ -1689,15 +1708,17 @@ function exportCSV() {
             dscore('tech-stack'), dscore('team-structure'),
         ].map(val).join(';'));
     });
-    const blob = new Blob(['﻿'+lines.join('\n')], {type:'text/csv;charset=utf-8'});
+    const blob = new Blob(['\ufeff'+lines.join('\n')], {type:'text/csv;charset=utf-8'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = 'bewerbungen_' + new Date().toISOString().slice(0,10) + '.csv';
     a.click(); URL.revokeObjectURL(url);
-    const lastMap = loadLastExportIds();
-    rows.forEach(j => { lastMap[j.id] = j.stage; });
-    saveLastExportIds(lastMap);
-    localStorage.setItem('jobsite_last_export_time', new Date().toLocaleString('de-DE'));
+
+    /* mark each exported row on the server so every browser sees exported_stage */
+    await Promise.all(rows.map(j => {
+        jobs[j.id].exported_stage = j.stage;
+        return pushChange(j.id, { exported_stage: j.stage });
+    }));
 }
 
 /* ── print table ── */
