@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = coding.abort.lookup
+# descr = load a registered abort-pattern by checksum id
+
+my $c_sum = shift // '';
+return undef unless length $c_sum;
+
+my $content_sref = <[file.zenka_dir.load]>
+    ->( "abort-patterns/$c_sum", ':encoding(UTF-8)' );
+
+return undef unless defined $content_sref;
+
+return $content_sref->$*;
+
+#,,.,,.,.,,,.,,..,,,,,,.,,..,,,.,,,.,,.,,,,..,..,,...,...,..,,,.,,,..,...,,..,
+#UGTCT2ED4MJDLWQWGJ5ELEBWB5P6LY77F7DEHGDGUTHMHY2EAZTG4W7FJ7CDBPAP6Q66NZH4KIFJK
+#\\\|Z6N6CLOLINCGIFXFXBIFDBYGCCR4VLMTXFUBN4MUM2DEUZ4KEF7 \ / AMOS7 \ YOURUM ::
+#\[7]PXC5OPY3BNVKSAJVGWR5QHFAPXDXC4DW5HR6AZCW6OGCCYBEUWAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

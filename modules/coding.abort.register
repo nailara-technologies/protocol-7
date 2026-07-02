@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = coding.abort.register
+# descr = register an abort-pattern by its AMOS checksum; re-register is a no-op
+
+my $params = shift // {};
+
+my $pattern = $params->{'pattern'} // '';
+return { mode => qw| false |, data => 'pattern required' }
+    unless length $pattern;
+
+## canonical content is the regex text itself so the checksum is a pure
+## function of the pattern [ optional metadata is not part of the id ] ##
+utf8::encode( my $canonical = $pattern );
+my $c_sum = <[chk-sum.amos]>->($canonical);
+return { mode => qw| false |, data => 'checksum failed' }
+    unless length $c_sum;
+
+my $rel_path = "abort-patterns/$c_sum";
+
+## file existence = record ; re-registering identical content is a no-op ##
+my $existing = <[file.zenka_dir.load]>->( $rel_path, ':encoding(UTF-8)' );
+if ( defined $existing ) {
+    <[base.logs]>->(
+        2, 'abort.register: pattern %s already registered', $c_sum
+    );
+    return { mode => qw| true |, data => $c_sum };
+}
+
+my $written = <[file.zenka_dir.write]>->(
+    $rel_path, \$pattern, '>', 0640, ':encoding(UTF-8)'
+);
+
+if ( not defined $written ) {
+    <[base.logs]>
+        ->( 0, 'abort.register: failed to store pattern %s', $c_sum );
+    return { mode => qw| false |, data => 'store failed' };
+}
+
+<[base.logs]>->( 1, 'abort.register: stored pattern %s', $c_sum );
+
+return { mode => qw| true |, data => $c_sum };
+
+#,,.,,,,,,.,.,,,,,,,,,,,.,...,,..,,,.,..,,.,,,..,,...,...,.,.,...,,,.,.,.,...,
+#F2J76PRJS46ZHXOTN2LKBVO5USAL3KGH3XDNU457KCPNWV3DBVOUV2JDOKNE3NII3GAUUDRFB2QKA
+#\\\|73UEO7Q4Y2VTTMXTUZKXXY3MMA3BLM3YKZ2K6X7SKAKC2LVD2H5 \ / AMOS7 \ YOURUM ::
+#\[7]F77LAN3N26EX7RIV4APQUTUUUD4Y57GVD7ILQQ2M63JK476FLYBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
