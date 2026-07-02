@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = coding.abort.list
+# descr = enumerate registered abort-pattern checksum ids
+
+my $zenka_dir_href = <system.path.zenka-dirs> // {};
+my $zenka_name     = <system.zenka.name>      // 'coding';
+my $store_dir
+    = catdir( $zenka_dir_href->{'var_P7'}, $zenka_name, 'abort-patterns' );
+
+my @ids;
+if ( opendir my $dh, $store_dir ) {
+    @ids = sort grep { !/^\./ && -f catfile( $store_dir, $_ ) } readdir $dh;
+    closedir $dh;
+}
+
+return \@ids;
+
+#,,.,,...,..,,,,.,..,,.,.,,..,,,.,,,.,...,,,,,..,,...,...,,..,...,..,,...,.,.,
+#ENGQY7GZMYGMRT5PL7L2D2KGR7ZJXX3J5IXWAKTUABWMFEOAWKRIIM7MDC5OEA3ZY75UXPLZGR4MG
+#\\\|WB7EOW2INXGJ5W5KYKVU2RI7CLFL64QY65QWZAL3652XSBPZBUK \ / AMOS7 \ YOURUM ::
+#\[7]HJLGGXCTJS42S3AOAT3UHYGMUXANUBR3FRYRP2F4Z3OAGVHYNYBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

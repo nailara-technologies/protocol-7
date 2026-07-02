@@ -83,6 +83,10 @@ my $task = {
         next_improvement       => undef
     },
 
+    abort_pattern_ids => ref( $request->{'abort_pattern_ids'} ) eq qw| ARRAY |
+    ? $request->{'abort_pattern_ids'}
+    : [],
+
     metadata => {
         ingested_at => <[base.time]>->(3),
         ingested_by => $request->{'source'} // qw| unknown |,
@@ -96,8 +100,8 @@ return {
     message => sprintf( "Task ingested: %s", $task->{'id'} )
 };
 
-#,,..,..,,,..,,..,..,,,.,,.,.,,..,...,..,,,.,,..,,...,...,,,.,,.,,,,,,,.,,,,.,
-#NPTMRLQKK73YKNSYE4ZRZTVK37JPD2T47RKJWFE2TYTWVI2W3QXQSYE3MTVHKJSLV2PJMX7X3NQGE
-#\\\|HXALSMQI3PV7QEXKEE6HMFA6IP3JUYXIUI722VALY3XCK6JNU3P \ / AMOS7 \ YOURUM ::
-#\[7]B2QDJFACCXEGLZY4SCTG3ZLS525Y2RRBU35MGDX46YEBW277O6CY 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,,.,.,.,..,,,.,,,,,,..,,,,,,.,,,..,,...,...,..,,..,,.,,,..,,...,
+#BRCRJWGPQSXDSK3SHUC7TH4O3E4H6PLOR6ULCY6L2MECQJJEFHISPHNLL5R2SGD7ILXDYZQYQSEL4
+#\\\|V4E7KQKPWKE4IGPBNKFREQLDEYTSAIUYABRRT5CHV4DHXWTHY4B \ / AMOS7 \ YOURUM ::
+#\[7]WGUGMNQQNXZVO3ER2R7BQVUDVI2EZVLMUNPEVHCYEEQHDBAG3YDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

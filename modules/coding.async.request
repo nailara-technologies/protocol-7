@@ -87,13 +87,18 @@ $state_ref->{'request_seq'} = $req_seq;
 
 ## setup callbacks : extracted to coding.callback.* modules ##
 my $callbacks = {
+    task_id   => $task_id,
     on_header => sub { <[coding.callback.http_header]>->( $task_id, @ARG ) },
     on_chunk  =>
         sub { <[coding.callback.http_chunk]>->( $task_id, $req_seq, @ARG ) },
     on_complete => sub {
         <[coding.callback.http_complete]>->( $task_id, @ARG, $req_seq );
     },
-    on_error   => sub { <[coding.callback.http_error]>->( $task_id, @ARG ) },
+    on_error => sub { <[coding.callback.http_error]>->( $task_id, @ARG ) },
+    on_abort => sub {
+        my ($http_state) = @ARG;
+        <[coding.callback.http_abort]>->( $task_id, $http_state, $req_seq );
+    },
     check_stop => sub { <[coding.callback.http_check_stop]>->($task_id) },
     timeout    => $http_timeout_request_total,    ## default 13 minutes ##
     backend    => $backend,    ## used for cold-start data-start grace ##
@@ -134,8 +139,8 @@ return {
     mode    => qw| streaming |,
 };
 
-#,,.,,,,.,.,,,,,.,.,,,..,,.,.,,,,,..,,,,.,...,..,,...,...,,.,,,.,,...,...,.,,,
-#QYA6F7IULNQWHS67FBU5MBKENXYH5KAGZEKUGOXCPTED2PPUC4BC5EXYCTPDJG6YGEX7C6VHBN6EQ
-#\\\|WRDDL6CLPEGVBFSW6TYNBNH6C55ADPZ4JJRKDEUZUKH6JGZSPE5 \ / AMOS7 \ YOURUM ::
-#\[7]F5O4UH6XGWLFPTDSJGYFYBI45ZXBIPQY26B4WE6NFCZQ3D6PIUBA 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,..,,,.,.,.,..,,,..,,.,,..,,,,.,..,,...,...,.,.,,,.,...,,.,,,,,,
+#C52PUV7LHK7CJTYDSBOZHJYHESSMPCYH6JWD57DQ7TPO2GZOI3FRJEN2RX67MQ5FKT37E77MVDVWY
+#\\\|KEGPPFVWZASLNPW6NMKIIQHBDVUPTWJ2F43QC5CPDEDPD6UEI5S \ / AMOS7 \ YOURUM ::
+#\[7]22HZMJ2MTTPMZPF7XIYWS6R7TABJQ2EJKKC26FVHF4FZQFQRNQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

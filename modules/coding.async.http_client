@@ -119,6 +119,8 @@ my $state = {
     'callbacks'       => $callbacks,
     'json_decoder'    => JSON::XS->new->utf8,
     'completed'       => FALSE,
+    'task_id'         => $callbacks->{'task_id'} // '',
+    'abort_context'   => { accumulated => '', compiled => undef },
 };
 
 $sock->blocking(0);
@@ -192,8 +194,8 @@ return {
     state   => $state,
 };
 
-#,,,,,.,,,,..,..,,..,,,.,,...,.,.,,.,,..,,,,.,.,.,...,.,.,,,,,...,,.,,,,,,,.,,
-#KKFVRYUV3Z6HWIWSQU6KPUM4X2WFD2HYKT7K7WGPSR7HTCEOIHHOEKXT6EJR755NMTNMMKDL52Y7E
-#\\\|RXNNL5ASCSKIPTBC74QLXTOADJNCMZK5JHD2Z6M6ZY4G4GOXTRV \ / AMOS7 \ YOURUM ::
-#\[7]QNVM5CZKHAU4X3RYAG4CCY7YCWIGMW7YBT3A7X6S6GRZU3VRZACA 7  DATA SIGNATURE ::
+#,,,,,...,,,.,.,.,.,.,..,,.,.,.,,,,.,,,,.,..,,.,.,...,...,...,,,,,,.,,..,,...,
+#4I7HWU3A6OWLBACQL5EWA7TNM22F5SA5XUW7FJJKP7U7OSJWJQCJ7JRNHBWBHTMVEKEFBREWRG2HK
+#\\\|U46NBOEE3VD3UXXDHP7UK5WP4OQGFTFFTMFN5XTERBD4A7NQW5R \ / AMOS7 \ YOURUM ::
+#\[7]5WYIGI47BMHOZ5XD2FZDAEWF4PBJM2C6S5S3DDZYKWLO456BZWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

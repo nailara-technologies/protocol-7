@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = coding.callback.http_abort
+# descr = handle an abort triggered by a matching abort-pattern during streaming
+
+my ( $task_id, $http_state, $req_seq ) = @ARG;
+
+return unless defined $task_id;
+
+## resolve async state and ignore stale aborts from a replaced connection ##
+my $state = <[coding.async.state_manager]>->( qw| get |, $task_id );
+return unless defined $state;
+
+my $current_seq = $state->{'request_seq'} // 0;
+if ( defined $req_seq && $req_seq != $current_seq ) {
+    <[base.logs]>->(
+        2, "http_abort: stale abort for %s [ seq %d != %d ], ignoring",
+        $task_id, $req_seq, $current_seq
+    );
+    return;
+}
+
+my $match = ( $http_state // {} )->{'abort_match'} // {};
+
+<[base.logs]>->(
+    0, "http_abort: task %s aborted by pattern %s matched [%s]",
+    $task_id,
+    $match->{'pattern_id'} // '',
+    $match->{'matched'}    // ''
+);
+
+## fail the task so it does not hang waiting for a clean close ##
+<[coding.async.complete]>->(
+    $task_id,
+    {   success     => FALSE,
+        error       => 'abort: pattern matched',
+        abort_match => $match,
+    }
+);
+
+return;
+
+#,,.,,.,,,,,.,...,,,,,..,,,..,..,,..,,,,.,...,..,,...,...,.,,,,,,,.,,,...,,,.,
+#T5PSRGMUPRR56VVCADLW3ETZG4G2YPQOGI5CDDVNRV27S4OATDO5FNRMAEIF4DVTSUUG744HMGIS4
+#\\\|S6JELRXL3TCPCHT4I3ZUMN52L5X6QNYZL6NUXWWAW7DP764FLFB \ / AMOS7 \ YOURUM ::
+#\[7]FIFUPS735J5T5OLG5EGYTX5YLAD2LZNHUEL5WI5FGVBJGXW34EAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

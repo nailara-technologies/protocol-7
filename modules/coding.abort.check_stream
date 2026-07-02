@@ -1,0 +1,97 @@
+## [:< ##
+
+# name  = coding.abort.check_stream
+# descr = test one decoded streaming chunk against the task's bound abort patterns
+
+my ( $state, $data ) = @ARG;
+
+return undef unless defined $state && defined $data;
+return undef unless ref $data eq qw| HASH |;
+
+my $task_id = $state->{'task_id'} // '';
+return undef unless length $task_id;
+
+my $task = <coding.task.queue>->{$task_id};
+return undef unless defined $task;
+
+my $pattern_ids = $task->{'abort_pattern_ids'} // [];
+return undef unless @$pattern_ids;
+
+## extract generated content [ same delta/message path as chunk_handler ] ##
+my $choices
+    = ref( $data->{'choices'} ) eq qw| ARRAY |
+    ? $data->{'choices'}
+    : [];
+my $choice = $choices->[0]       // {};
+my $delta  = $choice->{'delta'}  // $choice->{'message'} // {};
+my $chunk  = $delta->{'content'} // '';
+
+return undef unless length $chunk;
+
+## accumulate model output across chunks for multi-line pattern matching ##
+my $ctx = $state->{'abort_context'}
+    //= { accumulated => '', compiled => undef };
+$ctx->{'accumulated'} .= $chunk;
+
+## compile bound regexes once per stream / abort round ##
+if ( not defined $ctx->{'compiled'} ) {
+    my @compiled;
+    for my $id (@$pattern_ids) {
+        my $pattern_text = <[coding.abort.lookup]>->($id);
+        if ( not defined $pattern_text || !length $pattern_text ) {
+            <[base.logs]>->(
+                0, 'abort.check_stream: pattern %s not found', $id
+            );
+            next;
+        }
+        my $re = eval {qr/$pattern_text/};
+        if ($@) {
+            <[base.logs]>->(
+                0,   'abort.check_stream: invalid regex %s [%s]: %s',
+                $id, $pattern_text, $@
+            );
+            next;
+        }
+        push @compiled, { id => $id, re => $re };
+    }
+    $ctx->{'compiled'} = \@compiled;
+}
+
+my $accumulated = $ctx->{'accumulated'};
+
+for my $entry ( @{ $ctx->{'compiled'} // [] } ) {
+    my $id = $entry->{'id'};
+    my $re = $entry->{'re'};
+    next unless defined $re;
+
+    if ( $accumulated =~ /$re/ ) {
+        my $matched = $& // '';
+        my $context = '';
+        if ( length $matched ) {
+            my $start = $-[0] - 40;
+            $start = 0 if $start < 0;
+            my $len = ( $+[0] - $-[0] ) + 80;
+            $context = substr( $accumulated, $start, $len );
+        }
+
+        <[base.logs]>->(
+            0, 'abort.check_stream: task %s matched pattern %s [%s]',
+            $task_id, $id, $matched
+        );
+
+        return {
+            pattern_id => $id,
+            matched    => $matched,
+            context    => $context,
+            task_id    => $task_id,
+        };
+    }
+}
+
+return undef;
+
+#,,.,,.,,,,,,,,..,,..,.,,,,,.,,,,,...,,.,,...,..,,...,...,.,,,...,.,.,,.,,,.,,
+#OU2CZ5LDPBSAV6I44K2WVT5CNRAQ6MVX4CFA6ENMQ44HCB6HA6CL5L3HAOI26ZBT7E2C7ALRDQARE
+#\\\|SRIZF3EZDFF6M2XTSLP7UYYGSZDERMV6T5Q27EOHWPFXQEV4VUF \ / AMOS7 \ YOURUM ::
+#\[7]4PCSUWISXVA2SXESWXAZVJCFBRXFI35MN7HP5VUY5VMBMV2726DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
