@@ -11,34 +11,11 @@ my $index = {};
 my @active_statuses
     = qw| new assessed review apply applied interviewed rejected skipped |;
 
-for my $status (@active_statuses) {
-    my $dir = "$jobs_root/$status";
-    next if not -d $dir;
-    opendir my $dh, $dir or next;
-    my @files = grep { /\.yaml$/ && !/^\./ } readdir($dh);
-    closedir $dh;
-
-    for my $file (@files) {
-        my $enc_id = $file;
-        $enc_id =~ s/\.yaml$//;
-        my $job_id = <[base.vax-int.decode]>->($enc_id);
-
-        my $job_file = "$dir/$file";
-        my $job      = eval { YAML::XS::LoadFile($job_file) };
-        if ($@) {
-            <[base.logs]>->(
-                0,         'jss.load_all: error loading %s: %s',
-                $job_file, $@
-            );
-            next;
-        }
-        next unless ref $job eq 'HASH';
-        $jobs{$job_id} = $job;
-        $index->{$job_id} = $status;
-    }
-}
-
 ## also index blocked/deleted/trash for completeness, but don't load content ##
+## scanned FIRST : an orphaned terminal-state file left behind by an        ##
+## incomplete cleanup [ e.g. a rescue that didn't remove the old trash      ##
+## copy ] must never win over a legitimate active-status record for the    ##
+## same id -- active statuses are scanned second and take priority below ##
 my @epoch_statuses = qw| blocked deleted |;
 for my $status (@epoch_statuses) {
     my $dir = "$jobs_root/$status";
@@ -75,6 +52,34 @@ if ( -d $trash_root ) {
     closedir $dh;
 }
 TRASH_DONE:
+
+## active statuses scanned SECOND : wins on collision, see above ##
+for my $status (@active_statuses) {
+    my $dir = "$jobs_root/$status";
+    next if not -d $dir;
+    opendir my $dh, $dir or next;
+    my @files = grep { /\.yaml$/ && !/^\./ } readdir($dh);
+    closedir $dh;
+
+    for my $file (@files) {
+        my $enc_id = $file;
+        $enc_id =~ s/\.yaml$//;
+        my $job_id = <[base.vax-int.decode]>->($enc_id);
+
+        my $job_file = "$dir/$file";
+        my $job      = eval { YAML::XS::LoadFile($job_file) };
+        if ($@) {
+            <[base.logs]>->(
+                0,         'jss.load_all: error loading %s: %s',
+                $job_file, $@
+            );
+            next;
+        }
+        next unless ref $job eq 'HASH';
+        $jobs{$job_id} = $job;
+        $index->{$job_id} = $status;
+    }
+}
 
 <jobsite.job.index> = $index;
 
@@ -118,8 +123,8 @@ for my $id ( keys %{$tasks} ) {
 
 return \%jobs;
 
-#,,..,.,,,.,.,,,,,.,.,..,,,..,,,,,,,,,...,,,.,..,,...,...,,..,.,.,,..,,.,,,.,,
-#FN6VOIZP42R7FCS52N6XGPZM5WB4YXDSQ274K4UXPRGMVWBTILSI56QCDLTQ4HUVAXPNWBPLAWXQO
-#\\\|IV2FBAC3KI65REBIQRPXFGFAM4RMVWOSRCOMJDR5FMTGGRZWEMG \ / AMOS7 \ YOURUM ::
-#\[7]2ABBY3CGZLQMRGTBAVPX25D426PO3N6X3PJFU4A2QGE5BUR2D4DY 7  DATA SIGNATURE ::
+#,,,,,...,,,,,,,.,,,,,...,,,,,.,,,.,.,,.,,,,.,..,,...,...,.,,,,.,,,,.,..,,.,,,
+#TZKPB26QIDUFBFOKJJHY5O3HEAOZ2COZMVGULZY7PCGIXASHKYT4JOXEWEKQNOPHOWOGATMCZ74X6
+#\\\|VYBHOCSSKWPOG4UJKQ6QNZ7YESG4PONFJ2GVVMD64DSNQXHLZ7C \ / AMOS7 \ YOURUM ::
+#\[7]GCRSMPWXWIZSN2RBX5YWLSXJQHWW7WNIECI7CCCRRIPW7IE3OOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

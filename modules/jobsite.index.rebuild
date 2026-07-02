@@ -8,27 +8,9 @@ my $index_file = '/var/protocol-7/jobsite/index.yaml';
 
 my $index = {};
 
-## active statuses ##
-for my $status (
-    qw| new assessed review apply applied interviewed rejected skipped |) {
-    my $dir = "$jobs_dir/$status";
-    next if not -d $dir;
-    opendir my $dh, $dir or next;
-    for my $file ( grep { /\.yaml$/ && !/^\./ } readdir($dh) ) {
-        my $job_id = $file;
-        $job_id =~ s/\.yaml$//;
-        my $job = eval { YAML::XS::LoadFile("$dir/$file") };
-        next if $@ or ref $job ne 'HASH';
-        $index->{$job_id} = {
-            'status' => $job->{'status'} // '',
-            'score'  => $job->{'score'}  // '',
-            'stage'  => $job->{'stage'}  // '',
-        };
-    }
-    closedir $dh;
-}
-
-## epoch-bucketed statuses ##
+## epoch-bucketed [ terminal ] statuses scanned FIRST : an orphaned     ##
+## blocked/deleted remnant must never win over a legitimate active     ##
+## record for the same id -- active statuses scanned second, win below ##
 for my $status (qw| blocked deleted |) {
     my $dir = "$jobs_dir/$status";
     next if not -d $dir;
@@ -47,6 +29,26 @@ for my $status (qw| blocked deleted |) {
             };
         }
         closedir $edh;
+    }
+    closedir $dh;
+}
+
+## active statuses scanned SECOND : wins on collision, see above ##
+for my $status (
+    qw| new assessed review apply applied interviewed rejected skipped |) {
+    my $dir = "$jobs_dir/$status";
+    next if not -d $dir;
+    opendir my $dh, $dir or next;
+    for my $file ( grep { /\.yaml$/ && !/^\./ } readdir($dh) ) {
+        my $job_id = $file;
+        $job_id =~ s/\.yaml$//;
+        my $job = eval { YAML::XS::LoadFile("$dir/$file") };
+        next if $@ or ref $job ne 'HASH';
+        $index->{$job_id} = {
+            'status' => $job->{'status'} // '',
+            'score'  => $job->{'score'}  // '',
+            'stage'  => $job->{'stage'}  // '',
+        };
     }
     closedir $dh;
 }
@@ -71,8 +73,8 @@ if ( not rename( $tmp_file, $index_file ) ) {
 
 return TRUE;
 
-#,,..,..,,,.,,,,.,.,.,.,,,,.,,..,,.,,,,,.,,,,,..,,...,...,.,,,.,,,,.,,,,.,,..,
-#LHBT2QFXK47HKPDQBJYKGWHOJSE5T4KYLODTHIFR3FDQMGXVYIWO4XKNCTWKHIVBCHWVBMRV3NJ62
-#\\\|NQWB77L3SCFREOUUDTCNRULRHT2ACLZC6WVCJ66H6M34JZU26EA \ / AMOS7 \ YOURUM ::
-#\[7]XJFMAO54Q4F5GNI4Q6623LZDAN5KDYQOBH2VR56D5ENF2CBFCKBQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,.,.,.,.,.,,,,.,,.,,,,.,,,..,...,..,,...,...,,,.,..,,,..,.,,,..,,
+#QRFA2AFBHVWVLWOU7YRTIID3JRFVQZLWDRFOHLPASHODLE4TKKC22YZMU2TUCKSPCORXVWJDHY2MQ
+#\\\|YKIRLE2HGOVJV54CRPJFAX5T7ZNKKL5KAL7AG66ZNMNZ4I7DFP5 \ / AMOS7 \ YOURUM ::
+#\[7]CTJAELQNHWBLSV5EYLX7ACNZNBJHNTLCKCBPJPRETAEHKN463WDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

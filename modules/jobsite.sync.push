@@ -75,6 +75,10 @@ for my $url (@urls) {
 
     ## forward minimal removal signals : a genuine transition into a       ##
     ## terminal state, tombstoned by job.write, since the real watermark   ##
+    ## defense in depth against a stale tombstone that job.write's own     ##
+    ## prune [ on rescue ] somehow missed : cross-check the job's CURRENT  ##
+    ## status before forwarding, since a rescued job is active again and  ##
+    ## a stale 'trash' signal would otherwise clobber its real data       ##
     for my $entry ( @{ <jobsite.removed_log> // [] } ) {
         next if ref $entry ne 'HASH';
         my $rn_str = $entry->{'ntime'} // '';
@@ -83,8 +87,19 @@ for my $url (@urls) {
             ? ( <[base.ntime_BASE32_to_numerical]>->($rn_str) // 0 )
             : 0;
         next if $real_last_ntime_num and $rn_num <= $real_last_ntime_num;
-        push @changed,
-            { 'id' => $entry->{'id'}, 'status' => 'trash' };
+
+        my $enc_id = $entry->{'id'} // '';
+        my $dec_id = <[base.vax-int.decode]>->($enc_id);
+        my $cur_idx
+            = length($dec_id) ? ( <jobsite.job.index>->{$dec_id} // '' ) : '';
+        ( my $cur_base_status = $cur_idx ) =~ s{:.+$}{};
+        if ( length $cur_base_status
+            and $cur_base_status !~ m{^(?:blocked|deleted|trash)$} ) {
+            <[jobsite.removed_log.prune]>->($enc_id);
+            next;
+        }
+
+        push @changed, { 'id' => $enc_id, 'status' => 'trash' };
     }
 
     next if not @changed;
@@ -135,15 +150,18 @@ $total_jobs += scalar @{ $ARG->{'chunk'} } for @push_queue;
     <[base.cnt_s]>->( scalar @pushed_urls )
 );
 
-<jobsite.sync.push_in_progress> = TRUE;
-<jobsite.sync.push_queue>       = \@push_queue;
-<jobsite.sync.push_urls>        = \@pushed_urls;
-<jobsite.sync.push_reverse>     = [];
+<jobsite.sync.push_in_progress>     = TRUE;
+<jobsite.sync.push_queue>           = \@push_queue;
+<jobsite.sync.push_urls>            = \@pushed_urls;
+<jobsite.sync.push_had_failure>     = {};
+<jobsite.sync.push_total_attempted> = 0;
+<jobsite.sync.push_total_confirmed> = 0;
+<jobsite.sync.push_reverse>         = [];
 
 <[jobsite.sync.push_chunk]>;
 
-#,,,,,,..,,,,,...,..,,,.,,,,,,.,,,.,,,,,.,,,,,..,,...,...,.,,,.,.,,.,,.,,,.,,,
-#DEPVHUDM7QTF6YKBHGCVLLGDLSE22GTDFPYLHQOPU3VQLE2B75QBXIMTC2IF7I4VJVPSGXENPA22M
-#\\\|RHMQCKIXT3RIHNCPLHCEVYW4ARRAWZFRLRC4NSXKARKGEKOPPM3 \ / AMOS7 \ YOURUM ::
-#\[7]RIHNGZFWLSLIE2IK6HTFVDAIICIZSCFURWDRSYMG4LYZBBCD2YCY 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,,.,,,.,,..,,,,.,,,,,..,,,,,,.,,,..,,...,...,..,,.,,,,..,,,.,...,
+#DGFYMTVOGCBCVZTEKN2LO6PP5KFSDA6Y2B4QFC7LMME5AOUXAKHZ6GYUHCVR34H2P4QT5L2XVXKFA
+#\\\|N444BNL76GCHPOTD2BHABILNOUX7MNGZMJ6JP3SDV4LHRBZOMN3 \ / AMOS7 \ YOURUM ::
+#\[7]HTHCM7YDNYE5IKDFFLKTOT3WJPWRZO5UKY3Y5JN5AYQQLKMKC4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

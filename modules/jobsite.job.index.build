@@ -16,21 +16,11 @@ my %epoch_statuses = (
     trash   => qr/\.yxz\.B32$/
 );
 
-## scan active status dirs ##
-for my $status (@active_statuses) {
-    my $dir = "$jobs_root/$status";
-    next if not -d $dir;
-    opendir my $dh, $dir or next;
-    for my $fn ( grep { /\.yaml$/ && !/^\./ } readdir($dh) ) {
-        my $enc_id = $fn;
-        $enc_id =~ s/\.yaml$//;
-        my $id = <[base.vax-int.decode]>->($enc_id);
-        $index->{$id} = $status;
-    }
-    closedir $dh;
-}
-
-## scan epoch-bucketed dirs ##
+## scan epoch-bucketed [ terminal state ] dirs FIRST : an orphaned      ##
+## blocked/deleted/trash file left behind by an incomplete cleanup      ##
+## [ e.g. a rescue that didn't remove the old trash copy ] must never   ##
+## win over a legitimate active-status record for the same id, so      ##
+## active statuses are scanned second and take priority on collision   ##
 for my $status ( keys %epoch_statuses ) {
     my $dir = "$jobs_root/$status";
     next if not -d $dir;
@@ -49,6 +39,20 @@ for my $status ( keys %epoch_statuses ) {
     closedir $dh;
 }
 
+## scan active status dirs SECOND : wins on collision, see above ##
+for my $status (@active_statuses) {
+    my $dir = "$jobs_root/$status";
+    next if not -d $dir;
+    opendir my $dh, $dir or next;
+    for my $fn ( grep { /\.yaml$/ && !/^\./ } readdir($dh) ) {
+        my $enc_id = $fn;
+        $enc_id =~ s/\.yaml$//;
+        my $id = <[base.vax-int.decode]>->($enc_id);
+        $index->{$id} = $status;
+    }
+    closedir $dh;
+}
+
 <jobsite.job.index> = $index;
 
 <[base.logs]>->(
@@ -59,8 +63,8 @@ for my $status ( keys %epoch_statuses ) {
 
 return $index;
 
-#,,,.,,.,,,,.,,,,,...,,.,,,,,,.,.,...,..,,,.,,..,,...,..,,,,,,,,.,.,,,...,,..,
-#OUQABJDQW3YDWFSEV4CILQCA7K6VKSLUCXAB6K64N2GO63KQFNCJ6QL4QUFSA6IAIU3IH4O7JCZIW
-#\\\|ICDPVYVRXFRTTZTJZSSIGJ6DJXIHLHIVSYJVONEFUQSKPJIIED4 \ / AMOS7 \ YOURUM ::
-#\[7]S7RBQO25F66GECWASVWQ7PCXNIMAWQ4NP3RZ6DGWLH2N6UZPLOCQ 7  DATA SIGNATURE ::
+#,,,,,...,..,,,.,,.,.,...,...,..,,...,.,,,,..,..,,...,..,,...,.,,,...,,,,,,.,,
+#RH4OWENXNDXPRWMYZKR7RTHN24QDVED7HA7DXUPOT7V6FDLNWDGHXYTXCGNT4BHI54J2QRX5RHA7M
+#\\\|QKVTZP2KLWFLWCBAL4AFQZ6DFVWA3GTOUOGM55IHGNKGFEWV4PO \ / AMOS7 \ YOURUM ::
+#\[7]CQO5E7VV42ZZOXJPOJDBWNEMPA5CO4UGQILHT26S5VZK6RO5Q6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
