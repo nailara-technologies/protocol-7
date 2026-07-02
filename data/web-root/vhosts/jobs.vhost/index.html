@@ -1574,13 +1574,34 @@ function renderExportFilters() {
     syncAgeAndSinceControls();
 }
 
+/* map of id -> stage as recorded at export time, not just a bare id set --  */
+/* a job whose stage has since changed (e.g. applied -> rejected) is        */
+/* materially different now and should reappear, not stay hidden forever   */
 function loadLastExportIds() {
-    try { return new Set(JSON.parse(localStorage.getItem(LAST_EXPORT_KEY) || '[]')); }
-    catch(e) { return new Set(); }
+    try {
+        const raw = JSON.parse(localStorage.getItem(LAST_EXPORT_KEY) || '{}');
+        /* legacy format: plain array of ids, no stage recorded -- keep those */
+        /* hidden unconditionally since there is nothing to compare against  */
+        if (Array.isArray(raw)) {
+            const m = {};
+            raw.forEach(id => { m[id] = null; });
+            return m;
+        }
+        return (raw && typeof raw === 'object') ? raw : {};
+    } catch(e) { return {}; }
 }
 
-function saveLastExportIds(ids) {
-    localStorage.setItem(LAST_EXPORT_KEY, JSON.stringify([...ids]));
+function saveLastExportIds(map) {
+    localStorage.setItem(LAST_EXPORT_KEY, JSON.stringify(map));
+}
+
+function wasExportedAtCurrentStage(j, lastMap) {
+    /* hidden only if we have a recorded stage AND it still matches now --  */
+    /* legacy entries (migrated from the old bare-id array, no stage known) */
+    /* can't be confirmed unchanged, so they fall through to "include"      */
+    /* rather than hiding forever : that was the actual bug being reported */
+    const recordedStage = lastMap[j.id];
+    return recordedStage != null && recordedStage === j.stage;
 }
 
 function clearExportHistory() {
@@ -1628,10 +1649,10 @@ const EXPORT_STAGE_ORDER = {
 };
 
 function getExportRows(prefs) {
-    const lastIds = prefs.sinceLast ? loadLastExportIds() : new Set();
+    const lastMap = prefs.sinceLast ? loadLastExportIds() : {};
     const rows = sortedJobs()
         .filter(j => prefs.stages.has(j.stage))
-        .filter(j => !prefs.sinceLast || !lastIds.has(j.id))
+        .filter(j => !prefs.sinceLast || !wasExportedAtCurrentStage(j, lastMap))
         .filter(j => !prefs.currentFilter || passesCurrentFilter(j))
         .filter(j => jobAgeDays(j) <= prefs.maxAgeDays);
     /* secondary grouping: status progression, rejected/absage at the bottom */
@@ -1671,7 +1692,9 @@ function exportCSV() {
     const a = document.createElement('a');
     a.href = url; a.download = 'bewerbungen_' + new Date().toISOString().slice(0,10) + '.csv';
     a.click(); URL.revokeObjectURL(url);
-    saveLastExportIds(new Set([...loadLastExportIds(), ...rows.map(j=>j.id)]));
+    const lastMap = loadLastExportIds();
+    rows.forEach(j => { lastMap[j.id] = j.stage; });
+    saveLastExportIds(lastMap);
     localStorage.setItem('jobsite_last_export_time', new Date().toLocaleString('de-DE'));
 }
 
