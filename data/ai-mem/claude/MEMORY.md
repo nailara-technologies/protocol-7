@@ -1,4 +1,5 @@
 ## CRITICAL
+- [ondemand starting-flag race](topic-ondemand-starting-flag-race.md) — OPEN, task zenka's zenki.virtual.717373 still stuck live since 2026-07-03; confirmed real race via cube log (reply arrived, route already gone) but exact deleting code path never found after 6 ruled-out theories (2 dispatched to other models); owner leaning toward full refactor of on-demand start/route/reply subsystem — read file before re-theorizing
 - [web-browser ephemeral storage](feedback-web-browser-ephemeral-storage.md) — web-browser zenka runs WebKit ephemeral (cfg.ephemeral=1): localStorage/cookies wiped on every restart, silently; treat as volatile, never durable
 - [jobsite pending_count orphan gap](topic-plugin-web-jobs.md) — OPEN, not fixed: restart mid-assessment-batch orphans persisted pending_count while in-memory assess_queue is lost, sticks cycle on 'assessing' forever; see 2026-07-01 latest-2 section
 - [UNCOMMITTED 2026-06-21](coding-zenka-improvement-pipeline.md) — result_constraint+tiered-escalation implemented+verified but NOT committed; see file for pending list
@@ -213,8 +214,8 @@
 - **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
 
-#,,..,,.,,,,,,.,,,...,...,...,..,,,,.,,,.,..,,..,,...,...,...,,,.,,.,,,,.,,..,
-#PMVKK6XMBVC57AJP6JODINBCS7DLVHNOFODHZ6TT6ISNDAYAEIPXTZI5UNWNZ4IM6PUPY622NH5CQ
-#\\\|HZL3CJ5DHG4KLWKVNDLSTFG5CB7KXSM666XM3EUMZECWAISH4SX \ / AMOS7 \ YOURUM ::
-#\[7]Z2VRUEQYVLCX6Y4AHTNI6C2RQDXJAP33L2KY6XQVQ6XTA5DQTYDQ 7  DATA SIGNATURE ::
+#,,..,,..,,..,.,.,,,,,,,,,,..,,..,.,,,,,.,...,..,,...,...,,..,,..,.,.,.,.,...,
+#F2KDCGCKSXOF5N4HYM3TUBYWVHEHEASOAJI2VS5CSU3RJVS6BWYV54FWQAIZU5ZXKJTCPSZPIA4QE
+#\\\|VER5OWKYHWIEWOFV5U736V3FMAUHZYCSFTAEOXGSYZYZWAMV55O \ / AMOS7 \ YOURUM ::
+#\[7]XUBGJ4M3KMSVTJYQ5AR4Q3XOQV5O6LGVIBOELZVR4JPCWUEUHEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
