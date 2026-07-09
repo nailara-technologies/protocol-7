@@ -23,6 +23,22 @@ my $job_rec = <jobsite.tasks>->{$job_id};
 if ( not defined $job_rec ) {
     <[base.logs]>->( 0, ':assess-done: unknown job %s', $job_id );
     <jobsite.pending_count>--;
+    if ( <jobsite.pending_count> <= 0 ) {
+        <jobsite.pending_count> = 0;
+        <jobsite.cycle>         = 'idle';
+        <[base.logs]>->( 1, 'all assessments complete, cycle=idle' );
+        if (<jobsite.sync.push_in_progress>) {
+            ## current push already collected its job list; schedule follow-up ##
+            <jobsite.sync.push_after_assess> = TRUE;
+            <[base.logs]>->(
+                1, 'assess-done: sync push in progress, scheduling follow-up'
+            );
+        } else {
+            <[jobsite.sync.push]>->( undef, FALSE )
+                ;    ## push results to web immediately ##
+        }
+    }
+    <[jobsite.dispatch.next]>;
     return;
 }
 
@@ -281,8 +297,8 @@ if ( <jobsite.pending_count> <= 0 ) {
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.next]>
 
-#,,.,,,,.,...,,,,,..,,,..,...,.,.,,,,,..,,..,,..,,...,...,.,.,...,.,.,.,,,.,,,
-#MVSAWBR3OZFDCCXH4NVVNQRKNY6UCYUWTEUELX5WY4WP2RAUA4NWKEYZAJ32R3PI5H2NRXVVF527O
-#\\\|WHBBZBA32MARV5GOIVE2BGLBBK2APPMDD4JDSLCY2IUMH4KBEOQ \ / AMOS7 \ YOURUM ::
-#\[7]QSK4J3ZDXDBHYK6IHJROVIEONUD4SUHUITNV75EXILIKINBE3ACA 7  DATA SIGNATURE ::
+#,,..,...,.,,,.,.,,.,,...,...,.,,,...,...,,..,..,,...,...,...,...,,.,,,.,,,,.,
+#YPV6IIXJEXW3HDVPC6FXD2ZU3YRBJHOU7IMSTHORXIVJBDFSCG5UB2DFQNJI2O7TCZEO6BWZZJDSE
+#\\\|A5XZVT7PTYZMQOAUBCDDFIH64C4TCK3W7RDYI7U3D4NMKWW47SD \ / AMOS7 \ YOURUM ::
+#\[7]KF73MQ2IU5IMH76RZPNPHT2R34E23PXBGFNKMWMQEKBPGPE7YEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
