@@ -1,7 +1,7 @@
 ## [:< ##
 
-# name  = mpv.handler.reposition_reply
-# descr = window-place coords reply: apply new geometry to running player
+# name  = storchencam.handler.reposition_reply
+# descr = window-place coords reply: apply geometry to window
 
 my $reply = shift // {};
 my $mode  = lc( $reply->{'cmd'} // '' );
@@ -29,12 +29,12 @@ my $geometry = sprintf '%dx%d+%d+%d',
     $geo{'width'}, $geo{'height'}, $geo{'x'}, $geo{'y'};
 
 ## cache the new profile ##
-my $caller = <mpv.startup.caller> // <system.zenka.name> // 'mpv';
+my $caller = <system.zenka.name> // qw| storchencam |;
 <[window.profile.save]>->(
     $caller, $geo{'x'}, $geo{'y'}, $geo{'width'}, $geo{'height'}
 );
 
-## apply to running player via X-11 ##
+## apply to running storchencam window via X-11 ##
 my $window_id = <x11.id>;
 if ( defined $window_id ) {
     <[protocol-7.route-send]>->(
@@ -45,13 +45,15 @@ if ( defined $window_id ) {
     );
     <[base.logs]>->( 1, '[reposition] applied geometry [%s]', $geometry );
 } else {
+    ## expected when no storchencam window is currently open ##
+    ## profile is saved above, will apply on next sdl_loop ##
     <[base.logs]>->(
-        0, '[reposition] no x11 window id — geometry not applied'
+        1, '[reposition] no window open — geometry saved for next open'
     );
 }
 
-#,,.,,.,,,,,,,..,,,..,,,.,..,,,,,,.,,,...,,,,,..,,...,...,,,.,.,.,.,.,.,,,,,.,
-#GQ5EPP2MLYKZVN4FPLM2UKK7DLFTEZQEDGALVQZNGJWX4SQDJ5VS3Y4RYG6FF43RUL7SVYC4ECJBY
-#\\\|I7NGNFZRN3DKCXJCYYNLGQT6XUEIQEB5AH6R7UPS7QRHPBFNQUQ \ / AMOS7 \ YOURUM ::
-#\[7]ZUOVI7HH5YCMCLQLUTAKIF5C225OT43OSMGK2RPIGC26WKPBHCAI 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,..,,..,,..,,,.,.,.,..,,.,,,.,,,..,,...,...,..,,.,,,.,.,,.,,,..,
+#SORJEWR2VLZCN6I6GKVTQGLLHGCEL7SKWEQPHUI4YQYXDYC63YXS2CJTRY3OMTA2NTOGR6QZXHZZS
+#\\\|DNLCV6BTSB4IR3A4BZX5XQDUTALIOABRVCNQT4VUGW4PLKFRVQ3 \ / AMOS7 \ YOURUM ::
+#\[7]VG4NLUR62YDRFELBEXWRCHTONULTULL5FVLSMUATEDRTZDMRZAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = storchencam.handler.screen-change_strm_open
+# descr = reply handler for X-11 screen-change STRM subscription
+#         registers local consumer feeding lines to storchencam.screen-change
+
+my $reply = shift;
+
+if ( $reply->{'cmd'} eq qw| FALSE | ) {
+    <[base.logs]>->(
+        2,
+        'storchencam screen-change subscribe refused: %s',
+        $reply->{'call_args'}->{'args'} // 'unknown error'
+    );
+    return;
+}
+
+return if $reply->{'cmd'} ne qw| STRM |;
+return if $reply->{'args'} ne qw| open |;
+
+my $cmd_id = $reply->{'cmd_id'};
+return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
+
+<[base.strm.local.register]>->(
+    $cmd_id,
+    {   'watcher' => sub {
+            my $lc = shift;
+            return if not length $lc->{'buf'};
+
+            my $data = $lc->{'buf'};
+            $lc->{'buf'} = '';
+
+            for my $line ( split /\n/, $data ) {
+                next if not length $line;
+                <[storchencam.screen-change]>->($line);
+            }
+        },
+    }
+);
+
+<[base.logs]>->(
+    2, 'storchencam screen-change STRM consumer registered [cmd_id=%d]',
+    $cmd_id
+);
+
+return;
+
+#,,..,.,.,,..,,..,...,,.,,,,.,,..,.,.,...,,,.,..,,...,...,.,,,,,.,...,,,,,,.,,
+#ZE6YAA3CSUEWKOEGNIKFI5NKMRO5UYGRGZ75GLR6UALANTK6ECD3Y6SZDG3VYJWVKTQEZQ4W4U2ZY
+#\\\|MG3RT7GRUIRNGEDBRRGMM2IML5DXB5URFRIA2NT2H7FHEKXQJ5O \ / AMOS7 \ YOURUM ::
+#\[7]T4IBLYCMRLFDWOKZFPXA5J2IC4H346PXAJQXMLTG42XBV4D4RSDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

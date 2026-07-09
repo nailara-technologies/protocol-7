@@ -38,6 +38,29 @@ my $mask_left_corner = <storchencam.mask_left_corner>;
 
 my $font_size = <storchencam.font_size>;
 
+## resolve initial geometry through profile / tile / default layer ##
+my $caller   = <system.zenka.name> // qw| storchencam |;
+my $geometry = <[window.geometry.resolve]>->();
+
+if ( defined $geometry
+    and $geometry =~ m{^(\d+)x(\d+)\+(-?\d+)\+(-?\d+)$} ) {
+    my ( $w, $h, $x, $y ) = ( $1, $2, $3, $4 );
+    <x11.coordinates> = {
+        'left'   => $x,
+        'top'    => $y,
+        'right'  => $x + $w,
+        'bottom' => $y + $h
+    };
+    <[base.logs]>->(
+        1,       '[sdl_loop] resolved geometry for %s: %s',
+        $caller, $geometry
+    );
+} else {
+    <[base.log]>->(
+        0, '[sdl_loop] window.geometry.resolve returned no geometry'
+    );
+}
+
 die "no coordinates received" if not exists <x11.coordinates>;
 my $coord = <x11.coordinates>;
 ( $screen_width, $screen_height ) = (
@@ -324,8 +347,8 @@ while (1) {
     <[storchencam.util.loop_wait]>->(0.222);
 }
 
-#,,..,,,,,,,.,..,,..,,,..,...,.,.,...,.,.,.,,,..,,...,..,,,.,,...,.,,,,.,,,,.,
-#AJXNJLPRPZJBFXB2PG4WIKRZAA6UD2YO7ONZ5VSM5SVG6EH2K2D2AGVN5JOIGH6TJYGC3F6UERS6G
-#\\\|CTTLQXQB3K5JH3QYV363U3M2DKSCJARCOUGS2NPJ4SINKXPPGMP \ / AMOS7 \ YOURUM ::
-#\[7]SKK2C3CFX5NH4IHK4CB6ECP57GSHCE3MCR25UF6IEIDDU36ANMAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,..,,,..,,.,,.,,,...,..,,.,,,..,,..,,...,...,..,,...,..,,..,,..,,
+#QJAXY4JXSPTRBXJXEY5FNR6FPXPIFD6QFIPXJNZHH4MSU6FMSBTS27J7IOYP7MX6VV3OYHKVQXUTU
+#\\\|QHEZ6UFQMKOFNGFKKDLC5YNTJABDEGVDQYSSQB6KM3NEJ5W5HTR \ / AMOS7 \ YOURUM ::
+#\[7]BBJ6KBHNT3CBXQ43RBSCUASK544VHUH36QFOKWNVFXNO3CUZXQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
