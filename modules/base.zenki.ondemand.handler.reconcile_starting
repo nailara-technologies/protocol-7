@@ -1,0 +1,71 @@
+## [:< ##
+
+# name  = base.zenki.ondemand.handler.reconcile_starting
+# descr = watchdog : reconcile a stuck ondemand 'starting' flag ..,
+
+my $event  = shift;
+my $data_h = $event->w->data;
+my $v_id   = $data_h->{'v_id'};
+
+my $v_zenka = <zenki.virtual>->{$v_id};
+
+return if not defined $v_zenka;    ##  de-registered meanwhile ..,  ##
+
+delete $v_zenka->{'timer'}->{'starting_watchdog'};
+
+return if not exists $v_zenka->{'starting'};    ##  already resolved ..,  ##
+
+my $zenka_name = $v_zenka->{'name'};
+
+if ( exists $data{'user'}{$zenka_name}{'session'}
+    and keys %{ $data{'user'}{$zenka_name}{'session'} } ) {
+
+    ##  actually online ., reply got lost : re-fire notify_online ..,  ##
+    <[base.logs]>->(
+        0,
+        "ondemand '%s' : starting watchdog fired but zenka is online ., "
+            . 're-firing notify_online to rescue queued commands.,',
+        $zenka_name
+    );
+
+    <[protocol-7.command.send.local]>->(
+        {   'command'   => qw| v7.notify_online |,
+            'call_args' => { qw| args | => $zenka_name },
+            'reply'     => {
+                'handler' => qw| base.zenki.ondemand.handler.startup_reply |,
+                'params'  => { qw| v_id | => $v_id }
+            }
+        }
+    );
+
+} else {
+
+    ##  genuinely gone ., fail queued commands back and clear starting ..,  ##
+    my $queue_len = scalar $v_zenka->{'queue'}->@*;
+    <[base.logs]>->(
+        0,
+        "ondemand '%s' : starting watchdog fired, zenka not online ., "
+            . 'failing %d queued command%s back .,',
+        $zenka_name,
+        $queue_len,
+        <[base.cnt_s]>->($queue_len)
+    );
+
+    while ( my $element = shift $v_zenka->{'queue'}->@* ) {
+        my $src_id = $element->{'source_id'};
+        next if not exists $data{'session'}{$src_id};    ##  gone.  ##
+        $data{'session'}{$src_id}{'buffer'}{'output'}
+            .= <[base.sprint_t]>->( qw| USMP72A |, $element->{'src_cmd_id'} );
+    }
+
+    delete $v_zenka->{'starting'};
+    delete $v_zenka->{'starting_since'};
+}
+
+return TRUE;
+
+#,,,,,,,,,,.,,.,.,,,,,,,,,.,,,,..,.,.,...,,,,,..,,...,...,..,,,,.,,.,,,..,,.,,
+#BJF6SATPNZIVBE5IZBUQZRFPAOFFT446YKBOXPIPR2B46J3YXC5CR2TBNQCQGKH6WUCLB6DGR42KO
+#\\\|6GNOF33W7XYRONZZWH3CZON3WTU4M4FBBVMMV2F3MJC2BIEJV2Q \ / AMOS7 \ YOURUM ::
+#\[7]7PQ7DVLGTDBIZYPBICPDCNV3EZNOWPHG26AVS22C5XGBND2PWEDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

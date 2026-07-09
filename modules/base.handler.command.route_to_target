@@ -148,6 +148,21 @@ elsif ( $cmd =~ m|^\^(\w+)\.([^\.]+)$| )
 
             if ( not exists <zenki.virtual>->{$v_id}->{'starting'} ) {
                 <zenki.virtual>->{$v_id}->{'starting'} = 5;    ## true ##
+                <zenki.virtual>->{$v_id}->{'starting_since'}
+                    = <[base.time]>->(3);
+
+                ##  watchdog : reconcile if the reply never arrives  ##
+                my $starting_timeout
+                    = <system.ondemand_starting_watchdog_timeout> // 90;
+                <zenki.virtual>->{$v_id}->{'timer'}->{'starting_watchdog'}
+                    = <[event.add_timer]>->(
+                    {   'repeat'  => FALSE,
+                        'after'   => $starting_timeout,
+                        'handler' =>
+                            qw| base.zenki.ondemand.handler.reconcile_starting |,
+                        'data' => { 'v_id' => $v_id }
+                    }
+                    );
 
                 my $start_name = <zenki.virtual>->{$v_id}->{'name'};
 
@@ -378,8 +393,8 @@ elsif ( $cmd =~ m|^\^(\w+)\.([^\.]+)$| )
 
 return undef;    ##  fell through : caller handles unknown-command  ##
 
-#,,..,..,,,.,,...,..,,,,.,...,.,,,...,,,,,.,.,..,,...,...,.,.,..,,..,,.,.,,,.,
-#AVEB5Y3QWSWRNQTSVL4GQESQ4CJFKL4YFGDTSYUAEC5QHHQNK7RUK5JTTB6JYAW64D7A4CHCLHA5E
-#\\\|IHQUZVPTIUJFJH3UZJYPPSC64AILH3NFYIZKO5YRJSQDKWCDMIT \ / AMOS7 \ YOURUM ::
-#\[7]63D73JJ44ZY3G5LFQQW3WW3LOERIZIIAMNIH7NVZFDB7SUONCMDA 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,,..,...,,,.,..,,,,,,,.,,...,..,,..,,...,...,,..,...,,,,,,.,,.,,,
+#4DIDORTWHUOESNRMNPTC23XNPDBDADLXRX2HFIAIXZ7PULAI3FJXMBMRW6TIBMAIP7BMXP5UZVJF6
+#\\\|HXK2E3CRAYZLUGVZKFMU4JEQZ26732UIEINSRSA45E7VOPSCIML \ / AMOS7 \ YOURUM ::
+#\[7]CWDT74N635SGMLSJ32I4BQWOTEUCDNKPNNY6QP33MUJAZLDRGKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
