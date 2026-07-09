@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = impressive.screen-change
+# descr = on X-11 screen-change, re-query placement geometry
+
+my $args = shift // '';
+my ( $w, $h ) = split( ' ', $args );
+$w //= 0;
+$h //= 0;
+
+<[base.logs]>->( 1, '[screen-change] %dx%d', $w, $h );
+
+return if not defined <x11.id>;
+
+my $caller = <system.zenka.name> // qw| impressive |;
+
+## re-query geometry through the placement infrastructure ;
+## window-place.coords returns the saved profile instantly if one exists,
+## otherwise opens the placement ui so the user can pick a new position.
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| window-place.coords |,
+        'call_args' => { 'args' => sprintf 'caller=%s', $caller },
+        'reply' => { 'handler' => qw| impressive.handler.reposition_reply | }
+    }
+);
+
+return;
+
+#,,,.,..,,..,,...,,..,,,,,,,,,,.,,.,.,,,,,..,,..,,...,..,,,,,,,.,,.,.,,,,,.,.,
+#CNXMGHMSOJMVH6N7TVBOW6HNZO3CNMJ2P7IYPVSRHSCX6GQNE3YXYRIPK4CF67XQNWYYCJLJ3F4NK
+#\\\|P3KWAXVISU3MAIX4HKFPCU4QVKIY24MAG6SEE24IQSWDVB7VMEX \ / AMOS7 \ YOURUM ::
+#\[7]TP2NCMDITYNWET3YF3THVS3YHX2AASWLWU6EQQDWCXHEVWBL36AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
