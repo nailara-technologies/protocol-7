@@ -7,6 +7,48 @@ metadata:
   originSessionId: 095ef9b6-c744-46c5-bac8-4d54a2d5ce45
 ---
 
+## Session 2026-07-09 — delete-during-assessing stuck bug, fixed (staged, not yet committed)
+
+**Reported by user**: deleting a job while it's still `assessing` (coding zenka mid-inference)
+never gets a resolution signal back to jobsite — job stays stuck in `assessing` forever
+(`pending_count`/`cycle` never clear). Distinct from the older restart-mid-batch orphan gap
+(see CRITICAL line above) — this is a delete-triggered stall, not a restart-triggered one.
+
+**Investigation found two separate id spaces, not one bridged system**: jobsite's generic
+`<task.queue>` task_id (from `task.cmd.create`, resolved via `task.wait-done`/`task.fail`/
+`task.complete`) is entirely disjoint from the coding zenka's internal `<coding.task.queue>`
+id (`task-<checksum>` format, used by `coding.cmd.abort-inference`/`coding.async.complete`).
+Nothing in `jobsite.*` ever calls into `coding.cmd.abort-inference` — no translation path
+exists between the two id spaces in this codebase.
+
+**Fix scoped to the generic task_id jobsite actually holds** (doesn't touch coding-zenka
+internals — the underlying inference will still run to completion in the background,
+wasting compute; that's a separate resource-efficiency task, not this stuck-state bug):
+- `jobsite.sync.apply_reverse` (delete branch): now checks if the deleted job's
+  `<jobsite.tasks>` record had `stage eq 'assessing'` with a live `task_id`; if so, deletes
+  the tasks-hash entry *first*, then sends `task.fail` on that task_id. Ordering matters —
+  deleting first means the async `task.wait-done` reply lands on `assess-done`'s
+  "unknown job" branch instead of re-writing the job file that was just marked `trash`.
+- `jobsite.handler.assess-done` "unknown job" branch: was missing BOTH the idle-transition
+  check (`pending_count<=0` → `cycle=idle` → push) AND the `dispatch.next` call that the
+  normal completion path already has — meaning any job that went missing by the time its
+  task resolved (not just newly, via this delete path — could already happen if a task
+  resolved after some other removal) would silently stall the whole pipeline waiting for a
+  slot that would never free up. This was a real pre-existing bug independent of the new
+  delete-triggered abort, now fixed by mirroring the normal path's logic exactly.
+
+**Self-caught bug during the fix**: first draft used `my $was_assessing = ref $rec eq 'HASH'
+and (...)` — the classic Perl `and`-in-my-assignment precedence trap
+([[feedback-perl-and-or-precedence-in-my-assignment]]), only assigns the left side. Caught
+before commit, changed to `&&`.
+
+**Verification**: `p7c jobsite.reload source` succeeded, zenka stayed alive (uptime
+didn't reset). No live end-to-end test yet — `jobsite.status` was `idle` all session, no
+job in `assessing` state to exercise the delete-mid-flight path. User expects a real test
+opportunity by 2026-07-13 (Monday) at the latest when the next scan finds new jobs. Signed
+and staged, not yet committed as of this writing — **watch for the Monday test result and
+update this entry with pass/fail**.
+
 ## Session 2026-07-01 (latest-2) — dispatch-race self-heal, orphaned-file cleanup, self-match regression + 14-job rescue
 
 **Landed (commits `87a3469c4`→`c4b6aec62`, same session continued)**:
@@ -324,8 +366,8 @@ jobsite.cfg.sync_interval = 300
 - reset button: clears jobs + userDecisions + lastNtime (destructive, dialog warns)
 - 30s auto-poll via `startPoll()` using `?since=lastNtime` delta
 
-#,,.,,,,.,,,.,,,,,,..,.,.,.,.,,.,,.,,,.,.,...,..,,...,...,,..,...,,..,,,,,.,,,
-#JKTFMVRIOKLUYYP5IDXWS3QQZ5RCOYFO4R4QLTVZEITEAC6DWBC2YF4EAXTU4M46SLUUCZXVWMVD2
-#\\\|LN4AXSVIPQYQBTVXTIHTAXOY3B7CANX3N2IW2SHETUALMF3OPBA \ / AMOS7 \ YOURUM ::
-#\[7]2Y4THYBFJT7W5QTI4Y7PHFKMLOLKLVQH26WVDNNAFD5MM4JAXKDA 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,,.,,...,,,,,,..,,,,,,..,,.,,.,,,..,,...,...,,..,,.,,..,,,,.,,,,,
+#26GBG2J7KJAIV4WNKUZG5QUKW6GILN7RO3BBI3M6WBZIXFDT2OKG24GJGIY4CLGP7YYSHIFHF3FXM
+#\\\|NN227Q66AS2SGPJTHBS6PSKJH5B43NR4NLCZUB3WPHOHIP4TTYQ \ / AMOS7 \ YOURUM ::
+#\[7]2ZERRHZSHHINHOMM3PDGKYWRELUBDTOB7LYZXT2SMVMDDF3T5ODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

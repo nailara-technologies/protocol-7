@@ -30,8 +30,38 @@ for my $entry ( @{$entries} ) {
         $job->{'stage'}  = 'trash' if length( $job->{'stage'} // '' );
         $job->{'trash_epoch'} //= <[base.ntime.epoch_timestamp]>;
         <[jobsite.job.write]>->( $id, $job );
+
+        ## mid-assessment : the coding zenka may still be working this job's
+        ## task. fail the generic task now so the task.wait-done watcher
+        ## resolves instead of leaving pending_count/cycle stuck forever.
+        ## grab the record before deleting it, but delete it FIRST so the
+        ## async reply lands on assess-done's unknown-job path and doesn't
+        ## re-write the job file we just trashed ##
+        my $rec
+            = ( ref <jobsite.tasks> eq 'HASH' )
+            ? <jobsite.tasks>->{$id}
+            : undef;
+        my $was_assessing
+            = ref $rec eq 'HASH' && ( $rec->{'stage'} // '' ) eq 'assessing';
+        my $task_id = ref $rec eq 'HASH' ? $rec->{'task_id'} : undef;
+
         delete <jobsite.tasks>->{$id}
             if ref <jobsite.tasks> eq qw| HASH |;
+
+        if ( $was_assessing and length( $task_id // '' ) ) {
+            <[protocol-7.route-send]>->(
+                {   'command'   => 'task.fail',
+                    'call_args' => { 'args' => "$task_id job deleted" },
+                }
+            );
+            <[base.logs]>->(
+                1,
+                'jss.sync.apply: aborted in-flight task %s for deleted job %s',
+                $task_id,
+                $id
+            );
+        }
+
         <[base.logs]>->( 1, 'jss.sync.apply: trashed %s', $id );
         next;
     }
@@ -174,8 +204,8 @@ for my $entry ( @{$entries} ) {
     }
 }
 
-#,,,,,...,,.,,,,,,...,,.,,.,,,,..,,,,,...,...,..,,...,...,...,,,.,.,,,,..,,..,
-#U7WKATZ2LPTAS7KX2YONFACBM4KJXHW2BSOLKHY7URBSBUCS2DPCT5HIJ3SKPGSFXPZNSDBYJ4H2C
-#\\\|E56JLJTGVRF5CB7Y5PMQ3HJ7NMESGWICENSACMOAYFAQBFD65P6 \ / AMOS7 \ YOURUM ::
-#\[7]4SSJQXLMHH6CXQEM5TOHN2V7DVXUQOQDZVBIE3IB2P53LLEFYGAQ 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,,,,,...,...,...,,,.,,..,...,.,,,..,,...,...,,.,,,..,...,,..,,..,
+#YGVAVEDS4TRZLDXXAYFBFSEEZSZ6JROW2NMYKEN67LFD4SVHT35V2O3IRNLHI53SBAKRDJJUKAKKS
+#\\\|TPPMI3U6U6IVCIIJQTBJC54FIL7ZIIJE6QSBXXBL5ZZJTPND3XA \ / AMOS7 \ YOURUM ::
+#\[7]N6GOA3R2ZJP7YEE26MS4TDVJKEFDMF73RBLFOLZ3HKVVQD7RGIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
