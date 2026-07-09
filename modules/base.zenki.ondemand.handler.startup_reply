@@ -9,6 +9,11 @@ my $v_id       = $reply->{'params'}->{'v_id'};
 my $zenka_name = <zenki.virtual>->{$v_id}->{'name'};
 
 delete <zenki.virtual>->{$v_id}->{'starting'};
+delete <zenki.virtual>->{$v_id}->{'starting_since'};
+if ( defined <zenki.virtual>->{$v_id}->{'timer'}->{'starting_watchdog'} ) {
+    <zenki.virtual>->{$v_id}->{'timer'}->{'starting_watchdog'}->cancel;
+    delete <zenki.virtual>->{$v_id}->{'timer'}->{'starting_watchdog'};
+}
 
 if ( $reply->{'cmd'} eq qw| FALSE | ) {
     my $reason = $reply->{'call_args'}->{'args'};
@@ -87,8 +92,8 @@ if ( $reply->{'cmd'} eq qw| FALSE | ) {
     }
 }
 
-#,,,.,.,,,,.,,.,,,,..,,.,,,..,.,.,...,..,,,,,,..,,...,...,.,.,,.,,,,.,,.,,.,.,
-#56IM5GHKXTC2HDBOT324GVSX36ZEWG6FUXU6A4QAQ6FGANWUR6CZHOK5AIBQALYHGPPM766BXG4LM
-#\\\|DRYTA4S7LLYMOOTN7WFCHLGT2ZZCG7GX73SQSOATIQGYFKHBRYJ \ / AMOS7 \ YOURUM ::
-#\[7]LXODQOA3AGUPG5MMINONRJTCQXNKUFYS43W6S2G5K2XYST3RQSDI 7  DATA SIGNATURE ::
+#,,..,,,,,...,,.,,.,,,,.,,,,,,,,,,,,.,,,.,,,.,..,,...,...,.,,,,,.,..,,...,...,
+#UADLE6IOLIS7YYI4GWCGVAOVVDJTVRKGCR3G6L3PYC42U73AES37V6NSHSI24UYIIW42V3TI24QZG
+#\\\|6BB3EPTG4AZ6ME4IYRW32FNFIVM2BJZOW66VECQJG3P7MMT7AX6 \ / AMOS7 \ YOURUM ::
+#\[7]2R5Y3UD36KMRKNDLXRZHW55QAVNR5GV4RC6UB3NEWNRJXEKITYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
