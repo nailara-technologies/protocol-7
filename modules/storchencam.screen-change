@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = storchencam.screen-change
+# descr = on X-11 screen-change, re-query placement geometry
+
+my $args = shift // '';
+my ( $w, $h ) = split( ' ', $args );
+$w //= 0;
+$h //= 0;
+
+<[base.logs]>->( 1, '[screen-change] %dx%d', $w, $h );
+
+return if not defined <x11.id>;
+
+my $caller = <system.zenka.name> // qw| storchencam |;
+
+## re-query geometry through the placement infrastructure ;
+## window-place.coords returns the saved profile instantly if one exists,
+## otherwise opens the placement ui so the user can pick a new position.
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| window-place.coords |,
+        'call_args' => { 'args' => sprintf 'caller=%s', $caller },
+        'reply' => { 'handler' => qw| storchencam.handler.reposition_reply | }
+    }
+);
+
+return;
+
+#,,,.,.,,,,,.,..,,.,,,,,.,,.,,,..,.,.,..,,..,,..,,...,..,,...,,.,,,,,,,.,,.,,,
+#5AHR3B53YBBL6WTOGIOKM6R7KFCKLQXN3BCQ3VZUOLKCO2EBP64D7HDIKNXCQC4Y6JRXPIGSXJG6A
+#\\\|MHMUHVUTV3OMOON7CHSLTY2FPU3RU4NX7GK3T366Q57AHCPZS3J \ / AMOS7 \ YOURUM ::
+#\[7]OWSM6QV2A2EFSSNW2B2UKDTIFSHLJG7OT4NDUL76OIVUNWCS4QAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
