@@ -10,7 +10,7 @@
 
 
 access.cmd.usr.cube = verify-instance heart commands enable_time enable_temp \
-                                              disable_time disable_temp reposition
+                                         disable_time disable_temp reposition
 
 
 storchencam.image_url  = 'http://85.220.149.7/record/current.jpg'
@@ -30,6 +30,15 @@ storchencam.font_size = 11
 storchencam.http_timeout = 13 # seconds
 storchencam.http_maxsize = 7340032 # 7 MB image size limit
 
+## route image downloads through an http proxy [ eg. the hysteria proxy, ##
+## same as $http_proxy in the shell ] - helps a lot against high-        ##
+## frequency polling traffic loss on flaky links ; empty [ default ] =   ##
+## direct connection                                                     ##
+#
+storchencam.http_proxy = ''
+#
+## storchencam.http_proxy = 'http://10.0.110.7:4040'
+
 storchencam.display_temp     = 1
 storchencam.display_time     = 1
 storchencam.mask_left_corner = 1
@@ -48,8 +57,8 @@ modules.load = auth net protocol io.unix ui storchencam \
 
 [storchencam.sdl_loop]
 
-#,,,.,.,,,.,.,.,,,.,,,,,,,,.,,.,,,...,,,,,,..,..,,...,...,..,,..,,...,,,.,,..,
-#NDCXM2AUIP2GZEP4LVJSA5K3KAR2KGX27EXVWJS4QEOGCJLOPEDTT7RSIVZFMETNQ57SXQ4MRHDP6
-#\\\|VRJZY5TJDYTQBFX2PUVN3RCZLQFO6B6O7I4Q63EOQ6VNFNNEKYY \ / AMOS7 \ YOURUM ::
-#\[7]L7R4XL6N42EJIP4EBVZXPABUGRLB4R7LOKQFKVOI2ENZMV4Q64DI 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,...,.,,,,..,,..,.,.,...,...,,.,,..,,...,...,,,.,,.,,..,,,..,.,.,
+#FIKNR45NWURD7OJWOJF76CZHYFKZBGABNKJ6EDUVQ4ZAWTTWSKXD4LGUM4XJ456U3TGZC66S4LCFC
+#\\\|KQCA7CALOJ2FFP2UI4RBB5GEJ6SIFQCEJZZJMQPTTQFMTHQ5P25 \ / AMOS7 \ YOURUM ::
+#\[7]VJMLFAFYBVRHQF2ZUCSOVFRLWDSXLUKESZAK672FU6UBQLKUL2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

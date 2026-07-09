@@ -10,14 +10,24 @@ my $current_res_h = 480;
 $ENV{'DISPLAY'}         = <x11.display>;
 $ENV{'SDL_AUDIODRIVER'} = 'disk';
 
-my $http = LWPx::ParanoidAgent->new();
+## ParanoidAgent refuses to work through a proxy [ its own SSRF checks  ##
+## become the proxy's job at that point ] - fall back to plain         ##
+## LWP::UserAgent when storchencam.http_proxy is configured            ##
+my $http;
+if ( length <storchencam.http_proxy> ) {
+    $http = LWP::UserAgent->new();
+    $http->proxy( [ 'http', 'https' ], <storchencam.http_proxy> );
+    <[base.logs]>->( 1, ': using http proxy [%s]', <storchencam.http_proxy> );
+} else {
+    $http = LWPx::ParanoidAgent->new();
+    $http->whitelisted_hosts( sub { return 1 } );
+}
 
 my $image_data;
 my $last_modified      = '';
 my $max_size           = <storchencam.http_maxsize> // 1024 * 1024 * 10;
 my $resolution_changed = 0;
 
-$http->whitelisted_hosts( sub { return 1 } );
 $http->agent(<storchencam.user_agent>);
 $http->protocols_allowed( [ 'http', 'https' ] );
 $http->timeout(<storchencam.http_timeout>);
@@ -347,8 +357,8 @@ while (1) {
     <[storchencam.util.loop_wait]>->(0.222);
 }
 
-#,,,.,,.,,..,,..,,,..,,.,,.,,,...,..,,.,,,..,,..,,...,...,..,,...,..,,..,,..,,
-#QJAXY4JXSPTRBXJXEY5FNR6FPXPIFD6QFIPXJNZHH4MSU6FMSBTS27J7IOYP7MX6VV3OYHKVQXUTU
-#\\\|QHEZ6UFQMKOFNGFKKDLC5YNTJABDEGVDQYSSQB6KM3NEJ5W5HTR \ / AMOS7 \ YOURUM ::
-#\[7]BBJ6KBHNT3CBXQ43RBSCUASK544VHUH36QFOKWNVFXNO3CUZXQAY 7  DATA SIGNATURE ::
+#,,..,...,,,,,,..,,,.,,..,...,.,.,,,.,.,.,,.,,..,,...,..,,.,,,.,.,,,,,.,.,,,.,
+#TG2J2MSTU45MTPJ3ZSJR6NTXCCM3ZYTTDA3UYVKST744ZXIHFBJ3QAYPWLF3Y7HHMSSVDCS42KU5Q
+#\\\|MXA7SOU53FBQNB43SJXCRFHB4YNR3FFAYIHNBQ2DUPMQUE6XK7X \ / AMOS7 \ YOURUM ::
+#\[7]5UXESWDUZHGRYJPEHBOG46KSJB43VOBPS5KKZQNBIAQTRSLCUKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
