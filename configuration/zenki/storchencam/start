@@ -10,7 +10,7 @@
 
 
 access.cmd.usr.cube = verify-instance heart commands enable_time enable_temp \
-                                              disable_time disable_temp
+                                              disable_time disable_temp reposition
 
 
 storchencam.image_url  = 'http://85.220.149.7/record/current.jpg'
@@ -36,20 +36,20 @@ storchencam.mask_left_corner = 1
 
 storchencam.mask_areas = 0,0,32,32 33,0,77,6 70,0,88,6 89,0,100,6 101,0,110,5
 
-modules.load = auth net protocol io.unix ui storchencam
+modules.load = auth net protocol io.unix ui storchencam \
+              window.profile window.geometry
 [load_modules:<modules.load>]
 [init_modules]
 
 [base.net.connect:'unix']
 
 [base.X-11.get_display]
-[base.X-11.get_coordinates]
 [base.get_session_id]
 
 [storchencam.sdl_loop]
 
-#,,,,,.,,,,,,,...,,,,,..,,...,,..,.,.,.,.,,..,..,,...,...,...,..,,,,,,,..,,,,,
-#WE4TRCPAFLU72XT4Q7ICFURCW74CNCM6UHLXW5GHU5W4MB4BEVGRRH2CDP54WXQD5CIOCZFW5EBSC
-#\\\|WTGKSLT2EUEWDHTOBAYUXJUXS6T7VUDE6CQBVWT3LWTLBUO26VT \ / AMOS7 \ YOURUM ::
-#\[7]5PW65PUJVYLNZ2M72B7O37ZAEQO6NYA7RM4WXRIGZ3QIWYZR6QBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,.,,,.,,,,,,,,.,,.,,,...,,,,,,..,..,,...,...,..,,..,,...,,,.,,..,
+#NDCXM2AUIP2GZEP4LVJSA5K3KAR2KGX27EXVWJS4QEOGCJLOPEDTT7RSIVZFMETNQ57SXQ4MRHDP6
+#\\\|VRJZY5TJDYTQBFX2PUVN3RCZLQFO6B6O7I4Q63EOQ6VNFNNEKYY \ / AMOS7 \ YOURUM ::
+#\[7]L7R4XL6N42EJIP4EBVZXPABUGRLB4R7LOKQFKVOI2ENZMV4Q64DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

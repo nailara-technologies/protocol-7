@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = storchencam.subscribe-screen-change
+# descr = init callback: subscribe to X-11 screen-change STRM
+
+<[base.log]>
+    ->( 1, 'subscribing storchencam to X-11 screen-change events .,' );
+
+<[protocol-7.route-send]>->(
+    {   'command' => qw| X-11.subscribe-screen-change |,
+        'reply'   => {
+            'handler' => qw| storchencam.handler.screen-change_strm_open |,
+        }
+    }
+);
+
+return TRUE;
+
+#,,,.,,,,,.,,,.,.,,,.,.,,,.,.,...,,,,,,,.,.,.,..,,...,...,.,,,,..,..,,..,,..,,
+#KQAEFYCGXRCNAZ7UDBWNXTIYYDGJEDLC3YONEYZT2MLMXGXKORBMUT5LQTOP3SO7KCWSP4YMA4IIU
+#\\\|V5INKYKHHGRLJR3REKT24NN5N3OEXOSUTAF2AWR6JGQ6AICW2T5 \ / AMOS7 \ YOURUM ::
+#\[7]YMNQBVCF2HK4CLTMETFTWQUMRXM754DVWK7U56O6CQFCTRHEQ6DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
