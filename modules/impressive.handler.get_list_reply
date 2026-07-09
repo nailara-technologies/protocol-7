@@ -17,16 +17,29 @@ my $playlist_bmw = <[chk-sum.bmw.224.B32]>->( join( ' ', @file_list ) );
 if ( $reply->{'call_args'}->{'args'} == 0 ) {
     <[base.log]>->( 1, "<< ..received empty playlist.. >>" );
 
-    # LLL: create image for empty playlist instead of shutown(?)
-    if ( defined <impressive.pid> ) {
-        <[base.log]>->(
-            1, ": killing impressive process [PID=<impressive.pid>]"
-        );
-        <impressive.watcher.output>->cancel;
-        kill( 'KILL', <impressive.pid> );
-        undef <impressive.pid>;
+    ## kiosk deployments may prefer no window at all here [ eg. a nicer  ##
+    ## background image showing through beats an empty impressive tile ##
+    ## ] so this is opt-in, off by default - see impressive.cfg.       ##
+    ## open_on_empty_playlist / .empty_playlist_image                  ##
+    my $show_placeholder
+        = <[base.cfg_bool]>->(<impressive.cfg.open_on_empty_playlist>)
+        && defined <impressive.cfg.empty_playlist_image>
+        && -f <impressive.cfg.empty_playlist_image>;
+
+    unless ($show_placeholder) {
+        if ( defined <impressive.pid> ) {
+            <[base.log]>->(
+                1, ": killing impressive process [PID=<impressive.pid>]"
+            );
+            <impressive.watcher.output>->cancel;
+            kill( 'KILL', <impressive.pid> );
+            undef <impressive.pid>;
+        }
+        return;
     }
-    return;
+
+    <[base.log]>->( 1, ": showing configured empty-playlist placeholder.." );
+    @file_list = (<impressive.cfg.empty_playlist_image>);
 }
 
 my $playlist_changed = 0;
@@ -73,8 +86,8 @@ if (<impressive.cfg.use_start-anim>) {
     <[impressive.open_window]>;
 }
 
-#,,,.,.,,,,.,,.,,,,,,,,,.,,,.,,.,,,.,,.,,,,,,,..,,...,..,,...,...,,,,,.,,,,..,
-#LC7CSY7H2QLAQEVD3MLMXW6RHFYNZI2XUPJFTLNBKWGUEPI4WYRW2RBTWPKEOXEGFBRENYQRZRSZE
-#\\\|I73KJOEK7RXADIOPNJLH6F27EMJRPUO545FQL66XZUHBQAJPTMM \ / AMOS7 \ YOURUM ::
-#\[7]XVZBTRAB22LJ33OTXLX6XF6KCPNF3E3RDAA4ZY76YKTNBCPFU2AI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,,,,.,,,,,.,..,,.,,,,,,,.,.,,,.,..,,...,...,.,.,...,,,.,,,,,,,,,
+#BUISPY6F63LIH7COKONZ4OYDHE74RCSSAF76H3E6FFIZWGUFDLOQ2PUDX3DESQ3AX2YWO27BAY4KS
+#\\\|OYFJWPOFRYZYXACAI2R5IRJ7LGD7APCN255NCZACOOTGXXLDX5D \ / AMOS7 \ YOURUM ::
+#\[7]IMDWTXZB7PWZUPFRAHBFZYKPYODYNBOEBML3VSBFJU2EUVHVWODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
