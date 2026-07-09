@@ -8,6 +8,27 @@ my $temp_dir    = <impressive.path.impressive_tmp>;
 my $tmp_bin     = "$temp_dir/impressive.$PID";
 my $light_mode  = <impressive.cfg.light_mode>;
 
+## restore a previously reposition-saved geometry, if any and none is    ##
+## already set — mirrors mpv.startup.request_geometry's profile restore ##
+if ( not defined <x11.geometry> ) {
+    my $caller = <system.zenka.name> // qw| impressive |;
+    my $loaded = <[window.profile.load]>->($caller);
+    if (    defined $loaded
+        and ref($loaded) eq qw| HASH |
+        and defined $loaded->{'x'}
+        and defined $loaded->{'y'}
+        and defined $loaded->{'width'}
+        and defined $loaded->{'height'} ) {
+        <x11.geometry> = sprintf '%dx%d+%d+%d',
+            $loaded->{'width'}, $loaded->{'height'},
+            $loaded->{'x'},     $loaded->{'y'};
+        <[base.logs]>->(
+            1,       ": restoring saved position [caller=%s] : %s",
+            $caller, <x11.geometry>
+        );
+    }
+}
+
 $light_mode = 0 if $light_mode ne '1' and $light_mode ne '2';
 
 ## replace border (frame) color ##
@@ -213,8 +234,8 @@ if (    <impressive.cfg.use_start-anim>
     );
 }
 
-#,,.,,,,,,,..,...,,,,,..,,..,,.,,,,.,,.,.,,..,..,,...,...,...,,.,,,..,,.,,,,,,
-#3EB2I4VC32BV5YREQDAFSLEEZKZ5TLJWN6RL32UOSFJGAJOB6VZ7UOKFQEXGUH56OYH4B3K5BH7HA
-#\\\|OY2Z6GPYDWZSYPVT6A6G2Z2OU32S6N4JVH6WJ7MKCHDXVKXVS6R \ / AMOS7 \ YOURUM ::
-#\[7]4RUCU42Q4FNRKYWGMM4572C7FLPKLVNS2PM3BSQEGQVK2UMARCCY 7  DATA SIGNATURE ::
+#,,.,,..,,..,,.,.,...,,..,,..,..,,.,.,,.,,,,,,..,,...,..,,...,,..,,,.,.,,,,.,,
+#NXKZHX6HLSAY5CEX7WEHKKT2SFA3P6NRMWQGCSWZPP4IWJCWFM22CI3AYIS4ROMB5EUR4LUZOFVN4
+#\\\|DYRDBKF34U4XEXLGZDVSXUOD7LDYCXKRVEN3T3KJU5SIA5OD5E6 \ / AMOS7 \ YOURUM ::
+#\[7]G6NIMFLWSHZPKL2ENNI2TGWZ4UCXPYYCXNV5VYZZYROLTPNJN4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
