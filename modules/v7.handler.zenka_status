@@ -148,6 +148,7 @@ if (    $status ne qw| starting |
 }
 
 if ( $old_status ne qw| error | and $status eq qw| error | ) {
+    $instance->{'ondemand-consecutive-failures'}++;
     $instance->{'restart_delay'}
         = sprintf( '%.2f', $instance->{'restart_delay'} * 1.2 );
     $instance->{'restart_delay'}
@@ -303,10 +304,17 @@ if ( $status eq qw| offline | or $status eq qw| error | ) {
     }
 }
 
+##  restart-disabled ondemand zenki : tolerate a few consecutive start   ##
+##  failures [ several known distinct causes ] before finally giving up  ##
+my $ondemand_failure_tolerance
+    = $zenka_config->{'restart'}->{'consecutive-failure-tolerance'} // 3;
+
 if (   $status eq qw| offline |
     or $status eq qw| error |
     and defined $zenka_config->{'restart'}->{'disabled'}
-    and $zenka_config->{'restart'}->{'disabled'} ) {
+    and $zenka_config->{'restart'}->{'disabled'}
+    and ( $instance->{'ondemand-consecutive-failures'} // 0 )
+    >= $ondemand_failure_tolerance ) {
     <[base.logs]>->( ': no auto-restart for instance %d', $instance_id );
     <[zenka.cmd.stop]>
         ->( { 'args' => $instance_id, 'mode' => qw| implicit | } );
@@ -485,7 +493,8 @@ if ( $status eq qw| shutdown |
 
 if ( $old_status ne qw| online | and $status eq qw| online | ) { # LLL extbin?
 
-    delete $instance->{'startup-error-retries'};    ## <-- if present ##
+    delete $instance->{'startup-error-retries'};          ## <-- if present ##
+    delete $instance->{'ondemand-consecutive-failures'};  ## reset streak ##
 
     if ( defined $instance->{'timer'}->{'start-time-out'} ) {
         $instance->{'timer'}->{'start-time-out'}->cancel
@@ -550,8 +559,8 @@ if ( $old_status ne qw| online | and $status eq qw| online | ) { # LLL extbin?
 
 <[jobqueue.check_dependencies]>;
 
-#,,..,..,,,,.,..,,,.,,..,,,,.,,,,,.,,,.,,,.,.,..,,...,...,,.,,.,,,,,.,,,,,.,.,
-#IZELHOJTNVNPDFAWQY5IYDW7ZWUAGRDWAJPC7EIZNXOGBZKE7LVJT5IS4CEOGU7WR5OFWMJ3OZGBY
-#\\\|WWUKVQ3MNERRQTCZFSYPQ2SIYAUV7FX4I6GSTGRKK7BQN3WRNO7 \ / AMOS7 \ YOURUM ::
-#\[7]HW3QZWGHENJHKLE4PPMRGFAYASDBNMKY7PVQ7ECXZHUJQ2GSTODQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,.,,,.,,..,,,,.,,..,,,.,,..,,..,..,,...,...,...,,,,,.,,,,.,,.,.,
+#5LQF6NJA4FWNM7CDZPEISTJ5WAO2BBS52I2AABFFSPQZ6SGW32WFVTP3VD5ACBE6MEXFJKS7ZUIDU
+#\\\|ASROJRUKGWSXXU4B45YANMYPJN6XLUUNWXAXH7EWRAV4TK27HQI \ / AMOS7 \ YOURUM ::
+#\[7]MERHZT5CIFTZZTUUCOOLAJZZVPHU7SJXZ6SLRLMBEXUWRUALZWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
