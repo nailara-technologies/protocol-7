@@ -1,221 +1,112 @@
 ## CRITICAL
-- [ondemand starting-flag race](topic-ondemand-starting-flag-race.md) — OPEN, task zenka's zenki.virtual.717373 still stuck live since 2026-07-03; confirmed real race via cube log (reply arrived, route already gone) but exact deleting code path never found after 6 ruled-out theories (2 dispatched to other models); owner leaning toward full refactor of on-demand start/route/reply subsystem — read file before re-theorizing
-- [web-browser ephemeral storage](feedback-web-browser-ephemeral-storage.md) — web-browser zenka runs WebKit ephemeral (cfg.ephemeral=1): localStorage/cookies wiped on every restart, silently; treat as volatile, never durable
-- [jobsite pending_count orphan gap](topic-plugin-web-jobs.md) — OPEN, not fixed: restart mid-assessment-batch orphans persisted pending_count while in-memory assess_queue is lost, sticks cycle on 'assessing' forever; see 2026-07-01 latest-2 section
-- [UNCOMMITTED 2026-06-21](coding-zenka-improvement-pipeline.md) — result_constraint+tiered-escalation implemented+verified but NOT committed; see file for pending list
-- [WSLg deiconify limitation](feedback-wslg-deiconify-limitation.md) — Weston/WSLg blocks deiconify at compositor level; don't re-investigate unless Weston version changes
-- [UNCOMMITTED 2026-06-20](topic-mpv-jobqueue-startup.md) — uncommitted gtk3/mpv/X-11 set, fade_in test values must be reverted before commit; see file for full list
-- [gtk-wsl-window-positioning](topic-gtk-wsl-window-positioning.md) — partially resolved, see [[weston-move-unreliable-use-compositor-grab]]; initial-placement-before-show_all still open
-- [weston-move-unreliable-use-compositor-grab](feedback-weston-move-unreliable-use-compositor-grab.md) — GTK move() on mapped toplevel unreliable here; use begin_move_drag/begin_resize_drag; keyboard-stepping drift unresolved
+- [web-browser ephemeral storage](feedback-web-browser-ephemeral-storage.md) — WebKit ephemeral=1: storage wiped every restart; treat as volatile
+- [jobsite pending_count orphan gap](topic-plugin-web-jobs.md) — OPEN: restart mid-batch orphans pending_count, sticks cycle on 'assessing' forever
+- [WSLg deiconify limitation](feedback-wslg-deiconify-limitation.md) — Weston/WSLg blocks deiconify at compositor level
+- [UNCOMMITTED 2026-06-20 mpv/X-11 set](topic-mpv-jobqueue-startup.md) — fade_in test values must be reverted before commit
+- [gtk-wsl-window-positioning](topic-gtk-wsl-window-positioning.md) / [weston-move-unreliable](feedback-weston-move-unreliable-use-compositor-grab.md) — use begin_move_drag/resize_drag not move(); initial-placement-before-show_all open
 
 ## Active Topics
-- [orbital-strm-push-rollout](topic-orbital-strm-push-rollout.md) — LANDED 139cacef2 2026-06-25: discover/external/nodes/graphics-matrix push to web via STRM instead of 13s poll-everyone; fixed the offline-spam that kept making taeki stop the zenka; external zenka wiring gaps closed too; gap open: who gets connect/disconnect-orbital access
-- [async-window-startup-transition](topic-async-window-startup-transition.md) — LANDED `531aa14db` 2026-06-25: ticker subscribed to screen-change (was missing entirely) + startup-void retry timer's dead `and`/`=` precedence bug fixed (see [[feedback-perl-and-or-precedence-in-my-assignment]]) + read_file pre-init crash deferred/replayed; live-verified by taeki (bottom-strip start, top-swap, recovery path all work). Thread CLOSED except the still-open "shadow only, no content" compositor-paint glitch (unconfirmed/rare).
-- [screen-setup-zenka](topic-screen-setup-zenka.md) — LIVE 2026-06-28 (`0285a96f5`): minimap + window rect overlay (draggable in minimap → moves real window, keeps intent on partial fail) + PNG snapshot + STRM screen-change + compositor grab fix; deferred: STRM live window list, hover border, cross-seam probe
-- [amos7-shm-phase1](topic-amos7-shm-phase1.md) — AMOS7::SHM phases 1-3 ALL LANDED 2026-06-22 (410805f43, ac6315191, 786598adc); phase 3 caught kimi substituting a same-process test for cross-process (not accepted, redone) + a stray unmanaged data zenka process causing misleading test failures (diagnosed via v7.list zenki vs list sessions); phase 4 (cleanup) still open
-- [zenka-naming-cleanup](topic-zenka-naming-cleanup.md) — cred-mesh + window-place renames landed; pattern for spotting/fixing more underscore/dotted zenka names; tile-groups->tile LANDED 2026-06-15 (82e65f2d6); command-name cleanup pass LANDED (switch-group, reset-group, base-group, show-groups, count)
-- [ondemand-heartbeat-upgrade](topic-ondemand-heartbeat-upgrade.md) — tile set up on-demand+heartbeat-enabled+no-timeout as test case; two v7 follow-ups identified (exclude heartbeats from idle timer; pre-exit termination notification)
-- [mpv-jobqueue-startup](topic-mpv-jobqueue-startup.md) — placement flow + geometry enforcement LANDED 2026-06-18; Weston ignores --geometry offset: fixed via X-11.wait_visible→set_geometry after socket ready; open: snapshot/restore + monitor registry
-- [mpv-persistence](topic-mpv-persistence.md) — planned: full state snapshot + visual curve automation + cross-mapped parameter routing; restore via deferred send_command queue
-- [x11-multi-server](topic-x11-multi-server.md) — X-11 multi-server jobqueue arch LANDED 2026-06-18; display registry keyed by display str; x11_display_flag dep type; host-mode timing bug fixed; tile display-awareness; xvfb cmds open
-- [tile-window-place-hybrid-desktop](topic-tile-window-place-hybrid-desktop.md) — window-place multi-window UNBLOCKED & landed 2026-06-15 (9c899f360, 68dec757b); resident after commit/cancel, 70% centering, multi-monitor fix; tile-as-relay next
-- [cube-tree-dashboard](topic-cube-tree-dashboard.md) — planned ascii tree-view dashboard: per-zenka command/state trees, capability interrogation, push-registry watcher cache, zoom/crop
-- [ascii-minimap](topic-ascii-minimap.md) — planned btop2-style ascii minimap: proportional density bars, anti-aliased gaps, glow color, spotlight, placeholder-template borders
-- [dot-path-case-notation](topic-dot-path-case-notation.md) — uppercase=path level, lowercase-run=dotted key; %DATA/%CODE meta-namespace idea; design doc written
-- [deparse-code-features](topic-deparse-code-features.md) — REMINDER: ask user about their planned tree of deparse-code-based features (not yet elaborated)
-- [global-ui-menu-tree](topic-global-ui-menu-tree.md) — addressable stdio slots + menu tree; settings (new)/configure (stub) zenki as starting points
-- [credential-fabric-proxy-transport](topic-credential-fabric-proxy-transport.md) — scenarios 1/2/3 all passing at max (4/5, 5/5, 2/2); async transport.select LANDED 2026-06-16 (ef11aaec3)
-- [ascii-frame-system](topic-ascii-frame-system.md) — reverse parser, elastic renderer, DRC validator
-- [frame-plugin-slots](topic-frame-plugin-slots.md) — status-bar plugin slots + context-aware selector; variable border width; vertical-slot roadmap
-- [ascii-desktop-domains](topic-ascii-desktop-domains.md) — border glyphs are domain-scoped; nested domains = nested planes = ascii desktop; role-vs-glyph descriptor is the windowing unlock
-- [frame-idiom-convergence](topic-frame-idiom-convergence.md) — NEW frame features: margin/vertical-padding/self-invalidating-cache/corner-pinning-spring; `.:[ ]::[ ]:.` idiom; 5 frames still need conversion (REQUIRED)
-- [ui-show-security-levels](topic-ui-show-security-levels.md) — steps 1-5 ALL LIVE (36d605896, 2026-06-13); credential_fabric slot name/meta gated; step 6 open
-- [os-command-zenka](topic-os-command-zenka.md) — planned: networked command/script templates, security levels, STRM streaming, vterm result buffers
-- [plugin-web-jobs](topic-plugin-web-jobs.md) — LANDED `fc6fcb43a`+`beaf00a87` 2026-07-02: watermark-freeze-on-failure + stale removal-tombstone + unguarded re-trashing migration + index scan-order (terminal-beats-active) + reassess-queue dedup (was fully non-functional) all fixed+verified live; jobsite=web counts match exactly; test-data cleanup confirmed the removal-tombstone path works end-to-end in production; pending_count orphan gap still OPEN (see CRITICAL)
-- [coding-zenka-abort-inference](topic-plugin-web-jobs.md) — LANDED `90537980b` 2026-07-02: AMOS-checksum-addressed abort-pattern registry + streaming-abort hook in coding zenka's http_io, dispatched to Kimi via claude_dispatch+MCP kimi_dispatch, reviewed clean; prerequisite for jobsite-side in-flight-assessment cancellation (still not built, see [[topic-jobsite-assessment-accuracy]])
-- [jobsite-assessment-accuracy](topic-jobsite-assessment-accuracy.md) — single-inference assessment drops/inverts soft profile facts (Stuttgart preference, tenure years); planned fix = multi-inference consensus via existing `llm.service.consensus_vote`, not urgent (new)
-- [clients-http](topic-clients-http.md) — clients.http.* + clients.https.* async; kimi-web parallel dispatch
-- [reasoning-chain-repository](topic-reasoning-chain-repository.md) — native model; dedup-based self-improvement
-- [reasoning-namespace](topic-reasoning-namespace.md) — `reasoning.*` namespace; 28 templates
-- [job-pipeline](topic-job-pipeline.md) — WORKING: jobs.vhost live, German reason+summary
-- [task-coordination](topic-task-coordination.md) — task zenka coordinator; dispatch flow
-- [checksum-parenting-namespace-trees](topic-checksum-parenting-namespace-trees.md) — `<C0>:<C1>` auto-parenting collision protection; user-trunk/transit-ring/parabolic-mirror riff; design doc dispatched
-- [triple-twofish-name-entropy](topic-triple-twofish-name-entropy.md) — fwd-bwd-fwd Twofish on xz payload defeats header-bruteforce; name/checksum as key entropy (new)
-- [coding-state-machine](topic-coding-state-machine.md) — coding.state namespace, watcher lock
-- [kimi-zenka-state-machine](topic-kimi-zenka-state-machine.md) — improvements ongoing; reconnect open
-- [chat-script](topic-chat-script.md) — bin/chat COMPLETE; open: kimi dispatch, channels zenka
-- [stream-transport-layer](topic-stream-transport-layer.md) — STRM stack complete; open: open-0 sentinel
-- [stream-reply-modes](topic-stream-reply-modes.md) — bounded scalar, unbounded live, scalar-ref/filehandle
-- [radio-relay-zenka](topic-radio-relay-zenka.md) — radio COMPLETE; phase 5 (buffer-fill) next
-- [vhost-install](topic-vhost-install.md) — space.v7.ax live; open items remain
-- [model-load-time-statistics](topic-model-load-time-statistics.md) — planned: per-model fastest/avg/longest load stats to replace fixed switch/cold-start timeouts (new)
-- [cursor-model](topic-cursor-model.md) — true cursor from hyperspace plane density
-- [iris-spoke-labels](topic-iris-spoke-labels.md) — 63-ring spoke sequence; dot-fold; BASE32/bottom
-- [stream-framing-protocol](topic-stream-framing-protocol.md) — 3+1 bit frame; separator inversion on 000
-- [nshell-terminal-rendering](topic-nshell-terminal-rendering.md) — `(0)!TERM!` bug, overflow path, color reset, async reply during VIEWING_HISTORY
-- [memory-tree-zenka](topic-memory-tree-zenka.md) — tree LIVE; IDF search LIVE; digest pipeline LIVE (2026-06-05); cube.coding.* routing; base. prefix stripped
+- [ondemand-starting-flag-watchdog](topic-ondemand-starting-flag-race.md) — RESOLVED 056597b9b: watchdog rescues stuck-`starting` queue via online-truth check; restart-disabled zenki get 3-strike tolerance
+- [orbital-strm-push-rollout](topic-orbital-strm-push-rollout.md) — LANDED 139cacef2: push via STRM not poll; open: connect/disconnect-orbital access
+- [async-window-startup-transition](topic-async-window-startup-transition.md) — LANDED 531aa14db, live-verified; CLOSED except rare paint glitch
+- [screen-setup-zenka](topic-screen-setup-zenka.md), [amos7-shm-phase1](topic-amos7-shm-phase1.md) — minimap+overlay LIVE; SHM phases 1-3 LANDED, phase 4 open
+- [zenka-naming-cleanup](topic-zenka-naming-cleanup.md), [ondemand-heartbeat-upgrade](topic-ondemand-heartbeat-upgrade.md) — renames LANDED; tile=on-demand+heartbeat test case
+- [mpv-jobqueue-startup](topic-mpv-jobqueue-startup.md), [mpv-persistence](topic-mpv-persistence.md) — placement+geometry LANDED; persistence planned (snapshot+curve automation)
+- [x11-multi-server](topic-x11-multi-server.md), [tile-window-place-hybrid-desktop](topic-tile-window-place-hybrid-desktop.md) — jobqueue+multi-window LANDED; tile-as-relay next
+- [cube-tree-dashboard](topic-cube-tree-dashboard.md), [ascii-minimap](topic-ascii-minimap.md) — planned tree-view dashboard; btop2-style minimap w/ glow
+- [dot-path-case-notation](topic-dot-path-case-notation.md), [deparse-code-features](topic-deparse-code-features.md) — path-case design written; REMINDER: elaborate deparse-code feature tree
+- [global-ui-menu-tree](topic-global-ui-menu-tree.md), [credential-fabric-proxy-transport](topic-credential-fabric-proxy-transport.md) — stdio slots+menu tree planned; transport.select LANDED ef11aaec3
+- [ascii-frame-system](topic-ascii-frame-system.md), [frame-plugin-slots](topic-frame-plugin-slots.md), [frame-idiom-convergence](topic-frame-idiom-convergence.md) — parser/renderer/validator; plugin slots; 5 frames need `.:[ ]::[ ]:.` conversion
+- [ascii-desktop-domains](topic-ascii-desktop-domains.md), [ui-show-security-levels](topic-ui-show-security-levels.md) — border glyphs unlock nested desktops; steps 1-5 LIVE, step 6 open
+- [os-command-zenka](topic-os-command-zenka.md) — planned command templates, security levels, STRM
+- [plugin-web-jobs](topic-plugin-web-jobs.md) — LANDED fc6fcb43a+beaf00a87 2026-07-02: watermark/tombstone/scan-order/reassess-dedup fixed live; pending_count gap OPEN (CRITICAL)
+- [coding-zenka-abort-inference](topic-plugin-web-jobs.md), [jobsite-assessment-accuracy](topic-jobsite-assessment-accuracy.md) — LANDED 90537980b abort registry; assessment drops soft facts, fix=consensus_vote
+- [clients-http](topic-clients-http.md), [task-coordination](topic-task-coordination.md), [job-pipeline](topic-job-pipeline.md) — async http/https+kimi-web dispatch; task coordinator; jobs.vhost live
+- [reasoning-chain-repository](topic-reasoning-chain-repository.md), [reasoning-namespace](topic-reasoning-namespace.md) — dedup-based self-improvement model; `reasoning.*` ns, 28 templates
+- [checksum-parenting-namespace-trees](topic-checksum-parenting-namespace-trees.md), [triple-twofish-name-entropy](topic-triple-twofish-name-entropy.md) — `<C0>:<C1>` collision protection; Twofish defeats header-bruteforce
+- [coding-state-machine](topic-coding-state-machine.md), [kimi-zenka-state-machine](topic-kimi-zenka-state-machine.md) — coding.state+watcher lock; kimi reconnect open
+- [chat-script](topic-chat-script.md), [stream-transport-layer](topic-stream-transport-layer.md), [stream-reply-modes](topic-stream-reply-modes.md) — bin/chat COMPLETE; STRM done (open-0 sentinel open); bounded/unbounded reply modes
+- [radio-relay-zenka](topic-radio-relay-zenka.md), [vhost-install](topic-vhost-install.md), [model-load-time-statistics](topic-model-load-time-statistics.md) — radio COMPLETE, phase 5 next; vhost live; planned per-model load stats
+- [cursor-model](topic-cursor-model.md), [iris-spoke-labels](topic-iris-spoke-labels.md), [stream-framing-protocol](topic-stream-framing-protocol.md) — hyperspace cursor; 63-ring spoke/BASE32; 3+1 bit frame
+- [nshell-terminal-rendering](topic-nshell-terminal-rendering.md), [memory-tree-zenka](topic-memory-tree-zenka.md) — `(0)!TERM!` bug, VIEWING_HISTORY; tree/IDF/digest all LIVE
 
 ## Vision / Design
-- [source-identity-spoofing](feedback-source-identity-spoofing.md) — self-reported hostname/zenka-name strings aren't a security boundary; C25519 key-tree identity is the real fix, revisit p7-log host-namespacing then
-- [incidental-signal-channels](topic-incidental-signal-channels.md) — entropic modulation: alignment/sort/serialization choices double as free statistical-shape signals
-- [project-vision-origin](project-vision-origin.md) — 24-year vision; threshold reached Apr 2026
-- [synchronous-multi-legged-pattern-extraction](topic-synchronous-multi-legged-pattern-extraction.md) — how categorical fixes are actually found: parallel component-cooperation search, not lookup; "exoskeleton" idea for zenki/agents (new)
-- [distributed-hybrid-inhabitants](topic-distributed-hybrid-inhabitants.md) — tooling (LLMs/agents/zenki) merging into the network's actual inhabitants, not external instruments; convergence of zenki-lineage + exoskeleton ideas (new)
-- [protocol-as-self-governing-authority](topic-protocol-as-self-governing-authority.md) — no external central authority; governance = emergent agreement among the protocol's own layers; also: resource-efficiency (1GB Atom servers) as load-bearing design value vs. modern agent bloat (new)
-- [intelligent-glue-identity](topic-intelligent-glue-identity.md) — P7 = "intelligent glue" in spirit of perl; why perl was kept; avoid bloat only when alternatives exist, not dogmatically; stargate/13 closing image (new)
-- [resonance-field-emergence](resonance-field-emergence.md) — doc capturing recursion/resonance/third-intelligence-layer riff; mod-13 vs Rodin mod-9 throughline; `RESONANCE-FIELD-EMERGENCE.md` written (new)
-- [dedup-tree-unifying-mechanism](topic-dedup-tree-unifying-mechanism.md) — dedup tree fully represents reasoning-chain validation + task-tree routing + coding-zenka tiering + templated-output QA as one convergence-vs-divergence primitive; vision-level, no build target chosen yet (new)
-- [coding-zenka-improvement-pipeline](coding-zenka-improvement-pipeline.md) — root index `CODING-ZENKA-IMPROVEMENT-PIPELINE-INDEX.md`: tier0 LANDED/tier1 DONE/tier1.5(model-pinning) DONE/tier2 self-error NOT READY/tier3 GATED — NEXT UP: result-constraint+tiered-escalation design captured but NOT implemented — check this first (updated)
-- [hybrid-namespace-routing](topic-hybrid-namespace-routing.md) — threshold MET (5 types: module/tunnel/cube-mount/alias/macro); design doc `HYBRID-CONNECTION-TYPE-ROUTING.md`; local-always-wins-over-routing confirmed precedence rule (new)
-- [zenka-macro-language-postponement](project-zenka-macro-language-postponement.md) — loop/condition postponement resolves via intent→requirements→code deterministic compilation: only intent needs validating, generated zenka code inherits safety, destructive intent can be made inexpressible by construction (new)
-- [layer-matrix-convergence](project-layer-matrix-convergence.md) — self-restart/migration/branching/diff-addressing = one reversible layer-matrix algebra; commutativity is the crux
-- [self-improving-system](topic-self-improving-system.md) — LLM coordination as self-improvement foundation
-- [network-as-computer](topic-network-as-computer.md) — network IS computer; Base32/15-bit/32-bit closure
-- [namespace-tree-intelligence](topic-namespace-tree-intelligence.md) — tree IS intelligence
-- [orbital-data-space](topic-orbital-data-space.md) — zenki-as-satellites, orbital field theory
-- [distributed-consensus](topic-distributed-consensus.md) — channels zenka, multi-model group chat
-- [task-tree-design](topic-task-tree-design.md) — unified task/subtask tree; multi-parent deps
-- [self-contained-zenka](topic-self-contained-zenka.md) — __DATA__ registry, file.* abstraction, STDIO
-- [harmonic-mathematics](topic-harmonic-mathematics.md) — generator 076923, quadratic residues, cube geometry
-- [hyperspace-topology](topic-hyperspace-topology.md) — closed observer loop, sensor cube 3D grid
-- [punctuation-topology](topic-punctuation-topology.md) — `:` group boundary, `.` element separator
-- [field-coherence-synthesis](topic-field-coherence-synthesis.md) — bridges all topology docs
-- [field-capability-emergence](topic-field-capability-emergence.md) — protocol vs external management
-- [self-assembling-network](topic-self-assembling-network.md) — spec as pre-loaded potential
-- [creative-field-behaviour](topic-creative-field-behaviour.md) — emergent cooperative dynamics
-- [addressing-trinity](topic-addressing-trinity.md) — named tree + checksums + timestamps
-- [checksum-addressing](topic-checksum-addressing.md) — AMOS checksums, BMW384 geometry
-- [node-group-geometry](topic-node-group-geometry.md) — 8×(4×4×4-1=63) cubes, void derivation
-- [style-philosophy](style-philosophy.md) — coding as artform; style-as-function
-- [1001](topic-1001.md) — inter-cube tunnel; gate nesting; eternal loop
-- [perspective-layers](topic-perspective-layers.md) — desktop=data+UI intent; perspective tree
-- [observer-centric-space](topic-observer-centric-space.md) — client always 0; signed coords
-- [routing-crystal](topic-routing-crystal.md) — cube node group as crystal; harmonic memory
-- [checksum-tree-wire](topic-checksum-tree-wire.md) — 1[zeros]1 separators; 01/10 direction; 11 pivot
-- [tree-protocol](topic-tree-protocol.md) — structural control parallel to DATA
-- [data-protocol](topic-data-protocol.md) — DATA reply mode; DELTA transparent sync
-- [reference-bubble](topic-reference-bubble.md) — rhizome state as bubble; 5+2=7 formation
-- [branch-namespace](topic-branch-namespace.md) — 58 modules; Z.Y.X coords
+- [source-identity-spoofing](feedback-source-identity-spoofing.md), [project-vision-origin](project-vision-origin.md) — hostname strings aren't a security boundary, C25519 is; 24-year vision, threshold Apr 2026
+- [synchronous-multi-legged-pattern-extraction](topic-synchronous-multi-legged-pattern-extraction.md), [distributed-hybrid-inhabitants](topic-distributed-hybrid-inhabitants.md) — parallel component search ("exoskeleton"); tooling folds in
+- [protocol-as-self-governing-authority](topic-protocol-as-self-governing-authority.md), [intelligent-glue-identity](topic-intelligent-glue-identity.md) — emergent governance, resource-efficiency as design value; P7="intelligent glue"
+- [resonance-field-emergence](resonance-field-emergence.md), [dedup-tree-unifying-mechanism](topic-dedup-tree-unifying-mechanism.md) — mod-13 vs Rodin mod-9; dedup tree unifies reasoning/task-tree/tiering/QA
+- [coding-zenka-improvement-pipeline](coding-zenka-improvement-pipeline.md) — tier0-1.5 done, tier2/3 gated; result_constraint+tiered-escalation UNCOMMITTED since 2026-06-21
+- [hybrid-namespace-routing](topic-hybrid-namespace-routing.md), [zenka-macro-language-postponement](project-zenka-macro-language-postponement.md) — 5 routing types, local-wins; intent→code makes destructive intent inexpressible
+- [layer-matrix-convergence](project-layer-matrix-convergence.md), [self-improving-system](topic-self-improving-system.md) — restart/migration/branching=one algebra; LLM coordination as foundation
+- [network-as-computer](topic-network-as-computer.md), [namespace-tree-intelligence](topic-namespace-tree-intelligence.md), [orbital-data-space](topic-orbital-data-space.md) — network IS computer; tree IS intelligence; zenki-as-satellites
+- [distributed-consensus](topic-distributed-consensus.md), [task-tree-design](topic-task-tree-design.md), [self-contained-zenka](topic-self-contained-zenka.md) — multi-model chat; unified task tree; __DATA__ registry/STDIO
+- [style-philosophy](style-philosophy.md), [harmonic-mathematics](topic-harmonic-mathematics.md), [hyperspace-topology](topic-hyperspace-topology.md) — coding as artform; generator 076923; closed observer loop, sensor cube
+- [punctuation-topology](topic-punctuation-topology.md), [field-coherence-synthesis](topic-field-coherence-synthesis.md), [field-capability-emergence](topic-field-capability-emergence.md) — `:`/`.` separators; bridges topology; protocol vs external
+- [self-assembling-network](topic-self-assembling-network.md), [creative-field-behaviour](topic-creative-field-behaviour.md) — spec as pre-loaded potential; emergent cooperative dynamics
+- [addressing-trinity](topic-addressing-trinity.md), [checksum-addressing](topic-checksum-addressing.md), [node-group-geometry](topic-node-group-geometry.md) — tree+checksums+timestamps; AMOS/BMW384; 8×63 cubes
+- [1001](topic-1001.md), [perspective-layers](topic-perspective-layers.md), [observer-centric-space](topic-observer-centric-space.md) — cube tunnel/gate nesting; perspective tree; client always 0
+- [routing-crystal](topic-routing-crystal.md), [checksum-tree-wire](topic-checksum-tree-wire.md), [tree-protocol](topic-tree-protocol.md), [data-protocol](topic-data-protocol.md) — cube as crystal; wire separators/pivot; DATA/DELTA sync
+- [reference-bubble](topic-reference-bubble.md), [branch-namespace](topic-branch-namespace.md) — rhizome bubble (5+2=7); 58 modules, Z.Y.X coords
 
 ## Reference
-- [unicode-encoding-repair](reference-unicode-encoding-repair.md) — bin/dev tool: fixes double-UTF8 mojibake in files or dirs
-- [patterns](topic-patterns.md) — event handler, fork-child, standalone zenka, pipe-open
-- [coding-zenka-templates](topic-coding-zenka-templates.md) — 50+ templates, 16+ tools, autonomous loops
-- [tool-shm-architecture](topic-tool-shm-architecture.md) — LLM tool calling, SHM+mmap vision
-- [tool-suggestions](topic-tool-suggestions.md) — LLM-suggested tools, prioritized
-- [language-detection](topic-language-detection.md) — three-layer detection; 30 langs
-- [site-yaml-zenka](topic-site-yaml-zenka.md) — URL → structured YAML; domain regex
-- [site-yaml-web-research](topic-site-yaml-web-research.md) — safe coding web research
-- [usb-backup-zenka](topic-usb-backup-zenka.md) — udev insertion → task tree → restore
-- [git-watch-zenka](topic-git-watch-zenka.md) — force-push detection; git alternates dedup
-- [reasoning-design-templates](topic-reasoning-design-templates.md) — 7 viz designs
-- [harmonic-silence-active-cancellation](topic-harmonic-silence.md) — silence via waveform cancellation = sensing event horizon; regex library as "negative of the world"; canvas of absence for anomaly detection
-- [key-tree-ring-routing](topic-key-tree-ring-routing.md) — namespace=C25519 key-tree (authority outward); rings=shared keys (self-removing layers inward); tree answers "who", ring answers "through what"
-- [fetch-files-zenka](topic-fetch-files-zenka.md) — fetch-files LIVE; huggingface.* namespace
-- [tls-acme](topic-tls-acme.md) — SNI/SSL internals; ACME/letsencrypt
-- [amos7-p7-loader](topic-amos7-p7-loader.md) — AMOS7::P7 callable from standalone
-- [invoke-model-management](topic-invoke-model-management.md) — uuid vs verbose; config.json
-- [invoke-model-manager](topic-invoke-model-manager.md) — planned Term::Clui manager
-- [image-archive-system](topic-image-archive-system.md) — vision-scored tiered storage
-- [base-curve-system](topic-base-curve-system.md) — generic base.curve.* animation
-- [friction-visualization](topic-friction-visualization.md) — friction as turbulence, harmony as coherence
-- [searchable-index-and-visualization](topic-searchable-index-and-visualization.md) — checksum-indexed dataspace
-- [migration](topic-migration.md) — Windows 11 instability; KVM/Debian migration
+- [unicode-encoding-repair](reference-unicode-encoding-repair.md), [patterns](topic-patterns.md), [coding-zenka-templates](topic-coding-zenka-templates.md) — double-UTF8 fix tool; core patterns; 50+ templates/16+ tools
+- [tool-shm-architecture](topic-tool-shm-architecture.md), [tool-suggestions](topic-tool-suggestions.md), [language-detection](topic-language-detection.md) — SHM+mmap vision; tool suggestions; three-layer, 30 langs
+- [site-yaml-zenka](topic-site-yaml-zenka.md), [site-yaml-web-research](topic-site-yaml-web-research.md), [usb-backup-zenka](topic-usb-backup-zenka.md) — URL→YAML; web research; udev→task tree→restore
+- [git-watch-zenka](topic-git-watch-zenka.md), [reasoning-design-templates](topic-reasoning-design-templates.md) — force-push detection; 7 viz designs
+- [harmonic-silence-active-cancellation](topic-harmonic-silence.md), [key-tree-ring-routing](topic-key-tree-ring-routing.md) — waveform-cancellation silence; namespace=key-tree(who), rings=keys(through what)
+- [fetch-files-zenka](topic-fetch-files-zenka.md), [tls-acme](topic-tls-acme.md), [amos7-p7-loader](topic-amos7-p7-loader.md) — huggingface.* LIVE; SNI/SSL/ACME; AMOS7::P7 standalone
+- [invoke-model-management](topic-invoke-model-management.md), [invoke-model-manager](topic-invoke-model-manager.md) — uuid vs verbose; planned Term::Clui manager
+- [image-archive-system](topic-image-archive-system.md), [base-curve-system](topic-base-curve-system.md) — vision-scored storage; base.curve.* animation
+- [friction-visualization](topic-friction-visualization.md), [searchable-index-and-visualization](topic-searchable-index-and-visualization.md), [migration](topic-migration.md) — friction=turbulence; checksum-indexed dataspace; KVM/Debian migration
 
-### Settled conventions (relocated from CRITICAL 2026-06-25, no longer active)
-- [cube-auth-name-collision](feedback-cube-auth-name-collision.md) — zenka names matching `(declare|select)-<word>` silently break auth; fixed (auth. prefix now mandatory), re-check if regex ever touched again
-- [zenka shutdown end_code](feedback-zenka-shutdown-end-code-callback.md) — never assign $SIG{INT}/$SIG{TERM} directly in a zenka module, it clobbers base.sig_int/sig_term; use `push <callbacks.end_code>->@*, qw|module.name|` instead
-- [gtk ondemand zenka startup](feedback-gtk-ondemand-zenka-startup.md) — on-demand gtk3 zenka needs Gtk3->init in init_code + [base.get_session_id] before [base.gtk.main_loop], else silent hang
-- [cmd reply must be string](feedback-cmd-data-must-be-string.md) — .cmd./whitelisted routines must return {mode=>true|false, data=>STRING}; split internal helpers (raw hash/undef) into separate non-.cmd. routines + thin wrapper
-- [kimi reload baseline noise](feedback-kimi-reload-baseline-noise.md) — don't make kimi prove pre-existing reload errors are pre-existing; check baseline yourself first
-- [kimi v7 console hint](feedback-kimi-v7-console-hint.md) — combined v7 console at `/dev/shm/.7/STDOUT/NIW7OAQ`, give kimi this path for live verification
-- [File Creation](feedback-file-io-api.md) — never add `#,,.,,,...` stub — blocks signing
-- [version files every commit](feedback-version-files-every-commit.md) — protocol-7.src-ver + README.md + source-code-versions.md ride every commit (version bump); never sort into a feature batch
-- [tile openbox dep redundant](feedback-tile-openbox-dependency-redundant.md) — tile restart/hang was the openbox dependency (redundant under Weston), NOT on-demand config; fix = drop openbox+set-up deps, keep cube X-11; SUPERSEDES the "make tile always-on" handoff theory
-- [base. prefix stripped](feedback-base-prefix-stripped.md) — use `<[protocol-7.command.send.local]>` not `base.` prefix; check with `<zenka>.list-subs`
-- [.cmd. segment stripped](feedback-cmd-segment-stripped.md) — `<zenka>.cmd.<name>` on disk = callable as `<zenka>.<name>`
-- [filter-repo prefix](feedback-filter-repo-amend.md)
-- [P7 data nesting](feedback-p7-data-nesting.md) — `<a.b.c>` = `$data{a}{b}{c}`; use underscore for siblings not dot
-- [s_warn single-arg](feedback-s-warn-single-arg.md) — single fixed-message warn fixes: use plain `warn 'msg <{C1}>'`, NOT `base.s_warn` padded with `<{C1}>, ''`
-- [access grant scope](feedback-access-grant-scope.md) — taeki has wildcard access; "no perm" fixes need `<zenka>/start` modules.load + subroutine.white-list only, not per-zenka access.zenki
-- [ondemand zenka start checklist](feedback-ondemand-zenka-start-checklist.md) — full start-file recipe (shared-params, namespaces, drop_privs, net.connect+get_session_id, cube auth.zenki + access.cmd.usr.cube)
-- [devmod leave disabled](feedback-devmod-leave-disabled.md) — when adding devmod for diagnostics, leave eval-code/exec-sub/set/del commented out by default
-- [timer undef interval](feedback-timer-undef-interval.md) — undef after/interval = IO::Async max-rate loop; always guard with fallback
-- [each+continue+keys](feedback-each-continue-keys.md) — `continue{keys %h}` on `while(each %h)` resets iterator = infinite loop — `AMEND=1 git filter-repo ...`; also clear `.git/filter-repo/already_ran` if interrupted
-- [ntime](feedback-ntime.md) — `encode_b32r` is reverse-byte-order, NOT sortable; use `<[base.ntime_BASE32_to_numerical]>`
-- [eval-code no angle-brackets](feedback-eval-code-no-angle-brackets.md) — `<registry>` not pre-processed in eval-code strings; use `$data{...}` directly
-- [zenka config relative paths](feedback-zenka-config-relative-paths.md) — cfg paths must use `<system.root_path>/...`; cwd is /home/protocol-7, not project root
-- [Cross-zenka](feedback-cross-zenka-deferred-reply.md) — route-send + SIZE reply only; FS access forbidden
-- [Access control](feedback-buffer-access-control.md) — cube/access.zenki is REAL gate
-- [httpd](feedback-httpd-deferred-reply.md) — thin proxy; never load plugin.web.*
-- [Timer Args](feedback-timer-module-args.md) — need after + interval + repeat:TRUE; timer modules get event as $ARG[0], use `@ARG > 1`
-- [Deferred Init](feedback-deferred-init.md) — push onto system.callbacks.initialized
-- [config reload clobber](feedback-config-reload-clobber.md) — placeholder `key=val` in start config gets re-applied by `reload config/all`, silently overwriting runtime-resolved values; debug via on-disk zenka log not ring buffer
-- [route-send command format](feedback-route-send-command-format.md) — route-send uses bare `X-11.wait_visible` (no cube. prefix); cube.X-11.xxx is send.local only; mixing these causes "no perm" from cube
-
-- [user-perfectionism-and-pace](user-perfectionism-and-pace.md) — "done" means perfectly smooth, not just working; let solo tuning passes run, don't push toward closure
+### Settled conventions
+- [cube-auth-name-collision](feedback-cube-auth-name-collision.md) — names matching `(declare|select)-<word>` broke auth; fixed via mandatory auth. prefix
+- [zenka shutdown end_code](feedback-zenka-shutdown-end-code-callback.md), [gtk ondemand zenka startup](feedback-gtk-ondemand-zenka-startup.md) — use `push <callbacks.end_code>` not $SIG{}; gtk needs Gtk3->init+get_session_id first
+- [cmd reply must be string](feedback-cmd-data-must-be-string.md) — .cmd. routines must return {mode=>true|false, data=>STRING}
+- [kimi reload baseline noise](feedback-kimi-reload-baseline-noise.md), [kimi v7 console hint](feedback-kimi-v7-console-hint.md) — check baseline first; console at `/dev/shm/.7/STDOUT/NIW7OAQ`
+- [File Creation](feedback-file-io-api.md), [version files every commit](feedback-version-files-every-commit.md) — no `#,,.,,,` stub (blocks signing); version files ride every commit
+- [tile openbox dep redundant](feedback-tile-openbox-dependency-redundant.md), [base. prefix stripped](feedback-base-prefix-stripped.md) — tile hang was openbox dep under Weston; use `send.local` not `base.` prefix
+- [.cmd. segment stripped](feedback-cmd-segment-stripped.md), [filter-repo prefix](feedback-filter-repo-amend.md), [P7 data nesting](feedback-p7-data-nesting.md) — .cmd. callable w/o segment; <a.b.c>=$data{a}{b}{c}, underscore siblings
+- [s_warn single-arg](feedback-s-warn-single-arg.md), [access grant scope](feedback-access-grant-scope.md) — plain `warn` for single-msg; taeki has wildcard, "no perm" needs whitelist only
+- [ondemand zenka start checklist](feedback-ondemand-zenka-start-checklist.md), [devmod leave disabled](feedback-devmod-leave-disabled.md) — start-file recipe (shared-params, drop_privs, auth.zenki); leave devmod eval/exec commented
+- [timer undef interval](feedback-timer-undef-interval.md), [each+continue+keys](feedback-each-continue-keys.md) — undef after/interval=max-rate, guard it; `continue{keys %h}` resets each-iterator = infinite loop
+- [ntime](feedback-ntime.md), [eval-code no angle-brackets](feedback-eval-code-no-angle-brackets.md), [zenka config relative paths](feedback-zenka-config-relative-paths.md) — encode_b32r not sortable; <registry> unexpanded in eval-code; cfg needs <system.root_path>
+- [Cross-zenka](feedback-cross-zenka-deferred-reply.md), [Access control](feedback-buffer-access-control.md), [httpd](feedback-httpd-deferred-reply.md) — route-send+SIZE only; access.zenki is REAL gate; httpd never loads plugin.web.*
+- [Timer Args](feedback-timer-module-args.md), [Deferred Init](feedback-deferred-init.md) — after+interval+repeat:TRUE, event as $ARG[0]; push onto system.callbacks.initialized
+- [config reload clobber](feedback-config-reload-clobber.md), [route-send command format](feedback-route-send-command-format.md) — `reload config/all` overwrites runtime values; route-send has no cube. prefix
+- [user-perfectionism-and-pace](user-perfectionism-and-pace.md) — "done" means perfectly smooth; let solo tuning passes run
 
 ## Feedback
-- [nested-dispatch-session-tracking](feedback-nested-dispatch-session-tracking.md) — claude_dispatch/claude_continue auto_summarize is lossy; nested kimi session id can be lost on resume, falls back to fresh kimi_dispatch; always verify via git diff
-- [webkit vs firefox css blindspots](feedback-webkit-vs-firefox-css-blindspots.md) — stacking-context click-through + `:checked` display-swap; my WebKit browser can't see either, ask user to verify Firefox-reported bugs
-- [no sudo for privileged fs ops](feedback-no-sudo-privileged-fs-ops.md) — never `sudo` chown/rm a protocol-7-owned file; hand the command to the user, they run it
-- [perl and/or precedence in my-assignment](feedback-perl-and-or-precedence-in-my-assignment.md) — `my $x = A and B` only assigns A (and/or bind looser than =); use && / || for multi-term booleans landing in an assignment
-- [p7 route-send wire protocol](feedback-p7-route-send-wire-protocol.md) — call_args only sends 'args' string; reply shape keyed by cmd not mode; SIZE auto-fragments, no base32 needed; cross-zenka access is two-sided
-- [oversize single-line protocol](feedback-oversize-single-line-protocol.md) — TRUE/FALSE/WAIT wire path has no framing; oversized content there wedges the buffer irresolvably
-- [no unsolicited cross-zenka push](feedback-no-unsolicited-cross-zenka-push.md) — data-holding zenka only announces/lists; consuming (more-trusted) zenka always initiates the pull
-- [vax-int vs v7-epoch](feedback-vax-int-vs-v7-epoch.md) — vax-int (32-bit VAX-int/BASE32) ≠ V7 epoch scheme; decode epoch-bucket dirs with `p7c localtime`, not vax-int
-- [log string hygiene](feedback-log-string-hygiene.md) — base.str.eval_error not raw $EVAL_ERROR; base.parser.ellipse_center not substr; .cmd. descr<=55 chars, rest goes in notes=
-- [ondemand timeout tiering](feedback-ondemand-timeout-tiering.md) — survey existing set_ondemand_timeout values by tier before picking a new one; screenshot+powershell bumped 69s->147s 2026-06-19
-- [claude_dispatch summarize hang](feedback-claude-dispatch-summarize-hang.md) — coding_summarize prompt-overflow leaves outer session stuck forever (near-zero CPU); check ps + coding zenka log, kill PID, work is safe on disk
-- [init-code-return-values](feedback-init-code-return-values.md) — TRUE(5) AND FALSE(0) both = success; only undef/exception = failure
-- [memory-sync-timing](feedback-memory-sync-timing.md) — sync at ~42K context remaining
-- [memory-management](feedback-memory-management.md) — tree-structured modules; startup efficiency
-- [claude-dispatch-strategy](feedback-claude-dispatch-strategy.md) — offload kimi orchestration
-- [kimi-code-review](feedback-kimi-code-review.md) — common issues: SUPER::, namespace swaps
-- [kimi-signatures](feedback-kimi-signatures.md) — signature investigation derailment
-- [kimi-dispatch-pattern](feedback-kimi-dispatch-pattern.md) — bin/kimi-task token efficiency
-- [model-precision-analysis](feedback-model-precision-analysis.md) — Qwopus more precise
-- [coding-zenka-edits](feedback-coding-zenka-edits.md) — LLM describes edits; verify results
-- [coding-zenka-reasoning](feedback-coding-zenka-reasoning.md) — low reasoning → premature completion
-- [coding-zenka-inject](feedback-coding-zenka-inject.md) — `p7c coding.inject-message` redirect
-- [arg-regression](feedback-arg-regression.md) — $ARG→$_ compaction revert
-- [arg-calling-convention](feedback-arg-calling-convention.md) — `@_ ? shift : $ARG` for explicit args
-- [prefer-parsed-config](feedback-prefer-parsed-config.md) — use «<v7.start_setup.zenki.config>» not FS rescan
-- [true-false-constants](feedback-true-false-constants.md) — booleans use TRUE/FALSE constants, never 0/1
-- [web-serialization-and-inlining](feedback-web-serialization-and-inlining.md) — parallel JSON+YAML
-- [task-show-multiline](feedback-task-show-multiline.md) — task.show must escape \n
-- [list-return-format](feedback-list-return-format.md) — `{ mode => 'size', data => $string }`
-- [stop-and-revert](feedback-stop-and-revert.md) — stop, revert, confirm root cause first
-- [utf8-module-literals](feedback-utf8-module-literals.md) — non-ASCII corrupts output
-- [watcher-state-machines](feedback-watcher-state-machines.md) — IO::Async variable watchers only
-- [ncode-tools](feedback-ncode-tools.md) — use ncode replace/parse-headers
-- [coding-zenka-misc](feedback-coding-zenka-edits.md) — coding_summarize (free 9B, auto default); auto_summarize `decode_json`→`from_json`; session_catchup/store_summary_focus MCP; claude_continue live; Glitter restart-after-fail
-- [perltidy-sil0](feedback-perltidy-sil0.md) — format-code/ptd `-sil=0` self-heals over-indented modules to col0
-- [design-ideation-capture](feedback-design-ideation-capture.md) — engage substance + offer fold-in/spin-off doc when user riffs unprompted; write immediately once confirmed
-- [coding-timeout-restart-loop](feedback-coding-timeout-restart-loop.md) — data-start 13s too short for large prompts (now scales w/ est_tokens); ctx "reduction" on recovery was a no-op (floor≠ceiling) — both fixed 2026-06-08
+- [nested-dispatch-session-tracking](feedback-nested-dispatch-session-tracking.md), [webkit vs firefox css blindspots](feedback-webkit-vs-firefox-css-blindspots.md) — auto_summarize lossy, verify via git diff; WebKit misses stacking/`:checked` bugs
+- [no sudo for privileged fs ops](feedback-no-sudo-privileged-fs-ops.md) — never `sudo` a protocol-7-owned file; hand command to user
+- [perl and/or precedence in my-assignment](feedback-perl-and-or-precedence-in-my-assignment.md) — `my $x = A and B` only assigns A; use && / ||
+- [p7 route-send wire protocol](feedback-p7-route-send-wire-protocol.md), [oversize single-line protocol](feedback-oversize-single-line-protocol.md) — SIZE auto-fragments; TRUE/FALSE/WAIT unframed, oversize wedges buffer
+- [no unsolicited cross-zenka push](feedback-no-unsolicited-cross-zenka-push.md), [vax-int vs v7-epoch](feedback-vax-int-vs-v7-epoch.md) — consumer always initiates pull; decode epoch dirs with `p7c localtime`
+- [log string hygiene](feedback-log-string-hygiene.md), [ondemand timeout tiering](feedback-ondemand-timeout-tiering.md) — base.str.eval_error not raw $EVAL_ERROR; survey existing timeouts by tier first
+- [claude_dispatch summarize hang](feedback-claude-dispatch-summarize-hang.md) — prompt-overflow hangs session forever; kill PID, work safe on disk
+- [init-code-return-values](feedback-init-code-return-values.md), [memory-sync-timing](feedback-memory-sync-timing.md), [memory-management](feedback-memory-management.md) — TRUE/FALSE both=success; sync at ~42K ctx; tree-structured modules
+- [claude-dispatch-strategy](feedback-claude-dispatch-strategy.md), [kimi-code-review](feedback-kimi-code-review.md), [kimi-signatures](feedback-kimi-signatures.md), [kimi-dispatch-pattern](feedback-kimi-dispatch-pattern.md) — kimi orchestration; SUPER::/ns-swap; sig-derail; kimi-task
+- [model-precision-analysis](feedback-model-precision-analysis.md), [coding-zenka-edits](feedback-coding-zenka-edits.md) — Qwopus more precise; LLM describes edits, verify results
+- [coding-zenka-reasoning](feedback-coding-zenka-reasoning.md), [coding-zenka-inject](feedback-coding-zenka-inject.md) — low reasoning→premature completion; `coding.inject-message` redirect
+- [arg-regression](feedback-arg-regression.md), [arg-calling-convention](feedback-arg-calling-convention.md) — $ARG→$_ revert; `@_ ? shift : $ARG`
+- [prefer-parsed-config](feedback-prefer-parsed-config.md), [true-false-constants](feedback-true-false-constants.md) — use parsed config not FS rescan; TRUE/FALSE not 0/1
+- [web-serialization-and-inlining](feedback-web-serialization-and-inlining.md), [task-show-multiline](feedback-task-show-multiline.md) — parallel JSON+YAML; task.show must escape \n
+- [list-return-format](feedback-list-return-format.md), [stop-and-revert](feedback-stop-and-revert.md) — `{mode=>'size', data=>$string}`; stop/revert/confirm root cause first
+- [utf8-module-literals](feedback-utf8-module-literals.md), [watcher-state-machines](feedback-watcher-state-machines.md) — non-ASCII corrupts output; IO::Async variable watchers only
+- [ncode-tools](feedback-ncode-tools.md), [perltidy-sil0](feedback-perltidy-sil0.md) — use ncode replace/parse-headers; ptd `-sil=0` self-heals indent
+- [design-ideation-capture](feedback-design-ideation-capture.md), [coding-timeout-restart-loop](feedback-coding-timeout-restart-loop.md) — offer spin-off doc on riffs; data-start scales w/ est_tokens
 
 ## Completed Sessions
 - [topic-completed](topic-completed.md) — all session summaries (Feb 2026 → present)
-- [httpd route-arg parsing fix](topic-httpd-route-arg-parsing-fix.md) — LANDED 20bdf36ff 2026-06-25: comma-greedy regex bug + web zenka on-demand
-- [jobsite stray-job recovery](topic-jobsite-stray-recovery.md) — LANDED a52a6a4b8 2026-06-25: cross-zenka pull-based recovery, AMOS checksum manifest ids
+- [httpd route-arg parsing fix](topic-httpd-route-arg-parsing-fix.md), [jobsite stray-job recovery](topic-jobsite-stray-recovery.md) — LANDED 20bdf36ff / a52a6a4b8
 
 ## System Status
-- [next-steps](topic-next-steps.md) — full queue, roadmap, open bugs, dispatched
-- **letsencr**: fully working on atom + pri.v7.ax; 5-year scheduling bug fixed
-- **reasoning.branch.***: LIVE (session 41); 9 modules, ASCII tree via p7c
-- **base.cmd.list**: :n: row limit; prefix/suffix/zero-padded; header-aware
-- **pager.sort.multi-key**: ntime_b32 + priority_map sort types
-- **task dispatch**: all carry ## dispatch + prompt for reuse
-- **coding zenka**: fully operational; 9B model loads in seconds
-- `bin/todo`: self-contained CLI; add/done/rm/edit/tag/untag/clear; priority
-- `ncode doc`: unified lookup; delegates GObject to subprocess
-- `smtpd`: receive → YAML + LLM classify → route; xz+twofish archive
-- `window.*`: proportional placement; 8 profiles; ticker integrated
-- **v7 ondemand auto-register**: `v7.register_ondemand_zenki` re-registers at cube on reload + cube restart; dedup hash `<v7.registered_at_cube>` survives source reload, wiped by cube post-init callback
-- [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: harmonize state-0/7 early-return; state-7 (0-trailing-nl) files oscillated; fix + regression net `test-endline-state7-oscillation`; **test re-sign ≥2 passes to see oscillation**
+- [next-steps](topic-next-steps.md) — queue, roadmap
+- letsencr working; reasoning.branch.* LIVE; coding zenka operational; ondemand auto-register survives reload
+- [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: state-0/7 harmonized; test re-sign ≥2 passes to see oscillation
 
-#,,..,,..,,..,.,.,,,,,,,,,,..,,..,.,,,,,.,...,..,,...,...,,..,,..,.,.,.,.,...,
-#F2KDCGCKSXOF5N4HYM3TUBYWVHEHEASOAJI2VS5CSU3RJVS6BWYV54FWQAIZU5ZXKJTCPSZPIA4QE
-#\\\|VER5OWKYHWIEWOFV5U736V3FMAUHZYCSFTAEOXGSYZYZWAMV55O \ / AMOS7 \ YOURUM ::
-#\[7]XUBGJ4M3KMSVTJYQ5AR4Q3XOQV5O6LGVIBOELZVR4JPCWUEUHEAQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,,,.,.,.,.,,,,,,,.,,,...,...,,,,,..,,...,...,..,,..,,,.,,.,.,,..,
+#IQNIBG242RKKYSYHCXXWH7WM5NKATQDT44RSH2JAIR7FLGIB7RL3CMNYFNLOHJ3NUWY6COOGGZLDI
+#\\\|N3KOJU4NZVXYG34KVRY5ZL6CHB54I7PXWXB5GY6JO5CSXQ5PK4W \ / AMOS7 \ YOURUM ::
+#\[7]D3K2KBNH6BXM27ZGVISW2LTVT6AERUY7RC5NNWFUXURBW7J64WBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
