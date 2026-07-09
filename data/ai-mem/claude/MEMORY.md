@@ -1,6 +1,7 @@
 ## CRITICAL
 - [web-browser ephemeral storage](feedback-web-browser-ephemeral-storage.md) — WebKit ephemeral=1: storage wiped every restart; treat as volatile
 - [jobsite pending_count orphan gap](topic-plugin-web-jobs.md) — OPEN: restart mid-batch orphans pending_count, sticks cycle on 'assessing' forever
+- [jobsite delete-during-assessing fix](topic-plugin-web-jobs.md) — STAGED 2026-07-09, unverified live: delete-while-assessing now resolves task.fail; test expected by Mon 2026-07-13
 - [WSLg deiconify limitation](feedback-wslg-deiconify-limitation.md) — Weston/WSLg blocks deiconify at compositor level
 - [UNCOMMITTED 2026-06-20 mpv/X-11 set](topic-mpv-jobqueue-startup.md) — fade_in test values must be reverted before commit
 - [gtk-wsl-window-positioning](topic-gtk-wsl-window-positioning.md) / [weston-move-unreliable](feedback-weston-move-unreliable-use-compositor-grab.md) — use begin_move_drag/resize_drag not move(); initial-placement-before-show_all open
@@ -105,8 +106,8 @@
 - letsencr working; reasoning.branch.* LIVE; coding zenka operational; ondemand auto-register survives reload
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: state-0/7 harmonized; test re-sign ≥2 passes to see oscillation
 
-#,,..,.,,,,,,,,,.,.,.,.,,,,,,,.,,,...,...,,,,,..,,...,...,..,,..,,,.,,.,.,,..,
-#IQNIBG242RKKYSYHCXXWH7WM5NKATQDT44RSH2JAIR7FLGIB7RL3CMNYFNLOHJ3NUWY6COOGGZLDI
-#\\\|N3KOJU4NZVXYG34KVRY5ZL6CHB54I7PXWXB5GY6JO5CSXQ5PK4W \ / AMOS7 \ YOURUM ::
-#\[7]D3K2KBNH6BXM27ZGVISW2LTVT6AERUY7RC5NNWFUXURBW7J64WBQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,...,.,,,,,.,.,,,...,,,.,...,,..,..,,...,...,...,,.,,,..,...,,.,,
+#JABFCIGC7ZMCM7B3TYKMDDI6BWSTKJTG7BB4B2F2LYXL5JO2T7TJVPPZUHWNXLYZAHCUVBZ6OCSNK
+#\\\|XG4A6PFA6Y2WFECOSKFIKNYHS5W72GSKGIDH2DSZKININAKNTJF \ / AMOS7 \ YOURUM ::
+#\[7]SU5FQ3ITUKUODBX2XMEASVQODXFQFUFQUJDY627TSWIBA4K7OCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
