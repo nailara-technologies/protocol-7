@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = impressive.cmd.reposition
+# descr = reposition impressive window, seeded from last position
+
+my $caller = <system.zenka.name> // qw| impressive |;
+
+## force=1 : always opens the interactive placement ui [ rather than    ##
+## instantly re-serving the saved profile ], but still seeds it from    ##
+## that same saved profile - so calling reposition again before a       ##
+## window is ever opened continues from the last commit instead of      ##
+## resetting to a blank/default position each time ##
+<[protocol-7.route-send]>->(
+    {   'command'   => 'window-place.coords',
+        'call_args' => { 'args'    => sprintf 'caller=%s force=1', $caller },
+        'reply'     => { 'handler' => 'impressive.handler.reposition_reply' }
+    }
+);
+
+return {
+    'mode' => 'true',
+    'data' => sprintf( 'repositioning requested [caller=%s]', $caller )
+};
+
+#,,.,,,,,,,.,,...,,,,,,.,,,,,,.,,,,,.,,,,,,,.,..,,...,...,,..,..,,,,.,,.,,...,
+#DIG5O7RVA5HEDMC22WS3MAWOJWE5UFST2ELIPVEVW35FC5YGMB35LTDNGSWBKYKVCPZAOZMABXWAK
+#\\\|PT4B7D62QBG4HWT4KDMBKAVFVNRQC63XXUEZUUPIY2LWJN47LPX \ / AMOS7 \ YOURUM ::
+#\[7]JOQ5JJA7YKDR7ASNRWVFEBBSPPQFHQE6HVX6VAZCIYTB25ENDWCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,6 +13,14 @@
 <impressive.cfg.light_mode>     //= FALSE;
 <impressive.cfg.use_start-anim> //= FALSE;
 
+## kiosk opt-in: show a placeholder image instead of no window at all  ##
+## when the playlist is empty - flag defaults off [ today's behaviour, ##
+## no window ] ; default image is the same transparent project logo   ##
+## mpv's idle-screen [ p7-idle-logo.lua ] and protocol-7-menu both use ##
+<impressive.cfg.open_on_empty_playlist> //= FALSE;
+<impressive.cfg.empty_playlist_image>   //= catfile( <system.root_path>,
+    qw| data/gfx/logos/nailara_logo.trans-dark.png | );
+
 <impressive.path.impressive_src>
     //= qw| /usr/local/impressive/bin/impressive |;
 
@@ -43,10 +51,17 @@
 <impressive.gfx.cursor_png>
     = catfile( <impressive.cfg.system_gfx_dir>, qw| transparent.png | );
 
+## subscribe to X-11 screen-change events once connected to cube — lets the  ##
+## placement infrastructure re-assert the window geometry after a monitor    ##
+## topology change instead of leaving the old geometry in effect until a     ##
+## full restart [ same deferred-init pattern as protocol-7-menu/tile ].      ##
+push @{ <system.callbacks.initialized> //= [] },
+    'impressive.subscribe-screen-change';
+
 0;
 
-#,,..,.,.,,,,,,..,.,,,.,.,,,,,.,.,,,,,...,,,,,..,,...,..,,...,,..,,.,,..,,.,.,
-#K7EUMGLR27HIZE5Z6F2NGBB2P333O2UIE57TRZICXBTAKRVUA7ZP6SRSKMFXTYVZOXLYX4MQFLNZ4
-#\\\|LPL2253FGMVSXHTB3S652CDR37T6XCTAVSN7AYIX3Y3KX4OA5CU \ / AMOS7 \ YOURUM ::
-#\[7]K5INYNOXZWJG6Y75WORO44VOTP2ASQ6XMYNWKJIEPDUTCCUBX6DI 7  DATA SIGNATURE ::
+#,,..,,..,,..,...,..,,.,,,,,.,..,,,,.,..,,,,,,..,,...,...,.,.,.,,,,..,.,,,,,.,
+#5IIFIUIH4CNLZK3U7AINYDNSUBSDYCQHBWOZEOOJVBUA5ZKKUV7R5L6L2NUTNKZWKMSL6PSCRICB6
+#\\\|CWDBXAOJLD5QSG76B7YVF7YZ3PEJXW3K5K5J7ETOEX3TJE5DRMO \ / AMOS7 \ YOURUM ::
+#\[7]6KZLCU344L3DO62VLVJSPYPT7TEGUPXMRX736H77NAMEOED324AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

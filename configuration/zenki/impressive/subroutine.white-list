@@ -41,6 +41,7 @@ base.pre_init
 base.n2u_time
 base.get_file
 base.file.put
+base.cmd.list
 base.cfg_bool
 ui.render.tree
 base.wrap_text
@@ -89,6 +90,8 @@ base.net.connect
 base.log-delayed
 base.load_config
 base.get_homedir
+base.cmd.src-ver
+base.cmd.src-age
 base.chk-sum.elf
 base.change_prio
 base.call_filter
@@ -134,6 +137,8 @@ base.clear_p7_mods
 base.clean_unicode
 base.clean_hashref
 ascii.frame.render
+window.profile.save
+window.profile.load
 plugin.auth.twofish
 base.utf8.clean_str
 base.str.eval_error
@@ -175,10 +180,12 @@ base.eval.get_params
 base.eval.comp_regex
 base.disable_command
 base.devmod.dump_var
+base.cmd.show-buffer
 base.chk-sum.bmw.ctx
 base.buffer.add_line
 auth.zenka.init_code
 ascii.frame.validate
+window.profile.delete
 impressive.cmd.status
 impressive.cmd.resume
 format.yaml.load_file
@@ -235,27 +242,36 @@ base.chk-sum.bmw.strsum
 base.auth.set_zenka_key
 base.X-11.assign_window
 auth.zenka.authenticate
+window.profile.color.get
+window.profile.calculate
 ui.caller.security-level
 plugin.auth.auth-keypair
 io.unix.socket.init_code
+impressive.screen-change
 impressive.check_tmp_dir
 crypt.C25519.verify_sign
 base.zenka.push.pre_init
 base.zenka.is_v7_started
 base.templates.init_code
+base.strm.local.register
 base.session.check.close
 base.protocol-7.pre_init
 base.parser.command_list
 base.file.zulum_tmp_file
+base.file.zenka_dir.load
 base.cmd.verify-instance
 base.chk-sum.from_substr
 base.chk-sum.bmw.filesum
 base.chk-sum.bmw.L13-str
 base.chk-sum.bmw.224.B32
 base.check_cfg_cmd_alias
+window.profile.color.save
+window.profile.color.load
+window.profile.color.list
 ui.render.tree.invalidate
 io.unix.socket.input.open
 impressive.process_subcfg
+impressive.cmd.reposition
 base.stream.advance_drain
 base.sourcecode.init_code
 base.session.cancel_route
@@ -266,12 +282,14 @@ base.log.send-buffer.init
 base.load_runtime_modules
 base.is_defined_recursive
 base.handler.link-upgrade
+base.file.zenka_dir.write
 base.file.write_timestamp
 base.erase_buffer_content
 base.chk-sum.elf.pre_init
 base.chk-sum.bmw.pre_init
 base.callback.delayed-log
 base.X-11.wait_for_window
+window.profile.color.apply
 io.unix.socket.output.open
 io.unix.socket.input.close
 base.warnings.from_bitmask
@@ -345,6 +363,7 @@ base.cache.refaddr-prefix.init
 ascii.frame.render.border_line
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
+base.file.zenka_dir.unlink_file
 base.buffer.local_logfile_write
 crypt.C25519.decrypt_priv_keystr
 base.perlmod.install_cpan_module
@@ -365,9 +384,11 @@ base.parser.center_ellipse_string
 base.file.matching_path_linknames
 base.callback.expire_code_version
 plugin.auth.auth-keypair.init_code
+impressive.subscribe-screen-change
 crypt.C25519.get_type_from_key_str
 base.protocol-7.command.send.local
 base.path-set-up.zenka-directories
+base.path-set-up.check-zenka-paths
 base.handler.read.encoding-wrapper
 base.handler.link-upgrade.response
 base.handler.command.process_reply
@@ -375,6 +396,7 @@ base.chk-sum.bmw.calculate_L13_sum
 base.callback.setup_rollback_timer
 ascii.frame.parse.fill_anchor_text
 protocol.protocol-7.encryption.init
+impressive.handler.reposition_reply
 impressive.callback.stop_start-anim
 base.perlmod.register_loaded_module
 base.number-cache.is_valid_template
@@ -412,6 +434,7 @@ base.zenki.ondemand.handler.startup_reply
 base.agent_code.handler.sig_warn.end_proc
 protocol.protocol-7.link-upgrade.handshake
 plugin.auth.auth-keypair.tofu-notification
+impressive.handler.screen-change_strm_open
 auth.callback.cap-neg.declare-strm-support
 base.zenka.push.reply-handler.notify-online
 base.referenced_subroutines.clear_from_disk
@@ -425,8 +448,8 @@ auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,,,.,,,.,.,..,,,..,,..,,,.,...,,.,,,,.,...,..,,...,...,...,,,,,..,,.,,,,.,,
-#PDF7Q5INVXIZYTNGGW66KWSAU7VSGV4YM2LDCUTQLP2AIQ427SZLWBX5D5AY6SPNVUJ2YZYKYX2AA
-#\\\|7Z544KCGSDADGQ7LWCZBME66Q2EXPLKGGLZUHDTSFTNCNTXZNNZ \ / AMOS7 \ YOURUM ::
-#\[7]SPFZ6RP4Y6QLMFLETJID5HZNUSTGDUQRBKYCRFHAOFRJDVJJV2DI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,,.,,,,,.,.,,..,..,,..,,...,.,,,..,,...,...,...,,,.,..,,,,.,.,.,
+#GMRUUTOKYSH2VSXPIYMHPUDJROKIZT64MWENV2CAN3XONPAVX5EG7TGPBBKBHQQINB3UB366EBH2S
+#\\\|DIC73JWNNDERI4UKO4F5XWVXBZCXYZVOKBKCW6TGMBFTOFV6UVA \ / AMOS7 \ YOURUM ::
+#\[7]XMMOBXARHBCVYFDJD5JA5JPEUK2M5ZUN4V5EVDZNLQP4MKNOOIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

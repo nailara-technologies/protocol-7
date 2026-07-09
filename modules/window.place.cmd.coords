@@ -6,11 +6,12 @@
 
 my $args = $call->{'args'} // '';
 
-my ( $caller, $tag );
+my ( $caller, $tag, $force );
 my @tokens = split /\s+/, $args;
 foreach my $token (@tokens) {
     if    ( $token =~ m|^caller=(.+)$| ) { $caller = $1; }
     elsif ( $token =~ m|^tag=(.+)$| )    { $tag    = $1; }
+    elsif ( $token =~ m|^force(=1)?$| )  { $force  = TRUE; }
     elsif ( not defined $caller )        { $caller = $token; }
 }
 $caller //= '';
@@ -21,7 +22,11 @@ if ( not length $caller ) {
 }
 
 ## try saved profile for exact caller — return immediately if found ##
-my $saved = <[window.profile.load]>->($caller);
+## [ skipped when force=1 : caller wants the interactive ui to open   ##
+## even though a saved profile exists, seeded from that same profile ##
+## below instead of served as an instant reply - see eg. *.cmd.      ##
+## reposition, which wants a fresh interactive pick, not a re-serve ] ##
+my $saved = $force ? undef : <[window.profile.load]>->($caller);
 if ( defined $saved ) {
     my ( $x, $y, $w, $h ) = @{$saved}{qw| x y width height |};
     my $reply_data = sprintf 'x=%d y=%d width=%d height=%d profile=saved',
@@ -34,13 +39,17 @@ if ( defined $saved ) {
     return { 'mode' => qw|true|, 'data' => $reply_data };
 }
 
-## no saved profile — use base caller's saved profile as starting geometry ##
+## no saved profile [ or force=1 ] — seed initial geometry from the    ##
+## exact caller's own saved profile first [ force path, continuity    ##
+## across successive reposition calls with no window open in between ##
+## ], falling back to the base caller's [ eg. 'foo' for 'foo[bar]'    ##
+## sub-instances ] when there is no exact-caller profile to seed from ##
 my $base_caller = $caller;
 $base_caller =~ s|\[.+\]$||;
 my $base_saved
-    = ( $base_caller ne $caller )
-    ? <[window.profile.load]>->($base_caller)
-    : undef;
+    = $force                      ? <[window.profile.load]>->($caller)
+    : ( $base_caller ne $caller ) ? <[window.profile.load]>->($base_caller)
+    :                               undef;
 
 ## unique per-request id ##
 my $id;
@@ -72,8 +81,8 @@ $data{window}{place}{instances}{$id} = {
 
 return { 'mode' => qw|deferred| };
 
-#,,.,,,..,,,,,,..,,,,,.,.,.,,,.,.,.,.,,.,,.,.,..,,...,..,,.,.,...,..,,,.,,,,,,
-#DTUKDDDW46HJBEIU4LKVRZEOBT675HMFIKT4DUXB2NCODWSN235R33BQJUDIKSZLCQXZK3YM6IQ4S
-#\\\|Y6JKVEO6FTIHBLNOB3QPK2QUJ4GTLPBG3XMQUCGVKR7FV23YHOB \ / AMOS7 \ YOURUM ::
-#\[7]2YFV7QME2TLYSCLNGCS7DLHIDQKNQRJCP2DJZDLSUK6SH2V7O4BQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,..,,..,,,..,...,,,,,...,,,.,,.,,..,,...,...,..,,..,,,.,,..,,,,.,
+#2XWMYEBLXQ5EKGEMWA2REZ6ZO7JLC4TOQULB7DUEYRWNWZCSSFQGFW3AAD4O6QSPW4CUVVQIZ7GYU
+#\\\|WGVHBO3DAK6K2WE55X6CMPMPULEXYX64C3Q6BS6S5DHHNY5OLHM \ / AMOS7 \ YOURUM ::
+#\[7]N5ACLYSQPHNZQCRCE65A2QKAXS3EOYQMPIVH2KHPT2QK6BQFMEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

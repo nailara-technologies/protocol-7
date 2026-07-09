@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = impressive.handler.screen-change_strm_open
+# descr = reply handler for X-11 screen-change STRM subscription
+#         registers local consumer feeding lines to impressive.screen-change
+
+my $reply = shift;
+
+if ( $reply->{'cmd'} eq qw| FALSE | ) {
+    <[base.logs]>->(
+        2,
+        'impressive screen-change subscribe refused: %s',
+        $reply->{'call_args'}->{'args'} // 'unknown error'
+    );
+    return;
+}
+
+return if $reply->{'cmd'} ne qw| STRM |;
+return if $reply->{'args'} ne qw| open |;
+
+my $cmd_id = $reply->{'cmd_id'};
+return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
+
+<[base.strm.local.register]>->(
+    $cmd_id,
+    {   'watcher' => sub {
+            my $lc = shift;
+            return if not length $lc->{'buf'};
+
+            my $data = $lc->{'buf'};
+            $lc->{'buf'} = '';
+
+            for my $line ( split /\n/, $data ) {
+                next if not length $line;
+                <[impressive.screen-change]>->($line);
+            }
+        },
+    }
+);
+
+<[base.logs]>->(
+    2, 'impressive screen-change STRM consumer registered [cmd_id=%d]',
+    $cmd_id
+);
+
+return;
+
+#,,.,,...,.,,,,,.,..,,,,,,,.,,,,,,.,.,..,,.,,,..,,...,...,..,,,.,,,..,,,,,..,,
+#SUXHL5QAKHWXRPXEAWLS5PS2WQ3QYWVPVFO6XGX2OUNOVR5CMZQJWFCVQ2YITUTMLJSS4FDU3JPTM
+#\\\|OZ3ESFXT6DHOUOHD6MI2VKPHAYLU3O6CNPSFXM4ARRTPAFLSFR3 \ / AMOS7 \ YOURUM ::
+#\[7]55HGP7OIGDDG7AKMKN2LATKCFWYZKNIH7EO7NOB2TVBK5UMFK6CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

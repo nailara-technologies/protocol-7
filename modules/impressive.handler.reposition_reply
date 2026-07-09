@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = impressive.handler.reposition_reply
+# descr = window-place coords reply: apply geometry to window
+
+my $reply = shift // {};
+my $mode  = lc( $reply->{'cmd'} // '' );
+my $rdata = $reply->{'call_args'}->{'args'} // '';
+
+if ( $mode ne qw| true | ) {
+    <[base.logs]>->( 1, '[reposition] coords unavailable — no change' );
+    return;
+}
+
+my %geo;
+for my $token ( split m|\s+|, $rdata ) {
+    $geo{$1} = $2 + 0 if $token =~ m{^(x|y|width|height)=(-?\d+)$};
+}
+
+unless (defined $geo{'x'}
+    and defined $geo{'y'}
+    and defined $geo{'width'}
+    and defined $geo{'height'} ) {
+    <[base.logs]>->( 0, '[reposition] unparseable coords [%s]', $rdata );
+    return;
+}
+
+my $geometry = sprintf '%dx%d+%d+%d',
+    $geo{'width'}, $geo{'height'}, $geo{'x'}, $geo{'y'};
+
+## cache the new profile ##
+my $caller = <system.zenka.name> // qw| impressive |;
+<[window.profile.save]>->(
+    $caller, $geo{'x'}, $geo{'y'}, $geo{'width'}, $geo{'height'}
+);
+
+## apply to running impressive window via X-11 ##
+my $window_id = <x11.id>;
+if ( defined $window_id ) {
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'cube.X-11.set_geometry',
+            'call_args' =>
+                { 'args' => sprintf '%d %s', $window_id, $geometry }
+        }
+    );
+    <[base.logs]>->( 1, '[reposition] applied geometry [%s]', $geometry );
+} else {
+    ## expected when no impressive window is currently open [ eg. empty  ##
+    ## playlist ] - profile is saved above, will apply on next open_window ##
+    <[base.logs]>->(
+        1, '[reposition] no window open — geometry saved for next open'
+    );
+}
+
+#,,,,,.,,,.,.,...,,.,,,,,,.,.,,,.,,..,.,,,,,.,..,,...,...,.,,,,,.,,..,,.,,...,
+#E76O4WRDKNBG24AFP72UDQA3PI6IXT4XPSJZH23FZUUP3CZRX4VPIQ6OBK6LQS2WFKO7HROCI5654
+#\\\|FODBYPH7JMQOTDPF2PQJLCR2MPV5NPLW5RKW4DJRQDEGWXT37Q6 \ / AMOS7 \ YOURUM ::
+#\[7]YM4TKSIV5GFJUD24GE24YVXVWAGCOKMUJW3GOT2RATFDQCKZH2AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
