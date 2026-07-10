@@ -3,7 +3,8 @@
 # name  = web-browser.cmd.get_snapshot
 # descr = capture visible viewport of foreground view to PNG
 
-my $reply_id = $call->{'reply_id'};
+my $reply_id   = $call->{'reply_id'};
+my $region_arg = $call->{'args'};
 
 ## get the active foreground view
 my $view_index = <web-browser.overlay.index.fg> // 1;
@@ -21,7 +22,10 @@ my $out_path  = "$snap_dir/snapshot_${timestamp}_$$.png";
 ## ensure output directory exists
 <[file.make_path]>->($snap_dir) unless -d $snap_dir;
 
-my $region = <web-browser.cfg.snapshot_region> // 'visible';
+my $region
+    = defined($region_arg) && length($region_arg)
+    ? $region_arg
+    : <web-browser.cfg.snapshot_region> // 'visible';
 
 ## async snapshot : result delivered via handler
 <web-browser.snapshot.pending_path>  = $out_path;
@@ -49,8 +53,8 @@ if ($EVAL_ERROR) {
 ## return deferred : handler sends reply when snapshot completes
 return { 'mode' => 'deferred' };
 
-#,,..,,..,,,,,,..,,,.,..,,,..,,,,,,.,,.,.,..,,..,,...,...,..,,.,,,,,,,,,,,.,,,
-#OOSI7MH74VAOURGWLAKVHQHR5HLLP5Y67PSAY77VLPQYJ7STAPBEIZBQZDODSCFDL3DBABDVHGHFW
-#\\\|GHGOP25VXYCNUCZ6UXQ3XKUTJKP5LKVJYAGZNNQJ4F34JBDW2GP \ / AMOS7 \ YOURUM ::
-#\[7]K5OODO63DHITIYD2X2GHDUAU64G624KS76PNKRXWISCETU2OWOAY 7  DATA SIGNATURE ::
+#,,.,,..,,,..,.,.,,..,,,.,,.,,...,,..,...,,.,,..,,...,...,.,,,,..,.,,,,.,,,.,,
+#I22HBGZSWAZWLRPXHYLMOUTDM236VZGRH5OHBYZBHYRGY7TV5OXGMOEQQA67L4WS6DDVU4UIO37LE
+#\\\|U4BYFG52O4UHJPKJYZB4ARIWCI23MLPXG6HBEA6XH556JEPXD25 \ / AMOS7 \ YOURUM ::
+#\[7]VVLYZGHJA6XXXPN4H2U62CGKE7QM7NTVA2BSHJIDDGJJZGTNAEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
