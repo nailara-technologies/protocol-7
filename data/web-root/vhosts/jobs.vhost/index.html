@@ -771,6 +771,13 @@ let showArchived = false;
 let dragSrcId = null;
 let pollTimer = null;
 let userDecisions = {};  // id → { stage?, notes?, date_applied?, ts }
+const pushChains = {};   // id → tail promise, serializes same-job pushes so ##
+                          // each one reads base_last_modified only after the ##
+                          // prior push's response has updated it -- otherwise ##
+                          // two rapid stage moves on one job (e.g. to_apply -> ##
+                          // applied before the first round-trip lands) both   ##
+                          // read the same stale watermark and the second      ##
+                          // false-conflicts against the first's own write     ##
 const SCORE_FILTER_STAGES = new Set(['review', 'to_apply', 'applied', 'interviewed', 'responded']);
 const ASSERT_OPEN_STAGES  = new Set(['review', 'to_apply']);
 let collapsedOverrides   = new Set(); // per-card toggles from default
@@ -837,7 +844,15 @@ function mergeJobs(serverJobs) {
 }
 
 /* ── POST a single field change to server, advance ntime ── */
-async function pushChange(id, fields) {
+function pushChange(id, fields) {
+    /* chain onto any push already in flight for this job so base_last_modified */
+    /* is only read once the prior push has landed and adopted its watermark   */
+    const prev = pushChains[id] || Promise.resolve();
+    const run  = prev.then(() => doPushChange(id, fields));
+    pushChains[id] = run;
+    return run;
+}
+async function doPushChange(id, fields) {
     try {
         const body = { id, ...fields };
         /* stage pushes carry the last-known last_modified watermark so the  */
@@ -856,6 +871,13 @@ async function pushChange(id, fields) {
         /* watermark forward here would silently skip a pending removal    */
         /* this browser never actually fetched                             */
         if (Array.isArray(data.conflicts) && data.conflicts.length) applyConflicts(data.conflicts);
+        /* adopt the watermark this push produced server-side, so a rapid   */
+        /* follow-up push (e.g. hitting undo right after a stage move)     */
+        /* carries the fresh base_last_modified instead of the pre-push    */
+        /* value — otherwise the browser false-conflicts against its own   */
+        /* just-applied write and the undo gets bounced back as if a       */
+        /* different actor had moved the job in the meantime               */
+        if (data.last_modified && jobs[id]) jobs[id].last_modified = data.last_modified;
         saveCache();
     } catch(e) {
         notify('sync fehler: ' + e.message, true);

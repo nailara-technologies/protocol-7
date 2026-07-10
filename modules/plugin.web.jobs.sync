@@ -39,6 +39,12 @@ my $ok        = TRUE;
 my $cache_dir = <[plugin.web.jobs.cache.path]>;
 my @conflicts;
 
+## the resulting watermark for a single browser push, handed back so the   ##
+## caller can adopt it locally -- otherwise a same-browser follow-up push  ##
+## [ e.g. hitting undo right after a stage move ] still carries the STALE  ##
+## pre-push base_last_modified and false-conflicts against its own write  ##
+my $single_last_modified;
+
 ## collect pending reverse-delete IDs so a batch push does not resurrect them ##
 my %pending_delete;
 if ($is_batch) {
@@ -198,7 +204,8 @@ for my $job_data (@job_list) {
             and $job_data->{'action'} eq 'delete' )
     ) {
         my $wrote = <[plugin.web.jobs.cache.write]>->( $job_id, $cached );
-        $ok = FALSE if not $wrote;
+        $ok                   = FALSE                      if not $wrote;
+        $single_last_modified = $cached->{'last_modified'} if not $is_batch;
     }
 }
 
@@ -227,6 +234,10 @@ my $rb = eval {
             'reverse'   => \@reverse,
             'ntime'     => $current_ntime,
             'conflicts' => \@conflicts,
+            (   defined $single_last_modified
+                ? ( 'last_modified' => $single_last_modified )
+                : ()
+            ),
         }
     );
 } // '{"ok":false,"error":"encode failed"}';
@@ -242,8 +253,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,..,...,,.,,,,,,.,,,...,.,.,.,.,,,,,...,.,,,..,,...,...,,..,,,,,.,.,,,,,,.,,
-#QSP2TIBRBM4CE4OLGB6YTJZF4ITDESQ3LMI7VMGODGKRE4H3EPUBT2GIW4CDFMOWTOHZVOB6LHZJA
-#\\\|24X57GVTHLRGYXOHMVWS6JSG7EP4MM7HYCWB74CD2DCWBTCUFMN \ / AMOS7 \ YOURUM ::
-#\[7]4NTAOH5GLFQS4L6N6GI7GSXMSI5E5BN3ZMQSYJGUTZO7NUJ56KDI 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,..,,...,,,.,,,.,,,.,,,.,...,,.,,..,,...,...,.,.,,..,,.,,...,...,
+#OOSNS4AFR2DYGEMRGBA4DJZSXQPT2EOUFH3OPPEGYXF4HFEF734UOPBMGSHM2MP4QRI4JBSKNVT5M
+#\\\|GAZ7GMXE2QXVAKLHFEAM4JKVUIXYLMP64IPEMIO77V3DR4ZKQSR \ / AMOS7 \ YOURUM ::
+#\[7]EZ54P2ARUW3TPQL5L7HYHSQ4O5QUBOXM64I7FRDFM7RYGBNXEUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
