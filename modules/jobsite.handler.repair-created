@@ -15,9 +15,12 @@ if ( lc($mode) eq qw| false | ) {
         0,       'jss.repair-created: failed for job %s: %s',
         $job_id, $task_id
     );
-    ## do not decrement pending_count : repair failed, job still needs resolution ##
-    $job_id = uc( substr( $job_id, 0, 7 ) );
+    ## repair task itself never got created : no watcher will ever fire for ##
+    ## this job, so it must be decremented here or it orphans pending_count ##
+    ## forever [ mirrors task-created's false branch ] ##
     <jobsite.tasks>->{$job_id}{'repair_failed'} = TRUE;
+    <jobsite.pending_count>--;
+    <jobsite.pending_count> = 0 if <jobsite.pending_count> < 0;
     <[jobsite.state.persist]>;
     <[jobsite.dispatch.next]>;
     return;
@@ -40,8 +43,8 @@ $task_id = uc( substr( $task_id, 0, 7 ) );
     }
 );
 
-#,,,.,,,,,,,.,,,.,,.,,.,,,,,,,..,,...,,..,...,..,,...,..,,,,.,,..,,..,,.,,,,.,
-#I6WKC746PGH3YAG2JQ4PLE4DUXZY4MF6WOWZKCFV4M3R2LNDGW4YFJVSGCAQH3EQ6M2ZBI54S3B7K
-#\\\|HHKE5L3OZJ4AZRI6Z54Y6UT5DKUWALRHXWZ2KCQIJIYBNYDCOKO \ / AMOS7 \ YOURUM ::
-#\[7]DP2NHWCN4T7LDYBBQOSND545ANSQ3EDTUX5K2QUWNNI6FOAQF2CA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,.,.,,..,,,,,,.,,,,.,,..,.,.,,..,..,,...,..,,,,.,,,.,...,.,,,.,.,
+#HB5OUVWAFTH6LCZZL4W3BJEP2VIHAIAR6ZPRWGVKGORXCAFHYLFVFDH4IO3TI53KBDAZI7E6TEOAW
+#\\\|2SBG3S35KIXVWJEBCQXZI5W2I6AS27ZMTIU3RK6XH2HAAOA46TG \ / AMOS7 \ YOURUM ::
+#\[7]KVK6RH5CJMY55LOU2TCZB56XBAWBOBZ3FQA5C5FWGKCCB5KZYAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

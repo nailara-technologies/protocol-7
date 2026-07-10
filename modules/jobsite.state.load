@@ -21,7 +21,24 @@ return if ref $saved ne 'HASH';
 
 ## cycle: reset scanning/assessing to idle ##
 my $cycle = $saved->{'cycle'} // 'idle';
-$cycle = 'idle' if $cycle =~ m{^(?:scanning|assessing)$};
+if ( $cycle =~ m{^(?:scanning|assessing)$} ) {
+
+    ## in-flight work [ assess_queue, per-job 'queued'/'assessing' stage, ##
+    ## task.wait-done watchers ] lives only in memory and does not survive ##
+    ## a restart -- carrying pending_count forward orphans it against work ##
+    ## that will never report back, wedging cycle on 'assessing' forever  ##
+    ## once the next batch's real jobs finish [ see jss pending_count     ##
+    ## orphan-gap bug ] ##
+    <[base.logs]>->(
+        1,
+        'jss.load: cycle=%s had pending=%d, unrecoverable across restart, resetting',
+        $cycle,
+        $saved->{'pending_count'} // 0
+    );
+    <jobsite.pending_count> = 0;
+    <jobsite.assess_queue>  = [];
+    $cycle = 'idle';
+}
 <jobsite.cycle> = $cycle;
 
 ## migrate from monolithic store.yaml if present (one-time) ##
@@ -70,8 +87,8 @@ if ( -f $store_file and not $has_jobs ) {
     <jobsite.cycle>, <jobsite.pending_count>
 );
 
-#,,.,,...,,,.,.,.,..,,,..,..,,.,.,,,.,.,.,..,,..,,...,..,,.,.,.,.,,.,,,,,,,..,
-#OHAI4D5VFBQ4O45JCVAC7ZHPQCAW6PE3XMNS2R6M33RMOSVCDCAAI6UWY7JFOTWVWHX5KYUQ2HLZM
-#\\\|POCVESIPS2RZ3FF5R7FC2LYUMXBDAGH3JEA7IKLP7JTRVKZQ6J6 \ / AMOS7 \ YOURUM ::
-#\[7]55M66JNN7UPCXFL2QCTFX5VXUUCI4M4564OBYM4PKVRYTVGBFKDA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,...,.,.,,..,.,,,,..,,,.,...,,,,,..,,...,...,..,,,.,,,,,,,..,,,,,
+#MFN4KBOUFSE65Y3KHXLVAIMEYQO5L3FYRAEKOX7O3LLM5UKYITKUDLVIZ64BXRBHOBI3J7UAMHZI6
+#\\\|4YCC6OASMA453AWQKHRUISU3BET2BDV7POVRYKM6VQI3RN5U4O2 \ / AMOS7 \ YOURUM ::
+#\[7]HWBHZMUXUMCLYIIJQRG5I7UGROB7ZFY6JQJIPSFHHW4DJI45F6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

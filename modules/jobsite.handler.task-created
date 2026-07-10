@@ -16,6 +16,7 @@ if ( lc($mode) eq qw| false | ) {
         $job_id, $task_id
     );
     <jobsite.pending_count>--;
+    <jobsite.pending_count> = 0 if <jobsite.pending_count> < 0;
     <[jobsite.dispatch.next]>;    ## continue with next job
     return;
 }
@@ -47,8 +48,8 @@ my %protected_stage
     }
 );
 
-#,,..,.,.,.,,,,,,,.,.,,,,,,..,.,,,,,.,,,,,,.,,..,,...,...,...,,,,,.,.,,,,,..,,
-#WZER7FXDWSNKH7G55HIGMNKUJMV2YTZKXABDOJ4SX7URTAFCR3AQOTVTYE3NURPIDLMMPM3TGA64K
-#\\\|HYMQAT7AN3MVJVDHIAWX6TAL2YQGRRRSXQVVX6VIZZM3KTOHGV3 \ / AMOS7 \ YOURUM ::
-#\[7]S5N3ISG6JEU4IJJYEYYT42IL6VNP5Q56FDJDNHVDKKXM24YNBGAA 7  DATA SIGNATURE ::
+#,,.,,,..,..,,...,..,,,.,,..,,,..,,,,,,..,,,.,..,,...,...,.,.,.,.,,..,,..,,,,,
+#EEUMTOHCQYWFBS46K2W6E6UYEWPO6BZMSN2PGE2EIEXZQPDBIEW24JKBET4665U4MKEZNKHYLLP7E
+#\\\|TLTOFGZREN5CY3Z7P77C2QW4JLHQT6KNVN7CAM6B43UOF4PM7EM \ / AMOS7 \ YOURUM ::
+#\[7]RLN3AHDZJM4VMNLGPPJMGKIZ4CRQEXD5JSMVSQO5ZTGMIQ2M7GDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
