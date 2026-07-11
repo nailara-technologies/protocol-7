@@ -5,9 +5,36 @@
     <title>Protocol-7 Network Grid v13</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #000000; overflow: hidden; font-family: monospace; color: #77AAEE; }
-        canvas { display: block; width: 100%; height: 100vh; cursor: crosshair; }
-        canvas:active { cursor: crosshair; }
+        :root {
+            /* small themed arrow, same idea as the canvas reticle -- native */
+            /* WebKit "pointer"/hand cursor bitmaps ignore XCURSOR_SIZE */
+            --cursor-pointer: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNCIgaGVpZ2h0PSIxNCIgdmlld0JveD0iMCAwIDE0IDE0Ij4gPHBhdGggZD0iTTEsMSBMMSwxMS41IEw0LDguNyBMNi40LDEzLjIgTDguMSwxMi4zIEw1LjcsNy44IEw5LjcsNy42IFoiIGZpbGw9IiM3YTk1YzQiIGZpbGwtb3BhY2l0eT0iMC44NSIgc3Ryb2tlPSIjYTBjMGZmIiBzdHJva2Utd2lkdGg9IjAuNiIgc3Ryb2tlLW9wYWNpdHk9IjAuNiIvPjwvc3ZnPg==") 1 1, pointer;
+        }
+        body {
+            background: #000000; overflow: hidden; font-family: monospace; color: #77AAEE;
+            /* fallback for chrome with no cursor rule of its own [ info panel, */
+            /* nav breadcrumb, .. ] -- canvas/buttons still override this with  */
+            /* their own more specific rules below */
+            cursor: var(--cursor-pointer);
+            /* without this, WebKit's native drag-selection gesture engages on   */
+            /* canvas drag [ even with no selectable text ] and its cursor       */
+            /* handling overrides our CSS cursor for the duration of the drag    */
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        canvas {
+            display: block; width: 100%; height: 100vh;
+            /* canvas is draggable by default in WebKit -- once mousedown+move  */
+            /* crosses a small threshold it starts a native HTML5 drag, which   */
+            /* shows its own drag cursor regardless of mousedown's              */
+            /* preventDefault() [ that only stops text-selection-drag, this is  */
+            /* a separate mechanism ] -- block it outright, nothing here is a   */
+            /* drag source */
+            -webkit-user-drag: none;
+            /* native OS crosshair cursor renders oversized + unstyled under */
+            /* WebKitGTK; use a small themed SVG reticle instead, same idea */
+            cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNCIgaGVpZ2h0PSIxNCIgdmlld0JveD0iMCAwIDE0IDE0Ij4gPGxpbmUgeDE9IjciIHkxPSIwIiB4Mj0iNyIgeTI9IjQuNSIgc3Ryb2tlPSIjN2E5NWM0IiBzdHJva2Utd2lkdGg9IjEuMSIgc3Ryb2tlLW9wYWNpdHk9IjAuOCIvPiA8bGluZSB4MT0iNyIgeTE9IjkuNSIgeDI9IjciIHkyPSIxNCIgc3Ryb2tlPSIjN2E5NWM0IiBzdHJva2Utd2lkdGg9IjEuMSIgc3Ryb2tlLW9wYWNpdHk9IjAuOCIvPiA8bGluZSB4MT0iMCIgeTE9IjciIHgyPSI0LjUiIHkyPSI3IiBzdHJva2U9IiM3YTk1YzQiIHN0cm9rZS13aWR0aD0iMS4xIiBzdHJva2Utb3BhY2l0eT0iMC44Ii8+IDxsaW5lIHgxPSI5LjUiIHkxPSI3IiB4Mj0iMTQiIHkyPSI3IiBzdHJva2U9IiM3YTk1YzQiIHN0cm9rZS13aWR0aD0iMS4xIiBzdHJva2Utb3BhY2l0eT0iMC44Ii8+IDxjaXJjbGUgY3g9IjciIGN5PSI3IiByPSIxLjMiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzdhOTVjNCIgc3Ryb2tlLXdpZHRoPSIwLjkiIHN0cm9rZS1vcGFjaXR5PSIwLjgiLz48L3N2Zz4=") 7 7, crosshair;
+        }
 
         .controls {
             position: fixed;
@@ -28,7 +55,7 @@
             color: #a0c0ff;
             padding: 8px 16px;
             border-radius: 12px;
-            cursor: pointer;
+            cursor: var(--cursor-pointer);
             font-family: inherit;
             font-size: 12px;
         }
@@ -91,7 +118,7 @@
             border-radius: 2px;
             outline: none;
             border: none;
-            cursor: pointer;
+            cursor: var(--cursor-pointer);
             vertical-align: middle;
         }
         .orbital-controls input[type="range"]::-webkit-slider-thumb {
@@ -102,7 +129,7 @@
             border-radius: 50%;
             background: #5050d0;
             border: 1px solid #8080ff;
-            cursor: pointer;
+            cursor: var(--cursor-pointer);
         }
         .orbital-controls input[type="range"]::-moz-range-thumb {
             width: 10px;
@@ -110,7 +137,7 @@
             border-radius: 50%;
             background: #5050d0;
             border: 1px solid #8080ff;
-            cursor: pointer;
+            cursor: var(--cursor-pointer);
         }
 
         /* === NAV BREADCRUMB === */
@@ -130,7 +157,7 @@
             gap: 8px;
         }
         .nav-breadcrumb .back-btn {
-            cursor: pointer;
+            cursor: var(--cursor-pointer);
             color: #60d0ff;
             padding: 2px 6px;
             border: 1px solid #304060;
@@ -1840,9 +1867,11 @@
 
         // === MOUSE ===
         canvas.addEventListener('contextmenu', e => e.preventDefault());
+        canvas.addEventListener('dragstart', e => e.preventDefault());
 
         canvas.addEventListener('mousedown', e => {
             if (e.button !== 0) return;
+            e.preventDefault();    // stop native drag-selection [ cursor flicker ]
             isDragging = true;
             dragMoved = false;
             dragStartX = e.clientX;

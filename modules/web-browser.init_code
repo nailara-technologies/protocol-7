@@ -14,6 +14,12 @@ $ENV{'NO_AT_BRIDGE'} = 1;
 $ENV{'GTK_DEBUG'}    = qw| no |;
 $ENV{'GDK_DEBUG'}    = qw| no |;
 
+## must be set before Gtk3->init [ web-browser.open_window ] -- Xcursor    ##
+## theme size is read once at X11/GDK connection setup, applies to every  ##
+## native cursor glyph [ left_ptr, crosshair, .. ] uniformly. left unset, ##
+## some environments render the default theme at an oversized pixel size ##
+$ENV{'XCURSOR_SIZE'} = <web-browser.cfg.cursor_size> // 24;
+
 <web-browser.title_prefix> = qw| amos-desktop |;
 
 <web-browser.path> = {
@@ -21,6 +27,13 @@ $ENV{'GDK_DEBUG'}    = qw| no |;
         <system.root_path>, qw| data/gfx/icons/protocol-7/nailara.64x64.png |
     )
 };
+
+## themed reticle cursor for the window-level default [ before WebKit's   ##
+## own per-element cursor tracking takes over on the first mouse-move ];  ##
+## set to '' in start config to fall back to change_cursor / native ##
+<web-browser.cfg.cursor_image> //= catfile(
+    <system.root_path>, qw| data/gfx/icons/protocol-7/cursor-reticle.png |
+);
 
 ## setting <web-browser.window.title_str> ##
 <[web-browser.start-up.init_window_title]>;
@@ -173,8 +186,8 @@ $code{'base.handler.end_code'} = sub {
 
 0;
 
-#,,.,,,..,...,,..,.,,,.,,,...,.,.,,.,,,.,,,,.,..,,...,...,...,,..,...,..,,,,.,
-#X7KF7TLDGIXWPPYZM7UZYMHQM3BKUV3DKX4GHIR7RRSIWQAO3KFUUKDT6HQHQ77QUGQ33JRPE54SK
-#\\\|M4CR72MQ3V5LNSF4CQFS3N2JBSAIP5U723XREF4HCKGXJEFKWKW \ / AMOS7 \ YOURUM ::
-#\[7]H7XWHEC7YF7KSOHADAZ73NIU5YSHRNYH2POI57BB6BBMJX4G6WBI 7  DATA SIGNATURE ::
+#,,..,,..,.,,,.,,,,,.,,,.,...,,..,,,.,.,.,..,,..,,...,..,,...,,,.,,,.,.,.,,.,,
+#IG222UG57JM3JQ6NDMXULYFHF6F32HJZIJIRAZFFNHEECUQ6D6KMFJZRAEGSRWPQV275HWAQIRJKI
+#\\\|3OAV5PHZFL4HEWL73ICCYURWHYQ47JH3DU4773YO3ZG4GQ3Q4PQ \ / AMOS7 \ YOURUM ::
+#\[7]CRN2O2L3ECWTFQGS2ZUUDIWXU5AHNKYIQAEZ5XDXIVHFTY6OX2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
