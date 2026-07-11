@@ -1,6 +1,6 @@
 ---
 name: x11-protocol-hardening
-description: WSLg/Weston full-freeze recurrence + blocking-call hardening for the X-11 zenka (base.exec.with_timeout COMMITTED 3b966708d, verified; X11::Protocol design converged on dual-connection pool w/ query-reroute + health-oracle ping, not yet built)
+description: WSLg/Weston full-freeze recurrence + blocking-call hardening for the X-11 zenka (base.exec.with_timeout COMMITTED 3b966708d; dual-connection pool w/ query-reroute + health-oracle ping COMMITTED e0f4fddd7, verified live after restart)
 metadata:
   node_type: memory
   type: project
@@ -99,12 +99,39 @@ driver stalls.
 - `X-11.*` subroutine.white-list + `base.list.subroutines` updated
   accordingly.
 
-**NOT yet built — design converged 2026-07-11, not started**:
+**Landed (COMMITTED e0f4fddd7 2026-07-11, verified live — X-11 zenka restarted clean after a follow-up fix, see below)**:
 superseded the single-connection alarm()+reconnect sketch below with a
 **dual-connection pool** design — a second `X11::Protocol` connection kept
 permanently idle/pre-dialed, ready to take over at the first sign of
 trouble instead of dialing fresh only after a hang is detected. Session
-that produced this: `cdc77f2e`.
+that produced the design: `cdc77f2e`. Implemented by kimi from
+`data/tasks/x11-connection-pool.md` (dispatched via `kimi_dispatch`/
+`kimi_continue`), reviewed and iterated twice before landing:
+- fixed a select()-timeout gap where only the wait for the first byte of
+  a reply was bounded — `handle_input()`'s internal
+  `X11::Protocol::Connection::Socket::get()` is a blocking read loop with
+  no deadline of its own, so a reply that started arriving then stalled
+  mid-transfer could still hang past the intended timeout. Fixed in
+  `X-11.pool.req_with_timeout` by temporarily overriding the connection
+  class's `get()` (`local *{"${pkg}::get"}`, scoped to one `eval`, always
+  restored) with a `select()`+`base.s_read` loop that re-enforces the
+  deadline across the *entire* multi-byte reply, header and body.
+- **self-inflicted bug, worth remembering**: assistant misdiagnosed
+  correct `<[event.add_timer]>`/`<[event.add_io]>` calls (bare namespace)
+  as broken because `ls modules/` shows no file by that literal name, and
+  told kimi to rename them to `<[base.event.add_timer]>`/
+  `<[base.event.add_io]>` — the actually-broken direction.
+  `base.event.pre_init` calls `<[base.swap_subs]>->('base.event','event')`,
+  which *moves* (not aliases) those subs into the `event.*` namespace at
+  init, so the `base.event.*` keys stop existing in `%code` entirely once
+  that runs. Zenka crashed on restart ("undefined value as subroutine
+  reference"). User found + fixed via a global `ncode replace`, which also
+  caught one pre-existing unrelated instance of the same wrong-direction
+  bug in `modules/data.mount.shm.feedback.watch`. Full writeup + the
+  general `base.swap_subs` mechanism (a growing list of families get
+  moved this way, not just `event`) now in
+  [[feedback-base-prefix-stripped]] — check that before ever "fixing" a
+  bare/short-namespace `<[...]>` call that looks unprefixed.
 
 Design, in the order it was derived:
 
@@ -187,8 +214,8 @@ note for a future pass, not touched.
 
 [[topic-gtk-wsl-window-positioning]] · [[feedback-weston-move-unreliable-use-compositor-grab]] · [[feedback-wslg-deiconify-limitation]]
 
-#,,,,,.,.,,,.,,,,,...,.,.,...,,.,,,,.,.,,,,..,..,,...,.,.,,..,,,,,,,,,,.,,,..,
-#IN6WVGPNTGEQ3G5ISCQTO5AU2GRP7XYOAITQSO7T7LV2WERQK6S4PE6DFTEWG3G3MB6AOMXT2HPHI
-#\\\|FQ2QA2OXTSGDUOWVJME23ROIPISGQOH5HWK44CSYCK3O5NUBG7O \ / AMOS7 \ YOURUM ::
-#\[7]U4LCYPXA3VMVJSSHRFFNCVPSF7SM3TM76Z6ZIACLR66R63YNCOBQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,..,..,,..,,.,.,...,,..,.,.,...,..,,...,..,,...,,,.,.,.,,..,.,,,
+#K4AYL52WMXOD7M7S2AS6ECG7ASADWZM5ZGOGAIEMCPC5YDHT4VPC3W5STA2XUZMU376553V5CE2ES
+#\\\|K6WEBT5P3FMHJMT5VZ6OCPPC7RATF2LEUZW76IYE24LRS5HY6OB \ / AMOS7 \ YOURUM ::
+#\[7]BCM6SEQCR3K2534BNBSSPBXQVCVOCK7VS2OUHIDC6PL4C6ORICDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
