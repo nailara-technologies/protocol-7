@@ -42,9 +42,23 @@ task prompt (3-5KB) can produce 10+ modules of implementation from kimi.
 - **kimi-cli mid-stream inject**: ctrl+s sends immediately without waiting for
   newline — use to course-correct before kimi commits to a wrong direction.
   works while kimi is still "thinking". paste the redirect message, hit ctrl+s.
+- **always point kimi at its own reference material** — kimi does NOT read
+  `data/ai-mem/kimi/coding-style.md` or `data/ai-mem/kimi/MEMORY.md` by
+  default. Every task prompt/file should explicitly say to read both before
+  starting. Input tokens are cheap; the payoff is immediate — fewer P7
+  convention mistakes (see the `base.swap_subs` namespace mixup this style
+  guide now documents, from [[feedback-base-prefix-stripped]]) without
+  re-deriving them per task.
+- **ask kimi to maintain its own memory when a task teaches it something
+  non-obvious** — after a task that surfaces a codebase gotcha (a subtle
+  runtime behavior, a naming convention, a pitfall), explicitly ask kimi to
+  add a note to `data/ai-mem/kimi/coding-style.md` and/or
+  `data/ai-mem/kimi/MEMORY.md` in its own established format, same as any
+  other task instruction — it does this well when asked (see the
+  `base.swap_subs` write-up added 2026-07-11) but won't do it unprompted.
 
-#,,.,,...,...,.,.,.,.,...,,,.,...,.,,,,,.,...,..,,...,...,,,,,,,,,,,,,,.,,,..,
-#WFYCCQTBZPOJRKPJZ7OK3BG2OS27RNPPHJK53XGCGK36GXQJLLHT2WDBQ5O6VXXIAOOLFDXZ4RQCM
-#\\\|G3ETZKZF5CEXCANI446LTY7LMHUY2AG6MVDFQRAD7OBCBNYR5LF \ / AMOS7 \ YOURUM ::
-#\[7]23A7C3P4PRVWYU2JPNUSLGLAWOOJS5FIOA5P7KRN4PBQWNTKUWBA 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,,,,,,,,..,,,..,,,,,,,,,,..,,.,,..,,...,...,,,,,,,.,,,.,,,,,,,.,
+#I5DKFS75NRHC2NQCJOTHLPASOBA7YY65REGO63EGDTZ7244PWJ4IA6GDXQRPNDMIVOKMDZLZOJ3UO
+#\\\|XRLCKUACHAXTZFHMZJEPL5KHITM32ND4YMS3OLDQE6FLX3AKXUD \ / AMOS7 \ YOURUM ::
+#\[7]QZ33I2BPPBBWXZTJB2EXHBDRGLTINHEX27PR2SCP5RFDKWQD4EAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
