@@ -1,12 +1,13 @@
 ## CRITICAL
 - [web-browser ephemeral storage](feedback-web-browser-ephemeral-storage.md) — WebKit ephemeral=1: storage wiped every restart; treat as volatile
 - [jobsite pending_count orphan gap](topic-plugin-web-jobs.md) — OPEN: restart mid-batch orphans pending_count, sticks cycle on 'assessing' forever
-- [jobsite delete-during-assessing fix](topic-plugin-web-jobs.md) — STAGED 2026-07-09, unverified live: delete-while-assessing now resolves task.fail; test expected by Mon 2026-07-13
 - [WSLg deiconify limitation](feedback-wslg-deiconify-limitation.md) — Weston/WSLg blocks deiconify at compositor level
+- [x11-protocol-hardening](topic-x11-protocol-hardening.md) — UNCOMMITTED 2026-07-10: base.exec.with_timeout landed (xrandr/intel_gpu_top); X11::Protocol timeout+reconnect wrapper mid-design, paused for WSLg full-freeze recurrence (host reboot pending)
 - [UNCOMMITTED 2026-06-20 mpv/X-11 set](topic-mpv-jobqueue-startup.md) — fade_in test values must be reverted before commit
 - [gtk-wsl-window-positioning](topic-gtk-wsl-window-positioning.md) / [weston-move-unreliable](feedback-weston-move-unreliable-use-compositor-grab.md) — use begin_move_drag/resize_drag not move(); initial-placement-before-show_all open
 
 ## Active Topics
+- [x11-resolution-profiles](topic-x11-resolution-profiles.md) — OPEN design: xvfb needs per-purpose resolution profiles (subname `xvfb:WxH` sketch, needs sanitization); dimensions_xvfb split landed uncommitted
 - [ondemand-starting-flag-watchdog](topic-ondemand-starting-flag-race.md) — RESOLVED 056597b9b: watchdog rescues stuck-`starting` queue via online-truth check; restart-disabled zenki get 3-strike tolerance
 - [orbital-strm-push-rollout](topic-orbital-strm-push-rollout.md) — LANDED 139cacef2: push via STRM not poll; open: connect/disconnect-orbital access
 - [async-window-startup-transition](topic-async-window-startup-transition.md) — LANDED 531aa14db, live-verified; CLOSED except rare paint glitch
@@ -106,8 +107,8 @@
 - letsencr working; reasoning.branch.* LIVE; coding zenka operational; ondemand auto-register survives reload
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: state-0/7 harmonized; test re-sign ≥2 passes to see oscillation
 
-#,,..,,.,,,,.,...,.,,,,,.,.,,,...,,,.,...,,..,..,,...,...,...,,.,,,..,...,,.,,
-#JABFCIGC7ZMCM7B3TYKMDDI6BWSTKJTG7BB4B2F2LYXL5JO2T7TJVPPZUHWNXLYZAHCUVBZ6OCSNK
-#\\\|XG4A6PFA6Y2WFECOSKFIKNYHS5W72GSKGIDH2DSZKININAKNTJF \ / AMOS7 \ YOURUM ::
-#\[7]SU5FQ3ITUKUODBX2XMEASVQODXFQFUFQUJDY627TSWIBA4K7OCBI 7  DATA SIGNATURE ::
+#,,,.,...,.,.,.,,,,,,,..,,...,..,,...,.,.,,..,..,,...,.,.,...,,,.,..,,,,,,.,,,
+#7D6G66W2SD2YCDOQJYJYP26Q6P3QN6CXOM3WZNDP3OQBVEAOWZJQCB6VXQZYUYVX5U4MSW2J3BVXK
+#\\\|44T2BQBEOZ3KQSQLSPO4LXYK4AUD5CAPDE5GB4XR76GMFIV5YZ7 \ / AMOS7 \ YOURUM ::
+#\[7]LAKFVCTP2JE2N4SW6DHDPC6SQEGACB44F54HAS73FHEJFEDIFGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -34,11 +34,14 @@ X-11.params.xorg     = -quiet
 
 X-11.dev.dimensions = 912x513
 
+X-11.dev.dimensions_xvfb = 1216x1368  ## 8:9, taller for document | ##
+                                      ##      PDF render use-cases  ##
+
 X-11.params.xnest   = -geometry <X-11.dev.dimensions>
 X-11.params.nxagent = -ac -geometry <X-11.dev.dimensions> \
                            +extension Composite +extension GLX
 #                      ^^^ tie into access control mechanisms .,   [ LLL ]
-X-11.params.xvfb    = -screen 0 <X-11.dev.dimensions>x24
+X-11.params.xvfb    = -screen 0 <X-11.dev.dimensions_xvfb>x24
 X-11.params.xephyr  = -screen <X-11.dev.dimensions>
 #                                    -glamor added ^, if not disabled below
 X-11.disable_glamor = 0
@@ -133,8 +136,8 @@ modules.load = auth net protocol io.unix io.ip ui jobqueue X-11   ## devmod
 
 [zenka.loop]
 
-#,,..,,..,...,..,,,.,,..,,.,.,.,.,,,.,,,,,.,,,..,,...,...,...,,.,,,..,...,.,,,
-#R6PJQ2ADY3DJI6XTDS52QCADEWREDQZXPXFSTVHU6UH2RJZK7I32VPE43BF4MMID73JFF5JLLQR3K
-#\\\|XPPWG47BRMTZNIOIM5KITNWWLOJTMGEDZCHCYH3YWUHVG6IJ3YR \ / AMOS7 \ YOURUM ::
-#\[7]2GMQRZQUNY36ACRETB726YMVP6L4N456I27X5UW57TLFM7Q5AICI 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,.,,,...,,,.,.,.,..,,..,,,,.,..,,..,,...,...,,,.,,,.,,,.,,.,,.,,,
+#PZY4RPOWTYOC5HXTY7DZSECOXOS2EAN3QI4RZUOFCPHDUB4NI2RXJOCFVQFMZB5JZBSX6K4QB5AJE
+#\\\|QKUH22UKPIFJTCJDDQN4T3E2YIP35VAHIPJ6N5SAAH6AWY67AMK \ / AMOS7 \ YOURUM ::
+#\[7]BW6VSINXLDJ722XCCARAWJ34MRIRKAEUZBU33B43RHIFV2VYOWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
