@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = X-11.pool.promote_standby
+# descr = promote standby connection to primary and refill the pool
+
+my $standby = <X-11.obj.standby>;
+return FALSE if not defined $standby;
+
+my $old_primary = <X-11.obj>;
+
+<X-11.obj>         = $standby;
+<X-11.obj.standby> = undef;
+
+<[base.log]>->( 0, ': promoting standby X11 connection to primary' );
+
+## close old primary connection cleanly ##
+if ( defined $old_primary and defined $old_primary->{'connection'} ) {
+    my $fh = eval { $old_primary->{'connection'}->fh };
+    close($fh) if defined $fh;
+}
+
+## re-point WM and keyboard objects at the new primary ##
+<X-11.WM> = X11::WM->new(<X-11.obj>);
+<[X-11.WM.update]>;
+<X-11.kbd>                = X11::Keyboard->new(<X-11.obj>);
+<X-11.keycodes.modifiers> = <[X-11.get_modifier_map]>;
+
+## replay full registrations on new primary [ IO watcher + wire state ] ##
+<[X-11.reconnect.replay_registrations]>->(<X-11.obj>);
+
+## schedule fresh standby dial in the background ##
+<[event.add_timer]>->(
+    {   'after'   => 1,
+        'handler' => qw| X-11.pool.dial_standby |,
+        'repeat'  => 0
+    }
+);
+
+return TRUE;
+
+#,,,,,.,,,,.,,.,.,,..,.,,,,,,,.,,,,,,,,,,,,.,,..,,...,..,,,.,,,,.,,..,..,,..,,
+#GIGLAPP4O3KDKOKGGTV4F7I6UIM566HOWVIAEWA3RZ5APUX6C374WBKPED45QMVYWL4I5MH2FFKLY
+#\\\|FEMY27MEQHW23BQH5EEVV6HBIJZSQGPLWJFTS43RTEVS6GUJTFV \ / AMOS7 \ YOURUM ::
+#\[7]W5HMTKHFX3WR3DOS4GPDL6QGJYZCDU5NJJDV6VMT5IODJ4EFOCBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
