@@ -2,11 +2,11 @@
 - [web-browser ephemeral storage](feedback-web-browser-ephemeral-storage.md) — WebKit ephemeral=1: storage wiped every restart; treat as volatile
 - [jobsite pending_count orphan gap](topic-plugin-web-jobs.md) — OPEN: restart mid-batch orphans pending_count, sticks cycle on 'assessing' forever
 - [WSLg deiconify limitation](feedback-wslg-deiconify-limitation.md) — Weston/WSLg blocks deiconify at compositor level
-- [x11-protocol-hardening](topic-x11-protocol-hardening.md) — UNCOMMITTED 2026-07-10: base.exec.with_timeout landed (xrandr/intel_gpu_top); X11::Protocol timeout+reconnect wrapper mid-design, paused for WSLg full-freeze recurrence (host reboot pending)
 - [UNCOMMITTED 2026-06-20 mpv/X-11 set](topic-mpv-jobqueue-startup.md) — fade_in test values must be reverted before commit
 - [gtk-wsl-window-positioning](topic-gtk-wsl-window-positioning.md) / [weston-move-unreliable](feedback-weston-move-unreliable-use-compositor-grab.md) — use begin_move_drag/resize_drag not move(); initial-placement-before-show_all open
 
 ## Active Topics
+- [x11-protocol-hardening](topic-x11-protocol-hardening.md) — COMMITTED 3b966708d 2026-07-11: base.exec.with_timeout landed+verified (xrandr/intel_gpu_top); X11::Protocol timeout+reconnect wrapper mid-design, paused
 - [x11-resolution-profiles](topic-x11-resolution-profiles.md) — OPEN design: xvfb needs per-purpose resolution profiles (subname `xvfb:WxH` sketch, needs sanitization); dimensions_xvfb split landed uncommitted
 - [ondemand-starting-flag-watchdog](topic-ondemand-starting-flag-race.md) — RESOLVED 056597b9b: watchdog rescues stuck-`starting` queue via online-truth check; restart-disabled zenki get 3-strike tolerance
 - [orbital-strm-push-rollout](topic-orbital-strm-push-rollout.md) — LANDED 139cacef2: push via STRM not poll; open: connect/disconnect-orbital access
@@ -108,8 +108,8 @@
 - letsencr working; reasoning.branch.* LIVE; coding zenka operational; ondemand auto-register survives reload
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: state-0/7 harmonized; test re-sign ≥2 passes to see oscillation
 
-#,,,.,,,,,,.,,..,,,..,,.,,,,.,.,,,,,,,,,,,.,.,..,,...,...,,,,,.,,,...,,,,,..,,
-#6IH7OSJUI3SFVUBBMPT4EL3555WMK7LDIVTCLHS6NLN32EQN7VBSEOABE4OLEFXC7T7YDLY7EVD3O
-#\\\|5VLZ4VEA6F5K7WUGXQ6JIGDQF3IEGGJWX2UI2CDUBJQPA6XR36G \ / AMOS7 \ YOURUM ::
-#\[7]KO66KL235R4P6IOCX6PNXR36ED7H7VE3WRWZO5E7TH2BSZQ6FECY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,...,,..,..,,,..,,,,,..,,..,,,.,,..,,...,...,.,,,,.,,,..,,.,,,..,
+#RN7UGHPNKMKJ7MXTQV22TKNOFRTXPITJS7E4FZ3I6HXINNCWLEADKU2JYNH2IO33STTMWIQ7FGAH2
+#\\\|V3BLDQH72SVOUIAY5TDEN7HOBNLIGOHNMEYG7YSVOHSP4TSNIIG \ / AMOS7 \ YOURUM ::
+#\[7]F4DQ5EZFGQNERBMYIOJXWQWMKWMFWIRTHRRW6IFJDEWDE4PIJUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
