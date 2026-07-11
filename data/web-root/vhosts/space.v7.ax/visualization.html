@@ -73,6 +73,8 @@
         }
         .orbital-controls label { display: flex; align-items: center; gap: 4px; }
         .orbital-controls select {
+            -webkit-appearance: none;
+            appearance: none;
             background: rgba(15, 5, 30, 0.8);
             border: 1px solid #3030a0;
             color: #a0c0ff;
@@ -654,17 +656,27 @@
         }
 
         // === PROJECTION ===
-        function project(point) {
-            const xRad = rotX * Math.PI / 180;
-            const yRad = rotY * Math.PI / 180;
-            const zRad = rotZ * Math.PI / 180;
+        // per-frame rotation trig cache — shared across all project() calls in one frame
+        let _rCacheX = NaN, _rCacheY = NaN, _rCacheZ = NaN;
+        let _cosX = 1, _sinX = 0, _cosY = 1, _sinY = 0, _cosZ = 1, _sinZ = 0;
 
-            let x1 = point.x * Math.cos(yRad) - point.z * Math.sin(yRad);
-            let z1 = point.x * Math.sin(yRad) + point.z * Math.cos(yRad);
-            let y1 = point.y * Math.cos(xRad) - z1 * Math.sin(xRad);
-            let z2 = point.y * Math.sin(xRad) + z1 * Math.cos(xRad);
-            let x2 = x1 * Math.cos(zRad) - y1 * Math.sin(zRad);
-            let y2 = x1 * Math.sin(zRad) + y1 * Math.cos(zRad);
+        function project(point) {
+            if (rotX !== _rCacheX || rotY !== _rCacheY || rotZ !== _rCacheZ) {
+                _rCacheX = rotX; _rCacheY = rotY; _rCacheZ = rotZ;
+                _cosX = Math.cos(rotX * Math.PI / 180);
+                _sinX = Math.sin(rotX * Math.PI / 180);
+                _cosY = Math.cos(rotY * Math.PI / 180);
+                _sinY = Math.sin(rotY * Math.PI / 180);
+                _cosZ = Math.cos(rotZ * Math.PI / 180);
+                _sinZ = Math.sin(rotZ * Math.PI / 180);
+            }
+
+            let x1 = point.x * _cosY - point.z * _sinY;
+            let z1 = point.x * _sinY + point.z * _cosY;
+            let y1 = point.y * _cosX - z1 * _sinX;
+            let z2 = point.y * _sinX + z1 * _cosX;
+            let x2 = x1 * _cosZ - y1 * _sinZ;
+            let y2 = x1 * _sinZ + y1 * _cosZ;
 
             x2 *= zoom;
             y2 *= zoom;
@@ -817,6 +829,9 @@
         }
 
         const B32_ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+        // memoization caches for pure coordinate functions — keyed by (p7ref|scale) / (prefix|scale)
+        const _p7refCoordsCache = new Map();
+        const _checksumCoordsCache = new Map();
         function decodeB32(str) {
             let bits = 0, val = 0;
             const out = [];
@@ -831,20 +846,26 @@
         }
         function p7refToCoords(p7ref, _t, _p, _s, scale) {
             const s = scale || 140;
+            const key = (p7ref || '') + '|' + s;
+            const hit = _p7refCoordsCache.get(key);
+            if (hit) return hit;
             const parts = (p7ref || '').split(':');
+            let result;
             if (parts.length >= 3) {
                 const bytes = decodeB32(parts[2]);
                 if (bytes.length >= 3) {
                     const theta = bytes[0] / 255 * 2 * Math.PI;
                     const phi   = bytes[1] / 255 * Math.PI;
-                    return {
+                    result = {
                         x: Math.sin(phi) * Math.cos(theta) * s,
                         y: Math.cos(phi) * s,
                         z: Math.sin(phi) * Math.sin(theta) * s
                     };
                 }
             }
-            return { x: 0, y: s, z: 0 };
+            if (!result) result = { x: 0, y: s, z: 0 };
+            _p7refCoordsCache.set(key, result);
+            return result;
         }
 
         function encodeB32Bytes(bytes) {
@@ -1098,8 +1119,9 @@
             if (!selfProj) return;
             ctx.save();
             ctx.globalCompositeOperation = 'screen';
+            const knownByP7ref = new Map((od.known || []).map(n => [n.p7ref, n]));
             connections.forEach(conn => {
-                const node = (od.known || []).find(n => n.p7ref === conn.p7ref);
+                const node = knownByP7ref.get(conn.p7ref);
                 if (!node) return;
                 const targetPos = p7refToCoords(node.p7ref, 0, 0, 0, 210);
                 const targetProj = project(targetPos);
@@ -1133,17 +1155,23 @@
 
         function checksumPrefixToCoords(prefix, scale) {
             const s = scale || 140;
+            const key = prefix + '|' + s;
+            const hit = _checksumCoordsCache.get(key);
+            if (hit) return hit;
             const bytes = decodeB32(prefix);
+            let result;
             if (bytes.length >= 2) {
                 const theta = bytes[0] / 255 * 2 * Math.PI;
                 const phi   = bytes[1] / 255 * Math.PI;
-                return {
+                result = {
                     x: Math.sin(phi) * Math.cos(theta) * s,
                     y: Math.cos(phi) * s,
                     z: Math.sin(phi) * Math.sin(theta) * s
                 };
             }
-            return { x: 0, y: s, z: 0 };
+            if (!result) result = { x: 0, y: s, z: 0 };
+            _checksumCoordsCache.set(key, result);
+            return result;
         }
 
         function drawHarmonicVoxels() {
@@ -1389,6 +1417,7 @@
         // === DRAW ===
         function draw() {
             updateCamera();
+            updateLayerWeights();
 
             ctx.fillStyle = '#000007';
             ctx.fillRect(0, 0, width, height);
@@ -1399,91 +1428,23 @@
 
             // === HYPERSPACE GRID ===
             const camPos = { x: camX, y: camY, z: camZ };
+            const camOffX = camX * FORMATION_SPACING;
+            const camOffY = camY * FORMATION_SPACING;
+            const camOffZ = camZ * FORMATION_SPACING;
 
-            const grid20 = createHyperspaceGrid(camPos, SCALE_20, HYPER20_RANGE);
-            grid20.forEach(line => {
-                const p1 = project({
-                    x: line.p1.x - camX * FORMATION_SPACING,
-                    y: line.p1.y - camY * FORMATION_SPACING,
-                    z: line.p1.z - camZ * FORMATION_SPACING
+            function addGridEdges(scale, range, type) {
+                createHyperspaceGrid(camPos, scale, range).forEach(line => {
+                    const p1 = project({ x: line.p1.x - camOffX, y: line.p1.y - camOffY, z: line.p1.z - camOffZ });
+                    const p2 = project({ x: line.p2.x - camOffX, y: line.p2.y - camOffY, z: line.p2.z - camOffZ });
+                    if (p1 && p2) allEdges.push({ p1, p2, z: (p1.z + p2.z) / 2, type, dist: 0 });
                 });
-                const p2 = project({
-                    x: line.p2.x - camX * FORMATION_SPACING,
-                    y: line.p2.y - camY * FORMATION_SPACING,
-                    z: line.p2.z - camZ * FORMATION_SPACING
-                });
-                if (p1 && p2) {
-                    allEdges.push({ p1, p2, z: (p1.z + p2.z) / 2, type: 'hyper20', dist: 0 });
-                }
-            });
+            }
 
-            const grid200 = createHyperspaceGrid(camPos, SCALE_200, HYPER200_RANGE);
-            grid200.forEach(line => {
-                const p1 = project({
-                    x: line.p1.x - camX * FORMATION_SPACING,
-                    y: line.p1.y - camY * FORMATION_SPACING,
-                    z: line.p1.z - camZ * FORMATION_SPACING
-                });
-                const p2 = project({
-                    x: line.p2.x - camX * FORMATION_SPACING,
-                    y: line.p2.y - camY * FORMATION_SPACING,
-                    z: line.p2.z - camZ * FORMATION_SPACING
-                });
-                if (p1 && p2) {
-                    allEdges.push({ p1, p2, z: (p1.z + p2.z) / 2, type: 'hyper200', dist: 0 });
-                }
-            });
-
-            const grid10000 = createHyperspaceGrid(camPos, SCALE_10000, HYPER10000_RANGE);
-            grid10000.forEach(line => {
-                const p1 = project({
-                    x: line.p1.x - camX * FORMATION_SPACING,
-                    y: line.p1.y - camY * FORMATION_SPACING,
-                    z: line.p1.z - camZ * FORMATION_SPACING
-                });
-                const p2 = project({
-                    x: line.p2.x - camX * FORMATION_SPACING,
-                    y: line.p2.y - camY * FORMATION_SPACING,
-                    z: line.p2.z - camZ * FORMATION_SPACING
-                });
-                if (p1 && p2) {
-                    allEdges.push({ p1, p2, z: (p1.z + p2.z) / 2, type: 'hyper10000', dist: 0 });
-                }
-            });
-
-            const grid100000 = createHyperspaceGrid(camPos, SCALE_100000, HYPER100000_RANGE);
-            grid100000.forEach(line => {
-                const p1 = project({
-                    x: line.p1.x - camX * FORMATION_SPACING,
-                    y: line.p1.y - camY * FORMATION_SPACING,
-                    z: line.p1.z - camZ * FORMATION_SPACING
-                });
-                const p2 = project({
-                    x: line.p2.x - camX * FORMATION_SPACING,
-                    y: line.p2.y - camY * FORMATION_SPACING,
-                    z: line.p2.z - camZ * FORMATION_SPACING
-                });
-                if (p1 && p2) {
-                    allEdges.push({ p1, p2, z: (p1.z + p2.z) / 2, type: 'hyper100000', dist: 0 });
-                }
-            });
-
-            const grid1000000 = createHyperspaceGrid(camPos, SCALE_1000000, HYPER1000000_RANGE);
-            grid1000000.forEach(line => {
-                const p1 = project({
-                    x: line.p1.x - camX * FORMATION_SPACING,
-                    y: line.p1.y - camY * FORMATION_SPACING,
-                    z: line.p1.z - camZ * FORMATION_SPACING
-                });
-                const p2 = project({
-                    x: line.p2.x - camX * FORMATION_SPACING,
-                    y: line.p2.y - camY * FORMATION_SPACING,
-                    z: line.p2.z - camZ * FORMATION_SPACING
-                });
-                if (p1 && p2) {
-                    allEdges.push({ p1, p2, z: (p1.z + p2.z) / 2, type: 'hyper1000000', dist: 0 });
-                }
-            });
+            addGridEdges(SCALE_20,       HYPER20_RANGE,      'hyper20');
+            addGridEdges(SCALE_200,      HYPER200_RANGE,     'hyper200');
+            addGridEdges(SCALE_10000,    HYPER10000_RANGE,   'hyper10000');
+            addGridEdges(SCALE_100000,   HYPER100000_RANGE,  'hyper100000');
+            addGridEdges(SCALE_1000000,  HYPER1000000_RANGE, 'hyper1000000');
 
             // === EDGE INDICATOR (when selection outside main grid) ===
             if (!selInRange) {
@@ -1585,10 +1546,13 @@
                 });
             });
 
-            // === PASS 2: All edges ===
+            // === PASS 2: All edges (consecutive same-style segments are batched into one stroke()) ===
             ctx.globalCompositeOperation = 'lighter';
 //            ctx.lineCap = 'round'; // test for performance
             ctx.shadowBlur = 0;
+
+            let _batchStyle = null, _batchWidth = null, _batchOpen = false;
+            ctx.beginPath();
 
             allEdges.forEach(edge => {
                 const { p1, p2, z, type, isCutout, dist } = edge;
@@ -1735,14 +1699,20 @@
 
                 if (alpha < 0.003) return;
 
-                ctx.strokeStyle = `hsla(${hue}, 100%, ${light}%, ${alpha})`;
-                ctx.lineWidth = lineWidth;
-
-                ctx.beginPath();
+                const style = `hsla(${hue}, 100%, ${light}%, ${alpha})`;
+                if (style !== _batchStyle || lineWidth !== _batchWidth) {
+                    if (_batchOpen) { ctx.stroke(); ctx.beginPath(); }
+                    ctx.strokeStyle = style;
+                    ctx.lineWidth = lineWidth;
+                    _batchStyle = style;
+                    _batchWidth = lineWidth;
+                    _batchOpen = false;
+                }
                 ctx.moveTo(p1.x, p1.y);
                 ctx.lineTo(p2.x, p2.y);
-                ctx.stroke();
+                _batchOpen = true;
             });
+            if (_batchOpen) ctx.stroke();
 
             ctx.globalCompositeOperation = 'source-over';
 
@@ -1750,7 +1720,6 @@
             updateCursorNearest();
 
             // === ORBITAL LAYERS ===
-            updateLayerWeights();
             if (navStack.length > 0) {
                 drawGhostNodes(navStack[navStack.length - 1].snapshot, 0.2);
             }
@@ -1761,7 +1730,7 @@
             // Vignette
             const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, Math.max(width, height) / 2);
             gradient.addColorStop(0.6, 'rgba(0, 0, 10, 0)');
-            alpha = 0.47 / manualZoom / 13;
+            let alpha = 0.47 / manualZoom / 13;
             alpha = Math.max(0.07, Math.min(0.32, alpha));
             gradient.addColorStop(1, `rgba(40, 0, 80, ${alpha})`);
             ctx.fillStyle = gradient;
@@ -1783,7 +1752,6 @@
 
         // === ANIMATION ===
         function animate() {
-            updateLayerWeights();
             if (isRotating) {
                 rotY += 0.13;
             }

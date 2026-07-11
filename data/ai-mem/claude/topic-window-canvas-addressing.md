@@ -1,6 +1,6 @@
 ---
 name: window-canvas-addressing
-description: seed design — window.canvas.* as first-class addressable counterpart to window.profile.*, for screens/displays (physical, virtual, networked) as groupable, uniquely-addressable primitives
+description: window.canvas.* as first-class addressable counterpart to window.profile.*; canvas + canvas-group identity resolved as a specific application of the existing checksum-addressing scheme (TYPE:CHKSUM7:ADDR_B32), not a new primitive — implementation not started
 metadata:
   node_type: memory
   type: project
@@ -52,48 +52,127 @@ A single canvas abstraction needs to cleanly support both "found and
 topology-addressed" and "created and directly owned" without treating
 every canvas as the same kind of object.
 
-## generalizing direction (not yet converged)
+## identity model (converged 2026-07-11)
 
-User's read: canvas identity will likely bottom out to something
-uniquely addressable — like a routable public key — with different
-parallel *groupings* of that same underlying thing able to freely coexist
-(the same physical monitor can belong to multiple simultaneous logical
-groupings depending on which "shape" is currently active). This isn't
-canvas-specific — it's read as a universal primitive: the same
-unique-address + free-parallel-grouping pattern should apply to channels,
-nodes, and groups of nodes generally, not just screens.
+Canvas identity is **(b) a specific application of the existing
+checksum-addressing scheme** from [[topic-checksum-addressing]] — same
+`TYPE:CHKSUM7:ADDR_B32` P7REF format, with canvases and canvas-groups as
+two new `TYPE` values (`CANVAS:`, `CGROUP:` or similar). It is NOT a new
+addressing primitive, and it is NOT a direct use of C25519 keys.
 
-This lines up with — but hasn't yet been explicitly reconciled against —
-existing addressing vision already in memory:
-- [[topic-addressing-trinity]] — named tree / checksum / timestamp as
-  three orthogonal identity primitives; a canvas's "routable public key"
-  identity would be a fourth axis, or might fold into the checksum axis
-- [[topic-checksum-addressing]] — AMOS checksums as universal routing
-  primitive already extended to models/tasks/deps/consensus-groups/remote
-  nodes; canvases and canvas-groups would be a natural additional entity
-  type under the same `TYPE:CHKSUM7:ADDR_B32` scheme
-- [[topic-routing-crystal]], [[topic-reference-bubble]] — existing
-  node/group topology and routing designs this would need to sit inside
-  rather than duplicate
-- C25519 keys are already the established security/identity boundary
-  elsewhere ([[feedback-source-identity-spoofing]]) — "routable public
-  key" as canvas identity may literally mean reusing that same mechanism,
-  not inventing a new one
+**Why not a new primitive.** The seed design's "unique-address +
+free-parallel-groupings-of-the-same-thing" pattern is not novel here —
+it's what checksum-addressing already does everywhere else in the
+project. AMOS7 checksums provide context-free content identity; named
+tree paths ([[topic-addressing-trinity]]) express *membership* in a
+group; the same underlying entity can appear at many tree positions in
+many groups simultaneously without its checksum changing. Models,
+tasks, dep edges, consensus groups, remote nodes already work this way.
+A canvas is just another entity type — introducing a fourth "routable
+public key" axis for it alone would duplicate what the checksum axis
+already delivers, and would fragment routing so canvas-groups couldn't
+share [[topic-checksum-tree-wire]] separators / [[topic-routing-crystal]]
+resonance-field geometry with the rest of the network.
 
-Not yet decided: whether canvas identity is a new primitive or a specific
-application of one of the above existing ones. Worth reconciling before
-implementation starts, since building a bespoke canvas-addressing scheme
-that later needs folding into the checksum/C25519 addressing already used
-everywhere else would be wasted work.
+**Why not C25519.** [[feedback-source-identity-spoofing]] establishes
+C25519 as the *security-boundary* identity for authenticated actors
+(zenka, user) — "who can send this message." Canvases are addressable
+*objects*, not authenticated senders; they don't sign, don't act, and
+don't need to prove they are themselves. Where C25519 does enter is at
+the *owner* of a controllable canvas (the X-11 zenka that spawned an
+Xvfb, or the user whose physical monitor it is) — the canvas inherits
+authority from its owner's key-tree identity, but its own address is
+still a checksum, not a pubkey. Reusing C25519 as canvas identity would
+either invent an unnecessary key per Xvfb spawn or (worse) treat a
+physical monitor's EDID as if it were a security credential — exactly
+the "hostname as boundary" mistake that feedback memory warns against.
+
+## two-part identity for topology-relative physical canvases
+
+Concrete scheme, in the primitives from the section above:
+
+- **stable physical handle** = `CANVAS:CHKSUM7(EDID_or_output_identity):ADDR_B32`
+  — an AMOS7 checksum computed over the monitor's invariant physical
+  descriptors (EDID bytes if available, else `output_name + serial +
+  connector` fallback). This is content-identity: the physical device's
+  *content* is its own descriptor block, so the same monitor always
+  produces the same checksum regardless of which host it's plugged into
+  or which group it currently belongs to. Owner's C25519 key-tree
+  ([[feedback-source-identity-spoofing]], [[topic-key-tree-ring-routing]])
+  scopes *which* physical-canvas-registry this checksum resolves in — so
+  two different users can each have a monitor with a colliding EDID
+  without cross-talk.
+- **group-scoped logical address** = a **named-tree path**
+  ([[topic-addressing-trinity]]) inside a canvas-group node, where the
+  canvas-group itself is `CGROUP:CHKSUM7(sorted-member-checksums):ADDR_B32`.
+  When group composition changes, the group's checksum changes (it's a
+  content-checksum over its members, so a different membership = a
+  different group entity), and the same physical canvas may sit at a
+  different tree-path position inside the new group. The physical
+  handle from bullet 1 is unchanged; only the group and the position
+  within it change. This is the exact "same underlying thing in multiple
+  simultaneous parallel groupings" pattern, expressed with primitives
+  that already exist.
+
+Profiles ([[topic-x11-resolution-profiles]]) attach to the
+*group + tree-path* pair (the "role a canvas plays in this group-shape"),
+not to the physical handle, which is what the seed design's
+"profile is per-group-shape, not per-monitor" observation was already
+gesturing at.
+
+## virtual / controllable canvases (Xvfb, Xephyr)
+
+Same primitive family, simpler case. Identity checksum is derived at
+creation time from the spawn parameters —
+`CANVAS:CHKSUM7(mode:WxH:owner_key_id:ntime):ADDR_B32` — using the
+timestamp axis of [[topic-addressing-trinity]] to disambiguate multiple
+parallel Xvfb instances spawned from the same config. Because these are
+created with known identity, there is no topology-dependency: the
+canvas-group they belong to is just "the owner's own controllable
+canvases," a stable group whose checksum only changes when the owner
+adds or drops one of its own instances. Named resolution profiles from
+[[topic-x11-resolution-profiles]] become properties of the canvas
+entity directly (part of what the checksum is computed over), which is
+why the `xvfb:WxH` subname sketch there is already implicitly
+content-addressing — the WxH is part of the canvas's identity content.
+
+The identity scheme is the same TYPE/CHKSUM7/ADDR_B32 shape as physical
+canvases; the difference is only that virtual canvases skip the
+two-part physical-handle + group-scoped-logical-address split, because
+their "physical handle" and "group position" are both determined by the
+owner at creation and don't drift.
+
+## universal-primitive generalization: scope back
+
+The seed design's read that this pattern generalizes to "channels,
+nodes, and groups of nodes generally" is directionally correct but was
+mis-framed as needing a *new* primitive. The correct restatement:
+channels, nodes, and node-groups **already** use this exact pattern —
+checksum identity + named-tree membership + parallel groupings — under
+[[topic-checksum-addressing]] and [[topic-reference-bubble]]. Canvases
+joining that scheme is the news; the scheme itself is not. So:
+
+- **for now**: implement canvas identity strictly as another `TYPE`
+  under the existing P7REF format. No new primitive, no new routing
+  layer, no parallel key mechanism.
+- **do not** carve out "canvas-group" as a distinct concept from the
+  general node-group machinery in [[topic-reference-bubble]] /
+  [[topic-node-group-geometry]] — a canvas-group is a node-group whose
+  members happen to be canvas-typed nodes.
+- future channels / other-object types that need to be first-class
+  addressable should be added the same way (new `TYPE` value), not by
+  reopening the primitive question.
 
 ## status
 
-Pure design/vision stage, nothing implemented. Natural next step once
-this reconciles: a task file similar to
-`data/tasks/x11-connection-pool.md`, scoped first to what `X-11.servers`
-already tracks (X displays, Xvfb included) rather than the full "any
-screen over the network" scope, per the earlier scoping recommendation in
-this same conversation.
+Identity model decided (2026-07-11) — canvases and canvas-groups are
+new `TYPE` values under existing `TYPE:CHKSUM7:ADDR_B32` addressing, no
+new primitive. Implementation not started. Natural next step: a task
+file similar to `data/tasks/x11-connection-pool.md`, scoped to what
+`X-11.servers` already tracks (X displays, Xvfb included) with the
+first real use case being the named-resolution-profile need from
+[[topic-x11-resolution-profiles]] (profiles attach to canvas checksum
+content for virtual canvases, to group+tree-path for physical ones).
 
 ## related
 
@@ -102,8 +181,8 @@ this same conversation.
 [[topic-checksum-addressing]] · [[topic-routing-crystal]] ·
 [[topic-reference-bubble]] · [[feedback-source-identity-spoofing]]
 
-#,,,.,.,,,,,.,,.,,,,,,,.,,,.,,,,,,,,,,..,,,..,..,,...,..,,...,.,.,.,,,,,.,,,,,
-#TH3MT24336X3VSHBSIQWZJ6EKSUMXPLQU7WRXY2YPUCF4K4K6X2Z6ZAPGL27KQLV35RLRXX72PBYE
-#\\\|MLFDZN2FZPWN2CLHFEOIYWS3JGKVQOL63LRH4VBXTNQ3VMAUWV5 \ / AMOS7 \ YOURUM ::
-#\[7]ODGF7OIW7B5DH2NVTYREF6DNREA4GPW3YKC675MQQIEGODS6FIAA 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,...,..,,...,..,,...,,,.,,..,,.,,..,,...,...,.,,,.,.,,,.,.,,,,,.,
+#7SIGGFKQWH2AZATZPKJ5OXMPZOGDEZMI5NEQQ735SK4AKFSM75JTONFVE6KVNQXFFQHY25KDXGHBE
+#\\\|TFE23F4VIVRC676C5DS26R7AECA2VMUW4VDHYJZNDTM62JA2XQD \ / AMOS7 \ YOURUM ::
+#\[7]IZN6F7GDACQ4RZLWFHBMWYXX33T3RFKYEZF2KFYRGNMMX74WV2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
