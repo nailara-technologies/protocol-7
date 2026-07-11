@@ -1,6 +1,5 @@
 ## CRITICAL
 - [web-browser ephemeral storage](feedback-web-browser-ephemeral-storage.md) — WebKit ephemeral=1: storage wiped every restart; treat as volatile
-- [jobsite pending_count orphan gap](topic-plugin-web-jobs.md) — OPEN: restart mid-batch orphans pending_count, sticks cycle on 'assessing' forever
 - [WSLg deiconify limitation](feedback-wslg-deiconify-limitation.md) — Weston/WSLg blocks deiconify at compositor level
 - [UNCOMMITTED 2026-06-20 mpv/X-11 set](topic-mpv-jobqueue-startup.md) — fade_in test values must be reverted before commit
 - [gtk-wsl-window-positioning](topic-gtk-wsl-window-positioning.md) / [weston-move-unreliable](feedback-weston-move-unreliable-use-compositor-grab.md) — use begin_move_drag/resize_drag not move(); initial-placement-before-show_all open
@@ -21,7 +20,7 @@
 - [ascii-frame-system](topic-ascii-frame-system.md), [frame-plugin-slots](topic-frame-plugin-slots.md), [frame-idiom-convergence](topic-frame-idiom-convergence.md) — parser/renderer/validator; plugin slots; 5 frames need `.:[ ]::[ ]:.` conversion
 - [ascii-desktop-domains](topic-ascii-desktop-domains.md), [ui-show-security-levels](topic-ui-show-security-levels.md) — border glyphs unlock nested desktops; steps 1-5 LIVE, step 6 open
 - [os-command-zenka](topic-os-command-zenka.md) — planned command templates, security levels, STRM
-- [plugin-web-jobs](topic-plugin-web-jobs.md) — LANDED fc6fcb43a+beaf00a87 2026-07-02: watermark/tombstone/scan-order/reassess-dedup fixed live; pending_count gap OPEN (CRITICAL)
+- [plugin-web-jobs](topic-plugin-web-jobs.md) — LANDED fc6fcb43a+beaf00a87 2026-07-02: watermark/tombstone/scan-order/reassess-dedup fixed live; delete-mid-assessing fix beb1129e5 2026-07-09 + pending_count restart-orphan fix d5f9ba894 2026-07-10 both landed, no longer CRITICAL
 - [coding-zenka-abort-inference](topic-plugin-web-jobs.md), [jobsite-assessment-accuracy](topic-jobsite-assessment-accuracy.md) — LANDED 90537980b abort registry; assessment drops soft facts, fix=consensus_vote
 - [clients-http](topic-clients-http.md), [task-coordination](topic-task-coordination.md), [job-pipeline](topic-job-pipeline.md) — async http/https+kimi-web dispatch; task coordinator; jobs.vhost live
 - [reasoning-chain-repository](topic-reasoning-chain-repository.md), [reasoning-namespace](topic-reasoning-namespace.md) — dedup-based self-improvement model; `reasoning.*` ns, 28 templates
@@ -43,6 +42,7 @@
 - [layer-matrix-convergence](project-layer-matrix-convergence.md), [self-improving-system](topic-self-improving-system.md) — restart/migration/branching=one algebra; LLM coordination as foundation
 - [network-as-computer](topic-network-as-computer.md), [namespace-tree-intelligence](topic-namespace-tree-intelligence.md), [orbital-data-space](topic-orbital-data-space.md) — network IS computer; tree IS intelligence; zenki-as-satellites
 - [distributed-consensus](topic-distributed-consensus.md), [task-tree-design](topic-task-tree-design.md), [self-contained-zenka](topic-self-contained-zenka.md) — multi-model chat; unified task tree; __DATA__ registry/STDIO
+- [window-canvas-addressing](topic-window-canvas-addressing.md) — seed: window.canvas.* counterpart to window.profile.*; topology-relative physical vs controllable/virtual canvases; identity likely bottoms out to routable-pubkey + free parallel groupings, universal beyond screens
 - [style-philosophy](style-philosophy.md), [harmonic-mathematics](topic-harmonic-mathematics.md), [hyperspace-topology](topic-hyperspace-topology.md) — coding as artform; generator 076923; closed observer loop, sensor cube
 - [punctuation-topology](topic-punctuation-topology.md), [field-coherence-synthesis](topic-field-coherence-synthesis.md), [field-capability-emergence](topic-field-capability-emergence.md) — `:`/`.` separators; bridges topology; protocol vs external
 - [self-assembling-network](topic-self-assembling-network.md), [creative-field-behaviour](topic-creative-field-behaviour.md) — spec as pre-loaded potential; emergent cooperative dynamics
@@ -108,8 +108,8 @@
 - letsencr working; reasoning.branch.* LIVE; coding zenka operational; ondemand auto-register survives reload
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: state-0/7 harmonized; test re-sign ≥2 passes to see oscillation
 
-#,,.,,.,,,,,,,...,,.,,,,.,.,,,.,,,...,,.,,,.,,..,,...,...,...,.,.,,.,,,..,.,.,
-#6C3HCB6NJUI6ICARQRRIQEUVEXR5DQ54EDISDGPQIY2LCQYWALHN57TPBI6UN4JS4FCVWZ276YH3W
-#\\\|EYHNRJC432TMDAO7CFEZYUFOS3N4AEKAEEB3L7T3VV5QYXRMKXS \ / AMOS7 \ YOURUM ::
-#\[7]RPBUPWSJPJ6SMP4ZPWAK36AE66FSCCKCLOHS35AADLH2VGTNZOBQ 7  DATA SIGNATURE ::
+#,,..,..,,.,.,..,,...,,.,,.,,,.,,,,..,,.,,..,,..,,...,...,...,,,.,,,.,.,,,,.,,
+#WG7QTVII4YHEQXW2LGWPH46E3ZY74AQT5LLDWQH2QVEI2E4WNI6HBG4ASUK3U3RUNXZJERHO3F6SA
+#\\\|MTIBL4YCRX6ATMK2LN3GJ47GEQREVHUNPUDFC4G2TRCE6YUTM6P \ / AMOS7 \ YOURUM ::
+#\[7]EJT7I5IC56IFS2S5XT7KLSGPAF74ZMWLPVWXKRB3Y4FNPX6SV4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

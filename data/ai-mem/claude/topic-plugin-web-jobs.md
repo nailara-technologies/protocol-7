@@ -7,6 +7,20 @@ metadata:
   originSessionId: 095ef9b6-c744-46c5-bac8-4d54a2d5ce45
 ---
 
+## Status update 2026-07-11: both pending_count/cycle-stuck bugs below are landed
+
+Both confirmed COMMITTED, checked against git log (memory had gone stale, said
+"staged, not yet committed" / "OPEN (CRITICAL)"):
+- delete-during-assessing fix (session below): `beb1129e5`, 2026-07-09 19:46
+- restart-mid-batch pending_count orphan gap (the older, separately-tracked
+  CRITICAL item — `state.load` reset `cycle` across a restart but left
+  `pending_count`/`assess_queue` carrying forward stale in-flight counts,
+  wedging `cycle` on `assessing` forever): `d5f9ba894`, 2026-07-10 21:34 —
+  also fixed two related decrement bugs in the same pass (`task-created`'s
+  failure branch could drive `pending_count` negative, no floor clamp;
+  `repair-created`'s failure branch corrupted the `job_id` key instead of
+  decrementing). No longer CRITICAL, removed from that section in MEMORY.md.
+
 ## Session 2026-07-09 — delete-during-assessing stuck bug, fixed (staged, not yet committed)
 
 **Reported by user**: deleting a job while it's still `assessing` (coding zenka mid-inference)
@@ -366,8 +380,8 @@ jobsite.cfg.sync_interval = 300
 - reset button: clears jobs + userDecisions + lastNtime (destructive, dialog warns)
 - 30s auto-poll via `startPoll()` using `?since=lastNtime` delta
 
-#,,,.,..,,,,.,,.,,...,,,,,,..,,,,,,..,,.,,.,,,..,,...,...,,..,,.,,..,,,,.,,,,,
-#26GBG2J7KJAIV4WNKUZG5QUKW6GILN7RO3BBI3M6WBZIXFDT2OKG24GJGIY4CLGP7YYSHIFHF3FXM
-#\\\|NN227Q66AS2SGPJTHBS6PSKJH5B43NR4NLCZUB3WPHOHIP4TTYQ \ / AMOS7 \ YOURUM ::
-#\[7]2ZERRHZSHHINHOMM3PDGKYWRELUBDTOB7LYZXT2SMVMDDF3T5ODA 7  DATA SIGNATURE ::
+#,,,,,,,,,...,,,,,..,,,.,,,,,,,,,,,..,.,,,,,.,..,,...,...,.,,,...,,,,,,..,,.,,
+#6UAG6WEVSQR6YZZL6BFS3JNSMFDTFOTORGH3C3TGOG4QNQQLMB65OB7OCRV5NQMJ5Q73CTEGUFRT6
+#\\\|E73FOJEEALQXBDNRD2JZXNADGXWED5Z5RS3F5XJHKNVM7K634NZ \ / AMOS7 \ YOURUM ::
+#\[7]BH6L6WPJSMYLTTE476EO42ODKRIMBXVQICUAH4PYXCVYCXLHWSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
