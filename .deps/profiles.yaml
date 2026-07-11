@@ -4,7 +4,7 @@
 
 profiles:
   minimal:
-    description: "Minimal protocol-7 runtime (core dependencies only)"
+    description: "minimal protocol-7 runtime [core dependencies only]"
     apt:
       - git
       - perl
@@ -50,7 +50,7 @@ profiles:
       - YAML::XS
 
   network:
-    description: "Network and TLS support"
+    description: "network and TLS support"
     apt:
       - libssl-dev
       - libnet-ssh2-perl
@@ -62,7 +62,7 @@ profiles:
       - Net::DNS
 
   cryptography:
-    description: "Cryptography and checksumming"
+    description: "cryptography and checksumming"
     apt:
       - libcrypt-openssl-rsa-perl
       - libglib2.0-dev
@@ -117,7 +117,7 @@ profiles:
       - X11::Protocol::XSetRoot
 
   tools:
-    description: "Utility tools and scripts (DBI, database tools, etc.)"
+    description: "utility tools and scripts [DBI, database tools, etc.]"
     apt:
       - libdbi-perl
       - libdbd-sqlite3-perl
@@ -126,7 +126,7 @@ profiles:
       - DBD::SQLite
 
   zenka-common:
-    description: "Common modules for active zenka (v7, httpd, httpsd, letsencr, nshell, test-link-upgrade)"
+    description: "common modules for active zenka [v7, httpd, httpsd, letsencr, nshell, test-link-upgrade]"
     apt:
       - libbsd-resource-perl
       - libcrypt-dev
@@ -178,15 +178,16 @@ profiles:
       - YAML::Tiny
 
   graphics-matrix:
-    description: "Graphics processing and visual similarity (graphics-matrix zenka)"
+    description: "graphics processing and visual similarity [graphics-matrix zenka]"
     apt:
       - libgraphics-magick-perl
     cpan:
       - Image::Hash
 
   opencv:
-    description: "Computer vision and GPU-accelerated image processing (opencv zenka)"
+    description: "computer vision and GPU-accelerated image processing [opencv zenka]"
     apt:
+      - pdl
       - libopencv-core-dev
       - libopencv-imgproc-dev
       - libopencv-imgcodecs-dev
@@ -195,7 +196,7 @@ profiles:
       - PDL::OpenCV
 
   development:
-    description: "Full Protocol-7 development (covers v7, httpd, httpsd, letsencr, test-link-upgrade)"
+    description: "full Protocol-7 development [covers v7, httpd, httpsd, letsencr, test-link-upgrade]"
     includes:
       - minimal
       - runtime
@@ -205,7 +206,7 @@ profiles:
       - zenka-common
 
   ai-models:
-    description: "AI/LLM model support (local and remote backends)"
+    description: "AI/LLM model support [local and remote backends]"
     apt:
       - libanyevent-http-perl
       - libanyevent-perl
@@ -228,7 +229,7 @@ profiles:
       - Sys::Mmap
 
   protocol7-extended:
-    description: "Complete Protocol-7 with GUI and advanced tools"
+    description: "complete Protocol-7 system with GUI and advanced tools"
     includes:
       - development
       - X11-Desktop
