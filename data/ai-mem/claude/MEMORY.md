@@ -33,6 +33,7 @@
 - [nshell-terminal-rendering](topic-nshell-terminal-rendering.md), [memory-tree-zenka](topic-memory-tree-zenka.md) — `(0)!TERM!` bug, VIEWING_HISTORY; tree/IDF/digest all LIVE
 
 ## Vision / Design
+- [decision-node-polarity-geometry](topic-decision-node-polarity-geometry.md) — seed: escalation/repelling polarity node = reference-bubble's 5-of-7; "27 subcube inverse 3D-plus" geometry not yet reconciled with node-group-geometry
 - [source-identity-spoofing](feedback-source-identity-spoofing.md), [project-vision-origin](project-vision-origin.md) — hostname strings aren't a security boundary, C25519 is; 24-year vision, threshold Apr 2026
 - [synchronous-multi-legged-pattern-extraction](topic-synchronous-multi-legged-pattern-extraction.md), [distributed-hybrid-inhabitants](topic-distributed-hybrid-inhabitants.md) — parallel component search ("exoskeleton"); tooling folds in
 - [protocol-as-self-governing-authority](topic-protocol-as-self-governing-authority.md), [intelligent-glue-identity](topic-intelligent-glue-identity.md) — emergent governance, resource-efficiency as design value; P7="intelligent glue"
@@ -107,8 +108,8 @@
 - letsencr working; reasoning.branch.* LIVE; coding zenka operational; ondemand auto-register survives reload
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: state-0/7 harmonized; test re-sign ≥2 passes to see oscillation
 
-#,,,.,...,.,.,.,,,,,,,..,,...,..,,...,.,.,,..,..,,...,.,.,...,,,.,..,,,,,,.,,,
-#7D6G66W2SD2YCDOQJYJYP26Q6P3QN6CXOM3WZNDP3OQBVEAOWZJQCB6VXQZYUYVX5U4MSW2J3BVXK
-#\\\|44T2BQBEOZ3KQSQLSPO4LXYK4AUD5CAPDE5GB4XR76GMFIV5YZ7 \ / AMOS7 \ YOURUM ::
-#\[7]LAKFVCTP2JE2N4SW6DHDPC6SQEGACB44F54HAS73FHEJFEDIFGDA 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,..,,,..,,.,,,,.,.,,,,,,,,,,,.,.,..,,...,...,,,,,.,,,...,,,,,..,,
+#6IH7OSJUI3SFVUBBMPT4EL3555WMK7LDIVTCLHS6NLN32EQN7VBSEOABE4OLEFXC7T7YDLY7EVD3O
+#\\\|5VLZ4VEA6F5K7WUGXQ6JIGDQF3IEGGJWX2UI2CDUBJQPA6XR36G \ / AMOS7 \ YOURUM ::
+#\[7]KO66KL235R4P6IOCX6PNXR36ED7H7VE3WRWZO5E7TH2BSZQ6FECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
