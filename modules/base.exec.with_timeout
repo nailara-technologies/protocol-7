@@ -1,0 +1,83 @@
+## [:< ##
+
+# name  = base.exec.with_timeout
+# param = <timeout_seconds> <cmd_and_args_array_ref>
+# descr = run external command, kill + return undef on timeout
+
+## synchronous drop-in for system()/qx() style calls to external tools ##
+## that can wedge [ eg. driver-dependent commands like xrandr,          ##
+## nvidia-smi, intel_gpu_top ] - caller still blocks until the command  ##
+## finishes or the timeout fires, but a hung child gets killed instead  ##
+## of freezing the whole zenka indefinitely. built on select() +        ##
+## base.s_read [ same non-blocking read primitive coding.handler.       ##
+## http_io uses ] rather than alarm() - no signal-handler fragility,    ##
+## no interaction with any other alarm() in the same process. caller    ##
+## must autoload IPC::Open3 itself [ not done here, avoid loading it    ##
+## unused ]                                                             ##
+
+my ( $timeout, $cmd ) = @_;
+$timeout //= 7;
+
+return undef if ref($cmd) ne qw| ARRAY | or not @{$cmd};
+
+my ( $pid, $out_fh, $err_fh );
+eval { $pid = open3( undef, $out_fh, $err_fh, @{$cmd} ) };
+
+if ( not $pid ) {
+    <[base.logs]>->(
+        0,
+        '[exec.with_timeout] failed to spawn [%s] : %s',
+        join( ' ', @{$cmd} ),
+        <[base.str.eval_error]>
+    );
+    return undef;
+}
+
+my $buffer   = '';
+my $deadline = time() + $timeout;
+my $fd       = fileno($out_fh);
+my $eof      = FALSE;
+my $error    = FALSE;
+
+while ( not $eof and not $error ) {
+    my $remaining = $deadline - time();
+    last if $remaining <= 0;    ## timed out - fall through to kill below ##
+
+    my $rin = '';
+    vec( $rin, $fd, 1 ) = 1;
+    my $ready = select( my $rout = $rin, undef, undef, $remaining );
+    last if not $ready or $ready < 0;    ## timeout or select error ##
+
+    my $bytes = <[base.s_read]>->( $out_fh, \$buffer, 65536 );
+    $eof   = TRUE if $bytes == 0;   ## select confirmed readable : real EOF ##
+    $error = TRUE if $bytes == -1;
+}
+
+if ( not $eof ) {
+    <[base.logs]>->(
+        0,
+        '[exec.with_timeout] %s after %ds, killing [%s]',
+        ( $error ? 'read error' : 'timed out' ),
+        $timeout, join( ' ', @{$cmd} )
+    );
+    kill( 'KILL', $pid );
+
+    ## best-effort immediate reap only - a driver-wedged child can sit in ##
+    ## an uninterruptible kernel sleep [ D state ] that SIGKILL cannot    ##
+    ## touch until the kernel call itself returns, so this must NOT      ##
+    ## block ; base.sig_chld reaps it whenever it actually exits         ##
+    <[base.waitpid]>->($pid);
+} else {
+    <[base.waitpid]>->($pid);    ## non-blocking : likely already exited ##
+}
+
+close($out_fh) if defined fileno($out_fh);
+close($err_fh) if defined $err_fh and defined fileno($err_fh);
+
+return $eof ? $buffer : undef;
+
+#,,,,,,,,,,,,,,..,,,,,.,,,,,,,,,.,,,.,...,,.,,..,,...,...,.,,,,,.,,,,,,,,,,..,
+#XDOGWW7IORGL6ULJECXCCGSHBFPCD7UWLW4N7LTXXV7H6RB2D5T7QFZELUMIU3K64CVPRHC6BKZW2
+#\\\|36TA5RKV37HPIW2XWUUB7IB5UITHWJ7IGCRQ4PWWG3W7N4FPFAJ \ / AMOS7 \ YOURUM ::
+#\[7]TKCZUHY5M2Z7OXA4IRM2DP4LOCHVNLOK5RI5PPXFW2CJTS3TO6AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
