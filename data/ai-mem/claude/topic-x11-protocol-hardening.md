@@ -1,6 +1,6 @@
 ---
 name: x11-protocol-hardening
-description: WSLg/Weston full-freeze recurrence + in-progress blocking-call hardening for the X-11 zenka (base.exec.with_timeout landed, X11::Protocol timeout wrapper mid-design, paused)
+description: WSLg/Weston full-freeze recurrence + in-progress blocking-call hardening for the X-11 zenka (base.exec.with_timeout COMMITTED 3b966708d, verified working post-reboot; X11::Protocol timeout wrapper mid-design, paused)
 metadata:
   node_type: memory
   type: project
@@ -80,7 +80,7 @@ every STRM subscriber depending on it: `screen-setup`, `ticker`, `tile`,
 `web-browser`, `protocol-7-menu`, `impressive`, `storchencam`) if the GPU
 driver stalls.
 
-**Landed (staged, uncommitted as of this session's pause point)**:
+**Landed (COMMITTED 3b966708d 2026-07-11, verified working after host reboot — menu logo/web-browser no longer freeze on Wayland when backend is gone)**:
 - new `modules/base.exec.with_timeout` — reusable synchronous drop-in for
   `system()`/`qx()` calls to external tools. Built on `select()` +
   `base.s_read` (same non-blocking read primitive `coding.handler.http_io`
@@ -137,8 +137,8 @@ note for a future pass, not touched.
 
 [[topic-gtk-wsl-window-positioning]] · [[feedback-weston-move-unreliable-use-compositor-grab]] · [[feedback-wslg-deiconify-limitation]]
 
-#,,.,,,..,...,..,,,,,,,,.,...,.,,,,.,,,,.,,.,,..,,...,..,,,,.,.,,,,,.,...,.,,,
-#C42XXOIFJ3A2L6Q3AKHFMVVZSCBMSCYHTVFXCZHHUOZ7UQFEH7NIZISRIDJV32JUTT2QVTBQPSVJQ
-#\\\|2ETENHW5BBU4S7FUJXJ3ZTPPALZUJXYG43M4HXVGX5BE5WGI6D2 \ / AMOS7 \ YOURUM ::
-#\[7]PYRGFRFUJVXNLPVIRPVBA7Y6X44JDD44SZE2UX4QYRWMABF7YMDI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,.,,,..,,...,..,,,.,,.,.,.,.,,.,,..,,...,..,,...,.,.,...,..,,,,.,
+#5H55QAISAXHJQ32GRHYDTWDCLLANA4GEVPWYDSMBRYBQOYA45KJOTZLP76LNLTQRHMOQS6GWGGIGM
+#\\\|ZGBMYWMQVJU7G4ASPGGFUWML2CH6XC2CSKS3RNEGVEHVX5FBLDX \ / AMOS7 \ YOURUM ::
+#\[7]LPG73DKOO5JIBWV7YYHWJ7BDZJP6FOIPI7TPZWLMK7OGPDE7AGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
