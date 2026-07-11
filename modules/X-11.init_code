@@ -101,6 +101,10 @@ if ( <X-11.mode> eq qw| auto-xephyr | ) { ## detect if Xorg running --> xephyr
 <X-11.reconnect.initial_delay> //= 1;
 <X-11.reconnect.max_delay>     //= 60;
 
+<X-11.pool.enabled>       //= FALSE;    ## default off until verified ##
+<X-11.pool.query_timeout> //= 2;        ## seconds ##
+<X-11.pool.ping_timeout>  //= 1;        ## seconds ##
+
 ## silence bad-drawable protocol errors : dead window XIDs queried after  ##
 ## a zenka shuts down return false via eval [ X-11.cmd.get_geometry ],    ##
 ## this blacklist suppresses the warn log before it reaches process-x11-  ##
@@ -114,8 +118,8 @@ if ( <X-11.mode> eq qw| auto-xephyr | ) { ## detect if Xorg running --> xephyr
 
 0;
 
-#,,,.,,..,,,.,,..,,,.,,,,,,.,,,,.,.,,,,,,,.,.,..,,...,...,,,.,..,,.,.,..,,,.,,
-#DHC7ZOO4P7OJN3NGNPGBWFV4OGXIQZMIC5MS4JGFG5WYMC5RIEOPREKDQN2XQ4XUGKNYO7MQ4QIGW
-#\\\|2PYJFSWZY5G5KWPIG4RFNNGHO7S5ODOCWWQSPT2JTUZX25USCG5 \ / AMOS7 \ YOURUM ::
-#\[7]OLSGU7BWOSBSR42PWH5DWEJ67IQMP4L4RAO4LQMYJ3HVDNPJ36AQ 7  DATA SIGNATURE ::
+#,,..,.,,,..,,.,.,,.,,,,,,.,,,..,,,,.,,,.,.,.,..,,...,...,...,,.,,,.,,.,.,,,.,
+#XGGOU6NPCRZ5QOIM5NUEM6VLRQ3NRJQC7CMM2JXGNJYMIBQAIA4EZ4RCJP3BUG6OX7OOQSQRTECPA
+#\\\|IDIYQG2V6IWAUM3CNU5YCUUA4HAXETDXBRIAEQ26XNNAQINYEKN \ / AMOS7 \ YOURUM ::
+#\[7]OOZPJWFEF5H7OXMBHP63RRWPPSQZCLPPKJWRGX4YYD3BFNLKKSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

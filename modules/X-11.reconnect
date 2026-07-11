@@ -34,6 +34,9 @@ while ( $attempts < $max_attempts ) {
         <[base.log]>->( 1, ': reconnected to X display =)' );
         delete <X-11.reconnect.in_progress>;
 
+        ## re-issue per-connection registrations [ randr events, key grabs, .. ] ##
+        <[X-11.reconnect.replay_registrations]>;
+
         ## re-initialise display state ##
         <[X-11.init_display_states]>;
         return TRUE;
@@ -54,8 +57,8 @@ while ( $attempts < $max_attempts ) {
 delete <X-11.reconnect.in_progress>;
 <[base.exit]>->( 'x11 reconnect failed', 1, qw| 0110 | );
 
-#,,..,,,,,.,.,,.,,,,.,.,.,,.,,,,.,,.,,,.,,,,.,..,,...,..,,,..,...,,,,,,,,,,,.,
-#67F5ZKMDCBPYNVBA3EK5XIUCR7ZCRQAACTH54ISQ7GUZE2KBI7WLTLFN2QKTGGT7J5UW3K4ZFMJNM
-#\\\|GF7OMPHNJ3D53RHQZEEFSHY2NUIQJN5QBGC3TSZIF7CKPV3FQ3T \ / AMOS7 \ YOURUM ::
-#\[7]GCEZYGTTKPT7U6FRZTTL2Z45XHYSCCCCZF3VLYUOQA6Y3ROB5GBQ 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,.,,,..,,.,,,,.,,.,,,..,,..,.,,,..,,...,...,,.,,...,.,.,.,.,,,.,
+#I2X5RICZJCSFNIRNS5C5TLFKFKE5EVLWPLD6ZSROGVNJGAB6GFRN54MJQ5KOU7CTELXOS7BNJXRCK
+#\\\|EIW4POS7ABBU3NMWEPMGN7DLVWQNSD7TEYVIME3VXMWQ6CLJOEV \ / AMOS7 \ YOURUM ::
+#\[7]ZZYNX3W6CFMCDHIOFM3JN7DUBNXOZZO7VFLMFCN4WEUCNX4WGUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

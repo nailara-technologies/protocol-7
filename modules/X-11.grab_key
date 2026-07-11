@@ -2,14 +2,15 @@
 
 # name = X-11.grab_key
 
-my $keycode  = shift // 0;        #     0 == AnyKey
-my $modifier = shift // undef;    # undef == AnyModifier
+my $keycode  = shift // 0;            #     0 == AnyKey
+my $modifier = shift // undef;        # undef == AnyModifier
+my $X_obj    = shift // <X-11.obj>;
 
-<X-11.obj>->GrabKey( $keycode, $modifier, <X-11.obj>->root, 0, 'Asynchronous',
+$X_obj->GrabKey( $keycode, $modifier, $X_obj->root, 0, 'Asynchronous',
     'Asynchronous' );
 
-#,,,,,..,,...,...,,,.,,..,,,.,,,.,...,...,...,..,,...,..,,,,.,,.,,.,.,,,,,...,
-#FYVU4ZM32JRPYVNYX4XKE5LKS7JAGPLPJ6YVLH4QEC4QPHYEBKUQC7JVDXPJIR7IVUCV2NFTJ4W46
-#\\\|LDNHGI7KUUKAKFSTVOGIFU5EZQ665G3CSN4VOVBKLDXLAGBCE2G \ / AMOS7 \ YOURUM ::
-#\[7]4IM6OS7PV23GID732RWDCY6HSWXMC2TBOF4FIIL7XVGSDJKXWMBI 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,..,.,,,,.,,.,.,.,,,...,,..,.,.,..,,...,..,,..,,.,.,,,.,.,,,.,.,
+#73IQ724XTB75IPUFQQGIDRW2DHUQPK2R7ZUMIA3COYQKO7IX5HSCDG75JEAVH5DPBF5O4BRCZGVFC
+#\\\|LYWKQQUSQR5AAA4IRWNMLYE3F7XZV432UKF5WV3ML56FXFAPN7W \ / AMOS7 \ YOURUM ::
+#\[7]I764AKTQJB3SX4PIJ5L7TSUZVRBFSZIHEU2R7LW6BF5FI3TR6GDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

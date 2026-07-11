@@ -1,0 +1,72 @@
+## [:< ##
+
+# name  = X-11.pool.dial_standby
+# descr = pre-dial a second X11::Protocol connection for the pool
+
+return FALSE if not <[base.cfg_bool]>->(<X-11.pool.enabled>);
+return FALSE if defined <X-11.pool.dial_in_progress>;
+
+my $standby = <X-11.obj.standby>;
+
+## if a standby already exists, ping it before tearing it down ##
+if ( defined $standby ) {
+    return TRUE if <[X-11.pool.ping_standby]>;
+
+    ## existing standby is not responsive -- close and redial ##
+    eval { $standby->{'connection'}->fh->close };
+    <X-11.obj.standby> = undef;
+}
+
+<X-11.pool.dial_in_progress> = TRUE;
+
+my $mode    = <X-11.mode>;
+my $display = <X-11.display>->{$mode};
+
+$ENV{'DISPLAY'} = $display;
+
+$standby = eval { X11::Protocol->new($display) };
+
+if ( not $standby or length $EVAL_ERROR ) {
+    <[base.logs]>->(
+        0,        '[pool.dial_standby] failed to dial standby on %s : %s',
+        $display, <[base.str.eval_error]>
+    );
+
+    <X-11.pool.dial_attempts> //= 0;
+    <X-11.pool.dial_attempts>++;
+
+    my $delay = 5 * ( 2**( <X-11.pool.dial_attempts> - 1 ) );
+    $delay = 60 if $delay > 60;
+
+    <[base.logs]>->(
+        1, '[pool.dial_standby] scheduling retry %d in %ds',
+        <X-11.pool.dial_attempts>, $delay
+    );
+
+    <[event.add_timer]>->(
+        {   'after'   => $delay,
+            'handler' => qw| X-11.pool.dial_standby |,
+            'repeat'  => 0
+        }
+    );
+
+    delete <X-11.pool.dial_in_progress>;
+    return FALSE;
+}
+
+<X-11.obj.standby>        = $standby;
+<X-11.pool.dial_attempts> = 0;
+
+<[base.log]>->( 1, ': standby X11 connection established' );
+
+## replay wire-only registrations [ no IO watcher: standby is idle ] ##
+<[X-11.reconnect.replay_registrations]>->( $standby, TRUE );
+
+delete <X-11.pool.dial_in_progress>;
+return TRUE;
+
+#,,,,,...,,.,,..,,..,,,.,,,..,,..,,..,,,,,.,,,..,,...,...,..,,,..,,..,.,,,,,.,
+#6VBFXK5ULCQUXUD36FBEXIUIUFDW5U3DY2H6A75H3ETVBN2RNDEKESS3QGT4ZWXG3E77HH4CZJFHM
+#\\\|XGAH4ZJ326UIKY27CQJG5ECZDH4BWPBE2UWAAOTQYPEWDQD34GB \ / AMOS7 \ YOURUM ::
+#\[7]F76VLBENJBOCO2C2GKAACYO224AH3C37ONZZB6DNQPMTZB3HVOAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

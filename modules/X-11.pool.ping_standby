@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = X-11.pool.ping_standby
+# descr = cheap no-op round-trip on standby with select() deadline
+
+return FALSE if not <[base.cfg_bool]>->(<X-11.pool.enabled>);
+
+my $standby = <X-11.obj.standby>;
+return FALSE if not defined $standby;
+
+my $timeout = <X-11.pool.ping_timeout> // 1;
+
+my @reply
+    = <[X-11.pool.req_with_timeout]>->( $standby, $timeout, 'GetInputFocus' );
+
+return scalar @reply ? TRUE : FALSE;
+
+#,,..,...,..,,.,.,,.,,.,.,,.,,,,.,,,.,.,,,.,,,..,,...,...,...,,,,,,,,,.,,,,,.,
+#37RRXGCIGWOCNYNQDIGASMOS3RXBMEDIOV4JSQ64A4WWSM3ESKZMTHXU5XQ434PCN2LAIB2LLBI2Q
+#\\\|RTXNLWIQTKNJOOC2NWBZFHPGDJGFVB4VQ3ZABZTMVVG6S43A5ZQ \ / AMOS7 \ YOURUM ::
+#\[7]LFR7UTCB3WIVGYQMVLDQLBI7BZOXVGZMWOODUH6RVNPNWLVDZ4CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

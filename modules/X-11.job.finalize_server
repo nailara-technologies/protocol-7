@@ -321,6 +321,14 @@ if ( defined $bg_image ) {
 ## all done. ##
 <X-11.initialized> = TRUE;
 
+## start background standby connection pool fill ##
+<[event.add_timer]>->(
+    {   'after'   => 1,
+        'handler' => qw| X-11.pool.dial_standby |,
+        'repeat'  => 0
+    }
+);
+
 ## test if window enumeration works ##
 my @test_ids = eval {<[X-11.get_window_ids]>};
 <X-11.window_enumeration> = ( !$@ && @test_ids ) ? TRUE : FALSE;
@@ -333,8 +341,8 @@ if (<X-11.window_enumeration>) {
     );
 }
 
-#,,.,,,,.,,..,..,,...,...,..,,,..,,..,.,,,,..,..,,...,...,.,,,...,,..,..,,,.,,
-#6X7NDHCKFDRD5WLO6ZAPMRB6PU52HRDGWGRTW23SP4FKDME3SKXP4EM35UBKZIEFUVOR3ZT6NMUSU
-#\\\|44YN6S4V2BGA3OIISE5E23IUPPGUB6BFG6QQBUZIY3476S4DWVU \ / AMOS7 \ YOURUM ::
-#\[7]J326AM27Y33FD6T5VWZSL2CKVCSH3IVQQT44WOWA7OIOXXXZRIDY 7  DATA SIGNATURE ::
+#,,..,,..,.,,,.,,,,,,,,,,,.,,,..,,,,.,.,.,...,..,,...,...,.,,,...,,,,,,..,..,,
+#5RCBDEMSOMGSYL4YNA5JLGMNPZAUUSZNIHTLMXE3BHVLCVDUFHYLUMLOKMJPCREZQLKY72WKYAJAA
+#\\\|HC2YU4UOP3ONQ7HOGGO6DEOYBHJWFCCB5QBZOUUPGNOCDEVEILY \ / AMOS7 \ YOURUM ::
+#\[7]EWZXIJEJNRFZKCQIYGD5VXGCKXNDATWIZUSU5CX224CL2KO7KIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
