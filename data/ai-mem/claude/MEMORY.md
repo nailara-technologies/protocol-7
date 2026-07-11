@@ -6,7 +6,7 @@
 - [gtk-wsl-window-positioning](topic-gtk-wsl-window-positioning.md) / [weston-move-unreliable](feedback-weston-move-unreliable-use-compositor-grab.md) — use begin_move_drag/resize_drag not move(); initial-placement-before-show_all open
 
 ## Active Topics
-- [x11-protocol-hardening](topic-x11-protocol-hardening.md) — COMMITTED 3b966708d: base.exec.with_timeout landed+verified; X11::Protocol design converged on dual-connection pool w/ query-reroute + health-oracle ping, not yet built
+- [x11-protocol-hardening](topic-x11-protocol-hardening.md) — COMMITTED 3b966708d + e0f4fddd7: base.exec.with_timeout + dual-connection pool (query-reroute/health-oracle) both landed+verified live
 - [x11-resolution-profiles](topic-x11-resolution-profiles.md) — OPEN design: xvfb needs per-purpose resolution profiles (subname `xvfb:WxH` sketch, needs sanitization); dimensions_xvfb split landed uncommitted
 - [ondemand-starting-flag-watchdog](topic-ondemand-starting-flag-race.md) — RESOLVED 056597b9b: watchdog rescues stuck-`starting` queue via online-truth check; restart-disabled zenki get 3-strike tolerance
 - [orbital-strm-push-rollout](topic-orbital-strm-push-rollout.md) — LANDED 139cacef2: push via STRM not poll; open: connect/disconnect-orbital access
@@ -108,8 +108,8 @@
 - letsencr working; reasoning.branch.* LIVE; coding zenka operational; ondemand auto-register survives reload
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: state-0/7 harmonized; test re-sign ≥2 passes to see oscillation
 
-#,,,,,.,,,...,,..,,,.,,,.,..,,.,.,,.,,...,,.,,..,,...,...,...,,,,,.,,,,..,.,,,
-#KG432NKZNDF3NLCVLM6YY5QOAWX3GORIPH6CKPLWHSF6TY3GDARPRWW2QPDPIPZ3QUMTD6BD4BQKC
-#\\\|N4IGQFH4R7DOOSIVKXSUPKDSS2JE3BZDQBROZGEEWMTY6HPBF5X \ / AMOS7 \ YOURUM ::
-#\[7]G2HZDKUIRDV5MVHKES233UZZJC7PCIYFWZCUXPM3LH7WPRLQWSDI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,...,,.,,,,.,.,,,.,,,...,,.,,,.,,..,,...,...,...,.,.,,.,,,..,.,.,
+#6C3HCB6NJUI6ICARQRRIQEUVEXR5DQ54EDISDGPQIY2LCQYWALHN57TPBI6UN4JS4FCVWZ276YH3W
+#\\\|EYHNRJC432TMDAO7CFEZYUFOS3N4AEKAEEB3L7T3VV5QYXRMKXS \ / AMOS7 \ YOURUM ::
+#\[7]RPBUPWSJPJ6SMP4ZPWAK36AE66FSCCKCLOHS35AADLH2VGTNZOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
