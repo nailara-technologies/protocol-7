@@ -10,6 +10,13 @@
 ## Memory Update Tool — Length-Aware Routing (June 2026)
 `p7_memory_update` enforces ~180/200 line limits on `MEMORY.md`, supports `target` for external topic files, and auto-routes `UPDATE FILE:` directives. see [topic-memory-update-tool.md](topic-memory-update-tool.md)
 
+## Module Name Swaps via `base.swap_subs` (July 2026) [ CRITICAL ]
+
+some module families are renamed at runtime (`base.event`→`event`,
+`base.file`→`file`, etc.). the file on disk does not match the post-init
+`%code` key; calling the long form after init crashes. see the
+swapped-module-families note in [coding-style.md](coding-style.md).
+
 ## Round-Based Scheduling & Subtask Spawn — COMPLETE (April 2026)
 
 complete — full subtask round-trip verified. 4 post-handover fixes (double-spawn VRAM starvation, stale-process kill race, subtask backend lock deadlock, timeout recovery).
@@ -184,8 +191,8 @@ open: kimi zenka state machine upgrade (backend reconnect), coding zenka as thir
 
 `skipped` status restored across all index scanners, reassessment now protects manual stages, web sync carries `assertions`, UI delete actions wired, and orbital subscriber `.cmd.` syntax corrected. Assessed jobs now map to the `review` UI stage. See [jobs-pipeline-2026-06-28.md](jobs-pipeline-2026-06-28.md). Open: bulk-delete pending search/filter UI.
 
-#,,,.,...,...,,..,...,,,,,..,,.,,,...,,,.,.,.,..,,...,...,,..,,..,...,.,.,,,,,
-#DBTXX64YBYPNROH2O2GLUPP3VQWRRYVMAMJQZNKZZWRKLHJ26L7IQEBF54WRGMU4VFAJAF5NGITU4
-#\\\|MKZABAYU2OO76N2D3Z3CEXZ7UAVYMMDFGFSQHZIHSJCSSDO5HRA \ / AMOS7 \ YOURUM ::
-#\[7]3WKI6G2TOHVZG3HSLOL4OP3ERDJUKWT7VHUTGXKAUUWWPKRNFEBA 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,.,,,,..,.,,,.,.,.,,,...,,..,,,,,..,,...,.,.,.,.,,,,,,..,,,,,.,.,
+#B4D2H7XP5WWFNHTL7UQAE27I5DMY7JMBHRHRMGMALP6BGTG6BNBV7Z3A2AGJVHBLUKEJA753WDBKO
+#\\\|7IKISTH2LOHFMR2TUH7WKWY7AGQZCMGQEKFTIBKTPHAGJ2FHCXS \ / AMOS7 \ YOURUM ::
+#\[7]EI6DL7GZSLVEXVYVFAFLIJFUHG7NJT72XDMZ7N3SFR7PIUACEIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

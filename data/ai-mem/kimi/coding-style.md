@@ -67,6 +67,33 @@ $code{$handler}->($arg)     ## also valid — explicit form
 ```
 note: variable form uses NO quotes — `$code{$var}` not `$code{'$var'}`
 
+### swapped module families — file name != runtime `%code` key [ critical ]
+
+some module families are renamed during zenka startup by `<[base.swap_subs]>`.
+after the swap, the long `base.<family>.*` keys are deleted from `%code`; only
+the short form resolves at runtime. known swapped families (grep
+`<[base.swap_subs]>` in `modules/*.pre_init` / `modules/*.init_code` for the
+current list):
+
+`base.event`→`event` · `base.file`→`file` · `base.base32`→`base32` ·
+`base.templates`→`templates` · `base.chk-sum.*`→`chk-sum.*` ·
+`base.zenka.push`→`zenka.push` · `base.dependency`→`dependency` ·
+`base.locales`→`locales` · `base.protocol-7`→`protocol-7` ·
+`v7.zenka`→`zenka` · `fetch.file.huggingface`→`huggingface` ·
+`event.anyevent`→`event`
+
+```perl
+## file on disk: modules/base.event.add_timer
+## runtime call after init: use the short name
+<[event.add_timer]>->(...)
+
+## <[base.event.add_timer]> is undefined after the family's pre_init runs
+```
+
+rule: `ls modules/` is not evidence of the runtime `%code` key. if a family is
+in the swapped list, use the short form. when unsure, check
+`p7c <zenka>.list-subs <pattern>` on a live zenka.
+
 ---
 
 ## data access patterns [ critical ]
@@ -602,8 +629,8 @@ s|old|new|gsx    ## global + single-line + extended
 
 ---
 
-#,,,,,,.,,,..,,.,,..,,.,.,,.,,.,.,.,.,,..,,.,,.,.,...,...,...,.,.,..,,,.,,,,.,
-#JYWR5SRWYYC7YQHMHBJNDUP7PUJL3MAG5COI326DCFZOYWGR2MTOK25UAGPYCEUZYBFLBKTIB5GXW
-#\\\|RVHRW3G24ZQPKAGSEIPP6ELIFIPCV2G3UMDCE46BUZ6SKNMTMGQ \ / AMOS7 \ YOURUM ::
-#\[7]JQMWMI4AJ67GN5UIBISU2ACF4HWIP6RXSEKTEDRQMVEIHSEFWMBQ 7  DATA SIGNATURE ::
+#,,,.,,,.,...,.,.,.,,,,,.,...,...,.,.,...,,,,,.,.,...,..,,,,.,,,.,,..,,,,,..,,
+#CKHQ3GTTTOB2NE5PZ3XZU3MIJTTPPQZEYORKQQ7KSIFPD67GJKLSSOG7DNQ2AEMYSUHVF74CL4BMA
+#\\\|FIFEJHBUYKKFAQERMB2JGC5UUNHLDJ3YT23TM4YPGFWIFOGGE55 \ / AMOS7 \ YOURUM ::
+#\[7]GFAOUDTD4SFXTLL4Y7T6P5DUOF6ORHS2OKTYRZMIVWV24MFYOUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
