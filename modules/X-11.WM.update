@@ -38,8 +38,11 @@ if ( not keys %{ <X-11.WM>->byid } ) {
     my $fetch_title = sub {
         my ( $wid, $atom, $req_type ) = @ARG;
         return undef unless defined $wid and defined $atom;
-        my ($val)
-            = eval { $X->GetProperty( $wid, $atom, $req_type, 0, 256, 0 ); };
+        my ($val) = eval {
+            <[X-11.pool.query]>->(
+                'GetProperty', $wid, $atom, $req_type, 0, 256, 0
+            );
+        };
         return undef if $EVAL_ERROR or not defined $val or not length $val;
         return $val;
     };
@@ -65,7 +68,8 @@ if ( not keys %{ <X-11.WM>->byid } ) {
         $title = $try_title->( $wid, $wm_name, $string );
         return [ $wid, $title ] if defined $title;
 
-        my ( undef, undef, @children ) = eval { $X->QueryTree($wid) };
+        my ( undef, undef, @children )
+            = eval { <[X-11.pool.query]>->( 'QueryTree', $wid ) };
         return undef if $EVAL_ERROR;
         foreach my $child (@children) {
             next unless defined $child and $child ne 'None';
@@ -76,10 +80,13 @@ if ( not keys %{ <X-11.WM>->byid } ) {
     };
 
     eval {
-        my ( undef, undef, @root_children ) = $X->QueryTree($root);
+        my ( undef, undef, @root_children )
+            = <[X-11.pool.query]>->( 'QueryTree', $root );
         foreach my $wid (@root_children) {
             next unless defined $wid and $wid ne 'None' and $wid =~ m|^\d+$|;
-            my %wa = eval { $X->GetWindowAttributes($wid) };
+            my %wa = eval {
+                <[X-11.pool.query]>->( 'GetWindowAttributes', $wid );
+            };
             next if $EVAL_ERROR or not %wa;
             next if ( $wa{'map_state'} // '' ) eq 'Unmapped';
 
@@ -110,8 +117,8 @@ if ( not keys %{ <X-11.WM>->byid } ) {
     }
 }
 
-#,,.,,...,.,.,,,.,.,,,,.,,.,,,,,,,,.,,,,.,,..,..,,...,...,...,,..,...,.,,,,,,,
-#KEGHNSCUUZJ2C7F7YQJ7BSTIEREPAQCI73VLLEHTIFMOT6XCLEYTI5JKPVVS37UCWEMRC767QHY7K
-#\\\|SVPEOZ4SZQ44ZVH2IXAFZ4A3TIPJB6HAOHSV32JFGFBUBW3PJFQ \ / AMOS7 \ YOURUM ::
-#\[7]P2ERLDAABPBCHB23AAGS47ZPJJQHOBFMS5A56SGILMTE7O4BM6CI 7  DATA SIGNATURE ::
+#,,,.,...,,.,,.,,,,,.,,,.,,..,,..,...,,..,.,.,..,,...,...,...,,.,,,,,,,,.,,..,
+#GP4AWXSECWCTMMEE6XFV7HOG6GX6EUZBJJWF6GD6VRM3G4NTVWQKFCPNA7KVGUPG7ITJCQ6SWBQPA
+#\\\|ODRN3LMDUFIKUI6V75MTHR5VLWP4CYGIFIAS2ICKZEICPBVPIAZ \ / AMOS7 \ YOURUM ::
+#\[7]M3ZE5IOVC6B4HXJM37I7RHWBBJX354C2LFMBHY5PLPX5ID2G6QBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
