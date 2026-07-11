@@ -49,15 +49,17 @@ if ( $vendor eq 'nvidia' ) {
         "<< not found : 'intel_gpu_top' [ 'intel-gpu-tools' installed ? ] >>"
     ) if !-x $gpu_top_bin;
 
+    my $top_probe = <[base.exec.with_timeout]>->( 5, [ $gpu_top_bin, '-h' ] );
     return <[base.log]>->( 0, "<< cannot run 'intel_gpu_top' >>" )
-        if qx($gpu_top_bin -h) !~ m|usage|;
+        if not defined $top_probe or $top_probe !~ m|usage|;
 
-    return <[base.log]>->(
-        0, '<< apparently no intel GPU [intel_gpu_frequency] >>'
-        )
-        if length($gpu_freq_bin)
-        and -x $gpu_freq_bin
-        and qx($gpu_freq_bin) =~ m|no intel gpu found|i;
+    if ( length($gpu_freq_bin) and -x $gpu_freq_bin ) {
+        my $freq_probe = <[base.exec.with_timeout]>->( 5, [$gpu_freq_bin] );
+        return <[base.log]>->(
+            0, '<< apparently no intel GPU [intel_gpu_frequency] >>'
+            )
+            if defined $freq_probe and $freq_probe =~ m|no intel gpu found|i;
+    }
 
     <[base.log]>->( 1, "starting 'intel_gpu_top' process .," );
 
@@ -83,8 +85,8 @@ if ( $vendor eq 'nvidia' ) {
     );
 }
 
-#,,.,,.,,,,.,,,,.,...,...,,,,,,,,,,,,,,..,...,.,.,...,..,,..,,.,,,,,.,..,,.,.,
-#44TJ74QIPIBM67QMPGRMVIRPXJ6JFQGKNZYY3IYMRVYW72X4XWPXYFMFZU4UB24H2MJZ7VUOAD772
-#\\\|PJOI4OJQXPKAR52YYY6H5KWGMTFITEVYEZOH3FBRXTQ3RLQCBZI \ / AMOS7 \ YOURUM ::
-#\[7]PLHYXOR4ZOI7Z3HFN4CLOQLKOKZVX3G2JHB47TBOVDKEZ6OZXYCQ 7  DATA SIGNATURE ::
+#,,..,,,.,,..,,,,,..,,,..,,..,,,,,,.,,,..,,,.,.,.,...,...,...,..,,..,,,,,,,.,,
+#B2RS6EW4HUNDHNZHJMNWONVDKCY5KQOIZ6JTXVI5VY4KQ35XHWABG2J46J2GYHLVAEFKTFGVZ3OBY
+#\\\|BNJYNVOMXSH3HDYFJMUIYAEUXJ644VHLDBTTQ4GY3JQDN3H3IXI \ / AMOS7 \ YOURUM ::
+#\[7]SOI2ZDRCKJELBXYYOJ4I4F6T66LB25LHRJFXFQIECJD6CBQUIYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
