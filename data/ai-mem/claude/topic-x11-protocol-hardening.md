@@ -1,6 +1,6 @@
 ---
 name: x11-protocol-hardening
-description: WSLg/Weston full-freeze recurrence + in-progress blocking-call hardening for the X-11 zenka (base.exec.with_timeout COMMITTED 3b966708d, verified working post-reboot; X11::Protocol timeout wrapper mid-design, paused)
+description: WSLg/Weston full-freeze recurrence + blocking-call hardening for the X-11 zenka (base.exec.with_timeout COMMITTED 3b966708d, verified; X11::Protocol design converged on dual-connection pool w/ query-reroute + health-oracle ping, not yet built)
 metadata:
   node_type: memory
   type: project
@@ -99,32 +99,82 @@ driver stalls.
 - `X-11.*` subroutine.white-list + `base.list.subroutines` updated
   accordingly.
 
-**NOT yet built — paused mid-design when the freeze above interrupted it**:
-a second, architecturally different wrapper for raw `X11::Protocol` calls
-(`X-11.WM.update`, `GetProperty`, `QueryTree`, etc.) — these are blocking
-reads on the already-open X11 socket connection, not spawned subprocesses,
-so `base.exec.with_timeout`'s open3/kill model doesn't apply. Plan as of
-the pause:
-- `alarm()` **is** appropriate here (unlike for subprocess calls) — it
-  reliably interrupts an ordinary blocking Perl socket read, this isn't a
-  kernel-driver ioctl in D state.
-- a timed-out round-trip likely desyncs `X11::Protocol`'s internal
-  sequence-number tracking, so recovery must be a **full reconnect**, not
-  a retry on the same connection — this is exactly what the *existing*
-  `modules/X-11.reconnect` already does (`<X-11.obj>->init(...)`, full
-  reinit with exponential backoff, already wired to the connection's own
-  `error_handler` for actual protocol *errors*). The new wrapper's job is
-  only to *detect a true hang* (no error packet ever arrives, so
-  `error_handler` never fires) and call the existing `<[X-11.reconnect]>`
-  on timeout — not to reimplement reconnection.
-- was surveying callers of `X-11.WM.update` (9 call sites: `X-11.cmd.
-  get-windows`, `.hide-window-frame`, `.move-window`, `.set_geometry`,
-  `.show-window-frame`, `X-11.connect_X11`, `X-11.get_window_ids`,
-  `X-11.handler.monitor_settle_check`, `X-11.handler.screen_change`,
-  `X-11.job.finalize_server`) to decide: wrap the timeout **inside**
-  `X-11.WM.update` itself (protects all 9 callers uniformly, one change)
-  vs. wrapping at each call site (more control, more diffs). Leaning
-  toward wrapping inside `X-11.WM.update`, not yet decided/started.
+**NOT yet built — design converged 2026-07-11, not started**:
+superseded the single-connection alarm()+reconnect sketch below with a
+**dual-connection pool** design — a second `X11::Protocol` connection kept
+permanently idle/pre-dialed, ready to take over at the first sign of
+trouble instead of dialing fresh only after a hang is detected. Session
+that produced this: `cdc77f2e`.
+
+Design, in the order it was derived:
+
+- **existing replay gap, found by reading the code, not new to this
+  design**: `modules/X-11.reconnect` today only calls `<X-11.obj>->init(...)`
+  (re-dial the *same* object) + `X-11.init_display_states` (reload state
+  from file). It never re-issues `RRSelectInput` (registered once, in
+  `X-11.job.finalize_server` line 111) or `<[X-11.grab_key]>` (same file,
+  line 247). So a reconnect *today* already silently drops randr-change
+  events and hotkey grabs — pre-existing bug, independent of the pool.
+  Fixing this means factoring a `X-11.reconnect.replay_registrations`
+  (name TBD) that re-issues every per-connection registration (event
+  masks, key grabs, any future selection ownership) — needed regardless
+  of whether the target is a freshly-dialed connection or a pre-warmed
+  standby, so build it once and call it from both paths.
+- **pool is not new complexity, just earlier timing**: a pool connection
+  is exactly a `X-11.reconnect`-produced connection, just dialed and
+  replay-registered *before* it's needed instead of after a failure —
+  trading permanent second-fd/idle-connection overhead for zero
+  promotion latency (no dial + handshake + replay in the failure path,
+  all of that already happened ahead of time).
+- **query rerouting — the strongest part of this design, no promotion
+  needed at all**: window IDs, atoms, and their properties are
+  server-global state, not connection-scoped. So a **read-only** call
+  stuck on the primary (`GetProperty`, `QueryTree`, `GetWindowAttributes`,
+  `GetGeometry`, `TranslateCoordinates`, `GetInputFocus` — precisely the
+  calls that hung in the 07-10 incident) can be reissued on the standby
+  connection directly and the answer is exactly as valid, with **no**
+  promotion/reconnect decision involved. Mutating or per-client calls
+  (`GrabKey`, `SelectInput`/`ChangeWindowAttributes`) must stay pinned to
+  whichever connection currently owns that registered state (or be
+  double-issued to both, if kept fully mirrored) — they can't be rerouted
+  ad hoc the way queries can.
+- **standby doubles as a health oracle**: when the primary stalls, firing
+  a cheap no-op round trip (`GetInputFocus`) on the standby distinguishes
+  the two failure classes already identified above: standby answers fast
+  → primary-specific stall (fd/socket-level, or a single wedged
+  round-trip) → safe to reroute/promote. Standby *also* stalls → systemic
+  /compositor-level failure (matches the orphaned-surface class from the
+  07-10 incident) → no client-side action helps, don't burn reconnect
+  attempts, surface the failure instead.
+- **the standby's own ping must not itself block the event loop** — use
+  the same `select()`-with-deadline pattern `base.exec.with_timeout` just
+  landed for subprocess reads, applied to a socket read instead of an
+  `open3` pipe fd.
+- two independent layers fall out of this, useful even if only one gets
+  built first:
+  1. **per-request reroute** (query hits standby transparently on
+     primary stall/timeout) — resolves most of what actually hung in the
+     07-10 incident, no state-machine decisions required.
+  2. **full promotion** (standby becomes primary, old primary retired,
+     fresh standby dialed+replayed in the background) — only needed for
+     a stuck *mutating* call, or to stop periodically re-servicing a
+     primary that's clearly gone.
+- still open / not yet decided: where the reroute+promotion logic lives
+  (inside `X-11.WM.update` uniformly vs. per call-site — the 9-caller
+  survey from the earlier single-connection sketch still applies), and
+  the exact replay-registration list beyond `RRSelectInput`/`GrabKey`
+  (audit for anything else per-connection before calling the replay
+  function complete).
+
+**Framing**: this is explicitly a further step past two prior stages —
+old kiosk-era recovery restarted the *entire* X-11 process on protocol
+lock errors that were often themselves recoverable; the current
+`X-11.reconnect` improved that to an in-place re-dial with backoff, but
+still eats full dial+handshake+state-reload latency and (per the replay
+gap above) loses grabs/event-masks silently. The pool+reroute design is
+two steps further: most stalls resolve via reroute with no reconnect at
+all, and the failure classification (primary-specific vs systemic) is
+now explicit instead of assumed.
 
 **Note on `X-11.reconnect` itself**: it's synchronous/blocking too
 (`base.sleep` in a `while` retry loop, up to 7 attempts × exponential
@@ -137,8 +187,8 @@ note for a future pass, not touched.
 
 [[topic-gtk-wsl-window-positioning]] · [[feedback-weston-move-unreliable-use-compositor-grab]] · [[feedback-wslg-deiconify-limitation]]
 
-#,,,,,.,,,,,.,.,,,..,,...,..,,,.,,.,.,.,.,,.,,..,,...,..,,...,.,.,...,..,,,,.,
-#5H55QAISAXHJQ32GRHYDTWDCLLANA4GEVPWYDSMBRYBQOYA45KJOTZLP76LNLTQRHMOQS6GWGGIGM
-#\\\|ZGBMYWMQVJU7G4ASPGGFUWML2CH6XC2CSKS3RNEGVEHVX5FBLDX \ / AMOS7 \ YOURUM ::
-#\[7]LPG73DKOO5JIBWV7YYHWJ7BDZJP6FOIPI7TPZWLMK7OGPDE7AGAI 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,,,,,...,.,.,...,,.,,,,.,.,,,,..,..,,...,.,.,,..,,,,,,,,,,.,,,..,
+#IN6WVGPNTGEQ3G5ISCQTO5AU2GRP7XYOAITQSO7T7LV2WERQK6S4PE6DFTEWG3G3MB6AOMXT2HPHI
+#\\\|FQ2QA2OXTSGDUOWVJME23ROIPISGQOH5HWK44CSYCK3O5NUBG7O \ / AMOS7 \ YOURUM ::
+#\[7]U4LCYPXA3VMVJSSHRFFNCVPSF7SM3TM76Z6ZIACLR66R63YNCOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

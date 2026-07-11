@@ -25,12 +25,15 @@ my @window_ids;
 ## GetProperty call, instead of catching the protocol error after the  ##
 ## fact [ such errors have been seen to disrupt the X11 connection ]   ##
 if ( $client_list and $client_list ne qw| None | ) {
-    my @root_properties = eval { $X->ListProperties($root) };
+    my @root_properties
+        = eval { <[X-11.pool.query]>->( 'ListProperties', $root ) };
     if ( not $EVAL_ERROR and grep { $_ eq $client_list } @root_properties ) {
         eval {
             my ( $value, $type, $format, $bytes_after )
-                = $X->GetProperty( $root, $client_list, 'AnyPropertyType', 0,
-                -1, 0 );
+                = <[X-11.pool.query]>->(
+                'GetProperty',     $root, $client_list,
+                'AnyPropertyType', 0,     -1, 0
+                );
             @window_ids = unpack( qw| L* |, $value );
         };
 
@@ -43,8 +46,8 @@ if ( $client_list and $client_list ne qw| None | ) {
 
 return sort { $a <=> $b } @window_ids;
 
-#,,..,.,.,,..,,,.,,.,,,,,,,,,,,,.,,,,,..,,,..,..,,...,...,...,,,,,..,,..,,,.,,
-#BSV73IS65IICMJHXPMHEFTNJORRXHLZDUMLKK4JBYJTVK7VVZGX55YSFGS77OPY7QEBCFTSCHSEXU
-#\\\|Q3DLLJLIW66BLHOQWWKAGRJO6U6UMV5DTA6PX7AVFOXOQEHZQ4H \ / AMOS7 \ YOURUM ::
-#\[7]DRMC23PXR2QWMUUTUOY2NYIGMHYELFOZXGERS5ADN3GO5H3Q2OAY 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,.,,,..,.,.,,,,,,,.,,,,,,..,...,..,,...,...,,.,,.,.,.,.,,.,,,,,,
+#RL6QZVETX7UZUTRJNKIGBRBGRAPEHD26JQ2MBDUTNSQMMSM4OEWK3XXQR5XERRDUVAWYZ5PMLRFPO
+#\\\|EXQ46KWQSR77IE62SONY4PBNWTBEGKJJLHCA752YCW53BHSZPEB \ / AMOS7 \ YOURUM ::
+#\[7]SYJ6SR3DKLONXZEDUQHU6YTIW2LFA6RMAT3GGBGV4CQUBQHES2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
