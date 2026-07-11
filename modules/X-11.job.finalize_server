@@ -217,9 +217,13 @@ if (<X-11.has_randr>) {
     <[X-11.cmd.rotate-screen]>->( { 'args' => <X-11.orientation> } )
         if not <X-11.keep_unchanged>;
 
-    map {    ## custom xrandr settings ##
-        system( qw| /usr/bin/xrandr |,
-            split( m| +|, <X-11.custom_xrandr>->{$ARG} ) )
+    map {    ## custom xrandr settings [ bounded : driver can wedge this ] ##
+        <[base.exec.with_timeout]>->(
+            7,
+            [   qw| /usr/bin/xrandr |,
+                split( m| +|, <X-11.custom_xrandr>->{$ARG} )
+            ]
+        );
         }
         sort { $a <=> $b } keys <X-11.custom_xrandr>->%*
         if $mode eq qw| xorg |
@@ -329,8 +333,8 @@ if (<X-11.window_enumeration>) {
     );
 }
 
-#,,,,,,,.,.,,,..,,,,.,,,.,..,,,..,.,.,.,,,,,.,..,,...,...,...,,,,,,,.,.,,,.,.,
-#HUIKX76ENISRJUSWSWSAQLZFD6XRQ6WCMRIOELSU4CGRBGA3D2J6KRQXC4BMYIE4KBLURIPWOPOF6
-#\\\|G6M4N3Y5LCKYQQZACTJ2GB7RTIQSJ3JDTIQQGFK63IQXP66HYMR \ / AMOS7 \ YOURUM ::
-#\[7]65WCHIOQN7OPA4A5FU6OB4DXVVV3NGL5WDYDWAGZWZVAH2SJNOCI 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,..,,...,...,..,,,..,,..,.,,,,..,..,,...,...,.,,,...,,..,..,,,.,,
+#6X7NDHCKFDRD5WLO6ZAPMRB6PU52HRDGWGRTW23SP4FKDME3SKXP4EM35UBKZIEFUVOR3ZT6NMUSU
+#\\\|44YN6S4V2BGA3OIISE5E23IUPPGUB6BFG6QQBUZIY3476S4DWVU \ / AMOS7 \ YOURUM ::
+#\[7]J326AM27Y33FD6T5VWZSL2CKVCSH3IVQQT44WOWA7OIOXXXZRIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
