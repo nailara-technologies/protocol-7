@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = web-browser.console_capture.reset
+# descr = clear a view's js console ring buffer [ new page -> fresh buffer ]
+# param = <view_id> <uri>
+
+my $view_id = shift;
+my $uri     = shift // '';
+
+my $name = <[web-browser.console_capture.buffer_name]>->($view_id);
+return undef unless defined $name;
+
+$data{'buffer'}{$name}{'max_size'} //= 32768;    ## 32K per view console ##
+
+undef $data{'buffer'}{$name}{'data'}->@*;
+$data{'buffer'}{$name}{'data'} = [];
+$data{'buffer'}{$name}{'size'} = 0;
+
+<[base.buffer.add_line]>->(
+    $name, sprintf( '.:[ console reset | %s ]:.', $uri )
+);
+
+return TRUE;
+
+#,,.,,,,.,...,,,.,..,,..,,..,,,,,,,,,,,.,,,,.,..,,...,...,...,,,,,.,.,.,,,.,.,
+#EG24DVDJOR7TXCISGY6OA5AVTRBMXBJTJKDPLXM2KNOW5KADFE6VILMAXFOAOBCYXFO73LQBXTIPG
+#\\\|YUUQG5OL4C6JBX4JISBNCHHDEM6DSCXXS6INSOMDE4ZN3ER3FGN \ / AMOS7 \ YOURUM ::
+#\[7]IJ6LWADQDYMY5EDTSSWOG5FW4UIKMDH6JTEI6EL4BCCIGCIMUKDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
