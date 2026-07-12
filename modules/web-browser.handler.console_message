@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = web-browser.handler.console_message
+# descr = script-message-received::p7cons callback -> ring buffer
+# param = <js_result> <buffer_name>
+
+my $js_result = shift;
+my $name      = shift;
+
+my %level_num = ( error => 0, warn => 1, log => 2, info => 2, debug => 3 );
+
+my $raw = eval { $js_result->get_js_value->to_string };
+return undef if $@ or not length( $raw // '' );
+
+state $json = JSON::XS->new->allow_nonref(1)->relaxed(1)->utf8(1);
+my $parsed = eval { $json->decode($raw) };
+return undef if $@ or ref($parsed) ne qw| HASH |;
+
+my $level = $parsed->{'level'} // qw| log |;
+my $msg   = $parsed->{'msg'}   // '';
+
+<[base.buffer.add_line]>->(
+    $name,
+    sprintf( '[%s] %s', $level, $msg ),
+    $level_num{$level} // 2
+);
+
+return TRUE;
+
+#,,..,...,.,.,,,,,.,,,.,,,,,.,,.,,,,,,,..,...,..,,...,...,..,,,,,,,,.,...,.,,,
+#52SKHIGBHGWNNWFQM4ZHB374Q6L44LMGNITUM5CAX4JNWZJVJOKC72CR6TO7MNSPNS7V3DN6LY2T4
+#\\\|CJD2JPBG6GLXAJS36EV2AHXCZJUMWZIJS33L263PEGRUH6HBGYQ \ / AMOS7 \ YOURUM ::
+#\[7]AUSJYOOA6LM3FJ4WG4QMNHF6INRBHEB2E3HTCRLZ5A5M65IUCUAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

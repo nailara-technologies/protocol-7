@@ -11,8 +11,12 @@ my $resource    = $view->get_main_resource;
 my $response    = defined $resource ? $resource->get_response    : undef;
 my $status_code = defined $response ? $response->get_status_code : 0;
 
-<web-browser.time.load_start> = <[base.time]>->(3)
-    if $load_status eq 'started';
+if ( $load_status eq 'started' ) {
+    <web-browser.time.load_start> = <[base.time]>->(3);
+    my $view_id = <web-browser.view_index>->{$view};
+    <[web-browser.console_capture.reset]>->( $view_id, $load_uri )
+        if defined $view_id;
+}
 
 my $is_loading = $view->get_property('is-loading');
 
@@ -130,8 +134,8 @@ if (    $load_status eq 'finished'
     Glib::Idle->add( $code{'web-browser.callback.load_fail_page'} );
 }
 
-#,,..,.,.,,..,.,,,,.,,,,.,.,,,,,.,,.,,,,.,.,.,..,,...,...,.,.,...,,.,,.,.,...,
-#XQQS3L7CREVA7RGHZXDYGXI6YLFNXWPPT7CAPAGDK4N65IL7OH6XIDJESUGFPH3554TWGRBCVKVCA
-#\\\|6XG22QONJEBZKQF3ZWS76KVNGG67M46PW5LKLXPMEPFJFM57LU2 \ / AMOS7 \ YOURUM ::
-#\[7]FBHKM6SQS4BQ3TMZXECW4PBWE56Y6BMWIQBGREGU5MJKZJDVO2BA 7  DATA SIGNATURE ::
+#,,,.,...,,,,,.,.,,,,,.,.,.,.,..,,,,.,,,,,.,,,..,,...,...,.,.,,..,.,.,...,,,.,
+#QRODKF2ZNKILYVP4KITYNANBXMMNTLD7V474IWPZXA6L2JVPMVQ4BES7V3DGUAEOLOSYN63GXIX5A
+#\\\|JBWS36IL3WSGVCVR5RWMY5Y5ULRLH7Y7IGMAYRD6QWIO7PMKKRF \ / AMOS7 \ YOURUM ::
+#\[7]WNYZQJLXNI7D5NG5JSHUZDBBOC7X2DQGSZXQ63ZPO26HDXH7QMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

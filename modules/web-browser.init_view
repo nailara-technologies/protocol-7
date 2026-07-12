@@ -80,6 +80,8 @@ $view->load_alternate_html( "<html><body bgcolor=\"$bg_color\"></body><html>",
 
 <web-browser.view_index>->{$view} = $id;
 
+<[web-browser.console_capture.install]>->( $view, $id );
+
 map {    # filtering blocked signal types
     $view->signal_connect( $ARG, sub { return 1 } )
 } keys %{<web-browser.blocked_signal_types>};
@@ -233,8 +235,8 @@ $overlay->add_overlay($scrolled_window);
 <web-browser.gtk_obj.scrolled_window>->{$id} = $scrolled_window;
 <web-browser.gtk_obj.view>->{$id}            = $view;
 
-#,,,,,,..,,,,,...,,..,.,.,..,,,.,,,..,.,.,,,.,..,,...,...,..,,.,,,,..,,,,,.,,,
-#THFVRRSDWZ3IT6B6II4DVKADUQDLE7ACW453GV3SRM6M4TKAAP3PMK7QYFJ244ZM6TO5SY6S52FOG
-#\\\|IGKNKAOVDHBH3TRTMVFSLTTVWHJ4LD5SY64CGXGCORFCSH2GMOT \ / AMOS7 \ YOURUM ::
-#\[7]PIMXNI74P5MZOA5CIVOZT22CNT6J763JMVUAZLK6E23OH6FKSOAA 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,.,,,.,.,.,.,..,,,,,,,..,,.,,,,.,..,,...,...,,,.,,..,,,,,.,.,.,.,
+#SXTCOKCOCQX24AZ7Z6IXYE4AYUR6YYUSYEPJKQAWISCDK6ZLUYJ2FR7U7N6RJUHUHZODNKAZKYJSU
+#\\\|LKUC4CKOPJIAU56BWRFXZ667OE7RYGM343R7F4ZA56JCS5GIWMN \ / AMOS7 \ YOURUM ::
+#\[7]OI4JQ4AE3RFHSTXCYIX5UXOTCUV57APF3DKOQISLWDRL7NNOAWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

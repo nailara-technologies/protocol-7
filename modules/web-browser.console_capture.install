@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = web-browser.console_capture.install
+# descr = wire up per-view js console capture [ p7cons -> js-cons-view-NNNN ]
+# param = <view> <view_id>
+
+my $view    = shift;
+my $view_id = shift;
+
+my $name = <[web-browser.console_capture.buffer_name]>->($view_id);
+return undef unless defined $name;
+
+my $ucm = $view->get_user_content_manager;
+
+my $u_script = Gtk3::WebKit2::UserScript->new(
+    scalar <[web-browser.console_capture.js_source]>,
+    'WEBKIT_USER_CONTENT_INJECT_TOP_FRAME',
+    'WEBKIT_USER_SCRIPT_INJECT_AT_DOCUMENT_START',
+    undef,
+    undef
+);
+$ucm->add_script($u_script);
+
+$ucm->register_script_message_handler('p7cons');
+$ucm->signal_connect(
+    'script-message-received::p7cons' => sub {
+        my ( undef, $js_result ) = @_;
+        eval { $code{'web-browser.handler.console_message'}->( $js_result, $name ) };
+        <[base.log]>->( 0, "console_capture: message handler failed: $@" ) if $@;
+    }
+);
+
+<[web-browser.console_capture.reset]>->( $view_id, '[init]' );
+
+return TRUE;
+
+#,,..,.,.,.,.,,..,.,,,.,,,...,.,.,..,,,,,,,,,,..,,...,..,,.,,,.,,,.,.,,..,.,.,
+#VRZIFPUK6D5Z2G6BG4NED7OSUUCJ447Z36NGWDJFXIAUZBOGXB4QVN335YTJTFQ6IJ3XCOWK66F2W
+#\\\|EDAHWJ5DVQ7FKEOBEAPGQMWH6BFPFSSM3IG6HRIHQOOXPR5PMNI \ / AMOS7 \ YOURUM ::
+#\[7]BITJBY6RM326IHSTZURB66WCR37VRWMKSDGIBMEKQHVMB2PDMYAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
