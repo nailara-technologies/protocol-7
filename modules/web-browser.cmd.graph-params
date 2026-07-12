@@ -1,0 +1,191 @@
+## [:< ##
+
+# name  = web-browser.cmd.graph-params
+# descr = capture and graph [fg view] window.* variables
+# param = [interval] [template=<name>] <var1> [var2 ...]
+
+my $reply_id = $call->{'reply_id'};
+my $args_str = $call->{'args'} // '';
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage: graph-params [interval] [template=<name>] '
+        . '<var> [var ...]'
+    }
+    if !length($args_str);
+
+my $fg_index = <web-browser.overlay.index>->{'fg'};
+my $view     = <web-browser.gtk_obj.view>->{$fg_index};
+
+return { 'mode' => qw| false |, 'data' => 'no foreground view' }
+    unless defined $view;
+
+my $settings = $view->get_settings();
+
+return {
+    'mode' => qw| false |,
+    'data' => 'javascript execution is disabled'
+    }
+    if !$settings->get_enable_javascript();
+
+my @tokens = split( m|\s+|, $args_str );
+
+my $interval = 0.5;
+if ( @tokens and $tokens[0] =~ m|^\d+(\.\d+)?$| ) {
+    $interval = 0 + shift @tokens;
+}
+$interval = 0.05 if $interval < 0.05;
+
+my $template = qw| default |;
+my @names;
+foreach my $token (@tokens) {
+    if ( $token =~ m|^template=(.+)$| ) {
+        $template = $1;
+    } elsif ( length($token) ) {
+        push @names, $token;
+    }
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected at least one variable name'
+    }
+    if !@names;
+
+my @templates      = @{ <[web-browser.graph_template.list]> // [] };
+my %valid_template = map { $ARG => 1 } @templates;
+
+if ( !exists $valid_template{$template} ) {
+    <[base.logs]>->(
+        1, "graph-params: template '%s' not found, using default", $template
+    );
+    $template = qw| default |;
+}
+
+my $template_key
+    = sprintf( 'web-browser.graph_template.%s.js_source', $template );
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( "template '%s' has no js_source module", $template )
+    }
+    unless exists $code{$template_key};
+
+my $names_json  = <[format.json.encode]>->( \@names );
+my $template_js = $code{$template_key}->();
+
+my $check_js
+    = sprintf(
+    'JSON.stringify(%s.map(function(n){return typeof window[n] !== "undefined"}))',
+    $names_json );
+
+<[web-browser.js_call]>->(
+    $check_js,
+    sub {
+        my ( $result_str, undef ) = @_;
+        $result_str //= '';
+
+        my $present = <[format.json.decode]>->($result_str);
+        if ( ref($present) ne qw| ARRAY | ) {
+            <[base.callback.cmd_reply]>->(
+                $reply_id,
+                {   'mode' => qw| false |,
+                    'data' => 'existence check returned invalid data'
+                }
+            );
+            return;
+        }
+
+        my @missing;
+        for ( my $i = 0; $i < @names; $i++ ) {
+            push @missing, $names[$i]
+                if !$present->[$i];
+        }
+
+        if (@missing) {
+            <[base.callback.cmd_reply]>->(
+                $reply_id,
+                {   'mode' => qw| false |,
+                    'data' => sprintf( 'missing variables: %s',
+                        join( ', ', @missing ) )
+                }
+            );
+            return;
+        }
+
+        my $interval_ms = int( $interval * 1000 );
+        my $max_samples = 300;
+
+        my $js_header = sprintf(
+            <<'JS_HEAD',
+(function () {
+    var names = %s;
+    var intervalMs = %d;
+    var maxSamples = %d;
+    if (window.__p7GraphSampler) {
+        clearInterval(window.__p7GraphSampler);
+        window.__p7GraphSampler = null;
+    }
+    var oldCanvas = document.getElementById('__p7GraphCanvas');
+    if (oldCanvas) oldCanvas.remove();
+    if (window.__p7GraphRenderer) window.__p7GraphRenderer = null;
+    if (window.__p7GraphData) window.__p7GraphData = null;
+    var samples = {};
+    for (var i = 0; i < names.length; i++) samples[names[i]] = [];
+    window.__p7GraphData = {
+        names: names,
+        samples: samples,
+        interval: intervalMs,
+        startTime: Date.now()
+    };
+JS_HEAD
+            $names_json, $interval_ms, $max_samples
+        );
+
+        my $js_footer = <<'JS_FOOT';
+    window.__p7GraphSampler = setInterval(function () {
+        var now = Date.now();
+        for (var i = 0; i < names.length; i++) {
+            var name = names[i];
+            var v = window[name];
+            if (typeof v === 'number') {
+                samples[name].push({ t: now, v: v });
+                if (samples[name].length > maxSamples) {
+                    samples[name].shift();
+                }
+            }
+        }
+        if (typeof window.__p7GraphRenderer === 'function') {
+            window.__p7GraphRenderer();
+        }
+    }, intervalMs);
+    if (typeof window.__p7GraphRenderer === 'function') {
+        window.__p7GraphRenderer();
+    }
+})();
+JS_FOOT
+
+        my $payload = $js_header . $template_js . $js_footer;
+
+        <[web-browser.graph_params.install]>->( $view, $payload );
+
+        <[base.callback.cmd_reply]>->(
+            $reply_id,
+            {   'mode' => qw| true |,
+                'data' => sprintf(
+                    'capturing %s every %.2fs using template %s',
+                    join( ', ', @names ),
+                    $interval, $template
+                )
+            }
+        );
+    }
+);
+
+return { 'mode' => qw| deferred | };
+
+#,,,,,.,,,,,,,,..,,..,,.,,.,.,,..,..,,,,,,..,,..,,...,..,,,..,,.,,,,,,,,,,...,
+#6YDQS65LDU64RYQZRJSVBZUML7LITYQULUPME2Y6NJXD66GQHVSVH6YXAQWW5R53XRQWXGDMYN6CM
+#\\\|7HZTPNM24KMYSK3FNRW7MQZXXRSYZXPGE4BKLZO2S33FOVDM5SK \ / AMOS7 \ YOURUM ::
+#\[7]BDA3CSHLLX3CK26V6GZGDEJHHQ7GV7M435YITOO4KR4LEXBYBCBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

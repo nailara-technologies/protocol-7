@@ -629,8 +629,24 @@ s|old|new|gsx    ## global + single-line + extended
 
 ---
 
-#,,,.,,,.,...,.,.,.,,,,,.,...,...,.,.,...,,,,,.,.,...,..,,,,.,,,.,,..,,,,,..,,
-#CKHQ3GTTTOB2NE5PZ3XZU3MIJTTPPQZEYORKQQ7KSIFPD67GJKLSSOG7DNQ2AEMYSUHVF74CL4BMA
-#\\\|FIFEJHBUYKKFAQERMB2JGC5UUNHLDJ3YT23TM4YPGFWIFOGGE55 \ / AMOS7 \ YOURUM ::
-#\[7]GFAOUDTD4SFXTLL4Y7T6P5DUOF6ORHS2OKTYRZMIVWV24MFYOUDQ 7  DATA SIGNATURE ::
+## composing injected javascript from template modules
+
+when a perl module returns a `js_source` heredoc that is later embedded into a
+larger js payload, do **not** pass that template string through `sprintf`.
+template js commonly contains the `%` modulo operator, which `sprintf` will
+try to interpret as a format specifier. instead, build the payload with
+concatenation:
+
+```perl
+my $payload = $js_header . $template_js . $js_footer;
+```
+
+use `sprintf` only for the fixed skeleton pieces that have no literal `%`.
+
+---
+
+#,,,.,,,,,,,.,,,,,,,.,...,,.,,,,.,...,,.,,...,.,.,...,...,..,,,,,,,..,,.,,,,,,
+#BKNYVZGLVQ6VP2OTTDN2RNM6YDYXZFU7RL3T6KR6B3EQAJACKMK5UV3Q7UCVV3SEAN24DVAM7GBQW
+#\\\|6WQEIEEGJIJWNEB7HETIHZML7WSXR5BPICFIOAPQPIR4Y6NAGWG \ / AMOS7 \ YOURUM ::
+#\[7]DGHNRLEEPQOHRQ273WNQISOCFJNXDZET3XWNWKBGZ6WK3BTGK2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
