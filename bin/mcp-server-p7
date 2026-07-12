@@ -31,9 +31,12 @@ BEGIN {
     ## bin/amos-chksum. computed LOCALLY, never sent over the wire — cube's
     ## single-line command buffer caps at 242707 bytes [ base.handler.command ],
     ## and tail-truncated session content can run to ~400KB ##
-    my $root_path      = abs_path( r2_abs( c_dir( $RealBin, File::Spec->updir ) ) );
-    my $local_lib_path = abs_path( c_dir( $root_path, qw| data/lib-path/pm | ) );
-    unshift( @INC, $local_lib_path ) if defined $local_lib_path and -d $local_lib_path;
+    my $root_path
+        = abs_path( r2_abs( c_dir( $RealBin, File::Spec->updir ) ) );
+    my $local_lib_path
+        = abs_path( c_dir( $root_path, qw| data/lib-path/pm | ) );
+    unshift( @INC, $local_lib_path )
+        if defined $local_lib_path and -d $local_lib_path;
 }
 
 use Digest::BMW;
@@ -2144,7 +2147,7 @@ sub _model_chunk_size {
     ## leave headroom for system prompt + instruction + rolling summary    ##
     ## + output tokens + tokenizer variance (dense code/json can tokenize   ##
     ## more efficiently than the 3.2 chars/token heuristic)                 ##
-    my $overhead_tokens = 4500;    ## system + instruction + output reserve  ##
+    my $overhead_tokens = 4500;   ## system + instruction + output reserve  ##
     my $safe_tokens     = $model_context_tokens - $overhead_tokens;
     my $chunk           = int( $safe_tokens * 3.2 / 2.2 );
     $chunk = 8000 if $chunk < 8000;    ## floor for safety ##
@@ -2190,7 +2193,7 @@ sub _extract_stream_content {
 ## above for why this must never go over the cube wire as one command line ##
 sub _bmw_l13_harmonize {
     my ( $bmw_512_bin, $validator ) = @ARG;
-    return undef unless length($bmw_512_bin // '') == 64;
+    return undef unless length( $bmw_512_bin // '' ) == 64;
 
     state $start_seed_num;
     $start_seed_num //= unpack qw| Q |, pack qw| B64 |, '10000000' x 8;
@@ -2232,7 +2235,7 @@ sub _bmw_l13_harmonize {
 
         $bits_num = sprintf qw| %u |, $bits_num / 13;
         $bits_num <<= 5;
-        $bits_num = 13 if $bits_num == 0;
+        $bits_num       = 13 if $bits_num == 0;
         $result_str_B32 = encode_b32r( pack qw| Q |, $bits_num );
     }
 
@@ -2241,11 +2244,9 @@ sub _bmw_l13_harmonize {
 
 sub _bmw_l13 {
     my ($input) = @ARG;
-    return undef unless length($input // '');
-    return _bmw_l13_harmonize(
-        Digest::BMW::bmw_512($input),
-        sub { AMOS7::Assert::Truth::is_true( $ARG[0], 0, 1 ) }
-    );
+    return undef unless length( $input // '' );
+    return _bmw_l13_harmonize( Digest::BMW::bmw_512($input),
+        sub { AMOS7::Assert::Truth::is_true( $ARG[0], 0, 1 ) } );
 }
 
 ## bmw-L13 : 13-char base32 [ ~65 bits ], far lower collision risk than the
@@ -2281,7 +2282,7 @@ sub _tree_query {
 ## never on the hot path of returning it to the caller ##
 sub _tree_notify {
     my ( $chk, $origin, $focus, $result ) = @ARG;
-    return unless length $chk and length($result // '');
+    return unless length $chk and length( $result // '' );
     eval {
         local $SIG{'ALRM'} = sub { die "timeout\n" };
         alarm(5);
@@ -2298,9 +2299,8 @@ sub _tree_notify {
             'source=mcp',
             ## focus is free text [ the full instruction, may contain
             ## spaces ] : always B32-wrap, never pass as a bare \S+ token ##
-            ( length($focus)
-                ? 'focus=:B32:'
-                    . encode_b32r( encode( 'UTF-8', $focus ) )
+            (   length($focus)
+                ? 'focus=:B32:' . encode_b32r( encode( 'UTF-8', $focus ) )
                 : ()
             ),
             'origin=:B32:' . encode_b32r($origin_json),
@@ -2359,8 +2359,7 @@ sub _do_summarize {
 
             ## keep rolling summary bounded: older details fade out        ##
             if ( length($running) > $max_running_chars ) {
-                $running
-                    = substr( $running, -$max_running_chars );
+                $running = substr( $running, -$max_running_chars );
                 $running =~ s{^[^\n]*\n}{}s;    ## start at clean boundary ##
             }
 
@@ -2374,8 +2373,7 @@ sub _do_summarize {
             $running = $chunk_result;
             log_msg(
                 '[summarize] chunk %d/%d done [running=%d chars]',
-                $chunk_n,
-                int( length($text) / $chunk_size ) + 1,
+                $chunk_n, int( length($text) / $chunk_size ) + 1,
                 length($running)
             );
         }
@@ -2614,7 +2612,8 @@ sub tool_session_catchup {
 
         if ( length $session_id ) {
             ($s) = grep { $_->{'uuid'} eq $session_id } @sessions;
-            return send_tool_result( $id, "session not found: $session_id", 1 )
+            return send_tool_result( $id, "session not found: $session_id",
+                1 )
                 unless defined $s;
         } else {
             ## summarize-only params given without a session_id usually
@@ -2641,11 +2640,8 @@ sub tool_session_catchup {
                     $entry->{'client'}, $entry->{'uuid'}, $entry->{'title'};
                 $out[-1] =~ s/$/ [ $ts ]/;
             }
-            return send_tool_result(
-                $id,
-                @out > 1 ? join( "\n", @out ) : 'no sessions found',
-                0
-            );
+            return send_tool_result( $id,
+                @out > 1 ? join( "\n", @out ) : 'no sessions found', 0 );
         }
     }
 
@@ -2679,7 +2675,7 @@ sub tool_session_catchup {
     my $truncated_note = '';
     if ( $tail_chars > 0 and length($text) > $tail_chars ) {
         my $cut = index( $text, "\n", length($text) - $tail_chars );
-        $cut = length($text) - $tail_chars if $cut < 0;
+        $cut  = length($text) - $tail_chars if $cut < 0;
         $text = substr( $text, $cut );
         $text =~ s/^\n+//;
         $truncated_note
@@ -2687,12 +2683,13 @@ sub tool_session_catchup {
             $tail_chars, length($text) + $cut;
     } elsif ( $tail_chars == 0 and length($text) > 600000 ) {
         my $auto_tail = 400000;
-        my $cut = index( $text, "\n", length($text) - $auto_tail );
-        $cut = length($text) - $auto_tail if $cut < 0;
+        my $cut       = index( $text, "\n", length($text) - $auto_tail );
+        $cut  = length($text) - $auto_tail if $cut < 0;
         $text = substr( $text, $cut );
         $text =~ s/^\n+//;
         $truncated_note
-            = sprintf "[session was large; auto-summarized last %d chars of %d "
+            = sprintf
+            "[session was large; auto-summarized last %d chars of %d "
             . "total — use tail_chars=N to override]\n\n",
             $auto_tail, length($text) + $cut;
     }
@@ -2725,11 +2722,7 @@ sub tool_session_catchup {
     my $header = sprintf ":. %s .[ %s ]:. %s\n\n",
         $s->{'client'}, $session_id,
         POSIX::strftime( '%Y-%m-%d %H:%M', localtime( $s->{'mtime'} ) );
-    return send_tool_result(
-        $id,
-        $header . $truncated_note . $result,
-        0
-    );
+    return send_tool_result( $id, $header . $truncated_note . $result, 0 );
 }
 
 sub _extract_session_text {
@@ -2876,6 +2869,8 @@ sub tool_external_command {
             = !length($auto_sum)                                ? 1
             : ( lc($auto_sum) ne 'false' and $auto_sum ne '0' ) ? 1
             :                                                     0;
+        log_msg( '[auto_summarize] %s: raw_output_len=%d do_sum=%d',
+            $ext->{'name'}, length($output), $do_sum );
         if ($do_sum) {
             ## preserve resume line verbatim — keep UUID out of model
             ## round-trip ##
@@ -2893,11 +2888,29 @@ sub tool_external_command {
             $pending_summary_focus = undef
                 if not $summary_focus_sticky and not $args->{'keep'};
             $output = _extract_stream_content($output);
+            log_msg( '[auto_summarize] %s: extracted_len=%d resume_line=%d',
+                $ext->{'name'}, length($output), length($resume_line) );
             cube_disconnect()
                 ;    ## flush any stale socket state from subprocess ##
+            my $t0      = time;
             my $summary = _do_summarize( $output, $instruction, 600 );
+            log_msg(
+                '[auto_summarize] %s: summary_defined=%d summary_len=%d '
+                    . 'elapsed=%ds',
+                $ext->{'name'},
+                defined $summary ? 1                : 0,
+                defined $summary ? length($summary) : 0,
+                time - $t0
+            );
+
             if ( defined $summary and length $summary ) {
                 $output = $summary;
+            } else {
+                log_msg(
+                    '[auto_summarize] %s: FALLBACK to raw output '
+                        . '(summary missing/empty)',
+                    $ext->{'name'}
+                );
             }
             $output .= $resume_line if length $resume_line;
         }
@@ -2917,8 +2930,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,.,.,,,,..,,..,,,,,,,.,..,,.,,,.,,,,.,,...,..,,...,..,,...,...,,..,,..,...,
-#NBAYJCXGWUG6IENGEHVEGNS3T7MOHOCLYMIZ2PQZMBLO4VYYHF4DZYQXXIMFIXFCAWXJZ3SSH7KIM
-#\\\|SDTWKXI77MXDYVZPRA5KJ6ZJON3RS7QCPTQCYJN4X553ZZ4KBOE \ / AMOS7 \ YOURUM ::
-#\[7]K3IMZVKDJFQ74TC3OZHONQNV2QEUI6EX53ZNAJK75IAAHQXMRABI 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,.,,.,,,.,.,,,,,.,,,,,.,,,,,.,,,..,,...,.,.,,.,,..,,,,.,..,,,,,,
+#4TKD7AR2PBWGPJLTBLRLT3WI6UCWLMTU3REI3G5FK7BNMKC7KGATJPBTBLKTG5XDGL63PX5BFSYJ6
+#\\\|7QE74XJ6Z4OFXM6RLPLMNTVNFHOK2XR5XEV57QF3Z7TIU4APAP5 \ / AMOS7 \ YOURUM ::
+#\[7]VMX5P6V454NZTY6GFQIPUOCMVMI7FTHB22WA6WAAP65DGKEOKECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
