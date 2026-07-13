@@ -305,6 +305,8 @@
         let isDragging = false;
         let dragStartX = 0, dragStartY = 0;
         let dragStartRotX = 0, dragStartRotY = 0, dragStartRotZ = 0;
+        let lastInteractionTime = 0;   // last drag/wheel activity, guards stray-click zoom reset
+        const CLICK_RESET_COOLDOWN = 2000;   // ms since last drag/wheel before empty-space click may reset zoom
 
         // === STATS ===
         let frameCount = 0, fps = 60, fpsTime = performance.now();
@@ -826,6 +828,16 @@
             // Clamp
             focalLength = Math.max(MIN_FOCAL, Math.min(MAX_FOCAL, focalLength));
             zoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom));
+
+            // expose for graph-params capture (window.debug.* convention)
+            window.debugZoom = zoom;
+            window.debugManualZoom = manualZoom;
+            window.debugVelocity = velocity;
+            window.debugIsDragging = isDragging ? 1 : 0;
+            window.debugDragMoved = dragMoved ? 1 : 0;
+            window.debugZoomTarget = zoomTargetZoom === null ? -1 : zoomTargetZoom;
+            window.debugRotX = rotX;
+            window.debugRotY = rotY;
 
             // DEBUG: zoom-jump instrumentation for unbroken-drag reset bug
             if (window.__prevZoomDbg !== undefined) {
@@ -1908,6 +1920,7 @@
         canvas.addEventListener('mousemove', e => {
             if (!isDragging) return;
             dragMoved = true;
+            lastInteractionTime = Date.now();
 
             const dx = e.clientX - dragStartX;
             const dy = e.clientY - dragStartY;
@@ -1939,12 +1952,18 @@
                     zoomTargetZoom = ZOOM_CLOSE;
                 }
             } else {
-                // click on empty space — deselect and reset zoom
+                // click on empty space — deselect always, but only reset zoom if
+                // this isn't a stray click sandwiched right after a drag/wheel
+                // gesture (a target rotation equal to current rotation makes the
+                // updateCamera() convergence check pass almost immediately,
+                // snapping manualZoom to 1.0 with no visible warning)
                 selectedNodeP7ref = null;
-                zoomTargetZoom = 1.0;
-                zoomTargetRotX = rotX;
-                zoomTargetRotY = rotY;
-                manualZoom += (1.0 - manualZoom) * 0.35;
+                if (Date.now() - lastInteractionTime >= CLICK_RESET_COOLDOWN) {
+                    zoomTargetZoom = 1.0;
+                    zoomTargetRotX = rotX;
+                    zoomTargetRotY = rotY;
+                    manualZoom += (1.0 - manualZoom) * 0.35;
+                }
             }
         }
 
@@ -1988,6 +2007,7 @@
         canvas.addEventListener('wheel', function(e) {
             e.preventDefault();
             e.stopPropagation();
+            lastInteractionTime = Date.now();
 
             if (e.ctrlKey || e.metaKey) {
                 // Ctrl+Wheel: Focal length

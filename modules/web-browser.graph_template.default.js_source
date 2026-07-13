@@ -20,26 +20,52 @@ return <<'JS_SRC';
         canvas.style.width = '320px';
         canvas.style.height = '180px';
         canvas.style.zIndex = '999999';
-        canvas.style.background = 'rgba(0, 0, 0, 0.7)';
-        canvas.style.border = '1px solid rgba(100, 100, 100, 0.5)';
+        // deep translucent blue, matching window.place.handler.draw's fill/border
+        canvas.style.background = 'rgba(0, 0, 61, 0.47)';
+        canvas.style.border = '1px solid rgba(6, 71, 195, 0.47)';
         document.body.appendChild(canvas);
     }
     canvas.width = 320;
     canvas.height = 180;
     var ctx = canvas.getContext('2d');
 
-    var colors = [
-        'rgb(0, 255, 128)',
-        'rgb(64, 160, 255)',
-        'rgb(255, 200, 64)',
-        'rgb(255, 96, 128)',
-        'rgb(160, 96, 255)'
-    ];
+    // golden-angle hue spacing: consecutive series land maximally apart
+    // on the wheel no matter how many are added [ harmonic distribution,
+    // same idea as the project's node-glow palette, just hue-swept ]
+    var GOLDEN_ANGLE = 137.508;
+    function seriesHue(i) {
+        return ( i * GOLDEN_ANGLE ) % 360;
+    }
+    function seriesColor(i, light) {
+        return 'hsl(' + seriesHue(i) + ', 90%, ' + ( light || 60 ) + '%)';
+    }
 
     window.__p7GraphRenderer = function () {
         var w = canvas.width;
         var h = canvas.height;
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+        var t = Date.now() * 0.001;
+
+        // deep translucent blue base, matching window.place.handler.draw
+        ctx.fillStyle = 'rgba(0, 0, 61, 0.47)';
+        ctx.fillRect(0, 0, w, h);
+
+        // slow-drifting corner glow wash : psychedelic without hurting readability
+        var bgHue = ( t * 12 ) % 360;
+        var bgGlow = ctx.createRadialGradient(
+            w, 0, 0, w, 0, w * 0.9
+        );
+        bgGlow.addColorStop(0, 'hsla(' + bgHue + ', 90%, 55%, 0.16)');
+        bgGlow.addColorStop(1, 'hsla(' + bgHue + ', 90%, 55%, 0)');
+        ctx.fillStyle = bgGlow;
+        ctx.fillRect(0, 0, w, h);
+
+        // window-place accent blue wash, anchored opposite corner from the hue drift
+        var accentGlow = ctx.createRadialGradient(
+            0, h, 0, 0, h, w * 0.8
+        );
+        accentGlow.addColorStop(0, 'rgba(6, 71, 195, 0.30)');
+        accentGlow.addColorStop(1, 'rgba(6, 71, 195, 0)');
+        ctx.fillStyle = accentGlow;
         ctx.fillRect(0, 0, w, h);
 
         var allValues = [];
@@ -63,7 +89,7 @@ return <<'JS_SRC';
         }
         var range = maxV - minV;
 
-        ctx.strokeStyle = 'rgba(80, 80, 80, 0.4)';
+        ctx.strokeStyle = 'rgba(100, 160, 255, 0.22)';
         ctx.lineWidth = 1;
         ctx.beginPath();
         for (var gy = 0; gy <= h; gy += 30) {
@@ -76,8 +102,10 @@ return <<'JS_SRC';
             var name = names[si];
             var series = samples[name];
             if (series.length < 2) continue;
-            ctx.strokeStyle = colors[si - Math.floor(si / colors.length)
-                * colors.length];
+            var color = seriesColor(si);
+            ctx.strokeStyle = color;
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 8;
             ctx.lineWidth = 2;
             ctx.beginPath();
             for (var pi = 0; pi < series.length; pi++) {
@@ -88,21 +116,28 @@ return <<'JS_SRC';
             }
             ctx.stroke();
         }
+        ctx.shadowBlur = 0;
 
         for (var li = 0; li < names.length; li++) {
-            ctx.fillStyle = colors[li - Math.floor(li / colors.length)
-                * colors.length];
+            var swatch = seriesColor(li);
+            ctx.shadowColor = swatch;
+            ctx.shadowBlur = 6;
+            ctx.fillStyle = swatch;
             ctx.fillRect(6, 6 + li * 12, 8, 8);
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.shadowBlur = 0;
             ctx.font = '10px sans-serif';
+            ctx.strokeStyle = 'rgba(0, 0, 20, 0.85)';
+            ctx.lineWidth = 3;
+            ctx.strokeText(names[li], 18, 14 + li * 12);
+            ctx.fillStyle = 'rgba(180, 210, 255, 0.9)';
             ctx.fillText(names[li], 18, 14 + li * 12);
         }
     };
 })();
 JS_SRC
 
-#,,..,...,,.,,,..,,.,,...,..,,.,.,,..,,.,,,..,..,,...,..,,,,.,,.,,..,,.,.,,..,
-#K3GAPCXW5LURETEPCOJIXF7BFVM4WGXEK53OEDAFCZJAGOEGGMS5MGJ5BQQHCYQOEH6S3EFDTZ7NA
-#\\\|BCH3VQGTMTRM6RDMOLOZSUJCKQJYJLJF2VRBUNEUPG4ZPQWFUNG \ / AMOS7 \ YOURUM ::
-#\[7]I3MQDMKX7XTUETQ7SIDIY2HVYGUO22T7C675QFTTKAR2AIP7L6DA 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,.,,,,.,,,,,,,,,,,..,,.,,...,,.,,..,,...,...,,..,,..,.,.,,,.,..,,
+#BTJ4YFF6NT2Y66APWLP2JWPFT53ECBO6FLMKZTCWHFJDGPBMKAEZH2Y2MDEU2ZD6JU3KO6JR4A47M
+#\\\|T2DTXLHPXDALVUVXNIYSBKJOOMDPU4S47PEZFJEUGCZ6SWJWDFK \ / AMOS7 \ YOURUM ::
+#\[7]Z3UEPNKAJHF3BQ3TUJCR7IUAGZRUU3KLLZ5OCHWRPHCPB4IZDOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
