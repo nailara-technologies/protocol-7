@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = jobsite.dispatch.consume_slot
+# descr = decrement pending_count for a queue entry skipped without dispatch
+
+## a queue entry can be dropped before task.create ever fires [ trashed job, ##
+## stale generation ] -- it still occupied a pending_count slot from when   ##
+## the batch was enqueued, so that slot must be released here or           ##
+## pending_count never reaches 0 and the cycle sticks on 'assessing'       ##
+## forever, same failure class as jobsite.handler.task-created's decrement ##
+
+<jobsite.pending_count>--;
+if ( <jobsite.pending_count> <= 0 ) {
+    <jobsite.pending_count> = 0;
+    <jobsite.cycle>         = 'idle';
+    <[base.logs]>->( 1, 'all assessments complete, cycle=idle' );
+    if (<jobsite.sync.push_in_progress>) {
+        ## current push already collected its job list; schedule follow-up ##
+        <jobsite.sync.push_after_assess> = TRUE;
+        <[base.logs]>->(
+            1,
+            'dispatch.consume_slot: sync push in progress, scheduling follow-up'
+        );
+    } else {
+        <[jobsite.sync.push]>->( undef, FALSE )
+            ;    ## push results to web immediately ##
+    }
+}
+
+#,,..,.,.,,,,,,,.,,,.,,,.,,.,,,..,,.,,,.,,..,,..,,...,...,...,,,.,,.,,...,,..,
+#D7BKKNNFLBRO2KUG4TPQG3LLW6NFRJ3QEMJMNMVHG5ZQ6UJXKWO7YVM5FYEUHD2JACR7F2LKDMKOO
+#\\\|Z642ZMVCBDS2NLA3IXN7GLOPG3W6QXEDIJ7BEOZPSMKJUVFYYTF \ / AMOS7 \ YOURUM ::
+#\[7]A3OZET2KHLFT2WASVUOWBIISOKEFWPDBNKWYPTRYAJLB63S7BODQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
