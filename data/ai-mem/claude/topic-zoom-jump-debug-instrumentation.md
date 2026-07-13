@@ -1,41 +1,45 @@
 ---
 name: topic-zoom-jump-debug-instrumentation
-description: unresolved zoom-jump bug in space.v7.ax visualization.html; DEBUG console.log block intentionally shipped/staged to catch it live
-metadata: 
+description: RESOLVED — zoom-momentum-reversal bug in space.v7.ax visualization.html was a stray click misfiring the empty-space zoom reset; fixed via graph-params live capture
+metadata:
   node_type: memory
   type: project
   originSessionId: 2bf5be89-eeae-4c2f-be89-c65b129014d2
 ---
 
-`data/web-root/vhosts/space.v7.ax/visualization.html` `updateCamera()` (~line 829-849) has a
-`// DEBUG: zoom-jump instrumentation for unbroken-drag reset bug` block that logs
-`[zoom-jump]` to `console.log` whenever `zoom` changes >0.02 absolute or >3% relative in one
-frame. It is intentionally left in place [ staged/committed 2026-07-11 ], not leftover cruft —
-do not strip it on sight.
+RESOLVED 2026-07-13, commit cae42647d. Root cause: neither theory (A: untracked state
+mutation, B: `calcRangeAlpha` crossfade illusion) was right. A third path: a stray click
+(`mousedown`+`mouseup` with **zero** intervening `mousemove`, so `dragMoved` stays false)
+landing in the ~1s gap between two rotate-drag/wheel-zoom gestures hits
+`handleSingleClick`'s empty-space branch, which sets `zoomTargetZoom = 1.0` and
+`zoomTargetRotX/Y = current rotation`. Because target rotation already equals current
+rotation, `updateCamera()`'s `< 0.05` convergence check passes almost immediately, snapping
+`manualZoom` straight to `1.0` in one frame regardless of where it had drifted — read
+visually as a "momentum reversal" with no relation to velocity or the easing curve itself.
 
-**Why:** during a fully unbroken mouse drag (single mousedown held 60+ min) combined with
-wheel-zoom-out, the zoom visually "resets" back toward the starting position with an eased/
-momentum-like motion. Three related-but-distinct bugs were already found and fixed
-(pinch-zoom / mousedown / stale-clickTimer all failing to null `zoomTargetRotX/Y/Zoom`) — code
-tracing proved none of those three can explain this case, since `mouseup`'s
-`if (dragMoved) return` blocks all click/dblclick/nav-pop logic during a real drag. Every
-writer to `manualZoom`/`zoom`/`velocity`/`camX/Y/Z` was grepped and enumerated; nothing
-unaccounted-for mutates them.
+Diagnosed live using [[web-browser-param-capture-graphing]] (`web-browser.cmd.graph-params`,
+landed same session) — exposed `window.debugZoom/debugManualZoom/debugVelocity/debugRotX/
+debugRotY/debugIsDragging/debugDragMoved` and pulled `window.__p7GraphData.samples` as JSON
+after each reproduction. This is what actually cracked it: velocity stayed provably zero
+throughout every capture (ruling out theory A's velocity path), and the exact
+`0.34→1.0` style jump matched only the `zoomTargetZoom = 1.0` constant used in exactly one
+code site.
 
-Two live theories: (A) a genuine untracked state mutation during drag+wheel, or (B) a
-rendering illusion from `calcRangeAlpha()`'s log-scale, rotation-dependent, easing-curve
-layer crossfade — `zoom` could stay monotonic while the crossfade *reads* as a bounce.
+**Fix:** `CLICK_RESET_COOLDOWN = 2000`ms — a `lastInteractionTime` timestamp updated on every
+`mousemove`-while-dragging and `wheel` event; the empty-space click's zoom-reset branch only
+fires if `Date.now() - lastInteractionTime >= CLICK_RESET_COOLDOWN`. (First attempt at 500ms
+was too short — the real gap observed was ~950ms.) The old `[zoom-jump]` DEBUG console.log
+block was left in place, not stripped, in case of recurrence.
 
-As of 2026-07-11 a reproduction attempt did not trigger the bug — inconclusive, not resolved.
+**How to apply:** if any dynamic-input bug in this file (or others using the same
+mousedown/mousemove/mouseup click-vs-drag disambiguation pattern) resurfaces, reach for
+`graph-params` capture first — it found this in one focused session after multiple prior
+attempts (console-capture, code tracing) stalled. See also
+[[project-input-capture-replay-website-templates]] — spun off from this same session to make
+this class of reproduction fully deterministic instead of live-capture-and-hope.
 
-**How to apply:** this is exactly what [[topic-web-browser-js-console-capture]] was built
-for — next reproduction, check `web-browser.show-buffer js-cons-view-000x` for `[zoom-jump]`
-lines instead of needing devtools. If lines appear during the perceived reset, they name the
-actual writer (confirms A); if none appear, that confirms B (investigate `calcRangeAlpha`
-layer-crossover next). Once root-caused and fixed, strip the DEBUG block and this memory.
-
-#,,,,,,,,,,,.,,,,,...,,.,,.,,,..,,,,,,,.,,,..,..,,...,...,,.,,,,.,,..,,,,,,..,
-#2XE7YM6BJY2XYAHR4GMDMQ5PRXAYKKUGXVN4OU4WIZRAXD4RAEYTKO5GY2345YWWJ4B7ITL34OB2S
-#\\\|XCUCB2WMEVXJQVQ4DX2MX67KOL7MR24DNGTLNAXYFFAK2SKZ2OR \ / AMOS7 \ YOURUM ::
-#\[7]G7EAGSSDJXVVLMHFBG2XAESWHBMJBJ3KL2VPYJ2HV4TAYEFPTKDI 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,...,.,.,.,.,,.,,..,,..,,.,.,.,,,..,,...,...,.,,,.,.,,,,,,,,,,..,
+#DTPV7MHXMGIJFWY7W55XS5FCIWO3KOFTHYJWPNI4PZ66HDFTU7HNXK5ZG43YZP5ZEPSBMYBHPUYSC
+#\\\|IY3KTTF5E3643FIIG3WPACM3AAWIFJKX22KJ5PQCKKZTUEDYZ5G \ / AMOS7 \ YOURUM ::
+#\[7]74DKH2BZZT36PRPRRXM3IQ6QILGIAXLXLIJJ6OMOBTQTXRR272DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
