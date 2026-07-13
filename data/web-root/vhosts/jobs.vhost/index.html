@@ -500,7 +500,7 @@ input[type="date"], textarea {
 
 /* assertion apply/skip badge */
 .badge-apply { font-size: 0.72rem; padding: 1px 6px; border-radius: 3px;
-               margin-right: 6px; font-weight: 600; cursor: pointer;
+               font-weight: 600; cursor: pointer;
                font-family: inherit; border: 1px solid transparent;
                background: transparent; }
 .badge-apply:hover { box-shadow: 0 0 6px rgba(68,39,172,0.25); }
@@ -510,6 +510,15 @@ input[type="date"], textarea {
 .badge-no    { color: #8080a0; background: rgba(20,20,30,0.3);
                border: 1px solid #303040; }
 .badge-no:hover { background: rgba(40,40,55,0.45); }
+/* subtle default styling — shown when the badge isn't backed by a recommendation, */
+/* so apply/skip stay reachable at a glance without competing with the highlighted case */
+.badge-subtle { color: var(--p7-text-dim); background: transparent;
+                border: 1px solid rgba(255,255,255,0.06); opacity: 0.5; }
+.badge-subtle:hover { opacity: 0.9; }
+
+/* quick apply/skip row pinned to the card's bottom corners, always present */
+.card-quick-actions { display: flex; justify-content: space-between; margin-top: 0.5rem; }
+.card-quick-actions .badge-apply { margin: 0; }
 
 /* compact dimension score row */
 .card-dims   { font-size: 0.70rem; color: var(--p7-text-mid); margin-top: 3px;
@@ -922,24 +931,31 @@ async function syncPipeline() {
 
         /* prune ids the backend tombstoned [ trashed/deleted/blocked ] since  */
         /* our watermark — merge is additive-only, this is the removal path   */
+        let removed = 0;
         if (!Array.isArray(data) && Array.isArray(data.removed)) {
+            removed = data.removed.length;
             for (const id of data.removed) {
                 delete jobs[id];
                 delete userDecisions[id];
             }
-            if (data.removed.length) saveUserDecisions();
+            if (removed) saveUserDecisions();
         }
 
-        const { added } = mergeJobs(arr);
+        const { added, updated } = mergeJobs(arr);
         saveCache();
         /* not gated by wasInitial : loadCache() restores lastNtime from a  */
         /* prior session for any returning browser, so wasInitial is false */
         /* for the very users who still have legacy history to migrate --  */
         /* the function itself is idempotent [ self-deletes the legacy key */
         /* once done ], safe to call on every sync                         */
-        await migrateLegacyExportHistory();
-        render();
-        if (tableVisible) showPrintTable();
+        const migrated = await migrateLegacyExportHistory();
+        /* a delta poll with nothing new/updated/removed has nothing for render() to */
+        /* show — skip the rebuild so it doesn't blow away an in-progress note edit, */
+        /* open dropdown or scroll position for no reason                            */
+        if (added > 0 || updated > 0 || removed > 0 || migrated || wasInitial) {
+            render();
+            if (tableVisible) showPrintTable();
+        }
         lbl.textContent = 'sync';
         if (added > 0) {
             const msg = added === 1
@@ -1082,8 +1098,6 @@ function renderCard(j) {
       ${dimHtml}
       ${dimKeys.length ? `<div class="toggle-dim">▼ dimensionen</div>` : ''}
       <div class="card-actions no-print">
-        ${(filterApplySug ? ['review','to_apply','skipped'].includes(j.stage) : j.stage === 'review') && sug.apply === 'true' && sug.delete !== 'true' ? `<button class="badge-apply badge-yes" type="button" data-action="to_apply">✓ apply</button>` : ''}
-        ${['review','to_apply'].includes(j.stage) && sug.apply === 'false' && sug.delete !== 'true' ? `<button class="badge-apply badge-no" type="button" data-action="skipped">✗ skip</button>` : ''}
         <button class="btn-reassess" data-id="${j.id}" title="re-assess">↺</button>
         <div class="stage-dropdown" data-id="${j.id}">
           <button class="stage-dropdown-trigger" type="button">${stageLabel(j.stage)}</button>
@@ -1104,6 +1118,11 @@ function renderCard(j) {
       <textarea class="card-note-input" data-id="${j.id}"
         placeholder="note…" rows="2">${escHtml(j.note||'')}</textarea>
       ${j.note ? `<div class="card-note-preview visible">${highlightTerms(j.note, hlTerms)}</div>` : '<div class="card-note-preview"></div>'}
+      ${(filterApplySug ? ['review','to_apply','skipped'].includes(j.stage) : j.stage === 'review') && sug.delete !== 'true' ? `
+      <div class="card-quick-actions no-print">
+        <button class="badge-apply ${sug.apply === 'true' ? 'badge-yes' : 'badge-subtle'}" type="button" data-action="to_apply">✓ apply</button>
+        ${j.stage === 'review' ? `<button class="badge-apply ${sug.apply === 'false' ? 'badge-no' : 'badge-subtle'}" type="button" data-action="skipped">✗ skip</button>` : '<span></span>'}
+      </div>` : ''}
     `;
 
     /* stage-aware gestures:
@@ -1375,6 +1394,21 @@ function sortedJobs() {
 
 function render() {
     const list = document.getElementById('job-list');
+
+    /* preserve in-flight interaction state across the innerHTML rebuild below --  */
+    /* render() is called from async paths (sync poll, conflict resolution) that   */
+    /* can land mid-edit; without this a poll tick kicks the user out of a note    */
+    /* they're typing, closes whatever stage dropdown was open, and resets scroll  */
+    const scrollTop = list.scrollTop;
+    const activeEl = document.activeElement;
+    let noteState = null;
+    if (activeEl && activeEl.classList && activeEl.classList.contains('card-note-input')) {
+        const card = activeEl.closest('.job-card');
+        if (card) noteState = { id: card.dataset.id, selStart: activeEl.selectionStart, selEnd: activeEl.selectionEnd };
+    }
+    const openDropdown = list.querySelector('.stage-dropdown.open');
+    const openDropdownId = openDropdown ? openDropdown.dataset.id : null;
+
     list.innerHTML = '';
 
     const sorted = sortedJobs();
@@ -1438,6 +1472,25 @@ function render() {
             list.appendChild(card);
         }
     }
+
+    /* restore what was captured before the rebuild */
+    if (noteState && noteState.id) {
+        const ta = list.querySelector(`.card-note-input[data-id="${noteState.id}"]`);
+        if (ta) {
+            ta.classList.add('visible');
+            ta.focus();
+            if (noteState.selStart != null) ta.setSelectionRange(noteState.selStart, noteState.selEnd);
+        }
+    }
+    if (openDropdownId) {
+        const dd = list.querySelector(`.stage-dropdown[data-id="${openDropdownId}"]`);
+        if (dd) {
+            dd.classList.add('open');
+            const card = dd.closest('.job-card');
+            if (card) card.classList.add('dropdown-open');
+        }
+    }
+    list.scrollTop = scrollTop;
 
     updateStats(sorted);
 
@@ -1642,6 +1695,7 @@ async function migrateLegacyExportHistory() {
 
     localStorage.removeItem('jobsite_last_export_ids');
     localStorage.removeItem('jobsite_last_export_time');
+    return true;
 }
 
 async function clearExportHistory() {

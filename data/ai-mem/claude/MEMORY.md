@@ -21,6 +21,7 @@
 - [ascii-desktop-domains](topic-ascii-desktop-domains.md), [ui-show-security-levels](topic-ui-show-security-levels.md) — border glyphs unlock nested desktops; steps 1-5 LIVE, step 6 open
 - [os-command-zenka](topic-os-command-zenka.md) — planned command templates, security levels, STRM
 - [plugin-web-jobs](topic-plugin-web-jobs.md) — LANDED fc6fcb43a+beaf00a87 2026-07-02: watermark/tombstone/scan-order/reassess-dedup fixed live; delete-mid-assessing fix beb1129e5 2026-07-09 + pending_count restart-orphan fix d5f9ba894 2026-07-10 both landed, no longer CRITICAL
+- [jobsite-ui-usability](topic-jobsite-ui-usability.md) — CONFIRMED 2026-07-13: always-visible subtle/highlighted apply+skip badges; sync render-gated on actual change + focus/scroll preserved across rebuild
 - [coding-zenka-abort-inference](topic-plugin-web-jobs.md), [jobsite-assessment-accuracy](topic-jobsite-assessment-accuracy.md) — LANDED 90537980b abort registry; assessment drops soft facts, fix=consensus_vote
 - [clients-http](topic-clients-http.md), [task-coordination](topic-task-coordination.md), [job-pipeline](topic-job-pipeline.md) — async http/https+kimi-web dispatch; task coordinator; jobs.vhost live
 - [reasoning-chain-repository](topic-reasoning-chain-repository.md), [reasoning-namespace](topic-reasoning-namespace.md) — dedup-based self-improvement model; `reasoning.*` ns, 28 templates
@@ -110,8 +111,8 @@
 - letsencr working; reasoning.branch.* LIVE; coding zenka operational; ondemand auto-register survives reload
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: state-0/7 harmonized; test re-sign ≥2 passes to see oscillation
 
-#,,..,...,,..,.,.,,..,...,.,.,.,,,...,,,.,,.,,..,,...,...,,.,,.,.,..,,.,.,,.,,
-#DZHATAFQHF366QE6IL5VJPKNPAILQDWKWHYGCKTC2PB3X7S5KAKG27PGALTJOH7HAA7GQMZOR2UR6
-#\\\|JFCAVPW6SIVYKUUG5UU3BSCXMWWLF2WIYDYZW4XZUFFDL6ZG74E \ / AMOS7 \ YOURUM ::
-#\[7]QSVWJNCCNLON2LTFOIFN6XQ6WZTFDTRS7OY6HQR36KXIHMQLPUCA 7  DATA SIGNATURE ::
+#,,..,.,,,...,.,.,...,,..,..,,.,.,..,,.,.,...,..,,...,..,,.,,,...,,,,,,,,,,,.,
+#GRVRYRFET4JSKTKYLPU2HC4BGZNHHECFJV2UPIHORQWYKHGQLR6HXJZMM6GXTHXNRIPLTY7U7XPZI
+#\\\|5OLZ2CIJK5PJ3JALWAC5CQWYWGQ2TGW5NYD63B5VRKWZBKFF4U5 \ / AMOS7 \ YOURUM ::
+#\[7]NR6W4QMY5VJWBVO7MU75ROYE7DVFCVDC5CE7IUSOIW5OUG7ACIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
