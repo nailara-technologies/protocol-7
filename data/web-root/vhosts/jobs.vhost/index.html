@@ -1107,10 +1107,12 @@ function renderCard(j) {
     `;
 
     /* stage-aware gestures:
-       review:    dblclick=skip       longpress=to_apply
-       to_apply:  dblclick=open note  longpress=applied
-       applied:   dblclick=rejected   longpress=responded
-       responded: dblclick=open note  longpress=rejected       */
+       review:      dblclick=skip       longpress=to_apply
+       to_apply:    dblclick=open note  longpress=applied
+       applied:     [ none -- use the stage dropdown; applied→interviewed via
+                      click gesture was too easy to trigger by accident ]
+       interviewed: dblclick=rejected   longpress=responded
+       responded:   dblclick=open note  longpress=rejected       */
     const openNote = () => {
         const ta = el.querySelector('.card-note-input');
         ta.classList.add('visible');
@@ -1149,7 +1151,6 @@ function renderCard(j) {
     const dblActions = {
         review:      () => setStage(j.id, 'skipped'),
         to_apply:    () => openNote(),
-        applied:     () => setStage(j.id, 'interviewed'),
         interviewed: () => setStage(j.id, 'rejected'),
         responded:   () => openNote(),
         skipped:     () => setStage(j.id, 'archived'),
@@ -1157,7 +1158,6 @@ function renderCard(j) {
     const longActions = {
         review:      () => setStage(j.id, 'to_apply'),
         to_apply:    () => setStage(j.id, 'applied'),
-        applied:     () => setStage(j.id, 'interviewed'),
         interviewed: () => setStage(j.id, 'responded'),
         responded:   () => setStage(j.id, 'rejected'),
         rejected:    () => setStage(j.id, 'archived'),

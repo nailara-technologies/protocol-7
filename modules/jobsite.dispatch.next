@@ -34,6 +34,7 @@ while ( @{$queue} ) {
             1,       '[job:%s] skipping stale queue entry, status=%s',
             $job_id, $cur_status
         );
+        <[jobsite.dispatch.consume_slot]>;
         next;
     }
     if ( $entry_gen and $entry_gen != $current_gen ) {
@@ -45,6 +46,7 @@ while ( @{$queue} ) {
             $entry_gen,
             $current_gen
         );
+        <[jobsite.dispatch.consume_slot]>;
         next;
     }
 
@@ -77,8 +79,8 @@ my $encoded
     }
 );
 
-#,,..,...,...,,.,,.,,,.,,,,..,,,,,..,,,,.,,..,..,,...,...,..,,,,.,,,,,.,,,,..,
-#33BP5W3CE7SKTDUOMXDJJLKQN76ZWYE2KQRHTLQPOJHBWHC5G265GGB2KWVMJPM7UFSJ3TY7ZVCIY
-#\\\|NOGBK7W4ERVA6XSUFXTS6S6TFIPANUYIXEHIOQW7SCJKEU7KYHD \ / AMOS7 \ YOURUM ::
-#\[7]2R4PKPCYNA25HJPTY2L26R3V3K5SNDNKY35E2NXJQ2NUKX4GNKCA 7  DATA SIGNATURE ::
+#,,.,,...,,,.,.,.,..,,,..,,,.,,,,,,..,...,..,,..,,...,...,.,,,..,,,..,...,,,,,
+#4VLFQQ3XJXHP7M3JPMJTVB3YFCJYUOIGUTRFA25U7KR77ZUFBMQCSAL63BXZBJTAUJSWRP3JJSPT6
+#\\\|IS37MNZ2YVA24QLKDH5CZG5EPCRVRPPW6OFAZY7WA2K3JVPDQEB \ / AMOS7 \ YOURUM ::
+#\[7]OUKN3KZT54MXWKSFKVDRQKDZ3IUCCZ2AGPO5B5SHGZMX4IIIHWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
