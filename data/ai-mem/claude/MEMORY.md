@@ -30,8 +30,10 @@
 - [radio-relay-zenka](topic-radio-relay-zenka.md), [vhost-install](topic-vhost-install.md), [model-load-time-statistics](topic-model-load-time-statistics.md) — radio COMPLETE, phase 5 next; vhost live; planned per-model load stats
 - [cursor-model](topic-cursor-model.md), [iris-spoke-labels](topic-iris-spoke-labels.md), [stream-framing-protocol](topic-stream-framing-protocol.md) — hyperspace cursor; 63-ring spoke/BASE32; 3+1 bit frame
 - [nshell-terminal-rendering](topic-nshell-terminal-rendering.md), [memory-tree-zenka](topic-memory-tree-zenka.md) — `(0)!TERM!` bug, VIEWING_HISTORY; tree/IDF/digest all LIVE
+- [web-browser-param-capture-graphing](web-browser-param-capture-graphing.md) — LANDED cae42647d: reusable live var-graphing tool; root-caused [[topic-zoom-jump-debug-instrumentation]] (RESOLVED)
 
 ## Vision / Design
+- [project-input-capture-replay-website-templates](project-input-capture-replay-website-templates.md) — design-only: input capture/replay + curve synthesis + state snapshots, unblocks not-yet-built screenshot-driven website templates
 - [decision-node-polarity-geometry](topic-decision-node-polarity-geometry.md) — seed: escalation/repelling polarity node = reference-bubble's 5-of-7; "27 subcube inverse 3D-plus" geometry not yet reconciled with node-group-geometry
 - [source-identity-spoofing](feedback-source-identity-spoofing.md), [project-vision-origin](project-vision-origin.md) — hostname strings aren't a security boundary, C25519 is; 24-year vision, threshold Apr 2026
 - [synchronous-multi-legged-pattern-extraction](topic-synchronous-multi-legged-pattern-extraction.md), [distributed-hybrid-inhabitants](topic-distributed-hybrid-inhabitants.md) — parallel component search ("exoskeleton"); tooling folds in
@@ -108,8 +110,8 @@
 - letsencr working; reasoning.branch.* LIVE; coding zenka operational; ondemand auto-register survives reload
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: state-0/7 harmonized; test re-sign ≥2 passes to see oscillation
 
-#,,..,..,,.,.,..,,...,,.,,.,,,.,,,,..,,.,,..,,..,,...,...,...,,,.,,,.,.,,,,.,,
-#WG7QTVII4YHEQXW2LGWPH46E3ZY74AQT5LLDWQH2QVEI2E4WNI6HBG4ASUK3U3RUNXZJERHO3F6SA
-#\\\|MTIBL4YCRX6ATMK2LN3GJ47GEQREVHUNPUDFC4G2TRCE6YUTM6P \ / AMOS7 \ YOURUM ::
-#\[7]EJT7I5IC56IFS2S5XT7KLSGPAF74ZMWLPVWXKRB3Y4FNPX6SV4DY 7  DATA SIGNATURE ::
+#,,..,...,,..,.,.,,..,...,.,.,.,,,...,,,.,,.,,..,,...,...,,.,,.,.,..,,.,.,,.,,
+#DZHATAFQHF366QE6IL5VJPKNPAILQDWKWHYGCKTC2PB3X7S5KAKG27PGALTJOH7HAA7GQMZOR2UR6
+#\\\|JFCAVPW6SIVYKUUG5UU3BSCXMWWLF2WIYDYZW4XZUFFDL6ZG74E \ / AMOS7 \ YOURUM ::
+#\[7]QSVWJNCCNLON2LTFOIFN6XQ6WZTFDTRS7OY6HQR36KXIHMQLPUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
