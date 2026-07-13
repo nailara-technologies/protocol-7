@@ -138,10 +138,16 @@ for my $entry ( @{$entries} ) {
         <jobsite.assess_queue> //= [];
         unshift @{<jobsite.assess_queue>}, $entry;    ## front of queue ##
 
+        ## always count this new slot, even mid-cycle -- if a batch is    ##
+        ## already 'assessing', this entry rides along on the same tally  ##
+        ## instead of being silently uncounted [ uncounted slots never    ##
+        ## bring pending_count to 0, same failure class as a skipped-slot ##
+        ## leak; see jobsite.dispatch.consume_slot ] ##
+        <jobsite.pending_count> = ( <jobsite.pending_count> // 0 ) + 1;
+
         ## if idle: start the cycle ##
         if ( ( <jobsite.cycle> // 'idle' ) eq 'idle' ) {
-            <jobsite.cycle>         = 'assessing';
-            <jobsite.pending_count> = scalar @{<jobsite.assess_queue>};
+            <jobsite.cycle> = 'assessing';
             <[jobsite.dispatch.next]>;
         }
 
@@ -204,8 +210,8 @@ for my $entry ( @{$entries} ) {
     }
 }
 
-#,,.,,.,.,..,,,,,,...,...,...,,,.,,..,...,.,,,..,,...,...,,.,,,..,...,,..,,..,
-#YGVAVEDS4TRZLDXXAYFBFSEEZSZ6JROW2NMYKEN67LFD4SVHT35V2O3IRNLHI53SBAKRDJJUKAKKS
-#\\\|TPPMI3U6U6IVCIIJQTBJC54FIL7ZIIJE6QSBXXBL5ZZJTPND3XA \ / AMOS7 \ YOURUM ::
-#\[7]N6GOA3R2ZJP7YEE26MS4TDVJKEFDMF73RBLFOLZ3HKVVQD7RGIDQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,..,,.,,,,..,,..,.,,,,,.,,.,,,,,,..,,...,.,.,.,.,,,.,...,,,,,,,.,
+#OB6VYIMDWKK2YMCIZPQT6AZ6YDEFZISRBMZVQZHS7S33APTURE5SU6NVBCAP5TKYFANMW5DJAVFU4
+#\\\|L56WNKD57GQLJJHC3GAHSKSPUT6QZYIX5WNR67VNDWYB54Y5KKP \ / AMOS7 \ YOURUM ::
+#\[7]WRFZYVUDMDQ735NPBKNGTP3ER64IHXBTEI3MBHD5JNLZIVUYEGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
