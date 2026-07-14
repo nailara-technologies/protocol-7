@@ -88,9 +88,26 @@ originSessionId: 5557aaa4-3476-4c66-9002-955c73ae92a1
 - Apply workflow: send application email from review card
 - Exclusion filter from past CSV data (already-applied companies)
 - score_tech + score_location split in assessment JSON
+- site-yaml: extract Stepstone's own salary estimate range (min/max) into
+  structured fields alongside the JSON-LD job data — grounds the
+  `compensation` assertion dimension in a real number instead of guessing from
+  company size/industry. Not every listing has one; "field absent" must be a
+  regular, unambiguous state (no 0/null default), since other salary sources
+  (market-average APIs, trend data) will be layered in later and need the same
+  absent-vs-zero distinction.
 
-#,,..,,..,..,,,,.,.,.,.,.,..,,.,,,,..,,,,,...,..,,...,...,,..,,,,,,,.,,,,,.,,,
-#LHMB4I6Z3WRK3IQUUXY2Z6WBIWBWULNYYP2L35WU4J3VXAIGG4DWS6XHXWAGYMUFTN63NKBLYX7KO
-#\\\|UUMZU5I5NLPI65GODUUSUZZQNCI7VLHKQW7YZ27P45CY42BF6Y5 \ / AMOS7 \ YOURUM ::
-#\[7]SW3P6X5PT2YYUZP7FAMSFQNEUEYZI5MUFBPAAFJW6HFEQI7OXABI 7  DATA SIGNATURE ::
+## Vision (2026-07-14, agreed with user)
+End state for jobsite: system prepares a full application (cover letter,
+answers, salary ask) grounded in structured signals like the above, presents
+it to the user for review, and on approval sends it and tracks replies.
+When the user edits the generated application before sending, that diff is
+the training signal — future applications should incorporate the accumulated
+edits/insights automatically, not just repeat the same draft pattern.
+See [[topic-plugin-web-jobs]] for the existing sync/apply-workflow substrate
+this would build on.
+
+#,,.,,,..,,..,.,,,...,...,.,.,,,,,...,..,,,..,..,,...,...,,,.,,,,,.,,,.,.,,..,
+#4QLG5H23WCUNZ7GIXJKXLQU74QELQQ7DF7QHC5LWYUED2PTE7PYZUJX2RLVYLGH3DPNHHAEDWQUXO
+#\\\|CLV7ELRF674SNHTLL4L24YMGS3Q2NGFOBUDOUQ3OY5CVA57E5NJ \ / AMOS7 \ YOURUM ::
+#\[7]X5G2ELPT6EEVDUQPI26DWNPX67PDD56QFRBML7LRL6M6EUW6JIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
