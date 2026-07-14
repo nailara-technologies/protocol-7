@@ -59,14 +59,26 @@ already has two commented-out fixed profiles at
 named sizes, though those are hardcoded overrides in the same file rather
 than a subname-driven mechanism).
 
+## update 2026-07-14: subname syntax now has a real precedent — reconcile before building
+
+[[topic-x11-bare-name-routing-ambiguity]] landed concurrent X-11 instance
+support using `xvfb-0000`/`xvfb-0001` (`-\d+` suffix = instance index,
+captured in `X-11.init_code`'s mode regex into `<X-11.mode_index>`, used
+by `X-11.post_init` to offset the configured per-mode base display). That
+is a different axis than this file's proposed `xvfb:WxH` (screen *size*)
+but both now want to extend the same subname string. Before implementing
+`:WxH`, reconcile: can a single subname carry both (`xvfb-0000:1920x1080`)?
+The mode regex would need both a capturing `-(\d+)` and a `:(\d+x\d+)`
+suffix parsed together, not two competing single-suffix designs.
+
 ## related
 
-[[topic-x11-protocol-hardening]]
+[[topic-x11-protocol-hardening]] · [[topic-x11-bare-name-routing-ambiguity]]
 
 #,,.,,,..,...,..,,,,,,,,.,...,.,,,,.,,,,.,,.,,..,,...,..,,,,.,.,,,,,.,...,.,,,
 
-#,,,,,,,.,,.,,.,,,,,,,...,,..,..,,..,,..,,,.,,..,,...,..,,.,,,,..,.,.,...,,,,,
-#J5S4DVZRP2HOUU2W6DA2UU6T5PH4JGHLH2PBQQ5OEHDH7VYK7OA55A5RXTSBUGRIEFE4FJDD4256O
-#\\\|KHZXU7MBY22ESSN7NZNL42NKBAJEBBXZJP63K7UWUE3L26UI4CZ \ / AMOS7 \ YOURUM ::
-#\[7]E3WOUEI7THDFUK6BGVYUO3UQP6MLXRNQNI4PH4ZKBSKVQMWN24AY 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,..,,.,,,.,.,,..,...,,..,,,,,..,,..,,...,...,,..,,,,,,..,.,,,.,,,
+#RWENYTNEAVTTNTDXC6SRKZH2B2E6RFS7DYXLD33CLLXY7JOAAKU25FPKOF4KKUKI2MGAQUNFN5M3U
+#\\\|DNIWFQLO3BMS6NESO6MUNM7FMX47MXGRPDJ63JJCB2KT623TBMN \ / AMOS7 \ YOURUM ::
+#\[7]4VJVSLUYC345MJN75Y5OGWG2L3BN5VAAKMPCKTNWBXWXFBQTNWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

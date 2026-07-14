@@ -6,8 +6,8 @@
 
 ## Active Topics
 - [x11-protocol-hardening](topic-x11-protocol-hardening.md) — COMMITTED 3b966708d + e0f4fddd7: base.exec.with_timeout + dual-connection pool (query-reroute/health-oracle) both landed+verified live
-- [x11-resolution-profiles](topic-x11-resolution-profiles.md) — OPEN design: xvfb needs per-purpose resolution profiles (subname `xvfb:WxH` sketch, needs sanitization); dimensions_xvfb split landed uncommitted
-- [x11-bare-name-routing-ambiguity](topic-x11-bare-name-routing-ambiguity.md) — DIAGNOSED: bare `X-11.foo` (no [subname]) fans out to every session under that name; needs default-to-subname-less filter in route_to_target
+- [x11-resolution-profiles](topic-x11-resolution-profiles.md) — OPEN design: xvfb needs per-purpose resolution profiles (subname `xvfb:WxH` sketch); reconcile with `-\d+` index suffix from bare-name-routing-ambiguity before building
+- [x11-bare-name-routing-ambiguity](topic-x11-bare-name-routing-ambiguity.md) — LANDED 770553ad2+505f5505b: generic sid resolver (subname group-match), per-instance display ranges, v7 per-instance display tracking; verified live w/ 3 concurrent instances
 - [ondemand-starting-flag-watchdog](topic-ondemand-starting-flag-race.md) — RESOLVED 056597b9b: watchdog rescues stuck-`starting` queue via online-truth check; restart-disabled zenki get 3-strike tolerance
 - [orbital-strm-push-rollout](topic-orbital-strm-push-rollout.md) — LANDED 139cacef2: push via STRM not poll; open: connect/disconnect-orbital access
 - [async-window-startup-transition](topic-async-window-startup-transition.md) — LANDED 531aa14db, live-verified; CLOSED except rare paint glitch
@@ -112,8 +112,8 @@
 - letsencr working; reasoning.branch.* LIVE; coding zenka operational; ondemand auto-register survives reload
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: state-0/7 harmonized; test re-sign ≥2 passes to see oscillation
 
-#,,,,,,,.,...,..,,,,.,.,,,,,.,,,,,,,.,..,,..,,..,,...,..,,...,...,..,,,,,,,,.,
-#6V37L2T2T4IGIPFERYL5GHCZTVF5JNP4KMESP6KVMNAEVK3VTLUGVB4TBUZR4X36AEVFZVEJ7OE22
-#\\\|I363UXXKHLB2U65MMGXE6PHHGOCBNMKSTF442SD4OYYGXXV4Q6B \ / AMOS7 \ YOURUM ::
-#\[7]WJNRBC5E4E43E2YWOFYKLG7JCXWP5FBDD476A5TZW4JCWYEKGWCI 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,.,.,.,.,,.,,...,...,.,,,,..,...,..,,...,...,,..,...,,..,,.,,..,,
+#DJ7I6YGMO65HSLO25XKPHEJQMH33HIA3QBENY55G45OYR4YPOUZVIDDSG63R4IYEIDNRCU4O4HDLY
+#\\\|LHB3HSMXYX2RNBQAFQQARVM5DN3QC3WXVBNXO4ALJ5BJOITNX52 \ / AMOS7 \ YOURUM ::
+#\[7]N67BA4XCHHEGBO7SIOYIH5OLRADT6OVNPF3VU5OXRHEZ56D2S4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
