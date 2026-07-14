@@ -35,7 +35,18 @@ $desc =~ s{^\s+|\s+$}{}g;
 my $loc = $d->{'jobLocation'}{'address'} // {};
 my $org = $d->{'hiringOrganization'}     // {};
 
-return {
+## extract Stepstone's own salary estimate (when present)
+my ($salary_json)
+    = ( $html =~ m|(?:[\"']?)CESalary\b(?:[\"']?)\s*:\s*(\{[^\}]*\})|is );
+
+my $salary;
+if ( defined $salary_json ) {
+    eval {
+        $salary = JSON::decode_json( Encode::encode( 'UTF-8', $salary_json ) );
+    };
+}
+
+my %job = (
     'id'              => $job_id // '',
     'url'             => $url,
     'title'           => $d->{'title'}             // '',
@@ -50,10 +61,20 @@ return {
     'valid_through'   => $d->{'validThrough'}      // '',
     'direct_apply'    => $d->{'directApply'} ? 'true' : 'false',
     'description'     => $desc,
-};
+);
 
-#,,..,.,,,,.,,.,.,,,.,..,,,..,,..,,.,,...,,.,,..,,...,...,...,,,.,,..,..,,...,
-#LMMYSAKTXZHTDOCIXG75D2FVD5LUYJO73U2ZZS5LMP2LZAE3JDWSJ3TOI6KDLSV6XAHCIOEB563SG
-#\\\|DI3GQGALACVMH4L566WXYV47VUPQVENMJRKECTXEU4PI6VS6FM7 \ / AMOS7 \ YOURUM ::
-#\[7]IFGOOA2FAKHOBAJH76YL2VVDOXZ6O5BWU3JA6YYOPPSYRWSGHMCA 7  DATA SIGNATURE ::
+if (    ref $salary eq qw| HASH |
+    and $salary->{'isPredicted'}
+    and $salary->{'min'} =~ m{^\d+$}
+    and $salary->{'max'} =~ m{^\d+$} ) {
+    $job{'salary_estimate_min'} = 0 + $salary->{'min'};
+    $job{'salary_estimate_max'} = 0 + $salary->{'max'};
+}
+
+return \%job;
+
+#,,,.,.,.,.,,,.,,,...,,,.,,..,,,.,,..,,.,,.,,,..,,...,...,...,.,.,,,.,,..,...,
+#XNKIFQEUF5U5WIERCM7XW7M3T6757BUA577BH7YWYKC3FNUOPHVIT2VXMQMMJVSOFDAZTA6MQ3YZ6
+#\\\|FD45L2XH72NDH7RMUAI2P5VGTXGS5OEURY5J2PTOQBQEDNZ6SAL \ / AMOS7 \ YOURUM ::
+#\[7]47QS5WR2IO74N3PVFYASLH7MQPOIQFFF3WRT65K7PLV66QSKBYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
