@@ -7,6 +7,17 @@ metadata:
   originSessionId: 3e611ce5-11ac-409b-bf6d-272aa2ab6339
 ---
 
+**Current method (2026-07-14): the MCP tools `kimi_dispatch` + `kimi_continue`**,
+not `bin/kimi-task`. Point `kimi_dispatch`'s prompt at the task file path
+directly (kimi reads it autonomously, same as the network-dispatch pattern
+below). `auto_summarize` (default true) runs the raw output through a local
+9B model before returning — this can silently drop the "To resume this
+session: kimi -r <uuid>" resume line from the summary. If a dispatched task
+needs `kimi_continue` later and the resume line didn't come through, check
+the kimi TUI/session transcript for the `session id : <uuid>` line near the
+bottom rather than guessing — don't start a fresh dispatch, it loses all
+prior debugging context.
+
 Dispatching coding tasks to kimi via `bin/kimi-task -next -file task.md` is the
 most token-efficient way to get implementation work done. Opus input tokens for
 task prompts are cheap; kimi's output tokens do the heavy lifting.
@@ -57,8 +68,8 @@ task prompt (3-5KB) can produce 10+ modules of implementation from kimi.
   other task instruction — it does this well when asked (see the
   `base.swap_subs` write-up added 2026-07-11) but won't do it unprompted.
 
-#,,,,,,,,,..,,,,,,,,,,..,,,..,,,,,,,,,,..,,.,,..,,...,...,,,,,,,.,,,.,,,,,,,.,
-#I5DKFS75NRHC2NQCJOTHLPASOBA7YY65REGO63EGDTZ7244PWJ4IA6GDXQRPNDMIVOKMDZLZOJ3UO
-#\\\|XRLCKUACHAXTZFHMZJEPL5KHITM32ND4YMS3OLDQE6FLX3AKXUD \ / AMOS7 \ YOURUM ::
-#\[7]QZ33I2BPPBBWXZTJB2EXHBDRGLTINHEX27PR2SCP5RFDKWQD4EAI 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,..,..,,,,.,..,,..,,.,.,,..,,,.,..,,...,...,..,,,,,,,,.,,,.,...,
+#3Z732UXLKBB5IIJ6C2OZJVBRPDCSW3IUDB7HWSRZWBY7MRXFQAP3S3RZRMWDBURSCCE2KJFCIA4IQ
+#\\\|JX2MRI72LBNIU7ULBIVZJWHXLCRSJQU2TUXDFMHIKQ3PKALTZZV \ / AMOS7 \ YOURUM ::
+#\[7]JW5AE3QP47JLFDHIVYV2SOQ2MN5UCIHFMSU57MQ6JLKYIZ2HAUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

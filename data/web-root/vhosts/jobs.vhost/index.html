@@ -352,6 +352,7 @@ button:active, .btn-note-toggle:active {
 .card-meta .company { color: var(--p7-text-soft); }
 .card-meta .city    { color: var(--p7-text-mid); }
 .card-meta .ind     { color: var(--p7-text-dim); }
+.card-meta .salary  { color: var(--p7-text-dim); }
 
 .card-summary {
     font-size: 0.76rem; color: var(--p7-text-mid);
@@ -1091,6 +1092,9 @@ function renderCard(j) {
         <span class="city">${hlTerms.length ? String(j.city||'').split(',').map(s=>highlightTerms(s.trim(),hlTerms)).join(', ') : fmtCityInline(j.city)}</span>
         <span class="company">${highlightTerms(j.company, hlTerms)}</span>
         ${j.industry ? `<span class="ind">${highlightTerms(j.industry, hlTerms)}</span>` : ''}
+        ${j.salary_estimate_min != null && j.salary_estimate_max != null
+          ? `<span class="salary">€${Number(j.salary_estimate_min).toLocaleString('de-DE')}–${Number(j.salary_estimate_max).toLocaleString('de-DE')}</span>`
+          : ''}
       </div>
       ${j.summary ? `<div class="card-summary" data-full="${escAttr(j.summary)}">${highlightTerms(j.summary, hlTerms)}</div>` : ''}
       ${j.reason  ? `<div class="card-reason"  data-full="${escAttr(j.reason)}">${highlightTerms(j.reason, hlTerms)}</div>`  : ''}
@@ -1783,8 +1787,8 @@ async function exportCSV() {
     const rows  = getExportRows(prefs).reverse();
     if (!rows.length) { notify('keine jobs für export'); return; }
     const cols = ['Nr','Datum','Unternehmen','Position','Ort','Score','Status','Bewerbungsdatum','Notiz','Link',
-                  'Bewerben','Löschen','Archiv','Ort-Score','Profil-Score','Kultur-Score','Gehalt-Score',
-                  'Remote-Score','Wachstum-Score','Tech-Score','Team-Score'];
+                  'Bewerben','Löschen','Archiv','Gehaltsschätzung','Ort-Score','Profil-Score','Kultur-Score',
+                  'Gehalt-Score','Remote-Score','Wachstum-Score','Tech-Score','Team-Score'];
     const lines = [cols.join(';')];
     rows.forEach((j, i) => {
         const val = v => `"${String(v||'').replace(/"/g,'""')}"`;
@@ -1798,6 +1802,8 @@ async function exportCSV() {
             sug.apply === 'true' ? 'ja' : 'nein',
             sug.delete === 'true' ? 'ja' : 'nein',
             sug.archive === 'true' ? 'ja' : 'nein',
+            j.salary_estimate_min != null && j.salary_estimate_max != null
+                ? `${j.salary_estimate_min}-${j.salary_estimate_max}` : '',
             dscore('location'), dscore('work-profile'), dscore('company-culture'),
             dscore('compensation'), dscore('remote-flexibility'), dscore('career-growth'),
             dscore('tech-stack'), dscore('team-structure'),
@@ -1850,7 +1856,7 @@ function showPrintTable() {
           </div>
           <div style="font-size:0.82rem;color:#4a6a80;margin:0.1rem 0 0.5rem">
             ${escHtml(j.company)}${j.city ? ' · ' + fmtCityInline(j.city) : ''}${j.industry ? ' · ' + escHtml(j.industry) : ''}
-            · ${stageLabel(j.stage)}${dateLine ? ' · ' + dateLine : ''}
+            · ${stageLabel(j.stage)}${j.salary_estimate_min != null && j.salary_estimate_max != null ? ' · €' + Number(j.salary_estimate_min).toLocaleString('de-DE') + '–' + Number(j.salary_estimate_max).toLocaleString('de-DE') : ''}${dateLine ? ' · ' + dateLine : ''}
           </div>
           ${dimList ? `<p style="margin:0.2rem 0;font-size:0.63rem;color:#507060">${escHtml(dimList)}</p>` : ''}
           ${j.summary ? `<p style="margin:0.3rem 0;font-size:0.83rem;color:#7090a0"><span style="font-style:normal">${escHtml(j.summary)}</span></p>` : ''}
