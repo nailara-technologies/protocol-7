@@ -1123,19 +1123,26 @@ function renderCard(j) {
         <button class="badge-apply ${sug.apply === 'true' ? 'badge-yes' : 'badge-subtle'}" type="button" data-action="to_apply">✓ apply</button>
         ${j.stage === 'review' ? `<button class="badge-apply ${sug.apply === 'false' ? 'badge-no' : 'badge-subtle'}" type="button" data-action="skipped">✗ skip</button>` : '<span></span>'}
       </div>` : ''}
+      ${j.stage === 'applied' ? `
+      <div class="card-quick-actions no-print">
+        <button class="badge-apply badge-subtle" type="button" data-action="rejected">✗ rejected</button>
+      </div>` : ''}
     `;
 
     /* stage-aware gestures:
-       review:      dblclick=skip       longpress=to_apply
+       review:      dblclick=jump to bottom action row (scrollIntoView, zoom/scroll-independent)
+                     longpress=to_apply
        to_apply:    dblclick=open note  longpress=applied
-       applied:     [ none -- use the stage dropdown; applied→interviewed via
-                      click gesture was too easy to trigger by accident ]
-       interviewed: dblclick=rejected   longpress=responded
+       applied:     dblclick=open note  [ reject via bottom-right badge -- dblclick=skip/rejected
+                     removed from review/interviewed, too easy to trigger by accident ]
+       interviewed: dblclick=open note  longpress=responded
        responded:   dblclick=open note  longpress=rejected       */
     const openNote = () => {
         const ta = el.querySelector('.card-note-input');
         ta.classList.add('visible');
         ta.focus();
+        const end = ta.value.length;
+        ta.setSelectionRange(end, end);
     };
     const STAGES_WITH_DATE = new Set(['applied','interviewed','responded']);
     const setStage = (id, stage) => {
@@ -1167,10 +1174,18 @@ function renderCard(j) {
             notify('löschen fehler: ' + e.message, true);
         }
     };
+    const jumpToActions = () => {
+        const target = el.querySelector('.card-quick-actions') || el.querySelector('.card-actions');
+        if (!target) return;
+        const BOTTOM_MARGIN = 40; /* keep buttons clear of the viewport edge, avoids the "scroll one more" urge */
+        const delta = target.getBoundingClientRect().bottom - window.innerHeight + BOTTOM_MARGIN;
+        window.scrollBy({ top: delta, behavior: 'smooth' });
+    };
     const dblActions = {
-        review:      () => setStage(j.id, 'skipped'),
+        review:      () => jumpToActions(),
         to_apply:    () => openNote(),
-        interviewed: () => setStage(j.id, 'rejected'),
+        applied:     () => openNote(),
+        interviewed: () => openNote(),
         responded:   () => openNote(),
         skipped:     () => setStage(j.id, 'archived'),
     };
@@ -1198,7 +1213,7 @@ function renderCard(j) {
             const fn = dblActions[prevStage];
             if (!fn) return;
             fn();
-            notifyUndo(j.id, prevStage, setStage);
+            if (jobs[j.id].stage !== prevStage) notifyUndo(j.id, prevStage, setStage);
         } else {
             lastClickMs = now;
             singleClickTimer = setTimeout(() => {
@@ -1294,7 +1309,11 @@ function renderCard(j) {
     el.querySelector('.btn-note-toggle').addEventListener('click', () => {
         const ta = el.querySelector('.card-note-input');
         ta.classList.toggle('visible');
-        if (ta.classList.contains('visible')) ta.focus();
+        if (ta.classList.contains('visible')) {
+            ta.focus();
+            const end = ta.value.length;
+            ta.setSelectionRange(end, end);
+        }
     });
 
     /* note: close on outside click if empty */
