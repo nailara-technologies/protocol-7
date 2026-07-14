@@ -198,7 +198,27 @@ if ( exists $init_result_data->{'start_mode'}
 
         my $prepare_code = qw| %ENV=(); |;
 
-        my $display = <x11.display>;
+        ## resolve the display for THIS zenka's own subname group [not a  ##
+        ## flat global] -- e.g. tile[xvfb-0000] gets the xvfb-0000 X-11   ##
+        ## instance's display, not whichever X-11 instance last replied. ##
+        ## resolves synchronously here: v7's own process always takes    ##
+        ## the local fast path in base.zenki.resolve_primary_sid [no     ##
+        ## real network round-trip, callback fires before this returns]. ##
+        ## <x11.display> used to be a flat scalar [pre-multi-instance]; a  ##
+        ## running v7 process that hasn't been restarted since may still  ##
+        ## hold that old value -- coerce rather than crash dereferencing. ##
+        <x11.display> = {} if ref(<x11.display>) ne qw| HASH |;
+
+        my $display;
+        <[base.zenki.resolve_primary_sid]>->(
+            'X-11',
+            sub {
+                my $x11_sid = shift;
+                $display = <x11.display>->{$x11_sid}
+                    if defined $x11_sid;
+            },
+            $zenka_subname
+        );
         $prepare_code .= "\$ENV{'DISPLAY'}='$display';"
             if defined $display;
         ## implement env set-up \ templates ? ##  [ <-- [LLL] ]
@@ -367,8 +387,8 @@ close($in_fh);    ## <-- no further use for zenka stdin handle [ for now ] ##
 
 <[base.logs]>->( '%s zenka started [ pid : %d ]', $zenka_sn_str, $pid );
 
-#,,,,,,.,,,,.,,,.,,,.,,.,,.,.,,..,,..,..,,,,,,..,,...,...,...,.,.,,,,,,..,,,.,
-#S3FX3A4FP43TMPYPHNWMCLWUL2XSXF6BNHOCLLKAWC4YE6XSKI5NCWCA7P5G6MKFX4G2Y6EBN32K4
-#\\\|LXN72Y2Z6S42SDER6X6NQ62MUVTMSVVTRFLBEQRP6TA7OPYXLCD \ / AMOS7 \ YOURUM ::
-#\[7]PFE3S7Y2XTW3ISQN4MMTDFE7ICFSBLFQNE65OIICNJFCU343W2AY 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,,,,,..,.,.,.,,,...,.,,,..,,...,..,,...,...,,,,,,,.,,.,,..,,,,.,
+#CRN3XQYBVQ4CYCVD66NM463C3CHDZGTRBEKZKR4KUM7VQ2MLCWPNKI2TFTIWGW4RRSLQLMJEUPMNE
+#\\\|N3QAYNA76YMDA4MYOS4VDDDF34EYPWDOP23H5MQ7J2XDVRU5IGJ \ / AMOS7 \ YOURUM ::
+#\[7]CRPWXPSGLQ3W3XWO7MJJ2WPTNTM5MASZF3TRCGLOAXUOTVULAMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
