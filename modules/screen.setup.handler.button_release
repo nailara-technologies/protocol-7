@@ -33,13 +33,21 @@ if ( defined $idx ) {
             $y
         );
 
-        <[protocol-7.route-send]>->(
-            {   'command'   => qw| X-11.move-window |,
-                'call_args' => { 'args' => "$winid $x $y" },
-                'reply'     => {
-                    'handler' => qw| screen.setup.handler.move_reply |,
-                    'params'  => { 'id' => $id, 'winid' => $winid }
-                }
+        <[base.zenki.resolve_primary_sid]>->(
+            'X-11',
+            sub {
+                my $sid = shift;
+                return if not defined $sid;
+                <[protocol-7.route-send]>->(
+                    {   'command'   => "$sid.move-window",
+                        'call_args' => { 'args' => "$winid $x $y" },
+                        'reply'     => {
+                            'handler' =>
+                                qw| screen.setup.handler.move_reply |,
+                            'params' => { 'id' => $id, 'winid' => $winid }
+                        }
+                    }
+                );
             }
         );
     }
@@ -73,8 +81,8 @@ return TRUE
 
 return TRUE;
 
-#,,..,..,,.,.,,,,,,.,,..,,,,.,,..,...,.,.,.,.,.,.,...,...,.,.,.,,,,,,,,,,,,.,,
-#BXL5XCWIVZP7HHE6G3OZDURJ2MAY2WXWY573AMVMG3SJL3DSQPXELQ4S2UDJC74U2MAZWQDK3DGNE
-#\\\|DGJCT4MLLAW56OEX4VLHUS35E2H6UXXIAUZ7UFNHAJZ5PIQTQ4W \ / AMOS7 \ YOURUM ::
-#\[7]2XNU6Q6TEZBGZCCM3JABEBIMDM6TR473JWRBX65GMCIWKK6VMICA 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,,,,,.,,.,.,.,,,...,.,.,...,,.,,.,.,...,...,,.,,,,,,.,.,,..,,,.,
+#2NKSCDNUY3LT5Z6Z7XT4U7TBY3DG2YJGEMVUSJG27OOLL4PRNI5GCQQWPCDH6CRR2PQVTLUMEDIW2
+#\\\|EQY37QW3SPOPK46F3IVQEFFN6WR2QTMKJR4BHLVO2GURBX5HQZ7 \ / AMOS7 \ YOURUM ::
+#\[7]P257LLZG3NX776JB5V6EMNR4UQHHYFLPCIE2Z4Z6O4CU4PKXHMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

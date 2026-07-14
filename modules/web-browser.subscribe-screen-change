@@ -6,18 +6,26 @@
 <[base.log]>
     ->( 1, 'subscribing web-browser to X-11 screen-change events .,' );
 
-<[protocol-7.route-send]>->(
-    {   'command' => qw| X-11.subscribe-screen-change |,
-        'reply'   => {
-            'handler' => qw| web-browser.handler.screen-change_strm_open |,
-        }
+<[base.zenki.resolve_primary_sid]>->(
+    'X-11',
+    sub {
+        my $sid = shift;
+        return if not defined $sid;
+        <[protocol-7.route-send]>->(
+            {   'command' => "$sid.subscribe-screen-change",
+                'reply'   => {
+                    'handler' =>
+                        qw| web-browser.handler.screen-change_strm_open |,
+                }
+            }
+        );
     }
 );
 
 return TRUE;
 
-#,,..,,..,.,.,.,.,,..,,,.,..,,...,,..,,..,..,,..,,...,..,,.,,,,.,,,,,,,..,..,,
-#VQ7W6AFEERH6LRCBEMN4D5QWFLVBJUMWOF3UNI53HFM43S7K5IR27NGYPJNSK2FC375PKBHZSCTBQ
-#\\\|RSMLHP35I4LQGFMZ2KB2TMFBVCXTV462VN645PP23SOT3MJ63XQ \ / AMOS7 \ YOURUM ::
-#\[7]3ZJWGZQDFCV5VCHPIICQEA5KBA7JPVLHRLP67ANVKSH773OTLSAI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,..,.,.,,..,,.,,,,.,..,,,..,.,.,..,,...,...,..,,...,,,.,.,.,..,,
+#ZX4IW2LWWDPBDNMXAXH4DLTQ7NDZ37452T6LN6NVZKV6JKJLRWNRSZH3VE66OKGUEF265QDNXQ662
+#\\\|RFBMZDZHVV47A2UEAD7JF6QYZ3X4UDRAK7I5FKWPJYZQG5Y7XKP \ / AMOS7 \ YOURUM ::
+#\[7]LPXWVICSA7GQ7JF4HUUU27T7KQ4U3EHWCC5SLAYPAUKDJHZXFCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

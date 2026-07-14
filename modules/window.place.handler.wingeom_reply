@@ -28,15 +28,22 @@ if ( ( $reply->{'cmd'} // '' ) ne qw| TRUE | ) {
             {   'after' => 0.2,
                 'cb'    => sub {
                     return if not exists $data{window}{place}{instances}{$id};
-                    <[protocol-7.route-send]>->(
-                        {   'command'   => 'X-11.get_geometry',
-                            'call_args' =>
-                                { 'args' => $inst->{'target_winid'} },
-                            'reply' => {
-                                'handler' =>
-                                    'window.place.handler.wingeom_reply',
-                                'params' => { 'instance_id' => $id }
-                            }
+                    <[base.zenki.resolve_primary_sid]>->(
+                        'X-11',
+                        sub {
+                            my $sid = shift;
+                            return if not defined $sid;
+                            <[protocol-7.route-send]>->(
+                                {   'command'   => "$sid.get_geometry",
+                                    'call_args' =>
+                                        { 'args' => $inst->{'target_winid'} },
+                                    'reply' => {
+                                        'handler' =>
+                                            'window.place.handler.wingeom_reply',
+                                        'params' => { 'instance_id' => $id }
+                                    }
+                                }
+                            );
                         }
                     );
                 }
@@ -106,8 +113,8 @@ my $geo = { 'x' => $x, 'y' => $y, 'width' => $w, 'height' => $h };
     }
 );
 
-#,,,,,,..,.,.,.,,,.,.,..,,..,,..,,,..,...,,..,..,,...,...,.,.,,,.,.,,,.,,,.,,,
-#DEUTVVRGIHAJHR3COWG3A647ILAEQFASAXAFB37FLJ2VTGNQS3M3HQGLYSLFVLXABSNWYL67NMXW2
-#\\\|244VXQIXPFM7YSOTBT4LEX36XO3DUFTCSTBSGDMH65QG4RYZWDX \ / AMOS7 \ YOURUM ::
-#\[7]GMJN2ZGG5W6SQPQG4CRLN3LQ65PBNKAXJDGFJ4U5TU65HU6RZ2BI 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,,,,,.,,,,,,,,.,,.,.,,,,,,,,,...,..,,...,...,.,.,,,,,,,,,.,,,,,,,
+#AQLKASL3YZS24QGVSVVCHMWRZFMVMDXHWLGMJBQGYQJ3P3KRFVXT74XOZLGOADIAXREFXGJNCAR2M
+#\\\|ZWYQNVTJSWJMKR3NDF2ZYLCRPZ7ALKVF7RKU7TOAXBFFOYI7DT3 \ / AMOS7 \ YOURUM ::
+#\[7]XM2X7DA6G3NMBJSZKOUUFPWUOBMUFK6W6UGCLVVCB6LSUN7IO2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

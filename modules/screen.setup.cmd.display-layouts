@@ -45,13 +45,20 @@ $data{'screen-setup'}{'instances'}{$id} = {
 };
 
 ## fetch currently-open windows so the minimap can overlay them ##
-<[protocol-7.route-send]>->(
-    {   'command'   => qw| X-11.get-windows |,
-        'call_args' => { 'args' => '' },
-        'reply'     => {
-            'handler' => qw| screen.setup.handler.windows_reply |,
-            'params'  => { 'id' => $id }
-        }
+<[base.zenki.resolve_primary_sid]>->(
+    'X-11',
+    sub {
+        my $sid = shift;
+        return if not defined $sid;
+        <[protocol-7.route-send]>->(
+            {   'command'   => "$sid.get-windows",
+                'call_args' => { 'args' => '' },
+                'reply'     => {
+                    'handler' => qw| screen.setup.handler.windows_reply |,
+                    'params'  => { 'id' => $id }
+                }
+            }
+        );
     }
 );
 
@@ -64,8 +71,8 @@ $data{'screen-setup'}{'instances'}{$id} = {
 
 return { 'mode' => qw| size |, 'data' => $summary };
 
-#,,.,,.,,,.,.,,,,,,,,,,.,,,.,,,..,,,,,.,.,...,..,,...,...,...,.,,,,.,,,.,,,,,,
-#IXRTAQSCVMKLXBN2JQ2XQD5B2TGQKBBXLDSFGOIEB6YFM6OR5BWGTWUUCLDVOOFY5LWZI3GLIDQDI
-#\\\|YZVYGLNRAGWESJWEYWMHWYYZAIYDIUFWIN6RKNCQHMYR5ZX3TLZ \ / AMOS7 \ YOURUM ::
-#\[7]I7NSEY73FBWP2NYJERWNWD43OPUDIHGFCUASVUC3VLBA4MBW34BI 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,,,,,,.,,,,,.,.,.,,,..,,,..,,,.,..,,...,...,,,.,,,.,...,.,,,.,.,
+#PPGZXXMJK6ZDP6MYWAPTZPQDNVLHZL4PUDF47UPKZ2DBTC4LGPCD3WSLLSZ6GAN4MTAK2U25CDV4Y
+#\\\|KMUTBGRKV2W4LR35S55CVIUQOW72KUHYAXVLNIMPTTRWZWIIV32 \ / AMOS7 \ YOURUM ::
+#\[7]4VZ5IMDTIEF7I43Z5RS3WRZEO6J3CSP62W7NKNY3EV57QOUXOMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

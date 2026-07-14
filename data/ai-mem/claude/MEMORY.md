@@ -7,6 +7,7 @@
 ## Active Topics
 - [x11-protocol-hardening](topic-x11-protocol-hardening.md) — COMMITTED 3b966708d + e0f4fddd7: base.exec.with_timeout + dual-connection pool (query-reroute/health-oracle) both landed+verified live
 - [x11-resolution-profiles](topic-x11-resolution-profiles.md) — OPEN design: xvfb needs per-purpose resolution profiles (subname `xvfb:WxH` sketch, needs sanitization); dimensions_xvfb split landed uncommitted
+- [x11-bare-name-routing-ambiguity](topic-x11-bare-name-routing-ambiguity.md) — DIAGNOSED: bare `X-11.foo` (no [subname]) fans out to every session under that name; needs default-to-subname-less filter in route_to_target
 - [ondemand-starting-flag-watchdog](topic-ondemand-starting-flag-race.md) — RESOLVED 056597b9b: watchdog rescues stuck-`starting` queue via online-truth check; restart-disabled zenki get 3-strike tolerance
 - [orbital-strm-push-rollout](topic-orbital-strm-push-rollout.md) — LANDED 139cacef2: push via STRM not poll; open: connect/disconnect-orbital access
 - [async-window-startup-transition](topic-async-window-startup-transition.md) — LANDED 531aa14db, live-verified; CLOSED except rare paint glitch
@@ -45,7 +46,7 @@
 - [layer-matrix-convergence](project-layer-matrix-convergence.md), [self-improving-system](topic-self-improving-system.md) — restart/migration/branching=one algebra; LLM coordination as foundation
 - [network-as-computer](topic-network-as-computer.md), [namespace-tree-intelligence](topic-namespace-tree-intelligence.md), [orbital-data-space](topic-orbital-data-space.md) — network IS computer; tree IS intelligence; zenki-as-satellites
 - [distributed-consensus](topic-distributed-consensus.md), [task-tree-design](topic-task-tree-design.md), [self-contained-zenka](topic-self-contained-zenka.md) — multi-model chat; unified task tree; __DATA__ registry/STDIO
-- [window-canvas-addressing](topic-window-canvas-addressing.md) — seed: window.canvas.* counterpart to window.profile.*; topology-relative physical vs controllable/virtual canvases; identity likely bottoms out to routable-pubkey + free parallel groupings, universal beyond screens
+- [window-canvas-addressing](topic-window-canvas-addressing.md) — CONVERGED 2026-07-11: canvas/group identity is checksum-addressing (TYPE:CHKSUM7:ADDR_B32), not a new primitive; implementation not started
 - [style-philosophy](style-philosophy.md), [harmonic-mathematics](topic-harmonic-mathematics.md), [hyperspace-topology](topic-hyperspace-topology.md) — coding as artform; generator 076923; closed observer loop, sensor cube
 - [punctuation-topology](topic-punctuation-topology.md), [field-coherence-synthesis](topic-field-coherence-synthesis.md), [field-capability-emergence](topic-field-capability-emergence.md) — `:`/`.` separators; bridges topology; protocol vs external
 - [self-assembling-network](topic-self-assembling-network.md), [creative-field-behaviour](topic-creative-field-behaviour.md) — spec as pre-loaded potential; emergent cooperative dynamics
@@ -111,8 +112,8 @@
 - letsencr working; reasoning.branch.* LIVE; coding zenka operational; ondemand auto-register survives reload
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: state-0/7 harmonized; test re-sign ≥2 passes to see oscillation
 
-#,,..,.,,,...,.,.,...,,..,..,,.,.,..,,.,.,...,..,,...,..,,.,,,...,,,,,,,,,,,.,
-#GRVRYRFET4JSKTKYLPU2HC4BGZNHHECFJV2UPIHORQWYKHGQLR6HXJZMM6GXTHXNRIPLTY7U7XPZI
-#\\\|5OLZ2CIJK5PJ3JALWAC5CQWYWGQ2TGW5NYD63B5VRKWZBKFF4U5 \ / AMOS7 \ YOURUM ::
-#\[7]NR6W4QMY5VJWBVO7MU75ROYE7DVFCVDC5CE7IUSOIW5OUG7ACIAA 7  DATA SIGNATURE ::
+#,,,,,,,.,...,..,,,,.,.,,,,,.,,,,,,,.,..,,..,,..,,...,..,,...,...,..,,,,,,,,.,
+#6V37L2T2T4IGIPFERYL5GHCZTVF5JNP4KMESP6KVMNAEVK3VTLUGVB4TBUZR4X36AEVFZVEJ7OE22
+#\\\|I363UXXKHLB2U65MMGXE6PHHGOCBNMKSTF442SD4OYYGXXV4Q6B \ / AMOS7 \ YOURUM ::
+#\[7]WJNRBC5E4E43E2YWOFYKLG7JCXWP5FBDD476A5TZW4JCWYEKGWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

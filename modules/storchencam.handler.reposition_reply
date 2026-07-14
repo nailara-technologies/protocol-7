@@ -37,10 +37,17 @@ my $caller = <system.zenka.name> // qw| storchencam |;
 ## apply to running storchencam window via X-11 ##
 my $window_id = <x11.id>;
 if ( defined $window_id ) {
-    <[protocol-7.route-send]>->(
-        {   'command'   => 'X-11.set_geometry',
-            'call_args' =>
-                { 'args' => sprintf '%d %s', $window_id, $geometry }
+    <[base.zenki.resolve_primary_sid]>->(
+        'X-11',
+        sub {
+            my $sid = shift;
+            return if not defined $sid;
+            <[protocol-7.route-send]>->(
+                {   'command'   => "$sid.set_geometry",
+                    'call_args' =>
+                        { 'args' => sprintf '%d %s', $window_id, $geometry }
+                }
+            );
         }
     );
     <[base.logs]>->( 1, '[reposition] applied geometry [%s]', $geometry );
@@ -52,8 +59,8 @@ if ( defined $window_id ) {
     );
 }
 
-#,,..,,.,,..,,,..,,..,,..,,,.,.,.,..,,.,,,.,,,..,,...,...,..,,.,,,.,.,,.,,,..,
-#SORJEWR2VLZCN6I6GKVTQGLLHGCEL7SKWEQPHUI4YQYXDYC63YXS2CJTRY3OMTA2NTOGR6QZXHZZS
-#\\\|DNLCV6BTSB4IR3A4BZX5XQDUTALIOABRVCNQT4VUGW4PLKFRVQ3 \ / AMOS7 \ YOURUM ::
-#\[7]VG4NLUR62YDRFELBEXWRCHTONULTULL5FVLSMUATEDRTZDMRZAAI 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,,.,.,.,...,,,,,...,,,.,,.,,.,.,..,,...,...,.,.,.,,,,,,,.,,,.,,,
+#CIKQVGAXLPVVOEXE45U6OUV5E3OG62JJVM37KWHHL4NB6NMUBDTT2WR3RIGD3CMKZVFWWKP6BUHJS
+#\\\|VRK6RZBPGTTSL3AKZHFEUXMHR5DTM6TCFRRQ2FSMRAXMGOVNVQ7 \ / AMOS7 \ YOURUM ::
+#\[7]VLUDGKWLQPA6FEMNZ77X2DUN7ZT4L4UAKUR4EQ2QQKREQ2KE4ODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

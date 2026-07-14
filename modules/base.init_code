@@ -145,6 +145,18 @@ $data{'list'} //= {};
     },
     'descr' => 'registered \ connected sessions'
 };
+<list.subnames> = {
+    'var'   => qw| data |,
+    'key'   => qw| session |,
+    'mask'  => '<key>:session mode:status user:zenka subname',
+    'align' => {
+        'session' => qw| left+1  |,
+        'status'  => qw| center-2 |,
+        'zenka'   => qw| right-2 |,
+        'subname' => qw| left+1 |
+    },
+    'descr' => "sessions with their 'subname' [ when available ]"
+};
 <list.buffers> = {
     'var'   => qw|  data  |,
     'key'   => qw| buffer |,
@@ -161,6 +173,10 @@ $data{'list'} //= {};
     },
     'descr' => '[log] ring buffers in use'
 };
+
+# generic zenka-instance resolver cache [ base.zenki.resolve_primary_sid ]
+<zenki.resolve_cache>     //= {};
+<zenki.resolve_cache_ttl> //= 5;
 
 # 'verify-instance' command not required in local 'cube' zenka
 if (    defined <system.zenka.type>
@@ -294,8 +310,8 @@ if ( scalar(@INDEXCUBE) == 0 ) {
 
 return FALSE;
 
-#,,,.,.,,,,,,,,..,...,..,,,..,.,.,,,,,...,..,,..,,...,...,,,,,,,,,,,,,.,,,,,,,
-#PTTEVKQADANSCETL6JJMZVZFAEQ5JHR4YLBWO4VRWMBKTCNX7C2VMU25GGLW4CQBOT4AFQ6EOXKXE
-#\\\|6W7MWLQAEAL6G6UHMJ6HBKDPPLML22SXM3CNY527ZCMN77JDCYC \ / AMOS7 \ YOURUM ::
-#\[7]6IYLBPZJHNUPANOOAMK4QLGKBMHJLG44MRHH5JJWIWXDFDJOU2CI 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,,,,..,,,,,,,,,,..,,..,,.,,,,.,,..,,...,...,...,.,.,.,,,,,,,,.,,
+#35LKWZ7WJYTA5FWQDW6NAFGFY2XXRV2LCHW3Q3HSBL6QBBY7QDEL4FIXEOU5LZVX7RCQ7255UNUYK
+#\\\|JSRBM6L3NFITMOTOVQUIJPHQFXTDD6VE4HDSXCT7245I6PEWQNJ \ / AMOS7 \ YOURUM ::
+#\[7]H3G2TZY6HGWGPZ3A5CKQZC76CKBPAUOYJ7UTX36Q4JXJLF6CAADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,21 +2,26 @@
 
 # name = v7.callback.get_x11_display
 
-# take first one [ for now ]
-my ($root_sid) = keys %{ $data{'session'} };
-die "no valid session defined yet [ cannot determine root_sid ]"
-    if not defined $root_sid;
-
 <[base.log]>->( 1, "requesting x11.display from X-11 zenka.," );
 
-<[protocol-7.command.send.local]>->(
-    {   'command' => "$root_sid.X-11.get_display",
-        'reply'   => { 'handler' => qw| v7.handler.get_display_reply | }
+<[base.zenki.resolve_primary_sid]>->(
+    'X-11',
+    sub {
+        my $sid = shift;
+        if ( not defined $sid ) {
+            <[base.logs]>->( 1, '[get_x11_display] no X-11 instance online' );
+            return;
+        }
+        <[protocol-7.route-send]>->(
+            {   'command' => "$sid.get_display",
+                'reply' => { 'handler' => qw| v7.handler.get_display_reply | }
+            }
+        );
     }
 );
 
-#,,..,,..,,,.,...,,,.,,,.,.,,,..,,,..,...,,..,..,,...,..,,,..,...,,.,,...,...,
-#DER57I3GZV5MNRMFFEWQTV3ZWO46BNSQPCL76FT4VS6PUL3BMBOYBEGGKYSJX4O4IOQYQS22ZGDFC
-#\\\|7MQFENB53UAKFH2RJP3DW2457WW32VEUO6I2MTN3PLQQEYA36RS \ / AMOS7 \ YOURUM ::
-#\[7]UE5G3MKMWNW6TTDCSSHSGB4BY5OKLVQ2CD3IKN3KKMHHQYOGN2DY 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,,.,...,.,,,.,.,,,,,..,,.,,,.,,,..,,...,...,,.,,,..,.,.,,..,.,,,
+#5JWPXMXJ2MAMEELBCST7S7D4BY6APR7HYEO5CF3NKG6CJIU5FQZ6NPWNC4SRIYCEDLZSCNI777XIG
+#\\\|65DRVCD3IME65PKP74MT22JICVDL6T5R33C3FIG77DWFRAKILLH \ / AMOS7 \ YOURUM ::
+#\[7]P7SFEMVU3YTN6KIHWBQAKIPODYZUZVBGK5PTJBQ7Z2QFWIWDYIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

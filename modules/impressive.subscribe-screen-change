@@ -5,18 +5,26 @@
 
 <[base.log]>->( 1, 'subscribing impressive to X-11 screen-change events .,' );
 
-<[protocol-7.route-send]>->(
-    {   'command' => qw| X-11.subscribe-screen-change |,
-        'reply'   => {
-            'handler' => qw| impressive.handler.screen-change_strm_open |,
-        }
+<[base.zenki.resolve_primary_sid]>->(
+    'X-11',
+    sub {
+        my $sid = shift;
+        return if not defined $sid;
+        <[protocol-7.route-send]>->(
+            {   'command' => "$sid.subscribe-screen-change",
+                'reply'   => {
+                    'handler' =>
+                        qw| impressive.handler.screen-change_strm_open |,
+                }
+            }
+        );
     }
 );
 
 return TRUE;
 
-#,,,.,.,.,,,,,...,..,,...,...,,.,,...,.,,,,..,..,,...,...,,,.,,,,,...,,,.,,,,,
-#DUKZERBN6QQV666PXBB3EKHLUB3SS5FQYWU4ZLAWNITDSK4BWTEIR6TF3FPWVIHFIQSN72BBFG6P6
-#\\\|LZEI2OI2WFGFUNROHRCSBB5HKTFJM54LNNRTNMJZJUQGN76D5TJ \ / AMOS7 \ YOURUM ::
-#\[7]VT5PMSKGMPAUSETWWMVDPNYUTE3ZS7UZY42OBOPZMZFE2245VSAA 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,...,..,,.,,,,,.,.,,,,..,...,..,,..,,...,...,.,.,..,,.,,,,..,.,,,
+#J4WNLV6AK7A2OG2WHBSODP6V7ATRDGD7VXUCBEHH3QG2DRUENL77QBFLKLRBNUWAMXKUFQXWPXC6G
+#\\\|XPGX5R5PLKEZQCJEEGJ45EOCFYCL66HROUCFEMI5Y5QSYXSTPTQ \ / AMOS7 \ YOURUM ::
+#\[7]OV3F4IWI22PUMIJTZEUOJ5JKKDA5I2BR3JCVTEYSDSYWJFESAMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

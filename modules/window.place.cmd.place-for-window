@@ -68,20 +68,27 @@ $data{window}{place}{instances}{$id} = {
     $id, $caller, $winid
 );
 
-<[protocol-7.route-send]>->(
-    {   'command'   => 'X-11.get_geometry',
-        'call_args' => { 'args' => $winid },
-        'reply'     => {
-            'handler' => 'window.place.handler.wingeom_reply',
-            'params'  => { 'instance_id' => $id }
-        }
+<[base.zenki.resolve_primary_sid]>->(
+    'X-11',
+    sub {
+        my $sid = shift;
+        return if not defined $sid;
+        <[protocol-7.route-send]>->(
+            {   'command'   => "$sid.get_geometry",
+                'call_args' => { 'args' => $winid },
+                'reply'     => {
+                    'handler' => 'window.place.handler.wingeom_reply',
+                    'params'  => { 'instance_id' => $id }
+                }
+            }
+        );
     }
 );
 
 return { 'mode' => 'deferred' };
 
-#,,.,,,,,,...,...,,..,,..,..,,,,,,,.,,,.,,.,.,..,,...,..,,,,,,..,,...,,.,,,,,,
-#J7XG6A63CT5JBVEI6I22FFIRAGK4SWMJ4NPQEPNVHQBWV6QXXF3YAGVBNHWD264GQPMBKKAAMNO3W
-#\\\|WX4ATPL6V7MKPTRPNKRVYIZSQHBTHFPRKH42VHSIHBJ4NKQETUT \ / AMOS7 \ YOURUM ::
-#\[7]65AJUXBPP2ZGTZS2OLXKVUDEN2TNHLUSOXEQN6ATAU4PASFD7YCI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,..,..,,,..,..,,,,.,.,,,,,.,,,.,..,,...,...,.,.,..,,,..,,..,,.,,
+#LMO7OX2DPVC5VBRWJ5FTBE6GNCPCBRZHHBAAK3HYNXSOEKZYRC3ASBG5WWSFAGHJQMNXJ7V4XDOI6
+#\\\|QBVAOSNVI22JLLYEJQPPJUVPTM2DFXDRZ5YSAH7S7ZBC2KLM3YF \ / AMOS7 \ YOURUM ::
+#\[7]WIEXMSYM25QXC3TJVRV5VIBKORTUOE5Z4GN7YPOMWCPQZCJZMUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

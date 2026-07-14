@@ -37,10 +37,17 @@ my $caller = <system.zenka.name> // qw| impressive |;
 ## apply to running impressive window via X-11 ##
 my $window_id = <x11.id>;
 if ( defined $window_id ) {
-    <[protocol-7.route-send]>->(
-        {   'command'   => 'X-11.set_geometry',
-            'call_args' =>
-                { 'args' => sprintf '%d %s', $window_id, $geometry }
+    <[base.zenki.resolve_primary_sid]>->(
+        'X-11',
+        sub {
+            my $sid = shift;
+            return if not defined $sid;
+            <[protocol-7.route-send]>->(
+                {   'command'   => "$sid.set_geometry",
+                    'call_args' =>
+                        { 'args' => sprintf '%d %s', $window_id, $geometry }
+                }
+            );
         }
     );
     <[base.logs]>->( 1, '[reposition] applied geometry [%s]', $geometry );
@@ -52,8 +59,8 @@ if ( defined $window_id ) {
     );
 }
 
-#,,,.,.,,,.,.,,..,...,,,.,..,,,..,,,.,.,,,..,,..,,...,...,,,.,..,,,,.,,..,...,
-#7IK6UKSGKWEG4NJ5TZUM4Y3B7QPFW3FLHQZ6KKQF3EKZN5QNVR66XMVXJUOC67YFSNPSVMNCPBJ26
-#\\\|KD6AG6KP4IZZQCDUDNSSOED4J27GOSSHHM6OY7K42AGEKQWGNET \ / AMOS7 \ YOURUM ::
-#\[7]NUDLK65GOQQMJKL2AI43IYPRFZM35O5MLJEJLYPDTGO7MGSNWWBY 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,,,,,,.,,..,.,,,,..,,..,,.,,.,.,..,,...,..,,...,.,.,,..,,.,,.,,,
+#P4AJZPHXNCUJDDA57LGIFOM56EZ54RETXJLHB6NX7DBMRARLWFHGL5KV5UWK3JD4AVJEBDIQBIWAC
+#\\\|VJ6AAQCIGEARVBHLXBMX6QMFRM2MKQFW2QCMRY2N7V23J6JCHP6 \ / AMOS7 \ YOURUM ::
+#\[7]7M4REWL2DJHGTP6JF4F6WCTFMRYHYYNZJDDZTUX7GKTMUPSYV4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,13 +4,17 @@
 # descr = 'X-11' zenka startup configuration used by 'v7' zenka
 
 dependencies   = cube
-max_concurrency   = 1
+max_concurrency   = 8
+max_subname_concurrency = 1
 heartbeat.timeout = 14
 restart.min_delay = 0.7
 zenka-start.timeout = 42
 ## [ in case of immediate errors ]
 startup-error.retry-count   = 2
 startup-error.retry-min-delay = 5
+
+##  optional preferred subname for X-11 group-aware instance resolution  ##
+# zenki.X-11.preferred_subname =
 
 : v7-init :
   start_mode = stdin-zenka
@@ -27,8 +31,8 @@ startup-error.retry-min-delay = 5
 : startup-error :
   [v7.callback.xorg-error-handler:<instance_id>]
 
-#,,,.,,,,,...,.,,,.,,,,.,,..,,.,,,,,.,.,.,...,..,,...,...,..,,,,.,..,,...,..,,
-#AA675NTDYJRMSGTW5AIZT3QZNWBKSJWADHSQRAWII7KME3MT53YOIT7Q7LRCFR4YIEFFM7FUI6HCW
-#\\\|JZZF6BIMWX6SXGVAI5SXQ2ULZ7CKCJXEYHN5YR2ZAP4GWVPIA62 \ / AMOS7 \ YOURUM ::
-#\[7]JTM63WSUE2OFPUMHU5OPQPZZLYZ5QQROFBTDHT5WLG6GIPDV7KAI 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,.,,,,,.,.,.,,.,,...,.,.,,,.,,..,..,,...,.,.,...,..,,...,,..,...,
+#LNSLHF6NNMLQ7SN6R4VUU46G74E244TL4D2S7HGAJPFH3CNDTSPX2SR6ZZDLS72P7ZSVL6ZCOZABK
+#\\\|3NQSL6FGFJBMZ5BWR6HSHIMT27YUVXFWNNY4DFVLZR7H2O7E7HB \ / AMOS7 \ YOURUM ::
+#\[7]EIG52HEUWJKTCUVVVBTE4J4IELY6C5BQIMPDEQIC46KZ2N43SMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
