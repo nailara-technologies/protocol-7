@@ -88,13 +88,14 @@ originSessionId: 5557aaa4-3476-4c66-9002-955c73ae92a1
 - Apply workflow: send application email from review card
 - Exclusion filter from past CSV data (already-applied companies)
 - score_tech + score_location split in assessment JSON
-- site-yaml: extract Stepstone's own salary estimate range (min/max) into
-  structured fields alongside the JSON-LD job data — grounds the
-  `compensation` assertion dimension in a real number instead of guessing from
-  company size/industry. Not every listing has one; "field absent" must be a
-  regular, unambiguous state (no 0/null default), since other salary sources
-  (market-average APIs, trend data) will be layered in later and need the same
-  absent-vs-zero distinction.
+- LANDED 3eaab1900 (2026-07-14): site-yaml salary estimate extraction. Real
+  field is `CESalary` (isPredicted/min/max blob embedded in the job page,
+  not the JobPosting JSON-LD) — dispatched via kimi_dispatch+kimi_continue
+  (MCP), verified live against both known URLs (53k-77k, 43k-64k) before
+  commit. `salary_estimate_min/max` omitted entirely when absent (no
+  0/undef); wired into `jobsite.util.build_prompt` so compensation
+  reasoning uses the real number. Other salary sources (market-average
+  APIs, trend data) still to be layered in later, same absent-vs-zero rule.
 
 ## Vision (2026-07-14, agreed with user)
 End state for jobsite: system prepares a full application (cover letter,
@@ -106,8 +107,8 @@ edits/insights automatically, not just repeat the same draft pattern.
 See [[topic-plugin-web-jobs]] for the existing sync/apply-workflow substrate
 this would build on.
 
-#,,.,,,..,,..,.,,,...,...,.,.,,,,,...,..,,,..,..,,...,...,,,.,,,,,.,,,.,.,,..,
-#4QLG5H23WCUNZ7GIXJKXLQU74QELQQ7DF7QHC5LWYUED2PTE7PYZUJX2RLVYLGH3DPNHHAEDWQUXO
-#\\\|CLV7ELRF674SNHTLL4L24YMGS3Q2NGFOBUDOUQ3OY5CVA57E5NJ \ / AMOS7 \ YOURUM ::
-#\[7]X5G2ELPT6EEVDUQPI26DWNPX67PDD56QFRBML7LRL6M6EUW6JIBQ 7  DATA SIGNATURE ::
+#,,..,...,,.,,.,.,.,.,,,,,.,,,,,.,,.,,,.,,.,,,..,,...,...,..,,,..,.,,,,.,,.,.,
+#X7LBSGJ2B6D7PYNXRZRY2PT7VKC5JVFCEZH77TT3YOSGWEWN4YVVVMIAVDBRB5JVQIG435AKDA3Z6
+#\\\|OE5LJO622PR4MCIB4NHU5TXK5NRC4CIDQ6YFG66X74RAKS6M7WC \ / AMOS7 \ YOURUM ::
+#\[7]5P6ZYXE4TXNIMWTNZTB2EM4HXTH3NTL4VRXMBEW5J4NB2VDLDWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
