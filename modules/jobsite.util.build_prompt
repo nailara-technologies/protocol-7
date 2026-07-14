@@ -95,20 +95,25 @@ assertions:
       reason: "<1 Satz>"
 YAML_TEMPLATE
 
-my $prompt = join( "\n\n",
-    $task_preamble,
-    $yaml_format,
-    "## Kandidatenprofil : $candidate_name",
-    $profile_text,
-    "## Stellenanzeige : $title | $co | $city",
-    "Branche: $ind\n\n$desc",
-    "Beginne jetzt mit: score:",
+my @prompt_parts = (
+    $task_preamble, $yaml_format, "## Kandidatenprofil : $candidate_name",
+    $profile_text,  "## Stellenanzeige : $title | $co | $city",
 );
 
-return $prompt;
+if (    exists $job->{'salary_estimate_min'}
+    and exists $job->{'salary_estimate_max'} ) {
+    push @prompt_parts,
+          "Stepstone-Gehaltsschätzung für diese Stelle: "
+        . "€$job->{'salary_estimate_min'}–$job->{'salary_estimate_max'} "
+        . "(jährlich brutto)";
+}
 
-#,,..,,,.,.,,,.,.,...,,,.,,..,.,.,,,,,..,,.,,,.,.,...,...,.,,,...,,.,,,..,,.,,
-#REDPC3QX4S34O7QD7XNA3QZBHLQOYTFKTSILNEHHXLCXE53GWBI7M6IHEO44X7GPEZMO2SPK4HCPA
-#\\\|GSBVV7HWWV56ZYJVPZSLEHPNZWVQUVHSQ24UGBMTXDPJ2XNKBLS \ / AMOS7 \ YOURUM ::
-#\[7]RWQD63IOB2LNC7F6G4DVHLDIRN3THMIIURIX7THYI2ACGZX5TYDQ 7  DATA SIGNATURE ::
+push @prompt_parts, "Branche: $ind\n\n$desc", "Beginne jetzt mit: score:";
+
+return join( "\n\n", @prompt_parts );
+
+#,,..,...,,,,,.,.,,.,,,,,,.,.,.,,,,,.,..,,,.,,.,.,...,...,...,.,.,,..,...,,,.,
+#5CFPC5TW2COQ4YZMKZ27HC6JVJBN5HMOEIYJHAROZKYWJ5ZDHA2QNEQQ2Q4HBADNZYIP6F7Z4R5MY
+#\\\|LZYBR3O6D6QO72SRHQSZBIIWYCVAIT2J2XYMJDLRGEEMTBC44N5 \ / AMOS7 \ YOURUM ::
+#\[7]QFTKJH22AQYLMRX2QV6ENBZ6OLU6O4OZ52GCTK4ZUEA7RVCFE2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
