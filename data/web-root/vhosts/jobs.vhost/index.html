@@ -2153,7 +2153,12 @@ document.getElementById('btn-export-cancel').addEventListener('click', () => {
     document.getElementById('export-panel').style.display = 'none';
 });
 document.getElementById('btn-export-clear-history').addEventListener('click', clearExportHistory);
-document.getElementById('btn-print').addEventListener('click', () => window.print());
+document.getElementById('btn-print').addEventListener('click', () => {
+    const origTitle = document.title;
+    document.title = 'bewerbungen_' + new Date().toISOString().slice(0,10);
+    window.print();
+    document.title = origTitle;
+});
 let tableVisible = false;
 document.getElementById('btn-show-table').addEventListener('click', () => {
     const div      = document.getElementById('print-table');
