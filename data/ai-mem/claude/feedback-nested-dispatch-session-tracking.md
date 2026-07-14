@@ -41,10 +41,30 @@ relying solely on the returned summary text. Don't assume `claude_continue`
 resumed the exact same inner kimi session unless the summary explicitly
 confirms a kimi_continue (not kimi_dispatch) call happened.
 
+3. **No-op tasks get summarized as if freshly completed.** Caught 2026-07-14:
+   dispatched a research/no-code task (`window-canvas-addressing-reconciliation.md`)
+   whose target file already contained the converged answer from a prior
+   session (the task file itself was stale — one of 4 found stale that
+   session). The dispatched agent correctly read the file, saw the work
+   already done, and made no edit — but the auto-summary described that
+   pre-existing content as if it had just been produced, with full
+   confidence, no hedging. `git diff` was empty and mtime predated the
+   dispatch; only caught because the dispatch returned suspiciously fast
+   for a task that should've involved reading ~10 cross-referenced docs.
+   The summarizer has no diff to check against, so it can't distinguish
+   "I just wrote this" from "this was already here." Applies especially to
+   research/design tasks with no code diff to sanity-check by default —
+   verify via mtime/diff on the *specific target file*, and if a result
+   seems too clean or fast, resume with `auto_summarize=false` and ask for
+   raw `git diff`/`ls -la` output before trusting anything else. Also:
+   before dispatching from a task-file queue, check `git log --grep=<topic>`
+   and `data/tasks/completed/` — stale not-yet-moved task files for
+   already-landed work are common in this project's `data/tasks/` top level.
+
 #,,,.,,.,,..,,..,,..,,,,.,..,,,.,,...,,..,.,.,..,,...,...,...,,,,,.,.,.,.,.,.,
 
-#,,,.,,,.,.,,,,,.,.,.,,..,,.,,,,.,,,.,,,,,.,,,..,,...,...,.,,,..,,.,,,,,,,..,,
-#AH5LOUEJHGQI6IAWDP2Q3CVJUY74FC6JAAG745D3K2HSQMHQTRNBN4NU7EGKQJSUQYBTCMYXIITYW
-#\\\|RWHEQ2FE7QG53ZHQF7MICQQ3Z6VY4F2KXE4NWN776ZNG5MTHIIS \ / AMOS7 \ YOURUM ::
-#\[7]QHQAZCWZ2L3D5SNXIZ4JO6ITLFPRKPLPKHFUTEM65WCV5VX57SCY 7  DATA SIGNATURE ::
+#,,,.,...,,,,,..,,.,.,.,,,,,.,,,.,..,,,.,,...,..,,...,..,,,.,,,,.,.,,,,,.,,..,
+#2O5PBALJUHP5BOACK5FTNG2UWTZNPGWGASK6MSJDAI4TM2TOTXJWCVPZKOAJOCV76N6ZT3LUE4XYM
+#\\\|PEZLWVTT4HBFH7BDV7XZGI5JDWIQGIGO6LUZSOR7LZZSOKN6IAI \ / AMOS7 \ YOURUM ::
+#\[7]IJ5TXPUMOOZGZCEOECZ24E4SL42NGMBVRIQ7FF2SR6JEMYTZUCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

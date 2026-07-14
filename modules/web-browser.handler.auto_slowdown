@@ -4,15 +4,23 @@
 
 <web-browser.cfg.gpu_load_secs> //= 15;    # [ 1, 5, 15, 30 ]s
 
-<[protocol-7.route-send]>->(
-    {   'command'   => "X-11.gpu_load",
-        'call_args' => { 'args'    => <web-browser.cfg.gpu_load_secs> },
-        'reply'     => { 'handler' => 'web-browser.handler.gpu_load_reply' }
+<[base.zenki.resolve_primary_sid]>->(
+    'X-11',
+    sub {
+        my $sid = shift;
+        return if not defined $sid;
+        <[protocol-7.route-send]>->(
+            {   'command'   => "$sid.gpu_load",
+                'call_args' => { 'args' => <web-browser.cfg.gpu_load_secs> },
+                'reply'     =>
+                    { 'handler' => 'web-browser.handler.gpu_load_reply' }
+            }
+        );
     }
 );
 
-#,,,,,,..,,,.,,,.,..,,,,,,.,,,,,.,.,.,.,,,...,..,,...,..,,..,,..,,,,.,...,,,.,
-#BOC7PNP45YOFSOJNURPBHZDB5DRAINJPJ6DMUZBCDE4RXLO3R5BN7JGAXJXE2F3VDVN2WAMUANHDC
-#\\\|3IPDXNDHYDQGN3TG7TZWRRACNIT3LEFNRWSNSOPMXKCBKVYQAZU \ / AMOS7 \ YOURUM ::
-#\[7]JQLZG4GCRM4XMLVIZTNFCXUZGRJDBY5TYBUYIP7RSNQ72XKK6ACI 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,,..,...,.,.,..,,,.,,.,.,...,.,.,..,,...,...,.,.,,..,,,,,,..,,,.,
+#VHMZXW4X3G5JPMGCXD4HS4SQK2KQ52U7CBNYUT4SL56QKDWYH2ZIX4SFZFPRNK4R4QJ4FFSR2GWN4
+#\\\|5FBJMQKOYYE2Y37TJ3HHRQ6W2VWPRVCXVMUKWIC5EDWKAB2AAU6 \ / AMOS7 \ YOURUM ::
+#\[7]REGSYCBZVRON2O3U54KZQABTVXYYDPFH2FQO4637QRTDVRDJZUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

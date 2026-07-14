@@ -23,20 +23,27 @@ if ( defined $reply and ( $reply->{'cmd'} // '' ) eq qw| TRUE | ) {
 
 ## no tile entry / no geometry configured -- use full X server geometry ##
 ## as window geometry, same fallback base.X-11.get_geometry used [LLL]  ##
-<[protocol-7.route-send]>->(
-    {   'command' => qw| X-11.get_screen_size |,
-        'reply'   => {
-            'handler' => qw| base.X-11.handler.geo_fallback_reply |,
-            'params'  => {
-                'continuation_handler' => $continuation_handler,
-                'continuation_params'  => $continuation_params
+<[base.zenki.resolve_primary_sid]>->(
+    'X-11',
+    sub {
+        my $sid = shift;
+        return if not defined $sid;
+        <[protocol-7.route-send]>->(
+            {   'command' => "$sid.get_screen_size",
+                'reply'   => {
+                    'handler' => qw| base.X-11.handler.geo_fallback_reply |,
+                    'params'  => {
+                        'continuation_handler' => $continuation_handler,
+                        'continuation_params'  => $continuation_params
+                    }
+                }
             }
-        }
+        );
     }
 );
 
-#,,.,,,,,,...,.,.,.,.,,,.,,,.,,.,,,,.,.,.,..,,..,,...,...,.,.,.,.,.,.,,.,,,,.,
-#C4PTSBRTSSNKATLLQGDYSGEXRHK6UK6JP7XFBUS6KOHV6VNKY7TTPFQKVMEJI5GGSCXVFJAEC6T3M
-#\\\|EEV5FECUVFCCIZX2SZWBWGVQJ6BX2UFRG3SFDLSMIQJ5GG5S3P3 \ / AMOS7 \ YOURUM ::
-#\[7]AIINZKC5BBM5MTUDN7SDQNQTADP7B6LGTCIQ4IKVGT5XD2Z6VQDA 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,.,,,.,,.,.,,..,,.,,,.,,,..,,..,..,,...,...,,..,.,.,,,.,...,,,,,
+#OQPLLNITKLKI4VW6K7W2FXYEXSZPALXZ5PUWZ6LDD3JRSWLNKK56UILRXNPPZIFT33NNYYXM4ECOO
+#\\\|VKKEPX2GYCJT2W7W4JXTLA4XH4ND5RY4DLDNNOGM2PEWDSNZSX7 \ / AMOS7 \ YOURUM ::
+#\[7]ORDOQ36XAU6S6CSLGY7CRS4C2MIW6WNEXUQ7P3S7Y7F5F6X2AECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
