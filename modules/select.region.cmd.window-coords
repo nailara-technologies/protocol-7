@@ -62,20 +62,27 @@ $data{select}{region}{instances}{$id} = {
 );
 
 ## ask X-11 zenka for the monitor rect under the pointer ##
-<[protocol-7.route-send]>->(
-    {   'command'   => qw| X-11.get_pointer_scr_rect |,
-        'call_args' => { 'args' => '' },
-        'reply'     => {
-            'handler' => qw| select.region.handler.scr_rect_reply |,
-            'params'  => { 'id' => $id }
-        }
+<[base.zenki.resolve_primary_sid]>->(
+    'X-11',
+    sub {
+        my $sid = shift;
+        return if not defined $sid;
+        <[protocol-7.route-send]>->(
+            {   'command'   => "$sid.get_pointer_scr_rect",
+                'call_args' => { 'args' => '' },
+                'reply'     => {
+                    'handler' => qw| select.region.handler.scr_rect_reply |,
+                    'params'  => { 'id' => $id }
+                }
+            }
+        );
     }
 );
 
 return { 'mode' => qw| deferred | };
 
-#,,..,..,,...,,.,,...,,.,,.,.,.,.,,..,..,,.,.,..,,...,...,...,.,.,,,,,...,,.,,
-#FO2DMM5UNRMZA3SFX7R435KAOB5AELQZLGL4CVSF52Q6AVCQRV7EHP3ZALNGAS6LQXQQ3HAFDA434
-#\\\|5A3I6L3G6QQ5BDC3XM6CJD2A3ZZESRL4DY5VMPCWOXY4UOG2W5Z \ / AMOS7 \ YOURUM ::
-#\[7]CSHNMSAQMRQVPOLJN5HKOBSMVISOZW3TTP73HZYYOPTMXMODBYBQ 7  DATA SIGNATURE ::
+#,,..,,,.,...,,,,,..,,,.,,.,.,,..,..,,.,.,.,,,..,,...,...,,..,,,.,...,...,,,.,
+#2ESQMMC35LBVTPL36SRYMCWFJXNAJQFKDPQWIPRXD3OAMQ7UR74TUMITE3NY3MBFSCGM7M26V4YU4
+#\\\|JRCRNP7FN5UAVM6C6I3HREYNUJ47B2I7BOMO3HKSSEATNFV4V2C \ / AMOS7 \ YOURUM ::
+#\[7]4SEH2RJFXLR5ZQ74URAHYD2L5HBRNRGCZZBXCBHGGLDSBXHQOWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

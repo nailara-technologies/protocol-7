@@ -321,31 +321,39 @@ Glib::Timeout->add_seconds(
         my $live_inst = $data{'screen-setup'}{'instances'}{$id};
 
         ## discover any windows opened since the last scan ##
-        <[protocol-7.route-send]>->(
-            {   'command'   => qw| X-11.get-windows |,
-                'call_args' => { 'args' => '' },
-                'reply'     => {
-                    'handler' => qw| screen.setup.handler.windows_reply |,
-                    'params'  => { 'id' => $id }
+        <[base.zenki.resolve_primary_sid]>->(
+            'X-11',
+            sub {
+                my $sid = shift;
+                return if not defined $sid;
+                <[protocol-7.route-send]>->(
+                    {   'command'   => "$sid.get-windows",
+                        'call_args' => { 'args' => '' },
+                        'reply'     => {
+                            'handler' =>
+                                qw| screen.setup.handler.windows_reply |,
+                            'params' => { 'id' => $id }
+                        }
+                    }
+                );
+
+                ## refresh geometry for windows already tracked and not pending move ##
+                for my $win ( @{ $live_inst->{'windows'} // [] } ) {
+                    next if defined $win->{'intended_geo'};
+                    my $winid = $win->{'winid'};
+                    <[protocol-7.route-send]>->(
+                        {   'command'   => "$sid.get_geometry",
+                            'call_args' => { 'args' => $winid },
+                            'reply'     => {
+                                'handler' =>
+                                    qw| screen.setup.handler.geometry_reply |,
+                                'params' => { 'id' => $id, 'winid' => $winid }
+                            }
+                        }
+                    );
                 }
             }
         );
-
-        ## refresh geometry for windows already tracked and not pending move ##
-        for my $win ( @{ $live_inst->{'windows'} // [] } ) {
-            next if defined $win->{'intended_geo'};
-            my $winid = $win->{'winid'};
-            <[protocol-7.route-send]>->(
-                {   'command'   => qw| X-11.get_geometry |,
-                    'call_args' => { 'args' => $winid },
-                    'reply'     => {
-                        'handler' =>
-                            qw| screen.setup.handler.geometry_reply |,
-                        'params' => { 'id' => $id, 'winid' => $winid }
-                    }
-                }
-            );
-        }
         return 1;
     }
 );
@@ -361,8 +369,8 @@ if ( not <screen.setup.gtk.main_running> ) {
 
 return 0;
 
-#,,,.,,.,,.,,,,,.,,,.,,.,,,..,...,.,.,...,,,,,..,,...,...,...,,.,,.,,,,.,,,,.,
-#WGP6I2LXUTWWROMITVF6Q32AJXKRH22IYZKIHA6DFET4PWZCN67O7SCSB5PD7B6LSWAFZXFPXO6UU
-#\\\|HMVZS7M7Q4ESYMAFCYCXW4EWBFRDQFAIF4B7NDRXICHUSP7BUZW \ / AMOS7 \ YOURUM ::
-#\[7]5LGWGPVZJNOGP6ZYKOYLZZM3PR4Z47IAMGACHD6BVKOHCGGDYMCA 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,,.,,,,.,,,.,..,,,,.,.,.,.,,,.,,,..,,...,...,...,,.,,,.,,.,.,,,,,
+#RPPCSK4NO3GL25CQUKQSPKCQMZQOVBGICVF6QBWN7CV5SDC47T6B6Q3TO5DND5E3RYO7DYC5YPMJA
+#\\\|QRNPW5HOSZXNM5USBCAJXBC3UUCLAOMDQAUPZU4UZBSJE2P3M4L \ / AMOS7 \ YOURUM ::
+#\[7]SEJTFXCKGKKJDKLTMSCIXKZXKXLAKIKUMF46SALFF62V4C6M2OCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,16 +11,23 @@
 <[base.perlmod.autoload]>->('File::MimeInfo::Magic');
 <[base.perlmod.autoload]>->('X11::Protocol::XSetRoot');
 
-my $modes_re = <X-11.modes_re> = qr{^(host|xnest|nxagent|xorg|xephyr|xvfb)$};
+## trailing '-<digits>' [ e.g. 'xvfb-0000' ] is an instance index, not part ##
+## of the mode name -- same convention as mpv's 'audio(?:-\d+)?' subnames. ##
+## captured [ not discarded ] so the display-range calc in X-11.post_init ##
+## can offset the configured per-mode base display by this instance's    ##
+## index [ 'xvfb-0000' -> offset 0, 'xvfb-0001' -> offset 1, etc. ]       ##
+my $modes_re = <X-11.modes_re>
+    = qr{^(host|xnest|nxagent|xorg|xephyr|xvfb)(?:-(\d+))?$};
 
 if ( defined <system.zenka.subname> ) {
     my $override_mode = <system.zenka.subname>;
     if ( $override_mode =~ $modes_re ) {
+        my $base_mode = $1;
+        <X-11.mode_index> = defined $2 ? int($2) : undef;
         <[base.logs]>->(
-            0, "<< overriding X-11 zenka mode [ with '%s' ] >>",
-            $override_mode
+            0, "<< overriding X-11 zenka mode [ with '%s' ] >>", $base_mode
         );
-        <X-11.mode> = $override_mode;
+        <X-11.mode> = $base_mode;
     } else {
         my $old_mode = <X-11.mode>;
         <[base.logs]>->(
@@ -118,8 +125,8 @@ if ( <X-11.mode> eq qw| auto-xephyr | ) { ## detect if Xorg running --> xephyr
 
 0;
 
-#,,..,.,,,..,,.,.,,.,,,,,,.,,,..,,,,.,,,.,.,.,..,,...,...,...,,.,,,.,,.,.,,,.,
-#XGGOU6NPCRZ5QOIM5NUEM6VLRQ3NRJQC7CMM2JXGNJYMIBQAIA4EZ4RCJP3BUG6OX7OOQSQRTECPA
-#\\\|IDIYQG2V6IWAUM3CNU5YCUUA4HAXETDXBRIAEQ26XNNAQINYEKN \ / AMOS7 \ YOURUM ::
-#\[7]OOZPJWFEF5H7OXMBHP63RRWPPSQZCLPPKJWRGX4YYD3BFNLKKSBI 7  DATA SIGNATURE ::
+#,,..,...,.,.,,.,,,,.,..,,.,.,,..,.,,,.,.,,,,,..,,...,...,...,..,,.,.,..,,,,,,
+#3KWURQEXWKVF5DDLC7A7IKXYINAXQSCZXIGG6FAQQBRY6NP4NI6EWZ24HHG2XZ4B62ZGPZDBW2MSM
+#\\\|TOAKGMJUWQ3JVKBJQMHUHP6WIOLLCT4JQWIFMIQVJUX6CRK47MA \ / AMOS7 \ YOURUM ::
+#\[7]4BBKUOEBFFLEFYFHJDN6JMFBHIJTJLK3RFIU6VYY3BDPI5TELYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

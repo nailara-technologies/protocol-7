@@ -69,20 +69,27 @@ $data{window}{place}{instances}{$id} = {
 );
 
 ## ask X-11 zenka for the monitor rect under the pointer ##
-<[protocol-7.route-send]>->(
-    {   'command'   => qw| X-11.get_pointer_scr_rect |,
-        'call_args' => { 'args' => '' },
-        'reply'     => {
-            'handler' => qw| window.place.handler.scr_rect_reply |,
-            'params'  => { 'id' => $id }
-        }
+<[base.zenki.resolve_primary_sid]>->(
+    'X-11',
+    sub {
+        my $sid = shift;
+        return if not defined $sid;
+        <[protocol-7.route-send]>->(
+            {   'command'   => "$sid.get_pointer_scr_rect",
+                'call_args' => { 'args' => '' },
+                'reply'     => {
+                    'handler' => qw| window.place.handler.scr_rect_reply |,
+                    'params'  => { 'id' => $id }
+                }
+            }
+        );
     }
 );
 
 return { 'mode' => qw|deferred| };
 
-#,,..,,.,,,,.,..,,..,,,..,...,,,,,...,,,.,,.,,..,,...,...,..,,..,,,.,,..,,,,.,
-#2XWMYEBLXQ5EKGEMWA2REZ6ZO7JLC4TOQULB7DUEYRWNWZCSSFQGFW3AAD4O6QSPW4CUVVQIZ7GYU
-#\\\|WGVHBO3DAK6K2WE55X6CMPMPULEXYX64C3Q6BS6S5DHHNY5OLHM \ / AMOS7 \ YOURUM ::
-#\[7]N5ACLYSQPHNZQCRCE65A2QKAXS3EOYQMPIVH2KHPT2QK6BQFMEDY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,.,,,,..,,.,,,..,.,,,...,,.,,,..,..,,...,...,,.,,.,,,,,.,,.,,,.,,
+#5Q4D6PKU2VUTPM2EVJSWGXRYRL663QCTA5CMHGSC4XDB2BICDRKBTJSJZ35Y2XLCI2ANLLZHR5KIY
+#\\\|OUBVS456CH5QI4A4MMPFNL4WIAV3PUQSCLXC6QQLF4O7V44IYUL \ / AMOS7 \ YOURUM ::
+#\[7]YIH435FOXUXYJRPTIZFNL2ZSSIC37P2BSUNSGHETD7L4HQWGIICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

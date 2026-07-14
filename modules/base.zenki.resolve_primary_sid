@@ -1,0 +1,89 @@
+## [:< ##
+
+# name  = base.zenki.resolve_primary_sid
+# descr = async resolver for primary zenka instance sid by subname group
+
+my $user_name      = shift // return;
+my $callback       = shift // return;
+my $caller_subname = shift // <system.zenka.subname>;
+
+$caller_subname //= '';
+
+my $cache     = <zenki.resolve_cache> //= {};
+my $cache_ttl = <zenki.resolve_cache_ttl> // 5;
+my $now       = <[base.time]>->();
+
+if (    exists $cache->{$user_name}->{$caller_subname}
+    and defined $cache->{$user_name}->{$caller_subname}->{'sid'}
+    and $now - $cache->{$user_name}->{$caller_subname}->{'ts'} < $cache_ttl )
+{
+    <[base.logs]>->(
+        2,          '[resolve_primary_sid] cache hit for %s[%s] = %s',
+        $user_name, $caller_subname,
+        $cache->{$user_name}->{$caller_subname}->{'sid'}
+    );
+    $callback->( $cache->{$user_name}->{$caller_subname}->{'sid'} );
+    return;
+}
+
+## v7 already keeps root_sid + subname + status in sync locally per        ##
+## managed instance [ <v7.zenka.instance> ] -- no need to ask cube over    ##
+## the network for data v7 already has, and 'list' isn't even whitelisted  ##
+## for v7 to call cross-zenka on cube.                                     ##
+if ( <system.zenka.name> eq qw| v7 | ) {
+    my $ids_result = <[v7.zenka-instances.get-ids]>->($user_name);
+    my @instance_ids
+        = ref $ids_result eq qw| HASH | ? @{ $ids_result->{'ids'} } : ();
+
+    ## 'root_sid' is NOT the managed zenka's own session -- it's set once  ##
+    ## by v7.callback.connect_to_cube for v7's OWN cube connection only     ##
+    ## (the 'is-cube' instance). The per-instance session id every other    ##
+    ## managed zenka actually has is 'cube_sid'. v7.handler.heartbeat_timer ##
+    ## nests it behind root_sid ("$root_sid.$cube_sid") because it calls    ##
+    ## command.send.local directly -- but every caller of this resolver     ##
+    ## goes through protocol-7.route-send, which already auto-prepends the  ##
+    ## equivalent hop via <protocol-7.network.parent_route>. Prepending     ##
+    ## root_sid here too would double the prefix, so use cube_sid alone.    ##
+    my @rows;
+    foreach my $iid (@instance_ids) {
+        my $inst = <v7.zenka.instance>->{$iid};
+        next if not defined $inst;
+        next if ( $inst->{'status'} // '' ) !~ m{^(online|extbin)$};
+        my $cube_sid = $inst->{'cube_sid'};
+        next if not defined $cube_sid;
+        push @rows,
+            {
+            'sid'     => $cube_sid,
+            'subname' => $inst->{'subname'} // ''
+            };
+    }
+
+    my $resolved_sid = <[base.zenki.resolve_primary_sid.pick]>->(
+        \@rows, $caller_subname, $user_name
+    );
+
+    $cache->{$user_name}->{$caller_subname}
+        = { 'sid' => $resolved_sid, 'ts' => $now };
+    $callback->($resolved_sid);
+    return;
+}
+
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| list |,
+        'call_args' => { 'args' => "subnames $user_name" },
+        'reply'     => {
+            'handler' => qw| base.zenki.resolve_primary_sid.reply |,
+            'params'  => {
+                'user_name'      => $user_name,
+                'callback'       => $callback,
+                'caller_subname' => $caller_subname
+            }
+        }
+    }
+);
+
+#,,.,,...,,,,,,,.,,.,,.,,,,,.,..,,,,,,..,,...,..,,...,...,,..,.,,,,,.,,..,.,,,
+#YCT5UUCOFEUSW4DWDEUBS4CZ6ZTLLPHJQ3FUFG4AWD4HYB2VWFPH4XOBH4WYJGG4GTZ66KGHZQQWM
+#\\\|Z424PBNBUNLF3VZE5D6YYPJA5SEJR5T663V4UAFDITOMMNO65VS \ / AMOS7 \ YOURUM ::
+#\[7]VMSUE773JIN4HI6OF2ASC3S66KDDGHRUG7BTHIV4VIJ66NNSG4BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

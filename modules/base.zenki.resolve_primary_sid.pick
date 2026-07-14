@@ -1,0 +1,71 @@
+## [:< ##
+
+# name  = base.zenki.resolve_primary_sid.pick
+# descr = shared hybrid group-match logic over parsed [ sid, subname ] rows
+
+my $rows           = shift // [];
+my $caller_subname = shift // '';
+my $user_name      = shift // '';
+
+my $resolved_sid;
+if ( @$rows == 0 ) {
+    $resolved_sid = undef;
+} elsif ( @$rows == 1 ) {
+    $resolved_sid = $rows->[0]->{'sid'};
+} else {
+    ## group match : caller subname == row subname [ both empty counts as match ] ##
+    my @group = grep {
+        ( length $_->{'subname'} )
+            ? ( length $caller_subname
+                and $_->{'subname'} eq $caller_subname )
+            : ( not length $caller_subname )
+    } @$rows;
+
+    if ( @group == 1 ) {
+        $resolved_sid = $group[0]->{'sid'};
+    } else {
+        ## preferred subname fallback ##
+        my $preferred = <zenki.$user_name.preferred_subname>;
+        if ( defined $preferred and length $preferred ) {
+            my @pref = grep {
+                defined $_->{'subname'}
+                    and $_->{'subname'} eq $preferred
+            } @$rows;
+            if (@pref) {
+                if ( @pref > 1 ) {
+                    <[base.logs]>->(
+                        1,
+                        '[resolve_primary_sid] preferred subname %s matched '
+                            . 'multiple %s instances, using lowest sid',
+                        $preferred,
+                        $user_name
+                    );
+                }
+                @pref         = sort { $a->{'sid'} <=> $b->{'sid'} } @pref;
+                $resolved_sid = $pref[0]->{'sid'};
+            }
+        }
+
+        ## lowest sid fallback ##
+        if ( not defined $resolved_sid ) {
+            my @sorted = sort { $a->{'sid'} <=> $b->{'sid'} } @$rows;
+            $resolved_sid = $sorted[0]->{'sid'};
+            <[base.logs]>->(
+                1,
+                '[resolve_primary_sid] no group match for %s[%s], '
+                    . 'falling back to lowest sid %s',
+                $user_name,
+                $caller_subname,
+                $resolved_sid
+            );
+        }
+    }
+}
+
+return $resolved_sid;
+
+#,,,,,,..,.,,,...,,,,,,..,,,,,,.,,,,,,,,,,,.,,..,,...,...,.,,,,,.,,,,,.,,,..,,
+#UKIZQXP2RYJ6JNKEEVIWBVFMKYG2CTQF3EAWJ3JHLDXID3LPWVXPDRDCTV43RRAY7HE422XD7HD5K
+#\\\|7RE5SCKPN3ATZ3E2XK3IND7XBF5JQ2YLJ2GVVN4OIRM4XO6J3OW \ / AMOS7 \ YOURUM ::
+#\[7]NIMR4MUY3CE4FID3AOD6A52L7J2JUQLX4G47NVE3BRVYD5Z6LYDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

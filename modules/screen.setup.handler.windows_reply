@@ -60,13 +60,21 @@ for my $e (@new_entries) {
     my $winid = $e->{'winid'};
     $inst->{'windows_temp'}{$winid} = { 'title' => $e->{'title'} };
 
-    <[protocol-7.route-send]>->(
-        {   'command'   => qw| X-11.get_geometry |,
-            'call_args' => { 'args' => $winid },
-            'reply'     => {
-                'handler' => qw| screen.setup.handler.geometry_reply |,
-                'params'  => { 'id' => $id, 'winid' => $winid }
-            }
+    <[base.zenki.resolve_primary_sid]>->(
+        'X-11',
+        sub {
+            my $sid = shift;
+            return if not defined $sid;
+            <[protocol-7.route-send]>->(
+                {   'command'   => "$sid.get_geometry",
+                    'call_args' => { 'args' => $winid },
+                    'reply'     => {
+                        'handler' =>
+                            qw| screen.setup.handler.geometry_reply |,
+                        'params' => { 'id' => $id, 'winid' => $winid }
+                    }
+                }
+            );
         }
     );
 }
@@ -93,8 +101,8 @@ for my $e (@new_entries) {
 
 #
 
-#,,.,,.,.,,,,,,.,,.,.,..,,...,,,,,..,,,.,,.,,,.,.,...,...,.,.,,.,,..,,.,.,.,,,
-#YMQHCOPFTCRA6XFXPG3IOTSGJCHZ3M57COTQW2FFOW23TWTDASAZUVXD2R7VUJSHM6QO3ASN3US5M
-#\\\|EUE7KXBHT567F23MII5SDRM2YW37TIQ44BQEDCE74YHTQ7KMG2T \ / AMOS7 \ YOURUM ::
-#\[7]YI4F64KVCT7A67SI2UPTHYDPRORLDGOC2MG4OF324HCU5ZZI7QAA 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,...,.,,,.,,,.,,,,..,.,,,..,,...,.,.,...,...,..,,,.,,.,,,,.,,.,,,
+#CIGFOZMEPBJNLKU7VJNUQCRQD7XHOPW6MIUIASTVR4RUPKS6COBCQ56VCYDMR3SR5UTWAWABXGNCS
+#\\\|SOREOVW55P6Q2F7322IWG3CI2OFHEABJE6B5KMDPTPG56BP6MOV \ / AMOS7 \ YOURUM ::
+#\[7]G65NMUILZ6RSYXMY22EC6GAQUBHMQIGO4TJ6BNXLYJT3HGJF3UBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

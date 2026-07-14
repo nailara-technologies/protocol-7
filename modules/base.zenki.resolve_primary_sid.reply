@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = base.zenki.resolve_primary_sid.reply
+# descr = reply handler for base.zenki.resolve_primary_sid
+
+my $reply = shift // {};
+
+my $user_name      = $reply->{'params'}{'user_name'};
+my $callback       = $reply->{'params'}{'callback'};
+my $caller_subname = $reply->{'params'}{'caller_subname'} // '';
+
+if ( not defined $user_name or not defined $callback ) {
+    <[base.logs]>->( 0, '[resolve_primary_sid] reply missing params' );
+    return;
+}
+
+my $cmd        = uc( $reply->{'cmd'} // '' );
+my $table_text = $cmd eq qw| SIZE | ? ( $reply->{'data'} // '' ) : '';
+
+my @lines = split m|\n|, $table_text;
+
+## find separator line [ data rows follow it ] ##
+my $data_start = 0;
+for my $i ( 0 .. $#lines ) {
+    if ( $lines[$i] =~ m|^\s*-{3,}| ) {
+        $data_start = $i + 1;
+        last;
+    }
+}
+
+my @rows;
+for my $i ( $data_start .. $#lines ) {
+    my $line = $lines[$i];
+    next if $line =~ m|^\s*$|;
+    $line =~ s|^\s+||;
+    my @cols = split m|\s+|, $line;
+    next if @cols < 3;    ## malformed row ##
+    my ( $sid, $status, $zenka, $subname ) = @cols;
+    $subname //= '';
+    next if $zenka ne $user_name;
+    push @rows, { 'sid' => $sid, 'subname' => $subname };
+}
+
+my $resolved_sid = <[base.zenki.resolve_primary_sid.pick]>->(
+    \@rows, $caller_subname, $user_name
+);
+
+## cache result [ even undef prevents repeated round-trips during ttl ] ##
+my $cache = <zenki.resolve_cache> //= {};
+$cache->{$user_name}->{$caller_subname} = {
+    'sid' => $resolved_sid,
+    'ts'  => <[base.time]>->()
+};
+
+$callback->($resolved_sid);
+
+#,,,.,,,.,...,,.,,,,.,.,,,.,,,,.,,.,.,,.,,,..,..,,...,...,,..,,..,,,.,,,.,..,,
+#BEJC2PKH2XS3NRED72GTLODLYQO3IRC2BSEYKYKX3VUMRMULS6YLUM2UBGDNK62STIQCOXLJMGENY
+#\\\|TEY4CLXZJ3NIP4B3MGKVEAPLPCO4UPOAZJVP3REGOINAC3BEOGU \ / AMOS7 \ YOURUM ::
+#\[7]4GRF6EMOZKJDJYYO4DSYKMBS5LHZHV4VMDHP33HF4ETCP3XIMMDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

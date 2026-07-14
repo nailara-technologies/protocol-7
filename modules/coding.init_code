@@ -539,21 +539,28 @@ if ( not $already_initialized ) {
     );
 
     ## subscribe to X-11 GPU stats stream if available ##
-    <[protocol-7.command.send.local]>->(
-        {   'command'   => 'X-11.gpu_load',
-            'call_args' => { 'args' => 'subscribe' },
-            'reply'     => {
-                'handler' => 'coding.handler.gpu_stats_update',
-                'params'  => {}
-            }
+    <[base.zenki.resolve_primary_sid]>->(
+        'X-11',
+        sub {
+            my $sid = shift;
+            return if not defined $sid;
+            <[protocol-7.route-send]>->(
+                {   'command'   => "$sid.gpu_load",
+                    'call_args' => { 'args' => 'subscribe' },
+                    'reply'     => {
+                        'handler' => 'coding.handler.gpu_stats_update',
+                        'params'  => {}
+                    }
+                }
+            );
         }
     );
 }
 
 return 0;
 
-#,,.,,..,,.,.,.,,,.,.,..,,..,,,.,,..,,...,,,,,.,.,...,...,,..,...,.,,,,,,,,,.,
-#G7K5CRSRQP3D36H56METQLBABNHYK7JLWSBJUGG2HAIENQS7DXGXG3Z5MREKAJJGILKAFCKOR4R5E
-#\\\|LYFWKBZWSAQD5QTQFRTODCL64RZJPCLDLQCAO3U4IPFHUB6JSHL \ / AMOS7 \ YOURUM ::
-#\[7]AH6YAMFRZIMJE2GO5IO5DNSUUMVQY6LO3UUNZOHOGG6ZWYBZ5AAI 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,.,.,.,,,,..,.,.,,..,..,,..,,..,,.,.,...,...,,,.,.,,,..,,,.,,,..,
+#VZD2DH3YCUH6UO2CURIGTZ5MXBIU3VDO3CADDR6KFHPYMLAXNW3B47HF74MCVIDHA3GXCYCLKNT5A
+#\\\|5CMNMCZRWVB7G32IQEKL7MTUAG5QCR3JTZGMQ6OWRDIOHE3GW36 \ / AMOS7 \ YOURUM ::
+#\[7]AI4SRK2OHKJWE4VMRSJTKQZWU3J76MZJRUK3NOUWRYCW4OR5B6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
