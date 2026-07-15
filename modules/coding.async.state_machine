@@ -81,15 +81,15 @@ elsif ( $action eq 'set' ) {
 ## initialize new task ##
 elsif ( $action eq 'init' ) {
     my $initial = {
-        'task_id'    => $task_id,
-        'state'      => STATE_STREAMING,
-        'round'      => 0,
+        'task_id' => $task_id,
+        'state'   => STATE_STREAMING,
+        'round'   => 0,
         ## round_started intentionally NOT stamped here : this fires at task
         ## creation, before the task has actually been dispatched [ still
         ## waiting on backend_acquire ]. coding.async.request stamps it at
         ## the real dispatch point instead - the only place that reflects
         ## "time since the current attempt began" correctly. ##
-        'messages'   => $data->{'messages'} // [],
+        'messages'      => $data->{'messages'} // [],
         'tools'         => $data->{'tools'}    // [],
         'content'       => '',
         'tool_calls'    => [],
@@ -246,7 +246,9 @@ elsif ( $action eq 'transition' ) {
                 }
             );
         }
-        $state->{'pending_tools'} = $data->{'tool_calls'} // [];
+        ## phase boundary : http response fully received, tool execution begins ##
+        $state->{'round_tools_started'} = <[base.time]>->(3);
+        $state->{'pending_tools'}       = $data->{'tool_calls'} // [];
         <coding.async.task_state>->{$task_id} = $state;
         <[coding.async.tool_executor]>->($task_id);
     } elsif ( $new_state eq STATE_STREAMING && $event eq 'tools_done' ) {
@@ -255,6 +257,7 @@ elsif ( $action eq 'transition' ) {
         ## dispatched yet [ still needs enqueue_round -> backend_acquire ]. ##
         ## coding.async.request stamps it at the real dispatch point.      ##
         delete $state->{'round_started'};
+        delete $state->{'round_tools_started'};
         ## add assistant message with tool_calls to conversation ##
         ## tool_calls passed from tool_executor in transition data ##
         my $tool_calls   = $data->{'tool_calls'}   // [];
@@ -489,6 +492,9 @@ elsif ( $action eq 'transition' ) {
         <coding.async.task_state>->{$task_id} = $state;
         <[coding.task.enqueue_round]>->( $task_id, $state->{'round'} );
     } elsif ( $new_state eq STATE_COMPLETE ) {
+        ## response completed without tool execution : clear phase trackers ##
+        delete $state->{'round_started'};
+        delete $state->{'round_tools_started'};
         $state->{'final_content'} = $data->{'content'} // $state->{'content'};
         ## strip tool call markup if present ##
         my $final_display = $state->{'final_content'};
@@ -593,8 +599,8 @@ elsif ( $action eq 'constants' ) {
 
 return { error => sprintf "unknown action : '%s'", $action };
 
-#,,,,,,..,.,.,.,,,,,,,..,,,,.,.,,,,.,,.,.,,.,,.,.,...,...,.,,,,.,,,,.,..,,,..,
-#JEEGLGXZEJ5LN6HIGZ56CO7EWXHEKWFTJYXMQS4U7PVN7662ZSVWUQ6PJ3266JJU2NVXDY77NNGWK
-#\\\|QLSNDX7G4U7YDPE5SACCCT7PNCNEYXJFYAOW6UAGEIKABUDJ5VS \ / AMOS7 \ YOURUM ::
-#\[7]NSJFVF4RYMI24YEX6TLBPIAW7GRXH6OOQJVMI5UWFADCNNQR7QAI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,,.,,.,,,.,,,.,,.,,,,.,,.,.,.,,,.,.,...,...,..,,...,,,.,,,.,.,.,
+#L4UAHFEDGRTWTBW5XQQPIZYDR7WNZTCJOJKLB3BXBZB2OTMWRKYCVSJE3MJ2XHZPHJERXSBHNDJ46
+#\\\|XEB6VTEJSMCXB3JIKZDFKELIWLJ2ZYZEF7DPAKW2RRV574JAAIQ \ / AMOS7 \ YOURUM ::
+#\[7]2ME3C32G7EGHZ2WMQ57EISM2FMCRW3BE2XXLALTZQZLDOMSZX4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
