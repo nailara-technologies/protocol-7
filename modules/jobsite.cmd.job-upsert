@@ -21,7 +21,10 @@ $job->{'id'} = $id;
 if ( length( $job->{'title'} // '' ) ) {
     $job->{'title'} =~ s{^\s*\[Hiring\]\s+}{}i;
     $job->{'title'} =~ s{\s*\(all genders\)}{}gi;
-    $job->{'title'} =~ s{\s*\((?:m/w/d|w/m/d|m/f/d|f/m/d)\)}{}gi;
+    ## any 2-4 letter permutation of the gender-marker set [ m w f d x ],  ##
+    ## slash-separated in parens -- new combos [ f/m/x etc ] keep showing  ##
+    ## up, a fixed list of permutations can never keep pace ##
+    $job->{'title'} =~ s{\s*\(\s*[mwfdx](?:\s*/\s*[mwfdx]){1,3}\s*\)}{}gi;
     $job->{'title'} =~ s{\s+$}{};
 }
 
@@ -96,12 +99,12 @@ if ($is_new) {
 }
 
 return {
-    'mode' => 'true',
-    'data' => $is_new ? 'new' : 'updated'
+    'mode' => qw| true |,
+    'data' => $is_new ? qw| new | : qw| updated |
 };
 
-#,,,.,..,,,,.,,..,,,.,...,,.,,,,,,,..,..,,,.,,.,.,...,...,,,.,..,,.,.,,,.,.,,,
-#6SLJZTNP7323PA2ODXRI2LNY3GK3GJKGWI34RLXPSQTU5QAXO2HEWKDM5UWD5MISJJZMN5EDFWWGA
-#\\\|OKQC24CAY7WMQKQKYV4XYUI7BIMAEYK4RGBYLM2UD25J4PN75JJ \ / AMOS7 \ YOURUM ::
-#\[7]XRAZWGOCWGWA3MDFICUB2YMXDNIDV6R3BN5C7WUOOVJVOAVJ7OAA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,.,,,,.,,.,,,..,,.,,,,.,.,.,...,.,.,...,...,,.,,.,,,,,,,,,.,.,,,
+#44FYSXF2DMPHT3CP2DE72Y7Z73C6BYH3TE42RT7MXOK5YSUYUFEQCVVDN7QTGPN3KJK6KRCL7YRBM
+#\\\|GR5MO4A4UFIZ5TRTNSLGDGHDBB6MB3FLLW7X2WWPJHUEN356K4T \ / AMOS7 \ YOURUM ::
+#\[7]XERONXSZIIHUNG53NXLDCLSTKSVOQYVGCYAD3JDMZBXBCYGX7MDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
