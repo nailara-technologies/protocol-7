@@ -38,23 +38,46 @@ if ( not defined $task_id ) {
 
 my $state         = <[coding.async.state_machine]>->( qw| get |, $task_id );
 my $round         = $state->{'round'} // 0;
-my $round_started = $state->{'round_started'};
+my $http_started  = $state->{'round_started'};          ## phase 1 start ##
+my $tools_started = $state->{'round_tools_started'};    ## phase 2 start ##
 
 my $right;
 my $bar;
 my $color = $TRUE_color;
 
-if ( not defined $round_started ) {
+if ( not defined $http_started ) {
     $bar   = '';
     $right = sprintf "%s | r%d | no data yet", $task_id, $round;
 } else {
-    my $elapsed = $now - $round_started;
-    my $pct     = $ceiling > 0 ? $elapsed / $ceiling : 0;
-    my $filled  = int( $chars_max * ( $pct > 1 ? 1 : $pct ) );
-    $bar   = ':' x $filled;
-    $color = $pct >= 0.9 ? $WARN_color : $TRUE_color;
-    $right = sprintf "%s | R:%02d | %03ds of %03ds [ %d%% ]",
-        $task_id, $round, $elapsed, $ceiling, int( $pct * 100 );
+    my $http_end     = defined $tools_started ? $tools_started : $now;
+    my $http_elapsed = $http_end - $http_started;
+    my $http_pct     = $ceiling > 0 ? $http_elapsed / $ceiling : 0;
+    my $filled       = int( $chars_max * ( $http_pct > 1 ? 1 : $http_pct ) );
+    $bar = ':' x $filled;
+
+    my $tools_elapsed
+        = defined $tools_started ? $now - $tools_started : undef;
+
+    my $tools_str = 'tools: --';
+    if ( defined $tools_elapsed ) {
+        my $tools_flag
+            = $tools_elapsed > $ceiling ? '[!! long]'
+            : $tools_elapsed > 300      ? '[! long]'
+            :                             '';
+        $tools_str = sprintf "tools: %ds (no ceiling) %s",
+            $tools_elapsed, $tools_flag;
+        $tools_str =~ s| +$||;
+    }
+
+    ## bar/color reflect http phase [ the one with the timeout ceiling ] ##
+    $color = $http_pct >= 0.9 ? $WARN_color : $TRUE_color;
+    ## also warn if tool execution has run unreasonably long             ##
+    $color = $WARN_color
+        if defined $tools_elapsed && $tools_elapsed > $ceiling;
+
+    $right = sprintf "%s | R:%02d | http: %03ds of %03ds [%%%03d] | %s",
+        $task_id, $round, $http_elapsed, $ceiling,
+        int( $http_pct * 100 ), $tools_str;
 }
 
 my $rw = length $right;
@@ -71,8 +94,8 @@ return {
     'data' => $output_str,
 };
 
-#,,.,,...,..,,..,,,,,,,..,,..,...,...,,.,,,,,,..,,...,..,,.,,,,,,,,,,,,.,,,,.,
-#D6ZYI24TVBYYTBWKGV4LL7GSHJ4MGY5XE4QRSC4K42Y4I7TAT3J2MX64C5QM57XT6Q2PVBALCWOUS
-#\\\|UJTEZA6BG77MMZ5YB4LHLCM3TT2TYM52O4I2B66X2SAUGLH35BL \ / AMOS7 \ YOURUM ::
-#\[7]LQGKSJDMCGGQ2JKIHB7M4GUUSUH3GPBJIB3AFDIRJGNTGHCOKECA 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,.,,.,.,,.,,,,.,,,,,...,,,.,,.,,..,,...,..,,,,,,,,,,,.,,,..,.,,,
+#HTQJZ7UGF5Z6E2JXOZ6G7ATQ6Q5KR6N7BJIVKWYG4DOWS4BC2EB4N526VWRHGHTNZR7YLLMLTOTNA
+#\\\|3JJN2YPGX2YR6LLELKYO26M7WR4LUXX6UYIGGQAFP5UIHG55YCI \ / AMOS7 \ YOURUM ::
+#\[7]NU2PLZLHJW6EWR72WES576TKZQTD7VAALIH766SRQLFZIIV64GCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
