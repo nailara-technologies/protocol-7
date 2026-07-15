@@ -81,11 +81,15 @@ elsif ( $action eq 'set' ) {
 ## initialize new task ##
 elsif ( $action eq 'init' ) {
     my $initial = {
-        'task_id'       => $task_id,
-        'state'         => STATE_STREAMING,
-        'round'         => 0,
-        'round_started' => <[base.time]>->(3),
-        'messages'      => $data->{'messages'} // [],
+        'task_id'    => $task_id,
+        'state'      => STATE_STREAMING,
+        'round'      => 0,
+        ## round_started intentionally NOT stamped here : this fires at task
+        ## creation, before the task has actually been dispatched [ still
+        ## waiting on backend_acquire ]. coding.async.request stamps it at
+        ## the real dispatch point instead - the only place that reflects
+        ## "time since the current attempt began" correctly. ##
+        'messages'   => $data->{'messages'} // [],
         'tools'         => $data->{'tools'}    // [],
         'content'       => '',
         'tool_calls'    => [],
@@ -247,7 +251,10 @@ elsif ( $action eq 'transition' ) {
         <[coding.async.tool_executor]>->($task_id);
     } elsif ( $new_state eq STATE_STREAMING && $event eq 'tools_done' ) {
         $state->{'round'}++;
-        $state->{'round_started'} = <[base.time]>->(3);
+        ## round_started NOT stamped here : this round hasn't actually been ##
+        ## dispatched yet [ still needs enqueue_round -> backend_acquire ]. ##
+        ## coding.async.request stamps it at the real dispatch point.      ##
+        delete $state->{'round_started'};
         ## add assistant message with tool_calls to conversation ##
         ## tool_calls passed from tool_executor in transition data ##
         my $tool_calls   = $data->{'tool_calls'}   // [];
@@ -586,8 +593,8 @@ elsif ( $action eq 'constants' ) {
 
 return { error => sprintf "unknown action : '%s'", $action };
 
-#,,..,.,.,.,.,,,.,...,...,,,,,.,.,.,,,,,,,...,.,.,...,...,,..,,,,,..,,,,,,,,.,
-#3ZKE4UHVXP22Q6LFMYMWUNGSZ3E7JGMQTB7RODZCWYHUMQNLZT2ELC4TXVYNRZFJ4YLKDKGUIDF2U
-#\\\|G66TRBA2V3GLSCTZJZT3HCD72GSDUQ2IYZFUBCL4V35FZFBRZTO \ / AMOS7 \ YOURUM ::
-#\[7]BEGVNC3EZERH5N6SSGRWOGJYONRSS7C4E4EAPURQKENHUM6VDCCA 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,.,,,,,,,..,,,,.,.,,,,.,,.,.,,.,,.,.,...,...,.,,,,.,,,,.,..,,,..,
+#JEEGLGXZEJ5LN6HIGZ56CO7EWXHEKWFTJYXMQS4U7PVN7662ZSVWUQ6PJ3266JJU2NVXDY77NNGWK
+#\\\|QLSNDX7G4U7YDPE5SACCCT7PNCNEYXJFYAOW6UAGEIKABUDJ5VS \ / AMOS7 \ YOURUM ::
+#\[7]NSJFVF4RYMI24YEX6TLBPIAW7GRXH6OOQJVMI5UWFADCNNQR7QAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
