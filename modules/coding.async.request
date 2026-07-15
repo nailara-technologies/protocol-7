@@ -63,8 +63,10 @@ if ( not $lock_result->{'acquired'} ) {
     return { success => TRUE, mode => qw| deferred |, backend_busy => TRUE };
 }
 
-## stamp round_started here, not just on round increment : this fires on ##
-## every actual dispatch attempt, first try and every timeout retry alike ##
+## stamp phase-1 (http-wait) start here, not just on round increment :  ##
+## this fires on every actual dispatch attempt, first try and every      ##
+## timeout retry alike. phase-1 ends when the response is fully          ##
+## received; coding.async.state_machine then starts phase-2 tracking.    ##
 $existing->{'round_started'} = <[base.time]>->(3) if defined $existing;
 
 ## check if state already exists [ follow-up round ] ##
@@ -143,8 +145,8 @@ return {
     mode    => qw| streaming |,
 };
 
-#,,,.,,.,,,,,,.,.,..,,,,,,,,,,,..,..,,,..,,..,..,,...,...,..,,,,,,,.,,..,,..,,
-#T4RUXEJP7VOBRG7Z46QL6S6ACXWYLRG5NS6TUY7NRRPDPJAJT6LN5HDAL3VNW22LWMCOPJIEH3MNU
-#\\\|HRNHHQR5OE4NVSCDFA7KD54IPJFG7HP3OGHNPBEBDL3YYK6XJKG \ / AMOS7 \ YOURUM ::
-#\[7]46WMA4NR5E42GSISPD4VSDCNMFBKF7YJCZXXQH6W6A5VO3K62ECA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,...,,..,..,,.,.,..,,...,,,,,...,..,,...,...,.,.,.,.,.,.,,.,,,..,
+#WS47F3UHBRW7QI6CRIJRGGWEJ4CTGYCCUGVCOAZNFNFM3NCG3AIDTWO2VFXM5NVCZINREVHC7VKTG
+#\\\|MBUPRFDA2SYGEGHPPI7G2KMVXQYCA6JU5D3L4XQOETEGWFD62EL \ / AMOS7 \ YOURUM ::
+#\[7]7OF7BERG5QKSWFI2VTHQ7BMQTYV6W4YJ2YD6CZP3QJCLSSWZNEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
