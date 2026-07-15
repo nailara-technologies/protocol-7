@@ -5,29 +5,29 @@
 
 return {
     'mode' => qw| false |,
-    'data' => 'no city selected (undefined station id)'
+    'data' => 'no city selected [undefined station id]'
     }
     if not defined <weather.station_id>;
 
 my $stid = <weather.station_id>;
 my $wind = <weather.data>->{$stid}->{'current'}->{'wind'} // {};
 
-my $speed = $wind->{'speed_kmh'} // 'n/a';
-my $dir   = $wind->{'direction'} // 'n/a';
+my $speed = $wind->{'speed_kmh'} // 'n|a';
+my $dir   = $wind->{'direction'} // 'n|a';
 
 my $data;
-if ( $speed =~ /^\d+(\.\d+)?$/ ) {
-    $data = "$speed km/h";
-    $data .= Encode::encode( 'UTF-8', " \N{DEGREE SIGN}" ) . $dir
-        if $dir =~ /^\d+(\.\d+)?$/;
+if ( $speed =~ m{^\d+(\.\d+)?$} ) {
+    $data = sprintf 'km|h: %03d', $speed;
+    $data .= Encode::encode( 'UTF-8', " <-\N{DEGREE SIGN}" ) . $dir
+        if $dir =~ m{^\d+(\.\d+)?$};
 } else {
-    $data = 'n/a';
+    $data = 'n|a';
 }
 
 return { 'mode' => qw| true |, 'data' => $data }
 
-#,,.,,..,,,,,,.,.,,.,,.,.,..,,.,,,.,.,.,,,,,.,..,,...,...,..,,..,,,,.,,,.,,,,,
-#LMANZWKFQNSWT276OVNPKVWVRSDFPB2RAIKWIMGALXFEQYXU7MU2RO7FRH2S2XEYEO3PJ2RXNRQIA
-#\\\|RDX4FYC6ORMDL2H5QNUYNAQ3CLEZCMFNZWWBQEP677H5M3CFZVT \ / AMOS7 \ YOURUM ::
-#\[7]LE7I2R5IZBH4LBNG3UJKH52WOX2EPFJKHEVV3CLBOL5YMRRZTADA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,,.,.,,,,.,,,,.,.,.,,,.,.,.,,,,,..,,...,...,,.,,,..,,,,,...,.,,,
+#7HWO6EVBCYF4Q42T4UCHOAUSRZZPIKW5KR3MIYLKJX2F5UN6N2WEUBJMW67R36Q7MPUV2EOTG2UI6
+#\\\|4UUA5EHLEQ57PNMXE4P5X43P3D3EM6XMQKE2AC5BVAB5DEBYDET \ / AMOS7 \ YOURUM ::
+#\[7]BH5JNG6JPFTPOEILR7OJBQZPSVIUY2LNAPQPEJN7QXJDDJ2QI6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
