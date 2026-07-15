@@ -47,10 +47,18 @@ if ( lc($mode) eq qw| false | ) {
         0,        'assess-done: task %s failed for job %s',
         $task_id, $job_id
     );
-    $job_rec->{'stage'} = 'failed';
+    ## hard infra failure [ no model result at all ] : flag it for the      ##
+    ## fehler tab, same as a validation-repair failure below, but do NOT   ##
+    ## touch stage/status -- unlike a real low score this carries no new   ##
+    ## information about the job, so evicting it out of wherever the user  ##
+    ## placed it [ e.g. review ] would be pure data loss dressed up as a   ##
+    ## pipeline decision. status='assessed' is also a dead end : the web   ##
+    ## plugin purges that legacy status on every restart [ see             ##
+    ## plugin.web.jobs.init_code ], so the job would eventually vanish     ##
+    ## from disk entirely ##
+    $job_rec->{'repair_failed'} = TRUE;
     my $job_f = <[jobsite.job.read]>->($job_id) // {};
-    $job_f->{'status'} = 'assessed';
-    $job_f->{'stage'}  = 'failed';
+    $job_f->{'repair_failed'} = TRUE;
     <[jobsite.job.write]>->( $job_id, $job_f );
     <jobsite.pending_count>--;
     <[jobsite.state.persist]>;
@@ -59,9 +67,14 @@ if ( lc($mode) eq qw| false | ) {
 }
 
 ## protected stages : user decisions must survive pipeline activity ##
+## 'review' is protected too : a manual reassess of a job the user is       ##
+## actively looking at must never auto-evict it into trash on a low score  ##
+## -- the user already chose to look at it and asked for a fresh opinion,  ##
+## a low score should update score/score_reason for their own judgement,  ##
+## not yank the job out from under them ##
 my %protected_stage
     = map { $ARG => 1 }
-    qw| applied interviewed responded rejected skipped archived |;
+    qw| review applied interviewed responded rejected skipped archived |;
 
 my %stage_to_status = (
     'review'      => 'review',
@@ -297,8 +310,8 @@ if ( <jobsite.pending_count> <= 0 ) {
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.next]>
 
-#,,..,...,.,,,.,.,,.,,...,...,.,,,...,...,,..,..,,...,...,...,...,,.,,,.,,,,.,
-#YPV6IIXJEXW3HDVPC6FXD2ZU3YRBJHOU7IMSTHORXIVJBDFSCG5UB2DFQNJI2O7TCZEO6BWZZJDSE
-#\\\|A5XZVT7PTYZMQOAUBCDDFIH64C4TCK3W7RDYI7U3D4NMKWW47SD \ / AMOS7 \ YOURUM ::
-#\[7]KF73MQ2IU5IMH76RZPNPHT2R34E23PXBGFNKMWMQEKBPGPE7YEDA 7  DATA SIGNATURE ::
+#,,..,..,,,..,...,.,,,...,.,,,.,,,,,.,.,.,.,.,..,,...,...,.,.,,..,,..,,,.,...,
+#DF54KVRYJMNQ2HIFFUPIRV2A6ZYWSIBTF6AXT6G5FVB2OOJOMGRO4RDBYVMQGLRDADLTIK34I5DOY
+#\\\|EPGLCY2CBCIEHK6RW5ER7TBUNWCA45RDNTLVHR7OUTLBQSAWWEX \ / AMOS7 \ YOURUM ::
+#\[7]P4BCHNZQ6WVOKLW3AOKDMLKODHH5SGBNRN4CDWOXUEFCE2HINQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
