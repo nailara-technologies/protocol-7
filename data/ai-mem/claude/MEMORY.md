@@ -5,6 +5,7 @@
 - [gtk-wsl-window-positioning](topic-gtk-wsl-window-positioning.md) / [weston-move-unreliable](feedback-weston-move-unreliable-use-compositor-grab.md) — use begin_move_drag/resize_drag not move(); initial-placement-before-show_all open
 
 ## Active Topics
+- [p7-log-wire-utf8-double-encoding](topic-p7-log-wire-utf8-double-encoding.md) — LANDED 2973129e6: missing utf8::decode before :encoding(UTF-8) print; devmod.cmd.echo = live wire test tool
 - [x11-protocol-hardening](topic-x11-protocol-hardening.md) — COMMITTED 3b966708d + e0f4fddd7: base.exec.with_timeout + dual-connection pool (query-reroute/health-oracle) both landed+verified live
 - [x11-resolution-profiles](topic-x11-resolution-profiles.md) — OPEN design: xvfb needs per-purpose resolution profiles (subname `xvfb:WxH` sketch); reconcile with `-\d+` index suffix from bare-name-routing-ambiguity before building
 - [x11-bare-name-routing-ambiguity](topic-x11-bare-name-routing-ambiguity.md) — LANDED 770553ad2+505f5505b: generic sid resolver (subname group-match), per-instance display ranges, v7 per-instance display tracking; verified live w/ 3 concurrent instances
@@ -112,8 +113,8 @@
 - letsencr working; reasoning.branch.* LIVE; coding zenka operational; ondemand auto-register survives reload
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: state-0/7 harmonized; test re-sign ≥2 passes to see oscillation
 
-#,,..,,.,,.,.,.,.,.,.,,.,,...,...,.,,,,..,...,..,,...,...,,..,...,,..,,.,,..,,
-#DJ7I6YGMO65HSLO25XKPHEJQMH33HIA3QBENY55G45OYR4YPOUZVIDDSG63R4IYEIDNRCU4O4HDLY
-#\\\|LHB3HSMXYX2RNBQAFQQARVM5DN3QC3WXVBNXO4ALJ5BJOITNX52 \ / AMOS7 \ YOURUM ::
-#\[7]N67BA4XCHHEGBO7SIOYIH5OLRADT6OVNPF3VU5OXRHEZ56D2S4DQ 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,.,,.,,,..,,...,,..,,,.,,.,,.,,,..,,...,...,,.,,,..,,.,,,,.,..,,
+#LV7KAGDLB7MNBSBHGMDU36ZT4CMA2GXUKF5ADJQ4U5Y4CBTKBTANVLJ73OTIX2F2M3LGA3CP6RAGQ
+#\\\|D6IJEW63FFQEQJ2BD7PGQU2V2T4YIJBM2BRSQAI2X67TJC2ZWKG \ / AMOS7 \ YOURUM ::
+#\[7]3B7JURCUELYOCCRMSTQX6LATPLJSZZS22D6KEGJHAUNZJOJSZ2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
