@@ -84,6 +84,7 @@ elsif ( $action eq 'init' ) {
         'task_id'       => $task_id,
         'state'         => STATE_STREAMING,
         'round'         => 0,
+        'round_started' => <[base.time]>->(3),
         'messages'      => $data->{'messages'} // [],
         'tools'         => $data->{'tools'}    // [],
         'content'       => '',
@@ -246,6 +247,7 @@ elsif ( $action eq 'transition' ) {
         <[coding.async.tool_executor]>->($task_id);
     } elsif ( $new_state eq STATE_STREAMING && $event eq 'tools_done' ) {
         $state->{'round'}++;
+        $state->{'round_started'} = <[base.time]>->(3);
         ## add assistant message with tool_calls to conversation ##
         ## tool_calls passed from tool_executor in transition data ##
         my $tool_calls   = $data->{'tool_calls'}   // [];
@@ -584,8 +586,8 @@ elsif ( $action eq 'constants' ) {
 
 return { error => sprintf "unknown action : '%s'", $action };
 
-#,,,.,.,.,.,,,,..,,,.,,,,,,,.,...,,,,,...,.,.,.,.,...,...,..,,,,,,,.,,,,,,,,,,
-#AZRNU4TZYDMRGYSNV4WDFSVGFL67VATZMHN4APESK73XELVRPLRERA2UK2KIASHPOPYRHQYOPL3AM
-#\\\|BDWZPMFFSKZ2ZXDFHMS4A5ZBXHHZBNLV3MFQMGUZTVDMGVJEO3X \ / AMOS7 \ YOURUM ::
-#\[7]OMJATNNQLNODK7WVDEYG5IAHU7P44E6WSZG2FYSL6N7O5GKHGKAY 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,,.,...,...,,,,,.,.,.,,,,,,,...,.,.,...,...,,..,,,,,..,,,,,,,,.,
+#3ZKE4UHVXP22Q6LFMYMWUNGSZ3E7JGMQTB7RODZCWYHUMQNLZT2ELC4TXVYNRZFJ4YLKDKGUIDF2U
+#\\\|G66TRBA2V3GLSCTZJZT3HCD72GSDUQ2IYZFUBCL4V35FZFBRZTO \ / AMOS7 \ YOURUM ::
+#\[7]BEGVNC3EZERH5N6SSGRWOGJYONRSS7C4E4EAPURQKENHUM6VDCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,105 @@
+## [:< ##
+
+# name  = X-11.handler.read_gpu_metric
+# descr = reads a single-column nvidia-smi metric feed [ generic, multi-instance ]
+
+my $watcher  = shift->w;
+my $read_fh  = $watcher->fd;
+my $gtop_pid = $watcher->data->{'pid'};
+my $metric   = $watcher->data->{'metric'};
+
+my @stat_secs = ( 5, 15, 30 );
+
+my $m = <X-11.gpu_top.metric>->{$metric};
+$m->{'stats'} //= {};
+$m->{'stats'}->{'secs'} = [ 1, <[base.sort-num]>->(@stat_secs) ];
+$m->{'stats'}->{'sample'}       //= {};
+$m->{'stats'}->{'load_average'} //= {};
+$m->{'output_buffer'}           //= '';
+$m->{'sample_seq'}              //= 0;
+
+my $read_bytes = <[base.s_read]>->( $read_fh, \$m->{'output_buffer'}, 4096 );
+
+if ( $read_bytes < 1 ) {    ## [ assumed filehandle exception ] ##
+    $watcher->cancel;
+    close($read_fh);
+    <[base.logs]>->(
+        "nvidia-smi [%s PID:%d] output filehandle closed.",
+        $metric, $gtop_pid
+    );
+    <[base.log]>->( 0, "nvidia-smi terminated. deleting stats.." );
+    $watcher->cancel if $watcher->is_active;
+    delete <X-11.gpu_top.metric>->{$metric};
+    return undef;
+}
+
+my $load_ref = $m->{'stats'}->{'load_average'};
+
+my ($max_samples) = reverse <[base.sort-num]>->(@stat_secs);
+
+while ( $m->{'output_buffer'} =~ s|^([^\n]*)\n||s ) {
+    my $output_line = $LAST_PAREN_MATCH;
+    next if $output_line =~ m|^\s*$|;
+
+    my ( $time, $load );
+    if ( $output_line =~ m|^\s*(\d+(?:\.\d+)?)\s*$| ) {
+        ( $time, $load ) = ( ++$m->{'sample_seq'}, 0 + $LAST_PAREN_MATCH );
+    } else {
+        <[base.parser.ellipse_center]>->( \$output_line, 253 );
+        <[base.logs]>->(
+            0,       "[ERROR] < nvidia-smi %s > %s",
+            $metric, $output_line
+        );
+        $watcher->cancel if $watcher->is_active;
+        delete <X-11.gpu_top.metric>->{$metric};
+        return undef;
+    }
+    my $sample_ref = $m->{'stats'}->{'sample'};
+    $load_ref->{1} = $sample_ref->{$time} = $load;
+
+    while ( keys( %{$sample_ref} ) > $max_samples ) {
+        ( my $del_tstamp ) = <[base.sort-num]>->($sample_ref);
+        delete $sample_ref->{$del_tstamp};
+    }
+
+    my $added;
+    foreach my $count (@stat_secs) {
+        $added = 0;
+        foreach my $t_code ( reverse <[base.sort-num]>->($sample_ref) ) {
+            last if ++$added == $count;
+            $load_ref->{$count} //= 0;
+            $load_ref->{$count} += $sample_ref->{$t_code};
+        }
+        if ( $added < $count ) {
+            delete $load_ref->{$count};
+            next;
+        }
+        $load_ref->{$count} = sprintf( '%.4f', $load_ref->{$count} / $added );
+    }
+
+    my $llvl = <X-11.gpu_top.stat_log_level> //= 3;
+    <[base.logs]>->( $llvl, '< GPU %s >  %3s', $metric, $load );
+
+    ## emit to STRM listeners ##
+    my $listeners = $m->{'listeners'};
+    if ( defined $listeners and @{$listeners} ) {
+        my $load_1s = $load_ref->{1} // 0;
+        my $avg_5s  = $load_ref->{5};
+        my $payload
+            = defined $avg_5s
+            ? sprintf( "%s %s\n", $load_1s, $avg_5s )
+            : sprintf( "%s\n", $load_1s );
+
+        my @keep;
+        for my $h ( @{$listeners} ) {
+            push @keep, $h if <[base.stream.push]>->( $h, \$payload );
+        }
+        $m->{'listeners'} = \@keep;
+    }
+}
+
+#,,,,,..,,,.,,.,.,.,,,,,.,..,,..,,.,,,,,.,..,,..,,...,.,.,,..,,,,,.,.,...,.,,,
+#X5M2OZWIFLAA3VA375MADAPHZI5ZMA7UKCXZHFR3AXGO4ISGV4BRIVISH2SMXJUMUZ7IR4X5JWBLC
+#\\\|YJM5JFDRCSGIL5FANHV5YXYQP4377O7ZLYA6ORQADA2GSC7LT5J \ / AMOS7 \ YOURUM ::
+#\[7]CPK6YOWCLKKEXJ5VU7ZGLHKM7QXXAXPT2U36DBQQGSYO7ZQOM6DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

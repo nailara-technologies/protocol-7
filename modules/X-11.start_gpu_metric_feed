@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = X-11.start_gpu_metric_feed
+# descr = spawn a parallel nvidia-smi feed for one metric [ generic, multi-instance ]
+# param = { metric, query_field }
+
+my $args = shift // {};
+
+my $metric      = $args->{'metric'}      // return;
+my $query_field = $args->{'query_field'} // return;
+
+return if defined <X-11.gpu_top.metric>->{$metric}->{'process_started'};
+
+my $vendor = <X-11.gpu_vendor> // 'none';
+return <[base.log]>->( 2, 'gpu monitoring disabled [ no supported tool ]' )
+    if $vendor ne qw| nvidia |;  ## intel_gpu_top emits all metrics at once ##
+
+my $nvidia_bin = <X-11.bin_path>->{'nvidia-smi'};
+
+<[base.log]>->( 1, "starting 'nvidia-smi' gpu %s monitor .,", $metric );
+
+my $pid
+    = open3( undef, my $out_fh, undef, $nvidia_bin,
+    "--query-gpu=$query_field", '--format=csv,noheader,nounits',
+    qw| -l 1 | );
+
+if ( !$pid ) {
+    <[base.log]>->(
+        0, "<< cannot open 'nvidia-smi' [%s] pipe [ \l$OS_ERROR ] >>", $metric
+    );
+    return;
+}
+push( @{<system.kill_list>}, $pid );
+
+<X-11.gpu_top.metric>->{$metric} = {
+    'pid'             => $pid,
+    'process_started' => <[base.time]>->(2),
+    'out_fh'          => $out_fh,              ## keep fh alive past scope ##
+};
+
+<[event.add_io]>->(
+    {   'fd'      => $out_fh,
+        'handler' => qw| X-11.handler.read_gpu_metric |,
+        'data'    => { 'pid' => $pid, 'metric' => $metric }
+    }
+);
+
+#,,,,,,,.,.,.,.,,,...,,,.,,,.,.,.,,.,,,,,,,.,,..,,...,.,.,...,..,,.,,,,.,,,,,,
+#E5PPGVJFOAEVWLUHKBQWZ73DJBVAV4BYDNJSIUUAYYTCUEUMV4RIRBA5QICIWFIRS5L2MPL7PBAHM
+#\\\|JRHWXHHVSJDZB5PFO6GWBVCWK4Q3SKRMKBPPOZKKLAYY2QJ2ZIQ \ / AMOS7 \ YOURUM ::
+#\[7]QWRDJIF37UOBRZAQZSJA43QBG7AGCO3QT3FMELFXJVOKANTBOGDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
