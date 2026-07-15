@@ -511,6 +511,11 @@ input[type="date"], textarea {
 .badge-no    { color: #8080a0; background: rgba(20,20,30,0.3);
                border: 1px solid #303040; }
 .badge-no:hover { background: rgba(40,40,55,0.45); }
+/* delete-suggested quick action — same red as the passive assert-delete badge, */
+/* but interactive : lets a batch reassess's delete calls be acted on in one click */
+.badge-delete { color: #d06060; background: rgba(90,20,20,0.35);
+                border: 1px solid #602020; }
+.badge-delete:hover { background: rgba(120,30,30,0.45); }
 /* subtle default styling — shown when the badge isn't backed by a recommendation, */
 /* so apply/skip stay reachable at a glance without competing with the highlighted case */
 .badge-subtle { color: var(--p7-text-dim); background: transparent;
@@ -825,13 +830,24 @@ function loadUserDecisions() {
 
 /* ── merge server data into local map ── */
 function mergeJobs(serverJobs) {
-    let added = 0, updated = 0;
+    let added = 0, updated = 0, staleOverlays = 0;
     for (const sj of serverJobs) {
         const id = String(sj.id != null ? sj.id : (sj.job_id != null ? sj.job_id : ''));
         if (!id) continue;
+        const ud = userDecisions[id];
+        /* a locally recorded stage only overlays while the server record it was made */
+        /* against hasn't moved on since -- once last_modified diverges, something    */
+        /* changed server-side for an unrelated reason [ reassess, rescue, ... ] and   */
+        /* the stale local pin must not keep hiding that update forever. entries from  */
+        /* before this check existed carry no base_last_modified and keep the old,     */
+        /* always-honored behavior rather than being treated as stale on sight         */
+        if (ud && ud.stage && ud.base_last_modified != null
+            && sj.last_modified != null && ud.base_last_modified !== sj.last_modified) {
+            delete ud.stage;
+            staleOverlays++;
+        }
         if (!jobs[id]) {
             jobs[id] = { ...sj, id };
-            const ud = userDecisions[id];
             if (ud) {
                 if (ud.stage && USER_OWNED_STAGES.has(ud.stage)) jobs[id].stage = ud.stage;
                 if (ud.notes        != null) jobs[id].notes        = ud.notes;
@@ -841,7 +857,6 @@ function mergeJobs(serverJobs) {
         } else {
             /* server provides base data; user decisions overlay user-owned fields */
             jobs[id] = { ...jobs[id], ...sj, id };
-            const ud = userDecisions[id];
             if (ud) {
                 if (ud.stage && USER_OWNED_STAGES.has(ud.stage)) jobs[id].stage = ud.stage;
                 if (ud.notes        != null) jobs[id].notes        = ud.notes;
@@ -850,6 +865,7 @@ function mergeJobs(serverJobs) {
             updated++;
         }
     }
+    if (staleOverlays) saveUserDecisions();
     return { added, updated };
 }
 
@@ -1122,9 +1138,11 @@ function renderCard(j) {
       <textarea class="card-note-input" data-id="${j.id}"
         placeholder="note…" rows="2">${escHtml(j.note||'')}</textarea>
       ${j.note ? `<div class="card-note-preview visible">${highlightTerms(j.note, hlTerms)}</div>` : '<div class="card-note-preview"></div>'}
-      ${(filterApplySug ? ['review','to_apply','skipped'].includes(j.stage) : j.stage === 'review') && sug.delete !== 'true' ? `
+      ${(filterApplySug ? ['review','to_apply','skipped'].includes(j.stage) : j.stage === 'review') ? `
       <div class="card-quick-actions no-print">
-        <button class="badge-apply ${sug.apply === 'true' ? 'badge-yes' : 'badge-subtle'}" type="button" data-action="to_apply">✓ apply</button>
+        ${sug.delete === 'true'
+          ? `<button class="badge-apply badge-delete" type="button" data-action="delete">🗑 löschen</button>`
+          : `<button class="badge-apply ${sug.apply === 'true' ? 'badge-yes' : 'badge-subtle'}" type="button" data-action="to_apply">✓ apply</button>`}
         ${j.stage === 'review' ? `<button class="badge-apply ${sug.apply === 'false' ? 'badge-no' : 'badge-subtle'}" type="button" data-action="skipped">✗ skip</button>` : '<span></span>'}
       </div>` : ''}
       ${j.stage === 'applied' ? `
@@ -1156,7 +1174,12 @@ function renderCard(j) {
             jobs[id].date_applied = today;
             userDecisions[id] = { ...(userDecisions[id] || {}), date_applied: today, ts: Date.now() };
         }
-        userDecisions[id] = { ...(userDecisions[id] || {}), stage, ts: Date.now() };
+        /* pin this decision to the server record it was made against -- mergeJobs   */
+        /* only keeps re-applying it while that record hasn't moved on server-side   */
+        /* [ e.g. a reassess resetting the stage back to review for an unrelated     */
+        /* reason ]; otherwise a stale local override could pin a card to the wrong  */
+        /* tab forever, invisible to any later correct server data                   */
+        userDecisions[id] = { ...(userDecisions[id] || {}), stage, base_last_modified: jobs[id].last_modified || '', ts: Date.now() };
         saveUserDecisions();
         saveCache(); render();
         pushChange(id, { stage, ...(jobs[id].date_applied ? { date_applied: jobs[id].date_applied } : {}) });
@@ -1282,11 +1305,13 @@ function renderCard(j) {
     });
 
 
-    /* apply / skip suggestion badges */
+    /* apply / skip / delete suggestion badges */
     el.querySelectorAll('.badge-apply').forEach(badge => {
         badge.addEventListener('click', () => {
             const action = badge.dataset.action;
-            if (action) setStage(j.id, action);
+            if (!action) return;
+            if (action === 'delete') { deleteJob(j.id); return; }
+            setStage(j.id, action);
         });
     });
 

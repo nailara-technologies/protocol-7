@@ -15,9 +15,14 @@ if ( $EVAL_ERROR or ref $payload ne qw| HASH | ) {
     };
 }
 
+## last_modified deliberately excluded : it must reflect when the record   ##
+## actually lands in THIS cache [ cache.write stamps a fresh local time ], ##
+## not jobsite's own write-time clock -- copying jobsite's timestamp lets  ##
+## a browser's delta watermark [ taken from a poll's "now" ] step past a   ##
+## push that is still in flight, permanently hiding it from future deltas ##
 my @pipeline_fields = qw| title company url score score_reason score_summary
-    fetched_at status stage description last_modified blocked_epoch checksum_hit
-    assertions city industry country postal_code |;
+    fetched_at status stage description blocked_epoch checksum_hit
+    assertions city industry country postal_code repair_attempted repair_failed |;
 my @browser_fields = qw| stage notes date_applied exported_stage |;
 
 my $since    = '';
@@ -112,6 +117,13 @@ for my $job_data (@job_list) {
         for my $f (@pipeline_fields) {
             $cached->{$f} = $job_data->{$f} if exists $job_data->{$f};
         }
+
+        ## force cache.write below to stamp a fresh local time : jobsite    ##
+        ## only forwards jobs it considers changed, so every batch entry   ##
+        ## here is a real update -- carrying over a stale cached value     ##
+        ## would re-trigger the same watermark race last_modified was      ##
+        ## dropped from @pipeline_fields to avoid ##
+        delete $cached->{'last_modified'};
 
         ## jobsite only guarantees 'status'; derive UI 'stage' from status ##
         ## (preserve browser/user-owned stages: applied, rejected, etc.)  ##
@@ -253,8 +265,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,..,.,,,,,,,,,,,,.,,,,.,..,,,,,,,,,,,,,,..,,..,,...,...,,.,,,,.,.,.,,.,,.,,,
-#APBFFFJPARNSC33VXVCXAFGKDALDHQ3SEISHMML66HA45JOBUOJCZZZ36Y2IZFOLZPDF5OIFH5IUG
-#\\\|KUNLQQAYFMOIB2WZSFTLA35FHPOL6MUUNSZ7YF3UAXSZ6OEUQ5B \ / AMOS7 \ YOURUM ::
-#\[7]UU5ZNIU2XUWCY7DFTETKTCE5AT6XYDAZBD57HMJZDZUUUTJW7GBQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,..,,.,,,..,.,,,,..,.,,,.,.,..,,..,,...,...,...,.,,,,..,.,.,.,.,
+#J473ZUM7NQERNBB7OP5M6TAGQQ7S2RPQJQUTDRDSD7H2YSVKUIEUR5VYTVJSW3M7QFKIUPM7PTTJG
+#\\\|JCBVBHDZMB4TS3CVXBVE6ANJC2SDDPNJQSZ66EK6AGE5X55DIDH \ / AMOS7 \ YOURUM ::
+#\[7]NLJ6SPAW4ZBZURVJCKGTXEKKSLZP5VSOLZICIHEFVQLAUX462WDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
