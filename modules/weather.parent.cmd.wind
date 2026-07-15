@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = weather.parent.cmd.wind
+# descr = return current local wind speed and direction
+
+return {
+    'mode' => qw| false |,
+    'data' => 'no city selected (undefined station id)'
+    }
+    if not defined <weather.station_id>;
+
+my $stid = <weather.station_id>;
+my $wind = <weather.data>->{$stid}->{'current'}->{'wind'} // {};
+
+my $speed = $wind->{'speed_kmh'} // 'n/a';
+my $dir   = $wind->{'direction'} // 'n/a';
+
+my $data;
+if ( $speed =~ /^\d+(\.\d+)?$/ ) {
+    $data = "$speed km/h";
+    $data .= Encode::encode( 'UTF-8', " \N{DEGREE SIGN}" ) . $dir
+        if $dir =~ /^\d+(\.\d+)?$/;
+} else {
+    $data = 'n/a';
+}
+
+return { 'mode' => qw| true |, 'data' => $data }
+
+#,,.,,..,,,,,,.,.,,.,,.,.,..,,.,,,.,.,.,,,,,.,..,,...,...,..,,..,,,,.,,,.,,,,,
+#LMANZWKFQNSWT276OVNPKVWVRSDFPB2RAIKWIMGALXFEQYXU7MU2RO7FRH2S2XEYEO3PJ2RXNRQIA
+#\\\|RDX4FYC6ORMDL2H5QNUYNAQ3CLEZCMFNZWWBQEP677H5M3CFZVT \ / AMOS7 \ YOURUM ::
+#\[7]LE7I2R5IZBH4LBNG3UJKH52WOX2EPFJKHEVV3CLBOL5YMRRZTADA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
