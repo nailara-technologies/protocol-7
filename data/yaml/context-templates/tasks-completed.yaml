@@ -8,43 +8,46 @@ sections:
     priority: 1
     budget_pct: 15
     params:
-      max_files: 20
+      max_files: 7
     optional: true
     label: recent git changes
 
   ## scan instructions ##
   - static: |
-      scan the coding task files to find COMPLETED tasks and verify them.
+      scan the live task backlog to find tasks that are actually DONE and
+      should move from data/tasks/*.md into data/tasks/completed/.
 
-      use list_files and read_file to examine:
-      - data/yaml/coding-tasks/*.yaml — status: completed or done
-      - data/md/coding-tasks/*.md — completion indicators
+      use list_files and read_file to examine every *.md file directly in
+      data/tasks/ [ not the completed/ or needs-testing/ subdirs — those
+      are already sorted ].
 
-      for each completed task produce:
-      - name: task filename
-      - completed: date if known
-      - commit: if referenced
-      - summary: what was done
-
-      also cross-reference with git history using recent_changes:
-      - flag tasks marked complete but with no matching commit
-      - flag recent commits that might complete unmarked tasks
+      a task file's own `## status` section is often STALE — it was written
+      when the task was drafted and never updated after the work landed.
+      do not trust it on its own. instead, for each task:
+      - extract the module/zenka names and the core feature it describes
+      - use search_code / ncode_search to check whether the described
+        modules or handlers now exist and match the spec
+      - cross-reference recent_changes / git log for commits whose message
+        matches the task's subject (jobsite, x11, coding-zenka, etc.)
+      - treat a task as done only when you find concrete evidence: a
+        matching commit, or code that clearly implements the described
+        behavior — not just "sounds plausible"
 
       output format:
-      ## completed tasks [ N total ] ##
-      - task_name — summary [ completed: date, commit: hash ]
+      ## move to completed [ high confidence ] ##
+      - task_name — one-line reason [ commit: hash if found ]
 
-      ## possibly completed but unmarked ##
-      - task_name — recent commit XYZ appears to address this
+      ## possibly completed [ needs a human look ] ##
+      - task_name — what evidence exists, what's missing to be sure
 
-      ## marked complete but unverifiable ##
-      - task_name — no commit reference found
+      ## still open ##
+      - task_name — brief note if something looked partially done
     priority: 2
     budget_pct: 85
     label: task verification instructions
 
-#,,.,,..,,...,,,.,,.,,,.,,,,.,...,..,,.,,,,..,..,,...,...,...,..,,,,.,,,.,,.,,
-#6U2QE6S4KSU7AZHS3Z5QNF2LECCE6IQPXYBESDGPK74SD4KK33NFMVJUBLXUP3RCCRMB5TLQDVJ7C
-#\\\|JYL3HOCEGHDQ4RQAZIYE7NZ6GZDCEAWA4QJQVPXJX2U4HPBBQWS \ / AMOS7 \ YOURUM ::
-#\[7]IJX2R56NNFOXSAW62VX54ZSP2ZZAJ66PB2AISGW3NMBKSFF5MIDY 7  DATA SIGNATURE ::
+#,,..,...,,,,,...,,..,.,,,.,,,,,,,..,,,,.,...,..,,...,..,,.,.,,.,,,..,.,,,,.,,
+#RTN6E434DODNXAQY5GL6FEU7FLMALUDWLAUYIOQGEPMU7JHKNLF7OPVXCW3YCMR3234JZXXY6F2JO
+#\\\|7LHE2QAABEHSHCHEM4MPZYB3S7A7BHGVF2QJH577QQODJJYA2IZ \ / AMOS7 \ YOURUM ::
+#\[7]Y3DYDKG4W6RBANNRLLMFV5ROJHK4Z26TNYXVYZDTRS4TILLR5EDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
