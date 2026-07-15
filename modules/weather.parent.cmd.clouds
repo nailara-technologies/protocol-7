@@ -10,13 +10,13 @@ return {
     if not defined <weather.station_id>;
 
 my $stid   = <weather.station_id>;
-my $clouds = <weather.data>->{$stid}->{'current'}->{'clouds'} // 'n/a';
+my $clouds = <weather.data>->{$stid}->{'current'}->{'clouds'} // 'n|a';
 $clouds .= "%" if $clouds =~ /^\d+(\.\d+)?$/;
 
 return { 'mode' => qw| true |, 'data' => $clouds }
 
-#,,.,,.,,,,.,,.,.,,,,,,..,.,.,,,.,..,,.,.,.,.,..,,...,...,..,,,..,,,,,,.,,,,,,
-#XHT36ZOYJQQPYMZUVXIYPDQWOVNPH5JLF4ITTIX2QVEXCD5I2OZ7UDFA5XL62VCX46RU5OEU52BMU
-#\\\|BZNXFLGQUNVDIIQYHXDF2G55LMM4JNGKJ7AHCNBRKMANZUWNXIE \ / AMOS7 \ YOURUM ::
-#\[7]KI75L2QB7BVHAH7QWS7XVPVJARMKZY22F5D3IDENOM6FACXUUCCQ 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,,,,.,,,..,,,,.,..,,..,,,..,,,.,..,,...,...,,,.,..,,,,.,,..,..,,
+#LOZUKNSGDYRN4B2RUSQVNDEPQHIDCOPBJMEWT7PSKW6MW3KUJGAJD2B6YPBJQS5U2KISJICBDMOPS
+#\\\|7OTK5F3UG565EVJ2MLWYJ7GD6NCFE55ZABXPLVSIZOEODZQATOC \ / AMOS7 \ YOURUM ::
+#\[7]G4Q5OFQCTZBQVO4YZI6VA5CFWBXWMNZTTQIRFUJY2DQJMHDGYUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
