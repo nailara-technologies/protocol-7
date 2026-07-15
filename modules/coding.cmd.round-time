@@ -20,13 +20,21 @@ for my $task_id ( $aref_active->@* ) {
 
     my $state = <[coding.async.state_machine]>->( qw| get |, $task_id );
     my $round = $state->{'round'} // 0;
-    my $round_started = $state->{'round_started'};   ## undef = no data yet ##
-    my $round_elapsed
-        = defined $round_started ? $now - $round_started : undef;
-    my $pct
-        = ( defined $round_elapsed && $ceiling > 0 )
-        ? int( 100 * $round_elapsed / $ceiling )
-        : undef;
+
+    ## phase-1 [http-wait] start; phase-2 [tool-exec] starts when this     ##
+    ## round's response has been fully received and state_machine enters   ##
+    ## tool_exec.                                                          ##
+    my $http_started  = $state->{'round_started'};         ## phase 1 start ##
+    my $tools_started = $state->{'round_tools_started'};   ## phase 2 start ##
+
+    my ( $http_elapsed, $http_pct, $tools_elapsed );
+    if ( defined $http_started ) {
+        my $http_end = defined $tools_started ? $tools_started : $now;
+        $http_elapsed = $http_end - $http_started;
+        $http_pct
+            = $ceiling > 0 ? int( 100 * $http_elapsed / $ceiling ) : undef;
+    }
+    $tools_elapsed = defined $tools_started ? $now - $tools_started : undef;
 
     my $desc = $task->{'request'}->{'description'} // '';
     $desc = <[base.parser.center_ellipse_string]>->( $desc, 40 )
@@ -36,35 +44,51 @@ for my $task_id ( $aref_active->@* ) {
         {
         'task_id'       => $task_id,
         'round'         => $round,
-        'round_elapsed' => $round_elapsed,
-        'pct'           => $pct,
+        'http_elapsed'  => $http_elapsed,
+        'http_pct'      => $http_pct,
+        'tools_elapsed' => $tools_elapsed,
         'desc'          => $desc,
         };
 }
 
-## slowest-first : the ones closest to timing out matter most [ undef pct last ] ##
-@rows = sort { ( $b->{'pct'} // -1 ) <=> ( $a->{'pct'} // -1 ) } @rows;
+## slowest-first by http phase : that's the one with the timeout ceiling ##
+@rows = sort { ( $b->{'http_pct'} // -1 ) <=> ( $a->{'http_pct'} // -1 ) }
+    @rows;
 @rows = @rows[ 0 .. $limit - 1 ] if @rows > $limit;
 
 my @output;
-push @output, ':: round elapsed / timeout ceiling ::';
+push @output, ':: round elapsed | timeout ceiling ::';
 
 if (@rows) {
     for my $row (@rows) {
-        if ( not defined $row->{'pct'} ) {
+        if ( not defined $row->{'http_pct'} ) {
             push @output,
-                sprintf "   %s | r%d | ---- / ---- [ no data yet ] | %s",
+                sprintf "   %s | r%d | ---- of ---- [ no data yet ] | %s",
                 $row->{'task_id'}, $row->{'round'}, $row->{'desc'};
             next;
         }
-        my $flag
-            = $row->{'pct'} >= 90 ? '!!'
-            : $row->{'pct'} >= 70 ? '! '
-            :                       '  ';
+        my $http_flag
+            = $row->{'http_pct'} >= 90 ? '!!'
+            : $row->{'http_pct'} >= 70 ? '! '
+            :                            '  ';
+
+        my $tools_str = 'tools: --';
+        if ( defined $row->{'tools_elapsed'} ) {
+            my $tools_flag
+                = $row->{'tools_elapsed'} > $ceiling ? '[!! long]'
+                : $row->{'tools_elapsed'} > 300      ? '[! long]'
+                :                                      '';
+            $tools_str = sprintf "tools: %ds [no ceiling] %s",
+                $row->{'tools_elapsed'}, $tools_flag;
+            $tools_str =~ s| +$||;
+        }
+
         push @output,
-            sprintf "%s %s | R:%02d | %03ds of %03ds [ %d%% ] | %s",
-            $flag, $row->{'task_id'}, $row->{'round'},
-            $row->{'round_elapsed'}, $ceiling, $row->{'pct'}, $row->{'desc'};
+            sprintf "%s %s | R:%02d | http: %03ds of %03ds [%%%03d] | %s | %s",
+            $http_flag, $row->{'task_id'},
+            $row->{'round'}, $row->{'http_elapsed'},
+            $ceiling,   $row->{'http_pct'},
+            $tools_str, $row->{'desc'};
     }
 } else {
     push @output, '  (no active tasks)';
@@ -74,8 +98,8 @@ my $output_str = join( "\n", @output ) . "\n";
 
 return { 'mode' => qw| size |, 'data' => $output_str };
 
-#,,,,,.,.,..,,.,.,,,.,,..,...,..,,,.,,,,.,.,,,..,,...,...,...,,,.,,..,.,.,..,,
-#76JJHQBYDMLWMIOA66DKR7JNJQKLJ3AHTPAHVG6FLDA3WXSL54VKC4DZP4QHU633SBQUUKBJL6SZO
-#\\\|GUTEQGEROXJLGCYHVK356ZFHGT443RVWBKESOIQPQBTB23CPYEJ \ / AMOS7 \ YOURUM ::
-#\[7]KTUA4OMVTCLST3OL6WLF3GUNMGNTEWZLESEFZWEHERPCWO67GABQ 7  DATA SIGNATURE ::
+#,,..,,.,,,..,.,,,..,,.,.,...,.,,,,.,,,.,,.,,,..,,...,...,.,,,,,.,,.,,.,,,,.,,
+#TK7B43STXQGXCFNDZDLYBMVRT6NYWNBQPJRJTYNH645ATJ5M7DXXCHO7Y6EDMMDAK2NUJHSR5CA4W
+#\\\|DZPNQZPND36TEB4YXRNE24OU5LTYAUP5KA4QWL7IS3NUAHT5MZF \ / AMOS7 \ YOURUM ::
+#\[7]U2UYMW22W3O6GCEOOLU4DPQGN5BSVGRVUIDSAALM2ATNX536PSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

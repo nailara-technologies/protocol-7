@@ -82,19 +82,26 @@ rather than the current single misleading combined number.
   this instead of `<coding.task.active>[0]`, which is unrelated array
   position, not the lock holder)
 
-### status [ 2026-07-15 ]
+### status [ 2026-07-16 ] — DONE, live-verified
 
-design-only, nothing implemented for the phase split. the single-number
-version is live and useful for catching hard-stuck tasks (backend lock
-held by nothing), but produces false `!!` alarms for rounds doing
-legitimate long tool-call sequences. treat any `!!` from the current
-version as "investigate," not "definitely stuck" — check
-`coding.tree-read "coding.async.task_state.<task_id>.http_state"` for
-`completed`/`bytes_received` to tell a real HTTP-layer hang from normal
-tool execution before aborting.
+implemented by kimi (dispatched via MCP), reviewed and reloaded live.
+`coding.async.state_machine` now stamps `round_tools_started` on entering
+`STATE_TOOL_EXEC` (the response-fully-received / tool-execution-begins
+boundary) and clears both `round_started` and `round_tools_started` on
+`tools_done` and on the no-tools `STATE_COMPLETE` path.
+`coding.cmd.round-time` / `coding.cmd.round-progress` display both phases
+separately: `http: Ns/777s [P%]` (compared against the real ceiling) and
+`tools: Ns (no ceiling) [!! long]` (flagged past 300s/777s but never
+treated as a hard timeout).
 
-#,,..,,,,,,,,,,..,,.,,..,,...,,,,,...,.,.,,,.,..,,...,...,..,,,,.,,,,,...,.,,,
-#RIWFLJLG73NV3AYZLN4DJRKDWUURZRZ4QN7EDWE5ZYTK7KQ6UCTD2MRPVT637RDMLCAN3G4FPYAUC
-#\\\|P7ESDZLOKG3QIJVVNQEGLD6VRFAAAAD3QSWXVFAACAPHH5SU7RR \ / AMOS7 \ YOURUM ::
-#\[7]LF5UAE7OCQV6NYLACGME2XNSGDQ4FZOGRQT7NXZT6UIRGSZEJ2AA 7  DATA SIGNATURE ::
+live-verified same session: a task showing `http: 1386s/777s [178%]`
+with `tools: --` was genuinely HTTP-layer stuck (confirmed via
+`abort-inference`), while a separate task mid-tool-execution correctly
+showed a bounded http phase with tools time tracked separately instead
+of a combined, misleading number.
+
+#,,..,.,,,.,,,,,.,,..,,,.,.,,,.,,,,.,,.,.,.,.,..,,...,...,..,,,..,..,,,,,,.,.,
+#H6GZULBSD4VZXKO4YFQ2K6KVQBRLPCSDTCU7OW5SU3MV667OK5P3HGTGLRJDGHWTDETDFSHEUIKXG
+#\\\|RHMNV6BS2WCUB3QHUFNU5HPB5DQ7WX25GQLR2HCQ2V7U6TYNIT4 \ / AMOS7 \ YOURUM ::
+#\[7]MSQG4TPWMMDPIESQHGSP5NI6FNPGHCDYQKPOA7XO7ZN3QW7QZYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
