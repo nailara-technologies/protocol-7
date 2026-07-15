@@ -113,8 +113,26 @@ for my $job_data (@job_list) {
     }
 
     if ($is_batch) {
+        ## staleness guard : jobsite builds its outbound batch from its OWN  ##
+        ## on-disk view, which can still predate a browser-initiated stage  ##
+        ## change already applied straight to this cache [ its matching     ##
+        ## reverse-queue entry not yet round-tripped back into jobsite's    ##
+        ## own copy, e.g. mid-flight during a manual/forced sync ] -- if    ##
+        ## this cache's last_modified is already newer than what jobsite   ##
+        ## is sending, jobsite's stage/status here is stale : keep the     ##
+        ## cache's fresher value instead of clobbering it, self-corrects   ##
+        ## on the next cycle once jobsite drains the reverse queue anyway  ##
+        my $incoming_lm = $job_data->{'last_modified'} // '';
+        my $cached_lm   = $cached->{'last_modified'}   // '';
+        my $jobsite_stale
+            = length($cached_lm)
+            and length($incoming_lm)
+            and ( <[base.ntime_BASE32_to_numerical]>->($cached_lm) // 0 )
+            > ( <[base.ntime_BASE32_to_numerical]>->($incoming_lm) // 0 );
+
         ## jobsite push : update pipeline fields, keep browser fields ##
         for my $f (@pipeline_fields) {
+            next if $jobsite_stale and ( $f eq 'stage' or $f eq 'status' );
             $cached->{$f} = $job_data->{$f} if exists $job_data->{$f};
         }
 
@@ -265,8 +283,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,,,,,,.,,..,,..,,.,,,..,.,,,,..,.,,,.,.,..,,..,,...,...,...,.,,,,..,.,.,.,.,
-#J473ZUM7NQERNBB7OP5M6TAGQQ7S2RPQJQUTDRDSD7H2YSVKUIEUR5VYTVJSW3M7QFKIUPM7PTTJG
-#\\\|JCBVBHDZMB4TS3CVXBVE6ANJC2SDDPNJQSZ66EK6AGE5X55DIDH \ / AMOS7 \ YOURUM ::
-#\[7]NLJ6SPAW4ZBZURVJCKGTXEKKSLZP5VSOLZICIHEFVQLAUX462WDA 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,.,,,..,,,.,,.,,,.,,,,,,,..,...,..,,...,...,,,,,..,,.,.,,.,,.,.,
+#O66IVUBZNSTNDBQ35VTFULHZI2GVY7HE4VLAJHCYYYUACEX46QTP5N6JRRDUVA6QJZQ4PQ2IZRYZK
+#\\\|AL7TQXZYEBTDMZFK742AOTUZKVAYOSUX4GJEHUGZC5GKEE3T4HT \ / AMOS7 \ YOURUM ::
+#\[7]KZKMNYVZ4IXHH5RUQDBIIRTT73VVZZCTWQQ7J3ZPG6FZAQC3ZCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
