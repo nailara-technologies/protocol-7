@@ -553,14 +553,25 @@ if ( not $already_initialized ) {
                     }
                 }
             );
+
+            ## parallel feed : gpu temperature ##
+            <[protocol-7.route-send]>->(
+                {   'command'   => "$sid.gpu_metric",
+                    'call_args' => { 'args' => 'temp subscribe' },
+                    'reply'     => {
+                        'handler' => 'coding.handler.gpu_temp_update',
+                        'params'  => {}
+                    }
+                }
+            );
         }
     );
 }
 
 return 0;
 
-#,,..,.,.,,,.,.,.,.,,,,..,.,.,,..,..,,..,,..,,.,.,...,...,,,.,.,,,..,,,.,,,..,
-#VZD2DH3YCUH6UO2CURIGTZ5MXBIU3VDO3CADDR6KFHPYMLAXNW3B47HF74MCVIDHA3GXCYCLKNT5A
-#\\\|5CMNMCZRWVB7G32IQEKL7MTUAG5QCR3JTZGMQ6OWRDIOHE3GW36 \ / AMOS7 \ YOURUM ::
-#\[7]AI4SRK2OHKJWE4VMRSJTKQZWU3J76MZJRUK3NOUWRYCW4OR5B6CI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,,.,,.,,...,,,,,..,,,,,,...,..,,.,.,...,...,...,.,,,,,,,.,,,,,.,
+#VUQUAMRDAWKQ4WRH54DNU7N7XFMA5F6QSLPW63UXRXHWOFHMCQRJOYKRGOCIAWSQQGVBGH2DNOV6C
+#\\\|HK62KMMGFYOK5F55R5JIMTDSBPWC2RPDDVNW7DTQWM5T3K5FKYU \ / AMOS7 \ YOURUM ::
+#\[7]X5CV674BRXYK4PDMR4LY6ZFOFVSB6VCJQA3TP5SKIJ35D2MZNABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

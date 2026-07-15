@@ -1,0 +1,77 @@
+## [:< ##
+
+# name  = coding.handler.gpu_temp_update
+# descr = handle GPU temperature STRM subscription and consume stream data
+
+my $reply = shift;
+
+## handle FALSE reply (X-11 unavailable or stats not ready) ##
+if ( $reply->{'cmd'} eq qw| FALSE | ) {
+    <[base.logs]>->(
+        2,
+        'gpu temp subscription failed: %s',
+        $reply->{'call_args'}->{'args'} // 'unknown error'
+    );
+    return;
+}
+
+## only process STRM open ##
+return if $reply->{'cmd'} ne qw| STRM |;
+return if $reply->{'args'} ne qw| open |;
+
+my $cmd_id = $reply->{'cmd_id'};
+return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
+
+## initialize gpu temp namespace ##
+<coding.stats.gpu.temp> //= {
+    'load_1s'       => undef,
+    'load_5s'       => undef,
+    'sparkline_buf' => [],
+    'updated_at'    => undef,
+};
+
+## register local consumer ##
+<[base.strm.local.register]>->(
+    $cmd_id,
+    {   'watcher' => sub {
+            my $lc = shift;
+            return if not length $lc->{'buf'};
+
+            my $data = $lc->{'buf'};
+            $lc->{'buf'} = '';
+
+            for my $line ( split /\n/, $data ) {
+                next if not length $line;
+                my ( $temp_1s, $avg_5s ) = split / +/, $line;
+
+                <coding.stats.gpu.temp.load_1s> = 0 + $temp_1s;
+                <coding.stats.gpu.temp.load_5s>
+                    = defined $avg_5s ? 0 + $avg_5s : undef;
+                <coding.stats.gpu.temp.updated_at> = <[base.time]>->(2);
+
+                my $buf = <coding.stats.gpu.temp.sparkline_buf>;
+                push @$buf, 0 + $temp_1s;
+                shift @$buf while @$buf > 20;
+            }
+
+            <[base.logs]>->(
+                3,
+                'gpu temp updated: %s C%s',
+                <coding.stats.gpu.temp.load_1s> // 'undef',
+                defined <coding.stats.gpu.temp.load_5s>
+                ? sprintf( ' [5s avg: %s C]',
+                    <coding.stats.gpu.temp.load_5s> )
+                : ''
+            );
+        },
+    }
+);
+
+<[base.logs]>
+    ->( 2, 'gpu temp STRM consumer registered [cmd_id=%d]', $cmd_id );
+
+#,,,.,,,.,,..,,,,,.,,,,..,..,,,,,,...,,..,.,.,..,,...,...,,.,,...,..,,..,,..,,
+#XAAIYTVMFLSF5CGK32CXY3HZG4WFB447R32IUVKXYD33QNZAXKPYNE3Y3YELVATZKSZPDZG23ASIQ
+#\\\|N5SWZC7JKUV5SDR357ZO2PB5S7KI7EWCEJYD4WJPJOK3BJXQSYG \ / AMOS7 \ YOURUM ::
+#\[7]265WBGPJ25ZNA7JTR4K4HMV4UB2LLON7IGVSQ7A5GZ3SNEXRJ4AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

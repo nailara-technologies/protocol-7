@@ -39,6 +39,10 @@ if ( $vendor eq 'nvidia' ) {
         }
     );
 
+    ## parallel feeds for additional single-value metrics [ generic ] ##
+    <[X-11.start_gpu_metric_feed]>->(
+        { 'metric' => qw| temp |, 'query_field' => qw| temperature.gpu | } );
+
 } elsif ( $vendor eq 'intel' ) {
     my $refresh_period
         = 1137;    # def: 1000 [ careful with too low values --> CPU ]
@@ -85,8 +89,8 @@ if ( $vendor eq 'nvidia' ) {
     );
 }
 
-#,,..,,,.,,..,,,,,..,,,..,,..,,,,,,.,,,..,,,.,.,.,...,...,...,..,,..,,,,,,,.,,
-#B2RS6EW4HUNDHNZHJMNWONVDKCY5KQOIZ6JTXVI5VY4KQ35XHWABG2J46J2GYHLVAEFKTFGVZ3OBY
-#\\\|BNJYNVOMXSH3HDYFJMUIYAEUXJ644VHLDBTTQ4GY3JQDN3H3IXI \ / AMOS7 \ YOURUM ::
-#\[7]SOI2ZDRCKJELBXYYOJ4I4F6T66LB25LHRJFXFQIECJD6CBQUIYCI 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,.,,...,...,,..,,,,,,,.,,..,...,.,.,...,...,..,,,,,,,.,,.,.,,,,,
+#75373HHIA5VV5VCIWMALK5WRWIPLN77CPWEW537PJY5GOGAMEGOELVNBDPVZBQ2AO5HKIFXKV4D36
+#\\\|MH7BXMEJD6R5Z6HL6VWUCEFDPFM6TJX3WKJRNGDOHX54F3TFUWC \ / AMOS7 \ YOURUM ::
+#\[7]6WW5JTMY63QEUGUMYPINYKUIA5C4FISMIQC4JTGPAE6TFKZH4KCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

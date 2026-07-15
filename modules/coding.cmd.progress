@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = coding.cmd.progress
+# descr = task queue depth + completed-today stats
+
+my $reset      = "\e[0m";
+my $blacklight = "\e[38;2;68;39;172m";
+my $nailara_bg = "\e[48;2;9;5;42m";
+my $TRUE_color = "\e[38;2;6;71;195m";
+
+my $active_n  = scalar( ( <coding.task.active>  // [] )->@* );
+my $pending_n = scalar( ( <coding.task.pending> // [] )->@* );
+
+## count today's completed-task-backups [ epoch-prefixed subdir names ] ##
+my $backup_dir = <[file.zenka_dir.data_path]> . qw| /completed-task-backups |;
+
+my $midnight   = <[base.time]>->(5) - ( <[base.time]>->(5) % 86400 );
+my $done_today = 0;
+if ( opendir my $dh, $backup_dir ) {
+    for my $entry ( readdir $dh ) {
+        next unless $entry =~ m{^(\d+)\.\d+-};
+        $done_today++ if $1 >= $midnight;
+    }
+    closedir $dh;
+}
+
+my $total     = $done_today + $active_n + $pending_n;
+my $chars_max = 13;
+my $filled    = $total > 0 ? int( $chars_max * $done_today / $total ) : 0;
+my $bar       = ':' x $filled;
+
+my $right = sprintf "active : %d | pending : %d | done today : %d",
+    $active_n, $pending_n, $done_today;
+
+my $rw = length $right;
+
+my $output_str
+    = sprintf( "${blacklight}:::[${nailara_bg}${TRUE_color}%-13s"
+        . "${reset}${blacklight}]::"
+        . "[${nailara_bg}${TRUE_color} %-${rw}s "
+        . "${reset}${blacklight}]:.${reset}",
+    $bar, $right );
+
+return {
+    'mode' => qw| true |,
+    'data' => $output_str,
+};
+
+#,,.,,,.,,,,.,...,...,.,.,,..,,,,,.,,,,.,,.,,,..,,...,...,.,.,...,.,.,.,,,,.,,
+#IB2LU23CRY7JUXUCJ3BXUQDTTQ5TUKVV5FWMNCO2KH6EW3APL4ZDEHMXU6QV7E6HODRBNJSSWKKXO
+#\\\|IKUBEMKF7RVN2T2RQ6KMEPZDH4JHACRVPVNKX5IWPQWMA4LEVGW \ / AMOS7 \ YOURUM ::
+#\[7]5L6JFQWWUMIZBG46IUHKDRNIRVXSGAEATOCOPYE7BANZW4ACQSBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

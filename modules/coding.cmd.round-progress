@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = coding.cmd.round-progress
+# descr = current inference round vs timeout ceiling
+
+my $reset      = "\e[0m";
+my $blacklight = "\e[38;2;68;39;172m";
+my $nailara_bg = "\e[48;2;9;5;42m";
+my $TRUE_color = "\e[38;2;6;71;195m";
+my $WARN_color = "\e[38;2;197;141;7m";
+
+my $ceiling = <coding.http-timeouts.request-completed> // 780;
+my $now     = <[base.time]>->(3);
+
+my $aref_active = <coding.task.active> // [];
+my $task_id     = $aref_active->[0];
+
+my $chars_max = 13;
+
+if ( not defined $task_id ) {
+    my $output_str
+        = sprintf( "${blacklight}:::[${nailara_bg}${TRUE_color}%-13s"
+            . "${reset}${blacklight}]::"
+            . "[${nailara_bg}${TRUE_color} %s "
+            . "${reset}${blacklight}]:.${reset}",
+        '', 'no active task' );
+    return { 'mode' => qw| true |, 'data' => $output_str };
+}
+
+my $state         = <[coding.async.state_machine]>->( qw| get |, $task_id );
+my $round         = $state->{'round'} // 0;
+my $round_started = $state->{'round_started'};
+
+my $right;
+my $bar;
+my $color = $TRUE_color;
+
+if ( not defined $round_started ) {
+    $bar   = '';
+    $right = sprintf "%s | r%d | no data yet", $task_id, $round;
+} else {
+    my $elapsed = $now - $round_started;
+    my $pct     = $ceiling > 0 ? $elapsed / $ceiling : 0;
+    my $filled  = int( $chars_max * ( $pct > 1 ? 1 : $pct ) );
+    $bar   = ':' x $filled;
+    $color = $pct >= 0.9 ? $WARN_color : $TRUE_color;
+    $right = sprintf "%s | r%d | %ds / %ds [ %d%% ]",
+        $task_id, $round, $elapsed, $ceiling, int( $pct * 100 );
+}
+
+my $rw = length $right;
+
+my $output_str
+    = sprintf( "${blacklight}:::[${nailara_bg}${color}%-13s"
+        . "${reset}${blacklight}]::"
+        . "[${nailara_bg}${color} %-${rw}s "
+        . "${reset}${blacklight}]:.${reset}",
+    $bar, $right );
+
+return {
+    'mode' => qw| true |,
+    'data' => $output_str,
+};
+
+#,,.,,.,,,,.,,,.,,,,.,,.,,,.,,,,.,.,.,.,.,,,,,..,,...,...,,.,,...,,..,.,.,,.,,
+#ZRYUYCACEUKEL2RS3MBXZJB2QTLUYQQH3B3BBPRUHOPGTSNIVME6VU7HDWQC2Q2DTZU2JUL5GWY4O
+#\\\|OA7BQA52UDNRFBTZVWD4QR6D557EU4CO57DET557RP4RTCHWW3C \ / AMOS7 \ YOURUM ::
+#\[7]VLR7PMNVPIK7XOJTF7ASU62L3MREWHA4T546JATRSJLBUFFQRYDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
