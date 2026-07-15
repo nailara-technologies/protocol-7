@@ -1,20 +1,22 @@
 ## task: resume the data/tasks/ backlog completion-scan
 
-### status [ 2026-07-15 ]
+### status [ 2026-07-16 ] — round 2 in progress
 
-session moved 25 verified-complete tasks to `data/tasks/completed/` by running
-the local coding zenka (9B model) against the `tasks-completed` context
-template, in batches of 3 files, then independently re-verifying every
-"move to completed" verdict against actual code (grep / test runs / git log)
-before moving anything. do not trust the model's verdict alone — see
+round 1 (2026-07-15) moved 25 verified-complete tasks; round 2 (started after
+a clean `v7.restart coding` cleared a stuck `single-llm` backend lock — see
+"lesson" below) has moved 5 more so far and is still actively scanning the
+remaining files listed below. both rounds ran the local coding zenka (9B
+model) against the `tasks-completed` context template, in batches of 3
+files, then independently re-verified every "move to completed" verdict
+against actual code (grep / test runs / git log) before moving anything.
+do not trust the model's verdict alone — see
 `data/yaml/context-templates/tasks-completed.yaml` for the scan instructions.
 
 ### what's left
 
-113 files below (verified against the live `data/tasks/` directory listing,
-not against batch bookkeeping — the batch runner's task IDs got confusing
-after a mid-session restart resubmitted the same files under new IDs) never
-got a real scan pass.
+108 files below still need a real scan pass (verified against the live
+`data/tasks/` directory listing, not batch bookkeeping — task IDs get
+confusing across restarts).
 
 **lesson for next run: do not reload/restart the coding zenka while a batch
 scan is in flight.** roughly 37 of 54 batches failed this session because of
@@ -66,13 +68,12 @@ polling strictly in submission order.
 - `wayland-screenshooter-perl-prototype.md`, `web-auth-plugin.md`,
   `web-browser-input-capture-replay.md` — no matching code
 
-### remaining files [ 113, never scanned ]
+### remaining files [ 108, never scanned ]
 
 branch-dep-graph.md
 branch-field-open-state.md
 branch-fraction-cluster-validate.md
 calc-truncated-rational-output.md
-checksum-nested-addressing.md
 claude-design-suggest-templates.md
 coding-task-model-pinning.md
 command-relay-zenka.md
@@ -96,22 +97,18 @@ dispatch-template-param.md
 epoch-bmw-l13-truth-templates.md
 epoch-chksum-path-helper.md
 epoch-validity-search-protocol.md
-external-orbital-connect-test.md
 external-zenka-completion.md
-fix-double-plugin-load-on-reload.md
 generate-all-spec-pages.md
 git-hooks-version-auto-stage.md
 git-watch-zenka.md
 glitter-cosmology-priming.md
 graphics-matrix-voxel-space.md
 harmonic-quality-correlation-study.md
-httpd-web-relay-async.md
 index-cmd-replace-remove.md
 index-contribution-vector-store.md
 index-cube-storage-cache.md
 index-cube-storage-format.md
 index-cube-storage-migrate.md
-index-cube-storage-reader.md
 index-cube-storage-verify.md
 index-cube-storage-writer.md
 index-job-control-multiplexing.md
@@ -182,8 +179,8 @@ x11-capture-commands-rewrite.md
 x11-monitor-registry.md
 zenki-resolve-primary-sid.md
 
-#,,,,,.,,,...,..,,,,.,,,.,,..,..,,,.,,..,,,,.,..,,...,...,,.,,,,,,...,,,.,.,,,
-#R6DK5EQNPN3ZUL3ON3LINRV2STP64RMPVC5DJFEQC6RHOF6M6YWDA324HI3IZS6MJIVRFQRMCSIHC
-#\\\|EKOZDPZNB26JF7TIFVOMM5ZC6FQ5YIGVD5PIIIOLCCPFHTA7X5R \ / AMOS7 \ YOURUM ::
-#\[7]O5AJIM33T6UXZQTQ2W6U5VD7JPQOOWF6ZCI7UC26GVKDQDRIKACA 7  DATA SIGNATURE ::
+#,,,.,..,,...,,..,,.,,,.,,,,,,,..,...,,.,,,.,,..,,...,...,,,.,..,,.,,,...,.,,,
+#XQ4NR5MHMTI7BDXWBEQKA2OZ2EY46KPNYTKO5QKU3RI3YALHUVC4JGD3B5H272KRZ3Y6PO7GUSWUA
+#\\\|MLAFVJIQQOX4XKYHPOZJ7HRBZUOM3FYTJB73L2PV2T2SJSQCD7G \ / AMOS7 \ YOURUM ::
+#\[7]P227HTHGX2SUXYBTZGYRBNJAFZY6ZDEH66QDYJWH7GF5B4DXZADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
