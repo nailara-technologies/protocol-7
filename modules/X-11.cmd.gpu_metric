@@ -1,0 +1,93 @@
+## [:< ##
+
+# name  = X-11.cmd.gpu_metric
+# param = <metric> [subscribe|interval_secs]
+# descr = read or subscribe to a parallel gpu metric feed
+
+my $args_str = $call->{'args'} // '';
+my ( $metric, $rest ) = split m| +|, $args_str, 2;
+
+return { 'mode' => qw| false |, 'data' => 'metric name required' }
+    if not length $metric;
+
+my $m = <X-11.gpu_top.metric>->{$metric};
+
+return {
+    'mode' => qw| false |,
+    'data' => "no statistics available for '$metric'"
+    }
+    if not defined $m
+    or not defined $m->{'stats'}->{'load_average'}
+    or not defined $m->{'stats'}->{'secs'};
+
+## subscription mode ##
+if ( defined $rest and $rest eq qw| subscribe | ) {
+    my $h = <[base.stream.open]>->(
+        {   sid    => $call->{'session_id'},
+            cmd_id => $call->{'command_id'},
+            type   => qw| STRM |,
+            total  => undef,
+        }
+    );
+    return <[base.callback.cmd_reply]>->(
+        $call->{'reply_id'},
+        { 'mode' => qw| false |, 'data' => 'stream open refused' }
+    ) if not defined $h;
+
+    $m->{'listeners'} //= [];
+    push @{ $m->{'listeners'} }, $h;
+    <[base.logs]>->(
+        2,       'gpu %s listener added [sid=%d]',
+        $metric, $call->{'session_id'}
+    );
+    return { 'mode' => qw| deferred | };
+}
+
+if ( defined $rest and length $rest ) {
+    my $ivl  = $rest;
+    my %secs = map { $ARG => 1 } @{ $m->{'stats'}->{'secs'} };
+    return {
+        'mode' => qw| false |,
+        'data' => "no statistics for interval \"$ivl\" collected .. [ "
+            . join( ', ', @{ $m->{'stats'}->{'secs'} } ) . " ]"
+        }
+        if not exists $secs{$ivl};
+    if ( not defined $m->{'stats'}->{'load_average'}->{$ivl} ) {
+        my $sample_count = keys %{ $m->{'stats'}->{'sample'} };
+        my $retry_in     = $ivl - $sample_count;
+        my $s            = $retry_in > 1 ? 's' : '';
+        $s .= ' ..' if $retry_in >= 5;
+        $s .= '.'   if $retry_in >= 15;
+        return {
+            'mode' => qw| false |,
+            'data' => "please retry in $retry_in second$s"
+        };
+    }
+
+    return {
+        'mode' => qw| true |,
+        'data' => $m->{'stats'}->{'load_average'}->{$ivl}
+    };
+}
+
+my $stats_str = '';
+map {
+    my $value
+        = defined $m->{'stats'}->{'load_average'}->{$ARG}
+        ? $m->{'stats'}->{'load_average'}->{$ARG}
+        : '---';
+    if ( !length($stats_str) ) {
+        $stats_str .= "< $value >  ";
+    } else {
+        $stats_str .= "[ ${_}s : $value ]  ";
+    }
+} @{ $m->{'stats'}->{'secs'} };
+$stats_str =~ s| +$||;
+
+return { 'mode' => qw| true |, 'data' => $stats_str }
+
+#,,,,,,,.,,..,.,.,,..,..,,,.,,..,,.,,,.,,,,.,,..,,...,...,..,,,.,,.,,,,,,,,.,,
+#IAX4VMFJ7W5TO5HEHCOHHEL3BXY4AK3LA3CEYNCGENHYFVAOWVJDBOLBMWC6FW7PNDBNBL6HPBLNQ
+#\\\|XNFKR546JD54CKLO3ZQJZZYEP7T5XUQJRJIBE6VUYMVDTL7BGYO \ / AMOS7 \ YOURUM ::
+#\[7]5FQB7WWA7RPAY2ZMY3EAFMR4256YGJPZ652YC3QBDIJLY7AXBCBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
