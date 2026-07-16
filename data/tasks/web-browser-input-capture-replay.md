@@ -82,25 +82,91 @@ several existing visualizations, most of which currently only look
 "correct" after some amount of human-driven interaction (rotation,
 zoom, selection) that has no deterministic replay path today.
 
-## open questions
+## open questions — RESOLVED (2026-07-16, ready to implement)
 
-- capture format: raw event log vs. normalized (position deltas only,
-  device-independent) — normalized is probably needed for curve-based
-  synthesis to share a format with recordings.
-  - replay needs to target the same event listeners
-  (`canvas.addEventListener('wheel'/'mousedown'/...)`)  already present in
-  each visualization page — is a generic "input replay" JS template
-  (following the `graph_template.*` convention) enough, or does each
-  page need small per-page hooks (a `window.__p7ReplayTarget` = canvas
-  convention, mirroring `window.debug*`)?
-- convergence detection for (4): needs a generic "state vector settled"
-  check (e.g. N consecutive samples within epsilon) — likely reusable
-  across any page that exposes `window.debug*` state, not
-  visualization.html-specific.
-- how much of this belongs in `web-browser.*` zenka modules vs. living
-  as page-side JS templates (same split already established between
-  `graph_template.*` in-page JS and the Perl-side `graph-params`
-  command that wires it up).
+Precedent confirmed live in the tree: `web-browser.cmd.graph-params`,
+`web-browser.graph_params.install`, `web-browser.graph_template.default.js_source`,
+`web-browser.graph_template.list`, `web-browser.console_capture.{js_source,install,
+buffer_name,reset}` all exist and landed as part of
+[[web-browser-param-capture-graphing]] — this task builds directly on top of
+that working code, not a fresh mechanism.
+
+- **capture format**: normalized, device-independent. Each event record is
+  `{ t: <ms since recording start>, type: 'down'|'move'|'up'|'wheel',
+  x: <0..1 fraction of target's clientWidth>, y: <0..1 fraction of
+  clientHeight>, dz: <wheel deltaY, only for type='wheel'> }`. Fractional
+  x/y means a recording replays correctly regardless of window/canvas size
+  at replay time. This is the *one* format shared by capture, replay, and
+  curve-synthesis (synthesis just generates the same record shape without a
+  human ever producing it).
+- **replay target**: mirror the existing `window.debug*` convention exactly
+  — each page under test sets `window.__p7ReplayTarget = canvas;` once
+  (one line, same place the `window.debugZoom = zoom;` block already lives
+  in `visualization.html:832-839`). The generic replay JS template
+  dispatches synthetic events against `window.__p7ReplayTarget`, falling
+  back to `document` if unset. No per-page replay logic beyond that one
+  assignment — same split as `debugRotX`/`debugZoom` today.
+- **convergence detection**: new generic command, not visualization-specific.
+  `web-browser.cmd.wait-for-state var1 var2 ... [tolerance=0.01]
+  [samples=5] [timeout=10]` — polls `window[name]` for every listed var
+  (same existence-check pattern as `graph-params`'s missing-name abort) at
+  a short fixed interval until `samples` consecutive reads are each within
+  `tolerance` of the previous read, for every var, or `timeout` elapses.
+  Replies with the final value vector either way (success flag distinguishes
+  settle vs. timeout). Reusable standalone, not folded into replay only.
+- **module placement**: same split already established by
+  `graph_template.*` (in-page JS) vs. `graph-params`/`graph_params.install`
+  (Perl wiring) — new work follows the identical shape, listed below.
+
+### module layout (mirrors `console_capture.*` / `graph_template.*` exactly)
+
+- `web-browser.replay_capture.js_source` — hooks `mousedown`/`mousemove`/
+  `mouseup`/`wheel` on `window.__p7ReplayTarget` (fallback `document`),
+  normalizes to the record shape above, pushes to `window.__p7ReplayBuffer`
+  while `window.__p7RecordingActive` is true, posts each record via a new
+  `p7replay` message-handler channel (same `postMessage` shape as
+  `p7cons`, not overloading the console channel).
+- `web-browser.replay_capture.install` — wires the `UserScript` + registers
+  `script-message-received::p7replay`, mirroring
+  `web-browser.console_capture.install` line for line (view, view_id ->
+  named buffer via `base.buffer.add_line`).
+- `web-browser.replay_capture.buffer_name` — mirrors
+  `web-browser.console_capture.buffer_name`.
+- `web-browser.cmd.replay-record start|stop [target=<js-expr>]` — toggles
+  `window.__p7RecordingActive`; `start` installs the capture script if not
+  already installed (idempotent guard like `__p7ConsoleHooked`).
+- `web-browser.cmd.replay-play <buffer-name-or-json-path> [speed=1.0]
+  [verify=var:target,...] [tolerance=0.01]` — loads the normalized event
+  array, dispatches synthetic `MouseEvent`/`WheelEvent` objects against
+  `window.__p7ReplayTarget` on the recorded timeline (scaled by `speed`),
+  then — if `verify=` given — calls the same settle-poll logic as
+  `wait-for-state` and diffs final values against the targets, replying
+  pass/fail with the deltas.
+- `web-browser.cmd.replay-synth type=drag|wheel path=linear|bezier
+  duration=<ms> ...` — generates a normalized event array from parametric
+  curves (no prior recording needed) and feeds it into the same
+  `replay-play` dispatch engine, so linear ramps/easing/bezier fuzzing
+  reuses one playback path rather than a second implementation.
+- `web-browser.cmd.wait-for-state` — standalone convergence command as
+  specified above; also called internally by `replay-play`'s `verify=`.
+
+### build order
+
+1. `replay_capture.js_source` + `.install` + `.buffer_name` + `replay-record`
+   command — get a real recording landing in a named buffer, verified by
+   hand-driving `visualization.html` and reading the buffer back.
+2. `replay-play` (recording-only, no `verify=` yet) — dispatch synthetic
+   events against `__p7ReplayTarget`, confirm the same rotate/zoom motion
+   reproduces from the recorded buffer.
+3. `wait-for-state` standalone — validate against `visualization.html`'s
+   `window.debugZoom`/`debugRotX`/`debugRotY` settling after a manual drag.
+4. wire `verify=` into `replay-play` using (3).
+5. `replay-synth` curve generator, reusing (2)'s dispatch engine.
+6. add `window.__p7ReplayTarget = canvas;` to `visualization.html` (one
+   line near the existing `window.debugZoom` block at line ~833) and use
+   it as the first real fixture: record a rotate-drag + wheel-zoom gesture,
+   replay it, verify the landed `rotX/rotY/zoom` vector matches within
+   tolerance — this is the acceptance test for the whole feature.
 
 ## relationship to other work
 
@@ -115,11 +181,12 @@ zoom, selection) that has no deterministic replay path today.
 
 ## status
 
-Design-only, nothing implemented. Spun off during the same session that
-landed [[web-browser-param-capture-graphing]] (commit cae42647d).
+Design resolved 2026-07-16 (see "RESOLVED" section above with concrete
+module layout + build order). Implementation not started — dispatched to
+kimi (K3 model) to build per the build order above.
 
-#,,,,,,,,,,,.,,,,,,.,,.,.,...,.,,,,..,.,,,,,.,..,,...,...,.,,,,.,,.,,,...,,.,,
-#UKK6U5CZ32RL4M46DZJS6FCQPNTSVDNISQYD5725YHRMTYLOINOGLDTZPAY7ODYYTHSFIKSRTB6SI
-#\\\|OWLG27I4RSWTOSM6N4FOFAJFWJEZEENBMUVO6QDLLLCY7WFP4TF \ / AMOS7 \ YOURUM ::
-#\[7]TCPWW2755TF3GWMR4RDAOLFBWRBXWWS6G65OMV3QVXAGLCZIKMCY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,.,,,,.,,.,,,,,.,.,.,,,.,,,.,,.,,..,,...,..,,.,,,.,.,.,.,...,,,,,
+#3R2DL3NDVBJJ3XC6IK7SU3X5LGSH5C2JDXULRDT7PGUXC7MF6D3IB4CK5ABP4OPLHXTILE6LUVK5G
+#\\\|5PSLPCYLEEZVUVS7QS5KAHYXCJVRZF5PTWPU7P6Y54E5IO5D3X4 \ / AMOS7 \ YOURUM ::
+#\[7]3CIK5TCNWK4EFTCY3XNEYLOO7MUKRXJ57DVV45V7WT4I77QIH2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

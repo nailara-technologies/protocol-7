@@ -1,0 +1,230 @@
+## [:< ##
+
+# name  = web-browser.cmd.wait-for-state
+# descr = poll window.* vars until settled or timeout
+# param = <var...> [tolerance=] [samples=] [timeout=]
+
+my $reply_id = $call->{'reply_id'};
+my $args_str = $call->{'args'} // '';
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage: wait-for-state <var> [var ...] '
+        . '[tolerance=0.01] [samples=5] [timeout=10]'
+    }
+    if !length($args_str);
+
+my $fg_index = <web-browser.overlay.index>->{'fg'};
+my $view     = <web-browser.gtk_obj.view>->{$fg_index};
+
+return { 'mode' => qw| false |, 'data' => 'no foreground view' }
+    unless defined $view;
+
+my $settings = $view->get_settings();
+
+return {
+    'mode' => qw| false |,
+    'data' => 'javascript execution is disabled'
+    }
+    if !$settings->get_enable_javascript();
+
+my @tokens = split( m|\s+|, $args_str );
+
+my $tolerance = 0.01;
+my $samples   = 5;
+my $timeout   = 10;
+my @names;
+foreach my $token (@tokens) {
+    if ( $token =~ m|^tolerance=(\d+(?:\.\d+)?)$| ) {
+        $tolerance = 0 + $1;
+    } elsif ( $token =~ m|^samples=(\d+)$| ) {
+        $samples = 0 + $1;
+    } elsif ( $token =~ m|^timeout=(\d+(?:\.\d+)?)$| ) {
+        $timeout = 0 + $1;
+    } elsif ( length($token) ) {
+        push @names, $token;
+    }
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected at least one variable name'
+    }
+    if !@names;
+
+$samples = 1 if $samples < 1;
+
+my $interval = 0.1;    ## fixed poll interval [ seconds ] ##
+
+my $names_json = <[format.json.encode]>->( \@names );
+
+my $check_js = sprintf(
+    'JSON.stringify(%s.map('
+        . 'function(n){return typeof window[n] !== "undefined"}))',
+    $names_json
+);
+
+<[web-browser.js_call]>->(
+    $check_js,
+    sub {
+        my ( $result_str, undef ) = @_;
+        $result_str //= '';
+
+        my $present = <[format.json.decode]>->($result_str);
+        if ( ref($present) ne qw| ARRAY | ) {
+            <[base.callback.cmd_reply]>->(
+                $reply_id,
+                {   'mode' => qw| false |,
+                    'data' => 'existence check returned invalid data'
+                }
+            );
+            return;
+        }
+
+        my @missing;
+        for ( my $i = 0; $i < @names; $i++ ) {
+            push @missing, $names[$i]
+                if !$present->[$i];
+        }
+
+        if (@missing) {
+            <[base.callback.cmd_reply]>->(
+                $reply_id,
+                {   'mode' => qw| false |,
+                    'data' => sprintf( 'missing variables: %s',
+                        join( ', ', @missing ) )
+                }
+            );
+            return;
+        }
+
+        my $read_js
+            = sprintf(
+            'JSON.stringify(%s.map(function(n){return window[n]}))',
+            $names_json );
+
+        ##  numeric compare pattern [ incl. exponent notation ]  ##
+        my $num_re = qr|^-?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?$|;
+
+        ##  tick-counted timeout : no Time::HiRes dependency  ##
+        my $state = {
+            'prev'      => undef,
+            'settled'   => 0,
+            'ticks'     => 0,
+            'max_ticks' => int( $timeout / $interval + 0.5 ) || 1,
+            'timer'     => undef
+        };
+
+        my $finish;
+        $finish = sub {
+            my ( $ok, $values ) = @_;
+            return                    if !defined $finish;
+            $state->{'timer'}->cancel if defined $state->{'timer'};
+            $state->{'timer'} = undef;
+
+            my @vals = ref($values) eq qw| ARRAY | ? $values->@* : ();
+            my @pairs;
+            for ( my $i = 0; $i < @names; $i++ ) {
+                push @pairs,
+                    sprintf( '%s=%s',
+                    $names[$i], defined $vals[$i] ? $vals[$i] : qw| undef | );
+            }
+            <[base.callback.cmd_reply]>->(
+                $reply_id,
+                {   'mode' => $ok ? qw| true | : qw| false |,
+                    'data' => sprintf(
+                        '%s [%s after %.1fs]',
+                        join( ' ', @pairs ),
+                        $ok ? qw| settled | : qw| timeout |,
+                        $state->{'ticks'} * $interval
+                    )
+                }
+            );
+            $finish = undef;
+        };
+
+        $state->{'timer'} = <[event.add_timer]>->(
+            {   after    => $interval,
+                interval => $interval,
+                repeat   => TRUE,
+                cb       => sub {
+                    return if !defined $finish;
+
+                    $state->{'ticks'}++;
+                    if ( $state->{'ticks'} >= $state->{'max_ticks'} ) {
+                        $finish->( FALSE, $state->{'prev'} );
+                        return;
+                    }
+
+                    $view->evaluate_javascript(
+                        $read_js, -1, undef, undef, undef,
+                        sub {
+                            my ( $view, $result ) = @_;
+                            return if !defined $finish;
+                            my $jsc_value = eval {
+                                $view->evaluate_javascript_finish($result);
+                            };
+                            return if $@ or not defined $jsc_value;
+
+                            my $values = <[format.json.decode]>
+                                ->( $jsc_value->to_string );
+                            return if ref($values) ne qw| ARRAY |;
+
+                            my $within = FALSE;
+                            if ( defined $state->{'prev'} ) {
+                                $within = TRUE;
+                                for ( my $i = 0; $i < @names; $i++ ) {
+                                    my $cur  = $values->[$i];
+                                    my $prev = $state->{'prev'}[$i];
+                                    next
+                                        if !defined $cur
+                                        and !defined $prev;
+                                    if (   !defined $cur
+                                        or !defined $prev ) {
+                                        $within = FALSE;
+                                        last;
+                                    }
+                                    my $same
+                                        = (     $cur =~ $num_re
+                                            and $prev =~ $num_re )
+                                        ? abs( $cur - $prev ) <= $tolerance
+                                        : $cur eq $prev;
+                                    if ( !$same ) {
+                                        $within = FALSE;
+                                        last;
+                                    }
+                                }
+                            }
+                            ##  first read only establishes the baseline  ##
+                            $state->{'prev'} = $values;
+
+                            if ($within) {
+                                $state->{'settled'}++;
+                                $finish->( TRUE, $values )
+                                    if $state->{'settled'} >= $samples;
+                            } else {
+                                $state->{'settled'} = 0;
+                            }
+                        },
+                        undef
+                    );
+                }
+            }
+        );
+
+        <[base.logs]>->(
+            2,
+            "wait-for-state: polling %s [tol=%s samples=%d timeout=%ss]",
+            join( ', ', @names ),
+            $tolerance, $samples, $timeout
+        );
+    }
+);
+
+return { 'mode' => qw| deferred | };
+
+#,,..,,..,,,.,,..,,..,.,.,,..,,..,,.,,,.,,,,,,..,,...,...,.,,,.,.,.,,,,..,,.,,
+#ALMHG6LSL72XRGN4ECQKR3C3STED4M4FJLMKX7LKLTR5MZFNI6CHHCVHFQT5I5NPUQ2TCP5JW2MFW
+#\\\|E45DK3KXANITZYHTBVQXTZQAQSXW7IHUJW3GPT7TSZZNBV74DJ4 \ / AMOS7 \ YOURUM ::
+#\[7]352GYTIMJERHW5NEZL3LAWF3VT2DCIMAQ3FZOCWECOLQ7TCCUAAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
