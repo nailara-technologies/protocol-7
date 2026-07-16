@@ -218,6 +218,63 @@ my $model_context_tokens;    ## cached from coding.context-size on first use
 my $pending_summary_focus
     ;    ## one-shot focus for next auto_summarize; clears on use
 my $mcp_client_name;    ## captured from initialize clientInfo.name
+
+## walk up to 8 process ancestors via /proc, return their cmdlines joined
+## with ' | ' -- cooperation-independent: works even when the spawning CLI
+## sets no identifying env var and the MCP client library reports a
+## generic clientInfo.name. confirmed live: kimi-legacy sets neither
+## AI_AGENT nor a "kimi"-containing clientInfo.name (reports literal "mcp"),
+## but its own process / an ancestor's cmdline does say "kimi".
+sub _ancestor_cmdlines {
+    my @lines;
+    my $pid = $$;
+    for ( 1 .. 8 ) {
+        my $ppid;
+        if ( open my $fh, '<', "/proc/$pid/status" ) {
+            local $/ = undef;
+            my $content = <$fh>;
+            close $fh;
+            ($ppid) = $content =~ /^PPid:\s*(\d+)/m;
+        }
+        last unless defined $ppid and $ppid > 1;
+        $pid = $ppid;
+        if ( open my $fh, '<', "/proc/$pid/cmdline" ) {
+            local $/ = undef;
+            my $cmdline = <$fh> // '';
+            close $fh;
+            $cmdline =~ s/\0/ /g;
+            push @lines, $cmdline if length $cmdline;
+        }
+    }
+    return join( ' | ', @lines );
+}
+
+## resolve which agent is calling us, for agent='auto' params. three
+## signals, most to least reliable:
+## 1. AI_AGENT (env) -- set by some CLIs (confirmed for claude-code), not
+##    all (confirmed absent for kimi-legacy).
+## 2. process ancestry (/proc cmdlines) -- cooperation-independent, works
+##    regardless of what the spawning CLI does or doesn't set.
+## 3. clientInfo.name from the MCP initialize handshake -- least reliable,
+##    confirmed to be a generic "mcp" literal for kimi-legacy, not "kimi".
+sub resolve_agent_auto {
+    my ($default) = @ARG;
+    $default //= 'claude';
+
+    my $env_agent = lc( $ENV{'AI_AGENT'} // '' );
+    return 'kimi'   if $env_agent =~ m{kimi};
+    return 'claude' if $env_agent =~ m{claude};
+
+    my $ancestry = lc( _ancestor_cmdlines() );
+    return 'kimi'   if $ancestry =~ m{kimi};
+    return 'claude' if $ancestry =~ m{claude};
+
+    my $caller = lc( $mcp_client_name // '' );
+    return 'kimi'   if $caller =~ m{kimi};
+    return 'claude' if $caller =~ m{claude};
+
+    return $default;
+}
 my $FOCUS_FILE = "$ROOT_PATH/data/state/mcp-summary-focus.txt";
 my $summary_focus_sticky
     = 0;                ## 1 if loaded from disk (sticky across sessions)
@@ -691,6 +748,17 @@ our @tools = (
             'additionalProperties' => \0
         }
     },
+    {   'name'        => 'p7_detected_agent',
+        'description' =>
+            'debug/validation tool: reports what agent="auto" would '
+            . 'currently resolve to for p7_memory_update/p7_memory_summary, '
+            . 'and the raw signals used to decide it. no side effects.',
+        'inputSchema' => {
+            'type'                 => 'object',
+            'properties'           => {},
+            'additionalProperties' => \0
+        }
+    },
     {   'name'        => 'p7_memory_search',
         'description' =>
             'search the focus-scored memory tree for relevant topics. '
@@ -901,6 +969,8 @@ sub handle_tools_call {
         tool_list_tools( $id, $args );
     } elsif ( $name eq 'p7_call_tool' ) {
         tool_call_tool( $id, $args );
+    } elsif ( $name eq 'p7_detected_agent' ) {
+        tool_p7_detected_agent( $id, $args );
     } elsif ( $name eq 'p7_chat_send' ) {
         tool_p7_chat_send( $id, $args );
     } elsif ( $name eq 'p7_chat_read' ) {
@@ -1760,16 +1830,7 @@ sub tool_p7_memory_summary {
     my $max_tokens = $args->{'max_tokens'} // 600;
 
     ## resolve auto → caller's own memory
-    if ( $agent eq 'auto' ) {
-        my $caller = lc( $mcp_client_name // '' );
-        if ( $caller =~ m{kimi} ) {
-            $agent = 'kimi';
-        } elsif ( $caller =~ m{claude} ) {
-            $agent = 'claude';
-        } else {
-            $agent = 'both';
-        }
-    }
+    $agent = resolve_agent_auto('both') if $agent eq 'auto';
 
     my $default_focus
         = 'optimize handover context between sessions: identify critical '
@@ -1842,16 +1903,7 @@ sub tool_p7_memory_update {
     my $focus       = $args->{'focus'}       // '';
 
     ## resolve auto → caller's own memory
-    if ( $agent eq 'auto' ) {
-        my $caller = lc( $mcp_client_name // '' );
-        if ( $caller =~ m{kimi} ) {
-            $agent = 'kimi';
-        } elsif ( $caller =~ m{claude} ) {
-            $agent = 'claude';
-        } else {
-            $agent = 'claude';
-        }
-    }
+    $agent = resolve_agent_auto('claude') if $agent eq 'auto';
 
     my $mem_dir
         = $agent eq 'claude'
@@ -2071,6 +2123,36 @@ sub tool_p7_memory_update {
     } else {
         send_tool_result( $id, join( "\n\n", @parts ), 0 );
     }
+}
+
+## =========================================================================
+## detected-agent debug tool — reports what agent='auto' resolves to now
+## =========================================================================
+
+sub tool_p7_detected_agent {
+    my ( $id, $args ) = @ARG;
+
+    my $env_agent_raw = $ENV{'AI_AGENT'} // '';
+    my $client_raw    = $mcp_client_name // '';
+    my $ancestry_raw  = _ancestor_cmdlines();
+
+    my $resolved_update  = resolve_agent_auto('claude');
+    my $resolved_summary = resolve_agent_auto('both');
+
+    my $out = sprintf(
+        "resolved (p7_memory_update default) : %s\n"
+            . "resolved (p7_memory_summary default) : %s\n"
+            . "AI_AGENT env : %s\n"
+            . "process ancestry (/proc cmdlines) : %s\n"
+            . "clientInfo.name (MCP handshake) : %s",
+        $resolved_update,
+        $resolved_summary,
+        length($env_agent_raw) ? $env_agent_raw : '[unset]',
+        length($ancestry_raw)  ? $ancestry_raw   : '[unavailable]',
+        length($client_raw)    ? $client_raw     : '[unset]'
+    );
+
+    send_tool_result( $id, $out, 0 );
 }
 
 ## =========================================================================
@@ -2930,8 +3012,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,.,,,,.,,..,,.,,.,,,.,.,,,,,.,,,,,.,,,,,.,,,..,,...,.,.,,.,,..,,,,.,..,,,,,,
-#4TKD7AR2PBWGPJLTBLRLT3WI6UCWLMTU3REI3G5FK7BNMKC7KGATJPBTBLKTG5XDGL63PX5BFSYJ6
-#\\\|7QE74XJ6Z4OFXM6RLPLMNTVNFHOK2XR5XEV57QF3Z7TIU4APAP5 \ / AMOS7 \ YOURUM ::
-#\[7]VMX5P6V454NZTY6GFQIPUOCMVMI7FTHB22WA6WAAP65DGKEOKECQ 7  DATA SIGNATURE ::
+#,,..,,,,,,..,..,,..,,.,.,,,.,.,.,...,,.,,...,..,,...,...,..,,..,,,.,,,,.,.,.,
+#3N4S6IKLK2Z2SVNPD655VUUL7NBED6P7KFIMZFQ5FSFVBET6AQBJRA7JBRBIR52DWEVDWM5JGUIUC
+#\\\|T32XS26XJTOFJHMJWVM4TCVTAVSUEP7V4VD6ESLKBM5TAFJZ5ZJ \ / AMOS7 \ YOURUM ::
+#\[7]AD2SA67YAVTAR4M3P4PLSXX7RKJXG6D3ESTL6MXYWYMTEVR6UQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
