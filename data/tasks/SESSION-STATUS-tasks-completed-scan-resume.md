@@ -17,18 +17,22 @@ by idle-shutdown after partial progress; per-buffer verdicts were rescued from
   `jobsite-sync-push-status-dir.md`, `jobsite-ui-card-refinements.md`,
   `credential-fabric.md`, `mcp-claude-dispatch.md`,
   `mcp-coding-summarize.md`, `mcp-server-p7-external-commands.md`,
-  `git-hooks-version-auto-stage.md`, `jobsite-ui-reassess-button.md`).
+  `git-hooks-version-auto-stage.md`, `jobsite-ui-reassess-button.md`,
+  `jobsite-ui-interviewed-tab.md`, `jobsite-ui-flexible-export.md`).
   **remaining truly never-scanned: 52**.
 
-  `jobsite-ui-reassess-button.md` was flagged "still open" (no
-  `btn-reassess` match) by a *previous* round-1 scan — that verdict was
-  wrong: `.btn-reassess` exists live in
-  `data/web-root/vhosts/jobs.vhost/index.html` (lines 544/1121/1370),
-  wired to `pushChange(id, {action:'reassess'})`, and
-  `jobsite.sync.apply_reverse` fully implements the backend per spec.
-  User confirmed it works live. Caught because this round was told to
-  skip it as "already handled" — worth re-checking any other round-1
-  "still open" verdict that looks surprising.
+  all three files in the jobsite-ui trio (`reassess-button`,
+  `interviewed-tab`, `flexible-export`) had been flagged "still open" by a
+  *previous* round-1 scan — all three verdicts were WRONG. reassess:
+  `.btn-reassess` wired to `pushChange(id, {action:'reassess'})` +
+  `jobsite.sync.apply_reverse`. interviewed-tab: full stage/filter/
+  amber-gold styling/gesture-flow/export support, landed 2026-05-31 per
+  git log. flexible-export: `#export-panel` with stage checkboxes/sliders,
+  `.export-since-last-cb` filter, `showPrintTable()` — user confirmed live
+  use sending reports. All three confirmed live by the user directly.
+  Caught because round 3 was told to skip this trio as "already handled" —
+  a reminder that round-1 "still open" verdicts aren't automatically
+  trustworthy just because they're old.
 
 all "move to completed" verdicts were independently verified against actual
 modules / git log before `git mv`; do not trust model verdicts alone — see
@@ -149,11 +153,6 @@ polling strictly in submission order.
 - `x11-capture-commands-rewrite.md` — `X-11.cmd.capture-window` and
   `capture-region` still use `system()` and accept `output_path`; no
   `X-11.handler.capture_reply`
-- `jobsite-ui-flexible-export.md`, `jobsite-ui-interviewed-tab.md` —
-  marked still-open in a previous pass, skipped this round, but that pass's
-  verdict on the sibling `jobsite-ui-reassess-button.md` turned out to be
-  WRONG (see below) — these two need a fresh manual look, don't trust the
-  "still open" label blindly
 
 ### remaining files [ 52, never scanned ]
 
@@ -210,8 +209,8 @@ transport-selector.md
 tree-sort-trunk-route-page.md
 web-sessions-distributed.md
 
-#,,,.,..,,.,,,..,,,,,,,,.,,..,..,,.,.,.,,,.,.,..,,...,...,...,..,,,.,,..,,...,
-#CKIRWFAWPOPEGUII4UEYGKGLVRL5GF5PQQH4NE46CR75YQ7SSWIS7LNONLRGGIDDZNF5VNMZAN4JY
-#\\\|RBRCKSYRUHY2IULPWMV5ZJIJNRQ66DY34QK4FJXRHCSS44XRQNN \ / AMOS7 \ YOURUM ::
-#\[7]UINRX7L5E7M3XDKHNO2KWK2UINPLYD6V5UR6U7KHCWEOQ7XEU4CI 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,.,,,.,,,,,,,,..,..,,,..,,..,.,,,..,,...,..,,.,.,..,,...,,..,,,.,
+#J6P6U4JPFFYCC5NTM4VS4LZGIDO7U6HOWU3AQP4DRXLLXTYIALAE6OJXDJWKUBXYLVIQOEYFTVTMO
+#\\\|PK2LPXKC5QT46IFK52U45GAZWEXDYRAXIOJCTU3FLKJTY4WU54F \ / AMOS7 \ YOURUM ::
+#\[7]KIF2K7UCKHJQ5QKH34FBVNPIMER4WZYCCGERFYETWESYGHUBA4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
