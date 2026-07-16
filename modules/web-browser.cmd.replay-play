@@ -3,6 +3,7 @@
 # name  = web-browser.cmd.replay-play
 # descr = replay recorded input against __p7ReplayTarget
 # param = <buffer-name|json-path> [speed=1.0] [force=1]
+#       .. [verify=var:target,..] [tolerance=0.01] [samples=5] [timeout=10]
 
 my $reply_id = $call->{'reply_id'};
 my $args_str = $call->{'args'} // '';
@@ -11,6 +12,7 @@ return {
     'mode' => qw| false |,
     'data' =>
         'usage: replay-play <buffer-name|json-path> [speed=1.0] [force=1]'
+        . ' [verify=var:target,..] [tolerance=0.01] [samples=5] [timeout=10]'
     }
     if !length($args_str);
 
@@ -31,11 +33,36 @@ return {
 my @tokens = split( m|\s+|, $args_str );
 my $source = shift @tokens // '';
 
-my $speed = 1.0;
-my $force = 0;
+my $speed     = 1.0;
+my $force     = 0;
+my $tolerance = 0.01;
+my $samples   = 5;
+my $timeout   = 10;
+my %verify;
 foreach my $token (@tokens) {
-    $speed = 0 + $1 if $token =~ m|^speed=(\d+(?:\.\d+)?)$|;
-    $force = 0 + $1 if $token =~ m|^force=([01])$|;
+    if ( $token =~ m|^speed=(\d+(?:\.\d+)?)$| ) {
+        $speed = 0 + $1;
+    } elsif ( $token =~ m|^force=([01])$| ) {
+        $force = 0 + $1;
+    } elsif ( $token =~ m|^tolerance=(\d+(?:\.\d+)?)$| ) {
+        $tolerance = 0 + $1;
+    } elsif ( $token =~ m|^samples=(\d+)$| ) {
+        $samples = 0 + $1;
+    } elsif ( $token =~ m|^timeout=(\d+(?:\.\d+)?)$| ) {
+        $timeout = 0 + $1;
+    } elsif ( $token =~ m|^verify=(\S+)$| ) {
+        foreach my $pair ( split( m|,|, $1 ) ) {
+            return {
+                'mode' => qw| false |,
+                'data' =>
+                    sprintf(
+                    'invalid verify pair: %s [expected var:target,..]',
+                    $pair )
+                }
+                unless $pair =~ m|^(\w+):(-?\d+(?:\.\d+)?)$|;
+            $verify{$1} = $2;
+        }
+    }
 }
 $speed = 1.0 if $speed <= 0;
 
@@ -101,108 +128,23 @@ if ( defined $pin_chk and not $force ) {
     }
 }
 
-my $events_json = <[format.json.encode]>->( \@events );
-
-my $js_header = sprintf(
-    <<'JS_HEAD',
-(function () {
-    var events = %s;
-    var speed = %s;
-JS_HEAD
-    $events_json, $speed
-);
-
-my $js_footer = <<'JS_FOOT';
-    var target = window.__p7ReplayTarget || document;
-    var isDoc = ( target === document );
-    var w = isDoc ? window.innerWidth
-        : ( target.clientWidth || window.innerWidth );
-    var h = isDoc ? window.innerHeight
-        : ( target.clientHeight || window.innerHeight );
-    var typeMap = { down: 'mousedown', move: 'mousemove', up: 'mouseup' };
-    window.__p7ReplayDone = false;
-    window.__p7ReplayCount = events.length;
-    var dispatched = 0;
-    events.forEach( function ( rec ) {
-        setTimeout( function () {
-            var cx = Math.round( rec.x * w );
-            var cy = Math.round( rec.y * h );
-            var ev;
-            if ( rec.type === 'wheel' ) {
-                ev = new WheelEvent( 'wheel', {
-                    deltaY: rec.dz || 0,
-                    clientX: cx, clientY: cy,
-                    bubbles: true, cancelable: true
-                } );
-            } else {
-                ev = new MouseEvent( typeMap[ rec.type ] || rec.type, {
-                    clientX: cx, clientY: cy,
-                    button: 0,
-                    buttons: rec.type === 'up' ? 0 : 1,
-                    bubbles: true, cancelable: true
-                } );
-            }
-            target.dispatchEvent( ev );
-            dispatched++;
-            if ( dispatched === events.length ) window.__p7ReplayDone = true;
-        }, rec.t / speed );
-    } );
-    return events.length;
-})();
-JS_FOOT
-
-my $payload = $js_header . $js_footer;
-
-##  direct evaluate : js_call would log the full event payload at -vv  ##
-$view->evaluate_javascript(
-    $payload,
-    -1,       ## length: -1 = null-terminated string
-    undef,    ## world_name: default world
-    undef,    ## source_uri
-    undef,    ## cancellable
-    sub {
-        my ( $view, $result ) = @_;
-        my $result_str = '';
-        my $jsc_value  = eval { $view->evaluate_javascript_finish($result) };
-
-        if ($@) {
-            ( my $ex_str = $@ ) =~ s| at /usr/.+\n$||;
-            $ex_str =~ s|^[^ ]+ ||;
-            <[base.logs]>
-                ->( 0, '<!JSerr!> [%s] %s', $view->get_uri, $ex_str );
-            <[base.callback.cmd_reply]>->(
-                $reply_id,
-                {   'mode' => qw| false |,
-                    'data' => sprintf( 'replay dispatch failed: %s', $ex_str )
-                }
-            );
-            return;
-        }
-
-        $result_str = $jsc_value->to_string if defined $jsc_value;
-        my $count = $result_str =~ m|^\d+$| ? 0 + $result_str : 0;
-
-        <[base.logs]>->(
-            2, "replay-play: dispatched %d events at %.2fx from '%s'",
-            $count, $speed, $source
-        );
-        <[base.callback.cmd_reply]>->(
-            $reply_id,
-            {   'mode' => qw| true |,
-                'data' => sprintf(
-                    'replaying %d events at %.2fx speed [%s]',
-                    $count, $speed, $source
-                )
-            }
-        );
-    },
-    undef    ## user_data
+<[web-browser.replay.dispatch]>->(
+    {   'view'      => $view,
+        'events'    => \@events,
+        'speed'     => $speed,
+        'source'    => $source,
+        'reply_id'  => $reply_id,
+        'verify'    => \%verify,
+        'tolerance' => $tolerance,
+        'samples'   => $samples,
+        'timeout'   => $timeout
+    }
 );
 
 return { 'mode' => qw| deferred | };
 
-#,,..,...,,..,,,.,,.,,..,,...,.,.,..,,,,,,.,.,..,,...,...,.,.,.,.,,,.,..,,..,,
-#VBMT3RVSTC2PQBYOYQ4Y6NRLOE7WNLFORV4BPYD574SU27NUEXUNFEDGT7CYRHPLN5UYOT7DTA3TM
-#\\\|5X45UH6B42WJS7IUQHSEYX52MM4XPNPYZMF2ISCS3ZLLKYYOCH4 \ / AMOS7 \ YOURUM ::
-#\[7]GAIMQJAEHKG52X6BZRXSR7WJ3QFARZIBHDG5I3FCD2MUZM6Q3QDI 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,,,,,,,,,..,.,,,.,,,,,,,,..,..,,..,,...,..,,..,,...,,,,,,..,..,,
+#SNX7NGPNOCTSG3RYF4I6HUVQXXCRMCSJYMR524TZSVL5HS3JNQH6QJFSIFGEPXPXCO4Y3KVSK6LPS
+#\\\|F7IJGAEQL4RBYDS2OG7EBGMJJ32ZAA4X6I3DBKPYSCPKBWKODJQ \ / AMOS7 \ YOURUM ::
+#\[7]F42XEMQK6QMKJOYA25Q7MWOVLFR7H7LDVMYIBEF4URMMCZISN2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
