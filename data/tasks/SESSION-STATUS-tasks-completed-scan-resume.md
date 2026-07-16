@@ -15,7 +15,11 @@ the 9B model were re-verified against actual code. 20 confirmed and moved to
 2 confirmed complete and moved (`sys-deps-zenka.md`,
 `contextualized-error-replies.md`); 2 classified as possibly completed pending
 human review; 6 left open.
-- **total moved this pass: 22**. **remaining truly never-scanned: 77**.
+- **total moved this pass: 22**, plus `graphics-matrix-voxel-space.md` moved
+  after live user verification (harmonic-coords, ray-table, voxel-add,
+  voxel-density all exercised on a live shell; `voxel-del` isn't in the spec,
+  the "command not known" was an out-of-scope test, not a gap) — **23 total**.
+  **remaining truly never-scanned: 77**.
 
 both rounds ran the local coding zenka (9B model) against the
 `tasks-completed` context template, in batches of 3 files, then independently
@@ -90,8 +94,6 @@ polling strictly in submission order.
 - `context-management-system.md` — no `coding.context-*` modules exist
 - `cosmic-space-visualization-layer.md` — no `cosmic.scene.from-coordinate`
   module or iris integration found
-- `graphics-matrix-voxel-space.md` — phases 1-4 modules and UI toggle exist;
-  end-to-end behavior not fully exercised; needs human look before moving
 - `glitter-cosmology-priming.md` — no reasoning-template YAML conversion found
 - `git-watch-zenka.md` — no `git-watch.*` modules or configuration exist
 - `mcp-regex-approval-system.md` — no `approval-patterns.yaml` or
