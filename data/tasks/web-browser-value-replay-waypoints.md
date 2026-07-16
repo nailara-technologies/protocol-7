@@ -69,6 +69,36 @@ pinning (see [[web-browser-input-capture-replay]] "frontend pinning"
 section) — so a waypoint name can't misfire against the wrong page.
 `goto-waypoint <name>` drives (2) toward the stored vector.
 
+### resolved command shapes (2026-07-16, ready to implement for 1-3)
+
+- **hook**: add `window.__p7SetState = { rotX: v => { rotX = v; }, rotY:
+  v => { rotY = v; }, zoom: v => { zoom = v; } };` to `visualization.html`
+  right where `rotX`/`rotY`/`zoom` are declared (`:277-281`), so the
+  closures are captured directly — same file, same "one line block" cost
+  as `__p7ReplayTarget`. Only wiring the three vars already used as
+  `verify=` targets; no need to cover every debug var.
+- **`web-browser.cmd.state-play var=target,.. duration=<ms>
+  [path=linear|bezier] [tolerance=] [samples=] [timeout=]`** — generalizes
+  `replay-synth`'s curve engine: instead of producing DOM events, produces
+  a timed sequence of `window.__p7SetState[name](value)` calls via the
+  hook. Mirror the existing `web-browser.replay.dispatch` /
+  `replay_template.dispatch_js` split (shared JS dispatch template + Perl
+  wiring) rather than writing a parallel one-off. After the eased curve
+  finishes, run `wait-state-poll` same as `replay.dispatch`'s `verify=`
+  path; if there's residual drift beyond `tolerance` once settled/timed
+  out, issue one final direct `__p7SetState[name](target)` call per var
+  to force exact landing — smooth curve, exact guarantee, not a tradeoff.
+- **`web-browser.cmd.waypoint-set <name> var=target,..`** — stores the
+  vector in-memory (e.g. `$data{'waypoint'}{$name}`), pinned via the same
+  `<[chk-sum.bmw.L13-str]>` computation `replay-record` already uses
+  (`$view->get_uri()`, fragment stripped). No file persistence in this
+  pass — that's the same follow-up shape as the already-noted
+  `mpv-persistence` "snapshot+curve automation" item, not scope creep here.
+- **`web-browser.cmd.goto-waypoint <name> [duration=] [path=]
+  [force=1]`** — looks up the stored vector, checks the pin the same way
+  `replay-play` does (abort with a clear mismatch message unless
+  `force=1`), then drives `state-play` toward it.
+
 ### 4. multi-window coordination (bigger, less settled)
 
 Motivated by the project's move toward multi-window space-embedded UIs,
@@ -128,8 +158,8 @@ not because it's next:
 Design-only, nothing implemented. Spun off during the session that closed
 out [[web-browser-input-capture-replay]] (commit d0e823312), 2026-07-16.
 
-#,,..,,,.,.,.,.,,,,..,,,,,..,,,.,,,,.,,.,,.,.,..,,...,...,,.,,.,.,,,.,,,,,,,,,
-#P7QXWHVRY42TVSKT7S2ZZIXFT2VA7CDZI2LFYH2JTNX4XON4PWPNB6INYTQY7UMZOPX3CFYBI64VE
-#\\\|OAECPLYHKVRKBPLOJX5HDZ66XFK37KAC64LZBMS6742GYX6X2LR \ / AMOS7 \ YOURUM ::
-#\[7]V23TW2R77RXMKCXC42ZLJOF4XARALZMNE65NPIXDYIXYWCTCEACI 7  DATA SIGNATURE ::
+#,,..,...,..,,,.,,..,,,,,,..,,,..,,,,,.,.,.,,,..,,...,...,...,,,,,..,,,..,...,
+#44EF6JZSX3EI2B7QDYQNJC6A4DLV3NPJ4DJEIZLGDI4LMRD5YZXIPA55BZ6JWMVOYA435V7NOCIGC
+#\\\|A65ALUCFLY2SGYFSHA4QDFAI7YEWJDAGICWQXKCZ3YNBX576PXK \ / AMOS7 \ YOURUM ::
+#\[7]U3IRUVAHTRLPSISUD3UAXP64SRIP6TOBI2CIPT5FVLTY5R62Q2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
