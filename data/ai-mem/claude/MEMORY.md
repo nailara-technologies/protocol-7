@@ -15,8 +15,8 @@
 - [screen-setup-zenka](topic-screen-setup-zenka.md), [amos7-shm-phase1](topic-amos7-shm-phase1.md) — minimap+overlay LIVE; SHM phase 4 open
 - [zenka-naming-cleanup](topic-zenka-naming-cleanup.md), [ondemand-heartbeat-upgrade](topic-ondemand-heartbeat-upgrade.md) — renames LANDED; tile test case
 - [mpv-jobqueue-startup](topic-mpv-jobqueue-startup.md), [mpv-persistence](topic-mpv-persistence.md) — placement+geometry LANDED; persistence planned
-- [x11-multi-server](topic-x11-multi-server.md), [tile-window-place-hybrid-desktop](topic-tile-window-place-hybrid-desktop.md) — LANDED; tile-as-relay next
-- [cube-tree-dashboard](topic-cube-tree-dashboard.md), [ascii-minimap](topic-ascii-minimap.md) — planned tree-view; btop2-style minimap
+- [x11-multi-server](topic-x11-multi-server.md), [tile-window-place-hybrid-desktop](topic-tile-window-place-hybrid-desktop.md) — LANDED
+- [cube-tree-dashboard](topic-cube-tree-dashboard.md), [ascii-minimap](topic-ascii-minimap.md) — planned tree-view, btop2 minimap
 - [dot-path-case-notation](topic-dot-path-case-notation.md), [deparse-code-features](topic-deparse-code-features.md) — path-case written; deparse tree later
 - [global-ui-menu-tree](topic-global-ui-menu-tree.md), [credential-fabric-proxy-transport](topic-credential-fabric-proxy-transport.md) — menu tree planned; transport.select LANDED
 - [ascii-frame-system](topic-ascii-frame-system.md), [frame-plugin-slots](topic-frame-plugin-slots.md), [frame-idiom-convergence](topic-frame-idiom-convergence.md) — parser/renderer/validator; 5 frames pending
@@ -27,32 +27,33 @@
 - [jobsite-ui-usability](topic-jobsite-ui-usability.md) — CONFIRMED: badges + render-gated sync, focus preserved
 - [coding-zenka-abort-inference](topic-plugin-web-jobs.md), [jobsite-assessment-accuracy](topic-jobsite-assessment-accuracy.md) — LANDED; fix=consensus_vote
 - [clients-http](topic-clients-http.md), [task-coordination](topic-task-coordination.md), [job-pipeline](topic-job-pipeline.md) — async http dispatch; jobs.vhost live
-- [reasoning-chain-repository](topic-reasoning-chain-repository.md), [reasoning-namespace](topic-reasoning-namespace.md) — dedup-based self-improvement; `reasoning.*` ns
-- [checksum-parenting-namespace-trees](topic-checksum-parenting-namespace-trees.md), [triple-twofish-name-entropy](topic-triple-twofish-name-entropy.md) — collision protection
-- [coding-state-machine](topic-coding-state-machine.md), [kimi-zenka-state-machine](topic-kimi-zenka-state-machine.md) — watcher lock; kimi reconnect open
+- [reasoning-chain-repository](topic-reasoning-chain-repository.md), [reasoning-namespace](topic-reasoning-namespace.md) — dedup self-improvement; `reasoning.*` ns
+- [checksum-parenting-namespace-trees](topic-checksum-parenting-namespace-trees.md), [triple-twofish-name-entropy](topic-triple-twofish-name-entropy.md)
+- [coding-state-machine](topic-coding-state-machine.md), [kimi-zenka-state-machine](topic-kimi-zenka-state-machine.md) — watcher lock; reconnect open
 - [chat-script](topic-chat-script.md), [stream-transport-layer](topic-stream-transport-layer.md), [stream-reply-modes](topic-stream-reply-modes.md) — bin/chat+STRM COMPLETE
-- [radio-relay-zenka](topic-radio-relay-zenka.md), [vhost-install](topic-vhost-install.md), [model-load-time-statistics](topic-model-load-time-statistics.md) — radio COMPLETE; vhost live
-- [cursor-model](topic-cursor-model.md), [iris-spoke-labels](topic-iris-spoke-labels.md), [stream-framing-protocol](topic-stream-framing-protocol.md) — hyperspace cursor; 63-ring
-- [nshell-terminal-rendering](topic-nshell-terminal-rendering.md), [memory-tree-zenka](topic-memory-tree-zenka.md) — `(0)!TERM!` bug; tree/IDF/digest LIVE
+- [radio-relay-zenka](topic-radio-relay-zenka.md), [vhost-install](topic-vhost-install.md), [model-load-time-statistics](topic-model-load-time-statistics.md) — radio+vhost COMPLETE
+- [cursor-model](topic-cursor-model.md), [iris-spoke-labels](topic-iris-spoke-labels.md), [stream-framing-protocol](topic-stream-framing-protocol.md) — hyperspace cursor
+- [nshell-terminal-rendering](topic-nshell-terminal-rendering.md), [memory-tree-zenka](topic-memory-tree-zenka.md) — `(0)!TERM!` bug; tree LIVE
 - [web-browser-param-capture-graphing](web-browser-param-capture-graphing.md) — LANDED cae42647d; root-caused zoom-momentum bug
 - [input-capture-replay-website-templates](project-input-capture-replay-website-templates.md) — LANDED 2026-07-16, kimi K3; follow-up: [[project-web-browser-value-replay-waypoints]]
 
 ## Vision / Design
-- [implicit-perspective-navigation](topic-implicit-perspective-navigation.md), [web-browser-value-replay-waypoints](project-web-browser-value-replay-waypoints.md) — curves/thresholds ARE the nav decision; explicit vs implicit modes; cubic space ambient incl. 2D plates; design-only
+- [implicit-perspective-navigation](topic-implicit-perspective-navigation.md), [web-browser-value-replay-waypoints](project-web-browser-value-replay-waypoints.md) — curves/thresholds ARE the nav decision; explicit/implicit/magnetic modes; design-only
+- [dynamic-dependency-resolution](topic-dynamic-dependency-resolution.md) — local-capability-first, then preference-ranked match, then discovered external capability chains; graph-params = live precedent
 - [decision-node-polarity-geometry](topic-decision-node-polarity-geometry.md) — seed: polarity node = reference-bubble's 5-of-7; not yet reconciled w/ node-group-geometry
 - [source-identity-spoofing](feedback-source-identity-spoofing.md), [project-vision-origin](project-vision-origin.md) — hostnames aren't a security boundary, C25519 is; 24yr vision
-- [synchronous-multi-legged-pattern-extraction](topic-synchronous-multi-legged-pattern-extraction.md), [distributed-hybrid-inhabitants](topic-distributed-hybrid-inhabitants.md) — parallel component search ("exoskeleton")
-- [protocol-as-self-governing-authority](topic-protocol-as-self-governing-authority.md), [intelligent-glue-identity](topic-intelligent-glue-identity.md) — emergent governance; P7="intelligent glue"
+- [synchronous-multi-legged-pattern-extraction](topic-synchronous-multi-legged-pattern-extraction.md), [distributed-hybrid-inhabitants](topic-distributed-hybrid-inhabitants.md) — parallel component search
+- [protocol-as-self-governing-authority](topic-protocol-as-self-governing-authority.md), [intelligent-glue-identity](topic-intelligent-glue-identity.md) — P7="intelligent glue"
 - [resonance-field-emergence](resonance-field-emergence.md), [dedup-tree-unifying-mechanism](topic-dedup-tree-unifying-mechanism.md) — mod-13 vs Rodin mod-9; dedup tree unifies reasoning/tiering/QA
 - [coding-zenka-improvement-pipeline](coding-zenka-improvement-pipeline.md) — tier0-1.5 done, tier2/3 gated; UNCOMMITTED since 2026-06-21
-- [hybrid-namespace-routing](topic-hybrid-namespace-routing.md), [zenka-macro-language-postponement](project-zenka-macro-language-postponement.md) — 5 routing types; intent→code makes destructive intent inexpressible
+- [hybrid-namespace-routing](topic-hybrid-namespace-routing.md), [zenka-macro-language-postponement](project-zenka-macro-language-postponement.md) — 5 routing types; local-wins
 - [layer-matrix-convergence](project-layer-matrix-convergence.md), [self-improving-system](topic-self-improving-system.md) — restart/migration/branching=one algebra
 - [network-as-computer](topic-network-as-computer.md), [namespace-tree-intelligence](topic-namespace-tree-intelligence.md), [orbital-data-space](topic-orbital-data-space.md) — zenki-as-satellites
-- [distributed-consensus](topic-distributed-consensus.md), [task-tree-design](topic-task-tree-design.md), [self-contained-zenka](topic-self-contained-zenka.md) — multi-model chat
+- [distributed-consensus](topic-distributed-consensus.md), [task-tree-design](topic-task-tree-design.md), [self-contained-zenka](topic-self-contained-zenka.md) — chat/task tree
 - [window-canvas-addressing](topic-window-canvas-addressing.md) — CONVERGED 2026-07-11: identity = checksum-addressing, not new primitive; not started
 - [style-philosophy](style-philosophy.md), [harmonic-mathematics](topic-harmonic-mathematics.md), [hyperspace-topology](topic-hyperspace-topology.md) — coding as artform
 - [punctuation-topology](topic-punctuation-topology.md), [field-coherence-synthesis](topic-field-coherence-synthesis.md), [field-capability-emergence](topic-field-capability-emergence.md) — `:`/`.` separators
-- [self-assembling-network](topic-self-assembling-network.md), [creative-field-behaviour](topic-creative-field-behaviour.md) — spec as pre-loaded potential
+- [self-assembling-network](topic-self-assembling-network.md), [creative-field-behaviour](topic-creative-field-behaviour.md) — pre-loaded potential
 - [addressing-trinity](topic-addressing-trinity.md), [checksum-addressing](topic-checksum-addressing.md), [node-group-geometry](topic-node-group-geometry.md) — tree+checksums+timestamps
 - [1001](topic-1001.md), [perspective-layers](topic-perspective-layers.md), [observer-centric-space](topic-observer-centric-space.md) — cube tunnel/gate nesting
 - [routing-crystal](topic-routing-crystal.md), [checksum-tree-wire](topic-checksum-tree-wire.md), [tree-protocol](topic-tree-protocol.md), [data-protocol](topic-data-protocol.md) — DATA/DELTA sync
@@ -117,8 +118,8 @@
 - letsencr working; reasoning.branch.* LIVE; coding zenka operational
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: state-0/7 harmonized
 
-#,,,.,..,,,,.,...,,..,,,,,...,..,,,,,,,,,,,.,,..,,...,...,.,,,.,.,...,,..,..,,
-#QGVA3YXRDJONT6UBXGQ2PHSDWMOW7T5BOZIXA3DB3AMKNH34H44WYZCAVV7IOJNDAHE7H2HN4C3YK
-#\\\|H7SNCAI7E2I2EHUV7ZXK5JVEV675MA4BHRO235YZUE5MK3DVGET \ / AMOS7 \ YOURUM ::
-#\[7]VZRYXCQILEDK6ZLZ5DQ3NZ4L5MAYRER7IEPC62HD2GNWKWYH34DQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,.,.,,,,,..,,,,,,...,,.,,,,.,,.,,..,,...,..,,...,,,.,,..,..,,,,,,
+#QMO7GUY4NQRMTN24BNNYCHFJXWJSWKOAH64YB5WPVCZZCR35PEK6YMFT5DTPESPJO7U2PV3HSRQYK
+#\\\|KLONFJ3U4TJN37PC3SGSTPM2CAK4GC7RBGHWY5K7HSV6AR2RY7X \ / AMOS7 \ YOURUM ::
+#\[7]QQU4C6IJLFD5SPS5WJG6RJRWGSBR2AYEFISUCCAU54YW34TDFCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
