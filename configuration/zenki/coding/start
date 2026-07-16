@@ -161,6 +161,17 @@ coding.cfg.ctx_timeout_floor = 16000
 coding.http-timeouts.data-start = 120
 coding.http-timeouts.request-completed = 777
 
+## stall/inactivity timeout : fires on genuine silence [ no chunk for N   ##
+## seconds ], independent of total elapsed time — re-armed on every chunk ##
+coding.http-timeouts.stall = 77
+
+## adaptive ceiling : a round starts with this fast soft ceiling; hitting ##
+## it escalates the SAME round to the full request-completed ceiling      ##
+## above rather than failing it, and resets back to this value once a    ##
+## round completes cleanly — halves typical stuck-round recovery time    ##
+## without permanently punishing legitimately-slow rounds                ##
+coding.cfg.round_soft_ceiling = 384
+
 ## prefill-time estimate used to scale the data-start timeout for large   ##
 ## prompts : timeout = est_prompt_tokens / prefill_tokens_per_sec + margin ##
 ## tune prefill_tokens_per_sec down if timeouts persist on long contexts  ##
@@ -239,8 +250,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,..,,,,,...,.,,,,.,,..,,,..,..,,,,,,,,,,,..,.,.,...,...,.,,,...,,,,,,,.,...,
-#2CIWYPRT7KSULDFZQVODRO65SU47HDROG73JGHFROXBNJZKCPXMATESJKI26LXAKZQ5MKO2ANRKVU
-#\\\|FNGHDK5N6OKI3Q2IULYSZIH4EJ6WV4A6V76DOFD5ZWCZGBAXE3J \ / AMOS7 \ YOURUM ::
-#\[7]7VEGGUMNF2SLSA3TMTYNOBQJDZO56OHHPIIYPAII7MIO5UX23IBA 7  DATA SIGNATURE ::
+#,,.,,...,,..,,,,,,,.,..,,...,..,,.,,,,..,,,.,.,.,...,...,...,..,,.,,,.,.,...,
+#2VKARBTQEL3B6YY2Z3KCVWQMFFWGXEAGMXFTF23UXAAJHODG24ZXKU7GWUNZAQPIOZ2BGXI6MYVTM
+#\\\|CBUCSIUJ77SY6ITPKEWXH2CF6KTJR6XGRPKPQOVJUKXHM7HKJGO \ / AMOS7 \ YOURUM ::
+#\[7]2LI4E6EBCEMT2S6UTBCQDCZUNLII4KMQOKWOLR6SGYAWEBBEA4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

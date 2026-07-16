@@ -67,7 +67,15 @@ if ( not $lock_result->{'acquired'} ) {
 ## this fires on every actual dispatch attempt, first try and every      ##
 ## timeout retry alike. phase-1 ends when the response is fully          ##
 ## received; coding.async.state_machine then starts phase-2 tracking.    ##
-$existing->{'round_started'} = <[base.time]>->(3) if defined $existing;
+if ( defined $existing ) {
+    $existing->{'round_started'} = <[base.time]>->(3);
+
+    ## adaptive ceiling : starts soft [ fast recovery on genuine stalls ], ##
+    ## escalated to the full hard ceiling by http_timeout when a soft     ##
+    ## trip restarts this same round, reset back to soft on clean         ##
+    ## completion by http_complete — see coding.handler.http_timeout      ##
+    $existing->{'timeout_ceiling'} //= <coding.cfg.round_soft_ceiling> // 384;
+}
 
 ## check if state already exists [ follow-up round ] ##
 if ( defined $existing && defined $existing->{'state'} ) {
@@ -106,8 +114,9 @@ my $callbacks = {
         <[coding.callback.http_abort]>->( $task_id, $http_state, $req_seq );
     },
     check_stop => sub { <[coding.callback.http_check_stop]>->($task_id) },
-    timeout    => $http_timeout_request_total,    ## default 13 minutes ##
-    backend    => $backend,    ## used for cold-start data-start grace ##
+    timeout    => $existing->{'timeout_ceiling'}    ## adaptive : soft ##
+        // $http_timeout_request_total,             ## fallback : hard ##
+    backend => $backend,    ## used for cold-start data-start grace ##
 };
 
 <[base.logs]>->( 1, "[ %s ] connecting to local backend ..", $task_id );
@@ -145,8 +154,8 @@ return {
     mode    => qw| streaming |,
 };
 
-#,,,,,,,,,,,,,...,,..,..,,.,.,..,,...,,,,,...,..,,...,...,.,.,.,.,.,.,,.,,,..,
-#WS47F3UHBRW7QI6CRIJRGGWEJ4CTGYCCUGVCOAZNFNFM3NCG3AIDTWO2VFXM5NVCZINREVHC7VKTG
-#\\\|MBUPRFDA2SYGEGHPPI7G2KMVXQYCA6JU5D3L4XQOETEGWFD62EL \ / AMOS7 \ YOURUM ::
-#\[7]7OF7BERG5QKSWFI2VTHQ7BMQTYV6W4YJ2YD6CZP3QJCLSSWZNEDQ 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,.,.,,,.,,.,,.,.,,,.,...,,..,...,..,,...,...,..,,,..,.,,,...,,,,,
+#MT34MHT57EINMODAV3J4RPCRXMGNPOQVL4CZAZHFPL7AFZDGW6G6JCKOLWOOKYM2A3P7ACTQW443I
+#\\\|VR7MLIV44NBTCU5DW3GUB5KZOVUFQCD4YY7GRA26AJ2HDDI3FU2 \ / AMOS7 \ YOURUM ::
+#\[7]DK3FKULGLM3OD4VISJHDZMGBCFKIUJZ4JMPWMVAEGYHJWGZ32KCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
