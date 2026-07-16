@@ -183,6 +183,11 @@ my $mapped_once = 0;
 $window->signal_connect(
     qw| map | => sub {
         return FALSE if $mapped_once++;
+        ## clear any stale compositor button-1 grab from another window;
+        ## without this, a stuck begin_move_drag grab from this or another
+        ## window.place instance blocks all left-click events to newly-
+        ## mapped windows [ same fix as screen.setup.open_window, 0285a96f5 ]
+        eval { Gtk3::Gdk::pointer_ungrab( Gtk3::get_current_event_time() ) };
         eval {
             $window->set_keep_above(1);    ## reassert stay-on-top post-map ##
             $window->present;              ## raise + take input focus      ##
@@ -225,8 +230,8 @@ if ( not <window.place.gtk.main_running> ) {
 
 0;
 
-#,,..,,,.,,..,,.,,...,.,.,,,.,.,.,,,,,,,,,,..,.,.,...,...,..,,.,,,..,,.,,,.,.,
-#43MG2Y3QUMVUHC3WM4FFLZ4TK7NMSNSPSC6IMNZJIGLEDVLP5ZCWZFRXVDDK2TMMIPAOMO73UGKEY
-#\\\|VTVE2DWCMI7DTKRVTCPNEQXSPB4CM5GUI76A354BT2CBOPXQLKW \ / AMOS7 \ YOURUM ::
-#\[7]ZRB3EUDVMF5KMICQWWHBCP3KK4RD4XTCDHVVBEHLG7FY7MCFDSDI 7  DATA SIGNATURE ::
+#,,..,,,.,...,...,...,,,,,.,,,,,,,,,.,...,,,,,.,.,...,...,...,.,,,.,.,,,,,,..,
+#HDVCGTSSBOL4XVRJAZ7DKY4ED2LHC44YDFCIGU2KIDUTIYXJ3TEHBA7CUWEHXNQO67LKDPWWPB5QE
+#\\\|QXMRLHQVD5ZNV3WLUQRLXB3FAMYBTBQH7IGDKYY5HAJGECDE6JM \ / AMOS7 \ YOURUM ::
+#\[7]64L5L7PKQQCQI2I4L35O2NXP7VJXATZCXV3BJFPSHYUHHSQQGOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
