@@ -21,8 +21,28 @@ by idle-shutdown after partial progress; per-buffer verdicts were rescued from
   `jobsite-ui-interviewed-tab.md`, `jobsite-ui-flexible-export.md`,
   `jobsite-cmd-progress.md`, `jobsite-checksum-store-dirs.md`,
   `jobsite-progress-bar-review-fix.md`, `memory-cmd-focus.md`,
-  `sourcecode-normalize-endline-paths.md`).
+  `sourcecode-normalize-endline-paths.md`, `credential-fabric-integration-test.md`).
   **remaining truly never-scanned: 52**.
+
+  `credential-fabric-integration-test.md` needed real new infrastructure,
+  not a quick fix: a generic per-invocation env-override capability for
+  `v7.start` (`:env:KEY=VALUE:` tag, same shape as the codebase's existing
+  `:model:...:`/`:sign-silent:` tag convention), gated by a new
+  `env_override_allowed` directive each target zenka declares in its own
+  trusted `zenka-startup.v7` (not caller-controlled — a caller can only
+  supply a *value* for a key the target zenka itself opted into, closing
+  off arbitrary env injection like `LD_PRELOAD`). `cred-mesh`/`proxy`/
+  `transport` now declare `env_override_allowed = PROTOCOL_7_VAR`;
+  `base.path-set-up.zenka-directories` honors that env var for `var_P7`;
+  the two test scenario scripts derive `relay_pending.yaml`'s path from it
+  instead of hardcoding `/var/protocol-7/...`. Caught and fixed a real
+  injection bug during review: the exec-external code-generation path
+  used shell-style quote-escaping (`'\''`) on a value embedded in
+  generated Perl source text, which doesn't neutralize a `'` in Perl
+  syntax — fixed to proper `\'` escaping (also fixed the same latent
+  pattern in the pre-existing, dormant `env_include` loop next to it).
+  User confirmed v7 reloads clean, signed and staged. Live end-to-end run
+  of `bin/dev/cred-mesh-test` still pending.
 
   `sourcecode-normalize-endline-paths.md`: parts 1 (canonical-path
   normalization in `source.cmd.get-code-signed`) and 3 (underflow guard in
@@ -163,9 +183,6 @@ polling strictly in submission order.
   atomic rename, in-memory index, merge function and two-phase prune;
   `assessed` is mapped to `review` in the web store and no `id+status`
   path helper is exposed
-- `credential-fabric-integration-test.md` — harness scaffold and all five
-  scenario files exist; fixture still uses real `var/` paths instead of
-  isolated `/tmp/` dirs
 - `credential-fabric-ui-interactive.md` — phase 2 selection/actions
   (up/down/refresh/select_view/action/input) and prompt templates
   implemented; phase 3 key-holder unlock dialog and `UNLOCK` op missing
@@ -237,8 +254,8 @@ transport-selector.md
 tree-sort-trunk-route-page.md
 web-sessions-distributed.md
 
-#,,.,,...,,,.,,,,,,,,,..,,..,,,.,,,.,,.,.,..,,..,,...,..,,...,,.,,.,.,,,,,..,,
-#X3CER3MGYAKAL4W77JTUB5VKFN5KCCFBQYYJURXLYFJOHS62UOQV7QRVD4YXCYKJNX62LCVYBTMA6
-#\\\|HUCAG6ZMLEZBCLAHWIV3YRBIVY43BC7UMZPGGEKVFLJ6FGFRZGX \ / AMOS7 \ YOURUM ::
-#\[7]RFMNCKUTKGPY6IV6I6HDEJW5BP3PN3L4U4LC3A6RWP6XUIWA5CCA 7  DATA SIGNATURE ::
+#,,.,,...,,,,,.,,,,,.,.,.,,,,,,.,,,..,,.,,,.,,..,,...,...,.,.,,..,,,,,,,,,.,.,
+#GZSSD2O76N6XN6PJX2R7RGL3PX24YOKPJ2UFX7M4TXNNABNPG6RLGLSFKOSNT2BKULV5BQ66ALOCW
+#\\\|MKSSSUVNTGGLXIOG7EG55A6OC4YXL4AY5NEAFWNT54OCTYYJPKX \ / AMOS7 \ YOURUM ::
+#\[7]VAWX4DWLZZQYT6XLGOZKCF75FOHEEA3T5467N4COBDE4PRR7M2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
