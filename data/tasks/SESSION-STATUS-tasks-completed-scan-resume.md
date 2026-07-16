@@ -18,8 +18,18 @@ by idle-shutdown after partial progress; per-buffer verdicts were rescued from
   `credential-fabric.md`, `mcp-claude-dispatch.md`,
   `mcp-coding-summarize.md`, `mcp-server-p7-external-commands.md`,
   `git-hooks-version-auto-stage.md`, `jobsite-ui-reassess-button.md`,
-  `jobsite-ui-interviewed-tab.md`, `jobsite-ui-flexible-export.md`).
+  `jobsite-ui-interviewed-tab.md`, `jobsite-ui-flexible-export.md`,
+  `jobsite-cmd-progress.md`).
   **remaining truly never-scanned: 52**.
+
+  `jobsite-cmd-progress.md` was flagged "possibly completed" pending two
+  gaps: (1) missing `access.cmd.usr.taeki = jobsite.progress` line — moot,
+  user confirmed taeki already gets `access.cmd.usr.<admin-user> = ** ..*.**`
+  (wildcard) via `configuration/zenki/cube/access.users`, and the task's own
+  spec says only add the line if no wildcard exists; (2) idle-bracket text
+  differs from the spec's example — confirmed real but cosmetic: actual
+  code shows `new/rev/assessed/apply` (superset, extra field) vs spec's
+  `assessed/review/new`, same stats just reordered/reformatted. Moved.
 
   all three files in the jobsite-ui trio (`reassess-button`,
   `interviewed-tab`, `flexible-export`) had been flagged "still open" by a
@@ -114,9 +124,6 @@ polling strictly in submission order.
 - `jobsite-checksum-store-dirs.md` — module exists with company/url dedup,
   blacklist, stats, prune, load/persist stubs and migration; title dedup
   (`checksum-store/titles/`) is missing
-- `jobsite-cmd-progress.md` — progress bar module exists with matching
-  colors/format; access line not added for `usr.taeki` and idle right
-  bracket text differs from spec
 - `jobsite-progress-bar-review-fix.md` — `jobsite.job.load_all` overrides
   status from directory index; `jobsite.cmd.progress` counts
   apply/applied/rejected but does not show applied/rejected in the right
@@ -209,8 +216,8 @@ transport-selector.md
 tree-sort-trunk-route-page.md
 web-sessions-distributed.md
 
-#,,,.,.,.,..,,.,,,.,,,,,,,,..,..,,,..,,..,.,,,..,,...,..,,.,.,..,,...,,..,,,.,
-#J6P6U4JPFFYCC5NTM4VS4LZGIDO7U6HOWU3AQP4DRXLLXTYIALAE6OJXDJWKUBXYLVIQOEYFTVTMO
-#\\\|PK2LPXKC5QT46IFK52U45GAZWEXDYRAXIOJCTU3FLKJTY4WU54F \ / AMOS7 \ YOURUM ::
-#\[7]KIF2K7UCKHJQ5QKH34FBVNPIMER4WZYCCGERFYETWESYGHUBA4DY 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,..,,...,..,,.,.,,.,,,..,,,,,.,.,..,,...,...,,..,.,.,,.,,.,,,.,.,
+#JMRVK2JAKVTOB2ICGS7INYMR52CTSEKM3YH4BLKVW6TAEQ5FJO4MALR5YCK6PFO2AMOTPREZJA6AK
+#\\\|3RP2SIU7XERBTICHNYXIL4Y7KNKQNIKZCVNF4KBZDCALMVOTM6H \ / AMOS7 \ YOURUM ::
+#\[7]HM2S5RUDREI3AF3HHTHZYRGGW4ZY2KYUF7DXJBF5BDSSJVVZC2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -85,6 +85,8 @@
 - [user-perfectionism-and-pace](user-perfectionism-and-pace.md) — "done" means perfectly smooth; let solo tuning passes run
 
 ## Feedback
+- [tasks-completed-scan-verdict-trust](feedback-tasks-completed-scan-verdict-trust.md) — "still open" verdicts need spot-checking too, not just "move to completed"; caught 3 false negatives (jobsite-ui trio) in one session
+- [coding-zenka buffer rescue](topic-coding-zenka-session9.md) — idle-shutdown backups readable via group-perm `xz -dc`, no sudo; no auto-restore path exists
 - [nested-dispatch-session-tracking](feedback-nested-dispatch-session-tracking.md), [webkit vs firefox css blindspots](feedback-webkit-vs-firefox-css-blindspots.md) — auto_summarize lossy, verify via git diff; WebKit misses stacking/`:checked` bugs
 - [no sudo for privileged fs ops](feedback-no-sudo-privileged-fs-ops.md) — never `sudo` a protocol-7-owned file; hand command to user
 - [perl and/or precedence in my-assignment](feedback-perl-and-or-precedence-in-my-assignment.md) — `my $x = A and B` only assigns A; use && / ||
@@ -113,8 +115,8 @@
 - letsencr working; reasoning.branch.* LIVE; coding zenka operational; ondemand auto-register survives reload
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: state-0/7 harmonized; test re-sign ≥2 passes to see oscillation
 
-#,,,,,,,.,...,,.,,.,,,..,,...,,..,,,.,,.,,.,,,..,,...,...,,.,,,..,,.,,,,.,..,,
-#LV7KAGDLB7MNBSBHGMDU36ZT4CMA2GXUKF5ADJQ4U5Y4CBTKBTANVLJ73OTIX2F2M3LGA3CP6RAGQ
-#\\\|D6IJEW63FFQEQJ2BD7PGQU2V2T4YIJBM2BRSQAI2X67TJC2ZWKG \ / AMOS7 \ YOURUM ::
-#\[7]3B7JURCUELYOCCRMSTQX6LATPLJSZZS22D6KEGJHAUNZJOJSZ2DA 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,,.,,,.,...,,..,...,.,.,,,.,,,,,..,,...,..,,...,...,,..,,..,.,.,
+#MSDZIM7MIYSRAGU5B7GMSOZ5NQMPVLRJTENAA2APF4HJIVED6623KAMPUSRY53IWE4NZ6LCWD4CNM
+#\\\|RYRXRJCPRS6NG6RTBUFPNSP6CDK7FJS7LYDCGCKZKUKC3JVUKOL \ / AMOS7 \ YOURUM ::
+#\[7]CHCVP2QCHB5OH3H43EJEEXA2DEDVBHSZJRRTI45S4CLJ5PQGPOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
