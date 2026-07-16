@@ -9,7 +9,7 @@ use English;
 
 use Exporter 'import';
 our @EXPORT_OK = qw|
-    find_project_root p7c p7c_eval zenka_running
+    find_project_root p7c p7c_eval zenka_running wait_for_zenka_online
     start_echo_server stop_echo_server
     harness_assert wait_for_log proxy_port_ready
     get_zenka_log slurp_yaml parse_echo_body
@@ -17,24 +17,29 @@ our @EXPORT_OK = qw|
     |;
 
 use File::Spec;
-use Cwd qw| abs_path |;
+use Cwd     qw| abs_path |;
 use FindBin qw| $RealBin |;
 use IO::Socket::IP;
 use YAML::XS;
 
-our $VERBOSE     = $ENV{'CREDMESH_TEST_VERBOSE'} // 0;
-our $P7C         = $ENV{'CREDMESH_TEST_P7C'}     // 'p7c';
-our $PROXY_ADDR  = '127.0.0.1';
-our $PROXY_PORT  = 8118;
-our $RESULT      = { pass => 0, fail => 0, assertions => [] };
-our $TEMP_DIR    = '';
-our $ECHO_PID    = 0;
+our $VERBOSE    = $ENV{'CREDMESH_TEST_VERBOSE'} // 0;
+our $P7C        = $ENV{'CREDMESH_TEST_P7C'}     // 'p7c';
+our $PROXY_ADDR = '127.0.0.1';
+our $PROXY_PORT = 8118;
+our $RESULT     = { pass => 0, fail => 0, assertions => [] };
+our $TEMP_DIR   = '';
+our $ECHO_PID   = 0;
 
 sub find_project_root {
     my $start = $RealBin;
-    my $root  = abs_path( File::Spec->catdir( $start, File::Spec->updir,
-        File::Spec->updir, File::Spec->updir ) );
-    return $root if -d File::Spec->catdir( $root, 'modules' )
+    my $root  = abs_path(
+        File::Spec->catdir(
+            $start,            File::Spec->updir,
+            File::Spec->updir, File::Spec->updir
+        )
+    );
+    return $root
+        if -d File::Spec->catdir( $root, 'modules' )
         and -d File::Spec->catdir( $root, 'bin' );
     die "[ fatal ] cannot locate protocol-7 project root\n";
 }
@@ -76,7 +81,23 @@ sub zenka_running {
     my ($name) = @ARG;
     my $out = p7c( 'v7.list', 'zenki' );
     return 0 if not defined $out;
-    return $out =~ m{\b$name\b} ? 1 : 0;
+
+    ## match the zenka's own row and require status 'online' -- a bare
+    ## name-anywhere match also matched 'starting'/'error' rows, letting
+    ## the harness send commands to a zenka that hadn't finished
+    ## connecting to cube yet ("client not present" failures) ##
+    return $out =~ m{^\s*\S+\s+\S+\s+\Q$name\E\s+\S+\s+online\s*$}m ? 1 : 0;
+}
+
+sub wait_for_zenka_online {
+    my ( $name, $timeout ) = @ARG;
+    $timeout //= 10;
+    my $deadline = time + $timeout;
+    while ( time < $deadline ) {
+        return 1 if zenka_running($name);
+        select undef, undef, undef, 0.2;
+    }
+    return 0;
 }
 
 sub proxy_port_ready {
@@ -97,8 +118,7 @@ sub proxy_port_ready {
 sub temp_dir {
     return $TEMP_DIR if length $TEMP_DIR;
     my $base = $ENV{'CREDMESH_TEST_DIR'} // File::Spec->tmpdir;
-    my $dir  = File::Spec->catdir( $base,
-        'credfab-test-' . time . '-' . $$ );
+    my $dir  = File::Spec->catdir( $base, 'credfab-test-' . time . '-' . $$ );
     mkdir $dir or die "[ fatal ] cannot create $dir: $ERRNO\n";
     $TEMP_DIR = $dir;
     return $dir;
@@ -115,6 +135,7 @@ sub start_echo_server {
     my ( $port, $log_file ) = @ARG;
     my $pid = fork // die "[ fatal ] fork failed: $ERRNO\n";
     if ( $pid == 0 ) {
+
         # [ child echo server ]
         my $listen = IO::Socket::IP->new(
             LocalHost => '127.0.0.1',
@@ -151,13 +172,15 @@ sub start_echo_server {
             my ( $method, $path ) = split m{ +}, $first // '', 3;
             $path //= '/';
 
-            my $body = eval { YAML::XS::Dump( { path => $path, headers => $headers } ) };
+            my $body = eval {
+                YAML::XS::Dump( { path => $path, headers => $headers } );
+            };
             $body //= "path: $path\n";
 
-            print {$client}
-                "HTTP/1.1 200 OK\r\n"
+            print {$client} "HTTP/1.1 200 OK\r\n"
                 . "Content-Type: text/yaml\r\n"
-                . "Content-Length: " . length($body) . "\r\n"
+                . "Content-Length: "
+                . length($body) . "\r\n"
                 . "Connection: close\r\n\r\n"
                 . $body;
 
@@ -167,6 +190,7 @@ sub start_echo_server {
         exit 0;
     }
     $ECHO_PID = $pid;
+
     # [ wait for listener to be ready ]
     my $deadline = time + 5;
     while ( time < $deadline ) {
@@ -199,7 +223,12 @@ sub harness_assert {
         $RESULT->{'fail'}++;
     }
     push @{ $RESULT->{'assertions'} },
-        { scenario => $scenario, name => $name, pass => $cond ? 1 : 0, msg => $msg };
+        {
+        scenario => $scenario,
+        name     => $name,
+        pass     => $cond ? 1 : 0,
+        msg      => $msg
+        };
     return $cond;
 }
 
@@ -247,8 +276,8 @@ sub say_summary {
 
 # [ end ]
 
-#,,.,,,,,,,,.,.,.,,,,,..,,.,.,,,,,,,,,.,,,,,.,..,,...,...,.,.,..,,,,.,..,,...,
-#7PGAH6MSDC7XOYIXHOMD6X6EHPII3A67H2WWBGUH5RAX5QAAMB7JWWB43SPGTCUPBMKEZDML6CNFI
-#\\\|TW3XAXOPFAZDTNT7N2UO3LQWRMLUFBSXM4QOR6CT6ZUQYZOX5FE \ / AMOS7 \ YOURUM ::
-#\[7]J2TT4EOX3CAN32U2CIHC2QDFB3XIZ76EOIYJBV7Q44WW4SVNUCBA 7  DATA SIGNATURE ::
+#,,,,,...,,.,,.,,,,.,,,,,,.,.,,,.,...,,,,,...,..,,...,...,.,.,,..,..,,...,.,,,
+#TJWYG4Z3XX4SV4GOAYRHVVE7H7K2GTX7VGQFM77BI6IGMY4YUTLOY5YXXQOAF3AKQXGESQHZJ2KDM
+#\\\|45LPMWL4BZAZALEX3ERRMWATZCEXQMVUIVH5T23WVGWA2M4TESG \ / AMOS7 \ YOURUM ::
+#\[7]W4Q7IAI3X3XZ7XRHELYW4IPVFVIJML53AEVSZUCQVZ3XQWLWIOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

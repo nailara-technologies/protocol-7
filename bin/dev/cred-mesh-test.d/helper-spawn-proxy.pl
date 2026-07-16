@@ -10,7 +10,9 @@ use English;
 use File::Spec;
 use FindBin qw| $RealBin |;
 use lib File::Spec->catdir( $RealBin, 'lib' );
-use CredMeshTest qw| p7c zenka_running proxy_port_ready |;
+use CredMeshTest qw|
+    p7c zenka_running wait_for_zenka_online proxy_port_ready
+    |;
 
 my $VERBOSE = $ENV{'CREDMESH_TEST_VERBOSE'} // 0;
 
@@ -30,6 +32,16 @@ sub start_if_missing {
         warn "[ warn ] failed to start $name: $out $err\n";
         return 0;
     }
+
+    ## v7.start only queues the start job -- wait for cube to actually
+    ## see it online before returning, so callers issuing commands right
+    ## after this don't race a zenka that hasn't finished connecting yet
+    ## ("client not present" failures) ##
+    if ( not wait_for_zenka_online( $name, 15 ) ) {
+        warn "[ warn ] $name did not reach 'online' status in time\n";
+        return 0;
+    }
+    print "[ info ] $name online\n" if $VERBOSE;
     return 1;
 }
 
@@ -48,8 +60,8 @@ exit 1;
 
 # [ end ]
 
-#,,..,,..,,,,,...,..,,,,.,,,.,,..,.,.,...,.,.,..,,...,...,,..,..,,,,,,,,,,,..,
-#NM4YKFKMX57L53SK4YCG2U2I7CZNKL2GVNSBF36AVWYA7QMEA7ZYVKAD6SVZEDW7SIDNHY55N4PVW
-#\\\|V6736MPDHAWLP4OZF3WVAZAQXCXZK2R4GMIIACALBMAMXTN5RYI \ / AMOS7 \ YOURUM ::
-#\[7]YK7526RJCD2YZ4PQO45LGIA4Q2RXK6ZPTQDPE4VJLLWJR6CETUCQ 7  DATA SIGNATURE ::
+#,,,.,...,.,,,..,,.,,,.,,,,,,,,.,,,.,,.,.,,.,,..,,...,...,,..,,,.,,..,...,,,,,
+#TRK5TYBEPDMA5YV6OVW7TGUNN4LENJVGZ3WMVD4SMCBOZA7P4NPIWR4EH53RJE7DXVC5KS3L33APG
+#\\\|6Q6EYJ5IBSJDEAXDED36OIK2I3A3P2COA7RLSZLLLIICEMUT5NT \ / AMOS7 \ YOURUM ::
+#\[7]DJJVUXM2FBT23RATLKQBQCAY2ETOWBRK6UVVI7C7JQ4KG3E7ZICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

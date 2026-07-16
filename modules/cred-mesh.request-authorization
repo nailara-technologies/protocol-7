@@ -25,6 +25,13 @@ my $req_id = <[base.gen_id]>->( $data{'route'}, undef, undef, 0 );
     'ntime'   => <[base.time]>->(3),
 };
 
+## persist the new pending entry -- relay_pending.yaml otherwise only
+## ever gets written on approval-completion cleanup, never on creation ##
+my $pending_yaml
+    = eval { YAML::XS::Dump( %{<cred-mesh.auth_relay_pending>} ); };
+<[file.zenka_dir.write]>->( 'relay_pending.yaml', \$pending_yaml, '>', 0600 )
+    if defined $pending_yaml;
+
 ## determine sensitivity for dialog selection ##
 my $high_sensitivity = FALSE;
 my $slot_hint        = $params->{'slot_hint'} // '';
@@ -59,8 +66,8 @@ return {
     'req_id' => $req_id,
 };
 
-#,,,,,.,.,.,.,.,,,,..,.,,,,,.,.,,,.,,,.,.,.,.,..,,...,...,.,.,,,.,,,,,.,.,,,.,
-#47E7CO4PX5APTHEFZCQJ6SZM4NS5IU3NFYTP5VSGGBYIWBZUAVRKIL5IOCCBDGBVX5HXCI4SHATSO
-#\\\|2Q76KDNTJKHA2SXJ6FXW63QOKQR6OLO7BJDG3M3MR4FK73E4PR5 \ / AMOS7 \ YOURUM ::
-#\[7]MZRBWPPMEVXZX2QQHYJ3DJCNOH37BGQHCYBHYARSE563NWM45CDQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,..,,.,,,.,.,.,,,,,,,.,.,,,,,.,,,..,,...,...,.,.,,,,,,..,,..,..,,
+#QWZDT4O5ELX57KJ4ACNCUYFG6PCOVXG52YK55SOIZ6UABARBS7NWJT4NB5ZWJCFUMZ3M3KAWCOK6A
+#\\\|UIQTEFU53GWLXP5IZVDGPP4PY7IFBMGIOULJD2YWKRIPAEBYI5S \ / AMOS7 \ YOURUM ::
+#\[7]LW25YRGPBRP3YEQHXLXLERRVPYF6VHCNUBE47F4EYSXUYM3V7SAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
