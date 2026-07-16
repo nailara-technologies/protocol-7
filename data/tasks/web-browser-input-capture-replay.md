@@ -118,6 +118,32 @@ that working code, not a fresh mechanism.
   `graph_template.*` (in-page JS) vs. `graph-params`/`graph_params.install`
   (Perl wiring) — new work follows the identical shape, listed below.
 
+### frontend pinning (added 2026-07-16, not yet implemented)
+
+A recording is only meaningful against the page it was captured on — nothing
+currently stops `replay-play` from firing a recorded gesture at an unrelated
+page. Pin each recording to its frontend using the existing
+`<[chk-sum.bmw.L13-str]>->($input)` (13-char BASE32 BMW checksum, same
+primitive already used for cache-keying/path-checksums elsewhere, e.g.
+`base.parser.key_mem_chksum`) over the view's URL path+query (fragment
+stripped, since that often holds ephemeral view-state, not identity):
+
+- `replay-record start` computes the pin checksum from `$view->get_uri()`
+  (Perl-side, no extra JS round trip) and writes it as a leading buffer
+  line via the same `base.buffer.add_line` sink used for event records,
+  shaped `{type:'meta', url:<full-uri>, chk:<L13-str>}` — reuses the
+  existing per-record `type` field to stay out of `replay-play`'s event
+  loop rather than inventing a second storage path.
+- `replay-play` reads the leading `meta` record (from either a named
+  buffer or a JSON file — same shape either way), recomputes the current
+  foreground view's pin checksum the same way, and aborts with a clear
+  mismatch message (recorded url/chk vs. current url/chk) unless the
+  caller passes an explicit override (e.g. `force=1`) — this is the guard
+  against "replay on the wrong frontend."
+- side benefit for the screenshot-batch idea below: recordings sharing a
+  pin checksum are already grouped by frontend with zero extra metadata —
+  later tooling can bucket by `chk` directly.
+
 ### module layout (mirrors `console_capture.*` / `graph_template.*` exactly)
 
 - `web-browser.replay_capture.js_source` — hooks `mousedown`/`mousemove`/
@@ -185,8 +211,8 @@ Design resolved 2026-07-16 (see "RESOLVED" section above with concrete
 module layout + build order). Implementation not started — dispatched to
 kimi (K3 model) to build per the build order above.
 
-#,,.,,,.,,,,,,.,,,,.,,.,,,,,.,.,.,,,.,,,.,,.,,..,,...,..,,.,,,.,.,.,.,...,,,,,
-#3R2DL3NDVBJJ3XC6IK7SU3X5LGSH5C2JDXULRDT7PGUXC7MF6D3IB4CK5ABP4OPLHXTILE6LUVK5G
-#\\\|5PSLPCYLEEZVUVS7QS5KAHYXCJVRZF5PTWPU7P6Y54E5IO5D3X4 \ / AMOS7 \ YOURUM ::
-#\[7]3CIK5TCNWK4EFTCY3XNEYLOO7MUKRXJ57DVV45V7WT4I77QIH2DY 7  DATA SIGNATURE ::
+#,,,.,.,,,...,.,,,..,,,,,,,,,,,,.,,..,.,.,.,,,..,,...,...,..,,,,.,.,.,.,.,.,.,
+#GLNN5KOJOUKX5QJXSLLO4BJPEXTAZ5QFXQYU5CR225XCDCVCHK2S5NR2CSQBWXEQME7X4RVR36ZGK
+#\\\|PQA2TYMBEQ453SRSSTZAZIK3IR7QQD6QEY5PHEAMBMWAXBBGNMJ \ / AMOS7 \ YOURUM ::
+#\[7]T4ZPUBSGHFMONMMWD5GRSB7MTQ3LSY2OACE36XW4OXLI3MYYRKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
