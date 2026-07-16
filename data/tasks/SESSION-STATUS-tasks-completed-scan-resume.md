@@ -20,8 +20,18 @@ by idle-shutdown after partial progress; per-buffer verdicts were rescued from
   `git-hooks-version-auto-stage.md`, `jobsite-ui-reassess-button.md`,
   `jobsite-ui-interviewed-tab.md`, `jobsite-ui-flexible-export.md`,
   `jobsite-cmd-progress.md`, `jobsite-checksum-store-dirs.md`,
-  `jobsite-progress-bar-review-fix.md`, `memory-cmd-focus.md`).
+  `jobsite-progress-bar-review-fix.md`, `memory-cmd-focus.md`,
+  `sourcecode-normalize-endline-paths.md`).
   **remaining truly never-scanned: 52**.
+
+  `sourcecode-normalize-endline-paths.md`: parts 1 (canonical-path
+  normalization in `source.cmd.get-code-signed`) and 3 (underflow guard in
+  `source.restore_payload_endline_state`) were already done; only part 2
+  (the standalone `normalize-endline-state` command) was missing. New
+  module dynamically re-decodes the actual post-resign state rather than
+  assuming the task file's illustrative "state → 6" example literally —
+  confirmed via `source.harmonize_payload_line_feed`'s own comment that
+  state 5 is the true idempotent/canonical target, not 6.
 
   `memory-cmd-focus.md`: the `set`/`boost`/`apply`/`clear` mutation
   branches returned `mode=>'size'`; switched to `mode=>'true'/'false'`
@@ -159,10 +169,6 @@ polling strictly in submission order.
 - `credential-fabric-ui-interactive.md` — phase 2 selection/actions
   (up/down/refresh/select_view/action/input) and prompt templates
   implemented; phase 3 key-holder unlock dialog and `UNLOCK` op missing
-- `sourcecode-normalize-endline-paths.md` — underflow guard in
-  `source.restore_payload_endline_state` implemented; normalize config
-  only covers `modules/` and the `normalize-endline-state` console
-  command is missing
 - `index-cube-storage-cache.md` — no `index.cube.cache`, LRU, or
   `index.cmd.cache-stats` found
 - `index-cube-storage-format.md` — cube format exists but is schema v4
@@ -231,8 +237,8 @@ transport-selector.md
 tree-sort-trunk-route-page.md
 web-sessions-distributed.md
 
-#,,,.,.,.,,,,,,..,,,,,,,.,..,,..,,...,..,,.,,,..,,...,..,,..,,,,.,,..,.,,,.,,,
-#5RUR6HAWNXBJXNTFA227KHO4B5RIIOBLCPC5HFS6KWJWLONPB6ZKZGXAZGNGYBRCF4KAARAZRCZUE
-#\\\|A43AQOCG7I5ZTM5KM4WP2HFY3TOZE2EUQEAX7MR5HSHMQD3ZQHI \ / AMOS7 \ YOURUM ::
-#\[7]CHCDBJON5Z2HKFOY4BKUN7A4WBPWC74UFF5HUYJARLMNQBR3EOCQ 7  DATA SIGNATURE ::
+#,,.,,...,,,.,,,,,,,,,..,,..,,,.,,,.,,.,.,..,,..,,...,..,,...,,.,,.,.,,,,,..,,
+#X3CER3MGYAKAL4W77JTUB5VKFN5KCCFBQYYJURXLYFJOHS62UOQV7QRVD4YXCYKJNX62LCVYBTMA6
+#\\\|HUCAG6ZMLEZBCLAHWIV3YRBIVY43BC7UMZPGGEKVFLJ6FGFRZGX \ / AMOS7 \ YOURUM ::
+#\[7]RFMNCKUTKGPY6IV6I6HDEJW5BP3PN3L4U4LC3A6RWP6XUIWA5CCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
