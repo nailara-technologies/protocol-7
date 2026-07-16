@@ -16,21 +16,52 @@ if ( $state->{'completed'} || !defined $state->{'sock'} ) {
     return;
 }
 
+my $ceiling_used = $callbacks->{'timeout'}
+    // <coding.http-timeouts.request-completed> // 780;
+my $hard_ceiling = <coding.http-timeouts.request-completed> // 780;
+
 <[base.logs]>->(
     0,
-    "async.http_timeout: request timed out after %d seconds",
+    "async.http_timeout: request timed out after %d seconds [ceiling=%d]",
     int(<[base.time]>->(3)
             - ( $state->{'request_start'} // $state->{'last_activity'} // 0 )
-    )
+    ),
+    $ceiling_used
 );
 
+my $task_id = $state->{'task_id'} // '';
+my $task_state
+    = length($task_id)
+    ? <[coding.async.state_manager]>->( qw| get |, $task_id )
+    : undef;
+
+## soft-ceiling trip : the stream is still alive [ stall timer would have  ##
+## fired first if it weren't ], it's just taking longer than the fast      ##
+## default — escalate to the full ceiling and restart THIS round in place, ##
+## not the heavier on_error pipeline [ which assumes a broken connection   ##
+## and does backend-restart + full task requeue ]                         ##
+if ( defined $task_state and $ceiling_used < $hard_ceiling ) {
+    <[base.logs]>->(
+        1,
+        "async.http_timeout: soft ceiling [%ds] hit for %s,"
+            . " restarting round with full %ds",
+        $ceiling_used,
+        $task_id,
+        $hard_ceiling
+    );
+    <[coding.async.http_cleanup]>->($state);
+    <[coding.async.round_soft_restart]>->( $task_id, $hard_ceiling );
+    return;
+}
+
+## already at the hard ceiling : genuine timeout, existing failure path ##
 my $error = "Request timeout";
 $callbacks->{'on_error'}->($error) if exists $callbacks->{'on_error'};
 
 <[coding.async.http_cleanup]>->($state);
 
-#,,.,,,.,,.,,,,..,,.,,,.,,.,,,,..,,.,,..,,,,,,.,.,...,...,..,,..,,.,.,,..,...,
-#GSIVQD5J4UKLCVFLGP4RCYXR5IHPTNQLOZTWHTTURYZEB2CDBUYGOXEWYC45CLKTRJSMGMCUT3DWE
-#\\\|OYGIVKC2X5UDKTERWRMQIZ5WBW4ZWTLK6DOHODNT7POLBAFKE54 \ / AMOS7 \ YOURUM ::
-#\[7]WZLZHF3U6ARP4TABQWN6WLC7BE74I3QQYST3IQQERZFVSRDVN6BY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,,,,...,...,,,.,...,,.,,..,,.,.,.,.,...,...,...,,..,...,.,.,,..,
+#KCF4CUB6MOT7UPDVOOACPSGRBYKP7R3GDM5DB26ZIJPCNGD723A2FWILJI73XMO7OGCJBSPVDV7D2
+#\\\|BBH5DNUV2S2FQNL4HESSQTQCUHDRG2G4PAKB5KRSH7BWP6EEXCE \ / AMOS7 \ YOURUM ::
+#\[7]GXLSHGIL2CNEIL77BIX2RY7KXJ6LBAAMUDS5VPZMXNJH4IYJCYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
