@@ -187,16 +187,16 @@ see [topic-language-detection.md](topic-language-detection.md)
 phase 1 operational (~950 lines); file-backed history at `data/chat/channel/*/history`; `data/ai-mem/handover.txt` retired.
 open: kimi zenka state machine upgrade (backend reconnect), coding zenka as third dispatch target, phase 2 channels zenka.
 
-## Web-Browser Input Capture/Replay — Steps 1-3 Done (July 2026)
+## Web-Browser Input Capture/Replay — COMPLETE (July 2026)
 
-`replay_capture.{js_source,install,buffer_name}`, `handler.replay_message`, `cmd.replay-record|replay-play|wait-for-state` created per `data/tasks/web-browser-input-capture-replay.md`; whitelist regenerated, signatures pending. webkit userscript quirks in [coding-style.md](coding-style.md). steps 4-6 [ verify=, replay-synth, visualization.html fixture ] not started.
+all 6 steps landed + live-verified on the running zenka. steps 4-6 added `wait-state-poll`, `replay_template.dispatch_js`, `replay.dispatch`, `cmd.replay-synth`; wait-for-state/replay-play refactored onto the shared modules; whitelist regenerated, signatures pending. see [topic-web-browser-replay-verify-synth.md](topic-web-browser-replay-verify-synth.md) and webkit quirks in [coding-style.md](coding-style.md).
 
 ## Jobsite/Web Jobs Pipeline Fixes (2026-06-28)
 
 `skipped` status restored across all index scanners, reassessment now protects manual stages, web sync carries `assertions`, UI delete actions wired, and orbital subscriber `.cmd.` syntax corrected. Assessed jobs now map to the `review` UI stage. See [jobs-pipeline-2026-06-28.md](jobs-pipeline-2026-06-28.md). Open: bulk-delete pending search/filter UI.
 
-#,,,.,..,,..,,,.,,...,,..,.,.,...,,..,.,,,,,,,..,,...,...,...,.,,,.,.,,,.,..,,
-#L5DSLABTZEOKPCHTKGYVR6X4KSJ3WNTHAO4K4YDLK7D6UR4GTKC5XKUXONULLAQV7ENHPWK4IRA4Y
-#\\\|Q3CHMOS4QUVV4TEZLUVHNCVOSI7PSGDLZPC5CM6ACNOJCVIRU7P \ / AMOS7 \ YOURUM ::
-#\[7]ECBJ5UGIUZTIQUWDXCMCNFF7WWOCFNW5DJZCGLKH5B4IV5KQVQAI 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,,.,,,,,..,,,..,.,,,,,.,,..,.,,,..,,...,...,,..,.,.,..,,.,.,...,
+#VPPQD4WAWEOP7Z6SGOK2PHIOAT2SBKOGVPO6BIWYIZBLCZIULSGSLPQ22FSRKR6G6LW44WK6HQP74
+#\\\|JGCSDTCU25MB4WQCMWOCD73BRYMZZ5EP5TM4BJWELM5UBKL3PN3 \ / AMOS7 \ YOURUM ::
+#\[7]YC7WVKCQGALO2ASSDHBFUGZ4SLKZ56ZQXOPUTHTXIHTZCCYAE4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
