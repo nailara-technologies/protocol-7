@@ -18,7 +18,7 @@ use CredMeshTest qw|
 my $scenario = 5;
 my $verbose  = $ENV{'CREDMESH_TEST_VERBOSE'} // 0;
 
-my $echo_port = 35000 + ( int(rand(2000)) );
+my $echo_port = 35000 + ( int( rand(2000) ) );
 my $echo_log  = File::Spec->catfile( temp_dir(), 'echo-scenario-5.log' );
 my $echo_pid  = start_echo_server( $echo_port, $echo_log );
 my $domain    = "auth-relay-test.local";
@@ -29,59 +29,76 @@ my $payload   = 'relay-payload-xyz';
 # [ trigger auth relay via the fabric module directly ]
 my $relay_code = sprintf(
     'my $r = $code{"cred-mesh.request-authorization"}->({domain=>"%s",context=>{}}); '
-    . 'return YAML::XS::Dump($r);',
+        . 'return YAML::XS::Dump($r);',
     $domain
 );
 my $relay_yaml = p7c_eval( 'cred-mesh', $relay_code );
 print "[ relay ] $relay_yaml\n" if $verbose;
-my $relay = eval { YAML::XS::Load($relay_yaml) } // {};
-my $req_id = $relay->{'req_id'} // '';
+my $relay  = eval { YAML::XS::Load($relay_yaml) } // {};
+my $req_id = $relay->{'req_id'}                   // '';
 
-harness_assert( $scenario, 'relay request created',
+harness_assert(
+    $scenario,
+    'relay request created',
     length $req_id,
-    "got req_id '$req_id'" );
+    "got req_id '$req_id'"
+);
 
 # [ relay_pending.yaml should contain one entry ]
-my $relay_file = '/var/protocol-7/cred-mesh/relay_pending.yaml';
-my $pending = slurp_yaml($relay_file) // {};
+my $relay_file
+    = ( $ENV{'PROTOCOL_7_VAR'} // '/var/protocol-7' )
+    . '/cred-mesh/relay_pending.yaml';
+my $pending       = slurp_yaml($relay_file) // {};
 my $pending_count = scalar keys %$pending;
-harness_assert( $scenario, 'relay pending file has entry',
+harness_assert(
+    $scenario,
+    'relay pending file has entry',
     $pending_count == 1,
-    "expected 1 pending entry, got $pending_count" );
+    "expected 1 pending entry, got $pending_count"
+);
 
 # [ approve the relay ]
 my $approve_out = p7c( 'cred-mesh.approve', "$req_id $payload" );
 print "[ approve ] $approve_out\n" if $verbose;
-harness_assert( $scenario, 'approve command ok',
+harness_assert(
+    $scenario,
+    'approve command ok',
     ( defined $approve_out and $approve_out =~ m{approved|true} ),
-    "expected approval ok, got '$approve_out'" );
+    "expected approval ok, got '$approve_out'"
+);
 
 # [ pending entry removed ]
-$pending = slurp_yaml($relay_file) // {};
+$pending       = slurp_yaml($relay_file) // {};
 $pending_count = scalar keys %$pending;
-harness_assert( $scenario, 'relay pending entry removed',
+harness_assert(
+    $scenario,
+    'relay pending entry removed',
     $pending_count == 0,
-    "expected 0 pending entries, got $pending_count" );
+    "expected 0 pending entries, got $pending_count"
+);
 
 # [ retried request should carry the approved session header ]
 my $url    = "http://$domain/relay-test";
 my $helper = File::Spec->catfile( $RealBin, 'helper-curl-via-proxy.pl' );
 my $out    = `$helper "$url" 2>&1`;
 my $body   = ( $out =~ m{body=\n(.*)}s ) ? $1 : '';
-my $echo   = parse_echo_body($body) // {};
+my $echo   = parse_echo_body($body)         // {};
 my $got    = $echo->{'headers'}->{'cookie'} // '';
 
-harness_assert( $scenario, 'retried request carries session cookie',
+harness_assert(
+    $scenario,
+    'retried request carries session cookie',
     $got eq $payload,
-    "expected '$payload', got '$got'" );
+    "expected '$payload', got '$got'"
+);
 
 stop_echo_server();
 exit 0;
 
 # [ end ]
 
-#,,,.,,..,,,,,.,,,,,,,,,,,,.,,,.,,,.,,...,,.,,..,,...,...,,..,..,,.,,,..,,.,.,
-#OVZKOFW7KLZUNZ4JWHHKA662EMPFNXPM6LF4ZNDGPUYER3UBT7GPHTWWDSDARHZFD6KCRGBGODBT6
-#\\\|HS76PGWBXZ35IW42HGP6LO72ABAQYMQL57CNNCL567TVX3M4QPI \ / AMOS7 \ YOURUM ::
-#\[7]R3M32Z2MPXBMTZJLS6H4UWY4MS3GNL6FACCDLR26YOAOGK5T62AA 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,.,,,,..,,.,,,,.,.,,,...,,.,,...,..,,...,...,...,..,,.,,,,,,,...,
+#OTTAYMDYEKOO6JDT5LYQWXJAZHZQHJNCYV65TWX3ZBPDLF2HSENSAROLZNUNUTEPSCXYWHYTHIK7W
+#\\\|4BPMW7XHQIK6YWFEZF4UFYPOSMVMTF6KEAY6TFK7YNVCZLYL5S2 \ / AMOS7 \ YOURUM ::
+#\[7]ADOZDX73TIWAANLW3ASKO6KNS6JDIO6VT7HB7IN2DQHU4SHDF6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
