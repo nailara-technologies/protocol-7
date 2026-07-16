@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = coding.handler.http_stall_timeout
+# descr = handle stream stall [ no chunk activity for stall_timeout_sec ]
+# purpose = detect genuine silence mid-stream, independent of total ceiling
+
+my $event     = shift->w;
+my $data      = $event->data;
+my $state     = $data->{'state'};
+my $callbacks = $state->{'callbacks'};
+
+## skip if already completed [ timer event queued before cleanup ] ##
+if ( $state->{'completed'} || !defined $state->{'sock'} ) {
+    <[base.logs]>->(
+        2, "async.http_stall_timeout: skipping [ already completed ]"
+    );
+    return;
+}
+
+<[base.logs]>->(
+    0,
+    "async.http_stall_timeout: no activity for %d seconds [ stalled ]",
+    int( <[base.time]>->(3) - ( $state->{'last_activity'} // 0 ) )
+);
+
+## routes through the existing on_error pipeline [ http_error ] : dead air
+## mid-stream is the "server accepted connection but never responds" case
+## that pipeline already handles [ retry once, then backend restart +
+## requeue on exhaustion ] — NOT the soft-ceiling escalation path in
+## coding.handler.http_timeout, which is for a still-active stream simply
+## taking a long time, not a genuinely stalled one                       ##
+my $error = "Stream stall timeout";
+$callbacks->{'on_error'}->($error) if exists $callbacks->{'on_error'};
+
+<[coding.async.http_cleanup]>->($state);
+
+#,,,.,...,..,,,..,..,,,..,,..,,,.,,..,,.,,.,,,..,,...,...,,..,..,,..,,,,,,,,.,
+#D6BA4AZUH3VOW4JEV2SVKWISSDBFXYFKFOAQA3FDQLAGVA2D2YOQAGSPMTKPIM6XAHSP35DUV6QAY
+#\\\|5FO4I4PPLYSC2I4COVSJSGDGWQS5JLEY4Z76DA3AG6UYRA44UT7 \ / AMOS7 \ YOURUM ::
+#\[7]MCNSGDJDRBPZVLYBU2N5CCMNNHNPPRBUR53YEJO5BUV7TX2GN6DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

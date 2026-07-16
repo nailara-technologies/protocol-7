@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = coding.cmd.restart-round
+# descr = manually restart the current round in place
+# param = [task_id]
+
+my $args_str  = $call->{'args'} // '';
+my ($task_id) = split m{ +}, $args_str, 2;
+
+## in-flight task identity : reuse <coding.task.active>, the same existing
+## source that coding.cmd.abort-inference/stop-task use. no parallel
+## tracker is added.                                                    ##
+my $aref_active = <coding.task.active> // [];
+my $current_id  = $aref_active->[0];
+
+if ( not defined $current_id or not length $current_id ) {
+    return { mode => qw| false |, data => 'no active inference task' };
+}
+
+if ( defined $task_id and length $task_id ) {
+    if ( $current_id ne $task_id ) {
+        return {
+            mode => qw| false |,
+            data => "task $task_id no longer active [current: $current_id]"
+        };
+    }
+} else {
+    $task_id = $current_id;
+}
+
+my $task = <coding.task.queue>->{$task_id};
+return { mode => qw| false |, data => "task not found: $task_id" }
+    unless defined $task;
+
+my $status = $task->{'execution'}->{'status'} // 'unknown';
+return {
+    mode => qw| false |,
+    data => "task not running (status: $status)"
+    }
+    unless $status eq qw| in_progress |;
+
+my $async_state = <[coding.async.state_manager]>->( qw| get |, $task_id )
+    // {};
+my $http_state = $async_state->{'http_state'} // undef;
+
+## tear down the current connection, if any, before re-dispatching :    ##
+## round_soft_restart assumes the socket/timers are already gone        ##
+<[coding.async.http_cleanup]>->($http_state) if defined $http_state;
+
+my $restarted = <[coding.async.round_soft_restart]>->($task_id);
+
+return {
+    mode => qw| false |,
+    data => "failed to restart round for $task_id"
+    }
+    unless $restarted;
+
+<[base.logs]>->( 1, "restart-round: restarted round for %s", $task_id );
+
+return {
+    mode => qw| true |,
+    data => "round restarted for $task_id [full ceiling granted]"
+};
+
+#,,..,,,,,...,.,,,..,,.,.,,,,,,.,,,,,,..,,..,,..,,...,...,...,.,.,..,,.,.,...,
+#7AQ6VGADAVAF5JHABRH3CEAZGA7VRIORNEZCQWZBULG5U7JOAZEG3M24AB7IJFPXM6WZWFKWYGIJY
+#\\\|XMDG4OPX7VAVFK7PPK3DIOCVVKCB5E6YQHRBRD2G34JUNPLD6OW \ / AMOS7 \ YOURUM ::
+#\[7]FWQKNM7ZWAGQ62M5YLXQWWYWDA63OPKUKGSLM6ST2LC5IFUUL4AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -63,6 +63,19 @@ $state->{'last_activity'} = <[base.time]>->(3);
 $state->{'bytes_received'} += $bytes;
 $state->{'buffer'} .= $buffer;
 
+## re-arm stall watcher : fresh silence-window starts from this chunk,   ##
+## independent of the total-duration ceiling timer [ never re-armed ]   ##
+if ( defined $state->{'stall_watcher'} ) {
+    eval { $state->{'stall_watcher'}->cancel() };
+    $state->{'stall_watcher'} = <[event.add_timer]>->(
+        {   'after'   => $state->{'stall_timeout_sec'} // 77,
+            'handler' => qw| coding.handler.http_stall_timeout |,
+            'data'    =>
+                { state => $state, io_watcher => $state->{'io_watcher'} },
+        }
+    );
+}
+
 <[base.logs]>->(
     2,      "async.http_io: received %d bytes [ total : %d ]",
     $bytes, $state->{'bytes_received'}
@@ -152,8 +165,8 @@ if ( $state->{'headers_parsed'} ) {
 
 return;
 
-#,,.,,,..,.,.,,,.,,..,,.,,,,.,.,.,.,.,.,,,,,.,.,.,...,.,.,.,.,..,,.,.,,,.,...,
-#77GGXXW6KIEZCMGPLV5DOM3A6U3XV4LQTYKB4QUEJYET2TL34DY7NVMUAWHS3TB5VISTMOUQDTBVO
-#\\\|GTMHDNZTZB5TY7TBUFAZNJFK7XXQGETYFVI6F3FLLNJX2Q3D2NL \ / AMOS7 \ YOURUM ::
-#\[7]NYNWNYEPKRM2ZFLFDWDJAIO4QGXVZG62XEE5Z2XPBKJXRTGEACDQ 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,,.,,..,,.,,,.,,...,,..,,..,.,.,.,.,...,...,...,..,,..,,,,,,.,,,
+#PXPND2WRZKSZLMZ26466JFI2DSVP4KS3GZ3CH7RI7WXXSYSVKHWSOCRVDLVHR3IP4L3MJQLTNDCQK
+#\\\|S47HXZB6DOPUNMTBJOWFEPDVABODHA5BKATDBWXM3DLHIHQDFHE \ / AMOS7 \ YOURUM ::
+#\[7]WPNFL33DY6OIH6ZJ4FTHM3DRELHF3BVS5LUWYBFX4OYNUK5W7MAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
