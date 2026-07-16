@@ -1,36 +1,42 @@
 ## task: resume the data/tasks/ backlog completion-scan
 
-### status [ 2026-07-16 ] — round 2 reconciliation pass complete
+### status [ 2026-07-16 ] — round 3 reconciliation pass complete
 
 round 1 (2026-07-15) moved 25 verified-complete tasks. round 2 was interrupted
 by idle-shutdown after partial progress; per-buffer verdicts were rescued from
 `/var/protocol-7/coding/completed-task-backups/178416910{2,3}.*/` into
-`data/tasks/rescued-last-night.txt` and independently re-verified in this pass.
+`data/tasks/rescued-last-night.txt` and independently re-verified in that pass.
 
 **this pass (2026-07-16):**
-- 21 candidate files previously marked "move to completed [high confidence]" by
-the 9B model were re-verified against actual code. 20 confirmed and moved to
-`data/tasks/completed/`; 1 (`repo-root-cleanup-var-local-batches.md`) left open.
-- 10 files with unclear/cut-off/misleading rescued verdicts were freshly scanned.
-2 confirmed complete and moved (`sys-deps-zenka.md`,
-`contextualized-error-replies.md`); 2 classified as possibly completed pending
-human review; 6 left open.
-- **total moved this pass: 22**, plus `graphics-matrix-voxel-space.md` moved
-  after live user verification (harmonic-coords, ray-table, voxel-add,
-  voxel-density all exercised on a live shell; `voxel-del` isn't in the spec,
-  the "command not known" was an out-of-scope test, not a gap) — **23 total**.
-  **remaining truly never-scanned: 77**.
+- 22 active/load-bearing task files from the remaining list were scanned
+  against actual code. 8 were confirmed complete and moved to
+  `data/tasks/completed/`; 9 classified as possibly completed pending human
+  review; 5 left open. 3 additional jobsite UI files were already handled
+  in a previous pass and were skipped this round.
+- **total moved this pass: 9** (`jobsite-scan-state-slim.md`,
+  `jobsite-sync-push-status-dir.md`, `jobsite-ui-card-refinements.md`,
+  `credential-fabric.md`, `mcp-claude-dispatch.md`,
+  `mcp-coding-summarize.md`, `mcp-server-p7-external-commands.md`,
+  `git-hooks-version-auto-stage.md`, `jobsite-ui-reassess-button.md`).
+  **remaining truly never-scanned: 52**.
 
-both rounds ran the local coding zenka (9B model) against the
-`tasks-completed` context template, in batches of 3 files, then independently
-re-verified every "move to completed" verdict against actual code (grep / test
-runs / git log) before moving anything. do not trust the model's verdict alone
-— see `data/yaml/context-templates/tasks-completed.yaml` for the scan
-instructions.
+  `jobsite-ui-reassess-button.md` was flagged "still open" (no
+  `btn-reassess` match) by a *previous* round-1 scan — that verdict was
+  wrong: `.btn-reassess` exists live in
+  `data/web-root/vhosts/jobs.vhost/index.html` (lines 544/1121/1370),
+  wired to `pushChange(id, {action:'reassess'})`, and
+  `jobsite.sync.apply_reverse` fully implements the backend per spec.
+  User confirmed it works live. Caught because this round was told to
+  skip it as "already handled" — worth re-checking any other round-1
+  "still open" verdict that looks surprising.
+
+all "move to completed" verdicts were independently verified against actual
+modules / git log before `git mv`; do not trust model verdicts alone — see
+`data/yaml/context-templates/tasks-completed.yaml` for the scan instructions.
 
 ### what's left
 
-77 files below still need a real scan pass (verified against the live
+52 files below still need a real scan pass (verified against the live
 `data/tasks/` directory listing, not batch bookkeeping — task IDs get
 confusing across restarts).
 
@@ -100,7 +106,56 @@ polling strictly in submission order.
   `approval_review` tool; `llm.service.consensus_vote` exists but is not wired
   to MCP approval
 
-### remaining files [ 77, never scanned ]
+**round 3 additions:**
+- `jobsite-checksum-store-dirs.md` — module exists with company/url dedup,
+  blacklist, stats, prune, load/persist stubs and migration; title dedup
+  (`checksum-store/titles/`) is missing
+- `jobsite-cmd-progress.md` — progress bar module exists with matching
+  colors/format; access line not added for `usr.taeki` and idle right
+  bracket text differs from spec
+- `jobsite-progress-bar-review-fix.md` — `jobsite.job.load_all` overrides
+  status from directory index; `jobsite.cmd.progress` counts
+  apply/applied/rejected but does not show applied/rejected in the right
+  bracket
+- `jobsite-sync-multiplex.md` — `jobsite.cfg.sync_urls` list iteration and
+  per-URL `last_ntime` implemented; multi-jobsite reverse fan-out and
+  `connected_jobsites` not implemented
+- `web-jobs-status-dir-layout.md` — web cache uses status subdirs,
+  atomic rename, in-memory index, merge function and two-phase prune;
+  `assessed` is mapped to `review` in the web store and no `id+status`
+  path helper is exposed
+- `credential-fabric-integration-test.md` — harness scaffold and all five
+  scenario files exist; fixture still uses real `var/` paths instead of
+  isolated `/tmp/` dirs
+- `credential-fabric-ui-interactive.md` — phase 2 selection/actions
+  (up/down/refresh/select_view/action/input) and prompt templates
+  implemented; phase 3 key-holder unlock dialog and `UNLOCK` op missing
+- `memory-cmd-focus.md` — `memory.cmd.focus` dispatcher with set/boost/get/
+  clear/apply implemented; mutation branches return size replies instead
+  of TRUE/FALSE
+- `sourcecode-normalize-endline-paths.md` — underflow guard in
+  `source.restore_payload_endline_state` implemented; normalize config
+  only covers `modules/` and the `normalize-endline-state` console
+  command is missing
+- `index-cube-storage-cache.md` — no `index.cube.cache`, LRU, or
+  `index.cmd.cache-stats` found
+- `index-cube-storage-format.md` — cube format exists but is schema v4
+  with JHash checksums, not the task's schema v3 with AMOS7 checksums
+- `index-cube-storage-migrate.md` — no `index.migrate.v2-to-v3`,
+  `index.cube.detect_schema`, or migration trigger in
+  `index.persist.cube`
+- `index-cube-storage-verify.md` — no per-compartment checksum
+  verification, `index.cube.verify_chain`, or `index.cmd.verify-cube`
+- `x11-capture-commands-rewrite.md` — `X-11.cmd.capture-window` and
+  `capture-region` still use `system()` and accept `output_path`; no
+  `X-11.handler.capture_reply`
+- `jobsite-ui-flexible-export.md`, `jobsite-ui-interviewed-tab.md` —
+  marked still-open in a previous pass, skipped this round, but that pass's
+  verdict on the sibling `jobsite-ui-reassess-button.md` turned out to be
+  WRONG (see below) — these two need a fresh manual look, don't trust the
+  "still open" label blindly
+
+### remaining files [ 52, never scanned ]
 
 branch-dep-graph.md
 branch-field-open-state.md
@@ -113,9 +168,6 @@ configure-zenka-fallback-ui.md
 console-foldable-render-baseline.md
 console-fold-primitive.md
 context-aware-scale-navigation.md
-credential-fabric-integration-test.md
-credential-fabric.md
-credential-fabric-ui-interactive.md
 crop-circle-acquisition-pipeline.md
 crop-circle-assertion-mask.md
 dispatch-create-template.md
@@ -125,37 +177,18 @@ epoch-chksum-path-helper.md
 epoch-validity-search-protocol.md
 external-zenka-completion.md
 generate-all-spec-pages.md
-git-hooks-version-auto-stage.md
 harmonic-quality-correlation-study.md
 index-cmd-replace-remove.md
 index-contribution-vector-store.md
-index-cube-storage-cache.md
-index-cube-storage-format.md
-index-cube-storage-migrate.md
-index-cube-storage-verify.md
 inline-subs-batch-3.md
 inline-subs-batch-4-final.md
 inline-subs-batch-misc.md
 inline-subs-batch-weather-language.md
 installer-zenka-template-flow.md
-jobsite-checksum-store-dirs.md
-jobsite-cmd-progress.md
-jobsite-progress-bar-review-fix.md
-jobsite-scan-state-slim.md
-jobsite-sync-multiplex.md
-jobsite-sync-push-status-dir.md
-jobsite-ui-card-refinements.md
-jobsite-ui-flexible-export.md
-jobsite-ui-interviewed-tab.md
-jobsite-ui-reassess-button.md
 keyring-phase1.md
 kitten-acquisition-pipeline.md
 litter-row-encoding.md
 log-anonymization.md
-mcp-claude-dispatch.md
-mcp-coding-summarize.md
-mcp-server-p7-external-commands.md
-memory-cmd-focus.md
 memory-maintenance-2026-05-29.md
 ncode-workflow-patterns.md
 ncode-zenka-modules.md
@@ -167,7 +200,6 @@ select-region-zenka-clone.md
 SESSION-STATUS-tranche1-followup.md
 shm-streaming-payload-pipeline.md
 signal-cancel-log-library.md
-sourcecode-normalize-endline-paths.md
 space-engine-grid-orbit.md
 space-engine-template.md
 stdio-frame-encode-inline-subs.md
@@ -176,12 +208,10 @@ sys-deps-zenka-audit.md
 taws-integration.md
 transport-selector.md
 tree-sort-trunk-route-page.md
-web-jobs-status-dir-layout.md
 web-sessions-distributed.md
-x11-capture-commands-rewrite.md
 
-#,,,.,.,,,,.,,,.,,.,,,.,.,,,,,,,,,...,.,.,,..,..,,...,..,,.,.,..,,..,,,..,,,,,
-#2JQJKS62QPYV57MJYGLHCKHVOGJP67V22ENQQLMZ3VBKW6R4NGZQXAI24RQGCTMOWPICVEHWMKDZ6
-#\\\|DMBKUTUKUVP63HIR6V67B24O3DHPMOKDL2IEFA24HSQ3BB5OB2L \ / AMOS7 \ YOURUM ::
-#\[7]SRWJVWNEAJVRQ6BPFGQXOYPGUU5PI3MWHDSYFCQOBZJMCEDFXMCY 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,..,,,,,,,,.,,..,..,,.,.,.,,,.,.,..,,...,...,...,..,,,.,,..,,...,
+#CKIRWFAWPOPEGUII4UEYGKGLVRL5GF5PQQH4NE46CR75YQ7SSWIS7LNONLRGGIDDZNF5VNMZAN4JY
+#\\\|RBRCKSYRUHY2IULPWMV5ZJIJNRQ66DY34QK4FJXRHCSS44XRQNN \ / AMOS7 \ YOURUM ::
+#\[7]UINRX7L5E7M3XDKHNO2KWK2UINPLYD6V5UR6U7KHCWEOQ7XEU4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
