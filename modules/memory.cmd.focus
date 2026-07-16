@@ -6,7 +6,7 @@
 my $args_str = $call->{'args'} // '';
 my @args     = split /\s+/, $args_str;
 my $cmd      = shift @args // 'get';
-$cmd         = lc $cmd;
+$cmd = lc $cmd;
 
 ## [ guard not-ready state ]##
 if ( not <memory.ready> ) {
@@ -18,29 +18,30 @@ if ( $cmd eq 'set' ) {
     my $score = shift @args;
 
     my $ok = <[memory.focus.set]>->( $topic, $score );
-    return { 'mode' => 'size', 'data' => "focus set failed\n" } if not $ok;
+    return { 'mode' => qw| false |, 'data' => 'focus set failed' } if not $ok;
 
     <[memory.tree.flow]>->( { node => <memory.tree> } );
     <[memory.tree.score]>->( { node => <memory.tree> } );
-    return { 'mode' => 'size', 'data' => "$topic = $score\n" };
+    return { 'mode' => qw| true |, 'data' => "$topic = $score" };
 
 } elsif ( $cmd eq 'boost' ) {
     my $topic = shift @args;
     my $mult  = shift @args;
 
     my $ok = <[memory.focus.boost]>->( $topic, $mult );
-    return { 'mode' => 'size', 'data' => "focus boost failed\n" } if not $ok;
+    return { 'mode' => qw| false |, 'data' => 'focus boost failed' }
+        if not $ok;
 
     <[memory.tree.flow]>->( { node => <memory.tree> } );
     <[memory.tree.score]>->( { node => <memory.tree> } );
     my $new_val = <memory.focus>->{$topic} // '?';
-    return { 'mode' => 'size', 'data' => "$topic = $new_val\n" };
+    return { 'mode' => qw| true |, 'data' => "$topic = $new_val" };
 
 } elsif ( $cmd eq 'apply' ) {
     <[memory.focus.apply]>;
     <[memory.tree.flow]>->( { node => <memory.tree> } );
     <[memory.tree.score]>->( { node => <memory.tree> } );
-    return { 'mode' => 'size', 'data' => "focus applied\n" };
+    return { 'mode' => qw| true |, 'data' => 'focus applied' };
 
 } elsif ( $cmd eq 'clear' ) {
     my $topic = shift @args;
@@ -55,7 +56,7 @@ if ( $cmd eq 'set' ) {
 
     <[memory.tree.flow]>->( { node => <memory.tree> } );
     <[memory.tree.score]>->( { node => <memory.tree> } );
-    return { 'mode' => 'size', 'data' => "focus cleared\n" };
+    return { 'mode' => qw| true |, 'data' => 'focus cleared' };
 
 } else {    ## [ get or unknown — treat as get ] ##
     my $focus  = <memory.focus> // {};
@@ -73,8 +74,8 @@ if ( $cmd eq 'set' ) {
     return { 'mode' => 'size', 'data' => $out };
 }
 
-#,,,.,..,,..,,,.,,..,,..,,.,,,,,,,.,,,,.,,,,.,..,,...,...,,.,,,.,,,..,,,,,,,,,
-#2FLGWKKFNLSMP6Q6PAXHHYAUNFMAGKKMFORTKH4OUQ62ULVMIFZLVAC2ONDSNK24FYQEISVJT26DA
-#\\\|Y55JK6S3BQXMOY7SEBTYCPM5MTOSHRUAEEUEBZ3GDKPH24BNXRV \ / AMOS7 \ YOURUM ::
-#\[7]BUH47XICLHU7QRR3TBT3S5E4V4BQWJVBXMK64ROWDD5EAM4IUYCA 7  DATA SIGNATURE ::
+#,,,.,..,,..,,.,.,,,.,.,.,,,,,,,,,,..,.,,,.,,,..,,...,...,.,.,,,.,,,,,.,.,,,.,
+#3XVZXXYYHMP4OGWJHTKCLILB4A24VKB4SFO6FSQCGLHZYHMVYVIFFVF6BZFP2VVM653NLDDOVCPXM
+#\\\|WRO226F53L44HMAP2F2E24OMIOPSIZ2JONCMYLOZD5Q2YTQXRN7 \ / AMOS7 \ YOURUM ::
+#\[7]XUKXJYZHTUQR2Q2TU2E2FM3TSDGRFCZWCCTSL56HYR2KZ5EWVEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
