@@ -1,20 +1,32 @@
 ## task: resume the data/tasks/ backlog completion-scan
 
-### status [ 2026-07-16 ] — round 2 in progress
+### status [ 2026-07-16 ] — round 2 reconciliation pass complete
 
-round 1 (2026-07-15) moved 25 verified-complete tasks; round 2 (started after
-a clean `v7.restart coding` cleared a stuck `single-llm` backend lock — see
-"lesson" below) has moved 5 more so far and is still actively scanning the
-remaining files listed below. both rounds ran the local coding zenka (9B
-model) against the `tasks-completed` context template, in batches of 3
-files, then independently re-verified every "move to completed" verdict
-against actual code (grep / test runs / git log) before moving anything.
-do not trust the model's verdict alone — see
-`data/yaml/context-templates/tasks-completed.yaml` for the scan instructions.
+round 1 (2026-07-15) moved 25 verified-complete tasks. round 2 was interrupted
+by idle-shutdown after partial progress; per-buffer verdicts were rescued from
+`/var/protocol-7/coding/completed-task-backups/178416910{2,3}.*/` into
+`data/tasks/rescued-last-night.txt` and independently re-verified in this pass.
+
+**this pass (2026-07-16):**
+- 21 candidate files previously marked "move to completed [high confidence]" by
+the 9B model were re-verified against actual code. 20 confirmed and moved to
+`data/tasks/completed/`; 1 (`repo-root-cleanup-var-local-batches.md`) left open.
+- 10 files with unclear/cut-off/misleading rescued verdicts were freshly scanned.
+2 confirmed complete and moved (`sys-deps-zenka.md`,
+`contextualized-error-replies.md`); 2 classified as possibly completed pending
+human review; 6 left open.
+- **total moved this pass: 22**. **remaining truly never-scanned: 77**.
+
+both rounds ran the local coding zenka (9B model) against the
+`tasks-completed` context template, in batches of 3 files, then independently
+re-verified every "move to completed" verdict against actual code (grep / test
+runs / git log) before moving anything. do not trust the model's verdict alone
+— see `data/yaml/context-templates/tasks-completed.yaml` for the scan
+instructions.
 
 ### what's left
 
-108 files below still need a real scan pass (verified against the live
+77 files below still need a real scan pass (verified against the live
 `data/tasks/` directory listing, not batch bookkeeping — task IDs get
 confusing across restarts).
 
@@ -46,7 +58,7 @@ with priority scoring, not naive serial) then harvest results out of order
 by checking `/var/protocol-7/coding/results/<task_id>` directly rather than
 polling strictly in submission order.
 
-### already verified this session, don't re-scan [ still open, no action needed ]
+### already verified this session, don't re-scan [ still open / possibly completed ]
 
 - `amos7-shm-log-channel-handshake.md`, `amos7-shm-coding-zenka-prompt-transport.md` —
   design-only, no integration code (directly grepped)
@@ -67,8 +79,26 @@ polling strictly in submission order.
   `visual-mask-model-layer.md` — no matching code, stub/spec-only tasks
 - `wayland-screenshooter-perl-prototype.md`, `web-auth-plugin.md`,
   `web-browser-input-capture-replay.md` — no matching code
+- `repo-root-cleanup-var-local-batches.md` — tracked files still at original
+  repo-relative paths; `web.assets.load_registry` still uses `$project_root/var/httpd/static/`
+- `task-archiving-with-context-templates.md` — no `bin/dev/archive-task` script;
+  dispatch-workflow context templates exist but core intelligent archiver missing
+- `task-summary-topic-tree.md` — phase 1 implemented and live-verified
+  (`task.cmd.summary-tree-*`, `coding.cmd.summarize-context tree=1`, mcp-server-p7
+  relay); phases 2-4 (tree structure/routing/classification, delta storage,
+  idle integration) still open
+- `context-management-system.md` — no `coding.context-*` modules exist
+- `cosmic-space-visualization-layer.md` — no `cosmic.scene.from-coordinate`
+  module or iris integration found
+- `graphics-matrix-voxel-space.md` — phases 1-4 modules and UI toggle exist;
+  end-to-end behavior not fully exercised; needs human look before moving
+- `glitter-cosmology-priming.md` — no reasoning-template YAML conversion found
+- `git-watch-zenka.md` — no `git-watch.*` modules or configuration exist
+- `mcp-regex-approval-system.md` — no `approval-patterns.yaml` or
+  `approval_review` tool; `llm.service.consensus_vote` exists but is not wired
+  to MCP approval
 
-### remaining files [ 108, never scanned ]
+### remaining files [ 77, never scanned ]
 
 branch-dep-graph.md
 branch-field-open-state.md
@@ -81,17 +111,11 @@ configure-zenka-fallback-ui.md
 console-foldable-render-baseline.md
 console-fold-primitive.md
 context-aware-scale-navigation.md
-context-management-system.md
-contextualized-error-replies.md
-cosmic-space-visualization-layer.md
 credential-fabric-integration-test.md
 credential-fabric.md
 credential-fabric-ui-interactive.md
-credential-fabric-wiring-verify.md
 crop-circle-acquisition-pipeline.md
 crop-circle-assertion-mask.md
-dep-graph-stdout-self-healing.md
-design-template-suggestions.md
 dispatch-create-template.md
 dispatch-template-param.md
 epoch-bmw-l13-truth-templates.md
@@ -100,9 +124,6 @@ epoch-validity-search-protocol.md
 external-zenka-completion.md
 generate-all-spec-pages.md
 git-hooks-version-auto-stage.md
-git-watch-zenka.md
-glitter-cosmology-priming.md
-graphics-matrix-voxel-space.md
 harmonic-quality-correlation-study.md
 index-cmd-replace-remove.md
 index-contribution-vector-store.md
@@ -110,12 +131,6 @@ index-cube-storage-cache.md
 index-cube-storage-format.md
 index-cube-storage-migrate.md
 index-cube-storage-verify.md
-index-cube-storage-writer.md
-index-job-control-multiplexing.md
-index-lookup-search.md
-index-persist.md
-index-source-map-active-set.md
-index-terminal-boundary-tracking.md
 inline-subs-batch-3.md
 inline-subs-batch-4-final.md
 inline-subs-batch-misc.md
@@ -125,9 +140,6 @@ jobsite-checksum-store-dirs.md
 jobsite-cmd-progress.md
 jobsite-progress-bar-review-fix.md
 jobsite-scan-state-slim.md
-jobsite-status-dir-layout.md
-jobsite-status-stage-reconcile.md
-jobsite-store-prune-wiring.md
 jobsite-sync-multiplex.md
 jobsite-sync-push-status-dir.md
 jobsite-ui-card-refinements.md
@@ -140,18 +152,12 @@ litter-row-encoding.md
 log-anonymization.md
 mcp-claude-dispatch.md
 mcp-coding-summarize.md
-mcp-regex-approval-system.md
 mcp-server-p7-external-commands.md
 memory-cmd-focus.md
-memory-cmd-search.md
-memory-context-pipeline.md
 memory-maintenance-2026-05-29.md
 ncode-workflow-patterns.md
 ncode-zenka-modules.md
 network-elf-avatar-pipeline.md
-proxy-zenka-skeleton.md
-reasoning-branch-orchestration.md
-repo-root-cleanup-var-local-batches.md
 research-knowledge-base-extraction.md
 ring-routing-phase1.md
 screenshot-zenka-style-refresh.md
@@ -161,26 +167,19 @@ shm-streaming-payload-pipeline.md
 signal-cancel-log-library.md
 sourcecode-normalize-endline-paths.md
 space-engine-grid-orbit.md
-space-engine-route-travel-jump.md
 space-engine-template.md
 stdio-frame-encode-inline-subs.md
-strip-dispatch-json-boilerplate.md
 sub-bit-element-definition.md
 sys-deps-zenka-audit.md
-sys-deps-zenka.md
-task-archiving-with-context-templates.md
-task-summary-topic-tree.md
 taws-integration.md
 transport-selector.md
 tree-sort-trunk-route-page.md
 web-jobs-status-dir-layout.md
 web-sessions-distributed.md
 x11-capture-commands-rewrite.md
-x11-monitor-registry.md
-zenki-resolve-primary-sid.md
 
-#,,,.,..,,...,,..,,.,,,.,,,,,,,..,...,,.,,,.,,..,,...,...,,,.,..,,.,,,...,.,,,
-#XQ4NR5MHMTI7BDXWBEQKA2OZ2EY46KPNYTKO5QKU3RI3YALHUVC4JGD3B5H272KRZ3Y6PO7GUSWUA
-#\\\|MLAFVJIQQOX4XKYHPOZJ7HRBZUOM3FYTJB73L2PV2T2SJSQCD7G \ / AMOS7 \ YOURUM ::
-#\[7]P227HTHGX2SUXYBTZGYRBNJAFZY6ZDEH66QDYJWH7GF5B4DXZADQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,,.,,.,,,.,.,,,,,,,,,...,.,.,,..,..,,...,..,,.,.,..,,..,,,..,,,,,
+#2JQJKS62QPYV57MJYGLHCKHVOGJP67V22ENQQLMZ3VBKW6R4NGZQXAI24RQGCTMOWPICVEHWMKDZ6
+#\\\|DMBKUTUKUVP63HIR6V67B24O3DHPMOKDL2IEFA24HSQ3BB5OB2L \ / AMOS7 \ YOURUM ::
+#\[7]SRWJVWNEAJVRQ6BPFGQXOYPGUU5PI3MWHDSYFCQOBZJMCEDFXMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
