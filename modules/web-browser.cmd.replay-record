@@ -1,0 +1,128 @@
+## [:< ##
+
+# name  = web-browser.cmd.replay-record
+# descr = start/stop recording [fg view] input to replay buffer
+# param = start|stop [target=<js-expr>]
+
+my $reply_id = $call->{'reply_id'};
+my $args_str = $call->{'args'} // '';
+
+my @tokens = split( m|\s+|, $args_str );
+my $action = shift @tokens // '';
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage: replay-record start|stop [target=<js-expr>]'
+    }
+    if $action ne qw| start | and $action ne qw| stop |;
+
+my $target_expr = '';
+foreach my $token (@tokens) {
+    $target_expr = $1 if $token =~ m|^target=(.+)$|;
+}
+
+my $fg_index = <web-browser.overlay.index>->{'fg'};
+my $view     = <web-browser.gtk_obj.view>->{$fg_index};
+
+return { 'mode' => qw| false |, 'data' => 'no foreground view' }
+    unless defined $view;
+
+my $settings = $view->get_settings();
+
+return {
+    'mode' => qw| false |,
+    'data' => 'javascript execution is disabled'
+    }
+    if !$settings->get_enable_javascript();
+
+my $view_id = <web-browser.view_index>->{$view} // $fg_index;
+
+<[web-browser.replay_capture.install]>->( $view, $view_id );
+
+my $name = <[web-browser.replay_capture.buffer_name]>->($view_id);
+
+return { 'mode' => qw| false |, 'data' => 'cannot derive buffer name' }
+    unless defined $name;
+
+if ( $action eq qw| start | ) {
+
+    ##  fresh recording : clear buffer, then arm capture in-page  ##
+    undef $data{'buffer'}{$name}{'data'}->@*;
+    $data{'buffer'}{$name}{'data'} = [];
+    $data{'buffer'}{$name}{'size'} = 0;
+
+    my $js = '';
+    $js .= sprintf( 'window.__p7ReplayTarget = %s;', $target_expr )
+        if length $target_expr;
+    $js
+        .= 'window.__p7ReplayBuffer = [];'
+        . ' window.__p7ReplayStartTime = Date.now();'
+        . ' window.__p7RecordingActive = true;'
+        . ' window.__p7RecordingActive === true;';
+
+    <[web-browser.js_call]>->(
+        $js,
+        sub {
+            my ( $result_str, undef ) = @_;
+            $result_str //= '';
+
+            if ( $result_str eq qw| true | ) {
+                <[base.logs]>->(
+                    2, "replay-record: recording to '%s'", $name
+                );
+                <[base.callback.cmd_reply]>->(
+                    $reply_id,
+                    {   'mode' => qw| true |,
+                        'data' =>
+                            sprintf( 'recording input to buffer %s', $name )
+                    }
+                );
+            } else {
+                <[base.callback.cmd_reply]>->(
+                    $reply_id,
+                    {   'mode' => qw| false |,
+                        'data' => sprintf( 'failed to arm recording: %s',
+                            $result_str )
+                    }
+                );
+            }
+        }
+    );
+
+    return { 'mode' => qw| deferred | };
+}
+
+##  action : stop  ##
+
+my $stop_js = 'window.__p7RecordingActive = false;'
+    . ' ( window.__p7ReplayBuffer || [] ).length;';
+
+<[web-browser.js_call]>->(
+    $stop_js,
+    sub {
+        my ( $result_str, undef ) = @_;
+        $result_str //= '';
+
+        <[base.logs]>->(
+            2,           "replay-record: stopped, %s events in '%s'",
+            $result_str, $name
+        );
+        <[base.callback.cmd_reply]>->(
+            $reply_id,
+            {   'mode' => qw| true |,
+                'data' => sprintf(
+                    'recording stopped, %s events in buffer %s',
+                    $result_str, $name
+                )
+            }
+        );
+    }
+);
+
+return { 'mode' => qw| deferred | };
+
+#,,.,,..,,,,.,...,,,.,..,,.,,,,.,,,,.,.,.,,.,,..,,...,..,,.,.,,,,,,,,,,..,...,
+#3UFOYOV3UTRQZLDRTTHS66YOJMUJBFYXGNZSB4C33XAIHNRSH5AR2DU2DNC6PSO2S6VA33RAJDRN6
+#\\\|P72Q6D6XX2AE6ACOFOZTPQ2NIZWCONH6BTO74PCFRASSPYDL34T \ / AMOS7 \ YOURUM ::
+#\[7]T4OSQGJ6L66NYYVCGESVVV6LQIUOC7J7JWLW5IAQGQMWSAYAXGCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
