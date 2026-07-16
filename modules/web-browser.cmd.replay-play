@@ -2,14 +2,15 @@
 
 # name  = web-browser.cmd.replay-play
 # descr = replay recorded input against __p7ReplayTarget
-# param = <buffer-name|json-path> [speed=1.0]
+# param = <buffer-name|json-path> [speed=1.0] [force=1]
 
 my $reply_id = $call->{'reply_id'};
 my $args_str = $call->{'args'} // '';
 
 return {
     'mode' => qw| false |,
-    'data' => 'usage: replay-play <buffer-name|json-path> [speed=1.0]'
+    'data' =>
+        'usage: replay-play <buffer-name|json-path> [speed=1.0] [force=1]'
     }
     if !length($args_str);
 
@@ -31,8 +32,10 @@ my @tokens = split( m|\s+|, $args_str );
 my $source = shift @tokens // '';
 
 my $speed = 1.0;
+my $force = 0;
 foreach my $token (@tokens) {
     $speed = 0 + $1 if $token =~ m|^speed=(\d+(?:\.\d+)?)$|;
+    $force = 0 + $1 if $token =~ m|^force=([01])$|;
 }
 $speed = 1.0 if $speed <= 0;
 
@@ -68,8 +71,35 @@ if ( exists $data{'buffer'}{$source} ) {
     };
 }
 
+##  extract leading pin meta record, if present  ##
+my ( $pin_url, $pin_chk );
+if ( @events and $events[0]->{'type'} eq qw| meta | ) {
+    my $pin_rec = shift @events;
+    $pin_url = $pin_rec->{'url'} // '';
+    $pin_chk = $pin_rec->{'chk'} // '';
+}
+
 return { 'mode' => qw| false |, 'data' => 'no events to replay' }
     if !@events;
+
+##  pin check : recording must match current foreground page  ##
+if ( defined $pin_chk and not $force ) {
+    my $cur_url     = $view->get_uri() // '';
+    my $cur_subject = $cur_url;
+    $cur_subject =~ s|#.*$||;    ##  fragment holds ephemeral state  ##
+    my $cur_chk = <[chk-sum.bmw.L13-str]>->($cur_subject);
+    if ( $cur_chk ne $pin_chk ) {
+        return {
+            'mode' => qw| false |,
+            'data' => sprintf(
+                'checksum mismatch: recording pinned to %s [chk=%s],'
+                    . ' current page is %s [chk=%s]'
+                    . ' -- pass force=1 to override',
+                $pin_url, $pin_chk, $cur_url, $cur_chk
+            )
+        };
+    }
+}
 
 my $events_json = <[format.json.encode]>->( \@events );
 
@@ -171,8 +201,8 @@ $view->evaluate_javascript(
 
 return { 'mode' => qw| deferred | };
 
-#,,..,,,,,,.,,...,...,.,.,,.,,,,.,..,,.,.,,,.,..,,...,...,,..,...,..,,.,.,.,,,
-#YT6SFJBADDQFMSXGWF44SYQARLUZEZC7C3ARAKEHVX5MMOM76YNMICHXTFTJL7APGPHQBVW7DFMXK
-#\\\|5BKQGTHQ4HWNRDMLFCWA6R55BMK7F27GZL2WRDYP5BUK6GRCRPC \ / AMOS7 \ YOURUM ::
-#\[7]VBYYOPU5A5DNRSAE3SKQBDO7DTILXYNM4QGEEW34ASDVRLYSNMCY 7  DATA SIGNATURE ::
+#,,..,...,,..,,,.,,.,,..,,...,.,.,..,,,,,,.,.,..,,...,...,.,.,.,.,,,.,..,,..,,
+#VBMT3RVSTC2PQBYOYQ4Y6NRLOE7WNLFORV4BPYD574SU27NUEXUNFEDGT7CYRHPLN5UYOT7DTA3TM
+#\\\|5X45UH6B42WJS7IUQHSEYX52MM4XPNPYZMF2ISCS3ZLLKYYOCH4 \ / AMOS7 \ YOURUM ::
+#\[7]GAIMQJAEHKG52X6BZRXSR7WJ3QFARZIBHDG5I3FCD2MUZM6Q3QDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
