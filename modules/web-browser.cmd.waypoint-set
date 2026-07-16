@@ -1,0 +1,77 @@
+## [:< ##
+
+# name  = web-browser.cmd.waypoint-set
+# descr = store named state waypoint [ page-pinned ]
+# param = <name> <var=target> ..
+# note  = in-memory only, pinned via bmw.L13 of uri without fragment
+#         [ same computation as replay-record ]
+
+my $args_str = $call->{'args'} // '';
+
+my @tokens = split( m|\s+|, $args_str );
+my $name   = shift @tokens // '';
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage: waypoint-set <name> <var=target> ..'
+    }
+    if $name !~ m|^\w{1,32}$| or !@tokens;
+
+my $fg_index = <web-browser.overlay.index>->{'fg'};
+my $view     = <web-browser.gtk_obj.view>->{$fg_index};
+
+return { 'mode' => qw| false |, 'data' => 'no foreground view' }
+    unless defined $view;
+
+my $num_re = qr|^-?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?$|;
+
+my %targets;
+foreach my $token (@tokens) {
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( 'invalid token: %s [expected var=target]', $token )
+        }
+        unless $token =~ m|^([a-zA-Z]\w*)=(\S+)$|;
+    my ( $var, $val ) = ( $1, $2 );    ##  captures before next match  ##
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( 'non-numeric target for var: %s', $var )
+        }
+        if $val !~ $num_re;
+    $targets{$var} = 0 + $val;
+}
+
+##  pin waypoint to current frontend [ cf. replay-record ]  ##
+my $full_uri    = $view->get_uri() // '';
+my $pin_subject = $full_uri;
+$pin_subject =~ s|#.*$||;    ##  fragment holds ephemeral state  ##
+my $pin_chk = <[chk-sum.bmw.L13-str]>->($pin_subject);
+
+$data{'waypoint'}{$name} = {
+    'url'  => $full_uri,
+    'chk'  => $pin_chk,
+    'vars' => \%targets
+};
+
+<[base.logs]>->(
+    2, "waypoint-set: '%s' stored, pinned to %s [chk=%s]",
+    $name, $pin_subject, $pin_chk
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        "waypoint '%s' stored : %s [pinned %s]",
+        $name,
+        join( ' ',
+            map { sprintf( '%s=%s', $ARG, $targets{$ARG} ) }
+            sort keys %targets ),
+        $pin_chk
+    )
+};
+
+#,,.,,,.,,.,.,...,,.,,,,,,.,.,.,,,.,.,.,,,..,,..,,...,.,.,..,,,,.,,,.,.,,,,..,
+#FILRKAFBDHLPPHFYC6EA4XTM7JTIEGAVWGRKGGERMVXPUGDFV3GRBRBZAUT5IWVSSDE35DOXRKEFG
+#\\\|3VODFWVL7BO5XG76SQMVOEM5ZQR77XOPVLB2Y6CIOWUAZ3OBIO4 \ / AMOS7 \ YOURUM ::
+#\[7]2H6WRUNWYN2XDUS4MWIJ4IZALVE2LDPY7BOIV5BRX5WGSSVOZOAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,9 +3,11 @@
 # name  = web-browser.replay.dispatch
 # descr = dispatch normalized events + optional verify poll
 # param = \%args { view events speed source reply_id
-#         ..        verify tolerance samples timeout }
+#         ..        verify tolerance samples timeout force_set }
 # note  = verify hashref { var => target } : polls via wait-state-poll
 #         after dispatch completes, then diffs final values vs targets
+#       .. force_set { var => [ hook, target ] } : one direct hook call
+#         per mismatched var after poll [ forced exact landing ]
 
 my $args = shift // {};
 
@@ -18,6 +20,7 @@ my $verify    = $args->{'verify'}    // {};
 my $tolerance = $args->{'tolerance'} // 0.01;
 my $samples   = $args->{'samples'}   // 5;
 my $timeout   = $args->{'timeout'}   // 10;
+my $force_set = $args->{'force_set'} // {};
 
 return warn 'web-browser.replay.dispatch: no view'
     unless defined $view;
@@ -116,6 +119,7 @@ $view->evaluate_javascript(
                         : ();
                     my $pass = TRUE;
                     my @diffs;
+                    my @hits;
                     for ( my $i = 0; $i < @names; $i++ ) {
                         my $name   = $names[$i];
                         my $final  = $vals[$i];
@@ -132,6 +136,7 @@ $view->evaluate_javascript(
                             $hit = TRUE;
                         }
                         $pass = FALSE if !$hit;
+                        $hits[$i] = $hit;
                         push @diffs,
                             sprintf(
                             '%s=%s [target %s, delta %s%s]',
@@ -140,20 +145,85 @@ $view->evaluate_javascript(
                             );
                     }
 
-                    <[base.callback.cmd_reply]>->(
-                        $reply_id,
-                        {   'mode' => $pass ? qw| true | : qw| false |,
-                            'data' => sprintf(
-                                'verify %s [tol=%s] : %s [%s after %.1fs]',
-                                $pass ? qw| PASS | : qw| FAIL |,
-                                $tolerance,
-                                join( ' ', @diffs ),
-                                $poll->{'ok'}
-                                ? qw| settled |
-                                : qw| timeout |,
-                                $poll->{'elapsed'} // 0
-                            )
+                    ##  force_set : direct hook call per mismatched var  ##
+                    my @force_js;
+                    my @forced;
+                    if ( !$pass and ref($force_set) eq qw| HASH | ) {
+                        for ( my $i = 0; $i < @names; $i++ ) {
+                            next if $hits[$i];
+                            my $spec = $force_set->{ $names[$i] } // next;
+                            next unless ref($spec) eq qw| ARRAY |;
+                            push @force_js,
+                                sprintf( "window.__p7SetState['%s'](%s);",
+                                $spec->[0], $spec->[1] );
+                            push @forced, $spec->[0];
                         }
+                    }
+
+                    my $reply_data = sprintf(
+                        'verify %s [tol=%s] : %s%s [%s after %.1fs]',
+                        $pass     ? qw| PASS |
+                        : @forced ? qw| FORCED |
+                        : qw| FAIL |,
+                        $tolerance,
+                        join( ' ', @diffs ),
+                        @forced ? sprintf( ' [forced exact: %s]',
+                            join( ', ', @forced ) )
+                        : '',
+                        $poll->{'ok'} ? qw| settled | : qw| timeout |,
+                        $poll->{'elapsed'} // 0
+                    );
+
+                    if ( not @force_js ) {
+                        <[base.callback.cmd_reply]>->(
+                            $reply_id,
+                            {   'mode' => $pass ? qw| true | : qw| false |,
+                                'data' => $reply_data
+                            }
+                        );
+                        return;
+                    }
+
+                    ##  one direct set per var : guaranteed exact landing  ##
+                    <[base.logs]>->(
+                        2,
+                        'replay.dispatch: forcing exact landing: %s',
+                        join( ', ', @forced )
+                    );
+                    $view->evaluate_javascript(
+                        join( ' ', @force_js ) . ' true;',
+                        -1, undef, undef, undef,
+                        sub {
+                            my ( $view, $result ) = @_;
+                            my $jsc_value = eval {
+                                $view->evaluate_javascript_finish($result);
+                            };
+                            if ($@) {
+                                ( my $ex_str = $@ ) =~ s| at /usr/.+\n$||;
+                                $ex_str =~ s|^[^ ]+ ||;
+                                <[base.logs]>->(
+                                    0,              '<!JSerr!> [%s] %s',
+                                    $view->get_uri, $ex_str
+                                );
+                                <[base.callback.cmd_reply]>->(
+                                    $reply_id,
+                                    {   'mode' => qw| false |,
+                                        'data' => sprintf(
+                                            '%s [force-set failed: %s]',
+                                            $reply_data, $ex_str
+                                        )
+                                    }
+                                );
+                                return;
+                            }
+                            <[base.callback.cmd_reply]>->(
+                                $reply_id,
+                                {   'mode' => qw| true |,
+                                    'data' => $reply_data
+                                }
+                            );
+                        },
+                        undef
                     );
                 }
             }
@@ -164,8 +234,8 @@ $view->evaluate_javascript(
 
 return TRUE;
 
-#,,,,,.,,,...,,..,,.,,,,.,,,,,,,,,..,,,.,,,.,,..,,...,...,.,.,,.,,..,,.,,,,.,,
-#LBLC5PGBFPUUKNNCOCKS5N2KI7BY6Y3DNHZOQ32OP5H3R3XXWSQ5M637MRTCPQNLXNNRBBAWQYV36
-#\\\|V2JPSBUUTDGPYM626VZMUXX4EAJKOIHQVS5BORRYW5QOHXUHLU6 \ / AMOS7 \ YOURUM ::
-#\[7]HIQ4JCNUAQKY45KIR7KEXUAZSTVMGKVOWAQCTZLLART6QB4DFKAA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,..,,,.,.,,,,,.,,,.,,,.,.,,,,..,..,,...,...,.,.,.,,,.,,,..,,...,
+#M47SODZ4ABPWLQBR54THVMHO4UGRCLTMB75K26VMQV6NDX24XVD3MKPBMVNZFSI57ZAZ53MIDXO4S
+#\\\|BSHVGFB44TUFOV6MLV3S3WUA2DZZFQK2HC7LHUET7HGK67OGCWB \ / AMOS7 \ YOURUM ::
+#\[7]DJCMVW7HQGI55V6QADAXO6BZ3AISE5JYSMD6RCCWEMYWMWWMY6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

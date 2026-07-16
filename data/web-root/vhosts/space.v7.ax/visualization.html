@@ -280,6 +280,16 @@
         let manualFocal = 500;     // Manual wheel adjustment
         let rotX = 15, rotY = 15, rotZ = 0;
 
+        // write-back hook for protocol-7 direct state replay (window.__p7*
+        // convention, cf. __p7ReplayTarget) : sets the closure vars directly
+        // note: zoom also pins manualZoom — updateCamera() eases zoom toward
+        // manualZoom every frame, so setting zoom alone would decay back
+        window.__p7SetState = {
+            rotX: v => { rotX = v; },
+            rotY: v => { rotY = v; },
+            zoom: v => { zoom = v; manualZoom = v; }
+        };
+
         const MIN_ZOOM = 0.00000000007;  // Adjusted for x1000000 scale - 5-layer recursive addressing
         const MAX_ZOOM = 20;
         const MIN_FOCAL = 170;

@@ -1,0 +1,108 @@
+## [:< ##
+
+# name  = web-browser.cmd.goto-waypoint
+# descr = drive state toward a stored waypoint
+# param = <name> [duration=<ms>] [path=linear|bezier]
+#       .. [force=1] [tolerance=0.01] [samples=5] [timeout=10]
+# note  = pin check against current fg page like replay-play,
+#         then drives state-play toward the stored vector
+
+my $reply_id = $call->{'reply_id'};
+my $args_str = $call->{'args'} // '';
+
+my @tokens = split( m|\s+|, $args_str );
+my $name   = shift @tokens // '';
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage: goto-waypoint <name> [duration=<ms>]'
+        . ' [path=linear|bezier] [force=1] [tolerance=0.01]'
+        . ' [samples=5] [timeout=10]'
+    }
+    if !length $name;
+
+my $waypoint = $data{'waypoint'}{$name};
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( 'no such waypoint: %s', $name )
+    }
+    unless ref($waypoint) eq qw| HASH |
+    and ref( $waypoint->{'vars'} ) eq qw| HASH |
+    and $waypoint->{'vars'}->%*;
+
+my $fg_index = <web-browser.overlay.index>->{'fg'};
+my $view     = <web-browser.gtk_obj.view>->{$fg_index};
+
+return { 'mode' => qw| false |, 'data' => 'no foreground view' }
+    unless defined $view;
+
+my $duration  = 2000;
+my $path      = qw| bezier |;
+my $force     = 0;
+my $tolerance = 0.01;
+my $samples   = 5;
+my $timeout   = 10;
+foreach my $token (@tokens) {
+    if ( $token =~ m|^duration=(\d+(?:\.\d+)?)$| ) {
+        $duration = 0 + $1;
+    } elsif ( $token =~ m{^path=(linear|bezier)$} ) {
+        $path = $1;
+    } elsif ( $token =~ m|^force=([01])$| ) {
+        $force = 0 + $1;
+    } elsif ( $token =~ m|^tolerance=(\d+(?:\.\d+)?)$| ) {
+        $tolerance = 0 + $1;
+    } elsif ( $token =~ m|^samples=(\d+)$| ) {
+        $samples = 0 + $1;
+    } elsif ( $token =~ m|^timeout=(\d+(?:\.\d+)?)$| ) {
+        $timeout = 0 + $1;
+    } else {
+        return {
+            'mode' => qw| false |,
+            'data' => sprintf( 'invalid token: %s', $token )
+        };
+    }
+}
+
+##  pin check : waypoint must match current foreground page  ##
+##  [ same computation as replay-play ]                      ##
+if ( not $force ) {
+    my $cur_url     = $view->get_uri() // '';
+    my $cur_subject = $cur_url;
+    $cur_subject =~ s|#.*$||;    ##  fragment holds ephemeral state  ##
+    my $cur_chk = <[chk-sum.bmw.L13-str]>->($cur_subject);
+    if ( $cur_chk ne ( $waypoint->{'chk'} // '' ) ) {
+        return {
+            'mode' => qw| false |,
+            'data' => sprintf(
+                "checksum mismatch: waypoint '%s' pinned to %s [chk=%s],"
+                    . ' current page is %s [chk=%s]'
+                    . ' -- pass force=1 to override',
+                $name, $waypoint->{'url'} // '',
+                $waypoint->{'chk'} // '', $cur_url,
+                $cur_chk
+            )
+        };
+    }
+}
+
+##  drive state-play toward the stored vector  ##
+my $play_args = join( ' ',
+    map { sprintf( '%s=%s', $ARG, $waypoint->{'vars'}{$ARG} ) }
+    sort keys $waypoint->{'vars'}->%* );
+$play_args
+    .= sprintf( ' duration=%s path=%s tolerance=%s samples=%s timeout=%s',
+    $duration, $path, $tolerance, $samples, $timeout );
+
+<[base.logs]>->( 2, "goto-waypoint: '%s' : %s", $name, $play_args );
+
+<[web-browser.cmd.state-play]>
+    ->( { 'reply_id' => $reply_id, 'args' => $play_args } );
+
+return { 'mode' => qw| deferred | };
+
+#,,.,,,..,..,,.,,,.,.,,.,,..,,.,,,.,.,,,,,.,.,..,,...,...,...,,.,,,.,,,..,.,,,
+#TXSLP5SVGE34NKYSIU3YQCBIXUVBB26D6K65Q6OPKAYCPZERWSH5OYPGIDTFJ4I4FXFPJTUCWSG6Q
+#\\\|3IPM4O6DTXFFV4GPZMQQ5I6FDUAP33OY5T6E6ID4TYCFO6UNA5B \ / AMOS7 \ YOURUM ::
+#\[7]TB5NSES2MTBMTS63BN5IDU2NIFT5UUTI2DUFB7UEDI5KJUJCUEDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
