@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = cred-mesh.cmd.subscribe_rotation
+# descr = subscribe a handler to credential rotation events
+# param = <slot> <handler>
+
+my $args_str = $call->{'args'} // '';
+$args_str =~ s/^\s+|\s+$//g;
+
+my ( $slot, $handler ) = split qr|\s+|, $args_str, 2;
+$slot    //= '';
+$handler //= '';
+
+return { 'mode' => qw| false |, 'data' => 'missing slot' }
+    unless length $slot;
+return { 'mode' => qw| false |, 'data' => 'missing handler' }
+    unless length $handler;
+
+my $result = <[cred-mesh.subscribe_rotation]>->(
+    {   'slot'    => $slot,
+        'handler' => $handler,
+    }
+);
+
+return $result
+    if defined $result and ref $result eq qw| HASH |;
+
+return { 'mode' => qw| false |, 'data' => 'subscribe failed' };
+
+## [ end ] ###################################################################
+
+#,,.,,..,,.,.,.,.,.,,,...,...,,.,,,,,,,,,,.,,,..,,...,..,,,..,,.,,,,.,,..,,.,,
+#FUPUTFZM7ZPXZ6LYMLALXEYJMV3YHMKMD3O262SK7KAAJE6KVCF7RW6VBSXRGXYXCWCWZDALJILZM
+#\\\|IGC7ERF2BLG4FIYENA4J4V2EUSCOY4ANRWCURGYSIRPQ7SDPU2M \ / AMOS7 \ YOURUM ::
+#\[7]3BZQ4D2IH2SIJIVCAPSPSSMD4ACT7SEQQBBDGGTXH3M75NOCR2AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
