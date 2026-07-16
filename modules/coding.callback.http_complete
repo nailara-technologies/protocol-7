@@ -35,6 +35,11 @@ if ( defined $req_seq && $req_seq != $current_seq ) {
     return;
 }
 
+## round finished cleanly [ no timeout fired for this attempt ] : drop any
+## ceiling escalation so the next round starts fast again rather than
+## staying at the full ceiling permanently — see coding.handler.http_timeout
+delete $state->{'timeout_ceiling'};
+
 my $sm_state = $state->{'state'} // '';
 
 ## model_selection round already dispatched next request : do not interfere ##
@@ -229,8 +234,8 @@ my $backend_early = $state->{'backend'} // '';
 
 return;
 
-#,,..,,,,,..,,,,,,...,.,,,,,.,.,.,,,,,..,,,,,,..,,...,.,.,...,,,,,,.,,,,,,,..,
-#O4ZQPTF2GGIVZ5VLX3YSLWVMXJI56PAB3YA2V7GDEOY4DV3EWJE427DQAOPYXUB4TLE7W4CRZYUSG
-#\\\|OWMN7NSOH66R6T3AUDZ5ZUYRWNMSZB24RPSBJU6LVSAFJKSVMUU \ / AMOS7 \ YOURUM ::
-#\[7]ATLZDUXXF23RJ6L6G3PUF46UNJZX4DHVF7XTEAHANZA7CMTV5EDI 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,.,,...,,..,..,,.,,,,,,,,..,,.,,..,,...,...,,.,,...,,.,,..,,...,
+#VEW2RPQS3XIDXMMV5WJXRHHLGU3GEUPKB2RJ3WQXU65WSAKVZEQRRWX7B5I6R6R3TYYISPAJXZUSY
+#\\\|BJXHCG46UJ57L35KPCNL3CKWCOPRVARRNFC3X746Q2B7X7O7HVJ \ / AMOS7 \ YOURUM ::
+#\[7]BSDUK5ML5BET7YSJZ45TKNR3D2VXBZX2X5MG55BPK2TQTHMORICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

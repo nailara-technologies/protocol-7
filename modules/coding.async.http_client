@@ -184,6 +184,18 @@ my $data_start_watcher = <[event.add_timer]>->(
 );
 $state->{'data_start_watcher'} = $data_start_watcher;
 
+## Set up stall/inactivity timeout [ re-armed on every chunk in http_io — ##
+## catches genuine silence regardless of total elapsed time, independent ##
+## of the total-duration ceiling above, which never re-arms on activity ##
+my $stall_timeout_sec = <coding.http-timeouts.stall> // 77;
+$state->{'stall_timeout_sec'} = $stall_timeout_sec;
+$state->{'stall_watcher'}     = <[event.add_timer]>->(
+    {   'after'   => $stall_timeout_sec,
+        'handler' => qw| coding.handler.http_stall_timeout |,
+        'data'    => { state => $state, io_watcher => $io_watcher },
+    }
+);
+
 <[base.logs]>->(
     1,     "async.http_client: connection established to %s:%d",
     $host, $port
@@ -194,8 +206,8 @@ return {
     state   => $state,
 };
 
-#,,,,,...,,,.,.,.,.,.,..,,.,.,.,,,,.,,,,.,..,,.,.,...,...,...,,,,,,.,,..,,...,
-#4I7HWU3A6OWLBACQL5EWA7TNM22F5SA5XUW7FJJKP7U7OSJWJQCJ7JRNHBWBHTMVEKEFBREWRG2HK
-#\\\|U46NBOEE3VD3UXXDHP7UK5WP4OQGFTFFTMFN5XTERBD4A7NQW5R \ / AMOS7 \ YOURUM ::
-#\[7]5WYIGI47BMHOZ5XD2FZDAEWF4PBJM2C6S5S3DDZYKWLO456BZWDQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,.,,,..,...,,,.,.,.,..,,.,,,...,.,.,...,...,..,,.,,,.,,,,.,,.,.,
+#CRYW5EVWVU4XBT3UMWDCVBLS2FMBYVI6J5KV2NH7RGAZ4OGDHVK7ZG4BWEEXA43VTZKCWBFRHDI3G
+#\\\|MIOYHH7YKGV7ZZFGNEKC6AHGVNLECB32QQRQFS2M5ZFWTYIPYVI \ / AMOS7 \ YOURUM ::
+#\[7]CKK6IRI7LEREZJ4OQO5GPJM5S35Z73BVC4YZEHF6GFFBOEBWUACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
