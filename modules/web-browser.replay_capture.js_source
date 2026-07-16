@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = web-browser.replay_capture.js_source
+# descr = js snippet [ records trusted mouse+wheel input, posts to p7replay ]
+
+return <<'JS_SRC';
+(function () {
+    if ( window.__p7ReplayHooked ) return;
+    window.__p7ReplayHooked = true;
+
+    if ( typeof window.__p7RecordingActive === 'undefined' )
+        window.__p7RecordingActive = false;
+    if ( typeof window.__p7ReplayBuffer === 'undefined' )
+        window.__p7ReplayBuffer = [];
+    if ( typeof window.__p7ReplayStartTime === 'undefined' )
+        window.__p7ReplayStartTime = 0;
+
+    var normSize = function () {
+        var t = window.__p7ReplayTarget;
+        if ( t && t !== document && t.clientWidth )
+            return { w: t.clientWidth, h: t.clientHeight || 0 };
+        return { w: window.innerWidth, h: window.innerHeight };
+    };
+
+    var record = function ( type, e ) {
+        if ( window.__p7RecordingActive !== true ) return;
+        if ( e.isTrusted === false ) return;  // ignore synthetic replay
+        var size = normSize();
+        if ( !size.w || !size.h ) return;
+        var now = Date.now();
+        if ( !window.__p7ReplayStartTime )
+            window.__p7ReplayStartTime = now;
+        var rec = {
+            t: now - window.__p7ReplayStartTime,
+            type: type,
+            x: e.clientX / size.w,
+            y: e.clientY / size.h
+        };
+        if ( type === 'wheel' ) rec.dz = e.deltaY;
+        window.__p7ReplayBuffer.push( rec );
+        try {
+            window.webkit.messageHandlers.p7replay.postMessage(
+                JSON.stringify( rec ) );
+        } catch ( err ) {}
+    };
+
+    // listeners on document [ capture phase ] : events targeted at
+    // window.__p7ReplayTarget pass through here even when the target
+    // was assigned after document-start [ userscript runs early ]
+    var opts = { capture: true, passive: true };
+    document.addEventListener( 'mousedown',
+        function ( e ) { record( 'down', e ); }, opts );
+    document.addEventListener( 'mousemove',
+        function ( e ) { record( 'move', e ); }, opts );
+    document.addEventListener( 'mouseup',
+        function ( e ) { record( 'up', e ); }, opts );
+    document.addEventListener( 'wheel',
+        function ( e ) { record( 'wheel', e ); }, opts );
+})();
+JS_SRC
+
+#,,.,,..,,.,.,,,.,,,.,,,,,,.,,,..,,,,,.,,,,.,,..,,...,...,.,,,,.,,,,.,..,,...,
+#GJ5OWGFRUMSUV4KMCGCC2RXMOKRT44NQ6VIVT2UTNFWDWLAZ3FUKFHO6OMXLAQQ2HAYY53D55ORQC
+#\\\|2IG2KMYNGLW5SEESEYWAADP52QCGNEPK667ATAFGTI2ATCSIZX2 \ / AMOS7 \ YOURUM ::
+#\[7]BONRRE6VCLSQ2J6KBLHJPSLT44HPHFQOQS5DDUBVO2JXQRCLRKBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

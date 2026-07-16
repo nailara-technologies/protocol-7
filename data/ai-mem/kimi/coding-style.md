@@ -645,8 +645,39 @@ use `sprintf` only for the fixed skeleton pieces that have no literal `%`.
 
 ---
 
-#,,,.,,,,,,,.,,,,,,,.,...,,.,,,,.,...,,.,,...,.,.,...,...,..,,,,,,,..,,.,,,,,,
-#BKNYVZGLVQ6VP2OTTDN2RNM6YDYXZFU7RL3T6KR6B3EQAJACKMK5UV3Q7UCVV3SEAN24DVAM7GBQW
-#\\\|6WQEIEEGJIJWNEB7HETIHZML7WSXR5BPICFIOAPQPIR4Y6NAGWG \ / AMOS7 \ YOURUM ::
-#\[7]DGHNRLEEPQOHRQ273WNQISOCFJNXDZET3XWNWKBGZ6WK3BTGK2DQ 7  DATA SIGNATURE ::
+## web-browser userscript capture/replay quirks [ webkit ]
+
+- `console_capture.install` runs at `init_view` [ pre-load ], so its
+  DOCUMENT_START userscript is enough. `replay_capture.install` runs
+  on-demand from `replay-record start` on an already-loaded page — the
+  userscript alone would miss the current page, so install also does a
+  fire-and-forget `run_javascript` of the same source. the in-page
+  `__p7ReplayHooked` guard keeps the double injection idempotent.
+- pages assign `window.__p7ReplayTarget` only after document-start, so
+  capture listeners attach to `document` in capture phase [ events aimed
+  at the target pass through ] and resolve the target at event time for
+  x/y normalization.
+- capture drops `e.isTrusted === false` events — synthetic replay events
+  must never re-record themselves [ replay during active recording ].
+- `register_script_message_handler` is per user-content-manager and NOT
+  idempotent — re-registering the same channel errors. guard perl-side:
+  `<web-browser.replay_capture.installed>->{$view_id}`.
+- `web-browser.js_call` logs the entire js string at verbosity 2 — never
+  pass KB-sized payloads or 10Hz polls through it. one-shot tiny checks:
+  js_call [ graph-params pattern ]. large payloads / poll loops: call
+  `$view->evaluate_javascript` directly [ run_js pattern ].
+- neither `base.time` nor Time::HiRes is guaranteed loaded in the
+  web-browser zenka — count `event.add_timer` ticks against the fixed
+  poll interval for timeouts instead of wall-clock.
+- after adding modules: `./bin/dev/gen-sub-whitelist web-browser`
+  regenerates the whitelist [ scans modules/ via dep-graph, strips the
+  signature — user re-signs ]. `base.list.subroutines` updates
+  separately via the sourcecode console.
+
+---
+
+#,,,,,...,,..,.,,,,.,,...,.,.,,,,,..,,,,,,.,,,.,.,...,...,..,,...,.,,,,..,,..,
+#PEQXDSYK2O4UXUYP7I7IU4JCJYHUEMXJR56M4NJYVJUQTS4UU54OGRGWV6R3LVMZPLEKUIH4N7WPY
+#\\\|5ECYHPX4PSKUUM5P6FXNJ2KJL2HAIUCXSZ42TO75HFUW3E3NMM6 \ / AMOS7 \ YOURUM ::
+#\[7]OUYFPGA3XZXQOE37Z3YPX6KDDV2PQ4DN6U5NNTOND5MO4AM4K2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

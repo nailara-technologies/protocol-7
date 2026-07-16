@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = web-browser.replay_capture.install
+# descr = wire up per-view input capture [ p7replay -> js-replay-view-NNNN ]
+# param = <view> <view_id>
+
+my $view    = shift;
+my $view_id = shift;
+
+return undef unless defined $view and defined $view_id;
+
+my $name = <[web-browser.replay_capture.buffer_name]>->($view_id);
+return undef unless defined $name;
+
+##  idempotent : one userscript + message handler registration per view  ##
+return TRUE if <web-browser.replay_capture.installed>->{$view_id};
+
+$data{'buffer'}{$name}{'max_size'} //= 262144;    ## 256K per view replay ##
+
+my $ucm = $view->get_user_content_manager;
+
+my $u_script = Gtk3::WebKit2::UserScript->new(
+    scalar <[web-browser.replay_capture.js_source]>,
+    'WEBKIT_USER_CONTENT_INJECT_TOP_FRAME',
+    'WEBKIT_USER_SCRIPT_INJECT_AT_DOCUMENT_START',
+    undef,
+    undef
+);
+$ucm->add_script($u_script);
+
+$ucm->register_script_message_handler('p7replay');
+$ucm->signal_connect(
+    'script-message-received::p7replay' => sub {
+        my ( undef, $js_result ) = @_;
+        eval {
+            $code{'web-browser.handler.replay_message'}
+                ->( $js_result, $name );
+        };
+        <[base.logs]>->( 0, "replay_capture: handler failed: %s", $@ ) if $@;
+    }
+);
+
+##  userscript only hooks future page loads : hook current page now  ##
+##  [ in-page __p7ReplayHooked guard keeps this idempotent ]         ##
+eval {
+    $view->run_javascript( scalar <[web-browser.replay_capture.js_source]>,
+        undef, undef, undef );
+};
+<[base.logs]>->( 0, "replay_capture: page hook failed: %s", $@ ) if $@;
+
+<web-browser.replay_capture.installed>->{$view_id} = TRUE;
+
+<[base.logs]>->(
+    2,        "replay_capture: installed for view %s [%s]",
+    $view_id, $name
+);
+
+return TRUE;
+
+#,,,,,..,,,.,,.,,,,,.,,.,,,,.,,..,,.,,.,,,,,.,..,,...,...,...,.,,,,..,.,,,.,,,
+#LVDFM4XZBJN3KUQPTEYFDUPRMPAQQ2YIMK6N3QM65WGT63VQA2IGCZDAQB7LYYPMH36JR3SBIWPT4
+#\\\|F5KEXIUVNVQQCLY7Z5WTP5RI6Q364HPLX46NSYXI5CSG7ZEU3WJ \ / AMOS7 \ YOURUM ::
+#\[7]ZVLJRO54NQNQZWDKFFD4GBLGR4XSRQJFBZLXPS735DA6AFYBACBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
