@@ -103,6 +103,11 @@ if ( defined $reply_id and $reply_id =~ m|^\d+$| ) {
 ## destroy the window if still alive ##
 $window = $inst->{'window'};
 if ( defined $window and $window->get_visible ) {
+    ## ungrab before close : begin_move_drag/begin_resize_drag may leave a
+    ## compositor grab that weston does not release on window destruction,
+    ## blocking button-1 for all clients [ same hazard fixed for
+    ## screen.setup in 0285a96f5, unfixed here until now ]
+    eval { Gtk3::Gdk::pointer_ungrab( Gtk3::get_current_event_time() ) };
     $window->destroy;
 }
 
@@ -118,8 +123,8 @@ delete $data{window}{place}{instances}{$id};
 
 return TRUE;
 
-#,,,.,.,,,,..,...,.,.,.,,,.,,,,,,,,,.,,.,,,,,,.,.,...,...,,,.,.,.,..,,...,,.,,
-#UAPK3LSJHJNO36SG5QE3FPCRUWI2M6PUNQAUZEZZ6QOQ3HMGMDJIF5KTWC3AG4IWD3KKMR7MYGMYO
-#\\\|XTF2BLMCNDZDFCHVOWFUPFHVT7TN54M3B32H7P2XCY5A5OSGSCA \ / AMOS7 \ YOURUM ::
-#\[7]T6WF6ANX744YNGXQJWD7TEILJS6VSTO2CAUPDOYXR7YPNAKHUECQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,.,,,,.,,,,.,...,..,,,.,,..,,.,.,.,.,...,...,,,,,.,,,,.,,.,,,,.,,
+#ACZZFTSUCC5G5LSG4PQU7PUPXI7EBPX3XHE62TO7WRZHR4B3WOLRGUSVGUWZJVAHYY4UBJ4Z7Q2VO
+#\\\|5XKK7OHGVP5RCFD25IYWFWZSDPCFAJGEXR4IB5H63ZLAGD2FUD5 \ / AMOS7 \ YOURUM ::
+#\[7]J7MBSUTGMTCN33SQXY7GKAKIRD6V3R2HN7H5L2L67S6TPFYVMAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
