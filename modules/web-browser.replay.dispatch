@@ -1,0 +1,171 @@
+## [:< ##
+
+# name  = web-browser.replay.dispatch
+# descr = dispatch normalized events + optional verify poll
+# param = \%args { view events speed source reply_id
+#         ..        verify tolerance samples timeout }
+# note  = verify hashref { var => target } : polls via wait-state-poll
+#         after dispatch completes, then diffs final values vs targets
+
+my $args = shift // {};
+
+my $view      = $args->{'view'};
+my $events    = $args->{'events'} // [];
+my $speed     = $args->{'speed'}  // 1.0;
+my $source    = $args->{'source'} // qw| events |;
+my $reply_id  = $args->{'reply_id'};
+my $verify    = $args->{'verify'}    // {};
+my $tolerance = $args->{'tolerance'} // 0.01;
+my $samples   = $args->{'samples'}   // 5;
+my $timeout   = $args->{'timeout'}   // 10;
+
+return warn 'web-browser.replay.dispatch: no view'
+    unless defined $view;
+return warn 'web-browser.replay.dispatch: no events'
+    unless ref($events) eq qw| ARRAY | and $events->@*;
+
+$speed = 1.0 if $speed <= 0;
+
+my $events_json = <[format.json.encode]>->($events);
+my $dispatch_fn = <[web-browser.replay_template.dispatch_js]>;
+
+##  concatenation : template js may contain literal '%' chars  ##
+my $payload
+    = '(' . $dispatch_fn . ')( ' . $events_json . ', ' . $speed . ' )';
+
+##  direct evaluate : js_call would log the full event payload at -vv  ##
+$view->evaluate_javascript(
+    $payload,
+    -1,       ## length: -1 = null-terminated string
+    undef,    ## world_name: default world
+    undef,    ## source_uri
+    undef,    ## cancellable
+    sub {
+        my ( $view, $result ) = @_;
+        my $jsc_value = eval { $view->evaluate_javascript_finish($result) };
+
+        if ($@) {
+            ( my $ex_str = $@ ) =~ s| at /usr/.+\n$||;
+            $ex_str =~ s|^[^ ]+ ||;
+            <[base.logs]>
+                ->( 0, '<!JSerr!> [%s] %s', $view->get_uri, $ex_str );
+            <[base.callback.cmd_reply]>->(
+                $reply_id,
+                {   'mode' => qw| false |,
+                    'data' => sprintf( 'replay dispatch failed: %s', $ex_str )
+                }
+            );
+            return;
+        }
+
+        my $result_str = defined $jsc_value      ? $jsc_value->to_string : '';
+        my $count      = $result_str =~ m|^\d+$| ? 0 + $result_str       : 0;
+
+        <[base.logs]>->(
+            2, "replay.dispatch: dispatched %d events at %.2fx from '%s'",
+            $count, $speed, $source
+        );
+
+        if ( not $verify->%* ) {
+            <[base.callback.cmd_reply]>->(
+                $reply_id,
+                {   'mode' => qw| true |,
+                    'data' => sprintf(
+                        'replaying %d events at %.2fx speed [%s]',
+                        $count, $speed, $source
+                    )
+                }
+            );
+            return;
+        }
+
+        ##  verify= : poll listed vars once replay finished dispatching  ##
+        my $max_t = 0;
+        foreach my $rec ( $events->@* ) {
+            $max_t = $rec->{'t'}
+                if defined $rec->{'t'} and $rec->{'t'} > $max_t;
+        }
+
+        my @names = sort keys $verify->%*;
+
+        <[web-browser.wait-state-poll]>->(
+            {   'view'         => $view,
+                'names'        => \@names,
+                'tolerance'    => $tolerance,
+                'samples'      => $samples,
+                'timeout'      => $timeout + $max_t / ( $speed * 1000 ),
+                'require_flag' => qw| __p7ReplayDone |,
+                'finish'       => sub {
+                    my $poll = shift;
+
+                    if ( length( $poll->{'error'} // '' ) ) {
+                        <[base.callback.cmd_reply]>->(
+                            $reply_id,
+                            {   'mode' => qw| false |,
+                                'data' => sprintf( 'verify failed: %s',
+                                    $poll->{'error'} )
+                            }
+                        );
+                        return;
+                    }
+
+                    my $num_re = qr|^-?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?$|;
+                    my @vals
+                        = ref( $poll->{'values'} ) eq qw| ARRAY |
+                        ? $poll->{'values'}->@*
+                        : ();
+                    my $pass = TRUE;
+                    my @diffs;
+                    for ( my $i = 0; $i < @names; $i++ ) {
+                        my $name   = $names[$i];
+                        my $final  = $vals[$i];
+                        my $target = $verify->{$name};
+                        my $hit    = FALSE;
+                        my $delta  = qw| n/a |;
+                        if (    defined $final
+                            and $final  =~ $num_re
+                            and $target =~ $num_re ) {
+                            $hit   = abs( $final - $target ) <= $tolerance;
+                            $delta = sprintf( '%+.6g', $final - $target );
+                        } elsif ( defined $final
+                            and "$final" eq "$target" ) {
+                            $hit = TRUE;
+                        }
+                        $pass = FALSE if !$hit;
+                        push @diffs,
+                            sprintf(
+                            '%s=%s [target %s, delta %s%s]',
+                            $name, defined $final ? $final : qw| undef |,
+                            $target, $delta, $hit ? '' : ' MISMATCH'
+                            );
+                    }
+
+                    <[base.callback.cmd_reply]>->(
+                        $reply_id,
+                        {   'mode' => $pass ? qw| true | : qw| false |,
+                            'data' => sprintf(
+                                'verify %s [tol=%s] : %s [%s after %.1fs]',
+                                $pass ? qw| PASS | : qw| FAIL |,
+                                $tolerance,
+                                join( ' ', @diffs ),
+                                $poll->{'ok'}
+                                ? qw| settled |
+                                : qw| timeout |,
+                                $poll->{'elapsed'} // 0
+                            )
+                        }
+                    );
+                }
+            }
+        );
+    },
+    undef    ## user_data
+);
+
+return TRUE;
+
+#,,,,,.,,,...,,..,,.,,,,.,,,,,,,,,..,,,.,,,.,,..,,...,...,.,.,,.,,..,,.,,,,.,,
+#LBLC5PGBFPUUKNNCOCKS5N2KI7BY6Y3DNHZOQ32OP5H3R3XXWSQ5M637MRTCPQNLXNNRBBAWQYV36
+#\\\|V2JPSBUUTDGPYM626VZMUXX4EAJKOIHQVS5BORRYW5QOHXUHLU6 \ / AMOS7 \ YOURUM ::
+#\[7]HIQ4JCNUAQKY45KIR7KEXUAZSTVMGKVOWAQCTZLLART6QB4DFKAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
