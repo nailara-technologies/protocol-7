@@ -20,8 +20,15 @@ by idle-shutdown after partial progress; per-buffer verdicts were rescued from
   `git-hooks-version-auto-stage.md`, `jobsite-ui-reassess-button.md`,
   `jobsite-ui-interviewed-tab.md`, `jobsite-ui-flexible-export.md`,
   `jobsite-cmd-progress.md`, `jobsite-checksum-store-dirs.md`,
-  `jobsite-progress-bar-review-fix.md`).
+  `jobsite-progress-bar-review-fix.md`, `memory-cmd-focus.md`).
   **remaining truly never-scanned: 52**.
+
+  `memory-cmd-focus.md`: the `set`/`boost`/`apply`/`clear` mutation
+  branches returned `mode=>'size'`; switched to `mode=>'true'/'false'`
+  per the `.cmd.` reply contract (matching `jobsite.cmd.blacklist-add`'s
+  established convention), `get` correctly stays `size`. Verified via
+  `ptd -c` (plain `perl -c` chokes on this codebase's `<var> = value`
+  tree-assignment syntax — use the project's own checker, not bare perl).
 
   `jobsite-progress-bar-review-fix.md` was ~95% done already — both spec
   parts (directory-authoritative status sync in `jobsite.job.load_all`,
@@ -152,9 +159,6 @@ polling strictly in submission order.
 - `credential-fabric-ui-interactive.md` — phase 2 selection/actions
   (up/down/refresh/select_view/action/input) and prompt templates
   implemented; phase 3 key-holder unlock dialog and `UNLOCK` op missing
-- `memory-cmd-focus.md` — `memory.cmd.focus` dispatcher with set/boost/get/
-  clear/apply implemented; mutation branches return size replies instead
-  of TRUE/FALSE
 - `sourcecode-normalize-endline-paths.md` — underflow guard in
   `source.restore_payload_endline_state` implemented; normalize config
   only covers `modules/` and the `normalize-endline-state` console
@@ -227,8 +231,8 @@ transport-selector.md
 tree-sort-trunk-route-page.md
 web-sessions-distributed.md
 
-#,,..,,,,,...,,.,,...,...,,,.,.,,,.,.,,,,,,,.,..,,...,...,...,,,.,,,.,...,.,,,
-#GHBIP6MUNP7VYL64DHYOE5MKWEK4T2AYGIDPRKTPO3NGBO2XTVAM3IUXWWVJSQPHGIQJ3F66SRD6Q
-#\\\|FW5JGKESESBW5GQFKWRE45YDBDQ23Y3SMJE4S4FNONRLRR76V5J \ / AMOS7 \ YOURUM ::
-#\[7]M7GHJGNA6CNLAMGOTRX6TDJHKANDR4XSPGXMBEKTINUT2IIQDQAQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,..,,,,,,,.,..,,..,,...,..,,.,,,..,,...,..,,..,,,,.,,..,.,,,.,,,
+#5RUR6HAWNXBJXNTFA227KHO4B5RIIOBLCPC5HFS6KWJWLONPB6ZKZGXAZGNGYBRCF4KAARAZRCZUE
+#\\\|A43AQOCG7I5ZTM5KM4WP2HFY3TOZE2EUQEAX7MR5HSHMQD3ZQHI \ / AMOS7 \ YOURUM ::
+#\[7]CHCDBJON5Z2HKFOY4BKUN7A4WBPWC74UFF5HUYJARLMNQBR3EOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
