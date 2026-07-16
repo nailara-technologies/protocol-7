@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = proxy.cmd.cred-rotated
+# descr = cred-mesh rotation-notify subscriber target
+# param = <base32-encoded event yaml>
+
+my $args_b32  = $call->{'args'}                        // '';
+my $args_yaml = <[base.base32.decode]>->( \$args_b32 ) // '';
+
+my $result
+    = <[proxy.handler.cred_rotated]>
+    ->( { 'args' => { 'data' => $args_yaml } } );
+
+return { 'mode' => qw| false |, 'data' => 'flush failed' }
+    unless ref $result eq qw| HASH |;
+
+return {
+    'mode' => qw| true |,
+    'data' =>
+        sprintf( 'flushed %d cache entries', $result->{'flushed'} // 0 ),
+};
+
+## [ end ] ###################################################################
+
+#,,,,,.,,,,.,,,,,,.,,,..,,.,,,.,,,,,.,,..,,..,..,,...,...,,.,,,,,,...,..,,,..,
+#RB7NFRQJ3V3RUWK6OENCRY7FXRHUFWO5X6I5XQIZHNELDM3JP5MZPPGLRHF6L3JXBGFA5ZFOZLZDY
+#\\\|32FGW3K4OXJQSRTEMRIBDEJJX7OM5WU7T2ZTBWLFXWBBDVFQ2DQ \ / AMOS7 \ YOURUM ::
+#\[7]2ECAU7U7NXKPVQQZEUKR5APW3LWVIFCW66D6L2QRFXLS4ADFWKDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
