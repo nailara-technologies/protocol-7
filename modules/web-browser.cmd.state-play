@@ -1,0 +1,231 @@
+## [:< ##
+
+# name  = web-browser.cmd.state-play
+# descr = ease __p7SetState vars to exact targets
+# param = <var=target> .. duration=<ms>
+#       .. [path=linear|bezier] [steps=<n>]
+#       .. [tolerance=0.01] [samples=5] [timeout=10]
+# note  = sets vars via window.__p7SetState hooks along a timed curve,
+#         verifies against the window.debug<Name> one-way mirrors
+
+my $reply_id = $call->{'reply_id'};
+my $args_str = $call->{'args'} // '';
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage: state-play <var=target> .. duration=<ms>'
+        . ' [path=linear|bezier] [steps=<n>] [tolerance=0.01]'
+        . ' [samples=5] [timeout=10]'
+    }
+    if !length($args_str);
+
+my $fg_index = <web-browser.overlay.index>->{'fg'};
+my $view     = <web-browser.gtk_obj.view>->{$fg_index};
+
+return { 'mode' => qw| false |, 'data' => 'no foreground view' }
+    unless defined $view;
+
+my $settings = $view->get_settings();
+
+return {
+    'mode' => qw| false |,
+    'data' => 'javascript execution is disabled'
+    }
+    if !$settings->get_enable_javascript();
+
+my %arg;
+foreach my $token ( split( m|\s+|, $args_str ) ) {
+    next unless length $token;
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( 'invalid token: %s [expected key=value]', $token )
+        }
+        unless $token =~ m|^([a-zA-Z]\w*)=(\S+)$|;
+    $arg{$1} = $2;
+}
+
+##  control keys [ case-insensitive ] ; rest are state var targets  ##
+my %ctrl;
+foreach my $key ( keys %arg ) {
+    my $lc = lc $key;
+    next
+        unless $lc =~ m{^(?:duration|path|steps|tolerance|samples|timeout)$};
+    $ctrl{$lc} = delete $arg{$key};
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => 'duration=<ms> required [ positive number ]'
+    }
+    if !defined $ctrl{'duration'}
+    or $ctrl{'duration'} !~ m|^\d+(?:\.\d+)?$|
+    or $ctrl{'duration'} <= 0;
+
+my $duration = 0 + $ctrl{'duration'};
+
+my $path = $ctrl{'path'} // qw| linear |;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'path must be linear or bezier'
+    }
+    if $path ne qw| linear | and $path ne qw| bezier |;
+
+my $num_re = qr|^-?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?$|;
+
+my $steps
+    = defined $ctrl{'steps'} && $ctrl{'steps'} =~ m|^\d+$|
+    ? 0 + $ctrl{'steps'}
+    : 0;
+$steps = int( $duration / 16 ) if $steps < 1;    ## ~60 sets/sec ##
+$steps = 2                     if $steps < 2;
+
+my $tolerance = 0.01;
+my $samples   = 5;
+my $timeout   = 10;
+$tolerance = 0 + $ctrl{'tolerance'}
+    if defined $ctrl{'tolerance'} and $ctrl{'tolerance'} =~ $num_re;
+$samples = 0 + $ctrl{'samples'}
+    if defined $ctrl{'samples'} and $ctrl{'samples'} =~ m|^\d+$|;
+$timeout = 0 + $ctrl{'timeout'}
+    if defined $ctrl{'timeout'} and $ctrl{'timeout'} =~ $num_re;
+
+my %targets;
+foreach my $name ( keys %arg ) {
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( 'non-numeric target for var: %s', $name )
+        }
+        if $arg{$name} !~ $num_re;
+    $targets{$name} = 0 + $arg{$name};
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected at least one <var=target> pair'
+    }
+    if !%targets;
+
+my @names = sort keys %targets;
+
+##  read current values via the window.debug<Name> one-way mirrors  ##
+my $read_js = sprintf(
+    'JSON.stringify({hooks:%s.map(function(n){return typeof'
+        . ' (window.__p7SetState||{})[n]}),vals:%s.map('
+        . 'function(n){return window[n]})})',
+    <[format.json.encode]>->( \@names ),
+    <[format.json.encode]>->( [ map { 'debug' . ucfirst($ARG) } @names ] )
+);
+
+<[web-browser.js_call]>->(
+    $read_js,
+    sub {
+        my ( $result_str, undef ) = @_;
+        $result_str //= '';
+
+        my $state = <[format.json.decode]>->($result_str);
+        if ( ref($state) ne qw| HASH | ) {
+            <[base.callback.cmd_reply]>->(
+                $reply_id,
+                {   'mode' => qw| false |,
+                    'data' => sprintf( 'cannot read current state: %s',
+                        $result_str )
+                }
+            );
+            return;
+        }
+
+        my @missing_hook;
+        my @missing_mirror;
+        my %current;
+        for ( my $i = 0; $i < @names; $i++ ) {
+            my $hook_type = ( $state->{'hooks'} // [] )->[$i] // '';
+            push @missing_hook, $names[$i]
+                if $hook_type ne qw| function |;
+            my $cur = ( $state->{'vals'} // [] )->[$i];
+            if ( defined $cur and $cur =~ $num_re ) {
+                $current{ $names[$i] } = 0 + $cur;
+            } else {
+                push @missing_mirror, 'debug' . ucfirst( $names[$i] );
+            }
+        }
+
+        if (@missing_hook) {
+            <[base.callback.cmd_reply]>->(
+                $reply_id,
+                {   'mode' => qw| false |,
+                    'data' =>
+                        sprintf( 'page exposes no __p7SetState hook for: %s',
+                        join( ', ', @missing_hook ) )
+                }
+            );
+            return;
+        }
+        if (@missing_mirror) {
+            <[base.callback.cmd_reply]>->(
+                $reply_id,
+                {   'mode' => qw| false |,
+                    'data' => sprintf( 'cannot read current value of: %s',
+                        join( ', ', @missing_mirror ) )
+                }
+            );
+            return;
+        }
+
+        ##  timed curve steps [ linear | bezier ease-in-out ]  ##
+        my $dt = $duration / $steps;
+        my @step_recs;
+        for my $k ( 0 .. $steps ) {
+            my $s = $k / $steps;
+            my %vals;
+            foreach my $name (@names) {
+                my $v0 = $current{$name};
+                my $v1 = $targets{$name};
+                my $val;
+                if ( $path eq qw| linear | ) {
+                    $val = $v0 + ( $v1 - $v0 ) * $s;
+                } else {
+                    ##  control points pinned to endpoints : ease-in-out  ##
+                    my $u = 1 - $s;
+                    $val
+                        = $u**3 * $v0
+                        + 3 * $u**2 * $s * $v0
+                        + 3 * $u * $s**2 * $v1
+                        + $s**3 * $v1;
+                }
+                $vals{$name} = $val;
+            }
+            push @step_recs, { 't' => int( $k * $dt ), 'vals' => \%vals };
+        }
+
+        my %verify;
+        my %force_set;
+        foreach my $name (@names) {
+            my $mirror = 'debug' . ucfirst($name);
+            $verify{$mirror}    = $targets{$name};
+            $force_set{$mirror} = [ $name, $targets{$name} ];
+        }
+
+        <[web-browser.replay.dispatch]>->(
+            {   'view'      => $view,
+                'events'    => \@step_recs,
+                'speed'     => 1,
+                'source'    => sprintf( 'state-play %s', $path ),
+                'reply_id'  => $reply_id,
+                'verify'    => \%verify,
+                'tolerance' => $tolerance,
+                'samples'   => $samples,
+                'timeout'   => $timeout,
+                'force_set' => \%force_set
+            }
+        );
+    }
+);
+
+return { 'mode' => qw| deferred | };
+
+#,,.,,,.,,.,.,...,,.,,,,,,,,,,,,.,...,.,,,,.,,..,,...,..,,.,,,.,.,,,,,,,,,.,,,
+#VIE6NH3YMUIDEHDBWX75WTRJSVVT3PB5TLD5VGMWDX5OC6WDW5CDC7324XSRUORHJMCMM4N7ACOK2
+#\\\|LTCDAOLTLRLQED4FWJBM4XVQFLE7CXX7VVQBUNHUMBHZZPE3YGJ \ / AMOS7 \ YOURUM ::
+#\[7]MUMVA5RO3I54FOHX5X2BD3FCXYOJQW3Z3UUNBFJJDL5POR3RSICA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -191,12 +191,16 @@ open: kimi zenka state machine upgrade (backend reconnect), coding zenka as thir
 
 all 6 steps landed + live-verified on the running zenka. steps 4-6 added `wait-state-poll`, `replay_template.dispatch_js`, `replay.dispatch`, `cmd.replay-synth`; wait-for-state/replay-play refactored onto the shared modules; whitelist regenerated, signatures pending. see [topic-web-browser-replay-verify-synth.md](topic-web-browser-replay-verify-synth.md) and webkit quirks in [coding-style.md](coding-style.md).
 
+## Web-Browser State-Play + Waypoints — COMPLETE (July 2026)
+
+value-injection replay landed + live-verified: `cmd.state-play`, `cmd.waypoint-set`, `cmd.goto-waypoint`; `__p7SetState` hook in visualization.html [ zoom hook pins manualZoom — updateCamera eases zoom->manualZoom every frame ]; `replay.dispatch` gained force_set [ FORCED exact-landing label ]. gotchas: $1/$2 clobbered by second regex test [ save captures immediately ]; pipe alternation inside m|..| breaks at runtime load [ use m{..} ]. see [topic-web-browser-state-play-waypoints.md](topic-web-browser-state-play-waypoints.md).
+
 ## Jobsite/Web Jobs Pipeline Fixes (2026-06-28)
 
 `skipped` status restored across all index scanners, reassessment now protects manual stages, web sync carries `assertions`, UI delete actions wired, and orbital subscriber `.cmd.` syntax corrected. Assessed jobs now map to the `review` UI stage. See [jobs-pipeline-2026-06-28.md](jobs-pipeline-2026-06-28.md). Open: bulk-delete pending search/filter UI.
 
-#,,.,,..,,.,.,,,.,,,,,..,,,..,.,,,,,.,,..,.,,,..,,...,...,,..,.,.,..,,.,.,...,
-#VPPQD4WAWEOP7Z6SGOK2PHIOAT2SBKOGVPO6BIWYIZBLCZIULSGSLPQ22FSRKR6G6LW44WK6HQP74
-#\\\|JGCSDTCU25MB4WQCMWOCD73BRYMZZ5EP5TM4BJWELM5UBKL3PN3 \ / AMOS7 \ YOURUM ::
-#\[7]YC7WVKCQGALO2ASSDHBFUGZ4SLKZ56ZQXOPUTHTXIHTZCCYAE4AA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,,.,,.,,,,.,,..,,..,...,,,.,.,,,..,,...,...,,,.,.,,,,,.,.,,,..,,
+#WVXHPO5NBOV4RXIYCQD664T2RH2OJB5VL6IX7GUIZNHI57M4ZS2BHLONY657UVJY7WAOKQ3C4UF5Y
+#\\\|HCV6P5VIZLT6WZLOG7AE7Q7O3CZOYRCWN5B2YAAHAKTNH5JJUJC \ / AMOS7 \ YOURUM ::
+#\[7]OOHVNXCAYWVNL23SKV4J562ZYWKUPNX3D5BLX4NS6XD3QAHGMYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,6 +3,7 @@
 # name  = web-browser.replay_template.dispatch_js
 # descr = js fn : dispatch normalized events at __p7ReplayTarget
 # note  = invoked as ( <fn> )( events_json, speed ) ; returns event count
+#       .. records with .vals call __p7SetState hooks, no DOM events
 
 return <<'JS_SRC';
 function ( events, speed ) {
@@ -18,24 +19,32 @@ function ( events, speed ) {
     var dispatched = 0;
     events.forEach( function ( rec ) {
         setTimeout( function () {
-            var cx = Math.round( rec.x * w );
-            var cy = Math.round( rec.y * h );
-            var ev;
-            if ( rec.type === 'wheel' ) {
-                ev = new WheelEvent( 'wheel', {
-                    deltaY: rec.dz || 0,
-                    clientX: cx, clientY: cy,
-                    bubbles: true, cancelable: true
-                } );
+            if ( rec.vals !== undefined ) {
+                var hooks = window.__p7SetState || {};
+                for ( var name in rec.vals ) {
+                    if ( typeof hooks[name] === 'function' )
+                        hooks[name]( rec.vals[name] );
+                }
             } else {
-                ev = new MouseEvent( typeMap[ rec.type ] || rec.type, {
-                    clientX: cx, clientY: cy,
-                    button: 0,
-                    buttons: rec.type === 'up' ? 0 : 1,
-                    bubbles: true, cancelable: true
-                } );
+                var cx = Math.round( rec.x * w );
+                var cy = Math.round( rec.y * h );
+                var ev;
+                if ( rec.type === 'wheel' ) {
+                    ev = new WheelEvent( 'wheel', {
+                        deltaY: rec.dz || 0,
+                        clientX: cx, clientY: cy,
+                        bubbles: true, cancelable: true
+                    } );
+                } else {
+                    ev = new MouseEvent( typeMap[ rec.type ] || rec.type, {
+                        clientX: cx, clientY: cy,
+                        button: 0,
+                        buttons: rec.type === 'up' ? 0 : 1,
+                        bubbles: true, cancelable: true
+                    } );
+                }
+                target.dispatchEvent( ev );
             }
-            target.dispatchEvent( ev );
             dispatched++;
             if ( dispatched === events.length ) window.__p7ReplayDone = true;
         }, rec.t / speed );
@@ -44,8 +53,8 @@ function ( events, speed ) {
 }
 JS_SRC
 
-#,,..,.,.,...,.,.,,,,,.,.,,.,,...,,.,,.,,,,,.,..,,...,...,.,.,,..,,,,,,.,,,.,,
-#JD45TYB6SWCB73WMFQGKGJMJMJTYT4DF7FEGXPRFWLX4AUKQON7HMDTL4QTUMQK5NABKXWF5HWN7Q
-#\\\|Q4CTVSG76UM2ZHVEO4RQ6DCVDZFMJDD2DBCLAQP2GXNQTLVQW2G \ / AMOS7 \ YOURUM ::
-#\[7]XWKDJCVDWDCEB6K5XPFG2VIUMCB5IHWLY2OCWOMZ53O46FG6C6AY 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,.,,,,.,,,,,,..,...,.,,,...,,,.,..,,...,...,...,...,.,.,..,,,..,
+#35XNDAB44E7HYTTGLI55X7PVWTVPBP4SZL6CW64NWTXFFQ5FWAVQ5KZDIEVPHA44S54VLBG7B3YIO
+#\\\|5BNJYIJIGR75YGNHPIBPLNT24I43CA5WXZT5VCL7X3MU4H5YROG \ / AMOS7 \ YOURUM ::
+#\[7]UEAD2PBV7KPZQZTPYDVRWF3DAZOPX3QXDJQTRCLZAHJKEUFLQCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
