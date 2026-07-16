@@ -21,7 +21,11 @@ sub start_if_missing {
         return 1;
     }
     print "[ info ] starting $name zenka\n";
-    my ( $out, $err, $exit ) = p7c( 'v7.start', $name );
+    my $start_arg = $name;
+    if ( $name =~ m{^(?:cred-mesh|proxy|transport)$} ) {
+        $start_arg = "$name :env:PROTOCOL_7_VAR=$ENV{'CREDMESH_TEST_DIR'}:";
+    }
+    my ( $out, $err, $exit ) = p7c( 'v7.start', $start_arg );
     if ( $exit != 0 or $out !~ m{job queued|already running}i ) {
         warn "[ warn ] failed to start $name: $out $err\n";
         return 0;
@@ -44,8 +48,8 @@ exit 1;
 
 # [ end ]
 
-#,,,.,,.,,..,,...,,..,,.,,.,,,,,.,.,,,.,.,,..,..,,...,..,,.,.,.,.,.,.,.,,,.,,,
-#BBNK3TUJHQHNP5FTAG5XW6CBZ4S74IOBBE2PJHOID3FTW2N7QREURJLMIIQIDUNPF2UZFUWQIV6B4
-#\\\|KDA2B6QQFFABBYNZCULQ2TNWJR2SDX3H6QAAL65CLQB7JCPIQ6M \ / AMOS7 \ YOURUM ::
-#\[7]7UEWWPGCRNFWLITAOKQB2T4W6LFTLAY6IR3PENVHHKBRZBXLW2CI 7  DATA SIGNATURE ::
+#,,..,,..,,,,,...,..,,,,.,,,.,,..,.,.,...,.,.,..,,...,...,,..,..,,,,,,,,,,,..,
+#NM4YKFKMX57L53SK4YCG2U2I7CZNKL2GVNSBF36AVWYA7QMEA7ZYVKAD6SVZEDW7SIDNHY55N4PVW
+#\\\|V6736MPDHAWLP4OZF3WVAZAQXCXZK2R4GMIIACALBMAMXTN5RYI \ / AMOS7 \ YOURUM ::
+#\[7]YK7526RJCD2YZ4PQO45LGIA4Q2RXK6ZPTQDPE4VJLLWJR6CETUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

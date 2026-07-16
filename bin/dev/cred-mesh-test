@@ -9,12 +9,12 @@ use English;
 
 use Getopt::Long;
 use File::Spec;
-use Cwd qw| abs_path |;
+use Cwd     qw| abs_path |;
 use FindBin qw| $RealBin |;
 
 # [ locate project root ]
-my $ROOT = abs_path( File::Spec->catdir( $RealBin, File::Spec->updir,
-    File::Spec->updir ) );
+my $ROOT = abs_path(
+    File::Spec->catdir( $RealBin, File::Spec->updir, File::Spec->updir ) );
 if ( not -d File::Spec->catdir( $ROOT, 'modules' ) ) {
     die "[ fatal ] cannot find protocol-7 root (got $ROOT)\n";
 }
@@ -63,6 +63,7 @@ my $temp_dir = File::Spec->catfile( File::Spec->tmpdir,
     'credfab-test-' . time . '-' . $$ );
 mkdir $temp_dir or die "[ fatal ] mkdir $temp_dir: $ERRNO\n";
 $ENV{'CREDMESH_TEST_DIR'} = $temp_dir;
+$ENV{'PROTOCOL_7_VAR'}    = $temp_dir;
 
 my $cleanup = sub {
     return if $no_cleanup;
@@ -82,7 +83,8 @@ if ( $spawn_exit != 0 ) {
 my $seed = File::Spec->catfile( $SCENARIOS_DIR, 'helper-seed-fabric.pl' );
 my $seed_exit = system( $seed, '' );
 if ( $seed_exit != 0 ) {
-    warn "[ warn ] seed-fabric reported errors (encryption path may be broken)\n";
+    warn
+        "[ warn ] seed-fabric reported errors (encryption path may be broken)\n";
 }
 
 if ($keep_running) {
@@ -122,7 +124,7 @@ my ( $total_pass, $total_fail ) = ( 0, 0 );
 for my $file (@scenario_files) {
     my $path = File::Spec->catfile( $SCENARIOS_DIR, $file );
     print "\n[ run ] $file\n";
-    my $output = `timeout 25 $path 2>&1`;
+    my $output       = `timeout 25 $path 2>&1`;
     my $timeout_exit = $CHILD_ERROR;
     if ( $timeout_exit == 124 << 8 ) {
         $output .= "\n[ TIMEOUT ] scenario exceeded 25s\n";
@@ -131,7 +133,7 @@ for my $file (@scenario_files) {
 
     my ( $pass, $fail ) = ( 0, 0 );
     while ( $output =~ m{^\[ (OK|FAIL) \]}gmc ) {
-        if ( $1 eq 'OK' )   { $pass++ }
+        if   ( $1 eq 'OK' ) { $pass++ }
         else                { $fail++ }
     }
     $total_pass += $pass;
@@ -153,6 +155,7 @@ if ( $total_fail == 0 ) {
 warn "\n[ FAIL ] $total_fail assertion(s) failed\n";
 if ( not $no_cleanup ) {
     print "[ fixture kept: $temp_dir ]\n";
+
     # [ keep temp dir for inspection ]
     $no_cleanup = 1;
 }
@@ -160,8 +163,8 @@ exit 1;
 
 # [ end ]
 
-#,,..,,..,.,,,.,,,...,,..,,,.,...,,..,,..,,..,..,,...,...,...,,..,..,,,..,,,,,
-#RI2OFFFWNYNHVOPGGD2KXQ5YRXKHY3LKCFXI4PIAYLIVQDQPWWIX53QAMWEOAJDQAJL2N776YHGM6
-#\\\|Y2JGQKKPPJPYUKQTQ6PPHLWTRQO3TMKK27QO3BEYJTQJYGAFMK3 \ / AMOS7 \ YOURUM ::
-#\[7]RYG3SKJS2VZ65T2EGMAJGOG3LJ5PCIZCGEDETOKSIIBHLTHQMCAA 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,..,,.,.,.,,,,..,..,,,,,,.,,,,,,,..,,...,...,,,,,,..,,,,,...,.,.,
+#A4LML3I7X5RGN2SRZDAUZ6DAKPCBINUQN4OTQ37TNCMPE5FNXYA4IBY5MAJ4CQEH5D5W3PIBHM3RU
+#\\\|HNCIEFDGXRCV243PJW7AUGZMQOBUJGBMKMZBM5CUWQ23XTXNQ3X \ / AMOS7 \ YOURUM ::
+#\[7]47RXXOLEVQ6EZMWN3DGSQNIYUDXIYYHWFU6PVAHCCUXJKC7OG6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
