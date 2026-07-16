@@ -19,8 +19,15 @@ by idle-shutdown after partial progress; per-buffer verdicts were rescued from
   `mcp-coding-summarize.md`, `mcp-server-p7-external-commands.md`,
   `git-hooks-version-auto-stage.md`, `jobsite-ui-reassess-button.md`,
   `jobsite-ui-interviewed-tab.md`, `jobsite-ui-flexible-export.md`,
-  `jobsite-cmd-progress.md`, `jobsite-checksum-store-dirs.md`).
+  `jobsite-cmd-progress.md`, `jobsite-checksum-store-dirs.md`,
+  `jobsite-progress-bar-review-fix.md`).
   **remaining truly never-scanned: 52**.
+
+  `jobsite-progress-bar-review-fix.md` was ~95% done already — both spec
+  parts (directory-authoritative status sync in `jobsite.job.load_all`,
+  index-scanned counts in `jobsite.cmd.progress`) were fully implemented;
+  only `$applied`/`$rejected` were computed but dead. Added them to the
+  right-bracket display, one-line fix.
 
   `jobsite-checksum-store-dirs.md` was a genuine gap, not a scan
   false-negative — actual title-dedup code, dispatched to kimi and
@@ -132,10 +139,6 @@ polling strictly in submission order.
   to MCP approval
 
 **round 3 additions:**
-- `jobsite-progress-bar-review-fix.md` — `jobsite.job.load_all` overrides
-  status from directory index; `jobsite.cmd.progress` counts
-  apply/applied/rejected but does not show applied/rejected in the right
-  bracket
 - `jobsite-sync-multiplex.md` — `jobsite.cfg.sync_urls` list iteration and
   per-URL `last_ntime` implemented; multi-jobsite reverse fan-out and
   `connected_jobsites` not implemented
@@ -224,8 +227,8 @@ transport-selector.md
 tree-sort-trunk-route-page.md
 web-sessions-distributed.md
 
-#,,.,,.,.,...,,..,.,.,,.,,,.,,...,,.,,.,,,,,,,..,,...,...,..,,,,.,,,,,,.,,.,.,
-#ZMZFGOJW3ZA67DDMYGEBGJQF6XUMNHS3JS6I5M4KZ3G5WAVNR2K76AMPYXIEJ4F5BAHBRPXWDPLO6
-#\\\|QIE52IL2XVNE4M5SOEV4XNDEKFAEVK46NZHWRD2XCOIFEZT56KO \ / AMOS7 \ YOURUM ::
-#\[7]TBKPLT5U5USJOK724CIXITYSHA3HSIP2DNJPYPTTCB5JWXFD4CAI 7  DATA SIGNATURE ::
+#,,..,,,,,...,,.,,...,...,,,.,.,,,.,.,,,,,,,.,..,,...,...,...,,,.,,,.,...,.,,,
+#GHBIP6MUNP7VYL64DHYOE5MKWEK4T2AYGIDPRKTPO3NGBO2XTVAM3IUXWWVJSQPHGIQJ3F66SRD6Q
+#\\\|FW5JGKESESBW5GQFKWRE45YDBDQ23Y3SMJE4S4FNONRLRR76V5J \ / AMOS7 \ YOURUM ::
+#\[7]M7GHJGNA6CNLAMGOTRX6TDJHKANDR4XSPGXMBEKTINUT2IIQDQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
