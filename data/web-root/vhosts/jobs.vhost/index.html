@@ -1174,6 +1174,11 @@ function renderCard(j) {
             jobs[id].date_applied = today;
             userDecisions[id] = { ...(userDecisions[id] || {}), date_applied: today, ts: Date.now() };
         }
+        /* every stage move is reportable activity in its own right [ e.g. a  */
+        /* rejection ], independent of how old the original application is - */
+        /* stamp it so the export age-filter judges recency by the move, not */
+        /* by a stale date_applied */
+        jobs[id].stage_changed_at = new Date().toISOString().slice(0,10);
         /* pin this decision to the server record it was made against -- mergeJobs   */
         /* only keeps re-applying it while that record hasn't moved on server-side   */
         /* [ e.g. a reassess resetting the stage back to review for an unrelated     */
@@ -1182,7 +1187,7 @@ function renderCard(j) {
         userDecisions[id] = { ...(userDecisions[id] || {}), stage, base_last_modified: jobs[id].last_modified || '', ts: Date.now() };
         saveUserDecisions();
         saveCache(); render();
-        pushChange(id, { stage, ...(jobs[id].date_applied ? { date_applied: jobs[id].date_applied } : {}) });
+        pushChange(id, { stage, stage_changed_at: jobs[id].stage_changed_at, ...(jobs[id].date_applied ? { date_applied: jobs[id].date_applied } : {}) });
     };
     const deleteJob = async (id) => {
         delete jobs[id];
@@ -1770,10 +1775,15 @@ function passesCurrentFilter(j) {
 
 function jobAgeDays(j) {
     let ts = 0;
-    const d = j.date_applied || j.date_added || '';
-    if ( /^\d{4}-\d{2}-\d{2}/.test(d) ) {
-        ts = new Date(d).getTime() / 1000;
-    } else {
+    /* a later stage move [ e.g. rejection ] is fresher activity than the   */
+    /* original application date, so take the most recent of the two       */
+    for ( const d of [ j.stage_changed_at, j.date_applied, j.date_added ] ) {
+        if ( d && /^\d{4}-\d{2}-\d{2}/.test(d) ) {
+            const t = new Date(d).getTime() / 1000;
+            if ( t > ts ) ts = t;
+        }
+    }
+    if ( !ts ) {
         const ft = j.fetched_at;
         if ( ft != null && /^\d+$/.test(String(ft)) ) {
             ts = parseInt(ft, 10);
@@ -1782,11 +1792,24 @@ function jobAgeDays(j) {
     return ts ? ( Date.now() / 1000 - ts ) / 86400 : Infinity;
 }
 
-function exportDisplayDate(j) {
+/* the actual application date : never drifts to a later stage move, since */
+/* it's a record of when you applied [ relevant e.g. for job-center proof ] */
+function applicationDate(j) {
     const today = new Date().toISOString().slice(0,10);
     const da = j.date_applied || '';
     if ( /^\d{4}-\d{2}-\d{2}/.test(da) && da <= today ) return da;
     return j.date_added || '';
+}
+
+function exportDisplayDate(j) {
+    const today = new Date().toISOString().slice(0,10);
+    const da = applicationDate(j);
+    const sc = j.stage_changed_at || '';
+    /* a later stage move [ e.g. rejection ] is the more relevant date to   */
+    /* report than the original application date, whenever it's newer      */
+    if ( /^\d{4}-\d{2}-\d{2}/.test(sc) && sc <= today
+        && ( !/^\d{4}-\d{2}-\d{2}/.test(da) || sc > da ) ) return sc;
+    return da;
 }
 
 const EXPORT_STAGE_ORDER = {
@@ -1823,7 +1846,7 @@ async function exportCSV() {
         lines.push([
             i+1, j.date_added||'', j.company, j.title, fmtCityInline(j.city),
             scoreDisplay(j.score), stageLabel(j.stage),
-            exportDisplayDate(j), j.note||'', j.url||'',
+            applicationDate(j), j.note||'', j.url||'',
             sug.apply === 'true' ? 'ja' : 'nein',
             sug.delete === 'true' ? 'ja' : 'nein',
             sug.archive === 'true' ? 'ja' : 'nein',

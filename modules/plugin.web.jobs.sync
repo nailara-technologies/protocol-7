@@ -23,7 +23,8 @@ if ( $EVAL_ERROR or ref $payload ne qw| HASH | ) {
 my @pipeline_fields = qw| title company url score score_reason score_summary
     fetched_at status stage description blocked_epoch checksum_hit
     assertions city industry country postal_code repair_attempted repair_failed |;
-my @browser_fields = qw| stage notes date_applied exported_stage |;
+my @browser_fields
+    = qw| stage notes date_applied exported_stage stage_changed_at |;
 
 my $since    = '';
 my @job_list = ();
@@ -283,8 +284,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,..,,,.,,.,,,.,,,..,,,.,,.,,,.,,,,,,,..,...,..,,...,...,,,,,..,,.,.,,.,,.,.,
-#O66IVUBZNSTNDBQ35VTFULHZI2GVY7HE4VLAJHCYYYUACEX46QTP5N6JRRDUVA6QJZQ4PQ2IZRYZK
-#\\\|AL7TQXZYEBTDMZFK742AOTUZKVAYOSUX4GJEHUGZC5GKEE3T4HT \ / AMOS7 \ YOURUM ::
-#\[7]KZKMNYVZ4IXHH5RUQDBIIRTT73VVZZCTWQQ7J3ZPG6FZAQC3ZCAY 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,,,,.,.,,.,,.,,,..,,,..,..,,,,.,..,,...,...,...,,,.,,..,..,,,..,
+#I2X7AKUQB2JUUJ2J5FU5Z35YXTV7RJCLGBXVRQOPFYAEP5OJICC3LT5QMGOEOMYSBTYC3PBI23JOU
+#\\\|4ZACGLTDMHWUPVIJZBKO6KPXL5S266QIOMF2LOY2IYHC3OFXMR3 \ / AMOS7 \ YOURUM ::
+#\[7]J7UQ3C2BVG3YTNKUEQSQ2HTEAFO2K2UETLTY23RWCTEMPH75CECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
