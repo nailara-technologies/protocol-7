@@ -52,19 +52,23 @@ if ( $is_proxy_zenka and defined $data{'proxy'}{'listen_sock'} ) {
     }
 }
 
-## subscribe to credential rotation events ##
-if ( exists $code{'cred-mesh.subscribe_rotation'} ) {
-    <[cred-mesh.subscribe_rotation]>->(
-        {   'slot'    => '*',
-            'handler' => 'proxy.handler.cred_rotated',
-        }
-    );
-}
+## subscribe to credential rotation events -- cred-mesh is a separate
+## zenka process with its own %data tree, so this must be a real
+## cross-zenka route, not a local <[...]> call (a local call here would
+## register the subscription into proxy's OWN data tree instead of the
+## real cred-mesh zenka's, and cred-mesh.rotate's push would never
+## reach it) ##
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| cred-mesh.subscribe_rotation |,
+        'call_args' =>
+            { 'args' => join( ' ', qw| * proxy.handler.cred_rotated | ) },
+    }
+);
 
 0;
 
-#,,,,,.,,,,.,,,,.,,.,,..,,,,.,,,,,..,,,,,,,,,,..,,...,...,,,.,...,.,.,.,,,..,,
-#K4T7GO3KKMGUCXHNTIL5N6MP22A56SISRXTFHD65TI7XOC3AZK6LWY2I7ZKM7XEII7JKSYOESMOVE
-#\\\|L2ADTWX2CYPMOLGO7MEP65IFWPOH4YLSULMMVRPQI37577ICKXR \ / AMOS7 \ YOURUM ::
-#\[7]NP5VPKZKFWYDWG6HE3MGSK55FZPBERXS5ZW62BYPYZ2W24T4AQCA 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,,,,.,,,.,,,.,,,...,,,,,...,..,,..,,...,...,..,,,.,,,..,...,.,.,
+#SUYAIYXBSZBKRM3ZCPNXMD2Z2DTUM2WD6LFRP6Z2HSHBTCOQSUXA22CQE5AWN4YWOIPAZ7ZB4MUNQ
+#\\\|NG72TNERPYCCPJGJKQ6LHWQFLYUENZIVGJUPGA6WDHUPSLTGLR6 \ / AMOS7 \ YOURUM ::
+#\[7]PR7PWBINUSRXIDR76FDDIXPNABKVJCYGKIA7NHPB7RDA4B3YWIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

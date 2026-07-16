@@ -39,21 +39,25 @@ my $probe_timer = <[event.add_timer]>->(
 
 <transport.probe_timer> = $probe_timer;
 
-## subscribe to credential rotation events ##
-if ( exists $code{'cred-mesh.subscribe_rotation'} ) {
-    <[cred-mesh.subscribe_rotation]>->(
-        {   'slot'    => '*',
-            'handler' => 'transport.handler.cred_rotated',
-        }
-    );
-}
+## subscribe to credential rotation events -- cred-mesh is a separate
+## zenka process with its own %data tree, so this must be a real
+## cross-zenka route, not a local <[...]> call (a local call here would
+## register the subscription into transport's OWN data tree instead of
+## the real cred-mesh zenka's, and cred-mesh.rotate's push would never
+## reach it) ##
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| cred-mesh.subscribe_rotation |,
+        'call_args' =>
+            { 'args' => join( ' ', qw| * transport.handler.cred_rotated | ) },
+    }
+);
 
 <[base.logs]>->( 2, 'transport.init_code: transport selector initialized' );
 
 return TRUE;
 
-#,,.,,...,,..,.,,,...,...,.,.,,.,,..,,.,.,,.,,..,,...,...,..,,,.,,...,,,,,.,,,
-#GAH4DXCV5H2NYQMXZXDCHPV3T4UV257SM3YXQMSD5GNCLQKNYLXO7YGURVB42IJVTXEZSFEJV4HE6
-#\\\|67UYMMGU3PZTASFERGA6TGCM3UYS65PUVFAVCMTA3LDVX53JL27 \ / AMOS7 \ YOURUM ::
-#\[7]S53EXP3SUYFGPFVOF7YIA55AA4HMFJ7JDDKOZAVDKL357ZHCM2CA 7  DATA SIGNATURE ::
+#,,..,...,.,,,.,.,.,.,..,,..,,..,,,..,,,,,.,.,..,,...,...,..,,,,.,.,,,...,,..,
+#6MBUHETWUPE4BV2E7CJ5RY4JELTKH542RIEDSCN6IWWMRQAHRFUQI5NFGIXUUMLCRPXTJFODS65CQ
+#\\\|MIZGZML2QH7SMFZUBEXDS4E7M2IH7ASOFWHAHDLTQX4GM2IYLTM \ / AMOS7 \ YOURUM ::
+#\[7]PCUG32R6QYM5ROSX3X67Q6XB2D7TIYYMSYDYGCTSDPXQILMRZWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
