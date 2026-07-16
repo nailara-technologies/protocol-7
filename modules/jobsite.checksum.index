@@ -41,6 +41,16 @@ if ( $action eq 'check' ) {
         }
     }
 
+    ## title dedup ##
+    if ( length( $job->{'title'} // '' ) ) {
+        utf8::encode( my $ti = $job->{'title'} );
+        my $t_sum = <[chk-sum.bmw.str-b32.L13]>->($ti);
+        if ( length $t_sum ) {
+            push @hits, "title:$t_sum"
+                if -e "$store_root/titles/$t_sum";
+        }
+    }
+
     ## url dedup : check across all epoch dirs ##
     if ( length( $job->{'url'} // '' ) ) {
         utf8::encode( my $url = $job->{'url'} );
@@ -81,6 +91,19 @@ if ( $action eq 'add' ) {
 
     my $epoch_dir = <[base.ntime.epoch_timestamp]>;
 
+    if ( length( $job->{'title'} // '' ) ) {
+        utf8::encode( my $ti = $job->{'title'} );
+        my $t_sum = <[chk-sum.bmw.str-b32.L13]>->($ti);
+        if ( length $t_sum ) {
+            my $p7_user = <system.amos-zenka-user> // qw| protocol-7 |;
+            <[file.make_path]>->(
+                "$store_root/titles", 0750, $p7_user, $p7_user
+            );
+            open my $fh, '>', "$store_root/titles/$t_sum" or ();
+            close $fh if $fh;
+        }
+    }
+
     if ( length( $job->{'url'} // '' ) ) {
         utf8::encode( my $url = $job->{'url'} );
         my $u_sum = <[chk-sum.bmw.str-b32.L13]>->($url);
@@ -116,6 +139,11 @@ if ( $action eq 'stats' ) {
         $co_count = scalar grep { !/^\./ } readdir $dh;
         closedir $dh;
     }
+    my $ti_count = 0;
+    if ( opendir my $dh, "$store_root/titles" ) {
+        $ti_count = scalar grep { !/^\./ } readdir $dh;
+        closedir $dh;
+    }
     my $url_count = 0;
     if ( opendir my $dh, "$store_root/urls" ) {
         for my $ep ( grep { !/^\./ } readdir $dh ) {
@@ -125,6 +153,7 @@ if ( $action eq 'stats' ) {
     }
     return {
         'companies' => $co_count,
+        'titles'    => $ti_count,
         'urls'      => $url_count,
     };
 }
@@ -159,8 +188,8 @@ if ( $action eq 'persist' ) { return TRUE; }
 
 return { 'mode' => 'false', 'data' => "unknown action: $action" };
 
-#,,.,,,,.,,,,,,,.,.,,,,.,,,,,,.,.,,,,,...,.,.,..,,...,...,.,,,,..,.,,,,..,.,.,
-#5URHRA7P4LR6QGX6GX7AIEJOO6MN52CMOHI6MZBWTBJAOALHLQGWDHULKG5S4OAOIWLRGYD26I23Y
-#\\\|NTMEP54STM3B2LO7D2RNQO3QGOCNKHUMIM4MZZZ56IV6HRYQU36 \ / AMOS7 \ YOURUM ::
-#\[7]3EML7DXUL3PV7NE43HMKG5ZBUB4IBRV4X457IPBPM5GUXGXV5ECQ 7  DATA SIGNATURE ::
+#,,.,,...,...,,,.,,..,,..,..,,,.,,.,,,,..,...,..,,...,...,..,,.,.,,..,,.,,,.,,
+#GBFRDR3P5EFZTSP7UWJTMWN57HRGN4UP66ZPZODW77EINTOBJHXZW6GUQ57447VTUHR3IY6HLYAWK
+#\\\|OUXUNS5WUH7HI5CTGCFZGUEDQZOH73E5MSVW7QJDQIBCQPGGS5G \ / AMOS7 \ YOURUM ::
+#\[7]JRAYN7G24LHKMYOIIR2RCJQYGQNZJB3RSJJJTS2K5TGQFYP632AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

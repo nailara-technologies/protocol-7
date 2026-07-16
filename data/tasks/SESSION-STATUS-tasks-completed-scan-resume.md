@@ -19,8 +19,19 @@ by idle-shutdown after partial progress; per-buffer verdicts were rescued from
   `mcp-coding-summarize.md`, `mcp-server-p7-external-commands.md`,
   `git-hooks-version-auto-stage.md`, `jobsite-ui-reassess-button.md`,
   `jobsite-ui-interviewed-tab.md`, `jobsite-ui-flexible-export.md`,
-  `jobsite-cmd-progress.md`).
+  `jobsite-cmd-progress.md`, `jobsite-checksum-store-dirs.md`).
   **remaining truly never-scanned: 52**.
+
+  `jobsite-checksum-store-dirs.md` was a genuine gap, not a scan
+  false-negative — actual title-dedup code, dispatched to kimi and
+  landed. (Initially looked like ANOTHER false-negative when the user
+  found real files under `/var/protocol-7/jobsite/checksum-store/titles/`,
+  but those were confirmed orphaned/stale — dated 2026-06-25 to 07-01,
+  from an abandoned status-subdir design that predates and doesn't match
+  this task's flat `titles/<chksum>` spec. `jobsite.checksum.index`'s
+  `check`/`add`/`stats` actions genuinely had no title-dedup logic before
+  this fix — verify claims like this against code AND timestamps, not
+  just directory existence.)
 
   `jobsite-cmd-progress.md` was flagged "possibly completed" pending two
   gaps: (1) missing `access.cmd.usr.taeki = jobsite.progress` line — moot,
@@ -121,9 +132,6 @@ polling strictly in submission order.
   to MCP approval
 
 **round 3 additions:**
-- `jobsite-checksum-store-dirs.md` — module exists with company/url dedup,
-  blacklist, stats, prune, load/persist stubs and migration; title dedup
-  (`checksum-store/titles/`) is missing
 - `jobsite-progress-bar-review-fix.md` — `jobsite.job.load_all` overrides
   status from directory index; `jobsite.cmd.progress` counts
   apply/applied/rejected but does not show applied/rejected in the right
@@ -216,8 +224,8 @@ transport-selector.md
 tree-sort-trunk-route-page.md
 web-sessions-distributed.md
 
-#,,,,,,..,.,.,..,,...,..,,.,.,,.,,,..,,,,,.,.,..,,...,...,,..,.,.,,.,,.,,,.,.,
-#JMRVK2JAKVTOB2ICGS7INYMR52CTSEKM3YH4BLKVW6TAEQ5FJO4MALR5YCK6PFO2AMOTPREZJA6AK
-#\\\|3RP2SIU7XERBTICHNYXIL4Y7KNKQNIKZCVNF4KBZDCALMVOTM6H \ / AMOS7 \ YOURUM ::
-#\[7]HM2S5RUDREI3AF3HHTHZYRGGW4ZY2KYUF7DXJBF5BDSSJVVZC2BY 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,..,.,.,,.,,,.,,...,,.,,.,,,,,,,..,,...,...,..,,,,.,,,,,,.,,.,.,
+#ZMZFGOJW3ZA67DDMYGEBGJQF6XUMNHS3JS6I5M4KZ3G5WAVNR2K76AMPYXIEJ4F5BAHBRPXWDPLO6
+#\\\|QIE52IL2XVNE4M5SOEV4XNDEKFAEVK46NZHWRD2XCOIFEZT56KO \ / AMOS7 \ YOURUM ::
+#\[7]TBKPLT5U5USJOK724CIXITYSHA3HSIP2DNJPYPTTCB5JWXFD4CAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
