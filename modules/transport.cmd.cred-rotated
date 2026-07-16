@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = transport.cmd.cred-rotated
+# descr = cred-mesh rotation-notify subscriber target
+# param = <base32-encoded event yaml>
+
+my $args_b32  = $call->{'args'}                        // '';
+my $args_yaml = <[base.base32.decode]>->( \$args_b32 ) // '';
+
+my $result = <[transport.handler.cred_rotated]>
+    ->( { 'args' => { 'data' => $args_yaml } } );
+
+return { 'mode' => qw| false |, 'data' => 'flush failed' }
+    unless ref $result eq qw| HASH |;
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        'flushed %d profiles, %d active handles',
+        $result->{'profiles_flushed'} // 0,
+        $result->{'active_cleared'}   // 0
+    ),
+};
+
+## [ end ] ###################################################################
+
+#,,,,,,..,.,.,.,.,,.,,,.,,,,.,,,,,..,,..,,,,,,..,,...,..,,..,,..,,..,,,..,.,.,
+#SIRBV6H2OE3CTA4IQICA73X6D4IYGLGUOOP2UJDF7HUQXSUCAHFTWX2FFCMN5MHP6SQDV5PJMGHAA
+#\\\|42ERXGOAOGVB6ALWQCIJNXMODJKMDECMBJYJWJZBSJS4HDGL5DO \ / AMOS7 \ YOURUM ::
+#\[7]EGWA5UQWG7DW4AHT236DJWKYMCIXU2ZEGVLUKYNWNKDH7YGIGEDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
