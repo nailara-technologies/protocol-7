@@ -1,0 +1,224 @@
+## [:< ##
+
+# name  = web-browser.cmd.replay-synth
+# descr = synthesize parametric drag/wheel input and dispatch it
+# param = type=drag|wheel path=linear|bezier duration=<ms>
+#       .. drag linear : x0= y0= x1= y1=            [ 0..1 fractions ]
+#       .. drag bezier : p0x= p0y= p1x= p1y= p2x= p2y= p3x= p3y=
+#       .. wheel : [x=0.5] [y=0.5] [dz0=120] [dz1=..] bezier + dz2= dz3=
+#       .. [speed=1.0] [verify=var:target,..] [tolerance=0.01]
+#       .. [samples=5] [timeout=10]
+
+my $reply_id = $call->{'reply_id'};
+my $args_str = $call->{'args'} // '';
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage: replay-synth type=drag|wheel path=linear|bezier'
+        . ' duration=<ms> [steps=<n>] <coords|dz curve> [speed=1.0]'
+        . ' [verify=var:target,..] [tolerance=0.01] [samples=5]'
+        . ' [timeout=10]'
+    }
+    if !length($args_str);
+
+my $fg_index = <web-browser.overlay.index>->{'fg'};
+my $view     = <web-browser.gtk_obj.view>->{$fg_index};
+
+return { 'mode' => qw| false |, 'data' => 'no foreground view' }
+    unless defined $view;
+
+my $settings = $view->get_settings();
+
+return {
+    'mode' => qw| false |,
+    'data' => 'javascript execution is disabled'
+    }
+    if !$settings->get_enable_javascript();
+
+my %arg;
+foreach my $token ( split( m|\s+|, $args_str ) ) {
+    next unless length $token;
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( 'invalid token: %s [expected key=value]', $token )
+        }
+        unless $token =~ m|^([a-z0-9_]+)=(\S+)$|i;
+    $arg{ lc($1) } = $2;
+}
+
+my $type = $arg{'type'} // '';
+my $path = $arg{'path'} // '';
+
+return { 'mode' => qw| false |, 'data' => 'type must be drag or wheel' }
+    if $type ne qw| drag | and $type ne qw| wheel |;
+return {
+    'mode' => qw| false |,
+    'data' => 'path must be linear or bezier'
+    }
+    if $path ne qw| linear | and $path ne qw| bezier |;
+return {
+    'mode' => qw| false |,
+    'data' => 'duration=<ms> required [ positive number ]'
+    }
+    if !defined $arg{'duration'}
+    or $arg{'duration'} !~ m|^\d+(?:\.\d+)?$|
+    or $arg{'duration'} <= 0;
+
+my $duration = 0 + $arg{'duration'};
+
+my $steps
+    = defined $arg{'steps'} && $arg{'steps'} =~ m|^\d+$|
+    ? 0 + $arg{'steps'}
+    : 0;
+$steps = int( $duration / 16 ) if $steps < 1;    ## ~60 events/sec ##
+$steps = 2                     if $steps < 2;
+
+my $num_re = qr|^-?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?$|;
+
+my @events;
+my $dt = $duration / $steps;
+
+if ( $type eq qw| drag | ) {
+
+    my @keys
+        = $path eq qw| linear |
+        ? qw| x0 y0 x1 y1 |
+        : qw| p0x p0y p1x p1y p2x p2y p3x p3y |;
+
+    foreach my $key (@keys) {
+        return {
+            'mode' => qw| false |,
+            'data' => sprintf(
+                'drag path=%s requires numeric %s= [ 0..1 fraction ]',
+                $path, $key
+            )
+            }
+            if !defined $arg{$key}
+            or $arg{$key} !~ $num_re;
+    }
+    my @pt = map { 0 + $arg{$ARG} } @keys;
+
+    for my $k ( 0 .. $steps ) {
+        my $s = $k / $steps;
+        my ( $x, $y );
+        if ( $path eq qw| linear | ) {
+            $x = $pt[0] + ( $pt[2] - $pt[0] ) * $s;
+            $y = $pt[1] + ( $pt[3] - $pt[1] ) * $s;
+        } else {
+            my $u = 1 - $s;
+            $x
+                = $u**3 * $pt[0]
+                + 3 * $u**2 * $s * $pt[2]
+                + 3 * $u * $s**2 * $pt[4]
+                + $s**3 * $pt[6];
+            $y
+                = $u**3 * $pt[1]
+                + 3 * $u**2 * $s * $pt[3]
+                + 3 * $u * $s**2 * $pt[5]
+                + $s**3 * $pt[7];
+        }
+        my $ev_type
+            = $k == 0 ? qw| down | : $k == $steps ? qw| up | : qw| move |;
+        push @events,
+            {
+            't'    => int( $k * $dt ),
+            'type' => $ev_type,
+            'x'    => $x,
+            'y'    => $y
+            };
+    }
+
+} else {
+
+    ##  wheel : dz curve at fixed position  ##
+    my $x
+        = defined $arg{'x'} && $arg{'x'} =~ $num_re ? 0 + $arg{'x'} : 0.5;
+    my $y
+        = defined $arg{'y'} && $arg{'y'} =~ $num_re ? 0 + $arg{'y'} : 0.5;
+
+    my @dz;
+    for my $i ( 0 .. 3 ) {
+        my $key = sprintf( 'dz%d', $i );
+        my $val = $arg{$key};
+        $val = $i == 0 ? 120 : $dz[ $i - 1 ]    ## default : flat curve ##
+            if !defined $val;
+        return {
+            'mode' => qw| false |,
+            'data' => sprintf( 'non-numeric %s= value', $key )
+            }
+            if $val !~ $num_re;
+        push @dz, 0 + $val;
+    }
+
+    for my $k ( 0 .. $steps ) {
+        my $s = $k / $steps;
+        my $dz;
+        if ( $path eq qw| linear | ) {
+            $dz = $dz[0] + ( $dz[1] - $dz[0] ) * $s;
+        } else {
+            my $u = 1 - $s;
+            $dz
+                = $u**3 * $dz[0]
+                + 3 * $u**2 * $s * $dz[1]
+                + 3 * $u * $s**2 * $dz[2]
+                + $s**3 * $dz[3];
+        }
+        push @events,
+            {
+            't'    => int( $k * $dt ),
+            'type' => qw| wheel |,
+            'x'    => $x,
+            'y'    => $y,
+            'dz'   => $dz
+            };
+    }
+}
+
+my $speed = 1.0;
+$speed = 0 + $arg{'speed'}
+    if defined $arg{'speed'} and $arg{'speed'} =~ m|^\d+(?:\.\d+)?$|;
+
+my $tolerance = 0.01;
+my $samples   = 5;
+my $timeout   = 10;
+$tolerance = 0 + $arg{'tolerance'}
+    if defined $arg{'tolerance'} and $arg{'tolerance'} =~ $num_re;
+$samples = 0 + $arg{'samples'}
+    if defined $arg{'samples'} and $arg{'samples'} =~ m|^\d+$|;
+$timeout = 0 + $arg{'timeout'}
+    if defined $arg{'timeout'} and $arg{'timeout'} =~ $num_re;
+
+my %verify;
+if ( defined $arg{'verify'} ) {
+    foreach my $pair ( split( m|,|, $arg{'verify'} ) ) {
+        return {
+            'mode' => qw| false |,
+            'data' =>
+                sprintf( 'invalid verify pair: %s [expected var:target,..]',
+                $pair )
+            }
+            unless $pair =~ m|^(\w+):(-?\d+(?:\.\d+)?)$|;
+        $verify{$1} = $2;
+    }
+}
+
+<[web-browser.replay.dispatch]>->(
+    {   'view'      => $view,
+        'events'    => \@events,
+        'speed'     => $speed,
+        'source'    => sprintf( 'synth %s/%s', $type, $path ),
+        'reply_id'  => $reply_id,
+        'verify'    => \%verify,
+        'tolerance' => $tolerance,
+        'samples'   => $samples,
+        'timeout'   => $timeout
+    }
+);
+
+return { 'mode' => qw| deferred | };
+
+#,,..,,.,,,..,,.,,,..,,..,.,.,,.,,...,...,,,,,..,,...,...,,.,,.,,,,,.,,..,.,.,
+#NP2F2EHBE4F4XBGDWX57YZLMY2PZEKWHK6Y3AURGO6URQ4VHDG3QSDMQ55IHXQ7TVHWZ2UIO4IHTY
+#\\\|3H7NZPRLDO5TYIWIRRT677ZRS5XX7VYZZNTHUNV7KT2PO6SROXF \ / AMOS7 \ YOURUM ::
+#\[7]FH2572YYAL5RHQNKDMSGNXC26X3W3PB5DVX7LID7GBBW4JV4ZYDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

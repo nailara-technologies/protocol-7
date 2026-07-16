@@ -207,12 +207,25 @@ stripped, since that often holds ephemeral view-state, not identity):
 
 ## status
 
-Design resolved 2026-07-16 (see "RESOLVED" section above with concrete
-module layout + build order). Implementation not started — dispatched to
-kimi (K3 model) to build per the build order above.
+All six build-order steps LANDED (2026-07-16, kimi K3 model, 3 dispatch
+rounds). Steps 1-3 + frontend pinning: commits 9c297b9e5, 803384253. Steps
+4-6 (verify= wiring, replay-synth, visualization.html fixture): live-tested
+against the running web-browser zenka — linear/bezier drag and wheel synth
+all verified via `verify=` against `window.debugRotY`/`debugZoom`,
+including a deliberate mismatch case to confirm FAIL detection works, not
+just the happy path. Gotcha found live: `alignRotation()` drifts
+`rotX`/`rotZ` toward the nearest 90° under follow-mode, so only `rotY` and
+`zoom` are stable `verify=` targets — see
+`data/ai-mem/kimi/topic-web-browser-replay-verify-synth.md` for full
+details and exact numeric results.
 
-#,,,.,.,,,...,.,,,..,,,,,,,,,,,,.,,..,.,.,.,,,..,,...,...,..,,,,.,.,.,.,.,.,.,
-#GLNN5KOJOUKX5QJXSLLO4BJPEXTAZ5QFXQYU5CR225XCDCVCHK2S5NR2CSQBWXEQME7X4RVR36ZGK
-#\\\|PQA2TYMBEQ453SRSSTZAZIK3IR7QQD6QEY5PHEAMBMWAXBBGNMJ \ / AMOS7 \ YOURUM ::
-#\[7]T4ZPUBSGHFMONMMWD5GRSB7MTQ3LSY2OACE36XW4OXLI3MYYRKDQ 7  DATA SIGNATURE ::
+Feature complete for the original motivation (exact bug reproduction via
+recorded/synthetic input + state verification). The "screenshot-batch
+across all visualizations" convergence idea from the relationship section
+above is a distinct follow-up task, not yet started.
+
+#,,,.,...,,,,,,,.,.,,,,..,...,..,,,.,,.,.,,,.,..,,...,.,.,...,,.,,...,,,,,,.,,
+#3WBWRCFXT44DQNZO3NKF4Q22VDTVNSTMQH5LXXKZRKUGPVCZX2G4SI26T5SGK74QPJZYUJMBR7PD2
+#\\\|QWADDIH4H3D4FG2MXMLD24PZ57IBVJS3USFSGQ5FZHJFPBC3YX7 \ / AMOS7 \ YOURUM ::
+#\[7]OIQ6OEOFPRNY63TMOLA56GEBGNI4OHXSZDUGBEZMAOSGFLPS6GBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
