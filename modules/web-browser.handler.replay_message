@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = web-browser.handler.replay_message
+# descr = script-message-received::p7replay callback -> ring buffer
+# param = <js_result> <buffer_name>
+
+my $js_result = shift;
+my $name      = shift;
+
+my $raw = eval { $js_result->get_js_value->to_string };
+return undef if $@ or not length( $raw // '' );
+
+state $json = JSON::XS->new->allow_nonref(1)->relaxed(1)->utf8(1);
+my $parsed = eval { $json->decode($raw) };
+return undef if $@ or ref($parsed) ne qw| HASH |;
+
+return undef
+    unless defined $parsed->{'type'}
+    and defined $parsed->{'t'};
+
+##  store the record line as sent [ one compact json object per line ]  ##
+<[base.buffer.add_line]>->( $name, $raw );
+
+return TRUE;
+
+#,,,,,...,,,.,,..,,,.,,.,,..,,,,,,.,,,...,.,,,..,,...,...,...,,,.,,..,.,.,,,,,
+#R5VKN6YC7IOXPAYM6H2KTKV3WVHDZ6I5JGDAVLIMDB3N7ZDWZVKKCJOQAHBZNAZRDCQN2JAUUO4VI
+#\\\|PJXPYVNSXHVD5H2WYSUIQHY4XNKXMBKLMVDTZOCFUH2X736HOYO \ / AMOS7 \ YOURUM ::
+#\[7]L3QLLCZOJIAC7KIZRMN5S47SC6575O4RFVJA6UFPK6ZC32HH5IDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

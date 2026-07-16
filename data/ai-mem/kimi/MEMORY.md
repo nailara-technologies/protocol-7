@@ -187,12 +187,16 @@ see [topic-language-detection.md](topic-language-detection.md)
 phase 1 operational (~950 lines); file-backed history at `data/chat/channel/*/history`; `data/ai-mem/handover.txt` retired.
 open: kimi zenka state machine upgrade (backend reconnect), coding zenka as third dispatch target, phase 2 channels zenka.
 
+## Web-Browser Input Capture/Replay — Steps 1-3 Done (July 2026)
+
+`replay_capture.{js_source,install,buffer_name}`, `handler.replay_message`, `cmd.replay-record|replay-play|wait-for-state` created per `data/tasks/web-browser-input-capture-replay.md`; whitelist regenerated, signatures pending. webkit userscript quirks in [coding-style.md](coding-style.md). steps 4-6 [ verify=, replay-synth, visualization.html fixture ] not started.
+
 ## Jobsite/Web Jobs Pipeline Fixes (2026-06-28)
 
 `skipped` status restored across all index scanners, reassessment now protects manual stages, web sync carries `assertions`, UI delete actions wired, and orbital subscriber `.cmd.` syntax corrected. Assessed jobs now map to the `review` UI stage. See [jobs-pipeline-2026-06-28.md](jobs-pipeline-2026-06-28.md). Open: bulk-delete pending search/filter UI.
 
-#,,.,,,,,,,.,,.,,,,..,.,,,.,.,.,,,...,,..,,,,,..,,...,.,.,.,.,,,,,,..,,,,,.,.,
-#B4D2H7XP5WWFNHTL7UQAE27I5DMY7JMBHRHRMGMALP6BGTG6BNBV7Z3A2AGJVHBLUKEJA753WDBKO
-#\\\|7IKISTH2LOHFMR2TUH7WKWY7AGQZCMGQEKFTIBKTPHAGJ2FHCXS \ / AMOS7 \ YOURUM ::
-#\[7]EI6DL7GZSLVEXVYVFAFLIJFUHG7NJT72XDMZ7N3SFR7PIUACEIDI 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,.,,...,,..,.,.,...,,..,.,,,,,,,..,,...,...,...,.,,,.,.,,,.,..,,
+#L5DSLABTZEOKPCHTKGYVR6X4KSJ3WNTHAO4K4YDLK7D6UR4GTKC5XKUXONULLAQV7ENHPWK4IRA4Y
+#\\\|Q3CHMOS4QUVV4TEZLUVHNCVOSI7PSGDLZPC5CM6ACNOJCVIRU7P \ / AMOS7 \ YOURUM ::
+#\[7]ECBJ5UGIUZTIQUWDXCMCNFF7WWOCFNW5DJZCGLKH5B4IV5KQVQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

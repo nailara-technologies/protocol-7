@@ -1,0 +1,178 @@
+## [:< ##
+
+# name  = web-browser.cmd.replay-play
+# descr = replay recorded input against __p7ReplayTarget
+# param = <buffer-name|json-path> [speed=1.0]
+
+my $reply_id = $call->{'reply_id'};
+my $args_str = $call->{'args'} // '';
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage: replay-play <buffer-name|json-path> [speed=1.0]'
+    }
+    if !length($args_str);
+
+my $fg_index = <web-browser.overlay.index>->{'fg'};
+my $view     = <web-browser.gtk_obj.view>->{$fg_index};
+
+return { 'mode' => qw| false |, 'data' => 'no foreground view' }
+    unless defined $view;
+
+my $settings = $view->get_settings();
+
+return {
+    'mode' => qw| false |,
+    'data' => 'javascript execution is disabled'
+    }
+    if !$settings->get_enable_javascript();
+
+my @tokens = split( m|\s+|, $args_str );
+my $source = shift @tokens // '';
+
+my $speed = 1.0;
+foreach my $token (@tokens) {
+    $speed = 0 + $1 if $token =~ m|^speed=(\d+(?:\.\d+)?)$|;
+}
+$speed = 1.0 if $speed <= 0;
+
+##  load normalized event records from named buffer or json file  ##
+my @events;
+if ( exists $data{'buffer'}{$source} ) {
+    foreach my $line ( $data{'buffer'}{$source}{'data'}->@* ) {
+        my $rec = <[format.json.decode]>->($line);
+        push @events, $rec
+            if ref($rec) eq qw| HASH | and defined $rec->{'type'};
+    }
+} elsif ( -f $source and -r $source ) {
+    my $content = do {
+        open my $fh, '<',
+            $source
+            or return {
+            'mode' => qw| false |,
+            'data' => sprintf( 'cannot open %s: %s', $source, $! )
+            };
+        local $INPUT_RECORD_SEPARATOR = undef;
+        <$fh>;
+    };
+    my $parsed = <[format.json.decode]>->($content);
+    return { 'mode' => qw| false |, 'data' => 'invalid json event array' }
+        unless ref($parsed) eq qw| ARRAY |;
+    @events
+        = grep { ref($ARG) eq qw| HASH | and defined $ARG->{'type'} }
+        $parsed->@*;
+} else {
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( 'no such buffer or file: %s', $source )
+    };
+}
+
+return { 'mode' => qw| false |, 'data' => 'no events to replay' }
+    if !@events;
+
+my $events_json = <[format.json.encode]>->( \@events );
+
+my $js_header = sprintf(
+    <<'JS_HEAD',
+(function () {
+    var events = %s;
+    var speed = %s;
+JS_HEAD
+    $events_json, $speed
+);
+
+my $js_footer = <<'JS_FOOT';
+    var target = window.__p7ReplayTarget || document;
+    var isDoc = ( target === document );
+    var w = isDoc ? window.innerWidth
+        : ( target.clientWidth || window.innerWidth );
+    var h = isDoc ? window.innerHeight
+        : ( target.clientHeight || window.innerHeight );
+    var typeMap = { down: 'mousedown', move: 'mousemove', up: 'mouseup' };
+    window.__p7ReplayDone = false;
+    window.__p7ReplayCount = events.length;
+    var dispatched = 0;
+    events.forEach( function ( rec ) {
+        setTimeout( function () {
+            var cx = Math.round( rec.x * w );
+            var cy = Math.round( rec.y * h );
+            var ev;
+            if ( rec.type === 'wheel' ) {
+                ev = new WheelEvent( 'wheel', {
+                    deltaY: rec.dz || 0,
+                    clientX: cx, clientY: cy,
+                    bubbles: true, cancelable: true
+                } );
+            } else {
+                ev = new MouseEvent( typeMap[ rec.type ] || rec.type, {
+                    clientX: cx, clientY: cy,
+                    button: 0,
+                    buttons: rec.type === 'up' ? 0 : 1,
+                    bubbles: true, cancelable: true
+                } );
+            }
+            target.dispatchEvent( ev );
+            dispatched++;
+            if ( dispatched === events.length ) window.__p7ReplayDone = true;
+        }, rec.t / speed );
+    } );
+    return events.length;
+})();
+JS_FOOT
+
+my $payload = $js_header . $js_footer;
+
+##  direct evaluate : js_call would log the full event payload at -vv  ##
+$view->evaluate_javascript(
+    $payload,
+    -1,       ## length: -1 = null-terminated string
+    undef,    ## world_name: default world
+    undef,    ## source_uri
+    undef,    ## cancellable
+    sub {
+        my ( $view, $result ) = @_;
+        my $result_str = '';
+        my $jsc_value  = eval { $view->evaluate_javascript_finish($result) };
+
+        if ($@) {
+            ( my $ex_str = $@ ) =~ s| at /usr/.+\n$||;
+            $ex_str =~ s|^[^ ]+ ||;
+            <[base.logs]>
+                ->( 0, '<!JSerr!> [%s] %s', $view->get_uri, $ex_str );
+            <[base.callback.cmd_reply]>->(
+                $reply_id,
+                {   'mode' => qw| false |,
+                    'data' => sprintf( 'replay dispatch failed: %s', $ex_str )
+                }
+            );
+            return;
+        }
+
+        $result_str = $jsc_value->to_string if defined $jsc_value;
+        my $count = $result_str =~ m|^\d+$| ? 0 + $result_str : 0;
+
+        <[base.logs]>->(
+            2, "replay-play: dispatched %d events at %.2fx from '%s'",
+            $count, $speed, $source
+        );
+        <[base.callback.cmd_reply]>->(
+            $reply_id,
+            {   'mode' => qw| true |,
+                'data' => sprintf(
+                    'replaying %d events at %.2fx speed [%s]',
+                    $count, $speed, $source
+                )
+            }
+        );
+    },
+    undef    ## user_data
+);
+
+return { 'mode' => qw| deferred | };
+
+#,,..,,,,,,.,,...,...,.,.,,.,,,,.,..,,.,.,,,.,..,,...,...,,..,...,..,,.,.,.,,,
+#YT6SFJBADDQFMSXGWF44SYQARLUZEZC7C3ARAKEHVX5MMOM76YNMICHXTFTJL7APGPHQBVW7DFMXK
+#\\\|5BKQGTHQ4HWNRDMLFCWA6R55BMK7F27GZL2WRDYP5BUK6GRCRPC \ / AMOS7 \ YOURUM ::
+#\[7]VBYYOPU5A5DNRSAE3SKQBDO7DTILXYNM4QGEEW34ASDVRLYSNMCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
