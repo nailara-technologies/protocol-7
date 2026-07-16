@@ -44,11 +44,12 @@ my $probe_timer = <[event.add_timer]>->(
 ## cross-zenka route, not a local <[...]> call (a local call here would
 ## register the subscription into transport's OWN data tree instead of
 ## the real cred-mesh zenka's, and cred-mesh.rotate's push would never
-## reach it) ##
-<[protocol-7.route-send]>->(
-    {   'command'   => qw| cred-mesh.subscribe_rotation |,
-        'call_args' =>
-            { 'args' => join( ' ', qw| * transport.handler.cred_rotated | ) },
+## reach it). deferred via a short one-shot timer -- transport's own
+## cube session isn't established yet this early in init_code, so a
+## synchronous route-send here silently finds no matching session ##
+<[event.add_timer]>->(
+    {   'after'   => 0.5,
+        'handler' => qw| transport.handler.subscribe_rotation_deferred |,
     }
 );
 
@@ -56,8 +57,8 @@ my $probe_timer = <[event.add_timer]>->(
 
 return TRUE;
 
-#,,..,...,.,,,.,.,.,.,..,,..,,..,,,..,,,,,.,.,..,,...,...,..,,,,.,.,,,...,,..,
-#6MBUHETWUPE4BV2E7CJ5RY4JELTKH542RIEDSCN6IWWMRQAHRFUQI5NFGIXUUMLCRPXTJFODS65CQ
-#\\\|MIZGZML2QH7SMFZUBEXDS4E7M2IH7ASOFWHAHDLTQX4GM2IYLTM \ / AMOS7 \ YOURUM ::
-#\[7]PCUG32R6QYM5ROSX3X67Q6XB2D7TIYYMSYDYGCTSDPXQILMRZWCI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,...,.,.,.,.,.,.,,.,,.,,,.,,,,..,..,,...,...,,,,,,,,,.,.,,..,,..,
+#KIDL55E4V3ZACWVWMW3AYQTBFWI364OXP7YQO22WHZFEF3QEB33TOPYHZ4OAA7PLKFWPWAS3IDUIY
+#\\\|YFGXGVIKFTSCT2OTFBMGLBXTIQWOADM5G4NKY6TGMW4IWVK3MOT \ / AMOS7 \ YOURUM ::
+#\[7]SIIP2ZFZPG5XMCOLTFYTWAFSDM5VITD5HMPZ7Q4Y57YNS5YVPQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -16,27 +16,32 @@ return undef if not @combined;
 
 my $ntime = <[base.time]>->(3);
 
+## base32-encode the payload before sending: YAML::XS::Dump is multi-line
+## block style, but the command wire protocol here is line-based (one
+## command per \n) -- an unencoded dump would get truncated at its own
+## first internal newline on delivery ##
+my $event_yaml = YAML::XS::Dump(
+    {   'event'  => 'credential.rotated.' . $slot,
+        'slot'   => $slot,
+        'ntime'  => $ntime,
+        'reason' => $reason,
+    }
+);
+my $event_b32 = <[base.base32.encode]>->( \$event_yaml );
+
 foreach my $handler (@combined) {
     ## dispatch STRM-style notification via protocol-7 route-send ##
     <[protocol-7.route-send]>->(
         {   'command'   => $handler,
-            'call_args' => {
-                'args' => YAML::XS::Dump(
-                    {   'event'  => 'credential.rotated.' . $slot,
-                        'slot'   => $slot,
-                        'ntime'  => $ntime,
-                        'reason' => $reason,
-                    }
-                )
-            },
+            'call_args' => { 'args' => $event_b32 },
         }
     );
 }
 
 return scalar @$subs;
 
-#,,,.,,..,,..,.,,,.,,,,,.,..,,.,.,,..,,..,.,,,..,,...,...,,..,.,.,..,,.,.,,.,,
-#U37KH5QOY7GVZRWGVAONU6I5UIRFKTXLCHEZ7Q4Y3T2YUSQDJQDEXZSLHMHZSB7LWK7LRHYFWF3IG
-#\\\|YPWUHMMIECISPAJIGP6TWA53746KR52EODPYSO6PLAGZXT7J3ZY \ / AMOS7 \ YOURUM ::
-#\[7]U2UDHHTISKVNL55QXRPRHDUVS7N5WXL22OEYMGNPAUEDBKHEYCCA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,,.,.,,,,,.,.,.,...,.,,,..,,...,..,,...,...,,,,,,,,,,..,...,.,.,
+#WMTWAHIRPSCIWRGEQVA4AKUJBMWHTX2VFSXURALICRYD5MNQ3BBVLAMBR4OH7NVKQZPCAJGU53ITY
+#\\\|3RDO7BJZ3PXTS4GAIIIBVJAUFCPTTV36T6PDNNBSY5A6DXVLFAR \ / AMOS7 \ YOURUM ::
+#\[7]7FLBLXDNNHQTXJCPJ5O42YZU4FHVUZSZLA5QWXVISBJRD3ECHYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -12,14 +12,14 @@ proxy.cfg.transport       = direct
 access.cmd.usr.cube = commands heart reload verify-instance \
                       list show-buffer buffer-erase buffer-erase-level \
                       show-access src-ver src-age subname name status \
-                      deparse-code dump core-subs change-log-verbosity \
-                      handler.cred_rotated * # <-- !!!
+                      deparse-code dump core-subs change-log-verbosity *
 
 ## [ note ] bare '*' matches single-segment commands only [ regex [^\.]+ ] ;
-## dotted callback names like 'handler.cred_rotated' [ cred-mesh rotation
-## notification, cube relays as src='cube' cmd='handler.cred_rotated' ] must
-## be granted explicitly here, mirroring cube/access.zenki's grant of
-## 'proxy.handler.cred_rotated' to user 'cred-mesh' at the relay layer.
+## the cred-mesh rotation-notify subscriber target is now the single-segment
+## 'cred-rotated' (proxy.cmd.cred-rotated, cube strips both zenka prefix and
+## '.cmd.'), already covered by the wildcard above -- see
+## data/tasks/completed/cred-mesh-rotation-subscription-cross-zenka.md for
+## why the old multi-dot 'handler.cred_rotated' target never worked.
 
 env_override_allowed = PROTOCOL_7_VAR
 
@@ -37,8 +37,8 @@ modules.load = auth net protocol io.unix io.ip ui clients.http clients.https \
 
 [zenka.loop]
 
-#,,..,,,,,,,,,,,.,,,,,..,,...,.,,,,,,,,,.,.,,,..,,...,...,...,,,.,.,,,.,.,..,,
-#I5S2SU6GMSNVZH35NMG53VDRJPTRZM6TXZWNDAVXNFGNUCXOQQJXEBGYXHOKC3OMMQN72FOU2KWKY
-#\\\|XPQUFWL6BSUKUPEMZ7BY4YUOP2FFQK43GGWO6YFRZZCHMTFDW6I \ / AMOS7 \ YOURUM ::
-#\[7]FTDZCI5IC7Y7V5AX337GVWC2FPN52XQDB7SG5ZWZ5VNPBWXKN4CI 7  DATA SIGNATURE ::
+#,,.,,..,,..,,.,.,,,,,..,,,.,,.,,,.,,,,,.,.,.,..,,...,...,,.,,,..,...,,,,,,,,,
+#2MEYEQRVVTS35FFOWCGR6XESSRZFSOCHH4TQA2OCO5OZNSFA27ZBOUPIEJNMQPGMV6AJDFNNZTYRO
+#\\\|3ULOCDTVMPM62X3X7IX3EXB7PC5APTJ7GYG54S45XXDUZTH7QV3 \ / AMOS7 \ YOURUM ::
+#\[7]PZ2VSDX7EQH6U5RKE3DTGKHG4N54BZJPIDARJEVZD75VI4IWWQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
