@@ -92,6 +92,19 @@ a window that uses `begin_move_drag`, call `Gtk3::Gdk::pointer_ungrab($time)`
 button_press` (right-click close) and `screen.setup.open_window` (map signal),
 commit `0285a96f5`.
 
+**Same fix landed for `window.place` 2026-07-16 (commit `fff81c212`)** —
+it had the identical unprotected `begin_move_drag`/`begin_resize_drag`
+usage with no ungrab anywhere; grepped the whole tree, confirmed the only
+other zenka with this gap. Fixed in `window.place.commit` (ungrab before
+destroy) and `window.place.open_window` (ungrab on map). Live test was
+inconclusive on root cause: restarting X-11 alone (which restarts
+`window-place`, since it depends on X-11) did not clear an existing
+freeze; also restarting `tile` did. `tile` has no GTK/grab code of its
+own (checked directly), so it's unconfirmed whether `tile`'s restart
+actually mattered or just coincided with something else clearing — the
+fix itself is real and correct regardless, but don't treat "restart tile"
+as a confirmed recovery step without re-testing it in isolation.
+
 **Sharpened 2026-06-24 (multi-monitor seam):** the "virtual boundary" the
 keyboard move-handler hits is the *same* per-output confinement. User
 confirmed `X-11.move-window` (which is `$X->ConfigureWindow`, raw X11
@@ -120,8 +133,8 @@ all. If (2) is no, there is no programmatic cross-seam path on this build.
 
 [[topic-tile-window-place-hybrid-desktop]] · [[topic-gtk-wsl-window-positioning]] · [[feedback-wslg-deiconify-limitation]]
 
-#,,.,,..,,..,,.,.,,..,,.,,..,,...,..,,..,,,.,,..,,...,...,.,.,,.,,.,,,...,...,
-#IOYYDC3BMNR3KS257IDEVGXGAOFFFJJRA4PIDLOS7QSC4L2IJ6MX7ZMLD5T4VFUIJNKPQ3YRA2FG2
-#\\\|V7HT43HNZWKIKLL4MAKQ3S65BQHI3K3JIDQS3WMYRLYPCQAAGSQ \ / AMOS7 \ YOURUM ::
-#\[7]DMDAYWRDXD6S7VRCOOUEYGXTIR63CZCQGVADNXDEFI2AGJYUR6CY 7  DATA SIGNATURE ::
+#,,..,...,,,.,,..,.,.,...,,.,,,..,.,,,.,.,.,,,..,,...,...,,,.,.,.,,,.,...,,.,,
+#7V2MMAFNDVXQI3OTPMRM5MBN6QBJ3OXT6WL7MBDPG2NFZNHDVSYI2X4IZUTO7PCT77DX2XXUBATHC
+#\\\|TTD6MDYW4UC6P27KYAF22VCGET4VJK7H2GMJDWPDMN4UWS4YVXF \ / AMOS7 \ YOURUM ::
+#\[7]XGMJRYLNFFOF54UVYI3ZABGZ3Y65BW5FUZBLMLYHSGKJHMQJLSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
