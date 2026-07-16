@@ -61,8 +61,34 @@ originSessionId: 52ad77e6-5a2e-46a3-8178-ddcc1f410e55
 **Why:** buffer names hit max 24 chars — always strip `task-` prefix when naming.
 **How to apply:** use `coding.show-buffer T-<id>` / `T-<id>-T` / `T-<id>-F` to observe tasks.
 
-#,,.,,,,,,,,.,.,,,,,.,,,.,,,.,,,,,,.,,..,,.,.,..,,...,...,...,..,,.,,,,,,,,,,,
-#ICYK4ARPJFE2DDL4LOUEOBVUZHBPR33AZ7UVCYF4HIPOTBQ33ZB6DSQI4CGIMTDCY4H6NMMWQQBQA
-#\\\|RF5RYRR5UO76ITCWLHN7F6U4AMGIVXL5YTXVULNF4YQDTZCGFQG \ / AMOS7 \ YOURUM ::
-#\[7]JOKSSNXHM3TEXDIFANLEEGMVXKRHSNFVYDHE3HUTM3DW34VH3CCY 7  DATA SIGNATURE ::
+## rescue procedure when the zenka dies mid-batch-scan (2026-07-16)
+
+Confirmed live: when the coding zenka hits idle-shutdown mid-task, its
+`task_buffer_save` handler still fires first (this is a *graceful*
+shutdown path, not a crash) — every in-flight task's buffers land in
+`completed-task-backups/<ts>-<id>/{compact,thinking,full}.xz` + `meta.yaml`
+before the process dies. Nothing is lost, it's just not auto-resumed —
+grepped the whole modules tree, there is no `buffer_load`/`buffer_restore`
+code path. Recovery is manual:
+
+- `compact.xz`/`thinking.xz`/`full.xz` are `0640`, group `protocol-7` —
+  readable directly via `xz -dc <file>.xz` as `taeki` (in the
+  `protocol-7` group), **no sudo needed**.
+- `meta.yaml` is `0600` owner-only — NOT group-readable, needs the
+  `protocol-7` user itself (or `sudo -u protocol-7`) to read it.
+- The coding zenka's own `read_file` tool can't reach these paths even
+  from inside a task — `context.file` strips leading `/` and resolves
+  everything relative to `<system.root_path>`, by design (sandboxes the
+  LLM to project files). Use direct shell `xz -dc`, not the zenka's tools.
+- To find the exact backup dirs for one shutdown event: they share an
+  epoch-timestamp prefix within a ~1-2 second window (the drain loop runs
+  fast) — `ls completed-task-backups/ | grep 'Jul 16'` or glob the epoch
+  prefix once you know it from the shutdown log line.
+
+[[coding-zenka-improvement-pipeline]]
+
+#,,..,,.,,,..,,.,,,.,,.,.,,,.,,..,,..,,,.,,,,,..,,...,...,..,,..,,,..,.,,,..,,
+#F6EDLRZK4XULAM7SIBQMWSDS5J7VZAA7V4QS6I5B4WNR5JBYNYUKH5TN6W42JQGHB3SUC4J4GVVAQ
+#\\\|4SQGHWB4FPSLSHTS344CM65QANHTOFSNO3UGK7WLQ34YKDX4D6R \ / AMOS7 \ YOURUM ::
+#\[7]HSTUEJKD3D65PYF6U4MO7HNTSEOHS5J3LCGGHF6OXUUISDYNB4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
