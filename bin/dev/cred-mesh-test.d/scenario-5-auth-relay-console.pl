@@ -21,8 +21,13 @@ my $verbose  = $ENV{'CREDMESH_TEST_VERBOSE'} // 0;
 my $echo_port = 35000 + ( int( rand(2000) ) );
 my $echo_log  = File::Spec->catfile( temp_dir(), 'echo-scenario-5.log' );
 my $echo_pid  = start_echo_server( $echo_port, $echo_log );
-my $domain    = "auth-relay-test.local";
-my $payload   = 'relay-payload-xyz';
+## use a real, locally-resolvable destination (matches scenario 1's
+## pattern) instead of a .local hostname -- .local triggers mDNS
+## resolution on many systems and can fail with an unrelated-looking
+## error (e.g. "Invalid argument") when there's no real mDNS responder,
+## rather than a normal "unknown host" failure
+my $domain  = "127.0.0.1:$echo_port";
+my $payload = 'relay-payload-xyz';
 
 # [ deliberately do not seed a session slot for the test domain ]
 
@@ -97,8 +102,8 @@ exit 0;
 
 # [ end ]
 
-#,,,,,..,,.,,,.,,,,..,,.,,,,.,.,,,...,,.,,...,..,,...,...,...,..,,.,,,,,,,...,
-#OTTAYMDYEKOO6JDT5LYQWXJAZHZQHJNCYV65TWX3ZBPDLF2HSENSAROLZNUNUTEPSCXYWHYTHIK7W
-#\\\|4BPMW7XHQIK6YWFEZF4UFYPOSMVMTF6KEAY6TFK7YNVCZLYL5S2 \ / AMOS7 \ YOURUM ::
-#\[7]ADOZDX73TIWAANLW3ASKO6KNS6JDIO6VT7HB7IN2DQHU4SHDF6DI 7  DATA SIGNATURE ::
+#,,.,,,..,...,..,,.,,,,,,,...,..,,..,,,,.,,.,,..,,...,...,.,.,,..,,..,,,,,...,
+#NAHP57ZKNSCYMCUGLQZR6AVIPH4BTNHLXTLBOLSN4EKCIPT2W5MGPQDK2CJXWHZQKJJJ5IYELF3CA
+#\\\|OJ7SJSZRFEC5WJ6DBQIAL3V7Z4ETZ5YNBJ5WXEVTEEPPP4DMQ7P \ / AMOS7 \ YOURUM ::
+#\[7]MNEIXHSLC4ZFAV2RL6EP3UEZLIFCHCR42B554A5YJ5DXYPIMSGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
