@@ -9,6 +9,15 @@ my $stdin_mode = FALSE;
 my @p_arg      = qw| -nb |;
 
 my $zenka_subname;
+my $env_override_key;
+my $env_override_value;
+
+##  optional env override tag threaded through by v7.zenka.cmd.start  ##
+if ( $zenka_name =~ s|\s*:env:([A-Z_][A-Z0-9_]*)=([^:]*):\s*$|| ) {
+    $env_override_key   = $1;
+    $env_override_value = $2;
+}
+
 my $re_sn = <regex.base.subname>;
 $zenka_subname = ${^CAPTURE}[0] if $zenka_name =~ s|\[($re_sn)\]$||;
 
@@ -234,6 +243,15 @@ if ( exists $init_result_data->{'start_mode'}
             chdir( qw| $privs->{'home'} | );
         EOT
 
+        if ( defined $env_override_key ) {
+            ( my $env_val = $env_override_value ) =~ s|(['\\])|\\$1|g;
+            $prepare_code .= "\$ENV{'$env_override_key'}='$env_val';";
+            <[base.logs]>->(
+                1,             "'%s' exec-external env_override : %s",
+                $zenka_sn_str, $env_override_key
+            );
+        }
+
         ## %ENV is wiped above for exec-external zenki [ clean environment ];
         ## env_include lets a zenka's v7-init config whitelist additional
         ## keys to copy through from the live v7 process's own environment ##
@@ -242,7 +260,7 @@ if ( exists $init_result_data->{'start_mode'}
             my @included;
             for my $env_key ( split m| +|, $env_include_str ) {
                 next if not defined $ENV{$env_key};
-                ( my $env_val = $ENV{$env_key} ) =~ s|'|'\\''|g;
+                ( my $env_val = $ENV{$env_key} ) =~ s|(['\\])|\\$1|g;
                 $prepare_code .= "\$ENV{'$env_key'}='$env_val';";
                 push @included, $env_key;
             }
@@ -295,19 +313,31 @@ my @cmd_line_mods
     split( m| +|, $init_result_data->{'command_line_modules'} )
     : ();
 
-if (@cmd_line_mods) {
-    my $_C = <system.perl_unicode>;
-    push( @cmd_line_mods, sprintf( qw| -C%d |, $_C ) ) if defined $_C;
+{
+    ##  caller-supplied env override for stdin-zenka mode  ##
+    if ( defined $env_override_key ) {
+        <[base.logs]>->(
+            1,             "'%s' start env_override : %s",
+            $zenka_sn_str, $env_override_key
+        );
+    }
+    local $ENV{$env_override_key} = $env_override_value
+        if defined $env_override_key;
 
-    $pid = eval {
-        IPC::Open2::open2( $out_fh, $in_fh, $perl_bin, @cmd_line_mods,
-            $bin_p7_path, $zenka_sn_str, @p_arg );
-    };
-} else {
-    $pid = eval {
-        IPC::Open2::open2( $out_fh, $in_fh, $bin_p7_path, $zenka_sn_str,
-            @p_arg );
-    };
+    if (@cmd_line_mods) {
+        my $_C = <system.perl_unicode>;
+        push( @cmd_line_mods, sprintf( qw| -C%d |, $_C ) ) if defined $_C;
+
+        $pid = eval {
+            IPC::Open2::open2( $out_fh, $in_fh, $perl_bin, @cmd_line_mods,
+                $bin_p7_path, $zenka_sn_str, @p_arg );
+        };
+    } else {
+        $pid = eval {
+            IPC::Open2::open2( $out_fh, $in_fh, $bin_p7_path, $zenka_sn_str,
+                @p_arg );
+        };
+    }
 }
 
 SKIP_OPEN2:
@@ -387,8 +417,8 @@ close($in_fh);    ## <-- no further use for zenka stdin handle [ for now ] ##
 
 <[base.logs]>->( '%s zenka started [ pid : %d ]', $zenka_sn_str, $pid );
 
-#,,,.,,.,,,..,,,,,,..,.,.,.,,,...,.,,,..,,...,..,,...,...,,,,,,,.,,.,,..,,,,.,
-#CRN3XQYBVQ4CYCVD66NM463C3CHDZGTRBEKZKR4KUM7VQ2MLCWPNKI2TFTIWGW4RRSLQLMJEUPMNE
-#\\\|N3QAYNA76YMDA4MYOS4VDDDF34EYPWDOP23H5MQ7J2XDVRU5IGJ \ / AMOS7 \ YOURUM ::
-#\[7]CRPWXPSGLQ3W3XWO7MJJ2WPTNTM5MASZF3TRCGLOAXUOTVULAMAI 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,.,,,,,,,,,.,..,,,,,,.,.,.,.,,.,,..,,...,...,.,,,,..,...,..,,,..,
+#UIF6AA7D4ZU63FR357RSXT5KXEZBIQXNFIXBCCWOHMXGNGK7CCADWWDECFMAK2B245MAS5KYFSO4O
+#\\\|US77DGK5BTBGYYXJQBOW6LG2KCFU4E5APX5JCMIV4EN7QGGC52H \ / AMOS7 \ YOURUM ::
+#\[7]RJ4NZ2BMPJ54DUAAXZVZUAKEYJDGK2EK2SXARCDAZYSOY7QDQ6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
