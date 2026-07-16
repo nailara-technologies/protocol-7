@@ -1,0 +1,232 @@
+## [:< ##
+
+# name  = sourcecode.console.normalize-endline-state
+# descr = normalize trailing newlines in canonical paths + re-sign if needed
+
+my $command_params = shift // '';
+
+$command_params =~ s,^ *| *$,,g;
+
+## strip vim-style line number suffix ##
+$command_params =~ s|:\d+$||;
+
+my $verbose = <system.verbosity.console> >= 1;
+
+my $paths     = <sourcecode.path>;    # <-- prepared in 'sourcecode.init_code'
+my $work_tree = $paths->{'work_tree'};
+
+my @source_paths;
+
+if ( length $command_params ) {
+
+    if ( not @source_paths
+        = <[base.source.collect_file_list]>->($command_params) ) {
+        <[base.logs]>->(
+            0, ': no files found for pattern: %s',
+            $command_params
+        );
+        <[base.exit]>->(qw| 0110 |);
+    }
+} else {
+
+    my $normalize_paths = <sourcecode.normalize_endline_paths>;
+    $normalize_paths = <source.normalize_endline_paths>
+        if not defined $normalize_paths;
+
+    if (   not defined $normalize_paths
+        or ref $normalize_paths ne qw| ARRAY |
+        or not @$normalize_paths ) {
+        <[base.log]>->( 0, ': no normalize_endline_paths configured' );
+        <[base.exit]>->(qw| 0110 |);
+    }
+
+    my @all_source_paths = <[sourcecode.source_path_set_up]>;
+
+    @source_paths = grep {
+        my $path = $ARG;
+        grep { index( $path, "$ARG/" ) == 0 } @$normalize_paths
+    } @all_source_paths;
+}
+
+unless (@source_paths) {
+    <[base.log]>->( 0, ': no source files to normalize' );
+    <[base.exit]>->(qw| 0110 |);
+}
+
+my $signature_key_name = qw| proto-7.sourcecode |;
+
+<[source.load_signature_key]>->($signature_key_name);
+
+if (   not exists $keys{'C25519'}{$signature_key_name}
+    or not exists $keys{'C25519'}{$signature_key_name}->{'private'}
+    or not exists $keys{'C25519'}{$signature_key_name}->{'public'} ) {
+    <[base.log]>->( 0, ".: source signature key :." );
+    <[base.logs]>->( 0, ":  : %s", $signature_key_name );
+    <[base.log]>->( 0, ":. not loaded, aborting .:" );
+    <[base.exit]>->(qw| 0110 |);
+}
+
+my $footer_start_regex = qr|#[\.,]{70,85}|;
+
+my $normalized_count = 0;
+my $canonical_count  = 0;
+
+<[base.log]>->( 1, ':' );
+<[base.log]>->( 1, '.:[ normalizing endline state ]:.' );
+<[base.log]>->( 1, ':' );
+
+foreach my $path_rel (@source_paths) {
+
+    my $path_abs = catfile( $work_tree, $path_rel );
+
+    next unless -f $path_abs;
+
+    my $src_str;
+    if ( not <[file.slurp]>->( $path_abs, \$src_str, qw| :raw | ) ) {
+        <[base.logs]>->( 0, ':E: unable to read: %s', $path_rel );
+        next;
+    }
+
+    ## detect amos7 signature footer first line ##
+    my ($footer_first_line) = $src_str =~ m|($footer_start_regex)\n|;
+
+    if ( defined $footer_first_line ) {
+
+        ## signed file : decode endline state ##
+        my $header = <[amos7.decode_octal_bit_header]>->($footer_first_line);
+
+        if ( defined $header and $header->{'structure-was-valid'} ) {
+
+            my $state = $header->{'endline-state-encoded'};
+
+            my $footer_pos     = index( $src_str, $footer_first_line );
+            my $content_before = substr( $src_str, 0, $footer_pos );
+
+            my ($trailing) = $content_before =~ /(\n+)$/;
+            my $trailing_count = defined $trailing ? length($trailing) : 0;
+
+            if ( $state == 6 or ( $state == 5 and $trailing_count == 1 ) ) {
+                $canonical_count++;
+                <[base.logs]>->(
+                    1,         ': %s : state %d : ok',
+                    $path_rel, $state
+                ) if $verbose;
+                next;
+            }
+
+            ## re-sign file ##
+            my $code_data_ref;
+            eval {
+                use warnings FATAL => qw| all |;    ## catches all warnings ##
+                $code_data_ref = <[source.cmd.get-code-signed]>->(
+                    {   qw| args |       => $path_rel,
+                        qw| skip-valid | => TRUE,        ## true ##
+                        qw| verbosity |  => 0
+                    }
+                );
+            };
+
+            <[base.s_warn]>->(
+                '%s <{NC}>', scalar <[base.format_error]>->($EVAL_ERROR)
+            ) if length $EVAL_ERROR;
+
+            if ( not defined $code_data_ref
+                or ref $code_data_ref ne qw| HASH | ) {
+                <[base.logs]>->(
+                    0,         ': %s : state %d : re-sign failed',
+                    $path_rel, $state
+                );
+                next;
+            }
+
+            if ( $code_data_ref->{'mode'} eq qw| true | ) {
+                $canonical_count++;
+                <[base.logs]>->(
+                    1,         ': %s : state %d : ok',
+                    $path_rel, $state
+                ) if $verbose;
+                next;
+            }
+
+            if ( $code_data_ref->{'mode'} ne qw| size |
+                or not length $code_data_ref->{'data'} ) {
+                <[base.logs]>->(
+                    0,         ': %s : state %d : re-sign failed',
+                    $path_rel, $state
+                );
+                next;
+            }
+
+            if (not <[file.put_bin]>->( $path_abs, $code_data_ref->{'data'} )
+            ) {
+                <[base.logs]>->(
+                    0, ':E: failed to write file: %s', $path_rel
+                );
+                next;
+            }
+
+            my ($new_footer_first_line)
+                = $code_data_ref->{'data'} =~ m|($footer_start_regex)\n|;
+            my $new_state;
+            if ( defined $new_footer_first_line ) {
+                my $new_header
+                    = <[amos7.decode_octal_bit_header]>
+                    ->($new_footer_first_line);
+                $new_state = $new_header->{'endline-state-encoded'}
+                    if defined $new_header
+                    and $new_header->{'structure-was-valid'};
+            }
+
+            my $state_str
+                = defined $new_state
+                ? sprintf( ' \xe2\x86\x92 %d', $new_state )
+                : '';
+
+            <[base.logs]>->(
+                1, ': %s : state %d%s : normalized',
+                $path_rel, $state, $state_str
+            );
+            $normalized_count++;
+
+        } else {
+
+            ## footer-like line but decode failed : normalize as unsigned ##
+            $src_str =~ s|\n*$|\n|s;
+            if ( <[file.put_bin]>->( $path_abs, $src_str ) ) {
+                <[base.logs]>->(
+                    1, ': %s : invalid footer : normalized', $path_rel
+                );
+                $normalized_count++;
+            } else {
+                <[base.logs]>->(
+                    0, ':E: failed to write file: %s', $path_rel
+                );
+            }
+        }
+
+    } else {
+
+        ## unsigned file : normalize trailing newline to exactly 1 \n ##
+        $src_str =~ s|\n*$|\n|s;
+        if ( <[file.put_bin]>->( $path_abs, $src_str ) ) {
+            <[base.logs]>->( 1, ': %s : no footer : normalized', $path_rel );
+            $normalized_count++;
+        } else {
+            <[base.logs]>->( 0, ':E: failed to write file: %s', $path_rel );
+        }
+    }
+}
+
+<[base.logs]>->(
+    1,                 ': : %d normalized, %d already canonical',
+    $normalized_count, $canonical_count
+);
+<[base.log]>->( 1, ':' );
+
+return FALSE;
+
+#,,,.,,,.,.,.,..,,.,.,..,,...,,,.,,,,,.,,,,..,..,,...,...,,,,,,.,,,.,,...,...,
+#G7OJMGPPRNEKGWMDXMP2ILCJ5VFTWN6KY7QXGH27PV42J7M4TXO2DIS2AS5TTFW6C3AYXSFULJKV4
+#\\\|MMAKQN432P4ZNKKFZ2ROVWTSZKPWXJXG4P2BQPOJK4RDGAASNVU \ / AMOS7 \ YOURUM ::
+#\[7]4FGUAHBTONCAYANZCJFB3PCG7REHS7DXROLKLS7SZIEZDQTYUADI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
