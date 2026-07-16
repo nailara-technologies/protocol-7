@@ -51,6 +51,19 @@ if ( $action eq qw| start | ) {
     $data{'buffer'}{$name}{'data'} = [];
     $data{'buffer'}{$name}{'size'} = 0;
 
+    ##  pin recording to current frontend [ leading meta line ]  ##
+    my $full_uri    = $view->get_uri() // '';
+    my $pin_subject = $full_uri;
+    $pin_subject =~ s|#.*$||;    ##  fragment holds ephemeral state  ##
+    my $pin_chk   = <[chk-sum.bmw.L13-str]>->($pin_subject);
+    my $meta_json = <[format.json.encode]>->(
+        {   'type' => qw| meta |,
+            'url'  => $full_uri,
+            'chk'  => $pin_chk
+        }
+    );
+    <[base.buffer.add_line]>->( $name, $meta_json );
+
     my $js = '';
     $js .= sprintf( 'window.__p7ReplayTarget = %s;', $target_expr )
         if length $target_expr;
@@ -121,8 +134,8 @@ my $stop_js = 'window.__p7RecordingActive = false;'
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,..,,,,.,...,,,.,..,,.,,,,.,,,,.,.,.,,.,,..,,...,..,,.,.,,,,,,,,,,..,...,
-#3UFOYOV3UTRQZLDRTTHS66YOJMUJBFYXGNZSB4C33XAIHNRSH5AR2DU2DNC6PSO2S6VA33RAJDRN6
-#\\\|P72Q6D6XX2AE6ACOFOZTPQ2NIZWCONH6BTO74PCFRASSPYDL34T \ / AMOS7 \ YOURUM ::
-#\[7]T4OSQGJ6L66NYYVCGESVVV6LQIUOC7J7JWLW5IAQGQMWSAYAXGCQ 7  DATA SIGNATURE ::
+#,,.,,..,,,..,.,,,..,,..,,,..,,.,,...,.,.,,,.,..,,...,...,.,,,...,..,,,,,,,..,
+#IL6VWZII6XE3LBM2K2WWLJJNNNUJZSUAVXNCEZFIRNZQXLFHBNSZKMXWJBYPZATVG5QITMLCEF626
+#\\\|K7OX4B7JWVJGZULZB2YCI57M3KKUT6Q4MIX5XV527CY3V5E6OHQ \ / AMOS7 \ YOURUM ::
+#\[7]JAKKCUZ2YYDKZS2VIUPCWNB7RCCW4PO4VJOMTHYB7IY2Q2YHVKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
