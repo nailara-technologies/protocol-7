@@ -13,14 +13,15 @@ return { 'mode' => qw| false |, 'data' => 'usage: diff <file> [ref]' }
 my $file = shift @parts;
 my $ref  = shift @parts // qw| HEAD |;
 
-my @cmd = ( qw| git diff |, $ref, qw| -- |, $file );
+my $root = <system.root_path> // '.';
+my @cmd  = ( qw| git |, '-C', $root, qw| diff |, $ref, qw| -- |, $file );
 
 my $output = $code{'ncode.util.run_cmd'}->(@cmd);
 
 return { 'mode' => qw| size |, 'data' => $output };
 
-#,,.,,.,,,...,.,.,,.,,,,,,,,.,..,,,.,,.,.,,..,.,.,...,...,..,,..,,.,,,..,,.,,,
-#THU5UDUCU4NF75L346B65NG35MA6W4JNQKCEMT3U5TM46HQGFIITR67HCNSQETZMANQUAK4AJF5PO
-#\\\|CDTUNEUCNFJC4V55GSUYK66DVW6PSDFO7QW37UBEWOXLI7F4KLV \ / AMOS7 \ YOURUM ::
-#\[7]MUJ3TZS6HVDDS4O7NZMR3BFPHU6HMMFUYQBCOEGSSVELGLOJ5GAI 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,.,,,,,,,.,,,...,.,,,..,,,.,,...,.,.,...,..,,.,.,,,.,,,,,.,,,..,,
+#F6CGRNLRZJ3MY2UGHJI2ZKM7CMCBMWR3LHCPZWDLQ46EQJCQMUKC44WWF36U4MYBCSFFXTH5JXB3E
+#\\\|TJYVD72BFTQLPVOXWEDL5Q47N5L4OKBFDEEUGEUPNM2RMXJKM3U \ / AMOS7 \ YOURUM ::
+#\[7]HYMPO4M7SMHVRAP3ACEJS34IAOFEP2TNOMISMFAJL77GV6KPNICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
