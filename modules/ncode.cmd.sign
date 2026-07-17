@@ -3,8 +3,7 @@
 # name  = ncode.cmd.sign
 # descr = sign a single source file with sourcecode key
 
-my $call_args = $ARG                 // {};
-my $args      = $call_args->{'args'} // '';
+my $args = $call->{'args'} // '';
 
 my @parts = split m|\s+|, $args;
 my $file  = shift @parts // '';
@@ -30,8 +29,8 @@ if ( $output =~ m|success|i or $output =~ m|signature|i or $? == 0 ) {
     return { 'mode' => qw| false |, 'data' => $output };
 }
 
-#,,..,...,,.,,,,,,.,.,..,,,,,,,,.,,,,,,,.,..,,.,.,...,...,...,,.,,,.,,.,,,..,,
-#EW5XDGZH4ZCH7PEGM5WQS7VKJP42JHJJKLREI5AV3TR4EMOSJHUGNQMYZ4AQG5AFNOPQ3ZN4VNUMM
-#\\\|37BENLV565NWVF3Q2UKEKLW2D4UI7MCJLEHW5JGRJH2FQLR6AYN \ / AMOS7 \ YOURUM ::
-#\[7]BGC7WQVGDDDVSD2IY53NYHLR53N3IQ5WHIBCYFEQSNGXAYFCLYBY 7  DATA SIGNATURE ::
+#,,..,.,,,...,,,,,...,...,,,.,,.,,...,,,,,...,.,.,...,...,,..,.,,,.,,,...,.,.,
+#IWNPZ4TFWPWS43SAWVUMPP62ULB6D3ELSD3ZXLZTITPI2AB37UOORTTOQRZA4MM4RYYZ5LPFDLW62
+#\\\|A5V2TNN7UMXHTLSLO4H2TA5QYHDS4EEQLQCSM5VX4E5CJ6UVODA \ / AMOS7 \ YOURUM ::
+#\[7]J66XD55ASMGLSALFONH6WKV6UJM4IT3A3Q6U3WHJOQGNB6IT7UBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

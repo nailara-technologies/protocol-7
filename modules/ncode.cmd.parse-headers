@@ -3,8 +3,7 @@
 # name  = ncode.cmd.parse-headers
 # descr = extract name and descr from a module header
 
-my $call_args = $ARG                 // {};
-my $args      = $call_args->{'args'} // '';
+my $args = $call->{'args'} // '';
 
 my @parts = split m|\s+|, $args;
 my $file  = shift @parts // '';
@@ -42,8 +41,8 @@ $out .= sprintf "descr : %s\n", $descr // '';
 
 return { 'mode' => qw| size |, 'data' => $out };
 
-#,,,,,,..,,..,.,.,,,.,,,.,.,,,.,,,...,,..,..,,.,.,...,...,..,,..,,.,,,..,,,,,,
-#VFEMUOAGAKJMGFL55X6SMYGKNJ25X7URNHDJVHX5IWRNBJYB2ASC2ZRJPBPOEXW2ZMMPQDKTZCJTI
-#\\\|GHIHI54LEJGINUCXFNBTZMIE6HA3YVRPRSIO75FIZOTHCKHDMUH \ / AMOS7 \ YOURUM ::
-#\[7]QB4Y5ELSZACNXKILUMZ567ZVMY7JFUY6J65DTSKCMFSDFLW5BYCY 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,...,.,.,,.,,.,,,..,,,..,,,.,,.,,.,.,...,..,,,..,,..,.,,,,.,,,..,
+#I6JUDI2CRQ47A3DDP4QSAT7YPYFJKFWOD3OP5QT54S6A2IS4YCTBWSXIXIMM6FTWCD23LIPELGYCG
+#\\\|I6MBIZV7UJ4SQDALAKQWB62K46RARPWYPUKICIWSLBWCUX6BWUU \ / AMOS7 \ YOURUM ::
+#\[7]MYGE6XCIMHTK3F3JIRDIWWUHWKQBKBZ3HWUZ6TH23H5YRJD5OECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

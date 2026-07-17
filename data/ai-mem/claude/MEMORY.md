@@ -93,13 +93,13 @@
 - [kimi-dispatch-infra-hardening](topic-kimi-dispatch-infra-hardening.md) — --afk flag, k3/k2.7/k2.7-fast model routing; MCP bridge timeout ≠ dispatch failure
 - [kimi-k3-thinking-effort](topic-kimi-k3-thinking-effort.md) — Low/High/Max in vendor UI, not yet in API/installed CLI
 - [coding-zenka buffer rescue](topic-coding-zenka-session9.md) — idle-shutdown backups readable via group-perm `xz -dc`, no sudo
-- [nested-dispatch-session-tracking](feedback-nested-dispatch-session-tracking.md), [webkit vs firefox css blindspots](feedback-webkit-vs-firefox-css-blindspots.md) — auto_summarize lossy, verify via git diff
+- [nested-dispatch-session-tracking](feedback-nested-dispatch-session-tracking.md), [webkit vs firefox css blindspots](feedback-webkit-vs-firefox-css-blindspots.md)
 - [no sudo for privileged fs ops](feedback-no-sudo-privileged-fs-ops.md) — never `sudo` a protocol-7-owned file; hand command to user
 - [perl and/or precedence in my-assignment](feedback-perl-and-or-precedence-in-my-assignment.md) — `my $x = A and B` only assigns A; use && / ||
-- [p7 route-send wire protocol](feedback-p7-route-send-wire-protocol.md), [oversize single-line protocol](feedback-oversize-single-line-protocol.md) — oversize wedges buffer
+- [p7 route-send wire protocol](feedback-p7-route-send-wire-protocol.md), [oversize single-line protocol](feedback-oversize-single-line-protocol.md)
 - [no unsolicited cross-zenka push](feedback-no-unsolicited-cross-zenka-push.md), [vax-int vs v7-epoch](feedback-vax-int-vs-v7-epoch.md)
 - [log string hygiene](feedback-log-string-hygiene.md), [ondemand timeout tiering](feedback-ondemand-timeout-tiering.md)
-- [claude_dispatch summarize hang](feedback-claude-dispatch-summarize-hang.md) — prompt-overflow hangs
+- [claude_dispatch summarize hang](feedback-claude-dispatch-summarize-hang.md)
 - [init-code-return-values](feedback-init-code-return-values.md), [memory-sync-timing](feedback-memory-sync-timing.md), [memory-management](feedback-memory-management.md)
 - [claude-dispatch-strategy](feedback-claude-dispatch-strategy.md), [kimi-code-review](feedback-kimi-code-review.md), [kimi-signatures](feedback-kimi-signatures.md), [kimi-dispatch-pattern](feedback-kimi-dispatch-pattern.md)
 - [model-precision-analysis](feedback-model-precision-analysis.md), [coding-zenka-edits](feedback-coding-zenka-edits.md)
@@ -111,8 +111,9 @@
 - [utf8-module-literals](feedback-utf8-module-literals.md), [watcher-state-machines](feedback-watcher-state-machines.md)
 - [ncode-tools](feedback-ncode-tools.md), [perltidy-sil0](feedback-perltidy-sil0.md) — use ncode replace/parse-headers; ptd `-sil=0` self-heals
 - [git-log-all-false-duplication](feedback-git-log-all-false-duplication.md) — false "dup commits" = pager strips +/-, colors lost
-- [ncode-access-gap](topic-ncode-access-gap.md) — a zenka only sees its direct neighbor as caller; grant access.cmd.usr.cube, not the human's uname
-- [ncode-safe-refactor-workflow](topic-ncode-safe-refactor-workflow.md) — warn_apply grace-period is TTY-only; needs timeout-based approval equivalent
+- [ncode-access-gap](topic-ncode-access-gap.md) — a zenka only sees its direct neighbor; grant access.cmd.usr.cube, not the human's uname
+- [ncode-safe-refactor-workflow](topic-ncode-safe-refactor-workflow.md) — warn_apply is TTY-only; suggest/apply already ARE a change-queue
+- [cmd-module-call-convention](feedback-cmd-module-call-convention.md) — .cmd. network modules use $call, not $ARG/shift
 - [design-ideation-capture](feedback-design-ideation-capture.md), [coding-timeout-restart-loop](feedback-coding-timeout-restart-loop.md) — offer spin-off docs
 
 ## Completed Sessions
@@ -124,8 +125,8 @@
 - letsencr working; reasoning.branch.* LIVE; coding zenka operational
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: state-0/7 harmonized
 
-#,,,,,,,.,...,,.,,,,,,.,.,..,,..,,,..,,,,,..,,..,,...,..,,.,,,..,,.,,,,,,,,,.,
-#FLWHZYZHOL3YEMAZKN4U5NP2GDTQQJVOEJSAWRSOMGKCPO5LYUG2676GN6DQXL6KVDPMX66BWEIZ2
-#\\\|UUBUSOFZL5WN5ZC5TZQ2BPEPRSPPA2JUDEHJ3VCKESSUWKJFY4D \ / AMOS7 \ YOURUM ::
-#\[7]WCW56ME2TUYPBFVO2WM7IGAEUZRORUPEGPGLQGRAEUEPJ27EIQAI 7  DATA SIGNATURE ::
+#,,,,,...,,.,,.,.,.,.,,.,,...,..,,,,,,,.,,,,.,..,,...,..,,.,.,,..,.,.,..,,.,,,
+#F7WB74ZORTBJEKNTJTQGHMJBKSYNHQWMV2ILLU46KIJAG3UA2ZTVNPZLHY5FVDRYYODYH4IME4ROQ
+#\\\|R4H2GFKWFKITCL37YYEKGNKA6LQR6OIYJKZ7KKXAXZ2INFC4AGQ \ / AMOS7 \ YOURUM ::
+#\[7]SKCHZO7GBDDUUHDABVZ5X7O2Z6MYZBFUZK56PBHTZ75IYFNJPCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
