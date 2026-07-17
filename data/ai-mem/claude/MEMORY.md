@@ -29,8 +29,8 @@
 - [reasoning-chain-repository](topic-reasoning-chain-repository.md), [reasoning-namespace](topic-reasoning-namespace.md) — dedup self-improvement; `reasoning.*` ns
 - [checksum-parenting-namespace-trees](topic-checksum-parenting-namespace-trees.md), [triple-twofish-name-entropy](topic-triple-twofish-name-entropy.md)
 - [coding-state-machine](topic-coding-state-machine.md), [kimi-zenka-state-machine](topic-kimi-zenka-state-machine.md) — reconnect open
-- [chat-script](topic-chat-script.md), [stream-transport-layer](topic-stream-transport-layer.md), [stream-reply-modes](topic-stream-reply-modes.md) — COMPLETE
-- [radio-relay-zenka](topic-radio-relay-zenka.md), [vhost-install](topic-vhost-install.md), [model-load-time-statistics](topic-model-load-time-statistics.md) — COMPLETE
+- [chat-script](topic-chat-script.md), [stream-transport-layer](topic-stream-transport-layer.md), [stream-reply-modes](topic-stream-reply-modes.md)
+- [radio-relay-zenka](topic-radio-relay-zenka.md), [vhost-install](topic-vhost-install.md), [model-load-time-statistics](topic-model-load-time-statistics.md)
 - [cursor-model](topic-cursor-model.md), [iris-spoke-labels](topic-iris-spoke-labels.md), [stream-framing-protocol](topic-stream-framing-protocol.md)
 - [nshell-terminal-rendering](topic-nshell-terminal-rendering.md), [memory-tree-zenka](topic-memory-tree-zenka.md) — tree LIVE
 - [web-browser-param-capture-graphing](web-browser-param-capture-graphing.md) — LANDED cae42647d; root-caused zoom-momentum bug
@@ -41,6 +41,7 @@
 - [implicit-perspective-navigation](topic-implicit-perspective-navigation.md) — curves/thresholds ARE the nav decision; explicit/implicit/magnetic modes; design-only
 - [dynamic-dependency-resolution](topic-dynamic-dependency-resolution.md) — local-capability-first, then preference match, then discovered capability chains
 - [decision-node-polarity-geometry](topic-decision-node-polarity-geometry.md) — seed: polarity node = reference-bubble's 5-of-7; not yet reconciled w/ node-group-geometry
+- [write-access-security-infrastructure](topic-write-access-security-infrastructure.md) — signature-gated approvals, PIN auth, jobsite-style review UI; design-only
 - [source-identity-spoofing](feedback-source-identity-spoofing.md), [project-vision-origin](project-vision-origin.md) — hostnames aren't a security boundary, C25519 is; 24yr vision
 - [synchronous-multi-legged-pattern-extraction](topic-synchronous-multi-legged-pattern-extraction.md), [distributed-hybrid-inhabitants](topic-distributed-hybrid-inhabitants.md) — parallel component search
 - [protocol-as-self-governing-authority](topic-protocol-as-self-governing-authority.md), [intelligent-glue-identity](topic-intelligent-glue-identity.md) — P7="intelligent glue"
@@ -57,7 +58,7 @@
 - [addressing-trinity](topic-addressing-trinity.md), [checksum-addressing](topic-checksum-addressing.md), [node-group-geometry](topic-node-group-geometry.md) — tree+checksums+timestamps
 - [1001](topic-1001.md), [perspective-layers](topic-perspective-layers.md), [observer-centric-space](topic-observer-centric-space.md) — cube tunnel/gate nesting
 - [routing-crystal](topic-routing-crystal.md), [checksum-tree-wire](topic-checksum-tree-wire.md), [tree-protocol](topic-tree-protocol.md), [data-protocol](topic-data-protocol.md)
-- [reference-bubble](topic-reference-bubble.md), [branch-namespace](topic-branch-namespace.md) — rhizome bubble (5+2=7); Z.Y.X coords
+- [reference-bubble](topic-reference-bubble.md), [branch-namespace](topic-branch-namespace.md) — rhizome bubble (5+2=7)
 
 ## Reference
 - [unicode-encoding-repair](reference-unicode-encoding-repair.md), [patterns](topic-patterns.md), [coding-zenka-templates](topic-coding-zenka-templates.md) — UTF8 fix; core patterns
@@ -96,20 +97,22 @@
 - [no sudo for privileged fs ops](feedback-no-sudo-privileged-fs-ops.md) — never `sudo` a protocol-7-owned file; hand command to user
 - [perl and/or precedence in my-assignment](feedback-perl-and-or-precedence-in-my-assignment.md) — `my $x = A and B` only assigns A; use && / ||
 - [p7 route-send wire protocol](feedback-p7-route-send-wire-protocol.md), [oversize single-line protocol](feedback-oversize-single-line-protocol.md) — oversize wedges buffer
-- [no unsolicited cross-zenka push](feedback-no-unsolicited-cross-zenka-push.md), [vax-int vs v7-epoch](feedback-vax-int-vs-v7-epoch.md) — consumer pulls; `p7c localtime`
-- [log string hygiene](feedback-log-string-hygiene.md), [ondemand timeout tiering](feedback-ondemand-timeout-tiering.md) — not raw $EVAL_ERROR
-- [claude_dispatch summarize hang](feedback-claude-dispatch-summarize-hang.md) — prompt-overflow hangs; kill PID, work safe on disk
-- [init-code-return-values](feedback-init-code-return-values.md), [memory-sync-timing](feedback-memory-sync-timing.md), [memory-management](feedback-memory-management.md) — TRUE/FALSE=success
+- [no unsolicited cross-zenka push](feedback-no-unsolicited-cross-zenka-push.md), [vax-int vs v7-epoch](feedback-vax-int-vs-v7-epoch.md)
+- [log string hygiene](feedback-log-string-hygiene.md), [ondemand timeout tiering](feedback-ondemand-timeout-tiering.md)
+- [claude_dispatch summarize hang](feedback-claude-dispatch-summarize-hang.md) — prompt-overflow hangs
+- [init-code-return-values](feedback-init-code-return-values.md), [memory-sync-timing](feedback-memory-sync-timing.md), [memory-management](feedback-memory-management.md)
 - [claude-dispatch-strategy](feedback-claude-dispatch-strategy.md), [kimi-code-review](feedback-kimi-code-review.md), [kimi-signatures](feedback-kimi-signatures.md), [kimi-dispatch-pattern](feedback-kimi-dispatch-pattern.md)
-- [model-precision-analysis](feedback-model-precision-analysis.md), [coding-zenka-edits](feedback-coding-zenka-edits.md) — verify LLM-described edits
-- [coding-zenka-reasoning](feedback-coding-zenka-reasoning.md), [coding-zenka-inject](feedback-coding-zenka-inject.md) — low reasoning→premature completion
-- [arg-regression](feedback-arg-regression.md), [arg-calling-convention](feedback-arg-calling-convention.md) — `@_ ? shift : $ARG`
-- [prefer-parsed-config](feedback-prefer-parsed-config.md), [true-false-constants](feedback-true-false-constants.md)
-- [web-serialization-and-inlining](feedback-web-serialization-and-inlining.md), [task-show-multiline](feedback-task-show-multiline.md) — task.show escapes \n
-- [list-return-format](feedback-list-return-format.md), [stop-and-revert](feedback-stop-and-revert.md) — root cause first
+- [model-precision-analysis](feedback-model-precision-analysis.md), [coding-zenka-edits](feedback-coding-zenka-edits.md)
+- [coding-zenka-reasoning](feedback-coding-zenka-reasoning.md), [coding-zenka-inject](feedback-coding-zenka-inject.md)
+- [arg-regression](feedback-arg-regression.md), [arg-calling-convention](feedback-arg-calling-convention.md)
+- [prefer-parsed-config](feedback-prefer-parsed-config.md), [true-false](feedback-true-false-constants.md)
+- [web-serialization-and-inlining](feedback-web-serialization-and-inlining.md), [task-show-multiline](feedback-task-show-multiline.md)
+- [list-return-format](feedback-list-return-format.md), [stop-and-revert](feedback-stop-and-revert.md)
 - [utf8-module-literals](feedback-utf8-module-literals.md), [watcher-state-machines](feedback-watcher-state-machines.md)
 - [ncode-tools](feedback-ncode-tools.md), [perltidy-sil0](feedback-perltidy-sil0.md) — use ncode replace/parse-headers; ptd `-sil=0` self-heals
 - [git-log-all-false-duplication](feedback-git-log-all-false-duplication.md) — false "dup commits" = pager strips +/-, colors lost
+- [ncode-access-gap](topic-ncode-access-gap.md) — a zenka only sees its direct neighbor as caller; grant access.cmd.usr.cube, not the human's uname
+- [ncode-safe-refactor-workflow](topic-ncode-safe-refactor-workflow.md) — warn_apply grace-period is TTY-only; needs timeout-based approval equivalent
 - [design-ideation-capture](feedback-design-ideation-capture.md), [coding-timeout-restart-loop](feedback-coding-timeout-restart-loop.md) — offer spin-off docs
 
 ## Completed Sessions
@@ -121,8 +124,8 @@
 - letsencr working; reasoning.branch.* LIVE; coding zenka operational
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: state-0/7 harmonized
 
-#,,..,,,,,,,,,.,,,..,,..,,.,,,,,,,..,,...,.,,,..,,...,...,,..,,,.,...,,,,,,.,,
-#ZLH6HUAPUMCDBWENYI6J7LRMDJ6FOXY3D6PKA4QVVML7RGM26KFTYCYIAABA6HRHXVK64RJPE5TE2
-#\\\|5CALZWHSMTRDAZ6WBK5HS3ZIYTYXZNVYW6XKU6XL3FE2SEPGWDN \ / AMOS7 \ YOURUM ::
-#\[7]HITD6MFP4NRTB474A2DNEKUBEUS6CIYCGNVJBTDTVP337ONPVADA 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,.,,,,,,.,.,..,,..,,,..,,,,,..,,..,,...,..,,.,,,..,,.,,,,,,,,,.,
+#FLWHZYZHOL3YEMAZKN4U5NP2GDTQQJVOEJSAWRSOMGKCPO5LYUG2676GN6DQXL6KVDPMX66BWEIZ2
+#\\\|UUBUSOFZL5WN5ZC5TZQ2BPEPRSPPA2JUDEHJ3VCKESSUWKJFY4D \ / AMOS7 \ YOURUM ::
+#\[7]WCW56ME2TUYPBFVO2WM7IGAEUZRORUPEGPGLQGRAEUEPJ27EIQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
