@@ -3,8 +3,7 @@
 # name  = ncode.cmd.doc
 # descr = look up documentation for a p7 module or perl symbol
 
-my $call_args = $ARG                 // {};
-my $args      = $call_args->{'args'} // '';
+my $args = $call->{'args'} // '';
 
 my @parts = split m|\s+|, $args;
 my $arg   = shift @parts // '';
@@ -18,8 +17,8 @@ my $output = $code{'ncode.util.run_cmd'}->(@cmd);
 
 return { 'mode' => qw| size |, 'data' => $output };
 
-#,,,.,..,,,,,,,,.,,,.,.,.,,,,,,.,,,.,,,,,,,,,,.,.,...,...,,,,,...,.,.,,,.,..,,
-#BA76FVGKRNF6ZRJ2SGHWC3PJHQXHPNAT6UNGIHZUXKNBOABY72NRMC4K7ETUOB3Z7JAMQDBXSB4CM
-#\\\|F5K73PB3JUDCPFA2AI565WBJOTEBH3BSA5OLQVOB2UJGITFIQE3 \ / AMOS7 \ YOURUM ::
-#\[7]MXMDCMS3FGTRRFUEIFKBDOL72HQMYGPR22LKWUGUWM67MF5STUCI 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,..,,..,,,,.,.,,,.,.,...,,..,.,.,.,.,...,...,,,.,,,.,,,,,,..,,.,,
+#VD7DW47UOR2I5H32GJ22ZDWKLQHMEC6SVYKN2E2HPTWJEWKINVKU4TOI7TGPHSR7CV3LPMBNYX72O
+#\\\|CJ2EDZIHXZPXB47FRKVIK5ZR67RMBFHPZFR2XN564VV443ML4J4 \ / AMOS7 \ YOURUM ::
+#\[7]ZX5TPTE5JIR7FJD57CLA7NKWRVP2PQ5EWRBJY5HSWJIYIFGT6MAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
