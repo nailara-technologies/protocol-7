@@ -19,9 +19,9 @@ a point-in-time snapshot):
 - tier 2 (NOT READY): self-error-processing-cycle — 3 open decisions.
 - tier 3 (GATED): change-accounting architecture.
 
-**UNCOMMITTED 2026-06-21, near context-limit handover: generic
-`result_constraint` + tiered escalation — IMPLEMENTED, MOSTLY VERIFIED,
-NOT YET COMMITTED.**
+**LANDED, commit `2bdc09631`** (was uncommitted as of 2026-06-21 handover;
+confirmed committed by 2026-07-17): generic `result_constraint` + tiered
+escalation (tier-0/1/2).
 
 `modules/coding.self_test.check_constraint` (round 1, tier-0 structural
 checker) is already **COMMITTED as `a54280245`**.
@@ -112,16 +112,14 @@ in the same session, even after the user did a swap thrash fix
 
 See [[topic-summary-tree-phase1]] for full detail — architecture, three real
 bugs found+fixed live, two known limitations. Design doc:
-`data/tasks/task-summary-topic-tree.md`. Phase 1 committed once (661d225bc),
-then a BMW-L13 checksum switch was made on top — **uncommitted at session
-end, needs sign+commit next session** (3 files: `bin/mcp-server-p7`,
-`modules/coding.cmd.summarize-context`, `data/tasks/task-summary-topic-tree.md`).
+`data/tasks/task-summary-topic-tree.md`. Phase 1 committed (661d225bc); the
+BMW-L13 checksum switch on top is also **LANDED, commit `932a539b8`**.
 
 Read [[topic-summary-tree-phase1]] before touching this area again — don't
 re-derive the architecture or re-hit the same bugs.
 
-#,,.,,,,.,,.,,,,,,...,..,,,.,,.,,,.,.,.,,,..,,..,,...,...,.,,,.,.,,.,,,,.,,..,
-#HQSCVPG7NMZWD5VFUTPF44EEN52CVCRWQTWVGDB7PZPUOWHMEXCCH23MLQEFRB2CUGUMWRZNMSIBS
-#\\\|ML4V6OA5P2L35ERAU6S43TZ5GKCOMMGCZAKJRQO5FJBOTDQ77N3 \ / AMOS7 \ YOURUM ::
-#\[7]ODOYC2N6RFMDBRJ7LODILI74T6BYRATUFRJE7N75UNLQELBK72CQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,,.,,,,,,,.,...,,,,,..,,,.,,..,,..,,...,...,,,.,,,,,...,,..,.,.,
+#OPP5Z4ATICDGMAPT5VZH5ONWTW756RYFZGI6NKTKDFDTQJF5WHQKKEOLHUWAPE6EXFD7TD6W324KY
+#\\\|5KOWMAWOFW5K6VACKFD36CZTSF4V2JJMKQI3NGNLLTA3NKU2BIY \ / AMOS7 \ YOURUM ::
+#\[7]NR4TDF4JFQBE5I4K4EJX3CLVNUG2EUQHZEURUD3WLF7RI3MYQ2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
