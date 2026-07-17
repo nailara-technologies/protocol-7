@@ -61,7 +61,7 @@ Two distinct failures from one missing call:
   visually take effect without a follow-up `WM.update` to push it through
   to the compositor.
 
-Fix (landed, uncommitted): `modules/X-11.cmd.set_geometry` now calls
+Fix (landed, commit `26eea1eda`): `modules/X-11.cmd.set_geometry` now calls
 `<[X-11.WM.update]>` both immediately before and immediately after
 `ConfigureWindow`. User-confirmed live: mpv window now appears mapped,
 correctly positioned, on the correct screen, matching the
@@ -100,8 +100,8 @@ logic that needs the player socket uses mpv.dep.socket as its dependency.
 [[topic-self-improving-system]]
 [[topic-mpv-persistence]]
 
-#,,.,,,.,,..,,,..,,..,,,.,.,.,..,,,,.,,,,,..,,..,,...,..,,,,.,,.,,...,,,,,,,.,
-#ZF6AEEPVF3LOLEJHHPXB52YTCZ7LHKWTERCUFGAW6WUVLGV3SUBTSXOY5CROQAKOWE2EGJWJTAVPM
-#\\\|UBQZS5EVFUMYLDOV7OZND3MR55IBTOEMMC2FKBWVX4BC34QNAES \ / AMOS7 \ YOURUM ::
-#\[7]4OCTFOGOQXINU5S2J3LVECMLE5AKAKGP5ASFLPZOABX6YARC4UAA 7  DATA SIGNATURE ::
+#,,..,...,,..,..,,,.,,,.,,,,,,...,.,.,.,,,.,.,..,,...,...,.,.,.,,,,,.,...,..,,
+#A2L75XRXB2KYW3HMZN3VZMN6MRXRAHOIDDV33TYGFIDUEENYSFSPXJVFV6PY3YMT57WZOTEDN63AO
+#\\\|JA7ZUAGK2I3ZINT4YELIU5GRBHYNKHYO55SA4PMIUZCUSHOJXH6 \ / AMOS7 \ YOURUM ::
+#\[7]6MC4ITQDJYXQGL2IEEJRN4VRXZ4EWWYDKFKJLNHMKI3ABCUUIMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

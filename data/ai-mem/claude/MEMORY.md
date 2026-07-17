@@ -1,7 +1,6 @@
 ## CRITICAL
 - [web-browser ephemeral storage](feedback-web-browser-ephemeral-storage.md) — WebKit ephemeral=1: storage wiped every restart
 - [WSLg deiconify limitation](feedback-wslg-deiconify-limitation.md) — Weston/WSLg blocks deiconify at compositor level
-- [UNCOMMITTED 2026-06-20 mpv/X-11 set](topic-mpv-jobqueue-startup.md) — fade_in test values must be reverted before commit
 - [gtk-wsl-window-positioning](topic-gtk-wsl-window-positioning.md) / [weston-move-unreliable](feedback-weston-move-unreliable-use-compositor-grab.md) — begin_move_drag not move(); window.place grab-leak fixed fff81c212, initial-placement-before-show_all still open
 
 ## Active Topics
@@ -46,7 +45,7 @@
 - [synchronous-multi-legged-pattern-extraction](topic-synchronous-multi-legged-pattern-extraction.md), [distributed-hybrid-inhabitants](topic-distributed-hybrid-inhabitants.md) — parallel component search
 - [protocol-as-self-governing-authority](topic-protocol-as-self-governing-authority.md), [intelligent-glue-identity](topic-intelligent-glue-identity.md) — P7="intelligent glue"
 - [resonance-field-emergence](resonance-field-emergence.md), [dedup-tree-unifying-mechanism](topic-dedup-tree-unifying-mechanism.md) — mod-13 vs Rodin mod-9; dedup tree unifies reasoning/tiering/QA
-- [coding-zenka-improvement-pipeline](coding-zenka-improvement-pipeline.md) — tier0-1.5 done, tier2/3 gated; UNCOMMITTED since 2026-06-21
+- [coding-zenka-improvement-pipeline](coding-zenka-improvement-pipeline.md) — tier0-2 LANDED 2bdc09631, tier3 gated
 - [hybrid-namespace-routing](topic-hybrid-namespace-routing.md), [zenka-macro-language-postponement](project-zenka-macro-language-postponement.md) — 5 routing types; local-wins
 - [layer-matrix-convergence](project-layer-matrix-convergence.md), [self-improving-system](topic-self-improving-system.md) — restart/migration/branching=one algebra
 - [network-as-computer](topic-network-as-computer.md), [namespace-tree-intelligence](topic-namespace-tree-intelligence.md), [orbital-data-space](topic-orbital-data-space.md) — zenki-as-satellites
@@ -122,8 +121,8 @@
 - letsencr working; reasoning.branch.* LIVE; coding zenka operational
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: state-0/7 harmonized
 
-#,,,.,,,.,,..,.,.,..,,,..,,,.,...,...,,..,.,,,..,,...,...,.,.,,,,,,,.,.,,,...,
-#CV6IKCWHCOCLA5MFBRVGZDMAIB6IQSKS4L5AEBO3P5NBFVR3X7TSZDLWSNXCEPTFCFT6YXLUXG7BC
-#\\\|CCPLH4ZGIGAU7XWKWWNSK3DWVWDV4KOCIFZZ5MJW2GYJZFGWVDZ \ / AMOS7 \ YOURUM ::
-#\[7]KJWFRBRFGTOMXIAUFJAEREAB3F3CHUPZE3WBCGI7NDEB6P7BEEAI 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,.,,,..,,..,,.,,,,,,,..,,...,.,,,..,,...,...,,..,,,.,...,,,,,,.,,
+#ZLH6HUAPUMCDBWENYI6J7LRMDJ6FOXY3D6PKA4QVVML7RGM26KFTYCYIAABA6HRHXVK64RJPE5TE2
+#\\\|5CALZWHSMTRDAZ6WBK5HS3ZIYTYXZNVYW6XKU6XL3FE2SEPGWDN \ / AMOS7 \ YOURUM ::
+#\[7]HITD6MFP4NRTB474A2DNEKUBEUS6CIYCGNVJBTDTVP337ONPVADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
