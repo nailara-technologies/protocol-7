@@ -79,14 +79,16 @@ do {
 my @external_tools = (
     {   'name'        => 'kimi_dispatch',
         'description' => 'dispatch a task to the local kimi AI agent. '
-            . 'runs kimi with auto-approval (-y) and returns combined '
-            . 'output. '
+            . 'runs kimi with auto-approval (-y) and afk mode (--afk, '
+            . 'auto-dismisses any AskUserQuestion instead of hanging — '
+            . 'no one can answer an interactive prompt from a background '
+            . 'dispatch) and returns combined output. '
             . 'use for code implementation, analysis, or research tasks. '
             . 'kimi prints a resume line at the end: '
             . '"To resume this session: kimi -r <uuid>" — '
             . 'pass that uuid to kimi_continue to resume a long-running '
             . 'task.',
-        'command' => 'kimi-legacy -y -p %s',
+        'command' => 'kimi-legacy -y --afk -p %s',
         'params'  => [
             [ 'prompt', 'the task or question for kimi to work on', 1 ],
             [   'auto_summarize',
@@ -109,7 +111,7 @@ my @external_tools = (
             . 'pass the uuid from "To resume this session: kimi -r <uuid>". '
             . 'kimi resumes with full prior context and acts on the new '
             . 'prompt.',
-        'command' => 'kimi-legacy -y -r %s -p '
+        'command' => 'kimi-legacy -y --afk -r %s -p '
             . '%s',           ## session uuid + new prompt
         'param_name'  => 'session_id',
         'param_desc'  => 'the kimi session uuid from the resume line',
@@ -3012,8 +3014,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,..,,,,,,..,..,,..,,.,.,,,.,.,.,...,,.,,...,..,,...,...,..,,..,,,.,,,,.,.,.,
-#3N4S6IKLK2Z2SVNPD655VUUL7NBED6P7KFIMZFQ5FSFVBET6AQBJRA7JBRBIR52DWEVDWM5JGUIUC
-#\\\|T32XS26XJTOFJHMJWVM4TCVTAVSUEP7V4VD6ESLKBM5TAFJZ5ZJ \ / AMOS7 \ YOURUM ::
-#\[7]AD2SA67YAVTAR4M3P4PLSXX7RKJXG6D3ESTL6MXYWYMTEVR6UQDA 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,,.,,..,,,,,,,,,...,,,,,.,.,..,,..,,...,...,..,,,,,,,,.,.,.,,,,,
+#57BIJIJKAPE4OAWI2X2O4674TPD2MYOV4M2JCGNPU63WFU7GLONBH2OP7OM23U3IGKRRQYFHA5RX4
+#\\\|WBX6G547ANGYO5ZJOD4WGYXJIDJINYTAUOXG5HGB75IYQFVQM57 \ / AMOS7 \ YOURUM ::
+#\[7]RFBCQ3UK5MAQGE2VHE63UD5KXKBTQVBMCWDWWIU64D7V2EXMBCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
