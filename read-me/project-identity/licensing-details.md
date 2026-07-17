@@ -3,15 +3,7 @@
 
 ## License Overview
 
-The Protocol-7 project is licensed under a dual license model:
-
-1.  **Public Domain**: All code and data considered "original" work by the
-                       author (Taeki Ten) is in the public domain.
-
-2.  **Protected Code/Data**: Certain components are protected to preserve
-                    their original intent as unmanipulated source material.
-
-## Public Domain License
+All nailara and [AMOS7] Protocol-7 work is in the public domain.
 
 By signing this signature, I, Taeki Ten ([Alexander Taute]), declare all
 original work committed to be public knowledge :
@@ -23,27 +15,17 @@ original work committed to be public knowledge :
 
 ```
 
-## Protected Code/Data
+## Exception: Work of Others
 
-Certain components of the project are protected due to their nature as:
+The exception is work of others [ declared as such ], signed to protect an
+unmanipulated state of the respective source code and data. These are
+third-party components, not the author's original work, and retain their
+own licensing status unless explicitly stated otherwise.
 
-- Original creations tied to specific hardware/software configurations
-- Data structures meant to maintain their original form
-- Code modules with specialized applications
+```
 
-These protected elements retain their original licensing status unless
-explicitly stated otherwise.
-
-## Derivative Works
-
-Any derivative works based on this code must:
-
-1. Be clearly documented as such
-2. Retain appropriate attribution and licensing notes
-3. Preserve the original license terms where applicable
-
-#,,.,,,..,,.,,,,,,,,.,,..,,..,.,,,..,,.,,,..,,..,,...,...,..,,..,,,,.,,,,,,,.,
-#GHAXELFGYRYR5JAHN7SECNCVVZZVM6C72EILRFPGFUARLBGRSUTAXGIA375DOE7FISRJ57G3T4T7W
-#\\\|3LKLV5ZD4BRDZF6PZGQTBE7GA67THJ6HSQ2RVZLTVMRJCENIXWS \ / AMOS7 \ YOURUM ::
-#\[7]GOKUBNVAXRCQNIWSUUOX7M4EUAOXIEHH2WZ4WYMM5QJWQECRVQAY 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,.,,..,,...,.,,,.,,,,,,,..,,...,..,,...,...,...,.,,,...,,..,.,.,
+#2PU32QVLMAGLB4SDA6TSMINZ54K5XS5JAKQWULUTNSM3SYJT46MUZ7W32YH4IWW2O4WOLJNCL53CI
+#\\\|XR3RDPU4RTSIME4WKJ6DELJ4OKPQVMZY3745XOUGDS46EGX3JTQ \ / AMOS7 \ YOURUM ::
+#\[7]G6T6D2K7GOF652AF24LZJ2M5AGJ5KKG7PNK7DSOIHACMNBH6CGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
