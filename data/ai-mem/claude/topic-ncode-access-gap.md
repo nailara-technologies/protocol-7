@@ -48,13 +48,12 @@ with zero new cube-side config needed. A non-admin zenka (e.g. `coding`)
 wanting the same access would need an *explicit* grant added to cube's
 own `access.zenki`, since it has no such wildcard.
 
-**Not fully resolved**: an earlier live test (`ncode.search` succeeding
-right after the *first*, wrong fix landed) appeared to work — under this
-corrected model that shouldn't have been possible, since `access.cmd.usr.
-taeki`/`.unix-taeki` can never match inside `ncode`. Don't treat that
-earlier "success" as evidence for anything; it wasn't re-investigated
-before the fix was corrected, and the corrected fix (`access.cmd.usr.
-cube`) is the one to actually verify live.
+**Resolved and verified live**: after the corrected `access.cmd.usr.cube`
+grant, `ncode.commands` lists all 11 commands and `search`/`diff`/
+`diff-staged` all work end-to-end for `taeki`. The earlier "success" with
+the wrong `taeki`/`unix-taeki` keys was never re-investigated and should
+still be treated as unexplained/coincidental, not evidence either model
+was right at the time.
 
 ## general mechanism (still accurate from the original trace)
 
@@ -86,8 +85,8 @@ never to the human's own uname. Then check whether cube's own
 
 [[topic-write-access-security-infrastructure]]
 
-#,,..,..,,,.,,...,..,,.,.,..,,,,,,...,,.,,...,..,,...,...,.,.,.,,,,,,,,,,,...,
-#LXYMAUQQHF2E472NOHAK7GYOUETAMZ7QNW3LSJNQGY5JBBFVIZ5HRZJAIR4XECNI2J2YN73ZDGV5S
-#\\\|Y5J6276HMY7HRAG3PB65244KZ4MD3I33UKALTZOFHEDZWVM3SRX \ / AMOS7 \ YOURUM ::
-#\[7]DSU3LTEYSASHHJT333GAAXXFIB5G5QUYSCTOMH3OLWHNQF6ZU6CI 7  DATA SIGNATURE ::
+#,,,.,..,,...,,,,,,,.,...,.,.,,..,.,.,,.,,,..,..,,...,...,.,,,.,,,,..,,,,,,,,,
+#BRYGKSHUXSV442BUVRQE2DLK3XO4PQ2IFSFNPZQAURFRR2ZQQGVDDUNZVQUEICZI7EENJSIY2AH6C
+#\\\|VKRISDNHMY3OD4DEYUUGYQWKAASQJUTGEDFSNS5RZQRY6YYNPBQ \ / AMOS7 \ YOURUM ::
+#\[7]5F3D4CFBFJQP5GECHGV37CABRGW3526J7CIAYON2GKS3MZHWJCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

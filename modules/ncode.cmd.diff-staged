@@ -3,14 +3,15 @@
 # name  = ncode.cmd.diff-staged
 # descr = show staged changes via git diff --cached
 
-my @cmd = (qw| git diff --cached |);
+my $root = <system.root_path> // '.';
+my @cmd  = ( qw| git |, '-C', $root, qw| diff --cached | );
 
 my $output = $code{'ncode.util.run_cmd'}->(@cmd);
 
 return { 'mode' => qw| size |, 'data' => $output };
 
-#,,,.,,.,,...,..,,,,.,,.,,,,.,..,,...,,,,,.,.,.,.,...,...,,.,,,,,,,,,,,,.,..,,
-#XN5YMU67N6DMVHPDZXDJ3KHGVF3CW4NOINYYBBEMEIBWWZUDGX4RZ2SZ7EPL3WIEIMNFJSFK5JOLW
-#\\\|Q74LJG73CEDGGSJR5KFSKLLJM3WZ44PEET5XHQS4Q7PEQOPLXYR \ / AMOS7 \ YOURUM ::
-#\[7]7SBO3QKQCI6UT6YZFNQUZ7INVPAACBL3S2ZKWZVW6HP6ON2UXQBA 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,...,..,,,.,,,,.,,,.,,,,,,..,..,,.,.,...,...,,,.,.,,,,,,,.,,,,,,,
+#QX7T46MXX6AC6PQ7FNFM3IM2DFDAWTX6OVG3UUVV7FYPVTT242QHPRPJFX74TZZNATKMXK3KP5TS4
+#\\\|BAHA6VZWCG2TH3L6752C5253Q62AB5X3PKEG43AG5QRRMZ4FC5Z \ / AMOS7 \ YOURUM ::
+#\[7]CGWDIJYJPK75TISQ5GFA7LRBPHOZUNA5FOEGFOGP3WFFVSR7NCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

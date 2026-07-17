@@ -10,6 +10,13 @@
 return FALSE
     if not -x <ncode.bin>;
 
+## allow git commands as protocol-7 user in taeki-owned repo ##
+if ( defined <system.root_path> and -d <system.root_path> . '/.git' ) {
+    $ENV{'GIT_CONFIG_COUNT'}   = 1;
+    $ENV{'GIT_CONFIG_KEY_0'}   = 'safe.directory';
+    $ENV{'GIT_CONFIG_VALUE_0'} = <system.root_path>;
+}
+
 ## config defaults ##
 <ncode.cfg.pattern_dir>          //= 'data/yaml/ncode-patterns';
 <ncode.cfg.confidence_threshold> //= 0.70;
@@ -59,10 +66,51 @@ if ( -d $pattern_dir ) {
 my $total = scalar keys <ncode.patterns>->%*;
 <[base.logs]>->( 1, ':. ncode.init: %d patterns loaded :.', $total );
 
+## resolve drop_privs args [ secondary admin group for .git access ] ##
+my $assume_admin = <[base.cfg_bool]>->( <ncode.cfg.assume_admin_group> // 0 );
+<ncode.cfg.drop_privs_user> = <system.amos-zenka-user>;
+## default: zenka's own group [ no-op in drop_privs ] ##
+my ( undef, undef, undef, $zenka_gid ) = getpwnam(<system.amos-zenka-user>);
+<ncode.cfg.drop_privs_admin_group> = getgrgid($zenka_gid) // '';
+if ($assume_admin) {
+    my $root_stat  = File::stat::stat( <system.root_path> // '' );
+    my $root_gid   = defined $root_stat ? $root_stat->gid     : undef;
+    my $group_name = defined $root_gid  ? getgrgid($root_gid) : undef;
+    if ( defined $group_name ) {
+        <ncode.cfg.drop_privs_admin_group> = $group_name;
+        <[base.logs]>->(
+            2, ': admin group : %s [ secondary, from project root ]',
+            $group_name
+        );
+    } else {
+        <[base.logs]>->(
+            0,
+            ': admin group : cannot stat root_path [%s]',
+            <system.root_path> // 'undef'
+        );
+    }
+}
+
+## fork privileged chmod child, grant .git group-write [ before drop_privs ] ##
+<[ncode.start.chmod_child]>;
+if ( defined <ncode.chmod_child.w_fh> and defined <system.root_path> ) {
+    my $git_dir = <system.root_path> . '/.git';
+    if ( -d $git_dir ) {
+        printf {<ncode.chmod_child.w_fh>} "gwd %s\n", $git_dir;
+        my $reply = <[ncode.chmod_child.readline]>;
+        <[base.logs]>->( 2, ': .git group-write grant : %s', $reply );
+    }
+}
+
+## drop privileges [ after path setup + chmod child fork ] ##
+<[base.root.drop_privs]>->(
+    <ncode.cfg.drop_privs_user>, <ncode.cfg.drop_privs_admin_group>
+);
+
 return TRUE;
 
-#,,,.,.,.,,,,,,,,,,..,,,,,,,.,.,,,,.,,.,.,,.,,.,.,...,...,,.,,.,.,..,,...,.,.,
-#S2RLHOZNSRRIWUCWPMNCZ4H3O75AGXYEQUHBSHX66WMDWBRM33FR5GU2IJYMAQ26X5SGDQZ45KVWM
-#\\\|BY3E53KITHGGPVXO5QYFWOAZEYG2RERGTHFRSAILV4GIMVYU4T7 \ / AMOS7 \ YOURUM ::
-#\[7]RRX2MLOG7UIXEGOXMFKPZTY5HBN4EJG2GYCWRGHXZLHSLYZLQYDY 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,,,,,,.,,.,.,.,.,,.,,.,,,,..,.,.,.,.,...,...,,..,...,,..,.,.,,..,
+#HRJXW4CSMD63C3JW7UYXD7N7UJDEQRIVQQ6CJKMH6ZWHENX6BZRXTEQC7YR53ZP4YHYAM365TIWA4
+#\\\|E35UQRL2FSM72HGGL3RJMEMFWLBJNCCGXXAVZKOCYBKBI2PP54G \ / AMOS7 \ YOURUM ::
+#\[7]E5U5YLOY263LPOIUGTYNCNBVZO5JMLQQFFGSIIZRUGLNEDWWO6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
