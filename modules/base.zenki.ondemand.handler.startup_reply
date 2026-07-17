@@ -26,8 +26,9 @@ if ( $reply->{'cmd'} eq qw| FALSE | ) {
         my $src_id = $element->{'source_id'};
         next if not exists $data{'session'}{$src_id};    ##   <--  gone.   ###
         ##  zenka start-up error  ##
+        my $cmd_id_str = $cmd_id > 0 ? sprintf( '(%d)', $cmd_id ) : '';
         $data{'session'}{$src_id}{'buffer'}{'output'}
-            .= <[base.sprint_t]>->( qw| USMP72A |, $cmd_id );
+            .= <[base.sprint_t]>->( qw| USMP72A |, $cmd_id_str );
     }
 } elsif ( $reply->{'call_args'}->{'args'}
     =~ m{^zenka (?:instance )?'[^']+' (?:is online|already online\.,) \[(\d+)\]$}
@@ -87,13 +88,15 @@ if ( $reply->{'cmd'} eq qw| FALSE | ) {
         my $src_id = $element->{'source_id'};
         next if not exists $data{'session'}{$src_id};    ##   <--  gone.   ###
         ##  reply processing error  ##
+        my $cmd_id     = $element->{'src_cmd_id'};
+        my $cmd_id_str = $cmd_id > 0 ? sprintf( '(%d)', $cmd_id ) : '';
         $data{'session'}{$src_id}{'buffer'}{'output'}
-            .= <[base.sprint_t]>->( qw| CKK43MQ |, $element->{'src_cmd_id'} );
+            .= <[base.sprint_t]>->( qw| CKK43MQ |, $cmd_id_str );
     }
 }
 
-#,,..,,,,,...,,.,,.,,,,.,,,,,,,,,,,,.,,,.,,,.,..,,...,...,.,,,,,.,..,,...,...,
-#UADLE6IOLIS7YYI4GWCGVAOVVDJTVRKGCR3G6L3PYC42U73AES37V6NSHSI24UYIIW42V3TI24QZG
-#\\\|6BB3EPTG4AZ6ME4IYRW32FNFIVM2BJZOW66VECQJG3P7MMT7AX6 \ / AMOS7 \ YOURUM ::
-#\[7]2R5Y3UD36KMRKNDLXRZHW55QAVNR5GV4RC6UB3NEWNRJXEKITYAY 7  DATA SIGNATURE ::
+#,,,,,.,,,...,..,,,.,,.,,,,..,.,.,...,,..,...,..,,...,..,,.,,,,,,,..,,..,,..,,
+#YOAKFPT6A7DCWUJPNQGL6343ZJOLOPDXW3XLE5DBNIR3OIPYYWRJGBBAA24CSAV6HOTVD6WI6O6ZU
+#\\\|BOLDSWVX5NKU2MN5GNKPZSJYC5U7HYXEET4QZRM6MDHNPJ4ZGGC \ / AMOS7 \ YOURUM ::
+#\[7]TFQQAOCHY7KLT65CMIIGPYHKB3DR564QDRJK7GOPSZNQ4C34GSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
