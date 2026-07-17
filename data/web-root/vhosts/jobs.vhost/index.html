@@ -658,7 +658,7 @@ input[type="date"], textarea {
       <span class="sep">|</span>
       <button id="btn-show-archive">archiv</button>
       <button id="btn-export-csv" class="orange">CSV export</button>
-      <button id="btn-reassess-all" class="orange" style="display:none;" onclick="reassessAllVisible()">↺ alle bewerten</button>
+      <button id="btn-reassess-all" class="orange" style="display:none;" onclick="reassessAllVisible()">↺ restliche bewerten</button>
       <button id="btn-delete-all" class="red" style="display:none;" onclick="deleteAllVisible()">✗ alle löschen</button>
       <span class="spacer"></span>
       <button id="btn-clear-local" class="red" title="lokale Daten löschen">reset</button>
@@ -1005,6 +1005,9 @@ function scoreDisplay(s) {
     if (s == null) return '?';
     const n = parseFloat(s);
     return n > 10 ? (n/10).toFixed(1) : String(s);
+}
+function needsAssessment(j) {
+    return j.score == null || j.score === '' || !j.summary;
 }
 
 /* ── render ── */
@@ -1550,10 +1553,10 @@ function render() {
     /* show/hide bulk reassess button for review jobs missing assessment data */
     const btnReassessAll = document.getElementById('btn-reassess-all');
     const REASSESS_ALL_STAGES = new Set(['review']);
-    const hasEmptyCards = visible.some(j => j.score == null || j.score === '' || !j.summary);
+    const hasEmptyCards = visible.some(needsAssessment);
     if (REASSESS_ALL_STAGES.has(filterMode) && hasEmptyCards) {
         btnReassessAll.style.display = 'inline-block';
-        btnReassessAll.textContent = '↺ alle ' + stageLabel(filterMode) + ' bewerten';
+        btnReassessAll.textContent = '↺ restliche bewerten';
     } else {
         btnReassessAll.style.display = 'none';
     }
@@ -2040,7 +2043,8 @@ document.getElementById('btn-sync').addEventListener('click', () => {
 });
 
 window.reassessAllVisible = () => {
-    const targets = Object.values(jobs).filter(j => j.stage === filterMode);
+    const targets = Object.values(jobs).filter(j =>
+        j.stage === filterMode && needsAssessment(j));
     if (!targets.length) return;
     const btn = document.getElementById('btn-reassess-all');
     btn.disabled = true;
@@ -2055,7 +2059,7 @@ window.reassessAllVisible = () => {
                 finished++;
                 if (finished >= targets.length) {
                     btn.disabled = false;
-                    btn.textContent = '↺ alle ' + stageLabel(filterMode) + ' bewerten';
+                    btn.textContent = '↺ restliche bewerten';
                     notify(`${done}/${targets.length} neu bewertung(en) eingereiht`);
                 }
             });
