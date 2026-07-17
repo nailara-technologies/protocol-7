@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = base.zenki.resolve_group_sids.reply
+# descr = reply handler for base.zenki.resolve_group_sids
+
+my $reply = shift // {};
+
+my $user_name     = $reply->{'params'}{'user_name'};
+my $group_subname = $reply->{'params'}{'group_subname'} // '';
+my $callback      = $reply->{'params'}{'callback'};
+
+if ( not defined $user_name or not defined $callback ) {
+    <[base.logs]>->( 0, '[resolve_group_sids] reply missing params' );
+    return;
+}
+
+my $cmd        = uc( $reply->{'cmd'} // '' );
+my $table_text = $cmd eq qw| SIZE | ? ( $reply->{'data'} // '' ) : '';
+
+my @lines = split m|\n|, $table_text;
+
+## find separator line [ data rows follow it ] ##
+my $data_start = 0;
+for my $i ( 0 .. $#lines ) {
+    if ( $lines[$i] =~ m|^\s*-{3,}| ) {
+        $data_start = $i + 1;
+        last;
+    }
+}
+
+my @matching_sids;
+for my $i ( $data_start .. $#lines ) {
+    my $line = $lines[$i];
+    next if $line =~ m|^\s*$|;
+    $line =~ s|^\s+||;
+    my @cols = split m|\s+|, $line;
+    next if @cols < 3;    ## malformed row ##
+    my ( $sid, $status, $zenka, $subname ) = @cols;
+    $subname //= '';
+    next if $zenka ne $user_name;
+    next if $subname ne $group_subname;
+    push @matching_sids, $sid;
+}
+
+$callback->( \@matching_sids );
+
+#,,,,,...,.,.,.,.,.,,,,..,.,.,,,.,,.,,.,,,.,.,..,,...,..,,...,..,,,..,,..,,.,,
+#GNVUD3EMQP7T37W6O53AFEXVZ3EIVF7HJH5ERDJE2M6MHEG3IWC4XKHYGLW24OH3HH327K34Q2SXO
+#\\\|5TKGJ23Y3R4SW6DXSMWXLTRGIIKVZBV3X7D4MOMSQH2JK7PV4WL \ / AMOS7 \ YOURUM ::
+#\[7]XRB6QJ35K5CL7ZXJBWD2ICZCBPH7DUKDOR5YHEBFZGO3G5SCYABQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
