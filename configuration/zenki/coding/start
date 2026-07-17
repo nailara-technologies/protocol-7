@@ -172,6 +172,16 @@ coding.http-timeouts.stall = 77
 ## without permanently punishing legitimately-slow rounds                ##
 coding.cfg.round_soft_ceiling = 384
 
+## GPU-temp-aware timeout stretch : a thermally-throttled GPU is          ##
+## legitimately slower, not stalled, so the soft ceiling + stall timeout  ##
+## above both scale with coding.stretch.timeout_factor (continuous        ##
+## proportional feedback, recomputed on every temp reading in             ##
+## coding.handler.gpu_temp_update -- ramps up fast when over target,      ##
+## relaxes slowly when cooling, clamped to [1.0, 3.0]). Target below is   ##
+## tuned from observed behavior (slowdowns already seen around 80C in     ##
+## practice on this WSL setup), not a vendor spec number.                 ##
+coding.cfg.gpu_target_temp_c = 77
+
 ## prefill-time estimate used to scale the data-start timeout for large   ##
 ## prompts : timeout = est_prompt_tokens / prefill_tokens_per_sec + margin ##
 ## tune prefill_tokens_per_sec down if timeouts persist on long contexts  ##
@@ -250,8 +260,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,.,,...,,..,,,,,,,.,..,,...,..,,.,,,,..,,,.,.,.,...,...,...,..,,.,,,.,.,...,
-#2VKARBTQEL3B6YY2Z3KCVWQMFFWGXEAGMXFTF23UXAAJHODG24ZXKU7GWUNZAQPIOZ2BGXI6MYVTM
-#\\\|CBUCSIUJ77SY6ITPKEWXH2CF6KTJR6XGRPKPQOVJUKXHM7HKJGO \ / AMOS7 \ YOURUM ::
-#\[7]2LI4E6EBCEMT2S6UTBCQDCZUNLII4KMQOKWOLR6SGYAWEBBEA4CA 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,..,..,,,,.,,,,,,..,.,,,..,,..,,.,.,...,...,,..,...,,.,,,,,,..,,
+#YIY66D6366RP6WCQYI45GJCUXV4MRVF3PDGFBERMNTQPJMIWK67EJVGVCLOIZMUQ3Q7TKLLE55IPO
+#\\\|MUOW2ICSQP2QEBQGRDQ3UJ33U2F3GOSDDVKCJBN7A6YHN5R2SDM \ / AMOS7 \ YOURUM ::
+#\[7]YY2UW53LK5PXGQLEA64ICWK2VQG3IKZRAWKWQR3AVS7ASLHDKYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

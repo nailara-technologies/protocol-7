@@ -58,16 +58,35 @@ new `coding.cmd.restart-round`, `coding.async.http_cleanup` (cancel
 stall_watcher too), `coding.callback.http_complete` (reset on clean
 completion), `configuration/zenki/coding/start` (two new config keys).
 
-## open / not done
+## GPU-temp-aware timeout stretch — LANDED 2026-07-17
 
-GPU-temperature-aware timeout stretch — extend timeouts when the GPU is
-thermally throttling (`coding.handler.gpu_temp_update` already tracks
-temp and is consulted elsewhere, e.g. `coding.helper.calculate_safe_context`)
-so a fixed timeout doesn't misfire when inference is legitimately just
-slower under throttle. Discussed, not designed, not started.
+Correction to an earlier note here: `coding.stats.gpu.temp` had zero
+consumers before this — `coding.helper.calculate_safe_context` and
+`coding.spawn_inference_server` only touch GPU *memory* (VRAM), not
+temperature. Checked directly before building on the wrong assumption.
 
-#,,..,.,.,.,.,..,,,,.,...,,.,,.,.,.,.,,.,,,.,,..,,...,..,,...,.,.,...,.,.,...,
-#T62DGDULYLLFTDFFMIAXDMEVGXS3BULISBOWE3VBOGBK42XTJB2TAS6XEJ35LIMBU2HBAMPEM73EW
-#\\\|UNCXRJWLTPEVGJLAGY7PMKYMXJHC3DQCFSD3DX6YSBHOI3QCR7T \ / AMOS7 \ YOURUM ::
-#\[7]QOSYR7XSB2NKWK65DR6LPKTNL3CCXSOQQJKDVTOECD7PDUELICBY 7  DATA SIGNATURE ::
+Modeled on an older, unrelated but structurally identical precedent
+pointed out mid-design: `web-browser.handler.gpu_load_reply` (GPU load →
+scroll-speed slowdown) — a continuous proportional-feedback controller,
+not a threshold trip: asymmetric acceleration (ramps up fast when over
+target, relaxes slowly when under) plus a dead-band tolerance to avoid
+jitter. That shape reproduced here for temp → timeout stretch instead of
+load → speed. Unlike that precedent, no push/relay between zenki was
+needed — coding already has the GPU temp STRM subscription locally, so
+the stretch-factor recompute piggybacks directly on the existing consumer
+in `coding.handler.gpu_temp_update` rather than needing a new trigger.
+
+`coding.cfg.gpu_target_temp_c` (77 — tuned from observed behavior:
+slowdowns already seen around 80C in practice on this WSL setup, not a
+vendor spec number) is the target; `coding.stretch.timeout_factor`
+(persistent, clamped `[1.0, 3.0]`) is recomputed on every temp reading.
+Both `coding.async.request`'s soft ceiling and `coding.async.http_client`'s
+stall timeout multiply their base value by the current factor at
+round/connection start — read once per round/connection, not
+continuously, consistent with how the ceiling itself already works.
+
+#,,,,,.,,,.,.,,,.,.,.,,,.,..,,..,,.,.,,,,,.,,,..,,...,...,...,.,,,...,..,,,.,,
+#5IQGSM4KUCLYNO33C56ZKWLAAABX3MKLSWPZAQDLVGEORZAJW5V5VBXRRTSQHVERLPSRMHL3DOSI6
+#\\\|434WOABSYTYBVKSRMLRMENHYDMCIAKHXZ3WQPWTDHUFIRJKRHPG \ / AMOS7 \ YOURUM ::
+#\[7]JNECPVEENQTMFYNUW7IRF6UPAV4BNV5WZU7SSSFSSP6HVDOTOWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
