@@ -97,18 +97,19 @@
 - [p7 route-send wire protocol](feedback-p7-route-send-wire-protocol.md), [oversize single-line protocol](feedback-oversize-single-line-protocol.md) — oversize wedges buffer
 - [no unsolicited cross-zenka push](feedback-no-unsolicited-cross-zenka-push.md), [vax-int vs v7-epoch](feedback-vax-int-vs-v7-epoch.md) — consumer always pulls; decode epoch w/ `p7c localtime`
 - [log string hygiene](feedback-log-string-hygiene.md), [ondemand timeout tiering](feedback-ondemand-timeout-tiering.md) — base.str.eval_error not raw $EVAL_ERROR
-- [claude_dispatch summarize hang](feedback-claude-dispatch-summarize-hang.md) — prompt-overflow hangs session forever; kill PID, work safe on disk
-- [init-code-return-values](feedback-init-code-return-values.md), [memory-sync-timing](feedback-memory-sync-timing.md), [memory-management](feedback-memory-management.md) — TRUE/FALSE both=success; sync ~42K ctx
+- [claude_dispatch summarize hang](feedback-claude-dispatch-summarize-hang.md) — prompt-overflow hangs forever; kill PID, work safe on disk
+- [init-code-return-values](feedback-init-code-return-values.md), [memory-sync-timing](feedback-memory-sync-timing.md), [memory-management](feedback-memory-management.md) — TRUE/FALSE=success
 - [claude-dispatch-strategy](feedback-claude-dispatch-strategy.md), [kimi-code-review](feedback-kimi-code-review.md), [kimi-signatures](feedback-kimi-signatures.md), [kimi-dispatch-pattern](feedback-kimi-dispatch-pattern.md) — kimi orchestration
-- [model-precision-analysis](feedback-model-precision-analysis.md), [coding-zenka-edits](feedback-coding-zenka-edits.md) — Qwopus more precise; verify LLM-described edits
+- [model-precision-analysis](feedback-model-precision-analysis.md), [coding-zenka-edits](feedback-coding-zenka-edits.md) — verify LLM-described edits
 - [coding-zenka-reasoning](feedback-coding-zenka-reasoning.md), [coding-zenka-inject](feedback-coding-zenka-inject.md) — low reasoning→premature completion
-- [arg-regression](feedback-arg-regression.md), [arg-calling-convention](feedback-arg-calling-convention.md) — $ARG→$_ revert; `@_ ? shift : $ARG`
-- [prefer-parsed-config](feedback-prefer-parsed-config.md), [true-false-constants](feedback-true-false-constants.md) — use parsed config not FS rescan; TRUE/FALSE not 0/1
+- [arg-regression](feedback-arg-regression.md), [arg-calling-convention](feedback-arg-calling-convention.md) — `@_ ? shift : $ARG`
+- [prefer-parsed-config](feedback-prefer-parsed-config.md), [true-false-constants](feedback-true-false-constants.md) — parsed config not FS rescan
 - [web-serialization-and-inlining](feedback-web-serialization-and-inlining.md), [task-show-multiline](feedback-task-show-multiline.md) — parallel JSON+YAML; task.show escapes \n
 - [list-return-format](feedback-list-return-format.md), [stop-and-revert](feedback-stop-and-revert.md) — `{mode=>'size', data=>$string}`; root cause first
-- [utf8-module-literals](feedback-utf8-module-literals.md), [watcher-state-machines](feedback-watcher-state-machines.md) — non-ASCII corrupts output
+- [utf8-module-literals](feedback-utf8-module-literals.md), [watcher-state-machines](feedback-watcher-state-machines.md) — non-ASCII corrupts
 - [ncode-tools](feedback-ncode-tools.md), [perltidy-sil0](feedback-perltidy-sil0.md) — use ncode replace/parse-headers; ptd `-sil=0` self-heals
-- [design-ideation-capture](feedback-design-ideation-capture.md), [coding-timeout-restart-loop](feedback-coding-timeout-restart-loop.md) — offer spin-off doc on riffs
+- [git-log-all-false-duplication](feedback-git-log-all-false-duplication.md) — false "dup commits" = core.pager strips +/-, colors lost in capture
+- [design-ideation-capture](feedback-design-ideation-capture.md), [coding-timeout-restart-loop](feedback-coding-timeout-restart-loop.md) — offer spin-off docs
 
 ## Completed Sessions
 - [topic-completed](topic-completed.md) — all session summaries (Feb 2026 → present)
@@ -119,8 +120,8 @@
 - letsencr working; reasoning.branch.* LIVE; coding zenka operational
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: state-0/7 harmonized
 
-#,,.,,,..,.,.,...,.,.,,,,,,.,,,,,,,,,,...,...,..,,...,...,...,.,,,,..,,..,,..,
-#HO7D7LDVEVBM4KRKT4VOF57NPKFIA2QMM6M5YVI66KOQJWAFRPFZVSXNZZNAIYJSD3TMLODS3Y5U2
-#\\\|QVHUDK3VIJN3ZU5TR4M73BVYXPSGGYLIZEO3PJITLNNJFPT3TSH \ / AMOS7 \ YOURUM ::
-#\[7]RQYYLPLCHRUQYDZTILID3H77FHH3WJJTFFKYCFTREMW6QYSO4GCI 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,,.,.,.,,,,,..,,.,.,..,,.,,,.,,,..,,...,...,.,,,...,.,,,..,,,,.,
+#7DSWIQ3WGLIAU5N2ZRHVPDZDPY6OYCJIOGR4POWDSZ6XQW4YS7DOPLZI6M3PC2LNL5DRPCWQOSMXU
+#\\\|WBBIVJOHTOG6AQN7QPWJ7JAZI3JBAFLUZSRZKHUD3CIBXX6QDNT \ / AMOS7 \ YOURUM ::
+#\[7]AHFGC3ZHO4IZSKVNNOETZKB2QC4TERVOBHK4JN3TQPGRLNJJY4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
