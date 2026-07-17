@@ -54,8 +54,10 @@ if ( exists $data{'user'}{$zenka_name}{'session'}
     while ( my $element = shift $v_zenka->{'queue'}->@* ) {
         my $src_id = $element->{'source_id'};
         next if not exists $data{'session'}{$src_id};    ##  gone.  ##
+        my $cmd_id     = $element->{'src_cmd_id'};
+        my $cmd_id_str = $cmd_id > 0 ? sprintf( '(%d)', $cmd_id ) : '';
         $data{'session'}{$src_id}{'buffer'}{'output'}
-            .= <[base.sprint_t]>->( qw| USMP72A |, $element->{'src_cmd_id'} );
+            .= <[base.sprint_t]>->( qw| USMP72A |, $cmd_id_str );
     }
 
     delete $v_zenka->{'starting'};
@@ -64,8 +66,8 @@ if ( exists $data{'user'}{$zenka_name}{'session'}
 
 return TRUE;
 
-#,,,,,,,,,,.,,.,.,,,,,,,,,.,,,,..,.,.,...,,,,,..,,...,...,..,,,,.,,.,,,..,,.,,
-#BJF6SATPNZIVBE5IZBUQZRFPAOFFT446YKBOXPIPR2B46J3YXC5CR2TBNQCQGKH6WUCLB6DGR42KO
-#\\\|6GNOF33W7XYRONZZWH3CZON3WTU4M4FBBVMMV2F3MJC2BIEJV2Q \ / AMOS7 \ YOURUM ::
-#\[7]7PQ7DVLGTDBIZYPBICPDCNV3EZNOWPHG26AVS22C5XGBND2PWEDY 7  DATA SIGNATURE ::
+#,,,.,...,,,,,..,,,.,,,..,,..,.,.,..,,..,,,,,,..,,...,...,...,.,,,.,.,,,.,.,.,
+#X3BHBZ4FUJCRURW76V2AL4JHOZ2DKL56BBNDB3VJITTXSJCEFJ5IXFF4BBQSRFXI7IRARMOYJQD72
+#\\\|W3TKPU4PPP5JYYGQEPVLVUIURCR6NZVQC37YY65FGFPLSR7RMVY \ / AMOS7 \ YOURUM ::
+#\[7]GTJZOXOL5XKKLH64OLVI5K3372VVH3C3F3WBDWWBYDN2DZ3AXIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
