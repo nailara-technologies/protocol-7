@@ -1,8 +1,10 @@
 ---
-name: ""
+name: tasks-completed-scan-verdict-trust
+description: "'still open' batch-scan verdicts are as unreliable as 'move to completed' ones — spot-check both"
 metadata: 
   node_type: memory
-  originSessionId: 4802c615-4ad7-401c-b5c6-0888fd98932d
+  type: feedback
+  originSessionId: 3c264315-73af-4677-a8b4-23ce085cb5a8
 ---
 
 Don't trust a "still open" verdict from the tasks-completed batch scan
@@ -32,10 +34,24 @@ and move on. This applies to any future round of
 [[coding-zenka-improvement-pipeline]]-adjacent scanning work, not just
 this specific backlog.
 
+**Massively confirmed 2026-07-17**: a single spot-check of one "still
+open" verdict (`web-browser-input-capture-replay.md`, rated "no matching
+code found" despite being fully implemented across 5 real commits that
+same session) led to dispatching an independent K2.7 re-verification of
+all 52 remaining "still open" items from one scan batch. Result: **31
+false negatives** — 22 fully complete, 9 partially complete with named
+gaps. One of the fixed gaps (`web-auth-plugin.md`) was a live security
+issue: a write endpoint (`/jobs-sync`) that the task explicitly required
+gated behind auth had never actually been gated, and sat that way
+undetected until the re-verification caught it. A ~60% false-negative
+rate on "still open" is not a one-off — treat every batch-scan "still
+open" bucket in this repo as unverified by default, not just spot-check
+the surprising ones.
+
 #,,,.,,..,,.,.,,,,.,,,,.,.,,.,,,,,,.,.,,,,.,,,,,,,,.,,.,,,,,,,,,,.,,,,,,.,,
 
-#,,.,,.,,,..,,...,,..,.,,,,,.,.,.,..,,..,,...,..,,...,...,.,,,,,,,.,.,...,.,,,
-#XG6QRRSCNRHDCIG3SJ7GGXZUOLBZUL5TRV4TWFMGE4MQLXL4HX3Y6T3FRBJ4HW5BP2KLWAABUEJQI
-#\\\|SZPTIGDGVECBZF6VD7OX3OQFDANQNSLU7EVTMBII27QVYVH2O63 \ / AMOS7 \ YOURUM ::
-#\[7]LR5CCZWCUZJ2JC4VBX5BX76D3J62WSBRMPON6Z4BT47KEE5RR4DA 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,,,,...,,,,,.,.,,.,,,..,...,...,..,,...,.,.,..,,,.,,,,.,,,,,,.,,
+#5I5VASH555ZMVMQKONYAYJ5ILVI3RKFLE2JODV4BFQ2PLVQIDAQTJJSM3345NQMLZ6ZMGPSB2GZ72
+#\\\|R6RMOFKYNNKZT6YIAHUH26Z6GSXAN4J2CYWICQC2KEB4IIJVYJO \ / AMOS7 \ YOURUM ::
+#\[7]JNKL4OEYNS3ECFVZB2DM7NQIK57IINTCADWKTNAMC6BEXR756GBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
