@@ -1,0 +1,85 @@
+## [:< ##
+
+# name  = web-browser.cmd.goto-waypoint-group
+# descr = fan out goto-waypoint to subname-group instances
+# param = <subname-group> <waypoint-name> [duration=<ms>]
+#       .. [path=linear|bezier] [force=1]
+# note  = fire-and-forget: routes goto-waypoint to every resolved
+#         instance, reports fan-out count without aggregating
+
+my $reply_id = $call->{'reply_id'};
+my $args_str = $call->{'args'} // '';
+
+my @tokens = split( m|\s+|, $args_str );
+my $group  = shift @tokens // '';
+my $name   = shift @tokens // '';
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage: goto-waypoint-group <subname-group> <waypoint-name>'
+        . ' [duration=<ms>] [path=linear|bezier] [force=1]'
+    }
+    if !length $group or !length $name;
+
+my $duration = 2000;
+my $path     = qw| bezier |;
+my $force    = 0;
+foreach my $token (@tokens) {
+    if ( $token =~ m|^duration=(\d+(?:\.\d+)?)$| ) {
+        $duration = 0 + $1;
+    } elsif ( $token =~ m{^path=(linear|bezier)$} ) {
+        $path = $1;
+    } elsif ( $token =~ m|^force=([01])$| ) {
+        $force = 0 + $1;
+    } else {
+        return {
+            'mode' => qw| false |,
+            'data' => sprintf( 'invalid token: %s', $token )
+        };
+    }
+}
+
+<[base.zenki.resolve_group_sids]>->(
+    'web-browser',
+    $group,
+    sub {
+        my $sids = shift // [];
+
+        my $goto_args = sprintf( '%s duration=%s path=%s force=%s',
+            $name, $duration, $path, $force );
+
+        my $fanned = 0;
+        foreach my $sid ( @{$sids} ) {
+            my $sent = <[protocol-7.route-send]>->(
+                {   'command'   => "$sid.goto-waypoint",
+                    'call_args' => { 'args' => $goto_args }
+                }
+            );
+            $fanned++ if $sent > 0;
+        }
+
+        <[base.logs]>->(
+            2, "[goto-waypoint-group] fanned out '%s' to %d [group=%s]",
+            $name, $fanned, $group
+        );
+
+        <[base.callback.cmd_reply]>->(
+            $reply_id,
+            {   'mode' => qw| true |,
+                'data' => sprintf(
+                    "goto-waypoint-group: fanned out '%s' to %d instances"
+                        . ' [group=%s]',
+                    $name, $fanned, $group
+                )
+            }
+        );
+    }
+);
+
+return { 'mode' => qw| deferred | };
+
+#,,,,,,.,,...,,..,.,,,..,,,,.,.,,,.,,,,..,,,,,..,,...,...,...,.,,,..,,,.,,.,.,
+#6254P22765D76IN7H3AZKD3A7YSPK66FUTY6KTXN66ZCOACBJSBLC4OG3NUUPCXRSYBHSGJF75USW
+#\\\|EI6NUB75BG4TQI7XSYL4MSKJXLKB6ATEF5TPIWDXL53XMUFMC37 \ / AMOS7 \ YOURUM ::
+#\[7]PLHVGVD57BLSVRJS5SZS4NJUSTZJXY4ORLZFI2D4UKB5REYJPCBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
