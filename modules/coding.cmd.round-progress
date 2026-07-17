@@ -9,8 +9,7 @@ my $nailara_bg = "\e[48;2;9;5;42m";
 my $TRUE_color = "\e[38;2;6;71;195m";
 my $WARN_color = "\e[38;2;197;141;7m";
 
-my $ceiling = <coding.http-timeouts.request-completed> // 780;
-my $now     = <[base.time]>->(3);
+my $now = <[base.time]>->(3);
 
 ## find the task actually holding a backend lock right now : that's the ##
 ## one genuinely generating, NOT active[0] [ just first-in-list, may be  ##
@@ -22,6 +21,29 @@ for my $backend_name ( keys %{$backends} ) {
     next unless defined $lock and length $lock;
     $task_id = $lock;
     last;
+}
+
+## no backend lock held right now doesn't mean nothing's active -- a task ##
+## deep in tool execution (search/read calls, no ceiling) holds no lock   ##
+## between HTTP rounds and would otherwise make this go blank for most of ##
+## its wall-clock time. fall back to whichever active task has the most   ##
+## recent round activity timestamp -- NOT active[0] by position, which is ##
+## exactly the "misleading first-in-queue" case the lock-check was meant  ##
+## to avoid in the first place.                                          ##
+if ( not defined $task_id ) {
+    my $aref_active = <coding.task.active> // [];
+    my $best_ts;
+    for my $candidate_id ( $aref_active->@* ) {
+        my $cand_state
+            = <[coding.async.state_machine]>->( qw| get |, $candidate_id );
+        my $ts = $cand_state->{'round_tools_started'}
+            // $cand_state->{'round_started'};
+        next unless defined $ts;
+        if ( not defined $best_ts or $ts > $best_ts ) {
+            $best_ts = $ts;
+            $task_id = $candidate_id;
+        }
+    }
 }
 
 my $chars_max = 13;
@@ -40,6 +62,11 @@ my $state         = <[coding.async.state_machine]>->( qw| get |, $task_id );
 my $round         = $state->{'round'} // 0;
 my $http_started  = $state->{'round_started'};          ## phase 1 start ##
 my $tools_started = $state->{'round_tools_started'};    ## phase 2 start ##
+
+## actual ceiling governing THIS round : soft/escalated/GPU-stretched -- ##
+## not always the flat hard-ceiling config value [ coding.async.request ] ##
+my $ceiling = $state->{'timeout_ceiling'}
+    // <coding.http-timeouts.request-completed> // 780;
 
 my $right;
 my $bar;
@@ -94,8 +121,8 @@ return {
     'data' => $output_str,
 };
 
-#,,..,,.,,,,.,,.,,.,.,,.,,,,.,,,,,...,,,.,,.,,..,,...,..,,,,,,,,,,,.,,,..,.,,,
-#HTQJZ7UGF5Z6E2JXOZ6G7ATQ6Q5KR6N7BJIVKWYG4DOWS4BC2EB4N526VWRHGHTNZR7YLLMLTOTNA
-#\\\|3JJN2YPGX2YR6LLELKYO26M7WR4LUXX6UYIGGQAFP5UIHG55YCI \ / AMOS7 \ YOURUM ::
-#\[7]NU2PLZLHJW6EWR72WES576TKZQTD7VAALIH766SRQLFZIIV64GCA 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,,..,.,,,.,,,,,.,.,,,,,.,,,.,.,,,..,,...,...,.,,,,,,,,,,,,,.,,.,,
+#PSBG4SHH2QGYKIVYGP3GGTHQLKSLS4HRVVYFCVR6KVLJRMCME2DBI6PIW4DFH564O4UKLW7UHOXVY
+#\\\|4PVRPSU6MZYWYQ34OVHVRKHGA23G5NZW3HXHMUI75DI3XBLJ7NU \ / AMOS7 \ YOURUM ::
+#\[7]BAO6VB2U2ZOCQUZP4PDIVHMD76VTKEP2N3CMA3UVA7IER27JUAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
