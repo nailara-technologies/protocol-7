@@ -19,12 +19,17 @@ access.cmd.usr.parent = commands show-buffer cur-pid
 
 access.cmd.usr.child = cube.v7.notify_online cube.p7-log.append
 
+## group-write grant on .git only [ needed for git diff/diff-staged index  ##
+## refresh -- read-only git ops still need to write .git's lock/index ]   ##
+ncode.cfg.assume_admin_group = yes
+ncode.cfg.allow_chmod_apply  = yes
+
 modules.load = auth net protocol io.unix ui ncode
 
 [load_modules:<modules.load>]
 [init_modules]
 
-[root.drop_privs:<system.amos-zenka-user>]
+## drop_privs moved to ncode.init_code [ after path setup + chmod child ] ##
 
 [base.net.connect:'unix']
 
@@ -32,8 +37,8 @@ modules.load = auth net protocol io.unix ui ncode
 
 [zenka.loop]
 
-#,,,,,...,,..,..,,,..,,,,,...,...,.,,,,.,,.,.,.,.,...,...,.,.,,..,.,,,,.,,,.,,
-#JVFTJEIFLLLB2RQVEKHL7QBDERGYWPLS55UZJ5PXFJ7R7ZXSG5Y2UDJUJKK3HQYBHCENLFJYW3YE6
-#\\\|TXG2HCGW2XQFV4DFLZWQ3VUZZDMS4P3MKRWLUGLFZWJPWAOPHHV \ / AMOS7 \ YOURUM ::
-#\[7]BGFX54HGT2O6MCVAJ7QUZ6ODVFLQTFGPXD5BP6IZVASFC4ANH4DI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,,.,,..,,.,,...,,,.,.,.,,..,,,,,.,.,...,..,,.,.,,,,,,,.,...,,,.,
+#U2X7XZWSOUJDBYWJE5MQQXWMDJJFF6UWOGXA22OOUHWHW4V3TW4JSE5GQCSHXMA3FBR7KB3K2TNIM
+#\\\|TEZN6EHGJMM5ZDDPNFEHQLFRHOQUMJ7IM4WW5P4I3Y6GSQKSBNU \ / AMOS7 \ YOURUM ::
+#\[7]VRPJHLYWQF5SNN25WSR4B36YRQI3KTZNU72VZYKMXFRD5Q5F2SDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

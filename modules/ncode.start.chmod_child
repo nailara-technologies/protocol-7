@@ -1,0 +1,87 @@
+## [:< ##
+
+# name  = ncode.start.chmod_child
+# descr = fork privileged child for group-write grants on taeki-owned paths
+
+return if defined <ncode.chmod_child.w_fh>;
+return if not( $EUID == 0 or $UID == 0 );     ## must be root to fork ##
+
+my $allow_chmod  = <[base.cfg_bool]>->( <ncode.cfg.allow_chmod_apply>  // 0 );
+my $assume_admin = <[base.cfg_bool]>->( <ncode.cfg.assume_admin_group> // 0 );
+
+return if not $allow_chmod or not $assume_admin;
+
+my $admin_group = <ncode.cfg.drop_privs_admin_group> // '';
+return if not length $admin_group;
+
+my $admin_gid = ( getgrnam($admin_group) )[2];
+return if not defined $admin_gid;
+
+## resolve admin user for privilege drop ##
+my $admin_user = <system.admin-user> // '';
+return if not length $admin_user;
+
+my ( undef, undef, $admin_uid, $admin_user_gid ) = getpwnam($admin_user);
+return if not defined $admin_uid;
+
+<system.path.perl_bin> //= <[base.get_path.perl_exec]>;
+
+my $zenka_name_chars = qr|0-9A-Za-z_\-|;
+( my $zenka_name = <system.zenka.name> ) =~ s|[^$zenka_name_chars]+||g;
+
+<[base.log]>->( 2, ': starting chmod-child .,' );
+
+my $child_code = <<~"EOT";
+use v5.24; use strict; use warnings; use English;
+use Fcntl qw| :mode |;
+map { \$SIG{\$ARG} = qw| IGNORE | } qw| INT TERM QUIT |;
+## drop to admin user [ file owner : can chmod without root ] ##
+\$GID = \$EGID = $admin_user_gid;
+\$UID = \$EUID = $admin_uid;
+\$PROGRAM_NAME = q|$zenka_name-<$admin_user>-chmod-child|;
+\$| = 1;  ## autoflush stdout so parent readline never blocks indefinitely ##
+my \$admin_gid = $admin_gid;
+while ( my \$line = <STDIN> ) {
+    chomp \$line;
+    exit if not length \$line;
+    if ( \$line =~ m|^gwd (.+)\$| ) {
+        ## grant group-write on directory ##
+        my \$path = \$1;
+        do { print "skip\n"; next } if not -d \$path;
+        my \$gid = ( stat \$path )[5];
+        do { print "skip\n"; next } if not defined \$gid or \$gid != \$admin_gid;
+        my \$cur = ( stat \$path )[2] & 07777;
+        chmod( \$cur | 0020, \$path );
+        print "ok\n";
+    } elsif ( \$line =~ m|^restore (\\d+) (.+)\$| ) {
+        my ( \$mode, \$path ) = ( oct(\$1), \$2 );
+        do { print "skip\n"; next } if not -e \$path;
+        chmod( \$mode, \$path );
+        print "ok\n";
+    } else {
+        print "skip\n";  ## unknown command : always reply ##
+    }
+}
+EOT
+
+<[base.perlmod.load]>->('IPC::Open2')
+    if not <[base.perlmod.loaded]>->('IPC::Open2');
+
+<ncode.chmod_child.pid>
+    = IPC::Open2::open2( <ncode.chmod_child.r_fh>, <ncode.chmod_child.w_fh>,
+    <system.path.perl_bin>, qw| -e |, $child_code )
+    || die sprintf( "cannot start perl chmod child process [ %s ]\n",
+    scalar <[base.format_error]>->($OS_ERROR) );
+
+<ncode.chmod_child.admin_gid> = $admin_gid;
+
+<[base.logs]>->(
+    2, ': started chmod child [pid:%d] admin_group=%s [gid=%d]',
+    <ncode.chmod_child.pid>, $admin_group, $admin_gid
+);
+
+#,,,.,,,,,..,,..,,.,,,.,.,,.,,,..,,,.,.,,,.,,,..,,...,...,.,.,.,,,..,,..,,,,,,
+#FYUPXWMXALM5ASOKBIN66BQP7FX3QVA6YGBMI3JXUTXXGIU4COFVJQJPKBEB4VQ3YRFDCKRSRGMRC
+#\\\|OLDLWZZJRLTMWOW23RCLGFBTEQ2HXU7GPVZ3L6VHFAQGCSMV64O \ / AMOS7 \ YOURUM ::
+#\[7]SUTDXJ4D5DLWQQEEYRDYMQCJB6TKFUIT24WKR3ZC5A3ATZNPJOCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
