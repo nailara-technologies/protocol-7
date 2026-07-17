@@ -4,20 +4,23 @@
 [load_config_file:'shared-params']
 system.access.wildcards.allow = false
 
+## read-only : repo browsing/search/diff is public, zero-risk ##
+## write/sign commands intentionally NOT granted here yet -- pending a  ##
+## signature-gated approval system [ see memory: topic-write-access-   ##
+## security-infrastructure ] ## cube itself filters which of its own   ##
+## callers may reach these -- taeki/unix-admin already covered via the ##
+## cube-side admin wildcard [ configuration/zenki/cube/access.users ]  ##
 access.cmd.usr.cube = commands heart verify-instance \
                       list show-buffer get_url reload \
-                      child.cur-pid
+                      child.cur-pid \
+                      search diff diff-staged doc parse-headers tool_list
 
 access.cmd.usr.parent = commands show-buffer cur-pid
 
 access.cmd.usr.child = cube.v7.notify_online cube.p7-log.append
 
-modules.load = auth net protocol io.unix ui ncode.init_code \
-               ncode.util.run_cmd \
-               ncode.cmd.search ncode.cmd.replace \
-               ncode.cmd.parse-headers ncode.cmd.format-code \
-               ncode.cmd.sign ncode.cmd.sign-batch \
-               ncode.cmd.diff ncode.cmd.diff-staged ncode.cmd.doc
+modules.load = auth net protocol io.unix ui ncode
+
 [load_modules:<modules.load>]
 [init_modules]
 
@@ -25,10 +28,12 @@ modules.load = auth net protocol io.unix ui ncode.init_code \
 
 [base.net.connect:'unix']
 
+[get_session_id]
+
 [zenka.loop]
 
-#,,.,,,.,,,.,,,..,,,.,.,.,.,,,,.,,,,.,.,.,,,.,.,.,...,...,.,,,...,,,,,,..,,..,
-#HNGCYKMPZTJCBVCPFGINTLOQ3ZWLI5YQBDTZR7SLXMQWC6EZWURQAHQ55USLVB2JODRQ4F33N7GE4
-#\\\|QBT77WUAQ5NIGR47V23U3LPNJZDF4QHKU4VSH2HXT5L6HNVDBRJ \ / AMOS7 \ YOURUM ::
-#\[7]QM6P6E22WE2I6OTI2DNGA7BYQ7LDAFFJ4FA3QFYD6H7A27MMJSDQ 7  DATA SIGNATURE ::
+#,,,,,...,,..,..,,,..,,,,,...,...,.,,,,.,,.,.,.,.,...,...,.,.,,..,.,,,,.,,,.,,
+#JVFTJEIFLLLB2RQVEKHL7QBDERGYWPLS55UZJ5PXFJ7R7ZXSG5Y2UDJUJKK3HQYBHCENLFJYW3YE6
+#\\\|TXG2HCGW2XQFV4DFLZWQ3VUZZDMS4P3MKRWLUGLFZWJPWAOPHHV \ / AMOS7 \ YOURUM ::
+#\[7]BGFX54HGT2O6MCVAJ7QUZ6ODVFLQTFGPXD5BP6IZVASFC4ANH4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
