@@ -60,6 +60,59 @@ So the ask is not "build a grace-period abort" — it's "give this exact
 UX a real equivalent when the caller isn't a human at an interactive
 terminal."
 
+## privilege-separation model for .git access — LANDED 2026-07-17
+
+While fixing `ncode.cmd.diff`/`.diff-staged` (blocked on `.git` being
+`taeki`-owned, 755 — even read-only git ops need to write `.git`'s own
+index-refresh/lock file), settled a real design question worth recording
+for the *next* privilege decision (write access to actual project
+files): **primary UID stays the restricted service account
+(`protocol-7`), `taeki` is only ever a *supplementary* group** — never
+the reverse. Checked concretely: `taeki`'s account is in `sudo`,
+`docker`, and `dip` groups; `docker` group membership is root-equivalent
+(container socket access). Running any network-facing zenka with
+**primary UID=taeki** would mean a bug in a regex-apply routine or a bad
+LLM-suggested change inherits full admin-equivalent system access, not
+just repo-write. This holds across every deployment shape (user-desktop,
+dev-desktop, remote-server, appliance) — if anything it matters more on
+server/appliance.
+
+Mirrored `coding`'s existing pattern exactly (`coding.init_code`'s
+`assume_admin_group`/`allow_chmod_apply` config + `coding.start.
+chmod_child`), scoped narrowly to `.git` only (not the whole working
+tree — that's the separate, bigger decision still gated behind
+[[topic-write-access-security-infrastructure]]):
+- `ncode.start.chmod_child` (new) forks a privileged helper that drops
+  to `taeki`'s UID (so it can legitimately chmod taeki-owned paths) —
+  verified live running as `taeki` in `pstree`. Only understands `gwd`
+  (grant group-write on a directory) and `restore` (reset to an exact
+  mode), and refuses to act unless the target's *current* group already
+  matches the resolved admin group — can't be used to escalate onto
+  unrelated paths.
+- `ncode.init_code` now resolves `<ncode.cfg.drop_privs_admin_group>`
+  from `<system.root_path>`'s owning group, forks the chmod-child,
+  requests `gwd <root>/.git` once at startup, then calls
+  `base.root.drop_privs` (moved here from the start file's
+  `[root.drop_privs:...]` line, matching `coding`'s structure — path
+  setup and the chmod-child fork must happen before dropping privileges).
+  Confirmed live: process holds `taeki`'s gid as a supplementary group
+  (`Groups:` in `/proc/<pid>/status`), `.git` is `775 taeki:taeki`.
+- Also needed (found live, not anticipated): `ncode.cmd.diff`/
+  `.diff-staged` called bare `git diff`/`git diff --cached` with no
+  `-C <root>` — the actual first-order bug. If the zenka's own CWD isn't
+  the repo root, git fails with "Could not access 'HEAD'" regardless of
+  permissions. `safe.directory` (git's dubious-ownership override) was
+  necessary too but not sufficient alone — all three (safe.directory,
+  `.git` group-write, `-C <root>`) were required together; each
+  individually still reproduced the failure.
+
+**How to apply:** this is the reusable pattern for the next privilege
+decision, not just this one — when a zenka needs write access to
+taeki-owned paths, default to zero access, add `assume_admin_group`/
+`allow_chmod_apply` as explicit opt-in config, scope the chmod-child's
+grants to the narrowest path that unblocks the actual need, and never
+consider running the zenka's primary UID as the admin user itself.
+
 ## the vision, as described
 
 1. **network/web equivalent of `warn_apply`**: user's own answer —
@@ -118,8 +171,8 @@ pipeline is what makes them sustainable.
 [[topic-write-access-security-infrastructure]]
 [[topic-jobsite-ui-usability]]
 
-#,,..,,,,,.,,,.,.,...,..,,,..,...,,.,,..,,.,.,..,,...,..,,...,..,,.,.,.,.,,,.,
-#OWAB4JGF2JVOQGDLDZYFOSDGB6UYD2EW53LKWMUOBKM453HWBQS2APLOCZVW7GHJZ47GAHXK4XYQY
-#\\\|ZZLSEQ5TCLOO2LYUHTXBAVKIPKGSNWEMCFBEMVF62CHLI544W4M \ / AMOS7 \ YOURUM ::
-#\[7]ZQNFKD4BCHWHR5IWSGS5OSI2D53CARNVBOMJRMI4WB25XPEIASCA 7  DATA SIGNATURE ::
+#,,..,...,,,.,,,,,,,,,,,,,,.,,.,.,,,.,,.,,,,.,..,,...,...,.,,,,,,,,,,,,,.,,,,,
+#ZO2EMD2PZVPAR37DYTCPPID57UFY3ITCIX77D5TUZHEZ5ISKKCIQGWXQI5NIWOTRGQCWVLBOH5JVA
+#\\\|5UIYX7XYCID3JAZCSKXSOJHGKWOEC5BKA6364TEG6PBVMY4L5YU \ / AMOS7 \ YOURUM ::
+#\[7]VNH54UM7UNTOOZQYBZQYTKFDGT4ZRWRUY32ZQHQJGK7DS55BXQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

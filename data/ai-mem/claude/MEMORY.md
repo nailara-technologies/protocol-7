@@ -77,7 +77,7 @@
 - [cmd reply must be string](feedback-cmd-data-must-be-string.md) — .cmd. routines must return {mode=>true|false, data=>STRING}
 - [kimi reload baseline noise](feedback-kimi-reload-baseline-noise.md), [kimi v7 console hint](feedback-kimi-v7-console-hint.md) — check baseline first; console at `/dev/shm/.7/STDOUT/NIW7OAQ`
 - [File Creation](feedback-file-io-api.md), [version files every commit](feedback-version-files-every-commit.md) — no fake signature stub; version files ride every commit
-- [tile openbox dep redundant](feedback-tile-openbox-dependency-redundant.md), [base. prefix stripped](feedback-base-prefix-stripped.md) — use `send.local` not `base.`
+- [tile openbox dep redundant](feedback-tile-openbox-dependency-redundant.md), [base. prefix stripped](feedback-base-prefix-stripped.md) — use `send.local`
 - [.cmd. segment stripped](feedback-cmd-segment-stripped.md), [filter-repo prefix](feedback-filter-repo-amend.md), [P7 data nesting](feedback-p7-data-nesting.md) — .cmd. callable w/o segment; <a.b.c>=$data{a}{b}{c}
 - [s_warn single-arg](feedback-s-warn-single-arg.md), [access grant scope](feedback-access-grant-scope.md) — plain `warn` for single-msg; "no perm" needs whitelist only
 - [ondemand zenka start checklist](feedback-ondemand-zenka-start-checklist.md), [devmod leave disabled](feedback-devmod-leave-disabled.md) — start-file recipe; leave devmod eval/exec commented
@@ -101,7 +101,7 @@
 - [log string hygiene](feedback-log-string-hygiene.md), [ondemand timeout tiering](feedback-ondemand-timeout-tiering.md)
 - [claude_dispatch summarize hang](feedback-claude-dispatch-summarize-hang.md)
 - [init-code-return-values](feedback-init-code-return-values.md), [memory-sync-timing](feedback-memory-sync-timing.md), [memory-management](feedback-memory-management.md)
-- [claude-dispatch-strategy](feedback-claude-dispatch-strategy.md), [kimi-code-review](feedback-kimi-code-review.md), [kimi-signatures](feedback-kimi-signatures.md), [kimi-dispatch-pattern](feedback-kimi-dispatch-pattern.md)
+- [claude-dispatch-strategy](feedback-claude-dispatch-strategy.md), [kimi-code-review](feedback-kimi-code-review.md), [kimi-signatures](feedback-kimi-signatures.md), [kimi-dispatch](feedback-kimi-dispatch-pattern.md)
 - [model-precision-analysis](feedback-model-precision-analysis.md), [coding-zenka-edits](feedback-coding-zenka-edits.md)
 - [coding-zenka-reasoning](feedback-coding-zenka-reasoning.md), [coding-zenka-inject](feedback-coding-zenka-inject.md)
 - [arg-regression](feedback-arg-regression.md), [arg-calling-convention](feedback-arg-calling-convention.md)
@@ -112,7 +112,7 @@
 - [ncode-tools](feedback-ncode-tools.md), [perltidy-sil0](feedback-perltidy-sil0.md) — use ncode replace/parse-headers; ptd `-sil=0` self-heals
 - [git-log-all-false-duplication](feedback-git-log-all-false-duplication.md) — false "dup commits" = pager strips +/-, colors lost
 - [ncode-access-gap](topic-ncode-access-gap.md) — a zenka only sees its direct neighbor; grant access.cmd.usr.cube, not the human's uname
-- [ncode-safe-refactor-workflow](topic-ncode-safe-refactor-workflow.md) — warn_apply is TTY-only; suggest/apply already ARE a change-queue
+- [ncode-safe-refactor-workflow](topic-ncode-safe-refactor-workflow.md) — .git chmod-child LANDED (protocol-7:taeki, not reverse); warn_apply TTY-only
 - [cmd-module-call-convention](feedback-cmd-module-call-convention.md) — .cmd. network modules use $call, not $ARG/shift
 - [design-ideation-capture](feedback-design-ideation-capture.md), [coding-timeout-restart-loop](feedback-coding-timeout-restart-loop.md) — offer spin-off docs
 
@@ -125,8 +125,8 @@
 - letsencr working; reasoning.branch.* LIVE; coding zenka operational
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: state-0/7 harmonized
 
-#,,,,,...,,.,,.,.,.,.,,.,,...,..,,,,,,,.,,,,.,..,,...,..,,.,.,,..,.,.,..,,.,,,
-#F7WB74ZORTBJEKNTJTQGHMJBKSYNHQWMV2ILLU46KIJAG3UA2ZTVNPZLHY5FVDRYYODYH4IME4ROQ
-#\\\|R4H2GFKWFKITCL37YYEKGNKA6LQR6OIYJKZ7KKXAXZ2INFC4AGQ \ / AMOS7 \ YOURUM ::
-#\[7]SKCHZO7GBDDUUHDABVZ5X7O2Z6MYZBFUZK56PBHTZ75IYFNJPCBI 7  DATA SIGNATURE ::
+#,,,,,...,,..,.,,,.,.,,.,,.,.,...,.,,,,..,.,,,..,,...,...,...,,,,,,.,,,.,,..,,
+#ZPWILOZAMB7XQVVA5IMLE4OPMU7OZG72MM3BRD326QX5PQ2WFCCXORIJV7676VIN7JAZ2J74DQFU6
+#\\\|K77B3EOTP47TSF6UK75KF647KO6HRVBM5LHHILUAJPKNRTZSH6C \ / AMOS7 \ YOURUM ::
+#\[7]FRG5A5QX2IIOWPXQ6LUBRP3CHQA2D7FCSRMHKF7TARWFQODAFGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
