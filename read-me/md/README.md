@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 3WCIZ272MI-8558.0 :::
+::: SOURCE-CODE VERSION :: 3WCI5XFJBI-8559.0 :::
 
 # [ [nailara 'protocol seven' project](http://protocol-7.network/) ]
 
@@ -20,17 +20,19 @@
 - Current [release](https://github.com/nailara-technologies/protocol-7/tags) version \\// [AMOS7-v2.79.7](https://github.com/nailara-technologies/protocol-7/releases/tag/AMOS7-v2.79.7)
 ---
 
-## 🌐 Live Demo
+## 🌐 Topology Research Visualization
 
-**Interactive Hyperspace Field Visualization** - Experience Protocol-7's cubic space topology in real-time:
+**Interactive Hyperspace Field Visualization** -
 
-### **[https://visual.v7.ax/](https://visual.v7.ax/)**
+[ experience Protocol-7's cubic space topology 'in-flight' ]
 
 [![Hyperspace Field Demo](data/asc/what-AI-thinks/html-form/visualizations/cubic-space/remote/screen.0.png)](https://visual.v7.ax/)
 
-*Click the screenshot above to launch the interactive demo*
+### **[https://visual.v7.ax/](https://visual.v7.ax/)**
 
-Features real-time 3D navigation, dynamic neighbor layers, psychedelic hue rotation, and adaptive rendering. Showcases the harmonic computing principles of cubic space topology with critically damped inertia physics and multi-axis grid-aligned navigation. Bilingual interface (English/German).
+[click the screenshot above to launch the interactive visualization]
+
+Features real-time 3D navigation, dynamic neighbor layers, psychedelic hue rotation, and adaptive rendering. Showcases the harmonic computing principles of cubic space topology with critically damped inertia physics [prior version] and multi-axis grid-aligned navigation. Bilingual interface (English/German).
 
 ---
 
@@ -362,8 +364,8 @@ The full vision document explores Protocol-7's unique approach to distributed co
 
 ```
 
-#,,..,,,,,,..,..,,,,.,,.,,.,.,..,,.,.,,.,,.,.,..,,...,...,,,.,,,.,,..,,.,,,,.,
-#7AGUN7ZLOTDKJLBBL7HQMM3TANGJEU32IA6BN53PVWP2ZSOFWNHAT4LGUKAXAR453QZXPYZAF7EYO
-#\\\|5TGFWSFBLWTVRVMFOCA4TLZUXYWWLNGU3CHDKHNI4HBTVM2DD6X \ / AMOS7 \ YOURUM ::
-#\[7]2WPWBUJP2JMMEOH2W6LC5JGBYO2YX66MFMT2B7CCPA5LVBNWSIBA 7  DATA SIGNATURE ::
+#,,,,,..,,..,,,.,,..,,,,,,.,.,..,,,,,,.,,,.,.,..,,...,...,...,.,,,..,,.,.,..,,
+#TXGGPI7G5FZ7UWGQBEIUHANPLLSHDGIG3FKSDCPU3OTKLVQYQ74MZ5AQHLOQT3LCSL46RVQC2ROGU
+#\\\|VQ5PL4LFWIKWNTYIEVYIP2QXMO2SEJSSNFSOVIFFWIRLDUYWIUZ \ / AMOS7 \ YOURUM ::
+#\[7]7OCWQR25CAKMCQPLGEU52L3KRDPFCT5JKLDY6KF2AQWWEMJUZ6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
