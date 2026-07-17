@@ -91,22 +91,23 @@
 ## Feedback
 - [tasks-completed-scan-verdict-trust](feedback-tasks-completed-scan-verdict-trust.md) — "still open" as unreliable as "move to completed"; 31/52 false negs 2026-07-17, incl. live auth gap
 - [kimi-dispatch-infra-hardening](topic-kimi-dispatch-infra-hardening.md) — --afk flag, k3/k2.7/k2.7-fast model routing; MCP bridge timeout ≠ dispatch failure
+- [kimi-k3-thinking-effort](topic-kimi-k3-thinking-effort.md) — Low/High/Max in vendor UI, not yet in API/installed CLI
 - [coding-zenka buffer rescue](topic-coding-zenka-session9.md) — idle-shutdown backups readable via group-perm `xz -dc`, no sudo
 - [nested-dispatch-session-tracking](feedback-nested-dispatch-session-tracking.md), [webkit vs firefox css blindspots](feedback-webkit-vs-firefox-css-blindspots.md) — auto_summarize lossy, verify via git diff
 - [no sudo for privileged fs ops](feedback-no-sudo-privileged-fs-ops.md) — never `sudo` a protocol-7-owned file; hand command to user
 - [perl and/or precedence in my-assignment](feedback-perl-and-or-precedence-in-my-assignment.md) — `my $x = A and B` only assigns A; use && / ||
 - [p7 route-send wire protocol](feedback-p7-route-send-wire-protocol.md), [oversize single-line protocol](feedback-oversize-single-line-protocol.md) — oversize wedges buffer
-- [no unsolicited cross-zenka push](feedback-no-unsolicited-cross-zenka-push.md), [vax-int vs v7-epoch](feedback-vax-int-vs-v7-epoch.md) — consumer always pulls; decode epoch w/ `p7c localtime`
-- [log string hygiene](feedback-log-string-hygiene.md), [ondemand timeout tiering](feedback-ondemand-timeout-tiering.md) — base.str.eval_error not raw $EVAL_ERROR
-- [claude_dispatch summarize hang](feedback-claude-dispatch-summarize-hang.md) — prompt-overflow hangs forever; kill PID, work safe on disk
+- [no unsolicited cross-zenka push](feedback-no-unsolicited-cross-zenka-push.md), [vax-int vs v7-epoch](feedback-vax-int-vs-v7-epoch.md) — consumer pulls; `p7c localtime`
+- [log string hygiene](feedback-log-string-hygiene.md), [ondemand timeout tiering](feedback-ondemand-timeout-tiering.md) — not raw $EVAL_ERROR
+- [claude_dispatch summarize hang](feedback-claude-dispatch-summarize-hang.md) — prompt-overflow hangs; kill PID, work safe on disk
 - [init-code-return-values](feedback-init-code-return-values.md), [memory-sync-timing](feedback-memory-sync-timing.md), [memory-management](feedback-memory-management.md) — TRUE/FALSE=success
 - [claude-dispatch-strategy](feedback-claude-dispatch-strategy.md), [kimi-code-review](feedback-kimi-code-review.md), [kimi-signatures](feedback-kimi-signatures.md), [kimi-dispatch-pattern](feedback-kimi-dispatch-pattern.md)
 - [model-precision-analysis](feedback-model-precision-analysis.md), [coding-zenka-edits](feedback-coding-zenka-edits.md) — verify LLM-described edits
 - [coding-zenka-reasoning](feedback-coding-zenka-reasoning.md), [coding-zenka-inject](feedback-coding-zenka-inject.md) — low reasoning→premature completion
 - [arg-regression](feedback-arg-regression.md), [arg-calling-convention](feedback-arg-calling-convention.md) — `@_ ? shift : $ARG`
-- [prefer-parsed-config](feedback-prefer-parsed-config.md), [true-false-constants](feedback-true-false-constants.md) — parsed config not FS rescan
-- [web-serialization-and-inlining](feedback-web-serialization-and-inlining.md), [task-show-multiline](feedback-task-show-multiline.md) — parallel JSON+YAML; task.show escapes \n
-- [list-return-format](feedback-list-return-format.md), [stop-and-revert](feedback-stop-and-revert.md) — `{mode=>'size', data=>$string}`; root cause first
+- [prefer-parsed-config](feedback-prefer-parsed-config.md), [true-false-constants](feedback-true-false-constants.md)
+- [web-serialization-and-inlining](feedback-web-serialization-and-inlining.md), [task-show-multiline](feedback-task-show-multiline.md) — task.show escapes \n
+- [list-return-format](feedback-list-return-format.md), [stop-and-revert](feedback-stop-and-revert.md) — root cause first
 - [utf8-module-literals](feedback-utf8-module-literals.md), [watcher-state-machines](feedback-watcher-state-machines.md)
 - [ncode-tools](feedback-ncode-tools.md), [perltidy-sil0](feedback-perltidy-sil0.md) — use ncode replace/parse-headers; ptd `-sil=0` self-heals
 - [git-log-all-false-duplication](feedback-git-log-all-false-duplication.md) — false "dup commits" = pager strips +/-, colors lost
@@ -121,8 +122,8 @@
 - letsencr working; reasoning.branch.* LIVE; coding zenka operational
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: state-0/7 harmonized
 
-#,,,,,..,,,..,..,,.,,,.,,,,,.,,,,,,,,,,,.,...,..,,...,...,.,.,.,.,...,,,.,.,,,
-#MX4NOPPK5LLJLVJQGZUZYDNB4JDY7DWX2XFBRALVLV4EQFTNKQVHEBN6AKXXARYSGZVZ3K74PQ5D4
-#\\\|5FXJ6UCDWAWTKNGFYNXG557B2TGFAP4YCJ26DWSB5D42WGCN7I5 \ / AMOS7 \ YOURUM ::
-#\[7]G2GWIHBNKMGRXFOFSLHM7ZJRDGNDD5WJDJ32XUEUC46PINKPNICI 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,.,.,..,,,..,,,.,...,...,,..,.,,,..,,...,...,.,.,,,,,,,.,.,,,...,
+#CV6IKCWHCOCLA5MFBRVGZDMAIB6IQSKS4L5AEBO3P5NBFVR3X7TSZDLWSNXCEPTFCFT6YXLUXG7BC
+#\\\|CCPLH4ZGIGAU7XWKWWNSK3DWVWDV4KOCIFZZ5MJW2GYJZFGWVDZ \ / AMOS7 \ YOURUM ::
+#\[7]KJWFRBRFGTOMXIAUFJAEREAB3F3CHUPZE3WBCGI7NDEB6P7BEEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -214,7 +214,12 @@ my @external_tools = (
             . 'use file param to summarize without loading content into '
             . 'context (token-free). '
             . 'if text exceeds model context, uses rolling-window '
-            . 'summarization.',
+            . 'summarization. '
+            . 'checklist mode: pass task_file to verify the output '
+            . 'against the task\'s "## acceptance criteria" or '
+            . '"## verification" section, or hand-write a checklist '
+            . 'instruction. when the summary contains "DISPATCH_NEEDED:", '
+            . 'needs_followup:true is returned alongside the summary.',
         'params' => [
             [   'text',
                 'content to summarize (use file instead to avoid loading '
@@ -227,6 +232,18 @@ my @external_tools = (
                 0
             ],
             [   'instruction', 'what to focus on (default: general summary)',
+                0
+            ],
+            [   'task_file',
+                'absolute path to a task file with a "## acceptance '
+                    . 'criteria" or "## verification" section — builds '
+                    . 'the checklist instruction automatically '
+                    . '(overrides instruction)',
+                0
+            ],
+            [   'auto_followup',
+                'on DISPATCH_NEEDED: background-dispatch a kimi-legacy '
+                    . 'follow-up with the failure items (default: false)',
                 0
             ],
             [   'max_tokens',
@@ -1630,18 +1647,21 @@ sub send_error {
 }
 
 sub send_tool_result {
-    my ( $id, $text, $is_error ) = @ARG;
+    my ( $id, $text, $is_error, $extra ) = @ARG;
 
     ## cube returns raw utf-8 bytes — decode to perl chars before json
     ## encoding ##
     utf8::decode($text) if defined $text and not utf8::is_utf8($text);
 
-    send_result(
-        $id,
-        {   'content' => [ { 'type' => 'text', 'text' => $text } ],
-            'isError' => $is_error ? \1 : \0
-        }
-    );
+    my $result = {
+        'content' => [ { 'type' => 'text', 'text' => $text } ],
+        'isError' => $is_error ? \1 : \0
+    };
+    ## optional structured fields merged alongside content/isError ##
+    @{$result}{ keys %{$extra} } = values %{$extra}
+        if ref $extra eq 'HASH';
+
+    send_result( $id, $result );
 }
 
 ## =========================================================================
@@ -1768,14 +1788,38 @@ sub tool_call_tool {
 sub tool_coding_summarize {
     my ( $id, $args ) = @ARG;
 
-    my $text        = $args->{'text'} // '';
-    my $file        = $args->{'file'} // '';
+    my $text        = $args->{'text'}      // '';
+    my $file        = $args->{'file'}      // '';
+    my $task_file   = $args->{'task_file'} // '';
     my $instruction = $args->{'instruction'}
         // 'summarize the following text concisely';
     my $max_tokens = $args->{'max_tokens'} // 500;
 
+    my $auto_followup = $args->{'auto_followup'} // '';
+    $auto_followup
+        = length($auto_followup)
+            && lc($auto_followup) ne 'false'
+            && $auto_followup ne '0' ? 1 : 0;
+
     return send_tool_result( $id, 'text or file is required', 1 )
         if not length $text and not length $file;
+
+    ## checklist mode: build the verification instruction from the task
+    ## file's '## acceptance criteria' / '## verification' section ##
+    my $checklist = 0;
+    if ( length $task_file ) {
+        my $criteria = _task_criteria_from_file($task_file);
+        return send_tool_result( $id,
+            "no '## acceptance criteria' or '## verification' section "
+                . "found in $task_file",
+            1 )
+            if not length $criteria;
+        $instruction = _checklist_instruction($criteria);
+        $checklist   = 1;
+    } elsif ( $instruction =~ m{DISPATCH_NEEDED|acceptance criteria}i ) {
+        $checklist = 1;
+    }
+    $checklist = 1 if $auto_followup;    ## opt-in implies checklist mode
 
     my $result = '';
     my $error  = '';
@@ -1798,13 +1842,90 @@ sub tool_coding_summarize {
             : "error: $@";
     }
 
-    if ( length $error ) {
-        send_tool_result( $id, $error, 1 );
-    } else {
-        $result
-            //= 'summarization failed — coding zenka may not be ' . 'running';
-        send_tool_result( $id, $result, 0 );
+    return send_tool_result( $id, $error, 1 ) if length $error;
+
+    $result //= 'summarization failed — coding zenka may not be running';
+
+    ## checklist routing: surface the DISPATCH_NEEDED marker as a flag ##
+    return send_tool_result( $id, $result, 0 )
+        if not $checklist or $result !~ m{DISPATCH_NEEDED:};
+
+    my $followup_note = '';
+    if ($auto_followup) {
+        my ($failures) = $result =~ m{DISPATCH_NEEDED:\s*(.+)}s;
+        $failures = $result if not length( $failures // '' );
+        $failures =~ s{^\s+|\s+$}{}g;
+        my $prompt
+            = 'a dispatched task failed verification against its '
+            . "acceptance criteria. fix these items:\n\n$failures";
+        $prompt = "task file: $task_file\n\n$prompt" if length $task_file;
+        $followup_note
+            = _dispatch_followup($prompt)
+            ? ' [ auto-followup dispatched ]'
+            : ' [ auto-followup dispatch FAILED ]';
     }
+
+    $result .= "\n\nneeds_followup: true$followup_note";
+    send_tool_result( $id, $result, 0, { 'needs_followup' => \1 } );
+}
+
+## extract the '## acceptance criteria' / '## verification' section body
+## from a task file [ bullets up to the next header or signature block ]
+sub _task_criteria_from_file {
+    my ($path) = @ARG;
+
+    return '' if not -f $path;
+    open( my $fh, '<:encoding(UTF-8)', $path ) or return '';
+    my $section   = '';
+    my $in_target = 0;
+    while ( my $line = <$fh> ) {
+        if ( $line =~ m{^##\s+(acceptance criteria|verification)\s*$}i ) {
+            $in_target = 1;
+            next;
+        }
+        last if $in_target and $line =~ m{^#};
+        $section .= $line if $in_target;
+    }
+    close $fh;
+    $section =~ s{^\s+|\s+$}{}g;
+    return $section;
+}
+
+sub _checklist_instruction {
+    my ($criteria) = @ARG;
+    return 'check the following acceptance criteria against the output. '
+        . "for each criterion, output PASS or FAIL with a brief reason:"
+        . "\n\n$criteria\n\n"
+        . 'if any FAIL: output DISPATCH_NEEDED: <what to fix>';
+}
+
+## background kimi-legacy follow-up dispatch — forks and detaches, never
+## blocks the mcp loop [ child stdio redirected away from the protocol
+## channel ]
+sub _dispatch_followup {
+    my ($prompt) = @ARG;
+
+    my $model    = 'kimi-code/k3';    ## same default as kimi_dispatch
+    my $log_path = "$ROOT_PATH/data/state/auto-followup.log";
+
+    local $SIG{'CHLD'} = 'IGNORE';    ## auto-reap the background child
+    my $pid = fork();
+    if ( not defined $pid ) {
+        log_msg( '[followup] fork failed: %s', $OS_ERROR );
+        return 0;
+    }
+    if ( $pid == 0 ) {
+        eval { make_path("$ROOT_PATH/data/state") };
+        open( STDIN,  '<',  '/dev/null' );
+        open( STDOUT, '>>', $log_path );
+        open( STDERR, '>>', $log_path );
+        exec( 'kimi-legacy', '-y', '--afk', '-p', $prompt, '--model',
+            $model );
+        exit(1);    ## exec failed
+    }
+    log_msg( '[followup] background kimi-legacy dispatched [ pid=%d ]',
+        $pid );
+    return 1;
 }
 
 sub tool_store_summary_focus {
@@ -3057,8 +3178,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,..,,,.,.,.,,.,,...,.,.,,,.,...,.,.,.,,,..,,..,,...,...,.,,,,,.,,.,,.,,,.,,,
-#MVH3VKUZM7PL3U5DBXE22X6V7S35ROWGFRGC45JWKUG2AFDV4H67PHKFZRLVKR7TNUG3RTDFYJV5C
-#\\\|BBJHZQOYRRHQDY3SBEA5ZYU3OXLVV43BWTZDZQBH3SJVTVRDPZ3 \ / AMOS7 \ YOURUM ::
-#\[7]U5FOLJ43GDTT3AUQBUL6PPB5KJEINODRPAXUMCS4ZQGDYKTJYCAA 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,..,,..,,,,,..,,.,.,...,,,,,,.,,..,,...,...,.,.,,,,,..,,,.,,,..,
+#SAF7YS3XELEIJESNFIV6XPMJYOQBVLGWSW7SK7CDRJLBBJGPOSNR27XSRCRVBZA6DQASD5DWELVPK
+#\\\|D55EHKFLVHQXNYLM7MKI2GJQTL6AGM3B2AL5MNI2IIFL6YHBMZF \ / AMOS7 \ YOURUM ::
+#\[7]NS7PECK3NWDYPNLNNTIEI7PJPYVHHHDIWH7ZMESGH7VXG64TVSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
