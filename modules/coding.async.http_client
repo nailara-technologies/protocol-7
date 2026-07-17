@@ -186,8 +186,10 @@ $state->{'data_start_watcher'} = $data_start_watcher;
 
 ## Set up stall/inactivity timeout [ re-armed on every chunk in http_io — ##
 ## catches genuine silence regardless of total elapsed time, independent ##
-## of the total-duration ceiling above, which never re-arms on activity ##
-my $stall_timeout_sec = <coding.http-timeouts.stall> // 77;
+## of the total-duration ceiling above, which never re-arms on activity  ##
+## stretched by GPU-temp factor, same as the ceiling in coding.async.request
+my $stall_timeout_sec = ( <coding.http-timeouts.stall> // 77 )
+    * ( <coding.stretch.timeout_factor> // 1.0 );
 $state->{'stall_timeout_sec'} = $stall_timeout_sec;
 $state->{'stall_watcher'}     = <[event.add_timer]>->(
     {   'after'   => $stall_timeout_sec,
@@ -206,8 +208,8 @@ return {
     state   => $state,
 };
 
-#,,..,,,,,.,.,,.,,,..,...,,,.,.,.,..,,.,,,...,.,.,...,...,..,,.,,,.,,,,.,,.,.,
-#CRYW5EVWVU4XBT3UMWDCVBLS2FMBYVI6J5KV2NH7RGAZ4OGDHVK7ZG4BWEEXA43VTZKCWBFRHDI3G
-#\\\|MIOYHH7YKGV7ZZFGNEKC6AHGVNLECB32QQRQFS2M5ZFWTYIPYVI \ / AMOS7 \ YOURUM ::
-#\[7]CKK6IRI7LEREZJ4OQO5GPJM5S35Z73BVC4YZEHF6GFFBOEBWUACY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,.,,.,.,,.,,,.,,..,,,,.,,,.,,,.,.,.,...,...,.,.,,.,,,,,,,.,,.,.,
+#7HOQO4W77SRRVTHKDUQPTSYGRG4MKSQNQ6YS4WV5DD66SQYHE3FGXMRS3GQADSI2BYIUCGO3UHY2E
+#\\\|3TPYMJWB7W5AQPAMZQ2OZM62IRIPTFMJ7YOM32MAX5CUJ2KWD7W \ / AMOS7 \ YOURUM ::
+#\[7]4YR4ARS536PFAX5K6K4SKWTE6TBFHEB6DYX3J5WG34VXNTPQOEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

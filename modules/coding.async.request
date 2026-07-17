@@ -74,7 +74,11 @@ if ( defined $existing ) {
     ## escalated to the full hard ceiling by http_timeout when a soft     ##
     ## trip restarts this same round, reset back to soft on clean         ##
     ## completion by http_complete — see coding.handler.http_timeout      ##
-    $existing->{'timeout_ceiling'} //= <coding.cfg.round_soft_ceiling> // 384;
+    ## stretched by GPU-temp factor [ coding.handler.gpu_temp_update ] :  ##
+    ## a thermally-throttled GPU is legitimately slower, not stalled      ##
+    $existing->{'timeout_ceiling'}
+        //= ( <coding.cfg.round_soft_ceiling> // 384 )
+        * ( <coding.stretch.timeout_factor> // 1.0 );
 }
 
 ## check if state already exists [ follow-up round ] ##
@@ -154,8 +158,8 @@ return {
     mode    => qw| streaming |,
 };
 
-#,,,,,,.,,..,,.,.,,,.,,.,,.,.,,,.,...,,..,...,..,,...,...,..,,,..,.,,,...,,,,,
-#MT34MHT57EINMODAV3J4RPCRXMGNPOQVL4CZAZHFPL7AFZDGW6G6JCKOLWOOKYM2A3P7ACTQW443I
-#\\\|VR7MLIV44NBTCU5DW3GUB5KZOVUFQCD4YY7GRA26AJ2HDDI3FU2 \ / AMOS7 \ YOURUM ::
-#\[7]DK3FKULGLM3OD4VISJHDZMGBCFKIUJZ4JMPWMVAEGYHJWGZ32KCQ 7  DATA SIGNATURE ::
+#,,.,,,,,,...,...,,..,...,,,.,.,.,.,.,,,,,,,.,..,,...,...,...,,.,,..,,..,,..,,
+#NE6CV4P5KKYWFSA4YPJZG2CDVBCTOPOU73MCOBF67MGNWU7DBNDMIWGJY4SSDOVRQ2UI7CACBMTHU
+#\\\|NU762T3CUK63WUAD5XGWX7W4JVPOASTHCHBISKYN445XOAW5TOS \ / AMOS7 \ YOURUM ::
+#\[7]P7VTSRG7TLTL2ZOOPYJEIRWMP7LWAB2MDQANZXA4A6DV46NIFAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
