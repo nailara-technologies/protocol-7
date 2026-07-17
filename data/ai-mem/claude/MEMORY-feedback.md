@@ -6,6 +6,7 @@ coding-zenka reasoning/edits/inject pitfalls, ncode tooling, perltidy self-heal,
 memory-management timing, git-log false-duplication, webkit-vs-firefox css blindspots.
 
 ## Feedback
+- [edit-via-project-path-not-dotclaude](feedback-edit-via-project-path-not-dotclaude.md) — edit memory via data/ai-mem/claude/, not ~/.claude/projects/.../memory/ (same file, latter re-prompts every edit)
 - [tasks-completed-scan-verdict-trust](feedback-tasks-completed-scan-verdict-trust.md) — "still open" as unreliable as "move to completed"; 31/52 false negs, incl. live auth gap
 - [kimi-dispatch-infra-hardening](topic-kimi-dispatch-infra-hardening.md) — --afk flag, k3/k2.7/k2.7-fast routing; MCP bridge timeout ≠ dispatch failure
 - [kimi-k3-thinking-effort](topic-kimi-k3-thinking-effort.md) — Low/High/Max in vendor UI, not in API/installed CLI
@@ -33,8 +34,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [cmd-module-call-convention](feedback-cmd-module-call-convention.md) — .cmd. network modules use $call, not $ARG
 - [design-ideation-capture](feedback-design-ideation-capture.md), [coding-timeout-restart-loop](feedback-coding-timeout-restart-loop.md) — offer spin-off docs
 
-#,,.,,.,,,,,.,,.,,..,,...,...,,..,,..,,,.,.,,,..,,...,..,,...,,.,,,.,,,,,,,..,
-#CSXRB2HODAO6X42ZYK5P6GGVWSGMRJXQFMUOGJL55GAQ34KDGIWFJTFHAAFEDMU6LKW42NCMU4FU2
-#\\\|D4MY7JLU6BCNWDSAX3PLLYUAY3YJQCO7D67RJUZAJJARH4W62FF \ / AMOS7 \ YOURUM ::
-#\[7]64DGBH3AYOR4RAMDZLNYNRJCAQEFRU6ICHSVFU763KAZGGXMNADI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,.,,...,.,.,,.,,,,,,...,,.,,.,.,..,,...,...,.,,,,.,,...,,.,,.,.,
+#WGUP5IXPJE7OLBQ5B5EIU7C3RMP3MHYM6V2G2VLGXB7EJUWHLOLSXDNIZDRHESIVQMGSTNSSRG2LU
+#\\\|65U44SGCPUFP32XKKDPDHSGLGJWTOSVXOABYJWK3ZES2Z7SH6XC \ / AMOS7 \ YOURUM ::
+#\[7]EL3FOTEKBF6B5776YQCLJ5UIUBP7XWZ4ZICG4A3DWY3DHVUQNMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
