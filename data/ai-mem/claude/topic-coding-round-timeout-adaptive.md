@@ -58,6 +58,20 @@ new `coding.cmd.restart-round`, `coding.async.http_cleanup` (cancel
 stall_watcher too), `coding.callback.http_complete` (reset on clean
 completion), `configuration/zenki/coding/start` (two new config keys).
 
+## round-progress/round-time display fixes — LANDED 2026-07-17 (c8166f22f)
+
+Both displays always showed the flat `coding.http-timeouts.request-
+completed` default as denominator, ignoring the actual per-task
+`timeout_ceiling` set by the adaptive system above — now read
+`state->{timeout_ceiling}` first. Also fixed a live-observed blind spot:
+`round-progress`'s lock-based task discovery went blank ("no active
+task") whenever the task was deep in tool execution (no GPU load, no
+backend lock held, but genuinely `in_progress` per `coding.status`) —
+most of the wall-clock time for a tool-heavy task. Falls back to
+whichever active task has the most recent round-activity timestamp when
+no lock is held, not `active[0]` by position (that's exactly the
+"misleading first-in-queue" case the original lock-check avoided).
+
 ## GPU-temp-aware timeout stretch — LANDED 2026-07-17
 
 Correction to an earlier note here: `coding.stats.gpu.temp` had zero
@@ -85,8 +99,8 @@ stall timeout multiply their base value by the current factor at
 round/connection start — read once per round/connection, not
 continuously, consistent with how the ceiling itself already works.
 
-#,,,,,.,,,.,.,,,.,.,.,,,.,..,,..,,.,.,,,,,.,,,..,,...,...,...,.,,,...,..,,,.,,
-#5IQGSM4KUCLYNO33C56ZKWLAAABX3MKLSWPZAQDLVGEORZAJW5V5VBXRRTSQHVERLPSRMHL3DOSI6
-#\\\|434WOABSYTYBVKSRMLRMENHYDMCIAKHXZ3WQPWTDHUFIRJKRHPG \ / AMOS7 \ YOURUM ::
-#\[7]JNECPVEENQTMFYNUW7IRF6UPAV4BNV5WZU7SSSFSSP6HVDOTOWAI 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,,.,.,.,,..,...,,,,,,.,,.,.,..,,..,,...,...,,,.,..,,.,,,...,.,,,
+#YMPBDSH4K5LG6KVYCTKQGFXUVGUHQNQM3LHD4RIGUEOSZL3OW5KGUFUQVZ4R54FC4XMTF3M2VULZ4
+#\\\|2L32BAETS3YLNQNHBDDY2AABRIGXN55LCOMEKWG6X55G5RU5CB5 \ / AMOS7 \ YOURUM ::
+#\[7]F6LWJ2SPYONNY2BCK4RXMICTEZHKNVFHLRRLDGRV3SEVI4LW5KCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

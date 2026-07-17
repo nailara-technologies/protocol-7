@@ -29,11 +29,11 @@
 - [clients-http](topic-clients-http.md), [task-coordination](topic-task-coordination.md), [job-pipeline](topic-job-pipeline.md) — async http dispatch; jobs.vhost live
 - [reasoning-chain-repository](topic-reasoning-chain-repository.md), [reasoning-namespace](topic-reasoning-namespace.md) — dedup self-improvement; `reasoning.*` ns
 - [checksum-parenting-namespace-trees](topic-checksum-parenting-namespace-trees.md), [triple-twofish-name-entropy](topic-triple-twofish-name-entropy.md)
-- [coding-state-machine](topic-coding-state-machine.md), [kimi-zenka-state-machine](topic-kimi-zenka-state-machine.md) — watcher lock; reconnect open
-- [chat-script](topic-chat-script.md), [stream-transport-layer](topic-stream-transport-layer.md), [stream-reply-modes](topic-stream-reply-modes.md) — bin/chat+STRM COMPLETE
-- [radio-relay-zenka](topic-radio-relay-zenka.md), [vhost-install](topic-vhost-install.md), [model-load-time-statistics](topic-model-load-time-statistics.md) — radio+vhost COMPLETE
-- [cursor-model](topic-cursor-model.md), [iris-spoke-labels](topic-iris-spoke-labels.md), [stream-framing-protocol](topic-stream-framing-protocol.md) — hyperspace cursor
-- [nshell-terminal-rendering](topic-nshell-terminal-rendering.md), [memory-tree-zenka](topic-memory-tree-zenka.md) — `(0)!TERM!` bug; tree LIVE
+- [coding-state-machine](topic-coding-state-machine.md), [kimi-zenka-state-machine](topic-kimi-zenka-state-machine.md) — reconnect open
+- [chat-script](topic-chat-script.md), [stream-transport-layer](topic-stream-transport-layer.md), [stream-reply-modes](topic-stream-reply-modes.md) — COMPLETE
+- [radio-relay-zenka](topic-radio-relay-zenka.md), [vhost-install](topic-vhost-install.md), [model-load-time-statistics](topic-model-load-time-statistics.md) — COMPLETE
+- [cursor-model](topic-cursor-model.md), [iris-spoke-labels](topic-iris-spoke-labels.md), [stream-framing-protocol](topic-stream-framing-protocol.md)
+- [nshell-terminal-rendering](topic-nshell-terminal-rendering.md), [memory-tree-zenka](topic-memory-tree-zenka.md) — tree LIVE
 - [web-browser-param-capture-graphing](web-browser-param-capture-graphing.md) — LANDED cae42647d; root-caused zoom-momentum bug
 - [input-capture-replay-website-templates](project-input-capture-replay-website-templates.md) — LANDED 2026-07-16, kimi K3
 - [web-browser-value-replay-waypoints](project-web-browser-value-replay-waypoints.md) — LANDED 2026-07-17, kimi K3; multi-window fan-out + access.zenki fix
@@ -50,14 +50,14 @@
 - [hybrid-namespace-routing](topic-hybrid-namespace-routing.md), [zenka-macro-language-postponement](project-zenka-macro-language-postponement.md) — 5 routing types; local-wins
 - [layer-matrix-convergence](project-layer-matrix-convergence.md), [self-improving-system](topic-self-improving-system.md) — restart/migration/branching=one algebra
 - [network-as-computer](topic-network-as-computer.md), [namespace-tree-intelligence](topic-namespace-tree-intelligence.md), [orbital-data-space](topic-orbital-data-space.md) — zenki-as-satellites
-- [distributed-consensus](topic-distributed-consensus.md), [task-tree-design](topic-task-tree-design.md), [self-contained-zenka](topic-self-contained-zenka.md) — chat/task tree
-- [window-canvas-addressing](topic-window-canvas-addressing.md) — CONVERGED 2026-07-11: identity = checksum-addressing, not new primitive; not started
+- [distributed-consensus](topic-distributed-consensus.md), [task-tree-design](topic-task-tree-design.md), [self-contained-zenka](topic-self-contained-zenka.md)
+- [window-canvas-addressing](topic-window-canvas-addressing.md) — CONVERGED: identity = checksum-addressing, not new primitive; not started
 - [style-philosophy](style-philosophy.md), [harmonic-mathematics](topic-harmonic-mathematics.md), [hyperspace-topology](topic-hyperspace-topology.md) — coding as artform
 - [punctuation-topology](topic-punctuation-topology.md), [field-coherence-synthesis](topic-field-coherence-synthesis.md), [field-capability-emergence](topic-field-capability-emergence.md) — `:`/`.` separators
 - [self-assembling-network](topic-self-assembling-network.md), [creative-field-behaviour](topic-creative-field-behaviour.md) — pre-loaded potential
 - [addressing-trinity](topic-addressing-trinity.md), [checksum-addressing](topic-checksum-addressing.md), [node-group-geometry](topic-node-group-geometry.md) — tree+checksums+timestamps
 - [1001](topic-1001.md), [perspective-layers](topic-perspective-layers.md), [observer-centric-space](topic-observer-centric-space.md) — cube tunnel/gate nesting
-- [routing-crystal](topic-routing-crystal.md), [checksum-tree-wire](topic-checksum-tree-wire.md), [tree-protocol](topic-tree-protocol.md), [data-protocol](topic-data-protocol.md) — DATA/DELTA sync
+- [routing-crystal](topic-routing-crystal.md), [checksum-tree-wire](topic-checksum-tree-wire.md), [tree-protocol](topic-tree-protocol.md), [data-protocol](topic-data-protocol.md)
 - [reference-bubble](topic-reference-bubble.md), [branch-namespace](topic-branch-namespace.md) — rhizome bubble (5+2=7); Z.Y.X coords
 
 ## Reference
@@ -89,7 +89,8 @@
 - [user-perfectionism-and-pace](user-perfectionism-and-pace.md) — "done" means perfectly smooth; let solo tuning passes run
 
 ## Feedback
-- [tasks-completed-scan-verdict-trust](feedback-tasks-completed-scan-verdict-trust.md) — "still open" verdicts need spot-checking too; caught 3 false negatives in one session
+- [tasks-completed-scan-verdict-trust](feedback-tasks-completed-scan-verdict-trust.md) — "still open" as unreliable as "move to completed"; 31/52 false negs 2026-07-17, incl. live auth gap
+- [kimi-dispatch-infra-hardening](topic-kimi-dispatch-infra-hardening.md) — --afk flag, k3/k2.7/k2.7-fast model routing; MCP bridge timeout ≠ dispatch failure
 - [coding-zenka buffer rescue](topic-coding-zenka-session9.md) — idle-shutdown backups readable via group-perm `xz -dc`, no sudo
 - [nested-dispatch-session-tracking](feedback-nested-dispatch-session-tracking.md), [webkit vs firefox css blindspots](feedback-webkit-vs-firefox-css-blindspots.md) — auto_summarize lossy, verify via git diff
 - [no sudo for privileged fs ops](feedback-no-sudo-privileged-fs-ops.md) — never `sudo` a protocol-7-owned file; hand command to user
@@ -99,16 +100,16 @@
 - [log string hygiene](feedback-log-string-hygiene.md), [ondemand timeout tiering](feedback-ondemand-timeout-tiering.md) — base.str.eval_error not raw $EVAL_ERROR
 - [claude_dispatch summarize hang](feedback-claude-dispatch-summarize-hang.md) — prompt-overflow hangs forever; kill PID, work safe on disk
 - [init-code-return-values](feedback-init-code-return-values.md), [memory-sync-timing](feedback-memory-sync-timing.md), [memory-management](feedback-memory-management.md) — TRUE/FALSE=success
-- [claude-dispatch-strategy](feedback-claude-dispatch-strategy.md), [kimi-code-review](feedback-kimi-code-review.md), [kimi-signatures](feedback-kimi-signatures.md), [kimi-dispatch-pattern](feedback-kimi-dispatch-pattern.md) — kimi orchestration
+- [claude-dispatch-strategy](feedback-claude-dispatch-strategy.md), [kimi-code-review](feedback-kimi-code-review.md), [kimi-signatures](feedback-kimi-signatures.md), [kimi-dispatch-pattern](feedback-kimi-dispatch-pattern.md)
 - [model-precision-analysis](feedback-model-precision-analysis.md), [coding-zenka-edits](feedback-coding-zenka-edits.md) — verify LLM-described edits
 - [coding-zenka-reasoning](feedback-coding-zenka-reasoning.md), [coding-zenka-inject](feedback-coding-zenka-inject.md) — low reasoning→premature completion
 - [arg-regression](feedback-arg-regression.md), [arg-calling-convention](feedback-arg-calling-convention.md) — `@_ ? shift : $ARG`
 - [prefer-parsed-config](feedback-prefer-parsed-config.md), [true-false-constants](feedback-true-false-constants.md) — parsed config not FS rescan
 - [web-serialization-and-inlining](feedback-web-serialization-and-inlining.md), [task-show-multiline](feedback-task-show-multiline.md) — parallel JSON+YAML; task.show escapes \n
 - [list-return-format](feedback-list-return-format.md), [stop-and-revert](feedback-stop-and-revert.md) — `{mode=>'size', data=>$string}`; root cause first
-- [utf8-module-literals](feedback-utf8-module-literals.md), [watcher-state-machines](feedback-watcher-state-machines.md) — non-ASCII corrupts
+- [utf8-module-literals](feedback-utf8-module-literals.md), [watcher-state-machines](feedback-watcher-state-machines.md)
 - [ncode-tools](feedback-ncode-tools.md), [perltidy-sil0](feedback-perltidy-sil0.md) — use ncode replace/parse-headers; ptd `-sil=0` self-heals
-- [git-log-all-false-duplication](feedback-git-log-all-false-duplication.md) — false "dup commits" = core.pager strips +/-, colors lost in capture
+- [git-log-all-false-duplication](feedback-git-log-all-false-duplication.md) — false "dup commits" = pager strips +/-, colors lost
 - [design-ideation-capture](feedback-design-ideation-capture.md), [coding-timeout-restart-loop](feedback-coding-timeout-restart-loop.md) — offer spin-off docs
 
 ## Completed Sessions
@@ -120,8 +121,8 @@
 - letsencr working; reasoning.branch.* LIVE; coding zenka operational
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: state-0/7 harmonized
 
-#,,,,,,.,,...,,,.,.,.,,,,,..,,.,.,..,,.,,,.,,,..,,...,...,.,,,...,.,,,..,,,,.,
-#7DSWIQ3WGLIAU5N2ZRHVPDZDPY6OYCJIOGR4POWDSZ6XQW4YS7DOPLZI6M3PC2LNL5DRPCWQOSMXU
-#\\\|WBBIVJOHTOG6AQN7QPWJ7JAZI3JBAFLUZSRZKHUD3CIBXX6QDNT \ / AMOS7 \ YOURUM ::
-#\[7]AHFGC3ZHO4IZSKVNNOETZKB2QC4TERVOBHK4JN3TQPGRLNJJY4DY 7  DATA SIGNATURE ::
+#,,,,,..,,,..,..,,.,,,.,,,,,.,,,,,,,,,,,.,...,..,,...,...,.,.,.,.,...,,,.,.,,,
+#MX4NOPPK5LLJLVJQGZUZYDNB4JDY7DWX2XFBRALVLV4EQFTNKQVHEBN6AKXXARYSGZVZ3K74PQ5D4
+#\\\|5FXJ6UCDWAWTKNGFYNXG557B2TGFAP4YCJ26DWSB5D42WGCN7I5 \ / AMOS7 \ YOURUM ::
+#\[7]G2GWIHBNKMGRXFOFSLHM7ZJRDGNDD5WJDJ32XUEUC46PINKPNICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
