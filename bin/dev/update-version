@@ -14,12 +14,13 @@ use Crypt::Misc qw| encode_b32r |;
 
 my $readme_file_path = qw| read-me/md/README.md |;
 my $versions_md_path = qw| read-me/project-identity/source-code-versions.md |;
+my $rel_versions_path = qw| read-me/project-identity/release-versions.md |;
 
 ##[ LOCAL PM LIB PATH ]#######################################################
 BEGIN {
     use English;
     use File::Spec;
-    use Cwd qw| abs_path |;
+    use Cwd     qw| abs_path |;
     use FindBin qw| $RealBin |;
     our $up_dir = File::Spec->updir;
     our $Bin    = $RealBin;
@@ -66,11 +67,13 @@ my $root_path
 my $cfg_path = File::Spec->catdir( $root_path, 'configuration' );
 our $vers_file = File::Spec->catfile( $cfg_path, 'protocol-7.src-ver' );
 our $rl_v_file = File::Spec->catfile( $cfg_path, 'protocol-7.rel-ver' );
-my $readme_md    = File::Spec->catfile( $root_path, $readme_file_path );
-my $versions_md  = File::Spec->catfile( $root_path, $versions_md_path );
-my $old_version  = get_old_version();
-my $git          = Git::Wrapper->new($root_path);
-my $commit_count = $git->log - 1;
+my $readme_md       = File::Spec->catfile( $root_path, $readme_file_path );
+my $versions_md     = File::Spec->catfile( $root_path, $versions_md_path );
+my $rel_versions_md = File::Spec->catfile( $root_path, $rel_versions_path );
+my $old_version     = get_old_version();
+my $release_version = get_release_version();
+my $git             = Git::Wrapper->new($root_path);
+my $commit_count    = $git->log - 1;
 
 die ":\n:: not found './cfg/protocol-7.src-ver'\n\n" if !-f $vers_file;
 die ":\n:: not found './cfg/protocol-7.rel-ver'\n\n" if !-f $rl_v_file;
@@ -119,6 +122,13 @@ $git->add($vers_file);
     $md_str =~ s{: ($B32_re|\d\d\.\d{4})\-\d{4,}\.\d+ }{: $version_string }g
         if $md_str !~ s|\Q$old_version\E|$version_string|g;
 
+    ## sync AMOS7 release version [ link text + tag URL ] ##
+    my $AMOS7_re = qr|AMOS7-v\d+\.\d+\.\d+|;
+    $md_str =~ s{\[($AMOS7_re)\]}{[$release_version]}g
+        if length($release_version);
+    $md_str =~ s{(/releases/tag/)$AMOS7_re}{$1$release_version}g
+        if length($release_version);
+
     if ( $md_str ne $md_copy ) {
         open( $md_fh, qw| > |, $readme_md ) or die " --> $readme_md : $!\n";
         print {$md_fh} $md_str;
@@ -135,16 +145,22 @@ $git->add($vers_file);
     close($md_fh);
 
     # Extract network timestamp and commit count from version string
-    my ($timestamp, $commit_count_with_minor) = split(/-/, $version_string);
-    my ($commit_count, $minor) = split(/\./, $commit_count_with_minor);
+    my ( $timestamp, $commit_count_with_minor )
+        = split( /-/, $version_string );
+    my ( $commit_count, $minor ) = split( /\./, $commit_count_with_minor );
     $minor //= '0';
 
     # Update the version identifier in the markdown file
-    $md_str =~ s|(- \*\*Version Identifier\*\*: `)[^`]+(`)$|$1$version_string$2|m;
+    $md_str
+        =~ s|(- \*\*Version Identifier\*\*: `)[^`]+(`)$|$1$version_string$2|m;
 
     # Update the network timestamp section with a broader pattern match
-    my $current_timestamp = $timestamp;  # Capture current timestamp
-    $md_str =~ s|(- \*\*Network Timestamp\*\*: `)([A-Z2-7]{10})(`)|$1$current_timestamp$3|;
+    my $current_timestamp = $timestamp;    # Capture current timestamp
+    $md_str =~ s{
+        ( - \ \*\*Network\ Timestamp\*\*: \ ` )
+        ( [A-Z2-7]{10} )
+        ( ` )
+    }{$1$current_timestamp$3}x;
 
     # Update the commit count section
     $md_str =~ s|(- \*\*Commit Count\*\*: `)[^`]+(`)$|$1$commit_count$2|m;
@@ -154,17 +170,50 @@ $git->add($vers_file);
 
     # Write changes if the content was modified
     if ( $md_str ne $md_copy ) {
-        open( $md_fh, qw| > |, $versions_md ) or die " --> $versions_md : $!\n";
+        open( $md_fh, qw| > |, $versions_md )
+            or die " --> $versions_md : $!\n";
         print {$md_fh} $md_str;
         close($md_fh);
         $git->add($versions_md);
     }
 }
 
+## ./read-me/project-identity/release-versions.md ##
+if ( length($release_version) and -f $rel_versions_md ) {
+    local $/ = undef;
+    open( my $md_fh, qw| < |, $rel_versions_md )
+        or die "$rel_versions_md : $!\n";
+    my $md_copy = my $md_str = <$md_fh>;
+    close($md_fh);
+
+    $md_str =~ s{
+        ^ ( - \ \*\*Release\ Version\*\*: \  )
+        AMOS7-v\d+\.\d+\.\d+
+        $
+    }{$1$release_version}mx;
+
+    $md_str =~ s{
+        ^ ( - \ \*\*Release\ Tag\*\*: \ \[ )
+        AMOS7-v\d+\.\d+\.\d+
+        ( \] \( .+? /tag/ )
+        AMOS7-v\d+\.\d+\.\d+
+        ( \) )
+        $
+    }{$1$release_version$2$release_version$3}mx;
+
+    if ( $md_str ne $md_copy ) {
+        open( $md_fh, qw| > |, $rel_versions_md )
+            or die " --> $rel_versions_md : $!\n";
+        print {$md_fh} $md_str;
+        close($md_fh);
+        $git->add($rel_versions_md);
+    }
+}
+
 say "$fg:\n${fg}:: $bl${CT}source version$rst$fg :: "
     . "$bg$CT$version_string$fg$rst$fg .:\n$fg:$rst";
 
-### SUBROUTINES ################################################################
+### SUBROUTINES ##############################################################
 
 sub gen_ver_string {
     my $version_str;
@@ -189,7 +238,17 @@ sub get_old_version {
     return $old_version;
 }
 
-################################################################################
+sub get_release_version {
+    return '' if !-f $rl_v_file;
+    open( my $fh, $rl_v_file ) or die "$rl_v_file : $!\n";
+    my $rel_version = <$fh>;    ## first line only [ truncates signature ] ##
+    close($fh);
+    $rel_version //= '';
+    $rel_version =~ s|\s+$||;
+    return $rel_version;
+}
+
+##############################################################################
 
 sub time_float {
     my $f = shift // 2;
@@ -218,7 +277,7 @@ sub ntime {    # [ network time : secs from 2002-06-05 * 4200 ]
     return $ntime;
 }
 
-################################################################################
+##############################################################################
 
 sub ntime_B32 {
     my $precision = shift // 0;    # <-- precision or utime
@@ -244,10 +303,8 @@ RETRY_BASE_NTIME_B32:              ## only choose harmonic values ##
     return $encoded_ntime;
 }
 
-################################################################################
-
-#,,.,,,,.,..,,..,,.,.,,.,,.,,,.,,,...,..,,.,,,..,,...,...,.,,,,,,,.,,,...,..,,
-#3T4YPKHFKRC3VVE33PPZOIAP6BBLBLRGMYZZOJVZWQBFFR4LLZRBQYLRCW2IDC44EHFZZ6476PRUK
-#\\\|P33EKF46FWJJZXISR7FQF3N2BA3SFNNUK5ORP3L57XSC7WX4AHK \ / AMOS7 \ YOURUM ::
-#\[7]IQ4KTBXE2UXIGGA7VTRLJ6GPY6QQVDBLPPSHLKN3EY6NDXOM2SBQ 7  DATA SIGNATURE ::
+#,,.,,.,,,...,..,,.,.,...,..,,,..,.,,,,,,,,.,,..,,...,...,..,,,,,,,,.,..,,.,,,
+#55CN4LUACDZLJEJRAFTFDJ2BNNEKUADPH343C3ROBHOJ3L6QM52JY5U7E43TXORF4V6QJAOOIMXMU
+#\\\|VSDFIGOAGD3BFTWFKM7HWRGJG5QUYFXLED5DBABKNEHGJ3MWLIM \ / AMOS7 \ YOURUM ::
+#\[7]R5DIP7SKTJBG4PLAXAFRLZ6QY2WMDXNRNVSSMR3WG5YR2YHT64AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

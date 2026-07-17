@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 3WCI5XFJBI-8559.0 :::
+::: SOURCE-CODE VERSION :: 3WCJFZGUOA-8560.0 :::
 
 # [ [nailara 'protocol seven' project](http://protocol-7.network/) ]
 
@@ -17,7 +17,7 @@
 ## Release Information
 
 - Detailed release history: [Release Versions](/read-me/project-identity/release-versions.md)
-- Current [release](https://github.com/nailara-technologies/protocol-7/tags) version \\// [AMOS7-v2.79.7](https://github.com/nailara-technologies/protocol-7/releases/tag/AMOS7-v2.79.7)
+- Current [release](https://github.com/nailara-technologies/protocol-7/tags) version \\// [AMOS7-v5.32.2](https://github.com/nailara-technologies/protocol-7/releases/tag/AMOS7-v5.32.2)
 ---
 
 ## 🌐 Topology Research Visualization
@@ -32,7 +32,7 @@
 
 [click the screenshot above to launch the interactive visualization]
 
-Features real-time 3D navigation, dynamic neighbor layers, psychedelic hue rotation, and adaptive rendering. Showcases the harmonic computing principles of cubic space topology with critically damped inertia physics [prior version] and multi-axis grid-aligned navigation. Bilingual interface (English/German).
+Features real-time 3D navigation, dynamic neighbor layers, psychedelic hue rotation, and adaptive rendering. Showcases the harmonic computing principles of cubic space topology with critically damped inertia physics [prior version] and multi-axis grid-aligned navigation. Bilingual interface [English/German].
 
 ---
 
@@ -364,8 +364,8 @@ The full vision document explores Protocol-7's unique approach to distributed co
 
 ```
 
-#,,,,,..,,..,,,.,,..,,,,,,.,.,..,,,,,,.,,,.,.,..,,...,...,...,.,,,..,,.,.,..,,
-#TXGGPI7G5FZ7UWGQBEIUHANPLLSHDGIG3FKSDCPU3OTKLVQYQ74MZ5AQHLOQT3LCSL46RVQC2ROGU
-#\\\|VQ5PL4LFWIKWNTYIEVYIP2QXMO2SEJSSNFSOVIFFWIRLDUYWIUZ \ / AMOS7 \ YOURUM ::
-#\[7]7OCWQR25CAKMCQPLGEU52L3KRDPFCT5JKLDY6KF2AQWWEMJUZ6DI 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,,..,,.,,.,,,,,.,..,,,,,,.,,,,,.,..,,...,...,...,.,.,...,.,,,,.,,
+#XL4R52B7JZXAFEWBYV37RCVPQQYVHRRLXHFLSHU7NC2BWODAVKHHICSZQ2XKCIWUN3BUQPKY3CSAY
+#\\\|AOIOCP532YCXXTA7YD2B26DCA5F53MM7OFFCTPGPFCAEG3BLX7C \ / AMOS7 \ YOURUM ::
+#\[7]2U4UEUYPZ7RBVUVEJQGIAJPCBSE3K73W2HEFYYHTTIPZQAVHMQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
