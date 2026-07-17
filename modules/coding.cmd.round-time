@@ -8,8 +8,8 @@ my $args_str = $call->{'args'} // '';
 my ($limit)  = split m{ +}, $args_str, 2;
 $limit //= 20;
 
-my $ceiling = <coding.http-timeouts.request-completed> // 780;
-my $now     = <[base.time]>->(3);
+my $default_ceiling = <coding.http-timeouts.request-completed> // 780;
+my $now             = <[base.time]>->(3);
 
 my $aref_active = <coding.task.active> // [];
 
@@ -20,6 +20,10 @@ for my $task_id ( $aref_active->@* ) {
 
     my $state = <[coding.async.state_machine]>->( qw| get |, $task_id );
     my $round = $state->{'round'} // 0;
+
+    ## actual ceiling governing THIS round : soft/escalated/GPU-stretched, ##
+    ## not always the flat default [ see coding.async.request ]           ##
+    my $ceiling = $state->{'timeout_ceiling'} // $default_ceiling;
 
     ## phase-1 [http-wait] start; phase-2 [tool-exec] starts when this     ##
     ## round's response has been fully received and state_machine enters   ##
@@ -44,6 +48,7 @@ for my $task_id ( $aref_active->@* ) {
         {
         'task_id'       => $task_id,
         'round'         => $round,
+        'ceiling'       => $ceiling,
         'http_elapsed'  => $http_elapsed,
         'http_pct'      => $http_pct,
         'tools_elapsed' => $tools_elapsed,
@@ -75,19 +80,20 @@ if (@rows) {
         my $tools_str = 'tools: --';
         if ( defined $row->{'tools_elapsed'} ) {
             my $tools_flag
-                = $row->{'tools_elapsed'} > $ceiling ? '[!! long]'
-                : $row->{'tools_elapsed'} > 300      ? '[! long]'
-                :                                      '';
+                = $row->{'tools_elapsed'} > $row->{'ceiling'} ? '[!! long]'
+                : $row->{'tools_elapsed'} > 300               ? '[! long]'
+                :                                               '';
             $tools_str = sprintf "tools: %ds [no ceiling] %s",
                 $row->{'tools_elapsed'}, $tools_flag;
             $tools_str =~ s| +$||;
         }
 
         push @output,
-            sprintf "%s %s | R:%02d | http: %03ds of %03ds [%%%03d] | %s | %s",
+            sprintf
+            "%s %s | R:%02d | http: %03ds of %03ds [%%%03d] | %s | %s",
             $http_flag, $row->{'task_id'},
-            $row->{'round'}, $row->{'http_elapsed'},
-            $ceiling,   $row->{'http_pct'},
+            $row->{'round'},   $row->{'http_elapsed'},
+            $row->{'ceiling'}, $row->{'http_pct'},
             $tools_str, $row->{'desc'};
     }
 } else {
@@ -98,8 +104,8 @@ my $output_str = join( "\n", @output ) . "\n";
 
 return { 'mode' => qw| size |, 'data' => $output_str };
 
-#,,..,,.,,,..,.,,,..,,.,.,...,.,,,,.,,,.,,.,,,..,,...,...,.,,,,,.,,.,,.,,,,.,,
-#TK7B43STXQGXCFNDZDLYBMVRT6NYWNBQPJRJTYNH645ATJ5M7DXXCHO7Y6EDMMDAK2NUJHSR5CA4W
-#\\\|DZPNQZPND36TEB4YXRNE24OU5LTYAUP5KA4QWL7IS3NUAHT5MZF \ / AMOS7 \ YOURUM ::
-#\[7]U2UYMW22W3O6GCEOOLU4DPQGN5BSVGRVUIDSAALM2ATNX536PSBY 7  DATA SIGNATURE ::
+#,,,,,...,..,,..,,.,,,...,,,,,..,,.,.,.,,,...,..,,...,...,,.,,,.,,,.,,,..,,,.,
+#5B3WTOAQY3BDKCQGQTNYNW6IASO46UH24ONLX63YSMOEKDFWIE4GKAHQT5EENKXXYAN47H5YEGEEO
+#\\\|27USXZ53VJ27FNMKAZATWN4I5XW5NXBKGHPIZYH73B4VHUZAI2E \ / AMOS7 \ YOURUM ::
+#\[7]6WCAYIZDHGVUQ2AOJBZMI2RZNPD3VHTIWRPPXOAKGKNG3LQCREAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
