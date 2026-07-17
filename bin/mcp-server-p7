@@ -87,10 +87,18 @@ my @external_tools = (
             . 'kimi prints a resume line at the end: '
             . '"To resume this session: kimi -r <uuid>" — '
             . 'pass that uuid to kimi_continue to resume a long-running '
-            . 'task.',
-        'command' => 'kimi-legacy -y --afk -p %s',
+            . 'task. specify model=k2.7 for cheap token-heavy work, '
+            . 'model=k3 (default) for complex reasoning, model=k2.7-fast '
+            . 'for faster turnaround at mid cost.',
+        'command' => 'kimi-legacy -y --afk -p %s --model %s',
         'params'  => [
             [ 'prompt', 'the task or question for kimi to work on', 1 ],
+            [   'model',
+                'model: k3 (default, best reasoning, large context) | '
+                    . 'k2.7 (cheapest, good for broad search/verification) '
+                    . '| k2.7-fast (faster turnaround, mid cost)',
+                0
+            ],
             [   'auto_summarize',
                 'summarize output via local 9B model before returning '
                     . '(default: true)',
@@ -110,14 +118,34 @@ my @external_tools = (
             . 'use when kimi_dispatch output ends with a resume line. '
             . 'pass the uuid from "To resume this session: kimi -r <uuid>". '
             . 'kimi resumes with full prior context and acts on the new '
-            . 'prompt.',
-        'command' => 'kimi-legacy -y --afk -r %s -p '
-            . '%s',           ## session uuid + new prompt
-        'param_name'  => 'session_id',
-        'param_desc'  => 'the kimi session uuid from the resume line',
-        'param2_name' => 'prompt',
-        'param2_desc' =>
-            'the next task or instruction for the resumed session',
+            . 'prompt. specify model=k2.7 for cheap token-heavy work, '
+            . 'model=k3 (default) for complex reasoning, model=k2.7-fast '
+            . 'for faster turnaround at mid cost.',
+        'command' => 'kimi-legacy -y --afk -r %s -p %s --model %s',
+        'params'  => [
+            [   'session_id',
+                'the kimi session uuid from the resume line', 1
+            ],
+            [   'prompt',
+                'the next task or instruction for the resumed session', 1
+            ],
+            [   'model',
+                'model: k3 (default, best reasoning, large context) | '
+                    . 'k2.7 (cheapest, good for broad search/verification) '
+                    . '| k2.7-fast (faster turnaround, mid cost)',
+                0
+            ],
+            [   'auto_summarize',
+                'summarize output via local 9B model before returning '
+                    . '(default: true)',
+                0
+            ],
+            [   'keep',
+                'keep stored summary focus after use for verification '
+                    . '(default: false)',
+                0
+            ],
+        ],
         'timeout' => 4620,    ## 77 minutes
     },
     {   'name'        => 'claude_dispatch',
@@ -2894,6 +2922,21 @@ sub tool_external_command {
         }
     }
 
+    ## kimi-specific defaults and model alias resolution
+    if ( $ext->{'name'} =~ m{^kimi_} ) {
+        $args->{'model'} //= 'k3';
+
+        my %model_map = (
+            'k3'        => 'kimi-code/k3',
+            'k2.7'      => 'kimi-code/kimi-for-coding',
+            'k2.7-fast' => 'kimi-code/kimi-for-coding-highspeed',
+        );
+        if ( defined $args->{'model'} ) {
+            $args->{'model'} = $model_map{ $args->{'model'} }
+                // $args->{'model'};
+        }
+    }
+
     ## params handled here, not forwarded to the shell command ##
     my %skip_in_cmd = map { $_ => 1 } qw( auto_summarize keep );
 
@@ -3014,8 +3057,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,,,..,,.,.,,,.,,..,,,,,,,,,...,,,,,.,.,..,,..,,...,...,..,,,,,,,,.,.,.,,,,,
-#57BIJIJKAPE4OAWI2X2O4674TPD2MYOV4M2JCGNPU63WFU7GLONBH2OP7OM23U3IGKRRQYFHA5RX4
-#\\\|WBX6G547ANGYO5ZJOD4WGYXJIDJINYTAUOXG5HGB75IYQFVQM57 \ / AMOS7 \ YOURUM ::
-#\[7]RFBCQ3UK5MAQGE2VHE63UD5KXKBTQVBMCWDWWIU64D7V2EXMBCCA 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,.,,...,.,.,,,.,...,.,.,.,,,..,,..,,...,...,.,,,,,.,,.,,.,,,.,,,
+#MVH3VKUZM7PL3U5DBXE22X6V7S35ROWGFRGC45JWKUG2AFDV4H67PHKFZRLVKR7TNUG3RTDFYJV5C
+#\\\|BBJHZQOYRRHQDY3SBEA5ZYU3OXLVV43BWTZDZQBH3SJVTVRDPZ3 \ / AMOS7 \ YOURUM ::
+#\[7]U5FOLJ43GDTT3AUQBUL6PPB5KJEINODRPAXUMCS4ZQGDYKTJYCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
