@@ -146,15 +146,29 @@ the read API open for dashboard viewing without login.
 - multi-site jobsite reverse fan-out
 
 implement in this order:
-1. `plugin.web.auth.verify_session` + session file store
-2. gate `/jobs-sync` POST behind session check
-3. session create/destroy + token distribution
-4. cross-node session sync
+1. `plugin.web.auth.verify_session` + session file store — DONE, all 11
+   `plugin.web.auth.*` modules exist and session storage is wired
+   (commits `f5dd2648f`, `f91bbbd80`)
+2. gate `/jobs-sync` POST behind session check — DONE 2026-07-17
+   (`configuration/zenki/httpd/routes`: added `auth.required=1` to the
+   `/jobs-sync` route; found ungated via independent re-verification —
+   the write endpoint was live and public despite this requirement)
+3. session create/destroy + token distribution — DONE,
+   `plugin.web.auth.create_session`/`destroy_session` both exist
+4. cross-node session sync — STILL OPEN, no matching module found
+   anywhere in the tree
+
+## status
+
+Items 1-3 complete as of 2026-07-17 (the security-relevant gating,
+specifically). Item 4 (cross-node session sync) remains unimplemented —
+this is what keeps the task open, not the auth-gating gap that was just
+closed.
 
 ## dispatch
 
-#,,,,,,.,,,.,,.,.,,..,,..,.,.,,.,,.,.,..,,,,,,..,,...,..,,.,,,..,,,..,..,,,,.,
-#SW2RJALNP2NKL7KPPFZFOFGTU2PEEQ52R5E2WIRRCNRBM2HKYWJS5LGESQE2IRYEZAKE7AOT2Z3VK
-#\\\|STEXQDORY2WWGLBQLEHOPU63D2ACLG72B4QLZJP6BY7JGSXAX3G \ / AMOS7 \ YOURUM ::
-#\[7]GHDIFCYTJTDH2CXXJ6EA7ATUMK2UP7LMQOOU5BO5US4MQY2JPCCA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,..,...,..,,,..,.,,,.,,,,.,,,.,,..,,...,...,,,,,,..,,,,,.,,,,.,,
+#OHGT7EZW75PGJPSLK3BMI6L4R7WE4Y6MZVSRL6323I2HYPXZJ6S4XIPDHBEEXIUMDOKSOVZYK7W3S
+#\\\|ZNZCUUKXPYD72OWP7G4BB54NCHJCUQE6WL3BQ52MR7CBJQZCGHI \ / AMOS7 \ YOURUM ::
+#\[7]B7337WP2V7PMQSCDECCKAIK6ATSW5OEI5NMELSTA2A5RQJXTMUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
