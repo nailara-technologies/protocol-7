@@ -1,11 +1,10 @@
 ## [:< ##
 
 # name  = ncode.cmd.search
+# param = <pattern> [scope]
 # descr = regexp search across source, tasks or docs
 
-my $call_args = $ARG                 // {};
-my $args      = $call_args->{'args'} // '';
-
+my $args  = $call->{'args'} // '';
 my @parts = split m|\s+|, $args;
 
 my @known_targets = qw|
@@ -68,8 +67,8 @@ my $output = $code{'ncode.util.run_cmd'}->(@cmd);
 
 return { 'mode' => qw| size |, 'data' => $output };
 
-#,,,.,,,.,.,.,.,,,,..,...,.,.,,,,,,,,,.,,,,,,,.,.,...,..,,...,.,,,..,,..,,...,
-#INXMG44CO5QDTV7VQY34ZE67MPBYTACKVQFY2ONJTYZUHILHRG7VA2XY7XLD6XIK4L3SEUERXS3P6
-#\\\|HCE7HXO27DPWM2FOFAGUWZIQADQ6COG5IDQRRM4RGH7AIQRROKI \ / AMOS7 \ YOURUM ::
-#\[7]W5HTNDMNNPZIQKDSKEGIBCMRJUFWEBFS7JAYZ3CDUSPZLRNYOEDA 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,.,,,.,.,...,,.,,,.,,...,,..,.,.,.,.,...,...,...,,,.,,.,,,,.,...,
+#K735EIT6RJYZNTFTZKE7T25CDNRLJBQAXEB56W54P2MZ24656RT2PMBIJYNPQU3SKQOVWG4YJABYQ
+#\\\|JLSIVIAAZPHEDNRANH6CA2RLCJOWZG3QSXIRT2C34HOTVJSPF5Z \ / AMOS7 \ YOURUM ::
+#\[7]3AVXMCATLFGTT5Z7IO4KWKFLVPN33JZBKCX4FGAGBURQMZXOEAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

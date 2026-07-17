@@ -3,8 +3,7 @@
 # name  = ncode.cmd.sign-batch
 # descr = sign all modified tracked source files
 
-my $call_args = $ARG                 // {};
-my $args      = $call_args->{'args'} // '';
+my $args = $call->{'args'} // '';
 
 my @parts = split m|\s+|, $args;
 my $glob  = shift @parts // '';
@@ -59,8 +58,8 @@ my $output = $code{'ncode.util.run_cmd'}->(@sign_cmd);
 
 return { 'mode' => qw| size |, 'data' => $output };
 
-#,,,.,,,,,,,,,,,,,...,...,,,.,.,,,..,,,..,..,,.,.,...,...,..,,..,,,.,,,..,,.,,
-#IB2Z3BA3W4DOQSSUF4W3LCK7HIKUPOAEM2AJFH5SZMQKVPAYEBQ4W5GO42RG3M5B56AUHVJBZC3Z2
-#\\\|GUMPKQPMSHVOKZHFWSVO55L7WCJX3WG5AZZ2QYPV2JJSWETJCGM \ / AMOS7 \ YOURUM ::
-#\[7]I54SDTOSH3R5S34GSFJNBKNMTIMHOLP63QRCNGU6DNTYIRN7IWAI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,.,.,..,,,,.,,,.,.,,,,,.,,.,,.,,,.,.,...,...,...,.,.,,.,,,,,,.,.,
+#QIP7FTVR2KKTAHXBFWVU2NGXRJ4DKJDHWATMAHIKPWPA2V6MTTVVQHB3MA3EVI4P4TGPYP3YM3MXI
+#\\\|JRPLH4MQ24FYKLFRPNGUZDR6WDZ3N62SAAVPBFGRLM5NZ7IE2GS \ / AMOS7 \ YOURUM ::
+#\[7]2FBBC6RTTB3MJ6DYHH6SO3HZ5WE3BUGLZPX7C255KIDBLBNSXKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
