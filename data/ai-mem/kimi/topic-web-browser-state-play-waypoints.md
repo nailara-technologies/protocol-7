@@ -58,8 +58,32 @@ live-verified 2026-07-16 [ p7c against running zenka ]:
 
 whitelist regenerated [ 652 subs ]; signatures pending - user re-signs.
 
-#,,.,,,,.,...,,,.,,.,,,,.,.,,,...,,,.,,,.,,.,,..,,...,...,,,,,,..,,,.,,.,,..,,
-#4IRNOKPFD7PEDJ7YKNBFRCG7UQKKP4CMJWQ7IRRNNMEQPQEVP4WT5ZYZ3RESGNG5EF6QCFBUU7EIO
-#\\\|DXWMUW2U3P6K27R3G2YCYUHNSVYMSO2W4JQA64QJXB6MK42REUT \ / AMOS7 \ YOURUM ::
-#\[7]SU3XJ73A7YVEMPWXAIGXMXD3IDLFDOEVYYSIOQUFD7ODMGUQTQCQ 7  DATA SIGNATURE ::
+## section 4 : multi-window fan-out [ landed 2026-07-17 ]
+
+- `base.zenki.resolve_group_sids(zenka, group_subname, callback)` + `.reply`
+  — mirrors resolve_primary_sid [ v7 fast path / route-send 'list subnames'
+  split, same table parsing ], but filters ALL rows with matching subname
+  and calls back with an arrayref [ empty if none ]. no cache [ fan-out op,
+  not hot path ].
+- `web-browser.cmd.goto-waypoint-group <group> <name> [duration=] [path=]
+  [force=1]` — resolves, then fire-and-forget `"$sid.goto-waypoint"` per sid
+  [ bare-sid addressing, cf. mpv.handler.reposition_reply ], deferred reply
+  with fan-out count.
+- GOTCHA [ cost a debug round ]: zenka->zenka routed commands need a CALLER
+  grant in `configuration/zenki/cube/access.zenki`. cube rewrites
+  `<sid>.<cmd>` to `<target-user>.<cmd>` for the has_access check
+  [ base.handler.command :496 ], so `access.cmd.usr.web-browser` needed
+  `web-browser.goto-waypoint` added. route-send returns send count > 0 even
+  when the target REFUSES on access — silent failure, check grants first.
+  apply with `p7c reload config` [ bare target = cube, not `cube.reload` ].
+- live-verified: started 2 extra instances `v7.start web-browser[grpA]`,
+  wpA on both, fired goto-waypoint-group from instance 1 -> both landed
+  exactly [ 45/1.5 ]. test instances stopped after. v7 fast path NOT
+  live-tested [ no v7-resident caller in this pass ].
+- whitelist regenerated [ 655 subs ]; signatures pending - user re-signs.
+
+#,,,.,...,,,.,.,,,.,,,,,,,..,,.,,,,.,,..,,.,,,..,,...,...,.,.,,.,,.,,,..,,..,,
+#M3WU6KPDLG5XQF3IUE7ZOW4X5WHWTCTAHXPUHJIHVBSE5WDVX75S6T6PARXLTSK2PISPQMM3OABXW
+#\\\|7OHRBHQDBENVWVAXWSXC3CGUQTNRCUPPHCQBAJZP37RKYD5Q3QW \ / AMOS7 \ YOURUM ::
+#\[7]NOIYPF4TI2SCUJZGHBFTBMXMIUHCKDQBQQLT7P4SAC6Z62OSO4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
