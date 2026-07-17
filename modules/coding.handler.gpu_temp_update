@@ -49,6 +49,39 @@ return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
                     = defined $avg_5s ? 0 + $avg_5s : undef;
                 <coding.stats.gpu.temp.updated_at> = <[base.time]>->(2);
 
+                ## adaptive timeout stretch : same continuous proportional-
+                ## feedback shape as web-browser.handler.gpu_load_reply's
+                ## slowdown_target -- asymmetric acceleration [ ramps up
+                ## fast when over target, relaxes slowly when cooling ] +
+                ## a dead-band so small fluctuations don't cause constant
+                ## tiny adjustments. Piggybacks on this existing STRM
+                ## consumer as the trigger point -- no push/relay needed
+                ## [ unlike web-browser/ticker's slow_down command, coding
+                ## already has the temp subscription feed locally ] ##
+                <coding.cfg.gpu_target_temp_c>  //= 80;
+                <coding.stretch.timeout_factor> //= 1.0;
+
+                my $target   = <coding.cfg.gpu_target_temp_c>;
+                my $exceeded = $temp_1s - $target;
+                my $factor   = <coding.stretch.timeout_factor>;
+
+                ## ramp up fast when over target, relax slowly when under ##
+                my $accel     = $exceeded > 0 ? 0.08 : 0.03;
+                my $upper_tol = 0.5;
+                my $lower_tol = 1.5;
+
+                my $skip = (
+                           $exceeded <= 0 and abs($exceeded) < $lower_tol
+                        or $exceeded > 0  and abs($exceeded) < $upper_tol
+                ) ? 1 : 0;
+
+                if ( !$skip ) {
+                    $factor = sprintf( '%.3f', $factor + $exceeded * $accel );
+                    $factor = 3.0 if $factor > 3.0;
+                    $factor = 1.0 if $factor < 1.0;
+                    <coding.stretch.timeout_factor> = $factor;
+                }
+
                 my $buf = <coding.stats.gpu.temp.sparkline_buf>;
                 push @$buf, 0 + $temp_1s;
                 shift @$buf while @$buf > 20;
@@ -70,8 +103,8 @@ return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
 <[base.logs]>
     ->( 2, 'gpu temp STRM consumer registered [cmd_id=%d]', $cmd_id );
 
-#,,,.,,,.,,..,,,,,.,,,,..,..,,,,,,...,,..,.,.,..,,...,...,,.,,...,..,,..,,..,,
-#XAAIYTVMFLSF5CGK32CXY3HZG4WFB447R32IUVKXYD33QNZAXKPYNE3Y3YELVATZKSZPDZG23ASIQ
-#\\\|N5SWZC7JKUV5SDR357ZO2PB5S7KI7EWCEJYD4WJPJOK3BJXQSYG \ / AMOS7 \ YOURUM ::
-#\[7]265WBGPJ25ZNA7JTR4K4HMV4UB2LLON7IGVSQ7A5GZ3SNEXRJ4AI 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,,.,...,.,.,..,,..,,.,,,,..,..,,..,,...,..,,,.,,.,.,,..,.,,,,,.,
+#RTW6POR672UQAEV3Z4574S6CVZTVMLOYWIF6RR3D663GCIBWAMCLMSJBY4VLE3Q5FFDQUVC77G7O4
+#\\\|7CWAMWUR7QTFF2WNWY5YLRQU6LLFA5L4EOUGPDTFLEUAGRXUOW6 \ / AMOS7 \ YOURUM ::
+#\[7]6XCW3ZD3RRRZDCQHDTGQKEAF735JCYC3JQZTCZVXOWVPITVORKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
