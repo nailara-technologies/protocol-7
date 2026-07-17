@@ -20,6 +20,28 @@ infrastructure, though it will plug into it once that exists.
 - `create_backup` / `cmd_restore_backup` — tar.gz/tar.xz archives under
   `backups/`, restorable via `bin/ncode restore-backup [-latest]`.
 - `undo` / `undo-move` commands.
+- **`ncode.cmd.suggest` + `ncode.cmd.apply` already ARE a change-queue,
+  not just a CLI concept** — confirmed 2026-07-17 while chasing an
+  unrelated arg-passing bug (see [[topic-ncode-access-gap]]'s sibling
+  bugfix). `suggest` scans files against a checksum-addressed pattern
+  library (`<ncode.patterns>`), computes a session-root checksum from
+  `ntime + sorted file list`, and stores each candidate fix in
+  `<ncode.pending>` keyed by a content-derived `fix_id`
+  (`checksum(pattern:file:line)`) with `status => 'pending'`. `apply`
+  then batch-applies by `fix_id` list or by `--session <root>` (all
+  pending fixes from one suggest run), running each fix's regex steps,
+  checking `verify.no_match` conditions, and **auto-reverting the file
+  to its original content on verify failure** — `status` flips to
+  `'applied'`/`'failed'` accordingly. This is precisely the
+  checksum-addressed, session-scoped, auto-revert-on-failure shape the
+  web change-queue UI (point 2 below) needs on the backend — it doesn't
+  need to be invented, just exposed and given a UI. Not yet checked:
+  both `suggest` and `apply` retrieve their args via `my $params = shift
+  // {}` rather than `$call->{'args'}`/`$call->{'param'}` — a third
+  calling convention distinct from the `$ARG`-vs-`$call` bug just fixed
+  elsewhere in `ncode.cmd.*` (see [[topic-ncode-access-gap]]); worth
+  live-testing before relying on them over the network, not assumed
+  broken or working.
 - **`warn_apply()` (line ~1271) already IS the grace-period-abort
   feature** the user described, verified live via `ncode search
   "A P P L Y I N G"`: blinks "A P P L Y I N G   C H A N G E S" for ~3s
@@ -96,8 +118,8 @@ pipeline is what makes them sustainable.
 [[topic-write-access-security-infrastructure]]
 [[topic-jobsite-ui-usability]]
 
-#,,,,,...,...,...,.,.,,,.,,.,,,,.,,,.,,,,,.,,,..,,...,...,...,.,,,...,,..,,.,,
-#YFKAIGQVWJFLYSDW6IFQHP4CTX4AGDBYKE4NGJQM3ASHMNYZYEWSFZ3KZS6KSRKR5BU63P2HV7UTC
-#\\\|RMN75OTFTLANYCTSK2IVOHNYJJBKGVX3Y257DGXSJBLMUKFGN62 \ / AMOS7 \ YOURUM ::
-#\[7]576SFKFDGICCRJQOOWZIY3E7UUYVCBDILPDBEPFSQE3KTWGICSDY 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,.,.,...,..,,,..,...,,.,,..,,.,.,..,,...,..,,...,..,,.,.,.,.,,,.,
+#OWAB4JGF2JVOQGDLDZYFOSDGB6UYD2EW53LKWMUOBKM453HWBQS2APLOCZVW7GHJZ47GAHXK4XYQY
+#\\\|ZZLSEQ5TCLOO2LYUHTXBAVKIPKGSNWEMCFBEMVF62CHLI544W4M \ / AMOS7 \ YOURUM ::
+#\[7]ZQNFKD4BCHWHR5IWSGS5OSI2D53CARNVBOMJRMI4WB25XPEIASCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
