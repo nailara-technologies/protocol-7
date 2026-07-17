@@ -186,11 +186,23 @@ not because it's next:
 
 ## status
 
-Design-only, nothing implemented. Spun off during the session that closed
-out [[web-browser-input-capture-replay]] (commit d0e823312), 2026-07-16.
+All four build steps LANDED (2026-07-16/17, kimi K3, 2 dispatch rounds).
+Steps 1-3 (write-back hook, curve-smoothed exact arrival, pinned
+waypoints): commit f3ff56181. Step 4 (multi-window fan-out via subname
+groups): commit 5de162b6e — live-verified with two real concurrent
+instances landing exactly at a shared waypoint via one
+`goto-waypoint-group` call. Also surfaced and fixed a real
+`access.zenki` bug along the way (missing `web-browser.goto-waypoint`
+grant, and a separate stray reply-handler entry that never belonged in
+`access.zenki` at all).
 
-#,,.,,,,,,...,..,,...,,,,,.,.,.,,,..,,,..,,,.,..,,...,..,,...,.,,,,,,,.,.,.,,,
-#POKEXX26OKU4R7KL2UI2IROSQQTZMM46SMHOGPTVI3CRIOGADFFXJHVRY3INBB4Y5OZPT5O7YI5CM
-#\\\|LNIQ273CZVJ4IOZCTFLRVAIIFXN37LNVXR6UALOJI2AYH5CHQYO \ / AMOS7 \ YOURUM ::
-#\[7]JHMJR5QKI35FAAZSYJKQDFTIS4WQ7SMQFCHWKC7W4PHYDUVNICAY 7  DATA SIGNATURE ::
+Feature complete. The "vision / not yet scoped" section above (cubic
+space as ambient substrate, parent-space nesting, dedicated inter-instance
+sync channels including `httpd` zenki) remains open for a future pass,
+not designed in detail.
+
+#,,,,,,,,,,.,,.,,,...,.,,,,.,,,.,,..,,.,,,..,,..,,...,...,.,.,...,..,,..,,,,.,
+#B2DXATPLFPZZD6JJECJJBY5KS27HS2WQWAIBQZZASFVMQNE4YN6OZUYOOSYZPQUWGT3MOS36RMBGO
+#\\\|GGB4ILQW7X4XFOKUIYF7SEHLDZGANHKYKYN7QBI3KSDZLQ3KJDO \ / AMOS7 \ YOURUM ::
+#\[7]VC3KHS5Z3MX56A5WCPU36TCIJOZOEHP5TEMDI7AV77XDS372FCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

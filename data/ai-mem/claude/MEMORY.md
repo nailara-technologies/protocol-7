@@ -35,11 +35,12 @@
 - [cursor-model](topic-cursor-model.md), [iris-spoke-labels](topic-iris-spoke-labels.md), [stream-framing-protocol](topic-stream-framing-protocol.md) — hyperspace cursor
 - [nshell-terminal-rendering](topic-nshell-terminal-rendering.md), [memory-tree-zenka](topic-memory-tree-zenka.md) — `(0)!TERM!` bug; tree LIVE
 - [web-browser-param-capture-graphing](web-browser-param-capture-graphing.md) — LANDED cae42647d; root-caused zoom-momentum bug
-- [input-capture-replay-website-templates](project-input-capture-replay-website-templates.md) — LANDED 2026-07-16, kimi K3; follow-up: [[project-web-browser-value-replay-waypoints]]
+- [input-capture-replay-website-templates](project-input-capture-replay-website-templates.md) — LANDED 2026-07-16, kimi K3
+- [web-browser-value-replay-waypoints](project-web-browser-value-replay-waypoints.md) — LANDED 2026-07-17, kimi K3; multi-window fan-out + access.zenki fix
 
 ## Vision / Design
-- [implicit-perspective-navigation](topic-implicit-perspective-navigation.md), [web-browser-value-replay-waypoints](project-web-browser-value-replay-waypoints.md) — curves/thresholds ARE the nav decision; explicit/implicit/magnetic modes; design-only
-- [dynamic-dependency-resolution](topic-dynamic-dependency-resolution.md) — local-capability-first, then preference-ranked match, then discovered external capability chains; graph-params = live precedent
+- [implicit-perspective-navigation](topic-implicit-perspective-navigation.md) — curves/thresholds ARE the nav decision; explicit/implicit/magnetic modes; design-only
+- [dynamic-dependency-resolution](topic-dynamic-dependency-resolution.md) — local-capability-first, then preference match, then discovered capability chains
 - [decision-node-polarity-geometry](topic-decision-node-polarity-geometry.md) — seed: polarity node = reference-bubble's 5-of-7; not yet reconciled w/ node-group-geometry
 - [source-identity-spoofing](feedback-source-identity-spoofing.md), [project-vision-origin](project-vision-origin.md) — hostnames aren't a security boundary, C25519 is; 24yr vision
 - [synchronous-multi-legged-pattern-extraction](topic-synchronous-multi-legged-pattern-extraction.md), [distributed-hybrid-inhabitants](topic-distributed-hybrid-inhabitants.md) — parallel component search
@@ -118,8 +119,8 @@
 - letsencr working; reasoning.branch.* LIVE; coding zenka operational
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: state-0/7 harmonized
 
-#,,,,,,.,,.,.,.,.,,,,,..,,,,,,...,,.,,,,.,,.,,..,,...,..,,...,,,.,,..,..,,,,,,
-#QMO7GUY4NQRMTN24BNNYCHFJXWJSWKOAH64YB5WPVCZZCR35PEK6YMFT5DTPESPJO7U2PV3HSRQYK
-#\\\|KLONFJ3U4TJN37PC3SGSTPM2CAK4GC7RBGHWY5K7HSV6AR2RY7X \ / AMOS7 \ YOURUM ::
-#\[7]QQU4C6IJLFD5SPS5WJG6RJRWGSBR2AYEFISUCCAU54YW34TDFCCY 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,...,.,.,,,,,,.,,,,,,,,,,...,...,..,,...,...,...,.,,,,..,,..,,..,
+#HO7D7LDVEVBM4KRKT4VOF57NPKFIA2QMM6M5YVI66KOQJWAFRPFZVSXNZZNAIYJSD3TMLODS3Y5U2
+#\\\|QVHUDK3VIJN3ZU5TR4M73BVYXPSGGYLIZEO3PJITLNNJFPT3TSH \ / AMOS7 \ YOURUM ::
+#\[7]RQYYLPLCHRUQYDZTILID3H77FHH3WJJTFFKYCFTREMW6QYSO4GCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
