@@ -39,11 +39,32 @@ those as the checklist items.
 
 ## status
 
-Design-only, nothing implemented — carried over verbatim from the
-archived task's own spec, not redesigned here.
+Implemented 2026-07-17 in `bin/mcp-server-p7`:
 
-#,,.,,,,,,,,,,.,.,,,.,,..,.,,,..,,...,,,,,,,,,..,,...,...,...,.,.,...,,.,,.,.,
-#SOEGLEDDQBHADQTW42SEZTQZ3FBSPZQS56KJIDIBK3BEJP6YUGXLWNWCBSZXWDBYZZKBMYKWQB36Q
-#\\\|WU4PBMDEMBHMK24AA67KBAXD6ZFSUPFXKY4KPNBFPO3NK23GNKW \ / AMOS7 \ YOURUM ::
-#\[7]WP3IIFMDXMET2X2LE4IIDZIKJWPNVHTDE33GHF3HQNQH7IELM4CA 7  DATA SIGNATURE ::
+- `coding_summarize` gained two opt-in params: `task_file` (parses the
+  task file's `## acceptance criteria` / `## verification` section and
+  auto-builds the checklist instruction, overriding `instruction`) and
+  `auto_followup` (default off).
+- checklist mode activates on `task_file`, on a checklist-style
+  `instruction` (matches `DISPATCH_NEEDED` / `acceptance criteria`), or
+  on `auto_followup`.
+- when the summary contains `DISPATCH_NEEDED:`, the tool returns
+  `needs_followup: true` both as a structured field in the tool result
+  (`send_tool_result` gained an optional extra-fields hashref) and as a
+  trailer line in the result text.
+- with `auto_followup` true, the text after `DISPATCH_NEEDED:` is
+  background-dispatched to `kimi-legacy -y --afk -p <prompt> --model
+  kimi-code/k3` via fork/exec (detached stdio, never blocks the MCP
+  loop; child output appends to `data/state/auto-followup.log`).
+- new subs: `_task_criteria_from_file`, `_checklist_instruction`,
+  `_dispatch_followup`.
+- verified live: schema registration, section-missing error path,
+  task_file checklist build against `inline-subs-batch-misc.md`, marker
+  detection with structured flag, and stubbed auto-followup arg/log
+  wiring.
+
+#,,,,,.,.,,..,.,.,,,.,,,.,,..,,.,,,.,,.,,,,,.,..,,...,...,...,...,,,.,,,,,.,.,
+#HUXRU4GU3AGNCAF5Z6FBXYJ5MEVCKXA2HVNNFQUYEIGWQ65UFWMJ27BXVYW4BMTEQZCF2BQFEXCF6
+#\\\|4ASRLMV65UZFPJYYMKGXCG2VIXIFUSQ7DDP3ATG6OR3WJXWXGXI \ / AMOS7 \ YOURUM ::
+#\[7]EOGLSPGKMOTUVUKEI4RLS7DJJTIIVNY437YLPP3W6Y75PPMWGQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
