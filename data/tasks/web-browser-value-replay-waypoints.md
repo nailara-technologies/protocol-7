@@ -99,20 +99,51 @@ section) — so a waypoint name can't misfire against the wrong page.
   `replay-play` does (abort with a clear mismatch message unless
   `force=1`), then drives `state-play` toward it.
 
-### 4. multi-window coordination (bigger, less settled)
+### 4. multi-window coordination (resolved 2026-07-17, ready to implement)
 
 Motivated by the project's move toward multi-window space-embedded UIs,
 where several windows are different views/layers into a shared
 conceptual space and need to arrive at related perspectives together, not
-independently drifting on their own schedules. Since each window already
-pins to its own frontend independently, a waypoint registry naturally
-generalizes to name → { per-window target state, shared transition
-timing }, so one `goto-waypoint` call fans out to several windows on a
-common clock. Registry location/shape (per-zenka vs. shared across
-zenki, how "a group of windows" is named/discovered) is not decided —
-needs its own design pass, likely informed by how `tile`/`window.place`
-already coordinate multi-window placement, rather than inventing a
-parallel mechanism.
+independently drifting on their own schedules.
+
+**Discovery/fan-out reuses the existing subname-group routing convention**
+([[topic-x11-bare-name-routing-ambiguity]], landed 770553ad2+505f5505b) —
+"subname is a group tag, not a tie-breaker." `base.zenki.resolve_primary_sid`
+already does the round trip (`list subnames <zenka>` sent to cube for
+non-v7 callers, parsed into `[sid, subname]` rows) but *picks one* best
+match via `.pick`. This needs a **list-all-matches sibling**, not a reuse
+of `.pick`:
+
+- new `base.zenki.resolve_group_sids(<zenka_name>, <group_subname>,
+  <callback>)` — same v7-fast-path (`<v7.zenka.instance>`) /
+  non-v7-caller (`protocol-7.route-send` with `command=list,
+  call_args={args=>"subnames $zenka_name"}`, reply handler parses the
+  table exactly like `base.zenki.resolve_primary_sid.reply` does — read
+  that module for the exact parsing pattern, copy it, don't reinvent) as
+  `resolve_primary_sid`, but filters ALL rows where `subname eq
+  $group_subname` (not the `.pick` single-best-match logic) and calls
+  back with an arrayref of sids, not one sid. `[]` if nothing matches.
+- **per-window waypoint data stays exactly as-is** — each instance keeps
+  its own `$data{'waypoint'}{$name}` (own pin, own vars). Nothing about
+  storage changes; only the *fan-out trigger* is new.
+- new `web-browser.cmd.goto-waypoint-group <subname-group>
+  <waypoint-name> [duration=] [path=] [force=1]` — calls
+  `resolve_group_sids('web-browser', <subname-group>, callback)`, then
+  for each resolved sid fans out via `<[protocol-7.route-send]>->({
+  'command' => "$sid.goto-waypoint", 'call_args' => { 'args' => "<name>
+  duration=<duration> path=<path> ..." } })` — the exact `"$sid.command"`
+  addressing convention already established (bare sid, no zenka-name
+  segment; confirmed live pattern, see e.g. `modules/mpv.handler.reposition_reply`).
+  Fire-and-forget reply (report how many sids it fanned out to); does not
+  wait for/aggregate each instance's own verify result in this pass.
+
+**Deliberately out of scope for this pass, noted for later** (per the
+follow-up point raised when this was designed): a fan-out over cube's
+existing `list`/`route-send` plumbing is the practical mechanism now, but
+dedicated sync channels directly between instances — including `httpd`-
+served web zenka instances, not just GTK `web-browser` ones — are a
+likely future upgrade path once the fan-out pattern proves out. Not
+designed here; this pass only needs the cube-routed version working.
 
 ## vision / not yet scoped
 
@@ -158,8 +189,8 @@ not because it's next:
 Design-only, nothing implemented. Spun off during the session that closed
 out [[web-browser-input-capture-replay]] (commit d0e823312), 2026-07-16.
 
-#,,..,...,..,,,.,,..,,,,,,..,,,..,,,,,.,.,.,,,..,,...,...,...,,,,,..,,,..,...,
-#44EF6JZSX3EI2B7QDYQNJC6A4DLV3NPJ4DJEIZLGDI4LMRD5YZXIPA55BZ6JWMVOYA435V7NOCIGC
-#\\\|A65ALUCFLY2SGYFSHA4QDFAI7YEWJDAGICWQXKCZ3YNBX576PXK \ / AMOS7 \ YOURUM ::
-#\[7]U3IRUVAHTRLPSISUD3UAXP64SRIP6TOBI2CIPT5FVLTY5R62Q2DA 7  DATA SIGNATURE ::
+#,,.,,,,,,...,..,,...,,,,,.,.,.,,,..,,,..,,,.,..,,...,..,,...,.,,,,,,,.,.,.,,,
+#POKEXX26OKU4R7KL2UI2IROSQQTZMM46SMHOGPTVI3CRIOGADFFXJHVRY3INBB4Y5OZPT5O7YI5CM
+#\\\|LNIQ273CZVJ4IOZCTFLRVAIIFXN37LNVXR6UALOJI2AYH5CHQYO \ / AMOS7 \ YOURUM ::
+#\[7]JHMJR5QKI35FAAZSYJKQDFTIS4WQ7SMQFCHWKC7W4PHYDUVNICAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
