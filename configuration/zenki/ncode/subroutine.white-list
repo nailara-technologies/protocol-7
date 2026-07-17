@@ -31,6 +31,7 @@ ui.layout.fit
 ui.budget.tty
 net.init_code
 net.calc_port
+ncode.cmd.doc
 base.timezone
 base.sprint_t
 base.sort-num
@@ -43,6 +44,7 @@ base.get_file
 base.cmd.list
 base.cfg_bool
 ui.render.tree
+ncode.cmd.diff
 base.wrap_text
 base.swap_subs
 base.ssl.write
@@ -79,7 +81,9 @@ base.cmd.reload
 base.calc_gauss
 ui.estimate.cost
 plugin.auth.unix
+ncode.regex.save
 ncode.regex.load
+ncode.cmd.search
 base.stream.push
 base.stream.open
 base.stream.gate
@@ -100,6 +104,7 @@ auth.auth_select
 ascii.frame.load
 plugin.auth.zenka
 net.read_bytewise
+ncode.regex.apply
 base.stream.close
 base.session.user
 base.session.init
@@ -122,6 +127,8 @@ ascii.frame.parse
 ui.render.fallback
 ui.fields.fallback
 ncode.util.run_cmd
+ncode.regex.expand
+ncode.regex.assess
 base.reload_values
 base.reload_config
 base.parser.config
@@ -136,8 +143,10 @@ base.event.add_var
 base.clear_p7_mods
 base.clean_unicode
 base.clean_hashref
+base.base32.encode
 ascii.frame.render
 plugin.auth.twofish
+ncode.cmd.tool_list
 io.ip.tcp.init_code
 base.utf8.clean_str
 base.str.eval_error
@@ -148,6 +157,7 @@ base.prng.init_code
 base.perlmod.loaded
 base.parser.txt_box
 base.loaded_p7_mods
+base.get_session_id
 base.file.make_path
 base.file.init_code
 base.file.all_links
@@ -156,6 +166,7 @@ base.extract_values
 base.event.pre_init
 base.diff.hash_keys
 base.calc_unix_path
+ncode.transform.wave
 io.ip.tcp.input.open
 base.route.init_code
 base.root.drop_privs
@@ -179,8 +190,10 @@ base.devmod.dump_var
 base.cmd.show-buffer
 base.chk-sum.bmw.ctx
 base.buffer.add_line
+base.base32.pre_init
 auth.zenka.init_code
 ascii.frame.validate
+ncode.cmd.diff-staged
 format.yaml.load_file
 crypt.C25519.key_vars
 crypt.C25519.gen_keys
@@ -198,6 +211,7 @@ base.event.add_signal
 base.console.commands
 base.cfg.profile.list
 base.balanced-average
+format.yaml.write_file
 base.session.init_code
 base.required_bin_path
 base.register_src_deps
@@ -210,6 +224,7 @@ base.comp-int.is_valid
 base.cfg.profile.apply
 auth.unix.authenticate
 protocol.sftp.init_code
+ncode.cmd.parse-headers
 io.unix.socket.end_code
 crypt.C25519.key_exists
 base.templates.pre_init
@@ -228,6 +243,7 @@ base.dump.data_key_list
 base.convert.hex_to_int
 base.chk-sum.elf.inline
 base.chk-sum.bmw.strsum
+base.callback.cmd_reply
 base.auth.set_zenka_key
 auth.zenka.authenticate
 ui.caller.security-level
@@ -361,6 +377,7 @@ protocol.amos-chksum.ext-cmd.close
 protocol.amos-chksum.ext-cmd.clear
 protocol.amos-chksum.ext-cmd.bytes
 plugin.auth.auth-keypair.init_code
+ncode.transform.handler.wave_reply
 crypt.C25519.get_type_from_key_str
 base.protocol-7.command.send.local
 base.path-set-up.zenka-directories
@@ -400,10 +417,12 @@ base.perlmod.unregister_loaded_module
 base.handler.write.encryption-wrapper
 protocol.sftp.terminate_server_process
 protocol.protocol-7.auth.select-method
+ncode.regex.expand.util.find_duplicate
 io.unix.socket.handler.report-tmp-path
 base.log.send-buffer.idle-callback-set
 auth.callback.cap-neg.select-strm-mode
 auth.callback.cap-neg.select-size-mode
+ncode.regex.expand.util.merge_duplicate
 base.perlmods.blacklist_collision_index
 base.parser.chk-sum.embedded-code-style
 base.log.send-buffer.send-idle-callback
@@ -412,10 +431,13 @@ base.handler.strm_size_absolute_timeout
 base.chk-sum.amos.truth_template_chksum
 protocol.sftp.handler.read_server_output
 protocol.protocol-7.auth.select-size-mode
+ncode.regex.expand.util.process_candidate
+ncode.regex.expand.util.evict_and_replace
 base.zenki.ondemand.handler.startup_reply
 base.agent_code.handler.sig_warn.end_proc
 protocol.protocol-7.link-upgrade.handshake
 plugin.auth.auth-keypair.tofu-notification
+ncode.transform.wave.util.build_llm_prompt
 auth.callback.cap-neg.declare-strm-support
 base.zenka.push.reply-handler.notify-online
 base.referenced_subroutines.clear_from_disk
@@ -429,8 +451,8 @@ auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,.,,..,,,,,,,.,,,.,,,,,,...,,..,,.,,.,.,.,.,..,,...,...,.,,,...,,,.,,..,..,,
-#3YC55IY75NBDCHPOY52NG7DOTNCDS3MH5LXUZKMO3STVZB5UL3QJWQTNQ2AWX3JT5IQAPN6W2SVTW
-#\\\|2VTPHMLSXSNYRSRBGQMDUUZDTND7V4JVWXCCT2ZEG2AH67BFCTR \ / AMOS7 \ YOURUM ::
-#\[7]MLPQOFNMCIFTMOKR57EJ5I6ETNLIHLDRANA7ACEXO3QVLJWDV2BQ 7  DATA SIGNATURE ::
+#,,..,,..,,,,,,,,,,..,..,,.,.,...,...,,,.,,..,..,,...,.,.,.,.,.,.,.,,,...,...,
+#2UTZHBHS3KMPGO2MNGPSB2I2PDZHCVXK3ZBBJK7UPBYQB4IFOIROKMQVERM3PN53K3PRGSKEWXKLS
+#\\\|QMZGYGQGE3BO4DCQDZVVAZ5GX2YJ4VRMMOU5EME6EWOHCGTFJPL \ / AMOS7 \ YOURUM ::
+#\[7]CPCUSQWMAL54Y24MYKFY3PVJIXBBR465AXXNKXW44MF7ILI2UECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
