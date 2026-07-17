@@ -9,7 +9,7 @@
 - [x11-resolution-profiles](topic-x11-resolution-profiles.md) — OPEN: per-purpose xvfb profiles; reconcile w/ routing-ambiguity first
 - [x11-bare-name-routing-ambiguity](topic-x11-bare-name-routing-ambiguity.md) — LANDED 770553ad2+505f5505b, verified live
 - [ondemand-starting-flag-watchdog](topic-ondemand-starting-flag-race.md) — RESOLVED 056597b9b
-- [orbital-strm-push-rollout](topic-orbital-strm-push-rollout.md) — LANDED 139cacef2; open: connect/disconnect-orbital access
+- [orbital-strm-push-rollout](topic-orbital-strm-push-rollout.md) — LANDED; open: connect/disconnect-orbital access
 - [async-window-startup-transition](topic-async-window-startup-transition.md) — LANDED 531aa14db, CLOSED (rare paint glitch only)
 - [screen-setup-zenka](topic-screen-setup-zenka.md), [amos7-shm-phase1](topic-amos7-shm-phase1.md) — minimap+overlay LIVE; SHM phase 4 open
 - [zenka-naming-cleanup](topic-zenka-naming-cleanup.md), [ondemand-heartbeat-upgrade](topic-ondemand-heartbeat-upgrade.md) — renames LANDED; tile test case
@@ -21,7 +21,7 @@
 - [ascii-frame-system](topic-ascii-frame-system.md), [frame-plugin-slots](topic-frame-plugin-slots.md), [frame-idiom-convergence](topic-frame-idiom-convergence.md) — parser/renderer/validator; 5 frames pending
 - [ascii-desktop-domains](topic-ascii-desktop-domains.md), [ui-show-security-levels](topic-ui-show-security-levels.md) — border glyphs nest desktops; step 6 open
 - [os-command-zenka](topic-os-command-zenka.md) — planned command templates, security levels, STRM
-- [coding-round-timeout-adaptive](topic-coding-round-timeout-adaptive.md) — LANDED 411b5635c: soft/hard ceiling, stall detect, restart-round
+- [coding-round-timeout-adaptive](topic-coding-round-timeout-adaptive.md) — LANDED: soft/hard ceiling, stall detect, restart-round
 - [plugin-web-jobs](topic-plugin-web-jobs.md) — LANDED, all fixes live through 2026-07-10, no longer CRITICAL
 - [jobsite-ui-usability](topic-jobsite-ui-usability.md) — CONFIRMED: badges + render-gated sync, focus preserved
 - [coding-zenka-abort-inference](topic-plugin-web-jobs.md), [jobsite-assessment-accuracy](topic-jobsite-assessment-accuracy.md) — LANDED; fix=consensus_vote
@@ -33,15 +33,16 @@
 - [radio-relay-zenka](topic-radio-relay-zenka.md), [vhost-install](topic-vhost-install.md), [model-load-time-statistics](topic-model-load-time-statistics.md)
 - [cursor-model](topic-cursor-model.md), [iris-spoke-labels](topic-iris-spoke-labels.md), [stream-framing-protocol](topic-stream-framing-protocol.md)
 - [nshell-terminal-rendering](topic-nshell-terminal-rendering.md), [memory-tree-zenka](topic-memory-tree-zenka.md) — tree LIVE
-- [web-browser-param-capture-graphing](web-browser-param-capture-graphing.md) — LANDED cae42647d; root-caused zoom-momentum bug
-- [input-capture-replay-website-templates](project-input-capture-replay-website-templates.md) — LANDED 2026-07-16, kimi K3
-- [web-browser-value-replay-waypoints](project-web-browser-value-replay-waypoints.md) — LANDED 2026-07-17, kimi K3; multi-window fan-out + access.zenki fix
+- [web-browser-param-capture-graphing](web-browser-param-capture-graphing.md) — LANDED; root-caused zoom-momentum bug
+- [input-capture-replay-website-templates](project-input-capture-replay-website-templates.md) — LANDED, kimi K3
+- [web-browser-value-replay-waypoints](project-web-browser-value-replay-waypoints.md) — LANDED, kimi K3; multi-window fan-out + access.zenki fix
 
 ## Vision / Design
 - [implicit-perspective-navigation](topic-implicit-perspective-navigation.md) — curves/thresholds ARE the nav decision; explicit/implicit/magnetic modes; design-only
 - [dynamic-dependency-resolution](topic-dynamic-dependency-resolution.md) — local-capability-first, then preference match, then discovered capability chains
 - [decision-node-polarity-geometry](topic-decision-node-polarity-geometry.md) — seed: polarity node = reference-bubble's 5-of-7; not yet reconciled w/ node-group-geometry
-- [write-access-security-infrastructure](topic-write-access-security-infrastructure.md) — signature-gated approvals, PIN auth, jobsite-style review UI; design-only
+- [write-access-security-infrastructure](topic-write-access-security-infrastructure.md) — signature-gated approvals, PIN auth, review UI; design-only
+- [zenka-crypto-identity-survey](project-zenka-cryptographic-identity-survey.md) — all trust roots to per-user C25519 key; no per-zenka identity concept yet
 - [source-identity-spoofing](feedback-source-identity-spoofing.md), [project-vision-origin](project-vision-origin.md) — hostnames aren't a security boundary, C25519 is; 24yr vision
 - [synchronous-multi-legged-pattern-extraction](topic-synchronous-multi-legged-pattern-extraction.md), [distributed-hybrid-inhabitants](topic-distributed-hybrid-inhabitants.md) — parallel component search
 - [protocol-as-self-governing-authority](topic-protocol-as-self-governing-authority.md), [intelligent-glue-identity](topic-intelligent-glue-identity.md) — P7="intelligent glue"
@@ -89,9 +90,9 @@
 - [user-perfectionism-and-pace](user-perfectionism-and-pace.md) — "done" means perfectly smooth; let solo tuning passes run
 
 ## Feedback
-- [tasks-completed-scan-verdict-trust](feedback-tasks-completed-scan-verdict-trust.md) — "still open" as unreliable as "move to completed"; 31/52 false negs 2026-07-17, incl. live auth gap
-- [kimi-dispatch-infra-hardening](topic-kimi-dispatch-infra-hardening.md) — --afk flag, k3/k2.7/k2.7-fast model routing; MCP bridge timeout ≠ dispatch failure
-- [kimi-k3-thinking-effort](topic-kimi-k3-thinking-effort.md) — Low/High/Max in vendor UI, not yet in API/installed CLI
+- [tasks-completed-scan-verdict-trust](feedback-tasks-completed-scan-verdict-trust.md) — "still open" as unreliable as "move to completed"; 31/52 false negs, incl. live auth gap
+- [kimi-dispatch-infra-hardening](topic-kimi-dispatch-infra-hardening.md) — --afk flag, k3/k2.7/k2.7-fast routing; MCP bridge timeout ≠ dispatch failure
+- [kimi-k3-thinking-effort](topic-kimi-k3-thinking-effort.md) — Low/High/Max in vendor UI, not in API/installed CLI
 - [coding-zenka buffer rescue](topic-coding-zenka-session9.md) — idle-shutdown backups readable via group-perm `xz -dc`, no sudo
 - [nested-dispatch-session-tracking](feedback-nested-dispatch-session-tracking.md), [webkit vs firefox css blindspots](feedback-webkit-vs-firefox-css-blindspots.md)
 - [no sudo for privileged fs ops](feedback-no-sudo-privileged-fs-ops.md) — never `sudo` a protocol-7-owned file; hand command to user
@@ -111,9 +112,9 @@
 - [utf8-module-literals](feedback-utf8-module-literals.md), [watcher-state-machines](feedback-watcher-state-machines.md)
 - [ncode-tools](feedback-ncode-tools.md), [perltidy-sil0](feedback-perltidy-sil0.md) — use ncode replace/parse-headers; ptd `-sil=0` self-heals
 - [git-log-all-false-duplication](feedback-git-log-all-false-duplication.md) — false "dup commits" = pager strips +/-, colors lost
-- [ncode-access-gap](topic-ncode-access-gap.md) — a zenka only sees its direct neighbor; grant access.cmd.usr.cube, not the human's uname
-- [ncode-safe-refactor-workflow](topic-ncode-safe-refactor-workflow.md) — .git chmod-child LANDED (protocol-7:taeki, not reverse); warn_apply TTY-only
-- [cmd-module-call-convention](feedback-cmd-module-call-convention.md) — .cmd. network modules use $call, not $ARG/shift
+- [ncode-access-gap](topic-ncode-access-gap.md) — a zenka only sees its direct neighbor; grant access.cmd.usr.cube
+- [ncode-safe-refactor-workflow](topic-ncode-safe-refactor-workflow.md) — .git chmod-child LANDED; warn_apply TTY-only
+- [cmd-module-call-convention](feedback-cmd-module-call-convention.md) — .cmd. network modules use $call, not $ARG
 - [design-ideation-capture](feedback-design-ideation-capture.md), [coding-timeout-restart-loop](feedback-coding-timeout-restart-loop.md) — offer spin-off docs
 
 ## Completed Sessions
@@ -125,8 +126,8 @@
 - letsencr working; reasoning.branch.* LIVE; coding zenka operational
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: state-0/7 harmonized
 
-#,,,,,...,,..,.,,,.,.,,.,,.,.,...,.,,,,..,.,,,..,,...,...,...,,,,,,.,,,.,,..,,
-#ZPWILOZAMB7XQVVA5IMLE4OPMU7OZG72MM3BRD326QX5PQ2WFCCXORIJV7676VIN7JAZ2J74DQFU6
-#\\\|K77B3EOTP47TSF6UK75KF647KO6HRVBM5LHHILUAJPKNRTZSH6C \ / AMOS7 \ YOURUM ::
-#\[7]FRG5A5QX2IIOWPXQ6LUBRP3CHQA2D7FCSRMHKF7TARWFQODAFGDY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,.,,,,,.,,.,,,.,,...,,.,,,,,,,.,,..,,...,...,..,,,..,...,..,,,,.,
+#AAHVILXFYS6CLAKRAG3FWBMRH3DCUPKS4OUIUTXJ46TVHPO6ZZZP5P6EA4KFSYQSFUH4O6DMT2AZ4
+#\\\|Q2TASWCMODUVOUXOKIB7ZSV6MGIATQZNWZXFK52EZYUGXL62I5Q \ / AMOS7 \ YOURUM ::
+#\[7]UMGYDA7GCKM4R3TKBKP53H4V5AGKKZBMXHRLTK6BUF55PVS6V4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
