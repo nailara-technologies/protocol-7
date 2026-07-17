@@ -7,8 +7,16 @@ metadata:
   originSessionId: 3c264315-73af-4677-a8b4-23ce085cb5a8
 ---
 
-Design doc: `data/tasks/web-browser-value-replay-waypoints.md` (design-only,
-nothing implemented). Spun off 2026-07-16 in the session that finished
+**LANDED 2026-07-17**, all four build steps, kimi K3 (2 dispatch rounds).
+Steps 1-3 (write-back hook, curve-smoothed exact arrival, pinned
+waypoints): commit f3ff56181. Step 4 (multi-window fan-out via subname
+groups): commit 5de162b6e — live-verified with two real concurrent
+instances landing exactly at a shared waypoint. Also surfaced and fixed a
+real `access.zenki` bug (missing grant + a stray reply-handler entry that
+never belonged there). Design doc:
+`data/tasks/web-browser-value-replay-waypoints.md`.
+
+Originally spun off 2026-07-16 in the session that finished
 [[project-input-capture-replay-website-templates]] (all 6 build-order
 steps landed: commits 9c297b9e5, 803384253, d0e823312).
 
@@ -57,8 +65,8 @@ the vision-layer material without a dedicated design pass first.
 [[project-input-capture-replay-website-templates]] ·
 [[topic-implicit-perspective-navigation]]
 
-#,,,.,,,,,...,...,,..,.,,,.,.,,.,,,,.,..,,..,,..,,...,...,.,.,.,,,.,,,.,,,,,.,
-#VAWB5L7KCPFXPGQKTYCRIDT67U74FJ2NRKUIOXQUMFJOT4ENCCDHD3IZM6CRUUWZWOM45GRSKOEC4
-#\\\|OEI7FNOKSMFBNVFZPNPXLPOGDDABXR75XRV4WMZHEBEVR5RPJDD \ / AMOS7 \ YOURUM ::
-#\[7]XV7WUHO7VTCV7MX45CBDCOAGTQQJY5QTPQVEZJJHX3MX4JD3ZQAQ 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,.,.,.,.,,,.,.,,,..,,,,,,...,,.,,..,,...,..,,...,.,,,..,,.,.,.,.,
+#AGIOYYIIFCVVE4Y27FOIUPTYZLSFMOIQQALIPZZCKXPNOOPIYUPXOELBNTUWOWAEUGD4ZCRBDG3IY
+#\\\|3BM6Z3CPOIDSEDQ7SGJ2RGWQRSFE3EIIQY6RZKQTA5GCM6N2TFX \ / AMOS7 \ YOURUM ::
+#\[7]4SZFKXTP47XKEWUGRBZ5U4TDTZMWVNFRK76IKYAG5CMZQ35PEECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
