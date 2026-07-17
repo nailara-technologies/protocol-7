@@ -52,14 +52,20 @@ my @conflicts;
 my $single_last_modified;
 
 ## collect pending reverse-delete IDs so a batch push does not resurrect them ##
+## also collect pending reverse-stage-change IDs : a browser stage push not  ##
+## yet round-tripped back into jobsite's own copy must not get clobbered by  ##
+## jobsite's batch, which was built from its own [ still older ] on-disk view ##
 my %pending_delete;
+my %pending_stage_change;
 if ($is_batch) {
     my $rev = <plugin.web.jobs.reverse> // [];
     for my $r ( @{$rev} ) {
         next if ref $r ne 'HASH';
-        next if ( $r->{'action'} // '' ) ne 'delete';
-        my $del_id = <[base.vax-int.decode]>->( $r->{'id'} // '' );
-        $pending_delete{$del_id} = 1 if length $del_id;
+        my $rev_id = <[base.vax-int.decode]>->( $r->{'id'} // '' );
+        next if not length $rev_id;
+        $pending_delete{$rev_id} = 1
+            if ( $r->{'action'} // '' ) eq 'delete';
+        $pending_stage_change{$rev_id} = 1 if exists $r->{'stage'};
     }
 }
 
@@ -116,20 +122,15 @@ for my $job_data (@job_list) {
     if ($is_batch) {
         ## staleness guard : jobsite builds its outbound batch from its OWN  ##
         ## on-disk view, which can still predate a browser-initiated stage  ##
-        ## change already applied straight to this cache [ its matching     ##
-        ## reverse-queue entry not yet round-tripped back into jobsite's    ##
-        ## own copy, e.g. mid-flight during a manual/forced sync ] -- if    ##
-        ## this cache's last_modified is already newer than what jobsite   ##
-        ## is sending, jobsite's stage/status here is stale : keep the     ##
-        ## cache's fresher value instead of clobbering it, self-corrects   ##
-        ## on the next cycle once jobsite drains the reverse queue anyway  ##
-        my $incoming_lm = $job_data->{'last_modified'} // '';
-        my $cached_lm   = $cached->{'last_modified'}   // '';
-        my $jobsite_stale
-            = length($cached_lm)
-            and length($incoming_lm)
-            and ( <[base.ntime_BASE32_to_numerical]>->($cached_lm) // 0 )
-            > ( <[base.ntime_BASE32_to_numerical]>->($incoming_lm) // 0 );
+        ## change already applied straight to this cache -- only skip the   ##
+        ## clobber for a job that actually HAS an unconfirmed reverse-queue  ##
+        ## entry still pending [ not yet round-tripped into jobsite's own    ##
+        ## copy ] ; self-corrects once jobsite drains the reverse queue.     ##
+        ## [ wall-clock last_modified comparison doesn't work here : jobsite  ##
+        ## pushes their own writes re-stamp the cache's last_modified to now  ##
+        ## too, so it drifts ahead of jobsite's frozen data-change time on   ##
+        ## every cycle and would treat every job as permanently stale ]     ##
+        my $jobsite_stale = $pending_stage_change{$job_id} ? TRUE : FALSE;
 
         ## jobsite push : update pipeline fields, keep browser fields ##
         for my $f (@pipeline_fields) {
@@ -284,8 +285,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,..,,,.,,.,,,,,,.,.,,.,,.,,,..,,,..,..,,,,.,..,,...,...,...,,,.,,..,..,,,..,
-#I2X7AKUQB2JUUJ2J5FU5Z35YXTV7RJCLGBXVRQOPFYAEP5OJICC3LT5QMGOEOMYSBTYC3PBI23JOU
-#\\\|4ZACGLTDMHWUPVIJZBKO6KPXL5S266QIOMF2LOY2IYHC3OFXMR3 \ / AMOS7 \ YOURUM ::
-#\[7]J7UQ3C2BVG3YTNKUEQSQ2HTEAFO2K2UETLTY23RWCTEMPH75CECA 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,.,,,.,,.,,,,.,,..,,,.,,...,,,.,..,,...,...,,.,,...,.,,,,,.,..,,
+#B4TDJ2BWD4JGUAMLFCOAKASA3TNEWAZZDJP4AVLRL4QR3QVQ7YVNSZ472NIPGULU5BDY2OPZCMT2W
+#\\\|USKXYOZPIFWB3EL7A6VXFQQ5KE4R5QVTD5ZAAVQG2G6EZKUXJH5 \ / AMOS7 \ YOURUM ::
+#\[7]DQ4WBSUPW4HLJQW4ABDMA6RAQMKZ5VLPCU4PNSMK7BVQXHQLE4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

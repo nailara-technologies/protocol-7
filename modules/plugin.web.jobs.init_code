@@ -92,7 +92,8 @@ my $count  = scalar keys %{$loaded};
 my $jobsite_root = join qw| / |,
     <system.path.zenka-dirs>->{'var_P7'}, qw| jobsite jobs |;
 my %active_id;
-for my $status (qw| new review apply applied interviewed rejected skipped |) {
+for my $status (
+    qw| new assessed review apply applied interviewed rejected skipped |) {
     my $dir = "$jobsite_root/$status";
     next if not -d $dir;
     opendir my $dh, $dir or next;
@@ -235,8 +236,8 @@ for my $dep_dir ( "$cache_dir/assessed", glob("$cache_dir/trash*") ) {
 
 0;
 
-#,,,,,.,,,.,,,...,...,..,,,,.,,..,.,,,.,,,,.,,..,,...,...,...,.,,,.,.,,,,,,,.,
-#DMGAJ5RQVHH2P2OF45SDCCNFFJTBPJPZ562P5F4JBSA74VWGEFLZ5JA5B3CI6VZESFTADG5CSKB7U
-#\\\|QBQ3KI6REJJWGVAPMSQC5PQ6JOHJZKYPMKFFVK4XLIJYCBSJ7VF \ / AMOS7 \ YOURUM ::
-#\[7]F57342V6PSRIXZC5XPCUFAFPS32LA2UOZRUH7DOKXZEJ57FIHUCA 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,..,,,.,,.,.,,,.,,.,,,,.,...,...,..,,...,...,,.,,.,,,...,,,,,.,,,
+#7ZZ5MUB2GNJQ6ARAIEQ76MA5PI2PSS5VS4RK7BKQIAGRBVLYJHFVTGTWFA626DXSDZMYVBHPPVIRY
+#\\\|4Y5OXKHVMBZWLOUQ53XM64GF5SVYAIZDFBBKYVOJAURCSKZQ3I2 \ / AMOS7 \ YOURUM ::
+#\[7]YYLLGVY3CBBORFHZ2ZMPURPASO4RC3O2UVJAVAYGQE67CWN25QAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
