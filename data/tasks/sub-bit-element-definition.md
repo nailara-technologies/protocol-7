@@ -167,6 +167,17 @@ primitive root mod 13 — so `<<1` flips truth with period 12, while
 correct; grounds an empirical observation in actual number theory
 rather than leaving it as a pattern.
 
+**Primary sources, rescued from the ephemeral subagent transcripts**:
+the full Opus and Fable derivation sessions (reasoning, test scripts,
+proposed code, and the cross-model comparison exchange) are preserved at
+`data/md/recovered-subagents/opus-tier2-discriminator.md`,
+`data/md/recovered-subagents/opus-FINAL-REPORT.md`,
+`data/md/recovered-subagents/fable-tier2-discriminator.md`, and
+`data/md/recovered-subagents/fable-FINAL-REPORT.md`. These are the
+derivation record beneath the summary above, same principle as keeping
+`.harmonic` in place rather than erasing it — read them before
+re-deriving anything in this area.
+
 **Leads that turned out not to be the mechanism, but weren't wrong either**:
 the rotation-cycle and 35-bit-matrix leads below are real, grounded
 observations — just not applicable at this specific layer. Both derivation
@@ -279,8 +290,8 @@ $ARG not $_ in loops
 lowercase comments, [ word ] bracket annotations
 no use statements or pragmas in zenka modules
 
-#,,,,,.,,,.,,,.,.,..,,,..,.,.,,..,,,,,,..,,,,,..,,...,...,..,,..,,.,.,.,.,,,,,
-#32OSBR2532M3GMIMQ2UB2YPIPVQAB3T6L7BBINXTKECMTUVFMOZ2EVWX4GCOM6CD53VWHWNVWIVHY
-#\\\|FAPISEUXUE3VRGEFNVYP7FEXINFCIUINGLKEQYJ5KZRLMAZYMOR \ / AMOS7 \ YOURUM ::
-#\[7]TQIBGYR2PFGGAPQ323NUHZQHGFEEYFLNLKSULUINFFJJJDCBBADY 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,.,.,...,,,.,..,,,..,.,,,.,,,...,..,,...,...,..,,,,.,.,,,..,,..,,
+#7DSQU7ENMK4LVJU277RAK4MHFLJMFGF37YCT5EB2O4XAYOHO4M7QGP4BQAEZ6XGSMUENNPX63KIT2
+#\\\|6Q7BY3VKR4RVTHMUOS43GFEX4AGRHWO5GCJEAJRTEGSNKY2WY5H \ / AMOS7 \ YOURUM ::
+#\[7]JFKNZRUJEC5QQ4QDMT3OTHSSMZ2BZDOXIFNZV7XEFSHA75MQN6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
