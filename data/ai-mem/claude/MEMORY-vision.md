@@ -12,6 +12,7 @@ network-as-computer, dedup-tree unification, coding-as-artform / style-philosoph
 - [zenka-crypto-identity-survey](project-zenka-cryptographic-identity-survey.md) — all trust roots to per-user C25519 key; no per-zenka identity concept yet
 - [cross-host-trust-bootstrap-gap](project-cross-host-trust-bootstrap-gap.md) — confirmed no doc solves cross-host-no-shared-cube; jobs-sync chosen as pilot; SIGNED-COMMAND-INTERFACE.md has closest reusable TOFU shape
 - [multidimensional-identity-session-topology](topic-multidimensional-identity-session-topology.md) — roots are multi-perspectival (single-root vs every-key-a-root), everything incl. network identity may be a session, known links = routing shortcuts
+- [latency-algorithmic-authority-entropy-toll](topic-latency-algorithmic-authority-entropy-toll.md) — latency as 3rd algorithmic authority (w/ keys, checksums); self-organizing latency-grid placement; mandatory generic-workload participation = privacy+fairness by construction; check TASK-CUBE-CONSENSUS-ARCHITECTURE.md before extending
 - [source-identity-spoofing](feedback-source-identity-spoofing.md), [project-vision-origin](project-vision-origin.md) — hostnames aren't a security boundary, C25519 is; 24yr vision
 - [synchronous-multi-legged-pattern-extraction](topic-synchronous-multi-legged-pattern-extraction.md), [distributed-hybrid-inhabitants](topic-distributed-hybrid-inhabitants.md) — parallel component search
 - [protocol-as-self-governing-authority](topic-protocol-as-self-governing-authority.md), [intelligent-glue-identity](topic-intelligent-glue-identity.md) — P7="intelligent glue"
@@ -30,8 +31,8 @@ network-as-computer, dedup-tree unification, coding-as-artform / style-philosoph
 - [routing-crystal](topic-routing-crystal.md), [checksum-tree-wire](topic-checksum-tree-wire.md), [tree-protocol](topic-tree-protocol.md), [data-protocol](topic-data-protocol.md)
 - [reference-bubble](topic-reference-bubble.md), [branch-namespace](topic-branch-namespace.md) — rhizome bubble (5+2=7)
 
-#,,,.,,.,,,.,,.,.,,.,,..,,.,.,,.,,..,,.,.,..,,..,,...,...,,..,.,.,...,,..,...,
-#XSPWPWTW6P6TOHBTSOKILR4BUEJKSGZ2EFL4LTRFZXHZI3ZFSTZCSIG4FYMXNO6L2MJMZ3QNHKYGU
-#\\\|IKOLQ22HYD2AYFTK7XNXIHI4RDTZWCZCUSBH2MHDL4SVFAA2PJN \ / AMOS7 \ YOURUM ::
-#\[7]RQ7Q2PG4WUXH3DJ47BV42QVBGQ4RO3TVZPXAJBKFDDCW3WQIIOCA 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,.,.,,..,,..,,,,,,,,,..,,.,.,,,,,..,,...,..,,,,,,,,,,.,.,,,,,,,.,
+#6Y2RT4IOORWX6F4Q7T5W2R6SDCB7TCKQX7YK7EFBHSHLEFUYE23XHRUYJTVOU6RT32BBTV462IH3Q
+#\\\|UDPX6THSFE346ZMUXO5SV3RQDP4EKZ2CL7EL77HUCYX5V22QD2P \ / AMOS7 \ YOURUM ::
+#\[7]XI47PLDGDI2ZV22XRQ66L4QV2SD2PO5G4W3AYMV4BMQCXYWAN6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
