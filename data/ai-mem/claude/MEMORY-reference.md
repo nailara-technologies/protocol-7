@@ -33,9 +33,10 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [Timer Args](feedback-timer-module-args.md), [Deferred Init](feedback-deferred-init.md) — push onto system.callbacks.initialized
 - [config reload clobber](feedback-config-reload-clobber.md), [route-send command format](feedback-route-send-command-format.md) — `reload config/all` overwrites runtime; no cube. prefix
 - [user-perfectionism-and-pace](user-perfectionism-and-pace.md) — "done" means perfectly smooth; let solo tuning passes run
+- [scratchpad_import tool](topic-scratchpad-import-tool.md) — pulls /tmp session scratchpad into data/scratchpad/; list/raw-read modes; check repo+tasks/completed before keeping imports
 
-#,,,,,,.,,...,..,,,,.,.,.,,.,,,.,,..,,,..,,,.,..,,...,...,...,.,.,.,.,,.,,,,,,
-#JV6KMKGABETP3OZB2SUNT444KBMXYEJDGZJVM65A5O2AWLGNMQGDHLQ26MJHN5O5JDGCDLKCJ5ACK
-#\\\|Z7COV3GEVGCC3QTW2G2SXQHWPQPMKPPZDINZ2YZRRT7MBCTZ32U \ / AMOS7 \ YOURUM ::
-#\[7]LLXSFVWWNP7QXHRQAMDIZEQ6LHWU6QDFYFCUJC4A2634VPIG6KCI 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,,.,,,,,...,...,,.,,,,,,..,,.,.,..,,...,...,.,.,,,,,...,.,,,,..,
+#JYHYJTERQXA5VF7E4FOTMMPLTXOWC2UA3OYEFOBXK62OWO3HLFBWPQNJWOF36I2KFPJLEEDCT6XE6
+#\\\|J44BYPOQBUXRFTCZYBB7H6HTODE3OQ7CMH2SLBXPF3RBXRK3TOD \ / AMOS7 \ YOURUM ::
+#\[7]K6DOMLF5YWWRHGURCYXN3NWHPUPOESDI6DT35OWUO23UCA64MOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

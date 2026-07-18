@@ -39,9 +39,10 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [web-browser-param-capture-graphing](web-browser-param-capture-graphing.md) — LANDED; root-caused zoom-momentum bug
 - [input-capture-replay-website-templates](project-input-capture-replay-website-templates.md) — LANDED, kimi K3
 - [web-browser-value-replay-waypoints](project-web-browser-value-replay-waypoints.md) — LANDED, kimi K3; multi-window fan-out + access.zenki fix
+- [scratchpad-import-tool](topic-scratchpad-import-tool.md), [scratchpad-rescue-coding-zenka-task](topic-scratchpad-rescue-coding-zenka-task.md) — mcp-server-p7 scratchpad tools tested; follow-up task filed w/ kimi K3 for native coding-zenka rescue tools + chmod g+rx fix
 
-#,,.,,,,.,...,...,...,...,.,.,.,,,...,,,,,,,,,..,,...,...,,,.,,,,,.,.,..,,,,.,
-#E6O4GJPN7Q2O3MCVF67T4UUA2IKOWULQFK5OBB4QM7O75LFLAFBVOQ6QRS6SZVQ6MJ3LGDL5MIC6A
-#\\\|2F6R5CC243NFD52AJJ37PQR7CYAI5PQHJC4SHDMK33MBZAC2VHK \ / AMOS7 \ YOURUM ::
-#\[7]ISGIMY5C7JLXUS24KZOMCNUIW5EI375COYVS5O3MDBO6IZWDHKAY 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,.,,.,.,,,.,.,,,,.,,.,.,,..,...,..,,...,...,.,,,,,.,,,,,,..,...,
+#MIC4LMEXSC4EJRIUXTS6ZDF4UQ27YVR5ZIBWNOWIUF5UAR6EJEBOXDUXZKDJ4NBH4QKONDZINUSG4
+#\\\|YSXEJ2CNEFRIFICPCGXDTL2J7MVK2VREUDX27WAU72RPQYFEVDA \ / AMOS7 \ YOURUM ::
+#\[7]TNPGUTEJJG5JYNVPCNWSYBSTFZD7SFZTGRL6M7WLBNSEVCWKT4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
