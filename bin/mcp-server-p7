@@ -123,9 +123,7 @@ my @external_tools = (
             . 'for faster turnaround at mid cost.',
         'command' => 'kimi-legacy -y --afk -r %s -p %s --model %s',
         'params'  => [
-            [   'session_id',
-                'the kimi session uuid from the resume line', 1
-            ],
+            [ 'session_id', 'the kimi session uuid from the resume line', 1 ],
             [   'prompt',
                 'the next task or instruction for the resumed session', 1
             ],
@@ -324,7 +322,7 @@ sub resolve_agent_auto {
 }
 my $FOCUS_FILE = "$ROOT_PATH/data/state/mcp-summary-focus.txt";
 my $summary_focus_sticky
-    = 0;                ## 1 if loaded from disk (sticky across sessions)
+    = 0;    ## 1 if loaded from disk (sticky across sessions)
 
 my $last_chat_mtime = 0;
 my $last_hint_time  = 0;
@@ -619,6 +617,9 @@ our @tools = (
             . 'titles. '
             . 'with session_id: summarizes that session via local 9B model '
             . '(token-free). '
+            . 'claude subagent transcripts from <uuid>/subagents/ can be '
+            . 'included or summarized on their own via the subagents '
+            . 'parameter. '
             . 'use to catch up after a context reset or handover.',
         'inputSchema' => {
             'type'       => 'object',
@@ -655,6 +656,15 @@ our @tools = (
                         'set 1 to skip the summary-tree cache lookup/notify '
                         . '(default: 0 = on; cache hits skip inference, '
                         . 'misses re-summarize and feed the tree)'
+                },
+                'subagents' => {
+                    'type'        => 'integer',
+                    'description' =>
+                        'claude only: include subagent transcripts from '
+                        . '<session-uuid>/subagents/ : 0 = exclude '
+                        . '(default), 1 = append them to the session text, '
+                        . '2 = summarize only the subagent transcripts '
+                        . '[ recover lost subagent context ]'
                 },
             },
             'additionalProperties' => \0
@@ -1798,8 +1808,8 @@ sub tool_coding_summarize {
     my $auto_followup = $args->{'auto_followup'} // '';
     $auto_followup
         = length($auto_followup)
-            && lc($auto_followup) ne 'false'
-            && $auto_followup ne '0' ? 1 : 0;
+        && lc($auto_followup) ne 'false'
+        && $auto_followup ne '0' ? 1 : 0;
 
     return send_tool_result( $id, 'text or file is required', 1 )
         if not length $text and not length $file;
@@ -1809,11 +1819,12 @@ sub tool_coding_summarize {
     my $checklist = 0;
     if ( length $task_file ) {
         my $criteria = _task_criteria_from_file($task_file);
-        return send_tool_result( $id,
+        return send_tool_result(
+            $id,
             "no '## acceptance criteria' or '## verification' section "
                 . "found in $task_file",
-            1 )
-            if not length $criteria;
+            1
+        ) if not length $criteria;
         $instruction = _checklist_instruction($criteria);
         $checklist   = 1;
     } elsif ( $instruction =~ m{DISPATCH_NEEDED|acceptance criteria}i ) {
@@ -1883,7 +1894,7 @@ sub _task_criteria_from_file {
             $in_target = 1;
             next;
         }
-        last if $in_target and $line =~ m{^#};
+        last              if $in_target and $line =~ m{^#};
         $section .= $line if $in_target;
     }
     close $fh;
@@ -1893,7 +1904,8 @@ sub _task_criteria_from_file {
 
 sub _checklist_instruction {
     my ($criteria) = @ARG;
-    return 'check the following acceptance criteria against the output. '
+    return
+          'check the following acceptance criteria against the output. '
         . "for each criterion, output PASS or FAIL with a brief reason:"
         . "\n\n$criteria\n\n"
         . 'if any FAIL: output DISPATCH_NEEDED: <what to fix>';
@@ -2299,8 +2311,8 @@ sub tool_p7_detected_agent {
         $resolved_update,
         $resolved_summary,
         length($env_agent_raw) ? $env_agent_raw : '[unset]',
-        length($ancestry_raw)  ? $ancestry_raw   : '[unavailable]',
-        length($client_raw)    ? $client_raw     : '[unset]'
+        length($ancestry_raw)  ? $ancestry_raw  : '[unavailable]',
+        length($client_raw)    ? $client_raw    : '[unset]'
     );
 
     send_tool_result( $id, $out, 0 );
@@ -2827,6 +2839,7 @@ sub tool_session_catchup {
     my $limit       = $args->{'limit'}       // 10;
     my $tail_chars  = $args->{'tail_chars'}  // 0;
     my $no_tree     = $args->{'no_tree'}     // 0;
+    my $subagents   = $args->{'subagents'}   // 0;
 
     ## summarize mode: direct lookup first, avoid scanning all sessions ##
     my $s;
@@ -2852,10 +2865,11 @@ sub tool_session_catchup {
             ## summarize-only params given without a session_id usually
             ## mean the caller mistyped/omitted session_id — warn instead
             ## of silently falling back to list mode ##
-            if ( length($instruction) or $tail_chars > 0 ) {
+            if ( length($instruction) or $tail_chars > 0 or $subagents ) {
                 return send_tool_result(
                     $id,
-                    'no session_id given — instruction/tail_chars are '
+                    'no session_id given — instruction/tail_chars/'
+                        . 'subagents are '
                         . 'ignored in list mode; pass session_id to '
                         . 'summarize a specific session',
                     1
@@ -2866,6 +2880,15 @@ sub tool_session_catchup {
             my $n = 0;
             for my $entry (@sessions) {
                 last if $n++ >= $limit;
+                if ( $entry->{'client'} eq 'claude' ) {
+                    my $sdir
+                        = _claude_session_dir() . q{/}
+                        . $entry->{'uuid'}
+                        . q{/subagents};
+                    my @subs = -d $sdir ? glob("$sdir/agent-*.jsonl") : ();
+                    $entry->{'title'} .= sprintf ' [+%d sub]', scalar @subs
+                        if @subs;
+                }
                 my $ts
                     = POSIX::strftime( '%m-%d %H:%M',
                     localtime( $entry->{'mtime'} ) );
@@ -2900,6 +2923,25 @@ sub tool_session_catchup {
     ## read them directly; extract conversation text here and pass as
     ## content ##
     my $text = _extract_session_text( $s->{'file'}, $s->{'client'} );
+
+    ## claude subagent transcripts : 0 = exclude, 1 = append, 2 = only ##
+    my $sub_note = '';
+    if ( $subagents and $s->{'client'} eq 'claude' ) {
+        my ( $sub_text, $sub_count )
+            = _extract_claude_subagent_text( $s->{'uuid'} );
+        if ( $subagents == 2 ) {
+            return send_tool_result( $id,
+                "no subagent transcripts found for $s->{'uuid'}", 1 )
+                unless length $sub_text;
+            $text     = $sub_text;
+            $sub_note = sprintf "[subagents only: %d transcript%s]\n\n",
+                $sub_count, $sub_count == 1 ? '' : 's';
+        } elsif ( length $sub_text ) {
+            $text .= $sub_text;
+            $sub_note = sprintf "[includes %d subagent transcript%s]\n\n",
+                $sub_count, $sub_count == 1 ? '' : 's';
+        }
+    }
     return send_tool_result( $id, 'failed to read session file', 1 )
         unless length $text;
 
@@ -2955,7 +2997,8 @@ sub tool_session_catchup {
     my $header = sprintf ":. %s .[ %s ]:. %s\n\n",
         $s->{'client'}, $session_id,
         POSIX::strftime( '%Y-%m-%d %H:%M', localtime( $s->{'mtime'} ) );
-    return send_tool_result( $id, $header . $truncated_note . $result, 0 );
+    return send_tool_result( $id,
+        $header . $sub_note . $truncated_note . $result, 0 );
 }
 
 sub _extract_session_text {
@@ -3004,6 +3047,42 @@ sub _extract_session_text {
     ## ensure decoded perl chars before returning ##
     utf8::decode($text) if length $text and not utf8::is_utf8($text);
     return $text;
+}
+
+sub _extract_claude_subagent_text {
+    my ($uuid) = @ARG;
+    my $dir = _claude_session_dir() . "/$uuid/subagents";
+    return ( '', 0 ) unless -d $dir;
+
+    ## chronological order : oldest subagent first ##
+    my @files = sort { ( stat($a) )[9] <=> ( stat($b) )[9] }
+        glob("$dir/agent-*.jsonl");
+    my ( $text, $count ) = ( '', 0 );
+    for my $file (@files) {
+        ## meta sidecar : agentType / description / model ##
+        my ( $type, $descr, $model ) = ( 'agent', '', '' );
+        my $meta_file = $file;
+        $meta_file =~ s{\.jsonl$}{.meta.json};
+        if ( -f $meta_file ) {
+            eval {
+                open( my $fh, '<:raw', $meta_file ) or die;
+                my $raw = do { local $/; <$fh> };
+                close $fh;
+                my $m = $json->decode($raw);
+                $type  = $m->{'agentType'}   // $type;
+                $descr = $m->{'description'} // '';
+                $model = $m->{'model'}       // '';
+            };
+        }
+        my $body = _extract_session_text( $file, 'claude' );
+        next unless length $body;
+        $count++;
+        $text .= sprintf "\n.:[ subagent %d .[ %s ]:. %s%s ]:.\n",
+            $count, $type, $descr,
+            length($model) ? " [ model: $model ]" : '';
+        $text .= $body;
+    }
+    return ( $text, $count );
 }
 
 sub _do_summarize_file {
@@ -3178,8 +3257,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,,,...,.,.,,..,,..,,,,,..,,.,.,...,,,,,,.,,..,,...,...,.,.,,,,,..,,,.,,,..,
-#SAF7YS3XELEIJESNFIV6XPMJYOQBVLGWSW7SK7CDRJLBBJGPOSNR27XSRCRVBZA6DQASD5DWELVPK
-#\\\|D55EHKFLVHQXNYLM7MKI2GJQTL6AGM3B2AL5MNI2IIFL6YHBMZF \ / AMOS7 \ YOURUM ::
-#\[7]NS7PECK3NWDYPNLNNTIEI7PJPYVHHHDIWH7ZMESGH7VXG64TVSBQ 7  DATA SIGNATURE ::
+#,,.,,...,...,,.,,,..,.,,,,..,.,.,,..,.,,,.,.,..,,...,...,,.,,.,,,,.,,,.,,.,,,
+#64TV6DWZK4VPLQK7AJH4B7XJ5FOB6BZOTHABRYLLLK55H2ICVGUPGK4ITEPSRMYGBN42WEJBNTYR6
+#\\\|L2T5IPDVMPZFPANPFEEZYDWR6WNY5FMPGHUEVWMDCDVJLOZ6ACP \ / AMOS7 \ YOURUM ::
+#\[7]6KLQYU74KXJAZRKSE3PYTUZPAHNBB77TMA3VWY2GNU6WHWVRX4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
