@@ -18,7 +18,12 @@ return warn 'command string contained endlines <{C' . $caller_level . '}>'
     if index( $cmd, "\n" ) >= 0;
 
 ## no clients in session ##
-return -1 if 0 == scalar keys $data{'session'}->%*; ##  empty session : -1  ##
+if ( 0 == scalar keys $data{'session'}->%* ) {    ##  empty session : -1  ##
+    <[base.logs]>->(
+        0, 'send.local: no clients in session, dropping command : %s', $cmd
+    );
+    return -1;
+}
 
 if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
 
@@ -28,8 +33,6 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
 
     my $target_name = ${^CAPTURE}[0];
 
-    ## error handling on unknown target ## [LLL]
-
     ## send to all clients with that session id or username [in group mode] ##
     my @send_sids;
     my $target_sid = $target_name =~ m|^\d+$| ? $target_name : undef;
@@ -38,6 +41,15 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
         @send_sids = ($target_sid);
     } elsif ( exists $data{'user'}{$target_name} ) {    ###[ group mode ]###
         @send_sids = keys $data{'user'}{$target_name}{'session'}->%*;
+    }
+
+    ## error handling on unknown target ##
+    if ( not @send_sids ) {
+        <[base.logs]>->(
+            0,            'send.local: unknown target : %s [ cmd : %s ]',
+            $target_name, $cmd
+        );
+        return 0;
     }
 
     my $count = 0;
@@ -156,8 +168,8 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
     return -2;
 }
 
-#,,.,,,..,,,,,.,,,..,,,,,,,.,,..,,.,,,...,,.,,..,,...,...,.,,,,..,.,.,,,,,,,,,
-#24FLEIUBXF2LMSWNBGPBTYWQZNHKVDNZB2DKUAFF2AIEO6GWX6LTYM5SSS2KBJTYTYKT6TPEV7OD4
-#\\\|3B7DVTXYG4LHREOQSFNVQLNW6OIUO523MROY26JLAGLIJ6CVSCU \ / AMOS7 \ YOURUM ::
-#\[7]VHDWC5KFTHYIO2XKOHRQKGDYRB73QH3GCQUZM2AT57SSSJY2OOCY 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,.,,,,,,,.,,,.,,,,.,,,,.,,,.,.,.,..,,...,...,...,,,.,,,,,,,.,..,,
+#QKX6AEEAZA2G75QD6SDK2E6ECBOJ76PY3WQSCQIH42DMOFYF73TO5QBAEDI2RFOKDA3WIFKWDXHYU
+#\\\|N35A7PIWQM627TSBQHI33SPFDCK2Z663SHVGJR2WM446AGJF2BJ \ / AMOS7 \ YOURUM ::
+#\[7]44X5XX24XXD2WW55X5MORGVQKZXXGZJW6VATFEKRSGGHMDUUWOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

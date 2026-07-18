@@ -60,16 +60,19 @@ if ( $is_proxy_zenka and defined $data{'proxy'}{'listen_sock'} ) {
 ## reach it). deferred via a short one-shot timer -- proxy's own cube
 ## session isn't established yet this early in init_code, so a
 ## synchronous route-send here silently finds no matching session ##
+##
+## proxy-only, like the listener block above -- other zenki that co-load
+## the proxy module namespace must not run proxy's own subscribe timer ##
 <[event.add_timer]>->(
     {   'after'   => 0.5,
         'handler' => qw| proxy.handler.subscribe_rotation_deferred |,
     }
-);
+) if $is_proxy_zenka;
 
 0;
 
-#,,,,,..,,.,,,.,.,...,,..,.,.,,,.,.,.,,.,,...,..,,...,...,,,,,,,,,...,,,,,,,,,
-#5RZTVNUGWPXZ43L6FD5UVQSGX7U3AOLCTWPSTNUKOUDYFKOJPEBZLRZKTV7PQQGR2WHJKE2PYFYIO
-#\\\|SXEDCPGH43QGMF2BZUCR2QCZKW4MHJRVXRH7EUARAIMGL3BC526 \ / AMOS7 \ YOURUM ::
-#\[7]3QEUHCDAWGFB7UHGY42NQIRTCMMD26LGGIPT6OOZWEXCNLIA2KDY 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,,,,,..,,,,,,,,,,,,.,.,.,..,,,,.,..,,...,...,...,,,.,.,,,,..,,,.,
+#WERG73FJQ63D3C532XOX2NVWIUYN7AEBOTYJ77ADNCXZLECGIPVTYWOQV25Z4R44RG4HE72ILGQXU
+#\\\|4AJEA726BLJTGYT6R2QDAZGZB777QEA4FLOILLSA2YIQ7HB42TK \ / AMOS7 \ YOURUM ::
+#\[7]DZAEKDRXBW3K3F3VBKBBOAA6DJGANPQLH2WA3LZ4GRLA4ZT7TABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
