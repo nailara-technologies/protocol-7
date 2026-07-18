@@ -617,9 +617,9 @@ our @tools = (
             . 'titles. '
             . 'with session_id: summarizes that session via local 9B model '
             . '(token-free). '
-            . 'claude subagent transcripts from <uuid>/subagents/ can be '
-            . 'included or summarized on their own via the subagents '
-            . 'parameter. '
+            . 'claude and kimi subagent transcripts can be included or '
+            . 'summarized on their own via the subagents parameter, and '
+            . 'filtered to a single agent via subagent_id. '
             . 'use to catch up after a context reset or handover.',
         'inputSchema' => {
             'type'       => 'object',
@@ -660,11 +660,19 @@ our @tools = (
                 'subagents' => {
                     'type'        => 'integer',
                     'description' =>
-                        'claude only: include subagent transcripts from '
-                        . '<session-uuid>/subagents/ : 0 = exclude '
-                        . '(default), 1 = append them to the session text, '
-                        . '2 = summarize only the subagent transcripts '
-                        . '[ recover lost subagent context ]'
+                        'include subagent transcripts stored under the '
+                        . 'session dir : 0 = exclude (default), 1 = append '
+                        . 'them to the session text, 2 = summarize only the '
+                        . 'subagent transcripts [ recover lost subagent '
+                        . 'context ]'
+                },
+                'subagent_id' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'filter subagent transcripts by id, type, model or '
+                        . 'description substring [ case-insensitive, all '
+                        . 'matches included ]. implies subagents=2 when '
+                        . 'subagents is not set'
                 },
             },
             'additionalProperties' => \0
@@ -2840,6 +2848,10 @@ sub tool_session_catchup {
     my $tail_chars  = $args->{'tail_chars'}  // 0;
     my $no_tree     = $args->{'no_tree'}     // 0;
     my $subagents   = $args->{'subagents'}   // 0;
+    my $subagent_id = $args->{'subagent_id'} // '';
+
+    ## an explicit agent filter implies subagents-only mode ##
+    $subagents = 2 if length $subagent_id and not $subagents;
 
     ## summarize mode: direct lookup first, avoid scanning all sessions ##
     my $s;
@@ -2865,11 +2877,14 @@ sub tool_session_catchup {
             ## summarize-only params given without a session_id usually
             ## mean the caller mistyped/omitted session_id — warn instead
             ## of silently falling back to list mode ##
-            if ( length($instruction) or $tail_chars > 0 or $subagents ) {
+            if (   length($instruction)
+                or $tail_chars > 0
+                or $subagents
+                or length $subagent_id ) {
                 return send_tool_result(
                     $id,
                     'no session_id given — instruction/tail_chars/'
-                        . 'subagents are '
+                        . 'subagents/subagent_id are '
                         . 'ignored in list mode; pass session_id to '
                         . 'summarize a specific session',
                     1
@@ -2880,15 +2895,9 @@ sub tool_session_catchup {
             my $n = 0;
             for my $entry (@sessions) {
                 last if $n++ >= $limit;
-                if ( $entry->{'client'} eq 'claude' ) {
-                    my $sdir
-                        = _claude_session_dir() . q{/}
-                        . $entry->{'uuid'}
-                        . q{/subagents};
-                    my @subs = -d $sdir ? glob("$sdir/agent-*.jsonl") : ();
-                    $entry->{'title'} .= sprintf ' [+%d sub]', scalar @subs
-                        if @subs;
-                }
+                my @subs = _list_subagent_transcripts($entry);
+                $entry->{'title'} .= sprintf ' [+%d sub]', scalar @subs
+                    if @subs;
                 my $ts
                     = POSIX::strftime( '%m-%d %H:%M',
                     localtime( $entry->{'mtime'} ) );
@@ -2924,22 +2933,30 @@ sub tool_session_catchup {
     ## content ##
     my $text = _extract_session_text( $s->{'file'}, $s->{'client'} );
 
-    ## claude subagent transcripts : 0 = exclude, 1 = append, 2 = only ##
+    ## subagent transcripts : 0 = exclude, 1 = append, 2 = only ##
     my $sub_note = '';
-    if ( $subagents and $s->{'client'} eq 'claude' ) {
+    if ($subagents) {
         my ( $sub_text, $sub_count )
-            = _extract_claude_subagent_text( $s->{'uuid'} );
+            = _extract_subagent_text( $s, $subagent_id );
+        my $match_note
+            = length($subagent_id) ? " matching '$subagent_id'" : '';
         if ( $subagents == 2 ) {
-            return send_tool_result( $id,
-                "no subagent transcripts found for $s->{'uuid'}", 1 )
-                unless length $sub_text;
+            return send_tool_result(
+                $id,
+                sprintf(
+                    'no subagent transcripts found for %s%s',
+                    $s->{'uuid'}, $match_note
+                ),
+                1
+            ) unless length $sub_text;
             $text     = $sub_text;
-            $sub_note = sprintf "[subagents only: %d transcript%s]\n\n",
-                $sub_count, $sub_count == 1 ? '' : 's';
+            $sub_note = sprintf "[subagents only: %d transcript%s%s]\n\n",
+                $sub_count, $sub_count == 1 ? '' : 's', $match_note;
         } elsif ( length $sub_text ) {
             $text .= $sub_text;
-            $sub_note = sprintf "[includes %d subagent transcript%s]\n\n",
-                $sub_count, $sub_count == 1 ? '' : 's';
+            $sub_note
+                = sprintf "[includes %d subagent transcript%s%s]\n\n",
+                $sub_count, $sub_count == 1 ? '' : 's', $match_note;
         }
     }
     return send_tool_result( $id, 'failed to read session file', 1 )
@@ -3049,37 +3066,98 @@ sub _extract_session_text {
     return $text;
 }
 
-sub _extract_claude_subagent_text {
-    my ($uuid) = @ARG;
-    my $dir = _claude_session_dir() . "/$uuid/subagents";
-    return ( '', 0 ) unless -d $dir;
+sub _list_subagent_transcripts {
+    my ($s) = @ARG;
+    my @agents;
 
-    ## chronological order : oldest subagent first ##
-    my @files = sort { ( stat($a) )[9] <=> ( stat($b) )[9] }
-        glob("$dir/agent-*.jsonl");
-    my ( $text, $count ) = ( '', 0 );
-    for my $file (@files) {
-        ## meta sidecar : agentType / description / model ##
-        my ( $type, $descr, $model ) = ( 'agent', '', '' );
-        my $meta_file = $file;
-        $meta_file =~ s{\.jsonl$}{.meta.json};
-        if ( -f $meta_file ) {
-            eval {
-                open( my $fh, '<:raw', $meta_file ) or die;
-                my $raw = do { local $/; <$fh> };
-                close $fh;
-                my $m = $json->decode($raw);
-                $type  = $m->{'agentType'}   // $type;
-                $descr = $m->{'description'} // '';
-                $model = $m->{'model'}       // '';
-            };
+    if ( $s->{'client'} eq 'claude' ) {
+        ## claude : <session-dir>/<uuid>/subagents/agent-<id>.jsonl ##
+        my $dir = _claude_session_dir() . q{/} . $s->{'uuid'} . q{/subagents};
+        return () unless -d $dir;
+        for my $file ( glob("$dir/agent-*.jsonl") ) {
+            my $id = $file;
+            $id =~ s{.*/agent-}{};
+            $id =~ s{\.jsonl$}{};
+            my ( $type, $descr, $model ) = ( 'agent', '', '' );
+            my $meta_file = $file;
+            $meta_file =~ s{\.jsonl$}{.meta.json};
+            if ( -f $meta_file ) {
+                eval {
+                    open( my $fh, '<:raw', $meta_file ) or die;
+                    my $raw = do { local $/; <$fh> };
+                    close $fh;
+                    my $m = $json->decode($raw);
+                    $type  = $m->{'agentType'}   // $type;
+                    $descr = $m->{'description'} // '';
+                    $model = $m->{'model'}       // '';
+                };
+            }
+            push @agents,
+                {
+                id    => $id,
+                type  => $type,
+                descr => $descr,
+                model => $model,
+                file  => $file,
+                mtime => ( stat($file) )[9] // 0,
+                };
         }
-        my $body = _extract_session_text( $file, 'claude' );
+    } elsif ( $s->{'client'} eq 'kimi' ) {
+        ## kimi : <session-dir>/subagents/<agent-id>/context.jsonl ##
+        my $sdir = $s->{'file'};
+        $sdir =~ s{/context\.jsonl$}{};
+        my $dir = "$sdir/subagents";
+        return () unless -d $dir;
+        for my $adir ( grep {-d} glob("$dir/*") ) {
+            my $file = "$adir/context.jsonl";
+            next unless -f $file;
+            my $id = $adir;
+            $id =~ s{.*/}{};
+            my ( $type, $descr ) = ( 'agent', '' );
+            my $mtime     = ( stat($file) )[9] // 0;
+            my $meta_file = "$adir/meta.json";
+            if ( -f $meta_file ) {
+                eval {
+                    open( my $fh, '<:raw', $meta_file ) or die;
+                    my $raw = do { local $/; <$fh> };
+                    close $fh;
+                    my $m = $json->decode($raw);
+                    $type  = $m->{'subagent_type'} // $type;
+                    $descr = $m->{'description'}   // '';
+                    $mtime = int( $m->{'created_at'} )
+                        if $m->{'created_at'};
+                };
+            }
+            push @agents,
+                {
+                id    => $id,
+                type  => $type,
+                descr => $descr,
+                model => '',
+                file  => $file,
+                mtime => $mtime,
+                };
+        }
+    }
+    return sort { $a->{'mtime'} <=> $b->{'mtime'} } @agents;
+}
+
+sub _extract_subagent_text {
+    my ( $s, $filter ) = @ARG;
+    $filter //= '';
+    my ( $text, $count ) = ( '', 0 );
+    for my $a ( _list_subagent_transcripts($s) ) {
+        if ( length $filter ) {
+            my $hay = join "\x00", $a->{'id'}, $a->{'type'},
+                $a->{'model'}, $a->{'descr'};
+            next unless index( lc($hay), lc($filter) ) >= 0;
+        }
+        my $body = _extract_session_text( $a->{'file'}, $s->{'client'} );
         next unless length $body;
         $count++;
         $text .= sprintf "\n.:[ subagent %d .[ %s ]:. %s%s ]:.\n",
-            $count, $type, $descr,
-            length($model) ? " [ model: $model ]" : '';
+            $count, $a->{'type'}, $a->{'descr'},
+            length( $a->{'model'} ) ? " [ model: $a->{'model'} ]" : '';
         $text .= $body;
     }
     return ( $text, $count );
@@ -3257,8 +3335,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,.,,...,...,,.,,,..,.,,,,..,.,.,,..,.,,,.,.,..,,...,...,,.,,.,,,,.,,,.,,.,,,
-#64TV6DWZK4VPLQK7AJH4B7XJ5FOB6BZOTHABRYLLLK55H2ICVGUPGK4ITEPSRMYGBN42WEJBNTYR6
-#\\\|L2T5IPDVMPZFPANPFEEZYDWR6WNY5FMPGHUEVWMDCDVJLOZ6ACP \ / AMOS7 \ YOURUM ::
-#\[7]6KLQYU74KXJAZRKSE3PYTUZPAHNBB77TMA3VWY2GNU6WHWVRX4AY 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,,..,,,.,,,.,...,.,.,.,,,.,,,,,,,..,,...,...,..,,...,...,,..,.,,,
+#WOTSI3KMOQM2IEQYSQPD5SJ3VEHUO7UO63WKHEELHCTKRCAQJZECBQUR2MYZH4VQ6QIRWE6RATO5Y
+#\\\|4TKBKY2TH6STPMUQL6GFZ3QCNWNZROW4DOK3AGFNPH4BC2PJPCM \ / AMOS7 \ YOURUM ::
+#\[7]DRC3P3DNONT4NX3N6ESZ3SB5SOI3A5FXD6NC4QQ7FHKBLXZQLSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
