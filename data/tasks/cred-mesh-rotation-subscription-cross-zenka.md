@@ -209,6 +209,133 @@ this command arrive on, (2) check the `.cmd.` vs bare command-name mismatch
 in `send.local`'s target stripping, (3) only then return to the reply-leg
 theory if 1-2 don't explain it.
 
+### RETRACTED — the "stray manual test data" theory below was wrong
+
+The paragraph originally here claimed this was explained by a stray
+`handler => 'cred-mesh.subscribe_rotation'` value from earlier manual
+testing, with "no fix needed beyond the general reflection task." **That
+theory is contradicted by a fresh, cleaner reproduction on
+2026-07-18, after a full clean restart, with the new logging from bug 5's
+fix in place**:
+
+```
+cube    : [3007049] zenka 'cred-mesh' [initialized]
+proxy   : proxy: deferred rotation-subscribe timer fired, subscribing to cred-mesh
+cr.,.sh : cred-mesh.cmd.subscribe_rotation: received slot=* handler=proxy.cred-rotated
+proxy   : proxy: rotation-subscribe route-send result : 1
+cr.,.sh : cred-mesh.cmd.subscribe_rotation: result for handler proxy.cred-rotated : subscribed
+cr.,.sh : proxy: deferred rotation-subscribe timer fired, subscribing to cred-mesh
+cr.,.sh : proxy: rotation-subscribe route-send result : 1
+cube    : [3007049] no perm. [ src 'cred-mesh' cmd|usr 'cred-mesh.subscribe_rotation' ]
+```
+
+Look at line 6: the log **channel prefix is `cr.,.sh` (cred-mesh's own
+log)**, but the **message text is `proxy.handler.subscribe_rotation_deferred`'s
+own log line** (`"proxy: deferred rotation-subscribe timer fired..."`,
+added in this same session). That is direct evidence that **cred-mesh's
+own process executed proxy's deferred-subscribe handler code** — not a
+leftover data value from old manual testing. This is the same *class* of
+bug as bug 1 (co-loaded module code / inherited state executing in the
+wrong zenka's process — see the SO_REUSEPORT incident, commit `0b52338ad`,
+and CLAUDE.md's own note that "zenki forked from partially initialized
+parents can inherit data structures"), but manifesting as an **inherited
+timer/event-loop callback surviving a fork** rather than a shared `%data`
+write. Working theory, not yet confirmed: proxy's 0.5s
+`event.add_timer` for `proxy.handler.subscribe_rotation_deferred` gets
+scheduled before cred-mesh forks off from whatever shared parent process
+image spawns these zenki, and the timer watcher itself (not just compiled
+code) is inherited into the child (cred-mesh), firing there post-fork —
+which would explain both why `<system.zenka.name>` reads `cred-mesh`
+inside that fired callback (producing `src='cred-mesh'` in the permission
+check) and why the reflection-vulnerability theory
+(`cred-mesh-subscribe-handler-reflection.md`, still valid as its own
+finding) isn't the root cause of *this specific* symptom.
+
+**Root-caused, confirmed live 2026-07-18** (not a fork-inheritance issue,
+simpler than that):
+
+1. `p7c cred-mesh.eval-code 'return exists $code{"proxy.handler.subscribe_rotation_deferred"} ? "yes":"no"'`
+   → `yes`. `p7c cred-mesh.eval-code 'return join(",", grep {/^proxy\./} keys %code)'`
+   → the **entire** `proxy.*` namespace is compiled into cred-mesh's own
+   `%code`, including `proxy.init_code` and
+   `proxy.handler.subscribe_rotation_deferred`.
+2. `configuration/zenki/cred-mesh/start:29` — cred-mesh's own
+   `modules.load` explicitly includes `proxy` as a full namespace token:
+   `modules.load = auth net protocol io.unix ui cred-mesh credential proxy \
+   ascii.frame format.yaml httpd.status_codes devmod`.
+3. `configuration/zenki/cred-mesh/start:35` calls `[init_modules]` with
+   **no arguments**. `modules/base.init_modules` lines 22-23, when called
+   unscoped, does `<[base.sort]>->( \%code )` over **every** compiled sub
+   in `%code` regardless of zenka-namespace origin, and executes (line 68:
+   `$code{$sub_name}->(...)`) any `.pre_init`/`.init_code`/`.post_init` it
+   finds. Because `proxy` is in cred-mesh's own `modules.load`, this runs
+   `proxy.init_code` — **inside cred-mesh's own process** — which is what
+   registers proxy's 0.5s `subscribe_rotation_deferred` timer. When that
+   timer fires, `<system.zenka.name>` genuinely reads `cred-mesh` (it truly
+   is running there), so the resulting `route-send` genuinely originates
+   from cred-mesh, targeting itself. Exact match for the observed log.
+
+Confirmed this is **one-directional**: `configuration/zenki/proxy/start`
+and `configuration/zenki/transport/start` do not list `cred-mesh` in their
+own `modules.load`, so they don't run cred-mesh's `init_code` in reverse.
+Scope of the fix is cred-mesh's own `start` file only.
+
+**Corrected per the user**: `base.init_modules` running every co-loaded
+module's `init_code` unscoped is not a bug at all — it's the established
+project convention (`base.init_code`, `httpsd.init_code`, `keys.init_code`,
+`ncode.init_code`, `work.init_code` all self-guard with
+`<system.zenka.name> eq qw| X |`, confirmed via
+`ncode s src:.init_code system.zenka.name. eq`). `proxy.init_code` already
+had exactly this guard (`$is_proxy_zenka`), correctly applied to its
+listener-binding and stale-socket-cleanup blocks, with a comment that
+literally anticipates cred-mesh co-loading this module ("other zenki that
+load the proxy module namespace [ e.g. cred-mesh, for subscribe_rotation
+side effect ] must not bind a duplicate SO_REUSEPORT listener"). **The
+actual bug: one block — the `event.add_timer` registration for the
+rotation-subscribe timer, the very last thing in the file — was left
+unguarded**, the one spot the original author missed.
+
+**FIXED**: added `if $is_proxy_zenka` to that one `event.add_timer` call
+in `modules/proxy.init_code`. `configuration/zenki/cred-mesh/start` itself
+does not need changing — keeping `proxy` in cred-mesh's `modules.load` is
+fine now that the guard is complete; cred-mesh may still reference plain
+`proxy.*` helper subs directly, just never runs proxy's own init side
+effects.
+
+**Not fixed, flagged only**: `transport.init_code` has **no zenka-name
+guard at all** (confirmed: no other zenka's `start` currently lists
+`transport` in `modules.load`, so this isn't an active bug today) — same
+latent landmine as `proxy.init_code` had, just not triggered yet. Left
+untouched since it's not currently broken and wasn't asked for, but worth
+a proactive guard the next time this file is touched, matching the
+project's own established convention.
+
+**Verified live 2026-07-18 after the fix**: restarted `proxy`/`transport`/
+`cred-mesh` via `v7.restart`. Fresh cred-mesh sessions (`5795270`,
+`7771203`) show `proxy.selector.load: 4 rules loaded` (harmless,
+unconditional but idempotent, unrelated to this bug) but **zero**
+occurrences of `deferred rotation-subscribe timer fired` or
+`rotation-subscribe route-send result` — the leaked timer no longer fires
+in cred-mesh's process. `tail -100` of cube's log shows no
+`cred-mesh.subscribe_rotation` `no perm.` entries at all. Confirmed
+closed.
+
+`bin/dev/cred-mesh-test` remains at 20/23 with scenario 4's two failures
+(`transport cache flush log`, `after-rotation header value`) still
+unexplained — confirmed transport's `route-send` to
+`cred-mesh.subscribe_rotation` reports success (`count : 1`) after adding
+logging to `proxy.handler.subscribe_rotation_deferred`,
+`transport.handler.subscribe_rotation_deferred`,
+`cred-mesh.cmd.subscribe_rotation`, and the two silent early-return paths
+in `base.protocol-7.command.send.local` (the `[LLL]`-marked "unknown
+target" gap now logs instead of silently returning 0) — but cred-mesh's
+log shows **zero** mentions of transport ever arriving, while proxy's
+identical call succeeds end-to-end every time. The vanishing point is
+somewhere past `send.local`'s successful queue and before cred-mesh's
+`.cmd.` wrapper — `base.handler.command.route_to_target` (the actual
+receiving-side dispatch, already a proven trouble spot from bug 3) is the
+next place to instrument, not yet done.
+
 ## verification
 
 re-run 2026-07-18: `bin/dev/cred-mesh-test` — 20/23 assertions pass, 3 fail:
@@ -287,8 +414,8 @@ longer throws `undefined value as subroutine reference`.
 do NOT manually write or edit signature lines. do not add stub
 signatures to new files.
 
-#,,,,,...,...,..,,,,.,,,,,.,,,...,,..,,..,,.,,..,,...,.,.,...,,,.,,,.,,.,,...,
-#CB5LNK3LYSD7D5V2YLGOEJ4XTA2MSQOVOQKNHTOAUZ4TUZJLDZAEUX2BUIBCS2GNZ6PJ6T4IX2RUM
-#\\\|ZSITPLPT6G2TIBR5C2XY5W3WL74HS6OQ6ZHJDOJVKI3JUEGD5YP \ / AMOS7 \ YOURUM ::
-#\[7]FFFVQDQWYNGYKQ7HLRHJD7R5QBWU5M7FFFMAVQRUKDEWAN5XEIAA 7  DATA SIGNATURE ::
+#,,.,,..,,..,,,..,...,,,.,,,,,...,,,.,...,.,,,..,,...,...,...,.,.,.,.,,..,...,
+#JGZOCWOS4GQKSKKBLC34FUTLMSMG3BMFVBNRUZ7MIUO6AM4HNNUP63LCPVHPA4NWBRQZZJ3UBV4ZS
+#\\\|AJKW7HUM3E7WQYWDPE3TWN67PV6TKBYU3I42RIL4VBKL7DM2QVW \ / AMOS7 \ YOURUM ::
+#\[7]6LQ6IP7ROTHMN5WNUN6BUOVSBJOXUFUXYQFRDODWYBZHFLTQ7MCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

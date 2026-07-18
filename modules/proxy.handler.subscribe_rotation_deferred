@@ -5,14 +5,27 @@
 
 my $event = shift;
 
-<[protocol-7.route-send]>->(
+<[base.logs]>->(
+    1,
+    'proxy: deferred rotation-subscribe timer fired, subscribing to cred-mesh'
+);
+
+my $sent = <[protocol-7.route-send]>->(
     {   'command'   => qw| cred-mesh.subscribe_rotation |,
         'call_args' => { 'args' => join( ' ', qw| * proxy.cred-rotated | ) },
     }
 );
 
-#,,,.,,..,.,,,,,.,...,...,,..,.,,,,,,,,..,...,.,.,...,...,.,.,..,,.,.,,,.,.,,,
-#K47Q4V43IVDIONVDQYSLY4ZBMFHD2FL26RCZYZWYKMCEDU2YLE5OQYZI4XZZGFNAVNQD76WRQJM4G
-#\\\|WJWFK64TGLPO7V5LE36LZAIZ45UNIMWXRRB37J7WNKQOSPHSGXB \ / AMOS7 \ YOURUM ::
-#\[7]4CB3TFEO5EHAX6XP2AVOARLX52A57SC26LYDFCBOYURYSBGFKOCY 7  DATA SIGNATURE ::
+<[base.logs]>->(
+    ( $sent and $sent > 0 ) ? 1 : 0,
+    'proxy: rotation-subscribe route-send result : %s',
+    $sent // 'undef'
+);
+
+$event->w->stop if defined $event->w;
+
+#,,,,,,,.,.,,,,.,,,.,,,..,...,...,,..,.,,,.,,,.,.,...,...,...,,.,,,..,,..,,.,,
+#UBEQEONT5M2K2STWEDO25BVSB3EXO3EM7LKDYIAS5UQIRBJYP2QIQJ2X4C3WPOICAXBLUPXUKEQIQ
+#\\\|SYYJN26DMZS6QGDU5L4FHNS6CSGWUJEJM5MCKQUMZD53VEFKH3B \ / AMOS7 \ YOURUM ::
+#\[7]ZDXG553Y6FOWDLAU7I6DWPWO4C7OLBMXRSZ6I5F2SOTGEUQQNWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

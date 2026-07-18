@@ -11,6 +11,11 @@ my ( $slot, $handler ) = split qr|\s+|, $args_str, 2;
 $slot    //= '';
 $handler //= '';
 
+<[base.logs]>->(
+    1,     'cred-mesh.cmd.subscribe_rotation: received slot=%s handler=%s',
+    $slot, $handler
+);
+
 return { 'mode' => qw| false |, 'data' => 'missing slot' }
     unless length $slot;
 return { 'mode' => qw| false |, 'data' => 'missing handler' }
@@ -22,6 +27,15 @@ my $result = <[cred-mesh.subscribe_rotation]>->(
     }
 );
 
+<[base.logs]>->(
+    ( defined $result and ref $result eq qw| HASH | ) ? 1 : 0,
+    'cred-mesh.cmd.subscribe_rotation: result for handler %s : %s',
+    $handler,
+    ( defined $result and ref $result eq qw| HASH | )
+    ? ( $result->{'data'} // 'ok' )
+    : 'subscribe failed'
+);
+
 return $result
     if defined $result and ref $result eq qw| HASH |;
 
@@ -29,8 +43,8 @@ return { 'mode' => qw| false |, 'data' => 'subscribe failed' };
 
 ## [ end ] ###################################################################
 
-#,,.,,..,,.,.,.,.,.,,,...,...,,.,,,,,,,,,,.,,,..,,...,..,,,..,,.,,,,.,,..,,.,,
-#FUPUTFZM7ZPXZ6LYMLALXEYJMV3YHMKMD3O262SK7KAAJE6KVCF7RW6VBSXRGXYXCWCWZDALJILZM
-#\\\|IGC7ERF2BLG4FIYENA4J4V2EUSCOY4ANRWCURGYSIRPQ7SDPU2M \ / AMOS7 \ YOURUM ::
-#\[7]3BZQ4D2IH2SIJIVCAPSPSSMD4ACT7SEQQBBDGGTXH3M75NOCR2AI 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,.,,..,,..,,..,,,..,,,.,..,,.,,,..,,...,...,...,...,,,,,.,.,..,,
+#ZYX2OIJHOOLPCJOAGS6QGRB75NT5VSZBQPHBPQZZHPZMOJSPVG5OWYO6BZT3ERTCMZXXIFWJZWWDG
+#\\\|4AWVQMI3O5AHMVR34W6MSNIB3Q2GLAWTBD3GCF2JMANIC5GVKPQ \ / AMOS7 \ YOURUM ::
+#\[7]UQBIUSJBNEBW2A5NQODZMRHDYQLHBY32N4ZKNMRPNAHJLE3YLKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
