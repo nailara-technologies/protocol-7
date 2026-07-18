@@ -14,7 +14,10 @@
 
 ## job pipeline api
 GET   /jobs.json    httpd.route.handler.web-relay  [command:web.jobs-data]
-POST  /jobs-sync    httpd.route.handler.web-relay  [command:web.jobs-sync,auth.required=1]
+## auth.required disabled again [ 2026-07-18 ] : cross-host trust bootstrap for jobsite ##
+## not designed yet [ see data/md/design/ZENKA-IDENTITY-AND-TRUST-TOPOLOGY.md ] -- jobsite ##
+## sends no auth header today, so gating this 401s every sync until that lands ##
+POST  /jobs-sync    httpd.route.handler.web-relay  [command:web.jobs-sync]
 
 ## iris — BMW384 field visualization
 GET   /iris/svg     httpd.route.handler.iris-svg
@@ -27,8 +30,8 @@ POST  /iris/negotiate httpd.route.handler.iris-negotiate
 POST  /cursor       plugin.web.space.handler.cursor_update
 POST  /context      httpd.route.handler.context
 
-#,,,.,,..,.,.,,..,..,,...,...,,.,,,,,,..,,.,.,..,,...,...,...,,..,.,.,.,.,..,,
-#V6II34DRFEBVSNFD34BHLNOD4ADU4PWOI4GJLS5SAX5WZ7UEL4OPK7J3UZTXNVEWCSYX4DUIY3ITA
-#\\\|VMX7NNBX6JRX52K2PZWFPSGBMDBXCMPHIU5EMXSKCQVXJEF5LXT \ / AMOS7 \ YOURUM ::
-#\[7]INSJA3ONLVUBYPL4KJAEUT47VUH2D2UTYNTRSXIDULO7KJXYDEDQ 7  DATA SIGNATURE ::
+#,,.,,,..,...,...,.,.,,,,,.,,,,..,...,,..,,.,,..,,...,...,..,,..,,,.,,,..,.,,,
+#2KCBFQE2KDZC4XDXCYDNGHDWDBT4VLKRIUCMRCVQM3UGQ5OZYENOUOCW6HHH5LKHPYEVEZTDAWDBE
+#\\\|AWPEYZAJTQD6IUO3O7KXDFZ37HJGROGQMBXFYJ3GVU7TIVZAGGO \ / AMOS7 \ YOURUM ::
+#\[7]AALYWO7ZE6NGSIFWCHWPOWEEZNLZGNQXWN3CXAD6T6LQ7AWGDMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
