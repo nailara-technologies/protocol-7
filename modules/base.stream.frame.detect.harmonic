@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = base.stream.frame.detect.harmonic
+# descr = tier-2 frame lock : harmonic-truth fallback for base.stream.frame.detect
+# param = <bits> [ arrayref of 0/1 bits ]
+# return = offset [ 0-3 ] on lock, undef if insufficient data or no column asserts true
+#
+# status = NOT WORKING AS WRITTEN -- kept per instruction to leave a superseded
+#          attempt documented rather than erase it, not because this passes.
+#          empirical test [ 2026-07-18, against the sub-bit-element-definition.md
+#          worked example ] : AMOS7::Assert::Truth::true_int() on a static elf
+#          checksum of the column is NOT selective -- calc_true() defaults to
+#          TRUE for anything not specifically near the 230769 false-family, so
+#          3 of 4 candidate offsets [ including payload columns ] all asserted
+#          true. this is the wrong primitive : truth here is not a static
+#          property of one value, it flips under left-shift with period 12
+#          [ see data/md/documentation/harmonic-cycle-correlations.md ], and
+#          the correct discriminator needs to use that shift/flip behaviour,
+#          not a single true_int() call on a fixed column value. unresolved --
+#          needs the exact algorithm specified before this tier can be trusted.
+
+my $bits = shift // [];
+
+return undef if scalar( $bits->@* ) < 5;
+
+for my $offset ( 0 .. 3 ) {
+    my @col;
+    for ( my $i = $offset; $i < scalar $bits->@*; $i += 4 ) {
+        push @col, $bits->[$i];
+    }
+
+    next if scalar(@col) < 2;    ## need two separator samples to be safe ##
+
+    my $col_chksum = <[chk-sum.elf.inline]>->( join( '', @col ) );
+
+    return $offset if AMOS7::Assert::Truth::true_int($col_chksum);
+}
+
+return undef;
+
+#,,.,,,.,,.,.,,,.,,..,,,,,.,.,,,.,,,,,,,,,,,,,..,,...,...,,,.,.,,,,,.,.,.,.,.,
+#IJCRK4AIIYDZU2JTBAJTAEOT2Y6C2366ZCRMSMW7FAY6UCWJ6TJOYWBOSNDPJ7IENIA7TXEX2QIRO
+#\\\|EBUWBNU6CDL33O3WYJIDJSCXGYICITM2LZTWJJZCGSTBFICCY72 \ / AMOS7 \ YOURUM ::
+#\[7]C7LCR2L2GBLVHWFLOUSATQRD7JP4JOAIWZOATNWALGZDV4K3NEBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
