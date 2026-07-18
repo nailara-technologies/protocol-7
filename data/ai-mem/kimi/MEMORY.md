@@ -38,7 +38,7 @@ see `data/ai-mem/claude/critical-patterns.md`
 MCP timeout bumped, `session_catchup` now does direct UUID/prefix lookup and supports `tail_chars` for large sessions. Coding self-test tier-0/1/2 verified live; tier-1 retry confirmed on DVEAZIA:GPAKBLA.
 see [2026-06-21-session-catchup-mcp-and-self-test-verification.md](2026-06-21-session-catchup-mcp-and-self-test-verification.md)
 
-July 2026: `session_catchup` gained claude subagent transcript support via new `subagents` param (0=exclude, 1=append, 2=only — recovers closed subagent context via local 9B summary); list mode shows `[+N sub]` markers.
+July 2026: `session_catchup` gained subagent transcript support for claude + kimi via `subagents` param (0=exclude, 1=append, 2=only) and `subagent_id` filter (id/type/model/description substring, implies mode 2) — recovers closed subagent context via local 9B summary; list mode shows `[+N sub]` markers.
 see [2026-07-18-session-catchup-subagent-support.md](2026-07-18-session-catchup-subagent-support.md)
 
 ## Command Return Style — Deferred Replies (June 2026)
@@ -54,8 +54,8 @@ open: kimi zenka state machine upgrade (backend reconnect), coding zenka as thir
 
 `skipped` status restored across all index scanners, reassessment now protects manual stages, web sync carries `assertions`, UI delete actions wired, and orbital subscriber `.cmd.` syntax corrected. Assessed jobs now map to the `review` UI stage. See [jobs-pipeline-2026-06-28.md](jobs-pipeline-2026-06-28.md). Open: bulk-delete pending search/filter UI.
 
-#,,.,,,,.,.,.,,,.,,.,,,,,,,..,.,,,,,.,.,.,,,,,..,,...,...,...,.,,,,..,.,,,.,,,
-#4NX7HTKEYJE2COC6ZH2ED3326NPVYW665FPF4W3GEZPEBNZUS3IYUYL2BZQ5V5JLXL75BSPHCB47S
-#\\\|BQJWCACKY2PZ2NE6PDC3GVVC57YXYFCPFV7WEUUEDWGSKEQZPA4 \ / AMOS7 \ YOURUM ::
-#\[7]NLQDKVDCZJQYRTCEQTYTTJY6BBFS7WGM3Q7UBYXCFYLQL3GUSEBI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,...,,.,,...,,,.,,,.,,.,,...,,,,,..,,...,...,...,.,,,.,,,.,,,,,,,
+#YEOZ2BWJSYRG44GNSCZJQZZUHBCIPLDXGTKSOW6JJJNCP7YWRIP62LM4HHXASUP3DIQWUROCOLHO2
+#\\\|2WTHOGSESHQ5EEM7HZ5LNRNY2LPMCUDBZ5J7Y7HFO6EPHKDHBOA \ / AMOS7 \ YOURUM ::
+#\[7]KB2KJEKLFGR3U2SMP4JUTG2NVTZWAAOTOTZIGZGQDKTXWILDHWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
