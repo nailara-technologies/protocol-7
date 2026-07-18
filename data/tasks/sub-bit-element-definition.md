@@ -151,6 +151,42 @@ derivation yet. Also flagged as needing a proper read before continuing:
 parent-grid layer-mapping this connects to worked out first, not another
 guess at the discriminator in isolation.
 
+**second lead, added same day, possibly the stronger one**: truth
+validation (division by 13) may be the mechanism that *raises* larger
+packets from these fixed-size small framings, not just a filter on them.
+Also: division-by-13 may have a third state beyond true/false —
+exact `mod 13 == 0` (no remainder) — as a packet-boundary marker
+distinct from either. Division by 7 alongside division by 13 may be
+part of a "trunk mapping": not single bitstreams but geometric trunks
+of them, multi-bit "beams" along a space axis in a 3D bit matrix. This
+connects to something already concretely real, not speculative: the
+AMOS checksum itself is a 7-char base32 value = 7×5 = **35 bits = a
+5-of-7 matrix** (`data/ai-mem/claude/topic-base32-namespace.md`,
+`data/md/design-specs/fractal-data-architecture-holographic-tty.md`:
+"the 7x5 bit matrix (35 bits) encodes 5 rows of 7-bit sub-states").
+If true, the "5 of 7" / "5th subbit" concept referenced throughout this
+task isn't a separate abstraction to design — it's already the shape of
+every AMOS checksum in this codebase, and the parent-grid mapping tier 2
+needs may already be sitting in plain sight.
+
+**confirmed, not speculative** (`data/md/data-zenka/DATA_ZENKA_HOLOGRAPHIC_
+TOPOLOGY.md`): the same 64-bit D13 state's 7-bit decoded-payload field
+already has a defined `1` + 6-bit encoding that selects into a **5×7
+pixel matrix for UI glyph rendering** — nodes-as-pixels-in-a-bit-matrix
+is a real existing encoding, not a new proposal. Same doc: "every 64-bit
+value must pass `is_true()` checks... failed values → RECALC (regenerate
+with phase shift)" — truth validation as the mechanism that *constructs*
+a valid larger value, not a filter that rejects one, the same
+iterate-until-true shape as `source.create_harmonic_footer`.
+
+**three converging, mutually-reinforcing leads now on record for tier 2**:
+(1) the 4-offset search = a 4-step -90° CCW rotation cycle
+(rotating-cube-eye doc), (2) the 35-bit = 5×7 AMOS-checksum matrix as
+the parent-grid structure itself, (3) this glyph-rendering encoding +
+RECALC-on-failure as truth-as-construction rather than truth-as-filter.
+Good entry point for a fresh, dedicated derivation pass rather than
+further live speculation.
+
 See `data/md/design/ZENKA-IDENTITY-AND-TRUST-TOPOLOGY.md` and
 `data/ai-mem/claude/topic-latency-algorithmic-authority-entropy-toll.md`
 (ai memory) for the wider identity/topology thread this connects to —
@@ -169,8 +205,8 @@ $ARG not $_ in loops
 lowercase comments, [ word ] bracket annotations
 no use statements or pragmas in zenka modules
 
-#,,,.,...,.,,,,..,,,,,,..,,,.,.,,,,,.,.,.,,..,..,,...,..,,.,,,,,.,,,,,...,..,,
-#UEQWXDK2DFZTD6AFAERECFVN224UBQ27U3XE2ARDUVL3GQ2PLJ3YVVAZ2FJS5CBQBQCATHEFDKLXC
-#\\\|24XU4DWIFDVSJSO7QQMTWKK75RS4Y6SSP55I4RSHEX7IMAKLXVK \ / AMOS7 \ YOURUM ::
-#\[7]XJCGYLZM7PZDOC7OTVUWX6RQWG6A3CWFMBKHU5XLU7HCC6O7WKCY 7  DATA SIGNATURE ::
+#,,.,,,,.,...,...,.,.,,..,,..,,.,,,..,.,,,,,,,..,,...,...,.,,,,..,,,.,...,,,,,
+#IWPJIUCCSS7Z5EIHWXMGRZAZA6YDRE3TRADQEQFTGPWLQUUB4N652OYKXRTJ3IIFVELLB6RULRMAY
+#\\\|MRIGSVFOO5TY7A3UFIM5HZB7WW6TNMCONLZHSENG2KQEUCU75MV \ / AMOS7 \ YOURUM ::
+#\[7]VLMNJM36XMIKMGS6KRXPZ37GTY2DJOF6LL6WV3LC6FQ66GJRMSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
