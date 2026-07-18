@@ -538,40 +538,48 @@ if ( not $already_initialized ) {
         }
     );
 
-    ## subscribe to X-11 GPU stats stream if available ##
-    <[base.zenki.resolve_primary_sid]>->(
-        'X-11',
-        sub {
-            my $sid = shift;
-            return if not defined $sid;
-            <[protocol-7.route-send]>->(
-                {   'command'   => "$sid.gpu_load",
-                    'call_args' => { 'args' => 'subscribe' },
-                    'reply'     => {
-                        'handler' => 'coding.handler.gpu_stats_update',
-                        'params'  => {}
+    ## subscribe to X-11 GPU stats stream if available -- deferred via
+    ## <system.callbacks.initialized>: resolve_primary_sid's own internal
+    ## route-send (for non-v7 zenki) fires before this zenka's own cube
+    ## session exists when called directly from init_code, and unlike the
+    ## orbital subscribers this resolver has no retry-on-failure of its
+    ## own, so a race here means never getting GPU stats at all, not just
+    ## a delayed retry ##
+    push <system.callbacks.initialized>->@*, sub {
+        <[base.zenki.resolve_primary_sid]>->(
+            'X-11',
+            sub {
+                my $sid = shift;
+                return if not defined $sid;
+                <[protocol-7.route-send]>->(
+                    {   'command'   => "$sid.gpu_load",
+                        'call_args' => { 'args' => 'subscribe' },
+                        'reply'     => {
+                            'handler' => 'coding.handler.gpu_stats_update',
+                            'params'  => {}
+                        }
                     }
-                }
-            );
+                );
 
-            ## parallel feed : gpu temperature ##
-            <[protocol-7.route-send]>->(
-                {   'command'   => "$sid.gpu_metric",
-                    'call_args' => { 'args' => 'temp subscribe' },
-                    'reply'     => {
-                        'handler' => 'coding.handler.gpu_temp_update',
-                        'params'  => {}
+                ## parallel feed : gpu temperature ##
+                <[protocol-7.route-send]>->(
+                    {   'command'   => "$sid.gpu_metric",
+                        'call_args' => { 'args' => 'temp subscribe' },
+                        'reply'     => {
+                            'handler' => 'coding.handler.gpu_temp_update',
+                            'params'  => {}
+                        }
                     }
-                }
-            );
-        }
-    );
+                );
+            }
+        );
+    };
 }
 
 return 0;
 
-#,,,.,,.,,,,.,,,.,,.,,...,,,,,..,,,,,,...,..,,.,.,...,...,...,.,,,,,,,.,,,,,.,
-#VUQUAMRDAWKQ4WRH54DNU7N7XFMA5F6QSLPW63UXRXHWOFHMCQRJOYKRGOCIAWSQQGVBGH2DNOV6C
-#\\\|HK62KMMGFYOK5F55R5JIMTDSBPWC2RPDDVNW7DTQWM5T3K5FKYU \ / AMOS7 \ YOURUM ::
-#\[7]X5CV674BRXYK4PDMR4LY6ZFOFVSB6VCJQA3TP5SKIJ35D2MZNABQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,.,,,,.,,,.,,..,.,.,..,,,,,,.,.,.,.,...,..,,.,,,..,,,.,,,..,..,,
+#VDC7GXU6ASUKCW6K2A3FSB2DVXW5MD4VEDWD3CX3AUQTO4NHPNKTM2LXKZGMO4U4L6ZY6QZLAAAO4
+#\\\|7BSXD3YC7GLLTNADDPJQP3J33263QC7ZACDGQPV5UQRA4LBHECB \ / AMOS7 \ YOURUM ::
+#\[7]ILL74K4ZOKDEYP7LC6T3ZFNUFXRP76HUVQVLVFVI32FPRMUTIMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
