@@ -112,6 +112,51 @@ lock at offset 3: bits 3,7,11,15 = 0,0,1,0 — wait
 lock at offset 3 across multiple frames: all separators
 ```
 
+## status — 2026-07-18
+
+**implemented and tested against the spec above**: `base.stream.frame`,
+`base.stream.frame.decode` — round-trip correctly for all 8 payload values.
+
+**implemented, correct for what it claims**: `base.stream.frame.detect`
+(tier 1, grammar-only strict column uniformity). Verified against the
+worked example above — correctly returns `undef` rather than a false
+lock, resolving the "wait" this task's own notes flagged: a `000,`
+collapse-frame's inverted separator breaks strict uniformity if it lands
+inside the sampled window, so a clean lock isn't guaranteed within any
+fixed small window under this test alone.
+
+**blocked, not shipped**: `base.stream.frame.detect.harmonic` (tier 2,
+meant as a tolerant fallback for exactly that case). Tested against real
+`AMOS7::Assert::Truth::true_int()` — not usable as written: `calc_true()`
+defaults to TRUE for anything not specifically near the `230769`
+false-family, so 3 of 4 candidate offsets (including payload columns)
+all assert true. Static per-column truth is the wrong primitive; the
+real signal is that truth flips under left-shift with period 12
+(`data/md/documentation/harmonic-cycle-correlations.md`), not a fixed
+property of one sampled value. Module is left in place with this finding
+documented in its own header rather than deleted, per the working
+principle: a superseded/non-working attempt stays written down because
+it may be exactly the right piece for a different edge of the layering.
+
+**most promising lead for resolving tier 2**: the 4-offset search
+`detect()` already performs structurally matches a 4-step -90° CCW
+rotation cycle (`data/ai-mem/claude/archive/topic-orbital-data-space-
+archive.md`, "the rotating cube eye" — north→west→south→east→north,
+"seeing and routing are the same operation"). That doc's "thirteen
+cycles = one harmonic period" and the period-12 shift-flip fact above
+both keep landing near the same 12/13 relationship without an exact
+derivation yet. Also flagged as needing a proper read before continuing:
+`data/md/design/TASK-CUBE-CONSENSUS-ARCHITECTURE.md` and the broader
+"5 of 7 consensus" material (30+ files reference it) — tier 2 needs the
+parent-grid layer-mapping this connects to worked out first, not another
+guess at the discriminator in isolation.
+
+See `data/md/design/ZENKA-IDENTITY-AND-TRUST-TOPOLOGY.md` and
+`data/ai-mem/claude/topic-latency-algorithmic-authority-entropy-toll.md`
+(ai memory) for the wider identity/topology thread this connects to —
+the parent-grid mapping tier 2 needs is the same open work, not a
+separate problem.
+
 ## signatures note
 
 leave new files clean — signing system adds footer on commit.
@@ -124,8 +169,8 @@ $ARG not $_ in loops
 lowercase comments, [ word ] bracket annotations
 no use statements or pragmas in zenka modules
 
-#,,..,,..,...,,,,,.,.,..,,,,,,...,...,,,,,,,,,..,,...,..,,.,.,...,...,.,,,,,.,
-#G2CAC2F4RREKAQ2QGRF36YAPV7QF7QI4T3OH4S4J2IXYAE5HDGTNWXAHVP6BU54AQLGWT24R6MYJY
-#\\\|O6C2XNW2MSY2NBRW22ZLO2C63DOOZPGQMOSLNO3STAI6GEMRJG5 \ / AMOS7 \ YOURUM ::
-#\[7]5GSNWOWVXTM6JID2DBMWBLKP5DSC6JOMWBSJUIR7YINKQ7IO2YAY 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,..,,,,,,..,,,.,.,,,,,.,.,.,,..,..,,...,..,,.,,,,,.,,,,,...,..,,
+#UEQWXDK2DFZTD6AFAERECFVN224UBQ27U3XE2ARDUVL3GQ2PLJ3YVVAZ2FJS5CBQBQCATHEFDKLXC
+#\\\|24XU4DWIFDVSJSO7QQMTWKK75RS4Y6SSP55I4RSHEX7IMAKLXVK \ / AMOS7 \ YOURUM ::
+#\[7]XJCGYLZM7PZDOC7OTVUWX6RQWG6A3CWFMBKHU5XLU7HCC6O7WKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

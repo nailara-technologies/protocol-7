@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = base.stream.frame.decode
+# descr = decode a 4-bit frame to its payload, handling separator inversion
+# param = <frame> [ 4-bit value : 3-bit payload + 1-bit separator ]
+# return = payload [ 0-7 ] on a valid frame, undef otherwise
+
+my $frame = shift;
+
+my $payload = $frame >> 1;
+my $sep     = $frame & 1;
+
+## inversion rule : 000 payload only ever pairs with an inverted [1]   ##
+## separator ; any other pairing is not a frame this protocol emits   ##
+return undef
+    if ( $payload == 0 and $sep != 1 )
+    or ( $payload != 0 and $sep != 0 );
+
+return $payload;
+
+#,,..,,,.,,.,,,,,,,.,,...,,,.,..,,..,,..,,,,.,..,,...,...,,..,.,,,,,,,..,,,,,,
+#XH6WRBLKFWVCBYXX36BDK5QZQUKMRZEGRHJVNFXTPBBS6VZJWD22F5J4OGUENBYRWFPWSJK642EJ4
+#\\\|Y6YXHXLBFJP7BG4QFNLRWXZDT3YPOKRQTV4IYYQCSEDCMMT6XV6 \ / AMOS7 \ YOURUM ::
+#\[7]B7USOWIZAUBIPOOSZHQ6NW3ZD6AZI5YCS5RVWWYILRNPDZQRZUDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
