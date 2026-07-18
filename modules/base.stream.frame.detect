@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = base.stream.frame.detect
+# descr = sliding window frame lock : find the separator column offset
+# param = <bits> [ arrayref of 0/1 bits ]
+# return = offset [ 0-3 ] on lock, undef if insufficient data or no uniform column
+
+my $bits = shift // [];
+
+return undef if scalar( $bits->@* ) < 5;
+
+OFFSET:
+for my $offset ( 0 .. 3 ) {
+    my @col;
+    for ( my $i = $offset; $i < scalar $bits->@*; $i += 4 ) {
+        push @col, $bits->[$i];
+    }
+
+    next OFFSET
+        if scalar(@col) < 2;    ## need two separator samples to be safe ##
+
+    for my $bit (@col) {
+        next OFFSET
+            if $bit != $col[0];   ## column varies : payload, not separator ##
+    }
+
+    return $offset;  ## uniform every 4th position : separator column found ##
+}
+
+return undef;
+
+#,,..,...,..,,..,,,,,,...,,,,,,,.,.,.,.,.,,.,,..,,...,..,,,,,,...,.,,,..,,.,.,
+#QEH3PEVQ6IVOOZSZICHBZXMTDRFTNO3V7KGBB4E7XHRWBTVPWQYPFSKO6XERWTAJ5VXNYJH6GOJ3O
+#\\\|KNBMR2N6EOOENQEHM363GUQ74OLTRRQA4B6733LEITONT3DC2RL \ / AMOS7 \ YOURUM ::
+#\[7]KG7PID6IFM2NISFQ275O25W5BQLHVAWLFLKS2IUDDJRQGX3CI4BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
