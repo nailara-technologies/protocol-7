@@ -156,6 +156,17 @@ mechanism — they were real, grounded observations, just not the answer to
   worked proof of *why* the grammar approach is the only one that could
   work, not just an alternative to it).
 
+**Third independent convergence**: a delayed Kimi K3 pass (same prompt,
+cold-started, never saw the Opus/Fable work) landed on the same
+grammar/inversion-consistency algorithm independently. K3 also supplied
+the exact algebraic reason behind the "bit-shift left flips truth,
+period 12" fact noted earlier: the FALSE set `{1,3,4,9,10,12}` mod 13
+is precisely the quadratic residues mod 13, and 2 (the shift base) is a
+primitive root mod 13 — so `<<1` flips truth with period 12, while
+`<<4` (`2^4 ≡ 3 mod 13`, itself a QR of order 3) preserves it. Verified
+correct; grounds an empirical observation in actual number theory
+rather than leaving it as a pattern.
+
 **Leads that turned out not to be the mechanism, but weren't wrong either**:
 the rotation-cycle and 35-bit-matrix leads below are real, grounded
 observations — just not applicable at this specific layer. Both derivation
@@ -268,8 +279,8 @@ $ARG not $_ in loops
 lowercase comments, [ word ] bracket annotations
 no use statements or pragmas in zenka modules
 
-#,,..,...,.,,,.,.,...,,,.,,,,,.,.,.,.,,..,.,.,..,,...,...,,,,,,..,,.,,,.,,.,,,
-#V533W63YOORUTCRQPT7PXORABOAYU3MBBZ7AZ62YL2BZSJ3KHGO5CJYDUI7KWIIQNMPF64SIMWZXC
-#\\\|66XDI5QP7PXEIRHYQ4Q6BWSJFOYKWRE4NMGFIV2BDWHLA3N7JPC \ / AMOS7 \ YOURUM ::
-#\[7]6Y37DRNKFI6K5EA6RQ3JW6P7MIUURK3QCRSIJGXNT2DICZA2ZOAY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,.,.,..,,,..,.,.,,..,,,,,,..,,,,,..,,...,...,..,,..,,.,.,.,.,,,,,
+#32OSBR2532M3GMIMQ2UB2YPIPVQAB3T6L7BBINXTKECMTUVFMOZ2EVWX4GCOM6CD53VWHWNVWIVHY
+#\\\|FAPISEUXUE3VRGEFNVYP7FEXINFCIUINGLKEQYJ5KZRLMAZYMOR \ / AMOS7 \ YOURUM ::
+#\[7]TQIBGYR2PFGGAPQ323NUHZQHGFEEYFLNLKSULUINFFJJJDCBBADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
