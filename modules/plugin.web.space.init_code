@@ -23,19 +23,15 @@ for my $suffix (qw| state fetch index grid |) {
     $code{$alias} = $code{$full} if exists $code{$full};
 }
 
-## initialize orbital data endpoint ##
-<[plugin.web.space.orbital.init_code]>;
-
-## initialize template resolver ##
-<[plugin.web.space.template-resolver.init_code]>;
-
-## initialize attention state machine ##
-<[plugin.web.attention.init_code]>;
+## orbital data endpoint, template resolver, and attention state machine
+## each have their own .init_code, already run automatically by the
+## zenka's unscoped [init_modules] sweep -- explicit calls here duplicated
+## that, running each one twice on every startup ##
 
 0;
 
-#,,.,,,,,,.,,,,,.,.,.,...,,..,...,,..,.,,,...,..,,...,...,,..,.,,,.,,,.,.,,,,,
-#7E26Z24M7AQZM5YHHWN66P2IQI4YQTNZYBHAMCHPAQID45CHVCQYJF7QP6ZFCAVYYS7H37KOE6VNK
-#\\\|CSRL2QR6F4S42T3ZF4VDK3TCZ2SWLLL6Y3AXYOQRJMDYHHZLUYQ \ / AMOS7 \ YOURUM ::
-#\[7]D3UDDALSLUJHWHXZLOAGDOED6L2HYZPZAGBTRRSQJO2RHPA2Q2BQ 7  DATA SIGNATURE ::
+#,,,,,.,.,...,.,.,,..,,,.,,,,,..,,,,,,,.,,...,..,,...,...,..,,...,,..,,..,..,,
+#HQCXLHKZ4EEHOGE2HOXUGXGTTJNSB7APCJ3BUJRUBIOTFDVVRPPCLUTPBYUEOCMSVRHK5O3LCSLY6
+#\\\|I5FRGRWTJMYYUV5AR47P5IBZVR5VNBIL2ZOEJJ63ZNV2ANOODQA \ / AMOS7 \ YOURUM ::
+#\[7]T3LR4R27JENJJGCUYILFLUI7OBCGQGGRNUI66AP6GL6MA3GFMMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
