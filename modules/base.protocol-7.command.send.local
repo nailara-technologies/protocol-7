@@ -8,7 +8,7 @@ $ARG[0]->{'reply'}   //= {};
 $call_args->{'args'} //= '';
 
 my $caller_level    ## adjust for relevant caller subroutine [route-send case]
-    = [ <[base.caller]>->(1) ]->[0] eq qw| base.protocol-7.route-send |
+    = [ <[base.caller]>->(0) ]->[0] eq qw| base.protocol-7.route-send |
     ? 2
     : 1;
 
@@ -20,7 +20,12 @@ return warn 'command string contained endlines <{C' . $caller_level . '}>'
 ## no clients in session ##
 if ( 0 == scalar keys $data{'session'}->%* ) {    ##  empty session : -1  ##
     <[base.logs]>->(
-        0, 'send.local: no clients in session, dropping command : %s', $cmd
+        0, "send.local: no clients in session, dropping '%s'", $cmd
+    );
+    <[base.logs]>->(
+        0,
+        ":         : %s",
+        scalar <[base.caller]>->( $caller_level - 1 )
     );
     return -1;
 }
@@ -168,8 +173,8 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
     return -2;
 }
 
-#,,,.,,,.,,,.,.,,,,,,,.,,,.,,,,.,,,,.,,,.,.,.,..,,...,...,...,,,.,,,,,,,.,..,,
-#QKX6AEEAZA2G75QD6SDK2E6ECBOJ76PY3WQSCQIH42DMOFYF73TO5QBAEDI2RFOKDA3WIFKWDXHYU
-#\\\|N35A7PIWQM627TSBQHI33SPFDCK2Z663SHVGJR2WM446AGJF2BJ \ / AMOS7 \ YOURUM ::
-#\[7]44X5XX24XXD2WW55X5MORGVQKZXXGZJW6VATFEKRSGGHMDUUWOBA 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,.,,,,.,.,.,,,,,,,.,..,,,,.,.,.,..,,...,.,.,...,...,..,,..,,,..,
+#J744W3GTM7D5ZK6Z5B2JFBSZ3I4A7UKFJ3I5CZCNAIYM3GLEHGTYZW67BZB6CXD5VZQU7O2VICP6Q
+#\\\|G3KPYJE4LB7V4665X2ABXNF4K24WWZ4SDHDI7DI527CT4ODWIT3 \ / AMOS7 \ YOURUM ::
+#\[7]4VGS2O37U7XON46SKMCOBJGMQEOAIOTDG4DJ6M7564OE5CGTDKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
