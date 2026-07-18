@@ -13,6 +13,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [coding-zenka buffer rescue](topic-coding-zenka-session9.md) — idle-shutdown backups readable via group-perm `xz -dc`, no sudo
 - [nested-dispatch-session-tracking](feedback-nested-dispatch-session-tracking.md), [webkit vs firefox css blindspots](feedback-webkit-vs-firefox-css-blindspots.md)
 - [no sudo for privileged fs ops](feedback-no-sudo-privileged-fs-ops.md) — never `sudo` a protocol-7-owned file; hand command to user
+- [small-generic-components-before-wiring](feedback-small-generic-components-before-wiring.md) — for multi-feature-converging fixes, decompose into a few independently-complete generic pieces before any code; pick a low-stakes pilot
 - [perl and/or precedence in my-assignment](feedback-perl-and-or-precedence-in-my-assignment.md) — `my $x = A and B` only assigns A; use && / ||
 - [p7 route-send wire protocol](feedback-p7-route-send-wire-protocol.md), [oversize single-line protocol](feedback-oversize-single-line-protocol.md)
 - [no unsolicited cross-zenka push](feedback-no-unsolicited-cross-zenka-push.md), [vax-int vs v7-epoch](feedback-vax-int-vs-v7-epoch.md)
@@ -34,8 +35,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [cmd-module-call-convention](feedback-cmd-module-call-convention.md) — .cmd. network modules use $call, not $ARG
 - [design-ideation-capture](feedback-design-ideation-capture.md), [coding-timeout-restart-loop](feedback-coding-timeout-restart-loop.md) — offer spin-off docs
 
-#,,.,,,.,,.,.,,.,,...,.,.,,.,,,,,,...,,.,,.,.,..,,...,...,.,,,,.,,...,,.,,.,.,
-#WGUP5IXPJE7OLBQ5B5EIU7C3RMP3MHYM6V2G2VLGXB7EJUWHLOLSXDNIZDRHESIVQMGSTNSSRG2LU
-#\\\|65U44SGCPUFP32XKKDPDHSGLGJWTOSVXOABYJWK3ZES2Z7SH6XC \ / AMOS7 \ YOURUM ::
-#\[7]EL3FOTEKBF6B5776YQCLJ5UIUBP7XWZ4ZICG4A3DWY3DHVUQNMDQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,...,,,,,..,,,,.,.,.,...,,.,,,..,..,,...,..,,.,.,..,,,..,,..,,.,,
+#PLZM74CHP3VMXYHIQMRK7P7XZXU6UGMJRTQLVWBY7Z6MFRELDNWEWYI3H5Q2PZCZRJVKW6LKHLW3Q
+#\\\|VGBA2JGNYENEO4N2YGKBQR7SIJRGWWL5MPEJHCBNP2HIOGJHN5I \ / AMOS7 \ YOURUM ::
+#\[7]PPAG6L5U5GNL3PMIWIT446NK4X3TAG4VJGIUMO7U3KLGFMWQCACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
