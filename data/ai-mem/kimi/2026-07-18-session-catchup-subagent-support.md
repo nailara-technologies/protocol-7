@@ -14,14 +14,29 @@ as the main context, so the existing extractor parses both unchanged.
   subagent context; transcripts persist on disk after agents close).
 - Tool param `subagent_id`: case-insensitive substring filter over agent
   id/type/model/description (all matches included); implies subagents=2.
+- Tool param `scratchpad` [ claude ]: append the session's /tmp scratchpad
+  file contents [ test scripts/artifacts, volatile ] to the summary text.
+  Size-capped [ 24KB/file, 120KB total ], binaries listed by name+size only.
+  The volatile source path is injected in-band so summaries keep it.
+- New tool `scratchpad_import`: imports a claude session scratchpad into
+  `data/scratchpad/<bmw-L13>/` where the id is the checksum of the session
+  tmp path WITH trailing slash [ same as `bin/bmw-L13 /tmp/claude-*/<uuid>/`
+  — convention verified against user examples ]. Writes IMPORT-INFO with
+  original_path/session_tmp/uuid/bmw/timestamp/count, preserves mtimes.
+  `file=<name>` reads one scratchpad file raw [ 100KB cap ] instead.
+  No session_id = list mode [ `list=all|imported|tmp` ]: merges repo and
+  /tmp state keyed by bmw id, status column `repo` | `/tmp` | `repo+/tmp`
+  [ re-import candidate ], file counts per side when both exist
+  [ helper `_scratchpad_list`, computes would-be ids via _bmw_l13 of the
+  session tmp path so /tmp entries line up with their future repo dirs ].
+- List mode annotates sessions: `[+N sub]` [ both clients ], `[+N scr]`
+  [ claude scratchpad files ].
 - `_list_subagent_transcripts($s)`: unified per-client listing, hashrefs
   {id,type,descr,model,file,mtime}, sorted by mtime (kimi uses meta
-  created_at). Also used for the list-mode marker.
-- `_extract_subagent_text($s, $filter)`: per-transcript header
-  `.:[ subagent N .[ type ]:. description [ model ] ]:.` + extracted body.
-- List mode annotates sessions of both clients with `[+N sub]`.
-- Result header notes e.g. `[subagents only: 1 transcript matching 'fable']`;
-  clean isError when nothing matches.
+  created_at). `_extract_subagent_text($s, $filter)`,
+  `_claude_scratchpad_dir($uuid)`, `_extract_claude_scratchpad_text($uuid)`.
+- Result header notes e.g. `[subagents only: 1 transcript matching 'fable']`,
+  `[includes scratchpad: 5 files]`; clean isError when nothing matches.
 
 ### Verification (E2E over real MCP stdio + live coding zenka)
 
@@ -31,7 +46,21 @@ as the main context, so the existing extractor parses both unchanged.
 - claude subagent_id='fable': selected exactly 1 of 6 transcripts, accurate
   summary of the fable derivation (impossibility proof, decoder-as-witness,
   2000 trials / 0 false locks).
+- scratchpad=1 + subagent_id='fable': scratchpad harness code summarized
+  [ exhaustive L=2-6 + mid-frame shift tests ].
+- scratchpad_import: id ADCZI54SBIRB4→CXTUKDMIFGBEI after switching the key
+  to session-tmp-path; raw file read; empty/missing/file-not-found errors
+  all clean. server `_bmw_l13` output verified identical to bin/bmw-L13.
 - filter no-match and no-subagents sessions -> clean isError, no inference.
+
+### /tmp/claude-1000 layout [ claude code session tmp dirs ]
+
+`/tmp/claude-<uid>/<proj>/<uuid>/scratchpad/` — session work files [ regular
+files, VOLATILE: gone on reboot ]. `tasks/<agent-id>.output` — symlinks to
+the persistent subagent transcripts in ~/.claude [ already covered by the
+subagents support; non-symlink .output files are background shell outputs,
+duplicated in ~/.claude tool-results/ ]. First scratchpad import of session
+5d437747 [ fable/opus frame-lock harnesses ]: data/scratchpad/CXTUKDMIFGBEI/.
 
 ### Notes
 
@@ -45,8 +74,8 @@ as the main context, so the existing extractor parses both unchanged.
   `data/md/recovered-subagents/` (copied there by the parallel claude session;
   originally extracted to data/recovered-subagents/ by kimi).
 
-#,,,.,,,.,..,,...,.,.,,.,,,,.,.,,,..,,.,,,.,,,..,,...,...,.,,,..,,,,.,,..,,..,
-#WDSZEX2X45HJNS7RUPOPML5IQQRBL6ARIQ4ID43FEVWHKK676PRZN4KYWWD5NXLT26R74LIWYVFKI
-#\\\|JF47G3XOYRFLTNFKB7QZIJHAPSZKPUBUTBFKHRL3JMRUZJZTG4Q \ / AMOS7 \ YOURUM ::
-#\[7]HEHZ2UNJW5ML6SP5CP5RRBITYH5K3Q6ZUS3EUPBM6K67MAVGCUCA 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,..,,.,,...,,,,,..,,...,..,,,,,,..,,...,...,...,,.,,.,,,..,,...,
+#JLJ4JQKW5L2YFYYZEKOLFG3DK3S26V3ZP4LENDNEQIL3QY5LY54S2JEU47TAYESPOHXOZC52EGRO2
+#\\\|Z4Z6ID6VPY3X72B352C7S4RAZ5MXDIDZVIIB22URINQ4Y27E5MG \ / AMOS7 \ YOURUM ::
+#\[7]CZZ45I5G57XBDANY256RPQZE6HINKE4XCVS2PTZ4WDPJKSTFJMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
