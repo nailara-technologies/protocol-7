@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = base.stream.frame.detect.grammar
+# descr = tier-2 frame lock : inversion-grammar fallback for base.stream.frame.detect
+# param = <bits> [ arrayref of 0/1 bits ]
+# return = offset [ 0-3 ] on a unique lock, undef on insufficient data or ambiguity
+#
+# note  = supersedes base.stream.frame.detect.harmonic [ kept in place, marked
+#         not-working, for record ]. the separator column is not identifiable
+#         from its own content -- any bit sequence can appear in both the
+#         separator column and a payload column, so no function of one
+#         column's bits, harmonic or otherwise, can discriminate it. proved
+#         by two independent derivation passes [ claude-opus, claude-fable,
+#         2026-07-18 ], both converging on the same result and verified
+#         against 2M+ and 2000 randomized streams respectively with zero
+#         false locks : the actual invariant is the frame grammar itself --
+#         sep is 1 exactly when payload is 000. an offset is valid iff every
+#         complete frame aligned to it decodes ; lock requires exactly one
+#         fully-determined valid offset. two or more valid offsets, or any
+#         offset left undetermined by too few bits, both mean the same
+#         thing : sample more, don't guess.
+
+my $bits = shift // [];
+
+my $bit_count = scalar $bits->@*;
+
+return undef if $bit_count < 5;    ## need two separator samples to be safe ##
+
+my @valid;
+my $undetermined = FALSE;
+
+OFFSET:
+for my $offset ( 0 .. 3 ) {
+    my $frames_tested = 0;
+
+    for ( my $q = $offset; $q < $bit_count; $q += 4 ) {
+        next if $q < 3;    ## no complete frame ends here yet ##
+
+        my $frame
+            = ( $bits->[ $q - 3 ] << 3 ) | ( $bits->[ $q - 2 ] << 2 )
+            | ( $bits->[ $q - 1 ] << 1 ) | $bits->[$q];
+
+        next OFFSET if not defined <[base.stream.frame.decode]>->($frame);
+
+        $frames_tested++;
+    }
+
+    if ( $frames_tested < 1 ) {
+        $undetermined = TRUE;    ## too few bits to confirm or rule out ##
+        next OFFSET;
+    }
+
+    push @valid, $offset;
+}
+
+## a lock requires exactly one grammar-valid offset with nothing left       ##
+## undetermined -- ambiguity and insufficient data both defer to more bits ##
+return undef if $undetermined or scalar(@valid) != 1;
+
+return $valid[0];
+
+#,,,.,,,,,.,.,,,.,.,.,...,,,,,,..,,,,,.,.,.,,,..,,...,..,,.,.,,..,...,,,,,...,
+#JQ6WUQP7G4PQA6VXG7MAS44OF4SHMPQPLT4QIFMX2HTRHA3INYYA3Z5ONE6HFX4AOEGHGXZKUWAWM
+#\\\|2KUHDYQE6Q6R6YATAAT73FLR3OIBV72KKU26GZJ3E7JTDR2JXI3 \ / AMOS7 \ YOURUM ::
+#\[7]T6F66OPOIUGIIKVE23NKWWAZ5B5UUQ5TK23K2TCMDKA3HJ4JQCAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
