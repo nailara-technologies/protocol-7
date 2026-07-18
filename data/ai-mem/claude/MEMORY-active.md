@@ -5,6 +5,8 @@ coding & kimi zenka state machines, jobsite, streaming transport, web-browser ca
 reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active Topics
+- [startup-race-send-before-connect](feedback-startup-race-send-before-connect.md) — LANDED 55abd6848+d6fdc1dc1; recurring bug class, 3 fix shapes, diagnostic technique
+- [strm-subscription-evolution](topic-strm-subscription-evolution.md) — vision: reflection-vector → variable-target/fixed-suffix → STRM → future route-less pubkey channels
 - [p7-log-wire-utf8-double-encoding](topic-p7-log-wire-utf8-double-encoding.md) — LANDED 2973129e6; devmod.cmd.echo = wire test tool
 - [x11-protocol-hardening](topic-x11-protocol-hardening.md) — LANDED+verified 3b966708d+e0f4fddd7
 - [x11-resolution-profiles](topic-x11-resolution-profiles.md) — OPEN: per-purpose xvfb profiles; reconcile w/ routing-ambiguity first
@@ -38,8 +40,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [input-capture-replay-website-templates](project-input-capture-replay-website-templates.md) — LANDED, kimi K3
 - [web-browser-value-replay-waypoints](project-web-browser-value-replay-waypoints.md) — LANDED, kimi K3; multi-window fan-out + access.zenki fix
 
-#,,,,,,,.,,,,,,,,,,,,,,.,,,,,,...,,,,,.,,,,,,,..,,...,...,...,,..,,,.,,..,,..,
-#7IEPOGPDTXSDW3FIHOUZHVD7237X665F4RWXBFXMLXQQV3EUZXQ5ZDMQX7FCY5LSXZLAAVLWFTGMI
-#\\\|V5MQDAI35GD3ZMRIPP3FOGW2OMRWDWNOPITPU7IPNZFCL24UMQN \ / AMOS7 \ YOURUM ::
-#\[7]VRON4IN6ZWRQ3VYCSR3ZU6C75QJDD2LQRC6X2P7YTD65GD5T54CA 7  DATA SIGNATURE ::
+#,,.,,,,.,...,...,...,...,.,.,.,,,...,,,,,,,,,..,,...,...,,,.,,,,,.,.,..,,,,.,
+#E6O4GJPN7Q2O3MCVF67T4UUA2IKOWULQFK5OBB4QM7O75LFLAFBVOQ6QRS6SZVQ6MJ3LGDL5MIC6A
+#\\\|2F6R5CC243NFD52AJJ37PQR7CYAI5PQHJC4SHDMK33MBZAC2VHK \ / AMOS7 \ YOURUM ::
+#\[7]ISGIMY5C7JLXUS24KZOMCNUIW5EI375COYVS5O3MDBO6IZWDHKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
