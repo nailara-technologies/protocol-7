@@ -112,6 +112,59 @@ lock at offset 3: bits 3,7,11,15 = 0,0,1,0 — wait
 lock at offset 3 across multiple frames: all separators
 ```
 
+## RESOLVED — 2026-07-18 (later same day)
+
+**`base.stream.frame.detect.grammar` ships as tier 2.** Two independent
+derivation passes (claude-opus, claude-fable — separate dispatches, neither
+saw the other's work) converged on the same algorithm and the same proof.
+Neither of the harmonic/rotation/matrix leads below turned out to be the
+mechanism — they were real, grounded observations, just not the answer to
+*this* layer's problem. The actual result:
+
+- **Impossibility proof**: no function of a single candidate column's bits
+  — harmonic, checksum, or otherwise — can ever discriminate the separator
+  column from a payload column, because both can contain identical bit
+  sequences (constructive counterexample: two different streams produce
+  the same 4-bit column content in different roles). This is *why* the
+  `true_int()` attempt below was never going to work, regardless of which
+  harmonic primitive was tried — confirmed by testing the correct, full
+  `is_true()` (mode 4 + 7) as a tie-breaker too: still worse than chance.
+- **The actual discriminator is the frame grammar itself**: `sep == 1 iff
+  payload == 000`. An offset is valid iff every complete frame aligned to
+  it decodes under the already-shipped `base.stream.frame.decode`. Lock
+  requires exactly one fully-determined, valid offset — ambiguity or
+  insufficient data both defer to "sample more," never a guess.
+- Verified independently by both passes (2M+ and 2000 randomized streams,
+  zero false locks in either) and re-verified a third time directly in
+  this session against the worked example, phase-shifted variants,
+  multi-collapse-frame streams, and degenerate periodic streams — all
+  matching expectations exactly.
+- **Where truth validation actually belongs, explained cleanly**: it's
+  well-posed only once a *larger constructed value* exists to assert truth
+  over (the `create_harmonic_footer`/RECALC regime) — at 2-4 bits there's
+  no entropy for the division-by-13 cycle to express anything over, and
+  `true_int(n)` was shown to reduce exactly to `TABLE[n mod 13]` (13
+  residues, no exceptions across three full periods) — a `0001` collapse
+  frame (the most important valid frame) even comes back FALSE while the
+  impossible `0000` frame comes back TRUE, confirming truth-over-4-bits is
+  actively unrelated to frame validity, not just uncorrelated.
+- `base.stream.frame.detect.harmonic` is left exactly as it was — wrong,
+  and honestly documented as wrong in its own header — rather than deleted
+  or overwritten, per the standing principle this session settled on: a
+  superseded attempt stays written down because it may be the right piece
+  for a different edge of the layering (and here, concretely, it's the
+  worked proof of *why* the grammar approach is the only one that could
+  work, not just an alternative to it).
+
+**Leads that turned out not to be the mechanism, but weren't wrong either**:
+the rotation-cycle and 35-bit-matrix leads below are real, grounded
+observations — just not applicable at this specific layer. Both derivation
+passes suggested they likely belong one layer up, at packet-raising, which
+remains open. The confirmed third state (`mod 13 == 0`, distinct from both
+true and false — see `-vhzd` highlighter note below) and the general
+`AMOS7::Assert::Truth` → `mod 13` reduction are genuine additional findings
+from this session, independent of the frame-lock resolution itself.
+
 ## status — 2026-07-18
 
 **implemented and tested against the spec above**: `base.stream.frame`,
@@ -179,6 +232,16 @@ with phase shift)" — truth validation as the mechanism that *constructs*
 a valid larger value, not a filter that rejects one, the same
 iterate-until-true shape as `source.create_harmonic_footer`.
 
+**third-state lead confirmed real** (2026-07-18, via live `-vhzd` highlighter
+output on `base.gen_id` division-by-13 streams during a bare `[exit]` run):
+exact-zero-remainder (`mod 13 == 0`) renders as its own distinct visual
+case — dim, all-zeros tail — separate from both the true-rotation family
+(bright green) and the false/shifted-multiple family (dim blue). Not
+folded into either. Confirms the "third state beyond true/false" lead
+above is a real, already-visually-distinguished case in existing
+tooling, not speculation — still unresolved whether/how it maps to a
+packet-boundary marker at the framing layer specifically.
+
 **three converging, mutually-reinforcing leads now on record for tier 2**:
 (1) the 4-offset search = a 4-step -90° CCW rotation cycle
 (rotating-cube-eye doc), (2) the 35-bit = 5×7 AMOS-checksum matrix as
@@ -205,8 +268,8 @@ $ARG not $_ in loops
 lowercase comments, [ word ] bracket annotations
 no use statements or pragmas in zenka modules
 
-#,,.,,,,.,...,...,.,.,,..,,..,,.,,,..,.,,,,,,,..,,...,...,.,,,,..,,,.,...,,,,,
-#IWPJIUCCSS7Z5EIHWXMGRZAZA6YDRE3TRADQEQFTGPWLQUUB4N652OYKXRTJ3IIFVELLB6RULRMAY
-#\\\|MRIGSVFOO5TY7A3UFIM5HZB7WW6TNMCONLZHSENG2KQEUCU75MV \ / AMOS7 \ YOURUM ::
-#\[7]VLMNJM36XMIKMGS6KRXPZ37GTY2DJOF6LL6WV3LC6FQ66GJRMSCI 7  DATA SIGNATURE ::
+#,,..,...,.,,,.,.,...,,,.,,,,,.,.,.,.,,..,.,.,..,,...,...,,,,,,..,,.,,,.,,.,,,
+#V533W63YOORUTCRQPT7PXORABOAYU3MBBZ7AZ62YL2BZSJ3KHGO5CJYDUI7KWIIQNMPF64SIMWZXC
+#\\\|66XDI5QP7PXEIRHYQ4Q6BWSJFOYKWRE4NMGFIV2BDWHLA3N7JPC \ / AMOS7 \ YOURUM ::
+#\[7]6Y37DRNKFI6K5EA6RQ3JW6P7MIUURK3QCRSIJGXNT2DICZA2ZOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
