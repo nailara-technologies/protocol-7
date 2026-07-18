@@ -47,7 +47,8 @@ my @pending_reports = delete(<system.init_reports>)->@*;
 foreach my $item (@pending_reports) {
     my $target_command = $item->{'target_command'};
     my $cmd_param      = $item->{'param'};
-    my $reply_handler  = $item->{'handler'} // qw| dev.null |;
+    my $reply_handler  = $item->{'handler'}      // qw| dev.null |;
+    my $reply_params   = $item->{'reply_params'} // $cmd_param;
     my $description    = $item->{'descr'};
 
     my $cmd_prefix;
@@ -77,15 +78,16 @@ foreach my $item (@pending_reports) {
                 ? join( ' ', $cmd_prefix, $cmd_param )
                 : $cmd_param
             },
-            'reply' => { 'handler' => $reply_handler, 'params' => $cmd_param }
+            'reply' =>
+                { 'handler' => $reply_handler, 'params' => $reply_params }
         }
     );
 }
 
 return $report_count;
 
-#,,,,,..,,.,,,,,.,,.,,,,.,,,.,.,,,,.,,..,,...,..,,...,...,.,,,...,,.,,.,,,,.,,
-#EAETISZNTOAT3P2IQEKXHA57QFYKHB4KJ5WR3WT6XZWG7TEXPW4ZC6RO7WR4KVNUWBK4O2LMPODWM
-#\\\|LX6W6QI77ZJDRWF436CIJPQCHDPU7J2SRX6YOWG7USW7RBDIPMB \ / AMOS7 \ YOURUM ::
-#\[7]YNRWMWPCMBDEJ4XQXGICW5BC5AL6DYDQKVSPZCIP3LHNI6J5XCBY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,,,,,,,.,,,,,..,,.,.,..,,,..,,,,,..,,...,...,,,.,,,,,,,.,,..,...,
+#XBOXSFI4TMPR3V3X5733RTGRXRSKTLFRFA4MOZOTCEZGF72KV25FVWBIEO4URAGJXYIL3TDMZMTNC
+#\\\|Z6MXVS4EPKFUJSOXJOZR3F2KJIH4MDR57KGCPIW5Y23SFMBEXDF \ / AMOS7 \ YOURUM ::
+#\[7]3LXKUQZW6XVEXFXCTPLLIP5QW52PGYGHADIJT5ZRP4ZWKGB3F2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
