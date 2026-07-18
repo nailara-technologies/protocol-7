@@ -19,6 +19,7 @@ use FindBin qw| $RealBin |;
 use File::Spec;
 use Cwd        qw| abs_path |;
 use File::Path qw| make_path |;
+use File::Copy qw| copy |;
 
 BEGIN {
     use File::Spec;
@@ -674,6 +675,52 @@ our @tools = (
                         . 'matches included ]. implies subagents=2 when '
                         . 'subagents is not set'
                 },
+                'scratchpad' => {
+                    'type'        => 'integer',
+                    'description' =>
+                        'claude only: append the session scratchpad file '
+                        . 'contents [ /tmp/claude-*/<uuid>/scratchpad/ — '
+                        . 'test scripts and artifacts written by the '
+                        . 'session or its subagents ] to the text : 0 = '
+                        . 'exclude (default), 1 = include [ size-capped, '
+                        . 'text files only, best-effort: /tmp may be '
+                        . 'cleaned ]'
+                },
+            },
+            'additionalProperties' => \0
+        }
+    },
+    {   'name'        => 'scratchpad_import',
+        'description' =>
+            'import a claude session scratchpad [ /tmp/claude-*/<uuid>/'
+            . 'scratchpad/ — volatile, does not survive a reboot ] into '
+            . 'the repository at data/scratchpad/<bmw-L13 of the session '
+            . '/tmp path — trailing slash, same as bin/bmw-L13 on '
+            . '/tmp/claude-*/<uuid>/ >/ , with an IMPORT-INFO file '
+            . 'recording the source. without session_id: list imported '
+            . '[ repo ] and/or available [ /tmp ] scratchpads — see the '
+            . 'list parameter. with file=<name>: read one scratchpad file '
+            . 'raw [ capped ] without importing.',
+        'inputSchema' => {
+            'type'       => 'object',
+            'properties' => {
+                'session_id' => {
+                    'type'        => 'string',
+                    'description' => 'claude session uuid [ or prefix ]'
+                },
+                'file' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'optional: read this scratchpad file raw instead '
+                        . 'of importing [ exact name or suffix ]'
+                },
+                'list' => {
+                    'type'        => 'string',
+                    'description' =>
+                        'scope when session_id is omitted : all [ default'
+                        . ' ] | imported [ data/scratchpad/ only ] | tmp '
+                        . '[ available in /tmp/claude-* for import only ]'
+                },
             },
             'additionalProperties' => \0
         }
@@ -1052,6 +1099,8 @@ sub handle_tools_call {
         tool_coding_summarize( $id, $args );
     } elsif ( $name eq 'session_catchup' ) {
         tool_session_catchup( $id, $args );
+    } elsif ( $name eq 'scratchpad_import' ) {
+        tool_scratchpad_import( $id, $args );
     } elsif ( $name eq 'store_summary_focus' ) {
         tool_store_summary_focus( $id, $args );
     } elsif ( $name eq 'p7_memory_summary' ) {
@@ -2849,6 +2898,7 @@ sub tool_session_catchup {
     my $no_tree     = $args->{'no_tree'}     // 0;
     my $subagents   = $args->{'subagents'}   // 0;
     my $subagent_id = $args->{'subagent_id'} // '';
+    my $scratchpad  = $args->{'scratchpad'}  // 0;
 
     ## an explicit agent filter implies subagents-only mode ##
     $subagents = 2 if length $subagent_id and not $subagents;
@@ -2884,7 +2934,7 @@ sub tool_session_catchup {
                 return send_tool_result(
                     $id,
                     'no session_id given — instruction/tail_chars/'
-                        . 'subagents/subagent_id are '
+                        . 'subagents/subagent_id/scratchpad are '
                         . 'ignored in list mode; pass session_id to '
                         . 'summarize a specific session',
                     1
@@ -2898,6 +2948,12 @@ sub tool_session_catchup {
                 my @subs = _list_subagent_transcripts($entry);
                 $entry->{'title'} .= sprintf ' [+%d sub]', scalar @subs
                     if @subs;
+                if ( $entry->{'client'} eq 'claude' ) {
+                    my $sdir = _claude_scratchpad_dir( $entry->{'uuid'} );
+                    my @scr  = -d $sdir ? grep {-f} glob("$sdir/*") : ();
+                    $entry->{'title'} .= sprintf ' [+%d scr]', scalar @scr
+                        if @scr;
+                }
                 my $ts
                     = POSIX::strftime( '%m-%d %H:%M',
                     localtime( $entry->{'mtime'} ) );
@@ -2957,6 +3013,19 @@ sub tool_session_catchup {
             $sub_note
                 = sprintf "[includes %d subagent transcript%s%s]\n\n",
                 $sub_count, $sub_count == 1 ? '' : 's', $match_note;
+        }
+    }
+
+    ## claude scratchpad artifacts [ /tmp session dir, not persistent ] ##
+    if ( $scratchpad and $s->{'client'} eq 'claude' ) {
+        my ( $scr_text, $scr_count, $scr_skipped )
+            = _extract_claude_scratchpad_text( $s->{'uuid'} );
+        if ( length $scr_text ) {
+            $text .= $scr_text;
+            $sub_note
+                .= sprintf "[includes scratchpad: %d file%s%s]\n\n",
+                $scr_count, $scr_count == 1 ? '' : 's',
+                $scr_skipped ? ", $scr_skipped skipped/capped" : '';
         }
     }
     return send_tool_result( $id, 'failed to read session file', 1 )
@@ -3163,6 +3232,255 @@ sub _extract_subagent_text {
     return ( $text, $count );
 }
 
+sub _claude_scratchpad_dir {
+    my ($uuid) = @ARG;
+    my $proj = _claude_session_dir();
+    $proj =~ s{.*/}{};
+    return sprintf "/tmp/claude-%d/%s/%s/scratchpad",
+        $REAL_USER_ID, $proj, $uuid;
+}
+
+sub _extract_claude_scratchpad_text {
+    my ($uuid) = @ARG;
+    my $dir = _claude_scratchpad_dir($uuid);
+    return ( '', 0, 0 ) unless -d $dir;
+
+    my $file_cap  = 24576;     ## per-file content cap ##
+    my $total_cap = 122880;    ## overall scratchpad text cap ##
+
+    my @files = sort { ( stat($a) )[9] <=> ( stat($b) )[9] }
+        grep {-f} glob("$dir/*");
+    my ( $text, $count, $skipped ) = ( '', 0, 0 );
+    ## record the volatile source path in-band so summaries keep it ##
+    $text = ".:[ scratchpad source :. $dir ]:.\n" if @files;
+    for my $file (@files) {
+        my $name = $file;
+        $name =~ s{.*/}{};
+        my $size = ( stat($file) )[7] // 0;
+        if ( not -T $file ) {    ## binary : list name+size only ##
+            $text .= sprintf "\n.:[ scratchpad .[ %s ]:. binary, %d bytes"
+                . " — content skipped ]:.\n", $name, $size;
+            $skipped++;
+            next;
+        }
+        if ( length($text) >= $total_cap ) {
+            $skipped++;
+            next;
+        }
+        my $content = '';
+        eval {
+            open( my $fh, '<:raw', $file ) or die;
+            my $raw = do { local $/; <$fh> };
+            close $fh;
+            $content = $raw // '';
+        };
+        next unless length $content;
+        if ( length($content) > $file_cap ) {
+            $content = substr( $content, 0, $file_cap )
+                . "\n[.. truncated at $file_cap chars of $size bytes ..]";
+            $skipped++;
+        }
+        utf8::decode($content)
+            if length $content and not utf8::is_utf8($content);
+        $count++;
+        $text .= sprintf "\n.:[ scratchpad .[ %s ]:. ]:.\n%s\n",
+            $name, $content;
+    }
+    return ( $text, $count, $skipped );
+}
+
+sub tool_scratchpad_import {
+    my ( $id, $args ) = @ARG;
+
+    my $session_id = $args->{'session_id'} // '';
+    my $only_file  = $args->{'file'}       // '';
+
+    ## list mode : no session_id — show imported and/or available ##
+    return _scratchpad_list( $id, $args->{'list'} // 'all' )
+        unless length $session_id;
+
+    my $s = _find_session_by_id( $session_id, 'claude' );
+    return send_tool_result( $id, "claude session not found: $session_id", 1 )
+        unless defined $s;
+
+    my $src_dir = _claude_scratchpad_dir( $s->{'uuid'} );
+    return send_tool_result( $id,
+        "no scratchpad dir for $s->{'uuid'} [ $src_dir ]", 1 )
+        unless -d $src_dir;
+
+    my @files = sort { ( stat($a) )[9] <=> ( stat($b) )[9] }
+        grep {-f} glob("$src_dir/*");
+    return send_tool_result( $id,
+        "scratchpad is empty for $s->{'uuid'} [ $src_dir ]", 1 )
+        unless @files;
+
+    ## raw single-file read mode : no import ##
+    if ( length $only_file ) {
+        my ($match) = grep {m{/\Q$only_file\E$}} @files;
+        return send_tool_result( $id,
+            "scratchpad file not found: $only_file [ $src_dir ]", 1 )
+            unless defined $match;
+        my $size    = ( stat($match) )[7] // 0;
+        my $content = '';
+        eval {
+            open( my $fh, '<:raw', $match ) or die;
+            $content = do { local $/; <$fh> }
+                // '';
+            close $fh;
+        };
+        return send_tool_result( $id, "cannot read $match", 1 )
+            unless length $content;
+        my $cap  = 102400;
+        my $note = '';
+        if ( length($content) > $cap ) {
+            $content = substr( $content, 0, $cap );
+            $note    = "[truncated at $cap of $size bytes]\n";
+        }
+        utf8::decode($content)
+            if length $content and not utf8::is_utf8($content);
+        return send_tool_result(
+            $id,
+            sprintf( ":. %s [ %d bytes ]:.\n%s\n", $match, $size, $note )
+                . $content,
+            0
+        );
+    }
+
+    ## import mode : data/scratchpad/<bmw-L13 of the session tmp path ##
+    ## with trailing slash — same string bin/bmw-L13 users get when   ##
+    ## checksumming /tmp/claude-*/<proj>/<uuid>/                     ##
+    my $session_tmp = $src_dir;
+    $session_tmp =~ s{/scratchpad$}{/};
+    my $bmw      = _bmw_l13($session_tmp) // qw| NOCHECKSUM13 |;
+    my $dest_dir = $ROOT_PATH . "/data/scratchpad/$bmw";
+    eval { make_path($dest_dir) if not -d $dest_dir };
+    return send_tool_result( $id, "cannot create $dest_dir : $@", 1 )
+        if $EVAL_ERROR or not -d $dest_dir;
+
+    my @out;
+    push @out, '.:[ scratchpad imported ]:.';
+    push @out, "  source : $src_dir";
+    push @out, "  dest   : $dest_dir";
+    push @out, "  bmw    : $bmw";
+    my $copied = 0;
+    for my $file (@files) {
+        my $name = $file;
+        $name =~ s{.*/}{};
+        if ( copy( $file, "$dest_dir/$name" ) ) {
+            my $mtime = ( stat($file) )[9];
+            utime( time, $mtime, "$dest_dir/$name" ) if defined $mtime;
+            $copied++;
+            push @out, sprintf "  %8d  %s", ( stat($file) )[7] // 0, $name;
+        } else {
+            push @out, "  FAILED   $name : $OS_ERROR";
+        }
+    }
+
+    ## IMPORT-INFO records the volatile source path ##
+    eval {
+        open( my $fh, '>:raw', "$dest_dir/IMPORT-INFO" ) or die;
+        print $fh join( '',
+            "original_path : $src_dir\n",
+            "session_tmp   : $session_tmp [ bmw-L13 key source ]\n",
+            "session_uuid  : $s->{'uuid'}\n",
+            "bmw_l13       : $bmw\n",
+            "imported_at   : "
+                . POSIX::strftime( '%Y-%m-%d %H:%M:%S %z', localtime ) . "\n",
+            "files         : $copied\n" );
+        close $fh;
+    };
+    push @out, '  IMPORT-INFO written [ source path recorded ]';
+    return send_tool_result( $id, join( "\n", @out ), 0 );
+}
+
+sub _scratchpad_list {
+    my ( $id, $which ) = @ARG;
+    $which //= 'all';
+    my %rows;    ## keyed by bmw id : merges repo + /tmp state ##
+
+    if ( $which ne 'imported' ) {
+        ## available in /tmp [ import candidates, volatile ] ##
+        my $proj = _claude_session_dir();
+        $proj =~ s{.*/}{};
+        my $tmp_base = sprintf "/tmp/claude-%d/%s", $REAL_USER_ID, $proj;
+        for my $sdir ( grep {-d} glob("$tmp_base/*") ) {
+            my $scr = "$sdir/scratchpad";
+            next unless -d $scr;
+            my @f = grep {-f} glob("$scr/*");
+            next unless @f;
+            my $uuid = $sdir;
+            $uuid =~ s{.*/}{};
+            my $bmw = _bmw_l13("$sdir/") // qw| ? |;    ## trailing slash ##
+            $rows{$bmw}->{'uuid'}      = $uuid;
+            $rows{$bmw}->{'tmp_files'} = scalar @f;
+            $rows{$bmw}->{'tmp_mtime'}
+                = max( map { ( stat($_) )[9] // 0 } @f );
+        }
+    }
+
+    if ( $which ne 'tmp' ) {
+        ## imported into the repository ##
+        my $base = $ROOT_PATH . qw| /data/scratchpad |;
+        for my $dir ( grep {-d} glob("$base/*") ) {
+            my $bmw = $dir;
+            $bmw =~ s{.*/}{};
+            my $info = "$dir/IMPORT-INFO";
+            if ( -f $info ) {
+                eval {
+                    open( my $fh, '<:raw', $info ) or die;
+                    while ( my $line = <$fh> ) {
+                        $rows{$bmw}->{'uuid'} = $1
+                            if $line =~ m{^session_uuid\s*:\s*(\S+)};
+                        $rows{$bmw}->{'repo_files'} = $1
+                            if $line =~ m{^files\s*:\s*(\d+)};
+                        $rows{$bmw}->{'imported'} = $1
+                            if $line =~ m{^imported_at\s*:\s*(.+)$};
+                    }
+                    close $fh;
+                };
+            }
+            $rows{$bmw}->{'repo_files'}
+                //= scalar grep {-f} glob("$dir/*");
+            $rows{$bmw}->{'repo_mtime'} = ( stat($dir) )[9] // 0;
+        }
+    }
+
+    return send_tool_result( $id, "no scratchpads found [ $which ]", 0 )
+        unless %rows;
+
+    my @out = ".:[ scratchpads .[ $which ]:. ]:.";
+    for my $bmw (
+        sort {
+            max($rows{$b}->{'tmp_mtime'}  // 0,
+                $rows{$b}->{'repo_mtime'} // 0
+            ) <=> max(
+                $rows{$a}->{'tmp_mtime'}  // 0,
+                $rows{$a}->{'repo_mtime'} // 0
+            )
+        } keys %rows
+    ) {
+        my $r      = $rows{$bmw};
+        my $status = join '+',
+            grep {length} (
+            $r->{'repo_files'} ? 'repo'     : '',
+            $r->{'tmp_files'}  ? qw| /tmp | : ''
+            );
+        my $ts
+            = $r->{'imported'}
+            ? "imported $r->{'imported'}"
+            : POSIX::strftime( '%Y-%m-%d %H:%M',
+            localtime( $r->{'tmp_mtime'} // 0 ) );
+        $ts =~ s{\s+\S+$}{} if $r->{'imported'};    ## drop tz suffix ##
+        my $files
+            = ( $r->{'repo_files'} and $r->{'tmp_files'} )
+            ? "$r->{'repo_files'} repo / $r->{'tmp_files'} tmp"
+            : ( $r->{'repo_files'} // $r->{'tmp_files'} // 0 );
+        push @out, sprintf ':: %s :. %s :. %s :. %s files [ %s ]',
+            $bmw, $r->{'uuid'} // '?', $status, $files, $ts;
+    }
+    return send_tool_result( $id, join( "\n", @out ), 0 );
+}
+
 sub _do_summarize_file {
     my ( $path, $instruction, $max_tokens ) = @ARG;
     $instruction //= 'summarize concisely';
@@ -3335,8 +3653,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,,,,.,,..,,,..,,,.,,,.,...,.,.,.,,,.,,,,,,,..,,...,...,..,,...,...,,..,.,,,
-#WOTSI3KMOQM2IEQYSQPD5SJ3VEHUO7UO63WKHEELHCTKRCAQJZECBQUR2MYZH4VQ6QIRWE6RATO5Y
-#\\\|4TKBKY2TH6STPMUQL6GFZ3QCNWNZROW4DOK3AGFNPH4BC2PJPCM \ / AMOS7 \ YOURUM ::
-#\[7]DRC3P3DNONT4NX3N6ESZ3SB5SOI3A5FXD6NC4QQ7FHKBLXZQLSDI 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,...,,..,,,,,,..,...,.,.,,..,,,.,..,,...,...,..,,,,,,.,.,,,,,...,
+#OZOQ5IVXYG6S7ROM7Y5VJMEDOPOQCWZFRKFBAQ2SX3S6TB3TOXQQ6EP75OAHM7XEEVK3P4WZVBO42
+#\\\|GBJUOBSU7LTNF4HTP4KBAGYSQRYQVGVLJ6A2HCR2MFRDTOKFIBQ \ / AMOS7 \ YOURUM ::
+#\[7]E6YAYDHWAKAH53SYCNQJBKBPFIMMVIOLYHHGQ4PYTNHMXJRV34BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
