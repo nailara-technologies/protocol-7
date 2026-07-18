@@ -165,27 +165,130 @@ its own investigation — worth checking whether other existing
 `route-send` callers that don't set an explicit `reply` key show the same
 symptom, or whether something specific to this call path triggers it.
 
+### re-confirmed 2026-07-18, reply-leg theory now doubted
+
+Reconfirmed live after a **fresh zenki restart** (ruling out any stale-log
+explanation): `cube` still logs
+`no perm. [ src 'cred-mesh' cmd|usr 'cred-mesh.subscribe_rotation' ]`.
+`bin/dev/cred-mesh-test` still shows the same 2 scenario-4 failures
+(`transport cache flush log`, `after-rotation header value`) — unchanged
+by the unrelated bug-5 base32-prefix fix below, confirming this permission
+issue is the actual remaining blocker for those two assertions.
+
+`grep -rn subscribe_rotation modules/` shows **no code anywhere** that has
+`cred-mesh` call `cred-mesh.subscribe_rotation` (or
+`cred-mesh.cmd.subscribe_rotation`) on itself — the only callers are
+`proxy.handler.subscribe_rotation_deferred` and
+`transport.handler.subscribe_rotation_deferred`, both going through
+`<[protocol-7.route-send]>` → `base.protocol-7.route-send` →
+`base.protocol-7.command.send.local`. So the call-site search is a dead
+end — **the bug is not at the call site, it's in a loaded module along the
+routing/permission-check path** (current working suspicion, unconfirmed).
+
+Traced one layer further into `base.protocol-7.command.send.local`
+(`modules/base.protocol-7.command.send.local:23`): the regex
+`s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|` strips the first dotted
+segment off `cred-mesh.subscribe_rotation` as the routing `target_name`
+(`cred-mesh`), leaving the remainder `subscribe_rotation` as the wire
+command — but the actual receiving-end command is registered as
+`cred-mesh.cmd.subscribe_rotation` (see `modules/cred-mesh.cmd.subscribe_rotation`),
+not bare `subscribe_rotation`. Whether this mismatch is *the* bug or a
+red herring wasn't established — didn't get far enough to confirm what
+`base.handler.command` (where the `no perm.` log line at line 1042 actually
+fires, using `$user`/`$cmd` — see `protocol.protocol-7.message-templates`
+key `VSY5TBA`) resolves `$user` to for this session, i.e. why cube would
+see the session's `$user` as `cred-mesh` for a command that proxy/transport
+sent. `$user` here is presumably tied to whichever zenka's authenticated
+session the command arrived on — needs tracing from `base.handler.command`
+backward to confirm whose session this actually is, rather than assuming.
+
+**Do not re-trace the reply-leg / dev.null-default-handler theory from the
+paragraph above as the primary lead — treat it as one candidate among
+several.** Prioritize: (1) confirm what session/user cube actually sees
+this command arrive on, (2) check the `.cmd.` vs bare command-name mismatch
+in `send.local`'s target stripping, (3) only then return to the reply-leg
+theory if 1-2 don't explain it.
+
 ## verification
 
-`bin/dev/cred-mesh-test` scenario 4 not yet re-run end-to-end since the
-self-referential-permission thread above needs resolving first (it may or
-may not affect the test harness's specific assertions — worth checking
-once resolved, rather than assuming). Prior run (before all fixes above)
-showed:
+re-run 2026-07-18: `bin/dev/cred-mesh-test` — 20/23 assertions pass, 3 fail:
+
 ```
-[ OK ] scenario 4 : proxy cache flush log
-[ OK ] scenario 4 : transport cache flush log
-[ OK ] scenario 4 : after-rotation header value
+[ OK ]   scenario 4 : proxy cache flush log
+[ FAIL ] scenario 4 : transport cache flush log
+[ FAIL ] scenario 4 : after-rotation header value : expected 'new-key-bbbb', got ''
+[ FAIL ] scenario 5 : relay pending file has entry : expected 1 pending entry, got 0
 ```
-as the target state once fully closed.
+
+the two scenario-4 failures confirm the open thread above is not just
+theoretical: proxy's flush log line appears (its subscription got through),
+transport's does not (its subscription is the one hitting the
+self-referential permission denial), and the header staying empty is the
+downstream consequence — transport never flushed, so it kept serving the
+old key. **acceptance criteria for this task**:
+
+1. root-cause the self-referential permission check (`src 'cred-mesh' cmd|usr
+   'cred-mesh.subscribe_rotation'`) using the reply-leg theory above as the
+   starting point (`base.route.add` / `base.handler.command`'s reply-dispatch
+   path, `base.protocol-7.command.send.local` lines ~56-65)
+2. fix it so transport's subscription actually registers
+3. re-run `bin/dev/cred-mesh-test` and confirm scenario 4's `transport cache
+   flush log` and `after-rotation header value` both pass
+4. if any other existing `route-send` caller omits an explicit `reply` key
+   the same way, note whether this is a narrower one-off or a systemic issue
+   — do not fix unrelated callers speculatively, just report the finding
+
+the scenario-5 failure (`relay pending file has entry`) is **not** part of
+this task's scope — nothing in this file's bugs 1-4 touches the auth-relay
+console path. leave it alone; do not attempt to fix it here. it will be
+filed as a separate task.
+
+## bug 5 (new, 2026-07-18, undiagnosed) — base32 decode undef in transport only
+
+live log during a fixture re-run (transport PID freshly spawned, same
+`cred-mesh-test` invocation, scenario-2 bearer-slot rotation):
+
+```
+tr.,.rt : [3293477] <<< undefined value as subroutine reference >>> [transport.cmd.cred-rotated:8]
+```
+
+line 8 is `<[base.base32.decode]>->( \$args_b32 )` — `$code{'base.base32.decode'}`
+resolved to `undef` in **transport**, while the byte-identical call in
+`proxy.cmd.cred-rotated` (same shape, same line) works fine in **proxy**
+(confirmed: scenario 4's "proxy cache flush log" passes, and scenario 1/2
+which route through proxy never hit this).
+
+ruled out already:
+- not a whitelist gap — `configuration/zenki/proxy/subroutine.white-list`
+  and `configuration/zenki/transport/subroutine.white-list` both list
+  `base.base32.decode` (confirmed identical lines, both present)
+- not a stale process — transport was freshly spawned by the same test run
+  that hit this
+
+user's working theory (untested): likely a redundant `base.` prefix
+somewhere, or a not-yet-implemented subroutine — i.e. this may be a naming/
+registration bug of the same *class* as bugs 1-3 above (module compiles and
+whitelists fine, but the code path that actually populates `%code` for this
+zenka's `modules.load` token set doesn't include it, even though the
+whitelist generator thinks it should). Worth checking whether `transport`'s
+`modules.load` token expansion (`auth net protocol io.unix io.ip ui
+format.yaml transport devmod`) actually pulls in `base.base32.*` the same
+way `proxy`'s token set does, rather than assuming whitelist presence implies
+loaded — those are two different mechanisms (`base.load_modules` /
+`base.load_code` vs whitelist regen via `bin/dev/dep-graph`).
+
+add this to the acceptance criteria: (5) root-cause and fix why
+`base.base32.decode` is unavailable in transport's `%code` at call time,
+confirm via a fresh live rotation that `transport.cmd.cred-rotated` no
+longer throws `undefined value as subroutine reference`.
 
 ## signatures note
 
 do NOT manually write or edit signature lines. do not add stub
 signatures to new files.
 
-#,,.,,.,,,...,,.,,.,.,.,.,...,..,,,,,,.,.,,..,..,,...,..,,...,.,,,.,.,,,,,,,,,
-#C2F6VI7V7IK3ZN7CR2T56ZB42P2U2MVJQ7AEELQQSMSROH7AUT6C4QA7P3DREWKYMHVVYFZ6WKQOG
-#\\\|6NMT6IVCFVIT6AN4B5SBCC2LS5PGYEL7IEGASMDN2FPKXP3APFY \ / AMOS7 \ YOURUM ::
-#\[7]BGMDIUHNYG7RSWBMGPBQOVF2G73CG72TIQW5OMPZMJZQYADSMAAI 7  DATA SIGNATURE ::
+#,,,,,...,...,..,,,,.,,,,,.,,,...,,..,,..,,.,,..,,...,.,.,...,,,.,,,.,,.,,...,
+#CB5LNK3LYSD7D5V2YLGOEJ4XTA2MSQOVOQKNHTOAUZ4TUZJLDZAEUX2BUIBCS2GNZ6PJ6T4IX2RUM
+#\\\|ZSITPLPT6G2TIBR5C2XY5W3WL74HS6OQ6ZHJDOJVKI3JUEGD5YP \ / AMOS7 \ YOURUM ::
+#\[7]FFFVQDQWYNGYKQ7HLRHJD7R5QBWU5M7FFFMAVQRUKDEWAN5XEIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

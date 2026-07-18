@@ -4,8 +4,8 @@
 # descr = cred-mesh rotation-notify subscriber target
 # param = <base32-encoded event yaml>
 
-my $args_b32  = $call->{'args'}                        // '';
-my $args_yaml = <[base.base32.decode]>->( \$args_b32 ) // '';
+my $args_b32  = $call->{'args'}                   // '';
+my $args_yaml = <[base32.decode]>->( \$args_b32 ) // '';
 
 my $result = <[transport.handler.cred_rotated]>
     ->( { 'args' => { 'data' => $args_yaml } } );
@@ -24,8 +24,8 @@ return {
 
 ## [ end ] ###################################################################
 
-#,,,,,,..,.,.,.,.,,.,,,.,,,,.,,,,,..,,..,,,,,,..,,...,..,,..,,..,,..,,,..,.,.,
-#SIRBV6H2OE3CTA4IQICA73X6D4IYGLGUOOP2UJDF7HUQXSUCAHFTWX2FFCMN5MHP6SQDV5PJMGHAA
-#\\\|42ERXGOAOGVB6ALWQCIJNXMODJKMDECMBJYJWJZBSJS4HDGL5DO \ / AMOS7 \ YOURUM ::
-#\[7]EGWA5UQWG7DW4AHT236DJWKYMCIXU2ZEGVLUKYNWNKDH7YGIGEDQ 7  DATA SIGNATURE ::
+#,,..,,,,,,..,.,,,...,...,..,,..,,...,.,,,.,.,..,,...,...,...,.,,,,,.,,..,,,,,
+#GQZSRCRQFVTBFAWSUAU3YXZFHFXNRQHTATOEI4QWWOB3HU76SMIQ7H3AYXKWFPD6ZLE5WGUVVEQVY
+#\\\|VHGE3EPDM7I7K3EUGYV7PNBZE4XCOF4R3DAO7IRBPPIVWV6UTDV \ / AMOS7 \ YOURUM ::
+#\[7]K6RJ6RMEQ34ASHOT7AQS7HLX7ESKIKFFU42POKIKHINX7QPX7EAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

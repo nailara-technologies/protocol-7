@@ -27,7 +27,7 @@ my $event_yaml = YAML::XS::Dump(
         'reason' => $reason,
     }
 );
-my $event_b32 = <[base.base32.encode]>->( \$event_yaml );
+my $event_b32 = <[base32.encode]>->( \$event_yaml );
 
 foreach my $handler (@combined) {
     ## dispatch STRM-style notification via protocol-7 route-send ##
@@ -40,8 +40,8 @@ foreach my $handler (@combined) {
 
 return scalar @$subs;
 
-#,,,.,,,.,.,.,,,.,.,,,,,.,.,.,...,.,,,..,,...,..,,...,...,,,,,,,,,,..,...,.,.,
-#WMTWAHIRPSCIWRGEQVA4AKUJBMWHTX2VFSXURALICRYD5MNQ3BBVLAMBR4OH7NVKQZPCAJGU53ITY
-#\\\|3RDO7BJZ3PXTS4GAIIIBVJAUFCPTTV36T6PDNNBSY5A6DXVLFAR \ / AMOS7 \ YOURUM ::
-#\[7]7FLBLXDNNHQTXJCPJ5O42YZU4FHVUZSZLA5QWXVISBJRD3ECHYAA 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,...,,,.,..,,,..,,..,.,.,..,,,..,..,,...,...,,.,,.,,,,.,,,,,,.,,,
+#MYLU6KTKDXIEM4JKUU7JMI2P6DAGCZJRHTZ3ZVKKR7RCD2SI7NC3WGB47MSS4RV3VBBJNCCPHHOIM
+#\\\|WHJNGOMSC2MRIHSBUFEU6PRLNU5G7LSKWWLITE3ZV5THTQW5NUF \ / AMOS7 \ YOURUM ::
+#\[7]KNOWACN4N32XIDQMKPVA6MUQ2BQD73DBF67AEGSTQXMC6G7ZLKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
