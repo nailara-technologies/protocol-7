@@ -38,6 +38,9 @@ see `data/ai-mem/claude/critical-patterns.md`
 MCP timeout bumped, `session_catchup` now does direct UUID/prefix lookup and supports `tail_chars` for large sessions. Coding self-test tier-0/1/2 verified live; tier-1 retry confirmed on DVEAZIA:GPAKBLA.
 see [2026-06-21-session-catchup-mcp-and-self-test-verification.md](2026-06-21-session-catchup-mcp-and-self-test-verification.md)
 
+July 2026: `session_catchup` gained claude subagent transcript support via new `subagents` param (0=exclude, 1=append, 2=only — recovers closed subagent context via local 9B summary); list mode shows `[+N sub]` markers.
+see [2026-07-18-session-catchup-subagent-support.md](2026-07-18-session-catchup-subagent-support.md)
+
 ## Command Return Style — Deferred Replies (June 2026)
 
 `qw| deferred |` returns keep the route open and reply later via the remembered route id.  They must **not** include a `'data'` key.  Args must always default with `// ''`.  See [topic-cmd-style-notes.md](topic-cmd-style-notes.md).
@@ -51,8 +54,8 @@ open: kimi zenka state machine upgrade (backend reconnect), coding zenka as thir
 
 `skipped` status restored across all index scanners, reassessment now protects manual stages, web sync carries `assertions`, UI delete actions wired, and orbital subscriber `.cmd.` syntax corrected. Assessed jobs now map to the `review` UI stage. See [jobs-pipeline-2026-06-28.md](jobs-pipeline-2026-06-28.md). Open: bulk-delete pending search/filter UI.
 
-#,,..,.,.,,..,,,,,.,,,...,..,,.,.,,,,,.,,,..,,..,,...,...,...,...,..,,,,.,.,,,
-#5XSVLCXL2FYUJIN4XXY4LNCM5AFM57UL33A2DDLI65IGJR7Z36IH6QOE4FNPYET33W67OSPCH3SYI
-#\\\|SYLBZHY3SMUW34J5ANFD3K3IOIUUDPS5GG6FSM2AIUOPRZ6JWP4 \ / AMOS7 \ YOURUM ::
-#\[7]YDBFJ22KZ3SW77MWXBKVYRIWOMT55R52SK6K552LDLSVQCK3ZWCI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,,.,,.,,,,,,,..,.,,,,,.,.,.,,,,,..,,...,...,...,.,,,,..,.,,,.,,,
+#4NX7HTKEYJE2COC6ZH2ED3326NPVYW665FPF4W3GEZPEBNZUS3IYUYL2BZQ5V5JLXL75BSPHCB47S
+#\\\|BQJWCACKY2PZ2NE6PDC3GVVC57YXYFCPFV7WEUUEDWGSKEQZPA4 \ / AMOS7 \ YOURUM ::
+#\[7]NLQDKVDCZJQYRTCEQTYTTJY6BBFS7WGM3Q7UBYXCFYLQL3GUSEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
