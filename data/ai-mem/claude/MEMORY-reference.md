@@ -6,6 +6,7 @@ core patterns/templates. Settled conventions: cube auth prefix, .cmd. reply cont
 vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 config paths.
 
 ## Reference
+- [session-catchup-subagent-support](reference-session-catchup-subagent-support.md) — recover lost Agent-tool subagent context via `subagents=2` / `subagent_id=<fragment>`, claude+kimi both supported
 - [unicode-encoding-repair](reference-unicode-encoding-repair.md), [patterns](topic-patterns.md), [coding-zenka-templates](topic-coding-zenka-templates.md) — UTF8 fix; core patterns
 - [tool-shm-architecture](topic-tool-shm-architecture.md), [tool-suggestions](topic-tool-suggestions.md), [language-detection](topic-language-detection.md) — SHM+mmap vision; 30 langs
 - [site-yaml-zenka](topic-site-yaml-zenka.md), [site-yaml-web-research](topic-site-yaml-web-research.md), [usb-backup-zenka](topic-usb-backup-zenka.md) — URL→YAML; web research; udev→restore
@@ -33,8 +34,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [config reload clobber](feedback-config-reload-clobber.md), [route-send command format](feedback-route-send-command-format.md) — `reload config/all` overwrites runtime; no cube. prefix
 - [user-perfectionism-and-pace](user-perfectionism-and-pace.md) — "done" means perfectly smooth; let solo tuning passes run
 
-#,,.,,..,,.,,,,,,,,,.,.,.,,,,,..,,.,,,,.,,..,,..,,...,...,.,,,,,.,.,,,,..,.,.,
-#ZM5SGUYJDTULYHR2ZMIGXH3UGV4J5QEK3MMYU47S3LTAISXWD3TAIJVJFX3PCNY63A432V3HNR4IE
-#\\\|AUIVAGDYXI6IZR43JH2UUPFXLJYP344ZETHDSC7BOK5YR4J5D6U \ / AMOS7 \ YOURUM ::
-#\[7]3CWBGYJRXCCWFIUIVFZWY43BKS2SQMPCTZHAYWCPB5AINA5NMWBA 7  DATA SIGNATURE ::
+#,,,,,,.,,...,..,,,,.,.,.,,.,,,.,,..,,,..,,,.,..,,...,...,...,.,.,.,.,,.,,,,,,
+#JV6KMKGABETP3OZB2SUNT444KBMXYEJDGZJVM65A5O2AWLGNMQGDHLQ26MJHN5O5JDGCDLKCJ5ACK
+#\\\|Z7COV3GEVGCC3QTW2G2SXQHWPQPMKPPZDINZ2YZRRT7MBCTZ32U \ / AMOS7 \ YOURUM ::
+#\[7]LLXSFVWWNP7QXHRQAMDIZEQ6LHWU6QDFYFCUJC4A2634VPIG6KCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
