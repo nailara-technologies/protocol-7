@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: e523a9e4-c458-47e5-b27c-c60766dd51a9
-  modified: 2026-07-19T00:48:01.642Z
+  modified: 2026-07-19T00:57:25.183Z
 ---
 
 2026-07-19, user's assessment after the coding-zenka scratchpad-rescue task
@@ -20,6 +20,16 @@ hints given during that task were minor, not the main driver of quality).
 Input tokens: K3 is also >3x K2.7's input price. Session usage on this task: 30% session budget, 47%
 weekly, 92h remaining in the cycle — real cost, but user judged it a fair trade for this quality level.
 
+**Confirmed via primary source** (buildfastwithai.com/blogs/kimi-k3-review, fetched 2026-07-19, K3
+released 2026-07-16): input $3.00/1M, output $15.00/1M, cached input $0.30/1M — "5x above its own K2
+family" in cost, pricing described as matching Claude Sonnet's tier. Specs: 2.8T-param MoE, 1M-token
+context, text+image+video input, reasoning always-on (tunable effort locked to max at launch — matches
+[[topic-kimi-k3-thinking-effort]]'s finding that lower effort isn't wired up yet). Benchmarks: GPQA
+Diamond 93.5% (best open-weight published), Terminal-Bench 2.1 88.3% (near GPT-5.6 Sol's 88.8%),
+BrowseComp 91.2% (web-agent record), AA Long-horizon Elo 1547 (second only to Claude Fable 5). Explicitly
+weaker than K2.7 on high-volume routine coding due to the cost multiplier — matches the K2.7-for-token-
+efficiency split below. Open weights promised by 2026-07-27.
+
 **How to apply** (user's stated split, 2026-07-19): K3 is now the tier for tasks that would otherwise
 have needed Sonnet or even Opus — "a cheaper Opus-light with its own neutral character," but billed on
 the Kimi budget rather than the Anthropic one. Reach for it on higher-impact / correctness-critical work
@@ -31,8 +41,8 @@ where the quality jump is actually worth ~3.75x output / >3x input cost. See
 `bin/mcp-server-p7` ~line 3048) and [[project-kimi-token-economics-2026-07]] for the separate
 speed-tier (6x) vs regular-speed usage-multiplier finding — a different axis from the k2.7-vs-k3 choice.
 
-#,,..,.,,,..,,,.,,..,,.,.,..,,.,.,..,,,..,,.,,..,,...,..,,..,,,.,,,,,,.,,,,,,,
-#YFX6EJPW7SF3LBU4FKNKK3AGUZL76RGSME4FHWURN473HJJM2FNBZS7XZX76HVXX2ZDYAGHIXDWQA
-#\\\|GE4ZRQLYGNMQVSJPPE3VOUW5BRVQPKI4VB7M34LPCDD2MFDN4LA \ / AMOS7 \ YOURUM ::
-#\[7]3XM4TPREDNSSYLNAZBZFC4AQ5D3JT3ETM5G3CW42NCI2J3JLPOBY 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,,,,,,..,.,.,,.,,,,,,,..,...,...,..,,...,...,...,,,.,,.,,,,.,,..,
+#DR5OVIUP55QIHMKEN4FO5VBZ2PJ7FXAE4HHD3SD3UCTPGKKVCET7HFE2T2OWFBBIIXBX3V4C2H3UU
+#\\\|NMRVD3XPVIAU7VQANHQST7DTN3QES75XFR2VPMBINSTJNV6L5VD \ / AMOS7 \ YOURUM ::
+#\[7]ZOFGQUR2EAX6XCV6D3MVKAVONSU53RVODJBUY6NZZCN66DHN2MCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
