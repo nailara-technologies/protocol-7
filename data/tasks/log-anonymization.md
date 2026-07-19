@@ -2,7 +2,7 @@
 
 # name  = task: log anonymization via checksum-indexed encrypted table
 # descr = filter sensitive data from log lines, encrypt with user system key,
-#         store in a separate table indexed by BMW-L12 checksum. log stream
+#         store in a separate table indexed by BMW-L13 checksum. log stream
 #         keeps full bandwidth and is investigatable without decryption.
 #         sensitive context is recoverable on demand in situ.
 
@@ -26,7 +26,7 @@ log line (after):
   [1234567] read file [L:X7KQMNS4] (4200 bytes)
 
 encrypted table entry:
-  key:   X7KQMNS4   (BMW-L12 checksum of the sensitive fragment)
+  key:   X7KQMNS4   (BMW-L13 checksum of the sensitive fragment)
   value: Twofish( '/home/taeki/projects/secret/design.md', user_system_key )
 ```
 
@@ -111,15 +111,15 @@ the table is written alongside (or to a separate encrypted archive file).
 
 ## checksum choice
 
-BMW-L12 (12-char BMW384 substring):
+BMW-L13 (13-char BMW384 substring):
 - collision resistance sufficient for local log table (not adversarial)
-- 12 chars fits in log line without excessive visual noise
+- 13 chars fits in log line without excessive visual noise
 - same checksum family as rest of system → no new dependency
-- `[L:X7KQMNS4]` (8-char) or `[L:X7KQMNS4LM7R]` (12-char) — configure at init
+- `[L:X7KQMNS4]` (8-char) or `[L:X7KQMNS4LM7RA]` (13-char) — configure at init
 
 AMOS checksum as alternative:
 - shorter (7 chars), slightly weaker collision resistance
-- use AMOS for low-entropy fragments (paths), BMW-L12 for high-entropy content
+- use AMOS for low-entropy fragments (paths), BMW-L13 for high-entropy content
 
 ## table storage
 
@@ -155,7 +155,7 @@ after:   [T:A3FQNMKL] read file [L:X7KQMNS4] (4200 bytes)
 ```
 
 encrypted timestamp: Twofish( raw_timestamp, user_system_key ).
-token `[T:XXXXXXXX]` uses same 8-char BMW-L12 format as fragment tokens.
+token `[T:XXXXXXXX]` uses same 8-char BMW-L13 format as fragment tokens.
 plaintext timestamp stored in same anonymization table — resolved by same
 `log.anon.resolve` lookup. log remains structurally readable; timing is
 opaque without the key.
@@ -183,7 +183,7 @@ $data{log}{anon}{full_encrypt} = 1
 ```
 
 entire assembled log line is encrypted with Twofish before writing to the
-ring buffer. only a fixed-width encrypted blob + BMW-L12 index token is
+ring buffer. only a fixed-width encrypted blob + BMW-L13 index token is
 stored. log is completely opaque without decryption pass.
 
 investigatability requires: `p7c log.anon.decrypt-range <from> <to>` which
@@ -208,7 +208,7 @@ full_encrypt + sign:    max privacy + tamper evidence (sign before encrypt)
 
 ```
 phase 1:  classifier (regex, path patterns)
-          replace + BMW-L12 checksum generation
+          replace + BMW-L13 checksum generation
           flat file table with Twofish encryption
           base.logt integration (opt-in flag first)
 
@@ -236,7 +236,7 @@ implement phase 1 of log anonymization:
 1. create `log.anon.classify` — regex classifier returning (start,end,label)
    spans. cover: /home/<user>/ paths, quoted strings > 40 chars, UUIDs.
 
-2. create `log.anon.replace` — apply spans to line, generate BMW-L12
+2. create `log.anon.replace` — apply spans to line, generate BMW-L13
    checksums, return anonymized line + (checksum, plaintext) pairs.
 
 3. create `log.anon.store` — write pairs to flat binary table at
@@ -253,10 +253,8 @@ verify: enable anon, run a command with a file path argument, confirm log
 shows `[L:XXXXXXXX]` in place of path, `p7c log.anon.resolve XXXXXXXX`
 returns the original path.
 
-#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-
-#,,,.,,,,,,,.,,..,,,.,...,,,.,...,,,.,,,,,.,.,..,,...,...,,,,,,.,,...,,,.,,,,,
-#75Z3FRCAJFRIXCOWPOFEKF5QITH5L4K47EAIHUGXVVTLQ4MCCWJ23SGYON75Q5UVMM7ZJIOUJTOHK
-#\\\|H26MCHBMVOBAFRPUAMQJPPLQ5A4PU5QV2FHQ5JC4XDEEVCEGKZD \ / AMOS7 \ YOURUM ::
-#\[7]GABWU5PP5KTCD2BYI3VIOSPSP5XSJA2XW3I2LYAHT7AO3P4GFOBA 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,.,,..,,,,,,.,,,...,,,,,..,,...,..,,...,...,..,,,,.,..,,,,,,..,,
+#4WYRJ2JMLQ44VCB6BV7Q7J7L5XNTH6TXXQQEKC3F5CZUNQYSGAAAV3HAUAPL5FRLSA4QDO3KJKZJ6
+#\\\|HHPVHLG4VZJXCN26F2ZXY2DJJ37J3RPRM6FOA5L5EKWEWDROEUW \ / AMOS7 \ YOURUM ::
+#\[7]P6S2E5PBXRNIMQWUJ7EQHELYX6ZLZWVH36PZLIKYWCF5E5OIRUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
