@@ -1,5 +1,92 @@
 # generic STRM subscription wrapper — offline-safe, restart-clean
 
+## status (2026-07-19) — IMPLEMENTED, verified live
+
+built as `base.strm.subscribe` — six modules, mirroring
+`base.zenka.push`'s layout and `zenka.push` namespace-swap convention:
+
+- `modules/base.strm.subscribe` — entry point: param validation,
+  variable-target/fixed-suffix construction, registry, defer-or-attempt
+- `modules/base.strm.subscribe.attempt` — single route-send attempt,
+  falls back to the notify_online wait on immediate failure
+- `modules/base.strm.subscribe.wait-online` — `v7.notify_online`
+  registration with push-shaped exponential backoff (`2**n`, 60s cap,
+  `waiting_no`/`last_attempt` gating)
+- `modules/base.strm.subscribe.reply-handler` — subscribe reply:
+  TRUE marks subscribed, `client not present` falls back to the wait,
+  anything else is logged as definitive error [ no blind retry ]
+- `modules/base.strm.subscribe.reply-handler.notify-online` —
+  notify_online reply: TRUE resubscribes immediately, FALSE backs off
+  with increasing delay and re-attempts
+- `modules/base.strm.subscribe.pre_init` — `base.swap_subs` into the
+  `strm.subscribe` namespace
+
+call shape (the one live test call used against cred-mesh):
+
+```perl
+<[strm.subscribe]>->({
+    'publisher' => 'cred-mesh',           ## target zenka
+    'command'   => 'subscribe_rotation',  ## its subscribe command
+    'args'      => [ qw| * | ],           ## publisher-specific args
+    'handler'   => 'cred-rotated',        ## notify suffix on own zenka
+    'start'     => 0,                     ## :start: publisher if down
+});
+```
+
+sends `cred-mesh.subscribe_rotation` with args `* proxy.cred-rotated`
+when called from proxy — identical wire shape to the existing
+hand-rolled call sites. `handler` is validated as a bare single-segment
+suffix (dots rejected) and always prefixed with `<system.zenka.name>` —
+the confused-deputy shape is unconstructable through this API.
+
+**verified live via p7c** (proxy as the real-world consumer, production
+call sites untouched, modules runtime-loaded via
+`base.load_runtime_modules`):
+
+1. validation: dotted handler / dotted publisher / whitespace-bearing
+   arg token / missing handler all rejected (FALSE, nothing registered)
+2. happy path: subscribe -> TRUE -> cred-mesh `rotation_subscribers`
+   shows `*:proxy` (identity from cube's SOURCE_ZENKA alias, wrapper
+   only ever requests its own name)
+3. idempotent repeat call: no duplicate registration
+4. generalized args: `args => ['rotation-test.api-key']` registered a
+   second, distinct slot subscription cleanly
+5. offline-safe: `v7.stop cred-mesh` -> subscribe attempt -> cube
+   replies `client not present` -> wrapper registered the
+   `v7.notify_online` wait (`waiting_no=5`)
+6. restart-clean [ subscriber side ]: `v7.start cred-mesh` ->
+   notify_online TRUE -> wrapper resubscribed automatically
+   (`subscribed=5`, no timer guesswork anywhere in the path)
+7. real event: `cred-mesh.rotate rotation-test.api-key <val>` fired
+   `proxy.cred-rotated` end-to-end (`proxy.handler.cred_rotated:
+   flushed 0 cache entries for slot rotation-test.api-key` in proxy's
+   log — 0 flushed is correct for a test slot with no cache entry)
+8. defer path: with `<system.zenka.initialized>` temporarily cleared,
+   the call registered `deferred=5` + pushed one
+   `<system.callbacks.initialized>` callback and sent nothing; firing
+   the callback ran the attempt to `subscribed=5`
+
+after the test, proxy was restarted: production fixed-delay-timer
+subscribe path intact, fresh process has the wrapper compiled but
+dormant (pre_init swap runs only for zenki that adopt it).
+
+**adoption notes for future subscribers**: regen the zenka's whitelist
+(`bin/dev/gen-sub-whitelist <zenka>`) so the pre_init swap runs at
+startup; call once from `init_code` — the wrapper defers through
+`<system.callbacks.initialized>` when the own cube session isn't up
+yet, so no call-site guards or timers are needed.
+
+**still open, by design** (out of scope here, see "what's needed"):
+the publisher-restart re-affirm case — the persistent
+`<base.strm.subscribe.registry>` entry deliberately survives success so
+a future re-affirm hook (e.g. on `command route collapsed`, when the
+subscribe is wired as a pending route) can re-issue the attempt as-is.
+
+**signatures note**: module files intentionally left unsigned (no stub
+signatures, per below) — sign with
+`bin/Protocol-7 sourcecode update-signatures modules/base.strm.subscribe*`
+when the key password is available.
+
 ## why
 
 surfaced 2026-07-18 while working `cred-mesh-rotation-subscription-cross-zenka.md`:
@@ -199,8 +286,8 @@ yet.
 do NOT manually write or edit signature lines. do not add stub
 signatures to new files.
 
-#,,.,,.,.,,..,..,,,.,,,,,,,..,,,.,,.,,,,,,.,.,..,,...,...,...,,,.,.,,,.,.,...,
-#VWTJLA5KFVPNGTX747E52QJJGOLARG5VCGLHRTRLZSBKL7JZPOAVMQEBXXTGU67PZRFXD2DSWPVTO
-#\\\|4YBISRSYFUIDRZ4PIDNXMQY4G7DAY3E5KM7YJZD5SFIV2QGRJYG \ / AMOS7 \ YOURUM ::
-#\[7]3S7FK325F6J5RBWV7FBZO4AXUQVSMJ27ZE2BYO32ITLCEG5OKUBQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,,..,,.,,.,,,.,.,,.,,...,.,.,.,,,..,,...,...,...,.,,,.,,,.,,,.,.,
+#JSXETOACEOII7JF6GAE6ASTPOZSPOSBC4GCPESLM7B3A4HP44TXR6KW3PHBXGZRC3L6PD7ALC4BYK
+#\\\|UPTRCM7ZRVA6M3BK7BMXZISYV75LZXVQ6N6WUM4TIB7CXIYIDQ6 \ / AMOS7 \ YOURUM ::
+#\[7]5MXFDR4L7UIXR34GKDIJFRZIOELOM3ODO3GDGN4RAFMKTS6BUOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
