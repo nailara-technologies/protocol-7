@@ -143,17 +143,29 @@ if ( $model_path && $mmproj_path ) {
     1, '[init] registering for coding zenka startup notification'
 );
 
-<[protocol-7.route-send]>->(
-    {   'command'   => qw| v7.notify_online |,
-        'call_args' => { 'args' => ':start: coding' },
-        'reply' => { 'handler' => 'lm-vision.handler.coding_online_reply' }
-    }
-);
+## deferred via <system.callbacks.initialized> -- init_code runs
+## before this zenka's own cube connection exists, so a direct
+## route-send here reliably hits send.local's "no clients in
+## session" drop. <system.init_reports> was tried first but only
+## ever flushes once around the initial connect event and does not
+## reliably carry a deferred reply handler through that flush --
+## <system.callbacks.initialized> [ same pattern as coding.init_code's
+## GPU-stats subscribe ] fires once this zenka's own session is up
+## and keeps the reply wiring intact. ##
+push @{ <system.callbacks.initialized> //= [] }, sub {
+    <[protocol-7.route-send]>->(
+        {   'command'   => qw| v7.notify_online |,
+            'call_args' => { 'args' => ':start: coding' },
+            'reply'     =>
+                { 'handler' => 'lm-vision.handler.coding_online_reply' }
+        }
+    );
+};
 
 0;    # Return success for module initialization
 
-#,,,.,,.,,..,,,,.,,.,,...,.,.,..,,...,,,.,,,.,..,,...,...,...,,,.,,.,,,,.,,,.,
-#Z44XKJRMCWEKANNBUP2M2TAKEW3YNGFSG7OV7ZJ2JYT5VYRYDCC2EUX2BDQUQYEJXX35OQ4TVDZ64
-#\\\|5KRKNTZHCNMJOEGZMFXEC2WBBXTJQ2E6WHDE6PYYTYHOTMDQ6GO \ / AMOS7 \ YOURUM ::
-#\[7]XOVWAN4LKS5JIL3UR5I4BMRWXA54JZHJKW2CUZX6YLY6KJKSXADY 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,..,,,.,,.,,,..,.,,,.,.,..,,...,..,,...,...,.,.,.,,,...,.,.,.,.,
+#KDE46BBGPIKDPWCCHJFL4GIS6R4WMKVMZ3Z6NV2K5R3RUIMJPTSZRYYN4MKCIFAIWKAFINX6GBKTG
+#\\\|ISZMSYNYIZRXXLIURKYSI5IRTEF66LML57ITWNUAIQOIJOC65NU \ / AMOS7 \ YOURUM ::
+#\[7]I3LE62EI3VTZN7JRAJZWAIYSOWGUY2NIOARBLDIU5STB462756AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
