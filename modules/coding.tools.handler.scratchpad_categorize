@@ -1,0 +1,135 @@
+## [:< ##
+
+# name  = coding.tools.handler.scratchpad_categorize
+# descr = local-model triage verdict for one claude session scratchpad
+
+my $args = shift // {};
+
+my $session = $args->{'session'} // return 'session required [ uuid ]';
+my $max_len = $args->{'max_len'} // 400;
+
+return 'error: invalid session uuid'
+    if $session !~ m{^[0-9a-f\-]{36}$};
+
+my ($scr) = grep {-d} glob("/tmp/claude-*/*/$session/scratchpad");
+return "no scratchpad dir found for $session" if not defined $scr;
+return "scratchpad dir not readable [ permission bridge pending ] : $scr"
+    if not -r $scr;
+
+## collect file content [ text only, capped — ported from mcp-server-p7 ] ##
+my $file_cap  = 24576;
+my $total_cap = 122880;
+my $f_aref    = <[file.match_files]>->( $scr, qw| ** | ) // [];
+my @files     = sort {
+    ( File::stat::stat($a)->mtime // 0 )
+        <=> ( File::stat::stat($b)->mtime // 0 )
+} @$f_aref;
+return "scratchpad is empty : $scr" if not @files;
+
+my $text = '';
+for my $file (@files) {
+    my $name = $file;
+    $name =~ s{.*/}{};
+    my $size = File::stat::stat($file)->size // 0;
+    if ( not -T $file ) {
+        $text .= sprintf "\n### %s [ binary, %d bytes, content skipped ]\n",
+            $name, $size;
+        next;
+    }
+    next if length($text) >= $total_cap;
+    my $content = do {
+        open( my $fh, '<', $file ) or next;
+        local $/;
+        <$fh>;
+        }
+        // '';
+    next unless length $content;
+    if ( length($content) > $file_cap ) {
+        $content = substr( $content, 0, $file_cap )
+            . "\n[.. truncated at $file_cap of $size bytes ..]";
+    }
+    $text .= sprintf "\n### %s [ %d bytes ]\n%s\n", $name, $size, $content;
+}
+
+my $system_prompt = join ' ',
+    'you triage leftover scratchpad files from a coding session.',
+    'decide whether the content must be preserved in the repository',
+    'before /tmp is wiped. verdicts :',
+    'keep = unique code, derivations, test scripts or research results',
+    'not already shipped in the repository ;',
+    'drop = ephemeral debug capture, instrumentation output, generated',
+    'preview assets that already shipped elsewhere, or status and audit',
+    'reports whose claims go stale ;',
+    'needs-human-review = anything you cannot judge with confidence',
+    '[ when in doubt, choose this ].',
+    'answer with exactly one first line',
+    '"verdict: keep" or "verdict: drop" or "verdict: needs-human-review",',
+    'then 2-4 sentences of reasoning. no tool calls, no preamble.';
+
+my @ports;
+push( @ports, <inference.backend.cpu.port> // 8001 )
+    if <inference.backend.cpu.enabled> // 0;
+push( @ports, <inference.backend.gpu.port> // 8000 );
+
+my $request_body = {
+    messages => [
+        { role => 'system', content => $system_prompt },
+        {   role    => 'user',
+            content => sprintf(
+                "triage this scratchpad [ %d files, path %s ]:\n\n%s",
+                scalar @files,
+                $scr, $text
+            )
+        },
+    ],
+    max_tokens  => $max_len,
+    temperature => 0.2,
+    stream      => JSON::PP::false(),
+};
+
+my $json_body = eval { JSON::PP->new->utf8->encode($request_body) };
+return "error: failed to encode request: $@" if $@;
+
+## LWP direct call : blocks event loop intentionally [ as summarize_context ]
+my $ua = LWP::UserAgent->new(
+    timeout => 120,
+    agent   => 'Protocol-7/scratchpad_categorize',
+);
+
+## try preferred [ cpu ] backend first, fall back on connection refusal ##
+my $response;
+for my $port (@ports) {
+    $response = $ua->post(
+        "http://127.0.0.1:$port/v1/chat/completions",
+        'Content-Type' => 'application/json',
+        'Content'      => $json_body,
+    );
+    last
+        if $response->is_success
+        or $response->status_line !~ m{Can't connect|Connection refused};
+}
+return "inference error: " . $response->status_line
+    if not $response->is_success;
+
+my $reply = eval {
+    my $m = JSON::PP::decode_json( $response->decoded_content )
+        ->{'choices'}[0]{'message'};
+    ## reasoning models may answer in reasoning_content, content empty ##
+    length( $m->{'content'} // '' )
+        ? $m->{'content'}
+        : ( $m->{'reasoning_content'} // '' );
+} // '';
+return 'categorize failed: empty model reply' if not length $reply;
+
+my ($verdict) = $reply =~ m{^verdict\s*:\s*(keep|drop|needs-human-review)}mi;
+$verdict //= 'needs-human-review';
+
+return sprintf "verdict: %s\n%s", $verdict, $reply;
+
+#,,
+
+#,,,.,.,.,..,,,,,,,,,,.,.,,,.,.,,,,,,,,..,..,,..,,...,..,,,.,,,.,,.,,,...,,,,,
+#OQAEWXS5CN3NCMVSY7QRLLB3N7JXAOEO44QJQUKDKTA774WEEMVLK4DWY37CPVLYNCDTT5Y5BOCDM
+#\\\|NPOLST4C44O4OKTPOM5IOEKI3FK5LGLDN6XOR7MQG24PFMPZYLX \ / AMOS7 \ YOURUM ::
+#\[7]QYAZNJRKLXBJDVZFSMSZ4KTR6OP3P6TTU46PNEGUMB4PMXGAAMAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

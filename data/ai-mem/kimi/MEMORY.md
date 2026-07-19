@@ -41,6 +41,9 @@ see [2026-06-21-session-catchup-mcp-and-self-test-verification.md](2026-06-21-se
 July 2026: `session_catchup` gained subagent transcript support for claude + kimi via `subagents` param (0=exclude, 1=append, 2=only), `subagent_id` filter, and claude `scratchpad` param for volatile /tmp artifacts; new `scratchpad_import` tool imports them to `data/scratchpad/<bmw-L13-of-session-tmp-path>/`; list mode shows `[+N sub]`/`[+N scr]` markers.
 see [2026-07-18-session-catchup-subagent-support.md](2026-07-18-session-catchup-subagent-support.md)
 
+July 2026: coding zenka got native scratchpad-rescue tools (`scratchpad_list_all` / `scratchpad_categorize` / `scratchpad_rescue` + hourly `coding.handler.scratchpad_sweep` timer) — same capability without any external LLM. imports go through the chmod child [ taeki-owned ]; mcp-server-p7 grants scoped group read on /tmp scratchpad dirs opportunistically.
+see [2026-07-19-coding-zenka-scratchpad-rescue-tools.md](2026-07-19-coding-zenka-scratchpad-rescue-tools.md)
+
 ## Command Return Style — Deferred Replies (June 2026)
 
 `qw| deferred |` returns keep the route open and reply later via the remembered route id.  They must **not** include a `'data'` key.  Args must always default with `// ''`.  See [topic-cmd-style-notes.md](topic-cmd-style-notes.md).
@@ -54,8 +57,8 @@ open: kimi zenka state machine upgrade (backend reconnect), coding zenka as thir
 
 `skipped` status restored across all index scanners, reassessment now protects manual stages, web sync carries `assertions`, UI delete actions wired, and orbital subscriber `.cmd.` syntax corrected. Assessed jobs now map to the `review` UI stage. See [jobs-pipeline-2026-06-28.md](jobs-pipeline-2026-06-28.md). Open: bulk-delete pending search/filter UI.
 
-#,,..,,..,,,,,.,,,,.,,.,,,,.,,,..,,.,,.,.,,.,,..,,...,..,,..,,...,,..,,,,,..,,
-#MFAOTTJQAXDWTFXR3WP3FV34CFJSGXKCCBBDUK6URNJF5AJGQ4VPR2XBUHFF5I3Z6Y35K7GIPOVRQ
-#\\\|TBN7HVSVM6J2MHCOLDSEFMEX3PZYWYDN75TFDEQNFL3ZXA2SDRK \ / AMOS7 \ YOURUM ::
-#\[7]CH3LVEP2RRAZLDI4XFPA6T7DVPJVZHVOJAVFI7IFEVYNZFU3DCAQ 7  DATA SIGNATURE ::
+#,,,.,..,,...,,,,,,,,,.,,,,.,,...,,,,,,.,,.,,,..,,...,..,,.,,,,..,,.,,...,,.,,
+#I43YVSHHIZAGFE5QICMEEG6ARUELHT6A7SYMEEML7GLHUCB5NVSBSDG4SDJ7PIVFOJD6NFQDWHPMK
+#\\\|2FCC2FZ5NJWC36CJ7A4DMJ4Q3CXV4KM4SLBMY6MWPGJS5DJ22ZN \ / AMOS7 \ YOURUM ::
+#\[7]KP3OPINQ3CE2LBIGCIMLJ25PJCILPWW2TGOXEUPJLAR4ZEG5VYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

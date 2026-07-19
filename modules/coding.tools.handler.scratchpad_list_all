@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = coding.tools.handler.scratchpad_list_all
+# descr = list claude session scratchpads : /tmp and imported state merged
+
+my $args = shift // {};
+
+my $entries = <[coding.scratchpad.scan]>;
+return 'no scratchpads found [ /tmp or repo ]' if not @$entries;
+
+my $skipped = 0;
+my $empty   = 0;
+my @rows;
+for my $e (@$entries) {
+    if ( $e->{'unreadable'} ) {
+        $skipped++;
+        next;
+    }
+    if ( not $e->{'tmp_files'} and not $e->{'repo_files'} ) {
+        $empty++;
+        next;
+    }
+    push( @rows, $e );
+}
+
+## newest activity first ##
+@rows = sort {
+           ( $b->{'tmp_mtime'} // 0 ) <=> ( $a->{'tmp_mtime'} // 0 )
+        or ( $b->{'imported'} // '' ) cmp( $a->{'imported'} // '' )
+} @rows;
+
+my @out = '.:[ scratchpads ]:.';
+for my $e (@rows) {
+    my $status = join '+',
+        grep {length} (
+        $e->{'repo_files'} ? 'repo'     : '',
+        $e->{'tmp_files'}  ? qw| /tmp | : ''
+        );
+    my $ts
+        = length( $e->{'imported'} // '' )
+        ? 'imported '
+        . $e->{'imported'}
+        : POSIX::strftime( '%Y-%m-%d %H:%M',
+        localtime( $e->{'tmp_mtime'} // 0 ) );
+    $ts =~ s{\s+\S+$}{} if length( $e->{'imported'} // '' );
+    my $files
+        = ( $e->{'repo_files'} and $e->{'tmp_files'} )
+        ? "$e->{'repo_files'} repo / $e->{'tmp_files'} tmp"
+        : ( $e->{'repo_files'} // $e->{'tmp_files'} // 0 );
+    push( @out,
+        sprintf ':: %s :. %s :. %s :. %s files [ %s ]',
+        $e->{'bmw'}, $e->{'uuid'}, $status, $files, $ts );
+}
+push( @out, sprintf '  [ %d empty /tmp dirs omitted ]', $empty ) if $empty;
+push( @out,
+    sprintf
+        '  [ %d skipped : unreadable /tmp dirs, permission bridge pending ]',
+    $skipped )
+    if $skipped;
+
+return join( "\n", @out );
+
+#,,
+
+#,,,.,...,.,,,,.,,,,,,,..,,..,.,,,.,.,.,,,,.,,..,,...,...,,,,,.,,,,,.,,.,,...,
+#HJ4BFZOU4CTOX2R2QJVRJUFRCVFMVPFEWYZP2OBRDKT556XIVCRKB4BGNNJIQFQEG435FCRCTYWV6
+#\\\|WKXS2AGBEGRC4UR7VWIWQZ4ILNCVQ324WMMDESPD6JHWPWOK3KM \ / AMOS7 \ YOURUM ::
+#\[7]DFFRHQHJCBYBLHJZR35ONHUM63KSBUYW7CGPNAHJPWBVAOYJUCCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
