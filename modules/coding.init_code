@@ -538,6 +538,24 @@ if ( not $already_initialized ) {
         }
     );
 
+    ## scratchpad rescue sweep : startup one-shot [ inference servers need
+    ## time to come up ] + hourly repeat ##
+    <[event.add_timer]>->(
+        {   'after'   => 180,
+            'repeat'  => FALSE,
+            'handler' => qw| coding.handler.scratchpad_sweep |,
+            'desc'    => 'initial scratchpad rescue sweep'
+        }
+    );
+    <coding.timer.scratchpad_sweep> = <[event.add_timer]>->(
+        {   'after'    => 3600,
+            'interval' => 3600,
+            'repeat'   => TRUE,
+            'handler'  => qw| coding.handler.scratchpad_sweep |,
+            'desc'     => 'periodic scratchpad rescue sweep'
+        }
+    );
+
     ## subscribe to X-11 GPU stats stream if available -- deferred via
     ## <system.callbacks.initialized>: resolve_primary_sid's own internal
     ## route-send (for non-v7 zenki) fires before this zenka's own cube
@@ -578,8 +596,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,,,,,,,,,..,,.,,,,.,,,.,,..,.,.,..,,,,,,.,.,.,.,...,..,,.,,,..,,,.,,,..,..,,
-#VDC7GXU6ASUKCW6K2A3FSB2DVXW5MD4VEDWD3CX3AUQTO4NHPNKTM2LXKZGMO4U4L6ZY6QZLAAAO4
-#\\\|7BSXD3YC7GLLTNADDPJQP3J33263QC7ZACDGQPV5UQRA4LBHECB \ / AMOS7 \ YOURUM ::
-#\[7]ILL74K4ZOKDEYP7LC6T3ZFNUFXRP76HUVQVLVFVI32FPRMUTIMCY 7  DATA SIGNATURE ::
+#,,..,..,,,.,,..,,..,,..,,,,.,,,.,.,,,,.,,,,,,.,.,...,..,,...,..,,,.,,,..,..,,
+#PKQ7GADQUXDXXOWNUKHNYHTG53IVHA6ZTRU3OG2F6NGMX62XIIO2Y24OR2BCW7FB2VLMW7EK7474W
+#\\\|C3FQUW5W6OCH7LK2IZGBY6ZSB6IMDCHVCWGLDXPRQVR3MDKR7EB \ / AMOS7 \ YOURUM ::
+#\[7]DENA2K7JQSKGR47XCO27V3KTCC57CR6KIF22SPXEBCK3QCEHCCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

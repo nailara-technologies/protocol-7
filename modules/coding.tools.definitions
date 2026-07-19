@@ -1858,10 +1858,87 @@ push @tools,
     },
     };
 
+## scratchpad_list_all : enumerate session scratchpads [ /tmp + repo ] ##
+if ( exists $code{'coding.tools.handler.scratchpad_list_all'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'scratchpad_list_all',
+            'description' =>
+                'list claude session scratchpads system-wide : volatile '
+                . '/tmp dirs [ import candidates, wiped on reboot ] and '
+                . 'imported ones in data/scratchpad/, merged by bmw-L13 '
+                . 'id with repo | /tmp | repo+/tmp status.',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {},
+            },
+        },
+        };
+}
+
+## scratchpad_categorize : local-model keep/drop/review verdict ##
+if ( exists $code{'coding.tools.handler.scratchpad_categorize'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'scratchpad_categorize',
+            'description' =>
+                'triage one claude session scratchpad via a dedicated '
+                . 'inference call : reads the /tmp scratchpad files and '
+                . 'returns a keep | drop | needs-human-review verdict '
+                . 'with reasoning. use before scratchpad_rescue.',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'session' => {
+                        'type'        => 'string',
+                        'description' => 'claude session uuid'
+                    },
+                    'max_len' => {
+                        'type'        => 'integer',
+                        'description' => 'max reply tokens [ default 400 ]'
+                    },
+                },
+                'required' => ['session'],
+            },
+        },
+        };
+}
+
+## scratchpad_rescue : import one scratchpad into data/scratchpad/ ##
+if ( exists $code{'coding.tools.handler.scratchpad_rescue'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'scratchpad_rescue',
+            'description' =>
+                'import one claude session scratchpad from /tmp into '
+                . 'data/scratchpad/<bmw-L13 of session tmp path>/ with '
+                . 'an IMPORT-INFO provenance record [ original path, '
+                . 'uuid, per-file mtimes ]. use after a keep verdict '
+                . 'from scratchpad_categorize.',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'session' => {
+                        'type'        => 'string',
+                        'description' => 'claude session uuid'
+                    },
+                },
+                'required' => ['session'],
+            },
+        },
+        };
+}
+
 return \@tools;
 
-#,,..,,..,,.,,,..,,,,,..,,,..,..,,,.,,.,.,.,,,..,,...,...,,..,..,,.,.,...,.,,,
-#RPSPJWKF4DQ6YZH6J3E3HUDRUEP6CW2ZTOY6IM43Q72JADKZXZYGDWRGAXEADTIPO2BLFE5HABE2G
-#\\\|RS26TFZTTELX6IPFKR3CSREBJWKJ4FVKTSRGJPMRBRP7NVKH2X3 \ / AMOS7 \ YOURUM ::
-#\[7]S6R7VADCMZ3MCY7MDBYVVPXCVOIUBPPQKJ5VUSX3KX35SO2G3OBI 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,,.,..,,,,.,,,.,,..,..,,..,,,..,..,,...,..,,..,,.,.,,..,,,.,,..,
+#2AHLXMBOEHHGL73TPZKQ3GDYNPJHSDCD22BLPZBO32KMA4TSYLEKVHCADY2R3KGT25DUIYVPJRXHE
+#\\\|W4AMG2O3OCMFKOUPUDS6GIZLJG5UH3HZ55U3JGACQZNTSZS6LLX \ / AMOS7 \ YOURUM ::
+#\[7]OUPFXNRUPRPQDDOEQ3PWRA3JS6SNLXS6UA2UB53FKQAR3HR52QAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
