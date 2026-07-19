@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = coding.cmd.vision-model
+# descr = report vision support of loaded gpu model
+
+my $servers = <coding.inference_servers> // {};
+my $gpu     = $servers->{'gpu'}          // {};
+
+## authoritative mmproj path from model resolution [ same fallback as ##
+## coding.cmd.inference-status : server hash may be stale if module   ##
+## reloaded after spawn ] ##
+my $mmproj = <inference.model.mmproj_path> // '';
+$mmproj = $gpu->{'mmproj_path'}
+    if !length $mmproj
+    && length( $gpu->{'mmproj_path'} // '' );
+
+my $is_ready = ( $gpu->{'status'} // '' ) eq qw| ready |;
+
+if ( $is_ready && length $mmproj ) {
+    my $model_id = $gpu->{'model'} // <inference.model.amos_id> // '';
+    return { 'mode' => qw| true |, 'data' => $model_id };
+}
+
+return { 'mode' => qw| false |, 'data' => 'no vision model loaded' };
+
+#,,.,,,,.,,,,,.,,,,,,,,.,,,,.,.,.,..,,,,.,,,.,..,,...,...,...,..,,...,.,.,,.,,
+#3MFRDFED34DXPIMYJR6NYCG22MCFDOMWUWV7WGDN7SW35KVNCLWWB6VFJLFVLWA6FDA7XTJQRSMTU
+#\\\|OD7CTLSQWA72V57HBSYUNHEAOXPLLXAS6QWC3YYUVQN5TQ5GIR5 \ / AMOS7 \ YOURUM ::
+#\[7]BMEQDPCRPOR3KA4FK3WDBDB5VPUDDF3DGKUC5Q7J6OMAMYT3YECQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
