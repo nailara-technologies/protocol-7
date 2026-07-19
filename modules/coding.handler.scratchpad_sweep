@@ -1,0 +1,80 @@
+## [:< ##
+
+# name  = coding.handler.scratchpad_sweep
+# descr = periodic triage of /tmp scratchpads : categorize, rescue keeps
+
+my $event = shift;    ## timer event [ not used by repeating timer ]
+
+## guard : handler modules present ##
+return TRUE
+    if not( exists $code{'coding.scratchpad.scan'}
+    and exists $code{'coding.tools.handler.scratchpad_categorize'}
+    and exists $code{'coding.tools.handler.scratchpad_rescue'} );
+
+my $entries = <[coding.scratchpad.scan]>;
+
+## candidates : readable /tmp dirs with files and no repo import yet ##
+my @pending = grep {
+            not $_->{'unreadable'}
+        and $_->{'tmp_files'}
+        and not $_->{'repo_files'}
+} @$entries;
+
+if ( not @pending ) {
+    <[base.logs]>->( 3, 'scratchpad sweep : nothing pending' );
+    return TRUE;
+}
+
+## categorize blocks the event loop [ LWP, as summarize_context ] : bound ##
+my $max_per_run = 5;
+my ( $done, $kept ) = ( 0, 0 );
+for my $e (@pending) {
+    last if $done >= $max_per_run;
+    $done++;
+
+    my $reply = $code{'coding.tools.handler.scratchpad_categorize'}
+        ->( { 'session' => $e->{'uuid'} } );
+
+    ## inference backend down : abort this run, retry next interval ##
+    if ( $reply =~ m{^inference error} ) {
+        <[base.logs]>
+            ->( 2, 'scratchpad sweep : %s [ aborting run ]', $reply );
+        last;
+    }
+
+    my ($verdict) = $reply =~ m{^verdict\s*:\s*(\S+)};
+    $verdict //= 'needs-human-review';
+
+    <[base.logs]>->(
+        2, 'scratchpad sweep : %s [%s] -> %s',
+        $e->{'uuid'}, $e->{'bmw'}, $verdict
+    );
+    <coding.scratchpad_sweep.verdicts>->{ $e->{'bmw'} } = {
+        'uuid'    => $e->{'uuid'},
+        'verdict' => $verdict,
+        'ts'      => time,
+    };
+
+    if ( $verdict eq 'keep' ) {
+        my $result = $code{'coding.tools.handler.scratchpad_rescue'}
+            ->( { 'session' => $e->{'uuid'} } );
+        $kept++;
+        <[base.logs]>->( 2, 'scratchpad sweep rescue : %s', $result );
+    }
+}
+<coding.scratchpad_sweep.last_run> = time;
+
+<[base.logs]>->(
+    2, 'scratchpad sweep done : %d triaged, %d rescued, %d pending left',
+    $done, $kept, scalar(@pending) - $done
+);
+
+return TRUE;
+
+#,,
+
+#,,,.,...,,,.,..,,...,..,,.,.,.,.,,..,,,,,.,,,..,,...,...,,,.,.,.,...,.,.,..,,
+#63UOO5I67XU4H45DEJZC537RA2RF7ZZZFHJVJGIV2KC6VDL7MZWS3HQP44Q6O3IQFFQK6H4RDZVI4
+#\\\|66DTABZOONUUPXWF6RO3LRHH33UET7XIUAXLCCL5UAPLM44IH35 \ / AMOS7 \ YOURUM ::
+#\[7]LWL6TVPKLXEM6ZQEVUO4MH3LGL7NZMMTV4RHLXVKR5PSBKFRCWBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

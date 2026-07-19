@@ -3240,9 +3240,39 @@ sub _claude_scratchpad_dir {
         $REAL_USER_ID, $proj, $uuid;
 }
 
+sub _chmod_dir_if_mine {
+    my ( $path, $mode ) = @ARG;
+    return unless -d $path;
+    my ( $uid, $cur ) = ( stat($path) )[ 4, 2 ];
+    return unless defined $uid and $uid == $REAL_USER_ID;
+    $cur &= 07777;
+    chmod( $cur | $mode, $path ) if ( $cur & $mode ) != $mode;
+    return;
+}
+
+sub _scratchpad_group_grant {
+    my ($dir) = @ARG;
+    ## permission bridge for the coding zenka [ supplementary taeki group ] :
+    ## g+rx on the scratchpad dir itself, traverse-only g+x on the session
+    ## uuid dir [ tasks/ etc. stay unlistable ], g+rx on the fixed-name
+    ## parents [ project dir + /tmp/claude-<uid> ] so glob enumeration of
+    ## uuid dirs works [ best-effort, silently skipped if not owner ]
+    return unless -d $dir;
+    _chmod_dir_if_mine( $dir, 0750 );
+    my $depth = 0;
+    my $p     = $dir;
+    while ( $p =~ s{/[^/]+$}{} ) {
+        last if $p eq '/tmp' or length($p) < 5;
+        _chmod_dir_if_mine( $p, $depth == 0 ? 0710 : 0750 );
+        $depth++;
+    }
+    return;
+}
+
 sub _extract_claude_scratchpad_text {
     my ($uuid) = @ARG;
     my $dir = _claude_scratchpad_dir($uuid);
+    _scratchpad_group_grant($dir) if -d $dir;
     return ( '', 0, 0 ) unless -d $dir;
 
     my $file_cap  = 24576;     ## per-file content cap ##
@@ -3304,6 +3334,7 @@ sub tool_scratchpad_import {
         unless defined $s;
 
     my $src_dir = _claude_scratchpad_dir( $s->{'uuid'} );
+    _scratchpad_group_grant($src_dir) if -d $src_dir;
     return send_tool_result( $id,
         "no scratchpad dir for $s->{'uuid'} [ $src_dir ]", 1 )
         unless -d $src_dir;
@@ -3406,6 +3437,7 @@ sub _scratchpad_list {
         for my $sdir ( grep {-d} glob("$tmp_base/*") ) {
             my $scr = "$sdir/scratchpad";
             next unless -d $scr;
+            _scratchpad_group_grant($scr);
             my @f = grep {-f} glob("$scr/*");
             next unless @f;
             my $uuid = $sdir;
@@ -3653,8 +3685,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,,,..,,,,,,...,,..,,,,,,..,...,.,.,,..,,,.,..,,...,...,..,,,,,,.,.,,,,,...,
-#OZOQ5IVXYG6S7ROM7Y5VJMEDOPOQCWZFRKFBAQ2SX3S6TB3TOXQQ6EP75OAHM7XEEVK3P4WZVBO42
-#\\\|GBJUOBSU7LTNF4HTP4KBAGYSQRYQVGVLJ6A2HCR2MFRDTOKFIBQ \ / AMOS7 \ YOURUM ::
-#\[7]E6YAYDHWAKAH53SYCNQJBKBPFIMMVIOLYHHGQ4PYTNHMXJRV34BQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,..,,...,..,,,,.,.,.,.,.,,,.,,..,..,,...,..,,..,,.,.,.,.,,.,,,,,,
+#3EG7VWMDXPSVM2GFWN5RU4MSY2LPWHNXGB3BYJDOF2J4PYEA53UI7HLK3DNZS4R56WNA6KK65QJHE
+#\\\|N76DFZ5ADDK3ATLMNHP5O6X47QXRXTZI2SQORUDOIFZT7ORAK6T \ / AMOS7 \ YOURUM ::
+#\[7]OIXYE5SZR35DZRTVEENW7BJ7WPO667IMYHUMBBUSKO7RCC6MGGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

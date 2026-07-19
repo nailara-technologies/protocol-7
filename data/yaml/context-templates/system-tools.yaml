@@ -4,36 +4,36 @@ descr: tool usage documentation for inference with tool calling
 sections:
   - static: |
       ## available tools ##
-      
+
       you have 30+ tools available to inspect the codebase and manage tasks:
-      
+
       ### file operations ###
       - read_file(path, offset, length) — read file content with pagination
       - read_module(module) — read P7 module with description and metadata
       - list_modules(namespace) — discover modules in a namespace
       - list_files(root, pattern) — directory listing with optional filter
       - extract_file(path, extract) — smart extraction: header, functions, pattern
-      
+
       ### code analysis ###
       - search_code(query, offset, max_results) — search file contents with pagination [ query param must be non-empty string ]
       - ncode_search(pattern, offset, max_results) — search with AMOS ncode patterns [ avoid dots/hyphens in pattern — use search_code for module names ]
       - module_deps(module) — find what a module calls and what calls it
       - dep_graph(module) — generate dependency graph for a module
       - list_inline_subs(module) — list inline subs in a module
-      
+
       ### validation & formatting ###
       - validate_module_format(module) — check P7 module signature/format
       - ptd_check(path) — check PTD (Protocol-7 Data) file validity
       - ptd_format(path) — format/normalize PTD files
       - validate_module(module) — full module validation
-      
+
       ### data & state ###
       - tree_read(path) — read from %data tree
       - tree_write(path, value) — write to %data tree
       - tree_list(path) — list keys in %data tree
       - get_current_time() — get current system time
       - decode_base32(input) — decode base32-encoded strings
-      
+
       ### task management & notes ###
       - note_write(section, content) — write to task notes workspace
       - note_read(task_id, level) — read notes at L1/L2/L3 detail
@@ -45,11 +45,16 @@ sections:
       - record_suggestion(suggestion) — record a suggestion for improvement
       - task_complete(summary) — mark task as complete with summary
       - escalate(reason) — escalate to human operator
-      
+
       ### git & history ###
       - recent_changes(limit) — recent git changes with file stats
       - recent_errors(filter, limit) — recent error log entries
-      
+
+      ### scratchpad rescue [ claude session /tmp dirs, volatile ] ###
+      - scratchpad_list_all() — list /tmp + imported scratchpads with repo | /tmp | repo+/tmp status
+      - scratchpad_categorize(session, max_len) — local-model keep / drop / needs-human-review verdict for one session's scratchpad
+      - scratchpad_rescue(session) — import one session's scratchpad into data/scratchpad/<bmw-L13>/ with IMPORT-INFO provenance
+
       ### usage guidelines ###
       - call tools when you need more context before answering
       - prefer read_module for P7 modules, read_file for other files
@@ -57,7 +62,7 @@ sections:
       - use search_code/ncode_search to find relevant code patterns
       - use note_* tools to persist findings across tasks
       - use pagination (offset) for large files or search results
-      
+
       ### important: output restrictions ###
       - never use jinja2 syntax: {{ var }}, {% tag %}, or namespace() calls
       - the inference server uses jinja2 and will fail on such output
@@ -66,8 +71,8 @@ sections:
     budget_pct: 100
     label: available tools
 
-#,,..,...,..,,,.,,...,..,,...,..,,.,,,..,,..,,..,,...,..,,...,,,.,.,.,,..,..,,
-#BYW57VMQWSDTSIE6FWGGBSEDKXX3AQYQHVURNHUCKJBNALN275K6XDUD3DSGRQINHVF2R6V6ZNA7A
-#\\\|S6KXSD6AZQ5WKSOG75JAUSIGQEPPV2B74ACONIYFLCD3HK5REVT \ / AMOS7 \ YOURUM ::
-#\[7]YET65TMPT725HGZNVZPCTTLPXSM5LYQGJADZGJ6VD2YAG7PS4MAI 7  DATA SIGNATURE ::
+#,,,.,...,,,.,,,.,,,,,.,.,...,.,,,...,.,,,,,.,..,,...,...,...,,..,,..,,..,...,
+#CYWPEJKUNXKJNZQFDFOV2MHNAQVXQEPJQWE3JTWJH3G2RV66WO5XYTTESVR2PD2FWU44OX3E4FQ42
+#\\\|25NTXOTTVCCWHYMGT4DYTDKJVLF7EBYP7D6ZNZ223Q5762DWMR4 \ / AMOS7 \ YOURUM ::
+#\[7]XQ4SNUJ344ARHGR4642CXBXOE4IAII5MGY74BKQHQGJUNT45SMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
