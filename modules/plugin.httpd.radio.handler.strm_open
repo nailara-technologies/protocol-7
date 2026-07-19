@@ -40,11 +40,11 @@ my $cancel_strm = sub {
         }
         last;
     }
-    <[base.strm.local.cancel]>->($cmd_id);
+    <[strm.local.cancel]>->($cmd_id);
     delete <plugin.httpd.radio.relay>->{$http_sid};
 };
 
-<[base.strm.local.register]>->(
+<[strm.local.register]>->(
     $cmd_id,
     {   'watcher' => sub {
             my $lc = shift;
@@ -92,8 +92,8 @@ my $cancel_strm = sub {
     $http_sid, $cmd_id
 );
 
-#,,,.,,.,,.,.,,,,,,,.,,.,,,,,,.,.,...,.,,,..,,.,.,...,...,,,,,,..,,..,..,,,..,
-#NPOE4DCY5YYSYRSLTLNZPJGI4OC5BE2ZZL7Z5MNUACHC6P5OIPZNP7FGN6TXOG4JCW2XKA3UUDWLG
-#\\\|SYPFUKHAID5VFN67K3Y2RCVPDJKXF6MHT6BNAPHH7SXZBNYISDX \ / AMOS7 \ YOURUM ::
-#\[7]SPDAJOM4BHXETJCMOYMN7UNUAKMQ3ZPDT3JBJAS4X4KDCPJ3BEDA 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,.,,,.,.,,,,,.,,,,.,,,,,,,,.,,,.,.,.,...,...,..,,,,,,.,.,,,.,...,
+#OJX43N3CLCT42F76IU4IJIORHT4BAH2T5HS266HGCZITNW4CPX3R2Q3FRPPHAKJPA5YG4NJJEZFF2
+#\\\|PQHQDPL4UMJ3MD4HVECNZ36EB7MQXOA2GYYXITHCOS7QBYEGGUE \ / AMOS7 \ YOURUM ::
+#\[7]ZALT2I77E7BGODMUIQNAHL543ULA7O3TN2ABVCPVOMRK3NZCKEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

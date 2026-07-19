@@ -13,14 +13,14 @@ $data{'route_cache'} = {} if exists $data{'route_cache'};
 ##  cancel all active relay consumers  ##
 for my $http_sid ( keys <plugin.httpd.radio.relay>->%* ) {
     my $cmd_id = <plugin.httpd.radio.relay>->{$http_sid};
-    <[base.strm.local.cancel]>->($cmd_id);
+    <[strm.local.cancel]>->($cmd_id);
     $data{'session'}{$http_sid}{'flush_shutdown'} = 1
         if exists $data{'session'}{$http_sid};
 }
 <plugin.httpd.radio.relay> = {};
 
-#,,.,,,..,,,.,.,,,...,,,,,..,,,.,,,..,,..,.,.,..,,...,...,...,,.,,,,,,,..,,,,,
-#OXGOSESDQDTJ5XLPURKTRFAASFVJVPX5CRY6L5D276XBQ4DLFN4UUNZWXIURS5BXGZTI6BD3XJ5LG
-#\\\|XUCH44WKTWQVLGQ65TNXJEXTB5G5XDSTNCOOW6Q3VYRRHRRXGOJ \ / AMOS7 \ YOURUM ::
-#\[7]7RTGUMOMEYBUMPKQPJLCLQJEIZ2XF6IIBN2MNDS3DNYRW6AU7YCI 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,..,,,.,,,,,,,.,,,,,,,,,,.,,...,..,,...,...,,..,,.,,...,,.,,,..,
+#SUPNRVQKBBS4Q36R4I23CKLAFNX56LTKVCSEEQDWAUBLS5XPX52LAZAROLED7753ZPZOQ5J7HBVRQ
+#\\\|CBKWAEJDWALZGYM7W7ZTLYA5YIAZXVCHOKVA7BDFDHFQBMQ5JTH \ / AMOS7 \ YOURUM ::
+#\[7]KB4QJZQN2OCYAHQEMV4DKUTPAEI4F5BNVAM5CQDHXYRFIMKIKKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

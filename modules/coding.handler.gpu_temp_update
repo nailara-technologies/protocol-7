@@ -31,7 +31,7 @@ return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
 };
 
 ## register local consumer ##
-<[base.strm.local.register]>->(
+<[strm.local.register]>->(
     $cmd_id,
     {   'watcher' => sub {
             my $lc = shift;
@@ -103,8 +103,8 @@ return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
 <[base.logs]>
     ->( 2, 'gpu temp STRM consumer registered [cmd_id=%d]', $cmd_id );
 
-#,,..,,,.,,,.,,,.,...,.,.,..,,..,,.,,,,..,..,,..,,...,..,,,.,,.,.,,..,.,,,,,.,
-#RTW6POR672UQAEV3Z4574S6CVZTVMLOYWIF6RR3D663GCIBWAMCLMSJBY4VLE3Q5FFDQUVC77G7O4
-#\\\|7CWAMWUR7QTFF2WNWY5YLRQU6LLFA5L4EOUGPDTFLEUAGRXUOW6 \ / AMOS7 \ YOURUM ::
-#\[7]6XCW3ZD3RRRZDCQHDTGQKEAF735JCYC3JQZTCZVXOWVPITVORKAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,...,.,,,,.,,,,,,...,,.,,.,,,,.,,..,,...,...,,..,.,,,.,,,.,.,,..,
+#R6WRUFT4XZQMYOYUIOCPIWGRERUMWS6WIZQSWQEZEKE57LXP6G6TSHCRF56GQWEZXLKKMHN5VXGRU
+#\\\|XFFO4P3X774GN7NYF7LXR4HQYNKRLQDBNEOERFRP2BNIPFEFZ4X \ / AMOS7 \ YOURUM ::
+#\[7]NFEIID2DB36LEQ4HDZYT4NAQ33YDXE6LS7LMMJDGGWWL7V6QQ4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
