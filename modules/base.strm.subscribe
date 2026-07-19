@@ -1,0 +1,148 @@
+## [:< ##
+
+# name  = base.strm.subscribe
+# descr = generic offline-safe STRM subscription wrapper
+#
+# a zenka's init_code calls this once per subscription :
+#
+#   <[strm.subscribe]>->({
+#       'publisher' => 'cred-mesh',           ## target zenka
+#       'command'   => 'subscribe_rotation',  ## its subscribe command
+#       'args'      => [ qw| * | ],           ## publisher-specific args
+#       'handler'   => 'cred-rotated',        ## notify suffix on this zenka
+#       'start'     => 0,                     ## :start: publisher if down
+#   });
+#
+# the wrapper sends "<publisher>.<command>" with call args
+# "<args..> <system.zenka.name>.<handler>" and enforces the
+# variable-target/fixed-suffix shape structurally [ see
+# data/tasks/completed/cred-mesh-subscribe-handler-reflection.md ] :
+# the subscriber identity is always this zenka's own name from
+# <system.zenka.name>, never a caller-supplied string, and 'handler'
+# is validated to be a bare single-segment suffix -- no dotted command
+# path can be smuggled through it. the publisher side remains
+# responsible for deriving the fired command from the authenticated
+# source zenka + its own fixed suffix [ cube SOURCE_ZENKA alias ] ;
+# the wrapper guarantees it only ever *requests* its own name.
+#
+# flow : immediate route-send attempt, deferred through
+# <system.callbacks.initialized> when the own cube session is not up
+# yet [ pointer-stream-init pattern, no fixed-delay timer ]. on failure
+# the attempt resumes via v7.notify_online [ ':start:' prefix optional ]
+# with base.zenka.push-shaped exponential backoff.
+#
+# the publisher-restart re-affirm case is deliberately left open [ see
+# data/tasks/strm-generic-subscribe-wrapper.md ] : the persistent
+# <base.strm.subscribe.registry> entry keeps the full subscription
+# description around after success, so a future re-affirm hook [ e.g.
+# on 'command route collapsed' ] can re-issue the attempt as-is.
+
+my $params = shift;
+
+if ( ref $params ne qw| HASH | ) {
+    <[base.logs]>->( 0, 'strm.subscribe : expected parameter hashref' );
+    return FALSE;
+}
+
+my $publisher = $params->{'publisher'} // '';
+my $command   = $params->{'command'}   // '';
+my $handler   = $params->{'handler'}   // '';
+my $start     = $params->{'start'}     // FALSE;
+
+my @extra_args;
+if ( defined $params->{'args'} ) {
+    @extra_args
+        = ref $params->{'args'} eq qw| ARRAY |
+        ? $params->{'args'}->@*
+        : ( $params->{'args'} );
+}
+
+## validate : plain zenka name + single-segment command and notify     ##
+## suffix [ no dots, ever ], whitespace-free argument tokens           ##
+my $valid_name = qr|^[A-Za-z0-9][A-Za-z0-9\-\_]*$|;
+
+if ( $publisher !~ $valid_name ) {
+    <[base.logs]>->(
+        0, 'strm.subscribe : invalid publisher name [ %s ]', $publisher
+    );
+    return FALSE;
+}
+if ( $command !~ $valid_name ) {
+    <[base.logs]>->(
+        0, 'strm.subscribe : invalid command suffix [ %s ]', $command
+    );
+    return FALSE;
+}
+if ( $handler !~ $valid_name ) {
+    <[base.logs]>->(
+        0,
+        'strm.subscribe : handler must be a bare command suffix'
+            . ' [ %s rejected : dots not allowed ]',
+        $handler
+    );
+    return FALSE;
+}
+foreach my $arg (@extra_args) {
+    if ( not defined $arg or $arg !~ m|^\S+$| ) {
+        <[base.logs]>->(
+            0, 'strm.subscribe : invalid argument token [ %s ]',
+            $arg // 'undef'
+        );
+        return FALSE;
+    }
+}
+
+my $own_name = <system.zenka.name> // '';
+if ( not length $own_name ) {
+    <[base.logs]>->( 0, 'strm.subscribe : own zenka name unknown' );
+    return FALSE;
+}
+
+## variable-but-own target + fixed suffix, constructed here ##
+my $notify_target = join( '.', $own_name, $handler );
+my $args_str      = join( ' ', @extra_args, $notify_target );
+my $cmd_str       = join( '.', $publisher, $command );
+my $key           = join( ' ', $cmd_str, $args_str );
+
+<base.strm.subscribe.registry> //= {};
+
+if ( defined <base.strm.subscribe.registry>->{$key} ) {
+    ## repeat call with identical parameters ##
+    my $state = <base.strm.subscribe.registry>->{$key};
+    return TRUE if $state->{'deferred'};      ## init callback pending
+    return TRUE if $state->{'subscribed'};    ## nothing to do
+    return <[strm.subscribe.attempt]>->($key);    ## retry path
+}
+
+<base.strm.subscribe.registry>->{$key} = {
+    'publisher'     => $publisher,
+    'command'       => $command,
+    'cmd_str'       => $cmd_str,
+    'args_str'      => $args_str,
+    'notify_target' => $notify_target,
+    'start'         => $start ? TRUE : FALSE,
+    'subscribed'    => FALSE,
+    'deferred'      => FALSE,
+    'error'         => undef,
+    'waiting_no'    => FALSE,
+    'backoff_n'     => 0,
+    'last_attempt'  => 0,
+};
+
+## own cube session not up yet [ init_code context ] : defer the first  ##
+## attempt to the <system.callbacks.initialized> hook instead of        ##
+## guessing a fixed delay                                               ##
+if ( not <system.zenka.initialized> ) {
+    <base.strm.subscribe.registry>->{$key}->{'deferred'} = TRUE;
+    push @{ <system.callbacks.initialized> //= [] },
+        sub { <[strm.subscribe.attempt]>->($key) };
+    return TRUE;
+}
+
+return <[strm.subscribe.attempt]>->($key);
+
+#,,.,,.,.,..,,,..,,.,,,,,,...,.,.,,.,,.,.,,..,..,,...,..,,.,,,.,.,..,,.,,,,,,,
+#KXXWORNURBWJE7MYSPCNPLKSBXDHKZMD7GFU24GLS55VCOAKN7KOYQ6VAZ5JCQWAZWRL42EDL7TWS
+#\\\|FNKYHOLN6LNFJVCFCEZJEPHNPKCJQ5IF3L3PU6NDRBXCBLKI6XE \ / AMOS7 \ YOURUM ::
+#\[7]ENTQHOPWHIH34VUWXMH2YLG3NBCV3D4EABRXRI6HEBX2Y4YK6UDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
