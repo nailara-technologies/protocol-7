@@ -5,6 +5,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: 3c264315-73af-4677-a8b4-23ce085cb5a8
+  modified: 2026-07-19T07:47:06.151Z
 ---
 
 **LANDED 2026-07-17**, three related fixes to `bin/mcp-server-p7`'s kimi
@@ -57,14 +58,24 @@ tools, all same session as the agent-detection fix
   final report — `session_catchup`'s own summarization is itself lossy
   for large results (confirmed: undercounted a 22-vs-20 file list once).
 
+**Recurrence 2026-07-19**: same false-failure pattern hit again on the
+`strm-generic-subscribe-wrapper.md` K3 dispatch — `task-notification`
+reported `status=failed` after the MCP idle timeout, but
+`~/.kimi/logs/kimi.log` showed the work (6 modules, live-verified
+against cred-mesh/proxy, self-recorded gotcha note) had already
+completed; only the final `write_new_file` for its own memory note got
+cut off mid-reply. Disk state (`git status`, `ls modules/`) confirmed
+everything landed. Same lesson: check disk/logs before treating a
+`failed` task-notification as lost work.
+
 ## related
 
 [[feedback-mcp-memory-update-agent-detection]] ·
 [[feedback-kimi-dispatch-pattern]] ·
 [[feedback-tasks-completed-scan-verdict-trust]]
 
-#,,..,,,,,.,,,..,,,,,,,.,,,.,,,..,,.,,...,.,.,..,,...,...,.,,,,,,,,..,.,,,,,.,
-#5EU4CWPGLHBKTRSJJMY5SKL5LOKFQS2SGNC3PORJN7ISHBAC4KC5HYXRQYYKUF7BRAZXV6Y7LL7PG
-#\\\|2IQ56IU2EULOGRFW6E4JCDMXD3PH6BZRDWAHPLQ6LOCYMYXPGGM \ / AMOS7 \ YOURUM ::
-#\[7]XFWOIHY5KHPNF5JEBXGZAE3DK7JM2KBW5BDRFHE6L4ICOOJKZ6DQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,...,...,,..,...,..,,,..,.,.,..,,..,,...,...,,,.,.,.,,,.,,.,,,,.,
+#KGJCH2EMGHGJAA5HTTI5G52WPOLCOBURT3ZZOL423EF2PNF6OU4Y7WOFYUEAPIRW7WRW3FXRFSKQ2
+#\\\|QZRVAB44ZVHHAD52RFO46NAG5SQDOS2X42FJ67IFQL32NVFPLRM \ / AMOS7 \ YOURUM ::
+#\[7]6IQT4LZVPZLDADPJMU3U6PGB2I52XGUADEKTHCLJK2X3B6BPGYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

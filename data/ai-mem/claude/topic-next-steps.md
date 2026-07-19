@@ -5,7 +5,29 @@ metadata:
   node_type: memory
   type: project
   originSessionId: 56cce73a-933a-4992-96e4-4d88e138e8f6
+  modified: 2026-07-19T07:47:39.302Z
 ---
+
+## done (2026-07-19)
+
+- **base.strm.subscribe generic offline-safe subscription wrapper** ✓
+  (`127cb7627`, kimi K3 dispatch) — 6 modules (base.strm.subscribe +
+  .attempt/.wait-online/.reply-handler[.notify-online]/.pre_init,
+  swapped to `strm.subscribe`), mirrors `base.zenka.push` pattern.
+  Structurally closes the confused-deputy/reflection class fixed in
+  `536c41877` (`data/tasks/completed/cred-mesh-subscribe-handler-
+  reflection.md`, archived): handler validated as bare single-segment
+  suffix, notify target always `<system.zenka.name>.<handler>`.
+  Verified live vs real cred-mesh/proxy pair (offline wait,
+  auto-resubscribe, real rotation event). Publisher-restart re-affirm
+  deliberately left open (registry persists for a future hook);
+  production proxy/transport call sites untouched by design.
+  Self-recorded gotchas: `data/ai-mem/kimi/strm-subscribe-wrapper.md`.
+- **log-anonymization.md checksum fix** (`0edadb2c7`) — corrected
+  BMW-L12→BMW-L13 throughout (implemented function is
+  `base.chk-sum.bmw-l13`, 13-char B32); task not yet dispatched, next
+  in queue for K3 (phase 1: classify/replace/store/resolve, opt-in via
+  p7-log, has ready dispatch prompt in the task file itself).
 
 ## done (2026-06-18)
 
@@ -378,8 +400,8 @@ what it should actually invoke.
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,..,,..,...,...,,.,,.,,,.,,,,..,,,,,...,,..,..,,...,...,,,.,,.,,.,,,,..,,..,
-#MY3F3JM6YTI2G7YEB7RFZJTXWGY2HFQ2SIMXTMORHDQXYOL55TFBF5E2XNRHB6OAFRXSMCKAX6WVI
-#\\\|26WYGH2MMCHYTEKYZ2LJVSSAHLCSYNYUJ5LG5MRCUTVK34ZSDRQ \ / AMOS7 \ YOURUM ::
-#\[7]H75MLTP6J23RNBEPHJVARNLJDWMML5MSSGVCLKQYZ4R6OPGXNIAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,,.,...,,..,,..,,.,,,,,,.,.,.,,,..,,...,...,.,.,.,.,,..,,..,..,,
+#4R2YAZJGQ3U2UZTFSRVP5JXCGLJ2P66XJDQSFMR27WAOXI3DR7NW2TEG7BQAUA3KWGOTK7YC2BQW6
+#\\\|TZ5TQXNLXKBCIYVXDDDZQKDZO7YXJ6KCCRZG5DP7RNSFRRLC5AR \ / AMOS7 \ YOURUM ::
+#\[7]76ZAQJPKYJJAUNX2VURQPEXS54B6BGO5FMB72NP74NXLTLXMTUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
