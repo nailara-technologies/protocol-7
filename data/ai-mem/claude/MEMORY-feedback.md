@@ -21,6 +21,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [claude_dispatch summarize hang](feedback-claude-dispatch-summarize-hang.md)
 - [init-code-return-values](feedback-init-code-return-values.md), [memory-sync-timing](feedback-memory-sync-timing.md), [memory-management](feedback-memory-management.md)
 - [claude-dispatch-strategy](feedback-claude-dispatch-strategy.md), [kimi-code-review](feedback-kimi-code-review.md), [kimi-signatures](feedback-kimi-signatures.md), [kimi-dispatch](feedback-kimi-dispatch-pattern.md)
+- [kimi-k2.7-vs-k3-tier-economics](project-kimi-k2.7-vs-k3-tier-economics.md) — K3 categorically stronger reasoning, not just steering; ~3.75x price reflects it, use for higher-impact tasks
 - [model-precision-analysis](feedback-model-precision-analysis.md), [coding-zenka-edits](feedback-coding-zenka-edits.md)
 - [coding-zenka-reasoning](feedback-coding-zenka-reasoning.md), [coding-zenka-inject](feedback-coding-zenka-inject.md)
 - [arg-regression](feedback-arg-regression.md), [arg-calling-convention](feedback-arg-calling-convention.md)
@@ -35,8 +36,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [cmd-module-call-convention](feedback-cmd-module-call-convention.md) — .cmd. network modules use $call, not $ARG
 - [design-ideation-capture](feedback-design-ideation-capture.md), [coding-timeout-restart-loop](feedback-coding-timeout-restart-loop.md) — offer spin-off docs
 
-#,,,,,..,,,,,,...,,,,,..,,,,.,.,.,...,,.,,,..,..,,...,..,,.,.,..,,,..,,..,,.,,
-#PLZM74CHP3VMXYHIQMRK7P7XZXU6UGMJRTQLVWBY7Z6MFRELDNWEWYI3H5Q2PZCZRJVKW6LKHLW3Q
-#\\\|VGBA2JGNYENEO4N2YGKBQR7SIJRGWWL5MPEJHCBNP2HIOGJHN5I \ / AMOS7 \ YOURUM ::
-#\[7]PPAG6L5U5GNL3PMIWIT446NK4X3TAG4VJGIUMO7U3KLGFMWQCACY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,,,,,..,,..,,,.,,..,,,,,,,,,..,,..,,...,...,...,.,,,...,...,.,,,
+#IVSAUNVS42YQFTL7QZR7HB2DADDJLI4CD4ONNEMWODMQTL7Y4U2GWFYTRG3ALKL2J2RTWKBT7TXSK
+#\\\|XWABMJIRAL3I3Y7MDWNHUQOUEO2MJDFJNWXOATM27LCZX2VA74S \ / AMOS7 \ YOURUM ::
+#\[7]77SQWKMCU4PX75EFGXBHRNI6XAHQCRZDKEZ6NMUBZ3R7AIXJEABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
