@@ -1,36 +1,55 @@
 ## [:< ##
 
 # name  = cred-mesh.cmd.subscribe_rotation
-# descr = subscribe a handler to credential rotation events
-# param = <slot> <handler>
+# descr = subscribe to credential rotation events
+# param = <slot> [handler] [ src_zenka via cube alias ]
 
+## SOURCE_ZENKA alias prepends the caller's identity as the first token ##
 my $args_str = $call->{'args'} // '';
 $args_str =~ s/^\s+|\s+$//g;
 
-my ( $slot, $handler ) = split qr|\s+|, $args_str, 2;
-$slot    //= '';
-$handler //= '';
+my ( $source_zenka, $slot, $handler ) = split qr|\s+|, $args_str, 3;
+$source_zenka //= '';
+$slot         //= '';
+$handler      //= '';
 
 <[base.logs]>->(
-    1,     'cred-mesh.cmd.subscribe_rotation: received slot=%s handler=%s',
-    $slot, $handler
+    1,
+    'cred-mesh.cmd.subscribe_rotation: received source=%s slot=%s handler=%s',
+    $source_zenka,
+    $slot,
+    $handler
 );
 
+return { 'mode' => qw| false |, 'data' => 'missing zenka identity' }
+    unless length $source_zenka;
 return { 'mode' => qw| false |, 'data' => 'missing slot' }
     unless length $slot;
-return { 'mode' => qw| false |, 'data' => 'missing handler' }
-    unless length $handler;
+
+## the caller-supplied handler string is accepted for backward compatibility
+## but never trusted : the notify target is derived from the authenticated
+## source zenka identity + the fixed 'cred-rotated' suffix instead ##
+if ( length $handler and $handler ne $source_zenka . qw| .cred-rotated | ) {
+    <[base.logs]>->(
+        0,
+        'cred-mesh.cmd.subscribe_rotation: ignoring mismatching caller-'
+            . 'supplied handler %s [ source %s fires as %s.cred-rotated ]',
+        $handler,
+        $source_zenka,
+        $source_zenka
+    );
+}
 
 my $result = <[cred-mesh.subscribe_rotation]>->(
-    {   'slot'    => $slot,
-        'handler' => $handler,
+    {   'slot'         => $slot,
+        'source_zenka' => $source_zenka,
     }
 );
 
 <[base.logs]>->(
     ( defined $result and ref $result eq qw| HASH | ) ? 1 : 0,
-    'cred-mesh.cmd.subscribe_rotation: result for handler %s : %s',
-    $handler,
+    'cred-mesh.cmd.subscribe_rotation: result for source %s : %s',
+    $source_zenka,
     ( defined $result and ref $result eq qw| HASH | )
     ? ( $result->{'data'} // 'ok' )
     : 'subscribe failed'
@@ -43,8 +62,8 @@ return { 'mode' => qw| false |, 'data' => 'subscribe failed' };
 
 ## [ end ] ###################################################################
 
-#,,.,,..,,.,.,,.,,..,,..,,..,,,..,,,.,..,,.,,,..,,...,...,...,...,,,,,.,.,..,,
-#ZYX2OIJHOOLPCJOAGS6QGRB75NT5VSZBQPHBPQZZHPZMOJSPVG5OWYO6BZT3ERTCMZXXIFWJZWWDG
-#\\\|4AWVQMI3O5AHMVR34W6MSNIB3Q2GLAWTBD3GCF2JMANIC5GVKPQ \ / AMOS7 \ YOURUM ::
-#\[7]UQBIUSJBNEBW2A5NQODZMRHDYQLHBY32N4ZKNMRPNAHJLE3YLKDY 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,...,...,...,,..,,.,,.,,,,..,,..,..,,...,...,,,.,.,,,,.,,...,,..,
+#JJ2PXXRXLNJQMQ4FKJY5M5I6367SD4EEXOQIPOWPVJVEJY2FTJH7WWUNLU7J5DLJPXUOEE45C3MBG
+#\\\|EUOISGCXXEH7GVLCSKZR5CUBJQ5GX3K7B5UKGNKAXDRM3FULICK \ / AMOS7 \ YOURUM ::
+#\[7]HP6AEAV7ZAEEJPWOPGSCCLJJXXKRKX2OYHTGAY4GTY7KANTSCACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
