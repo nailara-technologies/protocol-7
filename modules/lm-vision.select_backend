@@ -37,15 +37,18 @@ if ( $gpu_server->{'still_loading'} ) {
         'coding inference server is still loading the model' );
 }
 
-## if server is ready but lacks mmproj, vision over http will not work ##
+## server ready but current model has no mmproj: a normal, common state
+## [ non-vision models run on the same shared gpu server ], not a fault --
+## cache is kept fresh by the steady-state poll in update_coding_status,
+## so this reflects the currently loaded model, not a stale guess ##
 if ( $is_ready && !$has_mmproj ) {
     <[base.logs]>->(
-        0,
-        '[select_backend] coding server ready but missing mmproj,'
-            . ' vision unavailable'
+        1,
+        '[select_backend] coding server ready, current model has no'
+            . ' vision support'
     );
     return ( qw| unavailable |,
-        'coding inference server lacks mmproj path, cannot process vision' );
+        'current coding model has no vision support (no mmproj loaded)' );
 }
 
 ## server not ready but http forced - treat as loading to queue request ##
@@ -93,8 +96,8 @@ if (@other_llama) {
 <[base.logs]>->( 1, '[select_backend] falling back to cli backend' );
 return ( qw| cli |, 'no shared server available, isolated cli spawn' );
 
-#,,..,,..,,,.,..,,,,,,.,,,,,.,,.,,..,,.,,,,.,,..,,...,...,,.,,..,,...,,.,,,,.,
-#AN6WZUSSSR3ADIONV3QWW5WWQFZ23FPYC4T45VTKQWKQRW7I74Q3UBJINWJYPOROITAH524QT3PQC
-#\\\|LCB5XT5ZQJ5BORBGVYWAVRVGFXWUQCKDSWSE3Q7PIRXBDUFUQFM \ / AMOS7 \ YOURUM ::
-#\[7]54UCJIZ3BNF2DX3K6ILR4LU5W7CFBV4CZJ66CIK73NUYEG2UAMCY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,...,,,,,..,,...,...,,,,,,,,,,..,..,,...,..,,,.,,.,.,...,,..,..,,
+#Y6GLULOGQBG6CPKVA2AUAPKTMRB7IBC6CUJO532CND3ZJ6UV32EODBUR532DXHDZE7G7JS5TIQXI6
+#\\\|AHMWMMXJXRYM5SNKXXHXDBYOAWRINTOHJZTIFEV73ZGBQJ4PTFY \ / AMOS7 \ YOURUM ::
+#\[7]FRC6ZGI64XFLRZGF2LLYGBP5GVZ2QZGBL6EUBIN72G6VV5SNOABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

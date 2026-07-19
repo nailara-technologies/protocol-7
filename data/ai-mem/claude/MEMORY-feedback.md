@@ -36,9 +36,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [cmd-module-call-convention](feedback-cmd-module-call-convention.md) — .cmd. network modules use $call, not $ARG
 - [design-ideation-capture](feedback-design-ideation-capture.md), [coding-timeout-restart-loop](feedback-coding-timeout-restart-loop.md) — offer spin-off docs
 - [swap-subs-not-fragile](feedback-swap-subs-not-fragile.md) — base.swap_subs whitelist only gates lazy-load, not safety; real gap is missing canonical doc of active swaps
+- [init-reports-one-shot-flush](feedback-init-reports-one-shot-flush.md) — system.init_reports flushes once at connect only; deferred-reply/live-runtime sends need system.callbacks.initialized or direct route-send instead
 
-#,,.,,.,.,,..,,..,.,.,.,,,,..,,,,,...,.,,,.,,,..,,...,...,...,,..,,..,,..,,,.,
-#3KHU64FRT4T4SYARYXQTOAW7JNH5GFVTQ2EI5TPY2MULUFGKVPRWRGXMOHRU2SOYXXOP4YBZNTEVW
-#\\\|MAMTJWWZSO7J6JSWMGTRZC6L3JDKB7AOPZUQ5GYXEXAQX2AILBV \ / AMOS7 \ YOURUM ::
-#\[7]6IPNL6JI7G5AQIJLEJFDLX4DEVBK5JRKMLYNNKUDTHZWI46KJOBA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,.,,.,,,,,,,,..,,,.,.,,,,.,,...,..,,...,...,.,,,,..,,,,,,..,...,
+#GQMKLJXXAF54FSTYA6KMET6OJMBI3Z4HLM23DP23TFSCJE3ONJ2HRHNUFNJJY7XWRLVU26LUUOVG2
+#\\\|CED7YRDTYASNJ6ZIJ4P4MDHNERM3Z4ZAMKMPLBFC7S4TVUXIZG5 \ / AMOS7 \ YOURUM ::
+#\[7]BTE6EN7XYGI4RJCBYMANJJAD7IYZZYSUHZIVC6P2SI44KAEDPKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
