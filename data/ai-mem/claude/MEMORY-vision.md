@@ -30,9 +30,10 @@ network-as-computer, dedup-tree unification, coding-as-artform / style-philosoph
 - [1001](topic-1001.md), [perspective-layers](topic-perspective-layers.md), [observer-centric-space](topic-observer-centric-space.md) — cube tunnel/gate nesting
 - [routing-crystal](topic-routing-crystal.md), [checksum-tree-wire](topic-checksum-tree-wire.md), [tree-protocol](topic-tree-protocol.md), [data-protocol](topic-data-protocol.md)
 - [reference-bubble](topic-reference-bubble.md), [branch-namespace](topic-branch-namespace.md) — rhizome bubble (5+2=7)
+- [dynamic-context-prep-vs-model-size](topic-dynamic-context-prep-vs-model-size.md) — discovery cost, not model size/tokens, is the real lever; front-load gotchas/conventions into task briefs
 
-#,,,,,,.,,,.,,.,.,,..,,..,,,,,,,,,..,,.,.,,,,,..,,...,..,,,,,,,,,,.,.,,,,,,,.,
-#6Y2RT4IOORWX6F4Q7T5W2R6SDCB7TCKQX7YK7EFBHSHLEFUYE23XHRUYJTVOU6RT32BBTV462IH3Q
-#\\\|UDPX6THSFE346ZMUXO5SV3RQDP4EKZ2CL7EL77HUCYX5V22QD2P \ / AMOS7 \ YOURUM ::
-#\[7]XI47PLDGDI2ZV22XRQ66L4QV2SD2PO5G4W3AYMV4BMQCXYWAN6CI 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,.,,,..,,,,,,,,.,...,,..,...,,.,,..,,...,...,.,.,,.,,..,,...,,.,,
+#GO7A5ASPPRWSBRSNGAWSL5V7IF3JFAQXSG3GCR6RRBSNO3H6GUYIVLXTPYLF4IACP6G7NMC62JFKQ
+#\\\|G6WUIIJMZ4UWJ73PMOOJDXNUCKZ5DDOJOKX55CVEVPNJSBY46QU \ / AMOS7 \ YOURUM ::
+#\[7]7IOPW4XIVLH7J4YLU55DBBXPC3UGI3MRY2QRACJZLMAEAY6DLCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
