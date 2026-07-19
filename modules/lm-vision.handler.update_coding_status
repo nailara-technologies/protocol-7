@@ -36,7 +36,12 @@ my $gpu_status = $status->{'gpu'}{'status'} // 'unknown';
 my $interval   = <lm-vision.poll_interval>  // 5.0;
 
 if ( $gpu_status eq qw| ready | ) {
-    $interval = 5.0;    ## reset to base when server is ready ##
+    ## slow steady-state poll, not a pause : a later coding.switch-model
+    ## [ vision <-> non-vision ] must be reflected here within one
+    ## interval instead of the cache going stale indefinitely -- the
+    ## live HTTP call in lm-vision.handler.http_analyze is what actually
+    ## catches a wrong guess, this just keeps the pre-check honest ##
+    $interval = 30.0;
 } else {
     $interval = sprintf( '%.2f', $interval * 1.2 );
     $interval = sprintf( '%.1f', $interval ) if $interval > 10;
@@ -54,13 +59,8 @@ if ( $gpu_status eq qw| ready | ) {
     $interval
 );
 
-## pause polling when server is ready [ first successful reply or http success ] ##
+## process any pending vision requests queued while server was starting ##
 if ( $gpu_status eq qw| ready | ) {
-    <lm-vision.poll_paused> = 1;
-    my $old_timer = <lm-vision.poll_timer>;
-    $old_timer->cancel() if defined $old_timer && $old_timer->is_active();
-
-    ## process any pending vision requests queued while server was starting ##
     my $pending = <lm-vision.pending_requests> // [];
     if (@$pending) {
         <[base.logs]>->(
@@ -77,14 +77,10 @@ if ( $gpu_status eq qw| ready | ) {
         }
         <lm-vision.pending_requests> = [];
     }
-
-    <[base.logs]>->(
-        3, '[update_coding_status] polling paused [ gpu ready ]'
-    );
-    return;
 }
 
-## server not ready: keep polling with backoff ##
+## always keep polling [ at $interval -- fast backoff while not ready, ##
+## slow steady-state once ready ] ##
 <lm-vision.poll_paused> = 0;
 my $old_timer = <lm-vision.poll_timer>;
 $old_timer->cancel() if defined $old_timer && $old_timer->is_active();
@@ -97,8 +93,8 @@ $old_timer->cancel() if defined $old_timer && $old_timer->is_active();
 
 return;
 
-#,,.,,.,,,.,,,,,.,.,.,..,,,,.,...,..,,.,,,.,,,..,,...,...,,,,,.,,,,..,,,.,,,.,
-#4SULVJPZBNQEV4LO43333ZPAMOFEHII7ZT6RLCZVYSA6R57J73CA4KXBA4GI36HKRWOT4YFGLLUEM
-#\\\|22BZJOSNU5GZOFP7R3TQQAYREUQYJESXIJTHT467LFPY4CJRTHP \ / AMOS7 \ YOURUM ::
-#\[7]ZXXF7ZFYRA5K2FNYLPMYP4E7MITFUFZDYGWRNNWKHTGM5DGKVQCI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,,,.,.,.,,..,,.,,..,,..,,,.,,,,,,..,,...,...,..,,.,.,,..,,,,,.,.,
+#6FG5KYRM73POOFPYSA3JUOM7PIB33EE5VMNU5LJDX2XROZHTZUUPDO6FMRU5K33A4L4YZMVPXPAHQ
+#\\\|FSGLSW43VGRQYFESETUDVQMIHHDXGKA25QILD6QBE2VMV2Z2QPV \ / AMOS7 \ YOURUM ::
+#\[7]XCCYOKSOHBSFSN2FYMBKKTQKQPKTCGLNK65F662BXB4VLYTIQEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

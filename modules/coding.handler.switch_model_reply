@@ -67,7 +67,8 @@ my $mark_backend_updated = sub {
     }
     ## generic "current model" label - monitor_inference_startup reads    ##
     ## this for BOTH backends, regardless of which one actually switched  ##
-    <inference.model.amos_id> = $checksum;
+    <inference.model.amos_id>     = $checksum;
+    <inference.model.mmproj_path> = $mmproj_path;
 };
 
 ## use spawn_smart for memory-aware server restart ##
@@ -123,8 +124,8 @@ if ( $backend eq qw| auto | ) {
 delete <coding.switch_model_active>;
 return TRUE;
 
-#,,,.,,..,...,,..,,,,,..,,,..,.,,,.,,,.,,,...,.,.,...,...,...,,..,,.,,.,.,.,.,
-#ZSPGX724L4BMDCBX5RDOHEGLKUBFTUQFEWO35QKZC67XIQSYLYMDCCB6MZNVJLRL3T6GT3IK7UIGY
-#\\\|KQX4M6D56GP5OSG3EP2NJ5MZMZWHB5HMIIBUODWGIHFNK7K46Z7 \ / AMOS7 \ YOURUM ::
-#\[7]7OFUYNQ3DZL2PY6GRD5EDNSSZFBY3G5CNXQTCYGUXVZHBD5PW2CQ 7  DATA SIGNATURE ::
+#,,,.,,..,..,,..,,.,.,,,,,,,,,...,.,.,,,.,...,.,.,...,...,,,.,..,,,,,,.,,,,,,,
+#CBJW52K7BTF2UGVTWQVMUSN4CCASZG5CEL6MVMMEDC66RPJT3HMJXG737WNKCYI2DAIT46T7SO4JU
+#\\\|6JBUKKE4HOTSLCS6V74FHYD4XJZ3QDVZ26K5CRH4RNW4W5LRGR7 \ / AMOS7 \ YOURUM ::
+#\[7]W4X3COILMJAOIUAYWX4CSCCCLJA2MZCCORRJXBYTUXQTRPKGQCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
