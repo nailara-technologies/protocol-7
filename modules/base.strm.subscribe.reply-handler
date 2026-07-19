@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = base.strm.subscribe.reply-handler
+# descr = subscribe command reply : success marks the subscription,
+#         'client not present' falls back to the notify_online wait,
+#         anything else is a definitive error [ no blind retry ]
+
+my $reply = shift;
+
+my $key = $reply->{'params'}->{'key'} // '';
+
+my $state = <base.strm.subscribe.registry>->{$key} // return FALSE;
+
+if ( $reply->{'cmd'} eq qw| TRUE | ) {
+    $state->{'subscribed'} = TRUE;
+    $state->{'error'}      = undef;
+    $state->{'backoff_n'}  = 0;
+    <[base.logs]>->( 2, 'strm.subscribe : subscribed [ %s ]', $key );
+    return TRUE;
+}
+
+my $reply_str = $reply->{'call_args'}->{'args'} // '';
+
+if ( $reply_str =~ m|^client\b|i ) {
+    ## publisher offline [ 'client not present' ] : wait for it ##
+    $state->{'backoff_n'} = 0;
+    return <[strm.subscribe.wait-online]>->($key);
+}
+
+## definitive error [ permission, unknown slot, .. ] : record + stop ##
+$state->{'error'} = $reply_str;
+<[base.logs]>->(
+    0, 'strm.subscribe : %s refused [ %s ]', $key, $reply_str
+);
+return FALSE;
+
+#,,.,,,..,,..,,,.,.,,,.,,,.,,,...,..,,.,,,,,,,..,,...,..,,,.,,.,,,...,,.,,,.,,
+#F762KQ4KHWRC7ZEOZEKTWFWAI6YRWKAC7GCLCRNFZGKJLSNUPTXX5DTIRAOBGOJNCBBIE75KAMJ42
+#\\\|2GN6NKYTW2H3GRP4A2IPL2MKEQ2TXA2E5B2ELPAXKPCKZL6C5JQ \ / AMOS7 \ YOURUM ::
+#\[7]ERSL6TR6YY32KCLTJFJZTB52AWTS6JN7RPNOOPCCVUIHZ5A3KYCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

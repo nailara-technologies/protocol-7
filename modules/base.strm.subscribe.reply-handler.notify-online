@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = base.strm.subscribe.reply-handler.notify-online
+# descr = v7.notify_online reply : publisher online -> resubscribe
+#         immediately, still offline -> increasing backoff delay,
+#         then re-attempt [ base.zenka.push retry shape ]
+
+my $reply = shift;
+
+my $key = $reply->{'params'}->{'key'} // '';
+
+my $state = <base.strm.subscribe.registry>->{$key} // return FALSE;
+
+$state->{'waiting_no'} = FALSE;    ## notify_online reply arrived ##
+
+if ( $reply->{'cmd'} ne qw| TRUE | ) {
+    ## publisher still not up : increasing delay, then re-attempt ##
+    my $backoff = 2**$state->{'backoff_n'};
+    $backoff = 60 if $backoff > 60;
+    $state->{'backoff_n'}++;
+    <[event.add_timer]>->(
+        {   'after'  => $backoff,
+            'cb'     => sub { <[strm.subscribe.attempt]>->($key) },
+            'repeat' => 0,
+        }
+    );
+    return FALSE;
+}
+
+## publisher online : reset backoff and resubscribe immediately ##
+$state->{'backoff_n'} = 0;
+
+my $sent = <[protocol-7.route-send]>->(
+    {   'command'   => $state->{'cmd_str'},
+        'call_args' => { 'args' => $state->{'args_str'} },
+        'reply'     => {
+            'handler' => qw| strm.subscribe.reply-handler |,
+            'params'  => { 'key' => $key },
+        },
+    }
+);
+
+$state->{'last_attempt'} = <[base.time]>->(5);
+
+if ( $sent <= 0 ) {
+    ## went down between notify and send : back off and retry ##
+    $state->{'backoff_n'}++;
+    my $backoff = 2**$state->{'backoff_n'};
+    $backoff = 60 if $backoff > 60;
+    <[event.add_timer]>->(
+        {   'after'  => $backoff,
+            'cb'     => sub { <[strm.subscribe.attempt]>->($key) },
+            'repeat' => 0,
+        }
+    );
+}
+
+return TRUE;
+
+#,,,,,,,,,..,,,,.,.,.,,.,,,,,,,,,,.,.,...,,,,,..,,...,..,,,..,.,.,,..,...,.,.,
+#5DKQH5JE7CRWHOYIW5I5SQ3663P3324SQA3AGOTU2ZWPMNR6O4MBFH2FQ5N7NL5YODREPBI5XWZAK
+#\\\|H2PFUQE27YCCXPJ3JE2FZMEVIEQYAFYKFIG5KKTTTFJFHL7OXQD \ / AMOS7 \ YOURUM ::
+#\[7]WA4BKR3ZOND2G7PGCYDWLJBLFERG7KPMTLLD7HDOJPDZ6BCPLUDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

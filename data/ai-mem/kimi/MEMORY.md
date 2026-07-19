@@ -14,6 +14,11 @@
 ## Memory Update Tool — Length-Aware Routing (June 2026)
 `p7_memory_update` enforces ~180/200 line limits on `MEMORY.md`, supports `target` for external topic files, and auto-routes `UPDATE FILE:` directives. see [topic-memory-update-tool.md](topic-memory-update-tool.md)
 
+## base.strm.subscribe — generic STRM subscribe wrapper (July 2026)
+offline-safe/restart-clean subscription wrapper, six modules swapped to
+`strm.subscribe`; verified live vs cred-mesh. usage, `<a.b.c>`-splits-on-every-dot
+gotcha, runtime-load marker side effect, adoption steps: see [strm-subscribe-wrapper.md](strm-subscribe-wrapper.md)
+
 ## Module Name Swaps via `base.swap_subs` (July 2026) [ CRITICAL ]
 
 some module families are renamed at runtime (`base.event`→`event`,
@@ -57,8 +62,8 @@ open: kimi zenka state machine upgrade (backend reconnect), coding zenka as thir
 
 `skipped` status restored across all index scanners, reassessment now protects manual stages, web sync carries `assertions`, UI delete actions wired, and orbital subscriber `.cmd.` syntax corrected. Assessed jobs now map to the `review` UI stage. See [jobs-pipeline-2026-06-28.md](jobs-pipeline-2026-06-28.md). Open: bulk-delete pending search/filter UI.
 
-#,,,.,..,,...,,,,,,,,,.,,,,.,,...,,,,,,.,,.,,,..,,...,..,,.,,,,..,,.,,...,,.,,
-#I43YVSHHIZAGFE5QICMEEG6ARUELHT6A7SYMEEML7GLHUCB5NVSBSDG4SDJ7PIVFOJD6NFQDWHPMK
-#\\\|2FCC2FZ5NJWC36CJ7A4DMJ4Q3CXV4KM4SLBMY6MWPGJS5DJ22ZN \ / AMOS7 \ YOURUM ::
-#\[7]KP3OPINQ3CE2LBIGCIMLJ25PJCILPWW2TGOXEUPJLAR4ZEG5VYCA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,,,,,..,.,.,,..,,.,,,.,,,..,...,..,,...,..,,...,,.,,.,,,..,,.,.,
+#JI7U5YQB3WXTHTAX4ICCFYPHPDLEKPRDQBJPSMDOQGG5564PWDBK2IX2Z24674Q47ZOEJ6LOX53HA
+#\\\|7IV3KU7XOFFXAORQR5JEOWAWA5366XWTIUFT47UT45PSMUY3XTI \ / AMOS7 \ YOURUM ::
+#\[7]3AC5VB2Z4CYJH6TVE74MPDAC74GFIQRXJXPUU7KPLE6OHLXOCMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

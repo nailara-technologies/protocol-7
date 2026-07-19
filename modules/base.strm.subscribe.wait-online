@@ -1,0 +1,70 @@
+## [:< ##
+
+# name  = base.strm.subscribe.wait-online
+# descr = register a v7.notify_online wait for the publisher zenka,
+#         with base.zenka.push-shaped exponential backoff [ internal ]
+
+my $key = shift // '';
+
+my $state = <base.strm.subscribe.registry>->{$key} // return FALSE;
+
+return TRUE if $state->{'waiting_no'};
+
+my $now     = <[base.time]>->(5);
+my $backoff = 2**$state->{'backoff_n'};
+$backoff = 60 if $backoff > 60;
+my $elapsed
+    = $state->{'last_attempt'} > 0
+    ? $now - $state->{'last_attempt'}
+    : $backoff;
+
+if ( $elapsed < $backoff ) {
+    ## still inside the backoff window : retry when it expires ##
+    my $wait = $backoff - $elapsed;
+    <[event.add_timer]>->(
+        {   'after'  => $wait,
+            'cb'     => sub { <[strm.subscribe.attempt]>->($key) },
+            'repeat' => 0,
+        }
+    );
+    return TRUE;
+}
+
+$state->{'last_attempt'} = $now;
+$state->{'waiting_no'}   = TRUE;
+
+## ':start:' prefix : actively ensure the publisher is started ##
+my $notify_args = $state->{'publisher'};
+$notify_args = join( ' ', ':start:', $notify_args ) if $state->{'start'};
+
+my $no_sent = <[protocol-7.route-send]>->(
+    {   'command'   => qw| v7.notify_online |,
+        'call_args' => { 'args' => $notify_args },
+        'reply'     => {
+            'handler' => qw| strm.subscribe.reply-handler.notify-online |,
+            'params'  => { 'key' => $key },
+        },
+    }
+);
+
+if ( $no_sent <= 0 ) {
+    ## v7 itself unavailable : back off and retry the attempt ##
+    $state->{'waiting_no'} = FALSE;
+    $state->{'backoff_n'}++;
+    my $next_backoff = 2**$state->{'backoff_n'};
+    $next_backoff = 60 if $next_backoff > 60;
+    <[event.add_timer]>->(
+        {   'after'  => $next_backoff,
+            'cb'     => sub { <[strm.subscribe.attempt]>->($key) },
+            'repeat' => 0,
+        }
+    );
+}
+
+return TRUE;
+
+#,,,.,.,.,...,.,.,,..,.,,,,,.,.,.,...,,,,,..,,..,,...,..,,,,.,,,,,..,,.,,,,,.,
+#W2J7XY2IOB35QWCHYT3Y3VGLTARO5RGTCTHKRV5A55AIFTPG2ZLNR6OIDLSJHKDF5J2LC25YHPFPY
+#\\\|KI63FSSVQUGHXIFVJZXWCYBAHSYUFB34HFTEKDXPPB7K4XDNJSO \ / AMOS7 \ YOURUM ::
+#\[7]J6CACZTA6KCNEYXVUEXUR4GFJ7SRMF4EE3PR6LK2ZBRILQ6D4ICY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
