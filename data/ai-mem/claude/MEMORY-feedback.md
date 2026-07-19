@@ -35,9 +35,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [ncode-safe-refactor-workflow](topic-ncode-safe-refactor-workflow.md) — .git chmod-child LANDED; warn_apply TTY-only
 - [cmd-module-call-convention](feedback-cmd-module-call-convention.md) — .cmd. network modules use $call, not $ARG
 - [design-ideation-capture](feedback-design-ideation-capture.md), [coding-timeout-restart-loop](feedback-coding-timeout-restart-loop.md) — offer spin-off docs
+- [swap-subs-not-fragile](feedback-swap-subs-not-fragile.md) — base.swap_subs whitelist only gates lazy-load, not safety; real gap is missing canonical doc of active swaps
 
-#,,.,,.,,,.,.,,,,,,..,,..,,,.,,..,,,,,,,,,..,,..,,...,...,...,.,,,...,...,.,,,
-#IVSAUNVS42YQFTL7QZR7HB2DADDJLI4CD4ONNEMWODMQTL7Y4U2GWFYTRG3ALKL2J2RTWKBT7TXSK
-#\\\|XWABMJIRAL3I3Y7MDWNHUQOUEO2MJDFJNWXOATM27LCZX2VA74S \ / AMOS7 \ YOURUM ::
-#\[7]77SQWKMCU4PX75EFGXBHRNI6XAHQCRZDKEZ6NMUBZ3R7AIXJEABI 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,..,.,.,.,,,,..,,,,,...,.,,,.,,,..,,...,...,...,,..,,..,,..,,,.,
+#3KHU64FRT4T4SYARYXQTOAW7JNH5GFVTQ2EI5TPY2MULUFGKVPRWRGXMOHRU2SOYXXOP4YBZNTEVW
+#\\\|MAMTJWWZSO7J6JSWMGTRZC6L3JDKB7AOPZUQ5GYXEXAQX2AILBV \ / AMOS7 \ YOURUM ::
+#\[7]6IPNL6JI7G5AQIJLEJFDLX4DEVBK5JRKMLYNNKUDTHZWI46KJOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
