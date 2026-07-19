@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = cred-mesh.handler.rotation_strm
-# descr = push STRM notification to all subscribers when a credential rotates.
+# descr = push STRM notification to all subscribers on rotation.
 #         args: $slot, $reason
 
 my $slot   = shift // '';
@@ -29,10 +29,13 @@ my $event_yaml = YAML::XS::Dump(
 );
 my $event_b32 = <[base32.encode]>->( \$event_yaml );
 
-foreach my $handler (@combined) {
+foreach my $source_zenka (@combined) {
     ## dispatch STRM-style notification via protocol-7 route-send ##
+    ## variable target [ verified subscriber identity ], fixed suffix : ##
+    ## subscribers are stored as authenticated zenka names only, so no  ##
+    ## caller can dictate what command is fired under our own identity  ##
     <[protocol-7.route-send]>->(
-        {   'command'   => $handler,
+        {   'command'   => $source_zenka . qw| .cred-rotated |,
             'call_args' => { 'args' => $event_b32 },
         }
     );
@@ -40,8 +43,8 @@ foreach my $handler (@combined) {
 
 return scalar @$subs;
 
-#,,.,,,..,,,.,...,,,.,..,,,..,,..,.,.,..,,,..,..,,...,...,,.,,.,,,,.,,,,,,.,,,
-#MYLU6KTKDXIEM4JKUU7JMI2P6DAGCZJRHTZ3ZVKKR7RCD2SI7NC3WGB47MSS4RV3VBBJNCCPHHOIM
-#\\\|WHJNGOMSC2MRIHSBUFEU6PRLNU5G7LSKWWLITE3ZV5THTQW5NUF \ / AMOS7 \ YOURUM ::
-#\[7]KNOWACN4N32XIDQMKPVA6MUQ2BQD73DBF67AEGSTQXMC6G7ZLKAA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,.,.,...,,.,,,,.,.,.,...,,..,.,.,..,,...,...,.,.,.,.,...,,.,,.,.,
+#2JQWSESQZIEH4OUNL6477FFMUFTNUYV3LUCAWXN2SYNW6ZVK7OPU4V4NNPNOXH7VQIGWKLWA4R6XC
+#\\\|JD45CXCYWW3WOU7Q4ALMIMK75XZXSW3RZEDLKZUFODJBBG2JHRY \ / AMOS7 \ YOURUM ::
+#\[7]36PMEPLYMT4QCZRHNFGFZLCQHGQLNEM67LKE3LICLN3NFFV3AEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
