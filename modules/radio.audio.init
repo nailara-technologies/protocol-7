@@ -6,6 +6,13 @@
 ##  clear any pending re-init timer  ##
 delete <radio.audio.reinit_watcher>;
 
+## NOT deferred via <system.init_reports>: that channel only ever
+## flushes once, around the initial connect event -- fine for the
+## startup-timer path here [ own connection is long up by t=2.0s ],
+## but this module is also re-invoked live at runtime [ via
+## radio.audio.handler.player_offline, long after startup ], where a
+## queued item would never be picked up again. direct route-send is
+## correct here in both cases. ##
 <[protocol-7.route-send]>->(
     {   'command'   => 'v7.notify_online',
         'call_args' => { 'args' => 'mpv[audio-0]' },
@@ -34,8 +41,8 @@ delete <radio.audio.reinit_watcher>;
 
 <[base.logs]>->( 2, '[radio.audio] waiting for mpv[audio-0] ...' );
 
-#,,,.,.,,,,,,,...,..,,.,.,,.,,.,.,,..,...,,,,,.,.,...,...,..,,...,...,.,,,..,,
-#NN6EJKFQFQC7YFB7ZKTP7UCDHTF3O57PJKP37S4QDOJWYACYOUT4SQB7IMNXPSTJMGVJX2PNNRNGW
-#\\\|QSN5MB4QGV6VSPJ6QLPOYPTWIVJ4JLNG47YXUM5PBOX5Z46PL2K \ / AMOS7 \ YOURUM ::
-#\[7]6JV7SSOZB5ALZ4GHG2JJKRYMQTHBBH2QPJ4YGY2KPHSLKKC72GAY 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,,.,.,,,...,,,,,,..,...,.,,,..,,.,.,...,..,,...,,,.,,.,,..,,.,,,
+#5PMLDGX4LQPLREZRKHENEM4XTFWTYGN7CL2EJ42P2MX54GLJWG45OGQOUWYY7Y3LSATGARZBIKBG6
+#\\\|Y6JTKLMFSOJ6OFAKZOSTL4QWBJ4IFNBOPYFLYSVUBK256HQPUWR \ / AMOS7 \ YOURUM ::
+#\[7]BF3ESATVC5RE72GJ2KB7TM7PGC2R7UP5YMWHBLG5IHAYJOLFU4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

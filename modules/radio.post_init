@@ -3,16 +3,22 @@
 # name  = radio.post_init
 # descr = notify httpd that radio stream endpoint is available
 
-<[protocol-7.route-send]>->(
-    {   'command'   => 'httpd.radio_online',
-        'call_args' => { 'args' => <radio.stream.path> // '/radio/stream' },
+## deferred via <system.init_reports> -- post_init runs before this
+## zenka's own cube connection exists, so a direct route-send here
+## reliably hits send.local's "no clients in session" drop ##
+<system.init_reports> //= [];
+push(
+    <system.init_reports>->@*,
+    {   'target_command' => qw| httpd.radio_online |,
+        'param'          => <radio.stream.path> // '/radio/stream',
+        'descr'          => 'notifying httpd: radio_online',
     }
 );
 
-<[base.logs]>->( 2, '[radio] notified httpd: radio_online' );
+0;
 
-#,,..,,,,,,.,,.,,,.,,,.,,,,,,,...,.,,,..,,.,,,.,.,...,...,,..,,.,,.,.,.,.,,.,,
-#7FYKGGCASZ6KZQFERFWXQGWOGCDLIGSQBWK5NDK4DLXNBGO6HCD54ZWHTMYDYE4TYDHLFXUE47TJI
-#\\\|VRP2WLUZNUTQ772IE7ERCF2OPLVCQ4LPGYZ6F45JTE2NXE5JECR \ / AMOS7 \ YOURUM ::
-#\[7]OXIEIWQHEGKNYPQ6LD2TIUDVH226E352UCRTPVJHNAXK4UF5KUDI 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,,,,,,.,,..,,,,,,.,,,.,,,..,...,.,.,...,...,..,,.,.,,,.,,,,,,.,,
+#D3Q7BYE4FV7ST7QIVBHV2QWQUIWGUQOUCYVGDKHQMOQBYSQIWV7YSWZ7GN2SAAXLWZ7LDE6TPOXKM
+#\\\|O5TWPVLI76IUZSTI2ZLEOWCYTSOJFDRA3F4VBRTXB2MAOCVJCFU \ / AMOS7 \ YOURUM ::
+#\[7]AACDMHBHLLAK34XABUJLR2KJYV2EEZWGKHFTRYFLFVX7A4WKPCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
