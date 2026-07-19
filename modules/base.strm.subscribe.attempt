@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = base.strm.subscribe.attempt
+# descr = single subscribe attempt ; falls back to the notify_online
+#         wait when the publisher is not routable [ internal :
+#         called by base.strm.subscribe and by retry timers ]
+
+my $key = shift // '';
+
+my $state = <base.strm.subscribe.registry>->{$key} // return FALSE;
+
+## an attempt means the deferred own-session wait is over ##
+$state->{'deferred'} = FALSE;
+
+## notify_online request already outstanding : its reply will resume ##
+return TRUE if $state->{'waiting_no'};
+
+my $sent = <[protocol-7.route-send]>->(
+    {   'command'   => $state->{'cmd_str'},
+        'call_args' => { 'args' => $state->{'args_str'} },
+        'reply'     => {
+            'handler' => qw| strm.subscribe.reply-handler |,
+            'params'  => { 'key' => $key },
+        },
+    }
+);
+
+return TRUE if $sent > 0;    ## in flight : reply handler continues ##
+
+## route-send failed [ no session / unroutable ] : wait for publisher ##
+return <[strm.subscribe.wait-online]>->($key);
+
+#,,,,,,,,,,,.,.,.,,.,,,,,,,,.,,,.,,.,,,,.,.,.,..,,...,...,..,,.,.,,..,..,,,,,,
+#JKQN7OQB5UWDTVW4KEQVRLFZM5MPS4QIG77EY7IJ7JG7UA2RDTMD7BWJQ6EMKTHEEIKBVOOPF2BX2
+#\\\|5VGSDAVXOF7QDFDKT3NSPUXPCTMAYAIUN4K2F6E4CP6MZ5MF7KW \ / AMOS7 \ YOURUM ::
+#\[7]EHOJKUUS4JQ2DWDNKU6ZFEUPW27GJ5GPL4GMC2BRLLAKM4V2KYDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
