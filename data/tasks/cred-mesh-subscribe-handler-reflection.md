@@ -103,13 +103,90 @@ pattern rather than invent a new scheme:
   future STRM subscription gets it for free, not reimplemented per
   subscriber type
 
+## dispatch scope (2026-07-19)
+
+ready to dispatch as a narrow, cred-mesh-only fix — not the wider
+`subscribe_*`-shaped audit (that's a real follow-up, but a separate task
+once this pattern is proven here first). the two current subscribers are
+`proxy.handler.subscribe_rotation_deferred` and
+`transport.handler.subscribe_rotation_deferred`
+(`configuration/zenki/cube/access.zenki` grants both `cred-mesh` access) —
+both call `cred-mesh.subscribe_rotation` with
+`handler => "$self.cred-rotated"`-shaped strings today, so the fixed
+`cred-rotated` suffix this doc proposes matches their existing behavior
+exactly; nothing about their call site needs to change, only
+`cred-mesh.subscribe_rotation`/`cred-mesh.handler.rotation_strm`
+(`modules/cred-mesh.subscribe_rotation`,
+`modules/cred-mesh.handler.rotation_strm` — read both in full, they're
+short) and whatever test coverage exists for
+`cred-mesh-rotation-subscription-cross-zenka.md`'s three earlier bug fixes
+(don't regress those).
+
+**Caller-identity mechanism — confirmed, not an open question.** cube can
+de-anonymize the caller's zenka name (and, separately, its session id) for
+specific commands via `configuration/zenki/cube/command_aliases`:
+`setup.aliases.source_zenka` (name only) / `setup.aliases.source_zenka_sid`
+(name + sid) list commands that get the caller's authenticated identity
+prepended as leading space-separated token(s) of `$call->{'args'}` before
+the module runs — the module itself never supplies or controls this
+prefix, cube does. Confirmed precedent, same security shape as this fix:
+`modules/credentials.cmd.request_session` (listed under `source_zenka`) —
+its own comment says it outright: `## SOURCE_ZENKA alias prepends the
+caller's identity as the first token ##`, then
+`my ($zenka_name, $cred_name) = split(m|\s+|, $args, 2)`. Other consumers:
+`modules/tile.cmd.get_geometry`, `modules/v7.zenka.cmd.restart_own-zenka`
+(uses the `_sid` variant: `split(m| |, $call->{'args'}, 3)` → zenka + sid
++ rest).
+
+The routed command is **`cred-mesh.cmd.subscribe_rotation`**
+(`modules/cred-mesh.cmd.subscribe_rotation`) — not
+`cred-mesh.subscribe_rotation` itself, which is an internal function that
+thin wrapper calls with a `{slot, handler}` hashref after parsing
+`$call->{'args'}` as `"<slot> <handler>"`. It is **not currently listed**
+in `command_aliases`. The fix is concretely:
+
+1. add `cred-mesh.cmd.subscribe_rotation` to `setup.aliases.source_zenka`
+   in `configuration/zenki/cube/command_aliases` (name only needed, not
+   `_sid` — nothing here needs the session id, only the zenka identity)
+2. in `cred-mesh.cmd.subscribe_rotation`, parse the now-3-token args as
+   `<source_zenka> <slot> <handler>` (mirror
+   `credentials.cmd.request_session`'s parse shape) — keep receiving
+   `handler` for backward compatibility/logging if useful, but no longer
+   trust it as the thing that gets fired later
+3. change `cred-mesh.subscribe_rotation`'s contract from
+   `{slot, handler}` to `{slot, source_zenka}` (or keep `handler` as a
+   deprecated/ignored param, implementer's call), storing
+   `$source_zenka` in `rotation_subscribers` instead of the caller-
+   supplied string
+4. in `cred-mesh.handler.rotation_strm`, construct the fired command as
+   `"$source_zenka.cred-rotated"` (fixed suffix) at notify time, rather
+   than firing the stored string directly — matches the
+   `content.update.send_notifications` variable-target/fixed-suffix shape
+   the original doc pointed at, now with a verified-not-guessed source
+
+verify live (not just by reading) that the alias actually prepends the
+token in the shape assumed here — the existing subscribers
+(`proxy.handler.subscribe_rotation_deferred`,
+`transport.handler.subscribe_rotation_deferred`) will need their
+`route-send` call sites re-tested end to end after this change, since
+their `args` string shape changes from cube's alias injection.
+
+## follow-up, not in scope here
+
+`strm-generic-subscribe-wrapper.md` (filed the same session) designs the
+generic offline-safe/restart-clean subscription wrapper this fix's
+variable-target/fixed-suffix pattern should eventually be folded into.
+That doc's own scope note already says retrofitting cred-mesh onto it
+later is a cleanup, not a prerequisite for this fix — the two are
+independent and can be dispatched in either order or in parallel.
+
 ## signatures note
 
 do NOT manually write or edit signature lines. do not add stub
 signatures to new files.
 
-#,,..,,,.,,,.,,,.,..,,,..,.,,,..,,...,,..,.,,,..,,...,...,.,,,..,,,,.,.,,,.,.,
-#A7VA6LVGOSINPSYJEX7ZHKNH4ZYFEJ4SXTGYCRALYQVEIIPCURXARVKUHNL2KCY4OKNZZ3BLM3PWU
-#\\\|PNWX4KCDXX5Q5UP5KGJXBDEHRPIBFRI453OENZWGGIZCLFBECMX \ / AMOS7 \ YOURUM ::
-#\[7]ALUMFTIJSZ4EAI2JDCOKRW57IXDKDA3ZOEW3MKIVSS62PRZ2PIAY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,...,.,,,,,,,.,.,...,.,,,,,.,.,.,..,,...,...,..,,,,,,...,,..,,.,,
+#3S6XJIXK6A775GHE3HXAMFTJEGKLSR6Y7GD4WU6ABDWZCWYAPH6HBNKF3OSWIRQK2JWE76NOMB2KC
+#\\\|LJ4CZBC4GVUV4IRK5MOGERCK54T6BC52JBFSTPN63KG4MOCO6HE \ / AMOS7 \ YOURUM ::
+#\[7]KXSVNV75BDEUHNVKOKGQISANTJSFLVPK5EGKZXUUXIXJYX6HFSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

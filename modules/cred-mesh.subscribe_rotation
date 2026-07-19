@@ -1,21 +1,27 @@
 ## [:< ##
 
 # name  = cred-mesh.subscribe_rotation
-# descr = register a STRM rotation handler for a credential slot.
-#         args: { slot => '...', handler => 'zenka.handler.name' }
+# descr = register a STRM rotation subscriber for a cred slot.
+#         args: { slot => '...', source_zenka => 'zenka-name' }
+#
+# source_zenka must be the caller's authenticated identity [ prepended by
+# cube's SOURCE_ZENKA alias ], never a caller-supplied string : at notify
+# time each subscriber is fired as "<source_zenka>.cred-rotated" -- a
+# variable but verified target with a fixed suffix, so no subscriber can
+# dictate what command gets executed under cred-mesh's own permissions ##
 
 my $params = shift;
 
 return { 'mode' => qw| false |, 'data' => 'expected hashref' }
     if ref $params ne qw| HASH |;
 
-my $slot    = $params->{'slot'}    // '';
-my $handler = $params->{'handler'} // '';
+my $slot         = $params->{'slot'}         // '';
+my $source_zenka = $params->{'source_zenka'} // '';
 
 return { 'mode' => qw| false |, 'data' => 'missing slot' }
     unless length $slot;
-return { 'mode' => qw| false |, 'data' => 'missing handler' }
-    unless length $handler;
+return { 'mode' => qw| false |, 'data' => 'missing source zenka' }
+    unless length $source_zenka;
 
 ## ensure slot exists ('*' is the wildcard/all-slots bucket) ##
 return {
@@ -30,14 +36,14 @@ return {
 ## avoid duplicate subscriptions ##
 my $subs = <cred-mesh.rotation_subscribers>->{$slot};
 return { 'mode' => qw| true |, 'data' => 'already subscribed' }
-    if grep { $ARG eq $handler } @$subs;
+    if grep { $ARG eq $source_zenka } @$subs;
 
-push @$subs, $handler;
+push @$subs, $source_zenka;
 
 return { 'mode' => qw| true |, 'data' => 'subscribed' };
 
-#,,..,,,,,...,,,.,,,,,..,,..,,,.,,,..,,,,,..,,..,,...,...,...,,.,,.,.,,.,,.,.,
-#LXMPISQ5TT32GU2TX5RK56AAX5MYVQPV2LFHO7TCXZ6FY4AOMHEHN24MCOJAPLMWLVAGG62U37YVY
-#\\\|4AW75NXIRCC4LCC52OLKVAZTULJSUOEAVG5JQ5FT24JVJVGENUG \ / AMOS7 \ YOURUM ::
-#\[7]3STBRE6YPOXGG72G6WQ6ONNKZ7QZITS74KSM4GI5POMF3EJDPCCQ 7  DATA SIGNATURE ::
+#,,..,..,,,.,,.,.,...,,..,,.,,..,,,,.,,.,,...,..,,...,...,,,.,,,.,.,.,.,.,,,.,
+#TUFGY35AO3XVBIZLYM5MXLCRBBVNBJFUDCJC5H5BJJBKCPLPJN4PE2XSUZ5ZPF7VNBZSVCGEJ5BRK
+#\\\|AJN5PG2D3HXWHKSIM2WNT63RJBQT4VOXNBOTFXFP2D2JAP6EMGR \ / AMOS7 \ YOURUM ::
+#\[7]ICKRAJ2EXWLBITZ4UD3I4XLUUZUTZRCREHKVMJW2NSRHN4R6YQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
