@@ -29,7 +29,8 @@ foreach my $listener ( @{$listeners} ) {
     my $h = $listener->{'handle'};
 
     if ( not <[base.stream.push]>->( $h, \$line ) ) {
-        next;    ## stream gone - drop listener ##
+        <[base.stream.close]>->($h);  ## clean up base-level producer state ##
+        next;                         ## stream gone - drop listener ##
     }
 
     if ($listener->{'auto_close'}
@@ -45,8 +46,8 @@ foreach my $listener ( @{$listeners} ) {
 
 <ticker.event.listeners> = \@keep;
 
-#,,,,,..,,,.,,.,,,,..,,.,,.,,,..,,,.,,,,.,.,.,..,,...,...,,..,,,.,,,,,.,,,,,,,
-#OGTAWRGXUPZKSST7RAMIP7YDGKZTFGFXJLUZEI7H2HSRGWQCLDSFGOARI5NG3B4HJL7LTOGNZOU4A
-#\\\|N2UZBSNZSKL7KL5KLQEZISZTKZA54QYIYAZA7ZV4AFAJSY67CP6 \ / AMOS7 \ YOURUM ::
-#\[7]ITE5HKG4QE3EUVX2ZSXNGZU57YNMZL7LRNAMVCVMNJSD6CVD46CY 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,.,.,,,,,,.,,..,,,,,,,..,.,,,.,.,..,,...,...,,.,,,,.,...,.,,,..,,
+#YFIAPNOU7ZHDIGTCGZF2KA2GB4ZLNRSBL7HNPDPQTFTEUWCLAZZY532GHPXAMJHYBLQCRB2NACKSI
+#\\\|U5GFGDVIN44SKBTBUGFREJGVDHYPJ62ZJAALZOXN2JO43DW4YPD \ / AMOS7 \ YOURUM ::
+#\[7]AWV2XJI5TDGJM4BV7XLOICHOKMXUURUQLXPD3BW3RFCWXEDFOKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -39,15 +39,20 @@ if (    <[base.cfg_bool]>->(<discover.cfg.orbital_push_enabled>)
 
     my @keep;
     for my $h ( @{<discover.orbital.listeners>} ) {
-        push @keep, $h if <[base.stream.push]>->( $h, \$payload );
+        if ( <[base.stream.push]>->( $h, \$payload ) ) {
+            push @keep, $h;
+        } else {
+            <[base.stream.close]>->($h)
+                ;    ## clean up base-level producer state ##
+        }
     }
     <discover.orbital.listeners> = \@keep;
 }
 
 return TRUE;
 
-#,,,.,...,..,,.,.,,.,,,.,,..,,..,,,,.,...,..,,..,,...,...,,.,,.,.,,,,,,,.,,,,,
-#LJ33ROVVIPAHNWNK3XJO5TYBIZA7XQSPMCKQAMTEGASDF5AN6CGIXHLKH5TQOQDUX353LXNBCQHAY
-#\\\|RQFRQTU6YA5VMUXWGH6D32WSJ7I5ORIKPEUEXZAMXYN5OYNOQFQ \ / AMOS7 \ YOURUM ::
-#\[7]NZ4QZNF7XTHEMFVRPUK736C62TF2T6RHFPWMW72QSFTVVOR2NSBY 7  DATA SIGNATURE ::
+#,,.,,..,,...,...,,..,.,.,,,.,...,,,.,..,,..,,..,,...,...,,,,,,..,...,...,.,.,
+#XF7NRC5K6ZPPPT4WUA3DUTYLZ42FCWXV5775HBWZMEYDMSMPMNVMNASERFSFUIULELLJ2ZWSYTOMM
+#\\\|GINZV3M66WVTG6EHJTOBGKPFOFSG4REPU75ZARCUTSQSD3JIX2G \ / AMOS7 \ YOURUM ::
+#\[7]IUWBW5KXYMOYL52CMN45HRAKUD4EAOFGJBZX77U4SDVW2KEC74CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

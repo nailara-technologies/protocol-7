@@ -47,7 +47,11 @@ if ( not defined $n or $n == 0 ) {    ##  EOF  ##
 my $before = scalar <radio.listeners>->@*;
 my @keep;
 for my $h ( <radio.listeners>->@* ) {
-    push @keep, $h if <[base.stream.push]>->( $h, \$chunk );
+    if ( <[base.stream.push]>->( $h, \$chunk ) ) {
+        push @keep, $h;
+    } else {
+        <[base.stream.close]>->($h);  ## clean up base-level producer state ##
+    }
 }
 my $after = scalar @keep;
 if ( $after < $before ) {
@@ -59,8 +63,8 @@ if ( $after < $before ) {
 }
 <radio.listeners> = \@keep;
 
-#,,.,,...,,..,.,.,,,.,,,,,..,,.,,,,,.,,,,,,,,,.,.,...,..,,,.,,,.,,.,.,,..,..,,
-#FIGAJLJUGSN3PH4ZGZN2OECHXP7NFBZLFED3UVTY554VJTELEB2M3Q3Q4MM6Q72GERA4SAVSO2KSC
-#\\\|TACSDKEPT67JIZ5YRHFCSG2MJCYOBMK6CDJQ26B6FMSLVAHZORM \ / AMOS7 \ YOURUM ::
-#\[7]JNOTWFWCRXOYA2JLLGAK4Q7KD4N6UDFXNWIF35WFJEESMCPPZAAI 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,..,,,.,,,,,,,.,,..,,..,,,.,,,,.,.,.,...,..,,.,.,.,,,,,,,,,.,,..,
+#TRFWU672UUVHXGZD2ANP6YNJ327NGM5ZQ34ZI26UDZDJSPALJXV7MWPMM3CFG73Y5HY6QQMR76HKY
+#\\\|W2ZA7MWJ4Q2MCR2WPUFKNUZZWZTF3ZEM6A22IL3WAZB7C2IEEYP \ / AMOS7 \ YOURUM ::
+#\[7]RKQP5P45L7UKUMVAAGKV4GVF5ZBDBRHNOIJRXRVAELIXC7BHZODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
