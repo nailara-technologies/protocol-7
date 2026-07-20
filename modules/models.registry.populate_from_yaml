@@ -19,15 +19,40 @@ foreach my $model_id ( keys %$models_defs ) {
         next;
     }
 
+    ## composite key : path_checksum:model_checksum, same shape as the ##
+    ## discovered-model path builds, so all list/select code that      ##
+    ## expects a colon-joined checksum id treats yaml and discovered   ##
+    ## entries identically                                             ##
+    my $path_checksum  = <[models.checksum.from_path]>->( $model->{'path'} );
+    my $model_checksum = <[models.checksum.from_metadata]>->(
+        {   'model_id'     => $model_id,
+            'name'         => $model->{name},
+            'quantization' => $model->{quantization} // 'unknown',
+            'size_gb'      =>
+                sprintf( qw| %.3f |, ( -s $model->{path} ) / ( 1024**3 ) ),
+            'is_vision' => $model->{is_vision} // FALSE
+        }
+    );
+
+    unless ( defined $path_checksum && defined $model_checksum ) {
+        <[base.logs]>->(
+            0, "[models] Cannot compute composite checksum for %s", $model_id
+        );
+        next;
+    }
+
+    my $composite_id = "$path_checksum:$model_checksum";
+
     # Create registry entry
-    $registry->{$model_id} = {
-        model_id     => $model_id,
-        amos_7       => $checksums->{'amos_7'},
-        bmw_l13      => $checksums->{'bmw_l13'},
-        bmw_base32   => $checksums->{'bmw_base32'},
-        name         => $model->{name},
-        path         => $model->{path},
-        mmproj       => $model->{mmproj},
+    $registry->{$composite_id} = {
+        amos       => $composite_id,              ## composite checksum key ##
+        model_id   => $model_id,                  ## short yaml name ##
+        amos_7     => $checksums->{'amos_7'},
+        bmw_l13    => $checksums->{'bmw_l13'},
+        bmw_base32 => $checksums->{'bmw_base32'},
+        name       => $model->{name},
+        path       => $model->{path},
+        mmproj     => $model->{mmproj},
         quantization => $model->{quantization},
         context_size => $model->{metadata}{context_size} // 5005,
         is_vision    => $model->{is_vision}              // FALSE,
@@ -41,8 +66,8 @@ foreach my $model_id ( keys %$models_defs ) {
 
 return { success => TRUE, count => scalar( keys $registry->%* ) };
 
-#,,,.,,,,,...,.,.,,..,,.,,.,,,,,,,,,,,...,..,,..,,...,...,..,,..,,.,,,,.,,,..,
-#A6Q7W3UUJ4DLOZ372ZEDVKZ4NOAKCBLZZTDL3FKXDFWST5KMCVI2DOZFZOL26GJIOPA2NGWOGWEEE
-#\\\|AHA6QSR7TYAA34WDGWBNTIB3YYK5UMLI7XQDC5XLU75U4FLCG3K \ / AMOS7 \ YOURUM ::
-#\[7]PDW3VL2NJS3PZXCIQPB6UVVSEDXJRUQLNTPCCNDXO3VE34FJQACI 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,.,.,..,,,,,,.,.,,,,,..,,.,,,..,,..,,...,...,..,,.,,,.,.,.,,,,,,,
+#2AXXFG3VEJZKFP4ODKCV23BCAKRS2BDG2XPRTMFLQV6KZ3HOQ6Q6HKQP2CETK7ICATHOVDTLCHFZK
+#\\\|POANP3K3OZYF4KWCVJ6X4TTNNJB5OZ5X7SHBUYY4F4DC3FUPVW7 \ / AMOS7 \ YOURUM ::
+#\[7]VMHP7A5PW26DO4H5FVV4B7356H6D32KBKEMV5KJT2TWMKJAB2GAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
