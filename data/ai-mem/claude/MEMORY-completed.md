@@ -43,9 +43,17 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   113 call sites across 63 files were passing a %s/%d template + args to base.log (which never
   sprintfs) instead of base.logs; root-caused a live p7-log crash-loop, then swept codebase-wide via
   kimi k2.7, independently re-verified clean.
+- [dependency restart reconnect primitive](project-dependency-restart-reconnect-primitive.md) —
+  LANDED (uncommitted): new v7.notify_restart + base.zenka.on_restart primitive, so a running zenka
+  detects when a dependency it has a stateful relationship with restarts (STRM subscribe, SHM
+  handshake) and reconnects automatically. Opus's first pass used instance_id as the restart signal
+  -- wrong, v7.zenka.instance.restart reuses the same instance_id in place -- corrected to cube_sid,
+  which changes on every restart. protocol-7-menu/powershell pointer-stream migrated as the pilot,
+  live-verified across two consecutive v7.restart cycles. base.strm.subscribe's own publisher-
+  restart re-affirm gap not yet wired to the new primitive (follow-up, not this session).
 
-#,,,.,,,,,.,.,,..,,,,,.,,,,,.,.,,,,.,,,,.,..,,..,,...,...,..,,...,,..,.,,,..,,
-#6CW6723S65E2BHFXEJYGTMTQPMLPQF7MQGDL43LYHXS3FAUMACP4QTSSAL2EXDHPLVCZY6MJ7GKE4
-#\\\|IVYPQXYN4VL2H7JHOJO2THIIJ2SIMRYN3RFQ6TVTWLGDARWST5S \ / AMOS7 \ YOURUM ::
-#\[7]7E6A5FWFCZAB7BYQ55LJC2YROU2QFQZABPF27YO32QHOHKHUIWBQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,,,,.,.,..,,...,...,,,,,,,.,.,.,..,,...,...,,,,,.,,,.,,,,..,,,,,
+#WULP2XTR5MND6DEQAPCYLBNTE7S4KONPFNYSMQBVP3I4NV6TZFU4EFMCARXDNLCUXM6LLKREABIT4
+#\\\|VFCRSKGGXQDDCTKNXWFFXAJ4UWCEGGVWASAKLUYHQ7QFZ6AIA6S \ / AMOS7 \ YOURUM ::
+#\[7]NDKFC5NSG35YC3CPCORZVKJX2JF7AUOSQ4AUOMK3JFMWBTZPUWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

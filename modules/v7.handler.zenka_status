@@ -428,7 +428,7 @@ foreach my $name_or_id (@check_keys) {
     ) {
         foreach my $name ( keys $data{'buffer'}->%* ) {
             my $log_send_cmd = $data{'buffer'}->{$name}->{'log_cmd'};
-            next                                ##  skip set-up when..,  ##
+            next                                ##  skip set-up when..,     ##
                 if not defined $log_send_cmd    ## no remote logging set up ##
                 or    ##  different log target zenka  ##
                 index( $log_send_cmd, sprintf( qw| %s. |, $name_or_id ), 0 )
@@ -491,10 +491,47 @@ if ( $status eq qw| shutdown |
     }
 }
 
+## fire persistent restart-notify registrations : entries were stored     ##
+## with the cube_sid current at registration time ; a fire only happens   ##
+## for entries whose recorded at_sid differs from this new online         ##
+## cube_sid [ or was undef ], and the entry is deleted after firing so    ##
+## the caller must re-register via base.zenka.on_restart's re-arm loop -- ##
+## instance_id does NOT change across v7.zenka.instance.restart [ same    ##
+## instance_id reused in place ], only cube_sid changes on every restart  ##
+if ( ( $status eq qw| online | or $status eq qw| extbin | )
+    and exists <v7.zenka.notify_restart>->{$zenka_name} ) {
+    my $entries      = <v7.zenka.notify_restart>->{$zenka_name};
+    my $now_cube_sid = $instance->{'cube_sid'};
+    my @kept;
+    foreach my $entry ( $entries->@* ) {
+        my $at_sid = $entry->{'at_sid'};
+        if (    defined $at_sid
+            and defined $now_cube_sid
+            and $at_sid == $now_cube_sid ) {
+            push @kept, $entry;    ## same session we recorded : skip ##
+            next;
+        }
+        <[base.callback.cmd_reply]>->(
+            $entry->{'reply_id'},
+            {   'mode' => qw| true |,
+                'data' => sprintf(
+                    "zenka '%s' restarted [instance %d]",
+                    $zenka_name, $instance_id
+                )
+            }
+        );
+    }
+    if ( scalar @kept ) {
+        <v7.zenka.notify_restart>->{$zenka_name} = \@kept;
+    } else {
+        delete <v7.zenka.notify_restart>->{$zenka_name};
+    }
+}
+
 if ( $old_status ne qw| online | and $status eq qw| online | ) { # LLL extbin?
 
     delete $instance->{'startup-error-retries'};          ## <-- if present ##
-    delete $instance->{'ondemand-consecutive-failures'};  ## reset streak ##
+    delete $instance->{'ondemand-consecutive-failures'};  ## reset streak   ##
 
     if ( defined $instance->{'timer'}->{'start-time-out'} ) {
         $instance->{'timer'}->{'start-time-out'}->cancel
@@ -559,8 +596,8 @@ if ( $old_status ne qw| online | and $status eq qw| online | ) { # LLL extbin?
 
 <[jobqueue.check_dependencies]>;
 
-#,,,,,.,,,,.,,,.,,,.,,..,,,,.,,..,,,.,,..,,..,..,,...,...,...,,,,,.,,,,.,,.,.,
-#5LQF6NJA4FWNM7CDZPEISTJ5WAO2BBS52I2AABFFSPQZ6SGW32WFVTP3VD5ACBE6MEXFJKS7ZUIDU
-#\\\|ASROJRUKGWSXXU4B45YANMYPJN6XLUUNWXAXH7EWRAV4TK27HQI \ / AMOS7 \ YOURUM ::
-#\[7]MERHZT5CIFTZZTUUCOOLAJZZVPHU7SJXZ6SLRLMBEXUWRUALZWAI 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,..,,,.,,.,,,..,,,.,,,.,.,,,.,,,..,,...,...,..,,,,,,,,,,..,,,.,,
+#ZOFYHAL3V5HVPL4RWOWRK22OIRGFCA4GYKFPQGQUGSSL5TRKUCQ26OG5FN5YXDO3RY3F3FDUT65NC
+#\\\|IORZSUNZE7UUH7A45AOWMEYDJM7MS4AQEHKOTWPHDCLET5X6XV3 \ / AMOS7 \ YOURUM ::
+#\[7]YSJCZTONBTM6XIDSTGV6TSE3ADED6C7UBK5S7FPFJPZE4C4D4IAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

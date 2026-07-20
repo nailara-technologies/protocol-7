@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = base.zenka.on_restart.reply-handler
+# descr = v7.notify_restart reply : fire registered handlers, re-arm.
+
+my $reply = shift;
+
+my $publisher = $reply->{'params'}->{'publisher'} // '';
+my $cmd       = $reply->{'cmd'}                   // '';
+
+## clear the armed flag before firing so a handler that re-registers    ##
+## through base.zenka.on_restart will pick up the fresh arm cleanly     ##
+delete <base.zenka.on_restart.armed>->{$publisher};
+
+if ( $cmd eq qw| TRUE | ) {
+    <[base.logs]>->(
+        2, 'on_restart : publisher [ %s ] restarted -- firing handlers',
+        $publisher
+    );
+    my $subs = <base.zenka.on_restart.registry>->{$publisher} // [];
+    foreach my $handler ( $subs->@* ) {
+        next if not defined $code{$handler};
+        eval { $code{$handler}->() };
+        <[base.logs]>->(
+            0,        'on_restart handler [ %s ] error : %s',
+            $handler, <[base.str.eval_error]>
+        ) if $EVAL_ERROR;
+    }
+}
+## FALSE replies : publisher shutdown or setup issue -- just re-arm     ##
+## silently ; next successful online transition still fires.            ##
+
+## re-arm unless a handler already did [ handlers that call on_restart  ##
+## again will have set 'armed' back to TRUE ]                           ##
+return TRUE if <base.zenka.on_restart.armed>->{$publisher};
+
+<base.zenka.on_restart.armed>->{$publisher} = TRUE;
+
+my $sent = <[protocol-7.route-send]>->(
+    {   'command'   => qw| v7.notify_restart |,
+        'call_args' => { 'args' => $publisher },
+        'reply'     => {
+            'handler' => qw| base.zenka.on_restart.reply-handler |,
+            'params'  => { 'publisher' => $publisher },
+        },
+    }
+);
+
+if ( $sent <= 0 ) {
+    delete <base.zenka.on_restart.armed>->{$publisher};
+    <[base.logs]>->(
+        0, 'on_restart : re-arm failed for [ %s ] : v7 unreachable',
+        $publisher
+    );
+    return FALSE;
+}
+
+return TRUE;
+
+#,,,.,,,.,.,.,...,.,,,...,.,.,,..,..,,,,.,...,..,,...,...,...,,.,,,.,,,,,,,.,,
+#NHUBPEW2UUDTWVVQAX4MRQJSSCMYJTU7RINBDN3QBQ34B224EIWUQ5AWTJKXJIXXRIJHE3CE2YAAU
+#\\\|7JB3FANKDRNOQNZR34YFFWNTBPX2I35G53DN7BOKQYVF7YSKXIS \ / AMOS7 \ YOURUM ::
+#\[7]3EDCCJEMZ6JXQHNSJGCAL63QUZRMKK4MCK4UVA6HRK7NYQM7XQBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
