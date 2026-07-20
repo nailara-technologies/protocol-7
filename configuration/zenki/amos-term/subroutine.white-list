@@ -80,6 +80,7 @@ base.str.os_err
 base.prng.bytes
 base.path_perms
 base.p7ref.self
+base.mod.exists
 base.has_access
 base.file.which
 base.file.slurp
@@ -104,6 +105,7 @@ base.net.connect
 base.log-delayed
 base.load_config
 base.get_homedir
+base.code.exists
 base.cmd.subname
 base.cmd.src-ver
 base.cmd.src-age
@@ -189,7 +191,6 @@ base.loaded_p7_mods
 base.get_session_id
 base.file.make_path
 base.file.init_code
-base.file.all_links
 base.file.all_files
 base.extract_values
 base.event.pre_init
@@ -228,7 +229,6 @@ base.cmd.show-access
 base.cmd.amos-chksum
 base.chk-sum.bmw.ctx
 base.buffer.add_line
-auth.zenka.init_code
 ascii.frame.validate
 plan-9.protocol.error
 plan-9.protocol.codec
@@ -287,7 +287,6 @@ base.file.get-non-dirs
 base.comp-int.is_valid
 base.cmd.cancel-stream
 base.cfg.profile.apply
-auth.unix.authenticate
 amos-term.window-close
 amos-term.fuse.readdir
 amos-term.fuse.getattr
@@ -319,13 +318,14 @@ base.exists.sub-process
 base.execute_zenka_code
 base.dump.data_key_list
 base.convert.hex_to_int
+base.code.call_optional
+base.code.call_expected
 base.cmd.set-name-width
 base.cmd.ondemand-zenka
 base.cmd.loaded-configs
 base.chk-sum.elf.inline
 base.chk-sum.bmw.strsum
 base.auth.set_zenka_key
-auth.zenka.authenticate
 amos-term.window-resize
 amos-term.window-create
 amos-term.plugin-unload
@@ -430,11 +430,11 @@ base.root.check_system_user
 base.parser.ondemand_status
 base.modules.check_migrated
 base.handler.whitelist_miss
-base.file.gen_path_linkname
 base.debian.install_package
 base.cmd.buffer-erase-level
 base.chk-sum.elf.vax-BASE32
 base.chk-sum.amos.init_code
+auth.client.zenka.init_code
 amos-term.window-fullscreen
 amos-term.session.set_state
 amos-term.handler.key_press
@@ -486,7 +486,7 @@ base.cube-zenka.output_prompt
 base.config.show_strack_trace
 base.chk-sum.bmw.template_L13
 base.chk-sum.bmw.B-32-56.TRUE
-auth.zenka.process_auth_reply
+auth.client.unix.authenticate
 ascii.frame.parse.border_line
 amos7.decode_octal_bit_header
 amos-term.fuse.build_metadata
@@ -505,11 +505,11 @@ crypt.C25519.key_bin_checksums
 base.zenki.ondemand_registered
 base.session.send_init_reports
 base.p7refs.get_refaddr_prefix
-base.number-cache.true_upwards
 base.log.send-buffer.add-queue
 base.chk-sum.bmw.harmonize_L13
 base.chk-sum.bmw.encode_digest
 base.cache.refaddr-prefix.init
+auth.client.zenka.authenticate
 ascii.frame.render.border_line
 amos-term.cmd.list_attachments
 plan-9.server.buffer-read-layer
@@ -519,10 +519,8 @@ data.mount.shm.create.mmap_file
 data.get.validate_path_security
 data.get.resolve_plugin_handler
 data.get.get_caller_permissions
-crypt.C25519.cmd.get-public-key
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
-base.buffer.local_logfile_write
 amos-term.handler.nshell-output
 amos-term.decoder.init_patterns
 amos-term.buffer-attach_generic
@@ -550,7 +548,6 @@ data.mount.shm.open.derive_pubkey
 base.sourcecode.in-mem.sub-source
 base.perlmod.init_install_buffers
 base.parser.center_ellipse_string
-base.file.matching_path_linknames
 base.callback.expire_code_version
 protocol.sftp.server.start-process
 protocol.sftp.callback.kill_server
@@ -593,7 +590,6 @@ graphics.matrix.visual.sphere-stats
 graphics.matrix.visual.cubic-layers
 graphics.matrix.visual.classify-all
 base.perlmod.register_loaded_module
-base.number-cache.is_valid_template
 base.handler.write.encoding-wrapper
 base.handler.strm_size_idle_timeout
 base.handler.counter_overflow_reset
@@ -614,6 +610,7 @@ base.parser.decode_harmonized_refstr
 base.handler.read.encryption-wrapper
 base.handler.command.route_to_target
 base.callback.clean_data_source_hash
+auth.client.zenka.process_auth_reply
 protocol.sftp.handler.write_to_server
 protocol.protocol-7.message-templates
 protocol.protocol-7.link-upgrade.init
@@ -701,8 +698,8 @@ data.topology.interference.map.calculate_metadata_distance
 data.topology.interference.map.calculate_fluorescent_drift
 data.topology.interference.map.calculate_constructive_zone
 
-#,,.,,.,,,..,,..,,.,.,..,,,,,,,..,...,.,.,.,.,..,,...,...,...,..,,,.,,,,,,,.,,
-#3N7EXY5TWSUONKG3GJSUB4OKOAHDCMBQSFVND5XH22ZM3Y3UGKX56DNCVBNCT56AXZOTJZEBXSXJK
-#\\\|NET4XABK6L7TJZWASZRZREG6D3X4C37XBFBMWNTS2CJCE7XQMP4 \ / AMOS7 \ YOURUM ::
-#\[7]IRSWX2QCRHVCIJ5UNKEGZBM6OIIQUF5RM6AYS7AZ4A7WL7CKVSDI 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,,.,.,,,,,.,...,.,,,..,,,,,,.,,,..,,...,...,,.,,,.,,.,.,...,,.,,
+#LBUAH7LJCEXZNROT4V7OSJOUFZLAGFCOSF7HS243A7TAUOIKYSTRVN2KSP7E5SYLF4F2M642NQ7RW
+#\\\|4FCHWRCSHTCHCB75N3BGR3626GSAUAALTHIHVAISGVD5R6S4ER3 \ / AMOS7 \ YOURUM ::
+#\[7]QT5EVEEJ2MNU5VLLP7PL3NL3SSHYMUDLLGLKR4GFI5Q43Q2UNGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -85,9 +85,10 @@ if ( !defined $checksum ) {
 
         my $entry = $registry->{$key} // {};
 
-        ## reuse the existing predicate on the entry's vision flag ##
+        ## reuse the existing predicate on the entry's vision flag [ local ##
+        ## clone - models.* isn't statically loaded in the coding zenka ] ##
         my $vision
-            = <[models.parser.str.is_vision]>->( $entry->{'is_vision'} // 0 )
+            = <[coding.parser.str.is_vision]>->( $entry->{'is_vision'} // 0 )
             eq qw| vision |;
 
         ## fallback : name heuristic, same pattern as models.local_discover ##
@@ -147,8 +148,8 @@ $data{'coding'}{'vision_switch_state'}{$switch_id} = {
 
 return { 'mode' => qw| deferred | };
 
-#,,,,,,,.,.,.,,,.,.,.,.,,,..,,,.,,,,.,,..,,.,,..,,...,...,...,.,,,...,,,,,.,,,
-#2IDOZYMEUCPYPNMSNMT4ALBXKEBCNVJHEDIOTAMBKXKKAVQEWNX3JOQECUOGWKOQJF25I4ISEJ7JY
-#\\\|PW7ONJIC25XUEU5EXKXQLUDAH6QGWQE67PC6AV2NXZHLDSG3MQF \ / AMOS7 \ YOURUM ::
-#\[7]JJQSLCHUL7KPR77XB3IKG7J6XB6DDWNANNUP7IKX266RUMUFUEBQ 7  DATA SIGNATURE ::
+#,,,.,...,,,.,...,...,.,.,..,,,.,,,..,.,,,,.,,..,,...,...,..,,...,.,,,.,.,,.,,
+#BA6X7U5KQDNQBNY3SO774FKYE3OARK6MHQL6OCUMAIW5IFPDXNZUNOLIFFAAUDMJ3KP33D3A4IWFQ
+#\\\|JDVIKSPRSWIA3CR5ZH35L7XEG7LZ6BPNBVFOTUMU2FKIIIZB342 \ / AMOS7 \ YOURUM ::
+#\[7]UOPZPEPSQZ2IIWKDFR7AGFS3RBMFFAPIN55ZJIBDVFWXRGR5MKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

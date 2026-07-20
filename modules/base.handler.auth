@@ -68,7 +68,7 @@ if ( $input->$* =~ s|^(auth\.)?close\n|| ) {
     my $req_method = $+{method};
     $event->w->start;
 
-    if ( not exists $code{'auth.auth_select'} ) {
+    if ( not <[base.code.exists]>->(qw| auth.auth_select |) ) {
         <[base.log]>->(
             0, "[$id] auth module not loaded, 'select' rejected."
         );
@@ -96,7 +96,11 @@ if ( $input->$* =~ s|^(auth\.)?close\n|| ) {
             return 2;    ## <-- disconnecting client ##
 
         } else {
-            if ( <[auth.auth_select]>->( $id, $req_method ) ) {
+            if (<[base.code.call_optional]>->(
+                    qw| auth.auth_select |,
+                    $id, $req_method
+                )
+            ) {
                 $count_select->{'calls'}++;
             } else {
                 $count_select->{'errors'}++;
@@ -186,7 +190,7 @@ if ( $input->$* =~ s|^(auth\.)?close\n|| ) {
 
     $event->w->start;
 
-    if ( not exists $code{'auth.auth_list'} ) {
+    if ( not <[base.code.exists]>->(qw| auth.auth_list |) ) {
         <[base.logs]>->(
             0, "[%d] auth module not loaded, 'list' rejected.", $id
         );
@@ -212,7 +216,8 @@ if ( $input->$* =~ s|^(auth\.)?close\n|| ) {
 
         <[base.logs]>->( '[%d] auth method list requested', $id );
 
-        my $auth_list = <[auth.auth_list]>->($id);
+        my $auth_list
+            = <[base.code.call_optional]>->( qw| auth.auth_list |, $id );
         $auth_list = sprintf "SIZE %u\n%s", length($auth_list), $auth_list;
         $count_select->{'list'}++;
         $output->$* .= $auth_list;
@@ -293,8 +298,8 @@ elsif ( defined $auth_method
     return 2;               ##  no auth method selected + session closing  ##
 }
 
-#,,,,,..,,,,.,.,.,.,.,,.,,,,.,.,.,.,.,,.,,,.,,..,,...,...,,..,...,.,.,,,.,,,.,
-#TMDISY75BUJPN6WRUJTDDBI5VNNBFUXZFJVIIQPP64WVDTAIU3KIH5ZMIIQGBD24F3BNH57CJ3X3S
-#\\\|LJIAQO6FNWSX7FEQXVIR5KRAU3DONYD2YGPVURCAYJ64L4JJUAV \ / AMOS7 \ YOURUM ::
-#\[7]UC3S5LJOT7PS3RW63BXR3I6UERWOVMYAB7MDCKTZILOO5YURYUBA 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,.,,,..,,..,,,,.,.,,,.,.,.,,,,,.,..,,...,..,,,..,..,,..,,,..,.,,,
+#TEZPNZHEPRNMKB7CDPCA54DWC3NWOXKQ4FVD7NMUHQZSOE5NYBX4YIF6U7VZRMW75QBSEAAES6AHG
+#\\\|FTETTGDKDLEDN4LMNXAW5GBU752WEM6INBKWU3S4OE5NNTHUIS3 \ / AMOS7 \ YOURUM ::
+#\[7]B2USKW2SFDUPQYY722K5EFO6GDMQHR6CYKC2J3PAB25XVPK4CCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

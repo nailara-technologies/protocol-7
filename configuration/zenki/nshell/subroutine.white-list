@@ -64,7 +64,6 @@ base.dump_data
 base.conf-wrap
 base.cmd.heart
 base.cmd.clear
-auth.auth_list
 plugin.auth.pwd
 net.read_binary
 devmod.pre_init
@@ -74,6 +73,7 @@ base.str.os_err
 base.prng.bytes
 base.path_perms
 base.p7ref.self
+base.mod.exists
 base.has_access
 base.file.which
 base.file.slurp
@@ -82,6 +82,7 @@ base.event.loop
 base.cmd.whoami
 base.cmd.reload
 base.calc_gauss
+ascii.frame.bar
 ui.estimate.cost
 plugin.auth.unix
 nshell.term_init
@@ -100,6 +101,7 @@ base.net.connect
 base.log-delayed
 base.load_config
 base.get_homedir
+base.code.exists
 base.cmd.subname
 base.cmd.src-ver
 base.cmd.src-age
@@ -110,7 +112,6 @@ base.cmd.cur-pid
 base.chk-sum.elf
 base.call_filter
 auth.pwd.success
-auth.auth_select
 ascii.frame.load
 plugin.auth.zenka
 nshell.state_init
@@ -172,14 +173,17 @@ base.parser.txt_box
 base.loaded_p7_mods
 base.file.make_path
 base.file.init_code
-base.file.all_links
 base.file.all_files
 base.extract_values
 base.event.pre_init
 base.diff.hash_keys
 base.calc_unix_path
+ascii.frame.compose
 nshell.render.cursor
 io.ip.tcp.input.open
+format.yaml.pre_init
+format.yaml.load_str
+format.yaml.dump_str
 base.route.init_code
 base.read_proc_times
 base.prng.chars-anum
@@ -203,7 +207,6 @@ base.cmd.show-access
 base.cmd.amos-chksum
 base.chk-sum.bmw.ctx
 base.buffer.add_line
-auth.zenka.init_code
 ascii.frame.validate
 nshell.search.handler
 nshell.register_hooks
@@ -230,9 +233,12 @@ base.cmd.dependencies
 base.cmd.buffer-erase
 base.cfg.profile.list
 base.balanced-average
+ascii.frame.slot.bind
+ascii.frame.init_code
 nshell.write_to_buffer
 nshell.render.viewport
 nshell.history.page_up
+format.yaml.write_file
 base.session.init_code
 base.required_bin_path
 base.register_src_deps
@@ -240,12 +246,12 @@ base.register_bin_deps
 base.perlmod.init_code
 base.path.resolved_abs
 base.net.cmd.timestamp
+base.load_section_conf
 base.get_max_verbosity
 base.file.get-non-dirs
 base.comp-int.is_valid
 base.cmd.cancel-stream
 base.cfg.profile.apply
-auth.unix.authenticate
 protocol.sftp.init_code
 nshell.render.full_line
 nshell.read_from_buffer
@@ -266,12 +272,17 @@ base.exists.sub-process
 base.execute_zenka_code
 base.dump.data_key_list
 base.convert.hex_to_int
+base.code.call_optional
+base.code.call_expected
 base.cmd.set-name-width
 base.cmd.ondemand-zenka
 base.cmd.loaded-configs
 base.chk-sum.elf.inline
 base.chk-sum.bmw.strsum
-auth.zenka.authenticate
+ascii.frame.slot.select
+ascii.frame.render.html
+ascii.frame.render.data
+ascii.frame.from_mockup
 ui.caller.security-level
 protocol.https.init_code
 plugin.auth.auth-keypair
@@ -292,6 +303,7 @@ base.cmd.verify-instance
 base.chk-sum.from_substr
 base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
+ascii.frame.render.color
 ui.render.tree.invalidate
 nshell.parser.term_encode
 nshell.parser.term_decode
@@ -327,13 +339,13 @@ base.reverse-sort.key-name
 base.protocol.compile_once
 base.protocol-7.route-send
 base.perlmod.install_cpanm
+base.path.resolve_keywords
 base.parser.data_hkey_tree
 base.ntime.epoch_timestamp
 base.max-len.val-hash-keys
 base.handler.session_error
 base.event.io_idle_restart
 base.check_dependency_dirs
-auth.zenka.cmd.session-key
 nshell.tofu_validate_pubkey
 nshell.hook.unknown_command
 nshell.handler.ctrl_o_cycle
@@ -349,11 +361,11 @@ base.parser.ondemand_status
 base.modules.check_migrated
 base.handler.whitelist_miss
 base.handler.hooks.register
-base.file.gen_path_linkname
 base.debian.install_package
 base.cmd.buffer-erase-level
 base.chk-sum.elf.vax-BASE32
 base.chk-sum.amos.init_code
+auth.client.zenka.init_code
 protocol.protocol-7.pre_init
 protocol.amos_term.init_code
 nshell.handler.command_reply
@@ -372,6 +384,7 @@ protocol.protocol-7.init_code
 nshell.util.syswrite_complete
 nshell.util.extract_utf8_char
 nshell.hook.input_passthrough
+format.yaml.load_keyword_path
 crypt.C25519.store_remote_key
 crypt.C25519.load_from_string
 crypt.C25519.get_usr_keys_dir
@@ -387,7 +400,7 @@ base.cube-zenka.output_prompt
 base.config.show_strack_trace
 base.chk-sum.bmw.template_L13
 base.chk-sum.bmw.B-32-56.TRUE
-auth.zenka.process_auth_reply
+auth.client.unix.authenticate
 ascii.frame.parse.border_line
 amos7.decode_octal_bit_header
 protocol.sftp.connect_callback
@@ -398,17 +411,18 @@ crypt.C25519.key_bin_checksums
 base.zenki.ondemand_registered
 base.session.send_init_reports
 base.p7refs.get_refaddr_prefix
-base.number-cache.true_upwards
 base.log.send-buffer.add-queue
 base.chk-sum.bmw.harmonize_L13
 base.chk-sum.bmw.encode_digest
 base.cache.refaddr-prefix.init
+auth.client.zenka.authenticate
+ascii.frame.render.html.escape
+ascii.frame.render.html.border
+ascii.frame.render.html.anchor
 ascii.frame.render.border_line
 nshell.hook.unknown_reply_route
-crypt.C25519.cmd.get-public-key
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
-base.buffer.local_logfile_write
 nshell.no-tty-debug.cmd.char-add
 crypt.C25519.decrypt_priv_keystr
 base.perlmod.install_cpan_module
@@ -425,7 +439,6 @@ plugin.auth.zenka.no-keys-defined
 base.sourcecode.in-mem.sub-source
 base.perlmod.init_install_buffers
 base.parser.center_ellipse_string
-base.file.matching_path_linknames
 base.callback.expire_code_version
 protocol.sftp.server.start-process
 protocol.sftp.callback.kill_server
@@ -449,7 +462,6 @@ protocol.sftp.handler.session_close
 protocol.protocol-7.encryption.init
 protocol.amos-chksum.ext-cmd.select
 base.perlmod.register_loaded_module
-base.number-cache.is_valid_template
 base.handler.write.encoding-wrapper
 base.handler.strm_size_idle_timeout
 base.handler.counter_overflow_reset
@@ -468,6 +480,8 @@ base.parser.decode_harmonized_refstr
 base.handler.read.encryption-wrapper
 base.handler.command.route_to_target
 base.callback.clean_data_source_hash
+auth.client.zenka.process_auth_reply
+ascii.frame.render.color.border_line
 protocol.sftp.handler.write_to_server
 protocol.protocol-7.message-templates
 protocol.protocol-7.link-upgrade.init
@@ -476,12 +490,12 @@ protocol.amos-chksum.connect_callback
 base.zenka.push.reply-handler.offline
 base.perlmod.unregister_loaded_module
 base.handler.write.encryption-wrapper
+ascii.frame.render.data.border_string
+ascii.frame.render.color.content_line
 protocol.sftp.terminate_server_process
 protocol.protocol-7.auth.select-method
 io.unix.socket.handler.report-tmp-path
 base.log.send-buffer.idle-callback-set
-auth.callback.cap-neg.select-strm-mode
-auth.callback.cap-neg.select-size-mode
 base.perlmods.blacklist_collision_index
 base.parser.chk-sum.embedded-code-style
 base.log.send-buffer.send-idle-callback
@@ -495,7 +509,6 @@ base.zenki.ondemand.handler.startup_reply
 base.agent_code.handler.sig_warn.end_proc
 protocol.protocol-7.link-upgrade.handshake
 plugin.auth.auth-keypair.tofu-notification
-auth.callback.cap-neg.declare-strm-support
 base.zenka.push.reply-handler.notify-online
 base.referenced_subroutines.clear_from_disk
 base.log.send-buffer.reply-handler.send-reply
@@ -503,13 +516,11 @@ plugin.auth.auth-keypair.load-authorized-users
 plugin.auth.auth-keypair.cleanup-incoming-keys
 base.zenki.ondemand.handler.reconcile_starting
 plugin.auth.auth-keypair.validate-incoming-tofu
-auth.callback.cap-neg.declare-strm-size-timeout
-auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,.,,,,.,.,,,,,,,.,.,..,,,,,,,.,,,.,,.,.,,..,..,,...,...,.,,,..,,.,,,.,,,.,.,
-#DFEKOKJBFJWMQRJQJBSTM3CVWUTIGOJMVFHPEYJ6ML6CPH6SCF64BKWBL2BMLVJ6ZNPLDVYXMZV5U
-#\\\|YLA2P5ZB6D3HW2ERBGCSXXX4VKLVVGZOGB3BMJ742LTF63TCKKK \ / AMOS7 \ YOURUM ::
-#\[7]RBO2LV6XN5LRJRDHTEZOV7FUZP7I27MTUVVERFKPW2GIXHERLODY 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,,,,.,,,,,,,,,,,...,..,,..,,,,,,..,,...,..,,..,,,..,,,,,.,.,,,,,
+#75K4ARHUTKZZDBYPYKV5HCVVFDA5SE36XFL2YIPO3P7DO65ZWYHCRF467BO44BPJ54X6KME5IQIHM
+#\\\|DRMRADGK5NA4JXFNCKXKNANBEAMWKDN5A534BKELBZNCSI2MNFB \ / AMOS7 \ YOURUM ::
+#\[7]GHUGCIKBFRXL3ECG5ORMSHKCT5AUWUV47XGJDW4ZKUAP67NSJWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

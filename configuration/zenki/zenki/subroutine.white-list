@@ -65,7 +65,6 @@ base.dump_data
 base.conf-wrap
 base.cmd.heart
 base.cmd.clear
-auth.auth_list
 plugin.auth.pwd
 net.read_binary
 devmod.pre_init
@@ -75,6 +74,7 @@ base.str.os_err
 base.prng.bytes
 base.path_perms
 base.p7ref.self
+base.mod.exists
 base.has_access
 base.file.which
 base.file.slurp
@@ -100,6 +100,7 @@ base.net.connect
 base.log-delayed
 base.load_config
 base.get_homedir
+base.code.exists
 base.cmd.subname
 base.cmd.src-ver
 base.cmd.src-age
@@ -110,7 +111,6 @@ base.cmd.cur-pid
 base.chk-sum.elf
 base.call_filter
 auth.pwd.success
-auth.auth_select
 ascii.frame.load
 plugin.auth.zenka
 net.read_bytewise
@@ -211,7 +211,6 @@ base.cmd.amos-chksum
 base.chk-sum.bmw.ctx
 base.buffer.add_line
 base.base32.pre_init
-auth.zenka.init_code
 ascii.frame.validate
 jobqueue.get_job_data
 format.yaml.load_file
@@ -249,7 +248,6 @@ base.file.get-non-dirs
 base.comp-int.is_valid
 base.cmd.cancel-stream
 base.cfg.profile.apply
-auth.unix.authenticate
 protocol.sftp.init_code
 io.unix.socket.end_code
 crypt.C25519.key_exists
@@ -267,6 +265,8 @@ base.exists.sub-process
 base.execute_zenka_code
 base.dump.data_key_list
 base.convert.hex_to_int
+base.code.call_optional
+base.code.call_expected
 base.cmd.set-name-width
 base.cmd.ondemand-zenka
 base.cmd.loaded-configs
@@ -274,7 +274,6 @@ base.chk-sum.elf.inline
 base.chk-sum.bmw.strsum
 base.callback.cmd_reply
 base.auth.set_zenka_key
-auth.zenka.authenticate
 zenki.parent.ensure_cube
 ui.caller.security-level
 protocol.https.init_code
@@ -328,7 +327,6 @@ base.max-len.val-hash-keys
 base.handler.session_error
 base.event.io_idle_restart
 base.check_dependency_dirs
-auth.zenka.cmd.session-key
 net.read_linewise_estimated
 jobqueue.check_dependencies
 io.unix.socket.output.close
@@ -345,6 +343,7 @@ base.debian.install_package
 base.cmd.buffer-erase-level
 base.chk-sum.elf.vax-BASE32
 base.chk-sum.amos.init_code
+auth.client.zenka.init_code
 zenki.handler.v7_start_reply
 protocol.protocol-7.pre_init
 protocol.amos_term.init_code
@@ -375,7 +374,7 @@ base.cube-zenka.output_prompt
 base.config.show_strack_trace
 base.chk-sum.bmw.template_L13
 base.chk-sum.bmw.B-32-56.TRUE
-auth.zenka.process_auth_reply
+auth.client.unix.authenticate
 ascii.frame.parse.border_line
 amos7.decode_octal_bit_header
 protocol.sftp.connect_callback
@@ -390,11 +389,10 @@ base.log.send-buffer.add-queue
 base.chk-sum.bmw.harmonize_L13
 base.chk-sum.bmw.encode_digest
 base.cache.refaddr-prefix.init
+auth.client.zenka.authenticate
 ascii.frame.render.border_line
-crypt.C25519.cmd.get-public-key
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
-base.buffer.local_logfile_write
 crypt.C25519.decrypt_priv_keystr
 base.perlmod.install_cpan_module
 base.perlmod.get_collision_index
@@ -453,6 +451,7 @@ base.parser.decode_harmonized_refstr
 base.handler.read.encryption-wrapper
 base.handler.command.route_to_target
 base.callback.clean_data_source_hash
+auth.client.zenka.process_auth_reply
 protocol.sftp.handler.write_to_server
 protocol.protocol-7.message-templates
 protocol.protocol-7.link-upgrade.init
@@ -465,8 +464,6 @@ protocol.sftp.terminate_server_process
 protocol.protocol-7.auth.select-method
 io.unix.socket.handler.report-tmp-path
 base.log.send-buffer.idle-callback-set
-auth.callback.cap-neg.select-strm-mode
-auth.callback.cap-neg.select-size-mode
 base.perlmods.blacklist_collision_index
 base.parser.chk-sum.embedded-code-style
 base.log.send-buffer.send-idle-callback
@@ -479,7 +476,6 @@ base.zenki.ondemand.handler.startup_reply
 base.agent_code.handler.sig_warn.end_proc
 protocol.protocol-7.link-upgrade.handshake
 plugin.auth.auth-keypair.tofu-notification
-auth.callback.cap-neg.declare-strm-support
 base.zenka.push.reply-handler.notify-online
 base.referenced_subroutines.clear_from_disk
 base.log.send-buffer.reply-handler.send-reply
@@ -487,13 +483,11 @@ plugin.auth.auth-keypair.load-authorized-users
 plugin.auth.auth-keypair.cleanup-incoming-keys
 base.zenki.ondemand.handler.reconcile_starting
 plugin.auth.auth-keypair.validate-incoming-tofu
-auth.callback.cap-neg.declare-strm-size-timeout
-auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,.,,.,,,..,,,..,,,.,,,.,.,.,,,.,,,.,,..,.,.,..,,...,...,...,..,,...,,.,,..,,
-#4PK53WREUF552S3JNQYUMPTWJULGKBXOP7TNPUUKQRWQCMK7NBIKPIHVKZE2IML5GVLGSAWPIHTOM
-#\\\|OFG5B62IHVJYZ7IZLJS74OV3DBD4FJ4TQGNQT7RYTL3T5DAXHZH \ / AMOS7 \ YOURUM ::
-#\[7]OH6YBJ3I4IHBHMY2MUN6QBEHGP423BQLYBNF535NBWW636EU3SBQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,,,,..,,.,.,,.,,,,.,...,.,,,,,.,..,,...,...,.,.,,.,,.,.,,,,,,.,,
+#TIRT73TM4SY3LBLRR3ZPSK5HPHQZTGU7ZJDUN7OZ64FCIEE3DKTVWAKOWOECMJWMVPW2VZPWBNB2C
+#\\\|GNS6PCMIBD6J2MXLYIBYPK5BJDAPYYA75I7LJ2UR3KKOEPFMAZH \ / AMOS7 \ YOURUM ::
+#\[7]ECQW6E6XX4XJBXI5WV64QOHN4QTLNMGRO6J3TCOKOFCLQUSNVCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

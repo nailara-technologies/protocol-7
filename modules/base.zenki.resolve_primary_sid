@@ -30,8 +30,11 @@ if (    exists $cache->{$user_name}->{$caller_subname}
 ## managed instance [ <v7.zenka.instance> ] -- no need to ask cube over    ##
 ## the network for data v7 already has, and 'list' isn't even whitelisted  ##
 ## for v7 to call cross-zenka on cube.                                     ##
-if ( <system.zenka.name> eq qw| v7 | ) {
-    my $ids_result = <[v7.zenka-instances.get-ids]>->($user_name);
+if ( <[base.mod.exists]>->(qw| v7 |) ) {
+    my $ids_result = <[base.code.call_expected]>->(
+        <[base.mod.exists]>->(qw| v7 |),
+        qw| v7.zenka-instances.get-ids |, $user_name
+    );
     my @instance_ids
         = ref $ids_result eq qw| HASH | ? @{ $ids_result->{'ids'} } : ();
 
@@ -82,8 +85,8 @@ if ( <system.zenka.name> eq qw| v7 | ) {
     }
 );
 
-#,,.,,...,,,,,,,.,,.,,.,,,,,.,..,,,,,,..,,...,..,,...,...,,..,.,,,,,.,,..,.,,,
-#YCT5UUCOFEUSW4DWDEUBS4CZ6ZTLLPHJQ3FUFG4AWD4HYB2VWFPH4XOBH4WYJGG4GTZ66KGHZQQWM
-#\\\|Z424PBNBUNLF3VZE5D6YYPJA5SEJR5T663V4UAFDITOMMNO65VS \ / AMOS7 \ YOURUM ::
-#\[7]VMSUE773JIN4HI6OF2ASC3S66KDDGHRUG7BTHIV4VIJ66NNSG4BI 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,.,.,...,.,.,...,,.,,.,.,,.,,...,..,,...,..,,...,,.,,.,,,,.,,,..,
+#2XV45WL4DWD6YWEAOWVC7ZD3IYNMKKLEP3734QIIT7ML2SFEYTE7W3IBK7FOFQYMVR5QYBTFKIDKS
+#\\\|G2QOZ4YPIQ5UHP7FID2V7Y3VZRZLIGVJKSL2IF7RWPKCT34J7TN \ / AMOS7 \ YOURUM ::
+#\[7]DRZEATNOTV7FJVVKE5RJ7DSESJKJNOOCIDUGELIFEEQG2A7TEECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

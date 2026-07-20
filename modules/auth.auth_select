@@ -14,7 +14,10 @@ my @available_auth_methods
 
 if ( <[base.list_matches]>->( \@available_auth_methods, $method . '$' ) ) {
 
-    if ( $method eq qw| zenka | and <[plugin.auth.zenka.no-keys-defined]> ) {
+    if ($method eq qw| zenka |
+        and <[base.code.call_optional]>->(
+            qw| plugin.auth.zenka.no-keys-defined |)
+    ) {
         <[base.net.send_to_socket]>->(
             $client_sock_fd, "FALSE no zenka authentication expected >:[\n"
         );
@@ -25,7 +28,12 @@ if ( <[base.list_matches]>->( \@available_auth_methods, $method . '$' ) ) {
 
     # For auth-keypair, send server's public key for TOFU validation
     if ( $method eq 'auth-keypair' ) {
-        my $pubkey_response = <[crypt.C25519.cmd.get-public-key]>;
+        ## unconditional once reached : any zenka accepting auth-keypair  ##
+        ## connections must have crypt.C25519 loaded [ cube does; a zenka ##
+        ## that reaches this without it is genuinely misconfigured ]     ##
+        my $pubkey_response = <[base.code.call_expected]>->(
+            TRUE, qw| crypt.C25519.cmd.get-public-key |
+        );
         my $server_pubkey_b32;
 
         if ( ref $pubkey_response eq qw| HASH |
@@ -73,8 +81,8 @@ if ( <[base.list_matches]>->( \@available_auth_methods, $method . '$' ) ) {
     return FALSE;
 }
 
-#,,.,,.,,,...,,..,.,.,,.,,.,,,,.,,,,.,..,,..,,..,,...,...,.,,,,..,,..,,,.,.,.,
-#KOTCS2UFZDCPVP6ZJKXLDQ67HU7LXZK45DDFWMX2PMGIEU3XQI5HC7YTHAPPPIA4PODAX4M5WDKZU
-#\\\|I3I5EJQVE7DB4TGVUG6FAFZBS3TODK5NENV5WAD7234DIH2SOUV \ / AMOS7 \ YOURUM ::
-#\[7]SSEH3SN4RP5IXP6ET6WKQT6IBUCXVNCLH4ZHY2N2ONW3WQNLLWCQ 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,..,,.,,,.,,,..,,,,,,,,.,...,,,,,..,,...,..,,...,,,.,...,...,...,
+#5LCYGM36ZNLLNHZ4UZEWLNYEZUC3MVQRIRFRFDJEWAIXYZ74WG4HQ2EQ7RQUPHGX4GSDWAT7BSNFC
+#\\\|JR3FP4KAYQMTMLYJ7C7MK6JEKIYHNZTNG5ZDCYLA2UTV7D2RWTH \ / AMOS7 \ YOURUM ::
+#\[7]36AF7SDFBXHQBXRJBWRX77DMFF5MQNBUTR453EQA544AIMAGCCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

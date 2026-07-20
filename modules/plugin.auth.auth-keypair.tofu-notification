@@ -14,35 +14,34 @@ return 2 unless defined $username and defined $peerhost and defined $peerport;
 ##  Build notification data  ##
 
 my $notification_data = {
-    'event'      => 'tofu-client-pinned',
-    'username'   => $username,
-    'host'       => $peerhost,
-    'port'       => $peerport,
-    'timestamp'  => <[base.time]>->(3),
-    'action'     => 'awaiting authorization',
-    'zenka'      => <system.zenka.name> // 'unknown'
+    'event'     => 'tofu-client-pinned',
+    'username'  => $username,
+    'host'      => $peerhost,
+    'port'      => $peerport,
+    'timestamp' => <[base.time]>->(3),
+    'action'    => 'awaiting authorization',
+    'zenka'     => <system.zenka.name> // 'unknown'
 };
 
 ##  Publish to security channel  ##
 ##  Format: channel.path + JSON data  ##
 
 my $json_module = <[base.perlmod.load]>->('JSON::PP');
-my $json_str = eval { JSON::PP::encode_json($notification_data) };
+my $json_str    = eval { JSON::PP::encode_json($notification_data) };
 
 return 1 if length $EVAL_ERROR;
 
 ##  Call channels.cmd.update to publish  ##
-my $update_result = <[channels.cmd.update]>->(
-    {
-        'args' => "security.tofu-requests $json_str"
-    }
-);
+my $update_result = <[base.code.call_optional]>->(
+    qw| channels.cmd.update |,
+    { 'args' => "security.tofu-requests $json_str" }
+) // {};
 
-unless ( $update_result->{'mode'} eq qw| timestamp | ) {
+unless ( ( $update_result->{'mode'} // '' ) eq qw| timestamp | ) {
     <[base.logs]>->(
         0,
         "auth-keypair: failed to publish TOFU notification to channel: %s",
-        $update_result->{'data'}
+        $update_result->{'data'} // 'channels module not loaded'
     );
     return 1;
 }
@@ -59,8 +58,8 @@ return 0;
 
 1;
 
-#,,,,,..,,,..,.,.,...,,,.,,,.,.,,,,.,,..,,..,,.,.,...,...,.,.,,..,.,.,...,...,
-#2MIPZ6HMD64WNVRPGZ6KLOIE6DN3EKNJV6JUQALYPALDB2L3ZG3DAY4DBIFEANWPA2VLAM4TFWWH6
-#\\\|MBCV7IFWQ2QGMN3UAIBZPMV6DCS7BSSCKCWUXFDZDA3JVT3APWF \ / AMOS7 \ YOURUM ::
-#\[7]TM6L7PTWDBEYTFWSJ7TBBS3EL3H4JLYF2YWGQNWHGMZFULKYUSCA 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,.,,..,,...,,,,,..,,.,,,,.,,...,.,.,...,...,,,,,,,,,.,,,.,,,.,,,
+#AB7WSCSHFARK2QPPCLGXUOMVDIPMW4KIXRTQ3W2XMHJGYTTDMJFGRP47JZAFC57UW2KMPX2UOUBLA
+#\\\|ONSQTSIIOG4IRVBQ4XPMZYGFD35CGLCNWFVWCUJVQ6N7HORT7LA \ / AMOS7 \ YOURUM ::
+#\[7]BAD72TYXWCGVKLR6BXRV62OWDN55PIFYHYXY5I6LS7CWZHNVYWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

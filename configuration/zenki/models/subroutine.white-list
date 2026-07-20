@@ -63,7 +63,6 @@ base.file.open
 base.dump_data
 base.conf-wrap
 base.cmd.heart
-auth.auth_list
 plugin.auth.pwd
 net.read_binary
 models.cmd.chat
@@ -73,6 +72,7 @@ base.str.os_err
 base.prng.bytes
 base.path_perms
 base.p7ref.self
+base.mod.exists
 base.has_access
 base.file.which
 base.file.slurp
@@ -97,10 +97,10 @@ base.net.connect
 base.log-delayed
 base.load_config
 base.get_homedir
+base.code.exists
 base.chk-sum.elf
 base.call_filter
 auth.pwd.success
-auth.auth_select
 ascii.frame.load
 plugin.auth.zenka
 net.read_bytewise
@@ -179,7 +179,6 @@ base.loaded_p7_mods
 base.get_session_id
 base.file.make_path
 base.file.init_code
-base.file.all_links
 base.file.all_files
 base.extract_values
 base.event.pre_init
@@ -224,7 +223,6 @@ base.cmd.show-access
 base.chk-sum.bmw.ctx
 base.buffer.add_line
 base.base32.pre_init
-auth.zenka.init_code
 ascii.frame.validate
 models.registry.empty
 models.parser.size_gb
@@ -271,7 +269,6 @@ base.get_max_verbosity
 base.file.get-non-dirs
 base.comp-int.is_valid
 base.cfg.profile.apply
-auth.unix.authenticate
 protocol.sftp.init_code
 models.storage.discover
 models.list_attachments
@@ -297,11 +294,12 @@ base.exists.sub-process
 base.execute_zenka_code
 base.dump.data_key_list
 base.convert.hex_to_int
+base.code.call_optional
+base.code.call_expected
 base.chk-sum.elf.inline
 base.chk-sum.bmw.strsum
 base.callback.cmd_reply
 base.auth.set_zenka_key
-auth.zenka.authenticate
 ui.caller.security-level
 protocol.https.init_code
 plugin.auth.auth-keypair
@@ -422,10 +420,10 @@ base.root.check_system_user
 base.parser.ondemand_status
 base.modules.check_migrated
 base.handler.whitelist_miss
-base.file.gen_path_linkname
 base.debian.install_package
 base.chk-sum.elf.vax-BASE32
 base.chk-sum.amos.init_code
+auth.client.zenka.init_code
 terminal.curses_ui.load_lang
 protocol.protocol-7.pre_init
 protocol.amos_term.init_code
@@ -479,7 +477,7 @@ base.cube-zenka.output_prompt
 base.config.show_strack_trace
 base.chk-sum.bmw.template_L13
 base.chk-sum.bmw.B-32-56.TRUE
-auth.zenka.process_auth_reply
+auth.client.unix.authenticate
 ascii.frame.parse.border_line
 amos7.decode_octal_bit_header
 protocol.sftp.connect_callback
@@ -500,11 +498,11 @@ crypt.C25519.key_bin_checksums
 base.zenki.ondemand_registered
 base.session.send_init_reports
 base.p7refs.get_refaddr_prefix
-base.number-cache.true_upwards
 base.log.send-buffer.add-queue
 base.chk-sum.bmw.harmonize_L13
 base.chk-sum.bmw.encode_digest
 base.cache.refaddr-prefix.init
+auth.client.zenka.authenticate
 ascii.frame.render.border_line
 models.test.api_limit_detection
 models.registry.list_by_context
@@ -518,7 +516,6 @@ models.backend.api.detect_limit
 base.zenki.set_ondemand_timeout
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
-base.buffer.local_logfile_write
 models.registry.find_alternative
 models.gguf.file.is_garbage_name
 models.cmd.test_end_to_end_local
@@ -545,7 +542,6 @@ models.chat.expand_refs.read_file
 base.sourcecode.in-mem.sub-source
 base.perlmod.init_install_buffers
 base.parser.center_ellipse_string
-base.file.matching_path_linknames
 base.callback.expire_code_version
 protocol.sftp.server.start-process
 protocol.sftp.callback.kill_server
@@ -587,7 +583,6 @@ models.chat.expand_refs.format_grep
 models.chat.expand_refs.format_file
 models.chat.expand_refs.format_code
 base.perlmod.register_loaded_module
-base.number-cache.is_valid_template
 base.handler.write.encoding-wrapper
 base.handler.strm_size_idle_timeout
 base.handler.counter_overflow_reset
@@ -611,6 +606,7 @@ base.parser.decode_harmonized_refstr
 base.handler.read.encryption-wrapper
 base.handler.command.route_to_target
 base.callback.clean_data_source_hash
+auth.client.zenka.process_auth_reply
 protocol.sftp.handler.write_to_server
 protocol.protocol-7.message-templates
 protocol.protocol-7.link-upgrade.init
@@ -631,8 +627,6 @@ models.memory.generate_unique_checksum
 models.handler.read_inference_response
 io.unix.socket.handler.report-tmp-path
 base.log.send-buffer.idle-callback-set
-auth.callback.cap-neg.select-strm-mode
-auth.callback.cap-neg.select-size-mode
 models.storage.discover.discover_models
 models.storage.adapter.lmstudio.resolve
 models.storage.adapter.lmstudio.install
@@ -654,7 +648,6 @@ base.zenki.ondemand.handler.startup_reply
 base.agent_code.handler.sig_warn.end_proc
 protocol.protocol-7.link-upgrade.handshake
 plugin.auth.auth-keypair.tofu-notification
-auth.callback.cap-neg.declare-strm-support
 models.storage.check_space.check_tier_space
 base.zenka.push.reply-handler.notify-online
 base.referenced_subroutines.clear_from_disk
@@ -667,8 +660,6 @@ plugin.auth.auth-keypair.validate-incoming-tofu
 models.storage.resolve_model.resolve_model_path
 models.registry.update_entry.update_model_entry
 models.registry.create_entry.create_model_entry
-auth.callback.cap-neg.declare-strm-size-timeout
-auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 models.decision.cost_base.get_latency_importance
 base.log.send-buffer.reply-handler.notify-online
@@ -693,8 +684,8 @@ models.decision.recommendation_base.calculate_composite_score
 models.decision.recommendation_engine.get_model_recommendations
 models.statistics.invocation_tracking.calculate_margin_vs_alternative
 
-#,,..,,..,,,,,.,,,,,.,,,,,,,.,.,.,,.,,,,.,,,.,..,,...,...,...,...,,,.,.,.,,,,,
-#BKJ3UKXW2ELT535RKJQEG4TDVJ4LUHTZR5P43P3KEM2U3Q43A3GDEPSD32CN6RK6JKZW6DE3WBXZS
-#\\\|IJJRGXA2BRCRORQBJHZ4GRBEP7RTOML55TBNVHBJDSIGXZPIICP \ / AMOS7 \ YOURUM ::
-#\[7]FAADXRF4QOBXGBXKGIZXXXTLDCPHAEM3JQCAJVO4EG23DHO6QODY 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,,..,.,.,,,.,...,..,,,,.,...,.,.,..,,...,...,.,.,.,.,,.,,,,.,,.,,
+#XEML7CNC2DLLZ7HWA25VJ7C6PQHBSJ4PD2R4JUSPXXDKMAFQMGAN7RPBCXOAMMBIOBBOSVNBEJ254
+#\\\|VAZSU32EAWM42TBRYODAEQHMKBCRZOJKVXAXWY5IIXT7BXUVBIK \ / AMOS7 \ YOURUM ::
+#\[7]JHCPIIG3GJMJVQTEFDR4XUYUJFGWI67EDNZOBOAPLBWLA7AICQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
