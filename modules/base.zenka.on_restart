@@ -1,0 +1,92 @@
+## [:< ##
+
+# name  = base.zenka.on_restart
+# descr = persistent 'call handler when zenka X restarts' primitive.
+#
+# a zenka's init_code calls this once :
+#
+#   <[base.zenka.on_restart]>->({
+#       'publisher' => 'powershell',
+#       'handler'   => 'protocol-7-menu.pointer-stream-init',
+#   });
+#
+# 'handler' must be a fully-qualified sub name in %code -- it is invoked
+# with no arguments each time v7 reports a fresh instance_id for the
+# publisher zenka. multiple handlers can be registered per publisher
+# [ deduplicated ] ; only one v7.notify_restart route-send is armed at a
+# time per publisher, re-armed automatically after each fire by
+# base.zenka.on_restart.reply-handler.
+#
+# the underlying v7.notify_restart primitive fires only when the
+# publisher's next online-transition has an instance_id different from
+# what was recorded at registration time, so the initial registration
+# never spuriously fires against the already-running instance.
+
+my $params = shift;
+
+if ( ref $params ne qw| HASH | ) {
+    <[base.logs]>->( 0, 'base.zenka.on_restart : expected hashref' );
+    return FALSE;
+}
+
+my $publisher = $params->{'publisher'} // '';
+my $handler   = $params->{'handler'}   // '';
+
+if ( $publisher !~ m|^[A-Za-z0-9][A-Za-z0-9\-\_]*$| ) {
+    <[base.logs]>->(
+        0, 'base.zenka.on_restart : invalid publisher [ %s ]', $publisher
+    );
+    return FALSE;
+}
+if ( $handler !~ m|^[A-Za-z0-9][A-Za-z0-9\-\_\.]*$| ) {
+    <[base.logs]>->(
+        0, 'base.zenka.on_restart : invalid handler [ %s ]', $handler
+    );
+    return FALSE;
+}
+if ( not defined $code{$handler} ) {
+    <[base.logs]>->(
+        0, 'base.zenka.on_restart : unknown handler sub [ %s ]', $handler
+    );
+    return FALSE;
+}
+
+<base.zenka.on_restart.registry> //= {};
+<base.zenka.on_restart.registry>->{$publisher} //= [];
+
+my $subs = <base.zenka.on_restart.registry>->{$publisher};
+if ( not grep { $ARG eq $handler } $subs->@* ) {
+    push $subs->@*, $handler;
+}
+
+## already have an outstanding notify_restart for this publisher ##
+return TRUE if <base.zenka.on_restart.armed>->{$publisher};
+
+<base.zenka.on_restart.armed>->{$publisher} = TRUE;
+
+my $sent = <[protocol-7.route-send]>->(
+    {   'command'   => qw| v7.notify_restart |,
+        'call_args' => { 'args' => $publisher },
+        'reply'     => {
+            'handler' => qw| base.zenka.on_restart.reply-handler |,
+            'params'  => { 'publisher' => $publisher },
+        },
+    }
+);
+
+if ( $sent <= 0 ) {
+    ## v7 not reachable : leave unarmed for retry on next on_restart call ##
+    delete <base.zenka.on_restart.armed>->{$publisher};
+    <[base.logs]>->(
+        0, 'base.zenka.on_restart : v7 unreachable for [ %s ]', $publisher
+    );
+    return FALSE;
+}
+
+return TRUE;
+
+#,,..,,,.,,.,,,.,,,..,,..,..,,.,,,.,,,.,.,.,,,..,,...,...,.,.,,..,...,...,,,.,
+#6HZWZHXHHKKJ3Y5ST2MK4ERVJ2TRRLBPAXV5PTBDMCPIZSKELYNX3POUXII77HJK7VJVYMGQMWUEU
+#\\\|JW7PFM7RPIMM3WE3F5X2PKX6CA56S6RP6JQBWRVXGNVWDGTWQQC \ / AMOS7 \ YOURUM ::
+#\[7]BVVUAAKQJR5BOLHZ23CYN453Q5B35TZXAO3G6KXYWOO5TDR6S6CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
