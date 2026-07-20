@@ -105,8 +105,9 @@ Launches a Claude Code CLI subprocess with auto-approve enabled.
 - `auto_summarize=TRUE` is the default — the local 9B model trims large outputs via rolling window
 
 ### kimi_dispatch / kimi_continue
-Dispatches a task to **Kimi K2.6** — a full remote model from Moonshot AI (not the local 9B).
-- Kimi is free and well-suited for focused P7 code work: exploration, bug fixes, implementation
+Dispatches a task to a full remote Kimi model from Moonshot AI (not the local 9B). Runs with auto-approval (`-y`) and `--afk` (prevents hangs on interactive `AskUserQuestion` prompts in unattended sessions — no one to answer them).
+- `model`: `k3` (default, best reasoning, 1M context, $15/1M output) / `k2.7` (cheapest, $4/1M output, good for broad search/verification) / `k2.7-fast` (faster turnaround, $8/1M output, mid cost) — not free, pick the tier that matches the task's stakes
+- Well-suited for focused P7 code work: exploration, bug fixes, implementation. Reach for `k3` on higher-impact/correctness-critical work (permission models, concurrency, code deletion with history) — it reasons cleanly rather than brute-forcing to convergence like `k2.7`
 - Write a task file to `data/yaml/coding-tasks/<id>.yaml`, `data/md/coding-tasks/<id>.md`, or `data/tasks/<id>.md`, then dispatch pointing at it
 - Returns `{ uuid, summary }` — use the UUID with `kimi_continue` for follow-up passes
 - Use `p7c coding.inject-message <id> <msg>` to redirect a stuck kimi session

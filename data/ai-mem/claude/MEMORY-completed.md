@@ -20,9 +20,17 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   PENDING SIGN: base.cmd.reload now unions modules.load into the reload set (caveat: modules.preload/
   literal load_modules calls still missed); whitelist_miss no longer pollutes base.p7_mod.loaded with
   leaf sub names on self-heal; cube's modules.load gained ascii + format.yaml.
+- [sys-deps wiring completion](project-sys-deps-wiring-completion.md) — PENDING SIGN: retired debian
+  zenka's dependency-management stack + session's dependency-check half per the sys-deps-zenka-audit
+  disposition table (K3 dispatch); v7 gained auth.client/ascii/format.yaml in modules.load along the
+  way. Real pipeline bugs in AMOS7::deps::* found+fixed during live verification, not just deletion.
+- [ondemand-zenki registry wipe](project-ondemand-zenki-registry-wipe.md) — LANDED (uncommitted):
+  v7.set_up_ondemand_zenki was fed only the added-since-last-run delta, wiping <v7.ondemand_zenki> to
+  empty on reload; broke clean-idle-shutdown detection for every on-demand zenka (restart-loop despite
+  restart.disabled). Confirmed live at 0/56, fixed, confirmed 56/56.
 
-#,,,.,..,,,..,.,,,,..,,,,,..,,,.,,..,,,,,,..,,..,,...,...,...,.,.,,..,,..,.,.,
-#62SUD4652KJ5DFRI4OGJ54FT2B2WFZL2KS5AIAPEALKSMISKLSLFKJQ5M5KICLDOJKIIIUGGSLM2Y
-#\\\|XH6TR2DFAQMNAG3CCQSSSHJY5DJGFT25BNLSHW7O5AM2E2W3336 \ / AMOS7 \ YOURUM ::
-#\[7]GGICC7FDN2BXU5KNHXNE3FD73ZNKZ5WHTQISD62E6GUABJQHUSBI 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,,.,,.,,,,.,.,,,,.,,...,..,,...,..,,...,...,..,,.,,,,,.,.,.,,..,
+#PWVHVM3I4IQUM44HH4RMUXZBS5MYJ64SMRKU5MJXRLGXBJ5DOO52AKOZCFXRU3MSLMXR45N6A5XHA
+#\\\|NG4THGPJEEFBDPKTPCTVQOOAUMTDPNPZCZZ7HQ23PE5FJLXXWX6 \ / AMOS7 \ YOURUM ::
+#\[7]CVIFGHYZKTW4FYUWI6L2XNLRARVGO5JE5RNWJZ6O36TS4OILP6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
