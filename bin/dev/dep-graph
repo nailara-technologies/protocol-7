@@ -115,6 +115,14 @@ my $text_output_path
 my $dot_output_path = c_dir( $output_dir, qw| module-dependency-graph.dot | );
 my $txz_output_path = c_dir( $output_dir, qw| module-dependency-graph.txz | );
 
+##  targets seen only as base.code.call_optional/call_expected args :        ##
+##  these subs are namespace-conditional by contract [ silent-skip if the    ##
+##  owning namespace isn't loaded ] rather than hard static edges, so a      ##
+##  zenka's reachability must gate them on its own loaded-namespace set      ##
+##  same as it already does for zenka-owned namespaces -- see extract_calls  ##
+##  and the reachability filter in analyze_zenka_reachability                ##
+my %conditional_targets;
+
 ##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
 ##[ MAIN ]####################################################################
 
@@ -394,6 +402,23 @@ sub extract_calls {
             push @calls, $1;
         }
 
+        ##  namespace-conditional dispatch :                                 ##
+        ##  <[base.code.call_optional]>->( qw| ns.sub | ... )                ##
+        ##  <[base.code.call_expected]>->( $cond, qw| ns.sub | ... )         ##
+        ##  target arg may be qw| .. | or '..'/".. " and can land a couple   ##
+        ##  lines below the opening call -- these are soft edges [ silent-   ##
+        ##  skip by contract if the owning namespace isn't loaded ], so      ##
+        ##  track the target separately for the per-zenka reachability gate  ##
+        if ( $line =~ m/<\[base\.code\.call_(?:optional|expected)\]>/ ) {
+            my $window = join '', @lines[ $i .. min( $i + 4, $end_idx ) ];
+            if ($window =~ m/qw\|\s*([a-zA-Z][\w-]*(?:\.[\w-]+)+)\s*\|/
+                || $window =~ m/['"]([a-zA-Z][\w-]*(?:\.[\w-]+)+)['"]/ ) {
+                my $target = $1;
+                push @calls, $target;
+                $conditional_targets{$target} = 1;
+            }
+        }
+
         ##  runtime dispatch: $code{'module.name'} or $code{"module.name"}  ##
         ##  skip guarded optional calls : if (exists|defined) $code{'X'}    ##
         ##  [ soft dep — only present in specific zenki, not a hard edge ]  ##
@@ -498,7 +523,7 @@ sub sort_by_length {
 }
 
 sub get_zenka_namespaces {
-    ##  scan configuration/zenki/ to find zenka-owned namespaces          ##
+    ##  scan configuration/zenki/ to find zenka-owned namespaces           ##
     ##  returns hash of namespace names that correspond to zenki configs   ##
     ##  these namespaces should only appear in whitelists when loaded      ##
     state %zenka_ns;
@@ -678,6 +703,26 @@ sub analyze_zenka_reachability {
         . " eager-load namespaces"
         if @{$whitelist_register};
 
+    ##  prune traversal through namespace-conditional targets               ##
+    ##  [ base.code.call_optional / call_expected ] whose owning namespace  ##
+    ##  isn't loaded for this zenka -- otherwise walk_reachable would drag  ##
+    ##  in their whole transitive subtree [ e.g. crypt.C25519.verify_sign   ##
+    ##  reached only via a gated crypt.C25519.load_from_string call ] even  ##
+    ##  though the gated target itself is correctly filtered out later.     ##
+    ##  the target node stays in the graph as a leaf -- only its outgoing   ##
+    ##  edges are cut, so any OTHER genuinely-unconditional path to the     ##
+    ##  same downstream subs is unaffected. based on config-declared        ##
+    ##  modules.load only [ known limitation vs. runtime-detected namespace ##
+    ##  loads discovered later in --list-subs mode ]                        ##
+    my %early_loaded_ns
+        = map { ( split m|\.| )[0] => 1 } keys %{$loaded_set};
+    $early_loaded_ns{'base'} = 1;
+    my $pruned_graph = { %{$graph} };
+    for my $target ( keys %conditional_targets ) {
+        my ($ns) = $target =~ m|^([^.]+)|;
+        $pruned_graph->{$target} = {} if not exists $early_loaded_ns{$ns};
+    }
+
     ##  parse access.cmd.* configuration for command filtering  ##
     my $access_config = {};
     if ( defined $zenka_name && $zenka_name ne 'stdin' ) {
@@ -757,7 +802,7 @@ sub analyze_zenka_reachability {
     }
 
     ##  find all modules reachable from entry points  ##
-    my %reachable = walk_reachable( $graph, \@entry_modules );
+    my %reachable = walk_reachable( $pruned_graph, \@entry_modules );
 
     say ":: reachable: " . scalar( keys %reachable ) . " modules";
 
@@ -789,11 +834,11 @@ sub analyze_zenka_reachability {
             if ( $target =~ s/\.\*$// ) {
                 ##  prefix wildcard — add all matching graph nodes  ##
                 for my $node ( grep {m/^\Q$target\E/} keys %{$graph} ) {
-                    my %new = walk_reachable( $graph, [$node] );
+                    my %new = walk_reachable( $pruned_graph, [$node] );
                     %reachable = ( %reachable, %new );
                 }
             } elsif ( exists $graph->{$target} ) {
-                my %new = walk_reachable( $graph, [$target] );
+                my %new = walk_reachable( $pruned_graph, [$target] );
                 %reachable = ( %reachable, %new );
             }
         }
@@ -805,7 +850,7 @@ sub analyze_zenka_reachability {
         ##  base.load_modules loads the full namespace at runtime  ##
         for my $loaded ( keys %{$loaded_set} ) {
             for my $node ( grep {m/^\Q$loaded\E(?:\.|$)/} keys %{$graph} ) {
-                my %new = walk_reachable( $graph, [$node] );
+                my %new = walk_reachable( $pruned_graph, [$node] );
                 %reachable = ( %reachable, %new );
             }
         }
@@ -814,7 +859,7 @@ sub analyze_zenka_reachability {
         for my $ns ( @{$whitelist_register} ) {
             for my $node ( grep {m/^\Q$ns\E(?:\.|$)/} keys %{$graph} ) {
                 next if $reachable{$node};
-                my %new = walk_reachable( $graph, [$node] );
+                my %new = walk_reachable( $pruned_graph, [$node] );
                 %reachable = ( %reachable, %new );
             }
         }
@@ -822,8 +867,11 @@ sub analyze_zenka_reachability {
        #  detect runtime namespace loads from reachable module source files  #
        #  pattern : <[base.load_runtime_modules]>->('prefix')                #
        #  pattern : <[base.init_modules]>->('prefix')                        #
-       #  these fork-child patterns load sub-namespaces that static          #
-       #  call analysis cannot reach [ letsencr.child, letsencr.parent ...]  #
+       #  pattern : <[base.load_modules]>->('prefix')                        #
+       #  these fork-child / dynamic-load patterns load sub-namespaces that  #
+       #  static call analysis cannot reach [ letsencr.child, .parent ...]   #
+       #  also counts as an explicit "this zenka does load it" signal for    #
+       #  namespace-conditional call_optional/call_expected targets          #
         {
             my %runtime_ns_seen;
             my @to_scan = keys %reachable;
@@ -835,7 +883,8 @@ sub analyze_zenka_reachability {
                 while ( my $line = <$fh> ) {
                     while (
                         $line =~ m{<\[base\.(?:load_runtime_modules
-                                              |init_modules)\]>
+                                              |init_modules
+                                              |load_modules)\]>
                                    \s*->\s*\(\s*['"]([a-zA-Z0-9._-]+)['"]}xg
                     ) {
                         my $ns = $1;
@@ -846,10 +895,29 @@ sub analyze_zenka_reachability {
                             keys %{$graph}
                         ) {
                             next if $reachable{$node};
-                            my %new = walk_reachable( $graph, [$node] );
+                            my %new = walk_reachable( $pruned_graph, [$node] );
                             %reachable = ( %reachable, %new );
                             push @to_scan, keys %new;
                         }
+                    }
+
+                    #  pattern : <[base.load_code]>->('exact.sub.name')       #
+                    #  loads a single sub, not a namespace prefix -- exact    #
+                    #  match only, but still counts as "namespace is loaded"  #
+                    #  for the conditional-target gate below                  #
+                    while (
+                        $line =~ m{<\[base\.load_code\]>
+                                   \s*->\s*\(\s*['"]([a-zA-Z0-9._-]+)['"]}xg
+                    ) {
+                        my $sub_name = $1;
+                        next if $runtime_ns_seen{$sub_name}++;
+                        my ($sub_ns) = $sub_name =~ m|^([^.]+)|;
+                        $loaded_set->{$sub_ns} = 1;
+                        next unless exists $graph->{$sub_name};
+                        next if $reachable{$sub_name};
+                        my %new = walk_reachable( $pruned_graph, [$sub_name] );
+                        %reachable = ( %reachable, %new );
+                        push @to_scan, keys %new;
                     }
                 }
                 close $fh;
@@ -865,7 +933,7 @@ sub analyze_zenka_reachability {
                     keys %{$graph}
                 ) {
                     next if $reachable{$node};
-                    my %new = walk_reachable( $graph, [$node] );
+                    my %new = walk_reachable( $pruned_graph, [$node] );
                     %reachable = ( %reachable, %new );
                 }
             }
@@ -882,7 +950,7 @@ sub analyze_zenka_reachability {
                     keys %{$graph}
                 ) {
                     next if $reachable{$node};
-                    my %new = walk_reachable( $graph, [$node] );
+                    my %new = walk_reachable( $pruned_graph, [$node] );
                     %reachable = ( %reachable, %new );
                 }
             }
@@ -905,7 +973,7 @@ sub analyze_zenka_reachability {
                 next if $reachable{$node};
                 my ($plugin_ns) = $node =~ m|^plugin\.([^.]+)|;
                 next if defined $plugin_ns and not $loaded_ns{$plugin_ns};
-                my %new = walk_reachable( $graph, [$node] );
+                my %new = walk_reachable( $pruned_graph, [$node] );
                 %reachable = ( %reachable, %new );
             }
         }
@@ -940,7 +1008,7 @@ sub analyze_zenka_reachability {
                         my $sub = "$ns.$lifecycle";
                         next if $reachable{$sub};
                         if ( exists $graph->{$sub} ) {
-                            my %new = walk_reachable( $graph, [$sub] );
+                            my %new = walk_reachable( $pruned_graph, [$sub] );
                             %reachable = ( %reachable, %new );
                         }
                     }
@@ -948,14 +1016,23 @@ sub analyze_zenka_reachability {
             }
         }
 
-        ##  filter reachable subs from zenka-owned namespaces not in loaded set  ##
-        ##  this prevents namespace leaks where walk_reachable follows static  ##
-        ##  call edges into modules from unrelated zenki [e.g., channels.*,    ##
-        ##  httpd.*, v7.* subs appearing in X-11 whitelist ]                  ##
+        ##  filter reachable subs from zenka-owned namespaces not in loaded set ##
+        ##  this prevents namespace leaks where walk_reachable follows static   ##
+        ##  call edges into modules from unrelated zenki [e.g., channels.*,     ##
+        ##  httpd.*, v7.* subs appearing in X-11 whitelist ]                    ##
         my %zenka_ns = get_zenka_namespaces();
         my @filtered_ns;
         for my $sub ( keys %reachable ) {
             my ($ns) = $sub =~ m|^([^.]+)|;
+
+            ##  namespace-conditional target [ base.code.call_optional /      ##
+            ##  call_expected ] : silent-skip by contract when the owning     ##
+            ##  namespace isn't loaded, so gate the same as zenka-owned below ##
+            ##  even for otherwise-shared namespaces like crypt.* / source.*  ##
+            if ( $conditional_targets{$sub} ) {
+                push @filtered_ns, $sub if exists $loaded_ns{$ns};
+                next;
+            }
 
             ##  shared namespaces are always valid [ base, io, net, etc. ]  ##
             if ( not exists $zenka_ns{$ns} ) {
@@ -988,7 +1065,7 @@ sub analyze_zenka_reachability {
                     }
 
                     ##  cmd and devmod subs : keep if command name matches  ##
-                    ##  mirrors base.has_access regex check at runtime       ##
+                    ##  mirrors base.has_access regex check at runtime      ##
                     if ( $sub =~ m/\.(?:cmd|console)\.(.+)$|^devmod\.(.+)$/ )
                     {
                         my $cmd_name = $1 // $2;
@@ -1658,7 +1735,7 @@ sub classify_dispatch_confidence {
     }
 
     ##  classify based on findings  ##
-    ##  probable: strong constraints (regex + conditional)  ##
+    ##  probable: strong constraints [ regex + conditional ]  ##
     if ( $has_regex_check && $has_conditional_guard ) {
         return 'probable';
     }
@@ -1677,8 +1754,8 @@ sub classify_dispatch_confidence {
     return 'open';
 }
 
-#,,,.,,..,,..,...,,,,,..,,,,,,,.,,,,.,..,,,..,.,.,...,...,,.,,,.,,,..,.,.,...,
-#3DWE2YLSCTTB2X7526GIIQCGEV5QUJJKLB4BIPPGG2EWMM6QYDN6CYLBH3DUCHENQDJSDOI5PT2UI
-#\\\|3S673ZLEBUMVU7ZCFNZVMR25QCJOFQSYFLVNZ2NOJ5KGT2SXR3A \ / AMOS7 \ YOURUM ::
-#\[7]EGHP6P7YPINR2F4RDSA6SUGTVP42BNZENAIHBTPKWOIXCXJ7I6AA 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,.,,,,.,,..,,.,,,,.,,.,,,,.,,,.,.,.,...,...,...,,,,,.,.,,..,,,,,
+#UGBAIYHBKNLVBSGABSN4GAJLCPIB4PJI332PKAAIIBVIMVKOPXFZNXUV7CYNCSVT6PTQ7H3JRMT6C
+#\\\|AV5WFPWZZOLPIY64FNCCLYIN5S2FN3NEWYMQERGDC2IGMKBUDII \ / AMOS7 \ YOURUM ::
+#\[7]7JUESERIKB2LO2CGTXVHXVHJ3YBU7LZFVYTCLKMOJ6S6GBGEIUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

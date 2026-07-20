@@ -27,11 +27,11 @@ system.access.log-permission-masks = 0
 ## Enable automatic user key creation for cube zenka ##
 crypt.C25519.autocreate-user-key = yes
 
-modules.load                    =    auth auth.client net protocol ui cube crypt.C25519 \
-                                      io.unix io.ip              ## devmod
+modules.load             =   auth auth.client net protocol cube crypt.C25519 \
+                             io.unix io.ip ascii format.yaml ui     ## devmod
 
-plugins.load                    =    plugin.auth
-auth.supported_methods          =    zenka unix twofish auth-keypair   ## pwd ##
+plugins.load             =   plugin.auth
+auth.supported_methods   =   zenka unix twofish auth-keypair      ## pwd ##
 
 ## load protocol 7 cmd alias configuration
 [load_config_file:'zenki/cube/command_aliases']
@@ -46,26 +46,26 @@ auth.supported_methods          =    zenka unix twofish auth-keypair   ## pwd ##
 net.auth.timeout = 13
 
 ##  which sockets to launch ##
-cube.set-up.use_unix_socket = yes  ## unix socket: local authenticaed access ##
-cube.set-up.use_ip_socket   = yes  ## ip enabled for encrypted remote access ##
+cube.set-up.use_unix_socket = yes ## unix socket: local authenticaed access ##
+cube.set-up.use_ip_socket   = yes ## ip enabled for encrypted remote access ##
 
-## calculated network address \ port set in <protocol-7.network.internal> ##
+##  calculated network address \ port set in <protocol-7.network.internal>  ##
 
 # load and initialize modules
 [load_modules:<modules.load>]
 [init_modules]                    ##  sockets launched in 'cube.post_init'  ##
 
-# load authorized remote users for auth-keypair authentication
+# load authorized remote users for auth-keypair authentication #
 [plugin.auth.auth-keypair.load-authorized-users]
 
-# drop root priviledges [ now 'online' ]
+# drop root priviledges [ now 'online' ] #
 [root.drop_privs:<system.amos-zenka-user>]
 
-# run zenka
-[zenka.loop]
+#  run zenka  ##
+[zenka.loop]  ##
 
-#,,,,,...,.,,,,,.,,,.,..,,,,,,,.,,.,,,.,,,,,,,..,,...,...,,..,,..,...,..,,,,.,
-#Y4RC2T6U7IZXPNYRGOUMPYPAOPV434T4BVIMOPSYRS7C37W24TBOGVCA56TVXXYR4UZ7TAYUSAGD6
-#\\\|CON2RYINKQHR4DT4JZNMEZLBE4MQUANZHAJSEMWAHMNSX77PQ26 \ / AMOS7 \ YOURUM ::
-#\[7]4AZILUEDAMD6RA7YDMVFUDYTHGU7A62WRUN6DFN5ECXG2TTMXMDA 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,.,,..,,,.,,,,,,..,,..,,..,,...,..,,...,..,,,..,,,.,.,.,.,,,...,
+#3WRC6MQ7G3UDKN77QMSDUZOCTXDHVEKGB7ZW3ATWZBFTAYPZE2SMJPUF5563Q4MHHAOP2XK3D6A5G
+#\\\|ISR3RYZXAYFPWUTUKE2722IKIA4NNLW2SBURYXVQBWZA5W3YH5X \ / AMOS7 \ YOURUM ::
+#\[7]NPL6GQBUWIDPJPMAUXP7AZZMGZZB46VMYZGOTZZWIDVFUSAISSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -54,8 +54,19 @@ if ( $arg eq qw| perl-mods | or $arg eq qw| all | ) {
 }
 if ( $arg eq qw| source | or $arg eq qw| all | ) {
 
-    my @reload_modules = grep { $ARG !~ m{^plugin\.} } <[base.clear_p7_mods]>;
-    my %mod            = map  { $ARG => TRUE } @reload_modules;    ## true ##
+    my @previously_loaded
+        = grep { $ARG !~ m{^plugin\.} } <[base.clear_p7_mods]>;
+
+    ## base.clear_p7_mods only returns what was already tracked as loaded -- ##
+    ## a namespace freshly added to modules.load since the last load would  ##
+    ## otherwise never get compiled in by reload, only by a fresh zenka     ##
+    ## boot or an explicit base.load_modules call                          ##
+    my @configured_modules
+        = grep { length and $ARG !~ m{^plugin\.} }
+        split( m| +|, <modules.load> // '' );
+
+    my %mod = map { $ARG => TRUE } ( @previously_loaded, @configured_modules );
+    my @reload_modules = keys %mod;
 
     $keyword_match = TRUE;                                         ## true ##
     delete <base.commands>;
@@ -213,8 +224,8 @@ delete <system.reload>;    ## completed ##
 $reply->{'mode'} = qw| data |;
 $reply->{'data'} .= $reply_footer;
 
-#,,,,,,..,...,,.,,.,,,.,.,..,,,,.,...,...,.,,,..,,...,...,,.,,...,,,.,..,,,,.,
-#KW2P2N7ENPHWYJZTYYVYZ4LT7ELEQVZ4UEXFKV5II6LSQNG6H2BWIAYXOY6RYLCNNSRBOK7OGBFCE
-#\\\|NOT5Q5G4OF7PXLCMHKE4TID7F6J7E3BALOGPN7T5ZLFRA7P2FGA \ / AMOS7 \ YOURUM ::
-#\[7]5CGBBOPCEICEZ7T67QA5DBGQIHYVSERVB6FWTHRUUV47C4EXMYDA 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,...,,.,,,,.,,,.,,,.,,..,..,,,.,,..,,...,...,.,,,,,,,,,.,,,.,...,
+#H4ACYDNWUR7C6VOURYQLAO752FUA4RIS55QU3CZAI7VPQS3IJC3VSX2A5ZV2ZQZMQ4Z4IURSGVEBS
+#\\\|5PHJNQCTSSHBSW7XZ7SDVN75VYXG3JJUC4YXKLHXFG4INW7234M \ / AMOS7 \ YOURUM ::
+#\[7]EPDIMXNEMOIUD5GVA72DYFHDNBQKNZMPOWK4PM3ME7JDYGKHOWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
