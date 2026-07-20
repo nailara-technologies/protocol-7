@@ -169,9 +169,10 @@ if ( $UID == 0 && exists $code{'debian.parent.scan_zenki_dependencies'} ) {
 ## zenka dir based startup configs #
 <[v7.load_zenka_startup_cfgs]>;
 
-## json based config import ## replace with some magic ridicule version  [LLL]
-<[set-up.json.import_file]>->(qw| v7.start_setup.json |)
-    if defined $code{'set-up.json.import_file'}; ##  <-- when not disabled  ##
+## [ config import entry point ] -- set-up.json.import_file used to hook in ##
+## here [ removed : dead since the base-code -> modules rename, v7 never    ##
+## loaded set-up.json ] -- if a format.yaml based startup config import is  ##
+## ever wanted, this is the place for it                                    ##
 
 map { <[v7.init_start_setup]>->($ARG) } @{ clone(<v7.cfg_data.start_setup>) };
 
@@ -287,8 +288,8 @@ delete <list.users>;
 
 return 0;    ## successful init ##
 
-#,,..,,,,,,,,,,.,,..,,,..,,.,,.,,,.,,,.,,,,,.,..,,...,...,..,,.,,,,..,,,,,.,.,
-#TK26EA6RWXZRS7A5V5J3X5HWJYJQ2HT6AJDYTPQG7YJHSX4R7IDAVA6ZXPCOBP7A43YXNJS57XC5W
-#\\\|BLP2SH5KNVGQVMM35OX6PJ4SQ4YGVVWV5G2YFHSI7ACYSEFPSYN \ / AMOS7 \ YOURUM ::
-#\[7]TQRLDFGMNO2PGXQLRH2G3RZAKRSY3HW4X4WRGL7UMJMI5VZWB2BA 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,.,,,,.,,,..,.,,,,,,,..,,.,,,,..,..,,...,...,.,.,,.,,.,,,,,.,,,,,
+#WOFMG4MX4I6S4K7AZA6JVAU4RJYCHR2B5JX4BP3AENHCCI2TJMI2LXNHP67NMHKEMTENLGU3BCJYS
+#\\\|P2AKYQJRG55DZ3F2PN3C6BUI5GSTBBUGHGDGQDG34U4UFSFXDH2 \ / AMOS7 \ YOURUM ::
+#\[7]UE3TDMDUUR45JDEAZSPSWFQ2U367PXC3FFGBWDCIZENVQWBRGWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
