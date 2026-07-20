@@ -109,11 +109,10 @@ my $sig_key_name = <source.C25519.signature_key_name>
 
 if (   not exists $keys{'C25519'}{$sig_key_name}
     or not defined $keys{'C25519'}{$sig_key_name}{'public'} ) {
-    eval {
-        <[crypt.C25519.load_from_string]>->(
-            $sig_key_name, <[protocol-7.source-key]>
-        );
-    };
+    <[base.code.call_optional]>->(
+        qw| crypt.C25519.load_from_string |,
+        $sig_key_name, <[protocol-7.source-key]>
+    );
 }
 
 my $key_ready = ( exists $keys{'C25519'}{$sig_key_name}
@@ -122,12 +121,19 @@ my $key_ready = ( exists $keys{'C25519'}{$sig_key_name}
 # [ validate and classify each missing sub ]
 my $found_in_depgraph = FALSE;
 
+# [ 'source' namespace may not be loaded in every zenka this handler runs in ]
+my $source_ready = <[base.mod.exists]>->(qw| source |) ? TRUE : FALSE;
+
 foreach my $sub_name (@dg_subs) {
     next if $sub_name ne $missing_sub and defined $code{$sub_name};
 
     $found_in_depgraph = TRUE if $sub_name eq $missing_sub;
 
-    my $target = <[source.target_namespace]>->($sub_name);
+    next if not $source_ready;    # [ cannot locate/verify without source tools ]
+
+    my $target = <[base.code.call_expected]>->(
+        $source_ready, qw| source.target_namespace |, $sub_name
+    );
     next if not defined $target;
     next if not defined $target->{'abs_path'};
     next if not -r $target->{'abs_path'};
@@ -137,9 +143,11 @@ foreach my $sub_name (@dg_subs) {
     next if not defined $src_str;
 
     # [ extract signature ]
-    my $footer_data
-        = <[source.extract_sig_body]>
-        ->( \$src_str, qw| strip |, qw| strict | );
+    my $footer_data = <[base.code.call_expected]>->(
+        $source_ready, qw| source.extract_sig_body |,
+        \$src_str, qw| strip |, qw| strict |
+    );
+    next if not defined $footer_data;
 
     my $classification = undef;
 
@@ -150,7 +158,8 @@ foreach my $sub_name (@dg_subs) {
     } elsif ( not $key_ready ) {
         $classification = qw| MISS |;    # [ cannot verify without key ]
     } else {
-        my ( $is_valid, $report_ref ) = <[source.signature_valid]>->(
+        my ( $is_valid, $report_ref ) = <[base.code.call_expected]>->(
+            $source_ready, qw| source.signature_valid |,
             \$src_str, $footer_data, {}, $sig_key_name, qw| strict |
         );
         $classification = $is_valid ? qw| OK | : qw| BAD |;
@@ -201,8 +210,8 @@ if ( not $found_in_depgraph and not defined $moved_target ) {
 
 return $healed;
 
-#,,,.,.,,,...,,,.,,.,,...,,,,,.,.,.,,,,..,...,..,,...,.,.,,.,,.,,,.,.,,,.,.,,,
-#HE6TYNHTAVHCC2ZNUQUKAAU5M6ZCDJ3IPHMNV4J232ALN2XDBDNSYVAKG7LATET3PEPLUQTIQGFPE
-#\\\|5HB2LCYZFEVBXAJIGCVCXE7RRXNQ2VOYIIYAYFUVQETS3DFRBRY \ / AMOS7 \ YOURUM ::
-#\[7]OHNY5L4G7QKBQHGJIYWUSGYAVILDUXJTLMMXYQVSC6T4V7Q35ICA 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,,..,..,,...,,,.,,,,,,,.,,,.,.,.,..,,...,...,..,,.,.,...,.,.,,..,
+#BKWLECKWAMALFXBVJIESPMLZYVTSXOM63YGIOBQ7WAN7D7NCN3CTGVYHQYIX35DSAB5YFZLYLWM54
+#\\\|UKZSHSRH73FS7ZO7IP6RGHXNSFPJR5KDOTS3LXHXAUHSZEKDRT2 \ / AMOS7 \ YOURUM ::
+#\[7]KDFWR7JJTART4IHVCXQGP5XTC3BVBE47QEEJQSQDWCVJLQJUIADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
