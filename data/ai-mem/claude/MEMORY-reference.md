@@ -7,6 +7,7 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 
 ## Reference
 - [session-catchup-subagent-support](reference-session-catchup-subagent-support.md) — recover lost Agent-tool subagent context via `subagents=2` / `subagent_id=<fragment>`, claude+kimi both supported
+- [opus-dispatches-kimi-workflow](reference-opus-dispatches-kimi-workflow.md) — Opus calls kimi_dispatch(K3,auto-summary) itself; session_catchup gets session id; kimi_continue resumes
 - [unicode-encoding-repair](reference-unicode-encoding-repair.md), [patterns](topic-patterns.md), [coding-zenka-templates](topic-coding-zenka-templates.md) — UTF8 fix; core patterns
 - [tool-shm-architecture](topic-tool-shm-architecture.md), [tool-suggestions](topic-tool-suggestions.md), [language-detection](topic-language-detection.md) — SHM+mmap vision; 30 langs
 - [site-yaml-zenka](topic-site-yaml-zenka.md), [site-yaml-web-research](topic-site-yaml-web-research.md), [usb-backup-zenka](topic-usb-backup-zenka.md) — URL→YAML; web research; udev→restore
@@ -35,8 +36,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [user-perfectionism-and-pace](user-perfectionism-and-pace.md) — "done" means perfectly smooth; let solo tuning passes run
 - [scratchpad_import tool](topic-scratchpad-import-tool.md) — pulls /tmp session scratchpad into data/scratchpad/; list/raw-read modes; check repo+tasks/completed before keeping imports
 
-#,,.,,.,.,...,,,.,,,,,...,...,,.,,,,,,..,,.,.,..,,...,...,.,.,,,,,...,.,,,,..,
-#JYHYJTERQXA5VF7E4FOTMMPLTXOWC2UA3OYEFOBXK62OWO3HLFBWPQNJWOF36I2KFPJLEEDCT6XE6
-#\\\|J44BYPOQBUXRFTCZYBB7H6HTODE3OQ7CMH2SLBXPF3RBXRK3TOD \ / AMOS7 \ YOURUM ::
-#\[7]K6DOMLF5YWWRHGURCYXN3NWHPUPOESDI6DT35OWUO23UCA64MOCQ 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,.,,,.,.,.,.,.,.,,..,.,.,,.,,,,,,..,,...,..,,,,,,..,,.,.,,,,,.,.,
+#J5EWRT6RQEWWMR4G2RJEH7YF6QRF4GBQ7S3C3Y6PTGJC7EYZAHQOF73X2KIM7GICSEDKNGAO4R434
+#\\\|5PAORAGXCEC5INWVHEKB2DYJIHSRCFVHWHLBULT2VHTTVLEQGHN \ / AMOS7 \ YOURUM ::
+#\[7]NDJXVYM3A64RUOKHRXURADKYCXG23H5T6BUNGOVDTCJOTOWNUWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

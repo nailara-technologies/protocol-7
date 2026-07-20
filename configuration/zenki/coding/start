@@ -78,12 +78,12 @@ system.verbosity.zenka_console = 1  ##  console [debugging] verbosity  ##
 crypt.C25519.autocreate-user-key = yes
 
 ## project file write access [ apply-staged ] ##
-coding.cfg.assume_admin_group = yes  ## run with project owner's group ##
+coding.cfg.assume_admin_group = yes  ## run with project owner's group      ##
 coding.cfg.allow_chmod_apply  = yes  ## chmod g+w target files during apply ##
 
-## round-based scheduling: each inference round is a discrete jobqueue job ##
-## enables fair multiplexing across tasks and natural subtask trees       ##
-coding.async.round_scheduling.enabled = yes    ## set to yes when proven ##
+## round-based scheduling: each inference round is a discrete jobqueue job  ##
+## enables fair multiplexing across tasks and natural subtask trees         ##
+coding.async.round_scheduling.enabled = yes    ## set to yes when proven    ##
 
 ## jinja: disable to work around new binary crash on tool calls ##
 coding.jinja.enable = yes
@@ -168,9 +168,9 @@ coding.http-timeouts.stall = 77
 
 ## adaptive ceiling : a round starts with this fast soft ceiling; hitting ##
 ## it escalates the SAME round to the full request-completed ceiling      ##
-## above rather than failing it, and resets back to this value once a    ##
-## round completes cleanly — halves typical stuck-round recovery time    ##
-## without permanently punishing legitimately-slow rounds                ##
+## above rather than failing it, and resets back to this value once a     ##
+## round completes cleanly — halves typical stuck-round recovery time     ##
+## without permanently punishing legitimately-slow rounds                 ##
 coding.cfg.round_soft_ceiling = 384
 
 ## GPU-temp-aware timeout stretch : a thermally-throttled GPU is          ##
@@ -198,15 +198,20 @@ coding.cfg.prefill_margin_sec     = 5
 coding.cfg.cold_start_data_start_timeout = 150
 
 ## switch-model poll_switch per-phase timeout : the prior flat 120s        ##
-## covers spawn + disk load + ready, not just inference - a large model   ##
+## covers spawn + disk load + ready, not just inference - a large model    ##
 ## (9GB+) cold-loading from disk can outrun 120s outright, confirmed live  ##
 ## 2026-06-21 [ DVEAZIA:GPAKBLA switch timed out mid-load ]. raised, kept  ##
 ## configurable rather than re-hardcoded - see feedback-ondemand-timeout-  ##
 ## tiering ]                                                               ##
 coding.cfg.switch_model_max_wait = 300
 
+## vision-model :switch: idle-wait bound : caller timeout defaults to   ##
+## this when omitted - bounds ONLY the wait-for-idle phase, the switch  ##
+## itself is governed by switch_model_max_wait above                    ##
+coding.cfg.vision_switch_idle_timeout = 300
+
 ## Model Configuration ##
-## Context length: floor value — auto-calculated from VRAM, but never below this ##
+## Context length: floor value — auto-calculated from VRAM, but never below this  ##
 ## smaller models expand above this automatically; large models use this as a min ##
 inference.model.context_length = 52000   ## doubled for multi-round tool sessions ##
 ## inference.model.context_length = 32000 ## [ temporary override ] ##
@@ -215,7 +220,7 @@ inference.model.temperature = 0.7
 inference.model.seed = 0  ## 0 = harmonic seed from ntime+fortuna, >0 = fixed ##
 
 ## VRAM safety margin for context auto-calculation (calculate_safe_context) ##
-## safety = 30% of remaining VRAM, clamped to [min, max]                   ##
+## safety = 30% of remaining VRAM, clamped to [min, max]                    ##
 coding.cfg.vram_safety_min_mb = 300   ## lower to allow larger context windows ##
 coding.cfg.vram_safety_max_mb = 3000  ## cap to reserve VRAM for other use     ##
 
@@ -231,7 +236,7 @@ coding.cfg.context_max = 38777
 inference.model.amos_id = <coding.cfg.start_model>
 
 ## not declared here : resolved at init via async network request to models  ##
-## zenka [ coding.resolve_model_path -> coding.handler.model_path_reply ] —   ##
+## zenka [ coding.resolve_model_path -> coding.handler.model_path_reply ] —  ##
 ## a placeholder value here would get re-applied [ clobbering the resolved   ##
 ## path ] every time 'reload config'/'reload all' re-parses this file        ##
 
@@ -261,8 +266,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,..,,..,...,,.,,,,.,.,.,.,.,..,,...,,.,,,,.,.,.,...,..,,.,.,...,,.,,,,,,,.,,
-#4GFL2PZQFRBHTQQZGJCR56TBT4EINCKYVCBRN5SMVRDX5RJZ6NQWLQYCXVRPVGHUXYE5FDNKF5CB6
-#\\\|7YYKGQ2KCVXBPIS6ZCCOF2UODQGOW53FBXBGCBGM4UIZU6A2XK6 \ / AMOS7 \ YOURUM ::
-#\[7]ZQV7JMF74T7QSMYF23XM6EKJANWYGDRPO5THT26UGIVOOLJ2ZYAA 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,.,.,,..,,.,,...,,,.,,,.,,.,,,,.,.,.,...,...,,,.,.,,,,..,..,,...,
+#I5DIMAAHXNWBJZH6IUFIIR4MD7GSWQMN7SBPEVRA7RCCR4JJCCPVWBQ7CNVPGKVK2FE446UBQVVJ6
+#\\\|IHI73D3XZULFOADSCWOY6MHDV7SEQIFJDN5ZSCCGHEUXFUQJLTW \ / AMOS7 \ YOURUM ::
+#\[7]KNZKBZRYAHZ4XJZMCGO4M7EWQOVYIQLDKUVFBG24ZKG5RCM7NMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
