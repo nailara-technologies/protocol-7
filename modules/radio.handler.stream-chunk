@@ -288,8 +288,12 @@ while ( $offset < $buf_len ) {
                 my $before = scalar <radio.listeners>->@*;
                 my @keep;
                 for my $h ( <radio.listeners>->@* ) {
-                    push @keep, $h
-                        if <[base.stream.push]>->( $h, \$audio_chunk );
+                    if ( <[base.stream.push]>->( $h, \$audio_chunk ) ) {
+                        push @keep, $h;
+                    } else {
+                        <[base.stream.close]>->($h)
+                            ;    ## clean up base-level producer state ##
+                    }
                 }
                 my $after = scalar @keep;
                 if ( $after < $before ) {
@@ -323,8 +327,8 @@ while ( $offset < $buf_len ) {
 
 return;
 
-#,,,,,...,..,,,,.,,.,,,,.,.,.,,..,,..,,,.,,,.,..,,...,..,,..,,,.,,,..,...,.,,,
-#JAOVOGESWVAXTMXKJNSCXLWUOYZ7EYF3XAKFSNOK2JNSN6CK5IZ3A24C67OZUMDC2CYUXI4EUYGNS
-#\\\|2GQMKLCNBXIFHFEB3TXMGZADID7IFIT2UXSRK6RWGEZTSWBJDBE \ / AMOS7 \ YOURUM ::
-#\[7]ZPOOAMU4XND6AQRHOQZPQF3FWCHBULDFJSSH7QC4GOU4EKBMYYAY 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,,,.,.,.,,,,,.,.,..,,.,,,,..,...,..,,...,...,.,,,,,.,,.,,..,,,.,,
+#V6IHDUNWPE3YCIKRVMHSGT5SZWFL466JI4BBLS5Q2YLI5A3GR4TXDECOEGGSM2ERL6KZYVDT5W5CQ
+#\\\|ZIPBKQI2PIHIJSQBA52FOUKM7WGKYN5DWN2Q7RBNGN2QVTWKSI3 \ / AMOS7 \ YOURUM ::
+#\[7]AFCGIK6JBJCQ5VXLYSSJMLYZJ57Z2XCCEZZVMENUV7PD55PTJKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
