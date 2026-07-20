@@ -1,27 +1,116 @@
 ## [:< ##
 
 # name  = sys-deps.cmd.install
-# descr = install missing deps [ delegates to debian zenka ]
+# descr = install missing deps via AMOS7::deps::* library
 # param = [zenka=<name>]
 
 my $param = shift;
 my $args  = $param->{'args'} // '';
 
-<[base.logs]>->( 1, 'sys-deps: delegating install to debian zenka' );
+my $zenka_filter;
+if ( $args =~ m|zenka=(\S+)| ) {
+    $zenka_filter = $1;
+}
 
-my $result = <[protocol-7.route-send]>->(
-    {   'command'   => 'debian.install',
-        'call_args' => { 'args' => $args }
+if ( $EUID != 0 ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'install requires root [ sys-deps runs unprivileged ]'
+            . ' - use bin/os-pkg or v7.cfg.auto_install_deps instead'
+    };
+}
+
+my $pm_deps = <sys-deps.pm_deps>;
+my $os_deps = <sys-deps.os_deps>;
+
+## Collect missing debian packages ##
+my @to_install;
+
+for my $type ( keys %$os_deps ) {
+    next if $type eq 'binary';
+    next unless $type eq 'debian';
+    for my $pkg ( sort keys %{ $os_deps->{$type} } ) {
+        next
+            if defined $zenka_filter
+            and !grep { $ARG eq $zenka_filter } @{ $os_deps->{$type}{$pkg} };
+        push @to_install, $pkg
+            unless AMOS7::deps::os_package::probe_os_pkg( $pkg, $type );
     }
+}
+
+## Resolve missing perl modules to debian packages ##
+my $known_deps = AMOS7::deps::module::load_known_deps(<system.root_path>)
+    // {};
+
+for my $module ( sort keys %$pm_deps ) {
+    next
+        if defined $zenka_filter
+        and !grep { $ARG eq $zenka_filter } @{ $pm_deps->{$module} };
+    next if AMOS7::deps::module::probe_module($module);
+    my $resolved
+        = AMOS7::deps::module::resolve_install( $module, $known_deps );
+    push @to_install, $resolved->{'pkg'}
+        if $resolved->{'method'} eq qw| debian |;
+}
+
+my %seen;
+@to_install = grep { !$seen{$ARG}++ } @to_install;
+
+unless (@to_install) {
+    return { 'mode' => qw| true |, 'data' => 'no missing debian packages' };
+}
+
+<[base.logs]>->(
+    1,                   'sys-deps: installing %d package%s ..',
+    scalar(@to_install), @to_install == 1 ? '' : 's'
 );
+
+my $result = AMOS7::deps::debp::install_apt(@to_install);
+
+## Track successful installs ##
+if ( @{ $result->{'ok'} } ) {
+    my $track_dir  = <system.root_path> . '/var/sys-deps';
+    my $track_file = $track_dir . '/tracked.yaml';
+    if ( !-d $track_dir ) {
+        eval {
+            require File::Path;
+            File::Path::make_path($track_dir);
+        };
+    }
+    my $tracked = { tracked => <sys-deps.tracked> // [] };
+    for my $pkg ( @{ $result->{'ok'} } ) {
+        push @{ $tracked->{'tracked'} },
+            {
+            pkg          => $pkg,
+            type         => 'debian',
+            installed_at => <[base.ntime.b32]> // '',
+            source       => 'sys-deps',
+            zenka        => $zenka_filter,
+            declared     => 0
+            };
+    }
+    eval {
+        require YAML::Tiny;
+        my $yaml = YAML::Tiny->new($tracked);
+        $yaml->write($track_file);
+    };
+    chmod( 0664, $track_file ) if -f $track_file and -o $track_file;
+    <sys-deps.tracked> = $tracked->{'tracked'};
+}
+
+my @output;
+push @output, ":", "::[ sys-deps install ]", ":";
+push @output, map {":  installed : $ARG"} @{ $result->{'ok'} };
+push @output, map {":  failed    : $ARG"} @{ $result->{'failed'} };
+push @output, ":";
 
 return {
     'mode' => qw| size |,
-    'data' => $result // 'no reply from debian zenka'
+    'data' => "\n" . join( "\n", @output ) . "\n"
 };
 
-#,,.,,.,.,..,,,,,,..,,,,.,,.,,.,,,,..,,..,,,,,..,,...,...,..,,..,,,,.,,,,,..,,
-#6FWRJSWUUIPKROQ7I2WHBXCZDST4DKIZU34SWYQJPFNJXNP6MNIEASFCCCYIMEZCWXAECYTGSS5OS
-#\\\|JHEWDVZTPTE6XMAKY7ODI3EEQV65PM4FPCTQGHZCFZLPAELCAT2 \ / AMOS7 \ YOURUM ::
-#\[7]U4247GE5B2GRB33ZMTR4BEYZNLU7XWAZS7G53BRENWUVUBWKHEBI 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,..,,.,,,,,,,.,,,,,,,,,.,..,,...,..,,...,...,,.,,...,,,,,.,.,..,,
+#CRAOZ7L7V7QTAYOBOJSNUAKS7BQ3RJQWFEIGWIRRFVMGAMHSPOB5LM5WSFTBDPVBSD7S4MW6PZQCS
+#\\\|35HG2KCS27S5Y5UTWHG2A5BXBJ6JI7QFZV3MBQUG2X6HVUTCMT2 \ / AMOS7 \ YOURUM ::
+#\[7]GX7LDKXWJAVIYKWEE44GQBLUWSPSZCXVJ7R6LWSUK6ILWK23XUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
