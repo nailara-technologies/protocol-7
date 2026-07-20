@@ -30,7 +30,7 @@ $download->{'test_bytes_read'} //= 0;
 my $test_trigger_at = 113 * 1024 * 1024;    # 113MB
 if ( $download->{'test_bytes_read'} >= $test_trigger_at
     && !$download->{'test_triggered'} ) {
-    <[base.log]>->(
+    <[base.logs]>->(
         0,
         "[$id] TEST: Forcibly closing file handle at %d bytes",
         $download->{'test_bytes_read'}
@@ -167,8 +167,8 @@ $session->{'flush_shutdown'} = 1;
 $event->w->stop;    # ✗ BROKEN: Leaves watcher registered!
 return 0;           # ✗ BROKEN: No cleanup!
 
-#,,.,,,,.,.,.,,,.,..,,.,.,,..,,.,,.,,,.,,,,,,,..,,...,...,,.,,...,,.,,,..,,,.,
-#IQH4QVW32L53XUJOPP7KSJVRRMUKCGEWWAMQKNKCW7PYPRDDSQCCXV2ZPVWBFYKZHXILSW5NADUZA
-#\\\|3PONNLFO3WQWSLF5BM63ZIPXATQMCF6IFNIRM6KRKHKK2AW3ZA7 \ / AMOS7 \ YOURUM ::
-#\[7]OYN3QMVEARXAOJ3W2LLWE6UFLOLLG426YSAIOHOEGS47FKPFTQCY 7  DATA SIGNATURE ::
+#,,..,,,,,..,,...,..,,.,,,..,,...,,,,,,,.,,.,,..,,...,...,..,,..,,,,.,.,.,,,,,
+#F7NUC6ZCNS64K57P5SJEFSUI2DWX7I27273ZOKF3EYKKJBPUAT7KHPDMKSQ7VLD4LXLY6YJIVJC2O
+#\\\|OO3KPL7IP4SNO5N7DVF3GHZF3NZ7KQJVGCTKXS7K5HR37P4PFYE \ / AMOS7 \ YOURUM ::
+#\[7]XSHUFZ5A7F4PDD2BGF2F2VTVHMZK4YGIOUZE4HEASMIIM5KB4YAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

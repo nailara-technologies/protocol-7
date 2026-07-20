@@ -11,7 +11,7 @@ my $call_args  = $reply->{'call_args'};
 my $model_amos = $reply->{'params'}->{'model_amos'};
 my $context    = $reply->{'params'}->{'context'};
 
-<[base.log]>->(
+<[base.logs]>->(
     2,
     "[coding] models_resolve_path_reply: status=%s model=%s context=%s sid=%s",
     $cmd_status,
@@ -24,7 +24,7 @@ my $context    = $reply->{'params'}->{'context'};
 if ( defined($call_args) ) {
     if ( ref($call_args) eq qw| HASH | ) {
         my @keys = keys %$call_args;
-        <[base.log]>->(
+        <[base.logs]>->(
             2,
             "[coding] models_resolve_path: call_args keys: %s",
             join( ", ", @keys )
@@ -32,19 +32,19 @@ if ( defined($call_args) ) {
         foreach my $key (@keys) {
             my $val = $call_args->{$key};
             if ( ref($val) ) {
-                <[base.log]>->(
+                <[base.logs]>->(
                     2,    "[coding] models_resolve_path: %s = %s",
                     $key, ref($val)
                 );
             } else {
-                <[base.log]>->(
+                <[base.logs]>->(
                     2,    "[coding] models_resolve_path: %s = %s",
                     $key, defined($val) ? $val : 'undef'
                 );
             }
         }
     } else {
-        <[base.log]>->(
+        <[base.logs]>->(
             2,
             "[coding] models_resolve_path: call_args = %s",
             ref($call_args) || $call_args
@@ -58,8 +58,8 @@ if ( defined($call_args) ) {
 
 return 1;
 
-#,,,,,,,.,...,,..,,.,,...,,,,,,.,,,,.,.,.,.,,,..,,...,..,,,,.,,.,,.,,,,,.,,.,,
-#V22BQ6V5C6ONOUULQR72SW2VXJNXBLXA37XYNHZU65T5VNJLAFKYUQ4SNM5DGWME42AKVRNGXTUTG
-#\\\|TNYUVPZAW7VFXYAMPN4Q5FDK7AAP3VHRVL7OYMS7ZRV4Z3XLTRV \ / AMOS7 \ YOURUM ::
-#\[7]OFIHCGZMQYD4GMJ6KL2HILK6Z5I3PC3QDSJ4U3ELQMYRT7P5S2DI 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,..,,,,,,.,,,..,,...,,,.,,.,,,,,,..,,...,...,..,,,,.,,,.,.,,,.,.,
+#MKOMHS2XYE2SVGYPQPZIID7DNZOOTFCEX5ZGBGLU7GGPMUIFNRSX4C27Q3ZSFVQHUKGAZMU3UJSLO
+#\\\|NG2OIIKLEBPEY7A57RCZOCYVXSO5I7EDUVPPYSSOYRDDURFJMFZ \ / AMOS7 \ YOURUM ::
+#\[7]VDMDDFRSXTPJQ5Z3PDKO7VBAJMPVAXIODNHJXOZ7MWTYGLUFKOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

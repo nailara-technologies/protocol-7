@@ -11,7 +11,7 @@ my $call_args  = $reply->{'call_args'};
 my $model_amos = $reply->{'params'}->{'model_amos'};
 my $task_id    = $reply->{'params'}->{'task_id'};
 
-<[base.log]>->(
+<[base.logs]>->(
     2, "[coding] models_get_entry_reply: status=%s model=%s task=%s sid=%s",
     $cmd_status, $model_amos, $task_id, $sid
 );
@@ -19,7 +19,7 @@ my $task_id    = $reply->{'params'}->{'task_id'};
 # Log call_args structure for debugging
 if ( ref($call_args) eq qw| HASH | ) {
     my @keys = keys %$call_args;
-    <[base.log]>->(
+    <[base.logs]>->(
         2,
         "[coding] models_get_entry: call_args keys: %s",
         join( ", ", @keys )
@@ -28,22 +28,22 @@ if ( ref($call_args) eq qw| HASH | ) {
         my $val = $call_args->{$key};
         if ( ref($val) eq qw| HASH | ) {
             my @subkeys = keys %$val;
-            <[base.log]>->(
+            <[base.logs]>->(
                 2,    "[coding] models_get_entry: %s = HASH with keys: %s",
                 $key, join( ", ", @subkeys )
             );
         } elsif ( ref($val) eq 'ARRAY' ) {
-            <[base.log]>->(
+            <[base.logs]>->(
                 2,    "[coding] models_get_entry: %s = ARRAY[%d]",
                 $key, scalar(@$val)
             );
         } elsif ( ref($val) ) {
-            <[base.log]>->(
+            <[base.logs]>->(
                 2,    "[coding] models_get_entry: %s = %s",
                 $key, ref($val)
             );
         } else {
-            <[base.log]>->(
+            <[base.logs]>->(
                 2,    "[coding] models_get_entry: %s = %s",
                 $key, $val
             );
@@ -57,8 +57,8 @@ if ( ref($call_args) eq qw| HASH | ) {
 
 return 1;
 
-#,,,,,.,.,,,.,,..,.,,,..,,,,,,.,.,,,,,..,,...,..,,...,...,.,.,,..,.,,,...,,..,
-#DXO6BWQXPBFXYUHPNQQXI6NGZOAYKES46L3NTRUUGGUFTAKUQUEXJSMNORNWWMQV5KESW7TLJNVJG
-#\\\|G4XBYL5XHD7FIOVXEI3VF74NAULC6IZIRVYICD7KMMZODGOMUDF \ / AMOS7 \ YOURUM ::
-#\[7]ONU74OYHO3B3TJUDJN4DHPEYS3KPQIXU6WMXNY2LYFPVXEB4WCBQ 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,,,.,.,,,.,.,..,,,..,,,.,,,.,,,.,..,,...,...,...,.,,,.,,,,,,,,,,,
+#GK47FKZX7LOOKHPJ7RYGTSU3KZFM4YYKNU66O23HV3EVIBXZZK5DB2SOJUAQQXZ2RCOJLPID6QCRE
+#\\\|BRVI5ZYKX24L3IB634J7VYQWM2WMCB7IZLFREUEMG4CATTZ7HOZ \ / AMOS7 \ YOURUM ::
+#\[7]6QRIVJDUWD7M5IOXVU2LY6JRBZKLOT4U4QGSE7EDFXOQVDSGVIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

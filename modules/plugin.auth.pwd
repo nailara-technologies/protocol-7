@@ -28,7 +28,7 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (.+)\n|| ) {
     }
 } elsif ( $input->$* =~ m|\n| ) {
     $output->$* .= ">:[\n";
-    <[base.log]>->(
+    <[base.logs]>->(
         0, '[%u] authentication protocol mismatch [ pwd ] >:[', $id
     );
     return 2;    ##  no access [ protocol error ]  ##
@@ -36,8 +36,8 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (.+)\n|| ) {
     return 1;    ##  continue [ incomplete line ]  ##
 }
 
-#,,,.,.,.,..,,,.,,.,,,,..,,,.,,,,,,,,,,.,,...,..,,...,...,..,,,..,..,,,,.,,,.,
-#EYRQ4Z62AJBNTCSQLW4LEBFSWCTHDZDHETD4AI4PHD7R4FBHTB6XOYJPWIJ5KT4GYDJPMVNMESANE
-#\\\|TILL3LHRGR2VODF2HUUQ6SLXFZI3H5IYHVC6ZJGBOTP77FOK5XI \ / AMOS7 \ YOURUM ::
-#\[7]XW4FALSZMGXO63DAOK5IMFRFLR7NBD6YNULGP6PTEAVI4KTX4WCQ 7  DATA SIGNATURE ::
+#,,..,.,,,..,,,..,,..,..,,...,,,,,..,,,.,,...,..,,...,...,,..,,.,,,.,,,..,,,,,
+#X2JPUWK6SJPMPOKKIABJ5RO3I5RQYTQ7KKB6BQ7VXQ3CEHKB47WOK7LHU2O7HDG6N3SJOZSDEIY3G
+#\\\|QLKRW3UJGRNH6PGXYGKF2PV22PTKJGGZXSGLJWD6N6PDKX2MRR2 \ / AMOS7 \ YOURUM ::
+#\[7]ZHP3K3KRQR6RCMJSV355LJQEE5Z6LTWZRBR6VN2SJQX5X2TMPUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

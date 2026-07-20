@@ -35,6 +35,16 @@ if ($PID == <system.process_start.pid>    ##  is parent \ not forked  ##
     and (  not defined <base.timer.ondemand_timeout>
         or not <base.timer.ondemand_timeout>->is_active )
 ) {
+    ##  do not shut down while serving open strm producer streams  ##
+    my $has_open_producer_stream = 0;
+    foreach my $sid ( keys %{ $data{'session'} // {} } ) {
+        my $streams = $data{'session'}{$sid}{'streams'} // {};
+        if ( grep { $_->{'producer'} } values %$streams ) {
+            $has_open_producer_stream = 1;
+            last;
+        }
+    }
+
     ##  shut down zenka after ondemand_timeout  ##
     <base.timer.ondemand_timeout> = <[event.add_timer]>->(
         {   'after'   => <system.ondemand_timeout>,
@@ -42,12 +52,13 @@ if ($PID == <system.process_start.pid>    ##  is parent \ not forked  ##
             'data'    => {}
         }
         )
-        if not defined $data{'route'}
-        or not keys $data{'route'}->%*;   ## no outstanding command replies ##
+        if ( not defined $data{'route'}
+        or not keys $data{'route'}->%* )  ## no outstanding command replies ##
+        and not $has_open_producer_stream;
 }
 
-#,,,.,.,,,,,.,..,,..,,.,.,.,,,...,,..,,..,,.,,..,,...,...,...,...,..,,.,.,,,.,
-#FLKRWMR7T7QSTDAXMXJ4GDZY56BB5LPMHBDID7FYU4E3FFI4O24NZMKFLP6IBIJJFOAP4NV5EYS2C
-#\\\|LW3GWOLX4RDSSPLFTPUI54S34LGQ2FSX3NARZDAQ56TAPS5XDNG \ / AMOS7 \ YOURUM ::
-#\[7]GYGKIDLCCYEKJTYF5YDMXJY4RBSXN324Y52ZQLOEDW3WFHSDSWCQ 7  DATA SIGNATURE ::
+#,,..,,.,,,..,...,,.,,,,,,,..,..,,,,,,..,,.,.,..,,...,.,.,.,,,...,..,,..,,,,,,
+#7UNQZDBR66AHPJPLVXLXLLSLT3BFBZBV5KM5QNUEGUF77RRYCDEIMA53KPUIGI5FHJQ5FNVNDUHRI
+#\\\|M4B2OPUX7GZG5KG3QIOK7MG72XJASVTXA5QGSY6PQ4RR3WPL632 \ / AMOS7 \ YOURUM ::
+#\[7]TDAKOKTIIHEI32KJE6ZCRFP4H5U2F32DX5GLTBQB5NUAKHIM7MBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

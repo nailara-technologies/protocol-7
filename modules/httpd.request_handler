@@ -16,7 +16,7 @@ if ( $session->{'buffer'}{'input'} =~ m,^[^\r\n]{$max_uri_len}, ) {
     <[httpd.send_error_page]>->( $id, 414 );
     return 2;    # Request-URI Too Long
 } elsif ( length( $session->{'buffer'}{'input'} ) >= $max_req_len ) {
-    <[base.log]>->(
+    <[base.logs]>->(
         0,   '[%d] maximum Request length [ %d bytes ] exceeded.',
         $id, $max_req_len - 1
     );           # Request Entity Too Large
@@ -171,8 +171,8 @@ if ( defined <http.handler>->{ lc $request->{'method'} } ) {
 
 return 2;        ## <-- disconnecting client ##
 
-#,,..,.,,,.,.,...,...,.,,,.,.,.,.,,.,,.,.,,,,,..,,...,...,...,,,,,.,,,,,.,,,,,
-#6MXXK2H3OFRSZFDT2QMG3LKRBFOHJAXFLYZNKPWP7WSEW2EHVNSF2PQ3OJV3S77EQGFQBA45VCWBY
-#\\\|D5HXAC7WXPVL7WFMONQV46KXIA4KHJJLJ4QHE2N7Q5ZNKQPMHFA \ / AMOS7 \ YOURUM ::
-#\[7]VNQ67J2I3KXVHJAZESCBIQVTSNWQSES24EYFMFPOPQQWBNOKROAA 7  DATA SIGNATURE ::
+#,,,,,...,,,,,,..,..,,,.,,,.,,...,..,,.,.,..,,..,,...,...,,,.,.,.,.,,,..,,,,,,
+#KLOAI3H5QLY2MVRZT475F7HAB6R5ZIWREGGGDLAED2AU7EFLRC42MRNVA3ELWVDLQRUARVGPU75ZM
+#\\\|TIHMIRNR3MUBLSRCNUKMTGF3CIKBUWEG25EWSPKUYL2O6QT3TWT \ / AMOS7 \ YOURUM ::
+#\[7]XC32JH2ETBSVB3SMRX6UKAWRR56VQDMW24BMM52QAREOGLWEJECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

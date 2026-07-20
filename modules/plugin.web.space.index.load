@@ -12,18 +12,19 @@ return FALSE if not defined $content_sref;
 
 my $cache = eval { JSON::XS::decode_json( $content_sref->$* ) };
 if ( not defined $cache or length $EVAL_ERROR ) {
-    <[base.log]>->(
-        0, 'plugin.web.space.index.load : json parse error : %s',
+    <[base.logs]>->(
+        0,
+        'plugin.web.space.index.load : json parse error : %s',
         $EVAL_ERROR // qw| unknown |
     );
     return FALSE;
 }
 
 ## validate minimal structure ##
-if (    not exists $cache->{'cells'}
+if (   not exists $cache->{'cells'}
     or not exists $cache->{'file_count'}
     or not exists $cache->{'timestamp'} ) {
-    <[base.log]>->(
+    <[base.logs]>->(
         0, 'plugin.web.space.index.load : invalid cache structure in %s',
         $json_file
     );
@@ -35,9 +36,9 @@ if (    not exists $cache->{'cells'}
 ## pre-encode for fast http serving ##
 my $payload = {
     qw| target_dir | => $cache->{'target_dir'} // qw| unknown |,
-    qw| file_count | => $cache->{'file_count'}  // 0,
-    qw| cells      | => $cache->{'cells'}       // [],
-    qw| timestamp  | => $cache->{'timestamp'}   // 0,
+    qw| file_count | => $cache->{'file_count'} // 0,
+    qw| cells      | => $cache->{'cells'}      // [],
+    qw| timestamp  | => $cache->{'timestamp'}  // 0,
 };
 
 <web.space.index.json_cached>
@@ -46,15 +47,16 @@ require YAML::XS;
 <web.space.index.yaml_cached>
     = eval { YAML::XS::Dump($payload) } // "--- {}\n";
 
-<[base.log]>->(
-    2, 'plugin.web.space.index.load : restored %s files from %s',
+<[base.logs]>->(
+    2,
+    'plugin.web.space.index.load : restored %s files from %s',
     $cache->{'file_count'} // 0, $json_file
 );
 
 return TRUE;
 
-#,,,,,.,,,..,,.,,,..,,,,,,.,,,,..,,..,.,.,.,,,..,,...,.,.,,.,,,,.,,,.,...,.,,,
-#Y7S4Y2JAWB655Z7XJDPD2NO2WSBGDI4U7GVFXN7XJ3PGOZRYKSCFYIUIDW4NDX4RZGOZVGW5JTFHA
-#\\\|LJMQQS453RKGBLJCXG7NKOY2N2GU6Y6MSK7WXNS6IP4SQMJTMUA \ / AMOS7 \ YOURUM ::
-#\[7]CJ4YVBKKTVJXUZNOMRN2U35ARY4KQTANP7VYP5NDFHXIU2ORIUAQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,..,,,,,,,,,,.,.,,,.,...,,,.,,.,,..,,...,...,..,,,.,,,,,,,,.,,.,,
+#53Z5Z3HLK5ZRYRU4QUCPZFOMMC3LTYZ64ZMA5YN6L2R77G632ICFKQZZKAFGZULGI6GGDIY272WBM
+#\\\|SM6DSK2MYAZ37454QFL73VZIN43H535XQ2QFW6M2ZVLAGYQXMZQ \ / AMOS7 \ YOURUM ::
+#\[7]B4KNF2YFDISERBUMXTRMPB2VQSLJWECGDYRB34PQRXDHX3MHIMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

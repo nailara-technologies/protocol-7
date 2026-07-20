@@ -5,7 +5,7 @@
 # param = <provider> [<update-data>]
 # formats = YAML (native) or JSON (backward compat)
 
-<[base.log]>->(
+<[base.logs]>->(
     1,
     "menu-update COMMAND CALLED with args length: %d",
     length( $call->{'args'} // '' )
@@ -86,7 +86,7 @@ if ( defined $update_data ) {
 
     if ( defined $provider_data->{'items'}
         && ref( $provider_data->{'items'} ) eq qw| HASH | ) {
-        <[base.log]>->(
+        <[base.logs]>->(
             2,
             "items hash has %d keys",
             scalar( keys %{ $provider_data->{'items'} } )
@@ -128,8 +128,8 @@ return {
     'data' => "menu updated for provider $provider"
 };
 
-#,,.,,.,.,,,,,.,,,.,.,,.,,,.,,.,.,,,.,,,,,,..,..,,...,...,..,,,..,,.,,,..,,.,,
-#KBTAWBLE5HGY7OY5AZMED6EVDGGSZDIZ32KG3LSLVH47QSEYSNQZEH3UYZIYXBQ5DGJUBONVUKKSC
-#\\\|SHDULIUYH7ANTO2US4AXW5RNFQXIHYY36I4USOYPJ2NHDZ2TFLH \ / AMOS7 \ YOURUM ::
-#\[7]ZCQCASYY7ZRPU22FATQYZIXO4LE55BAUZ4QJQTRXHFNPPAJYIEDQ 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,..,,,.,,,,.,,,,,.,,,.,,,.,,,,,.,..,,...,...,.,,,...,,.,,.,.,...,
+#F6Y2W5LJPNNEHAPZOT63DRMVIRTWTACUQDOO5H34PIGVCRDRZUCHNI3ENPGD2MCRMUVLDIKF7KD32
+#\\\|4WK63D7NVS5UEV3MVS6TVFG4YVQBCFJHHZJVKYVBIN43D3XVPAA \ / AMOS7 \ YOURUM ::
+#\[7]CTZXVNN3JABSXP7HU2XKOAYXZARAM6PCVRVHNL35TVGTZL73GKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

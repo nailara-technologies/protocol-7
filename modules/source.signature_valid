@@ -127,7 +127,7 @@ if ( not $signature_footer_data->{'was-present'} ) {
         <[base.log]>->(
             1, ': attempting to repair by trying different endline states'
         );
-        <[base.log]>->(
+        <[base.logs]>->(
             2,
             ': needs_separator_endline = %s',
             $signature_footer_data->{'needs_separator_endline'}
@@ -165,7 +165,7 @@ if ( not $signature_footer_data->{'was-present'} ) {
                 );
             }
 
-            <[base.log]>->(
+            <[base.logs]>->(
                 2, ': : testing with endline state %d content length %d',
                 $test_state, length($test_content)
             );
@@ -185,19 +185,19 @@ if ( not $signature_footer_data->{'was-present'} ) {
 
             # Log extraction results
             <[base.log]>->( 2, ': : signature extraction results:' );
-            <[base.log]>->(
+            <[base.logs]>->(
                 2,
                 ': : : was-present: %s',
                 $test_sig_data->{'was-present'} ? 'TRUE' : 'FALSE'
             );
-            <[base.log]>->(
+            <[base.logs]>->(
                 2,
                 ': : : structure-was-valid: %s',
                 $test_sig_data->{'structure-was-valid'} ? 'TRUE' : 'FALSE'
             );
 
             if ( $test_sig_data->{'encountered-error'} ) {
-                <[base.log]>->(
+                <[base.logs]>->(
                     2,
                     ': : : error: %s',
                     $test_sig_data->{'encountered-error'}
@@ -630,8 +630,8 @@ foreach my $type (qw| footer-complete |) {    ## [..,]
 return ( $verified_true, $truth_status_report ) if wantarray;
 return $verified_true;
 
-#,,,,,,,.,,,,,,..,.,,,...,.,,,,,.,...,,..,,..,..,,...,.,,,...,.,.,,..,.,,,,,.,
-#QUGE4O6QDIKZVHRPOK3YZQ7KM5ZZY673PNDQLV3AFW4TQT46IMVTGMQRLNB4LJVMSXMCYBJLDGEFO
-#\\\|JRDQMZOK5ZSZEGXUIG3S3XZU43AGP5IJC4RXJZB7QR6LR3TJSJY \ / AMOS7 \ YOURUM ::
-#\[7]6O7WMU5PWT2GZFP5I4VGNVNGB5Y5YNXD23VZ35I5CXBJDZLFK2BA 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,,,,,,,,,.,.,,,,,,,.,.,,,.,,,,.,,..,,...,...,..,,.,.,.,,,,,.,,..,
+#4455UOON3W6KFH5FELT3J7KVFOVUPZRL6V2B26N5J22BUHW5G4CBFTEMBGO3LQZJYC4POQCUMTZTS
+#\\\|AAWWTDVCLTOUGKXNY64VDSYSDTHZQJHSXLFXAH67NPHUMXR6VAE \ / AMOS7 \ YOURUM ::
+#\[7]7A63X56WQTRN7AKDL6SWAQDCMFKIUPUJFTWUPSKTUKL6RG5JA2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
