@@ -10,7 +10,7 @@ my $cmd_status = $reply->{'cmd'};
 my $call_args  = $reply->{'call_args'};
 my $context    = $reply->{'params'}->{'context'};
 
-<[base.log]>->(
+<[base.logs]>->(
     2, "[coding] models_list_all_reply: status=%s context=%s sid=%s",
     $cmd_status, $context, $sid
 );
@@ -18,7 +18,7 @@ my $context    = $reply->{'params'}->{'context'};
 # Log call_args structure for debugging
 if ( ref($call_args) eq qw| HASH | ) {
     my @keys = keys %$call_args;
-    <[base.log]>->(
+    <[base.logs]>->(
         2,
         "[coding] models_list_all: call_args keys: %s",
         join( ", ", @keys )
@@ -26,17 +26,17 @@ if ( ref($call_args) eq qw| HASH | ) {
     foreach my $key (@keys) {
         my $val = $call_args->{$key};
         if ( ref($val) eq 'ARRAY' ) {
-            <[base.log]>->(
+            <[base.logs]>->(
                 2,    "[coding] models_list_all: %s = ARRAY[%d]",
                 $key, scalar(@$val)
             );
         } elsif ( ref($val) ) {
-            <[base.log]>->(
+            <[base.logs]>->(
                 2,    "[coding] models_list_all: %s = %s",
                 $key, ref($val)
             );
         } else {
-            <[base.log]>->(
+            <[base.logs]>->(
                 2,    "[coding] models_list_all: %s = %s",
                 $key, $val
             );
@@ -49,8 +49,8 @@ if ( ref($call_args) eq qw| HASH | ) {
 
 return 1;
 
-#,,,,,,.,,,,.,,,,,..,,.,.,,..,.,.,,,.,,.,,.,.,..,,...,...,.,.,...,...,.,,,,.,,
-#C7WUV6AWBVHWXBRG5XF22OWBRK7JCTCQRV2RTVKQST4FUQEXBMPOHTCR6JR2TYTZOIQLW4PSCY7MU
-#\\\|EJIWCBSCCFCSQOZBV5VYCGBP5H5RASNDWEBTNGI7QNKT5UVEM6F \ / AMOS7 \ YOURUM ::
-#\[7]MIRMQRJDHHS6H2AXAURSNKRF3XVSLE2L3PZC7XYWEY37Q4YPBEAY 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,.,,,...,.,.,,..,..,,,..,..,,..,,..,,...,...,..,,...,..,,,..,,..,
+#OUTMXLUFV5F32UTVRMJQPUVT7LR5M7Z76I4JW6QF3QX2AINGMDNI2JURLCLG2UVN2BUYZ3M7K2LL4
+#\\\|DP4LIWTEN4GSY2K2PXNLMGD6ZSG5GZSUNT6TYIJCL2FRBGWMHNS \ / AMOS7 \ YOURUM ::
+#\[7]BJY4NLJNKO6DFFIABQACYYXUG7CIEPR2FQODAN2TVHITTHUHIECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -39,9 +39,16 @@ if ( $EUID == 0 and not defined getpwnam($zenka_user) ) {
 }
 
 <[base.register_src_deps]>->(@modules_to_load);
-<[base.register_p7_mod_load]>->(@modules_to_load);
 
 my ( $subs_ok, $subs_failed ) = <[base.load_code]>->(@modules_to_load);
+
+## namespace marked loaded only after compilation completes -- marking it  ##
+## earlier let base.mod.exists report a namespace "loaded" while its own   ##
+## subs were still mid-compile, racing self-referential calls made by      ##
+## other modules in the same namespace during their own load [ e.g. p7-log ##
+## logging via base.buffer.add_line before p7-log.buffer.local_logfile_    ##
+## write itself had compiled ]                                             ##
+<[base.register_p7_mod_load]>->(@modules_to_load);
 
 if ( not defined $subs_ok or $subs_ok == 0 ) {
     <[base.log]>->( 0, '[base.load_modules] no routines were loaded ..,' );
@@ -53,8 +60,8 @@ return TRUE if not $subs_failed and $subs_ok;
 
 return FALSE;
 
-#,,,,,...,,,,,..,,,,.,.,,,.,,,,.,,,.,,...,,..,..,,...,..,,..,,,..,,..,,.,,,..,
-#C4YX72USOLTXWAIPT5GKGPK254XWGGTBRRAW22IGPIB4Q4W2JURSJDBSCINVMG6SGJ4JVSLAPX42W
-#\\\|EU66WD3Q6G55MT7SLFQ2QIPWWP4LPDK3UPR45VQWTF4GX5W3PYU \ / AMOS7 \ YOURUM ::
-#\[7]JJA6SXWFIWKSGNNHUS4EFVOTC3DF5KMDQCJ6FWOSZT5NMUSVCKDQ 7  DATA SIGNATURE ::
+#,,,.,.,.,...,.,.,,..,,.,,..,,..,,,..,.,,,,.,,..,,...,..,,.,.,,.,,,,,,..,,...,
+#2O37WTS3GWFV3U5ND5NGPN4O35XEZRXWPIQKQJDIADBYLZU4ZDDBS3OCI2AIVQ5KNDMKNGTJIRHNU
+#\\\|2LVOIOEGMDF2KEY24ET3QU2IUSSVIVF7CNBBUIRWKAF7G4BWKQ5 \ / AMOS7 \ YOURUM ::
+#\[7]FEKMVJAWKA3MOM3BZDZMKWUJEA4NRIA5MZU6M4XWXZQTNBLKEKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

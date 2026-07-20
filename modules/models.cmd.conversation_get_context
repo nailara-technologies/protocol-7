@@ -50,7 +50,7 @@ if ( defined $depth && $depth > 0 ) {
     @context_turns = @{ $conversation->{'turns'} };
 }
 
-<[base.log]>->(
+<[base.logs]>->(
     2, "[$context_label] retrieving %d turns from %d total",
     scalar(@context_turns), scalar( @{ $conversation->{'turns'} } )
 );
@@ -68,7 +68,7 @@ foreach my $turn (@context_turns) {
     $context_tokens += $tokens;
 }
 
-<[base.log]>->(
+<[base.logs]>->(
     2, "[$context_label] context ready: %d turns %d tokens",
     scalar(@context_turns), $context_tokens
 );
@@ -93,8 +93,8 @@ return {
     'data' => $json_data . "\n"
 };
 
-#,,.,,,.,,,..,.,,,,,.,,,.,...,..,,..,,,,.,..,,.,.,...,...,,.,,.,,,.,,,..,,,,,,
-#UIEEEAKABJYSZ2DXET4HVKPQVEFA5IVKHG7UZ457VNEUIVET32GHUHPYS4NTFO3NAGY3SYZKCDSIC
-#\\\|HSHEOGRI3OEAJX3HMX2H4X75IQL7RV3N7NZRQMQOPIWCVYAY2RO \ / AMOS7 \ YOURUM ::
-#\[7]QJL6EAGRMBSZ7HE42ABC457FX3LOQQ3A376ZCI35HZOOMJOC3SCY 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,.,,,...,...,,..,,.,,.,,,...,...,.,.,...,...,,..,..,,,,,,...,.,.,
+#AFW4L5GMDES56QHNRM3MRFWMNOF6UMLANVP77X7TKJDQG5GAYJXEUJG5RMC5CWZIRJGMFL5G2WNSG
+#\\\|DWBJZSCWY5IHJ5LDMH7D5TTGXKVGZSOXVPR66V64AZ22FMMG3OI \ / AMOS7 \ YOURUM ::
+#\[7]HS5UQ6HY773CL5V23WM6INJQXQMSIGMPPDRIPNN3K5EGQCMZUGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
