@@ -1,0 +1,222 @@
+## [:< ##
+
+# name  = coding.handler.vision_switch_poll
+# descr = two-phase [ waiting_idle -> switching ] timer machine for vision-model :switch:
+
+my $event = shift;
+## data lives on the watcher, not the raw event wrapper - same pattern  ##
+## as coding.self_test.handler.poll_switch / monitor_inference_startup  ##
+my $timer_data = eval { $event->w->data }   // {};
+my $switch_id  = $timer_data->{'switch_id'} // '';
+
+my $state = $data{'coding'}{'vision_switch_state'}{$switch_id};
+if ( !defined $state ) {
+    <[base.logs]>->(
+        0, '[vision_switch] no state for switch_id=%s, stopping timer',
+        $switch_id
+    );
+    $event->w->cancel if defined $event->w and $event->w->is_active;
+    return;
+}
+
+my $now     = <[base.time]>->(3);
+my $elapsed = $now - ( $state->{'started'} // $now );
+my $phase   = $state->{'phase'} // qw| waiting_idle |;
+
+## helper: fire the deferred reply exactly once, cancel timer, clean up ##
+my $finish = sub {
+    my ($reply_data) = @_;
+
+    ## exactly-once guard : the idle-timeout-vs-switch-success race      ##
+    ## resolves here - once fired, further ticks are no-ops that only    ##
+    ## cancel [ state below is already gone, so this is belt+braces ]    ##
+    return TRUE if $state->{'replied'};
+    $state->{'replied'} = TRUE;
+
+    ## send reply back to the original caller ##
+    if ( length( $state->{'reply_id'} // '' ) ) {
+        <[base.callback.cmd_reply]>->( $state->{'reply_id'}, $reply_data );
+    }
+
+    $event->w->cancel if defined $event->w and $event->w->is_active;
+    delete $data{'coding'}{'vision_switch_state'}{$switch_id};
+
+    return TRUE;
+};
+
+if ( $phase eq qw| waiting_idle | ) {
+    my $timeout = $state->{'timeout'} // 300;
+
+    ## the caller timeout bounds THIS phase only : nothing has been      ##
+    ## touched yet, so expiry just drops the queued switch - interrupt   ##
+    ## nothing [ distinct failure mode from the switch phase's own       ##
+    ## 'switch-timeout' label ]                                          ##
+    if ( $elapsed > $timeout ) {
+        <[base.logs]>->(
+            1,
+            '[vision_switch] idle wait exceeded %ds, dropping queued switch to %s',
+            $timeout,
+            $state->{'target_checksum'} // ''
+        );
+        return $finish->( { mode => qw| false |, data => qw| timeout | } );
+    }
+
+    ## idle predicate, mirrored verbatim from coding.handler.drain_check ##
+    ## : zero active [ non-completed, non-failed ] tasks AND no backend  ##
+    ## lock held - the lock AND matters because the lock can release     ##
+    ## after the final completion event                                  ##
+    my $active = 0;
+    if ( exists <coding.task.queue> ) {
+        for my $task ( values <coding.task.queue>->%* ) {
+            my $st = $task->{'execution'}{'status'} // '';
+            $active++ unless $st eq 'completed' or $st eq 'failed';
+        }
+    }
+    my $backend_ref = <coding.state.backend> // {};
+    my $in_flight   = 0;
+    for my $backend (qw| gpu cpu |) {
+        $in_flight++ if defined $backend_ref->{$backend}{'lock'};
+    }
+
+    if ( $active == 0 && $in_flight == 0 ) {
+        ## capture the CURRENT pid just before issuing - readiness is    ##
+        ## confirmed by a NEW pid appearing+ready, NOT by the model_id   ##
+        ## label, which switch_model_reply sets before the kill+respawn  ##
+        ## actually completes [ carried over from poll_switch, confirmed ##
+        ## live 2026-06-21 ]                                             ##
+        $state->{'prior_pid'}
+            = ( <coding.inference_servers> // {} )->{'gpu'}{'pid'} // 0;
+        $state->{'phase'}   = qw| switching |;
+        $state->{'started'} = $now;
+
+        <[base.logs]>->(
+            1,
+            '[vision_switch] queue idle, switching to %s',
+            $state->{'target_checksum'} // ''
+        );
+
+        ## reuse the existing switch flow verbatim : switch_model_reply  ##
+        ## -> spawn_smart, inheriting the mmproj_path propagation fix    ##
+        my $sw_reply = eval {
+            <[coding.cmd.switch-model]>
+                ->( { args => $state->{'target_checksum'} } );
+        };
+        if ($@) {
+            my $err = $@ || 'unknown error';
+            chomp $err;
+            <[base.logs]>->(
+                0, '[vision_switch] switch-model call failed : %s', $err
+            );
+            return $finish->(
+                { mode => qw| false |, data => "switch-failed: $err" } );
+        }
+
+        ## switch-model answers synchronously with mode 'size' both on   ##
+        ## success AND on immediate validation failure - only the data   ##
+        ## text tells them apart [ unknown checksum, bad format ]        ##
+        if ( ref $sw_reply eq qw| HASH |
+            && ( $sw_reply->{'data'} // '' ) =~ m|^Error| ) {
+            my $err = $sw_reply->{'data'};
+            chomp $err;
+            <[base.logs]>->(
+                0, '[vision_switch] switch-model rejected : %s', $err
+            );
+            return $finish->(
+                { mode => qw| false |, data => "switch-failed: $err" } );
+        }
+
+        return TRUE;
+    }
+
+    ## still busy : timer continues, low-verbosity progress log ##
+    <[base.logs]>->(
+        2,
+        '[vision_switch] waiting for idle : %d active task(s), %d in flight',
+        $active,
+        $in_flight
+    ) if int($elapsed) % 5 == 0;
+
+    return TRUE;
+}
+
+if ( $phase eq qw| switching | ) {
+    ## governed by the switch's OWN bound now, not the caller's idle     ##
+    ## wait timeout - a kill+respawn is already in motion and is abort-  ##
+    ## unsafe, so it reports its true outcome instead                    ##
+    my $max_wait = <coding.cfg.switch_model_max_wait> // 300;
+
+    ## cheap status read : no blocking i/o ##
+    my $reply  = <[coding.cmd.inference-status]>->();
+    my $yaml   = $reply->{'data'}               // '';
+    my $status = eval { YAML::XS::Load($yaml) } // {};
+
+    my $gpu_status = $status->{'gpu'}{'status'}   // 'unknown';
+    my $gpu_model  = $status->{'gpu'}{'model_id'} // '';
+    my $gpu_pid    = $status->{'gpu'}{'pid'}      // 0;
+
+    my $prior_pid = $state->{'prior_pid'} // 0;
+
+    my $is_ready   = $gpu_status eq qw| ready |;
+    my $is_crashed = $gpu_status eq qw| crashed |;
+
+    ## pid change is the load-bearing signal : <inference.model.amos_id> ##
+    ## is one global shared across gpu/cpu and is set by                 ##
+    ## switch_model_reply BEFORE the respawn completes, so it can read   ##
+    ## "correct" while the OLD process still serves - do NOT gate on it  ##
+    my $pid_changed = $gpu_pid && $gpu_pid != $prior_pid;
+
+    if ( $is_ready && $pid_changed ) {
+        my $model_id
+            = length $gpu_model
+            ? $gpu_model
+            : ( <inference.model.amos_id> // $state->{'target_checksum'}
+                // '' );
+        <[base.logs]>->(
+            1,         '[vision_switch] switch confirmed ready : %s [pid=%s]',
+            $model_id, $gpu_pid
+        );
+        return $finish->( { mode => qw| true |, data => $model_id } );
+    }
+
+    if ($is_crashed) {
+        <[base.logs]>->(
+            0,
+            '[vision_switch] switch failed : %s : crashed',
+            $state->{'target_checksum'} // ''
+        );
+        return $finish->( { mode => qw| false |, data => qw| crashed | } );
+    }
+
+    if ( $elapsed > $max_wait ) {
+        <[base.logs]>->(
+            0,
+            '[vision_switch] switch to %s exceeded %ds',
+            $state->{'target_checksum'} // '', $max_wait
+        );
+        return $finish->(
+            { mode => qw| false |, data => qw| switch-timeout | } );
+    }
+
+    ## still waiting for the new server to report ready ##
+    <[base.logs]>->(
+        2,
+        '[vision_switch] switching : waiting for %s [gpu=%s pid=%s]',
+        $state->{'target_checksum'} // '',
+        $gpu_status, $gpu_pid
+    ) if int($elapsed) % 5 == 0;
+
+    return TRUE;
+}
+
+## unknown phase : defensive cleanup ##
+<[base.logs]>->(
+    0,      '[vision_switch] unknown phase %s for switch_id=%s, aborting',
+    $phase, $switch_id
+);
+return $finish->( { mode => qw| false |, data => qw| internal-error | } );
+
+#,,..,.,.,,..,,..,.,.,.,.,,,,,,,.,.,.,.,,,,.,,..,,...,...,,,.,...,,.,,..,,.,.,
+#OOK2LOSUOLILU24VOLUBNBVXW7UOHQWGIHCATEWIK3LESVCVHQTK64XDIRTE3EA6TXAB5ZRAEOB4O
+#\\\|SIIDKWCT75NXCEO7KIWAXSE3LRL3WHNJO57CTQ3ISPLE63P6FCX \ / AMOS7 \ YOURUM ::
+#\[7]TGNWGQZYVBSTCSZWHUHXDPL4T7N6OPLMYCL3YCSI4IPY4V3DASBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
