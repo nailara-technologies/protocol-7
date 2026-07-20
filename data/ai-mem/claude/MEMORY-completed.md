@@ -30,17 +30,22 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   empty on reload; broke clean-idle-shutdown detection for every on-demand zenka (restart-loop despite
   restart.disabled). Confirmed live at 0/56, fixed, confirmed 56/56.
 - [ondemand idle timeout vs active STRM streams](ondemand-idle-timeout-active-streams.md) — LANDED
-  9eba08e3d: base.event.callback.io-idle-restart now checks base.stream.*'s existing
+  9eba08e3d + a4fdfa300: base.event.callback.io-idle-restart now checks base.stream.*'s existing
   session/streams/producer state before re-arming shutdown; on-demand zenki serving live STRM push
   subscribers (graphics-matrix, X-11, nodes, kimi-web, ticker, radio, discover, external, mod-test)
-  no longer get shut down mid-subscription every idle cycle.
+  no longer get shut down mid-subscription every idle cycle. Two follow-up regressions found via
+  live testing and fixed in a4fdfa300: 8 producers weren't calling base.stream.close on push
+  failure (leaked producer state, permanently blocked re-arming); the idle watcher itself is a
+  one-shot that needed an explicit nudge from base.stream.close to notice cleanup happened.
+  graphics-matrix.init_code also made reinit-safe (mkdir/timer registration were reload-unsafe,
+  unrelated pre-existing bug found in the same session). Both directions live-verified.
 - [base.log vs base.logs sprintf confusion](feedback-base-log-vs-logs-sprintf.md) — LANDED 9eba08e3d:
   113 call sites across 63 files were passing a %s/%d template + args to base.log (which never
   sprintfs) instead of base.logs; root-caused a live p7-log crash-loop, then swept codebase-wide via
   kimi k2.7, independently re-verified clean.
 
-#,,.,,,..,,..,.,,,...,,..,,.,,...,,..,,,,,,,.,..,,...,...,.,,,.,,,,..,,.,,,,.,
-#QGO75XBO23UH5AVJHYBGKC7IC2F574LJN66TWO7MOZCMLHFLX3LQ57XKSQW45A6WBPYEGUMLXVGBY
-#\\\|UROQUZWMOX4I6PJTUOUY5CF6EZFNDPDAPBFCVSFK2GYUBT4RWTE \ / AMOS7 \ YOURUM ::
-#\[7]KQKQYCFX7E2TN2CBBSE3VMQ7VSGHCECRAENG7Z2JUJIFMJCMNUCQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,..,,,,,.,,,,,.,.,,,,.,,,,.,..,,..,,...,...,..,,...,,..,.,,,..,,
+#6CW6723S65E2BHFXEJYGTMTQPMLPQF7MQGDL43LYHXS3FAUMACP4QTSSAL2EXDHPLVCZY6MJ7GKE4
+#\\\|IVYPQXYN4VL2H7JHOJO2THIIJ2SIMRYN3RFQ6TVTWLGDARWST5S \ / AMOS7 \ YOURUM ::
+#\[7]7E6A5FWFCZAB7BYQ55LJC2YROU2QFQZABPF27YO32QHOHKHUIWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
