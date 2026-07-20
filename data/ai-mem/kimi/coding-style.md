@@ -676,8 +676,89 @@ use `sprintf` only for the fixed skeleton pieces that have no literal `%`.
 
 ---
 
-#,,,,,...,,..,.,,,,.,,...,.,.,,,,,..,,,,,,.,,,.,.,...,...,..,,...,.,,,,..,,..,
-#PEQXDSYK2O4UXUYP7I7IU4JCJYHUEMXJR56M4NJYVJUQTS4UU54OGRGWV6R3LVMZPLEKUIH4N7WPY
-#\\\|5ECYHPX4PSKUUM5P6FXNJ2KJL2HAIUCXSZ42TO75HFUW3E3NMM6 \ / AMOS7 \ YOURUM ::
-#\[7]OUYFPGA3XZXQOE37Z3YPX6KDDV2PQ4DN6U5NNTOND5MO4AM4K2CA 7  DATA SIGNATURE ::
+## %code presence checks and cross-namespace calls [ july 2026, critical ]
+
+new primitives in `modules/base.code.*` and `modules/base.mod.exists` — use
+these instead of raw `exists $code{'...'}` checks or identity proxies like
+`<system.zenka.name> eq 'v7'`.
+
+### why: the referenced-subroutine scanner
+
+`base.referenced_subroutines.clear_from_disk` runs on every `reload`/`init`.
+it regex-scans compiled source for **literal-quoted** `$code{'name'}`
+patterns and reports ones with no matching `%code` entry into the
+`undef-subs` buffer [ query live via `show-buffer undef-subs` ]. it clears
+by actual `%code` definition [ `defined $code{$ARG}` — true for both a real
+compile and a deferred stub ], not by file-existence on disk [ the old
+check, which masked real bugs ].
+
+consequence: writing `exists $code{'literal.name'}` directly in a module
+**gets flagged by the scanner** even though the check itself is safe.
+
+### the primitives
+
+- `<[base.code.exists]>->('name')` — `%code` presence check via a dynamic
+  key [ `$code{$sub_name}` with a runtime variable ]. invisible to the
+  scanner by construction. use this for all presence checks.
+- `<[base.code.call_expected]>->($condition, 'name', @args)` — call only if
+  `$condition` true; if true but the sub is missing, logs a level-0 error
+  [ the "should definitely be there" case ]. returns undef when condition
+  false.
+- `<[base.code.call_optional]>->('name', @args)` — call if present, silent
+  skip if not. for genuinely best-effort integrations, no expectation
+  either way.
+- `<[base.mod.exists]>->('ns')` — checks `<base.p7_mod.loaded>->{$name}`,
+  the ground-truth registry of which namespaces *this* zenka loaded. use
+  this instead of `<system.zenka.name> eq 'v7'` when the real question is
+  "is namespace X compiled into %code here".
+
+### canonical usage patterns
+
+```perl
+## expected : guard by module registry, loud error if sub missing
+<[base.code.call_expected]>->(
+    <[base.mod.exists]>->(qw| v7 |),
+    qw| v7.teardown |
+);
+
+## hard requirement : condition TRUE, errors if absent
+my $pubkey_response = <[base.code.call_expected]>->(
+    TRUE, qw| crypt.C25519.cmd.get-public-key |
+);    ## see modules/auth.auth_select
+
+## optional integration : silent either way
+<[base.code.call_optional]>->(
+    qw| channels.cmd.update |, { 'args' => "..." }
+);
+
+## presence check only
+if ( <[base.code.exists]>->(qw| auth.auth_select |) ) { ... }
+```
+
+real examples: `base.sig_term` / `base.sig_int` [ v7.teardown ],
+`base.buffer.add_line` [ p7-log ], `base.zenki.resolve_primary_sid`,
+`auth.auth_select` [ crypt.C25519.cmd.get-public-key, expected=TRUE ],
+`base.handler.auth` [ code.exists + call_optional ],
+`base.ensure_zenka_dependencies` [ exists + call_optional ].
+
+### caveat: renames must grep for sprintf-resolved names [ critical ]
+
+before renaming or moving any module, grep the whole tree for
+`sprintf.*<name-fragment>` constructions, not just literal `<[...]>` calls
+and literal `$code{'...'}` references. dynamic resolution like
+`sprintf('prefix.%s.suffix', $var)` is invisible to both grep-for-literal
+and the referenced-sub scanner. this bit twice in one session:
+`base.net.connect` and `base.handler.auth`'s cap-neg dispatcher — a rename
+silently broke nshell's cube connect until caught by testing.
+
+```bash
+grep -rn 'sprintf' modules/ | grep -i '<name-fragment>'
+```
+
+---
+
+#,,,,,,,,,,.,,...,,,,,,..,..,,..,,,..,...,,,.,.,.,...,...,,,.,,,.,,..,,,.,,.,,
+#35WPU36ZDV45LBYOBMYUI25QIZEYYF46NKVRDB7WG6EL4OEQ3VMGZ2EPVRNP64PGSYLBQY4FRBB3Q
+#\\\|4SYGMSFXUNJGC4XR5QFVIQZ3WKXJYVFIF56M53VWXWA7RN5DHOM \ / AMOS7 \ YOURUM ::
+#\[7]CDNDBZK6QDSQ5RLJXWETMU2QJIDRRXGLSTEQDZWK6FUXUZC252AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
