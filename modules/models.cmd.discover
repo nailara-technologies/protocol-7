@@ -28,6 +28,7 @@ foreach my $amos_id ( keys %$registry ) {
         'version'           => $model->{quantization} // 'unknown',
         'category'          => 'gguf',
         'available'         => $file_exists,
+        'is_vision'         => $model->{is_vision} ? TRUE : FALSE,
         'size_gb'           => $model->{size_gb} // 0,
         'success_rate'      => 1.0,
         'total_invocations' => 0,
@@ -51,6 +52,8 @@ foreach my $model (@discovered) {
         .= "  category: " . ( $model->{category} // 'uncategorized' ) . "\n";
     $reply_str
         .= "  available: " . ( $model->{available} ? 'yes' : 'no' ) . "\n";
+    $reply_str
+        .= "  is_vision: " . ( $model->{is_vision} ? 'yes' : 'no' ) . "\n";
     $reply_str .= "  size_gb: " . ( $model->{size_gb} // 'unknown' ) . "\n";
     $reply_str .= "  success_rate: "
         . sprintf( '%.2f', $model->{success_rate} // 0 ) . "\n";
@@ -63,8 +66,8 @@ foreach my $model (@discovered) {
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,,.,,.,,,,.,,,.,,,.,.,.,,,,,...,,,,,,,,,,.,,..,,...,...,,,,,,.,,..,,..,,,,.,
-#TUJVLHMWXFVDJMQ46EYDFPJQS2VYSO5XJIYVW5PRQ3WXWWSUWTSLHNNP3IKXDBAGVEV7Z6KT6VTIW
-#\\\|DGOMDAUCOGMPHXXSFLRWKVOCVL6ZV7KPTATA7F4OFLZOHGTTZAK \ / AMOS7 \ YOURUM ::
-#\[7]WEMCPHHO3AUNIOE3CALN2NTNTSDQBOCYU7CPNVDCH4JDCWQYHUCY 7  DATA SIGNATURE ::
+#,,.,,...,..,,,..,..,,.,.,.,.,,,.,,..,.,.,...,..,,...,...,..,,.,.,,,.,,,,,...,
+#QXWPAQTWC7J6HASOJ7IOQUXYUC2PDK7XU4CF2HNUWGFD6ILD32Q4SJQLC7L5ECGQ6LO36GXGDWOLS
+#\\\|QCYIU5CVFO44XBMXP2OE2BQTLIJ4QN36JF6SHATHQKQGOA47XKA \ / AMOS7 \ YOURUM ::
+#\[7]LKUQLHDRMI5FVKTQ24Y3HM6QUIS4TGFEUOQPI7IUNSCPU72DZSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
