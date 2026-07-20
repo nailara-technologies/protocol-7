@@ -16,6 +16,11 @@ if ( $reply->{'cmd'} eq qw| TRUE | ) {
     $state->{'error'}      = undef;
     $state->{'backoff_n'}  = 0;
     <[base.logs]>->( 2, 'strm.subscribe : subscribed [ %s ]', $key );
+
+    ## arm the publisher-restart re-affirm hook [ idempotent : one     ##
+    ## handler sub per publisher, on_restart dedups the registration ] ##
+    <[strm.subscribe.on-restart]>->( $state->{'publisher'} );
+
     return TRUE;
 }
 
@@ -29,13 +34,11 @@ if ( $reply_str =~ m|^client\b|i ) {
 
 ## definitive error [ permission, unknown slot, .. ] : record + stop ##
 $state->{'error'} = $reply_str;
-<[base.logs]>->(
-    0, 'strm.subscribe : %s refused [ %s ]', $key, $reply_str
-);
+<[base.logs]>->( 0, 'strm.subscribe : %s refused [ %s ]', $key, $reply_str );
 return FALSE;
 
-#,,.,,,..,,..,,,.,.,,,.,,,.,,,...,..,,.,,,,,,,..,,...,..,,,.,,.,,,...,,.,,,.,,
-#F762KQ4KHWRC7ZEOZEKTWFWAI6YRWKAC7GCLCRNFZGKJLSNUPTXX5DTIRAOBGOJNCBBIE75KAMJ42
-#\\\|2GN6NKYTW2H3GRP4A2IPL2MKEQ2TXA2E5B2ELPAXKPCKZL6C5JQ \ / AMOS7 \ YOURUM ::
-#\[7]ERSL6TR6YY32KCLTJFJZTB52AWTS6JN7RPNOOPCCVUIHZ5A3KYCI 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,..,,.,,..,,,,,,,,.,.,.,,.,,,,.,.,.,...,...,.,.,..,,.,.,.,.,.,,,
+#4WYVDPNN2IB6VTTXMP7BCDPJ4PQCTN3VBH6UYF4D2HGMUNA2FLSRPTGBXYPPNOAVZ2SBRMJF7WPHS
+#\\\|GOE3J5MLQPSAGBEQ6UUIRFLTAANSDMRZF3Q5JCK6OYC4XI77OQH \ / AMOS7 \ YOURUM ::
+#\[7]KJBPCZQ7VOTJSM6QOCKLIQCHZ5Q2NPLBA4W3DWKEOUTB4K436EDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
