@@ -34,6 +34,9 @@ for my $line ( split /\n/, $reply_data ) {
         } elsif ( $line =~ m|^\s+available:\s+(.+)$| ) {
             $metadata{$current_amos}{'available'}
                 = $1 eq 'yes' ? TRUE : FALSE;
+        } elsif ( $line =~ m|^\s+is_vision:\s+(.+)$| ) {
+            $metadata{$current_amos}{'is_vision'}
+                = $1 eq 'yes' ? TRUE : FALSE;
         } elsif ( $line =~ m|^\s+size_gb:\s+(.+)$| ) {
             $metadata{$current_amos}{'size_gb'} = $1 + 0;
         } elsif ( $line =~ m|^\s+success_rate:\s+(.+)$| ) {
@@ -74,8 +77,8 @@ if ($count) {
 
 return TRUE;
 
-#,,.,,..,,,,.,.,.,,,,,.,.,,.,,,..,...,.,,,...,..,,...,...,...,..,,,..,,.,,...,
-#MFWQHE6Q5KRDCBP53FCDWSTT3TOHPF5H3NA37WZ2QJ4VPZUNGQRH55UEPCRUWIBKBFDXMJFBN2HSO
-#\\\|L6GTBXNG36DQZIJLIBAERM42EZYBTERFRJPO7MB2H45WFNZSTRR \ / AMOS7 \ YOURUM ::
-#\[7]C4Q67WO3LEJSLKJYDWROPHTOPQ3OTDVMK2C436FIBS452W5O4OBI 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,..,,..,,.,.,,.,,..,,..,,,,.,,..,..,,...,...,,.,,.,.,.,.,,..,,.,,
+#SIO3WDO7WRLVZFO6YJVPEV374ASAFJWEGH6IJGEZPPPYPJ5R6EV6VGUVN7WDLA4NCE52YSBNYJUMY
+#\\\|ARKVJH3CMUXIR7FETKX4JKLMAKVMOCMC244CWPIOQFU4E3RIWFD \ / AMOS7 \ YOURUM ::
+#\[7]YC74NLGEQGRXRLFKCQPO5TXKQTC6FV56W2GCE75UH7UCYTFSGCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

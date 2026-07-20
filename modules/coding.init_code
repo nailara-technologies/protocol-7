@@ -421,15 +421,18 @@ if ( not $already_initialized ) {
     qw| key |      => qw| coding.model_metadata |,
     qw| sort_key | => qw| reverse-num:size_gb |,     ## largest models first
     qw| descr |    => 'available inference models [marked with * = active]',
-    qw| mask |     => '<key>:amos-chksum-id name:model_name size_gb:size_GB',
-    qw| align |    => {
+    qw| mask |     =>
+        '<key>:amos-chksum-id name:model_name size_gb:size_GB is_vision:vision',
+    qw| align | => {
         qw| amos-chksum-id | => qw| center-1 |,
         qw|   name  |        => qw|  left+1  |,
         qw| size_gb |        => qw|  center  |,
+        qw| is_vision |      => qw| center-1 |,
     },
     qw| filters | => {
         qw| amos-chksum-id | => qw| coding.parser.model_name_with_selection |,
         qw| name |           => qw| coding.parser.ellipse_model_name |,
+        qw| is_vision |      => qw| coding.parser.str.is_vision |,
     }
 };
 
@@ -596,8 +599,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,..,..,,,.,,..,,..,,..,,,,.,,,.,.,,,,.,,,,,,.,.,...,..,,...,..,,,.,,,..,..,,
-#PKQ7GADQUXDXXOWNUKHNYHTG53IVHA6ZTRU3OG2F6NGMX62XIIO2Y24OR2BCW7FB2VLMW7EK7474W
-#\\\|C3FQUW5W6OCH7LK2IZGBY6ZSB6IMDCHVCWGLDXPRQVR3MDKR7EB \ / AMOS7 \ YOURUM ::
-#\[7]DENA2K7JQSKGR47XCO27V3KTCC57CR6KIF22SPXEBCK3QCEHCCDA 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,.,,.,.,,..,,.,,,..,.,,,,..,,,.,.,.,...,...,...,,.,,.,.,...,.,,,
+#EZMJCDEPM4NELIPAYI5GSYIBM2KT2ZDY4WL4OW6QVTJ2IGMKSSQVTTLD5KRL62FGVBWV5NDCNPHMO
+#\\\|W2FM4IN2JWNG5KWOVUN6VWEA6UTF2TR4HAH2WNYROWP6F32MJQ6 \ / AMOS7 \ YOURUM ::
+#\[7]46H7BH4VFQIIXV2M7HSH2ERKBXJAGRTBPZ3D3CTWWXA74MXJHYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
