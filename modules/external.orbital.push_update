@@ -27,14 +27,18 @@ my $payload = sprintf "%s %s %s %s %s\n",
 
 my @keep;
 for my $h ( @{<external.orbital.listeners>} ) {
-    push @keep, $h if <[base.stream.push]>->( $h, \$payload );
+    if ( <[base.stream.push]>->( $h, \$payload ) ) {
+        push @keep, $h;
+    } else {
+        <[base.stream.close]>->($h);  ## clean up base-level producer state ##
+    }
 }
 <external.orbital.listeners> = \@keep;
 
 return TRUE;
 
-#,,,.,,.,,,,,,.,,,,,,,,..,,,,,,.,,.,,,.,,,,,,,..,,...,...,.,,,.,.,,..,..,,...,
-#NB5SPBJYICKERN3LP6D5ZUKQVRBYCSHUCJHPMCP6W44YPTSOF6CI3V47IZQGQPWEBYLHJV762J2EA
-#\\\|C3WRGND6B3MDXHRERW6NM7NQ6WBXCCDZOJSSVSXCAVOVIBJORPR \ / AMOS7 \ YOURUM ::
-#\[7]N6TTGILHCRIHALSUBQ2LNI74EAFGRRTDTFYE5GHWYRIYAM6TGCDI 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,.,,,,.,,,,.,,.,,..,,..,,.,,,,,,,..,,...,...,..,,,..,,,.,,.,,,,.,
+#GMWJTCTKW3KDDWAHDJDSZF3LU6ZZP2WYY5LQIKXEE3YYYCUGTMLQXG7Z6CCQNWBYIQAHKU7ZDDDMY
+#\\\|Q6QQS3SQ4OEXGUJHZQBHUM35J4R6SEZW7XM532BQHND5BU3FD7J \ / AMOS7 \ YOURUM ::
+#\[7]MPQGYH5JOWODMN3IUXMY7NGTHZ7MREQWINT65YBCYYT65P2TIKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

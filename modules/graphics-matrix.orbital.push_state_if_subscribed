@@ -17,14 +17,18 @@ my $payload = <[graphics-matrix.orbital.build_summary]> . "\n";
 
 my @keep;
 for my $h ( @{<graphics-matrix.orbital.listeners>} ) {
-    push @keep, $h if <[base.stream.push]>->( $h, \$payload );
+    if ( <[base.stream.push]>->( $h, \$payload ) ) {
+        push @keep, $h;
+    } else {
+        <[base.stream.close]>->($h);  ## clean up base-level producer state ##
+    }
 }
 <graphics-matrix.orbital.listeners> = \@keep;
 
 return TRUE;
 
-#,,.,,...,,,,,.,,,,..,,.,,.,,,.,.,.,.,...,,.,,..,,...,...,...,..,,,..,.,,,.,,,
-#ZGT2Y2ZZANJHSILCZPGKW57WKWRWC6YVQKHANZ27F2YMKFSX3WT7MHMSZUARBVLS63FJCZLOWBM3K
-#\\\|TI5OZQ3WXKO3LTXF55OQ3QFWGHJPMFVETOCSG4OGYICTB2C2GOW \ / AMOS7 \ YOURUM ::
-#\[7]XCBQYXTPHUVLYLVHT6TQ4NGOWSKJEWJ3G5JVOD23GXN3RAMJXQDY 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,,,,.,.,..,,,,,,..,,..,,.,,,...,..,,...,...,...,,.,,,,.,,.,,,.,,
+#6DV6UUE2A52KBXEDK2QHOQHLP6I5R7AODK4SUSYUZSQTKJKEQNPHRS33ZQMZRFAB2JIGXWYLDX6AQ
+#\\\|ERMWSGOVAKLSFB3PKDGS4NNZPBHEJQI3FTLF5EBZ7TFSG72YZYG \ / AMOS7 \ YOURUM ::
+#\[7]GC32AW322PEBIVNOS2FOB2CKEYNE2FCPIJQ2B6FIS6CUPHNRIMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

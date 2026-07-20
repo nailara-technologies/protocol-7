@@ -2,6 +2,9 @@
 
 # name = graphics-matrix.init_code
 
+my $reinit = shift // TRUE;   ### provided by 'base.init_modules' [TRUE|FALSE]
+my $already_initialized = $reinit;    ## use for skipping redundant calls.. ##
+
 <[base.perlmod.load]>->( 'File::Path', qw| make_path | );
 <[base.perlmod.autoload]>->('Graphics::Magick');
 <[base.perlmod.autoload]>->('Convert::Color');
@@ -14,11 +17,18 @@ my $cache_dir = <graphics-matrix.cache_dir>;
 my $p_c_dir = <graphics-matrix.permission.work_cache_dir>   //= qw| 0770 |;
 my $p_ds    = <graphics-matrix.permission.document-storage> //= qw| 0750 |;
 
-<[file.make_path]>->( $cache_dir, $p_c_dir, <system.amos-zenka-user> );
-map {
-    <[file.make_path]>->( $ARG, $p_ds, <graphics-matrix.document-path-owner> )
-} ( <graphics-matrix.import_directory>,
-    <graphics-matrix.export_directory> );
+## mkdir requires root -- only safe before [root.drop_privs:...] runs,  ##
+## i.e. on first init, not on a reinit/reload after privileges dropped  ##
+unless ($already_initialized) {
+    <[file.make_path]>->( $cache_dir, $p_c_dir, <system.amos-zenka-user> );
+    map {
+        <[file.make_path]>->(
+            $ARG, $p_ds, <graphics-matrix.document-path-owner>
+        )
+    } ( <graphics-matrix.import_directory>,
+        <graphics-matrix.export_directory>
+    );
+}
 
 -d $cache_dir && chdir($cache_dir)
     or die sprintf( 'chdir[ %s ] : %s',
@@ -52,19 +62,20 @@ map {
 
 ## no discrete mutation event covers this summary : poll our own ##
 ## listeners on a slow timer instead, gated to a no-op when nobody is  ##
-## subscribed                                                          ##
+## subscribed -- only register once, a reinit would otherwise stack a  ##
+## duplicate repeating timer on every reload                           ##
 <[event.add_timer]>->(
     {   qw| interval | => 45,
         qw| repeat   | => TRUE,
         qw| handler  | =>
             qw| graphics-matrix.orbital.push_state_if_subscribed |,
     }
-);
+) unless $already_initialized;
 
 0;
 
-#,,,,,,..,..,,.,,,.,.,,.,,.,.,,,.,,..,,,.,.,,,..,,...,...,.,.,,..,,..,..,,,.,,
-#77NHFUK4YE4DUGG7GXJ2EYATUVKOJCE4VGIG4EMGSTO2YXAPPHID4TQIMSL2DOHHDCL4AVUXUJ372
-#\\\|ZG7LKFSKEQIAQGU2OST5N7MIW4ZAJL4MOJM3YUGRRH6C4DN4GIM \ / AMOS7 \ YOURUM ::
-#\[7]V2K7AKZ6FBNHNUP5OE57SMP36CBH6PW2VSTYEQC3KJZIWYQGVKCI 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,,,,,.,,...,,..,.,,,.,,,.,.,..,,..,,...,...,...,,.,,..,,.,.,,,,,
+#SYZXMGAJVQBCIJVWHTBIV3XIN3IOUXGSFUWECCSFL6HX4SICN6IG4VXPVCYNP4LGRF74JWOL3ZZDC
+#\\\|7AF7Y4AWYLML6MHBQCZ5OPBGER43AFGGTOSGDV5BD657K2FDCDN \ / AMOS7 \ YOURUM ::
+#\[7]GACJ36BVMVIRZJDNO2GX75ABD5SDNOZY527352CPYC3TQ563GOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
