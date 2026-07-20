@@ -31,11 +31,13 @@
 # the attempt resumes via v7.notify_online [ ':start:' prefix optional ]
 # with base.zenka.push-shaped exponential backoff.
 #
-# the publisher-restart re-affirm case is deliberately left open [ see
-# data/tasks/strm-generic-subscribe-wrapper.md ] : the persistent
-# <base.strm.subscribe.registry> entry keeps the full subscription
-# description around after success, so a future re-affirm hook [ e.g.
-# on 'command route collapsed' ] can re-issue the attempt as-is.
+# the publisher-restart re-affirm case is wired through
+# <[base.zenka.on_restart]> [ see data/tasks/strm-subscribe-restart-
+# reaffirm.md ] : on subscribe success the reply-handler arms one
+# restart hook per publisher via <[base.strm.subscribe.on-restart]>,
+# whose handler resets 'subscribed' and re-issues the attempt for
+# every registry entry of the restarted publisher, as-is from the
+# persistent <base.strm.subscribe.registry> entry.
 
 my $params = shift;
 
@@ -85,7 +87,8 @@ if ( $handler !~ $valid_name ) {
 foreach my $arg (@extra_args) {
     if ( not defined $arg or $arg !~ m|^\S+$| ) {
         <[base.logs]>->(
-            0, 'strm.subscribe : invalid argument token [ %s ]',
+            0,
+            'strm.subscribe : invalid argument token [ %s ]',
             $arg // 'undef'
         );
         return FALSE;
@@ -99,18 +102,18 @@ if ( not length $own_name ) {
 }
 
 ## variable-but-own target + fixed suffix, constructed here ##
-my $notify_target = join( '.', $own_name, $handler );
+my $notify_target = join( '.', $own_name,   $handler );
 my $args_str      = join( ' ', @extra_args, $notify_target );
-my $cmd_str       = join( '.', $publisher, $command );
-my $key           = join( ' ', $cmd_str, $args_str );
+my $cmd_str       = join( '.', $publisher,  $command );
+my $key           = join( ' ', $cmd_str,    $args_str );
 
 <base.strm.subscribe.registry> //= {};
 
 if ( defined <base.strm.subscribe.registry>->{$key} ) {
     ## repeat call with identical parameters ##
     my $state = <base.strm.subscribe.registry>->{$key};
-    return TRUE if $state->{'deferred'};      ## init callback pending
-    return TRUE if $state->{'subscribed'};    ## nothing to do
+    return TRUE if $state->{'deferred'};          ## init callback pending
+    return TRUE if $state->{'subscribed'};        ## nothing to do
     return <[strm.subscribe.attempt]>->($key);    ## retry path
 }
 
@@ -141,8 +144,8 @@ if ( not <system.zenka.initialized> ) {
 
 return <[strm.subscribe.attempt]>->($key);
 
-#,,.,,.,.,..,,,..,,.,,,,,,...,.,.,,.,,.,.,,..,..,,...,..,,.,,,.,.,..,,.,,,,,,,
-#KXXWORNURBWJE7MYSPCNPLKSBXDHKZMD7GFU24GLS55VCOAKN7KOYQ6VAZ5JCQWAZWRL42EDL7TWS
-#\\\|FNKYHOLN6LNFJVCFCEZJEPHNPKCJQ5IF3L3PU6NDRBXCBLKI6XE \ / AMOS7 \ YOURUM ::
-#\[7]ENTQHOPWHIH34VUWXMH2YLG3NBCV3D4EABRXRI6HEBX2Y4YK6UDI 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,,.,,,.,,.,,.,,,,,.,,,,,...,,,,,.,.,...,...,,.,,,,,,.,,,,,,,,..,
+#GZW57JP7NQT3TO5JRE6HXU7QGKEHAAXMUAHVSX3N7EOEBRVWB3XUD3EXPTLDTXCBN76I4G37T5CHG
+#\\\|BHRUG4LL7ERXMZYOXWEN37EWVLJKSBFPB3UIPNR2P6NOUDWPFCZ \ / AMOS7 \ YOURUM ::
+#\[7]ANY6TKLTEYOTZHX2O37KX4YVIEUOYZGIIQUMU4JGM26J23JP2YAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
