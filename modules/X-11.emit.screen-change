@@ -14,7 +14,11 @@ my $payload = sprintf( "%d %d\n", $width + 0, $height + 0 );
 
 my @keep;
 for my $h (@$listeners) {
-    push @keep, $h if <[base.stream.push]>->( $h, \$payload );
+    if ( <[base.stream.push]>->( $h, \$payload ) ) {
+        push @keep, $h;
+    } else {
+        <[base.stream.close]>->($h);  ## clean up base-level producer state ##
+    }
 }
 <X-11.screen_change_listeners> = \@keep;
 
@@ -25,8 +29,8 @@ for my $h (@$listeners) {
 
 return;
 
-#,,,,,,..,,,.,.,,,...,,,,,,,.,,,.,..,,,.,,..,,..,,...,.,.,,..,.,.,...,.,,,,.,,
-#OCOVFCIEEPVQFRUS6BLQUEAN436QMEOVN6CDIGPPUUSKXQ3TU75Z5FVMX3TBYQMYWA27PSKR7E7LG
-#\\\|IZDCMEOTSCFPVTEMIDH5G5E2MOIYSY7AMF5VWYZXT66NXMYT6UZ \ / AMOS7 \ YOURUM ::
-#\[7]2ZHILOAN4UW2PBLK6DUYZ5O4SRFKTU6QMH6BPWXR7IXJCQCXCKBI 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,,,,..,,..,,...,,,,,..,,..,,..,,..,,...,...,...,,.,,.,,,.,,,..,,
+#2SY4QWQEUJIXBK766J2WINJOGOG3Z5HRRJFE4HA6WCRDOQEUU4BMNE7ERU2PZFQ2P3WK27GU3YTH2
+#\\\|7BBN2AXMF2KTA547L6D6XSOLSEC3EDLKTK2HKX37Q25TPD4ULOV \ / AMOS7 \ YOURUM ::
+#\[7]XG4RRWC4PWCCWKFWAVXDZU5VLAGCE7C4WDAEMESR5SR7UDI3QUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
