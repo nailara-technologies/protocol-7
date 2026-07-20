@@ -17,20 +17,30 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   — LANDED c3870ebe5: crypt/source calls gated on base.mod.exists instead of eval; whitelist regen shrank
   as expected but bin/dev/dep-graph doesn't understand the conditional-call pattern yet.
 - [reload modules.load + p7_mod.loaded registry fixes](project-reload-modules-load-registry-fix.md) —
-  PENDING SIGN: base.cmd.reload now unions modules.load into the reload set (caveat: modules.preload/
+  LANDED 1a3f2a33c: base.cmd.reload now unions modules.load into the reload set (caveat: modules.preload/
   literal load_modules calls still missed); whitelist_miss no longer pollutes base.p7_mod.loaded with
   leaf sub names on self-heal; cube's modules.load gained ascii + format.yaml.
-- [sys-deps wiring completion](project-sys-deps-wiring-completion.md) — PENDING SIGN: retired debian
-  zenka's dependency-management stack + session's dependency-check half per the sys-deps-zenka-audit
-  disposition table (K3 dispatch); v7 gained auth.client/ascii/format.yaml in modules.load along the
-  way. Real pipeline bugs in AMOS7::deps::* found+fixed during live verification, not just deletion.
-- [ondemand-zenki registry wipe](project-ondemand-zenki-registry-wipe.md) — LANDED (uncommitted):
+- [sys-deps wiring completion](project-sys-deps-wiring-completion.md) — LANDED 255d8cc43 (+ v7 prereqs
+  81403b3b8/c06c9d503/c80dfacfc/e1ca9351e): retired debian zenka's dependency-management stack +
+  session's dependency-check half per the sys-deps-zenka-audit disposition table (K3 dispatch); v7
+  gained auth.client/ascii/format.yaml in modules.load along the way. Real pipeline bugs in
+  AMOS7::deps::* found+fixed during live verification, not just deletion.
+- [ondemand-zenki registry wipe](project-ondemand-zenki-registry-wipe.md) — LANDED 255d8cc43:
   v7.set_up_ondemand_zenki was fed only the added-since-last-run delta, wiping <v7.ondemand_zenki> to
   empty on reload; broke clean-idle-shutdown detection for every on-demand zenka (restart-loop despite
   restart.disabled). Confirmed live at 0/56, fixed, confirmed 56/56.
+- [ondemand idle timeout vs active STRM streams](ondemand-idle-timeout-active-streams.md) — LANDED
+  9eba08e3d: base.event.callback.io-idle-restart now checks base.stream.*'s existing
+  session/streams/producer state before re-arming shutdown; on-demand zenki serving live STRM push
+  subscribers (graphics-matrix, X-11, nodes, kimi-web, ticker, radio, discover, external, mod-test)
+  no longer get shut down mid-subscription every idle cycle.
+- [base.log vs base.logs sprintf confusion](feedback-base-log-vs-logs-sprintf.md) — LANDED 9eba08e3d:
+  113 call sites across 63 files were passing a %s/%d template + args to base.log (which never
+  sprintfs) instead of base.logs; root-caused a live p7-log crash-loop, then swept codebase-wide via
+  kimi k2.7, independently re-verified clean.
 
-#,,,,,..,,,..,,,.,,.,,,,.,.,,,,.,,...,..,,...,..,,...,...,..,,.,,,,,.,.,.,,..,
-#PWVHVM3I4IQUM44HH4RMUXZBS5MYJ64SMRKU5MJXRLGXBJ5DOO52AKOZCFXRU3MSLMXR45N6A5XHA
-#\\\|NG4THGPJEEFBDPKTPCTVQOOAUMTDPNPZCZZ7HQ23PE5FJLXXWX6 \ / AMOS7 \ YOURUM ::
-#\[7]CVIFGHYZKTW4FYUWI6L2XNLRARVGO5JE5RNWJZ6O36TS4OILP6AY 7  DATA SIGNATURE ::
+#,,.,,,..,,..,.,,,...,,..,,.,,...,,..,,,,,,,.,..,,...,...,.,,,.,,,,..,,.,,,,.,
+#QGO75XBO23UH5AVJHYBGKC7IC2F574LJN66TWO7MOZCMLHFLX3LQ57XKSQW45A6WBPYEGUMLXVGBY
+#\\\|UROQUZWMOX4I6PJTUOUY5CF6EZFNDPDAPBFCVSFK2GYUBT4RWTE \ / AMOS7 \ YOURUM ::
+#\[7]KQKQYCFX7E2TN2CBBSE3VMQ7VSGHCECRAENG7Z2JUJIFMJCMNUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
