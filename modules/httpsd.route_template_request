@@ -33,7 +33,7 @@ my $session_id = shift // qw| unknown |;
 
 # Validate parameters
 unless ( defined $uri && length $uri ) {
-    <[base.log]>->(
+    <[base.logs]>->(
         0, "[%s] route_template_request: missing URI parameter", $session_id
     );
     return {
@@ -64,7 +64,7 @@ $path = "/$path" unless $path =~ m|^/|;
 # Remove trailing slash (except for root)
 $path =~ s|/+$|| unless $path eq qw| / |;
 
-<[base.log]>->(
+<[base.logs]>->(
     2, "[%s] routing %s %s [vhost=%s]",
     $session_id, $method, $path, $vhost // 'default'
 );
@@ -86,7 +86,7 @@ if ( exists <httpsd.route_cache> {$cache_key} ) {
 # Pattern: /.well-known/acme-challenge/{token}
 if ( $path =~ m|^/.well-known/acme-challenge/(.+)$| ) {
     my $token = $1;
-    <[base.log]>->(
+    <[base.logs]>->(
         1,           "[%s] ACME challenge route: token='%s'",
         $session_id, $token
     );
@@ -133,7 +133,7 @@ if ( defined $vhost ) {
     my $template_path = <[httpd.vhost_template_resolver]>->( $vhost, $path );
 
     if ( defined $template_path ) {
-        <[base.log]>->(
+        <[base.logs]>->(
             1,           "[%s] template route: %s",
             $session_id, $template_path
         );
@@ -178,8 +178,8 @@ my $route = {
 <httpsd.route_cache> {$cache_key} = $route;
 return { %$route, cached => 0 };
 
-#,,..,.,,,,.,,.,.,,,.,,,,,.,,,,..,,,,,..,,,.,,..,,...,...,,.,,...,,,,,.,.,..,,
-#EDLYLZP4ZNNSBR4IJENXIMB46S2VVEWLFF5CBAEIZBUERVRMTFFRNPVFRDNNPENZ2R7RV74KV6XFA
-#\\\|JPZXH5APTSRTVWPTFHZYHR3LI2BS4NXGRHA74JADETVXU7MPGIA \ / AMOS7 \ YOURUM ::
-#\[7]EQQ2RWGZZY2TNAEGESGPNPMVY637OLLRVATO3BPYCAO4W32A5WAY 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,.,.,,..,,,,,..,,,..,.,.,...,..,,..,,...,...,,,.,.,,,.,,,...,,,.,
+#Q6VG5ALMETR24YCIYE5PB62PBXDKNZ55LLRYEHGSZ76J7PHFUPJR4UNB6MNBC225XIPFM7ORZQQ3K
+#\\\|CRUVHB6EQEXQUFPAMPG6UWBSXAZNOPNMWS4RDCOQCE2JENXSEMS \ / AMOS7 \ YOURUM ::
+#\[7]Q4TAINRL3KSLRKMGZJQGFWNMRSBE3OYKW2H2BWEZJYPCCKF3NUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

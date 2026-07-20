@@ -48,7 +48,7 @@ my ( $pid, $uid, $gid ) = ( $unix->{'pid'}, $unix->{'uid'}, $unix->{'gid'} );
 my $user = getpwuid($uid);
 
 if ( not defined $user ) {
-    <[base.log]>->(
+    <[base.logs]>->(
         0,
         '[%s] cannot retrieve username from passwd file, init declined ..,',
         $socket_id
@@ -87,8 +87,8 @@ foreach my $access_str ( split m| +|, $users_str ) {
 
 return 0;    ## init declined ##
 
-#,,,,,,,.,.,.,.,,,.,.,...,,..,,,.,,.,,..,,,,,,..,,...,...,.,,,..,,.,.,..,,...,
-#OSYJKWMX3UUFHVGRIUWW46XL2VEOVD6U3J4JLG233PIVGE6LCJQHWEE245AZI6GF3KXX34LJ26XE2
-#\\\|HRRDPGD7CXUQQQ7KGWRYQFW7RS7KX2KUSAEHJDZVSAYJKHPR723 \ / AMOS7 \ YOURUM ::
-#\[7]XVDTIYVKQHAE5ZDOYYYUOFUQ6CI67XAG3F2XPYRBOFM4WHZLX2AY 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,...,,,.,.,.,..,,.,,,,,,,..,,..,,..,,...,...,...,,,.,,.,,,,,,,,,,
+#WKOPM2K6DPLCZMBEWOTAFPCDZAODSQFW2R3K4KDJYAGC3ORBNJGNHHA4P4DLHMJA7IAY2H3ZSFRWA
+#\\\|L2Z6SGB74PAVH2AUAL6OMXFDRGBSIQ5HQ5EDCYQILCZDEJNAQNB \ / AMOS7 \ YOURUM ::
+#\[7]QK6EWOFFBEBIGKJGOYLJ5HXHMWUMFMGOJGYNB7DOYAROQDWFVGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

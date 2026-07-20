@@ -17,7 +17,7 @@ return <[base.log]>->( 2, 'gpu monitoring disabled [ no supported tool ]' )
 
 my $nvidia_bin = <X-11.bin_path>->{'nvidia-smi'};
 
-<[base.log]>->( 1, "starting 'nvidia-smi' gpu %s monitor .,", $metric );
+<[base.logs]>->( 1, "starting 'nvidia-smi' gpu %s monitor .,", $metric );
 
 my $pid
     = open3( undef, my $out_fh, undef, $nvidia_bin,
@@ -25,7 +25,7 @@ my $pid
     qw| -l 1 | );
 
 if ( !$pid ) {
-    <[base.log]>->(
+    <[base.logs]>->(
         0, "<< cannot open 'nvidia-smi' [%s] pipe [ \l$OS_ERROR ] >>", $metric
     );
     return;
@@ -45,8 +45,8 @@ push( @{<system.kill_list>}, $pid );
     }
 );
 
-#,,,,,,,.,.,.,.,,,...,,,.,,,.,.,.,,.,,,,,,,.,,..,,...,.,.,...,..,,.,,,,.,,,,,,
-#E5PPGVJFOAEVWLUHKBQWZ73DJBVAV4BYDNJSIUUAYYTCUEUMV4RIRBA5QICIWFIRS5L2MPL7PBAHM
-#\\\|JRHWXHHVSJDZB5PFO6GWBVCWK4Q3SKRMKBPPOZKKLAYY2QJ2ZIQ \ / AMOS7 \ YOURUM ::
-#\[7]QWRDJIF37UOBRZAQZSJA43QBG7AGCO3QT3FMELFXJVOKANTBOGDA 7  DATA SIGNATURE ::
+#,,..,...,.,.,,,.,,.,,,..,,,,,..,,.,.,.,,,,,.,..,,...,...,...,...,,,,,..,,,..,
+#AXNYZVFAGZ4RHUAFVLSRTSH3S75PWNCTU2T2V42PU7GVGREJ3VW223TJ2BSDPBFMXMIT3LNIVOUZE
+#\\\|WUYCAHFVK264FDV2QR37PCCXN6DRDQEERRZFYZBYRJCIYA6DK37 \ / AMOS7 \ YOURUM ::
+#\[7]DJJJFOORZF255762TDYYZA6GFT4JIXXRDFBLLUKEVFMJJT4QSCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

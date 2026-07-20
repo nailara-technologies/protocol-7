@@ -20,7 +20,7 @@ my $model    = $opts->{'model'}    // $model_name;
 my $expanded = <[models.chat.expand_refs]>->( { 'message' => $message } );
 if ( $expanded->{'mode'} eq qw| true | && $expanded->{'expansions'} ) {
     $message = $expanded->{'data'};
-    <[base.log]>->(
+    <[base.logs]>->(
         2,
         "[invoke_model] expanded %d file refs",
         $expanded->{'expansions'}
@@ -147,8 +147,8 @@ elsif ( $backend_type eq qw| kimi_web | ) {
 
 return;
 
-#,,..,,.,,..,,.,.,,..,,,,,.,,,,,.,..,,,.,,.,.,.,.,...,..,,..,,.,.,.,,,.,.,.,.,
-#ZA6MEIAU3FKXU6WQ4FGJNYX4UBKKZSLWSGR6DYZRY4YWIGGNFCLU6KCW63ZNV5L6AUXM3ONHODOZG
-#\\\|5YUZC5UL2JO2LWRSSW2WB7H5TIMRPNK5CTLMLG4GJBFXK4FUSY4 \ / AMOS7 \ YOURUM ::
-#\[7]EQ7QFPFF2P5S4Q2B7QQGNU7CPC7DWPNQIYTBQBNYVPEP4PT3NUDI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,,.,.,.,.,.,,.,,...,,..,,..,...,.,.,...,.,.,,..,.,,,,..,.,.,,,.,
+#Y3Y2R7J3LCOSPDYQSOC6IPVRMXRFEBQ7OOH6ARFWSSTC5C3LT724HM2CDRDHDXPCHIS4DZBDRRIJE
+#\\\|KAVN632KUSIDSCEYAEAHEEEGFSQVYGWL4NHO6KAYNYFF37E6RQM \ / AMOS7 \ YOURUM ::
+#\[7]7YRLIM36MYDXWNIQLRHQ6UYR65QYF2Y2RXGTPJC6J2KTBXZRNGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

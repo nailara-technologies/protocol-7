@@ -30,7 +30,7 @@ $download->{'test_bytes_read'} //= 0;
 my $test_trigger_at = 113 * 1024 * 1024;    # 113MB
 if ( $download->{'test_bytes_read'} >= $test_trigger_at
     && !$download->{'test_triggered'} ) {
-    <[base.log]>->(
+    <[base.logs]>->(
         0,
         "[$id] TEST: Forcibly closing file handle at %d bytes",
         $download->{'test_bytes_read'}
@@ -186,8 +186,8 @@ delete $session->{'download'};
 $session->{'flush_shutdown'} = 1;
 return FALSE;
 
-#,,..,,,.,,,,,...,,..,,,.,.,.,,.,,.,,,.,.,,.,,..,,...,...,..,,.,.,.,.,,,.,,..,
-#RKLA2WO5GED6VJQT34YWVZUZQY4NU4WJ7MXAUWFSHHODWQUTJGRPJCNFROFTE45M3BWAUSJHVPRAO
-#\\\|5DA2RXGFK36YXF343TDGHCOUFIG6DWGUVHOIKTRD4YNCDJWPZJL \ / AMOS7 \ YOURUM ::
-#\[7]IAEYNHTFOM54C7GSQCAZAE2HWNTELO6I24BMFLPR7QSNEMUNEUAY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,.,,,,.,...,.,,,,,.,,,.,,.,,.,.,..,,...,...,..,,,,.,,,.,,.,,,,,,
+#3SHT266UIX5UKZRMM6XKLMCA4Y4Y3LNKS77HUZIYR2GO747PE7N4HT7NEA3OG5IFTEBN5JB6FH5BM
+#\\\|36WKGPJUCJVJYK3RLZHJE6ELVC6LPPHZ5AKSBJQY767LAGQOHAW \ / AMOS7 \ YOURUM ::
+#\[7]VNAGUV7FI5BHL4QJVSDSM7T2A4H2X2MFCCPTWUYO7JOQCOPVWCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

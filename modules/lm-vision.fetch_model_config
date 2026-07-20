@@ -17,8 +17,9 @@ my $response_data = $reply->{'data'} // '';
 ## check for error response
 if ( $response_data =~ m|^error:| ) {
     my ($err_line) = split( m|\n|, $response_data );
-    <[base.log]>
-        ->( 0, '[lm-vision] fetch_model_config error: %s', $err_line );
+    <[base.logs]>->(
+        0, '[lm-vision] fetch_model_config error: %s', $err_line
+    );
     return 0;
 }
 
@@ -36,8 +37,9 @@ my $mmproj_path = $model_data->{'mmproj_path'} // '';
 ## for vision models, mmproj is required; for non-vision it may be empty
 my $is_vision = $model_data->{'is_vision'} // 0;
 if ( $is_vision && !-f $mmproj_path ) {
-    <[base.log]>
-        ->( 0, '[lm-vision] mmproj file not found: %s', $mmproj_path );
+    <[base.logs]>->(
+        0, '[lm-vision] mmproj file not found: %s', $mmproj_path
+    );
     return 0;
 }
 
@@ -55,8 +57,8 @@ unless ( -f $model_path ) {
 
 return 1;
 
-#,,..,,,,,...,..,,...,...,,.,,.,,,,.,,,,,,,..,..,,...,...,.,,,...,...,,..,,..,
-#TSZJZAVPS7QYDBX5447CJVDT5CFJVK767HUYUX5RED6UKVOSQ56I7ULGAMY5KA43OVURKGR2DHQGO
-#\\\|FOCTJNPZSXDJYTWBBTE7TGQP6WWOUNYPIY4KUOLILVPLANBAXCU \ / AMOS7 \ YOURUM ::
-#\[7]CGU5LI36OPGONPX6V2T34V553FAP5LNW3MWVAREKJJN7FM7MKMDQ 7  DATA SIGNATURE ::
+#,,,,,...,..,,,.,,.,,,,,.,,..,,,.,,,,,..,,.,,,..,,...,...,.,,,,..,,..,..,,.,,,
+#PHV7NO3LUHKGG54BK4C4LRDVOH4S6ZRKEGILT2CNLRAC7G52E6E2P5CWUUDTUYJN6GOBNRZI2EONY
+#\\\|GAOCEPVOP3FEYC5Q7UKGGE6W4LGV72KLGE72KO57K6ON2RQ4GJG \ / AMOS7 \ YOURUM ::
+#\[7]YJNBM33AHUJJNCAS63UBGYE4DTR7SXOQYYNJS2W5QU24LXIGPIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
