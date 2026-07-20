@@ -17,8 +17,11 @@ our @EXPORT_OK = qw|
 
 use File::Which qw| which |;
 
-## Load debian backend for dispatch ##
-use AMOS7::deps::debp qw| probe_apt install_apt |;
+## Load debian backend for dispatch [ fully-qualified calls only :        ##
+## compile-time imports break when Module::Refresh wipes the shared CV    ##
+## during a live v7 reload [ %DB::sub active ] -- runtime stash lookups    ##
+## always resolve to the current coderef ]                                ##
+use AMOS7::deps::debp;
 
 ##[ detect_os ]###############################################################
 
@@ -99,8 +102,8 @@ sub probe_os_pkg {
 
     return 0 unless defined $pkg && length $pkg;
 
-    return probe_binary($pkg) if $os_type eq 'binary';
-    return probe_apt($pkg)    if $os_type eq 'debian';
+    return probe_binary($pkg)                 if $os_type eq 'binary';
+    return AMOS7::deps::debp::probe_apt($pkg) if $os_type eq 'debian';
 
     ## future: arch, fedora, etc. ##
     return 0;
@@ -126,7 +129,7 @@ sub install_os_pkgs {
     return { ok => [], failed => [] } unless @pkgs;
 
     if ( $os_type eq 'debian' ) {
-        return install_apt(@pkgs);
+        return AMOS7::deps::debp::install_apt(@pkgs);
     }
 
     ## Future: arch, fedora, etc. ##
@@ -135,8 +138,8 @@ sub install_os_pkgs {
 
 1;
 
-#,,.,,,..,,,.,.,,,.,.,..,,,.,,...,.,,,...,,.,,..,,...,...,.,,,...,,,,,.,,,,.,,
-#DME63CGQPMLKUIUAIOSBAOXCH7WWSTSNQDLK3INXNPQZ6OHQ3NWPXZYDHVF2VDYJ2G4EIUY4RTPPG
-#\\\|PCSLFJH3ENK3XULCICYQOHM2P6YTR2EALLBQHRVKZ3GXV2NRUE5 \ / AMOS7 \ YOURUM ::
-#\[7]5L6EJ7HQYYWJDRH3G4OENFGHOEX3YGHO4ZHCYNIOXBL3V4PSHCBY 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,.,,,,,,,.,,,,,,,,.,,,,,,,.,,...,..,,...,...,,,.,,.,,,,,,.,,,.,.,
+#NGD57G6RQCM5MRR6IXYZ7CYAHR5XBGX2M5BVOTKI7VFWTHHSE6QRANHRLRZKTZH5IE6LOQZMTAMEQ
+#\\\|MY7JDOGREXEHCB5GWSA3C33B2T34LFZDZDPG5I3GAL2QTQ2RLRI \ / AMOS7 \ YOURUM ::
+#\[7]FEUOSOPUQ543KAFSVHI5XMDZZ7MXC6QXOHFXIZZ4T2P4X3EB3WDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -64,7 +64,7 @@ sub install_apt {
         my $wait   = 2 + int( rand(5) );
 
         ## wait for dpkg lock ##
-        while ( length( qx(lslocks | grep ^dpkg 2>/dev/null) ) and $wait = 11
+        while ( length(qx(lslocks | grep ^dpkg 2>/dev/null)) and $wait = 11
             or $wait-- ) {
             if ( $wait > 10 and !$warned++ ) {
                 warn "auto_install: waiting for dpkg lock ...\n";
@@ -96,13 +96,16 @@ sub install_apt {
         }
     }
 
+    ## invalidate memoized apt package state cache ##
+    $_apt_cache = undef;
+
     return { ok => \@installed, failed => \@failed };
 }
 
 1;
 
-#,,..,..,,...,.,,,,,,,...,..,,.,.,..,,,,,,,..,..,,...,...,.,,,,,,,,.,,,,,,,..,
-#FKEHZ77KYE3D466JA3Q35XQLJ45F4WK42VDL4ZF34G4VSYBNN4LVH6NYFJCATAG5RETPKRYJHTVVG
-#\\\|L3XDCZTLZUWMXL67LPPH3P6TPXEWIDW6S2HFLYNGAPF2NWQSMWI \ / AMOS7 \ YOURUM ::
-#\[7]5UBRIHGXK32ANAOC6UIJAEL3FMKD6KY44QJIEIZ47EO5EJDUWOCA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,.,.,.,,,.,,,...,,..,.,.,.,,,,,,,..,,...,...,.,,,..,,...,,,.,..,,
+#HMAPB3RCDFBT3CCYN3L26ZPCDBPELWMBJFOJBID2PP3AMWP6WQNEII4YKPHJZBIVDHQDTZPOPPT5Q
+#\\\|A5GKS4L4KIA6BFXZD5RMR6ZNNGQVLKCJQKYMCHHQRWJGYZ4APV7 \ / AMOS7 \ YOURUM ::
+#\[7]B76OT7RXY4Q2HN3BKD2OOETP73RBYA3SJV52SZLXXB5XTO63VMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

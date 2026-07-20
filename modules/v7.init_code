@@ -125,46 +125,8 @@ if ( !defined <v7.rmmod_bin> || !-x <v7.rmmod_bin> ) {
 <[v7.load_start_setup]>->(<load.start_setup>)
     if defined <load.start_setup>;
 
-## verify and install dependencies for all registered zenka [LLL] refine..,
-if ( $UID == 0 && exists $code{'debian.parent.scan_zenki_dependencies'} ) {
-    <[base.log]>->( 2, "v7 : scanning zenka dependencies..." );
-
-    ## scan all zenka for their dependencies
-    my $scan_result = <[debian.parent.scan_zenki_dependencies]>;
-
-    if ( $scan_result && %$scan_result ) {
-        <[base.log]>->(
-            2, "dependency scan complete" . " - verifying and installing..."
-        );
-
-        ## verify and install dependencies for all scanned zenka
-        if ( exists $code{'v7.verify_and_install_zenka_dependencies'} ) { #[!]
-            my $install_result = <[v7.verify_and_install_zenka_dependencies]>;
-
-            if ( $install_result && $install_result->{success} ) {
-                <[base.log]>
-                    ->( 2, "v7 : ✓ dependency verification complete" );
-                if ( $install_result->{alerts_count} > 0 ) {
-                    <[base.log]>->(
-                        1,
-                        "v7: ⚠ %d dependency alerts recorded",
-                        $install_result->{alerts_count}
-                    );
-                }
-            } else {
-                <[base.log]>->(
-                    0,
-                    " ⚠ dependency verification incomplete"
-                        . " - continuing anyway"
-                );
-            }
-        }
-    } else {
-        <[base.log]>->(
-            2, "no zenki dependencies found" . " - skipping verification"
-        );
-    }
-}
+## dependency verification happens per-zenka at autostart time ##
+## [ <[v7.check_zenka_deps]> via v7.autostart_zenki + sys-deps zenka ]  ##
 
 ## zenka dir based startup configs #
 <[v7.load_zenka_startup_cfgs]>;
@@ -288,8 +250,8 @@ delete <list.users>;
 
 return 0;    ## successful init ##
 
-#,,.,,,,.,,..,.,,,,.,,,..,.,,,,,,,..,,.,,,,..,..,,...,...,.,.,,.,,.,,,,,.,,,,,
-#WOFMG4MX4I6S4K7AZA6JVAU4RJYCHR2B5JX4BP3AENHCCI2TJMI2LXNHP67NMHKEMTENLGU3BCJYS
-#\\\|P2AKYQJRG55DZ3F2PN3C6BUI5GSTBBUGHGDGQDG34U4UFSFXDH2 \ / AMOS7 \ YOURUM ::
-#\[7]UE3TDMDUUR45JDEAZSPSWFQ2U367PXC3FFGBWDCIZENVQWBRGWBY 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,,,,.,,,...,..,,..,,,,.,,.,,..,,..,,...,...,..,,..,,,..,,,.,.,,,
+#CTB3LBN5TFJYQSV6T7UHLTIUZBEH346KA3VVC5MMEFB3A5QH55YZKQRD7M4E3GKDJ2T5ACZDXSBXA
+#\\\|BFF4CBLW5TH7HVC4OL3YXZFN3HNXSTCIQPM4PP42YJYAN5T7VGO \ / AMOS7 \ YOURUM ::
+#\[7]V5UQXG6SQSXGZQR23XECBWSWJMWYR67UFUJUXLHHLBB7WISW6EDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
