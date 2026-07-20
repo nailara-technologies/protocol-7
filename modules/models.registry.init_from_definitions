@@ -2,7 +2,7 @@
 
 # name = models.registry.init_from_definitions
 # descr = initialize registry from pre-configured model definitions
-#                                       [ no checksum calculation ]
+#            [ no file-content checksum - path/metadata checksum only ]
 
 my $models_defs = <models.definitions>;
 my $registry    = <models.registry> // {};
@@ -14,20 +14,40 @@ foreach my $model_id ( keys %$models_defs ) {
     # (may be on inaccessible mount or have permission restrictions)
 
     # Calculate size from file if accessible, otherwise use 0
-    my $size_bytes = -s $model->{'path'};
-    my $size_gb    = $size_bytes ? $size_bytes / ( 1024**3 ) : 0;
+    my $size_bytes  = -s $model->{'path'};
+    my $size_gb     = $size_bytes ? $size_bytes / ( 1024**3 ) : 0;
+    my $size_gb_fmt = sprintf( qw| %.3f |, $size_gb );
 
-    # Store model in registry without calculating checksums
-    # Checksums will be calculated on-demand if needed
-    $registry->{$model_id} = {
-        model_id     => $model_id,
-        name         => $model->{'name'},
-        path         => $model->{'path'},
-        size_gb      => sprintf( qw| %.3f |, $size_gb ),
-        quantization => $model->{'quantization'},
-        is_vision    => (
-            $model->{'is_vision'} && lc( $model->{is_vision} ) ne qw| false |
-        ) ? 1 : 0,
+    my $is_vision = ( $model->{'is_vision'}
+            && lc( $model->{is_vision} ) ne qw| false | ) ? 1 : 0;
+
+    ## composite key : path_checksum:model_checksum, same shape as       ##
+    ## populate_from_discovery/populate_from_yaml build - neither half   ##
+    ## reads file content, so this still works for inaccessible files    ##
+    my $path_checksum  = <[models.checksum.from_path]>->( $model->{'path'} );
+    my $model_checksum = <[models.checksum.from_metadata]>->(
+        {   'model_id'     => $model_id,
+            'name'         => $model->{'name'},
+            'quantization' => $model->{'quantization'} // 'unknown',
+            'size_gb'      => $size_gb_fmt,
+            'is_vision'    => $is_vision
+        }
+    );
+
+    ## fall back to the plain yaml key if either checksum call failed ##
+    my $registry_key
+        = ( defined $path_checksum && defined $model_checksum )
+        ? "$path_checksum:$model_checksum"
+        : $model_id;
+
+    $registry->{$registry_key} = {
+        amos          => $registry_key,
+        model_id      => $model_id,
+        name          => $model->{'name'},
+        path          => $model->{'path'},
+        size_gb       => $size_gb_fmt,
+        quantization  => $model->{'quantization'},
+        is_vision     => $is_vision,
         source        => qw| yaml |,
         registered_at => <[base.time]>->(3)
     };
@@ -37,8 +57,8 @@ foreach my $model_id ( keys %$models_defs ) {
 
 return { success => TRUE, loaded => scalar( keys $registry->%* ) };
 
-#,,..,,,.,,.,,,..,.,,,,..,..,,.,,,,,.,,,.,.,.,..,,...,.,.,...,.,,,,..,,,,,...,
-#CNN6HIWLH3VPOYT4LEJADN3XB5YYUB2CEJPK7N5U2GLXW3MHUWM6U2JXFAHWJPPJ4YP4WFWGNBEB2
-#\\\|JI32KENFTQCGHQO7PXW725OZCIZTHIMC4HMZFLDRHOPO3EGQSLY \ / AMOS7 \ YOURUM ::
-#\[7]2ES7BGTB5CRI5JRPASEPODE7CRTYQJCS2SWFSDHNSG6TX2FXBGBI 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,.,,,,,,...,.,.,.,.,,..,,,,,,,,,..,,...,...,,,,,.,,,.,,,.,,,,,,,
+#R2NQPAH2DISVXV22DRTD24BDZEF5WRUHI24U4GIGGNL3K2WATCK2QHUQAAWBG57MLYYZ3R6SRTIDG
+#\\\|ZESHIOA52JPABK6EOSMTVYZ2IK4R5IRD25FYF6GAD73FPOGE3XT \ / AMOS7 \ YOURUM ::
+#\[7]AQAIK7MNXHYSHFCP325GRNCJIJKVCV2KI4Y2CFEX53BRS42TBOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
