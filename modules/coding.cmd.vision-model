@@ -1,7 +1,12 @@
 ## [:< ##
 
 # name  = coding.cmd.vision-model
-# descr = report vision support of loaded gpu model
+# descr = report/switch vision-capable gpu model
+# param = [:switch: [<id>] [<timeout>]]
+
+my $args = $call->{'args'} // '';
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
 
 my $servers = <coding.inference_servers> // {};
 my $gpu     = $servers->{'gpu'}          // {};
@@ -16,15 +21,134 @@ $mmproj = $gpu->{'mmproj_path'}
 
 my $is_ready = ( $gpu->{'status'} // '' ) eq qw| ready |;
 
-if ( $is_ready && length $mmproj ) {
+## round-1 behaviour : no-arg report of loaded-model vision support ##
+if ( !length $args ) {
+    if ( $is_ready && length $mmproj ) {
+        my $model_id = $gpu->{'model'} // <inference.model.amos_id> // '';
+        return { 'mode' => qw| true |, 'data' => $model_id };
+    }
+
+    return { 'mode' => qw| false |, 'data' => 'no vision model loaded' };
+}
+
+## anything beyond this point is the :switch: action - a non-empty arg  ##
+## that does not start with :switch: is a usage error, do NOT silently  ##
+## fall through to the report path                                      ##
+if ( $args !~ m{^:switch:(?=\s|$)} ) {
+    return {
+        'mode' => qw| size |,
+        'data' =>
+            "usage: coding.vision-model [:switch: [<id>] [<timeout>]]\n"
+    };
+}
+
+## parse the two optional order-independent tokens, disambiguated by    ##
+## shape : checksum contains a colon [ same regex as switch-model ],    ##
+## timeout is a bare integer in seconds                                 ##
+my $rest = $args;
+$rest =~ s|^:switch:||;
+
+my ( $checksum, $timeout );
+for my $token ( split m|\s+|, $rest ) {
+    next if !length $token;
+    if ( $token =~ m{^([A-Z2-7]{7}:[A-Z2-7]{7})$}i ) {
+        $checksum = uc $1;
+    } elsif ( $token =~ m{^(\d+)$} ) {
+        $timeout = $1 + 0;
+    } else {
+        return {
+            'mode' => qw| size |,
+            'data' =>
+                "usage: coding.vision-model [:switch: [<id>] [<timeout>]]\n"
+        };
+    }
+}
+
+## short-circuit : a vision model is already loaded+ready and either no ##
+## checksum was given or it matches the loaded model - reply at once,   ##
+## no idle wait, no switch                                              ##
+my $loaded_id = <inference.model.amos_id> // $gpu->{'model'} // '';
+if (   $is_ready
+    && length $mmproj
+    && ( !defined $checksum || lc $checksum eq lc $loaded_id ) ) {
     my $model_id = $gpu->{'model'} // <inference.model.amos_id> // '';
     return { 'mode' => qw| true |, 'data' => $model_id };
 }
 
-return { 'mode' => qw| false |, 'data' => 'no vision model loaded' };
+## model selection : explicit caller checksum always wins. without one, ##
+## auto-select the first vision-capable registry entry locally          ##
+if ( !defined $checksum ) {
+    my $registry = <coding.model_metadata> // {};
+    for my $key ( sort keys %$registry ) {
+        ## projector files are not runnable models ##
+        next if $key =~ m|mmproj|i;
 
-#,,.,,,,.,,,,,.,,,,,,,,.,,,,.,.,.,..,,,,.,,,.,..,,...,...,...,..,,...,.,.,,.,,
-#3MFRDFED34DXPIMYJR6NYCG22MCFDOMWUWV7WGDN7SW35KVNCLWWB6VFJLFVLWA6FDA7XTJQRSMTU
-#\\\|OD7CTLSQWA72V57HBSYUNHEAOXPLLXAS6QWC3YYUVQN5TQ5GIR5 \ / AMOS7 \ YOURUM ::
-#\[7]BMEQDPCRPOR3KA4FK3WDBDB5VPUDDF3DGKUC5Q7J6OMAMYT3YECQ 7  DATA SIGNATURE ::
+        my $entry = $registry->{$key} // {};
+
+        ## reuse the existing predicate on the entry's vision flag ##
+        my $vision
+            = <[models.parser.str.is_vision]>->( $entry->{'is_vision'} // 0 )
+            eq qw| vision |;
+
+        ## fallback : name heuristic, same pattern as models.local_discover ##
+        $vision = 1
+            if !$vision
+            && ( $entry->{'name'} // $key ) =~ m{vl|vision|vlm}i;
+
+        next if !$vision;
+
+        ## metadata amos values can be yaml names with spaces - only a  ##
+        ## composite checksum passes switch-model's own validation      ##
+        my $candidate = uc( $entry->{'amos'} // '' );
+        next if $candidate !~ m{^[A-Z2-7]{7}:[A-Z2-7]{7}$};
+
+        $checksum = $candidate;
+        last;
+    }
+
+    if ( !defined $checksum ) {
+        return { 'mode' => qw| false |, 'data' => qw| no-vision-model | };
+    }
+}
+
+## caller timeout bounds the WAIT-FOR-IDLE phase only [ see            ##
+## coding.handler.vision_switch_poll for the phase split ]             ##
+$timeout //= <coding.cfg.vision_switch_idle_timeout> // 300;
+
+## register per-request state and arm the poll timer : the reply fires  ##
+## deferred, exactly once, from coding.handler.vision_switch_poll      ##
+$data{'coding'}{'vision_switch_state'} //= {};
+my $switch_id
+    = <[base.gen_id]>->( $data{'coding'}{'vision_switch_state'} );
+
+$data{'coding'}{'vision_switch_state'}{$switch_id} = {
+    'reply_id'        => $call->{'reply_id'} // '',
+    'target_checksum' => $checksum,
+    'timeout'         => $timeout,
+    'started'         => <[base.time]>->(3),
+    'phase'           => qw| waiting_idle |,
+    'prior_pid'       => 0,
+    'replied'         => FALSE,
+};
+
+<[event.add_timer]>->(
+    {   'interval' => 1.0,
+        'repeat'   => TRUE,
+        'handler'  => qw| coding.handler.vision_switch_poll |,
+        'data'     => { 'switch_id' => $switch_id },
+        'desc'     => "vision-model switch $switch_id",
+    }
+);
+
+<[base.logs]>->(
+    1,         '[vision-model] :switch: queued : %s [idle timeout %ds]',
+    $checksum, $timeout
+);
+
+return { 'mode' => qw| deferred | };
+
+#,,,,,,,.,.,.,,,.,.,.,.,,,..,,,.,,,,.,,..,,.,,..,,...,...,...,.,,,...,,,,,.,,,
+#2IDOZYMEUCPYPNMSNMT4ALBXKEBCNVJHEDIOTAMBKXKKAVQEWNX3JOQECUOGWKOQJF25I4ISEJ7JY
+#\\\|PW7ONJIC25XUEU5EXKXQLUDAH6QGWQE67PC6AV2NXZHLDSG3MQF \ / AMOS7 \ YOURUM ::
+#\[7]JJQSLCHUL7KPR77XB3IKG7J6XB6DDWNANNUP7IKX266RUMUFUEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
