@@ -25,8 +25,10 @@ $SIG{'INT'} = sub {
 printf( "\n < DEVMOD MODE > zenka state :\n\n%s\n", <[base.dump_data]> )
     if <system.verbosity.console> >= 2 and <devmod.sig_int_dump>;
 
-<[v7.teardown]>
-    if defined <system.zenka.type> and <system.zenka.type> eq qw| v7 |;
+<[base.code.call_expected]>->(
+    <[base.mod.exists]>->(qw| v7 |),
+    qw| v7.teardown |
+);
 
 if ( exists <system.kill_list> and ref(<system.kill_list>) eq qw| ARRAY | ) {
     map { kill( 9, $ARG ) } @{<system.kill_list>};
@@ -35,8 +37,8 @@ if ( exists <system.kill_list> and ref(<system.kill_list>) eq qw| ARRAY | ) {
 <[base.log]>->( 1, ':. done' );
 exit(130);
 
-#,,.,,...,,.,,...,,..,,..,,..,.,,,.,.,...,,..,..,,...,...,...,,,.,,,,,,,,,...,
-#CV4OMGJXSLS3BTDTDJESVT2VCUMSCTMZSOETGGG4BBJWBC4OCNJGYZKTPOSYH62VOGIMF4XOXWNK6
-#\\\|SQID4EFVUTMD3WIWIC4NRCVIM6XEVMDACSO46YTMEBKUA77IVCR \ / AMOS7 \ YOURUM ::
-#\[7]OYKYWGFDNYXCHIXROO6AFRNG75YONYX257STZVMJPGV5QW6XIICI 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,,.,,,.,,...,...,,,,,,..,,.,,..,,..,,...,...,...,,,,,..,,,..,,..,
+#PG2BO5YM5TAY76E6KCZLJW4WZNOC4P4XNQF5WZUFLNKUYA3CJJNY5K6KGTI7CH7VISADOJHCH6KVK
+#\\\|X7G5L6BVVUZBITCCLYGBYTZGV3NWB2TJYGJF5WHOYMRMTMJQKUL \ / AMOS7 \ YOURUM ::
+#\[7]UK4RPQHLEEI55OAJQAWUDNMSRHUFZP7O75CPRIXEXH7S7D5R3YAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
