@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = base.strm.subscribe.on-restart
+# descr = arm publisher-restart re-affirm hook for a subscription
+
+## called from base.strm.subscribe.reply-handler on each successful     ##
+## subscribe. creates one distinctly-named closure sub per publisher    ##
+## on first use : the base.zenka.on_restart primitive invokes its       ##
+## handlers with no arguments, so the restarted publisher's name is     ##
+## captured in the closure itself. when the publisher restarts, every   ##
+## <base.strm.subscribe.registry> entry for it is reset to unsubscribed ##
+## and the subscribe attempt is re-issued as-is, mirroring the          ##
+## wait-online reply path for the first-time-not-up-yet case.           ##
+
+my $publisher = shift // '';
+
+if ( not length $publisher ) {
+    <[base.logs]>->( 0, 'strm.subscribe.on-restart : no publisher given' );
+    return FALSE;
+}
+
+## one re-affirm handler sub per publisher, created on first use ##
+my $handler_name = join( '.', qw| strm.subscribe.on-restart |, $publisher );
+
+if ( not defined $code{$handler_name} ) {
+    $code{$handler_name} = sub {
+        <[base.logs]>->(
+            2, 'strm.subscribe : publisher [ %s ] restarted, re-affirming',
+            $publisher
+        );
+        my $registry = <base.strm.subscribe.registry> // return;
+        foreach my $key ( keys $registry->%* ) {
+            my $state = $registry->{$key};
+            next if not ref $state or $state->{'publisher'} ne $publisher;
+            $state->{'subscribed'} = FALSE;
+            <[strm.subscribe.attempt]>->($key);
+        }
+        return;
+    };
+}
+
+## idempotent : the on_restart registry dedups repeated registration of ##
+## the same handler name for the same publisher, and only one           ##
+## v7.notify_restart route is armed per publisher at a time             ##
+return <[base.zenka.on_restart]>->(
+    {   'publisher' => $publisher,
+        'handler'   => $handler_name,
+    }
+);
+
+#,,.,,..,,.,.,.,,,,,.,,.,,,.,,.,.,..,,,.,,.,.,..,,...,...,..,,,,,,,.,,.,.,.,,,
+#E6CPS72UQKRS7RJOIX2RRUDRQPN4K4IU6AZ3NVRC76NGFSX4K7IKQZLCPMRSFVTDPCV2ADS5HYO5M
+#\\\|RCU2BMUDFDBLYD5UM25KJTLLVPENRP2TRJ73E6N27AZ3HY3NOW3 \ / AMOS7 \ YOURUM ::
+#\[7]CN4IPYCIIMIGCJ26WP6RBMUP43U2UG47XUUVM5VQ6X3SUHD5DUAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
