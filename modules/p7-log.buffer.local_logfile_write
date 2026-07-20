@@ -1,7 +1,7 @@
 ## [:< ##
 
-# name  = base.buffer.local_logfile_write
-# descr = local write to log file [ p7-log zenka ]
+# name  = p7-log.buffer.local_logfile_write
+# descr = local write to log file [ p7-log zenka only ]
 
 my $name = shift // qw| zenka |;    ## buffer name ##
 
@@ -42,13 +42,15 @@ foreach my $line (@log_lines) {
 
     ( my $tstamp, my $log_line ) = split ' ', $line, 2;    ## adding sid ##
 
+    ## same-namespace call : this file only ever loads inside the p7-log ##
+    ## zenka, where p7-log.add_line is guaranteed to be compiled         ##
     <[p7-log.add_line]>->(
         $log_file_base_name, \join( ' ', $tstamp, $cube_sid, $log_line )
     );
 }
 
-#,,..,..,,..,,,,,,,,.,,.,,,,.,...,.,.,,..,.,,,..,,...,...,,.,,,.,,...,,,.,,,.,
-#EBCZXFHOIYWWBTE5SVCYQQ4MKGXGQKBMM2WXAJSYYVVOG3VQ5G7SXXPHKUR26WXYNQVXPKU2SGUK6
-#\\\|FRM6YKLNCM62WZQLTE4F6YNVJ2KR3VOT73FGHCQCZVNFNFQFAAZ \ / AMOS7 \ YOURUM ::
-#\[7]EYVNG5BSU4OJ2TAE3GNHYWSTAZEP7KRG3GWOXNUYLLSJGPD7TYBQ 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,.,,,,.,,..,,,,.,.,.,,,.,,.,,.,.,..,,...,...,...,,,,,,,.,,,,,,..,
+#TDLYPPWVLSAXRVMZNUKOWYOAMVVUDOOXVBYWCA5GWA3VMV2TMFLLZMKF4TXCLUX4YPADXQZPJ3YVK
+#\\\|RQVQNV22KCVC6H2I6G7FZOAXWSFOR63CJIRWIE5AJ32GTBZRWLP \ / AMOS7 \ YOURUM ::
+#\[7]5YBGZCIYJMDBWVFQD45GYTDVA7GX4NAIUK667KIZV5L6SM63REBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

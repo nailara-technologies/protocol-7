@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = base.code.call_expected
+# descr = call a %code sub when a condition holds, else silent skip
+
+## condition false : nothing was ever expected here, silent skip ##
+## condition true but sub missing : that's a real regression, log loud ##
+my $condition = shift;
+my $sub_name  = shift // '';
+my @call_args = @ARG;
+
+return undef if not $condition;
+
+return FALSE if not length $sub_name;
+
+return $code{$sub_name}->(@call_args) if defined $code{$sub_name};
+
+<[base.log]>->( 0, ':: expected subroutine missing :. %s', $sub_name );
+
+return undef;
+
+#,,,,,.,,,..,,,,,,,.,,.,.,...,.,,,,..,,,,,,.,,..,,...,...,.,.,.,,,,,,,.,,,,,,,
+#PN6X2AKNJ2U7F524SR6XTZYY4JQ4R4MPCEYPAUIVKGBIAYJ4VBVJVNRZU2O3GILX4U7TRPCXJHC36
+#\\\|IZQISLMBBMU7RAQLOG2WTB44IJPGNY5KFFLAWHPXBBX7KZRCXDF \ / AMOS7 \ YOURUM ::
+#\[7]3632PLTNXAXKVORW6OLQ4Y2NZPLUB667EEFBIOEFB36T3CDJ3OBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -61,7 +61,6 @@ base.dump_data
 base.conf-wrap
 base.cmd.heart
 base.cmd.clear
-auth.auth_list
 plugin.auth.pwd
 net.read_binary
 devmod.pre_init
@@ -70,6 +69,7 @@ base.str.os_err
 base.prng.bytes
 base.path_perms
 base.p7ref.self
+base.mod.exists
 base.has_access
 base.file.which
 base.file.slurp
@@ -92,6 +92,7 @@ base.parser.list
 base.log-delayed
 base.load_config
 base.get_homedir
+base.code.exists
 base.cmd.subname
 base.cmd.src-ver
 base.cmd.src-age
@@ -102,7 +103,6 @@ base.cmd.cur-pid
 base.chk-sum.elf
 base.call_filter
 auth.pwd.success
-auth.auth_select
 ascii.frame.load
 plugin.auth.zenka
 net.read_bytewise
@@ -156,7 +156,6 @@ base.parser.txt_box
 base.loaded_p7_mods
 base.file.make_path
 base.file.init_code
-base.file.all_links
 base.file.all_files
 base.extract_values
 base.event.pre_init
@@ -184,7 +183,6 @@ base.cmd.show-access
 base.cmd.amos-chksum
 base.chk-sum.bmw.ctx
 base.buffer.add_line
-auth.zenka.init_code
 ascii.frame.validate
 format.yaml.load_file
 crypt.C25519.key_vars
@@ -218,7 +216,6 @@ base.file.get-non-dirs
 base.comp-int.is_valid
 base.cmd.cancel-stream
 base.cfg.profile.apply
-auth.unix.authenticate
 protocol.sftp.init_code
 io.unix.socket.end_code
 crypt.C25519.key_exists
@@ -236,13 +233,14 @@ base.exists.sub-process
 base.execute_zenka_code
 base.dump.data_key_list
 base.convert.hex_to_int
+base.code.call_optional
+base.code.call_expected
 base.cmd.set-name-width
 base.cmd.ondemand-zenka
 base.cmd.loaded-configs
 base.chk-sum.elf.inline
 base.chk-sum.bmw.strsum
 base.auth.set_zenka_key
-auth.zenka.authenticate
 ui.caller.security-level
 protocol.https.init_code
 plugin.auth.auth-keypair
@@ -285,7 +283,6 @@ base.ntime.epoch_timestamp
 base.max-len.val-hash-keys
 base.handler.session_error
 base.check_dependency_dirs
-auth.zenka.cmd.session-key
 workspace-transfer.pre_init
 workspace-transfer.cmd.todo
 net.read_linewise_estimated
@@ -298,11 +295,11 @@ base.path.register_keywords
 base.parser.ondemand_status
 base.modules.check_migrated
 base.handler.whitelist_miss
-base.file.gen_path_linkname
 base.debian.install_package
 base.cmd.buffer-erase-level
 base.chk-sum.elf.vax-BASE32
 base.chk-sum.amos.init_code
+auth.client.zenka.init_code
 workspace-transfer.init_code
 protocol.protocol-7.pre_init
 protocol.amos_term.init_code
@@ -330,7 +327,7 @@ base.event.handler.exceptions
 base.config.show_strack_trace
 base.chk-sum.bmw.template_L13
 base.chk-sum.bmw.B-32-56.TRUE
-auth.zenka.process_auth_reply
+auth.client.unix.authenticate
 ascii.frame.parse.border_line
 amos7.decode_octal_bit_header
 workspace-transfer.console.bug
@@ -339,17 +336,15 @@ protocol.amos-chksum.init_code
 crypt.C25519.key_bin_checksums
 base.zenki.ondemand_registered
 base.p7refs.get_refaddr_prefix
-base.number-cache.true_upwards
 base.log.send-buffer.add-queue
 base.chk-sum.bmw.harmonize_L13
 base.chk-sum.bmw.encode_digest
 base.cache.refaddr-prefix.init
+auth.client.zenka.authenticate
 ascii.frame.render.border_line
 workspace-transfer.console.todo
-crypt.C25519.cmd.get-public-key
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
-base.buffer.local_logfile_write
 crypt.C25519.decrypt_priv_keystr
 base.perlmod.install_cpan_module
 base.perlmod.get_collision_index
@@ -367,7 +362,6 @@ plugin.auth.zenka.no-keys-defined
 base.sourcecode.in-mem.sub-source
 base.perlmod.init_install_buffers
 base.parser.center_ellipse_string
-base.file.matching_path_linknames
 base.callback.expire_code_version
 workspace-transfer.cmd.todo-commit
 protocol.sftp.server.start-process
@@ -393,7 +387,6 @@ protocol.sftp.handler.session_close
 protocol.protocol-7.encryption.init
 protocol.amos-chksum.ext-cmd.select
 base.perlmod.register_loaded_module
-base.number-cache.is_valid_template
 base.handler.write.encoding-wrapper
 base.handler.strm_size_idle_timeout
 base.handler.counter_overflow_reset
@@ -409,6 +402,7 @@ base.parser.decode_harmonized_refstr
 base.handler.read.encryption-wrapper
 base.handler.command.route_to_target
 base.callback.clean_data_source_hash
+auth.client.zenka.process_auth_reply
 workspace-transfer.console.checkpoint
 workspace-transfer.console.bug-commit
 protocol.sftp.handler.write_to_server
@@ -424,8 +418,6 @@ protocol.sftp.terminate_server_process
 protocol.protocol-7.auth.select-method
 io.unix.socket.handler.report-tmp-path
 base.log.send-buffer.idle-callback-set
-auth.callback.cap-neg.select-strm-mode
-auth.callback.cap-neg.select-size-mode
 workspace-transfer.util.chdir_workspace
 workspace-transfer.console.status-check
 base.perlmods.blacklist_collision_index
@@ -441,7 +433,6 @@ base.zenki.ondemand.handler.startup_reply
 base.agent_code.handler.sig_warn.end_proc
 protocol.protocol-7.link-upgrade.handshake
 plugin.auth.auth-keypair.tofu-notification
-auth.callback.cap-neg.declare-strm-support
 base.zenka.push.reply-handler.notify-online
 base.referenced_subroutines.clear_from_disk
 base.log.send-buffer.reply-handler.send-reply
@@ -449,13 +440,11 @@ plugin.auth.auth-keypair.load-authorized-users
 plugin.auth.auth-keypair.cleanup-incoming-keys
 base.zenki.ondemand.handler.reconcile_starting
 plugin.auth.auth-keypair.validate-incoming-tofu
-auth.callback.cap-neg.declare-strm-size-timeout
-auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,,,,..,,,,,...,.,.,,,,,,.,,,.,,,,.,.,,,.,.,..,,...,..,,,..,.,,,.,.,,.,,.,.,
-#Z6PIXPE52MRF2MNYMC4ODW6DQ5JHLEC3VYQPPCAUJQ46UYB732IBZT7LL67TW3AX4LY4EPK64VPKS
-#\\\|IEBRDATI5ZIO6CR4HIKF5NKPHYKJA6K64BCXX73OPRWSOCQOZXV \ / AMOS7 \ YOURUM ::
-#\[7]FWKFJLHQMJXIPSXDKZDOFDBXZJ7QIRR3IRORBPEUXLE4HKHZKICY 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,...,,,,,,..,.,,,,,.,,..,.,,,,.,,..,,...,...,...,...,,..,,,.,...,
+#UUY5AZBJOATKHODHPRO7GDYPIVT62EDV5WTBFCQAPYNHZJWMJUFM6IKQJNGN3N2YC3PFHTUG36JSE
+#\\\|PBNV46IAG66COXHC2ZV6SDMTN5DB2ZZWNWK23FEJFOUCZ3ENBD2 \ / AMOS7 \ YOURUM ::
+#\[7]W2B4OJEAC3CUQU3VQQRPEKHTN2HXY3TI353JFUY53UKSK2JTUEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

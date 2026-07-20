@@ -67,7 +67,6 @@ base.dump_data
 base.conf-wrap
 base.cmd.heart
 base.cmd.clear
-auth.auth_list
 plugin.auth.pwd
 net.read_binary
 devmod.pre_init
@@ -79,6 +78,7 @@ base.str.os_err
 base.prng.bytes
 base.path_perms
 base.p7ref.self
+base.mod.exists
 base.has_access
 base.file.which
 base.file.slurp
@@ -104,6 +104,7 @@ base.net.connect
 base.log-delayed
 base.load_config
 base.get_homedir
+base.code.exists
 base.cmd.subname
 base.cmd.src-ver
 base.cmd.src-age
@@ -114,7 +115,6 @@ base.cmd.cur-pid
 base.chk-sum.elf
 base.call_filter
 auth.pwd.success
-auth.auth_select
 ascii.frame.load
 plugin.auth.zenka
 net.read_bytewise
@@ -188,7 +188,6 @@ base.loaded_p7_mods
 base.get_session_id
 base.file.make_path
 base.file.init_code
-base.file.all_links
 base.file.all_files
 base.extract_values
 base.event.pre_init
@@ -229,7 +228,6 @@ base.cmd.amos-chksum
 base.chk-sum.bmw.ctx
 base.buffer.add_line
 base.base32.pre_init
-auth.zenka.init_code
 ascii.frame.validate
 window.profile.delete
 format.yaml.load_file
@@ -267,7 +265,6 @@ base.comp-int.is_valid
 base.cmd.cancel-stream
 base.cfg.profile.apply
 base.X-11.get_geometry
-auth.unix.authenticate
 select.region.init_code
 select.region.damp.tick
 protocol.sftp.init_code
@@ -288,6 +285,8 @@ base.exists.sub-process
 base.execute_zenka_code
 base.dump.data_key_list
 base.convert.hex_to_int
+base.code.call_optional
+base.code.call_expected
 base.cmd.set-name-width
 base.cmd.ondemand-zenka
 base.cmd.loaded-configs
@@ -295,7 +294,6 @@ base.chk-sum.elf.inline
 base.chk-sum.bmw.strsum
 base.callback.cmd_reply
 base.auth.set_zenka_key
-auth.zenka.authenticate
 window.profile.color.get
 window.profile.calculate
 window.gtk.profile.apply
@@ -362,7 +360,6 @@ base.max-len.val-hash-keys
 base.handler.session_error
 base.event.io_idle_restart
 base.check_dependency_dirs
-auth.zenka.cmd.session-key
 net.read_linewise_estimated
 io.unix.socket.output.close
 devmod.cmd.utf8-test-buffer
@@ -376,11 +373,11 @@ base.root.check_system_user
 base.parser.ondemand_status
 base.modules.check_migrated
 base.handler.whitelist_miss
-base.file.gen_path_linkname
 base.debian.install_package
 base.cmd.buffer-erase-level
 base.chk-sum.elf.vax-BASE32
 base.chk-sum.amos.init_code
+auth.client.zenka.init_code
 select.region.handler.scroll
 select.region.handler.motion
 select.region.apply_geometry
@@ -417,7 +414,7 @@ base.event.handler.exceptions
 base.config.show_strack_trace
 base.chk-sum.bmw.template_L13
 base.chk-sum.bmw.B-32-56.TRUE
-auth.zenka.process_auth_reply
+auth.client.unix.authenticate
 ascii.frame.parse.border_line
 amos7.decode_octal_bit_header
 select.region.update_x11_state
@@ -430,21 +427,19 @@ base.zenki.resolve_primary_sid
 base.zenki.ondemand_registered
 base.session.send_init_reports
 base.p7refs.get_refaddr_prefix
-base.number-cache.true_upwards
 base.log.send-buffer.add-queue
 base.chk-sum.bmw.harmonize_L13
 base.chk-sum.bmw.encode_digest
 base.cache.refaddr-prefix.init
+auth.client.zenka.authenticate
 ascii.frame.render.border_line
 select.region.handler.key_press
 select.region.cursor_for_region
 select.region.cmd.window-coords
 devmod.cmd.change-log-verbosity
-crypt.C25519.cmd.get-public-key
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
 base.file.zenka_dir.unlink_file
-base.buffer.local_logfile_write
 crypt.C25519.decrypt_priv_keystr
 base.perlmod.install_cpan_module
 base.perlmod.get_collision_index
@@ -462,7 +457,6 @@ plugin.auth.zenka.no-keys-defined
 base.sourcecode.in-mem.sub-source
 base.perlmod.init_install_buffers
 base.parser.center_ellipse_string
-base.file.matching_path_linknames
 base.callback.expire_code_version
 select.region.handler.poll_pointer
 select.region.handler.button_press
@@ -491,7 +485,6 @@ protocol.protocol-7.encryption.init
 protocol.amos-chksum.ext-cmd.select
 base.zenki.resolve_primary_sid.pick
 base.perlmod.register_loaded_module
-base.number-cache.is_valid_template
 base.handler.write.encoding-wrapper
 base.handler.strm_size_idle_timeout
 base.handler.counter_overflow_reset
@@ -511,6 +504,7 @@ base.parser.decode_harmonized_refstr
 base.handler.read.encryption-wrapper
 base.handler.command.route_to_target
 base.callback.clean_data_source_hash
+auth.client.zenka.process_auth_reply
 protocol.sftp.handler.write_to_server
 protocol.protocol-7.message-templates
 protocol.protocol-7.link-upgrade.init
@@ -524,8 +518,6 @@ protocol.sftp.terminate_server_process
 protocol.protocol-7.auth.select-method
 io.unix.socket.handler.report-tmp-path
 base.log.send-buffer.idle-callback-set
-auth.callback.cap-neg.select-strm-mode
-auth.callback.cap-neg.select-size-mode
 window.gtk.get_pointer_monitor_geometry
 base.perlmods.blacklist_collision_index
 base.parser.chk-sum.embedded-code-style
@@ -539,7 +531,6 @@ base.zenki.ondemand.handler.startup_reply
 base.agent_code.handler.sig_warn.end_proc
 protocol.protocol-7.link-upgrade.handshake
 plugin.auth.auth-keypair.tofu-notification
-auth.callback.cap-neg.declare-strm-support
 base.zenka.push.reply-handler.notify-online
 base.referenced_subroutines.clear_from_disk
 base.log.send-buffer.reply-handler.send-reply
@@ -547,13 +538,11 @@ plugin.auth.auth-keypair.load-authorized-users
 plugin.auth.auth-keypair.cleanup-incoming-keys
 base.zenki.ondemand.handler.reconcile_starting
 plugin.auth.auth-keypair.validate-incoming-tofu
-auth.callback.cap-neg.declare-strm-size-timeout
-auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,.,..,,,,.,,,,,.,,,,,.,...,...,,.,,,..,..,,..,,...,...,,.,,,,.,.,,,,..,,..,
-#XEXL5GOCOQT4TTIIA5BAXOPQ45IVYIDDUCYFHLMO45YUZT7IYT57RUQKSOVUUWNHA6NZRNPUQTOSQ
-#\\\|JHEW6J2AIPARI7YM7NNFEA67JSE4W7DNIH5DIHMLQ6K6OTJDNR2 \ / AMOS7 \ YOURUM ::
-#\[7]S7I3QZYS5K4ZDY3U3PRO7SG6LK6JA7FDUZR6N4736B3OVHZI6MCY 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,.,,,,.,,.,.,.,.,,,.,,.,,..,,...,..,,...,..,,,.,,...,,.,,.,.,,..,
+#R2XEMAARYZSMIGRIGDEUVR2PV5LRIP2TL777OG4IFF2KNJ7X6DSKUUK4DA3EYZLHUAIEFJLC5Y6XO
+#\\\|QQS7ESXGPRHYNT56YHO4OMXXRDKTUDT2G4KWKLD5ROGFQRDIQ7P \ / AMOS7 \ YOURUM ::
+#\[7]BCIJQPYEUTKXTQXRC36YJQ75QY3IACZMBNRRQM2XIZ366Q4S2EBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
