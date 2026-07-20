@@ -14,7 +14,7 @@ BEGIN {
 }
 
 use AMOS7::deps::os_package qw( detect_os scan_zenki_os_deps );
-use AMOS7::deps::debp qw( install_apt );
+use AMOS7::deps::debp       qw( install_apt );
 
 $OUTPUT_AUTOFLUSH = 1;
 
@@ -26,6 +26,13 @@ my $TRACK_FILE = File::Spec->catfile( $TRACK_DIR, 'tracked.yaml' );
 my $ZENKI_DIR  = File::Spec->catdir( $P7_ROOT, 'configuration', 'zenki' );
 
 make_path($TRACK_DIR) unless -d $TRACK_DIR;
+
+## group-access for sys-deps zenka \ v7 [ best-effort ] ##
+my $p7_gid = getgrnam('protocol-7');
+if ( defined $p7_gid and -d $TRACK_DIR and -o $TRACK_DIR ) {
+    chown( -1, $p7_gid, $TRACK_DIR );
+    chmod( 0775, $TRACK_DIR );
+}
 
 my $host_os = detect_os();
 
@@ -69,14 +76,15 @@ sub cmd_install {
     my $tracked = load_tracked();
 
     for my $pkg ( @{ $result->{ok} } ) {
-        push @{ $tracked->{tracked} }, {
+        push @{ $tracked->{tracked} },
+            {
             pkg          => $pkg,
             type         => 'debian',
             installed_at => iso_timestamp(),
             source       => 'manual',
             zenka        => undef,
             declared     => 0
-        };
+            };
         print ":. installed and tracked: $pkg\n";
     }
 
@@ -101,10 +109,8 @@ sub cmd_list {
         my $declared = $entry->{declared} ? 'declared' : 'undeclared';
         print sprintf(
             "  :. %-40s %s  %s  %s\n",
-            $entry->{pkg},
-            $entry->{installed_at},
-            $entry->{source},
-            $declared
+            $entry->{pkg},    $entry->{installed_at},
+            $entry->{source}, $declared
         );
     }
     print "\n";
@@ -190,13 +196,15 @@ EOF
 sub load_tracked {
     return { tracked => [] } unless -f $TRACK_FILE;
 
+    ## return from inside an eval BLOCK only returns from the eval ##
+    my $tracked;
     eval {
         require YAML::Tiny;
         my $yaml = YAML::Tiny->read($TRACK_FILE);
-        return $yaml->[0] if defined $yaml && defined $yaml->[0];
+        $tracked = $yaml->[0] if defined $yaml && defined $yaml->[0];
     };
 
-    return { tracked => [] };
+    return $tracked // { tracked => [] };
 }
 
 sub save_tracked {
@@ -211,19 +219,26 @@ sub save_tracked {
     if ($EVAL_ERROR) {
         warn ":. failed to write tracking state: $EVAL_ERROR\n";
     }
+
+    ## group-access for sys-deps zenka \ v7 [ best-effort ] ##
+    if ( defined $p7_gid and -f $TRACK_FILE and -o $TRACK_FILE ) {
+        chown( -1, $p7_gid, $TRACK_FILE );
+        chmod( 0664, $TRACK_FILE );
+    }
 }
 
 sub iso_timestamp {
     my @gm = gmtime();
     return sprintf(
         '%04d-%02d-%02dT%02d:%02d:%02dZ',
-        $gm[5] + 1900, $gm[4] + 1, $gm[3],
-        $gm[2], $gm[1], $gm[0]
+        $gm[5] + 1900,
+        $gm[4] + 1,
+        $gm[3], $gm[2], $gm[1], $gm[0]
     );
 }
 
-#,,,,,..,,...,...,..,,,.,,.,.,...,...,,..,...,..,,...,...,,..,.,.,,.,,..,,...,
-#CLGFN5MLSURRG2RCABC6HLIR4ADJNOGBCGMYIDLVU4EXCEPEIJQ42NXFWL6BUTEVKLXZZAEIUCR2C
-#\\\|C7FDWPIS254JP7RGIQSSWZ74KLFSRUPYRVQOZ47MGZNVV5FH65A \ / AMOS7 \ YOURUM ::
-#\[7]37C7Y32I4SVN3LNA5QBGEJY6ZXHT5MCFEYCUZTX7GOC2XDM74OAY 7  DATA SIGNATURE ::
+#,,,,,,,,,...,.,,,,.,,.,,,,,.,,..,..,,,..,.,.,..,,...,...,...,,..,,,.,,.,,,.,,
+#NIK3L2TJ7IW45UDKRQNGB6OL6RDK5KOMGABHHZ3KRQWVWIXUOY5HQJQQIPQJ6TC73KOFQNBPA3BIG
+#\\\|22LUVMRGXI3FB647GOBHZ4IO5WJMN6CRN225FAX5YW5EONWCM5T \ / AMOS7 \ YOURUM ::
+#\[7]XNUXQXYD7QKMEQWYL2D3HEPODQMPIVT3BCHD4HACTCJZ6M4KGQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

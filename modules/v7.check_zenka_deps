@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name = v7.check_zenka_deps
-# descr = pre-start dependency check for zenka using AMOS7::deps::* library
+# descr = pre-start per-zenka dependency check via AMOS7::deps::*
 
 my $zenka_name = shift;
 
@@ -90,8 +90,13 @@ if ( $auto_install && $has_root ) {
 
     ## Log to tracking file ##
     if (@installed) {
-        my $track_file = <system.root_path> . '/var/sys-deps/tracked.yaml';
-        my $tracked    = { tracked => [] };
+        my $track_dir  = <system.root_path> . '/var/sys-deps';
+        my $track_file = $track_dir . '/tracked.yaml';
+        <[file.make_path]>->(
+            $track_dir, 0775, <system.amos-zenka-user>,
+            <system.amos-zenka-user>
+        ) if !-d $track_dir;
+        my $tracked = { tracked => [] };
         if ( -f $track_file ) {
             eval {
                 require YAML::Tiny;
@@ -115,6 +120,15 @@ if ( $auto_install && $has_root ) {
             my $yaml = YAML::Tiny->new($tracked);
             $yaml->write($track_file);
         };
+        ## normalize ownership for sys-deps zenka \ os-pkg access ##
+        if ( -f $track_file and $UID == 0 ) {
+            my ( $track_uid, $track_gid )
+                = ( getpwnam(<system.amos-zenka-user>) )[ 2, 3 ];
+            chown( $track_uid, $track_gid, $track_dir, $track_file )
+                if defined $track_uid;
+            chmod( 0775, $track_dir );
+            chmod( 0664, $track_file );
+        }
     }
 
     ## Re-check ##
@@ -134,8 +148,8 @@ if ( @missing_pm || @missing_os || @missing_bin ) {
 
 0;
 
-#,,..,,.,,.,,,,..,,.,,.,,,.,.,.,,,.,,,,,.,..,,..,,...,...,.,,,,,.,.,.,,.,,,..,
-#JPCWH2VTP5HLQX5QIY2MNQ2HSJOYUHKNWBHHR5ZOXY5QUR34APZU4QU3UHRG7INLSL5734DR7HWAY
-#\\\|56ULVE74CM2OPZCD3B4T5EBK5BS65QTAH5SNR2F6DWW2XRZLRJS \ / AMOS7 \ YOURUM ::
-#\[7]BRUM5EH74HP6MTOHRTMXU5PL2HRI5HNEZ5IFG27HLBUKXIER3IDY 7  DATA SIGNATURE ::
+#,,,.,.,,,...,.,.,,,.,..,,,.,,,..,.,.,.,,,,,,,..,,...,...,...,.,,,.,.,,,.,...,
+#I7IJCSIUCWSPTOFJ75AREY5Z3XAGRQJUBASAQMXCUAR3I6LAVBUCVA33WA4PHRID6QCVD6HFVJU26
+#\\\|XGBKVNUBLEPQOFLY4WC2WFQ2MHLVKD63LIPWD6FIWFKKZ7CXVUP \ / AMOS7 \ YOURUM ::
+#\[7]MHUMDBJCVLENJ3RQEUTE53DUMZJI5DHCUMKWGCZHTVTF7RRAMSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

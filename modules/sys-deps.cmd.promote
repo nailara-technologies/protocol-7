@@ -56,14 +56,15 @@ eval {
     my $yaml = YAML::Tiny->new( { tracked => $tracked } );
     $yaml->write($track_file);
 };
+chmod( 0664, $track_file ) if -f $track_file and -o $track_file;
 
 return {
     'mode' => qw| true |,
     'data' => "declared $pkg for zenka '$zenka'"
 };
 
-#,,.,,,..,.,.,.,,,..,,...,...,,..,.,,,..,,.,,,..,,...,..,,..,,.,.,,,.,.,,,,,,,
-#OOJO5NRVJDFBEKV2J6SBADUEGLM3LNO4JQF5MWRXAY5SI22V6FDUAJGJCT7VLSECLV2UF2PUCVMZW
-#\\\|4ODIPHSVY6I6RQSQ4XFT7A3TXMR5S3NVF7W4JBWTJV5R435LVDX \ / AMOS7 \ YOURUM ::
-#\[7]QB3MMRDFL4FXSUM7J6LXH4Y3V67NK6O5V5V3CEWIFPNI3C5B6MBQ 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,,,,.,.,,.,,,.,,,,.,,..,..,,,..,..,,...,...,..,,.,.,,..,.,,,..,,
+#65DP44JADGPXJBBRNG4ME6BLXG5ZDBCITIL3NF6ZWKBED42FGW27MXCZWF5GPHT6QW4DGKPLRULEQ
+#\\\|4EFDMUM2PE53DBWBIFIDOXLWUZJCYSIETPKRYQRR2DY7HX2KEPJ \ / AMOS7 \ YOURUM ::
+#\[7]DNRNLLAGSH4GEC2L5MQ7XHI3HOQKMGSE3X2YKPBTCK5WH2RJDIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
