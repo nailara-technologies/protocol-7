@@ -1,6 +1,6 @@
 ---
 name: dependency-restart-reconnect-primitive
-description: "new generic v7.notify_restart + base.zenka.on_restart primitive lets a running zenka detect when a dependency it already has a stateful relationship with (STRM subscription, SHM handshake) restarts and re-establish it automatically; Opus's first pass used instance_id as the restart signal, which is wrong (v7.zenka.instance.restart reuses the same instance_id in place) -- corrected to cube_sid, which changes on every restart, both in-place and idle-shutdown-then-fresh-start"
+description: "new generic v7.notify_restart + base.zenka.on_restart primitive lets a running zenka detect when a dependency it already has a stateful relationship with (STRM subscription, SHM handshake) restarts and re-establish it automatically; Opus's first pass used instance_id as the restart signal, which is wrong (v7.zenka.instance.restart reuses the same instance_id in place) -- corrected to cube_sid, which changes on every restart, both in-place and idle-shutdown-then-fresh-start. Both the SHM pilot (protocol-7-menu/powershell) and base.strm.subscribe's STRM re-affirm are wired and live-verified."
 metadata:
   node_type: memory
   type: project
@@ -68,14 +68,21 @@ that translucency-from-pointer-position resumed immediately after each restart, 
 showing the full chain firing within the same second as `powershell`'s `[initialized]` line:
 `pointer-stream-path : shm open : ...` → `pointer-stream : started [pid ...]` → `granted read`.
 
-## STRM side (base.strm.subscribe's own "still open" gap) — NOT wired this session
+## STRM side (base.strm.subscribe's own "still open" gap) — closed too, same session (a18850091)
 
-Only the SHM/`protocol-7-menu` pilot got migrated. `base.strm.subscribe`'s publisher-restart
-re-affirm case is still open — the new `v7.notify_restart`/`base.zenka.on_restart` primitive
-could close it the same way, but that wiring wasn't attempted here. Worth a follow-up if/when a
-concrete STRM-side symptom shows up (same pattern as this session: `base.strm.subscribe`'s
-persistent registry entry already keeps everything needed to re-issue the subscribe attempt
-as-is, per its own doc comment).
+Dispatched as a follow-up task (`data/tasks/completed/strm-subscribe-restart-reaffirm.md`) to
+`kimi_dispatch model=k3` while context was still fresh. `base.strm.subscribe.reply-handler` now
+arms one re-affirm hook per publisher on successful subscribe via new
+`base.strm.subscribe.on-restart` — a closure-based handler created per publisher on first use
+(since `base.zenka.on_restart` invokes handlers with no arguments, the publisher name has to be
+captured in the closure). On restart, it resets every registry entry for that publisher back to
+unsubscribed and re-issues the attempt, covering multiple subscriptions to the same publisher.
+
+Diff stayed correctly scoped to `base.strm.subscribe*` only — did not touch the primitive itself
+or the SHM pilot, as directed. Live-verified independently by the orchestrating agent (not just
+kimi's self-report) across two consecutive `v7.restart cred-mesh` cycles with `proxy` staying up:
+`<base.strm.subscribe.registry>`'s `subscribed` flag dropped to `0` and recovered to `5`
+automatically each time.
 
 ## process note
 
@@ -90,8 +97,8 @@ as well as `kimi_dispatch`, not just a kimi-specific quirk.
 
 [[ondemand-idle-timeout-active-streams]] · [[topic-kimi-dispatch-infra-hardening]]
 
-#,,,,,.,.,,,.,...,,..,...,.,.,.,,,,..,,,.,,..,..,,...,..,,...,.,.,.,.,...,..,,
-#I3JFQJKJIQAMTYKDOFH2CWTDXX3JAG3QQXU4NQJEUVJNEKFWENXUNBSQ6SN4L4D54ZN3G67SLOSZY
-#\\\|XQSCISW7UOSZ6BLGUTNICRZK3JJ4MIM7GKI3HT772MZLCTLFW7S \ / AMOS7 \ YOURUM ::
-#\[7]UGTMZUWLUYCFJO42VXLU4LEGFENK2UHQW5JN2HKVN7TVUIGZBQDA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,..,...,,,,,...,,.,,...,,,,,...,..,,...,...,,.,,,,.,,,,,,.,,...,
+#C2NKZDEOODE5HXPYJS7TRADZHRJK7W5LMKG4X7B5YDLPXFVGKM336U2VH7YZKB24NUTCHQG4F3BTG
+#\\\|M77FAQDLA4F7SZEFDSX7ZK7ON7WYHOZADISMGJ354EMK5JIF7PO \ / AMOS7 \ YOURUM ::
+#\[7]KPOBVS5CQR2TMKJ25BJJOKRWGEUDCHRDZNZJ6KDL3CFH4WC4AWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
