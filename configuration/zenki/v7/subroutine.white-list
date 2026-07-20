@@ -74,7 +74,6 @@ base.dump_data
 base.conf-wrap
 base.cmd.heart
 base.cmd.clear
-auth.auth_list
 v7.zenka.get_id
 v7.instance_ids
 v7.cmd.teardown
@@ -88,6 +87,7 @@ base.str.os_err
 base.prng.bytes
 base.path_perms
 base.p7ref.self
+base.mod.exists
 base.has_access
 base.file.which
 base.file.slurp
@@ -113,6 +113,7 @@ base.parser.list
 base.log-delayed
 base.load_config
 base.get_homedir
+base.code.exists
 base.cmd.subname
 base.cmd.src-ver
 base.cmd.src-age
@@ -123,7 +124,6 @@ base.cmd.cur-pid
 base.chk-sum.elf
 base.call_filter
 auth.pwd.success
-auth.auth_select
 ascii.frame.load
 v7.zenka.pre_init
 v7.zenka.cmd.stop
@@ -254,7 +254,6 @@ base.cmd.amos-chksum
 base.chk-sum.bmw.ctx
 base.buffer.add_line
 base.base32.pre_init
-auth.zenka.init_code
 ascii.frame.validate
 v7.zenka.set_cube_sid
 v7.zenka.instance.add
@@ -358,13 +357,14 @@ base.exists.sub-process
 base.execute_zenka_code
 base.dump.data_key_list
 base.convert.hex_to_int
+base.code.call_optional
+base.code.call_expected
 base.cmd.set-name-width
 base.cmd.ondemand-zenka
 base.cmd.loaded-configs
 base.chk-sum.elf.inline
 base.chk-sum.bmw.strsum
 base.callback.cmd_reply
-auth.zenka.authenticate
 v7.zenka.cmd.status-time
 v7.set_up_ondemand_zenki
 v7.handler.drain_timeout
@@ -497,6 +497,7 @@ base.debian.install_package
 base.cmd.buffer-erase-level
 base.chk-sum.elf.vax-BASE32
 base.chk-sum.amos.init_code
+auth.client.zenka.init_code
 v7.zenka.cmd.resume-instance
 v7.tmp-paths.global.register
 v7.tmp-paths.global.clean-up
@@ -548,7 +549,6 @@ base.cube-zenka.output_prompt
 base.config.show_strack_trace
 base.chk-sum.bmw.template_L13
 base.chk-sum.bmw.B-32-56.TRUE
-auth.zenka.process_auth_reply
 ascii.frame.parse.border_line
 amos7.decode_octal_bit_header
 v7.zenka.cmd.restart_own-zenka
@@ -572,6 +572,7 @@ base.log.send-buffer.add-queue
 base.chk-sum.bmw.harmonize_L13
 base.chk-sum.bmw.encode_digest
 base.cache.refaddr-prefix.init
+auth.client.zenka.authenticate
 ascii.frame.render.border_line
 v7.zenka.cmd.restart_concurrent
 v7.callback.object.root.session
@@ -581,7 +582,6 @@ crypt.C25519.cmd.set-client-key
 crypt.C25519.cmd.get-public-key
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
-base.buffer.local_logfile_write
 v7.zenka.instance.track_handover
 v7.zenka.end-handler.web-browser
 v7.handler.stdio_multiplex_scope
@@ -669,6 +669,7 @@ base.parser.decode_harmonized_refstr
 base.handler.read.encryption-wrapper
 base.handler.command.route_to_target
 base.callback.clean_data_source_hash
+auth.client.zenka.process_auth_reply
 v7.handler.heartbeat_response_timeout
 protocol.sftp.handler.write_to_server
 protocol.protocol-7.message-templates
@@ -715,8 +716,8 @@ base.log.send-buffer.reply-handler.notify-online
 v7.handler.stdio_multiplex_demux.encode_payload_hex
 v7.handler.stdio_multiplex_demux.decode_payload_text
 
-#,,..,.,,,..,,..,,,,,,,,.,,,,,,,.,,,.,,,.,,,,,..,,...,...,,..,,,,,.,,,,,,,.,.,
-#W6EKWRK6WXH5ZU3KBBWXYXHYNLG3GND76ZKRIIVMMFHAKE4NQXBZHISJQBH3J3YAFGRO5UMO7AWWW
-#\\\|Q2QDFTPU4VSTSCQ3274PYHUJ6W6UZE2SEFVUGXJB4FRUKHSWW6G \ / AMOS7 \ YOURUM ::
-#\[7]ILCSLBTRRTYGOQCTHRJ5OG3N6L444CGYHUPKF5E2X5F2I37DHIBQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,.,,,...,,.,,.,.,..,,...,,.,,.,.,..,,...,...,...,,.,,.,,,...,.,.,
+#C5QJRBIG6JWS5HLBEMTYNJZZEHXQNCXXXMDVSQABWIKM43BFM3F7KPQUAVHV4FLCZFHB26FKJX5CA
+#\\\|EITAVJ3GPGD2B2VZJ7JAUE4OH6IHQJGQB7F2ADRKG3TZLXYF62F \ / AMOS7 \ YOURUM ::
+#\[7]VMWIMQF7CPJ5YQLK33QXO7WGJ3QX5GKVO23OMQ7LKWK4EBE3MWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,11 +7,14 @@
 my $zenka_name = shift // <system.zenka.name>;
 
 ## check if debian zenka is available
-if ( exists $code{'debian.parent.ensure_zenka_dependencies'} ) {
+if ( <[base.code.exists]>->(qw| debian.parent.ensure_zenka_dependencies |) ) {
     <[base.log]>->(
         2, "Checking dependencies via debian zenka for '$zenka_name'"
     );
-    return <[debian.parent.ensure_zenka_dependencies]>->( $zenka_name, TRUE );
+    return <[base.code.call_optional]>->(
+        qw| debian.parent.ensure_zenka_dependencies |,
+        $zenka_name, TRUE
+    );
 }
 
 ## check via IPC if debian zenka is running
@@ -21,8 +24,8 @@ if ( exists $code{'debian.parent.ensure_zenka_dependencies'} ) {
 
 return TRUE;    ## Continue anyway
 
-#,,..,.,.,.,,,...,,..,.,.,,,,,,,,,,,.,.,.,..,,..,,...,...,..,,...,.,.,...,,..,
-#VJ4H4IGA4NUCLPQQ34QCD25CHMS7HIOQKQAIF63VJLF5OQYM5BLYPPRDLB6NAVIOSZMFGBTWE6WTE
-#\\\|TY4QQOVJXKNGS24JBVLO4GOL5OFWTBSJ3DUM3INXZEZHREHXPHB \ / AMOS7 \ YOURUM ::
-#\[7]BXYEZ7EFVI2PTGIQ5OBOHLL3KG4DBE4K4TB776UMYOTPMRQJX4CQ 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,,,,,,..,...,..,,,,.,,,,,,,.,,.,,..,,...,..,,.,.,.,,,,..,,.,,,,.,
+#B3N2L6UXMIGVJHM5KYZL34QQQDVUX5SX466MXBGSXOABD4MHUOV5U2VYNKUEQJUSY7NXYE2JEXYUC
+#\\\|5BWCKO5PERQZLPPHSDJC64DJO6UXOTKW7DRXI7JL2L67RT64WOL \ / AMOS7 \ YOURUM ::
+#\[7]VKTL7XZLL2MUZPOYZJJ3N7R7BGIIDFSVWAQXFRG33RXDE5Q7GABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

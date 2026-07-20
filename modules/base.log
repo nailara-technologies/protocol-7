@@ -116,15 +116,16 @@ if ( length fileno(STDOUT) and $log_level <= <system.verbosity.console> ) {
 
 ## stdout log buffer output [ with colors, unlike zenka buffer ] ##
 ##
-if ( defined <v7.stdout_log.fh> and fileno <v7.stdout_log.fh> ) {
-    <[v7.stdout_log.write]>->($log_str);
-}
+<[base.code.call_expected]>->(
+    ( defined <v7.stdout_log.fh> and fileno <v7.stdout_log.fh> ),
+    qw| v7.stdout_log.write |, $log_str
+);
 ##
 
 return TRUE;
 
-#,,..,,..,,..,..,,,,.,,,.,,..,,,.,,,,,.,.,,,.,..,,...,...,,..,..,,,,.,,..,..,,
-#6IC7JYJN2I4WAGFTJY62MMCF7P3U5FL6EG36XUG3P6SQZYTWHV7XOBPP3ORSXTSSPKDQ4HRWAAGG4
-#\\\|ZSPDCFKITYU3N4QUECCFLDFQIBUYLZMPQTB2FTHYJIN6QPIISYM \ / AMOS7 \ YOURUM ::
-#\[7]IA7C542GJGRIRGMBA4FBW3LVSSDEWLSKOTHSD2YLYSIZWSVRZMBY 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,.,,,,,.,,.,,..,,.,.,.,.,,,,,..,,..,,...,...,.,.,,..,.,.,,..,.,,,
+#2UI7LWHSVUYYYDOATDAVW4ZBUWL6LNVWTLE4IBBBFGYOPQITBC4XLJQIJUHRRJ5TQHK2SRUVUSPZY
+#\\\|CLP6JU2K6HKSMA4DBZI5HPD3HVBVHJ3M53DVBYGAZ4QNAC7AKKY \ / AMOS7 \ YOURUM ::
+#\[7]GUECKAJYVZHA3J2RPRQLKPRU7IQZ7Y5W5BTIWPDMIANZPJ2EQICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

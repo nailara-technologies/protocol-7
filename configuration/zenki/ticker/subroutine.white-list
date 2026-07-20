@@ -69,7 +69,6 @@ base.dump_data
 base.conf-wrap
 base.cmd.heart
 base.cmd.clear
-auth.auth_list
 plugin.auth.pwd
 net.read_binary
 devmod.pre_init
@@ -81,6 +80,7 @@ base.str.os_err
 base.prng.bytes
 base.path_perms
 base.p7ref.self
+base.mod.exists
 base.has_access
 base.file.which
 base.file.slurp
@@ -111,6 +111,7 @@ base.net.connect
 base.log-delayed
 base.load_config
 base.get_homedir
+base.code.exists
 base.cmd.subname
 base.cmd.src-ver
 base.cmd.src-age
@@ -122,7 +123,6 @@ base.chk-sum.elf
 base.change_prio
 base.call_filter
 auth.pwd.success
-auth.auth_select
 ascii.frame.load
 ticker.parse_text
 ticker.emit_event
@@ -205,7 +205,6 @@ base.parser.txt_box
 base.loaded_p7_mods
 base.file.make_path
 base.file.init_code
-base.file.all_links
 base.file.all_files
 base.extract_values
 base.event.pre_init
@@ -251,7 +250,6 @@ base.buffer.add_line
 base.base32.pre_init
 base.X-11.keep_below
 base.X-11.keep_above
-auth.zenka.init_code
 ascii.frame.validate
 window.profile.delete
 ticker.select_monitor
@@ -300,7 +298,6 @@ base.cfg.profile.apply
 base.call_online_hooks
 base.X-11.raise-window
 base.X-11.get_geometry
-auth.unix.authenticate
 ticker.handler.fade_out
 ticker.cmd.swap_profile
 ticker.cmd.place_window
@@ -324,6 +321,8 @@ base.exists.sub-process
 base.execute_zenka_code
 base.dump.data_key_list
 base.convert.hex_to_int
+base.code.call_optional
+base.code.call_expected
 base.cmd.set-name-width
 base.cmd.ondemand-zenka
 base.cmd.loaded-configs
@@ -334,7 +333,6 @@ base.auth.set_zenka_key
 base.X-11.unhide-window
 base.X-11.get_subconfig
 base.X-11.assign_window
-auth.zenka.authenticate
 window.profile.color.get
 window.profile.calculate
 window.gtk.profile.apply
@@ -417,7 +415,6 @@ base.max-len.val-hash-keys
 base.handler.session_error
 base.event.io_idle_restart
 base.check_dependency_dirs
-auth.zenka.cmd.session-key
 ticker.cmd.read-file-notify
 net.read_linewise_estimated
 io.unix.socket.output.close
@@ -432,11 +429,11 @@ base.root.check_system_user
 base.parser.ondemand_status
 base.modules.check_migrated
 base.handler.whitelist_miss
-base.file.gen_path_linkname
 base.debian.install_package
 base.cmd.buffer-erase-level
 base.chk-sum.elf.vax-BASE32
 base.chk-sum.amos.init_code
+auth.client.zenka.init_code
 ticker.handler.check_pointer
 ticker.handler.auto_slowdown
 ticker.cmd.current_substring
@@ -473,7 +470,7 @@ base.config.show_strack_trace
 base.chk-sum.bmw.template_L13
 base.chk-sum.bmw.B-32-56.TRUE
 base.X-11.get_window_geometry
-auth.zenka.process_auth_reply
+auth.client.unix.authenticate
 ascii.frame.parse.border_line
 amos7.decode_octal_bit_header
 ticker.subscribe-screen-change
@@ -487,20 +484,18 @@ base.zenki.resolve_primary_sid
 base.zenki.ondemand_registered
 base.session.send_init_reports
 base.p7refs.get_refaddr_prefix
-base.number-cache.true_upwards
 base.log.send-buffer.add-queue
 base.chk-sum.bmw.harmonize_L13
 base.chk-sum.bmw.encode_digest
 base.cache.refaddr-prefix.init
+auth.client.zenka.authenticate
 ascii.frame.render.border_line
 window.place.find_safe_position
 ticker.callback.request_updates
 devmod.cmd.change-log-verbosity
-crypt.C25519.cmd.get-public-key
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
 base.file.zenka_dir.unlink_file
-base.buffer.local_logfile_write
 base.X-11.get_coordinates_async
 ticker.handler.get-layer_timeout
 ticker.cfg.font.calc_outline_col
@@ -520,7 +515,6 @@ plugin.auth.zenka.no-keys-defined
 base.sourcecode.in-mem.sub-source
 base.perlmod.init_install_buffers
 base.parser.center_ellipse_string
-base.file.matching_path_linknames
 base.callback.expire_code_version
 ticker.handler.resend_update_reply
 protocol.sftp.server.start-process
@@ -547,7 +541,6 @@ protocol.protocol-7.encryption.init
 protocol.amos-chksum.ext-cmd.select
 base.zenki.resolve_primary_sid.pick
 base.perlmod.register_loaded_module
-base.number-cache.is_valid_template
 base.handler.write.encoding-wrapper
 base.handler.strm_size_idle_timeout
 base.handler.counter_overflow_reset
@@ -565,6 +558,7 @@ base.parser.decode_harmonized_refstr
 base.handler.read.encryption-wrapper
 base.handler.command.route_to_target
 base.callback.clean_data_source_hash
+auth.client.zenka.process_auth_reply
 protocol.sftp.handler.write_to_server
 protocol.protocol-7.message-templates
 protocol.protocol-7.link-upgrade.init
@@ -579,8 +573,6 @@ protocol.sftp.terminate_server_process
 protocol.protocol-7.auth.select-method
 io.unix.socket.handler.report-tmp-path
 base.log.send-buffer.idle-callback-set
-auth.callback.cap-neg.select-strm-mode
-auth.callback.cap-neg.select-size-mode
 window.gtk.get_pointer_monitor_geometry
 base.perlmods.blacklist_collision_index
 base.parser.chk-sum.embedded-code-style
@@ -594,7 +586,6 @@ base.zenki.ondemand.handler.startup_reply
 base.agent_code.handler.sig_warn.end_proc
 protocol.protocol-7.link-upgrade.handshake
 plugin.auth.auth-keypair.tofu-notification
-auth.callback.cap-neg.declare-strm-support
 base.zenka.push.reply-handler.notify-online
 base.referenced_subroutines.clear_from_disk
 base.log.send-buffer.reply-handler.send-reply
@@ -602,13 +593,11 @@ plugin.auth.auth-keypair.load-authorized-users
 plugin.auth.auth-keypair.cleanup-incoming-keys
 base.zenki.ondemand.handler.reconcile_starting
 plugin.auth.auth-keypair.validate-incoming-tofu
-auth.callback.cap-neg.declare-strm-size-timeout
-auth.callback.cap-neg.declare-strm-size-support
 protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,.,...,.,.,,.,,,.,,,.,,..,,,,,,.,,,,,.,,..,..,,...,...,..,,,.,,,..,,,.,..,,
-#LMUDPN7SQEQUFJCK4VWQGN5NAQBXVU5LM225WMMCBQV4QZST5LYFRFKPBXURZYP7GMI7QALGXZIOW
-#\\\|XVZ4JS33LQ67ZTAMR5LRSIR6XURUNBMYIUYGGYYPSEHXWYHJYY7 \ / AMOS7 \ YOURUM ::
-#\[7]2TSRT2WKLRBZRDNFIU4P3M7AGFXSJBS3DIQQMZQUOKLT4M2Q4KAY 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,,.,.,.,.,,,...,...,,..,...,..,,..,,...,...,.,,,..,,,,.,.,,,,.,,
+#OLQPBDW4FZF4QVWFZQXQ7KVZMWT6VDL5ZQDPF5Z4AGHZGXECMPRHHS6CGDKFJL5R6KOKSHCONQWZS
+#\\\|EXI2NFCCTFRTFBGMZIWJR6UQZGUBVPXY6POEIU75QK2KS2QWYNO \ / AMOS7 \ YOURUM ::
+#\[7]BCAP2IVTWB7CDYBMG2WVWAAVJN7O35WN6AQU3WTKQY4MYKDBWMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

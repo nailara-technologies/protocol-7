@@ -5,23 +5,27 @@
 state $clean_found = TRUE;        ## for later ##
 return -1 if not $clean_found;    ## keep them ##
 
-my $report_not_cleared_names = qw| yes |;
+## console/log noise only - the undef-subs buffer is always populated ##
+## below regardless of this flag, and can be queried any time via     ##
+## 'show-buffer undef-subs' - default off to not clutter zenki that   ##
+## aren't currently being worked down the list                        ##
+my $report_not_cleared_names = <base.referenced_subroutines.console_report>
+    // qw| no |;
 
 my $removed = 0;
 goto SKIP_TO_RETURN
     if ref <base.subroutines.referenced> ne qw| HASH |
     or not keys <base.subroutines.referenced>->%*;
 
-my $log_level = 2;                ## verbose reporting to log buffer ##
+my $log_level = 2;    ## verbose reporting to log buffer ##
 
 <[base.log]>->( $log_level, 'cleaning up referenced subroutine hash ..,' );
 
-map {
-    ++$removed                    ## remove all found present in modules/  ##
-        and delete <base.subroutines.referenced>->{$ARG}
-        if defined <[base.check_bin_p7]>->( sprintf qw| modules/%s |, $ARG )
-
-} uniq <[base.sort]>->(<base.subroutines.referenced>);
+## clear entries actually defined in %code [ real compile OR a deferred   ##
+## stub - both count as resolved, since a stub self-loads on first call ] ##
+## file-existence-on-disk alone is NOT sufficient : a file can exist for  ##
+## a namespace this zenka never loaded, and will never resolve            ##
+$removed = <[base.referenced_subroutines.clear_found]>;
 
 <[base.logs]>->(
     $log_level,
@@ -119,13 +123,14 @@ if ( @remaining_files == 0 ) {
 ##  REPORTING  NOT  DEFINED  SUBROUTINES  ##
 #                                          #
 
-if ( $clean_found and <[base.cfg_bool]>->($report_not_cleared_names) ) {
-    my $r_cnt    = scalar @remaining_files;
-    my $s_str    = <[base.cnt_s]>->($r_cnt);
-    my $subs_ref = <base.subroutines.referenced>;
+if ($clean_found) {
+    my $console_report = <[base.cfg_bool]>->($report_not_cleared_names);
+    my $r_cnt          = scalar @remaining_files;
+    my $s_str          = <[base.cnt_s]>->($r_cnt);
+    my $subs_ref       = <base.subroutines.referenced>;
 
-    <buffer.compile-errors.max_size> //= 42 * 1024;
-    <[base.buffer.add_line]>->( qw| compile-errors |, '' );
+    <buffer.undef-subs.max_size> //= 42 * 1024;
+    <[base.buffer.add_line]>->( qw| undef-subs |, '' );
 
     my @l_msg_ref;    ##  { log_level => .., log_msg => .., }  ##
 
@@ -155,7 +160,7 @@ if ( $clean_found and <[base.cfg_bool]>->($report_not_cleared_names) ) {
                 <[base.logs]>->(
                     0,     ': empty hashref entry [ %s : %d ]',
                     $file, $line
-                );
+                ) if $console_report;
                 next;
             }
 
@@ -172,10 +177,11 @@ if ( $clean_found and <[base.cfg_bool]>->($report_not_cleared_names) ) {
     push @l_msg_ref, { qw| log_level | => 0, qw| log_msg | => qw| :. | };
 
     foreach my $msg_ref (@l_msg_ref) {
-        <[base.log]>->( $msg_ref->{'log_level'}, $msg_ref->{'log_msg'} );
-        <[base.buffer.add_line]>->( 'compile-errors', $msg_ref->{'log_msg'} );
+        <[base.log]>->( $msg_ref->{'log_level'}, $msg_ref->{'log_msg'} )
+            if $console_report;
+        <[base.buffer.add_line]>->( 'undef-subs', $msg_ref->{'log_msg'} );
     }
-    <[base.buffer.add_line]>->( qw| compile-errors |, '' );
+    <[base.buffer.add_line]>->( qw| undef-subs |, '' );
 
 }
 
@@ -198,8 +204,8 @@ if ( not exists $data{'buffer'}->{'compile-errors'} ) {
 
 return $removed;    ## return number or cleared entries ##
 
-#,,..,,,,,,,.,.,,,..,,..,,..,,...,.,,,..,,..,,..,,...,...,.,.,.,,,..,,.,.,,..,
-#OUO6RZPFTHABYZLKHQYBTM4D565DASDTF7STUUECI6IFPETDRJHLM74XWAYEJ5DC75C6YSWYMFKJY
-#\\\|YQHJNWCRWCSRWUC3QOMCDULTUOC5BIAPZJDNW6X4SGX265EKQQ6 \ / AMOS7 \ YOURUM ::
-#\[7]J4JP4QYV5JN7PBC5JMRQM22XVOKS2GKB5TQCHNILAZXAUQQOMWBA 7  DATA SIGNATURE ::
+#,,..,.,.,...,.,,,,.,,,..,,,,,,..,..,,,,,,,..,..,,...,...,.,.,,.,,..,,,,.,..,,
+#4QUFMM2HMAG5THEQQQQ3J3BN3BJBLWJH63SN6LPWG362BHWVMCR7PQP3ZQC4O5WLHGLW6SJBCPTLI
+#\\\|WPF5E3ETGL4JIYU2QRQJ6KJEUIKBTIPQSNOGTINMJEXKHY35PCT \ / AMOS7 \ YOURUM ::
+#\[7]ZB2U6XJPUFHBUUPR2NSPRXMWTKRK2ESVYRNRNYISZJ73YL3VUODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -61,6 +61,7 @@ if ( $arg eq qw| source | or $arg eq qw| all | ) {
     delete <base.commands>;
     delete <base.subroutines>;
     delete <buffer.compile-errors>;    ##  clear previous errors  ##
+    delete <buffer.undef-subs>;        ##  clear previous undef-sub report  ##
     <base.modules.load_errors>      = 0;
     <base.modules.compile_warnings> = 0;
     $data{'callbacks'}{'end_code'} = [];
@@ -72,7 +73,7 @@ if ( $arg eq qw| source | or $arg eq qw| all | ) {
 
     if ( not <base.devmod.keep_on_reload> and not exists $mod{'devmod'} ) {
         <[base.log]>->( 0, '[reload] .. removing devmod module [mem] .,' )
-            if ref( $code{'devmod.dump'} ) eq qw| CODE |;
+            if <[base.code.exists]>->(qw| devmod.dump |);
         <[base.purge_code]>->('devmod');    # [LLL] create unload mechanism
     } elsif (<base.devmod.keep_on_reload>) {
         <[base.log]>->( 0, '<< keeping devmod module enabled >>' );
@@ -147,18 +148,34 @@ if ( $arg eq qw| init | or $arg eq qw| all | ) {
 
     my $modules_init_success = <[base.init_modules]>;
 
-    ## reports calls to undefined subroutine names ##
+    ## reports calls to undefined subroutine names [ non-fatal : many are ##
+    ## cross-zenka / conditionally-reached calls that can't be verified   ##
+    ## statically - recorded to the 'undef-subs' buffer for later review, ##
+    ## not treated as an init failure ]                                   ##
     <[base.referenced_subroutines.clear_from_disk]>
         if $arg eq qw| init | or $arg eq qw| all |;
 
-    ##  if above call leaves entries, assume not defined or error state  ##
-    $modules_init_success = FALSE
-        if ref <base.subroutines.referenced> eq qw| HASH |
-        and scalar keys %{<base.subroutines.referenced>};
+    ## status line only surfaces the count when console_report is on -   ##
+    ## the buffer is always populated regardless, query it any time via  ##
+    ## 'show-buffer undef-subs' ##
+    my $undef_sub_count
+        = ( <[base.cfg_bool]>->(<base.referenced_subroutines.console_report>)
+            and ref <base.subroutines.referenced> eq qw| HASH | )
+        ? scalar keys %{<base.subroutines.referenced>}
+        : 0;
 
-    if ($modules_init_success) {
+    if ( $modules_init_success and not $undef_sub_count ) {
 
         $reply->{'data'} .= "$s_str reinit source  [ success ]\n";
+        $success &&= TRUE;    ## true ##
+
+    } elsif ($modules_init_success) {
+
+        $reply->{'data'}
+            .= sprintf(
+            "$s_str reinit source  [ warning ] [ %d undefined sub%s.,"
+                . " see 'undef-subs' buffer ]\n",
+            $undef_sub_count, <[base.cnt_s]>->($undef_sub_count) );
         $success &&= TRUE;    ## true ##
 
     } else {
@@ -196,8 +213,8 @@ delete <system.reload>;    ## completed ##
 $reply->{'mode'} = qw| data |;
 $reply->{'data'} .= $reply_footer;
 
-#,,,,,,,,,.,,,.,.,,,.,,.,,,.,,,..,,..,,,,,,.,,..,,...,...,...,..,,,..,.,.,,.,,
-#GAHKPMY3CJUYVRQPK4SXGPUJ6UG526JLIE4YYMQ6PJNLEMWC6OO6QAX6WUSSPIWLLRW6N22RO3JUG
-#\\\|4LNNBJEC5VVOKWDA7K53TYYQKVNK2UCUMJZ2JZP6SIOJVRRPTXV \ / AMOS7 \ YOURUM ::
-#\[7]SSWAQO7XODPN2PZTCFR6G47FJ2YMO4MRGPEDH2HQVMM3XDRJYMDY 7  DATA SIGNATURE ::
+#,,,,,,..,...,,.,,.,,,.,.,..,,,,.,...,...,.,,,..,,...,...,,.,,...,,,.,..,,,,.,
+#KW2P2N7ENPHWYJZTYYVYZ4LT7ELEQVZ4UEXFKV5II6LSQNG6H2BWIAYXOY6RYLCNNSRBOK7OGBFCE
+#\\\|NOT5Q5G4OF7PXLCMHKE4TID7F6J7E3BALOGPN7T5ZLFRA7P2FGA \ / AMOS7 \ YOURUM ::
+#\[7]5CGBBOPCEICEZ7T67QA5DBGQIHYVSERVB6FWTHRUUV47C4EXMYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

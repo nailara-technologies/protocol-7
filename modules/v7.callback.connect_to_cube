@@ -34,7 +34,7 @@ if ( not <[base.cfg_bool]>->( <v7.local_cube.connect-unix> //= TRUE ) ) {
     $c_fh = <[base.open]>->( qw| unix output |, <unix.path> );
 }
 
-$c_fh = <[auth.zenka.authenticate]>->( $c_fh, $authname, $cube_key );
+$c_fh = <[auth.client.zenka.authenticate]>->( $c_fh, $authname, $cube_key );
 
 if ( exists $init_data->{'cube'}->{'key'} ) {    ## secure key erasure ##
     my $rand_len = length( $init_data->{'cube'}->{'key'} );
@@ -76,8 +76,8 @@ my $root_sid = <v7.zenka.instance>->{$instance_id}->{'root_sid'};
 #[success]
 return TRUE;
 
-#,,,.,,,.,,.,,,..,...,,,,,...,,.,,.,,,.,.,,..,..,,...,...,,..,,,,,...,...,.,.,
-#JCLKA2KXLUUMOM75AKP75DBPUUG5O6LCR344M6FYBFPR4VLWEPQQVD3NRNBXR7VEFMFWNBP7QVTSC
-#\\\|FF2JFZCOOKRDUCOXYJOG56MBVM6OAA4LRF2CHMILNXKMX3ARKFU \ / AMOS7 \ YOURUM ::
-#\[7]GBBQ77OTTEANJPAIZB7KZAJMDQ4VOISRVGQB6VBCUSQOTTO77UCQ 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,,,,,.,,,..,...,...,,,.,..,,,,.,..,,...,...,...,.,.,.,.,.,,,.,.,
+#HLEEVKZW4KFTPXLFZ7CQTIP57E5ENUDLMNWGG6Q4MTBM5WMEWAFUV6TKP4FGA2553RCUTR6XKW2ZI
+#\\\|LU46CLC6LSG2UO37I2A5FBPSDU7WPFN4ADEC4L5PTLD77MULFSH \ / AMOS7 \ YOURUM ::
+#\[7]K7WEEJX2OTGYOZIQE6NAPVSZSSVA4OEUHCF3YMLRBDRXHQFN2AAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -55,18 +55,21 @@ if (    ( $session_count + $exit_count ) == 0
     }
 }
 
-if ( $session_count == 0 and <system.zenka.name> eq qw| v7 | ) {  #[v7-zenka]#
+if ( $session_count == 0 and <[base.mod.exists]>->(qw| v7 |) ) {  #[v7-zenka]#
     my $check_cmd = qw| zenka.cmd.get-instance-ids |;
     if ( exists $code{$check_cmd} ) {
         my $cmd_reply = $code{$check_cmd}->(qw| cube |);    ## cube zenka? ##
         ##
-        <[v7.teardown]>->( 'cube zenka shut down intentionally', qw| none | )
-            if $cmd_reply->{'mode'} eq qw| false |;   ## status : shut-down ##
+        <[base.code.call_expected]>->(
+            ( $cmd_reply->{'mode'} eq qw| false | ),  ## status : shut-down ##
+            qw| v7.teardown |,
+            'cube zenka shut down intentionally', qw| none |
+        );
     }
 }
 
-#,,.,,,,.,...,...,.,.,.,.,,.,,...,.,.,.,.,,..,..,,...,...,.,.,.,,,,.,,...,,,,,
-#VYGLF6TKSNNIPGR6XNSDFXYUEWVR7BTU6LYO7BYKBA2ZLYO4QQ7Y4KNZK7EXAYTLY2CXSGMYAH6IE
-#\\\|433VYMMMO5XYXCMDAFVJFLBCHZN66I2VKGE5J6XKPJ22VBRJJES \ / AMOS7 \ YOURUM ::
-#\[7]5HS3KMWHIAFGX6ZXJ7ZJ6QLL2LPRAICA2ZWSKQIROLH742MT22CQ 7  DATA SIGNATURE ::
+#,,..,,.,,,..,,.,,,,.,,,,,.,,,,,.,.,.,,.,,,,.,..,,...,.,.,,..,..,,.,,,,.,,.,,,
+#HUPKL4VTCHLE7ZCRFG5FW7FBS6PEGEC7MSLTCIWMN4S3LNWV5J5BH7TLGYPJEZCOWJXHA23H233OO
+#\\\|K4EOLZLXEMXSYDUKB6NATENIISRYJSUQVLPJTHSPOAM45TBV4BB \ / AMOS7 \ YOURUM ::
+#\[7]VV2A6DGYZOFMJY5B5ATW7NQV5MNSYENORJA5BJV2T326IJBPO2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

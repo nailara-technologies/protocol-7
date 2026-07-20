@@ -50,7 +50,10 @@ foreach my $watcher ( keys $session->{'watcher'}->%* ) {
     $session->{'watcher'}{$watcher}->cancel;
     delete $session->{'watcher'}{$watcher};
 
-    <[httpd.update_download_count]> if $watcher eq 'download_handler';
+    <[base.code.call_expected]>->(
+        <[base.mod.exists]>->(qw| httpd |),
+        qw| httpd.update_download_count |
+    ) if $watcher eq 'download_handler';
 }
 
 my $user = $session->{'user'};
@@ -127,8 +130,8 @@ if ( $session_mode eq qw| server | ) {    ##  closed server session  ##
 
 <[base.session.check_remaining]>;
 
-#,,.,,.,.,.,.,,,,,..,,..,,..,,,..,.,.,,.,,,,,,..,,...,...,.,,,.,,,,..,,.,,,,.,
-#O6PTGVQZGJEEZSDEPUQEJBB6C56Q6K5HWEVHIV2CDAGEASHAUHS3N7YTBOSMZTSOJUTXRNUYU2SC6
-#\\\|WRQJFNTNRH2RO6YJ2FQ3FGKZ3TICZPWIBT65WUHYEECCAK35BOE \ / AMOS7 \ YOURUM ::
-#\[7]HPE7ZNGD236VDKX7NPNSEGQQSK7IDXSNCQ5ET7VGLS2TCPD7BWCQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,.,,,,,.,,.,,.,.,,.,,...,,,,,,..,..,,...,...,...,,,,,,,,,,,,,.,,,
+#ZHIJAX726RPDUXYZE74LIBCAA5Z2DI35MWTYUJT64DNWDCQOCZQKVWBLJSRLUVSU2MIMGNL3LBQD6
+#\\\|TJVQRQHBD4ZH3HFFNAS52YBPMSOLMJ2QWWP36FYVON3N2X2KTPR \ / AMOS7 \ YOURUM ::
+#\[7]K6BGMWPU2WLP6YWH7B3KB5DNDYIFPXOXIDSIVFCGQGBGT32J7UBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

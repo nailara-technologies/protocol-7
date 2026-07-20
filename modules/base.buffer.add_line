@@ -113,9 +113,12 @@ if ( defined $buffrs->{$name}->{'log_cmd'}
         and defined <system.verbosity.zenka_logfile>
         and $log_cmd_level > <system.verbosity.zenka_logfile>;
 
-    if ( <system.zenka.name> eq qw| p7-log | ) {
+    if ( <[base.mod.exists]>->(qw| p7-log |) ) {
         ##  p7-log zenka local logging  ##
-        return <[base.buffer.local_logfile_write]>->($name);
+        return <[base.code.call_expected]>->(
+            <[base.mod.exists]>->(qw| p7-log |),
+            qw| p7-log.buffer.local_logfile_write |, $name
+        );
 
     } else {       ## logging to network ##
 
@@ -131,8 +134,8 @@ if ( defined $buffrs->{$name}->{'log_cmd'}
 
 return TRUE;    ##  true  [ added to buffer ] ##
 
-#,,,.,.,,,,..,,.,,.,.,,.,,..,,,..,.,,,.,,,...,..,,...,...,.,,,.,,,,,,,...,...,
-#W7TUPUZVHJOZPFZTA7K4WZ5OW3GHJ5WQFL7TEL4VRYBKXQ6NCG6ZUUK3ILWQTX6LNR6JAG2IZEPE4
-#\\\|WGA6VR4UIOUGVGDFSIQIKBANZD5CNPCGX2P7NSK24LGZJX2KOWW \ / AMOS7 \ YOURUM ::
-#\[7]G6WUGI7MCPMOLZKD6OZILMG4N5TL57XCROJZVL7FB4VO3GVNHGBA 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,.,.,.,.,,,.,,..,,,.,.,.,,,,,..,,..,,...,...,...,,,.,.,,,,,.,..,,
+#CYKBZFAGAZSM64ALH6FULNVREB2MZQ3I5UT6YRBI4KL74AEAUTVHPAFV5MBXU4QRGXIV3ONDLROOW
+#\\\|D6X52VYIQJ4OH73M4VX63KIV7YSTE3GSCIAAR6VQREQ2LXHSYDO \ / AMOS7 \ YOURUM ::
+#\[7]QYGJC4K4ZVADEWH65F45XDBVUYXJHBN3AHKNLJFSI3DUNDPJ5QAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

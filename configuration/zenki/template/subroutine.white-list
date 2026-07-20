@@ -75,7 +75,6 @@ base.dump_data
 base.conf-wrap
 base.cmd.heart
 base.cmd.clear
-auth.auth_list
 net.read_binary
 devmod.pre_init
 base.zenka.push
@@ -84,6 +83,7 @@ base.str.os_err
 base.prng.bytes
 base.path_perms
 base.p7ref.self
+base.mod.exists
 base.has_access
 base.file.write
 base.file.which
@@ -121,6 +121,7 @@ base.get_homedir
 base.file.append
 base.event.sweep
 base.enable_list
+base.code.exists
 base.cmd.subname
 base.cmd.src-ver
 base.cmd.src-age
@@ -132,8 +133,6 @@ base.chk-sum.jha
 base.chk-sum.elf
 base.change_prio
 base.call_filter
-auth.pwd.success
-auth.auth_select
 ascii.frame.load
 net.read_bytewise
 base.stream.frame
@@ -282,7 +281,6 @@ base.auth.set_v7_key
 base.X-11.keep_below
 base.X-11.keep_above
 base.X-11.get_driver
-auth.zenka.init_code
 ascii.frame.validate
 format.yaml.load_file
 crypt.C25519.key_vars
@@ -360,7 +358,6 @@ base.X-11.raise-window
 base.X-11.lower-window
 base.X-11.get_geometry
 base.X-11.get_bg_color
-auth.unix.authenticate
 crypt.C25519.key_exists
 base.templates.pre_init
 base.strm.local.consume
@@ -392,6 +389,8 @@ base.execute_zenka_code
 base.editor.init_buffer
 base.dump.data_key_list
 base.convert.hex_to_int
+base.code.call_optional
+base.code.call_expected
 base.cmd.set-name-width
 base.cmd.ondemand-zenka
 base.cmd.loaded-configs
@@ -406,7 +405,6 @@ base.X-11.get_subconfig
 base.X-11.get_geo_async
 base.X-11.get_dbus_addr
 base.X-11.assign_window
-auth.zenka.authenticate
 ui.caller.security-level
 crypt.C25519.verify_sign
 base.zenka.push.pre_init
@@ -502,7 +500,6 @@ base.dependency.add_object
 base.crypt.flush_passwords
 base.chk-sum.jha.init_code
 base.check_dependency_dirs
-auth.zenka.cmd.session-key
 net.read_linewise_estimated
 base.zenki.report_child_pid
 base.templates.register_add
@@ -536,6 +533,7 @@ base.cmd.buffer-erase-level
 base.chk-sum.elf.vax-BASE32
 base.chk-sum.amos.init_code
 base.X-11.handler.geo_reply
+auth.client.zenka.init_code
 crypt.C25519.keystr_is_valid
 crypt.C25519.compare_keypair
 base.validate.composite_name
@@ -590,7 +588,7 @@ base.chk-sum.bmw.template_L13
 base.chk-sum.bmw.B-32-56.TRUE
 base.callback.report_children
 base.X-11.get_window_geometry
-auth.zenka.process_auth_reply
+auth.client.unix.authenticate
 ascii.frame.parse.border_line
 amos7.decode_octal_bit_header
 crypt.C25519.key_bin_checksums
@@ -613,8 +611,8 @@ base.chk-sum.bmw.encode_digest
 base.chk-sum.amos.calc_version
 base.cache.refaddr-prefix.init
 base.X-11.get_pointer_scr_rect
+auth.client.zenka.authenticate
 ascii.frame.render.border_line
-crypt.C25519.cmd.get-public-key
 base.zenki.set_ondemand_timeout
 base.warnings.compact_statehash
 base.strm.subscribe.wait-online
@@ -627,7 +625,6 @@ base.file.zenka_dir.unlink_file
 base.chk-sum.reference.is-fresh
 base.chk-sum.jha.b32.harmonized
 base.chk-sum.bmw384.arc-segment
-base.buffer.local_logfile_write
 base.X-11.get_coordinates_async
 crypt.C25519.decrypt_priv_keystr
 base.stream.frame.detect.grammar
@@ -649,7 +646,6 @@ base.chk-sum.amos.unix.sock_path
 base.cfg.profile.cmd.set-profile
 base.calculate_line_length_stats
 ascii.frame.parse.border_segment
-plugin.auth.zenka.no-keys-defined
 base.strm.subscribe.reply-handler
 base.stream.frame.detect.harmonic
 base.sourcecode.in-mem.sub-source
@@ -703,6 +699,7 @@ base.handler.command.route_to_target
 base.file.file_chksums_are_identical
 base.callback.clean_data_source_hash
 base.X-11.handler.geo_fallback_reply
+auth.client.zenka.process_auth_reply
 base.zenka.push.reply-handler.offline
 base.stdio.frame.encode.encode_nibble
 base.stdio.frame.decode.decode_nibble
@@ -716,8 +713,6 @@ base.stdio.frame.encode.serialize_meta
 base.stdio.frame.decode.decode_payload
 base.log.send-buffer.idle-callback-set
 base.file.path.make-relative-from-list
-auth.callback.cap-neg.select-strm-mode
-auth.callback.cap-neg.select-size-mode
 base.perlmods.reload.reload_blacklisted
 base.perlmods.blacklist_collision_index
 base.parser.chk-sum.embedded-code-style
@@ -731,18 +726,15 @@ base.log.send-buffer.idle-callback-clear
 base.zenki.ondemand.handler.startup_reply
 base.language.util.encoding_special_chars
 base.agent_code.handler.sig_warn.end_proc
-auth.callback.cap-neg.declare-strm-support
 base.zenka.push.reply-handler.notify-online
 base.referenced_subroutines.clear_from_disk
 base.log.send-buffer.reply-handler.send-reply
 base.zenki.ondemand.handler.reconcile_starting
 base.strm.subscribe.reply-handler.notify-online
-auth.callback.cap-neg.declare-strm-size-timeout
-auth.callback.cap-neg.declare-strm-size-support
 base.log.send-buffer.reply-handler.notify-online
 
-#,,..,,.,,...,,,.,.,,,.,.,..,,...,...,,,,,,,.,..,,...,...,.,,,,,.,,,.,,..,,.,,
-#3DG2HYYPO2DLGJWXJ3BECXBGZ7RMPVLIM3AMG4UJ55MAPSKN7KTJACSXLIYJWAZLKNRS5KQKTU3IO
-#\\\|CHSZJURP4YR4XGDUOCEP6HXHY22CIRL3IMQS5IQOAQ7W72BBJD3 \ / AMOS7 \ YOURUM ::
-#\[7]TYAJEI74M5YWWKG3UKKFT6NNRA43YYP54BELKDT2G5FOUOR76OBQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,..,,,,.,..,,,.,,,,.,,.,,.,,,...,..,,...,...,..,,.,.,.,,,,..,...,
+#K43SUM5KPHF5CSZLCIH3FNZN2AUSQG6UMQ2R3HQOQERUPPCXVFRMYT4XYBXNITCYZOXR2JRGQZDKK
+#\\\|BIZTFCBRBZ4QZPY2PUGY6QALKTCHI5LQXPC7AJVZRBKCGO77GVN \ / AMOS7 \ YOURUM ::
+#\[7]ZIV7PPLTMQ3MALC5EBUQMGS2ZCBNE7M3NOIAZLNOUC77OV5ONUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
