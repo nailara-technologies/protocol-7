@@ -10,9 +10,12 @@ session archive index and current live-system status (queue/roadmap, resolved bu
 - [next-steps](topic-next-steps.md) — queue, roadmap
 - letsencr working; reasoning.branch.* LIVE; coding zenka operational
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: state-0/7 harmonized
+- [auth.client namespace split](topic-auth-client-namespace-split.md) — LANDED b674ecd80/ae6b1f79b:
+  auth.* server/client split, undef-subs buffer + console_report toggle, new base.code.*/base.mod.exists
+  primitives. nshell/cube swept clean-ish; coding + ~90 other zenki not yet swept.
 
-#,,..,,..,...,,,.,..,,.,.,,,,,,,,,..,,,,.,,,.,..,,...,...,..,,,..,,,,,.,,,...,
-#E6ZZ6NPUBGJ33ZKSXBIAWGIRVRU64MS5RTBCBDSYYLW57S6ZV3V6NJY35636S22IPNM6WXL4WIH46
-#\\\|WTOYOFRM5UGVNQAZ5WRDVK75OFKN5QFUERFMJLP6OVDWABKRVXU \ / AMOS7 \ YOURUM ::
-#\[7]NM4UN6O67L6PQM6DAUVLZ7LPGNER3I6XXCUZ4XYLUXGOZE3HA4CY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,...,.,.,.,.,...,,..,,..,,,,,..,,..,,...,...,.,.,,..,,,,,,.,,,,.,
+#EUGV4IMTPQWTNKIJYSPYDDYNENJPORAUD2AVCUVITASXVJ7XOL77LN4ETTTSR2RHQCGLHQXK7XKT6
+#\\\|EMYNVTZAHGUWQCT47ZMLHRATUIDFTUTWYOX2PPD65QORRP44GS3 \ / AMOS7 \ YOURUM ::
+#\[7]U7EIRR3O3ZQN2JV5D7AQ2DQN5RHU6KUVIYLHSA6OSHSLB43G76BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

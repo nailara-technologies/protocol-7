@@ -19,6 +19,20 @@ offline-safe/restart-clean subscription wrapper, six modules swapped to
 `strm.subscribe`; verified live vs cred-mesh. usage, `<a.b.c>`-splits-on-every-dot
 gotcha, runtime-load marker side effect, adoption steps: see [strm-subscribe-wrapper.md](strm-subscribe-wrapper.md)
 
+## %code Presence/Call Primitives + Rename Grep Caveat (July 2026) [ CRITICAL ]
+
+new cross-namespace call pattern from commits b674ecd80/ae6b1f79b: never
+write `exists $code{'literal.name'}` inline [ the referenced-sub scanner
+flags it ] and never use `<system.zenka.name> eq 'v7'` as a proxy. use
+`base.code.exists` / `base.code.call_expected` / `base.code.call_optional`
+/ `base.mod.exists` [ ground truth: `<base.p7_mod.loaded>` ]. undef subs
+land in the `undef-subs` buffer [ `show-buffer undef-subs` ]. also: before
+any module rename, grep for `sprintf`-resolved names, not just literal
+calls — two dynamic-dispatch renames broke silently in one session.
+full details in [coding-style.md](coding-style.md) "code presence checks"
+section and `data/yaml/code-style/CONVENTIONS.yaml`
+`code_presence_and_cross_namespace_calls`.
+
 ## Module Name Swaps via `base.swap_subs` (July 2026) [ CRITICAL ]
 
 some module families are renamed at runtime (`base.event`→`event`,
@@ -62,8 +76,8 @@ open: kimi zenka state machine upgrade (backend reconnect), coding zenka as thir
 
 `skipped` status restored across all index scanners, reassessment now protects manual stages, web sync carries `assertions`, UI delete actions wired, and orbital subscriber `.cmd.` syntax corrected. Assessed jobs now map to the `review` UI stage. See [jobs-pipeline-2026-06-28.md](jobs-pipeline-2026-06-28.md). Open: bulk-delete pending search/filter UI.
 
-#,,.,,,.,,.,,,,,,,,..,.,.,,..,,.,,,.,,,..,...,..,,...,..,,...,,.,,.,,,..,,.,.,
-#JI7U5YQB3WXTHTAX4ICCFYPHPDLEKPRDQBJPSMDOQGG5564PWDBK2IX2Z24674Q47ZOEJ6LOX53HA
-#\\\|7IV3KU7XOFFXAORQR5JEOWAWA5366XWTIUFT47UT45PSMUY3XTI \ / AMOS7 \ YOURUM ::
-#\[7]3AC5VB2Z4CYJH6TVE74MPDAC74GFIQRXJXPUU7KPLE6OHLXOCMBA 7  DATA SIGNATURE ::
+#,,..,.,.,...,,,,,,.,,,,.,,..,,.,,.,,,.,,,,,,,..,,...,...,,..,,,.,...,.,.,.,,,
+#LEN7SPMRCV6PKNIZLCC6RRS7INR7CAOGTIELIKYC752S2M2QCIA2RDDGIMXARX7BCZ4ELJJJYFGHC
+#\\\|4HPV36Y7OCEMUCVFDCNYL6ZK6SJMIXYMPZPKZZKZEKQZ3FHSPLK \ / AMOS7 \ YOURUM ::
+#\[7]GD3TKCWD7S4MSEGZRMVGJFM6TOILP4PE5CRODFPOJ3PUWVI3TQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

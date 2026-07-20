@@ -37,9 +37,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [design-ideation-capture](feedback-design-ideation-capture.md), [coding-timeout-restart-loop](feedback-coding-timeout-restart-loop.md) — offer spin-off docs
 - [swap-subs-not-fragile](feedback-swap-subs-not-fragile.md) — base.swap_subs whitelist only gates lazy-load, not safety; real gap is missing canonical doc of active swaps
 - [init-reports-one-shot-flush](feedback-init-reports-one-shot-flush.md) — system.init_reports flushes once at connect only; deferred-reply/live-runtime sends need system.callbacks.initialized or direct route-send instead
+- [undef-sub-scanner-verification](feedback-undef-sub-scanner-verification.md) — check eval-wrapping/guards + grep for sprintf-constructed dynamic dispatch before renaming anything; scanner has zero reachability analysis
 
-#,,,.,,,.,,,.,,.,,.,,,,,,,,..,,,.,.,,,,.,,...,..,,...,...,.,,,,..,,,,,,..,...,
-#GQMKLJXXAF54FSTYA6KMET6OJMBI3Z4HLM23DP23TFSCJE3ONJ2HRHNUFNJJY7XWRLVU26LUUOVG2
-#\\\|CED7YRDTYASNJ6ZIJ4P4MDHNERM3Z4ZAMKMPLBFC7S4TVUXIZG5 \ / AMOS7 \ YOURUM ::
-#\[7]BTE6EN7XYGI4RJCBYMANJJAD7IYZZYSUHZIVC6P2SI44KAEDPKAI 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,,.,,..,,,,,,..,.,,,,.,,.,.,,..,..,,...,...,.,.,,..,.,.,,,.,,,.,
+#4AOW473CCUGOPRZFGS2XNGU2V6XWCVUS45PNB3HNAEJKZBIMX6C662SP7ISVGIW3JCHFUHFHFLSCI
+#\\\|MHCTGRCCX2HZLVC63UKVSIZUBK7UAPRH23E475YJ4YGISJAMOTO \ / AMOS7 \ YOURUM ::
+#\[7]4PLJB2MADJ5VZZCQCK5QDF6DOD72VDQXU5ZARTV5TDUYHV7QZKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,6 +5,7 @@ metadata:
   node_type: memory
   type: feedback
   originSessionId: bb6d3c05-897e-4fe3-b949-2261e52562d9
+  modified: 2026-07-20T09:58:03.404Z
 ---
 
 `ncode` is the right tool for renaming subroutines and namespaces across the codebase.
@@ -37,8 +38,24 @@ in search patterns cause errors. mask them with `.` (dot = any char):
 - `ncode -ai-friendly -confirm replace src "data..space.X.Y..." "<space.X.Y>->"`
 - also works for quotes `'` and other special chars — mask with `.`
 
-#,,..,,,,,.,,,...,.,.,.,.,...,.,.,,,.,.,.,,..,..,,...,...,,,,,..,,,.,,.,,,,..,
-#5CUNE64RVX3L5WMGVRA63PFKXHRT2MTCHKLNVWU42BGC2MF72GJ2KKSGGYJCYH2VXAJGKNRK773R6
-#\\\|52GEKV34SO4KU3JWNSJUXSCDFOX3BUD6G3LDKMVSWH5M4ILIG6Z \ / AMOS7 \ YOURUM ::
-#\[7]E4V6V5YHOJGBRBOSUWDDOGQOOUQNUFN3IIMVZ4RVRVI7RT62R2CI 7  DATA SIGNATURE ::
+**limitation hit (session 5c95ba04):** `ncode replace zenki` returned 0
+matches for a pattern using `\K` (`modules\.load\s*=\s*\Kauth\b`), even
+though the identical pattern worked correctly under plain `perl -ne`.
+Also, `${1}`-style capture-group replacement text errors with "replace
+pattern contains unescaped '$' characters" — ncode's replace doesn't
+support the same modifier syntax perl does by default (there's an
+`e/`-prefixed eval mode per its own docs, untried). For a **conditional**
+bulk edit (94 files get plain token swap, 3 files get token-insert-
+alongside-existing) `ncode replace`'s single search/replace pair can't
+express the branch anyway — used a small `perl -i -pe` script per file
+instead, with `git diff --stat` + spot-checked full diffs as the "preview"
+step (files were already git-tracked, so this is safe/reversible). Prefer
+`ncode` for simple single-pattern renames as before; fall back to a
+verified plain-perl one-liner + git-diff review for `\K`-based patterns
+or conditional/branching bulk edits.
+
+#,,,,,,..,,,,,.,.,,.,,,..,.,.,.,,,..,,...,,.,,..,,...,...,,.,,..,,..,,..,,...,
+#5JI2YK4FT7B5I2MOMIJSH6SGAO3LZ3OSBTF6VMPRIOBCW6I6BIXR5PJR63YL3NRTQAMELG6VCZYQW
+#\\\|OJ7H5C7QOKAA74F7LYWOZIYKMEW7RM5NVS6EED7J3H73POFZ2LY \ / AMOS7 \ YOURUM ::
+#\[7]XBA6YYHGEAMIFQJG7GW7WBDWD56ISDAJFLOUPOI5XH3YFHYA6IAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

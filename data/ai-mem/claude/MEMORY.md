@@ -24,11 +24,12 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   fetch-files/huggingface, usb-backup, invoke-model-manager), tool-SHM architecture, tls-acme,
   unicode-encoding repair, core patterns/templates.
 
-- **[MEMORY-feedback.md](MEMORY-feedback.md)** (44 pointers) — gotchas & failure modes.
+- **[MEMORY-feedback.md](MEMORY-feedback.md)** (45 pointers) — gotchas & failure modes.
   open for: kimi/claude dispatch strategy & infra hardening, dispatch-summarize hang, tasks-completed
   scan distrust, no-sudo on p7-owned files, perl and/or precedence, p7 route-send wire protocol,
   coding-zenka reasoning/edits/inject pitfalls, ncode tooling & access-gap, perltidy self-heal,
-  arg calling convention, memory-management/sync timing, git-log false-duplication, webkit-vs-firefox css.
+  arg calling convention, memory-management/sync timing, git-log false-duplication, webkit-vs-firefox css,
+  undef-sub scanner verification (guards/eval-wrapping/dynamic-sprintf-dispatch before renaming).
 
 - **[MEMORY-vision.md](MEMORY-vision.md)** (45 pointers) — long-horizon architecture, mostly design-only.
   open for: perspective/navigation geometry, C25519 trust identity & source-spoofing, namespace/routing
@@ -39,8 +40,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,..,..,,,..,..,,...,,,,,,,.,,,.,,..,,..,..,,..,,...,...,,,.,,,,,..,,..,,..,,
-#SDT3CU3TYFEIPLXAHKRGC7R53FWH2N4DQYOWZ3RTKYLE4FJZYZO76JORB7ZUZWQWFHKCR6VLHX5WK
-#\\\|I3DUE3NXENEVQMYQ3POUEVRRAKOUI72THXTYZ6QNPOKW4NYOM6U \ / AMOS7 \ YOURUM ::
-#\[7]6PDMTK46DL42CRPSPP5HBMQINQ3X65XX5YDNAMOQO4PYNYM4HKBQ 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,.,,,..,.,.,,..,,,,,.,,,,.,,..,,..,,...,...,..,,,.,,.,.,.,,,,,,,
+#RYTCUNZCEGOLMRGOVVYIWYYCO3KPBKTDDMS5G6HPHRRKDL72NOJ2HFHP4RSOHL45ZW4YCS6JONZHS
+#\\\|HLFEBDEB7WEJXD7FSGWCESBFTPGQY5SVX2GUEPKOXGCH7EGEFIH \ / AMOS7 \ YOURUM ::
+#\[7]NQLMTFZJ22MXCO7UHBI3ZHLO64PIFHSRIN7VITQHDSATZRU3W4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
