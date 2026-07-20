@@ -109,8 +109,47 @@ llm_integration:
       - "periodic reminder for long multi-turn conversations"
       - "explicit style reset if code quality diverges"
 
-#,,..,,,,,,.,,.,.,,,.,.,,,,..,,,,,..,,..,,..,,..,,...,...,...,.,.,.,.,,,.,,.,,
-#6EWMAC4CH26CHJYDNQ3XICXD2RYKXGXKNJU53LTLP6232XI4PSTG5OYA4PTIF6F6INZXIKICSG4OG
-#\\\|AJPU27FCAARLHJDWKX6QH7YU2OVMKM3CT2UH6YZXOIUVSYEHBIH \ / AMOS7 \ YOURUM ::
-#\[7]VZQES7DHPY4IKOSWZCF65IIQOYG7CBRKJ54ACLZHTB2RBSRSP2BY 7  DATA SIGNATURE ::
+code_presence_and_cross_namespace_calls:  # july 2026, commits b674ecd80/ae6b1f79b
+
+  referenced_sub_scanner:
+    description: >
+      base.referenced_subroutines.clear_from_disk [ every reload/init ]
+      regex-scans compiled source for literal-quoted $code{'name'} patterns
+      and reports ones with no matching %code entry into the 'undef-subs'
+      buffer [ query via 'show-buffer undef-subs' ]. entries clear by actual
+      %code definition [ real compile or deferred stub ], not by
+      file-existence on disk [ old behavior, masked real bugs ].
+    rules:
+      - "never write exists $code{'literal.name'} directly — the scanner flags it"
+      - "dynamic-key access via base.code.exists is invisible to the scanner"
+
+  primitives:
+    description: "use these instead of raw %code checks or zenka-name identity proxies"
+    rules:
+      - "<[base.code.exists]>->('name') : presence check via dynamic key"
+      - "<[base.code.call_expected]>->($cond, 'name', @args) : call if cond true, loud error if sub missing"
+      - "<[base.code.call_optional]>->('name', @args) : call if present, silent skip"
+      - "<[base.mod.exists]>->('ns') : checks <base.p7_mod.loaded>->{ns} — ground truth for this zenka"
+    examples:
+      expected: "<[base.code.call_expected]>->( <[base.mod.exists]>->(qw| v7 |), qw| v7.teardown | )"
+      hard_requirement: "<[base.code.call_expected]>->( TRUE, qw| crypt.C25519.cmd.get-public-key | )  # auth.auth_select"
+      optional: "<[base.code.call_optional]>->( qw| channels.cmd.update |, { 'args' => $str } )"
+    anti_patterns:
+      - "<system.zenka.name> eq 'v7' as proxy for 'is v7 namespace compiled here'"
+      - "exists $code{'literal.name'} written inline in a module"
+
+  rename_caveat:
+    description: >
+      before renaming or moving any module, grep the whole tree for
+      sprintf.*<name-fragment> constructions, not just literal <[...]>
+      calls — dynamic resolution like sprintf('prefix.%s.suffix', $var) is
+      invisible to both literal grep and the referenced-sub scanner.
+      known cases: base.net.connect, base.handler.auth cap-neg dispatcher
+      [ a rename silently broke nshell cube connect until testing caught it ].
+    command: "grep -rn 'sprintf' modules/ | grep -i '<name-fragment>'"
+
+#,,.,,,,.,.,.,,.,,,,,,..,,,,.,,..,...,,,.,.,.,..,,...,...,...,,,.,.,.,.,.,,,,,
+#2RS5GU7J2FHWUCZMXYLI22XZ5SSAC4TMBQVBZPQYFY7Y5RSBB7N2ZT5M7HP5HYF7SC4QNOVZCS75U
+#\\\|SQDZMFSFDJZWGZDRK53UTYVWOFDUTKFNG3DPKXRAQMW3CYRNF5C \ / AMOS7 \ YOURUM ::
+#\[7]3OYSUF5NCEM2O42AQJPXM6A6SBUMAVET3CZCZ43QDPKV5Q5CTODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
