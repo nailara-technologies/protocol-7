@@ -175,6 +175,10 @@ foreach my $sub_name (@dg_subs) {
             eval { <[base.load_code]>->($sub_name) };
             $data{'base'}{'loader'}{'sub_whitelist_enabled'} = $wl_state;
 
+            ## a single healed sub is not a loaded namespace -- base.load_code ##
+            ## stamps it into the registry regardless, so undo that here      ##
+            delete <base.p7_mod.loaded>->{$sub_name};
+
             if ( defined $code{$sub_name} ) {
                 $healed = TRUE;
             } else {
@@ -210,8 +214,8 @@ if ( not $found_in_depgraph and not defined $moved_target ) {
 
 return $healed;
 
-#,,,.,.,.,,.,,,..,..,,...,,,.,,,,,,,.,,,.,.,.,..,,...,...,..,,.,.,...,.,.,,..,
-#BKWLECKWAMALFXBVJIESPMLZYVTSXOM63YGIOBQ7WAN7D7NCN3CTGVYHQYIX35DSAB5YFZLYLWM54
-#\\\|UKZSHSRH73FS7ZO7IP6RGHXNSFPJR5KDOTS3LXHXAUHSZEKDRT2 \ / AMOS7 \ YOURUM ::
-#\[7]KDFWR7JJTART4IHVCXQGP5XTC3BVBE47QEEJQSQDWCVJLQJUIADY 7  DATA SIGNATURE ::
+#,,.,,..,,,..,...,...,.,,,,..,.,.,,,,,,..,,,.,..,,...,...,..,,.,.,...,.,.,.,.,
+#RKMQKGRQMXEN5ZNUXK4HUFERTIDYALMKLGKF5EGGERRYZQZQPW3TWIH743F6GZIUWGTPSEFQV5SNK
+#\\\|NAA56PMHSBHP7L2P2KFHIWOAU6E5OZAYPMMHBZ6KXJQBDFDUFAT \ / AMOS7 \ YOURUM ::
+#\[7]BBB7QKZCJYNO6F6ZK4I2U5NGS3JO6WLODHXCDUDDWDHJPEYQXSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
