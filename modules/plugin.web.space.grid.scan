@@ -14,7 +14,7 @@ if ( index( $target_dir, qw| / | ) != 0 ) {
 
 ## ensure directory exists ##
 if ( not -d $base_path ) {
-    <[base.log]>->(
+    <[base.logs]>->(
         0, 'plugin.web.space.grid.scan : target dir not found: %s', $base_path
     );
     return;
@@ -71,15 +71,15 @@ $cache->{'file_count'} = scalar @cells;
 $cache->{'cells'}      = \@cells;
 $cache->{'timestamp'}  = time();
 
-<[base.log]>->(
+<[base.logs]>->(
     2,              'plugin.web.space.grid.scan : scanned %s files in %s',
     scalar(@cells), $target_dir
 );
 
 return $cache;
 
-#,,.,,,..,,..,..,,,.,,..,,.,.,,.,,,,.,.,.,...,..,,...,...,,..,.,,,,,,,...,...,
-#7PXLIR4XN5YPZJ34XRNH5GHCOCOS7FYTIGWEGNVA5G7PRDT5YCHSN4R2VJBK325AAAL5ENST32YCU
-#\\\|4SISLKZRXWSXGMBA7QAIDTXF6MFU7P2WXEFCTG4HWWCBZIBQBUS \ / AMOS7 \ YOURUM ::
-#\[7]ZRDAHQKDIISGZQ3SKDVUSBKYPD4E2E3VK23ABUPCIYDGYSJDC4DQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,..,,,..,.,,,,,.,...,...,,..,..,,..,,...,...,..,,,,,,,.,,,.,,.,.,
+#K6XW4QVD66XBOPM2DJ6FEDUO5EVWDJH5QVZ4F2WFIZ4DPEZRRVOS7QZYE2KZMUOJYMQWPSAXS6RUK
+#\\\|JQS2QVGNUXSURQ2O64LK7W2XJZWXFCE3RQQ4X7NTWMUEIG66UNR \ / AMOS7 \ YOURUM ::
+#\[7]YNWXCAB32JFEWKWHQUJFTPO6OYHHNZDUQW2FOZNCZMKRZGAJYYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

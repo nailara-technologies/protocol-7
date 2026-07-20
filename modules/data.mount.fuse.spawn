@@ -269,8 +269,8 @@ if ( !$child_pid ) {    ## CHILD PROCESS ##
 
     # Build mountopts string for FUSE3 kernel options
     my @mountopts;
-    push @mountopts, 'allow_other'        if $allow_other;
-    push @mountopts, 'default_permissions';
+    push @mountopts,  'allow_other' if $allow_other;
+    push @mountopts,  'default_permissions';
     push @mount_opts, 'mountopts' => join( ',', @mountopts ) if @mountopts;
 
     # Start FUSE main loop
@@ -279,7 +279,7 @@ if ( !$child_pid ) {    ## CHILD PROCESS ##
     eval { Filesys::Fuse3::main(@mount_opts); };
 
     if ( length $EVAL_ERROR ) {
-        <[base.log]>->(
+        <[base.logs]>->(
             0, "FUSE3 main loop error : %s",
             <[base.str.eval_error]>
         );
@@ -333,8 +333,8 @@ if ( !$child_pid ) {    ## CHILD PROCESS ##
     };
 }
 
-#,,,.,,..,..,,,,,,,,.,..,,,,,,,.,,.,,,,,,,.,,,.,.,...,..,,.,.,,..,..,,,,.,,.,,
-#HRRRN7NLFEWFHNIAL3JCN2DQPRFV7CBOAFUF37JPZL62JF25DEGMU4N4GZNB6YPNXLGKP3TKVCBHY
-#\\\|WEGHEHLAAOZGKASTHMCDUEZHI7RKNBRH6KIEIQKC7HIXAMK52CE \ / AMOS7 \ YOURUM ::
-#\[7]GCCUZSZ2Q44FRNO3QS3DMUPPFMWTHLEZA7PIVXHLOCCTDNESQYAQ 7  DATA SIGNATURE ::
+#,,..,..,,,..,.,.,...,...,...,,..,,,.,...,,.,,.,.,...,...,..,,.,.,..,,.,.,,.,,
+#XL7EAOJLI2MZITXY377DQOPUNY6WCC7WP24HEX4GPXDDQFHFIL5ND6ANSTA3DQTHQXHDKODEAGNMS
+#\\\|CU45KPBMX5OQ6EXIDNFZLXWCD2MRJK5TAFLOSERTBGL7GIAHWN6 \ / AMOS7 \ YOURUM ::
+#\[7]ZWFCDYMSLOV5HPDZXVN3MKNCNPV7J7OU2ZOPHBGERJYHEWWB7ODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

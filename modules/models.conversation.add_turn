@@ -81,7 +81,7 @@ push @{ $conversation->{'turns'} }, $turn;
 $conversation->{'turn_count'}++;
 $conversation->{'tokens_used'} = $new_total;
 
-<[base.log]>->(
+<[base.logs]>->(
     2,
     "[$context] turn %d: role=%s tokens=%d (total=%d/%d)",
     $conversation->{'turn_count'},
@@ -96,7 +96,7 @@ my $result_warning = undef;
 ## Check if over budget
 if ($would_exceed) {
     $result_warning = 'token_budget_exceeded';
-    <[base.log]>->(
+    <[base.logs]>->(
         1,          "[$context] warning: tokens %d exceed budget %d",
         $new_total, $conversation->{'token_budget'}
     );
@@ -116,8 +116,8 @@ return {
     'elapsed_ms' => $elapsed_ms
 };
 
-#,,.,,,,.,..,,.,.,..,,,,.,...,..,,...,,.,,..,,.,.,...,..,,,,.,...,.,,,,..,...,
-#R3C6BVFFTATLUUZIHSBD53YQCRZREB7P2DZN7DT45JQ4NWVS2OOJX5HV6DU3XJMTPKYNCD52ZNZ3E
-#\\\|VDXWEWWMNUDTGSMZY5MTZFWGFL7U2VJ7ZLOHBRTKV27W4NOYE5I \ / AMOS7 \ YOURUM ::
-#\[7]XVHXSNNJP5WBHKUJMIV5FVRORQSZG4CS2P463J7FMFGZUUUDOWBQ 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,,,,,.,,.,.,,,,,,..,,,.,,..,.,,,.,.,...,..,,,..,,,.,.,.,.,.,,,,,
+#4GLFPZFGM6OBMPYWMO6ROYRIFBLYIQ2JD7GM676GAVBIUCKO2UJ4DPXHBGFRJ2E6JOTGSUTPTOE7A
+#\\\|XH6QSUU42KTBZQQCVQPBO2U7AKXULMMTNSFCM4VFLU4PG6IE3LI \ / AMOS7 \ YOURUM ::
+#\[7]WRLH4FQOFXGF3FGXZQ2TNLE7CZ57XCKUWVRVT33AFYNUFLARIABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

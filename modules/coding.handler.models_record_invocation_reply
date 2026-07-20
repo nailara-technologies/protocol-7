@@ -12,7 +12,7 @@ my $model_amos = $reply->{'params'}->{'model_amos'};
 my $context    = $reply->{'params'}->{'context'};
 my $success    = $reply->{'params'}->{'success'};
 
-<[base.log]>->(
+<[base.logs]>->(
     2,
     "[coding] models_record_invocation_reply: status=%s model=%s context=%s success=%s sid=%s",
     $cmd_status,
@@ -26,7 +26,7 @@ my $success    = $reply->{'params'}->{'success'};
 if ( defined($call_args) ) {
     if ( ref($call_args) eq qw| HASH | ) {
         my @keys = keys %$call_args;
-        <[base.log]>->(
+        <[base.logs]>->(
             2,
             "[coding] models_record_invocation: call_args keys: %s",
             join( ", ", @keys )
@@ -34,19 +34,19 @@ if ( defined($call_args) ) {
         foreach my $key (@keys) {
             my $val = $call_args->{$key};
             if ( ref($val) ) {
-                <[base.log]>->(
+                <[base.logs]>->(
                     2,    "[coding] models_record_invocation: %s = %s",
                     $key, ref($val)
                 );
             } else {
-                <[base.log]>->(
+                <[base.logs]>->(
                     2,    "[coding] models_record_invocation: %s = %s",
                     $key, defined($val) ? $val : 'undef'
                 );
             }
         }
     } else {
-        <[base.log]>->(
+        <[base.logs]>->(
             2,
             "[coding] models_record_invocation: call_args = %s",
             ref($call_args) || $call_args
@@ -60,8 +60,8 @@ if ( defined($call_args) ) {
 
 return 1;
 
-#,,,,,.,.,,,,,.,.,,,.,,..,,..,...,,..,,,.,..,,..,,...,...,..,,,,.,,,,,...,,.,,
-#IY5V2X5O564MLXGHJFNQC4UETLKTEGLQ7HV77FBOYO6VEO5CRWOWX77ZC35LYQMKQFO2FA7ICSXTS
-#\\\|KDTSLTBUX5JFCHT62P2TPPVUJMLXBDZ4JJ4UBBIE7QBS3DAAHJV \ / AMOS7 \ YOURUM ::
-#\[7]XGUORCMRQKTAMQDQ2PATPA5UN4TQ23P7ZEJSJB2T2KQPRDBWIAAA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,.,,,,,,,.,,,.,,,..,.,.,...,,..,..,,...,...,,.,,,.,,,..,,..,.,.,
+#Y77O3FL6ZB2UPISNFPPLIP4MQZQNDDHWFUBIHRTWAE7SMXTAFRJOIMZ6GSSZ7C5ASR74ZYKWGMHGQ
+#\\\|QOWNM7GH55WFSK7GPYDF76U4GG267J5WSD7HBDMY6DZUI75JLOM \ / AMOS7 \ YOURUM ::
+#\[7]SCHAUT2XOQ7IKB77ZZGRW6GBRVYGF5CZ5X645CKXRTNB3KGO5KAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

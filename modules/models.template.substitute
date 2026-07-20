@@ -19,7 +19,7 @@ return {
 <models.metrics.substitutions_total>++;
 my $start_time = <[base.time]>->(4);
 
-<[base.log]>->(
+<[base.logs]>->(
     3, "[$context] substituting variables in %d byte template",
     length($template)
 );
@@ -63,7 +63,7 @@ my $prev_avg = <models.metrics.avg_substitution_time_ms>;
         + $elapsed_ms ) /
     <models.metrics.substitutions_completed>;
 
-<[base.log]>->(
+<[base.logs]>->(
     1,
     "[$context] substitution complete: %d variables, %d bytes -> %d bytes, %.2fms",
     $sub_count,
@@ -84,8 +84,8 @@ return {
     ]
 };
 
-#,,,,,,,.,...,,..,,,,,,,,,,,.,...,.,.,,,.,.,,,..,,...,.,.,,,,,.,.,.,,,..,,,,,,
-#HJWBQ6TUKEMZWIX2B4X6ECATVQVCIE52MBFPUJVW2LZJAVTZUVH6J4E5UO3B4WC6LSZXDZRURYA4S
-#\\\|KOP4NR52322W4L4WIAFYQGUJVCLFLX275FKTGORWMFCABW6B5YK \ / AMOS7 \ YOURUM ::
-#\[7]HZNYMUYEGOKWKTFEEZDTYKI6PK5SYMEHXKN5MVLXBX5IS7UNUCBI 7  DATA SIGNATURE ::
+#,,,,,...,...,,.,,...,,.,,,,,,,.,,.,.,.,,,..,,..,,...,..,,.,.,,,.,,,.,.,,,.,,,
+#SJZV7OMT2E4FQZ3OZPPJMBCCXG55CVNUNXM7K2EGALR5EUBNMR4IFZR6EOEDJF5O6MUZAJRFC63ZE
+#\\\|RI7KHEQBBU57WL72YUWPNUTK2IMSUINJIS7A5TNJTISTZWXE3VK \ / AMOS7 \ YOURUM ::
+#\[7]KKXKJG5HVQGCU7D64SGL7ZB3EDFJUTBCIRYVSGUQMNPAPULSWOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

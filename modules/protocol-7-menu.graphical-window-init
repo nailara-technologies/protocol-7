@@ -32,7 +32,7 @@ $window->signal_connect( qw| configure-event | =>
 $window->signal_connect(
     qw| touch-event | => sub {
         my ( $widget, $event ) = @ARG;
-        <[base.log]>->(
+        <[base.logs]>->(
             1,         "touch-event at x=%.0f y=%.0f",
             $event->x, $event->y
         );
@@ -115,7 +115,7 @@ my ( $drag_offset_x, $drag_offset_y, $window_x, $window_y ) = ( 0, 0, 0, 0 );
 my $window_center_x = $win_width / 2;
 my $window_center_y = $win_height / 2;
 
-<[base.log]>->(
+<[base.logs]>->(
     1, "menu window: size=%.0fx%.0f center=(%.0f,%.0f) radius=%.0f",
     $win_width, $win_height, $window_center_x, $window_center_y, $menu_radius
 );
@@ -132,7 +132,7 @@ $window->signal_connect(
         my $dist = sqrt( ( $click_x - $window_center_x )**2
                 + ( $click_y - $window_center_y )**2 );
 
-        <[base.log]>->(
+        <[base.logs]>->(
             1,
             "button-press: x=%.0f y=%.0f dist=%.0f"
                 . " radius=%.0f center=(%.0f,%.0f)",
@@ -152,7 +152,7 @@ $window->signal_connect(
             $window_y      = $win_pos[1];
             $drag_offset_x = $click_x;
             $drag_offset_y = $click_y;
-            <[base.log]>->(
+            <[base.logs]>->(
                 1,         "  → drag started at window (%.0f,%.0f)",
                 $window_x, $window_y
             );
@@ -196,7 +196,7 @@ $window->signal_connect(
         my $dist    = sqrt( ( $click_x - $window_center_x )**2
                 + ( $click_y - $window_center_y )**2 );
 
-        <[base.log]>->(
+        <[base.logs]>->(
             1,     "  → checking menu open at dist=%.0f radius=%.0f",
             $dist, $menu_radius
         );
@@ -314,7 +314,7 @@ my $update_opacity   = sub {
     my $opacity = $opacity_max - $curved * ( $opacity_max - $opacity_min );
 
     if ( $opacity_log_tick++ % 20 == 0 ) {
-        <[base.log]>->(
+        <[base.logs]>->(
             1,
             "opacity: rel=(%.0f,%.0f) center=(%.0f,%.0f)"
                 . " dist=%.0f t=%.2f opacity=%.2f",
@@ -338,8 +338,8 @@ $window->show_all;
 
 return 0;
 
-#,,,.,..,,...,.,,,,,.,.,.,...,.,.,.,.,...,...,.,.,...,...,...,...,..,,,..,,..,
-#4ODQCLNWRO2YISBBFZV4F2SDLWBVZIBDZXELET74NFKWEY4S5S4IYOMR5CMUU4OA3A6KF57BITD5U
-#\\\|PFZLB6PZOA2VLHOOQBSEPAU6T4G37GYLHNWB6J65NT5TXLV67YX \ / AMOS7 \ YOURUM ::
-#\[7]3D6QCDUPM3VQUIIS46E3UEVGP4KRL5VKEOSHE2JGOBEYIA6BEADI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,..,,.,.,...,,,,,..,,.,,,,.,,.,.,.,.,...,...,,.,,...,..,,,..,,,.,
+#D6RKEBHGJ6Y65VZDRGSMYE3OQPBQVV75GHXYVCQF2477N3IYRTTQJCMNV4TRUHV35ZUOBN4SI35OS
+#\\\|3BW4ULR2VLZQB3ST5UIVR4RVLSWPJVQEZSWJXKXSR4VGKGDBEXL \ / AMOS7 \ YOURUM ::
+#\[7]37WBE4V4MYAWSBNINGHAURU7RXC4TXNALCHWWUYST7YWDVSUX4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

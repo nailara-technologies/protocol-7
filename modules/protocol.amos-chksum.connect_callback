@@ -12,7 +12,7 @@ my $socket_id = <[chk-sum.amos]>->( \$client_fd );
 
 if ( not defined $data{'handle'}{$client_fd}{'link'}
     or $data{'handle'}{$client_fd}{'link'} ne qw| unix | ) {
-    <[base.log]>->(
+    <[base.logs]>->(
         0, ": [%s] connection type not 'unix', declining init..,", $socket_id
     );
     return FALSE;
@@ -35,7 +35,7 @@ my ( $pid, $uid, $gid ) = ( $unix->{'pid'}, $unix->{'uid'}, $unix->{'gid'} );
 my $user = getpwuid($uid);
 
 if ( not defined $user ) {
-    <[base.log]>->(
+    <[base.logs]>->(
         0,
         '[%s] cannot retrieve username from passwd file, init declined ..,',
         $socket_id
@@ -49,8 +49,8 @@ if ( not defined $user ) {
 
 return ( 5, $user );    ## access approved \ init accepted ## [ testing .., ]
 
-#,,,,,...,.,.,.,,,,,,,.,.,,,,,,..,...,,,.,..,,..,,...,...,.,.,..,,,,,,.,.,.,.,
-#FUHJDQQ6UIYQIO2DTUHSMFMRQAR5PUNUCPTWZS54Q46KVHO2B5YY3RGA5C3F32N7X4GHZD3J7ULIE
-#\\\|B42KARKKZYMRLVATBWU7JJG65VFOZTEVUCIIXKAAJVLCDKQJTTT \ / AMOS7 \ YOURUM ::
-#\[7]NPHGCFXQTT26XMGZTGV7ZEIR2ZNJTJHSBKFTVOFMTOQVJEYHDEDQ 7  DATA SIGNATURE ::
+#,,..,...,,,.,..,,,.,,.,.,..,,,.,,,.,,...,.,.,..,,...,...,...,.,,,.,.,..,,,..,
+#CFAWMP65CZEIDKGQDNYZUTDBSJWNGWPYTI6GDVH6CLYGRGV5UEC3XEFPTNHB36UM2LTURFNVJJMSS
+#\\\|PWIRDQWFWAXZERMJQV6TKL6HDETNL6JKKSO7LCFQNJCQMKRSSLN \ / AMOS7 \ YOURUM ::
+#\[7]QM7RWYA4AVXICSH5C7FTHEMXGZWRUOP2LFWO35ZBAU3UJOWWVIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

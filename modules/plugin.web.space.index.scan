@@ -14,8 +14,9 @@ if ( index( $target_dir, qw| / | ) != 0 ) {
 
 ## ensure directory exists ##
 if ( not -d $base_path ) {
-    <[base.log]>->(
-        0, 'plugin.web.space.index.scan : target dir not found: %s', $base_path
+    <[base.logs]>->(
+        0, 'plugin.web.space.index.scan : target dir not found: %s',
+        $base_path
     );
     return;
 }
@@ -43,14 +44,12 @@ while ( my $current_dir = shift @dirs_to_scan ) {
             my $rel_path = $full_path;
             $rel_path =~ s|^$base_path/||;
 
-            my $checksum
-                = eval {
+            my $checksum = eval {
                 <[chk-sum.bmw.filesum]>->( $checksum_bits, $full_path );
-                }
-                // qw| error |;
+            } // qw| error |;
 
-            my $gen_path = eval { <[index.gen_path]>->(\$checksum) }
-                // qw| error |;
+            my $gen_path
+                = eval { <[index.gen_path]>->( \$checksum ) } // qw| error |;
 
             ##  bin/Protocol-7 does 'use File::stat' globally : shadows  ##
             ##  the builtin ; use the OO form like the rest of P7 does  ##
@@ -92,15 +91,15 @@ require YAML::XS;
 <web.space.index.yaml_cached>
     = eval { YAML::XS::Dump($payload) } // "--- {}\n";
 
-<[base.log]>->(
+<[base.logs]>->(
     2,              'plugin.web.space.index.scan : scanned %s files in %s',
     scalar(@cells), $target_dir
 );
 
 return $cache;
 
-#,,.,,.,.,,,.,..,,...,.,,,,,,,,,,,,,.,...,...,..,,...,..,,,..,.,,,,.,,,.,,,..,
-#D4YQJOGIKBT6BLLG6747WK3SCMMNL7RLB455GEEDHPWLHNEZS6ORLN6TBRYJ56JGPFLYQ5J52Y65U
-#\\\|7FTKBQDPJGAIONXHNS5NW5BMK6M2UIPBQAUPJFU6TAY6WCVFBWL \ / AMOS7 \ YOURUM ::
-#\[7]SQLEUZ5LSI6B7HFDPW6V32NFOG3R4LCDXSA3JF3X2Y3WPPRNXGDA 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,...,.,.,,,,,,..,...,,,,,,.,,..,,..,,...,...,,.,,.,.,...,,,.,,.,,
+#4EXPULR35FXST3Y3EEL4PLZWKHMOMZNRN2KNSHPKBGQK7LYYYTHYVGXGJZNNALGRVRB37Y6JRSYS4
+#\\\|LGRGIR3FPBBZWK4GP2G2ILMI6YVMPY6KHQ67NPGBR5NDYY3OQJS \ / AMOS7 \ YOURUM ::
+#\[7]DI76C3H5CR2WXCAPJ6CEIDOOKYTVNCEMNPF6OWRPMA5X6UWM6MAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

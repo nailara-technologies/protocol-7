@@ -29,7 +29,7 @@ for my $level_name (qw| level-5-B32 level-6-D3 |) {
     if exists <decoder.level6>->{$stream_id};
 
 ## log boundary event ##
-<[base.log]>->(
+<[base.logs]>->(
     2, "decoder boundary #%d : stream %s at convergence root [ %s ]",
     $boundary_n, $stream_id, $boundary_value
 );
@@ -55,7 +55,7 @@ push @{ $data{'decoder'}{'INDEXCUBE'} },
     'depth'          => scalar @{ $data{'decoder'}{'INDEXCUBE'} },
     };
 
-<[base.log]>->(
+<[base.logs]>->(
     2,
     "INDEXCUBE depth %d : stream %s [%s] traversal recorded",
     scalar( @{ $data{'decoder'}{'INDEXCUBE'} } ),
@@ -64,8 +64,8 @@ push @{ $data{'decoder'}{'INDEXCUBE'} },
 
 return { 'mode' => qw| true |, 'data' => "boundary $boundary_n recorded" };
 
-#,,..,,.,,,.,,.,,,,..,,.,,.,.,.,.,,..,,.,,,.,,..,,...,...,...,...,.,,,,,.,,,.,
-#J5TXZELLMTVY6A4XEBV37SDXJXG2FS34SJ7IYHJY6XVGWUWX3HBLPURLKASIL6VP6FJAF6HAJVOCO
-#\\\|CHF5XYKZJE4XM4SVUH52DUQG4BZEOPLWOHMYGATJJGZEKRTIQKK \ / AMOS7 \ YOURUM ::
-#\[7]OJ6FG52ZUZJ7CYUFGZ6XJAQGAEPMMAOXBTKZQDSIBJ2YFE7G7UCQ 7  DATA SIGNATURE ::
+#,,..,,..,.,.,...,.,,,,..,,,.,,,.,,,,,...,..,,..,,...,...,,,,,,,.,,,,,,,,,,,,,
+#VA56UO5K3DVR6B7BWLVQEVHBRMAVDICQIB5JBXYSOKEVRPB6AKBGHJ4NRCMMF4NO4JADRE6JTMU42
+#\\\|LZMG7MUXTAG3JPVWHKEMOZSAD45YXILM4FQPCYTQ76ZQE7YVMNS \ / AMOS7 \ YOURUM ::
+#\[7]RDRKC7BQR73O2RREKACHU6MEQ7NMZGNHOPICHCKSZXZ3PRWYJKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
