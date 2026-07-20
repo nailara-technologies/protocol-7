@@ -10,10 +10,18 @@
     }
 );
 
+## re-run this handshake whenever powershell restarts : idempotent, ##
+## the on_restart registry dedups the (publisher,handler) pair      ##
+<[base.zenka.on_restart]>->(
+    {   'publisher' => 'powershell',
+        'handler'   => 'protocol-7-menu.pointer-stream-init',
+    }
+);
+
 #
 
-#,,.,,.,.,...,,.,,.,,,..,,.,,,,..,...,...,,,,,..,,...,...,,..,.,,,,,.,,,,,,,.,
-#K2JQK6HFRWNLMZJM5LVQE2O7ZYKRUNQ7LQXIRBB3PGPKZH626JIO4DCMZZTYKMUHOQNTNIHZPRYVK
-#\\\|W3HIPOQHWPEFTFLV6XCFPUBFUGYRVWVDTKV7SQHIPZRRHQ5ZOM5 \ / AMOS7 \ YOURUM ::
-#\[7]X3LV65OT7TXA6ZQCXJ2IWK4D3DXC7UUZQPBKKAFGDPJVMDF74MDQ 7  DATA SIGNATURE ::
+#,,..,,,.,...,.,,,...,.,,,,,,,.,,,.,,,,.,,,,,,..,,...,.,,,,,,,...,.,.,..,,.,,,
+#KJSPIGGBCD7G4TF7ONY3LPVGYAZD2ZA5C3KC2YOVYGPXWPJ6KJ364SIFF3QHOMSTJHNER6PQUT5NA
+#\\\|5ANXMKLWXHFMYC5W3WWITDPAETYD2HAQFAHCKPP3RYQHV5ZUUOY \ / AMOS7 \ YOURUM ::
+#\[7]I2VQTSZAADMZYEGHGYT2IWHAIGXXUVRJTQ4J7SDIO3I2NGRH34CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
