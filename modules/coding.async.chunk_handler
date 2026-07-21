@@ -118,20 +118,29 @@ if ( defined $choice->{'finish_reason'} ) {
     );
 
     ## determine next state based on finish_reason ##
-    if ( $finish eq 'tool_calls' || $finish eq 'function_call' ) {
+    if ( ( $finish eq 'tool_calls' || $finish eq 'function_call' )
+        && @{ $context->{'tool_calls'} } ) {
         ## model wants to use tools ##
-        if ( @{ $context->{'tool_calls'} } ) {
-            <[coding.async.state_machine]>->(
-                'transition',
-                $task_id,
-                {   'event'      => 'finish_tool_calls',
-                    'tool_calls' => $context->{'tool_calls'},
-                    'content'    => $context->{'content'},
-                    'reasoning'  => $context->{'reasoning'} // '',
-                }
-            );
-        }
-    } elsif ( $finish eq 'stop' || $finish eq 'end_turn' ) {
+        <[coding.async.state_machine]>->(
+            'transition',
+            $task_id,
+            {   'event'      => 'finish_tool_calls',
+                'tool_calls' => $context->{'tool_calls'},
+                'content'    => $context->{'content'},
+                'reasoning'  => $context->{'reasoning'} // '',
+            }
+        );
+    } elsif ( $finish eq 'stop'
+        || $finish eq 'end_turn'
+        || $finish eq 'tool_calls'
+        || $finish eq 'function_call' ) {
+        ## finish=tool_calls with empty tool_calls array falls through here
+        ## [ server quirk : claimed tool call but delivered none ]. treat as
+        ## stop so xml/json fallback parse runs and, failing that, finish_stop
+        ## dispatches so the state machine reaches a terminal state. without
+        ## this the round stalls at sm_state='streaming' and the task never
+        ## completes or fails, orphaning the caller [ task-zenka records
+        ## stuck at in_progress forever ]. ##
         ## guard: don't complete parent while compaction subtask is pending ##
         my $task_state
             = <[coding.async.state_manager]>->( qw| get |, $task_id );
@@ -353,8 +362,8 @@ if ( defined $choice->{'finish_reason'} ) {
 
 return $context;
 
-#,,..,,,.,,..,,.,,.,,,.,,,..,,.,,,,,,,,..,,,,,.,.,...,.,.,...,...,.,.,,,,,..,,
-#KDEA54M6SDWEGSQVU74S42RPE2EA2JHBFF4TW6DR4MOJIRRHSPMKEMWN7DSOXBLBUVQ66O6O6C26M
-#\\\|5HM6T2E2HSCXCZHDUQVYG7VFZLLQHF77IVZJPPZ2OV7TVW24THE \ / AMOS7 \ YOURUM ::
-#\[7]DCZDI2PMDA67WBYZL3NUD3R3PUBEKJQYVTUOJKMS7I4GWI6RBYAQ 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,,.,,.,,,,.,,.,,,..,..,,.,,,,,,,.,.,...,...,..,,,,,,,,,,.,.,.,.,
+#5CPZDEQCDFE56H4FGL35RSDA7SJNSQNZZS2V7PVYT3L7TCLEEZ6MBMRMUUG4PYSMVIG4NYKAIVYXW
+#\\\|XQZY2G6QETDJ4NINKXPU6XZC2KFWAJG7D5L56FOITA7RT52O4ZU \ / AMOS7 \ YOURUM ::
+#\[7]I3BZDISHQOGQIKBAJT6EATSWCEYSLAVKEEW5KNW3G3JGTB5XFMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
