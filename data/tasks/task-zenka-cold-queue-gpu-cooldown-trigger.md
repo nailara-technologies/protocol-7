@@ -272,6 +272,13 @@ precedence in the sweep handler: **force flag** (manual override) →
    X°C of the lowest seen") is more portable but needs a warm-up period
    before it's meaningful. decide absolute vs. adaptive-delta, and the
    default value.
+   resolved (2026-07-21, live-tested): absolute, `<task.cfg.gpu_cold_temp_c>
+   //= 57`. initial 45 default proved unreachable — live idle-floor
+   observation (nothing running) sat at 59-61°C, with genuine inference
+   load pushing toward 70+. 57 gives real separation from load without
+   chasing a floor this hardware/ambient combo doesn't reach — see the
+   deferred ambient-weather-adjusted threshold gap above for the longer-
+   term fix once summer heat is no longer a factor.
 4. **sweep interval vs. debounce window** — keep the sweep tick short
    enough that the debounce window is the actual controlling latency, not
    tick granularity.
@@ -291,8 +298,8 @@ reasonably be picked up on its own without waiting for the other two.
 
 #,,.,,,.,,.,.,.,.,.,,,.,.,..,,.,,,,,,,,,,,,..,..,,...,...,,,,,..,,,,.,,.,,.,.,
 
-#,,,,,..,,...,,,,,...,,.,,,.,,.,,,,.,,..,,,,,,..,,...,..,,...,,.,,.,,,...,,.,,
-#TAEU6DTT3LGFUGXYBDF2TETJNBPERGCNTSAQEQ36724HSBJZL2FMKDJU6RFNWI6ZOWIEUVGNT6Q4Y
-#\\\|5XXJC35IFHC4NPWTXFVUYWZPVYBJX4ZHRFWQ7PB6KEHJVUQXDOH \ / AMOS7 \ YOURUM ::
-#\[7]VCKDCNGOEXXSG2EUVEY3S2GGLERI4VL7JBWC4XMFB3YJNAEJGWBY 7  DATA SIGNATURE ::
+#,,.,,,,,,...,...,,..,.,.,.,,,..,,...,,..,...,..,,...,...,...,..,,,,,,.,.,.,.,
+#72I2HADY4EDN4HOTHKDBWKUKMF3GS5AXVFO2MQZPPSQTKR675LEU4NFIZPBRYE3GRD4VJG5DOEUH6
+#\\\|LFTYWKPTEGLHEVUDUFD7AKPLC6OSXK5C4V47JIGABANEKUH5B5S \ / AMOS7 \ YOURUM ::
+#\[7]FKSXMHR5ZEGIV7ADIOG6YPSRBJLD6EQZCQQEKP7KGOLVWAY7UQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
