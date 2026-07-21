@@ -32,9 +32,11 @@ network-as-computer, dedup-tree unification, coding-as-artform / style-philosoph
 - [reference-bubble](topic-reference-bubble.md), [branch-namespace](topic-branch-namespace.md) — rhizome bubble (5+2=7)
 - [dynamic-context-prep-vs-model-size](topic-dynamic-context-prep-vs-model-size.md) — discovery cost, not model size/tokens, is the real lever; front-load gotchas/conventions into task briefs
 - [coding-zenka-path-access-profiles](topic-coding-zenka-path-access-profiles.md) — composable ro/rw path profiles: zenka-scoped ownership (containment) + content-provenance taint (write subtraction); design-only
+- suggestion-integration-queue (`data/md/design/SUGGESTION-INTEGRATION-QUEUE.md` in repo, not memory) — user-marked BLOCKER-LEVEL (not aspirational): cross-zenka ascii review queue for applyable suggestions, "nothing lost, only not approved yet," manages atomic inputs not sources, approval = pluggable gate role
+- cold-queue-gpu-cooldown-trigger (`data/tasks/task-zenka-cold-queue-gpu-cooldown-trigger.md` in repo, not memory) — task zenka should gate deferred background work on live GPU-temp cooldown, not a guessed debounce; full Opus implementation plan already written; motivating anecdote was debunked but design stands independently
 
-#,,,.,,.,,,.,,.,,,.,,,.,,,.,,,..,,..,,,..,,,,,..,,...,...,,.,,,..,,..,.,,,...,
-#DDMAS67FW45HJFSZMX6V3SIG2W3NPWKN2NSK65X4FP6JPAJ77SYFIIUIAA5FKVAHF3HPDXICQZGNU
-#\\\|V2GATW3XW2QTK7662WBC56RAPJHH3NJ4RDSZOKB55GMTR2WRRWD \ / AMOS7 \ YOURUM ::
-#\[7]3OINZLOY6VK5CMYT4Q5AFQV47ZPWRFWYI3TRVA7HLOIUWBDBQKDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,..,.,,,.,.,.,,,...,,.,,,,.,,..,..,,...,...,...,,..,,,.,,.,,,,.,
+#MLM2MNHHOFJM4CWO2OJJBPEQEDTGQH27YDMKZ6B2LLCEQESILUPVEA42IJ6GP6ZOEJBODB5Y5S4B4
+#\\\|M27THILEZF3JNXWINWDAZB2KSAG7HKXVEYJ6L5XXHUENUJWEYSZ \ / AMOS7 \ YOURUM ::
+#\[7]TQMCBV3ETYXRI3J4P6YJZ57KVPXCIUO2W5VOABMDTHB5ROHZGUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
