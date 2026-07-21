@@ -47,9 +47,16 @@ unless ( -f $abs_path and -r $abs_path ) {
 $path = $abs_path;
 
 ## read file ##
-open my $fh, '<', $path or return "<!-- cannot read: $path -->";
-my @lines = <$fh>;
-close $fh;
+my $content_ref = <[file.slurp]>->($path)
+    or return "<!-- cannot read: $path -->";
+
+## split AFTER each newline [ lookbehind ] so it stays attached to its line, ##
+## matching <$fh> list-context behavior exactly -- including a final line    ##
+## with no trailing newline if the file doesn't end in one. plain split on   ##
+## /\n/ [ even with a -1 limit ] discards the delimiter itself and would     ##
+## squash every line together again downstream where lines are concatenated  ##
+## without re-adding a separator                                             ##
+my @lines = split /(?<=\n)/, $$content_ref;
 
 ## apply line range ##
 $from_line = 1              if $from_line < 1;
@@ -86,8 +93,8 @@ $output .= "\n\`\`\`\n";
 
 return $output;
 
-#,,.,,,,.,.,.,.,,,.,,,...,,,.,,,,,,.,,,.,,,,,,.,.,...,...,.,,,.,,,,.,,...,.,.,
-#5KFFNXYHBGK4H6R62TYQWDQAPUWC33MVQR6YIQHHUVIUYHDQDFMGPEOEHTRHGVAXMBW5F4R2DMWPI
-#\\\|7Z6U4HHEKKMHECSNIEMSPRYZXKKSPBZPFS65V544DNMUG4W3UHL \ / AMOS7 \ YOURUM ::
-#\[7]JZJ2VBSETT4WAYAVGM6S3ONW3QQI2YBSSP4OBGESEEX7EVOAJYDI 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,.,,,..,,,,.,,.,,,,.,.,.,...,...,.,.,...,...,..,,,,.,...,...,..,,
+#3UG5GPEBRLMA7SWMXUMGCCAZSHOJHS72BPXHMHQNXKKCEAOVLO6FMTZ2OERBV6WGQOYSOKSMCDOKO
+#\\\|Z4BM5ZAAR3P4J54AW4ZMK35IK4DBIVB7ZATKGSXLQRDTBRVTQSA \ / AMOS7 \ YOURUM ::
+#\[7]22XZJROAQ33CAHE6CYWRSPA4U35AWMADQWGNC7V6LNPQWI2PN2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
