@@ -76,7 +76,8 @@ die ":\n:: < ptd > : 'perltidy' executable not found in current path .,\n\n"
 
 ##
 my @clean_argv
-    = grep { !m{^@exclude_pattern} } @ARGV;    ### remove excluded files ###
+    = grep { not $ARG =~ m{(?:~$|\.md$|\.yaml$|\.yml$|\.asc$)} }
+    @ARGV;    ### remove excluded files ###
 ##
 ## filter filenames for protocol-7 \ perl code ##
 #
@@ -231,8 +232,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,,,,,.,,.,,,,.,,,.,,.,.,..,,,,,,.,.,.,.,,.,,..,,...,...,..,,.,,,.,.,..,,.,.,
-#QLXJ46XOYSW2OBRYBMI6AX6VQUEWJTSK5KDFAP23HSYXIWWLJJSPTJG2WQWVCRPV2XQP5QDPPDE56
-#\\\|LZ5VW6OWIKYLZ7TQNIFGDSKWHOXXXZJ7O3ONIJICOWGTOJA73AD \ / AMOS7 \ YOURUM ::
-#\[7]EKQFA4SKIRETF4H5OZTD7RCT3KT4E6MFZTIF55H2OVWVVTKXSUBQ 7  DATA SIGNATURE ::
+#,,,,,...,...,,.,,,,,,.,.,,.,,,.,,,,.,,,,,,,.,..,,...,.,.,.,.,,,.,...,.,,,,,.,
+#T6MSQ4C5CZMRHDWYRVWZF65JZYNPI6VYU2JZXS24OVBT6HTMAC7ZIKNDHPQBR3NQWDT4MIXY56FXU
+#\\\|FD5NXAPH3TEAE2OHRRKJATGOCI63LPUTWXO4Z3FDOKJHITGZGVK \ / AMOS7 \ YOURUM ::
+#\[7]5SXAP3HR35GGHKWW5USYWX3OEZGJBHIJIPBEIES2GJ22VZZEQKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
