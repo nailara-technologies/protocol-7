@@ -31,9 +31,10 @@ network-as-computer, dedup-tree unification, coding-as-artform / style-philosoph
 - [routing-crystal](topic-routing-crystal.md), [checksum-tree-wire](topic-checksum-tree-wire.md), [tree-protocol](topic-tree-protocol.md), [data-protocol](topic-data-protocol.md)
 - [reference-bubble](topic-reference-bubble.md), [branch-namespace](topic-branch-namespace.md) — rhizome bubble (5+2=7)
 - [dynamic-context-prep-vs-model-size](topic-dynamic-context-prep-vs-model-size.md) — discovery cost, not model size/tokens, is the real lever; front-load gotchas/conventions into task briefs
+- [coding-zenka-path-access-profiles](topic-coding-zenka-path-access-profiles.md) — composable ro/rw path profiles: zenka-scoped ownership (containment) + content-provenance taint (write subtraction); design-only
 
-#,,.,,,.,,..,,.,,,..,,,,,,,,.,...,,..,...,,.,,..,,...,...,.,.,,.,,..,,...,,.,,
-#GO7A5ASPPRWSBRSNGAWSL5V7IF3JFAQXSG3GCR6RRBSNO3H6GUYIVLXTPYLF4IACP6G7NMC62JFKQ
-#\\\|G6WUIIJMZ4UWJ73PMOOJDXNUCKZ5DDOJOKX55CVEVPNJSBY46QU \ / AMOS7 \ YOURUM ::
-#\[7]7IOPW4XIVLH7J4YLU55DBBXPC3UGI3MRY2QRACJZLMAEAY6DLCCI 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,.,,,.,,,.,,,.,,,..,,..,,,..,,,,,..,,...,...,,.,,,..,,..,.,,,...,
+#DDMAS67FW45HJFSZMX6V3SIG2W3NPWKN2NSK65X4FP6JPAJ77SYFIIUIAA5FKVAHF3HPDXICQZGNU
+#\\\|V2GATW3XW2QTK7662WBC56RAPJHH3NJ4RDSZOKB55GMTR2WRRWD \ / AMOS7 \ YOURUM ::
+#\[7]3OINZLOY6VK5CMYT4Q5AFQV47ZPWRFWYI3TRVA7HLOIUWBDBQKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
