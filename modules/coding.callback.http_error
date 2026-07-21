@@ -127,9 +127,13 @@ my $result = {
 ## a fresh process rather than silently hanging again                  ##
 ## also requeue on 0-byte close during restart [ same recovery path ]  ##
 if ( $error =~ m{timeout|connection closed with no data}i ) {
-    my $backend_r  = $state->{'backend'} // 'gpu';
-    my $srv        = ( <coding.inference_servers> // {} )->{$backend_r} // {};
-    my $srv_status = $srv->{'status'}                                   // '';
+    my $backend_r = $state->{'backend'} // 'gpu';
+
+    ## map routing name to server key [ 'single-llm' routes to gpu, ##
+    ## same mapping as coding.async.send_request / coding.task.execute ] ##
+    my $srv_key    = $backend_r eq qw| cpu | ? qw| cpu | : qw| gpu |;
+    my $srv        = ( <coding.inference_servers> // {} )->{$srv_key} // {};
+    my $srv_status = $srv->{'status'}                                 // '';
 
     ## allow requeue when server is ready, already restarting, or starting ##
     if (   $srv_status eq qw| ready |
@@ -186,7 +190,7 @@ if ( $error =~ m{timeout|connection closed with no data}i ) {
             }
 
             ## clear cached pid so spawn_servers_deferred doesn't skip us ##
-            <inference.gpu_pid> = 0 if $backend_r eq qw| gpu |;
+            <inference.gpu_pid> = 0 if $srv_key eq qw| gpu |;
             ## clear awaiting_resources: may be stuck from twin startup,
             ## blocking async_spawn_inference_servers silently             ##
             delete <coding.awaiting_resources>
@@ -278,8 +282,8 @@ if ( $error =~ m{timeout|connection closed with no data}i ) {
 
 return;
 
-#,,,.,.,.,.,,,,..,,,.,.,,,,..,,.,,.,.,,,.,.,,,..,,...,.,.,.,,,,.,,,,.,...,,..,
-#ULACAH6HY2M3XKYKUOYIBI6J6QQ5PI3ZKSFHETYY2565HGZ6GRY47CQL5KVDN7VP5JAB7BBMYWF7G
-#\\\|YCTB4EXY7W6VUQE7D4WER4XZ6I47UA544WVPA6LLFUVOBE26CKW \ / AMOS7 \ YOURUM ::
-#\[7]6RGCAE5KDNCIQ2OK2APCIDSJM2DGHOFJGEF5HJJ55RKX3LHG5ABA 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,,.,,..,.,,,,..,...,,..,,,.,,,.,..,,...,...,.,,,,,.,,,.,..,,,,.,
+#JNNOYHXFI26U4PLHG7XRTGNPYVLHS6CJYNK3PBNAEWYIDEHBAGVZ7K5AJGD6G7INL7SBGZJKLX73S
+#\\\|Q5N2BUTMD7CB2WTYA2YIBFUAKCWWK34GSZU4PAFH2CJGGOZKGPV \ / AMOS7 \ YOURUM ::
+#\[7]DPZJU6IQU4A3D2CSG6UCNRZ7N4V6CLO47RE5SGPPBFTREROOCKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
