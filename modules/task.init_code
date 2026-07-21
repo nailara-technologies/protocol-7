@@ -15,6 +15,19 @@
 <task.summary_tree.entries>
     //= {};    ## { chk(focus.content) => entry } : summary-tree cache/deltas
 
+## cold-queue config + state ##
+<task.cfg.gpu_cold_temp_c>      //= 45;
+<task.cfg.cold_debounce_secs>   //= 120;
+<task.cfg.gpu_cold_samples>     //= 5;
+<task.cold_queue.last_notify>   //= {};
+<task.cold_queue.gpu_available> //= FALSE;
+<task.stats.gpu.temp>           //= {
+    'load_1s'       => undef,
+    'load_5s'       => undef,
+    'sparkline_buf' => [],
+    'updated_at'    => undef,
+};
+
 ## reasoning branch registry [ generic parallel orchestration ] ##
 <reasoning.branch.registry>        //= {};
 <reasoning.branch.stuck_threshold> //= 0.75;
@@ -30,10 +43,34 @@
     scalar( keys %{<task.queue>} )
 );
 
+## subscribe to X-11 GPU temperature stream if available -- deferred via
+## <system.callbacks.initialized>: resolve_primary_sid's own internal
+## route-send fires before this zenka's own cube session exists when
+## called directly from init_code, and the resolver has no retry of its
+## own, so a race here means never getting GPU stats at all ##
+push <system.callbacks.initialized>->@*, sub {
+    <[base.zenki.resolve_primary_sid]>->(
+        'X-11',
+        sub {
+            my $sid = shift;
+            return if not defined $sid;
+            <[protocol-7.route-send]>->(
+                {   'command'   => "$sid.gpu_metric",
+                    'call_args' => { 'args' => 'temp subscribe' },
+                    'reply'     => {
+                        'handler' => 'task.handler.gpu_temp_update',
+                        'params'  => {}
+                    }
+                }
+            );
+        }
+    );
+};
+
 return TRUE;
 
-#,,,.,..,,..,,.,,,.,,,...,,,.,..,,.,,,,..,,,,,..,,...,...,..,,,,.,,,,,,..,..,,
-#VFUSSHN2ZZRV2AYGZRGR2G4ZRT2B2PWNZNBRHCPHS3XI33NBMVMP325XQRPPG6RRGPGUEP3JRSVII
-#\\\|F63K44SMH6ACPT2PIAAIL4FHIBKGPS5BDDKL6XHQBMAGZSQKMSW \ / AMOS7 \ YOURUM ::
-#\[7]TBX7JCNESTPRD65JSS6Q3FHQSG5UE3MQDJAOZM4ZWL7DN33MCIBY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,,.,,,,,,.,,,,.,.,,,.,,,.,.,,.,,..,,...,...,...,...,,,.,,.,,...,
+#UNFXJHTQFI7HA57S4T27QNGC6E66UIUQQJ55FBM4CQD766UX2KU7CIQOK2DAJWSKGXN2QN2URWJBC
+#\\\|RGK4NPVG32S73475XHI4NFHVHBQ625JEJ66D27VGCNY7DCPDDII \ / AMOS7 \ YOURUM ::
+#\[7]ANLQTNEIEFZUFWE3PSFX6CEW4F53MNW2VWJQSL4AY4TWGNU33WBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,83 @@
+## [:< ##
+
+# name  = task.handler.gpu_temp_update
+# descr = handle GPU temperature STRM subscription and consume stream data
+#         [ cold-queue gate feed : local sample buffer, no stretch loop ]
+
+my $reply = shift;
+
+## handle FALSE reply [ X-11 unavailable or stats not ready ] : mark the
+## gpu feed unavailable so the sweep falls back to notify-timing debounce ##
+if ( $reply->{'cmd'} eq qw| FALSE | ) {
+    <task.cold_queue.gpu_available> = FALSE;
+    <[base.logs]>->(
+        2,
+        'gpu temp subscription failed [ cold-queue gpu gate disabled ]: %s',
+        $reply->{'call_args'}->{'args'} // 'unknown error'
+    );
+    return;
+}
+
+## only process STRM open ##
+return if $reply->{'cmd'} ne qw| STRM |;
+return if $reply->{'args'} ne qw| open |;
+
+my $cmd_id = $reply->{'cmd_id'};
+return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
+
+## gpu feed live : cold-queue gpu gate authoritative from here on ##
+<task.cold_queue.gpu_available> = TRUE;
+
+## initialize gpu temp namespace ##
+<task.stats.gpu.temp> //= {
+    'load_1s'       => undef,
+    'load_5s'       => undef,
+    'sparkline_buf' => [],
+    'updated_at'    => undef,
+};
+
+## register local consumer ##
+<[strm.local.register]>->(
+    $cmd_id,
+    {   'watcher' => sub {
+            my $lc = shift;
+            return if not length $lc->{'buf'};
+
+            my $data = $lc->{'buf'};
+            $lc->{'buf'} = '';
+
+            for my $line ( split /\n/, $data ) {
+                next if not length $line;
+                my ( $temp_1s, $avg_5s ) = split / +/, $line;
+
+                <task.stats.gpu.temp.load_1s> = 0 + $temp_1s;
+                <task.stats.gpu.temp.load_5s>
+                    = defined $avg_5s ? 0 + $avg_5s : undef;
+                <task.stats.gpu.temp.updated_at> = <[base.time]>->(2);
+
+                my $buf = <task.stats.gpu.temp.sparkline_buf>;
+                push @$buf, 0 + $temp_1s;
+                shift @$buf while @$buf > 20;
+            }
+
+            <[base.logs]>->(
+                3,
+                'gpu temp updated: %s C%s',
+                <task.stats.gpu.temp.load_1s> // 'undef',
+                defined <task.stats.gpu.temp.load_5s>
+                ? sprintf( ' [5s avg: %s C]',
+                    <task.stats.gpu.temp.load_5s> )
+                : ''
+            );
+        },
+    }
+);
+
+<[base.logs]>
+    ->( 2, 'gpu temp STRM consumer registered [cmd_id=%d]', $cmd_id );
+
+#,,,.,.,.,.,.,...,,.,,,,.,,,.,,..,,,,,,,.,,.,,..,,...,...,,..,,,,,..,,.,,,,,.,
+#S3ZVSHMLZIYSYG36LYRD5KC2E5GE7YHFH5ECBBKAS3N52AJLPWUPI7RK5KUUZMYO6C3BR4SJ6TS6K
+#\\\|NIC4O2WGA3AWRMOYOKYYLVIZFX3SMSIMBZPROYOMXYVOKEVUJ2T \ / AMOS7 \ YOURUM ::
+#\[7]6RCPIO2HDBKRSPSPUEYLEF2UOYT23TRMFCNJTWEGUN5R2LEI5IBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

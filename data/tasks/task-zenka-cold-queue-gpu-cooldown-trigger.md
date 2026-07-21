@@ -128,6 +128,19 @@ principle applied to the task zenka's own summary-tree follow-on work.
   system currently has no real notion of "idle," no per-model outcome
   history, and no structured ground-truth feedback loop — but are
   independent, separately-scoped changes, not one feature.
+- **ambient-weather-adjusted cold threshold** (raised 2026-07-21, during
+  dispatch planning for this same task): heatwave conditions can shift a
+  GPU's genuine idle baseline upward, so a fixed absolute
+  `<task.cfg.gpu_cold_temp_c>` could misfire cold under sustained ambient
+  heat. `weather.temp` (`modules/weather.parent.cmd.temp`) exists but is
+  pull-only — the `weather.*` zenka has no STRM/subscribe mechanism
+  (confirmed: only a periodic internal cache-refresh timer,
+  `weather.parent.handler.update_current_timer`, and query commands).
+  building an adaptive variant (`ambient_baseline + delta` instead of a
+  fixed number) needs a `weather.cmd.subscribe-temp`-style feed mirroring
+  what `X-11.gpu_metric` already does, which roughly doubles this task's
+  surface area. deliberately kept out of this dispatch — clean separate
+  step, not phase 3 of this one.
 
 ## implementation plan (2026-07-21, Opus planning pass)
 
@@ -278,8 +291,8 @@ reasonably be picked up on its own without waiting for the other two.
 
 #,,.,,,.,,.,.,.,.,.,,,.,.,..,,.,,,,,,,,,,,,..,..,,...,...,,,,,..,,,,.,,.,,.,.,
 
-#,,.,,...,...,,..,,..,,.,,,..,,.,,..,,,..,.,,,..,,...,..,,,..,...,.,.,..,,,,.,
-#BVD773WQ2KQW6J3PNI44XGJWD6FR7VLTNYETWAXETRXIN4SZR4OHIWYEK5G46OQLLKUQ4BVWAXY2E
-#\\\|VRFOYR7K732OJMEIKA2E4U53VXMHN72CY2WCPBEOGVVBM5QCU4A \ / AMOS7 \ YOURUM ::
-#\[7]ZLXRKCX6KEREUR24T2ESVVUNWTWA2JTEH7AP2MSTDCK4ACS4OEDI 7  DATA SIGNATURE ::
+#,,,,,..,,...,,,,,...,,.,,,.,,.,,,,.,,..,,,,,,..,,...,..,,...,,.,,.,,,...,,.,,
+#TAEU6DTT3LGFUGXYBDF2TETJNBPERGCNTSAQEQ36724HSBJZL2FMKDJU6RFNWI6ZOWIEUVGNT6Q4Y
+#\\\|5XXJC35IFHC4NPWTXFVUYWZPVYBJX4ZHRFWQ7PB6KEHJVUQXDOH \ / AMOS7 \ YOURUM ::
+#\[7]VCKDCNGOEXXSG2EUVEY3S2GGLERI4VL7JBWC4XMFB3YJNAEJGWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
