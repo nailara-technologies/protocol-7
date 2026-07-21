@@ -1,0 +1,149 @@
+---
+name: warn-guard-fix
+descr: add 'return warn "... <{C1}>" if <bad input>;' guard clauses to handler/library modules missing them
+budget: 4000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 8
+
+  ## style conventions ##
+  - include: system-review
+    priority: 2
+    budget_pct: 5
+
+  ## instructions ##
+  - static: |
+      add missing-parameter guard clauses to handler and library modules,
+      using the `return warn '... <{C1}>' if <condition>;` pattern. this is
+      a narrower, mechanical sibling of param-validation-fix.yaml [ which
+      covers cmd/console modules' user-facing validation instead ] and
+      error-resilience.yaml [ which covers general crash-vector guards
+      instead ] — this template is specifically about routines that
+      silently proceed on missing/malformed input from *their caller*
+      [ not end-user input ], where a caller bug should surface loudly
+      instead of degrading into empty strings / wrong behavior downstream.
+
+      ## round budget: aim for 15-25 tool rounds max ##
+      ## this is a simple, mechanical pattern — expect a high success rate ##
+      ## call task_complete when key guards are added ##
+
+      ## scope ##
+      {{scope}}
+
+      ## the pattern ##
+
+      reference example, `modules/v7.zenka.change_status`:
+      ```perl
+      return warn 'no instance id specified <{C1}>'   if not defined $instance_id;
+      return warn 'no status string submitted <{C1}>' if not defined $new_status;
+      return warn 'no such instance defined <{C1}>'   if not exists ...;
+      ```
+
+      `<{C1}>` is a caller-level marker resolved by the system's own warn
+      formatting [ see `base.s_warn` ] — it makes the warning point at the
+      call site that passed bad data, not at the guard's own line. this is
+      why a plain `warn` / `die` here is *correct* and should NOT be
+      wrapped in `eval { ... }` to catch it — the system already catches
+      and formats warn/die output cleanly with highlighting and a trace;
+      an eval wrapper around the check itself only serves to silently
+      swallow the very failure the guard exists to surface. confirmed
+      live 2026-07-21: `coding.handler.wait_done_timeout` wrapped its data
+      extraction in `eval { $event->w->data } // {}`, which silently
+      degraded a wrong-accessor bug into an empty hashref instead of a
+      visible warning — the guard clauses this template adds are the
+      antidote to that failure mode, not a place to reintroduce it.
+
+      ## what qualifies for a guard ##
+
+      - timer/event handler callbacks that pull required fields out of
+        `$event->w->data` [ or similar payload ] without checking the
+        payload is the right shape first
+      - internal/library routines [ not cmd modules — those use the
+        `{ mode => 'false', data => $msg }` structured-return pattern
+        instead, see param-validation-fix.yaml ] that take positional
+        `shift` params and use them unchecked
+      - routines where a missing/wrong-shape input would currently fail
+        silently [ empty string propagates, `undef` autovivifies, wrong
+        branch taken ] rather than crashing loudly at the point of failure
+
+      ## what does NOT qualify — leave alone ##
+
+      - cmd modules [ `*.cmd.*` ] — these return structured
+        `{ mode => 'false', data => ... }` errors to the caller, not warn
+      - console modules — these use `say "\n  << msg >>\n"` +
+        `<[base.exit]>->(...)`, not warn
+      - inputs that are guaranteed correct by construction [ e.g. a hash
+        key you just set two lines above ] — do not add defensive guards
+        for things that cannot happen
+      - existing `warn` / `die` calls already present — do not wrap them
+        in `eval`, and do not add a redundant second guard next to one
+        that already exists
+      - do not change any logic beyond adding the guard line[s] themselves
+
+      ## process ##
+
+      ### step 1: scan ###
+      list_modules for handler/library modules in the target namespace
+      [ `*.handler.*` is the highest-yield namespace — timer and event
+      callbacks routinely pull fields out of a payload without checking
+      it first ]. search_code for routines that dereference `shift`,
+      `@ARG`, or `$event->w->data` fields without a preceding guard.
+
+      ### step 2: verify each is real ###
+      for each candidate:
+      - read the full routine — confirm the field is actually required
+        for correct behavior [ not already defaulted with `// $sane_value`
+        where silent-default is the intended behavior ]
+      - confirm it's a handler/library module, not cmd/console [ those
+        get skipped, see above ]
+      - trace what happens today on missing input — if it already fails
+        loudly [ existing warn/die, or a natural crash ], skip it
+
+      ### step 3: apply guards ###
+      ** PRESERVE $ARG and @ARG — NEVER revert to $_ or @_ **
+      for each real gap:
+      1. add `return warn '<lowercase message> <{C1}>' if <condition>;`
+         as an early guard, one line per checked field, mirroring the
+         reference example's alignment style
+      2. message text: lowercase, states what was missing/wrong, no
+         punctuation beyond the `<{C1}>` suffix
+      3. place guards before any use of the field, after simple
+         extraction [ `my $x = $data->{'field'} // '';` then the guard
+         checking `$x`, or guard directly on `ref $data ne 'HASH'` before
+         any field access at all if the payload itself might be wrong-shape ]
+      4. if an existing conditional block becomes dead code because the
+         new guard already ruled out the failing case [ as with
+         `wait_done_timeout`'s `if (length $reply_id) {...}` becoming
+         unconditional once the guard covers it ], simplify it away —
+         don't leave redundant checks stacked on top of the new guard
+      5. ptd_check the modified module
+
+      ### step 4: summary ###
+
+      ## warn-guard report ##
+
+      **modules scanned**: N
+      **guards added**: N
+      **skipped**: N [ already guarded, cmd/console module, or input
+      guaranteed correct ]
+
+      ### guards added ###
+      for each: module, field guarded, message added
+
+      call task_complete with counts.
+    priority: 3
+    budget_pct: 87
+    label: warn-guard fix instructions
+
+on_complete:
+  - when: [output_contains=guards added]
+    action: memory_update
+    topic: "fix:warn-guard-clauses"
+
+#,,,,,,,.,,..,...,.,,,,,,,.,,,,.,,...,,,.,,,.,..,,...,..,,,..,..,,,,,,..,,.,,,
+#4PEIEYN4MERTWPPG7CE6WFXKWIKXCXDDAOISEPHQIW5JUXRQ33R6EOJSGAPUAKIBLFOFSIQCP7QQ2
+#\\\|I73RAUT43J6BRDVAM77OLQWAZW4WEZTMZFE2X5X2VZ65DRTND6Z \ / AMOS7 \ YOURUM ::
+#\[7]VSCGG7J46YZLTEF3SYGSBABCUJAHLLWONBRNO36EY2HRRM6SJMAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
