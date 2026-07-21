@@ -22,11 +22,14 @@ unless ( length($path) ) {
 
 ## sanitize path (prevent path traversal) ##
 $path =~ s|\.\./||g;
-$path =~ s|^/||;
 
-## resolve relative to project root ##
+## absolute paths are used as-is [ matches pager.source.file-list /   ##
+## list_files, which already honors a leading '/' — jobsite and other ##
+## zenki keep real config/data outside the repo, e.g.                 ##
+## /etc/protocol-7/jobsite/profile.txt ] ; relative paths resolve     ##
+## against the project root as before                                 ##
 my $root     = <system.root_path>;
-my $abs_path = "$root/$path";
+my $abs_path = $path =~ m|^/| ? $path : catfile( $root, $path );
 
 ## check if path exists and is a file ##
 if ( -d $abs_path ) {
@@ -67,7 +70,7 @@ foreach my $line (@lines) {
     my $line_len = length($line_out);
 
     if ( $used + $line_len > $char_budget ) {
-        $content .= "\n... (truncated at line budget)";
+        $content .= "\n., [truncated at line budget]";
         last;
     }
 
@@ -83,8 +86,8 @@ $output .= "\n\`\`\`\n";
 
 return $output;
 
-#,,,,,,,,,.,,,,..,,,,,...,.,,,.,.,.,.,...,,,.,.,.,...,...,...,.,,,.,.,.,.,...,
-#LT7Z7HU225JYIVW7HQJR6EI5FTX4FPXEMBAWU2DIGKNSRDL2EIWUVFMTOWSQQ4ONVIEZXGSW767ZY
-#\\\|LPEEA4R2QGNLROCIQK7CFHWMB5TZC7WJ4GVFTFH5TW6UPBAVTPL \ / AMOS7 \ YOURUM ::
-#\[7]GWU4UNX6QS5ZIRDXTCKAVOM6NHVQLRICRB3HWEDQROJEPS7T4GCA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,.,,,.,,,...,,,.,,,,,,.,,,.,,,,,,.,.,...,...,.,,,.,,,,.,,...,.,.,
+#5KFFNXYHBGK4H6R62TYQWDQAPUWC33MVQR6YIQHHUVIUYHDQDFMGPEOEHTRHGVAXMBW5F4R2DMWPI
+#\\\|7Z6U4HHEKKMHECSNIEMSPRYZXKKSPBZPFS65V544DNMUG4W3UHL \ / AMOS7 \ YOURUM ::
+#\[7]JZJ2VBSETT4WAYAVGM6S3ONW3QQI2YBSSP4OBGESEEX7EVOAJYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
