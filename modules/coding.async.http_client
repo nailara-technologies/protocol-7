@@ -184,19 +184,17 @@ my $data_start_watcher = <[event.add_timer]>->(
 );
 $state->{'data_start_watcher'} = $data_start_watcher;
 
-## Set up stall/inactivity timeout [ re-armed on every chunk in http_io — ##
-## catches genuine silence regardless of total elapsed time, independent ##
-## of the total-duration ceiling above, which never re-arms on activity  ##
+## stall/inactivity timeout : armed on the FIRST chunk in http_io, not    ##
+## here — this watcher detects genuine silence mid-stream, after output  ##
+## has already begun. arming it at connection setup would race it       ##
+## against data_start_timeout_sec above, which is deliberately scaled up ##
+## for large prompts / cold starts ; a flat pre-first-byte stall window  ##
+## would then fire before that grace period elapses and kill requests    ##
+## that are still legitimately prefilling. only store the duration here — ##
 ## stretched by GPU-temp factor, same as the ceiling in coding.async.request
 my $stall_timeout_sec = ( <coding.http-timeouts.stall> // 77 )
     * ( <coding.stretch.timeout_factor> // 1.0 );
 $state->{'stall_timeout_sec'} = $stall_timeout_sec;
-$state->{'stall_watcher'}     = <[event.add_timer]>->(
-    {   'after'   => $stall_timeout_sec,
-        'handler' => qw| coding.handler.http_stall_timeout |,
-        'data'    => { state => $state, io_watcher => $io_watcher },
-    }
-);
 
 <[base.logs]>->(
     1,     "async.http_client: connection established to %s:%d",
@@ -208,8 +206,8 @@ return {
     state   => $state,
 };
 
-#,,,.,,,.,.,.,,.,,.,.,,.,,,.,,..,,,,.,,,.,,,.,.,.,...,...,.,.,,.,,,,,,,.,,.,.,
-#7HOQO4W77SRRVTHKDUQPTSYGRG4MKSQNQ6YS4WV5DD66SQYHE3FGXMRS3GQADSI2BYIUCGO3UHY2E
-#\\\|3TPYMJWB7W5AQPAMZQ2OZM62IRIPTFMJ7YOM32MAX5CUJ2KWD7W \ / AMOS7 \ YOURUM ::
-#\[7]4YR4ARS536PFAX5K6K4SKWTE6TBFHEB6DYX3J5WG34VXNTPQOEDY 7  DATA SIGNATURE ::
+#,,..,,,,,,..,,.,,..,,,,,,...,..,,,.,,,,,,...,.,.,...,..,,...,.,.,.,,,,.,,,..,
+#BOBQF5NWMJ6NUVVR3J7C3YYIJMPPXRDVB6UAV45AH6O3ORZ2T4DQKH7UUIU5VV323SK3Z2FDU3OQS
+#\\\|X74O2JMGX6THZK4UTG246552ALIM7DKZ6L6CL76KVGQHDJTQA6N \ / AMOS7 \ YOURUM ::
+#\[7]TQTYTN6KRPTWF6YDZU2QYR6BUS6CQ7UGHGTBFPWDR6VZTRV7DUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
