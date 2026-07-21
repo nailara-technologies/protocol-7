@@ -46,12 +46,12 @@ my $backend = $reply_params->{'backend'} // 'auto';
     $name, $backend
 );
 
-## helper: update config for a backend that actually got a spawn attempt ##
+## helper: update config for a backend that actually got a spawn attempt   ##
 ## covers 'auto' too [ previously only literal 'gpu'/'cpu'/'both' matched, ##
-## so the default 'auto' mode never updated either field - confirmed live ##
-## 2026-06-21, alongside <inference.model.amos_id> never being updated at ##
-## all, which is what monitor_inference_startup/inference-status actually ##
-## label the running model from ]                                         ##
+## so the default 'auto' mode never updated either field - confirmed live  ##
+## 2026-06-21, alongside <inference.model.amos_id> never being updated at  ##
+## all, which is what monitor_inference_startup/inference-status actually  ##
+## label the running model from ]                                          ##
 my $mark_backend_updated = sub {
     my ($b) = @_;
     if ( $b eq qw| gpu | ) {
@@ -67,21 +67,33 @@ my $mark_backend_updated = sub {
     }
     ## generic "current model" label - monitor_inference_startup reads    ##
     ## this for BOTH backends, regardless of which one actually switched  ##
+    ## <inference.model.path> MUST be kept in sync here too - it's the    ##
+    ## only global coding.async_spawn_inference_servers reads for the     ##
+    ## actual -m file path, used by every retry spawn [ e.g. the self-    ##
+    ## test cat-test failure path in monitor_inference_startup ]. leaving ##
+    ## it stale here [ only coding.handler.model_path_reply, the startup  ##
+    ## path, used to set it ] meant a retry after a switch-model call     ##
+    ## paired the OLD model's weights with the NEW mmproj_path - confirmed##
+    ## live 2026-07-21: a switch to a vision model, then a cat-test retry,##
+    ## spawned the original startup model's .gguf with the new model's    ##
+    ## mmproj, wedging the whole zenka on a mismatched-embedding-space    ##
+    ## generation that never terminated                                   ##
+    <inference.model.path>        = $model_path;
     <inference.model.amos_id>     = $checksum;
     <inference.model.mmproj_path> = $mmproj_path;
 };
 
 ## use spawn_smart for memory-aware server restart ##
 ## NOTE: $mark_backend_updated fires BEFORE each spawn_smart call, not    ##
-## after success. spawn_smart's kill-old-server step opens a window      ##
-## where the gpu backend is briefly down; anything reacting to that gap  ##
+## after success. spawn_smart's kill-old-server step opens a window       ##
+## where the gpu backend is briefly down; anything reacting to that gap   ##
 ## (e.g. coding.handler.await_resources's twin-handover watchdog) reads   ##
-## whatever the config currently says. updating AFTER success leaves     ##
+## whatever the config currently says. updating AFTER success leaves      ##
 ## that window pointed at the OLD model - confirmed live 2026-06-21:      ##
-## await_resources fired during exactly this gap and respawned the OLD   ##
-## (stale-config) model, racing against this function's own intended     ##
-## spawn. updating first closes the window to (at worst) the NEW target, ##
-## never the old one.                                                    ##
+## await_resources fired during exactly this gap and respawned the OLD    ##
+## (stale-config) model, racing against this function's own intended      ##
+## spawn. updating first closes the window to (at worst) the NEW target,  ##
+## never the old one.                                                     ##
 if ( $backend eq qw| auto | ) {
     ## try gpu first : fall back to cpu if gpu has insufficient resources ##
     $mark_backend_updated->('gpu');
@@ -124,8 +136,8 @@ if ( $backend eq qw| auto | ) {
 delete <coding.switch_model_active>;
 return TRUE;
 
-#,,,.,,..,..,,..,,.,.,,,,,,,,,...,.,.,,,.,...,.,.,...,...,,,.,..,,,,,,.,,,,,,,
-#CBJW52K7BTF2UGVTWQVMUSN4CCASZG5CEL6MVMMEDC66RPJT3HMJXG737WNKCYI2DAIT46T7SO4JU
-#\\\|6JBUKKE4HOTSLCS6V74FHYD4XJZ3QDVZ26K5CRH4RNW4W5LRGR7 \ / AMOS7 \ YOURUM ::
-#\[7]W4X3COILMJAOIUAYWX4CSCCCLJA2MZCCORRJXBYTUXQTRPKGQCCA 7  DATA SIGNATURE ::
+#,,,.,,..,..,,...,.,,,,..,.,.,.,,,,,,,..,,.,,,.,.,...,...,...,.,,,..,,..,,.,.,
+#MAJBNGJJ5AWSWZADK7OS6VWM3PVDV5MCXUHUAGJXYUTY2PGAZ6O6PPQOK2FMOCUXJXXJI6NKTTUXU
+#\\\|E6C27AVJIUUA2ACSB3GP5QCAB73E2BP2QPOF5QKFMNXOPU24K7J \ / AMOS7 \ YOURUM ::
+#\[7]RKEKWYHXQQPHHQWSIOUQ5QDJPHG3JKX56HVZMM6ZEFSLRBZENMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
