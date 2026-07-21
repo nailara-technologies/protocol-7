@@ -4,11 +4,15 @@
 # descr = send timeout reply for coding.cmd.wait-done
 
 my $event = shift;
-my $data  = eval { $event->data } // {};
+my $data  = $event->w->data;
+
+return warn 'no timer data payload <{C1}>' if ref $data ne qw| HASH |;
 
 my $deferred_id = $data->{'deferred_id'} // '';
 my $reply_id    = $data->{'reply_id'}    // '';
 my $task_id     = $data->{'task_id'}     // '';
+
+return warn 'no reply_id in timer data <{C1}>' if not length $reply_id;
 
 ## remove deferred reply so task completion won't also reply ##
 if ( length $deferred_id ) {
@@ -21,19 +25,17 @@ if ( length $deferred_id ) {
 );
 
 ## send timeout reply ##
-if ( length $reply_id ) {
-    <[base.callback.cmd_reply]>->(
-        $reply_id,
-        {   'mode' => qw| false |,
-            'data' => "timeout after waiting for $task_id"
-        }
-    );
-}
+<[base.callback.cmd_reply]>->(
+    $reply_id,
+    {   'mode' => qw| false |,
+        'data' => "timeout after waiting for $task_id"
+    }
+);
 
 return;
 
-#,,,,,,,.,.,.,,..,,,.,.,.,..,,...,..,,..,,,,.,..,,...,...,...,,..,...,,,,,,.,,
-#VUDUQ6UTXP7IR7HSCLPNBLBADXR64B2CSEQGUIKX57CI4BS4AERQZ67GWSVVAQVQPEBSNSRQHUKA6
-#\\\|KYIPXUFGLOC3TALJGPQZCWYQLKWZ4FIK4ZLDAENZGAWVQBX2KDG \ / AMOS7 \ YOURUM ::
-#\[7]VLTYTKVN4BLQGPFDDNJAFMHBTMYJKWTAIQBVIRQPKIQR5AW472DA 7  DATA SIGNATURE ::
+#,,..,...,,,,,...,,,.,...,.,.,..,,.,.,,,.,,,.,..,,...,...,...,,,,,.,.,..,,.,,,
+#QKXHCKBRFSCIMVUKUF4WCS5NLFQWJ354FEZMMZSAVLNKVUY5PCZTJHXTWKQRT7TPH3PDI4SKGWVMM
+#\\\|T7MRORW2GPCYMGT35A4GRYZE2GPEQXWSZVX7M3BVLYJVEHJLCXO \ / AMOS7 \ YOURUM ::
+#\[7]MOV36LDE2CDEOHEE7AEGQ35W6CS2IPCMAKTP4PJ6IVVGQTLQBKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
