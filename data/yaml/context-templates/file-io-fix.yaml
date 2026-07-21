@@ -1,0 +1,136 @@
+---
+name: file-io-fix
+descr: migrate raw perl file I/O to native file.* / base.file.* routines
+budget: 4000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 10
+
+  ## style conventions ##
+  - include: system-review
+    priority: 2
+    budget_pct: 5
+
+  ## target module content ##
+  - provider: context.file.extract
+    priority: 3
+    budget_pct: 25
+    params:
+      extract: full
+    label: target module source
+
+  ## available file.* routines for reference ##
+  - provider: context.modules.list
+    priority: 4
+    budget_pct: 10
+    params:
+      namespace: "base.file"
+    optional: true
+    label: available base.file modules
+
+  ## fix instructions ##
+  - static: |
+      migrate raw perl file I/O in the scoped modules to the native
+      protocol-7 file.* / base.file.* routines. this is the apply half of
+      file-io-audit.yaml — if an audit already ran, use its findings as the
+      worklist instead of re-scanning from scratch.
+
+      ## round budget: aim for 15-25 tool rounds max ##
+      ## call task_complete when key migrations are applied ##
+
+      ## scope ##
+      {{scope}}
+
+      ## patterns to migrate ##
+
+      raw open for reading:
+        open my $fh, '<', $path
+        → <[file.slurp]>->($path)   [ returns \$content, not a filehandle ]
+        → <[file.zenka_dir.load]>->($rel_path)   [ for /var/protocol-7/<zenka>/ ]
+
+      raw open for writing:
+        open my $fh, '>', $path  /  print {$fh}  /  close $fh
+        → <[file.put]>->($path, \$content)
+        → <[file.zenka_dir.write]>->($rel_path, \$content)
+
+      raw unlink:
+        unlink $path
+        → <[file.zenka_dir.unlink_file]>->($rel_path)   [ zenka var dir files ]
+
+      raw mkdir:
+        mkdir $path
+        → leave to <[base.path-set-up.check-zenka-paths]> during init_code
+        [ do not hand-roll mkdir in request-path code ]
+
+      raw path resolution:
+        Cwd::abs_path($path) / string-concatenated "$root/$path"
+        → resolve via the same funnel as reads/writes above, not a parallel
+        ad-hoc abs_path call — the goal is one path-handling convention per
+        module, not per-line patches
+
+      ## when raw I/O stays as-is — do not touch ##
+      - /proc/ filesystem reads [ pid verification ]
+      - pipe opens for command execution [ open -| ]
+      - temporary files created and removed in the same scope
+      - IPC::Open3 pipes [ stdout/stderr capture ]
+
+      ## process ##
+
+      ### step 1: worklist ###
+      if audit findings were provided, use them directly. otherwise
+      read_file the scoped module(s) and locate raw I/O patterns per the
+      list above.
+
+      ### step 2: apply, one pattern at a time ###
+      for each finding:
+      1. read_file for full surrounding context [ don't guess at call sites ]
+      2. replace_in_file with the exact native replacement
+      3. re-read the changed region to confirm the replacement composes
+         correctly with surrounding code [ e.g. slurp returns a scalar ref,
+         not a filehandle — callers dereferencing `<$fh>` need to change too ]
+
+      ** PRESERVE $ARG and @ARG — NEVER revert to $_ or @_ **
+      be careful:
+      - do not change I/O semantics while migrating [ if a write was
+        truncating, `file.put` should still truncate; if appending,
+        confirm the native call's append behavior matches ]
+      - do not silently add path-traversal permissiveness or restriction —
+        if the raw code rejected absolute paths, the native call replacing
+        it should still reject them, and vice versa; flag any mismatch
+        rather than resolving it unilaterally
+      - one path-handling convention per module: if a module mixes
+        `Cwd::abs_path` in one place and raw string concatenation in
+        another, converge both onto the same native call, don't leave one
+        raw path style behind
+      - ptd_check the modified module after each file
+
+      ### step 3: summary ###
+
+      ## file-io migration report ##
+
+      **modules migrated**: N
+      **patterns replaced**: N [ N reads, N writes, N unlinks, N path-resolution ]
+      **skipped / flagged**: N [ semantic mismatch found, needs human call ]
+
+      ### migrations applied ###
+      for each: module, raw pattern → native replacement, any caveat noted
+
+      call task_complete with counts.
+    priority: 5
+    budget_pct: 50
+    label: file I/O fix instructions
+
+on_complete:
+  - when: [output_contains=modules migrated]
+    action: memory_update
+    topic: "fix:file-io-patterns"
+
+#,,,,,,,.,,.,,,..,,.,,,..,...,.,.,,,.,...,,,.,..,,...,.,.,...,...,.,.,...,...,
+
+#,,.,,,.,,.,.,.,.,.,,,.,.,..,,.,,,,,,,,,,,,..,..,,...,...,,,,,..,,,,.,,.,,.,.,
+#7LFLLILOOQPCY42DDOLH3SPWBBBPKVLG3TZ7UH6LXDWJURDPMT6OILSSVEIIN2WI2CKQSRXV5E7ZK
+#\\\|656Y22GJSBTZWPFCTNDCBVLLZ3QCEP4HMVEIHTKVMG5JRYZWP5F \ / AMOS7 \ YOURUM ::
+#\[7]PDDPOPTFZ7M7SQ7ACXUO3NQQZ6XGKPNFHDATJCGVZYDKDGOFUMBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
