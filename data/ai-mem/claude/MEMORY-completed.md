@@ -5,6 +5,11 @@ session archive index and current live-system status (queue/roadmap, resolved bu
 ## Completed Sessions
 - [topic-completed](topic-completed.md) — all session summaries (Feb 2026 → present)
 - [httpd route-arg parsing fix](topic-httpd-route-arg-parsing-fix.md), [jobsite stray-job recovery](topic-jobsite-stray-recovery.md) — LANDED 20bdf36ff / a52a6a4b8
+- [coding-zenka resilience + model switch](project-coding-zenka-resilience-and-model-switch-2026-07-21.md) —
+  LANDED b9689d5ad..047c5d338: ask-reply timeout/backend-key bugs, default model switched to
+  ZDMAPAY:AR3OCKQ (vision-capable, VRAM-tuned), self-test retry+restart resilience (2 bugs found
+  live-testing the fix itself), bin/ptd exclusion regex, SUGGESTION-INTEGRATION-QUEUE.md marked
+  blocker-level. task-append backend-lock-leak bug diagnosed + unstuck live, NOT yet code-fixed.
 
 ## System Status
 - [next-steps](topic-next-steps.md) — queue, roadmap
@@ -53,8 +58,8 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   base.strm.subscribe's own publisher-restart re-affirm gap (STRM, dispatched to kimi k3,
   independently re-verified) across two consecutive cred-mesh/proxy restart cycles.
 
-#,,.,,.,,,.,,,,.,,,.,,...,,,,,..,,.,,,,,.,.,,,..,,...,...,,..,,..,.,,,...,.,.,
-#536OWEA4DKALQWQUY3K2J7HM3QCVKVXQ55EHSU6D4HIWVWF2XBSW5RZHZPG3VXRPHX6IUEXNFK2FQ
-#\\\|IOPEXWWZ52EHDCD7YRZBV4WXCIBPHXPMZUZOYPDQEHECGAGSQRB \ / AMOS7 \ YOURUM ::
-#\[7]SUAJDSKPFPMABPDQYVWNNLR4VVVZ2S35B32BUKAOSSPRHVDGZKBY 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,..,,,,,,,,,,..,,,.,,..,,.,,.,.,..,,...,...,...,,.,,,..,,.,,,..,
+#CCR2TRDKZZRTMQ22Q5BN6ESMCKBQ5IXINZAECQWN6BOHMWG2ZDC7N5N4KEWPQRKH2LTOLXFJDCIQI
+#\\\|CFUZ2QVQAZAX555AVVJB2IHQVEJN3D4GXZJD7R5MUYFKXTN3URS \ / AMOS7 \ YOURUM ::
+#\[7]FOUDGOAKCQ6NULWQGKIVF3J7AZA4JOF7RNF77AOQVRY4CDZASKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
