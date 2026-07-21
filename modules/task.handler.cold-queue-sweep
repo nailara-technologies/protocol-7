@@ -1,0 +1,94 @@
+## [:< ##
+
+# name  = task.handler.cold-queue-sweep
+# descr = periodic sweep : find un-integrated summary-tree entries and
+#         mark them integrated when the cold-queue gate says GPU is cool
+#         [ or when notify-timing debounce elapsed, on GPU-less nodes ]
+
+my $entries = <task.summary_tree.entries> // {};
+
+## collect un-integrated entries ##
+my @pending
+    = grep { not $entries->{$_}->{'integrated'} } keys %{$entries};
+
+if ( not @pending ) {
+    <[base.logs]>->( 4, 'cold-queue sweep : no un-integrated entries' );
+    return 0;
+}
+
+my $now = <[base.time]>->(2);
+
+## gate precedence : force override -> gpu gate -> debounce fallback ##
+my $gate_mode;
+my @eligible;
+
+if ( defined <task.cold_queue.force_at>
+    and $now >= <task.cold_queue.force_at> ) {
+
+    ## manual override active : fire regardless of temperature ##
+    $gate_mode = 'force';
+    @eligible  = @pending;
+    <task.cold_queue.force_at> = undef;    ## clear after firing ##
+} elsif (<task.cold_queue.gpu_available>) {
+
+    ## gpu gate : sustained cool over the last N local samples ##
+    $gate_mode = 'gpu';
+    my $need      = <task.cfg.gpu_cold_samples> //= 5;
+    my $threshold = <task.cfg.gpu_cold_temp_c>  //= 45;
+    my $buf       = <task.stats.gpu.temp.sparkline_buf> // [];
+    my $load_5s   = <task.stats.gpu.temp.load_5s>;
+
+    my $cold = FALSE;
+    if ( @{$buf} >= $need ) {
+        $cold = TRUE;
+        for my $temp ( @{$buf}[ -$need .. -1 ] ) {
+            if ( $temp > $threshold ) { $cold = FALSE; last }
+        }
+        $cold = FALSE
+            if $cold
+            and defined $load_5s
+            and $load_5s > $threshold;
+    }
+    @eligible = $cold ? @pending : ();
+} else {
+
+    ## debounce fallback : per-entry notify-timing on GPU-less nodes ##
+    $gate_mode = 'debounce';
+    my $debounce    = <task.cfg.cold_debounce_secs> //= 120;
+    my $last_notify = <task.cold_queue.last_notify> //= {};
+
+    @eligible = grep {
+        my $entry = $entries->{$_};
+        my $key   = sprintf( '%s|%s',
+            $entry->{'source'} // '',
+            $entry->{'focus'}  // '' );
+        my $last = $last_notify->{$key};
+        not defined $last or ( $now - $last ) >= $debounce;
+    } @pending;
+}
+
+## mark eligible entries integrated ##
+my $flipped = 0;
+for my $chk (@eligible) {
+    $entries->{$chk}->{'integrated'} = TRUE;
+    $flipped++;
+    <[base.logs]>->(
+        1,
+        ':. task cold-queue integrated [chk=%s source=%s focus=%s gate=%s]',
+        $chk,
+        $entries->{$chk}->{'source'} // '-',
+        $entries->{$chk}->{'focus'}  // '-',
+        $gate_mode
+    );
+}
+
+## persist once if anything flipped ##
+<[task.persist.summary_tree.save]> if $flipped;
+
+return 0;
+
+#,,..,,..,.,.,.,,,.,,,,.,,,..,.,.,,.,,.,.,,,.,..,,...,..,,.,.,.,,,,,,,...,...,
+#6DDYMSUHUF2T6Y6UULR5Z6OYABVYKRUKNSKVZYVRG55Z33LROTKNLXKECAPTTKKLW37GCZZGCQI4W
+#\\\|JPOB3ON4DXZUWXOQJ5PBDYL6WRSUHSS3XQWO65JFNH25DIDS6OG \ / AMOS7 \ YOURUM ::
+#\[7]3JAOJRO74PEUZHD625RRSGA6QFYTTFRZAV3UUBGER5U4PSCPSUDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

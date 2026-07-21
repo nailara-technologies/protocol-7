@@ -61,6 +61,11 @@ if ( length $origin_raw ) {
     'integrated' => FALSE,
 };
 
+## record last-notify timestamp [ cold-queue debounce fallback key ] ##
+my $notify_key = sprintf( '%s|%s', $source, $focus // '' );
+<task.cold_queue.last_notify> //= {};
+<task.cold_queue.last_notify>->{$notify_key} = <[base.time]>->(2);
+
 <[task.persist.summary_tree.save]>;
 
 <[base.logs]>->(
@@ -70,8 +75,8 @@ if ( length $origin_raw ) {
 
 return { 'mode' => 'true', 'data' => "stored $chk" };
 
-#,,.,,,,.,.,,,..,,,.,,,,,,...,...,,.,,,,,,,,,,..,,...,...,..,,...,.,.,,,.,.,.,
-#S62DJXG2L5FET2MLAVTDYALVTAYNVMEGFOOZABGNKJAY3K5HB42BXU6V5SPBMYJ76RG7G7G422YYS
-#\\\|VKNIHJGW2SPE7PRLNLG5F564QXA5E5INSQDFCI4WXOHPX3X43JF \ / AMOS7 \ YOURUM ::
-#\[7]D2WW2LX5KDDXGYBWI4OCA3BOCIREE6YKNR2FVSSWRIR3V4JUS4DA 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,,..,,,.,.,.,,,.,,.,,...,.,,,..,,..,,...,...,,,.,.,,,.,.,..,,,,.,
+#T6FCDFE34OVNDSTBZ7RCWUCRS4YGMM7JDVQA4JNUEI6P4BZ7QU2BCKHL742CEDLEP7IB4VTXX3F7Q
+#\\\|2LLEAO5OLT6GPWLZSHUYTSY7QQLD47VHPCXOLXNK4C7C5SWKZLO \ / AMOS7 \ YOURUM ::
+#\[7]KPS2L65YUQ72K4SKC76PA4DZOCFMRTWWYHK3MIZJ5TSZJ4DPYMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
