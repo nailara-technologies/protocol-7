@@ -49,13 +49,43 @@ for my $prompt_def (@prompts) {
     my $start      = <[base.time]>->(9);
     my $ttft_start = $start;
 
-    my $result = <[coding.tools.http_inference_client]>->(
-        {   url      => $url,
-            model_id => $model_id,
-            prompt   => $prompt_text,
-            timeout  => $timeout,
-        }
-    );
+    ## http_inference_client is a one-shot blocking call with no lock/retry ##
+    ## of its own [ unlike coding.async.request's backend_acquire + retry-  ##
+    ## once-on-5xx via http_error ] -- a transient 5xx right after a fresh  ##
+    ## server spawn [ observed live, twice ] would otherwise hard-fail      ##
+    ## self-test permanently instead of being absorbed like a real task's   ##
+    ## request would be. one retry, same 5xx/connection-failure class as    ##
+    ## http_error's match, short delay, never retries a genuine 4xx/encode  ##
+    ## error that a retry can't fix                                        ##
+    my $result;
+    my $max_retries = 1;
+    for my $attempt ( 0 .. $max_retries ) {
+        $result = <[coding.tools.http_inference_client]>->(
+            {   url      => $url,
+                model_id => $model_id,
+                prompt   => $prompt_text,
+                timeout  => $timeout,
+            }
+        );
+
+        last if $result && $result->{'mode'} eq qw| true |;
+        last if $attempt >= $max_retries;
+
+        my $err = $result->{'data'} // '';
+        last unless $err =~ m{^http_5\d\d$} or $err eq qw| request_failed |;
+
+        <[base.logs]>->(
+            1,
+            '[self_test] prompt %d : model %s : retrying after %s '
+                . '[attempt %d/%d]',
+            $prompt_id,
+            $model_id,
+            $err,
+            $attempt + 1,
+            $max_retries
+        );
+        select( undef, undef, undef, 0.5 );    ## short backoff ##
+    }
 
     my $ttft    = 0;
     my $total   = 0;
@@ -176,8 +206,8 @@ return {
     data => $summary,
 };
 
-#,,,,,,.,,,..,.,,,...,,,.,..,,,..,.,,,..,,.,,,..,,...,...,,,.,,,.,.,,,.,,,..,,
-#M362JAUWUELCEYWH5OVXPTDZ457WZ74F2O3IRS3XPQG3FHJ6DEUOYCA72UOWTOSCYQPZVMKG3GRV6
-#\\\|4APQ4TISN4UGJSN264SUNS7CS7FKZVZWLBPPN6Y7D22PUDLKKWR \ / AMOS7 \ YOURUM ::
-#\[7]ZP475W7RRKTIGW5FKEYQXFJME6CGTIVBHOZOPL3PFXF3HQW7WICI 7  DATA SIGNATURE ::
+#,,..,...,..,,.,.,,,.,.,,,,,,,,.,,,,.,,,.,..,,..,,...,...,...,,..,,..,.,,,.,,,
+#JVLZC6LVCJB3VGFZXNVEKAPOIDQPB7VW4S2J5GU64N2ZBRWBPJHNUA4GAEOMPO3YBSKY2SY3MRYYS
+#\\\|EW7TIK4CPWLQKEHE7HXOYNTMLBCKTDAVHEV25OSKE5RJ45FZCUC \ / AMOS7 \ YOURUM ::
+#\[7]JPKCKRZF5FHD7UNQ5FP3JGWMNRY73LOZQZKGAHMVCMOXZCDMFSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

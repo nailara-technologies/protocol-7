@@ -87,7 +87,11 @@ coding.jinja.enable = yes
 ## qwen3.5: data/jinja/templates/qwen3.5-fixed.jinja [ froggeric bug fixes ] ##
 ## qwen3.6: data/jinja/templates/qwen3.6-fixed.jinja                         ##
 
-# coding.jinja.template_file = /data/projects/protocol-7/data/jinja/templates/qwen3.5-fixed.jinja
+## enabled : current default (ZDMAPAY:AR3OCKQ, Qwopus3.5 9B v3) has          ##
+## general.architecture = qwen35 [ confirmed from its own GGUF metadata ] -- ##
+## the fix is architecture-scoped, not vanilla/distill-specific, and its    ##
+## own built-in template is still the standard ChatML+<think> structure     ##
+coding.jinja.template_file = /data/projects/protocol-7/data/jinja/templates/qwen3.5-fixed.jinja
 
 ## reasoning effort [low|medium|high] : empty = model default [ no kwarg sent ] ##
 ## low prevents runaway <think> spirals; use medium/high for complex tasks      ##
@@ -209,7 +213,17 @@ coding.cfg.vision_switch_idle_timeout = 300
 ## Model Configuration ##
 ## Context length: floor value — auto-calculated from VRAM, but never below this  ##
 ## smaller models expand above this automatically; large models use this as a min ##
-inference.model.context_length = 52000   ## doubled for multi-round tool sessions ##
+## lowered from 52000 : calculate_safe_context's own auto-calc for the current     ##
+## vision-capable default (ZDMAPAY:AR3OCKQ) came out to ~29020, but the 52000      ##
+## floor overrode it [ "user override" in the startup log ], and even 29020        ##
+## wouldn't have been fully safe -- calculate_safe_context accounts for the        ##
+## mmproj FILE size but not the vision encoder's separate runtime compute buffer   ##
+## [ observed failing: 558MB CUDA alloc OOM during vision warmup, only 188MB free  ##
+## at 52000 ]. 28000 tokens frees ~985MB of KV cache vs. 52000 [ 42KB/token *9B    ##
+## class KV estimate ], comfortably covering the missing margin. revisit per-model ##
+## if a future default is text-only and could again afford a much higher floor     ##
+inference.model.context_length = 28000
+## inference.model.context_length = 52000 ## [ prior value, doubled for multi-round tool sessions -- unsafe for vision-capable defaults, see above ##
 ## inference.model.context_length = 32000 ## [ temporary override ] ##
 #inference.model.max_tokens = 32000  ## defaults to context_length if unset
 inference.model.temperature = 0.7
@@ -218,7 +232,11 @@ inference.model.seed = 0  ## 0 = harmonic seed from ntime+fortuna, >0 = fixed ##
 ## VRAM safety margin for context auto-calculation (calculate_safe_context) ##
 ## safety = 30% of remaining VRAM, clamped to [min, max]                    ##
 coding.cfg.vram_safety_min_mb = 300   ## lower to allow larger context windows ##
-coding.cfg.vram_safety_max_mb = 3000  ## cap to reserve VRAM for other use     ##
+## raised 3000 -> 4000 : calculate_safe_context doesn't budget for a vision ##
+## encoder's runtime compute buffer (only the mmproj file's static size),   ##
+## this margin is the practical place to absorb that gap for any current or ##
+## future vision-capable default, not just the context_length floor above   ##
+coding.cfg.vram_safety_max_mb = 4000  ## cap to reserve VRAM for other use     ##
 
 ## context ceiling for auto-calculation — 0 = uncapped (VRAM math decides) ##
 ## code default is 131072; override here for this system                   ##
@@ -262,8 +280,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,,.,,.,,.,.,...,,,,,.,,,,,,,,,.,.,.,...,.,.,.,.,...,...,...,,,.,.,,,.,.,.,,,
-#4253LBIETJQDYFM7KJVUZCR7BWDB7FXQM2FUY3M2FWGEA5XN2JP6TSF2MLO62PJ7YWQ2ZSBDRYAIW
-#\\\|W3ODV6QPCUUMN4JKMN53BONXMPB3ZX6M4YHYFYX2EP6XKJEZI7S \ / AMOS7 \ YOURUM ::
-#\[7]IKN43NG5WGTZIBDUVYUA54D4KNHWUFLOOH6ZYPVR37R277K3VICI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,.,.,,,.,..,,,..,..,,,.,,,.,,,,.,.,.,...,...,.,.,.,.,...,,.,,,,.,
+#3GPROY44ATTXWOFMSZEME7BGSQV7RXR5PKJBND3IF352J3THOZQHV73S56JUOIL5OHZ3YQDESQTQG
+#\\\|N7BPTIIKM7NC43EJUQZT5CWAEO4GBCFWGPWG4YOSAZMWWM6OMWN \ / AMOS7 \ YOURUM ::
+#\[7]JEX4I5ANLF2OLEQSC63VXICWWEOKR42JOKSMPC7LNDMCVYUUL6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -125,11 +125,92 @@ if (
                 '[monitor_startup] skipping auto self-test : switch-driven cycle in progress'
             );
         } else {
-            <[coding.self_test.run]>->(
-                {   model_id => $server->{'model'} // '',
+            my $test_model_id = $server->{'model'} // '';
+            my $st_result     = <[coding.self_test.run]>->(
+                {   model_id => $test_model_id,
                     url      => $server->{'url'},
                 }
             );
+
+            ## cat-test (prompt_id 2) tier1 structural failure : restart the ##
+            ## server rather than just recording the fail. seed=0 [ the      ##
+            ## configured default ] derives a fresh harmonic seed from       ##
+            ## ntime+fortuna on every spawn, so a plain restart already      ##
+            ## gives a different seed -- no separate seed-forcing needed.    ##
+            ## guarded against looping forever on a genuinely broken model:  ##
+            ## caps at coding.cfg.self_test_seed_retry_max attempts per      ##
+            ## model_id, reset on any clean self-test pass                  ##
+            my $cat_failed = FALSE;
+            if ( ref $st_result eq qw| HASH | and $st_result->{'data'} ) {
+                my $data = $st_result->{'data'};
+                if ( not $data->{'all_passed'} ) {
+                    for my $r ( @{ $data->{'results'} // [] } ) {
+                        $cat_failed = TRUE
+                            if ( $r->{'prompt_id'} // 0 ) == 2
+                            and not $r->{'passed'};
+                    }
+                }
+            }
+
+            ## NOTE: deliberately NOT nested under <coding.self_test> -- that ##
+            ## hash is the self-test ARCHIVE ( epoch => model_id => record ), ##
+            ## keyed entirely by numeric epoch timestamps [ see              ##
+            ## coding.self_test.archive / coding.self_test.cmd.self-test-     ##
+            ## status ]. a sibling string key there breaks status's numeric  ##
+            ## epoch comparison [ confirmed live : "argument 'seed_retry_    ##
+            ## count' isn't numeric in numeric gt (>)" ]. use a separate,    ##
+            ## non-colliding top-level key instead                          ##
+            <coding.self_test_seed_retry_count> //= {};
+            if ($cat_failed) {
+                my $retry_max = <coding.cfg.self_test_seed_retry_max> // 2;
+                my $retries
+                    = <coding.self_test_seed_retry_count>->{$test_model_id}
+                    // 0;
+
+                if ( $retries < $retry_max ) {
+                    <coding.self_test_seed_retry_count>->{$test_model_id}
+                        = $retries + 1;
+                    <[base.logs]>->(
+                        0,
+                        '[monitor_startup] cat-test failed for %s : '
+                            . 'restarting for a fresh seed [attempt %d/%d]',
+                        $test_model_id,
+                        $retries + 1,
+                        $retry_max
+                    );
+
+                    ## spawn_servers_deferred only spawns what ISN'T already ##
+                    ## running -- scheduling the timer alone does nothing if ##
+                    ## the server still looks up and ready [ confirmed live: ##
+                    ## "deferred spawn: GPU server already running, skipping" ##
+                    ## ]. mark it for restart and clear the cached pid first, ##
+                    ## same recipe coding.callback.http_error's working       ##
+                    ## restart path already uses                             ##
+                    $server->{'status'} = qw| restart_needed |;
+                    <inference.gpu_pid> = 0 if $backend eq qw| gpu |;
+                    delete <coding.awaiting_resources>
+                        if <coding.awaiting_resources>;
+
+                    <[event.add_timer]>->(
+                        {   'after'   => 0.5,
+                            'handler' =>
+                                qw| coding.handler.spawn_servers_deferred |,
+                            'data' => { 'reason' => 'self_test_cat_failure' }
+                        }
+                    );
+                } else {
+                    <[base.logs]>->(
+                        0,
+                        '[monitor_startup] cat-test still failing for %s '
+                            . 'after %d seed retries : giving up, leaving '
+                            . 'server as-is',
+                        $test_model_id,
+                        $retry_max
+                    );
+                }
+            } else {
+                delete <coding.self_test_seed_retry_count>->{$test_model_id};
+            }
         }
 
         ## reset dependency object (may have been marked failed by a previous
@@ -221,8 +302,8 @@ if ( $bytes <= 0 ) {
     }
 }
 
-#,,,.,..,,...,.,.,,,.,.,,,.,,,,,.,,..,.,,,,.,,..,,...,..,,...,,.,,.,.,,,,,,..,
-#WK5W36P2GGDKVZHWW4P3C7NDOEFQHDOWR4FG2WTTUTJZV54UJF3XWUVKYT4MADAY32RJ2KHXGNZ7Q
-#\\\|E3NKZ27GIBWPBJEISHMW3TQS6S2RC4ADXXAPZG5GVEJYQZPQAWN \ / AMOS7 \ YOURUM ::
-#\[7]VDDGHU4MJ6C2TV6THHFDKQFTX3OAVDGAYKYMSILRWVBA32ANJADI 7  DATA SIGNATURE ::
+#,,..,.,,,..,,.,,,..,,,.,,,,.,..,,.,,,,..,...,..,,...,...,,..,,,,,,.,,..,,,..,
+#DNJQHBKYJGFUA4SOWEACWBQCPS3CJGITAS4OCJPVC6DNLZ2WSAD6SYXN7G4BBPW62THVEXKFKHVCS
+#\\\|VZ7WV4OAFHDM2G776YY2LEAZ2CION5CUIV3MB6I7RXIA5L2L2LG \ / AMOS7 \ YOURUM ::
+#\[7]OGLP7IGUTPRTMOAIQBAMG76N2BT7YXUJ3XSOUITVTKJADVMTDMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
