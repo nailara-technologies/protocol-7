@@ -123,15 +123,69 @@ reframe for the whole thing: not "trust pipeline" but coherent-enough internal p
 (other people's code, external content, external hints) doesn't destabilize it — isolation was never the goal,
 it's structurally impossible for an open system built on others' work by construction.
 
-## status
-pure discussion, no code written. the containment/taint axis and the forensics-zenka *filtering* role (distinct
-from "trust promotion," see correction above — filtering still has real value: reducing what raw content a
-session is exposed to at all) are the actual open threads. see also [[write-access-security-infrastructure]]
-(signature-gated approvals/PIN/review UI — a different, complementary mechanism: that one gates *write
-actions* on approval, this one scopes *what's even reachable* per task/profile before approval would apply).
+## a formal design doc now exists
+`data/md/design/CODING-ZENKA-ACCESS-PROFILES.md` formalizes this into a phased implementation plan (Opus-drafted,
+grounded in real code: `coding.tools.dispatch` never receives `task_id`, three incompatible per-handler path-
+resolution styles already exist, `chmod_child` escalation must be gated before write-check fires). key discovery
+during that pass: axis-1 (ownership/reachability) needs **no new declaration mechanism** — it's already structural
+via `modules/base.path-set-up.check-zenka-paths` (`<var_P7|etc_P7>/<zenka-name>/`, chowned to that zenka's own
+unix user). axis-2 (taint/provenance declaration channel) remains the one genuinely open piece.
 
-#,,,.,.,,,...,...,,..,,,,,...,.,.,..,,,,,,,,.,..,,...,..,,,..,.,.,...,,..,,..,
-#G6VWZKWSEDTUVH57IDRDX2YFKTS33JK3T6HVSOIQWY4A3MM7BXKA25RZIO2FG3YUNGR34EEREWFOK
-#\\\|6TBFIVXK7IICHYUCMDWIATRIRYZJCAPR7D6QWL6RTXNS42B67SJ \ / AMOS7 \ YOURUM ::
-#\[7]36NO7ER5MW434DPMSWNO5U5OQVZZWWEX6X3BW3EYPBRJYDCWCABI 7  DATA SIGNATURE ::
+## the base.file abstraction was built for exactly this — and several coding-zenka call sites broke out of it
+`base.file.open`/`base.file.read`/`base.file.put` (and `<[file.*]>` aliases) already exist as a single funnel for
+all filesystem touches — user confirms this was deliberate: the intent all along was a dynamically mappable
+zenka-internal filesystem (at minimum for repo files) that could transparently reroute to "whatever is most
+desirable / available at any given time" — local disk today, but the same funnel is exactly where the layers
+below plug in later, once implemented, with zero per-call-site rewrite needed elsewhere.
+
+confirmed several coding-zenka file-tool handlers broke out of it with raw perl instead of routing through the
+abstraction: `context.file` and `insert_line`/`replace_line`/`delete_lines` use raw `open my $fh, ...`;
+`write_new_file`/`remove_file` use raw `Cwd::abs_path` directly rather than `base.file.path.validate` or similar.
+implication for the access-profiles design doc (`data/md/design/CODING-ZENKA-ACCESS-PROFILES.md`): phase 1
+shouldn't just gate these raw calls in place with a new parallel checker — it's the natural moment to migrate
+them onto `<[file.*]>`, so the profile/access-check logic and the future dynamic-source-rerouting share one
+funnel instead of the coding zenka growing a second, competing one.
+
+## four enforcement/source layers for reachability, foundational to most-capable, in order of how much already exists
+0. **inline `__DATA__` bootstrap subroutines (exists today, `bin/Protocol-7`'s trailing `__DATA__` block —
+   `base.parser.pattern_split`, `base.protocol-7.source-key`, etc.).** bootstrap code embedded directly in the
+   executable, available with zero I/O before any filesystem tree or network connection exists — the layer
+   beneath even local disk. a roaming zenka (see STDIN/STDOUT item below) landing on a fresh host with nothing
+   installed still has this to bootstrap from. intent (per user, this message): upgrade these to be layer-compatible
+   with the same internal-FS abstraction, so "give me module X" can transparently mean "check inline-embedded, else
+   local disk, else network source delivery, else multiplexed stream" through one accessor.
+1. **filesystem/unix permissions (today's practical layer, this whole design doc).** most zenki share one user
+   (`system.amos-zenka-user = protocol-7`); httpd/httpsd/p7-ssh already have their own (`<zenka>.system.user` in
+   their `start` files) via a fully-working auto-creation chain (`root.drop_privs` → `base.root.check_system_user`
+   → `useradd --system`, with a preferred-UID map in `configuration/system-user-map`, e.g. `protocol-7 = 777`).
+   generalizing to "every zenka has its own user, small groups sharing one where sensible" is populating config,
+   not building infrastructure.
+2. **network-mediated signed source delivery (partially exists now).** the `source` zenka
+   (`modules/source.cmd.get-code-signed`) already delivers individual named modules over the network, C25519-signed
+   and verified per request — no filesystem read access to the file required at all. as this generalizes past
+   `modules/*` to arbitrary files, "read scope" for a profile can mean "which names will source hand to this
+   requester," checked per delivery, rather than "which directories can this uid `stat()`". a zenka could be
+   chrooted away from the shared source tree entirely and still function. tighter fit for translucent-layering
+   than a directory grant: every crossing individually checked, not just gated by a boundary.
+3. **STDIN/STDOUT IO multiplexing (planned, long-standing intent — zero code exists yet, but not a passing idea).**
+   user has been thinking about this feature for years; not yet written down as its own design doc. direction:
+   stdio upgraded to a full multiplexing protocol so a zenka could ssh into a remote box with **no protocol-7
+   installation present at all** and still be a complete zenka — config, subroutines, network access all carried
+   over the multiplexed stream from the home instance. once it exists, this would be the tightest fit of the three:
+   no local filesystem, no local install, nothing outside one auditable stream. flagged here as a pointer toward a
+   future dedicated design doc — worth writing that up properly on its own terms rather than as a footnote here.
+
+## status
+pure discussion until the design doc above; that doc is now the actionable artifact (phases 1–5). the
+containment/taint axis, the forensics-zenka *filtering* role (distinct from "trust promotion," see correction
+above — filtering still has real value: reducing what raw content a session is exposed to at all), and the
+taint-declaration channel (open question in the design doc) are the remaining open threads. see also
+[[write-access-security-infrastructure]] (signature-gated approvals/PIN/review UI — a different, complementary
+mechanism: that one gates *write actions* on approval, this one scopes *what's even reachable* per task/profile
+before approval would apply).
+
+#,,,,,,.,,,..,.,.,,..,,..,,..,..,,.,.,,,,,,,,,..,,...,..,,...,,,.,,,.,.,.,,,,,
+#GYYWPRNYU7NSRLFPE5F7NJGSC7AHPHNFPM26SEUV3VY3XHJLL3JFNCBLT2LKWEIWJUZRCWRE55JNG
+#\\\|YYNBG5PX2FH7AKM52XK2RW73GITBTWYBW2R7P5TVD5SYNJG5FCM \ / AMOS7 \ YOURUM ::
+#\[7]7EK2L4XA3W3CX7OWAWMGW3MT4XCMCGFBVZCR5IE6K5LVKQQRXEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
