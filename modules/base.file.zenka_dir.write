@@ -98,29 +98,6 @@ if ( -d $file_abs_path ) {
     return undef;
 }
 
-if ( $open_mode_str eq qw| > | and -f $file_abs_path ) {
-
-    if ( not unlink($file_abs_path) ) { ## removing file [ overwrite mode ] ##
-        <[base.s_warn]>->(
-            'unlink[ %s ] : %s',
-            $filepath_rel, <[base.str.os_err]>
-        );
-        <[base.s_warn]>->(
-            "file write aborted [ %s ] <{C1}>",
-            $file_abs_path
-        );
-        return undef;
-    }
-}
-
-my $fh = <[file.open]>->(
-    $file_abs_path, $encoding_str, $open_mode_str, TRUE, $file_mode
-);
-if ( not defined $fh or not length fileno($fh) ) {
-    <[base.s_warn]>->( "file write aborted [ %s ] <{C1}>", $file_abs_path );
-    return undef;
-}
-
 my ( undef, undef, $uid, $gid ) = getpwnam $current_zenka_username;
 
 ## override gid when zenka has a configured group [ e.g. drop_privs to ##
@@ -129,6 +106,83 @@ if ( defined <system.zenka-group.current> ) {
     my ( undef, undef, $override_gid )
         = getgrnam <system.zenka-group.current>;
     $gid = $override_gid if defined $override_gid;
+}
+
+## overwrite mode : write to a same-filesystem temp file then rename()  ##
+## over the target - atomic replace, no unlink-then-open window where  ##
+## a crash mid-write leaves the path missing instead of intact-old-or- ##
+## intact-new                                                          ##
+if ( $open_mode_str eq qw| > | ) {
+
+    ## file.temp always appends the zenka name to whichever dir it is  ##
+    ## given - pass the un-prefixed parent so the temp file lands on   ##
+    ## the same filesystem as $file_abs_path [ rename() only requires  ##
+    ## same filesystem, not same directory ]                           ##
+    my $tmp_base_dir
+        = $global_config_path
+        ? $zenka_dir_href->{'etc_P7'}
+        : $zenka_dir_href->{'var_P7'};
+
+    my ( $tmp_fh, $tmp_path )
+        = <[file.temp]>->( 'X' x 13, $tmp_base_dir, FALSE );
+    if ( not defined $tmp_fh ) {
+        <[base.s_warn]>->(
+            "file write aborted [ temp file creation failed for %s ] <{C1}>",
+            $file_abs_path
+        );
+        return undef;
+    }
+
+    binmode( $tmp_fh, $encoding_str ) if length $encoding_str;
+    print {$tmp_fh} $content_sref->$*;    ##  writing content to file  ##
+
+    if ( not close($tmp_fh) ) {
+        <[base.s_warn]>->(
+            "error on closing temp file [ %s ] : %s <{C1}>",
+            $tmp_path, <[base.str.os_err]>
+        );
+        unlink($tmp_path);
+        return undef;
+    }
+
+    chmod( $file_mode, $tmp_path );
+
+    my $tstat = File::stat::stat($tmp_path);
+    if ( ( $tstat->uid != $uid or $tstat->gid != $gid )
+        and not chown( $uid, $gid, $tmp_path ) ) {
+        <[base.s_warn]>->(
+            'chown [%d:%d] %s : [ %s ] <{C1}>',
+            $uid, $gid, $tmp_path, <[base.str.os_err]>
+        );
+        unlink($tmp_path);
+        <[base.s_warn]>->(
+            "file write aborted [ %s ] <{C1}>",
+            $file_abs_path
+        );
+        return undef;
+    }
+
+    if ( not rename( $tmp_path, $file_abs_path ) ) {
+        <[base.s_warn]>->(
+            'rename [ %s -> %s ] : %s <{C1}>',
+            $tmp_path, $file_abs_path, <[base.str.os_err]>
+        );
+        unlink($tmp_path);
+        return undef;
+    }
+
+    ##  returning ammount of characters written  ##
+    return length $content_sref->$*;
+}
+
+## non-overwrite mode [ e.g. append ] : atomic-replace does not apply, ##
+## open the target directly as before                                 ##
+my $fh = <[file.open]>->(
+    $file_abs_path, $encoding_str, $open_mode_str, TRUE, $file_mode
+);
+if ( not defined $fh or not length fileno($fh) ) {
+    <[base.s_warn]>->( "file write aborted [ %s ] <{C1}>", $file_abs_path );
+    return undef;
 }
 
 my $fstat = File::stat::stat($file_abs_path);
@@ -161,8 +215,8 @@ if ( not close($fh) ) {
 ##  returning ammount of characters written  ##
 return length $content_sref->$*;
 
-#,,,,,,..,,,.,,..,..,,,,,,.,,,,.,,,,,,..,,..,,..,,...,...,,,.,,..,,..,,,,,..,,
-#53P3FSLCZTDHGKC35OHFJNK3IWDFSRC37BLLSKXFAY3NCRXQ4UWLYQIAFITWZQBZBZVGKPGWO7HNK
-#\\\|F3ADQTLOD4VID3TZL2CTECAHQVPLOTHZTUOCBSCOW33UVSZFODP \ / AMOS7 \ YOURUM ::
-#\[7]OYG5MLMNA7ISEJ2JPUHPII3HORXGQ4PWO5PFDFNU5633ZQBNIQBY 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,,.,,..,,,,,,,,.,..,,..,,,.,,,,,,..,,...,...,,.,,,,,,,..,,.,,,.,,
+#MMVB26K5PWBPYSLXBDSDVSXFHKB2EVLKIH6A2XD7CXAJVX75WEYRBRIJVQVU77LZRYUFGUBMCL6K4
+#\\\|KQXGTY2MBKFTMX77EZJFSC32J6YRODS3SHIQKE4TZRTIWBWGHFV \ / AMOS7 \ YOURUM ::
+#\[7]JW6HCGIDJJWULKNBFYSOY2FJ2GZGYP24NIA4HJFS2BM5ZWPHY4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

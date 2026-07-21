@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = task.cmd.trigger-cold-queue
+# descr = manual override : force cold-queue processing now or
+#         after [delay_seconds], ignoring measured GPU temperature
+# usage = p7c task.trigger-cold-queue [delay_seconds]
+
+my $args = $call->{'args'} // '';
+$args =~ s{^\s+|\s+$}{}g;    ## trim whitespace ##
+
+my $delay;
+if ( not length $args ) {
+    $delay = 0;
+} elsif ( $args =~ m|^\d+$| ) {
+    $delay = 0 + $args;
+} else {
+    return {
+        'mode' => 'false',
+        'data' => 'delay_seconds must be a non-negative integer'
+    };
+}
+
+## cancel any pending force timer ##
+<task.cold_queue.force_timer>->cancel
+    if defined <task.cold_queue.force_timer>
+    and <task.cold_queue.force_timer>->is_active;
+
+if ( $delay == 0 ) {
+
+    ## immediate force : target reached now, sweep fired right away ##
+    <task.cold_queue.force_at> = <[base.time]>->(2);
+    <[task.handler.cold-queue-sweep]>;
+    return { 'mode' => 'true', 'data' => 'cold-queue forced immediately' };
+}
+
+## delayed force : one-shot timer, flag covers the fire time ##
+<task.cold_queue.force_timer> = <[event.add_timer]>->(
+    {   'after'   => $delay,
+        'handler' => 'task.handler.cold-queue-sweep',
+    }
+);
+<task.cold_queue.force_at> = <[base.time]>->(2) + $delay;
+
+return {
+    'mode' => 'true',
+    'data' => sprintf( 'cold-queue force scheduled in %ds', $delay )
+};
+
+#,,.,,,,.,..,,.,.,.,.,...,,,,,..,,...,..,,,..,..,,...,...,,.,,.,.,,,,,,,.,...,
+#5WOGNJCIRJSMHG5MJ25M5OWYL6Y2FUWGWSKYNHMUK3B6PN4BLVQKBCXBWMOMQFAKTEECYMBXNBCG2
+#\\\|S3PKAMNJKHFGEAA5GHP4372YJAPNPQ65H7HJ3PVSQPL4DF73WP6 \ / AMOS7 \ YOURUM ::
+#\[7]RQYYLF6Z5M44W5TUTPKWQSTBPN3H3MDAGWQDF3VJZHEGTGZODKAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
