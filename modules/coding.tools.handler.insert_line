@@ -53,9 +53,14 @@ if ($apply) {
     } else {
         my $stage_name = $abs_path =~ s{/}{__}gr;
         my $stage_path = "/var/protocol-7/coding/staged/$stage_name";
-        open my $fh, ">$norm_encoding", $stage_path;
-        print {$fh} @lines;
-        close $fh;
+
+        ## stage the FULL file with the insertion already applied, not just ##
+        ## the inserted line -- @lines already has it spliced in above, and ##
+        ## each element retains its own trailing newline [ split /^/m ], so ##
+        ## a plain join reproduces exactly what `print {$fh} @lines` did    ##
+        my $full_content = join '', @lines;
+        <[file.put]>->( $stage_path, \$full_content );
+
         return
               sprintf "SUCCESS: staged insert before line %d in %s"
             . " [ staged at: %s ]"
@@ -68,8 +73,8 @@ if ($apply) {
 return sprintf "preview: would insert before line %d\n  content: %s",
     $line_num, $content;
 
-#,,.,,,,.,,..,...,..,,,,.,,,.,...,,.,,,,,,,..,..,,...,...,,,,,.,,,,.,,.,.,,..,
-#K5ZEXUKXOUDUZOKPYF4GIXPWLPLTH6DTDP6XD4KWS3DZ5TN4JMHST3UKTJDTPXVGKISR4AVSVQ4F2
-#\\\|LIFNB4QOF7TMUARNDOYHXCQB7AN76JO4FLAYZQWWA6TZ5EI7ISS \ / AMOS7 \ YOURUM ::
-#\[7]YG3SOZRR5TZXFHZ2YHOJUHNQQRRH37ZLMB2V3GZID7P4XVHQVMCQ 7  DATA SIGNATURE ::
+#,,,.,,.,,...,,.,,,,.,.,,,,..,.,.,,,.,...,.,,,..,,...,...,...,,,.,,..,,..,,,,,
+#IZQVXIH6XU77AHW2DQQAXOKB4U5W7VJMJ726EGE4U2KQYRPF3ORKMV4F4C6WVAEFJKVHKNTRUVQGW
+#\\\|OAW3UZVBOQVIUETKFBA6JZDKSXKWM2TRO43WZOS33Y2WURU3BMJ \ / AMOS7 \ YOURUM ::
+#\[7]SXKLZE2IUWIASRZ5MRDZ6WPSKWSOGRCANA3UT5AZOIDXJHVQKSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
