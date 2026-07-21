@@ -1,0 +1,25 @@
+#!/bin/bash
+
+## usage: notify-gone <path> [poll_interval_seconds]
+## blocks until <path> no longer exists, then exits [ e.g. watching a
+## download's .part file disappear when the transfer completes/renames ]
+
+path="$1"
+interval="${2:-2}"
+
+if [ -z "$path" ]; then
+    echo "usage: notify-gone <path> [poll_interval_seconds]" >&2
+    exit 1
+fi
+
+until [ ! -e "$path" ]; do
+    sleep "$interval"
+done
+
+echo "gone: $path"
+
+#,,..,..,,.,.,.,,,.,.,,,,,.,.,,,,,...,...,.,.,..,,...,...,.,,,..,,..,,,..,.,,,
+#I3FJWNLBFTT5VJYB4DIJPCMMDU2RZBPTEQ2UCAQEU7PLTDQ4OQF2HWBNFERZY4AK5XGUPXZXBOEXS
+#\\\|GFO2XCMWVSZUBMC5TY67SIZ3XJF74G2RTW7MT7QZTMFYAHEZJXC \ / AMOS7 \ YOURUM ::
+#\[7]I7WFYQUIV6S767O5YQKNCW2DDEFVL7NP7B24LXOV3FYKUXOYTCAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
