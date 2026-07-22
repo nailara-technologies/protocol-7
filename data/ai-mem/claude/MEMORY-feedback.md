@@ -38,9 +38,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [swap-subs-not-fragile](feedback-swap-subs-not-fragile.md) — base.swap_subs whitelist only gates lazy-load, not safety; real gap is missing canonical doc of active swaps
 - [init-reports-one-shot-flush](feedback-init-reports-one-shot-flush.md) — system.init_reports flushes once at connect only; deferred-reply/live-runtime sends need system.callbacks.initialized or direct route-send instead
 - [undef-sub-scanner-verification](feedback-undef-sub-scanner-verification.md) — check eval-wrapping/guards + grep for sprintf-constructed dynamic dispatch before renaming anything; scanner has zero reachability analysis
+- [v7-zenka-startup-config-placement](feedback-v7-zenka-startup-config-placement.md) — zenka-startup.v7 keys must be top-level not inside a ':' section, or v7 never sees them; v7.reload config doesn't re-parse the file, need v7.reload all/init
 
-#,,.,,,,.,..,,,,.,,..,,,,,,..,.,,,,.,,.,.,,..,..,,...,...,.,.,,..,.,.,,,.,,,.,
-#4AOW473CCUGOPRZFGS2XNGU2V6XWCVUS45PNB3HNAEJKZBIMX6C662SP7ISVGIW3JCHFUHFHFLSCI
-#\\\|MHCTGRCCX2HZLVC63UKVSIZUBK7UAPRH23E475YJ4YGISJAMOTO \ / AMOS7 \ YOURUM ::
-#\[7]4PLJB2MADJ5VZZCQCK5QDF6DOD72VDQXU5ZARTV5TDUYHV7QZKDY 7  DATA SIGNATURE ::
+#,,,.,,..,...,,..,.,.,,,.,,,,,.,.,.,.,,..,.,.,..,,...,..,,...,..,,,,.,,,,,,..,
+#7J45DGM6VHMAIG4W467INYDBJB4H65YCFEOQMWDPLTGC5SSVTRQLVKXIIJHNADUFVAKLABLUGQWHM
+#\\\|3GXXRBYKMDEUGA5PO4ZUAJ4Z4IIWUHCAC4RVVHIV7XM7V2IEAVT \ / AMOS7 \ YOURUM ::
+#\[7]IAWDW2Y4ZCLGKT5O3ECCYK23OLX7JWY6ICR5AVUWCDPP4AWODYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
