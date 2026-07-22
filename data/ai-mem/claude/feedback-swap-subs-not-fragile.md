@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: feedback
   originSessionId: 2d7f74d1-9a12-4f1d-a522-f128bdffe22d
-  modified: 2026-07-19T17:37:00.589Z
+  modified: 2026-07-22T22:53:30.556Z
 ---
 
 `base.swap_subs`-based namespace aliasing (e.g. `base.strm.subscribe` ->
@@ -37,8 +37,25 @@ missing canonical "active namespace swaps" reference as a real
 documentation debt worth fixing (see [[project-swap-subs-doc-gap]] if
 that memory exists, otherwise this is the seed of it).
 
-#,,..,.,.,,,,,.,,,...,,,.,,.,,..,,..,,,,.,..,,..,,...,...,...,.,,,,.,,.,.,.,,,
-#35FOBS7PUB3APUUVDTDYITYVCQAZZFEQFH3JTAIMVSTG4W7FXZSQ6POMEWZRU5ZMZMXKJMIPKSPHI
-#\\\|2W4GWX7NWG3YCZ3ISQFIV43TKVLXC7Q7FGQDPRPIBIDTNJ7WWMY \ / AMOS7 \ YOURUM ::
-#\[7]POGVM4C6ZJKPKUWQ3X34PVJ6ZWJSHGHTXNFVGN4YC36R2PY6KECA 7  DATA SIGNATURE ::
+**Concrete miss, 2026-07-23** (log-anonymization phase 1 landing,
+`dbd7ca8ba`): wrote new `p7-log.anon.store`/`.resolve` code calling
+`<[base.file.zenka_dir.data_path]>`, the pre-swap name — `base.file.
+pre_init` swaps the whole `base.file.*` group to `file.*`, so the live
+callable is `<[file.zenka_dir.data_path]>`. Also nearly "fixed" a
+correct call (`<[chk-sum.bmw.L13-str]>`, already post-swap) by reverting
+it back to the pre-swap `base.chk-sum.bmw.L13-str` — user caught it
+before it landed. Rule of thumb before calling any `base.X.Y` primitive
+from new code: `ncode s src:base.X swap_subs` first to check whether
+that group gets renamed at init, and call the post-swap name if so.
+Separately, this session's whitelist gap (new `base.file.zenka_dir.
+data_path` reference wasn't in `p7-log`'s `subroutine.white-list`) was
+fixed by hand-editing the file rather than running `bin/dev/gen-sub-
+whitelist <zenka>` (confirmed still present on disk) — worked fine for
+this one-line addition, but the script is the canonical tool and should
+be preferred for anything bigger.
+
+#,,..,,,.,.,.,.,.,..,,,.,,...,,,,,.,,,,.,,,..,..,,...,...,,,,,.,.,,,.,..,,.,,,
+#JQVOVZWABTF4N5BE7OAI7HHCYFVSK6DTZD3ATZQQBF5EUWKCFWDLU56G6XPW73XCBOMYVN42K76T6
+#\\\|A6XCCOEA6ZKEZPQUYRILVOH5KGDAAHSW4LPMFUIHSAFH7W6JBZ7 \ / AMOS7 \ YOURUM ::
+#\[7]WFJ5FW4W3RJJSVGEKDH3SQ67V272TAB3GBW5SPQIWJTXI4TFXYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
