@@ -39,9 +39,12 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [init-reports-one-shot-flush](feedback-init-reports-one-shot-flush.md) — system.init_reports flushes once at connect only; deferred-reply/live-runtime sends need system.callbacks.initialized or direct route-send instead
 - [undef-sub-scanner-verification](feedback-undef-sub-scanner-verification.md) — check eval-wrapping/guards + grep for sprintf-constructed dynamic dispatch before renaming anything; scanner has zero reachability analysis
 - [v7-zenka-startup-config-placement](feedback-v7-zenka-startup-config-placement.md) — zenka-startup.v7 keys must be top-level not inside a ':' section, or v7 never sees them; v7.reload config doesn't re-parse the file, need v7.reload all/init
+- [swap-subs-not-fragile](feedback-swap-subs-not-fragile.md) — base.X→X swap safe/mechanical, but check `ncode s src:base.X swap_subs` before calling any base.* primitive from new code, or you'll call the pre-swap dead name
+- [eval-error-macro-call-site](feedback-eval-error-macro-call-site.md) — reading $EVAL_ERROR inline as an arg at a `<[...]>` call site can come back empty; capture into a lexical (or use `<[base.str.eval_error]>`) immediately after eval
+- [kimi-dispatch-idle-timeout-recovery](feedback-kimi-dispatch-idle-timeout-recovery.md) — MCP 1800s-idle "failed" ≠ dispatch failed; underlying process often finishes fine, recover via session_catchup(client:kimi, session_id) not re-dispatch
 
-#,,,.,,..,...,,..,.,.,,,.,,,,,.,.,.,.,,..,.,.,..,,...,..,,...,..,,,,.,,,,,,..,
-#7J45DGM6VHMAIG4W467INYDBJB4H65YCFEOQMWDPLTGC5SSVTRQLVKXIIJHNADUFVAKLABLUGQWHM
-#\\\|3GXXRBYKMDEUGA5PO4ZUAJ4Z4IIWUHCAC4RVVHIV7XM7V2IEAVT \ / AMOS7 \ YOURUM ::
-#\[7]IAWDW2Y4ZCLGKT5O3ECCYK23OLX7JWY6ICR5AVUWCDPP4AWODYAA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,,.,,,,,.,,,.,.,...,.,,,..,,.,,,..,,...,...,,,.,.,.,..,,...,,.,,
+#MNPJWDFZZD6EEASWYZTEMG6XNQ57VB5N4TWZQVN2PYEU7NHBD2JGN444YQSAM7XQESEU4JOJSXNSQ
+#\\\|LOOARQH75N36G5PR4D4CSF4COTDSACVHVG6NYLHYO6B4MRVSH46 \ / AMOS7 \ YOURUM ::
+#\[7]L5BCQIYYBSE5O7W7TWZ3QZEAHU2HENEBPDCUOA6FQ4CQA5DWGSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

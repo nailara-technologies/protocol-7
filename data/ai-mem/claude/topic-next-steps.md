@@ -5,8 +5,37 @@ metadata:
   node_type: memory
   type: project
   originSessionId: 56cce73a-933a-4992-96e4-4d88e138e8f6
-  modified: 2026-07-19T07:47:39.302Z
+  modified: 2026-07-22T22:56:35.241Z
 ---
+
+## done (2026-07-23)
+
+- **log-anonymization phase 1** ✓ (`dbd7ca8ba`, kimi K3 dispatch, timed
+  during a weekly-token-reset window — was queued since 2026-07-19) —
+  `p7-log.anon.*` (renamed from spec's `log.anon.*`: module group lives
+  inside the `p7-log` zenka, not a standalone zenka). classify/replace/
+  store/resolve + p7-log wiring, opt-in via `p7-log.anon.enabled`.
+  home-root detection made configurable (`p7-log.anon.home_roots`,
+  default home+users) instead of hardcoded `/home/`. table storage moved
+  to `/var/protocol-7/p7-log/` via `file.zenka_dir.data_path` instead of
+  a source-tree-relative path (would've collided with `git reset`/clean
+  in dev). two real bugs caught by live round-trip testing, not syntax
+  check: swapped-name mismatch (`base.file.zenka_dir.data_path` vs live
+  `file.zenka_dir.data_path`, see [[feedback-swap-subs-not-fragile]]) and
+  an `$EVAL_ERROR`-read-at-macro-call-site bug (see
+  [[feedback-eval-error-macro-call-site]]). live-verified end to end
+  twice (both home-root prefixes, real encrypted table, `p7c p7-log.
+  resolve <checksum>`). phases 2-5 (timestamp/sign/full-encrypt, entropy
+  classifier) still design-only. task archived to `data/tasks/completed/
+  log-anonymization.md` with status notes.
+- **ncode-zenka-modules.md confirmed already fully implemented** — kimi
+  K3 dispatch (parallel with the above) found all modules already built
+  in earlier sessions (2026-07-17/20), made no changes, live-reverified
+  `p7c ncode.search`/`.doc`/`.parse-headers`. archived to `data/tasks/
+  completed/`. See [[feedback-kimi-dispatch-idle-timeout-recovery]] for
+  how this was confirmed despite the dispatch's MCP call itself timing
+  out after 1800s idle (underlying kimi process finished normally;
+  `session_catchup` recovered the result).
 
 ## done (2026-07-19)
 
@@ -400,8 +429,8 @@ what it should actually invoke.
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,,.,.,,,,,.,,,.,...,,..,,..,,.,,,,,,.,.,.,,,..,,...,...,.,.,.,.,,..,,..,..,,
-#4R2YAZJGQ3U2UZTFSRVP5JXCGLJ2P66XJDQSFMR27WAOXI3DR7NW2TEG7BQAUA3KWGOTK7YC2BQW6
-#\\\|TZ5TQXNLXKBCIYVXDDDZQKDZO7YXJ6KCCRZG5DP7RNSFRRLC5AR \ / AMOS7 \ YOURUM ::
-#\[7]76ZAQJPKYJJAUNX2VURQPEXS54B6BGO5FMB72NP74NXLTLXMTUCY 7  DATA SIGNATURE ::
+#,,..,,..,,,,,...,.,,,,..,...,.,,,.,,,,..,,.,,..,,...,...,.,,,.,.,.,.,...,,..,
+#37IMBHKHKLMVUOOKN5R6EHAT7WB6HXRYWYSE2QYCPME7U4NCNAIYL7KBVLNVRJW2OSMGU4J34TAUE
+#\\\|WIR222M5TVHAK3AYM2EWIDXGXYJIIBEJEOUOTOBK57NS443BQT2 \ / AMOS7 \ YOURUM ::
+#\[7]YWTA4TJR3J2OJZRFO7PZMONVKVB6KFYFHFFG3QJ4BTY6FQCZFIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
