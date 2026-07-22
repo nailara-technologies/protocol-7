@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = p7-log.anon.resolve-line
+# descr = resolve every [L:<checksum>] token in a log line
+#         [ unresolvable tokens are left as-is, never dropped ]
+
+my $line = shift // '';
+
+return $line if not length $line;
+
+$line =~ s{(\[L:[A-Z2-7]{8,13}\])}{
+    my $plaintext = <[p7-log.anon.resolve]>->($1);
+    ( defined $plaintext and $plaintext ne qw| 0 | ) ? $plaintext : $1;
+}ge;
+
+return $line;
+
+#,,,.,.,,,,..,,,,,,..,..,,,.,,,..,.,,,..,,.,.,..,,...,...,.,.,..,,..,,,..,,,.,
+#ENAQOOWXEIIFX7UA3O4CFXWLPBW7T6VNZI4YQGMWVY72BWQWWKMCJ46CN7FKHPLJIZLUXXM2F76E4
+#\\\|FCZ4CB3HISOF7ZJGJTAWGGW7VUQSHFWFIO4IZL2C3F6O5VMJCGX \ / AMOS7 \ YOURUM ::
+#\[7]JS7Q5AQCQMOF3GMFBUDQYPQG6TOJJVSM6ZMLJ3D6TMSRWWK23MAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
