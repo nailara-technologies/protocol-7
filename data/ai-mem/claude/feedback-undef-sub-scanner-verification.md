@@ -1,6 +1,6 @@
 ---
 name: undef-sub-scanner-verification
-description: methodology for safely evaluating and fixing scanner-flagged "undefined subroutine" references before converting or renaming anything
+description: methodology for safely evaluating scanner-flagged "undefined subroutine" references; also covers the separate subroutine.white-list lazy-load-gate failure mode and console_report's default-off visibility gap
 metadata:
   type: feedback
   originSessionId: 5c95ba04-6293-4ece-a4ae-455aa1095528
@@ -72,12 +72,44 @@ gap needing a `modules.load` addition, needs [[base.code.call_expected]]
 `base.code.call_optional` (no expectation either way, silent skip), or a
 dead/unwired caller worth flagging back rather than silently fixing.
 
+**6. A sub missing from `%code` at runtime has two distinct possible
+causes — don't conflate them.** This scanner/`clear_from_disk` path is one
+(a genuine compile-time gap). The other, separate mechanism:
+`bin/Protocol-7`'s `p7_early_whitelist_load` (~line 374) loads each
+zenka's own `configuration/zenki/<name>/subroutine.white-list` *before*
+base modules even compile, and uses it to gate which subs get fully
+compiled at all vs. deferred/skipped (lazy-load, not a reporting/
+suppression list — confirmed live 2026-07-22: a new cross-namespace sub
+that compiles perfectly cleanly still resolved to "Can't use an undefined
+value as a subroutine reference" at its call site because it wasn't yet
+listed in the *calling* zenka's own whitelist file, so the loader deferred
+it and the hash key was never populated at all). Symptom difference: a
+whitelist-gated-out sub produces "undefined **value**" (bare `$code{name}`
+key never set); a genuine compile failure produces the `bin/Protocol-7`
+stub's "called broken/undefined **routine**" message instead (see the
+stub-installation code around line ~2050 — only fires when compilation is
+*attempted*, so it never fires for a whitelist-skipped sub). When a newly
+added cross-namespace call dies at a fresh zenka boot: check both — does
+it compile at all (search `undef-subs` buffer / compile-time warnings),
+**and** is it actually present in the calling zenka's own
+`subroutine.white-list` (regenerated via `bin/dev/gen-sub-whitelist`, not
+hand-edited).
+
+Also worth knowing: `ae6b1f79b` (2026-07-20) gated `undef-subs` buffer
+console/log visibility behind `base.referenced_subroutines.console_report`,
+**default off** for every zenka including `v7` — so a genuine scanner
+finding is now silent by default unless a zenka explicitly opts in. For
+`v7` specifically (a boot-time failure there takes down the whole fleet's
+ability to start anything, categorically worse than for any other zenka),
+turning `console_report` on via `v7`'s own config is worth doing
+deliberately rather than leaving it at the same default as everything else.
+
 See also [[topic-auth-client-namespace-split]] for the concrete namespace-
 split case this methodology was built around, and [[feedback-ncode-tools]]
 for a caveat on `ncode replace` hit during the same session.
 
-#,,..,...,,..,,,.,.,,,,.,,..,,,.,,.,.,,,,,,,,,..,,...,...,..,,.,.,,,,,,,,,.,.,
-#GXCWSKWTHMULYNKUMWDTI5UG4PQYPPHH6P7BGBWC3RLRTXY7R3FTY3TCQX3DM3JWFYHBWPPBX7ZSQ
-#\\\|C2PJOSYYFSE7YBJ6QI32HLMNEZVAIRMBQO2TLZJRTZOIRVNBCW7 \ / AMOS7 \ YOURUM ::
-#\[7]DOZR7ZXRSBGYIMLLGFCNWMT4JDBWSPVYR6XTKV2YE2SIWSYL5EDA 7  DATA SIGNATURE ::
+#,,..,,.,,...,..,,.,.,...,.,,,,,.,,.,,.,.,,,,,..,,...,...,,..,.,.,,,.,.,,,...,
+#7RAIFC3P336XNBEV2WJR73YD2BVMIK775KHJVNFODMT5H6KU4YULYQZZAR7YLL5XBP3CMZ5DJRFJM
+#\\\|UMN7LKJAMUZQE6VD7MCM4X45KPTWR5CE6TFUWTQUPYHMDJZJVKL \ / AMOS7 \ YOURUM ::
+#\[7]PNF36H52KQ54RVBQG4DHAMFIIFCLX5ET2BB7SOK55RQJVMZ5MWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

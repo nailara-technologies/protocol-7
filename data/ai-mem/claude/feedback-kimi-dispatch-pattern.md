@@ -41,6 +41,35 @@ task prompt (3-5KB) can produce 10+ modules of implementation from kimi.
   web frontend, not as the MCP return value from ask-reply — fire and watch the frontend
 - Review kimi output for known issues: fake signature stubs, `base.log` vs
   `base.logs`, `my $call` redeclaration, `sprintf qw|...|` misuse
+- **`sprintf qw|...|` misuse, precise mechanism** (confirmed live 2026-07-22,
+  a real bug that took v7's own boot down): `sprintf`'s prototype is `($@)`
+  — its *first* syntactic argument is forced into scalar context. A
+  multi-word `qw()` list in scalar context evaluates via comma-operator
+  semantics and collapses to its **last element only** — so
+  `sprintf( qw| foo.bar %s %s |, $a, $b )` does NOT become
+  `sprintf('foo.bar', '%s', '%s', $a, $b)` as flattening intuition
+  suggests; the `qw()` collapses to just `'%s'` (its last word) *before*
+  becoming the format string, `$a` fills that lone placeholder, `$b` is
+  silently dropped. Verified with `perl -e` (`sprintf(qw|a b|,"X")` → `b`,
+  not `a` or `X`).
+
+  **Not a reason to flag every `sprintf(qw|...|)` call** — a single-word
+  `qw| [cmd:%s] |`-style format (no internal whitespace, so nothing for
+  scalar context to collapse) is a genuinely safe, established idiom in
+  this codebase (taeki uses it routinely) and is almost certainly *why*
+  kimi reached for the pattern at all — it's pattern-matching on real,
+  correct, pervasive surrounding style. The trap is specifically the
+  generalization step: extending a safe single-word idiom to a multi-word
+  phrase, where the single-word constraint that made the original safe
+  isn't visible from the pattern itself. Even taeki has hit this
+  expanding-a-known-safe-idiom trap before, hence now deliberately
+  restricting `sprintf qw|...|` to single-word formats only.
+
+  **How to review**: grep `sprintf( *qw\|` across every changed file, then
+  check *only* whether each hit's `qw()` content contains internal
+  whitespace (multi-word = broken, single-word = fine) — don't flag single-
+  word hits, and don't skip checking just because the surrounding file
+  uses the idiom safely elsewhere.
 - User signs and stages; Claude commits — keeps the flow fast
 - Kimi can work autonomously on tasks while waiting for token reset
 - **Parallel tasks (pre-queue-module)**: open multiple kimi-cli browser tabs as
@@ -68,8 +97,8 @@ task prompt (3-5KB) can produce 10+ modules of implementation from kimi.
   other task instruction — it does this well when asked (see the
   `base.swap_subs` write-up added 2026-07-11) but won't do it unprompted.
 
-#,,,,,,,.,,..,,..,..,,,,.,..,,..,,.,.,,..,,,.,..,,...,...,..,,,,,,,,.,,,.,...,
-#3Z732UXLKBB5IIJ6C2OZJVBRPDCSW3IUDB7HWSRZWBY7MRXFQAP3S3RZRMWDBURSCCE2KJFCIA4IQ
-#\\\|JX2MRI72LBNIU7ULBIVZJWHXLCRSJQU2TUXDFMHIKQ3PKALTZZV \ / AMOS7 \ YOURUM ::
-#\[7]JW5AE3QP47JLFDHIVYV2SOQ2MN5UCIHFMSU57MQ6JLKYIZ2HAUDA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,.,,,,.,...,,,.,.,,,..,,...,,.,,..,,...,...,.,,,.,.,,,,,,,,,.,.,
+#SAQ67IY2EBQ6XSGD7PKMIXVRCI2HIKLNEE26T3CSNAPLQ4I2Q6ZETJLVUP2LKGDJKJHOG4JXS4LMI
+#\\\|AQ3OUT5QXU25ZL2B5PASICT5ULCCHLOFEQ5YIQNAHJJMWPW4TES \ / AMOS7 \ YOURUM ::
+#\[7]UO2FCVBZ2VUKC24WXLWOJB3ZU3FDUUB54GMHQDDCC3QVBMZGUEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
