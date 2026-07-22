@@ -6,7 +6,19 @@
 #         keeps full bandwidth and is investigatable without decryption.
 #         sensitive context is recoverable on demand in situ.
 
-## status [ 2026-07-22 ] — phase 1 DONE, live-verified; phases 2-5 not started
+## status [ 2026-07-23 ] — phase 1 + resolve-line DONE, live-verified; rest of phase 2 and phases 3-5 not started
+
+`p7-log.anon.resolve-line` / `p7-log.anon.cmd.resolve-line` added
+(2026-07-23, direct implementation, not dispatched -- small enough to
+write in-session): resolves every `[L:<checksum>]` token in a full log
+line in place, unresolvable tokens left as-is rather than dropped. bare
+alias `p7c p7-log.resolve-line` also works (same auto-registration as
+`p7-log.resolve`). live-verified with a real two-token line, both tokens
+resolved correctly. this closes out the "log.anon.cmd.resolve command /
+resolve-line reconstruction / p7c integration" bullets from the
+implementation-phases section's phase 2 -- entropy-based classification
+(the *other* phase 2, from the sensitive-data-classification section)
+remains unbuilt, as do phases 3-5.
 
 phase 1 implemented (kimi K3 dispatch): `p7-log.anon.classify/.replace/
 .store/.resolve/.cmd.resolve/.init_code/.transform/.key` — note the
@@ -279,8 +291,8 @@ verify: enable anon, run a command with a file path argument, confirm log
 shows `[L:XXXXXXXX]` in place of path, `p7c log.anon.resolve XXXXXXXX`
 returns the original path.
 
-#,,,.,,,.,.,,,,,.,,,,,...,,.,,.,.,..,,.,,,.,.,..,,...,...,...,,.,,...,...,..,,
-#MUELN37DGN5O4AAHPIXM3SIANZIPCIBZQLZ66Q5ZSQN6CXQMCWCOJ5UKZB4UZ6VME52ASLMTUOUH2
-#\\\|RAYZ43VI72XUVEMDDO4XEFFUNPMEDSDHZ4QBVPUP7H5QMZH6RBQ \ / AMOS7 \ YOURUM ::
-#\[7]3QBVLQ4DNWW5UVSFP2KTP2WOIY6BGG5QDYEHIGMMUN7A67IVRMBI 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,...,.,,,.,,,,,,,,,,,.,.,,,,,.,.,..,,...,...,..,,,.,,,.,,,,,,,,,,
+#5IV6ERN53GYNRIQTGDYOBTON7FLS7HOIAYRU2IVLVDMQ5M4KAFOPWRNAKR7BYZN574FBVNGBADLAW
+#\\\|YAMNX3XM6I65QB7ZVYUFGOLRSQQJS4J3MCCYOXFDDM74WPA4VHJ \ / AMOS7 \ YOURUM ::
+#\[7]G72AT5UTLJ6LZTRW6DBUJ4HUQKMZTBA4BOVJVA4WXHJDL6GNQUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
