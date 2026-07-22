@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = p7-log.anon.cmd.resolve-line
+# param = <full anonymized log line>
+# descr = resolve every [L:<checksum>] token in a log line
+
+my $args = $call->{'args'} // '';
+
+return { 'mode' => qw| false |, 'data' => 'usage : resolve-line <line>' }
+    if not length $args;
+
+my $reconstructed = <[p7-log.anon.resolve-line]>->($args);
+
+return { 'mode' => qw| size |, 'data' => $reconstructed . "\n" };
+
+#,,..,..,,.,,,...,...,..,,.,.,.,,,,..,.,.,,,,,..,,...,...,...,...,...,,,,,,,.,
+#JQHBJBLMEPJNWMYXLLXAUXJJXO4KPCRJIJQ7R4ZGB4OQ7736Y4XRCNSF4SMQSQEZBKBCEFHYWBFVG
+#\\\|XFL45T2K34SBSCP5AP6LMY4NVOLC6OK5LO3HWNS7QJX4UPWWGSA \ / AMOS7 \ YOURUM ::
+#\[7]MVTTHTDKEZ2UZUSTKCTERSYEDWJHOTFF2AP3AWRCAIDH5E4EZOBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
