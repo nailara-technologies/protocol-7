@@ -89,8 +89,8 @@ coding.jinja.enable = yes
 
 ## enabled : current default (ZDMAPAY:AR3OCKQ, Qwopus3.5 9B v3) has          ##
 ## general.architecture = qwen35 [ confirmed from its own GGUF metadata ] -- ##
-## the fix is architecture-scoped, not vanilla/distill-specific, and its    ##
-## own built-in template is still the standard ChatML+<think> structure     ##
+## the fix is architecture-scoped, not vanilla/distill-specific, and its     ##
+## own built-in template is still the standard ChatML+<think> structure      ##
 coding.jinja.template_file = /data/projects/protocol-7/data/jinja/templates/qwen3.5-fixed.jinja
 
 ## reasoning effort [low|medium|high] : empty = model default [ no kwarg sent ] ##
@@ -100,9 +100,12 @@ coding.inference.reasoning_effort = medium
 coding.jinja.convert_tool_role = false
 
 ## GPU+CPU Dual Inference Configuration ##
-inference.backend.lib_path = /data/source/ik_llama.cpp
+inference.backend.lib_path = /data/source/ik_llama.cpp-rebuild-out
 inference.backend.gpu.enabled = yes
-inference.backend.gpu.binary = /data/source/ik_llama.cpp/llama-server-cuda-fa
+inference.backend.gpu.binary = /data/source/ik_llama.cpp-rebuild-out/llama-server-cuda-fa-rebuild
+## rollback: revert both lines above to /data/source/ik_llama.cpp and      ##
+## /data/source/ik_llama.cpp/llama-server-cuda-fa if the rebuilt binary    ##
+## misbehaves - the old binary/libs are untouched at that original path    ##
 inference.backend.gpu.vram_threshold = 3221225472  ## 3GB in bytes
 ##                                            [ Gemma3 Glitter is 2.21GB ] ##
 inference.backend.gpu.gpu_layers = 33  ## Full offload for RTX 3060 ##
@@ -183,9 +186,9 @@ coding.cfg.round_soft_ceiling = 384
 ## practice on this WSL setup), not a vendor spec number.                 ##
 coding.cfg.gpu_target_temp_c = 77
 
-## prefill-time estimate used to scale the data-start timeout for large   ##
+## prefill-time estimate used to scale the data-start timeout for large    ##
 ## prompts : timeout = est_prompt_tokens / prefill_tokens_per_sec + margin ##
-## tune prefill_tokens_per_sec down if timeouts persist on long contexts  ##
+## tune prefill_tokens_per_sec down if timeouts persist on long contexts   ##
 coding.cfg.prefill_tokens_per_sec = 600
 coding.cfg.prefill_margin_sec     = 5
 
@@ -211,8 +214,8 @@ coding.cfg.switch_model_max_wait = 300
 coding.cfg.vision_switch_idle_timeout = 300
 
 ## Model Configuration ##
-## Context length: floor value — auto-calculated from VRAM, but never below this  ##
-## smaller models expand above this automatically; large models use this as a min ##
+## Context length: floor value — auto-calculated from VRAM, but never below this   ##
+## smaller models expand above this automatically; large models use this as a min  ##
 ## lowered from 52000 : calculate_safe_context's own auto-calc for the current     ##
 ## vision-capable default (ZDMAPAY:AR3OCKQ) came out to ~29020, but the 52000      ##
 ## floor overrode it [ "user override" in the startup log ], and even 29020        ##
@@ -229,13 +232,13 @@ inference.model.context_length = 28000
 inference.model.temperature = 0.7
 inference.model.seed = 0  ## 0 = harmonic seed from ntime+fortuna, >0 = fixed ##
 
-## VRAM safety margin for context auto-calculation (calculate_safe_context) ##
-## safety = 30% of remaining VRAM, clamped to [min, max]                    ##
+## VRAM safety margin for context auto-calculation [calculate_safe_context]    ##
+## safety = 30% of remaining VRAM, clamped to [min, max]                       ##
 coding.cfg.vram_safety_min_mb = 300   ## lower to allow larger context windows ##
-## raised 3000 -> 4000 : calculate_safe_context doesn't budget for a vision ##
-## encoder's runtime compute buffer (only the mmproj file's static size),   ##
-## this margin is the practical place to absorb that gap for any current or ##
-## future vision-capable default, not just the context_length floor above   ##
+## raised 3000 -> 4000 : calculate_safe_context doesn't budget for a vision    ##
+## encoder's runtime compute buffer (only the mmproj file's static size),      ##
+## this margin is the practical place to absorb that gap for any current or    ##
+## future vision-capable default, not just the context_length floor above      ##
 coding.cfg.vram_safety_max_mb = 4000  ## cap to reserve VRAM for other use     ##
 
 ## context ceiling for auto-calculation — 0 = uncapped (VRAM math decides) ##
@@ -249,10 +252,10 @@ coding.cfg.context_max = 38777
 
 inference.model.amos_id = <coding.cfg.start_model>
 
-## not declared here : resolved at init via async network request to models  ##
-## zenka [ coding.resolve_model_path -> coding.handler.model_path_reply ] —  ##
-## a placeholder value here would get re-applied [ clobbering the resolved   ##
-## path ] every time 'reload config'/'reload all' re-parses this file        ##
+## not declared here : resolved at init via async network request to models ##
+## zenka [ coding.resolve_model_path -> coding.handler.model_path_reply ] — ##
+## a placeholder value here would get re-applied [ clobbering the resolved  ##
+## path ] every time 'reload config'/'reload all' re-parses this file       ##
 
 modules.load = auth.client net protocol io.unix io.ip ui jobqueue crypt.C25519 \
                coding models.conversation storage context ascii \
@@ -280,8 +283,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,.,,,,,,.,.,.,.,,,.,..,,,..,..,,,.,,,.,,,,.,.,.,...,...,.,.,.,.,...,,.,,,,.,
-#3GPROY44ATTXWOFMSZEME7BGSQV7RXR5PKJBND3IF352J3THOZQHV73S56JUOIL5OHZ3YQDESQTQG
-#\\\|N7BPTIIKM7NC43EJUQZT5CWAEO4GBCFWGPWG4YOSAZMWWM6OMWN \ / AMOS7 \ YOURUM ::
-#\[7]JEX4I5ANLF2OLEQSC63VXICWWEOKR42JOKSMPC7LNDMCVYUUL6AA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,..,,.,,,..,..,,,.,,,,,,.,,,.,.,.,.,...,...,...,..,,.,.,...,,.,,
+#5JU7AZLFAEZOCEHYO2QBGWMV36ZBFNNUBRIISYJYTBP3QSI6RNURUI6EZWP4MMIJM6SPD3OEPHRYQ
+#\\\|QUINUMDH6525AMU4AZLFCILJZHVCWX76MKNJ7OZNBJGGP3NBDUU \ / AMOS7 \ YOURUM ::
+#\[7]PALXAQLXEA2DWO3ZTNNBYESNDTOQIU2HO6UFWNY25VQQM4LJHADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
