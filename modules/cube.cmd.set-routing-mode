@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = cube.cmd.set-routing-mode
+# descr = cube-side routing_mode mirror [ pushed by v7 ]
+# param = <zenka-name> [ routing_mode | blank ]
+# note  = no mode given : reset to default [ contact-oldest ]
+
+my $args = $call->{'args'} // '';
+my ( $zenka_name, $mode ) = split( m| +|, $args, 2 );
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected <zenka-name> [routing-mode]'
+    }
+    if not length $zenka_name;
+
+<cube.zenki.routing_mode> //= {};
+
+if ( not defined $mode or not length $mode ) {
+    delete <cube.zenki.routing_mode>->{$zenka_name};
+    <[base.logs]>->(
+        2, "routing_mode for '%s' reset to default", $zenka_name
+    );
+    return {
+        'mode' => qw| true |,
+        'data' =>
+            sprintf( "routing_mode reset to default for '%s'", $zenka_name )
+    };
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( "not a valid routing_mode '%s'", $mode )
+    }
+    if $mode !~ m{^(group|contact-oldest|newest-first|idle-longest)$};
+
+<cube.zenki.routing_mode>->{$zenka_name} = $mode;
+
+<[base.logs]>->( 2, "routing_mode for '%s' set to '%s'", $zenka_name, $mode );
+
+return {
+    'mode' => qw| true |,
+    'data' =>
+        sprintf( "routing_mode for '%s' set to '%s'", $zenka_name, $mode )
+};
+
+#,,,,,,.,,.,,,...,..,,..,,.,.,,.,,..,,.,,,...,..,,...,..,,.,.,,,,,,,,,...,.,.,
+#K3AJLAFAXR5TDZAFK7NXVQPZNYLNG6E7XER4UAS7R6JBXKEPCLD2JDY4B6QXJ2DDVFWSMMHNWFN4S
+#\\\|WMAWGWFSUI57FHM7AQSGLJ66SABATLW2YLNCPA3LSZUXQHEHABK \ / AMOS7 \ YOURUM ::
+#\[7]6PRSJU6QN5BCTSRHNBT6KWQBPADYZQSQ2BKKE5TWHISXGZRP2WAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

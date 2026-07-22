@@ -73,11 +73,17 @@ my $root_sid = <v7.zenka.instance>->{$instance_id}->{'root_sid'};
     }
 );
 
+## re-push all declared zenka routing modes to the [restarted] cube ##
+if ( defined <v7.start_setup.zenki.config> ) {
+    map { <[zenka.push_routing_mode]>->($ARG) }
+        keys <v7.start_setup.zenki.config>->%*;
+}
+
 #[success]
 return TRUE;
 
-#,,..,,..,.,.,,,,,,.,,,..,...,...,,,.,..,,,,.,..,,...,...,...,.,.,.,.,.,,,.,.,
-#HLEEVKZW4KFTPXLFZ7CQTIP57E5ENUDLMNWGG6Q4MTBM5WMEWAFUV6TKP4FGA2553RCUTR6XKW2ZI
-#\\\|LU46CLC6LSG2UO37I2A5FBPSDU7WPFN4ADEC4L5PTLD77MULFSH \ / AMOS7 \ YOURUM ::
-#\[7]K7WEEJX2OTGYOZIQE6NAPVSZSSVA4OEUHCF3YMLRBDRXHQFN2AAA 7  DATA SIGNATURE ::
+#,,..,,..,...,,,,,,,,,...,..,,.,,,,.,,,,,,,.,,..,,...,...,.,,,..,,,,,,...,.,.,
+#KJJKFOKJK5AM24FAWTFPKAGGNOTG7MI6SFQQWDPGABWOBPHKXGK4NXVGXHIDXRAONXY6Y66GRJ3CS
+#\\\|3MBEBCZFWG63M4V5B4YJMJMVCBUU7QORIUGFSX2XAQ5FRGZPIHI \ / AMOS7 \ YOURUM ::
+#\[7]VTT5OFWB2WG6HY2VDZS3ZHLWUA3NZCTLADR74TLXGURXKUUNBWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

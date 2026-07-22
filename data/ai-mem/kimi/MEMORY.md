@@ -14,6 +14,17 @@
 ## Memory Update Tool — Length-Aware Routing (June 2026)
 `p7_memory_update` enforces ~180/200 line limits on `MEMORY.md`, supports `target` for external topic files, and auto-routes `UPDATE FILE:` directives. see [topic-memory-update-tool.md](topic-memory-update-tool.md)
 
+## routing_mode implementation (July 2026)
+bare-name routing modes + `-next` override family + strm dup-slot guard landed.
+CRITICAL lessons: live console `/dev/shm/.7/STDOUT/NIW7OAQ` [ root-owned when
+net runs as root — use `p7c <z>.show-buffer zenka` ]; `sprintf(qw|multi-word|)`
+collapses to last element [ scalar ctx ]; send.local args via call_args, never
+in command string; `v7.zenka.*` swapped to `zenka.*` at runtime and
+`v7.reload source` does NOT re-apply swaps [ use reload all ]; undef-sub in
+v7.init_start_setup is network-fatal [ guard with base.code.call_expected ];
+network runs as root only [ taeki cannot restart it ].
+see [topic-routing-mode-implementation.md](topic-routing-mode-implementation.md)
+
 ## base.strm.subscribe — generic STRM subscribe wrapper (July 2026)
 offline-safe/restart-clean subscription wrapper, six modules swapped to
 `strm.subscribe`; verified live vs cred-mesh. usage, `<a.b.c>`-splits-on-every-dot
@@ -76,8 +87,8 @@ open: kimi zenka state machine upgrade (backend reconnect), coding zenka as thir
 
 `skipped` status restored across all index scanners, reassessment now protects manual stages, web sync carries `assertions`, UI delete actions wired, and orbital subscriber `.cmd.` syntax corrected. Assessed jobs now map to the `review` UI stage. See [jobs-pipeline-2026-06-28.md](jobs-pipeline-2026-06-28.md). Open: bulk-delete pending search/filter UI.
 
-#,,..,.,.,...,,,,,,.,,,,.,,..,,.,,.,,,.,,,,,,,..,,...,...,,..,,,.,...,.,.,.,,,
-#LEN7SPMRCV6PKNIZLCC6RRS7INR7CAOGTIELIKYC752S2M2QCIA2RDDGIMXARX7BCZ4ELJJJYFGHC
-#\\\|4HPV36Y7OCEMUCVFDCNYL6ZK6SJMIXYMPZPKZZKZEKQZ3FHSPLK \ / AMOS7 \ YOURUM ::
-#\[7]GD3TKCWD7S4MSEGZRMVGJFM6TOILP4PE5CRODFPOJ3PUWVI3TQCQ 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,...,..,,...,,.,,.,,,.,,,.,,,..,,..,,...,...,.,,,...,..,,,..,...,
+#EN5NAG4LMFC6NPKDOVPB4QVQFR7FWOUQQCSCP6HPHAVZJ72SCTCK52R7LYQIWKD3O7FCOXIEOPMEI
+#\\\|WTGJVZSYKEGNCONTIJANQNRLSXPKR2ZD4UFI4W5IISQILGX62DL \ / AMOS7 \ YOURUM ::
+#\[7]44MCASKB5OQNQIBFND3XL6QCJKBVB6EBWPJFHM2QFTEZJFHBXKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

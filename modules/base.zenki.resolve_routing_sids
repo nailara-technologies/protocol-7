@@ -1,0 +1,131 @@
+## [:< ##
+
+# name  = base.zenki.resolve_routing_sids
+# descr = collapse bare-name fan-out sid list per routing_mode [+ override]
+# param = $target_name, $target_subname, \@send_sids [, $source_session ]
+
+my $target_name    = shift;
+my $target_subname = shift;
+my $send_sids      = shift // [];
+my $session        = shift;         ## source session [ admin override only ]
+
+return if not ref $send_sids or not @{$send_sids};
+
+##[ ARMED ADMIN OVERRIDE \ SESSION-SCOPED ONE-SHOT ]#########################
+
+my $mode;
+my $override
+    = defined $session ? $session->{'pending_routing_override'} : undef;
+
+if ( defined $override ) {
+    my $consume = $override->{'consume'} // qw| single |;
+
+    ## ':next:' applies to the literal next routed command, regardless  ##
+    ## of target ; ':single:' \ ':keep:' require a target match         ##
+    my $matched = $consume eq qw| next |;
+    if ( not $matched and $override->{'name'} eq $target_name ) {
+        $matched = TRUE
+            if not defined $override->{'subname'}
+            or defined $target_subname
+            and $override->{'subname'} eq $target_subname;
+    }
+
+    if ($matched) {
+        $mode = $override->{'mode'};
+
+        if ( $consume eq qw| keep | ) {
+            ## stays armed : refresh auto-expiry on each application ##
+            $override->{'armed_at'} = <[base.time]>->(3);
+            $override->{'timer'}->cancel
+                if defined $override->{'timer'}
+                and $override->{'timer'}->is_active;
+            $override->{'timer'} = <[event.add_timer]>->(
+                {   'repeat'  => FALSE,
+                    'after'   => $override->{'expiry'} // 13,
+                    'handler' => $override->{'expire_handler'},
+                    'data'    => {
+                        'sid'      => $override->{'sid'},
+                        'armed_at' => $override->{'armed_at'}
+                    }
+                }
+            );
+        } else {
+            ## ':single:' \ ':next:' : consumed on first application ##
+            $override->{'timer'}->cancel
+                if defined $override->{'timer'}
+                and $override->{'timer'}->is_active;
+            delete $session->{'pending_routing_override'};
+            <[base.logs]>->(
+                2,
+                '[%d] routing override consumed : %s ..:. %s',
+                $override->{'sid'} // 0,
+                $override->{'mode'}, $override->{'name'}
+            );
+        }
+    }
+}
+
+##[ CONFIGURED ROUTING MODE \ BARE-NAME TARGETS ONLY ]#######################
+
+if ( not defined $mode and not defined $target_subname ) {
+    if ( defined <v7.start_setup.zenki.config>
+        and exists <v7.start_setup.zenki.config>->{$target_name} ) {
+        ## direct read [ resolver running inside the 'v7' zenka ] ##
+        $mode
+            = <v7.start_setup.zenki.config>->{$target_name}->{'routing_mode'};
+    }
+    if ( not defined $mode and defined <cube.zenki.routing_mode> ) {
+        ## cube-side mirror [ pushed by 'v7' on zenka start-up ] ##
+        $mode = <cube.zenki.routing_mode>->{$target_name};
+    }
+}
+
+$mode //= qw| contact-oldest |;    ## safe default when not declared ##
+
+if ( $mode !~ m{^(group|contact-oldest|newest-first|idle-longest)$} ) {
+    <[base.logs]>->(
+        1,     "invalid routing_mode '%s' for '%s' [ using contact-oldest ]",
+        $mode, $target_name
+    );
+    $mode = qw| contact-oldest |;
+}
+
+##[ COLLAPSE TO SINGLE TARGET \ UNLESS group MODE ]##########################
+
+my @resolved = @{$send_sids};
+
+if ( @resolved > 1 and $mode ne qw| group | ) {
+    my $picked;
+    if ( $mode eq qw| idle-longest | ) {
+        ## least recently contacted first [ implicit round-robin ] ##
+        ($picked) = sort {
+            ( $data{'session'}{$a}{'last_contacted'} // 0 )
+                <=> ( $data{'session'}{$b}{'last_contacted'} // 0 )
+        } @resolved;
+    } else {
+        ## session 'start_time' [ ntime float ] : oldest = smallest ##
+        my @by_age = sort {
+            ( $data{'session'}{$a}{'start_time'} // $a )
+                <=> ( $data{'session'}{$b}{'start_time'} // $b )
+        } @resolved;
+        $picked = $mode eq qw| newest-first | ? $by_age[-1] : $by_age[0];
+    }
+    <[base.logs]>->(
+        2, "routing_mode '%s' : '%s' : %d sids ..:. resolved to %d",
+        $mode, $target_name, scalar(@resolved), $picked
+    );
+    @resolved = ($picked);
+}
+
+##[ LAST-CONTACTED BOOKKEEPING \ idle-longest BASIS ]########################
+
+map { $data{'session'}{$ARG}{'last_contacted'} = <[base.time]>->(3) }
+    grep { exists $data{'session'}{$ARG} } @resolved;
+
+return @resolved;
+
+#,,,,,...,,..,,.,,.,.,,..,.,,,...,..,,.,.,,,.,..,,...,...,...,.,.,,.,,,,.,...,
+#5UXIIFOBDKQOG4IJ3WQN3DNY4YUJXCD3H5WEAFFCJSKURVGXXVFI64Y7UGYLX4CISIYRF3JIJOVFQ
+#\\\|5AKWZTAOIPLT272UAZY2BGK3UJ4PLFGJO56SBZ3J3HPTPI6WVBN \ / AMOS7 \ YOURUM ::
+#\[7]7JS6ZWWC2WJHRNXIYP6X752EL22U3OPFV4GHAES3MMVBU6Y2MEAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
