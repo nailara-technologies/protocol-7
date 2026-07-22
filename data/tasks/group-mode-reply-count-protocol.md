@@ -63,12 +63,12 @@ to only match one live session, or because `routing_mode` collapsed to one
 via `contact-oldest`/`newest-first`/`idle-longest`) looks exactly as it
 does today, zero protocol change for the common case.
 
-### must propagate across route hops — reuse the `!TERM!` mechanism, don't invent a new one
+### must propagate across route hops — reuse the `!TRM!` mechanism, don't invent a new one
 
-`!TERM!` already establishes this exact pattern and it must not be
+`!TRM!` already establishes this exact pattern and it must not be
 reinvented: `httpd.handler.web-relay.strm_open`'s `$cancel_strm` sub doesn't
 act only locally on stream cancellation — it looks up the route, finds
-`route.source.cmd_id`, and forwards `"(%d)!TERM!\n"` to *that* session,
+`route.source.cmd_id`, and forwards `"(%d)!TRM!\n"` to *that* session,
 relaying backward through however many hops separate the cancellation
 point from the original caller.
 
@@ -77,10 +77,10 @@ point from the original caller.
 under `group` mode may not be the hop directly serving whoever issued the
 original call — it could be one or more relays upstream. Without
 propagation through each hop's `route.source.cmd_id`/`route.target.cmd_id`
-translation (the same chain `!TERM!` already walks), a client several
+translation (the same chain `!TRM!` already walks), a client several
 hops removed from the resolution point would never see the notification
 at all, silently defeating the entire point of announcing N up front.
-Implementation should reuse whatever relay/forwarding code path `!TERM!`
+Implementation should reuse whatever relay/forwarding code path `!TRM!`
 already uses for this, not build a parallel one.
 
 ### what this unlocks
@@ -121,20 +121,14 @@ proposal — `!GRP! N` could ship alone; per-reply numbering could be
 layered on top later if identifying which instance answered ever becomes
 a real need.
 
-### also: rename !TERM! to !TRM! in the same rollout
+### done: !TERM! renamed to !TRM!
 
-Same-conversation naming discussion, worth doing alongside this rather
-than as a separate change: `!TRM!` matches `!GRP!`'s length exactly (5
-chars each), giving the off-band bang-tokens a consistent, short-and-punchy
-form distinct from the longer bare reply-type words (`TRUE`/`FALSE`/
-`STRM`/`CHRSIZE`) — plus a byte saved per instance. Mechanically cheap
-(`ncode replace` across the tree). Rollout-coordination concerns that
-would normally apply to a live wire-protocol token rename don't apply
-here: no cross-host traffic exists yet for this to desync across, and
-without `*.reload`-style fleet-wide hot-reload syntax implemented, a
-restart is already the only way any change propagates at all — inherently
-atomic, no partial-version window possible. Do it as one coordinated
-rename alongside the `!GRP!` work, not gradually.
+Landed already (2026-07-22, `ncode replace` scoped to `src`), ahead of
+the `!GRP!` work rather than bundled with it — rollout coordination
+turned out to be a non-issue (no live cross-host traffic to desync
+across, and restarts are already the only way any change propagates,
+inherently atomic). `!TRM!` now matches `!GRP!`'s length exactly (5
+chars each) for whenever `!GRP!` itself lands.
 
 ### open questions
 
@@ -153,8 +147,8 @@ rename alongside the `!GRP!` work, not gradually.
   exist between them, to avoid the same fix needing to be applied twice
   and potentially drifting.
 
-#,,,,,..,,...,.,,,.,,,,,.,.,.,.,,,,..,,.,,..,,..,,...,...,..,,.,,,,..,...,.,.,
-#ZJLBZOC4XTXHAH435W476N3GUSTZA67JWNZIPF4WWM37XBTGQLVJEKTPKMMUF4S4BN6BMEDTPJMVY
-#\\\|2CFGUV6GE62EB7JTPS76GSCFXNLRL3N3KA3EG62UPCRMVY6EAU5 \ / AMOS7 \ YOURUM ::
-#\[7]G2DSXXIRUSZPXIRPYNF4BQE7PF7MMPJ3MSQIUOW7SVK6O4PQJ4DI 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,,,,,.,,,.,.,,,.,,,.,,,,,...,..,,..,,...,...,...,...,.,,,..,,.,,,
+#WOFD4S5RS42BGAOMQS52YMO6NVE5IL2H3FVF7DVXEPMTSR7GLIKRTX4V4XE3Z7IRTCWXMVM36LJFE
+#\\\|KRDYCNDMFTCAODDCDZTJC5HCLRACCX2VKPRMLFBFYA5S6LGJUGR \ / AMOS7 \ YOURUM ::
+#\[7]V3ZN4IMN5SQ2LARJBOGWU4WCWZFXTSWPIHSHMZZEI4HYTPGK7KAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

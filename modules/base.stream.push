@@ -33,12 +33,12 @@ if ( not defined $session ) {
         if (    $relay_term
             and $upstream->{'cmd_id'} > 0
             and exists $data{'session'}{ $upstream->{'sid'} } ) {
-            my $term_frame = sprintf "(%d)!TERM!\n", $upstream->{'cmd_id'};
+            my $term_frame = sprintf "(%d)!TRM!\n", $upstream->{'cmd_id'};
             $data{'session'}{ $upstream->{'sid'} }{'buffer'}{'output'}
                 .= $term_frame;
             <[base.logs]>->(
                 1,
-                '[%d] stream push gated : emitting !TERM! '
+                '[%d] stream push gated : emitting !TRM! '
                     . 'upstream sid=%d cmd_id=%d',
                 $sid,
                 $upstream->{'sid'},
@@ -64,8 +64,8 @@ $session->{'streams'}->{$cmd_id}->{'sent_bytes'} += $chunk_len;
 
 return $written;
 
-#,,,,,,,,,..,,,.,,,.,,.,,,,,,,,,.,..,,.,.,.,,,..,,...,...,,,.,,,,,,..,.,.,,.,,
-#MHACTP2H6P4FAFHPUHQ3MI5UQGSJKY372R6SJCZH3BO6LCHTXCSTDHCOEWXZQGSFQ77EUBOQIX3GE
-#\\\|UJA4HUABCFG4THPR7UNO2BWHUBQFL43CSOSVVKSNBVQA6VZ36M5 \ / AMOS7 \ YOURUM ::
-#\[7]L7CXOGOTZZHEX3XVNLS355VSQVRD4DW6AJK5A3YCYH2LWLGMAQBI 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,.,,,..,,,..,.,,,,,,,,.,,...,.,.,..,,...,...,,,.,,..,...,...,..,,
+#EDPLSTC6DRP3CDQ6ZHJVBRL53VXUTM7TQEUBX3OPO5JCPKM73XJTSTYN3MOLI2ZWLFYMFYXCQDTVA
+#\\\|U6BX3U4KN5R7QPXHZTJJCONZKBHR5NAFFDNBAQBASUGGRCM3LAO \ / AMOS7 \ YOURUM ::
+#\[7]UBPBR2SVBUWC2Y2GFGSDTJHNQHDGHHWERPMTLEM26NMT4ZUDYABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

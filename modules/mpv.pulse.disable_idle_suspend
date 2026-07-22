@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = mpv.pulse.disable_idle_suspend
+# descr = unload pulse's module-suspend-on-idle [ WSLg bridge cork/resume fix ]
+
+## module-suspend-on-idle suspends a sink after a period with no active   ##
+## stream -- fine on a real linux box, but on the WSLg pulse bridge a     ##
+## suspended sink needs genuine re-initialization to resume, not just    ##
+## un-corking, causing an intermittent hang/huge-delay on pause->resume.  ##
+## unloading it defensively on every start keeps pause/resume reliable   ##
+## without needing to touch WSLg's own internal distro filesystem, which ##
+## isn't meant for user edits and may not persist across restarts anyway ##
+
+my $pulse_server = $ENV{'PULSE_SERVER'} // '';
+return FALSE if $pulse_server !~ m|^unix:|;
+
+local $ENV{'PULSE_SERVER'} = $pulse_server;
+
+my $result = <[base.exec.with_timeout]>->(
+    5, [ qw| pactl unload-module module-suspend-on-idle | ] );
+
+<[base.logs]>->(
+    2, '[mpv.pulse] disable_idle_suspend : %s',
+    defined $result ? 'ok [or already unloaded]' : 'pactl call failed/timed out'
+);
+
+return TRUE;
+
+#,,,.,..,,,,.,,,.,,..,...,..,,,..,.,.,,,,,,,,,..,,...,...,,..,,,,,..,,...,..,,
+#ERT2SCLZHHZ5QOWGZQAS35XJREIHYWL6JAJAWIQYBHSSHHPCPKOKLEIEIZNF5MMZDSHFEHBNK5FVY
+#\\\|46ZJD36BSFFKPF34DXYGEDTMP6AIGNDXDE5D3BOWNBHZTZC3QZ6 \ / AMOS7 \ YOURUM ::
+#\[7]XSYX4LWBFYWE5PP7LAPF2IN5AHF5MWD5DMYJUGHNZQGE3IMQX2CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

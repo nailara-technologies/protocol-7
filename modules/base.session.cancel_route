@@ -37,8 +37,8 @@ foreach my $s_cid (@route_cids) {
         and ref $data{'session'}{$t_sid}{'streams'} eq 'HASH'
         and ref $data{'session'}{$t_sid}{'streams'}{$t_cmd_id} eq 'HASH'
         and not $data{'session'}{$t_sid}{'stream_cancelled'}{$t_cmd_id} ) {
-        $data{'session'}{$t_sid}{'buffer'}{'output'}
-            .= sprintf "(%d)!TERM!\n", $t_cmd_id;
+        $data{'session'}{$t_sid}{'buffer'}{'output'} .= sprintf "(%d)!TRM!\n",
+            $t_cmd_id;
         $data{'session'}{$t_sid}{'stream_cancelled'}{$t_cmd_id} = TRUE;
     }
 
@@ -73,8 +73,8 @@ foreach my $s_cid (@route_cids) {
     delete $data{'route'}{$route_id};
 }
 
-#,,,,,,,,,...,...,,.,,,,,,,,.,,..,..,,..,,,,.,..,,...,...,.,.,...,,..,..,,,.,,
-#IDJDBW4DQ7ZGBQ4U3ZBSBJSOUWKCEUSZMUSUPLMC3V7GNOK6R4HI6VABJQ6KW5WXNDTIKVMREEPLA
-#\\\|IQAKIEAFHTCZBMIRPHOXKBLMLW3MLECPGMXXVJGCSI4Q47ULRDD \ / AMOS7 \ YOURUM ::
-#\[7]ZDLOVTWNTKJEDAOB5Y5M4JWIFYX7FT3LEXD5IRHWAKY5YK2F3MDI 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,..,,..,,,..,...,,..,..,,.,.,..,,..,,...,...,..,,,,.,.,.,.,,,,.,,
+#3SEWPR47AN4UJHN77NDI22567NLXMTM7AX35DJ42JICJGB4NI6NPHL4BV7SSPV2EA7YEWHPDPHJAI
+#\\\|VFEQQGNW4DTZ4QSJF33RAMGP7SQTSSWCZCLEMA7GY23Q4QTCVER \ / AMOS7 \ YOURUM ::
+#\[7]VRJS6DCRX2ZC6324QV52OI3DKSGS73XTN6L7JYYD4FDCSDOUC6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -43,7 +43,7 @@ if ( not exists $data{'session'}{$http_sid} ) {
     return;
 }
 
-##  send !TERM! to producer via the route  ##
+##  send !TRM! to producer via the route  ##
 my $cancel_strm = sub {
     for my $sid ( keys $data{'session'}->%* ) {
         next if not exists $data{'session'}{$sid}{'route'}{$cmd_id};
@@ -52,9 +52,9 @@ my $cancel_strm = sub {
         my $src_cmd_id = $route->{'source'}{'cmd_id'}             // 0;
         if ( $src_cmd_id > 0 ) {
             $data{'session'}{$sid}{'buffer'}{'output'}
-                .= sprintf "(%d)!TERM!\n", $cmd_id;
+                .= sprintf "(%d)!TRM!\n", $cmd_id;
             <[base.logs]>->(
-                2,         '[httpd.web-relay] [%d] sent !TERM! [ cmd_id %d ]',
+                2,         '[httpd.web-relay] [%d] sent !TRM! [ cmd_id %d ]',
                 $http_sid, $cmd_id
             );
         }
@@ -142,8 +142,8 @@ my $cancel_strm = sub {
     $http_sid, $cmd_id
 );
 
-#,,,,,,,,,,..,,,,,,.,,,,,,,.,,,,,,,,.,.,,,...,..,,...,..,,..,,..,,...,.,.,,,,,
-#SAJX5F65LGAJD5Y5ZRQJ2K2PK2TQHWOVPIMNVYDIOSKFUGPLEFLPPSIQECZ5GCVFTRQRY2OFBIDW2
-#\\\|2URR2OIXHTKTJYNYVQI2WT5MPPSGDWM3NDXFOIJF5RICFC7IBDL \ / AMOS7 \ YOURUM ::
-#\[7]QWHCJTOCLI53U3PN5H4J4OP2TRKQFMLVCHSXZST3DO25GHUD54BY 7  DATA SIGNATURE ::
+#,,.,,...,,,.,,.,,,..,,..,.,.,,.,,.,.,..,,.,.,..,,...,...,.,,,,,,,,.,,...,.,,,
+#4P5Q6QE5MTMARNQ6QDLOD35SUAB4FZSCHBADKECM7OKF3X5EJKCD3AQIRLBWJRDJ3BUIDOVOLC3CS
+#\\\|VL4BYV5Y3C66IU2ZEM6EKZPPO6V5LA4JR5W3R2FGGWOHUUPCRIK \ / AMOS7 \ YOURUM ::
+#\[7]6FMDFGRQUETJFLPQI6A23LIDOGMSWXLQW7RTYI27UI3B62RVU4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

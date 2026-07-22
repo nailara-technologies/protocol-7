@@ -331,10 +331,10 @@ elsif ( $input->$* =~ m,^((\($re->{cmd_id}\)|) *CHRSIZE +(0*\d+)\n),o ) {
     }
 }
 
-##[ PARSE \ !TERM! BACKCHANNEL ]##############################################
+##[ PARSE \ !TRM! BACKCHANNEL ]###############################################
 
 elsif ( $input->$*
-    =~ s,^((\($re->{cmd_id}\)|) *!TERM!(?:[ \t]+([^\n]*))?)[ \t]*\n,,o ) {
+    =~ s,^((\($re->{cmd_id}\)|) *!TRM!(?:[ \t]+([^\n]*))?)[ \t]*\n,,o ) {
 
     $event->w->start;
 
@@ -343,7 +343,7 @@ elsif ( $input->$*
 
     $cmd_id
         = $cmd_id_str =~ m|^\(($re->{cmd_id})\)$|o ? 0 + ${^CAPTURE}[0] : 0;
-    $cmd                 = q|!TERM!|;
+    $cmd                 = q|!TRM!|;
     $command_mode        = 1;
     $call_args->{'args'} = $reason_str;
 }
@@ -519,9 +519,9 @@ $cmd_usr_str = sprintf qw| %s%s |, $data{'session'}{$_m1}{'user'}, $_m2
     and exists $data{'session'}{$_m1}
     and $data{'session'}{$_m1}{'user'} =~ $re->{'usr'};
 
-##[ COMMAND REPLY \ !TERM! BACKCHANNEL ]######################################
+##[ COMMAND REPLY \ !TRM! BACKCHANNEL ]#######################################
 
-if ( $cmd eq q|!TERM!| ) {
+if ( $cmd eq q|!TRM!| ) {
 
     my $reason = $call_args->{'args'} // '';
 
@@ -542,13 +542,13 @@ if ( $cmd eq q|!TERM!| ) {
             $cmd_id = $newest;
             <[base.logs]>->(
                 1,
-                '[%d] !TERM! no cmd_id : implicitly '
+                '[%d] !TRM! no cmd_id : implicitly '
                     . 'targeting cmd_id=%d [ most recent ]',
                 $id,
                 $cmd_id
             );
         } else {
-            <[base.logs]>->( 1, '[%d] !TERM! ignored : no cmd_id', $id );
+            <[base.logs]>->( 1, '[%d] !TRM! ignored : no cmd_id', $id );
             $event->w->start;
             return 0;
         }
@@ -570,21 +570,21 @@ if ( $cmd eq q|!TERM!| ) {
                 = TRUE;
 
             <[base.logs]>->(
-                1, '[%d] !TERM! cmd_id=%d -> src_sid=%d src_cmd_id=%d [ %s ]',
+                1, '[%d] !TRM! cmd_id=%d -> src_sid=%d src_cmd_id=%d [ %s ]',
                 $id, $cmd_id, $src_sid, $src_cmd_id, $reason
             );
         }
 
-        ##  forward !TERM! to the producing side [ target of the route ]  ##
+        ##  forward !TRM! to the producing side [ target of the route ]  ##
         my $tgt_sid    = $route->{'target'}->{'sid'};
         my $tgt_cmd_id = $route->{'target'}->{'cmd_id'} // 0;
         if (    $tgt_cmd_id > 0
             and defined $tgt_sid
             and exists $data{'session'}{$tgt_sid} ) {
             $data{'session'}{$tgt_sid}{'buffer'}{'output'}
-                .= sprintf "(%d)!TERM!\n", $tgt_cmd_id;
+                .= sprintf "(%d)!TRM!\n", $tgt_cmd_id;
             <[base.logs]>->(
-                2,   '[%d] !TERM! forwarded to target sid=%d cmd_id=%d',
+                2,   '[%d] !TRM! forwarded to target sid=%d cmd_id=%d',
                 $id, $tgt_sid, $tgt_cmd_id
             );
         }
@@ -596,7 +596,7 @@ if ( $cmd eq q|!TERM!| ) {
         $session->{'stream_cancelled'}->{$cmd_id} = TRUE;
 
         <[base.logs]>->(
-            1,   '[%d] !TERM! cmd_id=%d local [ %s ]',
+            1,   '[%d] !TRM! cmd_id=%d local [ %s ]',
             $id, $cmd_id, $reason
         );
 
@@ -604,7 +604,7 @@ if ( $cmd eq q|!TERM!| ) {
 
         ##  no active stream for this cmd_id : log and drop  ##
         <[base.logs]>->(
-            1,   '[%d] !TERM! ignored : no active stream [ cmd_id %d ]',
+            1,   '[%d] !TRM! ignored : no active stream [ cmd_id %d ]',
             $id, $cmd_id
         );
     }
@@ -1068,8 +1068,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,,.,...,,,,,,.,,...,,,.,.,,,..,,...,.,,,.,.,..,,...,...,..,,,,,,..,,,..,,,,,
-#SUYVFLXTB3YNX5GO3M57YOJJK6QX2WRQ52TBP7EJLXH5GPUNEMCZ7L7K3RE22J27K2FEYLTXSQUVU
-#\\\|T3R56U7BEKNIX2QQNVNNLCGEG7IOXCPKHPYXFT7XN4TEXLIVFLM \ / AMOS7 \ YOURUM ::
-#\[7]JZAM42GLJJDUOCCDOVGBR4GRG237NLPFYOYGYQNJ7SXKMYAF52CI 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,..,,...,,,.,..,,,..,.,,,...,.,,,..,,...,..,,...,.,,,,,.,,..,...,
+#NP75LCUGZJ2XWW4S6NK2FSJ3XDMZL7FJ2RGVRZ3YE4RKOZ5C2MNUPKIRMZ5VR3VDCNFRGPS6VFUMO
+#\\\|RJIAZPMDBWNO5633N7RNY5PHUEMVUTXAJMBFKR3XHXRZCCMH4XT \ / AMOS7 \ YOURUM ::
+#\[7]3PIGQR3LCV7RGT3OMMQND6NJGZ3UQWO46IAVRVX5ZXBXRGY364BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
