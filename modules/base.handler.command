@@ -255,7 +255,12 @@ elsif ( $input->$* =~ m,^((\($re->{cmd_id}\)|) *SIZE +(0*\d+)\n),o
     < 0 + ${^CAPTURE}[2] ) {
 
     $session->{'read-mode'} = qw| bytewise |;    ##  switch for efficiency  ##
-    $session->{'bytes-to-read'} = 0 + ${^CAPTURE}[2];
+    ## bytes-to-read is what's still MISSING, not the full declared size -- ##
+    ## the header's already-buffered payload bytes must be subtracted or    ##
+    ## read_bytewise over-reads by that amount and desyncs the next frame   ##
+    $session->{'bytes-to-read'}
+        = 0 + ${^CAPTURE}[2]
+        - ( $buffer_length - bytes::length( ${^CAPTURE}[0] ) );
     ##
     ##  also : linewise had a bug with incomplete replies blocking cube  ##
 
@@ -272,8 +277,13 @@ elsif ( $input->$* =~ m,^((\($re->{cmd_id}\)|) *STRM-SIZE +(\d+)\n),o
     < 0 + ${^CAPTURE}[2] ) {
 
     ## chunk header present but data incomplete - switch to bytewise ##
-    $session->{'read-mode'}     = qw| bytewise |;
-    $session->{'bytes-to-read'} = 0 + ${^CAPTURE}[2];
+    ## bytes-to-read is what's still MISSING, not the full declared size -- ##
+    ## the header's already-buffered payload bytes must be subtracted or    ##
+    ## read_bytewise over-reads by that amount and desyncs the next frame   ##
+    $session->{'read-mode'} = qw| bytewise |;
+    $session->{'bytes-to-read'}
+        = 0 + ${^CAPTURE}[2]
+        - ( $buffer_length - bytes::length( ${^CAPTURE}[0] ) );
 
     $event->w->start;    ##  restarting input buffer processing  ##
     return 1;            ## command not complete ###
@@ -288,8 +298,13 @@ elsif ( $input->$* =~ m,^((\($re->{cmd_id}\)|) *STRM +(\d+)\n),o
     < 0 + ${^CAPTURE}[2] ) {
 
     ## chunk header present but data incomplete - switch to bytewise ##
-    $session->{'read-mode'}     = qw| bytewise |;
-    $session->{'bytes-to-read'} = 0 + ${^CAPTURE}[2];
+    ## bytes-to-read is what's still MISSING, not the full declared size -- ##
+    ## the header's already-buffered payload bytes must be subtracted or    ##
+    ## read_bytewise over-reads by that amount and desyncs the next frame   ##
+    $session->{'read-mode'} = qw| bytewise |;
+    $session->{'bytes-to-read'}
+        = 0 + ${^CAPTURE}[2]
+        - ( $buffer_length - bytes::length( ${^CAPTURE}[0] ) );
 
     $event->w->start;    ##  restarting input buffer processing  ##
     return 1;            ## command not complete ###
@@ -1053,8 +1068,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,,.,..,,...,..,,,..,...,,.,,.,,,,,,,,..,.,,,..,,...,...,.,.,...,...,,.,,,,,,
-#U5EKLZKLPIIBYLZNQVOOHLTIJCGGZO63GI467U3Z2TPACOYECLYZ32EQYKBULG4SNRZJEESGNMDJS
-#\\\|UQXLTMD7TIW4YNY2H4NCJFHF7NE7TRV5I4O624QCPUWLTMFFODX \ / AMOS7 \ YOURUM ::
-#\[7]PUOU32ZWCSZLTALKDSC4GET2KLJG4NSLK344X2NJS7SBR2BHRKDY 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,.,,...,,,.,.,,,..,,...,.,,,.,.,..,,...,...,..,,,,,,..,,,..,,,,,
+#SUYVFLXTB3YNX5GO3M57YOJJK6QX2WRQ52TBP7EJLXH5GPUNEMCZ7L7K3RE22J27K2FEYLTXSQUVU
+#\\\|T3R56U7BEKNIX2QQNVNNLCGEG7IOXCPKHPYXFT7XN4TEXLIVFLM \ / AMOS7 \ YOURUM ::
+#\[7]JZAM42GLJJDUOCCDOVGBR4GRG237NLPFYOYGYQNJ7SXKMYAF52CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
