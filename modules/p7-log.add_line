@@ -25,6 +25,13 @@ return ( 0, 'empty log message' )
 $$log_msg_ref =~ s|^0 ||;    # cube-zenka source sid
 $$log_msg_ref .= "\n" if $$log_msg_ref !~ m|\n$|;
 
+## opt-in anonymization [ classify > replace > store ] ##
+<[base.code.call_expected]>->(
+    <p7-log.anon.enabled> // FALSE,
+    qw| p7-log.anon.transform |,
+    $log_name, $log_msg_ref
+);
+
 my $log_path = <log.protocol_7.path>;
 
 my $log_file .= sprintf qw| %s.log |, $log_name;
@@ -91,8 +98,8 @@ print {$log_fh} $$log_msg_ref;
 
 return TRUE;
 
-#,,..,,..,,,.,,.,,...,.,,,,,.,.,,,,,.,.,.,.,.,..,,...,...,,,.,,,,,...,..,,,..,
-#OVWZ5EUXTZ4F3NHFHEA4ZV6CNMA52V4WDKR27GPBXP5ZLIMVCETBQ43VRS5NYZCSPCLHNAUPVYXYY
-#\\\|AQZG4PTLHPQJJNDONO4SU5QCR5YPADNXA3MGBXCSV7WDUDMIYPE \ / AMOS7 \ YOURUM ::
-#\[7]W7QSQVOX3NVQASANZYQ4IVCL4KBWC52PWZ7BD73G5KRFSSFH4GBI 7  DATA SIGNATURE ::
+#,,,,,..,,...,,..,,.,,,,,,,,.,,..,,.,,...,.,.,..,,...,..,,,.,,..,,,,,,,,,,.,.,
+#D43K7TYBCZNODNXGY5GOKZEFZPNQCAUOQCAJXTWXCK6Z7N5KYMICQPRFEZ7WH32K6WPE57BZN33AQ
+#\\\|WFMWFN6UZKE2PMIRRXQGIBPUWB6RDEE76A4C43C35HEIUVRJ4NW \ / AMOS7 \ YOURUM ::
+#\[7]XYRXCUCPKETKBVADHZD7UYSBJRDIQAS3DVW7P7LGPLFGVBRBDQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

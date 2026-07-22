@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = p7-log.anon.replace
+# descr = replace classified spans with [L:<bmw-l13>] tokens,
+#         returns anonymized line + aref of [ checksum, plaintext ] pairs
+
+my $line = shift // '';
+
+return ( $line, [] ) if not length $line;
+
+my $token_len = <p7-log.anon.token_len> // 13;
+$token_len = 13 if $token_len !~ m{^(?:8|13)$};    ## [ 8 | 13 ] chars ##
+
+my $spans = <[p7-log.anon.classify]>->($line);
+
+return ( $line, [] ) if not scalar @{$spans};
+
+my @pairs;
+
+## apply spans right to left [ earlier offsets stay valid ] ##
+foreach my $span ( reverse @{$spans} ) {
+    my ( $start, $end, $label ) = @{$span};
+    my $fragment = substr( $line, $start, $end - $start );
+
+    my $checksum = <[chk-sum.bmw.L13-str]>->($fragment);
+    next if not defined $checksum;    ## harmony iteration limit .., ##
+    $checksum = substr( $checksum, 0, $token_len );
+
+    substr( $line, $start, $end - $start )
+        = sprintf( qw| [L:%s] |, $checksum );
+
+    unshift( @pairs, [ $checksum, $fragment ] );
+}
+
+return ( $line, \@pairs );
+
+#,,..,..,,..,,.,,,,.,,.,,,,.,,.,,,,,,,..,,,..,..,,...,...,,.,,.,.,.,,,.,,,,,,,
+#L3LJRNXTOH5SZ337V7ECWO5IM4CQOSARLB72MOBFLRZNTSFLU4NGJQYSWSUDTODBIWQ2DZGJ4FMEE
+#\\\|WLIOQ55KGTMZBDJV362GVW72Z5FOLGXUNL6PHR5MCF5OIQSYAMF \ / AMOS7 \ YOURUM ::
+#\[7]D4D3JQBKQXT7BSYKRPMQ4S3XHQRQ6UNTRU45O45JTLL7DXNRHEDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
