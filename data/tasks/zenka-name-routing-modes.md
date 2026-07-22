@@ -88,6 +88,17 @@ for backward compat with every zenka that doesn't opt in) would collapse
 zenka-startup.v7, not inside any `:`-headed section** — the config-placement
 gotcha above is exactly the trap to avoid re-introducing here.
 
+**Live-verified 2026-07-22, `idle-longest` case**: same two `mod-test`
+instances (PIDs 19511/19560), config flipped to `routing_mode =
+idle-longest` (top level), `v7.reload all` (re-parses config *and*
+re-pushes to cube's mirror via `push_routing_mode` in one step — no
+separate push needed). Four successive `mod-test.cur-pid` calls returned
+`19511, 19560, 19511, 19560` — clean alternation between the two live
+instances on every call, confirming least-recently-contacted resolution
+and the "free worker-pool load balancing" design goal both work as
+intended. Both non-`group` default paths (`contact-oldest` and
+`idle-longest`) are now live-confirmed end to end.
+
 ### scope narrower than it first looks: compose with the existing drain/twin mechanism, don't duplicate it
 
 deliberate temporary multi-instance ("twin") already exists and already
@@ -116,6 +127,18 @@ way group-mode already implicitly does via the initialized check, don't
 reinvent handover-awareness inside the new resolver.
 
 ### default mode: contact-oldest, not group
+
+**Live-verified 2026-07-22** on `mod-test` (no `routing_mode` declared,
+so running purely on the new default): started two bare-name instances
+(`v7.start mod-test` twice, no subname), confirmed both `online` via
+`v7.list zenki mod-test`. `mod-test.heart` produced exactly **one** reply
+despite two live sessions; `mod-test.cur-pid` called twice returned the
+*same* PID both times. Cross-checked via `v7.pid-instance <pid>` →
+`v7.list zenki <instance>`: the answering PID belonged to the instance
+from the *first* `v7.start mod-test` call — the second instance stayed
+`online` but never answered a single request. Confirms `contact-oldest`
+is actually live as the default and correctly resolves to the earliest
+instance, not just "sticky to whichever" and not the old group fan-out.
 
 verified `base.zenki.resolve_group_sids` / `resolve_primary_sid` (the
 resolvers behind every current legitimate multi-instance case — X-11
@@ -200,6 +223,27 @@ distracted admin session can't silently apply to an unrelated command typed
 much later — `reset-next` covers the deliberate cancel, the timeout covers
 the forgotten one.
 
+**Live-verified 2026-07-22**: `group-next mod-test` (persistent config set
+to `newest-first` as baseline) armed correctly
+(`armed : group ..:. mod-test [:single:, expires in 13 seconds]`), and the
+very next `mod-test.heart` in the *same* `nshell` session produced two
+replies — confirmed via the zenka log too (`routing_mode 'newest-first' :
+'mod-test' : 2 sids ..:. resolved to <sid>` on every call *except* the one
+right after arming, which correctly skipped the log line and fanned out
+instead). The following `mod-test.cur-pid` in the same session correctly
+reverted to a single PID, confirming one-shot consumption and clean
+revert to the persistent config.
+
+**Testing gotcha worth recording**: the override is session-scoped by
+design, which means arming via one `p7c` invocation and testing via a
+*separate* `p7c`/`nshell` invocation can never work — each one-shot `p7c`
+call is its own distinct connection that disconnects immediately after its
+reply, so the armed session is already gone before the next command (a
+different session) ever arrives. Testing this family requires a single
+continuous session (`nshell`) issuing the arm command and the consuming
+command back to back, not two separate client invocations. Initially
+misread as a bug for exactly this reason before re-testing correctly.
+
 ### explicitly declined: client self-service routing-mode preference
 
 considered letting an ordinary calling zenka set its own persistent
@@ -280,8 +324,8 @@ cause produced it (this bug, or anything else, ever). would have turned
 this entire incident into one loud log line instead of a silent
 byte-corruption mystery.
 
-#,,..,,..,.,.,.,.,.,,,,,.,...,,..,...,..,,.,.,..,,...,...,.,.,.,,,,..,.,,,,.,,
-#66TTBJL5T7K3SY5U4ZD7PBJNYBLAZRJANPBELWQDLBYOS33RQRNN237XQNJ46HKQZ6RJ5NQETPRBY
-#\\\|3SIBMEIVVEU4NIUIP65H6WSNS762LPIIMLLUBNKRM7HFZINOOBF \ / AMOS7 \ YOURUM ::
-#\[7]SFMKNQ5S3M2XOUMDYAUM757YBQTJCGDHXEN7S3727KY7MV67H4CA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,,.,,,,,,..,,,.,,.,,.,.,..,,,,,,..,,...,...,,.,,,,.,,,.,.,.,,.,,
+#JIOFRYHLAXRDC2PVJD7MINBMXDJL7WSS3B3HW5PGTACQS5RW7W23PJPO4FHH7WMR6D56ENZZZ7YLC
+#\\\|VX7AEGXZTC4HEOHF6JHBMO5MGPUE6GTXEUJZURK2U3FBKDQ4DKX \ / AMOS7 \ YOURUM ::
+#\[7]NUCNAFNNASK4SYXLV26ESR4JHBCTRJPCDXLJTMCWTTTMHG2SYABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
