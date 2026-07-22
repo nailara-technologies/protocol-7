@@ -7,6 +7,10 @@ system.verbosity.zenka_logfile = 1
 
 log.timestamp_mode  =  ntime-b32  #  [ntime-b32|ntime-num|unix|localtime]
 
+## log anonymization [ opt-in : classify > replace > store ] ##
+p7-log.anon.enabled    =  1
+p7-log.anon.token_len  =  13
+
 modules.load        =  auth.client net protocol io.unix io.ip ui p7-log
 
 devmod.subs          =  get since dump dump-env echo exec-sub list-subs \
@@ -16,6 +20,7 @@ access.cmd.usr.cube =  append commands heart reload cur-pid verify-instance \
                        list-logs change-log-verbosity \
                        list show-buffer buffer-erase buffer-erase-level \
                        set-name-width file-sizes verbosity \
+                       resolve anon.resolve \
                        <devmod.subs>
 
 [load_modules:<modules.load>]
@@ -28,8 +33,8 @@ access.cmd.usr.cube =  append commands heart reload cur-pid verify-instance \
 
 [zenka.loop]
 
-#,,,.,...,,,.,...,,.,,,,.,,,,,.,,,.,.,,,.,,..,..,,...,...,..,,.,,,,.,,,..,.,,,
-#ZKQ5IHCR7FID3ILSHGXKF7JDZ3MUQPBRH6YUQOTJWSDN4HFFUI6XEDUGGVMWDAI6R42XFZ6I63SF4
-#\\\|BYFVTOIU4ZEPS56IQKABRAWYJMK2RUY2KYLUJQ56Y62HBN7NQCD \ / AMOS7 \ YOURUM ::
-#\[7]T6RO34RBF7Z7MS4WGPDZDBJMSRGIIIRLEP4HX7J242AKN25H2QAI 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,.,,,...,,.,,...,.,.,,,,,,..,.,,,..,,...,...,.,.,,,.,,..,..,,.,.,
+#PA4XWF4H33UD6K4PGR4EFFD6EJACTPOBFSDJBRNIP6J2EOJTKOP2FVANXOR24TOQKHAQTSMMLQAC2
+#\\\|AMXHE5SF3DNUUOKXCOBWGC7KK5W2EZOMT3BDINEB6CBSM7BKFIJ \ / AMOS7 \ YOURUM ::
+#\[7]BWJHCYJQ5NVLO4GYUYMFDGSJ3BEGAJT7GI4C5GBJ7HBYSLGDACBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

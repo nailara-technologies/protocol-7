@@ -1,0 +1,79 @@
+## [:< ##
+
+# name  = p7-log.anon.store
+# descr = write [ checksum, twofish(plaintext) ] pairs to the anon table
+#         record : pack[ a16 n ] key + length . ciphertext [ 16-aligned ]
+
+my $pairs = shift;
+
+return FALSE if ref $pairs ne qw| ARRAY | or not scalar @{$pairs};
+
+my $key32 = <[p7-log.anon.key]>;
+return FALSE if not defined $key32;
+
+map { <[base.perlmod.load]>->($ARG) } qw| AMOS7::Twofish |;
+
+## var_P7 data dir [ /var/protocol-7/<zenka> ] -- NOT the source tree, so ##
+## the table survives git reset/clean and matches a real deployment path ##
+<p7-log.anon.table_path> //= sprintf qw| %s/log-anon/table.bin |,
+    <[file.zenka_dir.data_path]>->();
+my $table_path = <p7-log.anon.table_path>;
+
+## create table directory when absent ##
+( my $table_dir = $table_path ) =~ s|/[^/]+$||;
+if ( not -d $table_dir ) {
+    my ( $mk_ok, $err ) = <[file.make_path]>->( $table_dir, 0750 );
+    if ( not $mk_ok ) {
+        <[base.logs]>->(
+            0,          'p7-log.anon.store : cannot create %s : %s',
+            $table_dir, $err // qw| ? |
+        );
+        return FALSE;
+    }
+}
+
+<p7-log.anon.seen> //= {};   ## in-process dedup [ same content, same key ] ##
+
+open( my $table_fh, qw| >> |, $table_path ) or do {
+    <[base.logs]>->(
+        0,           'p7-log.anon.store : cannot open %s : %s',
+        $table_path, <[base.str.os_err]>
+    );
+    return FALSE;
+};
+binmode($table_fh);
+flock( $table_fh, 2 );       ## LOCK_EX ##
+
+my $stored = 0;
+foreach my $pair ( @{$pairs} ) {
+    my ( $checksum, $fragment ) = @{$pair};
+    next if not defined $checksum or not defined $fragment;
+    next if exists <p7-log.anon.seen>->{$checksum};
+
+    utf8::encode($fragment) if utf8::is_utf8($fragment);
+
+    ## pkcs7 pad to 16 byte blocks [ twofish cbc requires this ] ##
+    my $pad_len = 16 - ( length($fragment) % 16 );
+    my $padded  = $fragment . ( chr($pad_len) x $pad_len );
+
+    AMOS7::Twofish::key_init( $key32, qw| encryption log_anon | ) or next;
+    my $enc_ref = AMOS7::Twofish::encrypt( qw| log_anon |, \$padded );
+    AMOS7::Twofish::delete_table_entry(qw| encryption log_anon |);
+    next if ref $enc_ref ne qw| SCALAR |;
+
+    print( {$table_fh} pack( 'a16 n', $checksum, length $enc_ref->$* )
+            . $enc_ref->$* );
+
+    <p7-log.anon.seen>->{$checksum} = TRUE;
+    $stored++;
+}
+
+close($table_fh);
+
+return $stored;
+
+#,,,,,,.,,,..,,,.,,,,,,..,,..,,,,,,,,,,,.,..,,..,,...,...,,..,.,.,,,.,.,.,.,.,
+#K5K2NLVJC6A7EYXGLBS74I4HMK24VEC3NKLLE5DCTESEI3VCUM74X3KCD6KVD4QGBVVNWGXKXGQVC
+#\\\|BGOSLN4AHT5B4P5KVVFVGPJQIMIKSUXWCVBNXIYGREZPJONIKNB \ / AMOS7 \ YOURUM ::
+#\[7]XMD6ITQH32T4LWH3RXMOEYRVX7P4LFOP7NWDCRU47KAU7ZCN3QDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
