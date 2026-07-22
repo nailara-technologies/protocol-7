@@ -425,7 +425,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                                         ) {
                                             $data{'session'}{$tgt_sid}
                                                 {'buffer'}{'output'}
-                                                .= sprintf "(%d)!TERM!\n",
+                                                .= sprintf "(%d)!TRM!\n",
                                                 $tgt_cmd_id;
                                         }
                                         $data{'session'}{$id}
@@ -890,10 +890,10 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                     and
                     not $data{'session'}{$id}{'stream_cancelled'}{$cmd_id} ) {
                     $data{'session'}{$id}{'buffer'}{'output'}
-                        .= sprintf "(%d)!TERM!\n", $cmd_id;
+                        .= sprintf "(%d)!TRM!\n", $cmd_id;
                     <[base.logs]>->(
                         1,
-                        '[%d] orphaned %s cmd_id=%d : !TERM! sent to producer',
+                        '[%d] orphaned %s cmd_id=%d : !TRM! sent to producer',
                         $id,
                         $cmd,
                         $cmd_id
@@ -938,10 +938,10 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                     and
                     not $data{'session'}{$id}{'stream_cancelled'}{$cmd_id} ) {
                     $data{'session'}{$id}{'buffer'}{'output'}
-                        .= sprintf "(%d)!TERM!\n", $cmd_id;
+                        .= sprintf "(%d)!TRM!\n", $cmd_id;
                     <[base.logs]>->(
                         1,
-                        '[%d] orphaned %s cmd_id=%d : !TERM!'
+                        '[%d] orphaned %s cmd_id=%d : !TRM!'
                             . ' sent to producer [ incomplete ]',
                         $id,
                         $cmd,
@@ -1004,8 +1004,8 @@ UNKNOWN_TYPE_HANDLED:
 
 return 0;    ##  command complete  ##
 
-#,,,.,,,,,.,.,,,,,,,,,,.,,,,,,.,,,,..,.,,,...,..,,...,...,,,,,.,,,...,.,.,..,,
-#3YZ5HQ3L2G27QLIWEN5MXOSNZ3BQ4G4C53DI4UAJGDRWHFFXVTLB3FLUSYTGQSQ545SIEEMS7AOU4
-#\\\|D5JTBXMOGSUCZR2MHQDBU3DTS236HK5JTG4WSKX3CVIP6AHUEHF \ / AMOS7 \ YOURUM ::
-#\[7]2FKXHMNES5M4U5KG6E3K4PKIKBX3BSF4MOWAUSC7USEAP5CS7CBA 7  DATA SIGNATURE ::
+#,,..,.,.,...,,,.,,,.,,,,,,..,.,,,,.,,.,.,..,,..,,...,...,.,,,,.,,..,,,,.,.,.,
+#QECB55JZNIVFCGN6OA5S57XTDDBFU3C3UCZ3GNZQSGZURJL4JLB5OKUHTCXBTYDK2KU3E7YX6RPY6
+#\\\|WMQEYUJDL25J5QY2HDWO2W4K3XF4I6FLEB54BODXFZOANPRHMD2 \ / AMOS7 \ YOURUM ::
+#\[7]XG3IEBO263Q7JZWAB3KM3CG4K2RRGXQAUVRS6JJM2THACMLKQCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

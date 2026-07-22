@@ -47,7 +47,6 @@ mpv.rescale_max_width = 720   # <-- max. limit of ffmpeg reencoding video size
 mpv.cleanup_rescaled_after = 8 # days [removes converted videos if not played.,]
 mpv.resume_timeout = 8         # 'universal'-child resume timeout [ in seconds ]
 
-# mpv.fade_idle_volume = 0
 mpv.fade_idle_volume   = 1  # silence / fade-in on mpv player 'core-idle' state
 
 mpv.audio.fade_speed = 24 # <-- audio volume fade speed [ 0..100 ]  [default]
@@ -56,9 +55,12 @@ mpv.start_volume  = 77 # % <-- volume at startup ; fading to after 'core-idle'
 mpv.vo_backend = gpu#,sdl # [gpu-hq|gpu|sdl|...]   [ see mpv -vo help for list ]
 mpv.hwdec = auto         # [no|auto|nvdec|...]  [ ..more with mpv --hwdec=help ]
 # mpv.hwdec = nvdec      # nvdec blacks out without x11egl [ needs cuda+egl ]
+
 mpv.ao = pulse,sdl
 
-[set_env:'PULSE_SERVER','tcp:10.0.110.7']  ## <-- current local config [improve]
+## WSLg's native bridge -- no manual pulseaudio.exe needed ##
+[set_env:'PULSE_SERVER','unix:/mnt/wslg/PulseServer']      ##
+[mpv.pulse.disable_idle_suspend]  ## fixes pause/resume hang -- see module descr ##
 
 mpv.xmode.xnest.vo  = x11
 mpv.xmode.nxagent.vo = sdl
@@ -78,7 +80,7 @@ mpv.loop_plist_param = [mpv.loop_plist_param]
 #            --loop-playlist=yes # for 'kiosk' mode
 #            --idle=once # with start on demand ..,
 
-mpv.preset = wsl-pulse   ##  <--  <kiosk|linux|wsl-nv-sdl|wsl-nv-pusle|...>
+mpv.preset = wsl-pulse   ##  <--  <kiosk|linux|wsl-nv-sdl|wsl-nv-pulse|...>
 
 mpv.placement_mode = window-place  ## uncomment to use placement on startup
 
@@ -161,7 +163,7 @@ mpv.audio_params = -vo null -ao=<mpv.ao> --idle=yes <mpv.loop_plist_param> \
 
 [base.X-11.get_mode]
 [base.X-11.get_display]
-# [set-up.json.import_file:'mpv.set-up.json'] # ..from /etc/protocol-7/import/..,
+# [set-up.json.import_file:'mpv.set-up.json'] # ../etc/protocol-7/import/..,
 
 [mpv.startup.init]
 
@@ -171,8 +173,8 @@ mpv.audio_params = -vo null -ao=<mpv.ao> --idle=yes <mpv.loop_plist_param> \
 
 [zenka.loop]
 
-#,,.,,.,.,.,.,,,.,,,,,,..,.,,,...,.,,,.,.,,..,..,,...,...,,,.,,,,,,.,,..,,,,,,
-#FYLYFAMF5OEM6JPR7JJOON3PZNXK2WH2U3Y3JOWJHQMKXR7S266AZINCOEYD3PZTHIB4U6DXKG55U
-#\\\|KEYERP4EG4YXL6FUUGLEEREWXCSIAFASBKTIST5BHFOKL72POBL \ / AMOS7 \ YOURUM ::
-#\[7]VK3DYL65GDIOSQVTF2P2Q2WGIXVOUG7ZQVX6BDDAOEHLDBSN4WDI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,.,,,,,,.,.,.,,,,,,,,..,,.,,,,,,..,,...,...,,,.,...,,,,,...,,,,,
+#2XE7MVIKO6AWQFCGZG23PL4TYIRYGYYYLCZOZSXZZMI2UKYPDV7EEF3W5WCQGBL2DX54OFHQQ6BCU
+#\\\|3IR5O73HNMR6LYBX2NWDAYAG6KT67NDXBO7IC7F7PCEF5URQWGT \ / AMOS7 \ YOURUM ::
+#\[7]TMPUQH4X4KLPRNAWPJU5I62Q2B24U7PT6H3UBD3J2AR3JYLUIGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

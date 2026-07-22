@@ -15,12 +15,12 @@ while ( $session->{'buffer'}->{'input'} =~ s|^set-ENV (\S+) (.+)\n|| ) {
     my $env_val = ${^CAPTURE}[1];
     <[base.logs]>->( 2, "[%d] ssh-env : %s = %s", $id, $env_key, $env_val );
     if ( $env_key !~ m,^SSH_(CLIENT|CONNECTION)$, ) {
-        $session->{'buffer'}->{'output'} .= "!TERM! option not expected\n";
+        $session->{'buffer'}->{'output'} .= "!TRM! option not expected\n";
         $session->{'flush_shutdown'} = 1;
         return 2;
     } elsif ( $env_val eq qw| undefined | ) {
         $session->{'buffer'}->{'output'}
-            .= sprintf "!TERM! env-var '%s' is not defined\n", $env_key;
+            .= sprintf "!TRM! env-var '%s' is not defined\n", $env_key;
         $session->{'flush_shutdown'} = 1;
         return 2;
     }
@@ -29,7 +29,7 @@ while ( $session->{'buffer'}->{'input'} =~ s|^set-ENV (\S+) (.+)\n|| ) {
 
 if ( $session->{'buffer'}->{'input'} =~ s|^close\n|| ) {
     $session->{'buffer'}->{'output'}
-        .= "!TERM! closing session as requested\n";
+        .= "!TRM! closing session as requested\n";
     $session->{'flush_shutdown'} = 1;
     return 2;
 }
@@ -88,7 +88,7 @@ if ( $session->{'buffer'}->{'input'} =~ s|^done-init\n|| ) {
 
     if ( not <[protocol.sftp.server.start-process]>->($id) ) {
         $session->{'buffer'}->{'output'}
-            .= "!TERM! cannot start server process\n";
+            .= "!TRM! cannot start server process\n";
         $session->{'flush_shutdown'} = 1;
         return 2;
     }
@@ -100,7 +100,7 @@ if ( $session->{'buffer'}->{'input'} =~ s|^done-init\n|| ) {
             0, '[%d] session.init_state [ 1 ] was not successful'
         );
         $session->{'buffer'}->{'output'}
-            .= "!TERM! unsuccessful protocol init\n";
+            .= "!TRM! unsuccessful protocol init\n";
         $session->{'flush_shutdown'} = 1;
         return 2;
     } else {
@@ -129,7 +129,7 @@ if ( length $session->{'buffer'}->{'input'}
         $id, $buffer_copy
     );
     $session->{'buffer'}->{'output'}
-        .= "!TERM! protocol error [ expected"
+        .= "!TRM! protocol error [ expected"
         . " 'set-ENV <key> <value>' or 'done-init' ]\n";
     $session->{'flush_shutdown'} = 1;
     return 2;
@@ -137,8 +137,8 @@ if ( length $session->{'buffer'}->{'input'}
 
 return FALSE;
 
-#,,,,,,.,,...,,,.,...,,.,,,,,,.,.,,,.,..,,,,.,..,,...,...,,,,,,,.,...,,.,,...,
-#FK5NOJPPHQZO57J6DPOZEIOIQDZRONHK6MZTAG7OUKNA3E6W77BFGLJ6KA2TANZ5VB64NDKOVEO2A
-#\\\|RRFHHMPHFSWUNH6AEIEMITXMGH7Y4M4B5FHLJQIN5ICYSNC2ZFQ \ / AMOS7 \ YOURUM ::
-#\[7]ABNYM3KYUQFFHCI465AF6AKIWEQ4HYK2FRBZV5ANQHN57JOGRIBY 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,.,,..,,,.,,,,.,,.,,.,,,...,,..,..,,...,...,...,,,.,,,,,.,.,..,,
+#5ZB7KLVTKTRRM2AE5MDZJFALFSHWF3JDNSFKYEOOB4EDMID7Q6TBHHFJR5AQC53WZNK44R6G76VKI
+#\\\|JL3QL72IVGE43IB5GJQRLSGYPTOWW23IAPQS4XNHOOZHDIZNHRX \ / AMOS7 \ YOURUM ::
+#\[7]PXLNHXMBK2G3I37Q6ZZPHKUHVR2BZCTWPAUOOVD35XXKD6QIJKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

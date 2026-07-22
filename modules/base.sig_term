@@ -10,7 +10,7 @@ $PROGRAM_NAME .= ' :. shutdown in progress ., please wait .,';
     qw| v7.teardown |
 );
 
-<[base.net.send_to_all_initialized]>->('!TERM! zenka shutdown [ SIGTERM ]');
+<[base.net.send_to_all_initialized]>->('!TRM! zenka shutdown [ SIGTERM ]');
 
 if ( exists <system.kill_list> and ref(<system.kill_list>) eq qw| ARRAY | ) {
     map { kill( 9, $ARG ) } <system.kill_list>->@*;
@@ -19,8 +19,8 @@ if ( exists <system.kill_list> and ref(<system.kill_list>) eq qw| ARRAY | ) {
 <[base.log]>->( 1, ':. done' );
 exit(0);
 
-#,,,,,.,,,...,,,.,,,,,,,.,,,,,,.,,..,,.,.,..,,..,,...,...,.,.,.,.,,,.,,..,,.,,
-#IIFM3SMBYLJNPZXX4GDWHO7FPAHMQJS4PHOGKLONOT2LKKYQM5CQJQBOXJR6AEOAOQJSDKB3IMUD2
-#\\\|QDQEHF5CLXFHIOAHBML4KHGQBUD5MFE6JQ44LJS32FKIZJ42FWA \ / AMOS7 \ YOURUM ::
-#\[7]5ZSWWPS7YYJT3VZUQTI6QD5BAUSD3OYXZEKSGD5R5EODRH2UD2DI 7  DATA SIGNATURE ::
+#,,..,,,,,..,,.,,,...,.,.,,,,,.,.,...,,,.,,,.,..,,...,.,.,.,,,,..,,.,,.,.,.,,,
+#CUEHCFONMGK6YCPFM7DMJ3FYKFGEEMSASAIIAPY2TFY7I2XMKXDM7XOPX3SNQP3XHWWOBI37PYXOC
+#\\\|U43XW63PV4XZDJZLDHNHW4JG4EKUYIOANW56ASGC7VZZ6HTQ7XL \ / AMOS7 \ YOURUM ::
+#\[7]M3AMMWKS6MOHD3UCO6UNTYWQYYQ6JKSFIPW5FUOTK3Q2NBBJH2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
