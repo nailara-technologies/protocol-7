@@ -6,6 +6,27 @@
 #         other zenki, callable from LLM tools, and the foundation for
 #         LLM-assisted log optimization and signing workflows.
 
+## status [ 2026-07-22 ] — DONE, live-verified
+
+confirmed already fully implemented across earlier sessions (2026-07-17/20),
+re-verified live this session (kimi K3 dispatch found nothing left to build).
+all modules present: `ncode.init_code`, `.cmd.search`, `.replace`, `.sign`,
+`.sign-batch`, `.diff`, `.diff-staged`, `.doc`, `.parse-headers`,
+`.format-code`, plus extensions (`tool_list`, `apply`, `suggest`,
+`transform`, `workflow`, `regex.*`). IPC::Open3 execution centralized in
+`ncode.util.run_cmd` (same pattern as `coding.spawn_inference_server`).
+on-demand config live at `configuration/zenki/ncode/` (420s idle timeout,
+`start.on-demand = 1`, `max_concurrency = 1`). access granted via
+cube/admin wildcard (`** ..*.**`) rather than `cube/access.zenki` per
+`data/ai-mem/claude/topic-ncode-access-gap.md`'s corrected mechanism.
+live-verified: `p7c ncode.search 'base.logt'`, `ncode.doc`,
+`ncode.parse-headers`, `ncode.diff`/`.diff-staged` all working; on-demand
+lifecycle confirmed (auto-starts on first search).
+
+open: write commands (`.sign`, `.replace`, `.sign-batch`, `.format-code`)
+intentionally NOT in `access.cmd.usr.cube` — pending signature-gated
+approval system, see `topic-write-access-security-infrastructure`.
+
 ## context
 
 `bin/ncode` is a powerful standalone tool used throughout development.
@@ -186,8 +207,8 @@ check `bin/ncode` source for exact argument syntax before implementing
 
 #,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-#,,,.,.,,,.,.,..,,...,,,,,,.,,...,.,,,,,,,.,,,..,,...,...,...,..,,,,,,,,,,.,.,
-#IETOIJHTMLYCPOY2CO7DKL2V2L2MTXMPBA4YBQIM3BUEOJDABLFOQS4OK3TLZ3L2MTADCFLIROMGY
-#\\\|IRYBOXMTMQ5FIZR62RKRASZ5LH7PXMU2RP6J7VSW36W4UKM4QNG \ / AMOS7 \ YOURUM ::
-#\[7]7OMEGYBAE5T6D66H6OSD6H364KJZUXWX6HKQDIKNHSKKTQ4I3SCA 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,..,,...,.,,,,,.,,..,,.,,...,.,.,..,,...,...,...,.,,,.,,,,,.,,..,
+#DR5UAJNDSFR24R6KDIISDHX7RR24NG4D7O2B5HVHQSWBJQ2KD5BSHHMN3TSQS77VSTV7MQAEMTK4Q
+#\\\|EMFKX4ODDDEFGQ57N7QHCOZ7WK3E4ORZK3HHJ6W7DHGQXDC2ZVI \ / AMOS7 \ YOURUM ::
+#\[7]S42JSSL6CONXRVL43CTIP4GI56EZIJ3E5J37NLW5APV5Q33CK6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

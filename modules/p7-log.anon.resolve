@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = p7-log.anon.resolve
+# descr = resolve [L:<checksum>] token \ bare checksum to plaintext,
+#         returns plaintext, FALSE when not found, undef on error
+
+my $token = shift // '';
+
+$token =~ s|^\[L:([A-Za-z2-7]+)\]$|$1|;    ## unwrap [L:..] token form ##
+$token = uc $token;
+
+return FALSE if $token !~ m|^[A-Z2-7]{8,13}$|;
+
+my $key32 = <[p7-log.anon.key]>;
+return undef if not defined $key32;
+
+map { <[base.perlmod.load]>->($ARG) } qw| AMOS7::Twofish |;
+
+## var_P7 data dir [ /var/protocol-7/<zenka> ] -- NOT the source tree, so ##
+## the table survives git reset/clean and matches a real deployment path ##
+<p7-log.anon.table_path> //= sprintf qw| %s/log-anon/table.bin |,
+    <[file.zenka_dir.data_path]>->();
+my $table_path = <p7-log.anon.table_path>;
+
+return FALSE if not -r $table_path;
+
+open( my $table_fh, qw| < |, $table_path ) or return undef;
+binmode($table_fh);
+flock( $table_fh, 1 );    ## LOCK_SH ##
+
+my $result;
+while (TRUE) {
+    my $header = '';
+    my $read   = read( $table_fh, $header, 18 );
+    last if not defined $read or $read < 18;
+
+    my ( $key, $ct_len ) = unpack( 'a16 n', $header );
+    $key =~ s|\0.*$||;    ## strip key field padding ##
+
+    my $ciphertext = '';
+    $read = read( $table_fh, $ciphertext, $ct_len );
+    last if not defined $read or $read < $ct_len;
+
+    next if $key ne $token;
+
+    AMOS7::Twofish::key_init( $key32, qw| decryption log_anon | ) or last;
+    my $dec_ref = AMOS7::Twofish::decrypt( qw| log_anon |, \$ciphertext );
+    AMOS7::Twofish::delete_table_entry(qw| decryption log_anon |);
+    last if ref $dec_ref ne qw| SCALAR |;
+
+    ## strip pkcs7 padding ##
+    my $plain   = $dec_ref->$*;
+    my $pad_len = ord( substr( $plain, -1 ) );
+    last if $pad_len < 1 or $pad_len > 16 or $pad_len > length($plain);
+
+    $result = substr( $plain, 0, length($plain) - $pad_len );
+    utf8::decode($result);
+    last;
+}
+
+close($table_fh);
+
+return defined $result ? $result : FALSE;
+
+#,,..,,.,,.,,,...,..,,,..,,,.,.,,,.,,,..,,,.,,..,,...,...,..,,,,,,.,.,.,,,,,,,
+#VXULBABG5X5BITZBSKRPMC3N26SMXSQCFQSS5D7KBDGDIBVDM3UE36TCNW3PUVGPHY6KZZDSJV37G
+#\\\|ZTBSK225XYT7PRNZXHTDFD55KYKWDATVN53WYARS2IIV4KIRNPR \ / AMOS7 \ YOURUM ::
+#\[7]XYT4MIO4AWVE4WHLC2EHYQXL76SMKN6BBAEAYYJRDZTQQK4GXGBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

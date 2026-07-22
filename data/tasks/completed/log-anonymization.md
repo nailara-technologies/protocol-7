@@ -6,6 +6,32 @@
 #         keeps full bandwidth and is investigatable without decryption.
 #         sensitive context is recoverable on demand in situ.
 
+## status [ 2026-07-22 ] — phase 1 DONE, live-verified; phases 2-5 not started
+
+phase 1 implemented (kimi K3 dispatch): `p7-log.anon.classify/.replace/
+.store/.resolve/.cmd.resolve/.init_code/.transform/.key` — note the
+`log.anon.*` namespace from this spec was renamed to `p7-log.anon.*` post-
+implementation (module group lives inside the `p7-log` zenka, not a
+standalone `log` zenka — `p7c log.anon.resolve` fails "client not
+present"; the working form is `p7c p7-log.resolve` / `p7c p7-log.anon.
+resolve`, both live-verified against the real encrypted table). wired
+into `p7-log.add_line` as opt-in via `p7-log.anon.enabled` (currently `1`
+in `configuration/zenki/p7-log/start`). BMW-L13 via existing
+`chk-sum.bmw.L13-str`; Twofish key lazily derived from the user's C25519
+system key. verify step from the original dispatch prompt passed: logged
+line shows `[L:XXXXXXXX]` in place of a `/home/<user>/...` path,
+`p7c p7-log.resolve XXXXXXXX` returns the original path.
+
+known issue, follow-up next commit: `p7-log.anon.classify`'s path regex
+hardcodes `/home/<user>/...` — misses installs where the home directory
+root was renamed (e.g. `/users/`). should read from a configured/detected
+prefix instead of a literal `/home/`.
+
+phases 2 (richer resolve/investigation workflow beyond the basic command),
+3 (timestamp_encrypt + C25519 chain signing), 4 (entropy classifier +
+LMDB table), 5 (full_encrypt + decrypt-range + export/audit) are all still
+design-only, not started.
+
 ## the problem
 
 log lines contain sensitive data by necessity: file paths, user interaction
@@ -253,8 +279,8 @@ verify: enable anon, run a command with a file path argument, confirm log
 shows `[L:XXXXXXXX]` in place of path, `p7c log.anon.resolve XXXXXXXX`
 returns the original path.
 
-#,,,.,..,,.,,,,.,,..,,,,,,.,,,...,,,,,..,,...,..,,...,...,..,,,,.,..,,,,,,..,,
-#4WYRJ2JMLQ44VCB6BV7Q7J7L5XNTH6TXXQQEKC3F5CZUNQYSGAAAV3HAUAPL5FRLSA4QDO3KJKZJ6
-#\\\|HHPVHLG4VZJXCN26F2ZXY2DJJ37J3RPRM6FOA5L5EKWEWDROEUW \ / AMOS7 \ YOURUM ::
-#\[7]P6S2E5PBXRNIMQWUJ7EQHELYX6ZLZWVH36PZLIKYWCF5E5OIRUDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,,,.,,,,,...,,.,,.,.,..,,.,,,.,.,..,,...,...,...,,.,,...,...,..,,
+#MUELN37DGN5O4AAHPIXM3SIANZIPCIBZQLZ66Q5ZSQN6CXQMCWCOJ5UKZB4UZ6VME52ASLMTUOUH2
+#\\\|RAYZ43VI72XUVEMDDO4XEFFUNPMEDSDHZ4QBVPUP7H5QMZH6RBQ \ / AMOS7 \ YOURUM ::
+#\[7]3QBVLQ4DNWW5UVSFP2KTP2WOIY6BGG5QDYEHIGMMUN7A67IVRMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

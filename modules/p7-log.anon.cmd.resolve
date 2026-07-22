@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = p7-log.anon.cmd.resolve
+# param = <checksum> | [L:<checksum>]
+# descr = on-demand decryption of single anonymized log fragment
+
+my $args = $call->{'args'} // '';
+$args =~ s{^\s+}{};
+$args =~ s{\s+$}{};
+
+return { 'mode' => qw| false |, 'data' => 'usage : resolve <checksum>' }
+    if not length $args;
+
+my $plaintext = <[p7-log.anon.resolve]>->($args);
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( "log.anon : no entry for '%s'", $args )
+    }
+    if not defined $plaintext
+    or $plaintext eq qw| 0 |;    ## FALSE : not found \ invalid ##
+
+return { 'mode' => qw| size |, 'data' => $plaintext . "\n" };
+
+#,,,.,,.,,..,,...,,..,.,,,.,,,,,,,,.,,.,.,,,.,..,,...,...,.,.,,..,,,,,.,.,.,,,
+#SFFCFB7EV2VQVYLQJSNJCQIJFG7GJVB3VGC662PKZFKADED4HMD6PAIMMDYK3HLEY3ZRW7IGRVZSI
+#\\\|VBPNLUD5E4KP3JG2MR4F74UZQEG2Y3GSSQWQJQRPUKSRV2NMXTN \ / AMOS7 \ YOURUM ::
+#\[7]75UVVQUDPIPJ5AUOOFV5WVG7XVLQVFDKAEBMBOLWLH6G3IISB6BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
