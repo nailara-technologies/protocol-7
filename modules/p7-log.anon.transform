@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = p7-log.anon.transform
+# descr = opt-in anonymization hook for p7-log.add_line [ in-place ]
+
+my ( $log_name, $log_msg_ref ) = @ARG;
+
+return FALSE if not <p7-log.anon.enabled>;
+return FALSE if <p7-log.anon.in_transform>;         ## reentry guard ##
+return FALSE if ref $log_msg_ref ne qw| SCALAR |;
+
+<p7-log.anon.in_transform> = TRUE;
+
+## anonymization failure must never drop \ alter the original line ##
+my $ok = eval {
+    my ( $anon_line, $pairs ) = <[p7-log.anon.replace]>->( $log_msg_ref->$* );
+    if (    defined $anon_line
+        and ref $pairs eq qw| ARRAY |
+        and scalar @{$pairs} ) {
+        <[p7-log.anon.store]>->($pairs);
+        $log_msg_ref->$* = $anon_line;
+    }
+    TRUE;
+};
+
+if ( not $ok ) {
+    <[base.logs]>->(
+        0, 'p7-log.anon.transform failed : %s',
+        <[base.str.eval_error]>
+    );
+}
+
+<p7-log.anon.in_transform> = FALSE;
+
+return TRUE;
+
+#,,.,,,.,,,.,,.,.,.,.,,,.,.,,,...,,,.,,..,.,.,..,,...,...,,.,,,.,,.,,,..,,,,,,
+#FJXLMN2FFRW3YYC4S4XOLTUBU55424G2NVDZMR25GEAUHLUWDOUWXMBEB47S5WXC2XIYOLPMXGC2E
+#\\\|LJ5RLE2I2KOSTWU7VK7HUPCIKJ3ASFNM56GECVRI4YQDZLFLYVJ \ / AMOS7 \ YOURUM ::
+#\[7]5GMATCKL5OZ2XRUKKEQZGSZXRC7Y3IQARY767KLYUFBLW73XEGCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

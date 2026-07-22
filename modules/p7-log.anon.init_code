@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = p7-log.anon.init_code
+# descr = log anonymization defaults + dotted command registration
+
+<p7-log.anon.enabled>   //= FALSE;
+<p7-log.anon.token_len> //= 13;
+
+## dotted command alias : p7-log.anon.resolve ##
+$data{'base'}{'cmd'}{qw| anon.resolve |} //= qw| p7-log.anon.cmd.resolve |;
+
+## note : key derivation is lazy [ EUID final only after drop_privs ] ##
+
+<[base.logs]>->(
+    2,
+    'log.anon : initialized [ enabled : %d ]',
+    <p7-log.anon.enabled> ? 1 : 0
+);
+
+return TRUE;
+
+#,,.,,,,,,...,,.,,...,,.,,,.,,,,,,,,,,.,,,.,.,..,,...,...,,..,,,.,..,,,..,,..,
+#ZUWQRV7NNB46NYUCYC3TM5ARL46TOUW422MIYJ6VCJ6VYFS2LZVP5RZR6ICR3HUPUKME4L3PKRV5C
+#\\\|SVYLG6J5U2XLTK4ZZ5RCKNDUYXVAWKMN6ZNYAOWUTIADMPKXVAS \ / AMOS7 \ YOURUM ::
+#\[7]5MB3DGFRFQDTU3JGZGX7CHSNR35ATQLSNEQKF3YQW275VC62U2CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
