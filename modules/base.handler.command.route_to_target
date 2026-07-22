@@ -229,6 +229,16 @@ elsif ( $cmd =~ m|^\^(\w+)\.([^\.]+)$| )
     return FALSE if @send_sids_left == 0;    ##  <--  all done.,  ###
     @send_sids = @send_sids_left if @send_sids_left != @send_sids;
 
+##[ ROUTING MODE \ RESOLUTION ]###############################################
+
+    ## configurable bare-name multi-instance disambiguation : collapses  ##
+    ## @send_sids per routing_mode [ + armed admin override ] -- selects ##
+    ## from the initialized-filtered survivors only [ drain-aware ]      ##
+
+    @send_sids = <[base.zenki.resolve_routing_sids]>->(
+        $target_name, $target_subname, \@send_sids, $session
+    );
+
 ##[ PROCESS \ FILTER HOOKS ]##################################################
 
     # command [argument] filter hooks  ..,
@@ -393,8 +403,8 @@ elsif ( $cmd =~ m|^\^(\w+)\.([^\.]+)$| )
 
 return undef;    ##  fell through : caller handles unknown-command  ##
 
-#,,,.,.,.,,..,,..,...,,,.,..,,,,,,,.,,...,..,,..,,...,...,,..,...,,,,,,.,,.,,,
-#4DIDORTWHUOESNRMNPTC23XNPDBDADLXRX2HFIAIXZ7PULAI3FJXMBMRW6TIBMAIP7BMXP5UZVJF6
-#\\\|HXK2E3CRAYZLUGVZKFMU4JEQZ26732UIEINSRSA45E7VOPSCIML \ / AMOS7 \ YOURUM ::
-#\[7]CWDT74N635SGMLSJ32I4BQWOTEUCDNKPNNY6QP33MUJAZLDRGKAA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,.,.,,..,.,,,...,.,,,...,,.,,,..,..,,...,...,..,,,,.,,..,..,,,..,
+#6DHCSNDJN47IUGECJLJCCOGJ34FUHUA7RSR2IFCNJVG7U5FL3HOANVY57DYTD4TCRYO2ELPNBS6BK
+#\\\|WDL2SXP2YUXQ6UIOITN22K2DOODVF7F7G3BLQ7XVCINIX5TRHLO \ / AMOS7 \ YOURUM ::
+#\[7]XBF7ZNDAQCTIX46MLKMQEZ7N5KJ5YSHZDGKDM3KTCEMLNKUYLYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
