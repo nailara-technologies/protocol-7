@@ -34,9 +34,11 @@ network-as-computer, dedup-tree unification, coding-as-artform / style-philosoph
 - [coding-zenka-path-access-profiles](topic-coding-zenka-path-access-profiles.md) — composable ro/rw path profiles: zenka-scoped ownership (containment) + content-provenance taint (write subtraction); design-only
 - suggestion-integration-queue (`data/md/design/SUGGESTION-INTEGRATION-QUEUE.md` in repo, not memory) — user-marked BLOCKER-LEVEL (not aspirational): cross-zenka ascii review queue for applyable suggestions, "nothing lost, only not approved yet," manages atomic inputs not sources, approval = pluggable gate role
 - cold-queue-gpu-cooldown-trigger (`data/tasks/task-zenka-cold-queue-gpu-cooldown-trigger.md` in repo, not memory) — task zenka should gate deferred background work on live GPU-temp cooldown, not a guessed debounce; full Opus implementation plan already written; motivating anecdote was debunked but design stands independently
+- [zenka-name-routing-modes](topic-zenka-name-routing-modes.md) / `data/tasks/zenka-name-routing-modes.md` in repo — per-zenka routing_mode (default contact-oldest) + permissioned session-scoped admin override commands for bare-name ambiguity; idle-longest = free worker-pool load balancing
+- [subname-not-a-trust-domain](topic-subname-not-a-trust-domain.md) — user[taeki]/user[claude]/user[root] scoped/severity-judged per resolved name[subname] pair, same as distinct top-level zenka names; bare-name grants implicitly span every subname beneath
 
-#,,,,,.,.,,.,,,..,.,,,.,.,.,,,...,,.,,,,.,,..,..,,...,...,...,,..,,,.,,.,,,,.,
-#MLM2MNHHOFJM4CWO2OJJBPEQEDTGQH27YDMKZ6B2LLCEQESILUPVEA42IJ6GP6ZOEJBODB5Y5S4B4
-#\\\|M27THILEZF3JNXWINWDAZB2KSAG7HKXVEYJ6L5XXHUENUJWEYSZ \ / AMOS7 \ YOURUM ::
-#\[7]TQMCBV3ETYXRI3J4P6YJZ57KVPXCIUO2W5VOABMDTHB5ROHZGUAA 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,...,,,.,..,,.,.,,.,,..,,,..,.,,,..,,...,...,,..,,,.,,,.,,.,,.,,,
+#CS3YC565BVOT64SOPYVJH4JQVCMVQOHRJ74BDLOQFLG6WQ4IFMT3CAMCA2SDSBK436KO72CTUMS2A
+#\\\|5SWEC2EAGPYMUALSRAHK6USLE7ITH7RX7G2I4ZKJMB7MWTTDUH4 \ / AMOS7 \ YOURUM ::
+#\[7]IGCXT7FGLBIILRM6FLD23YTQLGKBMRMP2RDW57HWQTFTCCBGFMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
