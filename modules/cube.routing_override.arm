@@ -1,0 +1,93 @@
+## [:< ##
+
+# name  = cube.routing_override.arm
+# descr = shared backend for the '-next' routing override commands
+# param = $sid, $mode, $args  [ :single|:next|:keep: <name>[[subname]] ]
+# note  = one session-state slot : $session->{'pending_routing_override'}
+#         subname is addressing only, never a trust domain : a bare-name
+#         arm implicitly reaches every subname under that name
+
+my $sid     = shift;
+my $mode    = shift;
+my $args    = shift // '';
+my $session = defined $sid ? $data{'session'}{$sid} : undef;
+
+return { 'mode' => qw| false |, 'data' => 'no session context' }
+    if not defined $session;
+
+## optional consumption prefix : :single: [default] | :next: | :keep: ##
+my $consume = qw| single |;
+$consume = $LAST_PAREN_MATCH if $args =~ s{^:(single|next|keep):\s*}{};
+
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected <name>[[subname]] target parameter'
+    }
+    if not length $args;
+
+my $subname = $args =~ s|\[([^\]]+)\]$|| ? $LAST_PAREN_MATCH : undef;
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( "not a valid zenka name '%s'", $args )
+    }
+    if $args !~ m|^\w[\w\-]*$|;
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( "not a valid zenka subname '%s'", $subname )
+    }
+    if defined $subname and $subname !~ m|^[\w\-]+$|;
+
+## clear previously armed override [ incl. expiry timer ] ##
+if ( exists $session->{'pending_routing_override'} ) {
+    my $old = delete $session->{'pending_routing_override'};
+    $old->{'timer'}->cancel
+        if defined $old->{'timer'} and $old->{'timer'}->is_active;
+}
+
+my $expiry   = 13;    ## seconds [ forgotten-override auto-expiry ] ##
+my $armed_at = <[base.time]>->(3);
+
+$session->{'pending_routing_override'} = {
+    'mode'           => $mode,
+    'name'           => $args,
+    'subname'        => $subname,
+    'consume'        => $consume,
+    'sid'            => $sid,
+    'armed_at'       => $armed_at,
+    'expiry'         => $expiry,
+    'expire_handler' => qw| cube.handler.routing_override_expire |,
+    'timer'          => <[event.add_timer]>->(
+        {   'repeat'  => FALSE,
+            'after'   => $expiry,
+            'handler' => qw| cube.handler.routing_override_expire |,
+            'data'    => { 'sid' => $sid, 'armed_at' => $armed_at }
+        }
+    )
+};
+
+my $target_str
+    = defined $subname ? sprintf( qw| %s[%s] |, $args, $subname ) : $args;
+
+<[base.logs]>->(
+    2,    '[%d] routing override armed : %s ..:. %s [:%s:]',
+    $sid, $mode, $target_str, $consume
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        'armed : %s ..:. %s [:%s:, expires in %d seconds]',
+        $mode, $target_str, $consume, $expiry
+    )
+};
+
+#,,,,,...,..,,,,.,,,,,,..,,,,,,.,,.,,,,,.,,,.,..,,...,...,...,,,,,,..,,..,,,.,
+#IYPIOY5VUZSCM5CTQ6VS3AL2GPNVUNA36Q2KPOMH54GSTSDAVM2FNPG5WBFOD6BJQTLDSKWHNWWCM
+#\\\|L2WLPM2UZJRZGCVBZJ7IPMJGAXEMQZLYCNYHISCECEKXILGBAZQ \ / AMOS7 \ YOURUM ::
+#\[7]ENIBEYOTPODO3KYPWOCL5KAFONLVT6GVFAC6A2LFJNXOEVRGRIBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
