@@ -24,7 +24,7 @@ if ( not defined $sid or $sid !~ m|^\d+$| ) {
     my $user          = $session->{'user'};
     my $user_exit_cmd = $session->{'user-closing'} // 0;
 
-    my $shutdown_msg = $user_exit_cmd ? "TRUE $msg" : "!TERM! $msg";
+    my $shutdown_msg = $user_exit_cmd ? "TRUE $msg" : "!TRM! $msg";
 
     if ( exists $data{'user'}{$user}{'shutdown_msg'} ) {
         $shutdown_msg = $data{'user'}{$user}{'shutdown_msg'};
@@ -36,8 +36,8 @@ if ( not defined $sid or $sid !~ m|^\d+$| ) {
     $session->{'flush_shutdown'} = 1;   ##  allow output write to complete  ##
 }
 
-#,,,,,.,,,.,,,,,.,,.,,,..,...,.,.,..,,.,.,,,.,..,,...,...,,..,.,.,,,.,,,,,..,,
-#DYF6MAYFIPOSUXVR2YFSZLYJXBVN6WMEXF6TPG55BO25MWEWQUTEEYUNLCEGLUWLOS4U2VFFKBZOK
-#\\\|STLFY3D6OYKV52TJK5LUMRYABU7TLSA3IIDNGAJBHJEUCSUPO55 \ / AMOS7 \ YOURUM ::
-#\[7]FMUDVQNRJ3KD3NULKFKROVDWOKFEWWWEUO4W6V4R5LSZVVZPAWDY 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,.,,,,.,,...,.,,,...,.,,,,.,,...,..,,...,...,...,..,,...,,.,,.,,,
+#66WHDKYYWZSOZEHCTKFMFSSOVY2JCIX37AVLE2U7YRF4MWP2DMFNOYH76GIRDKT4UKUJP7FFNMZ6C
+#\\\|ALCRWZLJJKB4RHV6MEFUD4236NRJ6NBPSGLZ3ZH4CLNC334NNUK \ / AMOS7 \ YOURUM ::
+#\[7]LUEBZRDOCSZPURVRFGCX3Z5QQJLY2USQ2DXYP4RRJ7PVIDKNYUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
