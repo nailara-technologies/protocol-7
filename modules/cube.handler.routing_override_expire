@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = cube.handler.routing_override_expire
+# descr = auto-expiry timer for armed routing override [ session slot ]
+
+my $watcher   = $ARG[0]->w;
+my $timer_sid = $watcher->data->{'sid'};
+my $armed_at  = $watcher->data->{'armed_at'};
+
+$watcher->cancel if $watcher->is_active;
+
+return undef
+    if not defined $timer_sid
+    or not exists $data{'session'}{$timer_sid};
+
+my $override = $data{'session'}{$timer_sid}{'pending_routing_override'};
+
+## only expire the exact arming this timer was created for ##
+return undef
+    if not defined $override
+    or not defined $override->{'armed_at'}
+    or $override->{'armed_at'} != $armed_at;
+
+<[base.logs]>->(
+    2, '[%d] armed routing override expired : %s ..:. %s',
+    $timer_sid, $override->{'mode'}, $override->{'name'}
+);
+
+delete $override->{'timer'};
+delete $data{'session'}{$timer_sid}{'pending_routing_override'};
+
+return undef;
+
+#,,.,,,,,,...,.,,,.,.,,,.,,,.,,,,,,..,...,,.,,..,,...,...,...,,,,,,..,.,.,...,
+#D2VFCUU2CTTQOGDUFQ2PDYMRRYK6SHLKKXTE5E2YZSAGAUROCARH27OVLFZKWVA3W76JXFIHXA3DS
+#\\\|IHJ53L2ZL36OST5XWY542KF5CJMS53JI7LPAPXKOFIGZLKB2D24 \ / AMOS7 \ YOURUM ::
+#\[7]BB6RJUA6AQQQIMP7AWC236AN4RIVE6U6DKRAJM3EQ2LLZ5YUCWCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

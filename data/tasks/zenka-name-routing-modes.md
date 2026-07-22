@@ -57,8 +57,8 @@ many instances happen to be live.
 new top-level `zenka-startup.v7` key, e.g.:
 
 ```
-routing_mode = group            ## current/default behavior : fan out to all ##
-routing_mode = oldest-first      ## deterministic single pick, earliest instance ##
+routing_mode = group             ## current behavior : fan out to all [ no longer the default -- see below ] ##
+routing_mode = contact-oldest    ## deterministic single pick, earliest instance [ the default when absent ] ##
 routing_mode = newest-first      ## deterministic single pick, most recent instance ##
 routing_mode = idle-longest      ## route to whichever instance was LEAST recently
                                  ## contacted -- implicit round-robin load balancing
@@ -280,8 +280,8 @@ cause produced it (this bug, or anything else, ever). would have turned
 this entire incident into one loud log line instead of a silent
 byte-corruption mystery.
 
-#,,,.,.,.,,..,,,.,,,,,...,,.,,,,,,,..,...,.,.,..,,...,...,.,,,,,.,...,,,,,.,,,
-#ISTM4RS3E35YDXPJ557QL7S2J5XCH7S73MM3LSZJAD2TEOW4KSX3CIG73XXDH4SPD6V5QEY6VPTLW
-#\\\|LWUESIT4VCWZC4O6SFN4MCHFJAWAAUHXQRQZTCNZSO7FPQRHJJ7 \ / AMOS7 \ YOURUM ::
-#\[7]FY7JQWGQVLKI5L34Y4SR6EBRCQ6JIZI3WHZ7YEWSGRK73KRJ4QDI 7  DATA SIGNATURE ::
+#,,..,,..,.,.,.,.,.,,,,,.,...,,..,...,..,,.,.,..,,...,...,.,.,.,,,,..,.,,,,.,,
+#66TTBJL5T7K3SY5U4ZD7PBJNYBLAZRJANPBELWQDLBYOS33RQRNN237XQNJ46HKQZ6RJ5NQETPRBY
+#\\\|3SIBMEIVVEU4NIUIP65H6WSNS762LPIIMLLUBNKRM7HFZINOOBF \ / AMOS7 \ YOURUM ::
+#\[7]SFMKNQ5S3M2XOUMDYAUM757YBQTJCGDHXEN7S3727KY7MV67H4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

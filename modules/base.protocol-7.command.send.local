@@ -57,6 +57,14 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
         return 0;
     }
 
+##[ ROUTING MODE \ RESOLUTION ]###############################################
+
+    ## configurable bare-name multi-instance disambiguation [ config ] ##
+
+    @send_sids = <[base.zenki.resolve_routing_sids]>->(
+        $target_name, undef, \@send_sids, undef
+    );
+
     my $count = 0;
     foreach my $target_sid (@send_sids) {
         my $session;
@@ -173,8 +181,8 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
     return -2;
 }
 
-#,,.,,,,.,,,,,,.,,,,.,.,.,,,,,,,.,..,,,,.,.,.,..,,...,.,.,...,...,..,,..,,,..,
-#J744W3GTM7D5ZK6Z5B2JFBSZ3I4A7UKFJ3I5CZCNAIYM3GLEHGTYZW67BZB6CXD5VZQU7O2VICP6Q
-#\\\|G3KPYJE4LB7V4665X2ABXNF4K24WWZ4SDHDI7DI527CT4ODWIT3 \ / AMOS7 \ YOURUM ::
-#\[7]4VGS2O37U7XON46SKMCOBJGMQEOAIOTDG4DJ6M7564OE5CGTDKDA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,...,.,.,...,,,.,,,,,,,,,,.,,,,.,..,,...,..,,...,,,,,..,,,,.,,,,,
+#6KLPMIQ3MCZSPYH6FWBJRYQK743VRAWNMSMZ2BU4IHZR242ARWYSSXI5AB3T3QWSZAKPMJEUAIPXI
+#\\\|K76TR23BJICPS7SE2O454H6AS2H6JOEV7OEJPWY3HDBIWXPDWSY \ / AMOS7 \ YOURUM ::
+#\[7]I5ZUL65PGM7OHFLVRLU5KJKLBLDQQP43E7YYEZLQK3ZB6IYAHSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

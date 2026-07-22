@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = cube.cmd.reset-next
+# descr = cancel any currently-armed routing override [ unused ]
+
+my $sid     = $call->{'session_id'};
+my $session = $data{'session'}{$sid};
+
+return { 'mode' => qw| true |, 'data' => 'no routing override armed' }
+    if not defined $session
+    or not exists $session->{'pending_routing_override'};
+
+my $override = delete $session->{'pending_routing_override'};
+$override->{'timer'}->cancel
+    if defined $override->{'timer'} and $override->{'timer'}->is_active;
+
+<[base.logs]>->( 2, '[%d] armed routing override cancelled', $sid );
+
+return { 'mode' => qw| true |, 'data' => 'routing override cancelled' };
+
+#,,,.,,,.,,,.,.,.,.,.,,.,,.,.,,,.,,,.,,,.,.,,,..,,...,...,...,,,.,,..,,..,,,.,
+#DHJDLIGNO67XGPCR7ECKOH3EFO7Q35XD7B3SOVE3KUBERS7627GWPFQTTBGS4ZU4GYAURZ5QKXUBC
+#\\\|PY6TQNOFL65MG4HQUOQAIEJTT3NM2CF5J4PWKNOIRF6IE3OVNRB \ / AMOS7 \ YOURUM ::
+#\[7]FA2HV75A6HG3OIOHB7LV5EW6HDNCD5PKARFBB4OV27I6NT6QCOCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

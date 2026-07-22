@@ -50,6 +50,13 @@ foreach my $zenka_ref ( @{$zenki_init_code} ) {
         )
     );
 
+    ## [re-]push declared routing_mode to cube mirror [ config reload ] ##
+    ## [ guarded call : loud log instead of fatal on missing sub ]      ##
+    <[base.code.call_expected]>->(
+        <[base.mod.exists]>->(qw| v7 |),
+        qw| zenka.push_routing_mode |, $zenka_name
+    );
+
     ## 'start-set-up' values [ from zenka config section ] ##
     my $start_setup = <v7.start_setup.zenki.config>->{$zenka_name} //= {};
     if ( defined $start_setup->{'zenka-start'}
@@ -65,8 +72,8 @@ foreach my $zenka_ref ( @{$zenki_init_code} ) {
     }
 }
 
-#,,.,,,..,..,,..,,,,.,,.,,,,.,.,,,,,.,,..,,,,,..,,...,..,,.,,,..,,,.,,.,.,..,,
-#6LA7IHW7RZRBAHKD2O5PQF34ZAZHXC57BM3WNCO7372QE6Y5W2JGZBJ53HT6DGPT26RJZJCM5ZO3S
-#\\\|HZQI4OLRJXQOV2HRPN3NLDJH3EWJMZNBELAU6UXIDOXLY6E2N7Y \ / AMOS7 \ YOURUM ::
-#\[7]PMQPZHOARE4QZNC3ZKF2V3TMLF75TE54Q7YEGZSVFDX73F3IEYCY 7  DATA SIGNATURE ::
+#,,..,..,,,,,,.,,,,,,,...,.,,,,.,,,.,,...,,,,,..,,...,...,.,,,..,,..,,.,,,.,,,
+#3JS3ROLLG4GOO6T3QIRA3D2H55WTASZGJRM5DDQ5VQBZU2ONU7E2LJRDJ6IF2LHYNH2F5BBR4LU7A
+#\\\|K4GBC4VTJULFH3RHWYWRNLYQNS5KBJRENVNYQIB7ON5ABY5A4DQ \ / AMOS7 \ YOURUM ::
+#\[7]76P5S3DCRAEEXQOKYG7IS65CP2FCRNSSAACS6SGSM2ZVWJAHXCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
