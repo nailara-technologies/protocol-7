@@ -321,6 +321,108 @@ if ( defined $choice->{'finish_reason'} ) {
                     }
                 );
             } else {
+                ## detect tool-call-shaped-but-unparseable content : model    ##
+                ## tried to call a tool in a format our parsers don't know    ##
+                ## [ e.g. <tool_code>...</tool_code>, <invoke name=..>, or    ##
+                ## a top-level {"name":..,"arguments":..} json blob ]. left   ##
+                ## alone this silently completes as status:done with the raw  ##
+                ## unparseable text as the "final answer", eroding trust in   ##
+                ## the completion signal. nudge with a format reminder and    ##
+                ## retry a bounded number of times [ mirrors the retry        ##
+                ## discipline in coding.handler.monitor_inference_startup's   ##
+                ## cat-test path ]; if the model keeps producing the same     ##
+                ## shape, fail the task cleanly with a real error rather than ##
+                ## reporting done. skip on no_tools tasks : no tools to call, ##
+                ## a stray shape there is genuinely just prose.               ##
+                my $shape_src         = $context->{'content'} // '';
+                my $tc_shape_detected = FALSE;
+                if ( !$task_flags_ch->{'no_tools'} ) {
+                    if (   $shape_src =~ m{<tool_code\b}i
+                        || $shape_src =~ m{</tool_code>}i
+                        || $shape_src =~ m{<tool_call\b}i
+                        || $shape_src =~ m{<function\s*=}i
+                        || $shape_src =~ m{<invoke\b}i
+                        || $shape_src
+                        =~ m{\A\s*\{\s*"name"\s*:\s*"\w+"\s*,\s*"(?:arguments|parameters)"\s*:}s
+                    ) {
+                        $tc_shape_detected = TRUE;
+                    }
+                }
+
+                if ($tc_shape_detected) {
+                    my $state_ur
+                        = <[coding.async.state_manager]>->( qw| get |,
+                        $task_id )
+                        // {};
+                    my $retry_max
+                        = <coding.cfg.unparseable_tool_call_retry_max> // 2;
+                    my $retries
+                        = $state_ur->{'unparseable_tool_call_retries'} // 0;
+
+                    if ( $retries < $retry_max ) {
+                        $state_ur->{'unparseable_tool_call_retries'}
+                            = $retries + 1;
+                        <[base.logs]>->(
+                            1,
+                            'chunk_handler: %s tool-call-shaped-but-'
+                                . 'unparseable content : injecting format '
+                                . 'reminder [ attempt %d/%d ]',
+                            $task_id, $retries + 1, $retry_max
+                        );
+
+                        ## record the model's [ unparseable ] turn in history ##
+                        push @{ $state_ur->{'messages'} },
+                            {
+                            'role'    => 'assistant',
+                            'content' => $context->{'content'} // '',
+                            };
+                        ## inject the reminder as a user turn ##
+                        push @{ $state_ur->{'messages'} },
+                            {
+                            'role'    => 'user',
+                            'content' =>
+                                'Your previous reply looks like an attempt'
+                                . ' to call a tool in an unrecognized format.'
+                                . ' To call a tool, emit exactly:'
+                                . ' <tool_call><function=NAME>'
+                                . '{"arg":"value"}</function></tool_call>'
+                                . ' [ or use the structured tool_calls field'
+                                . ' ]. If you intended a final answer,'
+                                . ' respond with plain prose containing no'
+                                . ' tool-call markup.',
+                            };
+
+                        $state_ur->{'round'}++;
+                        $state_ur->{'content'}    = '';
+                        $state_ur->{'tool_calls'} = [];
+                        <coding.async.task_state>->{$task_id} = $state_ur;
+                        <[coding.async.send_request]>->($task_id);
+                        $context->{'finish_reason'}
+                            = qw| tool_call_reminder |;
+                        return $context;
+                    } else {
+                        <[base.logs]>->(
+                            0,
+                            'chunk_handler: %s tool-call-shape persisted '
+                                . 'across %d reminders : failing task',
+                            $task_id, $retry_max
+                        );
+                        <[coding.async.state_machine]>->(
+                            'transition',
+                            $task_id,
+                            {   'event' => 'error',
+                                'error' =>
+                                    'model produced tool-call-shaped output'
+                                    . ' in an unrecognized format across '
+                                    . ( $retry_max + 1 )
+                                    . ' attempts [ format-reminder retries'
+                                    . ' exhausted ]',
+                            }
+                        );
+                        return $context;
+                    }
+                }
+
                 ## normal completion ##
                 <[coding.async.state_machine]>->(
                     'transition',
@@ -362,8 +464,8 @@ if ( defined $choice->{'finish_reason'} ) {
 
 return $context;
 
-#,,,,,,,,,..,,,,.,,.,,,,.,,.,,,..,..,,.,,,,,,,.,.,...,...,..,,,,,,,,,,.,.,.,.,
-#5CPZDEQCDFE56H4FGL35RSDA7SJNSQNZZS2V7PVYT3L7TCLEEZ6MBMRMUUG4PYSMVIG4NYKAIVYXW
-#\\\|XQZY2G6QETDJ4NINKXPU6XZC2KFWAJG7D5L56FOITA7RT52O4ZU \ / AMOS7 \ YOURUM ::
-#\[7]I3BZDISHQOGQIKBAJT6EATSWCEYSLAVKEEW5KNW3G3JGTB5XFMDY 7  DATA SIGNATURE ::
+#,,,.,,..,...,.,.,.,,,.,,,,,.,.,,,.,.,...,,,.,.,.,...,...,..,,,,.,,..,.,.,,.,,
+#LYFIYLEKAVQFJRDZ4J2HAM3MN2TGXYBQBYXXIUNZ34SNOPCTZYOY3NW2EKGFAI5HO4OBA6BAIIDSM
+#\\\|R5UEGSK6HK4WWSX33CCMCONCHAHCWN4LUAB2ZG75VLJ6C6UFFBX \ / AMOS7 \ YOURUM ::
+#\[7]ZTEAC7EIKS6GZKA72WMFAV5VTIDDQ5VEFGQHR527WSB5BXFNECDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
