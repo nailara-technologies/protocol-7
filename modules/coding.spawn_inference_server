@@ -103,9 +103,14 @@ for my $orphan_path ( glob "$zenka_dir/state/inference.$backend.*.pid" ) {
             close $cfh;
         }
         if ( length $saved_bin and $proc_cmd =~ m|\Q$saved_bin\E| ) {
+            ## $age_s is already an elapsed-seconds delta [ from        ##
+            ## timestamped_delta_s ] -- base.parser.duration expects an ##
+            ## absolute unix start-time and computes now-start itself,  ##
+            ## so reconstruct a start-time rather than passing the      ##
+            ## delta directly [ else it reports age since unix epoch ]  ##
             my $age_str
                 = defined $age_s
-                ? <[base.parser.duration]>->($age_s)
+                ? <[base.parser.duration]>->( <[base.time]>->() - $age_s )
                 : 'unknown age';
             kill( 'KILL', $saved_pid );
             <[base.waitpid]>->($saved_pid);
@@ -515,8 +520,8 @@ return {
     'port'    => $port
 };
 
-#,,,,,.,,,.,,,.,.,..,,,,,,,,,,.,,,,.,,.,.,..,,..,,...,...,.,,,,..,..,,.,.,.,.,
-#RGV66PXTMWKWDFTULEOIVEVHSDQHINMEHI7PEZJ3XD6YV3TP5RSOEOPVJJ2KC4HLUA6O72HE7FXBC
-#\\\|WZJYS2YTYLZAU4YT3FKTHOV4W4PUUMAKRNDHSXGG3NNXTEADGJO \ / AMOS7 \ YOURUM ::
-#\[7]VJLYZDY75CPZEG3Z64UN5YJEFF47YGMPRKHKUD2BCAND7RXSXMCA 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,,.,..,,.,,,,.,,,,.,.,.,,..,,,,,..,,...,..,,...,,..,.,,,,.,,...,
+#T4VPJ7RTPHQQIJQLOSBKMNGNMBEZLH6TOXKASQMUOTS4HJAWWDPRH4PUGTHJGZD6ZUZPG6MQ7LWBW
+#\\\|VBNZPSMHHZJ4BKLYS3BQNVDA4RSVIWRDDK2D35LLYWFPNOXLO2M \ / AMOS7 \ YOURUM ::
+#\[7]K4OSHJB6RSGAIXXKO5UEBAOVYFLNB55BH6NIAJB6BHMAZT3CWQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

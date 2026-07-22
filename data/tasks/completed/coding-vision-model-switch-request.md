@@ -1,5 +1,23 @@
 # coding.vision-model `:switch:` — deferred idle-gated vision-model switch request
 
+## status (2026-07-23) — DONE, landed `95a2031fc`
+
+landed as `coding: add vision-model :switch: for idle-gated model switching`.
+`modules/coding.cmd.vision-model` branches on `:switch:`, parses optional
+checksum/timeout, short-circuits when already vision; new
+`modules/coding.handler.vision_switch_poll` implements the two-phase
+(waiting_idle/switching) timer state machine; both whitelisted in
+`configuration/zenki/coding/subroutine.white-list`. confirmed live
+(2026-07-23): `coding.commands vision` lists `vision-model [:switch:
+[<id>] [<timeout>]]`, `coding.vision-model` (no-arg report) returns the
+loaded model checksum; `coding.vision-model :switch:` (no checksum, a
+vision model already loaded) hit the already-vision short-circuit path
+exactly as spec'd — replied the same model id immediately, no deferred
+switch/wait. round-1 report path and round-2 :switch: short-circuit both
+confirmed live. the switching/waiting_idle phases (actually loading a
+*different* model) were exercised in an earlier session per the owner,
+not re-verified in this pass.
+
 ## status (2026-07-19) — PLANNED, ready for implementation
 
 round 2 of the `coding.vision-model` feature. round 1 (`modules/coding.cmd.vision-model`,
@@ -232,8 +250,8 @@ at line 447). new file: `coding.handler.vision_switch_poll` (plus any helper mod
    for clarity.
 3. confirm the **no-new-access-grant** framing (parameter of an already-granted command).
 
-#,,,,,,,,,,..,,,,,,,.,,,,,.,.,.,.,,,,,.,.,.,,,..,,...,...,...,,..,..,,.,,,.,,,
-#LNLIQV6I2VEXXIGXGLGNRSDFW6IICVUZ2CAUPNCAGTUR7ZENWLTJ4W3BENMZBS2MTGPY77PVC3P6A
-#\\\|A45JAAKORU4L2KQOQUX5TS4DMDBRKZJXQQJ633FPJMJUQ46MX7K \ / AMOS7 \ YOURUM ::
-#\[7]VXBH5N4LF6FKWRVVKPJGXHANZHVCEJHVF6N2ZM2WJQBJJSYTOICI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,.,,,,.,,,,.,...,,.,,,.,,...,,,,,..,,...,...,.,,,..,,..,,,.,,.,,,
+#Q4RSCORJO7USS6QFD4PCPBM7PQPLP6RU7EFFOUZHP5WKVWLVLPRYHBTNZL4Q5ACQQBYSS44ZJJEIS
+#\\\|AO2WR74ZOGR6U5TA7V32R5VXPBIQ4V6WINTNSUMEHNSBW2I5N7L \ / AMOS7 \ YOURUM ::
+#\[7]WPQIARYENYZYVAD3WKA2X34D3P6BMTZ2YQHEJTJLCP2VSEUTT4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
