@@ -70,8 +70,7 @@ my $p2    = 'short second paragraph';
 my $val_c = "$p1\n\n$p2";
 my $enc_c = $encode->( [ [ 'gamma.key', $val_c ] ] );
 ok( scalar( grep {m|^ +:$|} split /\n/, $enc_c ) == 2,
-    '(c) framed paragraph-break + trailing entry-close line present'
-);
+    '(c) framed paragraph-break + trailing entry-close line present' );
 my $dec_c = $decode->($enc_c);
 ok( $dec_c->[0][1] eq $val_c,
     '(c) two-paragraph value round-trips exactly [ \\n\\n separator ]' );
@@ -183,11 +182,38 @@ ok( join( ',', map { $_->[0] } @$dec_i ) eq 'a.key,b.key',
     '(i) hashref input emitted with sorted keys'
 );
 
+## (j) pad_lines opt-in : off by default, on when requested [ bare + inline ] ##
+my $enc_j_bare_unpadded = $encode->( [ [ 'a', 'v' ] ] );
+ok( $enc_j_bare_unpadded !~ m|^\n| && $enc_j_bare_unpadded !~ m|\n\n\z|,
+    '(j) bare : unpadded by default' );
+my $enc_j_bare_padded
+    = $encode->( [ [ 'a', 'v' ] ], { pad_lines => 1 } );
+ok( $enc_j_bare_padded =~ m|^\n| && $enc_j_bare_padded =~ m|\n\n\z|,
+    '(j) bare : padded when pad_lines requested' );
+my $dec_j_bare = $decode->($enc_j_bare_padded);
+ok( ref $dec_j_bare eq 'ARRAY' && pairs_str($dec_j_bare) eq 'a=v',
+    '(j) bare : still decodes correctly when padded'
+);
+
+my $enc_j_inl_unpadded
+    = $encode->( [ [ 'a', 'v' ] ], { inline_path => 'x.y' } );
+ok( $enc_j_inl_unpadded !~ m|^\n|, '(j) inline : unpadded by default' );
+my $enc_j_inl_padded
+    = $encode->( [ [ 'a', 'v' ] ], { inline_path => 'x.y', pad_lines => 1 } );
+ok( $enc_j_inl_padded =~ m|^\n| && $enc_j_inl_padded =~ m|\n\n\z|,
+    '(j) inline : padded when pad_lines requested' );
+my $dec_j_inl = $decode->($enc_j_inl_padded);
+ok( ref $dec_j_inl eq 'HASH'
+        && $dec_j_inl->{inline_path} eq 'x.y'
+        && pairs_str( $dec_j_inl->{pairs} ) eq 'a=v',
+    '(j) inline : still decodes correctly when padded'
+);
+
 print "\n----\npassed : $pass\nfailed : $fail\n";
 exit( $fail ? 1 : 0 );
 
-#,,,.,.,,,,,,,,..,,,.,,,,,,,,,,.,,,,.,...,,.,,..,,...,..,,..,,.,.,,,,,,,,,,,.,
-#HJZVXRLUIEVWCQWVNNC67HWXBCI57P66ALNX5GB46W5BDXOKV3GBHY22PJQVWINFV5GT3COEP6X3C
-#\\\|G2WHLU37T3MQGIAU5LDP4RJSQVDYJN3XJ22KCDBJNTBRVMT27FK \ / AMOS7 \ YOURUM ::
-#\[7]IYIDIMWVHTRA55WACMTE25Q6U2675XJRKFWBRGRQ3NPBX7RIWYDA 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,.,.,,,,,,.,,...,,..,.,.,,,,,.,.,..,,...,.,,,.,,,...,...,.,.,,.,,
+#T4O52BPGT2VXKGXZHOUNDTZG5E44QPOABNNKMK6J6MXJNVYUNOUMX7NKOTRPSXFQDANG2KTGAIPQ2
+#\\\|WINDUJJN5NSX27GLRZCQHZAUCQJSG77WJ7S7DTFM3E4GOBN6NAY \ / AMOS7 \ YOURUM ::
+#\[7]DXB6DKVYJXHXON7BWSI2Y7HCNUIEAVISADARA6XB6MPIKE47MSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

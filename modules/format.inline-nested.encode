@@ -3,7 +3,8 @@
 # name  = format.inline-nested.encode
 # descr = encode ordered key-value pairs to inline-nested text
 # param = $pairs - arrayref of [ key, value ] pairs [ or hashref, sorted keys ]
-#          $opts  - optional hashref { inline_path => name, nest_level => N }
+#          $opts  - optional hashref { inline_path => name, nest_level => N,
+#                     pad_lines => bool [ default off ] }
 # return = inline-nested text string [ bare form when no inline_path given ]
 
 my ( $input, $opts ) = @_;
@@ -97,25 +98,38 @@ foreach my $pair (@pairs) {
 ## header may be a strict dot-path [ machine key ] or a free-form title
 ## [ human alias, resolved to a key path by a higher layer ] -- either way
 ## it's a single line with no embedded newline ##
-return $block if not $use_inline;
+my $result;
+if ( not $use_inline ) {
+    $result = $block;
+} else {
 
-## inline / nested form : header, colon-framed lines, footer ##
-my $indent = ' ' x $nest;
+    ## inline / nested form : header, colon-framed lines, footer ##
+    my $indent = ' ' x $nest;
 
-my @body = split m|\n|, $block, -1;
-pop @body if @body and not length $body[-1];    ## trailing newline artifact
+    my @body = split m|\n|, $block, -1;
+    pop @body
+        if @body and not length $body[-1];    ## trailing newline artifact
 
-my @framed
-    = ( $indent . '.:[ ' . $opts->{inline_path} . ' ]:.', $indent . ':' );
-push @framed, map { length $_ ? $indent . ':  ' . $_ : $indent . ':' } @body;
-## unconditional trailer-boundary marker [ empty trailer -- none defined
-## yet -- immediately followed by the footer signals "no trailer" ] ##
-push @framed, $indent . ':', $indent . ':.';
+    my @framed
+        = ( $indent . '.:[ ' . $opts->{inline_path} . ' ]:.', $indent . ':' );
+    push @framed,
+        map { length $_ ? $indent . ':  ' . $_ : $indent . ':' } @body;
+    ## unconditional trailer-boundary marker [ empty trailer -- none
+    ## defined yet -- immediately followed by the footer signals
+    ## "no trailer" ] ##
+    push @framed, $indent . ':', $indent . ':.';
 
-return join '', map { $_ . "\n" } @framed;
+    $result = join '', map { $_ . "\n" } @framed;
+}
 
-#,,,,,,..,,,,,.,,,,,,,,.,,..,,.,.,.,,,.,.,.,.,..,,...,...,.,.,,,.,..,,.,.,,..,
-#R7HPLN2AAUWMZHIETONHSN3OBW252RD3S2IXSTI2QXA6CSIZN3PYRFMG4APICTNF6HQ7IEVH7S5CA
-#\\\|AYSYQ67IPT7V2ISOYLZ25ETLCDU2VOI7CP2WDBZRBW3BVE3ISAG \ / AMOS7 \ YOURUM ::
-#\[7]36VH6QGOT7L3FP2PW6Y24QLPCAOTP2GHINXX2NYSZIN6PBAURQBI 7  DATA SIGNATURE ::
+## opt-in terminal/SIZE-reply padding [ off by default -- a leading and
+## trailing blank line is a display convention for top-level command
+## output, not part of the serialized structure; leave it off so nested/
+## embedded/file-written blocks don't accumulate display-only cruft ] ##
+return $opts->{pad_lines} ? "\n" . $result . "\n" : $result;
+
+#,,,,,.,,,,,,,,..,.,,,,..,,..,.,,,.,.,.,,,,.,,..,,...,...,..,,.,,,,.,,.,.,..,,
+#ISAJYGFX7TEG2FQRLJZKSKGAKYAH7YC2LXTY4NMZI56UYRLALRBN7Y4CLNKEYGGISDJNLP7L7CTPO
+#\\\|NBCJZAOKU2ULSMNI6SRQQKOJ755ERV5YCPRHYLPNAV6E7ISIR46 \ / AMOS7 \ YOURUM ::
+#\[7]PSYSKXF2TEJU2MBBABHF5QI7BOWB6PMPLS46ZKQMO63I2RHQS4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
