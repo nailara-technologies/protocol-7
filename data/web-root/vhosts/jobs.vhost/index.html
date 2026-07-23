@@ -525,6 +525,8 @@ input[type="date"], textarea {
 /* quick apply/skip row pinned to the card's bottom corners, always present */
 .card-quick-actions { display: flex; justify-content: space-between; margin-top: 0.5rem; }
 .card-quick-actions .badge-apply { margin: 0; }
+/* variant: both buttons grouped at the bottom-right instead of spread corner-to-corner */
+.card-quick-actions.end { justify-content: flex-end; gap: 0.5rem; }
 
 /* compact dimension score row */
 .card-dims   { font-size: 0.70rem; color: var(--p7-text-mid); margin-top: 3px;
@@ -1152,6 +1154,11 @@ function renderCard(j) {
       <div class="card-quick-actions no-print">
         <button class="badge-apply badge-subtle" type="button" data-action="rejected">✗ rejected</button>
       </div>` : ''}
+      ${j.stage === 'skipped' ? `
+      <div class="card-quick-actions end no-print">
+        <button class="badge-apply badge-subtle" type="button" data-action="archived">📦 archivieren</button>
+        <button class="badge-apply badge-delete" type="button" data-action="delete">🗑 löschen</button>
+      </div>` : ''}
     `;
 
     /* stage-aware gestures:
@@ -1222,7 +1229,9 @@ function renderCard(j) {
         applied:     () => openNote(),
         interviewed: () => openNote(),
         responded:   () => openNote(),
-        skipped:     () => setStage(j.id, 'archived'),
+        /* skipped: dblclick-to-archive removed, too easy to trigger by       */
+        /* accident [ same reasoning already applied to review/interviewed ] -- */
+        /* use the bottom-right löschen button in card-quick-actions instead   */
     };
     const longActions = {
         review:      () => setStage(j.id, 'to_apply'),
@@ -1231,6 +1240,9 @@ function renderCard(j) {
         responded:   () => setStage(j.id, 'rejected'),
         rejected:    () => setStage(j.id, 'archived'),
         archived:    () => setStage(j.id, 'review'),
+        /* undo-column-mode : long-press is a deliberate hold, safe against  */
+        /* the accidental-trigger problem the dblclick-to-archive had       */
+        skipped:     () => setStage(j.id, 'review'),
     };
 
     let longPressTimer = null;
@@ -1300,6 +1312,14 @@ function renderCard(j) {
         opt.addEventListener('click', e => {
             e.stopPropagation();
             const stage = opt.dataset.value;
+            /* close BEFORE setStage : setStage calls render() synchronously,   */
+            /* which rebuilds the card list and re-opens whatever dropdown was  */
+            /* still marked .open at that moment to preserve in-flight state -- */
+            /* closing first here means render() sees it already closed instead */
+            /* of reopening it on the freshly rebuilt (but now stale-referenced) */
+            /* card, which otherwise stuck the menu open until a page reload    */
+            dropdown.classList.remove('open');
+            el.classList.remove('dropdown-open');
             if (stage === 'delete') {
                 deleteJob(j.id);
             } else {
@@ -1307,8 +1327,6 @@ function renderCard(j) {
                 trigger.textContent = stageLabel(stage);
                 menu.querySelectorAll('.stage-option').forEach(o => o.classList.toggle('active', o.dataset.value === stage));
             }
-            dropdown.classList.remove('open');
-            el.classList.remove('dropdown-open');
         });
     });
 
