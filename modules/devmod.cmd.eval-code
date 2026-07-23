@@ -39,6 +39,16 @@ return {
     }
     if not length $perl_source_str;
 
+##  accept p7 syntax [ <[module.name]> / <data.key> ] , not only pure perl  ##
+my $translated_str = <[base.syntax.translate]>->($perl_source_str);
+
+<[base.logs]>->(
+    "[%d] < eval-code > translated : '%s'",
+    $id, $translated_str
+) if $translated_str ne $perl_source_str;
+
+$perl_source_str = $translated_str;
+
 ##  recording runtime duration  ##
 my $time_start = <[base.time]>->($resolution) if $timed;
 
@@ -104,8 +114,8 @@ if ( length $eval_result and index( $eval_result, "\n", 0 ) == -1 ) {
     };
 }
 
-#,,,,,,,,,,,,,,.,,,,.,,.,,,.,,...,.,.,.,,,,,,,..,,...,...,,,,,..,,..,,,,.,,,.,
-#TCLWE5JBUP7JEJ6VN6KEUF5Z5VMP3TMZIQAM7GZE53MDQBISEGWYZQEPKMJHI23DVIICFNTBGJFLK
-#\\\|V5HSYKEHBCOYPHXD7AP37KOSZQXRICKTB52EQNBIBZ26NIEQLGI \ / AMOS7 \ YOURUM ::
-#\[7]ZJB2WZF5776M3ABTYGRX5PGWR5UNCZ6BJBCMXWKCLCAMI2RU3MDQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,...,.,,,,..,,.,,.,,,..,,,,.,,,.,..,,...,...,..,,.,.,..,,,,,,.,,,
+#MIPORVBFWSL6Z65LK35WB7EJBFUFSDGXF5QNXTHEW2EM2SKML3JDL6FRRHWWOCIYPCPEX7AMVSHJG
+#\\\|MDFDSS6ZPX5TMCQQKJT75QCEQW6FU3TRFFKIIGM3CIKI6CT2NVA \ / AMOS7 \ YOURUM ::
+#\[7]OVTYPIVGOGOPF3NTUN23U6JNSTQF3M2RSAISB76RLHWAXO5XVQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
