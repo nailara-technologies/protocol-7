@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = jobsite.cmd.get-prefs
+# descr = read the browser-shared client prefs blob
+
+my $prefs = <[jobsite.client_prefs.read]>;
+
+## force numeric json output, see jobsite.cmd.set-prefs for why ##
+my %numeric_prefs = map { $ARG => $prefs->{$ARG} + 0 } keys %{$prefs};
+my $json          = eval { JSON::XS::encode_json( \%numeric_prefs ) } // '{}';
+
+return {
+    'mode'         => qw| strm |,
+    'data'         => $json,
+    'content_type' => qw| application/json |,
+};
+
+#,,,.,.,,,.,.,..,,,,.,,.,,.,.,.,,,,.,,,,,,,.,,..,,...,..,,.,.,.,,,,..,..,,,..,
+#6LXDJ6HFGYHVYTOLAIAQLIHT4HOJ43WYOF4V5UNQW3DU6JLCHKENYCOHLWKLDL2NLWD5YHMTK7REY
+#\\\|BXSFDD6MT75CBKWITQ6Q2GRUNXFWJ42P4XRGHUAG2LEWXTKHMZS \ / AMOS7 \ YOURUM ::
+#\[7]7D2XHMFHN3XWNRDDCVWNL4FLRBAC2TGZDGXMNCFN4X7CMOBJX2AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

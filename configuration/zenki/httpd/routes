@@ -25,6 +25,12 @@ POST  /jobs-sync    httpd.route.handler.web-relay  [command:web.jobs-sync]
 GET   /jobs-trash          httpd.route.handler.web-relay  [command:jobsite.list-trashed]
 POST  /jobs-trash-rescue   httpd.route.handler.web-relay  [command:jobsite.rescue-http]
 
+## small shared client-prefs blob [ e.g. trash-panel watermark ] so a     ##
+## purely-local, no-canonical-server-value setting can still agree across ##
+## different browsers/profiles instead of drifting independently forever ##
+GET   /jobs-prefs          httpd.route.handler.web-relay  [command:jobsite.get-prefs]
+POST  /jobs-prefs          httpd.route.handler.web-relay  [command:jobsite.set-prefs]
+
 ## iris — BMW384 field visualization
 GET   /iris/svg     httpd.route.handler.iris-svg
 POST  /iris/route   httpd.route.handler.iris-route
@@ -36,8 +42,8 @@ POST  /iris/negotiate httpd.route.handler.iris-negotiate
 POST  /cursor       plugin.web.space.handler.cursor_update
 POST  /context      httpd.route.handler.context
 
-#,,..,,..,.,.,,,.,,,,,,,.,,.,,,.,,..,,,,.,,,.,..,,...,...,...,,,,,..,,,,,,,.,,
-#R2TQDYI3IDB25DHX7OAKNQB6NAVU2LQKFRSGKAH2RZMSSATGMSEMAGBLAT6N4CSOOMWKWZR6ACY3Q
-#\\\|3LR35OW3V2RQRIJVPLEMS6BONJZFHYRRNU6ASVV2D7GSST332KK \ / AMOS7 \ YOURUM ::
-#\[7]5T6ZCBWV2FJXNWFUHQBE5YTTZWFT3Z75BBFXIURXQMPU5EFWWSDA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,,,,,,.,,,.,,,,,.,.,,.,,...,.,,,..,,...,...,,,.,..,,.,,,.,.,,,.,
+#YAIXQOAXTTXL47DWHU5Q3DXN7BIQ4XULRTTTNA6YJ5Y6Z43HWKRNIUIWXGDCPUDDFJJ4EBAALHNPS
+#\\\|MHW5IOXH7JGWYNG2DAZWRXZCRAGNZZSML7ET44UDIPPPDB3XRIC \ / AMOS7 \ YOURUM ::
+#\[7]OB56JG5L3DKMM5HEZSFNP2VFVD4R4YXZXSQOYEEP3QJEZ6T7X6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
