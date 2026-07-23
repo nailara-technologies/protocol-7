@@ -5,6 +5,8 @@ coding & kimi zenka state machines, jobsite, streaming transport, web-browser ca
 reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active Topics
+- [p7-text-formats-landed](topic-p7-text-formats-landed.md) — LANDED: format.kv_block (retired/kept) + format.inline-nested (promoted to base.*, show-access consolidated onto it); OPEN: yaml-config-codegen, reverse perl->p7, comment-preserving config-writer parser
+- [format-code-bugs-fixed](topic-format-code-bugs-fixed.md) — LANDED: 5 real bugs (comment-loss, unbalanced splits, missing block-alignment, width-budget, utf8 bytes-vs-chars) found via dogfooding; 13 web-browser files still pending reformat
 - [startup-race-send-before-connect](feedback-startup-race-send-before-connect.md) — LANDED 55abd6848+d6fdc1dc1; recurring bug class, 3 fix shapes, diagnostic technique
 - [strm-subscription-evolution](topic-strm-subscription-evolution.md) — vision: reflection-vector → variable-target/fixed-suffix → STRM → future route-less pubkey channels
 - [p7-log-wire-utf8-double-encoding](topic-p7-log-wire-utf8-double-encoding.md) — LANDED 2973129e6; devmod.cmd.echo = wire test tool
@@ -41,8 +43,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [web-browser-value-replay-waypoints](project-web-browser-value-replay-waypoints.md) — LANDED, kimi K3; multi-window fan-out + access.zenki fix
 - [scratchpad-import-tool](topic-scratchpad-import-tool.md), [scratchpad-rescue-coding-zenka-task](topic-scratchpad-rescue-coding-zenka-task.md) — mcp-server-p7 scratchpad tools tested; follow-up task filed w/ kimi K3 for native coding-zenka rescue tools + chmod g+rx fix
 
-#,,,,,,,,,,,.,,.,,.,.,,,.,.,,,,.,,.,.,,..,...,..,,...,...,.,,,,,.,,,,,,..,...,
-#MIC4LMEXSC4EJRIUXTS6ZDF4UQ27YVR5ZIBWNOWIUF5UAR6EJEBOXDUXZKDJ4NBH4QKONDZINUSG4
-#\\\|YSXEJ2CNEFRIFICPCGXDTL2J7MVK2VREUDX27WAU72RPQYFEVDA \ / AMOS7 \ YOURUM ::
-#\[7]TNPGUTEJJG5JYNVPCNWSYBSTFZD7SFZTGRL6M7WLBNSEVCWKT4AA 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,,.,..,,,.,,..,,,.,,,,,,.,,,...,..,,...,...,...,.,,,.,,,,,.,.,.,
+#Q3KAARXGKBVVZ5EYHBLYIZXLPOWN2J3GSJIYHPYVA7ML34KW5JLYU2QHABQWTMEULD7MDQDC7OASS
+#\\\|OMBX5UBKPAYRMXOUAC4XDNGUWEJ2T2YGB7MYEFL43X3RK56I2IJ \ / AMOS7 \ YOURUM ::
+#\[7]EJAPYYJLASL6VFDIXOW6GZQ672NBTJSKHFFSHKXDKQJ2FFJAJ4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

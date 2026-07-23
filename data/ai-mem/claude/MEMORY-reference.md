@@ -6,6 +6,7 @@ core patterns/templates. Settled conventions: cube auth prefix, .cmd. reply cont
 vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 config paths.
 
 ## Reference
+- [base-swap-subs-promote-pattern](feedback-base-swap-subs-promote-pattern.md) — promote a module to default-loaded-on-every-zenka: live under base.X, add base.X.pre_init calling base.swap_subs(base.X,X), no call-site changes; precedent base.file/file
 - [session-catchup-subagent-support](reference-session-catchup-subagent-support.md) — recover lost Agent-tool subagent context via `subagents=2` / `subagent_id=<fragment>`, claude+kimi both supported
 - [opus-dispatches-kimi-workflow](reference-opus-dispatches-kimi-workflow.md) — Opus calls kimi_dispatch(K3,auto-summary) itself; session_catchup gets session id; kimi_continue resumes
 - [unicode-encoding-repair](reference-unicode-encoding-repair.md), [patterns](topic-patterns.md), [coding-zenka-templates](topic-coding-zenka-templates.md) — UTF8 fix; core patterns
@@ -36,8 +37,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [user-perfectionism-and-pace](user-perfectionism-and-pace.md) — "done" means perfectly smooth; let solo tuning passes run
 - [scratchpad_import tool](topic-scratchpad-import-tool.md) — pulls /tmp session scratchpad into data/scratchpad/; list/raw-read modes; check repo+tasks/completed before keeping imports
 
-#,,.,,,..,.,,,.,,,.,.,.,.,.,.,,..,.,.,,.,,,,,,..,,...,..,,,,,,..,,.,.,,,,,.,.,
-#J5EWRT6RQEWWMR4G2RJEH7YF6QRF4GBQ7S3C3Y6PTGJC7EYZAHQOF73X2KIM7GICSEDKNGAO4R434
-#\\\|5PAORAGXCEC5INWVHEKB2DYJIHSRCFVHWHLBULT2VHTTVLEQGHN \ / AMOS7 \ YOURUM ::
-#\[7]NDJXVYM3A64RUOKHRXURADKYCXG23H5T6BUNGOVDTCJOTOWNUWCA 7  DATA SIGNATURE ::
+#,,,.,..,,...,,,.,.,,,,,,,,..,,.,,,,,,.,,,,.,,..,,...,...,,,,,,,,,...,...,,,,,
+#2XCCK2GL2OTWCA665WWOK2HZIND2R2BFWEIXJVKWRONOBP36BE4LYR7SXLMNRTNQVOIK7ZWJHGVVS
+#\\\|LPQTPKMTKJ4OKXAVXLQR7WEIWYVO3C6YRLLN3Z7WPP77ONRXB74 \ / AMOS7 \ YOURUM ::
+#\[7]NW6T3YSTL3AN35VAI4EKKI7YX54EBCDUVULJFJL7DBI653BXBAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
