@@ -107,8 +107,113 @@ edits/insights automatically, not just repeat the same draft pattern.
 See [[topic-plugin-web-jobs]] for the existing sync/apply-workflow substrate
 this would build on.
 
-#,,..,...,,.,,.,.,.,.,,,,,.,,,,,.,,.,,,.,,.,,,..,,...,...,..,,,..,.,,,,.,,.,.,
-#X7LBSGJ2B6D7PYNXRZRY2PT7VKC5JVFCEZH77TT3YOSGWEWN4YVVVMIAVDBRB5JVQIG435AKDA3Z6
-#\\\|OE5LJO622PR4MCIB4NHU5TXK5NRC4CIDQ6YFG66X74RAKS6M7WC \ / AMOS7 \ YOURUM ::
-#\[7]5P6ZYXE4TXNIMWTNZTB2EM4HXTH3NTL4VRXMBEW5J4NB2VDLDWAQ 7  DATA SIGNATURE ::
+## Session 2026-07-23 — reassess content-loss + stale-flag fixes, trash-history panel (commits bb4d9fe0e, 0d8901d14, 841891e41)
+
+**Four backend bugs found and fixed, all in the reassess/repair path**:
+- `jobsite.handler.assess-done`: when a job's `repair_attempted` was already
+  `TRUE` from a prior cycle and a fresh full reassessment came back invalid
+  again, the code logged "keeping original" but actually fell through and
+  overwrote `score`/`score_reason`/`score_summary` with the new *empty*
+  result anyway — no `return` after the repair-gave-up branch. This is what
+  silently blanked a real user-reported review-tab card. Fixed by gating
+  every downstream overwrite (assertions, score fields, the on-disk write)
+  on a `$give_up` flag, reusing the prior values instead.
+- `jobsite.handler.repair-done`: its `%protected_stage` list was missing
+  `review` — `assess-done`'s has it (with an explicit comment explaining
+  why), `repair-done`'s didn't. A repair pass that succeeded with a low
+  score could silently trash a job the user was actively reviewing. Added
+  `review` to match.
+- `repair_failed` was memory-only (`<jobsite.tasks>`) in the *normal*
+  completion path of `assess-done` — never written to the per-job disk
+  file except in two narrow failure branches, and never explicitly cleared
+  on a clean success. `jobsite.sync.push` only forwards a field to the web
+  cache when `exists` on the source hash, so a flag set once could never
+  self-clear on the web side. Fixed both ends: `assess-done` now persists
+  `repair_failed` to disk on failure and explicitly deletes it (both
+  `job_rec` and the on-disk `$job`) on a clean pass; `sync.push` now always
+  emits `repair_attempted`/`repair_failed` with an explicit `// FALSE`
+  default so an absence-meaning-cleared state actually propagates.
+- jobs.vhost stage-dropdown reopened itself after every stage change: the
+  click handler cleared `.open` *after* calling `setStage()`, but
+  `setStage()` calls `render()` synchronously, which captures/restores
+  whatever dropdown was still `.open` at that instant to survive
+  poll-driven mid-edit rebuilds — so it faithfully reopened the very
+  dropdown the user had just used. Fixed by reordering: clear `.open`
+  *before* calling `setStage()`.
+
+**Skipped-tab UI**: removed dblclick-to-archive (matches the
+`review`/`interviewed`/`applied` precedent already noted in-file as "too
+easy to trigger by accident"); added an `archivieren`/`löschen`
+quick-actions row (bottom-right, `.card-quick-actions.end` — new CSS
+variant using `justify-content:flex-end` instead of the default
+`space-between`) and a long-press-to-review gesture instead.
+
+**New: trash-history recovery panel** (papierkorb button, `🗑`) — a UI path
+for the terminal-only `jobsite.cmd.rescue <id> [stage]` that existed but
+had no UI:
+- `jobsite.job.rescue` — restore-from-trash logic extracted out of
+  `jobsite.cmd.rescue` into a shared module, so both the console command
+  (mode=true/false text) and a new `jobsite.cmd.rescue-http` (mode=strm
+  json) can call the same logic with different reply shapes.
+- `jobsite.cmd.list-trashed` — lists recent trash entries (id/title/
+  company/score/trashed_at) without decompressing the whole trash tree:
+  stats every trash file's mtime first (cheap, ~1400 files), sorts, only
+  `File::stat::stat(...)`-decompresses the top N. **Hit
+  [[feedback-file-stat-shadowing]] live** — first pass used
+  `my @stat = stat($path)`, which silently returns a 1-element list under
+  P7's global `use File::stat`, so every mtime came back undef; this
+  gotcha was *already documented* in memory but not indexed in
+  MEMORY-feedback.md, so it wasn't surfaced during live debugging — fixed
+  the indexing gap too, see that file's own note.
+- Two new HTTP routes, `GET /jobs-trash` and `POST /jobs-trash-rescue`,
+  route straight to `jobsite.*` (bypassing `web`/`plugin.web.jobs.*`
+  entirely, since trash content was deliberately never pushed to the web
+  cache) — required adding `jobsite.list-trashed`/`jobsite.rescue-http` to
+  **both** `cube/access.zenki`'s `access.cmd.usr.httpd` and
+  `jobsite/start`'s own `access.cmd.usr.cube` (same two-sided wiring
+  lesson as [[topic-jobsite-stray-recovery]]).
+- **`jobsite.cmd.*` files must NOT `my $call = shift` themselves** — the
+  dispatcher pre-populates `$call` for that namespace already (existing
+  `jobsite.cmd.rescue`/`reset` never shift it); doing so anyway shadows it
+  and threw a compile warning, visible via `jobsite.show-buffer
+  compile-errors`. Copied this from the unrelated `plugin.web.jobs.*`
+  convention, which *does* shift its own `$call` — the two namespaces
+  differ, don't assume they match.
+- **Reply-mode gotcha**: `httpd.handler.web-relay.strm_open` only builds a
+  real HTTP response for a `mode:strm` (or legacy `SIZE`) reply — a
+  `mode:true/false` reply 502s over that path. Calling a `mode:strm`
+  command directly via `p7c` (bypassing httpd) with no STRM consumer
+  produced a genuine flood — `sort()` over ~1400 candidates with every
+  comparator side `undef` (from the File::stat bug above, before it was
+  fixed) warned once per pairwise comparison, reading exactly like a tight
+  loop in the console. Not an infra bug, just a very noisy symptom of the
+  other two bugs compounding.
+- **Frontend**: the panel only fetches on the closed→open toggle
+  transition — data that changed while it was already open (e.g. a
+  browser-initiated stage-move/delete draining through the async reverse
+  sync queue, up to `jobsite.cfg.sync_interval=300`s later) never showed
+  until reopened. Fixed by hooking `loadTrashPanel()` into the same
+  sync-driven refresh conditional `showPrintTable()` already uses in
+  `syncPipeline()` (fires on `added>0||updated>0||removed>0||migrated`) —
+  a trash transition already produces a `removed` tombstone signal on that
+  same poll, so it's a well-correlated trigger, not just a loose proxy.
+  Also added a clear-watermark (`✓ gesehen`, localStorage, no server
+  state) + one-at-a-time reveal-back arrow (`▾ ältere`) for the "cleared
+  too early" case — user's own design, confirmed working end-to-end live.
+- Panel background switched from an ad-hoc blue-teal to the actual
+  "blacklight" palette (`rgba(12,5,24,0.85)` bg, `#3030a0` border, purple
+  glow) sourced from `visual.v7.ax/grid-v13-final-baseline.html`'s
+  `.info-panel` — worth reusing directly for any future panel needing this
+  project's actual visual identity instead of guessing colors.
+
+**Reusable pattern worth lifting into a generic template later** (per
+user, session-closing remark): the clear-watermark + reveal-counter
+mechanism (pure client-side, no server round-trip) and the `end`-aligned
+quick-actions row are both small and self-contained enough to become a
+shared convention for any future "recently removed, quick undo" panel.
+
+#,,,.,,,,,,..,.,,,,,.,...,,,.,..,,,.,,...,,.,,..,,...,...,,.,,.,,,.,,,.,,,,,.,
+#7ZNVUVCJRUUXQ2CID4PVNCBUACLS2VSFI5FTGN5UOREHLYT4MGI6AIM2VJYSWQQOHYZFFPURJV2A6
+#\\\|V3EA2EHLOYYH7HGNHRVK4UQS7LTSEBRW3SRG65BHLPSNPV2WVF4 \ / AMOS7 \ YOURUM ::
+#\[7]GXMMNB6TSIWH3A6J2MBQVWXZVEVKWX6DQ77AVWTUUEXR754W7YBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
