@@ -253,16 +253,30 @@ sub preprocess_source {
 ##[ shared : does line $lnum start/continue a '##  text  ##' comment block ]##
 sub comment_block_line_parts {
     my $line = shift;
-    return undef
-        if $line !~ m{^(\s*)\#\#\ (.*)\ \#\#\s*(\r?\n)?$};
+
+    ##  only the leading '##  ' marker is required -- authors [ and LLMs ]
+    ##  often forget the trailing '##' on interior lines of a multi-line
+    ##  paragraph while still closing the block on its last line , so a
+    ##  per-line open+close requirement misses those and mangles them  ##
+    return undef if $line !~ m{^(\s*)\#\#\ (.*?)\s*(\r?\n)?$};
     my ( $indent, $content ) = ( $1, $2 );
+
+    my $has_close = 0;
+    if ( $content =~ s{\s*\#\#\s*$}{} ) {
+        $has_close = 1;
+    }
+
     return undef if $content eq qw| [:< |;      ## module header ##
     return undef if $content =~ m{^\[.*\]$};    ## bracket annotation ##
     ##  normalize whitespace : old right-padding before a misaligned '##'
     ##  must not leak into the joined paragraph as literal extra spaces  ##
     $content =~ s{\s+}{ }g;
     $content =~ s{^ | $}{}g;
-    return { indent => $indent, content => $content };
+    return {
+        indent    => $indent,
+        content   => $content,
+        has_close => $has_close
+    };
 }
 
 ##[ step 4 helper : count contiguous same-indent block lines from $lnum ]##
@@ -271,15 +285,26 @@ sub comment_block_length {
     my $first = comment_block_line_parts( $lines->[ $start_lnum - 1 ] );
     return 0 if not $first;
 
-    my $count = 1;
-    my $lnum  = $start_lnum + 1;
+    ##  a properly-closed first line is NOT necessarily a standalone
+    ##  comment -- it can still be the opening line of a larger paragraph
+    ##  [ real case : first line closed early, a later line un-closed ] ,
+    ##  so collect the whole maximal contiguous same-indent run first and
+    ##  only then check whether it actually terminates in a closed line ##
+    my $count      = 1;
+    my $last_parts = $first;
+    my $lnum       = $start_lnum + 1;
     while ( $lnum <= scalar @$lines and not $skip->{$lnum} ) {
         my $parts = comment_block_line_parts( $lines->[ $lnum - 1 ] );
         last if not $parts;
         last if $parts->{indent} ne $first->{indent};
         $count++;
+        $last_parts = $parts;
         $lnum++;
     }
+
+    ##  an unclosed run [ hit EOF/blank/code without ever seeing a '##'
+    ##  terminator ] is left for the existing per-line handling instead ##
+    return 0 if not $last_parts->{has_close};
     return $count;
 }
 
@@ -766,8 +791,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,,,,...,...,,.,,...,,.,,..,,,,.,,..,,.,,.,.,..,,...,...,.,.,..,,,.,,,..,.,.,
-#QMKOC6WUXCTAI32YB6T6PVY67VBOJ4OPHOFNEEVQBJWAFTUUBW2NF2OBHSBPI5ZLFYTFIDZNOTJIU
-#\\\|WVBX3UWSHO5WWY2N6S5ZA3E72PJSCOFKRNXD7DNS75ZHQDL2SH5 \ / AMOS7 \ YOURUM ::
-#\[7]7KKZYT4GRW3EUE5WMFRTDPJ4UX537HPDQ3MYMDIQF3QDUIRK2EBI 7  DATA SIGNATURE ::
+#,,,,,..,,..,,,,,,,,,,..,,,..,...,..,,,.,,,,.,..,,...,..,,,,,,.,.,,,,,,.,,.,.,
+#OX2QSGVC7JW4KIN5CVU536H2K7TDLQU3MHKNAUYQIBV37VQHXCTJPI7OXYALP6MV6N7KIOIVXDIJE
+#\\\|MM5JWUTR6TXPQ366K7NZFSNDQXIZGV3OTLAMTANJ7QF4D4OAX5U \ / AMOS7 \ YOURUM ::
+#\[7]B74T26I32ESPUP5N7GAJRFWIB7MKXP5JA2EV2LKQZBFBG35N24AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
