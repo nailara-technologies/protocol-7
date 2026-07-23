@@ -34,13 +34,17 @@ local $Text::Wrap::separator = "\n";
 local $Text::Wrap::huge      = qw| overflow |;
 local $Text::Wrap::unexpand  = 0;    ## keep spaces [ no tab substitution ] ##
 
-my $block = '';
+my $block       = '';
+my $first_entry = 1;
 foreach my $pair (@pairs) {
     next unless ref $pair eq 'ARRAY';
     my ( $key, $value ) = @{$pair};
     $key   //= '';
     $value //= '';
     next unless $key =~ m|^[\w\-\.]+$|;    ## strict key charset
+
+    $block .= ":\n" unless $first_entry;   ## blank line between entries
+    $first_entry = 0;
 
     if ( not length $value ) {
         $block .= sprintf ":  %*s  :\n", $max_len, $key;
@@ -77,8 +81,8 @@ foreach my $pair (@pairs) {
 
 return $block;
 
-#,,..,.,.,...,,.,,,,,,,.,,,,.,.,,,...,.,.,.,,,..,,...,.,.,.,.,.,,,..,,,,.,...,
-#2UPUNEDRYE4PX7XUDQEHCXMTDNFEJGZNKX7MYJIH6K54LJBM3ELRV3FQ4AHG4SCBRPOPPHKH3MAYE
-#\\\|7QWSQXYDAZKM4SZJUEN3JCNIEGLUWDZUXNPSRXGQODEROND3CZ6 \ / AMOS7 \ YOURUM ::
-#\[7]HFWNVZ2ALCLREIEXHMK3RZMMUN677W7MXJF546PEYYPL2SXA7GCQ 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,,,,,,,,.,.,.,,,,..,.,,,,,,,,,.,..,,...,...,,,.,...,.,.,,.,,...,
+#E5F454ADQ56KNDQNSWQMRNXSKXSUSMF54IZFCQMNLNOVQLD2UK3U5WPFSV4TWULWTMIOUCMNOPU3I
+#\\\|WQ2JUSRCKKC3E37CHPMGVDL34CUDUCR6GYM6WFCNT5GOVPLD2NB \ / AMOS7 \ YOURUM ::
+#\[7]6DPY73VRFSIQYY5TTKJEW6C6MXW7LD6JOOUGOI3UPL3MQSLGBICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
