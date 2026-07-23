@@ -712,8 +712,8 @@ input[type="date"], textarea {
       <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.4rem;">
         <span style="color:#7aabcc;">zuletzt gelöscht:</span>
         <span class="spacer" style="flex:1;"></span>
-        <button id="btn-trash-clear" style="padding:2px 10px;">✓ gesehen</button>
-        <button id="btn-trash-expand" style="padding:2px 10px;" title="letzten versteckten eintrag wieder einblenden">▾ ältere</button>
+        <button id="btn-trash-clear" style="padding:2px 10px;">gesehen ✓</button>
+        <button id="btn-trash-expand" style="padding:2px 10px;" title="letzten versteckten eintrag wieder einblenden">+ ältere +</button>
       </div>
       <div id="trash-list" style="display:flex; flex-direction:column; gap:0.3rem; max-height:320px; overflow-y:auto;"></div>
     </div>
@@ -798,6 +798,7 @@ const JOBS_JSON   = '/jobs.json';
 const JOBS_SYNC   = '/jobs-sync';
 const JOBS_TRASH        = '/jobs-trash';
 const JOBS_TRASH_RESCUE = '/jobs-trash-rescue';
+const JOBS_PREFS        = '/jobs-prefs';
 const TRASH_WATERMARK_KEY = 'jobs_trash_watermark_v1';
 const POLL_MS     = 30000;
 const USER_DECISIONS_KEY = 'jobs_user_decisions_v1';
@@ -2255,6 +2256,9 @@ document.getElementById('btn-export-clear-history').addEventListener('click', cl
 let trashList = [];         // full list fetched from /jobs-trash, newest first
 let trashRevealExtra = 0;   // "▾ mehr" : how many cleared items to pull back in
 let trashPanelVisible = false;  // like tableVisible : refetch on the same sync hook while open
+let trashLoadGen = 0;       // guards against overlapping loadTrashPanel() calls [ toggle-spam,
+                             // rapid reopen while a prior fetch is still in flight ] landing
+                             // out of order and letting a slower/older response win
 
 function getTrashWatermark() {
     return parseInt(localStorage.getItem(TRASH_WATERMARK_KEY) || '0', 10);
@@ -2263,17 +2267,44 @@ function setTrashWatermark(v) {
     localStorage.setItem(TRASH_WATERMARK_KEY, String(v));
 }
 
+/* different browsers/profiles [ e.g. Firefox vs. the web-browser zenka's  */
+/* WebKit, which has its own separate — and ephemeral — localStorage ]     */
+/* have no way to agree on a purely-local watermark on their own. push the */
+/* local value to jobsite's small shared client-prefs blob and adopt      */
+/* whichever is newer — server always returns the max-merged value, so a  */
+/* browser that's behind catches up, and one that's ahead doesn't get     */
+/* regressed by an offline peer's stale local copy reconnecting later */
+async function syncTrashWatermark() {
+    try {
+        const local = getTrashWatermark();
+        const r = await fetch(JOBS_PREFS, {
+            method: 'POST',
+            body: JSON.stringify({ trash_watermark: local }),
+        });
+        if (!r.ok) return;
+        const data = await r.json();
+        if (typeof data.trash_watermark === 'number' && data.trash_watermark > local) {
+            setTrashWatermark(data.trash_watermark);
+        }
+    } catch (e) { /* best-effort : local watermark still works standalone */ }
+}
+
 async function loadTrashPanel() {
+    const myGen = ++trashLoadGen;
     const list = document.getElementById('trash-list');
     list.innerHTML = '<div style="color:#3a5060;">lädt…</div>';
+    await syncTrashWatermark();
+    if (myGen !== trashLoadGen) return; /* a newer call started meanwhile — abandon this one */
     try {
         const r = await fetch(JOBS_TRASH + '?limit=100');
         if (!r.ok) throw new Error(r.status);
         const data = await r.json();
+        if (myGen !== trashLoadGen) return; /* still superseded, discard this response */
         trashList = Array.isArray(data.jobs) ? data.jobs : [];
         trashRevealExtra = 0;
         renderTrashList();
     } catch (e) {
+        if (myGen !== trashLoadGen) return;
         list.innerHTML = '<div style="color:#c05050;">fehler beim laden</div>';
         notify('papierkorb laden fehlgeschlagen: ' + e.message, true);
     }
@@ -2303,7 +2334,7 @@ function renderTrashList() {
               <span class="trash-date">${date}</span>
               <button data-id="${j.id}">↩ rescue</button>
             `;
-            row.querySelector('button').addEventListener('click', e => rescueTrashJob(j.id, e.target));
+            row.querySelector('button').addEventListener('click', debounceClick(e => rescueTrashJob(j.id, e.target)));
             list.appendChild(row);
         }
     }
@@ -2334,21 +2365,39 @@ async function rescueTrashJob(id, btn) {
     }
 }
 
-document.getElementById('btn-trash-toggle').addEventListener('click', () => {
+/* some browser engines [ observed in the web-browser zenka's WebKit, and  */
+/* apparently not confined to it ] dispatch two 'click' events for a      */
+/* single physical click/tap. every trash-panel click handler is wrapped  */
+/* with this so a spurious second event within the window is dropped     */
+/* instead of double-applying whatever the handler does — a per-element   */
+/* timestamp, not a single shared one, so unrelated buttons don't block   */
+/* each other out */
+function debounceClick(fn, ms = 250) {
+    let last = 0;
+    return (...args) => {
+        const now = Date.now();
+        if (now - last < ms) return;
+        last = now;
+        return fn(...args);
+    };
+}
+
+document.getElementById('btn-trash-toggle').addEventListener('click', debounceClick(() => {
     const panel = document.getElementById('trash-panel');
     trashPanelVisible = panel.style.display === 'none';
     panel.style.display = trashPanelVisible ? 'block' : 'none';
     if (trashPanelVisible) loadTrashPanel();
-});
-document.getElementById('btn-trash-clear').addEventListener('click', () => {
+}));
+document.getElementById('btn-trash-clear').addEventListener('click', debounceClick(() => {
     setTrashWatermark(Math.floor(Date.now() / 1000));
     trashRevealExtra = 0;
     renderTrashList();
-});
-document.getElementById('btn-trash-expand').addEventListener('click', () => {
+    syncTrashWatermark(); /* push immediately, don't make other browsers wait */
+}));
+document.getElementById('btn-trash-expand').addEventListener('click', debounceClick(() => {
     trashRevealExtra++;
     renderTrashList();
-});
+}));
 document.getElementById('btn-print').addEventListener('click', () => {
     const origTitle = document.title;
     document.title = 'bewerbungen_' + new Date().toISOString().slice(0,10);

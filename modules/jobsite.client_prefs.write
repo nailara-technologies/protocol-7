@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = jobsite.client_prefs.write
+# descr = persist browser-shared client prefs blob
+
+my $prefs = shift // {};
+return FALSE if ref $prefs ne 'HASH';
+
+my $yaml;
+eval { $yaml = YAML::XS::Dump($prefs) };
+if ($@) {
+    <[base.logs]>->( 0, 'jss.client_prefs.write: serialize error: %s', $@ );
+    return FALSE;
+}
+
+my $written
+    = <[file.zenka_dir.write]>->( 'client-prefs.yaml', \$yaml, '>', 0640 );
+return defined $written;
+
+#,,,,,.,.,,,.,,..,..,,.,.,..,,..,,.,.,,,,,,..,..,,...,...,..,,..,,,,,,..,,...,
+#2MQFST7BH254L2Z6H3QN2B734DPXGSBWCURN3IBEJPQM7OMYKV643FEJ2GHHHWGYMTOVJ6J4TIS7O
+#\\\|LUEQXJOWL2XKFGNRISL3A3F3NH6U57PS53LOXQKZK4D6W7BWT7N \ / AMOS7 \ YOURUM ::
+#\[7]RQZE5KMIIZ2VSCO3MRDXTSBQ5HDBGBSI5RUPMDPZZAFKAZFK76DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

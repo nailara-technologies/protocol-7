@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = jobsite.client_prefs.read
+# descr = load browser-shared client prefs blob [ small numeric-value map ]
+
+my $sref = <[file.zenka_dir.load]>->('client-prefs.yaml');
+return {} if not defined $sref;
+
+my $saved;
+eval { $saved = YAML::XS::Load( $sref->$* ) };
+if ($@) {
+    <[base.logs]>->( 0, 'jss.client_prefs.read: parse error: %s', $@ );
+    return {};
+}
+return ref $saved eq 'HASH' ? $saved : {};
+
+#,,.,,,,,,...,.,.,..,,.,,,..,,,,.,.,,,,.,,,,.,..,,...,...,,,.,,..,,..,,.,,.,,,
+#7SHRN5Q4QPS2TVY567EXGXX47O6EA4HUESNYITXDJRYHO64MRJN64PCSPTHTOVGI7MSK4A5HD2CWC
+#\\\|VWV2JO2G3F2BGKR2ISWHHOM45YULBZ63SXH4MTN6T3LTRI34ONV \ / AMOS7 \ YOURUM ::
+#\[7]MUCEAFVWX6NLH5VJWDXFPXGJJIIWAMTW2WKVXLSRLLHRTMAIFEAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
