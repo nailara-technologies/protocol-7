@@ -1,0 +1,127 @@
+## [:< ##
+
+# name  = base.cmd.show-access-kv
+# param = [user]
+# descr = display command access set-up [ kv_block variant ]
+
+my $user = $call->{'args'};
+
+my $usr_re = <regex.base.usr_str>;
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( "'%s' not a valid user name", $user )
+    }
+    if defined $user
+    and $user ne qw| * |
+    and $user !~ m|^$usr_re$|
+    and $user !~ m|^<$usr_re>$|;
+
+my $special_users = {
+    map  { $ARG => $data{'system'}->{$ARG} }
+    grep { !m|^amos-zenka-user$| }             ## <-- seperate namespace [LLL]
+    grep {m|\-user$|} keys $data{'system'}->%*
+};
+
+my @mapped_users;
+
+@mapped_users = map { sprintf qw| <%s> |, $ARG }
+    grep { $special_users->{$ARG} eq $user }
+    <[base.reverse-sort]>->($special_users)
+    if defined $user and $user ne qw| * |;
+
+if ( defined $user ) {
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( "no permissions set-up for '%s'", $user )
+        }
+        if not defined <access.cmd.usr>->{$user} and not @mapped_users;
+
+    my @pairs;
+    my $map_names = {};
+    if ( not defined <access.cmd.usr>->{$user} ) {  ## no custom [$user] rules
+        map { $map_names->{$ARG} = sprintf '[ %s <-- %s ]', $user, $ARG }
+            @mapped_users;
+    } else {
+        $map_names->{$user}
+            = @mapped_users
+            ? sprintf( '[ %s <-- %s ]', $user, join( ', ', @mapped_users ) )
+            : '';
+    }
+
+    if ( $user ne qw| * | and defined <access.cmd.usr>->{'*'} ) {
+        push @pairs,
+            [
+            qw| * |,
+            join(
+                ' ',
+                <[base.reverse-sort]>->(
+                    split m|\s+|, <access.cmd.usr>->{'*'}
+                ),
+                '[  matches all users  ]'
+            )
+            ];
+    }
+
+    foreach my $map_user (@mapped_users) {
+
+        next if not length <access.cmd.usr>->{$map_user};  ##  none set up  ##
+
+        push @pairs,
+            [
+            $map_user,
+            join(
+                ' ',
+                <[base.reverse-sort]>->(
+                    split m|\s+|, <access.cmd.usr>->{$map_user}
+                ),
+                $map_names->{$map_user} // ''
+            )
+            ];
+    }
+
+    if ( defined <access.cmd.usr>->{$user} ) {
+        push @pairs,
+            [
+            $user,
+            join(
+                ' ',
+                <[base.reverse-sort]>->(
+                    split m|\s+|, <access.cmd.usr>->{$user}
+                ),
+                $map_names->{$user} // ''
+            )
+            ];
+    }
+
+    return {
+        'mode' => qw| size |,
+        'data' => <[format.kv_block.encode]>->( \@pairs )
+    };
+
+} elsif ( keys <access.cmd.usr>->%* ) {
+
+    my @pairs = map {
+        [   $ARG,
+            join( ' ',
+                <[base.sort]>->( split( m|\s+|, <access.cmd.usr>->{$ARG} ) ) )
+        ]
+    } <[base.reverse-sort]>->(<access.cmd.usr>);
+
+    return {
+        'mode' => qw| size |,
+        'data' => <[format.kv_block.encode]>->( \@pairs )
+    };
+
+} else {
+    return {
+        'mode' => qw| false |,
+        'data' => 'no access permissions have been set up'
+    };
+}
+
+#,,,,,,..,,,,,,..,..,,.,,,,,,,,,.,,,,,...,.,,,..,,...,...,.,,,..,,,,,,.,.,.,,,
+#OKUYFZOQEQEL7UHXKUVKIHHTEH3KN73FX7ABZDGAGFJAFOHGRRD6ULF6HASJ7LBIFEQIXVZYNN7DE
+#\\\|33I6N7CRN7YENAH4PADWHXDL62C4VQYBLFEWBXVSDPKPE7CGFVS \ / AMOS7 \ YOURUM ::
+#\[7]KJNDIQHBPJ7ZICSFWMPW7C24SLL3ISGQLDESIALDUTXNIJRWK4AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
