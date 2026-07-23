@@ -248,7 +248,9 @@ sub step3_relocate_trailing_comment {
         my $comment   = $4;
         my $nl        = $5 // "\n";
         my $code_line = "$indent$code$nl";
-        return ($code_line) if length_no_nl($code_line) > LINE_MAX;
+        ##  relocating doesn't help -- leave line untouched rather than
+        ##  silently dropping the comment  ##
+        return ($line) if length_no_nl($code_line) > LINE_MAX;
         my $comment_line = "$indent$comment$nl";
         return ( $comment_line, $code_line );
     }
@@ -282,25 +284,9 @@ sub step1_split_long_string {
         my $max_inner1 = LINE_MAX - $prefix_len - 3;
         next if $max_inner1 < 1;
 
-        ##  find whitespace split positions inside $inner [ not inside
-        ##  interpolation for double-quoted ]  ##
-        my @safe_splits = find_split_positions( $inner, $quote_ch );
-        next if not @safe_splits;
-
-        ##  pick largest position <= $max_inner1  ##
-        my $best;
-        for my $p (@safe_splits) {
-            last if $p > $max_inner1;
-            $best = $p;
-        }
-        next if not defined $best;
-
-        my $part1 = substr( $inner, 0, $best );
-        my $part2 = substr( $inner, $best );
-        ##  keep the splitting whitespace on the trailing edge of part1  ##
-        ##  best is at a position just after a whitespace boundary  ##
-
-        ##  compose new lines  ##
+        ##  what follows the token on the source line -- needed up front
+        ##  so line 2's budget can factor in , letting the split aim for
+        ##  balance instead of just "fill line 1 as much as possible"  ##
         my $tok_start_idx = $tok->{idx};    ##  0-based start of token
         my $tok_end_idx   = $tok->{idx} + $tok->{length};
         my $before        = substr( $line, 0, $tok_start_idx );
@@ -310,6 +296,41 @@ sub step1_split_long_string {
         my $nl = '';
         if ( $after =~ s{(\r?\n)$}{} ) { $nl = $1 }
 
+        ##  line 2 : continuation-indent + '. ' + open-quote + part2 +
+        ##  close-quote + $after -- must also fit <= LINE_MAX  ##
+        my $max_inner2  = LINE_MAX - $prefix_len - 4 - length($after);
+        my $lower_bound = length($inner) - $max_inner2;
+
+        ##  find whitespace split positions inside $inner [ not inside
+        ##  interpolation for double-quoted ]  ##
+        my @safe_splits = find_split_positions( $inner, $quote_ch );
+        next if not @safe_splits;
+
+        ##  prefer the split closest to the midpoint [ balanced two lines
+        ##  instead of a near-empty leftover ] among positions that fit
+        ##  both line budgets; fall back to the old "largest that fits
+        ##  line 1" behaviour if none satisfy both  ##
+        my $target = length($inner) / 2;
+        my ( $best, $best_dist, $fallback );
+        for my $p (@safe_splits) {
+            next if $p > $max_inner1;
+            $fallback = $p;
+            next if $p < $lower_bound;
+            my $dist = abs( $p - $target );
+            if ( not defined $best_dist or $dist < $best_dist ) {
+                $best      = $p;
+                $best_dist = $dist;
+            }
+        }
+        $best //= $fallback;
+        next if not defined $best;
+
+        my $part1 = substr( $inner, 0, $best );
+        my $part2 = substr( $inner, $best );
+        ##  keep the splitting whitespace on the trailing edge of part1  ##
+        ##  best is at a position just after a whitespace boundary  ##
+
+        ##  compose new lines  ##
         my $continuation_indent = ' ' x ($prefix_len);
         my $part1_token         = $quote_ch . $part1 . $quote_ch;
         my $part2_token         = $quote_ch . $part2 . $quote_ch;
@@ -652,8 +673,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,,.,.,.,,.,,.,.,,.,,..,,,..,..,,,.,,...,.,,,..,,...,...,,.,,,..,.,.,.,,,..,,
-#5MUCWDVSVOIGBPCDLRPAFMCBK4HQN7DU7YGCH32RXFURI6ALUBO5GTSASJSQJDLGPG52FL23WF5XE
-#\\\|OQAEJEGM53BTGLXPIIT5574YJNFJAWP7OAYDRRDYDUT5U4FRBUB \ / AMOS7 \ YOURUM ::
-#\[7]ULRWM5XM5PR6G2P3OBYM637KIRHPO2NFJ6VXBT2II6AWBKWTNSDY 7  DATA SIGNATURE ::
+#,,.,,..,,...,.,,,,,,,,.,,...,..,,,,.,,,,,.,.,..,,...,..,,...,,..,,.,,,,.,.,.,
+#2MCS5NM4XPJLV4DTFFRQB6T3H3YROZIIBFRRKJEJGKEGM4MYVGSH2HVTAXMS6BNPCQAXMWQHVYQRI
+#\\\|3WL5S72777SPI5FHQSUYCSLCLV4RQJX25FTTRNIASDVHJDAWE2F \ / AMOS7 \ YOURUM ::
+#\[7]ODLALH2TYCOCT6V25X55HDPZQY5XE5AQ7MRFS5K7IJB3XQH7YIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
