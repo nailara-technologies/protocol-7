@@ -1,0 +1,125 @@
+## [:< ##
+
+# name  = format.inline-nested.decode
+# descr = decode inline-nested text to ordered key-value pairs
+# param = $block - inline-nested text string [ bare or inline-wrapped ]
+# return = bare   : arrayref of [ key, value ] pairs [ order preserved ]
+#          inline : hashref { inline_path => name, pairs => arrayref }
+
+my $block = shift // '';
+
+## inline-wrapped input : strip header, footer and per-line framing ##
+my $inline_path;
+my @frame_lines = split m|\n|, $block, -1;
+my $start       = 0;
+$start++ while $start <= $#frame_lines
+    and $frame_lines[$start] =~ m|^\s*$|;
+if (    $start <= $#frame_lines
+    and $frame_lines[$start] =~ m|^ *\.:\[ ([\w\-\.]+) \]:\.\s*$| ) {
+    $inline_path = $1;
+    splice @frame_lines, 0, $start + 1;
+    pop @frame_lines while @frame_lines and $frame_lines[-1] =~ m|^\s*$|;
+    pop @frame_lines
+        if @frame_lines and $frame_lines[-1] =~ m|^ *:\.\s*$|;
+    $block = join "\n",
+        map { m|^ *:(?:  (.*))?$| ? ( $1 // '' ) : $_ } @frame_lines;
+}
+
+my @lines = split m|\n|, $block, -1;
+
+## entry boundaries : lone dot lines at the separator column [ primary ] ##
+## blank lines between entries are optional and carry no structure      ##
+my $dot_re = qr|^( +)\.$|;
+my $dot_col;
+foreach my $line (@lines) {
+    next unless $line =~ $dot_re;
+    my $col = length($1);
+    $dot_col = $col if not defined $dot_col or $col < $dot_col;
+}
+unless ( defined $dot_col ) {
+    return defined $inline_path
+        ? { inline_path => $inline_path, pairs => [] }
+        : [];
+}
+
+my $key_re  = qr|^( *)([\w\-\.]+)  :(?:  (.*))?$|;
+my $cont_re = qr|^ {0,$dot_col}:(?:  (.*))?$|;
+
+my $recon_para = sub {    ## wrapped vs free-format reconstruction ##
+    my $para = shift;     ## arrayref of [ physical_line_length, content ]
+    return $para->[0][1] if @{$para} == 1;
+
+    my $wrapped = 1;
+    foreach my $i ( 0 .. $#{$para} - 1 ) {
+        my ($next_word) = grep {length} split m|\s+|, $para->[ $i + 1 ][1];
+        $next_word //= '';
+        ## next word would have fit -> break not forced -> free-format ##
+        ## [ Text::Wrap reserves one column : max text = columns - prefix - 1,
+        ##   so a word fits iff physical_len + 1 + word_len <= 78 - 1 ]
+        if ( $para->[$i][0] + 1 + length($next_word) <= 78 - 1 ) {
+            $wrapped = 0;
+            last;
+        }
+    }
+    return join( ' ',
+        grep {length} map { split m|\s+| } map { $_->[1] } @{$para} )
+        if $wrapped;
+    return join( "\n", map { $_->[1] } @{$para} );
+};
+
+my @pairs;
+my $cur_key;
+my ( @cur_paras, @cur_para );
+my $expect_key = 0;
+
+my $flush_para = sub {
+    push( @cur_paras, [@cur_para] ) if @cur_para;
+    @cur_para = ();
+};
+my $flush_key = sub {
+    return unless defined $cur_key;
+    $flush_para->();
+    push @pairs,
+        [ $cur_key, join( "\n\n", map { $recon_para->($_) } @cur_paras ) ];
+    $cur_key   = undef;
+    @cur_paras = ();
+    @cur_para  = ();
+};
+
+foreach my $line (@lines) {
+    if ( $line =~ $dot_re ) {
+        $flush_key->();
+        $expect_key = 1;    ## key line follows the dot marker
+        next;
+    }
+    next if $line =~ m|^\s*$|;    ## optional inter-entry blanks
+    if ($expect_key) {
+        next unless $line =~ $key_re;
+        $cur_key = $2;
+        my $content = $3 // '';
+        @cur_paras = ();
+        @cur_para  = ();
+        push @cur_para, [ length($line), $content ] if length $content;
+        $expect_key = 0;
+        next;
+    }
+    next unless defined $cur_key;
+    if ( $line =~ m|^ *:\s*$| ) {
+        $flush_para->();    ## framed blank -> paragraph break
+    } elsif ( $line =~ $cont_re ) {
+        push @cur_para, [ length($line), $1 // '' ];
+    }
+    ## any other lines [ before first marker, malformed ] are ignored
+}
+$flush_key->();
+
+return
+    defined $inline_path
+    ? { inline_path => $inline_path, pairs => \@pairs }
+    : \@pairs;
+
+#,,,,,,,,,.,.,,..,..,,..,,..,,,,.,,,.,..,,.,,,..,,...,...,,..,,.,,,..,.,,,...,
+#G764D2MVU76WMCE4HYRKUHMJZMH57V5I3LE2BXPAKRIMBT2NT4GSNG63IBH4624MK33ORUF4K43S2
+#\\\|DHB2FPTRM5L4HMHY2VCXCE2UU4WJAD4VVZ7MGSXVQFXPXI5SXWY \ / AMOS7 \ YOURUM ::
+#\[7]OCDFVFG4IAFVWJLHBNU33SUZX563FPKJYMCPIUVZV3562BXKDCAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

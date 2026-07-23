@@ -1,0 +1,109 @@
+## [:< ##
+
+# name  = format.inline-nested.encode
+# descr = encode ordered key-value pairs to inline-nested text
+# param = $pairs - arrayref of [ key, value ] pairs [ or hashref, sorted keys ]
+#          $opts  - optional hashref { inline_path => name, nest_level => N }
+# return = inline-nested text string [ bare form when no inline_path given ]
+
+my ( $input, $opts ) = @_;
+$opts //= {};
+
+require Text::Wrap;
+
+my @pairs;
+if ( ref $input eq 'ARRAY' ) {
+    @pairs = @{$input};
+} elsif ( ref $input eq 'HASH' ) {
+    @pairs = map { [ $_, $input->{$_} ] } sort keys %{$input};
+} else {
+    return '';
+}
+
+## column alignment : longest key in the whole block ##
+my $max_len = 0;
+foreach my $pair (@pairs) {
+    next unless ref $pair eq 'ARRAY';
+    my $key_len = length( $pair->[0] // '' );
+    $max_len = $key_len if $key_len > $max_len;
+}
+
+my $pad = ' ' x ( $max_len + 2 );    ## separator column [ dot above ':' ] ##
+my $w_prefix = $pad . ':  ';         ## continuation line prefix
+
+local $Text::Wrap::columns   = 78;
+local $Text::Wrap::separator = "\n";
+local $Text::Wrap::huge      = qw| overflow |;
+local $Text::Wrap::unexpand  = 0;    ## keep spaces [ no tab substitution ] ##
+
+my $block       = '';
+my $first_entry = 1;
+foreach my $pair (@pairs) {
+    next unless ref $pair eq 'ARRAY';
+    my ( $key, $value ) = @{$pair};
+    $key   //= '';
+    $value //= '';
+    next unless $key =~ m|^[\w\-\.]+$|;    ## strict key charset
+
+    ## lone dot line marks the entry boundary [ survives blank stripping ] ##
+    $block .= "\n" unless $first_entry;    ## optional readability blank
+    $first_entry = 0;
+    $block .= $pad . ".\n";
+
+    if ( not length $value ) {
+        $block .= sprintf "%*s  :\n", $max_len, $key;
+        next;
+    }
+
+    my $k_prefix   = sprintf "%*s  :  ", $max_len, $key;
+    my $first_para = 1;
+    my @out_lines;
+
+    foreach my $para ( grep {length} split m|\n\n|, $value, -1 ) {
+        my $p_first = $first_para ? $k_prefix : $w_prefix;
+        $first_para = 0;
+
+        if ( index( $para, "\n" ) == -1 ) {
+
+            ## single logical line -> greedily wrap to 78 columns ##
+            push @out_lines,
+                split m|\n|, Text::Wrap::wrap( $p_first, $w_prefix, $para ),
+                -1;
+        } else {
+
+            ## free-format -> preserve deliberate line breaks as-is ##
+            my @p_lines = split m|\n|, $para, -1;
+            $p_lines[0] = $p_first . $p_lines[0];
+            $p_lines[$_] = $w_prefix . $p_lines[$_] for 1 .. $#p_lines;
+            push @out_lines, @p_lines;
+        }
+        push @out_lines, $pad . ':';    ## framed blank [ paragraph break ]
+    }
+    pop @out_lines;                     ## drop trailing paragraph break
+    $block .= join '', map { $_ . "\n" } @out_lines;
+}
+
+## bare / standalone form ##
+return $block
+    if not defined $opts->{inline_path}
+    or $opts->{inline_path} !~ m|^[\w\-\.]+$|;
+
+## inline / nested form : header, colon-framed lines, footer ##
+my $nest   = $opts->{nest_level} // 1;
+my $indent = ' ' x $nest;
+
+my @body = split m|\n|, $block, -1;
+pop @body if @body and not length $body[-1];    ## trailing newline artifact
+
+my @framed
+    = ( $indent . '.:[ ' . $opts->{inline_path} . ' ]:.', $indent . ':' );
+push @framed, map { length $_ ? $indent . ':  ' . $_ : $indent . ':' } @body;
+push @framed, $indent . ':', $indent . ':.';
+
+return join '', map { $_ . "\n" } @framed;
+
+#,,,,,,..,,..,...,.,,,,..,..,,,,.,,,.,,,,,..,,..,,...,...,,.,,...,..,,...,,.,,
+#SECUTTPQRCOQ2N3VMHY7WV4NI5WWM5RQ6VBR3EIOOZKHFRY3GMOWG3VPLTMIJBCMUDD7NRUGIUEBS
+#\\\|WLGK2GQH2BGDF5SNO4MLCW73YSXQJ2NT5Q7WESPH4RGJBNC5WB7 \ / AMOS7 \ YOURUM ::
+#\[7]56IRYQ3VBB3RTCR2RUOOU3X2VQIJXN7FP262RKJM3634ZK6LV2AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
