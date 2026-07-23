@@ -212,8 +212,80 @@ mechanism (pure client-side, no server round-trip) and the `end`-aligned
 quick-actions row are both small and self-contained enough to become a
 shared convention for any future "recently removed, quick undo" panel.
 
-#,,,.,,,,,,..,.,,,,,.,...,,,.,..,,,.,,...,,.,,..,,...,...,,.,,.,,,.,,,.,,,,,.,
-#7ZNVUVCJRUUXQ2CID4PVNCBUACLS2VSFI5FTGN5UOREHLYT4MGI6AIM2VJYSWQQOHYZFFPURJV2A6
-#\\\|V3EA2EHLOYYH7HGNHRVK4UQS7LTSEBRW3SRG65BHLPSNPV2WVF4 \ / AMOS7 \ YOURUM ::
-#\[7]GXMMNB6TSIWH3A6J2MBQVWXZVEVKWX6DQ77AVWTUUEXR754W7YBI 7  DATA SIGNATURE ::
+### Same-session follow-up — cross-browser watermark sync, debounce fixes, real export-data gap found (commit fae96e9d3)
+
+**New generic sync primitive**: `jobsite.client_prefs.read/write` +
+`jobsite.cmd.get-prefs/set-prefs` + `GET/POST /jobs-prefs` — a small
+shared key→numeric-value blob on jobsite, persisted to its own
+`client-prefs.yaml`. Merge rule is last-write-wins **by value** (`max`),
+not arrival order — deliberately, so a browser that was offline while
+another one advanced the shared value can't regress it back down by
+pushing its own stale local copy on reconnect. Built to reconcile the
+trash-panel watermark across Firefox and the web-browser zenka's WebKit
+(which have entirely separate, and in WebKit's case ephemeral,
+`localStorage` — a real user-visible "why doesn't gesehen stick" report
+turned out to be exactly this, not a bug). Reusable for any future
+purely-local-but-should-agree-across-profiles browser setting — see
+[[topic-jobsite-ui-usability]].
+
+**Two more frontend races/quirks fixed in the trash panel**:
+- Overlapping-fetch race: rapid reopen while a prior `loadTrashPanel()`
+  fetch was still in flight could let a slower/older response land after
+  a newer one and silently overwrite it. Fixed with a generation counter
+  (`trashLoadGen`, incremented per call, checked before each response is
+  applied) — the technically correct fix for out-of-order async
+  responses, stronger than a naive time-based debounce.
+- **Double-click-event dispatch**: some browser engines [confirmed in
+  the web-browser zenka's WebKit here, not Firefox] fire two native
+  `click` events for one physical click/tap. Every trash-panel button
+  handler was susceptible — the papierkorb toggle opened then
+  immediately closed itself again, `▾ ältere` revealed two entries
+  instead of one. Fixed generically with a shared `debounceClick(fn,
+  ms=250)` wrapper (per-handler last-fire timestamp) applied to all four
+  handlers (toggle, gesehen, ältere, per-row rescue), not patched
+  one-by-one as each got reported. Worth wrapping any future WebKit-
+  tested click handler in this project with the same helper preemptively.
+
+**Reload-doesn't-pick-up-new-files gotcha, confirmed twice this session**:
+`jobsite.reload all`/`reload source` reported success but did not
+actually recompile `jobsite.cmd.set-prefs` after a fresh edit — verified
+unambiguously by adding a literal marker field to the JSON reply and
+watching it not appear across multiple reloads. Only a full `v7.restart
+jobsite` picked it up. In hindsight this likely also explains part of the
+earlier `jobsite.cmd.list-trashed` "diag=1 branch never fired" confusion
+from the prior session entry above, which had been fully chalked up to
+the File::stat bug — that bug was real and confirmed separately, but the
+reload staleness was probably compounding it. **Practical rule going
+forward**: after creating or editing a `jobsite.cmd.*` file [or likely
+any zenka's newly-added command module], don't trust a "reload success"
+message alone if a change doesn't visibly take effect — verify with an
+unambiguous marker, and reach for a full zenka restart rather than
+repeated reloads if one doesn't confirm.
+
+**Real, pre-existing, unrelated bug found while diagnosing a false alarm**:
+the "last export date" feature (`exported_stage`, server-synced per job,
+NOT part of the new client-prefs mechanism above) has a silent-failure
+gap. `exportCSV()` sets `jobs[j.id].exported_stage = j.stage` locally and
+synchronously, then separately fires an async `pushChange()` per
+exported row — if any of those pushes silently fails, the exporting
+browser's own view already looks correct (masking the failure), while a
+*different* browser reading true server state shows the job as still
+unexported. Caught via a user-reported cross-browser discrepancy [4
+entries showing "needs export" in the web-browser zenka, 0 in Firefox,
+after a same-day export] — verified server-side ground truth via direct
+YAML grep (`grep exported_stage /var/protocol-7/web/jobs/applied/*.yaml`)
+found exactly 4 records with `exported_stage: <none>`, matching the
+report precisely, confirming a real server-side gap rather than browser
+cache staleness. Patched the 4 records live via direct `POST /jobs-sync`
+calls (not hand-editing YAML, to keep the in-memory cache and
+`last_modified` consistent). **Not fixed**: the underlying reliability
+gap in `exportCSV()` itself — a batch of `Promise.all(pushChange(...))`
+calls with individually-caught, individually-notified errors is easy to
+miss in a large batch; flagged to the user as a known follow-up, not
+addressed this session.
+
+#,,..,,,,,...,..,,.,,,,,.,...,.,.,,..,.,.,.,.,..,,...,...,.,,,,..,,,,,,..,,.,,
+#KJVYZUF2WZQKGIRYWLA5KSH3CZ7ZA5MPAXLN5FQ3AZY6Q7UWYQPEZ4Q6QU3VW32MJYPLHDZWS45ZA
+#\\\|QIWOXGVTXEUESRLBGC2SYYPC2PCLIRXRZINKO32OIA5G43EPXKM \ / AMOS7 \ YOURUM ::
+#\[7]WCDE7UHLYMYRKGXTXROMOY3VHCHRVEOZQ7NKC5LS55BGKCEWSQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
