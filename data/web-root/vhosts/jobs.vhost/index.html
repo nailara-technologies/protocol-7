@@ -528,6 +528,15 @@ input[type="date"], textarea {
 /* variant: both buttons grouped at the bottom-right instead of spread corner-to-corner */
 .card-quick-actions.end { justify-content: flex-end; gap: 0.5rem; }
 
+/* trash-history panel rows */
+.trash-row { display: flex; align-items: center; gap: 0.6rem; padding: 3px 6px;
+             background: rgba(20,10,10,0.3); border: 1px solid #2a1818; border-radius: 3px; }
+.trash-row .trash-meta { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trash-row .trash-company { color: #7aabcc; }
+.trash-row .trash-score { color: #d4a830; margin-left: 0.4rem; }
+.trash-row .trash-date { color: #3a5060; font-size: 0.68rem; flex-shrink: 0; }
+.trash-row button { padding: 1px 8px; font-size: 0.72rem; flex-shrink: 0; }
+
 /* compact dimension score row */
 .card-dims   { font-size: 0.70rem; color: var(--p7-text-mid); margin-top: 3px;
                letter-spacing: 0.02em; cursor: pointer;
@@ -659,6 +668,7 @@ input[type="date"], textarea {
       <button id="btn-sort-date">datum ↓</button>
       <span class="sep">|</span>
       <button id="btn-show-archive">archiv</button>
+      <button id="btn-trash-toggle">🗑 papierkorb</button>
       <button id="btn-export-csv" class="orange">CSV export</button>
       <button id="btn-reassess-all" class="orange" style="display:none;" onclick="reassessAllVisible()">↺ restliche bewerten</button>
       <button id="btn-delete-all" class="red" style="display:none;" onclick="deleteAllVisible()">✗ alle löschen</button>
@@ -694,6 +704,17 @@ input[type="date"], textarea {
         <button id="btn-export-cancel" style="padding:2px 10px; color:#506070;">✕</button>
         <span id="export-last-time" style="margin-left:auto; font-size:0.7rem; color:#3a5060;"></span>
       </div>
+    </div>
+    <div id="trash-panel" style="display:none; margin-top:0.5rem;
+         background:#0a1520; border:1px solid #1a3048; border-radius:4px;
+         padding:0.5rem 0.8rem; font-size:0.78rem; color:#6090b0;">
+      <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.4rem;">
+        <span style="color:#7aabcc;">zuletzt gelöscht:</span>
+        <span class="spacer" style="flex:1;"></span>
+        <button id="btn-trash-clear" style="padding:2px 10px;">✓ gesehen</button>
+        <button id="btn-trash-expand" style="padding:2px 10px;" title="letzten versteckten eintrag wieder einblenden">▾ ältere</button>
+      </div>
+      <div id="trash-list" style="display:flex; flex-direction:column; gap:0.3rem; max-height:320px; overflow-y:auto;"></div>
     </div>
   </div>
 
@@ -774,6 +795,9 @@ input[type="date"], textarea {
 const STORAGE_KEY = 'jobs_pipeline_v1';
 const JOBS_JSON   = '/jobs.json';
 const JOBS_SYNC   = '/jobs-sync';
+const JOBS_TRASH        = '/jobs-trash';
+const JOBS_TRASH_RESCUE = '/jobs-trash-rescue';
+const TRASH_WATERMARK_KEY = 'jobs_trash_watermark_v1';
 const POLL_MS     = 30000;
 const USER_DECISIONS_KEY = 'jobs_user_decisions_v1';
 const USER_OWNED_STAGES  = new Set(['to_apply','applied','interviewed','responded','rejected','skipped','archived']);
@@ -2223,6 +2247,105 @@ document.getElementById('btn-export-cancel').addEventListener('click', () => {
     document.getElementById('export-panel').style.display = 'none';
 });
 document.getElementById('btn-export-clear-history').addEventListener('click', clearExportHistory);
+
+/* ── trash-history panel : recent trashed jobs + rescue, see topic in ── */
+/* ── conversation history for the design [ watermark clear + reveal ] ── */
+let trashList = [];         // full list fetched from /jobs-trash, newest first
+let trashRevealExtra = 0;   // "▾ mehr" : how many cleared items to pull back in
+
+function getTrashWatermark() {
+    return parseInt(localStorage.getItem(TRASH_WATERMARK_KEY) || '0', 10);
+}
+function setTrashWatermark(v) {
+    localStorage.setItem(TRASH_WATERMARK_KEY, String(v));
+}
+
+async function loadTrashPanel() {
+    const list = document.getElementById('trash-list');
+    list.innerHTML = '<div style="color:#3a5060;">lädt…</div>';
+    try {
+        const r = await fetch(JOBS_TRASH + '?limit=100');
+        if (!r.ok) throw new Error(r.status);
+        const data = await r.json();
+        trashList = Array.isArray(data.jobs) ? data.jobs : [];
+        trashRevealExtra = 0;
+        renderTrashList();
+    } catch (e) {
+        list.innerHTML = '<div style="color:#c05050;">fehler beim laden</div>';
+        notify('papierkorb laden fehlgeschlagen: ' + e.message, true);
+    }
+}
+
+function renderTrashList() {
+    const list = document.getElementById('trash-list');
+    const watermark = getTrashWatermark();
+
+    const fresh = trashList.filter(j => j.trashed_at > watermark);
+    const older = trashList.filter(j => j.trashed_at <= watermark);
+    const visible = fresh.concat(older.slice(0, trashRevealExtra));
+
+    if (!visible.length) {
+        list.innerHTML = '<div style="color:#3a5060;">keine neuen einträge</div>';
+    } else {
+        list.innerHTML = '';
+        for (const j of visible) {
+            const row = document.createElement('div');
+            row.className = 'trash-row';
+            const date = j.trashed_at ? new Date(j.trashed_at * 1000).toLocaleDateString('de-DE') : '';
+            row.innerHTML = `
+              <span class="trash-meta">${escHtml(j.title || '')}
+                <span class="trash-company">— ${escHtml(j.company || '')}</span>
+                ${j.score ? `<span class="trash-score">${escHtml(String(j.score))}</span>` : ''}
+              </span>
+              <span class="trash-date">${date}</span>
+              <button data-id="${j.id}">↩ rescue</button>
+            `;
+            row.querySelector('button').addEventListener('click', e => rescueTrashJob(j.id, e.target));
+            list.appendChild(row);
+        }
+    }
+
+    const expandBtn = document.getElementById('btn-trash-expand');
+    expandBtn.disabled = older.length <= trashRevealExtra;
+    expandBtn.style.opacity = expandBtn.disabled ? '0.4' : '1';
+}
+
+async function rescueTrashJob(id, btn) {
+    btn.textContent = '…';
+    btn.disabled = true;
+    try {
+        const r = await fetch(JOBS_TRASH_RESCUE, { method: 'POST', body: `${id} review` });
+        if (!r.ok) throw new Error(r.status);
+        const data = await r.json();
+        if (!data.ok) throw new Error(data.message || 'unknown error');
+        notify('gerettet: ' + data.message);
+        trashList = trashList.filter(j => j.id !== id);
+        renderTrashList();
+        /* pull the rescued job into view on next poll — it's now in review */
+        lastNtime = 0;
+        syncPipeline();
+    } catch (e) {
+        notify('rescue fehler: ' + e.message, true);
+        btn.textContent = '↩ rescue';
+        btn.disabled = false;
+    }
+}
+
+document.getElementById('btn-trash-toggle').addEventListener('click', () => {
+    const panel = document.getElementById('trash-panel');
+    const opening = panel.style.display === 'none';
+    panel.style.display = opening ? 'block' : 'none';
+    if (opening) loadTrashPanel();
+});
+document.getElementById('btn-trash-clear').addEventListener('click', () => {
+    setTrashWatermark(Math.floor(Date.now() / 1000));
+    trashRevealExtra = 0;
+    renderTrashList();
+});
+document.getElementById('btn-trash-expand').addEventListener('click', () => {
+    trashRevealExtra++;
+    renderTrashList();
+});
 document.getElementById('btn-print').addEventListener('click', () => {
     const origTitle = document.title;
     document.title = 'bewerbungen_' + new Date().toISOString().slice(0,10);
