@@ -20,9 +20,12 @@ if ( not defined $job_rec ) {
 }
 
 ## protected stages : user decisions must survive repair activity ##
+## 'review' included to match jobsite.handler.assess-done : a manual      ##
+## reassess of a job the user is actively reviewing must never let a      ##
+## repair pass silently evict it to trash on a low score ##
 my %protected_stage
     = map { $ARG => 1 }
-    qw| applied interviewed responded rejected skipped archived |;
+    qw| review applied interviewed responded rejected skipped archived |;
 
 my %stage_to_status = (
     'review'      => 'review',
@@ -247,8 +250,8 @@ if ( <jobsite.pending_count> <= 0 ) {
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.next]>;
 
-#,,,.,,..,..,,.,,,,,.,.,.,,..,.,.,.,.,.,.,.,.,..,,...,.,.,.,.,.,.,.,,,..,,.,.,
-#LFWLSG5BJXNS35GWVZRWASED2GX7CXBSEKXM3Z36D43Z6V774USAA5DSKENQZ3SGAOIFBMPOGPJQG
-#\\\|S42BHAZSQJZSKYRABOT6FDWHMMQZO6ATAQ3QPMFFHTLRG6EGSEV \ / AMOS7 \ YOURUM ::
-#\[7]Z2SL63KODSVI3JXF3PZIVTWNDK7OWETNFZN3KVTDYUYUTQKKKSCA 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,..,,..,.,,,,..,,..,,,,,...,,..,..,,...,...,,.,,.,.,,..,..,,...,
+#UGQ4SMLHOEXFBO6WSXQNAICI5NYCWNLKNXWLTQ4AS6LSGF27OAVPAND5J5TRQYLBOGCNXFM6S6VG4
+#\\\|XWU55TXPKAP4FQUEO3Y2ZVK6SSPIW4LAGR5H3OP5Z7R5R5EPEY4 \ / AMOS7 \ YOURUM ::
+#\[7]IF4QW6YA52KDMNBJCSF2MZYG6M5SGFOIEB3FL7JRLPXNWBDAUYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
