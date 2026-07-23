@@ -9,8 +9,14 @@
 my $block = shift // '';
 
 ## inline-wrapped input : strip header, footer and per-line framing ##
+## keep the pre-strip physical lines too -- wrap-vs-free-format          ##
+## classification below must judge against the ORIGINAL line length     ##
+## [ what encode actually constrained to 78 cols ], not the shorter,    ##
+## post-strip length, or reconstruction misclassifies wrapped content   ##
+## as free-format once the outer ':  ' framing overhead is removed      ##
 my $inline_path;
 my @frame_lines = split m|\n|, $block, -1;
+my @orig_lines  = @frame_lines;
 my $start       = 0;
 $start++ while $start <= $#frame_lines
     and $frame_lines[$start] =~ m|^\s*$|;
@@ -20,14 +26,21 @@ if (    $start <= $#frame_lines
     and $frame_lines[$start] =~ m|^ *\.:\[ (.+) \]:\.\s*$| ) {
     $inline_path = $1;
     splice @frame_lines, 0, $start + 1;
-    pop @frame_lines while @frame_lines and $frame_lines[-1] =~ m|^\s*$|;
-    pop @frame_lines
-        if @frame_lines and $frame_lines[-1] =~ m|^ *:\.\s*$|;
-    $block = join "\n",
-        map { m|^ *:(?:  (.*))?$| ? ( $1 // '' ) : $_ } @frame_lines;
+    splice @orig_lines,  0, $start + 1;
+    while ( @frame_lines and $frame_lines[-1] =~ m|^\s*$| ) {
+        pop @frame_lines;
+        pop @orig_lines;
+    }
+    if ( @frame_lines and $frame_lines[-1] =~ m|^ *:\.\s*$| ) {
+        pop @frame_lines;
+        pop @orig_lines;
+    }
+    @frame_lines
+        = map { m|^ *:(?:  (.*))?$| ? ( $1 // '' ) : $_ } @frame_lines;
+    $block = join "\n", @frame_lines;
 }
 
-my @lines = split m|\n|, $block, -1;
+my @lines = @frame_lines;
 
 ## entry boundaries : lone dot lines at the separator column [ primary ] ##
 ## blank lines between entries are optional and carry no structure      ##
@@ -88,7 +101,9 @@ my $flush_key = sub {
     @cur_para  = ();
 };
 
-foreach my $line (@lines) {
+foreach my $i ( 0 .. $#lines ) {
+    my $line      = $lines[$i];
+    my $orig_line = $orig_lines[$i] // $line;    ## true pre-strip length
     if ( $line =~ $dot_re ) {
         $flush_key->();
         $expect_key = 1;    ## key line follows the dot marker
@@ -101,7 +116,7 @@ foreach my $line (@lines) {
         my $content = $3 // '';
         @cur_paras = ();
         @cur_para  = ();
-        push @cur_para, [ length($line), $content ] if length $content;
+        push @cur_para, [ length($orig_line), $content ] if length $content;
         $expect_key = 0;
         next;
     }
@@ -109,7 +124,7 @@ foreach my $line (@lines) {
     if ( $line =~ m|^ *:\s*$| ) {
         $flush_para->();    ## framed blank -> paragraph break
     } elsif ( $line =~ $cont_re ) {
-        push @cur_para, [ length($line), $1 // '' ];
+        push @cur_para, [ length($orig_line), $1 // '' ];
     }
     ## any other lines [ before first marker, malformed ] are ignored
 }
@@ -120,8 +135,8 @@ return
     ? { inline_path => $inline_path, pairs => \@pairs }
     : \@pairs;
 
-#,,,.,,.,,,,,,,,.,,..,.,.,...,..,,,,.,,,.,.,.,..,,...,...,,,.,,..,,,.,,..,.,.,
-#VZLXGZ6MLUSXMSCZFP7NFQJJAELLIHCJZW7PNWC5WKQZHS2GL4NPVDPK66D7MLB47D2FZPUJB743K
-#\\\|2W6H5N5QAYHW66LYSQQZJ4MQNH2SMYWFRFKP7WNNAR4ZTM2SZAY \ / AMOS7 \ YOURUM ::
-#\[7]XDOQV7KBLVNYMHY4TK77YFPTMB4DYSCKA7M7J25KNUCRWNK75GCA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,.,,,,,.,..,,.,.,,..,.,,,...,...,..,,...,...,..,,...,,,.,,..,...,
+#H3RWKIR23SLYCI6N4ESASXNQTKJHNHKRQ3ATAM26YKPCTXIE7MN2UFUXVYU72JAMVQ3S3UMYZ7W5W
+#\\\|75TOOLYTLJ7L4QIFIQQIBULFHIYI6CYEREJQCIBMMLPEQVOZUYW \ / AMOS7 \ YOURUM ::
+#\[7]B536GU5L4CK4QZ6BV7U35CMZD32CEC4BMRQIN7IDCPCEGOCPZOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

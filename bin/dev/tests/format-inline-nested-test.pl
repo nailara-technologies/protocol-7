@@ -69,8 +69,8 @@ my $p1    = join ' ', map {"para$_"} 1 .. 25;
 my $p2    = 'short second paragraph';
 my $val_c = "$p1\n\n$p2";
 my $enc_c = $encode->( [ [ 'gamma.key', $val_c ] ] );
-ok( scalar( grep {m|^ +:$|} split /\n/, $enc_c ) == 1,
-    '(c) framed paragraph-break line present'
+ok( scalar( grep {m|^ +:$|} split /\n/, $enc_c ) == 2,
+    '(c) framed paragraph-break + trailing entry-close line present'
 );
 my $dec_c = $decode->($enc_c);
 ok( $dec_c->[0][1] eq $val_c,
@@ -186,8 +186,8 @@ ok( join( ',', map { $_->[0] } @$dec_i ) eq 'a.key,b.key',
 print "\n----\npassed : $pass\nfailed : $fail\n";
 exit( $fail ? 1 : 0 );
 
-#,,.,,,.,,...,,.,,.,.,,.,,.,.,..,,...,,,,,,..,..,,...,...,.,,,,..,,.,,...,,.,,
-#RKRLVKV7OJZARGTF73BHTM2XBWSAKKEFNNQWSIKTPQJVQCWDL5ZSSZDSYFUR3BFC3JZ3TX6YVIH4C
-#\\\|UUEJ5BIXOPO247FDLAEO4VQTVJBWLD24ANO5T3V6K6A5YK6IKEX \ / AMOS7 \ YOURUM ::
-#\[7]YGWIWIXQ4RDXEYEB5T3LI6ZSHT436IRWNJQHB2S4XNU3S3HMIQCI 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,..,,,.,,,,,,,,,,.,,,,.,...,,.,,..,,...,..,,..,,.,.,,,,,,,,,,,.,
+#HJZVXRLUIEVWCQWVNNC67HWXBCI57P66ALNX5GB46W5BDXOKV3GBHY22PJQVWINFV5GT3COEP6X3C
+#\\\|G2WHLU37T3MQGIAU5LDP4RJSQVDYJN3XJ22KCDBJNTBRVMT27FK \ / AMOS7 \ YOURUM ::
+#\[7]IYIDIMWVHTRA55WACMTE25Q6U2675XJRKFWBRGRQ3NPBX7RIWYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
