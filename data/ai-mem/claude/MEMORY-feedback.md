@@ -8,6 +8,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 ## Feedback
 - [edit-via-project-path-not-dotclaude](feedback-edit-via-project-path-not-dotclaude.md) — edit memory via data/ai-mem/claude/, not ~/.claude/projects/.../memory/ (same file, latter re-prompts every edit)
 - [file-stat-shadowing](feedback-file-stat-shadowing.md) — bin/Protocol-7's global `use File::stat` makes bare `stat()` return an object everywhere, not a 13-elem list; use `File::stat::stat(...)->mtime` etc. (was orphaned/unindexed — cost a live debugging detour before being found)
+- [reload-success-doesnt-guarantee-new-file-loaded](feedback-reload-success-doesnt-guarantee-new-file-loaded.md) — `reload all` reported success twice without recompiling a fresh jobsite.cmd.* file; verify with a literal marker, escalate to a full v7.restart, don't just re-reload
+- [webkit-double-click-dispatch](feedback-webkit-double-click-dispatch.md) — web-browser zenka's WebKit fires click twice for one tap on some buttons, Firefox doesn't; wrap every handler in a shared debounceClick() from the start, don't patch button-by-button
 - [tasks-completed-scan-verdict-trust](feedback-tasks-completed-scan-verdict-trust.md) — "still open" as unreliable as "move to completed"; 31/52 false negs, incl. live auth gap
 - [kimi-dispatch-infra-hardening](topic-kimi-dispatch-infra-hardening.md) — --afk flag, k3/k2.7/k2.7-fast routing; MCP bridge timeout ≠ dispatch failure
 - [kimi-k3-thinking-effort](topic-kimi-k3-thinking-effort.md) — Low/High/Max in vendor UI, not in API/installed CLI
@@ -44,8 +46,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [eval-error-macro-call-site](feedback-eval-error-macro-call-site.md) — reading $EVAL_ERROR inline as an arg at a `<[...]>` call site can come back empty; capture into a lexical (or use `<[base.str.eval_error]>`) immediately after eval
 - [kimi-dispatch-idle-timeout-recovery](feedback-kimi-dispatch-idle-timeout-recovery.md) — MCP 1800s-idle "failed" ≠ dispatch failed; underlying process often finishes fine, recover via session_catchup(client:kimi, session_id) not re-dispatch
 
-#,,,,,,,,,,,.,.,,,..,,.,.,,,,,,,,,,.,,.,.,.,.,..,,...,...,,,,,.,,,,,,,.,,,.,,,
-#M2EZCA4SIZ7YMIYEZFUX4ORW2L42PZNT5ILIM6KUXCKPKJVOV2BOV3STSEKGZQNKKCWSV6SAQADPI
-#\\\|D5TLIFDX27CZ7EKH77N6EHFS6TL5U5HGXBOI3O7DW3K4IEMZH3T \ / AMOS7 \ YOURUM ::
-#\[7]QT7AZDK336SXR3CO6ZL5MPXKHURLCUSG4ACALDNXG3FPYYSULWDI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,...,...,.,,,,.,,,..,.,,,..,,.,.,..,,...,...,...,.,,,.,.,..,,..,,
+#OCTKMJKYOGT4RYIR2WWB75SNFN4U76TEDNGH3JSD55NA4CBA5B3JVC3O6OUDAVUG56V4HVWZLGCQ4
+#\\\|SRRUIJQJWKBEELII43QCBRIJFQD24VZGOY5OUIRMRJ4EUYIEHR4 \ / AMOS7 \ YOURUM ::
+#\[7]UZODH433C52RXYOVIP5PBPBB6FPD73K744DIFXB5ETPGEDVX3UCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
