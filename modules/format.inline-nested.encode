@@ -46,7 +46,8 @@ local $Text::Wrap::separator = "\n";
 local $Text::Wrap::huge      = qw| overflow |;
 local $Text::Wrap::unexpand  = 0;    ## keep spaces [ no tab substitution ] ##
 
-my $block = '';
+my $block       = '';
+my $first_entry = 1;
 foreach my $pair (@pairs) {
     next unless ref $pair eq 'ARRAY';
     my ( $key, $value ) = @{$pair};
@@ -55,8 +56,12 @@ foreach my $pair (@pairs) {
     next unless $key =~ m|^[\w\-\.]+$|;    ## strict key charset
 
     ## lone dot line opens the entry [ survives blank stripping ]; a
-    ## trailing bare ':' closes it, symmetric with the opening dot -- this
-    ## also doubles as the inter-entry separator, so no extra blank line ##
+    ## trailing bare ':' closes it, symmetric with the opening dot. A
+    ## genuine blank line between entries is a separate, independent
+    ## concern [ readability separator, not structural -- same lesson as
+    ## the container's own trailer-boundary blank vs. its payload ] ##
+    $block .= "\n" unless $first_entry;
+    $first_entry = 0;
     $block .= $pad . ".\n";
 
     if ( not length $value ) {
@@ -128,8 +133,8 @@ if ( not $use_inline ) {
 ## embedded/file-written blocks don't accumulate display-only cruft ] ##
 return $opts->{pad_lines} ? "\n" . $result . "\n" : $result;
 
-#,,,,,.,,,,,,,,..,.,,,,..,,..,.,,,.,.,.,,,,.,,..,,...,...,..,,.,,,,.,,.,.,..,,
-#ISAJYGFX7TEG2FQRLJZKSKGAKYAH7YC2LXTY4NMZI56UYRLALRBN7Y4CLNKEYGGISDJNLP7L7CTPO
-#\\\|NBCJZAOKU2ULSMNI6SRQQKOJ755ERV5YCPRHYLPNAV6E7ISIR46 \ / AMOS7 \ YOURUM ::
-#\[7]PSYSKXF2TEJU2MBBABHF5QI7BOWB6PMPLS46ZKQMO63I2RHQS4AQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,...,,.,,,,,,.,.,,,.,..,,.,,,,,,,..,,...,...,,..,.,.,.,.,..,,,.,,
+#IBKBC3QPX5EV2KJAY7VBMOWHKLHNLD5VVFQTSC3PCGN27YLNPR4U3NZ3NE4WZJRYRA66VP7DQ4PUI
+#\\\|KPVCQQ2GLV7N3RYFSSTVYBQ53JFVHRT5VDY23SMHVI7FKRNULGO \ / AMOS7 \ YOURUM ::
+#\[7]K5LXE2FOZAHVE26CKLYKFEAVQOMY6OOTMXDIL2S3PIZ7TSY3KMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
