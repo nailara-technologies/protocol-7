@@ -14,8 +14,10 @@ my @frame_lines = split m|\n|, $block, -1;
 my $start       = 0;
 $start++ while $start <= $#frame_lines
     and $frame_lines[$start] =~ m|^\s*$|;
+## header content : strict dot-path or free-form title [ human alias ] --
+## either way, greedy match resolves to the rightmost ' ]:.' delimiter ##
 if (    $start <= $#frame_lines
-    and $frame_lines[$start] =~ m|^ *\.:\[ ([\w\-\.]+) \]:\.\s*$| ) {
+    and $frame_lines[$start] =~ m|^ *\.:\[ (.+) \]:\.\s*$| ) {
     $inline_path = $1;
     splice @frame_lines, 0, $start + 1;
     pop @frame_lines while @frame_lines and $frame_lines[-1] =~ m|^\s*$|;
@@ -118,8 +120,8 @@ return
     ? { inline_path => $inline_path, pairs => \@pairs }
     : \@pairs;
 
-#,,,,,,,,,.,.,,..,..,,..,,..,,,,.,,,.,..,,.,,,..,,...,...,,..,,.,,,..,.,,,...,
-#G764D2MVU76WMCE4HYRKUHMJZMH57V5I3LE2BXPAKRIMBT2NT4GSNG63IBH4624MK33ORUF4K43S2
-#\\\|DHB2FPTRM5L4HMHY2VCXCE2UU4WJAD4VVZ7MGSXVQFXPXI5SXWY \ / AMOS7 \ YOURUM ::
-#\[7]OCDFVFG4IAFVWJLHBNU33SUZX563FPKJYMCPIUVZV3562BXKDCAI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,,.,,..,.,.,...,..,,,,.,,,.,.,.,..,,...,...,,,.,,..,,,.,,..,.,.,
+#VZLXGZ6MLUSXMSCZFP7NFQJJAELLIHCJZW7PNWC5WKQZHS2GL4NPVDPK66D7MLB47D2FZPUJB743K
+#\\\|2W6H5N5QAYHW66LYSQQZJ4MQNH2SMYWFRFKP7WNNAR4ZTM2SZAY \ / AMOS7 \ YOURUM ::
+#\[7]XDOQV7KBLVNYMHY4TK77YFPTMB4DYSCKA7M7J25KNUCRWNK75GCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
