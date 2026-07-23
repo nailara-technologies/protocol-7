@@ -667,9 +667,9 @@ input[type="date"], textarea {
       <button id="btn-sort-asc">score ↑</button>
       <button id="btn-sort-date">datum ↓</button>
       <span class="sep">|</span>
-      <button id="btn-show-archive">archiv</button>
       <button id="btn-trash-toggle">🗑 papierkorb</button>
       <button id="btn-export-csv" class="orange">CSV export</button>
+      <button id="btn-show-archive">archiv</button>
       <button id="btn-reassess-all" class="orange" style="display:none;" onclick="reassessAllVisible()">↺ restliche bewerten</button>
       <button id="btn-delete-all" class="red" style="display:none;" onclick="deleteAllVisible()">✗ alle löschen</button>
       <span class="spacer"></span>
@@ -706,8 +706,9 @@ input[type="date"], textarea {
       </div>
     </div>
     <div id="trash-panel" style="display:none; margin-top:0.5rem;
-         background:#0a1520; border:1px solid #1a3048; border-radius:4px;
-         padding:0.5rem 0.8rem; font-size:0.78rem; color:#6090b0;">
+         background:rgba(12,5,24,0.85); border:1px solid #3030a0; border-radius:4px;
+         box-shadow:0 0 20px rgba(60,0,120,0.25);
+         padding:0.5rem 0.8rem; font-size:0.78rem; color:#a0c0ff;">
       <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.4rem;">
         <span style="color:#7aabcc;">zuletzt gelöscht:</span>
         <span class="spacer" style="flex:1;"></span>
@@ -998,6 +999,7 @@ async function syncPipeline() {
         if (added > 0 || updated > 0 || removed > 0 || migrated || wasInitial) {
             render();
             if (tableVisible) showPrintTable();
+            if (trashPanelVisible) loadTrashPanel();
         }
         lbl.textContent = 'sync';
         if (added > 0) {
@@ -2252,6 +2254,7 @@ document.getElementById('btn-export-clear-history').addEventListener('click', cl
 /* ── conversation history for the design [ watermark clear + reveal ] ── */
 let trashList = [];         // full list fetched from /jobs-trash, newest first
 let trashRevealExtra = 0;   // "▾ mehr" : how many cleared items to pull back in
+let trashPanelVisible = false;  // like tableVisible : refetch on the same sync hook while open
 
 function getTrashWatermark() {
     return parseInt(localStorage.getItem(TRASH_WATERMARK_KEY) || '0', 10);
@@ -2333,9 +2336,9 @@ async function rescueTrashJob(id, btn) {
 
 document.getElementById('btn-trash-toggle').addEventListener('click', () => {
     const panel = document.getElementById('trash-panel');
-    const opening = panel.style.display === 'none';
-    panel.style.display = opening ? 'block' : 'none';
-    if (opening) loadTrashPanel();
+    trashPanelVisible = panel.style.display === 'none';
+    panel.style.display = trashPanelVisible ? 'block' : 'none';
+    if (trashPanelVisible) loadTrashPanel();
 });
 document.getElementById('btn-trash-clear').addEventListener('click', () => {
     setTrashWatermark(Math.floor(Date.now() / 1000));
@@ -2402,3 +2405,9 @@ startPoll();    // delta polls every 30s thereafter
 </script>
 </body>
 </html>
+
+#,,.,,.,.,.,,,,..,..,,...,,.,,.,,,..,,,,,,,,.,..,,...,...,...,,..,.,,,,,.,,,.,
+#4CW34ODCYZ5N6NWRJZ7ES5VBBLW4JSYBH3SPGALPUG4BR4G26FWVVHF4I4LIRIGJV6RBZ67GZYB26
+#\\\|PEN66EIGOL7WYFPITFFMMS4J4CVMHXTXJQTH7D57XOKOL2LP6G4 \ / AMOS7 \ YOURUM ::
+#\[7]OXT2ZGTRD3HPRXXLHT26JXXAHB3RXDWHQ6F2XEWCIVJLZUQVLYBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
