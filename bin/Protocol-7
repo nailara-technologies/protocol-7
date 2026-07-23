@@ -1390,6 +1390,24 @@ sub p7__dump_core_subs {
 
 ##############################################################################
 
+sub p7_syntax__translate
+{    ## p7 syntax -> perl [ becomes base.syntax.translate ]
+
+    my $str = shift // '';
+
+    # transform special syntax [non-destructive with /r flag]
+    # preserve escaping with (?<!\\) negative lookbehind
+    return $str =~ s|(?<!\\)<\[([\w\-\.]+)\]>\s*->\(|\$code{'$1'}->(|gr
+        =~ s|(?<!\\)<\[([\w\-\.]+)\]>|\$code{'$1'}->()|gr
+        =~ s|(?<!\\)<\[(\$\w+)\]>\s*->\(|\$code{$1}->(|gr
+        =~ s|(?<!\\)<\[(\$\w+)\]>|\$code{$1}->()|gr
+        =~ s|(?<!\\)<([\w\-:]+\.[\w\-\.:]+)>|
+        do { my $k = "\$data{'$1'}";
+             $k =~ s<\.><'}{'>g; $k }|reg;
+}
+
+##############################################################################
+
 sub p7_load_code {
 
     my ( $file, $code_name );
@@ -1715,14 +1733,7 @@ sub p7_load_code {
                         }
 
                      # transform special syntax [non-destructive with /r flag]
-                     # preserve escaping with (?<!\\) negative lookbehind
-                        s|(?<!\\)<\[([\w\-\.]+)\]>\s*->\(|\$code{'$1'}->(|gr
-                            =~ s|(?<!\\)<\[([\w\-\.]+)\]>|\$code{'$1'}->()|gr
-                            =~ s|(?<!\\)<\[(\$\w+)\]>\s*->\(|\$code{$1}->(|gr
-                            =~ s|(?<!\\)<\[(\$\w+)\]>|\$code{$1}->()|gr
-                            =~ s|(?<!\\)<([\w\-:]+\.[\w\-\.:]+)>|
-                            do { my $k = "\$data{'$1'}";
-                                 $k =~ s<\.><'}{'>g; $k }|reg
+                        p7_syntax__translate($ARG);
                     }
                 } @joined;
                 $RS = "\n";
@@ -5698,8 +5709,8 @@ __DATA__
 :
 :.
 
-#,,.,,,.,,..,,,,,,..,,.,.,,,.,..,,.,.,...,,,,,..,,...,...,...,,.,,...,,.,,,.,,
-#7CGJEIRNYJW6QE3JUIRAULEU6B65OVBYK3ULCC2HFSZWJAGKKQ4J5Y27IHDVXPKFMRGTCRKEMIOG6
-#\\\|CEIV2VZBYQI4SHCDBYHHVIHE5CEMG7Q62HTATNBPUCFQMVCMP56 \ / AMOS7 \ YOURUM ::
-#\[7]JJWBV2VSCW3TRPO5KEGBPUDDMMDDQE6WITKACI6MTJEVMNRTYSDQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,...,..,,,,.,.,.,,.,,...,,,.,,.,,..,,...,..,,.,.,...,,.,,,..,,,.,
+#E4UMFZHRTHJWZ32UDDALKHXGZILRBAKXQXUJ2VBVTBTE4MHEAN7COOWWZBJG7GZTB345A2AOBIMMK
+#\\\|PAGOQH3FT5P7UXEA7OWOLHPPEI7U7LSXTH6AFNC2ZDZ35XTREO4 \ / AMOS7 \ YOURUM ::
+#\[7]DJS2Q5H64K5FNFKU6CSE7YDGZ7DX4UZOAAY4DBZI5VL5CDSJ2CBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
