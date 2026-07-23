@@ -190,18 +190,30 @@ sub preprocess_source {
     ##  output buffer  ##
     my @out;
 
-    for my $lnum ( 1 .. scalar @lines ) {
+    my $lnum = 1;
+    while ( $lnum <= scalar @lines ) {
         my $line = $lines[ $lnum - 1 ];
 
         ##  pass-through signature footer  ##
         if ( defined $sig_start and $lnum >= $sig_start ) {
             push @out, $line;
+            $lnum++;
             next;
         }
 
         ##  pass-through pod , heredoc body  ##
         if ( $skip{$lnum} ) {
             push @out, $line;
+            $lnum++;
+            next;
+        }
+
+        ##  step 4 : realign a contiguous block of '##  text  ##' lines  ##
+        my $block_len = comment_block_length( \@lines, $lnum, \%skip );
+        if ( $block_len >= 2 ) {
+            push @out,
+                @{ step4_align_comment_block( \@lines, $lnum, $block_len ) };
+            $lnum += $block_len;
             next;
         }
 
@@ -209,6 +221,7 @@ sub preprocess_source {
         my @produced = step3_relocate_trailing_comment($line);
         if ( @produced > 1 ) {
             push @out, @produced;
+            $lnum++;
             next;
         }
         $line = $produced[0];
@@ -218,6 +231,7 @@ sub preprocess_source {
             = step1_split_long_string( $line, $quotes_by_line{$lnum} );
         if ( defined $split_result ) {
             push @out, @$split_result;
+            $lnum++;
             next;
         }
 
@@ -225,13 +239,85 @@ sub preprocess_source {
         my $reflowed = step2_reflow_comment($line);
         if ( defined $reflowed ) {
             push @out, @$reflowed;
+            $lnum++;
             next;
         }
 
         push @out, $line;
+        $lnum++;
     }
 
     return join( '', @out );
+}
+
+##[ shared : does line $lnum start/continue a '##  text  ##' comment block ]##
+sub comment_block_line_parts {
+    my $line = shift;
+    return undef
+        if $line !~ m{^(\s*)\#\#\ (.*)\ \#\#\s*(\r?\n)?$};
+    my ( $indent, $content ) = ( $1, $2 );
+    return undef if $content eq qw| [:< |;      ## module header ##
+    return undef if $content =~ m{^\[.*\]$};    ## bracket annotation ##
+    ##  normalize whitespace : old right-padding before a misaligned '##'
+    ##  must not leak into the joined paragraph as literal extra spaces  ##
+    $content =~ s{\s+}{ }g;
+    $content =~ s{^ | $}{}g;
+    return { indent => $indent, content => $content };
+}
+
+##[ step 4 helper : count contiguous same-indent block lines from $lnum ]##
+sub comment_block_length {
+    my ( $lines, $start_lnum, $skip ) = @_;
+    my $first = comment_block_line_parts( $lines->[ $start_lnum - 1 ] );
+    return 0 if not $first;
+
+    my $count = 1;
+    my $lnum  = $start_lnum + 1;
+    while ( $lnum <= scalar @$lines and not $skip->{$lnum} ) {
+        my $parts = comment_block_line_parts( $lines->[ $lnum - 1 ] );
+        last if not $parts;
+        last if $parts->{indent} ne $first->{indent};
+        $count++;
+        $lnum++;
+    }
+    return $count;
+}
+
+##[ step 4 : reflow a comment block as one paragraph , right-align '##' ]##
+sub step4_align_comment_block {
+    my ( $lines, $start_lnum, $block_len ) = @_;
+
+    my $first  = comment_block_line_parts( $lines->[ $start_lnum - 1 ] );
+    my $indent = $first->{indent};
+
+    my @content_parts;
+    for my $i ( 0 .. $block_len - 1 ) {
+        my $parts
+            = comment_block_line_parts( $lines->[ $start_lnum - 1 + $i ] );
+        push @content_parts, $parts->{content};
+    }
+    my $joined = join( ' ', @content_parts );
+
+    ##  reflow at the available width [ indent + '## ' + text + ' ##' ]  ##
+    my $width = LINE_MAX - length($indent) - 6;
+    return [ @{$lines}[ $start_lnum - 1 .. $start_lnum + $block_len - 2 ] ]
+        if $width < 10;    ##  too narrow , leave untouched  ##
+
+    local $Text::Wrap::columns  = $width + 1;    ##  Text::Wrap : "+ 1" ##
+    local $Text::Wrap::break    = qr/\s/;
+    local $Text::Wrap::huge     = 'overflow';
+    local $Text::Wrap::unexpand = 0;
+    my $wrapped       = Text::Wrap::wrap( '', '', $joined );
+    my @wrapped_lines = split m{\n}, $wrapped;
+
+    ##  right-align the closing '##' to the longest wrapped line's width ##
+    my ($target_width) = ( sort { $b <=> $a } map {length} @wrapped_lines );
+
+    my @out;
+    for my $part (@wrapped_lines) {
+        push @out, sprintf( "%s## %-*s ##\n", $indent, $target_width, $part );
+    }
+    return \@out;
 }
 
 ##[ step 3 : move trailing comment above when it pushes line past 78 ]##
@@ -673,8 +759,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,.,,..,,...,.,,,,,,,,.,,...,..,,,,.,,,,,.,.,..,,...,..,,...,,..,,.,,,,.,.,.,
-#2MCS5NM4XPJLV4DTFFRQB6T3H3YROZIIBFRRKJEJGKEGM4MYVGSH2HVTAXMS6BNPCQAXMWQHVYQRI
-#\\\|3WL5S72777SPI5FHQSUYCSLCLV4RQJX25FTTRNIASDVHJDAWE2F \ / AMOS7 \ YOURUM ::
-#\[7]ODLALH2TYCOCT6V25X55HDPZQY5XE5AQ7MRFS5K7IJB3XQH7YIAA 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,...,,.,,..,,.,,,..,,.,.,,.,,..,,..,,...,...,,.,,,,,,.,.,,.,,,.,,
+#AK2M2PCFAS766QEWTNW7VDARP4LELF6LMHQ6DIBGIZA6G7A5E4RLKCG47REWAUJLLQEDAQVJ4L3AW
+#\\\|HWEVUS2DOWLJMPHTWBRFJMYWDTX7X4UIUD7XOX2CKKHYNST7XF7 \ / AMOS7 \ YOURUM ::
+#\[7]IX7RXWQV5KA537YLM2I5U2A5PPYL4ZEOJFBFGMIE4SUYLWKQLWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
