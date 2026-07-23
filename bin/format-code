@@ -578,13 +578,20 @@ sub step2_reflow_comment {
         $trailing = " $1";
     }
 
-    local $Text::Wrap::columns  = $width + 1;    ##  Text::Wrap : "+ 1" ##
+    ##  the trailing marker gets reattached to the LAST wrapped line only ,
+    ##  so wrap at the tighter budget everywhere -- otherwise a line can
+    ##  look like it "fits" and skip wrapping , then exceed LINE_MAX once
+    ##  the marker comes back  ##
+    my $wrap_width = $width - length($trailing);
+    return undef if $wrap_width < 20;    ##  too narrow , skip  ##
+
+    local $Text::Wrap::columns  = $wrap_width + 1;    ##  Text::Wrap : "+1" ##
     local $Text::Wrap::break    = qr/\s/;
     local $Text::Wrap::huge     = 'overflow';
     local $Text::Wrap::unexpand = 0;
     my $wrapped = Text::Wrap::wrap( '', '', $content );
     my @parts   = split m{\n}, $wrapped;
-    return undef if @parts <= 1;                 ##  did not need wrapping  ##
+    return undef if @parts <= 1;    ##  did not need wrapping  ##
 
     my @out;
     for my $p ( 0 .. $#parts ) {
@@ -759,8 +766,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,,,,,..,.,.,...,,.,,..,,.,,,..,,.,.,,.,,..,,..,,...,...,,.,,,,,,.,.,,.,,,.,,
-#AK2M2PCFAS766QEWTNW7VDARP4LELF6LMHQ6DIBGIZA6G7A5E4RLKCG47REWAUJLLQEDAQVJ4L3AW
-#\\\|HWEVUS2DOWLJMPHTWBRFJMYWDTX7X4UIUD7XOX2CKKHYNST7XF7 \ / AMOS7 \ YOURUM ::
-#\[7]IX7RXWQV5KA537YLM2I5U2A5PPYL4ZEOJFBFGMIE4SUYLWKQLWCY 7  DATA SIGNATURE ::
+#,,,,,...,...,,.,,...,,.,,..,,,,.,,..,,.,,.,.,..,,...,...,.,.,..,,,.,,,..,.,.,
+#QMKOC6WUXCTAI32YB6T6PVY67VBOJ4OPHOFNEEVQBJWAFTUUBW2NF2OBHSBPI5ZLFYTFIDZNOTJIU
+#\\\|WVBX3UWSHO5WWY2N6S5ZA3E72PJSCOFKRNXD7DNS75ZHQDL2SH5 \ / AMOS7 \ YOURUM ::
+#\[7]7KKZYT4GRW3EUE5WMFRTDPJ4UX537HPDQ3MYMDIQF3QDUIRK2EBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
