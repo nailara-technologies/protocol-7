@@ -111,27 +111,27 @@ for my $page ( 1 .. $max_pages ) {
     }
 
     <[base.logs]>->(
-        1, 'import: fetching page %d/%d (break=%d)',
+        1, '<import> fetching page %d of %d [break:%d]',
         $page, $max_pages, $allow_early_break
     ) if $max_pages > 1;
 
     my $links = <[site-yaml.stepstone.search]>->($page_url);
     if ( ref $links ne 'ARRAY' ) {
         <[base.logs]>->(
-            0,     'import: page %d search failed: %s',
+            0,     'import: page %d search failed : %s',
             $page, $links
         );
         last;
     }
 
-    ## stop if empty page (end of results)
+    ## stop if empty page [end of results]
     last if not @{$links};
 
     my $page_new = 0;
     for my $link ( @{$links} ) {
         my $id = $link->{'id'};
 
-        ## skip ids supplied by the caller (e.g. already-known jobs)
+        ## skip ids supplied by the caller [e.g. already-known jobs]
         if ( length $id and $skip{$id} ) {
             $skip_count++;
             next;
@@ -193,8 +193,8 @@ my $summary = sprintf 'import queued: %d new, %d skipped, %d errors',
 
 return { 'mode' => 'size', 'data' => $summary };
 
-#,,..,.,.,,,.,,..,.,,,,,,,.,.,,..,.,,,,.,,.,.,.,.,...,...,..,,,.,,,,,,,.,,.,.,
-#LFNRTKZAQCCFCC7WQUI7TFIHA7LHSFWN5BYRGKATKNJX27PBBEHGNH2M7EN75BDUS4ZYPT7HKYPVO
-#\\\|F7F6B5PXCBO5X5BOX3JXGQ2WXWUSUDGRDQLHTFWCXOV4TXE2ADL \ / AMOS7 \ YOURUM ::
-#\[7]OD243P4IGLK6GZSLEVLZSPDDNM5GWMS6M6MOA6IRGZNB63W7POBI 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,.,.,,,,,,,.,,..,,..,.,,,,,,,,.,,.,.,...,...,.,,,,..,.,,,..,,,..,
+#JV6VSGPQSOVRSLYK7GAMPKWNIH2XRGD6ADZLNGT3XMCFYBA47H4D3IUHIQRX2EIR75CZKDOIUMNOW
+#\\\|UXEFQ42AWH57IOX2O2GCR53TOG3SAWI3S2TGQGK4EV43OOQMQZ2 \ / AMOS7 \ YOURUM ::
+#\[7]HEZWKMXCAPTC7K6UJKRJBNQKZ56JJUKH6QOB4Z27XFQSH445EMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
