@@ -1,0 +1,84 @@
+## [:< ##
+
+# name  = format.kv_block.encode
+# descr = encode ordered dot-notation key-value pairs to kv_block text [ 78 col ]
+# param = $pairs - arrayref of [ key, value ] pairs [ primary input, order preserved ]
+#          or hashref [ emitted with sorted keys, for callers not caring about order ]
+# return = kv_block text string
+
+my $input = shift;
+
+require Text::Wrap;
+
+my @pairs;
+if ( ref $input eq 'ARRAY' ) {
+    @pairs = @{$input};
+} elsif ( ref $input eq 'HASH' ) {
+    @pairs = map { [ $_, $input->{$_} ] } sort keys %{$input};
+} else {
+    return '';
+}
+
+## column alignment : longest key in the whole block ##
+my $max_len = 0;
+foreach my $pair (@pairs) {
+    next unless ref $pair eq 'ARRAY';
+    my $key_len = length( $pair->[0] // '' );
+    $max_len = $key_len if $key_len > $max_len;
+}
+
+my $w_prefix = ':' . ' ' x ( $max_len + 7 );    ## continuation line prefix
+
+local $Text::Wrap::columns   = 78;
+local $Text::Wrap::separator = "\n";
+local $Text::Wrap::huge      = qw| overflow |;
+local $Text::Wrap::unexpand  = 0;    ## keep spaces [ no tab substitution ] ##
+
+my $block = '';
+foreach my $pair (@pairs) {
+    next unless ref $pair eq 'ARRAY';
+    my ( $key, $value ) = @{$pair};
+    $key   //= '';
+    $value //= '';
+    next unless $key =~ m|^[\w\-\.]+$|;    ## strict key charset
+
+    if ( not length $value ) {
+        $block .= sprintf ":  %*s  :\n", $max_len, $key;
+        next;
+    }
+
+    my $k_prefix   = sprintf ":  %*s  :  ", $max_len, $key;
+    my $first_para = 1;
+    my @out_lines;
+
+    foreach my $para ( grep {length} split m|\n\n|, $value, -1 ) {
+        my $p_first = $first_para ? $k_prefix : $w_prefix;
+        $first_para = 0;
+
+        if ( index( $para, "\n" ) == -1 ) {
+
+            ## single logical line -> greedily wrap to 78 columns ##
+            push @out_lines,
+                split m|\n|, Text::Wrap::wrap( $p_first, $w_prefix, $para ),
+                -1;
+        } else {
+
+            ## free-format -> preserve deliberate line breaks as-is ##
+            my @p_lines = split m|\n|, $para, -1;
+            $p_lines[0] = $p_first . $p_lines[0];
+            $p_lines[$_] = $w_prefix . $p_lines[$_] for 1 .. $#p_lines;
+            push @out_lines, @p_lines;
+        }
+        push @out_lines, ':';    ## framed blank line [ paragraph break ]
+    }
+    pop @out_lines;              ## drop trailing paragraph break
+    $block .= join '', map { $_ . "\n" } @out_lines;
+}
+
+return $block;
+
+#,,..,.,.,...,,.,,,,,,,.,,,,.,.,,,...,.,.,.,,,..,,...,.,.,.,.,.,,,..,,,,.,...,
+#2UPUNEDRYE4PX7XUDQEHCXMTDNFEJGZNKX7MYJIH6K54LJBM3ELRV3FQ4AHG4SCBRPOPPHKH3MAYE
+#\\\|7QWSQXYDAZKM4SZJUEN3JCNIEGLUWDZUXNPSRXGQODEROND3CZ6 \ / AMOS7 \ YOURUM ::
+#\[7]HFWNVZ2ALCLREIEXHMK3RZMMUN677W7MXJF546PEYYPL2SXA7GCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
