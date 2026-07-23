@@ -19,6 +19,12 @@ GET   /jobs.json    httpd.route.handler.web-relay  [command:web.jobs-data]
 ## sends no auth header today, so gating this 401s every sync until that lands ##
 POST  /jobs-sync    httpd.route.handler.web-relay  [command:web.jobs-sync]
 
+## trash-history panel : lightweight recent-trash list + rescue, routed  ##
+## straight to jobsite [ no per-job content ever lives in the web cache, ##
+## same reasoning as the jobs-sync note above -- no auth header yet ]   ##
+GET   /jobs-trash          httpd.route.handler.web-relay  [command:jobsite.list-trashed]
+POST  /jobs-trash-rescue   httpd.route.handler.web-relay  [command:jobsite.rescue-http]
+
 ## iris — BMW384 field visualization
 GET   /iris/svg     httpd.route.handler.iris-svg
 POST  /iris/route   httpd.route.handler.iris-route
@@ -30,8 +36,8 @@ POST  /iris/negotiate httpd.route.handler.iris-negotiate
 POST  /cursor       plugin.web.space.handler.cursor_update
 POST  /context      httpd.route.handler.context
 
-#,,.,,,..,...,...,.,.,,,,,.,,,,..,...,,..,,.,,..,,...,...,..,,..,,,.,,,..,.,,,
-#2KCBFQE2KDZC4XDXCYDNGHDWDBT4VLKRIUCMRCVQM3UGQ5OZYENOUOCW6HHH5LKHPYEVEZTDAWDBE
-#\\\|AWPEYZAJTQD6IUO3O7KXDFZ37HJGROGQMBXFYJ3GVU7TIVZAGGO \ / AMOS7 \ YOURUM ::
-#\[7]AALYWO7ZE6NGSIFWCHWPOWEEZNLZGNQXWN3CXAD6T6LQ7AWGDMBQ 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,,.,,,,,,,.,,.,,,.,,..,,,,.,,,.,..,,...,...,...,,,,,..,,,,,,,.,,
+#R2TQDYI3IDB25DHX7OAKNQB6NAVU2LQKFRSGKAH2RZMSSATGMSEMAGBLAT6N4CSOOMWKWZR6ACY3Q
+#\\\|3LR35OW3V2RQRIJVPLEMS6BONJZFHYRRNU6ASVV2D7GSST332KK \ / AMOS7 \ YOURUM ::
+#\[7]5T6ZCBWV2FJXNWFUHQBE5YTTZWFT3Z75BBFXIURXQMPU5EFWWSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
