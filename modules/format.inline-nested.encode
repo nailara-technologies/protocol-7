@@ -31,13 +31,21 @@ foreach my $pair (@pairs) {
 my $pad = ' ' x ( $max_len + 2 );    ## separator column [ dot above ':' ] ##
 my $w_prefix = $pad . ':  ';         ## continuation line prefix
 
-local $Text::Wrap::columns   = 78;
+## inline framing adds ' ' x $nest . ':  ' on top of every line -- reduce
+## the wrap width up front so the final physical line stays <= 78 cols ##
+my $use_inline
+    = defined( $opts->{inline_path} )
+    && length( $opts->{inline_path} )
+    && $opts->{inline_path} !~ m|\n|;
+my $nest     = $opts->{nest_level} // 1;
+my $overhead = $use_inline ? $nest + 3 : 0;
+
+local $Text::Wrap::columns   = 78 - $overhead;
 local $Text::Wrap::separator = "\n";
 local $Text::Wrap::huge      = qw| overflow |;
 local $Text::Wrap::unexpand  = 0;    ## keep spaces [ no tab substitution ] ##
 
-my $block       = '';
-my $first_entry = 1;
+my $block = '';
 foreach my $pair (@pairs) {
     next unless ref $pair eq 'ARRAY';
     my ( $key, $value ) = @{$pair};
@@ -45,13 +53,14 @@ foreach my $pair (@pairs) {
     $value //= '';
     next unless $key =~ m|^[\w\-\.]+$|;    ## strict key charset
 
-    ## lone dot line marks the entry boundary [ survives blank stripping ] ##
-    $block .= "\n" unless $first_entry;    ## optional readability blank
-    $first_entry = 0;
+    ## lone dot line opens the entry [ survives blank stripping ]; a
+    ## trailing bare ':' closes it, symmetric with the opening dot -- this
+    ## also doubles as the inter-entry separator, so no extra blank line ##
     $block .= $pad . ".\n";
 
     if ( not length $value ) {
         $block .= sprintf "%*s  :\n", $max_len, $key;
+        $block .= $pad . ":\n";
         next;
     }
 
@@ -79,7 +88,8 @@ foreach my $pair (@pairs) {
         }
         push @out_lines, $pad . ':';    ## framed blank [ paragraph break ]
     }
-    pop @out_lines;                     ## drop trailing paragraph break
+
+    ## last paragraph-break line doubles as the entry's closing marker ##
     $block .= join '', map { $_ . "\n" } @out_lines;
 }
 
@@ -87,13 +97,9 @@ foreach my $pair (@pairs) {
 ## header may be a strict dot-path [ machine key ] or a free-form title
 ## [ human alias, resolved to a key path by a higher layer ] -- either way
 ## it's a single line with no embedded newline ##
-return $block
-    if not defined $opts->{inline_path}
-    or not length $opts->{inline_path}
-    or $opts->{inline_path} =~ m|\n|;
+return $block if not $use_inline;
 
 ## inline / nested form : header, colon-framed lines, footer ##
-my $nest   = $opts->{nest_level} // 1;
 my $indent = ' ' x $nest;
 
 my @body = split m|\n|, $block, -1;
@@ -102,12 +108,14 @@ pop @body if @body and not length $body[-1];    ## trailing newline artifact
 my @framed
     = ( $indent . '.:[ ' . $opts->{inline_path} . ' ]:.', $indent . ':' );
 push @framed, map { length $_ ? $indent . ':  ' . $_ : $indent . ':' } @body;
+## unconditional trailer-boundary marker [ empty trailer -- none defined
+## yet -- immediately followed by the footer signals "no trailer" ] ##
 push @framed, $indent . ':', $indent . ':.';
 
 return join '', map { $_ . "\n" } @framed;
 
-#,,.,,...,,,,,,..,..,,,,,,,,.,.,,,,.,,,.,,,,,,..,,...,...,..,,...,,,,,..,,...,
-#UBNOW4BQXSF3H6GYO64AWAENTM77PP22XGQACH4DFOD5QJONUFTNILY4QB7V74Z6QDZN4S5HEK532
-#\\\|ZGTQNQTQXNNOW5GZ2WJXIQS4H3FJOC5422E6KX75JBEQHRUQT4Q \ / AMOS7 \ YOURUM ::
-#\[7]BUZ5LUAHHOMMEQAEVEX2IKWOLEBKAGNYCDEJGXGGUVVI5AJ7BQDI 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,.,,,,,,,,.,,..,,.,.,.,,,.,.,.,.,..,,...,...,.,.,,,.,..,,.,.,,..,
+#R7HPLN2AAUWMZHIETONHSN3OBW252RD3S2IXSTI2QXA6CSIZN3PYRFMG4APICTNF6HQ7IEVH7S5CA
+#\\\|AYSYQ67IPT7V2ISOYLZ25ETLCDU2VOI7CP2WDBZRBW3BVE3ISAG \ / AMOS7 \ YOURUM ::
+#\[7]36VH6QGOT7L3FP2PW6Y24QLPCAOTP2GHINXX2NYSZIN6PBAURQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
