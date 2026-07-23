@@ -157,8 +157,17 @@ if (    not $validation->{'is_valid'}
     return;
 }
 
-if ( not $validation->{'is_valid'} and $job_rec->{'repair_attempted'} ) {
-    ## repair already tried and failed : store original, mark, move on ##
+## a repair pass already failed once for this job [ from an earlier      ##
+## reassess cycle ] and this fresh full assessment is ALSO invalid : the  ##
+## log below has always claimed "keeping original", but the code that    ##
+## followed unconditionally overwrote score/reason/summary with this new ##
+## [ empty/defective ] result anyway -- that's the actual root cause of   ##
+## review-tab cards silently losing their text on a second bad reassess. ##
+## $give_up gates every overwrite below so "keeping original" is true.  ##
+my $give_up
+    = ( not $validation->{'is_valid'} and $job_rec->{'repair_attempted'} );
+
+if ($give_up) {
     <[base.logs]>->(
         1,       'job %s still invalid after repair (%s), keeping original',
         $job_id, join( ', ', $validation->{'defects'}->@* )
@@ -168,7 +177,9 @@ if ( not $validation->{'is_valid'} and $job_rec->{'repair_attempted'} ) {
 
 ## parse assertions : from yaml parse or legacy json regex ##
 my $assertions = $job_rec->{'assertions'} // {};
-if ( ref $parsed eq 'HASH' && ref $parsed->{'assertions'} eq 'HASH' ) {
+if ($give_up) {
+    ## skip parsing entirely : nothing below may touch $assertions ##
+} elsif ( ref $parsed eq 'HASH' && ref $parsed->{'assertions'} eq 'HASH' ) {
     my $pa = $parsed->{'assertions'};
     if ( ref $pa->{'suggest'} eq 'HASH' ) {
         for my $k (qw| apply delete archive |) {
@@ -242,9 +253,18 @@ for my $dim ( keys %{ $assertions->{'dimensions'} // {} } ) {
         if length $dr;
 }
 
-$job_rec->{'score'}         = $score;
-$job_rec->{'score_reason'}  = $reason  // '';
-$job_rec->{'score_summary'} = $summary // '';
+if ($give_up) {
+    ## no usable new data from this attempt : reuse whatever the job already ##
+    ## had so the threshold decision below and the on-disk write further    ##
+    ## down don't act on -- or persist -- an empty/defective result ##
+    $score   = $job_rec->{'score'}         // '';
+    $reason  = $job_rec->{'score_reason'}  // '';
+    $summary = $job_rec->{'score_summary'} // '';
+} else {
+    $job_rec->{'score'}         = $score;
+    $job_rec->{'score_reason'}  = $reason  // '';
+    $job_rec->{'score_summary'} = $summary // '';
+}
 
 my $threshold     = <jobsite.cfg.threshold> //= 7;
 my $current_stage = $job_rec->{'stage'} // '';
@@ -284,6 +304,21 @@ $job->{'score_summary'} = $summary // '';
 $job->{'assertions'}    = $assertions if %{ $assertions // {} };
 $job->{'stage'}         = $job_rec->{'stage'};
 
+## repair_failed/repair_attempted were previously memory-only [ set on     ##
+## job_rec but never mirrored to the on-disk file in this, the normal,    ##
+## completion path ] -- lost on reload, and since jobsite.sync.push reads ##
+## from disk, a clean success could never clear a stale flag the web      ##
+## cache already picked up from an earlier failed cycle. mirror both      ##
+## ways explicitly here so a clean pass really clears it everywhere ##
+if ($give_up) {
+    $job->{'repair_failed'} = TRUE;
+} else {
+    delete $job->{'repair_failed'};
+    delete $job->{'repair_attempted'};
+    delete $job_rec->{'repair_failed'};
+    delete $job_rec->{'repair_attempted'};
+}
+
 <[jobsite.job.write]>->( $job_id, $job );
 
 ## add to checksum index for dedup on future scans ##
@@ -310,8 +345,8 @@ if ( <jobsite.pending_count> <= 0 ) {
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.next]>
 
-#,,..,..,,,..,...,.,,,...,.,,,.,,,,,.,.,.,.,.,..,,...,...,.,.,,..,,..,,,.,...,
-#DF54KVRYJMNQ2HIFFUPIRV2A6ZYWSIBTF6AXT6G5FVB2OOJOMGRO4RDBYVMQGLRDADLTIK34I5DOY
-#\\\|EPGLCY2CBCIEHK6RW5ER7TBUNWCA45RDNTLVHR7OUTLBQSAWWEX \ / AMOS7 \ YOURUM ::
-#\[7]P4BCHNZQ6WVOKLW3AOKDMLKODHH5SGBNRN4CDWOXUEFCE2HINQDI 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,..,,,.,,,.,,,.,,.,,,..,,.,.,...,..,,...,...,..,,,..,,.,,,,.,,,,,
+#BXYQLIFFXGCPUML3UZHMP3GUUET66KRAD5S366LRLTCPF7FS6EMPJHG6S3ORT7LXYXXW7HDGWKHMI
+#\\\|VBHSXMZZZUEZQEA2G3LI2VPGGJI6UFM274U2WERTQDVWIIMERHP \ / AMOS7 \ YOURUM ::
+#\[7]KDIMH5JDNXIJJWDBZFNF56C2MF5R3AG7F6BA2FPE5MOMK5AYDSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

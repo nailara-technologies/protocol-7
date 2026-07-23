@@ -68,8 +68,19 @@ for my $url (@urls) {
             ? ( <[base.ntime_BASE32_to_numerical]>->($mod) // 0 )
             : 0;
         if ( not $last_ntime_num or $mod_num > $last_ntime_num ) {
+            ## explicit false default : the web cache only clears a stale     ##
+            ## repair_failed/repair_attempted flag on `exists`, so a job whose ##
+            ## on-disk record has no such key [ e.g. it never failed, or a    ##
+            ## later clean pass deleted the key ] must still push a real      ##
+            ## false value here, or a flag set by an earlier failed cycle     ##
+            ## stays stuck on the web side forever ##
             push @changed,
-                { %{$job}, 'id' => <[base.vax-int.encode]>->($id) };
+                {
+                %{$job},
+                'id'               => <[base.vax-int.encode]>->($id),
+                'repair_attempted' => $job->{'repair_attempted'} // FALSE,
+                'repair_failed'    => $job->{'repair_failed'}    // FALSE,
+                };
         }
     }
 
@@ -160,8 +171,8 @@ $total_jobs += scalar @{ $ARG->{'chunk'} } for @push_queue;
 
 <[jobsite.sync.push_chunk]>;
 
-#,,,,,,,.,,.,,,.,,,.,,..,,,,.,,,,,..,,,,,,.,,,..,,...,...,..,,.,,,,..,,,.,...,
-#DGFYMTVOGCBCVZTEKN2LO6PP5KFSDA6Y2B4QFC7LMME5AOUXAKHZ6GYUHCVR34H2P4QT5L2XVXKFA
-#\\\|N444BNL76GCHPOTD2BHABILNOUX7MNGZMJ6JP3SDV4LHRBZOMN3 \ / AMOS7 \ YOURUM ::
-#\[7]HTHCM7YDNYE5IKDFFLKTOT3WJPWRZO5UKY3Y5JN5AYQQLKMKC4DY 7  DATA SIGNATURE ::
+#,,..,..,,,..,...,,.,,,.,,...,.,.,.,,,,..,.,.,..,,...,...,,,.,,,.,,..,.,.,...,
+#J23BDKK2DYYEKAEBQ26DDQPIWDNK3MMNULZ4YYATCC6JDSNA6ANKBWCZWXE4HHO37YXN7QCX32KRO
+#\\\|BFL7AOETXWG5HIXFXJ4YSPAJ2XIZOZKOTPRM6W3LWZEAOAIUXSN \ / AMOS7 \ YOURUM ::
+#\[7]YR6J3GSGMUF44KAGWFGLPTLWC556O2R5QWXLBOITBLQW5NYNFWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
