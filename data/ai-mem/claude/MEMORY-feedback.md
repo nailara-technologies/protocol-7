@@ -7,6 +7,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 
 ## Feedback
 - [edit-via-project-path-not-dotclaude](feedback-edit-via-project-path-not-dotclaude.md) — edit memory via data/ai-mem/claude/, not ~/.claude/projects/.../memory/ (same file, latter re-prompts every edit)
+- [file-stat-shadowing](feedback-file-stat-shadowing.md) — bin/Protocol-7's global `use File::stat` makes bare `stat()` return an object everywhere, not a 13-elem list; use `File::stat::stat(...)->mtime` etc. (was orphaned/unindexed — cost a live debugging detour before being found)
 - [tasks-completed-scan-verdict-trust](feedback-tasks-completed-scan-verdict-trust.md) — "still open" as unreliable as "move to completed"; 31/52 false negs, incl. live auth gap
 - [kimi-dispatch-infra-hardening](topic-kimi-dispatch-infra-hardening.md) — --afk flag, k3/k2.7/k2.7-fast routing; MCP bridge timeout ≠ dispatch failure
 - [kimi-k3-thinking-effort](topic-kimi-k3-thinking-effort.md) — Low/High/Max in vendor UI, not in API/installed CLI
@@ -43,8 +44,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [eval-error-macro-call-site](feedback-eval-error-macro-call-site.md) — reading $EVAL_ERROR inline as an arg at a `<[...]>` call site can come back empty; capture into a lexical (or use `<[base.str.eval_error]>`) immediately after eval
 - [kimi-dispatch-idle-timeout-recovery](feedback-kimi-dispatch-idle-timeout-recovery.md) — MCP 1800s-idle "failed" ≠ dispatch failed; underlying process often finishes fine, recover via session_catchup(client:kimi, session_id) not re-dispatch
 
-#,,,.,,.,,.,.,,,.,,,,,.,,,.,.,...,.,,,..,,.,,,..,,...,...,,,.,.,.,..,,...,,.,,
-#MNPJWDFZZD6EEASWYZTEMG6XNQ57VB5N4TWZQVN2PYEU7NHBD2JGN444YQSAM7XQESEU4JOJSXNSQ
-#\\\|LOOARQH75N36G5PR4D4CSF4COTDSACVHVG6NYLHYO6B4MRVSH46 \ / AMOS7 \ YOURUM ::
-#\[7]L5BCQIYYBSE5O7W7TWZ3QZEAHU2HENEBPDCUOA6FQ4CQA5DWGSDY 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,.,,,..,,.,.,,,,,,,,,,.,,.,.,.,.,..,,...,...,,,,,.,,,,,,,.,,,.,,,
+#M2EZCA4SIZ7YMIYEZFUX4ORW2L42PZNT5ILIM6KUXCKPKJVOV2BOV3STSEKGZQNKKCWSV6SAQADPI
+#\\\|D5TLIFDX27CZ7EKH77N6EHFS6TL5U5HGXBOI3O7DW3K4IEMZH3T \ / AMOS7 \ YOURUM ::
+#\[7]QT7AZDK336SXR3CO6ZL5MPXKHURLCUSG4ACALDNXG3FPYYSULWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
