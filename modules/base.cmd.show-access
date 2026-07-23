@@ -24,7 +24,6 @@ my $special_users = {
 };
 
 my @mapped_users;
-my $wrap_len = 57;
 
 @mapped_users = map { sprintf qw| <%s> |, $ARG }
     grep { $special_users->{$ARG} eq $user }
@@ -37,78 +36,95 @@ if ( defined $user ) {
         'data' => sprintf( "no permissions set-up for '%s'", $user )
         }
         if not defined <access.cmd.usr>->{$user} and not @mapped_users;
-    my $max_len   = max( map {length} ( $user, @mapped_users ) );
-    my $w_prefix  = ':' . ' ' x ( $max_len + 7 );
-    my $reply_str = defined <access.cmd.usr>->{'*'} ? '' : ":\n";
+
+    my @pairs;
     my $map_names = {};
     if ( not defined <access.cmd.usr>->{$user} ) {  ## no custom [$user] rules
-        map {
-            $map_names->{$ARG} = sprintf '    ::  [ %s <-- %s ]', $user, $ARG
-        } @mapped_users;
+        map { $map_names->{$ARG} = sprintf '[ %s <-- %s ]', $user, $ARG }
+            @mapped_users;
     } else {
         $map_names->{$user}
             = @mapped_users
-            ? sprintf( '    ::  [ %s <-- %s ]',
-            $user, join( ', ', @mapped_users ) )
+            ? sprintf( '[ %s <-- %s ]', $user, join( ', ', @mapped_users ) )
             : '';
     }
+
     if ( $user ne qw| * | and defined <access.cmd.usr>->{'*'} ) {
-        $reply_str .= sprintf ".\n:  %*s  :  %s%s\n", $max_len, "'*'",
-            <[base.wrap_text]>->(
-            $w_prefix,
-            $wrap_len,
-            <[base.reverse-sort]>->( split m|\s+|, <access.cmd.usr>->{'*'} )
-            ),
-            '    ::  [  matches all users  ]';
-        $reply_str .= ".\n:\n";
+        push @pairs,
+            [
+            qw| * |,
+            join(
+                ' ',
+                <[base.reverse-sort]>->(
+                    split m|\s+|, <access.cmd.usr>->{'*'}
+                ),
+                '[  matches all users  ]'
+            )
+            ];
     }
+
     foreach my $map_user (@mapped_users) {
 
         next if not length <access.cmd.usr>->{$map_user};  ##  none set up  ##
 
-        $reply_str .= sprintf ":  %*s  :  %s%s\n", $max_len, $map_user,
-            <[base.wrap_text]>->(
-            $w_prefix,
-            $wrap_len,
-            <[base.reverse-sort]>->(
-                split m|\s+|, <access.cmd.usr>->{$map_user}
+        push @pairs,
+            [
+            $map_user,
+            join(
+                ' ',
+                <[base.reverse-sort]>->(
+                    split m|\s+|, <access.cmd.usr>->{$map_user}
+                ),
+                $map_names->{$map_user} // ''
             )
-            ),
-            $map_names->{$map_user};
+            ];
     }
+
     if ( defined <access.cmd.usr>->{$user} ) {
-
-        $reply_str .= sprintf( ":  %*s  :\n", $max_len, '' ) if @mapped_users;
-        $reply_str .= sprintf ":  %*s  :  %s%s\n", $max_len, $user,
-            <[base.wrap_text]>->(
-            $w_prefix,
-            $wrap_len,
-            <[base.reverse-sort]>->(
-                split m|\s+|, <access.cmd.usr>->{$user}
+        push @pairs,
+            [
+            $user,
+            join(
+                ' ',
+                <[base.reverse-sort]>->(
+                    split m|\s+|, <access.cmd.usr>->{$user}
+                ),
+                $map_names->{$user} // ''
             )
-            ),
-            $map_names->{$user};
+            ];
     }
 
-    $reply_str .= ":\n";
-
-    return { 'mode' => qw| size |, 'data' => $reply_str };
+    return {
+        'mode' => qw| size |,
+        'data' => <[format.inline-nested.encode]>->(
+            \@pairs,
+            {   'inline_path' =>
+                    sprintf( "access permissions for '%s'", $user ),
+                'pad_lines' => TRUE
+            }
+        )
+    };
 
 } elsif ( keys <access.cmd.usr>->%* ) {
-    my $max_len   = max map {length} keys( <access.cmd.usr>->%* );
-    my $w_prefix  = ':' . ' ' x ( $max_len + 7 );
-    my $reply_str = ":\n";
-    foreach my $user ( <[base.reverse-sort]>->(<access.cmd.usr>) ) {
-        $reply_str .= sprintf ":\n:  %*s  :  %s\n", $max_len, $user,
-            <[base.wrap_text]>->(
-            $w_prefix, $wrap_len,
-            <[base.sort]>->( split( m|\s+|, <access.cmd.usr>->{$user} ) )
-            );
-    }
 
-    $reply_str .= ":\n:\n";
+    my @pairs = map {
+        [   $ARG,
+            join( ' ',
+                <[base.sort]>->( split( m|\s+|, <access.cmd.usr>->{$ARG} ) ) )
+        ]
+    } <[base.reverse-sort]>->(<access.cmd.usr>);
 
-    return { 'mode' => qw| size |, 'data' => $reply_str };
+    return {
+        'mode' => qw| size |,
+        'data' => <[format.inline-nested.encode]>->(
+            \@pairs,
+            {   'inline_path' =>
+                    sprintf( "'%s' command access permissions set-up",
+                    <system.zenka.name> ),
+                'pad_lines' => TRUE
+            }
+        )
+    };
 
 } else {
     return {
@@ -117,8 +133,8 @@ if ( defined $user ) {
     };
 }
 
-#,,..,.,,,.,.,,.,,,..,.,.,,,.,,.,,.,,,...,...,..,,...,...,,,,,.,.,.,,,..,,,,,,
-#C5AEFPAWWUWVPC2AR43GUI7I5WE36ZLH3TJF3XHZGCJB26BAVCUYIA64UVVZAUWKBYQQ77TERJIRS
-#\\\|35QEWCATQF3GRGK5DMHDL3I433JSGGFGCAOQY2AZKZAL6MLJNNV \ / AMOS7 \ YOURUM ::
-#\[7]6WIAZHLJ2XXBZYGIQ66BNZE43V2Z35WCOHRPS5UVC6RI3F6BRKCI 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,..,.,,,,..,,..,.,.,,.,,..,,.,.,..,,...,...,,,.,.,.,.,.,.,,,...,
+#52KWFH2NBTTDY2BGYBJPFNMXNNN6HPAZUNH2LKPDHENZMRNLGMWQKROCUNIHEIWS4AJQUZY7HD5TA
+#\\\|PODVRDA2WFIYWCK73UFG5RJ5CXHZSAYNFBNZMIE46Z7YHUVE2YD \ / AMOS7 \ YOURUM ::
+#\[7]V3AXDV7GU2CS7FEIMNHWLCEVGH75HHBI4F3QMH6EV2GSJ6LMOSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
