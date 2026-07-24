@@ -116,6 +116,72 @@ in-session authorization ("you can expand ncode as needed";
 mechanism, gated only by the `ptd -c` syntax check and checksum-addressed fix
 IDs, not by anything resembling signature-gated approval.
 
+## update 2026-07-24, same day: the approval-gate loop (phase 1, see
+[[topic-ncode-pattern-learning-loop]]) exposed a *second* access gap, one
+layer up from the ncode-internal one above
+
+Landed `ncode.cmd.review`/`.graduate`/`.expand` and added them to `ncode`'s
+own `access.cmd.usr.cube` start-file whitelist (same pattern as
+`suggest`/`apply`/`assess`). But that whitelist only controls what `ncode`
+itself will *accept* — reaching it at all still requires an entry in
+`configuration/zenki/cube/access.zenki` for the calling zenka's
+`access.cmd.usr.<caller>` block, and **no such entry exists for `ncode` as a
+target, for any caller.** Confirmed directly: `access.zenki` has no
+`access.cmd.usr.ncode`-style grant anywhere, and no other zenka's block
+(`access.cmd.usr.coding`, `.kimi`, `.task`, etc.) lists any `ncode.*` target
+either. The only thing that can reach `ncode.*` today is the wildcard in
+`configuration/zenki/cube/access.users`:
+
+```
+access.cmd.usr.<admin-user>  =  ** ..*.**
+access.cmd.usr.<unix-admin>  =  ** ..*.**
+```
+
+This is *why* the live smoke tests of `ncode.cmd.review`/`.graduate` worked
+during phase-1 verification — they went out via `p7c`, which resolves to
+`<unix-admin>` (see below), not because any real zenka-to-zenka grant exists.
+
+**Two separate principal identities, not one "admin" bucket** — confirmed in
+`configuration/system-user-map` (`system.admin-user = taeki`) and
+`configuration/zenki/cube/auth.users`
+(`auth.setup.usr.<admin-user> = :unix:<unix-admin>,:unix:<admin-user>,:auth-keypair:`
+vs. `auth.setup.usr.<unix-admin> = :unix:<unix-admin>,:unix:<admin-user>`):
+- **`taeki`** — nshell path, keypair/session auth (`nshell: whoami` → `taeki`)
+- **`unix-taeki`** — p7c path, unix-socket peer-credential auth (`p7c whoami`
+  → `unix-taeki`)
+
+Both currently sit under the same blanket wildcard in `access.users`, but
+they're structurally independent principals in the access-control model and
+**can be given separate restrictions** — user confirmed this explicitly,
+correcting an implicit "it's all just taeki" assumption. Relevant if/when
+the write-access-security design above ever wants to scope nshell-driven
+(interactive human) actions differently from p7c-driven (scriptable/agent,
+including how Claude/Kimi CLI sessions actually authenticate today) actions.
+
+**Open implication for the pattern-learning loop specifically:** phase 1's
+`review`/`graduate` calls are only reachable today by whatever is running as
+`taeki`/`unix-taeki` (a human, or an agent shelling out through `p7c` as
+that user — which is how this session's own verification worked). If the
+intent is ever for a zenka like `coding` to drive its own review loop
+natively (in-process cube routing, not shelling out), it needs an explicit
+`access.cmd.usr.coding = ... ncode.review ncode.expand ncode.graduate ...`
+grant added to `access.zenki` — same shape as the existing
+`access.cmd.usr.coding` grants for `task.claim`/`task.complete`. Not done;
+folds into the same "don't bolt on a broad grant as a stopgap" caution
+already recorded above — this needs the real access-control decision, not
+a quick add.
+
+**Direction of the grant matters, confirmed by user:** `access.cmd.usr.<X>`
+governs what `<X>` may call *outward* as source, not what may call *into*
+`<X>`. So "let `coding` call into `ncode`" means adding `ncode.*` targets to
+`access.cmd.usr.coding` (as above) — but the reverse also exists as a real
+option: an `access.cmd.usr.ncode` block would grant **`ncode` itself**
+outbound permission to contact other zenki, e.g. push a notification to
+`coding`/`task` when a pattern graduates, mirroring existing outbound
+patterns like `v7.notify_online`/`cred-mesh.rotate` elsewhere in the same
+file. Not built, but a real option for phase 2+ if the loop should ever
+notify proactively instead of only being polled/driven externally.
+
 This does **not** supersede the "do NOT grant broad write/sign access as a
 stopgap" guidance above — that was a standing policy rejection of an
 unattended shortcut, this was a supervised, narrow, explicitly re-authorized
@@ -127,8 +193,8 @@ way without asking.
 [[topic-ui-show-security-levels]]
 [[topic-jobsite-ui-usability]]
 
-#,,,.,,..,,,.,..,,.,.,...,..,,.,,,.,.,,.,,,,.,..,,...,...,..,,.,.,...,.,,,,..,
-#4AHHC32F27SOHPNMNNDKU5U2MJQRZW3D374KRKRSDEHUDVA6MRVVGGFMWJQYLHJTX245JJIU3QT7E
-#\\\|VRDLPB3DBVWNX5UKZ3PDWJVYNRLIRWQHQVWGO73Y3CQ7U5VI342 \ / AMOS7 \ YOURUM ::
-#\[7]VMESEVSZZTOUZCN4W5CDGGWQ6JIBICTUM643PPVPMXWRIGPSC2AI 7  DATA SIGNATURE ::
+#,,..,...,.,,,,.,,.,.,,.,,..,,,.,,,,.,,..,.,.,..,,...,..,,...,.,.,,..,.,,,...,
+#JM2DB4RRCNNICFAVPRGBV6KSX4DPAQLTSTPJ77AM3RGDMWGET4RYTZSFPVSUPJ74BBSE5MDFFOFKW
+#\\\|5LPRSE7YLKS2FOKKQRTNLDV6LKWGKBL7XKHUQJHMQPE3IMKMNNX \ / AMOS7 \ YOURUM ::
+#\[7]HUAABUYDDUSADCUOGWLSAHDCVHD6P53YCX5ZWJEQYCWIDMXP3OBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
