@@ -112,7 +112,8 @@ if ( $job_outcome ne qw| error | ) {
 if ( $job_outcome ne qw| error | ) {
     if ( length $task_id and length $response ) {
         ## b32-encode result to preserve newlines in line-based protocol ##
-        ## only encode to bytes if flag is set — raw bytes are already utf-8 ##
+        ## only encode to bytes if flag is set — raw bytes are already   ##
+        ## utf-8                                                         ##
         my $utf8_bytes
             = utf8::is_utf8($response)
             ? Encode::encode( 'UTF-8', $response )
@@ -160,8 +161,8 @@ if ( defined $job_id ) {
 
 return;
 
-#,,..,.,.,.,,,.,,,.,,,...,..,,...,.,.,...,,..,.,.,...,...,..,,...,.,.,,..,...,
-#ESIM2BPOWC3YLKVL3653UK2ZNKYEXWCXOOO7MEYRINIRX7I7YYABJBCISYGOUHZYOUU5DHCAP3XMC
-#\\\|HTIBYL3R5ULJ4S4K2LZ62ETNYXXXTXPK5GSMZPCDGLQEANVK2QF \ / AMOS7 \ YOURUM ::
-#\[7]G6VSECKDAE7J5F3ZKXWDG2G5PPLITCJMNV2V52GZDF5OSOGDRYAI 7  DATA SIGNATURE ::
+#,,..,...,,.,,,,.,,..,...,...,,.,,,,.,.,.,,,,,.,.,...,..,,,.,,.,.,,.,,,,.,.,.,
+#35TAX2ESUDIEWLSOE6TU5P5EFGDXI3AV6Z5WMQPPWZREIQXXUIREA7P4ZZZDZCP6MQ7NRR37HUFNE
+#\\\|7J2J76LDDRUJTGY6HEIS5LOJJ5MD4YROJQ7GQ5EDEV2EH4CM5TA \ / AMOS7 \ YOURUM ::
+#\[7]QDB7KR2NRJRJHTL67LKBEFTRZLPEFO7UMI67BTR3ULL4UJBBOSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

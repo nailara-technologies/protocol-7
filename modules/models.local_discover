@@ -89,7 +89,7 @@ foreach my $scan_dir (@$scan_paths) {
                 }
 
                 ## 3. scan gguf metadata header for embedded vision encoder ##
-                ## newer models bundle clip/vision encoder in a single gguf   ##
+                ## newer models bundle clip/vision encoder in a single gguf ##
                 if ( !$is_vision && open( my $gfh, '<:raw', $file_path ) ) {
                     my $header;
                     read( $gfh, $header, 65536 );  ## first 64 KB is enough ##
@@ -100,8 +100,8 @@ foreach my $scan_dir (@$scan_paths) {
                     }
                 }
 
-                ## 4. check config.json for image_token_id ##
-                ## present in multimodal architectures even without mmproj ##
+                ## 4. check config.json for image_token_id  present in ##
+                ## multimodal architectures even without mmproj        ##
                 if ( !$is_vision ) {
                     my $cfg_path = "$model_dir/config.json";
                     if ( -f $cfg_path
@@ -159,8 +159,8 @@ return {
     'scanned_paths' => $scan_paths,
 };
 
-#,,.,,.,,,,,.,,,,,,,,,,,.,,..,.,,,..,,.,,,,..,.,.,...,...,..,,...,...,,..,,,,,
-#LXD25LEXJJFWBO6YTPHMUPGGJNCNIPNWVVR37V3PNHNVY2LKLUTV6DCV5LOMK634R6K6JC3BYPUSK
-#\\\|7KZV4DMI3PWJCLOBW7MKCYDZZ6QA3Y4NTALMYQHXDTMC4FD53WQ \ / AMOS7 \ YOURUM ::
-#\[7]R7TEIZHI5KULJ3FM3IVSLHS3ZXWIXLQMI6ONUWYI4NSZL2PFT6BI 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,.,.,...,.,,,.,.,...,,,,,,..,,,.,.,.,...,...,,..,,,,,,,,,,.,,..,,
+#N564BDVQFKXXZXJJYBSNVXJUWKLOS2GQOJA7SS44YUWF5YGB5OKVOGX7DVSSBPGTDFG5X27QYMW44
+#\\\|4KP5AQSYMJWCHMTMW3QJFIKMDII3CYMNLV7AH3K67S3XJQZ2EIT \ / AMOS7 \ YOURUM ::
+#\[7]MTFQS46MCTDSWW3U3EGKDVXFO3SFPRPVC3KPMKB77I3F77TJC6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

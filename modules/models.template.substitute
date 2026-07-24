@@ -24,8 +24,7 @@ my $start_time = <[base.time]>->(4);
     length($template)
 );
 
-## Pattern: <{variable_name}>
-## Matches alphanumeric, dash, underscore, dot
+## Pattern: <{variable_name}>  Matches alphanumeric, dash, underscore, dot
 my $var_pattern = qr/<\{([\w\-_.]+)\}>/;
 
 my $result = $template;
@@ -65,7 +64,8 @@ my $prev_avg = <models.metrics.avg_substitution_time_ms>;
 
 <[base.logs]>->(
     1,
-    "[$context] substitution complete: %d variables, %d bytes -> %d bytes, %.2fms",
+    "[$context] substitution complete: %d "
+        . "variables, %d bytes -> %d bytes, %.2fms",
     $sub_count,
     length($template),
     length($result),
@@ -84,8 +84,8 @@ return {
     ]
 };
 
-#,,,,,...,...,,.,,...,,.,,,,,,,.,,.,.,.,,,..,,..,,...,..,,.,.,,,.,,,.,.,,,.,,,
-#SJZV7OMT2E4FQZ3OZPPJMBCCXG55CVNUNXM7K2EGALR5EUBNMR4IFZR6EOEDJF5O6MUZAJRFC63ZE
-#\\\|RI7KHEQBBU57WL72YUWPNUTK2IMSUINJIS7A5TNJTISTZWXE3VK \ / AMOS7 \ YOURUM ::
-#\[7]KKXKJG5HVQGCU7D64SGL7ZB3EDFJUTBCIRYVSGUQMNPAPULSWOBY 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,.,,,,,,,,.,,.,,,,.,...,,,,,,.,,..,,...,...,,,.,,,.,,.,,.,.,...,
+#6L5EN2SIDQNYEH7XWCQLVWZCQRF3VFM6747PK44QMPXG54TKUJXT5ZFR5N5A4F5WWKFWGEKVUQDO4
+#\\\|X4M7IOFHRQGMLSEFDYDXGHM567AIPNWCD43F6KCH7ZV2XIZHUKM \ / AMOS7 \ YOURUM ::
+#\[7]JS66ODJNSLKXXKZFIBNQQSUTWBQY3CJJKYKCMJE4EKLAYNTKGEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

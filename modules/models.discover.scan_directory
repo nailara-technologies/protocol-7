@@ -28,8 +28,8 @@ while ( my $entry = readdir($dh) ) {
         my $is_vision = 0;
         $is_vision = 1 if $model_name =~ m{vl|vision}i;
 
-        ## Handle mmproj files (vision projectors) specially
-        ## mmproj can be at start (mmproj-xxx.gguf) or embedded (xxx.mmproj-f16.gguf)
+        ## Handle mmproj files (vision projectors) specially  mmproj can be at
+        ## start (mmproj-xxx.gguf) or embedded (xxx.mmproj-f16.gguf)
         my $is_mmproj = 0;
         if ( $model_name =~ m{(?:^|[-._])mmproj}i ) {
             $is_mmproj = 1;
@@ -48,8 +48,8 @@ while ( my $entry = readdir($dh) ) {
             }
         }
 
-        ## Extract quantization from filename (e.g., Q4_K_M, Q6_K, Q8_0, IQ4_XS)
-        ## Handles: Q4_K_M-imat, Q4_K_S-imatrix, Q6_K, IQ4_XS, etc.
+        ## Extract quantization from filename (e.g., Q4_K_M, Q6_K, Q8_0,
+        ## IQ4_XS) Handles: Q4_K_M-imat, Q4_K_S-imatrix, Q6_K, IQ4_XS, etc.
         my $quantization = 'unknown';
         my $clean_name   = $model_name;
 
@@ -60,7 +60,8 @@ while ( my $entry = readdir($dh) ) {
             $clean_name =~ s{(?:^|[-._])mmproj[-._]?}{}gi;
             $clean_name =~ s|[-._]+$||;
         }
-        ## Match quantization pattern: Q or IQ, number 2-8, optional _K_M suffix
+        ## Match quantization pattern: Q or IQ, number 2-8, optional _K_M
+        ## suffix
         elsif ( $clean_name =~ m|([IQ][2-8](?:_[A-Z]+)+)|i ) {
             $quantization = uc($1);
 
@@ -74,8 +75,8 @@ while ( my $entry = readdir($dh) ) {
             $clean_name =~ s|[-_]+$||;
         }
 
-        ## Get proper model name using smart extraction
-        ## Also get file_type-based quantization as fallback
+        ## Get proper model name using smart extraction  Also get
+        ## file_type-based quantization as fallback
         my ( $gguf_name, $file_type_quant )
             = <[models.gguf.file.extract_name]>->($full_path);
 
@@ -108,8 +109,8 @@ closedir($dh);
 
 return \@models;
 
-#,,,,,,.,,,.,,,,,,,,.,,.,,,,,,,.,,.,.,.,.,,,,,..,,...,...,...,,.,,,,.,.,,,..,,
-#KJITEEAKJKUTMYBYCEXF3WZUTVOKOKIUQDI7XF7OOOCLE6GK433E5STNHUPUYQ3ML5DJSQTWQWNGO
-#\\\|ALQFSKFOEXNEMBM4ZNPL3NICRCWA4TT5XE4SBAPBNDTAAQBO73N \ / AMOS7 \ YOURUM ::
-#\[7]XJRY4XWKIRETWZMK7EB3ZZLXW672D76K7ADOFYVVYY4SGJ2HMUAI 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,.,,,,.,.,.,...,,,.,,.,,,,.,,..,..,,...,...,...,.,,,.,.,..,,,,.,
+#MEAVWA27ALRBDODTBDNYXEYJZE4BRLRPS7ICLJPL37FL52NUGJEK4CXM5ZALLDY7GUCBVI3XG2XX2
+#\\\|6HQ2K4L67O2LIXCWBD6ATDTUQGEY4C2MHLJ376RNH3CBBEGW2KG \ / AMOS7 \ YOURUM ::
+#\[7]RKJT3NGRTOLS5J4KZABSTCJRBWUCZI6AZYY45DC2O7P5N6SVD4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

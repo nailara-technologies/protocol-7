@@ -5,7 +5,7 @@
 
 my $reply = shift;
 
-my $reply_params = $reply->{'params'} // {};
+my $reply_params = $reply->{'params'}            // {};
 my $task_id      = $reply_params->{'task_id'}    // '';
 my $model        = $reply_params->{'model'}      // '';
 my $job_id       = $reply_params->{'job_id'}     // '';
@@ -17,7 +17,7 @@ my $mode = $reply->{'mode'} // '';
 if ( $mode eq qw| false | ) {
     my $reason = $reply->{'data'} // 'unknown';
     <[base.logs]>->(
-        0, ': task %s: backend not available [ %s ]',
+        0,        ': task %s: backend not available [ %s ]',
         $task_id, $reason
     );
     <[protocol-7.route-send]>->(
@@ -34,7 +34,7 @@ if ( $mode eq qw| false | ) {
 
 ## backend zenka is online : dispatch prompt
 <[base.logs]>->(
-    2, ': task %s: %s online : dispatching prompt',
+    2,        ': task %s: %s online : dispatching prompt',
     $task_id, $target_cmd
 );
 
@@ -68,8 +68,8 @@ if ( $sent <= 0 ) {
     <[jobqueue.move_job]>->( $job_id, qw| error | );
 }
 
-#,,,,,,,,,,,,,,.,,...,...,.,,,..,,,..,..,,...,..,,...,...,.,,,.,,,.,,,,.,,.,.,
-#6K3QIC2BIYFSCQLA3HEFDFM4GHHPYYIITKOBADHXRJ2XTAWUWY4CUQZ74NCP4VX7BEM7KHOYWZ37G
-#\\\|ULEBELM35OK6WI7EZG5DURNHDF36RDKBQF4G3OJMSPVUHUFGGOB \ / AMOS7 \ YOURUM ::
-#\[7]ASTAIN65DHILB3FYTALIOLZHWPXSCFQLFHJ3YKSXY2PQX3BTBAAA 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,,.,,,,.,..,,.,.,..,,,,,,,,.,..,,..,,...,...,.,.,...,,..,,,,,..,,
+#XTWDEGT2TBPQXKWURI5H2BXOAKFUBO6JPDQ7CNLSHQKDLW5GIZZ7EDGBVU2AP3IMBGDITRBOYSE72
+#\\\|PRED4PS2SNRJMBCJ7XY6TIAEESLMCHWG2SJG6VLIHKXHZFE6XB6 \ / AMOS7 \ YOURUM ::
+#\[7]UXBWWV6XBT327DQEGU5DZHVCVDICCKZ3X45MYFFLET4QKH3FOIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
