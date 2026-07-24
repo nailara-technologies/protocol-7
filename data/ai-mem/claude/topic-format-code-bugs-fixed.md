@@ -1,6 +1,6 @@
 ---
 name: topic-format-code-bugs-fixed
-description: "full arc of bin/format-code hardening across one extended session: 15 real bugs/features fixed via dogfooding on real zenka files (jobsite, letsencr, bin/Protocol-7, web-browser), landing on a 5-category pattern-template pipeline (bracket block, loose paragraph, list, box, commented-code) plus N-way string splitting -- now applied clean to 4 real zenki"
+description: "full arc of bin/format-code hardening across one extended session: 16 real bugs/features fixed via dogfooding on real zenka files, landing on a 5-category pattern-template pipeline (bracket block, loose paragraph, list, box, commented-code) plus N-way string splitting -- now applied clean to 9 real zenki/namespaces (jobsite-discovery, letsencr, bin/Protocol-7, web-browser, httpd, ticker, source, sourcecode, AMOS7 modules)"
 metadata:
   type: project
 ---
@@ -13,7 +13,7 @@ what that surfaces, repeat — never synthetic tests up front. See
 `data/yaml/reasoning-templates/canonicalize-then-derive.yaml` for the
 methodology this session converged on and documented mid-flight.
 
-## Final state : what ships as of `82717d31c`
+## Final state : what ships as of `c5b78611a`
 
 `preprocess_source` runs a fixed step pipeline per line: step0 (rejoin +
 resplit an existing multi-line `.`-concat chain), step4 (align a
@@ -166,6 +166,23 @@ untouched, never reflowed).
     broadly. Fixed: new `CONT_MARGIN => 4` constant reserved on every
     continuation-line budget calculation.
 
+16. **Bracket-annotation exclusion protected content unconditionally**
+    (`c5b78611a`): `## [ short remark ] ##` is a deliberate, widely-used
+    atomic-remark convention (dozens of legitimate instances at 60-83
+    cols across the codebase), so both `comment_block_line_parts` and
+    `step2_reflow_comment` excluded it from reflow entirely. But
+    `step2_reflow_comment` is only ever called once a line already
+    exceeds `LINE_MAX` — so its exclusion was unconditionally protecting
+    content that was, by definition, always over budget, with no
+    fallback that ever wrapped it. Found on an 84-char annotation in
+    `AMOS7/SHM.pm` that stayed overflowing forever. Fixed: removed the
+    exclusion entirely in `step2_reflow_comment` (redundant given its own
+    call-site guard); conditioned `comment_block_line_parts`'s exclusion
+    on the line already fitting. A within-budget annotation stays fully
+    protected; an over-budget one reflows like ordinary content. 318
+    other over-budget annotation lines exist across the codebase that
+    will benefit from this as their namespaces get their turn.
+
 ## Verified real-world application (all re-run fresh + signed, this session)
 
 - `letsencr` zenka (44 files) — `dc5b69ea9`. Also required a one-off source
@@ -180,6 +197,16 @@ untouched, never reflowed).
   existed).
 - `web-browser` zenka (20 files) — `82717d31c`, after bugs #13-15 fixed the
   oscillation and overflow bugs those specific files exposed.
+- `httpd` zenka (23 files) — `b9a6ba512`.
+- `ticker` zenka (25 files) — `fabafec2d`, alongside the unrelated
+  [[topic-fake-signature-footer-detection]] fix that same commit needed
+  (`ticker.cmd.next-monitor`'s fake+real footer pair had to be stripped
+  clean and re-signed before the reflow could land).
+- `source` namespace (7 of 8 changed files; `source.AMOS-center-bit.desc`
+  exempted — see "still open" below) — `47c76bb39`.
+- `sourcecode` namespace (7 files) — `e834bbe8c`.
+- AMOS7 standalone Perl modules (`data/lib-path/pm/AMOS7*`, 27 files) —
+  `c5b78611a`, alongside bug #16 which that same batch surfaced.
 
 ## Verification pattern used throughout
 
@@ -221,15 +248,24 @@ whole 15-bug arc is that principle in practice.
   when it's eventually built.
 - Not yet applied broadly across all of `modules/`+`bin/` — has been
   deliberate zenka-by-zenka dogfooding (jobsite → letsencr →
-  `bin/Protocol-7` → web-browser) rather than a mass apply, matching the
-  "smaller predictable steps" principle above.
+  `bin/Protocol-7` → web-browser → httpd → ticker → source → sourcecode →
+  AMOS7 modules) rather than a mass apply, matching the "smaller
+  predictable steps" principle above.
+- `source.AMOS-center-bit.desc` exempted from the `source` namespace
+  batch: an outdated ASCII bit-table with column-aligned spacing that
+  resists every existing binary detection predicate. Motivated a new
+  "probability scoring for ambiguous content" section in
+  `canonicalize-then-derive.yaml` (weighted signals — interleaved
+  non-word spacing, uppercase/base32 charset runs, irregular positional
+  bracket markers — voting past a threshold, rather than a sixth ad-hoc
+  binary category) as the anticipated eventual fix; not implemented.
 
 ## related
 
-[[topic-p7-text-formats-landed]], [[feedback-base-swap-subs-promote-pattern]]
+[[topic-p7-text-formats-landed]], [[feedback-base-swap-subs-promote-pattern]], [[topic-fake-signature-footer-detection]]
 
-#,,..,.,,,.,,,,.,,...,.,,,...,...,,.,,...,,..,..,,...,...,,,,,.,,,,,.,.,,,,.,,
-#HPOZJTA225WPNA53VXEJO5SZ35APAAHY4VIRHKEHUD7HZJVLQ3TXOQOKGNNGALCXAUDIZ4Q5YU4S2
-#\\\|B3QDXYIOMOZOYULREA2EQONCBSCQDIV2OW3RMRYQ3A2XF7A3PF2 \ / AMOS7 \ YOURUM ::
-#\[7]APXE4MD46FZ4R6GF4IRWNGNJN7OX6USCEHJG2OFHKHM6ZOV2I4AA 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,.,,.,,,..,,.,.,...,...,.,,,,.,,..,,...,...,,..,...,.,.,...,.,.,
+#7J4MXT3IBHCL5V45PUIODO2ATCA4EBUCWHPP723JXA7HJXGGOOF4CUD4K6K23PEKAPEM6X3ZEFOFA
+#\\\|PAYUFKA2FLTDGH6VPAXYXXIPYPYW2NTTIUP3THR3PBE6GOBVVYU \ / AMOS7 \ YOURUM ::
+#\[7]X3P6RXNOTCLVG4ZQT6XDT6Y4LGARWADLMXIM3CVMECYTWR4LUCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
