@@ -110,7 +110,14 @@ foreach my $fix_id (@fix_ids) {
             for my $i ( 0 .. $#lines ) {
                 if ( $lines[$i] =~ $compiled ) {
                     my $old = $lines[$i];
-                    $lines[$i] =~ s|$compiled|$replace|;
+                    ## expand $1..$9 backrefs from $replace at match time ##
+                    $lines[$i] =~ s|$compiled|do {
+                        my @c = map { $_ // '' }
+                            ($1,$2,$3,$4,$5,$6,$7,$8,$9);
+                        (my $r = $replace) =~
+                            s/\$(\d+)/$c[$1-1]\/\/''/ge;
+                        $r
+                    }|e;
                     $count++ if $lines[$i] ne $old;
                 }
             }
@@ -305,8 +312,8 @@ $summary .= ", $failed_count failed" if $failed_count;
 
 return { 'mode' => 'size', 'data' => $summary };
 
-#,,,,,,..,..,,,..,.,,,,.,,,.,,,.,,.,,,.,.,,,.,.,.,...,..,,.,,,,.,,,.,,.,.,.,.,
-#MLFV724EWJJJKKNHPWLAZIH4YCGOFPBDX5JPLIGS57NUPGNCJDBEEFPAYHHJXIWAVJVRNSZLX5ZOQ
-#\\\|GJZCI45CBJM3O5MHMETLYWD5OOLQBSFOHRRNLNP5VDTIRBFQF6W \ / AMOS7 \ YOURUM ::
-#\[7]665FXFAALSHBR5JTGQVFODN7VAGJI2P2Y7RARHXI6SU6ZRLSPOCI 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,,.,,,.,.,.,.,.,,.,,.,,,.,,,,,.,.,.,...,...,...,..,,,,.,,.,,,,.,
+#MKSPVXYUVL6W6JEMXNEBSBPYLGRH5F4P5J4C4B4OUWGJ6PTLNQJ7A37EZ7MLF4C3KQ3K3I4SRCDVA
+#\\\|K3THNAIL44UUXW5DXLBNRVKJWBLKEAVZQXKGP66T65O2B53CMBJ \ / AMOS7 \ YOURUM ::
+#\[7]D27MM4AHXXYAXG7C2CRP23XYFTVDC3XYBPKZWI3Q3JO2HYLBNIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

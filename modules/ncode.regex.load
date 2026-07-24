@@ -74,13 +74,28 @@ foreach my $def (@$patterns) {
 
     ## store pattern with metadata ##
     <ncode.patterns>->{$name} = {
-        'name'          => $name,
-        'descr'         => $def->{'descr'} // $def->{'description'} // '',
-        'pattern'       => $pattern,
-        'detect'        => $def->{'detect'} // '',
-        'compiled'      => $compiled,
-        'replace'       => $def->{'replace'},
-        'steps'         => $def->{'steps'}         // [],
+        'name'     => $name,
+        'descr'    => $def->{'descr'} // $def->{'description'} // '',
+        'pattern'  => $pattern,
+        'detect'   => $def->{'detect'} // '',
+        'compiled' => $compiled,
+        'replace'  => $def->{'replace'},
+        'steps'    => do {
+            my $yaml_steps = $def->{'steps'} // [];
+            if (@$yaml_steps) {
+                $yaml_steps;    ## explicit steps — use as-is
+            } elsif ( length $pattern and defined $def->{'replace'} ) {
+                ## synthesize single-step from pattern/replace [ form 1 patterns ] ##
+                [
+                    {   'tool'    => 'ncode',
+                        'search'  => $pattern,
+                        'replace' => $def->{'replace'}
+                    }
+                ];
+            } else {
+                [];    ## detect-only [ replace: null ] — no apply steps
+            }
+        },
         'verify'        => $def->{'verify'}        // [],
         'applicability' => $def->{'applicability'} // {},
         'origin'        => $def->{'origin'}        // qw| loaded |,
@@ -105,8 +120,8 @@ return {
     }
 };
 
-#,,,.,.,,,...,,,.,,.,,,..,..,,..,,,,.,,,,,.,,,..,,...,...,..,,.,,,.,.,.,.,...,
-#4VH67NTOX3UQP2TQORFFP7IEXYW4AEIUR5XMTPZONPZWZ7I3ENH5RGKEMNRVNQW2CMY6LDYBJL6JM
-#\\\|5UOMT6HNRUTVX2PDA2PTQH3DPF2DM3GPYVZMBF7APZHAMIGP5EO \ / AMOS7 \ YOURUM ::
-#\[7]TQX4XXQ5D2VDYGAVL5V4DOCJ45OIUT5C3MELVCLQ2LXS5NIAGWBQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,..,,,,.,..,,,,.,,,.,.,,,,..,,,,,..,,...,...,,.,,,..,.,,,,.,,.,,,
+#NQ2ZW4LVQ3CZOQRDNFFWUFT3JAXYUSTXRUN3PSN6K65DZA2NO5CKXCSNQAHSX7TF4K7BYN5WJKB7C
+#\\\|ZYYL5NR74XL6J2RQEEI2M2VE6MY7CDRRS7YXW2NGBZV534G7GPI \ / AMOS7 \ YOURUM ::
+#\[7]KYUSG4IVILQFLJLA7HC2S3DVUK54OV6NIZJH6JTYWHBDQWJLRUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
