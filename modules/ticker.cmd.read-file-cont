@@ -6,10 +6,10 @@
 
 my $file_path = $call->{'args'};
 
-## a read_file can arrive before the window is sized -- <ticker.font.size> ##
-## is 0 until the first draw callback computes it from the real window     ##
-## height, and parse_text dies on a 0 font size. defer instead of         ##
-## crashing; ticker.callback.draw replays the queue once initialized.     ##
+## a read_file can arrive before the window is sized -- <ticker.font.size>  ##
+## is 0 until the first draw callback computes it from the real window      ##
+## height, and parse_text dies on a 0 font size. defer instead of crashing; ##
+## ticker.callback.draw replays the queue once initialized.                 ##
 if ( not <ticker.status.initialized> ) {
     push @{ <ticker.pending_read_calls> //= [] }, $call;
     <[base.logs]>->(
@@ -50,30 +50,29 @@ my $was_visible = defined $window && $window->get_visible;
     or $loaded->{'updated'}
     or not $was_visible;
 
-## restore the profile that was active before a notify-mode top-strip      ##
-## override, if any. if notify never overrode it this is a no-op.          ##
+## restore the profile that was active before a notify-mode top-strip ##
+## override, if any. if notify never overrode it this is a no-op.     ##
 if ( defined <ticker.notify.previous_profile> ) {
     my $restore_profile = delete <ticker.notify.previous_profile>;
     if ($was_visible) {
-        ## window already mapped: move it ourselves via the X11 retry  ##
-        ## sequence [GTK moves alone aren't honored once mapped].      ##
+        ## window already mapped: move it ourselves via the X11 retry ##
+        ## sequence [GTK moves alone aren't honored once mapped].     ##
         <[ticker.move_to_profile]>->(
             $restore_profile, <ticker.window.profile>
         );
     } else {
-        ## window was hidden/unmapped: moving it now would fail        ##
-        ## verification and revert. just set the profile - start_      ##
-        ## animation's remap-settle timer applies <ticker.window        ##
-        ## .profile> with the X11 move retries once the remap has       ##
-        ## finished.                                                     ##
+        ## window was hidden/unmapped: moving it now would fail            ##
+        ## verification and revert. just set the profile - start_          ##
+        ## animation's remap-settle timer applies <ticker.window .profile> ##
+        ## with the X11 move retries once the remap has finished.          ##
         <[ticker.cmd.set-window-profile]>->( { 'args' => $restore_profile } );
     }
 }
 
 return { 'mode' => qw| true |, 'data' => 'ticker display content updated' };
 
-#,,,,,,.,,.,,,,,,,,.,,.,.,.,.,,.,,.,.,,,,,,.,,.,.,...,...,.,,,.,,,,,,,...,..,,
-#SMRTRQHPWCJ5BV5U2XRMPWBEOMVPW2FAIFVIEGX4L5PI2TUEKBKRLTFQUCUEM5GFWTV3OOPGC2OCS
-#\\\|IDNXHEET4ANVCJUHXRJPYVF45ZD67B2EEYBVTQTIDSBQQEYJHY4 \ / AMOS7 \ YOURUM ::
-#\[7]QBQJQ256CFD23ASFH7JIFZLHQN4QRHW7A6GOV5TLQZDK2VHEJGAA 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,.,.,,,.,,,,,,..,,.,,..,,,,,,..,,.,.,...,..,,..,,...,,,.,.,,,.,,,
+#FDN7D4CXBQH3FQQQOVJ2DEWOLTP74B4WA2F4KIDYDVTH5TWPVZL2KWDXARCMQPJC6WXGEY377EHA2
+#\\\|H3V7FMK3TFRZR2X2BTY35CYB4IDMLLNMM3533A66XXNWORFNE4B \ / AMOS7 \ YOURUM ::
+#\[7]UB6ACMIFQWDH54GKBSWNGSN3MFD3RAAT5ZEVNFRBAKVWAHLKDQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

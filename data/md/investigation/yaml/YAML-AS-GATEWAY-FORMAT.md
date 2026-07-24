@@ -259,12 +259,6 @@ testing_scenarios:
 module_creation_checklist:
   step_3:
     # ... content ...
-
-#,,..,,.,,,,,,.,,,...,.,.,.,.,...,.,,,,,,,,.,,..,,...,..,,...,,,.,,.,,,..,...,
-#A1B2C3D4E5F6G7H8I9J0K1L2M3N4O5P6Q7R8S9T0U1V2W3X4Y5Z6AMOS7SIGNATURE123456
-#\\\|AUTHORIZED_SIGNATORY_KEY_THUMBPRINT_BASE32_HERE \ / AMOS7 \ YOURUM ::
-#\[7]SIGNATURE_VALIDATION_HASH_256_BITS_HERE_TRUNCATED 7  DATA SIGNATURE ::
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ```
 
 **When committed**:
@@ -428,8 +422,8 @@ Each becomes:
 
 A gateway format that's human-readable, machine-executable, securely signed, and free from bloat. Perfect alignment with Protocol-7's design philosophy.
 
-#,,,,,,.,,.,.,.,,,...,,..,..,,,,,,.,.,,.,,.,.,..,,...,...,...,.,,,,.,,,,,,,..,
-#DDYCNOULICA4WHX6QQUGDKWPCPLIJJ6SYZH6H6IWZ2X3PA7JNQ7TI4F3QU666FBJ7MYUZXUL2HSZY
-#\\\|KPD2I3BPBFWM5TRHFPXVE2P4HAQXSQJPOGTYQ2NF5VYSKNGN3SK \ / AMOS7 \ YOURUM ::
-#\[7]GQ7NYNP52N2G5CMDEOZANJIK5CM3ASDALOQXZC7APD7XHVWWUWBI 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,.,,,,..,.,.,,.,,...,.,,,.,.,,..,..,,...,...,,..,,..,,..,,.,,.,,,
+#T6YY43FXGTLVDNYBEVP6DO745VQELXWYCO4ZMPKPMEFDORE3MRVIUH4RBPCSKS7ALQRQVVCNLYWW2
+#\\\|6CAHRMONLCJUKV55DMH5LIYZ7N4AONPLKV22CM2AEDO66R5KB6Z \ / AMOS7 \ YOURUM ::
+#\[7]UP2ERZFOGTGXPJK3ID7CDHM32R4BIS3QDPQE44PJDNGIUTUCCICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

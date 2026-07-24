@@ -19,9 +19,9 @@ if ( <ticker.hidden> and ( not defined $window or not $window->get_visible ) )
     return { 'mode' => qw| true |, 'data' => 'ticker already dismissed' };
 }
 
-## fade out smoothly [if requested, composited and currently visible],     ##
-## then let ticker.handler.fade_out's completion do the actual hide/pause/ ##
-## cleanup via <ticker.dismiss.pending>. otherwise hide immediately.       ##
+## fade out smoothly [if requested, composited and currently visible], then ##
+## let ticker.handler.fade_out's completion do the actual hide/pause/       ##
+## cleanup via <ticker.dismiss.pending>. otherwise hide immediately.        ##
 if (    $fade
     and <ticker.is_composited>
     and defined $window
@@ -47,9 +47,9 @@ if (    $fade
 
     <[ticker.emit_event]>->(qw| fading-out |);
 
-    ## deferred reply: the caller waits until the fade-out completes and    ##
-    ## the ticker is actually hidden [useful for smooth desktop             ##
-    ## transitions].                                                        ##
+    ## deferred reply: the caller waits until the fade-out completes and ##
+    ## the ticker is actually hidden [useful for smooth desktop          ##
+    ## transitions].                                                     ##
     if ( defined $call->{'reply_id'} ) {
         push @{<ticker.dismiss.pending_reply_ids>}, $call->{'reply_id'};
         return { 'mode' => qw| deferred | };
@@ -62,8 +62,8 @@ if (    $fade
 
 return { 'mode' => qw| true |, 'data' => 'ticker dismissed' };
 
-#,,.,,...,.,,,,,.,.,.,..,,.,,,...,...,.,,,.,,,..,,...,...,...,,,.,,,.,..,,.,.,
-#II76TYIOV4NZQIP4EMCUVGX4CPAM3DY3XZX7R7TYEKMQD6GRLEASECBP5QQT6KETYCVDQTZ7CD4PW
-#\\\|E5E4YXEJLY5VMF5W6I3FL756P7ZUDMJ4AFRV6Y77STSDF2EI4BL \ / AMOS7 \ YOURUM ::
-#\[7]OL3LPVHMNDNQOG7G2UEVMSKVOFP4GW4JSY5UTASYXZVVBCWA7KAI 7  DATA SIGNATURE ::
+#,,,.,...,..,,,,,,,,.,.,,,,,,,,.,,.,.,,,,,,,.,..,,...,...,,,.,..,,,.,,,..,,.,,
+#X7G54LBZR5XP3U73QLIOFU4I4J6JQLFRNDXRXQUTDR4PZXFQ7PS6F2UNP5QTXMPHIENRESLN66XXA
+#\\\|IWG3FU7DARLT2VFD353HHYKVFSE4QSL2FSAEDTZ6BNT2VDPSK3H \ / AMOS7 \ YOURUM ::
+#\[7]ATF7FUPD7JG3RYBIJC6BQBQZIUF55V6UFXN55HX44FTK6HEBZECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

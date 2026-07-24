@@ -29,10 +29,11 @@ if ( not defined $window ) {
 
 my $screen = <[window.gtk.get_screen_size]>;
 
-## in swap mode the ticker can be constrained to a selected monitor.  the    ##
-## default is to span the full virtual desktop because WSLg/XWayland monitor  ##
-## geometry is not always reliable; set ticker.window.monitor to follow-     ##
-## pointer, primary, index:N or cycle to enable per-monitor placement.       ##
+## in swap mode the ticker can be constrained to a selected monitor.  the ##
+## default is to span the full virtual desktop because WSLg/XWayland      ##
+## monitor geometry is not always reliable; set ticker.window.monitor to  ##
+## follow- pointer, primary, index:N or cycle to enable per-monitor       ##
+## placement.                                                             ##
 my ( $base, $monitor );
 if ( <[base.cfg_bool]>->(<ticker.mouse.swap_edge>) ) {
     my $mode = <ticker.window.monitor> // qw| full-desktop |;
@@ -79,8 +80,8 @@ return {
     'data' => "window profile: $profile"
 };
 
-#,,.,,,,,,,,.,,..,...,,,.,.,,,.,,,...,...,.,.,.,.,...,...,,.,,..,,.,,,..,,,..,
-#2MDFCXUIBSSHPUGIOX5XCVL2OBMU6ANHVUYZENVY4P6IIN52TMLR7WBNCUOESDQFOPMR4ID6XHT5A
-#\\\|JR564HRXD5SFTCKDBYCL3WAF6OU622CK34JZGOL73XB6J4UNYDK \ / AMOS7 \ YOURUM ::
-#\[7]X22R742YXFVOTL6KIPVJKU4GYNOT2OEOEK4KFXTOUMQBRVOH7ECQ 7  DATA SIGNATURE ::
+#,,..,..,,,,.,,..,,,,,.,,,.,.,.,.,,,,,,,.,..,,.,.,...,..,,,..,...,...,.,.,..,,
+#22NR2A3C2X34QFCLTVD6U7TY47S2WLU4KELJLYNW7AXY44SUX7DGPVVKW7XNR2RDOHMQYBVGQ25MA
+#\\\|ZR5YYFQJ6E6QTNPSUTWBJN2MLMKIXERTJ7IOVIPO46OPUCNLCO7 \ / AMOS7 \ YOURUM ::
+#\[7]2MU5K5VTYQCJHHDENRGG3LSISMYVG3BHHNVHKFOEZCCNF4H35WDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
