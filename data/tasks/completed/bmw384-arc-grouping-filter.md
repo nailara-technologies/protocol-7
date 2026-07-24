@@ -1,5 +1,7 @@
 ## [:< ##
 
+# status: verified live on 2026-07-24 — p7c jobsite.group-jobs returns size-mode table with columns job_id|arc|dist|score|title—company(city); added group-jobs to jobsite start access list so command is routable.
+
 # name  = task: implement jobsite assertion-branch BMW384 grouping filter
 # descr = compute BMW384 color coordinate for each assertion dimension branch,
 #         then group jobs by color proximity for deduplication and auto-archive
@@ -88,8 +90,8 @@ prompt: |
   { mode => 'size', data => $formatted_string }. New modules: leave clean, no signature
   stubs. Use $ARG not $_, lowercase comments.
 
-#,,,,,.,.,,,,,...,,..,,,,,,..,..,,,,.,,,,,.,.,..,,...,...,.,,,...,,,,,.,,,,,.,
-#K4BZEQX4ZFDDBMJDDW43T4B7HVXLS6MT7COFNRBYIPHCISCOZZZVJLT4X2MCOVCDYTTVJKXAYLEZI
-#\\\|4O222RAJ6VQGAZ2NKP3C6LQLL7DNQA2KHEBXS7W2UDVXPDZ5WAO \ / AMOS7 \ YOURUM ::
-#\[7]5XXFMCXWWS4EINYBTDGJK6FTSSW7EIMEMOTN7ORGWQNWCZM3IQCA 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,..,,,.,.,.,,,,,...,.,.,.,,,.,,,..,,...,...,,.,,,.,,,,.,.,.,,,.,
+#ILNDHMPXE3MQAI5N5FA5HDCE6W5FDVT6NIG2HB7LDBNWHBOUJKQFQXM2WTK5BIXUQRO7IKVMBCHES
+#\\\|SLKH6URLGENSXZKMPICXHJRFMOHAYQOOQ5ZRJUAJCXYGDKWGF4C \ / AMOS7 \ YOURUM ::
+#\[7]Q3IMN7GNAJPXCDSLXLZ6WKWYR6O55E3UGMW4O2XZR6NJPB7HGOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
