@@ -45,9 +45,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [swap-subs-not-fragile](feedback-swap-subs-not-fragile.md) — base.X→X swap safe/mechanical, but check `ncode s src:base.X swap_subs` before calling any base.* primitive from new code, or you'll call the pre-swap dead name
 - [eval-error-macro-call-site](feedback-eval-error-macro-call-site.md) — reading $EVAL_ERROR inline as an arg at a `<[...]>` call site can come back empty; capture into a lexical (or use `<[base.str.eval_error]>`) immediately after eval
 - [kimi-dispatch-idle-timeout-recovery](feedback-kimi-dispatch-idle-timeout-recovery.md) — MCP 1800s-idle "failed" ≠ dispatch failed; underlying process often finishes fine, recover via session_catchup(client:kimi, session_id) not re-dispatch
+- [posix-group-write-precedence](feedback-posix-group-write-precedence.md) — chmod-child grants need | 0020 (group-write) not | 0002 (other-write); a process that's a supplementary-group member of the file gets checked against group bits only, other bits never consulted; write_with_perms still has this bug live
 
-#,,,.,,,.,.,,,...,...,.,,,,.,,,..,.,,,..,,.,.,..,,...,...,...,.,,,.,.,..,,..,,
-#OCTKMJKYOGT4RYIR2WWB75SNFN4U76TEDNGH3JSD55NA4CBA5B3JVC3O6OUDAVUG56V4HVWZLGCQ4
-#\\\|SRRUIJQJWKBEELII43QCBRIJFQD24VZGOY5OUIRMRJ4EUYIEHR4 \ / AMOS7 \ YOURUM ::
-#\[7]UZODH433C52RXYOVIP5PBPBB6FPD73K744DIFXB5ETPGEDVX3UCA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,...,,..,..,,,.,,,,,,.,.,,.,,...,..,,...,...,..,,...,,.,,.,,,..,,
+#GARINLMBO33RYHPSDYE3BSB3UIH4AP4VED6O5PFNYH5PD6DQRCJVIRILL3VT2SPJB54GF7FZT2ZXA
+#\\\|LVAYOBOQUVVMURXX7KK7EQA2UAJMT6YL2AMYCBPAY74AAQW3RPW \ / AMOS7 \ YOURUM ::
+#\[7]5JTLJRKKIOF275Z5E7MUXDD6C7MBPBETKH7SQNQUXB7YU5XCAUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

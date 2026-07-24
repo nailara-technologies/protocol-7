@@ -1,0 +1,74 @@
+## [:< ##
+
+# name  = ncode.cmd.assess
+# descr = assess old/new text for a regex pattern
+
+## accept a ready hashref [ programmatic call ] or a cube-dispatch call   ##
+## object carrying a json-encoded 'args' string [ p7c / network call ] -- ##
+## same adapter shape as ncode.cmd.suggest [ old/new text needs json, not ##
+## the plain-text scheme ncode.cmd.apply uses ]                           ##
+my $raw    = shift // {};
+my $params = {};
+if (    ref $raw eq qw| HASH |
+    and exists $raw->{'args'}
+    and not ref $raw->{'args'} ) {
+    my $args_str = $raw->{'args'} // '';
+    if ( length $args_str ) {
+        $params = eval { JSON::PP::decode_json($args_str) };
+        return {
+            'mode' => qw| false |,
+            'data' => "invalid JSON " . "arguments: $@"
+            }
+            if $@;
+    }
+} elsif ( ref $raw eq qw| HASH | ) {
+    $params = $raw;
+}
+
+my $old = $params->{'old'} // '';
+my $new = $params->{'new'} // '';
+
+return { 'mode' => qw| false |, 'data' => 'old text required' }
+    unless length $old;
+return { 'mode' => qw| false |, 'data' => 'new text required' }
+    unless length $new;
+
+my $result = <[ncode.regex.assess]>->(
+    {   'input'   => $old,
+        'output'  => $new,
+        'context' => {
+            'file_type' => $params->{'file_type'} // qw| module |,
+            'namespace' => $params->{'namespace'} // '',
+            'task_id'   => $params->{'task_id'}   // ''
+        }
+    }
+);
+
+return $result
+    unless ref $result eq qw| HASH | and $result->{'mode'} eq qw| true |;
+
+my $candidates = $result->{'data'} // [];
+
+return { 'mode' => qw| true |, 'data' => 'no candidate pattern found' }
+    unless @$candidates;
+
+## format for readable review ##
+my $out = '';
+foreach my $c (@$candidates) {
+    $out .= sprintf "name:       %s\n", $c->{'name'}    // '';
+    $out .= sprintf "descr:      %s\n", $c->{'descr'}   // '';
+    $out .= sprintf "pattern:    %s\n", $c->{'pattern'} // '';
+    $out .= sprintf "replace:    %s\n", $c->{'replace'} // '[flag-only]';
+    $out .= sprintf "confidence: %s [ coverage: %s ]\n",
+        $c->{'applicability'}{'confidence'} // '?',
+        $c->{'applicability'}{'coverage'}   // '?';
+    $out .= sprintf "note:       %s\n\n", $c->{'note'} // '';
+}
+
+return { 'mode' => 'size', 'data' => $out };
+
+#,,,.,,.,,.,.,.,.,,,.,...,,,,,,.,,,,.,..,,,,.,..,,...,...,..,,.,,,...,,.,,...,
+#LS7FTSKRYCJ3E4HXDZRJ7FE5ROHETLW3J32AJEHXK3QKFTSVENIKDTLU5IGRAZEAKJ65A5EYSZQBQ
+#\\\|JQBULZMTR3EKKK4YRUIHYYXR4RI34PT2HJ4UUS3I4H7BQVB4G6B \ / AMOS7 \ YOURUM ::
+#\[7]LSI64MD67IKRIRLW4ZTVXDAPHPHTPVLRVV27UMFLR5HNDAMD5QCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
