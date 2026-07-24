@@ -33,7 +33,8 @@ unless ( length $domain ) {
 my $cert_info = <letsencr.parent.certs>->{$domain};
 return FALSE unless $cert_info;
 
-## Send renewal command to child via parent pipe (same as queue_renewal_requests)
+## Send renewal command to child via parent pipe (same as
+## queue_renewal_requests)
 <[protocol-7.command.send.local]>->(
     {   'command'   => qw| child.renew-certificate |,
         'call_args' => {
@@ -59,8 +60,8 @@ if ( exists <letsencr.parent.renewal_timers>->{$domain} ) {
 
 return TRUE;
 
-#,,.,,.,,,,.,,,..,,,,,...,...,,,.,,.,,,..,..,,..,,...,...,,.,,...,.,.,,,.,..,,
-#BI67OHCLRIGPTRYGFGOL3Y4AWLDNJ5MOD57AJLHFAG35NUUKYNZY35C5IA4SGBHYBPLFIEERLAHWS
-#\\\|ONLBBXZ2GGN5GMJSVFZOVNLKANVRTGKKZ3DMCQG4FIU7KUR3CRR \ / AMOS7 \ YOURUM ::
-#\[7]YYJ3APXS3HHPGZDBTKNJRZCAYSIFMXSU2GMXH32A7QXDBHCMGWBI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,.,.,.,,,,..,.,,,...,,.,,,,.,.,,,..,,...,...,..,,.,.,..,,,..,...,
+#XEYY3ZOZM7DNAEL2VIDZKPW4SLG2ZE3MWNL26SIIXE55UKN2SVEBKLAF2ZL6CMZPABFTDPO6S2ZZG
+#\\\|H43PHA2ESA5X4RXHQUQ5WMUACPDRQPLKTJUKMU7KSM5RH4CVYFH \ / AMOS7 \ YOURUM ::
+#\[7]UKGVDYYESKAAM4DAKHUNEJWILKIDJLX3SOEUQ5PCXCSPTQTJVQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

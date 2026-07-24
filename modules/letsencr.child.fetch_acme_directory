@@ -9,8 +9,8 @@ return undef unless $server_url;
 
 <[base.log]>->( 2, "fetching ACME directory from $server_url" );
 
-## Create HTTP client (use standard LWP::UserAgent
-## to allow localhost for testing)
+## Create HTTP client (use standard LWP::UserAgent  to allow localhost for
+## testing)
 my $ua = LWP::UserAgent->new( timeout => 10, );
 
 ## Disable SSL verification for localhost/test servers
@@ -42,8 +42,8 @@ unless ( exists $directory->{newAccount} && exists $directory->{newOrder} ) {
     return undef;
 }
 
-## Get initial nonce from header (HTTP/2)
-## or newNonce endpoint (HTTP/1.1 fallback)
+## Get initial nonce from header (HTTP/2)  or newNonce endpoint (HTTP/1.1
+## fallback)
 my $initial_nonce = $response->header('Replay-Nonce');
 
 <[base.logs]>->(
@@ -106,8 +106,8 @@ return {
     },
 };
 
-#,,,,,,,.,...,,..,,.,,.,.,...,,,,,,,.,..,,..,,..,,...,...,..,,.,,,.,,,..,,.,,,
-#STNBBMTUVRUEV3MWPM32W4TQYQN7ZVLBFKMJSXGMUSOVXFOC7JK4QJ6CI6AJX64WRAQPSQOS6ZS4K
-#\\\|352A4NQH6LPAX5JFRN3CNJ4ZWG5OAA5X5JR6B2ENV3BX32FL4EI \ / AMOS7 \ YOURUM ::
-#\[7]IBJYMBECNESFU7YJJZCQSVEKZSDN2RLI7RXKSJYW6B35HXQYOICI 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,.,,..,,..,,.,.,.,.,,,,,...,,,,,..,,...,...,.,,,.,,,..,,,..,...,
+#KFXW5NBI6FTAW7O72NVFNRNIC7NZDV6LXSBZADXCTD5VK2DLRRGG4BRM7B4FQ36KTS7YQINTM4X2U
+#\\\|27KUI7NX5KTND5XTPBZLX6TQSOHJ5JTLEZ77U25HCSRGVQAI6BR \ / AMOS7 \ YOURUM ::
+#\[7]EV3LAH2FRH5VZNFGU5HDC3STMAYPJDL66HVNOUK2IQWCXHY7ZECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

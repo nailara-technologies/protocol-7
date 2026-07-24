@@ -99,8 +99,8 @@ if ( $mode eq 'http-01' ) {
         'DNS-01 challenge (manual update required)'
     );
 
-    ## DNS-01 support coming in future phase
-    ## For now, just store the challenge data
+    ## DNS-01 support coming in future phase  For now, just store the
+    ## challenge data
     my $token           = $data->{token};
     my $challenge_value = $data->{challenge_value};
 
@@ -117,8 +117,8 @@ if ( $mode eq 'http-01' ) {
 
         <[base.log]>->(
             2,
-            "DNS-01 challenge stored for manual completion:"
-                . " $_.$domain TXT $challenge_value"
+            "DNS-01 challenge stored for manual "
+                . "completion: $_.$domain TXT $challenge_value"
         );
     }
 
@@ -131,8 +131,8 @@ if ( $mode eq 'http-01' ) {
 
 return FALSE;
 
-#,,,.,.,.,,..,...,,.,,.,.,,..,,..,...,.,,,,..,..,,...,...,...,.,,,,,.,,..,.,,,
-#JTPTQHN46ZF5QMDQR5DJ2C6CJDEMHBUDKGVKAVTWPHX5H7EMPRSMM7O5OFYHATJLE7VBJ6TC7TFPE
-#\\\|FVYGDO7NL2BTVTEAP2B2ZFY7BE4EDYFL66QFCEFTMSXTAOUVM2F \ / AMOS7 \ YOURUM ::
-#\[7]2OLJHCT7SWS4ZVRKZJ2V4VBVLFLW5NJNN65G35LOFH42I6UNTQCA 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,.,.,..,,...,.,,,,..,.,,,.,,,..,,..,,...,..,,.,.,..,,.,.,,..,,.,,
+#J6R2SE2G2C7QFQCE4HRS2UGRZGZGADK4VKIJ2TUD2RAFQRJS7PVU5RXJBL46Q4JYJ3PS767BADLQO
+#\\\|QQ753MJEZLJY77NEWIQ7X6FAUDWGJ6R54EUFM2LGESJPJACQ6AF \ / AMOS7 \ YOURUM ::
+#\[7]A7ZHRAP64XDPFH4DCPN4MYH2ZFK7FLW2QTYZN4USK64N5AWQFKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

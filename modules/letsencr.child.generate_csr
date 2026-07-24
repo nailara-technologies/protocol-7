@@ -15,9 +15,8 @@ my $primary_domain = $domains->[0];
 <[base.log]>->( 2, 'generating certificate key (RSA 2048-bit)...' );
 
 my ( $key_fh, $key_file ) = tempfile( UNLINK => 1 );
-system(
-    "openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out '$key_file' 2>/dev/null"
-);
+system(   "openssl genpkey -algorithm RSA -pkeyopt "
+        . "rsa_keygen_bits:2048 -out '$key_file' 2>/dev/null" );
 
 unless ( -f $key_file && -s $key_file ) {
     <[base.log]>->( 1, 'error: failed to generate RSA 2048-bit key' );
@@ -58,9 +57,8 @@ close($conf_fh);
 
 ## Generate CSR using openssl
 my ( $csr_fh, $csr_file ) = tempfile( UNLINK => 1 );
-system(
-    "openssl req -new -key '$key_file' -out '$csr_file' -config '$conf_file' 2>/dev/null"
-);
+system(   "openssl req -new -key '$key_file' -out "
+        . "'$csr_file' -config '$conf_file' 2>/dev/null" );
 
 unless ( -f $csr_file && -s $csr_file ) {
     <[base.log]>->( 1, 'error: failed to generate CSR' );
@@ -95,7 +93,8 @@ my $csr_b64url = <[letsencr.child.encode_base64url]>->($csr_der);
     created_at => time(),
 };
 
-## Store certificate key in child state (will be saved to disk after cert issued)
+## Store certificate key in child state (will be saved to disk after cert
+## issued)
 <letsencr.child.cert_key> = { pem => $key_pem, };
 
 return {
@@ -105,8 +104,8 @@ return {
     domains    => $domains,
 };
 
-#,,.,,,,,,.,.,.,,,,.,,,,.,,.,,,,.,,,.,...,.,.,..,,...,..,,.,.,,..,..,,.,,,.,,,
-#STNI2PJHXKW664APJJVZWSPK5MXHBPYZ6YPYPDGFU25FY2G7DIPGRTTBG6JLOU7VAYVJMAW3NGM2G
-#\\\|XZA5A5LI2P4MU76WVTQPTVPXPZ2AIZCFXZJQH6GP4DMGBJIXCBB \ / AMOS7 \ YOURUM ::
-#\[7]NNKJIB4VJTBDPFZPU4LHEAZAPHSGGDLMQ2SY4XSVD5HOI6AEJMAI 7  DATA SIGNATURE ::
+#,,..,.,,,,..,.,,,.,,,...,,..,.,.,,,,,,.,,,..,..,,...,...,,.,,,.,,,,,,,.,,..,,
+#WVCLG3FJJ5EPXF2EGR4IQCYNKBQTLL4O2EPTGTAP2I6TES2GO3NF2MA3KKKQZ6UCJSZSYZQAE75PC
+#\\\|HKAGX6WCKDHJLTYVAZIZWDXQN7Q3QNUFTO3FWAYIP6GIDTDR65L \ / AMOS7 \ YOURUM ::
+#\[7]C5RTO5QY7QSNOEAEKEGUKCVYJCDIUS3CVZ2LUOGDDF3XDVY652CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

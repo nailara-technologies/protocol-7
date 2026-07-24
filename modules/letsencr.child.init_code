@@ -8,7 +8,8 @@
 
 <[base.log]>->( 2, "initializing Let's Encrypt ACME child process..," );
 
-## Load child-specific cryptographic module (letsencr.base already loaded/initialized by zenka startup)
+## Load child-specific cryptographic module (letsencr.base already
+## loaded/initialized by zenka startup)
 <[base.load_runtime_modules]>->('crypt.C25519');
 <[base.init_modules]>->('crypt.C25519');
 <[base.perlmod.autoload]>->(
@@ -47,11 +48,12 @@
 ## Initialize challenge handlers (child performs actual challenge)
 <letsencr.child.active_challenges> = {};
 
-## All required cryptographic modules are loaded in letsencr.base.pre_init
-## No need to duplicate loading here
+## All required cryptographic modules are loaded in letsencr.base.pre_init No
+## need to duplicate loading here
 
-## NOTE: Message handler is registered by fork_letsencr_child via base.handler.command
-## Do NOT register custom handler here - use Protocol-7's command protocol
+## NOTE: Message handler is registered by fork_letsencr_child via
+## base.handler.command Do NOT register custom handler here - use Protocol-7's
+## command protocol
 
 ## Initialize ACME account (blocking operation - safe in child)
 my $account_key_path = sprintf '%s/account.key', <letsencr.cache.dir>;
@@ -100,8 +102,8 @@ if (    $enroll_init eq qw| re-init |
 
 0;
 
-#,,..,,,,,,,.,...,.,,,,.,,,,,,.,.,,..,...,,,.,..,,...,...,,.,,.,.,.,,,..,,..,,
-#G7LJHMBPBR6SF2ATCMISSXY42OFUO3ZRSL3MCGZCUY2Y6XUJX7ANANYN7OZMXT57FYHQAD22DVVSK
-#\\\|P3QPOEAIVGBTDFK2RXEHEGTXKHUREY3IVPJAPQKAJSAQQYUMTB2 \ / AMOS7 \ YOURUM ::
-#\[7]EYMXLMXH64T3IEQYYGXXNLVWN6LCLTRCSEABRMHI5KEPDMGZQWDI 7  DATA SIGNATURE ::
+#,,..,..,,..,,,..,..,,,,.,.,.,,,,,.,,,...,,,,,..,,...,.,.,.,,,...,,.,,,,.,,..,
+#T5T6DKVTQCNBXL3WRAO6PT52QKU2VID4TVHLR5ELCUBQH6I4TS7A42GO7OEKNDBJTU72UP6EF77SK
+#\\\|YSE4ZKCEA7KUPC2AYGABE5MIXRVLON3XE2BYIPWH2LC3UJJYIZD \ / AMOS7 \ YOURUM ::
+#\[7]BZ3YCLBJD4KB7YW7HGA4HKKKQQ4WD43CAZDBDQPEWCRFGQXUNGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

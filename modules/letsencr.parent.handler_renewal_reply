@@ -92,8 +92,8 @@ if ( $mode eq 'TRUE' ) {
             . " bytes)"
     );
 
-    ## Certificate data returned : decode base32r JSON bundle from child
-    ## trim trailing whitespace/newlines from SIZE protocol framing
+    ## Certificate data returned : decode base32r JSON bundle from child trim
+    ## trailing whitespace/newlines from SIZE protocol framing
     ( my $data_clean = $data // '' ) =~ s|\s+$||;
     my $bundle_json = eval { decode_b32r($data_clean) };
     my $cert_bundle
@@ -197,8 +197,8 @@ if ( $mode eq 'TRUE' ) {
     if ( !$notify_result || $notify_result->{status} ne 'success' ) {
         <[base.log]>->(
             1,
-            "warning: failed to notify httpd"
-                . " of certificate update for $domain"
+            "warning: failed to notify httpd "
+                . "of certificate update for $domain"
         );
     }
 
@@ -208,8 +208,8 @@ if ( $mode eq 'TRUE' ) {
 
 return FALSE;
 
-#,,,.,.,.,,.,,...,,,.,,,,,,,.,..,,.,,,.,,,,.,,..,,...,...,,..,.,.,,..,,..,..,,
-#VJAUIZQ4AGNEJYICUDK6YWZFIEIWPOQLCIBYR6L4DZV4KFZWAOD4JB7RGTOIVY2DFD3DB6YMV76V6
-#\\\|JDFX67CAG7BASXA4LRX3WWXPXW6WIHGUUHYRV2QMRPLRXQHE6QS \ / AMOS7 \ YOURUM ::
-#\[7]HXRFPK7F2BZFLCTVXUQSA25B4N7LDUEIJFTWS56WG7JQ3RSNCQDA 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,.,,.,,,,.,,,..,..,,,,,,,.,,,.,,..,,...,..,,..,,.,,,,,,,,,,,,,,,
+#UVN26UNBT2CG2H4277GMEMBNMWPRBBMEIZD5EACBI36FZKC57AGOFLICW6IPJ37EEVXPQYZFPE2YW
+#\\\|M23ZV2IUL4NRPM52TJJ72WOZV3VFH74MDWIDJ72OMHIFIUYY5D6 \ / AMOS7 \ YOURUM ::
+#\[7]XJ6EZLLMZPC3KMF2JRMZTGSGNRAAWG3R5CNAI4GC4C2O63OIJOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

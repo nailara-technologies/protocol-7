@@ -11,8 +11,8 @@ my $kid     = shift;    # Key ID for authenticated requests
 
 <[base.logs]>->( 3, "ACME HTTP %s to %s...", $method, substr( $url, 0, 50 ) );
 
-## Create HTTP client [ use standard LWP::UserAgent to
-##                         allow localhost for testing.. ]
+## Create HTTP client [ use standard LWP::UserAgent to  allow localhost for
+## testing.. ]
 
 my $ua = LWP::UserAgent->new( timeout => 10, );
 
@@ -76,8 +76,8 @@ unless ( $response->is_success ) {
         }
     }
 
-    ## Return error response to allow caller to handle
-    ## specific error types (e.g., badNonce retry)
+    ## Return error response to allow caller to handle  specific error types
+    ## (e.g., badNonce retry)
     my $err_nonce = scalar $response->header(qw| Replay-Nonce |);
     return {
         status  => $response->code,
@@ -111,8 +111,8 @@ return {
     headers => $response->headers,
 };
 
-#,,.,,.,.,.,.,,..,,..,,.,,...,,.,,,,,,,..,,..,..,,...,...,,.,,,,.,...,,,,,,.,,
-#IATKH3KYXDDNGVY47HXPQMOSOKW42BNAVVHKNJVXW2VAJJFPD5ZVDUBWB4SXSCI5OGMIFXUKW4ULI
-#\\\|LBRISPBKRCMVPQZQ5O5AZCGAYWH5MAX5FVCBDL44LCNX2B56UO7 \ / AMOS7 \ YOURUM ::
-#\[7]MLUZHFVNKGRMQKNMKHSZVAVXBQQ47B6XPUYDE4LOUT3FRR6JWEDQ 7  DATA SIGNATURE ::
+#,,..,,..,,,,,,.,,,,,,,.,,,,,,,.,,,,.,,..,..,,..,,...,...,.,.,...,.,.,,,,,,.,,
+#VNWNOO6VFWELCZ74GP2AAO6T4T33GQWJDYZG6KAMNVXDHAZJBXK3YNAMH5AYSPIGPEFHPBLVUSPO4
+#\\\|2VZY6MW5OKGM6PMFNZFTQG4HREYT5KG4YLSKC3WCTOU5UZN5ZYR \ / AMOS7 \ YOURUM ::
+#\[7]QGAE4LMW2IUQMMIVWHNZDF46BDXKXVZS7RPPLZKQ6EUQ2MF5MOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
