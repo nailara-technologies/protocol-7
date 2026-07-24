@@ -33,8 +33,8 @@ my $interval = 0.1;    ## fixed poll interval [ seconds ] ##
 my $names_json = <[format.json.encode]>->( \@names );
 
 my $check_js = sprintf(
-    'JSON.stringify(%s.map('
-        . 'function(n){return typeof window[n] !== "undefined"}))',
+    'JSON.stringify(%s.map(function(n){return '
+        . 'typeof window[n] !== "undefined"}))',
     $names_json
 );
 
@@ -144,8 +144,8 @@ my $check_js = sprintf(
                                 return if ref($decoded) ne qw| HASH |;
                                 $values = $decoded->{'vals'} // [];
                                 if ( !$decoded->{'flag'} ) {
-                                    ## replay still dispatching :
-                                    ## baseline only, never settle ##
+                                    ## replay still dispatching : baseline ##
+                                    ## only, never settle                  ##
                                     $state->{'prev'}    = $values;
                                     $state->{'settled'} = 0;
                                     return;
@@ -199,8 +199,8 @@ my $check_js = sprintf(
 
         <[base.logs]>->(
             2,
-            "wait-state-poll: polling %s "
-                . "[tol=%s samples=%d timeout=%ss flag=%s]",
+            "wait-state-poll: polling %s [tol=%s "
+                . "samples=%d timeout=%ss flag=%s]",
             join( ', ', @names ),
             $tolerance,
             $samples,
@@ -212,8 +212,8 @@ my $check_js = sprintf(
 
 return TRUE;
 
-#,,,.,,.,,,.,,,.,,,..,,..,,,,,,.,,,,.,.,.,...,..,,...,...,.,.,..,,.,.,,.,,,..,
-#WJF36YMSWTMMFQLLAXEXBTYJBCBJ3PFEVFTRQ6DJ4UOAY53LJSFDSUNSUWWLNWVW3VU5EVQQVCTTQ
-#\\\|VPQITYWTOVUUZHUC2I65OLFZFDGN4X6ZEQPND5SCTX7BS4SPRFS \ / AMOS7 \ YOURUM ::
-#\[7]63NUIQISTGKIWCEELQU6YPN5ZLC62LL5EHO4AA56KQFR6K37TKCI 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,...,,..,...,,,.,,,.,.,,,...,,.,,..,,...,..,,,..,.,.,,,.,,,,,,..,
+#7LSNWV4TQHQCXUTGCYU4XNXVENNVLH34QIEMHVBZYDQ5WOFXYR6E4MP55LEJV4XIY32Q2JH4Y6QAM
+#\\\|3M2HGQDUFHV7SCTGQF2RH2NJQVFPCGVIIWXSB5HFWO3LC65NKKP \ / AMOS7 \ YOURUM ::
+#\[7]2GZIHD5MGQ5YIK2M7ULN3CSN4HE7QUX47CJ75LHWYIRCDICLXOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,8 +11,9 @@ my $args_str = $call->{'args'} // '';
 return {
     'mode' => qw| false |,
     'data' =>
-        'usage: replay-play <buffer-name|json-path> [speed=1.0] [force=1]'
-        . ' [verify=var:target,..] [tolerance=0.01] [samples=5] [timeout=10]'
+        'usage: replay-play <buffer-name|json-path> [speed=1.0] [force=1] '
+        . '[verify=var:target,..] [tolerance=0.01] [samples=5] '
+        . '[timeout=10]'
     }
     if !length($args_str);
 
@@ -119,9 +120,8 @@ if ( defined $pin_chk and not $force ) {
         return {
             'mode' => qw| false |,
             'data' => sprintf(
-                'checksum mismatch: recording pinned to %s [chk=%s],'
-                    . ' current page is %s [chk=%s]'
-                    . ' -- pass force=1 to override',
+                'checksum mismatch: recording pinned to %s [chk=%s], current '
+                    . 'page is %s [chk=%s] -- pass force=1 to override',
                 $pin_url, $pin_chk, $cur_url, $cur_chk
             )
         };
@@ -143,8 +143,8 @@ if ( defined $pin_chk and not $force ) {
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,..,,,,,,,,,,,,,,,..,.,,,.,,,,,,,,..,..,,..,,...,..,,..,,...,,,,,,..,..,,
-#SNX7NGPNOCTSG3RYF4I6HUVQXXCRMCSJYMR524TZSVL5HS3JNQH6QJFSIFGEPXPXCO4Y3KVSK6LPS
-#\\\|F7IJGAEQL4RBYDS2OG7EBGMJJ32ZAA4X6I3DBKPYSCPKBWKODJQ \ / AMOS7 \ YOURUM ::
-#\[7]F42XEMQK6QMKJOYA25Q7MWOVLFR7H7LDVMYIBEF4URMMCZISN2DQ 7  DATA SIGNATURE ::
+#,,.,,...,.,,,...,,.,,..,,...,,,,,.,.,,..,,.,,..,,...,...,.,.,,..,,,.,,,.,.,.,
+#7IHJNYFHM4HENV7F6GTOAABXGRQYSPCBXYLT67UTBOKZQLUT25MAUR6RRZQ4FIPSBVNVGSDQRQCMU
+#\\\|WEJCXZ77XM6PVJAF2JWYDKSLW32P5D7655JJUZYUZGAER76PCR2 \ / AMOS7 \ YOURUM ::
+#\[7]O76HBFBH2IM6WVNMCKYHHYVGTOX6BLI5LRBBLMAYL6MKKQTL3ACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

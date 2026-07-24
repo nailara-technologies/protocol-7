@@ -22,6 +22,13 @@ use constant FALSE => 0;    ##  false  ##
 
 use constant LINE_MAX => 78;
 
+##  perltidy runs AFTER this tool and re-indents continuation lines to its
+##  own convention, which can land deeper than the quote's original column
+##  [ what this tool's own split-width budget assumes ] -- reserve this
+##  much headroom on any continuation line's budget so a split that looks
+##  tight-but-fitting here doesn't overflow once perltidy re-indents it ##
+use constant CONT_MARGIN => 4;
+
 $OUTPUT_AUTOFLUSH = TRUE;
 
 ##[ argv parsing ]##
@@ -240,9 +247,20 @@ sub preprocess_source {
             }
         }
 
-        ##  step 4 : realign a contiguous block of '##  text  ##' lines  ##
+        ##  step 4 : realign a contiguous block of '##  text  ##' lines --
+        ##  also routes a single over-budget '##'-line here instead of
+        ##  step2 : step2's own wrap doesn't know step4's any_close
+        ##  padded-both-sides rendering, so a single long bracketed line
+        ##  wrapped by step2 produced 2 lines that only THEN qualified as
+        ##  a step4 block on the next run and got re-rendered padded --
+        ##  an oscillating fixed point instead of a converged one. sending
+        ##  a lone over-budget line through the same renderer as a real
+        ##  multi-line block closes that gap at the source ; an
+        ##  already-fitting single line is untouched either way [ step4
+        ##  only rewraps when the content needs it ]  ##
         my $block_len = comment_block_length( \@lines, $lnum, \%skip );
-        if ( $block_len >= 2 ) {
+        if ( $block_len >= 2
+            or ( $block_len == 1 and length_no_nl($line) > LINE_MAX ) ) {
             push @out,
                 @{ step4_align_comment_block( \@lines, $lnum, $block_len ) };
             $lnum += $block_len;
@@ -614,6 +632,117 @@ sub collect_concat_chains {
     return @chains;
 }
 
+##[ shared : split $flat_value across as many physical lines as it actually
+##  needs. tries the original balanced 2-way split first [ same tested
+##  logic that already fixed "unbalanced split" earlier -- only accepted
+##  when BOTH resulting lines are verified to fit ] ; falls back to
+##  greedy-maximal repeated fill for 3+ lines. an earlier version of this
+##  used a separate up-front pass to COUNT how many lines were needed ,
+##  then a second balanced pass to fill them -- those two passes could
+##  disagree [ balance takes smaller-than-max chunks, so the precomputed
+##  count came up short ] and the forced-final line silently absorbed the
+##  overflow instead of erroring. greedy-maximal never has that gap : it
+##  only ever stops once the actual remainder is verified to fit  ##
+sub split_into_lines {
+    my ( $flat_value, $quote_ch, $before, $after, $nl, $cont_indent ) = @_;
+
+    my $prefix_len_first = length($before);
+
+    ##  does it fit fully on one line ?  ##
+    my $one_line_len
+        = $prefix_len_first + 1 + length($flat_value) + 1 + length($after);
+    if ( $one_line_len <= LINE_MAX ) {
+        return [
+            $before . $quote_ch . $flat_value . $quote_ch . $after
+                . ( $nl || "\n" )
+        ];
+    }
+
+    ##  try the balanced 2-way split  ##
+    my $max_inner1 = LINE_MAX - $prefix_len_first - 3;
+    if ( $max_inner1 >= 1 ) {
+        my $max_inner2
+            = LINE_MAX - $prefix_len_first - 4 - length($after)
+            - CONT_MARGIN;
+        if ( $max_inner2 >= 1 ) {
+            my $lower_bound = length($flat_value) - $max_inner2;
+            my @safe_splits
+                = find_split_positions( $flat_value, $quote_ch );
+            my $target = length($flat_value) / 2;
+            my ( $best, $best_dist );
+            for my $p (@safe_splits) {
+                next if $p > $max_inner1;
+                next if $p < $lower_bound;
+                my $dist = abs( $p - $target );
+                if ( not defined $best_dist or $dist < $best_dist ) {
+                    $best      = $p;
+                    $best_dist = $dist;
+                }
+            }
+            if ( defined $best ) {
+                my $part1 = substr( $flat_value, 0, $best );
+                my $part2 = substr( $flat_value, $best );
+                return [
+                    $before . $quote_ch . $part1 . $quote_ch . "\n",
+                    $cont_indent
+                        . qw| . | . ' '
+                        . $quote_ch
+                        . $part2
+                        . $quote_ch
+                        . $after
+                        . ( $nl || "\n" ),
+                ];
+            }
+        }
+    }
+
+    ##  2 lines isn't enough -- greedy-maximal repeated fill for however
+    ##  many [ 3 , 4 , .. ] it actually takes ; always verified to fit
+    ##  before stopping , so it can never overflow the way the two-pass
+    ##  approach did  ##
+    my @out;
+    my $remaining = $flat_value;
+    my $is_first  = 1;
+    my $guard     = 0;
+    while (1) {
+        return undef if $guard++ > 1000;    ## runaway-loop safety guard ##
+        my $prefix = $is_first ? $before : ( $cont_indent . qw| . | . ' ' );
+        my $prefix_len = length($prefix);
+        my $margin     = $is_first ? 0 : CONT_MARGIN;
+
+        my $final_len
+            = $prefix_len + 1 + length($remaining) + 1 + length($after)
+            + $margin;
+        if ( $final_len <= LINE_MAX ) {
+            push @out,
+                $prefix . $quote_ch . $remaining . $quote_ch . $after
+                . ( $nl || "\n" );
+            last;
+        }
+
+        my $max_inner
+            = LINE_MAX - $prefix_len - 2 - $margin;   ## open+close quote ##
+        return undef if $max_inner < 1;
+
+        my @safe_splits = find_split_positions( $remaining, $quote_ch );
+        return undef if not @safe_splits;
+
+        my $best;
+        for my $p (@safe_splits) {
+            next if $p > $max_inner;
+            $best = $p;    ## greedy-maximal , always safe , makes progress ##
+        }
+        return undef if not defined $best;
+
+        push @out,
+            $prefix . $quote_ch . substr( $remaining, 0, $best ) . $quote_ch
+            . "\n";
+        $remaining = substr( $remaining, $best );
+        $is_first  = 0;
+    }
+    return \@out;
+}
+
 ##[ step 0 : rejoin an existing multi-line '.'-concat chain , then re-split
 ##  it from scratch at the ideal balanced point -- once each fragment of an
 ##  existing split individually fits under LINE_MAX, step1 never
@@ -657,52 +786,14 @@ sub step0_rejoin_concat_chain {
     ##  exactly what perl's own '.' operator produces at runtime ##
     my $flat_value = join '', map { substr( $_->content, 1, -1 ) } @toks;
 
-    my $prefix_len = $start_col - 1;
-
-    ##  does the whole thing now fit fully rejoined on one line ?  ##
-    my $one_line = $before . $quote_ch . $flat_value . $quote_ch . $after;
-    if ( length($one_line) <= LINE_MAX ) {
-        return [ $one_line . ( $nl || "\n" ) ];
-    }
-
-    ##  otherwise : same balanced 2-way split as step1 , from scratch  ##
-    my $max_inner1 = LINE_MAX - $prefix_len - 3;
-    return undef if $max_inner1 < 1;
-
-    my $max_inner2  = LINE_MAX - $prefix_len - 4 - length($after);
-    my $lower_bound = length($flat_value) - $max_inner2;
-
-    my @safe_splits = find_split_positions( $flat_value, $quote_ch );
-    return undef if not @safe_splits;
-
-    my $target = length($flat_value) / 2;
-    my ( $best, $best_dist, $fallback );
-    for my $p (@safe_splits) {
-        next if $p > $max_inner1;
-        $fallback = $p;
-        next if $p < $lower_bound;
-        my $dist = abs( $p - $target );
-        if ( not defined $best_dist or $dist < $best_dist ) {
-            $best      = $p;
-            $best_dist = $dist;
-        }
-    }
-    $best //= $fallback;
-    return undef if not defined $best;
-
-    my $part1 = substr( $flat_value, 0, $best );
-    my $part2 = substr( $flat_value, $best );
-
+    my $prefix_len          = $start_col - 1;
     my $continuation_indent = ' ' x $prefix_len;
-    my $part1_token         = $quote_ch . $part1 . $quote_ch;
-    my $part2_token         = $quote_ch . $part2 . $quote_ch;
 
-    my $line1 = $before . $part1_token . "\n";
-    my $line2
-        = $continuation_indent . qw| . | . ' ' . $part2_token . $after
-        . ( $nl || "\n" );
-
-    return [ $line1, $line2 ];
+    ##  re-derive however many physical lines this actually needs from
+    ##  scratch -- covers the already-fits-on-one-line case too [ that
+    ##  comes back as a single-element result ]  ##
+    return split_into_lines( $flat_value, $quote_ch, $before, $after, $nl,
+        $continuation_indent );
 }
 
 ##[ step 1 : split a long-line quoted string at whitespace boundary ]##
@@ -723,18 +814,9 @@ sub step1_split_long_string {
         my $inner = substr( $content, 1, -1 );
         next if $inner !~ m{\s};
 
-        ##  budget : col + 1 (open quote) up to LINE_MAX leaves room for
-        ##  inner chars and closing quote + trailing space  ##
         my $prefix_len = $col - 1;    ## 0-based column of first char ##
-        ##  available width for content of part1 + closing quote on line 1 :
-        ##  prefix_len + 1 [open] + part1_len + 1 [close] + 1 [optional sp]
-        ##  must be <= LINE_MAX  ##
-        my $max_inner1 = LINE_MAX - $prefix_len - 3;
-        next if $max_inner1 < 1;
 
-        ##  what follows the token on the source line -- needed up front
-        ##  so line 2's budget can factor in , letting the split aim for
-        ##  balance instead of just "fill line 1 as much as possible"  ##
+        ##  what follows the token on the source line  ##
         my $tok_start_idx = $tok->{idx};    ##  0-based start of token
         my $tok_end_idx   = $tok->{idx} + $tok->{length};
         my $before        = substr( $line, 0, $tok_start_idx );
@@ -744,64 +826,18 @@ sub step1_split_long_string {
         my $nl = '';
         if ( $after =~ s{(\r?\n)$}{} ) { $nl = $1 }
 
-        ##  line 2 : continuation-indent + '. ' + open-quote + part2 +
-        ##  close-quote + $after -- must also fit <= LINE_MAX  ##
-        my $max_inner2  = LINE_MAX - $prefix_len - 4 - length($after);
-        my $lower_bound = length($inner) - $max_inner2;
-
-        ##  find whitespace split positions inside $inner [ not inside
-        ##  interpolation for double-quoted ]  ##
-        my @safe_splits = find_split_positions( $inner, $quote_ch );
-        next if not @safe_splits;
-
-        ##  prefer the split closest to the midpoint [ balanced two lines
-        ##  instead of a near-empty leftover ] among positions that fit
-        ##  both line budgets; fall back to the old "largest that fits
-        ##  line 1" behaviour if none satisfy both  ##
-        my $target = length($inner) / 2;
-        my ( $best, $best_dist, $fallback );
-        for my $p (@safe_splits) {
-            next if $p > $max_inner1;
-            $fallback = $p;
-            next if $p < $lower_bound;
-            my $dist = abs( $p - $target );
-            if ( not defined $best_dist or $dist < $best_dist ) {
-                $best      = $p;
-                $best_dist = $dist;
-            }
-        }
-        $best //= $fallback;
-        next if not defined $best;
-
-        my $part1 = substr( $inner, 0, $best );
-        my $part2 = substr( $inner, $best );
-        ##  keep the splitting whitespace on the trailing edge of part1  ##
-        ##  best is at a position just after a whitespace boundary  ##
-
-        ##  compose new lines  ##
         my $continuation_indent = ' ' x ($prefix_len);
-        my $part1_token         = $quote_ch . $part1 . $quote_ch;
-        my $part2_token         = $quote_ch . $part2 . $quote_ch;
 
-        my $line1 = $before . $part1_token . "\n";
-        my $line2
-            = $continuation_indent
-            . qw| . | . ' '
-            . $part2_token
-            . $after
-            . $nl;
-        $line2 .= "\n" if $nl eq '';
+        ##  re-derive however many physical lines this actually needs from
+        ##  scratch -- generalizes the old single 2-way split, which
+        ##  silently produced an over-budget line whenever the content
+        ##  needed 3+ lines instead of 2  ##
+        my $result = split_into_lines( $inner, $quote_ch, $before, $after,
+            $nl, $continuation_indent );
+        next if not defined $result;
+        next if @$result < 2;    ## this token alone didn't need splitting ##
 
-        ##  if either resulting line still exceeds budget , do nothing  ##
-        ##  [ perltidy can wrap shorter lines downstream ]  ##
-        if ( length_no_nl($line2) > LINE_MAX ) {
-
-            ##  recursive descent : try splitting part2 again  ##
-            ##  build minimal token info and recurse  ##
-            ##  for safety , just return both lines and let ptd handle  ##
-        }
-
-        return [ $line1, $line2 ];
+        return $result;
     }
     return undef;
 }
@@ -1133,8 +1169,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,,.,,,.,,,.,.,.,...,,,,,,,.,.,,,,..,.,,,,,,,..,,...,...,,..,...,..,,...,...,
-#NBFWAZC36IWSMROLCMD7LRISX7VZTHCUEPZFAFPC3IJPUGLONPLGEG6NPM32OQJYKYGBPJXSP4QA4
-#\\\|7AFMTMLZEVOPVQFR3YIIJ27QQPMWTBVT4HJJG5B2WXT3LETSD55 \ / AMOS7 \ YOURUM ::
-#\[7]X47MRIG4NSFJY2PDKZXQZI2D5AUMAMOX2TRORNTFCT74FA6DXYDY 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,.,.,,.,,,,.,.,,,,.,,,.,,.,,,,,,,..,,...,...,.,,,,.,,,,,,...,,,,,
+#7VID5QTORCZG53H2F33PSNGLA4ASNFCYHVWKZFQ53EY7YWC2OUU2UJMN6INNB5Z3VO2LFR7X26GIK
+#\\\|ISZQCY62EZOD7OTJHSCRWLQAIVXIUUL27LIFTOGNZLCJ5I4FIVV \ / AMOS7 \ YOURUM ::
+#\[7]AZFPUDPT7TIJNT4BOIQXOEXSBE6AGYRXZPKZM3ZCSHUR7YQFDSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

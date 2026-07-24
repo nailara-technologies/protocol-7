@@ -13,9 +13,9 @@ my $args_str = $call->{'args'} // '';
 
 return {
     'mode' => qw| false |,
-    'data' => 'usage: state-play <var=target> .. duration=<ms>'
-        . ' [path=linear|bezier] [steps=<n>] [tolerance=0.01]'
-        . ' [samples=5] [timeout=10]'
+    'data' => 'usage: state-play <var=target> .. duration=<ms> '
+        . '[path=linear|bezier] [steps=<n>] [tolerance=0.01] '
+        . '[samples=5] [timeout=10]'
     }
     if !length($args_str);
 
@@ -110,9 +110,9 @@ my @names = sort keys %targets;
 
 ##  read current values via the window.debug<Name> one-way mirrors  ##
 my $read_js = sprintf(
-    'JSON.stringify({hooks:%s.map(function(n){return typeof'
-        . ' (window.__p7SetState||{})[n]}),vals:%s.map('
-        . 'function(n){return window[n]})})',
+    'JSON.stringify({hooks:%s.map(function(n){return typeof '
+        . '(window.__p7SetState||{})[n]}),vals:%s.map(function(n){return '
+        . 'window[n]})})',
     <[format.json.encode]>->( \@names ),
     <[format.json.encode]>->( [ map { 'debug' . ucfirst($ARG) } @names ] )
 );
@@ -224,8 +224,8 @@ my $read_js = sprintf(
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,,.,,.,.,...,,.,,,,,,,,,,,,.,...,.,,,,.,,..,,...,..,,.,,,.,.,,,,,,,,,.,,,
-#VIE6NH3YMUIDEHDBWX75WTRJSVVT3PB5TLD5VGMWDX5OC6WDW5CDC7324XSRUORHJMCMM4N7ACOK2
-#\\\|LTCDAOLTLRLQED4FWJBM4XVQFLE7CXX7VVQBUNHUMBHZZPE3YGJ \ / AMOS7 \ YOURUM ::
-#\[7]MUMVA5RO3I54FOHX5X2BD3FCXYOJQW3Z3UUNBFJJDL5POR3RSICA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,..,.,,,..,,..,,.,.,,,.,,,,,...,..,,...,...,...,...,.,.,,,,,...,
+#X6QJ4XZAUFFMYDOROZOOXLOP2GQUFLS5PMLYTRG2TJ7RY44OBEUD4MNCYYW3WCERTG6ZMPP2MRX3M
+#\\\|MSVADSP7PZRZDZBLKZXCGKG3LKWEQE2OY2PDB4ZXES5TYIYGZ2S \ / AMOS7 \ YOURUM ::
+#\[7]4QUIKMUX4KVDIHRC6NZGISK2H7G3IP4HZ7HPMSLTTURDBUMW6ABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

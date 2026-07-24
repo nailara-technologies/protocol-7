@@ -68,10 +68,9 @@ if ( $action eq qw| start | ) {
     $js .= sprintf( 'window.__p7ReplayTarget = %s;', $target_expr )
         if length $target_expr;
     $js
-        .= 'window.__p7ReplayBuffer = [];'
-        . ' window.__p7ReplayStartTime = Date.now();'
-        . ' window.__p7RecordingActive = true;'
-        . ' window.__p7RecordingActive === true;';
+        .= 'window.__p7ReplayBuffer = []; window.__p7ReplayStartTime = '
+        . 'Date.now(); window.__p7RecordingActive = true; '
+        . 'window.__p7RecordingActive === true;';
 
     <[web-browser.js_call]>->(
         $js,
@@ -107,8 +106,8 @@ if ( $action eq qw| start | ) {
 
 ##  action : stop  ##
 
-my $stop_js = 'window.__p7RecordingActive = false;'
-    . ' ( window.__p7ReplayBuffer || [] ).length;';
+my $stop_js = 'window.__p7RecordingActive = false; ( '
+    . 'window.__p7ReplayBuffer || [] ).length;';
 
 <[web-browser.js_call]>->(
     $stop_js,
@@ -134,8 +133,8 @@ my $stop_js = 'window.__p7RecordingActive = false;'
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,..,,,..,.,,,..,,..,,,..,,.,,...,.,.,,,.,..,,...,...,.,,,...,..,,,,,,,..,
-#IL6VWZII6XE3LBM2K2WWLJJNNNUJZSUAVXNCEZFIRNZQXLFHBNSZKMXWJBYPZATVG5QITMLCEF626
-#\\\|K7OX4B7JWVJGZULZB2YCI57M3KKUT6Q4MIX5XV527CY3V5E6OHQ \ / AMOS7 \ YOURUM ::
-#\[7]JAKKCUZ2YYDKZS2VIUPCWNB7RCCW4PO4VJOMTHYB7IY2Q2YHVKAI 7  DATA SIGNATURE ::
+#,,,.,.,,,...,.,,,.,,,,.,,,,,,..,,,,,,...,..,,..,,...,...,...,.,,,.,,,.,.,...,
+#SEN25PI7H4AUFA3AVCRWOO7UYWHMCEBHJ4FCT3OFCSO5YUOOBBF2VS7TRK7CXW662O5VLW7N6374Y
+#\\\|UJUHD3TRN7EVRSVKD6KPCVAPGIEQ2LJLEHWA5KEALIHTBECKSJB \ / AMOS7 \ YOURUM ::
+#\[7]BO7Z65B2IAS5CXVF7C4UX3DTBEVGRG7FBRIXKTB7ND53NRJ5T2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
