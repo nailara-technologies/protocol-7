@@ -84,8 +84,8 @@ sub check_path {
                     print ": directory created : $current_path_short\n";
                 }
             } else {
-                die
-                    ":: cannot create directory '$current_path' : \l$OS_ERROR ::\n";
+                die ":: cannot create directory "
+                    . "'$current_path' : \l$OS_ERROR ::\n";
             }
         }
     }
@@ -101,13 +101,13 @@ sub create_dir {
     if ( $full_path =~ /^(.+)\/([^\/]+)$/ ) {
         ( $parent_dir, $new_dir ) = ( $1, $2 );
     } else {
-        die
-            ":: create_dir() : directory argument should include full path ::\n";
+        die ":: create_dir() : directory argument "
+            . "should include full path ::\n";
     }
 
     if ( !-d $parent_dir ) {
-        die
-            ":: create_dir() : parent directory '$parent_dir' does not exist ::\n";
+        die ":: create_dir() : parent directory "
+            . "'$parent_dir' does not exist ::\n";
     }
 
     if ( !-d $full_path ) {
@@ -139,8 +139,8 @@ sub clean_dir {
             }
             return TRUE;
         } else {
-            die
-                ":: clean_dir() : removing directory '$directory_path' failed : \l$OS_ERROR ::\n";
+            die ":: clean_dir() : removing directory "
+                . "'$directory_path' failed : \l$OS_ERROR ::\n";
         }
     }
 
@@ -297,8 +297,8 @@ sub save_metadata {
                 print ":: backup metadata saved to $file_name_short ::\n\n";
             }
         } else {
-            die
-                ":: cannot open backup metadata file '$file_name' : \l$OS_ERROR ::\n";
+            die ":: cannot open backup metadata "
+                . "file '$file_name' : \l$OS_ERROR ::\n";
         }
     } else {
         die ':: save_metadata() :: nothing to save ::';
@@ -341,8 +341,8 @@ sub load_metadata {
         my $file_contents = qx| tar zxf $file_name $metadata_filename -O |;
         @metadata_file = split( m|\n|, $file_contents );
     } else {
-        die
-            ":: load_metadata() : unsupported file format for '$file_name' ::\n";
+        die ":: load_metadata() : unsupported "
+            . "file format for '$file_name' ::\n";
     }
 
     foreach my $data_line (@metadata_file) {
@@ -554,8 +554,8 @@ sub _add_path {
 
 1;
 
-#,,,.,.,.,,.,,,,.,,.,,,.,,..,,.,.,..,,,..,,,.,..,,...,.,.,.,.,,..,..,,,.,,,,,,
-#2YWGXXFNV5PZM3WMX5JTMMDLK2PVJRNHAJXS4CMI27JOO5CQ4LHGETEEOVATZRMQ5VGBSNKUDKKXU
-#\\\|HH3J4FYGSD7VNOT3V5TYIWZU4LJW3CRPXOXI65R275PAUXICDTD \ / AMOS7 \ YOURUM ::
-#\[7]GIWSSVNOUB2AOEVT5TMQE2BHZ3HHPO7IIHCLJZQDXRDGWOSK6SDA 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,..,,,,.,,.,,.,.,,..,..,,...,..,,..,,...,...,.,.,.,.,.,.,.,,,,,,,
+#F5U3IBPZ3OI5ITXHIZXXDLYTUXCSZTBDY3G7MRPAYVAW4KYWD32TQE7QCUC5Y72OKUA2QJT7ZJRX4
+#\\\|WSEI73BSMZOR2HEZOV5A2NTQJWLXA33OT63PYMSUB7GNKRQTLWB \ / AMOS7 \ YOURUM ::
+#\[7]5PPVKRLXFKIQHRPOCAYE6GPRH6EKNNC6LZW37KAAI37EF6G4Y6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

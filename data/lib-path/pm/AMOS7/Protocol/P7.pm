@@ -32,8 +32,8 @@ our $port_ranges = {    ##  deal with overlap collisions  ##   [LLL]
     qw| internal | => { 'start' => 42, 'end' => 577 }
 };
 
-## if installation path differs from base path       ##
-## and base path exists, ports will be recalculated  ##
+## if installation path differs from base path  and base path exists, ports ##
+## will be recalculated                                                     ##
 
 our $allow_port_recalculation = 1;
 our $installation_path        = $protocol_7_root;
@@ -152,7 +152,7 @@ sub calc_unix_path {    ## calc unix socket path for ip address port pair ##
     }
 
     my $chksum_template = qw| ip\\\\%s[%s:%d] |;
-    my $truth_template  = qw| /var/run/.7/UNIX/%s |;   ## [LLL] <-- config
+    my $truth_template  = qw| /var/run/.7/UNIX/%s |;    ## [LLL] <-- config
 
     my $calc_input_string
         = sprintf( $chksum_template, $ip_proto, $ip_addr, $ip_port );
@@ -162,8 +162,8 @@ sub calc_unix_path {    ## calc unix socket path for ip address port pair ##
 
 return 5;  ###################################################################
 
-#,,..,..,,,..,,.,,.,,,,..,.,.,...,..,,,,.,.,.,..,,...,...,..,,..,,,.,,...,,,,,
-#JHF337DOHEC6PEGCO426CNLX65KQJYYPK5AZOJPDT3PF36RYCORGXXWW6CAXLNDBBPJLBKTIAKGTC
-#\\\|HQVNWB7XNJP7AEQZRLYWKYI67BILQI3AALK5FB6MEPI24VR2RUQ \ / AMOS7 \ YOURUM ::
-#\[7]IUBKZAG55DDQJXVVPZDWX3TFH5FA5DFXUALIE6VGDT4YNIWQYCAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,,.,,.,,,,,.,.,.,,.,,...,,..,...,..,,...,...,...,,.,,,,.,,..,..,,
+#7SNWXBTG4WEHUJNEYNW4JFXHIJOMIYSNYPMCDHTXKLGTSESMVJLPONBM35UWTVMEBZYF7QYQFNGXI
+#\\\|24PES5AND66HCN3NSSCRLOZ5OL6G52ZIWWHZHX5555CVPCWAJ5O \ / AMOS7 \ YOURUM ::
+#\[7]XCHLYWQOQPR54VYNJOIC7XEGDHJBN2S6R2UO4QXVADB3FD2S4EBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -330,8 +330,16 @@ sub comment_block_line_parts {
         $has_close = 1;
     }
 
-    return undef if $content eq qw| [:< |;      ## module header ##
-    return undef if $content =~ m{^\[.*\]$};    ## bracket annotation ##
+    return undef if $content eq qw| [:< |;    ## module header ##
+
+    ##  bracket annotation [ '## [ short remark ] ##' ] is a deliberate,
+    ##  widely-used atomic-remark convention -- protect it from reflow ONLY
+    ##  while it already fits ; once it exceeds LINE_MAX there's no
+    ##  fallback that ever wraps it otherwise, so it would overflow
+    ##  forever instead of just this once  ##
+    return undef
+        if $content =~ m{^\[.*\]$}
+        and length_no_nl($line) <= LINE_MAX;
     ##  strip only leading/trailing whitespace -- the has_close branch
     ##  above already consumed any right-padding that sat before a
     ##  misaligned '##' [ '\s*\#\#\s*$' ] , so nothing but true edge
@@ -950,7 +958,6 @@ sub step2_reflow_comment {
     ##  detect ## comment line [ pure comment ]  ##
     ##  exclusions :
     ##    ## [:< ##         module header
-    ##    ## [ ... ] ##     annotation
     ##    #!                shebang
     ##    #,                signature
     ##  any leading code disqualifies [ handled by step 3 instead ]  ##
@@ -964,8 +971,13 @@ sub step2_reflow_comment {
     my $nl      = $4 // "\n";
 
     ##  exclusion patterns  ##
-    return undef if $content =~ m{^\[:< \#\#$};          ## module header ##
-    return undef if $content =~ m{^\[.*\]\s*\#?\#?$};    ## annotation ##
+    return undef if $content =~ m{^\[:< \#\#$};    ## module header ##
+
+    ##  NOTE : no bracket-annotation exclusion here -- this function is
+    ##  only ever called once the line is ALREADY over LINE_MAX [ see the
+    ##  guard at the top ], so an annotation reaching this point is by
+    ##  definition too long to leave untouched ; a within-budget one never
+    ##  gets here at all and stays fully protected as intended  ##
 
     my $width = LINE_MAX - length($indent) - length($prefix);
     return undef if $width < 20;    ##  too narrow , skip  ##
@@ -1169,8 +1181,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,,.,.,,,..,,.,.,,.,,,,.,.,,,,.,,,.,,.,,,,,,,..,,...,...,.,,,,.,,,,,,...,,,,,
-#7VID5QTORCZG53H2F33PSNGLA4ASNFCYHVWKZFQ53EY7YWC2OUU2UJMN6INNB5Z3VO2LFR7X26GIK
-#\\\|ISZQCY62EZOD7OTJHSCRWLQAIVXIUUL27LIFTOGNZLCJ5I4FIVV \ / AMOS7 \ YOURUM ::
-#\[7]AZFPUDPT7TIJNT4BOIQXOEXSBE6AGYRXZPKZM3ZCSHUR7YQFDSDQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,..,..,,,..,.,.,...,,.,,,,,,...,..,,...,...,..,,,..,.,.,,,,,,.,,
+#QJUSUNF5THGG6RWGB6V4CSW2RKSG6F5ZD7VJJ355KWDICLXA7DRAWNRLWY3SUI5KMCQHI2N4KRT2U
+#\\\|TRMWEQT6KBBJRV2P6O5VW5UGTMRC25YRYCK2CI65C2ZGKZR5CKH \ / AMOS7 \ YOURUM ::
+#\[7]YIHV5ZT7HGROATBEPKDLOHWI5UPDNGLVKG3UWZHBLYWTP7ORS2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

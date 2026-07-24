@@ -14,17 +14,17 @@ use v5.24;
 use strict;
 use English;
 use warnings;
-use Cwd qw| abs_path |;
-use File::Path qw| make_path |;
+use Cwd             qw| abs_path |;
+use File::Path      qw| make_path |;
 use List::MoreUtils qw| minmax |;
 
-use Digest::BMW qw| bmw_256 |;    ## path name generation ##
+use Digest::BMW qw| bmw_256 |;       ## path name generation ##
 use Crypt::Misc qw| encode_b32r |;
 
 ##[ AMOS MODULE ]#############################################################
 
-use AMOS7;                        ## error handling ##
-use AMOS7::FILE;                  ## get_homepath ##
+use AMOS7;                           ## error handling ##
+use AMOS7::FILE;                     ## get_homepath ##
 
 our $devmod_output_to_console = FALSE;    ##  display build warnings  ##
 
@@ -132,9 +132,12 @@ sub compile_inline_source {
 
         ## skip already installed routines unless update-routine ##
         ##
-        if ( not $re_compile
-            and defined $subroutines_installed->{ sprintf '%s::%s',
-                $target_package, $current_sub_name } ) {
+        if (not $re_compile
+            and defined $subroutines_installed->{
+                sprintf '%s::%s',
+                $target_package, $current_sub_name
+            }
+        ) {
             $total_subroutine_count--;    ## do not warn ##
             next;
         }
@@ -346,8 +349,8 @@ sub encoded_bmw_chksum {
 
 return TRUE ##################################################################
 
-#,,,.,...,,,,,,..,.,,,,.,,.,,,,.,,.,,,..,,,,.,..,,...,...,..,,...,,,.,.,.,.,,,
-#2U3O6NEHNDELO6RUOPBXZYTTYZHXDRWWZQUYHSEIRWNYML3G6C3HOZNO52VAQ23TS4F2ISCREZ6AG
-#\\\|R6L7NU7WUEM4EGU2WHOD56XYDID5G2E2H3QRHJEJ7RA6LKS6NRM \ / AMOS7 \ YOURUM ::
-#\[7]GO33LH7GEHWN5CHDHUMBNWLW5M7VZ4WDTMPO3MKFGEQCR5BOMQBA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,..,,,,.,,..,,,,,,,.,,.,,,.,,.,,,..,,...,..,,.,,,.,,,.,,,,,.,.,.,
+#E6U4G6OJR75THKQF3MF2FDDEKZNIYXVWCDTN4BLJM5HWDSWE77GPTDKRXYCTTX5SCHQPPSG2DLYCM
+#\\\|NVSIFQWODC42XREHUVPZIGUWNHOYERFADHKVRSUVNCUPZDXEOUC \ / AMOS7 \ YOURUM ::
+#\[7]RY6NSC2O4E7BOY4PMXIQTN7VDC2HCZUF7N3YFAG43DQ67FI7CADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

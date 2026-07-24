@@ -56,16 +56,16 @@ sub key_init {
         warn_err('expected twofish object name <{C1}>');
         return undef;
     } elsif ( $o_type eq qw| encryption | ) {
-        ##  encryption table with cipher object, key, and IV  ##
-        ##  Second parameter 0 = no padding (matches Crypt::Twofish2 behavior)  ##
+        ## encryption table with cipher object, key, and IV  Second    ##
+        ## parameter 0 = no padding (matches Crypt::Twofish2 behavior) ##
         $encryption_table{$o_name} = {
             cipher => Crypt::Mode::CBC->new( 'Twofish', 0 ),
             key    => $crypt_key,
             iv     => "\0" x 16,    ## Initialize IV to zero vector ##
         };
     } else {
-        ##  decryption table with cipher object, key, and IV  ##
-        ##  Second parameter 0 = no padding (matches Crypt::Twofish2 behavior)  ##
+        ## decryption table with cipher object, key, and IV  Second    ##
+        ## parameter 0 = no padding (matches Crypt::Twofish2 behavior) ##
         $decryption_table{$o_name} = {
             cipher => Crypt::Mode::CBC->new( 'Twofish', 0 ),
             key    => $crypt_key,
@@ -195,8 +195,8 @@ sub decrypt {
 
 return TRUE ##################################################################
 
-#,,..,,..,,.,,...,,.,,,,,,,,.,,.,,.,,,,..,,.,,..,,...,...,,.,,,,.,..,,.,,,,,.,
-#FHKVZ6YIOMZMLXQIQRAZPILLGKJWH2UPSPTQWBMPEJ7FOIPRQLOTVWAL55RVS2SYZQQ3Z6R7CXVKA
-#\\\|6DZDEPZMYPFWQ7TYUY5YWDIZ5PWQR2FBRQLYZW3ZWDIMGHJXRRL \ / AMOS7 \ YOURUM ::
-#\[7]M755QCR7EDMMAXELR2GCKCEMV727MOVK4S5BYMTNMQRDUL3W7EAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,,,,,,.,...,.,,,,.,,,,,,.,.,,..,..,,...,...,,,,,,..,..,,,,.,.,.,
+#6AXMN5YW47RWZ4QGEBE6DU26V65JBTT6UVGXACTWOX3PLSVAX73KO52HZQ62VTYDLBOGEEBZLNGFW
+#\\\|G7MN5QGYWYKYUJIED7A74UBD6GO2AIMPXVXFVLNLTEFKLUT3SOZ \ / AMOS7 \ YOURUM ::
+#\[7]TOU6EDPWCHE7ZDM7YLIJN54BM2DJC4FJ3IRTVAHXV5OQYJYGWECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

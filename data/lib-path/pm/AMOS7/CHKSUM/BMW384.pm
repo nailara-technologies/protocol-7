@@ -8,8 +8,8 @@ use English;
 use warnings;
 
 ##[ global constants ]##
-use constant TRUE  => 5;    ##  TRUE.  ##
-use constant FALSE => 0;    ##  false  ##
+use constant TRUE  => 5;        ##  TRUE.  ##
+use constant FALSE => 0;        ##  false  ##
 
 use Exporter;
 use base qw| Exporter |;
@@ -116,7 +116,7 @@ sub bmw384_group {
     return \@result;
 }
 
-##[ UNIVERSAL NODE COORDINATE ]##############################################
+##[ UNIVERSAL NODE COORDINATE ]###############################################
 
 sub bmw384_coordinate {
 
@@ -164,8 +164,8 @@ sub bmw384_coordinate_str {
 
 return TRUE ##################################################################
 
-#,,.,,,.,,,..,.,.,.,.,,,.,,.,,,..,...,,..,...,..,,...,...,,,,,,.,,...,,,.,,..,
-#5INX7U53UB5DAKQWTCVRTNKDBNYXUUDJGOCCHILJQHEMDPPUVC4LTLEAVY3CKKVG2UYPCFVHJ6XWQ
-#\\\|V74JJO4RBA4NZMUI7QFEGG4ETLGJNG3FN6MXBBQUHPCXGCI2KTL \ / AMOS7 \ YOURUM ::
-#\[7]5UU37JD2R4LXCP34NDBZS5TKNC5RM5EW52RDPCPOV4JCA3W2LQDY 7  DATA SIGNATURE ::
+#,,,.,,..,...,.,,,,,.,.,,,...,..,,,,.,,.,,.,.,..,,...,..,,,,,,,.,,..,,,..,.,.,
+#3UNCOXFLBV4DGAQ6XZAGM3XZSVWCW7VZL26WS437E4CWXTJXO6QFXIMPIJWO5GPKYO2WA46HNUTHG
+#\\\|EDYWUGSYO5J7EAYPPZQ5WJGAW2G5OZOP32Y5A47VDLYNFYAGZMB \ / AMOS7 \ YOURUM ::
+#\[7]NHS2O5T4KOJPX6INRNPZCOVXTUBUUEP27LMAGWBMAGUQ37XK44DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

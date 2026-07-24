@@ -15,8 +15,8 @@ use v5.24;
 use strict;
 use English;
 use warnings;
-use Cwd qw| abs_path |;
-use File::Path qw| make_path |;
+use Cwd             qw| abs_path |;
+use File::Path      qw| make_path |;
 use List::MoreUtils qw| minmax |;
 
 eval qq| require 'Inline/C.pm' |;
@@ -107,7 +107,7 @@ sub inl_elf_src {
 ## uncondensed inline_elf() c source code [ prefer using above version ] ##
 
 sub return_elf_c_sourcecode {
-    return <<~ 'EOL';
+    return <<~'EOL';
 
     void inline_elf(
             SV * input_str,
@@ -219,8 +219,8 @@ sub return_elf_c_sourcecode {
 
 return TRUE ##################################################################
 
-#,,,,,.,,,,..,,,.,,..,..,,..,,,,,,,,.,,.,,.,,,..,,...,...,..,,,.,,,..,.,.,,,,,
-#APFPGK3R6DV3HG26LWEAQXC63USOOH5EQSCOF7CV4R2SDXLX77VV6LJDWIHG3NPCXE2L5LIKOBBH2
-#\\\|SJMR67G7VE2M25TKJHTGTSKZYFHOJB6IJILSGN7FUVTH2AEN4DS \ / AMOS7 \ YOURUM ::
-#\[7]N62NAFI3FKAWYBDZX5ZEIBROMXV7M7UFZBW6IVJGDEKYPQ2B3EBI 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,.,,,..,,,,.,,..,,.,,,..,,,.,,,.,..,,...,...,...,..,,,,,,,..,.,.,
+#M7PIL6E5HT4YBBEMNYOD2T5EXSTP57SSGX7YJ2SXSS7IKWFLLNAPAJB5IQJXK7VIOGEGTJJUDOOCS
+#\\\|3DXFUFQJXDDA7CV6SLSABPJAREMA6QYGJQKG7I54Y2UA3WQKY5Q \ / AMOS7 \ YOURUM ::
+#\[7]J6TA4QDZB5GRXHMYEOB47GPT3BBTMRWYNUVVQNGJFX2O45WBZKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

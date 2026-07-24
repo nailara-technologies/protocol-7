@@ -30,24 +30,26 @@ our $VERSION = qw| AMOS7::SHM::Transport-VERSION.AAAAAAA |;    ##  -VCS  ##
 
 ## shape-1 "one-shot bounded-scalar transport" primitive. a writer pages a
 ## finite, fully-known payload into a segment, announces a compact descriptor,
-## and a permitted reader pulls every page and verifies the announced checksum.
-## there is no ordering guarantee across calls, no exactly-once guarantee, and
-## no phase-3 Feedback atom — this is the simplest asymmetric transfer shape.
+## and a permitted reader pulls every page and verifies the announced
+## checksum.  there is no ordering guarantee across calls, no exactly-once
+## guarantee, and no phase-3 Feedback atom — this is the simplest asymmetric
+## transfer shape.
 ##
 ## checksum algorithm is caller's choice; this package never assumes bmw-L13
-## specifically. `shm_announce` takes the checksum as a required caller-supplied
-## parameter (mirroring AMOS7::SHM::Page::create), and `shm_receive` only
-## verifies a checksum when the caller supplies a matching `checksum_fn`.
+## specifically. `shm_announce` takes the checksum as a required
+## caller-supplied parameter (mirroring AMOS7::SHM::Page::create), and
+## `shm_receive` only verifies a checksum when the caller supplies a matching
+## `checksum_fn`.
 
 ##[ ANNOUNCE ]################################################################
 
 ## page a payload into a segment, sign a read grant for the reader, and return
-## a compact descriptor. $options keys:
-##   owner_pubkey, owner_privkey, reader_pubkey, content_ref, checksum [required]
-##   page_size [default AMOS7::SHM::Page::DEFAULT_PAGE_SIZE]
-##   sub_path, rights [default ['read']], expiry [default time()+3600]
-##   time_source, mlock [passed through to AMOS7::SHM::Page::create]
-## returns descriptor hashref on success, { error => ... } on failure.
+## a compact descriptor. $options keys:  owner_pubkey, owner_privkey,
+## reader_pubkey, content_ref, checksum [required] page_size [default
+## AMOS7::SHM::Page::DEFAULT_PAGE_SIZE]  sub_path, rights [default ['read']],
+## expiry [default time()+3600] time_source, mlock [passed through to
+## AMOS7::SHM::Page::create] returns descriptor hashref on success, { error =>
+## ... } on failure.
 sub shm_announce {
 
     my $options = shift;
@@ -132,13 +134,11 @@ sub shm_announce {
 
 ##[ RECEIVE ]#################################################################
 
-## pull every page from a segment and verify the announced checksum.
-## $options keys:
-##   shm_path [or owner_pubkey + sub_path], reader_privkey [required]
-##   verify_checksum [default true]
-##   checksum_fn [required when verify_checksum is true]
-## returns { ok => TRUE, content_ref => \$content, pages => N } on success,
-## or { ok => FALSE, error => ... } on failure.
+## pull every page from a segment and verify the announced checksum.  $options
+## keys:  shm_path [or owner_pubkey + sub_path], reader_privkey [required]
+## verify_checksum [default true]  checksum_fn [required when verify_checksum
+## is true]  returns { ok => TRUE, content_ref => \$content, pages => N } on
+## success, or { ok => FALSE, error => ... } on failure.
 sub shm_receive {
 
     my $options = shift;
@@ -210,8 +210,8 @@ sub shm_receive {
 
 return TRUE  #################################################################
 
-#,,,.,,,.,.,,,,,,,...,,.,,,..,..,,,,.,.,,,,,,,.,.,...,...,,..,.,.,..,,,.,,..,,
-#FGONSHZMUCVYLG2XKQQ6MUA5GKCQZTI3CRVN3ODXI3HYUUHK7OMQE66S7C2ZNCUUAD5V5E7YMHWMS
-#\\\|BKX3R57YCXCT2FM7ZBG6S6L7V2A77FI2I5IM4HRKS7MVPIN24IJ \ / AMOS7 \ YOURUM ::
-#\[7]GMYYWD6W6ZAG3XNFV52LQD32TDSVNRXIWHAFDWAYFBI5XNM7DGAA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,,.,,,,,,...,,,,,..,,.,.,.,,,,,.,.,.,...,...,...,,..,,,,,,,.,,.,,
+#EF5JYHP4PSTCHLKLMQQRBPL22VXXEKDAS2JTWMH5OFORG2SG6R3YZEXKDGVHCJMNTD27HJZHWU22K
+#\\\|7L77UE4IQ6VFCQAZP2GMI52TQ6ASL43N3G7JG24RANZAXO5QO5G \ / AMOS7 \ YOURUM ::
+#\[7]4FY2ECLMHMWS5BG3AOHVTE54WEOE6JHUUB6JOETBYFWGUP6H4WBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -29,17 +29,23 @@ sub run {
 
     my @steps = (
         [   "dpkg recovery",
-            "${sudo}dpkg --force-confold --force-confdef --force-confmiss --force-overwrite --configure -a"
+            "${sudo}dpkg --force-confold --force-confdef "
+                . "--force-confmiss --force-overwrite --configure -a"
         ],
         [ "apt-fix install", "${sudo}apt-get -fy install" ],
         [   "$action (pass 1)",
-            "${sudo}apt-get -y -o Dpkg::Options::=--force-confold -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confmiss $action"
+            "${sudo}apt-get -y -o Dpkg::Options::=--force-confold -o "
+                . "Dpkg::Options::=--force-confdef -o "
+                . "Dpkg::Options::=--force-confmiss $action"
         ],
         [ "pam-auth-update",       "${sudo}pam-auth-update --force" ],
         [ "cleanup mediainfo tmp", "rm -rf /var/cache/apt/mediainfo_tmp*" ],
         [ "apt update",            "${sudo}apt-get update" ],
         [   "$action (pass 2)",
-            "${sudo}apt-get -fy -o Dpkg::Options::=--force-confold -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confmiss -o Dpkg::Options::=--force-overwrite $action"
+            "${sudo}apt-get -fy -o Dpkg::Options::=--force-confold -o "
+                . "Dpkg::Options::=--force-confdef -o "
+                . "Dpkg::Options::=--force-confmiss -o "
+                . "Dpkg::Options::=--force-overwrite $action"
         ],
         [   "clean and autoremove",
             "${sudo}apt-get clean && ${sudo}apt-get -y --purge autoremove"
@@ -76,8 +82,8 @@ sub run {
 
 1;
 
-#,,.,,.,,,.,.,.,.,.,,,.,,,.,.,,..,,..,...,,,.,..,,...,...,...,,.,,,..,,,.,,.,,
-#27XC7J7T6X57S4V7JNLJPYDI7ZZ2SD6TH2EDH4C5AW44MXQGLQ7RY7SAIZKKUWYQQIQLLLE4GII3O
-#\\\|D6NS2NOPXDZ2KEPSNY67QIJ6CMAHOTFQXXJGR65R7RQTCGYTWDA \ / AMOS7 \ YOURUM ::
-#\[7]BFCVGVCZUTKNVQZ7D3HS2VFOWE2D3FIU666HPL23EKPGAY2JG4DY 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,,,,.,,,,,,,,,,,,,.,.,,,,..,.,,,..,,...,...,...,,..,...,,,,,...,
+#2F4XF4VH2OM442QYC2XDIZKGZUJSYCCVKN3JDP2RGYYU7ZS2TG7JT5MYRPJ7VWEF25S7S5YIT6VLO
+#\\\|EYD77LEQYIYJNMJK2BV5HBX5AMBFSR7J2VNKYHISYR7V24UJM72 \ / AMOS7 \ YOURUM ::
+#\[7]QZE6DNBGFIWYYPIP5DF3ECKOS77MXAZSEPXQZ4FBJ5JTCI57OECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

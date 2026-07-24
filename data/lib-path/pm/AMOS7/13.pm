@@ -350,8 +350,8 @@ sub random_sequence {
         if (    @num_sequence == 1
             and defined $test_val
             and ( $test_val !~ m|^\d{1,5}$| or $test_val == 0 ) ) {
-            warn_err( 'element count not numerical or'
-                    . ' out of range [ <= 5 digits ] <{C1}>' );
+            warn_err( 'element count not numerical or '
+                    . 'out of range [ <= 5 digits ] <{C1}>' );
             return undef;
         } elsif ( not defined $test_val or $test_val !~ m|^\d+$| ) {
             warn_err( 'sequence element [ %03d ] is not numerical :. %s .:',
@@ -613,8 +613,8 @@ sub gen_entropy_values {
             $file_output = $req_b32_encoded = $not_encode ? FALSE : TRUE;
         }
     } elsif ( $output_reftype eq qw| ARRAY | and defined $filter_coderef ) {
-        warn_err( 'filter parameter not expected '
-                . 'with output reference type ARRAY <{C1}>' );
+        warn_err( 'filter parameter not expected with '
+                . 'output reference type ARRAY <{C1}>' );
         return undef;
     } elsif ( defined $output_reference
         and ref $output_reference eq qw| SCALAR | ) {
@@ -843,8 +843,8 @@ sub key_32 {  ## create 32 bytes binary encryption key from arbitrary input ##
     my $wants_true         = shift // TRUE;  ##  request harmonized values  ##
     my $wants_true_B32_enc = shift // FALSE; ##  true BASE32 enc. values  ##
 
-    ##  when keyname seed is numerical, it will be used for increase ..,    ##
-    ##  when it is a scalar reference it will be calculated from its value  ##
+    ## when keyname seed is numerical, it will be used for increase ..,   ##
+    ## when it is a scalar reference it will be calculated from its value ##
 
     my $seed_iteration_count;
     if ( not defined $keyname_seed ) {
@@ -866,8 +866,8 @@ sub key_32 {  ## create 32 bytes binary encryption key from arbitrary input ##
         return undef;
     }
 
-    ##  SAFEGUARD: Warn if numeric seed creates excessive iterations  ##
-    ##  Benchmark shows: safe limit ~1000, 82ms per call at that level   ##
+    ## SAFEGUARD: Warn if numeric seed creates excessive iterations   ##
+    ## Benchmark shows: safe limit ~1000, 82ms per call at that level ##
     if (    defined $keyname_seed
         and !ref($keyname_seed)
         and $keyname_seed =~ m|^\d+$|
@@ -878,13 +878,13 @@ sub key_32 {  ## create 32 bytes binary encryption key from arbitrary input ##
         my $ratio = int( $total_iters / 1113 );    ##  1113 = 113 + 1000  ##
 
         warn sprintf(
-            "\n:: AMOS7::13::key_32 WARNING::\n"
-                . ":: Numeric seed %d creates %d iterations (%dx safe limit)\n"
-                . ":: This may cause slowdown in event handlers\n"
-                . ":: RECOMMENDED: Use SCALAR ref instead\n"
-                . "::   Changed: key_32(\\seed, %d)\n"
-                . "::   To:      key_32(\\seed, \\%d_var)\n"
-                . ":: To override: set \$AMOS7::13::allow_high_iterations = 1 before calling\n\n",
+            "\n:: AMOS7::13::key_32 WARNING::\n:: Numeric seed %d creates %d "
+                . "iterations (%dx safe limit)\n:: This may cause slowdown "
+                . "in event handlers\n:: RECOMMENDED: Use SCALAR ref "
+                . "instead\n::   Changed: key_32(\\seed, %d)\n::   To:      "
+                . "key_32(\\seed, \\%d_var)\n:: To override: "
+                . "set \$AMOS7::13::allow_high_iterations = 1 before "
+                . "calling\n\n",
             $keyname_seed, $total_iters, $ratio,
             $keyname_seed, $keyname_seed
         );
@@ -1277,8 +1277,8 @@ sub visualize_bin_032 {
 
 return TRUE ##################################################################
 
-#,,.,,,.,,...,.,,,,,.,,,,,...,.,.,.,.,..,,,,,,..,,...,...,,.,,.,,,...,.,.,..,,
-#HF3DX3URF7ENK64ED376NALWBJWOZVALRADVY6EV52N6JNW6FXY4N6AMLJJ3RSKR5KRL7HIK4AQXM
-#\\\|ZRX3HWXPLUPVM2DPCXXKDRJKBJI5LHJHMJHOGL54VB3X4B7ZD3U \ / AMOS7 \ YOURUM ::
-#\[7]4TMUXY4BYROTGIVRHMITP2NHNAAMUEW2V6NLYENZPTX2PNGFBCDI 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,,.,.,.,.,.,,.,,.,,,,,,,.,.,...,..,,...,...,,,.,,.,,...,,.,,..,,
+#5ES73RIFXVU6TKICQSZKCBTINGHHHHHN7DICBUCQCHEVBMJ4S7XZYGM7T5ACZOR4N53ITHNY3WM7A
+#\\\|6NHTRZCNES3EVZMNZT65JYAIKDREU52DCU4REBFTPSZ6NP5DDRB \ / AMOS7 \ YOURUM ::
+#\[7]W6OGIOFCNEXOLYLSOC7UFCKYEDJCVIIK5YJSSW2WQBSSFR4EU6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
