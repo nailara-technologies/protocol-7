@@ -102,6 +102,8 @@ my $file_count = scalar @files;
 
 say $blacklight, qw| : |;
 
+my $had_error = FALSE;    ##  false  ##
+
 while ( my $file_path = shift @files ) {
     show_progress( $file_path, $file_count - scalar @files, $file_count );
 
@@ -121,26 +123,13 @@ while ( my $file_path = shift @files ) {
         my $colored_msg = color_msg( $err_msg, $file_path );
         if ( $return_code == 512 ) {
             if ($check_only) {
-                ## run perl -c and filter P7-specific false positives ##
-                my @perl_c_output = qx{ perl -c "$file_path" 2>&1 };
-                my @real_errors;
-                for my $line (@perl_c_output) {
-                    next
-                        if $line =~ m{Can't modify glob in scalar assignment};
-                    next if $line =~ m{^\s*$};
-                    push @real_errors, $line;
-                }
-                ## remove trailing "had compilation errors" if it's the ##
-                ## only line left                                       ##
-                if (    @real_errors == 1
-                    and $real_errors[0] =~ m{had compilation errors\.?$} ) {
-                    @real_errors = ();
-                }
+                my @real_errors = real_syntax_errors($file_path);
                 if (@real_errors) {
                     my $detail = join( '', @real_errors );
                     chomp($detail);
                     $colored_msg = color_msg( $detail, $file_path );
                     warn $colored_msg;
+                    $had_error = TRUE;    ##  true  ##
                 } else {
                     ## only P7 false positives — treat as ok ##
                     print color_msg( 'syntax ok [P7]',
@@ -154,12 +143,48 @@ while ( my $file_path = shift @files ) {
             die $colored_msg;
         }
     } elsif ($check_only) {
-        print color_msg( 'syntax ok', $file_path, $NEON_green_yellow );
+        ## perltidy itself reported no problem, but it does not reliably ##
+        ## detect real perl syntax errors -- always confirm with perl -c ##
+        my @real_errors = real_syntax_errors($file_path);
+        if (@real_errors) {
+            my $detail = join( '', @real_errors );
+            chomp($detail);
+            warn color_msg( $detail, $file_path );
+            $had_error = TRUE;    ##  true  ##
+        } else {
+            print color_msg( 'syntax ok', $file_path, $NEON_green_yellow );
+        }
     }
 }
 
 say "\n$blacklight:$reset";
-exit(0);
+exit( $check_only && $had_error ? 1 : 0 );
+
+##[ run perl -c and strip P7-specific false positives, return real errors ]##
+sub real_syntax_errors {
+    my $file_path = shift;
+
+    my @perl_c_output = qx{ perl -c "$file_path" 2>&1 };
+    my @real_errors;
+    for my $line (@perl_c_output) {
+        ## p7 data/module macro syntax [ <data.key>, <[module.name]> ] ##
+        ## triggers glob-modification false positives under perl -c    ##
+        next if $line =~ m{Can't modify glob in .*assignment};
+        ## cascading noise once compilation aborts on the line above   ##
+        next if $line =~ m{BEGIN not safe after errors};
+        next if $line =~ m{syntax OK\s*$};
+        next if $line =~ m{^\s*$};
+        push @real_errors, $line;
+    }
+
+    ## remove trailing "had compilation errors" if it's the only line left ##
+    if (    @real_errors == 1
+        and $real_errors[0] =~ m{had compilation errors\.?$} ) {
+        @real_errors = ();
+    }
+
+    return @real_errors;
+}
 
 sub color_msg {
     my $err_msg   = shift;
@@ -233,8 +258,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,..,,.,,,,.,,,.,.,.,...,,..,,..,,,.,,.,,,..,..,,...,...,...,...,.,.,.,,,,.,,
-#6LU3KO5G3NHR4BTESHZR6DPGADFU4CXQAMC3NA4YBIM3HWJZJZSHQ77YAMZGRQIMRGJNPAGYFUPC6
-#\\\|LV5H3XCG7JFGHYGDCV63PH6SCBO6VNTCQLYDCHYK5HU4PWQLFUF \ / AMOS7 \ YOURUM ::
-#\[7]IJ4C6QVQYLI73LKWVXO35H4S77J2RLCFWCVLH6QIP34CUDPZOIAA 7  DATA SIGNATURE ::
+#,,..,...,,..,.,,,,,.,,..,,,,,.,,,.,.,,,,,.,.,..,,...,...,,,.,..,,,,,,.,,,,.,,
+#O646Z45DDNDGNUUWICTWI66RXG5ZVL6LRWBZ5PFJZIGZKC5XNGFPAL6HVLHSLPRJZIMFEFR2R4NK2
+#\\\|T73FBOE3VXLP7AMBOIMSAN5DGJEO3B3QPTK5SA3FTBUP23V6G6P \ / AMOS7 \ YOURUM ::
+#\[7]TUFJVWBBNAUR6MV6UG7YHV4MBXGKPXIWNGNVRJ2YATSAXR7LIIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

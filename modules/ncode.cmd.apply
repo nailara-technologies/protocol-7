@@ -132,7 +132,35 @@ foreach my $fix_id (@fix_ids) {
         }
     }
 
-    if ( $verify_pass and $step_ok ) {
+    ## hard safety gate : never keep a change that breaks perl syntax ##
+    my $syntax_ok    = 1;
+    my $syntax_error = '';
+    if ( $verify_pass and $step_ok and $content ne $original ) {
+        my $root    = <system.root_path>;
+        my $ptd_bin = "$root/bin/ptd";
+        my $tmp     = "$file.ptd_check.$$";
+
+        if ( open my $tfh, '>', $tmp ) {
+            print {$tfh} $content;
+            close $tfh;
+
+            my $ptd_out = <[ncode.util.run_cmd]>->( $ptd_bin, '-c', $tmp );
+            unlink $tmp;
+
+            if ( $ptd_out !~ m{syntax ok}i ) {
+                $syntax_ok    = 0;
+                $syntax_error = $ptd_out;
+            }
+        } else {
+            <[base.logs]>->(
+                0, ':. ncode.cmd.apply: cannot write syntax-check tmp %s :.',
+                $tmp
+            );
+            $syntax_ok = 0;
+        }
+    }
+
+    if ( $verify_pass and $step_ok and $syntax_ok ) {
         open my $wfh, '>', $file or do {
             <[base.logs]>->(
                 0, ':. ncode.cmd.apply: cannot write %s :.', $file
@@ -161,9 +189,11 @@ foreach my $fix_id (@fix_ids) {
             close $wfh;
         }
         $fix->{'status'} = 'failed';
+        $fix->{'error'}  = $syntax_error if length $syntax_error;
         $failed_count++;
         <[base.logs]>->(
-            1, ':. ncode.cmd.apply: failed %s [ revert done ] :.', $fix_id
+            1, ':. ncode.cmd.apply: failed %s [ revert done ]%s :.',
+            $fix_id, ( length $syntax_error ? " [ $syntax_error ]" : '' )
         );
     }
 }
@@ -173,8 +203,8 @@ $summary .= ", $failed_count failed" if $failed_count;
 
 return { 'mode' => 'size', 'data' => $summary };
 
-#,,,.,,,.,.,.,.,,,,,,,.,.,...,.,.,,.,,,,,,,,,,.,.,...,...,,.,,..,,.,,,,.,,..,,
-#2C3DN5O3BCCJWO7OYKWDJVXTE7TEJJE4GHRZ6FCWRRWQXR56OOOEZKAH5GPIQUZYOPYEBGJLZB2XY
-#\\\|X73WRZRCBEP3OENLAQFIJX2GJPTIHESX2LSJGO5XDX4IYFCH3HM \ / AMOS7 \ YOURUM ::
-#\[7]FS2TJMBSFSLBBCDNNI4SKPFEY6MR64ZLLENK4GUVPLW7TQG2HWDY 7  DATA SIGNATURE ::
+#,,..,,,,,..,,.,,,..,,.,,,...,,,,,,,,,..,,..,,.,.,...,...,...,...,,..,,..,,,,,
+#4VBVMNNOSMTOUXPRUUWXEB45POTCI5UDTVL7ELBXHSQHS4QESKLZL5B76FYEXAQ2KZUM3ZJIXGYPQ
+#\\\|RVZB66N4ZDHB6PT3JFWHSESVP6RFDJQFP3PBAJCG7CAI7OPC3Q5 \ / AMOS7 \ YOURUM ::
+#\[7]7Z2VVWPNEZNMUBU4O6CNHKJNZ5S5MXDT3EATAIVJD7352M2YKEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
