@@ -107,8 +107,8 @@ if ( $queue_result && $queue_result->{status} eq qw| success | ) {
     );
 }
 
-## also check for new domains that need certificates
-## (have vhosts but no certificate)
+## also check for new domains that need certificates  (have vhosts but no
+## certificate)
 my @new_domains;
 foreach my $domain ( keys %domains_map ) {
     unless ( exists <letsencr.parent.certs>->{$domain} ) {
@@ -121,16 +121,16 @@ if ( @new_domains > 0 ) {
         2, 'found %d new domains needing certificates',
         scalar(@new_domains)
     );
-    ## TODO: implement automatic enrollment for new domains
-    ## for now, just log that they need certificates
+    ## TODO: implement automatic enrollment for new domains  for now, just log
+    ## that they need certificates
 }
 
 <[base.log]>->( 2, 'renewal check complete' );
 
 return TRUE;
 
-#,,.,,..,,..,,,..,.,.,.,,,..,,,.,,.,,,...,,,,,..,,...,...,...,.,,,.,.,,,,,,,,,
-#WF5CMJVSFGM6XMLILYDRLRUI3GGH4ZKVWB7CE3XNQYB6O52VOSXYDKWOEKFEFHL43MRWJ4XBDKPWM
-#\\\|K6JFPSAOEEDL3NO2ZVM7KHMCCKUCLNU3PMWZ6GFMSQ3IAF22QSE \ / AMOS7 \ YOURUM ::
-#\[7]IKDBFQGRWXGUBWOF2LLSRQWFJJGPMGRIVCUMYVRJHLLSOSQOVQBI 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,,.,,.,,,,,,,.,.,.,,,.,.,,,.,,..,..,,...,...,.,,,,,,,.,,,,..,.,.,
+#57YB6LNLEF65EOKSDPGFTC5WJGBQM5P5APIFELQSE3IODOQNMEFV2EEF55KIGIOHWFGGTJR66ADBS
+#\\\|BL23VCQDEPPOPFOT7VIJNU5KM5HO672I47ZD3VAQL6ELJO6MFIO \ / AMOS7 \ YOURUM ::
+#\[7]IHVB6JPALOMEPPQUEWTRYDUHPSC7PEPAJRO5FCWXNXABTRCDGGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

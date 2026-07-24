@@ -36,13 +36,9 @@ if ( !-f $key_file ) {
     };
 }
 
-## Reason codes (RFC 5280):
-## 0 = unspecified (default)
-## 1 = keyCompromise
-## 2 = cACompromise
-## 3 = affiliationChanged
-## 4 = superseded
-## 5 = cessationOfOperation
+## Reason codes (RFC 5280):  0 = unspecified (default)  1 = keyCompromise  2 =
+## cACompromise  3 = affiliationChanged  4 = superseded  5 =
+## cessationOfOperation
 my $reason = $params->{reason} || 0;
 
 <[base.log]>->( 2, "  Certificate file : $cert_file" );
@@ -116,8 +112,8 @@ if ( exists $code{'letsencr.child.acme_revoke'} ) {
 
 0;
 
-#,,,.,,,,,..,,...,,.,,...,,,.,,,.,,,.,.,.,,.,,..,,...,...,.,,,.,,,..,,,..,,.,,
-#4A3IKPRFL7ZLU5WB5A6TL6MDRA7WBOCD4L7HK5JJ44KJ5PYMD2N4UZWZJUMJVCHSK4SI3B2XYJWCM
-#\\\|JLOF34FXYAXCZ4T6VD2IEC5IGXUQZKQPIRPQZX3ZD77WGIDVHM7 \ / AMOS7 \ YOURUM ::
-#\[7]2NGGZDAKTD3CYW45LLWSQMS3ZJVW623VKTNLMQV4LLLXIYO5CYBY 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,..,.,.,,,.,.,,,.,.,,,.,.,,,...,..,,...,...,.,,,,,,,..,,,,.,,,.,
+#YOU5B5QWDCYF3FH2XNECL7VNSY4VD74XZF2UIBLNHVMO2FCAL5D55MOL7LGGWYKVJD46NBZRVJZW2
+#\\\|3JFXP7AR6ZDM5VGJI7NJ4AOELPZR6PW4UD5BI37RD2MSPIX42C2 \ / AMOS7 \ YOURUM ::
+#\[7]WMUD6SBMMTCIG2F5WNKIUSUVUONEWHT66I4V4SMY2OLIWPFWBIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

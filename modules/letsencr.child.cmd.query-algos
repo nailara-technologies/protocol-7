@@ -29,8 +29,8 @@ my $nonce          = <letsencr.child.acme_client>->{nonce};
 
 <[base.log]>->( 2, 'querying ACME server for supported algorithms' );
 
-## Make a dummy newAccount request with EdDSA (unsupported)
-## The server will reject it but return the supported algorithms in the error
+## Make a dummy newAccount request with EdDSA (unsupported)  The server will
+## reject it but return the supported algorithms in the error
 my $payload = {
     termsOfServiceAgreed => JSON::XS::true(),
     contact              => ['mailto:test@example.com'],
@@ -76,8 +76,8 @@ return {
     'data' => $algo_json
 };
 
-#,,..,,,,,.,.,.,.,.,,,...,,,.,,..,..,,,,,,...,.,.,...,...,..,,,..,..,,.,.,.,,,
-#JOJKHUDFTSO4L3ICT7SK7PWMHOLCZTMHPX7IRUYWWT3N3TMHQPWAU4DEX2AX6ZBQUJLVCW4MDTAJ6
-#\\\|JOHS22OLGVYZTGN5RJLDAHXGQO6ZQKEBPLXQZ7B4HWAYON6E2HZ \ / AMOS7 \ YOURUM ::
-#\[7]O2ZMDFTLKZF3VC3C5OUNAXAG7C6NM43JORGWOZCKFXDVI4U2EQDA 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,.,.,,..,,,.,.,.,..,,...,,..,,.,,.,.,...,...,,..,.,,,,..,,..,..,,
+#L7BCTGC6TDG6J5KVT7M5Q7PEFUIFGXHBR3DIG55BUNUYXGPTSPZ76IKACCUUO3YX4FSJNWO7JODO6
+#\\\|MWSVAGANCCCIN5A4PMSE3PBRBBSBPDVEHGDZZC7WEACZ44UZELQ \ / AMOS7 \ YOURUM ::
+#\[7]BA5ZEGE2RBXSOOKDDCMCWOVQQPMZZSVY7M34UDTKIQVSXVUODQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

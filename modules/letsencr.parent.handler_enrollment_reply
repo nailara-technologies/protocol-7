@@ -74,8 +74,8 @@ if ( $mode eq qw| TRUE | ) {
         $domain, qw| failed |, sprintf 'ACME error: %s', $reply_data
     );
 
-    ## Schedule retry with exponential backoff
-    ## attempt number is passed through reply params by handler_enrollment_retry
+    ## Schedule retry with exponential backoff  attempt number is passed
+    ## through reply params by handler_enrollment_retry
     my $attempt = ( $reply->{'params'}->{'attempt'} // 0 ) + 1;
 
     if ( $attempt <= 3 ) {
@@ -252,7 +252,8 @@ if ( $mode eq qw| TRUE | ) {
     if ( !$notify_result || $notify_result->{'status'} ne qw| success | ) {
         <[base.logs]>->(
             1,
-            'warning: failed to notify httpd of certificate installation for %s',
+            'warning: failed to notify httpd '
+                . 'of certificate installation for %s',
             $domain
         );
         <[letsencr.parent.activity_logger]>->(
@@ -281,8 +282,8 @@ if ( $mode eq qw| TRUE | ) {
 
 return FALSE;
 
-#,,,.,,.,,.,.,,,,,,..,,,.,,,,,...,,..,,.,,...,..,,...,...,...,,,.,.,.,.,,,.,,,
-#UQABHCXJADQSO2O4GKD5HVDE7REXFILZKLNRXYJYRXZJHK26QT326WWOCSCBAA2JP4QM4PTADTWHY
-#\\\|BNMPHVRVIJMTXLXUS3RB3BP5KAIUWFR2FMLFUYGPSLR3W3I5BQD \ / AMOS7 \ YOURUM ::
-#\[7]Z37IEF44IDBW5YBIKYXK3Y2RDS3XMOYIYQKZDXWTFV2IA5BHYAAA 7  DATA SIGNATURE ::
+#,,..,...,,.,,.,,,,..,..,,,,.,,,.,,,,,.,,,.,,,..,,...,..,,.,,,.,.,..,,,.,,,,,,
+#DBOCAA2PIXIZSSQ2ESFHG5O4PVLUP3QEZACYQ25YPAUQPIY4BDIAG5XIJFG55QBEM6UN3RGR2IGQA
+#\\\|XRT5WWQJ5Z3WDXZIEWLMA6KUZRYFXSE2A5VDMMRNHHVSBYS2YQ6 \ / AMOS7 \ YOURUM ::
+#\[7]W3VJYYA37FERWB35PSWPTPKPP266LAI7DO3SBVAFXCFI5B2L4GAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
