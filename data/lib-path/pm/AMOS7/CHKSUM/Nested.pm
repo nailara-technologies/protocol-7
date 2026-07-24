@@ -8,8 +8,8 @@ use English;
 use warnings;
 
 ##[ global constants ]##
-use constant TRUE  => 5;    ##  TRUE.  ##
-use constant FALSE => 0;    ##  false  ##
+use constant TRUE  => 5;        ##  TRUE.  ##
+use constant FALSE => 0;        ##  false  ##
 
 use Exporter;
 use base qw| Exporter |;
@@ -115,8 +115,8 @@ sub reconstruct_chain {
 
 return TRUE ##################################################################
 
-#,,.,,,..,,..,,,,,.,.,.,.,,,.,.,.,,..,.,.,,,,,..,,...,...,...,,,,,..,,...,.,,,
-#2QBKLMOFK7FBXCJL6JUBL3QWFHBENJGH4MYDCSR6LJVXJ3FU35LTFV2FVMCE5J23SBZ6PI7YMRTF2
-#\\\|4EIA3UCGDVEQVRDQLJFZBUZWAPPC4J62KRRCDLHZM7OTSQ3EAQK \ / AMOS7 \ YOURUM ::
-#\[7]LFCLNUHHBQEYGHA5VFGKS4AZXLSBRMI7OXFDTSKNFLPPSRWMK4AY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,..,,,,,,...,.,.,,.,,,,.,.,,,..,,..,,...,...,,..,.,.,,..,..,,,,,,
+#IS4QQHMOZ7JNSJ3RBJIOZRSAZJXU7FCMH4JIMZQNF2YZQGTNWE7C3LBCUINQ5SWFX67OCEM76BJ5U
+#\\\|MA4FNXJI74TLWU5T7D5QS7OJU4ATWHG2S5PNAHTEVNMMPC2WMVK \ / AMOS7 \ YOURUM ::
+#\[7]MVM77OA2XFZTXJ44XGZ5OVMIIKLMREMH2H2QHKZPBSJDDCSULMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

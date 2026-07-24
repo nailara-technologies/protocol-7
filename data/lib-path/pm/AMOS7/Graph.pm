@@ -29,9 +29,9 @@ use AMOS7;
 ##[ SUBROUTINES ]#############################################################
 
 sub graph_to_adjacency {
-    ##  serialize dep-graph hash to deduplicated adjacency text  ##
-    ##  format: source -> callee callee ...  [ one line per source ]  ##
-    ##  structure only : call counts omitted for stable git diffs     ##
+    ## serialize dep-graph hash to deduplicated adjacency text format:     ##
+    ## source -> callee callee ...  [ one line per source ] structure only ##
+    ## : call counts omitted for stable git diffs                          ##
     ##
     ##  optional: pass { 'with-counts' => 1 } to append :count per callee  ##
     ##
@@ -67,8 +67,8 @@ sub graph_to_adjacency {
 }
 
 sub adjacency_to_graph {
-    ##  parse adjacency text back to dep-graph hash structure  ##
-    ##  handles both formats [ with and without :count suffix ]  ##
+    ## parse adjacency text back to dep-graph hash structure handles both ##
+    ## formats [ with and without :count suffix ]                         ##
     ##
     my $text = shift;
 
@@ -97,15 +97,15 @@ sub adjacency_to_graph {
 ##[ INTERNAL ]################################################################
 
 sub _sort_nodes {
-    ##  sort by length ascending, ties broken by reverse-alpha  ##
-    ##  matches base.sort convention used throughout the project  ##
+    ## sort by length ascending, ties broken by reverse-alpha matches ##
+    ## base.sort convention used throughout the project               ##
     return sort { length $a <=> length $b || $b cmp $a } @ARG;
 }
 
 5;    ##  truth  ##
 
-#,,..,..,,,.,,.,,,.,.,,,.,,,,,..,,,.,,,..,,,.,.,.,...,...,...,,..,...,.,,,,,,,
-#5FJK2R4STZMHWTKIXANTSOKZARFDFI67X7EN6H25VSP4KVXBDS3JM2SWHQTG4G2R5LFOI4NUISUBQ
-#\\\|U3HV5IQJGVRL5U6N5GYVY3YCHTYBMSEFDJTKLNSHAWO6FQQR3A6 \ / AMOS7 \ YOURUM ::
-#\[7]USM627RZ4YRKEHMCTYLNL7I27WW2RCZHKDIIU34WBWVMZ4E5G4BQ 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,..,,,,.,,.,,.,,,,.,,...,,,.,,,,,.,.,...,...,,..,,,.,,,.,,..,,,.,
+#ZEPSFIJXMIVXD52V52HUOXEIRN3BITXVI5JVEZUVG453GUO72C3O4WJSSKUVSWCMQ5JKJJOPLOHHW
+#\\\|XOIQQB4I2KDWVOFC3PCLXOR3HCSOTX7LS3I6ZMPE5HK5ADWBPUN \ / AMOS7 \ YOURUM ::
+#\[7]YXIG5V5KF42DIZZBXPEVUB5I6MYXIOTY24UINVN2J77IHJYJ32DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

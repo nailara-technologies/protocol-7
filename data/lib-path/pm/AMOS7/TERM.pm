@@ -87,7 +87,7 @@ our %cursor_state = (
     animation  => qw| static |,  ##  animation mode for future use  ##
 );
 
-##[ PROTOCOL-7 COLOR PALETTE ]##################################################
+##[ PROTOCOL-7 COLOR PALETTE ]################################################
 
 our %p7_colors = (
     'p7_fg_0000' => "\e[38;2;68;39;172m",    ##  purple  ##
@@ -278,9 +278,9 @@ sub _timestamp_to_delta {
         return $main::code{'base.ntime.delta_seconds'}->($timestamp);
     }
 
-    ## fallback : Base32 alphabet for manual conversion
-    ## Protocol-7 uses: 0-9, A-V [ 22 chars total ]
-    ## using qw with grouped formatting to preserve alignment
+    ## fallback : Base32 alphabet for manual conversion  Protocol-7 uses: 0-9,
+    ## A-V [ 22 chars total ]  using qw with grouped formatting to preserve
+    ## alignment
     my %base32_map = (
         qw|
             0 0   1 1   2 2   3 3   4 4
@@ -302,8 +302,8 @@ sub _timestamp_to_delta {
         $numeric_ts = $numeric_ts * 32 + $base32_map{$char};
     }
 
-    ## calculating delta from current time [ rough approximation ]
-    ## in seconds from some epoch
+    ## calculating delta from current time [ rough approximation ] in seconds
+    ## from some epoch
     my $now = time();
     return $numeric_ts;    ## returning the converted value for comparison
 }
@@ -365,9 +365,9 @@ REREAD_NAME:
 }
 
 sub has_tty {
-    ## check if a TTY is available for interactive I/O
-    ## returns TRUE if any of STDIN, STDOUT, STDERR is connected to a TTY
-    ##              or if Term::ReadLine can find a console
+    ## check if a TTY is available for interactive I/O  returns TRUE if any of
+    ## STDIN, STDOUT, STDERR is connected to a TTY or if Term::ReadLine can
+    ## find a console
 
     ## first try Term::ReadLine->findConsole [ finds /dev/tty or similar ]
     my ( $in, $out ) = Term::ReadLine->findConsole;
@@ -1029,10 +1029,7 @@ sub discard_buffered_input {
 
     my $input_timeout = shift // 0;    ## optional value for delays ##
 
-    ## return codes ##
-    ##  0 : input discarded
-    ##  1 : continue
-    ##  2 : interrupt
+    ## return codes  0 : input discarded  1 : continue  2 : interrupt ##
 
     state $interrupt_re;
     state $continue_regex;
@@ -1293,8 +1290,8 @@ sub editor_process_key {
             $editor->{cursor_pos} = 0;
             $result->{action}     = 'kill_from_start';
 
-            ## output : backspace to start
-            ##            + remaining text + clear rest + reposition
+            ## output : backspace to start  + remaining text + clear rest +
+            ## reposition
             my $rest                = substr( $editor->{buffer}, 0 );
             my $deleted_display_len = $deleted_len;
             $result->{output}
@@ -1306,7 +1303,8 @@ sub editor_process_key {
         return $result;
     }
 
-    ## Ctrl-W - kill word backward [ delete previous word, save to kill buffer ]
+    ## Ctrl-W - kill word backward [ delete previous word, save to kill buffer
+    ## ]
     if ( $key eq "\x17" ) {
         if ( $editor->{cursor_pos} > 0 ) {
             my $start_pos = $editor->{cursor_pos};
@@ -1359,7 +1357,8 @@ sub editor_process_key {
     ## left arrow key - move cursor left [ ANSI: \e[D ]
     if ( $key eq "\e[D" or $key eq "\x1b[D" ) {
         if ( $editor->{cursor_pos} > 0 ) {
-            ## scan back over utf-8 continuation bytes [ 10xxxxxx = 0x80-0xBF ]
+            ## scan back over utf-8 continuation bytes [ 10xxxxxx = 0x80-0xBF
+            ## ]
             my $step = 1;
             while (
                 $editor->{cursor_pos} - $step > 0
@@ -1421,12 +1420,13 @@ sub editor_process_key {
         return $result;
     }
 
-    ## backspace - delete character before cursor
-    ## both \x08 [Ctrl+H] and \x7f [DEL] are treated as backspace since
-    ##                             many terminals send backspace as DEL
+    ## backspace - delete character before cursor  both \x08 [Ctrl+H] and \x7f
+    ## [DEL] are treated as backspace since many terminals send backspace as
+    ## DEL
     if ( $key eq "\x08" or $key eq "\x7f" ) {
         if ( $editor->{cursor_pos} > 0 ) {
-            ## scan back over utf-8 continuation bytes [ 10xxxxxx = 0x80-0xBF ]
+            ## scan back over utf-8 continuation bytes [ 10xxxxxx = 0x80-0xBF
+            ## ]
             my $del_len = 1;
             while (
                 $editor->{cursor_pos} - $del_len > 0
@@ -1522,9 +1522,9 @@ sub editor_load {
 ##[ CURSOR RENDERING ]########################################################
 
 sub cursor_render {
-    ## render custom cursor at current position in editor buffer
-    ## returns ANSI codes to display cursor with color and optional underline
-    ## important: does NOT reset at end [ color persists for next operation ]
+    ## render custom cursor at current position in editor buffer returns ANSI
+    ## codes to display cursor with color and optional underline important:
+    ## does NOT reset at end [ color persists for next operation ]
     my ( $buffer, $cursor_pos ) = @ARG;
 
     return '' if not $cursor_state{'enabled'};
@@ -1533,19 +1533,20 @@ sub cursor_render {
     my $color          = $cursor_state{color_code};
 
     if ( $char_at_cursor eq '' or $char_at_cursor eq ' ' ) {
-        ## at end of buffer or on space: show colored underscore
-        ##    no reset at end [ preserve color for next render ]
+        ## at end of buffer or on space: show colored underscore no reset at
+        ## end [ preserve color for next render ]
         return $color . '_' . "\x08";    ## colored underscore then backspace
     } else {
-        ## on a character : show with underline attribute [preserves character]
-        ## apply color and underline, reset underline only [NOT all attributes]
+        ## on a character : show with underline attribute [preserves
+        ## character] apply color and underline, reset underline only [NOT all
+        ## attributes]
         return $color . "\e[4m" . $char_at_cursor . "\e[24m\x08";
     }
 }
 
 sub cursor_clear_old {
     ## clear old cursor position by restoring the character at that position
-    ##                               returns ANSI codes to clear and restore
+    ## returns ANSI codes to clear and restore
     my ( $buffer, $old_pos ) = @ARG;
 
     return '' if !$cursor_state{'enabled'};
@@ -1573,8 +1574,8 @@ sub cursor_set_color {
 }
 
 sub cursor_set_animation {
-    ## setting cursor animation mode for timer-based updates
-    ## modes: 'static', 'pulse', 'blink', etc [ implementation later ]
+    ## setting cursor animation mode for timer-based updates  modes: 'static',
+    ## 'pulse', 'blink', etc [ implementation later ]
     my ($animation_mode) = @ARG;
     $cursor_state{'animation'} = $animation_mode // qw| static |;
     return TRUE;
@@ -1594,8 +1595,8 @@ sub cursor_disable {
 
 return TRUE ##################################################################
 
-#,,..,,.,,,.,,,,.,..,,,,.,,,,,...,.,,,,.,,.,,,..,,...,...,...,,.,,,..,,,.,,.,,
-#EFWBNEXNR377XPMCIN6NAK6KHN7VVBN52IDYN4HYCXRKMKUHNM6CWKADKFHKEYBLIIMY6BFYT6WK2
-#\\\|BCFXGFFPUQD3UDQGUGGRSHPRLTSWXSLCVCSLZUBN4OOQIVYGHZS \ / AMOS7 \ YOURUM ::
-#\[7]VHWONOGSJ7R47XHQRN2M5WR2RJG33C6B6UFUY7KIPUAZPKBLTGAA 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,...,.,.,.,.,,,,,,,.,,,.,...,,.,,..,,...,...,.,,,...,,..,,..,,,.,
+#VBK5LJQFS6PW3IIFDZ54OB2NH5SQ5YAXXCMIE4VT37AOI5IOQ3G3QPPFOYCIXONCJEEKCC6G3SMBE
+#\\\|4NG5PPLAYMYWJQCOUZI3Y4OXSONYK7A4M4A7H2DSENNRWKZPHXL \ / AMOS7 \ YOURUM ::
+#\[7]WZR4DHZRMST532XNJDWMLNUYRYM4LAW2T3IU2JXHT54P7BBVFUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

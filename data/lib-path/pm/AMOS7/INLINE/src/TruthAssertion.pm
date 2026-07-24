@@ -23,7 +23,7 @@ sub true_int {    ##[  numerical div by 13 truth assertion  ]##
 
     ##  valid input size  64 bit [integer]  ##
 
-    my $source = <<~ 'EOC';
+    my $source = <<~'EOC';
 
     unsigned int true_int ( unsigned long test_num ) {
 
@@ -94,7 +94,7 @@ sub true_float {    ##[  numerical div by 13 truth assertion  ]##
 
     ##  valid input length  <  17  ##
 
-    my $source = <<~ 'EOC';
+    my $source = <<~'EOC';
 
     unsigned int true_float ( double test_num ) {
 
@@ -163,8 +163,8 @@ sub true_float {    ##[  numerical div by 13 truth assertion  ]##
 
 return 5;    ##  true  ##
 
-#,,..,,..,,,,,,.,,.,,,.,,,.,,,,.,,,,,,,..,...,..,,...,.,,,,,,,..,,,..,,..,,.,,
-#EAW2UBC47MQUAILWGXNMEIWZFBXIJ4DLCIZNP7Z2QLB6I4RR6ZSPFOFFAJ5EMMEZSUVCQPPLGBNBM
-#\\\|6Q466JPB7PCTCB2ZG2R2PCTEB5SXDDOTJBTLDM623V4CM7ZPUMD \ / AMOS7 \ YOURUM ::
-#\[7]4BO6H6QBUABRAPBPSR2XUAABRODH3KK3A3FOHSI5IQZNJ7H35WAY 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,.,,,,..,.,,,,.,,,.,,...,,.,,,,.,..,,...,...,..,,,,,,,,.,,.,,,..,
+#3RVXSIJT7WS25YTEERNBLMO7WRL5QLH2AQRV46ZDH5N7E25EN3XJW5ENJJF3I4LR2CRKH4BJBAB2G
+#\\\|XLBURHX5CVKPYDKV7Y7XA4MGSNWBKGU4JEPCNE6PJNZPJ3XNKPE \ / AMOS7 \ YOURUM ::
+#\[7]RKANNR63WV5NOB6YTXTSHOYGWASVJ7VCFSUEKPZRHAGTCETE4EAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

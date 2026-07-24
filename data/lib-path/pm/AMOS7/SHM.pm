@@ -41,15 +41,15 @@ our $VERSION = qw| AMOS7::SHM-VERSION.AAAAAAA |;
 ## signature verification ] are pure computation — they do not care whether a
 ## zenka is running. context-specific values [ time source, group registry,
 ## logging ] are injected by the caller, keeping these branch-free in both
-## standalone and zenka mode. the standalone / zenka difference is lifecycle
-## [ cleanup — phase 4 ], not mechanics. mirror AMOS7::CHKSUM precedent.
+## standalone and zenka mode. the standalone / zenka difference is lifecycle [
+## cleanup — phase 4 ], not mechanics. mirror AMOS7::CHKSUM precedent.
 
 ## logging shim — zenka wrapper injects <[base.log]>, standalone is silent ##
 our $log_handler;
 
-## phase 4, standalone only : track creator-owned segment paths for an END-  ##
-## time cleanup. zenka mode handles this via its own SIGINT/TERM handler    ##
-## [ modules/data.mount.shm.init_code ] instead — this list stays empty     ##
+## phase 4, standalone only : track creator-owned segment paths for an END- ##
+## time cleanup. zenka mode handles this via its own SIGINT/TERM handler [  ##
+## modules/data.mount.shm.init_code ] instead — this list stays empty       ##
 ## whenever $main::PROTOCOL_SEVEN is defined.                               ##
 my @_standalone_owned_paths;
 
@@ -61,8 +61,8 @@ sub _log {
 
 ##[ HEADER PACK / UNPACK ]####################################################
 
-## pack header structure into fixed 512-byte text format ##
-## identical mechanics to data.mount.shm.header.write.pack_shm_header ##
+## pack header structure into fixed 512-byte text format  identical ##
+## mechanics to data.mount.shm.header.write.pack_shm_header         ##
 sub pack_shm_header {
 
     my $header = shift;
@@ -110,11 +110,12 @@ sub pack_shm_header {
             );
             shift @perms;
         } else {
-            ## base header without any permissions still exceeds SHM_HEADER_SIZE
-            ## [ should never happen — owner_pubkey or flags are unexpectedly long ]
+            ## base header without any permissions still exceeds
+            ## SHM_HEADER_SIZE [ should never happen — owner_pubkey or flags
+            ## are unexpectedly long ]
             _log( 0,
-                'pack_shm_header: base header exceeds SHM_HEADER_SIZE, truncating'
-            );
+                      'pack_shm_header: base header '
+                    . 'exceeds SHM_HEADER_SIZE, truncating' );
             my $packed_base = sprintf(
                 "P7SH:%d:%s:%d:%d:%d:%s::\n",
                 $header->{'version'} // 1,
@@ -131,10 +132,10 @@ sub pack_shm_header {
     }
 }
 
-## unpack 512-byte text header into hash structure ##
-## identical mechanics to data.mount.shm.header.read.unpack_shm_header ##
-## permissions are parsed back out so that standalone shm_open can verify
-## signed grants; the on-disk header format is unchanged. ##
+## unpack 512-byte text header into hash structure  identical mechanics to  ##
+## data.mount.shm.header.read.unpack_shm_header permissions are parsed back ##
+## out so that standalone shm_open can verify signed grants; the on-disk    ##
+## header format is unchanged.                                              ##
 sub unpack_shm_header {
 
     my $raw = shift;
@@ -274,11 +275,11 @@ sub mmap_file {
     if ( eval { require Sys::Mmap } ) {
         my $var;
         eval {
-            ## Sys::Mmap::mmap wants the FILEHANDLE itself, not fileno($fh) —
-            ## passing fileno() throws 'Bad filehandle' and silently fell
-            ## through to the slurp-copy fallback below, every time, in both
-            ## standalone and zenka mode. real shared memory was never
-            ## actually in effect until this fix ##
+            ## Sys::Mmap::mmap wants the FILEHANDLE itself, not fileno($fh) ##
+            ## — passing fileno() throws 'Bad filehandle' and silently fell ##
+            ## through to the slurp-copy fallback below, every time, in     ##
+            ## both standalone and zenka mode. real shared memory was never ##
+            ## actually in effect until this fix                            ##
             Sys::Mmap::mmap( $var, $size,
                 Sys::Mmap::PROT_READ() | Sys::Mmap::PROT_WRITE(),
                 Sys::Mmap::MAP_SHARED(), $fh, 0 );
@@ -314,17 +315,17 @@ sub mmap_file_read {
 
 ##[ MEMORY LOCKING [ prevent swap to disk ] ]#################################
 
-## self-detecting fork guard for IO::AIO — IO::AIO's background worker state
-## does not survive fork() cleanly [ confirmed live : a child spins at 100%
-## CPU on its first post-fork IO::AIO call without this ]. rather than make
-## every caller remember to call IO::AIO::reinit() after fork() [ the
-## existing project convention — modules/base.process-into-background,
-## modules/vision-batch.parent.fork_child,
-## modules/weather.base.fork_weather_child all do this manually ], track the
-## pid we last touched IO::AIO from ; if $$ has changed since, a fork
-## happened in between and we reinit automatically before proceeding.
-## $$ is a cached interpreter value, not a syscall — this check is one
-## integer comparison, negligible next to the mlock call itself ##
+## self-detecting fork guard for IO::AIO — IO::AIO's background worker      ##
+## state does not survive fork() cleanly [ confirmed live : a child spins   ##
+## at 100% CPU on its first post-fork IO::AIO call without this ]. rather   ##
+## than make every caller remember to call IO::AIO::reinit() after fork() [ ##
+## the existing project convention — modules/base.process-into-background,  ##
+## modules/vision-batch.parent.fork_child,                                  ##
+## modules/weather.base.fork_weather_child all do this manually ], track    ##
+## the pid we last touched IO::AIO from ; if $$ has changed since, a fork   ##
+## happened in between and we reinit automatically before proceeding.  $$   ##
+## is a cached interpreter value, not a syscall — this check is one integer ##
+## comparison, negligible next to the mlock call itself                     ##
 my $_io_aio_pid;
 
 sub _io_aio_fork_guard {
@@ -336,9 +337,9 @@ sub _io_aio_fork_guard {
     $_io_aio_pid = $PID;
 }
 
-## lock a mapped region in memory. ported verbatim from
-## data.mount.shm.lock.memory — already zenka-agnostic pure perl, no
-## behavior change. returns a status hashref, never undef ##
+## lock a mapped region in memory. ported verbatim from              ##
+## data.mount.shm.lock.memory — already zenka-agnostic pure perl, no ##
+## behavior change. returns a status hashref, never undef            ##
 sub lock_memory {
 
     my $mmap_ref = shift;
@@ -383,7 +384,7 @@ sub lock_memory {
     };
 }
 
-## unlock a previously locked region. ported verbatim from
+## unlock a previously locked region. ported verbatim from      ##
 ## data.mount.shm.lock.unlock — same zero-behavior-change basis ##
 sub unlock_memory {
 
@@ -410,8 +411,8 @@ sub unlock_memory {
         eval { $unlocked = 1; };
     }
 
-    ## file-based SHM without explicit munlock support : memory is freed
-    ## when the segment is unlinked ; report success regardless ##
+    ## file-based SHM without explicit munlock support : memory is freed ##
+    ## when the segment is unlinked ; report success regardless          ##
     return $unlocked || 1;
 }
 
@@ -430,10 +431,10 @@ sub _permission_canonical {
         . $perm->{'granted'};
 }
 
-## sign a permission grant with the owner's private key [ placeholder hash,
-## identical mechanics to data.mount.shm.permission.add.sign_permission ].
-## the multiplier matches the verifier's use of the derived owner pubkey so
-## that privkey/pubkey fixtures of different lengths still verify. ##
+## sign a permission grant with the owner's private key [ placeholder hash, ##
+## identical mechanics to data.mount.shm.permission.add.sign_permission ].  ##
+## the multiplier matches the verifier's use of the derived owner pubkey so ##
+## that privkey/pubkey fixtures of different lengths still verify.          ##
 sub sign_permission {
 
     my ( $perm, $priv_key ) = @ARG;
@@ -498,8 +499,8 @@ sub _rights_sufficient {
     return 1;
 }
 
-## group membership check — groups registry is injected [ %data slice in
-## zenka mode, caller-supplied hashref standalone ] to stay branch-free ##
+## group membership check — groups registry is injected [ %data slice in ##
+## zenka mode, caller-supplied hashref standalone ] to stay branch-free  ##
 sub _group_contains {
 
     my ( $group_id, $member_key, $groups ) = @ARG;
@@ -509,10 +510,10 @@ sub _group_contains {
     return grep { $_ eq $member_key } @{ $groups->{$group_id}{'members'} };
 }
 
-## verify requester has permission to access path. owner always has full
-## access; non-owners are checked against signed grants in the header.
-## $groups is the optional group registry hashref [ injected by caller ].
-## identical authorization mechanics to data.mount.shm.permission.verify ##
+## verify requester has permission to access path. owner always has full  ##
+## access; non-owners are checked against signed grants in the header.    ##
+## $groups is the optional group registry hashref [ injected by caller ]. ##
+## identical authorization mechanics to data.mount.shm.permission.verify  ##
 sub permission_verify {
 
     my $header           = shift;
@@ -549,13 +550,13 @@ sub permission_verify {
 
 ##[ SEGMENT CREATE / OPEN ]###################################################
 
-## create a file-backed mmap segment with a cryptographic identity header.
-## options : sub_path, mlock, encrypted, compressed, time_source.
-## time_source is an optional coderef returning the 'created' field value
-## [ zenka wrapper passes <[base.time]>->(2); standalone defaults to time() ].
-## mlock is NOT performed here — the caller [ zenka wrapper ] owns locking and
-## the in-memory segment registry, keeping this core mechanics-only.
-## returns a $mount hashref or undef. ##
+## create a file-backed mmap segment with a cryptographic identity header.  ##
+## options : sub_path, mlock, encrypted, compressed, time_source.           ##
+## time_source is an optional coderef returning the 'created' field value [ ##
+## zenka wrapper passes <[base.time]>->(2); standalone defaults to time()   ##
+## ].  mlock is NOT performed here — the caller [ zenka wrapper ] owns      ##
+## locking and the in-memory segment registry, keeping this core            ##
+## mechanics-only.  returns a $mount hashref or undef.                      ##
 sub shm_create {
 
     my $pub_key_b32 = shift;
@@ -619,10 +620,10 @@ sub shm_create {
 
     close($fh);
 
-    ## standalone mode has no zenka thin-wrapper layer to add mlock
-    ## externally [ that's how the zenka path gets it — see
-    ## modules/data.mount.shm.create ] ; do it here instead so the
-    ## mlock=>1 default behaves the same whether a zenka is running or not ##
+    ## standalone mode has no zenka thin-wrapper layer to add mlock         ##
+    ## externally [ that's how the zenka path gets it — see                 ##
+    ## modules/data.mount.shm.create ] ; do it here instead so the mlock=>1 ##
+    ## default behaves the same whether a zenka is running or not           ##
     if ( not defined $main::PROTOCOL_SEVEN ) {
         push @_standalone_owned_paths, $shm_path;
         if ( $header->{'flags'}{'mlocked'} ) {
@@ -641,9 +642,9 @@ sub shm_create {
     };
 }
 
-## open a segment with cryptographic verification.
-## options : rights, groups [ group registry hashref for verify ].
-## returns a $mount hashref, or a { error => ... } hashref on failure. ##
+## open a segment with cryptographic verification.  options : rights,       ##
+## groups [ group registry hashref for verify ].  returns a $mount hashref, ##
+## or a { error => ... } hashref on failure.                                ##
 sub shm_open {
 
     my $shm_path           = shift;
@@ -703,10 +704,10 @@ sub shm_open {
 ##[ STALE SEGMENT SWEEP [ phase 4 part B ] ]##################################
 
 ## scan a directory [ default /dev/shm ] for p7:M:* segments and unlink any
-## that are both stale [ created more than $ttl_seconds ago ] AND owned by
-## the current effective UID. never attempts to unlink a file owned by a
-## different UID -- the sticky bit on /dev/shm would refuse it anyway, and
-## attempting it would just be noise. returns a summary hashref, never dies.
+## that are both stale [ created more than $ttl_seconds ago ] AND owned by the
+## current effective UID. never attempts to unlink a file owned by a different
+## UID -- the sticky bit on /dev/shm would refuse it anyway, and attempting it
+## would just be noise. returns a summary hashref, never dies.
 sub sweep_stale_segments {
 
     my $options     = shift                     // {};
@@ -775,10 +776,10 @@ sub _read_header_only {
 
 ##[ STANDALONE CLEANUP ]######################################################
 
-## remove a creator-owned segment [ + its phase-3 notify FIFO ] on graceful  ##
-## exit. this is the standalone counterpart to data.mount.shm.unlink/remove; ##
-## it is intentionally self-contained because standalone code cannot reach   ##
-## the zenka <[...]> dispatcher.                                             ##
+## remove a creator-owned segment [ + its phase-3 notify FIFO ] on graceful ##
+## exit. this is the standalone counterpart to                              ##
+## data.mount.shm.unlink/remove; it is intentionally self-contained because ##
+## standalone code cannot reach the zenka <[...]> dispatcher.               ##
 sub _standalone_unlink_segment {
     my $shm_path = shift;
     unlink($shm_path) if -f $shm_path;
@@ -799,9 +800,9 @@ if ( not defined $main::PROTOCOL_SEVEN ) {
 }
 
 END {
-    ## explicit skip in zenka mode — defense in depth alongside the fact
-    ## that @_standalone_owned_paths is only ever populated when standalone ;
-    ## zenka cleanup runs via modules/data.mount.shm.cleanup instead ##
+    ## explicit skip in zenka mode — defense in depth alongside the fact    ##
+    ## that @_standalone_owned_paths is only ever populated when standalone ##
+    ## ; zenka cleanup runs via modules/data.mount.shm.cleanup instead      ##
     unless ( defined $main::PROTOCOL_SEVEN ) {
         _standalone_unlink_segment($_) for @_standalone_owned_paths;
     }
@@ -809,8 +810,8 @@ END {
 
 return TRUE  #################################################################
 
-#,,,,,,..,..,,,,.,,.,,,,.,,,,,.,.,...,...,.,,,..,,...,...,..,,.,.,...,.,,,.,.,
-#LEB7C7PPWZFTADHQR2YYP7VIRBEPVRNEIKKUPKU7FK22YCNLK7EAQJ26G4VTLGYYERCSLBIEI3AWA
-#\\\|EHEQQPHZKK74W6GNIMFCPKFR2JIC5EDPDENLHHATDWIKYACYXAZ \ / AMOS7 \ YOURUM ::
-#\[7]AG535LNHRRHZJ6P4PLRHYZFIIST5SBSGOP25PMODBG4CEJN7JMCQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,.,.,..,,,..,.,,,..,,,,,,.,.,...,..,,...,...,..,,.,.,,,,,,,.,...,
+#ZF76EFZLLRZTT7SGDUZYY3MVZOLDZUDKQRVGKWNW4HHD23QN6SWURMITSIOKQQGDHW6F2EGZ5WC44
+#\\\|RW575DKXZD7MDO5TENIGNYLCRREB5F3B25NQB7QDXVCUG4EUPDM \ / AMOS7 \ YOURUM ::
+#\[7]6B75XR3FADD2KXPGIXZW2MOHQ5DMD6PKBRA3PQHX4LSABHWGE6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

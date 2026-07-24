@@ -30,8 +30,8 @@ use AMOS7;
 ##[ SUBROUTINES ]#############################################################
 
 sub xz_write {
-    ##  lzma-compress content and base32-encode for line-oriented storage  ##
-    ##  returns encoded scalar string, or undef on error                    ##
+    ## lzma-compress content and base32-encode for line-oriented storage ##
+    ## returns encoded scalar string, or undef on error                  ##
     ##
     my $content = shift;
 
@@ -59,8 +59,8 @@ sub xz_write {
 }
 
 sub xz_read {
-    ##  base32-decode and decompress content back to original  ##
-    ##  returns content scalar, or undef on error               ##
+    ## base32-decode and decompress content back to original returns ##
+    ## content scalar, or undef on error                             ##
     ##
     my $encoded = shift;
 
@@ -87,8 +87,8 @@ sub xz_read {
 
 5;    ##  truth  ##
 
-#,,..,,.,,,,,,.,.,..,,..,,,.,,,.,,,,.,..,,..,,.,.,...,...,..,,,,,,.,.,,,,,...,
-#4C5R743U3RGF6POZIXFH6LGZNT4YFNZO2Z7RDBUT2REVJIUDGRDZU6VQDYA7ZZHSIG7HCY4IOVSPC
-#\\\|EE4I7JXMAQBTMPCFEKWQJRNDXEFAG2A5DRFPV6UX3KFOL5A2DCI \ / AMOS7 \ YOURUM ::
-#\[7]Q2EPUSOVVEWIFB3CP753OGHXLVPVSWPA6SZ5P4QJQCSY2337ZWCA 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,.,.,,.,,,.,,,.,,.,,,,,.,,,.,,,.,.,.,...,..,,...,...,.,,,.,.,.,,,
+#OWKPSOPRY5KGKDLNYRRVRBCPNAGLPAQOTWN3UBLJ3XBM2ITVN4ZZBSTPVSUQMVB3N6AFV6Y2CCVHK
+#\\\|OPPIB54YITT5RG4HWY3L6FU5HZETLY3TRY5QGSQOJBA2GX6KZ3U \ / AMOS7 \ YOURUM ::
+#\[7]YP3VN4634YYDLQ4SLGQMJNRMHCYJE7TIGQFFFJ5JMPGRSLAIDQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

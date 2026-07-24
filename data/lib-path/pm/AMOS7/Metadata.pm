@@ -32,7 +32,7 @@ use vars qw| @EXPORT $VERSION |;
 
 our $VERSION = qw| AMOS7::Metadata-VERSION.YT9K8L2 |;
 
-##[ METADATA CONSTANTS ]#######################################################
+##[ METADATA CONSTANTS ]######################################################
 
 our $METADATA_START = qr/##\s*\[\:<\s*command-metadata/;
 our $METADATA_END   = qr/##\s*\]/;
@@ -232,11 +232,11 @@ sub build_command_registry {
         }
     }
 
-    ## Scan modules/*.console.* files for console commands
-    ## These are Protocol-7 console commands with simple name/param/descr format
+    ## Scan modules/*.console.* files for console commands  These are
+    ## Protocol-7 console commands with simple name/param/descr format
     if ( not defined $root_path ) {
-        ## Try to infer root path from zenka_root
-        ## zenka_root is typically configuration/zenki
+        ## Try to infer root path from zenka_root  zenka_root is typically
+        ## configuration/zenki
         if ( $zenka_root =~ m{^(.+)/configuration/zenki$} ) {
             $root_path = $1;
         }
@@ -440,8 +440,8 @@ sub registry_to_yaml {
 
 1;
 
-#,,.,,,.,,..,,,,,,,..,.,,,,,.,.,.,.,.,,,.,...,..,,...,...,,..,.,.,.,,,,,.,.,.,
-#W6ESWUYUMCMXAGR4NYKWWCLT2VSUW37SDBD22IYWB6BJD55OQUJQR6IXJIHVF4XCJM3H3H6OROIX2
-#\\\|6TBRAS7F7HUAI6M6PFSZ63EY3PTTEPA63JVBA5KGLA5NVONP22H \ / AMOS7 \ YOURUM ::
-#\[7]6WPPPAZT3P36T6UNUDDCQXG74VZNVIFNMPDJMSX77BKNZHNT2SAA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,...,,..,,..,,.,,,,.,,.,,,.,,...,..,,...,...,,..,.,,,,,,,..,,,..,
+#4KLWH7BSZV77B3PBLPDVEKXBUZYX623U6ZZGLKOGWO5RBXI6AMMK6B5AI4HFIFCCWS2FRBDVVV3H6
+#\\\|VMZS67N5AG2SIV6AUSKYLRC7XQBVYJ532F375Z4R3WLZBMV7AWV \ / AMOS7 \ YOURUM ::
+#\[7]JCUIIYNPM5OLS4DI5E3M6EQ6XSK743NOCFCDX4QUBP5HDTGWQUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

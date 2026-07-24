@@ -20,7 +20,7 @@ our $VERSION = qw| AMOS-13-ELF-7-SRC-VER-HQ7GNVQ |;
 ##[ BITSTRING CONVERSION ]####################################################
 
 sub inline_elf {    ##[ modified \ expanded elf hash algorithm ]##
-    my $source = <<~ 'EOC';
+    my $source = <<~'EOC';
 
     void inline_elf (
             SV * input_str,
@@ -128,25 +128,30 @@ sub inline_elf {    ##[ modified \ expanded elf hash algorithm ]##
     EOC
 
     my $fallback_sub = sub {    ## pure-perl AMOS-13-ELF-7 implementation ##
-        my ( $input_str, $start_sum, $elf_mode, $shift_bits, $overflow_threshold ) = @ARG;
+        my ( $input_str, $start_sum, $elf_mode, $shift_bits,
+            $overflow_threshold )
+            = @ARG;
 
         return warn_err( 'input_str is undefined', 1 )
             if not defined $input_str;
 
         ## set defaults matching C implementation ##
-        $start_sum          //= 0;
-        $elf_mode           //= 7;              ## AMOS-13 : left shift bits ##
-        $shift_bits         //= 13;             ## AMOS-13 : right shift bits ##
-        $overflow_threshold //= 0xFE000000;     ## 7-bit overflow threshold ##
+        $start_sum //= 0;
+        ## AMOS-13 : left shift bits ##
+        $elf_mode //= 7;
+        ## AMOS-13 : right shift bits ##
+        $shift_bits         //= 13;
+        $overflow_threshold //= 0xFE000000;    ## 7-bit overflow threshold ##
 
         return warn_err( 'overflow_threshold out of range', 1 )
             if $overflow_threshold > 0xFFFFFFFF;
         return warn_err( 'shift_bits out of range [1..64]', 1 )
             if $shift_bits < 1 || $shift_bits > 64;
 
-        my $result = $start_sum & 0xFFFFFFFF;  ## keep 32-bit boundary ##
+        my $result      = $start_sum & 0xFFFFFFFF;  ## keep 32-bit boundary ##
         my $shift_reset = 4;
-        my $z_val = 777;                        ## special value for null bytes ##
+        ## special value for null bytes ##
+        my $z_val = 777;
 
         ## iterate through string as UTF-8 codepoints ##
         foreach my $character ( unpack( 'U*', $input_str ) ) {
@@ -157,7 +162,8 @@ sub inline_elf {    ##[ modified \ expanded elf hash algorithm ]##
                 $elf_mode = $shift_reset;
             }
 
-            ## substitute null with z_val, use character codepoint otherwise ##
+            ## substitute null with z_val, use character codepoint ##
+            ## otherwise                                           ##
             my $chr_val = ( $character == 0 ) ? $z_val : $character;
 
             ## accumulate with left shift ##
@@ -168,7 +174,7 @@ sub inline_elf {    ##[ modified \ expanded elf hash algorithm ]##
                 $result ^= ( $carryover >> $shift_bits );
                 $result &= ~$carryover;
             }
-            $result &= 0xFFFFFFFF;  ## maintain 32-bit boundary ##
+            $result &= 0xFFFFFFFF;    ## maintain 32-bit boundary ##
         }
 
         return $result;
@@ -185,8 +191,8 @@ sub inline_elf {    ##[ modified \ expanded elf hash algorithm ]##
 
 return 5;    ##  true  ##
 
-#,,..,,,,,,,.,,.,,.,,,.,.,,..,...,,..,...,,,,,..,,...,..,,...,,..,...,.,,,...,
-#EXZF43OMHNYNKTGSP6G6SSDLIOFAXWWERKIIKPXHTQRK7GZKD7ZFJY3QTOG7MVL7LJW4DF4VNUO2Y
-#\\\|2FNNUV7D73TSBR27BG4VYWPDRJ26Y5SZFRC2HPM44QMY2CFH5RZ \ / AMOS7 \ YOURUM ::
-#\[7]E2Z232KHVSYZ43GQVNDEKJTTWIVBFIARFY7NS4MJ3APR6TZSPGBQ 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,,,,.,,,..,,...,,,,,..,,.,.,..,,..,,...,...,.,,,.,.,,,,,,..,..,,
+#LY4GGJYKZVTI6QDY3K2FCP4IGGWIYKDU3HLXOCTCKQC7SIYRDTDICIFIXYU72DSTZGAZXVTIK5KZE
+#\\\|G2NXSJCTN5TBKY4MKHPPMHVQSEJ22HLAODUDI5YN3DZPIY5JUHI \ / AMOS7 \ YOURUM ::
+#\[7]3FGVZ4PQJFGX6SWEJYHOOERB6RZY4E2VAB7CWBOZTJPNRTGBRQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
