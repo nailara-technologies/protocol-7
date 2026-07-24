@@ -43,10 +43,10 @@ my @ptd_args = qw|
 ##
 ###
 
-##  EXCLUSION PATTERN  ##
-##  - editor backup files (~)
-##  - documentation (.md .asc)
-##  - config/data files (.yaml .yml)
+## EXCLUSION PATTERN                ##
+## - editor backup files (~)        ##
+## - documentation (.md .asc)       ##
+## - config/data files (.yaml .yml) ##
 ##
 my @exclude_pattern = qw|  ~  .md  .yaml  .yml  .asc  |;
 ##
@@ -130,7 +130,8 @@ while ( my $file_path = shift @files ) {
                     next if $line =~ m{^\s*$};
                     push @real_errors, $line;
                 }
-                ## remove trailing "had compilation errors" if it's the only line left ##
+                ## remove trailing "had compilation errors" if it's the ##
+                ## only line left                                       ##
                 if (    @real_errors == 1
                     and $real_errors[0] =~ m{had compilation errors\.?$} ) {
                     @real_errors = ();
@@ -210,9 +211,9 @@ sub is_perl_code {
 }
 
 sub sig_int {
-    print "\b\b::\b\b\r$blacklight\:::\n:\n:: [ ${NEON_orange}SIG"
-        . "INT$blacklight ] $NEON_green_yellow perltidy run "
-        . "aborted$blacklight ..,\n:$reset\n";
+    print "\b\b::\b\b\r$blacklight\:::\n:\n:: "
+        . "[ ${NEON_orange}SIGINT$blacklight ] $NEON_green_yellow "
+        . "perltidy run aborted$blacklight ..,\n:$reset\n";
     exit('000113');
 }
 
@@ -232,8 +233,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,,,,...,...,,.,,,,,,.,.,,.,,,.,,,,.,,,,,,,.,..,,...,.,.,.,.,,,.,...,.,,,,,.,
-#T6MSQ4C5CZMRHDWYRVWZF65JZYNPI6VYU2JZXS24OVBT6HTMAC7ZIKNDHPQBR3NQWDT4MIXY56FXU
-#\\\|FD5NXAPH3TEAE2OHRRKJATGOCI63LPUTWXO4Z3FDOKJHITGZGVK \ / AMOS7 \ YOURUM ::
-#\[7]5SXAP3HR35GGHKWW5USYWX3OEZGJBHIJIPBEIES2GJ22VZZEQKCI 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,,.,.,.,...,,..,,..,,,.,,.,,,..,..,,...,...,...,...,.,.,.,,,,.,,
+#6LU3KO5G3NHR4BTESHZR6DPGADFU4CXQAMC3NA4YBIM3HWJZJZSHQ77YAMZGRQIMRGJNPAGYFUPC6
+#\\\|LV5H3XCG7JFGHYGDCV63PH6SCBO6VNTCQLYDCHYK5HU4PWQLFUF \ / AMOS7 \ YOURUM ::
+#\[7]IJ4C6QVQYLI73LKWVXO35H4S77J2RLCFWCVLH6QIP34CUDPZOIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

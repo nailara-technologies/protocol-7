@@ -46,33 +46,33 @@ use v5.10.0;
 use IO::Socket::UNIX;
 use IO::Select;
 use Getopt::Long qw| :config no_ignore_case bundling |;
-use Fcntl qw| :DEFAULT |;
+use Fcntl        qw| :DEFAULT |;
 
-my $socket_path        = '/var/run/.7/UNIX/NIW7OAQ';
-my $username           = 'root';
-my $declare_strm_size  = 0;
-my $strm_mode          = '';
-my $expected_count     = 0;
-my $output_file        = '';
-my $timeout            = 30;
-my $verbose            = 0;
-my $hex_peek           = 0;
-my $show_help          = 0;
+my $socket_path       = '/var/run/.7/UNIX/NIW7OAQ';
+my $username          = 'root';
+my $declare_strm_size = 0;
+my $strm_mode         = '';
+my $expected_count    = 0;
+my $output_file       = '';
+my $timeout           = 30;
+my $verbose           = 0;
+my $hex_peek          = 0;
+my $show_help         = 0;
 
 GetOptions(
-    'socket=s'             => \$socket_path,
-    'user=s'               => \$username,
-    'declare-strm-size!'   => \$declare_strm_size,
-    'strm-mode=s'          => \$strm_mode,
-    'count=i'              => \$expected_count,
-    'output=s'             => \$output_file,
-    'timeout=i'            => \$timeout,
-    'verbose|v!'           => \$verbose,
-    'hex-peek=i'           => \$hex_peek,
-    'help|h!'              => \$show_help,
+    'socket=s'           => \$socket_path,
+    'user=s'             => \$username,
+    'declare-strm-size!' => \$declare_strm_size,
+    'strm-mode=s'        => \$strm_mode,
+    'count=i'            => \$expected_count,
+    'output=s'           => \$output_file,
+    'timeout=i'          => \$timeout,
+    'verbose|v!'         => \$verbose,
+    'hex-peek=i'         => \$hex_peek,
+    'help|h!'            => \$show_help,
 ) or die "invalid options ; try --help\n";
 
-if ( $show_help ) {
+if ($show_help) {
     exec 'perldoc', $0;
 }
 
@@ -80,19 +80,20 @@ my $test_cmd = join ' ', @ARGV;
 $test_cmd = 'web.test-strm-size 500' if not length $test_cmd;
 
 ## auto expected count for the default test-strm-size command ##
-if ( not $expected_count and $test_cmd =~ m|^ \S*test-strm-size \s+ (\d+) |x ) {
+if ( not $expected_count and $test_cmd =~ m|^ \S*test-strm-size \s+ (\d+) |x )
+{
     $expected_count = $1 * 1024;
 }
 
 my $log = sub { print STDERR '[client] ', @_, "\n" if $verbose };
 
-$log->( "socket: $socket_path" );
-$log->( "user:   $username" );
-$log->( "cmd:    $test_cmd" );
-$log->( "expect: $expected_count bytes" )  if $expected_count;
-$log->( "mode:   locked=$strm_mode declare-strm-size=$declare_strm_size" );
+$log->("socket: $socket_path");
+$log->("user:   $username");
+$log->("cmd:    $test_cmd");
+$log->("expect: $expected_count bytes") if $expected_count;
+$log->("mode:   locked=$strm_mode declare-strm-size=$declare_strm_size");
 
-##[ CONNECT ]##################################################################
+##[ CONNECT ]#################################################################
 
 my $sock = IO::Socket::UNIX->new(
     Type => SOCK_STREAM,
@@ -104,20 +105,20 @@ binmode $sock;
 
 my $sel = IO::Select->new($sock);
 
-##[ PUSH-BACK READ BUFFER ]####################################################
-##  every byte the socket yields flows through $rxbuf ; line reads scan for   ##
-##  \n , byte reads consume up to N bytes ; never call sysread directly       ##
+##[ PUSH-BACK READ BUFFER ]###################################################
+## every byte the socket yields flows through $rxbuf ; line reads scan for ##
+## \n , byte reads consume up to N bytes ; never call sysread directly     ##
 
 my $rxbuf = '';
 
 my $pump = sub {
-    my ( $min_bytes ) = @_;
+    my ($min_bytes) = @_;
     $min_bytes //= 1;
     while ( length($rxbuf) < $min_bytes ) {
         my @ready = $sel->can_read($timeout);
         die "timeout after ${timeout}s waiting for bytes\n" if not @ready;
         my $chunk = '';
-        my $got = sysread $sock, $chunk, 65536;
+        my $got   = sysread $sock, $chunk, 65536;
         if ( not defined $got ) { die "sysread error: $!\n" }
         if ( $got == 0 )        { die "eof from server\n" }
         $rxbuf .= $chunk;
@@ -133,62 +134,62 @@ my $read_line = sub {
 };
 
 my $read_bytes = sub {
-    my ( $n ) = @_;
+    my ($n) = @_;
     $pump->($n) if length($rxbuf) < $n;
     my $bytes = substr $rxbuf, 0, $n, '';
     return $bytes;
 };
 
-##[ AUTH ]#####################################################################
+##[ AUTH ]####################################################################
 
 my $greet = $read_line->();
-$log->( "greet: $greet" );
+$log->("greet: $greet");
 
 print $sock "select unix\n";
 my $select_ack = $read_line->();
-$log->( "select: $select_ack" );
+$log->("select: $select_ack");
 die "select failed: $select_ack\n" if $select_ack !~ /^TRUE\b/;
 
 print $sock "auth unix-$username\n";
 my $auth_ack = $read_line->();
-$log->( "auth:   $auth_ack" );
+$log->("auth:   $auth_ack");
 die "auth failed: $auth_ack\n" if $auth_ack !~ /AUTH_TRUE/;
 
-##[ CAPABILITY NEGOTIATION ]###################################################
+##[ CAPABILITY NEGOTIATION ]##################################################
 
 my $send_cmd = sub {
-    my ( $cmd ) = @_;
-    $log->( "-> $cmd" );
+    my ($cmd) = @_;
+    $log->("-> $cmd");
     print $sock "$cmd\n";
 };
 
 my $expect_ok_line = sub {
-    my ( $ctx ) = @_;
+    my ($ctx) = @_;
     my $line = $read_line->();
-    $log->( "<- $line" );
+    $log->("<- $line");
     if ( $line =~ /^(?:\(\d+\)\s+)?FALSE\b/ ) {
         die "$ctx failed: $line\n";
     }
     return $line;
 };
 
-if ( $declare_strm_size ) {
-    $send_cmd->( 'set-capability declare-strm-size-support true' );
-    $expect_ok_line->( 'declare-strm-size-support' );
+if ($declare_strm_size) {
+    $send_cmd->('set-capability declare-strm-size-support true');
+    $expect_ok_line->('declare-strm-size-support');
 }
 
 if ( length $strm_mode ) {
     die "--strm-mode must be locked or normal\n"
         if $strm_mode ne 'locked' and $strm_mode ne 'normal';
-    $send_cmd->( "set-capability select-strm-mode $strm_mode" );
-    $expect_ok_line->( 'select-strm-mode' );
+    $send_cmd->("set-capability select-strm-mode $strm_mode");
+    $expect_ok_line->('select-strm-mode');
 }
 
-##[ ISSUE TEST COMMAND ]#######################################################
+##[ ISSUE TEST COMMAND ]######################################################
 
-$send_cmd->( $test_cmd );
+$send_cmd->($test_cmd);
 
-##[ REPLY STATE MACHINE ]######################################################
+##[ REPLY STATE MACHINE ]#####################################################
 
 my $out_fh;
 if ( length $output_file ) {
@@ -199,7 +200,7 @@ if ( length $output_file ) {
 my $peek_bytes = '';
 
 my $sink = sub {
-    my ( $bytes_ref ) = @_;
+    my ($bytes_ref) = @_;
     print {$out_fh} $$bytes_ref if defined $out_fh;
     if ( $hex_peek and length($peek_bytes) < $hex_peek ) {
         my $need = $hex_peek - length($peek_bytes);
@@ -207,15 +208,15 @@ my $sink = sub {
     }
 };
 
-my $total_payload = 0;
-my $announced     = 0;
-my $saw_size      = 0;
-my $saw_strm_open = 0;
+my $total_payload  = 0;
+my $announced      = 0;
+my $saw_size       = 0;
+my $saw_strm_open  = 0;
 my $saw_strm_close = 0;
-my $chunks        = 0;
+my $chunks         = 0;
 
 my $strip_cmd_id = sub {
-    my ( $line ) = @_;
+    my ($line) = @_;
     $line =~ s|^\(\d+\)\s+||;
     return $line;
 };
@@ -224,15 +225,15 @@ my $start_t = time();
 
 PARSE: while (1) {
 
-    my $line = $read_line->();
+    my $line     = $read_line->();
     my $stripped = $strip_cmd_id->($line);
-    $log->( "<- $stripped" );
+    $log->("<- $stripped");
 
     if ( $stripped =~ m|^SIZE\s+(\d+)$| ) {
 
         $saw_size  = 1;
         $announced = 0 + $1;
-        $log->( "SIZE frame : $announced bytes" );
+        $log->("SIZE frame : $announced bytes");
 
         my $remaining = $announced;
         while ( $remaining > 0 ) {
@@ -248,12 +249,12 @@ PARSE: while (1) {
 
         $saw_strm_open = 1;
         $announced     = 0 + $1;
-        $log->( "STRM-SIZE open : $announced bytes" );
+        $log->("STRM-SIZE open : $announced bytes");
 
     } elsif ( $stripped =~ m|^STRM-SIZE\s+close(?:-timeout)?$| ) {
 
         $saw_strm_close = 1;
-        $log->( "STRM-SIZE close [ $line ]" );
+        $log->("STRM-SIZE close [ $line ]");
         last PARSE;
 
     } elsif ( $stripped =~ m|^STRM-SIZE\s+(\d+)$| ) {
@@ -263,13 +264,14 @@ PARSE: while (1) {
         my $got = $read_bytes->($chunk);
         $sink->( \$got );
         $total_payload += length($got);
-        $log->( sprintf
-                "STRM-SIZE chunk %d : %d bytes [ total %d / %d ]",
-            $chunks, length($got), $total_payload, $announced );
+        $log->(
+            sprintf "STRM-SIZE chunk %d : %d bytes [ total %d / %d ]",
+            $chunks, length($got), $total_payload, $announced
+        );
 
     } elsif ( $stripped =~ m|^TRUE\b| ) {
 
-        $log->( "TRUE status [ $line ] — no payload ; exiting" );
+        $log->("TRUE status [ $line ] — no payload ; exiting");
         last PARSE;
 
     } elsif ( $stripped =~ m|^FALSE\b| ) {
@@ -278,7 +280,7 @@ PARSE: while (1) {
 
     } elsif ( $stripped =~ m|^WAIT\b| ) {
 
-        $log->( "WAIT — continuing" );
+        $log->("WAIT — continuing");
         next PARSE;
 
     } elsif ( $stripped =~ m|^\s*$| ) {
@@ -287,7 +289,7 @@ PARSE: while (1) {
 
     } else {
 
-        $log->( "unrecognized frame line: $line" );
+        $log->("unrecognized frame line: $line");
     }
 }
 
@@ -296,14 +298,15 @@ my $elapsed = time() - $start_t;
 close $out_fh if defined $out_fh;
 close $sock;
 
-##[ VERIFY ]###################################################################
+##[ VERIFY ]##################################################################
 
 print "\n=== result ===\n";
 printf "  cmd            : %s\n", $test_cmd;
-printf "  reply framing  : %s\n",
-    $saw_size         ? 'SIZE'
-    : $saw_strm_open  ? ( $saw_strm_close ? 'STRM-SIZE [ complete ]' : 'STRM-SIZE [ incomplete ]' )
-    :                   'none/status';
+printf "  reply framing  : %s\n", $saw_size
+    ? 'SIZE'
+    : $saw_strm_open ? (
+    $saw_strm_close ? 'STRM-SIZE [ complete ]' : 'STRM-SIZE [ incomplete ]' )
+    : 'none/status';
 printf "  announced      : %d bytes\n", $announced;
 printf "  received       : %d bytes\n", $total_payload;
 printf "  chunks         : %d\n",       $chunks if $saw_strm_open;
@@ -349,8 +352,8 @@ See LICENSE file
 
 =cut
 
-#,,,,,,.,,,,.,,..,,,.,,.,,,.,,,.,,,.,,,,.,,,,,..,,...,..,,...,,.,,..,,,,.,,.,,
-#AUYYSEZA5GSCIDH5WU7LMCD27U2SQ6TGFSP6VDS3SSWVBNSBKS3N7X4FJUQBABDF2IVEIBURLM52U
-#\\\|CBHAXWPAGTMQWUAMILXCCHBMISDBU3Z5LEBGOL4UDYJKZD6UIMK \ / AMOS7 \ YOURUM ::
-#\[7]GC3MPHRH6RBQY7QFI3J3RQWOZ4XICBKXHTFY246MRIOR6YBFJGBI 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,...,,,,,.,,,.,.,,..,..,,.,.,,,.,..,,...,...,,..,,.,,.,,,...,,,,,
+#6MBX3PUXNMIFZ62XZQ4QG2GR7MVIHY6FUFXE3DUTDDQKIWEYNM43UIDAWHKU47KLX6O5H6HFQTUCW
+#\\\|ZSI2FKAB2JQX53OTZRYA5VEO4LMWOEYZHH57EI4U6ZEQV4Q6T2G \ / AMOS7 \ YOURUM ::
+#\[7]RYR67VOWA3BBETO5RAX35ISCXG3W6S3QNGAT4SZFTZUB5RZGVSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

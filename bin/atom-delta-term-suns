@@ -439,8 +439,8 @@ sub calc_ntime {    # [ network time : secs from 2002-06-05 * 4200 ]
 }
 
 sub dump_seed_state {
-    say ":: seeds :.\n:\n::: prng :: $state->{'seed'}->{'prng'}\n"
-        . ":\n:: zulum :: $state->{'seed'}->{'zulum'}\n:\n";
+    say ":: seeds :.\n:\n::: prng :: $state->{'seed'}->{'prng'}\n:\n:: "
+        . "zulum :: $state->{'seed'}->{'zulum'}\n:\n";
 }
 
 sub clear     { return "$nailara_bg$blacklight\e[H\e[2J" }
@@ -543,8 +543,8 @@ sub sig_int_handler {
             when (m{^(start|run)$}) {
                 if ( $state->{'init'} ) { goto RESTART }
                 else {
-                    say ":\n:: already initialized\n"
-                        . ":: [ 'restart' or 'continue' ]";
+                    say ":\n:: already initialized\n:: "
+                        . "[ 'restart' or 'continue' ]";
                 }
             }
             when ('rewind') { reset_state() }
@@ -583,8 +583,8 @@ sub sig_int_handler {
                     ? length($LAST_PAREN_MATCH)
                     : 0;
                 say sprintf(
-                    "\r:\n:: $len_0110 \\ $len_0000 ::"
-                        . " %.4f percent decoded =) ::\n:\n",
+                    "\r:\n:: $len_0110 \\ $len_0000 "
+                        . ":: %.4f percent decoded =) ::\n:\n",
                     $len_0110 * 100 / $len_0000
                 );
             }
@@ -599,8 +599,8 @@ sub sig_int_handler {
     }
 }
 
-#,,,,,,,,,.,,,,,.,...,,.,,.,,,,,,,...,,..,,,,,..,,...,...,,,,,.,.,.,.,..,,.,,,
-#5ZELOYK5I6ASOCU2KKM3F6UBUZOBCS6SZFGNXQHWF33B2NRTCWU6RTZ2SSR7KFQJ25SEOTJJPZCJQ
-#\\\|JP6TVQKTEMU6I3MHFZASCO7MKQBZ232BL6OJS6ZDHUFFAJJMTDZ \ / AMOS7 \ YOURUM ::
-#\[7]6LM5UYDIMV6ZXFTHGSY7TOOQXLQP3YCFFYIOICPOLA4OVYOLHWDI 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,,,,,,,,.,.,,.,,,..,,,.,,,,,,,.,..,,...,...,,,,,..,,,,,,...,.,,,
+#K6A7NHKRFZIQX6SBDKKYLWD3MO5FT4HQWCWUELEVQI76AT6CCNDJP6PEMNQZFD22L2AKVWMQIXNOW
+#\\\|CTUEMYR2CTR6DYJT2HOEQZ2AKKM57UV24T6DGZKRCTHKXQJ6KXM \ / AMOS7 \ YOURUM ::
+#\[7]HG5DFKPL4JLE2HDSZS36U2IHLFSNAMMHA3QCMTPSG5JUKCQ2NACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
