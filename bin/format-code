@@ -75,8 +75,9 @@ if ( not $no_ptd ) {
 }
 
 ##[ filename selection ]##
-my @clean_argv = grep { !m{^@exclude_pattern} } @ARGV;
-my @files      = grep { is_perl_code($ARG) }
+my @clean_argv
+    = grep { not $ARG =~ m{(?:~$|\.md$|\.yaml$|\.yml$|\.asc$)} } @ARGV;
+my @files = grep { is_perl_code($ARG) }
     uniq sort { length $a <=> length $b } reverse sort @clean_argv;
 
 die ":\n:: < ${NEON_green_yellow}format-code$reset > $reset:$NEON_orange "
@@ -434,6 +435,23 @@ sub step4_align_comment_block {
     my $code_line_count = grep { $ARG =~ $code_marker_re } @content_parts;
     return [ @{$lines}[ $start_lnum - 1 .. $start_lnum + $block_len - 2 ] ]
         if $code_line_count >= 2;
+
+    ## third list style : column-aligned marker + description, no           ##
+    ## numbering/bullet/'Label:' punctuation at all -- e.g. '## [:< ##      ##
+    ## module header' / '#!                shebang' , a run of 3+ spaces is ##
+    ## the only signal separating the marker from its description.  same    ##
+    ## repetition threshold as the code-snippet check above : found on      ##
+    ## `step2_reflow_comment`'s own doc comment reflowing itself into       ##
+    ## flowing prose and losing convergence pass-to-pass -- author's column ##
+    ## alignment is exactly the kind of deliberate structure reflow/join    ##
+    ## would scramble, so pass the whole block through untouched rather     ##
+    ## than try to preserve alignment through Text::Wrap [ which normalizes ##
+    ## internal whitespace runs when it rejoins words, destroying the       ##
+    ## alignment even if the lines were correctly kept separate ]           ##
+    my $column_align_re   = qr{\S\s{3,}\S};
+    my $column_line_count = grep { $ARG =~ $column_align_re } @content_parts;
+    return [ @{$lines}[ $start_lnum - 1 .. $start_lnum + $block_len - 2 ] ]
+        if $column_line_count >= 2;
 
     ## a symmetric box [ blank top/bottom '##   ##' border lines framing a ##
     ## centered title ] gets its author's chosen padding depth preserved   ##
@@ -1207,8 +1225,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,..,...,,,,,..,,,.,,...,,,,,..,,..,,,..,,..,..,,...,...,,,,,.,.,,,,,,,.,,.,,
-#2W7C2HR6OZMLUZFQXRGWMNRZTNOSH7MDLGWRBXXDHPOWGZXV2X5SIX74J5X2N2ARY4KW3UJTEHR3G
-#\\\|CRW4FOYMDINF6RMDXJ4TO6SKERTLODUNNOQYNIBNLBMEVEM4QYQ \ / AMOS7 \ YOURUM ::
-#\[7]7L2XAFA4ZLF66FB3ZGPCVWP7JBGHDAH436DM4MVDHP2KUTZRP6AI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,,,,.,,,,..,..,,.,.,,.,,...,.,,,..,,...,...,,.,,,,.,...,,,,,,.,,
+#4DWCLM6DS3QWQWPF36ZPOGBWI3HO5UIJKXKCDH26GHHFW4FIVPKDX7X6Q5O7PXCH3X5HDYP2Z45CS
+#\\\|KOB5264TNMW6KHPYT5X3OPJHHMDWSXZNDV7SVAKNMDV4UIDIBT3 \ / AMOS7 \ YOURUM ::
+#\[7]CK6VJJVZIM56XEL4RR64ODS5TZYO2X7KQGY363TTI6XQZZTG7UDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
