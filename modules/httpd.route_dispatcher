@@ -107,8 +107,8 @@ for my $match_type (qw| exact prefix |) {
     }
 }
 
-## Route 1: ACME challenges (Let's Encrypt HTTP-01 validation) ##
-## Pattern: /.well-known/acme-challenge/{token}
+## Route 1: ACME challenges (Let's Encrypt HTTP-01 validation) Pattern: ##
+## /.well-known/acme-challenge/{token}                                  ##
 if ( $path =~ m|^/.well-known/acme-challenge/(.+)$| ) {
     my $token = $LAST_PAREN_MATCH;
     <[base.logs]>->(
@@ -144,8 +144,8 @@ if (    <plugin.httpd.radio.active>
     };
 }
 
-## Route 2: Template-based dynamic content ##
-## Try to resolve template using vhost resolver
+## Route 2: Template-based dynamic content  Try to resolve template using ##
+## vhost resolver                                                         ##
 if ( defined $vhost ) {
     my $template_path = <[httpd.vhost_template_resolver]>->( $vhost, $path );
 
@@ -178,8 +178,8 @@ my $route = {
 $data{'route_cache'}->{$cache_key} = $route;
 return $route;
 
-#,,..,,..,,.,,,,,,.,,,.,.,.,,,,..,,,,,,,.,.,.,..,,...,...,.,,,...,,,,,...,,..,
-#TQ6NUSGAS2OSCYW775H4KKZ7I7XETQQLACRU3PZHJ2OWCTPHVQFVAVTCHBYJ23VL2YD6AGGFIVPVG
-#\\\|HQQCLT3CAVMJN5BBPONG6P6C6QJAPTOCQMXAK2LY3AG25BIWOMP \ / AMOS7 \ YOURUM ::
-#\[7]EP6KGT2V2WUF3NOUDUJX4MVTHP7NGRDCTHMSP4QMARKTE32GBQDI 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,.,.,,,,,.,,,...,,.,,,,.,.,,,,..,..,,...,...,.,.,,,.,.,.,,..,,,.,
+#LI5OUJDYPCLZR7AEKDWVQLXIUPI2PRYYYE2RK2T64DA7NIDR3UC575DREQOF2TDW3YOQ3TDJJTK3W
+#\\\|XUNQ3CUXDQIUNU7556GRSSYRXPLEZ5O4OYNDOEX6RZZBCBDTCC3 \ / AMOS7 \ YOURUM ::
+#\[7]EG4RNVFL4OCRDS5O2MI24ZSQM6C7BWRHQSZHQL7PN7535CFQPWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

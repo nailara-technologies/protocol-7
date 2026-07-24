@@ -69,16 +69,15 @@ $data{'httpd'}{'benchmark'}{'avg'} = {
 # Log performance data if debugging enabled
 <[base.log]>->(
     2,
-    "Request $request_id completed: "
-        . "$status_code, "
+    "Request $request_id completed: $status_code, "
         . sprintf( "%.2f", $metrics->{'request_duration'} * 1000 ) . "ms, "
         . <[httpd.base.size.normalize]>->($response_size)
 ) if $data{'httpd'}{'benchmark'}{'debug'};
 
 return $metrics;
 
-#,,..,..,,...,..,,,.,,...,,..,...,,..,..,,,.,,..,,...,..,,...,,,.,,.,,.,.,,,,,
-#23NGPYPA2WHYDXWPW5UK7ICEJ7YHWHI5HLTXGG3L66NKCTF3YYWZGCXPWN7KPB7FCFEPUE6GOCTUO
-#\\\|HHJPDNTQKRUBK3ISBTFSAPWONVVFFT7BMP7CR3YXF3XWZEXGNCB \ / AMOS7 \ YOURUM ::
-#\[7]5G5MV5BCGDOHUHUSRIOK6QB57PIEGYX2FD3JUH4QTZS5YM7ZKQCY 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,...,..,,...,.,,,,,.,.,.,,.,,,..,..,,...,...,,.,,.,,,...,.,.,,,,,
+#2A4N63TCQJUVODKTXG3FT7LYCJED4LCTE3GLAF6BHRJQ7Z3RZG2XVG7TZMLA5HN4BBWSK37LHKFWW
+#\\\|WL2KQIX6HOEHUV2ZEZ2YA5EZKNGKKLV5JV5EJPSIRMLTYX4OEIL \ / AMOS7 \ YOURUM ::
+#\[7]7EN4OICOS4G6RPRPUUMHV7U4VI2MCCFXCHQRZPFVJC4LCKDX4IAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

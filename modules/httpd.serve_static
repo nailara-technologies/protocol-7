@@ -183,8 +183,8 @@ if ( $file_path =~ m{\.tmpl$} ) {
 }
 
 ## Note: Skip -r check as it may fail in SSL socket context File permissions
-## will be checked when we attempt to open the file [line 182+] If file is
-## not readable, open() will fail and we'll return 500 error
+## will be checked when we attempt to open the file [line 182+] If file is not
+## readable, open() will fail and we'll return 500 error
 
 # Get file metadata : resolve symlinks for correct type/size
 my $real_file_path = Cwd::realpath($file_path) // $file_path;
@@ -262,8 +262,8 @@ if ( $content_size <= 16 * 1024 and not exists $request->{'range'} ) {
 
     ### [LLL] consider passing output buffer to file.slurp : ###
     #
-    ## use native file.slurp for consistent UTF-8 safe handling
-    ## detect binary files and use :raw mode to avoid UTF-8 decode failures
+    ## use native file.slurp for consistent UTF-8 safe handling detect binary
+    ## files and use :raw mode to avoid UTF-8 decode failures
     my $is_text
         = $content_type
         =~ m{^(?:text|application/(?:json|xml|javascript|xhtml))};
@@ -303,8 +303,8 @@ return <[httpd.download_init]>->(
     }
 );
 
-#,,,.,.,.,...,...,.,.,...,,,,,...,,,.,,,,,.,.,..,,...,...,...,,,,,,,.,.,,,..,,
-#WC5EYDR64JQQMSBYZIV3IJRZTGNWGOXEYW4B64ULLAGT3K6EJ4YV53VAAE5PM5ROPLVJXMALEODOK
-#\\\|YZO2GUUUTE6UC566WP3GWS5N7VWY7HTEMYLOAPDKK7YTUNOTPRB \ / AMOS7 \ YOURUM ::
-#\[7]CXFIL5IWVHRWTUVK37BSSGE6MM4TGV47W2G7NVHSRH7T73TF3EBA 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,,,,...,.,,,,.,,...,.,,,,..,,..,..,,...,..,,,..,,,.,..,,...,...,
+#CVSLGMQW5P7DZNTLPTZ5STZZL2W3IRNU4GJEJWR2IX73GRVON7S2SRUWMOCWT4N5346M636VLNSOO
+#\\\|KZT5UZB2OTB7A2PYTGYLFHQFFNOY2SXHYVINXVI4NYHNXV54IS2 \ / AMOS7 \ YOURUM ::
+#\[7]ZAVC53MFNTTOVBXENQ4PRCHHKS7KIINMLOJTEEVRS3JFHQTOVOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
