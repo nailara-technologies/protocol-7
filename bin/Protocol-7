@@ -340,15 +340,15 @@ sub p7_security_hardening {    ## SOME BASIC SECURITY HARDENING ##
         ## character whitelist ##
         my $char_map = qr|([^0-9a-zA-Z\-\+\.:_\[\]\/]+)|;
         ## checking program name ##
-        die "\n\n << not valid characters [ '%s' ]"
-            . " in program name '%s' >>\n\n\n", ${^CAPTURE}[0], $PROGRAM_NAME
+        die "\n\n << not valid characters [ '%s' "
+            . "] in program name '%s' >>\n\n\n", ${^CAPTURE}[0], $PROGRAM_NAME
             if $PROGRAM_NAME =~ $char_map;
         ##  verified clean  ##
         my $bin_path = $PROGRAM_NAME;
         ## checking program name link target ##
         while ( my $link_target = readlink($bin_path) ) {
-            die sprintf "\n\n<< not valid characters [ '%s' ]"
-                . " in program name link target '%s' >>\n\n\n",
+            die sprintf "\n\n<< not valid characters [ '%s' ] in "
+                        . "program name link target '%s' >>\n\n\n",
                 ${^CAPTURE}[0], $link_target
                 if $link_target =~ $char_map;
             ##  verified clean  ##
@@ -775,8 +775,8 @@ sub p7_init_exec {    ##  main variable initialization  ##
                             ':',
                             sprintf( ": invalid -format value : '%s'",
                                 $requested_format ),
-                            ":. .. valid formats are :."
-                                . " 'as-is', 'decoded', and 'encoded'",
+                            ":. .. valid formats are :. "
+                            . "'as-is', 'decoded', and 'encoded'",
                             ':'
                         );
                         exit(1);
@@ -791,8 +791,8 @@ sub p7_init_exec {    ##  main variable initialization  ##
             if ( defined $pattern && length $pattern ) {
                 $code{'log.noerr'}->(
                     sprintf(
-                        ': exporting inline subroutines'
-                            . ' matching pattern: %s (format: %s)',
+                        ': exporting inline subroutines '
+                        . 'matching pattern: %s (format: %s)',
                         $pattern, $format
                     )
                 );
@@ -824,8 +824,8 @@ sub p7_init_exec {    ##  main variable initialization  ##
                     ':',
                     ': no subroutine name provided.,',
                     sprintf(
-                        ': usage: %s -encode-inline-sub'
-                            . ' subroutine_name [compression_type]',
+                        ': usage: %s -encode-inline-sub '
+                        . 'subroutine_name [compression_type]',
                         $0
                     ),
                     ': compression types: xz (default), gzip',
@@ -860,12 +860,12 @@ sub p7_init_exec {    ##  main variable initialization  ##
                 $code{'base.test.function'} = sub { return "[ [:< ]" };
 
                 # Output confirmation
-                print "Test function 'base.test.function' created"
-                    . " for export format testing.\n";
-                print "Try: $0 -export-inline-subs"
-                    . " base.test.function -format=as-is\n";
-                print "and: $0 -export-inline-subs"
-                    . " base.test.function -format=decoded\n";
+                print "Test function 'base.test.function' "
+                      . "created for export format testing.\n";
+                print "Try: $0 -export-inline-subs "
+                      . "base.test.function -format=as-is\n";
+                print "and: $0 -export-inline-subs "
+                      . "base.test.function -format=decoded\n";
                 exit(0);
             }
 
@@ -1100,8 +1100,8 @@ sub p7_ntime_BASE32_to_numerical {
     my $ntime_value = eval { Crypt::Misc::decode_b32r($tstamp) };
 
     if ( not defined $ntime_value or length $EVAL_ERROR ) {
-        warn 'network time not valid [ '
-            . 'BASE32 decoding not successful ] <{C1}>';
+        warn 'network time not valid [ BASE32 '
+             . 'decoding not successful ] <{C1}>';
         return undef;
     }
 
@@ -1429,9 +1429,7 @@ sub p7_load_code {
         = ref($base_url_aref) eq qw| ARRAY |
         ? $base_url_aref->@*
         : ();    ## gone. ##
-    ##  : qw|
-    ##  http://src.v7.ax/nailara/
-    ##  |;
+    ## : qw|  http://src.v7.ax/nailara/  |;
 
     my $src_from_http = (
         ( $data{'system'}{'use_http_source'} // FALSE )
@@ -1649,8 +1647,8 @@ sub p7_load_code {
                 #                     continuation lines before processing ..,
                 my $orig_len = length $data{'code'}{$file_name}{'source'};
                 ## join continuation lines first [ lines ending with ->,
-                ## comma, operators but skip protected lines [ comments,
-                ## POD, special sections ]
+                ## comma, operators but skip protected lines [ comments, POD,
+                ## special sections ]
                 my @lines = split "\n", $data{'code'}{$file_name}{'source'};
                 my @joined;
                 my $heredoc_end;      ## heredoc terminator tracking ##
@@ -1676,15 +1674,15 @@ sub p7_load_code {
                     }
 
                     ## detect heredoc opener [ <<'TAG' <<"TAG" <<~'TAG' ] ##
-                    ## require operator context before << ##
+                    ## require operator context before <<                 ##
                     ## [ prevents matching << inside string literals ] ##
                     if ( $line =~ m{(?:^|[=\(,;\s])<<~?\s*(['"])(\w+)\1} ) {
                         $heredoc_end = $2;
                     }
 
-                    ## only join non-protected lines ending with
-                    ## continuation pattern [ -> for method calls,
-                    ## comma for args, lists, operators ]
+                    ## only join non-protected lines ending with continuation
+                    ## pattern [ -> for method calls, comma for args, lists,
+                    ## operators ]
                     unless ( $line =~ m{^\s*\#}
                         || $line =~ m{^=\w+}
                         || $line =~ m{^__(?:DATA|END)__} ) {
@@ -1794,10 +1792,10 @@ sub p7_load_code {
     my $new_version = sprintf qw| _v%d_ |, ++$load_seq;    ##  staging key  ##
     my $staging     = {%code};    ##  seed with pre-imported subs  ##
 
-    ##  detect reload batch : any module previously compiled successfully  ##
-    ##  reload  : staging-only, swap aborted on error [ old code stays ]   ##
-    ##  initial : install directly so one error doesn't strand other subs  ##
-    ##            compiled successfully but unreachable without a swap     ##
+    ## detect reload batch : any module previously compiled successfully ##
+    ## reload  : staging-only, swap aborted on error [ old code stays ]  ##
+    ## initial : install directly so one error doesn't strand other subs ##
+    ## compiled successfully but unreachable without a swap              ##
     my $is_reload_batch = FALSE;
     if ( defined $active_version ) {
         for my $sub (@compile_order) {
@@ -1964,9 +1962,7 @@ sub p7_load_code {
                 EOC
         }
 
-        ##                      ###
-        ## compiling subroutine ###
-        ##                      ###
+        ## #  compiling subroutine #  # ##
 
         $src_bytes_total += $source_len;
 
@@ -2091,8 +2087,8 @@ sub p7_load_code {
                         $code{'log.error'}->(":. $caller_str");
                         return {
                             'mode' => qw| false |,
-                            'data' => "command '$sub_name' is $reason.,"
-                                . " details in startup log.,"
+                            'data' => "command '$sub_name' is $reason., "
+                                      . "details in startup log.,"
                         };
                     }
                 };
@@ -2170,8 +2166,8 @@ sub p7_load_code {
                     }
 
                     ## check for continuation lines [ multiline descriptions ]
-                    ## stop when hitting: tag definitions [ name=, param= ]
-                    ## or line directives [ Perl error reporting ]
+                    ## stop when hitting: tag definitions [ name=, param= ] or
+                    ## line directives [ Perl error reporting ]
                     while ( $header_block
                         =~ m|\n#\s+(?:(?!line\s+\d+)(?!\w+\s*=))(\S.*)|g ) {
                         my $continuation = ${^CAPTURE}[0];
@@ -2229,8 +2225,8 @@ sub p7_load_code {
 
     if ($err_count) {
         $code{'log.error'}->( $p
-                . "success on $ok_count sub$s,"
-                . " $err_count broken$w_msg., `:|" );
+                . "success on $ok_count "
+                  . "sub$s, $err_count broken$w_msg., `:|" );
     } elsif ($warn_count_total) {
         $code{'log.error'}->( $p . "success on $ok_count sub$s$w_msg :|" );
     } else {
@@ -2244,13 +2240,12 @@ sub p7_load_code {
         );
     }
 
-    ##  staged hash swap  ##
-    ##  reload : atomic swap + rollback window                           ##
-    ##  initial load : subs already installed directly — no swap needed  ##
+    ## staged hash swap  reload : atomic swap + rollback window  initial ##
+    ## load : subs already installed directly — no swap needed           ##
     if ( $is_reload_batch and not $err_count ) {
 
-        ##  archive prior version under its load-seq key  ##
-        ##  using seq key avoids collision when same src-ver reloaded  ##
+        ## archive prior version under its load-seq key  using seq key ##
+        ## avoids collision when same src-ver reloaded                 ##
         my $prev_version = $active_version;
         $CODE{$prev_version} = {%code}    ##  snapshot prior  ##
             if defined $prev_version;
@@ -2297,8 +2292,8 @@ sub p7_load_code {
 
     } elsif ( not defined $active_version ) {
 
-        ##  base first load : mark version without swapping  ##
-        ##  [ subs already in %code via direct install above ]  ##
+        ## base first load : mark version without swapping  [ subs already ##
+        ## in %code via direct install above ]                             ##
         $active_version = $new_version;
 
     }   ##  else : staging discarded, %code unchanged, old code stays live  ##
@@ -2336,13 +2331,13 @@ sub p7_stderr_restore {
     close(STDERR);
     if ( defined $restore_fh ) {
         open( STDERR, qw| >& |, $restore_fh )
-            or printf "\n<< cannot restore STDERR"
-            . " to $restore_fh [ %s ] >>\n\n",
+            or printf "\n<< cannot restore STDERR "
+                      . "to $restore_fh [ %s ] >>\n\n",
             $code{'base.format_error'}->($OS_ERROR);
     } else {
         open( STDERR, qw| > |, File::Spec->devnull() )
-            or printf "\n<< cannot restore STDERR"
-            . " to '/dev/null' [ %s ] >>\n\n",
+            or printf "\n<< cannot restore STDERR "
+                      . "to '/dev/null' [ %s ] >>\n\n",
             $code{'base.format_error'}->($OS_ERROR);
     }
 }
@@ -2474,8 +2469,8 @@ sub p7_devmod_sub {
         }gxe if defined &{'encode_b32r'} and defined &Digest::JHash::jhash;
     ## [ LLL ] ids need to become resolvable + devmod command ..,
     say sprintf(
-        "$colors{p7_fg_0000}. %s$colors{p7_fg_0001} : $colors{p7_fg_0004}%s"
-            . " [ $colors{p7_fg_0003}%s$colors{p7_fg_0000} ]"
+        "$colors{p7_fg_0000}. %s$colors{p7_fg_0001} : $colors{p7_fg_0004}%s "
+        . "[ $colors{p7_fg_0003}%s$colors{p7_fg_0000} ]"
             . $colors{'reset'},
         $data{'system'}{'zenka'}{'name'},
         $sub_name, $param_list
@@ -2726,9 +2721,9 @@ sub p7_assert__harmony {    ##  rename and overload in base module  ##  [LLL]
 
 ##[ PURE PERL BASE32 FALLBACK ]###############################################
 
-##  Pure Perl implementation of base32 encoding (RFC 4648)
-##  Used as fallback when Crypt::Misc is not installed
-##  Less performant but fully functional for early testing
+## Pure Perl implementation of base32 encoding (RFC 4648)  Used as fallback
+## when Crypt::Misc is not installed  Less performant but fully functional for
+## early testing
 
 sub p7_base_util_base32_encode {
     my $input_bytes = shift;
@@ -2760,8 +2755,8 @@ sub p7_base_util_base32_encode {
     return $result;
 }
 
-##  Pure Perl implementation of base32 decoding [RFC 4648]
-##  Used as fallback when Crypt::Misc is not installed
+## Pure Perl implementation of base32 decoding [RFC 4648]  Used as fallback
+## when Crypt::Misc is not installed
 
 sub p7_base_util_base32_decode {
     my $input_string = shift;
@@ -2771,8 +2766,8 @@ sub p7_base_util_base32_decode {
         substr( join( '', 'A' .. 'Z', '2' .. '7' ), $ARG, 1 ) => $ARG
     } 0 .. 31;
 
-    ##  RFC 4648 base32 without padding [base32r variant]  ##
-    ##  No padding removal needed  ##
+    ## RFC 4648 base32 without padding [base32r variant]  No padding ##
+    ## removal needed                                                ##
 
     my $result         = '';
     my $buffer         = 0;
@@ -3028,8 +3023,8 @@ sub p7_format_error {
                 $err_msg = sprintf    ## using an 'educated' guess here ##
                     'protocol-7 subroutine %s not defined',    ## <{NC}>? ##
                     $subname;
-                ## $err_msg .=
-                ## sprintf( ' %s', $caller_str ) if $c_lvl != -1; ## ? ##
+                ## $err_msg .=  sprintf( ' %s', $caller_str ) if $c_lvl != ##
+                ## -1; ## ?                                                ##
             }
         }
     }
@@ -3245,8 +3240,8 @@ sub p7_httpc__remote_file {
     my $http_retries = $data{'system'}{'http_src_retries'} // 4;
     eval { use HTTP::Tiny } if !$data{'system'}{'http_reqs'};
     $EVAL_ERROR =~ s| ?\(\@INC contains:.+\n?$|| if $EVAL_ERROR;
-    warn "<< 'HTTP::Tiny' pmod. not found"
-        . " [ yet in cubelist ] [ $EVAL_ERROR ] >>"
+    warn "<< 'HTTP::Tiny' pmod. not found [ "
+         . "yet in cubelist ] [ $EVAL_ERROR ] >>"
         and return undef
         if $EVAL_ERROR;
     $data{'system'}{'http_reqs'}++;
@@ -3308,8 +3303,8 @@ sub p7_httpc__remote_file {
             skiplog_httpmsg:
                 if ( $h_code == 404 or $h_code eq 599 ) {
                     $retries_left = 0;
-                    $code{'log.noerr'}->( ":: aborting retries ["
-                            . " after first $h_code code ] ::" );
+                    $code{'log.noerr'}->( ":: aborting retries [ after "
+                                          . "first $h_code code ] ::" );
                     return undef;
                 } else {    ## client side rate limiting ## [???]
                     my $randomized_delay = 0.13 + rand(
@@ -3787,8 +3782,7 @@ sub p7_handler__end_code {
         } else {
             $code{'base.logs'}->(
                 0,
-                "<<  referenced end_code callback "
-                    . "'%s' does not exist >>",
+                "<<  referenced end_code callback '%s' does not exist >>",
                 $callback_name
             );
         }
@@ -4053,8 +4047,8 @@ sub p7_load_inline_subroutines {
     ## used for reporting write protect errors ##
     my $prog_name = defined $data_block_filehandle ? 'SUB_FH' : $RealScript;
 
-    ## lock Protocol-7 file to not be modified while reading <DATA> ##
-    ## my $lock_during_read = TRUE             ## true ##
+    ## lock Protocol-7 file to not be modified while reading <DATA> my ##
+    ## $lock_during_read = TRUE             ## true                    ##
 
     my $lock_during_read = FALSE;
 
@@ -4365,8 +4359,8 @@ DO_NOT_WRITE_PROTECT_DATA_FH:
                             ##  decoded subroutine number of bytes  ##
                             $code{'base.error_exit.inline_loading'}->(
                                 sprintf(
-                                    'decoded subroutine size mismatch '
-                                        . '[%d!=%d]',
+                                    'decoded subroutine '
+                                    . 'size mismatch [%d!=%d]',
                                     length $decomp_buffer_sref->$*,
                                     $loader_state->{'sub-src-bytes'}
                                 ),
@@ -4380,8 +4374,8 @@ DO_NOT_WRITE_PROTECT_DATA_FH:
                                 $decomp_buffer_sref->$* );
                             $code{'base.error_exit.inline_loading'}->(
                                 sprintf(
-                                    'subroutine word-count mismatch'
-                                        . ' [ %d != %d ]',
+                                    'subroutine word-count '
+                                    . 'mismatch [ %d != %d ]',
                                     $word_count,
                                     $loader_state->{'sub-src-word-count'}
                                 ),
@@ -4397,8 +4391,8 @@ DO_NOT_WRITE_PROTECT_DATA_FH:
                                 $decomp_buffer_sref->$* );
                             $code{'base.error_exit.inline_loading'}->(
                                 sprintf(
-                                    'subroutine has wrong number of lines'
-                                        . ' [ %d != %d ]',
+                                    'subroutine has wrong '
+                                    . 'number of lines [ %d != %d ]',
                                     $line_count,
                                     $loader_state->{'sub-src-lines'}
                                 ),
@@ -4716,10 +4710,10 @@ sub p7_export_inline_subroutines {
             # No stored source available - explain the limitation
             print "# Exported subroutine: $export_name\n";
             print "# NOTE: Original source code not available.\n";
-            print "# This subroutine was imported before"
-                . " source tracking was enabled.\n";
-            print "# To enable source tracking for export,"
-                . " reload Protocol-7 with updated code.\n";
+            print "# This subroutine was imported "
+                  . "before source tracking was enabled.\n";
+            print "# To enable source tracking for export, "
+                  . "reload Protocol-7 with updated code.\n";
 
             if ( ref($sub_code) eq 'CODE' ) {
                 print "# Code reference type: " . ref($sub_code) . "\n";
@@ -4855,17 +4849,17 @@ sub p7_export_subroutine {
         $output .= "# Exported from: $sub_name\n";
         $output .= "# NOTE: Original source code not available.\n";
         $output
-            .= "# This subroutine was imported before"
-            . " source tracking was enabled.\n";
+            .= "# This subroutine was imported "
+               . "before source tracking was enabled.\n";
         $output
-            .= "# To enable source tracking for export,"
-            . " reload Protocol-7 with updated code.\n";
+            .= "# To enable source tracking for export, "
+               . "reload Protocol-7 with updated code.\n";
 
         if ( ref($sub_code) eq 'CODE' ) {
             $output .= "# Code reference type: " . ref($sub_code) . "\n";
             $output
-                .= "sub {\n    # Source code would be here"
-                . " - not available\n    return 1;\n}\n";
+                .= "sub {\n    # Source code would be here "
+                   . "- not available\n    return 1;\n}\n";
         }
     }
 
@@ -5709,8 +5703,8 @@ __DATA__
 :
 :.
 
-#,,,.,.,.,.,.,...,..,,,,.,.,.,,.,,...,,,.,,.,,..,,...,..,,.,.,...,,.,,,..,,,.,
-#E4UMFZHRTHJWZ32UDDALKHXGZILRBAKXQXUJ2VBVTBTE4MHEAN7COOWWZBJG7GZTB345A2AOBIMMK
-#\\\|PAGOQH3FT5P7UXEA7OWOLHPPEI7U7LSXTH6AFNC2ZDZ35XTREO4 \ / AMOS7 \ YOURUM ::
-#\[7]DJS2Q5H64K5FNFKU6CSE7YDGZ7DX4UZOAAY4DBZI5VL5CDSJ2CBI 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,.,,,,.,,..,.,,,..,,,.,,...,,,,,..,,...,...,.,,,.,.,..,,,,.,,,.,
+#RUHG6OCYPITZTPSXGI5NTVLRV44ZKPG7YCUMKE7MQLKFSK5O57QZIOSCGRZ7VSMHJXVY3TW3IQSJQ
+#\\\|KI3CSY74EV77SH2LURB7OGJIEUE6COKZDJQV5CDUHZN747P7PAX \ / AMOS7 \ YOURUM ::
+#\[7]4JFVP3VC62SXAWY37PI7WX3RSLOEZ3MMEXR3HH5PKMDPTS6VNGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
