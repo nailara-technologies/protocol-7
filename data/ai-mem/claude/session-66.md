@@ -57,7 +57,7 @@ poisons entire sort. fix: `isFinite(parseFloat(v))` guard + `fetched_at` tiebrea
 `plugin.web.space.orbital.json.context` had inline `sub _synthetic_zenka_node`
 (lines 34–70); loaded by both reload-source and reload-plugins → redefined warning.
 extracted to `modules/plugin.web.space.orbital.synthetic-zenka-node`, added to
-web zenka whitelist (`configuration/zenki/web/subroutine.white-list`).
+web zenka whitelist (`configuration/zenki/web/subroutines.load-early`).
 
 ## double-plugin-load fix — DONE ✓
 
@@ -73,8 +73,8 @@ all 5 stages clean with no warnings.
 
 #,,,,
 
-#,,..,,..,.,.,...,,,.,..,,.,.,,..,.,,,,,,,,,.,..,,...,...,,..,,..,.,,,.,.,,.,,
-#G6ECWSTWVTSRVFPQEFVNGKMO7COSAVQZK2UHQ5CL7U474YOPTV6XTJLUILFN3NJJGG6MMNCPVXBZA
-#\\\|WY6SFRTJYS7A2YHOS323LQI5OBV5UIQLA732FMBZ2LY6AB533YI \ / AMOS7 \ YOURUM ::
-#\[7]VTFFRFHF37ALF25DACFFZENH2I6JXYZ4SOTKC5MTA35KNIBLEADI 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,.,,,,,,,..,,,,.,.,,,..,,,,,,...,..,,...,...,,..,,..,.,.,,,.,..,,
+#SVI6PMXCKC4Q5GPDKJ2YLY2UVEPYY255ZW6UHXTNP7EOKFO7MNYTPDWMD4AS4LBPEUOWTHRXH2BVY
+#\\\|BWKAKN4IH6ITB5R76T5NVKWSKCVPY2EF7IMNLLME5MXFWMJFKCF \ / AMOS7 \ YOURUM ::
+#\[7]OX6QKY35NT7XSUD6Y3O5IQAYHGD5SMOMAIAOHLC7SKUEQL57F4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
