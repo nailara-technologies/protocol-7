@@ -1,0 +1,108 @@
+## [:< ##
+
+# name  = ncode.cmd.review
+# descr = record an llm review outcome for a pattern
+
+## accept a ready hashref [ programmatic call ] or a cube-dispatch call   ##
+## object carrying a json-encoded 'args' string [ p7c / network call ] -- ##
+## same adapter shape as ncode.cmd.assess                                 ##
+my $raw    = shift // {};
+my $params = {};
+if (    ref $raw eq qw| HASH |
+    and exists $raw->{'args'}
+    and not ref $raw->{'args'} ) {
+    my $args_str = $raw->{'args'} // '';
+    if ( length $args_str ) {
+        $params = eval { JSON::PP::decode_json($args_str) };
+        return {
+            'mode' => qw| false |,
+            'data' => "invalid JSON " . "arguments: $@"
+            }
+            if $@;
+    }
+} elsif ( ref $raw eq qw| HASH | ) {
+    $params = $raw;
+}
+
+my $pattern_name = $params->{'pattern_name'} // '';
+my $fix_id       = $params->{'fix_id'}       // '';
+my $outcome      = $params->{'outcome'}      // '';
+
+return { 'mode' => qw| false |, 'data' => 'pattern_name required' }
+    unless length $pattern_name;
+return { 'mode' => qw| false |, 'data' => 'outcome must be approve|decline' }
+    unless $outcome eq qw| approve | or $outcome eq qw| decline |;
+
+<ncode.patterns> //= {};
+my $def = <ncode.patterns>->{$pattern_name};
+
+return { 'mode' => qw| false |, 'data' => 'unknown pattern' }
+    if not defined $def
+    or ref $def ne qw| HASH |;
+
+## already trusted : review is a no-op [ informational ] ##
+if ( ( $def->{'status'} // qw| llm-required | ) eq qw| auto-apply | ) {
+    return {
+        'mode' => qw| true |,
+        'data' => 'pattern is auto-apply, review not required'
+    };
+}
+
+$def->{'review'} //= { 'approved_streak' => 0, 'declined' => 0 };
+my $review = $def->{'review'};
+
+<ncode.pending> //= {};
+my $pending = <ncode.pending>;
+
+if ( $outcome eq qw| decline | ) {
+    ## conservative default : any decline resets the streak, status stays  ##
+    ## untouched, nothing is marked reviewed, no escalation [ a decline is ##
+    ## a normal terminal outcome for this instance ]                       ##
+    $review->{'declined'}++;
+    $review->{'approved_streak'} = 0;
+    return {
+        'mode' => qw| true |,
+        'data' => {
+            'declined'        => $review->{'declined'},
+            'approved_streak' => 0
+        }
+    };
+}
+
+## outcome eq 'approve' ##
+$review->{'approved_streak'}++;
+
+## mark the pending fix as reviewed [ ncode.cmd.apply checks this ] ##
+if ( length $fix_id
+    and ref $pending->{$fix_id} eq qw| HASH | ) {
+    $pending->{$fix_id}{'reviewed'} = 1;
+}
+
+## crossing the streak only ever produces a question, never a status change ##
+## -- ncode.cmd.graduate is the separate explicit confirmation              ##
+my $streak_needed = <ncode.cfg.review_streak_needed> //= 5;
+if ( $review->{'approved_streak'} >= $streak_needed
+    and ( $def->{'status'} // qw| llm-required | ) eq qw| llm-required | ) {
+    return {
+        'mode' => qw| true |,
+        'data' => {
+            'graduation_ask' => 1,
+            'pattern'        => $pattern_name,
+            'streak'         => $review->{'approved_streak'},
+            'message'        => 'streak threshold reached -- call '
+                . 'ncode.cmd.graduate to confirm this '
+                . 'pattern should skip review from now on'
+        }
+    };
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => { 'approved_streak' => $review->{'approved_streak'} }
+};
+
+#,,..,,..,...,...,.,,,.,.,...,,,,,,..,...,,..,..,,...,...,,.,,,,,,...,..,,.,,,
+#XG2NU34C7E3NGBXHZFDTAZKEDWMBBVLZQORHO5GXJPW5KGDRRILSVYJ3PZUDZDACJG5UIBKGS7LGM
+#\\\|WPV6RN64D5XETI3JKHVU3XATPGCVSG57RO25EPISHR662PBSEUE \ / AMOS7 \ YOURUM ::
+#\[7]3YFHKN6R7SQIGYUG7M3G6GFNAXMU4EM24OUOKMO4P2NU5AP4XICA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

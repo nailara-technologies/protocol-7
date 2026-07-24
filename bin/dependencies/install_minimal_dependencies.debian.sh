@@ -29,6 +29,7 @@ apt-get -y install gcc git make cpanminus libc6-dev libmce-perl \
             libhash-merge-simple-perl libproc-processtable-perl \
             libterm-readline-gnu-perl libterm-readpassword-perl \
             libterm-readkey-perl liblinux-termios2-perl \
+            libterm-clui-perl \
             libcompress-raw-lzma-perl liblwp-protocol-https-perl \
             libanyevent-http-perl libasync-interrupt-perl libguard-perl \
             libclass-accessor-lite-perl libio-socket-multicast-perl \
@@ -67,8 +68,8 @@ perl -Mv5.13 -e \
 
 # LLL cpan2deb --recursive --build --install-deps --install-build-deps --install
 
-#,,,.,,..,..,,,,,,..,,,,.,..,,..,,.,.,...,,,.,..,,...,..,,,,,,,,.,.,.,,,.,.,,,
-#RC654KQ7KCVFI2MK34LY6GSRIBXAFBRELC2JAQFBPZLYL7RVMPOYT7U5LTIJNXBYMDGXWMXYGBYLG
-#\\\|E3TZZGPT5Y7J42PNGI7ZO5DOQ3EESBI7JE26ICUV7E6HBK3T2FR \ / AMOS7 \ YOURUM ::
-#\[7]PV4DWQSZHY4NS6RHHQ4EOTC7FVLLLAQVHU6XANZ65Z7UQUU2MSCY 7  DATA SIGNATURE ::
+#,,..,..,,..,,..,,,.,,,..,,,,,.,,,.,,,.,.,.,.,..,,...,...,.,.,,.,,.,.,,,.,.,,,
+#5QENE5TH3T5BZOJ2ZW6ASTJDLV7FHLXEHXHLOEUWPCDQGXPI6TOSHP5YCKKHMQ25CM6ABNW6FWCJK
+#\\\|PQXYCWUJ4GCGIH77HUJZIHLRPJO2ZOZ6LYVA44FN3WCJTZWPXV3 \ / AMOS7 \ YOURUM ::
+#\[7]HWJF2NZS7ELPMBRODER5BWAC2U4UYMRD7RAZM3QKMSRXG2ATUQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
