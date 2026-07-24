@@ -366,6 +366,27 @@ sub step4_align_comment_block {
         $any_close ||= $parts->{has_close};
     }
 
+    ##  commented-out code detection : a '##'-block containing recognizable
+    ##  perl code shapes [ trailing '{' '}' ';' , control-flow keywords ,
+    ##  '$var->' / '$var{' dereference chains .. ] is a snippet the author
+    ##  deliberately preserved, not prose -- reflowing/joining it would
+    ##  scramble its structure the same way running a prose wrapper over it
+    ##  would. same repetition threshold as list detection below : one
+    ##  incidental code-shaped line elsewhere in real prose should not
+    ##  trigger this, two or more confirms a genuine snippet -- pass the
+    ##  whole block through completely untouched rather than realign it,
+    ##  since even indentation is part of what the author is preserving  ##
+    my $code_marker_re = qr{
+        [;{}]\s*$
+      | ^(?:if|elsif|else|unless|while|until|for|foreach|sub
+        |my|our|local|return|package)\b
+      | \$\w+\s*(?:->|=>|\{|\[)
+      | ->\s*\w+\s*\(
+    }x;
+    my $code_line_count = grep { $ARG =~ $code_marker_re } @content_parts;
+    return [ @{$lines}[ $start_lnum - 1 .. $start_lnum + $block_len - 2 ] ]
+        if $code_line_count >= 2;
+
     ##  a symmetric box [ blank top/bottom '##   ##' border lines framing a
     ##  centered title ] gets its author's chosen padding depth preserved
     ##  instead of always collapsing to the bare minimum single space --
@@ -1071,8 +1092,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,.,,..,,,.,,,,,,,,.,..,,,..,,,,,,..,.,,,.,.,..,,...,...,.,.,.,,,...,,.,,,,.,
-#ZEQXJHC5KAJE5Y6C6ZLY7AIGYHOZ2VYENV7PHJ4G5QHIHR3JA5U2CRNWRHSISZDOG55WAFHCSGUPC
-#\\\|JFWN5PRUAMVR7U47DP2BZMQVWBEJ424IKLARCJC4O73FGDJNLUF \ / AMOS7 \ YOURUM ::
-#\[7]VAP7G32H7Y2HNSKKYBPO44MKCN3JTJCUWRXBFBQOHJC7LKNL76CY 7  DATA SIGNATURE ::
+#,,..,,,.,...,...,.,,,..,,,.,,,.,,...,..,,.,.,..,,...,...,,..,,..,,..,.,,,,,,,
+#OGZOHKJ3NZYFBT3NY635LNCEFPTBLGERC477B5L6E7XZIY2WJ5BBYB5NDHLYLNUN55S63FB6FU3MQ
+#\\\|UGWSI4QKTHXWLUCTMMWDTIT5MH3JT55KVGJVQBHPVMDNZZP5FHY \ / AMOS7 \ YOURUM ::
+#\[7]VXM5P6VMZO444Z7L5SU7CFEJRS5XDTPKUGX25IMDPK22Y6CNYYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
