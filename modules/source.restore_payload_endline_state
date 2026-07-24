@@ -24,9 +24,9 @@ return FALSE if $endline_state_oct == 5;
 
 my $previous_payload_length = length $payload_sref->$*;
 
-## state 5 = no modification [handled by early return above]                      ##
-## state > 5 : N newlines were added during signing → remove exactly N from end   ##
-## state < 5 : N newlines were removed during signing → add exactly N back        ##
+## state 5 = no modification [handled by early return above] state > 5 : N  ##
+## newlines were added during signing → remove exactly N from end state < 5 ##
+## : N newlines were removed during signing → add exactly N back            ##
 
 my $delta = $endline_state_oct - 5;
 
@@ -37,8 +37,8 @@ if ( $delta > 0 ) {
 
     if ( $actual_count < $delta ) {
         <[base.s_warn]>->(
-            ': endline state mismatch : encoded delta=%d but only'
-                . ' %d trailing newlines found <{C1}>',
+            ': endline state mismatch : encoded delta=%d '
+                . 'but only %d trailing newlines found <{C1}>',
             $delta, $actual_count
         );
         $delta = $actual_count;    ## clamp to actual ##
@@ -53,8 +53,8 @@ if ( $delta > 0 ) {
 ##  return length difference [ representing change in trailing endlines ]  ##
 return length( $payload_sref->$* ) - $previous_payload_length;
 
-#,,..,.,.,.,,,...,,..,...,.,.,.,,,,,.,...,...,..,,...,...,.,.,..,,,,.,,,.,,,,,
-#4HIZPKRMYOXOL6JMI7FQQUF5TJYFAU6AUWMWOFT6FDZ4PWWP4L4T6UQOEDSF6SD4YMZ6BGWT5RQRO
-#\\\|KL74QRBTYOWJYHBXZYY52BZQCLWA6GEKV6AB7HWTETRPMKG5YXO \ / AMOS7 \ YOURUM ::
-#\[7]LYVWWJWGQTJKUC5JCJHI53EJHN4OVCUOPEBAEHZIRBEOO2DO6GBI 7  DATA SIGNATURE ::
+#,,..,.,,,...,,..,..,,,..,.,,,,,.,..,,,,.,.,,,..,,...,...,,.,,..,,,,.,.,.,,..,
+#A56N6L2QIOT5EQ5PBQRLPVKRDR3F4ABS27X7HNUAG2WM2DC52Z2AMVJAYMRTHDAUAHFTPLTUGIHWC
+#\\\|6ZT74XSREBNK7FAOD2F53SUO6VUB2SSIPQN76WGZ43KX3Y3G3CU \ / AMOS7 \ YOURUM ::
+#\[7]G5CGQNZOSSSLMF4YJIX772HSUGIZQTP3YQ3SGUELKK33Q3NMR2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
