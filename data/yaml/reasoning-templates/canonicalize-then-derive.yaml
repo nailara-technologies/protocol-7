@@ -280,6 +280,52 @@ what "enough categories" converges toward.
 
 ---
 
+## beyond binary : probability scoring for ambiguous content
+
+every category in this catalog so far has a detection predicate that's
+either true or false — 2+ list markers, a blank framing line present, a
+code-shaped line count. that works because each signal is unambiguous once
+you know to look for it. real content will eventually surface cases where
+no single signal is decisive on its own : an outdated ASCII bit-table
+[ column-aligned rows of brackets, single letters, digits, separated by
+runs of plain spaces that carry positional meaning, not word-boundary
+meaning ] doesn't cleanly match "prose" or "list" or "box" — it just isn't
+any of those, and forcing a binary predicate to say yes/no produces either
+a false negative [ reflowed and cosmetically corrupted between passes,
+without losing content ] or a brittle overfit rule that only catches this
+one shape.
+
+the anticipated fix is not a sixth binary category — it's letting several
+weak, independently-cheap signals VOTE instead of gating on one hard rule:
+
+```
+binary predicate      :  matches / doesn't match -- one rule decides,
+                          fails silently on anything slightly different
+
+probability score      :  several signals each contribute partial evidence
+                           -- interleaved runs of plain spaces between
+                              short tokens [ not word-boundary spacing ]
+                           -- uppercase-only / base32-charset runs
+                              [ real prose is mixed-case ]
+                           -- repeating bracket/positional markers
+                              [ '[  ]', '[BL]', '[HL]' .. ] at irregular
+                              but non-word intervals
+                           combined score crosses a threshold -> treat as
+                           preserve-only, same reconstruction rule the
+                           commented-out-code category already uses
+```
+
+this doesn't replace the existing binary categories — list detection, box
+detection etc. remain correctly binary because their signals really are
+unambiguous. it's specifically for the harder tail : content that resists
+a single clean rule but that several independent weak signals together
+still identify reliably. not yet implemented — flagged when a real
+ASCII-table block (`source.AMOS-center-bit.desc`, exempted rather than
+guessed at) demonstrated that a binary predicate genuinely isn't the right
+shape for this class of content.
+
+---
+
 ## relation to other templates
 
 - [[template-distribution-economics]]: the categories in this catalog are
@@ -294,8 +340,8 @@ what "enough categories" converges toward.
   a single line of text instead of a memory architecture — the anchor is
   the boundary, the interior is what's permeable to reflow
 
-#,,,,,,,.,..,,,..,,,.,,,.,.,.,..,,...,.,.,,,,,..,,...,...,...,,,,,,,,,,,,,,.,,
-#A33XWGBN7Y345ODWZVKE7TB7G2GPTXTSWIBO2KYYYBCNHX6PTQYFLFOJXTDI7GY2SU3SUJISCJBDE
-#\\\|5NEQITKC74A5SKWZ5OS3MBZ37GIS55KVTQM3NO4Q3M6PCVNSDIL \ / AMOS7 \ YOURUM ::
-#\[7]TDYV7IWEUV4D4VCLAE6H3EXVJ2BI5KP2IEUJUPPFNT3CSLAQ2GBQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,.,,,.,,,,,,,.,,,,,.,,.,,,.,,.,,,..,,...,..,,,..,.,.,...,,,.,,,,,
+#WBAZEHD5R25YPDL2M3TAO6YXUEF4VNWSJBGMTNDEIAGCEXTWUZZQFL5XCTVNCR3PZLZIQJEOXAMAE
+#\\\|W4IPS7TJGRNIYQNYH6I4AQXPPSA25WRSGJ34OBBAZK3OXF2K7E2 \ / AMOS7 \ YOURUM ::
+#\[7]U5EA2LVBRUFE6CF3OZQTHNP3EW2QNVASV5CVGZW7UUEW2DXTCUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

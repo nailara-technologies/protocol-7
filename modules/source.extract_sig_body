@@ -74,11 +74,9 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
             3, ': stripped %s stub footers (old format) from file', $pl_str
         );
     }
-    ## new format: two-line footer (pipe-line and bracket-7-line) --
-    ## matches complete stub: comma-line + checksum + PLACEHOLDER lines
-    ## + colon-line
-    if ( $src_ref->$*
-        =~ s{
+    ## new format: two-line footer (pipe-line and bracket-7-line) -- matches
+    ## complete stub: comma-line + checksum + PLACEHOLDER lines + colon-line
+    if ($src_ref->$* =~ s{
             \n? \# [,\.]+ \n                    ## comma-line ##
             \# [A-Z0-9]{60,100} \n              ## checksum line ##
             \#+ \\+ \| PLACEHOLDER [^\n]* \n    ## pipe-line ##
@@ -90,10 +88,9 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
             3, ': stripped %s stub footers (new format)', $pl_str
         );
     }
-    ## AMOS7 perl module format: bare placeholder line + pipe + bracket-7
-    ## + colon
-    if ( $src_ref->$*
-        =~ s{
+    ## AMOS7 perl module format: bare placeholder line + pipe + bracket-7 +
+    ## colon
+    if ($src_ref->$* =~ s{
             \n? \# PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1 \n
             \#+ \\+ \| PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2 \n
             \#+ \\+ \[7] PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3 \n
@@ -105,19 +102,18 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
         );
     }
 
-    ## LLM-hallucinated fake footer : hand-written without ever running the
-    ## real signing tool, so the checksum line is a sequential letter+digit
-    ## pattern [ 'A1B2C3D4..' ] instead of real BMW/checksum output --
-    ## essentially impossible to occur by chance in a genuine checksum,
-    ## unlike the PLACEHOLDER text stubs above this doesn't announce
-    ## itself with a literal marker word, so it slipped past every prior
-    ## strip pass and sat in front of a REAL footer, invalidating that
-    ## real footer's own checksum [ computed over content that didn't yet
-    ## include this injected block when it was originally signed ] --
-    ## strip unconditionally, same as the PLACEHOLDER stubs, so the real
-    ## footer behind it becomes extractable and valid again  ##
-    if ( $src_ref->$*
-        =~ s{
+    ## LLM-hallucinated fake footer : hand-written without ever running the ##
+    ## real signing tool, so the checksum line is a sequential letter+digit ##
+    ## pattern [ 'A1B2C3D4..' ] instead of real BMW/checksum output --      ##
+    ## essentially impossible to occur by chance in a genuine checksum,     ##
+    ## unlike the PLACEHOLDER text stubs above this doesn't announce itself ##
+    ## with a literal marker word, so it slipped past every prior strip     ##
+    ## pass and sat in front of a REAL footer, invalidating that real       ##
+    ## footer's own checksum [ computed over content that didn't yet        ##
+    ## include this injected block when it was originally signed ] -- strip ##
+    ## unconditionally, same as the PLACEHOLDER stubs, so the real footer   ##
+    ## behind it becomes extractable and valid again                        ##
+    if ($src_ref->$* =~ s{
             \n? \# [,\.]{70,90} \n            ## comma-line ##
             \# (?:[A-Z]\d){15,} [A-Z0-9]* \n   ## sequential fake checksum ##
             \# \\+ \| [^\n]* \n                ## pipe-line ##
@@ -246,7 +242,8 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
             # file content
             my @extraction_patterns = (
 
-                ## pattern 1 : separator + AMOS7 keyword + signature markers ##
+                ## pattern 1 : separator + AMOS7 keyword + signature ##
+                ## markers                                           ##
                 qr{(.*?)
                    (\n\#[\.,]{70,80}\n
                     (?:\#[^\n]*AMOS7[^\n]*\n)*?
@@ -300,8 +297,8 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
 
                         <[base.logs]>->(
                             0,
-                            ': successfully extracted signature'
-                                . ' for repair with marker: %s',
+                            ': successfully extracted signature '
+                                . 'for repair with marker: %s',
                             $signature_marker
                         );
                         $found_signature = 1;
@@ -351,8 +348,8 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
             if ( $has_signature eq 'YES' ) {
                 <[base.logs]>->(
                     2,
-                    ': signature markers found but flexible'
-                        . ' extraction failed - returning for recovery'
+                    ': signature markers found but flexible '
+                        . 'extraction failed - returning for recovery'
                 );
                 <[base.logs]>->( 2, ': :. proceeding with recovery mode' );
 
@@ -443,9 +440,9 @@ $footer_data->{'data-chksum'}    ## adding first footer line to BMW-chksum ##
 
 ####
 
-## if no signature was found at all, we're doing first signing ##
-## [ $footer_body //= '' in non-strip path makes it defined :
-##                                       check $footer_start ] ##
+## if no signature was found at all, we're doing first signing [  ##
+## $footer_body //= '' in non-strip path makes it defined : check ##
+## $footer_start ]                                                ##
 if ( not defined $footer_start ) {
 
     # Before claiming "no signature present", verify the content doesn't have
@@ -484,8 +481,8 @@ if ( not defined $footer_start ) {
         $footer_data->{'was-present'}                    = 1;
         <[base.logs]>->(
             2,
-            ': [ existing signature but extraction'
-                . ' failed - marking for recovery ]'
+            ': [ existing signature but extraction '
+                . 'failed - marking for recovery ]'
         );
         return $footer_data;
     }
@@ -509,8 +506,8 @@ my $footer_length = 1 + $footer_start_regex_length + length $footer_body;
 
 $footer_data->{'footer-length-found'} = $footer_length;
 
-## Multiple signature templates may have different sizes
-## We completely bypass size check in repair mode - any size is acceptable
+## Multiple signature templates may have different sizes  We completely bypass
+## size check in repair mode - any size is acceptable
 if ( $mode eq 'strict' && $footer_length != length <source.sign_template> )
 {    ## [ ERR: length ]
      # YOURUM-format fake signature stubs: size mismatch but structurally
@@ -552,8 +549,8 @@ if ($mode eq 'strict'
         || $match_template !~ s|^$footer_start_regex\n|| )
 ) {
     $footer_data->{'encountered-error'}
-        = 'data signature footer structure not valid'
-        . ' [ footer-start not matched ]';
+        = 'data signature footer structure not '
+        . 'valid [ footer-start not matched ]';
     return $footer_data;
 } elsif (
     $mode ne 'strict'
@@ -753,8 +750,8 @@ if (   defined $EVAL_ERROR && length($EVAL_ERROR)
 
         if ( $restored_delta != $expected_delta ) {
             $footer_data->{'encountered-error'}
-                = sprintf 'endline state mismatch : encoded state=%d '
-                . '(expected change %d) but got %d',
+                = sprintf 'endline state mismatch : encoded '
+                . 'state=%d (expected change %d) but got %d',
                 $state, $expected_delta, $restored_delta;
             return $footer_data;
         }
@@ -788,8 +785,8 @@ if (@err_loc) {    ## [E: alien characters ]
         # In repair mode, log but continue
         <[base.logs]>->(
             2,
-            ': signature contains invalid characters'
-                . ' but continuing in repair mode'
+            ': signature contains invalid '
+                . 'characters but continuing in repair mode'
         );
         $footer_data->{'invalid_characters'} = TRUE;
 
@@ -825,8 +822,8 @@ if ( $mode eq qw| repair | ) {
 
 return $footer_data;
 
-#,,,,,,,.,,,,,..,,..,,.,.,,,,,,..,,,,,,..,,,.,..,,...,...,.,,,...,.,,,.,.,.,,,
-#GW5QKDC2D5GHORMYPCYDWBPKCNL3FLKCTL6VDIJOQKFDVDNPXL3J6QZ7YS4TJDHAQZUPBKXIK2U4O
-#\\\|BNKM7J2UGKV62CLEFHAMNOVBUBUUK5C5ZCLOXM4YM4EZURRZL4H \ / AMOS7 \ YOURUM ::
-#\[7]HEO6T7W56AIA47WOV6DQGPUA2DICC2LEW7UDQF2IKX7XO64PAEBI 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,.,,,,..,,..,...,,..,,..,..,,.,,,..,,...,...,...,.,,,..,,,,,,.,,,
+#SXJGQ2Y2WVDFLWAMCYTNM5UJVJ7CSHYHPW3HZXFRIFITC2YRFZZ5BKAXJM5KDBQ7THDFHZQUDHA2G
+#\\\|RK7AHMXHI7Q2XW42UEB4LW7KKBLJ4QNZ2LAMB66AIKZHKKDURSQ \ / AMOS7 \ YOURUM ::
+#\[7]PCOUYASV5ZYMCBXQXKSBLBVJI2SZISMVKFLATAGMZTQJFTMCSYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
