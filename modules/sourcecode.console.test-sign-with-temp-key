@@ -18,7 +18,7 @@ say ':';
 say ': .:[ TEST SIGNING WITH TEMPORARY KEY ]:.::';
 say ':';
 
-my $sig_key_name = qw| proto-7.sourcecode |;
+my $sig_key_name  = qw| proto-7.sourcecode |;
 my $test_key_name = qw| test-proto7-sourcecode |;
 
 # Check if temp key exists, if not create it
@@ -26,7 +26,8 @@ unless ( exists $keys{'C25519'}{$test_key_name} ) {
     say ': Creating temporary test key...';
 
     # Generate a new C25519 key pair for testing
-    my ($new_key, $created_name) = <[crypt.C25519.gen_keys]>->( $test_key_name );
+    my ( $new_key, $created_name )
+        = <[crypt.C25519.gen_keys]>->($test_key_name);
 
     unless ( defined $new_key ) {
         say ': ERROR: Failed to generate temporary test key';
@@ -47,9 +48,9 @@ say ':';
 
 my @source_paths = <[base.source.collect_file_list]>->($command_params);
 
-unless ( @source_paths ) {
+unless (@source_paths) {
     printf( ": no files found for pattern: %s\n", $command_params );
-    $keys{'C25519'}{$sig_key_name} = $original_key;  # Restore
+    $keys{'C25519'}{$sig_key_name} = $original_key;    # Restore
     return;
 }
 
@@ -62,7 +63,7 @@ unless ( -d $backup_dir ) {
     mkdir $backup_dir or die "Cannot create backup directory: $!";
 }
 
-foreach my $file_path ( @source_paths ) {
+foreach my $file_path (@source_paths) {
     next unless -f $file_path;
 
     # Read current file
@@ -72,14 +73,18 @@ foreach my $file_path ( @source_paths ) {
     my $footer_data = <[source.extract_sig_body]>->( \$content, qw| | );
 
     if ( $footer_data->{'was-present'} ) {
-        my $sig_footer = $footer_data->{'signature-footer-str'};
-        my $backup_file = sprintf( '%s/%s.orig-sig', $backup_dir, (split '/', $file_path)[-1] );
+        my $sig_footer  = $footer_data->{'signature-footer-str'};
+        my $backup_file = sprintf( '%s/%s.orig-sig',
+            $backup_dir, ( split '/', $file_path )[-1] );
 
         open my $fh, '>', $backup_file or die "Cannot write $backup_file: $!";
         print $fh $sig_footer;
         close $fh;
 
-        printf( ": backed up signature for %s\n", (split '/', $file_path)[-1] );
+        printf(
+            ": backed up " . "signature for %s\n",
+            ( split '/', $file_path )[-1]
+        );
     }
 }
 
@@ -94,8 +99,8 @@ $keys{'C25519'}{$sig_key_name} = $original_key;
 
 0;
 
-#,,,.,,,.,.,.,.,,,...,.,.,..,,,.,,,.,,,,.,,.,,..,,...,...,..,,,.,,,..,.,.,.,.,
-#6RQLO4OLFZH37QW4XH7PVTUGTJOA3TZNKTOPOIJQYTJZM7X42CL3G7TZACF6UDBM33P2RO6UY6GYQ
-#\\\|UZCFR22IFI3SUS3NCYCTWJHK3J2M5BLZO7MPUNVXFCQB4I7PZ7L \ / AMOS7 \ YOURUM ::
-#\[7]3HRU3LBTQJRGRWCO5V6BVEUXOBUNMGJC5PRFSSR26UI7TIRCH4CY 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,...,,,,,,..,,,.,.,.,.,,,.,,,..,,..,,...,...,.,.,,,,,,,.,,.,,..,,
+#AEOMB3BERJY4HAUARJA4DPYWAH7XTFNXFRH4GC4CACLP4LIGYS5JSJTFVC6RKMQMBCYEKWYMDFSPY
+#\\\|AQ5VERXEEBLJ6D5I3KOCGR7OV5GU4BNSB2GVFVJFMBFOOZWMO26 \ / AMOS7 \ YOURUM ::
+#\[7]BEZG2FLVGFPAANF7FHBX3PXX3E2E4L3C7UNRWMW54MSEQU52TCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

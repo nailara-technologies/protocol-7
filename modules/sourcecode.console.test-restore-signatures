@@ -20,7 +20,7 @@ say ':';
 
 my @source_paths = <[base.source.collect_file_list]>->($command_params);
 
-unless ( @source_paths ) {
+unless (@source_paths) {
     printf( ": no files found for pattern: %s\n", $command_params );
     return;
 }
@@ -35,10 +35,10 @@ unless ( -d $backup_dir ) {
 
 my $restored_count = 0;
 
-foreach my $file_path ( @source_paths ) {
+foreach my $file_path (@source_paths) {
     next unless -f $file_path;
 
-    my $file_name = (split '/', $file_path)[-1];
+    my $file_name   = ( split '/', $file_path )[-1];
     my $backup_file = sprintf( '%s/%s.orig-sig', $backup_dir, $file_name );
 
     unless ( -f $backup_file ) {
@@ -72,8 +72,8 @@ say ':';
 
 0;
 
-#,,.,,...,,,,,,,.,..,,.,.,,,.,,,.,,..,,.,,,,,,..,,...,...,..,,.,.,...,.,,,,.,,
-#6BMBXAMB22SWB6YZ2OFGNTA4VP5M4IECG7YDRKGFVX3Y5UEO75O6LQEYS6AQTFUILFLHF3OJ7NBEC
-#\\\|PKZJ3XJCNYNGB35RDOPXYP6EOA5OOT3ACRHCWXNYOPR2L6ZZW3A \ / AMOS7 \ YOURUM ::
-#\[7]6TKXAJ6Z6QU4YS2LTPRVMJZU72HM4JPQ4R5QZQS55ZVSGQBICUCI 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,.,,,,,,,.,.,,,.,.,.,,.,,..,,,..,..,,...,...,,..,,.,,.,.,,..,,.,,
+#GG6EKSQ4UK5QV2UXILTQCD5QHZYLX4LM6DGEADMME4B3TMOZMN7DHRFR2ANS2R2ZREQJGYO73A4ZC
+#\\\|JVMEQAII5GQT7BJPWDNHNTDOHYX3BTPMCXLJYIOOKYYHC3KARHN \ / AMOS7 \ YOURUM ::
+#\[7]AVSM43VX7CVCTGOSUNKJNKU3ATN7LET7AUROECMHUTMCIX7MAAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -15,7 +15,7 @@ unless ( length $command_params ) {
 
 my @source_paths = <[base.source.collect_file_list]>->($command_params);
 
-unless ( @source_paths ) {
+unless (@source_paths) {
     printf( ": no files found for pattern: %s\n", $command_params );
     return;
 }
@@ -26,7 +26,7 @@ say ':';
 
 my @display_rows;
 
-foreach my $file_path ( @source_paths ) {
+foreach my $file_path (@source_paths) {
     next unless -f $file_path;
 
     <[file.slurp]>->( $file_path, \my $src_content, qw| :raw | );
@@ -36,26 +36,31 @@ foreach my $file_path ( @source_paths ) {
     my $footer_data = <[source.extract_sig_body]>->( \$src_content, qw| | );
 
     unless ( $footer_data->{'was-present'} ) {
-        push @display_rows, {
-            'file'   => <[base.parser.ellipse_center]>->( (split '/', $file_path)[-1], 24 ),
-            'state'  => '? ',
+        push @display_rows,
+            {
+            'file' => <[base.parser.ellipse_center]>->(
+                ( split '/', $file_path )[-1], 24
+            ),
+            'state'   => '? ',
             'endline' => '---',
-            'bmw'    => 'not signed',
-            'sig'    => 'not signed'
-        };
+            'bmw'     => 'not signed',
+            'sig'     => 'not signed'
+            };
         next;
     }
 
     my $state = $footer_data->{'endline-state-encoded'} // '?';
-    my $bmw   = $footer_data->{'bmw-chksum'} // 'ERROR';
-    my $sig   = $footer_data->{'signature'} // 'ERROR';
+    my $bmw   = $footer_data->{'bmw-chksum'}            // 'ERROR';
+    my $sig   = $footer_data->{'signature'}             // 'ERROR';
 
     # Shorten checksums for display
-    my $bmw_short = <[base.parser.ellipse_center]>->( $bmw, 21 ) if length $bmw;
-    my $sig_short = <[base.parser.ellipse_center]>->( $sig, 21 ) if length $sig;
+    my $bmw_short = <[base.parser.ellipse_center]>->( $bmw, 21 )
+        if length $bmw;
+    my $sig_short = <[base.parser.ellipse_center]>->( $sig, 21 )
+        if length $sig;
 
     my $endline_desc = '';
-    if ( $state == 0 ) { $endline_desc = '0:4-removed'; }
+    if    ( $state == 0 ) { $endline_desc = '0:4-removed'; }
     elsif ( $state == 1 ) { $endline_desc = '1:3-removed'; }
     elsif ( $state == 2 ) { $endline_desc = '2:2-removed'; }
     elsif ( $state == 3 ) { $endline_desc = '3:1-removed'; }
@@ -63,40 +68,42 @@ foreach my $file_path ( @source_paths ) {
     elsif ( $state == 5 ) { $endline_desc = '5:canonical'; }
     elsif ( $state == 6 ) { $endline_desc = '6:+1-sep'; }
     elsif ( $state == 7 ) { $endline_desc = '7:+2-added'; }
-    else { $endline_desc = '?:unknown'; }
+    else                  { $endline_desc = '?:unknown'; }
 
-    push @display_rows, {
-        'file'   => <[base.parser.ellipse_center]>->( (split '/', $file_path)[-1], 24 ),
-        'state'  => sprintf('%d', $state),
+    push @display_rows,
+        {
+        'file' => <[base.parser.ellipse_center]>->(
+            ( split '/', $file_path )[-1], 24
+        ),
+        'state'   => sprintf( '%d', $state ),
         'endline' => $endline_desc,
-        'bmw'    => $bmw_short // '?',
-        'sig'    => $sig_short // '?'
-    };
+        'bmw'     => $bmw_short // '?',
+        'sig'     => $sig_short // '?'
+        };
 }
 
 # Display header
 say ': :';
-printf( ': : %-26s : %3s : %-12s : %-23s : %-23s' . "\n", 'file', 'st', 'endline', 'bmw-chksum', 'c25519-sig' );
-say ': :' . ('-' x 98);
+printf( ': : %-26s : %3s : %-12s : %-23s : %-23s' . "\n",
+    'file', 'st', 'endline', 'bmw-chksum', 'c25519-sig' );
+say ': :' . ( '-' x 98 );
 
 # Display rows
-foreach my $row ( @display_rows ) {
-    printf( ': : %-26s : %3s : %-12s : %-23s : %-23s' . "\n",
-        $row->{'file'},
-        $row->{'state'},
-        $row->{'endline'},
-        $row->{'bmw'},
-        $row->{'sig'}
+foreach my $row (@display_rows) {
+    printf(
+        ': : %-26s : %3s : %-12s : %-23s : %-23s' . "\n",
+        $row->{'file'}, $row->{'state'}, $row->{'endline'},
+        $row->{'bmw'},  $row->{'sig'}
     );
 }
 
-say ': :' . ('-' x 98);
+say ': :' . ( '-' x 98 );
 say ':';
 
 0;
 
-#,,..,.,,,,.,,,..,,,.,,.,,...,,,.,...,...,,,.,..,,...,...,..,,,..,...,...,,..,
-#YCVSLXIUIS43YGU75OHYLX2ZA3GQSKWICLC53KYSS6R3ZZDQ3XT4OXS5M53VRSQQMKDYNCDMDAGKY
-#\\\|S3EUP7LVK23KSM3CQNVGJFDGWUWCT3I4UTYX4NUQWJ2YHN7PGXV \ / AMOS7 \ YOURUM ::
-#\[7]5BI2VGPEHOZAZ4C4OM6ZVFR574TEZSEP4YELKZXB5JPC6PQHFUDQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,..,,.,,,.,.,.,,,,.,,.,,,.,.,,,.,..,,...,...,,..,,,,,.,,,,,,,,.,,
+#C5F47JOADCUWDE6MV345EQMWKBNBJFRW27JB3K5PTY6PN4NU6NVLISDJLHGGXI5X2KGNW4JDIGB3S
+#\\\|3OJFWPCHMWCTHTMIP76G5QHWCHBWO3PYMKSCTCGOLTQRAA77ID7 \ / AMOS7 \ YOURUM ::
+#\[7]LTQPRRN5C5LWMQUV54OHFZQUMKP3Q5TBWXY5AD4OLJ2XZYMBZECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
