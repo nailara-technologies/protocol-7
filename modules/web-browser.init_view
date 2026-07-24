@@ -9,7 +9,8 @@ my $bg_color = <web-browser.bg_color> // '#000013';
 my $filter_events = 1;
 
 ################################################################################
-##  following signals/events need to be managed if usr interaction is desired ##
+## following signals/events need to be managed if usr interaction is ##
+## desired                                                           ##
 ################################################################################
 
 %{<web-browser.blocked_signal_types>} = map { $ARG => 1 } qw(
@@ -107,7 +108,8 @@ $view->signal_connect
                     <web-browser.drag.timer>->cancel;
                     <web-browser.drag.timer> = undef;
                 }
-                ## capture pointer device once -- avoid repeated static lookup ##
+                ## capture pointer device once -- avoid repeated static ##
+                ## lookup                                               ##
                 my $ptr = eval {
                     Gtk3::Gdk::Display::get_default()
                         ->get_default_seat->get_pointer;
@@ -134,7 +136,8 @@ $view->signal_connect
                             <web-browser.drag.x> = $x;
                             <web-browser.drag.y> = $y;
                             return unless $dx || $dy;
-                            ## run_javascript goes through webkit rendering path ##
+                            ## run_javascript goes through webkit rendering ##
+                            ## path                                         ##
                             eval {
                                 $v->run_javascript(
                                     "window.scrollBy($dx,$dy)",
@@ -235,8 +238,8 @@ $overlay->add_overlay($scrolled_window);
 <web-browser.gtk_obj.scrolled_window>->{$id} = $scrolled_window;
 <web-browser.gtk_obj.view>->{$id}            = $view;
 
-#,,,.,,,.,,.,,.,,,.,.,.,.,..,,,,,,,..,,.,,,,.,..,,...,...,,,.,,..,,,,,.,.,.,.,
-#SXTCOKCOCQX24AZ7Z6IXYE4AYUR6YYUSYEPJKQAWISCDK6ZLUYJ2FR7U7N6RJUHUHZODNKAZKYJSU
-#\\\|LKUC4CKOPJIAU56BWRFXZ667OE7RYGM343R7F4ZA56JCS5GIWMN \ / AMOS7 \ YOURUM ::
-#\[7]OI4JQ4AE3RFHSTXCYIX5UXOTCUV57APF3DKOQISLWDRL7NNOAWDI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,..,,,,,,..,,,.,.,.,,..,.,.,..,,..,,...,...,...,...,,,.,,..,,,,,
+#EORDYXPOOMLLAUSWZR63MAEBNDEA4S2GU4AIMUQ73XPD33Z2PHM2ZOY5UMIKGSLC4EYYHJNE7YPV4
+#\\\|J7YJ6FPS2EWKBDNWBXAPTWVYBZKM2XT5UG4J7EGWCQCBAXP2AJC \ / AMOS7 \ YOURUM ::
+#\[7]K4YI2JFQ6RZNBPFWK4R4A4V3VJW3PDAHM6WZP4VKQJSZKBFOGODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

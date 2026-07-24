@@ -9,8 +9,8 @@ my ( $sign, $num ) = $args =~ m|^\s*([+-]?)(\d*\.?\d+)\s*$|;
 
 return {
     'mode' => qw| false |,
-    'data' => 'usage: set-zoom <value>  [ absolute, eg. 1.5 ]'
-        . '  |  set-zoom +<value> / -<value>  [ relative ]'
+    'data' => 'usage: set-zoom <value>  [ absolute, eg. 1.5 ] '
+        . ' |  set-zoom +<value> / -<value>  [ relative ]'
     }
     unless defined $num;
 
@@ -23,8 +23,8 @@ my $new_factor
 
 ## defensive floor only : a zero/negative zoom_level crashes WebKit's zoom  ##
 ## call. deliberately NOT <web-browser.min_zoom> -- that's the auto_zoom    ##
-## recalculation's floor on zoom_level, exactly what this command exists   ##
-## to manually override [ eg. correcting an auto_zoom overshoot ]          ##
+## recalculation's floor on zoom_level, exactly what this command exists to ##
+## manually override [ eg. correcting an auto_zoom overshoot ]              ##
 my $min_factor = 0.05;
 $new_factor = $min_factor if $new_factor < $min_factor;
 
@@ -47,8 +47,8 @@ return {
     )
 };
 
-#,,,.,.,,,..,,.,,,.,.,,..,..,,,.,,,.,,,,,,,,.,..,,...,...,,.,,,,,,..,,...,,,.,
-#DCJ6R7PB6IM36H5SQHTYTD5ZWPBBZ3KPGD7DO6OWBZN4V6CAYSY6OAD3GXJLKJKJLFKH6YMC47GPA
-#\\\|76DWW7KOSCWYQV25SZTFTNXKCCZXESX5IT4KCSR5ONWLXU423KM \ / AMOS7 \ YOURUM ::
-#\[7]3NMCKOX7XNMS5OLROBBXUZKW6FCCFME64IUZHRMDU2XQE23QEUCI 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,.,.,,,,,.,.,,..,.,.,.,,,,,,,.,.,..,,...,.,.,...,..,,.,.,,,.,,.,,
+#UWHYBP3LECBPPRTFU424MVUAKH2RMR4DQAGMHYGHY2ASGLZCMR3DD7KB4VH2BET6T7HFVEXPSCSW2
+#\\\|KWQR7GX7BKBNZSNWPORDKLXETQ6G6QRWGZLO7LL3VSB6FHW2W54 \ / AMOS7 \ YOURUM ::
+#\[7]U7FEOI6VREFX7ETN55QRSUQD6I5AEJDUEBWR77FE2IHN5CVDIKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

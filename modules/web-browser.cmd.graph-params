@@ -9,8 +9,8 @@ my $args_str = $call->{'args'} // '';
 
 return {
     'mode' => qw| false |,
-    'data' => 'usage: graph-params [interval] [template=<name>] '
-        . '<var> [var ...]'
+    'data' => 'usage: graph-params [interval] '
+        . '[template=<name>] <var> [var ...]'
     }
     if !length($args_str);
 
@@ -74,10 +74,11 @@ return {
 my $names_json  = <[format.json.encode]>->( \@names );
 my $template_js = $code{$template_key}->();
 
-my $check_js
-    = sprintf(
-    'JSON.stringify(%s.map(function(n){return typeof window[n] !== "undefined"}))',
-    $names_json );
+my $check_js = sprintf(
+    'JSON.stringify(%s.map(function(n){return '
+        . 'typeof window[n] !== "undefined"}))',
+    $names_json
+);
 
 <[web-browser.js_call]>->(
     $check_js,
@@ -184,8 +185,8 @@ JS_FOOT
 
 return { 'mode' => qw| deferred | };
 
-#,,,,,.,,,,,,,,..,,..,,.,,.,.,,..,..,,,,,,..,,..,,...,..,,,..,,.,,,,,,,,,,...,
-#6YDQS65LDU64RYQZRJSVBZUML7LITYQULUPME2Y6NJXD66GQHVSVH6YXAQWW5R53XRQWXGDMYN6CM
-#\\\|7HZTPNM24KMYSK3FNRW7MQZXXRSYZXPGE4BKLZO2S33FOVDM5SK \ / AMOS7 \ YOURUM ::
-#\[7]BDA3CSHLLX3CK26V6GZGDEJHHQ7GV7M435YITOO4KR4LEXBYBCBI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,...,...,...,,.,,..,,,,.,..,,,..,..,,...,..,,.,,,,..,...,,,,,.,,,
+#PZQY7GUPNIDOQKZJTB3MPGCKKRBDQRSMLTFVHONAN3TMFFHDHF76F4Z7TEQUA4DJQDPW6JIBTM6FS
+#\\\|ALPWVXGY7HAGYTK5YV6FM7VPSC5TBT77ZVJRN7JBHK3PZDB3Q5G \ / AMOS7 \ YOURUM ::
+#\[7]633SMCOKNCBZMVEXCHDF7RYZ36ELPF2RAM6RZXVH3YEWUVXGCOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

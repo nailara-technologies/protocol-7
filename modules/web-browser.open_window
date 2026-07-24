@@ -46,24 +46,26 @@ $window->set_title(<web-browser.window.title_str>);
 
 <web-browser.gtk_obj.window> = $window;
 if ( length( <web-browser.cfg.cursor_image> // '' ) ) {
-    ## custom pixbuf cursor -- covers the window-level default shown       ##
-    ## before WebKit's own per-element CSS cursor tracking takes over on   ##
-    ## the first mouse-move, and any native chrome outside page content    ##
-    my $pixbuf
-        = eval { Gtk3::Gdk::Pixbuf->new_from_file(<web-browser.cfg.cursor_image>) };
+    ## custom pixbuf cursor -- covers the window-level default shown before ##
+    ## WebKit's own per-element CSS cursor tracking takes over on the first ##
+    ## mouse-move, and any native chrome outside page content               ##
+    my $pixbuf = eval {
+        Gtk3::Gdk::Pixbuf->new_from_file(<web-browser.cfg.cursor_image>);
+    };
     if ( defined $pixbuf ) {
         my $hot_x = <web-browser.cfg.cursor_image_hot_x>
             // int( $pixbuf->get_width / 2 );
         my $hot_y = <web-browser.cfg.cursor_image_hot_y>
             // int( $pixbuf->get_height / 2 );
-        my $cursor = Gtk3::Gdk::Cursor->new_from_pixbuf(
-            $window->get_display, $pixbuf, $hot_x, $hot_y
-        );
+        my $cursor = Gtk3::Gdk::Cursor->new_from_pixbuf( $window->get_display,
+            $pixbuf, $hot_x, $hot_y );
         $window->get_root_window->set_cursor($cursor);
     } else {
         <[base.logs]>->(
-            0, 'cursor_image load failed [%s] : %s',
-            <web-browser.cfg.cursor_image>, <[base.str.eval_error]>
+            0,
+            'cursor_image load failed [%s] : %s',
+            <web-browser.cfg.cursor_image>,
+            <[base.str.eval_error]>
         );
     }
 } elsif ( defined <web-browser.cfg.change_cursor> ) {
@@ -76,7 +78,8 @@ $window->signal_connect( destroy => sub { Gtk3->main_quit() } );
 $window->set_decorated(FALSE)
     if <[base.cfg_bool]>->(<web-browser.cfg.no_decorations>);
 
-## pre-set window background to page color -- prevents white flash on startup ##
+## pre-set window background to page color -- prevents white flash on ##
+## startup                                                            ##
 my $bg = <web-browser.bg_color> // '';
 if ( length $bg ) {
     $bg =~ s{^#?}{#};
@@ -102,12 +105,12 @@ if ( length $wb_caller
         ( $pos_x, $pos_y, $size_x, $size_y )
             = @{$saved}{qw| x y width height |};
 
-        ## skip position restore if saved coords are entirely off the         ##
-        ## current virtual screen — stale from a different monitor layout.   ##
-        ## weston cannot move windows across compositor outputs via x11      ##
-        ## configurerequest, so there is no reliable programmatic recovery.  ##
-        ## fall back to default geometry and let the user reposition via     ##
-        ## the window-place overlay (alt+.) once the window is visible.      ##
+        ## skip position restore if saved coords are entirely off the       ##
+        ## current virtual screen — stale from a different monitor layout.  ##
+        ## weston cannot move windows across compositor outputs via x11     ##
+        ## configurerequest, so there is no reliable programmatic recovery. ##
+        ## fall back to default geometry and let the user reposition via    ##
+        ## the window-place overlay (alt+.) once the window is visible.     ##
         my ( $sw, $sh )
             = ( <x11.geometry> // '1920x1080' ) =~ m|^(\d+)x(\d+)|;
         $sw //= 1920;
@@ -115,8 +118,8 @@ if ( length $wb_caller
         if ( $pos_x >= $sw or $pos_y >= $sh ) {
             <[base.logs]>->(
                 1,
-                '[startup] saved position [%dx%d+%d+%d] is off-screen'
-                    . ' [screen:%dx%d] — using default geometry',
+                '[startup] saved position [%dx%d+%d+%d] is '
+                    . 'off-screen [screen:%dx%d] — using default geometry',
                 $size_x,
                 $size_y,
                 $pos_x,
@@ -206,7 +209,8 @@ if ( <system.zenka.mode> eq qw| universal-child | ) {
     <web-browser.slideshow.autostart> = 5;    ## true ##
     $window->iconify();
 } else {
-    ## hide during page load without iconifying (deiconify is blocked under WSLg) ##
+    ## hide during page load without iconifying (deiconify is blocked under ##
+    ## WSLg)                                                                ##
     if ( $window->is_composited ) {
         $window->set_opacity(0);
         <web-browser.start-up.opacity_hidden> = TRUE;
@@ -226,7 +230,8 @@ if ( <system.zenka.mode> eq qw| universal-child | ) {
     );
 }
 
-## use 'map' signal : fires after window is actually mapped, no race condition ##
+## use 'map' signal : fires after window is actually mapped, no race ##
+## condition                                                         ##
 $window->signal_connect(
     'map' => sub {
         <[web-browser.wait_for_window]>;
@@ -262,8 +267,9 @@ $window->signal_connect(
                     <web-browser.pos_save.timer> = undef;
                     my $geo = <web-browser.pos_save.geo> // return;
                     return if not length $wb_caller;
-                    ## skip save if window is entirely off the virtual screen ##
-                    ## — prevents perpetuating stale multi-monitor positions  ##
+                    ## skip save if window is entirely off the virtual    ##
+                    ## screen — prevents perpetuating stale multi-monitor ##
+                    ## positions                                          ##
                     do {
                         my ( $ssw, $ssh )
                             = ( <x11.geometry> // '1920x1080' )
@@ -315,8 +321,8 @@ foreach my $signal_name (qw|  INT  TERM  |) {
     );
 }
 
-#,,,.,,,.,.,,,,.,,,,,,.,,,...,,.,,.,.,,..,,,,,..,,...,..,,,.,,.,.,,,.,,..,,..,
-#4MHKAIV5RCCUNRE5HOWWKKIP5OMF5CWGRDDAQWAM6CP6VTZIJ62TXM65S22RBSAL3ETBTSZMP5L6I
-#\\\|7NJWOLHFVLHC6BTFXG5RIFAO4BJWZTN2K3CVQ75F24SRZZWG6YL \ / AMOS7 \ YOURUM ::
-#\[7]7JSRCFFFNG3KL4TBWS7FC7GUF3DDR6J6T6ZNPT5LMBFFROJAIEDQ 7  DATA SIGNATURE ::
+#,,,,,..,,...,...,.,,,,,,,,,,,,.,,..,,,.,,,,,,..,,...,...,,.,,..,,,,.,,,,,,..,
+#3D6YBAHDSDKF6EAFOPEYU4DIVHPOBLSFVFYXO77TLWG6R2B2X5WJBEUUGXVVDYIXW4JXCJ7LWZWLC
+#\\\|WPBCIGJ6236LW5F4RWRBIKOURJYIN3WVOBFJTVRPOFPHDYZJ7WV \ / AMOS7 \ YOURUM ::
+#\[7]4AT5E532EKOHNLEAI7KMMJIHC3KOIOHFMJC4YIYECV2JZ3GT7ACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
