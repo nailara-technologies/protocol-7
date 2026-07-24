@@ -14,7 +14,8 @@ my $db_path    = $params->{'db_path'}
     // $data{'models'}{'external.models.invokeai.db'} // (
     length($admin_user)
     ? "/home/$admin_user/.invokeai/db/invokeai.db"
-    : undef ) // ( glob('/home/*/.invokeai/db/invokeai.db') )[0]
+    : undef
+    ) // ( glob('/home/*/.invokeai/db/invokeai.db') )[0]
     // "$ENV{'HOME'}/.invokeai/db/invokeai.db";
 
 # check if db exists
@@ -25,13 +26,12 @@ unless ( -f $db_path ) {
 
 # query database for all models
 my $sql
-    = "SELECT name, type, source, source_type,"
-    . " json_extract(config, '\$.description') as description,"
-    . " json_extract(config, '\$.file_size') as size,"
-    . " json_extract(config, '\$.path') as path,"
-    . " json_extract(config, '\$.format') as format,"
-    . " json_extract(config, '\$.base') as base"
-    . " FROM models ORDER BY type, name;";
+    = "SELECT name, type, source, source_type, json_extract(config, "
+    . "'\$.description') as description, json_extract(config, "
+    . "'\$.file_size') as size, json_extract(config, '\$.path') as "
+    . "path, json_extract(config, '\$.format') as format, "
+    . "json_extract(config, '\$.base') as base FROM models ORDER BY "
+    . "type, name;";
 
 my $cmd  = qq{sqlite3 "$db_path" ".mode json" "$sql" 2>/dev/null};
 my $json = qx{$cmd};
@@ -88,8 +88,8 @@ for my $m (@$models) {
 
 return \@filtered;
 
-#,,,.,..,,.,.,,..,..,,.,,,.,.,...,.,.,.,,,,,.,.,.,...,...,.,.,...,.,.,,,.,..,,
-#4MCJZW7WZELGPJEJNNOKTKDF5BZAT6DGPS7AP6GB2FYOSZTBYYY6NXQNJCZK44BW5M5C23M2B3Y6G
-#\\\|J5BM7IXTFIE2D2QUB3VG5C7LDIEENBNLDJFSQK5SBKWL2PDJN65 \ / AMOS7 \ YOURUM ::
-#\[7]O2YCKOEOEDR5WOWLB54WUZIMV4NI6MX4567F7UY3V2UU62K7QIAI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,,.,.,,,,,,,,.,,.,,,.,.,.,,,..,,.,.,...,...,.,.,,..,,,,,,,.,,,.,
+#2Z6T45ZB7E6GKD67ZNP6PJPJM5ZLQ4TR2EKR3F262JU2ELHD7VQECETZHS3PKV6BTSW2HSIUNOZWM
+#\\\|AH73CBR4NUARF3UYC7MCMIXME25Y2JXCQ3RR42Y2OO3QOQ3FV24 \ / AMOS7 \ YOURUM ::
+#\[7]3DNYVCRJ3P3GPJ4T3EQRRIIJPOMO7T5JO4XRSZSX4WK4Q5VSIMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

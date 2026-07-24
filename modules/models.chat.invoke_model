@@ -58,15 +58,15 @@ if ( $backend_type eq 'test' ) {
     return;
 }
 
-## Build conversation context from chat history
-## Get recent messages (last 10 exchanges = 20 messages max)
+## Build conversation context from chat history  Get recent messages (last 10
+## exchanges = 20 messages max)
 my $recent_entries = <[models.chat.get_recent]>->(20);
 my @messages;
 
 ## Convert chat history to messages format
 foreach my $entry (@$recent_entries) {
-    ## Skip the current message (it was just added by caller)
-    ## Identify by timestamp comparison
+    ## Skip the current message (it was just added by caller)  Identify by
+    ## timestamp comparison
     my $sender = $entry->{'sender'};
     my $msg    = $entry->{'message'} // '';
 
@@ -147,8 +147,8 @@ elsif ( $backend_type eq qw| kimi_web | ) {
 
 return;
 
-#,,,,,.,,,,,.,,,.,.,.,.,.,,.,,...,,..,,..,...,.,.,...,.,.,,..,.,,,,..,.,.,,,.,
-#Y3Y2R7J3LCOSPDYQSOC6IPVRMXRFEBQ7OOH6ARFWSSTC5C3LT724HM2CDRDHDXPCHIS4DZBDRRIJE
-#\\\|KAVN632KUSIDSCEYAEAHEEEGFSQVYGWL4NHO6KAYNYFF37E6RQM \ / AMOS7 \ YOURUM ::
-#\[7]7YRLIM36MYDXWNIQLRHQ6UYR65QYF2Y2RXGTPJC6J2KTBXZRNGBI 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,,.,,..,,,,,...,,,,,..,,,,,,..,,.,.,...,...,..,,...,..,,.,,,..,,
+#4WKO54FPK7EJHBKOR2OIN6L7B4URILG5ODZ34LBTOMDWOI6M3SVPJU6NXFR5JHDSY7JD5EE4IUHHG
+#\\\|F3NNN7WVPSR4Z2BUJ65MYATJ5ZA75TCKCWMXRBHBOZ66W7SV4AS \ / AMOS7 \ YOURUM ::
+#\[7]BPG7BR7OZQIWKUDBHJMNWMA76VHSI2ODQXVQD5NCE7ZU6VBSGWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

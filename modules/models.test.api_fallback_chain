@@ -71,8 +71,8 @@ return {
     $local_participant->{'participant_id'}
 );
 
-## Simulate what would happen: API would return rate_limited: 1
-## The invoke_participant module would then:
+## Simulate what would happen: API would return rate_limited: 1 The
+## invoke_participant module would then:
 ## 1. Detect rate_limited flag
 ## 2. Mark conversation as api_limit_hit
 ## 3. Find local fallback participant
@@ -110,12 +110,13 @@ return {
     'fallback_chain_ready' => 1,
     'participants_count'   =>
         scalar( keys %{ $conversation_data->{'participants'} } ),
-    'chain_description' => 'On API limit: detect rate_limited flag'
-        . ' → mark api_limit_hit → find local participant → re-invoke',
+    'chain_description' => 'On API limit: detect rate_limited flag → mark '
+        . 'api_limit_hit → find local participant → '
+        . 're-invoke',
 };
 
-#,,,.,,,,,...,.,,,.,.,.,,,,..,,.,,,,,,.,,,.,,,.,.,...,...,.,.,...,.,,,,.,,.,,,
-#LEVLHTGUBQC5JBA3XN4E3CDTLKM7YUQIZ7KPRT7SJXDMLZTNKKUMC7WOKAMIUR2TPPGHZ5CNMHGS6
-#\\\|MIQIOEIFJUDCX3EH5GP2I6PVWGZEO2DUW7YYOKO7XM2AJYHIIKI \ / AMOS7 \ YOURUM ::
-#\[7]WXEEUCCYOULXK4YJ5J6QE3WQNLMLKNVPYXVSKUGZFDL34KWNH6CI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,..,,,,.,,.,,,,.,..,,.,,,..,,,,.,.,.,...,...,.,.,,,,,.,.,...,,,,,
+#JKENWDQNWRZ7O7G7KHVNWNGKLVPOXD2IWIRG7CLF6GXX3DUPZAHBECZSJGJGKXX63KC6YHAQXHGQ4
+#\\\|VFXSF3H2DEVFLPLYHJHG3MJ4PVBGDHNCP4FLTMIGFCRBLCUWEHG \ / AMOS7 \ YOURUM ::
+#\[7]DMEXJXKFJSH7UJWSTXDWPJRHF3KGPQEYGH5J7KGUDC24ZDTK4WBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

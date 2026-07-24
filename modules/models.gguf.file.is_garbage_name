@@ -16,12 +16,12 @@ return 1 if $name =~ m|\\|;            # Windows backslash
 return 1 if $name =~ m|^[A-Za-z]:|;    # Drive letter
 return 1 if $name =~ m|:\\\\[^\\]|;    # Windows path pattern
 
-## Detect random alphanumeric strings (like "909Acke7", "AbCdEf12")
-## Pattern: contains mixed case letters + numbers without spaces/words
+## Detect random alphanumeric strings (like "909Acke7", "AbCdEf12") Pattern:
+## contains mixed case letters + numbers without spaces/words
 return 1 if $name =~ m|^[a-z]*\d+[a-z]*\d+[a-z]*$|i && length($name) < 15;
 
-## Detect generic tool signatures without model identifiers
-## e.g., "Unsloth Gguf", "LlamaCpp Model", "Converted Gguf"
+## Detect generic tool signatures without model identifiers  e.g., "Unsloth
+## Gguf", "LlamaCpp Model", "Converted Gguf"
 return 1 if $name =~ m|^\s*unsloth\s*\w*\s*$|i;
 return 1 if $name =~ m|^\s*llamacpp\s*\w*\s*$|i;
 return 1 if $name =~ m|^\s*convert\s*\w*\s*$|i;
@@ -39,8 +39,8 @@ return 1 if $name =~ m|\b[a-f0-9]{8,}\b|i;    # hex-like sequences
 
 return 0;
 
-#,,,.,.,,,,,,,..,,...,,.,,,.,,...,,.,,.,.,,,,,.,.,...,.,.,.,,,,,,,,..,,,.,..,,
-#APJTRFLDXQZVDW3TTRG3SD3L4D33TKPR6TL5463ZCQRZMV7BSOE52MP4TTNXRYZ5IA2LBXD4GZ62Q
-#\\\|MFBL6ABHL3VSHVA2QN6MGJY25TEM7246UKPVBGA5ISW55S7J7YS \ / AMOS7 \ YOURUM ::
-#\[7]B7WFXCPCTIXP5PQETWJUVMSSR7OEKKP3JLCZST54VAZTN7LD34CQ 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,.,,,.,,,.,.,.,,,..,,...,,,.,.,,,.,.,...,..,,.,,,,,.,.,.,.,,,,..,
+#GD62AGKQ3SD6LRUGW43MFSOPQPYUOSVLTBQ7KOSZESY2CGFVJNFPUVZ77YTJUQKNPS7KUTYHLUULG
+#\\\|4YSURIIM7LD6ZQ2YQKP5CBHHTCBI4YCDXXBSTY3YAF6SLIS5QUK \ / AMOS7 \ YOURUM ::
+#\[7]2ZAXMR4Z7AOOQ6D57OGGTJ4XWXWYRWQXZJM33IJ7G42NLMSHH6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

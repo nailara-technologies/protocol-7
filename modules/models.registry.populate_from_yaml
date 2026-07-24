@@ -19,10 +19,10 @@ foreach my $model_id ( keys %$models_defs ) {
         next;
     }
 
-    ## composite key : path_checksum:model_checksum, same shape as the ##
-    ## discovered-model path builds, so all list/select code that      ##
-    ## expects a colon-joined checksum id treats yaml and discovered   ##
-    ## entries identically                                             ##
+    ## composite key : path_checksum:model_checksum, same shape as the      ##
+    ## discovered-model path builds, so all list/select code that expects a ##
+    ## colon-joined checksum id treats yaml and discovered entries          ##
+    ## identically                                                          ##
     my $path_checksum  = <[models.checksum.from_path]>->( $model->{'path'} );
     my $model_checksum = <[models.checksum.from_metadata]>->(
         {   'model_id'     => $model_id,
@@ -66,8 +66,8 @@ foreach my $model_id ( keys %$models_defs ) {
 
 return { success => TRUE, count => scalar( keys $registry->%* ) };
 
-#,,,,,,.,,..,,.,.,..,,,,,,.,.,,,,,..,,.,,,..,,..,,...,...,..,,.,,,.,.,.,,,,,,,
-#2AXXFG3VEJZKFP4ODKCV23BCAKRS2BDG2XPRTMFLQV6KZ3HOQ6Q6HKQP2CETK7ICATHOVDTLCHFZK
-#\\\|POANP3K3OZYF4KWCVJ6X4TTNNJB5OZ5X7SHBUYY4F4DC3FUPVW7 \ / AMOS7 \ YOURUM ::
-#\[7]VMHP7A5PW26DO4H5FVV4B7356H6D32KBKEMV5KJT2TWMKJAB2GAI 7  DATA SIGNATURE ::
+#,,,.,.,,,...,..,,,,.,.,,,,..,...,,..,,,.,,..,..,,...,...,...,...,..,,.,,,,,,,
+#K2VBGIXZHGNJNLVF3VJPZHJ3G6UHGZAW6MGJA3D5YJJVGX3JI5LS3LFIOCV6HVY77DEPVM2FVPKTG
+#\\\|DZSAWOJOZWU2NGMRKHCSKNQ4LREJCTDNOGWNZHXVSQZE7NOQ5AH \ / AMOS7 \ YOURUM ::
+#\[7]YB5QKZ6262IIB2EBVQ2LPA36L6YLNYWZUH7QE6UGRC2OE3QV2KCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

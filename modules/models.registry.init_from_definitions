@@ -21,9 +21,9 @@ foreach my $model_id ( keys %$models_defs ) {
     my $is_vision = ( $model->{'is_vision'}
             && lc( $model->{is_vision} ) ne qw| false | ) ? 1 : 0;
 
-    ## composite key : path_checksum:model_checksum, same shape as       ##
-    ## populate_from_discovery/populate_from_yaml build - neither half   ##
-    ## reads file content, so this still works for inaccessible files    ##
+    ## composite key : path_checksum:model_checksum, same shape as     ##
+    ## populate_from_discovery/populate_from_yaml build - neither half ##
+    ## reads file content, so this still works for inaccessible files  ##
     my $path_checksum  = <[models.checksum.from_path]>->( $model->{'path'} );
     my $model_checksum = <[models.checksum.from_metadata]>->(
         {   'model_id'     => $model_id,
@@ -57,8 +57,8 @@ foreach my $model_id ( keys %$models_defs ) {
 
 return { success => TRUE, loaded => scalar( keys $registry->%* ) };
 
-#,,,.,...,,,,,,.,,,,,,...,.,.,.,.,,..,,,,,,,,,..,,...,...,,,,,.,,,.,,,.,,,,,,,
-#R2NQPAH2DISVXV22DRTD24BDZEF5WRUHI24U4GIGGNL3K2WATCK2QHUQAAWBG57MLYYZ3R6SRTIDG
-#\\\|ZESHIOA52JPABK6EOSMTVYZ2IK4R5IRD25FYF6GAD73FPOGE3XT \ / AMOS7 \ YOURUM ::
-#\[7]AQAIK7MNXHYSHFCP325GRNCJIJKVCV2KI4Y2CFEX53BRS42TBOBA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,.,,.,.,,.,,,,.,,,,,,.,,..,,.,,,..,,...,...,...,...,,.,,,,.,,,.,
+#O6GDDRVGHKCHUHRYOR3GZ7KJV5OPISK4DMYJGAAPQNT4TZWERLBPCVGKDYHC2JQWFQCH2WRWQ2I2U
+#\\\|UEPDNEYHVEFHLHOLWX32YMDG5ZYVAKIXRCXBBLQWLAKBWEK3U76 \ / AMOS7 \ YOURUM ::
+#\[7]EA5PENJYFRD7DQRQYBDG5NQTFV7SKP4LWBC3S2IFFPNJFZDJESDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
