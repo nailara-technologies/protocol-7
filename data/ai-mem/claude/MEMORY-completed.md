@@ -13,7 +13,7 @@ session archive index and current live-system status (queue/roadmap, resolved bu
 
 ## System Status
 - [next-steps](topic-next-steps.md) — queue, roadmap
-- [ncode write-path landed 2026-07-24](project-ncode-write-path-2026-07-24.md) — suggest/apply/assess wired to p7c + live-verified (ptd -c gate, chmod-child grant/restore, file.temp scratch, context modules.load fix); pattern-learning design in [[topic-ncode-pattern-learning-loop]], open follow-ups in [[topic-next-steps]]
+- [ncode write-path landed 2026-07-24](project-ncode-write-path-2026-07-24.md) — suggest/apply/assess wired to p7c + live-verified (ptd -c gate, chmod-child grant/restore, file.temp scratch, context modules.load fix); pattern-schema fix (steps synthesis + backreference bug) landed same day via first real claude_dispatch use, see [[topic-ncode-pattern-learning-loop]]; open follow-ups in [[topic-next-steps]]
 - letsencr working; reasoning.branch.* LIVE; coding zenka operational
 - [signature endline bug](bug-signature-endline-restoration.md) — RESOLVED: state-0/7 harmonized
 - [auth.client namespace split](topic-auth-client-namespace-split.md) — LANDED b674ecd80/ae6b1f79b:
@@ -59,8 +59,8 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   base.strm.subscribe's own publisher-restart re-affirm gap (STRM, dispatched to kimi k3,
   independently re-verified) across two consecutive cred-mesh/proxy restart cycles.
 
-#,,.,,.,.,,.,,..,,.,,,,,,,.,,,,,,,.,,,...,,.,,..,,...,.,,,..,,..,,..,,.,.,.,,,
-#JDNSVJKCUGUCIOVE27RIOHTC3FSZ73SLU6J7RR3ZBYCTJ6URJHJIQMAZ6V7QIVUF557JHXLIA4AQO
-#\\\|E6NGUW2WRNO7HVM62XLV4V4QSYL6IAE6NON7VRBZCO2FSS7OXUB \ / AMOS7 \ YOURUM ::
-#\[7]MNMACIEJC7FFGWTQM5RIAOAF7MLUQ633DZ4IQRF4FRTP4JJHUCAY 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,,.,.,.,,.,,...,...,,,,,,..,,,,,..,,...,...,,..,..,,.,.,..,,.,,,
+#OBHOWVMXHE4Y4IEU5JF4JSYEBC6IS35IG4L2YP4QQSHJTSILPTCTHDKPFB6CJQL3PRIBIISUEMFHE
+#\\\|2OHBILRYZTCOFLWMQY2SFQE52IG7LSMVUXWLC3JJON2HXMYONQP \ / AMOS7 \ YOURUM ::
+#\[7]LMNFR7QZBC25HXUJDYCIJJEWDITJGMXLTEYPYPQJ54Q5UYERGKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
