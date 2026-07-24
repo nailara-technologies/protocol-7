@@ -68,9 +68,9 @@ sub is_true {
     my $check_as_elf = shift // 1;         ## check elf checksum ##
     my $shift_bits   = $elf_shift_bits;    ## right shift on overflow ##
 
-    ##  reject non-integer mode args early — otherwise downstream  ##
-    ##  numeric == checks warn-spam and callers see silent fallback  ##
-    ##  [ any non-negative integer accepted — P7 TRUE = 5 is used ]  ##
+    ## reject non-integer mode args early — otherwise downstream numeric == ##
+    ## checks warn-spam and callers see silent fallback [ any non-negative  ##
+    ## integer accepted — P7 TRUE = 5 is used ]                             ##
     return warn_err(
         sprintf "invalid check_as_num mode [ '%s' ] : expected integer",
         $check_as_num )
@@ -271,8 +271,8 @@ sub is_template_syntax_valid {
 
 return TRUE ##################################################################
 
-#,,,.,.,,,,..,...,.,,,.,.,..,,,,,,,,,,,,.,..,,..,,...,...,.,.,,.,,,,.,.,,,.,.,
-#IUIMZHKJJLIGDJGESFROX42NV2HJ2LFKJOUXABRRE25TVUJXZ4D5RCN6XHXLMD2UV6AX3X3OEML3M
-#\\\|I5RWJHVXTSRRCKQRRCWSKQB3VTBM45HA7QUALVW76OJLPWATREV \ / AMOS7 \ YOURUM ::
-#\[7]2HQNV65HVSJ22SO7HDS42XST46ROTBWYTFZCPVR4RBCKRQNEXUCI 7  DATA SIGNATURE ::
+#,,.,,...,.,,,..,,.,,,..,,,,,,..,,...,.,.,...,..,,...,...,..,,...,.,,,.,.,,..,
+#VZJL3NXLGG556S3OBRUHP7Z4PACWYORRPDRMY6VDQHH665DYVE62FJGTSPHVCCDFRS5AWIDLMOWBM
+#\\\|OVMU2IDCC6NHAOUQNHKAXP42YDW7DQUNSQHH4UBQTAPZC4U2M6Q \ / AMOS7 \ YOURUM ::
+#\[7]CVCA75W6NFOXGC2PYUBD66M6NEO6WXFJIGZUVJX3WM3OINTQTSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

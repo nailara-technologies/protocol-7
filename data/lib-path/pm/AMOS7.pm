@@ -246,7 +246,7 @@ sub clean_up_caller {
     return $$filename_sref if not $was_ref;
 }
 
-##[ PROTOCOL-7 INSTALLATION PATH ]###########################################
+##[ PROTOCOL-7 INSTALLATION PATH ]############################################
 
 sub p7_root_dir {
 
@@ -265,8 +265,8 @@ sub p7_root_dir {
 
 return TRUE ##################################################################
 
-#,,..,.,.,..,,.,,,,,.,,..,,,.,..,,..,,.,.,...,..,,...,...,.,,,,,,,,..,..,,.,.,
-#GWGWRY2DU2OLMTM67P3BHA6WLUW45IC2TXIC5NF3AWKZZQ6SLUGW3WIP6ZIPVGCQYKKNBIDUXVHWU
-#\\\|ZUDGBMANFXFAU5SFCRIR7DXMHY2RCY5IBWNBCJXXW56WYY6JWPF \ / AMOS7 \ YOURUM ::
-#\[7]5ZWH753LPS55LGPHSM6TNQPIYURVE5UMXWXZZJOGPR4QSG6AEOCI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,..,,,.,,..,..,,.,,,,,,,.,.,,.,,..,,...,...,.,.,.,.,.,,,...,,,,,
+#3VXMZ3UZFU4HPIKPCFG6BX4RGYJLR3AUKRLUQE6XAU7DQWZYDY3OD66IDCVK3P7LL5737OPCEE2E4
+#\\\|HQDQ5UEJIJKAOUIPYD2OG254RYLS4D2L55POWKPRLAF2FF5V3UF \ / AMOS7 \ YOURUM ::
+#\[7]JOFLRPDCQNADPC4F5GPDGYIJBEFYB7QJFGNI4UVCVL4CMNTK6UDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

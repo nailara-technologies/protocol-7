@@ -21,7 +21,7 @@ $VERSION = qw| AMOS-INLINE-SRC-SQMV42I |;
 
 sub bit_string_to_num { ##  bit_string_to_num  ## [ faster than eval '0b',., ]
 
-    my $source = <<~ 'EOC';
+    my $source = <<~'EOC';
 
     unsigned long bit_string_to_num ( char *str ) {
 
@@ -78,7 +78,7 @@ sub bit_string_to_num { ##  bit_string_to_num  ## [ faster than eval '0b',., ]
 ###
 sub num_to_bit_string {   ## num_to_bit_string ## [ sprintf '%0*b' is faster ]
     ##                                            kept as an example only .,
-    my $source = <<~ 'EOC';
+    my $source = <<~'EOC';
 
     void num_to_bit_string ( unsigned long num, ... ) {
 
@@ -152,8 +152,8 @@ sub num_to_bit_string {   ## num_to_bit_string ## [ sprintf '%0*b' is faster ]
 
 return 5;
 
-#,,,,,.,.,.,.,.,.,.,,,,..,,,,,..,,.,,,...,.,.,..,,...,...,..,,.,,,,,.,...,,,.,
-#5WPQUAGZMZRUIHH36XOLYBQXRHGUMGG3EEL2QCPAQJMPT4SV3AJLVFHCW7LNQ35VMV3KAYIQAARPK
-#\\\|BZWQ56X6IHM2JOURP6CO4F74QGSETPAZ4XGABFYPXYWLVXTLESE \ / AMOS7 \ YOURUM ::
-#\[7]OFL73ZEJFVFRTRK7PK637GMBSOWBQ3D43WP4XNXNWNSP4MULVKCI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,.,,,..,,.,.,..,,.,.,,..,...,,.,,..,,...,.,.,..,,.,,,.,.,,.,,,,.,
+#YQTW3WNDQCYWK7CV4CLAILHLFVHOGQ2DZUH3TPJ2QRSOXBHNR4XL3FZ6HFDE5OJ4MCOTIPNFCMHUS
+#\\\|N4V6T6DCPYWQ5OFDRJ5FOVACSAZJH4WKESBZO3DD6XC4VI45ZA4 \ / AMOS7 \ YOURUM ::
+#\[7]JUYPDKLMKMCQZVFC6LUMJNULH6ZDMCVHDBITGL4LVKAPFHIX36DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

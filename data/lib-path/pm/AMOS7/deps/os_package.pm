@@ -17,10 +17,10 @@ our @EXPORT_OK = qw|
 
 use File::Which qw| which |;
 
-## Load debian backend for dispatch [ fully-qualified calls only :        ##
-## compile-time imports break when Module::Refresh wipes the shared CV    ##
-## during a live v7 reload [ %DB::sub active ] -- runtime stash lookups    ##
-## always resolve to the current coderef ]                                ##
+## Load debian backend for dispatch [ fully-qualified calls only :      ##
+## compile-time imports break when Module::Refresh wipes the shared CV  ##
+## during a live v7 reload [ %DB::sub active ] -- runtime stash lookups ##
+## always resolve to the current coderef ]                              ##
 use AMOS7::deps::debp;
 
 ##[ detect_os ]###############################################################
@@ -138,8 +138,8 @@ sub install_os_pkgs {
 
 1;
 
-#,,,,,,.,,,..,.,,,,,,,.,,,,,,,,.,,,,,,,.,,...,..,,...,...,,,.,,.,,,,,,.,,,.,.,
-#NGD57G6RQCM5MRR6IXYZ7CYAHR5XBGX2M5BVOTKI7VFWTHHSE6QRANHRLRZKTZH5IE6LOQZMTAMEQ
-#\\\|MY7JDOGREXEHCB5GWSA3C33B2T34LFZDZDPG5I3GAL2QTQ2RLRI \ / AMOS7 \ YOURUM ::
-#\[7]FEUOSOPUQ543KAFSVHI5XMDZZ7MXC6QXOHFXIZZ4T2P4X3EB3WDY 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,,.,,,,.,...,.,.,...,..,,..,,,.,,..,,...,...,...,,,.,.,,,.,,,,,,,
+#5TZBFCFIQDPQ3KC7DKYDFFVLWBFR4ETQP45BQYZOVMG7GMGU7NOZXS7W47AXLOLRB6UY6HVD6VQXE
+#\\\|5DD3J6TBCGIADBVFZCCBUVTA3XDM4PSFWUMC4MBIFMFZKSL3V6C \ / AMOS7 \ YOURUM ::
+#\[7]WWDCBEAVXK6ZMHOLJMPVRNK5URFVZQGQEFXBW3YO7DF6FKK7R2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
