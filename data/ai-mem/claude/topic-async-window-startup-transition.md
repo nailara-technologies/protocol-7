@@ -167,7 +167,7 @@ tile.cmd.screen-change (renamed from tile.handler.screen-change), modules/
 protocol-7-menu.cmd.screen-change (new, renamed from a .handler. version),
 modules/protocol-7-menu.subscribe-screen-change (new), modules/
 protocol-7-menu.init_code, configuration/zenki/{X-11,ticker,tile,
-protocol-7-menu,powershell}/{start,subroutine.white-list}, configuration/
+protocol-7-menu,powershell}/{start,subroutines.load-early}, configuration/
 zenki/cube/access.zenki.
 **REMOVED entirely (regressed, no confirmed benefit):** an in-handler
 X-11 reconnect-on-every-screen-change-notification approach — structurally
@@ -346,7 +346,7 @@ still unstaged; the _NET_WM_MOVERESIZE attempt is reverted.
   base.gtk.{strip_on_monitor,centered_on_monitor,ensure_display},
   base.X-11.{get_coordinates_async,handler.coordinates_reply},
   ticker.startup.geo_ready (new); edits modules/ticker.startup (main_loop
-  removed), configuration/zenki/ticker/start, ticker subroutine.white-list.
+  removed), configuration/zenki/ticker/start, ticker subroutines.load-early.
   ALSO from earlier this session, signed-but-CHECK-IF-COMMITTED: base.gtk.
   {list_monitors,snap_to_monitor}, protocol-7-menu.graphical-startup-init,
   screen.setup.{open_window,enumerate-monitors,handler.*}, cube/auth.zenki —
@@ -609,8 +609,8 @@ commented out) and configuration/zenki/v7/start-set-up.base
 ticker (graphics-matrix isn't referenced anywhere in ticker's modules), just
 a leftover debug toggle from a prior session, taeki wants it disabled for now.
 
-#,,..,,,,,,,,,.,.,,,.,,.,,.,,,.,.,,..,.,,,,..,..,,...,...,...,,.,,..,,,,,,,,.,
-#2HM54SAGMB4F6J4VA6RWTGCJ2RB55J7FMZ2G2LF7637GSMEW3LTOUOAOBTIJ4GBWF6HZEHSDG2WZI
-#\\\|PHBY5MXTRSDFYCKCGWIC3TF5JU7UMYXDGHU3TGLUG7XNUC7D7U3 \ / AMOS7 \ YOURUM ::
-#\[7]U46CMMWVERW72KBGQOQ6CHVFFHMNITJFJ73GIIN27M76VDTCRUDI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,...,.,,,,.,,.,.,,,.,,,,,,.,,..,,..,,...,...,...,,.,,,.,,...,,,,,
+#VU6JIDH7E4N43UXDC7OMLYFMAZPRCTDCKJUNJQNN7U4F7RHGLOUFV5O3MK33ACSMZJAILOGM2IMHU
+#\\\|ZTLBIMKIQ6V4ESYN3ZYBATEGXE3KGDTTQCFDCXFPH5UY4HL452U \ / AMOS7 \ YOURUM ::
+#\[7]YQRLKPKI2VTJCQEFWXLKEWMFTBMOTHTQ5UDWEO2AEXQAGYLYI4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

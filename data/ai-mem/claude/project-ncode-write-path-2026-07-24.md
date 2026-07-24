@@ -57,11 +57,11 @@ full live shakeout of `ncode`'s never-before-tested write path. See
   (file, group-write) became ncode's `"gwd"` (directory only), and `create`/
   `mkdir` were never ported at all. User's framing: "it was only ported,
   never used."
-- **`configuration/zenki/ncode/{start,subroutine.white-list}`** — `suggest`/
+- **`configuration/zenki/ncode/{start,subroutines.load-early}`** — `suggest`/
   `apply` opened on `ncode`'s cube command whitelist (previously withheld
   pending the signature-gated approval system, see
   [[topic-write-access-security-infrastructure]]) explicitly for this
-  testing pass; `subroutine.white-list` regenerated via the canonical
+  testing pass; `subroutines.load-early` regenerated via the canonical
   `bin/dev/gen-sub-whitelist` tool throughout, never hand-edited.
 
 ## live-verification path (why this took so long)
@@ -166,8 +166,8 @@ bug the fix exposed and also fixed, in [[topic-next-steps]]'s done log.
   or reviewer-gated, or gets folded into that bigger design is an open
   decision, not yet made.
 
-#,,,,,.,.,,,.,.,,,,,,,.,.,,.,,...,,.,,.,.,..,,..,,...,...,...,.,,,,,,,...,.,.,
-#RIRKPILQVBFQ2S6FO5PPINUFJQ3YGELKEVET7ERHR4UZ56DX42WZ3B5ACYDIV6PZVQADW6MQ5RTH6
-#\\\|BCDY6RRO7H2KBRZY3CKDOLSKGJX2XAPCREYLLLDDFMFTZDMUADE \ / AMOS7 \ YOURUM ::
-#\[7]EPXG7HPNUUTEHQQIIC2HWJCUU62CEEOMND5QVIQNX7FLI6NMIIBA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,,,,.,,,,,,,,..,,,,,,,,,.,,,.,.,..,,...,..,,.,.,.,.,.,.,,,.,...,
+#MQOUDXR33IJIPMABZALN7EDEQRPUXQMKI2XBNTYVN32QF3QKFEQRZSV7MHBMERCSVDEG2KYPA2ME2
+#\\\|BGAQTDHYO4CD3CMFOW4XHWMTLHZKZDE7DUFIVPXKD5IXYA5HIJN \ / AMOS7 \ YOURUM ::
+#\[7]6XYUAHHZTKDWW73VQEOPNOF4AETIF6YV7NHAG7EPNAW3BVMZ3MBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

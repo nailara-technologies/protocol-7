@@ -325,7 +325,7 @@ only matters as the tie-break for equal-length names.
 one — renamed `ncode.cmd.review` → `modules/ncode.cmd.pattern-review`
 (git mv + updated the `name` comment, `ncode.cmd.apply`'s two log/comment
 references, `configuration/zenki/ncode/start`'s `access.cmd.usr.cube`
-list, and `subroutine.white-list`). Live-verified post-reload:
+list, and `subroutines.load-early`). Live-verified post-reload:
 `p7c ncode.pattern-review` now correctly hits ncode's own `unknown
 pattern` logic (not `context`'s `no files matched`); `ls *cmd.review` in
 `modules/` shows only `context.cmd.review` remains. User's framing,
@@ -428,8 +428,8 @@ detail, including the `taeki`/`unix-taeki` two-principal finding:
 [[project-ncode-write-path-2026-07-24]], [[topic-write-access-security-infrastructure]],
 [[feedback-claude-dispatch-strategy]], [[reference-opus-dispatches-kimi-workflow]]
 
-#,,.,,,..,.,.,,,,,,..,,..,.,,,.,.,,..,,..,,,.,..,,...,...,...,..,,..,,,,.,...,
-#LMFX7GZ3I5W452S5NQ3IL6PO7NN6BJX7AGYYWDXT2VIYC7ELDHN55XOWFJ2ZPOQRXAB6EUCRI3BEE
-#\\\|YIXKARJXOJADXDMMLVK5N6NWW47EDJ7QZ2Z46FBBFRM4RSRZJF7 \ / AMOS7 \ YOURUM ::
-#\[7]6ENZTJXYJ27ZOMQ7J77AAYDIHA4ZUHE44Z5PBZDDWHJYALHM36BA 7  DATA SIGNATURE ::
+#,,.,,...,,,,,...,...,,..,.,,,.,.,,.,,,,.,,,,,..,,...,...,,,,,,..,,..,..,,,,,,
+#H7TADRYZVOXKLU4STHAVIR4LFMY2FYPKXFNJ277NYSBTHMWXGEZV3MVJTPRORO64DLR2Q6ZCGIAK4
+#\\\|SV5AYPP6X7LL76HXQ4AEUWABDDUCG7KUPWLBQ7BN76NA4SYLEWC \ / AMOS7 \ YOURUM ::
+#\[7]U3YHJNI44WMR7QMTZ2LTEBQYCNZ5N2PHUURHLSTVM5D45L5SM4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
