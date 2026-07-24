@@ -3,8 +3,8 @@
 # name  = coding.callback.retry_request
 # descr = Retry handler for failed HTTP requests
 
-## timer callbacks receive watcher object, extract data from it ##
-## timer event handler: shift gives event object, ->w gives watcher ##
+## timer callbacks receive watcher object, extract data from it timer event ##
+## handler: shift gives event object, ->w gives watcher                     ##
 my $task_id = shift->w->data;
 
 return unless defined $task_id && !ref $task_id;
@@ -12,11 +12,11 @@ return unless defined $task_id && !ref $task_id;
 <[base.logs]>->( 2, "retry_request: executing retry for %s", $task_id );
 
 ## note : retry_pending is consumed by send_request to distinguish retries ##
-##                                                     from fresh requests ##
+## from fresh requests                                                     ##
 my $state = <[coding.async.state_manager]>->( qw| get |, $task_id );
 
-## reset loop detection tool history on retry ##
-##      [ avoid false stuck_retry positives ] ##
+## reset loop detection tool history on retry  [ avoid false stuck_retry ##
+## positives ]                                                           ##
 my $task = <coding.task.queue>->{$task_id};
 if ( defined $task && defined $task->{'execution'}->{'loop_detection'} ) {
     $task->{'execution'}->{'loop_detection'}->{'tool_history'} = [];
@@ -29,8 +29,8 @@ if ( defined $task && defined $task->{'execution'}->{'loop_detection'} ) {
 
 return;
 
-#,,.,,,.,,.,.,...,,,.,,,.,,..,,..,..,,,,,,,,,,.,.,...,...,,..,...,,,,,,,,,,,,,
-#FXY7FXMHKOZGFG2PWTXDOW2PTYZ7TL3IPWECH3P2DOPRAQONFNKOORYVI6OI3FCOIW3WGPD7WXA6Y
-#\\\|PV7STRBFOTNGGZSWI75JCZXPH2Y3IHWAK4G3C7OVAUFCOIIULTX \ / AMOS7 \ YOURUM ::
-#\[7]Q7DRKFF3ZJEBS6S5XP672FXSXTLXTSRQMMCEV5RQZV5J2ONFYABA 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,,,,...,.,,,,..,,.,,,.,,,.,,...,.,.,...,...,.,.,,..,..,,..,,,.,,
+#T7ZJWSNJPLVECXGSVCFAYL3FXIWO7XNZQGWL7J5KGKATTGWJ3MEV6QMH6C3KZSULFZZWLGOKRQCWQ
+#\\\|2XRMFAP7HKLPLQ4TWXPB5X5EXPFHHJI3D7L5FFI4X6ECIOGTWSY \ / AMOS7 \ YOURUM ::
+#\[7]STKY55YL46WXHEH2CLR5IP6LWSQ665YZ2BTHLUP4F34QFHPMSECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

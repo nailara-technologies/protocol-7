@@ -12,8 +12,8 @@ return { success => FALSE, error => 'task_id required' }
 ## retrieve stored state ##
 my $state = <[coding.async.state_manager]>->( 'get', $task_id );
 
-## state may have been deleted by a prior timeout requeue ##
-## for compaction subtasks we must still unblock the parent ##
+## state may have been deleted by a prior timeout requeue  for compaction ##
+## subtasks we must still unblock the parent                              ##
 if ( not defined $state ) {
     my $task_rec  = <coding.task.queue>->{$task_id} // {};
     my $meta      = $task_rec->{'metadata'}         // {};
@@ -74,8 +74,8 @@ my $job_id = $state->{'job_id'};
 my $backend = $state->{'backend'} // '';
 <[coding.async.backend_release]>->( $task_id, $backend ) if length $backend;
 
-## save conversation state before cleanup ##
-##    : needed for task-append resumption ##
+## save conversation state before cleanup  : needed for task-append ##
+## resumption                                                       ##
 my $task_rec = <coding.task.queue>->{$task_id};
 if ( defined $task_rec ) {
     $task_rec->{'execution'}->{'messages'} = $state->{'messages'}
@@ -115,7 +115,8 @@ if ( defined $result && $result->{'success'} ) {
 
             my $skip_standard_resume = 0;
 
-            ## compaction sub-task: splice summary into messages, no user msg ##
+            ## compaction sub-task: splice summary into messages, no user ##
+            ## msg                                                        ##
             if ( ( $parent_state->{'compaction_pending'} // '' ) eq $task_id )
             {
                 my $c_start     = $parent_state->{'compact_start'} // 2;
@@ -139,11 +140,12 @@ if ( defined $result && $result->{'success'} ) {
                 delete $parent_state->{'compaction_pending'};
                 delete $parent_state->{'compact_start'};
                 delete $parent_state->{'compact_end'};
-                ## prevent re-triggering on same round ##
-                ##             if still near threshold ##
+                ## prevent re-triggering on same round  if still near ##
+                ## threshold                                          ##
                 $parent_state->{'compaction_applied_round'} = $round;
             }
-            ## chunked summary sub-task: fold result, enqueue next or complete ##
+            ## chunked summary sub-task: fold result, enqueue next or ##
+            ## complete                                               ##
             elsif ( ( $parent_state->{'chunked_summary_pending'} // '' ) eq
                 $task_id ) {
                 my $parent_task = <coding.task.queue>->{$parent_id} // {};
@@ -164,19 +166,21 @@ if ( defined $result && $result->{'success'} ) {
                     ## enqueue next chunk child ##
                     my $next_chunk = $chunk_state->{'chunks'}[$current_idx];
                     my $child_prompt
-                        = "running summary so far:\n$running_summary\n\n"
-                        . "new text to fold in:\n$next_chunk\n\n"
-                        . "produce an updated running summary that preserves "
-                        . "information from both, information-dense, no preamble.";
+                        = "running summary so far:\n$running_summary\n\nnew "
+                        . "text to fold in:\n$next_chunk\n\nproduce an "
+                        . "updated running summary that preserves "
+                        . "information from both, information-dense, "
+                        . "no preamble.";
 
-                    ## guard: if still too big once wrapped, split the
-                    ## excess back into the chunk queue as an additional
-                    ## chunk instead of discarding it -- mirrors the chunk-0
-                    ## guard in coding.task.chunk_and_summarize : same 1.4
-                    ## conservative factor, same "never lose content" rule.
-                    ## also include the system prompt's length -- it rides
-                    ## in the same messages array coding.task.execute
-                    ## measures, and omitting it understated the real cost ##
+                    ## guard: if still too big once wrapped, split the    ##
+                    ## excess back into the chunk queue as an additional  ##
+                    ## chunk instead of discarding it -- mirrors the      ##
+                    ## chunk-0 guard in coding.task.chunk_and_summarize : ##
+                    ## same 1.4 conservative factor, same "never lose     ##
+                    ## content" rule.  also include the system prompt's   ##
+                    ## length -- it rides in the same messages array      ##
+                    ## coding.task.execute measures, and omitting it      ##
+                    ## understated the real cost                          ##
                     my $chars_per_token = 3.2;
                     my $prompt_est      = int(
                         (   ( bytes::length($child_prompt) + length($sys) )
@@ -202,8 +206,8 @@ if ( defined $result && $result->{'success'} ) {
                         my $overflow_text = substr( $next_chunk, $split_at );
                         $next_chunk = substr( $next_chunk, 0, $split_at );
 
-                        ## re-insert the overflow as the next chunk in the
-                        ## queue -- never lost, just deferred one pass ##
+                        ## re-insert the overflow as the next chunk in the ##
+                        ## queue -- never lost, just deferred one pass     ##
                         splice(
                             @{ $chunk_state->{'chunks'} },
                             $current_idx + 1,
@@ -214,9 +218,10 @@ if ( defined $result && $result->{'success'} ) {
 
                         $child_prompt
                             = $head
-                            . "new text to fold in:\n$next_chunk\n\n"
-                            . "produce an updated running summary that preserves "
-                            . "information from both, information-dense, no preamble.";
+                            . "new text to fold in:\n$next_chunk\n\nproduce "
+                            . "an updated running summary that "
+                            . "preserves information from both, "
+                            . "information-dense, no preamble.";
                         <[base.logs]>->(
                             0,
                             "chunk_and_summarize: chunk %d split at %d chars "
@@ -274,11 +279,13 @@ if ( defined $result && $result->{'success'} ) {
                             $total_chunks, $child_id
                         );
                     } else {
-                        ## enqueue failed: complete parent with what we have ##
+                        ## enqueue failed: complete parent with what we ##
+                        ## have                                         ##
                         <[base.logs]>->(
                             0,
-                            "chunk_and_summarize: enqueue of chunk %d failed, "
-                                . "completing parent with partial summary",
+                            "chunk_and_summarize: enqueue of chunk %d "
+                                . "failed, completing parent with partial "
+                                . "summary",
                             $current_idx + 1
                         );
                         delete $parent_state->{'chunked_summary_pending'};
@@ -330,8 +337,8 @@ if ( defined $result && $result->{'success'} ) {
                         && $parent_task_rec->{'stop_requested'} ) {
                         <[base.logs]>->(
                             1,
-                            "async.complete: parent %s was stopped,"
-                                . " clearing %d remaining subtask(s)",
+                            "async.complete: parent %s was stopped, "
+                                . "clearing %d remaining subtask(s)",
                             $parent_id,
                             scalar @$queue
                         );
@@ -355,11 +362,13 @@ if ( defined $result && $result->{'success'} ) {
                     } else {
                         my $next_subtask = $queue->[0];
                         $parent_state->{'pending_subtask'} = $next_subtask;
-                        ## stay in subtask state : next queued task will run ##
+                        ## stay in subtask state : next queued task will ##
+                        ## run                                           ##
                         <coding.async.task_state>->{$parent_id}
                             = $parent_state;
-                        ## enqueue the next subtask so the task queue picks it up ##
-                        ## [ remove from queue first to avoid duplicate rejection ] ##
+                        ## enqueue the next subtask so the task queue picks ##
+                        ## it up [ remove from queue first to avoid         ##
+                        ## duplicate rejection ]                            ##
                         my $next_task
                             = delete <coding.task.queue>->{$next_subtask};
                         if ( defined $next_task ) {
@@ -370,7 +379,8 @@ if ( defined $result && $result->{'success'} ) {
                                     = $next_task;
                                 <[base.logs]>->(
                                     0,
-                                    "async.complete: enqueue of %s failed: %s",
+                                    "async.complete: "
+                                        . "enqueue of %s failed: %s",
                                     $next_subtask,
                                     $enq->{'error'} // 'unknown'
                                 );
@@ -378,13 +388,15 @@ if ( defined $result && $result->{'success'} ) {
                         } else {
                             <[base.logs]>->(
                                 0,
-                                "async.complete: next subtask %s not found in queue",
+                                "async.complete: next "
+                                    . "subtask %s not found in queue",
                                 $next_subtask
                             );
                         }
                         <[base.logs]>->(
                             1,
-                            "async.complete: parent %s starting next queued subtask %s",
+                            "async.complete: parent %s "
+                                . "starting next queued subtask %s",
                             $parent_id,
                             $next_subtask
                         );
@@ -408,8 +420,8 @@ if ( defined $result && $result->{'success'} ) {
             and $parent_state->{'state'} eq qw| subtask | ) {
             <[base.logs]>->(
                 1,
-                "async.complete: subtask %s completed"
-                    . " but parent %s waits for %s",
+                "async.complete: subtask %s "
+                    . "completed but parent %s waits for %s",
                 $task_id,
                 $parent_id,
                 $parent_state->{'pending_subtask'} // qw| none |
@@ -433,7 +445,7 @@ if ( defined $result && $result->{'success'} ) {
     <[jobqueue.move_job]>->( $job_id, qw| error | )
         if defined $job_id;
 
-    ## mark task failed and remove from active/pending lists ##
+    ## mark task failed and remove from active/pending lists      ##
     ## coding.task.fail has a P7 data-path bug, so we inline this ##
     my $task_obj_fail = <coding.task.queue>->{$task_id};
     if ( defined $task_obj_fail ) {
@@ -449,7 +461,8 @@ if ( defined $result && $result->{'success'} ) {
     push $aref_failed_f->@*, $task_id
         unless grep { $ARG eq $task_id } $aref_failed_f->@*;
 
-    ## resolve reasoning branch as failed [ else it stays 'running' forever ] ##
+    ## resolve reasoning branch as failed [ else it stays 'running' forever ##
+    ## ]                                                                    ##
     <[reasoning.branch.resolve]>
         ->( { id => $task_id, output => "failed: $error_msg" } );
 
@@ -475,7 +488,8 @@ if ( defined $result && $result->{'success'} ) {
 
             if ( ( $parent_state->{'compaction_pending'} // '' ) eq $task_id )
             {
-                ## compaction child failed: clear markers, let parent resume ##
+                ## compaction child failed: clear markers, let parent ##
+                ## resume                                             ##
                 delete $parent_state->{'compaction_pending'};
                 delete $parent_state->{'compact_start'};
                 delete $parent_state->{'compact_end'};
@@ -526,8 +540,8 @@ if ( defined $result && $result->{'success'} ) {
                     ) if defined $chunk_state->{'parent_job_id'};
                     <[base.logs]>->(
                         0,
-                        "async.complete: chunked summary parent %s failed "
-                            . "after child %s failed: %s",
+                        "async.complete: chunked summary parent "
+                            . "%s failed after child %s failed: %s",
                         $parent_id_fail,
                         $task_id,
                         $error_msg
@@ -560,8 +574,8 @@ if ( defined $result && $result->{'success'} ) {
                         && $parent_task_rec->{'stop_requested'} ) {
                         <[base.logs]>->(
                             1,
-                            "async.complete: parent %s was stopped,"
-                                . " clearing %d remaining subtask(s) after failure",
+                            "async.complete: parent %s was stopped, clearing "
+                                . "%d remaining subtask(s) after failure",
                             $parent_id_fail,
                             scalar @$queue
                         );
@@ -584,11 +598,13 @@ if ( defined $result && $result->{'success'} ) {
                     } else {
                         my $next_subtask = $queue->[0];
                         $parent_state->{'pending_subtask'} = $next_subtask;
-                        ## stay in subtask state : next queued task will run ##
+                        ## stay in subtask state : next queued task will ##
+                        ## run                                           ##
                         <coding.async.task_state>->{$parent_id_fail}
                             = $parent_state;
-                        ## enqueue the next subtask so the task queue picks it up ##
-                        ## [ remove from queue first to avoid duplicate rejection ] ##
+                        ## enqueue the next subtask so the task queue picks ##
+                        ## it up [ remove from queue first to avoid         ##
+                        ## duplicate rejection ]                            ##
                         my $next_task
                             = delete <coding.task.queue>->{$next_subtask};
                         if ( defined $next_task ) {
@@ -599,7 +615,8 @@ if ( defined $result && $result->{'success'} ) {
                                     = $next_task;
                                 <[base.logs]>->(
                                     0,
-                                    "async.complete: enqueue of %s failed : %s",
+                                    "async.complete: enqueue "
+                                        . "of %s failed : %s",
                                     $next_subtask,
                                     $enq->{'error'} // qw| unknown |
                                 );
@@ -607,14 +624,15 @@ if ( defined $result && $result->{'success'} ) {
                         } else {
                             <[base.logs]>->(
                                 0,
-                                "async.complete: next subtask %s not found in queue",
+                                "async.complete: next "
+                                    . "subtask %s not found in queue",
                                 $next_subtask
                             );
                         }
                         <[base.logs]>->(
                             1,
-                            "async.complete: parent %s starting"
-                                . " next queued subtask %s after failure",
+                            "async.complete: parent %s starting "
+                                . "next queued subtask %s after failure",
                             $parent_id_fail,
                             $next_subtask
                         );
@@ -630,8 +648,8 @@ if ( defined $result && $result->{'success'} ) {
                     );
                     <[base.logs]>->(
                         1,
-                        "async.complete: resumed parent"
-                            . " %s after subtask %s failed",
+                        "async.complete: resumed parent "
+                            . "%s after subtask %s failed",
                         $parent_id_fail,
                         $task_id
                     );
@@ -641,7 +659,8 @@ if ( defined $result && $result->{'success'} ) {
             and $parent_state->{'state'} eq qw| subtask | ) {
             <[base.logs]>->(
                 1,
-                "async.complete: subtask %s failed but parent %s waits for %s",
+                "async.complete: subtask %s "
+                    . "failed but parent %s waits for %s",
                 $task_id,
                 $parent_id_fail,
                 $parent_state->{'pending_subtask'} // qw| none |
@@ -652,8 +671,8 @@ if ( defined $result && $result->{'success'} ) {
     return { success => FALSE, error => $error_msg, task_id => $task_id };
 }
 
-#,,,.,.,.,...,.,.,,.,,,..,..,,..,,.,.,..,,.,.,.,.,...,...,,,,,,,.,.,.,...,..,,
-#RIFB7GS6TJXZJAE4JWLDL465CXGLQOWYSPWG6BV6WSOCT7R5AHLH5KWESMIXLGIXVFYSVWQMX64JW
-#\\\|OPVDVYV4NEXOC4NOQOP36MAD6HQTF6G42YJGK2S3DKVGQ6YR6MY \ / AMOS7 \ YOURUM ::
-#\[7]RFPHZ3AXBBDD3CLOQ7VBBLGTIM2EC6RPG4HOPP5RCL3KE2PNOMCI 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,.,,,..,,..,,.,,,,,.,.,,,,,,,,,,,.,.,...,...,.,,,,,.,.,.,...,.,,,
+#OA5G3U2L3Y4ZK7Y7JXKMRYJ4VERW2LBODA2HW6WSGZ76FYZ6OK7ONVQ3KFSG6WFT3GD665PCPK35Y
+#\\\|Y74NKKTJ36K5LKTYOQPPQB7XDF67MDH7QJNIAZXPT6FY5NOJTCA \ / AMOS7 \ YOURUM ::
+#\[7]BVE5KWAPCL6KCAKRXLJ4NCQSTJFOJV6INLAQPAADWCKVCDMHG2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

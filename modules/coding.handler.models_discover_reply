@@ -10,9 +10,9 @@ my $reply_data = $reply->{'data'}   // '';
 <[base.logs]>
     ->( 2, 'model discovery reply received :. context=%s', $context );
 
-## parse text response from models.cmd.discover
-## format: amos: <id>\n  name: foo\n  available: yes\n  size_gb: N\n ...
-## amos value may contain spaces (yaml-named models) or not (composite checksums)
+## parse text response from models.cmd.discover  format: amos: <id>\n  name:
+## foo\n  available: yes\n  size_gb: N\n ...  amos value may contain spaces
+## (yaml-named models) or not (composite checksums)
 my %metadata;
 my $current_amos;
 
@@ -24,7 +24,8 @@ for my $line ( split /\n/, $reply_data ) {
         if ( $line =~ m|^\s+name:\s+(.+)$| ) {
             $metadata{$current_amos}{'name'} = $1;
         } elsif ( $line =~ m|^\s+version:\s+(.+)$| ) {
-            ## skip mmproj entries [ vision projector files, not runnable models ]
+            ## skip mmproj entries [ vision projector files, not runnable
+            ## models ]
             if ( $1 eq 'mmproj' ) {
                 delete $metadata{$current_amos};
                 undef $current_amos;
@@ -77,8 +78,8 @@ if ($count) {
 
 return TRUE;
 
-#,,,,,..,,.,.,..,,..,,.,.,,.,,..,,..,,,,.,,..,..,,...,...,,.,,.,.,.,.,,..,,.,,
-#SIO3WDO7WRLVZFO6YJVPEV374ASAFJWEGH6IJGEZPPPYPJ5R6EV6VGUVN7WDLA4NCE52YSBNYJUMY
-#\\\|ARKVJH3CMUXIR7FETKX4JKLMAKVMOCMC244CWPIOQFU4E3RIWFD \ / AMOS7 \ YOURUM ::
-#\[7]YC74NLGEQGRXRLFKCQPO5TXKQTC6FV56W2GCE75UH7UCYTFSGCCA 7  DATA SIGNATURE ::
+#,,,.,...,,,,,..,,,.,,,..,..,,,,,,...,,,,,,..,..,,...,...,,.,,..,,.,.,...,...,
+#AJV2MTSSF3GTLXMQA7QS5VYPXZWCG7Q473NG7LMYSXC53WWVKVIWULZF73KIFCQQPIDDVPAJ7NTFQ
+#\\\|6CYSVWV5BNSTVZUIFBWW7V6P2IPWWYH7GMSOP2OG3DL4FAP4EWR \ / AMOS7 \ YOURUM ::
+#\[7]XUGJJV7KGS3B5WXFWFAQRYMPA4O3E6IUV5NDFAXPYRAKPPAQHSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

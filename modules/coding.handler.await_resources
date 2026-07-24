@@ -53,11 +53,11 @@ if ( !$old_pid ) {
     return;    ## timer continues ##
 }
 
-## a deliberate switch-model is in flight - the gpu server being gone   ##
-## right now is THAT operation's own kill-old-server step, not a twin   ##
-## handover completing. spawning here would race switch_model_reply's   ##
-## own intended spawn using stale/default config - confirmed live       ##
-## 2026-06-21. stay armed, re-check next tick instead of firing.        ##
+## a deliberate switch-model is in flight - the gpu server being gone right ##
+## now is THAT operation's own kill-old-server step, not a twin handover    ##
+## completing. spawning here would race switch_model_reply's own intended   ##
+## spawn using stale/default config - confirmed live 2026-06-21. stay       ##
+## armed, re-check next tick instead of firing.                             ##
 if (<coding.switch_model_active>) {
     <[base.logs]>
         ->( 2, 'await_resources: switch-model in flight, deferring' );
@@ -80,8 +80,8 @@ if ($spawn_ok) {
 
 return TRUE;
 
-#,,..,,,.,.,,,.,,,,,.,..,,,,.,...,,,,,...,..,,..,,...,...,..,,,..,.,,,...,,..,
-#OCXCNQYCSN5PRDA3KYZT2VFJUODQRZBE5B5PYWNY2LABU35SNO32POYX5HEQD4NVYC7HVEPW5BHMM
-#\\\|4Y5X3YIYE5DMGMHBUPBWL7BKAUF6VAU4V2TOTNJ4TIB55CZKHRR \ / AMOS7 \ YOURUM ::
-#\[7]VL2ALBZUECEKGJT7IYVE4M2SHZCC5FXHL5KSAER2QMHOSFYDIIAI 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,,.,,,.,...,,,.,,..,.,,,,.,,.,,,..,,...,...,.,.,,.,,,.,,,.,,,,,,
+#SY3ISZM72Z2EZACBYXVHZHT6K5D7F45T2OJ6QUOX3LSV7Y4VFDNN75A4MWG3WSGOVOR2YGLR7DMSI
+#\\\|EAY7SHOIPT5KLODE2THB22YPWNUVRGCTJK5W3CAVXTEVPT6JJTP \ / AMOS7 \ YOURUM ::
+#\[7]YUS6KGLYPU64KETS5H62BCFSQDUMBKU253QITPFAPTGHP3ORMUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

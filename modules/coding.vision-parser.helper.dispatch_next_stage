@@ -19,11 +19,13 @@ if ( $stage eq 'analyzing' ) {
     ## stage 1: send vision analysis request async via reply handler
     <[base.logs]>->(
         1,
-        '[vision-parser] STAGE 1: routing vision analysis to lm-vision job=%s',
+        '[vision-parser] STAGE 1: routing '
+            . 'vision analysis to lm-vision job=%s',
         $job_id
     );
 
-    ## send async - result arrives via coding.vision-parser.handler.vision_reply
+    ## send async - result arrives via
+    ## coding.vision-parser.handler.vision_reply
     my $cmd_count = <[protocol-7.command.send.local]>->(
         {   'command'   => 'cube.lm-vision.analyze_image',
             'call_args' =>
@@ -85,8 +87,8 @@ if ( $stage eq 'analyzing' ) {
 
 return;
 
-#,,,,,...,,.,,,.,,..,,,.,,...,,,.,,,,,...,,..,..,,...,...,,..,...,,.,,.,.,,..,
-#7UABNRCC3JTNSE2HUPV2GGHUCZVZ3AGDJFDLSMSYE3REWX3EQQUTZJMDKWVCUGPI7MRZJ6MDAPT3Y
-#\\\|XFTY3XDZX2LVGNTTZ74BPQA52S7KK2RGWSAC3O6DZ6IDF3YWKDD \ / AMOS7 \ YOURUM ::
-#\[7]HV2LT35Z4OEG2XAVUT6G5MEWZCI6YK7QMKI2IBVYPM2ZFB7U2CCY 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,.,,..,..,,,,.,...,,..,...,..,,..,,...,...,..,,...,,,,,.,.,..,,
+#UPLE6K6JRFVZADUCG7VVMN5UEEKOY3G2AEJQNAPXHFH25Q3U6QBSORPZQL6CWYOMYJG6HQDZQZFIG
+#\\\|JMNYUG6GNIYDUH2RVWD5BSDEPOJSVO7ZRUEPCW65NENKAPI67E5 \ / AMOS7 \ YOURUM ::
+#\[7]5LLTQXFPGDIUKM75OJRL5QFXTTSMTEXNP747NMCAYN43GRSAY6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

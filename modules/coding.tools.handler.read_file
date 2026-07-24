@@ -18,8 +18,8 @@ if ( !$to_line && ( $args->{'length'} // 0 ) > 0 ) {
 $from_line = 1 if $from_line < 1;
 
 my $path = $args->{'path'} // '';
-## default budget scales with actual server context window ##
-## 8000 chars was too small for large-context models (causes pagination loops) ##
+## default budget scales with actual server context window  8000 chars was ##
+## too small for large-context models (causes pagination loops)            ##
 my $srv_n_ctx = ( <coding.inference_servers> // {} )->{'gpu'}->{'n_ctx'}
     // <inference.model.context_length> // 16384;
 my $default_budget = $srv_n_ctx > 30000 ? 32000 : 8000;
@@ -63,8 +63,8 @@ if ( defined $result && $total_lines > 0 ) {
     my $footer;
     if ($is_partial) {
         my $hint = sprintf(
-            "offset=%d  [ %d lines remaining of %d ]"
-                . "\n:: to continue: read_file path=\"%s\" offset=%d",
+            "offset=%d  [ %d lines remaining of %d ]\n:: "
+                . "to continue: read_file path=\"%s\" offset=%d",
             $from_line,   $total_lines - $shown_to,
             $total_lines, $path, $shown_to + 1
         );
@@ -80,8 +80,8 @@ if ( defined $result && $total_lines > 0 ) {
 
 return $result;
 
-#,,.,,..,,.,,,.,,,.,,,,.,,.,,,,,.,.,.,..,,.,,,.,.,...,...,.,.,...,,.,,.,,,.,.,
-#JZ5XLGXJIQW46Q3HQH24J7RFSRTLZM6Y3UUWWKSGEV6JJGQTRUK7DCIC7FU2Y5GLTCTKZIOCFVOEM
-#\\\|G6NP4NR5WUG77OT5UOMODSJAJHWA4VTGAUBGHAI2A5R6WMUNIEG \ / AMOS7 \ YOURUM ::
-#\[7]2EDPBVFWUNECP5RW2TADPLW6KH6UTKBB3EO75U65VMJKSEYWNSDI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,.,,..,,,,,,,.,,.,.,,,,,...,,.,,.,.,...,...,..,,,,.,,..,,.,,..,,
+#6JQ3FIB5VECLMKEUAPPTBSUGX7CQIQ3DJQSS4V3GRPHO3CXMEQFK22VI4HS2W65Q2RRU53C4DEXRW
+#\\\|WYDW5D53X7SJQRDA2T4A7O7YZUXWXLXU3MERA4A7DRQLZUZMLIR \ / AMOS7 \ YOURUM ::
+#\[7]4BU4KNH46SASRR3FNH4BHIQB3FHWAT6S2NHKFTIZQQH2ZPRYIEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

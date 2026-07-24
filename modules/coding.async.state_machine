@@ -84,11 +84,11 @@ elsif ( $action eq 'init' ) {
         'task_id' => $task_id,
         'state'   => STATE_STREAMING,
         'round'   => 0,
-        ## round_started intentionally NOT stamped here : this fires at task
-        ## creation, before the task has actually been dispatched [ still
-        ## waiting on backend_acquire ]. coding.async.request stamps it at
-        ## the real dispatch point instead - the only place that reflects
-        ## "time since the current attempt began" correctly. ##
+        ## round_started intentionally NOT stamped here : this fires at    ##
+        ## task creation, before the task has actually been dispatched [   ##
+        ## still waiting on backend_acquire ]. coding.async.request stamps ##
+        ## it at the real dispatch point instead - the only place that     ##
+        ## reflects "time since the current attempt began" correctly.      ##
         'messages'      => $data->{'messages'} // [],
         'tools'         => $data->{'tools'}    // [],
         'content'       => '',
@@ -177,11 +177,13 @@ elsif ( $action eq 'transition' ) {
                 "state_machine: no_tools set : skipping tool_executor for %s",
                 $task_id
             );
-            ## save content from transition data : reasoning fallback may have ##
-            ## populated content in chunk_handler before tool_calls were found  ##
+            ## save content from transition data : reasoning fallback may ##
+            ## have populated content in chunk_handler before tool_calls  ##
+            ## were found                                                 ##
             $state->{'content'} = $data->{'content'} // $state->{'content'}
                 // '';
-            ## write to model_output buffer so show-buffer reflects this result ##
+            ## write to model_output buffer so show-buffer reflects this ##
+            ## result                                                    ##
             my $nt_display = $state->{'content'};
             $nt_display =~ s|</?tool_call>\s*||g;
             $nt_display =~ s|<function\s*=\s*\w+\s*>.*?</function>||gs;
@@ -246,7 +248,8 @@ elsif ( $action eq 'transition' ) {
                 }
             );
         }
-        ## phase boundary : http response fully received, tool execution begins ##
+        ## phase boundary : http response fully received, tool execution ##
+        ## begins                                                        ##
         $state->{'round_tools_started'} = <[base.time]>->(3);
         $state->{'pending_tools'}       = $data->{'tool_calls'} // [];
         <coding.async.task_state>->{$task_id} = $state;
@@ -255,11 +258,11 @@ elsif ( $action eq 'transition' ) {
         $state->{'round'}++;
         ## round_started NOT stamped here : this round hasn't actually been ##
         ## dispatched yet [ still needs enqueue_round -> backend_acquire ]. ##
-        ## coding.async.request stamps it at the real dispatch point.      ##
+        ## coding.async.request stamps it at the real dispatch point.       ##
         delete $state->{'round_started'};
         delete $state->{'round_tools_started'};
-        ## add assistant message with tool_calls to conversation ##
-        ## tool_calls passed from tool_executor in transition data ##
+        ## add assistant message with tool_calls to conversation tool_calls ##
+        ## passed from tool_executor in transition data                     ##
         my $tool_calls   = $data->{'tool_calls'}   // [];
         my $tool_results = $data->{'tool_results'} // [];
         if ( @{$tool_calls} ) {
@@ -268,11 +271,11 @@ elsif ( $action eq 'transition' ) {
                 "state_machine: adding assistant msg with %d tool_calls",
                 scalar( @{$tool_calls} )
             );
-            ## sanitize arguments for jinja safety ##
-            ## server requires: key present, type string, valid json ##
-            ## server parses json string to dict for jinja iteration ##
-            ## concatenated json [ model error ] crashes the parser ##
-            ## matches blocking version [ process-queued-task 726-731 ] ##
+            ## sanitize arguments for jinja safety  server requires: key   ##
+            ## present, type string, valid json server parses json string  ##
+            ## to dict for jinja iteration concatenated json [ model error ##
+            ## ] crashes the parser matches blocking version [             ##
+            ## process-queued-task 726-731 ]                               ##
             for my $tc ( @{$tool_calls} ) {
                 my $args = $tc->{'function'}->{'arguments'} // '{}';
                 if ( !ref $args && length $args ) {
@@ -358,13 +361,13 @@ elsif ( $action eq 'transition' ) {
                     <coding.async.task_state>->{$task_id} = $state;
                     <[coding.async.fail_task]>->(
                         $task_id,
-                        'loop detected: task stopped '
-                            . 'after repeated warnings'
+                        'loop detected: task stopped after repeated warnings'
                     );
                     return $state;
                 }
 
-                ## inject escalation warning [ user role: system mid-conv rejected ] ##
+                ## inject escalation warning [ user role: system mid-conv ##
+                ## rejected ]                                             ##
                 push @{ $state->{'messages'} },
                     {
                     'role'    => 'user',
@@ -381,11 +384,10 @@ elsif ( $action eq 'transition' ) {
                 );
                 ## inject assertion prompt as tool result ##
                 my $assert_prompt = sprintf(
-                    "[LOOP ASSERTION REQUEST]\n\n"
-                        . "Pattern '%s' detected (conf: %d%%)\n"
-                        . "Recent: %s | Score: %.1f\n\n"
-                        . "Self-assess: Are you looping? Reply:\n"
-                        . "LOOPING | NOT_LOOPING | UNCLEAR",
+                    "[LOOP ASSERTION REQUEST]\n\nPattern '%s' detected "
+                        . "(conf: %d%%)\nRecent: %s | Score: "
+                        . "%.1f\n\nSelf-assess: Are you looping? "
+                        . "Reply:\nLOOPING | NOT_LOOPING | UNCLEAR",
                     $loop_check->{'pattern'} // 'unknown',
                     int( ( $loop_check->{'confidence'} // 0 ) * 100 ),
                     join( ' → ',
@@ -399,8 +401,8 @@ elsif ( $action eq 'transition' ) {
                     'tool_call_id' => 'loop_assert_' . $state->{'round'},
                     'content'      => $assert_prompt,
                     };
-                ## flag so finish_stop intercepts the next text response ##
-                ## as an assertion answer rather than a task completion    ##
+                ## flag so finish_stop intercepts the next text response as ##
+                ## an assertion answer rather than a task completion        ##
                 $state->{'loop_assertion_pending'} = TRUE;
             } else {
                 ## no loop pattern : reset counter ##
@@ -433,9 +435,10 @@ elsif ( $action eq 'transition' ) {
                     }
                 );
             } else {
-                ## clear chunk_context before enqueue : prevents http_complete
-                ## from re-processing tool_calls when the EOF arrives after
-                ## enqueue_round has already been scheduled (double execution) ##
+                ## clear chunk_context before enqueue : prevents            ##
+                ## http_complete from re-processing tool_calls when the EOF ##
+                ## arrives after enqueue_round has already been scheduled   ##
+                ## (double execution)                                       ##
                 $state->{'chunk_context'} = {};
                 <coding.async.task_state>->{$task_id} = $state;
                 ## enqueue next round ##
@@ -465,8 +468,9 @@ elsif ( $action eq 'transition' ) {
         <[coding.async.send_request]>->($task_id);
     } elsif ( $new_state eq STATE_COMPLETE
         && $state->{'loop_assertion_pending'} ) {
-        ## intercept: this completion is the model answering the loop assertion ##
-        ## process it through detect_loop assertion phase then continue          ##
+        ## intercept: this completion is the model answering the loop    ##
+        ## assertion process it through detect_loop assertion phase then ##
+        ## continue                                                      ##
         my $assertion_response = $data->{'content'} // $state->{'content'}
             // '';
         $state->{'loop_assertion_pending'} = FALSE;
@@ -483,8 +487,8 @@ elsif ( $action eq 'transition' ) {
         push @{ $state->{'messages'} },
             {
             'role'    => 'user',
-            'content' => 'Thank you for your self-assessment.'
-                . ' Please continue with your task.',
+            'content' => 'Thank you for your self-assessment. '
+                . 'Please continue with your task.',
             };
         ## stay in streaming state and enqueue next round ##
         $state->{'state'} = STATE_STREAMING;
@@ -599,8 +603,8 @@ elsif ( $action eq 'constants' ) {
 
 return { error => sprintf "unknown action : '%s'", $action };
 
-#,,.,,.,,,.,,,,,.,,.,,,.,,,.,,.,,,,.,,.,.,.,,,.,.,...,...,..,,...,,,.,,,.,.,.,
-#L4UAHFEDGRTWTBW5XQQPIZYDR7WNZTCJOJKLB3BXBZB2OTMWRKYCVSJE3MJ2XHZPHJERXSBHNDJ46
-#\\\|XEB6VTEJSMCXB3JIKZDFKELIWLJ2ZYZEF7DPAKW2RRV574JAAIQ \ / AMOS7 \ YOURUM ::
-#\[7]2ME3C32G7EGHZ2WMQ57EISM2FMCRW3BE2XXLALTZQZLDOMSZX4DA 7  DATA SIGNATURE ::
+#,,,,,...,..,,...,,.,,,,.,..,,.,,,..,,.,.,.,,,.,.,...,...,..,,.,,,...,,.,,.,.,
+#P57QVDTCA6XCWGVCWVPQU6FAH3AP4YV7FMUNUD2VMXQIQLMITKS7FFYKS5ODTJL4R3TKEGBIYHMJY
+#\\\|FB7A46JFM4X74GLQ7TAH2V7ECQE7RDBGEINZRZGILDCMIJCKNNY \ / AMOS7 \ YOURUM ::
+#\[7]UI7JCOWCNG2TU4XI3F7BXCIXWTQ72GCCH2YF3Q24PVLOMOCXL6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

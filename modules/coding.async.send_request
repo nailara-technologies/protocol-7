@@ -31,8 +31,8 @@ my $state = <[coding.async.state_machine]>->( qw| get |, $task_id );
 return { success => FALSE, error => "no state for $task_id" }
     unless defined $state;
 
-## compact context if approaching token limit ##
-## returns 'pending' when inference compaction sub-task was spawned ##
+## compact context if approaching token limit  returns 'pending' when ##
+## inference compaction sub-task was spawned                          ##
 my $compact_result = <[coding.async.compact_context]>->($task_id);
 if ( defined $compact_result and $compact_result eq qw| pending | ) {
     <[base.logs]>->(
@@ -41,8 +41,8 @@ if ( defined $compact_result and $compact_result eq qw| pending | ) {
     return { success => TRUE, task_id => $task_id, compacting => 1 };
 }
 
-## messages already built by state_machine transition handler ##
-## just use the accumulated conversation from state ##
+## messages already built by state_machine transition handler just use the ##
+## accumulated conversation from state                                     ##
 my @messages = @{ $state->{'messages'} // [] };
 ## log message roles for debugging ##
 my @roles = map { $ARG->{'role'} } @messages;
@@ -102,8 +102,8 @@ if ( defined $task && $task->{'pause_requested'} ) {
     return { success => TRUE, paused => TRUE };
 }
 
-## consume retry flag : if this was a retry, preserve retry_count ##
-## if this is a fresh request, reset retry_count to 0 ##
+## consume retry flag : if this was a retry, preserve retry_count if this ##
+## is a fresh request, reset retry_count to 0                             ##
 my $is_retry = $state->{'retry_pending'} // FALSE;
 if ($is_retry) {
     $state->{'retry_pending'} = FALSE;
@@ -130,7 +130,7 @@ if ( ( $state->{'round'} // 0 ) > $max_rounds ) {
 }
 
 ## check first assistant message for model_selection block [ safety net ] ##
-## strip it and apply backend if not already handled by chunk_handler    ##
+## strip it and apply backend if not already handled by chunk_handler     ##
 for my $i ( 0 .. $#messages ) {
     next unless $messages[$i]->{'role'} eq 'assistant';
     my $content = $messages[$i]->{'content'} // '';
@@ -149,8 +149,8 @@ for my $i ( 0 .. $#messages ) {
                     = $parsed->{'backend'};
                 <[base.logs]>->(
                     1,
-                    "send_request: [%s] backend override %s → %s"
-                        . " [ reason: %s ]",
+                    "send_request: [%s] backend "
+                        . "override %s → %s [ reason: %s ]",
                     $task_id,
                     $current_backend,
                     $parsed->{'backend'},
@@ -179,9 +179,8 @@ for my $i ( 0 .. $#messages ) {
     }
 }
 
-## build request body ##
-## no_tools flag: summary/classification tasks that don't need tool use ##
-## also detect :no_tools: marker prefix in description ##
+## build request body  no_tools flag: summary/classification tasks that    ##
+## don't need tool use also detect :no_tools: marker prefix in description ##
 if ( not $task_ref->{'no_tools'}
     and ( $task_ref->{'description'} // '' ) =~ m|^:no_tools:|i ) {
     $task_ref->{'no_tools'} = TRUE;
@@ -201,9 +200,10 @@ my $max_tokens_cfg = <inference.model.max_tokens>
     // <inference.model.context_length> // 7777;
 my $temperature = <inference.model.temperature> // 0.7;
 
-## cap max_tokens to avoid KV cache overflow [ context + max_tokens must fit in server n_ctx ] ##
-## n_ctx is stored in inference_servers when the backend was spawned ##
-## map routing name to server key [ 'single-llm' routes to gpu ] ##
+## cap max_tokens to avoid KV cache overflow [ context + max_tokens must    ##
+## fit in server n_ctx ] n_ctx is stored in inference_servers when the      ##
+## backend was spawned map routing name to server key [ 'single-llm' routes ##
+## to gpu ]                                                                 ##
 my $routed       = $state->{'backend'} // 'gpu';
 my $srv_key      = $routed eq qw| cpu | ? qw| cpu | : qw| gpu |;
 my $backend_info = <coding.inference_servers>->{$srv_key} // {};
@@ -219,15 +219,15 @@ my $est_tokens_pre  = int( $body_chars_pre / $chars_per_token_pre );
 my $headroom        = 500;    ## tokens reserved for generation overhead ##
 my $max_tokens_safe = $n_ctx - $est_tokens_pre - $headroom;
 
-## context overflow: ctx_est exceeds n_ctx : inject a user-visible error
-## message so the model can acknowledge and the task fails cleanly,
-## rather than silently producing a 200-token stub completion          ##
+## context overflow: ctx_est exceeds n_ctx : inject a user-visible error   ##
+## message so the model can acknowledge and the task fails cleanly, rather ##
+## than silently producing a 200-token stub completion                     ##
 if ( $max_tokens_safe < 1000 ) {
     my $overflow = $est_tokens_pre - $n_ctx;
     my $err
         = sprintf(
-        'context overflow: estimated %d tokens exceeds n_ctx=%d by %d'
-            . ' : reduce tool output size or use a larger context window',
+        'context overflow: estimated %d tokens exceeds n_ctx=%d by '
+            . '%d : reduce tool output size or use a larger context window',
         $est_tokens_pre, $n_ctx, $overflow > 0 ? $overflow : 0 );
     <[base.logs]>->( 0, "send_request: %s for %s", $err, $task_id );
     <[coding.async.fail_task]>->( $task_id, $err );
@@ -243,17 +243,18 @@ if ( $max_tokens < $max_tokens_cfg ) {
         $max_tokens_cfg, $max_tokens, $n_ctx, $est_tokens_pre
     );
 
-    ## when severely capped, inject a warning so the model adapts its strategy ##
-    ## rather than silently generating truncated tool call arguments             ##
+    ## when severely capped, inject a warning so the model adapts its ##
+    ## strategy rather than silently generating truncated tool call   ##
+    ## arguments                                                      ##
     if ( $max_tokens < 3000 ) {
         push @{ $state->{'messages'} },
             {
             'role'    => 'user',
             'content' => sprintf(
-                '[CONTEXT PRESSURE: only %d tokens available for generation'
-                    . ' : context is %d%% full. Use shorter responses, break'
-                    . ' large writes into smaller chunks, or summarize instead'
-                    . ' of writing verbatim content.]',
+                '[CONTEXT PRESSURE: only %d tokens available for generation '
+                    . ': context is %d%% full. Use shorter responses, break '
+                    . 'large writes into smaller chunks, or summarize '
+                    . 'instead of writing verbatim content.]',
                 $max_tokens, int( $est_tokens_pre * 100 / $n_ctx )
             ),
             };
@@ -261,7 +262,8 @@ if ( $max_tokens < $max_tokens_cfg ) {
         @messages = @{ $state->{'messages'} // [] };
         <[base.logs]>->(
             1,
-            "send_request: context pressure warning injected for %s [%d tokens left]",
+            "send_request: context pressure warning "
+                . "injected for %s [%d tokens left]",
             $task_id,
             $max_tokens
         );
@@ -271,8 +273,8 @@ if ( $max_tokens < $max_tokens_cfg ) {
 my $request_body = {
     'model'    => $task->{'execution'}->{'model_used'} // 'default',
     'messages' => \@messages,
-    ## use streaming : SSE chunks accumulate content as they arrive ##
-    ## if connection drops mid-generation, we keep partial content ##
+    ## use streaming : SSE chunks accumulate content as they arrive if ##
+    ## connection drops mid-generation, we keep partial content        ##
     ## [ non-streaming returns single JSON blob, vulnerable to drops ] ##
     'stream'      => JSON::PP::true(),
     'max_tokens'  => $max_tokens,
@@ -330,8 +332,8 @@ if (@messages) {
 return
     <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
 
-#,,,.,,,,,,..,.,,,.,,,.,.,,.,,.,.,.,,,,.,,.,.,..,,...,...,,,.,,,.,.,.,,,,,.,,,
-#BKH6PJODKRIGQIQCNB25YQUBGUVKQAIWKWH3BNYVALCJBFI3BC6DPJWOQUFPTFF3LZWL4H6CS5A4O
-#\\\|LJH2B4DGA3BISFNB6HCQYPBPIGLHJ6PNGEN65IIE2CTLS2422OL \ / AMOS7 \ YOURUM ::
-#\[7]7FKDAUFHP34XRCLBAYMURLZATY7Y53A4OFPWJBB6QH7OYM5BOODY 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,,.,...,..,,,..,..,,,,,,...,..,,..,,...,...,.,.,,.,,.,,,.,,,,.,,
+#TFUJD2JY2L4Z62CBVYFJOTPNJO2PUPQGKXMEZV5QKT5X7HKHVL2HSL7ENKGQJKTIDJDCDECTIGQ6K
+#\\\|2LCYBN2S5PMSNC76LBEWBTEV52MYCPI2WKV4DCSQ2WBL2C4X3KZ \ / AMOS7 \ YOURUM ::
+#\[7]GJKC7UM5U3E4BKNFJJBGG6XZU3D5FASNDS6AULRG5U7PC4V3H6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

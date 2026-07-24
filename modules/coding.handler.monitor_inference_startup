@@ -16,8 +16,8 @@ if ( !defined $server
     || ( defined $expected_pid && $server->{'pid'} != $expected_pid ) ) {
     <[base.logs]>->(
         1,
-        "[monitor_startup] stale watcher for backend=%s expected_pid=%s"
-            . " current_pid=%s : cancelling",
+        "[monitor_startup] stale watcher for backend=%s "
+            . "expected_pid=%s current_pid=%s : cancelling",
         $backend,
         $expected_pid // 'undef',
         $server->{'pid'} // 'undef'
@@ -102,27 +102,29 @@ if (
             delete <coding.awaiting_resources>;
         }
 
-        ## mark cold-start : the first request to a freshly-(re)spawned     ##
-        ## server pays model-load / first-inference warmup latency on top   ##
-        ## of normal prefill — independent of prompt size. http_client      ##
-        ## grants this request extra data-start grace ; cleared on the      ##
-        ## first chunk actually received [ coding.callback.http_chunk ]     ##
+        ## mark cold-start : the first request to a freshly-(re)spawned   ##
+        ## server pays model-load / first-inference warmup latency on top ##
+        ## of normal prefill — independent of prompt size. http_client    ##
+        ## grants this request extra data-start grace ; cleared on the    ##
+        ## first chunk actually received [ coding.callback.http_chunk ]   ##
         $server->{'cold_start'} = TRUE;
         $server->{'url'}
             = sprintf( 'http://127.0.0.1:%d', $server->{'port'} // 8000 );
         $server->{'model'}       = <inference.model.amos_id>     // '';
         $server->{'mmproj_path'} = <inference.model.mmproj_path> // '';
 
-        ## run model self-test cycle after server is ready [ timeout_stats, TTFT, anomaly detection ]
-        ## must come after $server->{'model'} is set above, not before     ##
-        ## SKIP if a self-test-driven switch-test-restore cycle is already ##
-        ## running its own explicit test against this exact readiness      ##
-        ## event - without this, every switch self-test triggers caused a  ##
-        ## redundant duplicate auto-test [ confirmed live 2026-06-21 ]      ##
+        ## run model self-test cycle after server is ready [ timeout_stats, ##
+        ## TTFT, anomaly detection ] must come after $server->{'model'} is  ##
+        ## set above, not before SKIP if a self-test-driven                 ##
+        ## switch-test-restore cycle is already running its own explicit    ##
+        ## test against this exact readiness event - without this, every    ##
+        ## switch self-test triggers caused a redundant duplicate auto-test ##
+        ## [ confirmed live 2026-06-21 ]                                    ##
         if (<coding.self_test_switch_in_progress>) {
             <[base.logs]>->(
                 2,
-                '[monitor_startup] skipping auto self-test : switch-driven cycle in progress'
+                '[monitor_startup] skipping auto self-test '
+                    . ': switch-driven cycle in progress'
             );
         } else {
             my $test_model_id = $server->{'model'} // '';
@@ -132,13 +134,13 @@ if (
                 }
             );
 
-            ## cat-test (prompt_id 2) tier1 structural failure : restart the ##
-            ## server rather than just recording the fail. seed=0 [ the      ##
-            ## configured default ] derives a fresh harmonic seed from       ##
-            ## ntime+fortuna on every spawn, so a plain restart already      ##
-            ## gives a different seed -- no separate seed-forcing needed.    ##
-            ## guarded against looping forever on a genuinely broken model:  ##
-            ## caps at coding.cfg.self_test_seed_retry_max attempts per      ##
+            ## cat-test (prompt_id 2) tier1 structural failure : restart    ##
+            ## the server rather than just recording the fail. seed=0 [ the ##
+            ## configured default ] derives a fresh harmonic seed from      ##
+            ## ntime+fortuna on every spawn, so a plain restart already     ##
+            ## gives a different seed -- no separate seed-forcing needed.   ##
+            ## guarded against looping forever on a genuinely broken model: ##
+            ## caps at coding.cfg.self_test_seed_retry_max attempts per     ##
             ## model_id, reset on any clean self-test pass                  ##
             my $cat_failed = FALSE;
             if ( ref $st_result eq qw| HASH | and $st_result->{'data'} ) {
@@ -152,13 +154,13 @@ if (
                 }
             }
 
-            ## NOTE: deliberately NOT nested under <coding.self_test> -- that ##
-            ## hash is the self-test ARCHIVE ( epoch => model_id => record ), ##
-            ## keyed entirely by numeric epoch timestamps [ see              ##
-            ## coding.self_test.archive / coding.self_test.cmd.self-test-     ##
-            ## status ]. a sibling string key there breaks status's numeric  ##
-            ## epoch comparison [ confirmed live : "argument 'seed_retry_    ##
-            ## count' isn't numeric in numeric gt (>)" ]. use a separate,    ##
+            ## NOTE: deliberately NOT nested under <coding.self_test> --    ##
+            ## that hash is the self-test ARCHIVE ( epoch => model_id =>    ##
+            ## record ), keyed entirely by numeric epoch timestamps [ see   ##
+            ## coding.self_test.archive / coding.self_test.cmd.self-test-   ##
+            ## status ]. a sibling string key there breaks status's numeric ##
+            ## epoch comparison [ confirmed live : "argument 'seed_retry_   ##
+            ## count' isn't numeric in numeric gt (>)" ]. use a separate,   ##
             ## non-colliding top-level key instead                          ##
             <coding.self_test_seed_retry_count> //= {};
             if ($cat_failed) {
@@ -179,13 +181,14 @@ if (
                         $retry_max
                     );
 
-                    ## spawn_servers_deferred only spawns what ISN'T already ##
-                    ## running -- scheduling the timer alone does nothing if ##
-                    ## the server still looks up and ready [ confirmed live: ##
-                    ## "deferred spawn: GPU server already running, skipping" ##
-                    ## ]. mark it for restart and clear the cached pid first, ##
-                    ## same recipe coding.callback.http_error's working       ##
-                    ## restart path already uses                             ##
+                    ## spawn_servers_deferred only spawns what ISN'T       ##
+                    ## already running -- scheduling the timer alone does  ##
+                    ## nothing if the server still looks up and ready [    ##
+                    ## confirmed live: "deferred spawn: GPU server already ##
+                    ## running, skipping" ]. mark it for restart and clear ##
+                    ## the cached pid first, same recipe                   ##
+                    ## coding.callback.http_error's working restart path   ##
+                    ## already uses                                        ##
                     $server->{'status'} = qw| restart_needed |;
                     <inference.gpu_pid> = 0 if $backend eq qw| gpu |;
                     delete <coding.awaiting_resources>
@@ -213,8 +216,9 @@ if (
             }
         }
 
-        ## reset dependency object (may have been marked failed by a previous
-        ## server that was killed mid-startup, e.g. during switch-model)     ##
+        ## reset dependency object (may have been marked failed by a ##
+        ## previous server that was killed mid-startup, e.g. during  ##
+        ## switch-model)                                             ##
         my $dep_id_ready
             = $backend eq qw| gpu |
             ? ( <coding.dep.gpu_server> // 0 )
@@ -246,10 +250,10 @@ if ( $bytes <= 0 ) {
         return;
     }
 
-    ## crash path : cancel startup watchers directly, no drain needed ##
-    ## do NOT call cancel_watcher.backend_monitor here : that installs ##
-    ## drain watchers on a dead server's closed pipes, which spin the  ##
-    ## event loop at 100% cpu until the fd is GC'd                    ##
+    ## crash path : cancel startup watchers directly, no drain needed do   ##
+    ## NOT call cancel_watcher.backend_monitor here : that installs drain  ##
+    ## watchers on a dead server's closed pipes, which spin the event loop ##
+    ## at 100% cpu until the fd is GC'd                                    ##
     $event->cancel if $event->is_active;
     if ( exists <coding.watcher_pair>->{$event} ) {
         my $other = delete <coding.watcher_pair>->{$event};
@@ -260,8 +264,8 @@ if ( $bytes <= 0 ) {
     }
     close($read_fh);
 
-    ## Check if server became ready before EOF (normal) or crashed (error)
-    ## crash_logged guard : both stdout+stderr watchers fire EOF on crash ##
+    ## Check if server became ready before EOF (normal) or crashed (error) ##
+    ## crash_logged guard : both stdout+stderr watchers fire EOF on crash  ##
     if ( !$server->{'ready_logged'} && !$server->{'crash_logged'} ) {
         $server->{'crash_logged'} = TRUE;
         <[base.logs]>->(
@@ -293,7 +297,8 @@ if ( $bytes <= 0 ) {
             );
         }
 
-        ## Trigger dependency check so jobs can see failure and fail gracefully ##
+        ## Trigger dependency check so jobs can see failure and fail ##
+        ## gracefully                                                ##
         <[jobqueue.check_dependencies]>;
     } else {
         <[base.logs]>->(
@@ -302,8 +307,8 @@ if ( $bytes <= 0 ) {
     }
 }
 
-#,,..,.,,,..,,.,,,..,,,.,,,,.,..,,.,,,,..,...,..,,...,...,,..,,,,,,.,,..,,,..,
-#DNJQHBKYJGFUA4SOWEACWBQCPS3CJGITAS4OCJPVC6DNLZ2WSAD6SYXN7G4BBPW62THVEXKFKHVCS
-#\\\|VZ7WV4OAFHDM2G776YY2LEAZ2CION5CUIV3MB6I7RXIA5L2L2LG \ / AMOS7 \ YOURUM ::
-#\[7]OGLP7IGUTPRTMOAIQBAMG76N2BT7YXUJ3XSOUITVTKJADVMTDMBI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,..,...,.,.,,,,,,.,,..,,.,.,,.,,..,,...,.,.,,,.,..,,.,,,,.,,,..,
+#KN7Q3GZHJUMHAFMCZEFBYCJDMABXTKPHIWGPAAR4YY4GFAQWPJZMDTGSBZFBOHT4KLAG4USRRL55Y
+#\\\|UXGKRODPC5MTQ6B36H7QC5NO7M6Y6IYJIS2VRV2Z5NRC7RP5HX7 \ / AMOS7 \ YOURUM ::
+#\[7]UUKMSTNSBKUWQI3DTDRVM62KRZKKG33JBUPRGS2F37KAOLDQPKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

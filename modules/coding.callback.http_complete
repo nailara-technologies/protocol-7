@@ -36,8 +36,8 @@ if ( defined $req_seq && $req_seq != $current_seq ) {
 }
 
 ## round finished cleanly [ no timeout fired for this attempt ] : drop any
-## ceiling escalation so the next round starts fast again rather than
-## staying at the full ceiling permanently — see coding.handler.http_timeout
+## ceiling escalation so the next round starts fast again rather than staying
+## at the full ceiling permanently — see coding.handler.http_timeout
 delete $state->{'timeout_ceiling'};
 
 my $sm_state = $state->{'state'} // '';
@@ -56,7 +56,8 @@ if ( $state->{'model_selection_applied'} ) {
 
 <[base.logs]>->(
     1,
-    "http_complete: %s sm_state=%s seq=%s/%s finish=%s tools=%d bytes=%d chunks=%d",
+    "http_complete: %s sm_state=%s seq=%s/%s "
+        . "finish=%s tools=%d bytes=%d chunks=%d",
     $task_id,
     $sm_state,
     $req_seq                  // 'undef',
@@ -67,8 +68,8 @@ if ( $state->{'model_selection_applied'} ) {
     $http_state->{'chunks_received'} // 0
 );
 
-## state machine drives all transitions : check what happened ##
-## helper: release backend lock if we own it ##
+## state machine drives all transitions : check what happened helper: ##
+## release backend lock if we own it                                  ##
 my $release_backend_lock = sub {
     my $backend = $state->{'backend'} // '';
     return unless length $backend;
@@ -95,13 +96,15 @@ if ( $sm_state eq 'complete' || $sm_state eq 'error' ) {
 }
 
 if ( $sm_state eq 'subtask' ) {
-    ## parent transitioned to subtask-wait state during streaming ##
-    ## compaction subtasks: lock NOT released by compact_context : release here ##
-    ## tool subtasks: lock already released by subtask_spawn ##
+    ## parent transitioned to subtask-wait state during streaming          ##
+    ## compaction subtasks: lock NOT released by compact_context : release ##
+    ## here                                                                ##
+    ## tool subtasks: lock already released by subtask_spawn               ##
     if ( defined $state->{'compaction_pending'} ) {
         <[base.logs]>->(
             2,
-            "http_complete: task %s compaction subtask-wait, releasing backend",
+            "http_complete: task %s compaction "
+                . "subtask-wait, releasing backend",
             $task_id
         );
         $release_backend_lock->('compaction');
@@ -115,8 +118,8 @@ if ( $sm_state eq 'subtask' ) {
 }
 
 if ( $sm_state eq 'streaming' ) {
-    ## connection closed while still streaming [ current request ] ##
-    ## no finish_reason received : try to recover ##
+    ## connection closed while still streaming [ current request ] no ##
+    ## finish_reason received : try to recover                        ##
     my $content = $state->{'response_text'} // $state->{'content'} // '';
 
     ## check chunk_context for partial content
@@ -146,18 +149,19 @@ if ( $sm_state eq 'streaming' ) {
             }
         );
     } elsif ( length($content) ) {
-        ## connection closed with content but no finish_reason ##
-        ## model may have run out of max_tokens before emitting tools ##
+        ## connection closed with content but no finish_reason model may ##
+        ## have run out of max_tokens before emitting tools              ##
         <[base.logs]>->(
             1,
-            "http_complete: task %s connection "
-                . "closed without finish_reason [ %d bytes, %d tool_calls ]",
+            "http_complete: task %s connection closed "
+                . "without finish_reason [ %d bytes, %d tool_calls ]",
             $task_id,
             length($content),
             scalar( @{ $state->{'tool_calls'} // [] } )
         );
         ## if no tool_calls were emitted, assume model needs another round ##
-        ## rather than completing prematurely (e.g. hit max_tokens mid-thought)
+        ## rather than completing prematurely (e.g. hit max_tokens         ##
+        ## mid-thought)                                                    ##
         if ( !@{ $state->{'tool_calls'} // [] } ) {
             <[base.logs]>->(
                 1,
@@ -201,7 +205,7 @@ if ( $sm_state eq 'streaming' ) {
                 );
             }
         } elsif ( ( $http_state->{'bytes_received'} // 0 ) > 0 ) {
-            ## data was received and processed via on_chunk (tool calls,
+            ## data was received and processed via on_chunk (tool calls,  ##
             ## finish_reason, etc.) : clean close, nothing left to handle ##
             <[base.logs]>->(
                 2,
@@ -234,8 +238,8 @@ my $backend_early = $state->{'backend'} // '';
 
 return;
 
-#,,..,.,.,..,,,.,,...,,..,..,,.,,,,,,,,..,,.,,..,,...,...,,.,,...,,.,,..,,...,
-#VEW2RPQS3XIDXMMV5WJXRHHLGU3GEUPKB2RJ3WQXU65WSAKVZEQRRWX7B5I6R6R3TYYISPAJXZUSY
-#\\\|BJXHCG46UJ57L35KPCNL3CKWCOPRVARRNFC3X746Q2B7X7O7HVJ \ / AMOS7 \ YOURUM ::
-#\[7]BSDUK5ML5BET7YSJZ45TKNR3D2VXBZX2X5MG55BPK2TQTHMORICI 7  DATA SIGNATURE ::
+#,,,,,,..,,..,.,.,,,,,.,,,,.,,.,.,.,,,.,,,,.,,..,,...,...,..,,.,,,,,.,.,,,,,.,
+#5YV4BGVJMOTDK64YH5D7EPETIKCAWJGJTT6HE6IMSOSMBKV5RL64KL4LPKNBS6C3BIVSFDMWNRNGW
+#\\\|FB6Z7V3QOS4LRQOTDMQCSOZH4PZ6VWQFIZXEBVABFXGYWQ5A33V \ / AMOS7 \ YOURUM ::
+#\[7]WVLXC2ADPOMXPUDY6QTNZGW2BE3JVLT3J7NFEOQWBMHKND6A56DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,7 +6,7 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active Topics
 - [p7-text-formats-landed](topic-p7-text-formats-landed.md) — LANDED: format.kv_block (retired/kept) + format.inline-nested (promoted to base.*, show-access consolidated onto it); OPEN: yaml-config-codegen, reverse perl->p7, comment-preserving config-writer parser
-- [format-code-bugs-fixed](topic-format-code-bugs-fixed.md) — LANDED: 17 bugs/features via dogfooding; applied clean to letsencr/bin-Protocol-7/web-browser/httpd/ticker/source/sourcecode/AMOS7-modules; regex-literal safety + broad rollout still open
+- [format-code-bugs-fixed](topic-format-code-bugs-fixed.md) — LANDED: 17 bugs/features via dogfooding; applied clean to 11 namespaces incl. base/coding; perltidy-rejoin idempotency gap (3 coding files) + regex-literal safety + jobsite still open
 - [fake-signature-footer-detection](topic-fake-signature-footer-detection.md) — LANDED c5b78611a-adjacent: source.extract_sig_body now catches a sequential-pattern LLM-hallucinated fake footer that slipped past the existing PLACEHOLDER/size-mismatch checks; related session-37 "1 char too long" bug still open
 - [perl-mod-reload-redefined-warnings](project-perl-mod-reload-subroutine-redefined-warnings.md) — OPEN bug, unrelated to any content change: cube's `reload perl-mods` doesn't clear old symbol-table entries first, so every sub in a reloaded .pm warns "redefined"; mod-test zenka exists to fix this, not yet done
 - [startup-race-send-before-connect](feedback-startup-race-send-before-connect.md) — LANDED 55abd6848+d6fdc1dc1; recurring bug class, 3 fix shapes, diagnostic technique
@@ -45,8 +45,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [web-browser-value-replay-waypoints](project-web-browser-value-replay-waypoints.md) — LANDED, kimi K3; multi-window fan-out + access.zenki fix
 - [scratchpad-import-tool](topic-scratchpad-import-tool.md), [scratchpad-rescue-coding-zenka-task](topic-scratchpad-rescue-coding-zenka-task.md) — mcp-server-p7 scratchpad tools tested; follow-up task filed w/ kimi K3 for native coding-zenka rescue tools + chmod g+rx fix
 
-#,,,.,...,,.,,.,.,.,.,,.,,,.,,...,,..,,..,...,..,,...,...,.,.,..,,.,.,..,,.,.,
-#K5FTOMY4NZL4UAGZJL3T3QJKCQA2USI2A3F7DJAQME3DHECGG5K7DXJ5EZZAXHMJ2UIONK6A6ZOCW
-#\\\|2N6BNU37STN5HRP5J6VHF6WTURU5VA3YL5344NFRK2DCWEAC7NL \ / AMOS7 \ YOURUM ::
-#\[7]PPQMVYVSEJU4I6YDTGRBD3EEDL32RP375UGPU7SJ2CU2TO4K6GBI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,..,,.,.,.,.,,.,,.,.,.,.,...,.,.,..,,...,...,...,,,,,,,.,...,...,
+#CJTDRDERUTI2IZCIRJ3JLFIC4Y46CTGIASI24LVAPEKCNQGHFTQERGYM2J3R2RQLSLWYIJDYTQK76
+#\\\|V4YEB5WE3EQT5TON6CWWXVJO2SP6GIFUFT7YDAT52G6UJK5W4DP \ / AMOS7 \ YOURUM ::
+#\[7]3CEHQDFNMWGOW3V5X3EN7GLLCTM4TBYDMRRTEZPLK7CWQCH2FOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

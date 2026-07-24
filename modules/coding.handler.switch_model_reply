@@ -7,9 +7,9 @@ my $reply        = shift;
 my $reply_data   = $reply->{'data'}   // '';
 my $reply_params = $reply->{'params'} // {};
 
-## request identity travels with THIS reply via 'params' - not shared    ##
-## globals, see coding.cmd.switch-model for why [ race condition fix,    ##
-## confirmed live 2026-06-21 ]                                           ##
+## request identity travels with THIS reply via 'params' - not shared ##
+## globals, see coding.cmd.switch-model for why [ race condition fix, ##
+## confirmed live 2026-06-21 ]                                        ##
 my $checksum = $reply_params->{'checksum'};
 unless ( defined $checksum ) {
     <[base.logs]>->( 1, "[switch_model_reply] no pending switch request" );
@@ -65,35 +65,34 @@ my $mark_backend_updated = sub {
             2, "[switch_model_reply] updated CPU model to %s", $checksum
         );
     }
-    ## generic "current model" label - monitor_inference_startup reads    ##
-    ## this for BOTH backends, regardless of which one actually switched  ##
-    ## <inference.model.path> MUST be kept in sync here too - it's the    ##
-    ## only global coding.async_spawn_inference_servers reads for the     ##
-    ## actual -m file path, used by every retry spawn [ e.g. the self-    ##
-    ## test cat-test failure path in monitor_inference_startup ]. leaving ##
-    ## it stale here [ only coding.handler.model_path_reply, the startup  ##
-    ## path, used to set it ] meant a retry after a switch-model call     ##
-    ## paired the OLD model's weights with the NEW mmproj_path - confirmed##
-    ## live 2026-07-21: a switch to a vision model, then a cat-test retry,##
-    ## spawned the original startup model's .gguf with the new model's    ##
-    ## mmproj, wedging the whole zenka on a mismatched-embedding-space    ##
-    ## generation that never terminated                                   ##
+    ## generic "current model" label - monitor_inference_startup reads this ##
+    ## for BOTH backends, regardless of which one actually switched         ##
+    ## <inference.model.path> MUST be kept in sync here too - it's the only ##
+    ## global coding.async_spawn_inference_servers reads for the actual -m  ##
+    ## file path, used by every retry spawn [ e.g. the self- test cat-test  ##
+    ## failure path in monitor_inference_startup ]. leaving it stale here [ ##
+    ## only coding.handler.model_path_reply, the startup path, used to set  ##
+    ## it ] meant a retry after a switch-model call paired the OLD model's  ##
+    ## weights with the NEW mmproj_path - confirmed live 2026-07-21: a      ##
+    ## switch to a vision model, then a cat-test retry, spawned the         ##
+    ## original startup model's .gguf with the new model's mmproj, wedging  ##
+    ## the whole zenka on a mismatched-embedding-space generation that      ##
+    ## never terminated                                                     ##
     <inference.model.path>        = $model_path;
     <inference.model.amos_id>     = $checksum;
     <inference.model.mmproj_path> = $mmproj_path;
 };
 
-## use spawn_smart for memory-aware server restart ##
-## NOTE: $mark_backend_updated fires BEFORE each spawn_smart call, not    ##
-## after success. spawn_smart's kill-old-server step opens a window       ##
-## where the gpu backend is briefly down; anything reacting to that gap   ##
-## (e.g. coding.handler.await_resources's twin-handover watchdog) reads   ##
-## whatever the config currently says. updating AFTER success leaves      ##
-## that window pointed at the OLD model - confirmed live 2026-06-21:      ##
-## await_resources fired during exactly this gap and respawned the OLD    ##
-## (stale-config) model, racing against this function's own intended      ##
-## spawn. updating first closes the window to (at worst) the NEW target,  ##
-## never the old one.                                                     ##
+## use spawn_smart for memory-aware server restart  NOTE:                   ##
+## $mark_backend_updated fires BEFORE each spawn_smart call, not after      ##
+## success. spawn_smart's kill-old-server step opens a window where the gpu ##
+## backend is briefly down; anything reacting to that gap (e.g.             ##
+## coding.handler.await_resources's twin-handover watchdog) reads whatever  ##
+## the config currently says. updating AFTER success leaves that window     ##
+## pointed at the OLD model - confirmed live 2026-06-21: await_resources    ##
+## fired during exactly this gap and respawned the OLD (stale-config)       ##
+## model, racing against this function's own intended spawn. updating first ##
+## closes the window to (at worst) the NEW target, never the old one.       ##
 if ( $backend eq qw| auto | ) {
     ## try gpu first : fall back to cpu if gpu has insufficient resources ##
     $mark_backend_updated->('gpu');
@@ -104,7 +103,8 @@ if ( $backend eq qw| auto | ) {
             'force'       => 1,
         }
     );
-    ## spawn_smart returns FALSE [ not TRUE ] when resources are insufficient ##
+    ## spawn_smart returns FALSE [ not TRUE ] when resources are ##
+    ## insufficient                                              ##
     unless ($gpu_ok) {
         <[base.logs]>->(
             1, '[switch_model_reply] gpu unavailable, trying cpu'
@@ -136,8 +136,8 @@ if ( $backend eq qw| auto | ) {
 delete <coding.switch_model_active>;
 return TRUE;
 
-#,,,.,,..,..,,...,.,,,,..,.,.,.,,,,,,,..,,.,,,.,.,...,...,...,.,,,..,,..,,.,.,
-#MAJBNGJJ5AWSWZADK7OS6VWM3PVDV5MCXUHUAGJXYUTY2PGAZ6O6PPQOK2FMOCUXJXXJI6NKTTUXU
-#\\\|E6C27AVJIUUA2ACSB3GP5QCAB73E2BP2QPOF5QKFMNXOPU24K7J \ / AMOS7 \ YOURUM ::
-#\[7]RKEKWYHXQQPHHQWSIOUQ5QDJPHG3JKX56HVZMM6ZEFSLRBZENMCA 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,.,,,,,.,,,,,.,,,,,.,...,...,...,.,.,...,...,,.,,,,.,,,.,.,.,,,.,
+#KXYX5IZZXUUSTI75FRJYYZTKPAEFPWVXMOW2MSCJDQBFAAMM62XSU6XLOEGZGI2F6AM3WWF6U6QAK
+#\\\|DMLXAIBJXEFRYBYCTLQ7REAOXFSXQ4V24PVL2CDIYCUEAQBBRHI \ / AMOS7 \ YOURUM ::
+#\[7]WKNTPUHMOXXDVRLAW2DO7QXI55GUHFAG2H6KX3LDKPHA3QWPMMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

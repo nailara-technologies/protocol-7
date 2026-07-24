@@ -54,8 +54,8 @@ unless ( defined $task ) {
     }
 }
 
-## reply to the original caller first : unchanged from before the tree
-## feature existed — the caller never waits on the task zenka ##
+## reply to the original caller first : unchanged from before the tree ##
+## feature existed — the caller never waits on the task zenka          ##
 if ( length $callback_id ) {
     <[protocol-7.route-send]>->(
         {   command   => 'task.summarize-done',
@@ -79,9 +79,9 @@ if ( length $callback_id ) {
     );
 }
 
-## then, best-effort, fire-and-forget notify the task-zenka summary tree :
-## only on success, only when tree=1 was requested [ chk non-empty ]. never
-## delays or risks the reply above — it already went out ##
+## then, best-effort, fire-and-forget notify the task-zenka summary tree :  ##
+## only on success, only when tree=1 was requested [ chk non-empty ]. never ##
+## delays or risks the reply above — it already went out                    ##
 my $chk = $deferred->{'chk'} // '';
 if ( not $is_error and length $chk ) {
     <[protocol-7.route-send]>->(
@@ -115,8 +115,8 @@ if ( not $is_error and length $chk ) {
 $deferred->{'status'} = $is_error ? 'error' : 'complete';
 delete $data{"coding"}{"deferred_replies"}->{$deferred_id};
 
-#,,,.,,,,,,,.,...,,,,,...,...,.,.,,..,,..,.,.,.,.,...,...,...,.,,,,,,,.,.,,.,,
-#ROQ3EDKGJO4ARE3IYCYM7CWB5FT3BDAMMTL2QSBTQ5W75I3ACHAKRYK7CMG64LGHNBTFWGZIME6PG
-#\\\|MZTMYDIPJDKB3KREUOMH5UIR6HYU25GGBDUFH7VUOXQNCUACLWO \ / AMOS7 \ YOURUM ::
-#\[7]CQDYDT55Z2XVFQ4FDMTI2FDBS2NI5NIH3ZGLDSFOUX7FU54OVCCA 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,,.,...,.,.,,.,,...,,,.,.,.,...,.,.,...,...,...,..,,,,,,,..,,..,
+#IPZVRVFCOIYO3S6CM74XLCSXV6I4XJRZLZFJ3CTTJYJUY6NI2V5F4EGZ2KVRLB6TVBMILSDEV3V4I
+#\\\|U4C5Z3O6TLTOBFRTCKRSUNZMQAKCRRTIFSOHUVN3LGK7WJOQ72X \ / AMOS7 \ YOURUM ::
+#\[7]MQBQXVT4M7FEDF7R6LJE4TAEPM4EZ7MLTGJCEHQFR6W5KNSFLEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
