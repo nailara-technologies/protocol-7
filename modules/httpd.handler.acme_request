@@ -12,8 +12,8 @@ my $request  = $session->{'http'}->{'request'};
 my $headers  = $request->{'headers'};
 my $response = $session->{'response'};
 
-## Extract request body from input buffer (after headers were parsed)
-## The body comes after the headers in $session->{'buffer'}->{'input'}
+## Extract request body from input buffer (after headers were parsed) The body
+## comes after the headers in $session->{'buffer'}->{'input'}
 my $req_body = '';
 
 ## Body is already stored by http_post or body_accumulator
@@ -94,7 +94,8 @@ if ( $http_uri =~ m|^/api/certificate/request| ) {
                 }
             );
         } else {
-            ## Fallback: return accepted even if letsencr might not have processed
+            ## Fallback: return accepted even if letsencr might not have
+            ## processed
             <[base.logs]>->(
                 2,   '[%d] queued certificate request for: %s',
                 $id, $domain
@@ -233,8 +234,8 @@ $session->{'buffer'}->{'output'} .= $reply_body;
 
 return $session->{'http'}->{'close'} ? 2 : 0;
 
-#,,,.,,,.,..,,.,.,,,.,,,.,.,.,,..,,,.,,..,,,.,..,,...,...,...,...,,,,,,,,,.,,,
-#EYWJRMMCZHH6C5FUOMVAYCFU6W5DJ3277C4WUEOJJADZLT553HZJTOCJHIEF2CVX5YR3PTX6QHZEM
-#\\\|TB74LWB52YPSXTC3Z457EGOR4CNRC3TSKAJGJC6JTSQFA53U7DM \ / AMOS7 \ YOURUM ::
-#\[7]5N6SHTNZC3PG7T2B5UDSH34XS2DEUSZOHUO53CZQVZJ4Z2UJG4DI 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,...,,..,.,,,,..,.,.,,,,,,,.,..,,..,,...,..,,...,,,.,.,.,,,.,,,,,
+#SITLEOGDKHSPMSXQBKI73WNPNPGEX2QES7R5ADASCYBH5KKN23Y4E3LZKSJGB53GLNQ6NAJSHSTVU
+#\\\|ZBHSVYLTGU4JTKGRVG7PPOOBEMNRVYIANP7FUYI5OQDWGZSUSMV \ / AMOS7 \ YOURUM ::
+#\[7]DRQXJOY7QYLQ5WZ4TAFR2ODY2Y5BKLFU5RUZID5VMDRI7ZHXVSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

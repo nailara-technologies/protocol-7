@@ -23,8 +23,8 @@ my $http_uri = $request->{'uri'};
 
 $session->{'http'}->{'request'}->{'matched_host'} = $http_host;
 
-## Intelligent request routing via route_dispatcher [v2025-11-14]
-## Extract URI path and delegate to route_dispatcher for intelligent routing
+## Intelligent request routing via route_dispatcher [v2025-11-14] Extract URI
+## path and delegate to route_dispatcher for intelligent routing
 
 my $uri_obj  = URI->new($http_uri);
 my $uri_path = $uri_obj->path // '/';
@@ -90,8 +90,8 @@ if ( $handler_name eq qw| httpd.process_template | ) {
 <[base.logs]>->( 0, "[%d] http_get : unexpected fallthrough", $id );
 return <[httpd.send_error_page]>->( $id, 500 );
 
-#,,,,,,,.,,..,.,,,.,.,.,,,.,,,,..,...,..,,...,..,,...,...,.,.,,,.,...,,..,,.,,
-#B2UHTXT7QGPWFLOHP7NH75JMAQDNMWA66K7BZWUMV2KI4PECPJ2WEWZYYZ5J732KNZECVKRLEAGNO
-#\\\|VZWOJ66GZ7X37Z6CBO2OMGNRKHCNNZNGD3FAWW45UEROVU3XKGR \ / AMOS7 \ YOURUM ::
-#\[7]225SOYJ4GVG6DRTNSH7QEXTYTI75EI7CSR5VK3PIVHGUCS3ROWAI 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,,.,,..,...,.,,,,.,,,,,,.,,,.,,,..,,...,...,,..,,,.,,,.,,..,.,,,
+#BIYZOCUGPZSKHQ6YSEYEQHCIQTPWTLKRPAKXZHSUEU7AWQ5EAS336B3UA7BWXYD7FUNOOI7ISKFY2
+#\\\|GM7LL75433NVXWN27ENXIRFMN3P5PRVB3DWG2TX3TJAHAPANAKC \ / AMOS7 \ YOURUM ::
+#\[7]KDVVFURGRATNMS4ECE4NHNOEKRF4NIYDBKI2BWGXKS7DYIXD7KCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
