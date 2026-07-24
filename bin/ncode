@@ -123,6 +123,10 @@ my %targets = (
     'amos-in'  => $PATH->{'root'} . '/data/lib-path/pm/AMOS7/INLINE',
     'amos-cs'  => $PATH->{'root'} . '/data/lib-path/pm/AMOS7/CHKSUM',
     'amos-elf' => $PATH->{'root'} . '/data/lib-path/pm/AMOS7/CHKSUM/ELF',
+    'ai-mem'   => $PATH->{'root'} . '/data/ai-mem/..,',    # ai session
+      #                                                 #     memory [recurse]
+    'yaml' => $PATH->{'root'} . '/data/yaml/..,',    # yaml
+     #                                 # configs/patterns/templates [ recurse ]
     ## 'readme' => $PATH->{'root'} .  ##  <-- require recursive directory mode
 );
 
@@ -1868,7 +1872,11 @@ sub parse_file_options {
     my @params = @_;
 
     my %options = (
-        'recurse'       => 0,
+        ## undef, not 0 -- files()'s `$options->{'recurse'} // $legacy_recurse`
+        ## fallback only triggers on undef; a defined 0 here silently defeats
+        ## every target's own '..,' legacy-recurse marker (docs/tasks/zenki/..)
+        ## unless the caller manually passes rec:1
+        'recurse'       => undef,
         'recurse_match' =>
             undef,    # Pattern for directory matching during recursion
         'exclude' => [],
@@ -3147,8 +3155,8 @@ sub print_usage {
     print "\n    " . $C{'T'} . $usage_txt . $C{'R'};
 }
 
-#,,..,.,,,...,..,,..,,,,.,,,,,,..,,..,,,,,,..,..,,...,.,.,...,...,.,.,,..,.,,,
-#IMI555J2PZX2ABL2DTGJLLFNSK6RVS52PERRMLO2ALM266EBYFVTLCRAB4LOT4FADV6XBE4Z7RR6O
-#\\\|CMX34I7YT7W7AKXEENG37DXWSNNSS5LP3DK6P45HYW2IBDEJCEZ \ / AMOS7 \ YOURUM ::
-#\[7]JICRRZX7Q5AKGL5QXLUWDYZKTGBFAX4SZNROORONT7LJNIXBEUBI 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,,.,.,,,..,,...,,.,,,..,...,..,,..,,...,...,..,,,,.,...,..,,,,,,
+#IWXWGYG3SO2ZPBFXU366ZUI4U62ZXIAN77AO5JEOBWLGMB4TYYYUCAETU32OV3QHKOCBKH2N4NBI2
+#\\\|X6DVKHRIA3D4HXMRMJJPFMFG3YD3NSBXZI5TPN57EWNB2SCVQ5Q \ / AMOS7 \ YOURUM ::
+#\[7]GAVY3F7JI7V7IMTQYSQTBBODFW5R2IDSAY2DIUXFNEQMTNPYBWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
