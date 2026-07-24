@@ -348,12 +348,25 @@ whole 15-bug arc is that principle in practice.
   bracket markers — voting past a threshold, rather than a sixth ad-hoc
   binary category) as the anticipated eventual fix; not implemented.
 
+## follow-up: bug #18, found+fixed 2026-07-24
+
+- `bin/format-code:984-987` (`step2_reflow_comment`'s own doc comment) had
+  been mangled by an earlier run of the tool into a duplicated, garbled
+  paragraph (the original 6-line "detect ## comment line ... exclusions"
+  block plus a second corrupted rewrap of the same content appended right
+  after) — self-inflicted damage from the tool operating on its own
+  source before this arc's fixes landed. Repaired by hand back to the
+  original 6-line form; not re-diagnosed against current `step2`/`step4`
+  logic to confirm the corruption can't recur — worth a scratch-copy
+  round-trip test on this exact block if `format-code` runs on itself
+  again.
+
 ## related
 
-[[topic-p7-text-formats-landed]], [[feedback-base-swap-subs-promote-pattern]], [[topic-fake-signature-footer-detection]]
+[[topic-p7-text-formats-landed]], [[feedback-base-swap-subs-promote-pattern]], [[topic-fake-signature-footer-detection]], [[project-ncode-write-path-2026-07-24]]
 
-#,,,.,...,,,.,.,,,.,.,.,.,..,,.,.,..,,..,,.,,,..,,...,...,...,,,,,,.,,,..,,,,,
-#AEDZKSY3OWGKIECOP6ZPI67JRCE64H7TBNGNKUSKKP3ALLWZ22QMFFTZ37YYL6G3JYVXXZPZSXB74
-#\\\|ASJ24HZHR5Z7BY4TLH3GJBYFLBUENA5MWT2K3XJQZ55XCYEMIDU \ / AMOS7 \ YOURUM ::
-#\[7]EGOQU5ISQDIG5JANQAUOUQNKY76QVUOEX2VZCXEJI6VUW64PD6AA 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,..,.,.,,,,,,,.,,.,,...,..,,,..,..,,...,...,.,,,..,,...,...,.,,,
+#EG3FDRAS7XL2URICZEDRQ6VMPORONZC56H2Z5GBRNQ3PPTRKEOBLQA2SE6PUHTJ23M6AZFHVEUJXS
+#\\\|HQRL4BT5QA6BWVNPUWCH5O3QXOYCDOL6WESMSYYIU263KSMDTUR \ / AMOS7 \ YOURUM ::
+#\[7]EV5XTAD7ZYJXCUWVCPDDB57SKKWWTWDVRTNEIMC5JDKAGYG6CECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
