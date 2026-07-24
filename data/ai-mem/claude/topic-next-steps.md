@@ -8,6 +8,35 @@ metadata:
   modified: 2026-07-22T22:56:35.241Z
 ---
 
+## done (2026-07-24, continued — ncode write path)
+
+- **`ncode.cmd.suggest`/`ncode.cmd.apply` wired up + live-verified end to
+  end** — was unreachable via `p7c` at all (expected a hashref, cube
+  dispatch passes a `$call_args`/string-args object), had a dead
+  `<[base.time]>` call, and had never actually written a file. Full arc:
+  [[project-ncode-write-path-2026-07-24]]. Fixed `bin/ptd -c` (was
+  decorative — always exit 0) and `bin/format-code`'s temp-file naming
+  (dot-prefixed, collision-abort, [[feedback-ptd-syntax-check]]) along the
+  way. Core bug: chmod-child write grants must set group-write (`0020`),
+  not other-write (`0002`) — see [[feedback-posix-group-write-precedence]],
+  which is a **repeat** of a 2026-06-06 finding in `write_append` that
+  never got its own memory file and so didn't stop the same bug landing in
+  `write_with_perms` afterward.
+- **open follow-ups from that session, not yet done:**
+  - fix `coding.tools.handler.write_with_perms`'s grant from `| 0002` to
+    `| 0020` (confirmed-broken, see [[feedback-posix-group-write-precedence]])
+  - `ncode.cmd.apply`'s revert path (the `else` branch for failed
+    verify/step/syntax checks) still does a bare `open '>', $file`, no
+    chmod-child grant — hasn't bitten yet because failures caught so far
+    never got that far, but it's the same latent gap
+  - pattern schema mismatch: YAML patterns with only top-level
+    `pattern`/`replace` (no `steps` array) silently no-op in `apply` —
+    confirmed live with `single-quote-to-qw-scalar`
+  - decide whether `suggest`/`apply` stay open on `ncode`'s cube whitelist
+    going forward, or get folded into
+    [[topic-write-access-security-infrastructure]] once that exists —
+    not yet decided
+
 ## done (2026-07-24)
 
 - **bin/format-code hardening + broad application** — 17 real bugs found
@@ -452,8 +481,8 @@ what it should actually invoke.
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,,.,.,.,,,.,.,.,.,,,,,,,.,,,.,,,..,,.,,,..,,..,,...,...,...,.,.,,.,,.,,,..,,
-#YJG5AAULYR437Q5L4VLM4B224RPESZ2CODMTR2K427G5FDAYYYSNQTAB5JNIYJFVL5MWFX6VZCRTI
-#\\\|ZVVMFL7G277DAWXRYGYN63SLZHK5EVYTAZIWK3OCW4TTOKTOVRN \ / AMOS7 \ YOURUM ::
-#\[7]VTKVLPKOTR2LZPLZACR6SD2DFB5IVLARBIPTWW5M7U6KKOGXMMDY 7  DATA SIGNATURE ::
+#,,,.,,,,,...,,,,,...,,,,,,,.,.,,,,,.,..,,..,,..,,...,...,..,,.,.,,..,,,.,..,,
+#DTDWFGTI7HAHXC6ZQX5I4WANBU6JOSYRT67BUIPKN6S4NM6QDQHOA55FOXNWMOJONNLD4AIYJ6IRG
+#\\\|WSTWGQX2VR6X6SZAK3Y5DPLGCAJ3XM22XZ6C2G5Z7E2Z3O5BZCD \ / AMOS7 \ YOURUM ::
+#\[7]BXPAQA7BDHK7YHQFSVKFIL4OJECQLU2XTA67VU7JPLE2VDGUAQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

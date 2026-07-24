@@ -3,7 +3,23 @@
 # name  = ncode.cmd.apply
 # descr = apply fixes by checksum ID from pending store
 
-my $params = shift // {};
+## accept a ready hashref [ programmatic call ] or a cube-dispatch call ##
+## object carrying plain-text 'args' [ p7c usage: <fix_id> | --session  ##
+## <root> ], mirroring the usage hints ncode.cmd.suggest prints out     ##
+my $raw    = shift // {};
+my $params = {};
+if (    ref $raw eq qw| HASH |
+    and exists $raw->{'args'}
+    and not ref $raw->{'args'} ) {
+    my @tokens = split m|\s+|, $raw->{'args'} // '';
+    if ( @tokens and $tokens[0] eq qw| --session | ) {
+        $params = { 'session' => $tokens[1] // '' };
+    } else {
+        $params = { 'ids' => \@tokens };
+    }
+} elsif ( ref $raw eq qw| HASH | ) {
+    $params = $raw;
+}
 
 my $ids     = $params->{'ids'}     // [];
 my $session = $params->{'session'} // '';
@@ -138,9 +154,20 @@ foreach my $fix_id (@fix_ids) {
     if ( $verify_pass and $step_ok and $content ne $original ) {
         my $root    = <system.root_path>;
         my $ptd_bin = "$root/bin/ptd";
-        my $tmp     = "$file.ptd_check.$$";
 
-        if ( open my $tfh, '>', $tmp ) {
+        ## use the zenka's own writable scratch dir [                      ##
+        ## /var/protocol-7/ncode/ by default ] instead of the target's     ##
+        ## directory -- sidesteps the whole taeki-owned-directory write    ##
+        ## problem entirely, and comes with collision-safe random naming + ##
+        ## v7-registered auto-cleanup                                      ##
+        my ( $tfh, $tmp ) = <[file.temp]>->(qw| ptdcheck.XXXXXXXX |);
+
+        if ( not defined $tfh ) {
+            <[base.logs]>->(
+                0, ':. ncode.cmd.apply: cannot create syntax-check tmp :.'
+            );
+            $syntax_ok = 0;
+        } else {
             print {$tfh} $content;
             close $tfh;
 
@@ -151,24 +178,59 @@ foreach my $fix_id (@fix_ids) {
                 $syntax_ok    = 0;
                 $syntax_error = $ptd_out;
             }
-        } else {
-            <[base.logs]>->(
-                0, ':. ncode.cmd.apply: cannot write syntax-check tmp %s :.',
-                $tmp
-            );
-            $syntax_ok = 0;
         }
     }
 
     if ( $verify_pass and $step_ok and $syntax_ok ) {
-        open my $wfh, '>', $file or do {
+        ## temporary write grant via chmod-child, same pattern as           ##
+        ## coding.tools.handler.replace_in_file -- child runs as the admin  ##
+        ## user [ taeki ] so it can chmod its own taeki-owned files.  must  ##
+        ## grant GROUP-write [ 0020 ], not other-write [ 0002 ] -- this     ##
+        ## process is a supplementary-group member of taeki-owned files, so ##
+        ## posix permission checks match [and stop] on the group class ;    ##
+        ## other-write bits are never even consulted once a group match is  ##
+        ## found [ write_with_perms carries this same latent bug --         ##
+        ## confirmed by direct A/B test against it ]                        ##
+        my $chmod_fh = <ncode.chmod_child.w_fh>;
+        my $mode_restore;
+
+        if ( -f $file and not -w $file and defined $chmod_fh ) {
+            my $cur_mode = ( stat $file )[2] // 0644;
+            $cur_mode &= 07777;
+            printf {$chmod_fh} "restore %04o %s\n", ( $cur_mode | 0020 ),
+                $file;
+            <[ncode.chmod_child.readline]>; ## wait for restore to complete ##
+            $mode_restore = $cur_mode if -w $file;
+        }
+
+        my $write_ok = 0;
+        if ( -w $file ) {
+            if ( open my $wfh, '>', $file ) {
+                print {$wfh} $content;
+                close $wfh;
+                $write_ok = 1;
+            } else {
+                <[base.logs]>->(
+                    0,     ':. ncode.cmd.apply: cannot write %s [ %s ] :.',
+                    $file, $OS_ERROR
+                );
+            }
+        } else {
             <[base.logs]>->(
-                0, ':. ncode.cmd.apply: cannot write %s :.', $file
+                0,
+                ':. ncode.cmd.apply: %s not writable [ chmod-child %s ] :.',
+                $file,
+                ( defined $chmod_fh ? 'grant failed' : 'unavailable' )
             );
-            next;
-        };
-        print {$wfh} $content;
-        close $wfh;
+        }
+
+        ## restore original permissions regardless of write outcome ##
+        if ( defined $mode_restore and defined $chmod_fh ) {
+            printf {$chmod_fh} "restore %04o %s\n", $mode_restore, $file;
+            <[ncode.chmod_child.readline]>;
+        }
+
+        next unless $write_ok;
 
         $fix->{'status'} = 'applied';
         $applied_count++;
@@ -203,8 +265,8 @@ $summary .= ", $failed_count failed" if $failed_count;
 
 return { 'mode' => 'size', 'data' => $summary };
 
-#,,..,,,,,..,,.,,,..,,.,,,...,,,,,,,,,..,,..,,.,.,...,...,...,...,,..,,..,,,,,
-#4VBVMNNOSMTOUXPRUUWXEB45POTCI5UDTVL7ELBXHSQHS4QESKLZL5B76FYEXAQ2KZUM3ZJIXGYPQ
-#\\\|RVZB66N4ZDHB6PT3JFWHSESVP6RFDJQFP3PBAJCG7CAI7OPC3Q5 \ / AMOS7 \ YOURUM ::
-#\[7]7Z2VVWPNEZNMUBU4O6CNHKJNZ5S5MXDT3EATAIVJD7352M2YKEBY 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,.,,,,,.,.,.,.,.,.,.,.,,,,..,.,,,.,.,...,..,,.,,,,.,,.,.,..,,,,,,
+#TNIDTKJHTH2GBMRNHQC3IL2MXT42CBR5XELYIGCQNNBIJ53IH7JFKUIFDPIZ76GJEFCBA56SUSZN2
+#\\\|LYV7DVPDGLPKMRIPNUAO2M4XZABQLKQ6AMNPCF7433LVWWHC4T3 \ / AMOS7 \ YOURUM ::
+#\[7]EEIFCL6ABL7DTKCTMVPJCR3VFFXARAHPZLK3OCETTENUHMPPL6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
