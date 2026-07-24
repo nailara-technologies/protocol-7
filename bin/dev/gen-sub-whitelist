@@ -8,9 +8,9 @@ use warnings;
 ##  gen-sub-whitelist  ##
 ###                   ###
 
-##  generate subroutine.white-list for one or all zenki  ##
-##  output : configuration/zenki/<name>/subroutine.white-list [ unsigned ]  ##
-##  sign with : bin/Protocol-7 sourcecode update-signatures <path>  ##
+## generate subroutines.load-early for one or all zenki  output :           ##
+## configuration/zenki/<name>/subroutines.load-early [ unsigned ] sign with ##
+## : bin/Protocol-7 sourcecode update-signatures <path>                     ##
 
 use File::Spec;
 use Cwd     qw| abs_path |;
@@ -63,10 +63,11 @@ say $blacklight . ':' . $reset;
 for my $zenka (@targets) {
     $num++;
     my $zenka_dir = File::Spec->catdir( $zenki_dir, $zenka );
-    my $out_path  = File::Spec->catfile( $zenka_dir, 'subroutine.white-list' );
+    my $out_path
+        = File::Spec->catfile( $zenka_dir, 'subroutines.load-early' );
 
-    ##  namespace-only targets [ no zenka start file ] have no whitelist ##
-    ##  their subs are covered by the loading zenka's whitelist          ##
+    ## namespace-only targets [ no zenka start file ] have no whitelist ##
+    ## their subs are covered by the loading zenka's whitelist          ##
     my $has_start = -f File::Spec->catfile( $zenka_dir, 'start' );
 
     show_progress( $zenka, $num, $total );
@@ -99,8 +100,20 @@ for my $zenka (@targets) {
     @subs = grep { length $ARG && $ARG !~ m|^::| } @subs;
     chomp @subs;
 
-    ##  prepend single blank line as header  ##
-    unshift @subs, '';
+    ## prepend explanatory header + blank line -- this file governs WHEN a  ##
+    ## module compiles [ eager at zenka startup vs deferred to first use,   ##
+    ## changing only when a compile error surfaces ], NOT whether a command ##
+    ## is reachable -- that's access.cmd.usr.cube / access.zenki instead.   ##
+    ## regenerate via this script rather than hand-adding items.            ##
+    unshift @subs,
+        '#',
+        "# .:[ regenerate with : bin/dev/gen-sub-whitelist $zenka ]:.",
+        '# :',
+        '# : governs compile timing only [compiles:always|ondemand],',
+        '# : not access : see access.cmd.usr.cube or',
+        '# : access.zenki for reachability',
+        '# :.',
+        '';
 
     if ( not @subs ) {
         print_result( $zenka, $num, $total, '[!] no subroutines found',
@@ -109,8 +122,8 @@ for my $zenka (@targets) {
         next;
     }
 
-    ##  compare with existing file : skip write if content unchanged  ##
-    ##  preserves valid signature footer when list has not changed    ##
+    ## compare with existing file : skip write if content unchanged ##
+    ## preserves valid signature footer when list has not changed   ##
     ##
     if ( -f $out_path ) {
         open my $rfh, qw| < |, $out_path
@@ -160,8 +173,8 @@ print "\n";
 printf "%s:%s\n", $blacklight, $reset;
 printf "%s::%s %d updated, %d unchanged, %d failed%s\n",
     $blacklight, $TRUE_color, $generated, $unchanged, $failed, $reset;
-printf "%s:: sign with :%s bin/Protocol-7 sourcecode update-signatures"
-    . " configuration/zenki/*/subroutine.white-list%s\n",
+printf "%s:: sign with :%s bin/Protocol-7 sourcecode update-signatures "
+    . "configuration/zenki/*/subroutines.load-early%s\n",
     $blacklight, $ok_color, $reset
     if $generated;
 
@@ -173,8 +186,8 @@ sub show_progress {
     my $char_count = int( $chars_max * ( $num - 1 ) / $total );
     my $bar        = ':' x $char_count;
 
-    printf "\r%s:::[%s%s%-${chars_max}s%s%s]::[%s%s %-${zenka_max}s %s%s]"
-        . ":.%s\e[K\r",
+    printf "\r%s:::[%s%s%-${chars_max}s%s%s]::[%s%s "
+        . "%-${zenka_max}s %s%s]:.%s\e[K\r",
         $blacklight,
         $nailara_bg, $TRUE_color, $bar,   $reset, $blacklight,
         $nailara_bg, $TRUE_color, $zenka, $reset, $blacklight,
@@ -188,16 +201,16 @@ sub print_result {
     my $char_count = int( $chars_max * $num / $total );
     my $bar        = ':' x $char_count;
 
-    printf "\r%s:::[%s%s%-${chars_max}s%s%s]::[%s%s %-${zenka_max}s %s%s]"
-        . " %s%s%s\e[K$term",
+    printf "\r%s:::[%s%s%-${chars_max}s%s%s]::[%s%s "
+        . "%-${zenka_max}s %s%s] %s%s%s\e[K$term",
         $blacklight,
         $nailara_bg,   $TRUE_color, $bar,   $reset, $blacklight,
         $nailara_bg,   $TRUE_color, $zenka, $reset, $blacklight,
         $result_color, $result,     $reset;
 }
 
-#,,,.,,..,..,,.,,,,,.,,,.,..,,...,,,.,..,,.,.,..,,...,...,,.,,..,,,,.,,.,,,,.,
-#S2FZPB5BKJQP3QRHCSBOWIEK57OOP7DHF457ZXTGQVTU44HEHHWVOZR2WE5GUKTKW5RM2W6SK7FJO
-#\\\|4MFJCGDMT5QJ23FM4YO3SG4N3YM4A4YCK34IXGON4T6SUDUCOJG \ / AMOS7 \ YOURUM ::
-#\[7]JQGDM7CXPJWICSZFOQVAX2OQI7U345LYZSXZDXMP36W7SZPEAICI 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,,.,,,..,..,,.,,,,,,,,.,,,..,.,,,..,,...,...,..,,.,.,,,.,.,.,.,,,
+#2TUMFBCFJCSW6GZJL4G3P7N4AP2IZ6OZ2OX5EWIDLZFHAB6H5FNOCBHIH6NBKWP44QXVIU5NJDWEW
+#\\\|CRXZIRLZZU7VQFFO5XPPQGB2RA2242XKWYABT2ZJ2CHFQNZV3FR \ / AMOS7 \ YOURUM ::
+#\[7]R2QBV2OYI5LYV4IKCHRMQQCFRDZM5TRBRR34LKVJOFQUALU2JKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

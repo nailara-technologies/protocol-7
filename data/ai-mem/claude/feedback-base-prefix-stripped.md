@@ -9,7 +9,7 @@ metadata:
 
 when writing modules for any zenka, the `base.` prefix is stripped from subroutine names during the init phase. the subroutine is registered in `%code` without the prefix.
 
-**Why:** protocol-7 registers `base.*` modules under their short name inside each zenka's namespace at load time. calling `<[base.protocol-7.command.send.local]>` inside a zenka module will give "undefined value as subroutine reference" even if the module is in the subroutine.white-list.
+**Why:** protocol-7 registers `base.*` modules under their short name inside each zenka's namespace at load time. calling `<[base.protocol-7.command.send.local]>` inside a zenka module will give "undefined value as subroutine reference" even if the module is in the subroutines.load-early.
 
 **How to apply:** always use the short form — `<[protocol-7.command.send.local]>` not `<[base.protocol-7.command.send.local]>`. to check what name a subroutine is registered under inside a running zenka, use `p7c <zenka>.list-subs <pattern>` — e.g. `memory.list-subs send.local` → shows `protocol-7.command.send.local`.
 
@@ -19,8 +19,8 @@ when writing modules for any zenka, the `base.` prefix is stripped from subrouti
 
 **recurrence 2026-07-11, self-inflicted**: assistant reviewed kimi-written code using `<[event.add_timer]>`/`<[event.add_io]>` (correct, bare form), concluded from `ls modules/` alone (no literal file named `event.add_timer`) that it must be a bug, and instructed kimi to rename to `<[base.event.add_timer]>`/`<[base.event.add_io]>` — the actually-broken direction. Kimi complied; zenka crashed on next restart with "undefined value as subroutine reference" at the exact call sites. User found and fixed via a global `ncode replace` sweep, which also caught one pre-existing unrelated instance of the same wrong-direction bug in `modules/data.mount.shm.feedback.watch`. **Lesson: `ls modules/` only shows the file a sub is defined in, not what name it's registered under in `%code` after `pre_init` runs — never conclude a bare/short-namespace call is broken from file-listing alone.** Check this memory (or `p7c <zenka>.list-subs <pattern>`) before "fixing" any `<[...]>` call that looks unprefixed but works elsewhere in the codebase.
 
-#,,,,,,,.,..,,,.,,,,,,,..,,,,,..,,.,.,...,..,,..,,...,...,,,.,.,.,.,.,...,,..,
-#HUQITHK3SVZCCY7KSRB3SRI6YGIVPOYVJH3TDD2DAMKOCRU23GTDIBPDTRSQIDJOJGXXUSPDP623S
-#\\\|7Q25EZZ23QDU6ICK53MSIXGSM7PPOJGK36WI6K7VO4P6ZSUNJXA \ / AMOS7 \ YOURUM ::
-#\[7]NQCZMK2EJNKY5COE45D3GIVWIR5WMPSZNK6IBEOY5YMHXBMSXIBQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,,,,,.,.,.,,,,,,,,,.,.,,,...,.,,,..,,...,...,..,,,,.,,..,.,,,,..,
+#JJHDOUUVKTA6BAWWPEP7PMDTM3JJJSF55VKNRRRO3GRDCKUBOFAEZC7TPTPMZX5QC5RARVY6FZHT4
+#\\\|YS7DAZHQCYWQ7PA7DLJURNLQLHRLYC2JUU2MSQQUTNYYVEFAFD4 \ / AMOS7 \ YOURUM ::
+#\[7]GXHULP6BNBTDSIHQ4D4ILQFO56SXJDUUQS53D44I42VSRHT5X2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

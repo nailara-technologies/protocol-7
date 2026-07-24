@@ -15,7 +15,7 @@ and three unguarded `source.*` calls in `base.handler.whitelist_miss` with
 See [[feedback-undef-sub-scanner-verification]] for the verification method
 used.
 
-After regenerating all `subroutine.white-list` files, the whitelists
+After regenerating all `subroutines.load-early` files, the whitelists
 **shrank** — the crypt/source routines dropped out of zenki that don't
 actually load those namespaces, since the calls are no longer literal
 unconditional `$code{'name'}->()` references `bin/dev/dep-graph` picks up
@@ -41,8 +41,8 @@ next thing to teach about `base.mod.exists`-gated `call_optional`/
 `call_expected` if this eval→pattern migration continues across other
 files — not urgent, flagged by the user as "complicated."
 
-#,,..,,.,,.,,,.,.,,..,.,.,.,.,,,,,..,,.,.,,,.,..,,...,..,,...,,..,,.,,,.,,,,.,
-#M6FYT7EAFUEL2NUZ5XW3YQGAX725YETB5VEC743Y36I4C2R7JH65A7ZDEQDRZLEHSUN46OCFOAGKM
-#\\\|5IC2L2XR6TVW2CTYPCL73KNW5BWJGW4UTPVM7S3FBHUR6TCFZKM \ / AMOS7 \ YOURUM ::
-#\[7]FYD2743VIE5B4S3VMBRM4NDG5KPIBKJOBHVLODKY2XKURLXD5CDQ 7  DATA SIGNATURE ::
+#,,..,,..,,,.,..,,,.,,.,.,.,,,,.,,,..,...,.,,,..,,...,..,,..,,...,.,.,...,,..,
+#UCQNNA2YZPUUMG6YTRYCPMWEIVQAP7ACQEL4JDQNWDAGRNMNXCWMTTALFAEDWWMQC7ZYQDTX2BY46
+#\\\|ZWJI7QSRDCZKYB67APWUTUWQIQKBV4UIXVS4X3B5Q66WFPCDORO \ / AMOS7 \ YOURUM ::
+#\[7]NCNMVORYAU3PSVTF3RLT7QA2JRHYZJICZJR6N6AAWL2AXSLIXEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -87,7 +87,7 @@ legible. This live layout: XWAYLAND0 1920x1080+0+1860, XWAYLAND1
 modules: screen.setup.{init_code,startup,ensure-display,enumerate-monitors,
 layout-model,monitor-at-point,cmd.display-layouts,open_window,close,
 handler.key_press,handler.draw}; configs: configuration/zenki/screen-setup/
-{start,zenka-startup.v7,subroutine.white-list}; edit:
+{start,zenka-startup.v7,subroutines.load-early}; edit:
 configuration/zenki/cube/auth.zenki (added `auth.setup.usr.screen-setup =
 :zenka:`). Access needs nothing else — `access.cmd.usr.*` wildcard already
 grants X-11 read cmds + the `get_display` it uses.
@@ -221,8 +221,8 @@ Deferred: (1) STRM-based live window list (X-11 pushes on open/close);
 
 [[feedback-weston-move-unreliable-use-compositor-grab]] · [[topic-gtk-wsl-window-positioning]] · [[topic-tile-window-place-hybrid-desktop]]
 
-#,,,,,...,,..,...,,,.,.,,,,..,,,,,,..,...,...,..,,...,..,,..,,,,.,,,,,,,.,,,,,
-#KE3DDXXMAO6HTKDKH7SZW5KEOYAFRKQ5AFEIVMX37UHO2OGRMN7WIOX5HFPSVUTSTAPKQJCH76DAQ
-#\\\|745SG4FZTD3AF3POICTRM55QDDN7ZSEXX5ENFLTI262CVIN4XVG \ / AMOS7 \ YOURUM ::
-#\[7]PPJ66HRSQ2TRSSRALSWYNKUZDIOQ4D7ROLWZWEEYCOR4LISE4OAY 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,...,.,.,.,.,,.,,...,,.,,..,,,..,..,,...,...,,.,,,..,,,.,.,.,,,,,
+#BWXAAYMF3RMJJNWE3DZJ4ALPYEYP7R4JPU6QCVJN2T26RMWEZSYLG3VTMG47EPZYGB6XMZXLEKVVY
+#\\\|QPKOLE75RTEGUIX32P6HJJ2W5SNXIWOLQJC3OINUQJONO5DV6FA \ / AMOS7 \ YOURUM ::
+#\[7]CRH4RLTM3KHXPDQCR2EVHQD3TSPMS5Y2N2IW5VFM4AU62N7YQGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

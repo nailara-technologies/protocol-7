@@ -12,7 +12,7 @@ metadata:
 - New `base.zenki.ondemand.handler.reconcile_starting` fires on timeout: checks observable truth (`$data{user}{name}{session}`) — if actually online (the lost-reply race), re-fires `v7.notify_online` so the existing "already online" branch rescues/delivers the whole queue normally; if genuinely gone, fails the queue back with a real error and clears `starting`/`starting_since` so the next caller gets a real fresh-start attempt.
 - Both existing reply handlers (`base.handler.ondemand_startup`, `base.zenki.ondemand.handler.startup_reply`) cancel the watchdog wherever they clear `starting` on the normal path.
 - Separately, discovered along the way: `restart.disabled=1` on-demand zenki (like `task`) had **zero** tolerance for a startup `error` — `v7.handler.zenka_status` called `zenka.cmd.stop` immediately on the first failure, a completely different code path from the `startup-error-retries`/`retry-count` mechanism (which doesn't apply to restart-disabled zenki at all and defaults to unlimited). Added a new `ondemand-consecutive-failures` counter, reset on reaching `online`, with a default-3 (configurable via `restart.consecutive-failure-tolerance`) tolerance before the real give-up/stop fires — below threshold the already-scheduled `v7.init_restart_timer` now actually gets to run instead of being short-circuited.
-- Noted but deferred (minor): the new module lives in the `base.*` namespace, so it landed in every zenka's `subroutine.white-list` on regen, not just cube's — fine for now, worth reconsidering placement in a later pass.
+- Noted but deferred (minor): the new module lives in the `base.*` namespace, so it landed in every zenka's `subroutines.load-early` on regen, not just cube's — fine for now, worth reconsidering placement in a later pass.
 - Signing required taeki's passphrase (couldn't be done by Claude); taeki ran `sourcecode update-signatures` + version bump, confirmed clean after a backend restart, then this was committed.
 
 **Live symptom that triggered this (present at time of investigation, now fixed going forward): `<zenki.virtual>{717373}` (task zenka) has `starting = 5` stuck permanently true and `queue` holding 11 silently-undelivered commands, since 2026-07-03 ~18:50. Every other on-demand zenka's `zenki.virtual.*.queue` is empty. This is what caused jobsite to stop assessing new job postings (27 accumulated unassessed) — `jobsite.dispatch.assessments`'s `$was_idle` gate never sees `jobsite.cycle` return to idle because the one `task.create` dispatch that should have completed the cycle never gets a reply, since `task` itself can never be restarted again (routed commands just pile into the dead queue, forever, silently, no error/log/timeout anywhere in that path).
@@ -44,8 +44,8 @@ This is ~3ms after task's own `[initialized]` log line. `741070` is the `target.
 
 Related: [[topic-plugin-web-jobs]] (the jobsite-side pending_count orphan gap this exposes/compounds), [[feedback-oversize-single-line-protocol]] (ruled-out-but-still-real separate gap).
 
-#,,..,...,...,,,,,,..,...,,..,,,,,,,.,,,,,,,,,..,,...,...,..,,,.,,..,,...,...,
-#4YYBNVJQ33U6IWO5Y5GGGGFSKXBY3NG6IRLPFVQJJ7LMXOXPMRFHIRNYTS22BSWSJ7FIH4OFAB7ZK
-#\\\|Y5RIKF3YSBA2756CW4BD5EMIQM3AIAPTT6TJO7MVATPVXPBMXTH \ / AMOS7 \ YOURUM ::
-#\[7]HTV27NOXKWLBCTXHO7FJX5QQ2JBS7M562GKRP62LUNBQ37XZ36AA 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,,.,,..,...,,,.,...,,.,,.,.,...,..,,...,..,,..,,,,.,...,.,,,.,,,
+#LBI2RBBFPCZ4GRYFD65ZXLPWFF664SNWHSAOJJAGWTUDWLMQOZW3Z7RLYGC35WYGTCEY6ACAPHHBU
+#\\\|FLO2MAWF75JUWBFK6LHS2D4QUBM47KQD5TGUCBAI2R3LOJGZKZ6 \ / AMOS7 \ YOURUM ::
+#\[7]3MQB6EAYTUL5YBDP2B4BZ6G5ZSPCZR2RCP5G326Q376SQKPDUYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

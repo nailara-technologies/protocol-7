@@ -7,6 +7,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 
 ## Feedback
 - [edit-via-project-path-not-dotclaude](feedback-edit-via-project-path-not-dotclaude.md) — edit memory via data/ai-mem/claude/, not ~/.claude/projects/.../memory/ (same file, latter re-prompts every edit)
+- [filter-repo-amend](feedback-filter-repo-amend.md) — `AMEND=1` prefix required for any git history-rewrite: filter-repo AND plain `commit --amend` both, else silently blocked by pre-commit's version-mismatch check
+- [whitelist-vs-access-cmd-usr-cube](feedback-whitelist-vs-access-cmd-usr-cube.md) — subroutine.white-list renamed to subroutines.load-early 2026-07-25 (compile timing only); access.cmd.usr.cube (cube routing) is the separate mechanism, don't conflate
 - [file-stat-shadowing](feedback-file-stat-shadowing.md) — bin/Protocol-7's global `use File::stat` makes bare `stat()` return an object everywhere, not a 13-elem list; use `File::stat::stat(...)->mtime` etc. (was orphaned/unindexed — cost a live debugging detour before being found)
 - [reload-success-doesnt-guarantee-new-file-loaded](feedback-reload-success-doesnt-guarantee-new-file-loaded.md) — `reload all` reported success twice without recompiling a fresh jobsite.cmd.* file; verify with a literal marker, escalate to a full v7.restart, don't just re-reload
 - [webkit-double-click-dispatch](feedback-webkit-double-click-dispatch.md) — web-browser zenka's WebKit fires click twice for one tap on some buttons, Firefox doesn't; wrap every handler in a shared debounceClick() from the start, don't patch button-by-button
@@ -47,8 +49,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [kimi-dispatch-idle-timeout-recovery](feedback-kimi-dispatch-idle-timeout-recovery.md) — MCP 1800s-idle "failed" ≠ dispatch failed; underlying process often finishes fine, recover via session_catchup(client:kimi, session_id) not re-dispatch
 - [posix-group-write-precedence](feedback-posix-group-write-precedence.md) — chmod-child grants need | 0020 (group-write) not | 0002 (other-write); a process that's a supplementary-group member of the file gets checked against group bits only, other bits never consulted; write_with_perms still has this bug live
 
-#,,,,,,,.,.,,,...,,..,..,,,.,,,,,,.,.,,.,,...,..,,...,...,..,,...,,.,,.,,,..,,
-#GARINLMBO33RYHPSDYE3BSB3UIH4AP4VED6O5PFNYH5PD6DQRCJVIRILL3VT2SPJB54GF7FZT2ZXA
-#\\\|LVAYOBOQUVVMURXX7KK7EQA2UAJMT6YL2AMYCBPAY74AAQW3RPW \ / AMOS7 \ YOURUM ::
-#\[7]5JTLJRKKIOF275Z5E7MUXDD6C7MBPBETKH7SQNQUXB7YU5XCAUAQ 7  DATA SIGNATURE ::
+#,,,.,,,,,...,,,,,,,,,,..,.,.,,.,,.,.,.,,,,,.,..,,...,..,,..,,,,.,,,,,.,,,..,,
+#V6IYSOOWT4PQ6E2KFVD6KIVZKAD7AOUQSYX2UXOU7VVQ3Q62S3PE5EKRB7KD7BNZCKSWI7HDIRE7I
+#\\\|WTS7SGBHTP33MWIEEIHRZMAVR7ZNJTJ4SCTZNAG3SXPTWEWX5F7 \ / AMOS7 \ YOURUM ::
+#\[7]R3D2G52TZEUMFZYEPEZCMHZANW6LGN3XXQELF55QAQQ6GCV32ECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
