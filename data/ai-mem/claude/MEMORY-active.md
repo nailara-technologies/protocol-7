@@ -45,9 +45,10 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [input-capture-replay-website-templates](project-input-capture-replay-website-templates.md) — LANDED, kimi K3
 - [web-browser-value-replay-waypoints](project-web-browser-value-replay-waypoints.md) — LANDED, kimi K3; multi-window fan-out + access.zenki fix
 - [scratchpad-import-tool](topic-scratchpad-import-tool.md), [scratchpad-rescue-coding-zenka-task](topic-scratchpad-rescue-coding-zenka-task.md) — mcp-server-p7 scratchpad tools tested; follow-up task filed w/ kimi K3 for native coding-zenka rescue tools + chmod g+rx fix
+- [ncode-pattern-learning-loop](topic-ncode-pattern-learning-loop.md) — design, not built: two-tier mechanical/LLM pattern model, reuse existing stats/confidence fields for self-reinforcement, LLM-prefers-editing-patterns interaction model, namespace scope gating, nested-dispatch for batch-apply without confirmation storms; next step is the pattern-schema fix (steps not persisted) blocking the loop
 
-#,,,.,.,,,,,,,.,.,,,,,..,,,.,,,.,,,,.,.,,,.,,,..,,...,...,.,.,,..,..,,,,,,,..,
-#AFO6X62W57BEDFGRPK2MQFVXEKTV5WBCG5DR5GVCFFYN6EK4YYOEORSVT3M6KM4HP2ZXXQP3AXWMQ
-#\\\|Z5WU5YO4HFELIL4DJVSCLHMKG7YRKIWLHE3TPEHOY5RYH67W4BG \ / AMOS7 \ YOURUM ::
-#\[7]MI722TJZVEWTW6XTKF35EBBLJY2VGKSC62TARDPWTBXZX5FR4OBY 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,,,,.,,,..,,.,.,,,.,,,.,,,.,,,.,..,,...,...,.,,,..,,..,,,.,,.,,,
+#S6ETMBIVDNBH3G7BG6NINLXYNCLM3TQCNULMUDAGENCBST6WC4YTBFH2TN4GDHOWDXL7E3SUPAXHU
+#\\\|ERJ7UKB3XYC3465RMWB4PYSPMAN6JVEKTDWA7UCAVYH7UMA63QE \ / AMOS7 \ YOURUM ::
+#\[7]F5NQEOZD66SXGUC67FCKGTGL2XNVFEQOGOKM5MWUHFJMMIK7KCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
