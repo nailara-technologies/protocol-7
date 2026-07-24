@@ -5,6 +5,7 @@ identity, namespace/routing algebra, checksum-addressing trinity, harmonic mathe
 network-as-computer, dedup-tree unification, coding-as-artform / style-philosophy.
 
 ## Vision / Design
+- [anyevent-bridge-vs-replace](topic-anyevent-bridge-vs-replace.md) — event.anyevent.init_code was a stalled no-urgency replacement attempt (missing variable watchers); the live thread is bridging AnyEvent-only 3rd-party modules via its Event.pm backend, no swap_subs needed
 - [nested-zenka-simulation](topic-nested-zenka-simulation.md) — SEED: full nested zenka simulation as containment (restriction fails as a cliff, simulation fails as a slope); reasoning template `containment-through-simulation.yaml`; borrows orbital-data-space's nesting-chain-IS-the-address trick; not yet a design doc
 - [implicit-perspective-navigation](topic-implicit-perspective-navigation.md) — curves/thresholds ARE the nav decision; explicit/implicit/magnetic modes; design-only
 - [dynamic-dependency-resolution](topic-dynamic-dependency-resolution.md) — local-capability-first, then preference match, then discovered capability chains
@@ -39,8 +40,8 @@ network-as-computer, dedup-tree unification, coding-as-artform / style-philosoph
 - [zenka-name-routing-modes](topic-zenka-name-routing-modes.md) / `data/tasks/zenka-name-routing-modes.md` in repo — per-zenka routing_mode (default contact-oldest) + permissioned session-scoped admin override commands for bare-name ambiguity; idle-longest = free worker-pool load balancing
 - [subname-not-a-trust-domain](topic-subname-not-a-trust-domain.md) — user[taeki]/user[claude]/user[root] scoped/severity-judged per resolved name[subname] pair, same as distinct top-level zenka names; bare-name grants implicitly span every subname beneath
 
-#,,,,,,.,,,..,..,,,..,.,,,...,...,,,.,,,.,,,.,..,,...,...,..,,,..,,,.,,.,,.,.,
-#MKDVXVAB3EPBYIVLMVJZ35KDXV7O6KZQXZ7UYNTPWD3K6SMR3TU4354VQ353PEJUU32DIEUY3YZQE
-#\\\|X62JBM3GENU7LTRAWL5U4UQS7FLV6U6N3GRUIHD5RCYM7XB32UW \ / AMOS7 \ YOURUM ::
-#\[7]H7TZLSBEWFSL5NBOSCVTEHAWSGVRFFTNUYJ7NNZKI36LKSELMODQ 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,.,,,.,,,,..,...,...,..,,,.,,,,,,..,,...,...,..,,,..,...,,..,,,,,
+#STGNF4ZMGDTZEROYOGC4HXNR45QF45EYDBCDYGYWQCAU3CYZMYR3QDXDJJFX4JTO3VTOVTPEN5BCM
+#\\\|JGQL3JWQASV6FODFUW6ZXQLWXGJJXKXG4AUKLFM47PZXLF7HVND \ / AMOS7 \ YOURUM ::
+#\[7]QTCWPT3WAWEQOYJRDJ3TKXMMTVZGO67CDF3GUNYBLN25DBCVU2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
