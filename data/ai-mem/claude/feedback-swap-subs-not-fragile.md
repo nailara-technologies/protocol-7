@@ -48,14 +48,14 @@ before it landed. Rule of thumb before calling any `base.X.Y` primitive
 from new code: `ncode s src:base.X swap_subs` first to check whether
 that group gets renamed at init, and call the post-swap name if so.
 Separately, this session's whitelist gap (new `base.file.zenka_dir.
-data_path` reference wasn't in `p7-log`'s `subroutine.white-list`) was
+data_path` reference wasn't in `p7-log`'s `subroutines.load-early`) was
 fixed by hand-editing the file rather than running `bin/dev/gen-sub-
 whitelist <zenka>` (confirmed still present on disk) — worked fine for
 this one-line addition, but the script is the canonical tool and should
 be preferred for anything bigger.
 
-#,,..,,,.,.,.,.,.,..,,,.,,...,,,,,.,,,,.,,,..,..,,...,...,,,,,.,.,,,.,..,,.,,,
-#JQVOVZWABTF4N5BE7OAI7HHCYFVSK6DTZD3ATZQQBF5EUWKCFWDLU56G6XPW73XCBOMYVN42K76T6
-#\\\|A6XCCOEA6ZKEZPQUYRILVOH5KGDAAHSW4LPMFUIHSAFH7W6JBZ7 \ / AMOS7 \ YOURUM ::
-#\[7]WFJ5FW4W3RJJSVGEKDH3SQ67V272TAB3GBW5SPQIWJTXI4TFXYAA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,.,.,..,,..,,..,,..,,,,,,...,...,..,,...,..,,..,,.,.,..,,,.,,,.,,
+#S7UZDA2CIS6O7CQR2VNUH72QFGUZFC7OC25L5T25GHWC57NO7LBWUKVWVNPP2X4TGMUSY5RYTZCUY
+#\\\|O5EHU6Q2UJBOPNR3EA7MVOJUZL44XWMGXT444AQZ5XO2KRZSON4 \ / AMOS7 \ YOURUM ::
+#\[7]S3TNQHJS4MF2QABN6FHIURZKTEIMMYNUGDKJ5EE5ED77RJEXV4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

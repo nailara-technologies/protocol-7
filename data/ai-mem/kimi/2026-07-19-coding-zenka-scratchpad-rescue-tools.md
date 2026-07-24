@@ -32,7 +32,7 @@ can sweep/categorize/rescue /tmp scratchpads on a timer, no external LLM needed.
 - coding.init_code: one-shot [ after 180s ] + hourly repeating sweep timers
   inside `not $already_initialized` — REGISTER ONLY ON ZENKA RESTART, reload
   does not re-register [ pending ].
-- configuration/zenki/coding/subroutine.white-list: 5 new names appended
+- configuration/zenki/coding/subroutines.load-early: 5 new names appended
   [ required or modules don't compile at startup ].
 - system-tools.yaml: 3 tools documented for the local model.
 - bin/mcp-server-p7: permission bridge `_scratchpad_group_grant` — g+rx
@@ -71,8 +71,8 @@ complete [ test import deleted after — claude triage: all droppable ].
 - coding zenka restart to register the sweep timers.
 - commit [ files staged for review ].
 
-#,,,.,,.,,.,,,.,,,..,,.,,,.,,,,.,,,,,,,,,,,,.,..,,...,..,,,,.,..,,.,.,...,...,
-#THDWT3UD7VHEH2TOFSW3QUHPQDB7WZZJQGKBKGWBHAJDVE4Y2ZP55J66IQWJA5SBXFLMZWBQN33NY
-#\\\|H3VEVIX5KWH3ONR5G7NF6UJNRJP6O7AODZXWPRR4EAM5NCRGHAD \ / AMOS7 \ YOURUM ::
-#\[7]IHYILCFV2O7MPCA657XHNE7FMLE27TPJ54KUKH7X6SUI4MY3WACQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,.,.,...,,.,,,.,,,,,,,,.,.,.,,,.,..,,...,...,,.,,..,,,,.,,..,,,,,
+#POFYYNGSSWCK64LFKH46VGSZBRUGFOKARG42275TGM35LJI6WSAK2Q4NASRKSK4S5B5UWL345N6YG
+#\\\|N2S7ISEXGKLUN44CHUKMB2EQFWEQ5MHGAS76XA22LQCKZ43PH7F \ / AMOS7 \ YOURUM ::
+#\[7]3CO3R6MASDBBA3G2UEW5L4K4HNW55JNZTG6HSM5B3F6CX4T6BSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,7 +10,7 @@ metadata:
 A `configuration/zenki/<name>/start` file needs ALL of the following or the zenka fails/hangs at some stage:
 
 1. `[load_config_file:'shared-params']` — sets `<system.amos-zenka-user>`, required by `base.check_dependency_dirs` (pm-dep/os-dep/source auto-creation) and by drop_privs. Without it, dependency-dir creation fails silently (undef getgrnam warnings) and drop_privs has nothing to drop to.
-2. `modules.load = auth net protocol io.unix <zenka-namespace>` (+ extra namespaces like `ui`/`ui.branch` as needed) — `[load_modules:<modules.load>]` then `[init_modules]`. Listing individual sub-names instead of the namespace under-populates the dep-graph-derived `subroutine.white-list`. Regenerate via `./bin/dev/gen-sub-whitelist <zenka>` and sign with `bin/Protocol-7 sourcecode update-signatures configuration/zenki/*/subroutine.white-list`.
+2. `modules.load = auth net protocol io.unix <zenka-namespace>` (+ extra namespaces like `ui`/`ui.branch` as needed) — `[load_modules:<modules.load>]` then `[init_modules]`. Listing individual sub-names instead of the namespace under-populates the dep-graph-derived `subroutines.load-early`. Regenerate via `./bin/dev/gen-sub-whitelist <zenka>` and sign with `bin/Protocol-7 sourcecode update-signatures configuration/zenki/*/subroutines.load-early`.
 3. `[root.drop_privs:<system.amos-zenka-user>]`
 4. `[base.net.connect:'unix']` then `[base.get_session_id]` — without these the zenka never registers a session with cube, so it never reaches "online" and v7 kills it after the start-timeout (~64.7s), looping restarts forever.
 5. `[zenka.loop]`
@@ -24,8 +24,8 @@ For dev-only `eval-code`/`exec-sub`/`set`/`del`/etc., add `devmod` to `modules.l
 
 If `v7.start <zenka>` enters a restart loop (each attempt ~64.7s), stop it with `p7c v7.stop reasoning` between fix iterations to avoid resource churn — used this repeatedly while debugging [[topic-zenka-naming-cleanup]]-adjacent reasoning zenka startup (2026-06-16).
 
-#,,..,,,,,...,,.,,,..,.,.,,,,,..,,,.,,,..,...,..,,...,...,.,,,.,,,.,,,,,.,.,,,
-#IAKIZTKPKMRTJQKGSF5WWR3HRTWRSHZUBJ3LXDFHLQWQIDXGO2FDQOG25MYRKEJWHMNVNHS3PWFHA
-#\\\|CVDHBWDYTCEVFMDMBJNHFBDWWMENIXLME3QSQXDUXP4OBDOQIY6 \ / AMOS7 \ YOURUM ::
-#\[7]WI6CJ2HEDRHJ744AUPEIZDBMR7OJJAK6M7FZZ25MWW673YMYEGBI 7  DATA SIGNATURE ::
+#,,.,,...,..,,.,,,,,.,,..,.,,,,..,,.,,,..,.,,,..,,...,...,,..,,..,...,,,,,.,,,
+#SVWQAGSNT3YPCAUP6X3SPTLTEGXMOMTPJCY4ICXZHZLYJFB3FFGGLOQBDH3EC73YFFSIZC7VXPSII
+#\\\|VEPMLFUO53AZ3ZXRNSZ4UVORRT3PFD6SXKEB6JZ5BCRETFWVU56 \ / AMOS7 \ YOURUM ::
+#\[7]KFLZ7T526VNBTPWIMHNALJ6OXNJ6MMGTFMY2EOONNJBZVIAKHWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

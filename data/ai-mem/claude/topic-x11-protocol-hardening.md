@@ -96,7 +96,7 @@ driver stalls.
   blocking `qx()`, now 5s-bounded each). The nvidia branch of
   `start_gpu_top` was already correctly async (`open3` + `event.add_io`,
   no read at all in the hot path) — untouched.
-- `X-11.*` subroutine.white-list + `base.list.subroutines` updated
+- `X-11.*` subroutines.load-early + `base.list.subroutines` updated
   accordingly.
 
 **Landed (COMMITTED e0f4fddd7 2026-07-11, verified live — X-11 zenka restarted clean after a follow-up fix, see below)**:
@@ -214,8 +214,8 @@ note for a future pass, not touched.
 
 [[topic-gtk-wsl-window-positioning]] · [[feedback-weston-move-unreliable-use-compositor-grab]] · [[feedback-wslg-deiconify-limitation]]
 
-#,,,,,..,,,,.,,..,..,,..,,.,.,...,,..,.,.,...,..,,...,..,,...,,,.,.,.,,..,.,,,
-#K4AYL52WMXOD7M7S2AS6ECG7ASADWZM5ZGOGAIEMCPC5YDHT4VPC3W5STA2XUZMU376553V5CE2ES
-#\\\|K6WEBT5P3FMHJMT5VZ6OCPPC7RATF2LEUZW76IYE24LRS5HY6OB \ / AMOS7 \ YOURUM ::
-#\[7]BCM6SEQCR3K2534BNBSSPBXQVCVOCK7VS2OUHIDC6PL4C6ORICDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,.,.,,,,,,,.,,,,,,,.,.,,,,..,,.,,..,,...,...,.,.,,.,,,,,,,,,,,.,,
+#EAS27VBTB5HF6XVQSOKJTT5GZK4YVKJZWTTUF7USFUK4OVF5WMRVPAXHRSETZF4E6RMUOZZ5EQGGS
+#\\\|6N3N5HXKSOYZF7CHYO3BNMTY64SX7NJFITXE4BNGZT6PCUAMYFR \ / AMOS7 \ YOURUM ::
+#\[7]7DMFJTGIMNP4FCJLKUQ6I2ICCKBBK7HTIKG37L2QVIVO7IUHAGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

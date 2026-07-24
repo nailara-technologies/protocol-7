@@ -1,6 +1,6 @@
 ---
 name: undef-sub-scanner-verification
-description: methodology for safely evaluating scanner-flagged "undefined subroutine" references; also covers the separate subroutine.white-list lazy-load-gate failure mode and console_report's default-off visibility gap
+description: methodology for safely evaluating scanner-flagged "undefined subroutine" references; also covers the separate subroutines.load-early lazy-load-gate failure mode and console_report's default-off visibility gap
 metadata:
   type: feedback
   originSessionId: 5c95ba04-6293-4ece-a4ae-455aa1095528
@@ -76,7 +76,7 @@ dead/unwired caller worth flagging back rather than silently fixing.
 causes — don't conflate them.** This scanner/`clear_from_disk` path is one
 (a genuine compile-time gap). The other, separate mechanism:
 `bin/Protocol-7`'s `p7_early_whitelist_load` (~line 374) loads each
-zenka's own `configuration/zenki/<name>/subroutine.white-list` *before*
+zenka's own `configuration/zenki/<name>/subroutines.load-early` *before*
 base modules even compile, and uses it to gate which subs get fully
 compiled at all vs. deferred/skipped (lazy-load, not a reporting/
 suppression list — confirmed live 2026-07-22: a new cross-namespace sub
@@ -92,7 +92,7 @@ stub-installation code around line ~2050 — only fires when compilation is
 added cross-namespace call dies at a fresh zenka boot: check both — does
 it compile at all (search `undef-subs` buffer / compile-time warnings),
 **and** is it actually present in the calling zenka's own
-`subroutine.white-list` (regenerated via `bin/dev/gen-sub-whitelist`, not
+`subroutines.load-early` (regenerated via `bin/dev/gen-sub-whitelist`, not
 hand-edited).
 
 Also worth knowing: `ae6b1f79b` (2026-07-20) gated `undef-subs` buffer
@@ -108,8 +108,8 @@ See also [[topic-auth-client-namespace-split]] for the concrete namespace-
 split case this methodology was built around, and [[feedback-ncode-tools]]
 for a caveat on `ncode replace` hit during the same session.
 
-#,,..,,.,,...,..,,.,.,...,.,,,,,.,,.,,.,.,,,,,..,,...,...,,..,.,.,,,.,.,,,...,
-#7RAIFC3P336XNBEV2WJR73YD2BVMIK775KHJVNFODMT5H6KU4YULYQZZAR7YLL5XBP3CMZ5DJRFJM
-#\\\|UMN7LKJAMUZQE6VD7MCM4X45KPTWR5CE6TFUWTQUPYHMDJZJVKL \ / AMOS7 \ YOURUM ::
-#\[7]PNF36H52KQ54RVBQG4DHAMFIIFCLX5ET2BB7SOK55RQJVMZ5MWCY 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,.,,,,,.,,,.,..,,...,,,.,.,.,..,,..,,...,...,.,,,.,,,,,.,.,.,,,.,
+#OHBWOURNNRFVGW2CSCRJPGGAFYRH3GYYGU5LNW5MBP4X3GXWLPCM4DP4R3OGXRF3MGRZTPEMWK5M2
+#\\\|BK55MQ2K4BIPUYM2CYMO7WMUHEPDJ4PVEG7CO5Y54DQDTBHEFO2 \ / AMOS7 \ YOURUM ::
+#\[7]VUGOAWK5WBYUOQ2QB24H5VH7L7UDQSRJMCZNRYD2O2TJ64HTG4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

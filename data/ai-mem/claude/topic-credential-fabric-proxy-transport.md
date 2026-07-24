@@ -32,7 +32,7 @@ deferred to a dedicated session).
   admin grants. Console can now call `.approve`/`.resolve`/`.rotate`
   without "no perm" errors.
 - transport: scaffolded the entire missing config dir (`start`,
-  `zenka-startup.v7`, `subroutine.white-list`, `access.zenki`, dep
+  `zenka-startup.v7`, `subroutines.load-early`, `access.zenki`, dep
   manifests), fixed `AF_INET()`/`SOCK_DGRAM()` bareword compile error in
   `transport.handle.udt-tunnel:57` (needs `()` under `strict subs` — see
   precedent `SOCK_STREAM()` in `proxy.listen`/`clients.http.request`),
@@ -124,7 +124,7 @@ since the session never self-reported):
   form — confirms [[feedback-cmd-segment-stripped]] (still needs a
   live end-to-end `p7c credential_fabric.resolve <slot>` test to fully
   close that memory's "verifying" status)
-- `subroutine.white-list` updated with the 3 new module names
+- `subroutines.load-early` updated with the 3 new module names
 **Ready for your sign+stage+commit flow — not yet signed/committed.**
 
 **Fixed and committed 2026-06-08 (`b27ebb655`) — key-holder liveness +
@@ -290,7 +290,7 @@ dismissed as a stale-process false alarm, but it has now recurred
 post-restart — **may be a real, separate bug**: something is routing/
 executing `proxy.template.passthrough` inside the `cred-mesh` zenka. Needs
 investigation: how/why would cred-mesh ever invoke a `proxy.*` module
-locally — check `cred-mesh`'s `subroutine.white-list` (it includes
+locally — check `cred-mesh`'s `subroutines.load-early` (it includes
 `proxy.handler.cred_rotated` per cred-mesh's whitelist line 336 — was this
 copied wholesale from proxy's whitelist, and does cube ever route a
 `proxy.handler.cred_rotated`-addressed message to **cred-mesh** instead of
@@ -330,8 +330,8 @@ scenario 2: 5/5; scenario 3: 2/2. Remaining OOS items: credential_fabric
 no v7 always-on/on-demand registration; on-demand auth 407/pending/approve
 end-to-end not verified.
 
-#,,,,,,..,,,,,.,,,,,,,,,,,,,,,.,.,,..,...,,..,..,,...,...,...,,,,,..,,,,.,..,,
-#GD2GUQDMSZI5CX6MHR4QCEJ4URXELYJKTMKKBFRP7MN7MTUV7EH74UI3GYQCUXGTHV24GPC5FMQUA
-#\\\|BMVEAT6B2P5HMZP2FANM5CKX5DBCR2LD3JSPZ75WB63C7HJYKJE \ / AMOS7 \ YOURUM ::
-#\[7]I5EQSHSFZP7NYQR5IO77Q5FZOI7OLEUO55KLKBYA44P5SAVIJWBQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,,.,,..,..,,...,,.,,,,,,.,,,,,,,..,,...,..,,...,...,,,.,.,.,,..,
+#JIZIWQZWSS2ZRQIQSYE3PHDU4OUPQNTLAFOY2QZDMVZB7QFUFUS6RGDV5YOKAHM73VZS4YDJKGEEU
+#\\\|OA5MV46IE3GHJF47N6BVLGZR3UMLGKQRV5DULYA4252Y7DLBXRE \ / AMOS7 \ YOURUM ::
+#\[7]6O5WHYCBI4EDI6PJGOTPSMWEMFOVPPKCVNE2DBMX4RPCWLHXY4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
