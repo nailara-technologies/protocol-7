@@ -6,8 +6,9 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active Topics
 - [p7-text-formats-landed](topic-p7-text-formats-landed.md) — LANDED: format.kv_block (retired/kept) + format.inline-nested (promoted to base.*, show-access consolidated onto it); OPEN: yaml-config-codegen, reverse perl->p7, comment-preserving config-writer parser
-- [format-code-bugs-fixed](topic-format-code-bugs-fixed.md) — LANDED: 17 bugs/features via dogfooding; applied clean to 11 namespaces incl. base/coding; perltidy-rejoin idempotency gap (3 coding files) + regex-literal safety + jobsite still open
+- [format-code-bugs-fixed](topic-format-code-bugs-fixed.md) — LANDED: 17 bugs/features via dogfooding; applied clean to 13 namespaces/areas incl. base/coding/models/bin; perltidy-rejoin gap + whitespace-column list style + regex-literal safety + jobsite-apply still open
 - [fake-signature-footer-detection](topic-fake-signature-footer-detection.md) — LANDED c5b78611a-adjacent: source.extract_sig_body now catches a sequential-pattern LLM-hallucinated fake footer that slipped past the existing PLACEHOLDER/size-mismatch checks; related session-37 "1 char too long" bug still open
+- [agent-dispatch-worktree-isolation-escaped](feedback-agent-dispatch-worktree-isolation-escaped.md) — FEEDBACK: a nested Agent dispatch with isolation:worktree still corrupted the main working tree (agent's own cd + wrong-commit self-revert); fully recovered via git checkout HEAD, no commits touched; don't trust that isolation mode unverified
 - [perl-mod-reload-redefined-warnings](project-perl-mod-reload-subroutine-redefined-warnings.md) — OPEN bug, unrelated to any content change: cube's `reload perl-mods` doesn't clear old symbol-table entries first, so every sub in a reloaded .pm warns "redefined"; mod-test zenka exists to fix this, not yet done
 - [startup-race-send-before-connect](feedback-startup-race-send-before-connect.md) — LANDED 55abd6848+d6fdc1dc1; recurring bug class, 3 fix shapes, diagnostic technique
 - [strm-subscription-evolution](topic-strm-subscription-evolution.md) — vision: reflection-vector → variable-target/fixed-suffix → STRM → future route-less pubkey channels
@@ -45,8 +46,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [web-browser-value-replay-waypoints](project-web-browser-value-replay-waypoints.md) — LANDED, kimi K3; multi-window fan-out + access.zenki fix
 - [scratchpad-import-tool](topic-scratchpad-import-tool.md), [scratchpad-rescue-coding-zenka-task](topic-scratchpad-rescue-coding-zenka-task.md) — mcp-server-p7 scratchpad tools tested; follow-up task filed w/ kimi K3 for native coding-zenka rescue tools + chmod g+rx fix
 
-#,,,.,,.,,,,,,..,,.,.,.,.,,.,,.,.,.,.,...,.,.,..,,...,...,...,,,,,,,.,...,...,
-#CJTDRDERUTI2IZCIRJ3JLFIC4Y46CTGIASI24LVAPEKCNQGHFTQERGYM2J3R2RQLSLWYIJDYTQK76
-#\\\|V4YEB5WE3EQT5TON6CWWXVJO2SP6GIFUFT7YDAT52G6UJK5W4DP \ / AMOS7 \ YOURUM ::
-#\[7]3CEHQDFNMWGOW3V5X3EN7GLLCTM4TBYDMRRTEZPLK7CWQCH2FOAY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,.,.,,,,,..,,,.,,,.,,,,.,.,,,.,,,..,,...,...,.,.,,..,..,,,,,,,..,
+#AFO6X62W57BEDFGRPK2MQFVXEKTV5WBCG5DR5GVCFFYN6EK4YYOEORSVT3M6KM4HP2ZXXQP3AXWMQ
+#\\\|Z5WU5YO4HFELIL4DJVSCLHMKG7YRKIWLHE3TPEHOY5RYH67W4BG \ / AMOS7 \ YOURUM ::
+#\[7]MI722TJZVEWTW6XTKF35EBBLJY2VGKSC62TARDPWTBXZX5FR4OBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
