@@ -233,29 +233,69 @@ foreach my $fix_id (@fix_ids) {
         next unless $write_ok;
 
         $fix->{'status'} = 'applied';
+        $def->{'stats'}{'applied'}++;
         $applied_count++;
         <[base.logs]>->(
             2,       ':. ncode.cmd.apply: applied %s to %s :.',
             $fix_id, $file
         );
     } else {
-        ## revert ##
+        ## revert -- same chmod-child grant dance as the write path above;  ##
+        ## in practice $content never differs from $original here today [   ##
+        ## verify/step/syntax checks all run before any real write ], but a ##
+        ## future multi-step flow could reach this with a real partial      ##
+        ## write already on disk, so keep it correct                        ##
+        my $revert_ok = 1;
         if ( $content ne $original ) {
-            open my $wfh, '>', $file or do {
+            $revert_ok = 0;
+            my $chmod_fh = <ncode.chmod_child.w_fh>;
+            my $mode_restore;
+
+            if ( -f $file and not -w $file and defined $chmod_fh ) {
+                my $cur_mode = ( stat $file )[2] // 0644;
+                $cur_mode &= 07777;
+                printf {$chmod_fh} "restore %04o %s\n", ( $cur_mode | 0020 ),
+                    $file;
+                <[ncode.chmod_child.readline]>;
+                $mode_restore = $cur_mode if -w $file;
+            }
+
+            if ( -w $file ) {
+                if ( open my $wfh, '>', $file ) {
+                    print {$wfh} $original;
+                    close $wfh;
+                    $revert_ok = 1;
+                } else {
+                    <[base.logs]>->(
+                        0, ':. ncode.cmd.apply: cannot revert %s [ %s ] :.',
+                        $file, $OS_ERROR
+                    );
+                }
+            } else {
                 <[base.logs]>->(
-                    0, ':. ncode.cmd.apply: cannot revert %s :.', $file
+                    0,
+                    ':. ncode.cmd.apply: cannot '
+                        . 'revert %s [ not writable ] :.',
+                    $file
                 );
-                next;
-            };
-            print {$wfh} $original;
-            close $wfh;
+            }
+
+            if ( defined $mode_restore and defined $chmod_fh ) {
+                printf {$chmod_fh} "restore %04o %s\n", $mode_restore, $file;
+                <[ncode.chmod_child.readline]>;
+            }
         }
+
         $fix->{'status'} = 'failed';
         $fix->{'error'}  = $syntax_error if length $syntax_error;
+        $def->{'stats'}{'false_positive'}++;
         $failed_count++;
         <[base.logs]>->(
-            1, ':. ncode.cmd.apply: failed %s [ revert done ]%s :.',
-            $fix_id, ( length $syntax_error ? " [ $syntax_error ]" : '' )
+            1,
+            ':. ncode.cmd.apply: failed %s [ %s ]%s :.',
+            $fix_id,
+            ( $revert_ok           ? 'revert done'        : 'REVERT FAILED' ),
+            ( length $syntax_error ? " [ $syntax_error ]" : '' )
         );
     }
 }
@@ -265,8 +305,8 @@ $summary .= ", $failed_count failed" if $failed_count;
 
 return { 'mode' => 'size', 'data' => $summary };
 
-#,,,.,.,,,.,,,.,,,,,.,.,.,.,.,.,.,.,,,,..,.,,,.,.,...,..,,.,,,,.,,.,.,..,,,,,,
-#TNIDTKJHTH2GBMRNHQC3IL2MXT42CBR5XELYIGCQNNBIJ53IH7JFKUIFDPIZ76GJEFCBA56SUSZN2
-#\\\|LYV7DVPDGLPKMRIPNUAO2M4XZABQLKQ6AMNPCF7433LVWWHC4T3 \ / AMOS7 \ YOURUM ::
-#\[7]EEIFCL6ABL7DTKCTMVPJCR3VFFXARAHPZLK3OCETTENUHMPPL6DA 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,..,.,,,,.,,,.,,,.,,.,,,.,.,,,.,.,.,...,..,,.,,,,.,,,.,,.,.,.,.,
+#MLFV724EWJJJKKNHPWLAZIH4YCGOFPBDX5JPLIGS57NUPGNCJDBEEFPAYHHJXIWAVJVRNSZLX5ZOQ
+#\\\|GJZCI45CBJM3O5MHMETLYWD5OOLQBSFOHRRNLNP5VDTIRBFQF6W \ / AMOS7 \ YOURUM ::
+#\[7]665FXFAALSHBR5JTGQVFODN7VAGJI2P2Y7RARHXI6SU6ZRLSPOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
