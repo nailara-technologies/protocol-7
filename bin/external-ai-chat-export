@@ -52,9 +52,8 @@ my $output = $opt_output
     . strftime( "%Y%m%d-%H%M%S", localtime ) . ".yaml";
 
 ## Ensure directory exists
-system(
-    "mkdir -p /data/backup/external-ai /mnt/ext-xfs-data/backup/external-ai 2>/dev/null"
-);
+system(   "mkdir -p /data/backup/external-ai "
+        . "/mnt/ext-xfs-data/backup/external-ai 2>/dev/null" );
 
 ## Export
 my $export = {
@@ -117,8 +116,8 @@ sub parse_duckai {
     }
 
     unless ( $data && $data->{conversations} ) {
-        die
-            "Could not parse Duck.ai format. Expected 'conversations' array.\n";
+        die "Could not parse Duck.ai format. "
+            . "Expected 'conversations' array.\n";
     }
 
     my @chats;
@@ -202,8 +201,8 @@ USAGE
     exit(0);
 }
 
-#,,,,,...,,,.,,,.,.,.,,,.,...,.,.,,.,,.,.,,.,,.,.,...,...,...,,..,.,,,.,.,,..,
-#IK3RMAHFGLDB5ZH5EOFYPHTE3PQWZWQSGCMNUSJXZOGD7C27IJ7G5FAOXMIFSVZ3EOGPENMGW36T6
-#\\\|QPSOOKR4S6HUHPGJMDIVYSTRFP7RVJXSX7BNHR345PLPZTOHIJB \ / AMOS7 \ YOURUM ::
-#\[7]V6PEWLNPI2NM4AIGGBPLIBKL5R2GWVG7EHLVRW6SVTQ4LGCKIADA 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,..,,,.,,,..,.,,,.,,,.,.,,.,,,.,,.,.,...,...,...,.,,,.,.,,,,,,,,,
+#J3IFML76REGHFGCGZD44RLU3ZUDUK2BP5EM7LG25JVVZRMLRFGKJLHJQIDUE2AIK6YILKGIE5TTTU
+#\\\|6P7KBNAKJSW7RJPSIH3OQU3LO4EUPCEMSRYHASLMKBW3QSHD3IS \ / AMOS7 \ YOURUM ::
+#\[7]BEPUNYDOYDJJ2GATFE2CJWB3QVLJQ4UOYASXH44BJHNWFZNXUCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

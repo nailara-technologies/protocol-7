@@ -2,18 +2,15 @@
 
 ## kimi-task — submit prompt to kimi via p7c with base32r encoding ##
 ##
-## usage:
-##   bin/kimi-task "short prompt here"
-##   bin/kimi-task < prompt-file.txt
-##   echo "prompt" | bin/kimi-task
-##   bin/kimi-task -next "prompt"       ## force fresh session
-##   bin/kimi-task -file task.md        ## read prompt from file
+## usage:  bin/kimi-task "short prompt here"  bin/kimi-task < prompt-file.txt
+## echo "prompt" | bin/kimi-task  bin/kimi-task -next "prompt"       ## force
+## fresh session  bin/kimi-task -file task.md        ## read prompt from file
 ##
 
 use strict;
 use warnings;
 use Crypt::Misc qw| encode_b32r |;
-use Encode qw| encode_utf8 |;
+use Encode      qw| encode_utf8 |;
 
 my $fresh  = 0;
 my $prompt = '';
@@ -80,8 +77,8 @@ printf ":: fresh session: %s\n", $fresh ? 'yes' : 'no';
 ## dispatch ##
 exec $cmd;
 
-#,,.,,..,,,..,.,.,,,.,,,.,..,,,.,,..,,,..,,.,,..,,...,...,...,,.,,.,,,,,.,..,,
-#OIQ4U7VRWPNEW7EMLJ5IDWW5UHJFDAJ34OSSAYR2BDVIGEAZSR2GPXBYT36FEBXPE7XEWXNQIG5TO
-#\\\|4UGN5WPT3RM3LEOVQA3R5WCCA62S5CZF4COEO2DZBM52DFR3CJZ \ / AMOS7 \ YOURUM ::
-#\[7]VX5CQCQANKW6FVH3AOS3SC7WLLLMCDTHDLN75UYSUF3MCDJQ72BA 7  DATA SIGNATURE ::
+#,,..,...,,.,,..,,,..,,..,,,,,,.,,,.,,..,,...,..,,...,...,..,,,,,,,,.,...,,..,
+#GMIH334VRH2SPS2PGTV2ELLABQUAKI5GOR2LFLP2WM7O4YFEXGU6GPV7ARCCONSNW5M6FRDNEF6FQ
+#\\\|XTXT4ZDEZM6CKHGY7FMLBOSLXNMGARITYXUOYA7U5ZS3DDHFL23 \ / AMOS7 \ YOURUM ::
+#\[7]EFG4E3KC7BUAKX7SHAI5AZLVJCIHUZVWHV62ZT6XJVAONIS76ICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
