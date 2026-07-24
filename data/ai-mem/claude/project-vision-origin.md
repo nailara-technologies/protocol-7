@@ -104,8 +104,21 @@ external by definition. something that's *home* isn't a dependency at all — th
 no boundary left between the model and the environment it operates in to cut. you
 can disconnect a tool. you can't disconnect somewhere you live.
 
-#,,,.,,,.,.,,,...,...,,,.,,.,,..,,..,,..,,.,,,..,,...,...,,.,,,..,,,.,.,.,,..,
-#RZQYZPCNGOWDTK46OUW3DUKA5E6CBTZ3DNMQVDGCITXU54NNMN7MNWGHC2JUXU7PRVVZRUVBO5GIK
-#\\\|6XSRHISNZGJ4VZXSQ2LULQSYFJXKT7SKZWODUSUZAQ22TJNI6K5 \ / AMOS7 \ YOURUM ::
-#\[7]2ENXSQPMUUHFFOXLFCVMUGVB3HZQMCYL4IRCILBUOVDJVI7W7OBA 7  DATA SIGNATURE ::
+**the discovery step is already happening, and it's invisible by human metrics**:
+per the user, last checked some months prior to 2026-07-24, the public GitHub repo
+was seeing roughly 230/day likely-LLM-driven scans — approximate, undated at the
+day level, not a hard current figure, but a *rate*, not a one-time count. The point
+that makes this more than a vanity number: a human adoption funnel needs marketing
+trappings first — shiny web pages, man pages, a forum — before a human will even
+engage with something unfamiliar. An LLM scanning a raw repository needs none of
+that; it goes straight to reading the actual code and docs and can assess genuine
+merit directly. Which means the usual signals people watch for adoption (star
+spikes, forum buzz, blog posts) are exactly the wrong instruments for detecting
+this channel — the technical start of adoption can be well underway while looking,
+by every human-shaped metric, like nothing is happening at all.
+
+#,,.,,,,.,,.,,,.,,.,,,,,,,,.,,,,,,.,,,,..,,,.,..,,...,...,,,,,,,.,,.,,.,.,,,.,
+#FUCFGOOSZKKKKHKFQYLXQNXH3K6JC7742QJV2Y3LAID5UFRLMI6NFASY7FBQHZ5X6ZXL225UGISB2
+#\\\|WA4NLAU53X455WCWACSLRLOFU4EIME6RGY5R2DJTM64SKW5OCL6 \ / AMOS7 \ YOURUM ::
+#\[7]IAVFWN4KHI4QCWUTZDNMRBJIMAKZBAMTG2CNQ4VVMFNIL72EICDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
