@@ -10,6 +10,7 @@ network-as-computer, dedup-tree unification, coding-as-artform / style-philosoph
 - [dynamic-dependency-resolution](topic-dynamic-dependency-resolution.md) — local-capability-first, then preference match, then discovered capability chains
 - [decision-node-polarity-geometry](topic-decision-node-polarity-geometry.md) — seed: polarity node = reference-bubble's 5-of-7; not yet reconciled w/ node-group-geometry
 - [write-access-security-infrastructure](topic-write-access-security-infrastructure.md) — signature-gated approvals, PIN auth, review UI; design-only
+- [key-recovery-flexible-recreatability](topic-key-recovery-flexible-recreatability.md) — C25519 recovery via re-derivability not backup; duress/decoy passphrases; key-archive steganography boundary; superseded by `PRIVACY-PRESERVING-IDENTITY-CREDENTIALS.md`'s parent/child signed-key hierarchy + mode-A/B credential upgrade
 - [zenka-crypto-identity-survey](project-zenka-cryptographic-identity-survey.md) — all trust roots to per-user C25519 key; no per-zenka identity concept yet
 - [cross-host-trust-bootstrap-gap](project-cross-host-trust-bootstrap-gap.md) — confirmed no doc solves cross-host-no-shared-cube; jobs-sync chosen as pilot; SIGNED-COMMAND-INTERFACE.md has closest reusable TOFU shape
 - [multidimensional-identity-session-topology](topic-multidimensional-identity-session-topology.md) — roots are multi-perspectival (single-root vs every-key-a-root), everything incl. network identity may be a session, known links = routing shortcuts
@@ -38,8 +39,8 @@ network-as-computer, dedup-tree unification, coding-as-artform / style-philosoph
 - [zenka-name-routing-modes](topic-zenka-name-routing-modes.md) / `data/tasks/zenka-name-routing-modes.md` in repo — per-zenka routing_mode (default contact-oldest) + permissioned session-scoped admin override commands for bare-name ambiguity; idle-longest = free worker-pool load balancing
 - [subname-not-a-trust-domain](topic-subname-not-a-trust-domain.md) — user[taeki]/user[claude]/user[root] scoped/severity-judged per resolved name[subname] pair, same as distinct top-level zenka names; bare-name grants implicitly span every subname beneath
 
-#,,..,..,,..,,,.,,,,,,.,,,,,,,,,,,,..,,..,,..,..,,...,...,.,,,.,.,,,,,..,,.,,,
-#5CS7RZSVTJMJMBSBMRIWYCZF6LZ6OCCJE6ABAIVJYSWOLK5A7XO45URZBSVFLK736LXJNA3634E72
-#\\\|IJGQRC274EZFV5QMCGVNL3KJDUQOXZAMUV5HGMJERXDQUDPB6UX \ / AMOS7 \ YOURUM ::
-#\[7]MT7YQMKSFVGU3M7T5U3YKTIPNNVIEHPW6ZQAFFDVQGEXUYGSCUBY 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,..,,,..,.,,,...,...,,,.,,,.,,,.,..,,...,...,..,,,..,,,.,,.,,.,.,
+#MKDVXVAB3EPBYIVLMVJZ35KDXV7O6KZQXZ7UYNTPWD3K6SMR3TU4354VQ353PEJUU32DIEUY3YZQE
+#\\\|X62JBM3GENU7LTRAWL5U4UQS7FLV6U6N3GRUIHD5RCYM7XB32UW \ / AMOS7 \ YOURUM ::
+#\[7]H7TZLSBEWFSL5NBOSCVTEHAWSGVRFFTNUYJ7NNZKI36LKSELMODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
