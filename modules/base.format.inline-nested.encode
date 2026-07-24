@@ -32,8 +32,8 @@ foreach my $pair (@pairs) {
 my $pad = ' ' x ( $max_len + 2 );    ## separator column [ dot above ':' ] ##
 my $w_prefix = $pad . ':  ';         ## continuation line prefix
 
-## inline framing adds ' ' x $nest . ':  ' on top of every line -- reduce
-## the wrap width up front so the final physical line stays <= 78 cols ##
+## inline framing adds ' ' x $nest . ':  ' on top of every line -- reduce ##
+## the wrap width up front so the final physical line stays <= 78 cols    ##
 my $use_inline
     = defined( $opts->{inline_path} )
     && length( $opts->{inline_path} )
@@ -55,11 +55,11 @@ foreach my $pair (@pairs) {
     $value //= '';
     next unless $key =~ m|^[\w\-\.]+$|;    ## strict key charset
 
-    ## lone dot line opens the entry [ survives blank stripping ]; a
-    ## trailing bare ':' closes it, symmetric with the opening dot. A
-    ## genuine blank line between entries is a separate, independent
-    ## concern [ readability separator, not structural -- same lesson as
-    ## the container's own trailer-boundary blank vs. its payload ] ##
+    ## lone dot line opens the entry [ survives blank stripping ]; a     ##
+    ## trailing bare ':' closes it, symmetric with the opening dot. A    ##
+    ## genuine blank line between entries is a separate, independent     ##
+    ## concern [ readability separator, not structural -- same lesson as ##
+    ## the container's own trailer-boundary blank vs. its payload ]      ##
     $block .= "\n" unless $first_entry;
     $first_entry = 0;
     $block .= $pad . ".\n";
@@ -99,10 +99,9 @@ foreach my $pair (@pairs) {
     $block .= join '', map { $_ . "\n" } @out_lines;
 }
 
-## bare / standalone form ##
-## header may be a strict dot-path [ machine key ] or a free-form title
-## [ human alias, resolved to a key path by a higher layer ] -- either way
-## it's a single line with no embedded newline ##
+## bare / standalone form  header may be a strict dot-path [ machine key ] ##
+## or a free-form title [ human alias, resolved to a key path by a higher  ##
+## layer ] -- either way it's a single line with no embedded newline       ##
 my $result;
 if ( not $use_inline ) {
     $result = $block;
@@ -119,22 +118,22 @@ if ( not $use_inline ) {
         = ( $indent . '.:[ ' . $opts->{inline_path} . ' ]:.', $indent . ':' );
     push @framed,
         map { length $_ ? $indent . ':  ' . $_ : $indent . ':' } @body;
-    ## unconditional trailer-boundary marker [ empty trailer -- none
-    ## defined yet -- immediately followed by the footer signals
-    ## "no trailer" ] ##
+    ## unconditional trailer-boundary marker [ empty trailer -- none ##
+    ## defined yet -- immediately followed by the footer signals "no ##
+    ## trailer" ]                                                    ##
     push @framed, $indent . ':', $indent . ':.';
 
     $result = join '', map { $_ . "\n" } @framed;
 }
 
-## opt-in terminal/SIZE-reply padding [ off by default -- a leading and
-## trailing blank line is a display convention for top-level command
-## output, not part of the serialized structure; leave it off so nested/
-## embedded/file-written blocks don't accumulate display-only cruft ] ##
+## opt-in terminal/SIZE-reply padding [ off by default -- a leading and  ##
+## trailing blank line is a display convention for top-level command     ##
+## output, not part of the serialized structure; leave it off so nested/ ##
+## embedded/file-written blocks don't accumulate display-only cruft ]    ##
 return $opts->{pad_lines} ? "\n" . $result . "\n" : $result;
 
-#,,..,,..,,.,,..,,,.,,...,,,.,.,,,,,.,...,..,,..,,...,.,.,...,,.,,.,,,...,,.,,
-#QVN3NXNHVQ6ZLD2AIS5SWW2ED5TFCHR6LNMEXHNWCX44R6DR2XEWE4QXSV4JL2UPZJEAG3XNGYW7Y
-#\\\|N3YICYMGVWLB7RKRTFSAN3IZ75PFWFCPR5QWHMSQQIKB45N34I6 \ / AMOS7 \ YOURUM ::
-#\[7]ALKBWMGCMB4CZGNB6M2WINDTTBRHNVFDAZDKKX5DZAPVWS7E7CCY 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,.,,,.,,,..,,,,,,,.,,.,,.,.,,,.,..,,...,...,.,,,,.,,,..,,..,..,,
+#XGQRZ7IBRZJDRCCH7Y4DUWSZPQLWABDI2JYQCQ4TX5F3I6SDTWBL55EITDPND6OYQK243I7P5M2XE
+#\\\|CF4PRUC4JWBZJNXVBEIV26K2ARIKSEJDMO5JKXDNS6ZTWZH6JCL \ / AMOS7 \ YOURUM ::
+#\[7]PIFMETUJDGYB3JJDEJOPPXMIZSXD5BYHB7M6SZO755W2MNB7P2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

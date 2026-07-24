@@ -35,8 +35,8 @@ my $plaintext = $$output_ref;
 $session->{'link_write_counter'} //= 0;
 $session->{'link_write_counter'}++;
 
-## Generate message-specific nonce for this write
-## Format: 4-byte session_id + 4-byte counter + 4-byte zeros = 12-byte nonce
+## Generate message-specific nonce for this write  Format: 4-byte session_id +
+## 4-byte counter + 4-byte zeros = 12-byte nonce
 my $session_bytes = pack qw| N |, $session_id;
 my $counter_bytes = pack qw| N |, $session->{'link_write_counter'};
 my $nonce         = $session_bytes . $counter_bytes . qq|\0\0\0\0|;
@@ -66,14 +66,14 @@ if ( my $error = $EVAL_ERROR ) {
     return '';
 }
 
-## Return ciphertext with authentication tag appended
-## Tag is automatically included in the ciphertext by encrypt_done()
+## Return ciphertext with authentication tag appended  Tag is automatically
+## included in the ciphertext by encrypt_done()
 return $ciphertext // '';
 
 1;
 
-#,,,,,..,,.,,,,.,,...,,,,,.,,,,..,,..,,.,,.,,,.,.,...,...,.,,,...,,,.,,,,,...,
-#PTP5ZXQ7M5SPHPAO5FLUOZE3SU3JOBCQUWYOSTYKUMB2QUR7NVWMRSYA65WL5PTXSN27FVXNZ5LTI
-#\\\|LQ2VJ4472TYGMSSF2HJ4HEMAPTAJF4U7MHFNTZTN52LVYNZS3BW \ / AMOS7 \ YOURUM ::
-#\[7]F7LTIADY7RZIMWRHDENIUKN3QEADGFGGJLUG5EYOJQGQMMY3OCDY 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,...,,.,,,.,,,..,...,,,.,,..,.,.,.,.,...,.,.,...,..,,.,.,..,,...,
+#7CWX2FFCCR4YZO4F334HMTMWCA5KNKXN2BNHMFXLQLQGD2YFLWAD62KUOZTMAT6AE2JKUMXYWXM76
+#\\\|CDRNUOORMD2NXT5IKZPMYWPPHALUW6VL57O5JL3JW7I3MLJLL2J \ / AMOS7 \ YOURUM ::
+#\[7]HQG6GUFICCRNZP3M3A7H5KWL5THXEILECEKT7DV2IHZNZEPRAUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

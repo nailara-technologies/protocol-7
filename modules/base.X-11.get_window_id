@@ -70,8 +70,8 @@ if ( $reply_string =~ /^\($cmd_id\)SIZE (\d+)\n$/ ) {
         sleep 0.1                   if $bytes_to_go and !$read_bytes;
     }
     my $lines = $buffer_string =~ /\n/;
-    warn
-        "[!] found more than one matching window, please fix the name pattern!"
+    warn "[!] found more than one matching "
+        . "window, please fix the name pattern!"
         if $lines > 1;
     <x11.id> = $1 if $buffer_string =~ /^([^ ]+) /;
     <[base.log]>->( 1, ": received X window id '" . <x11.id> . "'.." );
@@ -81,8 +81,8 @@ if ( $reply_string =~ /^\($cmd_id\)SIZE (\d+)\n$/ ) {
     return undef;
 }
 
-#,,.,,...,.,,,.,,,,..,,..,,,,,,.,,,,.,...,.,.,..,,...,..,,...,.,.,,..,,,.,,..,
-#44HBCZYNK7I2M2VHAHVGAF6SNYBBMYTC5WRXYQXDQ4O7C464J76LYZSRSVHI5RGLWO2RUH3B6S6DE
-#\\\|5PO6YGUIVRGLBQS5KTNDNE5GLLIWEG2B43NEWWCL7OWKS3XBMFI \ / AMOS7 \ YOURUM ::
-#\[7]QYIERKOKVA5DUR2GK7NRWLLHIMHMHZKIWXEXGOB4I2SJ4HAGW6CY 7  DATA SIGNATURE ::
+#,,,.,...,,,.,,,.,.,,,...,.,,,,,.,,,,,,.,,,..,..,,...,...,.,.,.,.,,,,,...,.,.,
+#54EPWBZCACUCHDA7HFT26WVEZUO7FPUWVUJ372Y3CL2565SRPGFRC7UCDLVMCG6HR2WKNF6DMQIP6
+#\\\|2MLMNFZQ47AXZEAYYEXEXCLQW5MYDSGRD7XJEB5U2PHGLMAQ7M6 \ / AMOS7 \ YOURUM ::
+#\[7]ERAMUMBNJJPXX3ULDDA6JULTTMFNKUM4ZB4JATWUBOJ3T534ZGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

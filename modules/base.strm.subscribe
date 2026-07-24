@@ -59,8 +59,8 @@ if ( defined $params->{'args'} ) {
         : ( $params->{'args'} );
 }
 
-## validate : plain zenka name + single-segment command and notify     ##
-## suffix [ no dots, ever ], whitespace-free argument tokens           ##
+## validate : plain zenka name + single-segment command and notify suffix [ ##
+## no dots, ever ], whitespace-free argument tokens                         ##
 my $valid_name = qr|^[A-Za-z0-9][A-Za-z0-9\-\_]*$|;
 
 if ( $publisher !~ $valid_name ) {
@@ -78,8 +78,8 @@ if ( $command !~ $valid_name ) {
 if ( $handler !~ $valid_name ) {
     <[base.logs]>->(
         0,
-        'strm.subscribe : handler must be a bare command suffix'
-            . ' [ %s rejected : dots not allowed ]',
+        'strm.subscribe : handler must be a bare command '
+            . 'suffix [ %s rejected : dots not allowed ]',
         $handler
     );
     return FALSE;
@@ -132,9 +132,9 @@ if ( defined <base.strm.subscribe.registry>->{$key} ) {
     'last_attempt'  => 0,
 };
 
-## own cube session not up yet [ init_code context ] : defer the first  ##
-## attempt to the <system.callbacks.initialized> hook instead of        ##
-## guessing a fixed delay                                               ##
+## own cube session not up yet [ init_code context ] : defer the first      ##
+## attempt to the <system.callbacks.initialized> hook instead of guessing a ##
+## fixed delay                                                              ##
 if ( not <system.zenka.initialized> ) {
     <base.strm.subscribe.registry>->{$key}->{'deferred'} = TRUE;
     push @{ <system.callbacks.initialized> //= [] },
@@ -144,8 +144,8 @@ if ( not <system.zenka.initialized> ) {
 
 return <[strm.subscribe.attempt]>->($key);
 
-#,,..,,.,,..,,,,.,,,.,,.,,.,,,,,.,,,,,...,,,,,.,.,...,...,,.,,,,,,.,,,,,,,,..,
-#GZW57JP7NQT3TO5JRE6HXU7QGKEHAAXMUAHVSX3N7EOEBRVWB3XUD3EXPTLDTXCBN76I4G37T5CHG
-#\\\|BHRUG4LL7ERXMZYOXWEN37EWVLJKSBFPB3UIPNR2P6NOUDWPFCZ \ / AMOS7 \ YOURUM ::
-#\[7]ANY6TKLTEYOTZHX2O37KX4YVIEUOYZGIIQUMU4JGM26J23JP2YAI 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,..,,.,,..,,.,,,,,.,,..,.,,,,,,,.,.,...,...,.,.,..,,,.,,...,,..,
+#AFVNCKDILZIRPMLHIH6ZMSYDIP5JEHSN46LV3IOELPF4LILM4IIH4UBYW7Z54PVS3CRGGNICYLVQC
+#\\\|QN2CASBPZH4GVSFQ4HFHVM3INDTQ3NMK3H3DFCT34I2MKPXIWWI \ / AMOS7 \ YOURUM ::
+#\[7]JFGFWJ7JGET3QWLUMPAKFQ3VYBFGM4P5NII3ZQ7UFFVZSWRGUEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

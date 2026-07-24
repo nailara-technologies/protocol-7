@@ -63,13 +63,13 @@ if ( not length( $user // '' ) ) {
     my %_gid = map { $ARG => TRUE } split( ' ', $GID );
     my %egid = map { $ARG => TRUE } split( ' ', $EGID );
 
-    ## resolve secondary groups  [ explicit only if primary override,
-    ##                                      or auto-detect | explicit ]
+    ## resolve secondary groups  [ explicit only if primary override, or
+    ## auto-detect | explicit ]
     my @secondary_gids;
 
     if (@groups_list) {
         ## process explicit group parameters  [ always used, replaces
-        ##                                                auto-detect ]
+        ## auto-detect ]
         for my $gname (@groups_list) {
             ## handle colon-separated groups within single parameter
             my @gnames = split m{:}, $gname;
@@ -89,8 +89,8 @@ if ( not length( $user // '' ) ) {
             }
         }
     } elsif ( !defined $override_primary_group ) {
-        ## auto-detect secondary groups from group membership
-        ##                          [ only when no primary group override ]
+        ## auto-detect secondary groups from group membership  [ only when no
+        ## primary group override ]
         while ( my ( $_name, $_pw, $_gid, $_members ) = getgrent ) {
             push( @secondary_gids, $_gid )
                 if ( grep( $ARG eq $user, split( m|\s+|, $_members ) ) );
@@ -119,10 +119,10 @@ if ( not length( $user // '' ) ) {
             2, "< drop_privs > already '%s', doing nothing.", $user
         );
 
-        ## recording confirmed identity [ same as the real-drop branch ##
+        ## recording confirmed identity [ same as the real-drop branch    ##
         ## below ] - downstream owner-checks [ file.zenka_dir.write etc ] ##
-        ## expect this to be set whenever we genuinely run as $user,     ##
-        ## whether or not an actual privilege drop happened ##
+        ## expect this to be set whenever we genuinely run as $user,      ##
+        ## whether or not an actual privilege drop happened               ##
         <system.zenka-user.current> = $user
             if not defined <system.zenka-user.current>
             or $user ne <system.zenka-user.current>;
@@ -248,8 +248,8 @@ if ( not length( $user // '' ) ) {
                 if not defined <system.zenka-user.current>
                 or $user ne <system.zenka-user.current>;
 
-            ## recording selected primary-group override [ used by   ##
-            ## check-zenka-paths / zenka_dir.write gid-override logic ]
+            ## recording selected primary-group override [ used by      ##
+            ## check-zenka-paths / zenka_dir.write gid-override logic ] ##
             <system.zenka-group.current> = $override_primary_group
                 if defined $override_primary_group;
 
@@ -270,8 +270,8 @@ if ( not length( $user // '' ) ) {
     }
 }
 
-#,,.,,...,,,.,...,...,.,.,...,.,.,.,.,,,.,,,,,..,,...,...,,.,,,,.,.,.,...,,,,,
-#BXKTZLD46VSF3NFU26HKYRZXSRIKLVBKKXLOOUQVAGAWJBNBW45E5FLRJJS3IFOUJ7XNHBGO2DOQY
-#\\\|IGF44FCSYTGSQXKGND3W37GBKCGIJ72NA6MJQ5NRCZ2QP3PQTCO \ / AMOS7 \ YOURUM ::
-#\[7]LFFAWKHVFSJVH67AWHVT7QD62ME65VZVHIB6WXK45YQZXEOL2KDI 7  DATA SIGNATURE ::
+#,,..,.,,,,..,...,.,,,,.,,...,...,.,.,.,,,..,,..,,...,...,..,,,..,.,,,.,,,.,,,
+#4VDMP7EALPC7M3I5UVVWUZZ3SSISSE2HAPTISNP66LMFP22NLNH5YN7LAI6TSK5UGO6FE6GWR5XEE
+#\\\|OPPABJH5AN4BDQK55A2CGSOBHJXE5AZDNGQQ25IW4EVZENJTPRV \ / AMOS7 \ YOURUM ::
+#\[7]6CXNMZT2T2LUT6M2TRZUGPNK6XWLCENNMSSSG2DSS43QRPGS2SCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

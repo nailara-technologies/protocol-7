@@ -20,11 +20,11 @@ my $cube_fh = $data{'session'}{$local_sid}{'handle'};
     $cube_fh, "($cmd_id)tile.get_subconfig $name_str\n"
 );
 
-## bounded wait for the reply : tile answers this immediately when alive    ##
-## [ from its own <tile.subconfig> ], so silence here means tile is offline  ##
-## or stuck. without the timeout the readline blocks the event loop forever  ##
-## -> zenka start-up timeout. on timeout return undef so the caller falls    ##
-## back to defaults. each received line re-arms the wait. configurable.      ##
+## bounded wait for the reply : tile answers this immediately when alive [  ##
+## from its own <tile.subconfig> ], so silence here means tile is offline   ##
+## or stuck. without the timeout the readline blocks the event loop forever ##
+## -> zenka start-up timeout. on timeout return undef so the caller falls   ##
+## back to defaults. each received line re-arms the wait. configurable.     ##
 my $read_timeout = <x11.subconfig_read_timeout> // 3;
 my $fd_mask      = '';
 vec( $fd_mask, fileno($cube_fh), 1 ) = 1;
@@ -85,16 +85,14 @@ if ( $reply_string =~ m|^\($cmd_id\)SIZE (\d+)\n$| ) {
     return undef;
 } else {
     <[base.logs]>->(
-        1,
-        "[ protocol mismatch ] not expected reply"
-            . " from tile zenka ['%s']",
+        1, "[ protocol mismatch ] not expected reply from tile zenka ['%s']",
         $reply_string
     );
     return undef;
 }
 
-#,,,,,..,,,,.,...,,,,,,..,,,.,,,.,,..,,..,,,.,..,,...,...,,..,.,,,.,.,,,.,.,.,
-#NA57I3TWBSPUTM7YJOHVVTKCNHPDI4IDVY4QFD7ZHHF7JGDABYXILBOPPVH2TCV7PME22FNQZFBDQ
-#\\\|IGGILW4QY7U4YYAZKQFPXANZYNX2JXNZU46VYLO27PWNWLLUPVC \ / AMOS7 \ YOURUM ::
-#\[7]73EGXHTCX3LHH6XPDP6IUJHX7W7HBRJZADTMJOXTN7FJOKTRDODI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,..,,...,,.,,..,,...,..,,,,.,.,.,..,,...,...,,,,,,..,,,.,...,,..,
+#UG4Z5KCPO6TCPZ564DEKZVHZ62OHWP3E422DJCXZBKUC7IQOSJZCLOAEGURRW6RW2YN4I543SHXLU
+#\\\|HQCDA36R5ECQLPLH5DBNUK7W2DV3K7EI6V6YTT3BCTSVVRBD7UC \ / AMOS7 \ YOURUM ::
+#\[7]VOE6YEXWHUV7LMHFQZ5R3BN7I6ZWH2KEL52PKFDOCU2BC53L3MCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,20 +8,20 @@
 
 my $block = shift // '';
 
-## inline-wrapped input : strip header, footer and per-line framing ##
-## keep the pre-strip physical lines too -- wrap-vs-free-format          ##
-## classification below must judge against the ORIGINAL line length     ##
-## [ what encode actually constrained to 78 cols ], not the shorter,    ##
-## post-strip length, or reconstruction misclassifies wrapped content   ##
-## as free-format once the outer ':  ' framing overhead is removed      ##
+## inline-wrapped input : strip header, footer and per-line framing keep    ##
+## the pre-strip physical lines too -- wrap-vs-free-format classification   ##
+## below must judge against the ORIGINAL line length [ what encode actually ##
+## constrained to 78 cols ], not the shorter, post-strip length, or         ##
+## reconstruction misclassifies wrapped content as free-format once the     ##
+## outer ':  ' framing overhead is removed                                  ##
 my $inline_path;
 my @frame_lines = split m|\n|, $block, -1;
 my @orig_lines  = @frame_lines;
 my $start       = 0;
 $start++ while $start <= $#frame_lines
     and $frame_lines[$start] =~ m|^\s*$|;
-## header content : strict dot-path or free-form title [ human alias ] --
-## either way, greedy match resolves to the rightmost ' ]:.' delimiter ##
+## header content : strict dot-path or free-form title [ human alias ] -- ##
+## either way, greedy match resolves to the rightmost ' ]:.' delimiter    ##
 if (    $start <= $#frame_lines
     and $frame_lines[$start] =~ m|^ *\.:\[ (.+) \]:\.\s*$| ) {
     $inline_path = $1;
@@ -43,7 +43,7 @@ if (    $start <= $#frame_lines
 my @lines = @frame_lines;
 
 ## entry boundaries : lone dot lines at the separator column [ primary ] ##
-## blank lines between entries are optional and carry no structure      ##
+## blank lines between entries are optional and carry no structure       ##
 my $dot_re = qr|^( +)\.$|;
 my $dot_col;
 foreach my $line (@lines) {
@@ -68,9 +68,9 @@ my $recon_para = sub {    ## wrapped vs free-format reconstruction ##
     foreach my $i ( 0 .. $#{$para} - 1 ) {
         my ($next_word) = grep {length} split m|\s+|, $para->[ $i + 1 ][1];
         $next_word //= '';
-        ## next word would have fit -> break not forced -> free-format ##
-        ## [ Text::Wrap reserves one column : max text = columns - prefix - 1,
-        ##   so a word fits iff physical_len + 1 + word_len <= 78 - 1 ]
+        ## next word would have fit -> break not forced -> free-format [  ##
+        ## Text::Wrap reserves one column : max text = columns - prefix - ##
+        ## 1, so a word fits iff physical_len + 1 + word_len <= 78 - 1 ]  ##
         if ( $para->[$i][0] + 1 + length($next_word) <= 78 - 1 ) {
             $wrapped = 0;
             last;
@@ -135,8 +135,8 @@ return
     ? { inline_path => $inline_path, pairs => \@pairs }
     : \@pairs;
 
-#,,,.,.,.,.,.,,,.,,.,,,,,,,,,,..,,.,,,,,.,,.,,..,,...,...,,..,,.,,.,.,..,,..,,
-#AFI7YPYDUVCOBSKQNAPPWCCB6YQAIDLYU5N5DKSKHABZ4WY2AGJVR5ICROVD5I6NF7EXOSTSPNALM
-#\\\|TV7UOPRPEC7CKZAN5232GERRRYRVYTOVTOEPYIXBBJ4HTYXMMTY \ / AMOS7 \ YOURUM ::
-#\[7]S3AC75VDNNZDUW7HCN2EHB6BUE6OZWOPAXYRJXOB4MGGAQ7NSSDI 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,.,,,,,.,..,,.,,,,,.,.,,,,..,,..,..,,...,...,...,,.,,,,,,,,.,.,,,
+#J7WPZGKPKGELP7DO4NGZEDEU5G5H3WBVX7EX3N75ZRWQ2C3K35QBVKLPNE543JDWFGIQSSGYKNUUC
+#\\\|SKDJGJGKRH6GSN2RKWPIO4YIM6I6GJFJXFQRNRLY6DSGPM3XZIS \ / AMOS7 \ YOURUM ::
+#\[7]5WCGJJJEP26FRMDQA3SAQOLDOL2ATFOMRQAAODVNFE2FUMQ3L2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

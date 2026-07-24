@@ -7,10 +7,12 @@
 my $input = shift;
 my $digest_bin;
 
-if (ref($input) && $input->can('digest')) {
+if ( ref($input) && $input->can('digest') ) {
+
     # BMW context object - get digest
     $digest_bin = $input->digest;
 } else {
+
     # Already a binary digest
     $digest_bin = $input;
 }
@@ -22,8 +24,8 @@ return encode_b32r($digest_bin);
 #Eliminates code duplication of the encode_b32r($bmw_ctx->digest) pattern
 #
 
-#,,..,,,.,,..,,..,...,.,,,,,,,.,.,..,,,.,,,.,,..,,...,...,,,.,.,.,.,,,..,,,,.,
-#ZBJOIUSH2AIV3CAVAYFK2RMOXPXJQDZ33R6T3G73IHOE3UUYVVXXTMV7RXLCVCWAGC47CMQSXC7XM
-#\\\|HNSTBCU6SRBCCWPPSDPYPBHUT7WA7NHBEEINAI75H3RXDJ3WIHR \ / AMOS7 \ YOURUM ::
-#\[7]6QUTXAQO73QZ4ZOCEWW3SUND3GFLMJSHOSGPENFR6JII7EY7F2BY 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,.,,..,,.,,,...,,,,,,,.,.,,,.,.,..,,...,...,...,,.,,.,,,.,,,,..,
+#Y5TI6U3S7J7HBMODOILJ7NQEBC6YT5UKP2XWYAWGDHRWEW4MVULAZJAEAINPJAFY5C7EHYFQDRH52
+#\\\|SCM4RSAXRSYGC43CEXKUSGDP7JFGTTMLJLRWXVAFF3G6CGNDYFN \ / AMOS7 \ YOURUM ::
+#\[7]7EPJUOKKQULUBBEHP4NOV5EMCLTRS57HIL4HELCQLQUAMOK5E4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

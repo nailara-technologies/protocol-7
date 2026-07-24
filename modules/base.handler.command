@@ -19,8 +19,8 @@ my $user    = <[base.session.user]>->($id);
 my $input  = \$session->{'buffer'}->{'input'};
 my $output = \$session->{'buffer'}->{'output'};
 
-## Use bytes::length() for accurate byte count on input buffer
-## Critical for SIZE mode protocol where buffer may contain UTF-8 characters
+## Use bytes::length() for accurate byte count on input buffer  Critical for
+## SIZE mode protocol where buffer may contain UTF-8 characters
 my $buffer_length = bytes::length( $input->$* );
 
 my $cmd    = '';
@@ -111,7 +111,7 @@ if ( defined $session->{'ignore_chars'} ) {
 ##  stop the watcher to modify buffer without re-triggering  ##
 $event->w->stop;
 
-##[ STOP TIMER \ ONDEMAND TIMEOUT ]##########################################
+##[ STOP TIMER \ ONDEMAND TIMEOUT ]###########################################
 
 # cancel ondemand timeout [ reinstalled in idle watcher ]
 if ( defined <base.timer.ondemand_timeout> ) {
@@ -268,7 +268,7 @@ elsif ( $input->$* =~ m,^((\($re->{cmd_id}\)|) *SIZE +(0*\d+)\n),o
     return 1;            ## command not complete ###
 }
 
-##[ RETURN \ INCOMPLETE 'STRM-SIZE' CHUNK DATA ]###############################
+##[ RETURN \ INCOMPLETE 'STRM-SIZE' CHUNK DATA ]##############################
 
 ## incomplete STRM-SIZE chunk data ##
 
@@ -276,7 +276,7 @@ elsif ( $input->$* =~ m,^((\($re->{cmd_id}\)|) *STRM-SIZE +(\d+)\n),o
     and $buffer_length - bytes::length( ${^CAPTURE}[0] )
     < 0 + ${^CAPTURE}[2] ) {
 
-    ## chunk header present but data incomplete - switch to bytewise ##
+    ## chunk header present but data incomplete - switch to bytewise        ##
     ## bytes-to-read is what's still MISSING, not the full declared size -- ##
     ## the header's already-buffered payload bytes must be subtracted or    ##
     ## read_bytewise over-reads by that amount and desyncs the next frame   ##
@@ -289,7 +289,7 @@ elsif ( $input->$* =~ m,^((\($re->{cmd_id}\)|) *STRM-SIZE +(\d+)\n),o
     return 1;            ## command not complete ###
 }
 
-##[ RETURN \ INCOMPLETE 'STRM' CHUNK DATA ]####################################
+##[ RETURN \ INCOMPLETE 'STRM' CHUNK DATA ]###################################
 
 ## incomplete STRM chunk data ##
 
@@ -297,7 +297,7 @@ elsif ( $input->$* =~ m,^((\($re->{cmd_id}\)|) *STRM +(\d+)\n),o
     and $buffer_length - bytes::length( ${^CAPTURE}[0] )
     < 0 + ${^CAPTURE}[2] ) {
 
-    ## chunk header present but data incomplete - switch to bytewise ##
+    ## chunk header present but data incomplete - switch to bytewise        ##
     ## bytes-to-read is what's still MISSING, not the full declared size -- ##
     ## the header's already-buffered payload bytes must be subtracted or    ##
     ## read_bytewise over-reads by that amount and desyncs the next frame   ##
@@ -310,7 +310,7 @@ elsif ( $input->$* =~ m,^((\($re->{cmd_id}\)|) *STRM +(\d+)\n),o
     return 1;            ## command not complete ###
 }
 
-##[ RETURN \ INCOMPLETE 'CHRSIZE' REPLY ]######################################
+##[ RETURN \ INCOMPLETE 'CHRSIZE' REPLY ]#####################################
 
 ## incomplete CHRSIZE reply ##
 
@@ -378,8 +378,8 @@ elsif ( $input->$*
         and $cmd !~ m,^(\($re->{cmd_id}\)|) *(unselect|basepath)$,
         and $cmd !~ s,^(\($re->{cmd_id}\) *| *)\.\.($re->{cmdrp}|),$1$2,;
 
-    ##  ^ commands prefixed with '..' mean 'parent' to 'select'ed base_path
-    ##  'unselect' and '..' are synonymous, they reset the base_path to ''
+    ## ^ commands prefixed with '..' mean 'parent' to 'select'ed base_path
+    ## 'unselect' and '..' are synonymous, they reset the base_path to ''
 
     $buffer_length = bytes::length( $input->$* );
     $command_mode  = 1;
@@ -532,7 +532,7 @@ if ( $cmd eq q|!TRM!| ) {
         my @active = grep { $ARG > 0 and ref $streams->{$ARG} eq qw| HASH | }
             keys %{$streams};
         if ( $implicit and @active ) {
-            ##  sort by opened_at : highest timestamp = most recently opened  ##
+            ## sort by opened_at : highest timestamp = most recently opened ##
             my $newest = (
                 sort {
                     $streams->{$b}{'opened_at'}
@@ -717,8 +717,8 @@ if (   $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$,
                         }
 
                         $reply->{'mode'} = qw| false |;
-                        $reply->{'data'} = 'error during command invocation'
-                            . ' [ details are logged ]';
+                        $reply->{'data'} = 'error during command invocation '
+                            . '[ details are logged ]';
                     }
                 }
 
@@ -750,8 +750,8 @@ if (   $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$,
                 if ( ref $reply ne qw| HASH | ) {    # <-- catches undef
                     $reply           = {};
                     $reply->{'mode'} = qw| false |;
-                    $reply->{'data'} = 'error during command invocation'
-                        . ' [ details are logged ]';
+                    $reply->{'data'} = 'error during command invocation '
+                        . '[ details are logged ]';
                     <[base.logs]>->(
                         0,   "[%d] cmd ['%s'] <-- [ hashref expected ]",
                         $id, $cmd
@@ -773,8 +773,8 @@ if (   $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$,
                         $id, uc( $$reply{'mode'} ), $source_str
                     );
                     $$reply{'mode'} = qw| false |;
-                    $$reply{'data'} = 'error during command invocation'
-                        . ' [ details are logged ]';
+                    $$reply{'data'} = 'error during command invocation '
+                        . '[ details are logged ]';
                 }
 
 ##[ LOCAL CMD \ CHECKING ANSWER MODE ]########################################
@@ -837,7 +837,8 @@ if (   $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$,
 
                         <[base.logs]>->(
                             1,
-                            "[%d] STRM streaming complete: %d bytes in %d chunks",
+                            "[%d] STRM streaming complete: "
+                                . "%d bytes in %d chunks",
                             $id,
                             $total_bytes,
                             $chunk_count
@@ -856,7 +857,7 @@ if (   $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$,
                     my $chunk_data = $data_to_send;
                     utf8::encode($chunk_data);
 
-                    ## use STRM-SIZE fragmentation for large replies sent ##
+                    ## use STRM-SIZE fragmentation for large replies sent  ##
                     ## through cube relay [ not for cube's own responses ] ##
 
                     my $buf_limit = $data{'size'}->{'buffer'}->{'input'};
@@ -1016,8 +1017,8 @@ if (   $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$,
                 'user'      => $user
             }
         );
-        ## If hook returns TRUE, it handled the message,
-        ## skip normal processing
+        ## If hook returns TRUE, it handled the message,  skip normal
+        ## processing
         goto UNKNOWN_CMD_GLOBAL_HANDLED
             if defined $hook_result and $hook_result == TRUE;
     }
@@ -1068,8 +1069,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,..,.,,,,,,,..,,...,,,.,..,,,..,.,,,...,.,,,..,,...,..,,...,.,,,,,.,,..,...,
-#NP75LCUGZJ2XWW4S6NK2FSJ3XDMZL7FJ2RGVRZ3YE4RKOZ5C2MNUPKIRMZ5VR3VDCNFRGPS6VFUMO
-#\\\|RJIAZPMDBWNO5633N7RNY5PHUEMVUTXAJMBFKR3XHXRZCCMH4XT \ / AMOS7 \ YOURUM ::
-#\[7]3PIGQR3LCV7RGT3OMMQND6NJGZ3UQWO46IAVRVX5ZXBXRGY364BY 7  DATA SIGNATURE ::
+#,,,.,,..,...,...,..,,..,,,,,,,,,,...,,,.,...,..,,...,...,,,.,...,..,,..,,,,,,
+#SGWJNPWVFY3GESK6UEHAILKIB27S6HNHTX2IANDWY3VESMH2M7PDYULKWZ6PEPRGZUME24QXQ2LW6
+#\\\|FVBNNLZO4TV6YLOCAPFBRCNTUZOXJSKKSBJJTTI2G2W65VANRM5 \ / AMOS7 \ YOURUM ::
+#\[7]JTHU4XMRRQU537AA4KO7VLDWUPFF5SZPX7HWL75ROBORL6QLBSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

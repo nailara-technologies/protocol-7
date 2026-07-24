@@ -54,8 +54,8 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {    ##  WNOHANG  ##
         }
 
     } else {
-        ## no pid filter --
-        ##      original behavior : any child PID triggers shutdown ##
+        ## no pid filter --  original behavior : any child PID triggers ##
+        ## shutdown                                                     ##
         <[base.logs]>->(
             $log_level, ': child pid=%d shut down [ exit code %s%s%s ]',
             $pid, $exit_val, $exit_sig_str, $e_core_dump
@@ -70,8 +70,8 @@ if ($do_shutdown) {
     <[base.exit]>->( 1, ': done.' );
 }
 
-#,,..,,,,,..,,..,,...,,,,,.,,,,..,.,,,.,.,.,,,..,,...,...,..,,..,,,..,,,,,,,,,
-#I35G46GYYFET6KBDWTNYZKTZM4CWCXYKE7BQ7AIXJS66PBJH2JTGPUTSJMAJYVFUEKYKTMEQD36PY
-#\\\|CZFO4FQXVQSB2XDOUZX2HP5R367F7VSUF3JQONWM43PJOBKUB3L \ / AMOS7 \ YOURUM ::
-#\[7]IPGI5QFSWKCAWR5BN74IL3E72KNZWXBQCCYAD7OTSHKHFRQYGUDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,...,.,,,..,,,.,,..,,.,,,...,.,.,..,,...,...,...,..,,..,,,,.,...,
+#LMSYSBLDFVLCPTIOJJNCRRSWQAFWAKFDYCWW6HI6W5Z2ITOTXG5YH3FBKCO2NEGB4NH5OWLUAMGKM
+#\\\|6LORXZ7OEQN3XRS66WYJPPUDYIYHDDBKDG4NWYFPJQYPGQNKXAH \ / AMOS7 \ YOURUM ::
+#\[7]AABEAUOQQBMLMSS2OHG3H2WTGOATYY3MIBPY7IITIQ3UANO6OUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

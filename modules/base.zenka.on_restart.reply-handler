@@ -8,8 +8,8 @@ my $reply = shift;
 my $publisher = $reply->{'params'}->{'publisher'} // '';
 my $cmd       = $reply->{'cmd'}                   // '';
 
-## clear the armed flag before firing so a handler that re-registers    ##
-## through base.zenka.on_restart will pick up the fresh arm cleanly     ##
+## clear the armed flag before firing so a handler that re-registers ##
+## through base.zenka.on_restart will pick up the fresh arm cleanly  ##
 delete <base.zenka.on_restart.armed>->{$publisher};
 
 if ( $cmd eq qw| TRUE | ) {
@@ -27,11 +27,11 @@ if ( $cmd eq qw| TRUE | ) {
         ) if $EVAL_ERROR;
     }
 }
-## FALSE replies : publisher shutdown or setup issue -- just re-arm     ##
-## silently ; next successful online transition still fires.            ##
+## FALSE replies : publisher shutdown or setup issue -- just re-arm ##
+## silently ; next successful online transition still fires.        ##
 
-## re-arm unless a handler already did [ handlers that call on_restart  ##
-## again will have set 'armed' back to TRUE ]                           ##
+## re-arm unless a handler already did [ handlers that call on_restart ##
+## again will have set 'armed' back to TRUE ]                          ##
 return TRUE if <base.zenka.on_restart.armed>->{$publisher};
 
 <base.zenka.on_restart.armed>->{$publisher} = TRUE;
@@ -57,8 +57,8 @@ if ( $sent <= 0 ) {
 
 return TRUE;
 
-#,,,.,,,.,.,.,...,.,,,...,.,.,,..,..,,,,.,...,..,,...,...,...,,.,,,.,,,,,,,.,,
-#NHUBPEW2UUDTWVVQAX4MRQJSSCMYJTU7RINBDN3QBQ34B224EIWUQ5AWTJKXJIXXRIJHE3CE2YAAU
-#\\\|7JB3FANKDRNOQNZR34YFFWNTBPX2I35G53DN7BOKQYVF7YSKXIS \ / AMOS7 \ YOURUM ::
-#\[7]3EDCCJEMZ6JXQHNSJGCAL63QUZRMKK4MCK4UVA6HRK7NYQM7XQBI 7  DATA SIGNATURE ::
+#,,..,...,,.,,...,...,,..,...,,..,,..,.,,,,,,,..,,...,...,,..,...,,,,,..,,,,.,
+#B24X6VYO77M327RT3233GXBIYMLMGHVDKLTD7KLJOTNJHCMJ2OJ6SZBQHQSEWQHAWHYOMNVQ5S4PM
+#\\\|YMDP4KSIUJ5F3KYH4E7GZL6KHHPA2QURD5U4U36IJ2Z33R6OCJO \ / AMOS7 \ YOURUM ::
+#\[7]D4LV6P4FKTJ45EWTU7X2QTMQEYFK46TA3HYGLBHCKYXMV6L53IBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

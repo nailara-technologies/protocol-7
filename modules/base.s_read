@@ -26,7 +26,8 @@ return 0
 return -1 if not defined $b_read;    ## [ error ] ##
 
 if ( $b_read > 0 ) {
-    ## downgrade UTF-8 flag to prevent double-encoding when sending via sockets ##
+    ## downgrade UTF-8 flag to prevent double-encoding when sending via ##
+    ## sockets                                                          ##
     if ( utf8::is_utf8($r_buff) ) {
         utf8::downgrade( $r_buff, 0 );   ## 0 = non-fatal, strip UTF-8 flag ##
     }
@@ -36,8 +37,8 @@ if ( $b_read > 0 ) {
 
 return $b_read;                          ## [ returns -1 on error ] ##
 
-#,,,.,.,,,,,,,,,.,,..,,,,,...,,.,,.,,,...,,.,,.,.,...,..,,..,,.,,,,,.,,,,,..,,
-#MRWPA6KKQBEMJEJ4N56CM4ZD3PTC42ZZBMMO3DXLZWHVNFWVCPUC4US334S3P6U3YBXTSWZSPZOQU
-#\\\|LW2SUJP75K2KG2OQRQQ7LG6JO3ZRJJS5N4SEI2RMDOPVA7BWXTK \ / AMOS7 \ YOURUM ::
-#\[7]EWOHMR3AEKWZH55IG7AG5YMH27FXVEYSDTFO7YTV67UT73K7DACI 7  DATA SIGNATURE ::
+#,,.,,..,,..,,,.,,,..,..,,,,,,,.,,.,,,..,,,..,.,.,...,...,,..,...,.,,,.,,,,,.,
+#2GV64ATESDOBBBLVHVPK7EOWKOMVOJ4RR5XCCDYIEWUI7LZ3QTDAMGI5TP3RR6CJRY2UN3UIAOPKG
+#\\\|YF5YN6YHERHRALS6CIWBTRMJENP6LZV6VDYX64ONXJ7JENZSSSI \ / AMOS7 \ YOURUM ::
+#\[7]D7U47IAZZBTW4FYXA7J2BO7KYDX5SSBPFPVHF323BMKT5H7ZK2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

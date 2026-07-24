@@ -7,10 +7,10 @@ my $user_name     = shift // return;
 my $group_subname = shift // return;
 my $callback      = shift // return;
 
-## v7 already keeps root_sid + subname + status in sync locally per        ##
-## managed instance [ <v7.zenka.instance> ] -- no need to ask cube over    ##
-## the network for data v7 already has, and 'list' isn't even whitelisted  ##
-## for v7 to call cross-zenka on cube.                                     ##
+## v7 already keeps root_sid + subname + status in sync locally per managed ##
+## instance [ <v7.zenka.instance> ] -- no need to ask cube over the network ##
+## for data v7 already has, and 'list' isn't even whitelisted for v7 to     ##
+## call cross-zenka on cube.                                                ##
 if ( <[base.mod.exists]>->(qw| v7 |) ) {
     my $ids_result = <[base.code.call_expected]>->(
         <[base.mod.exists]>->(qw| v7 |),
@@ -19,7 +19,7 @@ if ( <[base.mod.exists]>->(qw| v7 |) ) {
     my @instance_ids
         = ref $ids_result eq qw| HASH | ? @{ $ids_result->{'ids'} } : ();
 
-    ## 'root_sid' is NOT the managed zenka's own session -- it's set once  ##
+    ## 'root_sid' is NOT the managed zenka's own session -- it's set once   ##
     ## by v7.callback.connect_to_cube for v7's OWN cube connection only     ##
     ## (the 'is-cube' instance). The per-instance session id every other    ##
     ## managed zenka actually has is 'cube_sid'. v7.handler.heartbeat_timer ##
@@ -57,8 +57,8 @@ if ( <[base.mod.exists]>->(qw| v7 |) ) {
     }
 );
 
-#,,.,,,,,,..,,,,,,,..,,,,,,,,,,,,,,..,,.,,,,.,..,,...,...,,.,,..,,,,,,,..,.,.,
-#4QBZE7NUI2GZJ757NRXP4CQVCJIBYGC72IK27IJTRRQINXD37CJMILSN4LRAG6ZS2YLBVOAC4K27G
-#\\\|D3ZKP5CMIKZMNCI5JSSI4G2OZ7GXU4LRQKAOO2MVEJSVZQANCPL \ / AMOS7 \ YOURUM ::
-#\[7]TCAU6WQH5DPX5INNG5CBNWDFU25WHW4U675T5G2OKQWFBNHCAEDA 7  DATA SIGNATURE ::
+#,,,,,...,,,.,,,,,,..,,,,,.,,,,,.,..,,,..,,..,..,,...,...,.,.,...,..,,,,,,..,,
+#HVBZ652QA2SMPQPCRYSNKGXI47BYBRDY7ACP6XBNHQ232GM5PL4SGACRXO23ZJNEJUE3255XQ6VBM
+#\\\|5DYNMWERHBKZFVKSF4OJRJQJC5V4SFW57ENAFH75X73WE7MMRV2 \ / AMOS7 \ YOURUM ::
+#\[7]7NGZ44IMZRTA6BLETDGAYZ2YCQRZZXV5T3H77SQADV5AFDHA2YBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

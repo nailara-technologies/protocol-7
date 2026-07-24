@@ -11,7 +11,7 @@ return { language => '', confidence => 0, method => 'none' }
 
 my $hint = lc( $opts->{'hint'} // '' );
 
-##[ LAYER 1 : HEURISTIC ]######################################################
+##[ LAYER 1 : HEURISTIC ]#####################################################
 
 my $result = <[base.language.heuristic]>->($text);
 
@@ -25,7 +25,7 @@ if ( length $hint and $result->{'language'} eq $hint ) {
 ## accept heuristic if confident enough ##
 return $result if $result->{'confidence'} >= 0.75;
 
-##[ LAYER 2 : WORDLIST ]#######################################################
+##[ LAYER 2 : WORDLIST ]######################################################
 ## activated when layer 1 confidence below threshold ##
 
 my $wordlist_result
@@ -41,7 +41,7 @@ if ( length $hint
 
 return $wordlist_result if $wordlist_result->{'confidence'} >= 0.70;
 
-##[ LAYER 3 : INFERENCE FALLBACK ]#############################################
+##[ LAYER 3 : INFERENCE FALLBACK ]############################################
 ## model query + cache : stub for now ##
 
 my $inference_result = {
@@ -66,8 +66,8 @@ return $inference_result;
 #\[7]E5F7G9H1I3J5K7L9M1N3O5P7Q9R1S3T5U7V9W1X3Y5Z7A9B1C3D5E7F9G1H3I5J7K9L1M3 7
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,,,,..,.,,,...,.,.,,,,,..,,,..,,,,,.,.,.,.,..,,...,...,,..,,.,,,,.,.,.,,..,
-#2QIP4AMXAGCEB7UBLB2ZZCYN6RL5TUQ3BRZ4TOAN2QIRSTA3J46YP43JSL6DHTZNR2UZDICBKTILY
-#\\\|2KMIR7FCV77N5AABE3RCBJHHWYUFAUHA2RCBAFH3XB42TWN3FPP \ / AMOS7 \ YOURUM ::
-#\[7]UAFQXXSQZRFLXSEODHYBWPDPEAUIWAGPQUJZFAVX6HD3QES73CDY 7  DATA SIGNATURE ::
+#,,..,...,.,.,,,,,,..,,..,.,,,...,..,,..,,,..,..,,...,...,...,...,.,.,.,,,..,,
+#HUULW6Q7XJEA7AVMMPPDZTN7CILOQYBBNHLGHZQ5TPA5HNDSULN4DJPE2H4UNOL2PB3D6BRVQHMFU
+#\\\|BVTB5KHWNOPH7EKQJ7FC2OAJ2N7EFALRBJWOOG4LD5XDB3MWETN \ / AMOS7 \ YOURUM ::
+#\[7]ZT6CSYEXQ4JSKJSQBUNDTVSBOPEX5XYAGRUUBNRC3S4OK7IJRWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

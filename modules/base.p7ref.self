@@ -19,12 +19,12 @@ $type = 'VISION' if $zenka_name =~ m{^lm-vision}i;
 $type = 'LOG'    if $zenka_name =~ m{^p7-log}i;
 $type = 'HTTPD'  if $zenka_name =~ m{^httpd}i;
 
-## Generate CHKSUM7 from zenka name using AMOS7 ##
-## Use first 7 chars of AMOS7 checksum ##
+## Generate CHKSUM7 from zenka name using AMOS7  Use first 7 chars of AMOS7 ##
+## checksum                                                                 ##
 my $chk_input = "$zenka_name:" . ( <system.hostname> // 'localhost' );
 
-## resolve amos checksum sub : works before and after swap ##
-## use $code{} directly to bypass P7 pre-validation of <[...]> names ##
+## resolve amos checksum sub : works before and after swap  use $code{} ##
+## directly to bypass P7 pre-validation of <[...]> names                ##
 my $amos_chksum = $code{'chk-sum.amos'} // $code{'base.chk-sum.amos'};
 
 my $chksum7 = substr( $amos_chksum->($chk_input), 0, 7 );
@@ -46,8 +46,8 @@ my $p7ref = sprintf( "%s:%s:%s", $type, $chksum7, $addr_b32 );
 
 return $p7ref;
 
-#,,..,,.,,...,,.,,,.,,,,.,,,,,,,.,..,,..,,,,.,.,.,...,...,,,.,.,.,...,.,,,,.,,
-#KXP6XKS3L5M4QB47Y7XRZ7DLF6XOGQDN6XH2MJRIAU3OJLKNNUAJ7S5UF3SD4TY5W377SJHWSYSX6
-#\\\|QOA55YIWGDKMJXRBB3APE7YWGWYOXFS4X34EPXHBP6N4PG43B4O \ / AMOS7 \ YOURUM ::
-#\[7]ED42DV6ELZ5Z62ZYERVTQESOCJCGJWTACGNYJXDY2LX5CVV5C4AA 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,...,.,,,...,..,,,.,,,,.,..,,,,.,.,.,...,...,...,,..,..,,.,.,,..,
+#MSEX5SEJ24CCLIAIPKXRYGBWU2SLSGPC7YO3QGKBKUFQK5KH6FSPH6XT5PIQKUHMY4HAOXE34X3VQ
+#\\\|MPMTSPUGZIMOVW5K6EAC52UMNFS5EHW7X3DC24TDBAWOUYF4C3J \ / AMOS7 \ YOURUM ::
+#\[7]VO6A2UMUCNNBIJQIZU57JAFHIQEXSJ7CQC5RDGPTMAJA5HCM7MAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -115,8 +115,8 @@ if ( $input->$* =~ s|^(auth\.)?close\n|| ) {
         }
     }
 } elsif ( $input->$* =~ s{^auth\.(declare|select)-(\S+)\s*(.*?)\n}{} ) {
-    ## capability negotiation dispatcher : 'auth.' prefix is mandatory here  ##
-    ## [ not optional ] - a bare '(declare|select)-\S+' line collides with   ##
+    ## capability negotiation dispatcher : 'auth.' prefix is mandatory here ##
+    ## [ not optional ] - a bare '(declare|select)-\S+' line collides with  ##
     ## the zenka-auth wire format '<zenka_name> <key>\n', since any zenka   ##
     ## named e.g. 'select-region' or 'declare-foo' produces a line this     ##
     ## branch would otherwise swallow before the real auth plugin sees it   ##
@@ -298,8 +298,8 @@ elsif ( defined $auth_method
     return 2;               ##  no auth method selected + session closing  ##
 }
 
-#,,,,,,,,,.,,,.,,,..,,..,,,,.,.,,,.,.,.,,,,,.,..,,...,..,,,..,..,,..,,,..,.,,,
-#TEZPNZHEPRNMKB7CDPCA54DWC3NWOXKQ4FVD7NMUHQZSOE5NYBX4YIF6U7VZRMW75QBSEAAES6AHG
-#\\\|FTETTGDKDLEDN4LMNXAW5GBU752WEM6INBKWU3S4OE5NNTHUIS3 \ / AMOS7 \ YOURUM ::
-#\[7]B2USKW2SFDUPQYY722K5EFO6GDMQHR6CYKC2J3PAB25XVPK4CCAY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,...,..,,,..,.,.,..,,..,,.,.,...,..,,...,...,...,.,,,,..,.,,,...,
+#2ZUETYBIAZOAJIMUW7EJCN462E2F6SE2TOZYETES7QQVPNAYTQYDP5HXKZRCKED67ARAAZUD2J6RG
+#\\\|JDRQ75KMDRFRVOQTPYVG6DJJEIH764SGBXRIBR6IQMIV7Y42T6A \ / AMOS7 \ YOURUM ::
+#\[7]Z5GLPQ437LKQBFMXHWYY3HORC52CP7HEKGX7RAJ3EYTN4GRHJ6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

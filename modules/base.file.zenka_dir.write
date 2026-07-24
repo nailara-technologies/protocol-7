@@ -108,16 +108,15 @@ if ( defined <system.zenka-group.current> ) {
     $gid = $override_gid if defined $override_gid;
 }
 
-## overwrite mode : write to a same-filesystem temp file then rename()  ##
-## over the target - atomic replace, no unlink-then-open window where  ##
-## a crash mid-write leaves the path missing instead of intact-old-or- ##
-## intact-new                                                          ##
+## overwrite mode : write to a same-filesystem temp file then rename() over ##
+## the target - atomic replace, no unlink-then-open window where a crash    ##
+## mid-write leaves the path missing instead of intact-old-or- intact-new   ##
 if ( $open_mode_str eq qw| > | ) {
 
-    ## file.temp always appends the zenka name to whichever dir it is  ##
-    ## given - pass the un-prefixed parent so the temp file lands on   ##
-    ## the same filesystem as $file_abs_path [ rename() only requires  ##
-    ## same filesystem, not same directory ]                           ##
+    ## file.temp always appends the zenka name to whichever dir it is given ##
+    ## - pass the un-prefixed parent so the temp file lands on the same     ##
+    ## filesystem as $file_abs_path [ rename() only requires same           ##
+    ## filesystem, not same directory ]                                     ##
     my $tmp_base_dir
         = $global_config_path
         ? $zenka_dir_href->{'etc_P7'}
@@ -175,8 +174,8 @@ if ( $open_mode_str eq qw| > | ) {
     return length $content_sref->$*;
 }
 
-## non-overwrite mode [ e.g. append ] : atomic-replace does not apply, ##
-## open the target directly as before                                 ##
+## non-overwrite mode [ e.g. append ] : atomic-replace does not apply, open ##
+## the target directly as before                                            ##
 my $fh = <[file.open]>->(
     $file_abs_path, $encoding_str, $open_mode_str, TRUE, $file_mode
 );
@@ -215,8 +214,8 @@ if ( not close($fh) ) {
 ##  returning ammount of characters written  ##
 return length $content_sref->$*;
 
-#,,..,,.,,,,,,,.,,..,,,,,,,,.,..,,..,,,.,,,,,,..,,...,...,,.,,,,,,,..,,.,,,.,,
-#MMVB26K5PWBPYSLXBDSDVSXFHKB2EVLKIH6A2XD7CXAJVX75WEYRBRIJVQVU77LZRYUFGUBMCL6K4
-#\\\|KQXGTY2MBKFTMX77EZJFSC32J6YRODS3SHIQKE4TZRTIWBWGHFV \ / AMOS7 \ YOURUM ::
-#\[7]JW6HCGIDJJWULKNBFYSOY2FJ2GZGYP24NIA4HJFS2BM5ZWPHY4CQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,.,,.,,,.,.,,.,,.,.,..,,,,,,,,.,..,,...,...,,,,,...,..,,.,.,,,,,
+#FD4TJ6L6LQJOYRPYRQUHDA2DLFJ6FFRIS2WH7EEAWDFKDSNYY2Q4I5GUNK4WNBMUN6Y3TNHIC5API
+#\\\|ADT5YQZDLTEFYQKCOXAEDMZ33UKLCXHBUYUD6KFLRTHAR5YF2AE \ / AMOS7 \ YOURUM ::
+#\[7]3IV4Q2VTEJAVKWB4TPD7WEP7OUMOSS2TV2V3YPFRZNVV23GURMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

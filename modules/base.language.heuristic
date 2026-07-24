@@ -7,7 +7,7 @@ my $text = shift // '';
 return { language => '', confidence => 0, method => 'heuristic' }
     unless length $text;
 
-##[ SCRIPT RANGE DETECTION ]###################################################
+##[ SCRIPT RANGE DETECTION ]##################################################
 ## classify text into script families by unicode block ranges ##
 
 my %script_ranges = (
@@ -95,7 +95,7 @@ return {
     }
     unless @candidates;
 
-##[ CHARACTER MAP SCORING : layer 1b ]#########################################
+##[ CHARACTER MAP SCORING : layer 1b ]########################################
 ## score each candidate by how many of its encoding's special chars appear ##
 
 my $full_table = <[base.language.encoding_map]>;
@@ -156,8 +156,8 @@ return {
 #\[7]CWX4B5BJV2S7Y3JTXIB5EJUN2E7JBR3VDFA2K7D3MBL5KZ4Y2JDQ 7  DATA SIGNATURE ::
 #::::::::::::::::::;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,..,...,,,,,,,.,,..,,,,,.,,,,.,,..,,,.,,.,,,..,,...,...,,,.,,..,,,.,..,,,,,,
-#Q6J7YWBNHJAJ2K3D6CJPKHQIWIZZCGBNPCR77EISKZMSW76NQYKPJWW52WHPHJ6EPWNR2E7YX5J6A
-#\\\|OQCUW4S5LCBJ3Q6X3AQW5HI66RWGQY6YDICYF2RXWTDTPVRDQP4 \ / AMOS7 \ YOURUM ::
-#\[7]WAJ6GEOXJRIL4QXQNMAFQACTUSZPPQ6QVVBXCF23ZC2WEXP56GAQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,.,,,,,.,...,,..,.,.,,,,,,,,,.,.,..,,...,...,,.,,...,.,,,.,.,.,,,
+#XSOZZTOGLMYQOH3UANQGEROEIFSH7BFZKJYROEACLRL3ORHIRD66N5EMPQCBILXJDMP44J2KR5YS6
+#\\\|6UA6K2C3G6HYVUNBF7M7UCLY4SM7EUD4XNDVAMTPSUKMCFTODL2 \ / AMOS7 \ YOURUM ::
+#\[7]OZ3IVZTEN5DMZHHOWPDO4RYUQ4BCVEUQC24ZL2O3KXYHRRFT7YAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

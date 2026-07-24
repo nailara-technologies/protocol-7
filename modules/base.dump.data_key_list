@@ -10,8 +10,8 @@ warn 'data ref parameter must be a hash reference <{C1}>'
     if ref $hash_ref ne qw| HASH |;
 if ( defined $rec_result_href ) {
     if ( [caller]->[1] ne __FILE__ ) {
-        warn 'result hash ref parameter is for'
-            . ' internal recursion only <{C1}>';
+        warn 'result hash ref parameter is for '
+            . 'internal recursion only <{C1}>';
         return undef;
     } elsif ( ref $rec_result_href ne qw| HASH | ) {
         warn 'expected hash ref parameter as recusion reference <{C1}>';
@@ -21,8 +21,8 @@ if ( defined $rec_result_href ) {
 $rec_result_href //= {};
 foreach my $cur_data_key ( keys $hash_ref->%* ) {
 
-    ## $cur_data_key =~ s|\\|\\\\|g;    ## first escaping '\'s, then '.'s  ##
-    ## ( my $escaped_subkey = $cur_data_key ) =~ s|\.|\\.|g;
+    ## $cur_data_key =~ s|\\|\\\\|g;    ## first escaping '\'s, then '.'s ( ##
+    ## my $escaped_subkey = $cur_data_key ) =~ s|\.|\\.|g;                  ##
 
     my $escaped_subkey;
     if ( index( $cur_data_key, qw| . |, 0 ) == -1 ) {    ## no '.' in key ##
@@ -59,8 +59,8 @@ if ( [caller]->[1] ne __FILE__ ) {    ## exiting recursion ##
 
 return \@result;
 
-#,,.,,,,,,...,..,,,..,,,,,.,.,,,.,...,.,.,,..,..,,...,...,...,,,,,..,,...,.,,,
-#3Z3XS6BHDYB3DXYQRZWH2TKUX4B27VJZKG4E4EZLVAJQXKJ42Z5YTROR34PLWFW7QBLMJOZGELZTS
-#\\\|MFIWJOAOF3HTSYFWMNAVJTFX7AYBLIN3QJM2D5HI6R2WJNCTB6A \ / AMOS7 \ YOURUM ::
-#\[7]B2KM2ZLVWL3WJGVN2IH2FHHHPVK33TZ3DC65CIJERGIO4U3CRYDQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,..,,,.,,..,,,,.,,,.,.,.,,.,,..,,..,,...,...,,,.,,..,,,.,,,,,,,.,
+#Z3LUAXNJG4X3NRZEYLZ57JUUIZ4FHVASA63VXXEZMPPKOZ3NGLR6TUQ6AYNXVXWI7QJIXIVB5ZWC6
+#\\\|PL2ND2ZJLWXOB4YXRFYOGXGRUZS7FMDM2SWU453LYE4QBTR7FA4 \ / AMOS7 \ YOURUM ::
+#\[7]DUMDJHITEOAPEU3ELZSJ2P7LJLFOHLRHE66QZSQDBIPVQ2AX7EDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
