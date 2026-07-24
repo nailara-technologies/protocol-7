@@ -35,26 +35,63 @@ metadata:
   reuse `stats`/`applicability.confidence` fields for self-reinforcement,
   LLM-prefers-editing-patterns interaction model, namespace scope gating,
   nested-dispatch for batch-apply without confirmation storms).
-- **open follow-ups, not yet done, roughly in priority order:**
-  - fix `coding.tools.handler.write_with_perms`'s grant from `| 0002` to
-    `| 0020` (confirmed-broken, see [[feedback-posix-group-write-precedence]])
-  - pattern schema: `apply` only reads `steps`, `regex.save` only exports
-    `pattern`/`replace` — a fully assessed→expanded→saved pattern still
-    can't be applied without a `pattern`→`steps` synthesis step somewhere
-    in that chain. Confirmed live with `single-quote-to-qw-scalar`
-    no-op'ing in `apply`. Blocks the whole tier-A auto-apply loop in
-    [[topic-ncode-pattern-learning-loop]] until fixed.
-  - start incrementing `stats.applied`/`false_positive` in `apply` (dead
-    fields right now) — prerequisite for any of the reinforcement-loop
-    design in [[topic-ncode-pattern-learning-loop]]
-  - `ncode.cmd.apply`'s revert path (the `else` branch for failed
-    verify/step/syntax checks) still does a bare `open '>', $file`, no
-    chmod-child grant — hasn't bitten yet because failures caught so far
-    never got that far, but it's the same latent gap
+- **all four mechanical follow-ups from the previous round now done, same
+  day (`85ea963b2`, `988e0de43`, `cb45d56d0`):**
+  - `coding.tools.handler.write_with_perms`'s grant fixed `| 0002` →
+    `| 0020` (`85ea963b2`) — matches [[feedback-posix-group-write-precedence]]
+  - `stats.applied`/`false_positive` now increment in `apply` on real
+    outcomes (`85ea963b2`)
+  - `apply`'s revert path now uses the same chmod-child grant dance as
+    the write path, plus a real bug fixed along the way: a failed revert
+    used to `next` before setting `$fix->{'status'}`, leaving it stuck at
+    `pending` forever instead of recording `failed` (`85ea963b2`)
+  - **pattern schema fix landed (`cb45d56d0`)** — the big one, closes the
+    loop that was blocking [[topic-ncode-pattern-learning-loop]]'s whole
+    tier-A auto-apply path. `ncode.regex.load` now synthesizes a `steps`
+    entry from top-level `pattern`/`replace` when none is explicit;
+    `ncode.regex.save` preserves genuinely custom `steps` on export but
+    omits synthesizable ones. Dispatched via `claude_dispatch`
+    (session `92fe0c68`) + `claude_continue`, independently re-verified
+    live afterward rather than trusting the dispatch's own self-report
+    (which came back garbled on the second continue — see
+    [[feedback-claude-dispatch-summarize-hang]] for a related but
+    distinct known failure mode in this same infra). The dispatch also
+    found and fixed a real bug the synthesis exposed that wasn't in the
+    original plan: `$1`/`$2` backreferences in a YAML `replace` string
+    were being inserted as literal text, not the matched value — a plain
+    `s///` only interpolates the replacement *variable*, not numbered
+    captures embedded inside its string content. Live-verified:
+    `single-quote-to-qw-scalar` (pure `pattern`/`replace`, no
+    hand-authored `steps`) now correctly rewrites `'active'` →
+    `qw| active |`; `p7-arg-regression` (hand-authored `steps`, literal
+    `$ARG` replace, no numbered backrefs) unaffected.
+- **`bin/ncode search` recursion bug found + fixed (`988e0de43`),
+  unrelated to the write-path work — surfaced while adding `ai-mem`/
+  `yaml` as new search targets** (both previously unreachable despite
+  being directly relevant to pattern/memory work). `parse_file_options`
+  defaulted `recurse => 0` (a *defined* value), which silently defeated
+  `files()`'s `$options->{'recurse'} // $legacy_recurse` fallback — every
+  recursive target's `..,` marker (`docs`, `tasks`, `zenki`, and the two
+  new ones) has been silently ignored this whole time unless the caller
+  manually passed `rec:1`. Fixed by defaulting to `undef` instead.
+  Live-verified across old and new targets. Also deleted a stray
+  personal job-assessment record (`data/yaml/assessment-alexander-
+  mettenmeier.yml`) found via this work, introduced by `4564d3577` and
+  never touched again.
+- **open, not yet decided:**
   - decide whether `suggest`/`apply`/`assess` stay open on `ncode`'s cube
     whitelist going forward, or get folded into
-    [[topic-write-access-security-infrastructure]] once that exists —
-    not yet decided
+    [[topic-write-access-security-infrastructure]] once that exists
+  - the tier-A loop in [[topic-ncode-pattern-learning-loop]] is now
+    technically unblocked end-to-end (assess → expand → save → suggest →
+    apply should all compose correctly) but hasn't been exercised as one
+    continuous chain yet — only the individual pieces have been tested
+    in isolation. Worth a real end-to-end run before trusting it for
+    anything unattended.
+  - `regex.expand`/`regex.assess` still aren't exposed to `p7c` for the
+    "persist a new candidate pattern" step — `ncode.cmd.assess` only
+    *returns* a candidate for review, nothing writes it into
+    `<ncode.patterns>` yet. Next real gap for the pattern-learning loop.
 
 ## done (2026-07-24)
 
@@ -500,8 +537,8 @@ what it should actually invoke.
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,..,,.,,.,.,,..,,..,.,,,,,,,.,.,.,.,...,...,..,,...,..,,.,,,,,.,,..,,,.,...,
-#4WBTPDSIYFC5374MMXI4VU4CAVBNCBKUVPC7TA53NCB65TMVUZZSKVI2EZERAEBTWEDHSLPBWO5E4
-#\\\|M7SSJGUSCIO3CR5OZ7YCQW4NWZID5G7JZKFZUCVD5ME63HQZQ5I \ / AMOS7 \ YOURUM ::
-#\[7]XBII4IZD5YGQPVBJQQTXK2WE7N2YTCIWQ25TIFISENEDRYMJGMAI 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,..,,.,,...,,.,,,..,.,,,.,.,,.,,..,,...,..,,,..,...,,,,,,.,,,,,,
+#IMZJZCUNZITWTRYYXSUIEYH2APZXPTUR2KTDS7QAJQWRH2NDVDK53RSJBOLY2AXDQLAFZHEYHQSEI
+#\\\|22K4ZSOE3WHH3UWDU4ADV3IU42TYJO3O74AZUDTUUC5QAW37IZO \ / AMOS7 \ YOURUM ::
+#\[7]PLDDU7GSFEAIJ77HO7DZHI3RYFYS5EO5ZLOQGH4AYJN2WJ57X2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
