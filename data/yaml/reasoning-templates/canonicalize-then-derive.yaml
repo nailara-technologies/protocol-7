@@ -1,0 +1,212 @@
+---
+name: canonicalize-then-derive
+category: reasoning-template
+version: 1.0
+description: |
+  the mechanism that makes repeated normalization converge instead of drift:
+  never trust where a prior pass happened to place its output, always reduce
+  to a content-only canonical form first and re-derive structure from the
+  content itself. discovered empirically while teaching a comment/code
+  formatter to reflow prose, lists, and framed boxes without ever
+  re-corrupting its own previous output. a small, closed catalog of segment
+  templates — anchors that never merge, interiors that always reflow —
+  approaches the same completeness an LLM reaches generatively, but as a
+  closed-form, auditable, deterministic process instead of an open one.
+
+---
+
+## the core mechanism
+
+a transform that looks correct on the first pass can still be wrong, if a
+second pass on its own output produces something different:
+
+```
+pass 1 :  input                 -> output_1
+pass 2 :  output_1               -> output_2
+wrong   :  output_1 != output_2   [ drift -- the tool is still guessing ]
+right   :  output_1 == output_2   [ converged -- the tool found the fixed point ]
+```
+
+drift happens whenever a transform partially trusts the *shape* of its input
+— where a line break fell, how much whitespace preceded a token — instead of
+re-deriving that shape from the content alone. the fix is always the same
+shape, regardless of domain:
+
+```
+1. canonicalize : strip the input down to content-only form, discarding
+                   wherever incidental structure [ line breaks, padding,
+                   a previous pass's own wrap decisions ] happened to sit
+2. derive       : re-infer real structure from the canonical content itself
+                   using explicit signals [ punctuation, markers, blank
+                   lines, repeated shapes ] -- never from position
+3. reconstruct  : re-render from the derived structure at the current
+                   target constraints [ width, style, indent ]
+```
+
+step 1 is what makes step 3 idempotent: since it always throws away the
+previous pass's incidental output shape before re-deriving, a second pass
+reduces to the exact same canonical form as the first, and produces the
+exact same reconstruction. the correctness bar is not "does this look
+right" — it's "run it twice, diff for zero."
+
+---
+
+## discovery method : dogfood before design
+
+the categories this template describes were not designed up front. each one
+was found by running the transform against real content and watching it
+fail:
+
+```
+category found                  ->  discovered by
+bracketed prose block           ->  a real multi-line '## .. ##' paragraph
+                                     that split wrong at an unclosed line
+loose paragraph [ no brackets ] ->  a real 3-sentence comment with no
+                                     closing marker anywhere, merged wrong
+numbered/bulleted list          ->  a real numbered list folded into
+                                     run-on prose, losing its structure
+symmetric box                   ->  a real blank-bordered title box,
+                                     shrunk to asymmetric single-space pad
+```
+
+speculative categories invented ahead of a real failure tend to be either
+unnecessary [ nothing in the corpus needs them ] or subtly wrong [ the real
+shape differs from the imagined one in some detail that only shows up
+against real content ]. the corpus is the specification.
+
+---
+
+## anchors vs reflowable interior
+
+every category found decomposes the same way: some elements are hard
+anchors that never merge across a boundary, everything else is soft
+interior that freely reflows to fit the current constraint:
+
+```
+hard anchor        :  the '##' prefix itself [ every output line restarts
+                       with it, never continues the previous line ]
+                    :  a list marker [ '1.', '2)', '-', '*' .. ] --
+                       recurring 2+ times confirms it, then it's absolute
+                    :  a blank framing line [ pure visual border, not
+                       joinable content at all ]
+
+soft interior       :  ordinary prose between anchors -- freely rejoined
+                       and rewrapped to the current width constraint
+```
+
+this binary is what lets categories compose without a combinatorial
+explosion of special cases: detect the anchors first, split into segments
+at those anchor boundaries, then apply the same content-canonicalization
+independently within each segment. a list item's own text still reflows
+normally; it just never merges into a *different* item's text.
+
+---
+
+## repetition threshold : dodging "everything is a group parent"
+
+a single occurrence of an anchor-shaped pattern is not enough to infer
+structure from — it might be incidental [ "see item 1." mid-sentence is not
+a list ]. two or more recurrences of the *same* shape is the dividing line:
+
+```
+1 occurrence   :  could be coincidence -- do not restructure around it
+2+ occurrences :  the shape is real -- structure it
+```
+
+without this threshold, any local pattern-shaped substring gets promoted to
+structural significance, and the transform starts seeing groups everywhere
+that aren't there. the threshold is cheap insurance against that specific
+failure mode.
+
+---
+
+## preserve intent, don't normalize to the tool's minimum
+
+restoring symmetry to something that was clearly *meant* to be symmetric is
+a repair. silently shrinking a deliberate stylistic choice to the tool's
+own default is not a repair — it's erasure wearing the mask of tidiness:
+
+```
+asymmetric box  -> symmetric box, SAME padding depth the author chose
+                    [ repair : the defect was the asymmetry, not the depth ]
+
+symmetric box,
+2-space padding -> symmetric box, 1-space padding [ the tool's default ]
+                    [ NOT a repair : nothing was wrong, the tool just
+                      imposed its own preference over the author's ]
+```
+
+the practical rule: detect the author's own chosen parameter [ padding
+depth, wrap width, whatever varies without being wrong ] from the input
+itself, and reconstruct using THAT value, not a hardcoded default. only
+fall back to the default when there's nothing consistent to detect.
+
+---
+
+## semantic equivalence for code, not just visual diff
+
+when the content under transformation is executable [ not just prose ], a
+visual diff that "looks plausible" is not suffient verification. the actual
+runtime value must be checked:
+
+```
+prose reflow   :  verify by reading the output -- does it read correctly
+code rejoin    :  verify by EVALUATING both the old and new fragment and
+                   comparing the resulting values, not just the source text
+```
+
+a string literal split at a different point still has to produce the
+identical string at runtime. that's not optional, and it's not something a
+human proofreading a diff reliably catches by eye.
+
+---
+
+## toward completeness : closed template sets vs open generative models
+
+an LLM completing code draws on an enormous, implicit, probabilistic model
+of "what code looks like" — powerful, but unauditable and only
+statistically reliable. a closed catalog of segment templates, each with an
+explicit detection predicate and an explicit reconstruction rule, aims at
+the same target through a different route:
+
+```
+LLM completion        :  huge implicit model, probabilistic, general,
+                          cannot enumerate what it does or does not cover
+
+template catalog      :  small explicit model, deterministic, closed,
+                          coverage is a countable, inspectable property
+                          [ "how many categories have we found" is a
+                            real, answerable question ]
+```
+
+if the catalog for a given corpus is genuinely complete — every pattern
+category that actually occurs has been discovered, given a detection
+predicate, and given a reconstruction rule — style normalization stops
+depending on prior formatting being present at all. structural signal
+alone [ what kind of statement this is, where it sits, what shape its
+neighbors have ] becomes enough to regenerate the conforming form, even
+from something as degraded as deparsed code. this is not a promise the
+first four categories found deliver on by themselves — it's the shape of
+what "enough categories" converges toward.
+
+---
+
+## relation to other templates
+
+- [[template-distribution-economics]]: the categories in this catalog are
+  themselves templates in that economic sense — each one authored once
+  [ at real cost, against real failures ] and then applied for free on
+  every future file that matches its shape
+- [[syntax-as-technology]]: a segment-template catalog is exactly the
+  compression phase described there — replacing an open-ended generative
+  layer with a closed set of conventions that scale without adding weight
+- [[categorical-compartmentalization]]: the anchor/interior split is the
+  same bounded-region-with-controlled-permeability primitive applied to
+  a single line of text instead of a memory architecture — the anchor is
+  the boundary, the interior is what's permeable to reflow
+
+#,,,,,,.,,.,,,,.,,.,.,.,,,,..,,,.,,..,.,,,,..,..,,...,...,...,.,,,.,.,,,.,.,.,
+#ETDJLQJWOD3YLFJSMSFBXUYAQA5YHTZ4XKJGM2ULCXBHJKS23ST3P642EKMWSGF7BHBRIPZYBMK7Q
+#\\\|I3IDPCASOO4XTHFA4DEME33LRG35JA27SQVRR7CTVDZENNAZYRW \ / AMOS7 \ YOURUM ::
+#\[7]2NQ5DMBZT6C56MYEHFB2MRU22RTRPYDLE2UXZHKFGP5LMOMR4ICQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
