@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name = models.cmd.request
-# descr = request announced content by checksum [SIZE|STRM response]
+# descr = request announced content by checksum [SIZE/STRM]
 # usage = models.request <checksum>
 # return = content via SIZE or STRM
 
@@ -38,8 +38,7 @@ my $size    = $announced->{'size'};
 
 ## use STRM for large content [>100KB]
 if ( $size > 102400 ) {
-    ## TODO: implement STRM delivery
-    ## for now, use SIZE regardless
+    ## TODO: implement STRM delivery  for now, use SIZE regardless
 }
 
 ## deliver via SIZE
@@ -47,8 +46,8 @@ return { mode => qw| size |, data => $content };
 
 0;
 
-#,,,.,...,...,,..,...,.,,,,,,,,,,,.,.,.,.,..,,..,,...,...,..,,.,,,,,.,..,,..,,
-#3QVBTMOSD2HTG7RVYZ3IJCBITHT2AZVUY5RBT2RNYVEVJEJPXMARV74274QVMZ4CSABS5ZBXKI6YS
-#\\\|UANNDMVB75RWGTIPBUEINT6GUMPUFR3XBLYFXYUUWCWGDC5RA44 \ / AMOS7 \ YOURUM ::
-#\[7]DPSOQKG5O7DUJDST346GXA3JRJNYWSEKJXFUMWYVCH6JTU5ZCKCA 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,..,,...,..,,,..,,,.,,.,,..,,..,,..,,...,...,..,,..,,.,.,,,,,...,
+#SM3Q6X4TWHKELFLATOILVY5NFRSSNQGDRL4XWGGAWAKCRU2LEYNJF23RLTJ7HTHPKGXVFUAXZFJ7A
+#\\\|M4IDUUHV76AJJPNRGMASSZ7JSY6XV6EITAHSOXGY5B6EX54TSIP \ / AMOS7 \ YOURUM ::
+#\[7]SBVJMEONHFTT4VM2WTRYU3OMWBGEZFOKBEIRDQTHESRFEFPRWACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

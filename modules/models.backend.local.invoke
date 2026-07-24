@@ -40,8 +40,8 @@ if ( !length($system_prompt) && length($system_template) ) {
         $system_prompt = $template_result->{'content'};
         <[base.log]>->(
             2,
-            "[local.invoke] system message rendered ("
-                . "$template_result->{'elapsed_ms'}ms, "
+            "[local.invoke] system message rendered "
+                . "($template_result->{'elapsed_ms'}ms, "
                 . length($system_prompt)
                 . " chars)"
         );
@@ -80,8 +80,8 @@ if ($@) {
     start_time     => <[base.time]>->(2),
 };
 
-## Submit async HTTP request via AnyEvent::HTTP ##
-## Watcher registered directly into Event.pm - no polling! ##
+## Submit async HTTP request via AnyEvent::HTTP  Watcher registered ##
+## directly into Event.pm - no polling!                             ##
 http_post(
     "$llama_url/v1/chat/completions",
     $json_body,
@@ -102,8 +102,8 @@ http_post(
 
 <[base.log]>->( 2, "[local.invoke] request submitted: $inference_id" );
 
-## Return immediately (non-blocking) ##
-## If reply_id provided, async callback will handle response ##
+## Return immediately (non-blocking)  If reply_id provided, async callback ##
+## will handle response                                                    ##
 if ( length($reply_id) ) {
     return {
         'success' => TRUE,
@@ -119,8 +119,8 @@ if ( length($reply_id) ) {
     };
 }
 
-#,,,.,...,,.,,,.,,,.,,.,,,.,.,..,,...,,,.,.,,,.,.,...,...,...,,.,,..,,,,.,,..,
-#WXHXFWCBSYNHDGYPJASW4WELWPFKFUPFPP3MKRYEYUH5PJQWX4NNRG7SP365I3UPW6XY4UW5IJDR4
-#\\\|IVKC6JXMTM457TMCT5MJXJIMRT3NE3K5DJHX4637MR2LSBAYHT4 \ / AMOS7 \ YOURUM ::
-#\[7]OQBZQEZ3ZG2D36Q6FUMZAQY7YUVFOQUUCHRXIZPHARY3FXQVQKAI 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,,,,,..,,.,,.,,,,.,,..,,,.,,,,,,.,.,...,...,.,.,..,,.,.,,..,...,
+#DNTDHKBEYUCSBOLSBPCRSTHOBFRT54FNX3OACSUNEWL3JPLGRDIEJV4QDXM7EC5CJ4CVTGAGTFDSG
+#\\\|24BF563R5KUHNNAEGDPDV7LBIXA77CXJZGDQH7OT4DPHOUVKWWI \ / AMOS7 \ YOURUM ::
+#\[7]7N2TBVIPU4QWPMAKP5I6DORE4RK3QUDOMAJWOXPJUFRXSEKON4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
