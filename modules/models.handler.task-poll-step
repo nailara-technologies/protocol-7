@@ -100,8 +100,8 @@ if ( $step eq 'show' ) {
             }
             next;
         }
-        ## stop header parsing once we hit the result line
-        ## (everything after is task content, not task metadata)
+        ## stop header parsing once we hit the result line  (everything after
+        ## is task content, not task metadata)
         if ( $in_header and $line =~ m{^result\s*:\s*}i ) {
             $in_header = FALSE;
             next;
@@ -127,8 +127,9 @@ if ( $step eq 'show' ) {
     } elsif ( $description =~ s{^\@(\S+)\s*}{} ) {
         $model = $1;
     }
-    ## :review: prefix → auto-route to local model with review-cycle template ##
-    ## rewrite description so coding.prompt.assemble picks the right template  ##
+    ## :review: prefix → auto-route to local model with review-cycle    ##
+    ## template rewrite description so coding.prompt.assemble picks the ##
+    ## right template                                                   ##
     if ( $model eq 'review' ) {
         $model       = 'local';
         $description = "review-cycle $description";
@@ -241,8 +242,8 @@ if ( $step eq 'check-next' ) {
 <[base.logs]>->( 0, ': task-poll-step: unknown step [ %s ]', $step );
 return;
 
-#,,,.,...,..,,,..,.,,,,,.,,,,,,,.,,.,,...,.,,,.,.,...,..,,.,,,.,,,,..,..,,.,.,
-#NCWHTQONO5PWXOFPJWTRGOMOTZVXX6O4VTJTZXKUDASAQGPS6EN2BBHHYDGDMZT2P644Z6QSP6TKY
-#\\\|7JPT6S7NQLMT4FWE24PSNGZOB4Q5G5QAVOAILBSLQ5NBEXFU5T5 \ / AMOS7 \ YOURUM ::
-#\[7]EHZECPKLN4XARS664OLCTCGTJXRJX3HDG3C73YFO2WAJBZA7E2AQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,..,,,.,,,.,,,.,,.,.,,..,..,,,,,,.,.,...,...,.,.,.,,,,,,,,,,,,,,,
+#RDQLGCNYBJ5DYF3LNZ4IVXAI7YOEDD4R42GS7P2BCGKQVALNTCF7EUQ7YAEPJKJRQ53BW3H7YG4WM
+#\\\|FOGOXZNBYIONX5ZUH3E6KO2NWH7PUWSAKNPQCDWZESMSKPCZ7EX \ / AMOS7 \ YOURUM ::
+#\[7]EE3XY7GBPIGIETDCJWQS3BC4HOQXWI3Z23DOIWLQWBYQSW4IPWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -14,8 +14,8 @@ my %metadata;
 ## Open file in binary mode
 open my $fh, '<:raw', $file_path or return undef;
 
-## Read GGUF header (minimal parsing)
-## GGUF format: magic (4) + version (4) + tensor_count (8) + metadata_kv_count (8)
+## Read GGUF header (minimal parsing)  GGUF format: magic (4) + version (4) +
+## tensor_count (8) + metadata_kv_count (8)
 my $header;
 read( $fh, $header, 24 ) or do { close($fh); return undef; };
 
@@ -117,8 +117,8 @@ close($fh);
 
 return \%metadata;
 
-#,,,,,,,.,,,.,...,,..,...,.,.,,.,,.,,,...,.,.,..,,...,...,.,.,..,,,.,,,,.,.,,,
-#L7TA423YRGFDL4WWW3XMOA7WWV4TMQT2HRPPN55464A5ZPZYUIXM3KISZ5RKYKNQHHK5W6JUGB7UW
-#\\\|X6RGDRGM7KWUMT46HRH3SQKT3QXVQRNBVCXBBW55RTC7KUBCQOE \ / AMOS7 \ YOURUM ::
-#\[7]DQNG2XQXBMZNXYBI7B3BDMHTXT56G2GK25N3PHBGG7FDMM5A7MCQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,,..,.,,,,..,,,,,...,,,.,,,.,,,.,..,,...,...,.,,,,,.,.,.,,..,.,,,
+#KFXQJNWCJ5MNDQD2KJH43U2GZPRJRRQIICS6NMHALWIX35O5WADE5M5NMURTV3SZXKKYPL63ZOKBG
+#\\\|F73MJSLSRH732E3S73YHI3ZTKTDKJXZQPURSGFF26BLEQMIES6R \ / AMOS7 \ YOURUM ::
+#\[7]TRIPOUARWGHOURQSFCZGHBJF2K3JHUPPGGNMDO2ZIAOFWKK5MCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
