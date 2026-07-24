@@ -1,6 +1,6 @@
 ---
 name: topic-format-code-bugs-fixed
-description: "full arc of bin/format-code hardening across one extended session: 17 real bugs/features fixed via dogfooding on real zenka files, landing on a 5-category pattern-template pipeline (bracket block, loose paragraph, list, box, commented-code) plus N-way string splitting -- now applied clean to 11 real zenki/namespaces (jobsite-discovery, letsencr, bin/Protocol-7, web-browser, httpd, ticker, source, sourcecode, AMOS7 modules, base, coding); one known perltidy-rejoin idempotency gap deliberately left open on 3 files"
+description: "full arc of bin/format-code hardening across one extended session: 17 real bugs/features fixed via dogfooding on real zenka files, landing on a 5-category pattern-template pipeline (bracket block, loose paragraph, list, box, commented-code) plus N-way string splitting -- now applied clean to 13 real zenki/namespaces+bin (jobsite-discovery, letsencr, bin/Protocol-7, web-browser, httpd, ticker, source, sourcecode, AMOS7 modules, base, coding, models, bin/); perltidy-rejoin idempotency gap + a third unrecognized list style (whitespace-column, no punctuation) deliberately left open"
 metadata:
   type: project
 ---
@@ -227,6 +227,33 @@ margin for what happens after you, out of view" but harder to margin
 around, since it's not a depth difference — it's whether an entire prior
 line boundary still exists at all after perltidy reshapes it.
 
+## Still open, found but not fixed : a third list style with no punctuation
+
+Discovered when `bin/format-code` reflowed **itself** as part of the
+`bin/*` batch (it matches `is_perl_code`) and came back non-idempotent.
+Its own `step2_reflow_comment` exclusion-list comment:
+
+```
+##  detect ## comment line [ pure comment ]  ##
+##  exclusions :
+##    ## [:< ##         module header
+##    #!                shebang
+##    #,                signature
+##  any leading code disqualifies [ handled by step 3 instead ]  ##
+```
+
+is a genuine per-item list (marker + whitespace-column alignment +
+description) but uses NEITHER numbering/bullets NOR a `Label:` colon —
+just raw column alignment, a third style distinct from both list
+categories already handled. Not recognized, so it merges into prose and
+reflows differently pass-to-pass. Given the file in question is the tool
+itself, `bin/format-code` was exempted from the `bin/` batch entirely
+(`4a3c8ac3e`) rather than ship a self-referential idempotency gap in the
+tool's own source. Not fixed. The same perltidy-rejoin gap documented
+above also recurred in `bin/` (`bin/mcp-server-p7`, `bin/p7-deps`) plus
+two plain prose-wrap wobbles (`bin/coding-task`, `bin/ddcompress`) —
+consistent with precedent, left as-is rather than blocking the batch.
+
 ## Verified real-world application (all re-run fresh + signed, this session)
 
 - `letsencr` zenka (44 files) — `dc5b69ea9`. Also required a one-off source
@@ -257,6 +284,12 @@ line boundary still exists at all after perltidy reshapes it.
   was found live; re-applied clean after the fix landed, with the
   perltidy-rejoin idempotency gap above knowingly left unresolved on 3
   files.
+- `models` namespace (37 files) — `b5788055c`.
+- `bin/` (42 files) — `4a3c8ac3e`, `bin/format-code`/`bin/harmony`/
+  `bin/terminal` exempted (see "still open" sections above). Preceded by
+  a failed nested-agent dispatch attempt — see
+  [[feedback-agent-dispatch-worktree-isolation-escaped]] — that had to be
+  fully reverted and redone directly before this landed clean.
 
 ## Verification pattern used throughout
 
@@ -319,8 +352,8 @@ whole 15-bug arc is that principle in practice.
 
 [[topic-p7-text-formats-landed]], [[feedback-base-swap-subs-promote-pattern]], [[topic-fake-signature-footer-detection]]
 
-#,,,,,...,,..,...,,..,.,,,,..,.,,,,..,,,.,,,,,..,,...,...,...,..,,,,.,,,.,,.,,
-#3U3UNV6B3G6MNLFPHHVNBW22EJ3VA7JSSOAQMMKCB2H5L7F3KF3YXFTF5ZKZILHSKIOX4J4UGADZE
-#\\\|5I4X2DUCTTU7FYLYR6HQO2OLE3OFSLDQO662LNZB7EGNUFUEJIQ \ / AMOS7 \ YOURUM ::
-#\[7]YDW7ZIG7C26TGIEG653TIPACMCJMHJLUJPBVYS4JZE25YEWP4SBY 7  DATA SIGNATURE ::
+#,,,.,...,,,.,.,,,.,.,.,.,..,,.,.,..,,..,,.,,,..,,...,...,...,,,,,,.,,,..,,,,,
+#AEDZKSY3OWGKIECOP6ZPI67JRCE64H7TBNGNKUSKKP3ALLWZ22QMFFTZ37YYL6G3JYVXXZPZSXB74
+#\\\|ASJ24HZHR5Z7BY4TLH3GJBYFLBUENA5MWT2K3XJQZ55XCYEMIDU \ / AMOS7 \ YOURUM ::
+#\[7]EGOQU5ISQDIG5JANQAUOUQNKY76QVUOEX2VZCXEJI6VUW64PD6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

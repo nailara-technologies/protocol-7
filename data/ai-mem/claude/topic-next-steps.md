@@ -8,6 +8,27 @@ metadata:
   modified: 2026-07-22T22:56:35.241Z
 ---
 
+## done (2026-07-24)
+
+- **bin/format-code hardening + broad application** — 17 real bugs found
+  and fixed via dogfooding (comment-loss, string splits, N-way split
+  overflow, box/list/annotation detection gaps, fake-signature-footer
+  detection, more) — full detail in [[topic-format-code-bugs-fixed]].
+  Applied clean to 13 namespaces/areas: jobsite (discovery only, not
+  applied), letsencr, bin/Protocol-7, web-browser, httpd, ticker, source,
+  sourcecode, AMOS7 modules, base, coding, models, bin/. Two smaller
+  spinoff findings got their own memory: a new LLM-hallucinated
+  fake-signature-footer disguise in `source.extract_sig_body`
+  ([[topic-fake-signature-footer-detection]]), and a still-open
+  `Module::Refresh`/`cube reload perl-mods` "subroutine redefined"
+  warning bug found live-testing
+  ([[project-perl-mod-reload-subroutine-redefined-warnings]]). Also: a
+  nested Agent dispatch with `isolation:worktree` escaped its isolation
+  and corrupted the main working tree (fully recovered via
+  `git checkout HEAD --`, no commits affected) — see
+  [[feedback-agent-dispatch-worktree-isolation-escaped]] before trusting
+  that isolation mode again for a shared-repo task.
+
 ## done (2026-07-23)
 
 - **log-anonymization phase 1** ✓ (`dbd7ca8ba`, kimi K3 dispatch, timed
@@ -415,6 +436,8 @@ what it should actually invoke.
 ## open bugs (session 37)
 
 - source.extract_sig_body: YOURUM fake stubs 1 char too long → size mismatch → error instead of strip
+  (still open; a DIFFERENT fake-footer disguise — sequential-pattern, not size-mismatch-triggered —
+  was found+fixed 2026-07-24, see [[topic-fake-signature-footer-detection]])
 - signature oscillation Variant B — double-footer on never-signed non-empty files
 - ~~signature endline restoration~~ — FIXED session 48b: stale delta clamp + normalize recovery
 - repo var/ cleanup — var/httpd/ tracked from Nov 2025 AI error
@@ -429,8 +452,8 @@ what it should actually invoke.
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,..,,..,,,,,...,.,,,,..,...,.,,,.,,,,..,,.,,..,,...,...,.,,,.,.,.,.,...,,..,
-#37IMBHKHKLMVUOOKN5R6EHAT7WB6HXRYWYSE2QYCPME7U4NCNAIYL7KBVLNVRJW2OSMGU4J34TAUE
-#\\\|WIR222M5TVHAK3AYM2EWIDXGXYJIIBEJEOUOTOBK57NS443BQT2 \ / AMOS7 \ YOURUM ::
-#\[7]YWTA4TJR3J2OJZRFO7PZMONVKVB6KFYFHFFG3QJ4BTY6FQCZFIAY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,.,.,.,,,,,,,.,,,.,,,..,,.,,,..,,..,,...,...,...,.,.,,.,,.,,,..,,
+#YJG5AAULYR437Q5L4VLM4B224RPESZ2CODMTR2K427G5FDAYYYSNQTAB5JNIYJFVL5MWFX6VZCRTI
+#\\\|ZVVMFL7G277DAWXRYGYN63SLZHK5EVYTAZIWK3OCW4TTOKTOVRN \ / AMOS7 \ YOURUM ::
+#\[7]VTKVLPKOTR2LZPLZACR6SD2DFB5IVLARBIPTWW5M7U6KKOGXMMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
