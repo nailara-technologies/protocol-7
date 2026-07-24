@@ -367,33 +367,60 @@ sub step4_align_comment_block {
     return [ @{$lines}[ $start_lnum - 1 .. $start_lnum + $block_len - 2 ] ]
         if $width < 10;    ##  too narrow , leave untouched  ##
 
-    ##  canonicalize : re-derive structure from the content itself rather
-    ##  than trusting where the incoming line breaks happened to sit --
-    ##  what makes repeated reformatting passes converge instead of drift.
-    ##  a break is treated as intentional [ double-space , like a sentence
-    ##  boundary ] when EITHER the line ends in terminal punctuation OR the
-    ##  line ends well short of the width budget [ a forced wrap fills close
-    ##  to the budget by definition ; stopping well short of it with no
-    ##  punctuation is still a real signal the author meant to break there --
-    ##  e.g. a run of short "note:"-style bullet lines with no sentence-
-    ##  ending punctuation at all would otherwise get blurred into one
-    ##  run-on paragraph ] ; otherwise single-space [ ordinary forced wrap ] ##
-    my $short_margin = 15;
-    my $joined       = '';
+    ##  list detection : a marker [ '1.', '2)', 'a.', '-', '*', bullet .. ]
+    ##  recurring at the START of 2+ lines confirms a genuine list rather
+    ##  than a one-off reference elsewhere in the text [ "item 1." mid-
+    ##  sentence should NOT trigger this ] -- 2+ is the dividing line
+    ##  between "list" and "not everything is a group parent"  ##
+    my $list_marker_re = qr{^(?:(?:\d+|[a-zA-Z])[.\)]|[-*\x{2022}])\s+};
+    my @is_marker = map { m{$list_marker_re} ? 1 : 0 } @content_parts;
+    my $has_list = ( grep {$_} @is_marker ) >= 2;
+
+    ##  split into segments : a detected marker line is a hard anchor --
+    ##  like '##' itself, it always starts a fresh output line and never
+    ##  gets folded into the previous item's text. everything before the
+    ##  first marker [ e.g. an intro sentence ending in ':' ] is its own
+    ##  leading segment  ##
+    my ( @segments, @cur );
     for my $i ( 0 .. $#content_parts ) {
-        $joined .= $content_parts[$i];
-        next if $i == $#content_parts;
-        my $ends_sentence = $content_parts[$i] =~ m{[.!?]$};
-        my $ends_short    = ( $width - $content_lens[$i] ) > $short_margin;
-        $joined .= ( $ends_sentence or $ends_short ) ? '  ' : ' ';
+        if ( $has_list and $is_marker[$i] and @cur ) {
+            push @segments, [@cur];
+            @cur = ();
+        }
+        push @cur, $i;
     }
+    push @segments, [@cur] if @cur;
 
     local $Text::Wrap::columns  = $width + 1;    ##  Text::Wrap : "+ 1" ##
     local $Text::Wrap::break    = qr/\s+/;
     local $Text::Wrap::huge     = 'overflow';
     local $Text::Wrap::unexpand = 0;
-    my $wrapped = Text::Wrap::wrap( '', '', $joined );
-    my @wrapped_lines = map { s{\s+$}{}; $_ } split m{\n}, $wrapped;
+
+    ##  canonicalize each segment independently : re-derive structure from
+    ##  the content itself rather than trusting where the incoming line
+    ##  breaks happened to sit -- what makes repeated reformatting passes
+    ##  converge instead of drift. a break is treated as intentional
+    ##  [ double-space , like a sentence boundary ] when EITHER the line
+    ##  ends in terminal punctuation OR the line ends well short of the
+    ##  width budget [ a forced wrap fills close to budget by definition ;
+    ##  stopping well short of it with no punctuation is still a real
+    ##  signal the author meant to break there ] ; otherwise single-space
+    ##  [ ordinary forced wrap ]  ##
+    my $short_margin = 15;
+    my @wrapped_lines;
+    for my $seg (@segments) {
+        my $joined = '';
+        for my $j ( 0 .. $#$seg ) {
+            my $i = $seg->[$j];
+            $joined .= $content_parts[$i];
+            next if $j == $#$seg;
+            my $ends_sentence = $content_parts[$i] =~ m{[.!?]$};
+            my $ends_short = ( $width - $content_lens[$i] ) > $short_margin;
+            $joined .= ( $ends_sentence or $ends_short ) ? '  ' : ' ';
+        }
+        my $wrapped = Text::Wrap::wrap( '', '', $joined );
+        push @wrapped_lines, map { s{\s+$}{}; $_ } split m{\n}, $wrapped;
+    }
 
     my @out;
     if ($any_close) {
@@ -1001,8 +1028,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,,,,,,.,.,.,.,.,.,.,.,,,,..,,.,,,.,,...,,..,..,,...,...,..,,,.,,,..,.,.,,,.,
-#BQXZYAGVK4RBYDDM6UCKK73DIUQVAMPP3YM3CKPAH7K23YSNTT7FG5S6QS6ZETMCEKKNMXN2WAG5U
-#\\\|3M3OZ7QQ3IYD2OSMEWG3THOI7DH3ZE4NBGFMFNER74XKCBWMXJ4 \ / AMOS7 \ YOURUM ::
-#\[7]7Q3KTWZFML5QSKLOAEMP2E6NJN2XJRY53EPZYD42LE75YD56COAY 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,.,.,..,,..,,,,.,..,,...,...,...,..,,...,...,,,.,.,.,.,,,...,.,.,
+#MDZ3U2WOUIQ4XODJW4U575DMRKSADMU5EF4BRVLRJK7GHQL6NBLKM35IE7EY46QR6ZRS2KCMAY32K
+#\\\|EZGRL5M2QVVTDMJ2IJZTAFXKGYU6DDCU6SLPISA5DXXDMX7EUXH \ / AMOS7 \ YOURUM ::
+#\[7]TURMNPPLQ7RZDSMNN7HGUTL26NV6GO4ECFQP3YG2UI2V7U3DZ6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
