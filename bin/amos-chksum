@@ -216,19 +216,16 @@ if (@nest_pairs) {
                 ? sprintf( qw| %032b |, $chksum_num )
                 : sprintf( qw| %010d |, $chksum_num );
         } else {
-            $out_value = AMOS7::CHKSUM::Nested::format_nested(
-                $child_chksum, $parent_chksum );
+            $out_value = AMOS7::CHKSUM::Nested::format_nested( $child_chksum,
+                $parent_chksum );
         }
 
         if ( $option{'q'} ) {
             push( @output, $out_value );
         } else {
-            push(
-                @output,
-                sprintf
-                    "$C{0}:\n:$C{b} $C{T}%s$C{0} $C{R}\n$C{0}:$C{R}",
-                $out_value
-            );
+            push( @output,
+                sprintf "$C{0}:\n:$C{b} $C{T}%s$C{0} $C{R}\n$C{0}:$C{R}",
+                $out_value );
         }
     }
 
@@ -567,8 +564,8 @@ sub true_bits {    ## not numerical ##
         : "$C{0}$visualize_data$C{R}";
 }
 
-#,,,.,..,,..,,,.,,,..,,.,,,,,,..,,,,.,,,.,.,,,..,,...,...,.,,,,,.,.,.,...,,.,,
-#PFY6YEJWSQRCE4EJCGRWC7VS4ASBEEH7YJNHZ2AVSQMXADJVYXPEWZW2IOIASWCSCIMZNTGQWOOJA
-#\\\|A2MQO7ZDK3OD7D4UEEKYA2GYRUGVDRLICS26I563LIGRYPAFYQJ \ / AMOS7 \ YOURUM ::
-#\[7]ZRYK76K7FVB6JJMAGNOYBXNCFRWZWQLD4BTGL4C6VP7FNGC3NKBI 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,,..,..,,,.,,,,,,,,.,.,,,..,,,,,,..,,...,..,,...,,.,,.,.,,..,..,,
+#JCLQBXA2GKNF5TTMD6RNV374QV5XJOUXIG4SM565BOLNW6NYE6WV4RZ2CIFDIPRHKCEEFNY2B6YUU
+#\\\|5XHAAK4EBSHFDEFV4K532XFTEOON33DQEQXIMT5C45NSK7EPUNG \ / AMOS7 \ YOURUM ::
+#\[7]K4QT3FPW5IKCPR3QQNL2WY6H36KLTI77OXAQMAZUDP2WVDOOJYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

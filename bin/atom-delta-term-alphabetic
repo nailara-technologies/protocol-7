@@ -438,8 +438,8 @@ sub calc_ntime {    # [ network time : secs from 2002-06-05 * 4200 ]
 }
 
 sub dump_seed_state {
-    say ":: seeds :.\n:\n::: prng :: $state->{'seed'}->{'prng'}\n"
-        . ":\n:: zulum :: $state->{'seed'}->{'zulum'}\n:\n";
+    say ":: seeds :.\n:\n::: prng :: $state->{'seed'}->{'prng'}\n:\n:: "
+        . "zulum :: $state->{'seed'}->{'zulum'}\n:\n";
 }
 
 sub clear     { return "$nailara_bg$blacklight\e[H\e[2J" }
@@ -542,8 +542,8 @@ sub sig_int_handler {
             when (m{^(start|run)$}) {
                 if ( $state->{'init'} ) { goto RESTART }
                 else {
-                    say ":\n:: already initialized\n"
-                        . ":: [ 'restart' or 'continue' ]";
+                    say ":\n:: already initialized\n:: "
+                        . "[ 'restart' or 'continue' ]";
                 }
             }
             when ('rewind') { reset_state() }
@@ -582,8 +582,8 @@ sub sig_int_handler {
                     ? length($LAST_PAREN_MATCH)
                     : 0;
                 say sprintf(
-                    "\r:\n:: $len_0110 \\ $len_0000 ::"
-                        . " %.4f percent decoded =) ::\n:\n",
+                    "\r:\n:: $len_0110 \\ $len_0000 "
+                        . ":: %.4f percent decoded =) ::\n:\n",
                     $len_0110 * 100 / $len_0000
                 );
             }
@@ -598,8 +598,8 @@ sub sig_int_handler {
     }
 }
 
-#,,..,,.,,,.,,,,.,.,,,,,.,,,,,...,..,,,..,,,.,..,,...,...,...,,,,,.,.,,,,,,,,,
-#OBT3PNUSAOPLO4KYTFXLU44PW3DL36TX6VBWFVZI5A75O6BEU4JYL2PAEIT6JNGOPPUASEZQER5OI
-#\\\|QRJF2F5ECS3TODORJLAF3IMRLBGKIF4MAEXOHXXM57HMCE7GI6G \ / AMOS7 \ YOURUM ::
-#\[7]KFAYEGYPEEF4L5KHCC3266D2YO7KMH57YTC3RCTGHRLGC6UUFCCQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,,.,...,,.,,,,,,,..,.,,,,.,,...,..,,...,..,,...,.,,,,.,,...,,..,
+#WOI7FEL5RGOSOHVANCMISLEKPL5UP3RCRPV7NO5C3TDCPKI56YT3COWY7AFZNHLEZROJ3VGM2IIN4
+#\\\|7ZTQFM5IDWUBQYBXCT5BI7OTAEYE6QZZUVNBUN7VLDOK6PO5TDZ \ / AMOS7 \ YOURUM ::
+#\[7]Y7YO3RZSOE6SOROCAYWZJNIPVIQJ6IPEOWW6W4EIKKT5TDOYVKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

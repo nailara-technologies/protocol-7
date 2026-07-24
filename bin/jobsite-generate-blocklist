@@ -11,11 +11,11 @@ use FindBin qw| $RealBin |;
 ## usage: jobsite-generate-blocklist [<jobs-root> ...] [<out-file>]
 ## defaults: /var/protocol-7/jobsite/jobs  /var/protocol-7/jobsite/block-list
 ##
-## directories are treated as job roots; a non-directory path argument is
-## used as the output file.  examples:
-##   jobsite-generate-blocklist
-##   jobsite-generate-blocklist /tmp/jobs-recovery/var/protocol-7/jobsite/jobs
-##   jobsite-generate-blocklist /tmp/.../jobs /var/protocol-7/jobsite/jobs /var/protocol-7/jobsite/block-list
+## directories are treated as job roots; a non-directory path argument is used
+## as the output file.  examples:  jobsite-generate-blocklist
+## jobsite-generate-blocklist /tmp/jobs-recovery/var/protocol-7/jobsite/jobs
+## jobsite-generate-blocklist /tmp/.../jobs /var/protocol-7/jobsite/jobs
+## /var/protocol-7/jobsite/block-list
 
 BEGIN {
     my $up_dir       = File::Spec->updir;
@@ -147,8 +147,8 @@ close($out);
 printf ":\n: generated %s from %d jobs (%d unique field checksums)\n:\n",
     $out_file, $count, scalar @lines;
 
-#,,,,,...,...,,,,,,,,,,,,,...,,..,,.,,,,.,.,.,..,,...,...,,..,.,,,,,,,,,,,...,
-#6SXYNXIQ4HM3GG7HGN34DOTWZRTNZVC5Z3TJSXW4XO6IJC4DIJW4QLBM5F7YZLNNMWGRH75XUK3PE
-#\\\|6C46X3N6R7KWNWCFU4QLFV3UOMVYGPYCIOK7USTVCVE7U27OEKI \ / AMOS7 \ YOURUM ::
-#\[7]YXCF4S3YUS7WLXNKUJ4V4XPBOVLKSIEDKDVUL4PS67VFKHS3GGAY 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,.,,,...,.,.,,.,,..,,.,,,,,.,.,,,..,,...,...,..,,..,,...,.,,,,.,,
+#C4HX57HK4SZTYCD5XVUT7KOCRYD4FSG6UQMTOGSKHLTSQXJNBMCIOH7COMQ7RR3ZMFQ7MPGPP43R6
+#\\\|H2LSOOOZOKIRVXSE6U2X4H4GGCTABCJX74AJLYQDEXCDIGYU2UB \ / AMOS7 \ YOURUM ::
+#\[7]P4DCY4257SBKCR42C3ROHVJ6YCOLACCXROYEYANCGHLHWQ5UVQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

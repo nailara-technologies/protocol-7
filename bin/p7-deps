@@ -26,7 +26,7 @@ use AMOS7::deps::os_package qw(
     probe_os_pkg
     probe_binary
 );
-use AMOS7::deps::debp qw( probe_apt install_apt );
+use AMOS7::deps::debp      qw( probe_apt install_apt );
 use AMOS7::deps::dist_upgr ();
 
 $OUTPUT_AUTOFLUSH = 1;
@@ -38,14 +38,14 @@ my $TRUE_color = "\e[38;2;6;71;195m";
 my $neon_green = "\e[38;2;71;195;6m";
 my $neon_amber = "\e[38;2;197;141;7m";
 
-##[ SIGNAL HANDLERS ]###########################################################
+##[ SIGNAL HANDLERS ]#########################################################
 
 $SIG{INT} = sub {
     print "\n${neon_amber}:. interrupted by user${reset}\n";
     exit 130;
 };
 
-##[ PROJECT PATH DISCOVERY ]####################################################
+##[ PROJECT PATH DISCOVERY ]##################################################
 
 sub catdir  { File::Spec->catdir(@_) }
 sub rel2abs { File::Spec->rel2abs(@_) }
@@ -60,7 +60,7 @@ my $ZENKI_DIR     = catdir( $P7_ROOT,  'configuration', 'zenki' );
 
 make_path($CACHE_DIR) unless -d $CACHE_DIR;
 
-my %pkg_cache = ();
+my %pkg_cache  = ();
 my $known_deps = load_known_deps($P7_ROOT);
 my $host_os    = detect_os();
 
@@ -119,8 +119,8 @@ sub check_profile {
                 print "$profile_name: all dependencies installed (cached)\n";
                 return 0;
             } else {
-                print
-                    "$profile_name: missing dependencies (cached - use --no-cache to recheck)\n";
+                print "$profile_name: missing dependencies "
+                    . "(cached - use --no-cache to recheck)\n";
                 return 1;
             }
         }
@@ -128,8 +128,8 @@ sub check_profile {
 
     my $profiles = load_profiles();
     unless ( exists $profiles->{$profile_name} ) {
-        die
-            "Unknown profile: $profile_name\nRun 'bin/p7-deps list' to see available profiles.\n";
+        die "Unknown profile: $profile_name\nRun "
+            . "'bin/p7-deps list' to see available profiles.\n";
     }
 
     my $profile = $profiles->{$profile_name};
@@ -189,8 +189,10 @@ sub check_profile {
             $total++;
             my $resolved = resolve_install( $module, $known_deps );
 
-            if ( $resolved->{method} eq 'debian' && probe_apt( $resolved->{pkg} ) ) {
-                print "::   $module ................... installed (via Debian: $resolved->{pkg})\n";
+            if ( $resolved->{method} eq 'debian'
+                && probe_apt( $resolved->{pkg} ) ) {
+                print "::   $module ................... "
+                    . "installed (via Debian: $resolved->{pkg})\n";
             } elsif ( probe_module($module) ) {
                 print "::   $module ................... installed\n";
             } else {
@@ -204,7 +206,9 @@ sub check_profile {
     $all_ok = 0 if @missing;
 
     if (@missing) {
-        print ":\n::  " . scalar(@missing) . " missing --- run: bin/p7-deps install $profile_name\n:\n";
+        print ":\n::  "
+            . scalar(@missing)
+            . " missing --- run: bin/p7-deps install $profile_name\n:\n";
         update_cache( $profile_name, 0 );
         return 1;
     } else {
@@ -345,8 +349,8 @@ sub list_profiles {
 sub status_all {
     my $profiles = load_profiles();
 
-    print
-        "\n${neon_green}::[[${TRUE_color} dependency status ${neon_green}]${reset}\n";
+    print "\n${neon_green}::[[${TRUE_color} "
+        . "dependency status ${neon_green}]${reset}\n";
     print "${neon_green}::${reset}\n\n";
 
     for my $name ( sort keys %$profiles ) {
@@ -383,7 +387,7 @@ sub run_dist_upgrade {
     }
 }
 
-##[ INTROSPECTION COMMANDS ]####################################################
+##[ INTROSPECTION COMMANDS ]##################################################
 
 sub show_zenka_modules {
     my ($sort_key) = @_;
@@ -394,8 +398,8 @@ sub show_zenka_modules {
     my $pm_deps = scan_zenki_pm_deps($ZENKI_DIR);
 
     unless ( keys %$pm_deps ) {
-        print
-            "  No Perl module dependencies declared in zenka configurations.\n\n";
+        print "  No Perl module dependencies "
+            . "declared in zenka configurations.\n\n";
         return;
     }
 
@@ -445,8 +449,8 @@ sub show_zenka_packages {
     }
 
     unless ( keys %all_packages ) {
-        print
-            "  No OS package dependencies declared in zenka configurations.\n\n";
+        print "  No OS package dependencies "
+            . "declared in zenka configurations.\n\n";
         return;
     }
 
@@ -468,9 +472,10 @@ sub show_zenka_packages {
         }
     } else {
         for my $pkg ( sort keys %all_packages ) {
-            my $info = $all_packages{$pkg};
+            my $info       = $all_packages{$pkg};
             my $zenki_list = join( ', ', sort @{ $info->{zenki} } );
-            print "  ${neon_green}$pkg${reset} (type: $info->{type}, zenka: $zenki_list)\n";
+            print "  ${neon_green}$pkg${reset} "
+                . "(type: $info->{type}, zenka: $zenki_list)\n";
         }
         print "\n";
     }
@@ -506,12 +511,12 @@ sub validate_zenka_declarations {
     }
 
     print_section("Summary");
-    print
-        "  Found ${neon_green}$total_zenka${reset} zenka with declared dependencies\n";
+    print "  Found ${neon_green}$total_zenka${reset} "
+        . "zenka with declared dependencies\n";
 
-    my $total_pm    = scalar( keys %$pm_deps );
-    my $total_deb   = scalar( keys %{ $os_deps->{debian} // {} } );
-    my $total_bin   = scalar( keys %{ $os_deps->{binary} // {} } );
+    my $total_pm  = scalar( keys %$pm_deps );
+    my $total_deb = scalar( keys %{ $os_deps->{debian} // {} } );
+    my $total_bin = scalar( keys %{ $os_deps->{binary} // {} } );
 
     print "  :. CPAN modules: $total_pm\n";
     print "  :. Debian packages: $total_deb\n";
@@ -520,10 +525,16 @@ sub validate_zenka_declarations {
 
     print_section("Zenka with Dependencies");
     for my $zenka ( sort keys %all_zenka ) {
-        my @modules = grep { grep { $_ eq $zenka } @{ $pm_deps->{$_} } } keys %$pm_deps;
-        my @debian  = grep { grep { $_ eq $zenka } @{ $os_deps->{debian}{$_} } }
+        my @modules = grep {
+            grep { $_ eq $zenka } @{ $pm_deps->{$_} }
+        } keys %$pm_deps;
+        my @debian = grep {
+            grep { $_ eq $zenka } @{ $os_deps->{debian}{$_} }
+            }
             keys %{ $os_deps->{debian} // {} };
-        my @binary = grep { grep { $_ eq $zenka } @{ $os_deps->{binary}{$_} } }
+        my @binary = grep {
+            grep { $_ eq $zenka } @{ $os_deps->{binary}{$_} }
+            }
             keys %{ $os_deps->{binary} // {} };
 
         my $count = scalar(@modules) + scalar(@debian) + scalar(@binary);
@@ -536,7 +547,7 @@ sub validate_zenka_declarations {
     print "\n:: validation complete\n\n";
 }
 
-##[ STYLING FUNCTIONS ]#########################################################
+##[ STYLING FUNCTIONS ]#######################################################
 
 sub print_header {
     my $title = shift;
@@ -552,12 +563,12 @@ sub print_section {
 
 sub print_error {
     my ( $message, $exit_code ) = @_;
-    print
-        "\n${blacklight}:\n::[$neon_amber ERROR $blacklight] .: ${neon_amber}$message$blacklight ::\n:${reset}\n";
+    print "\n${blacklight}:\n::[$neon_amber ERROR $blacklight] "
+        . ".: ${neon_amber}$message$blacklight ::\n:${reset}\n";
     exit($exit_code) if $exit_code;
 }
 
-##[ HELPER FUNCTIONS ]##########################################################
+##[ HELPER FUNCTIONS ]########################################################
 
 sub load_profiles {
     unless ( -f $PROFILES_FILE ) {
@@ -579,15 +590,12 @@ sub load_profiles {
             $current_profile            = $1;
             $current_section            = undef;
             $profiles{$current_profile} = {};
-        }
-        elsif ( $line =~ /^    description: "(.+)"$/ ) {
+        } elsif ( $line =~ /^    description: "(.+)"$/ ) {
             $profiles{$current_profile}{description} = $1;
-        }
-        elsif ( $line =~ /^    (includes|apt|cpan|cpan_fallback):$/ ) {
+        } elsif ( $line =~ /^    (includes|apt|cpan|cpan_fallback):$/ ) {
             $current_section = $1;
             $profiles{$current_profile}{$current_section} = [];
-        }
-        elsif ( $line =~ /^      - (.+)$/ ) {
+        } elsif ( $line =~ /^      - (.+)$/ ) {
             my $item = $1;
             $item =~ s/\s*#.*//;
             $item =~ s/\s+$//;
@@ -673,8 +681,8 @@ ZENKA CONFIGURATION:
 EOF
 }
 
-#,,..,,,.,.,.,.,.,,,,,...,,,.,.,,,,,.,.,,,...,..,,...,..,,.,.,.,.,.,.,..,,..,,
-#WH6SHRLPTGSWJ463VMOISNSTMZXZW4GCITTXNVDNWEH3ZL2YMWJIRFUBT632YX6LMFY2QSUJFUZB4
-#\\\|WMKEXAVPUYVKIJWR7BAFRM2HMYSRHBGCBF3QLNA2H4Z6UZHR2D5 \ / AMOS7 \ YOURUM ::
-#\[7]RNM42SCM2YNKFIPKL6DU2NJF4OMB2Q4YQMLMJ37BMJ77LHXHDACY 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,...,,.,,.,,,,.,,,,,,..,,,..,...,..,,...,...,..,,,.,,...,,..,,.,,
+#TJHCGLMPOAJF57GEK366CLPOWLSULIKUIVGMFCQKU73BTTRCE64PLXTIPLOS4JMOHFDGCQN6GGGH4
+#\\\|5ECWZZUB4FTXKJL3YQTOOXHEZJRJJMMO52FOUONQKZWXQSGJK2F \ / AMOS7 \ YOURUM ::
+#\[7]V3EM6QWKCBJFBR7A4YBHLT44FZK2YW2PY7DJSNQDWSULVD5QLAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -481,8 +481,8 @@ sub calc_ntime {    # [ network time : secs from 2002-06-05 * 4200 ]
 }
 
 sub dump_seed_state {
-    say ":: seeds :.\n:\n::: prng :: $state->{'seed'}->{'prng'}\n"
-        . ":\n:: zulum :: $state->{'seed'}->{'zulum'}\n:\n";
+    say ":: seeds :.\n:\n::: prng :: $state->{'seed'}->{'prng'}\n:\n:: "
+        . "zulum :: $state->{'seed'}->{'zulum'}\n:\n";
 }
 
 sub clear     { return "$nailara_bg$blacklight\e[H\e[2J" }
@@ -585,8 +585,8 @@ sub sig_int_handler {
             when (m{^(start|run)$}) {
                 if ( $state->{'init'} ) { goto RESTART }
                 else {
-                    say ":\n:: already initialized\n"
-                        . ":: [ 'restart' or 'continue' ]";
+                    say ":\n:: already initialized\n:: "
+                        . "[ 'restart' or 'continue' ]";
                 }
             }
             when ('rewind') { reset_state() }
@@ -625,8 +625,8 @@ sub sig_int_handler {
                     ? length($LAST_PAREN_MATCH)
                     : 0;
                 say sprintf(
-                    "\r:\n:: $len_0110 \\ $len_0000 ::"
-                        . " %.4f percent decoded =) ::\n:\n",
+                    "\r:\n:: $len_0110 \\ $len_0000 "
+                        . ":: %.4f percent decoded =) ::\n:\n",
                     $len_0110 * 100 / $len_0000
                 );
             }
@@ -641,8 +641,8 @@ sub sig_int_handler {
     }
 }
 
-#,,,.,,..,.,.,.,,,,,.,,,,,...,,.,,.,,,,,,,.,.,..,,...,...,..,,.,.,,.,,,..,,.,,
-#W34BY6ZJRZCOGN7QPF3TW6ML6ZZDZ63LDKQL26GJJSS5FQQPC7Q4JXFTO5WIDHUUPGDJP4IV3NHGO
-#\\\|C2KQTUP7PVNRIXSWXGJLPDAYUHLIIEQ7ADGJA2ZA6CBWTPV3BPY \ / AMOS7 \ YOURUM ::
-#\[7]BWTOXLDL4JSREYJUILDUXMREACH2CIL7L2RH62MSBPPNPWFIYKAY 7  DATA SIGNATURE ::
+#,,..,,.,,,..,.,,,,.,,,,.,.,,,,,,,...,,,.,...,..,,...,...,..,,,,.,...,,,,,,,,,
+#UFOEQH6NBGO6HARMI3FOHWQDJNOBVKAHTWDKPEGFAHI4YSCUZ5HB6AC5OW7HAVEMMX2NAAYKYHOAU
+#\\\|MUS5D5K24FNEEPZWQRP62SPYTL7FJFGWJWNFSU72UHEOVKKISQT \ / AMOS7 \ YOURUM ::
+#\[7]WCAUKSWXPUPIDB4NFXWXLAH5EEHUI7YYQ5SHWHVG75S5EUQOOGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

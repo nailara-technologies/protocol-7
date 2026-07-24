@@ -7,10 +7,10 @@ use Term::Size;
 use Getopt::Std;
 use Digest::Elf qw| elf |;
 use Crypt::PRNG::Fortuna;
-use Text::Wrap qw| wrap |;
-use Time::HiRes qw| sleep |;
+use Text::Wrap       qw| wrap |;
+use Time::HiRes      qw| sleep |;
 use Unicode::MapUTF8 qw| to_utf8 utf8_charset_alias utf8_supported_charset |;
-use Crypt::Misc qw| encode_b32r decode_b32r |;
+use Crypt::Misc      qw| encode_b32r decode_b32r |;
 
 my $base_size  = qw|  0  |;
 my $base_table = qw|  17 |;    ## 855:
@@ -157,9 +157,9 @@ if ( $C ne qw| BASE32 | and not utf8_supported_charset($C) ) {
     eval 'use warnings FATAL => "all"; binmode( STDOUT, $encoding )';
     use warnings;
     binmode( STDOUT, ":raw" )
-        and say "   $blacklight<< encoding"
-        . " [${error_color}'$encoding'$blacklight]"
-        . " not found >>  $nailara_fg\n:"
+        and say "   $blacklight<< encoding "
+        . "[${error_color}'$encoding'$blacklight] not found >> "
+        . " $nailara_fg\n:"
         . $reset
         and exit
         if $EVAL_ERROR;
@@ -314,8 +314,8 @@ sub display_charset {
     return 1;
 }
 
-#,,..,,.,,,..,,.,,.,,,.,.,,,,,.,.,...,,.,,,..,..,,...,...,.,,,,.,,,.,,.,.,,.,,
-#SS2FDZT2J5G25TF2QJSIOGYRRUQ4ON2P7FRGBCJ56Z7SLD6Z6VYZ2IURXM4X6SDB6PUU2I7KUGEK2
-#\\\|QIMSR5TITWAXBDZYYWXRTU3PL6E4O27GCNZI5WCFIQ5MYT3XLR3 \ / AMOS7 \ YOURUM ::
-#\[7]B45E6JA344JE54LJJDYE7T5KPLQTPTYCIPHJSH6QDQ5YXXG5QUDI 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,.,.,.,,,...,,,,,...,,..,.,,,,,,,..,,...,...,.,.,,,.,,,,,,,.,.,,,
+#6Y3YQCUPAY4RYIPMZR2T7L35F3G7VB2NWELSYED6R6OU3EUSD7RKYFNT4QWX3IJPAOK5DJ7PRDAV6
+#\\\|NLOLUIRO47RXIWDIB33CUTCGTRIXKIRX2MFJZ34MHIEHDOR6O5X \ / AMOS7 \ YOURUM ::
+#\[7]43H66YSWZ3LJKGIMSEKOD5Y3DS53MJI7CKNLBIZAX7CNM3DB4CBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

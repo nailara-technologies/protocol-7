@@ -9,8 +9,8 @@ use strict;
 use English;
 use warnings;
 use File::Spec;
-use Cwd qw| abs_path |;
-use FindBin qw| $RealBin |;
+use Cwd         qw| abs_path |;
+use FindBin     qw| $RealBin |;
 use Crypt::Misc qw| encode_b32r |;
 our $up_dir     = File::Spec->updir;
 our $Bin        = $RealBin;
@@ -24,7 +24,8 @@ error_exit('expected question') if @ARGV == 0;
 
 ( my $question = join( ' ', @ARGV, qw| ? | ) ) =~ s|(\s*\?)+$| ?|;
 
-my $question_encoded = sprintf( 'Q: %s : %s .: A!', network_time(), $question );
+my $question_encoded
+    = sprintf( 'Q: %s : ' . '%s .: A!', network_time(), $question );
 
 my $exit_code = system( $check_truth_bin, qw| -silent |, $question_encoded );
 $exit_code >>= 8 if $exit_code > 0;
@@ -109,8 +110,8 @@ sub c_dir  { File::Spec->catdir(@ARG) }
 sub c_file { File::Spec->catfile(@ARG) }
 sub r2_abs { File::Spec->rel2abs(@ARG) }
 
-#,,.,,...,...,...,...,.,,,...,,.,,,,.,,,.,,..,..,,...,...,..,,,.,,..,,,..,.,,,
-#G3N5VNNHJBE4S3JWZB2OXIJQN2W2VZRWJZUSRVKK3X2XD5PQ4LFOKWV3LWTGRMKF6Y47MPWPHOTMW
-#\\\|NXQWSUYVMLX3FDTYWTNRGKVAHSCMBKUOTRHAQ4O6FNYA3PC3KN5 \ / AMOS7 \ YOURUM ::
-#\[7]6NHOWQ752YCLC5POCZKXRG6UVZ2GMDI2AGOM36XGNZG5BZD3LCCY 7  DATA SIGNATURE ::
+#,,..,.,.,,..,.,,,,..,.,,,,,.,,..,,,.,...,...,..,,...,..,,.,,,,..,,.,,...,,,.,
+#WR5BBUOTD3YRLG7CCQU6C2ZXCWRWDYNUFW5OUN73GIDCCAQIFZDZ3LPYVNDX3VK2AZ67ATKKYLG2E
+#\\\|ZZJQ5LHFH6BWTAM7NXUTYBN6DYJFBVUKST6C57Q6SYPJI4TRKA2 \ / AMOS7 \ YOURUM ::
+#\[7]L6T5IFCUFCDNPZWKL7RDUTEUJBI447X2CPN2XWRFG5U6N5XXJIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,12 +1,12 @@
 #!/usr/bin/perl
 
-## task-wait — create task and wait for result, or wait for existing task id ##
+## task-wait — create task and wait for result, or wait for existing task ##
+## id                                                                     ##
 ##
-## usage:
-##   task-wait <task_id>                  ## wait for existing task
-##   task-wait -create "description"      ## create + wait
-##   task-wait -create ":local: prompt"   ## create for local/coding backend
-##   task-wait -timeout 120 <task_id>     ## custom timeout (default: 300s)
+## usage:  task-wait <task_id>                  ## wait for existing task
+## task-wait -create "description"      ## create + wait  task-wait -create
+## ":local: prompt"   ## create for local/coding backend task-wait -timeout
+## 120 <task_id>     ## custom timeout (default: 300s)
 
 use strict;
 use warnings;
@@ -60,15 +60,16 @@ while (1) {
 
     my $elapsed = time - $start;
     if ( $elapsed >= $timeout ) {
-        print ":: timeout after ${elapsed}s (status: ", $status // 'unknown', ")\n";
+        print ":: timeout after ${elapsed}s " . "(status: ",
+            $status // 'unknown', ")\n";
         exit 1;
     }
 
     sleep $interval;
 }
 
-#,,,,,...,,.,,.,.,..,,.,.,,,,,.,,,,..,.,.,..,,..,,...,...,,..,,.,,,,,,.,,,,,,,
-#CBL5YWXGB3QDTXUAKNLZSXUEWXF4VVV6MPOQYXBQA7OPE24E3OWBXLIEIOGPJ4A35LQFSVBH6INJI
-#\\\|VUTM5GGGWGYDHQ7JUTRY4IQDA5A3Y3TWIMPIQ7YMPS63EQRAUX7 \ / AMOS7 \ YOURUM ::
-#\[7]KHLC2J5YDWQCPLAHUXPSIXCC7EFUGXDSFFFQ4MGU3YOJYJ7LYQAY 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,..,,.,.,.,,,,..,,,,,.,,,,,,,,,.,..,,...,...,,..,...,,,,,.,,,,..,
+#JOXELIHVHWLADCD3JKUIGK3TYOCD27JNWICZ4WS26I3GQ6QDTCWQ5HZEGEVJENDO5IVSYVOVN3VFC
+#\\\|JCV23YUKBTVW7QBE3NBXJDOVRUUXXOTU5QOAX4DTB7JICDJ7JXQ \ / AMOS7 \ YOURUM ::
+#\[7]G4B5H34F6H72AS52XYHO4VO7YG5JI6YXVPMLNZ7WZC6TNJSOKWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

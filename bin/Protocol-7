@@ -340,15 +340,15 @@ sub p7_security_hardening {    ## SOME BASIC SECURITY HARDENING ##
         ## character whitelist ##
         my $char_map = qr|([^0-9a-zA-Z\-\+\.:_\[\]\/]+)|;
         ## checking program name ##
-        die "\n\n << not valid characters [ '%s' "
-            . "] in program name '%s' >>\n\n\n", ${^CAPTURE}[0], $PROGRAM_NAME
+        die "\n\n << not valid characters [ '%s' ] in "
+            . "program name '%s' >>\n\n\n", ${^CAPTURE}[0], $PROGRAM_NAME
             if $PROGRAM_NAME =~ $char_map;
         ##  verified clean  ##
         my $bin_path = $PROGRAM_NAME;
         ## checking program name link target ##
         while ( my $link_target = readlink($bin_path) ) {
             die sprintf "\n\n<< not valid characters [ '%s' ] in "
-                        . "program name link target '%s' >>\n\n\n",
+                . "program name link target '%s' >>\n\n\n",
                 ${^CAPTURE}[0], $link_target
                 if $link_target =~ $char_map;
             ##  verified clean  ##
@@ -776,7 +776,7 @@ sub p7_init_exec {    ##  main variable initialization  ##
                             sprintf( ": invalid -format value : '%s'",
                                 $requested_format ),
                             ":. .. valid formats are :. "
-                            . "'as-is', 'decoded', and 'encoded'",
+                                . "'as-is', 'decoded', and 'encoded'",
                             ':'
                         );
                         exit(1);
@@ -792,7 +792,7 @@ sub p7_init_exec {    ##  main variable initialization  ##
                 $code{'log.noerr'}->(
                     sprintf(
                         ': exporting inline subroutines '
-                        . 'matching pattern: %s (format: %s)',
+                            . 'matching pattern: %s (format: %s)',
                         $pattern, $format
                     )
                 );
@@ -825,7 +825,7 @@ sub p7_init_exec {    ##  main variable initialization  ##
                     ': no subroutine name provided.,',
                     sprintf(
                         ': usage: %s -encode-inline-sub '
-                        . 'subroutine_name [compression_type]',
+                            . 'subroutine_name [compression_type]',
                         $0
                     ),
                     ': compression types: xz (default), gzip',
@@ -861,11 +861,11 @@ sub p7_init_exec {    ##  main variable initialization  ##
 
                 # Output confirmation
                 print "Test function 'base.test.function' "
-                      . "created for export format testing.\n";
+                    . "created for export format testing.\n";
                 print "Try: $0 -export-inline-subs "
-                      . "base.test.function -format=as-is\n";
+                    . "base.test.function -format=as-is\n";
                 print "and: $0 -export-inline-subs "
-                      . "base.test.function -format=decoded\n";
+                    . "base.test.function -format=decoded\n";
                 exit(0);
             }
 
@@ -1101,7 +1101,7 @@ sub p7_ntime_BASE32_to_numerical {
 
     if ( not defined $ntime_value or length $EVAL_ERROR ) {
         warn 'network time not valid [ BASE32 '
-             . 'decoding not successful ] <{C1}>';
+            . 'decoding not successful ] <{C1}>';
         return undef;
     }
 
@@ -2090,7 +2090,7 @@ sub p7_load_code {
                         return {
                             'mode' => qw| false |,
                             'data' => "command '$sub_name' is $reason., "
-                                      . "details in startup log.,"
+                                . "details in startup log.,"
                         };
                     }
                 };
@@ -2228,7 +2228,7 @@ sub p7_load_code {
     if ($err_count) {
         $code{'log.error'}->( $p
                 . "success on $ok_count "
-                  . "sub$s, $err_count broken$w_msg., `:|" );
+                . "sub$s, $err_count broken$w_msg., `:|" );
     } elsif ($warn_count_total) {
         $code{'log.error'}->( $p . "success on $ok_count sub$s$w_msg :|" );
     } else {
@@ -2334,12 +2334,12 @@ sub p7_stderr_restore {
     if ( defined $restore_fh ) {
         open( STDERR, qw| >& |, $restore_fh )
             or printf "\n<< cannot restore STDERR "
-                      . "to $restore_fh [ %s ] >>\n\n",
+            . "to $restore_fh [ %s ] >>\n\n",
             $code{'base.format_error'}->($OS_ERROR);
     } else {
         open( STDERR, qw| > |, File::Spec->devnull() )
             or printf "\n<< cannot restore STDERR "
-                      . "to '/dev/null' [ %s ] >>\n\n",
+            . "to '/dev/null' [ %s ] >>\n\n",
             $code{'base.format_error'}->($OS_ERROR);
     }
 }
@@ -2472,7 +2472,7 @@ sub p7_devmod_sub {
     ## [ LLL ] ids need to become resolvable + devmod command ..,
     say sprintf(
         "$colors{p7_fg_0000}. %s$colors{p7_fg_0001} : $colors{p7_fg_0004}%s "
-        . "[ $colors{p7_fg_0003}%s$colors{p7_fg_0000} ]"
+            . "[ $colors{p7_fg_0003}%s$colors{p7_fg_0000} ]"
             . $colors{'reset'},
         $data{'system'}{'zenka'}{'name'},
         $sub_name, $param_list
@@ -3243,7 +3243,7 @@ sub p7_httpc__remote_file {
     eval { use HTTP::Tiny } if !$data{'system'}{'http_reqs'};
     $EVAL_ERROR =~ s| ?\(\@INC contains:.+\n?$|| if $EVAL_ERROR;
     warn "<< 'HTTP::Tiny' pmod. not found [ "
-         . "yet in cubelist ] [ $EVAL_ERROR ] >>"
+        . "yet in cubelist ] [ $EVAL_ERROR ] >>"
         and return undef
         if $EVAL_ERROR;
     $data{'system'}{'http_reqs'}++;
@@ -3306,7 +3306,7 @@ sub p7_httpc__remote_file {
                 if ( $h_code == 404 or $h_code eq 599 ) {
                     $retries_left = 0;
                     $code{'log.noerr'}->( ":: aborting retries [ after "
-                                          . "first $h_code code ] ::" );
+                            . "first $h_code code ] ::" );
                     return undef;
                 } else {    ## client side rate limiting ## [???]
                     my $randomized_delay = 0.13 + rand(
@@ -3783,8 +3783,7 @@ sub p7_handler__end_code {
             $code{$callback_name}->();
         } else {
             $code{'base.logs'}->(
-                0,
-                "<<  referenced end_code callback '%s' does not exist >>",
+                0, "<<  referenced end_code callback '%s' does not exist >>",
                 $callback_name
             );
         }
@@ -4362,7 +4361,7 @@ DO_NOT_WRITE_PROTECT_DATA_FH:
                             $code{'base.error_exit.inline_loading'}->(
                                 sprintf(
                                     'decoded subroutine '
-                                    . 'size mismatch [%d!=%d]',
+                                        . 'size mismatch [%d!=%d]',
                                     length $decomp_buffer_sref->$*,
                                     $loader_state->{'sub-src-bytes'}
                                 ),
@@ -4377,7 +4376,7 @@ DO_NOT_WRITE_PROTECT_DATA_FH:
                             $code{'base.error_exit.inline_loading'}->(
                                 sprintf(
                                     'subroutine word-count '
-                                    . 'mismatch [ %d != %d ]',
+                                        . 'mismatch [ %d != %d ]',
                                     $word_count,
                                     $loader_state->{'sub-src-word-count'}
                                 ),
@@ -4394,7 +4393,7 @@ DO_NOT_WRITE_PROTECT_DATA_FH:
                             $code{'base.error_exit.inline_loading'}->(
                                 sprintf(
                                     'subroutine has wrong '
-                                    . 'number of lines [ %d != %d ]',
+                                        . 'number of lines [ %d != %d ]',
                                     $line_count,
                                     $loader_state->{'sub-src-lines'}
                                 ),
@@ -4713,9 +4712,9 @@ sub p7_export_inline_subroutines {
             print "# Exported subroutine: $export_name\n";
             print "# NOTE: Original source code not available.\n";
             print "# This subroutine was imported "
-                  . "before source tracking was enabled.\n";
+                . "before source tracking was enabled.\n";
             print "# To enable source tracking for export, "
-                  . "reload Protocol-7 with updated code.\n";
+                . "reload Protocol-7 with updated code.\n";
 
             if ( ref($sub_code) eq 'CODE' ) {
                 print "# Code reference type: " . ref($sub_code) . "\n";
@@ -4852,16 +4851,16 @@ sub p7_export_subroutine {
         $output .= "# NOTE: Original source code not available.\n";
         $output
             .= "# This subroutine was imported "
-               . "before source tracking was enabled.\n";
+            . "before source tracking was enabled.\n";
         $output
             .= "# To enable source tracking for export, "
-               . "reload Protocol-7 with updated code.\n";
+            . "reload Protocol-7 with updated code.\n";
 
         if ( ref($sub_code) eq 'CODE' ) {
             $output .= "# Code reference type: " . ref($sub_code) . "\n";
             $output
                 .= "sub {\n    # Source code would be here "
-                   . "- not available\n    return 1;\n}\n";
+                . "- not available\n    return 1;\n}\n";
         }
     }
 
@@ -5705,8 +5704,8 @@ __DATA__
 :
 :.
 
-#,,..,...,...,,,.,,,.,,,,,,,,,.,.,,,,,.,,,,,.,..,,...,...,...,,,.,..,,,.,,..,,
-#BR5EKQVTSABPNAGQZAKA6DHC5JHRHR7O4TVGUIRNU65VGGCJI77UZLHETVPEWDVPYAFXTYVOTA7GY
-#\\\|XSW7UBF4ZH2KGVQMQSD7PXHWD6ELR3EY5WMGYFNFGY72HTS5EZE \ / AMOS7 \ YOURUM ::
-#\[7]O4Q65RBKK5BQUMJDLROGJQQ5PBUZE4F5GXQYMPKWDKSMWFQ2EEDY 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,.,,,...,,,,,...,..,,,,.,.,,,...,..,,...,..,,..,,..,,.,.,,,.,.,,,
+#IMRZL6KLCHIF5FZ4XMGEI26DMG43HMDHLLGKGZGJ3ZHOCATATAADUKSC45WHXQEK5SKJZENCSOVQ6
+#\\\|DSQJF3SB7V6DA2GKRBBIQA7SF4QM64GCPMTF4X2I23PRDOPAG7H \ / AMOS7 \ YOURUM ::
+#\[7]HKEDVEBATVTGWAPNJTSCK4FUFC3TVNTIUWYOEFKVHCK34EULKQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

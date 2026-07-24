@@ -43,8 +43,8 @@ if ( $option{'d'}
         exit;
     }
 
-    ## the encoder strips trailing 'A' padding; restore a full 8-char
-    ## base32 block so short encoded ids decode consistently ##
+    ## the encoder strips trailing 'A' padding; restore a full 8-char ##
+    ## base32 block so short encoded ids decode consistently          ##
     my $B32_padded = $B32_in . ( qw| A | x ( 8 - length($B32_in) ) );
 
     my $B32_decoded = decode_b32r($B32_padded);    ## BASE32 ##
@@ -95,8 +95,8 @@ sub error_exit {
     exit(110);
 }
 
-#,,.,,,,,,.,.,,,,,,,.,...,,..,,..,.,,,,..,,,,,..,,...,...,...,,..,,.,,..,,,,,,
-#IKBTKZBVWTSK37TY4A6HQ4RKBLW5BPWH2YMHCGRJYGTMSSWQBBALOUAGXZYOWXK6DYAQOUCFOHSHQ
-#\\\|JESL4LEVPYXDOVSUW2Z2LHB2JR4ESJFPUORSAWVKL3OJ7A6MARM \ / AMOS7 \ YOURUM ::
-#\[7]URKJXXGLUZEF67EHJBKUDGQEV5KU7WYXTDKHVLAGOESPR5UHCGAA 7  DATA SIGNATURE ::
+#,,,,,,..,,..,.,,,.,.,,,.,,,,,,,.,.,.,...,.,.,..,,...,...,.,.,...,..,,,,,,,,.,
+#GPJC5QEOPSDXJSSOXAGV4FGE4KIW5X6QEYUECFM6IRS3SF2CRFPXYE2W4Y5WKBLQJ5KMM5IOLQYAM
+#\\\|VVPOYH4UCFL3V73XXR72U27KR44QVGZEG35UX7P7C6MELBOZL4W \ / AMOS7 \ YOURUM ::
+#\[7]6M5OHETSD5NMOV2T3VXHFZOZUDMHIS4AJD5UZXHR67N5VXYS3CBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -18,10 +18,12 @@ my %C = (
 ## show usage and exit
 sub show_usage {
     say "$C{0}:";
-    say ":$C{b} $C{T}usage:$C{0} rename.bmw [file|directory] [file|directory] ...$C{R}";
+    say ":$C{b} $C{T}usage:$C{0} rename.bmw "
+        . "[file|directory] [file|directory] ...$C{R}";
     say "$C{0}:";
     say ":";
-    say ": $C{T}Renames files to their BMW 384 base32-encoded checksums.$C{0}";
+    say ": $C{T}Renames files to their BMW "
+        . "384 base32-encoded checksums.$C{0}";
     say ": $C{T}File extensions are preserved (but lowercased).$C{0}";
     say ":$C{R}";
     say "$C{0}:$C{R}";
@@ -30,7 +32,7 @@ sub show_usage {
 
 show_usage() if not @ARGV;
 
-my $bmw = Digest::BMW->new(224);
+my $bmw          = Digest::BMW->new(224);
 my $rename_count = 0;
 my @files_to_process;
 
@@ -77,19 +79,19 @@ foreach my $file_path (@files_to_process) {
     close($fh);
 
     ## extract directory and filename
-    my ($volume, $dir, $filename) = File::Spec->splitpath($file_path);
+    my ( $volume, $dir, $filename ) = File::Spec->splitpath($file_path);
 
     ## extract extension (lowercased)
     my $ext = '';
     if ( $filename =~ m|\.([^.]+)$| ) {
         $ext = lc($1);
-        $ext = 'jpg' if $ext eq 'jpeg';  ## shorten jpeg to jpg
+        $ext = 'jpg' if $ext eq 'jpeg';    ## shorten jpeg to jpg
         $ext = ".$ext";
     }
 
     ## new filename = checksum + extension
     my $new_filename = $checksum . $ext;
-    my $new_path = File::Spec->catpath( $volume, $dir, $new_filename );
+    my $new_path     = File::Spec->catpath( $volume, $dir, $new_filename );
 
     ## rename file if names differ
     if ( $file_path ne $new_path ) {
@@ -108,8 +110,8 @@ say ":$C{b} $C{T}files renamed: $rename_count$C{0}$C{R}";
 say "$C{0}:$C{R}";
 exit(0);
 
-#,,,.,...,,..,...,,,,,,,.,.,.,,.,,,,,,...,,..,..,,...,...,,..,,,,,...,,.,,...,
-#HIF7IWOWZLYR2IIYZC4FOBVPNADYRU7QS26KE7QIB6VIFLBGVWRQ2QXDIHQICU5DHZSR42WKK7NHI
-#\\\|YVBLFBKWDZFD5JOTYLJRIZQKPCV3SFQFR26UWY2BWU637CTSQ6Z \ / AMOS7 \ YOURUM ::
-#\[7]FPXIMMYQDTBCPZ25YZCCQLVDG46GHYZQWBUHSSRSDZEY3AVE5IDY 7  DATA SIGNATURE ::
+#,,.,,,,,,...,..,,..,,.,.,,..,.,.,,.,,,..,.,,,..,,...,...,,,.,,,.,.,.,.,.,.,,,
+#Y7MTJP4YUUUNIYYPMA5O2SD374M4ODMMNZ52UN6INGS5FF4AMMKXQXI2U2NXZR7OFIZCVN2JPZNHM
+#\\\|BOA33PQ3D3B2DVFLCSNEZY7EVGGEQ4VHCJFYDHHX7TSKRDVDK7P \ / AMOS7 \ YOURUM ::
+#\[7]KC64W2TZZBMCZVJ3DQZL26AG5G5XZX4VLIQMMBLHXBFF4BX56YCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
