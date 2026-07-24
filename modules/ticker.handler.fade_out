@@ -14,9 +14,9 @@ if ( not defined <ticker.time.fade_view> ) {
 
 my $delta_t = sprintf( '%.3f', <[base.time]>->(3) - <ticker.time.fade_view> );
 
-## in swap mode stretch/compress the fade so it reaches opacity 0 exactly   ##
-## at ticker.swap.delay seconds.  calc_decr/calc_incr are tuned for a 4s    ##
-## fade, so scaling time by 4/delay maps the delay onto that curve.        ##
+## in swap mode stretch/compress the fade so it reaches opacity 0 exactly ##
+## at ticker.swap.delay seconds.  calc_decr/calc_incr are tuned for a 4s  ##
+## fade, so scaling time by 4/delay maps the delay onto that curve.       ##
 my $delay      = <ticker.swap.delay> // 3;
 my $time_scale = 1;
 if (    <[base.cfg_bool]>->(<ticker.mouse.swap_edge>)
@@ -54,8 +54,8 @@ if ( <ticker.fade_opacity> == 0 ) {
 
         <[ticker.emit_event]>->(qw| dismissed |);
 
-        ## resolve any deferred :wait-dismissed: replies, including all      ##
-        ## pending ones from back-to-back notify calls.                      ##
+        ## resolve any deferred :wait-dismissed: replies, including all ##
+        ## pending ones from back-to-back notify calls.                 ##
         my $pending = <ticker.notify.pending_reply_ids> // [];
         if ( scalar @{$pending} ) {
             my $chksum     = <ticker.content.chksum_L13> // '';
@@ -103,8 +103,8 @@ if ( <ticker.fade_opacity> == 0 ) {
     $timer->cancel;
 }
 
-#,,,,,,,.,..,,,.,,..,,,.,,,,,,,,.,...,..,,.,.,.,.,...,...,.,,,.,.,,.,,,..,...,
-#AERYFJJFQDFQLCCXVEJ64JEQUFFNUL2Y7HUWO4KPWEDU2CLISGZ6IW6CD2METDYDXD4AJ2K7BP5IS
-#\\\|PO6MYVQ5OUPCSOE4O6YUX3VAIYWSNQQW32PYPFVKHMYWHSO4JB7 \ / AMOS7 \ YOURUM ::
-#\[7]PSIPSTYMAZYQNV72P4RR3XEYZQT45FCT75X5AE2TF7JR77E4L6AA 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,..,...,.,.,.,.,.,.,,,,,,,,,,.,,.,.,...,...,.,,,,..,,,.,..,,.,,,
+#KG5N7YF63G5L5HU4HYZM6PZF7BTN4LROBWMQASBNAQSM7OA7VBB77YOHVADYXWCL5MFW2BBMZFQFC
+#\\\|IAHLOZZ3END25OWFHU2SPOT3BFZGTYIGV3D6LQGXPH2LMRZV2FW \ / AMOS7 \ YOURUM ::
+#\[7]LDDYA7P5DTTRIHAESYYZ7UPRFL37CQ7SPIQ2RHZX5LSRRC5NO4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

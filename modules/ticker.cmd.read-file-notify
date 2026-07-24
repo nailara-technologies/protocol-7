@@ -54,16 +54,16 @@ if ( <[base.cfg_bool]>->(<ticker.notify.use_top_position>) ) {
     if ( $previous_profile ne qw| top-strip | ) {
         <ticker.notify.previous_profile> = $previous_profile;
         if ($was_visible) {
-            ## window already mapped: move it ourselves via the X11 retry  ##
-            ## sequence [GTK moves alone aren't honored once mapped].      ##
+            ## window already mapped: move it ourselves via the X11 retry ##
+            ## sequence [GTK moves alone aren't honored once mapped].     ##
             <[ticker.move_to_profile]>
                 ->( qw| top-strip |, $previous_profile );
         } else {
-            ## window was hidden/unmapped: moving it now would fail        ##
-            ## verification and revert. just set the profile - start_     ##
-            ## animation's remap-settle timer applies <ticker.window       ##
-            ## .profile> [top-strip] with the X11 move retries once the    ##
-            ## remap has finished.                                         ##
+            ## window was hidden/unmapped: moving it now would fail     ##
+            ## verification and revert. just set the profile - start_   ##
+            ## animation's remap-settle timer applies <ticker.window    ##
+            ## .profile> [top-strip] with the X11 move retries once the ##
+            ## remap has finished.                                      ##
             <[ticker.cmd.set-window-profile]>
                 ->( { 'args' => qw| top-strip | } );
         }
@@ -84,8 +84,8 @@ if ($wait_for_dismiss) {
 
 return { 'mode' => qw| true |, 'data' => 'ticker notify content displayed' };
 
-#,,,,,,,,,,,.,,..,.,,,..,,.,.,.,.,,,,,.,.,.,.,.,.,...,..,,..,,..,,...,,.,,.,,,
-#GZQ2VIVNMZREPT66AMW2523KORPLW7XHLEIZAKAPY2N2EINSS23PC3RIM33S5R4J3BZLECCJC4PDE
-#\\\|HBX2JWKDNJYRY3ZFJLQAD6M77R6JJM63WHTGJFNVS4DNJIHP5NE \ / AMOS7 \ YOURUM ::
-#\[7]XDKJSGYTKPIVKW5HY3HATDOQEYR5ARCUJPP3NSIHSBX4FZCA64CY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,,,,,..,,.,,..,,.,.,,,,,,,,,...,.,.,...,...,.,.,..,,,..,...,..,,
+#ATXFLHZC33K4AZ7AQYWL6XLH3M3F4CMVNBEUQPXN26HIIKQWERGTN3JDEETLZX3USO5A2NOO57XSS
+#\\\|DDWFZ7JEYT6HQCJTNMMFZN2EGSDA3TDVF7R33M36EZ6F7FQUFRS \ / AMOS7 \ YOURUM ::
+#\[7]YSQ6N7FDTODAOJGYIWIHGOS2PSN6GCGDVYTNZR2L32O34372PMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

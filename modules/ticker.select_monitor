@@ -26,7 +26,7 @@ if ( $mode eq qw| follow-pointer | ) {
     $monitor = $display->get_monitor(0)
         if not defined $monitor and $n_monitors > 0;
 } elsif ( $mode =~ m{^index:([\d,.]+)$} ) {
-    ## tolerant priority-list parser: 'index:2.1' or 'index:2,1' both mean ##
+    ## tolerant priority-list parser: 'index:2.1' or 'index:2,1' both mean  ##
     ## "try monitor 2, fall back to monitor 1 if not available" - separator ##
     ## is not locked down yet, '.' and ',' are both accepted.               ##
     ## [ future: '1:2' / '1..2' could mean "span monitors 1-2" ]            ##
@@ -63,7 +63,8 @@ if ( $mode eq qw| follow-pointer | ) {
     $monitor = $display->get_monitor($idx)
         if $idx >= 0 and $idx < $n_monitors;
 
-    ## report which candidate actually got picked, not the raw config string ##
+    ## report which candidate actually got picked, not the raw config ##
+    ## string                                                         ##
     $source = sprintf( 'monitor[index:%d]', $idx )
         if defined $monitor and @candidates > 1;
 } elsif ( $mode eq qw| cycle | ) {
@@ -96,8 +97,8 @@ return {
     'source' => $source
 };
 
-#,,,,,,,,,..,,..,,,..,,.,,,.,,,,.,.,.,,,.,,,.,..,,...,...,...,,,,,,,.,.,,,,..,
-#Y3PODDWCIDDQQO7PPI4WVLMVTFZNC33SUM647JWN6PELWGQASWBLFIBPLPNK2PHAZC7IW7YEVGRLA
-#\\\|QKOV5FDJNKPA5PK4ZD3AORFR2266WBBYEDDL5RQBDWAUEYOO4V6 \ / AMOS7 \ YOURUM ::
-#\[7]SAKR2ZKEAHCUAZM3P5TWGMWN7FS3FAQ5U5VVJGYXVZFQWOYVLCCA 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,,.,...,,,.,,,.,,,.,,,.,,.,,,,,,..,,...,...,...,,,,,,.,,.,,,.,.,
+#GYQPGYXDG6G4EQTWHERYHSXT53IX7FYUNM3NX46OUJ6WG4NOREWGSUN55RZVMKQB4ZATEOJNDTFV6
+#\\\|SYDVMQYNGDRW5EONVYIYFGWHCRHHDXQ2CJDILQG26DOVCXIMCOO \ / AMOS7 \ YOURUM ::
+#\[7]AT3C7DJQ5XG2ISFT57JUBQCAU633BELHJ74YQLPR33MY7756YUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

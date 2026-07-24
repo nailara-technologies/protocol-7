@@ -4,7 +4,7 @@
 
 my $reply = shift;
 
-## the fallback timer may have already opened the window [ tile was stuck, ##
+## the fallback timer may have already opened the window [ tile was stuck,  ##
 ## then a late reply arrives once it resumes ]. resolve-once : if the timer ##
 ## got here first, bail -- the window is already open.                      ##
 return if <ticker.layer_resolved>;
@@ -25,8 +25,9 @@ if ( $reply->{'cmd'} eq qw| TRUE | ) {
     }
 }
 
-## swap mode uses a managed toplevel window: a popup is invisible under    ##
-## WSLg without a parent, while a dock window is locked to a panel position.##
+## swap mode uses a managed toplevel window: a popup is invisible under ##
+## WSLg without a parent, while a dock window is locked to a panel      ##
+## position.                                                            ##
 if ( not <ticker.window.force_above>
     and <[base.cfg_bool]>->(<ticker.mouse.swap_edge>) ) {
     <[base.log]>->( 1, ': swap mode enabled, using managed toplevel window' );
@@ -35,8 +36,8 @@ if ( not <ticker.window.force_above>
 
 <[ticker.open_window]>;
 
-#,,..,.,.,...,,..,,,,,.,,,...,,,,,,,,,.,,,,.,,..,,...,...,,..,,,.,..,,,,,,,..,
-#QXO3DXCTV7T7OH2OECQSVTTRABXD7RWD5IBYOFDRAPQYSRZRLEOFMCBCWGSQDXKB6CQICV6F4GAOY
-#\\\|G4TKNKRUQRQSRKEQNCUEHLYKDZNYISFD7KW2JVQHUWSIETOHJTY \ / AMOS7 \ YOURUM ::
-#\[7]C4DXSE6FOXR2SSV5DG2QERVUYTNINSFHUKKBXHYCFNSAB4M3FMCQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,..,..,,,.,,,.,,,,.,...,...,...,..,,...,...,,..,.,.,..,,.,,,.,,,
+#NAKDIDRGE5DKTMVW2ANJVVHZCA5POQ5BQGTYTBO37UJM57LSTF7FKYXAWPBAWRTTIPESSM3YR2WE2
+#\\\|BI54LTLH34QQZP5Q4DJKZL4OBEPBE5S2YODNCKPNVP3TUNWOHBD \ / AMOS7 \ YOURUM ::
+#\[7]7HU77F4TZTQVHC4TNSWGJVFY3OFXVD3S3QTZ2JNJUXXINDDTXCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
