@@ -308,12 +308,17 @@ sub comment_block_line_parts {
     ##  sentence/paragraph-boundary meaning [ see step4 ] that a blanket
     ##  collapse would destroy the moment it lands mid-line after wrapping,
     ##  breaking convergence on a second reformatting pass  ##
+    ##  capture the padding depth BEFORE stripping -- needed to preserve a
+    ##  symmetric box style's chosen padding [ e.g. '##  title  ##' ] on
+    ##  reconstruction rather than always collapsing to the bare minimum ##
+    my ($lead_pad) = $content =~ m{^(\s*)};
     $content =~ s{^\s+}{};
     $content =~ s{\s+$}{};
     return {
         indent    => $indent,
         content   => $content,
-        has_close => $has_close
+        has_close => $has_close,
+        lead_pad  => length($lead_pad),
     };
 }
 
@@ -350,19 +355,35 @@ sub step4_align_comment_block {
 
     my @content_parts;
     my @content_lens;    ## stripped content length , not physical line len ##
+    my @lead_pads;       ## original padding depth , non-blank lines only ##
     my $any_close = 0;
     for my $i ( 0 .. $block_len - 1 ) {
         my $parts
             = comment_block_line_parts( $lines->[ $start_lnum - 1 + $i ] );
         push @content_parts, $parts->{content};
         push @content_lens,  length( $parts->{content} );
+        push @lead_pads, $parts->{lead_pad} if length $parts->{content};
         $any_close ||= $parts->{has_close};
     }
 
-    ##  bracketed style [ any original line closed with '##' ] budgets 3
-    ##  extra cols for the trailing ' ##' ; loose style [ no closing marker
-    ##  anywhere in the original ] only needs the '## ' prefix  ##
-    my $overhead = $any_close ? 6 : 3;
+    ##  a symmetric box [ blank top/bottom '##   ##' border lines framing a
+    ##  centered title ] gets its author's chosen padding depth preserved
+    ##  instead of always collapsing to the bare minimum single space --
+    ##  ordinary prose blocks [ no blank framing line present ] keep the
+    ##  minimal default  ##
+    my $is_box  = grep { $_ eq '' } @content_parts;
+    ##  lead_pad only measures padding BEYOND the one mandatory space the
+    ##  '## ' match already consumed [ '\#\#\ ' in comment_block_line_parts
+    ##  ] , so the true total padding is 1 + that extra  ##
+    my $box_pad
+        = $is_box && @lead_pads
+        ? 1 + ( sort { $b <=> $a } @lead_pads )[0]
+        : 1;
+
+    ##  bracketed style [ any original line closed with '##' ] budgets
+    ##  '##' + $box_pad + text + $box_pad + '##' ; loose style [ no closing
+    ##  marker anywhere in the original ] only needs the '## ' prefix  ##
+    my $overhead = $any_close ? ( 4 + 2 * $box_pad ) : 3;
     my $width = LINE_MAX - length($indent) - $overhead;
     return [ @{$lines}[ $start_lnum - 1 .. $start_lnum + $block_len - 2 ] ]
         if $width < 10;    ##  too narrow , leave untouched  ##
@@ -380,9 +401,20 @@ sub step4_align_comment_block {
     ##  like '##' itself, it always starts a fresh output line and never
     ##  gets folded into the previous item's text. everything before the
     ##  first marker [ e.g. an intro sentence ending in ':' ] is its own
-    ##  leading segment  ##
+    ##  leading segment. an EMPTY content line [ e.g. the blank top/bottom
+    ##  border of a symmetric '##   ##' / '##  title  ##' / '##   ##' box ]
+    ##  is pure visual framing, not joinable prose -- it becomes its own
+    ##  standalone blank segment [ marked undef ] instead of contributing
+    ##  zero-length "content" to the sentence-join, which otherwise
+    ##  produced lopsided padding around the real text  ##
     my ( @segments, @cur );
     for my $i ( 0 .. $#content_parts ) {
+        if ( $content_parts[$i] eq '' ) {
+            push @segments, [@cur] if @cur;
+            @cur = ();
+            push @segments, undef;
+            next;
+        }
         if ( $has_list and $is_marker[$i] and @cur ) {
             push @segments, [@cur];
             @cur = ();
@@ -409,6 +441,10 @@ sub step4_align_comment_block {
     my $short_margin = 15;
     my @wrapped_lines;
     for my $seg (@segments) {
+        if ( not defined $seg ) {    ## blank framing line -- pass through ##
+            push @wrapped_lines, '';
+            next;
+        }
         my $joined = '';
         for my $j ( 0 .. $#$seg ) {
             my $i = $seg->[$j];
@@ -425,15 +461,22 @@ sub step4_align_comment_block {
     my @out;
     if ($any_close) {
         ##  right-align the closing '##' to the longest wrapped line's width
+        ##  -- blank entries [ length 0 ] don't affect that max , and come
+        ##  out as a properly centered blank framing line for free  ##
         my ($target_width)
             = ( sort { $b <=> $a } map {length} @wrapped_lines );
+        my $pad = ' ' x $box_pad;
         for my $part (@wrapped_lines) {
             push @out,
-                sprintf( "%s## %-*s ##\n", $indent, $target_width, $part );
+                sprintf(
+                "%s##%s%-*s%s##\n", $indent, $pad, $target_width, $part,
+                $pad
+                );
         }
     } else {
         for my $part (@wrapped_lines) {
-            push @out, "$indent## $part\n";
+            push @out,
+                length($part) ? "$indent## $part\n" : "$indent##\n";
         }
     }
     return \@out;
@@ -1028,8 +1071,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,.,,,,.,,.,,.,.,..,,..,,,,.,..,,...,...,...,..,,...,...,,,.,.,.,.,,,...,.,.,
-#MDZ3U2WOUIQ4XODJW4U575DMRKSADMU5EF4BRVLRJK7GHQL6NBLKM35IE7EY46QR6ZRS2KCMAY32K
-#\\\|EZGRL5M2QVVTDMJ2IJZTAFXKGYU6DDCU6SLPISA5DXXDMX7EUXH \ / AMOS7 \ YOURUM ::
-#\[7]TURMNPPLQ7RZDSMNN7HGUTL26NV6GO4ECFQP3YG2UI2V7U3DZ6BQ 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,,,,,,.,..,,,..,,,,,,..,.,,,.,.,..,,...,...,.,.,.,,,...,,.,,,,.,
+#ZEQXJHC5KAJE5Y6C6ZLY7AIGYHOZ2VYENV7PHJ4G5QHIHR3JA5U2CRNWRHSISZDOG55WAFHCSGUPC
+#\\\|JFWN5PRUAMVR7U47DP2BZMQVWBEJ424IKLARCJC4O73FGDJNLUF \ / AMOS7 \ YOURUM ::
+#\[7]VAP7G32H7Y2HNSKKYBPO44MKCN3JTJCUWRXBFBQOHJC7LKNL76CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
