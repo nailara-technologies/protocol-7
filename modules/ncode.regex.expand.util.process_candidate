@@ -102,6 +102,26 @@ $patterns->{$name} = {
         'confidence' => $conf,
         'coverage'   => $app->{'coverage'} // qw| partial |
     },
+    ## synthesize a single apply-step from pattern/replace when the        ##
+    ## candidate didn't supply explicit steps -- same synthesis            ##
+    ## ncode.regex.load does for YAML-loaded patterns [ cb45d56d0 ];       ##
+    ## without this, apply's step loop is a no-op and a "successful" apply ##
+    ## silently writes the file back unchanged                             ##
+    'steps' => do {
+        my $candidate_steps = $candidate->{'steps'} // [];
+        if (@$candidate_steps) {
+            $candidate_steps;    ## explicit steps — use as-is ##
+        } elsif ( length $pattern and defined $replace ) {
+            [
+                {   'tool'    => 'ncode',
+                    'search'  => $pattern,
+                    'replace' => $replace
+                }
+            ];
+        } else {
+            [];    ## detect-only [ no replace ] — no apply steps ##
+        }
+    },
     'origin'      => $candidate->{'origin'}      // qw| expanded |,
     'source_task' => $candidate->{'source_task'} // '',
     'note'        => $candidate->{'note'}        // '',
@@ -123,8 +143,8 @@ return {
     'status' => qw| added |
 };
 
-#,,..,...,...,.,.,..,,...,..,,,.,,,..,...,,.,,..,,...,...,.,.,.,,,.,.,..,,,.,,
-#GNS5VGC4ZA3Y7FENHFVJ5YNNEQQWUCM6OQ75FWSSUBLP3CBOUNFO4C6G7O3G7UBWNFZNCNK62PUU2
-#\\\|7J6CH7Y4OE4Q5W5MHLQHJDISN6QBKZ4WSRO3OWIK3KXYQUUXW63 \ / AMOS7 \ YOURUM ::
-#\[7]GPDSNP7K7S75GU7TMJKLQ3G7SV3AORPIYT4ZQBOIMVYZOJPTDACQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,..,,,,,,.,.,,,,,.,,,.,.,,.,,,..,..,,...,...,.,.,,,.,,.,,.,.,...,
+#7AYR4EUUQ52WBGCFXAMV7W6DDI6HJASCLMV5DKDOMEZEHTSI5A2C6NFIS7WXBOHHJY4M25D5SNDB4
+#\\\|HQFGVCSQ3YWT6YKA4PXC6II5SU2J75NY53I2ICXAC5WLLECWTOQ \ / AMOS7 \ YOURUM ::
+#\[7]MSMXQDJAJZVLWKUI7JJ2CVU3ISLPVAJ3W4V2ISCDV4WCOCFYBSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
