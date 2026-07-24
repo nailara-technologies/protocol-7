@@ -27,9 +27,9 @@ my $sn_str
     $continuation_handler
 );
 
-## bounded fallback: if tile is offline or the reply is otherwise lost,    ##
-## fire the continuation once with coordinates_were_undefined=TRUE rather  ##
-## than hanging startup indefinitely. the real reply cancels this timer.   ##
+## bounded fallback: if tile is offline or the reply is otherwise lost,   ##
+## fire the continuation once with coordinates_were_undefined=TRUE rather ##
+## than hanging startup indefinitely. the real reply cancels this timer.  ##
 if ( defined <x11.coordinates_async_timer> ) {
     <x11.coordinates_async_timer>->cancel
         if <x11.coordinates_async_timer>->is_active;
@@ -41,11 +41,12 @@ if ( defined <x11.coordinates_async_timer> ) {
     'params'  => $continuation_params
 };
 
-## bounded fallback timeout : configurable, defaults to 7s -- comfortably   ##
-## under the v7 zenka start-up timeout [ 13s minimum ] so the zenka comes up ##
-## on fallback geometry instead of being failed for a start-up timeout. a    ##
-## named handler [ not an inline cb ] survives source-code reload, matching  ##
-## the codebase timer idiom [ cf. v7.zenka.start / mpv.cmd.resume ].         ##
+## bounded fallback timeout : configurable, defaults to 7s -- comfortably  ##
+## under the v7 zenka start-up timeout [ 13s minimum ] so the zenka comes  ##
+## up on fallback geometry instead of being failed for a start-up timeout. ##
+## a named handler [ not an inline cb ] survives source-code reload,       ##
+## matching the codebase timer idiom [ cf. v7.zenka.start / mpv.cmd.resume ##
+## ].                                                                      ##
 my $fallback_after = <x11.coordinates_fallback_timeout> // 7;
 
 <x11.coordinates_async_timer> = <[event.add_timer]>->(
@@ -70,8 +71,8 @@ my $fallback_after = <x11.coordinates_fallback_timeout> // 7;
 
 return TRUE;
 
-#,,..,,,,,,.,,.,,,...,,,.,.,.,,,,,,..,..,,,.,,..,,...,..,,...,,,,,,,,,..,,.,,,
-#R4U4HURTULZWPEDDLL7T3KIBXSWLTNF7327B4FO27XD6BN7VBCAAEMZAKVPN23A7IXWJ6773G65Y6
-#\\\|2SUB6PY77GZWTMCAQL4UI4HJGPM43WUL7AZFN2ZQZDB5IPGTRJK \ / AMOS7 \ YOURUM ::
-#\[7]FGX7ME45FIJ5AAAWQ7OY2TNQKEFTF2X3ZC4WQUEA7G3JPH6X3ECQ 7  DATA SIGNATURE ::
+#,,..,,..,.,,,.,,,,..,,.,,.,,,..,,...,,,,,.,,,..,,...,...,,.,,...,.,.,,,,,.,.,
+#BACV3S5TT4O5CILEHVHSSCDWSWH4RV4BL7JP5JQ3FNGSIJDJLIDLWWXNBKCG3D5IVZKNXQVEKMC3C
+#\\\|W5YRBSLINXIU34633SW2KRZTSKCW5BPNYXJPE3BBPS7OYZYATTJ \ / AMOS7 \ YOURUM ::
+#\[7]UEGJPFMQ4DWCWWXALWPOIGK57YFDM3JKALPBR4BO6SCOE4P4JYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

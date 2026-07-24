@@ -18,17 +18,17 @@ my $session = <[base.stream.gate]>->( $sid, $cmd_id, 1 );
 
 if ( not defined $session ) {
 
-    ##  gated : skip the close frame [ peer gone / cancelled ] but still   ##
-    ##  clean any residual producer state so the next cmd_id reuse is safe ##
+    ## gated : skip the close frame [ peer gone / cancelled ] but still   ##
+    ## clean any residual producer state so the next cmd_id reuse is safe ##
 
     if ( exists $data{'session'}{$sid} ) {
         delete $data{'session'}{$sid}{'streams'}{$cmd_id}
             if exists $data{'session'}{$sid}{'streams'}{$cmd_id};
     }
 
-    ##  closing a stream is not itself input/output traffic, but the       ##
-    ##  idle-shutdown watcher only re-checks after one of those -- give it ##
-    ##  a prompt chance now instead of waiting on the next unrelated event ##
+    ## closing a stream is not itself input/output traffic, but the         ##
+    ## idle-shutdown watcher only re-checks after one of those -- give it a ##
+    ## prompt chance now instead of waiting on the next unrelated event     ##
     $data{'watcher'}{'io'}{'transfer'}->start
         if defined $data{'watcher'}{'io'}{'transfer'}
         and not $data{'watcher'}{'io'}{'transfer'}->is_active;
@@ -48,16 +48,16 @@ $session->{'buffer'}->{'output'} .= $frame;
 
 delete $session->{'streams'}->{$cmd_id};
 
-##  same idle-watcher nudge as the gated branch above -- the buffer write ##
-##  just queued here doesn't itself flush through base.handler.write      ##
+## same idle-watcher nudge as the gated branch above -- the buffer write ##
+## just queued here doesn't itself flush through base.handler.write      ##
 $data{'watcher'}{'io'}{'transfer'}->start
     if defined $data{'watcher'}{'io'}{'transfer'}
     and not $data{'watcher'}{'io'}{'transfer'}->is_active;
 
 return 1;
 
-#,,.,,,,,,.,.,,,,,.,.,.,.,...,,..,..,,.,,,.,.,..,,...,...,.,.,,,,,..,,,,,,.,,,
-#ZXLQZKSBC37PZVZ6QB4YAHCLEDCMXKYIWF62NUT3YWIWTTJ4SBS7MX56VDBGNYRIDXWGWFKRF62CG
-#\\\|FPY2J6IHBY5DIQJ5NQHEWOU23SQE75542HVIR5Z6BZSFSDY2ZHW \ / AMOS7 \ YOURUM ::
-#\[7]MBGGGKK7OPEPOZZXFLCC7ZDL7X7WBZ4DHE26ZIQXIKAVCFK5AIDY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,,,,.,,,,.,,,..,,..,,..,,,,,,,,,..,,...,...,,,,,...,...,.,.,,,.,
+#SPENOIYMTRRRJQ24A7IHNX3EILTFAH3MUQSX55DQME3FBZICPUITCCTDUCHORXJDPPFDYPZ2ARHOM
+#\\\|5WZTQAJMSHN7QU3DUFGBU7NNSF6AYFYF5SFVTGDTXFLCE3ZZF7Z \ / AMOS7 \ YOURUM ::
+#\[7]Z6QCHPKUPJDRHON42CLM2Z5B24XLCTEVJES5ZQM3N3IX6AJJVODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

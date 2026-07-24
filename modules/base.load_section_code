@@ -48,8 +48,8 @@ foreach my $filename (@match_filenames) {
         } elsif ( $line =~ m|^- *(.+)$| ) {
             $sub_section     = $LAST_PAREN_MATCH;
             $sub_sub_section = undef;
-            die "no parent section defined for sub-section '$sub_section' "
-                . "(file '$filename' line $line_num)"
+            die "no parent section defined for sub-section "
+                . "'$sub_section' (file '$filename' line $line_num)"
                 if not defined $section;
             if ( !<[base.code_section_exists]>->( $sub_section, $data_ref ) )
             {
@@ -64,11 +64,11 @@ foreach my $filename (@match_filenames) {
             $sub_section_ref = $data_ref;
         } elsif ( $line =~ m|^: *([^:]*\S) *:$| ) {
             $sub_sub_section = $LAST_PAREN_MATCH;
-            die "parent section missing for sub-sub-section"
-                . " '$sub_sub_section' (file '$filename' line $line_num)"
+            die "parent section missing for sub-sub-section "
+                . "'$sub_sub_section' (file '$filename' line $line_num)"
                 if not defined $section;
-            die "no parent sub-section defined for sub-sub-section"
-                . " '$sub_sub_section' (file '$filename' line $line_num)"
+            die "no parent sub-section defined for sub-sub-section "
+                . "'$sub_sub_section' (file '$filename' line $line_num)"
                 if not defined $sub_section;
             if (not
                 <[base.code_section_exists]>->( $sub_sub_section, $data_ref )
@@ -88,8 +88,8 @@ foreach my $filename (@match_filenames) {
 }
 return $code_data;
 
-#,,.,,..,,,,,,,,,,.,,,...,,..,..,,,..,...,..,,..,,...,...,...,,,,,.,,,..,,,.,,
-#CWK2EXCNUGLH7VR2P4HO5SCH2JNXFIDCLDFLXX5RPEZ5BRSZ2DY4MRIFCVWZTYIBWM2XMPPAWPWRI
-#\\\|BHX2ERMUQRR6CGZ6QGQFC27FFY6D74S2LQYMWKJ6VDNNSCMSHNF \ / AMOS7 \ YOURUM ::
-#\[7]2PPNHMH4JAELD2C3EN7HY7VEFPLNJT5ESZXO7VVL4DTBHUZBVMAY 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,,,,,..,,,,,,,,.,.,,,...,,.,,,.,,..,,...,..,,...,.,.,,..,.,,,,,.,
+#TESTSNAAIAGVFRSJGSW6RNMFQJ5J6FNVETLATPRTBSVD3PJUGG7YEJJ67GMGRY5HYRJWVQQUXXCHQ
+#\\\|IIZX4URRB3ENL4U37BCZQDYFYLSA4U4ZPT4BY5W4WOT4F4NCQRO \ / AMOS7 \ YOURUM ::
+#\[7]PL43K5JIYFUUKOABFS3HB5YIQSE3ROUYSB4V3HGSAUTF32TS3UCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

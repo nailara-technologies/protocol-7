@@ -15,8 +15,7 @@ warn 'buffer ref not present <{C1}>' and return undef
 
 ## for comparison ##
 #
-## sysread FILEHANDLE,SCALAR,LENGTH,OFFSET
-## sysread FILEHANDLE,SCALAR,LENGTH
+## sysread FILEHANDLE,SCALAR,LENGTH,OFFSET  sysread FILEHANDLE,SCALAR,LENGTH
 #
 ## aio_read  $fh, $offset, $length, $data, $dataoffset, $callback->($retval)
 
@@ -28,7 +27,8 @@ IO::AIO::aio_read( $read_fh, $fh_offset, $read_len, my $r_buff //= '',
 while ( not defined $b_read ) { IO::AIO::poll() }
 
 if ( $b_read > 0 ) {
-    ## downgrade UTF-8 flag to prevent double-encoding when sending via sockets ##
+    ## downgrade UTF-8 flag to prevent double-encoding when sending via ##
+    ## sockets                                                          ##
     if ( utf8::is_utf8($r_buff) ) {
         utf8::downgrade( $r_buff, 0 );   ## 0 = non-fatal, strip UTF-8 flag ##
     }
@@ -38,8 +38,8 @@ if ( $b_read > 0 ) {
 
 return $b_read;                          ## [ returns -1 on error ] ##
 
-#,,,,,.,,,,,.,...,,.,,..,,.,.,,..,.,.,,..,.,.,.,.,...,...,...,,,,,.,.,.,.,.,,,
-#2PXHBHQ5JIQ4A47K7KVUSYLV7BH3ZCNAOFNM6IUQOOY75OTKR57X5R3ORRHWRZLDTF2DKJI47MJO6
-#\\\|ZJD4GIZTSMH5HN2Q7W37HGRSI453UHXG7WYUGWKGNMFLYUS2JIC \ / AMOS7 \ YOURUM ::
-#\[7]4HAXZ5DOV3GYL4VT4VDWDOGOC73Z4KWEKSUTPFCPNUUBYIQCN2BY 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,,,,,..,..,,.,.,.,,,.,,,.,,,,.,,.,.,...,...,..,,...,,.,,,,.,.,,,
+#6SXEGWNCSCY3EASI76W7JPHS7VUYHIGNANZTLDBOMHER27OU5YU5TCKCHTFMO5W2RGDZCJ4V32VKO
+#\\\|YW5HKXSVUMFPILCFIJG7TZ3TPC66DNR6COK3IE67IFDWRG4FUZN \ / AMOS7 \ YOURUM ::
+#\[7]ZPVFGCRGE5VGYI6U5CG23SXT5QIW4CNAGTLFAUIN7P2URQLRAABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

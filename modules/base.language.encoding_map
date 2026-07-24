@@ -5,8 +5,8 @@
 
 my $lang = lc( shift // '' );
 
-## centralized encoding map : one table, all modules use it ##
-## ordered by likelihood for that language's typical source data ##
+## centralized encoding map : one table, all modules use it  ordered by ##
+## likelihood for that language's typical source data                   ##
 ##
 my %language_encoding = (
 
@@ -94,7 +94,7 @@ my %alias = (
     korean     => 'ko',
 );
 
-## aspell package names for auto-install via debian zenka ##
+## aspell package names for auto-install via debian zenka   ##
 ## data/language/wordlist/<code>.txt extracted on first use ##
 our %aspell_package = (
     de => 'aspell-de',
@@ -123,8 +123,8 @@ our %aspell_package = (
 );
 
 ## when wordlist not installed: encoding char table is always available ##
-## _encoding_special_chars(enc) returns the 0x80-0xFF set from Encode  ##
-## : usable as a minimal character-map for layer 1 scoring with no deps ##
+## _encoding_special_chars(enc) returns the 0x80-0xFF set from Encode : ##
+## usable as a minimal character-map for layer 1 scoring with no deps   ##
 
 ## if called with a language argument, return that language's list ##
 if ( length $lang ) {
@@ -138,8 +138,8 @@ if ( length $lang ) {
 ## no argument : return full table hashref ##
 return \%language_encoding;
 
-#,,..,,,.,.,.,,..,.,,,,.,,.,.,,,.,,,,,..,,,.,,.,.,...,.,,,...,..,,.,,,.,,,,.,,
-#H5AKUJZQB25TESB6FQESS57CEEDL3VIIXI3KZFIRVX4ZA25VJB36C6XW6JQKXJF5FWZEH6DB5EBOE
-#\\\|UWHMHJ6TBU5SBCUNYEE5RB7MOIICMCAWLN34HXFK74JY3ZWYFOV \ / AMOS7 \ YOURUM ::
-#\[7]MQIKRFU4SAICXN3Y5PCTY7Y5J3D3KN7IYAW37YJ57ACYS3V636DI 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,..,,.,,,..,,...,..,,,..,...,.,,,.,.,...,...,...,.,.,,,,,...,.,,,
+#L22BRNNAJ2T4WPEB4A6TNBBKJIJGKOVNJHVKDVCMT5XG5VNUVRUDFDBECBT2R6QZDUEV7ST7HICWK
+#\\\|QNFWUS2REQSMGB65VPPSHDP3CVNRQZ4KKS4CPPBN3PNFTPVFWOH \ / AMOS7 \ YOURUM ::
+#\[7]QU6D5FTUWCG6ZY5GPG3MZN2TCVJHFI2K3HXHVRAMKHI5OKUSDGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

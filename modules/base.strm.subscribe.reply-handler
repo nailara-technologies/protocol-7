@@ -17,8 +17,8 @@ if ( $reply->{'cmd'} eq qw| TRUE | ) {
     $state->{'backoff_n'}  = 0;
     <[base.logs]>->( 2, 'strm.subscribe : subscribed [ %s ]', $key );
 
-    ## arm the publisher-restart re-affirm hook [ idempotent : one     ##
-    ## handler sub per publisher, on_restart dedups the registration ] ##
+    ## arm the publisher-restart re-affirm hook [ idempotent : one handler ##
+    ## sub per publisher, on_restart dedups the registration ]             ##
     <[strm.subscribe.on-restart]>->( $state->{'publisher'} );
 
     return TRUE;
@@ -37,8 +37,8 @@ $state->{'error'} = $reply_str;
 <[base.logs]>->( 0, 'strm.subscribe : %s refused [ %s ]', $key, $reply_str );
 return FALSE;
 
-#,,..,.,,,,.,,,..,,.,,..,,,,,,,,.,.,.,,.,,,,.,.,.,...,...,.,.,..,,.,.,.,.,.,,,
-#4WYVDPNN2IB6VTTXMP7BCDPJ4PQCTN3VBH6UYF4D2HGMUNA2FLSRPTGBXYPPNOAVZ2SBRMJF7WPHS
-#\\\|GOE3J5MLQPSAGBEQ6UUIRFLTAANSDMRZF3Q5JCK6OYC4XI77OQH \ / AMOS7 \ YOURUM ::
-#\[7]KJBPCZQ7VOTJSM6QOCKLIQCHZ5Q2NPLBA4W3DWKEOUTB4K436EDQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,,,,,,..,...,,..,,,.,,.,,,..,,..,.,.,...,...,..,,,..,.,,,.,,,,.,,
+#JNZDKQK2VBCTMUBK62WP7Q4NJOMOZ4BF7DC35UJXSTC3Q5IY75B5552LGVBLW6HPTKHQ6EFPHSVEQ
+#\\\|MQJX7YFJCB6R5YEUNE5V6MRKQ2KKOSVSNKFRUJN2XEXXPM7RUMC \ / AMOS7 \ YOURUM ::
+#\[7]UUJ2AFSRN5OSSXIRJOBBTIWQUWKYUF2X7ZNUMJUG3SXK42GZWQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

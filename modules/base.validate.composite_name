@@ -30,8 +30,8 @@ my $re = $data{'regex'}{'base'};
 if ( $name !~ m{^$re->{'usr_str'}$} ) {
     return {
         valid => 0,
-        error => "invalid username format: '$name'"
-            . " (alphanumeric, hyphen, underscore only)"
+        error => "invalid username format: '$name' "
+            . "(alphanumeric, hyphen, underscore only)"
     };
 }
 
@@ -74,8 +74,8 @@ if (1) {    ## Always check unix-auth prefix safety
     }
 }
 
-## 2. Check 'name[subname]' composite (informational)
-## All zenki can have session subnames, so validate for all contexts
+## 2. Check 'name[subname]' composite (informational)  All zenki can have
+## session subnames, so validate for all contexts
 if (1) {    ## Always check composite patterns
     my $max_composite_len = $name_len + 2 + $MAX_SUBNAME;
 
@@ -118,8 +118,8 @@ $result{warning_count} = $warned + 1 if @warnings;
 
 return \%result;
 
-#,,.,,,,.,.,,,.,.,.,.,,.,,,.,,..,,,,.,..,,,,,,..,,...,...,...,..,,,.,,..,,,,,,
-#5TJKGPO2JNIROHNFPCP2QE3FLQHUBBC5KSYG5LSF6L7LW7VUHY3GV5OV5EPCZM5V55SY3RBI5J4BM
-#\\\|F7HYECQI42VBU6FSTV5GR4AF35FSV7TE6XZDRCO2KH25TYFI3PM \ / AMOS7 \ YOURUM ::
-#\[7]ATZVIICAPRM7ARFFBH532Q27KUOIXQI75F7R3ZFW2QMOQLX3VEBA 7  DATA SIGNATURE ::
+#,,,.,...,,,.,.,,,.,.,,,.,..,,..,,.,,,.,,,..,,..,,...,...,.,.,..,,,..,.,.,.,,,
+#ODHKXKZII75HPZQVBOQJQT724QYQRRIDQXQLDZ42QKP4MQNR5IJKAFYOWGOZBXDO2SLBRWJQ2XXVK
+#\\\|NZK6AT2MBHOSQSD3MGMXB7ZPIULGL47U3SG5Z4WO4MLMTVMWBBU \ / AMOS7 \ YOURUM ::
+#\[7]JRZR3DMCAWWXAZH3SBNNG46WXKMYHKIXO7KD2ZOER7T6XOKYEOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
