@@ -20,16 +20,16 @@ my %C = (
 ## show usage and exit
 sub show_usage {
     say "$C{0}:";
-    say
-        ":$C{b} $C{T}usage:$C{0} vax-int-rename [file|directory] [file|directory] ...$C{R}";
+    say ":$C{b} $C{T}usage:$C{0} vax-int-rename "
+        . "[file|directory] [file|directory] ...$C{R}";
     say "$C{0}:";
     say ":";
-    say
-        ": $C{T}Renames files whose basename is a pure decimal number to their$C{0}";
-    say
-        ": $C{T}VAX-encoded base32 representation. File extensions are preserved.$C{0}";
-    say
-        ": $C{T}Non-numeric filenames are left unchanged and reported as skipped.$C{0}";
+    say ": $C{T}Renames files whose basename "
+        . "is a pure decimal number to their$C{0}";
+    say ": $C{T}VAX-encoded base32 representation. "
+        . "File extensions are preserved.$C{0}";
+    say ": $C{T}Non-numeric filenames are left "
+        . "unchanged and reported as skipped.$C{0}";
     say ":$C{R}";
     say "$C{0}:$C{R}";
     exit(1);
@@ -118,8 +118,8 @@ foreach my $file_path (@files_to_process) {
     }
 
     if ( -e $new_path ) {
-        warn
-            "\n: error renaming '$file_path' to '$new_path': target already exists\n";
+        warn "\n: error renaming '$file_path' to "
+            . "'$new_path': target already exists\n";
         $error_count++;
         next;
     }
@@ -141,8 +141,8 @@ say ":$C{b} $C{n}errors: $error_count$C{0}$C{R}" if $error_count;
 say "$C{0}:$C{R}";
 exit( $error_count ? 1 : 0 );
 
-#,,.,,,.,,..,,...,,..,,,.,.,,,,..,..,,,.,,.,,,.,.,...,...,...,,..,.,,,,..,,..,
-#ADND4ZF2B5N3YO5YB7XAINFLHRRLR7WX267GQUTXJ55CGCCBIOM5RJP5PZCDGWATFHNRJI45VJDTE
-#\\\|PYQ7XUZBZLYMDAECBQQLP5LQ3QU2UON657TMT7J5QXLY63TNM6W \ / AMOS7 \ YOURUM ::
-#\[7]5R4VZIYAVPYX2NMVO7SSB5QSG745GHHMTT52QY6XHCJYZILNOUBA 7  DATA SIGNATURE ::
+#,,..,..,,..,,..,,..,,.,.,,..,,.,,,,.,..,,,,.,.,.,...,..,,,..,.,.,,..,,..,...,
+#RJ62DTRYUWIUMUKV6S5HCTV2KH2LESMAOF5TEZCJLNZDDQL5R4YHTZFUEKDJDISRBYWQ5BCHSMNUO
+#\\\|A3HZ7EGHUWIMZZVOBNGUMTOTWKTDBPWICSSLAEXGS7V2ZYA4DGX \ / AMOS7 \ YOURUM ::
+#\[7]DGEM7QAXRB3AXZRHEHSASGDLL4Y66B3TYX3UR6GNUBIVJFSLISDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

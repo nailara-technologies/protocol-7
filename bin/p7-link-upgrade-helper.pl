@@ -12,7 +12,7 @@ use File::Spec;
 use Cwd qw(abs_path);
 use English;
 
-##[ Setup Library Paths ]#######################################################
+##[ Setup Library Paths ]#####################################################
 
 BEGIN {
     # Add Protocol-7 lib path
@@ -31,7 +31,7 @@ use Crypt::Curve25519;
 use Digest::SHA qw(sha256);
 use AMOS7;    # For key derivation functions
 
-##[ Main Entry Point ]##########################################################
+##[ Main Entry Point ]########################################################
 
 my $operation = shift @ARGV // 'help';
 
@@ -55,7 +55,7 @@ if ( $operation eq 'gen-ephemeral' ) {
 
 exit 0;
 
-##[ Operations ]################################################################
+##[ Operations ]##############################################################
 
 sub op_gen_ephemeral {
 
@@ -214,7 +214,7 @@ sub op_decrypt {
     }
 }
 
-##[ Help ]######################################################################
+##[ Help ]####################################################################
 
 sub show_help {
     print <<'EOF';
@@ -379,8 +379,8 @@ As per Protocol-7
 
 =cut
 
-#,,,.,.,.,.,,,,..,,,,,...,.,,,,,.,...,.,,,,.,,..,,...,...,..,,.,.,...,,..,.,,,
-#4K26NGSH4OHPLFN7U2QZPU4QP6UAIV6CUAYMUS4374QTQEFWHXUPI4QY5MK5UT2BKLMOIP7OKMMNU
-#\\\|G2GK22LODEYZ2OMF2ET3KBWWB5JYKIPTEOAY2YHLZGMNIBYM6MW \ / AMOS7 \ YOURUM ::
-#\[7]4LBMFZNFXT7WM2QEZOJWUARP75IFZ3JZZQS7NYGAYUWKSWTSCODQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,,.,,,,,,,.,,..,..,,,,,,.,.,,..,..,,...,...,.,,,..,,..,,.,,,.,.,
+#7LW4X6QOEVVIGR4JHEYT5GDBUZY6J233FVLTDCCTWHRBOKRRC5ZU4FPZFA642ITXAOPZIX5LS3N5E
+#\\\|2LA4IEKUKGBJVLP76GKP5LKUXPKKHWAKI32752POBNRASYYMUKJ \ / AMOS7 \ YOURUM ::
+#\[7]PRHM7LK5AE3YIDTFMTIMUFB3CWADJJL2ZHZX5THCEGRZPA37MQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

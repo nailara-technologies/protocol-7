@@ -50,10 +50,10 @@ while ( @ARGV && $ARGV[0] =~ /^-/ ) {
     } elsif ( $switch eq '-xz' ) {
         $use_xz = TRUE;
     } else {
-        die ":\n:: < ${NEON_green_yellow}ddcompress$reset > "
-            . "$reset:$NEON_orange unknown switch $reset : "
-            . "'$NEON_green_yellow$switch$reset'$reset\n"
-            . ":: valid switches: -compress, -unpack, -xz\n:\n";
+        die ":\n:: < ${NEON_green_yellow}ddcompress$reset "
+            . "> $reset:$NEON_orange unknown switch $reset : "
+            . "'$NEON_green_yellow$switch$reset'$reset\n:: valid "
+            . "switches: -compress, -unpack, -xz\n:\n";
     }
 }
 
@@ -90,8 +90,8 @@ my @all_content;
 ## Read input from files or stdin ##
 if (@ARGV) {
     foreach my $file (@ARGV) {
-        die ":\n:: < ${NEON_green_yellow}research-dedup$reset > "
-            . "$reset:$NEON_orange file not found $reset : "
+        die ":\n:: < ${NEON_green_yellow}research-dedup$reset "
+            . "> $reset:$NEON_orange file not found $reset : "
             . "'$NEON_green_yellow$file$reset'$reset\n:\n"
             if not -f $file;
 
@@ -121,8 +121,9 @@ if ( $mode eq 'stats' ) {
     ## Stats mode: show progress animation ##
 } else {
     ## Compress mode: show simple message ##
-    say {$ui_fh} "::[$NEON_green_yellow ddcompress $blacklight]:. "
-        . "${TRUE_color}analyzing content$blacklight ..,";
+    say {$ui_fh} "::[$NEON_green_yellow "
+        . "ddcompress $blacklight]:. ${TRUE_color}analyzing "
+        . "content$blacklight ..,";
     say {$ui_fh} "$blacklight:";
 }
 
@@ -202,10 +203,11 @@ my $total_output_bytes = 0;
 ## Calculate theoretical output size (for stats mode) ##
 my $theoretical_output_bytes = 0;
 
-## Don't output stats yet - we'll show them at the end with compression stats ##
+## Don't output stats yet - we'll show them at the end with compression ##
+## stats                                                                ##
 
-## Sort ALL elements by frequency in unified number space ##
-## Most frequent elements get lowest indices (most efficient) ##
+## Sort ALL elements by frequency in unified number space  Most frequent ##
+## elements get lowest indices (most efficient)                          ##
 my @sorted_elements = sort {
     $element_freq{$b} <=> $element_freq{$a}    ## frequency first
         || length($a) <=> length($b)           ## then by length
@@ -268,7 +270,8 @@ for ( my $i = 0; $i < @sorted_elements; $i++ ) {
         }
         $display = join( "", @word_refs );    ## VAX encoding, no separators
     } elsif ( $type eq 'p' ) {
-        ## Paragraphs: show as VAX-encoded sentence references (separator-free)
+        ## Paragraphs: show as VAX-encoded sentence references
+        ## (separator-free)
         my @sentences = split /(?<=[.!?])\s+/, $elem;
         my @sent_refs;
         foreach my $sent (@sentences) {
@@ -303,7 +306,8 @@ for ( my $i = 0; $i < @sorted_elements; $i++ ) {
     $total_compressed_chars += length($display);
 
     if ( length($visible) <= 77 ) {
-        ## Fits on one line - add 0-padding (max 77 bytes payload + 1 harmonization marker)
+        ## Fits on one line - add 0-padding (max 77 bytes payload + 1
+        ## harmonization marker)
         my $content_len    = length($b32) + length($display);
         my $payload        = "$b32$display";
         my $marker         = get_harmonization_marker($payload);
@@ -358,8 +362,8 @@ foreach my $file_data (@processed_files) {
         $filename = 'stdin';    ## Remove angle brackets ##
     }
 
-    ## Encode length and filename in BASE32 ##
-    ## Special case: length=0 uses character '0' instead of BASE32 '2' ##
+    ## Encode length and filename in BASE32  Special case: length=0 uses ##
+    ## character '0' instead of BASE32 '2'                               ##
     my $len_b32  = $content_len == 0 ? '0' : to_base32($content_len);
     my $name_b32 = encode_base32_text($filename);
 
@@ -451,7 +455,8 @@ if ( $mode eq 'compress' ) {
                     push @word_output, $word_id;
                 }
 
-                ## Print word level (sentence composed of VAX-encoded word indices) ##
+                ## Print word level (sentence composed of VAX-encoded word ##
+                ## indices)                                                ##
                 my $sent_b32 = to_base32($sent_id);
                 ## Pad sent_b32 to max width
                 while ( length($sent_b32) < $max_id_width ) {
@@ -471,7 +476,8 @@ if ( $mode eq 'compress' ) {
                 $total_output_bytes += 79;    ## 78 chars + newline ##
             }
 
-            ## Print sentence level (paragraph composed of VAX-encoded sentence indices) ##
+            ## Print sentence level (paragraph composed of VAX-encoded ##
+            ## sentence indices)                                       ##
             my $para_b32 = to_base32($para_id);
             ## Pad para_b32 to max width
             while ( length($para_b32) < $max_id_width ) {
@@ -490,7 +496,8 @@ if ( $mode eq 'compress' ) {
             $total_output_bytes += 79;    ## 78 chars + newline ##
         }
 
-        ## Print paragraph level (document composed of VAX-encoded paragraph indices) ##
+        ## Print paragraph level (document composed of VAX-encoded ##
+        ## paragraph indices)                                      ##
         my @para_vax        = map { to_vax_base32($_) } @para_output;
         my $doc_line        = join( "", @para_vax );
         my $doc_visible_len = length("Document") + length($doc_line);
@@ -509,8 +516,8 @@ if ( $mode eq 'compress' ) {
     ## Output index sorted by usage (descending, short IDs first) ##
     output_line("$blacklight:");
     output_line(
-        "::[$NEON_orange INDEX $blacklight]:. ${TRUE_color}sorted by usage$blacklight, ${violet}short IDs first$blacklight"
-    );
+              "::[$NEON_orange INDEX $blacklight]:. ${TRUE_color}sorted "
+            . "by usage$blacklight, ${violet}short IDs first$blacklight" );
     output_line("$blacklight:");
 
     foreach my $line (@index_lines) {
@@ -549,8 +556,8 @@ if ( $mode eq 'compress' && $use_xz ) {
     };
 
     if ($EVAL_ERROR) {
-        say {*STDERR} ":\n:: ${NEON_orange}XZ compression error$reset :: "
-            . "$EVAL_ERROR\n:\n";
+        say {*STDERR} ":\n:: ${NEON_orange}XZ compression "
+            . "error$reset :: $EVAL_ERROR\n:\n";
         exit(1);
     }
 }
@@ -569,18 +576,18 @@ if ( $total_input_bytes > 0 && $output_for_ratio > 0 ) {
         = int( ( $output_for_ratio / $total_input_bytes ) * 10000 );
 }
 
-## Output statistics (both modes) ##
-## When XZ is enabled, send statistics to STDERR to avoid mixing with binary output ##
+## Output statistics (both modes)  When XZ is enabled, send statistics to ##
+## STDERR to avoid mixing with binary output                              ##
 my $stats_fh = ( $use_xz && $mode eq 'compress' ) ? \*STDERR : \*STDOUT;
 
 say {$stats_fh} "\n$blacklight:";
 say {$stats_fh} "::[$NEON_orange STATISTICS $blacklight]:.";
-say {$stats_fh} "::[$NEON_green_yellow elements $blacklight]:. "
-    . "${TRUE_color}$word_count words$blacklight, "
-    . "${TRUE_color}$sent_count sentences$blacklight, "
-    . "${TRUE_color}$para_count paragraphs$blacklight";
-say {$stats_fh} "::[$NEON_green_yellow unique $blacklight]:. "
-    . "${TRUE_color}"
+say {$stats_fh} "::[$NEON_green_yellow "
+    . "elements $blacklight]:. ${TRUE_color}$word_count "
+    . "words$blacklight, ${TRUE_color}$sent_count "
+    . "sentences$blacklight, ${TRUE_color}$para_count "
+    . "paragraphs$blacklight";
+say {$stats_fh} "::[$NEON_green_yellow unique $blacklight]:. ${TRUE_color}"
     . ( scalar keys %element_freq )
     . " total elements$blacklight";
 say {$stats_fh} "::[$NEON_green_yellow encoding $blacklight]:. "
@@ -598,20 +605,21 @@ if ( $output_for_ratio > 0 ) {
 ## Calculate and display XZ compression ratio (for both modes) ##
 my $theoretical_xz_bytes = 0;
 if ( $output_for_ratio > 0 ) {
-    ## For stats mode, calculate theoretical xz compression ##
-    ## For compress mode with xz, use actual compressed size ##
+    ## For stats mode, calculate theoretical xz compression  For compress ##
+    ## mode with xz, use actual compressed size                           ##
     if ( $use_xz && $mode eq 'compress' && $post_xz_output_bytes > 0 ) {
         $theoretical_xz_bytes = $post_xz_output_bytes;
     } else {
-        ## Build theoretical output buffer (similar to compress mode output) ##
+        ## Build theoretical output buffer (similar to compress mode ##
+        ## output)                                                   ##
         my $theoretical_buffer = '';
 
         ## Use the output_buffer if we have it from compress mode ##
         if ( $output_buffer ne '' ) {
             $theoretical_buffer = $output_buffer;
         } else {
-            ## Build theoretical buffer for stats mode ##
-            ## Approximate the format structure ##
+            ## Build theoretical buffer for stats mode  Approximate the ##
+            ## format structure                                         ##
             foreach my $dir_line (@directory_lines) {
                 $theoretical_buffer .= $dir_line . "\n";
             }
@@ -664,7 +672,8 @@ if ( $theoretical_xz_bytes > 0 && $total_input_bytes > 0 ) {
 say {$stats_fh} "$blacklight:$reset\n";
 exit(0);
 
-## Wrap index line at 78 characters (code signature width) with aligned continuation ##
+## Wrap index line at 78 characters (code signature width) with aligned ##
+## continuation                                                         ##
 sub wrap_at_78 {
     my ( $id, $content, $freq, $color ) = @_;
 
@@ -676,13 +685,13 @@ sub wrap_at_78 {
     my $id_part   = "$cyan$id$blacklight";    ## no colon
     my $freq_part = " ${blacklight}[$TRUE_color×$freq$blacklight]$reset";
 
-    ## Calculate available space for content on first line
-    ## Account for: "ID" + content + " [×N]"
+    ## Calculate available space for content on first line  Account for: "ID"
+    ## + content + " [×N]"
     my $freq_str_len = length(" [×$freq]");
     my $first_avail  = 78 - $id_len - $freq_str_len;
 
-    ## For BER encoding (variable length), no fixed chunk size
-    ## Just wrap at available space
+    ## For BER encoding (variable length), no fixed chunk size  Just wrap at
+    ## available space
     my @lines;
     my $remaining = $content;
     my $avail     = $first_avail;
@@ -810,8 +819,8 @@ sub encode_base32_text {
     return $result;
 }
 
-## Encode index using BER compression (variable-length) + BASE32 ##
-## This creates optimal separator-free encoding like comp-int ##
+## Encode index using BER compression (variable-length) + BASE32 This ##
+## creates optimal separator-free encoding like comp-int              ##
 sub to_vax_base32 {
     my $num = shift;
     return '?' if not defined $num;
@@ -823,8 +832,8 @@ sub to_vax_base32 {
     return $encoded;
 }
 
-## Convert index to BASE32 encoding (2-7A-Z) for display ##
-## All indices 0+ use BASE32 encoding ##
+## Convert index to BASE32 encoding (2-7A-Z) for display  All indices 0+ ##
+## use BASE32 encoding                                                   ##
 sub to_base32 {
     my $num = shift;
 
@@ -917,9 +926,9 @@ sub compress_repetitions {
     return $str;
 }
 
-## Calculate harmonization marker based on division-by-13 truth ##
-## Bitshift left flips truth assertion - use trailing 1 to mark harmonization ##
-## Line should be true both pre and post encoding + trailing marker ##
+## Calculate harmonization marker based on division-by-13 truth Bitshift  ##
+## left flips truth assertion - use trailing 1 to mark harmonization Line ##
+## should be true both pre and post encoding + trailing marker            ##
 sub get_harmonization_marker {
     my $line_content = shift;    ## 77 bytes payload
 
@@ -967,9 +976,10 @@ sub calc_true_simple {
     ## Pad with leading zeros if needed ##
     $last_6 = sprintf( '%06d', $last_6 ) if length($last_6) < 6;
 
-    ## Check against true/false patterns from init_table ##
-    ## TRUE: 461538, 615384, 153846, 538461, 384615, 846153 (+ variants ±1)
-    ## FALSE: 230769, 307692, 076923, 769230, 692307, 923076 (+ variants ±1)
+    ## Check against true/false patterns from init_table                    ##
+    ## TRUE: 461538, 615384, 153846, 538461, 384615, 846153 (+ variants ±1) ##
+    ## FALSE: 230769, 307692, 076923, 769230, 692307, 923076 (+ variants    ##
+    ## ±1)                                                                  ##
 
     return 0
         if $last_6 =~ /^230769$|^307692$|^076923$|^769230$|^692307$|^923076$/;
@@ -989,8 +999,8 @@ sub calc_true_simple {
     return 1;
 }
 
-## Decode mode: decompress encoded input ##
-## Show progress animation (ptd style) ##
+## Decode mode: decompress encoded input  Show progress animation (ptd ##
+## style)                                                              ##
 sub show_progress {
     my $filename    = shift;
     my $file_num    = shift;
@@ -1010,15 +1020,15 @@ sub show_progress {
 ## Unpack mode: decompress encoded input ##
 sub unpack_mode {
     say "${blacklight}:";
-    say "::[$NEON_green_yellow ddcompress $blacklight]:. "
-        . "${TRUE_color}unpack mode$blacklight - not yet implemented";
+    say "::[$NEON_green_yellow ddcompress $blacklight]:. ${TRUE_color}unpack "
+        . "mode$blacklight - not yet implemented";
     say "$blacklight:$reset";
 
     die "Unpack mode coming soon!\n";
 }
 
-#,,,.,,..,...,,..,,,,,,,,,,,.,.,,,.,.,,,,,..,,..,,...,...,..,,,,.,.,.,,,,,,,,,
-#YCGSYN26ITSTPXVE27KZ652QXV2VDDSNLS3XPPUYSUL5UCZXAMTZHMRJEVYQE2QEROIBD2EENHGCQ
-#\\\|P4B3UXLXODKPF7OW3T47356F3AWVJVP47GIIHNND2HEZMV76RPV \ / AMOS7 \ YOURUM ::
-#\[7]G2NBNKOS4CUK7HDG6PBHJ32JVB34CWAWWA2W4U22BU6IE46GL6AQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,.,.,..,,..,,,,,,,..,,..,,,,,.,,,..,,...,.,.,...,..,,...,.,.,,.,,
+#MBLMVEF72O4BYSV2LARYTHDOZ4OP5U7NXVMTYOA4VCBBZ4444SJE43RNAFAWJ36P3FHA2S3GM6UHK
+#\\\|HMQYSCSFTBTTAXQPTMOLGYTVWAIXUWEQDBEYLPQQ3AA2NAUMCNB \ / AMOS7 \ YOURUM ::
+#\[7]65RH6TPLA7XC76OVLRXFFFUSWUJ6NEXENH4BWAO5MZUZESQCJQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -24,21 +24,21 @@ use Crypt::Curve25519;
 use Crypt::Misc qw(encode_b32r decode_b32r);
 use Getopt::Long;
 
-my $socket_path = '/var/run/.7/UNIX/NIW7OAQ';
+my $socket_path   = '/var/run/.7/UNIX/NIW7OAQ';
 my $encoding_mode = 'none';
-my $username = 'root';
-my $verbose = 0;
+my $username      = 'root';
+my $verbose       = 0;
 
 GetOptions(
-    'socket=s' => \$socket_path,
+    'socket=s'   => \$socket_path,
     'encoding=s' => \$encoding_mode,
-    'user=s' => \$username,
-    'verbose!' => \$verbose,
+    'user=s'     => \$username,
+    'verbose!'   => \$verbose,
 ) or die "Error in command line arguments\n";
 
 print "Protocol-7 Link-Upgrade Test Client\n" if $verbose;
-print "Socket: $socket_path\n" if $verbose;
-print "Encoding: $encoding_mode\n" if $verbose;
+print "Socket: $socket_path\n"                if $verbose;
+print "Encoding: $encoding_mode\n"            if $verbose;
 
 # Connect to the Protocol-7 cube
 my $socket = IO::Socket::UNIX->new(
@@ -58,9 +58,9 @@ print "Sending: $auth_cmd" if $verbose;
 print $socket $auth_cmd;
 
 # Read authentication response
-for (1..3) {
+for ( 1 .. 3 ) {
     $line = <$socket>;
-    print "Server: $line" if $verbose;
+    print "Server: $line"          if $verbose;
     die "Authentication failed!\n" if $line =~ /ERROR/;
 }
 
@@ -82,7 +82,7 @@ print "Link-upgrade initiated successfully\n" if $verbose;
 
 # Generate C25519 ephemeral keypair
 print "Generating ephemeral keypair...\n" if $verbose;
-my ($client_secret, $client_public) = Crypt::Curve25519::generate_keypair();
+my ( $client_secret, $client_public ) = Crypt::Curve25519::generate_keypair();
 
 print "Client secret length: " . length($client_secret) . "\n" if $verbose;
 print "Client public length: " . length($client_public) . "\n" if $verbose;
@@ -155,8 +155,8 @@ See LICENSE file
 
 =cut
 
-#,,..,...,.,,,...,,..,..,,...,..,,..,,.,,,,,,,..,,...,...,,,,,,.,,,..,,..,,,.,
-#KX6IFWXXPZBJWY4GFLSUIV7OUJ2GGJOLY567YRB3G5H7OZYT2WFQ45RWAUUT4VK6HIJV436EZ4EWM
-#\\\|SUYINOIPFCAVUDN7D4RGXBIDWZOIYZ43CWKN2IU72GREJSCR5MB \ / AMOS7 \ YOURUM ::
-#\[7]2CETAH6F4G3ASPPD57G6O3JSEM2COFJEUSAYAPMMHXAJS3PIY4AQ 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,,.,..,,.,,,,,.,.,,,,.,,,..,.,,,..,,...,...,,,,,,..,..,,,,,,..,,
+#5XOEMKIEG3Y2W2TZ3RX3FYAO4YCFZJ4AUSRRATRO3XRYGX3LUW6U3GZXYD4VEWYGGFUOMEPL5XHOM
+#\\\|S3A43EC27CTPSPR6HZMJCTWDRNRJBZ76NZVGNXEX5JNLYPQPGL3 \ / AMOS7 \ YOURUM ::
+#\[7]4PFQKPRO6TGMHOVQ3KGJJLLKSBF3EDXLAOICFIYYV2HGRJVV4YAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -132,9 +132,9 @@ if ( $option{'help'} ) {
 my $CALLER = detect_caller();
 
 ##[ EARLY-EXIT LISTING COMMANDS ]#############################################
-## list_channels / list_models read only from filesystem — no state or      ##
-## message needed. exit before STDIN read to avoid blocking when called     ##
-## non-interactively (e.g. from MCP server via open('-|', ...))             ##
+## list_channels / list_models read only from filesystem — no state or  ##
+## message needed. exit before STDIN read to avoid blocking when called ##
+## non-interactively (e.g. from MCP server via open('-|', ...))         ##
 
 if ( $option{'channels'} ) {
     list_channels();
@@ -245,13 +245,13 @@ if ( defined $option{'trim'} ) {
     exit(0);
 }
 
-##[ NO MESSAGE — SHOW TIMELINE OR HELP ]#####################################
+##[ NO MESSAGE — SHOW TIMELINE OR HELP ]######################################
 
 if ( not length $clean_msg ) {
     if ( $switches->{'channel'} or $switches->{'model'} ) {
-        say colored(
-            ": switched to channel $state->{'active_channel'}, model $state->{'active_model'}"
-        ) unless $option{'quiet'};
+        say colored( ": switched to channel $state->{'active_channel'}, "
+                . "model $state->{'active_model'}" )
+            unless $option{'quiet'};
         exit(0);
     }
     if ( $option{'channel'} ) {
@@ -872,8 +872,8 @@ sub rotate_with_summary {
     my @newer = @lines[ $mid .. $#lines ];
 
     my $prompt
-        = "Please summarize the following conversation history concisely, "
-        . "preserving key facts, decisions, and context:\n\n"
+        = "Please summarize the following conversation history "
+        . "concisely, preserving key facts, decisions, and context:\n\n"
         . join( '', @older );
 
     my $summary = dispatch_summary( $model, $prompt );
@@ -999,13 +999,13 @@ sub summarize_channel {
     }
 
     my $prompt
-        = "produce a concise structured summary of this conversation channel. "
-        . "preserve: key decisions made, open questions, recent focus (weight "
-        . "the last 20% of messages more heavily), participant names, any action "
-        . "items or TODOs. format as plain markdown with sections: "
-        . "## recent focus, ## decisions, ## open questions, ## participants. "
-        . "keep total length under 400 words.\n"
-        . "--- channel: $channel ---\n"
+        = "produce a concise structured summary of this conversation "
+        . "channel. preserve: key decisions made, open questions, "
+        . "recent focus (weight the last 20% of messages more "
+        . "heavily), participant names, any action items or TODOs. "
+        . "format as plain markdown with sections: ## recent focus, ## "
+        . "decisions, ## open questions, ## participants. keep total "
+        . "length under 400 words.\n--- channel: $channel ---\n"
         . $history;
 
     my $encoded = encode_b32r( encode_utf8($prompt) );
@@ -1093,9 +1093,9 @@ sub summarize_all_channels {
     }
 
     my $combined_prompt
-        = "produce a concise combined overview of these "
-        . "channel summaries. highlight cross-channel themes, dependencies, "
-        . "and any conflicting information. keep under 300 words.\n\n";
+        = "produce a concise combined overview of these channel summaries. "
+        . "highlight cross-channel themes, dependencies, and any "
+        . "conflicting information. keep under 300 words.\n\n";
     for my $name ( sort keys %summaries ) {
         $combined_prompt .= "--- channel: $name ---\n";
         $combined_prompt .= $summaries{$name} . "\n\n";
@@ -1160,7 +1160,8 @@ sub first_sentence {
         next if $line =~ m{^\s*#+\s*};
         my $s = $line;
         $s =~ s{^\s+|\s+$}{}g;
-        ## if there's a sentence terminator within 120 chars, truncate there ##
+        ## if there's a sentence terminator within 120 chars, truncate ##
+        ## there                                                       ##
         if ( $s =~ m{^(.{10,120}?[\.!?])\s+} ) {
             my $trunc = $1;
             $trunc =~ s{^\s+|\s+$}{}g;
@@ -1187,7 +1188,7 @@ sub show_timeline {
     }
 
     my $use_color = defined terminal_size() && not $option{'quiet'};
-    my $use_frame = -t STDOUT && not $option{'quiet'};
+    my $use_frame = -t STDOUT               && not $option{'quiet'};
     my $width     = terminal_size() // 72;
     $width = 72 if $width > 72;
     $width = 24 if $width < 24;
@@ -1233,11 +1234,11 @@ sub show_timeline {
     }
 
     if ($use_color) {
-        say "$C{0}active: $C{T}#$state->{'active_channel'}$C{0}"
-            . "  model: $C{T}$state->{'active_model'}$C{R}";
+        say "$C{0}active: $C{T}#$state->{'active_channel'}$C{0} "
+            . " model: $C{T}$state->{'active_model'}$C{R}";
     } else {
-        say "active: #$state->{'active_channel'}"
-            . "  model: $state->{'active_model'}";
+        say "active: #$state->{'active_channel'} "
+            . " model: $state->{'active_model'}";
     }
 }
 
@@ -1258,30 +1259,30 @@ sub frame_line {
     my $suffix     = " ]:.";
 
     if ( !length $left_slot ) {
-        my $prefix = ".:[ ]";
-        my $sep    = "::[";
-        my $fixed  = length($prefix) + length($sep) + length($suffix);
+        my $prefix   = ".:[ ]";
+        my $sep      = "::[";
+        my $fixed    = length($prefix) + length($sep) + length($suffix);
         my $fill_len = $width - $fixed - length($label_part);
         if ( $fill_len < 0 ) {
             my $max_label = length($label_part) + $fill_len - 3;
-            $max_label = 1 if $max_label < 1;
+            $max_label  = 1 if $max_label < 1;
             $label_part = ' ' . substr( $label, 0, $max_label ) . '... ';
-            $fill_len = $width - $fixed - length($label_part);
-            $fill_len = 0 if $fill_len < 0;
+            $fill_len   = $width - $fixed - length($label_part);
+            $fill_len   = 0 if $fill_len < 0;
         }
         return $prefix . ( ':' x $fill_len ) . $sep . $label_part . $suffix;
     } else {
-        my $prefix   = ".:[ ";
-        my $sep      = " ]::[ ";
-        my $fixed    = length($prefix) + length($sep) + length($suffix);
-        my $remaining = $width - $fixed - length($left_slot)
-            - length($label_part);
+        my $prefix = ".:[ ";
+        my $sep    = " ]::[ ";
+        my $fixed  = length($prefix) + length($sep) + length($suffix);
+        my $remaining
+            = $width - $fixed - length($left_slot) - length($label_part);
         if ( $remaining < 0 ) {
             my $max_label = length($label_part) + $remaining - 3;
-            $max_label = 1 if $max_label < 1;
+            $max_label  = 1 if $max_label < 1;
             $label_part = ' ' . substr( $label, 0, $max_label ) . '... ';
-            $remaining = $width - $fixed - length($left_slot)
-                - length($label_part);
+            $remaining
+                = $width - $fixed - length($left_slot) - length($label_part);
             $remaining = 0 if $remaining < 0;
         }
         my $pad = ' ' x $remaining;
@@ -1328,8 +1329,8 @@ sub colored {
     return "$C{0}:\n::$C{b} $C{T}$text$C{0} $C{R}\n$C{0}:$C{R}";
 }
 
-#,,,.,.,,,,.,,..,,,,.,.,,,...,,.,,,,.,..,,..,,..,,...,..,,.,,,,..,,,,,,,,,.,,,
-#6QMLJD6IFOIWIZPBKKZSAEIWBXPHWVERJ74BEBALYHRGJVAFCN26PEB25PUMTY4WC54GGMTQQDPHO
-#\\\|QHS4VLDQINU254DHOJ5XIQX4L3VBMQF4O7WEYKQWT27DJGLERRT \ / AMOS7 \ YOURUM ::
-#\[7]BLE7VHMP7OJGHQXR2KT7OC2MABUYDLYYLRFCEZLWNFALTBE2SYDI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,..,,,.,,.,,.,.,,..,..,,...,...,..,,...,...,,..,,,.,.,,,.,,,...,
+#3E3XNHFSHAKYSUJJLWMZOFVX4WEDNZQF3JNXONDJWATS55XVTIUXGUSLDJ2SIGUWYSGQNCXSADLQI
+#\\\|4GNL6ZIJOPYSXI4MQYGKPAQB2NK6Y4IBBH34275LQCYQBZH4GMW \ / AMOS7 \ YOURUM ::
+#\[7]JJDSEPVT2MLHU4KI2UUYC5HGJXPNBT3KYK7CW435OZ4F2KQTCOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

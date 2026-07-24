@@ -33,10 +33,10 @@ if ($@) {
 
 # Test 2: Cipher context initialization
 print "[TEST 2] ChaCha20-Poly1305 cipher context initialization...\n";
-my $test_key = "\x00" x 32;  # 32-byte zero key for testing
-my $test_nonce = "\x00" x 12;  # 12-byte nonce
-my $cipher = Crypt::AuthEnc::ChaCha20Poly1305->new($test_key, $test_nonce);
-if (defined $cipher) {
+my $test_key   = "\x00" x 32;    # 32-byte zero key for testing
+my $test_nonce = "\x00" x 12;    # 12-byte nonce
+my $cipher = Crypt::AuthEnc::ChaCha20Poly1305->new( $test_key, $test_nonce );
+if ( defined $cipher ) {
     print "✓ Cipher context initialized successfully\n";
     print "  Key size: 32 bytes (256 bits)\n";
     print "  Nonce size: 12 bytes\n";
@@ -51,29 +51,37 @@ print "[TEST 3] Encryption and decryption...\n";
 my $plaintext = "Hello, Protocol-7 Encryption!";
 
 # Create a new cipher for encryption with unique nonce
-my $nonce1 = "\x00" x 11 . "\x01";  # Different nonce
-my $cipher_enc = Crypt::AuthEnc::ChaCha20Poly1305->new($test_key, $nonce1);
+my $nonce1     = "\x00" x 11 . "\x01";    # Different nonce
+my $cipher_enc = Crypt::AuthEnc::ChaCha20Poly1305->new( $test_key, $nonce1 );
 
 # Encrypt
 my $ciphertext = $cipher_enc->encrypt_add($plaintext);
-my $auth_tag = $cipher_enc->encrypt_done();
+my $auth_tag   = $cipher_enc->encrypt_done();
 
 print "✓ Encryption successful\n";
-printf("  Plaintext:  %s (%d bytes)\n", $plaintext, length($plaintext));
-printf("  Ciphertext: %s (%d bytes)\n", unpack("H*", $ciphertext), length($ciphertext));
-printf("  Auth Tag:   %s (%d bytes)\n\n", unpack("H*", $auth_tag), length($auth_tag));
+printf( "  Plaintext:  %s (%d bytes)\n", $plaintext, length($plaintext) );
+printf(
+    "  Ciphertext: %s " . "(%d bytes)\n",
+    unpack( "H*", $ciphertext ),
+    length($ciphertext)
+);
+printf(
+    "  Auth Tag:   " . "%s (%d bytes)\n\n",
+    unpack( "H*", $auth_tag ),
+    length($auth_tag)
+);
 
 # Decrypt with same key and nonce
-my $cipher_dec = Crypt::AuthEnc::ChaCha20Poly1305->new($test_key, $nonce1);
-my $decrypted = eval {
-    my $pt = $cipher_dec->decrypt_add($ciphertext);
+my $cipher_dec = Crypt::AuthEnc::ChaCha20Poly1305->new( $test_key, $nonce1 );
+my $decrypted  = eval {
+    my $pt     = $cipher_dec->decrypt_add($ciphertext);
     my $result = $cipher_dec->decrypt_done($auth_tag);
     return $pt if $result;
 };
 
-if (defined $decrypted && $decrypted eq $plaintext) {
+if ( defined $decrypted && $decrypted eq $plaintext ) {
     print "✓ Decryption successful\n";
-    printf("  Decrypted: %s\n\n", $decrypted);
+    printf( "  Decrypted: %s\n\n", $decrypted );
 } else {
     print "✗ Decryption failed or plaintext mismatch\n";
     exit 1;
@@ -81,12 +89,12 @@ if (defined $decrypted && $decrypted eq $plaintext) {
 
 # Test 4: Authentication tag validation
 print "[TEST 4] Authentication tag validation...\n";
-my $bad_tag = "\xff" x 16;  # Modified tag
-my $cipher_bad = Crypt::AuthEnc::ChaCha20Poly1305->new($test_key, $nonce1);
+my $bad_tag    = "\xff" x 16;    # Modified tag
+my $cipher_bad = Crypt::AuthEnc::ChaCha20Poly1305->new( $test_key, $nonce1 );
 $cipher_bad->decrypt_add($ciphertext);
 my $validation = $cipher_bad->decrypt_done($bad_tag);
 
-if (!$validation) {
+if ( !$validation ) {
     print "✓ Authentication tag validation works (rejected bad tag)\n";
     print "  decrypt_done() returned false for tampered tag\n\n";
 } else {
@@ -96,22 +104,26 @@ if (!$validation) {
 
 # Test 5: Curve25519 key agreement
 print "[TEST 5] Curve25519 ephemeral key agreement...\n";
-my ($public1, $secret1) = Crypt::Ed25519::generate_keypair();
-my ($public2, $secret2) = Crypt::Ed25519::generate_keypair();
+my ( $public1, $secret1 ) = Crypt::Ed25519::generate_keypair();
+my ( $public2, $secret2 ) = Crypt::Ed25519::generate_keypair();
 
 printf("✓ Generated two ephemeral keypairs\n");
-printf("  Server private: %d bytes\n", length($secret1));
-printf("  Server public:  %d bytes\n", length($public1));
-printf("  Client private: %d bytes\n", length($secret2));
-printf("  Client public:  %d bytes\n\n", length($public2));
+printf( "  Server private: %d bytes\n",   length($secret1) );
+printf( "  Server public:  %d bytes\n",   length($public1) );
+printf( "  Client private: %d bytes\n",   length($secret2) );
+printf( "  Client public:  %d bytes\n\n", length($public2) );
 
 # Compute shared secrets
-my $shared1 = Crypt::Curve25519::shared_secret($secret1, $public2);
-my $shared2 = Crypt::Curve25519::shared_secret($secret2, $public1);
+my $shared1 = Crypt::Curve25519::shared_secret( $secret1, $public2 );
+my $shared2 = Crypt::Curve25519::shared_secret( $secret2, $public1 );
 
-if (defined $shared1 && defined $shared2 && $shared1 eq $shared2) {
+if ( defined $shared1 && defined $shared2 && $shared1 eq $shared2 ) {
     print "✓ Diffie-Hellman key agreement successful\n";
-    printf("  Shared secret: %s (%d bytes)\n\n", unpack("H*", substr($shared1, 0, 8)) . "...", length($shared1));
+    printf(
+        "  Shared secret: %s (%d bytes)\n\n",
+        unpack( "H*", substr( $shared1, 0, 8 ) ) . "...",
+        length($shared1)
+    );
 } else {
     print "✗ Diffie-Hellman key agreement failed\n";
     exit 1;
@@ -120,14 +132,14 @@ if (defined $shared1 && defined $shared2 && $shared1 eq $shared2) {
 # Test 6: BASE32 encoding/decoding
 print "[TEST 6] BASE32 encoding and decoding...\n";
 my $test_data = "Protocol-7 Link-Upgrade";
-my $encoded = encode_b32r($test_data);
-my $decoded = decode_b32r($encoded);
+my $encoded   = encode_b32r($test_data);
+my $decoded   = decode_b32r($encoded);
 
-if ($decoded eq $test_data) {
+if ( $decoded eq $test_data ) {
     print "✓ BASE32 encoding/decoding successful\n";
-    printf("  Original:  %s\n", $test_data);
-    printf("  Encoded:   %s\n", $encoded);
-    printf("  Decoded:   %s\n\n", $decoded);
+    printf( "  Original:  %s\n",   $test_data );
+    printf( "  Encoded:   %s\n",   $encoded );
+    printf( "  Decoded:   %s\n\n", $decoded );
 } else {
     print "✗ BASE32 encoding/decoding failed\n";
     exit 1;
@@ -136,50 +148,57 @@ if ($decoded eq $test_data) {
 # Test 7: Message counter and nonce generation
 print "[TEST 7] Message counter-based nonce generation...\n";
 my $session_id = 12345;
-my $counter = 1;
+my $counter    = 1;
 
 my $session_bytes = pack qw| N |, $session_id;
 my $counter_bytes = pack qw| N |, $counter;
-my $nonce = $session_bytes . $counter_bytes . ("\x00" x 4);
+my $nonce         = $session_bytes . $counter_bytes . ( "\x00" x 4 );
 
 printf("✓ Nonce generated successfully\n");
-printf("  Session ID:  %d\n", $session_id);
-printf("  Counter:     %d\n", $counter);
-printf("  Nonce bytes: %s (%d bytes)\n\n", unpack("H*", $nonce), length($nonce));
+printf( "  Session ID:  %d\n", $session_id );
+printf( "  Counter:     %d\n", $counter );
+printf(
+    "  Nonce bytes: " . "%s (%d bytes)\n\n",
+    unpack( "H*", $nonce ),
+    length($nonce)
+);
 
 # Test 8: Multiple encryption/decryption cycles
 print "[TEST 8] Multiple message encryption cycles with unique nonces...\n";
-my @messages = (
-    "First message",
-    "Second message with more data",
-    "Third message",
-);
+my @messages
+    = ( "First message", "Second message with more data", "Third message", );
 
 my @encrypted_messages;
-foreach my $idx (0..$#messages) {
+foreach my $idx ( 0 .. $#messages ) {
+
     # Generate unique nonce for each message
-    my $nonce_idx = pack qw| N |, $idx + 2;  # Counter starts at 2
+    my $nonce_idx    = pack qw| N |, $idx + 2;    # Counter starts at 2
     my $unique_nonce = "\x00" x 8 . $nonce_idx;
 
-    my $cipher_e = Crypt::AuthEnc::ChaCha20Poly1305->new($test_key, $unique_nonce);
-    my $ct = $cipher_e->encrypt_add($messages[$idx]);
+    my $cipher_e
+        = Crypt::AuthEnc::ChaCha20Poly1305->new( $test_key, $unique_nonce );
+    my $ct  = $cipher_e->encrypt_add( $messages[$idx] );
     my $tag = $cipher_e->encrypt_done();
-    push @encrypted_messages, {ciphertext => $ct, tag => $tag, nonce => $unique_nonce};
+    push @encrypted_messages,
+        { ciphertext => $ct, tag => $tag, nonce => $unique_nonce };
 }
 
 print "✓ Encrypted " . scalar(@messages) . " messages with unique nonces\n";
 
 my $all_decrypted = 1;
-foreach my $idx (0..$#messages) {
-    my $cipher_d = Crypt::AuthEnc::ChaCha20Poly1305->new($test_key, $encrypted_messages[$idx]->{nonce});
+foreach my $idx ( 0 .. $#messages ) {
+    my $cipher_d = Crypt::AuthEnc::ChaCha20Poly1305->new( $test_key,
+        $encrypted_messages[$idx]->{nonce} );
     my $pt = eval {
-        my $plaintext_result = $cipher_d->decrypt_add($encrypted_messages[$idx]->{ciphertext});
-        my $result = $cipher_d->decrypt_done($encrypted_messages[$idx]->{tag});
+        my $plaintext_result = $cipher_d->decrypt_add(
+            $encrypted_messages[$idx]->{ciphertext} );
+        my $result
+            = $cipher_d->decrypt_done( $encrypted_messages[$idx]->{tag} );
         return $plaintext_result if $result;
     };
 
-    if (!defined $pt || $pt ne $messages[$idx]) {
-        print "✗ Decryption mismatch for message " . ($idx + 1) . "\n";
+    if ( !defined $pt || $pt ne $messages[$idx] ) {
+        print "✗ Decryption mismatch for message " . ( $idx + 1 ) . "\n";
         $all_decrypted = 0;
     }
 }
@@ -223,8 +242,8 @@ actual Protocol-7 zenka infrastructure.
 
 =cut
 
-#,,,.,.,,,.,,,,.,,...,.,,,,.,,.,.,...,.,,,..,,..,,...,...,,..,.,,,..,,,.,,,..,
-#TTLCK2TR6X6ZFBXRJG5TXTNY723RV56MAP5HRY5TKLMPPN5IFCNTTN3OR5PFBGZWOQRJ5YNLTGBU4
-#\\\|CH6YQIKALNZQYWZGYRGAZK46F7AIJON6WPXQ5M7EZ7XVOPSC7YK \ / AMOS7 \ YOURUM ::
-#\[7]CRXYZSHSVLHCM7FVC6DWTS3TRNZJMQW4B5HOZQL2TL4LII2JFSDA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,..,...,...,..,,...,,.,,..,,.,.,..,,...,...,...,.,,,,,.,,,,,.,.,
+#APE7J3CW3ROBHIIG4YLKJCPN3CWON5PXNM6KFEZZAVNXBWRWBIDKTQR2S4F6PKT6X5HZV3T2FHV66
+#\\\|2F6HIDAXHWR6NX2BNYXNJAWLBNIJMPAQKODMI7TTZZX5YZ6O7OL \ / AMOS7 \ YOURUM ::
+#\[7]6C2NU3FGKIEGOR67E63UXWDZ4YSXZ5DN6SB3XGHFW5LOMLEJM4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

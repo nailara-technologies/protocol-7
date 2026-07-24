@@ -175,11 +175,13 @@ sub install {
                     my $ext_mod_dir = $tgz_file;
                     $ext_mod_dir =~ s/\.tar\.gz$//;
 
-                    print " : downloading module '$mod_name' [version "
-                        . "$mod_version] ($MOD_size bytes) ...\n";
+                    print " : downloading module '$mod_name' "
+                        . "[version $mod_version] ($MOD_size bytes) "
+                        . "...\n";
                     open( my $file_handle, ">$tgz_file" )
                         or die " :: [error] cannot open file "
-                        . "'$CPAN_tmp_dir/modules/$mod_file_name' [ \l$OS_ERROR ]\n";
+                        . "'$CPAN_tmp_dir/modules/$mod_file_name' "
+                        . "[ \l$OS_ERROR ]\n";
 
                     my $bytes_read = 0;
                     while (
@@ -236,21 +238,21 @@ sub install {
                             if ( !system( 'perl', $makefile_pl ) ) {
                                 print "..\n";
                                 if ( -f $makefile ) {
-                                    die
-                                        " :\n :: [error] 'make' not found!\n\n"
+                                    die " :\n :: [error] "
+                                        . "'make' not found!\n\n"
                                         if qx(make -h) !~ /Usage/;
                                     print " : running 'make' ...\n.:\n\n";
                                     if ( !system('make') ) {
-                                        print
-                                            "..\n : running 'make test' ..\n"
-                                            . ".:\n\n"
+                                        print "..\n : running 'make "
+                                            . "test' ..\n.:\n\n"
                                             if !$force_install;
                                         if ( $force_install
                                             or !system( 'make', 'test' ) ) {
                                             if (   $force_install
                                                 or $EUID == 0 ) {
                                                 print "..\n : running 'make "
-                                                    . "install' ..\n.:\n\n";
+                                                    . "install' "
+                                                    . "..\n.:\n\n";
                                                 if ( !system('make install') )
                                                 {
                                                     print "..\n";
@@ -258,19 +260,23 @@ sub install {
                                             } else {
                                                 print "..\n : need root "
                                                     . "priviledges to "
-                                                    . "'make install'\n";
-                                                print " : running 'su root"
-                                                    . " -c make install'"
-                                                    . " ..\n.:\n\n";
+                                                    . "'make "
+                                                    . "install'\n";
+                                                print " : running 'su root "
+                                                    . "-c make "
+                                                    . "install' "
+                                                    . "..\n.:\n\n";
                                                 if (!system( 'su', 'root',
                                                         '-c', 'make install' )
                                                 ) {
                                                     print "..\n";
                                                 } else {
                                                     die "..\n :: [error] no "
-                                                        . "clean exit from 'su "
-                                                        . "root -c make install"
-                                                        . "'\n :\n\n";
+                                                        . "clean exit "
+                                                        . "from 'su root "
+                                                        . "-c make "
+                                                        . "install'\n "
+                                                        . ":\n\n";
                                                 }
                                             }
                                         } else {
@@ -278,19 +284,20 @@ sub install {
                                                 . "failed !\n :\n\n";
                                         }
                                     } else {
-                                        die "..\n :: [error] no clean exit "
-                                            . "from 'make'\n :\n\n";
+                                        die "..\n :: [error] no clean "
+                                            . "exit from 'make'\n :\n\n";
                                     }
                                 }
 
                             } else {
                                 die " :: [error] cannot execute "
-                                    . "'$makefile_pl'. [ \l$OS_ERROR ]\n :\n\n";
+                                    . "'$makefile_pl'. [ \l$OS_ERROR ]\n "
+                                    . ":\n\n";
                             }
 
                         } else {
-                            die " :: [error] expected new module "
-                                . "directory '$ext_mod_dir' not found.\n :\n\n";
+                            die " :: [error] expected new module directory "
+                                . "'$ext_mod_dir' not found.\n :\n\n";
                         }
                     } else {
                         die " :\n :: [error] cannot extract files "
@@ -312,8 +319,8 @@ sub show_readme {
     my $readme_mod_name = $_[0];
     print " ::[ \"$readme_mod_name\" ]:.\n :\n";
     open( MOD_list, $CPAN_local_modlist )
-        or die
-        " :: [ERR] cannot open module list file '$CPAN_local_modlist' [ \l$OS_ERROR ]\n";
+        or die " :: [ERR] cannot open module list file "
+        . "'$CPAN_local_modlist' [ \l$OS_ERROR ]\n";
     my $found = 0;
     print " : parsing module list ..\n";
     foreach my $mod_line (<MOD_list>) {
@@ -338,8 +345,8 @@ sub show_readme {
                 my ( $txt_handle, $size ) = open_cpan_file($mod_uri);
 
                 if ( fileno($txt_handle) ) {
-                    print ".: : found '$mod_name' "
-                        . "(v.$mod_version) ..:. readme .:.. [$size bytes]\n";
+                    print ".: : found '$mod_name' (v.$mod_version) "
+                        . "..:. readme .:.. [$size bytes]\n";
                     my $pager_ok = open( PAGER, "| $pager_cmd" ) ? 1 : 0;
                     my $chnk_str = qr/\015\012/;
                     print "\n" if !$pager_ok;
@@ -361,8 +368,8 @@ sub show_readme {
         }
     }
     if ( not $found ) {
-        print " :: module not found. try 'search <keyword>'"
-            . " to determine the correct module name.\n";
+        print " :: module not found. try 'search <keyword>' "
+            . "to determine the correct module name.\n";
     }
     close(MOD_list);
 
@@ -374,8 +381,8 @@ sub return_dependencies {
     my @dependencies;
     print " : checking dependencies ..\n";
     open( my $make_file_handle, " < $make_file " )
-        or die
-        " :: [error] cannot open makefile '$make_file'. [ \l$OS_ERROR ]\n :\n\n";
+        or die " :: [error] cannot open makefile "
+        . "'$make_file'. [ \l$OS_ERROR ]\n :\n\n";
     my $found_section_prereq   = 0;
     my $found_section_requires = 0;
     while (<$make_file_handle>) {
@@ -411,8 +418,8 @@ sub return_dependencies {
 sub clean {
     print " :: deleting module list\n";
     unlink($CPAN_local_modlist)
-        or die
-        " :: [error] cannot module list '$CPAN_local_modlist' [ \l$OS_ERROR ]\n";
+        or die " :: [error] cannot module list "
+        . "'$CPAN_local_modlist' [ \l$OS_ERROR ]\n";
     print " :: deleting tmp dir\n";
     rmdir($CPAN_tmp_dir)
         or die
@@ -471,26 +478,24 @@ sub open_cpan_file {
             }
         }
     } else {
-        die " :: cannot connect to CPAN server "
-            . "at '$CPAN_server:$CPAN_http_port' [ \l$OS_ERROR ]\n";
+        die " :: cannot connect to CPAN server at "
+            . "'$CPAN_server:$CPAN_http_port' [ \l$OS_ERROR ]\n";
     }
 
 }
 
 sub show_commands {
-    print " :: [ available commands ] \n :\n"
-        . " : update                 :. download fresh module list\n"
-        . " : search <keyword>       :. search for a specific module\n"
-        . " : readme <module>        :. show readme file for <module> "
-        . "[ if available.. ]\n"
-        . " : install <module>       :. download and install <module> "
-        . "[ + dependencies ]\n"
-        . " : force-install <module> :. download and install "
-        . "<module> [ no 'make test' ]\n" . " :\n";
+    print " :: [ available commands ] \n :\n : update                 :. "
+        . "download fresh module list\n : search <keyword>       :. "
+        . "search for a specific module\n : readme <module>        :. "
+        . "show readme file for <module> [ if available.. ]\n : "
+        . "install <module>       :. download and install <module> [ + "
+        . "dependencies ]\n : force-install <module> :. download and "
+        . "install <module> [ no 'make test' ]\n :\n";
 }
 
-#,,.,,...,,.,,,,.,.,,,...,..,,..,,,..,,.,,.,.,..,,...,..,,.,,,,,.,..,,..,,..,,
-#B6VRSGJLUGWYGOBOMLQMAT2SQMPWTTGVE4LUN53GNXXPWMQOCKAC2O45JS4KKK6ERFNEQDGNMRGMU
-#\\\|RGWOYVZEVJNEUIUTMAJJ42SH7ZXHRSFVBPYGHE5KW2N62XO4F3G \ / AMOS7 \ YOURUM ::
-#\[7]LYRNFQ2K3M4D6AX4EMQSR3UPED26YB3ZS4MFMUJNX3I3SUY2FKDA 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,.,,...,...,...,.,.,...,.,.,,,,,..,,...,...,..,,,,.,...,,,,,..,,
+#BUIMRZYOZ6DEFGDHDWWACR5LWG5NXA32QK5XT57GKXRVAAUPR5IDU3I3E7NKOEX7BYIWBUGH6NKSY
+#\\\|BUZSIREZWNLMJUYGGKMMFHVHGK3WLVMWD4Y35UUXGITK3L7ENB3 \ / AMOS7 \ YOURUM ::
+#\[7]PMJAEHA4W7L2FWC6HRMBWI2MD5K5V4B5V7DUNY45ZXMJHQVUNCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

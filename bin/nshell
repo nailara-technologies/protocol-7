@@ -213,8 +213,8 @@ while ($connect) {
 
                 exit(2);    # aborting connection, failed to send.
             } else {
-                printf "\033[${lines_up}A\r\e[5m$C{0}.$C{R}"
-                    . "  $C{0}< \e[32m%-79s\n\n",
+                printf "\033[${lines_up}A\r\e[5m$C{0}.$C{R} "
+                    . " $C{0}< \e[32m%-79s\n\n",
                     "reconnected $C{0}>$C{R}";
                 my $l_cmd = length($stored_cmd);
                 $l_cmd = 33 if $l_cmd < 33;
@@ -288,8 +288,8 @@ sub shell_connect {
             }
 
         } elsif ( $cube_port !~ m|^\d+$| or $cube_port == 0 ) {
-            error_exit( ' << parameter error : '
-                    . 'port must be numerical >> <{NC}>' );
+            error_exit( ' << parameter error : port '
+                    . 'must be numerical >> <{NC}>' );
 
         } else {                       ##[ auto-calc ]##
 
@@ -573,10 +573,10 @@ sub stdout_fork {
         print "$out\n";
     }
     close($shell_sock);
-    print "$C{0}.\n      \e[5m.      .     .     "
-        . "$C{R}$C{0}.:$C{T}\[$C{b}$C{T} connection"
-        . " terminated $C{R}$C{T}\]$C{0}:.\e[5m  "
-        . "   .     .      .$C{R}\n$C{0}.$C{R}\n";
+    print "$C{0}.\n      \e[5m.      .     .    "
+        . " $C{R}$C{0}.:$C{T}\[$C{b}$C{T} connection "
+        . "terminated $C{R}$C{T}\]$C{0}:.\e[5m     .     .      "
+        . ".$C{R}\n$C{0}.$C{R}\n";
 }
 
 sub rl_filename_list_lcl
@@ -588,8 +588,8 @@ sub rl_filename_list_lcl
         $readline::rl_completer_terminator_character = '';
         use warnings 'once';
         if ( !$WARNED and $line !~ m|^\. | ) {
-            print "\n<< prefix '. ' can be used for local shell commands"
-                . ", check 'commands' for network >>\n";
+            print "\n<< prefix '. ' can be used for local shell "
+                . "commands, check 'commands' for network >>\n";
             $WARNED = TRUE;
         }
         return '';
@@ -673,7 +673,7 @@ sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
     exit;
 }
 
-##[ Link-Upgrade Encryption Functions ]#########################################
+##[ Link-Upgrade Encryption Functions ]#######################################
 
 sub negotiate_link_upgrade {
     my ( $sock, $state_ref ) = @ARG;
@@ -698,8 +698,8 @@ sub negotiate_link_upgrade {
         if $ENV{DEBUG};
     my $cmd_response = s_read($sock);
     unless ( $cmd_response && $cmd_response =~ m|link-upgrade OK\s+(\S+)| ) {
-        print STDERR
-            "[link-upgrade] Step 1b FAILED: Expected 'link-upgrade OK <pubkey>' response\n"
+        print STDERR "[link-upgrade] Step 1b FAILED: Expected "
+            . "'link-upgrade OK <pubkey>' response\n"
             if $ENV{DEBUG};
         print STDERR "Response: $cmd_response\n"
             if $ENV{DEBUG} and defined $cmd_response;
@@ -792,8 +792,8 @@ sub negotiate_link_upgrade {
             if $ENV{DEBUG};
         return 0;
     }
-    print STDERR
-        "[link-upgrade] Step 7 OK: Encryption key derived (session_id=$session_id)\n"
+    print STDERR "[link-upgrade] Step 7 OK: Encryption "
+        . "key derived (session_id=$session_id)\n"
         if $ENV{DEBUG};
 
     # 8. Send confirm and complete
@@ -810,8 +810,8 @@ sub negotiate_link_upgrade {
         if $ENV{DEBUG};
     my $enc_confirm = s_read($sock);
     unless ($enc_confirm) {
-        print STDERR
-            "[link-upgrade] Step 8b FAILED: No encoding confirmation received\n"
+        print STDERR "[link-upgrade] Step 8b FAILED: No "
+            . "encoding confirmation received\n"
             if $ENV{DEBUG};
         return 0;
     }
@@ -831,8 +831,8 @@ sub negotiate_link_upgrade {
         if $ENV{DEBUG};
     my $complete = s_read($sock);
     unless ($complete) {
-        print STDERR
-            "[link-upgrade] Step 9b FAILED: No completion confirmation received\n"
+        print STDERR "[link-upgrade] Step 9b FAILED: No "
+            . "completion confirmation received\n"
             if $ENV{DEBUG};
         return 0;
     }
@@ -892,8 +892,8 @@ sub decrypt_message {
     return $success ? $plaintext : undef;
 }
 
-#,,..,,,,,..,,.,,,,,,,,.,,,,,,,.,,.,.,,,,,,,,,..,,...,..,,...,.,.,,.,,,,,,.,,,
-#E4E3WD3KE33CONZKDRWI5ARJ7BCOO6HHPWOPF6CVY73TVXY2UHFZSKYC7FQJBCY6GRUYVCL3R5QQG
-#\\\|BEERM2532MCUMVV5OXQQGTULU4O5AXAE23GZCBPGQ6DLCS5WHGR \ / AMOS7 \ YOURUM ::
-#\[7]5SE56QIBVOOODXMJFBXHQ7KUQJHGABBAPOBCLSW4A2WGAYUETSAY 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,,..,,,,,,..,,.,,,,,,,..,..,,,..,..,,...,.,.,..,,...,,.,,,,.,,..,
+#4RZV52IL52HCKYLWUMHEJ2VRJ5S6YGYNBRZ5X4RF7M3VZFR7LJONMMGXBXGBDFSP7YLSKKO2QS7KU
+#\\\|WXWYXMAWE5AC33V3KZMLPOSKWTXU5F5Y3DSKDKTKVHC56XRLBYA \ / AMOS7 \ YOURUM ::
+#\[7]W52MZRA6WAYYU773WZH4CP7KDKOJ6N3XNBJQ3OGXZ4KCHWIXMGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

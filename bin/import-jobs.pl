@@ -2,8 +2,8 @@
 use strict;
 use warnings;
 use utf8;
-binmode(STDOUT, ':utf8');
-binmode(STDERR, ':utf8');
+binmode( STDOUT, ':utf8' );
+binmode( STDERR, ':utf8' );
 
 use YAML::XS;
 use File::Copy;
@@ -13,8 +13,8 @@ use File::Spec;
 use Text::ParseWords;
 use HTML::TreeBuilder;
 use Digest::MD5 qw(md5_hex);
-use Encode qw(encode_utf8);
-use List::Util qw(first);
+use Encode      qw(encode_utf8);
+use List::Util  qw(first);
 
 # ---------------------------------------------------------------------------
 # Config
@@ -34,24 +34,26 @@ my %STATUS_PRIORITY = (
 
 # German / UI status -> canonical status
 my %STATUS_MAP = (
-    'Noch ausstehend'                  => 'applied',
-    'Absage erhalten'                  => 'rejected',
+    'Noch ausstehend'                    => 'applied',
+    'Absage erhalten'                    => 'rejected',
     'Vorstellungsgespräch abgeschlossen' => 'interviewed',
-    'beworben'   => 'applied',
-    'absage'     => 'rejected',
-    'applied'    => 'applied',
-    'rejected'   => 'rejected',
-    'responded'  => 'interviewed',
-    'rückmeldung' => 'interviewed',
-    'to_apply'   => 'apply',
-    'skipped'    => undef,
-    'übersp.'    => undef,
-    'archived'   => undef,
-    'archiv'     => undef,
+    'beworben'                           => 'applied',
+    'absage'                             => 'rejected',
+    'applied'                            => 'applied',
+    'rejected'                           => 'rejected',
+    'responded'                          => 'interviewed',
+    'rückmeldung'                        => 'interviewed',
+    'to_apply'                           => 'apply',
+    'skipped'                            => undef,
+    'übersp.'                            => undef,
+    'archived'                           => undef,
+    'archiv'                             => undef,
 );
 
 # Ensure all target dirs exist
-for my $sd (qw(new assessed review apply applied interviewed rejected blocked deleted)) {
+for my $sd (
+    qw(new assessed review apply applied interviewed rejected blocked deleted)
+) {
     make_path("$JOBS_DIR/$sd") unless -d "$JOBS_DIR/$sd";
 }
 
@@ -70,7 +72,7 @@ sub normalize {
 sub extract_stepstone_id {
     my ($url) = @_;
     return undef unless defined $url;
-    if ($url =~ /--(\d+)-inline\.html$/) {
+    if ( $url =~ /--(\d+)-inline\.html$/ ) {
         return $1;
     }
     return undef;
@@ -85,10 +87,10 @@ sub strip_bom {
 # ---------------------------------------------------------------------------
 # Load existing jobs
 # ---------------------------------------------------------------------------
-my (%jobs_by_id, %jobs_by_key);
+my ( %jobs_by_id, %jobs_by_key );
 
 my @status_dirs;
-if (opendir my $dh, $JOBS_DIR) {
+if ( opendir my $dh, $JOBS_DIR ) {
     @status_dirs = grep { -d "$JOBS_DIR/$_" && !/^\./ } readdir($dh);
     closedir $dh;
 }
@@ -98,7 +100,7 @@ for my $dir (@status_dirs) {
     my $full = "$JOBS_DIR/$dir";
     my $sdh;
     next unless opendir $sdh, $full;
-    while (my $f = readdir($sdh)) {
+    while ( my $f = readdir($sdh) ) {
         push @all_yaml_files, "$full/$f" if $f =~ /\.yaml$/;
     }
     closedir $sdh;
@@ -107,6 +109,7 @@ for my $dir (@status_dirs) {
 print "Loading ", scalar(@all_yaml_files), " existing YAML files...\n";
 
 for my $file (@all_yaml_files) {
+
     # YAML::XS expects raw bytes; do NOT use :encoding(UTF-8)
     open my $fh, '<', $file or do { warn "Cannot read $file: $!"; next; };
     local $/;
@@ -119,12 +122,12 @@ for my $file (@all_yaml_files) {
     }
     next if !$data || ref($data) ne 'HASH';
 
-    my ($id, $title, $company, $url, $status, $dir);
-    $id      = $data->{id} // '';
-    $title   = $data->{title} // '';
+    my ( $id, $title, $company, $url, $status, $dir );
+    $id      = $data->{id}      // '';
+    $title   = $data->{title}   // '';
     $company = $data->{company} // '';
-    $url     = $data->{url} // '';
-    $status  = $data->{status} // $data->{stage} // '';
+    $url     = $data->{url}     // '';
+    $status  = $data->{status}  // $data->{stage} // '';
     $dir     = dirname($file);
     $dir =~ s|^\Q$JOBS_DIR\E/||;
 
@@ -139,7 +142,7 @@ for my $file (@all_yaml_files) {
         id      => $id,
     };
 
-    if (defined $id && $id =~ /^\d+$/) {
+    if ( defined $id && $id =~ /^\d+$/ ) {
         $jobs_by_id{$id} = $rec;
     }
 
@@ -147,7 +150,8 @@ for my $file (@all_yaml_files) {
     $jobs_by_key{$key} = $rec;
 }
 
-print "Indexed by ID: ", scalar(keys %jobs_by_id), ", by title+company: ", scalar(keys %jobs_by_key), "\n";
+print "Indexed by ID: ", scalar( keys %jobs_by_id ), ", by title+company: ",
+    scalar( keys %jobs_by_key ), "\n";
 
 # ---------------------------------------------------------------------------
 # Parse CSVs
@@ -164,15 +168,16 @@ sub parse_csv_simple {
         next unless /\S/;
         my @cols = split /;/, $_;
         next if @cols < 3;
-        my ($date, $company, $title, $status) = @cols;
-        for my $c (\$company, \$title, \$status, \$date) {
+        my ( $date, $company, $title, $status ) = @cols;
+        for my $c ( \$company, \$title, \$status, \$date ) {
             next unless defined $$c;
             $$c =~ s/^"|"$//g;
             $$c =~ s/^\s+|\s+$//g;
         }
         my $mapped = $STATUS_MAP{$status};
         next unless defined $mapped;
-        push @imported, {
+        push @imported,
+            {
             title   => $title,
             company => $company,
             url     => undef,
@@ -180,7 +185,7 @@ sub parse_csv_simple {
             date    => $date,
             source  => 'csv-import',
             origin  => $path,
-        };
+            };
     }
     close $fh;
 }
@@ -193,10 +198,13 @@ sub parse_csv_extended {
     while (<$fh>) {
         chomp;
         next unless /\S/;
-        my @cols = parse_line(';', 0, $_);
+        my @cols = parse_line( ';', 0, $_ );
         next if @cols < 7;
-        my ($nr, $date, $company, $title, $city, $score, $status, $app_date, $note, $url) = @cols;
-        for my $c (\$company, \$title, \$status, \$date, \$app_date, \$url) {
+        my ($nr,    $date,   $company,  $title, $city,
+            $score, $status, $app_date, $note,  $url
+        ) = @cols;
+        for my $c ( \$company, \$title, \$status, \$date, \$app_date, \$url )
+        {
             next unless defined $$c;
             $$c =~ s/^"|"$//g;
             $$c =~ s/^\s+|\s+$//g;
@@ -204,7 +212,8 @@ sub parse_csv_extended {
         my $mapped = $STATUS_MAP{$status};
         next unless defined $mapped;
         my $use_date = $app_date || $date;
-        push @imported, {
+        push @imported,
+            {
             title   => $title,
             company => $company,
             url     => $url,
@@ -213,20 +222,22 @@ sub parse_csv_extended {
             source  => 'csv-import',
             origin  => $path,
             score   => $score,
-        };
+            };
     }
     close $fh;
 }
 
 # Determine CSV format by header
-for my $csv (glob "$IMPORT_DIR/*.csv") {
+for my $csv ( glob "$IMPORT_DIR/*.csv" ) {
     open my $fh, '<:encoding(UTF-8)', $csv or next;
     my $header = <$fh>;
     close $fh;
     next unless defined $header;
     $header = strip_bom($header);
     chomp $header;
-    if ($header =~ /\bLink\b/ || $header =~ /\bBewerbungsdatum\b/ || $header =~ /\bUnternehmen\b/) {
+    if (   $header =~ /\bLink\b/
+        || $header =~ /\bBewerbungsdatum\b/
+        || $header =~ /\bUnternehmen\b/ ) {
         parse_csv_extended($csv);
     } else {
         parse_csv_simple($csv);
@@ -238,6 +249,7 @@ for my $csv (glob "$IMPORT_DIR/*.csv") {
 # ---------------------------------------------------------------------------
 sub parse_html_backup {
     my ($path) = @_;
+
     # Read HTML as raw bytes; TreeBuilder handles encoding from meta tag
     open my $fh, '<', $path or die "Cannot read $path: $!";
     local $/;
@@ -248,28 +260,33 @@ sub parse_html_backup {
     $tree->parse($html);
     $tree->eof;
 
-    my @cards = $tree->look_down(_tag => 'div', class => qr/job-card/);
+    my @cards = $tree->look_down( _tag => 'div', class => qr/job-card/ );
 
     for my $card (@cards) {
-        my $stage = $card->attr('data-stage') // '';
-        my $id    = $card->attr('data-id')    // '';
+        my $stage  = $card->attr('data-stage') // '';
+        my $id     = $card->attr('data-id')    // '';
         my $mapped = $STATUS_MAP{$stage};
         next unless defined $mapped;
 
-        my $title_a = $card->look_down(_tag => 'a', class => qr/card-title/);
-        my $title   = $title_a ? $title_a->as_text : '';
-        my $url     = $title_a ? $title_a->attr('href') : '';
+        my $title_a
+            = $card->look_down( _tag => 'a', class => qr/card-title/ );
+        my $title = $title_a ? $title_a->as_text      : '';
+        my $url   = $title_a ? $title_a->attr('href') : '';
 
-        my $company_span = $card->look_down(_tag => 'span', class => qr/company/);
-        my $company      = $company_span ? $company_span->as_text : '';
+        my $company_span
+            = $card->look_down( _tag => 'span', class => qr/company/ );
+        my $company = $company_span ? $company_span->as_text : '';
 
-        my $score_span = $card->look_down(_tag => 'span', class => qr/score-badge/);
-        my $score      = $score_span ? $score_span->as_text : '';
+        my $score_span
+            = $card->look_down( _tag => 'span', class => qr/score-badge/ );
+        my $score = $score_span ? $score_span->as_text : '';
 
-        my $date_span = $card->look_down(_tag => 'span', class => qr/card-date/);
-        my $date      = $date_span ? $date_span->as_text : '';
+        my $date_span
+            = $card->look_down( _tag => 'span', class => qr/card-date/ );
+        my $date = $date_span ? $date_span->as_text : '';
 
-        push @imported, {
+        push @imported,
+            {
             title   => $title,
             company => $company,
             url     => $url,
@@ -279,13 +296,13 @@ sub parse_html_backup {
             origin  => $path,
             score   => $score,
             html_id => $id,
-        };
+            };
     }
 
     $tree->delete;
 }
 
-for my $html (glob "$IMPORT_DIR/*.htm*") {
+for my $html ( glob "$IMPORT_DIR/*.htm*" ) {
     parse_html_backup($html);
 }
 
@@ -296,34 +313,39 @@ my %import_by_id;
 my %import_by_key;
 
 for my $rec (@imported) {
-    my $sid = extract_stepstone_id($rec->{url});
-    $sid = $rec->{html_id} if !$sid && defined $rec->{html_id} && $rec->{html_id} =~ /^\d+$/;
+    my $sid = extract_stepstone_id( $rec->{url} );
+    $sid = $rec->{html_id}
+        if !$sid && defined $rec->{html_id} && $rec->{html_id} =~ /^\d+$/;
 
-    my $key = normalize($rec->{title}) . '||' . normalize($rec->{company});
+    my $key
+        = normalize( $rec->{title} ) . '||' . normalize( $rec->{company} );
 
-    if (defined $sid) {
-        if (!exists $import_by_id{$sid}) {
+    if ( defined $sid ) {
+        if ( !exists $import_by_id{$sid} ) {
             $import_by_id{$sid} = $rec;
         } else {
             my $existing = $import_by_id{$sid};
-            if ($STATUS_PRIORITY{$rec->{status}} > $STATUS_PRIORITY{$existing->{status}}) {
+            if ( $STATUS_PRIORITY{ $rec->{status} }
+                > $STATUS_PRIORITY{ $existing->{status} } ) {
                 $import_by_id{$sid} = $rec;
             }
         }
     } else {
-        if (!exists $import_by_key{$key}) {
+        if ( !exists $import_by_key{$key} ) {
             $import_by_key{$key} = $rec;
         } else {
             my $existing = $import_by_key{$key};
-            if ($STATUS_PRIORITY{$rec->{status}} > $STATUS_PRIORITY{$existing->{status}}) {
+            if ( $STATUS_PRIORITY{ $rec->{status} }
+                > $STATUS_PRIORITY{ $existing->{status} } ) {
                 $import_by_key{$key} = $rec;
             }
         }
     }
 }
 
-my @unique_imported = (values %import_by_id, values %import_by_key);
-print "Raw imported: ", scalar(@imported), ", unique: ", scalar(@unique_imported), "\n";
+my @unique_imported = ( values %import_by_id, values %import_by_key );
+print "Raw imported: ", scalar(@imported), ", unique: ",
+    scalar(@unique_imported), "\n";
 
 # ---------------------------------------------------------------------------
 # Merge logic
@@ -334,23 +356,25 @@ my $created         = 0;
 my @stale_files;
 
 for my $irec (@unique_imported) {
-    my $sid = extract_stepstone_id($irec->{url});
-    $sid = $irec->{html_id} if !$sid && defined $irec->{html_id} && $irec->{html_id} =~ /^\d+$/;
+    my $sid = extract_stepstone_id( $irec->{url} );
+    $sid = $irec->{html_id}
+        if !$sid && defined $irec->{html_id} && $irec->{html_id} =~ /^\d+$/;
 
-    my $key = normalize($irec->{title}) . '||' . normalize($irec->{company});
+    my $key
+        = normalize( $irec->{title} ) . '||' . normalize( $irec->{company} );
 
     my $existing;
-    if (defined $sid && exists $jobs_by_id{$sid}) {
+    if ( defined $sid && exists $jobs_by_id{$sid} ) {
         $existing = $jobs_by_id{$sid};
-    } elsif (exists $jobs_by_key{$key}) {
+    } elsif ( exists $jobs_by_key{$key} ) {
         $existing = $jobs_by_key{$key};
     }
 
     if ($existing) {
-        my $local_priority  = $STATUS_PRIORITY{$existing->{status}} // -1;
-        my $import_priority = $STATUS_PRIORITY{$irec->{status}}    // -1;
+        my $local_priority  = $STATUS_PRIORITY{ $existing->{status} } // -1;
+        my $import_priority = $STATUS_PRIORITY{ $irec->{status} }     // -1;
 
-        if ($import_priority <= $local_priority) {
+        if ( $import_priority <= $local_priority ) {
             $matched_skipped++;
             next;
         }
@@ -359,22 +383,22 @@ for my $irec (@unique_imported) {
         my $data = $existing->{data};
         $data->{status} = $irec->{status};
         $data->{stage}  = $irec->{status};
-        if ($irec->{status} eq 'applied' && $irec->{date}) {
+        if ( $irec->{status} eq 'applied' && $irec->{date} ) {
             $data->{date_applied} = $irec->{date};
         }
-        if (!$data->{url} && $irec->{url}) {
+        if ( !$data->{url} && $irec->{url} ) {
             $data->{url} = $irec->{url};
         }
-        if (!$data->{company} && $irec->{company}) {
+        if ( !$data->{company} && $irec->{company} ) {
             $data->{company} = $irec->{company};
         }
-        if (!$data->{title} && $irec->{title}) {
+        if ( !$data->{title} && $irec->{title} ) {
             $data->{title} = $irec->{title};
         }
 
         my $new_dir = "$JOBS_DIR/$irec->{status}";
         make_path($new_dir) unless -d $new_dir;
-        my $base = basename($existing->{file});
+        my $base     = basename( $existing->{file} );
         my $new_file = "$new_dir/$base";
 
         # Write raw bytes
@@ -382,8 +406,8 @@ for my $irec (@unique_imported) {
         print $out Dump($data);
         close $out;
 
-        if ($new_file ne $existing->{file} && -f $existing->{file}) {
-            unless (unlink $existing->{file}) {
+        if ( $new_file ne $existing->{file} && -f $existing->{file} ) {
+            unless ( unlink $existing->{file} ) {
                 push @stale_files, $existing->{file};
             }
         }
@@ -395,23 +419,29 @@ for my $irec (@unique_imported) {
 
         $matched_updated++;
     } else {
+
         # Create new minimal entry
         my $target_status = $irec->{status};
-        my $target_dir = "$JOBS_DIR/$target_status";
+        my $target_dir    = "$JOBS_DIR/$target_status";
         make_path($target_dir) unless -d $target_dir;
 
         my $file_id;
-        if (defined $sid) {
+        if ( defined $sid ) {
             $file_id = $sid;
         } else {
-            my $md5 = md5_hex(encode_utf8(normalize($irec->{title}) . normalize($irec->{company})));
-            $file_id = 'import-' . substr($md5, 0, 8);
+            my $md5 = md5_hex(
+                encode_utf8(
+                          normalize( $irec->{title} )
+                        . normalize( $irec->{company} )
+                )
+            );
+            $file_id = 'import-' . substr( $md5, 0, 8 );
         }
 
         my $out_file = "$target_dir/$file_id.yaml";
-        if (-f $out_file) {
+        if ( -f $out_file ) {
             my $counter = 1;
-            while (-f "$target_dir/$file_id-$counter.yaml") {
+            while ( -f "$target_dir/$file_id-$counter.yaml" ) {
                 $counter++;
             }
             $out_file = "$target_dir/$file_id-$counter.yaml";
@@ -424,11 +454,12 @@ for my $irec (@unique_imported) {
             status  => $target_status,
             source  => 'csv-import',
         );
-        $new_yaml{url} = $irec->{url} if $irec->{url};
-        $new_yaml{date_applied} = $irec->{date} if $irec->{date} && $target_status eq 'applied';
+        $new_yaml{url}          = $irec->{url} if $irec->{url};
+        $new_yaml{date_applied} = $irec->{date}
+            if $irec->{date} && $target_status eq 'applied';
 
         open my $out, '>', $out_file or die "Cannot write $out_file: $!";
-        print $out Dump(\%new_yaml);
+        print $out Dump( \%new_yaml );
         close $out;
 
         # Register in index to prevent duplicates from later iterations
@@ -442,7 +473,7 @@ for my $irec (@unique_imported) {
             url     => $irec->{url},
             id      => $file_id,
         };
-        if (defined $sid) {
+        if ( defined $sid ) {
             $jobs_by_id{$sid} = $new_rec;
         }
         $jobs_by_key{$key} = $new_rec;
@@ -465,11 +496,12 @@ if (@stale_files) {
     for my $f (@stale_files) {
         print "$f\n";
     }
-    print "(Run: sudo rm -f ", join(' ', map { quotemeta } @stale_files), ")\n";
+    print "(Run: sudo " . "rm -f ",
+        join( ' ', map {quotemeta} @stale_files ), ")\n";
 }
 
-#,,.,,.,.,...,.,.,,,,,...,,..,.,.,..,,,.,,,..,..,,...,..,,,,.,,.,,...,...,,,,,
-#SNAMZZE4VXHX35IE2NFRYLBFIHH62BSC2L4ISGBMAI2TUDFE3YKABTWB2UH34KK32HLCGGNXACWGE
-#\\\|KFIRCLR6FN5WKMMETSFF7QEY3KMNYHAXDZ7BTPDM3UDZXJQ7LC3 \ / AMOS7 \ YOURUM ::
-#\[7]GMCSQXFK6GUYE6ZGUS3Q4FH2MIRHVPV7T5V634EJ72TZMMSRIMBA 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,,.,.,.,,..,.,,,,,,,,.,,..,,.,.,..,,...,...,.,,,,,,,.,.,,,.,,..,
+#FIYAIYRQK4INY4JDKGJFTJYGVXDULX7C42PBIPA4XOPYWJF6XA3YFVIS6A3JAMWPX3FQPBNACNGEG
+#\\\|S33SOXZI6FPDUC3AGHPPWRLSTYMGL4ZANRALXKGK24QIXUTELVZ \ / AMOS7 \ YOURUM ::
+#\[7]VLJHTX7ALNIIZM7EV2AWKWXNWEJBHEUT32QLELCQFHGNM2ZYEUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

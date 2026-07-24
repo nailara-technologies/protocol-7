@@ -350,12 +350,12 @@ sub cmd_description {
 
         # Print global options
         print "\n    g l o b a l     o p t i o n s\n:\n";
-        print
-            ":  -ai-friendly     ... AI-friendly output format (no pager, structured)\n";
+        print ":  -ai-friendly     ... AI-friendly "
+            . "output format (no pager, structured)\n";
         print
             ":  -preview-only    ... Show preview without applying changes\n";
-        print
-            ":  -confirm         ... Auto-confirm and apply (use with -ai-friendly)\n";
+        print ":  -confirm         ... Auto-confirm "
+            . "and apply (use with -ai-friendly)\n";
         print ":  -no-color        ... Disable ANSI color output\n";
         print ":\n";
 
@@ -861,8 +861,8 @@ sub cmd_restore_backup {
     system($extract_cmd);
 
     if ( !-d "$temp_dir/configuration" and !-d "$temp_dir/modules" ) {
-        printf " :: invalid backup archive - "
-            . "missing configuration or modules dir ::\n";
+        printf " :: invalid backup archive - missing "
+            . "configuration or modules dir ::\n";
         system("rm -rf $temp_dir");
         return;
     }
@@ -1674,8 +1674,8 @@ sub check_target_files {    # LLL: incomplete
     print "\n :: checking target files ::\n\n";
 
     if ( ref( $meta_data->{'bmw'} ) ne qw| HASH | ) {
-        die " :: check_target_files() ::"
-            . " no checksums found in backup meta data ::\n";
+        die " :: check_target_files() :: no "
+            . "checksums found in backup meta data ::\n";
     }
 
     foreach my $bmw_sum ( keys( %{ $meta_data->{'bmw'} } ) ) {
@@ -1817,8 +1817,8 @@ sub save_metadata {
                 . ":: backup metadata saved to $file_name_short ::"
                 . $C{'R'} . "\n\n";
         } else {
-            die " :: cannot open backup meta "
-                . "data file '$file_name' : : \l$OS_ERROR ::\n";
+            die " :: cannot open backup meta data "
+                . "file '$file_name' : : \l$OS_ERROR ::\n";
         }
     } else {
         die ' :: save_metadata() :: nothing to save :: ';
@@ -2138,8 +2138,8 @@ sub clean_dir {
             print $output_line;
             return 1;
         } else {
-            die " :: clean_dir() : removing of "
-                . "directory '$directory_path' failed : \l$OS_ERROR ::\n";
+            die " :: clean_dir() : removing of directory "
+                . "'$directory_path' failed : \l$OS_ERROR ::\n";
         }
     }
 }
@@ -2272,8 +2272,8 @@ sub add_path {
         # remove double slashes
         $new_filename =~ s,//,/,g;
 
-        die ":\n:: < add_path > old and new"
-            . " file path identical :. '$new_filename'\n\n"
+        die ":\n:: < add_path > old and new file "
+            . "path identical :. '$new_filename'\n\n"
             if $old_filename eq $new_filename;
 
         $result_hash->{$new_filename} = $source_hash->{$old_filename};
@@ -2524,8 +2524,8 @@ sub move_perl_subs {
         }
     }
     if ( !$destination_package_exists ) {
-        die "\n :: specified target package not"
-            . " found in source code ::\n\n\n";
+        die "\n :: specified target package "
+            . "not found in source code ::\n\n\n";
     }
 
     # select all subs which are to be moved
@@ -2827,13 +2827,13 @@ sub pattern_invalid {
     }
     if ( $_tmp_pattern =~ m,(\$\w+), ) {
         my $var_name = $LAST_PAREN_MATCH;
-        printf " : error in regular expression : %s pattern contains "
-            . "an illegal variable [ %s ].\n", $pattern_type, $var_name;
+        printf " : error in regular expression : %s pattern contains an "
+            . "illegal variable [ %s ].\n", $pattern_type, $var_name;
         return 1;
     }
     if ( $_tmp_pattern =~ m,\$, ) {
-        printf " : error in regular expression : %s pattern contains"
-            . " unescaped '\$' characters.\n", $pattern_type;
+        printf " : error in regular expression : %s pattern "
+            . "contains unescaped '\$' characters.\n", $pattern_type;
         return 1;
     }
 
@@ -3147,8 +3147,8 @@ sub print_usage {
     print "\n    " . $C{'T'} . $usage_txt . $C{'R'};
 }
 
-#,,,.,.,.,,,,,.,,,,,.,,,,,,,,,...,,,.,,..,,..,..,,...,...,.,,,,.,,,.,,...,...,
-#OTVXEZBL6QACXBRLEWGK6HTYWOBQWAL7NCT4WC52APGP3T7RARLLHF5ERCG7HGUG7DYJKIOWH3YH4
-#\\\|SROUXZUZ42GZIXAJYMWZDHICC4K3345VSAYN44KIINCFE6GLVGD \ / AMOS7 \ YOURUM ::
-#\[7]VE425IFTP2N2ZA5NEZAUIOGQK7STAE2LWPZARKPCG3J7LN3EKEDY 7  DATA SIGNATURE ::
+#,,..,.,,,...,..,,..,,,,.,,,,,,..,,..,,,,,,..,..,,...,.,.,...,...,.,.,,..,.,,,
+#IMI555J2PZX2ABL2DTGJLLFNSK6RVS52PERRMLO2ALM266EBYFVTLCRAB4LOT4FADV6XBE4Z7RR6O
+#\\\|CMX34I7YT7W7AKXEENG37DXWSNNSS5LP3DK6P45HYW2IBDEJCEZ \ / AMOS7 \ YOURUM ::
+#\[7]JICRRZX7Q5AKGL5QXLUWDYZKTGBFAX4SZNROORONT7LJNIXBEUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

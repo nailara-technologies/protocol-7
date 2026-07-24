@@ -1,13 +1,13 @@
 #!/usr/bin/perl
 ## amos-matrix — render AMOS7 checksums as 5×7 dot matrix
 ##
-## usage:
-##   amos-matrix <checksum> [checksum...]   ## render (horizontal default)
-##   amos-matrix -V <checksum> [...]        ## vertical mode (7 rows × 5 cols)
-##   amos-matrix -flip-h                    ## flip horizontally (mirror left/right)
-##   amos-matrix -flip-v                    ## flip vertically   (mirror top/bottom)
-##   echo "input" | amos-matrix             ## compute + render from stdin
-##   amos-matrix -i "input string"          ## compute + render inline
+## usage:  amos-matrix <checksum> [checksum...]   ## render (horizontal
+## default) amos-matrix -V <checksum> [...]        ## vertical mode (7 rows ×
+## 5 cols) amos-matrix -flip-h                    ## flip horizontally (mirror
+## left/right) amos-matrix -flip-v                    ## flip vertically
+## (mirror top/bottom) echo "input" | amos-matrix             ## compute +
+## render from stdin amos-matrix -i "input string"          ## compute +
+## render inline
 ##
 
 use v5.24;
@@ -47,7 +47,8 @@ sub resolve_checksum {
     return $c if length($c) == 7;
     ## not a checksum — compute it ##
     my $chk = qx| amos-chksum -q '$input' 2>/dev/null |;
-    chomp $chk; $chk =~ s|\s.*||;
+    chomp $chk;
+    $chk =~ s|\s.*||;
     return $chk if length($chk) == 7;
     return undef;
 }
@@ -84,7 +85,7 @@ sub render {
         my $r = $flip_v ? ( $rows - 1 - $row ) : $row;
         print '  │';
         for my $col ( 0 .. $cols - 1 ) {
-            my $c2 = $flip_h ? ( $cols - 1 - $col ) : $col;
+            my $c2  = $flip_h ? ( $cols - 1 - $col ) : $col;
             my $bit = $bit_at->( $r, $c2 );
             $bit = $bit ? 0 : 1 if $invert;
             print $bit ? $ON : $OFF;
@@ -128,7 +129,7 @@ if ( !@items and !-t STDIN ) {
         chomp;
         next unless length;
         ## if already a 7-char BASE32 checksum — render directly ##
-        if ( m|^([A-Z2-7]{7})\b| ) {
+        if (m|^([A-Z2-7]{7})\b|) {
             my $chk   = $1;
             my $label = $';    ## remainder as label ##
             $label =~ s|^\s+||;
@@ -146,8 +147,8 @@ die ":\n: usage: amos-matrix <checksum> | -i <input> | stdin\n:\n"
 render(@$_) for @items;
 say '';
 
-#,,..,..,,,..,..,,...,..,,..,,...,.,,,,..,...,..,,...,...,,,,,...,,,.,.,,,,,.,
-#2OYWBEISWOSXBBTGRZ5AZU4I6LWG4TZI2JBO3QRAJO422DBMEPCEM3MBZ2IIIDCY6TXERUJAQY35I
-#\\\|SLNTQEKKXAUZR6EB4HXEWOVYBEP5RSMWJJRI5PKR6WJWF2JSVKE \ / AMOS7 \ YOURUM ::
-#\[7]CAFOQVCQD3WYVNPG7IPTPLOLBT4T4A53POOMCUT5NLNE6MWJVYBY 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,..,,,.,,.,,,.,,,..,..,,.,,,.,,,..,,...,...,,.,,,.,,.,,,,,,,,,.,
+#CHUQNMWWLPZCNIMEVZBEMAAI7S67ZFLY3HKWA45HHRB33JU7VERVKP4LGYGQPUVSXKZPDS7Z3TT4A
+#\\\|YUETMWWOHIA6QGXC67TM3RI5SL2OOFQ377VYLZ3AZRVZR6DPOOA \ / AMOS7 \ YOURUM ::
+#\[7]BJWYY2WKNE7P37LO75FQQFXKEROIS57KEQ7JPGFMIAKBA4KFCIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
