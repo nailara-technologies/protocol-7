@@ -3,7 +3,7 @@
 # name  = base.handler.command.process_reply
 # descr = dispatch incoming protocol-7 reply types
 
-##[ args : passed by base.handler.command ]########################################
+##[ args : passed by base.handler.command ]###################################
 
 my $arg           = shift;
 my $event         = $arg->{'event'};
@@ -319,7 +319,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                     <[base.logs]>->( 2, "[%d] STRM open [ unbounded ]", $id );
 
                 } elsif ( $call_args->{'args'} =~ m|^open\s+(\d+)$| ) {
-                    ## STRM open header: forward to source, init stream state ##
+                    ## STRM open header: forward to source, init stream ##
+                    ## state                                            ##
                     my $total_bytes = $1;
 
                     $session->{'streams'}->{$cmd_id} = {
@@ -410,7 +411,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                                     $data{'session'}{$src_sid}{'buffer'}
                                         {'output'} .= $chunk_data;
                                 } else {
-                                    ##  source gone: notify producer to stop  ##
+                                    ## source gone: notify producer to stop ##
                                     if (not $data{'session'}{$id}
                                         {'stream_cancelled'}{$cmd_id} ) {
                                         my $tgt_sid
@@ -607,7 +608,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
 
                             if (defined $session->{'streams'}{$cmd_id}
                                 ->{'handler'} ) {
-                                ## handler path: accumulate for delivery at close ##
+                                ## handler path: accumulate for delivery at ##
+                                ## close                                    ##
                                 $session->{'streams'}{$cmd_id}->{'buffer'}
                                     //= '';
                                 utf8::downgrade(
@@ -663,7 +665,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                         my $stream = $session->{'streams'}->{$cmd_id};
 
                         ## Validate received bytes match announced total ##
-                        ## (timeout close expected to be incomplete) ##
+                        ## (timeout close expected to be incomplete)     ##
                         if ( $stream->{'received_bytes'}
                             != $stream->{'total_bytes'} ) {
 
@@ -671,8 +673,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                                 ## timeout abort: expected incomplete ##
                                 <[base.logs]>->(
                                     0,
-                                    "[%d] STRM-SIZE timeout abort: %d/%d bytes "
-                                        . "[ %s ]",
+                                    "[%d] STRM-SIZE timeout "
+                                        . "abort: %d/%d bytes [ %s ]",
                                     $id,
                                     $stream->{'received_bytes'},
                                     $stream->{'total_bytes'},
@@ -695,8 +697,9 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                                 );
                             }
 
-                            ## Handler path: drop accumulated data (with level 0 log) ##
-                            ## Routing path: send FALSE to source ##
+                            ## Handler path: drop accumulated data (with ##
+                            ## level 0 log) Routing path: send FALSE to  ##
+                            ## source                                    ##
                             if ( not defined $stream->{'handler'} ) {
                                 $data{'session'}
                                     { $route->{'source'}->{'sid'} }{'buffer'}
@@ -719,7 +722,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
 
                             ## Call handler or route to source ##
                             if ( defined $stream->{'handler'} ) {
-                                ## handler path: deliver accumulated data as SIZE ##
+                                ## handler path: deliver accumulated data ##
+                                ## as SIZE                                ##
                                 my $accumulated_data = $stream->{'buffer'};
                                 if ( defined $code{ $stream->{'handler'} } ) {
                                     $code{ $stream->{'handler'} }->(
@@ -735,8 +739,9 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                                     );
                                 }
                             } else {
-                                ## routing path: SIZE already complete, no action ##
-                                ## client received SIZE header and all data chunks ##
+                                ## routing path: SIZE already complete, no ##
+                                ## action client received SIZE header and  ##
+                                ## all data chunks                         ##
                             }
                         }
 
@@ -941,8 +946,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                         .= sprintf "(%d)!TRM!\n", $cmd_id;
                     <[base.logs]>->(
                         1,
-                        '[%d] orphaned %s cmd_id=%d : !TRM!'
-                            . ' sent to producer [ incomplete ]',
+                        '[%d] orphaned %s cmd_id=%d : !TRM! '
+                            . 'sent to producer [ incomplete ]',
                         $id,
                         $cmd,
                         $cmd_id
@@ -964,9 +969,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                 $input->$* = '';    ##  truncating buffer to ''  ##
 
                 ## [ ASYNC PROBLEM: incomplete multi-line reply ]
-                ## TODO: defer hook call for incomplete case
-                ## when next chunk arrives
-                ## For now: incomplete replies to unknown routes
+                ## TODO: defer hook call for incomplete case  when next chunk
+                ## arrives  For now: incomplete replies to unknown routes
                 ## don't trigger hooks
             }
         }
@@ -1004,8 +1008,8 @@ UNKNOWN_TYPE_HANDLED:
 
 return 0;    ##  command complete  ##
 
-#,,..,.,.,...,,,.,,,.,,,,,,..,.,,,,.,,.,.,..,,..,,...,...,.,,,,.,,..,,,,.,.,.,
-#QECB55JZNIVFCGN6OA5S57XTDDBFU3C3UCZ3GNZQSGZURJL4JLB5OKUHTCXBTYDK2KU3E7YX6RPY6
-#\\\|WMQEYUJDL25J5QY2HDWO2W4K3XF4I6FLEB54BODXFZOANPRHMD2 \ / AMOS7 \ YOURUM ::
-#\[7]XG3IEBO263Q7JZWAB3KM3CG4K2RRGXQAUVRS6JJM2THACMLKQCBI 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,,,,,,,,.,.,,,.,,,.,...,,.,,..,,..,,...,...,.,.,.,.,.,.,.,.,..,,
+#S2B7ASOH3BDBNG3LGTEXD257MHDQVEYGVYU3O5WMVYOV62IHVZOKIHBC4WDEVKFSASO4MDZYQAPT6
+#\\\|YZJWID2W4VQLP7N4VKDBYWTS5YKS763SJ2YLSKM54LIHLACOM6X \ / AMOS7 \ YOURUM ::
+#\[7]UPZ6IK7XSKVOHJDS43OTGG5IRTVC6ZKZRGR7LHB7TH7WUH47DQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

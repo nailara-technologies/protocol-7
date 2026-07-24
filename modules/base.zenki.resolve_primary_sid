@@ -26,10 +26,10 @@ if (    exists $cache->{$user_name}->{$caller_subname}
     return;
 }
 
-## v7 already keeps root_sid + subname + status in sync locally per        ##
-## managed instance [ <v7.zenka.instance> ] -- no need to ask cube over    ##
-## the network for data v7 already has, and 'list' isn't even whitelisted  ##
-## for v7 to call cross-zenka on cube.                                     ##
+## v7 already keeps root_sid + subname + status in sync locally per managed ##
+## instance [ <v7.zenka.instance> ] -- no need to ask cube over the network ##
+## for data v7 already has, and 'list' isn't even whitelisted for v7 to     ##
+## call cross-zenka on cube.                                                ##
 if ( <[base.mod.exists]>->(qw| v7 |) ) {
     my $ids_result = <[base.code.call_expected]>->(
         <[base.mod.exists]>->(qw| v7 |),
@@ -38,7 +38,7 @@ if ( <[base.mod.exists]>->(qw| v7 |) ) {
     my @instance_ids
         = ref $ids_result eq qw| HASH | ? @{ $ids_result->{'ids'} } : ();
 
-    ## 'root_sid' is NOT the managed zenka's own session -- it's set once  ##
+    ## 'root_sid' is NOT the managed zenka's own session -- it's set once   ##
     ## by v7.callback.connect_to_cube for v7's OWN cube connection only     ##
     ## (the 'is-cube' instance). The per-instance session id every other    ##
     ## managed zenka actually has is 'cube_sid'. v7.handler.heartbeat_timer ##
@@ -85,8 +85,8 @@ if ( <[base.mod.exists]>->(qw| v7 |) ) {
     }
 );
 
-#,,,.,.,.,..,,.,.,...,.,.,...,,.,,.,.,,.,,...,..,,...,..,,...,,.,,.,,,,.,,,..,
-#2XV45WL4DWD6YWEAOWVC7ZD3IYNMKKLEP3734QIIT7ML2SFEYTE7W3IBK7FOFQYMVR5QYBTFKIDKS
-#\\\|G2QOZ4YPIQ5UHP7FID2V7Y3VZRZLIGVJKSL2IF7RWPKCT34J7TN \ / AMOS7 \ YOURUM ::
-#\[7]DRZEATNOTV7FJVVKE5RJ7DSESJKJNOOCIDUGELIFEEQG2A7TEECI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,.,.,,.,,,..,,..,,,.,.,.,,.,,.,,,..,,...,...,..,,.,.,,..,...,.,,,
+#2JEJPXYY7DRKWPC7QO6SBWWI244ING2GMR3ZT6L3W66L7BJWSRC5DAET4WITGXDLPXX5UAI2CSYJW
+#\\\|ZODNULGPLU5BPFSFRLXRBL2PGJ5XZUS7VYTZTAIQG7RMX6QYR6K \ / AMOS7 \ YOURUM ::
+#\[7]RMIT6A3UV7NDS34H5EVJZRH5YJ2IWSKWOOYMWJ2QA6L654WJACBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

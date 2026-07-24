@@ -21,8 +21,8 @@ if ( not exists $data{'session'}->{$id} ) {    ## session is gone ? ##
 my $session = $data{'session'}->{$id};
 my $buf     = $session->{'buffer'}->{'output'};
 
-## Use bytes::length() to get actual byte count, not character count
-## This is critical when buffer contains UTF-8 multi-byte characters
+## Use bytes::length() to get actual byte count, not character count This is
+## critical when buffer contains UTF-8 multi-byte characters
 my $write_size = bytes::length($buf);
 
 ## true when called from the per-session IO write-ready watcher ##
@@ -89,8 +89,8 @@ if ( fileno $session->{'handle'} ) {
             }
 
         } elsif ($from_write_handler) {
-            ## IO write watcher: restart even on EAGAIN so it re-fires
-            ## when the kernel socket buffer drains (client reads more)  ##
+            ## IO write watcher: restart even on EAGAIN so it re-fires when ##
+            ## the kernel socket buffer drains (client reads more)          ##
             $event->w->start if $remaining_buf > 0;
 
         } else {
@@ -105,8 +105,8 @@ if ( fileno $session->{'handle'} ) {
         }
     }
 
-    ## when socket was full from var-watcher path: create an IO write-ready  ##
-    ## watcher so cube re-tries as soon as the client drains the kernel buf  ##
+    ## when socket was full from var-watcher path: create an IO write-ready ##
+    ## watcher so cube re-tries as soon as the client drains the kernel buf ##
     if ( $hit_eagain and not $from_write_handler ) {
         if ( not defined $session->{'watcher'}->{'write_handler'} ) {
             $session->{'watcher'}->{'write_handler'} = <[event.add_io]>->(
@@ -154,8 +154,8 @@ $session->{'shutdown'} = 1 if !$write_size and $session->{'flush_shutdown'};
 
 return FALSE;
 
-#,,.,,.,,,,.,,.,.,,.,,,..,,.,,,,.,,.,,.,,,...,..,,...,...,...,,.,,,.,,,.,,..,,
-#LN5JTMMGZXC33PKARSJYKWJFBW6ZQKKC5NWVDPMJX5BML4QMITECZE4PX73XVSV3YRDNFFQGN2UN2
-#\\\|5CMUND52ZD4T3UPLCK6XXIDG3VGL3OQMZEBHE6L6QH32UE2FEZS \ / AMOS7 \ YOURUM ::
-#\[7]TEFIA4KOIUXAVR45AGAB4BVCVKPFVRLE2EYNQ5UVN32YYP3YU4AA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,,,,,..,,..,.,.,,.,,,,,,.,,,,..,..,,...,...,,.,,,.,,,,.,..,,,.,,
+#4UT5RLIGWPKY4N57G7NXJ5TDGMYBB2M63A7IG6Z5MOU3A3ZSLLHVZ3TAMBYBPYMML6AFMSJ7BNPCK
+#\\\|HE4TEPW6CEGIUCZ4J5BIG4CRSMVU655RY7Q6J352O4B4IPJ6O3C \ / AMOS7 \ YOURUM ::
+#\[7]5TQBHXI7563KVFJYIVHUP65CKVARHG23HFHK7UQVQJ2PRK3ACKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

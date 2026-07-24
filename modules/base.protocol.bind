@@ -55,23 +55,19 @@ if ( length $EVAL_ERROR or not defined $fd ) {
 
     } else {
         <[base.logs]>->(
-            0,
-            "session.init error : protocol '%s'"
-                . " [ handle '%s' [ %s mode ]",
-            $proto_name,
-            $socket_fh,
-            $mode
+            0, "session.init error : protocol '%s' [ handle '%s' [ %s mode ]",
+            $proto_name, $socket_fh, $mode
         );
         ##  silent, no warning  ##
         eval { shutdown( $socket_fh, 2 ) };
         eval { close($socket_fh) };
 
-        return undef;    ##  not successful  ##
+        return undef;       ##  not successful  ##
     }
 }
 
-#,,..,,.,,..,,..,,.,.,,,.,,,.,...,.,.,.,.,...,..,,...,..,,.,.,.,.,.,.,..,,..,,
-#ZP2BU4KLSCJKDPOJWCQEPZZQ2BFRSW4KT62VSF4P6VPKTIWS5RRERZLF6OI6T5JGW66466SWU2VJU
-#\\\|DGRO2VV3VMKUVLTRMC3L2ODQPQWSEBPH5WCMTPBHM576ZW5DD5L \ / AMOS7 \ YOURUM ::
-#\[7]HZLRMRNWZDX5JITMCMLO5TS7NGNWE6P6EN3YFMMXIHLGCPVQ3KDQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,.,..,,,,,,...,,,,,,..,,,.,,.,,..,,...,...,,..,...,,,,,,,,,,..,
+#4D2A3DJY6O6UO7QU2OBV6LUYDYEEAJAUQLAJA3TDI5LIN6Q3CBK4BUJXSFBQYKIPXJ6DNBSZPNKAA
+#\\\|6B24YLQTYM3O64XK3B4LKSDBIYOTTMRN4M2UQDVX7VNQN7J2HMB \ / AMOS7 \ YOURUM ::
+#\[7]I465ZC4UCIPQKVWJ2NWC3JWSWSXG6W5BLYOTBTYN4LASXBSZM2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

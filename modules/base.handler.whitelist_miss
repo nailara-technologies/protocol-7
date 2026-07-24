@@ -129,7 +129,7 @@ foreach my $sub_name (@dg_subs) {
 
     $found_in_depgraph = TRUE if $sub_name eq $missing_sub;
 
-    next if not $source_ready;    # [ cannot locate/verify without source tools ]
+    next if not $source_ready; # [ cannot locate/verify without source tools ]
 
     my $target = <[base.code.call_expected]>->(
         $source_ready, qw| source.target_namespace |, $sub_name
@@ -145,7 +145,7 @@ foreach my $sub_name (@dg_subs) {
     # [ extract signature ]
     my $footer_data = <[base.code.call_expected]>->(
         $source_ready, qw| source.extract_sig_body |,
-        \$src_str, qw| strip |, qw| strict |
+        \$src_str,     qw| strip |, qw| strict |
     );
     next if not defined $footer_data;
 
@@ -160,7 +160,7 @@ foreach my $sub_name (@dg_subs) {
     } else {
         my ( $is_valid, $report_ref ) = <[base.code.call_expected]>->(
             $source_ready, qw| source.signature_valid |,
-            \$src_str, $footer_data, {}, $sig_key_name, qw| strict |
+            \$src_str,     $footer_data, {}, $sig_key_name, qw| strict |
         );
         $classification = $is_valid ? qw| OK | : qw| BAD |;
     }
@@ -175,8 +175,9 @@ foreach my $sub_name (@dg_subs) {
             eval { <[base.load_code]>->($sub_name) };
             $data{'base'}{'loader'}{'sub_whitelist_enabled'} = $wl_state;
 
-            ## a single healed sub is not a loaded namespace -- base.load_code ##
-            ## stamps it into the registry regardless, so undo that here      ##
+            ## a single healed sub is not a loaded namespace --          ##
+            ## base.load_code stamps it into the registry regardless, so ##
+            ## undo that here                                            ##
             delete <base.p7_mod.loaded>->{$sub_name};
 
             if ( defined $code{$sub_name} ) {
@@ -214,8 +215,8 @@ if ( not $found_in_depgraph and not defined $moved_target ) {
 
 return $healed;
 
-#,,.,,..,,,..,...,...,.,,,,..,.,.,,,,,,..,,,.,..,,...,...,..,,.,.,...,.,.,.,.,
-#RKMQKGRQMXEN5ZNUXK4HUFERTIDYALMKLGKF5EGGERRYZQZQPW3TWIH743F6GZIUWGTPSEFQV5SNK
-#\\\|NAA56PMHSBHP7L2P2KFHIWOAU6E5OZAYPMMHBZ6KXJQBDFDUFAT \ / AMOS7 \ YOURUM ::
-#\[7]BBB7QKZCJYNO6F6ZK4I2U5NGS3JO6WLODHXCDUDDWDHJPEYQXSBY 7  DATA SIGNATURE ::
+#,,..,.,.,...,,.,,,..,,,,,,.,,,..,,.,,.,.,.,.,..,,...,...,,.,,.,.,...,.,,,,,.,
+#4UHUQTIKPFMQIAKFOBJX7N2AZIXN3HMZRQI7UOKAWQ6UZBDXFU7QW2FDQG5E5FKUEU3T4FCKOHY5A
+#\\\|KEOXS5UWKWKBENYDOCAN2DEX5SHITE42TRWEFMU2CC46JTUYT5T \ / AMOS7 \ YOURUM ::
+#\[7]N6KDJJRAEM3PT2BCGNQINHTORU3K4FYLYB3TSVVG76P3CP5LNADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

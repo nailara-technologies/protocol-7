@@ -12,9 +12,10 @@ if ( defined $filters and exists $filters->{$key} ) {
 
     # Check for inline parameter syntax: 'filter_name:param'
     if ( $filter_spec =~ m|^([^:]+):(.+)$| ) {
-        $filter_name = $1;
+        $filter_name  = $1;
         $filter_param = $2;
     } else {
+
         # Fall back to legacy {key}_param convention
         my $filter_par_name = sprintf qw| %s_param |, $key;
         $filter_param = $filters->{$filter_par_name}
@@ -34,8 +35,8 @@ if ( defined $filters and exists $filters->{$key} ) {
 # unfiltered
 return $val;
 
-#,,,,,.,.,..,,...,,..,,..,,..,,,.,,..,.,.,,.,,..,,...,...,..,,.,,,,,,,...,,,.,
-#KICTZZNHKXBAIE4VZAWXTMN53MA2H4IMHUQOYHEJM5OBS4NX25XD72HUAWE4YPEDVV4676ZMQ3YZA
-#\\\|MS2VNFCGWHAPQBAIUPXEEGIYIAT3WY4ZHSKENLFBIW33XVSWG67 \ / AMOS7 \ YOURUM ::
-#\[7]4AOT7BZUP5QEPEPEUTUNOL34XTM3N35FVTUCGV4FL2KWXA2TZOAI 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,.,,.,,,,,,.,,,...,.,.,.,,,,..,..,,...,...,.,,,...,.,.,,,.,,,,,
+#D6H4C5TFBNLIRB52NSR7N6SJYTXUEKJO4ULTZZMRXRVXNRK763LNPADA67LYQDUZAT54XL2UPESYC
+#\\\|D23SBOKUBSCKBOWFEX22BZT6JFPA6QHVYPQR2W4Z5SRT7QRSRS4 \ / AMOS7 \ YOURUM ::
+#\[7]ADOGXX72RO5BEQPBJHJ3W34YXGOODGCAKCZQNANNJ2JI4RXKNUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

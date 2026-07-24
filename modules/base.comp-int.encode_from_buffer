@@ -26,15 +26,16 @@ foreach my $num (@numbers) {
         warn 'undefined value in input sequence [ cannot encode ] <{C1}>';
         return undef;
     } elsif ( $num !~ m|^\d+$| ) {
-        warn 'expected non-negative integer [ negative or non-integer ] <{C1}>';
+        warn 'expected non-negative integer [ '
+            . 'negative or non-integer ] <{C1}>';
         return undef;
     }
 }
 
 return pack qw| w* |, @numbers;
 
-#,,,.,...,,..,,..,,,.,...,...,,,.,...,.,.,,.,,..,,...,..,,,.,,,,,,...,..,,.,,,
-#C2VR75DHXQURLHECE4UQTS3H7UEPNEATXWBOEEYN5LMNNXDE6MGSBNRDE2UB7BOKNGKSBQM6CC4LS
-#\\\|5JW5R4YY5EBIVHG4XVHVXMEEM4OXMRJQKX646QIOOQI4GXHLKEK \ / AMOS7 \ YOURUM ::
-#\[7]5NK3UBAJGTJBHTTC74DEV4EKJO2WE4XXLQ2OAH3YRG4BG37CCYDY 7  DATA SIGNATURE ::
+#,,.,,..,,,..,.,,,,..,,.,,.,,,...,...,,,.,..,,..,,...,...,,..,,,.,,,.,...,.,,,
+#VK25E3NN635CP4BAGFCCR5EPM5F6E7B2EVUKOQVBKXWHTFPONCBAPNBJ7HOMUGJDBBQ7DDBNGHDWM
+#\\\|52XC3WF5Q3YYBZ6FQOWXLWKG5CTMBHWVOLGPOR7WXGW3DUEPYYL \ / AMOS7 \ YOURUM ::
+#\[7]CN4TGGSKTTRECHTDOMMG55CXH27UYO7DBZCFEK4X4TRJVEQFGCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

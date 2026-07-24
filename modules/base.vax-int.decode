@@ -15,8 +15,8 @@ return 0 if $id =~ m|^A+$|;
 
 <[base.perlmod.autoload]>->('Crypt::Misc');
 
-## the encoder strips trailing 'A' padding; restore a full 8-char base32
-## block so decode_b32r can handle short encoded ids consistently ##
+## the encoder strips trailing 'A' padding; restore a full 8-char base32 ##
+## block so decode_b32r can handle short encoded ids consistently        ##
 my $padded_id = $id . ( qw| A | x ( 8 - length($id) ) );
 
 my $decoded_bytes = Crypt::Misc::decode_b32r($padded_id);
@@ -25,7 +25,7 @@ return $id if not defined $decoded_bytes;
 ## keep the low 32 bits; any extra bytes came from the restored padding ##
 $decoded_bytes = substr( $decoded_bytes, 0, 4 );
 
-## trailing 'A' chars were stripped by the encoder to shorten the string;
+## trailing 'A' chars were stripped by the encoder to shorten the string;   ##
 ## they represent zero bytes, so pad the decoded bytes back to 32-bit width ##
 $decoded_bytes .= "\0" x ( 4 - length($decoded_bytes) )
     if length($decoded_bytes) < 4;
@@ -35,8 +35,8 @@ return $id if not defined $decoded;
 
 return $decoded;
 
-#,,.,,,.,,,..,..,,,.,,,,,,...,,..,,,.,.,.,.,.,.,.,...,...,,,.,.,.,...,,,.,..,,
-#ESRG22ZUY3FEHIOV4H5TGR7MIXNTP7YMWDJNNFK54OWZTNK5AHNRLXDVA3ZYZHUJV2XZGEMTLLHLC
-#\\\|I5IZOPZFIWKP6PUC6P4YZZJSRQKZ2GK4NZBHZ4T5RF2UVBU3CUE \ / AMOS7 \ YOURUM ::
-#\[7]IOKZOIMRQKR4EFE5BNJXML32PBNVBQR62UQDEKROGN5JMP3NNQAQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,,,.,,.,,.,.,,,,,..,,,..,.,,,,,,,.,.,...,..,,,,,,,,.,.,.,.,,,,,,,
+#DPX7B67T7KSAY4FEWEM6O3LHZAINYWPFLKUDXPD4O7OL33KQTL3BYGRLLBLGVVPNKV7SSQ6N52EES
+#\\\|STYRMZ4JOX6C4TD42BRCPXYBT5ZVDNNGBWOGB53WQFW5CWDA2JC \ / AMOS7 \ YOURUM ::
+#\[7]NVVUGLLNLFAKOOYJSZCFIPSLNXEHL5KGLCU34W7L4V3BWRHE6KDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

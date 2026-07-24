@@ -23,25 +23,26 @@ if ( not defined $write_fh ) {
 
 $write_len //= length $write_string_ref->$*;
 
-## For binary file data, remove UTF-8 flag to prevent syswrite from auto-encoding
+## For binary file data, remove UTF-8 flag to prevent syswrite from
+## auto-encoding
 if ( utf8::is_utf8( $write_string_ref->$* ) ) {
     utf8::downgrade( $write_string_ref->$*, 0 );
 }
 
-## Use syswrite for SSL sockets
-## syswrite(FILEHANDLE, SCALAR, LENGTH, OFFSET) writes LENGTH bytes from SCALAR starting at OFFSET
-## For SSL sockets, OpenSSL handles the encryption automatically.
+## Use syswrite for SSL sockets  syswrite(FILEHANDLE, SCALAR, LENGTH, OFFSET)
+## writes LENGTH bytes from SCALAR starting at OFFSET For SSL sockets, OpenSSL
+## handles the encryption automatically.
 my $size_written
     = syswrite( $write_fh, $write_string_ref->$*, $write_len, $str_offset );
 
-## Convert undef (error) to -1 for consistency with IO::AIO behavior
-## syswrite returns actual bytes written on success, undef on error
+## Convert undef (error) to -1 for consistency with IO::AIO behavior syswrite
+## returns actual bytes written on success, undef on error
 $size_written //= -1;
 
 return $size_written;    ## [ returns bytes written, or -1 on error ] ##
 
-#,,..,...,..,,.,.,,,,,,..,,..,,,,,,..,,,.,,,.,..,,...,...,.,,,,,,,,,.,..,,,.,,
-#AVDXM4VPWWJ77X2GDCKYSTJ44HOPHB6KKKLJB4JUGRSDI6YG3WJN37TJ46AXESXPBY2YQOTWEIOYK
-#\\\|TVHJLDMC6RL7JT4FL5QHR2K6SNSCRI76OL6IC72C75IF4OR7SHK \ / AMOS7 \ YOURUM ::
-#\[7]U52SFFYLEY44HRZOY2M47A5EKTDZAFIR5QUGPT62HDLKEL45S6AY 7  DATA SIGNATURE ::
+#,,,.,...,.,.,,.,,...,,..,..,,,,,,,..,.,,,,,.,..,,...,...,.,.,,..,,..,,,.,.,.,
+#NLVSEI4EMTEEJL4OPWILB2IESNLYHUSVY57AMNIMUACHOW2XYPHXLHRPJWKPYUIZZ36ANVTMFRDHE
+#\\\|PN2STF6W3E6TQGC4JNTR6MXGJEZLNN7OY2BFME76HNDVAUSVRXO \ / AMOS7 \ YOURUM ::
+#\[7]OFUFWHD66LIJMV67UTUDNK7RSACFABAWRM5XTOIVMOZEYOOP6UCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

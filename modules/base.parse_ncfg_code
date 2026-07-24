@@ -38,8 +38,8 @@ foreach my $line (@cfg_lines) {
     } elsif ( $line =~ m|^- *(.+)$| ) {
         $sub_section     = $1;
         $sub_sub_section = undef;
-        die "no parent section defined for sub-section '$sub_section' "
-            . "[ ncfg '$cfg_name' at line $line_num ]"
+        die "no parent section defined for sub-section "
+            . "'$sub_section' [ ncfg '$cfg_name' at line $line_num ]"
             if not defined $section;
         if ( !<[base.code_section_exists]>->( $sub_section, $data_ref ) ) {
             my $new_data_ref = [];
@@ -53,11 +53,11 @@ foreach my $line (@cfg_lines) {
         $sub_section_ref = $data_ref;
     } elsif ( $line =~ m|^: *([^:]*\S) *:$| ) {
         $sub_sub_section = $1;
-        die "parent section missing for sub-sub-section"
-            . " '$sub_sub_section' [ ncfg '$cfg_name' at line $line_num ]"
+        die "parent section missing for sub-sub-section "
+            . "'$sub_sub_section' [ ncfg '$cfg_name' at line $line_num ]"
             if not defined $section;
-        die "no parent sub-section defined for sub-sub-section"
-            . " '$sub_sub_section' [ ncfg '$cfg_name' at line $line_num ]"
+        die "no parent sub-section defined for sub-sub-section "
+            . "'$sub_sub_section' [ ncfg '$cfg_name' at line $line_num ]"
             if not defined $sub_section;
         if ( !<[base.code_section_exists]>->( $sub_sub_section, $data_ref ) )
         {
@@ -76,8 +76,8 @@ foreach my $line (@cfg_lines) {
 
 return $code_data;
 
-#,,..,,,.,,.,,,.,,,,.,..,,,..,.,,,.,,,,..,.,.,..,,...,...,...,,,.,,,,,,,,,,..,
-#24TJUIL3EJ3MNXDVLIR4BAJYCYAKDY6H63UK2NHCYY7ZBQOQ76FX6HINCA64CF64VLVVRO7HAYKNY
-#\\\|GGNG43UA3UVHPTP4A5BHX24ECYKKNHJBNQKMT6SX7TMDAJIP52B \ / AMOS7 \ YOURUM ::
-#\[7]XU7GCHTMKVFMXCI75R3WZDI77ZZV46CWM25Q7V446NZC6ZFZOWDY 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,..,,,.,...,,,,,.,.,...,.,.,,,.,..,,...,...,,..,,.,,...,.,,,.,.,
+#BIOY4ZYIBF7YMVXL6BO2HTCGBKHITC534KU532VNEJBVUVSZ67QPYQBK5UJIOVEPKMJB3MKKFHCHA
+#\\\|F3U2HBUCPYLD7Y5EU5QQTGZ6LVLYMVCGYSRBXT4XJO4TU2R725B \ / AMOS7 \ YOURUM ::
+#\[7]KN4KE3O2MLMNMRUOBLNSFLESZ4AO4O4GSS6V47H6KCTNQ7TINMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

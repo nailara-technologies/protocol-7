@@ -65,17 +65,17 @@ if ( $session->{'read-mode'} eq qw| binary | ) {    ##  binary protocol  ##
 
 }
 
-## CRITICAL FIX: Check for SSL pending data
-## IO::Socket::SSL can buffer data in the SSL layer that won't trigger select/poll
-## See IO::Socket::SSL manpage: need to check pending() after sysread
-## BUT: Only re-trigger if we actually read new bytes
-## If pending() but last-bytes-read == 0, we're stuck with same frame data
+## CRITICAL FIX: Check for SSL pending data  IO::Socket::SSL can buffer data
+## in the SSL layer that won't trigger select/poll See IO::Socket::SSL
+## manpage: need to check pending() after sysread BUT: Only re-trigger if we
+## actually read new bytes  If pending() but last-bytes-read == 0, we're stuck
+## with same frame data
 if ( $protocol eq qw| https |
     and ref( $session->{'handle'} ) eq qw| IO::Socket::SSL | ) {
     if ( $session->{'handle'}->pending and $session->{'last-bytes-read'} > 0 )
     {
-        ## Data is pending in SSL layer AND we just read new bytes
-        ## Schedule protocol handler at event loop end to avoid infinite loops
+        ## Data is pending in SSL layer AND we just read new bytes Schedule
+        ## protocol handler at event loop end to avoid infinite loops
         if ( exists $session->{'watcher'}->{'input_buffer'} ) {
             $session->{'watcher'}{'input_buffer'}->again;
         }
@@ -105,9 +105,9 @@ if ( $return_code > 1 ) {    ##  disconnect  ##
         $event->w->start;    ##  restarting : still space in buffer  ##
         $handle_href->{'paused'} = FALSE;
 
-        ## CRITICAL: After reading new data, re-trigger input_buffer tied variable watcher
-        ## to re-check if protocol handler can now process complete request
-        ## Use ->again (not ->now) to avoid infinite loops
+        ## CRITICAL: After reading new data, re-trigger input_buffer tied
+        ## variable watcher to re-check if protocol handler can now process
+        ## complete request Use ->again (not ->now) to avoid infinite loops
         if ( exists $session->{'watcher'}{'input_buffer'}
             and $session->{'last-bytes-read'} > 0 ) {
             $session->{'watcher'}{'input_buffer'}->again;
@@ -124,8 +124,8 @@ if ( $return_code > 1 ) {    ##  disconnect  ##
 
 return $return_code; ##  2 : disconnect | 1 : more to read | 0 : completed  ##
 
-#,,.,,..,,,..,..,,.,.,..,,..,,,,,,.,,,..,,.,.,..,,...,...,...,.,,,.,,,,,.,...,
-#TUAO3URO2RFKVFNKBRW3XFRVHLYI6PWPXTL5KMGHX4KKFYL6S4DMG6K6Q7WTVZKH7IZC3PP2QKAM6
-#\\\|X6D7TQ72GLHWROXBT4DCB2MEU7OHZRZE7EJO535MPGVDX7JNXFJ \ / AMOS7 \ YOURUM ::
-#\[7]Q4T7UB6YE6PQ3KDPBL4YSAGNF7WUK5V7HGQ4VAIGUBBYVGFWKSAY 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,..,,..,,..,,,,.,,,,,..,,,,,,..,,..,,...,...,,.,,.,.,,.,,,,.,,,,,
+#TQ2AL2UAZFG4O5ERRMAWFKF6G64Q5M4TIRRQCWLHKHZ5FV5IQ2QHR2OXA6HBKLYAFUDOLRO5XMR4I
+#\\\|YLW2L5UTTIGBCPEAHXCJVKOJ6HQJF22IESVZCTJAGU2RSPAUCO6 \ / AMOS7 \ YOURUM ::
+#\[7]DVLOWXVZZW7XBSVQMV7XLZT4FGQ7DUGW4WOBMSVHFII7HNZCYQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

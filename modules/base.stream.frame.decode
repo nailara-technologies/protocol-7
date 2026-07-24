@@ -10,16 +10,16 @@ my $frame = shift;
 my $payload = $frame >> 1;
 my $sep     = $frame & 1;
 
-## inversion rule : 000 payload only ever pairs with an inverted [1]   ##
-## separator ; any other pairing is not a frame this protocol emits   ##
+## inversion rule : 000 payload only ever pairs with an inverted [1] ##
+## separator ; any other pairing is not a frame this protocol emits  ##
 return undef
     if ( $payload == 0 and $sep != 1 )
     or ( $payload != 0 and $sep != 0 );
 
 return $payload;
 
-#,,..,,,.,,.,,,,,,,.,,...,,,.,..,,..,,..,,,,.,..,,...,...,,..,.,,,,,,,..,,,,,,
-#XH6WRBLKFWVCBYXX36BDK5QZQUKMRZEGRHJVNFXTPBBS6VZJWD22F5J4OGUENBYRWFPWSJK642EJ4
-#\\\|Y6YXHXLBFJP7BG4QFNLRWXZDT3YPOKRQTV4IYYQCSEDCMMT6XV6 \ / AMOS7 \ YOURUM ::
-#\[7]B7USOWIZAUBIPOOSZHQ6NW3ZD6AZI5YCS5RVWWYILRNPDZQRZUDA 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,,.,,..,.,.,,..,..,,.,,,.,.,,,,,..,,...,...,..,,.,,,.,.,,,,,..,,
+#GGWSR6MMOCU7LUGOFFHMDFJ45MWMEHHLGP2VE3GY6NN3K4LYVJZPGJMLFQ6CR4PIKEC4VN5G5AGEO
+#\\\|E2FYVQQOGXY2ZRB63VE6WHW74ZDIH7LLXSO5PW55NP267LL6MBM \ / AMOS7 \ YOURUM ::
+#\[7]OPB2O3VBUQLSWFKC4KB6QPTG7I7ESQWJE3QQEPFCNGZHAKPHMIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -12,9 +12,8 @@ if ( not defined $name or not length $name ) {
         "send-buffer '%s' is not initialized yet <{C1}>", $name
     );
     return undef;
-} elsif (
-    not exists <log.send-buffer>->{$name}->{'watcher'}->{'idle-send'}
-) {
+} elsif ( not exists <log.send-buffer>->{$name}->{'watcher'}->{'idle-send'} )
+{
     return FALSE;    ## no callback installed ##
 }
 
@@ -26,8 +25,8 @@ delete <log.send-buffer>->{$name}->{'watcher'}->{'idle-send'};
 
 return TRUE;    ## callback stopped \ removed ##
 
-#,,.,,,.,,..,,,.,,,.,,..,,,,.,,..,,.,,.,,,..,,..,,...,...,.,,,...,,,.,.,.,.,,,
-#QPVRHWKAZ2MU7GTT3M5XAV34SYH7NLAD6NBITT4QB44NQ6MPLOMN2WEXWHMKRXKU4TA7R54XAFOYM
-#\\\|M4WO5QJLD5EMLXYC6WPHST6CHRCI2BOK6TUV4V7FWSE5Z5PZWQO \ / AMOS7 \ YOURUM ::
-#\[7]OPE7AXNC4D4OOMPG733AAIFYVYK66HD2BBAPZW4FPXNKUQEFAEDY 7  DATA SIGNATURE ::
+#,,,,,...,,..,,..,,.,,,.,,,.,,,,.,,,.,,,.,.,,,..,,...,..,,,,,,...,..,,..,,,.,,
+#75J7V7NHA46BVHHTQV7M2Q7HV2EJBREQUIFRNIMLAH3OVGEMEM5OJ3UXZE6FXH6QTF5OSMFMUDFRI
+#\\\|OTDTWUNFTJGCPBOITI32D377TVUFC6BJHA45V6KSUXPHU7A7AIS \ / AMOS7 \ YOURUM ::
+#\[7]7ZVV3HHV6VPKONND4TMSCMSPNPH7QLTNLQRIFFDW636AYQYUISCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

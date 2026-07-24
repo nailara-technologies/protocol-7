@@ -67,8 +67,8 @@ foreach my $user ( <[base.reverse-sort]>->(<access.cmd.usr>) ) {
             if ( $cmd =~ m|$cmdp_re^\*]| ) {
                 <[base.logs]>->(
                     0,
-                    'not valid character in command regex mask'
-                        . ' [ user \'%s\' pos %d ]',
+                    'not valid character in command '
+                        . 'regex mask [ user \'%s\' pos %d ]',
                     $user,
                     $pos
                 );
@@ -191,7 +191,8 @@ if ( exists <access.security-level.usr> ) {
         } else {
             <[base.logs]>->(
                 0,
-                "security-level for '%s' is not a non-negative integer, removed",
+                "security-level for '%s' is not "
+                    . "a non-negative integer, removed",
                 $user
             );
             delete <access.security-level.usr>->{$user};
@@ -241,8 +242,8 @@ foreach my $user ( <[base.reverse-sort]>->($access_regex_log) ) {
 
 return $errors;
 
-#,,..,.,.,,,.,.,,,,.,,,,.,,..,.,.,..,,...,,..,..,,...,...,,,.,,,.,..,,,.,,...,
-#5ZIAA43HHKKNH22F3JRQGPNW24PG735JYXPDB3UOFG3GKF5UEDAPITBZQIU4TVMZUDRBS4JPU3GJG
-#\\\|IOE3KHCH4665I4OQRJS7KX77S2JOC5HVRH4MCUKVJKREZU4RWMU \ / AMOS7 \ YOURUM ::
-#\[7]KJKJUCU3VC275DRT5UC2KJEYF2PC5MYPLGZNGCRTBSWMXUGMPYCY 7  DATA SIGNATURE ::
+#,,.,,..,,...,,,,,,,.,,,.,,,.,,.,,,.,,..,,,.,,..,,...,.,.,.,.,...,,,,,.,,,,.,,
+#LROTNK776KA4XRGDE44ENXT57OJHW6JHS4Y5IYCQ7XOJA7WIU5HAZRYFK7XXV3CGFODEGORE6ZG5E
+#\\\|TQRA4NGYQZ4FEQNLKDCQREO3VWR4WIVZVO6FBP7BESBT3VTB3XA \ / AMOS7 \ YOURUM ::
+#\[7]V43QOYTI3IQ4H7DP25BI4AAV7TVFU6QGHNL737E4OJZAHR7NGKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

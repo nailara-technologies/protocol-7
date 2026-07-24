@@ -42,8 +42,8 @@ if ( defined $$input_ref and length $$input_ref ) {
         $session->{'link_read_counter'} //= 0;
         $session->{'link_read_counter'}++;
 
-        ## Generate message-specific nonce for this read
-        ## Format: 4-byte session_id + 4-byte counter + 4-byte zeros = 12-byte nonce
+        ## Generate message-specific nonce for this read  Format: 4-byte
+        ## session_id + 4-byte counter + 4-byte zeros = 12-byte nonce
         my $session_bytes = pack qw| N |, $session_id;
         my $counter_bytes = pack qw| N |, $session->{'link_read_counter'};
         my $nonce         = $session_bytes . $counter_bytes . qq|\0\0\0\0|;
@@ -100,8 +100,8 @@ return $ret_code;
 
 1;
 
-#,,.,,...,...,...,,..,.,,,,.,,,.,,...,,,.,...,..,,...,...,..,,...,,,,,,,.,..,,
-#YNQU5EJCK4PE2AFFAINB63GCSZR4ZRF23MWFQ3VWVPYCCQEBUZK3VTQX4OJCTHYNMINSQSDF5TTXC
-#\\\|S4S7XZOCDZSFZ3MSTMSNC7TBR6IGV52AGPE52CK2NT4QDJWHX72 \ / AMOS7 \ YOURUM ::
-#\[7]5LVQTD4GAGOZCUFOCU5L44SWAAKYV5775DKD7TTCHFPW4JYUIOBQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,,.,,,,,..,,,..,,,.,.,.,,.,,,..,..,,...,...,...,,,.,,.,,,..,.,.,
+#3B3M77VJVFHGLIQFXAED6UZXYGLLPEDBILGIDU3FRRRCGMODL5WR7SLWU6DZVTEL4VZ7UMSQKKVK2
+#\\\|TMYC76NBBTJ4EH3EBQ5VR3J6757DNF3CMWYU5TS5MU75R6ZXOA6 \ / AMOS7 \ YOURUM ::
+#\[7]Q4OUEFUDX6SXOIANJLO55PMHSBQJ6QGMZKQP3VTFX25DVJA2Q4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

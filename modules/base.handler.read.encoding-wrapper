@@ -11,9 +11,9 @@
 # note  = operates on session buffer, does not cut data (no rewatcher trigger)
 #         preserves return code from original handler
 
-my $event = shift;
+my $event      = shift;
 my $session_id = $event->w->data;
-my $session = $data{'session'}{$session_id};
+my $session    = $data{'session'}{$session_id};
 
 ## Get original handler reference (saved before wrapper installation)
 my $original_handler = $session->{'input'}->{'handler_original'}
@@ -22,11 +22,11 @@ my $original_handler = $session->{'input'}->{'handler_original'}
 ## Call original handler (processes protocol commands on decoded data)
 my $ret_code = $code{$original_handler}->($event);
 
-## Apply decoding to input buffer based on link-layer encoding mode
-## Set during link-upgrade negotiation (state 2)
-## Only if mode is set (default: no encoding wrapper installed)
+## Apply decoding to input buffer based on link-layer encoding mode Set during
+## link-upgrade negotiation (state 2)  Only if mode is set (default: no
+## encoding wrapper installed)
 if ( defined $session->{'link_encoding_mode'} ) {
-    my $mode = $session->{'link_encoding_mode'};
+    my $mode      = $session->{'link_encoding_mode'};
     my $input_ref = \$session->{'buffer'}->{'input'};
 
     ## BASE32 modes: decode from 5-bit safe alphabet back to binary
@@ -47,6 +47,7 @@ if ( defined $session->{'link_encoding_mode'} ) {
     ## UTF-7: 7-bit safe ASCII encoding (future)
     elsif ( $mode =~ m|^utf7$| ) {
         if ( length $$input_ref ) {
+
             # UTF-7 decoding logic placeholder
             # Implementation depends on specific UTF-7 variant used
         }
@@ -57,8 +58,8 @@ return $ret_code;
 
 1;
 
-#,,..,,.,,.,,,,.,,,,,,.,,,.,.,.,.,,,.,,.,,..,,..,,...,...,..,,.,,,,.,,...,,.,,
-#DZUIZ2T7AS7GQV5UOUJZDYIW3OMMLOPW56KXWSJ75X4AAX2LJ3XNPXE2ZNTLGT7B2CDDI3ACPNDRO
-#\\\|XI5MQO3YI2ZTAFIKHPMVTQZFYO6PUI4KYITQMB6EXNOFVAIEA2I \ / AMOS7 \ YOURUM ::
-#\[7]B5C6MCON6257HA4IZTSDM6CLC4LQNB4X7BANEU7RNZEGCTBV3YAI 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,,,,..,...,,.,,...,,,,,,,.,.,,,..,,...,...,...,,,.,,,.,.,.,..,,
+#X6NL4WG7NLUC6LEMQHGG4NQL5EIRD5L2HVV4IKTGOQGLWEA6H3OBQKUDITMAB52SUO7V2PEOUCF7E
+#\\\|KWPOOOOAK3ELSKYHGV4L7TLJMXHMZC7SRC3AV4RWR4DNS4TOMJV \ / AMOS7 \ YOURUM ::
+#\[7]C3GJLAB4ZHA3K5ACYHDZD4SLR55TAZZFEFHLCBAYUREINEKE56DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

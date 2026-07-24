@@ -20,14 +20,13 @@ if ( not length $param_str ) {
 
 } elsif ( $param_str =~ m|$b32_re{7}| ) {
 
-    ##  RANGE : V7 ..
-    ##  99614720 .. 99999999  ==  0 .. 385279  ##
+    ## RANGE : V7 ..  99614720 .. 99999999  ==  0 .. 385279 ##
     ##
     my $decoded = <[base.ntime.epoch_timestamp]>->($param_str);
 
     if ( not defined $decoded ) {
-        warn 'input parameter encoding not valid'
-            . ' [ V7 network epoch format ] <{C1}>';
+        warn 'input parameter encoding not valid '
+            . '[ V7 network epoch format ] <{C1}>';
         return undef;
     } else {
         return $decoded;
@@ -38,8 +37,8 @@ if ( not length $param_str ) {
     return undef;
 }
 
-#,,,.,,,,,,,.,...,,..,..,,.,.,.,.,..,,,..,,,,,..,,...,...,...,,..,...,,.,,,,.,
-#DJ3FOPFDQ6A5Z3NMTRYSMFOHQSB7SW54SPJNLXA5IIWAX6VRTJKJVCPEDQOWY7NNZ2HJAIUOTXW5Q
-#\\\|E3EHTNNBIBFFIX7HKXMQWH4HZONHCY6R4ABISLJENBNRWQPUHO6 \ / AMOS7 \ YOURUM ::
-#\[7]YTC24G3AYPZ5TGNIHOG5LXUYFTN6I6ZMOZPEDLV4GO66QZM7LMBA 7  DATA SIGNATURE ::
+#,,.,,...,...,,,,,...,,,.,,,.,.,,,...,.,,,,..,..,,...,...,.,,,,,,,...,,,,,..,,
+#AZ4FLDX66GZ3HLPBDNQPRSI3TEVSRMXTF72DSOBRJNOMM5KPIJYR56DDJMQH5OSJIIYCCKFDDRNHE
+#\\\|CK7REG35JZQ7IRFMZMXKWHC35ULZ23354RPZXMC3FGGEWWNF2XF \ / AMOS7 \ YOURUM ::
+#\[7]Z55HUKZRPKZLLBC6WGECLRADPTYOP7XBMB67J6G465CESF6ST6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

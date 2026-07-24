@@ -28,12 +28,12 @@ if ( $enc_mode =~ m|^base32$| ) {
         $data_str = Crypt::Misc::encode_b32r($data_str);
     }
 }
-## BASE32-XZ: compress binary, then BASE32 encode
-## Compression happens on encrypted binary (best ratio), BASE32 keeps linewise
+## BASE32-XZ: compress binary, then BASE32 encode  Compression happens on
+## encrypted binary (best ratio), BASE32 keeps linewise
 elsif ( $enc_mode =~ m|^base32-xz$| ) {
     if ( length $data_str ) {
-        ## Order: encrypt → compress → encode
-        ## (encryption happens at state 3 wrapper level)
+        ## Order: encrypt → compress → encode  (encryption happens at state 3
+        ## wrapper level)
         my $compressed = Compress::Raw::Lzma::compress($data_str);
         if ( defined $compressed and length $compressed ) {
             $data_str = Crypt::Misc::encode_b32r($compressed);
@@ -54,8 +54,8 @@ return $data_str;
 
 1;
 
-#,,,,,,,,,.,,,,..,..,,.,,,...,...,...,...,.,.,.,.,...,...,.,.,.,.,,,.,...,,,.,
-#DFM7J65EMVHZTNATFZR2566M4SSTNLNB3EK7RAC3L6IMW5V53ZEVB5I6A57FRQWQBIQOM45PUN4VM
-#\\\|P4Q3534DDFWNUVBKQCO6XTVYXSZUWW7APSPVNMUF2546WPHM37A \ / AMOS7 \ YOURUM ::
-#\[7]MDN5MNPOI2F5MT75YMANWAPP4F763Q4LLDIRW7UROF6LUTKJEADY 7  DATA SIGNATURE ::
+#,,,.,.,,,...,,,,,.,,,,..,,..,,,,,,,.,..,,,..,.,.,...,...,,.,,.,.,,,,,,..,,,.,
+#25VUVYQ6MPMXVAOZ4SC3PL7SBDAQEC42SBVAF5R7YR6EMJ7LP3VLQGZH3WNCAD4TB2FBPU5XHMG6W
+#\\\|FFMKZ4WRKLVQGTV4EPMSINBPURF67NAZZQYOG32LIYZTOCUKQFP \ / AMOS7 \ YOURUM ::
+#\[7]SEMP22UQSNVZRVQ4JNEM36GNRO4D2AKNZKW2ODHQN7MDCZ3MFGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
