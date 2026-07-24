@@ -138,31 +138,26 @@ auto-generalize a structural rewrite — the honest result here is "flag for
 human/LLM authoring," not "auto-apply," and the low confidence score
 correctly reflects that rather than over-claiming.
 
+## update: pattern schema gap fixed (`cb45d56d0`, same day)
+
+Dispatched via `claude_dispatch`/`claude_continue`, independently
+re-verified live. `ncode.regex.load` now synthesizes a `steps` entry from
+top-level `pattern`/`replace` when the YAML doesn't define one explicitly;
+`ncode.regex.save` preserves genuinely custom `steps` on export, omits
+synthesizable ones. `single-quote-to-qw-scalar` (previously a confirmed
+no-op) now correctly rewrites content; `p7-arg-regression` (hand-authored
+`steps`) unaffected. Full detail, including a real backreference-expansion
+bug the fix exposed and also fixed, in [[topic-next-steps]]'s done log.
+
 ## known gaps, not yet fixed
 
-- **Pattern schema mismatch, now traced further than `apply`**: patterns
-  loaded from `data/yaml/ncode-patterns/*.yaml` that only define top-level
-  `pattern`/`replace` (used by `suggest`'s detection scan and by
-  `ncode.regex.assess`'s candidate format) silently no-op in `apply`, which
-  only reads the `steps` array. Confirmed live: `single-quote-to-qw-scalar`
-  (no `steps` defined) reported "1 fixes applied" but left the file
-  byte-identical. Only patterns with an explicit `steps: [{tool: ncode,
-  search:, replace:}]` block (e.g. `p7-arg-regression`) actually mutate
-  content. **Traced the same gap into `ncode.regex.save`** (persists
-  `<ncode.patterns>` to YAML): it only exports `pattern`/`replace`, never
-  `steps` — so even a pattern that goes all the way through
-  assess→expand→save still wouldn't be usable by `apply` without a
-  `pattern`→`steps` synthesis step somewhere in that chain. Needs either
-  that synthesis, or an explicit YAML-authoring convention that `steps` is
-  required for patterns intended to be auto-applied.
-- **`apply`'s revert path never got the chmod-child treatment.** The
-  success-path write (`if ($verify_pass and $step_ok and $syntax_ok)`) is
-  fixed; the `else` branch a few lines down, which tries to write
-  `$original` back to `$file` when a check fails, is still a bare `open
-  '>', $file`. In practice this hasn't bitten because failures caught so
-  far never got as far as writing the real file in the first place (the
-  syntax-check/verify gates catch problems before that point), but it's the
-  same latent bug, unfixed.
+- (pattern schema mismatch — see update above, resolved)
+- `regex.expand`/`regex.assess` still aren't exposed to `p7c` for the
+  persist-a-new-candidate step; `ncode.cmd.assess` only returns a
+  candidate for review, nothing writes it into `<ncode.patterns>` yet.
+- (`apply`'s revert path lacking chmod-child treatment — fixed `85ea963b2`,
+  same day; also fixed a bug where a failed revert skipped setting
+  `$fix->{'status'}` entirely)
 - **Security posture is still "opened for testing."** `suggest`/`apply` are
   live on `ncode`'s cube whitelist now, gated only by the `ptd -c` syntax
   check + checksum-addressed fix IDs — not by anything resembling the
@@ -171,8 +166,8 @@ correctly reflects that rather than over-claiming.
   or reviewer-gated, or gets folded into that bigger design is an open
   decision, not yet made.
 
-#,,,.,,.,,,,,,.,,,.,.,,,.,,,,,...,..,,..,,.,,,..,,...,...,..,,...,,,.,,..,.,.,
-#6YDDGU6NTMOYXQQRESROOTO2N3KJIW775KRNBLIBSXH46GZP7SZHOSAW7KGALWLMRN7P6DNKBMSNK
-#\\\|G57MM5N7CLPJZXRGK3V3WQXHEQASVLVO4NGDW5JSKF3FLZDFHTD \ / AMOS7 \ YOURUM ::
-#\[7]7WDE3YJ3YGA3NCW72RL6TPNUKOEM7KMTMMYQALQUNDUI4IFFGMCY 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,.,,,,,,,.,.,,.,,...,,.,,.,.,..,,..,,...,...,...,.,,,,,,,...,.,.,
+#RIRKPILQVBFQ2S6FO5PPINUFJQ3YGELKEVET7ERHR4UZ56DX42WZ3B5ACYDIV6PZVQADW6MQ5RTH6
+#\\\|BCDY6RRO7H2KBRZY3CKDOLSKGJX2XAPCREYLLLDDFMFTZDMUADE \ / AMOS7 \ YOURUM ::
+#\[7]EPXG7HPNUUTEHQQIIC2HWJCUU62CEEOMND5QVIQNX7FLI6NMIIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
