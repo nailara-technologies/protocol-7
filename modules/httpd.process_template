@@ -61,13 +61,13 @@ if ( my $query = $uri_obj->query ) {
 ## Prepare meta variables from session (merged with query params) ##
 my $meta_vars = { %{ $session->{'meta'} // {} }, %$query_meta };
 
-## Serialize meta variables for IPC transmission ##
-## Encode meta vars as JSON then base32r to avoid delimiter conflicts
+## Serialize meta variables for IPC transmission  Encode meta vars as JSON ##
+## then base32r to avoid delimiter conflicts                               ##
 my $meta_json = <[httpd.json.encode]>->($meta_vars) // qw| {} |;
 my $meta_b32r = encode_b32r($meta_json);
 
-## Encode template content as base32r to
-## avoid colon delimiter conflicts in IPC
+## Encode template content as base32r to  avoid colon delimiter conflicts in
+## IPC
 my $template_b32r = encode_b32r($template_content);
 
 <[base.logs]>->(
@@ -104,8 +104,8 @@ my $template_args
 
 return 1;    ## Keep connection alive, waiting for web zenka reply ##
 
-#,,,.,.,.,...,,.,,...,,,.,,,.,,,,,,,,,..,,,..,..,,...,..,,...,.,.,...,.,,,,,.,
-#ISJPYPCD5UJXBTMN4G7TKVWUDZ57DPPKAOMBINCQAJ2GN7RNCUJERGDX2UTTTQ6BY4U4TIZPFCDVU
-#\\\|ZT3GWKK3UUEQEO4VNVVEDLVZ25NUZYEWGW5KXK3VPKLNHYZN35E \ / AMOS7 \ YOURUM ::
-#\[7]TCPEWJKPPRMDHKJKMF3L354VQDPSVQGOEWCOBJVI46VBXYU3KUDY 7  DATA SIGNATURE ::
+#,,,,,...,,,,,...,,,,,..,,..,,..,,.,.,,.,,...,..,,...,...,.,.,...,,.,,,..,...,
+#RCO32HJU2UAQHH3PBQKBJFSTCCN4HGPRC4NHW7RWTK6HDQV7KHI6ECS2YL3PDSRRH3XMBWXURPCSO
+#\\\|XAYGNJQHQRFQWE4WNQBRLUH2P2XTMFOXJVBCIQP5Q535J2D23FR \ / AMOS7 \ YOURUM ::
+#\[7]C2HMDRUB4HJ3O7O4O7UDNGZOGAC3OW2NFCZDTU4IULFU4PNIKYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

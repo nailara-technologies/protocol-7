@@ -15,8 +15,8 @@ $session->{'buffer'}->{'input'} = '';
     }
 );
 
-## force close : body may arrive after headers in separate chunk,
-## keeping alive would bleed body bytes into next request parse ##
+## force close : body may arrive after headers in separate chunk, keeping ##
+## alive would bleed body bytes into next request parse                   ##
 $session->{'http'}->{'close'} = 1;
 
 my $reply_body   = qw| {} |;
@@ -32,8 +32,8 @@ $session->{'buffer'}->{'output'} .= $reply_body;
 
 return 2;
 
-#,,..,.,,,,..,.,.,,,,,,..,,.,,,,.,,,.,,,.,,..,..,,...,...,,.,,...,,..,,,,,,,.,
-#JXSEHG6ATIL2M5JEXD4TNMY3JFWCJ47GLPSMDF4YI6MRYBAGHD6XJUW5WW7L3QAU2T3NTU7TBABH6
-#\\\|NXIYL3WZZDT7PSGOWH6LZFA5SMACEETRZM5BG5ZI3SLDI5DQHDK \ / AMOS7 \ YOURUM ::
-#\[7]4KIQABQ5GG4BT6FGXXZ4SOZHD5FQHVCWZLSQZN4MKNMYOW2A4EBQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,..,.,,,,,.,...,.,,,.,.,,..,.,,,..,,...,...,..,,,,,,,,,,..,,...,
+#J4GARRZSOGPKMRIH5DQYUZLZ2KN5QOVZJFSVRA36WVEBDFQXAH2VWSL5GV7FFOSISINM4XALTJNA6
+#\\\|MKVQ23XQGCDPY6XTA3V6MFAONUD5WUG7AOIBG6JHQWDUIG2VC22 \ / AMOS7 \ YOURUM ::
+#\[7]LOWDJAAAXI6ESJ7NOQXECBVXZBL7DI3RTAZP6BMNC3ZPGSQDHKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
