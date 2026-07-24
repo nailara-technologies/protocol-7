@@ -5,26 +5,33 @@
 system.access.wildcards.allow = false
 
 ## read-only : repo browsing/search/diff is public, zero-risk ##
-## write/sign commands intentionally NOT granted here yet -- pending a  ##
-## signature-gated approval system [ see memory: topic-write-access-   ##
-## security-infrastructure ] ## cube itself filters which of its own   ##
-## callers may reach these -- taeki/unix-admin already covered via the ##
-## cube-side admin wildcard [ configuration/zenki/cube/access.users ]  ##
+## write/sign commands mostly still pending the signature-gated approval ##
+## system [ see memory: topic-write-access-security-infrastructure ] --  ##
+## suggest/apply opened 2026-07-24 for live testing under taeki/admin,   ##
+## write is checksum-addressed [ suggest -> apply by fix_id/session ]    ##
+## and gated by ncode.cmd.apply's ptd -c syntax verify + revert-on-fail. ##
+## cube itself filters which of its own callers may reach these --       ##
+## taeki/unix-admin already covered via the cube-side admin wildcard     ##
+## [ configuration/zenki/cube/access.users ]                             ##
 access.cmd.usr.cube = commands heart verify-instance \
                       list show-buffer get_url reload \
                       child.cur-pid \
-                      search diff diff-staged doc parse-headers tool_list
+                      search diff diff-staged doc parse-headers tool_list \
+                      suggest apply assess
 
 access.cmd.usr.parent = commands show-buffer cur-pid
 
 access.cmd.usr.child = cube.v7.notify_online cube.p7-log.append
 
-## group-write grant on .git only [ needed for git diff/diff-staged index  ##
+## group-write grant on .git only [ needed for git diff/diff-staged index ##
 ## refresh -- read-only git ops still need to write .git's lock/index ]   ##
 ncode.cfg.assume_admin_group = yes
 ncode.cfg.allow_chmod_apply  = yes
 
-modules.load = auth.client net protocol io.unix ui ncode
+## context : ncode.regex.assess's pattern-extraction pipeline depends on  ##
+## context.diff.*/context.pattern.*/context.string.* -- coding already    ##
+## loads this namespace for the same reason, ncode never got it added     ##
+modules.load = auth.client net protocol io.unix ui ncode context
 
 [load_modules:<modules.load>]
 [init_modules]
@@ -37,8 +44,8 @@ modules.load = auth.client net protocol io.unix ui ncode
 
 [zenka.loop]
 
-#,,,.,...,..,,,.,,..,,,..,,,,,.,,,.,.,,,,,.,.,.,.,...,...,,,.,,.,,.,,,,,,,,,,,
-#OMMWUAA77452JJUPZAOQWJ3EKTR4HTWTL2I3GA5F5BPUU6SSS2NPQ6M6KCZOOG2HXEIA7GEYLKWLE
-#\\\|5TV22VVXFU7MJ6SXMZ2YU3TVQH4DEQAEZYV5JZJZK62PRZEJBXW \ / AMOS7 \ YOURUM ::
-#\[7]4QDRIXPIQGXKMU7PMFQYO6WYOHEAKASBN3E27FL4HUXLU3JEWWCQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,..,,.,.,...,...,,.,,...,..,,,..,.,.,...,...,...,,,.,.,.,...,,,.,
+#6II6GSBDH7XHGIMS45ZZWJAGEGYJWC7TQFOYMC4D3MSUNRNU64JP6LOK3F54RUTBWPOMQPT2WPRN4
+#\\\|LQXI7G3ABEFYB7OY5IKQKBF6NDMUQEYCKEOHCE2FSXWGBVQCMFW \ / AMOS7 \ YOURUM ::
+#\[7]FBAH5QXDPDNIYINHCS3FJQI66HXNISI53WWOEKRUBNSPR5RNFWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,9 +6,8 @@ use warnings;
 use utf8;
 use Encode          qw| decode_utf8 encode_utf8 |;
 use Text::Wrap      qw| wrap |;
-use File::Temp      qw| tempfile |;
 use File::Copy      qw| copy |;
-use File::Basename  qw| dirname |;
+use File::Basename  qw| dirname basename |;
 use Cwd             qw| abs_path |;
 use List::MoreUtils qw| minmax uniq |;
 use File::Which     qw| which |;
@@ -22,11 +21,11 @@ use constant FALSE => 0;    ##  false  ##
 
 use constant LINE_MAX => 78;
 
-##  perltidy runs AFTER this tool and re-indents continuation lines to its
-##  own convention, which can land deeper than the quote's original column
-##  [ what this tool's own split-width budget assumes ] -- reserve this
-##  much headroom on any continuation line's budget so a split that looks
-##  tight-but-fitting here doesn't overflow once perltidy re-indents it ##
+## perltidy runs AFTER this tool and re-indents continuation lines to its   ##
+## own convention, which can land deeper than the quote's original column [ ##
+## what this tool's own split-width budget assumes ] -- reserve this much   ##
+## headroom on any continuation line's budget so a split that looks         ##
+## tight-but-fitting here doesn't overflow once perltidy re-indents it      ##
 use constant CONT_MARGIN => 4;
 
 $OUTPUT_AUTOFLUSH = TRUE;
@@ -121,13 +120,22 @@ while ( my $file_path = shift @files ) {
         next;
     }
 
-    ##  write temp file in same directory  ##
-    my $dir = dirname($file_path) || qw| . |;
-    my ( $tmpfh, $tmpfile ) = tempfile(
-        qw| format-code.XXXXXX |,
-        DIR    => $dir,
-        SUFFIX => qw| .tmp |,
-    );
+    ## write temp file in same directory : dot-prefixed so the module     ##
+    ## loader's bare glob() never sees it, and deterministic [ not        ##
+    ## pid/random-based ] so a leftover from a crashed prior run shows up ##
+    ## as a collision to abort on rather than being silently masked       ##
+    my $dir     = dirname($file_path) || qw| . |;
+    my $tmpfile = "$dir/.tmp." . basename($file_path);
+
+    if ( -e $tmpfile ) {
+        warn color_msg( "temp file collision [ $tmpfile ]", $file_path );
+        next;
+    }
+
+    open my $tmpfh, '>', $tmpfile or do {
+        warn color_msg( lcfirst $OS_ERROR, $file_path );
+        next;
+    };
     binmode $tmpfh, qw| :raw |;
     print $tmpfh( $no_utf8 ? $new_text : encode_utf8($new_text) );
     close $tmpfh;
@@ -194,11 +202,11 @@ sub preprocess_source {
         push @{ $quotes_by_line{ $tok->{line} } }, $tok;
     }
 
-    ##  find existing multi-line '.'-concatenation chains -- once split ,
-    ##  a fragment that individually fits is never reconsidered by step1 ,
-    ##  so a suboptimal split [ manual, an older tool, .. ] is otherwise
-    ##  stuck forever ; rejoin-then-resplit-from-scratch on every run fixes
-    ##  that the same way step4 does for comment blocks  ##
+    ## find existing multi-line '.'-concatenation chains -- once split , a ##
+    ## fragment that individually fits is never reconsidered by step1 , so ##
+    ## a suboptimal split [ manual, an older tool, .. ] is otherwise stuck ##
+    ## forever ; rejoin-then-resplit-from-scratch on every run fixes that  ##
+    ## the same way step4 does for comment blocks                          ##
     my %concat_chain_by_start_line;
     for my $chain ( collect_concat_chains($doc) ) {
         my $start_line = $chain->[0]->location->[0];
@@ -230,7 +238,7 @@ sub preprocess_source {
 
         ##  step 0 : rejoin+resplit an existing multi-line '.'-concat chain ##
         if ( my $chain = $concat_chain_by_start_line{$lnum} ) {
-            my $end_line = $chain->[-1]->location->[0];
+            my $end_line   = $chain->[-1]->location->[0];
             my $spans_skip = 0;
             for my $ln ( $lnum .. $end_line ) {
                 $spans_skip = 1
@@ -247,17 +255,17 @@ sub preprocess_source {
             }
         }
 
-        ##  step 4 : realign a contiguous block of '##  text  ##' lines --
-        ##  also routes a single over-budget '##'-line here instead of
-        ##  step2 : step2's own wrap doesn't know step4's any_close
-        ##  padded-both-sides rendering, so a single long bracketed line
-        ##  wrapped by step2 produced 2 lines that only THEN qualified as
-        ##  a step4 block on the next run and got re-rendered padded --
-        ##  an oscillating fixed point instead of a converged one. sending
-        ##  a lone over-budget line through the same renderer as a real
-        ##  multi-line block closes that gap at the source ; an
-        ##  already-fitting single line is untouched either way [ step4
-        ##  only rewraps when the content needs it ]  ##
+        ## step 4 : realign a contiguous block of '##  text  ##' lines --   ##
+        ## also routes a single over-budget '##'-line here instead of step2 ##
+        ## : step2's own wrap doesn't know step4's any_close                ##
+        ## padded-both-sides rendering, so a single long bracketed line     ##
+        ## wrapped by step2 produced 2 lines that only THEN qualified as a  ##
+        ## step4 block on the next run and got re-rendered padded -- an     ##
+        ## oscillating fixed point instead of a converged one. sending a    ##
+        ## lone over-budget line through the same renderer as a real        ##
+        ## multi-line block closes that gap at the source ; an              ##
+        ## already-fitting single line is untouched either way [ step4 only ##
+        ## rewraps when the content needs it ]                              ##
         my $block_len = comment_block_length( \@lines, $lnum, \%skip );
         if ( $block_len >= 2
             or ( $block_len == 1 and length_no_nl($line) > LINE_MAX ) ) {
@@ -312,19 +320,19 @@ sub preprocess_source {
 sub comment_block_line_parts {
     my $line = shift;
 
-    ##  only the leading '##  ' marker is required -- authors [ and LLMs ]
-    ##  often forget the trailing '##' on interior lines of a multi-line
-    ##  paragraph while still closing the block on its last line , so a
-    ##  per-line open+close requirement misses those and mangles them  ##
+    ## only the leading '##  ' marker is required -- authors [ and LLMs ] ##
+    ## often forget the trailing '##' on interior lines of a multi-line   ##
+    ## paragraph while still closing the block on its last line , so a    ##
+    ## per-line open+close requirement misses those and mangles them      ##
     return undef if $line !~ m{^(\s*)\#\#\ (.*?)\s*(\r?\n)?$};
     my ( $indent, $content ) = ( $1, $2 );
 
-    ##  closing marker width varies -- '##' is the norm, but this codebase
-    ##  also uses '###' [ one extra hash ] as a closer, e.g. section-header
-    ##  style '## title ###' and box borders built from it. match 2-or-more
-    ##  trailing hashes as one unit so no stray '#' is left glued to
-    ##  $content -- a leftover stray hash on a blank framing line was
-    ##  exactly what broke box detection [ content stopped being truly '' ] ##
+    ## closing marker width varies -- '##' is the norm, but this codebase  ##
+    ## also uses '###' [ one extra hash ] as a closer, e.g. section-header ##
+    ## style '## title ###' and box borders built from it. match 2-or-more ##
+    ## trailing hashes as one unit so no stray '#' is left glued to        ##
+    ## $content -- a leftover stray hash on a blank framing line was       ##
+    ## exactly what broke box detection [ content stopped being truly '' ] ##
     my $has_close = 0;
     if ( $content =~ s{\s*\#{2,}\s*$}{} ) {
         $has_close = 1;
@@ -332,25 +340,25 @@ sub comment_block_line_parts {
 
     return undef if $content eq qw| [:< |;    ## module header ##
 
-    ##  bracket annotation [ '## [ short remark ] ##' ] is a deliberate,
-    ##  widely-used atomic-remark convention -- protect it from reflow ONLY
-    ##  while it already fits ; once it exceeds LINE_MAX there's no
-    ##  fallback that ever wraps it otherwise, so it would overflow
-    ##  forever instead of just this once  ##
+    ## bracket annotation [ '## [ short remark ] ##' ] is a deliberate,     ##
+    ## widely-used atomic-remark convention -- protect it from reflow ONLY  ##
+    ## while it already fits ; once it exceeds LINE_MAX there's no fallback ##
+    ## that ever wraps it otherwise, so it would overflow forever instead   ##
+    ## of just this once                                                    ##
     return undef
         if $content =~ m{^\[.*\]$}
         and length_no_nl($line) <= LINE_MAX;
-    ##  strip only leading/trailing whitespace -- the has_close branch
-    ##  above already consumed any right-padding that sat before a
-    ##  misaligned '##' [ '\s*\#\#\s*$' ] , so nothing but true edge
-    ##  whitespace is left here ; internal whitespace runs must survive
-    ##  untouched now, since a double-space can carry real
-    ##  sentence/paragraph-boundary meaning [ see step4 ] that a blanket
-    ##  collapse would destroy the moment it lands mid-line after wrapping,
-    ##  breaking convergence on a second reformatting pass  ##
-    ##  capture the padding depth BEFORE stripping -- needed to preserve a
-    ##  symmetric box style's chosen padding [ e.g. '##  title  ##' ] on
-    ##  reconstruction rather than always collapsing to the bare minimum ##
+    ## strip only leading/trailing whitespace -- the has_close branch above ##
+    ## already consumed any right-padding that sat before a misaligned '##' ##
+    ## [ '\s*\#\#\s*$' ] , so nothing but true edge whitespace is left here ##
+    ## ; internal whitespace runs must survive untouched now, since a       ##
+    ## double-space can carry real  sentence/paragraph-boundary meaning [   ##
+    ## see step4 ] that a blanket collapse would destroy the moment it      ##
+    ## lands mid-line after wrapping, breaking convergence on a second      ##
+    ## reformatting pass  capture the padding depth BEFORE stripping --     ##
+    ## needed to preserve a symmetric box style's chosen padding [ e.g. '## ##
+    ## title  ##' ] on reconstruction rather than always collapsing to the  ##
+    ## bare minimum                                                         ##
     my ($lead_pad) = $content =~ m{^(\s*)};
     $content =~ s{^\s+}{};
     $content =~ s{\s+$}{};
@@ -368,12 +376,12 @@ sub comment_block_length {
     my $first = comment_block_line_parts( $lines->[ $start_lnum - 1 ] );
     return 0 if not $first;
 
-    ##  any maximal contiguous same-indent run of 2+ '##'-prefixed lines is
-    ##  one reflow unit , whether or not any line individually closes with
-    ##  '##' -- a loose , unbracketed multi-line comment [ several plain
-    ##  '##' lines forming one paragraph, no closing marker anywhere ] is
-    ##  just as real a block as the bracketed style , see
-    ##  step4_align_comment_block for how the two styles diverge on output ##
+    ## any maximal contiguous same-indent run of 2+ '##'-prefixed lines is ##
+    ## one reflow unit , whether or not any line individually closes with  ##
+    ## '##' -- a loose , unbracketed multi-line comment [ several plain    ##
+    ## '##' lines forming one paragraph, no closing marker anywhere ] is   ##
+    ## just as real a block as the bracketed style , see                   ##
+    ## step4_align_comment_block for how the two styles diverge on output  ##
     my $count = 1;
     my $lnum  = $start_lnum + 1;
     while ( $lnum <= scalar @$lines and not $skip->{$lnum} ) {
@@ -402,20 +410,20 @@ sub step4_align_comment_block {
             = comment_block_line_parts( $lines->[ $start_lnum - 1 + $i ] );
         push @content_parts, $parts->{content};
         push @content_lens,  length( $parts->{content} );
-        push @lead_pads, $parts->{lead_pad} if length $parts->{content};
+        push @lead_pads,     $parts->{lead_pad} if length $parts->{content};
         $any_close ||= $parts->{has_close};
     }
 
-    ##  commented-out code detection : a '##'-block containing recognizable
-    ##  perl code shapes [ trailing '{' '}' ';' , control-flow keywords ,
-    ##  '$var->' / '$var{' dereference chains .. ] is a snippet the author
-    ##  deliberately preserved, not prose -- reflowing/joining it would
-    ##  scramble its structure the same way running a prose wrapper over it
-    ##  would. same repetition threshold as list detection below : one
-    ##  incidental code-shaped line elsewhere in real prose should not
-    ##  trigger this, two or more confirms a genuine snippet -- pass the
-    ##  whole block through completely untouched rather than realign it,
-    ##  since even indentation is part of what the author is preserving  ##
+    ## commented-out code detection : a '##'-block containing recognizable ##
+    ## perl code shapes [ trailing '{' '}' ';' , control-flow keywords ,   ##
+    ## '$var->' / '$var{' dereference chains .. ] is a snippet the author  ##
+    ## deliberately preserved, not prose -- reflowing/joining it would     ##
+    ## scramble its structure the same way running a prose wrapper over it ##
+    ## would. same repetition threshold as list detection below : one      ##
+    ## incidental code-shaped line elsewhere in real prose should not      ##
+    ## trigger this, two or more confirms a genuine snippet -- pass the    ##
+    ## whole block through completely untouched rather than realign it,    ##
+    ## since even indentation is part of what the author is preserving     ##
     my $code_marker_re = qr{
         [;{}]\s*$
       | ^(?:if|elsif|else|unless|while|until|for|foreach|sub
@@ -427,41 +435,41 @@ sub step4_align_comment_block {
     return [ @{$lines}[ $start_lnum - 1 .. $start_lnum + $block_len - 2 ] ]
         if $code_line_count >= 2;
 
-    ##  a symmetric box [ blank top/bottom '##   ##' border lines framing a
-    ##  centered title ] gets its author's chosen padding depth preserved
-    ##  instead of always collapsing to the bare minimum single space --
-    ##  ordinary prose blocks [ no blank framing line present ] keep the
-    ##  minimal default  ##
-    my $is_box  = grep { $_ eq '' } @content_parts;
-    ##  lead_pad only measures padding BEYOND the one mandatory space the
-    ##  '## ' match already consumed [ '\#\#\ ' in comment_block_line_parts
-    ##  ] , so the true total padding is 1 + that extra  ##
+    ## a symmetric box [ blank top/bottom '##   ##' border lines framing a ##
+    ## centered title ] gets its author's chosen padding depth preserved   ##
+    ## instead of always collapsing to the bare minimum single space --    ##
+    ## ordinary prose blocks [ no blank framing line present ] keep the    ##
+    ## minimal default                                                     ##
+    my $is_box = grep { $_ eq '' } @content_parts;
+    ## lead_pad only measures padding BEYOND the one mandatory space the   ##
+    ## '## ' match already consumed [ '\#\#\ ' in comment_block_line_parts ##
+    ## ] , so the true total padding is 1 + that extra                     ##
     my $box_pad
         = $is_box && @lead_pads
         ? 1 + ( sort { $b <=> $a } @lead_pads )[0]
         : 1;
 
-    ##  bracketed style [ any original line closed with '##' ] budgets
-    ##  '##' + $box_pad + text + $box_pad + '##' ; loose style [ no closing
-    ##  marker anywhere in the original ] only needs the '## ' prefix  ##
+    ## bracketed style [ any original line closed with '##' ] budgets '##' ##
+    ## + $box_pad + text + $box_pad + '##' ; loose style [ no closing      ##
+    ## marker anywhere in the original ] only needs the '## ' prefix       ##
     my $overhead = $any_close ? ( 4 + 2 * $box_pad ) : 3;
-    my $width = LINE_MAX - length($indent) - $overhead;
+    my $width    = LINE_MAX - length($indent) - $overhead;
     return [ @{$lines}[ $start_lnum - 1 .. $start_lnum + $block_len - 2 ] ]
         if $width < 10;    ##  too narrow , leave untouched  ##
 
-    ##  list detection : a marker [ '1.', '2)', 'a.', '-', '*', bullet ,
-    ##  or a short 'Label:' prefix -- 'Phase 1:', 'tree_read:', 'port
-    ##  resolution:' .. ] recurring at the START of 2+ lines confirms a
-    ##  genuine list rather than a one-off reference elsewhere in the text
-    ##  [ "item 1." mid-sentence , or a single "Note: ..." aside, should
-    ##  NOT trigger this ] -- 2+ is the dividing line between "list" and
-    ##  "not everything is a group parent". the label form was found via
-    ##  real damage : two colon-labeled items [ 'tree_read:' / 'grep:' ,
-    ##  or two repeated 'port resolution:' lines ] getting merged into
-    ##  run-on prose because only numeric/bullet markers were recognized --
-    ##  the colon must directly follow a word character [ no space before
-    ##  it ] , or ordinary prose using ' : ' as punctuation [ "trigger :
-    ##  only true stuck retries .." ] false-triggers this too  ##
+    ## list detection : a marker [ '1.', '2)', 'a.', '-', '*', bullet , or  ##
+    ## a short 'Label:' prefix -- 'Phase 1:', 'tree_read:', 'port           ##
+    ## resolution:' .. ] recurring at the START of 2+ lines confirms a      ##
+    ## genuine list rather than a one-off reference elsewhere in the text [ ##
+    ## "item 1." mid-sentence , or a single "Note: ..." aside, should NOT   ##
+    ## trigger this ] -- 2+ is the dividing line between "list" and "not    ##
+    ## everything is a group parent". the label form was found via real     ##
+    ## damage : two colon-labeled items [ 'tree_read:' / 'grep:' , or two   ##
+    ## repeated 'port resolution:' lines ] getting merged into run-on prose ##
+    ## because only numeric/bullet markers were recognized -- the colon     ##
+    ## must directly follow a word character [ no space before it ] , or    ##
+    ## ordinary prose using ' : ' as punctuation [ "trigger : only true     ##
+    ## stuck retries .." ] false-triggers this too                          ##
     my $list_marker_re = qr{
         ^(?: (?:\d+|[a-zA-Z]) [.\)]
            | [-*\x{2022}]
@@ -469,18 +477,18 @@ sub step4_align_comment_block {
         ) \s*
     }x;
     my @is_marker = map { m{$list_marker_re} ? 1 : 0 } @content_parts;
-    my $has_list = ( grep {$_} @is_marker ) >= 2;
+    my $has_list  = ( grep {$_} @is_marker ) >= 2;
 
-    ##  split into segments : a detected marker line is a hard anchor --
-    ##  like '##' itself, it always starts a fresh output line and never
-    ##  gets folded into the previous item's text. everything before the
-    ##  first marker [ e.g. an intro sentence ending in ':' ] is its own
-    ##  leading segment. an EMPTY content line [ e.g. the blank top/bottom
-    ##  border of a symmetric '##   ##' / '##  title  ##' / '##   ##' box ]
-    ##  is pure visual framing, not joinable prose -- it becomes its own
-    ##  standalone blank segment [ marked undef ] instead of contributing
-    ##  zero-length "content" to the sentence-join, which otherwise
-    ##  produced lopsided padding around the real text  ##
+    ## split into segments : a detected marker line is a hard anchor --     ##
+    ## like '##' itself, it always starts a fresh output line and never     ##
+    ## gets folded into the previous item's text. everything before the     ##
+    ## first marker [ e.g. an intro sentence ending in ':' ] is its own     ##
+    ## leading segment. an EMPTY content line [ e.g. the blank top/bottom   ##
+    ## border of a symmetric '##   ##' / '##  title  ##' / '##   ##' box ]  ##
+    ## is pure visual framing, not joinable prose -- it becomes its own     ##
+    ## standalone blank segment [ marked undef ] instead of contributing    ##
+    ## zero-length "content" to the sentence-join, which otherwise produced ##
+    ## lopsided padding around the real text                                ##
     my ( @segments, @cur );
     for my $i ( 0 .. $#content_parts ) {
         if ( $content_parts[$i] eq '' ) {
@@ -502,16 +510,16 @@ sub step4_align_comment_block {
     local $Text::Wrap::huge     = 'overflow';
     local $Text::Wrap::unexpand = 0;
 
-    ##  canonicalize each segment independently : re-derive structure from
-    ##  the content itself rather than trusting where the incoming line
-    ##  breaks happened to sit -- what makes repeated reformatting passes
-    ##  converge instead of drift. a break is treated as intentional
-    ##  [ double-space , like a sentence boundary ] when EITHER the line
-    ##  ends in terminal punctuation OR the line ends well short of the
-    ##  width budget [ a forced wrap fills close to budget by definition ;
-    ##  stopping well short of it with no punctuation is still a real
-    ##  signal the author meant to break there ] ; otherwise single-space
-    ##  [ ordinary forced wrap ]  ##
+    ## canonicalize each segment independently : re-derive structure from   ##
+    ## the content itself rather than trusting where the incoming line      ##
+    ## breaks happened to sit -- what makes repeated reformatting passes    ##
+    ## converge instead of drift. a break is treated as intentional [       ##
+    ## double-space , like a sentence boundary ] when EITHER the line ends  ##
+    ## in terminal punctuation OR the line ends well short of the width     ##
+    ## budget [ a forced wrap fills close to budget by definition ;         ##
+    ## stopping well short of it with no punctuation is still a real signal ##
+    ## the author meant to break there ] ; otherwise single-space [         ##
+    ## ordinary forced wrap ]                                               ##
     my $short_margin = 15;
     my @wrapped_lines;
     for my $seg (@segments) {
@@ -534,38 +542,35 @@ sub step4_align_comment_block {
 
     my @out;
     if ($any_close) {
-        ##  right-align the closing '##' to the longest wrapped line's width
-        ##  -- blank entries [ length 0 ] don't affect that max , and come
-        ##  out as a properly centered blank framing line for free  ##
+        ## right-align the closing '##' to the longest wrapped line's width ##
+        ## -- blank entries [ length 0 ] don't affect that max , and come   ##
+        ## out as a properly centered blank framing line for free           ##
         my ($target_width)
             = ( sort { $b <=> $a } map {length} @wrapped_lines );
         my $pad = ' ' x $box_pad;
         for my $part (@wrapped_lines) {
             push @out,
-                sprintf(
-                "%s##%s%-*s%s##\n", $indent, $pad, $target_width, $part,
-                $pad
-                );
+                sprintf( "%s##%s%-*s%s##\n",
+                $indent, $pad, $target_width, $part, $pad );
         }
     } else {
         for my $part (@wrapped_lines) {
-            push @out,
-                length($part) ? "$indent## $part\n" : "$indent##\n";
+            push @out, length($part) ? "$indent## $part\n" : "$indent##\n";
         }
     }
     return \@out;
 }
 
 ##[ step 5 : recompute a '##[ title ]###...' fill-bar's hash-run so the
-##  line lands exactly on LINE_MAX -- this convention has no legitimate
-##  alternate width to preserve : across the corpus the fill-run length
-##  clusters overwhelmingly at LINE_MAX with only single-off drift around
-##  it [ manual title edits that never recalculated the trailing hashes ] ,
-##  unlike box padding where multiple depths genuinely recur. matched
-##  separately from the short '##[ title ]##' label style [ exactly 2
-##  closing hashes, never meant to fill -- the corpus shows a hard gap
-##  between 2-3 and 8+ trailing hashes, so requiring 4+ cleanly separates
-##  the two conventions ]  ##
+## line lands exactly on LINE_MAX -- this convention has no legitimate      ##
+## alternate width to preserve : across the corpus the fill-run length      ##
+## clusters overwhelmingly at LINE_MAX with only single-off drift around it ##
+## [ manual title edits that never recalculated the trailing hashes ] ,     ##
+## unlike box padding where multiple depths genuinely recur. matched        ##
+## separately from the short '##[ title ]##' label style [ exactly 2        ##
+## closing hashes, never meant to fill -- the corpus shows a hard gap       ##
+## between 2-3 and 8+ trailing hashes, so requiring 4+ cleanly separates    ##
+## the two conventions ]                                                    ##
 sub step5_normalize_bracket_bar {
     my $line = shift;
     return undef
@@ -588,8 +593,8 @@ sub step3_relocate_trailing_comment {
     my $line = shift;
     return ($line) if length_no_nl($line) <= LINE_MAX;
 
-    ##  match : code ws ## comment ## newline  ##
-    ##  only safe with the ## .. ## p7 annotation form  ##
+    ## match : code ws ## comment ## newline  only safe with the ## .. ## ##
+    ## p7 annotation form                                                 ##
     if ( $line
         =~ m{^(\s*)([^\#\n].*?\S)(\s{2,})(\#\#\s.*?\s\#\#)\s*(\r?\n)?$} ) {
         my $indent    = $1;
@@ -597,8 +602,8 @@ sub step3_relocate_trailing_comment {
         my $comment   = $4;
         my $nl        = $5 // "\n";
         my $code_line = "$indent$code$nl";
-        ##  relocating doesn't help -- leave line untouched rather than
-        ##  silently dropping the comment  ##
+        ## relocating doesn't help -- leave line untouched rather than ##
+        ## silently dropping the comment                               ##
         return ($line) if length_no_nl($code_line) > LINE_MAX;
         my $comment_line = "$indent$comment$nl";
         return ( $comment_line, $code_line );
@@ -623,7 +628,7 @@ sub collect_concat_chains {
     while ( $i < @all ) {
         if ( is_quote_token( $all[$i] ) ) {
             my @chain = ( $all[$i] );
-            my $j = $i + 1;
+            my $j     = $i + 1;
             while (1) {
                 my $k = $j;
                 $k++
@@ -654,16 +659,16 @@ sub collect_concat_chains {
 }
 
 ##[ shared : split $flat_value across as many physical lines as it actually
-##  needs. tries the original balanced 2-way split first [ same tested
-##  logic that already fixed "unbalanced split" earlier -- only accepted
-##  when BOTH resulting lines are verified to fit ] ; falls back to
-##  greedy-maximal repeated fill for 3+ lines. an earlier version of this
-##  used a separate up-front pass to COUNT how many lines were needed ,
-##  then a second balanced pass to fill them -- those two passes could
-##  disagree [ balance takes smaller-than-max chunks, so the precomputed
-##  count came up short ] and the forced-final line silently absorbed the
-##  overflow instead of erroring. greedy-maximal never has that gap : it
-##  only ever stops once the actual remainder is verified to fit  ##
+## needs. tries the original balanced 2-way split first [ same tested logic ##
+## that already fixed "unbalanced split" earlier -- only accepted when BOTH ##
+## resulting lines are verified to fit ] ; falls back to greedy-maximal     ##
+## repeated fill for 3+ lines. an earlier version of this used a separate   ##
+## up-front pass to COUNT how many lines were needed , then a second        ##
+## balanced pass to fill them -- those two passes could disagree [ balance  ##
+## takes smaller-than-max chunks, so the precomputed count came up short ]  ##
+## and the forced-final line silently absorbed the overflow instead of      ##
+## erroring. greedy-maximal never has that gap : it only ever stops once    ##
+## the actual remainder is verified to fit                                  ##
 sub split_into_lines {
     my ( $flat_value, $quote_ch, $before, $after, $nl, $cont_indent ) = @_;
 
@@ -673,23 +678,23 @@ sub split_into_lines {
     my $one_line_len
         = $prefix_len_first + 1 + length($flat_value) + 1 + length($after);
     if ( $one_line_len <= LINE_MAX ) {
-        return [
-            $before . $quote_ch . $flat_value . $quote_ch . $after
-                . ( $nl || "\n" )
-        ];
+        return [  $before
+                . $quote_ch
+                . $flat_value
+                . $quote_ch
+                . $after
+                . ( $nl || "\n" ) ];
     }
 
     ##  try the balanced 2-way split  ##
     my $max_inner1 = LINE_MAX - $prefix_len_first - 3;
     if ( $max_inner1 >= 1 ) {
         my $max_inner2
-            = LINE_MAX - $prefix_len_first - 4 - length($after)
-            - CONT_MARGIN;
+            = LINE_MAX - $prefix_len_first - 4 - length($after) - CONT_MARGIN;
         if ( $max_inner2 >= 1 ) {
             my $lower_bound = length($flat_value) - $max_inner2;
-            my @safe_splits
-                = find_split_positions( $flat_value, $quote_ch );
-            my $target = length($flat_value) / 2;
+            my @safe_splits = find_split_positions( $flat_value, $quote_ch );
+            my $target      = length($flat_value) / 2;
             my ( $best, $best_dist );
             for my $p (@safe_splits) {
                 next if $p > $max_inner1;
@@ -717,10 +722,10 @@ sub split_into_lines {
         }
     }
 
-    ##  2 lines isn't enough -- greedy-maximal repeated fill for however
-    ##  many [ 3 , 4 , .. ] it actually takes ; always verified to fit
-    ##  before stopping , so it can never overflow the way the two-pass
-    ##  approach did  ##
+    ## 2 lines isn't enough -- greedy-maximal repeated fill for however ##
+    ## many [ 3 , 4 , .. ] it actually takes ; always verified to fit   ##
+    ## before stopping , so it can never overflow the way the two-pass  ##
+    ## approach did                                                     ##
     my @out;
     my $remaining = $flat_value;
     my $is_first  = 1;
@@ -732,17 +737,23 @@ sub split_into_lines {
         my $margin     = $is_first ? 0 : CONT_MARGIN;
 
         my $final_len
-            = $prefix_len + 1 + length($remaining) + 1 + length($after)
+            = $prefix_len + 1
+            + length($remaining)
+            + 1 + length($after)
             + $margin;
         if ( $final_len <= LINE_MAX ) {
             push @out,
-                $prefix . $quote_ch . $remaining . $quote_ch . $after
+                  $prefix
+                . $quote_ch
+                . $remaining
+                . $quote_ch
+                . $after
                 . ( $nl || "\n" );
             last;
         }
 
         my $max_inner
-            = LINE_MAX - $prefix_len - 2 - $margin;   ## open+close quote ##
+            = LINE_MAX - $prefix_len - 2 - $margin;    ## open+close quote ##
         return undef if $max_inner < 1;
 
         my @safe_splits = find_split_positions( $remaining, $quote_ch );
@@ -756,8 +767,10 @@ sub split_into_lines {
         return undef if not defined $best;
 
         push @out,
-            $prefix . $quote_ch . substr( $remaining, 0, $best ) . $quote_ch
-            . "\n";
+              $prefix
+            . $quote_ch
+            . substr( $remaining, 0, $best )
+            . $quote_ch . "\n";
         $remaining = substr( $remaining, $best );
         $is_first  = 0;
     }
@@ -765,12 +778,12 @@ sub split_into_lines {
 }
 
 ##[ step 0 : rejoin an existing multi-line '.'-concat chain , then re-split
-##  it from scratch at the ideal balanced point -- once each fragment of an
-##  existing split individually fits under LINE_MAX, step1 never
-##  reconsiders it, so a suboptimal split [ manual edit, an older tool
-##  version, .. ] would otherwise be stuck forever ; this fixes that the
-##  same way step4 does for comment blocks -- collapse to canonical form
-##  first, then re-derive, so repeated runs converge instead of drifting ##
+## it from scratch at the ideal balanced point -- once each fragment of an  ##
+## existing split individually fits under LINE_MAX, step1 never reconsiders ##
+## it, so a suboptimal split [ manual edit, an older tool version, .. ]     ##
+## would otherwise be stuck forever ; this fixes that the same way step4    ##
+## does for comment blocks -- collapse to canonical form first, then        ##
+## re-derive, so repeated runs converge instead of drifting                 ##
 sub step0_rejoin_concat_chain {
     my ( $lines, $chain ) = @_;
 
@@ -779,8 +792,8 @@ sub step0_rejoin_concat_chain {
     my $end_line   = $toks[-1]->location->[0];
     return undef if $start_line == $end_line;
 
-    ##  same quote char throughout , no embedded raw newlines in any
-    ##  fragment -- otherwise too risky to rejoin reliably , leave alone ##
+    ## same quote char throughout , no embedded raw newlines in any     ##
+    ## fragment -- otherwise too risky to rejoin reliably , leave alone ##
     my $quote_ch;
     for my $t (@toks) {
         my $c = $t->content;
@@ -797,22 +810,22 @@ sub step0_rejoin_concat_chain {
     my $start_col = $toks[0]->location->[1];    ## 1-based ##
     my $before    = substr( $first_line_text, 0, $start_col - 1 );
 
-    my $end_col       = $toks[-1]->location->[1];
-    my $last_tok_len  = length( $toks[-1]->content );
+    my $end_col      = $toks[-1]->location->[1];
+    my $last_tok_len = length( $toks[-1]->content );
     my $after = substr( $last_line_text, $end_col - 1 + $last_tok_len );
-    my $nl = '';
+    my $nl    = '';
     if ( $after =~ s{(\r?\n)$}{} ) { $nl = $1 }
 
-    ##  flat value : direct concatenation of each fragment's inner text ,
-    ##  exactly what perl's own '.' operator produces at runtime ##
+    ## flat value : direct concatenation of each fragment's inner text , ##
+    ## exactly what perl's own '.' operator produces at runtime          ##
     my $flat_value = join '', map { substr( $_->content, 1, -1 ) } @toks;
 
     my $prefix_len          = $start_col - 1;
     my $continuation_indent = ' ' x $prefix_len;
 
-    ##  re-derive however many physical lines this actually needs from
-    ##  scratch -- covers the already-fits-on-one-line case too [ that
-    ##  comes back as a single-element result ]  ##
+    ## re-derive however many physical lines this actually needs from       ##
+    ## scratch -- covers the already-fits-on-one-line case too [ that comes ##
+    ## back as a single-element result ]                                    ##
     return split_into_lines( $flat_value, $quote_ch, $before, $after, $nl,
         $continuation_indent );
 }
@@ -824,8 +837,8 @@ sub step1_split_long_string {
     return undef if length_no_nl($line) <= LINE_MAX;
     return undef if not $quotes or not @$quotes;
 
-    ##  pick longest quote token on the line that contains a splittable
-    ##  whitespace position and whose split fits within LINE_MAX  ##
+    ## pick longest quote token on the line that contains a splittable ##
+    ## whitespace position and whose split fits within LINE_MAX        ##
     my @candidates = sort { $b->{length} <=> $a->{length} } @$quotes;
     for my $tok (@candidates) {
         my $col      = $tok->{col};
@@ -849,10 +862,10 @@ sub step1_split_long_string {
 
         my $continuation_indent = ' ' x ($prefix_len);
 
-        ##  re-derive however many physical lines this actually needs from
-        ##  scratch -- generalizes the old single 2-way split, which
-        ##  silently produced an over-budget line whenever the content
-        ##  needed 3+ lines instead of 2  ##
+        ## re-derive however many physical lines this actually needs from ##
+        ## scratch -- generalizes the old single 2-way split, which       ##
+        ## silently produced an over-budget line whenever the content     ##
+        ## needed 3+ lines instead of 2                                   ##
         my $result = split_into_lines( $inner, $quote_ch, $before, $after,
             $nl, $continuation_indent );
         next if not defined $result;
@@ -951,8 +964,8 @@ sub find_split_positions {
         }
     }
 
-    ##  collect split points : just after a whitespace , when neither side
-    ##  is inside an interpolation segment  ##
+    ## collect split points : just after a whitespace , when neither side ##
+    ## is inside an interpolation segment                                 ##
     for ( my $p = 1; $p < $len; $p++ ) {
         my $prev = substr( $inner, $p - 1, 1 );
         next if $prev !~ m{\s};
@@ -986,11 +999,11 @@ sub step2_reflow_comment {
     ##  exclusion patterns  ##
     return undef if $content =~ m{^\[:< \#\#$};    ## module header ##
 
-    ##  NOTE : no bracket-annotation exclusion here -- this function is
-    ##  only ever called once the line is ALREADY over LINE_MAX [ see the
-    ##  guard at the top ], so an annotation reaching this point is by
-    ##  definition too long to leave untouched ; a within-budget one never
-    ##  gets here at all and stays fully protected as intended  ##
+    ## NOTE : no bracket-annotation exclusion here -- this function is only ##
+    ## ever called once the line is ALREADY over LINE_MAX [ see the guard   ##
+    ## at the top ], so an annotation reaching this point is by definition  ##
+    ## too long to leave untouched ; a within-budget one never gets here at ##
+    ## all and stays fully protected as intended                            ##
 
     my $width = LINE_MAX - length($indent) - length($prefix);
     return undef if $width < 20;    ##  too narrow , skip  ##
@@ -1001,10 +1014,10 @@ sub step2_reflow_comment {
         $trailing = " $1";
     }
 
-    ##  the trailing marker gets reattached to the LAST wrapped line only ,
-    ##  so wrap at the tighter budget everywhere -- otherwise a line can
-    ##  look like it "fits" and skip wrapping , then exceed LINE_MAX once
-    ##  the marker comes back  ##
+    ## the trailing marker gets reattached to the LAST wrapped line only , ##
+    ## so wrap at the tighter budget everywhere -- otherwise a line can    ##
+    ## look like it "fits" and skip wrapping , then exceed LINE_MAX once   ##
+    ## the marker comes back                                               ##
     my $wrap_width = $width - length($trailing);
     return undef if $wrap_width < 20;    ##  too narrow , skip  ##
 
@@ -1039,17 +1052,17 @@ sub slurp_file {
     local $/;
     my $data = <$fh>;
     close $fh;
-    ##  decode to characters -- everything downstream [ length() , substr() ,
-    ##  Text::Wrap column budgets ] must count characters , not bytes , or a
-    ##  multi-byte utf8 char [ em-dash, arrows, .. ] silently wrecks the
-    ##  wrap-width arithmetic on any line that contains one  ##
+    ## decode to characters -- everything downstream [ length() , substr()  ##
+    ## , Text::Wrap column budgets ] must count characters , not bytes , or ##
+    ## a multi-byte utf8 char [ em-dash, arrows, .. ] silently wrecks the   ##
+    ## wrap-width arithmetic on any line that contains one                  ##
     $data = decode_utf8($data) if not $no_utf8;
     return $data;
 }
 
 ##[ detect signature footer : trailing block of #-prefixed lines ending in
-##  a line of colons . returns 1-based line number of first sig line , or
-##  undef if no signature footer found ]##
+## a line of colons . returns 1-based line number of first sig line , or ##
+## undef if no signature footer found ]                                  ##
 sub detect_signature_start {
     my $lines = shift;
     my $n     = scalar @$lines;
@@ -1094,9 +1107,9 @@ sub mark_heredoc_regions {
     for my $h (@$heredocs) {
         ##  PPI exposes the heredoc body lines via ->heredoc method  ##
         my @body = $h->heredoc;
-        ##  location of heredoc token is at the << on the source line .
-        ##  body begins on the line AFTER the line containing << , and
-        ##  the terminator follows the body  ##
+        ## location of heredoc token is at the << on the source line .    ##
+        ## body begins on the line AFTER the line containing << , and the ##
+        ## terminator follows the body                                    ##
         my $loc = $h->location;
         next if not $loc;
         my $start = $loc->[0] + 1;
@@ -1173,9 +1186,9 @@ sub is_perl_code {
 }
 
 sub sig_int {
-    print "\b\b::\b\b\r$blacklight\:::\n:\n:: [ ${NEON_orange}SIG"
-        . "INT$blacklight ] $NEON_green_yellow format-code run "
-        . "aborted$blacklight ..,\n:$reset\n";
+    print "\b\b::\b\b\r$blacklight\:::\n:\n:: "
+        . "[ ${NEON_orange}SIGINT$blacklight ] $NEON_green_yellow "
+        . "format-code run aborted$blacklight ..,\n:$reset\n";
     exit('000113');
 }
 
@@ -1194,8 +1207,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,.,,,,,,,,,,,.,,...,.,.,.,.,..,,.,.,..,,..,,..,,...,...,...,...,,.,,,,,,,,.,
-#JLZEVL4RLYI5UFL6UTC7OH7FJGLPWCV2JZ3WFFTG6ILVZ7I646JPMDHNU2BS7F7ETRHPNUVXSIJM6
-#\\\|246GWCYNSI2EDYGEOWNGRFD25QLGQUQJLGL6RHA7H53UOAC32FZ \ / AMOS7 \ YOURUM ::
-#\[7]BS2NQEJ2CCO4JJUIOOXPCC5UZCDJFGPP4L66R6I6JXYIE4VMTODA 7  DATA SIGNATURE ::
+#,,..,...,,,,,..,,,.,,...,,,,,..,,..,,,..,,..,..,,...,...,,,,,.,.,,,,,,,.,,.,,
+#2W7C2HR6OZMLUZFQXRGWMNRZTNOSH7MDLGWRBXXDHPOWGZXV2X5SIX74J5X2N2ARY4KW3UJTEHR3G
+#\\\|CRW4FOYMDINF6RMDXJ4TO6SKERTLODUNNOQYNIBNLBMEVEM4QYQ \ / AMOS7 \ YOURUM ::
+#\[7]7L2XAFA4ZLF66FB3ZGPCVWP7JBGHDAH436DM4MVDHP2KUTZRP6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
