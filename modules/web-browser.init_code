@@ -14,10 +14,10 @@ $ENV{'NO_AT_BRIDGE'} = 1;
 $ENV{'GTK_DEBUG'}    = qw| no |;
 $ENV{'GDK_DEBUG'}    = qw| no |;
 
-## must be set before Gtk3->init [ web-browser.open_window ] -- Xcursor    ##
+## must be set before Gtk3->init [ web-browser.open_window ] -- Xcursor   ##
 ## theme size is read once at X11/GDK connection setup, applies to every  ##
 ## native cursor glyph [ left_ptr, crosshair, .. ] uniformly. left unset, ##
-## some environments render the default theme at an oversized pixel size ##
+## some environments render the default theme at an oversized pixel size  ##
 $ENV{'XCURSOR_SIZE'} = <web-browser.cfg.cursor_size> // 24;
 
 <web-browser.title_prefix> = qw| amos-desktop |;
@@ -28,12 +28,11 @@ $ENV{'XCURSOR_SIZE'} = <web-browser.cfg.cursor_size> // 24;
     )
 };
 
-## themed reticle cursor for the window-level default [ before WebKit's   ##
-## own per-element cursor tracking takes over on the first mouse-move ];  ##
-## set to '' in start config to fall back to change_cursor / native ##
-<web-browser.cfg.cursor_image> //= catfile(
-    <system.root_path>, qw| data/gfx/icons/protocol-7/cursor-reticle.png |
-);
+## themed reticle cursor for the window-level default [ before WebKit's own ##
+## per-element cursor tracking takes over on the first mouse-move ]; set to ##
+## '' in start config to fall back to change_cursor / native                ##
+<web-browser.cfg.cursor_image> //= catfile( <system.root_path>,
+    qw| data/gfx/icons/protocol-7/cursor-reticle.png | );
 
 ## setting <web-browser.window.title_str> ##
 <[web-browser.start-up.init_window_title]>;
@@ -111,9 +110,10 @@ if (<web-browser.open_gtk_inspector>) {
 
 package Browser::ScrolledWindow;
 
-## guard against re-registration on module reload -- glib types are permanent ##
-## use eval STRING: Glib::Object::Subclass has no callable ->import(); it relies
-## on compile-time BEGIN magic which only fires correctly inside a string eval  ##
+## guard against re-registration on module reload -- glib types are   ##
+## permanent use eval STRING: Glib::Object::Subclass has no callable  ##
+## ->import(); it relies on compile-time BEGIN magic which only fires ##
+## correctly inside a string eval                                     ##
 unless ( eval { Browser::ScrolledWindow->isa('Gtk3::ScrolledWindow') } ) {
     eval 'package Browser::ScrolledWindow;
           use Glib::Object::Subclass qw| Gtk3::ScrolledWindow |;';
@@ -186,8 +186,8 @@ $code{'base.handler.end_code'} = sub {
 
 0;
 
-#,,..,,..,.,,,.,,,,,.,,,.,...,,..,,,.,.,.,..,,..,,...,..,,...,,,.,,,.,.,.,,.,,
-#IG222UG57JM3JQ6NDMXULYFHF6F32HJZIJIRAZFFNHEECUQ6D6KMFJZRAEGSRWPQV275HWAQIRJKI
-#\\\|3OAV5PHZFL4HEWL73ICCYURWHYQ47JH3DU4773YO3ZG4GQ3Q4PQ \ / AMOS7 \ YOURUM ::
-#\[7]CRN2O2L3ECWTFQGS2ZUUDIWXU5AHNKYIQAEZ5XDXIVHFTY6OX2AY 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,.,,,,,,,..,.,,,..,,,..,,.,,,..,..,,...,...,...,.,.,.,.,.,,,,,.,
+#QNCFOLNMDL3QFRWJ7BNJXIU7QCYBBHYU4UWRFKBTCIWWKKMOWYWTU5UKV5IIEMVA3GE54LUM5VWOY
+#\\\|XJPNACJMD64HUHP5DCUX6IWGVMN5OGD3NHODBPBM42WLGUN7U2X \ / AMOS7 \ YOURUM ::
+#\[7]N3SNVWJ2KCMXXVUGTYE5PPMP47YWQVZXEX3IJM5SPGQPNLXFDMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

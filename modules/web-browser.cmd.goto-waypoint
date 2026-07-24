@@ -15,9 +15,9 @@ my $name   = shift @tokens // '';
 
 return {
     'mode' => qw| false |,
-    'data' => 'usage: goto-waypoint <name> [duration=<ms>]'
-        . ' [path=linear|bezier] [force=1] [tolerance=0.01]'
-        . ' [samples=5] [timeout=10]'
+    'data' => 'usage: goto-waypoint <name> [duration=<ms>] '
+        . '[path=linear|bezier] [force=1] [tolerance=0.01] '
+        . '[samples=5] [timeout=10]'
     }
     if !length $name;
 
@@ -64,8 +64,8 @@ foreach my $token (@tokens) {
     }
 }
 
-##  pin check : waypoint must match current foreground page  ##
-##  [ same computation as replay-play ]                      ##
+## pin check : waypoint must match current foreground page  [ same ##
+## computation as replay-play ]                                    ##
 if ( not $force ) {
     my $cur_url     = $view->get_uri() // '';
     my $cur_subject = $cur_url;
@@ -101,8 +101,8 @@ $play_args
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,,..,..,,.,,,.,.,,.,,..,,.,,,.,.,,,,,.,.,..,,...,...,...,,.,,,.,,,..,.,,,
-#TXSLP5SVGE34NKYSIU3YQCBIXUVBB26D6K65Q6OPKAYCPZERWSH5OYPGIDTFJ4I4FXFPJTUCWSG6Q
-#\\\|3IPM4O6DTXFFV4GPZMQQ5I6FDUAP33OY5T6E6ID4TYCFO6UNA5B \ / AMOS7 \ YOURUM ::
-#\[7]TB5NSES2MTBMTS63BN5IDU2NIFT5UUTI2DUFB7UEDI5KJUJCUEDY 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,,,,,...,,,.,,..,.,.,.,,,.,,,..,,..,,...,...,.,.,.,,,...,..,,.,,,
+#7OJQHLB2KGAMMP66BD5MUCXNGTDUWXGW3OEJCAR4IQMNWOZFI5TQURRNYBR5CTXX47HGIOAATOMYY
+#\\\|C7NRKA4VEPJVCJGWJCFQI6MUZNKLGDLQIA4GO7OOU5HF5JX47QA \ / AMOS7 \ YOURUM ::
+#\[7]OI24D6NL7JAQAD64XOAK74H2VQJSHC7LYRKFKX7WKEPQDJK2D4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
