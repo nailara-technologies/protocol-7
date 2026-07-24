@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = ncode.cmd.expand
+# descr = persist candidates into the pattern library
+
+## accept a ready hashref [ programmatic call ] or a cube-dispatch call   ##
+## object carrying a json-encoded 'args' string [ p7c / network call ] -- ##
+## same adapter shape as ncode.cmd.assess                                 ##
+my $raw    = shift // {};
+my $params = {};
+if (    ref $raw eq qw| HASH |
+    and exists $raw->{'args'}
+    and not ref $raw->{'args'} ) {
+    my $args_str = $raw->{'args'} // '';
+    if ( length $args_str ) {
+        $params = eval { JSON::PP::decode_json($args_str) };
+        return {
+            'mode' => qw| false |,
+            'data' => "invalid JSON " . "arguments: $@"
+            }
+            if $@;
+    }
+} elsif ( ref $raw eq qw| HASH | ) {
+    $params = $raw;
+}
+
+## candidates : arrayref of raw candidate hashrefs [ name / pattern /      ##
+## replace / applicability / origin / ... -- the structured form, NOT      ##
+## ncode.cmd.assess's formatted display string ] ; passed straight through ##
+## to ncode.regex.expand unmodified                                        ##
+return { 'mode' => qw| false |, 'data' => 'candidates must be arrayref' }
+    unless ref( $params->{'candidates'} // [] ) eq qw| ARRAY |;
+
+return <[ncode.regex.expand]>->(
+    {   'candidates' => $params->{'candidates'},
+        'merge_mode' => $params->{'merge_mode'} // qw| add |
+    }
+);
+
+#,,.,,,.,,...,,..,.,.,,.,,.,,,.,.,..,,.,,,.,,,..,,...,...,,,,,,.,,..,,,,.,,..,
+#GLLHRJJRA5C6BH6EULFGQRIKANJK7HW5LO62NXABF3PQBBMHYOEZ2HMFYGD2MRC2HNY635CJKWMMM
+#\\\|RRKYUTTBXB2BCPVHQRLWET4EWYWFAASB5OASEZ64UUKGCA3TJWX \ / AMOS7 \ YOURUM ::
+#\[7]UIJYQ62V2AFP75CY2B6GNJ62V52CGBCP3TMGZNQJMADB32PUYOCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -48,8 +48,9 @@ if ( length $session ) {
     return { 'mode' => qw| false |, 'data' => 'specify fix ids or session' };
 }
 
-my $applied_count = 0;
-my $failed_count  = 0;
+my $applied_count         = 0;
+my $failed_count          = 0;
+my $review_required_count = 0;
 
 foreach my $fix_id (@fix_ids) {
     my $fix = $pending->{$fix_id};
@@ -70,6 +71,22 @@ foreach my $fix_id (@fix_ids) {
         <[base.logs]>->(
             1, ':. ncode.cmd.apply: pattern %s not loaded :.', $pname
         );
+        next;
+    }
+
+    ## review gate : llm-required patterns only apply to fixes that an llm  ##
+    ## review [ ncode.cmd.review ] has approved for this instance ; never   ##
+    ## attempted, so no stats counters are touched and the skip is reported ##
+    ## separately from real failures in the summary                         ##
+    if ( ( $def->{'status'} // qw| llm-required | ) eq qw| llm-required |
+        and not $fix->{'reviewed'} ) {
+        <[base.logs]>->(
+            1,
+            ':. ncode.cmd.apply: %s requires review '
+                . '[ call ncode.cmd.review first ] :.',
+            $fix_id
+        );
+        $review_required_count++;
         next;
     }
 
@@ -309,11 +326,13 @@ foreach my $fix_id (@fix_ids) {
 
 my $summary = "$applied_count fixes applied";
 $summary .= ", $failed_count failed" if $failed_count;
+$summary .= ", $review_required_count require review"
+    if $review_required_count;
 
 return { 'mode' => 'size', 'data' => $summary };
 
-#,,,.,..,,,.,,,,.,,,.,.,.,.,.,,.,,.,,,.,,,,,.,.,.,...,...,...,..,,,,.,,.,,,,.,
-#MKSPVXYUVL6W6JEMXNEBSBPYLGRH5F4P5J4C4B4OUWGJ6PTLNQJ7A37EZ7MLF4C3KQ3K3I4SRCDVA
-#\\\|K3THNAIL44UUXW5DXLBNRVKJWBLKEAVZQXKGP66T65O2B53CMBJ \ / AMOS7 \ YOURUM ::
-#\[7]D27MM4AHXXYAXG7C2CRP23XYFTVDC3XYBPKZWI3Q3JO2HYLBNIAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,,,,,,,,,.,,.,.,,..,,.,,..,,,.,,.,.,...,...,.,.,,,.,,.,,,.,,.,.,
+#ZAT7LL5DLXGGHMZ7PH6VS7QANRWTSCZIATJ2KESVRQYJQXODFCPFOEFYAUBXSQPCUMPK7GLVIJHQO
+#\\\|FTPEARDL2VZAMSG6COAUQMHYWSMTMYHEFTQRMPJ4TYY3KFOLVMP \ / AMOS7 \ YOURUM ::
+#\[7]IDBZW4JMDJJ5P2JJHEYHHQS62JPBBZOXAQTBKPPPL2E7FFWPC2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
