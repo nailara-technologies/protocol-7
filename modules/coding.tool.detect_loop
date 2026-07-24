@@ -4,16 +4,16 @@
 # descr = detect repetitive tool call patterns, assert with model, escalate
 
 ##============================================================================##
-##  LOOP DETECTION SYSTEM - Multi-phase with model assertion                  ##
+## LOOP DETECTION SYSTEM - Multi-phase with model assertion ##
 ##============================================================================##
-##                                                                            ##
-##  Phase 1: SUSPICION  - Pattern detectors flag potential loops              ##
-##  Phase 2: ASSERTION  - Ask model to self-assess if looping                 ##
-##  Phase 3: ESCALATION - Intervene only if model confirms loop               ##
-##                                                                            ##
-##  Pattern registry allows expandable detection without code changes         ##
-##  Tool weights allow per-tool loop probability scoring                      ##
-##                                                                            ##
+##                                                                          ##
+##  Phase 1: SUSPICION  - Pattern detectors flag potential loops            ##
+##  Phase 2: ASSERTION  - Ask model to self-assess if looping               ##
+##  Phase 3: ESCALATION - Intervene only if model confirms loop             ##
+##                                                                          ##
+##  Pattern registry allows expandable detection without code changes Tool  ##
+##  weights allow per-tool loop probability scoring                         ##
+##                                                                          ##
 ##============================================================================##
 
 my ( $task, $tool_calls, $phase, $model_content ) = @ARG;
@@ -25,17 +25,17 @@ return qw| false | unless ref $task eq qw| HASH |;
 return qw| false | unless ref $tool_calls eq qw| ARRAY |;
 
 ##----------------------------------------------------------------------------##
-## Tool Loop Probability Weights                                              ##
+## Tool Loop Probability Weights ##
 ##----------------------------------------------------------------------------##
-## Higher weight = more likely to indicate looping when repeated              ##
-##                                                                            ##
-## read_module: medium (legitimate for research, but often in loops)          ##
-## tree_read:   medium (directory traversal can loop)                         ##
-## grep:        low (frequently used legitimately)                            ##
-## search_web:  low (external calls are expensive, usually purposeful)        ##
-## shell:       high (command execution should vary)                          ##
-##                                                                            ##
-## Weights are multiplied by repetition count for scoring                     ##
+## Higher weight = more likely to indicate looping when repeated       ##
+##                                                                     ##
+## read_module: medium (legitimate for research, but often in loops)   ##
+## tree_read:   medium (directory traversal can loop)                  ##
+## grep:        low (frequently used legitimately)                     ##
+## search_web:  low (external calls are expensive, usually purposeful) ##
+## shell:       high (command execution should vary)                   ##
+##                                                                     ##
+## Weights are multiplied by repetition count for scoring              ##
 ##----------------------------------------------------------------------------##
 
 my %tool_loop_weights = (
@@ -56,12 +56,12 @@ my %tool_loop_weights = (
 );
 
 ##----------------------------------------------------------------------------##
-## Pattern Registry - expandable list of loop detectors                       ##
+## Pattern Registry - expandable list of loop detectors ##
 ##----------------------------------------------------------------------------##
 
 my @pattern_registry = (
 
-    ## Pattern: Strict alternation (A-B-A-B-A-B...) - high confidence loop    ##
+    ## Pattern: Strict alternation (A-B-A-B-A-B...) - high confidence loop ##
     {   'name'     => 'strict_alternation',
         'priority' => 1,
         'min_hits' => 6,
@@ -86,7 +86,7 @@ my @pattern_registry = (
         'allow_polling' => 0,
     },
 
-    ## Pattern: Tri-cycle repeat (A-B-C-A-B-C-A-B-C...)                        ##
+    ## Pattern: Tri-cycle repeat (A-B-C-A-B-C-A-B-C...) ##
     {   'name'     => 'tricycle_repeat',
         'priority' => 2,
         'min_hits' => 9,
@@ -114,8 +114,8 @@ my @pattern_registry = (
         'allow_polling' => 0,
     },
 
-    ## Pattern: Same tool repeated many times (possible stuck retry)          ##
-    ## no assertion : same tool 3 times in a row is definitively stuck       ##
+    ## Pattern: Same tool repeated many times (possible stuck retry) no ##
+    ## assertion : same tool 3 times in a row is definitively stuck     ##
     {   'name'     => 'stuck_retry',
         'priority' => 3,
         'min_hits' => 5,
@@ -134,10 +134,10 @@ my @pattern_registry = (
         'allow_polling' => 0,
     },
 
-    ## Pattern: File not found spiral (retrying identical call repeatedly)       ##
-    ## matches on full tool signature (path + offset + all args) so that        ##
-    ## legitimate sliding-window reads (same file, different offsets) do not    ##
-    ## trigger : only true stuck retries of the exact same call do              ##
+    ## Pattern: File not found spiral (retrying identical call repeatedly) ##
+    ## matches on full tool signature (path + offset + all args) so that   ##
+    ## legitimate sliding-window reads (same file, different offsets) do   ##
+    ## not trigger : only true stuck retries of the exact same call do     ##
     {   'name'     => 'file_not_found_spiral',
         'priority' => 2,
         'min_hits' => 4,
@@ -162,13 +162,13 @@ my @pattern_registry = (
         'confidence'    => 0.85,
         'allow_polling' => 0,
         'warning'       =>
-            'identical read_file call repeated 3+ times : file likely'
-            . ' does not exist or path is wrong. check module name vs core sub'
-            . ' (base.ntime.b32, base.time etc. live in bin/Protocol-7)',
+            'identical read_file call repeated 3+ times : file likely does '
+            . 'not exist or path is wrong. check module name vs core sub '
+            . '(base.ntime.b32, base.time etc. live in bin/Protocol-7)',
     },
 
-    ## Pattern: Same tool with same parameters (definite loop)                ##
-    ## DISABLED: Batched tool calls cause false positives                      ##
+    ## Pattern: Same tool with same parameters (definite loop) ##
+    ## DISABLED: Batched tool calls cause false positives      ##
 # {   'name'     => 'identical_calls',
 #     'priority' => 2,
 #     'min_hits' => 4,
@@ -188,7 +188,7 @@ my @pattern_registry = (
 #     'allow_polling' => 0,
 # },
 
-    ## Pattern: High frequency read operations (research spiral)              ##
+    ## Pattern: High frequency read operations (research spiral) ##
     {   'name'     => 'research_spiral',
         'priority' => 4,
         'min_hits' => 12,
@@ -208,7 +208,7 @@ my @pattern_registry = (
         'allow_polling' => 1,
     },
 
-    ## Pattern: Identical model responses (stuck in repetitive output)        ##
+    ## Pattern: Identical model responses (stuck in repetitive output) ##
     {   'name'     => 'identical_response',
         'priority' => 1,
         'min_hits' => 5,
@@ -232,8 +232,9 @@ my @pattern_registry = (
         'allow_polling' => 0,
     },
 
-    ## Pattern: Similar response prefix repeated (truncated-loop variant)     ##
-    ## catches models stuck retrying same failed tool call with same reasoning ##
+    ## Pattern: Similar response prefix repeated (truncated-loop variant) ##
+    ## catches models stuck retrying same failed tool call with same      ##
+    ## reasoning                                                          ##
     {   'name'     => 'similar_response_prefix',
         'priority' => 2,
         'min_hits' => 4,
@@ -255,7 +256,7 @@ my @pattern_registry = (
 );
 
 ##----------------------------------------------------------------------------##
-## Utility: Get or initialize loop detection state                            ##
+## Utility: Get or initialize loop detection state ##
 ##----------------------------------------------------------------------------##
 
 my $ld_state = $task->{'execution'}->{'loop_detection'} //= {
@@ -272,7 +273,7 @@ my $ld_state = $task->{'execution'}->{'loop_detection'} //= {
 };
 
 ##----------------------------------------------------------------------------##
-## Phase: SUSPICION - Check if current tool calls trigger pattern match       ##
+## Phase: SUSPICION - Check if current tool calls trigger pattern match ##
 ##----------------------------------------------------------------------------##
 
 if ( $phase eq 'suspicion' ) {
@@ -282,8 +283,8 @@ if ( $phase eq 'suspicion' ) {
     for my $tc (@$tool_calls) {
         my $name = $tc->{'function'}->{'name'} // $tc->{'name'} // '?';
         my $args = $tc->{'function'}->{'arguments'} // {};
-        ## include argument hash to distinguish different calls ##
-        ## args may be a JSON string (state machine encodes them) ##
+        ## include argument hash to distinguish different calls args may be ##
+        ## a JSON string (state machine encodes them)                       ##
         my $arg_sig = '';
         if ( !ref $args && length $args ) {
             ## parse JSON string to hashref for arg extraction ##
@@ -318,8 +319,8 @@ if ( $phase eq 'suspicion' ) {
     my $history = $ld_state->{'tool_history'};
     my @matched_patterns;
 
-    ## Calculate cumulative loop score from LAST 8 entries only ##
-    ## This prevents old patterns from inflating the score indefinitely ##
+    ## Calculate cumulative loop score from LAST 8 entries only This ##
+    ## prevents old patterns from inflating the score indefinitely   ##
     my $cumulative_score = 0;
     my @recent           = @$history > 8 ? @$history[ -8 .. -1 ] : @$history;
     for my $h (@recent) {
@@ -341,7 +342,8 @@ if ( $phase eq 'suspicion' ) {
 
             <[base.logs]>->(
                 1,
-                "::loop-detect:: suspicion: pattern '%s' matched [conf=%.2f, score=%.1f]",
+                "::loop-detect:: suspicion: pattern "
+                    . "'%s' matched [conf=%.2f, score=%.1f]",
                 $pattern->{'name'},
                 $pattern->{'confidence'},
                 $cumulative_score
@@ -365,10 +367,11 @@ if ( $phase eq 'suspicion' ) {
                 'score'           => $cumulative_score,
                 'skip_assert'     => 1,
                 'escalate_direct' => 1,
-                'message'         =>
-                    sprintf(
-                    "[LOOP DETECTED: score %.1f] High cumulative loop probability",
-                    $cumulative_score )
+                'message'         => sprintf(
+                    "[LOOP DETECTED: score %.1f] "
+                        . "High cumulative loop probability",
+                    $cumulative_score
+                )
             };
         }
 
@@ -381,7 +384,8 @@ if ( $phase eq 'suspicion' ) {
                 'score'       => $cumulative_score,
                 'skip_assert' => 1,
                 'message'     => sprintf(
-                    "[LOOP DETECTED after %d tool calls] Pattern '%s' detected",
+                    "[LOOP DETECTED after %d tool "
+                        . "calls] Pattern '%s' detected",
                     scalar(@$history), $top_pattern->{'name'}
                 )
             };
@@ -403,7 +407,7 @@ if ( $phase eq 'suspicion' ) {
 }
 
 ##----------------------------------------------------------------------------##
-## Phase: ASSERTION - Process model's self-assessment response                ##
+## Phase: ASSERTION - Process model's self-assessment response ##
 ##----------------------------------------------------------------------------##
 
 elsif ( $phase eq 'assertion' ) {
@@ -486,7 +490,7 @@ elsif ( $phase eq 'assertion' ) {
 }
 
 ##----------------------------------------------------------------------------##
-## Phase: ESCALATION - Intervention confirmed, return warning                 ##
+## Phase: ESCALATION - Intervention confirmed, return warning ##
 ##----------------------------------------------------------------------------##
 
 elsif ( $phase eq 'escalation' ) {
@@ -501,7 +505,8 @@ elsif ( $phase eq 'escalation' ) {
 
     <[base.logs]>->(
         0,
-        "::loop-detect:: ESCALATING after %d rounds, %d assertions, score %.1f",
+        "::loop-detect:: ESCALATING after "
+            . "%d rounds, %d assertions, score %.1f",
         $rounds,
         $asserts,
         $score
@@ -512,16 +517,14 @@ elsif ( $phase eq 'escalation' ) {
         'intervention_count' => $ld_state->{'intervention_count'},
         'score'              => $score,
         'warning'            => sprintf(
-            "[LOOP ESCALATION - Round %d, Score %.1f]\n\n"
-                . "Detected patterns: %s\n"
-                . "Model assertions: %d\n\n"
-                . "The AI appears to be stuck in a repetitive pattern.\n\n"
-                . "RECOMMENDED ACTIONS:\n"
-                . "1. Synthesize current findings and conclude\n"
-                . "2. Summarize progress and ask user for direction\n"
-                . "3. Use task_complete if sufficient work is done\n"
-                . "4. Consider task_escalate if truly stuck\n\n"
-                . "Continuing without change will hit the %d round limit.",
+            "[LOOP ESCALATION - Round %d, Score %.1f]\n\nDetected patterns: "
+                . "%s\nModel assertions: %d\n\nThe AI appears to be stuck in "
+                . "a repetitive pattern.\n\nRECOMMENDED ACTIONS:\n1. "
+                . "Synthesize current findings and conclude\n2. Summarize "
+                . "progress and ask user for direction\n3. Use task_complete "
+                . "if sufficient work is done\n4. Consider task_escalate if "
+                . "truly stuck\n\nContinuing without change will hit the %d "
+                . "round limit.",
             $rounds,  $score, $patterns || 'unknown',
             $asserts, 777
         )
@@ -531,8 +534,8 @@ elsif ( $phase eq 'escalation' ) {
 ## Unknown phase ##
 return qw| false |;
 
-#,,,,,.,.,,,,,..,,..,,.,.,,,,,.,.,...,...,,.,,.,.,...,...,.,,,,,,,,,,,..,,,,,,
-#KJBUUI7STMBVV5NMKXACX2VX53VEWSRVXUMK5RRMBLTBC6GDQPNLVRUTRPKNPBIZAXM4EEUJLRPFQ
-#\\\|DOO3MYKZN6R5ZV26THOSJSV3CCIST34PEVU4ODBGNSQIWC52ETE \ / AMOS7 \ YOURUM ::
-#\[7]FVNRZBDSNOYEBPWJ6MVQS5WBDASVE57JUUB5XXMZDQ67FXFBUSCA 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,,..,,..,.,.,...,,..,,,.,..,,.,,,.,.,...,...,..,,...,,.,,,.,,.,.,
+#IFFUSJF3HLVFXVPKWQKWVDWHZWEP4RQYLS7ANJ3O2YNBDZL46LT6IVT3URJ6QUJK7QKJW4WLSMNZA
+#\\\|RZCFMNTXJT5FQHLZ7WF2Y4XH6OSMOSZYBZCBETC3QT42I67GWBX \ / AMOS7 \ YOURUM ::
+#\[7]QOXCDJDWSMZGS7NPP62P5LWM2ZKAZJ6KPVKIKA5KIKXZKPVHN4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

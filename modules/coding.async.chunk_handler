@@ -30,16 +30,16 @@ return $context unless defined $choice;
 ## extract delta content [ fallback to message for non-sse responses ] ##
 my $delta = $choice->{'delta'} // $choice->{'message'} // {};
 
-## accumulate reasoning_content separately [ qwen3 thinking trace ] ##
-## never mix into content : it causes double-output in model_output buffer ##
+## accumulate reasoning_content separately [ qwen3 thinking trace ] never ##
+## mix into content : it causes double-output in model_output buffer      ##
 my $content = $delta->{'content'} // '';
 if ( length( $delta->{'reasoning_content'} // '' ) ) {
     $context->{'reasoning'} .= $delta->{'reasoning_content'};
     $context->{'has_reasoning_content'} = TRUE;
 }
 
-## handle tool calls in delta ##
-## streaming tool_calls come in partial chunks by index, need to merge ##
+## handle tool calls in delta  streaming tool_calls come in partial chunks ##
+## by index, need to merge                                                 ##
 if ( exists $delta->{'tool_calls'}
     && ref( $delta->{'tool_calls'} ) eq 'ARRAY' ) {
     foreach my $tc ( $delta->{'tool_calls'}->@* ) {
@@ -70,8 +70,8 @@ if ( length($content) ) {
     $context->{'content'} .= $content;
 }
 
-## extract <think> blocks from content into reasoning [ model may emit them inline ] ##
-## do this after accumulation to handle multi-chunk blocks ##
+## extract <think> blocks from content into reasoning [ model may emit them ##
+## inline ] do this after accumulation to handle multi-chunk blocks         ##
 while ( $context->{'content'} =~ s|<think>(.*?)</think>||s ) {
     my $reasoning_text = $1;
     $reasoning_text =~ s|^\s+||;
@@ -90,10 +90,10 @@ if ( defined $choice->{'finish_reason'} ) {
     my $finish = $choice->{'finish_reason'};
     $context->{'finish_reason'} = $finish;
 
-    ## fall back to reasoning if content is empty at finish ##
-    ## qwen3 thinking models sometimes emit only reasoning_content ##
-    ## strip tool call markup : tool calls are handled separately and  ##
-    ## leaving xml in content confuses the model in subsequent rounds  ##
+    ## fall back to reasoning if content is empty at finish  qwen3 thinking ##
+    ## models sometimes emit only reasoning_content strip tool call markup  ##
+    ## : tool calls are handled separately and leaving xml in content       ##
+    ## confuses the model in subsequent rounds                              ##
     if (  !length( $context->{'content'} // '' )
         && length( $context->{'reasoning'} // '' ) ) {
         my $reasoning_text = $context->{'reasoning'};
@@ -109,8 +109,8 @@ if ( defined $choice->{'finish_reason'} ) {
     $content_preview =~ s/\n/ /g;
     <[base.logs]>->(
         2,
-        "chunk_handler: task %s finish_reason=%s"
-            . " content=[%s...] tool_calls=%d",
+        "chunk_handler: task %s finish_reason=%s "
+            . "content=[%s...] tool_calls=%d",
         $task_id,
         $finish,
         $content_preview,
@@ -134,21 +134,22 @@ if ( defined $choice->{'finish_reason'} ) {
         || $finish eq 'end_turn'
         || $finish eq 'tool_calls'
         || $finish eq 'function_call' ) {
-        ## finish=tool_calls with empty tool_calls array falls through here
-        ## [ server quirk : claimed tool call but delivered none ]. treat as
-        ## stop so xml/json fallback parse runs and, failing that, finish_stop
-        ## dispatches so the state machine reaches a terminal state. without
-        ## this the round stalls at sm_state='streaming' and the task never
-        ## completes or fails, orphaning the caller [ task-zenka records
-        ## stuck at in_progress forever ]. ##
-        ## guard: don't complete parent while compaction subtask is pending ##
+        ## finish=tool_calls with empty tool_calls array falls through here ##
+        ## [ server quirk : claimed tool call but delivered none ]. treat   ##
+        ## as stop so xml/json fallback parse runs and, failing that,       ##
+        ## finish_stop dispatches so the state machine reaches a terminal   ##
+        ## state. without this the round stalls at sm_state='streaming' and ##
+        ## the task never completes or fails, orphaning the caller [        ##
+        ## task-zenka records stuck at in_progress forever ].  guard: don't ##
+        ## complete parent while compaction subtask is pending              ##
         my $task_state
             = <[coding.async.state_manager]>->( qw| get |, $task_id );
         if ( defined $task_state
             && length( $task_state->{'compaction_pending'} // '' ) ) {
             <[base.logs]>->(
                 1,
-                "chunk_handler: %s finish_stop but compaction %s pending : holding",
+                "chunk_handler: %s finish_stop but "
+                    . "compaction %s pending : holding",
                 $task_id,
                 $task_state->{'compaction_pending'}
             );
@@ -162,8 +163,9 @@ if ( defined $choice->{'finish_reason'} ) {
             return $context;
         }
 
-        ## intercept model_selection responses on self-select tasks [ round 0 ] ##
-        ## round 0 of a self-select task never completes : it always continues ##
+        ## intercept model_selection responses on self-select tasks [ round ##
+        ## 0 ] round 0 of a self-select task never completes : it always    ##
+        ## continues                                                        ##
         my $task_ref_ch = <coding.task.queue>->{$task_id} // {};
         if (    ( $task_ref_ch->{'self_select_model'} // 0 )
             and ( $context->{'round'} // 0 ) == 0
@@ -189,8 +191,8 @@ if ( defined $choice->{'finish_reason'} ) {
                 if ( !$valid_reason ) {
                     <[base.logs]>->(
                         1,
-                        "chunk_handler: %s model_selection reason rejected"
-                            . " [ %d words ] : using default backend",
+                        "chunk_handler: %s model_selection reason "
+                            . "rejected [ %d words ] : using default backend",
                         $task_id,
                         scalar(@words)
                     );
@@ -208,8 +210,8 @@ if ( defined $choice->{'finish_reason'} ) {
             } else {
                 <[base.logs]>->(
                     1,
-                    "chunk_handler: %s model_selection block not found"
-                        . " : using default backend %s",
+                    "chunk_handler: %s model_selection block "
+                        . "not found : using default backend %s",
                     $task_id,
                     $old_backend
                 );
@@ -277,16 +279,16 @@ if ( defined $choice->{'finish_reason'} ) {
                 }
             );
         } else {
-            ## check for tool calls in content [ model quirk ] ##
-            ## models emit tool calls as xml or json in content ##
-            ## instead of structured tool_calls array ##
+            ## check for tool calls in content [ model quirk ] models emit ##
+            ## tool calls as xml or json in content instead of structured  ##
+            ## tool_calls array                                            ##
             my $parsed_tools
                 = <[coding.parse.xml_tool_calls]>->( $context->{'content'} );
 
             ## also check reasoning_content : qwen3 thinking emits xml tool ##
-            ## calls in reasoning_content rather than content                ##
-            ## skip for no_tools tasks : model hallucinating tool calls in   ##
-            ## reasoning has no tools to call, treat as normal completion    ##
+            ## calls in reasoning_content rather than content skip for      ##
+            ## no_tools tasks : model hallucinating tool calls in reasoning ##
+            ## has no tools to call, treat as normal completion             ##
             my $task_flags_ch = <coding.task.queue>->{$task_id} // {};
             if (   !@{$parsed_tools}
                 && !$task_flags_ch->{'no_tools'}
@@ -321,19 +323,20 @@ if ( defined $choice->{'finish_reason'} ) {
                     }
                 );
             } else {
-                ## detect tool-call-shaped-but-unparseable content : model    ##
-                ## tried to call a tool in a format our parsers don't know    ##
-                ## [ e.g. <tool_code>...</tool_code>, <invoke name=..>, or    ##
-                ## a top-level {"name":..,"arguments":..} json blob ]. left   ##
-                ## alone this silently completes as status:done with the raw  ##
-                ## unparseable text as the "final answer", eroding trust in   ##
-                ## the completion signal. nudge with a format reminder and    ##
-                ## retry a bounded number of times [ mirrors the retry        ##
-                ## discipline in coding.handler.monitor_inference_startup's   ##
-                ## cat-test path ]; if the model keeps producing the same     ##
-                ## shape, fail the task cleanly with a real error rather than ##
-                ## reporting done. skip on no_tools tasks : no tools to call, ##
-                ## a stray shape there is genuinely just prose.               ##
+                ## detect tool-call-shaped-but-unparseable content : model  ##
+                ## tried to call a tool in a format our parsers don't know  ##
+                ## [ e.g. <tool_code>...</tool_code>, <invoke name=..>, or  ##
+                ## a top-level {"name":..,"arguments":..} json blob ]. left ##
+                ## alone this silently completes as status:done with the    ##
+                ## raw unparseable text as the "final answer", eroding      ##
+                ## trust in the completion signal. nudge with a format      ##
+                ## reminder and retry a bounded number of times [ mirrors   ##
+                ## the retry discipline in                                  ##
+                ## coding.handler.monitor_inference_startup's cat-test path ##
+                ## ]; if the model keeps producing the same shape, fail the ##
+                ## task cleanly with a real error rather than reporting     ##
+                ## done. skip on no_tools tasks : no tools to call, a stray ##
+                ## shape there is genuinely just prose.                     ##
                 my $shape_src         = $context->{'content'} // '';
                 my $tc_shape_detected = FALSE;
                 if ( !$task_flags_ch->{'no_tools'} ) {
@@ -350,10 +353,9 @@ if ( defined $choice->{'finish_reason'} ) {
                 }
 
                 if ($tc_shape_detected) {
-                    my $state_ur
-                        = <[coding.async.state_manager]>->( qw| get |,
-                        $task_id )
-                        // {};
+                    my $state_ur = <[coding.async.state_manager]>->(
+                        qw| get |, $task_id
+                    ) // {};
                     my $retry_max
                         = <coding.cfg.unparseable_tool_call_retry_max> // 2;
                     my $retries
@@ -364,13 +366,17 @@ if ( defined $choice->{'finish_reason'} ) {
                             = $retries + 1;
                         <[base.logs]>->(
                             1,
-                            'chunk_handler: %s tool-call-shaped-but-'
-                                . 'unparseable content : injecting format '
-                                . 'reminder [ attempt %d/%d ]',
-                            $task_id, $retries + 1, $retry_max
+                            'chunk_handler: %s '
+                                . 'tool-call-shaped-but-unparseable content '
+                                . ': injecting format reminder [ attempt '
+                                . '%d/%d ]',
+                            $task_id,
+                            $retries + 1,
+                            $retry_max
                         );
 
-                        ## record the model's [ unparseable ] turn in history ##
+                        ## record the model's [ unparseable ] turn in ##
+                        ## history                                    ##
                         push @{ $state_ur->{'messages'} },
                             {
                             'role'    => 'assistant',
@@ -405,18 +411,19 @@ if ( defined $choice->{'finish_reason'} ) {
                             0,
                             'chunk_handler: %s tool-call-shape persisted '
                                 . 'across %d reminders : failing task',
-                            $task_id, $retry_max
+                            $task_id,
+                            $retry_max
                         );
                         <[coding.async.state_machine]>->(
                             'transition',
                             $task_id,
                             {   'event' => 'error',
                                 'error' =>
-                                    'model produced tool-call-shaped output'
-                                    . ' in an unrecognized format across '
+                                    'model produced tool-call-shaped output '
+                                    . 'in an unrecognized format across '
                                     . ( $retry_max + 1 )
-                                    . ' attempts [ format-reminder retries'
-                                    . ' exhausted ]',
+                                    . ' attempts [ format-reminder '
+                                    . 'retries exhausted ]',
                             }
                         );
                         return $context;
@@ -464,8 +471,8 @@ if ( defined $choice->{'finish_reason'} ) {
 
 return $context;
 
-#,,,.,,..,...,.,.,.,,,.,,,,,.,.,,,.,.,...,,,.,.,.,...,...,..,,,,.,,..,.,.,,.,,
-#LYFIYLEKAVQFJRDZ4J2HAM3MN2TGXYBQBYXXIUNZ34SNOPCTZYOY3NW2EKGFAI5HO4OBA6BAIIDSM
-#\\\|R5UEGSK6HK4WWSX33CCMCONCHAHCWN4LUAB2ZG75VLJ6C6UFFBX \ / AMOS7 \ YOURUM ::
-#\[7]ZTEAC7EIKS6GZKA72WMFAV5VTIDDQ5VEFGQHR527WSB5BXFNECDY 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,.,,...,,.,,..,,,,.,.,.,,.,,,..,.,.,...,...,,.,,,,.,..,,.,,,,,.,
+#ZPKD3APNPTF5LY2U652MRLRRTL6MKKX5AWDW47CRFRHLB445WDKNZL7FRSYTCAU6XWRI5RHHPUJ7S
+#\\\|LDCAADDXP3Y6FSHPPDPNTCGOSWQBLJZS4VY2UOG67C5RODNFAJA \ / AMOS7 \ YOURUM ::
+#\[7]6O7VP6IGNFSSJY64OMOFOVZ34IMPPW4QIXPIVEX4MC3LCMXFCUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -18,8 +18,8 @@ unless ( defined fileno($fh) ) {
     return;
 }
 
-## single read per watcher invocation : yields to event loop ##
-## the watcher fires again automatically if more data arrives    ##
+## single read per watcher invocation : yields to event loop the watcher ##
+## fires again automatically if more data arrives                        ##
 my $buf = '';
 my $n   = sysread( $fh, $buf, 4096 );
 
@@ -29,8 +29,8 @@ if ( !defined $n ) {
         $watcher->cancel if defined $watcher;
         <[base.logs]>->( 2, "drain_pipe: pipe closed, watcher cancelled" );
     }
-    ## EAGAIN and other transient errors: return without cancelling ##
-    ## the watcher stays alive and fires again when readable        ##
+    ## EAGAIN and other transient errors: return without cancelling the ##
+    ## watcher stays alive and fires again when readable                ##
     return;
 }
 
@@ -46,8 +46,8 @@ if ( $n == 0 ) {
 
 return;
 
-#,,,.,,.,,,,,,,,,,,,.,,.,,.,.,,..,,..,.,.,,.,,..,,...,...,..,,,,.,,,,,..,,,,,,
-#KBC23USB74VM5KG2NSZ323RKT6K27WGRJOZNTNWID3UIU4IOMVPXF7NILBY33EET2QLP5HZIFPTTG
-#\\\|62GVMRBA6BFPF6FCQ44CDVE6CZVE3NMEXHB4EVSJP5DICGIIFC2 \ / AMOS7 \ YOURUM ::
-#\[7]V4HOSJ7D4ZQEMOTPS3DXJFHQZBNB5FEOGXG3PIKMYEMN53QPOGBI 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,...,,..,..,,.,,,.,.,..,,.,,,...,..,,...,...,...,,.,,,,.,,,,,,,,,
+#PIDNI5T7CWPPCFRCO3GQ5BD6OMU5TDHZGSUCDZ5D3I33725V72J6INJ35O6FQY5WRYY6ES3WFHQQA
+#\\\|NWRD56NRTJCRHTNTFA7VN7FHCZACU3QIQKNWGTM3DXDVDOZ6XGK \ / AMOS7 \ YOURUM ::
+#\[7]H3L5AZMODM3NVIP4OZQMFWDLU7QQNSV7P7Y5EUZMNPCRX65OP4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

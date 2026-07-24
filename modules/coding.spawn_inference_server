@@ -8,24 +8,21 @@ my $params = shift;
 my $backend = $params->{'backend'} // qw| cpu |;
 my $port    = $params->{'port'}    // 8000;
 
-## guard against concurrent spawns : any call path (crash restart, timeout ##
-## recovery, model_path_reply, deferred timer) hits this central lock      ##
-## also enforce a 30s cooldown: the seed sleep(0.0013) yields to the event ##
-## loop, which can let a second call through before the first completes    ##
+## guard against concurrent spawns : any call path (crash restart, timeout  ##
+## recovery, model_path_reply, deferred timer) hits this central lock also  ##
+## enforce a 30s cooldown: the seed sleep(0.0013) yields to the event loop, ##
+## which can let a second call through before the first completes           ##
 if (<coding.awaiting_resources>) {
     <[base.logs]>->(
         2,
-        '[spawn_inference_server] awaiting gpu resources'
-            . ' — spawn deferred %s',
+        '[spawn_inference_server] awaiting gpu resources — spawn deferred %s',
         $backend
     );
     return { 'success' => FALSE, 'error' => 'awaiting gpu resources' };
 }
 if (<coding.spawning_in_progress>) {
     <[base.logs]>->(
-        2,
-        '[spawn_inference_server] spawn already'
-            . ' in progress, skipping %s',
+        2, '[spawn_inference_server] spawn already in progress, skipping %s',
         $backend
     );
     return { 'success' => FALSE, 'error' => 'spawn already in progress' };
@@ -53,10 +50,10 @@ for my $w_key (
 ) {
     my $w = $old->{$w_key};
     next unless defined $w;
-    ## remove from watcher_pair BEFORE cancelling : if the old server's
-    ## "ready" event was already queued, cancel_watcher.backend_monitor
-    ## will fire after this and find no pair entry, returning early
-    ## (prevents drain watchers being set up on B's reused fd numbers) ##
+    ## remove from watcher_pair BEFORE cancelling : if the old server's ##
+    ## "ready" event was already queued, cancel_watcher.backend_monitor ##
+    ## will fire after this and find no pair entry, returning early     ##
+    ## (prevents drain watchers being set up on B's reused fd numbers)  ##
     my $paired = delete <coding.watcher_pair>->{$w};
     delete <coding.watcher_pair>->{$paired} if defined $paired;
     $w->cancel()                            if $w->is_active();
@@ -67,8 +64,8 @@ for my $fh_key (qw| io_stdout io_stderr |) {
 }
 if ( my $old_pid = $old->{'pid'} ) {
     if ( kill( 0, $old_pid ) ) {    ## process still exists ##
-        ## kill the entire process group : covers the server and any forked
-        ## workers (llama-server forks on first request; all share the pgid
+        ## kill the entire process group : covers the server and any forked ##
+        ## workers (llama-server forks on first request; all share the pgid ##
         ## set by our setpgid call at spawn time)                           ##
         kill( 'KILL', -$old_pid );     ## negative pid = kill process group ##
         <[base.waitpid]>->($old_pid);  ## reap the group leader's zombie    ##
@@ -103,11 +100,11 @@ for my $orphan_path ( glob "$zenka_dir/state/inference.$backend.*.pid" ) {
             close $cfh;
         }
         if ( length $saved_bin and $proc_cmd =~ m|\Q$saved_bin\E| ) {
-            ## $age_s is already an elapsed-seconds delta [ from        ##
-            ## timestamped_delta_s ] -- base.parser.duration expects an ##
-            ## absolute unix start-time and computes now-start itself,  ##
-            ## so reconstruct a start-time rather than passing the      ##
-            ## delta directly [ else it reports age since unix epoch ]  ##
+            ## $age_s is already an elapsed-seconds delta [ from          ##
+            ## timestamped_delta_s ] -- base.parser.duration expects an   ##
+            ## absolute unix start-time and computes now-start itself, so ##
+            ## reconstruct a start-time rather than passing the delta     ##
+            ## directly [ else it reports age since unix epoch ]          ##
             my $age_str
                 = defined $age_s
                 ? <[base.parser.duration]>->( <[base.time]>->() - $age_s )
@@ -116,8 +113,8 @@ for my $orphan_path ( glob "$zenka_dir/state/inference.$backend.*.pid" ) {
             <[base.waitpid]>->($saved_pid);
             <[base.logs]>->(
                 1,
-                '[spawn_inference_server] killed orphan %s server'
-                    . ' [pid:%d age:%s] from pid file',
+                '[spawn_inference_server] killed orphan '
+                    . '%s server [pid:%d age:%s] from pid file',
                 $backend,
                 $saved_pid,
                 $age_str
@@ -144,8 +141,8 @@ if ( open my $pfh, '-|', 'fuser', '-n', 'tcp', $port ) {
             push @killed_stale_pids, $stale_pid;
             <[base.logs]>->(
                 1,
-                '[spawn_inference_server] killed stale llama-server'
-                    . ' on port %d [pid:%d]',
+                '[spawn_inference_server] killed '
+                    . 'stale llama-server on port %d [pid:%d]',
                 $port,
                 $stale_pid
             );
@@ -193,11 +190,12 @@ if ( $backend eq qw| gpu | ) {
 
         ## Skip defunct (zombie) processes - they're dead but not reaped ##
         if ($pid) {
-            ## skip PIDs we just killed in the port scan (may linger briefly) ##
+            ## skip PIDs we just killed in the port scan (may linger ##
+            ## briefly)                                              ##
             next if grep { $_ == $pid } @killed_stale_pids;
 
-            ## skip child processes of our own server (llama-server forks
-            ## a worker on first request : same cmdline, different PID)   ##
+            ## skip child processes of our own server (llama-server forks a ##
+            ## worker on first request : same cmdline, different PID)       ##
             if ($own_pid) {
                 my $ppid = 0;
                 if ( open my $sfh, '<', "/proc/$pid/status" ) {
@@ -213,8 +211,8 @@ if ( $backend eq qw| gpu | ) {
             if ( open my $fh, '<', $stat_file ) {
                 my $stat = <$fh>;
                 close($fh);
-                ## defunct/zombie processes have 'Z' state in stat ##
-                ## stat format: pid (comm) state ppid ... ##
+                ## defunct/zombie processes have 'Z' state in stat stat ##
+                ## format: pid (comm) state ppid ...                    ##
                 if ( $stat && $stat =~ m|^\d+\s+\([^)]+\)\s+Z| ) {
                     next;    ## skip zombies ##
                 }
@@ -226,15 +224,15 @@ if ( $backend eq qw| gpu | ) {
     if (@foreign_procs) {
         <[base.logs]>->(
             0,
-            '[spawn_inference_server] foreign llama process detected,'
-                . ' refusing gpu spawn to prevent oom: %s',
+            '[spawn_inference_server] foreign llama process '
+                . 'detected, refusing gpu spawn to prevent oom: %s',
             join( '; ', @foreign_procs )
         );
         <coding.spawning_in_progress> = FALSE;
         return {
             'success' => FALSE,
-            'error'   => 'another llama process is'
-                . ' running : gpu spawn blocked'
+            'error'   => 'another llama process is '
+                . 'running : gpu spawn blocked'
         };
     }
 
@@ -248,8 +246,8 @@ if ( $backend eq qw| gpu | ) {
         if ( $free_mb < $model_size_mb + $safety_mb ) {
             <[base.logs]>->(
                 0,
-                '[spawn_inference_server] insufficient vram:'
-                    . ' free=%d MB model=%.0f MB safety=%d MB',
+                '[spawn_inference_server] insufficient '
+                    . 'vram: free=%d MB model=%.0f MB safety=%d MB',
                 $free_mb,
                 $model_size_mb,
                 $safety_mb
@@ -277,8 +275,8 @@ push @cmd, '--mmproj', $mmproj_path
 push @cmd, qw| --log-disable --log-file /dev/null |;
 
 # Add context and other parameters
-## context and generation limits from config ##
-## max_tokens defaults to context_length when not set separately ##
+## context and generation limits from config  max_tokens defaults to ##
+## context_length when not set separately                            ##
 my $max_tokens = <inference.model.max_tokens>
     // <inference.model.context_length> // 4096;
 
@@ -297,26 +295,25 @@ my $ctx_size;
 if ( defined <inference.model.context_length> ) {
     my $configured = <inference.model.context_length>;
     if ( $auto_ctx > $configured ) {
-        ## smaller model : auto-calc gives more ##
-        ##        context than configured floor ##
+        ## smaller model : auto-calc gives more  context than configured ##
+        ## floor                                                         ##
         $ctx_size = $auto_ctx;
         <[base.logs]>->(
             1,
-            '[spawn_inference_server] context expanded to %d'
-                . ' [auto > configured floor %d] [%s]',
+            '[spawn_inference_server] context expanded '
+                . 'to %d [auto > configured floor %d] [%s]',
             $ctx_size,
             $configured,
             $safe->{'explanation'}
         );
     } else {
-        ## large model : use configured floor ##
-        ##       even if above safe auto-calc ##
+        ## large model : use configured floor  even if above safe auto-calc ##
         $ctx_size = $configured;
         if ( $configured > $auto_ctx ) {
             <[base.logs]>->(
                 1,
-                ': context set to configured %d'
-                    . ' [ above %d auto-calc : user override ]',
+                ': context set to configured %d [ '
+                    . 'above %d auto-calc : user override ]',
                 $configured,
                 $auto_ctx
             );
@@ -327,16 +324,16 @@ if ( defined <inference.model.context_length> ) {
     <[base.logs]>->( 1, ': auto-context : %s', $safe->{'explanation'} );
 }
 
-## timeout-recovery ceiling : hard cap set by coding.callback.http_error  ##
-## after a data-start timeout. unlike the configured floor above, this    ##
-## MUST win over auto-calc — otherwise VRAM-pressure recovery never takes ##
-## effect and the timeout/restart loop repeats forever                    ##
+## timeout-recovery ceiling : hard cap set by coding.callback.http_error    ##
+## after a data-start timeout. unlike the configured floor above, this MUST ##
+## win over auto-calc — otherwise VRAM-pressure recovery never takes effect ##
+## and the timeout/restart loop repeats forever                             ##
 my $recovery_ceiling = <coding.cfg.ctx_recovery_ceiling>;
 if ( defined $recovery_ceiling and $ctx_size > $recovery_ceiling ) {
     <[base.logs]>->(
         1,
-        '[spawn_inference_server] context capped to %d'
-            . ' [timeout recovery ceiling, was %d]',
+        '[spawn_inference_server] context capped '
+            . 'to %d [timeout recovery ceiling, was %d]',
         $recovery_ceiling,
         $ctx_size
     );
@@ -359,7 +356,8 @@ push @cmd, qw| --no-warmup |;
 ## jinja template engine [ disable if new binary crashes on tool calls ] ##
 if ( <[base.cfg_bool]>->( <coding.jinja.enable> // 1 ) ) {
     push @cmd, qw| --jinja |;
-    ## fixed chat template override [ e.g. froggeric qwen3.5/3.6 bug fixes ] ##
+    ## fixed chat template override [ e.g. froggeric qwen3.5/3.6 bug fixes ##
+    ## ]                                                                   ##
     my $tmpl_file = <coding.jinja.template_file> // '';
     if ( length $tmpl_file and -r $tmpl_file ) {
         push @cmd, '--chat-template-file', $tmpl_file;
@@ -369,14 +367,16 @@ if ( <[base.cfg_bool]>->( <coding.jinja.enable> // 1 ) ) {
     }
 }
 
-## reasoning effort [ controls <think> budget : varies by model and task type ] ##
+## reasoning effort [ controls <think> budget : varies by model and task ##
+## type ]                                                                ##
 my $reasoning_effort = <coding.inference.reasoning_effort> // '';
 if ( length $reasoning_effort ) {
     push @cmd, '--chat-template-kwargs',
         sprintf( '{"reasoning_effort":"%s"}', $reasoning_effort );
 }
 
-## harmonic seed [ configurable fixed seed or generated from ntime+fortuna ] ##
+## harmonic seed [ configurable fixed seed or generated from ntime+fortuna ##
+## ]                                                                       ##
 my $fixed_seed = <inference.model.seed> // 0;
 my $seed;
 if ($fixed_seed) {
@@ -436,8 +436,8 @@ POSIX::setpgid( $pid, $pid );
 ## Report child PID to v7 for lifecycle management
 <[base.zenki.report_child_pid]>->($pid);
 
-## exponential-backoff poll for forked worker ##
-##             child [ 0.7s × 1.6 each miss ] ##
+## exponential-backoff poll for forked worker  child [ 0.7s × 1.6 each miss ##
+## ]                                                                        ##
 <[event.add_timer]>->(
     {   'after'   => 0.7,
         'handler' => qw| coding.handler.register_server_children |,
@@ -520,8 +520,8 @@ return {
     'port'    => $port
 };
 
-#,,..,,,,,.,,,,,.,..,,.,,,,.,,,,.,.,.,,..,,,,,..,,...,..,,...,,..,.,,,,.,,...,
-#T4VPJ7RTPHQQIJQLOSBKMNGNMBEZLH6TOXKASQMUOTS4HJAWWDPRH4PUGTHJGZD6ZUZPG6MQ7LWBW
-#\\\|VBNZPSMHHZJ4BKLYS3BQNVDA4RSVIWRDDK2D35LLYWFPNOXLO2M \ / AMOS7 \ YOURUM ::
-#\[7]K4OSHJB6RSGAIXXKO5UEBAOVYFLNB55BH6NIAJB6BHMAZT3CWQDQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,.,,,.,.,,.,,,..,.,.,...,,..,,,.,..,,...,...,,..,.,,,,.,,,,.,.,.,
+#4YMSJIEDMQJTJRHAXBWPKEAJZJ3GZCMJMHMZZOF2G2EOED4LYAFNR2HRBHROUAPP65P3SN3TLXSCS
+#\\\|3XODNAFA3ZLVVTVXTV2MYMHAT7UP6ECBN2KREHQYQLZ5KEL5EF4 \ / AMOS7 \ YOURUM ::
+#\[7]ZOM6FNF77NPYB2Z55ESL65NKIEW5LRZMKSCANPQYDJDPAPSG4ACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -25,7 +25,8 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
             $matched = 1;
             <[base.logs]>->(
                 0,
-                '[inference_server_sigchld] %s server crashed [pid=%d exit=%d]',
+                '[inference_server_sigchld] %s '
+                    . 'server crashed [pid=%d exit=%d]',
                 $backend,
                 $pid,
                 $exit_status
@@ -36,11 +37,13 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
             $server_info->{'crashed_at'}  = <[base.time]>->(3);
             $server_info->{'exit_status'} = $exit_status;
 
-            ## skip crash recovery if zenka is draining [ new twin instance owns GPU ] ##
+            ## skip crash recovery if zenka is draining [ new twin instance ##
+            ## owns GPU ]                                                   ##
             if (<coding.draining>) {
                 <[base.logs]>->(
                     1,
-                    '[inference_server_sigchld] draining — skipping %s crash restart',
+                    '[inference_server_sigchld] '
+                        . 'draining — skipping %s crash restart',
                     $backend
                 );
                 next;
@@ -63,7 +66,8 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
             if ( $restart_count > 5 ) {
                 <[base.logs]>->(
                     0,
-                    '[inference_server_sigchld] max restarts exceeded for %s server',
+                    '[inference_server_sigchld] max '
+                        . 'restarts exceeded for %s server',
                     $backend
                 );
                 $server_info->{'status'} = qw| failed |;
@@ -72,7 +76,8 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
 
             <[base.logs]>->(
                 1,
-                '[inference_server_sigchld] scheduling %s restart in %ds (attempt %d/5)',
+                '[inference_server_sigchld] scheduling '
+                    . '%s restart in %ds (attempt %d/5)',
                 $backend,
                 $backoff,
                 $restart_count
@@ -91,18 +96,19 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
     if ( not $matched ) {
         <[base.logs]>->(
             2,
-            '[inference_server_sigchld] reaped unknown child [pid=%d exit=%d]',
+            '[inference_server_sigchld] reaped '
+                . 'unknown child [pid=%d exit=%d]',
             $pid,
             $exit_status
         );
     }
 }
 
-## note: if $reaped == 0, the child was already reaped by another path
-## (e.g. Perl's system() waitpid) : this is normal, no action needed.
+## note: if $reaped == 0, the child was already reaped by another path (e.g.
+## Perl's system() waitpid) : this is normal, no action needed.
 
-#,,.,,.,.,...,...,,,.,...,...,.,.,.,,,,.,,,,.,..,,...,...,..,,.,.,,,.,...,...,
-#B7VKAUNFRUHWYE6WVXMDOJIM4T45WG33N2CPAP7GUECTV32YHQQCDKNQUZZPQCQJ5PGVSWAEFKYVI
-#\\\|YHEK7XSRJV3FUVMAATPJNKBZHVK6XLLTBQD6CXEJS2KWT4I2IQG \ / AMOS7 \ YOURUM ::
-#\[7]I3R7BR3JIQEDW4B43CTNQBOJCXLEYJDPDYL7QUN22VHNWLGUCUCQ 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,.,,,..,,...,...,,,,,...,..,,.,,,..,,...,...,.,,,...,...,.,,,,.,,
+#YMKGKAK3LBEGV5SX5ZXIRVBDWUHSIWMZAU6NQ4ZYPO4UEFQ5U5K6PC3HGHVFDCUMJUMS33YVJTKWI
+#\\\|57P6MFDPMULR67J3GNETRULW4WYM2WYEH3R7BIDTOS7344ZCOKP \ / AMOS7 \ YOURUM ::
+#\[7]23IRFBHA23E2WTNSFNDDKHGKTC2RLI5HMOM3DAX3WZWFLWZX4QDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

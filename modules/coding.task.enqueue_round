@@ -28,7 +28,8 @@ my $lock_result = <[coding.async.backend_acquire]>->( $task_id, $backend );
     $lock_result->{'acquired'} ? 'acquired' : 'queued'
 );
 
-## proceed immediately if lock acquired : backend_release handles queued case ##
+## proceed immediately if lock acquired : backend_release handles queued ##
+## case                                                                  ##
 <[coding.async.send_request]>->($task_id) if $lock_result->{'acquired'};
 
 return {
@@ -38,8 +39,8 @@ return {
     deferred => TRUE,
 };
 
-#,,,.,,,,,,,,,...,,,,,.,,,.,,,.,,,,,,,...,,..,..,,...,...,.,.,.,.,.,,,,,,,...,
-#QTBZVYGX7QS55HJ42GTFPUPQMMAGW2PKXJMCTHZW45CF4RCI7TFR6BZ2XRGPZEFQ2MDDNXASCXWQA
-#\\\|HTVERHOVOGTMNFZRH4Z525YQLSETR65YDLK5ZS276HTXXHVYCGQ \ / AMOS7 \ YOURUM ::
-#\[7]LPIGSFGMN22WQMBPPIVKPP4S3BPCX7IOW3VCCCZI5NOFELI3Y6AI 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,,.,,..,,,,,,.,,..,,,,,,.,.,,,.,..,,...,...,.,.,..,,...,,,,,.,.,
+#PHPJFEUG4V4HNT4GVM7FZGB3VIRGLZ6KGHVV3NTU2BKOLGZMJJ4RMM7LDMGSAOO4VNZYGUQWXNZOI
+#\\\|C6IPZVDRR3N4DX6M23UBYAAPJAIMGZJZ476HA2U4RKN2Z5SYRML \ / AMOS7 \ YOURUM ::
+#\[7]2V5BHZXHKW26BKZRMAWIZ2T7FEQRMNPZT7XONQMA5WHV4YFILMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,8 +13,8 @@ my $state = <[coding.async.state_manager]>->( qw| get |, $task_id );
 return { success => FALSE, error => "no state for $task_id" }
     unless defined $state;
 
-## build result from state ##
-## note: use || instead of // because fields may be defined but empty '' ##
+## build result from state  note: use || instead of // because fields may ##
+## be defined but empty ''                                                ##
 my $result_text = $state->{'final_content'} // $state->{'content'}
     // $state->{'response_text'} // '';
 my $result = {
@@ -27,8 +27,8 @@ my $result = {
 ## call actual completion handler ##
 return <[coding.async.complete]>->( $task_id, $result );
 
-#,,,,,..,,..,,,,.,,..,.,.,,,,,,,,,..,,.,.,,,,,.,.,...,..,,,..,,,.,..,,,..,,..,
-#5FZJURSSCMWDLVRIQCAEWDM57QZ3Z5BVXD6PU2UITJANL4VA2GRAGG2ATHLKZKQ5XLPT7WXZTAE2U
-#\\\|LD5MEYOW4JSIOFYSI3L5YLN6CLZ4NZGJDE2GUPIQICD3JUNBS52 \ / AMOS7 \ YOURUM ::
-#\[7]P5S7NPEPEJYLIEL3NGEOSPLDEWOV6JEVUUOZYKZFPEY3VMM7XCAA 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,,.,,,.,,.,,,.,.,,,.,.,.,,.,,...,.,.,...,...,.,.,,..,.,.,,.,,.,,,
+#AFQTUYMIQVMRP6SQ7PYANZ473XBT42OGH5AFWMQSZ4WLA34BRUBYBS2ZEUARAFELK3B3IOOS5GB2O
+#\\\|MNZRDTARVP3Z7E4QTHD7NH7NH2RHVIGUIVGHLBVOOV7QEY4THFF \ / AMOS7 \ YOURUM ::
+#\[7]25UFGF23H536KDNNSG6IZEC3OMLCNKQQE6VXRJ5XTLLKGIJGUUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

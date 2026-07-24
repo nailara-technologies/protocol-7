@@ -78,13 +78,13 @@ if ($async_mode) {
         return { success => FALSE, error => $task->{'execution'}->{'error'} };
     }
 
-    ## task-level model pin enforcement : a ':model:CHECKSUM:' marker in   ##
-    ## the prompt requests a SPECIFIC model. coding.prompt.assemble        ##
-    ## already echoes it into backend_info.model unconditionally, but     ##
-    ## never checks whether it's actually loaded - that enforcement lives ##
-    ## here. $assembled->{'parsed'}{'model'} is defined ONLY when an       ##
-    ## explicit pin was requested [ distinct from backend_info.model,      ##
-    ## which is also populated for auto-selected models ].                 ##
+    ## task-level model pin enforcement : a ':model:CHECKSUM:' marker in    ##
+    ## the prompt requests a SPECIFIC model. coding.prompt.assemble already ##
+    ## echoes it into backend_info.model unconditionally, but never checks  ##
+    ## whether it's actually loaded - that enforcement lives here.          ##
+    ## $assembled->{'parsed'}{'model'} is defined ONLY when an explicit pin ##
+    ## was requested [ distinct from backend_info.model, which is also      ##
+    ## populated for auto-selected models ].                                ##
     my $pinned_model = $assembled->{'parsed'}->{'model'};
     if ( defined $pinned_model and length $pinned_model ) {
         my $pin_backend  = $backend_info->{'backend'} // 'gpu';
@@ -112,8 +112,8 @@ if ($async_mode) {
     $task->{'execution'}->{'port'}       = $backend_info->{'port'};
     $task->{'execution'}->{'model_used'} = $backend_info->{'model'};
 
-    ## Build request body ##
-    ## cap max_tokens to avoid KV overflow [ full body includes tools ] ##
+    ## Build request body  cap max_tokens to avoid KV overflow [ full body ##
+    ## includes tools ]                                                    ##
     my $max_tokens_cfg = <inference.model.max_tokens>       // 4096;
     my $routed_to_be   = $task->{'analysis'}->{'routed_to'} // 'gpu';
     my $srv_key_be     = $routed_to_be eq qw| cpu | ? qw| cpu | : qw| gpu |;
@@ -140,19 +140,19 @@ if ($async_mode) {
         my $err
             = sprintf(
             'initial prompt overflow: estimated %d tokens exceeds n_ctx=%d '
-                . 'by %d'
-                . ' : reduce task description or tool output size',
+                . 'by %d : reduce task description or tool output size',
             $est_tokens, $n_ctx, $overflow > 0 ? $overflow : 0 );
         <[base.logs]>->( 0, "coding.task.execute: %s [%s]", $err, $task_id );
-        ## route through coding.async.fail_task [ -> coding.async.complete ]
-        ## rather than calling coding.task.fail directly : that is the only
-        ## path that notifies a parent waiting via chunked_summary_pending /
-        ## compaction_pending -- calling coding.task.fail alone leaves any
-        ## such parent permanently hung, since nothing else ever clears its
-        ## pending marker. coding.async.complete's failure branch already
-        ## does the task.fail-equivalent bookkeeping itself [ see its own
-        ## "coding.task.fail has a P7 data-path bug, so we inline this" ],
-        ## so this is not a duplicate of that bookkeeping, it is the fix. ##
+        ## route through coding.async.fail_task [ -> coding.async.complete ##
+        ## ] rather than calling coding.task.fail directly : that is the   ##
+        ## only path that notifies a parent waiting via                    ##
+        ## chunked_summary_pending / compaction_pending -- calling         ##
+        ## coding.task.fail alone leaves any such parent permanently hung, ##
+        ## since nothing else ever clears its pending marker.              ##
+        ## coding.async.complete's failure branch already does the         ##
+        ## task.fail-equivalent bookkeeping itself [ see its own           ##
+        ## "coding.task.fail has a P7 data-path bug, so we inline this" ], ##
+        ## so this is not a duplicate of that bookkeeping, it is the fix.  ##
         <[coding.async.fail_task]>->( $task_id, $err );
         return { success => FALSE, error => $err };
     }
@@ -164,8 +164,8 @@ if ($async_mode) {
         : $max_tokens_safe;
     <[base.logs]>->(
         1,
-        "coding.task.execute : max_tokens capped %d→%d"
-            . " [ n_ctx=%d ctx_est=%d ]",
+        "coding.task.execute : max_tokens "
+            . "capped %d→%d [ n_ctx=%d ctx_est=%d ]",
         $max_tokens_cfg,
         $max_tokens,
         $n_ctx,
@@ -177,8 +177,9 @@ if ($async_mode) {
         messages    => $assembled->{'messages'},
         max_tokens  => $max_tokens,
         temperature => <inference.model.temperature> // 0.7,
-        ## use streaming : consistent with send_request / chunk_handler ##
-        ## [ non-streaming JSON responses are not parsed correctly by http_io ] ##
+        ## use streaming : consistent with send_request / chunk_handler [   ##
+        ## non-streaming JSON responses are not parsed correctly by http_io ##
+        ## ]                                                                ##
         'stream' => JSON::PP::true(),
     };
 
@@ -217,11 +218,12 @@ if ($async_mode) {
         ## Async started successfully ##
         <[base.logs]>->(
             1,
-            "coding.task.execute: async request dispatched for %s — "
-                . "awaiting first token",
+            "coding.task.execute: async request "
+                . "dispatched for %s — awaiting first token",
             $task_id
         );
-        ## Return deferred : job stays 'running' until coding.async.complete ##
+        ## Return deferred : job stays 'running' until ##
+        ## coding.async.complete                       ##
         return { success => TRUE, mode => 'deferred', task_id => $task_id };
     }
 }
@@ -236,8 +238,8 @@ if ($async_mode) {
 ## unreachable : async block always returns before here ##
 return FALSE;
 
-#,,,.,...,...,,..,,.,,.,.,,..,,..,,..,,,,,,,,,.,.,...,...,,,,,,,,,,,,,,,.,,..,
-#AS5AVCHEZHXTGAAKINVUF4Q6X6G3AMHQFCUTLN7PCFFUFZO4TL2HS4WEH6DJ7CHY3ZXNQWX7HJBYC
-#\\\|DBXV6HNPOD4HJ7B7I4BASCHLDN3RBYIV7RY5QCBFAGWDHKBRLAS \ / AMOS7 \ YOURUM ::
-#\[7]77V6OZNKRPLJNTNXEJMO3WHO2WBZ7ML52LO6YQZBICZXI2QTQIBQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,,.,,..,...,,.,,,,,,,,,,...,..,,.,.,...,...,.,.,..,,,..,..,,...,
+#EQPDL5KOUXC5PIHCBMUWOE3UBKUYBO6OYGK7GWKKJYZ7VTV4R7DHKCLPYPYG46PUCOKGEO737DZWQ
+#\\\|CPCWXF6BCLSYXKK7HA5DRFV6WGVVOQRYWLXQWWO44FJQH4RDP3D \ / AMOS7 \ YOURUM ::
+#\[7]NERRANRHKUKWV66ZII24ZKG3IXHNVKKPKLMAZSXE7KQC7NN2YMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

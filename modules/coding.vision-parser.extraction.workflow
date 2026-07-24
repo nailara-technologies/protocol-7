@@ -38,8 +38,8 @@ my $start_time = <[base.time]>->(4);
     length($vision_text)
 );
 
-## STAGE 2: Translate to YAML using LLM
-## Template-based prompt with vision result substitution
+## STAGE 2: Translate to YAML using LLM  Template-based prompt with vision
+## result substitution
 my $yaml_prompt = <<'EOF';
 Convert the following text analysis to valid YAML format.
 
@@ -66,8 +66,8 @@ EOF
 
 <[base.logs]>->( 2, "[$context_label] STAGE 2 : queuing YAML translation" );
 
-## STAGE 3: Validate YAML structure
-## This would be done in Perl after LLM produces YAML
+## STAGE 3: Validate YAML structure  This would be done in Perl after LLM
+## produces YAML
 ## Check for: valid YAML syntax, required fields, data completeness
 
 ## For now, return workflow structure for later phases
@@ -92,8 +92,8 @@ return {
     'elapsed_ms' => $elapsed_ms
 };
 
-#,,.,,.,,,,..,...,,.,,,..,,..,.,.,..,,,..,,,,,.,.,...,..,,...,,,,,,,,,,.,,.,.,
-#N3GPHUSNLVS2X7FE5P75BQYE4YERZGSCXABHBDLJ3J2JPIVL4JKPHGHEFAXQWCRBUBILARSZZC5B4
-#\\\|GD4FRCDRVDUCASLCCSEK222VU6UUOYQMZ3AEASTK2IBTTXT6LTY \ / AMOS7 \ YOURUM ::
-#\[7]3CSXICVMK5OPQO3UK2H7LFX33ZOYEJR7DDT6ZWYSMADUNTIUYUCQ 7  DATA SIGNATURE ::
+#,,..,...,,.,,,.,,...,...,..,,,.,,,,.,,.,,.,,,.,.,...,...,..,,...,,,.,,,,,,,,,
+#5PGOE7QRUCRPNGPPLLAPMVOKN7KC5MTVDSPO6LLHSOTWJK4WL73SCSUQJYZGQCUXMVA6XOL5NRIUU
+#\\\|4FY5PTMLNR4V7QLJDQWZYBA36QPRPXA3UBWBRLQ7BLQXEKO7SLZ \ / AMOS7 \ YOURUM ::
+#\[7]2WVW2QWJURD75YF37IE5YGJJ7VAC4P2VSYK55RDCN6MNURMF2AAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

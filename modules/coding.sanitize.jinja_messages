@@ -3,9 +3,9 @@
 # name  = coding.sanitize.jinja_messages
 # descr = sanitize message array for jinja2 template safety + tool role workaround
 
-## sanitize all messages in-place for jinja2 template safety ##
-## prevents ik_llama.cpp jinja engine from crashing on {{ }}, {% %} ##
-## and namespace( ) patterns in message content and tool call arguments ##
+## sanitize all messages in-place for jinja2 template safety prevents       ##
+## ik_llama.cpp jinja engine from crashing on {{ }}, {% %} and namespace( ) ##
+## patterns in message content and tool call arguments                      ##
 
 my ($messages) = @ARG;
 
@@ -17,9 +17,9 @@ my $convert_tool_role = <[base.cfg_bool]>->(<coding.jinja.convert_tool_role>);
 my $converted_count = 0;
 for my $msg ( @{$messages} ) {
 
-    ## Workaround: convert tool role messages to user role ##
-    ## [ Qwen3.5 and some other models' jinja templates don't handle ##
-    ##   role='tool', causing server hangs on accumulated tool rounds ] ##
+    ## Workaround: convert tool role messages to user role  [ Qwen3.5 and   ##
+    ## some other models' jinja templates don't handle role='tool', causing ##
+    ## server hangs on accumulated tool rounds ]                            ##
     if ( $convert_tool_role
         && ( $msg->{'role'} // '' ) eq qw| tool | ) {
         my $tc_id   = $msg->{'tool_call_id'} // 'unknown';
@@ -51,9 +51,10 @@ for my $msg ( @{$messages} ) {
                 $args =~ s|\{\{|\\{\\{|g;
                 $args =~ s|\{%|\\{%|g;
                 $args =~ s|namespace\s*\(|namespace_(|g;
-                ## fix illegal backslash escapes : server Jinja crashes on \[ etc ##
-                ## (?<!\\) prevents re-processing already-escaped sequences    ##
-                ## without lookbehind, each round doubles: \. → \\. → \\\\.   ##
+                ## fix illegal backslash escapes : server Jinja crashes on ##
+                ## \[ etc (?<!\\) prevents re-processing already-escaped   ##
+                ## sequences without lookbehind, each round doubles: \. →  ##
+                ## \\. → \\\\.                                             ##
                 $args =~ s|(?<!\\)\\([^"\\\/bfnrtu])|'\\\\' . $1|ge;
                 $tc->{'function'}->{'arguments'} = $args;
             }
@@ -68,9 +69,9 @@ if ($converted_count) {
     );
 }
 
-## Strip tool_calls from older assistant messages ##
-## [ Qwen template tries to match tool_calls with role:tool messages;     ##
-##   after conversion those are user-role, causing hangs with >3 rounds ] ##
+## Strip tool_calls from older assistant messages  [ Qwen template tries to ##
+## match tool_calls with role:tool messages; after conversion those are     ##
+## user-role, causing hangs with >3 rounds ]                                ##
 if ($convert_tool_role) {
     my @tc_indices;
     for my $i ( 0 .. $#{$messages} ) {
@@ -95,8 +96,8 @@ if ($convert_tool_role) {
 
 return;
 
-#,,..,..,,,,.,,,,,,.,,,..,,.,,,..,...,.,.,...,.,.,...,.,.,,.,,..,,..,,...,,,.,
-#A2WHIPWWXBOERP3E3YOZSPRWCQEEI675P46HODVYAHAZTBRKSSSTK2DAKOCGEBWRCQWIO2RRZWSXG
-#\\\|U7OFFSHEQQPPQTBS4EK5FFONMZPUCITMYOOWBTWD3WDZEZURR7G \ / AMOS7 \ YOURUM ::
-#\[7]66GBX3UPOUUWXPTNL6C33JU5DPS4DGEV4WIMGBXQGSQDEGLQC2DY 7  DATA SIGNATURE ::
+#,,..,,..,,,,,..,,...,.,.,.,,,,.,,,,.,,..,,.,,.,.,...,..,,,.,,,,,,,,.,...,.,.,
+#RHHEIMK5EUJ3E5DR3KJ7KJT3CAGVO5KQQ27AT2TIIL7JLSN3BVO677XDCK2A3KWGAXLD7TN34UBZK
+#\\\|JAUFZZOCSOVOWBNC5WBBTYKSGFWOHOHX7R7JYNKNOAXJZQWFEIK \ / AMOS7 \ YOURUM ::
+#\[7]DDPVR224KS3BZOOTIQPQ4SCVM4HMGDT446HGVMQCLZYHEUGLECCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,9 +3,8 @@
 # name  = coding.cmd.tree-query-reply
 # descr = async cache-query result from the task zenka
 
-## resolves a pending tree query as a hit [ reply cached text, skip
-## inference ] or a miss [ proceed to inference, same as the timeout
-## fallback ]
+## resolves a pending tree query as a hit [ reply cached text, skip inference
+## ] or a miss [ proceed to inference, same as the timeout fallback ]
 
 my $args_str = $call->{'args'} // '';
 
@@ -42,8 +41,8 @@ if ($hit) {
         $pending->{'chk'} // '?', $query_id
     );
 
-    ## reply directly to the original caller : same shape as a fresh
-    ## summary, no inference spent, no further tree-notify needed ##
+    ## reply directly to the original caller : same shape as a fresh ##
+    ## summary, no inference spent, no further tree-notify needed    ##
     if ( length $pending->{'callback_id'} ) {
         <[protocol-7.route-send]>->(
             {   command   => 'task.summarize-done',
@@ -86,8 +85,8 @@ if ($hit) {
 
 return { 'mode' => 'true', 'data' => 'miss : enqueued' };
 
-#,,..,,,,,,,,,..,,.,,,,,.,,.,,.,.,,,.,,,.,..,,..,,...,...,,.,,...,.,.,,..,.,.,
-#AC7CCV2CQOQ2D5D5PHX5BGVVFAL6MXYVVD56JAJHYU63525GXNNVX77SM2PHQHBDLI5RQPPJNGHO6
-#\\\|O74ZUBUWWAQF5I7BFVPYKUAM534QH5MBQWZO7C2GFQOYIGFIKHE \ / AMOS7 \ YOURUM ::
-#\[7]V3HWYQHCYF4GLCIMHH6VU7KXDYC5YZVFTCWDDI2WYKOAF7I35MBY 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,.,,,.,.,.,,,..,,...,.,,,,,.,..,,..,,...,...,.,.,,..,,..,,,.,.,.,
+#OZADSUFRBORSACO2TBQ4JK2K55MGDV76656MHDZR7M7WDKIKRU3XXAHDVRN4NWGF4VK4X3WQF4752
+#\\\|TT6AI4ZVY3SNCLS5ZAHC3ERZHXT6S7IRQ332QDHBCNMM7NFENXS \ / AMOS7 \ YOURUM ::
+#\[7]ADTI4AYBTTOL6ME3ROPZH5INB4K2DMQVOBP2QCQZGZXTFQPDISAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

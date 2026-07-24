@@ -11,9 +11,9 @@ my $WARN_color = "\e[38;2;197;141;7m";
 
 my $now = <[base.time]>->(3);
 
-## find the task actually holding a backend lock right now : that's the ##
-## one genuinely generating, NOT active[0] [ just first-in-list, may be  ##
-## idle waiting its turn behind whoever really holds the lock ]          ##
+## find the task actually holding a backend lock right now : that's the one ##
+## genuinely generating, NOT active[0] [ just first-in-list, may be idle    ##
+## waiting its turn behind whoever really holds the lock ]                  ##
 my $backends = <coding.state.backend> // {};
 my $task_id;
 for my $backend_name ( keys %{$backends} ) {
@@ -23,13 +23,13 @@ for my $backend_name ( keys %{$backends} ) {
     last;
 }
 
-## no backend lock held right now doesn't mean nothing's active -- a task ##
-## deep in tool execution (search/read calls, no ceiling) holds no lock   ##
-## between HTTP rounds and would otherwise make this go blank for most of ##
-## its wall-clock time. fall back to whichever active task has the most   ##
-## recent round activity timestamp -- NOT active[0] by position, which is ##
-## exactly the "misleading first-in-queue" case the lock-check was meant  ##
-## to avoid in the first place.                                          ##
+## no backend lock held right now doesn't mean nothing's active -- a task   ##
+## deep in tool execution (search/read calls, no ceiling) holds no lock     ##
+## between HTTP rounds and would otherwise make this go blank for most of   ##
+## its wall-clock time. fall back to whichever active task has the most     ##
+## recent round activity timestamp -- NOT active[0] by position, which is   ##
+## exactly the "misleading first-in-queue" case the lock-check was meant to ##
+## avoid in the first place.                                                ##
 if ( not defined $task_id ) {
     my $aref_active = <coding.task.active> // [];
     my $best_ts;
@@ -63,7 +63,7 @@ my $round         = $state->{'round'} // 0;
 my $http_started  = $state->{'round_started'};          ## phase 1 start ##
 my $tools_started = $state->{'round_tools_started'};    ## phase 2 start ##
 
-## actual ceiling governing THIS round : soft/escalated/GPU-stretched -- ##
+## actual ceiling governing THIS round : soft/escalated/GPU-stretched --  ##
 ## not always the flat hard-ceiling config value [ coding.async.request ] ##
 my $ceiling = $state->{'timeout_ceiling'}
     // <coding.http-timeouts.request-completed> // 780;
@@ -121,8 +121,8 @@ return {
     'data' => $output_str,
 };
 
-#,,,,,..,,,,,,,..,.,,,.,,,,,.,.,,,,,.,,,.,.,,,..,,...,...,.,,,,,,,,,,,,,.,,.,,
-#PSBG4SHH2QGYKIVYGP3GGTHQLKSLS4HRVVYFCVR6KVLJRMCME2DBI6PIW4DFH564O4UKLW7UHOXVY
-#\\\|4PVRPSU6MZYWYQ34OVHVRKHGA23G5NZW3HXHMUI75DI3XBLJ7NU \ / AMOS7 \ YOURUM ::
-#\[7]BAO6VB2U2ZOCQUZP4PDIVHMD76VTKEP2N3CMA3UVA7IER27JUAAI 7  DATA SIGNATURE ::
+#,,.,,..,,,..,,,.,...,...,...,,..,,..,,,,,,,.,..,,...,...,...,,,,,.,.,,..,..,,
+#C6DXV55QDBZAN5NSXHTY25TKGH74UZPPL44LFWDQ5NZNPNLHP7VZOX7OUBFO73GYY3LGPZPFQ5PYM
+#\\\|U32TJRG6HUY2NGLF4NJ3TPIWKKUPUVHQMQ275IDRPRUJXURUDZ7 \ / AMOS7 \ YOURUM ::
+#\[7]Z7JIXLKTR3SI6IFXD36XWQNHPJXMSZVKAWE6BN34SWESWUQFJSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

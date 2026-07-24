@@ -6,14 +6,14 @@
 
 my ($cmd) = @ARG;
 
-## strip leading :template-name: prefix and promote to type ##
-## example: ":bug-fix: investigate kimi approval reconnect" ##
-## EXCLUDES :model: - that's a distinct marker [ ":model:CHECKSUM:CHECKSUM:" ]
-## owned by coding.prompt.assemble, which runs later. without this        ##
-## exclusion, this generic stripper consumed just the word "model" as if  ##
-## it were a template name, leaving the checksum behind mangled and never##
-## recognized by assemble's own regex - confirmed live 2026-06-21, this   ##
-## is why task-level model pinning never actually worked end to end.      ##
+## strip leading :template-name: prefix and promote to type  example:       ##
+## ":bug-fix: investigate kimi approval reconnect"  EXCLUDES :model: -      ##
+## that's a distinct marker [ ":model:CHECKSUM:CHECKSUM:" ] owned by        ##
+## coding.prompt.assemble, which runs later. without this exclusion, this   ##
+## generic stripper consumed just the word "model" as if it were a template ##
+## name, leaving the checksum behind mangled and never recognized by        ##
+## assemble's own regex - confirmed live 2026-06-21, this is why task-level ##
+## model pinning never actually worked end to end.                          ##
 if ( $cmd =~ s{^:(?!model:)([\w-]+):\s*}{} ) {
     my $forced_type = $1;
     return {
@@ -52,8 +52,8 @@ return {
     description => $cmd
 };
 
-#,,,,,.,.,,..,...,...,...,.,.,...,,,,,,..,..,,..,,...,...,,,.,.,.,...,.,.,.,,,
-#IRFPBV3B67EBYLM3DEPBZYRDTV5A6R53BKBVUVQL5K2HJ5ZSR4GEHVDZ3HKOLS66KOLYQSGBYQQJG
-#\\\|KETKJTISL22UP257BUM4NO26SBBLMFNG23AUCMCHSV6HKHL3YKQ \ / AMOS7 \ YOURUM ::
-#\[7]R26MSHIJQKLFWXJEYEAJ7UMSIJFAMUYVRGPHMIJVFACQRSNHDSDA 7  DATA SIGNATURE ::
+#,,,.,...,..,,,..,,,,,.,,,..,,.,.,,,,,..,,..,,..,,...,...,...,.,.,...,..,,,.,,
+#24OH7LHN76FIR2OLE24QUOXLEECNAJGD4OVC7HXVM5G2YL6GL5O5UPO7MZGBDMGG7R7LJDCG5AE3E
+#\\\|J5JWB6T4PSGD5N3PIWN5RFYDFSKSH3ZOADN6NTIYT7EGD2IEACG \ / AMOS7 \ YOURUM ::
+#\[7]DQ422BKQO7YRFWHBJJ56VXWVTSBRLJ3AALKUR3LWIHFSGQQFSOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

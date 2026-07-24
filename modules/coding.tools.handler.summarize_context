@@ -15,15 +15,15 @@ my $node_id = $args->{'node_id'} // '';
 
 ## system prompt: compaction-style, focus-aware ##
 my $system_prompt
-    = 'you are a context compaction assistant. '
-    . 'your response IS the summary : output it directly as plain text. '
-    . 'no tool calls, no apologies, no explanation of what you are doing. '
-    . 'preserve all load-bearing specifics: module names, line numbers, '
-    . 'decisions, open questions. omit narrative filler. '
+    = 'you are a context compaction assistant. your response IS the summary '
+    . ': output it directly as plain text. no tool calls, no '
+    . 'apologies, no explanation of what you are doing. preserve all '
+    . 'load-bearing specifics: module names, line numbers, decisions, '
+    . 'open questions. omit narrative filler. '
     . ( length($focus) ? "focus on: $focus. " : '' )
     . 'target length: 2-4 paragraphs.';
 
-## port resolution: respect backend parameter ##
+## port resolution: respect backend parameter                             ##
 ## port resolution: explicit backend param, else cpu if enabled, else gpu ##
 my $use_cpu
     = ( $backend eq 'cpu' )
@@ -88,8 +88,8 @@ if ( $store and length($node_id) ) {
 
 return $summary;
 
-#,,,,,,,,,,.,,,..,.,.,.,,,,.,,..,,,..,.,,,.,.,..,,...,...,...,,..,,,,,,,,,..,,
-#KL4NNDMPRFLKST2KW7EIOXUXGMX2BVAA3VOX4GY2VSGKROA7EOAA2KARVOAG7F7FAIOYTBZVMES7U
-#\\\|OYIFHHBFMDEXN2AJ75T64YXWZFV2SRSKOYLWLQJDIKTKQLC3B3B \ / AMOS7 \ YOURUM ::
-#\[7]HKO2KUQXAG2EHUFRXV3G3IYYX2FP3LMW7DUM64L7PUQE4S4XDMCQ 7  DATA SIGNATURE ::
+#,,,.,,.,,...,...,.,.,,.,,,,.,.,,,,.,,,,,,..,,..,,...,...,,.,,.,.,,.,,.,,,..,,
+#HT7VRANVDXQDOL5WTOGITSZKKK5QWMOLH2FKS7ZX5XHOXUUSJCUKJFMI7RQNYCRGNVADVABVSQCXI
+#\\\|OTLD27FDOMWW5J7E4ORRFKDK5QSPM7ESJ5OYUQF3EONPQUGTV4X \ / AMOS7 \ YOURUM ::
+#\[7]FYP4K7KDZU5MLRX46OF36O5NVKSCK2VKNOFR4ZU5NH6WYN2DI2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

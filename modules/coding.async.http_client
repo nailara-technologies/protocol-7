@@ -23,11 +23,11 @@ $path = '/' if !length($path);
 my $json     = JSON::XS->new->utf8->canonical;
 my $body_str = ref($body) ? $json->encode($body) : $body;
 
-## scale data-start timeout with estimated prompt size : a flat timeout
-## starves large prompts — the first streamed token can't arrive until
-## the whole prompt is prefilled, and prefill of 15K+ tokens routinely
-## exceeds a short flat budget under queue contention. floor stays as
-## configured [ short prompts really do start in a couple seconds ]   ##
+## scale data-start timeout with estimated prompt size : a flat timeout    ##
+## starves large prompts — the first streamed token can't arrive until the ##
+## whole prompt is prefilled, and prefill of 15K+ tokens routinely exceeds ##
+## a short flat budget under queue contention. floor stays as configured [ ##
+## short prompts really do start in a couple seconds ]                     ##
 my $chars_per_token        = 3.2;
 my $est_prompt_tokens      = int( length($body_str) / $chars_per_token );
 my $prefill_tokens_per_sec = <coding.cfg.prefill_tokens_per_sec> // 1200;
@@ -39,8 +39,8 @@ my $scaled_timeout_sec
 if ( $scaled_timeout_sec > $data_start_timeout_sec ) {
     <[base.logs]>->(
         2,
-        'async.http_client: data-start timeout scaled %d -> %d'
-            . ' [est_tokens=%d prefill_rate=%d/s]',
+        'async.http_client: data-start timeout scaled '
+            . '%d -> %d [est_tokens=%d prefill_rate=%d/s]',
         $data_start_timeout_sec,
         $scaled_timeout_sec,
         $est_prompt_tokens,
@@ -49,12 +49,12 @@ if ( $scaled_timeout_sec > $data_start_timeout_sec ) {
     $data_start_timeout_sec = $scaled_timeout_sec;
 }
 
-## cold-start grace : the FIRST request to a freshly-(re)spawned server  ##
-## pays model-load / first-inference warmup latency on top of normal     ##
-## prefill — and that request is often small [ short initial prompt ],   ##
-## so prompt-size scaling alone hands it the shortest timeout exactly    ##
-## when it needs the longest one. grant a flat grace period instead,     ##
-## independent of prompt size ; cleared on first chunk received          ##
+## cold-start grace : the FIRST request to a freshly-(re)spawned server     ##
+## pays model-load / first-inference warmup latency on top of normal        ##
+## prefill — and that request is often small [ short initial prompt ], so   ##
+## prompt-size scaling alone hands it the shortest timeout exactly when it  ##
+## needs the longest one. grant a flat grace period instead, independent of ##
+## prompt size ; cleared on first chunk received                            ##
 my $backend_name = $callbacks->{'backend'} // '';
 my $backend_srv
     = length($backend_name)
@@ -67,8 +67,8 @@ if ( $backend_srv && $backend_srv->{'cold_start'} ) {
     if ( $cold_start_timeout_sec > $data_start_timeout_sec ) {
         <[base.logs]>->(
             1,
-            'async.http_client: cold-start grace applied %d -> %d'
-                . ' [backend=%s]',
+            'async.http_client: cold-start '
+                . 'grace applied %d -> %d [backend=%s]',
             $data_start_timeout_sec,
             $cold_start_timeout_sec,
             $backend_name
@@ -79,12 +79,9 @@ if ( $backend_srv && $backend_srv->{'cold_start'} ) {
 
 ## Build HTTP request ##
 my $request
-    = sprintf( "POST %s HTTP/1.1\r\n"
-        . "Host: %s:%d\r\n"
-        . "Content-Type: application/json\r\n"
-        . "Content-Length: %d\r\n"
-        . "Accept: application/json\r\n"
-        . "Connection: close\r\n" . "\r\n" . "%s",
+    = sprintf( "POST %s HTTP/1.1\r\nHost: %s:%d\r\nContent-Type: "
+        . "application/json\r\nContent-Length: %d\r\nAccept: "
+        . "application/json\r\nConnection: close\r\n\r\n%s",
     $path, $host, $port, length($body_str), $body_str );
 
 ## Create blocking socket for connection ##
@@ -184,14 +181,14 @@ my $data_start_watcher = <[event.add_timer]>->(
 );
 $state->{'data_start_watcher'} = $data_start_watcher;
 
-## stall/inactivity timeout : armed on the FIRST chunk in http_io, not    ##
-## here — this watcher detects genuine silence mid-stream, after output  ##
-## has already begun. arming it at connection setup would race it       ##
-## against data_start_timeout_sec above, which is deliberately scaled up ##
-## for large prompts / cold starts ; a flat pre-first-byte stall window  ##
-## would then fire before that grace period elapses and kill requests    ##
-## that are still legitimately prefilling. only store the duration here — ##
-## stretched by GPU-temp factor, same as the ceiling in coding.async.request
+## stall/inactivity timeout : armed on the FIRST chunk in http_io, not here ##
+## — this watcher detects genuine silence mid-stream, after output has      ##
+## already begun. arming it at connection setup would race it against       ##
+## data_start_timeout_sec above, which is deliberately scaled up for large  ##
+## prompts / cold starts ; a flat pre-first-byte stall window would then    ##
+## fire before that grace period elapses and kill requests that are still   ##
+## legitimately prefilling. only store the duration here — stretched by     ##
+## GPU-temp factor, same as the ceiling in coding.async.request             ##
 my $stall_timeout_sec = ( <coding.http-timeouts.stall> // 77 )
     * ( <coding.stretch.timeout_factor> // 1.0 );
 $state->{'stall_timeout_sec'} = $stall_timeout_sec;
@@ -206,8 +203,8 @@ return {
     state   => $state,
 };
 
-#,,..,,,,,,..,,.,,..,,,,,,...,..,,,.,,,,,,...,.,.,...,..,,...,.,.,.,,,,.,,,..,
-#BOBQF5NWMJ6NUVVR3J7C3YYIJMPPXRDVB6UAV45AH6O3ORZ2T4DQKH7UUIU5VV323SK3Z2FDU3OQS
-#\\\|X74O2JMGX6THZK4UTG246552ALIM7DKZ6L6CL76KVGQHDJTQA6N \ / AMOS7 \ YOURUM ::
-#\[7]TQTYTN6KRPTWF6YDZU2QYR6BUS6CQ7UGHGTBFPWDR6VZTRV7DUCY 7  DATA SIGNATURE ::
+#,,,,,,..,,..,.,.,,..,,.,,,.,,.,.,,,.,.,,,,,,,.,.,...,..,,.,.,,..,,,,,..,,..,,
+#4OIK743364D6A46IN566YERRDT5ULXSFKNWWL35FHVDSM6VKVDGQXR3CU4TJ6WT2MUHOWVTQL3H3Q
+#\\\|XJ4HQG6XUXJBUY6FL2KZ7L7C4EEO7LVOR2AKEVOMLRIO3AGU6WF \ / AMOS7 \ YOURUM ::
+#\[7]DQ5DUCWIFFQ5WQ5G65PADIM3SOW32EJHBP73JZMN2SWXIYAGS2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

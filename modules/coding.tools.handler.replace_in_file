@@ -62,8 +62,8 @@ while ( ( my $pos = index( $content, $old_string, $search ) ) != -1 ) {
 ## check for ambiguous matches [ must be unique unless replace_all ] ##
 if ( $count > 1 and not $replace_all ) {
     return
-        sprintf ': error : old_string matches %d locations in file'
-        . ' -- use replace_all=true or provide more context', $count;
+        sprintf ': error : old_string matches %d locations in file -- '
+        . 'use replace_all=true or provide more context', $count;
 }
 
 ## perform replacement ##
@@ -117,12 +117,12 @@ if ( -w $abs_path ) {
 <[base.logs]>->(
     1, ':. replace_in_file : staged %s [ no write access ]', $path
 );
-return sprintf "staged replace in %s [ -%d +%d chars, no write access ]\n"
-    . "staged at : %s",
+return sprintf "staged replace in %s [ -%d +%d chars, "
+    . "no write access ]\nstaged at : %s",
     $path, length($old_string), length($new_string), $stage_rel;
 
-#,,,,,...,..,,.,,,...,,,,,.,,,.,,,,.,,,.,,..,,..,,...,...,..,,,..,.,,,...,,..,
-#7OYDBQ4P5EELDT2KHUNXKQF7VDNVVWNZ5HZ7GSV2FQQLX3OMH2HMJ5ZF2MGKD6NN6DERE47XNR7JG
-#\\\|HDDIDIWAHEDVNKY3I4T47PJ7DJENLHDF27IQCOF3DRGEQ7N4YJL \ / AMOS7 \ YOURUM ::
-#\[7]LUCIBV7FKZ3FVDI5GM6EKARUHN7EPX2SBNAKLD3YKIMJLB6A3KDQ 7  DATA SIGNATURE ::
+#,,,.,..,,,..,..,,,.,,...,...,,.,,,.,,,,.,.,,,..,,...,...,,,.,...,,,.,,.,,,,,,
+#GNX72L7GJRCSG7OYHEHE3ZYOSIFHVFQGDRQGAI7FBOTUVFRYY2YDUJWUG4XMGQ5JGXA7LBGWEIXB4
+#\\\|WIIG6XJRHVRQSWOTOJGQG6U25ZMA2IC6DQXE2Q6T7NVRWHGRLYU \ / AMOS7 \ YOURUM ::
+#\[7]SZZYO5F5FBU5SEPKQSKLQGRJBARCSTVN66LYFOEJXTLKDFF6D4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -22,12 +22,12 @@ for my $task_id ( $aref_active->@* ) {
     my $round = $state->{'round'} // 0;
 
     ## actual ceiling governing THIS round : soft/escalated/GPU-stretched, ##
-    ## not always the flat default [ see coding.async.request ]           ##
+    ## not always the flat default [ see coding.async.request ]            ##
     my $ceiling = $state->{'timeout_ceiling'} // $default_ceiling;
 
-    ## phase-1 [http-wait] start; phase-2 [tool-exec] starts when this     ##
-    ## round's response has been fully received and state_machine enters   ##
-    ## tool_exec.                                                          ##
+    ## phase-1 [http-wait] start; phase-2 [tool-exec] starts when this   ##
+    ## round's response has been fully received and state_machine enters ##
+    ## tool_exec.                                                        ##
     my $http_started  = $state->{'round_started'};         ## phase 1 start ##
     my $tools_started = $state->{'round_tools_started'};   ## phase 2 start ##
 
@@ -104,8 +104,8 @@ my $output_str = join( "\n", @output ) . "\n";
 
 return { 'mode' => qw| size |, 'data' => $output_str };
 
-#,,,,,...,..,,..,,.,,,...,,,,,..,,.,.,.,,,...,..,,...,...,,.,,,.,,,.,,,..,,,.,
-#5B3WTOAQY3BDKCQGQTNYNW6IASO46UH24ONLX63YSMOEKDFWIE4GKAHQT5EENKXXYAN47H5YEGEEO
-#\\\|27USXZ53VJ27FNMKAZATWN4I5XW5NXBKGHPIZYH73B4VHUZAI2E \ / AMOS7 \ YOURUM ::
-#\[7]6WCAYIZDHGVUQ2AOJBZMI2RZNPD3VHTIWRPPXOAKGKNG3LQCREAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,...,.,,,,,.,...,,,,,,,.,,,,,..,,,..,..,,...,...,.,.,,,.,..,,,.,,,..,
+#526JJ7VRRVB2WX3KPB6MD5XLFYB7WQO2BTQDEBFRAHAZAVOWZDOLLTXTOTLSN4T5TNX6VNIBLOHIM
+#\\\|ZQ65ZKYP2723SRAUFPDQZO5LC5TE25FDTYWFDOWGAP4GACKURZL \ / AMOS7 \ YOURUM ::
+#\[7]NBRSVCJM63LE2BY4ZTRQSTR2JYVYQBFQIUI3OEJ257UETGUVFQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

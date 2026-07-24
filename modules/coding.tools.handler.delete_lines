@@ -63,10 +63,9 @@ if ($apply) {
         print {$fh} @lines;
         close $fh;
         return
-              sprintf "SUCCESS: staged delete %d line%s [ %d..%d ] from %s"
-            . " [ staged at: %s ]"
-            . " : do NOT verify with read_file"
-            . ", original path unchanged until commit",
+              sprintf "SUCCESS: staged delete %d line%s [ %d..%d ] from %s [ "
+            . "staged at: %s ] : do NOT verify with read_file, "
+            . "original path unchanged until commit",
             $count, $count == 1 ? '' : 's', $from_n, $to_n, $path,
             $stage_path;
     }
@@ -75,8 +74,8 @@ if ($apply) {
 return sprintf "preview: would delete %d line%s [ %d..%d ]",
     $count, $count == 1 ? '' : 's', $from_n, $to_n;
 
-#,,,.,...,..,,,,.,,,.,..,,,,.,.,.,,,.,,.,,.,,,..,,...,...,,.,,,..,,,.,...,.,.,
-#RWWWMNZKIE2643RF3WJUBNFBD6MHKEUPWKBGWKTSAMK7JCUOUHV52Z7UAGO22Z3CDF2Y5HUMUNQYE
-#\\\|TOY6LY4AJG3UFXR4WNHOFXL5PZZKS2RDOGTANIDFUVUN4AXK4JT \ / AMOS7 \ YOURUM ::
-#\[7]3HKHOC6LG627NMAB2OQ7ZUFX64PBZFDT57FVVLIXKXSQFSL4I4BY 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,.,,,...,..,,,..,,.,,,,.,,,,,..,,..,,...,...,...,,,,,,.,,...,,,.,
+#DOJSIAMTOIG7NNII6NFXWSMHHPXH7OL24WP2CKXF5ZDWPSTSOVXWOOE6TWVWYK5EUYGRVMK5S6TP4
+#\\\|3PID26RMLAHKD5LZH5KHABTGCD457RKMO6QGGKKKQIECND5ABXN \ / AMOS7 \ YOURUM ::
+#\[7]R2CH5R5D64KNFOG23OEAU6ERRE3VJHBYDBCDLKKU5RTJZW5TIODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

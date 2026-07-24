@@ -22,7 +22,8 @@ my $gpu_model = <inference.backend.gpu.model_id>
 my $meta_cache = <coding.model_metadata> // {};
 my @available  = sort keys %{$meta_cache};
 
-## filter by memory availability [ prefer smaller models when ram is constrained ]
+## filter by memory availability [ prefer smaller models when ram is
+## constrained ]
 my $mem_pct = <coding.system_mem_pct> // 0;
 if ( $mem_pct > 75 && @available ) {
     ## sort by size_gb ascending to prefer smaller models [ ram pressure ]
@@ -148,8 +149,8 @@ return {
     priority       => 'default'
 };
 
-#,,.,,,.,,,,,,,..,.,,,,..,,,.,,.,,,.,,.,,,..,,.,.,...,...,...,..,,,,,,.,,,.,,,
-#L3LY2KZC7RBJ5ZNKM3IE673KKKGM4RGEABSULQYYFCXDEUZCDFTNYIY524J7GQKBUKV2OIOJJYFDC
-#\\\|KTXZSPWXJ5RDNL46RA7TLOZCUN2ID4EBWCVETXZ7AK6TOD3K7A7 \ / AMOS7 \ YOURUM ::
-#\[7]TRRWEFHF2QDFLS7SYAJ43V3Q6Y5AR5HWEEFO4MK4W26F2MQQMQBA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,,,,..,,.,,,...,..,,.,,,,.,,.,,,.,.,...,...,.,.,.,.,..,,,..,,,,,
+#MLF5IBC5DATMHGOBDVKOZABLIXEJG46EMSU5UVYUOSPHJEVRYQI3HWFYIATUY5RTL4WGDNOLMVPRG
+#\\\|DOT5UV75H34RRQCPSTMIK2DC3YTYCO4N4SFQQYCSASO52OO3DJV \ / AMOS7 \ YOURUM ::
+#\[7]JWP6K3SNNEPQAPZN7L3G325VVLLTBWXI6S3L6EUUBVCBVDFDMKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

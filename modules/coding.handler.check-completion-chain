@@ -92,14 +92,15 @@ if ( $meta_job->{'resume_count'} > 0 ) {
 
 <[base.logs]>->(
     1,
-    "[check-completion-chain] task completed: %s (finish_reason=%s, accumulated=%d bytes)",
+    "[check-completion-chain] task completed: "
+        . "%s (finish_reason=%s, accumulated=%d bytes)",
     $task->{'id'},
     $finish_reason,
     length( $meta_job->{'accumulated'} )
 );
 
-## use finish_reason from the llm api as primary completion signal ##
-## 'stop' = model finished naturally; 'length' = truncated by context/token limit ##
+## use finish_reason from the llm api as primary completion signal 'stop' = ##
+## model finished naturally; 'length' = truncated by context/token limit    ##
 my $appears_complete = ( $finish_reason eq 'stop' );
 
 if ($appears_complete) {
@@ -139,7 +140,8 @@ if ($appears_complete) {
 if ( $meta_job->{'resume_count'} >= $meta_job->{'max_resumes'} ) {
     <[base.logs]>->(
         1,
-        "[check-completion-chain] max resumes exceeded (%d), returning partial result",
+        "[check-completion-chain] max resumes "
+            . "exceeded (%d), returning partial result",
         $meta_job->{'max_resumes'}
     );
 
@@ -187,8 +189,8 @@ if ( $meta_job->{'resume_count'} > 1 ) {
 # Append previous response as context for continuation
 $continuation_description
     .= "\n\n[Previous response (continue from here):\n"
-    . $meta_job->{'accumulated'} . "\n]\n"
-    . "[Continue...]";
+    . $meta_job->{'accumulated'}
+    . "\n]\n[Continue...]";
 
 # Parse continuation task
 my $cont_intake = <[coding.task.intake]>->($continuation_description);
@@ -269,8 +271,8 @@ $meta_job->{'task'}    = $cont_routed;
     $cont_routed->{id}
 );
 
-#,,,,,,.,,.,,,,.,,...,,,.,...,,,.,...,,.,,,,,,..,,...,...,.,.,,..,.,,,...,...,
-#ZTL2EDYESQDJGHXA3CRE3QLPTEKZU6VR6WY577B5VS6KBF4H2JUUABTBGJNA67VIMMLDEV6NJ4ZZG
-#\\\|EE7V3P3VSZ5VWTFI6VASLS2I2576OFNPHJPS2BZIGZG7EG6NPC3 \ / AMOS7 \ YOURUM ::
-#\[7]PACA2KGFOJ3G36EVOMHGW7ZF2DUVQNSIVKW76EDUZDIUHMES54DI 7  DATA SIGNATURE ::
+#,,,.,,..,..,,.,.,,,.,,,,,.,.,.,,,...,,.,,,.,,..,,...,...,.,,,...,.,.,,..,..,,
+#K56PEGCKQHEQ5P3RDBYJAFTGNXNJJMBFPGQDPBD4AW6IMHEJ3M3F6467UXJGMUE5VYX2ZYBICGHPS
+#\\\|7LHYRYQTEI66VUP3GPFDK5ECPXDKWP3ODFQSVKX6WAI424IBJX3 \ / AMOS7 \ YOURUM ::
+#\[7]XA5RVLFV2T3NPQOQGFXVNYCR6YDFIB3HKSF636CQDV6PRRSL6OCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

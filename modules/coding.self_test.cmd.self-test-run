@@ -59,9 +59,9 @@ if ( $model_checksum eq $current_model_id ) {
     my $result
         = <[coding.self_test.run]>->( { model_id => $model_checksum } );
 
-    ## tier-2 disposition : same model judges its own deferred mismatches  ##
-    ## in a FRESH one-shot context [ http_inference_client per call ] -    ##
-    ## not appending to the contaminated conversation                      ##
+    ## tier-2 disposition : same model judges its own deferred mismatches   ##
+    ## in a FRESH one-shot context [ http_inference_client per call ] - not ##
+    ## appending to the contaminated conversation                           ##
     if ( $result && ref $result->{'data'} eq qw| HASH | ) {
         my $summary = $result->{'data'};
         my $any_pending
@@ -87,13 +87,14 @@ if ( $model_checksum eq $current_model_id ) {
 if ( !length $current_model_id ) {
     <[base.logs]>->(
         0,
-        '[self_test] cannot test %s : no currently loaded model to restore to',
+        '[self_test] cannot test %s : no '
+            . 'currently loaded model to restore to',
         $model_checksum
     );
     return {
         mode => qw| size |,
-        data =>
-            "cannot test $model_checksum: no currently loaded model to restore to\n"
+        data => "cannot test $model_checksum: no "
+            . "currently loaded model to restore to\n"
     };
 }
 
@@ -105,9 +106,9 @@ if ( $pending_dep && exists <dependency.object>->{$pending_dep} ) {
     <dependency.object>->{$pending_dep}->{'pending'} = TRUE;
 }
 
-## suppress monitor_inference_startup's auto-self-test for the readiness ##
-## event this switch is about to cause - poll_switch runs its OWN        ##
-## explicit test instead. cleared in poll_switch's $finish helper.       ##
+## suppress monitor_inference_startup's auto-self-test for the readiness   ##
+## event this switch is about to cause - poll_switch runs its OWN explicit ##
+## test instead. cleared in poll_switch's $finish helper.                  ##
 <coding.self_test_switch_in_progress> = TRUE;
 
 <[base.logs]>->(
@@ -120,12 +121,12 @@ $data{'coding'}{'self_test_switch_state'} //= {};
 my $switch_id
     = <[base.gen_id]>->( $data{'coding'}{'self_test_switch_state'} );
 
-## capture the CURRENT pid before switching - readiness is confirmed by
-## a NEW pid appearing+ready, not by the model_id label, which gets set
-## by switch_model_reply as soon as it starts processing, well before
-## the actual kill+respawn completes [ confirmed live 2026-06-21: the
-## model_id label can already say the new checksum while the old PID is
-## still the one actually serving ]
+## capture the CURRENT pid before switching - readiness is confirmed by a NEW
+## pid appearing+ready, not by the model_id label, which gets set by
+## switch_model_reply as soon as it starts processing, well before the actual
+## kill+respawn completes [ confirmed live 2026-06-21: the model_id label can
+## already say the new checksum while the old PID is still the one actually
+## serving ]
 my $pre_switch_pid = ( <coding.inference_servers> // {} )->{'gpu'}{'pid'}
     // 0;
 
@@ -168,8 +169,8 @@ return { mode => qw| deferred | };
 #\[7]6CTAA7SKMHL6YP6ZXMBRKAK56CL4JXFWKS3OSQF 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,.,,..,,.,.,.,.,,,.,...,.,,,.,.,,,.,,,,,,..,..,,...,..,,...,,..,...,,,,,.,,,
-#WKIXNLSWOSSLEFOBMSOBNJKBV7UGXBFV3YGL27YYOXZENCPJ6BJHYYXX7GNUUOTJQFBONVTXNQO2M
-#\\\|KEURLY2RXB7HN6ATSRJQH55Q2ZBCX5NEDVKEO2RNAT2IBQL2BPC \ / AMOS7 \ YOURUM ::
-#\[7]SGDSOERELWQZZLHKASQPJWC246P4XFQ7YSS7EFN5RJHSFNPPNEBI 7  DATA SIGNATURE ::
+#,,..,...,..,,,,,,...,,,,,,.,,,.,,...,,..,,..,..,,...,..,,..,,.,.,.,,,.,,,,,.,
+#SLSN7YFM4UIUPFKQWBMZISWIMWO6YUNLZZIBYSZUNCPFPURMSP57EGNAHWAMRSUVIY2UJWSIKAVGM
+#\\\|HSL56O3NM4VBRIUNKOA4TMJYPLCENMVMN2FKWEV5HYS2FWY7FMU \ / AMOS7 \ YOURUM ::
+#\[7]NYRKDK2MNIE5425RFWI6TY4HCGY7R27ACEPOP7UALUJRIKC2YCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

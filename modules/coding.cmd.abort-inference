@@ -7,8 +7,8 @@
 my $args_str  = $call->{'args'} // '';
 my ($task_id) = split m{ +}, $args_str, 2;
 
-## in-flight task identity : reuse <coding.task.active>, the same existing
-## source that coding.cmd.stop-task uses. no parallel tracker is added. ##
+## in-flight task identity : reuse <coding.task.active>, the same existing ##
+## source that coding.cmd.stop-task uses. no parallel tracker is added.    ##
 my $aref_active = <coding.task.active> // [];
 my $current_id  = $aref_active->[0];
 
@@ -44,7 +44,8 @@ return {
     }
     unless $status eq qw| in_progress |;
 
-## confirm there is a live http state for this task before touching anything ##
+## confirm there is a live http state for this task before touching ##
+## anything                                                         ##
 my $async_state = <[coding.async.state_manager]>->( qw| get |, $task_id )
     // {};
 my $http_state = $async_state->{'http_state'} // undef;
@@ -71,8 +72,8 @@ return {
     data => "inference aborted for $task_id"
 };
 
-#,,..,.,.,,,.,...,,,,,.,.,,..,..,,.,,,,,,,,,.,..,,...,...,..,,,,,,,,,,..,,.,.,
-#NAGSBZGYP46YLTIHM3YVEVADTBFV5AJ2NKH7GQLXDO3RUMACX5YLF64F3DMBSWKHL5TO236H3VHVM
-#\\\|TUALSUHQRE2DBLHXBYXZ3DDQ3G4CIF2Q7534M4TSQH6QCRMTLAO \ / AMOS7 \ YOURUM ::
-#\[7]WFV53UZTQVM5OWCRQTU6RZG5X45QCCLQ6YEEYKQQPFADHQ2CW6BY 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,..,,,.,.,,,,..,,,.,...,,,.,,..,..,,...,...,...,,,.,.,.,,,.,,,.,
+#4KKEU4LX6NFX72LRICPOLXBTPCK2SLQEFLBZDJR77UT5HY6C6HLCN5ZR3OMQAYJPFXE3WJNF6VJKS
+#\\\|SHVSLBTQ4JFXO4R7OTE25772RAC2WS34ZS4FS454LHVD2JFO4TC \ / AMOS7 \ YOURUM ::
+#\[7]W4B6G7DWPPLJK7MJKMIHPO5LMCYD4A736U2HSODOFF3FXLPNX6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

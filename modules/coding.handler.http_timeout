@@ -39,12 +39,12 @@ my $task_state
 ## fired first if it weren't ], it's just taking longer than the fast      ##
 ## default — escalate to the full ceiling and restart THIS round in place, ##
 ## not the heavier on_error pipeline [ which assumes a broken connection   ##
-## and does backend-restart + full task requeue ]                         ##
+## and does backend-restart + full task requeue ]                          ##
 if ( defined $task_state and $ceiling_used < $hard_ceiling ) {
     <[base.logs]>->(
         1,
-        "async.http_timeout: soft ceiling [%ds] hit for %s,"
-            . " restarting round with full %ds",
+        "async.http_timeout: soft ceiling [%ds] "
+            . "hit for %s, restarting round with full %ds",
         $ceiling_used,
         $task_id,
         $hard_ceiling
@@ -60,8 +60,8 @@ $callbacks->{'on_error'}->($error) if exists $callbacks->{'on_error'};
 
 <[coding.async.http_cleanup]>->($state);
 
-#,,.,,,,,,,,.,,,,,...,...,,,.,...,,.,,..,,.,.,.,.,...,...,...,,..,...,.,.,,..,
-#KCF4CUB6MOT7UPDVOOACPSGRBYKP7R3GDM5DB26ZIJPCNGD723A2FWILJI73XMO7OGCJBSPVDV7D2
-#\\\|BBH5DNUV2S2FQNL4HESSQTQCUHDRG2G4PAKB5KRSH7BWP6EEXCE \ / AMOS7 \ YOURUM ::
-#\[7]GXLSHGIL2CNEIL77BIX2RY7KXJ6LBAAMUDS5VPZMXNJH4IYJCYAI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,,.,,,..,..,,.,.,.,,,...,.,.,...,.,.,...,...,.,.,,.,,,,.,,..,,..,
+#I6CJNMSXHX4EDMLBWSDB2RVHVLXTSFIAKHRBTBEELDAITN7TFCHPXQY354EMHUEE37M6FFH4FWBPS
+#\\\|UU7MQE4ICJEL6TDHX6F2YOJWD55CDA5TV6DDBE2RG4ERF7TTSDS \ / AMOS7 \ YOURUM ::
+#\[7]OQR2AFR7JKDSESRCKTTH6INRRA4MOOHFBIVB445N4ORY3PZK3MCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

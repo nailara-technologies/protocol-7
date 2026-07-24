@@ -41,11 +41,11 @@ if ( !defined $existing || !defined $existing->{'state'} ) {
         }
     );
 
-    ## merge manager-level fields onto the freshly initialized state :
-    ## state_machine 'init' overwrites the whole task_state hash, so
-    ## job_id must be merged in AFTER init — otherwise http_error can
-    ## never find it on timeout and the orphaned job stays 'running'
-    ## forever while the task sits requeued as 'pending'              ##
+    ## merge manager-level fields onto the freshly initialized state :      ##
+    ## state_machine 'init' overwrites the whole task_state hash, so job_id ##
+    ## must be merged in AFTER init — otherwise http_error can never find   ##
+    ## it on timeout and the orphaned job stays 'running' forever while the ##
+    ## task sits requeued as 'pending'                                      ##
     <[coding.async.state_manager]>->(
         qw| set |,
         $task_id,
@@ -57,25 +57,26 @@ if ( !defined $existing || !defined $existing->{'state'} ) {
     $existing = <coding.async.task_state>->{$task_id};
 }
 
-## per-backend serialization: only one inference request at a time per server ##
+## per-backend serialization: only one inference request at a time per ##
+## server                                                              ##
 my $lock_result = <[coding.async.backend_acquire]>->( $task_id, $backend );
 if ( not $lock_result->{'acquired'} ) {
     return { success => TRUE, mode => qw| deferred |, backend_busy => TRUE };
 }
 
-## stamp phase-1 (http-wait) start here, not just on round increment :  ##
-## this fires on every actual dispatch attempt, first try and every      ##
-## timeout retry alike. phase-1 ends when the response is fully          ##
-## received; coding.async.state_machine then starts phase-2 tracking.    ##
+## stamp phase-1 (http-wait) start here, not just on round increment : this ##
+## fires on every actual dispatch attempt, first try and every timeout      ##
+## retry alike. phase-1 ends when the response is fully received;           ##
+## coding.async.state_machine then starts phase-2 tracking.                 ##
 if ( defined $existing ) {
     $existing->{'round_started'} = <[base.time]>->(3);
 
     ## adaptive ceiling : starts soft [ fast recovery on genuine stalls ], ##
-    ## escalated to the full hard ceiling by http_timeout when a soft     ##
-    ## trip restarts this same round, reset back to soft on clean         ##
-    ## completion by http_complete — see coding.handler.http_timeout      ##
-    ## stretched by GPU-temp factor [ coding.handler.gpu_temp_update ] :  ##
-    ## a thermally-throttled GPU is legitimately slower, not stalled      ##
+    ## escalated to the full hard ceiling by http_timeout when a soft trip ##
+    ## restarts this same round, reset back to soft on clean completion by ##
+    ## http_complete — see coding.handler.http_timeout stretched by        ##
+    ## GPU-temp factor [ coding.handler.gpu_temp_update ] : a              ##
+    ## thermally-throttled GPU is legitimately slower, not stalled         ##
     $existing->{'timeout_ceiling'}
         //= ( <coding.cfg.round_soft_ceiling> // 384 )
         * ( <coding.stretch.timeout_factor> // 1.0 );
@@ -90,12 +91,13 @@ if ( defined $existing && defined $existing->{'state'} ) {
     $existing->{'content'}       = '';
     $existing->{'tool_calls'}    = [];
 
-    ## do NOT cancel the previous connection here : tool execution runs synchronously
-    ## inside on_chunk while the server is still streaming the previous response.
-    ## cancelling the socket mid-stream corrupts the llama-server inference slot,
-    ## causing the next request to hang indefinitely.
-    ## the previous connection self-cleans via: EOF → http_io → http_cleanup.
-    ## stale-seq check in http_complete prevents any double-processing.
+    ## do NOT cancel the previous connection here : tool execution runs
+    ## synchronously inside on_chunk while the server is still streaming the
+    ## previous response.  cancelling the socket mid-stream corrupts the
+    ## llama-server inference slot, causing the next request to hang
+    ## indefinitely.  the previous connection self-cleans via: EOF → http_io →
+    ## http_cleanup.  stale-seq check in http_complete prevents any
+    ## double-processing.
 }
 
 ## increment request sequence [ used to detect stale callbacks ] ##
@@ -158,8 +160,8 @@ return {
     mode    => qw| streaming |,
 };
 
-#,,.,,,,,,...,...,,..,...,,,.,.,.,.,.,,,,,,,.,..,,...,...,...,,.,,..,,..,,..,,
-#NE6CV4P5KKYWFSA4YPJZG2CDVBCTOPOU73MCOBF67MGNWU7DBNDMIWGJY4SSDOVRQ2UI7CACBMTHU
-#\\\|NU762T3CUK63WUAD5XGWX7W4JVPOASTHCHBISKYN445XOAW5TOS \ / AMOS7 \ YOURUM ::
-#\[7]P7VTSRG7TLTL2ZOOPYJEIRWMP7LWAB2MDQANZXA4A6DV46NIFAAY 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,.,.,..,,,,,,.,.,...,.,.,.,.,.,.,..,,...,...,,..,..,,,..,.,.,,.,,
+#P26QK46SWLKB4YOQU2I36Z66IY5AL7XMN7RAVQJG6ZRLL3XD2BZLNGILJU4IE44TUXD7V46AAPY4K
+#\\\|FUHSTRGWN2QZGJ3C6YKOONDB4G4BTA3RV4HUC2BD62DQWVZF4Q3 \ / AMOS7 \ YOURUM ::
+#\[7]QGEYB5YTXGDYLLDL7VNNZXSVR6EO5GT2B5CLDFMRT33OXVBRM2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

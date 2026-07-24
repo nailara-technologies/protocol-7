@@ -9,8 +9,8 @@ my $pattern = $params->{'pattern'} // '';
 return { mode => qw| false |, data => 'pattern required' }
     unless length $pattern;
 
-## canonical content is the regex text itself so the checksum is a pure
-## function of the pattern [ optional metadata is not part of the id ] ##
+## canonical content is the regex text itself so the checksum is a pure ##
+## function of the pattern [ optional metadata is not part of the id ]  ##
 utf8::encode( my $canonical = $pattern );
 my $c_sum = <[chk-sum.amos]>->($canonical);
 return { mode => qw| false |, data => 'checksum failed' }
@@ -41,8 +41,8 @@ if ( not defined $written ) {
 
 return { mode => qw| true |, data => $c_sum };
 
-#,,.,,,,,,.,.,,,,,,,,,,,.,...,,..,,,.,..,,.,,,..,,...,...,.,.,...,,,.,.,.,...,
-#F2J76PRJS46ZHXOTN2LKBVO5USAL3KGH3XDNU457KCPNWV3DBVOUV2JDOKNE3NII3GAUUDRFB2QKA
-#\\\|73UEO7Q4Y2VTTMXTUZKXXY3MMA3BLM3YKZ2K6X7SKAKC2LVD2H5 \ / AMOS7 \ YOURUM ::
-#\[7]F77LAN3N26EX7RIV4APQUTUUUD4Y57GVD7ILQQ2M63JK476FLYBA 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,.,.,.,.,,,.,...,,,,,..,,..,,,,,,..,,...,...,,,.,,,.,,.,,..,,.,,,
+#P3W7MMRX2NJ3RFC5NACOAVAKRVRB444LCHGVXYTXLLJMHOWXK3CG4LFPJN4ANNLHTXERDD2KVDQQW
+#\\\|2ZFIHID6P42YTN5I2YATGODFKFTX6U2L5S35GQSH6N6VFQP5AXU \ / AMOS7 \ YOURUM ::
+#\[7]U723TOT7S6ZUC3TMQEICYDFTZEGFLV2OGBIJ4HAW32WBTZTTDICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

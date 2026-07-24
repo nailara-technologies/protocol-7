@@ -53,8 +53,8 @@ while ( $content =~ m|<\[([^>]+?)(?!\]->)|g ) {
 }
 if ($bracket_errors) {
     push @errors,
-        "found $bracket_errors incorrect bracket syntax"
-        . " [ use bracket-angle syntax ]";
+        "found $bracket_errors incorrect bracket "
+        . "syntax [ use bracket-angle syntax ]";
 }
 
 ## 6. Check for base.log vs base.logs ##
@@ -81,7 +81,8 @@ if (   $content =~ m|\breturn\s*\{\s*['"]mode['"]\s*=>|i
     || $content =~ m|\breturn\s*\{\s*mode\s*=>| ) {
     if ( $content !~ m|return\s*\{\s*mode\s*=>\s*qw\|| ) {
         push @warnings,
-            "return format should use: { 'mode' => qw| true |, 'data' => ... }";
+            "return format should use: { 'mode' "
+            . "=> qw| true |, 'data' => ... }";
     }
 }
 
@@ -130,8 +131,8 @@ return {
     'data' => $result,
 };
 
-#,,,,,,.,,,..,,,.,..,,,,.,,..,,,,,.,,,,.,,.,.,..,,...,...,...,.,.,..,,,..,..,,
-#EAQ5X342SWNGKVQQ5NCCX3LRP6WCAJ23SKXKATEBGQ2EJTUAF7GKNS7UNYC6L4IDBVP3DK33ZHERG
-#\\\|Y7XXMVO4CU5VKG2ADPU4K2HZFYAHLCAG36KUWO2TQVYLKOQQKWM \ / AMOS7 \ YOURUM ::
-#\[7]2YSH76GAUM3CPA75X3C77RVE746CV5A4Y4HZVAY7RRF463GMP6AA 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,.,,..,,.,.,.,,,..,,.,.,,,,,,..,..,,...,...,...,.,,,..,,,.,,,..,
+#G3EUM4P2NMJ2NLNNR37Z5NQLJFOMKUORV64L6ZT3RV23MB3PL6TOU363VLSXHOBFCPWFBIFYN7AES
+#\\\|D336DITDBMEAVMVFEV2B3XOB4ECKBJBQ2AYW5EGC5KHY5TCZHBK \ / AMOS7 \ YOURUM ::
+#\[7]PGKS7Z6U2F55MTESQAXV5VZYGVJMELJ3FJJKXGS26TPJJ2P74CCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

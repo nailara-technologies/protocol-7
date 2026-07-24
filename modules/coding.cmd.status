@@ -31,24 +31,21 @@ if ( defined $task_id ) {
 
     return {
         'mode' => qw| size |,
-        'data' => ":: task Status : $task_id ::\n\n"
-            . ": status   : "
-            . $task_status->{'status'} . "\n"
-            . ": started  : "
+        'data' => ":: task Status : $task_id ::\n\n: status   : "
+            . $task_status->{'status'}
+            . "\n: started  : "
             . (
             $task_status->{'started'}
             ? scalar( localtime( $task_status->{'started'} ) )
             : 'pending'
             )
-            . "\n"
-            . ": completed : "
+            . "\n: completed : "
             . (
             $task_status->{'completed'}
             ? scalar( localtime( $task_status->{'completed'} ) )
             : 'in progress'
             )
-            . "\n"
-            . ":  success  : "
+            . "\n:  success  : "
             . ( $task_status->{'success'} ? 'yes' : 'no' ) . "\n"
     };
 }
@@ -61,33 +58,30 @@ my $budget = <[coding.budget.track_tokens]>->('status');
 
 return {
     'mode' => qw| size |,
-    'data' => "\n:: coding zenka status ::\n\n"
-        . ": queue stats :\n"
-        . ":  failed    : "
-        . $stats->{failed} . "\n"
-        . ":  pending   : "
-        . $stats->{pending} . "\n"
-        . ":  progress  : "
-        . $stats->{in_progress} . "\n"
-        . ":  completed : "
-        . $stats->{completed} . "\n" . "\n"
-        . ": budget info :\n"
-        . ":  used      : "
+    'data' => "\n:: coding zenka status ::\n\n: "
+        . "queue stats :\n:  failed    : "
+        . $stats->{failed}
+        . "\n:  pending   : "
+        . $stats->{pending}
+        . "\n:  progress  : "
+        . $stats->{in_progress}
+        . "\n:  completed : "
+        . $stats->{completed}
+        . "\n\n: budget info :\n:  used      : "
         . $budget->{total_used}
         . " tokens ("
-        . $budget->{percentage_used} . "%)\n"
-        . ":  status    : "
-        . $budget->{status} . "\n"
-        . ":  allocated : "
+        . $budget->{percentage_used}
+        . "%)\n:  status    : "
+        . $budget->{status}
+        . "\n:  allocated : "
         . $budget->{total_allocated}
-        . " tokens\n"
-        . ":  remaining : "
+        . " tokens\n:  remaining : "
         . $budget->{remaining}
         . " tokens"
 };
 
-#,,,,,..,,,.,,,,.,.,.,,..,...,,,,,..,,.,.,,.,,..,,...,...,..,,...,,.,,...,,,.,
-#FKGMRUOWXAV6ZDFJMGKXHIO526WPAGEO3EJZEVBMDPZE7RSDKVW4WDI5FVQJR5IWROQTXUBIAKXQG
-#\\\|R7AT3KWFB6DZUBOYX75M5MKK63ZYYSSXVXQIJ2TNSFTI2SDAOA4 \ / AMOS7 \ YOURUM ::
-#\[7]PVJF3WKR2U5OGBLTDFL2YYICQPWCT6DSKBAWS6MHHDG7FUFTA2AI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,,.,.,.,,.,,...,,,,,,..,,..,.,.,..,,...,...,..,,,,.,.,,,...,,..,
+#37QHTUBVMOFR4XI2BB2SI4IS6I67UG23XB26Z3RY2AKQ3QX4URCKBBTBU4U7AZRUHP6O3DMJ66VJW
+#\\\|FKIOHX2Y3GXHN5EOH7Z4LDLDDGDMAZ3F7NLWZFWL3SXSMEHGNSJ \ / AMOS7 \ YOURUM ::
+#\[7]XAIDSCVB5Y5CFTVKTRJMIV64CDKWXSWOWO4F7OECBDVLTR532EAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

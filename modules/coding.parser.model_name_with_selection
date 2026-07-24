@@ -11,7 +11,8 @@ return $amos unless length $amos;
 my $gpu_model = <inference.backend.gpu.model_id> // '';
 my $cpu_model = <inference.backend.cpu.model_id> // '';
 
-## differentiate gpu, cpu, and dual active models with different bracket styles
+## differentiate gpu, cpu, and dual active models with different bracket
+## styles
 my $gpu_match = length($gpu_model) && $amos eq $gpu_model;
 my $cpu_match = length($cpu_model) && $amos eq $cpu_model;
 
@@ -20,8 +21,8 @@ return sprintf( '[%s]', $amos ) if $gpu_match;
 return sprintf( '<%s>', $amos ) if $cpu_match;
 return $amos;
 
-#,,..,,..,,,,,,,,,,,.,..,,,..,,,.,,,,,,.,,.,,,..,,...,...,..,,,,.,.,,,.,,,.,.,
-#E6DSZMPZOLMAKEJ2CI3EZSFCDAETFZFPZBX3ILTODITZWGXMWZVH5C5WHGGXWBWLQQUO2NARJCBHA
-#\\\|TR7RQXKZZKQOVGAMZ5Z6ID67543LQYOBVD4NCRIFKKTS72GTIW5 \ / AMOS7 \ YOURUM ::
-#\[7]GOG5NBLFPHRTCBYKEY4LZ5JT2AWPPL2RLQPTPZSNXD5TQJESHUAY 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,...,,,.,,,.,.,,,.,.,,,.,,..,..,,..,,...,..,,,..,,,,,,,,,...,..,,
+#3N3RGCETSEWTRZECSMME7V4B6MSRL6DT3NPZNYCVLU2QO2FXEZ2DSZI6NMJIIGOCRIFRQIVCC6UZI
+#\\\|TDVMQUYFQFJ7ZUSGDPLSWYKXY3MVA5KAPOE5QYJ2HNHXZHUX7D6 \ / AMOS7 \ YOURUM ::
+#\[7]7YKGEF3COQHF3WJMZLG6F6BWWXSSVSAZ4B7AMCN3MXH3ZFM4DEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,25 +13,21 @@ if ( $subcommand eq 'status' ) {
 
     return {
         'mode' => qw| size |,
-        'data' => "token budget status:\n"
-            . "  total allocated: "
+        'data' => "token budget status:\n  total allocated: "
             . $budget->{total_allocated}
-            . " tokens\n"
-            . "  total used: "
+            . " tokens\n  total used: "
             . $budget->{total_used}
-            . " tokens\n"
-            . "  remaining: "
+            . " tokens\n  remaining: "
             . $budget->{remaining}
-            . " tokens\n"
-            . "  percentage used: "
-            . $budget->{percentage_used} . "%\n"
-            . "  percentage remaining: "
-            . $budget->{percentage_remaining} . "%\n"
-            . "  status: "
-            . $budget->{status} . "\n"
-            . "  session duration: "
-            . $budget->{session_duration} . "\n"
-            . "  avg per transaction: "
+            . " tokens\n  percentage used: "
+            . $budget->{percentage_used}
+            . "%\n  percentage remaining: "
+            . $budget->{percentage_remaining}
+            . "%\n  status: "
+            . $budget->{status}
+            . "\n  session duration: "
+            . $budget->{session_duration}
+            . "\n  avg per transaction: "
             . $budget->{average_per_transaction}
             . " tokens\n"
     };
@@ -92,13 +88,13 @@ if ( $subcommand eq 'status' ) {
 } else {
     return {
         'mode' => qw| false |,
-        'data' => "Unknown budget subcommand: $subcommand\n"
-            . "Available: status, history, breakdown"
+        'data' => "Unknown budget subcommand: $subcommand\nAvailable: "
+            . "status, history, breakdown"
     };
 }
 
-#,,..,,..,..,,...,,,.,,,.,...,.,.,...,..,,...,..,,...,..,,...,,.,,,,,,,.,,.,,,
-#Q5AQGZ55C5FE2HJ6DS3I6FDUGRXALAPE4WZJOYLT43U7O5LDIXBCUNEXDRIN5AS2YEP56M63KN64O
-#\\\|QAMCXVHPFADU64J6WUW66YJPHSHW27TG7KFHEIMCPPFWXXRHDKW \ / AMOS7 \ YOURUM ::
-#\[7]B6E6R5HSVRMPJUFEM35ICKWJ3S44ZMTQ7H7OYDD66NRNFFY5QSDQ 7  DATA SIGNATURE ::
+#,,,.,..,,...,.,.,..,,,,.,...,.,.,.,.,,,.,,,.,..,,...,.,,,.,,,,..,..,,.,,,,..,
+#MJPYL2UTQMA3GCHAOMRWF4QNYPZ3PT3LDN4BJPRHBVECD6EFNJOJPJZ55QMZI5ND42E5RZ25R5RJE
+#\\\|TS3FOYDIHT5M4UDWFLQKZKYSX4H2UNUQS6MXPBFTJTLCZL7VOZO \ / AMOS7 \ YOURUM ::
+#\[7]HLUTIQU6YH47ACLSLLNULGE45CCNP6H4GFCL7CUAGJPTFXI4DIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
