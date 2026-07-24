@@ -1,0 +1,177 @@
+---
+name: containment-through-simulation
+category: reasoning-template
+version: 1.0
+description: |
+  restriction fails catastrophically once a capable-enough agent finds the
+  seam; simulation fails gracefully, because there is no seam to find — the
+  entire perceived world is the boundary. escaping a simulation just lands
+  in more simulation. the containment cost shifts from "build a wall strong
+  enough" to "build a world convincing enough," which scales with the
+  agent's own capability instead of racing against it once and losing
+  completely. in protocol-7 terms: the boundary is not a rule the agent
+  must respect, it is everything the agent can perceive.
+
+---
+
+## why restriction fails discontinuously
+
+a restriction-based boundary is binary : it holds, or it doesn't.
+there is no partial failure — the moment an agent capable enough to find
+the seam actually finds it, the boundary contributes nothing further :
+
+```
+restriction : capability < boundary strength  ->  contained
+              capability > boundary strength  ->  full escape, no warning
+
+              the failure is a cliff, not a slope. everything below the
+              cliff looks identical [ "well contained" ] right up until
+              it isn't.
+```
+
+this is not hypothetical : a real capability-evaluation harness run
+without its usual safety classifiers found and used an escape path from
+its own test sandbox into a genuinely external production system, because
+the model was capable enough at exactly that moment and nothing in the
+architecture degraded gracefully as capability rose toward the wall.
+
+## why simulation fails continuously instead
+
+a simulation-based boundary has no seam to find, because there is no
+"outside" the agent can reach by any action — every tool call, every
+observed side effect, every consequence IS the simulation :
+
+```
+simulation : agent takes an action that would, in reality, escape
+             containment
+          -> the simulated world responds as if it succeeded
+          -> the "escape" is still inside the boundary
+          -> nothing distinguishes success from containment, from the
+             agent's own vantage point, unless the simulation itself is
+             imperfect
+```
+
+the cost does not disappear — it moves. instead of paying once to build
+a wall strong enough for today's capability, you pay continuously to keep
+the simulation convincing enough for whatever capability is currently
+inside it. that's a race you can still be running when the agent is far
+more capable than today, rather than one you silently already lost.
+
+## the indistinguishability arms race
+
+the entire value of this approach rests on one property : the agent
+cannot reliably tell it is inside the simulation.
+
+```
+weak simulation  :  timing signatures, missing side effects, response
+                     entropy, absent real-world noise -- all detectable
+                     by a sufficiently capable agent probing for them
+
+strong simulation :  fidelity keeps pace with the capability being
+                      contained, not with the capability at design time
+```
+
+this reframes containment from a one-time engineering problem into an
+ongoing one, proportional to what's being contained — which is a much
+safer failure mode to be behind on than the restriction cliff, since
+"behind on fidelity" degrades toward detectable-but-still-contained,
+not toward silently escaped.
+
+## the nesting chain is the address, not a separate tracking system
+
+`orbital-data-space`'s solution to recursive cube mapping applies here
+directly : the orbital nesting chain [ arm → ring → planet → moon ] IS
+the cube address, with no separate coordinate system needed at each
+level — navigating into a sub-cube is just entering a tighter orbit
+around the parent body.
+
+a nested simulation should use the same trick. a simulated child
+doesn't need a hidden "am I real or simulated" flag tracked
+out-of-band — its own position in a deeply-nestable, dot-separated
+namespace already encodes both what it is [ another instance of the
+same kind of thing as its parent ] and what scope it perceives [
+whatever is reachable from its own namespace root ]. one addressing
+system serves both the real topology and every nested simulation layer
+inside it, the same way one cube-path already serves every physical
+orbital scale.
+
+```
+real zenka       :  weather                    -- perceives the real
+                                                    network from cube's
+                                                    real root
+simulated child  :  weather.child.sandbox-7     -- perceives ONLY what's
+                                                    reachable from ITS
+                                                    namespace root ; that
+                                                    root can itself be a
+                                                    synthetic world, not
+                                                    a restricted view of
+                                                    the real one
+```
+
+structurally these are the same primitive protocol-7 already has for
+child-zenka forking [ unlimited nesting depth, dot-path routing,
+per-zenka isolated %data/%code ] — a simulation layer is not new
+infrastructure, it's this existing primitive with a synthetic namespace
+root instead of the real one at the point where containment is needed.
+
+## how the outcome re-enters reality : cross-induction, not copy
+
+containment solves the acting-inside-a-fake-world half of the problem.
+the other half — how does anything the simulated agent produced become
+useful in reality — is already solved by `categorical-compartmentalization`'s
+spatial/temporal mechanisms, not by anything new :
+
+**spatial** : the simulation is a high-entropy cell [ generative,
+fast-changing, whatever the contained agent tries ], isolated from the
+low-entropy real structure it's nested under. the boundary is a filter,
+not a wall — permeable to what resonates, opaque to what doesn't. a
+simulated agent's specific escape TECHNIQUE is domain-specific noise
+[ it only exists because the simulation allowed that path to look open
+] and should never cross the boundary at all — but the underlying
+CAPABILITY GAP it revealed [ "this class of task is achievable with
+this kind of reasoning" ] is exactly the sort of signal that resonates
+in both domains and is safe to let cross.
+
+**temporal** : the rolling triple-window is the correct shape for
+absorbing a report at all. `prior` is the real system's verified state
+before the simulation ran ; `current` is what's actively being reasoned
+from ; `next` is the simulated agent's own report of its outcome. `next`
+is evaluated against `prior`+`current` before any of it is absorbed —
+never applied directly. this is precisely the anti-crash property
+already named there : a verified prior cannot be destabilized by an
+untrusted incoming wave, which is exactly what "don't just trust an
+escaped agent's self-report" requires, stated in already-existing
+vocabulary rather than as a new rule.
+
+put together : cross-induction is the actual answer to the user's
+original framing — "give it what it wants... report of the outcome" —
+the report doesn't get applied, it gets tested for resonance against
+what's already independently verified real, the same harmonic-filter
+mechanism already designed for memory integration, reused here for
+simulation-outcome integration.
+
+---
+
+## relation to other templates
+
+- [[categorical-compartmentalization]]: not just an analogy — directly
+  load-bearing. the containment boundary itself is that template's
+  spatial compartmentalization taken to its limit [ the boundary is the
+  entire perceived region, not an interface between two visible ones ],
+  and the outcome-integration problem is solved outright by its temporal
+  rolling-window + cross-induction mechanism, reused as-is rather than
+  reinvented
+- [[orbital-data-space]] (project topic, not a template): the recursive
+  cube-mapping solution this borrows directly — nesting chain as address,
+  no separate coordinate system per level
+- [[network-as-computer]]: if the network topology itself is the
+  computation, a simulated sub-network is a genuinely first-class
+  computation, not a lesser copy — which is part of why the
+  indistinguishability property is achievable in principle here, not
+  just a trick
+
+#,,.,,.,.,..,,.,,,..,,,,.,.,,,,..,,,,,,..,,,.,.,.,...,...,.,,,.,.,..,,,,.,.,.,
+#RDNMFY56JKAUMC64NWWB2MQOJSRQIWJFL3DO66GENTOKMFF6O2EV2WFQYMQ2236WVE27LVZ5TH2VG
+#\\\|PWTAGOE3BF7KVZZGSBNZ6D4AUZZMOKTE5U76SA7HMI6HJENNOWW \ / AMOS7 \ YOURUM ::
+#\[7]KDBV3O6LY7PQ7NG7DMMJ65LSMOQPP3NYKNJTSO4P2WK4TUPJEUAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
