@@ -5,14 +5,13 @@
 my $current_epoch = shift;    ##  epoch 0 == network time start \ overflow  ##
 my $result_prec = shift // 17; ## <-- optional [arbitrary] result precision ##
 
-##  V7 network has 13 month year  ## [ 365 / 13 ]
-## state $epoch_days_Y13_month //= 28.0769230769230769230;
+## V7 network has 13 month year  ## [ 365 / 13 ]  state $epoch_days_Y13_month
+## //= 28.0769230769230769230;
 
 ## 4200 * 86400 * $epoch_days_Y13_month ##
 state $epoch_multi //= 10188553846.1538461538461;
 
-## 4200 * 86400 * 365 ##
-## state $ntime_secs_per_year //= 132451200000;
+## 4200 * 86400 * 365  state $ntime_secs_per_year //= 132451200000; ##
 
 ## $ntime_secs_per_year * 355 ##
 state $epoch_overflow_ntm = 3925446025846153.8461538461538;
@@ -50,14 +49,13 @@ if ( not length $current_epoch ) {
         $current_epoch = <[base.ntime.epoch_timestamp]>->( ${^CAPTURE}[0] );
 
         if ( not defined $current_epoch ) {
-            warn 'epoch time format not valid '
-                . '[ decoding not successful ] <{C1}>';
+            warn 'epoch time format not valid [ '
+                . 'decoding not successful ] <{C1}>';
             return undef;
         }
 
     } elsif ( $current_epoch =~ m|^$b32_re+$| ) {
-        warn 'input epoch string not valid '
-            . '[ format not recognized ] <{C1}>';
+        warn 'input epoch string not valid [ format not recognized ] <{C1}>';
         return undef;
     }
 }
@@ -88,8 +86,8 @@ $ntime_val =~ s|\.?0+$||;    ##  sanitizing output precision  ##
 
 return $ntime_val;           ##  return V7 network time value  ##
 
-#,,..,,.,,.,,,.,,,,.,,,,,,...,.,.,,,,,...,,,,,..,,...,..,,...,,,.,,..,...,,..,
-#Z3JT6WMCGIP737KL76WHSQK2QZEXMEU4SDQZLPP5J5MX6WF3XRBK2WFXUV6D4773FKAQ46ODJQMJK
-#\\\|UT6ZKNUNENUCY442RPMLTGFZXTOQT3ZWHDDHJVTBKI32RVH6KQW \ / AMOS7 \ YOURUM ::
-#\[7]AJUHBNQXMLVRSTLWSSGMQNFRZRHP5IOS7QCOYFZP3OLFF5BW5SDA 7  DATA SIGNATURE ::
+#,,..,...,,,.,,,.,,..,,..,.,,,,,.,,..,...,,,.,..,,...,...,.,.,...,.,.,,..,...,
+#3PZ7JN2BFUXCOKP6LSWHMULR74C6CWEKMLHX5UD6YRLM7JPJAG2V4DBSRISXWG3JHA62BZKR2EAGU
+#\\\|C4F4BHNZI5RWRXK2WKIGKRMIZM2JFFJODLOY5SLBT2K6TI4R3WX \ / AMOS7 \ YOURUM ::
+#\[7]EBCUKIVD2QYAEVGWIMYVGZHRUGMNHHOJESQ67YK6QQ43MSLR4MDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

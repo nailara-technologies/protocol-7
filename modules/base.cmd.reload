@@ -57,18 +57,18 @@ if ( $arg eq qw| source | or $arg eq qw| all | ) {
     my @previously_loaded
         = grep { $ARG !~ m{^plugin\.} } <[base.clear_p7_mods]>;
 
-    ## base.clear_p7_mods only returns what was already tracked as loaded -- ##
-    ## a namespace freshly added to modules.load since the last load would  ##
-    ## otherwise never get compiled in by reload, only by a fresh zenka     ##
-    ## boot or an explicit base.load_modules call                          ##
-    my @configured_modules
-        = grep { length and $ARG !~ m{^plugin\.} }
+    ## base.clear_p7_mods only returns what was already tracked as loaded ##
+    ## -- a namespace freshly added to modules.load since the last load   ##
+    ## would otherwise never get compiled in by reload, only by a fresh   ##
+    ## zenka boot or an explicit base.load_modules call                   ##
+    my @configured_modules = grep { length and $ARG !~ m{^plugin\.} }
         split( m| +|, <modules.load> // '' );
 
-    my %mod = map { $ARG => TRUE } ( @previously_loaded, @configured_modules );
+    my %mod
+        = map { $ARG => TRUE } ( @previously_loaded, @configured_modules );
     my @reload_modules = keys %mod;
 
-    $keyword_match = TRUE;                                         ## true ##
+    $keyword_match = TRUE;    ## true ##
     delete <base.commands>;
     delete <base.subroutines>;
     delete <buffer.compile-errors>;    ##  clear previous errors  ##
@@ -79,7 +79,7 @@ if ( $arg eq qw| source | or $arg eq qw| all | ) {
 
     <[base.logs]>->( '[%d] < reload source code >', $id );
 
-    ##  pick up any updated whitelist before reloading [ new subs included ]  ##
+    ## pick up any updated whitelist before reloading [ new subs included ] ##
     <[base.reload_whitelist]>;
 
     if ( not <base.devmod.keep_on_reload> and not exists $mod{'devmod'} ) {
@@ -166,9 +166,9 @@ if ( $arg eq qw| init | or $arg eq qw| all | ) {
     <[base.referenced_subroutines.clear_from_disk]>
         if $arg eq qw| init | or $arg eq qw| all |;
 
-    ## status line only surfaces the count when console_report is on -   ##
-    ## the buffer is always populated regardless, query it any time via  ##
-    ## 'show-buffer undef-subs' ##
+    ## status line only surfaces the count when console_report is on - the ##
+    ## buffer is always populated regardless, query it any time via        ##
+    ## 'show-buffer undef-subs'                                            ##
     my $undef_sub_count
         = ( <[base.cfg_bool]>->(<base.referenced_subroutines.console_report>)
             and ref <base.subroutines.referenced> eq qw| HASH | )
@@ -183,9 +183,8 @@ if ( $arg eq qw| init | or $arg eq qw| all | ) {
     } elsif ($modules_init_success) {
 
         $reply->{'data'}
-            .= sprintf(
-            "$s_str reinit source  [ warning ] [ %d undefined sub%s.,"
-                . " see 'undef-subs' buffer ]\n",
+            .= sprintf( "$s_str reinit source  [ warning ] [ %d "
+                . "undefined sub%s., see 'undef-subs' buffer ]\n",
             $undef_sub_count, <[base.cnt_s]>->($undef_sub_count) );
         $success &&= TRUE;    ## true ##
 
@@ -224,8 +223,8 @@ delete <system.reload>;    ## completed ##
 $reply->{'mode'} = qw| data |;
 $reply->{'data'} .= $reply_footer;
 
-#,,.,,,,,,..,,...,,.,,,,.,,,.,,,.,,..,..,,,.,,..,,...,...,.,,,,,,,,,.,,,.,...,
-#H4ACYDNWUR7C6VOURYQLAO752FUA4RIS55QU3CZAI7VPQS3IJC3VSX2A5ZV2ZQZMQ4Z4IURSGVEBS
-#\\\|5PHJNQCTSSHBSW7XZ7SDVN75VYXG3JJUC4YXKLHXFG4INW7234M \ / AMOS7 \ YOURUM ::
-#\[7]EPDIMXNEMOIUD5GVA72DYFHDNBQKNZMPOWK4PM3ME7JDYGKHOWAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,.,,.,.,,.,,.,.,,,.,,,,,,..,,,.,..,,...,...,,.,,...,.,.,.,.,.,.,
+#4MFJ6IS5VTBYTFR6M5FP2AO2OXGZ53LX3NCVI5QEJPFO5HWAVZU5NURYU72LIBEWJTNHL3AIZR5G4
+#\\\|WTL75FWQ7WDCO3VPY7QMQ4ZETBFBAEZJ2RF3ZUSXGYT4U2PN2JS \ / AMOS7 \ YOURUM ::
+#\[7]D6CIPIGKO24FMJ6KKSDTRJYBFKJYDYGA6TIODPZDUHEVSVTW4WDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -40,14 +40,14 @@ fail_retry:
             next if $lang ne $file_lang;
             $language_found = 1;
             if ( defined $namespace ) {
-                warn(     "locale file '$filename' overwrites"
-                        . " previously loaded data" )
+                warn(     "locale file '$filename' "
+                        . "overwrites previously loaded data" )
                     if exists <locales.string>->{$namespace};
                 <locales.string>->{$namespace}
                     = <[locales.load_file]>->($path);
             } else {
-                warn(     "locale file '$filename' overwrites"
-                        . " previously loaded data" )
+                warn(     "locale file '$filename' "
+                        . "overwrites previously loaded data" )
                     if keys( %{<locales.string>} );
                 <locales.string> = <[locales.load_file]>->($path);
             }
@@ -66,8 +66,8 @@ fail_retry:
 
 0;
 
-#,,.,,,,,,,,.,.,.,,,,,,,.,.,.,.,.,,,.,..,,,,.,..,,...,...,..,,...,,.,,,,,,,,.,
-#4LMBWAHQZK4EWUPMXGNIHZQCO7N23HN4SOBRJ65HTMNBQLWPXON7DNWRMT2P5STS73IMH4ZVF37EK
-#\\\|LVS6NB3HHVON24D3M53UIB3WA7G7BKGDTTHBCRSJI53QZXIRSLJ \ / AMOS7 \ YOURUM ::
-#\[7]HNEUHOMIDMRSCCW7WSMQOK6QL23CTT6SNBOEQGUV5QAEJHNCIQDY 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,..,,,.,,,.,...,...,...,,,,,...,..,,...,..,,,..,,,.,.,,,..,,..,,
+#ZRTM45WUYWPCWDLK3MAGBI72WIFZG3PENGFLVWO7L4S27KZ6RCATKUMP7HE6H6KMYYXDIZQXLE7GA
+#\\\|HJN6ZL4CPKMJZ37RGTXG5GZCY7QVFG2UKFPTLVVIHKLRNEEQ36Q \ / AMOS7 \ YOURUM ::
+#\[7]GR4XLL5SOJVBNQ54FTZX74MTQPLLM7FITXVMB6EGCBZZDA4D7UAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

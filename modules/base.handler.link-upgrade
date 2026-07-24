@@ -29,10 +29,10 @@ if ( defined $session->{'link_upgrade_timeout'}
     return 2;    ## Disconnect on timeout
 }
 
-## Parse link-upgrade negotiation protocol
-## Note: "link-upgrade" command was already processed by cube.cmd.link-upgrade
-## and ephemeral pubkey was sent by protocol.protocol-7.link-upgrade.init
-## Now we expect: link-pub-key, link-confirm-encoding, link-complete
+## Parse link-upgrade negotiation protocol  Note: "link-upgrade" command was
+## already processed by cube.cmd.link-upgrade and ephemeral pubkey was sent by
+## protocol.protocol-7.link-upgrade.init Now we expect: link-pub-key,
+## link-confirm-encoding, link-complete
 
 ## Process client's public key response
 if ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
@@ -56,8 +56,8 @@ if ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
         $id, length($client_pubkey)
     );
 
-    ## Perform Diffie-Hellman with client pubkey
-    ## Get ephemeral keypair from session storage
+    ## Perform Diffie-Hellman with client pubkey  Get ephemeral keypair from
+    ## session storage
     my $ephemeral_keypair = $session->{'link_ephemeral_keypair'};
 
     if ( not defined $ephemeral_keypair ) {
@@ -65,8 +65,8 @@ if ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
         return 2;
     }
 
-    ## Compute shared secret: DH(our_private, client_public)
-    ## Use Crypt::Curve25519 for proper Diffie-Hellman (not Ed25519 signatures)
+    ## Compute shared secret: DH(our_private, client_public)  Use
+    ## Crypt::Curve25519 for proper Diffie-Hellman (not Ed25519 signatures)
     use Crypt::Curve25519;
     my $shared_secret
         = Crypt::Curve25519::curve25519_shared_secret(
@@ -160,8 +160,8 @@ if ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
 
 1;
 
-#,,,,,...,...,...,,,,,,.,,,.,,..,,..,,..,,,,,,..,,...,...,..,,...,...,,.,,.,.,
-#ZCFJY5V65FVZATAB65JIJL3ETQIDBF3GDQKOLZKVRMZOSYZUNMZDKGLEHISI3FGKIYHHBZ5WI3G6W
-#\\\|J67K5ES6HH5KRO2EHIPKRQHYECKWCTEBEMHGTETQEOKKL6ZDSMD \ / AMOS7 \ YOURUM ::
-#\[7]Q3BRDSASAMVMIDGEN5N53SMVW7VJYGPTMD7YHNZQQSTXPRCIVWDQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,...,.,,,,.,,...,..,,,,,,,,,,...,..,,...,.,.,...,.,.,,..,.,.,.,.,
+#TH3A52QSVNZNPR5AUQX3XB6USQCBBFXVWROWKUVMIG2JE2CQZVMQO3J3WHMK77VJMKNZ6HEUHDVZK
+#\\\|5OPIPTXUKXGN7NETOB47YI3G7OD4L7K3FURGJCQRXWUEXLZ6IGW \ / AMOS7 \ YOURUM ::
+#\[7]SCNKZ76EBCZMH5LJ7TEBR2JC664XKUN7RHCQBKCLHIFZONWBTACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -12,14 +12,14 @@ return <[base.logs]>->( 1, '[strm.local] register: missing cmd_id' )
 
 <base.strm.local> //= {};
 
-## duplicate-slot guard : a second claimant on an active, unclosed slot ##
-## is an anomaly [ e.g. multi-reply fan-out collision ] -- log loudly   ##
-## and refuse rather than silently clobbering the first watcher         ##
+## duplicate-slot guard : a second claimant on an active, unclosed slot is ##
+## an anomaly [ e.g. multi-reply fan-out collision ] -- log loudly and     ##
+## refuse rather than silently clobbering the first watcher                ##
 if ( exists <base.strm.local>->{$cmd_id} ) {
     <[base.logs]>->(
         0,
-        '[strm.local] REFUSED duplicate registration for cmd_id %d'
-            . ' [ slot active : %d bytes, started %.3f ]',
+        '[strm.local] REFUSED duplicate registration for '
+            . 'cmd_id %d [ slot active : %d bytes, started %.3f ]',
         $cmd_id,
         <base.strm.local>->{$cmd_id}->{'bytes'}   // 0,
         <base.strm.local>->{$cmd_id}->{'started'} // 0
@@ -40,8 +40,8 @@ if ( exists <base.strm.local>->{$cmd_id} ) {
 
 return TRUE;
 
-#,,,,,..,,...,,,.,..,,.,.,,.,,,,,,,,,,,..,.,,,..,,...,...,,..,.,.,..,,.,,,.,,,
-#XELPJAHA32AVIP3M33QGGTZ3NFUGF4UU4W23GU3LZDBGXLLGAY4E7QBRVHPYB76CIQWEU7TLZUOHG
-#\\\|EBBTZIHDRDVF5G3AADJC2Q4DZQEDIRPXXLRRKF6AL4H3HMLX3LC \ / AMOS7 \ YOURUM ::
-#\[7]YBQM6ARYZLJIFQW5DYVZ6DLONN22SAEHCY3O5RP5ABYEUZNBT2CY 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,..,,.,.,..,,...,.,,,...,,..,.,,,..,,...,...,..,,,..,,..,,,,,...,
+#FYVHC24NQPMU765WKPNMTAF7XAMA4IGUOVUBTLNWVGGURIM6KLIL4VR5GL7Z26JA7UOAM3FN4H3FS
+#\\\|AWEIQL72EAJWQT44V6IE4DMWQ3YEBIEREMHD4ZS4575IMNWTD2E \ / AMOS7 \ YOURUM ::
+#\[7]ZJNMIHJ4VB6NYGHGXL6XSYHCF6HU55VDYWT42RSD7XYPTO5OIWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
