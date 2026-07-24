@@ -449,12 +449,25 @@ sub step4_align_comment_block {
     return [ @{$lines}[ $start_lnum - 1 .. $start_lnum + $block_len - 2 ] ]
         if $width < 10;    ##  too narrow , leave untouched  ##
 
-    ##  list detection : a marker [ '1.', '2)', 'a.', '-', '*', bullet .. ]
-    ##  recurring at the START of 2+ lines confirms a genuine list rather
-    ##  than a one-off reference elsewhere in the text [ "item 1." mid-
-    ##  sentence should NOT trigger this ] -- 2+ is the dividing line
-    ##  between "list" and "not everything is a group parent"  ##
-    my $list_marker_re = qr{^(?:(?:\d+|[a-zA-Z])[.\)]|[-*\x{2022}])\s+};
+    ##  list detection : a marker [ '1.', '2)', 'a.', '-', '*', bullet ,
+    ##  or a short 'Label:' prefix -- 'Phase 1:', 'tree_read:', 'port
+    ##  resolution:' .. ] recurring at the START of 2+ lines confirms a
+    ##  genuine list rather than a one-off reference elsewhere in the text
+    ##  [ "item 1." mid-sentence , or a single "Note: ..." aside, should
+    ##  NOT trigger this ] -- 2+ is the dividing line between "list" and
+    ##  "not everything is a group parent". the label form was found via
+    ##  real damage : two colon-labeled items [ 'tree_read:' / 'grep:' ,
+    ##  or two repeated 'port resolution:' lines ] getting merged into
+    ##  run-on prose because only numeric/bullet markers were recognized --
+    ##  the colon must directly follow a word character [ no space before
+    ##  it ] , or ordinary prose using ' : ' as punctuation [ "trigger :
+    ##  only true stuck retries .." ] false-triggers this too  ##
+    my $list_marker_re = qr{
+        ^(?: (?:\d+|[a-zA-Z]) [.\)]
+           | [-*\x{2022}]
+           | [A-Za-z][\w\- ]{0,23} \w : \s
+        ) \s*
+    }x;
     my @is_marker = map { m{$list_marker_re} ? 1 : 0 } @content_parts;
     my $has_list = ( grep {$_} @is_marker ) >= 2;
 
@@ -1181,8 +1194,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,,,,,,,,.,.,,..,..,,,..,.,.,...,,.,,,,,,...,..,,...,...,..,,,..,.,.,,,,,,.,,
-#QJUSUNF5THGG6RWGB6V4CSW2RKSG6F5ZD7VJJ355KWDICLXA7DRAWNRLWY3SUI5KMCQHI2N4KRT2U
-#\\\|TRMWEQT6KBBJRV2P6O5VW5UGTMRC25YRYCK2CI65C2ZGKZR5CKH \ / AMOS7 \ YOURUM ::
-#\[7]YIHV5ZT7HGROATBEPKDLOHWI5UPDNGLVKG3UWZHBLYWTP7ORS2AA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,.,,...,.,.,.,.,..,,.,.,..,,..,,..,,...,...,...,...,,.,,,,,,,,.,
+#JLZEVL4RLYI5UFL6UTC7OH7FJGLPWCV2JZ3WFFTG6ILVZ7I646JPMDHNU2BS7F7ETRHPNUVXSIJM6
+#\\\|246GWCYNSI2EDYGEOWNGRFD25QLGQUQJLGL6RHA7H53UOAC32FZ \ / AMOS7 \ YOURUM ::
+#\[7]BS2NQEJ2CCO4JJUIOOXPCC5UZCDJFGPP4L66R6I6JXYIE4VMTODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
