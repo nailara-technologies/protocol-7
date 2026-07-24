@@ -300,10 +300,16 @@ sub comment_block_line_parts {
 
     return undef if $content eq qw| [:< |;      ## module header ##
     return undef if $content =~ m{^\[.*\]$};    ## bracket annotation ##
-    ##  normalize whitespace : old right-padding before a misaligned '##'
-    ##  must not leak into the joined paragraph as literal extra spaces  ##
-    $content =~ s{\s+}{ }g;
-    $content =~ s{^ | $}{}g;
+    ##  strip only leading/trailing whitespace -- the has_close branch
+    ##  above already consumed any right-padding that sat before a
+    ##  misaligned '##' [ '\s*\#\#\s*$' ] , so nothing but true edge
+    ##  whitespace is left here ; internal whitespace runs must survive
+    ##  untouched now, since a double-space can carry real
+    ##  sentence/paragraph-boundary meaning [ see step4 ] that a blanket
+    ##  collapse would destroy the moment it lands mid-line after wrapping,
+    ##  breaking convergence on a second reformatting pass  ##
+    $content =~ s{^\s+}{};
+    $content =~ s{\s+$}{};
     return {
         indent    => $indent,
         content   => $content,
@@ -343,25 +349,15 @@ sub step4_align_comment_block {
     my $indent = $first->{indent};
 
     my @content_parts;
+    my @content_lens;    ## stripped content length , not physical line len ##
     my $any_close = 0;
     for my $i ( 0 .. $block_len - 1 ) {
         my $parts
             = comment_block_line_parts( $lines->[ $start_lnum - 1 + $i ] );
         push @content_parts, $parts->{content};
+        push @content_lens,  length( $parts->{content} );
         $any_close ||= $parts->{has_close};
     }
-
-    ##  canonicalize : collapse to single-spaced flat text first [ discarding
-    ##  wherever the incoming line breaks / spacing happened to sit ] , then
-    ##  re-derive sentence boundaries from punctuation alone in that flat
-    ##  text -- this is what makes repeated reformatting passes converge to
-    ##  the same output instead of drifting : a second pass always reduces
-    ##  back to this same canonical text regardless of where the previous
-    ##  pass's Text::Wrap happened to place its line breaks  ##
-    my $joined = join( ' ', @content_parts );
-    $joined =~ s{\s+}{ }g;
-    $joined =~ s{^ | $}{}g;
-    $joined =~ s{([.!?]) (?=\S)}{$1  }g;    ## sentence end -> double space ##
 
     ##  bracketed style [ any original line closed with '##' ] budgets 3
     ##  extra cols for the trailing ' ##' ; loose style [ no closing marker
@@ -370,6 +366,27 @@ sub step4_align_comment_block {
     my $width = LINE_MAX - length($indent) - $overhead;
     return [ @{$lines}[ $start_lnum - 1 .. $start_lnum + $block_len - 2 ] ]
         if $width < 10;    ##  too narrow , leave untouched  ##
+
+    ##  canonicalize : re-derive structure from the content itself rather
+    ##  than trusting where the incoming line breaks happened to sit --
+    ##  what makes repeated reformatting passes converge instead of drift.
+    ##  a break is treated as intentional [ double-space , like a sentence
+    ##  boundary ] when EITHER the line ends in terminal punctuation OR the
+    ##  line ends well short of the width budget [ a forced wrap fills close
+    ##  to the budget by definition ; stopping well short of it with no
+    ##  punctuation is still a real signal the author meant to break there --
+    ##  e.g. a run of short "note:"-style bullet lines with no sentence-
+    ##  ending punctuation at all would otherwise get blurred into one
+    ##  run-on paragraph ] ; otherwise single-space [ ordinary forced wrap ] ##
+    my $short_margin = 15;
+    my $joined       = '';
+    for my $i ( 0 .. $#content_parts ) {
+        $joined .= $content_parts[$i];
+        next if $i == $#content_parts;
+        my $ends_sentence = $content_parts[$i] =~ m{[.!?]$};
+        my $ends_short    = ( $width - $content_lens[$i] ) > $short_margin;
+        $joined .= ( $ends_sentence or $ends_short ) ? '  ' : ' ';
+    }
 
     local $Text::Wrap::columns  = $width + 1;    ##  Text::Wrap : "+ 1" ##
     local $Text::Wrap::break    = qr/\s+/;
@@ -984,8 +1001,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,.,,..,,,.,,,,,,.,,,,..,,,.,,,,,..,,.,,,,..,..,,...,...,,.,,,,.,.,.,.,.,.,,,
-#WMFMQ32AB5QR6EBZSA4C3GOFEWU6XQPVZ4EC7LLDFWWMYWYJYN4MBACWXPT7WQ4PQGXVGYS64X7WO
-#\\\|RHTSVWDXIUNQNCLEI6N22JILQS4WMORDR6P7G3RC4T27UOXZQ5N \ / AMOS7 \ YOURUM ::
-#\[7]EFFHLXE3XAAJJJMQDYQSLDNPVCOWMPAEISUMGPBOPLSO3WSJMYBQ 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,.,.,.,.,.,,,,..,,.,,,.,,...,,..,..,,...,...,..,,,.,,,..,.,.,,,.,
+#BQXZYAGVK4RBYDDM6UCKK73DIUQVAMPP3YM3CKPAH7K23YSNTT7FG5S6QS6ZETMCEKKNMXN2WAG5U
+#\\\|3M3OZ7QQ3IYD2OSMEWG3THOI7DH3ZE4NBGFMFNER74XKCBWMXJ4 \ / AMOS7 \ YOURUM ::
+#\[7]7Q3KTWZFML5QSKLOAEMP2E6NJN2XJRY53EPZYD42LE75YD56COAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
