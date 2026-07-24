@@ -136,13 +136,40 @@ there's almost nothing worth batching (only 2 patterns in
 runner would mostly be automating confirmation-avoidance for two patterns
 until the pattern library actually has a backlog worth walking.
 
+## update, same day: the tier-A blocker is fixed, this loop's first real dispatch
+
+The pattern-schema mismatch that made tier-A patterns no-op in `apply`
+(`pattern`/`replace` present, no `steps`) is fixed — `cb45d56d0`, full
+detail in [[project-ncode-write-path-2026-07-24]]. `single-quote-to-qw-scalar`
+now genuinely applies. This was also the first real production use of
+the nested-dispatch pattern this file describes: dispatched via
+`claude_dispatch`, needed one `claude_continue` nudge (it got stuck
+without the debugging info it needed — see the "how to apply" note in
+[[feedback-claude-dispatch-summarize-hang]], a related but distinct
+infra rough edge hit on the *second* continue, where the auto-summary
+layer returned a garbled non-answer rather than relaying the real
+session's output). Lesson for next time: **don't trust a dispatched
+session's self-report at face value — check the actual repo state
+directly** (`git status`/`git diff`, syntax-check, re-run the live test
+yourself) before treating dispatched work as done, especially when the
+summarization layer is what's actually visible to you, not the
+underlying session.
+
+**Still open, next real gap:** `regex.expand`/`regex.assess` aren't
+exposed to `p7c` for the persist-a-new-candidate step —
+`ncode.cmd.assess` only *returns* a candidate for review; nothing writes
+an approved one into `<ncode.patterns>` (in-memory) or back to YAML
+(`regex.save`) yet. That's the actual next piece needed before this
+loop can run for real, now that the mechanical tier-A path underneath
+it is proven correct.
+
 ## related
 
 [[project-ncode-write-path-2026-07-24]], [[topic-write-access-security-infrastructure]],
 [[feedback-claude-dispatch-strategy]], [[reference-opus-dispatches-kimi-workflow]]
 
-#,,,,,,..,,.,,.,.,.,.,,,,,,..,.,,,.,.,.,,,..,,..,,...,..,,,..,...,...,,.,,,,.,
-#OXZLH6ESOIA5YKVER7A6XR3FDK6VI3T2J6CHWJ3KT6IZAXXT4N76P257PTIFXTL6HH3SSW2XT3TYW
-#\\\|ITIL3S6JY262ELF3N4ETUISFXBGU4SOMHCQVU4ZRDJPMGIOVRXD \ / AMOS7 \ YOURUM ::
-#\[7]TXTQVF4UXTIMSNVYDGCFJ357N232DSWZX3HYVANZCDPD5QPNQUAY 7  DATA SIGNATURE ::
+#,,..,.,,,...,,,,,,,,,..,,,.,,,.,,..,,,..,,..,..,,...,...,..,,...,,..,..,,.,,,
+#QGD6TDPHB2T7S733QNWJZLCU5BHVAAYEMQJUBUPJXI4DYZ34UBCOTNUNS6VO3DMCC7PX4KRK5WRXA
+#\\\|ZJUGYOSUSRNMAN2D7ILA4Q4HKGAQDBTIVWKQ3SMRTDRF3GIENPZ \ / AMOS7 \ YOURUM ::
+#\[7]WFVXFMEM7QSYKAGWJCK5K6FUS25NPSKZIFI4SW5U7L5JWZ3PBQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
