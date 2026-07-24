@@ -3,7 +3,25 @@
 # name  = ncode.cmd.suggest
 # descr = scan files and emit checksum-addressed fix listing
 
-my $params = shift // {};
+## accept a ready hashref [ programmatic call ] or a cube-dispatch call ##
+## object carrying a json-encoded 'args' string [ p7c / network call ]  ##
+my $raw    = shift // {};
+my $params = {};
+if (    ref $raw eq qw| HASH |
+    and exists $raw->{'args'}
+    and not ref $raw->{'args'} ) {
+    my $args_str = $raw->{'args'} // '';
+    if ( length $args_str ) {
+        $params = eval { JSON::PP::decode_json($args_str) };
+        return {
+            'mode' => qw| false |,
+            'data' => "invalid JSON arguments: $@"
+            }
+            if $@;
+    }
+} elsif ( ref $raw eq qw| HASH | ) {
+    $params = $raw;
+}
 
 my $files           = $params->{'files'}      // [];
 my $patterns_filter = $params->{'patterns'}   // [];
@@ -22,8 +40,7 @@ return { 'mode' => qw| false |, 'data' => 'no files specified' }
 
 ## compute session root checksum ##
 my $files_str    = join ',', sort @file_list;
-my $ntime_str    = <[base.time]>->(4);
-my $session_seed = "$ntime_str :: $files_str";
+my $session_seed = "$$ :: " . time . " :: $files_str";
 
 my $chksum_fn    = $code{'chk-sum.amos'} // $code{'base.chk-sum.amos'};
 my $session_root = defined $chksum_fn ? $chksum_fn->( \$session_seed ) : '';
@@ -117,8 +134,8 @@ if (@results) {
 
 return { 'mode' => 'size', 'data' => $out };
 
-#,,..,.,.,,,.,.,,,,,.,.,,,,..,.,,,,.,,,,,,,,.,.,.,...,...,,..,.,.,...,,,.,,,.,
-#C22OTTHK4E5P27M2BWNQI25VWWHXGZVKURIVYR6DP23U6UARLT7CNXYV3LA6IJS322QU3K6UGUUXA
-#\\\|4PFEKPAREWSGVUSAJHT74VT7XJEEAQ4AMIT3K625YZWTVLK5PL6 \ / AMOS7 \ YOURUM ::
-#\[7]CT42CMYMSNTWDF2NOKDVKZZKXFBKIDJPPISMF3Y6AEODJ34RIMAA 7  DATA SIGNATURE ::
+#,,,,,...,,,,,.,,,,.,,.,,,,.,,..,,..,,.,.,.,.,.,.,...,...,.,.,..,,,,.,.,,,.,,,
+#WQGAAYI4DQSVWFQSMV3M6CYI4PKSQWNREJ7XWBQ2Y2Z53KYVIDTEZ5LAM2S3QCMGYCTTXIC5W3ZRQ
+#\\\|DANJ7C6LLBVIKTVMIPCQCYAHIY3VPU7PM7GJ6WH3XJEOXHOHNKS \ / AMOS7 \ YOURUM ::
+#\[7]NWMCJSYLZ4MODYYATCCN7Z5TZ2H3RZ674YNKOU5YE45NPGRVAYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,8 +10,13 @@ After every `print {$chmod_fh} "restore ..."` call, always follow with `<[coding
 
 **How to apply:** affects all 6 write handlers: write_new_file, insert_line, delete_lines, replace_line, remove_file, file_rename. Pattern: send command → readline. No exceptions.
 
-#,,,.,.,.,.,,,,,.,,,,,,,,,,,,,,,.,,..,...,,..,..,,...,...,,.,,..,,,,,,,,,,,.,,
-#BETGTP4XIWHS2RFIEV2H4J5GH5INXYSKF5GQG5DGCDZGLT3FIIBEOUVXDHOBUP3LEHISL4T4YGTFQ
-#\\\|6W6T2GN7MPXL22VV63BP2SUAUBYQIPK4CY6MCFKFQEWCO4VBH6M \ / AMOS7 \ YOURUM ::
-#\[7]HO3XBT5QFQUYDTLFA5K72CDRNIQMRCSZ5Z76NZRHEMH5KFL4WKAI 7  DATA SIGNATURE ::
+**2026-07-24:** `ncode`'s own chmod-child (ported from `coding`'s, see
+[[project-ncode-write-path-2026-07-24]]) follows this correctly throughout
+`ncode.cmd.apply` — every `printf {$chmod_fh} "restore ..."`/`"create ..."`
+is paired with a `<[ncode.chmod_child.readline]>` immediately after.
+
+#,,..,,,.,,,.,,,,,.,,,.,.,,..,,,.,.,,,...,,.,,..,,...,..,,,..,,..,...,..,,...,
+#UVP2WRLOCNOUX2XXXLLU22ERRF5PCHB6EN6XYMBXGJ6CHVZWUV4S2L3HBHI3FSVJCO5FQP2GHHY4E
+#\\\|V7KED6NKJ3NLFH4N5EKCJAIURMBOQVNRU46X4UT2UHZQLQVX3BF \ / AMOS7 \ YOURUM ::
+#\[7]RXFFGEIPLTPERZATFVDGCWYR5B6L7ISLHFDBJRKA4OBV6UFAEUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -103,12 +103,32 @@ starting implementation on any piece:
    monolithic task — the user's own framing already separates these as
    "several types of command approval/signature systems."
 
+## update 2026-07-24: first concrete piece landed, but not the approval system
+
+[[project-ncode-write-path-2026-07-24]] landed a working transient-permission
+mechanism (chmod-child `restore`/`create` grants, group-write-precedence bug
+fixed) that lets `ncode.cmd.apply` actually write files — this is
+*infrastructure* the eventual approval system will need, but it is **not**
+the approval/signature layer itself. `suggest`/`apply` were opened on
+`ncode`'s cube whitelist during that session with the user's live, explicit,
+in-session authorization ("you can expand ncode as needed";
+"signed and staged" on every change) — narrowly for testing this specific
+mechanism, gated only by the `ptd -c` syntax check and checksum-addressed fix
+IDs, not by anything resembling signature-gated approval.
+
+This does **not** supersede the "do NOT grant broad write/sign access as a
+stopgap" guidance above — that was a standing policy rejection of an
+unattended shortcut, this was a supervised, narrow, explicitly re-authorized
+opening for a specific piece of work. Whether it stays open going forward is
+an open decision the user hasn't made yet; don't treat it as settled either
+way without asking.
+
 [[topic-ncode-access-gap]]
 [[topic-ui-show-security-levels]]
 [[topic-jobsite-ui-usability]]
 
-#,,..,.,,,...,,,.,,.,,,..,.,,,,.,,.,.,,,,,..,,..,,...,...,...,...,.,,,.,,,,,.,
-#FNESERA2PMC2VGZCJBXU56FQAZPNE5Y6WYCZRYHV5UXI7QZAGSJINENGZHDLL4TSRLFZFUGFWXNV4
-#\\\|34D7GU54SMTOUEUNS6XOAL6FLDB2BKE6IAIOUVNCPG5X4MNTF25 \ / AMOS7 \ YOURUM ::
-#\[7]GO6ZNU64XMH36E7TNAHFC2RTPLPP3AWJMSYPPIC7JN4NR6GL4WDY 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,..,,.,.,...,..,,.,,,.,.,,.,,,,.,..,,...,...,..,,.,.,...,.,,,,..,
+#4AHHC32F27SOHPNMNNDKU5U2MJQRZW3D374KRKRSDEHUDVA6MRVVGGFMWJQYLHJTX245JJIU3QT7E
+#\\\|VRDLPB3DBVWNX5UKZ3PDWJVYNRLIRWQHQVWGO73Y3CQ7U5VI342 \ / AMOS7 \ YOURUM ::
+#\[7]VMESEVSZZTOUZCN4W5CDGGWQ6JIBICTUM643PPVPMXWRIGPSC2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

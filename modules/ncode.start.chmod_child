@@ -53,6 +53,24 @@ while ( my \$line = <STDIN> ) {
         my \$cur = ( stat \$path )[2] & 07777;
         chmod( \$cur | 0020, \$path );
         print "ok\n";
+    } elsif ( \$line =~ m|^create (.+)\$| ) {
+        ## create a new [ empty ] file as the admin user, bypassing the    ##
+        ## parent directory's own write bits entirely -- ported from       ##
+        ## coding.start.chmod_child                                        ##
+        my \$path = \$1;
+        do { print "skip\n"; next } if -e \$path;
+        ( my \$dir = \$path ) =~ s|/[^/]+\$||;
+        do { print "skip\n"; next } if not -d \$dir;
+        my \$dir_gid = ( stat \$dir )[5];
+        do { print "skip\n"; next }
+            if not defined \$dir_gid or \$dir_gid != \$admin_gid;
+        if ( open my \$fh, '>', \$path ) {
+            close \$fh;
+            chmod( 0664, \$path );    ## 0664 : group-write from the start ##
+            print "ok\n";
+        } else {
+            print "err\n";
+        }
     } elsif ( \$line =~ m|^restore (\\d+) (.+)\$| ) {
         my ( \$mode, \$path ) = ( oct(\$1), \$2 );
         do { print "skip\n"; next } if not -e \$path;
@@ -80,8 +98,8 @@ EOT
     <ncode.chmod_child.pid>, $admin_group, $admin_gid
 );
 
-#,,,.,,,,,..,,..,,.,,,.,.,,.,,,..,,,.,.,,,.,,,..,,...,...,.,.,.,,,..,,..,,,,,,
-#FYUPXWMXALM5ASOKBIN66BQP7FX3QVA6YGBMI3JXUTXXGIU4COFVJQJPKBEB4VQ3YRFDCKRSRGMRC
-#\\\|OLDLWZZJRLTMWOW23RCLGFBTEQ2HXU7GPVZ3L6VHFAQGCSMV64O \ / AMOS7 \ YOURUM ::
-#\[7]SUTDXJ4D5DLWQQEEYRDYMQCJB6TKFUIT24WKR3ZC5A3ATZNPJOCA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,.,,,,,,,,..,..,,,,.,.,,,..,,..,,..,,...,...,,,.,..,,..,,,,,,..,,
+#5IPPMHR2DOWSA3PTXZDTERC6YV3JXYXU33VUUXBYAPV4IM6GGVGQ27EW6X3KSU5G6H6JBGPXQSF7G
+#\\\|XRKHNA6LNFMU3KAQOKLNBY7KCDSEVA3A73QWQLQUQWHP6NTJ73N \ / AMOS7 \ YOURUM ::
+#\[7]WLXROWEHCIRAS4YKWCFTI75RYNJ76YUS7OYDUMD2A45FDSYNG2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
