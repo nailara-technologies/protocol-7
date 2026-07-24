@@ -25,8 +25,13 @@ $ucm->register_script_message_handler('p7cons');
 $ucm->signal_connect(
     'script-message-received::p7cons' => sub {
         my ( undef, $js_result ) = @_;
-        eval { $code{'web-browser.handler.console_message'}->( $js_result, $name ) };
-        <[base.log]>->( 0, "console_capture: message handler failed: $@" ) if $@;
+        eval {
+            $code{'web-browser.handler.console_message'}
+                ->( $js_result, $name );
+        };
+        <[base.log]>->(
+            0, "console_capture: message " . "handler failed: $@"
+        ) if $@;
     }
 );
 
@@ -34,8 +39,8 @@ $ucm->signal_connect(
 
 return TRUE;
 
-#,,..,.,.,.,.,,..,.,,,.,,,...,.,.,..,,,,,,,,,,..,,...,..,,.,,,.,,,.,.,,..,.,.,
-#VRZIFPUK6D5Z2G6BG4NED7OSUUCJ447Z36NGWDJFXIAUZBOGXB4QVN335YTJTFQ6IJ3XCOWK66F2W
-#\\\|EDAHWJ5DVQ7FKEOBEAPGQMWH6BFPFSSM3IG6HRIHQOOXPR5PMNI \ / AMOS7 \ YOURUM ::
-#\[7]BITJBY6RM326IHSTZURB66WCR37VRWMKSDGIBMEKQHVMB2PDMYAY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,...,,,,,,,,,,,.,.,.,...,...,,..,..,,...,...,..,,.,.,,.,,,,.,.,,,
+#JISZ5HOPJTRJ7FG5GJRFMFVDHPSWK3I5XKA6KBKTQGBP4FPDWCU5CSJWQTO67YS7LCEXLLE4MMTTA
+#\\\|E5O5W3AMDG54V2UZNB6N3KJ465CVGPODPJWEPUPJDX3G47YL4VJ \ / AMOS7 \ YOURUM ::
+#\[7]BP7QUTSUYAPP7WO2JHCQDSTRLDHUWTFCHFHS3IVII7KRXVW24WCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
