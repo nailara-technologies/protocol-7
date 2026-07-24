@@ -65,22 +65,22 @@ return if $est_tokens <= $compact_threshold;
     $est_tokens, $compact_threshold, scalar @{$messages}
 );
 
-## keep system [0] and user [1] messages intact ##
-## compact tool round messages in the middle ##
-## keep the most recent $keep_recent_msgs messages ##
+## keep system [0] and user [1] messages intact  compact tool round        ##
+## messages in the middle  keep the most recent $keep_recent_msgs messages ##
 my $protect_start = 2;
 my $protect_end   = scalar( @{$messages} ) - $keep_recent_msgs;
 $protect_end = $protect_start if $protect_end < $protect_start;
 
 return if $protect_end <= $protect_start;
 
-## inference-backed compaction path : enqueue sub-task, suspend parent ##
-## skip if compaction already ran this round [prevents infinite re-trigger] ##
+## inference-backed compaction path : enqueue sub-task, suspend parent skip ##
+## if compaction already ran this round [prevents infinite re-trigger]      ##
 if (    ( <coding.cfg.compaction_inference> // 'no' ) eq qw| yes |
     and not defined $state->{'compaction_pending'}
     and ( $state->{'compaction_applied_round'} // -1 ) != $round ) {
 
-    ## serialize middle messages into a single text block for the summarizer ##
+    ## serialize middle messages into a single text block for the ##
+    ## summarizer                                                 ##
     my @to_compact = @{$messages}[ $protect_start .. $protect_end - 1 ];
     my @parts;
     for my $m (@to_compact) {
@@ -103,15 +103,16 @@ if (    ( <coding.cfg.compaction_inference> // 'no' ) eq qw| yes |
     my $history_text = join( "\n---\n", @parts );
 
     my $sys
-        = "You are a context summarizer. Summarize the following conversation "
-        . "history into a compact but information-dense paragraph. Preserve: "
-        . "files read, edits made, findings, decisions, errors encountered. "
-        . "Omit: tool call mechanics, raw file content, repetition. "
-        . "Reply with only the summary paragraph, no preamble.";
+        = "You are a context summarizer. Summarize the following "
+        . "conversation history into a compact but information-dense "
+        . "paragraph. Preserve: files read, edits made, findings, "
+        . "decisions, errors encountered. Omit: tool call mechanics, "
+        . "raw file content, repetition. Reply with only the summary "
+        . "paragraph, no preamble.";
 
     my $prompt
-        = "Conversation history to summarize:\n\n$history_text\n\n"
-        . "[ round=$round | est_tokens=$est_tokens | msgs="
+        = "Conversation history to summarize:\n\n$history_text\n\n[ "
+        . "round=$round | est_tokens=$est_tokens | msgs="
         . scalar(@to_compact) . " ]";
 
     ## enqueue compaction sub-task with no tools, single round ##
@@ -215,8 +216,7 @@ my $summary
     . $round
     . " | context "
     . $pct_complete
-    . "% used ]\n"
-    . "[ compacted tool rounds : "
+    . "% used ]\n[ compacted tool rounds : "
     . scalar(@summary_parts)
     . " interactions ]\n"
     . join( "\n", @summary_parts );
@@ -256,8 +256,8 @@ if ( $after_tokens > $compact_threshold * 0.8 ) {
 
 return;
 
-#,,.,,,,,,,,.,.,,,..,,.,.,..,,..,,...,,.,,.,,,.,.,...,...,,.,,...,,.,,.,,,,,,,
-#45Z65HORGPOWZI3A3HFXGV6YAXSARYP7IVSLZ6RAKMGCNJJK3OZBOT66WHO4W3MEKBE7YHY5EZNU2
-#\\\|EYOWXFWHNLCYGIRDRUMHCFT4X6KL7VOS3G3V5DQG647PHADAPFM \ / AMOS7 \ YOURUM ::
-#\[7]5ZF67BEUW6HKWTMFJW7WNRWQUVHGHINGLW5PY5MT2ZGRM7WCKECA 7  DATA SIGNATURE ::
+#,,,,,...,.,,,.,,,,,.,...,,,,,,..,.,,,,.,,,,.,.,.,...,...,,,.,,,,,,.,,...,,,.,
+#DH7LL3XNSYOTOTNF4YYHACJAPTMARPD73IUM3IYSNSIXWZSMDK3SJDAIX4CSEZJGSRTBSQYY4BOO2
+#\\\|F3SIF2UA3D2WZOQSP3H7INZNGQBHS6EQYQVAHYY42ZU2IJOGBQM \ / AMOS7 \ YOURUM ::
+#\[7]O2N4BMMX2JDG4A5EWFYOT474YJ7VRICQZA73XIDGV2XYUXFNDCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

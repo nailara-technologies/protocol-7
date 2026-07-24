@@ -1,6 +1,6 @@
 ---
 name: topic-format-code-bugs-fixed
-description: "full arc of bin/format-code hardening across one extended session: 16 real bugs/features fixed via dogfooding on real zenka files, landing on a 5-category pattern-template pipeline (bracket block, loose paragraph, list, box, commented-code) plus N-way string splitting -- now applied clean to 9 real zenki/namespaces (jobsite-discovery, letsencr, bin/Protocol-7, web-browser, httpd, ticker, source, sourcecode, AMOS7 modules)"
+description: "full arc of bin/format-code hardening across one extended session: 17 real bugs/features fixed via dogfooding on real zenka files, landing on a 5-category pattern-template pipeline (bracket block, loose paragraph, list, box, commented-code) plus N-way string splitting -- now applied clean to 11 real zenki/namespaces (jobsite-discovery, letsencr, bin/Protocol-7, web-browser, httpd, ticker, source, sourcecode, AMOS7 modules, base, coding); one known perltidy-rejoin idempotency gap deliberately left open on 3 files"
 metadata:
   type: project
 ---
@@ -13,7 +13,7 @@ what that surfaces, repeat — never synthetic tests up front. See
 `data/yaml/reasoning-templates/canonicalize-then-derive.yaml` for the
 methodology this session converged on and documented mid-flight.
 
-## Final state : what ships as of `c5b78611a`
+## Final state : what ships as of `bf5ceaa4d`
 
 `preprocess_source` runs a fixed step pipeline per line: step0 (rejoin +
 resplit an existing multi-line `.`-concat chain), step4 (align a
@@ -183,6 +183,50 @@ untouched, never reflowed).
     other over-budget annotation lines exist across the codebase that
     will benefit from this as their namespaces get their turn.
 
+17. **List-marker detection missed colon-labeled items** (`bf5ceaa4d`):
+    only numeric/lettered markers and bullets counted as list anchors, so
+    recurring `Label:`-prefixed items (`Phase 1:`, `tree_read:`, `port
+    resolution:`) got merged into run-on prose. Found on real damage in
+    `coding.tool.detect_loop` (two separate labeled lists) and
+    `coding.tools.handler.summarize_context` (two repeated `port
+    resolution:` lines) while dogfooding `coding`. **First version had
+    its own false-positive**: admitting a space before the colon into the
+    label character class let ordinary `' : '` punctuation ("trigger :
+    only true stuck retries..") false-trigger the same block's threshold
+    alongside one legitimate `Pattern:` line and corrupt an unrelated
+    paragraph. Tightened to require the colon immediately follow a word
+    character. Verified via a full-pipeline sweep across every
+    previously-committed namespace (~1400 files) with zero attributable
+    diffs. Two related-but-distinct gaps found and deliberately NOT
+    fixed here — neither matches a `Label:` prefix, each needs its own
+    detection signal: quote/arrow example-demonstration lists
+    (`coding.parser.query_prefix`) and format-template strings with
+    embedded `\n` escapes (`coding.handler.models_discover_reply`) still
+    merge into prose.
+
+## Still open, found but not fixed : perltidy can rejoin what step0 split
+
+Discovered while re-verifying `coding` after bug #17: perltidy doesn't
+only re-indent continuation lines (bug #15's finding) — it can also
+**rejoin** a `key => 'string'` pair that `format-code` left on separate
+physical lines back onto ONE line, when that fits perltidy's own
+formatting preference. On the NEXT `format-code` run, `step0`'s rejoin
+step re-measures `$before` (the prefix up to the opening quote) from the
+file *as it currently exists* — which now includes the literal
+`'description' => ` text on that line, not just whitespace — shrinking
+the effective budget compared to the original computation. The split
+point shifts, and on `coding.tools.definitions` this cascaded into an
+extra 3rd fragment (`. ']'` isolated on its own line) that wasn't there
+after the first pass. Content stays correct either way (no data loss, no
+overflow) — this is a stability/aesthetics gap, not corruption. Affects
+a small slice (3 of 112 files in the `coding` batch:
+`coding.cmd.switch-model`, `coding.task.chunk_and_summarize`,
+`coding.tools.definitions`). User's call: sign as-is, defer the fix
+rather than block on it. Same underlying class as bug #15's "reserve
+margin for what happens after you, out of view" but harder to margin
+around, since it's not a depth difference — it's whether an entire prior
+line boundary still exists at all after perltidy reshapes it.
+
 ## Verified real-world application (all re-run fresh + signed, this session)
 
 - `letsencr` zenka (44 files) — `dc5b69ea9`. Also required a one-off source
@@ -207,6 +251,12 @@ untouched, never reflowed).
 - `sourcecode` namespace (7 files) — `e834bbe8c`.
 - AMOS7 standalone Perl modules (`data/lib-path/pm/AMOS7*`, 27 files) —
   `c5b78611a`, alongside bug #16 which that same batch surfaced.
+- `base` namespace (123 files, the largest and highest-blast-radius batch
+  this session — loads on nearly every zenka) — `e1e24abc1`.
+- `coding` namespace (112 files) — first attempt reverted after bug #17
+  was found live; re-applied clean after the fix landed, with the
+  perltidy-rejoin idempotency gap above knowingly left unresolved on 3
+  files.
 
 ## Verification pattern used throughout
 
@@ -249,8 +299,13 @@ whole 15-bug arc is that principle in practice.
 - Not yet applied broadly across all of `modules/`+`bin/` — has been
   deliberate zenka-by-zenka dogfooding (jobsite → letsencr →
   `bin/Protocol-7` → web-browser → httpd → ticker → source → sourcecode →
-  AMOS7 modules) rather than a mass apply, matching the "smaller
-  predictable steps" principle above.
+  AMOS7 modules → base → coding) rather than a mass apply, matching the
+  "smaller predictable steps" principle above. `jobsite` itself — the
+  zenka the whole session's dogfooding started with — still hasn't
+  actually been applied+committed; only ever used for early bug
+  discovery. Confirmed the current tool now handles its known pending
+  overflow (`jobsite.sync.push_chunk`) cleanly, via a scratch-copy test,
+  when it's picked up.
 - `source.AMOS-center-bit.desc` exempted from the `source` namespace
   batch: an outdated ASCII bit-table with column-aligned spacing that
   resists every existing binary detection predicate. Motivated a new
@@ -264,8 +319,8 @@ whole 15-bug arc is that principle in practice.
 
 [[topic-p7-text-formats-landed]], [[feedback-base-swap-subs-promote-pattern]], [[topic-fake-signature-footer-detection]]
 
-#,,.,,,.,,,.,,,.,,.,,,..,,.,.,...,...,.,,,,.,,..,,...,...,,..,...,.,.,...,.,.,
-#7J4MXT3IBHCL5V45PUIODO2ATCA4EBUCWHPP723JXA7HJXGGOOF4CUD4K6K23PEKAPEM6X3ZEFOFA
-#\\\|PAYUFKA2FLTDGH6VPAXYXXIPYPYW2NTTIUP3THR3PBE6GOBVVYU \ / AMOS7 \ YOURUM ::
-#\[7]X3P6RXNOTCLVG4ZQT6XDT6Y4LGARWADLMXIM3CVMECYTWR4LUCBA 7  DATA SIGNATURE ::
+#,,,,,...,,..,...,,..,.,,,,..,.,,,,..,,,.,,,,,..,,...,...,...,..,,,,.,,,.,,.,,
+#3U3UNV6B3G6MNLFPHHVNBW22EJ3VA7JSSOAQMMKCB2H5L7F3KF3YXFTF5ZKZILHSKIOX4J4UGADZE
+#\\\|5I4X2DUCTTU7FYLYR6HQO2OLE3OFSLDQO662LNZB7EGNUFUEJIQ \ / AMOS7 \ YOURUM ::
+#\[7]YDW7ZIG7C26TGIEG653TIPACMCJMHJLUJPBVYS4JZE25YEWP4SBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

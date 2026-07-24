@@ -27,10 +27,9 @@ return 'error: file not found' unless -f $abs_path;
 my $current_bmw = <[chk-sum.bmw.filesum]>->( 256, $abs_path );
 if ( $current_bmw ne $stored_bmw ) {
     return
-          sprintf "error: file changed since preview [ bmw mismatch ]\n"
-        . "  preview bmw: %s\n"
-        . "  current bmw: %s\n"
-        . "run regex_replace_preview again before applying",
+          sprintf "error: file changed since preview [ bmw mismatch ]\n  "
+        . "preview bmw: %s\n  current bmw: %s\nrun "
+        . "regex_replace_preview again before applying",
         $stored_bmw, $current_bmw;
 }
 
@@ -95,8 +94,8 @@ if ( -w $abs_path ) {
             $abs_path;
     }
     return
-        sprintf "applied %d replacement%s to %s [ -%d +%d chars ]\n"
-        . "preview_id: %s",
+        sprintf "applied %d replacement%s to %s "
+        . "[ -%d +%d chars ]\npreview_id: %s",
         $count, ( $count > 1 ? 's' : '' ), $path,
         length($content), length($new_content),
         $preview_id;
@@ -104,8 +103,8 @@ if ( -w $abs_path ) {
 
 return 'error: no write access to file';
 
-#,,,,,,..,...,.,,,,,,,,,.,,..,..,,,,.,...,,,.,..,,...,...,..,,...,,,,,,,.,,,.,
-#3PJHAG5H6LZ4NLOH5FQNKIO4GVWV5EOCLUCUUQ7JOGD3RKEKVC5ZAW3CBOCFVISHZWCUWBSA34AMI
-#\\\|WN6KDU7VG4DRFLO26T2WKI6ZOZOAAUJ4JRB675VQH7RH4EN2ZKD \ / AMOS7 \ YOURUM ::
-#\[7]6ZQH22IAKLIYIJ22OPWZHGVYP4HZPV5MCXG3RJCBVZUKFEOCHACA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,.,,,..,,..,,,.,,.,,.,.,,..,.,.,..,,...,...,..,,...,..,,...,,,.,
+#OW4YIS727LOI3WNHES3O4Q2N4R646H5VPBC5DSF42Z357MKMESWHJIGEBR2VP3G3UZ4PS54NSSYTA
+#\\\|6V3I5XYLQDIKKDH7LDF2MJK3CHWKV6IIR7WGWN5FYYGCODEKDKK \ / AMOS7 \ YOURUM ::
+#\[7]LXRPGBR6IUS2ITHTKOWDN6HUSC3YFPEJVJ3X5PNFRY5VBS2UDYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

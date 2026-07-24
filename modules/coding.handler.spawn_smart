@@ -11,8 +11,8 @@ my $force   = $params->{'force'}   // 0;
     1, '[spawn_smart] evaluating spawn for backend=%s', $backend
 );
 
-## Check if server is already running and healthy ##
-## skip health check when force=1 [ e.g. model switch always needs respawn ] ##
+## Check if server is already running and healthy  skip health check when ##
+## force=1 [ e.g. model switch always needs respawn ]                     ##
 my $port
     = $backend eq 'gpu'
     ? ( <inference.backend.gpu.port> // 8000 )
@@ -72,8 +72,8 @@ unless ( defined $matched_entry ) {
     return FALSE;
 }
 
-## kill existing server before memory check when force=1 ##
-## ensures freed VRAM / RAM is reflected in the check below ##
+## kill existing server before memory check when force=1  ensures freed ##
+## VRAM / RAM is reflected in the check below                           ##
 if ($force) {
     my $old = ( <coding.inference_servers> // {} )->{$backend};
     if ( defined $old ) {
@@ -81,8 +81,8 @@ if ($force) {
             my $w = $old->{$w_key};
             $w->cancel() if defined $w && $w->is_active();
         }
-        ## cancel drain watchers BEFORE closing their fds : otherwise the   ##
-        ## event loop tries to re-arm a watcher on a dead fd and warns       ##
+        ## cancel drain watchers BEFORE closing their fds : otherwise the ##
+        ## event loop tries to re-arm a watcher on a dead fd and warns    ##
         for my $w_key (qw| watcher_drain_stdout watcher_drain_stderr |) {
             my $w = $old->{$w_key};
             $w->cancel() if defined $w && $w->is_active();
@@ -98,7 +98,8 @@ if ($force) {
                 <[base.waitpid]>->($old_pid);    ## reap zombie ##
                 <[base.logs]>->(
                     1,
-                    '[spawn_smart] killed old %s server [pid:%d] before memory check',
+                    '[spawn_smart] killed old %s '
+                        . 'server [pid:%d] before memory check',
                     $backend,
                     $old_pid
                 );
@@ -134,7 +135,8 @@ if ( $backend eq 'gpu' ) {
         if ( $free_vram_mb < $required_mb ) {
             <[base.logs]>->(
                 1,
-                '[spawn_smart] insufficient GPU memory: %d MB free, need %d MB',
+                '[spawn_smart] insufficient GPU '
+                    . 'memory: %d MB free, need %d MB',
                 $free_vram_mb,
                 $required_mb
             );
@@ -165,7 +167,8 @@ if ( $backend eq 'gpu' ) {
     if ( $mem_available < $required_mb ) {
         <[base.logs]>->(
             1,
-            '[spawn_smart] insufficient system memory: %d MB free, need %d MB',
+            '[spawn_smart] insufficient system '
+                . 'memory: %d MB free, need %d MB',
             $mem_available,
             $required_mb
         );
@@ -238,8 +241,8 @@ if ( defined $model_path && -f $model_path ) {
 
 return FALSE;
 
-#,,,.,...,..,,.,,,,,,,,,.,,..,.,.,,,.,..,,.,.,.,.,...,..,,.,.,,.,,,.,,,..,...,
-#JBCOQ3ZDOORWJHOGAUDDV2NWXURQUN7C5YHUIOU54QG65PFIPTJMA7RTMARTBKIWHVSX6YQT4UAPK
-#\\\|XN22YUHGW7LSOKCYEVL2GE3GPWD2D4TXJJ42AJDF7LABW45WLG2 \ / AMOS7 \ YOURUM ::
-#\[7]KHKPSWAJ6BKDGIDBVNJXIFMVGUPSTKX2VLBDVJMN5GJGBXY35YAQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,.,,,..,,,.,,.,.,,..,.,,,.,,,.,,,.,.,...,...,,..,.,,,,,,,...,.,.,
+#DZAKONMQWZGKKFR4DFSC2C6JHV3CXRPJPOEPQ4TWKPTHTCIG7NC3T6D35WWY7K4MMEPY3SRQ6PANM
+#\\\|2VT2R2M7IHUIXFROR7NEFPDBR4Q4LFJTVCZ2W4XFMPJ6CKYAY24 \ / AMOS7 \ YOURUM ::
+#\[7]AEIZJ3ERFEITP2P5BXZILTSMUWQXP566X3K4ELKISDS442I2NQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -47,8 +47,8 @@ my $matched_entry;
     $model_name, scalar( keys %$metadata )
 );
 
-## Search all entries for match on amos, model_id, or name ##
-## Skip mmproj (vision projector) files - we want the actual model files ##
+## Search all entries for match on amos, model_id, or name  Skip mmproj ##
+## (vision projector) files - we want the actual model files            ##
 my $search_term = lc($model_name);
 $search_term =~ s/[-_\s]+//g;    ## Normalize: gemma3glitter4b
 
@@ -143,8 +143,8 @@ if ( defined $model_path && -f $model_path ) {
         2, '[spawn_with_deps] requesting path for amos=%s', $amos_id
     );
 
-    ## Send async request to models zenka via cube ##
-    ## The reply handler will continue with the spawn ##
+    ## Send async request to models zenka via cube  The reply handler will ##
+    ## continue with the spawn                                             ##
     <[protocol-7.command.send.local]>->(
         {   'command'   => 'cube.models.get_path_by_amos',
             'call_args' => { 'args' => $amos_id },
@@ -188,8 +188,8 @@ my $result = <[coding.spawn_inference_server]>->(
 
 return $result;
 
-#,,.,,,,.,,.,,,.,,,,.,.,,,,..,,,.,,.,,,,.,,.,,.,.,...,...,...,,,.,,.,,..,,..,,
-#KAVKKG3IHLB3RQIM3FL3AUYZHJ4KW4PHDBI3UH7E2FXT3LAKZ2XJIGTW7RNQVPGX6L4FG6Q6LJWYY
-#\\\|DDBEQ4SGHAKN7OGGKASOMCFVJVRIGZNP7IUSXJRSP6Y3ZZOP3XJ \ / AMOS7 \ YOURUM ::
-#\[7]JBT52YQBXWOTPQYSCB2REGZYU5W36SWMH4XQ7CCNDI74IGYE5UCY 7  DATA SIGNATURE ::
+#,,..,...,.,.,,,.,...,,,,,,,,,.,.,...,..,,,.,,.,.,...,..,,.,.,.,.,,,.,,,.,,,,,
+#HKL4BHBF3GTFKVFVPHHAQ4QT7AN4IUFYIDEVK3PNAJFQZYXCB3I7UEIXU4UEBTXBBQLPB6WEOL32O
+#\\\|4RQWXKMIK42WRLE6DTO6QAOG2WCCM756RSTYRXFXJZPCE3SQ7FJ \ / AMOS7 \ YOURUM ::
+#\[7]74IPS4K4JJYOONWQUVIH6GQSWTG6TBTTZO2JBFQ4J2P24DIYJGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

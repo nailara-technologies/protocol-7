@@ -23,19 +23,19 @@ if ( $state->{'completed'} || !defined $state->{'sock'} ) {
     int( <[base.time]>->(3) - ( $state->{'last_activity'} // 0 ) )
 );
 
-## routes through the existing on_error pipeline [ http_error ] : dead air
-## mid-stream is the "server accepted connection but never responds" case
-## that pipeline already handles [ retry once, then backend restart +
-## requeue on exhaustion ] — NOT the soft-ceiling escalation path in
-## coding.handler.http_timeout, which is for a still-active stream simply
-## taking a long time, not a genuinely stalled one                       ##
+## routes through the existing on_error pipeline [ http_error ] : dead air ##
+## mid-stream is the "server accepted connection but never responds" case  ##
+## that pipeline already handles [ retry once, then backend restart +      ##
+## requeue on exhaustion ] — NOT the soft-ceiling escalation path in       ##
+## coding.handler.http_timeout, which is for a still-active stream simply  ##
+## taking a long time, not a genuinely stalled one                         ##
 my $error = "Stream stall timeout";
 $callbacks->{'on_error'}->($error) if exists $callbacks->{'on_error'};
 
 <[coding.async.http_cleanup]>->($state);
 
-#,,,.,...,..,,,..,..,,,..,,..,,,.,,..,,.,,.,,,..,,...,...,,..,..,,..,,,,,,,,.,
-#D6BA4AZUH3VOW4JEV2SVKWISSDBFXYFKFOAQA3FDQLAGVA2D2YOQAGSPMTKPIM6XAHSP35DUV6QAY
-#\\\|5FO4I4PPLYSC2I4COVSJSGDGWQS5JLEY4Z76DA3AG6UYRA44UT7 \ / AMOS7 \ YOURUM ::
-#\[7]MCNSGDJDRBPZVLYBU2N5CCMNNHNPPRBUR53YEJO5BUV7TX2GN6DY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,..,,...,,,.,,,,,,,,,,.,,.,,,.,,,..,,...,...,..,,,,,,.,.,,,.,..,,
+#NZMBNUWJCRFDC2XJO2DQLBASADAP3HVHOGPSKQLALNLKNEBNP2VWH3YCAUFHSVVAA6ELCPB3WMY66
+#\\\|4KVSXOWIUHOO275CTGZR4N647HAQFMCBQ5HXF54AQQEWXP5YS6K \ / AMOS7 \ YOURUM ::
+#\[7]7FG2EPNR2TAPHWZQPSC6WFEYP2CAEEEXKBVMNYYAGEIL73OASUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

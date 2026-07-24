@@ -14,14 +14,14 @@ my $backend     = $params->{'backend'}     // qw| gpu |;
 ## safe operating range ##
 my $MIN_CONTEXT = 7777;    ## below this, system prompt + tools may not fit ##
 
-## configurable ceiling : set coding.cfg.context_max in start file to cap  ##
-## smaller models; 0 = uncapped (let VRAM math decide)                     ##
-## default 131072 covers most consumer GPUs without excessive KV alloc     ##
+## configurable ceiling : set coding.cfg.context_max in start file to cap ##
+## smaller models; 0 = uncapped (let VRAM math decide)  default 131072    ##
+## covers most consumer GPUs without excessive KV alloc                   ##
 my $MAX_CONTEXT = <coding.cfg.context_max> // 131072;
 $MAX_CONTEXT = 0 if $MAX_CONTEXT < 0;    ## treat negative as uncapped ##
 
-## for CPU backend, RAM is usually not the tight constraint ##
-## use configured max if set, otherwise a generous default    ##
+## for CPU backend, RAM is usually not the tight constraint  use configured ##
+## max if set, otherwise a generous default                                 ##
 if ( $backend ne qw| gpu | ) {
     my $cpu_ctx = $MAX_CONTEXT || 131072;
     return {
@@ -39,7 +39,8 @@ my $nvidia_smi
 if ( $? != 0 || !defined $nvidia_smi || $nvidia_smi !~ m|^(\d+),\s*(\d+)|m ) {
     <[base.logs]>->(
         1,
-        '[calculate_safe_context] nvidia-smi failed, falling back to minimum=%d',
+        '[calculate_safe_context] nvidia-smi '
+            . 'failed, falling back to minimum=%d',
         $MIN_CONTEXT
     );
     return {
@@ -67,9 +68,9 @@ if ( length($mmproj_path) && -f $mmproj_path ) {
 ## estimate parameter count from file size [ Q8_0 ≈ 1 byte/param ] ##
 my $est_params_gb = $model_size_mb / 1024;
 
-## KV-cache bytes per token ##
-## derived from typical transformer architectures: 2 * layers * kv_heads * head_dim * 2 bytes ##
-## when we know layer count, use a more precise estimate ##
+## KV-cache bytes per token  derived from typical transformer             ##
+## architectures: 2 * layers * kv_heads * head_dim * 2 bytes when we know ##
+## layer count, use a more precise estimate                               ##
 my $kv_bytes_per_token;
 if ( $est_params_gb < 3 ) {
     $kv_bytes_per_token = 18 * 1024;    # ~18 KB  (3B class)
@@ -97,8 +98,8 @@ my $remaining_mb
 if ( $remaining_mb <= 0 ) {
     <[base.logs]>->(
         0,
-        '[calculate_safe_context] model does not fit GPU: '
-            . 'total=%dMB model=%.0fMB mmproj=%.0fMB',
+        '[calculate_safe_context] model does not fit '
+            . 'GPU: total=%dMB model=%.0fMB mmproj=%.0fMB',
         $total_mb,
         $model_size_mb,
         $mmproj_size_mb
@@ -114,8 +115,8 @@ if ( $remaining_mb <= 0 ) {
     };
 }
 
-## adaptive safety margin: 30% of remaining space for generation buffers ##
-## [ compute buffers, temporary allocations, headroom for token generation ] ##
+## adaptive safety margin: 30% of remaining space for generation buffers [ ##
+## compute buffers, temporary allocations, headroom for token generation ] ##
 my $safety_min_mb = <coding.cfg.vram_safety_min_mb> // 512;
 my $safety_max_mb = <coding.cfg.vram_safety_max_mb> // 3072;
 my $safety_mb     = int( $remaining_mb * 0.30 );
@@ -162,8 +163,8 @@ return {
     limited_by => $limited_by,
 };
 
-#,,.,,.,.,,.,,,.,,,.,,,..,..,,.,,,,..,,,,,...,.,.,...,...,...,,,.,.,.,.,,,.,.,
-#GMVAM33ZGUBP3DGW36JUAXS6KN7OJPSSP75JPYBH3OTJZZW7HLRK25CS3HGMOLWM2LGAPGX4REMYC
-#\\\|3HB5SHXLME5MMZS5DIUHZMLMNZ4UQPOBBFT2WOQTK76TJUZKLRJ \ / AMOS7 \ YOURUM ::
-#\[7]I5WTVOPJQ74NYYP5WCS2MKVMYIC3I3NIATFIAQ2WKHQ5WCLKIQAA 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,..,,,..,,.,,..,,...,.,.,.,.,,,,,.,.,...,...,,,.,,,.,.,,,,,.,,.,,
+#DCIOL42I6W4BOOYIMPJU3UUJXLPYHUGR4LGZFR4OTRP4IVDUYYRQTNHFLRI6RYAZDSYW26XL4CUL4
+#\\\|J4YYRSZLXE5TZZFCE7B3LXN7GWOODLBRYSSY73EKMHEHB5JYBXH \ / AMOS7 \ YOURUM ::
+#\[7]2WPBJHDSYUE5SH74ICCRCF75WYWCRAUXISXGD5VG5PFOID5IR2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

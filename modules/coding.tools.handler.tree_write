@@ -12,8 +12,8 @@ my $value = $args->{'value'} // return 'error: value required';
 my ( $valid, $errmsg ) = <[base.validate.data_key_syntax]>->($path);
 return "error: invalid path: $errmsg" unless $valid;
 
-## safety: restrict writes to coding.* and context.* namespaces ##
-## prevents accidental mutation of core system state ##
+## safety: restrict writes to coding.* and context.* namespaces prevents ##
+## accidental mutation of core system state                              ##
 my @allowed_prefixes = qw| coding context observations task |;
 my $allowed          = 0;
 for my $prefix (@allowed_prefixes) {
@@ -53,8 +53,8 @@ return "error: could not set value at $path";
 
 0;
 
-#,,,,,..,,...,.,,,.,.,,,.,.,.,.,,,...,..,,,,.,..,,...,.,,,...,.,,,.,,,.,.,,,,,
-#C5GAPS7YHMDGKEKAQB6TISG4F565QMFKALBZSFWPK2TJBHOWT27PBKNUWO4FKXRKFTAKYXGVYUKLE
-#\\\|NI7ZRJ2NMINSPBCQKX4IHKXME2TPZEOQ42RCV3BPVUSTXLBNSCS \ / AMOS7 \ YOURUM ::
-#\[7]FFXIPADVUA2RGWQQCE4IKGNEB2RUFL4LUDJ5NCEZBGTUNUAOZSAA 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,,,.,...,,.,,,,,,,..,,,.,.,.,.,.,..,,...,...,,,.,..,,,,,,.,,,,,.,
+#SEWMKUECCVDZKLKDUULFUY2APH6ET7BUZP4EUKQLD5HMHXXUTSY32ZL7FM7HB3Y5QNR44QTTI4TRQ
+#\\\|YIOGPOLXOJLLWDHDNMZ5JKLJWVQXBKH2QFETYL6N3TJNI2ZGRSJ \ / AMOS7 \ YOURUM ::
+#\[7]EEU22TSBWJUUEUBIGJ6GOEO3NIGNZMM6ZVQNLCXROBTHS4ETWACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

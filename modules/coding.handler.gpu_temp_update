@@ -49,15 +49,15 @@ return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
                     = defined $avg_5s ? 0 + $avg_5s : undef;
                 <coding.stats.gpu.temp.updated_at> = <[base.time]>->(2);
 
-                ## adaptive timeout stretch : same continuous proportional-
-                ## feedback shape as web-browser.handler.gpu_load_reply's
-                ## slowdown_target -- asymmetric acceleration [ ramps up
-                ## fast when over target, relaxes slowly when cooling ] +
-                ## a dead-band so small fluctuations don't cause constant
-                ## tiny adjustments. Piggybacks on this existing STRM
-                ## consumer as the trigger point -- no push/relay needed
-                ## [ unlike web-browser/ticker's slow_down command, coding
-                ## already has the temp subscription feed locally ] ##
+                ## adaptive timeout stretch : same continuous proportional- ##
+                ## feedback shape as web-browser.handler.gpu_load_reply's   ##
+                ## slowdown_target -- asymmetric acceleration [ ramps up    ##
+                ## fast when over target, relaxes slowly when cooling ] + a ##
+                ## dead-band so small fluctuations don't cause constant     ##
+                ## tiny adjustments. Piggybacks on this existing STRM       ##
+                ## consumer as the trigger point -- no push/relay needed [  ##
+                ## unlike web-browser/ticker's slow_down command, coding    ##
+                ## already has the temp subscription feed locally ]         ##
                 <coding.cfg.gpu_target_temp_c>  //= 80;
                 <coding.stretch.timeout_factor> //= 1.0;
 
@@ -103,8 +103,8 @@ return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
 <[base.logs]>
     ->( 2, 'gpu temp STRM consumer registered [cmd_id=%d]', $cmd_id );
 
-#,,,.,.,,,.,.,...,.,,,,.,,,,,,...,,.,,.,,,,.,,..,,...,...,,..,.,,,.,,,.,.,,..,
-#R6WRUFT4XZQMYOYUIOCPIWGRERUMWS6WIZQSWQEZEKE57LXP6G6TSHCRF56GQWEZXLKKMHN5VXGRU
-#\\\|XFFO4P3X774GN7NYF7LXR4HQYNKRLQDBNEOERFRP2BNIPFEFZ4X \ / AMOS7 \ YOURUM ::
-#\[7]NFEIID2DB36LEQ4HDZYT4NAQ33YDXE6LS7LMMJDGGWWL7V6QQ4CI 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,.,,..,,,,,,,,,,...,,.,,.,,,..,,..,,...,...,.,,,,,.,,,,,...,,..,
+#TU5RN2CXYCEUGB34D45PCEWM5CEYQA4O47H4YORELGI56WYCMFKIQGWLGCSLJJZYR4ONBYKRGN47S
+#\\\|G6DZPUMOHCSDAZBHSVKPDMNAEQVRCVLT2UIGNZAXQRDEIOOOCZY \ / AMOS7 \ YOURUM ::
+#\[7]HOFK6MAG2JUE5DDBRFQ7M7ILRD6QJFTU7HIFBTLORPIDTIVDVSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

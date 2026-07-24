@@ -3,11 +3,10 @@
 # name  = coding.tools.definitions
 # descr = OpenAI function-calling tool schemas for inference
 
-## returns arrayref of tool definitions in OpenAI format ##
-## each tool maps to an existing $code{} module          ##
-## encoding parameter defaults to UTF-8 for backwards compatibility
-## recognized encodings: UTF-8 (default), :raw, :bytes
-## normalization will convert any encoding to UTF-8 internally
+## returns arrayref of tool definitions in OpenAI format  each tool maps to ##
+## an existing $code{} module  encoding parameter defaults to UTF-8 for     ##
+## backwards compatibility recognized encodings: UTF-8 (default), :raw,     ##
+## :bytes  normalization will convert any encoding to UTF-8 internally      ##
 
 my @tools;
 
@@ -347,8 +346,8 @@ push @tools,
                     'type'        => 'string',
                     'description' =>
                         'search scope: modules, config, lib [ AMOS7 perl '
-                        . 'modules under data/lib-path/pm ], or all '
-                        . '[ default modules ]'
+                        . 'modules under data/lib-path/pm ], or all [ '
+                        . 'default modules ]'
                 },
                 'max_results' => {
                     'type'        => 'integer',
@@ -371,8 +370,8 @@ push @tools,
     'type'     => 'function',
     'function' => {
         'name'        => 'dep_graph',
-        'description' => 'build call graph for a module namespace'
-            . ' [ shows who calls what, clusters ]',
+        'description' => 'build call graph for a module namespace '
+            . '[ shows who calls what, clusters ]',
         'parameters' => {
             'type'       => 'object',
             'properties' => {
@@ -398,8 +397,8 @@ push @tools,
     'type'     => 'function',
     'function' => {
         'name'        => 'ncode_search',
-        'description' => 'search entire P7 codebase with ncode [ all files,'
-            . ' line numbers, grouped by file ]',
+        'description' => 'search entire P7 codebase with ncode [ '
+            . 'all files, line numbers, grouped by file ]',
         'parameters' => {
             'type'       => 'object',
             'properties' => {
@@ -429,8 +428,8 @@ push @tools,
     'type'     => 'function',
     'function' => {
         'name'        => 'edit_file',
-        'description' => 'replace specific lines in a file'
-            . ' [ applies changes by default ]',
+        'description' => 'replace specific lines in a file '
+            . '[ applies changes by default ]',
         'parameters' => {
             'type'       => 'object',
             'properties' => {
@@ -470,8 +469,9 @@ push @tools,
     'type'     => 'function',
     'function' => {
         'name'        => 'replace_in_file',
-        'description' => 'find and replace text in a file by content match'
-            . ' [ no line numbers needed, old_string must be unique ]',
+        'description' => 'find and replace text in a file by content match [ '
+            . 'no line numbers needed, old_string must be '
+            . 'unique ]',
         'parameters' => {
             'type'       => 'object',
             'properties' => {
@@ -619,8 +619,8 @@ push @tools,
     'type'     => 'function',
     'function' => {
         'name'        => 'list_inline_subs',
-        'description' => 'scan a P7 module for inline sub declarations'
-            . ' [ returns names, line numbers, line counts ]',
+        'description' => 'scan a P7 module for inline sub declarations '
+            . '[ returns names, line numbers, line counts ]',
         'parameters' => {
             'type'       => 'object',
             'properties' => {
@@ -646,16 +646,16 @@ push @tools,
     'type'     => 'function',
     'function' => {
         'name'        => 'validate_module_format',
-        'description' => 'check a P7 module for format issues:'
-            . ' header, metadata, forbidden patterns,'
-            . ' inline sub declarations',
+        'description' => 'check a P7 module for format issues: header, '
+            . 'metadata, forbidden patterns, inline sub '
+            . 'declarations',
         'parameters' => {
             'type'       => 'object',
             'properties' => {
                 'module' => {
                     'type'        => 'string',
-                    'description' =>
-                        'module name [ e.g. context.util.tree.canonical_json ]'
+                    'description' => 'module name [ e.g. '
+                        . 'context.util.tree.canonical_json ]'
                 },
             },
             'required' => ['module'],
@@ -669,8 +669,8 @@ push @tools,
     'type'     => 'function',
     'function' => {
         'name'        => 'ptd_check',
-        'description' => 'syntax check a P7 module with ptd -c'
-            . ' [ reports compile errors ]',
+        'description' => 'syntax check a P7 module with '
+            . 'ptd -c [ reports compile errors ]',
         'parameters' => {
             'type'       => 'object',
             'properties' => {
@@ -691,8 +691,8 @@ push @tools,
     'type'     => 'function',
     'function' => {
         'name'        => 'ptd_format',
-        'description' => 'format a P7 module with ptd'
-            . ' [ auto-indents and reports changes ]',
+        'description' => 'format a P7 module with ptd [ '
+            . 'auto-indents and reports changes ]',
         'parameters' => {
             'type'       => 'object',
             'properties' => {
@@ -713,8 +713,8 @@ push @tools,
     'type'     => 'function',
     'function' => {
         'name'        => 'task_complete',
-        'description' => 'signal that the task is done and stop working'
-            . ' [ call this when all work is finished ]',
+        'description' => 'signal that the task is done and stop working '
+            . '[ call this when all work is finished ]',
         'parameters' => {
             'type'       => 'object',
             'properties' => {
@@ -734,8 +734,8 @@ push @tools,
     'type'     => 'function',
     'function' => {
         'name'        => 'escalate',
-        'description' => 'stop and ask a human for help'
-            . ' [ use when blocked, confused, or need a decision ]',
+        'description' => 'stop and ask a human for help [ use when '
+            . 'blocked, confused, or need a decision ]',
         'parameters' => {
             'type'       => 'object',
             'properties' => {
@@ -765,28 +765,29 @@ push @tools,
     'type'     => 'function',
     'function' => {
         'name'        => 'subtask_spawn',
-        'description' => 'spawn a focused child task to investigate or '
-            . 'solve a sub-problem. the parent task pauses until the '
-            . 'child completes and the result is injected back into '
-            . 'parent context. use for parallelizable work or deep '
-            . 'dives that should not block the main flow.',
+        'description' => 'spawn a focused child task to investigate or solve '
+            . 'a sub-problem. the parent task pauses until '
+            . 'the child completes and the result is '
+            . 'injected back into parent context. use for '
+            . 'parallelizable work or deep dives that '
+            . 'should not block the main flow.',
         'parameters' => {
             'type'       => 'object',
             'properties' => {
                 'description' => {
                     'type'        => 'string',
-                    'description' => 'clear description of what the child '
-                        . 'task should do'
+                    'description' => 'clear description of what '
+                        . 'the child task should do'
                 },
                 'template' => {
                     'type'        => 'string',
-                    'description' => 'optional context template name '
-                        . 'to guide the child task'
+                    'description' => 'optional context template '
+                        . 'name to guide the child task'
                 },
                 'guiding_message' => {
                     'type'        => 'string',
-                    'description' => 'optional guidance for the child '
-                        . 'task [ constraints, priorities, hints ]'
+                    'description' => 'optional guidance for the child task [ '
+                        . 'constraints, priorities, hints ]'
                 },
             },
             'required' => ['description'],
@@ -800,8 +801,8 @@ push @tools,
     'type'     => 'function',
     'function' => {
         'name'        => 'record_question',
-        'description' => 'record a question or uncertainty for later'
-            . ' human review [ does NOT stop the task ]',
+        'description' => 'record a question or uncertainty for later '
+            . 'human review [ does NOT stop the task ]',
         'parameters' => {
             'type'       => 'object',
             'properties' => {
@@ -812,8 +813,8 @@ push @tools,
                 'category' => {
                     'type'        => 'string',
                     'description' =>
-                        'topic area [ e.g. architecture, naming,'
-                        . ' requirements, style ] [ default general ]'
+                        'topic area [ e.g. architecture, naming, '
+                        . 'requirements, style ] [ default general ]'
                 },
                 'priority' => {
                     'type'        => 'string',
@@ -832,8 +833,8 @@ push @tools,
     'type'     => 'function',
     'function' => {
         'name'        => 'record_suggestion',
-        'description' => 'record an improvement suggestion for later'
-            . ' analysis [ does NOT stop the task ]',
+        'description' => 'record an improvement suggestion for '
+            . 'later analysis [ does NOT stop the task ]',
         'parameters' => {
             'type'       => 'object',
             'properties' => {
@@ -844,8 +845,8 @@ push @tools,
                 'category' => {
                     'type'        => 'string',
                     'description' =>
-                        'topic area [ e.g. tools, templates, workflow,'
-                        . ' extraction, code-quality ] [ default general ]'
+                        'topic area [ e.g. tools, templates, workflow, '
+                        . 'extraction, code-quality ] [ default general ]'
                 },
                 'priority' => {
                     'type'        => 'string',
@@ -864,8 +865,8 @@ push @tools,
     'type'     => 'function',
     'function' => {
         'name'        => 'tree_read',
-        'description' => 'read a value or branch from the %data tree'
-            . ' [ dot-separated path, shows type and contents ]',
+        'description' => 'read a value or branch from the %data tree [ '
+            . 'dot-separated path, shows type and contents ' . ']',
         'parameters' => {
             'type'       => 'object',
             'properties' => {
@@ -895,8 +896,8 @@ push @tools,
     'type'     => 'function',
     'function' => {
         'name'        => 'tree_write',
-        'description' => 'set a scalar value in the %data tree'
-            . ' [ restricted to coding, context, observations, task ]',
+        'description' => 'set a scalar value in the %data tree [ restricted '
+            . 'to coding, context, observations, task ]',
         'parameters' => {
             'type'       => 'object',
             'properties' => {
@@ -922,10 +923,10 @@ push @tools,
     'function' => {
         'name'        => 'task_file_search',
         'description' =>
-            'search task files across active and archived locations. '
-            . 'first searches filenames, then optionally file contents. '
-            . 'knows about data/yaml/coding-tasks, data/md/coding-tasks, '
-            . 'and archive subdirectories.',
+            'search task files across active and archived locations. first '
+            . 'searches filenames, then optionally file contents. knows '
+            . 'about data/yaml/coding-tasks, data/md/coding-tasks, and '
+            . 'archive subdirectories.',
         'parameters' => {
             'type'       => 'object',
             'properties' => {
@@ -936,13 +937,13 @@ push @tools,
                 },
                 'status' => {
                     'type'        => 'string',
-                    'description' => 'filter by status: '
-                        . 'active | archived | all [ default all ]'
+                    'description' => 'filter by status: active | '
+                        . 'archived | all [ default all ]'
                 },
                 'depth' => {
                     'type'        => 'integer',
-                    'description' => 'search depth: '
-                        . '1 = filenames only, 2 = +content [ default 1 ]'
+                    'description' => 'search depth: 1 = filenames '
+                        . 'only, 2 = +content [ default 1 ]'
                 },
                 'max_results' => {
                     'type'        => 'integer',
@@ -961,9 +962,9 @@ push @tools,
     'function' => {
         'name'        => 'tree_list',
         'description' =>
-            'inspect in-memory zenka state hash (%data) : NOT the filesystem. '
-            . 'use list_files to browse disk. '
-            . 'shows keys, types (scalar/hash/array/code), and sizes.',
+            'inspect in-memory zenka state hash (%data) : NOT the '
+            . 'filesystem. use list_files to browse disk. shows keys, '
+            . 'types (scalar/hash/array/code), and sizes.',
         'parameters' => {
             'type'       => 'object',
             'properties' => {
@@ -998,8 +999,8 @@ if ( exists $code{'coding.tools.handler.file_rename'} ) {
         'type'     => 'function',
         'function' => {
             'name'        => 'file_rename',
-            'description' => 'rename or move a file within the project'
-                . ' [ both paths must stay inside project root ]',
+            'description' => 'rename or move a file within the project [ '
+                . 'both paths must stay inside project root ' . ']',
             'parameters' => {
                 'type'       => 'object',
                 'properties' => {
@@ -1028,8 +1029,8 @@ if ( exists $code{'coding.tools.handler.remove_file'} ) {
         'function' => {
             'name'        => 'remove_file',
             'description' =>
-                'delete a file by moving it to trash [ recoverable ]'
-                . ' [ use for cleanup of obsolete or generated files ]',
+                'delete a file by moving it to trash [ recoverable '
+                . '] [ use for cleanup of obsolete or generated files ]',
             'parameters' => {
                 'type'       => 'object',
                 'properties' => {
@@ -1119,15 +1120,15 @@ if ( exists $code{'coding.tools.handler.note_write'} ) {
         'function' => {
             'name'        => 'note_write',
             'description' =>
-                'write a finding or thought to task notes workspace'
-                . ' [ persists across rounds, accessible to later tasks ]',
+                'write a finding or thought to task notes workspace '
+                . '[ persists across rounds, accessible to later tasks ]',
             'parameters' => {
                 'type'       => 'object',
                 'properties' => {
                     'section' => {
                         'type'        => 'string',
-                        'description' => 'note section name '
-                            . '[ e.g. finding, analysis, todo ]'
+                        'description' => 'note section name [ e.g. '
+                            . 'finding, analysis, todo ]'
                     },
                     'content' => {
                         'type'        => 'string',
@@ -1147,8 +1148,9 @@ if ( exists $code{'coding.tools.handler.note_read'} ) {
         'type'     => 'function',
         'function' => {
             'name'        => 'note_read',
-            'description' => 'read notes from current or previous task'
-                . ' [ L1=short summary, L2=detailed, L3=full workspace ]',
+            'description' => 'read notes from current or previous task [ '
+                . 'L1=short summary, L2=detailed, L3=full '
+                . 'workspace ]',
             'parameters' => {
                 'type'       => 'object',
                 'properties' => {
@@ -1177,8 +1179,8 @@ if ( exists $code{'coding.tools.handler.note_list'} ) {
         'type'     => 'function',
         'function' => {
             'name'        => 'note_list',
-            'description' => 'list available note trees with previews'
-                . ' [ find related prior work ]',
+            'description' => 'list available note trees with '
+                . 'previews [ find related prior work ]',
             'parameters' => {
                 'type'       => 'object',
                 'properties' => {
@@ -1205,8 +1207,8 @@ if ( exists $code{'coding.tools.handler.note_summarize'} ) {
         'function' => {
             'name'        => 'note_summarize',
             'description' =>
-                'generate token-efficient summaries from workspace'
-                . ' [ L1 for quick scan, L2 for detailed context ]',
+                'generate token-efficient summaries from workspace '
+                . '[ L1 for quick scan, L2 for detailed context ]',
             'parameters' => {
                 'type'       => 'object',
                 'properties' => {
@@ -1234,9 +1236,8 @@ if ( exists $code{'coding.tools.handler.note_search'} ) {
         'type'     => 'function',
         'function' => {
             'name'        => 'note_search',
-            'description' =>
-                'search previous notes by keyword, tag, or content'
-                . ' [ find relevant prior work ]',
+            'description' => 'search previous notes by keyword, tag, '
+                . 'or content [ find relevant prior work ]',
             'parameters' => {
                 'type'       => 'object',
                 'properties' => {
@@ -1269,8 +1270,8 @@ if ( exists $code{'coding.tools.handler.note_update'} ) {
         'type'     => 'function',
         'function' => {
             'name'        => 'note_update',
-            'description' => 'replace content in an existing note section'
-                . ' [ does not append, replaces entire section ]',
+            'description' => 'replace content in an existing note section [ '
+                . 'does not append, replaces entire section ' . ']',
             'parameters' => {
                 'type'       => 'object',
                 'properties' => {
@@ -1281,8 +1282,8 @@ if ( exists $code{'coding.tools.handler.note_update'} ) {
                     'content' => {
                         'type'        => 'string',
                         'description' =>
-                            'new content (replaces entire section)'
-                            . ' [ timestamp header added automatically ]'
+                            'new content (replaces entire section) '
+                            . '[ timestamp header added automatically ]'
                     },
                     'task_id' => {
                         'type'        => 'string',
@@ -1302,15 +1303,15 @@ if ( exists $code{'coding.tools.handler.note_delete'} ) {
         'type'     => 'function',
         'function' => {
             'name'        => 'note_delete',
-            'description' => 'delete a note section or all notes for a task'
-                . ' [ clean up old or irrelevant notes ]',
+            'description' => 'delete a note section or all notes for a task '
+                . '[ clean up old or irrelevant notes ]',
             'parameters' => {
                 'type'       => 'object',
                 'properties' => {
                     'section' => {
                         'type'        => 'string',
-                        'description' => 'section name to delete'
-                            . ' [ omit to delete all task notes ]'
+                        'description' => 'section name to delete [ omit '
+                            . 'to delete all task notes ]'
                     },
                     'task_id' => {
                         'type'        => 'string',
@@ -1331,8 +1332,8 @@ if ( exists $code{'coding.tools.handler.note_tag'} ) {
         'type'     => 'function',
         'function' => {
             'name'        => 'note_tag',
-            'description' => 'add tags to a note section'
-                . ' [ organize notes with keyword tags ]',
+            'description' => 'add tags to a note section [ '
+                . 'organize notes with keyword tags ]',
             'parameters' => {
                 'type'       => 'object',
                 'properties' => {
@@ -1364,8 +1365,8 @@ if ( exists $code{'coding.tools.handler.note_recent'} ) {
         'type'     => 'function',
         'function' => {
             'name'        => 'note_recent',
-            'description' => 'list recent notes across all tasks'
-                . ' [ sorted by last update, shows preview ]',
+            'description' => 'list recent notes across all tasks [ '
+                . 'sorted by last update, shows preview ]',
             'parameters' => {
                 'type'       => 'object',
                 'properties' => {
@@ -1393,8 +1394,8 @@ if ( exists $code{'coding.tools.handler.note_filter'} ) {
         'type'     => 'function',
         'function' => {
             'name'        => 'note_filter',
-            'description' => 'filter notes by tag, section, date, or task'
-                . ' [ combine criteria for targeted search ]',
+            'description' => 'filter notes by tag, section, date, or task '
+                . '[ combine criteria for targeted search ]',
             'parameters' => {
                 'type'       => 'object',
                 'properties' => {
@@ -1431,8 +1432,8 @@ if ( exists $code{'coding.tools.handler.note_history'} ) {
         'type'     => 'function',
         'function' => {
             'name'        => 'note_history',
-            'description' => 'show modification history for a note section'
-                . ' [ timestamps and previews of past entries ]',
+            'description' => 'show modification history for a note section [ '
+                . 'timestamps and previews of past entries ' . ']',
             'parameters' => {
                 'type'       => 'object',
                 'properties' => {
@@ -1463,15 +1464,17 @@ if ( exists $code{'coding.tools.handler.note_merge'} ) {
         'type'     => 'function',
         'function' => {
             'name'        => 'note_merge',
-            'description' => 'merge notes from multiple sections into one'
-                . ' [ combine findings across tasks or sections ]',
+            'description' => 'merge notes from multiple sections into one [ '
+                . 'combine findings across tasks or '
+                . 'sections ]',
             'parameters' => {
                 'type'       => 'object',
                 'properties' => {
                     'sources' => {
                         'type'        => 'string',
-                        'description' => 'comma-separated source specs'
-                            . ' [ "section" or "task_id:section" ]'
+                        'description' => 'comma-separated source specs [ '
+                            . '"section" or '
+                            . '"task_id:section" ]'
                     },
                     'target_section' => {
                         'type'        => 'string',
@@ -1498,8 +1501,8 @@ if ( exists $code{'coding.tools.handler.validate_module'} ) {
         'function' => {
             'name'        => 'validate_module',
             'description' =>
-                'validate P7 module for common errors and format issues'
-                . ' [ run before declaring task complete ]',
+                'validate P7 module for common errors and format '
+                . 'issues [ run before declaring task complete ]',
             'parameters' => {
                 'type'       => 'object',
                 'properties' => {
@@ -1521,8 +1524,9 @@ if ( exists $code{'coding.tools.handler.decode_base32'} ) {
         'type'     => 'function',
         'function' => {
             'name'        => 'decode_base32',
-            'description' => 'decode base32 or base32r encoded strings'
-                . ' [ useful for encoded identifiers, checksums ]',
+            'description' => 'decode base32 or base32r encoded strings [ '
+                . 'useful for encoded identifiers, '
+                . 'checksums ]',
             'parameters' => {
                 'type'       => 'object',
                 'properties' => {
@@ -1578,9 +1582,9 @@ if ( exists $code{'coding.tools.handler.regex_replace_preview'} ) {
         'function' => {
             'name'        => 'regex_replace_preview',
             'description' =>
-                'preview regex replacement in a file [read-only]. '
-                . 'returns diff, match count, and preview_id. '
-                . 'always call this before regex_replace_apply.',
+                'preview regex replacement in a file [read-only]. returns '
+                . 'diff, match count, and preview_id. always call this '
+                . 'before regex_replace_apply.',
             'parameters' => {
                 'type'       => 'object',
                 'properties' => {
@@ -1601,8 +1605,7 @@ if ( exists $code{'coding.tools.handler.regex_replace_preview'} ) {
                         'type'        => 'string',
                         'description' =>
                             'regex flags [default g]. g=global, '
-                            . 'i=case-insensitive, m=multiline, '
-                            . 's=dotall'
+                            . 'i=case-insensitive, m=multiline, s=dotall'
                     },
                 },
                 'required' => [ 'path', 'pattern', 'replacement' ],
@@ -1619,8 +1622,9 @@ if ( exists $code{'coding.tools.handler.regex_replace_apply'} ) {
         'function' => {
             'name'        => 'regex_replace_apply',
             'description' => 'apply a previewed regex replacement to file. '
-                . 'requires preview_id from regex_replace_preview. '
-                . 'aborts if file changed since preview.',
+                . 'requires preview_id from '
+                . 'regex_replace_preview. aborts if file '
+                . 'changed since preview.',
             'parameters' => {
                 'type'       => 'object',
                 'properties' => {
@@ -1668,8 +1672,8 @@ if ( exists $code{'coding.tools.handler.perltidy'} ) {
             'name'        => 'perltidy',
             'description' =>
                 'format a perl file with perltidy using project settings. '
-                . 'runs in-place by default. use check_only=true '
-                . 'to preview issues without modifying.',
+                . 'runs in-place by default. use check_only=true to '
+                . 'preview issues without modifying.',
             'parameters' => {
                 'type'       => 'object',
                 'properties' => {
@@ -1680,7 +1684,8 @@ if ( exists $code{'coding.tools.handler.perltidy'} ) {
                     'check_only' => {
                         'type'        => 'boolean',
                         'description' => 'if true, only report issues '
-                            . 'without modifying [ default false ]'
+                            . 'without modifying [ default '
+                            . 'false ]'
                     },
                 },
                 'required' => ['path'],
@@ -1699,15 +1704,15 @@ if ( exists $code{'coding.tools.handler.module_convention_check'} ) {
             'description' =>
                 'audit module files for header convention violations. '
                 . 'reports lines exceeding max length and descr lines '
-                . 'over limit in cmd/console modules. '
-                . 'sorted by longest lines first, shorter filenames first.',
+                . 'over limit in cmd/console modules. sorted by longest '
+                . 'lines first, shorter filenames first.',
             'parameters' => {
                 'type'       => 'object',
                 'properties' => {
                     'path' => {
                         'type'        => 'string',
-                        'description' => 'directory to scan'
-                            . ' [ default modules ]'
+                        'description' => 'directory to scan '
+                            . '[ default modules ]'
                     },
                     'max_line' => {
                         'type'        => 'integer',
@@ -1715,8 +1720,8 @@ if ( exists $code{'coding.tools.handler.module_convention_check'} ) {
                     },
                     'max_descr' => {
                         'type'        => 'integer',
-                        'description' => 'max descr length for cmd/console '
-                            . '[ default 55 ]'
+                        'description' => 'max descr length for '
+                            . 'cmd/console [ default 55 ]'
                     },
                 },
                 'required' => [],
@@ -1733,42 +1738,48 @@ if ( exists $code{'coding.tools.handler.consensus_query'} ) {
         'function' => {
             'name'        => 'consensus_query',
             'description' =>
-                'query the inference model from multiple independent perspectives '
-                . 'and return labeled responses for synthesis. '
-                . 'use when you need to catch blind spots, verify correctness, '
-                . 'or get a multi-angle view of code, a design decision, or a finding. '
-                . 'each perspective uses a different system role (critic, advocate, '
-                . 'auditor, alternative). responses are independent : the calling '
-                . 'model synthesizes them.',
+                'query the inference model from multiple independent '
+                . 'perspectives and return labeled responses for '
+                . 'synthesis. use when you need to catch blind spots, '
+                . 'verify correctness, or get a multi-angle view of '
+                . 'code, a design decision, or a finding. each '
+                . 'perspective uses a different system role (critic, '
+                . 'advocate, auditor, alternative). responses are '
+                . 'independent : the calling model synthesizes them.',
             'parameters' => {
                 'type'       => 'object',
                 'properties' => {
                     'prompt' => {
                         'type'        => 'string',
                         'description' =>
-                            'the question, code snippet, or finding to evaluate '
-                            . '[ keep focused: one concern per call ]'
+                            'the question, code snippet, or finding to '
+                            . 'evaluate [ keep focused: one concern per '
+                            . 'call ]'
                     },
                     'mode' => {
                         'type'        => 'string',
                         'description' => 'preset perspective combination: '
-                            . 'review (critic+advocate, default), '
-                            . 'verify (critic+auditor), '
-                            . 'explore (advocate+alternative), '
-                            . 'thorough (all three: critic+advocate+auditor)'
+                            . 'review (critic+advocate, '
+                            . 'default), verify '
+                            . '(critic+auditor), explore '
+                            . '(advocate+alternative), '
+                            . 'thorough (all three: '
+                            . 'critic+advocate+auditor)'
                     },
                     'perspectives' => {
                         'type'        => 'array',
                         'description' =>
-                            'explicit list of perspectives to use : overrides mode. '
-                            . 'built-in: critic, advocate, auditor, alternative. '
-                            . 'any other string is used as a literal system prompt.',
+                            'explicit list of perspectives to use : '
+                            . 'overrides mode. built-in: critic, '
+                            . 'advocate, auditor, alternative. any other '
+                            . 'string is used as a literal system '
+                            . 'prompt.',
                         'items' => { 'type' => 'string' },
                     },
                     'max_tokens' => {
                         'type'        => 'integer',
-                        'description' =>
-                            'max tokens per perspective response [ default 512 ]'
+                        'description' => 'max tokens per perspective '
+                            . 'response [ default 512 ]'
                     },
                 },
                 'required' => ['prompt'],
@@ -1786,9 +1797,10 @@ if ( exists $code{'coding.tools.handler.summarize_context'} ) {
             'name'        => 'summarize_context',
             'description' =>
                 'summarize content using a dedicated inference call. '
-                . 'supports model pinning : specify a large-context model for '
-                . 'compression, small fast model receives the dense result. '
-                . 'routes to cpu backend by default to avoid interrupting active tasks.',
+                . 'supports model pinning : specify a large-context '
+                . 'model for compression, small fast model receives the '
+                . 'dense result. routes to cpu backend by default to '
+                . 'avoid interrupting active tasks.',
             'parameters' => {
                 'type'       => 'object',
                 'properties' => {
@@ -1842,8 +1854,8 @@ push @tools,
             'search the focus-scored memory tree for relevant context. '
             . 'boosts query terms in the memory zenka focus vector, '
             . 're-scores the tree by recency × focus × IDF, and returns '
-            . 'the top-ranked branches as compact ASCII. '
-            . 'use to retrieve relevant project memory mid-task.',
+            . 'the top-ranked branches as compact ASCII. use to retrieve '
+            . 'relevant project memory mid-task.',
         'parameters' => {
             'type'       => 'object',
             'properties' => {
@@ -1866,8 +1878,8 @@ if ( exists $code{'coding.tools.handler.scratchpad_list_all'} ) {
         'function' => {
             'name'        => 'scratchpad_list_all',
             'description' =>
-                'list claude session scratchpads system-wide : volatile '
-                . '/tmp dirs [ import candidates, wiped on reboot ] and '
+                'list claude session scratchpads system-wide : volatile /tmp '
+                . 'dirs [ import candidates, wiped on reboot ] and '
                 . 'imported ones in data/scratchpad/, merged by bmw-L13 '
                 . 'id with repo | /tmp | repo+/tmp status.',
             'parameters' => {
@@ -1937,8 +1949,8 @@ if ( exists $code{'coding.tools.handler.scratchpad_rescue'} ) {
 
 return \@tools;
 
-#,,.,,,..,,..,,,.,..,,,,.,,,.,,..,..,,..,,,..,..,,...,..,,..,,.,.,,..,,,.,,..,
-#2AHLXMBOEHHGL73TPZKQ3GDYNPJHSDCD22BLPZBO32KMA4TSYLEKVHCADY2R3KGT25DUIYVPJRXHE
-#\\\|W4AMG2O3OCMFKOUPUDS6GIZLJG5UH3HZ55U3JGACQZNTSZS6LLX \ / AMOS7 \ YOURUM ::
-#\[7]OUPFXNRUPRPQDDOEQ3PWRA3JS6SNLXS6UA2UB53FKQAR3HR52QAI 7  DATA SIGNATURE ::
+#,,..,...,.,,,,.,,,.,,..,,,.,,..,,,..,,.,,.,,,..,,...,...,.,,,,,.,,..,.,,,.,,,
+#RKIUL242MV2RLDC3TLK7TDULM2MQCJQAJCLFKYLTNNOERQ3EFA6KP257GG26WWKWBAWR3RX6ODGZO
+#\\\|IQPOD4EBVPPZR44PILZZ25L6TJHFR2BP3VRPZR6EL6UU6G6KIL3 \ / AMOS7 \ YOURUM ::
+#\[7]WC752OZYCMHZRRY6OJ2NYEXSC44B3JHZ255WGUMI5GJSD3JVEMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

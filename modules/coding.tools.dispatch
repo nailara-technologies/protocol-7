@@ -35,14 +35,12 @@ if ( not ref $args and length $args ) {
             'id'      => $call_id,
             'role'    => 'tool',
             'content' => sprintf(
-                "error: JSON parse failed for '%s' arguments.\n"
-                    . "parse error: %s\n"
-                    . "raw input (%d chars): %s\n\n"
-                    . "fix: ensure arguments is a single valid JSON object "
-                    . "with properly escaped strings. "
-                    . "common mistakes: unescaped quotes inside strings, "
-                    . "trailing commas, unquoted keys, "
-                    . "single quotes instead of double quotes.",
+                "error: JSON parse failed for '%s' arguments.\nparse error: "
+                    . "%s\nraw input (%d chars): %s\n\nfix: ensure arguments "
+                    . "is a single valid JSON object with properly escaped "
+                    . "strings. common mistakes: unescaped quotes inside "
+                    . "strings, trailing commas, unquoted keys, single "
+                    . "quotes instead of double quotes.",
                 $name, $parse_err, length($args), $raw_snip
             ),
         };
@@ -60,9 +58,9 @@ $args = {} unless ref $args eq qw| HASH |;
 ## dispatch table: tool name => [ module, param builder ] ##
 my %dispatch = (
 
-    ## read_file, read_module, list_modules, module_deps,          ##
-    ## recent_changes, recent_errors, extract_file, ptd_check,     ##
-    ## ptd_format, write_new_file → coding.tools.handler.* modules ##
+    ## read_file, read_module, list_modules, module_deps,  recent_changes,  ##
+    ## recent_errors, extract_file, ptd_check, ptd_format, write_new_file → ##
+    ## coding.tools.handler.* modules                                       ##
 
     'list_files' => sub {
         return unless exists $code{'pager.source.file-list'};
@@ -269,8 +267,8 @@ my %dispatch = (
         my $max_results = $args->{'max_results'} // 50;
         my $offset      = $args->{'offset'}      // 0;
 
-        ## validate query : alphanumeric, dots, underscores, hyphens ##
-        ## reject shell metacharacters ##
+        ## validate query : alphanumeric, dots, underscores, hyphens reject ##
+        ## shell metacharacters                                             ##
         if ( $query =~ m{[;&|`\$\\"'\n\r]} ) {
             return 'error: query contains invalid characters';
         }
@@ -384,24 +382,22 @@ my %dispatch = (
                 $total_edits,
                 int( POSIX::ceil( $total_edits / $batch_size ) ),
             );
-            ##   return error with instructions  ##
-            ## to split manually or use continue ##
+            ## return error with instructions  to split manually or use ##
+            ## continue                                                 ##
             my $batches = int( POSIX::ceil( $total_edits / $batch_size ) );
             return {
                 'id'      => $call_id,
                 'role'    => 'tool',
                 'content' => sprintf(
-                    "auto_split: detected %d edits (exceeds %d threshold)\n"
-                        . "Split into %d batches recommended.\n\n"
-                        . "Option 1: Split manually\n"
-                        . "  Call edit_file multiple times:\n"
-                        . "  - Batch 1: edits[0..%d]\n"
-                        . "  - Batch 2: continue=%d, edits[%d..%d]\n"
-                        . "  - ...\n\n"
-                        . "Option 2: Use auto_split=1 (already applied)\n"
-                        . "  Your edits will be processed in batches.\n\n"
-                        . "Note: Each batch processes %d edits,"
-                        . " reducing token usage",
+                    "auto_split: detected %d edits (exceeds %d "
+                        . "threshold)\nSplit into %d batches "
+                        . "recommended.\n\nOption 1: Split manually\n  Call "
+                        . "edit_file multiple times:\n  - Batch 1: "
+                        . "edits[0..%d]\n  - Batch 2: continue=%d, "
+                        . "edits[%d..%d]\n  - ...\n\nOption 2: Use "
+                        . "auto_split=1 (already applied)\n  Your edits will "
+                        . "be processed in batches.\n\nNote: Each batch "
+                        . "processes %d edits, reducing token usage",
                     $total_edits,
                     $split_threshold,
                     $batches,
@@ -440,19 +436,17 @@ my %dispatch = (
                     'id'      => $call_id,
                     'role'    => 'tool',
                     'content' =>
-                        "error: JSON appears truncated or malformed.\n"
-                        . "The edits array starts but is incomplete.\n\n"
-                        . "Please split into smaller batches [max 50 "
-                        . "edits each].\n"
-                        . "Example call:\n"
-                        . "  edit_file(path='file.txt', edits=[{line:1,"
-                        . "old:'a',new:'b'}, ...], "
-                        . "batch_size=25)\n\n"
-                        . "If your edits exceed 100 lines,"
-                        . " use multiple calls:\n"
-                        . "1. First call: edits[0..24]\n"
-                        . "2. Continue call: continue=25, edits[25..49]\n"
-                        . "3. Continue call: continue=50, edits[50..end]",
+                        "error: JSON appears truncated or malformed.\nThe "
+                        . "edits array starts but is "
+                        . "incomplete.\n\nPlease split into smaller "
+                        . "batches [max 50 edits each].\nExample call:\n "
+                        . " edit_file(path='file.txt', "
+                        . "edits=[{line:1,old:'a',new:'b'}, ...], "
+                        . "batch_size=25)\n\nIf your edits exceed 100 "
+                        . "lines, use multiple calls:\n1. First call: "
+                        . "edits[0..24]\n2. Continue call: continue=25, "
+                        . "edits[25..49]\n3. Continue call: continue=50, "
+                        . "edits[50..end]",
                 };
             }
 
@@ -473,18 +467,19 @@ my %dispatch = (
                     return {
                         'id'      => $call_id,
                         'role'    => 'tool',
-                        'content' => "error: JSON truncated during "
-                            . "parsing : $json_err\n"
-                            . "\nPlease split your edits into "
-                            . "smaller batches:\n"
-                            . "- Max recommended: 50 edits per call\n"
-                            . "- Each edit ~40-100 tokens\n"
-                            . "- Total per call: ~2000-5000 tokens "
-                            . "[adjust based on your model]\n\n"
-                            . "Split strategy:\n"
-                            . "1. Calculate your total edits\n"
-                            . "2. Use batch_size=25 for each call\n"
-                            . "3. Use continue=N for subsequent batches",
+                        'content' => "error: JSON truncated during parsing "
+                            . ": $json_err\n\nPlease split your "
+                            . "edits into smaller batches:\n- "
+                            . "Max recommended: 50 edits per "
+                            . "call\n- Each edit ~40-100 "
+                            . "tokens\n- Total per call: "
+                            . "~2000-5000 tokens [adjust based "
+                            . "on your model]\n\nSplit "
+                            . "strategy:\n1. Calculate your "
+                            . "total edits\n2. Use "
+                            . "batch_size=25 for each call\n3. "
+                            . "Use continue=N for subsequent "
+                            . "batches",
                     };
                 }
                 return "error: invalid edits JSON: $@";
@@ -595,8 +590,8 @@ my %dispatch = (
                 1, ':. edit_file: staged %s [ no write access ]', $path
             );
             return
-                sprintf "staged %d/%d edits for %s [ no write access ]%s\n"
-                . "staged at: %s\n%s",
+                sprintf "staged %d/%d edits for %s [ no "
+                . "write access ]%s\nstaged at: %s\n%s",
                 scalar(@batch_edits), $edit_count, $path,
                 ( $has_more ? " [continue=$end_idx for more]" : "" ),
                 $stage_rel,
@@ -723,8 +718,8 @@ return {
     'content' => $content,
 };
 
-#,,.,,.,.,.,.,...,,,,,,,.,.,.,...,.,.,,..,,..,..,,...,..,,..,,.,.,.,.,...,,,,,
-#KPBOPWX4G3PBSYHSWBRQE6372JBW5CEYK7AGJPYKXTDOJ75PNMV4IH5ITSDW7A32NJ6JSSBT4WFS4
-#\\\|HYUGMESI7ZWCANZOZCC3MWU4HMN5P4K7DGJGBOBZ5O3IX2GCOPJ \ / AMOS7 \ YOURUM ::
-#\[7]KKVZHUNOF7E4QA2OGOBE5SVB6U7MVULGKGBVMAEFW6CGWFG4YYAQ 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,..,,..,,,,,,...,,,.,,,.,,.,,,.,,..,,...,...,.,.,,..,,.,,,,.,,.,,
+#JNWSUNE5IROJOIANX2PPW2BMVLQRT4LYGO6ISZUPCQG6DNUOFL3IRC3PA43QQ4LL4N5IJMWDN6XNY
+#\\\|O2XDXSL7P7YDGOPNKE2ICE5G3B2QSWQ2T7AVORSUN5UPEPEOVHF \ / AMOS7 \ YOURUM ::
+#\[7]GZPIWFCNNSVVKZ7JTN7Y5NLIXVYA3COB427SGC2CKVYTP46HZ6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

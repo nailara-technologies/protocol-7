@@ -4,8 +4,8 @@
 # descr = two-phase [ waiting_idle -> switching ] timer machine for vision-model :switch:
 
 my $event = shift;
-## data lives on the watcher, not the raw event wrapper - same pattern  ##
-## as coding.self_test.handler.poll_switch / monitor_inference_startup  ##
+## data lives on the watcher, not the raw event wrapper - same pattern as ##
+## coding.self_test.handler.poll_switch / monitor_inference_startup       ##
 my $timer_data = eval { $event->w->data }   // {};
 my $switch_id  = $timer_data->{'switch_id'} // '';
 
@@ -27,9 +27,9 @@ my $phase   = $state->{'phase'} // qw| waiting_idle |;
 my $finish = sub {
     my ($reply_data) = @_;
 
-    ## exactly-once guard : the idle-timeout-vs-switch-success race      ##
-    ## resolves here - once fired, further ticks are no-ops that only    ##
-    ## cancel [ state below is already gone, so this is belt+braces ]    ##
+    ## exactly-once guard : the idle-timeout-vs-switch-success race   ##
+    ## resolves here - once fired, further ticks are no-ops that only ##
+    ## cancel [ state below is already gone, so this is belt+braces ] ##
     return TRUE if $state->{'replied'};
     $state->{'replied'} = TRUE;
 
@@ -47,24 +47,25 @@ my $finish = sub {
 if ( $phase eq qw| waiting_idle | ) {
     my $timeout = $state->{'timeout'} // 300;
 
-    ## the caller timeout bounds THIS phase only : nothing has been      ##
-    ## touched yet, so expiry just drops the queued switch - interrupt   ##
-    ## nothing [ distinct failure mode from the switch phase's own       ##
-    ## 'switch-timeout' label ]                                          ##
+    ## the caller timeout bounds THIS phase only : nothing has been touched ##
+    ## yet, so expiry just drops the queued switch - interrupt nothing [    ##
+    ## distinct failure mode from the switch phase's own 'switch-timeout'   ##
+    ## label ]                                                              ##
     if ( $elapsed > $timeout ) {
         <[base.logs]>->(
             1,
-            '[vision_switch] idle wait exceeded %ds, dropping queued switch to %s',
+            '[vision_switch] idle wait exceeded '
+                . '%ds, dropping queued switch to %s',
             $timeout,
             $state->{'target_checksum'} // ''
         );
         return $finish->( { mode => qw| false |, data => qw| timeout | } );
     }
 
-    ## idle predicate, mirrored verbatim from coding.handler.drain_check ##
-    ## : zero active [ non-completed, non-failed ] tasks AND no backend  ##
-    ## lock held - the lock AND matters because the lock can release     ##
-    ## after the final completion event                                  ##
+    ## idle predicate, mirrored verbatim from coding.handler.drain_check : ##
+    ## zero active [ non-completed, non-failed ] tasks AND no backend lock ##
+    ## held - the lock AND matters because the lock can release after the  ##
+    ## final completion event                                              ##
     my $active = 0;
     if ( exists <coding.task.queue> ) {
         for my $task ( values <coding.task.queue>->%* ) {
@@ -95,8 +96,8 @@ if ( $phase eq qw| waiting_idle | ) {
             $state->{'target_checksum'} // ''
         );
 
-        ## reuse the existing switch flow verbatim : switch_model_reply  ##
-        ## -> spawn_smart, inheriting the mmproj_path propagation fix    ##
+        ## reuse the existing switch flow verbatim : switch_model_reply -> ##
+        ## spawn_smart, inheriting the mmproj_path propagation fix         ##
         my $sw_reply = eval {
             <[coding.cmd.switch-model]>
                 ->( { args => $state->{'target_checksum'} } );
@@ -111,9 +112,9 @@ if ( $phase eq qw| waiting_idle | ) {
                 { mode => qw| false |, data => "switch-failed: $err" } );
         }
 
-        ## switch-model answers synchronously with mode 'size' both on   ##
-        ## success AND on immediate validation failure - only the data   ##
-        ## text tells them apart [ unknown checksum, bad format ]        ##
+        ## switch-model answers synchronously with mode 'size' both on      ##
+        ## success AND on immediate validation failure - only the data text ##
+        ## tells them apart [ unknown checksum, bad format ]                ##
         if ( ref $sw_reply eq qw| HASH |
             && ( $sw_reply->{'data'} // '' ) =~ m|^Error| ) {
             my $err = $sw_reply->{'data'};
@@ -140,9 +141,9 @@ if ( $phase eq qw| waiting_idle | ) {
 }
 
 if ( $phase eq qw| switching | ) {
-    ## governed by the switch's OWN bound now, not the caller's idle     ##
-    ## wait timeout - a kill+respawn is already in motion and is abort-  ##
-    ## unsafe, so it reports its true outcome instead                    ##
+    ## governed by the switch's OWN bound now, not the caller's idle wait  ##
+    ## timeout - a kill+respawn is already in motion and is abort- unsafe, ##
+    ## so it reports its true outcome instead                              ##
     my $max_wait = <coding.cfg.switch_model_max_wait> // 300;
 
     ## cheap status read : no blocking i/o ##
@@ -159,10 +160,10 @@ if ( $phase eq qw| switching | ) {
     my $is_ready   = $gpu_status eq qw| ready |;
     my $is_crashed = $gpu_status eq qw| crashed |;
 
-    ## pid change is the load-bearing signal : <inference.model.amos_id> ##
-    ## is one global shared across gpu/cpu and is set by                 ##
-    ## switch_model_reply BEFORE the respawn completes, so it can read   ##
-    ## "correct" while the OLD process still serves - do NOT gate on it  ##
+    ## pid change is the load-bearing signal : <inference.model.amos_id> is ##
+    ## one global shared across gpu/cpu and is set by  switch_model_reply   ##
+    ## BEFORE the respawn completes, so it can read "correct" while the OLD ##
+    ## process still serves - do NOT gate on it                             ##
     my $pid_changed = $gpu_pid && $gpu_pid != $prior_pid;
 
     if ( $is_ready && $pid_changed ) {
@@ -215,8 +216,8 @@ if ( $phase eq qw| switching | ) {
 );
 return $finish->( { mode => qw| false |, data => qw| internal-error | } );
 
-#,,..,.,.,,..,,..,.,.,.,.,,,,,,,.,.,.,.,,,,.,,..,,...,...,,,.,...,,.,,..,,.,.,
-#OOK2LOSUOLILU24VOLUBNBVXW7UOHQWGIHCATEWIK3LESVCVHQTK64XDIRTE3EA6TXAB5ZRAEOB4O
-#\\\|SIIDKWCT75NXCEO7KIWAXSE3LRL3WHNJO57CTQ3ISPLE63P6FCX \ / AMOS7 \ YOURUM ::
-#\[7]TGNWGQZYVBSTCSZWHUHXDPL4T7N6OPLMYCL3YCSI4IPY4V3DASBI 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,.,,..,,,..,..,,,,,,,,.,,..,...,..,,...,...,...,,..,,,,,,,.,,.,,
+#K3CSTFP6FXPUUXI3STXKHPFDDOIOSC7M6CHQWA23FL5SPXEFTFPC773W5LF5OE5IMZRPWVCNUTCFC
+#\\\|MJVZHXFXUFQJMQDJIHDKUMQP3JA52S6ZLDBBSUHLWE5CTSD3A3J \ / AMOS7 \ YOURUM ::
+#\[7]ZAB3G6JJGAY4JBOG2RG4KS4GYKZHT4R5OJS62MAOUZA36W4BESAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

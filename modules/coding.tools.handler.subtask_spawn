@@ -81,8 +81,8 @@ if ( length $preferred_model ) {
     } else {
         <[base.logs]>->(
             1,
-            "subtask_spawn: %s reason rejected [ %d words ] :"
-                . " using parent backend %s",
+            "subtask_spawn: %s reason rejected [ "
+                . "%d words ] : using parent backend %s",
             $child_task_id,
             scalar(@words),
             $routed_to
@@ -143,7 +143,8 @@ if ( !$enqueue_result->{'success'} ) {
     };
 }
 
-## add to parent's subtask queue [ done after enqueue so queue reflects spawn order ] ##
+## add to parent's subtask queue [ done after enqueue so queue reflects ##
+## spawn order ]                                                        ##
 push @{ <coding.task.subtask_queue>->{$parent_task_id} //= [] },
     $child_task_id;
 
@@ -172,7 +173,8 @@ if ( $depth > $max_depth ) {
     return {
         error   => 'subtask depth exceeded',
         content => "error: subtask depth $depth exceeds maximum $max_depth. "
-            . 'Use recent_changes, search_code, or read_file directly instead.'
+            . 'Use recent_changes, search_code, '
+            . 'or read_file directly instead.'
     };
 }
 
@@ -181,8 +183,9 @@ if ( defined $parent_state && !$has_pending ) {
     $parent_state->{'pending_subtask'} = $child_task_id;
     <coding.async.task_state>->{$parent_task_id} = $parent_state;
 
-    ## release parent's backend lock : parent is now waiting, not using inference ##
-    ## child will acquire the lock when it runs via coding.async.request           ##
+    ## release parent's backend lock : parent is now waiting, not using ##
+    ## inference child will acquire the lock when it runs via           ##
+    ## coding.async.request                                             ##
     my $parent_backend = $parent_state->{'backend'} // 'gpu';
     <[coding.async.backend_release]>->( $parent_task_id, $parent_backend );
 } else {
@@ -205,8 +208,8 @@ return {
     child_task_id => $child_task_id,
 };
 
-#,,,,,,.,,..,,,..,..,,...,,,.,...,.,,,.,,,...,..,,...,...,...,..,,,..,.,.,,.,,
-#RFBTF35JKYNOLQ5TILJ3JJUZMZT5Y3JQPPGQ57N4THUWBA4TTCUTYZN3E6N7GRHQYXXSMBHQMFBYC
-#\\\|24KZ5HFOPNUJF5AOQ2RD6K7PTL3HBKTWBPXWV4OW5AWVOKK4F4N \ / AMOS7 \ YOURUM ::
-#\[7]ONFRSGFWJZJNBPNCRJAMWPDNRQHIYHXCVO3DK4WDOTO76LC4Y6AI 7  DATA SIGNATURE ::
+#,,,.,...,.,,,..,,...,.,,,.,,,..,,.,.,..,,.,,,..,,...,...,...,,,,,...,,.,,,..,
+#FEQ74YTY2PGUF2VXPM4ILV3N463FZS2QQY25XQFBBGCVBYSBXVY33UCUJTQIWFWLMMPTDDYSJMGNQ
+#\\\|ZDL6GNBUTPIT6VWAIH2GB3BZRRZXEXEUU73DF4ZMDR3EJB4OUVK \ / AMOS7 \ YOURUM ::
+#\[7]VOGIOCFI4DPM5REVDUMQFSNYBO4SLURTSJWFPJB2RM3XBJN6B2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

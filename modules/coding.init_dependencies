@@ -4,8 +4,8 @@
 # descr = Initialize dependency tracking for inference pipeline
 # purpose = Create dependency chain: discovery -> model_ready -> server_ready
 
-## dependency object types ##
-## Note: callback modules use underscores in names, not dots ##
+## dependency object types  Note: callback modules use underscores in ##
+## names, not dots                                                    ##
 my @callbacks = (
     [ 'model_discovery',  'coding.callback.object_model_discovery' ],
     [ 'model_available',  'coding.callback.object_model_available' ],
@@ -89,8 +89,8 @@ foreach my $cb (@callbacks) {
     }
 );
 
-## Create dependency chains ##
-## discovery must complete before model is considered available ##
+## Create dependency chains  discovery must complete before model is ##
+## considered available                                              ##
 <[dependency.add]>->( <coding.dep.model_gpu>, <coding.dep.model_discovery> );
 <[dependency.add]>->( <coding.dep.model_cpu>, <coding.dep.model_discovery> );
 
@@ -120,8 +120,8 @@ return {
     server_cpu      => <coding.dep.server_cpu>
 };
 
-#,,.,,.,,,...,,,.,..,,,.,,..,,,,,,,.,,,..,.,,,.,.,...,...,.,.,,.,,,..,,,.,,,,,
-#KABT2NVLJCEMEXK3OT35T55MZGURCESYSOX7QGFD5ZGGDH55XL4C2F6QBLTT72QCOABVVZ3H5RHDS
-#\\\|RSKCBZZZ7ZEQUWQLBNBJCRMGZLTDT4Q3SYNMFTZJGBFZV3TPDHG \ / AMOS7 \ YOURUM ::
-#\[7]4CHEIEG4XCLJ3MTSEXLVKFECKO7NVJK32KFQQP7L7GMKYKNGFECQ 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,..,.,.,,,,,.,.,,.,,,,.,...,,,,,.,.,...,...,.,,,..,,,..,.,,,,..,
+#Q6Y3E2CJISQJVOE5SX2NLJ5JRS3TSGV5DVSE5OZ6TEQCFEJUAKAUU2WA4TFTRBMGIQGEGHR7ISE66
+#\\\|JA3GJ4LWBYOC6RQYGSBPNED2KP7MASSRDJRF2JC775SQEPNXMF2 \ / AMOS7 \ YOURUM ::
+#\[7]VCKEW4QI4ODMAJX7NCNYNXNXOIQUQU6K35RHW62GK4EOOMJRTYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

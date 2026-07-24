@@ -16,8 +16,8 @@ my $max_retries = 1;
 if ( $state->{'retry_pending'} ) {
     <[base.logs]>->(
         2,
-        "async.request: retry already pending"
-            . " for %s [ ignoring duplicate error ]",
+        "async.request: retry already pending "
+            . "for %s [ ignoring duplicate error ]",
         $task_id
     );
     ## release lock if we own it [ safety net ] ##
@@ -35,22 +35,24 @@ if (   $error =~ m{HTTP error:\s*5\d\d|timeout|connection closed}i
         $task_id, $retry_count, $max_retries
     );
 
-    ## server 500 with tool_calls: strip tool_calls from assistant msgs ##
-    ## matches blocking version [ process-queued-task lines 544-548 ] ##
-    ## jinja template cannot handle tool_calls arguments as strings ##
-    ## model keeps content and tool results for context ##
+    ## server 500 with tool_calls: strip tool_calls from assistant msgs     ##
+    ## matches blocking version [ process-queued-task lines 544-548 ] jinja ##
+    ## template cannot handle tool_calls arguments as strings model keeps   ##
+    ## content and tool results for context                                 ##
     if ( $error =~ m{HTTP error:\s*500}i ) {
         my $msgs = $state->{'messages'} // [];
 
-        ## detect gemma/llama jinja templates that reject role:tool messages ##
-        ## pattern: raise_exception("Invalid content type") in else branch  ##
+        ## detect gemma/llama jinja templates that reject role:tool     ##
+        ## messages pattern: raise_exception("Invalid content type") in ##
+        ## else branch                                                  ##
         my $convert_tool_role = ( $error =~ m{Invalid content type}i
                 || $error =~ m{raise_exception}i ) ? 1 : 0;
 
         for my $msg ( @{$msgs} ) {
             my $role = $msg->{'role'} // '';
 
-            ## convert role:tool → role:user when template rejects tool role ##
+            ## convert role:tool → role:user when template rejects tool ##
+            ## role                                                     ##
             if ( $convert_tool_role && $role eq qw| tool | ) {
                 my $tc_id = $msg->{'tool_call_id'} // 'unknown';
                 $msg->{'role'} = qw| user |;
@@ -59,22 +61,18 @@ if (   $error =~ m{HTTP error:\s*5\d\d|timeout|connection closed}i
                 delete $msg->{'tool_call_id'};
                 <[base.logs]>->(
                     1,
-                    "http_error: converted tool "
-                        . "role → user [jinja "
-                        . "mismatch]"
+                    "http_error: converted tool role → user [jinja mismatch]"
                 );
 
-                ##   convert role:assistant → role:model for gemma-family ##
+                ## convert role:assistant → role:model for gemma-family   ##
                 ## templates gemma uses 'model' not 'assistant' as the AI ##
-                ##                                         turn role name ##
+                ## turn role name                                         ##
 
             } elsif ( $convert_tool_role && $role eq qw| assistant | ) {
                 $msg->{'role'} = qw| model |;
                 <[base.logs]>->(
                     1,
-                    "http_error: converted "
-                        . "assistant → model [gemma "
-                        . "jinja]"
+                    "http_error: converted assistant → model [gemma jinja]"
                 );
             }
 
@@ -96,8 +94,8 @@ if (   $error =~ m{HTTP error:\s*5\d\d|timeout|connection closed}i
         }
     );
 
-    ## retry after short delay [100ms] ##
-    ## use named handler - coderefs not supported by event.add_timer ##
+    ## retry after short delay [100ms]  use named handler - coderefs not ##
+    ## supported by event.add_timer                                      ##
     <[event.add_timer]>->(
         {   'after'   => 0.1,
             'handler' => qw| coding.callback.retry_request |,
@@ -122,15 +120,15 @@ my $result = {
     error   => $error,
 };
 
-## when all retries fail with a timeout the server accepted the TCP    ##
-## connection but never responded : restart it so the next task gets   ##
-## a fresh process rather than silently hanging again                  ##
-## also requeue on 0-byte close during restart [ same recovery path ]  ##
+## when all retries fail with a timeout the server accepted the TCP         ##
+## connection but never responded : restart it so the next task gets a      ##
+## fresh process rather than silently hanging again  also requeue on 0-byte ##
+## close during restart [ same recovery path ]                              ##
 if ( $error =~ m{timeout|connection closed with no data}i ) {
     my $backend_r = $state->{'backend'} // 'gpu';
 
-    ## map routing name to server key [ 'single-llm' routes to gpu, ##
-    ## same mapping as coding.async.send_request / coding.task.execute ] ##
+    ## map routing name to server key [ 'single-llm' routes to gpu, same ##
+    ## mapping as coding.async.send_request / coding.task.execute ]      ##
     my $srv_key    = $backend_r eq qw| cpu | ? qw| cpu | : qw| gpu |;
     my $srv        = ( <coding.inference_servers> // {} )->{$srv_key} // {};
     my $srv_status = $srv->{'status'}                                 // '';
@@ -144,23 +142,23 @@ if ( $error =~ m{timeout|connection closed with no data}i ) {
         if ( $srv_status eq qw| ready | ) {
             <[base.logs]>->(
                 0,
-                "http_error: %s timed out after %d retries"
-                    . " : scheduling %s server restart",
+                "http_error: %s timed out after %d "
+                    . "retries : scheduling %s server restart",
                 $task_id,
                 $max_retries,
                 $backend_r
             );
             $srv->{'status'} = qw| restart_needed |;
 
-            ## reduce context size to recover from VRAM-pressure timeouts ###
-            ## NOTE: <inference.model.context_length> is a FLOOR — spawn   ##
-            ## picks max(auto_calc, floor), so lowering it alone has no    ##
-            ## effect once auto-calc already exceeds it. set a recovery    ##
-            ## CEILING too : spawn clamps the final size down to it,       ##
-            ## regardless of what auto-calc would otherwise pick           ##
-            ## only reduce when context was actually high — low ctx% means ##
-            ## the timeout was model-speed | TTFT, not VRAM pressure;      ##
-            ## cutting the ceiling in that case makes future tasks worse   ##
+            ## reduce context size to recover from VRAM-pressure timeouts ##
+            ## NOTE: <inference.model.context_length> is a FLOOR — spawn  ##
+            ## picks max(auto_calc, floor), so lowering it alone has no   ##
+            ## effect once auto-calc already exceeds it. set a recovery   ##
+            ## CEILING too : spawn clamps the final size down to it,      ##
+            ## regardless of what auto-calc would otherwise pick only     ##
+            ## reduce when context was actually high — low ctx% means the ##
+            ## timeout was model-speed | TTFT, not VRAM pressure; cutting ##
+            ## the ceiling in that case makes future tasks worse          ##
             my $step  = <coding.cfg.ctx_timeout_step>  // 7000;
             my $floor = <coding.cfg.ctx_timeout_floor> // 16000;
             my $cur   = <coding.cfg.ctx_recovery_ceiling>
@@ -173,8 +171,8 @@ if ( $error =~ m{timeout|connection closed with no data}i ) {
                 <coding.cfg.ctx_recovery_ceiling> = $reduced;
                 <[base.logs]>->(
                     1,
-                    "http_error: reducing context %d → %d"
-                        . " [timeout recovery ceiling, floor=%d, ctx=%d%%]",
+                    "http_error: reducing context %d → %d "
+                        . "[timeout recovery ceiling, floor=%d, ctx=%d%%]",
                     $cur,
                     $reduced,
                     $floor,
@@ -183,16 +181,16 @@ if ( $error =~ m{timeout|connection closed with no data}i ) {
             } elsif ( $ctx_pct < 70 ) {
                 <[base.logs]>->(
                     1,
-                    "http_error: skip context reduction [ctx=%d%% < 70%% "
-                        . "— model latency, not VRAM pressure]",
+                    "http_error: skip context reduction [ctx=%d%% "
+                        . "< 70%% — model latency, not VRAM pressure]",
                     $ctx_pct
                 );
             }
 
             ## clear cached pid so spawn_servers_deferred doesn't skip us ##
             <inference.gpu_pid> = 0 if $srv_key eq qw| gpu |;
-            ## clear awaiting_resources: may be stuck from twin startup,
-            ## blocking async_spawn_inference_servers silently             ##
+            ## clear awaiting_resources: may be stuck from twin startup, ##
+            ## blocking async_spawn_inference_servers silently           ##
             delete <coding.awaiting_resources>
                 if <coding.awaiting_resources>;
             ## defer restart to avoid interfering with task teardown ##
@@ -205,17 +203,17 @@ if ( $error =~ m{timeout|connection closed with no data}i ) {
         } else {
             <[base.logs]>->(
                 1,
-                "http_error: %s timed out while %s server status=%s"
-                    . " : requeue without duplicate restart",
+                "http_error: %s timed out while %s server "
+                    . "status=%s : requeue without duplicate restart",
                 $task_id,
                 $backend_r,
                 $srv_status
             );
         }
 
-        ## requeue task transparently instead of failing it :              ##
-        ## server restart is already scheduled; verify_inference_startup   ##
-        ## calls jobqueue.check_dependencies when ready, which picks us up ##
+        ## requeue task transparently instead of failing it : server    ##
+        ## restart is already scheduled; verify_inference_startup calls ##
+        ## jobqueue.check_dependencies when ready, which picks us up    ##
         my $task = <coding.task.queue>->{$task_id};
         if ( defined $task ) {
             my $task_exec = $task->{'execution'} //= {};
@@ -239,14 +237,14 @@ if ( $error =~ m{timeout|connection closed with no data}i ) {
 
                 <[base.logs]>->(
                     1,
-                    "http_error: requeued %s as pending"
-                        . " — retries after server restart",
+                    "http_error: requeued %s as pending "
+                        . "— retries after server restart",
                     $task_id
                 );
             }
 
-            ## move jobqueue job back to depending so the next             ##
-            ## jobqueue.check_dependencies call re-executes the task       ##
+            ## move jobqueue job back to depending so the next       ##
+            ## jobqueue.check_dependencies call re-executes the task ##
             my $job_id = $state->{'job_id'};
             if ( defined $job_id ) {
                 my $job_data = <[jobqueue.get_job_data]>->($job_id);
@@ -255,8 +253,8 @@ if ( $error =~ m{timeout|connection closed with no data}i ) {
                     <[jobqueue.move_job]>->( $job_id, qw| depending | );
                     <[base.logs]>->(
                         1,
-                        "http_error: moved job %s to depending"
-                            . " for retry after restart",
+                        "http_error: moved job %s to "
+                            . "depending for retry after restart",
                         $job_id
                     );
                 }
@@ -269,8 +267,8 @@ if ( $error =~ m{timeout|connection closed with no data}i ) {
     } else {
         <[base.logs]>->(
             0,
-            "http_error: %s timed out but %s server status=%s"
-                . " : cannot schedule restart",
+            "http_error: %s timed out but %s server "
+                . "status=%s : cannot schedule restart",
             $task_id,
             $backend_r,
             $srv_status
@@ -282,8 +280,8 @@ if ( $error =~ m{timeout|connection closed with no data}i ) {
 
 return;
 
-#,,..,.,.,.,,,,,.,,..,.,,,,..,...,,..,,,.,,,.,..,,...,...,.,,,,,.,,,.,..,,,,.,
-#JNNOYHXFI26U4PLHG7XRTGNPYVLHS6CJYNK3PBNAEWYIDEHBAGVZ7K5AJGD6G7INL7SBGZJKLX73S
-#\\\|Q5N2BUTMD7CB2WTYA2YIBFUAKCWWK34GSZU4PAFH2CJGGOZKGPV \ / AMOS7 \ YOURUM ::
-#\[7]DPZJU6IQU4A3D2CSG6UCNRZ7N4V6CLO47RE5SGPPBFTREROOCKCI 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,..,..,,,.,,,,.,..,,,.,,.,,,...,..,,...,...,..,,...,,,.,,.,,..,,
+#MIL6KVS65SBGCN4VJIP5DE26IF6WD2WNHD4APOHEIADLDXRIK3FVPMITF2AYHP26R5IIVB4LOIZ2K
+#\\\|JLHEZDGJX3MNEMWUOBK24ABM4UEZJVNJJ2FLOBPBT74IC7H2BZY \ / AMOS7 \ YOURUM ::
+#\[7]GZPFLEIAKTGSP7664HZMYIX7KJNQWYQFT5MMUZNVVKAMXW6FSCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

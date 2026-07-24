@@ -69,9 +69,9 @@ foreach my $tc (@$tool_calls) {
         $tool_name, $call_id
     );
 
-    ## parse arguments ##
-    ## use from_json -- args may be perl character strings [ wide chars ] ##
-    ## decode_json expects raw bytes and dies on utf8-flagged strings ##
+    ## parse arguments  use from_json -- args may be perl character strings ##
+    ## [ wide chars ] decode_json expects raw bytes and dies on             ##
+    ## utf8-flagged strings                                                 ##
     my $args = eval { JSON::PP->new->utf8(0)->decode($args_str) };
 
     ## repair common model JSON anti-patterns before retrying ##
@@ -80,7 +80,8 @@ foreach my $tc (@$tool_calls) {
         my $did_repair;
 
         ## anti-pattern 1 : literal newlines|tabs inside string values ##
-        ## model emits raw \n instead of \\n -- fix by escaping within strings ##
+        ## model emits raw \n instead of \\n -- fix by escaping within ##
+        ## strings                                                     ##
         if ($repaired =~ s/("(?:[^"\\]|\\.)*")/
             do { (my $s=$1) =~ s|(?<!\\)\n|\\n|g;
                               $s =~ s|(?<!\\)\r|\\r|g;
@@ -94,7 +95,7 @@ foreach my $tc (@$tool_calls) {
             and $did_repair //= 'removed trailing comma';
 
         ## anti-pattern 3 : illegal backslash escapes like \[ \# \< \$ ##
-        ## valid JSON escapes: \" \\ \/ \b \f \n \r \t \uXXXX ##
+        ## valid JSON escapes: \" \\ \/ \b \f \n \r \t \uXXXX          ##
         if ( $repaired =~ s|\\([^"\\\/bfnrtu])|'\\\\' . $1|ge ) {
             $did_repair //= 'fixed illegal backslash escapes';
         }
@@ -118,15 +119,16 @@ foreach my $tc (@$tool_calls) {
             $args = eval { JSON::PP->new->utf8(0)->decode($first_obj) };
             <[base.logs]>->(
                 1,
-                "tool_executor: extracted first JSON object from concatenated args for %s",
+                "tool_executor: extracted first JSON "
+                    . "object from concatenated args for %s",
                 $tool_name
             ) unless $EVAL_ERROR;
         }
     }
 
     ## malformed arguments -- skip dispatch and return parse error to model ##
-    ## giving the model the exact error lets it fix its JSON rather than   ##
-    ## retrying blindly with empty args                                    ##
+    ## giving the model the exact error lets it fix its JSON rather than    ##
+    ## retrying blindly with empty args                                     ##
     if ( $EVAL_ERROR || ref $args ne qw| HASH | ) {
         my $parse_err
             = $EVAL_ERROR
@@ -145,10 +147,11 @@ foreach my $tc (@$tool_calls) {
             'role'         => 'tool',
             'tool_call_id' => $call_id,
             'content'      => sprintf(
-                "ERROR: could not parse tool arguments for %s.\n" . "%s\n"
-                    . "Please fix your JSON and call the tool again.\n"
-                    . "Common issues: unescaped backslashes (use \\\\ not \\),"
-                    . " literal newlines in strings (use \\n), trailing commas.",
+                "ERROR: could not parse tool arguments for %s.\n%s\nPlease "
+                    . "fix your JSON and call the tool again.\nCommon "
+                    . "issues: unescaped backslashes (use \\\\ not \\), "
+                    . "literal newlines in strings (use \\n), trailing "
+                    . "commas.",
                 $tool_name, $parse_err
             ),
             };
@@ -156,8 +159,8 @@ foreach my $tc (@$tool_calls) {
         next;
     }
 
-    ## dispatch tool call ##
-    ## coding.tools.dispatch expects a single hashref with function.* keys ##
+    ## dispatch tool call  coding.tools.dispatch expects a single hashref ##
+    ## with function.* keys                                               ##
     my $tool_result;
     my $tool_call = {
         'function' => {
@@ -303,8 +306,8 @@ if (<coding.tool_loop.stop>) {
 
 return { success => TRUE, tool_results => \@tool_results };
 
-#,,,,,,,,,.,.,,.,,,.,,,..,...,,.,,.,.,...,.,,,.,.,...,...,...,,,,,..,,.,.,.,,,
-#PHA6AEDKX7BW2F6CPQ35SIO6GN7S4FUQKIYMCJEUFVWBHYDVQHAXVJYDGNXFBJG2NMBRMTUQNLNE6
-#\\\|UL3GQGGVP4GTVYO4RVWNK3IU47RM4MBEEKTHZVRLVQCT6R4DFTK \ / AMOS7 \ YOURUM ::
-#\[7]UVQUF3KGJ3O7IF6IMPK74PJJZPCM3VVZZI3AJWBHV5EE42D64KCQ 7  DATA SIGNATURE ::
+#,,,,,...,..,,,.,,..,,,,,,,,.,...,,,.,,..,.,.,.,.,...,...,...,..,,.,,,,,,,..,,
+#ZAMMEQZU5JI5PIKUENP24WYB3L7HLAW7GKOBXN3X2ZCMFEM4ZCITSNT6OBQ5APAU7UXHGBC5XQJYI
+#\\\|OEPLUU7Q52WJ3TD2QHOWSQXIS5C3KNSP3SR2BYBTMI55BOITLFY \ / AMOS7 \ YOURUM ::
+#\[7]VBOERK4VISIUO4Y6RW3KTDYWA74KE4TD6RQHFKG2P67OYIJHLECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

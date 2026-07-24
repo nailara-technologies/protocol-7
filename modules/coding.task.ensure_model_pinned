@@ -21,7 +21,7 @@ if (    ( $server->{'status'} // '' ) eq qw| ready |
 }
 
 ## get-or-create a dependency object for this specific checksum+backend - ##
-## reused across future pins of the same checksum, never recreated       ##
+## reused across future pins of the same checksum, never recreated        ##
 <coding.dep.model_checksum> //= {};
 <coding.dep.model_checksum>->{$backend} //= {};
 my $dep_id = <coding.dep.model_checksum>->{$backend}{$checksum};
@@ -38,9 +38,9 @@ unless ( defined $dep_id ) {
     <coding.dep.model_checksum>->{$backend}{$checksum} = $dep_id;
 }
 
-## fire switch-model only if not already in flight for this checksum -   ##
-## avoids redundant respawns when multiple tasks pin the same not-yet-   ##
-## loaded model concurrently                                             ##
+## fire switch-model only if not already in flight for this checksum - ##
+## avoids redundant respawns when multiple tasks pin the same not-yet- ##
+## loaded model concurrently                                           ##
 unless ( <coding.model_switch_in_flight>->{$checksum} ) {
     <coding.model_switch_in_flight>->{$checksum} = TRUE;
     <[base.logs]>->(
@@ -62,8 +62,8 @@ unless ( <coding.model_switch_in_flight>->{$checksum} ) {
 
 return $dep_id;
 
-#,,,.,.,,,,.,,.,.,.,.,,..,,..,..,,,..,..,,,,.,..,,...,,.,,,,.,...,.,,,.,,,..,,
-#HMUJB7I3FEUM5OV3QVHGPLA4LSQWYQETPOSCWLTD2Y7PVDRM7BHNFQZ47ZR52K6LFAST6D75DR5DW
-#\\\|ZGHMODIPBDSJQLPN6ECZJW2HFQS76BIR3AZHUXGVTOAF4Y5HBLJ \ / AMOS7 \ YOURUM ::
-#\[7]5NB7D2IR565GFB6KO2SE4KSNER7F5M2Q5BZ2OU2VMHEUH2ZRBSBY 7  DATA SIGNATURE ::
+#,,..,,..,.,.,...,,,,,,..,,..,,,.,,..,,.,,.,,,..,,...,...,.,.,...,..,,.,,,,..,
+#6OTQ5C3GSBYATFLJSLJLX5ZLKQPINV2P6YD77IC6OV4FSFLIT7MW66TTBU6Y67GIJQU3KIQHQNSOO
+#\\\|SUFP5TINQD3OPVK4UJT4ABOOCVOEHSGWHJLNNKXQA364MJRNRGF \ / AMOS7 \ YOURUM ::
+#\[7]W7CUJU42FUXCQREITGUGPZQ7NBP4TQG4IABOOLELQGVP42ZNSKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
