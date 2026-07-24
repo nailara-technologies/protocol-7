@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 3WGPTM7YFA-8692.0 :::
+::: SOURCE-CODE VERSION :: 3WGPVDPCCI-8693.0 :::
 
 # [ [nailara 'protocol seven' project](http://protocol-7.network/) ]
 
@@ -364,8 +364,8 @@ The full vision document explores Protocol-7's unique approach to distributed co
 
 ```
 
-#,,,.,..,,,,.,.,.,,,.,,,.,,,.,..,,,,.,,..,,..,..,,...,...,...,,,.,,,.,,,,,,,,,
-#X43BRDVLXPVBOWSHK3OI4V7HJYOTYVV57SUQCV324KEG4AXP2YSUW2PIZXOCFX3NUTRMMOMJ2SVSG
-#\\\|JQ5KJMJRTFCYYERGBYRUFWOKR4CJ73W2XYYRX2TIAYT3SNADFAD \ / AMOS7 \ YOURUM ::
-#\[7]7STGX6KRRTIIISMMJHNZPQEEJK2RQ25VFHSJCYICF2DC6ZFHVWAY 7  DATA SIGNATURE ::
+#,,.,,..,,...,.,.,,..,,..,.,.,..,,...,,,.,,.,,..,,...,...,,.,,.,,,,,,,.,.,,.,,
+#YVFPP2Z3NFBXZRFHA5NTTAUBTNLSME2UVUQ4BB67JLE65KEMLJ64CTLADNCE257CNK45SEQCFNOHY
+#\\\|BDL3ZFDFIEKZE2E5NV2JCFAAUPVHNXY7IS6QDMS2OLOSPBJNPEH \ / AMOS7 \ YOURUM ::
+#\[7]53IT37FIU7UXBQAK4BYFYFWSDLR4XLTHFUIYPNH43LSIO7JIMQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
