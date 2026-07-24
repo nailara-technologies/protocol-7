@@ -7,6 +7,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 
 ## Feedback
 - [edit-via-project-path-not-dotclaude](feedback-edit-via-project-path-not-dotclaude.md) — edit memory via data/ai-mem/claude/, not ~/.claude/projects/.../memory/ (same file, latter re-prompts every edit)
+- [base-prefix-stripped](feedback-base-prefix-stripped.md) — base.X→X swap_subs families (event, file, base32, templates, chk-sum, zenka.push, etc.); never conclude a bare call is broken from `ls modules/` alone; two families swapping to the same short name confuses dep-graph's scanner
 - [filter-repo-amend](feedback-filter-repo-amend.md) — `AMEND=1` prefix required for any git history-rewrite: filter-repo AND plain `commit --amend` both, else silently blocked by pre-commit's version-mismatch check
 - [whitelist-vs-access-cmd-usr-cube](feedback-whitelist-vs-access-cmd-usr-cube.md) — subroutine.white-list renamed to subroutines.load-early 2026-07-25 (compile timing only); access.cmd.usr.cube (cube routing) is the separate mechanism, don't conflate
 - [file-stat-shadowing](feedback-file-stat-shadowing.md) — bin/Protocol-7's global `use File::stat` makes bare `stat()` return an object everywhere, not a 13-elem list; use `File::stat::stat(...)->mtime` etc. (was orphaned/unindexed — cost a live debugging detour before being found)
@@ -49,8 +50,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [kimi-dispatch-idle-timeout-recovery](feedback-kimi-dispatch-idle-timeout-recovery.md) — MCP 1800s-idle "failed" ≠ dispatch failed; underlying process often finishes fine, recover via session_catchup(client:kimi, session_id) not re-dispatch
 - [posix-group-write-precedence](feedback-posix-group-write-precedence.md) — chmod-child grants need | 0020 (group-write) not | 0002 (other-write); a process that's a supplementary-group member of the file gets checked against group bits only, other bits never consulted; write_with_perms still has this bug live
 
-#,,,.,,,,,...,,,,,,,,,,..,.,.,,.,,.,.,.,,,,,.,..,,...,..,,..,,,,.,,,,,.,,,..,,
-#V6IYSOOWT4PQ6E2KFVD6KIVZKAD7AOUQSYX2UXOU7VVQ3Q62S3PE5EKRB7KD7BNZCKSWI7HDIRE7I
-#\\\|WTS7SGBHTP33MWIEEIHRZMAVR7ZNJTJ4SCTZNAG3SXPTWEWX5F7 \ / AMOS7 \ YOURUM ::
-#\[7]R3D2G52TZEUMFZYEPEZCMHZANW6LGN3XXQELF55QAQQ6GCV32ECI 7  DATA SIGNATURE ::
+#,,,.,,.,,...,.,.,.,,,..,,.,,,..,,.,.,.,.,,.,,..,,...,...,..,,,..,..,,.,.,.,.,
+#FPFXHWLTHPJQSC7XKMA5HC6FOV5FWAYRM3FROO7SFCAVKB2BKCPWVKFSVD4CG6VWARJLXMW577MW2
+#\\\|FHUCPHJETPAUMAYEZVKQSVPX3JAJ3OID3R3QDNJEFEQGZGSFCHX \ / AMOS7 \ YOURUM ::
+#\[7]HHEUAHQJCDNDJIGKZ5OGLYLR6F4E347GA2VEVNAL5BNDWKYPVYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
