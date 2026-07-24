@@ -60,8 +60,7 @@ if ( $current_count >= $max_patterns ) {
     if ( defined $evicted ) {
         <[base.logs]>->(
             1,
-            ':. ncode.regex.expand: evicted %s for %s '
-                . '[conf %.2f > %.2f] :.',
+            ':. ncode.regex.expand: evicted %s for %s [conf %.2f > %.2f] :.',
             $evicted,
             $name,
             $conf,
@@ -82,9 +81,18 @@ if ( $current_count >= $max_patterns ) {
     }
 }
 
+## approval-gate status : only high-confidence full-coverage candidates ##
+## enter as trusted auto-apply rules ; everything else still persists [ ##
+## below-threshold is NOT a rejection ] but requires per-fix review     ##
+my $entry_status
+    = ( $conf >= $threshold and ( $app->{'coverage'} // '' ) eq qw| full | )
+    ? qw| auto-apply |
+    : qw| llm-required |;
+
 ## add new pattern ##
 $patterns->{$name} = {
     'name'          => $name,
+    'status'        => $entry_status,
     'descr'         => $candidate->{'descr'} // '',
     'pattern'       => $pattern,
     'compiled'      => $compiled,
@@ -101,6 +109,12 @@ $patterns->{$name} = {
         'applied'        => 0,
         'false_positive' => 0,
         'skipped'        => 0
+    },
+    ## review-time outcomes [ sibling to stats, not merged : a decline is a ##
+    ## correct conservative call, not an apply-time false_positive ]        ##
+    'review' => {
+        'approved_streak' => 0,
+        'declined'        => 0
     }
 };
 
@@ -109,8 +123,8 @@ return {
     'status' => qw| added |
 };
 
-#,,,.,...,,,.,,.,,.,.,,..,,,.,,.,,,,.,,.,,,,.,..,,...,...,...,..,,,..,..,,,.,,
-#6P4VMPFB64EG6HFITET6ORTW22JBG5XIVMBLD32PP4JZIYVFX5SAEOTXO5I3A6FFK2POVY22O6UGS
-#\\\|6GJNHLYHLCSDMSNZIKVIBFVH27T5HVLEJQFKBIQLGVSDKNZCUMC \ / AMOS7 \ YOURUM ::
-#\[7]KMPQNQCNUP4OSFYW4S6NOVMW3CU4PMTZC3IMU6DCXYRWVYJT4CAI 7  DATA SIGNATURE ::
+#,,..,...,...,.,.,..,,...,..,,,.,,,..,...,,.,,..,,...,...,.,.,.,,,.,.,..,,,.,,
+#GNS5VGC4ZA3Y7FENHFVJ5YNNEQQWUCM6OQ75FWSSUBLP3CBOUNFO4C6G7O3G7UBWNFZNCNK62PUU2
+#\\\|7J6CH7Y4OE4Q5W5MHLQHJDISN6QBKZ4WSRO3OWIK3KXYQUUXW63 \ / AMOS7 \ YOURUM ::
+#\[7]GPDSNP7K7S75GU7TMJKLQ3G7SV3AORPIYT4ZQBOIMVYZOJPTDACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

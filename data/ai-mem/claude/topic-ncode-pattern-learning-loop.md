@@ -1,8 +1,11 @@
 ---
 name: topic-ncode-pattern-learning-loop
 description: "design for a self-reinforcing format-code/review automation: two-tier mechanical-vs-LLM pattern model, existing stats/confidence fields as the reinforcement mechanism, LLM-prefers-editing-patterns interaction model, namespace-scoped gating, nested-dispatch to avoid confirmation storms"
-metadata:
+metadata: 
+  node_type: memory
   type: project
+  originSessionId: 10c54b94-5d67-41ab-a52a-127a6a5170be
+  modified: 2026-07-24T16:20:53.369Z
 ---
 
 **Design conversation, 2026-07-24, same session as
@@ -163,13 +166,96 @@ an approved one into `<ncode.patterns>` (in-memory) or back to YAML
 loop can run for real, now that the mechanical tier-A path underneath
 it is proven correct.
 
+## update, 2026-07-24: approval-gate design settled (self-learning, not threshold-configured)
+
+Design conversation to close the "still open, next real gap" above — what
+gates a new candidate from landing in `<ncode.patterns>`, and what governs a
+pattern's confidence/scope growing over time. Key reframe: **the graduation
+decision is a question posed to the LLM, not a config number picked in
+advance.** Settled shape:
+
+1. **Tier A (mechanical)** unchanged from above — regex-extraction alone is
+   confident enough, no LLM involved, `ptd -c` is the only gate. This is the
+   dead `confidence_threshold` fetched in `ncode.regex.expand` but never
+   applied in `ncode.regex.expand.util.process_candidate` — the actual
+   currently-existing gap: any syntactically-valid candidate lands today
+   regardless of confidence. Wiring this check up is the first concrete fix.
+
+2. **Tier B (LLM review), default for everything else.** Every match gets
+   reviewed by the LLM against the pattern; each outcome (approve/decline)
+   is logged on the pattern record (reuse `stats.applied`/`false_positive`,
+   or a sibling field if review-outcome needs to differ from apply-outcome).
+   - **Decline is terminal, no human escalation.** A conservative LLM "no"
+     doesn't need a second opinion — it's a normal outcome, not an error
+     state that needs a human to unstick it.
+   - **Approve accumulates a streak.** Once a streak threshold is crossed
+     (a *count* — e.g. N consecutive approvals, zero false_positives since —
+     not a confidence float), the next review becomes a distinct
+     **graduation ask**: *"should future matches of this specific pattern
+     skip review and auto-apply?"* Answered by the LLM itself from its own
+     accumulated track record, not by a number set in advance. A "yes" flips
+     the pattern `llm-required` → `auto-apply` (the tier progression already
+     documented above).
+
+3. **Human approval is the residual fallback, not a parallel channel.**
+   Consistent with "LLM-prefers-editing-patterns" above: the LLM's first
+   move is always to edit `pattern`/`replace`/`steps` toward something that
+   clears assess/apply on its own. A manual/human decision request only
+   fires when that fails outright — no generalizable pattern-edit exists for
+   the case at hand. Human approval is never the answer to "should this
+   graduate," only to "no better action was found." The LLM *may* still
+   route a graduation-ask or landing through a human as a discretionary
+   courtesy CC even when self-approving, but that's optional, never
+   required.
+
+4. **Scope-widening (namespace promotion)** uses the same streak/graduation
+   mechanism, evaluated per-widening-step: a pattern's `scope` is a stack
+   (innermost-first, e.g. `["ncode.regex.*", "ncode.*", "*"]`), and moving up
+   the stack re-runs the same "ask the LLM once the narrower scope's stats
+   justify it" logic rather than a separately-configured number — stats
+   reset/re-accumulate at each new scope level rather than being assumed to
+   transfer.
+
+Net effect, stated directly by the user: this makes the pattern library
+**self-learning and self-improving as its primary tendency** — reinforcement
+happens through the LLM's own accumulated judgment on a given pattern, with
+config-level thresholds limited to the streak-count trigger for *when to
+ask* the graduation question, not to the graduation answer itself.
+
+**Phase 1 built and verified, 2026-07-24** — dispatched to Kimi K3 (nested
+dispatch, Claude overseeing) with a fully-specified spec pinning the three
+sub-decisions the dispatch must not invent: (1) below-threshold candidates
+persist as `llm-required`, never rejected outright; (2) a decline resets
+`review.approved_streak` to 0 and is a normal terminal outcome, never
+escalated; (3) crossing the streak only ever returns a `graduation_ask`,
+status flips *only* on the separate explicit `ncode.cmd.graduate` call,
+which re-checks the live streak rather than trusting a stale ask. Landed:
+`status` field (`auto-apply`/`llm-required`) + `review` stats sibling to
+`stats` on every pattern record (`modules/ncode.regex.expand.util.process_candidate`),
+`<ncode.cfg.review_streak_needed>` (default 5, `modules/ncode.init_code`),
+new p7c-facing modules `ncode.cmd.review`, `ncode.cmd.graduate`,
+`ncode.cmd.expand` (the latter finally exposes `regex.expand`'s
+persist-a-candidate step to p7c — the gap flagged above), and the actual
+enforcement point in `modules/ncode.cmd.apply`: an `llm-required` fix with
+no `reviewed` flag is skipped, not applied, reported separately from
+`failed` as `review_required_count`. Verified directly (not just Kimi's
+self-report, per the dispatch-summarize-hang lesson): `git diff`/`ptd -c`
+on all 6 changed/created modules, code-read of the review/graduate/expand
+logic against the spec, and live `p7c` smoke tests of the error paths
+(unknown pattern, graduate-without-streak, invalid outcome) — all correct.
+
+**Deferred to phase 2, deliberately not built:** the namespace/scope-stack
+widening described earlier in this file (`scope: [...]` promotion across
+namespaces) and any human-approval routing/UI channel — the phase-1 dispatch
+prompt explicitly listed these as out-of-scope so Kimi wouldn't invent them.
+
 ## related
 
 [[project-ncode-write-path-2026-07-24]], [[topic-write-access-security-infrastructure]],
 [[feedback-claude-dispatch-strategy]], [[reference-opus-dispatches-kimi-workflow]]
 
-#,,..,.,,,...,,,,,,,,,..,,,.,,,.,,..,,,..,,..,..,,...,...,..,,...,,..,..,,.,,,
-#QGD6TDPHB2T7S733QNWJZLCU5BHVAAYEMQJUBUPJXI4DYZ34UBCOTNUNS6VO3DMCC7PX4KRK5WRXA
-#\\\|ZJUGYOSUSRNMAN2D7ILA4Q4HKGAQDBTIVWKQ3SMRTDRF3GIENPZ \ / AMOS7 \ YOURUM ::
-#\[7]WFVXFMEM7QSYKAGWJCK5K6FUS25NPSKZIFI4SW5U7L5JWZ3PBQCA 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,..,,.,,...,...,,.,,,..,,..,,,.,..,,...,...,..,,,.,,.,.,.,.,,,,,
+#GB2B4USK63UN2XAB7HTYWVDAARP36RNZ4KPLUPZRNYGZ4GLZJJYLRMHSPG7BT4N3POJRRYRG3WCVI
+#\\\|7YBSBXZ6VBVHXJSNRZ5WVNC3ZYALPGHQ5GNTRL5YOAEC3JAKV6M \ / AMOS7 \ YOURUM ::
+#\[7]2NWODRPUUNHFR45DGL7ADCD74AQ2PD7GV2HTCOVJPGVIKCCPQ2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

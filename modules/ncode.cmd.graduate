@@ -1,0 +1,75 @@
+## [:< ##
+
+# name  = ncode.cmd.graduate
+# descr = confirm graduation to auto-apply status
+
+## accept a ready hashref [ programmatic call ] or a cube-dispatch call   ##
+## object carrying a json-encoded 'args' string [ p7c / network call ] -- ##
+## same adapter shape as ncode.cmd.assess                                 ##
+my $raw    = shift // {};
+my $params = {};
+if (    ref $raw eq qw| HASH |
+    and exists $raw->{'args'}
+    and not ref $raw->{'args'} ) {
+    my $args_str = $raw->{'args'} // '';
+    if ( length $args_str ) {
+        $params = eval { JSON::PP::decode_json($args_str) };
+        return {
+            'mode' => qw| false |,
+            'data' => "invalid JSON " . "arguments: $@"
+            }
+            if $@;
+    }
+} elsif ( ref $raw eq qw| HASH | ) {
+    $params = $raw;
+}
+
+my $pattern_name = $params->{'pattern_name'} // '';
+my $confirm      = $params->{'confirm'}      // 0;
+
+return { 'mode' => qw| false |, 'data' => 'pattern_name required' }
+    unless length $pattern_name;
+
+## explicit confirmation is mandatory ##
+return { 'mode' => qw| false |, 'data' => 'confirm required' }
+    unless $confirm;
+
+<ncode.patterns> //= {};
+my $def = <ncode.patterns>->{$pattern_name};
+
+return { 'mode' => qw| false |, 'data' => 'unknown pattern' }
+    if not defined $def
+    or ref $def ne qw| HASH |;
+
+## re-check the streak right now [ never trust a stale graduation_ask ] ##
+my $streak_needed = <ncode.cfg.review_streak_needed> //= 5;
+my $streak        = $def->{'review'}{'approved_streak'} // 0;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'streak threshold not currently met'
+    }
+    if $streak < $streak_needed;
+
+## the one action that expands what auto-applies without review : log it ##
+$def->{'status'} = qw| auto-apply |;
+
+<[base.logs]>->(
+    1,
+    ':. ncode.cmd.graduate: pattern %s graduated '
+        . 'to auto-apply [ streak %d >= %d ] :.',
+    $pattern_name,
+    $streak,
+    $streak_needed
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => "pattern $pattern_name graduated to auto-apply"
+};
+
+#,,,.,...,,,,,.,.,,,.,,.,,,.,,.,,,.,,,...,..,,..,,...,...,..,,..,,..,,,.,,,.,,
+#6UECC7X3AFUCTJRNYBR6HVJZOUPHGEYXN3GEZP65Z6XSIKAAME5DSLQYZ3KDJSW6JHWOR3M6WN7SW
+#\\\|G2WWI4UMCZ25QKMRWYS52VVA7KSJOPMP6J6H2UVGL62F7VPYHWA \ / AMOS7 \ YOURUM ::
+#\[7]LG67DIF3JMVGT5SF3NDDNFLTPT5ENRQJYO3ZC7CHWZVQZ6OYK2CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
