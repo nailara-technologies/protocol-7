@@ -249,6 +249,14 @@ sub preprocess_source {
             next;
         }
 
+        ##  step 5 : normalize a '##[ title ]###...' fill-bar to LINE_MAX  ##
+        my $bar_fixed = step5_normalize_bracket_bar($line);
+        if ( defined $bar_fixed ) {
+            push @out, $bar_fixed;
+            $lnum++;
+            next;
+        }
+
         ##  step 3 : trailing inline comment relocation  ##
         my @produced = step3_relocate_trailing_comment($line);
         if ( @produced > 1 ) {
@@ -293,8 +301,14 @@ sub comment_block_line_parts {
     return undef if $line !~ m{^(\s*)\#\#\ (.*?)\s*(\r?\n)?$};
     my ( $indent, $content ) = ( $1, $2 );
 
+    ##  closing marker width varies -- '##' is the norm, but this codebase
+    ##  also uses '###' [ one extra hash ] as a closer, e.g. section-header
+    ##  style '## title ###' and box borders built from it. match 2-or-more
+    ##  trailing hashes as one unit so no stray '#' is left glued to
+    ##  $content -- a leftover stray hash on a blank framing line was
+    ##  exactly what broke box detection [ content stopped being truly '' ] ##
     my $has_close = 0;
-    if ( $content =~ s{\s*\#\#\s*$}{} ) {
+    if ( $content =~ s{\s*\#{2,}\s*$}{} ) {
         $has_close = 1;
     }
 
@@ -501,6 +515,33 @@ sub step4_align_comment_block {
         }
     }
     return \@out;
+}
+
+##[ step 5 : recompute a '##[ title ]###...' fill-bar's hash-run so the
+##  line lands exactly on LINE_MAX -- this convention has no legitimate
+##  alternate width to preserve : across the corpus the fill-run length
+##  clusters overwhelmingly at LINE_MAX with only single-off drift around
+##  it [ manual title edits that never recalculated the trailing hashes ] ,
+##  unlike box padding where multiple depths genuinely recur. matched
+##  separately from the short '##[ title ]##' label style [ exactly 2
+##  closing hashes, never meant to fill -- the corpus shows a hard gap
+##  between 2-3 and 8+ trailing hashes, so requiring 4+ cleanly separates
+##  the two conventions ]  ##
+sub step5_normalize_bracket_bar {
+    my $line = shift;
+    return undef
+        if $line !~ m{^(\s*)\#\#\[\ (.*?)\ \]\#{4,}\s*(\r?\n)?$};
+    my ( $indent, $title, $nl ) = ( $1, $2, $3 // "\n" );
+
+    my $fixed_len
+        = length($indent) + length('##[ ') + length($title) + length(' ]');
+    my $fill_len = LINE_MAX - $fixed_len;
+    return undef if $fill_len < 1;    ## title alone exceeds budget ##
+
+    my $rebuilt
+        = $indent . '##[ ' . $title . ' ]' . ( '#' x $fill_len ) . $nl;
+    return undef if $rebuilt eq $line;    ## already exact -- no change ##
+    return $rebuilt;
 }
 
 ##[ step 3 : move trailing comment above when it pushes line past 78 ]##
@@ -1092,8 +1133,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,..,,,.,...,...,.,,,..,,,.,,,.,,...,..,,.,.,..,,...,...,,..,,..,,..,.,,,,,,,
-#OGZOHKJ3NZYFBT3NY635LNCEFPTBLGERC477B5L6E7XZIY2WJ5BBYB5NDHLYLNUN55S63FB6FU3MQ
-#\\\|UGWSI4QKTHXWLUCTMMWDTIT5MH3JT55KVGJVQBHPVMDNZZP5FHY \ / AMOS7 \ YOURUM ::
-#\[7]VXM5P6VMZO444Z7L5SU7CFEJRS5XDTPKUGX25IMDPK22Y6CNYYBQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,.,.,...,,,,,,,.,.,,,,..,.,,,,,,,..,,...,...,,..,...,..,,...,...,
+#NBFWAZC36IWSMROLCMD7LRISX7VZTHCUEPZFAFPC3IJPUGLONPLGEG6NPM32OQJYKYGBPJXSP4QA4
+#\\\|7AFMTMLZEVOPVQFR3YIIJ27QQPMWTBVT4HJJG5B2WXT3LETSD55 \ / AMOS7 \ YOURUM ::
+#\[7]X47MRIG4NSFJY2PDKZXQZI2D5AUMAMOX2TRORNTFCT74FA6DXYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
