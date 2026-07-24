@@ -51,6 +51,89 @@ right" — it's "run it twice, diff for zero."
 
 ---
 
+## one canonical path in, regardless of entry shape
+
+the same content can reach a transform two different ways — already split
+into N pieces, or still whole as one unbroken line — and if each entry
+shape is handled by its OWN separate rendering logic, the two can produce
+different output for what is, after canonicalizing, the identical case.
+that's an oscillating-fixed-point failure mode distinct from ordinary
+drift : a still-whole line gets wrapped by the "simple" path into N
+pieces ; only THEN, now looking like an existing N-piece block, does it
+qualify for the "real" path, which re-renders it differently again. pass 1
+never equals the converged form, even though pass 2 onward is stable.
+
+```
+entry shape A [ already N pieces ]  -> renderer A -> output
+entry shape B [ still 1 piece ]     -> renderer B -> output'
+wrong   :  output != output'    [ two entry conditions, two conventions ]
+right   :  route BOTH shapes through the SAME renderer
+```
+
+the fix is never "make renderer B smarter" — it's recognizing that "does
+this need to be split" and "how do I render a split block" are the same
+underlying decision wearing two different entry conditions, and belong on
+one canonical reconstruction path, not two.
+
+---
+
+## a single authoritative check, not two independently-reasoned passes
+
+generalizing a working 2-way algorithm to N-way is tempting to do as two
+separate passes — first COUNT how many pieces are needed [ cheap : simulate
+a greedy maximal fill ], then DISTRIBUTE content across that many pieces
+[ a nicer, balanced strategy ]. this looks reasonable but breaks silently
+the moment the two passes use different local logic : the count pass
+assumes maximal consumption per step, the distribute pass deliberately
+doesn't take the maximum [ it's balancing ] — so it actually needs MORE
+pieces than the count predicted, and whichever piece got locked in as "the
+last one" absorbs the shortfall instead of erroring.
+
+```
+wrong : count_needed(x) = N        [ one algorithm, optimistic ]
+        distribute(x, N)           [ a DIFFERENT algorithm, trusting N
+                                      as ground truth ]
+        -- these can disagree, and disagreement shows up as silent
+           overflow on whichever piece was forced to be "final"
+
+right : ONE loop, ONE feasibility check, asked fresh at every step :
+        "does whatever remains fit as the final piece RIGHT NOW ?"
+        -- never precompute and trust a count derived by a different
+           method than the one that will actually consume the content
+```
+
+caught by testing against the ORIGINAL multi-piece input, not just the
+already-collapsed case the bug itself produced — re-deriving from the true
+source is what surfaced that more pieces were needed at all.
+
+---
+
+## reserve margin for what happens after you, out of view
+
+reconstruction sometimes happens as one stage in a pipeline, with a LATER
+stage — outside this transform's control, with its own opaque conventions
+— still to run. budgeting exactly to the visible constraint isn't enough
+if that later stage can still reshape the output : a continuation line's
+indent, computed exactly to fit right now, can still overflow once a
+downstream formatter re-indents it deeper than expected.
+
+```
+wrong : budget = hard_limit - what_i_can_see_right_now
+        [ correct only if nothing downstream ever touches this again ]
+
+right : budget = hard_limit - what_i_can_see_right_now - margin
+        [ margin sized to the worst case a KNOWN downstream stage can
+          introduce -- confirmed real, not self-inflicted, by
+          reproducing the same failure against the tool as it existed
+          BEFORE the change under review ]
+```
+
+the margin is a deliberate admission of an observability boundary, not a
+guess — cheaper and more honest than trying to model or predict what an
+external, uncontrolled stage will do.
+
+---
+
 ## discovery method : dogfood before design
 
 the categories this template describes were not designed up front. each one
@@ -67,6 +150,12 @@ numbered/bulleted list          ->  a real numbered list folded into
                                      run-on prose, losing its structure
 symmetric box                   ->  a real blank-bordered title box,
                                      shrunk to asymmetric single-space pad
+commented-out code              ->  a real dead-code block inside comment
+                                     markers, reflowed as prose and
+                                     scrambled -- discovered AFTER this
+                                     template was first written, confirming
+                                     the catalog stays open until the
+                                     corpus stops surfacing new failures
 ```
 
 speculative categories invented ahead of a real failure tend to be either
@@ -205,8 +294,8 @@ what "enough categories" converges toward.
   a single line of text instead of a memory architecture — the anchor is
   the boundary, the interior is what's permeable to reflow
 
-#,,,,,,.,,.,,,,.,,.,.,.,,,,..,,,.,,..,.,,,,..,..,,...,...,...,.,,,.,.,,,.,.,.,
-#ETDJLQJWOD3YLFJSMSFBXUYAQA5YHTZ4XKJGM2ULCXBHJKS23ST3P642EKMWSGF7BHBRIPZYBMK7Q
-#\\\|I3IDPCASOO4XTHFA4DEME33LRG35JA27SQVRR7CTVDZENNAZYRW \ / AMOS7 \ YOURUM ::
-#\[7]2NQ5DMBZT6C56MYEHFB2MRU22RTRPYDLE2UXZHKFGP5LMOMR4ICQ 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,..,,,.,,,.,.,.,..,,...,.,.,,,,,..,,...,...,...,,,,,,,,,,,,,,.,,
+#A33XWGBN7Y345ODWZVKE7TB7G2GPTXTSWIBO2KYYYBCNHX6PTQYFLFOJXTDI7GY2SU3SUJISCJBDE
+#\\\|5NEQITKC74A5SKWZ5OS3MBZ37GIS55KVTQM3NO4Q3M6PCVNSDIL \ / AMOS7 \ YOURUM ::
+#\[7]TDYV7IWEUV4D4VCLAE6H3EXVJ2BI5KP2IEUJUPPFNT3CSLAQ2GBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
