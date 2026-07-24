@@ -54,6 +54,22 @@ foreach my $name ( sort keys %$patterns ) {
     ## include replace if defined ##
     $entry->{'replace'} = $def->{'replace'} if defined $def->{'replace'};
 
+    ## include steps only when they carry custom logic beyond what load-time ##
+    ## synthesis would regenerate from pattern+replace [ avoids yaml clutter ] ##
+    if ( defined $def->{'steps'} and @{ $def->{'steps'} } ) {
+        my $pat   = $def->{'pattern'} // '';
+        my $rep   = $def->{'replace'};
+        my $steps = $def->{'steps'};
+        my $is_synthesized
+            = @$steps == 1
+            && ( $steps->[0]{'tool'}   // '' ) eq 'ncode'
+            && ( $steps->[0]{'search'} // '' ) eq $pat
+            && defined $rep
+            && defined $steps->[0]{'replace'}
+            && $steps->[0]{'replace'} eq $rep;
+        $entry->{'steps'} = $steps unless $is_synthesized;
+    }
+
     ## remove undef optional fields ##
     delete $entry->{'source_task'}
         unless defined $entry->{'source_task'}
@@ -117,8 +133,8 @@ return {
     }
 };
 
-#,,.,,,,,,...,,,,,,,,,...,...,,,,,.,,,.,.,...,..,,...,...,.,.,.,.,...,..,,.,.,
-#4AGWVAPGLSPPEOOCFEG55E6ZOT6W5FOIGRKAITAQAVR4CZ735OHL35RFEL6OTHN4YEZVFIDLHEOL6
-#\\\|H6ABY463IKYFYYVLZEPHFLKQEXA7AELU6ZZSIFFSJCD7DYQD3BY \ / AMOS7 \ YOURUM ::
-#\[7]XL7YKTNAWUL5U3VFUASTSQTULCRN23WFHHOCCUARWSAAWJASJEAQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,.,,...,.,,,.,.,.,.,,..,.,,,..,,..,,...,...,..,,..,,,,,,,..,.,,,
+#46DYF47DI5VVXPV3JDQOKILP2OOR52IGLBWKFDLSGPGC66EQGYV3V65DCDD3QKAQEWABSS4YHQQ5S
+#\\\|4KLORKQPSHQ77SXWAED6PO3GZFPQ6ACFTIHKTTVOEIJNOE5LFTG \ / AMOS7 \ YOURUM ::
+#\[7]GWFPFO2G2EMTPCDQ2VTJECWCFZ3LTPNEZT6UPTJWIQOAN7LNS2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
