@@ -73,8 +73,8 @@ if ( $path =~ m|^(.*/)?([^/]+)$| ) {
 
 <[base.log]>->(
     2,
-    "vhost_template_resolver: resolving '$path'"
-        . " (dir='$dirname', file='$filename')"
+    "vhost_template_resolver: resolving "
+        . "'$path' (dir='$dirname', file='$filename')"
 );
 
 ## Priority 1: Subdirectory-level templates (most specific) ##
@@ -100,8 +100,8 @@ if ( -f $vhost_template_path ) {
     $data{'template_resolve_cache'}->{$cache_key} = $vhost_template_path;
     <[base.log]>->(
         1,
-        "vhost_template_resolver: [$vhost] FOUND (level 2):"
-            . " $vhost_template_path"
+        "vhost_template_resolver: [$vhost] "
+            . "FOUND (level 2): $vhost_template_path"
     );
     return $vhost_template_path;
 }
@@ -114,8 +114,8 @@ if ( -f $global_template_path ) {
     $data{'template_resolve_cache'}->{$cache_key} = $global_template_path;
     <[base.log]>->(
         1,
-        "vhost_template_resolver: [$vhost] FOUND (level 3):"
-            . " $global_template_path"
+        "vhost_template_resolver: [$vhost] "
+            . "FOUND (level 3): $global_template_path"
     );
     return $global_template_path;
 }
@@ -130,8 +130,8 @@ $data{'template_resolve_cache'}->{$cache_key} = undef;
 
 return undef;
 
-#,,,.,,.,,..,,.,,,,..,,,,,,,.,,,,,...,,..,.,,,..,,...,...,,.,,...,,,,,,..,...,
-#5MIAU6MUW7ISRTDL7YB26K3UV7GNMQSGC4NP2ZTJ2LJFDG65WTX3LB3LAJQBVYSUF7PY25T2R3NYY
-#\\\|B6DPNS766VUFZVLDYRM7XMM7DIF3BN3LJIYKL2GSK2RUMZ55CU5 \ / AMOS7 \ YOURUM ::
-#\[7]5SFEYYGAXSLA6NLEDDK3N2LGJLBM6PAC4GZ3NA3PSIRASF3O3UDY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,.,,...,.,.,,..,.,,,.,,,.,.,.,.,..,,...,..,,,..,,..,...,.,.,,,.,
+#LZTXLZSD4ECFE7QJMML6UVQ4ESP5SHATV4QHG3EMVCQKQEOZMGDRIKGQKV4Z3AIITOSUZTWBR4XTQ
+#\\\|GPUR33YQT676D72I37LWMZ6UQ6C24HQL7NLOXQQCA3KZSAIMHNV \ / AMOS7 \ YOURUM ::
+#\[7]KTCQ3W7VUXMCII76BBJHTQITGMIBTDBT35QFY5TJUHCWQTEF5QCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

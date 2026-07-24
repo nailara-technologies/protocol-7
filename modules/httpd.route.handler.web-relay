@@ -27,12 +27,13 @@ my $body    = $session->{'http'}->{'body'} // $session->{'buffer'}->{'input'}
 $session->{'http'}->{'body'}    = '';
 $session->{'buffer'}->{'input'} = '';
 
-## decode raw utf-8 bytes to unicode before route-send : base.s_write re-encodes
-## on the outgoing side, so the body must be unicode chars, not raw bytes ##
+## decode raw utf-8 bytes to unicode before route-send : base.s_write      ##
+## re-encodes on the outgoing side, so the body must be unicode chars, not ##
+## raw bytes                                                               ##
 utf8::decode($body) if length($body) and not utf8::is_utf8($body);
 
-## for GET requests body is empty : fall back to query string so handlers
-## can read ?param=value via call args without a separate channel ##
+## for GET requests body is empty : fall back to query string so handlers ##
+## can read ?param=value via call args without a separate channel         ##
 my $query_str = '';
 if ( ( $session->{'http'}->{'request'}->{'uri'} // '' ) =~ m{\?(.+)$} ) {
     $query_str = $1;
@@ -72,8 +73,8 @@ if ( defined $session->{'watcher'}{'input_handler'} ) {
 
 return 0;    # [ deferred : reply handler writes response ]
 
-#,,..,,,.,.,,,,,,,..,,,..,...,,.,,.,,,,..,,,.,..,,...,...,.,,,.,.,,..,...,.,.,
-#UIKTRFNN7OYAGKH2DHUW2X3BTTTSO4TZ6452VESETYFSU57BPZLCLCBIP7BAEGLK2L75GQ2FKPVE2
-#\\\|FGJLNUHOIUK47GWXWX3MFTST4IBOVPHMS7OPMURNWX2ONMSC3VB \ / AMOS7 \ YOURUM ::
-#\[7]ECMWXPHP2K2WRL4VWCY7RNQBYGVTEBMISXOIV3WCTJPVNZT4YWCI 7  DATA SIGNATURE ::
+#,,,.,,.,,...,,,,,.,.,,,,,,,.,,..,...,...,...,..,,...,...,...,.,.,,..,,,.,,,.,
+#WPZHCQHHUNWU3APEFH3PS46PEB42OR6AVXK4OH6HV7JVHJ72AIVEXGKV6YHECNY6ARDGMWMXFHY5U
+#\\\|XMQWOBMMGB3DCFTD5SCX7RRX32XDUEPVIZLULPAH5VDLGYDDZDH \ / AMOS7 \ YOURUM ::
+#\[7]ZS5IFAF6UTPTBK3Z4NS5DZL4OIN2GYKTBM77WEZRESDHDO6BQOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
