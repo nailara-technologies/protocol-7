@@ -28,17 +28,18 @@ our $VERSION = qw| AMOS7::SHM::Live-VERSION.AAAAAAA |;    ##  -VCS  ##
 
 ##[ AMOS MODULE ]#############################################################
 
-## shape-3 "live-mounted current state" primitive. a writer keeps a single
-## bounded value current in place; any permitted reader opens the segment and
-## sees whatever is current right now. there is no transfer, no ack, no
-## consumed cursor, no position tracking. the optional notify FIFO is reused
-## from AMOS7::SHM::Feedback purely as a change ding, not as a stream atom. ##
+## shape-3 "live-mounted current state" primitive. a writer keeps a single  ##
+## bounded value current in place; any permitted reader opens the segment   ##
+## and sees whatever is current right now. there is no transfer, no ack, no ##
+## consumed cursor, no position tracking. the optional notify FIFO is       ##
+## reused from AMOS7::SHM::Feedback purely as a change ding, not as a       ##
+## stream atom.                                                             ##
 
 ##[ CREATE ]##################################################################
 
-## create a live-mount segment with capacity bytes of data region and an
-## optional phase-3 notify FIFO. $content is the initial value and must fit
-## within $capacity. returns the $mount hashref or an error hashref. ##
+## create a live-mount segment with capacity bytes of data region and an    ##
+## optional phase-3 notify FIFO. $content is the initial value and must fit ##
+## within $capacity. returns the $mount hashref or an error hashref.        ##
 sub live_create {
 
     my ( $pub_key_b32, $content, $capacity, $options ) = @ARG;
@@ -72,9 +73,9 @@ sub live_create {
 
 ##[ WRITE ]###################################################################
 
-## replace the live-mount's current value in place. rejects content larger
-## than the mount's data-region capacity. if a notify FIFO exists, dings it
-## after a successful write. returns an error hashref on failure. ##
+## replace the live-mount's current value in place. rejects content larger  ##
+## than the mount's data-region capacity. if a notify FIFO exists, dings it ##
+## after a successful write. returns an error hashref on failure.           ##
 sub live_write {
 
     my ( $mount, $content ) = @ARG;
@@ -106,8 +107,9 @@ sub live_write {
 
 ##[ READ ]####################################################################
 
-## read the current value of a live-mount. returns exactly the bytes declared
-## by the mount header's data_size field. no checksum verify — there is none. ##
+## read the current value of a live-mount. returns exactly the bytes    ##
+## declared by the mount header's data_size field. no checksum verify — ##
+## there is none.                                                       ##
 sub live_read {
 
     my $mount = shift;
@@ -127,8 +129,8 @@ sub live_read {
 
 return TRUE  #################################################################
 
-#,,,,,,,,,,,,,..,,.,,,...,.,.,.,.,.,.,...,,,,,..,,...,...,,,,,.,,,,.,,...,..,,
-#MWFB3NHRLJEMWR3AMXJQCM5HP22NROMAI7SRFUJJN2DRKZF7CNCZENUTDCOBBN7IM6GMUZ6BQC5C4
-#\\\|XA6XLKQQ6SX7S5ZU6BKZROCGFYUEPE5IIXKWFH6XFEGA7GOYH4Z \ / AMOS7 \ YOURUM ::
-#\[7]W3SEV47VV22AK3HDK5S7SU2ALG4BZNHBXZIWZHGRQLEFWFRMDWBA 7  DATA SIGNATURE ::
+#,,,.,...,..,,.,,,..,,.,.,.,.,...,.,,,,..,,.,,..,,...,.,.,..,,...,,,,,.,.,,,.,
+#B6BYZO754SAPL4GDQYACA4HL2AOTSIDFL6CBWVYHGXPJ6TNEEOSBK4SXGNEVEVGY5NZRIZU2IK42Q
+#\\\|2MCHRMYOQFYARUNGC4DOYP3VH4PKVEOXVDNOUSIGCE5QHBWJKO2 \ / AMOS7 \ YOURUM ::
+#\[7]T7OLPPS2DP45X7FMQKVL2U4CWFTYHPMCDGLLDPD2YIHJ2FVLEOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

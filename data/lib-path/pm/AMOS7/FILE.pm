@@ -205,7 +205,7 @@ sub create_dir_path {
     return $path;
 }
 
-##[ PATH STAT ROUTINES ]#####################################################
+##[ PATH STAT ROUTINES ]######################################################
 
 sub last_existing_directory {    ## returns last parent that still exists ##
 
@@ -318,7 +318,7 @@ sub resolved_path_abs {
     return $chkpath_abs;
 }
 
-##[ MULTILINE TIMESTAMPED ENTRIES ]############################################
+##[ MULTILINE TIMESTAMPED ENTRIES ]###########################################
 
 sub append_timestamped_multiline {
 
@@ -486,8 +486,8 @@ sub read_timestamped_multiline_recent {
 
 return TRUE ##################################################################
 
-#,,,.,,.,,,..,,.,,,,.,..,,,,.,..,,,,.,,,,,...,..,,...,...,.,.,...,.,.,.,.,.,.,
-#ZOOMNGMR4SPE4RHRB5HPH2RDC3T6QETRWJ6VN277NTUIF6PL7PCC5TTRTRVPMJVITKA6IQQBYXQMQ
-#\\\|ZL56SFK2NLAC6CTKARUY5IKQLJYKTRADPWCRCVIPVSK5YA5TWBE \ / AMOS7 \ YOURUM ::
-#\[7]GSNLPSQLMDJEIPVBUMUNYQS52IHUHYIIP4GI7OIR4HFQCBPFRIAY 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,..,,,.,,..,,..,,..,,.,,,..,,.,,,..,,...,...,,.,,..,,.,.,...,.,.,
+#CKEJMLPBSGEHZYOZZFPKXRM6XR2GS7PGNXVEAGI6UWHVISUBOLOD3K3VXHAZXJBKZPU2BWVNBQC7K
+#\\\|FCNBTQ2664X67O2E4QUUGEGTG2U2XYPFL7BPKY6UHJJU2QQZNAI \ / AMOS7 \ YOURUM ::
+#\[7]CFUQUDAGHYIO2GJSVALIOGPNT3Z2ZDYYD3E5YEGZ5NXJKKSVPYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

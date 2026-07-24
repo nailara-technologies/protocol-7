@@ -138,8 +138,8 @@ sub amos_chksum {
     }
 
     if ( @elf_modes and @ARG ) {
-        warn_err( 'redundant elf mode setting, discarding'
-                . ' arguments after hash reference <{C1}>' );
+        warn_err( 'redundant elf mode setting, discarding '
+                . 'arguments after hash reference <{C1}>' );
         undef @ARG;
     }
 
@@ -338,8 +338,8 @@ sub amos_template_chksum {
 
 return TRUE ##################################################################
 
-#,,,,,,..,...,.,,,,,,,.,.,..,,.,,,.,,,.,,,..,,..,,...,...,,.,,..,,,.,,.,,,,.,,
-#KRZF7TMIIBK5UZZZGRRR5XNHVP2KB55MCID6B6CV45SRPNY44QEHYVJE5FP7NHV5X5CPV2IQULXWS
-#\\\|6I2GEKE6UZCXDTRDRFN5U3F4G2HRSQH4NBEIO3SWKKQJ25CIK2S \ / AMOS7 \ YOURUM ::
-#\[7]G2F2GIPVWYRPR454UXZF7SNVRZLQQD2RO7GWYPJWMLWMWS5X6WDI 7  DATA SIGNATURE ::
+#,,,.,..,,...,,,,,..,,.,.,.,.,...,.,,,...,,,,,..,,...,...,...,.,,,..,,..,,,,,,
+#CRVJTGELYCKARHBAFSSXEABMOFC5WKTYLAITPC6ID3WV5SNGY4F36VVURHKW6KQYFKVPRP3H7GIWE
+#\\\|SKD6I3WHTKPWYSTASADFP4DEA5XMHERAR7QN7OZ557UKE25X3SC \ / AMOS7 \ YOURUM ::
+#\[7]XR6OHSKFXZOW6INYOGOBYLC3ML7G2MKQQXSNNTMHTJZRXB6F3SAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -14,13 +14,13 @@ use AMOS7::SHM::Feedback;
 use constant TRUE  => 5;    ##  TRUE.  ##
 use constant FALSE => 0;    ##  false  ##
 
-## page index region : sits between the 512-byte P7SH mount header and the
-## first page of actual data. fixed 32 bytes : 4-byte magic, two packed
-## 32-bit ints [ total_pages, page_size ], 13-byte bmw-L13 checksum [ always
-## exactly 13 chars per the harmonize_L13 contract ], padded to 32 ##
-use constant PAGE_INDEX_MAGIC => 'P7PG';
-use constant PAGE_INDEX_SIZE  => 32;
-use constant CHECKSUM_LEN     => 13;
+## page index region : sits between the 512-byte P7SH mount header and the ##
+## first page of actual data. fixed 32 bytes : 4-byte magic, two packed    ##
+## 32-bit ints [ total_pages, page_size ], 13-byte bmw-L13 checksum [      ##
+## always exactly 13 chars per the harmonize_L13 contract ], padded to 32  ##
+use constant PAGE_INDEX_MAGIC  => 'P7PG';
+use constant PAGE_INDEX_SIZE   => 32;
+use constant CHECKSUM_LEN      => 13;
 use constant DEFAULT_PAGE_SIZE => 64 * 1024;
 
 use Exporter;
@@ -35,22 +35,23 @@ use vars qw| @EXPORT_OK $VERSION |;
     data_offset
     |;
 
-our $VERSION = qw| AMOS7::SHM::Page-VERSION.AAAAAAA |;     ##  -VCS  ##
+our $VERSION = qw| AMOS7::SHM::Page-VERSION.AAAAAAA |;    ##  -VCS  ##
 
 ##[ AMOS MODULE ]#############################################################
 
-## this layer is pure computation over an already-created AMOS7::SHM segment
-## — it does not care whether a zenka is running, same as AMOS7::SHM itself.
-## no behavior differs by $main::PROTOCOL_SEVEN here at all ; this is purely
-## new functionality, not a promotion of existing zenka-only code ##
+## this layer is pure computation over an already-created AMOS7::SHM        ##
+## segment — it does not care whether a zenka is running, same as           ##
+## AMOS7::SHM itself.  no behavior differs by $main::PROTOCOL_SEVEN here at ##
+## all ; this is purely new functionality, not a promotion of existing      ##
+## zenka-only code                                                          ##
 
-## offset where actual page data begins : after both the mount header and
-## the page index region. page boundaries never write into either ##
+## offset where actual page data begins : after both the mount header and ##
+## the page index region. page boundaries never write into either         ##
 sub data_offset {
     return AMOS7::SHM::SHM_HEADER_SIZE() + PAGE_INDEX_SIZE;
 }
 
-##[ PAGE INDEX PACK / UNPACK ]#################################################
+##[ PAGE INDEX PACK / UNPACK ]################################################
 
 ## pack [ total_pages, page_size, checksum ] into the fixed 32-byte index ##
 sub pack_page_index {
@@ -67,8 +68,8 @@ sub pack_page_index {
     return substr( $packed, 0, PAGE_INDEX_SIZE );
 }
 
-## unpack the fixed 32-byte index back into a hashref, or undef if the
-## magic doesn't match [ no index written yet, or wrong offset ] ##
+## unpack the fixed 32-byte index back into a hashref, or undef if the ##
+## magic doesn't match [ no index written yet, or wrong offset ]       ##
 sub unpack_page_index {
 
     my $raw = shift;
@@ -88,10 +89,10 @@ sub unpack_page_index {
     };
 }
 
-##[ PAGE INDEX READ / WRITE ]##################################################
+##[ PAGE INDEX READ / WRITE ]#################################################
 
-## write the page index into a segment [ between the mount header and the
-## first page of data ] ##
+## write the page index into a segment [ between the mount header and the ##
+## first page of data ]                                                   ##
 sub write_index {
 
     my ( $mount, $total_pages, $page_size, $checksum ) = @ARG;
@@ -102,7 +103,8 @@ sub write_index {
     my $packed = pack_page_index( $total_pages, $page_size, $checksum );
     substr(
         ${ $mount->{'mmap_ptr'} },
-        AMOS7::SHM::SHM_HEADER_SIZE(), PAGE_INDEX_SIZE
+        AMOS7::SHM::SHM_HEADER_SIZE(),
+        PAGE_INDEX_SIZE
     ) = $packed;
 
     return { 'written' => PAGE_INDEX_SIZE };
@@ -118,17 +120,18 @@ sub read_index {
 
     my $raw = substr(
         ${ $mount->{'mmap_ptr'} },
-        AMOS7::SHM::SHM_HEADER_SIZE(), PAGE_INDEX_SIZE
+        AMOS7::SHM::SHM_HEADER_SIZE(),
+        PAGE_INDEX_SIZE
     );
 
     return unpack_page_index($raw);
 }
 
-##[ PAGE READ / WRITE ]########################################################
+##[ PAGE READ / WRITE ]#######################################################
 
-## write page number $page_num. rejects an out-of-range page number or a
-## page larger than the announced page_size — never writes past the
-## segment, never writes into the header / index regions ##
+## write page number $page_num. rejects an out-of-range page number or a ##
+## page larger than the announced page_size — never writes past the      ##
+## segment, never writes into the header / index regions                 ##
 sub write_page {
 
     my ( $mount, $page_num, $data ) = @ARG;
@@ -137,7 +140,8 @@ sub write_page {
     return { 'error' => 'no_index' } unless defined $index;
 
     return { 'error' => 'page_out_of_range' }
-        if $page_num < 0 or $page_num >= $index->{'total_pages'};
+        if $page_num < 0
+        or $page_num >= $index->{'total_pages'};
 
     return { 'error' => 'page_too_large' }
         if length($data) > $index->{'page_size'};
@@ -148,11 +152,12 @@ sub write_page {
     return { 'written' => length($data), 'page' => $page_num };
 }
 
-## read page number $page_num. the last page is clipped to the real content
-## length [ the mount header's data_size field, which AMOS7::SHM::Page::create
-## sets to the actual payload size, not the padded index+pages region ] so a
-## reader reassembling pages byte-identically does not pick up trailing
-## zero-padding from the final, possibly-partial page ##
+## read page number $page_num. the last page is clipped to the real content ##
+## length [ the mount header's data_size field, which                       ##
+## AMOS7::SHM::Page::create sets to the actual payload size, not the padded ##
+## index+pages region ] so a reader reassembling pages byte-identically     ##
+## does not pick up trailing zero-padding from the final, possibly-partial  ##
+## page                                                                     ##
 sub read_page {
 
     my ( $mount, $page_num ) = @ARG;
@@ -161,7 +166,8 @@ sub read_page {
     return undef unless defined $index;
 
     return undef
-        if $page_num < 0 or $page_num >= $index->{'total_pages'};
+        if $page_num < 0
+        or $page_num >= $index->{'total_pages'};
 
     my $offset = data_offset() + $page_num * $index->{'page_size'};
 
@@ -175,23 +181,26 @@ sub read_page {
     return '' if $remaining <= 0;
 
     my $len
-        = $remaining < $index->{'page_size'} ? $remaining : $index->{'page_size'};
+        = $remaining < $index->{'page_size'}
+        ? $remaining
+        : $index->{'page_size'};
 
     return substr( ${ $mount->{'mmap_ptr'} }, $offset, $len );
 }
 
-##[ SEGMENT CREATE [ convenience ] ]###########################################
+##[ SEGMENT CREATE [ convenience ] ]##########################################
 
-## create a segment sized to hold $content_size bytes across pages of
-## $page_size, with the page index already written. returns the $mount
-## hashref [ from AMOS7::SHM::shm_create ], or undef on failure.
-## the underlying mount header's data_size is overwritten to the real
-## content length [ not the padded index+pages region size ] so read_page
-## can clip the last page correctly — shm_create itself does not know about
-## paging, this is the one place that bridges the two layers ##
+## create a segment sized to hold $content_size bytes across pages of      ##
+## $page_size, with the page index already written. returns the $mount     ##
+## hashref [ from AMOS7::SHM::shm_create ], or undef on failure.  the      ##
+## underlying mount header's data_size is overwritten to the real content  ##
+## length [ not the padded index+pages region size ] so read_page can clip ##
+## the last page correctly — shm_create itself does not know about paging, ##
+## this is the one place that bridges the two layers                       ##
 sub create {
 
-    my ( $pub_key_b32, $content_size, $page_size, $checksum, $options ) = @ARG;
+    my ( $pub_key_b32, $content_size, $page_size, $checksum, $options )
+        = @ARG;
 
     $options   //= {};
     $page_size //= DEFAULT_PAGE_SIZE;
@@ -206,7 +215,8 @@ sub create {
         + $total_pages * $page_size
         + AMOS7::SHM::Feedback::FEEDBACK_SIZE;
 
-    my $mount = AMOS7::SHM::shm_create( $pub_key_b32, $payload_size, $options );
+    my $mount
+        = AMOS7::SHM::shm_create( $pub_key_b32, $payload_size, $options );
     return undef unless defined $mount;
 
     $mount->{'header'}{'data_size'} = $content_size;
@@ -219,8 +229,8 @@ sub create {
 
 return TRUE;
 
-#,,,.,,,,,..,,,,,,...,...,.,,,..,,,.,,,,.,,.,,..,,...,...,...,,,.,...,,.,,..,,
-#VM5ECSKCIQUQ34GVBQ7PBCVMYW32SSOUEMFW6CMHQEYXRH5ESVB3MNFDY2VKUCQZLXHZG7OVOWLD6
-#\\\|R4GAUBSY53GL45XDTVBZGLMA5LSXRBKPIU44QR2NKRZ4MXOBFEV \ / AMOS7 \ YOURUM ::
-#\[7]2K7WGPR7SPRTLXOKPFUVZEF3BYATFYZ7A76TFW6RBQBFHNIZ3KCY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,,,.,,,.,,..,...,,,.,,,.,,.,,...,..,,...,...,...,.,.,,.,,.,,,,,.,
+#2M73SLYLCZF2DZZGUJEGCECQUKM27CA44SZXXMBLPKOF4LAFAKXXDIFDVOYL6JVOUXNIXVMY3IDWI
+#\\\|E3R3SS5ZOJZJKBVYC4MMNOVU6VGD5PLJDPE43OWMINAGY3WZQVD \ / AMOS7 \ YOURUM ::
+#\[7]IIW6Z7PKUUZTDAGAEZDTUCKXDL6G3AC3XP6SUZNRQEXH7S6FWKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

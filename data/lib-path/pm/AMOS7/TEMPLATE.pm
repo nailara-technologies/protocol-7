@@ -44,7 +44,7 @@ our $split_template_regex = qr{(*nlb:\\)[,\|]};
 
 our $callback_setup //= {};
 
-##[ TEMPLATE VALIDATION CODE ]###########################################
+##[ TEMPLATE VALIDATION CODE ]################################################
 
 sub template_is_true {
     my $checksum_encoded = shift @ARG;
@@ -275,8 +275,8 @@ sub is_valid_template {
             if ( @match_count != 1 ) {
                 $template_valid = 0;    ##  false  ##
                 $template_errstr
-                    = sprintf "sprintf template '%s' not valid"
-                    . " [ expecting single %%s ]",
+                    = sprintf "sprintf template '%s' not "
+                    . "valid [ expecting single %%s ]",
                     $template;
             }
         }
@@ -361,7 +361,8 @@ sub configure_epoch_window_callback {
     my $window_radius          = shift // 1;
     my $sprintf_templates_aref = shift;
 
-    ##  validate template logic  ##   [ same rules as configure_exclusive_type_callback ]
+    ## validate template logic  ##   [ same rules as
+    ## configure_exclusive_type_callback ]
 
     return error_exit('expected epoch number parameter')
         if not defined $current_epoch_num
@@ -477,8 +478,8 @@ sub TEMPLATE_exclusive_type {
 
 return TRUE ##################################################################
 
-#,,..,,.,,,.,,,,,,.,,,.,.,...,..,,.,.,..,,..,,..,,...,...,,..,.,,,,,.,.,,,.,.,
-#6A6VQPEIAVEMT7EJMJHW3LQKYZS2LMOPNEVDXGSQMEJRYDVEP7FH3GHMN4T4SDAGPYSH7JBLBFGM4
-#\\\|B3VUZW3JFSCJMD6OMPBRQR2K5Z2SB4FHI4RESMIL4E4YLYR6LUF \ / AMOS7 \ YOURUM ::
-#\[7]JDKLFMIC7OI3TPGCEMCQ5FRF4MZUK2BQ7PDIN4VOJNHMS6XJFQAA 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,.,,,,..,,.,,...,,.,,..,,...,.,,,..,,...,...,,.,,.,,,,,,,.,,,..,,
+#PYZV7YZ76IUCYJPK3LH7VRACLFE33FOTOXKZ4XWDXASXU6YMWVTHNGLH64UBN67CC5DDGVE75H6BS
+#\\\|F4K4CSWT2JHHVHN4CRHIUFURGC6ZNC5S3I3X5YNL3J3Y6M7KTZP \ / AMOS7 \ YOURUM ::
+#\[7]EAHG5OJROFHNMHLVOOYFVKFIYKE3YQ3772CDO4GJWI74UWW4SSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
