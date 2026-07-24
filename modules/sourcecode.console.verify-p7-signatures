@@ -273,7 +273,8 @@ if ( $verify_mode eq 'repair' ) {
     if ( $repaired_count > 0 || $reconstructed_count > 0 ) {
         <[base.logs]>->(
             1,
-            ':.: %d valid (%d repaired, %d reconstructed), %d invalid, %d need repair [total: %d]',
+            ':.: %d valid (%d repaired, %d reconstructed), '
+                . '%d invalid, %d need repair [total: %d]',
             $valid_count,
             $repaired_count,
             $reconstructed_count,
@@ -303,8 +304,8 @@ if ( $verify_mode eq 'repair' ) {
 # Exit with count of invalid signatures (0 = success)
 <[base.exit]>->( sprintf( '%04d', $invalid_count ) );
 
-#,,.,,,,.,.,,,,,,,,,,,,.,,,,.,..,,..,,.,.,,.,,..,,...,...,.,.,..,,.,.,.,,,,..,
-#OGEKQHHNQJZ6NDFRSOE5NHXYWODLZTJ37R5JQYSMROO7WH4MB3O5UL7ONZ3M323BDSW2RYBHVDIXS
-#\\\|OYHCGJ6CRJDPAPJZSX3KUWR7NYTQ2VQUIME46FFEBKIYJ3OKCXH \ / AMOS7 \ YOURUM ::
-#\[7]FEZPQZ3KV4PUOZL77ASYIZ7N5IPNKDDJQXD3PZGD6FM5DZ4JN4BI 7  DATA SIGNATURE ::
+#,,.,,..,,,..,,,,,,,.,,.,,...,.,.,,,.,,.,,..,,..,,...,..,,.,.,,..,,.,,,..,,,,,
+#FJDWBUJTXI3JCH2WWRDUW3OVZPOKPQCLA4IUXWXVODLW7QAZ5Y5NT3FJYKABD2V66MUY3LATSNTVC
+#\\\|O6TQW5BD5UQQUD7QI3COBM6S6KOY7GVVYL2C3ZGRRZWID6Q5X2G \ / AMOS7 \ YOURUM ::
+#\[7]2AQY3AM23ZF3UL2C53CSNSGNV4RINT37EAHKSW35TYVKG7BOMACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
