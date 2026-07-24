@@ -1849,11 +1849,21 @@ sub p7_load_code {
             if ( exists $data{'base'}{$cmd_type}{$cmd_name} ) {
                 my $old_sub = $data{'base'}{$cmd_type}{$cmd_name};
                 if ( $sub_name ne $old_sub ) {
-                    ##  different file claiming the same cmd — log + track  ##
+                    ## different file claiming the same cmd -- always a    ##
+                    ## namespace accident in this system, never a feature, ##
+                    ## so log.error [ always-visible ] not log.devmod [    ##
+                    ## dev-only chatter ] -- silent last-wins overwrite    ##
+                    ## previously buried this class of bug until live-     ##
+                    ## tested [ ncode.cmd.review vs context.cmd.review,    ##
+                    ## 2026-07-24 ]                                        ##
                     if (not exists $data{'base'}{'overwritten'}{$cmd_type}
                         {$cmd_name} ) {
-                        $code{'log.devmod'}->(
-                            sprintf( ':: %s :. %s', $sub_name, $old_sub ) );
+                        $code{'log.error'}->(
+                            sprintf(
+                                '<<< cmd collision : %s overwrites %s >>>',
+                                $sub_name, $old_sub
+                            )
+                        );
                         $data{'base'}{'overwritten'}{$cmd_type}{$cmd_name}
                             = {
                             qw| old | => $old_sub,
@@ -5704,8 +5714,8 @@ __DATA__
 :
 :.
 
-#,,,,,.,,,,..,.,,,...,,,,,...,..,,,,.,.,,,...,..,,...,..,,..,,..,,.,.,,,.,.,,,
-#IMRZL6KLCHIF5FZ4XMGEI26DMG43HMDHLLGKGZGJ3ZHOCATATAADUKSC45WHXQEK5SKJZENCSOVQ6
-#\\\|DSQJF3SB7V6DA2GKRBBIQA7SF4QM64GCPMTF4X2I23PRDOPAG7H \ / AMOS7 \ YOURUM ::
-#\[7]HKEDVEBATVTGWAPNJTSCK4FUFC3TVNTIUWYOEFKVHCK34EULKQAY 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,.,,,,,,,..,,..,,,.,,,.,.,,,,,.,..,,...,..,,.,.,,.,,,,,,,,,,.,,,
+#LCX3CQPB5AQR7L5V276PDL3M3U2XGW6OJLAJ3JDHVSYPHTT5Y2YFKCE22XIBLB4GBBEGSCUYV4WJG
+#\\\|5NUMKR63GYW2VYAWIEL72NJU7Q44WRCWWY655GNKCBHYQ2AM2K2 \ / AMOS7 \ YOURUM ::
+#\[7]HBKBGX6W7ROSFF6Q45W7BAQDBJSFKZPBMXISMOEDP335NS54PIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

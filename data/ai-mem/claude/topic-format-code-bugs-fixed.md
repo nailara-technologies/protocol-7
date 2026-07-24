@@ -1,6 +1,6 @@
 ---
 name: topic-format-code-bugs-fixed
-description: "full arc of bin/format-code hardening across one extended session: 17 real bugs/features fixed via dogfooding on real zenka files, landing on a 5-category pattern-template pipeline (bracket block, loose paragraph, list, box, commented-code) plus N-way string splitting -- now applied clean to 13 real zenki/namespaces+bin (jobsite-discovery, letsencr, bin/Protocol-7, web-browser, httpd, ticker, source, sourcecode, AMOS7 modules, base, coding, models, bin/); perltidy-rejoin idempotency gap + a third unrecognized list style (whitespace-column, no punctuation) deliberately left open"
+description: "full arc of bin/format-code hardening: 19 real bugs/features fixed via dogfooding on real zenka files, landing on a 6-category pattern-template pipeline (bracket block, loose paragraph, numbered/bulleted list, column-aligned list, box, commented-code) plus N-way string splitting -- applied clean to 13 real zenki/namespaces+bin (jobsite-discovery, letsencr, bin/Protocol-7, web-browser, httpd, ticker, source, sourcecode, AMOS7 modules, base, coding, models, bin/); vacuous format-code/ptd exclusion-filter divergence fixed (bug #19); the column-aligned third list style (bug: 'still open' section) fixed 2026-07-24 after a false-start re-test against stale content; perltidy-rejoin idempotency gap still open"
 metadata:
   type: project
 ---
@@ -29,7 +29,12 @@ bracketed block (`## text ##`), loose paragraph (no closing marker
 anywhere), numbered/bulleted list (2+ marker recurrence), symmetric box
 (blank framing line present, author's own padding depth preserved), and
 commented-out code (2+ code-shaped lines — passed through byte-for-byte
-untouched, never reflowed).
+untouched, never reflowed). A sixth, added 2026-07-24 (see the "column-
+aligned third list style" fix below): 2+ lines with an internal 3+-space
+gap (marker/description column alignment, no numbering/bullet/`Label:`
+punctuation) get the same pass-through-untouched treatment as
+commented-out code, for the same reason — reflowing through `Text::Wrap`
+would destroy the alignment regardless of line-grouping.
 
 ## The bugs, in landing order
 
@@ -227,32 +232,58 @@ margin for what happens after you, out of view" but harder to margin
 around, since it's not a depth difference — it's whether an entire prior
 line boundary still exists at all after perltidy reshapes it.
 
-## Still open, found but not fixed : a third list style with no punctuation
+## FIXED 2026-07-24 : the third list style with no punctuation
 
-Discovered when `bin/format-code` reflowed **itself** as part of the
-`bin/*` batch (it matches `is_perl_code`) and came back non-idempotent.
-Its own `step2_reflow_comment` exclusion-list comment:
+Was open for a while (original discovery below, kept for history) —
+resurfaced the same day as "bug #18" during an unrelated ncode dispatch
+review, went through a real false-start before landing correctly:
 
-```
-##  detect ## comment line [ pure comment ]  ##
-##  exclusions :
-##    ## [:< ##         module header
-##    #!                shebang
-##    #,                signature
-##  any leading code disqualifies [ handled by step 3 instead ]  ##
-```
+**The false start.** A dispatch (and this session's own follow-up check)
+tried to verify this was already fixed by later `step4` hardening, but
+tested against a *stale* 4-line flattened version of the block that
+matched neither the real committed file nor the true original — both had
+drifted from relying on content seen earlier in conversation/dispatch
+context instead of re-reading the actual current file. `git diff --cached`
+proved the real committed block was never 4 lines; the user reproduced the
+real corruption live (restored the true form into `bin/format-code`, ran
+the real tool on a throwaway copy, `ccdiff` showed it collapsing right
+back into flattened prose). **Lesson: re-read the actual current file
+fresh immediately before constructing any reproduction test — content
+from earlier in the same conversation or dispatch context can silently go
+stale after intervening edits.**
 
-is a genuine per-item list (marker + whitespace-column alignment +
-description) but uses NEITHER numbering/bullets NOR a `Label:` colon —
-just raw column alignment, a third style distinct from both list
-categories already handled. Not recognized, so it merges into prose and
-reflows differently pass-to-pass. Given the file in question is the tool
-itself, `bin/format-code` was exempted from the `bin/` batch entirely
-(`4a3c8ac3e`) rather than ship a self-referential idempotency gap in the
-tool's own source. Not fixed. The same perltidy-rejoin gap documented
-above also recurred in `bin/` (`bin/mcp-server-p7`, `bin/p7-deps`) plus
-two plain prose-wrap wobbles (`bin/coding-task`, `bin/ddcompress`) —
-consistent with precedent, left as-is rather than blocking the batch.
+**The real fix.** `step4_align_comment_block` (`bin/format-code`, right
+after the existing commented-out-code pass-through check) gained a third
+detection: `qr{\S\s{3,}\S}` counts lines with an internal 3+-space gap
+(deliberately above the 2-space sentence-boundary threshold from bug #7,
+so it can't collide with that convention) — 2+ such lines in a block
+triggers the same "pass the whole block through completely untouched"
+early-return already used for commented-out code, rather than trying to
+preserve column alignment through `Text::Wrap` (which normalizes internal
+whitespace runs when it rejoins words, destroying alignment even if line
+grouping were otherwise fixed). Verified directly, not just claimed:
+copied the real current `bin/format-code` to scratch, ran the real tool on
+itself, confirmed the target block is preserved byte-for-byte; ran a
+second pass and confirmed a stable fixed point (zero diff); diffed the
+whole-file output against the pre-fix original and confirmed the *only*
+change anywhere in the ~1200-line file was the new doc-comment/code just
+added (which correctly gets normal prose reflow — it's ordinary text, not
+a column-aligned block) — no regression on any of the file's many other
+box/list/bracketed/code-snippet comment blocks. `perl -c` clean throughout.
+Applied `format-code` to itself afterward to adopt its own preferred
+formatting of the new addition, then re-verified the stable-fixed-point
+property held on the real file, not just a scratch copy.
+
+**Original discovery, 2026-07-24 (kept for history):** found when
+`bin/format-code` reflowed **itself** as part of the `bin/*` batch (it
+matches `is_perl_code`) and came back non-idempotent. Given the file in
+question was the tool itself, `bin/format-code` was exempted from the
+`bin/` batch entirely (`4a3c8ac3e`) rather than ship a self-referential
+idempotency gap in the tool's own source. The same perltidy-rejoin gap
+documented above also recurred in `bin/` (`bin/mcp-server-p7`,
+`bin/p7-deps`) plus two plain prose-wrap wobbles (`bin/coding-task`,
+`bin/ddcompress`) — consistent with precedent, left as-is rather than
+blocking the batch at the time; unrelated to this fix, still open.
 
 ## Verified real-world application (all re-run fresh + signed, this session)
 
@@ -360,13 +391,69 @@ whole 15-bug arc is that principle in practice.
   logic to confirm the corruption can't recur — worth a scratch-copy
   round-trip test on this exact block if `format-code` runs on itself
   again.
+- **re-test attempt 2026-07-24 was WRONG — corrected same day.** A dispatch
+  (and this session's own follow-up check) tested against a *stale* 4-line
+  flattened version of this block that neither actually matched the real
+  committed file — both had drifted from re-reading it fresh mid-session
+  and instead relying on content seen earlier in conversation/dispatch
+  context. Confirmed via `git diff --cached bin/format-code`: the real,
+  currently-committed block was never 4 lines. **The true original,
+  correct 6-line form** (confirmed directly from the live file):
+  ```
+      ##  detect ## comment line [ pure comment ]  ##
+      ##  exclusions :
+      ##    ## [:< ##         module header
+      ##    #!                shebang
+      ##    #,                signature
+      ##  any leading code disqualifies [ handled by step 3 instead ]  ##
+  ```
+  This is a genuinely distinct shape from anything `step4_align_comment_
+  block` currently recognizes: a closed intro line, a colon-terminated
+  list-header line (unclosed), three **column-aligned label→description
+  sub-items** at deeper indent (extra leading spaces past `## `, no
+  recognized list marker — `$list_marker_re` doesn't match
+  `## [:< ##         module header` shaped lines), and a closed closing
+  line. **User reproduced the corruption directly, live**: restored this
+  exact 6-line form into `bin/format-code`, ran the real tool
+  (`format-code bin/format-code.broken`, a throwaway copy) — confirmed via
+  `ccdiff` that it collapses right back into the same flattened 4-line
+  bracketed-paragraph form this bug report originally described. **Bug
+  #18 is CONFIRMED STILL OPEN, not fixed.** The correct fix is a parser
+  change (recognize this nested-labeled-list / column-aligned-item shape
+  as its own case, not a bracketed paragraph to reflow), not another
+  hand-restore — the same shape will keep recurring elsewhere in the
+  codebase's comment conventions if only this one instance gets patched.
+  **Process lesson for next attempt:** re-read the actual current file
+  content fresh (`Read`/`git show HEAD:<path>`) immediately before
+  constructing any reproduction test — do not rely on content seen
+  earlier in the same conversation or dispatch context, it can silently
+  go stale after several intervening edits.
+
+## follow-up: bug #19, found+fixed 2026-07-24
+
+- `bin/format-code:78` — the markdown/yaml/asc exclusion filter was
+  vacuous: `grep { !m{^@exclude_pattern} } @ARGV` interpolates the
+  `@exclude_pattern` array directly into a regex as a literal
+  space-joined string (`^~ .md .yaml .yml .asc`), which can never match
+  a real filename — the comment even said "same as ptd" but never
+  actually was. Surfaced live: `vc-changed-files | xargs format-code`
+  choked on two `.md` task files (`inappropriate ioctl for device`,
+  `ppi parse failed`) instead of skipping them. `bin/ptd` already carries
+  the correct, working version (`grep { not $ARG =~
+  m{(?:~$|\.md$|\.yaml$|\.yml$|\.asc$)} } @ARGV` — proper per-extension
+  suffix anchoring); ported verbatim into `format-code`. Live-confirmed
+  both directions: the two `.md` files are now cleanly excluded, and a
+  real `.pl` module still gets processed normally. The now-unused
+  `@exclude_pattern` array declaration was left in place (matching
+  `ptd`'s own file, where it's equally vestigial) rather than introducing
+  an unexplained divergence between the two.
 
 ## related
 
 [[topic-p7-text-formats-landed]], [[feedback-base-swap-subs-promote-pattern]], [[topic-fake-signature-footer-detection]], [[project-ncode-write-path-2026-07-24]]
 
-#,,,,,..,,.,,,,..,.,.,,,,,,,.,,.,,...,..,,,..,..,,...,...,.,,,..,,...,...,.,,,
-#EG3FDRAS7XL2URICZEDRQ6VMPORONZC56H2Z5GBRNQ3PPTRKEOBLQA2SE6PUHTJ23M6AZFHVEUJXS
-#\\\|HQRL4BT5QA6BWVNPUWCH5O3QXOYCDOL6WESMSYYIU263KSMDTUR \ / AMOS7 \ YOURUM ::
-#\[7]EV5XTAD7ZYJXCUWVCPDDB57SKKWWTWDVRTNEIMC5JDKAGYG6CECQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,.,,,,.,..,,.,.,,.,,..,,..,,...,..,,...,..,,,,.,,,.,,,,,.,,,...,
+#JOGSZIQRHCNQAYGMDKYCHSBKRLZD5AQI557DTPL5RXKMNMHU2RHQAEIG6UQM2E6HWSUWVVV4PJMIC
+#\\\|YUF7LZFZMC5AYY7YDHBCWMCUW43IM2RM7HWKB5M2U5SBANJHXTN \ / AMOS7 \ YOURUM ::
+#\[7]D5JGUHUGVUICRM2MW34W7FQ3CC2DTJUX4AFJBVH4YNFLPZGWXICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

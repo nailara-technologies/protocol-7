@@ -189,12 +189,60 @@ opening for a specific piece of work. Whether it stays open going forward is
 an open decision the user hasn't made yet; don't treat it as settled either
 way without asking.
 
+## update 2026-07-24, same day: `SIGNED-COMMAND-INTERFACE.md` is the concrete
+mechanism for the "has-seen-preview" / "has-self-approved" approval type
+
+Surfaced while discussing the ncode pattern-learning-loop's
+`ncode.cmd.review` contract (see [[topic-ncode-pattern-learning-loop]]):
+the user asked whether an important approval type would be
+"has-seen-preview + has-[self-]approved-preview" — i.e. does the review
+schema actually *prove* the approver looked at the real content, and does
+it distinguish self-review (same actor proposed and approved) from
+independent review. Answer: yes, and `data/md/design/
+SIGNED-COMMAND-INTERFACE.md` (pre-existing design doc, already referenced
+from this file's "signature-gated write/sign commands" section above but
+not previously connected to a concrete use case) already specifies exactly
+the mechanism needed:
+
+- **Signed payload proves seen-preview.** That doc's signature footer
+  covers `command-string + ntime + nonce` today; extending the signed
+  payload to also include a **checksum of the actual preview content**
+  (the fix's diff/line, or the candidate's pattern+replace) means a valid
+  signature can only be produced by someone who actually had that content
+  in hand — the signature itself is the proof, not a separate trusted
+  claim.
+- **`signed_by` + existing `source_task` gives self-vs-independent review
+  for free.** `base.cmd.verify_signature` already resolves `signed_by`
+  (key fingerprint → identity) for the handler. Phase 1 of the
+  pattern-learning loop already stamps `source_task` on every candidate at
+  creation (`ncode.regex.assess`). Self-approval detection is just
+  comparing `signed_by` against the identity that owns `source_task` — no
+  new field needed once review calls are signed.
+- **Fits the existing security-tier model directly.** `ncode.cmd.review`/
+  `.graduate`/`.widen-scope` (phase 2, not yet built) are exactly the
+  "expands what auto-applies without further per-instance checking" class
+  that doc's `security.cmd.require-signed` tier already targets (same
+  bucket as `teardown`/key-operations), and
+  `security.cmd.authorized_keys.<cmd>` gives the "which identities may
+  approve this pattern family" access layer for free.
+- **Different, complementary axis from the `access.zenki` gap above.**
+  That gap is "can this zenka reach `ncode` at all" (zenka-routing).
+  Signed-command authorization is "does this specific cryptographic
+  identity's signature authorize this specific approval" — orthogonal, not
+  overlapping; both would be needed together for a real deployment.
+
+Not built. Natural next step if picked up: fold this into the phase-2 task
+file (`data/tasks/ncode-pattern-scope-stack-phase2.md`) as an additional
+part, since it changes `ncode.cmd.review`'s contract directly — currently
+deferred there pending this decision.
+
 [[topic-ncode-access-gap]]
 [[topic-ui-show-security-levels]]
 [[topic-jobsite-ui-usability]]
+[[topic-ncode-pattern-learning-loop]]
 
-#,,..,...,.,,,,.,,.,.,,.,,..,,,.,,,,.,,..,.,.,..,,...,..,,...,.,.,,..,.,,,...,
-#JM2DB4RRCNNICFAVPRGBV6KSX4DPAQLTSTPJ77AM3RGDMWGET4RYTZSFPVSUPJ74BBSE5MDFFOFKW
-#\\\|5LPRSE7YLKS2FOKKQRTNLDV6LKWGKBL7XKHUQJHMQPE3IMKMNNX \ / AMOS7 \ YOURUM ::
-#\[7]HUAABUYDDUSADCUOGWLSAHDCVHD6P53YCX5ZWJEQYCWIDMXP3OBQ 7  DATA SIGNATURE ::
+#,,..,...,.,,,,,,,..,,..,,,,.,.,,,...,.,.,.,.,..,,...,...,..,,,,.,..,,.,,,,,,,
+#WTCW7VWQFISJOQ65XSAOCZBLJQP3N4IYQ26DDKHQKILEJ53QVD2LUYLHCBAAFH2Y34CHCVYRAQFNE
+#\\\|GBLG62OJRTODQH3BO5U2UNXVWC474L6W2CILWAIR6TUVW5LF4DS \ / AMOS7 \ YOURUM ::
+#\[7]ZSBMUGVK2ONZOY3PUNI3BZ4G65AKIZIBOTVYQE4B3QOJMTDFW4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

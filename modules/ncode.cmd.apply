@@ -75,15 +75,15 @@ foreach my $fix_id (@fix_ids) {
     }
 
     ## review gate : llm-required patterns only apply to fixes that an llm  ##
-    ## review [ ncode.cmd.review ] has approved for this instance ; never   ##
-    ## attempted, so no stats counters are touched and the skip is reported ##
-    ## separately from real failures in the summary                         ##
+    ## review [ ncode.cmd.pattern-review ] has approved for this instance ; ##
+    ## never attempted, so no stats counters are touched and the skip is    ##
+    ## reported separately from real failures in the summary                ##
     if ( ( $def->{'status'} // qw| llm-required | ) eq qw| llm-required |
         and not $fix->{'reviewed'} ) {
         <[base.logs]>->(
             1,
-            ':. ncode.cmd.apply: %s requires review '
-                . '[ call ncode.cmd.review first ] :.',
+            ':. ncode.cmd.apply: %s requires review [ '
+                . 'call ncode.cmd.pattern-review first ] :.',
             $fix_id
         );
         $review_required_count++;
@@ -331,8 +331,8 @@ $summary .= ", $review_required_count require review"
 
 return { 'mode' => 'size', 'data' => $summary };
 
-#,,.,,,,,,.,,,,,,,,,,,,.,,.,.,,..,,.,,..,,,.,,.,.,...,...,.,.,,,.,,.,,,.,,.,.,
-#ZAT7LL5DLXGGHMZ7PH6VS7QANRWTSCZIATJ2KESVRQYJQXODFCPFOEFYAUBXSQPCUMPK7GLVIJHQO
-#\\\|FTPEARDL2VZAMSG6COAUQMHYWSMTMYHEFTQRMPJ4TYY3KFOLVMP \ / AMOS7 \ YOURUM ::
-#\[7]IDBZW4JMDJJ5P2JJHEYHHQS62JPBBZOXAQTBKPPPL2E7FFWPC2CI 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,,.,,,,,...,,,.,..,,,,,,...,.,.,.,.,...,...,,.,,.,,,.,.,.,,,,,.,
+#CZ2MJZ5LGVQ6RCHUQNX2QW6DT2H3EUCRKL6U72UVOY2ZQXPSDV4AWL2ZYCKES523SZ7QYARJO5STW
+#\\\|S7EMXBKSRLWCDEBDT2VE5N65FKQONUPABXKM4RVZLI5BPDY5FTA \ / AMOS7 \ YOURUM ::
+#\[7]EF3OCAB4CCAETLWNKNGETZBFICQGPNO7637BZKMSPJLMDFOE32DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
