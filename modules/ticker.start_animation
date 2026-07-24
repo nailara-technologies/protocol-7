@@ -22,21 +22,22 @@ if ( not $window->get_visible or <ticker.is-iconified>-- ) {
     <ticker.mouse.inside>      = FALSE;
     <ticker.mouse.grace_until> = <[base.time]>->(5) + 1.5;
 
-    ## the cursor may already be resting where the ticker is about to        ##
-    ## appear [e.g. notify mode's top-strip]. without this, check_pointer's   ##
-    ## swap-edge cursor_over check [ ($inside||$event_inside) && not defined  ##
-    ## swap_left_at ] treats that as a fresh edge-arrival on the very first   ##
-    ## poll and immediately swaps/dismisses the ticker before it's seen. seed ##
-    ## swap_left_at as if the cursor had just left, so a real enter-notify is ##
-    ## required [same as on subsequent shows] before a swap-out can trigger. ##
+    ## the cursor may already be resting where the ticker is about to       ##
+    ## appear [e.g. notify mode's top-strip]. without this, check_pointer's ##
+    ## swap-edge cursor_over check [ ($inside||$event_inside) && not        ##
+    ## defined swap_left_at ] treats that as a fresh edge-arrival on the    ##
+    ## very first poll and immediately swaps/dismisses the ticker before    ##
+    ## it's seen. seed swap_left_at as if the cursor had just left, so a    ##
+    ## real enter-notify is required [same as on subsequent shows] before a ##
+    ## swap-out can trigger.                                                ##
     <ticker.mouse.swap_left_at> = <[base.time]>->(3);
     <[base.log]>->( 1, 'showing window' );
 
-    ## re-mapping the window [ MapWindow / GTK show after hide ] makes      ##
-    ## WSLg/Weston run its initial-placement handshake again, which         ##
+    ## re-mapping the window [ MapWindow / GTK show after hide ] makes     ##
+    ## WSLg/Weston run its initial-placement handshake again, which        ##
     ## silently discards the corrective move applied earlier while the     ##
-    ## window was hidden. once the remap has settled, re-apply the          ##
-    ## profile geometry and double-move as in swap_profile.                ##
+    ## window was hidden. once the remap has settled, re-apply the profile ##
+    ## geometry and double-move as in swap_profile.                        ##
     if ( $was_hidden and defined <x11.coordinates.left> ) {
         <[event.add_timer]>->(
             {   'after' => 0.3,
@@ -90,8 +91,8 @@ if ( defined <x11.id> ) {
 
 $window->queue_draw();
 
-#,,,.,,,,,,,.,,..,,..,,,,,.,.,,,.,.,,,,,,,,,,,..,,...,...,.,,,.,.,,.,,,..,,..,
-#4MHDP74EZ5G53D24UG5UY3672KV7R3CUXW7BAP7QJQ74NRRD3TTZKMMMLXZA2LU4AJAHZBTMBPUMA
-#\\\|NCJW7N6KWZSJMYLMD747QTVEM2L2EH5VQPKTYSOZVXXVEKLRU7K \ / AMOS7 \ YOURUM ::
-#\[7]SGVVZEZPAGN4DX2LCOSHQCUFBTBRSV4ATZUNFQ3OPZXLIXRY5EDA 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,..,,,,,.,.,.,,,,,,,,.,,.,,,,,.,..,,...,...,,.,,,.,,.,.,.,.,,,.,
+#BJB3B6GHV2VVVF7YOSDO5MRDANX7QDABP63CB4JMZQOOGYJVRQSCU3TD5BDXOOJ42ZYJTA6DPILQU
+#\\\|STZ64DOKBOY7WSZFD57JDGHBL26BWIZFOGG2PFBO33YBBU4VKJ6 \ / AMOS7 \ YOURUM ::
+#\[7]Q7UXDP5W54PGKW427XLSHHH7ETZIEC675EPE2COXUKKJFB7SXIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

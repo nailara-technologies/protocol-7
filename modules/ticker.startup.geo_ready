@@ -12,8 +12,8 @@
 <[base.log]>->( 1, '[ticker.geo_ready] continuation fired' );
 
 ## open the gdk display now so ticker.select_monitor [ pure gdk ] can     ##
-## resolve the configured monitor here -- open_window's own Gtk3->init is  ##
-## later in the chain, too late for the fallback shaping below             ##
+## resolve the configured monitor here -- open_window's own Gtk3->init is ##
+## later in the chain, too late for the fallback shaping below            ##
 <[base.gtk.ensure_display]>;
 
 ## fallback shaping : a full-width strip on the configured / selected ##
@@ -40,7 +40,7 @@ if (<x11.coordinates_were_undefined>) {
     }
 }
 
-## make the window dimensions available immediately from the resolved    ##
+## make the window dimensions available immediately from the resolved      ##
 ## coordinate rect. open_window's set-window-profile sets these too, but   ##
 ## later in the async open chain -- without this, a command arriving first ##
 ## [ eg. read_file -> parse_text's font-size calc ] sees height 0 and      ##
@@ -50,12 +50,13 @@ if ( defined $c ) {
     <x11.window.width>  = $c->{'right'} - $c->{'left'};
     <x11.window.height> = $c->{'bottom'} - $c->{'top'};
 
-    ## snapshot this [ correct ] startup rect for open_window's pre-show_all ##
-    ## initial placement. open_window's set-window-profile recomputes coords ##
-    ## from select_monitor before GDK has settled and can clobber this with  ##
-    ## the wrong monitor [ centered-on-wrong-screen regression ], so keep a  ##
-    ## separate snapshot it cannot overwrite. runtime top/bottom-strip swap  ##
-    ## still goes through set-window-profile -- only startup uses this.       ##
+    ## snapshot this [ correct ] startup rect for open_window's             ##
+    ## pre-show_all initial placement. open_window's set-window-profile     ##
+    ## recomputes coords from select_monitor before GDK has settled and can ##
+    ## clobber this with the wrong monitor [ centered-on-wrong-screen       ##
+    ## regression ], so keep a separate snapshot it cannot overwrite.       ##
+    ## runtime top/bottom-strip swap still goes through set-window-profile  ##
+    ## -- only startup uses this.                                           ##
     <ticker.startup_coordinates> = {
         'x'      => $c->{'left'},
         'y'      => $c->{'top'},
@@ -73,14 +74,15 @@ if ( defined $c ) {
 ## tile and used to sit here, on the startup-critical path. it only drives
 ## runtime auto_speed, never window opening, so it now runs post-online from
 ## the draw-init block [ ticker.callback.draw ] : the window comes up first
-## and a stuck tile can no longer block start-up. get_subconfig is bounded too.
+## and a stuck tile can no longer block start-up. get_subconfig is bounded
+## too.
 
 <[ticker.startup]>;
 
 return TRUE;
 
-#,,..,,..,,.,,,,,,.,.,,,.,.,.,,..,.,.,.,.,.,,,..,,...,...,,,.,,.,,,,,,,,,,...,
-#2CESYYKX4Z4ELSHIN7OGOS7KADMIHOCBZ4AMYWZP6CYKJ6PZISHVHDMY7NWLXVEQQHBU22RUUT4NG
-#\\\|FTXVUB3AVN3NHPJ5ZUWKX4HBB3Z7BNEND562DO45KGIPFYGAR2M \ / AMOS7 \ YOURUM ::
-#\[7]GV6PNKDVQS3GHMXYEW5ZIPMXSHHP4DV5USIT2PHDWSYUE3LRI4BI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,.,.,...,.,.,,.,,..,,.,.,.,,,,..,..,,...,...,.,,,.,,,..,,,,.,...,
+#H7YVV6PB4EVK6RPSZFAFLFDLJEHZTDQ2Q44NMGSZ3ZAL7VL2WA6LSO3VWOCBIMFYESCC77BB4GUPG
+#\\\|JBMJURFOZS7CYIMUSRAACMRIYU4XKQFTJIKUTDSC7ICR6EADTBQ \ / AMOS7 \ YOURUM ::
+#\[7]A7LL4BSPVLPMGLNMYMFSKXZR3CU4FEYZP5ZXXANBV7UENPILEYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

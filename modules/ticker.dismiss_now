@@ -24,24 +24,24 @@ delete <ticker.time.fade_view>;
 delete <ticker.fade.handler>;
 delete <ticker.fade_opacity>;
 
-## :wait-seen: callers were waiting for the user to see the message - it    ##
-## was dismissed programmatically before that happened, so reply FALSE.    ##
+## :wait-seen: callers were waiting for the user to see the message - it ##
+## was dismissed programmatically before that happened, so reply FALSE.  ##
 my $pending = <ticker.notify.pending_reply_ids> // [];
 if ( scalar @{$pending} ) {
     foreach my $reply_id ( @{$pending} ) {
         <[base.callback.cmd_reply]>->(
             $reply_id,
             {   'mode' => qw| false |,
-                'data' =>
-                    'notify cancelled [ticker.dismiss before user interaction]'
+                'data' => 'notify cancelled [ticker.dismiss '
+                    . 'before user interaction]'
             }
         );
     }
     <ticker.notify.pending_reply_ids> = [];
 }
 
-## resolve any deferred ticker.dismiss :fade: replies now that the ticker  ##
-## is actually hidden.                                                     ##
+## resolve any deferred ticker.dismiss :fade: replies now that the ticker ##
+## is actually hidden.                                                    ##
 my $dismiss_pending = <ticker.dismiss.pending_reply_ids> // [];
 if ( scalar @{$dismiss_pending} ) {
     foreach my $reply_id ( @{$dismiss_pending} ) {
@@ -54,8 +54,8 @@ if ( scalar @{$dismiss_pending} ) {
 
 <[ticker.emit_event]>->(qw| dismissed |);
 
-#,,..,..,,..,,,.,,.,,,..,,.,,,,..,..,,,,.,..,,..,,...,...,,..,,..,,..,,,,,,.,,
-#KELV64CW2NTHBQRXQK7NALGBJ5XAPQJME3FMWKAAGL47WXORJSZJT6C3VVGB3PORVQJXR5IXRUAWG
-#\\\|BKFTGWQANB3X2VFBWHUCP6MPB4ZTO63W2U3ADQMIHMFJX6FOFHP \ / AMOS7 \ YOURUM ::
-#\[7]7NGTXJK4W6XEQTSO6NKFZJKV3X2ACYE7BCD372UHTLG653CAJMAI 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,...,...,,,.,.,.,,,.,,,.,.,.,,,,,..,,...,..,,,,.,,..,,.,,,..,,,,,
+#5YZ6JCKHA2EO7PODEEAC7V5HU5OYGNMDUPCD64YMO5ODIGGRXV4HYXV4VFPIF6BLMD3QV2PFOSZPG
+#\\\|UIWEDTEIZK25D5AE5RYIU5WKBPZL7LCVJNOWDSAQQV347R54KJZ \ / AMOS7 \ YOURUM ::
+#\[7]WDZKG5N3NWHTTO4PSNPBK5XSWHLL5KJLDIYQE2WAYL6GJX3S22AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

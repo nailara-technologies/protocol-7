@@ -32,13 +32,13 @@ if ( $window->is_composited ) {
     <[base.log]>->( 1, ': : no compositor running :|' );
 }
 
-## apply window placement profile ##
-## in swap mode this also constrains the ticker to the selected monitor,    ##
-## so use the shared profile helper instead of duplicating the logic here.   ##
+## apply window placement profile  in swap mode this also constrains the    ##
+## ticker to the selected monitor, so use the shared profile helper instead ##
+## of duplicating the logic here.                                           ##
 <[ticker.cmd.set-window-profile]>->( { 'args' => <ticker.window.profile> } );
 
-## detect when the monitor the ticker is on disappears (e.g. beamer switched  ##
-## off) and move it to the next available monitor automatically.             ##
+## detect when the monitor the ticker is on disappears (e.g. beamer       ##
+## switched off) and move it to the next available monitor automatically. ##
 my $display = Gtk3::Gdk::Display::get_default;
 if ( defined $display and <[base.cfg_bool]>->(<ticker.mouse.swap_edge>) ) {
     $display->signal_connect(
@@ -174,8 +174,8 @@ $window->signal_connect(
             and $event->detail =~ /^(inferior|virtual|nonlinear-virtual)$/;
         <ticker.mouse.inside> = FALSE;
 
-        ## in swap mode fade back in immediately when the cursor leaves,    ##
-        ## aborting an in-progress fade-out so the ticker does not swap.    ##
+        ## in swap mode fade back in immediately when the cursor leaves, ##
+        ## aborting an in-progress fade-out so the ticker does not swap. ##
         if ( <[base.cfg_bool]>->(<ticker.mouse.swap_edge>)
             and not <ticker.swap.disabled> ) {
             <ticker.mouse.swap_left_at> = <[base.time]>->(3);
@@ -192,8 +192,8 @@ $window->signal_connect(
                 <[base.X-11.keep_above]>->(<x11.id>);
             }
         } else {
-            ## a dismissed notification, or a ticker.dismiss'd ticker in  ##
-            ## either mode, stays hidden; do not fade back in             ##
+            ## a dismissed notification, or a ticker.dismiss'd ticker in ##
+            ## either mode, stays hidden; do not fade back in            ##
             if (
                 (   ( <ticker.display.mode> // qw| continuous | ) eq
                     qw| notify | and <ticker.notify.dismissed>
@@ -283,17 +283,17 @@ $window->signal_connect(
         <x11.id> = $window->get_toplevel()->get_window()->get_xid();
         <[base.X-11.assign_window]>;
 
-        ## GTK's initial placement can be off under WSLg. at the time        ##
-        ## set-window-profile first ran [just after Gtk3->init], the GDK     ##
-        ## display's monitor list/geometry may not have settled yet, so the  ##
-        ## computed <x11.coordinates.*> can be based on the wrong monitor's  ##
-        ## offset. unlike the swap case, the window has *just* been mapped   ##
-        ## here, so a ConfigureWindow issued immediately races with Weston's ##
-        ## own initial-placement handshake and gets clobbered even with a    ##
-        ## short sleep. defer to a one-shot timer so the display has time to ##
-        ## settle, recompute the profile geometry [picks up correct monitor  ##
-        ## offsets], then double-apply the move as in swap_profile.          ##
-        ## startup initial placement now happens pre-show_all from the     ##
+        ## GTK's initial placement can be off under WSLg. at the time       ##
+        ## set-window-profile first ran [just after Gtk3->init], the GDK    ##
+        ## display's monitor list/geometry may not have settled yet, so the ##
+        ## computed <x11.coordinates.*> can be based on the wrong monitor's ##
+        ## offset. unlike the swap case, the window has *just* been mapped  ##
+        ## here, so a ConfigureWindow issued immediately races with         ##
+        ## Weston's own initial-placement handshake and gets clobbered even ##
+        ## with a short sleep. defer to a one-shot timer so the display has ##
+        ## time to settle, recompute the profile geometry [picks up correct ##
+        ## monitor offsets], then double-apply the move as in swap_profile. ##
+        ## startup initial placement now happens pre-show_all from the      ##
         ## geo_ready snapshot [ ticker.startup_coordinates ], which Weston  ##
         ## honors at map time. skip the post-map settle/move correction in  ##
         ## that case -- a post-map cross-output move only gets clamped and  ##
@@ -301,15 +301,15 @@ $window->signal_connect(
         if ( defined <x11.coordinates.left>
             and not defined <ticker.startup_coordinates> ) {
 
-            ## the GDK monitor list/geometry can take longer than 0.3s to  ##
-            ## settle on the very first query after Gtk3->init [especially ##
-            ## for non-primary monitors with a host-configured vertical    ##
-            ## offset]. instead of a single deferred recompute, poll the   ##
-            ## monitor geometry via select_monitor every 0.2s until two    ##
-            ## consecutive reads agree [or a max attempt count is reached],##
-            ## then apply the profile + double-move once with that stable  ##
-            ## geometry. swap-time recomputes are unaffected - this only   ##
-            ## guards the startup placement.                               ##
+            ## the GDK monitor list/geometry can take longer than 0.3s to   ##
+            ## settle on the very first query after Gtk3->init [especially  ##
+            ## for non-primary monitors with a host-configured vertical     ##
+            ## offset]. instead of a single deferred recompute, poll the    ##
+            ## monitor geometry via select_monitor every 0.2s until two     ##
+            ## consecutive reads agree [or a max attempt count is reached], ##
+            ## then apply the profile + double-move once with that stable   ##
+            ## geometry. swap-time recomputes are unaffected - this only    ##
+            ## guards the startup placement.                                ##
             my $last_geo;
             my $attempts     = 0;
             my $max_attempts = 10;
@@ -330,7 +330,8 @@ $window->signal_connect(
 
                         <[base.logs]>->(
                             2,
-                            ': startup-debug: settle attempt %d monitor geo=%s',
+                            ': startup-debug: settle '
+                                . 'attempt %d monitor geo=%s',
                             $attempts,
                             $cur
                         );
@@ -347,15 +348,15 @@ $window->signal_connect(
                             if defined <ticker.timer.startup_settle>;
                         delete <ticker.timer.startup_settle>;
 
-                        ## debug instrumentation: where is the window      ##
-                        ## actually placed before/after the corrective     ##
-                        ## move, vs the computed target?                   ##
+                        ## debug instrumentation: where is the window  ##
+                        ## actually placed before/after the corrective ##
+                        ## move, vs the computed target?               ##
                         my $before
                             = <[base.X-11.get_window_geometry]>->(<x11.id>);
                         <[base.logs]>->(
                             2,
-                            ': startup-debug: before-move actual'
-                                . ' x=%d y=%d, target x=%d y=%d',
+                            ': startup-debug: before-move '
+                                . 'actual x=%d y=%d, target x=%d y=%d',
                             $before->{'x'} // -1,
                             $before->{'y'} // -1,
                             <x11.coordinates.left>,
@@ -381,8 +382,8 @@ $window->signal_connect(
                             = <[base.X-11.get_window_geometry]>->(<x11.id>);
                         <[base.logs]>->(
                             2,
-                            ': startup-debug: after-move actual'
-                                . ' x=%d y=%d, target x=%d y=%d',
+                            ': startup-debug: after-move '
+                                . 'actual x=%d y=%d, target x=%d y=%d',
                             $after->{'x'} // -1,
                             $after->{'y'} // -1,
                             <x11.coordinates.left>,
@@ -393,19 +394,19 @@ $window->signal_connect(
             );
         } elsif ( defined <ticker.startup_coordinates> ) {
 
-            ## verify the pre-show_all snapshot placement actually landed -  ##
-            ## confirmed live: even this previously-reliable path can land   ##
-            ## in a VOID [ no monitor contains the actual position at all ]  ##
-            ## when the snapshot target falls in the primary/secondary       ##
-            ## Y-range overlap zone - a never-before-mapped window is not    ##
-            ## immune either. a never-mapped window's own initial-placement  ##
-            ## handshake with Weston can still be in progress for a while,   ##
-            ## so a single delayed check+correct is unreliable [ confirmed   ##
-            ## live: the very first recheck can itself still land in the     ##
-            ## void ]. retry with the same patience as the no-snapshot       ##
-            ## settle-timer branch above instead of a single shot, and only  ##
-            ## give up [ leaving whatever the last attempt produced ] after  ##
-            ## repeated failures.                                            ##
+            ## verify the pre-show_all snapshot placement actually landed - ##
+            ## confirmed live: even this previously-reliable path can land  ##
+            ## in a VOID [ no monitor contains the actual position at all ] ##
+            ## when the snapshot target falls in the primary/secondary      ##
+            ## Y-range overlap zone - a never-before-mapped window is not   ##
+            ## immune either. a never-mapped window's own initial-placement ##
+            ## handshake with Weston can still be in progress for a while,  ##
+            ## so a single delayed check+correct is unreliable [ confirmed  ##
+            ## live: the very first recheck can itself still land in the    ##
+            ## void ]. retry with the same patience as the no-snapshot      ##
+            ## settle-timer branch above instead of a single shot, and only ##
+            ## give up [ leaving whatever the last attempt produced ] after ##
+            ## repeated failures.                                           ##
             my $attempts     = 0;
             my $max_attempts = 10;
             <ticker.timer.startup_void_recovery> = <[event.add_timer]>->(
@@ -435,8 +436,8 @@ $window->signal_connect(
 
                         <[base.logs]>->(
                             0,
-                            ': startup placement failed (attempt %d/%d,'
-                                . ' actual x=%s y=%s, target x=%d y=%d)',
+                            ': startup placement failed (attempt %d/%d, '
+                                . 'actual x=%s y=%s, target x=%d y=%d)',
                             $attempts,
                             $max_attempts,
                             $actual->{'x'} // '?',
@@ -494,8 +495,8 @@ $window->signal_connect(
 
                         <[base.log]>->(
                             0,
-                            ': startup placement recovery exhausted'
-                                . ' all attempts, window may be in a void'
+                            ': startup placement recovery exhausted '
+                                . 'all attempts, window may be in a void'
                         );
                         <ticker.timer.startup_void_recovery>->cancel
                             if defined <ticker.timer.startup_void_recovery>;
@@ -516,8 +517,8 @@ my $update_input_shape = sub {
     eval {
         return if not $window->get_realized;
 
-        ## get_allocation can return an unblessed hash ref on some Gtk3/Perl ##
-        ## versions, so access width/height defensively.                     ##
+        ## get_allocation can return an unblessed hash ref on some ##
+        ## Gtk3/Perl versions, so access width/height defensively. ##
         my $alloc = $window->get_allocation;
         my ( $alloc_w, $alloc_h )
             = ref($alloc) eq qw| HASH |
@@ -530,11 +531,11 @@ my $update_input_shape = sub {
             if not defined <x11.coordinates.left>
             or not defined <x11.window.width>;
 
-        ## set input shape to the full allocation. on Wayland            ##
-        ## gtk_window_get_position returns (0,0), so a position-relative ##
-        ## clip would end up empty. the log shows the allocation already ##
-        ## matches the intended ticker geometry, so full-window input    ##
-        ## shape is correct here.                                        ##
+        ## set input shape to the full allocation. on Wayland               ##
+        ## gtk_window_get_position returns (0,0), so a position-relative    ##
+        ## clip would end up empty. the log shows the allocation already    ##
+        ## matches the intended ticker geometry, so full-window input shape ##
+        ## is correct here.                                                 ##
         my $shape_w = $alloc_w;
         my $shape_h = $alloc_h;
 
@@ -561,12 +562,12 @@ my $update_input_shape = sub {
 $window->signal_connect( 'configure-event' => $update_input_shape );
 $window->signal_connect( 'size-allocate'   => $update_input_shape );
 
-## initial placement BEFORE show_all, from geo_ready's snapshot -- Weston   ##
-## honors a client move issued before map but clamps/centers a post-map     ##
-## cross-output move [ the centered-on-wrong-monitor regression ]. mirrors   ##
-## protocol-7-menu's pre-show_all gravity+default_size+move. set-window-     ##
-## profile [ above ] may have recomputed wrong coords from an unsettled GDK; ##
-## the snapshot is geo_ready's correct rect, so use it here.                 ##
+## initial placement BEFORE show_all, from geo_ready's snapshot -- Weston  ##
+## honors a client move issued before map but clamps/centers a post-map    ##
+## cross-output move [ the centered-on-wrong-monitor regression ]. mirrors ##
+## protocol-7-menu's pre-show_all gravity+default_size+move. set-window-   ##
+## profile [ above ] may have recomputed wrong coords from an unsettled    ##
+## GDK; the snapshot is geo_ready's correct rect, so use it here.          ##
 if ( defined <ticker.startup_coordinates> ) {
     my $sc = <ticker.startup_coordinates>;
     $window->set_gravity('north-west');
@@ -583,8 +584,8 @@ $window->show_all;
 ## set initial input shape once allocation is known ##
 Glib::Idle->add($update_input_shape);
 
-## poll-based hover detection because WSLg/XWayland enter/leave events ##
-## are unreliable for transparent dock windows ##
+## poll-based hover detection because WSLg/XWayland enter/leave events are ##
+## unreliable for transparent dock windows                                 ##
 <ticker.timer.pointer_check> //= <[event.add_timer]>->(
     {   'after'    => 0.1,
         'interval' => 0.1,
@@ -602,8 +603,8 @@ my $ft_face   = $freetype->face($font_path);
 
 <ticker.obj.window>->queue_draw;
 
-#,,,,,.,,,.,.,,,.,,..,,,.,..,,,..,,,.,,,,,.,.,..,,...,...,.,,,,.,,,,,,,,,,...,
-#646KALFU3NEOBKLGDJJJSL7REBVZ45LHBCMI67QQ4FH3WLF7K5GFBBHY2NHBLE4LUOWG4MIVQFDB2
-#\\\|RQA4V6RAYUTV4OITCWYQXZREKZIL3JTBZF6EOAVDBBTZTAE5OIE \ / AMOS7 \ YOURUM ::
-#\[7]7UGPOE7MA5OTZDFYLXQGUCOHSTX6DJASTMUYY63SCAIAQ24MJGDY 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,,..,..,,,..,...,,..,.,,,.,,,.,,,..,,...,...,.,.,,.,,,,.,,..,.,.,
+#KEKJGDZABZF6VRCRYS7HSIIT45DAFRXDMYKEYUF3VFOXEKUGRUDLFX5WI3VL7ARGMYOU2JAQCHS4O
+#\\\|H43DVDPBZFDDESVKSJTTCHT6TYKBKXP53SU5WUBFCDB45C44CST \ / AMOS7 \ YOURUM ::
+#\[7]MPRVZWXY5HPVFPT33GK2XZFE5ZF2SZ2J3SD3U5BY6W2NBMLCQ2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

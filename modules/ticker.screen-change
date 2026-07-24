@@ -3,10 +3,10 @@
 # name  = ticker.screen-change
 # descr = receive X-11 screen-change and relocate if unreachable
 
-## a monitor disappearing/topology changing while already mapped can leave ##
+## a monitor disappearing/topology changing while already mapped can leave  ##
 ## the strip stuck in a void [ primary/secondary Y-range overlap clamp, see ##
-## the async-window-startup-transition findings ] - relocate via a real    ##
-## move+verify instead of trusting whatever Weston did with the old rect.  ##
+## the async-window-startup-transition findings ] - relocate via a real     ##
+## move+verify instead of trusting whatever Weston did with the old rect.   ##
 
 my $args = shift // '';
 my ( $w, $h ) = split( ' ', $args );
@@ -39,9 +39,9 @@ for my $i ( 0 .. $#$monitors ) {
 }
 
 ## candidate 1 : the current rect, re-verified - a cheap no-op when nothing ##
-## actually broke. candidates 2+ : top/bottom-strip on every monitor       ##
-## [ preferred monitor + preferred profile first ], same primitive the     ##
-## startup void-recovery path in ticker.open_window uses.                  ##
+## actually broke. candidates 2+ : top/bottom-strip on every monitor [      ##
+## preferred monitor + preferred profile first ], same primitive the        ##
+## startup void-recovery path in ticker.open_window uses.                   ##
 my @candidates = (
     {   'x'      => $current->{'x'},
         'y'      => $current->{'y'},
@@ -90,8 +90,8 @@ if ( $safe->{'x'} != $current->{'x'} or $safe->{'y'} != $current->{'y'} ) {
 
 return;
 
-#,,.,,.,,,,.,,.,.,,,,,.,,,.,.,,..,.,.,,,.,,,,,..,,...,..,,,.,,.,,,,,,,,,.,,.,,
-#BTJSVI436YSBP2GF5BHGK6Z3DZ7MM2NKSCKN6PMYAVJDDUMPQPDUWG452MKU3EXG2SDPUFIQC37E6
-#\\\|MA2JW66UJZ4U4SVCL4GC46EWT4EQIMPEPIK5B6IJITTSYXTLS2M \ / AMOS7 \ YOURUM ::
-#\[7]P7RUZXHPAKOKTZI74LRCYFOGBACN5R25RTVODJ4346TRO5M3OAAI 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,,,,...,..,,,,,,,..,.,.,,.,,.,,,..,,...,..,,.,,,,,,,..,,.,.,.,,,
+#MPF2DM7FFPPYE3RBMUI2EG5W2GGKSSK6UQ5EHMQATESC5I44N5ZNRFFLJ62PKKFQH7OW6XZEIXZAY
+#\\\|66GB4KFYWPMUVC4RIQ5T3WTKLXIWS34EN2N3PD2EKHHI4JWVAZK \ / AMOS7 \ YOURUM ::
+#\[7]NGHMHNMSWN3TWDFAGR53WITBHUUTS36RVRXISKP2GTUVSMYU2ACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
