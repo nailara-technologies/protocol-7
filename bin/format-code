@@ -187,6 +187,19 @@ sub preprocess_source {
         push @{ $quotes_by_line{ $tok->{line} } }, $tok;
     }
 
+    ##  find existing multi-line '.'-concatenation chains -- once split ,
+    ##  a fragment that individually fits is never reconsidered by step1 ,
+    ##  so a suboptimal split [ manual, an older tool, .. ] is otherwise
+    ##  stuck forever ; rejoin-then-resplit-from-scratch on every run fixes
+    ##  that the same way step4 does for comment blocks  ##
+    my %concat_chain_by_start_line;
+    for my $chain ( collect_concat_chains($doc) ) {
+        my $start_line = $chain->[0]->location->[0];
+        my $end_line   = $chain->[-1]->location->[0];
+        next if $start_line == $end_line;    ## already one physical line ##
+        $concat_chain_by_start_line{$start_line} //= $chain;
+    }
+
     ##  output buffer  ##
     my @out;
 
@@ -206,6 +219,25 @@ sub preprocess_source {
             push @out, $line;
             $lnum++;
             next;
+        }
+
+        ##  step 0 : rejoin+resplit an existing multi-line '.'-concat chain ##
+        if ( my $chain = $concat_chain_by_start_line{$lnum} ) {
+            my $end_line = $chain->[-1]->location->[0];
+            my $spans_skip = 0;
+            for my $ln ( $lnum .. $end_line ) {
+                $spans_skip = 1
+                    if $skip{$ln}
+                    or ( defined $sig_start and $ln >= $sig_start );
+            }
+            if ( not $spans_skip ) {
+                my $result = step0_rejoin_concat_chain( \@lines, $chain );
+                if ( defined $result ) {
+                    push @out, @$result;
+                    $lnum = $end_line + 1;
+                    next;
+                }
+            }
         }
 
         ##  step 4 : realign a contiguous block of '##  text  ##' lines  ##
@@ -285,26 +317,21 @@ sub comment_block_length {
     my $first = comment_block_line_parts( $lines->[ $start_lnum - 1 ] );
     return 0 if not $first;
 
-    ##  a properly-closed first line is NOT necessarily a standalone
-    ##  comment -- it can still be the opening line of a larger paragraph
-    ##  [ real case : first line closed early, a later line un-closed ] ,
-    ##  so collect the whole maximal contiguous same-indent run first and
-    ##  only then check whether it actually terminates in a closed line ##
-    my $count      = 1;
-    my $last_parts = $first;
-    my $lnum       = $start_lnum + 1;
+    ##  any maximal contiguous same-indent run of 2+ '##'-prefixed lines is
+    ##  one reflow unit , whether or not any line individually closes with
+    ##  '##' -- a loose , unbracketed multi-line comment [ several plain
+    ##  '##' lines forming one paragraph, no closing marker anywhere ] is
+    ##  just as real a block as the bracketed style , see
+    ##  step4_align_comment_block for how the two styles diverge on output ##
+    my $count = 1;
+    my $lnum  = $start_lnum + 1;
     while ( $lnum <= scalar @$lines and not $skip->{$lnum} ) {
         my $parts = comment_block_line_parts( $lines->[ $lnum - 1 ] );
         last if not $parts;
         last if $parts->{indent} ne $first->{indent};
         $count++;
-        $last_parts = $parts;
         $lnum++;
     }
-
-    ##  an unclosed run [ hit EOF/blank/code without ever seeing a '##'
-    ##  terminator ] is left for the existing per-line handling instead ##
-    return 0 if not $last_parts->{has_close};
     return $count;
 }
 
@@ -316,31 +343,54 @@ sub step4_align_comment_block {
     my $indent = $first->{indent};
 
     my @content_parts;
+    my $any_close = 0;
     for my $i ( 0 .. $block_len - 1 ) {
         my $parts
             = comment_block_line_parts( $lines->[ $start_lnum - 1 + $i ] );
         push @content_parts, $parts->{content};
+        $any_close ||= $parts->{has_close};
     }
-    my $joined = join( ' ', @content_parts );
 
-    ##  reflow at the available width [ indent + '## ' + text + ' ##' ]  ##
-    my $width = LINE_MAX - length($indent) - 6;
+    ##  canonicalize : collapse to single-spaced flat text first [ discarding
+    ##  wherever the incoming line breaks / spacing happened to sit ] , then
+    ##  re-derive sentence boundaries from punctuation alone in that flat
+    ##  text -- this is what makes repeated reformatting passes converge to
+    ##  the same output instead of drifting : a second pass always reduces
+    ##  back to this same canonical text regardless of where the previous
+    ##  pass's Text::Wrap happened to place its line breaks  ##
+    my $joined = join( ' ', @content_parts );
+    $joined =~ s{\s+}{ }g;
+    $joined =~ s{^ | $}{}g;
+    $joined =~ s{([.!?]) (?=\S)}{$1  }g;    ## sentence end -> double space ##
+
+    ##  bracketed style [ any original line closed with '##' ] budgets 3
+    ##  extra cols for the trailing ' ##' ; loose style [ no closing marker
+    ##  anywhere in the original ] only needs the '## ' prefix  ##
+    my $overhead = $any_close ? 6 : 3;
+    my $width = LINE_MAX - length($indent) - $overhead;
     return [ @{$lines}[ $start_lnum - 1 .. $start_lnum + $block_len - 2 ] ]
         if $width < 10;    ##  too narrow , leave untouched  ##
 
     local $Text::Wrap::columns  = $width + 1;    ##  Text::Wrap : "+ 1" ##
-    local $Text::Wrap::break    = qr/\s/;
+    local $Text::Wrap::break    = qr/\s+/;
     local $Text::Wrap::huge     = 'overflow';
     local $Text::Wrap::unexpand = 0;
-    my $wrapped       = Text::Wrap::wrap( '', '', $joined );
-    my @wrapped_lines = split m{\n}, $wrapped;
-
-    ##  right-align the closing '##' to the longest wrapped line's width ##
-    my ($target_width) = ( sort { $b <=> $a } map {length} @wrapped_lines );
+    my $wrapped = Text::Wrap::wrap( '', '', $joined );
+    my @wrapped_lines = map { s{\s+$}{}; $_ } split m{\n}, $wrapped;
 
     my @out;
-    for my $part (@wrapped_lines) {
-        push @out, sprintf( "%s## %-*s ##\n", $indent, $target_width, $part );
+    if ($any_close) {
+        ##  right-align the closing '##' to the longest wrapped line's width
+        my ($target_width)
+            = ( sort { $b <=> $a } map {length} @wrapped_lines );
+        for my $part (@wrapped_lines) {
+            push @out,
+                sprintf( "%s## %-*s ##\n", $indent, $target_width, $part );
+        }
+    } else {
+        for my $part (@wrapped_lines) {
+            push @out, "$indent## $part\n";
+        }
     }
     return \@out;
 }
@@ -366,6 +416,144 @@ sub step3_relocate_trailing_comment {
         return ( $comment_line, $code_line );
     }
     return ($line);
+}
+
+##[ step 0 helper : is this a Quote::Single or Quote::Double token ]##
+sub is_quote_token {
+    my $t = shift;
+    return $t->isa('PPI::Token::Quote::Single')
+        || $t->isa('PPI::Token::Quote::Double');
+}
+
+##[ step 0 helper : find '.'-concatenation chains of quote tokens , via
+##  PPI's own token stream [ robust against line-based false positives ] ]##
+sub collect_concat_chains {
+    my $doc = shift;
+    my @all = $doc->tokens;
+    my @chains;
+    my $i = 0;
+    while ( $i < @all ) {
+        if ( is_quote_token( $all[$i] ) ) {
+            my @chain = ( $all[$i] );
+            my $j = $i + 1;
+            while (1) {
+                my $k = $j;
+                $k++
+                    while $k < @all
+                    and $all[$k]->isa('PPI::Token::Whitespace');
+                last if $k >= @all;
+                last
+                    if not $all[$k]->isa('PPI::Token::Operator')
+                    or $all[$k]->content ne '.';
+                $k++;
+                $k++
+                    while $k < @all
+                    and $all[$k]->isa('PPI::Token::Whitespace');
+                last if $k >= @all;
+                last if not is_quote_token( $all[$k] );
+                push @chain, $all[$k];
+                $j = $k + 1;
+            }
+            if ( @chain >= 2 ) {
+                push @chains, \@chain;
+                $i = $j;
+                next;
+            }
+        }
+        $i++;
+    }
+    return @chains;
+}
+
+##[ step 0 : rejoin an existing multi-line '.'-concat chain , then re-split
+##  it from scratch at the ideal balanced point -- once each fragment of an
+##  existing split individually fits under LINE_MAX, step1 never
+##  reconsiders it, so a suboptimal split [ manual edit, an older tool
+##  version, .. ] would otherwise be stuck forever ; this fixes that the
+##  same way step4 does for comment blocks -- collapse to canonical form
+##  first, then re-derive, so repeated runs converge instead of drifting ##
+sub step0_rejoin_concat_chain {
+    my ( $lines, $chain ) = @_;
+
+    my @toks       = @$chain;
+    my $start_line = $toks[0]->location->[0];
+    my $end_line   = $toks[-1]->location->[0];
+    return undef if $start_line == $end_line;
+
+    ##  same quote char throughout , no embedded raw newlines in any
+    ##  fragment -- otherwise too risky to rejoin reliably , leave alone ##
+    my $quote_ch;
+    for my $t (@toks) {
+        my $c = $t->content;
+        return undef if $c =~ m{\n};
+        my $q = substr( $c, 0, 1 );
+        return undef if $q ne q|'| and $q ne q|"|;
+        $quote_ch //= $q;
+        return undef if $q ne $quote_ch;
+    }
+
+    my $first_line_text = $lines->[ $start_line - 1 ];
+    my $last_line_text  = $lines->[ $end_line - 1 ];
+
+    my $start_col = $toks[0]->location->[1];    ## 1-based ##
+    my $before    = substr( $first_line_text, 0, $start_col - 1 );
+
+    my $end_col       = $toks[-1]->location->[1];
+    my $last_tok_len  = length( $toks[-1]->content );
+    my $after = substr( $last_line_text, $end_col - 1 + $last_tok_len );
+    my $nl = '';
+    if ( $after =~ s{(\r?\n)$}{} ) { $nl = $1 }
+
+    ##  flat value : direct concatenation of each fragment's inner text ,
+    ##  exactly what perl's own '.' operator produces at runtime ##
+    my $flat_value = join '', map { substr( $_->content, 1, -1 ) } @toks;
+
+    my $prefix_len = $start_col - 1;
+
+    ##  does the whole thing now fit fully rejoined on one line ?  ##
+    my $one_line = $before . $quote_ch . $flat_value . $quote_ch . $after;
+    if ( length($one_line) <= LINE_MAX ) {
+        return [ $one_line . ( $nl || "\n" ) ];
+    }
+
+    ##  otherwise : same balanced 2-way split as step1 , from scratch  ##
+    my $max_inner1 = LINE_MAX - $prefix_len - 3;
+    return undef if $max_inner1 < 1;
+
+    my $max_inner2  = LINE_MAX - $prefix_len - 4 - length($after);
+    my $lower_bound = length($flat_value) - $max_inner2;
+
+    my @safe_splits = find_split_positions( $flat_value, $quote_ch );
+    return undef if not @safe_splits;
+
+    my $target = length($flat_value) / 2;
+    my ( $best, $best_dist, $fallback );
+    for my $p (@safe_splits) {
+        next if $p > $max_inner1;
+        $fallback = $p;
+        next if $p < $lower_bound;
+        my $dist = abs( $p - $target );
+        if ( not defined $best_dist or $dist < $best_dist ) {
+            $best      = $p;
+            $best_dist = $dist;
+        }
+    }
+    $best //= $fallback;
+    return undef if not defined $best;
+
+    my $part1 = substr( $flat_value, 0, $best );
+    my $part2 = substr( $flat_value, $best );
+
+    my $continuation_indent = ' ' x $prefix_len;
+    my $part1_token         = $quote_ch . $part1 . $quote_ch;
+    my $part2_token         = $quote_ch . $part2 . $quote_ch;
+
+    my $line1 = $before . $part1_token . "\n";
+    my $line2
+        = $continuation_indent . qw| . | . ' ' . $part2_token . $after
+        . ( $nl || "\n" );
+
+    return [ $line1, $line2 ];
 }
 
 ##[ step 1 : split a long-line quoted string at whitespace boundary ]##
@@ -796,8 +984,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,.,,,,,,,..,,..,..,,..,,.,.,..,,,..,,..,.,.,..,,...,..,,..,,,.,,.,,,..,,...,
-#GOZLWECYQZGNYW46QGVBWAU4HPZCBQYTIPB3DMZM2O6SSRQPTWNAQLKLAEKGFRN6PY6ISVZZXLZRI
-#\\\|WB5N2NW4DGPPKB2ZXJBZE5SU3BPFZTRX7BYPNMGZCCXHZDP6XPB \ / AMOS7 \ YOURUM ::
-#\[7]RPBN75N2G4GBE2ZPKQOT5P4Q4HTPY4FVLV5MAS6VTZOCM3GCSWDI 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,,,,.,,,,..,,,.,,,,,..,,.,,,,..,..,,...,...,,.,,,,.,.,.,.,.,.,,,
+#WMFMQ32AB5QR6EBZSA4C3GOFEWU6XQPVZ4EC7LLDFWWMYWYJYN4MBACWXPT7WQ4PQGXVGYS64X7WO
+#\\\|RHTSVWDXIUNQNCLEI6N22JILQS4WMORDR6P7G3RC4T27UOXZQ5N \ / AMOS7 \ YOURUM ::
+#\[7]EFFHLXE3XAAJJJMQDYQSLDNPVCOWMPAEISUMGPBOPLSO3WSJMYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
