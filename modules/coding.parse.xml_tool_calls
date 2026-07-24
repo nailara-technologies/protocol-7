@@ -12,9 +12,11 @@ return [] unless defined $text && length $text;
 my @tool_calls;
 my $call_idx = 0;
 
-## match each <tool_call>...</tool_call> or bare <function=...> block ##
-## pattern: <tool_call>\n<function=NAME>\n<parameter=K>\nV\n</parameter>\n</function>
-## also handles: content before/after, optional whitespace, missing </tool_call> ##
+## match each <tool_call>...</tool_call> or bare <function=...> block        ##
+## pattern:                                                                  ##
+## <tool_call>\n<function=NAME>\n<parameter=K>\nV\n</parameter>\n</function> ##
+## also handles: content before/after, optional whitespace, missing          ##
+## </tool_call>                                                              ##
 
 while (
     $text =~ m{
@@ -78,8 +80,8 @@ if (@tool_calls) {
 
 return \@tool_calls;
 
-#,,..,,..,,.,,...,..,,,..,,,.,,,.,,.,,,..,...,.,.,...,...,.,,,,.,,...,.,,,..,,
-#M5BE3YFJ3HR4HSS7ASBYZCIAGOXMXQQK7GPQU7BKLVDZA4M54EEQXMUCUKCZAFZKLB2HPSMRSBKZ6
-#\\\|FLLX4UNNRADYZ7RHRFIM27RF47JR5RU2P4XMKXMB2BWONINU4OY \ / AMOS7 \ YOURUM ::
-#\[7]FV3BAEOE5TPGB3E4QAQAXPIEPWSPGHKIE7RJTPP6LU6CDH5NDKAY 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,.,,...,.,,,,,.,,.,,...,..,,.,,,.,.,...,...,.,.,.,.,,..,..,,,,,,
+#GQ7KY5XLYVGBQGXXPGMAEXZPUBSI5BLMR2MO2OCN73RROZRUAPI5P47UKSB6NIT72FHI6WZYVHY4Q
+#\\\|WK5CKQDJUDYN5R2PY7GEUR4MP5LGYY76HTMJULWD5BATRFLPUEP \ / AMOS7 \ YOURUM ::
+#\[7]AUTHNNJGMK7HHBHCSUL2MUUIJDKC46EPCQJQFFEUZ3JLDOEQK2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

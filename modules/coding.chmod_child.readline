@@ -7,7 +7,7 @@ my $r_fh = <coding.chmod_child.r_fh>;
 return 'no-channel' unless defined $r_fh;
 
 ## blocking readline : child always prints exactly one line per command ##
-## child has autoflush ($|=1) so this never hangs on buffer ##
+## child has autoflush ($|=1) so this never hangs on buffer             ##
 my $reply = '';
 eval {
     local $SIG{'ALRM'} = sub { die "timeout\n" };
@@ -20,8 +20,8 @@ alarm(0);
 chomp $reply;
 return $reply;    ## 'ok', 'skip', or 'err' ##
 
-#,,.,,,,.,,,.,.,.,.,,,...,,.,,.,,,,..,,.,,..,,..,,...,...,.,.,,..,,,.,,.,,,..,
-#WLEGTEZFJ237LOOOANPMZFBYEW5CQ2QWWAY7VRQU7XTYJU6J2ZVWBEK5KGJJNPACVZE5PCA7DGXZ6
-#\\\|PPTXIKIXZTEZXQQWYYNJN2C7TJFAMFKL3HFQZPZGLJ3YMQU7I37 \ / AMOS7 \ YOURUM ::
-#\[7]5SHHEDJ74K6DCI3FOIF3SC7GR7WEDZB32KUN2BKRRC7XKMPNI2CA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,..,,,.,,,.,,...,..,,...,.,.,,..,..,,...,...,,.,,...,...,.,.,..,,
+#AFF6L7FZRU55C3UWQMVZ3RRLJT76QENB6QMBE4WT6OAVXDS7KFUXO32MTRWG6VDISNPUCZFUQ7NBQ
+#\\\|CAG7QIO42Q6XOXXJJUGCTSSX4ZUEMHRS447KCRJEXJ5PSGVC644 \ / AMOS7 \ YOURUM ::
+#\[7]KXJMP3F4WUNR3N6DULATYBNLGJIXA42DCNYOWN7MI2DX2ZAL22BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

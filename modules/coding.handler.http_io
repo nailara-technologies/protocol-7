@@ -66,7 +66,7 @@ $state->{'buffer'} .= $buffer;
 ## (re-)arm stall watcher : fresh silence-window starts from this chunk, ##
 ## independent of the total-duration ceiling timer [ never re-armed ].   ##
 ## first chunk arms it for the first time — deliberately not armed at    ##
-## connection setup, see coding.async.http_client                       ##
+## connection setup, see coding.async.http_client                        ##
 {
     eval { $state->{'stall_watcher'}->cancel() }
         if defined $state->{'stall_watcher'};
@@ -149,7 +149,8 @@ if ( $state->{'headers_parsed'} ) {
     ## [ handles responses that arrive without trailing newline ] ##
     if ( length( $state->{'buffer'} )
         and $state->{'buffer'} =~ m/^data:\s*(\{.+)/ ) {
-        ## verify it's complete JSON before consuming [ avoid partial reads ] ##
+        ## verify it's complete JSON before consuming [ avoid partial reads ##
+        ## ]                                                                ##
         my $maybe_json = $1;
         $maybe_json =~ s/\r$//;
         my $test = eval { $state->{'json_decoder'}->decode($maybe_json) };
@@ -168,8 +169,8 @@ if ( $state->{'headers_parsed'} ) {
 
 return;
 
-#,,.,,,.,,,..,,.,,...,,..,,.,,,..,.,,,.,.,,.,,.,.,...,.,.,.,,,.,.,.,.,,.,,,,.,
-#MWK22HN6PBF6LG3KFYPCQ2T4HBGVEW5JXS2B4B2UI27MSCYVMKGK4ZY2HJPER62CJ6EXTTKUJJWWA
-#\\\|TT6H5O5YSEV7LFASPMTKAIU6HIPHHRBLRWKPG7BFP5Q6VT4JR2E \ / AMOS7 \ YOURUM ::
-#\[7]FZXIJO65D32AFJQILB5UZRVQ7QAJS7TY3SW4QLYOWVMHZEPLXSAQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,,,.,.,,,,..,,,,,,..,...,,,,,,,,,.,.,...,..,,.,.,,.,,..,,...,,,.,
+#D6RXRC76UHFDSYHRYOG7AHVNH36UFM5N2SIBBTU3UTUT2WJ3LAMMJT7S4CH2HOLFMH7JLDCZXBEJK
+#\\\|4CZBWOUHMRD62VY32DNMN4MGN2FW7234VF7JJ3DRR4IOCEH4UUU \ / AMOS7 \ YOURUM ::
+#\[7]ZRBMQWPA24OFOL4G6I3HCTCKSEDXDL4B2IOLPXSK3HZYBT4DOADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

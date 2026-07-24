@@ -18,12 +18,10 @@ my $server_url = <inference.backend.http_server_url>
 
 ## fresh one-shot context : no prior history appended ##
 my $judge_prompt
-    = "Question: $prompt\n"
-    . "Expected short answer: '$expected'\n"
-    . "Given answer: '$answer'\n\n"
-    . "Does the given answer correctly convey the expected answer, "
-    . "even if phrased verbosely or with extra explanation? "
-    . "Reply with only one word: YES or NO.";
+    = "Question: $prompt\nExpected short answer: '$expected'\nGiven answer: "
+    . "'$answer'\n\nDoes the given answer correctly convey the "
+    . "expected answer, even if phrased verbosely or with extra "
+    . "explanation? Reply with only one word: YES or NO.";
 
 my $result = <[coding.tools.http_inference_client]>->(
     {   url      => $server_url,
@@ -70,8 +68,8 @@ return {
     judge_by => $judge_model_id,
 };
 
-#,,,.,,,,,,,,,,..,,..,..,,,,.,.,,,,.,,...,...,..,,...,...,...,.,.,...,.,,,...,
-#AE32Y4DTMNCSA7EC64Z22NYCW6ZGVY3OY3HUCK6VG6QWIPB6CWIWLAYFTMPGWTOGMIYGU77P3RNZ2
-#\\\|FLYZEMTKFQGO7H7IODMFYYK7C6XKRRALZEX27T3KRCSHNJ2AVGL \ / AMOS7 \ YOURUM ::
-#\[7]MG3ZYXTJJQB3RAPO36CU6DKUO2ABRIS6DKU73S4ZFG5V4RXJVEAY 7  DATA SIGNATURE ::
+#,,..,.,.,,..,.,.,.,,,.,.,,..,,,,,...,,..,,..,..,,...,...,,,,,...,.,.,,.,,,..,
+#FHRHW4LE3M2I7BEFKRGWF72LZUGR3JHOYMXMXPQF6QXRDQ22SPR4VRVHRLDBCSJU6REXD22T3R3IC
+#\\\|RF3WQZQVI3EIDKQRCU33SN3RNZBZHOU3YNXU4WDM2F6T23GM345 \ / AMOS7 \ YOURUM ::
+#\[7]MRFCETM3N3POI34NZ7ECMAXDLYWQBQIMZMHVVM724NAONHJ2Z6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

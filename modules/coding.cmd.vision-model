@@ -13,7 +13,7 @@ my $gpu     = $servers->{'gpu'}          // {};
 
 ## authoritative mmproj path from model resolution [ same fallback as ##
 ## coding.cmd.inference-status : server hash may be stale if module   ##
-## reloaded after spawn ] ##
+## reloaded after spawn ]                                             ##
 my $mmproj = <inference.model.mmproj_path> // '';
 $mmproj = $gpu->{'mmproj_path'}
     if !length $mmproj
@@ -31,9 +31,9 @@ if ( !length $args ) {
     return { 'mode' => qw| false |, 'data' => 'no vision model loaded' };
 }
 
-## anything beyond this point is the :switch: action - a non-empty arg  ##
-## that does not start with :switch: is a usage error, do NOT silently  ##
-## fall through to the report path                                      ##
+## anything beyond this point is the :switch: action - a non-empty arg that ##
+## does not start with :switch: is a usage error, do NOT silently fall      ##
+## through to the report path                                               ##
 if ( $args !~ m{^:switch:(?=\s|$)} ) {
     return {
         'mode' => qw| size |,
@@ -42,9 +42,9 @@ if ( $args !~ m{^:switch:(?=\s|$)} ) {
     };
 }
 
-## parse the two optional order-independent tokens, disambiguated by    ##
-## shape : checksum contains a colon [ same regex as switch-model ],    ##
-## timeout is a bare integer in seconds                                 ##
+## parse the two optional order-independent tokens, disambiguated by shape  ##
+## : checksum contains a colon [ same regex as switch-model ], timeout is a ##
+## bare integer in seconds                                                  ##
 my $rest = $args;
 $rest =~ s|^:switch:||;
 
@@ -64,9 +64,9 @@ for my $token ( split m|\s+|, $rest ) {
     }
 }
 
-## short-circuit : a vision model is already loaded+ready and either no ##
-## checksum was given or it matches the loaded model - reply at once,   ##
-## no idle wait, no switch                                              ##
+## short-circuit : a vision model is already loaded+ready and either no  ##
+## checksum was given or it matches the loaded model - reply at once, no ##
+## idle wait, no switch                                                  ##
 my $loaded_id = <inference.model.amos_id> // $gpu->{'model'} // '';
 if (   $is_ready
     && length $mmproj
@@ -86,7 +86,7 @@ if ( !defined $checksum ) {
         my $entry = $registry->{$key} // {};
 
         ## reuse the existing predicate on the entry's vision flag [ local ##
-        ## clone - models.* isn't statically loaded in the coding zenka ] ##
+        ## clone - models.* isn't statically loaded in the coding zenka ]  ##
         my $vision
             = <[coding.parser.str.is_vision]>->( $entry->{'is_vision'} // 0 )
             eq qw| vision |;
@@ -98,8 +98,8 @@ if ( !defined $checksum ) {
 
         next if !$vision;
 
-        ## metadata amos values can be yaml names with spaces - only a  ##
-        ## composite checksum passes switch-model's own validation      ##
+        ## metadata amos values can be yaml names with spaces - only a ##
+        ## composite checksum passes switch-model's own validation     ##
         my $candidate = uc( $entry->{'amos'} // '' );
         next if $candidate !~ m{^[A-Z2-7]{7}:[A-Z2-7]{7}$};
 
@@ -112,11 +112,11 @@ if ( !defined $checksum ) {
     }
 }
 
-## caller timeout bounds the WAIT-FOR-IDLE phase only [ see            ##
-## coding.handler.vision_switch_poll for the phase split ]             ##
+## caller timeout bounds the WAIT-FOR-IDLE phase only [ see ##
+## coding.handler.vision_switch_poll for the phase split ]  ##
 $timeout //= <coding.cfg.vision_switch_idle_timeout> // 300;
 
-## register per-request state and arm the poll timer : the reply fires  ##
+## register per-request state and arm the poll timer : the reply fires ##
 ## deferred, exactly once, from coding.handler.vision_switch_poll      ##
 $data{'coding'}{'vision_switch_state'} //= {};
 my $switch_id
@@ -148,8 +148,8 @@ $data{'coding'}{'vision_switch_state'}{$switch_id} = {
 
 return { 'mode' => qw| deferred | };
 
-#,,,.,...,,,.,...,...,.,.,..,,,.,,,..,.,,,,.,,..,,...,...,..,,...,.,,,.,.,,.,,
-#BA6X7U5KQDNQBNY3SO774FKYE3OARK6MHQL6OCUMAIW5IFPDXNZUNOLIFFAAUDMJ3KP33D3A4IWFQ
-#\\\|JDVIKSPRSWIA3CR5ZH35L7XEG7LZ6BPNBVFOTUMU2FKIIIZB342 \ / AMOS7 \ YOURUM ::
-#\[7]UOPZPEPSQZ2IIWKDFR7AGFS3RBMFFAPIN55ZJIBDVFWXRGR5MKCI 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,,.,..,,,.,,,,,,,..,.,.,,..,..,,..,,...,.,.,,,,,...,,,,,,,,,...,
+#3LV5OBRDDAK2XRYHWQDDCXMS76DDO32Z2EFN2WNTK2BU2FPTQLJU4IP5VLLAQC5BRQ4IHTHDGB3R2
+#\\\|3EQT3YIHGGC5UC5TKU4NJTVJYUMW2CNCETRJP5VSFSDILGIXXKB \ / AMOS7 \ YOURUM ::
+#\[7]NLCEF67B2FSKRRHE2ZPI2WEM7OE7ZUZXOT2SZBTWWKVR5GZ6MMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

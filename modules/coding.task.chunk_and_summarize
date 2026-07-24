@@ -55,14 +55,8 @@ while ( $pos < $len ) {
 
 my $n_chunks = scalar @chunks;
 <[base.logs]>->(
-    1,
-    "chunk_and_summarize: %s → %d chunks "
-        . "[ est=%d n_ctx=%d max_chunk=%d ]",
-    $task_id,
-    $n_chunks,
-    $est_tokens,
-    $n_ctx,
-    $max_chunk_chars
+    1, "chunk_and_summarize: %s → %d chunks [ est=%d n_ctx=%d max_chunk=%d ]",
+    $task_id, $n_chunks, $est_tokens, $n_ctx, $max_chunk_chars
 );
 
 ## store chunk state in parent task metadata for resume handler ##
@@ -102,19 +96,20 @@ my $backend = $task->{'analysis'}->{'routed_to'} // qw| gpu |;
 ## build and enqueue first chunk child ##
 my $first_chunk = $chunks[0];
 my $child_prompt
-    = "running summary so far:\n\nnew text to fold in:\n$first_chunk\n\n"
-    . "produce an updated running summary that preserves information from "
-    . "both, information-dense, no preamble.";
+    = "running summary so far:\n\nnew text to fold "
+    . "in:\n$first_chunk\n\nproduce an updated running summary that "
+    . "preserves information from both, information-dense, no "
+    . "preamble.";
 
-## guard: if the single chunk still overflows once wrapped, split the
-## excess back into the chunk queue as an additional chunk instead of
-## discarding it -- true rolling-window behavior, no content is ever lost.
-## @chunks is referenced by $chunk_state->{'chunks'}, so splicing here is
-## seen by the resume handler in coding.async.complete automatically.
-## the estimate must include the system prompt's length too -- it rides
-## in the same messages array coding.task.execute measures, and omitting
-## it is exactly what let chunks slip through this guard while still
-## overflowing for real downstream ##
+## guard: if the single chunk still overflows once wrapped, split the      ##
+## excess back into the chunk queue as an additional chunk instead of      ##
+## discarding it -- true rolling-window behavior, no content is ever lost. ##
+## @chunks is referenced by $chunk_state->{'chunks'}, so splicing here is  ##
+## seen by the resume handler in coding.async.complete automatically.  the ##
+## estimate must include the system prompt's length too -- it rides in the ##
+## same messages array coding.task.execute measures, and omitting it is    ##
+## exactly what let chunks slip through this guard while still overflowing ##
+## for real downstream                                                     ##
 my $sys_prompt_len = length( $task->{'system'} // '' );
 my $est_child_tokens
     = int( ( ( length($child_prompt) + $sys_prompt_len ) * 1.6 )
@@ -136,13 +131,15 @@ if ( $est_child_tokens > $n_ctx - 1000 ) {
     $chunk_state->{'total_chunks'} = $n_chunks;
 
     $child_prompt
-        = "running summary so far:\n\nnew text to fold in:\n$first_chunk\n\n"
-        . "produce an updated running summary that preserves information from "
-        . "both, information-dense, no preamble.";
+        = "running summary so far:\n\nnew text to fold "
+        . "in:\n$first_chunk\n\nproduce an updated running summary "
+        . "that preserves information from both, information-dense, no "
+        . "preamble.";
     <[base.logs]>->(
         0,
         "chunk_and_summarize: chunk 0 split at %d chars [ overrun %d tokens, "
-            . "%d bytes carried forward as a new chunk, now %d total chunks ]",
+            . "%d bytes carried forward as a new chunk, now %d total chunks "
+            . "]",
         length($first_chunk),
         $overrun,
         length($overflow_text),
@@ -181,10 +178,8 @@ if ( !$enqueue_result->{'success'} ) {
     ## fall back to hard fail with original error format ##
     my $overflow = $est_tokens - $n_ctx;
     my $err
-        = sprintf(
-        'initial prompt overflow: estimated %d tokens exceeds n_ctx=%d '
-            . 'by %d'
-            . ' : reduce task description or tool output size',
+        = sprintf( 'initial prompt overflow: estimated %d tokens exceeds '
+            . 'n_ctx=%d by %d : reduce task description or tool output size',
         $est_tokens, $n_ctx, $overflow > 0 ? $overflow : 0 );
     $task->{'execution'}->{'status'} = qw| failed |;
     $task->{'execution'}->{'error'}  = $err;
@@ -209,8 +204,8 @@ $parent_state->{'pending_subtask'}         = $child_task_id;
 
 return { success => TRUE, mode => qw| deferred |, task_id => $task_id };
 
-#,,..,.,.,.,,,,,.,,..,,.,,,,,,...,...,..,,,.,,.,.,...,...,..,,.,,,,,,,,,,,,.,,
-#NE37OWR2VTEAWM5QQXRDHSXCIHXB52QLJ4ZEDISBSLNGESLFVK4Q6H3DMADSYCCCXFNAE5B7RR7TM
-#\\\|IZWR4YB632H6X5BLNUXBU6BMIQTNCO2LVJCJ2N4DQEEFL4MAKRS \ / AMOS7 \ YOURUM ::
-#\[7]XVKLAN7PKPIQIIIF2FHRELWMNFVAYQN3I54ZIJQSSZ2HXX73KOCI 7  DATA SIGNATURE ::
+#,,,,,...,,,.,.,,,,.,,.,,,.,.,,.,,...,.,.,...,.,.,...,...,.,.,,,,,.,,,.,.,,.,,
+#MQPCFC37TEM7VEMK2HIXUDT4KNUZ6RDWTLWYWX7FLKQNS5ISHVIBP7WE7S5TVVRAHUYHFNQLWCOX2
+#\\\|FHFK75ZBULXAKMRFW2CKR6VPNMUA5TEFKXTCQNFUKSE7UCFIF6X \ / AMOS7 \ YOURUM ::
+#\[7]5TFX2UWUX2X6JOUTQEJNOMZOA726XCBMNFH6XDENMA4U56PTLCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

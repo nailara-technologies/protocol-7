@@ -13,16 +13,20 @@ my $perspectives = $args->{'perspectives'} // [];
 ## built-in perspective definitions ##
 my %builtin_perspectives = (
     critic => 'you are a skeptical code reviewer. find flaws, edge cases, '
-        . 'incorrect assumptions, and risks. be direct and specific.',
+        . 'incorrect assumptions, and risks. be direct and '
+        . 'specific.',
     advocate =>
         'you are an experienced implementer. identify what is correct, '
-        . 'well-structured, and why the approach works. note any strengths.',
+        . 'well-structured, and why the approach works. note any '
+        . 'strengths.',
     auditor =>
         'you are a correctness and safety auditor. focus on invariants, '
-        . 'error handling, data flow correctness, and potential failure modes.',
+        . 'error handling, data flow correctness, and potential failure '
+        . 'modes.',
     alternative =>
         'you are an architect considering alternative approaches. suggest '
-        . 'simpler, more robust, or more idiomatic ways to achieve the same goal.',
+        . 'simpler, more robust, or more idiomatic ways to achieve the '
+        . 'same goal.',
 );
 
 ## default perspective sets per mode ##
@@ -116,15 +120,15 @@ my $output
     . " perspective(s) on prompt ##\n\n";
 $output .= join "\n\n", @results;
 $output
-    .= "\n\n## synthesis note ##\n"
-    . "the above perspectives are independent responses to the same prompt.\n"
-    . "synthesize them: note where they agree (high confidence), "
-    . "where they diverge (needs judgment), and what each uniquely contributes.";
+    .= "\n\n## synthesis note ##\nthe above perspectives are independent "
+    . "responses to the same prompt.\nsynthesize them: note where "
+    . "they agree (high confidence), where they diverge (needs "
+    . "judgment), and what each uniquely contributes.";
 
 return $output;
 
-#,,..,,,.,,,,,...,,,,,,..,,..,,.,,...,.,.,...,..,,...,...,,.,,,.,,,.,,...,.,.,
-#XGZ47224BUDV5H6LCJT2AX5GJ7VMNHH64E4YILYZ6L3LYCKXDA2QWSAEJAEAK43C6PLHU3WWGWNPK
-#\\\|A7I73ILA5BPCFY5LH36NVZROQEZGN55X5ZHHALDUUDM7T3CXK2S \ / AMOS7 \ YOURUM ::
-#\[7]WQXQEEUV6TPT27CKZDI2XJCB5LTTXJC6TSRERND4ETTHMLQHVQBA 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,,,,,.,,..,,,,.,,.,,,.,,.,.,,.,,..,,...,...,,..,,.,,..,,,..,,.,,
+#LHLFYJXNXXL4WY6MXXWS65VFG2BXRUIQKOP5I7SFYAE77EDIYYXLHRBUFXW7DQ5YOMG4JESIBLNAO
+#\\\|PO4WZXT4FBTQ77ON4PKR2XDHKYDSYB5LPW45I3ZSHU4UVELPYTJ \ / AMOS7 \ YOURUM ::
+#\[7]WMNU6HS4HOZWH3JGB36GIYRKCS2CZO25QCKYXQTRUIR2TYPK2KBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

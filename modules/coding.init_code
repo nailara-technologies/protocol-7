@@ -22,21 +22,23 @@ map { <[base.perlmod.autoload]>->($ARG) } qw[
     IO::Compress::Xz
 ];
 
-## Phase 2: Async streaming support ##
-## Using Protocol-7 native event system, not AnyEvent::HTTP ##
+## Phase 2: Async streaming support  Using Protocol-7 native event system, ##
+## not AnyEvent::HTTP                                                      ##
 use Socket qw| SOCK_STREAM |;
 use Errno  qw| EAGAIN EWOULDBLOCK |;
 
 map { <[base.perlmod.autoload]>->($_) }
     qw| IPC::Open3 YAML::XS FreezeThaw Fcntl Cwd IO::Compress::Xz |;
 
-## resolve drop_privs args [ secondary admin group for project file access ] ##
+## resolve drop_privs args [ secondary admin group for project file access ##
+## ]                                                                       ##
 my $assume_admin
     = <[base.cfg_bool]>->( <coding.cfg.assume_admin_group> // 0 );
 <coding.cfg.drop_privs_user> = <system.amos-zenka-user>;
 ## default: zenka's own group [ no-op in drop_privs ] ##
 my ( undef, undef, undef, $zenka_gid ) = getpwnam(<system.amos-zenka-user>);
 <coding.cfg.drop_privs_admin_group> = getgrgid($zenka_gid) // '';
+
 if ($assume_admin) {
     my $root_stat  = File::stat::stat( <system.root_path> // '' );
     my $root_gid   = defined $root_stat ? $root_stat->gid     : undef;
@@ -211,14 +213,14 @@ $params->{'cpu_threads'} = <inference.backend.cpu.threads>    // 7;
 $params->{'gpu_layers'}  = <inference.backend.gpu.gpu_layers> // 32;
 <coding.spawn_params.lib_path> = <coding.lib_path>;
 
-## check if GPU port already occupied (another coding instance running)
-## ONLY meaningful on a genuine first boot [ :twin: handover scenario ] -  ##
-## on every later reload/reinit of an already-running instance, the port  ##
-## is legitimately busy with THIS instance's own server, which needs no   ##
-## re-spawning at all. without gating on $already_initialized, every      ##
-## `coding.reload` re-armed a fresh await_resources watchdog that would   ##
-## later misfire on any future switch-model kill - confirmed live         ##
-## 2026-06-21, this undid the per-instance retirement fix on every reload.##
+## check if GPU port already occupied (another coding instance running)     ##
+## ONLY meaningful on a genuine first boot [ :twin: handover scenario ] -   ##
+## on every later reload/reinit of an already-running instance, the port is ##
+## legitimately busy with THIS instance's own server, which needs no        ##
+## re-spawning at all. without gating on $already_initialized, every        ##
+## `coding.reload` re-armed a fresh await_resources watchdog that would     ##
+## later misfire on any future switch-model kill - confirmed live           ##
+## 2026-06-21, this undid the per-instance retirement fix on every reload.  ##
 my $gpu_port = <inference.backend.gpu.port> // 8000;
 my $gpu_busy = 0;
 
@@ -259,8 +261,8 @@ if ($gpu_busy) {
 
 ## event handlers are now loaded from separate modules:
 ## - coding.event.on_task_complete
-## - coding.event.on_task_fail
-## these are registered in the code registry when loaded
+## - coding.event.on_task_fail  these are registered in the code registry when
+## loaded
 
 ## register SIGCHLD handler for inference server crash detection ##
 <[event.add_signal]>->(
@@ -288,7 +290,8 @@ if ( exists $code{'coding.callback.object_memory_gpu'} ) {
     <[base.logs]>->( 2, '[init] registered memory_gpu callback' );
 }
 
-## register self-test pending callback [ blocks backends during model switch ] ##
+## register self-test pending callback [ blocks backends during model ##
+## switch ]                                                           ##
 if ( exists $code{'coding.callback.object_self_test_pending'} ) {
     <[dependency.setup]>->(
         'self_test_pending',
@@ -297,9 +300,9 @@ if ( exists $code{'coding.callback.object_self_test_pending'} ) {
     <[base.logs]>->( 2, '[init] registered self_test_pending callback' );
 }
 
-## model_checksum_loaded objects are created lazily, per checksum, by    ##
-## coding.task.ensure_model_pinned - only the callback type needs        ##
-## registering here, once                                                ##
+## model_checksum_loaded objects are created lazily, per checksum, by ##
+## coding.task.ensure_model_pinned - only the callback type needs     ##
+## registering here, once                                             ##
 if ( exists $code{'coding.callback.object_model_checksum_loaded'} ) {
     <[dependency.setup]>->(
         'model_checksum_loaded',
@@ -328,7 +331,8 @@ if ( not $already_initialized ) {
         }
     );
 
-    ## create self-test pending dependency [ blocks backends during model switch ] ##
+    ## create self-test pending dependency [ blocks backends during model ##
+    ## switch ]                                                           ##
     <coding.dep.gpu_self_test_pending> = <[dependency.add_object]>->(
         {   'type'        => 'self_test_pending',
             'description' => 'No self-test model switch in progress'
@@ -369,8 +373,8 @@ if ( not $already_initialized ) {
     <[dependency.add]>->( <coding.dep.gpu_server>, <coding.dep.gpu_server> );
     <[dependency.add]>->( <coding.dep.cpu_server>, <coding.dep.cpu_server> );
 
-    ## create memory-aware dependency chains ##
-    ## GPU server needs both GPU memory and system memory ##
+    ## create memory-aware dependency chains  GPU server needs both GPU ##
+    ## memory and system memory                                         ##
     <[dependency.add]>->( <coding.dep.gpu_server>, <coding.dep.memory_gpu> );
     <[dependency.add]>->(
         <coding.dep.gpu_server>, <coding.dep.memory_system>
@@ -381,7 +385,8 @@ if ( not $already_initialized ) {
         <coding.dep.cpu_server>, <coding.dep.memory_system>
     );
 
-    ## block backend tasks while a self-test-triggered model switch is in progress ##
+    ## block backend tasks while a self-test-triggered model switch is in ##
+    ## progress                                                           ##
     <[dependency.add]>->(
         <coding.dep.gpu_server>, <coding.dep.gpu_self_test_pending>
     );
@@ -421,8 +426,8 @@ if ( not $already_initialized ) {
     qw| key |      => qw| coding.model_metadata |,
     qw| sort_key | => qw| reverse-num:size_gb |,     ## largest models first
     qw| descr |    => 'available inference models [marked with * = active]',
-    qw| mask |     =>
-        '<key>:amos-chksum-id name:model_name size_gb:size_GB is_vision:vision',
+    qw| mask |     => '<key>:amos-chksum-id name:model_name '
+        . 'size_gb:size_GB is_vision:vision',
     qw| align | => {
         qw| amos-chksum-id | => qw| center-1 |,
         qw|   name  |        => qw|  left+1  |,
@@ -541,8 +546,8 @@ if ( not $already_initialized ) {
         }
     );
 
-    ## scratchpad rescue sweep : startup one-shot [ inference servers need
-    ## time to come up ] + hourly repeat ##
+    ## scratchpad rescue sweep : startup one-shot [ inference servers need ##
+    ## time to come up ] + hourly repeat                                   ##
     <[event.add_timer]>->(
         {   'after'   => 180,
             'repeat'  => FALSE,
@@ -559,13 +564,13 @@ if ( not $already_initialized ) {
         }
     );
 
-    ## subscribe to X-11 GPU stats stream if available -- deferred via
-    ## <system.callbacks.initialized>: resolve_primary_sid's own internal
-    ## route-send (for non-v7 zenki) fires before this zenka's own cube
-    ## session exists when called directly from init_code, and unlike the
-    ## orbital subscribers this resolver has no retry-on-failure of its
-    ## own, so a race here means never getting GPU stats at all, not just
-    ## a delayed retry ##
+    ## subscribe to X-11 GPU stats stream if available -- deferred via      ##
+    ## <system.callbacks.initialized>: resolve_primary_sid's own internal   ##
+    ## route-send (for non-v7 zenki) fires before this zenka's own cube     ##
+    ## session exists when called directly from init_code, and unlike the   ##
+    ## orbital subscribers this resolver has no retry-on-failure of its     ##
+    ## own, so a race here means never getting GPU stats at all, not just a ##
+    ## delayed retry                                                        ##
     push <system.callbacks.initialized>->@*, sub {
         <[base.zenki.resolve_primary_sid]>->(
             'X-11',
@@ -599,8 +604,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,..,.,,,,,.,,.,,.,.,,..,,.,,,..,.,,,,..,,,.,.,.,...,...,...,,.,,.,.,...,.,,,
-#EZMJCDEPM4NELIPAYI5GSYIBM2KT2ZDY4WL4OW6QVTJ2IGMKSSQVTTLD5KRL62FGVBWV5NDCNPHMO
-#\\\|W2FM4IN2JWNG5KWOVUN6VWEA6UTF2TR4HAH2WNYROWP6F32MJQ6 \ / AMOS7 \ YOURUM ::
-#\[7]46H7BH4VFQIIXV2M7HSH2ERKBXJAGRTBPZ3D3CTWWXA74MXJHYAQ 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,..,...,,.,,,..,,,.,,,,,.,,,,.,,.,.,...,..,,..,,,,,,,,.,.,.,,,,,
+#GPQB5DCTNOT5RTTPIHTTCZVRMRPXTKNO3YC5MSCLK4IVANUJTVB3SK556IUUDZ44W55GXV2CAID3I
+#\\\|DZR5NVO42ZKAFO6UKXAYQNRU6QKKCMNTTIEL4CKZ37G7Y5WVAHX \ / AMOS7 \ YOURUM ::
+#\[7]KFUPYJZ7YLCFHZJV5IG2ME7FUFGXPTKM5ZGUDQBWI4KDNPSZHADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

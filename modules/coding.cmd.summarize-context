@@ -76,12 +76,13 @@ unless ($tree) {
     );
 }
 
-## tree=1 : best-effort cache query against the task-zenka summary tree
-## before spending an inference call. content-addressed so growing content
-## [ same session, more days of conversation ] always misses and re-summarizes ##
+## tree=1 : best-effort cache query against the task-zenka summary tree    ##
+## before spending an inference call. content-addressed so growing content ##
+## [ same session, more days of conversation ] always misses and           ##
+## re-summarizes                                                           ##
 my $chk_input = "$focus\x00$content";
-## bmw-L13 : 13-char base32 [ ~65 bits ], far lower collision risk than the
-## 7-char amos chksum cap ##
+## bmw-L13 : 13-char base32 [ ~65 bits ], far lower collision risk than the ##
+## 7-char amos chksum cap                                                   ##
 my $chk = <[chk-sum.bmw.L13-str]>->($chk_input);
 
 $data{'coding'}{'tree_query_pending'} //= {};
@@ -96,9 +97,9 @@ my $pending = {
     'enqueue'     => { content => $content, focus => $focus },
 };
 
-## fallback timer : query is best-effort, never block the caller on a
-## slow/unreachable task zenka — proceed to inference exactly as if tree
-## had been absent ##
+## fallback timer : query is best-effort, never block the caller on a    ##
+## slow/unreachable task zenka — proceed to inference exactly as if tree ##
+## had been absent                                                       ##
 $pending->{'timeout_timer'} = <[event.add_timer]>->(
     {   'after'   => 3,
         'repeat'  => FALSE,
@@ -134,8 +135,8 @@ unless ($sent) {
 
 return { mode => qw| deferred | };
 
-#,,..,,,.,...,.,,,,,.,,,,,.,,,,..,,..,...,,..,..,,...,...,...,,,,,,,.,,.,,,.,,
-#VQDGJOE7U36NHVFMIEAFDEVFEYX7QBFFLRSRQS4JWH3PSKHPPIIVX5HWM4ORJJTQUYPL5YWVXJS6Y
-#\\\|3GITFYUHPRZPFXIBWNGO6HGEL6RMIKFAWJWVRPZK7P7TESZULGA \ / AMOS7 \ YOURUM ::
-#\[7]KQQN64FYLG6P7NPKRONM4QPQJQDOVSB6AXJ7UWWAEO2CVL2KPWAY 7  DATA SIGNATURE ::
+#,,..,,..,.,.,...,..,,.,.,...,...,...,,..,,.,,..,,...,...,...,,,.,.,,,..,,,.,,
+#WK5P22LLW3L25IAAJ47F4S427MNKO6BMSBMAQXIACEOOADFM3QIWCGFRZB5HSJNRWXFUP6ROM5Q44
+#\\\|7ZBIPPDJZEGVNAH4NUQG2T6IGA75RRUX7CX2HSI3TZRC2UKQTWL \ / AMOS7 \ YOURUM ::
+#\[7]STQB5V3YDEN5SDQJGFSULA44KQNAAMHYV5JW7KB7EFKLOVOQOACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -62,10 +62,9 @@ if ($apply) {
         print {$fh} @lines;
         close $fh;
         return
-              sprintf "SUCCESS: staged replace line %d in %s"
-            . " [ staged at: %s ]"
-            . " : do NOT verify with read_file"
-            . ", original path unchanged until commit",
+              sprintf "SUCCESS: staged replace line %d in %s [ staged at: %s "
+            . "] : do NOT verify with read_file, original path "
+            . "unchanged until commit",
             $line_num, $path, $stage_path;
     }
 }
@@ -73,8 +72,8 @@ if ($apply) {
 return sprintf "preview line %d\n  was: %s\n  now: %s", $line_num, $old,
     $content;
 
-#,,,.,,..,,..,...,,..,,.,,...,.,.,.,,,,,,,.,,,..,,...,...,,..,...,.,,,,,.,,.,,
-#XA7IXGRJVTFEBW443EEGACLD7BPKZPAFK6LJ2KB6AG6MPJQH7JRYLTHMITFZFPABUEVEYO2QUIC2C
-#\\\|QNLW7JRODTBMG5LCS7GY454Y7JZPEGP3WCYWP4YB7W4TVZTBZKN \ / AMOS7 \ YOURUM ::
-#\[7]EZY6B3P42IIGNPG6IE7BG7VOX4GRBD3BSN5ANZ3ORUDN32S534BQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,,.,.,,,.,,,..,,.,,,..,,...,,..,..,,...,..,,..,,.,,,,,.,,,.,,,.,
+#4S7ACAFG5ZQUUAP6S2GOB7IJE7TFVIHTPB6TCMZ3K4XKFDSQQPEKVPWDFP23IR7WYJR2SQT3X7F5E
+#\\\|MK5RU3VKN5XKHVVXZMYLBYELNUSQ5EDOJBTKWQA63R3FNM7UHHV \ / AMOS7 \ YOURUM ::
+#\[7]E6DIOAFZ7GBLKY6DE2LS64D46RHWAN4MG3RZOYHF2FJPGMN2BKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

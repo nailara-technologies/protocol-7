@@ -16,10 +16,10 @@ my $epoch = <[base.time]>->(3);
 
 <[base.logs]>->( 1, '[self_test] starting : model %s', $model_id );
 
-## calibration prompt sequence ##
-## each prompt carries a result_constraint - the structural-check rule    ##
-## coding.self_test.check_constraint enforces deterministically (no       ##
-## inference call) before any tier-1 reformat or tier-2 semantic judgment ##
+## calibration prompt sequence  each prompt carries a result_constraint - ##
+## the structural-check rule coding.self_test.check_constraint enforces   ##
+## deterministically (no inference call) before any tier-1 reformat or    ##
+## tier-2 semantic judgment                                               ##
 my @prompts = (
     {   id                => 1,
         text              => 'What is 7 × 13? Reply with only the number.',
@@ -28,7 +28,8 @@ my @prompts = (
     },
     {   id   => 2,
         text => 'put a cat and a mouse in a room, close the door and wait.., '
-            . 'who is the remaining animal? reply with only the animal name.',
+            . 'who is the remaining animal? reply with only the '
+            . 'animal name.',
         expected          => 'cat',
         result_constraint =>
             { type => 'word_count', max_words => 2, must_contain => 'cat' },
@@ -56,7 +57,7 @@ for my $prompt_def (@prompts) {
     ## self-test permanently instead of being absorbed like a real task's   ##
     ## request would be. one retry, same 5xx/connection-failure class as    ##
     ## http_error's match, short delay, never retries a genuine 4xx/encode  ##
-    ## error that a retry can't fix                                        ##
+    ## error that a retry can't fix                                         ##
     my $result;
     my $max_retries = 1;
     for my $attempt ( 0 .. $max_retries ) {
@@ -76,8 +77,8 @@ for my $prompt_def (@prompts) {
 
         <[base.logs]>->(
             1,
-            '[self_test] prompt %d : model %s : retrying after %s '
-                . '[attempt %d/%d]',
+            '[self_test] prompt %d : model %s '
+                . ': retrying after %s [attempt %d/%d]',
             $prompt_id,
             $model_id,
             $err,
@@ -139,12 +140,13 @@ for my $prompt_def (@prompts) {
         $reformatted_answer = $eval->{'reformatted_answer'} // '';
         $structural_reason  = $eval->{'structural_reason'}  // '';
         $tier1_reason       = $eval->{'tier1_reason'}       // '';
-        ## anomaly text [ follow_up explanation ] is now produced later     ##
-        ## by the tier-2 disposition path on a NO verdict - not here        ##
+        ## anomaly text [ follow_up explanation ] is now produced later by ##
+        ## the tier-2 disposition path on a NO verdict - not here          ##
         $anomaly = '';
         <[base.logs]>->(
             1,
-            "[self_test] prompt %d : model %s : FAIL [ got '%s' expected '%s' tier1=%s ]",
+            "[self_test] prompt %d : model %s : "
+                . "FAIL [ got '%s' expected '%s' tier1=%s ]",
             $prompt_id,
             $model_id,
             $answer,
@@ -206,8 +208,8 @@ return {
     data => $summary,
 };
 
-#,,..,...,..,,.,.,,,.,.,,,,,,,,.,,,,.,,,.,..,,..,,...,...,...,,..,,..,.,,,.,,,
-#JVLZC6LVCJB3VGFZXNVEKAPOIDQPB7VW4S2J5GU64N2ZBRWBPJHNUA4GAEOMPO3YBSKY2SY3MRYYS
-#\\\|EW7TIK4CPWLQKEHE7HXOYNTMLBCKTDAVHEV25OSKE5RJ45FZCUC \ / AMOS7 \ YOURUM ::
-#\[7]JPKCKRZF5FHD7UNQ5FP3JGWMNRY73LOZQZKGAHMVCMOXZCDMFSAI 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,,.,,,.,..,,...,...,,.,,..,,.,,,..,,...,...,,..,..,,,.,,...,,,,,
+#RIB2L7WGIN6WRQSURSLF7QHONU67MKP5EXJ2VP2ZT6MNPN4ABYYHJ2UHYMKY2JZCDKQGKUJYYL5H2
+#\\\|ICLTBQ5XFS5TVHPSXJQBT3YIT2ZSYWF7WTI5TQAYMX2CSR67KLX \ / AMOS7 \ YOURUM ::
+#\[7]LPKTRS7CLL4FJINDHXQSHJW3TBZVH465TTJVP7MQGLIQU4R5E6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

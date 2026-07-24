@@ -22,11 +22,11 @@ $other_watcher->cancel
     if defined $other_watcher
     and $other_watcher->is_active;
 
-## replace startup-monitoring watchers with drain watchers            ##
-## the server's pipes must stay readable : if the buffer fills [64KB] ##
-## llama-server's write() blocks and inference stalls silently        ##
-## do NOT close the fds : that sends SIGPIPE to the server            ##
-## store watcher refs so spawn_inference_server can cancel on respawn ##
+## replace startup-monitoring watchers with drain watchers  the server's    ##
+## pipes must stay readable : if the buffer fills [64KB] llama-server's     ##
+## write() blocks and inference stalls silently do NOT close the fds : that ##
+## sends SIGPIPE to the server  store watcher refs so                       ##
+## spawn_inference_server can cancel on respawn                             ##
 my @drain_watchers;
 for my $fd ( grep { defined $_ } $current_fd, $other_fd ) {
     my $dw = <[event.add_io]>->(
@@ -38,8 +38,8 @@ for my $fd ( grep { defined $_ } $current_fd, $other_fd ) {
     push @drain_watchers, $dw if defined $dw;
 }
 
-## find which backend these fds belong to and store drain watchers ##
-## [ fileno ] comparison : watcher->fd returns the filehandle, not a number ##
+## find which backend these fds belong to and store drain watchers [ fileno ##
+## ] comparison : watcher->fd returns the filehandle, not a number          ##
 my $servers        = <coding.inference_servers> // {};
 my $current_fileno = eval { fileno($current_fd) };
 for my $backend ( keys %{$servers} ) {
@@ -60,8 +60,8 @@ delete <coding.watcher_pair>->{$current_watcher};
 delete <coding.watcher_pair>->{$other_watcher}
     if defined $other_watcher;
 
-#,,,.,..,,.,,,,,.,,..,.,.,,.,,.,,,,..,..,,,..,..,,...,...,.,.,..,,,,,,.,,,..,,
-#F22R7S2XDQC5BWFNLD6TTECLI2HIJFLETEZRZISSWHEJCF5XF2CC2KWQMH4J3C64733UEIJPZXHNW
-#\\\|BLJHDMQ2VUUWL35PIQEFMJ2TLD7B5I5FFPZNGH2NAIR6OSAMQIG \ / AMOS7 \ YOURUM ::
-#\[7]CNGZ6MJ7T6NFZWJUUGEBWSJ5E7XMYGAT2H5J4Q6PVTHPOGR6WQAI 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,.,.,.,.,.,,,,.,,.,.,,,,,.,.,.,.,..,,...,...,.,.,..,,.,,,.,,,,..,
+#GOTOYPKRPXEAAANQIUXYN2TSQBB2EFYFV33XGKZ7UP3WD3IAM3GMR3SOWCBUKJ7PUY3DJE4AQX6NE
+#\\\|T3J2RK7O2YCSHLJTFTBIQGMSXOT56ZDECH4ILQXZHEASO7ZIUFG \ / AMOS7 \ YOURUM ::
+#\[7]LDS4FVUA4CWI3YTZBD53H2DJIS33CT2NW4MEFSLL24KMZEFZA6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

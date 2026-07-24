@@ -31,38 +31,37 @@ if ( $check && $check->{'mode'} eq qw| true | ) {
 
 my $structural_reason = ( $check->{'data'} // 'mismatch' );
 
-## tier 1 : same-context reformat request to the same model, up to two   ##
-## attempts. neither hint may disclose $expected - only the constraint   ##
-## itself [ type / max_words / template ] and, on the retry, the prior   ##
-## violation [ eg "you used 56 words, limit is 2" ] may be cited, so a   ##
-## stricter retry can never amount to "the answer is X" - confirmed      ##
-## acceptable scope with the user 2026-06-21.                            ##
+## tier 1 : same-context reformat request to the same model, up to two ##
+## attempts. neither hint may disclose $expected - only the constraint ##
+## itself [ type / max_words / template ] and, on the retry, the prior ##
+## violation [ eg "you used 56 words, limit is 2" ] may be cited, so a ##
+## stricter retry can never amount to "the answer is X" - confirmed    ##
+## acceptable scope with the user 2026-06-21.                          ##
 my $type = $constraint->{'type'} // 'exact';
 
 my $base_hint = sub {
     if ( $type eq 'numeric' ) {
-        return 'Please restate your final answer as only the number, '
-            . 'with no other text.';
+        return 'Please restate your final answer as '
+            . 'only the number, with no other text.';
     } elsif ( $type eq 'word_count' ) {
         my $max = $constraint->{'max_words'} // $constraint->{'max'} // 1;
         return $max <= 1
-            ? 'Please restate your final answer in exactly one word, '
-            . 'with no other text.'
-            : sprintf
-            'Please restate your final answer in at most %d words, '
-            . 'with no other text.', $max;
+            ? 'Please restate your final answer in '
+            . 'exactly one word, with no other text.'
+            : sprintf 'Please restate your final answer in '
+            . 'at most %d words, with no other text.', $max;
     } elsif ( $type eq 'sprintf' ) {
         my $tmpl = $constraint->{'template'} // '';
         return
-            sprintf 'Please restate your final answer matching this exact '
-            . 'format: %s', $tmpl;
+            sprintf 'Please restate your final answer '
+            . 'matching this exact format: %s', $tmpl;
     }
-    return 'Please restate your final answer as only the short '
-        . 'expected phrase, with no other text.';
+    return 'Please restate your final answer as only the '
+        . 'short expected phrase, with no other text.';
 };
 
 ## stricter retry hint, built only from the prior structural violation - ##
-## never from $expected ##
+## never from $expected                                                  ##
 my $strict_hint = sub {
     my ($reason) = @_;
     if ( $type eq 'word_count' && $reason =~ m{over_word_limit:(\d+)>(\d+)} )
@@ -70,16 +69,16 @@ my $strict_hint = sub {
         my ( $got, $max ) = ( $1, $2 );
         return
             sprintf
-            'Your reply still contained %d words and explanation - the '
-            . 'limit is %d. Remove ALL explanation and reply with at '
-            . 'most %d word%s and nothing else.', $got, $max, $max,
+            'Your reply still contained %d words and explanation - the limit '
+            . 'is %d. Remove ALL explanation and reply with at most %d '
+            . 'word%s and nothing else.', $got, $max, $max,
             $max == 1 ? '' : 's';
     }
     if ( $type eq 'numeric' ) {
         return
-              'Your reply still contained extra text. Reply with '
-            . 'ONLY the digits of the number - no words, punctuation, '
-            . 'or explanation.';
+              'Your reply still contained extra text. Reply with ONLY the '
+            . 'digits of the number - no words, punctuation, or '
+            . 'explanation.';
     }
     if ( $type eq 'sprintf' ) {
         my $tmpl = $constraint->{'template'} // '';
@@ -88,8 +87,8 @@ my $strict_hint = sub {
             'Your reply still did not match the required format. Reply '
             . 'using EXACTLY this format and nothing else: %s', $tmpl;
     }
-    return 'Your reply still contained extra text. Reply with nothing '
-        . 'but the short phrase itself, no explanation.';
+    return 'Your reply still contained extra text. Reply with '
+        . 'nothing but the short phrase itself, no explanation.';
 };
 
 my $server_url = <inference.backend.http_server_url>
@@ -99,8 +98,7 @@ my $server_url = <inference.backend.http_server_url>
 my $try_reformat = sub {
     my ( $prior_answer, $hint ) = @_;
     my $reformat_prompt
-        = "For the question: $prompt\n"
-        . "You answered: $prior_answer\n\n"
+        = "For the question: $prompt\nYou answered: $prior_answer\n\n"
         . $hint;
 
     my $tier1 = <[coding.tools.http_inference_client]>->(
@@ -159,8 +157,8 @@ if ($tier1_ok) {
     };
 }
 
-## both tier 0 and tier 1 [ two attempts ] failed - defer to caller for   ##
-## tier 2 ##
+## both tier 0 and tier 1 [ two attempts ] failed - defer to caller for ##
+## tier 2                                                               ##
 return {
     mode               => qw| false |,
     data               => 'mismatch',
@@ -171,8 +169,8 @@ return {
     tier1_reason       => $tier1_reason // 'tier1_recheck_mismatch',
 };
 
-#,,..,.,.,...,,,,,,,.,,..,,..,.,,,,,.,...,,..,..,,...,...,.,,,...,.,.,,,,,.,,,
-#AVWQ5DEZWWVW22SBP6TUO3D7FVG4PHNLOEOQYZSPFUQW4SLAIQHRCXX4UGYXO72UL7CWTWH57MII6
-#\\\|ERZEBE6KZGJTCDQIYGS5K2FY5WSIN752PWRM2XXT2B5ZNMZ33X7 \ / AMOS7 \ YOURUM ::
-#\[7]FOSMTEQHGOCDDLH6X2UGN5PVHLCSXDJLW5IOZNN6KA263ERUYCBI 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,.,,,,.,..,,,,.,,,,,,,.,.,.,,,.,..,,...,...,..,,.,,,,,.,,,.,,.,,
+#XVWAZSKPRP3A73ETATPX5SZJREUNRQQ2RV64LMI4DZNMUQRCPH4HY3ACHMYHGMKI225ZZ7SEBWTJ2
+#\\\|PHFM2UMBZQGUM4UKBYAKQRXVQS42M5TXPA2IPHLZ7BJNSUFXRJS \ / AMOS7 \ YOURUM ::
+#\[7]QBPWE6O4A4TMQHTBK225HDUDF7WUFFMJVBF7GBCS4EVWOYXKJMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
