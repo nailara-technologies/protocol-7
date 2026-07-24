@@ -36,8 +36,8 @@ if ( $attempts < $max_retries ) {
 
     <[base.log]>->(
         2,
-        "scheduling retry in $next_retry seconds"
-            . " (attempt $attempts/$max_retries)"
+        "scheduling retry in $next_retry "
+            . "seconds (attempt $attempts/$max_retries)"
     );
 
     ## Schedule retry via event timer
@@ -56,15 +56,14 @@ if ( $attempts < $max_retries ) {
         1, "CRITICAL: renewal failed for $domain after $max_retries attempts"
     );
 
-    ## Could notify monitoring/alerting services here if needed
-    ## For now, failures are logged and can be checked
-    ## via letsencr.show-buffer
+    ## Could notify monitoring/alerting services here if needed For now,
+    ## failures are logged and can be checked  via letsencr.show-buffer
 }
 
 return FALSE;
 
-#,,.,,.,.,,,,,,,.,,,.,,,,,...,.,,,..,,..,,,,.,..,,...,...,...,,.,,,,.,..,,,..,
-#45T4ABFMCKK2W6ORWDN3XWYKTMLZSEADJ75Z22JFU3RHELY4ORQWRRU2C32P4JGXS5NI2PTVPZPO2
-#\\\|3EW7IVC6IEG6SSMWUGW5M5TPOGXTNIVROFSIEIV4LD42TL6WEHF \ / AMOS7 \ YOURUM ::
-#\[7]JA333SL3FNFQO5ABZGSR73CPYIZV6L7JC5BVP2525OZU56SEXSDY 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,,,.,,.,,.,,,.,,,..,,.,,,..,,,,.,..,,...,..,,..,,.,,,,,.,.,.,..,,
+#S7PYOCZ6V7ZL27XR4CBKOCC5L2R7DLZKB3IPKEJ4TQWYKV3IRCHYUAUZM66KFFOYORP6CFY2PSGQA
+#\\\|LUI4AHP4YI33SY5PTIGQPRT4VEYGSNZZIKJSYZJOOUUJSHZMFSP \ / AMOS7 \ YOURUM ::
+#\[7]J6IQGBDV436RTGOJROLTACO6ANQFQTBMHX6TENT2SNHW6QYDMUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

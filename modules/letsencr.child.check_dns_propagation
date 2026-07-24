@@ -54,8 +54,8 @@ while ( $attempt < $max_attempts ) {
             if ( $value eq $expected_value ) {
                 <[base.log]>->(
                     2,
-                    "DNS-01 challenge propagated successfully"
-                        . " (attempt $attempt)"
+                    "DNS-01 challenge propagated "
+                        . "successfully (attempt $attempt)"
                 );
                 return {
                     propagated => 1,
@@ -69,8 +69,8 @@ while ( $attempt < $max_attempts ) {
         if (@txt_records) {
             <[base.log]>->(
                 2,
-                "TXT record found but value mismatch"
-                    . " (expected: $expected_value)"
+                "TXT record found but value "
+                    . "mismatch (expected: $expected_value)"
             );
         }
     } else {
@@ -88,8 +88,8 @@ while ( $attempt < $max_attempts ) {
 
 <[base.log]>->(
     1,
-    "DNS propagation timeout after $max_attempts attempts"
-        . " (record not found or incorrect)"
+    "DNS propagation timeout after $max_attempts "
+        . "attempts (record not found or incorrect)"
 );
 
 return {
@@ -98,8 +98,8 @@ return {
     error      => 'DNS propagation timeout',
 };
 
-#,,.,,,..,..,,.,,,.,.,,,.,,,.,,.,,..,,...,...,..,,...,...,...,.,,,,,,,.,,,,,.,
-#BOPMRD2TEVP6VAB4ZFNHWIKVLWSYA6PGKZVQCFDSIALK6K6LE72NTPRTAH5V4ERCBTBT2H2ZWV3S4
-#\\\|FUMYEEP4A2XCI35GY2MPH76BO2PBXJM7BTAAFP3ZSLLC2P4O5SZ \ / AMOS7 \ YOURUM ::
-#\[7]54GHMSKHSJVOQVOHXHTZOARFFTLZE5P46YLOOGF3ETGXA6T4FECY 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,..,,,.,,.,.,...,,,,,,,,,,,.,..,,..,,...,...,,,.,,,.,,,.,..,,,.,,
+#JCTLSBRQ4GHEM6Q773XMBKIDUDAIWLFANQSW7MVCARCG6XZQEEJLSNHUQUCFGEWOSDFAWVSQCS3SS
+#\\\|T6QACBGSHRSV6CC5TT4UEEVUVRQH242M5SGNPLEXT6RY3ANP3WE \ / AMOS7 \ YOURUM ::
+#\[7]G4U5R4UZRWOEA65BYX6ZXARVFDNH4TOG2SNYHJ5HWQLZNXHGPSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

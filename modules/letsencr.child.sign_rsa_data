@@ -30,8 +30,8 @@ unless ( exists $keys{'RSA'}->{$account_key_name}
     return undef;
 }
 
-## use Crypt::PK::RSA [ CryptX / libtomcrypt ] for signing
-## avoids OpenSSL 3.2+ Marvin attack restriction on PKCS#1 v1.5 ##
+## use Crypt::PK::RSA [ CryptX / libtomcrypt ] for signing  avoids OpenSSL ##
+## 3.2+ Marvin attack restriction on PKCS#1 v1.5                           ##
 my $pem = $keys{'RSA'}->{$account_key_name}->{'pem_private'};
 my $pk;
 eval { $pk = Crypt::PK::RSA->new( \$pem ) };
@@ -59,8 +59,8 @@ if ( $EVAL_ERROR or not defined $signature ) {
 ## return raw signature bytes (caller will base64url encode)
 return $signature;
 
-#,,,.,,..,,..,...,,,,,.,,,.,,,,,,,,.,,,.,,,,,,.,.,...,...,,..,.,,,,.,,,,,,,,,,
-#LECE4HKD57CVYAZOKHWDUFGMA63CWGZ5DXSK2JPYSW3MD4Y4GUCY5737ZV6GHMU5Q3EMTFQ4IOC64
-#\\\|UK55JPRIYBL6ZPSEOLGMHY34ZCCYZZ2BR52Y7IPOSXKHPMR6ARG \ / AMOS7 \ YOURUM ::
-#\[7]4PE3ELPZVIDIGWVMWHCW6QR4P5XEHTA3MP7TKZZ7NWWOFZOSS2AA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,..,,,,.,.,.,..,,...,,,,,.,,,,,,,.,.,...,..,,.,,,,..,,,,,,.,,,,,,
+#DRBTXJNETSA3VMBTUUHEGUYO2XC673OKGYX6DKQN7G7NDUC6TDAXCJHMQVQ3LZM2TLGQODFV36NUY
+#\\\|IAIW3KXGNDSIGKPHHHXYE2AGBCPH6WODNRXVYANURHDNV52H2SR \ / AMOS7 \ YOURUM ::
+#\[7]DWJORBITTVEQUEMNM2LG25LZKTGSU6PEECTNGYPATLI7FQRLTSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

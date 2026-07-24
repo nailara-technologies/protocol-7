@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = letsencr.parent.cmd.request-certificate
-# descr = request SSL certificate from Let's Encrypt for domain[s]
+# descr = request SSL certificate from Let's Encrypt CA
 
 ## Extract domain from call structure [call is pre-parsed from headers]
 #
@@ -40,8 +40,8 @@ if ( $certs->{$domain} && $certs->{$domain}{status} eq 'active' ) {
     };
 }
 
-## Simple implementation: just request for primary domain
-## The child can discover SANs if needed via HTTPd queries
+## Simple implementation: just request for primary domain  The child can
+## discover SANs if needed via HTTPd queries
 my @domains_to_request = ($domain);
 
 <[base.logs]>->(
@@ -95,8 +95,8 @@ if ($result) {
     };
 }
 
-#,,,,,...,,,.,,..,,,.,..,,.,,,,..,...,...,,.,,..,,...,...,..,,,..,...,..,,,..,
-#6V4A6HTOBLB7VQAH4Y6BPFYE7CRFU7JXKJDBGUWBSX6HEOBDCWVKZNJ3IZF3346YPCOXDSEGFEOGI
-#\\\|PE6PIHTXBFV3RA76SXPWAHOSRTEDW6IOY7KSABDNHE4NR536PUL \ / AMOS7 \ YOURUM ::
-#\[7]E5CHPIDLBH5OH4SBRSDTHGB7JLDZQKJGLX4RI5LXHADCIZI5CIBI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,,,.,.,.,,,,,,..,.,,,,.,,,.,,.,,,..,,...,...,,,.,,.,,.,,,...,,,,,
+#UEO3LILF5I5WAFLBWWIX6BXIRPGUSCJJ635NIXS3USWR6XAPM23RKT7FISZTSOWVETZXWNEE5T4QG
+#\\\|MULQISMSBLBCYW5WTM53OKUKNYHODBEPYKYYUBEXD4LAOBTRVAW \ / AMOS7 \ YOURUM ::
+#\[7]WFILBTVTEOMGP2J4DC6DQ2XBEMAOYTEKE5BSPEYTQ6VXAZK5N4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

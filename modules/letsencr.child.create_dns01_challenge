@@ -36,17 +36,16 @@ my $key_auth = "$token.$thumbprint";
 
 <[base.log]>->( 3, "key authorization : $key_auth" );
 
-## For DNS-01, we need to create TXT record at:
-## _acme-challenge.{domain}
+## For DNS-01, we need to create TXT record at:  _acme-challenge.{domain}
 ## with value: base64url(SHA256(key_auth))
 
 my $dns_value = encode_base64url( sha256($key_auth) );
 
 <[base.log]>->( 2, "DNS-01 TXT record value : $dns_value" );
 
-## Determine the domain to use for DNS record
-## For wildcard *.example.com, use _acme-challenge.example.com
-## For regular example.com, use _acme-challenge.example.com
+## Determine the domain to use for DNS record  For wildcard *.example.com, use
+## _acme-challenge.example.com  For regular example.com, use
+## _acme-challenge.example.com
 my $base_domain = $domain;
 $base_domain =~ s|^\*\.||;    # Remove wildcard prefix if present
 
@@ -123,8 +122,8 @@ return {
     provider        => $dns_provider,
 };
 
-#,,,,,,,.,,.,,,.,,.,.,,.,,,.,,.,.,,,.,,,,,,..,..,,...,...,,..,,,,,,,.,,..,.,,,
-#ES7DXU4LHRXOOC5XVJGZSPWDPQ6PSQ6JN6XYM22RNRUGITVU6OY5FT7TUX7ZWPEM4WO67CCTGBNYK
-#\\\|5G5CDJRRP2JOPKSODTRNPI5GXWWDEXOPMGNWP4NM24QKN2M7GBZ \ / AMOS7 \ YOURUM ::
-#\[7]L3YRGSJ33SMHOB67RQUG2XWFTOP2UOYDO4UUQWNSIHQOHGQKZSBI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,..,,,,,,...,..,,.,,,.,.,.,.,,..,..,,...,...,,,,,,,,,.,,,..,,..,,
+#ALZCNK72B5YI4Q2L3H3RCFM6CKENN4KCRVFVWOATYKRKEFMRK6EOFP6P4VYJOC4OBUAQ4PW5JPQSO
+#\\\|5Q5ZKUUU5GI5EAQLBXKNXQNZQ5TNYHKKYNCD62AGQHXCZZK323A \ / AMOS7 \ YOURUM ::
+#\[7]JQH5CBIVGVRAFGLAR7KA2QELF5FIHN5R3YBRACHK6G7DZGZYLIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
