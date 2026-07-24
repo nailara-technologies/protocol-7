@@ -4,8 +4,8 @@
 # descr = toggle ticker between top and bottom edge
 
 ## the compiled-in .cmd. header normalizes BOTH call styles [ cube dispatch ##
-## passing a $call hashref, or an internal <[...]> call passing a plain    ##
-## string profile name ] into $call->{'args'} - bare shift here bypassed   ##
+## passing a $call hashref, or an internal <[...]> call passing a plain     ##
+## string profile name ] into $call->{'args'} - bare shift here bypassed    ##
 ## that and grabbed the raw $call hashref instead when dispatched via cube. ##
 my $current = $call->{'args'} // <ticker.window.profile>
     // qw| bottom-strip |;
@@ -24,8 +24,8 @@ if ( $current =~ m{^bottom-strip$} ) {
 
 <ticker.swap.previous_profile> = $current;
 
-## only disable swap for the session after several consecutive failures, ##
-## so a single bad move doesn't kill swap mode for the rest of the run.  ##
+## only disable swap for the session after several consecutive failures, so ##
+## a single bad move doesn't kill swap mode for the rest of the run.        ##
 if ( <[ticker.move_to_profile]>->( $target, $current ) ) {
     delete <ticker.swap.move_failed>;
     delete <ticker.swap.fail_count>;
@@ -51,8 +51,8 @@ if ( <[ticker.move_to_profile]>->( $target, $current ) ) {
     };
 }
 
-#,,.,,,.,,.,.,.,,,.,.,,.,,..,,.,.,,,,,...,..,,.,.,...,...,..,,.,,,...,.,.,,,.,
-#YCHD4QELNC5XBI6K54OSRLGP2YYRUEJZJLZGIPN6AM5YAYW7GUYHAF3AZ5CFHJQGSS65DVI7Z76N2
-#\\\|336PBQE2AG66ERWBJTOYCYT4UV6XM27SPFM6L3PT4QKQNKRVLP7 \ / AMOS7 \ YOURUM ::
-#\[7]REFO4EJ4NI3XWHSEE6D6QDW2F7HAKESCM3UEVJY3HTNGCPMD66DY 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,...,...,...,..,,...,,,,,...,..,,.,.,...,...,...,,..,,..,..,,.,,,
+#KCHOK2OK24PMKL23SWVCPVQTRHS3CGJT2G6BMNKP7HMJ23ONM3K6DRPFG67CM3SX3MTDWH4LAK7HA
+#\\\|Z5QNUHVJMQ4EZRKG6RVOV6LP2LX5HSUGGU74TA63ZBKLTQQBEUX \ / AMOS7 \ YOURUM ::
+#\[7]H35NHHOCFFB5LMXFVB3EPPAXE6Q46TBUV5ZBRDNICLZ6HLR4AYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

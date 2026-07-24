@@ -25,8 +25,8 @@ my $window = <ticker.obj.window>;
 
 if ( <ticker.status.initialized> and not <ticker.animation_started> ) {
 
-    ## hide the visible window until content/animation is ready, but do not  ##
-    ## proceed to draw (there is no content yet).                             ##
+    ## hide the visible window until content/animation is ready, but do not ##
+    ## proceed to draw (there is no content yet).                           ##
     if ( $window->get_property('visible')
         and not <ticker.is-iconified>++ ) {
         <[base.log]>->( 1, 'hiding window..,' );
@@ -131,10 +131,10 @@ if ( not <ticker.status.initialized> ) {
     <ticker.subcfg> = <[base.X-11.get_subconfig]>;
     <[ticker.process_subcfg]>;
 
-    ## drain any read_file calls that arrived before font.size existed [ they ##
-    ## were deferred instead of crashing parse_text - see ticker.cmd.        ##
-    ## read-file-cont ]; now that the window is sized/initialized, replay    ##
-    ## them in arrival order.                                               ##
+    ## drain any read_file calls that arrived before font.size existed [   ##
+    ## they were deferred instead of crashing parse_text - see ticker.cmd. ##
+    ## read-file-cont ]; now that the window is sized/initialized, replay  ##
+    ## them in arrival order.                                              ##
     if ( defined <ticker.pending_read_calls> ) {
         my $pending = delete <ticker.pending_read_calls>;
         <[ticker.cmd.read-file-cont]>->($ARG) for @$pending;
@@ -311,8 +311,8 @@ if (<ticker.animation_started>) {
 
 return TRUE;
 
-#,,,.,,..,.,,,..,,..,,.,.,,.,,.,,,.,.,,,.,,,.,..,,...,...,.,.,..,,,,.,,,,,,,,,
-#Y4UV66X32L6TKNHQZUB5JM6KIXYOUR6TYAOJ4KOMYM45GVUZ2NO6NBPH7EPJ5RVML32UMFDYXIB2A
-#\\\|FJYHONGJQUPB5I2MSSXRB5K2JLIPGL4INWA777EN6VJ5E6EYW52 \ / AMOS7 \ YOURUM ::
-#\[7]26SHBQ2T2HTLZ6ATZ7OTDVVN23YLTQBMVA4ZJF3Y4HWPUKEG2YAI 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,.,.,..,,,,.,..,,.,,,,..,...,.,,,..,,...,...,..,,...,,..,,,.,,,.,
+#DWJPWNF2DUPZCCUXNE7XKKLYZ7JYWTFRPV5CM7YHM5GYBJQJKMVQNR5Q3J7OEKH5KPZJE5O6DIITC
+#\\\|IYNVQERL3VYNHMJHYLQTC5S4A6XQ2OF4T3YCGYSYBRKUVRLI2CS \ / AMOS7 \ YOURUM ::
+#\[7]RUSDTJBK53SNK6MICZR3RTQKOWPX4WGW7UZCYIQMM5MC5JXHMWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

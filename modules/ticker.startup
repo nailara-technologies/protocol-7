@@ -18,12 +18,13 @@
     }
 );
 
-## bounded fallback : get-layer routes to tile and gates open_window via   ##
+## bounded fallback : get-layer routes to tile and gates open_window via    ##
 ## get-layer_reply. if tile is offline / stuck the reply never arrives and  ##
 ## the window never opens -> start-up timeout. open with the default layer  ##
-## after this window instead. mirrors the coordinates fallback. configurable.##
-## [ note : this fires after the coordinate fallback, so the two add up in  ##
-## the fully-stuck case -- kept comfortably within ticker's start window. ] ##
+## after this window instead. mirrors the coordinates fallback.             ##
+## configurable.  [ note : this fires after the coordinate fallback, so the ##
+## two add up in the fully-stuck case -- kept comfortably within ticker's   ##
+## start window. ]                                                          ##
 my $layer_after = <ticker.layer_fallback_timeout> // 7;
 
 <ticker.layer_timer> = <[event.add_timer]>->(
@@ -35,11 +36,11 @@ my $layer_after = <ticker.layer_fallback_timeout> // 7;
 
 <[ticker.set_default_values]>;
 
-## the gtk main loop is now entered by the start file [ before the async   ##
-## coordinate reply fires this continuation ], so it is not entered here.   ##
+## the gtk main loop is now entered by the start file [ before the async  ##
+## coordinate reply fires this continuation ], so it is not entered here. ##
 
-#,,,,,,.,,,..,,.,,,..,,.,,..,,...,...,,,,,...,..,,...,..,,,,,,.,.,.,,,,..,.,.,
-#2XEVT3YECYNVSGETQVQCQ74NV56KEBYXZNC3R76U3FG2VYG326IPOZRO27372Y2QUUME7NOOYVSYI
-#\\\|QMVFJGTYBYBVR2QIFDID7XLXJ4DOXRHPYOYPMF6DJ5H4NLNNTJ3 \ / AMOS7 \ YOURUM ::
-#\[7]S6MDU5L4K6P4XOOHELLU55D6QLDDITRI2U3G3YCGGJSITOEDXSBI 7  DATA SIGNATURE ::
+#,,,,,..,,...,,,.,.,.,,,,,,..,,,,,,,,,,,.,..,,..,,...,..,,,..,.,,,,.,,,,.,,..,
+#ACGVRTKA4MIXSZIIOZHS2Z5VDVQMZDGOQ6YDVKYJIQJ7XQHUVSI6AIFXEZGXZRRJ4NU2BGE7W5WRU
+#\\\|T7P7Z47XMBAHDQU22WWSPWUUVZP2W5SMM4YJTGQZ3PKDJKG3O7Y \ / AMOS7 \ YOURUM ::
+#\[7]73W3OO2N2XBG565DZMI5X2B4DCYCBJIBWUGLJZAG7ZF4TCPJ2ECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

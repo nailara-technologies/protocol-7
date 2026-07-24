@@ -22,10 +22,10 @@ return TRUE if not defined <x11.id>;
     <x11.window.height>
 );
 
-## the first move/configure after (re)map tends to be dropped by WSLg/   ##
-## Weston; a second [and third] apply a bit after the first one is what  ##
-## actually lands. give the compositor a brief moment, then repeat both  ##
-## the GTK move/resize and the X11 ConfigureWindow before verifying.     ##
+## the first move/configure after (re)map tends to be dropped by WSLg/      ##
+## Weston; a second [and third] apply a bit after the first one is what     ##
+## actually lands. give the compositor a brief moment, then repeat both the ##
+## GTK move/resize and the X11 ConfigureWindow before verifying.            ##
 <[base.sleep]>->(0.15);
 <[ticker.cmd.set-window-profile]>->( { 'args' => $target } );
 <[base.X-11.move-window]>->(
@@ -42,9 +42,9 @@ return TRUE if not defined <x11.id>;
     <x11.window.height>
 );
 
-## verify the window actually moved and is near the target; if not,     ##
-## revert the profile and restore visibility, since the caller may have ##
-## triggered this at opacity 0 [fade-out].                              ##
+## verify the window actually moved and is near the target; if not, revert ##
+## the profile and restore visibility, since the caller may have triggered ##
+## this at opacity 0 [fade-out].                                           ##
 my $actual = <[base.X-11.get_window_geometry]>->(<x11.id>);
 return TRUE if not defined $actual;
 
@@ -54,11 +54,11 @@ my $dy         = abs( $actual->{'y'} - <x11.coordinates.top> );
 my $off_target = ( $dx > $tol or $dy > $tol );
 
 ## pre-existing bug, found live: $did_not_move only compares actual vs the  ##
-## PRIOR position, with no regard for whether the target equals the prior  ##
-## position too [ eg a redundant/duplicate swap call landing on the edge   ##
-## it's already on ]. that misclassified an already-correct position as a  ##
-## failure whenever before_geo happened to equal the target, triggering    ##
-## an unnecessary fallback cascade. success must only depend on whether we  ##
+## PRIOR position, with no regard for whether the target equals the prior   ##
+## position too [ eg a redundant/duplicate swap call landing on the edge    ##
+## it's already on ]. that misclassified an already-correct position as a   ##
+## failure whenever before_geo happened to equal the target, triggering an  ##
+## unnecessary fallback cascade. success must only depend on whether we     ##
 ## actually reached the TARGET, not on whether the prior position differed. ##
 return TRUE if not $off_target;
 
@@ -72,19 +72,19 @@ return TRUE if not $off_target;
     )
 );
 
-## before giving up entirely, try a list of known-alternate positions via  ##
-## a real move+verify [ window.place.find_safe_position ] - generic        ##
-## recovery for the class of bug move-window's own mismatch detector       ##
-## catches: a position can silently fail to apply for reasons not fully    ##
-## modeled analytically, so probe real alternates instead of computing     ##
-## whether one SHOULD work. a same-monitor-only candidate list can't help  ##
-## if the WHOLE monitor it's anchored to is unavailable, so cycle through  ##
-## every known monitor too [ window.place.build_strip_candidates ], not    ##
-## just the alternate edge of the one ticker is currently on.              ##
+## before giving up entirely, try a list of known-alternate positions via a ##
+## real move+verify [ window.place.find_safe_position ] - generic recovery  ##
+## for the class of bug move-window's own mismatch detector catches: a      ##
+## position can silently fail to apply for reasons not fully modeled        ##
+## analytically, so probe real alternates instead of computing whether one  ##
+## SHOULD work. a same-monitor-only candidate list can't help if the WHOLE  ##
+## monitor it's anchored to is unavailable, so cycle through every known    ##
+## monitor too [ window.place.build_strip_candidates ], not just the        ##
+## alternate edge of the one ticker is currently on.                        ##
 my $monitors = <[base.gtk.list_monitors]> // [];
 
-## prefer whichever monitor currently contains ticker's position, so the   ##
-## common case [ same monitor, alternate edge ] is still tried first ##
+## prefer whichever monitor currently contains ticker's position, so the ##
+## common case [ same monitor, alternate edge ] is still tried first     ##
 my $cur_x = <x11.coordinates.left>;
 my $cur_y = <x11.coordinates.top>;
 my $preferred_index;
@@ -110,7 +110,7 @@ if ( defined $safe and defined $safe->{'profile'} ) {
     ## a fallback candidate landed somewhere real - the window is visible  ##
     ## and correctly placed there, just not at the ORIGINALLY requested    ##
     ## profile. raise it and leave fade/visibility state alone instead of  ##
-    ## forcing keep_below + opacity=1 below, which would push a correctly-  ##
+    ## forcing keep_below + opacity=1 below, which would push a correctly- ##
     ## placed, fully-opaque window BEHIND other windows - confirmed live   ##
     ## this looked identical to "stuck invisible, needs a restart" even    ##
     ## though the window was technically fine, just hidden behind others.  ##
@@ -119,10 +119,10 @@ if ( defined $safe and defined $safe->{'profile'} ) {
     <[base.X-11.raise-window]>->(<x11.id>);
     <[base.X-11.keep_above]>->(<x11.id>);
 } else {
-    ## nothing landed at all - revert the profile name even though the     ##
-    ## geometry itself never verified, and force full visibility so the    ##
-    ## caller doesn't end up stuck at opacity 0 with nothing left to fade   ##
-    ## it back in.                                                         ##
+    ## nothing landed at all - revert the profile name even though the    ##
+    ## geometry itself never verified, and force full visibility so the   ##
+    ## caller doesn't end up stuck at opacity 0 with nothing left to fade ##
+    ## it back in.                                                        ##
     <[ticker.cmd.set-window-profile]>->( { 'args' => $previous } );
     <[base.X-11.keep_below]>->(<x11.id>);
 
@@ -137,12 +137,12 @@ if ( defined $safe and defined $safe->{'profile'} ) {
         if <ticker.is_composited> and defined <ticker.obj.window>;
 }
 
-## resync tracked coordinates to GROUND TRUTH regardless of which branch   ##
-## above ran - confirmed live: trusting set-window-profile/find_safe_      ##
-## position's COMPUTED values [ rather than re-querying the window's REAL  ##
-## position ] left ticker.handler.check_pointer's hover-detection box      ##
-## wrong, so it could never register the pointer as "outside" again no     ##
-## matter where the mouse actually was - the fade-stuck bug.               ##
+## resync tracked coordinates to GROUND TRUTH regardless of which branch  ##
+## above ran - confirmed live: trusting set-window-profile/find_safe_     ##
+## position's COMPUTED values [ rather than re-querying the window's REAL ##
+## position ] left ticker.handler.check_pointer's hover-detection box     ##
+## wrong, so it could never register the pointer as "outside" again no    ##
+## matter where the mouse actually was - the fade-stuck bug.              ##
 my $ground_truth = <[base.X-11.get_window_geometry]>->(<x11.id>);
 if ( defined $ground_truth ) {
     <x11.coordinates.left>  = $ground_truth->{'x'};
@@ -156,8 +156,8 @@ if ( defined $ground_truth ) {
 
 return FALSE;
 
-#,,..,,,.,...,,..,,.,,...,,,.,.,.,,.,,,,.,..,,..,,...,...,,..,,.,,,,,,...,...,
-#AUCYDLTJAOOMCVTNY7I26GULIFTK2JN74OLLAEVWYLCLE63V4LFN3EMJ3HCLOZORLNHNLQTP3UBDG
-#\\\|ORHH6YBWRFNE57KMW3LJA5Q7NUDV7XWC7MGS6NN6G6QRW2NCMJ3 \ / AMOS7 \ YOURUM ::
-#\[7]LNO3M6UUYNQLXWCR7OR26INEITKZA3ICMFF3ZNCVAJQJG3CAKODI 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,...,.,.,,,,,,,.,.,,,,.,,,.,,..,,..,,...,...,,..,.,,,...,,.,,.,.,
+#DHHTT75FJ2FCVZQ2JXVXT7FFFTDX7JRGMNZDG4LFWEOVPK62HWD6N76ID7OK5UTQJ6UYSJ6F5D622
+#\\\|T5NPQGRCBMGL7HJM2F4GUO5BW4MHLP7AH23ZDFQGGFULL2BQJDH \ / AMOS7 \ YOURUM ::
+#\[7]55EEWNGB6B5QMSXGEVHC5KMQUUMGSMCY4VCXHFFWHJZ7LIPFTKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
