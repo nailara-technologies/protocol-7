@@ -5,8 +5,8 @@
 
 <[base.log]>->( 2, 'initializing ACME parent process.,' );
 
-## letsencr.base is already loaded and initialized by zenka startup
-## No need to reload/reinitialize here
+## letsencr.base is already loaded and initialized by zenka startup No need to
+## reload/reinitialize here
 
 ## Initialize parent-side certificate registry and cache
 <letsencr.parent.certs>              = {};
@@ -34,8 +34,9 @@ if ( $load_result && $load_result->{status} eq 'success' ) {
     );
 }
 
-## Initialize renewal check timer using event system
-## fires after 0.7s on startup, then every <letsencr.renewal.check-interval> seconds (3600 = 1 hour)
+## Initialize renewal check timer using event system  fires after 0.7s on
+## startup, then every <letsencr.renewal.check-interval> seconds (3600 = 1
+## hour)
 <letsencr.parent.renewal_check_timer> = <[event.add_timer]>->(
     {   'after'    => 0.7,
         'interval' => <letsencr.renewal.check-interval>,
@@ -61,9 +62,10 @@ if ( $load_result && $load_result->{status} eq 'success' ) {
     'child_ready'      => 'letsencr.parent.handler_child_ready',
 };
 
-## NOTE: Message handler is registered by fork_letsencr_child via base.handler.command
-## Child-to-parent communication uses Protocol-7's command protocol (TRUE/FALSE replies)
-## Do NOT register custom handler here - base.handler.command is already set up by fork
+## NOTE: Message handler is registered by fork_letsencr_child via
+## base.handler.command Child-to-parent communication uses Protocol-7's
+## command protocol (TRUE/FALSE replies) Do NOT register custom handler here -
+## base.handler.command is already set up by fork
 
 ## Initialize visibility lists for monitoring
 <list.certificates> = {
@@ -141,8 +143,8 @@ if ( not exists <buffer.acme-activity> ) {
 
 0;
 
-#,,,.,,..,,,.,.,,,...,,,,,,..,..,,,..,..,,,,,,..,,...,...,.,,,,,.,..,,,,,,.,.,
-#KPIM4AOKQRC4Q6KU6EU3OWCD7UXSAXGXCCOBEOHRX7YEZVKAQIS5T5APZIVZP4XNFE4QWMC3YT5YI
-#\\\|JGVAEJXOIGM7VOGROZYUJ46BEMY4T27DHVPN3YQPMK5GNTL6RVV \ / AMOS7 \ YOURUM ::
-#\[7]WRVEAUQ6KP2PAS3BY5NQSQMAKTMYP6NTDTAHFCIOERYY2R2MWQBI 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,.,,.,.,,.,,.,.,.,,,,,.,,,,,,..,..,,...,...,,,.,,,,,.,.,,,.,...,
+#FMZ2UTFOHUHK3QMAEUEUWL2I7U44CXKMGM2C3KS3SHOLV52OGSR5WYVPBHGO6YO4LGILPQ2VMONPC
+#\\\|4CNZMIRBFBD6GYHLZQQVWKLF5523AYBKRXOPX7D4Z3BW6KSP7SX \ / AMOS7 \ YOURUM ::
+#\[7]34QZYZUEIRTYNQPWJYVYGGCWNJLQKU7SUXCP6ZTOPPAN4QIA44CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,9 +4,8 @@
 # descr = resume ACME workflow: process challenges, contact httpd for setup/cleanup [ async ]
 # note  = called directly from cmd.request-certificate after acme_new returns deferred
 
-## retrieve stored state from deferred acme_new
-## child will contact httpd directly via message routing for challenge
-## setup/cleanup
+## retrieve stored state from deferred acme_new  child will contact httpd
+## directly via message routing for challenge setup/cleanup
 
 ## retrieve stored state from deferred acme_new
 my $state = <letsencr.child.acme_state> // {};
@@ -263,8 +262,8 @@ unless ($cert_result) {
     } else {
         <[base.log]>->(
             0,
-            'CRITICAL: reply_id undefined in finalize error'
-                . ' - route remains open!'
+            'CRITICAL: reply_id undefined in '
+                . 'finalize error - route remains open!'
         );
     }
     return { status => qw| error |, error => 'Order finalization failed' };
@@ -352,8 +351,8 @@ delete <letsencr.child.acme_state>;
 <[base.log]>->( 2, 'challenge processing complete, certificate ready' );
 return $final_result;
 
-#,,..,...,...,,,.,,..,.,.,,,.,,..,.,.,..,,,,,,..,,...,...,..,,...,..,,,,,,,,.,
-#5P52ZKN2KUPQPZSPU5MG62GXVARYQKHZXYUPRRUFGDBSAPTWY4AK5HFFE3DBATTECY42SKCRZEGS4
-#\\\|KZF2WLW2745R6HP7FKPZUHSMIXUOS6YSJH5QIJXZK7E45W3XPIW \ / AMOS7 \ YOURUM ::
-#\[7]R5Y2HNU7G3BZUICYTFHPEWCH3V2D4VYHISOPRPZFUG6AFSEO2OCY 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,..,,,,,.,,,.,,,...,..,,,,.,,,.,..,,...,..,,.,,,,,.,.,.,.,.,,.,,
+#CSPFSPYXIOTZICL2FONFLROUJMUH27MZHTXDW53UOLM6EJZB5XZBB7NMDEU7NYJEY7XIMT3RZXNCY
+#\\\|OSWAQQ5B2BGYLKJQJFOXLJDQOOW7UV6M6FIMKBA6RLGK7PNYKWJ \ / AMOS7 \ YOURUM ::
+#\[7]7UUR3AFVM7I52ZDHTXZAQNXHQMKLDHH37FDICMWZLAYZLQW4ACCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

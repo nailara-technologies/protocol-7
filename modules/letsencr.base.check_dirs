@@ -4,8 +4,8 @@
 # descr = create required directories for Let's Encrypt operations
 #         with proper permissions
 
-## directories to create (called before drop_privs, so runs as root)
-## certs dir uses setgid [02770] so files inherit httpsd group automatically
+## directories to create (called before drop_privs, so runs as root) certs dir
+## uses setgid [02770] so files inherit httpsd group automatically
 ## [ letsencr cannot chgrp after dropping privs ]
 my $certs_dir = <letsencr.certs.dir>;
 
@@ -26,8 +26,8 @@ foreach my $dir_cfg (@dirs) {
 
 <[base.log]>->( 2, 'certificate directories created and configured' );
 
-#,,,.,..,,.,.,...,.,,,...,...,,,.,.,.,,.,,...,..,,...,...,.,,,.,,,,.,,.,.,..,,
-#VRYAD36Y6QTZZZVSSEY5OKR5PFSJBFICM5YLQ5MW5L2TKXLTSF5IUDRBRGFFGPPG6EVOFXQ4VWTXO
-#\\\|EZT7VLOG6NZYFU2MOJP4LZ6POSGZOHROAB2ZU7X7E7RMHL7IC7V \ / AMOS7 \ YOURUM ::
-#\[7]DTY2NRHR7ICSTGTN6D5PHNTVKM2YH74UFRUDV6AZ6CULLWUSNGDA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,...,,,,,,,,,...,..,,,,.,,..,,.,,..,,...,...,,.,,,..,..,,,,.,,,.,
+#4BILHILGTSRQB37GXV2SCEY6JWXUPGTVVR4MC7TKWEFIV5PNIKVF2XQBV4T4BA3K75JBMWIAPPVYS
+#\\\|EYL36ZQVI6OFKYLCVIBR75UAMIFQZ6NUX6GY3ZNSADGLQB7WR3V \ / AMOS7 \ YOURUM ::
+#\[7]4TQ73NNPIFY5TJ3CYRDJUY7ZTHXAHASVXQBURYCAQKY7GNFZMQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
