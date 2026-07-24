@@ -249,13 +249,24 @@ widening described earlier in this file (`scope: [...]` promotion across
 namespaces) and any human-approval routing/UI channel — the phase-1 dispatch
 prompt explicitly listed these as out-of-scope so Kimi wouldn't invent them.
 
+**Access-control gap found the same day, not yet resolved:** landing the
+new `ncode.cmd.review`/`.graduate`/`.expand` commands on `ncode`'s own
+start-file whitelist doesn't make them *reachable* — `access.zenki` has no
+grant for any caller to reach `ncode.*` at all; only the `<admin-user>`/
+`<unix-admin>` wildcard in `access.users` can, which is why phase-1's smoke
+tests worked (they went out via `p7c` as `unix-taeki`). If the review loop
+is ever meant to run from inside a zenka like `coding` natively rather than
+via a `p7c`-shelling agent, that needs its own `access.zenki` grant. Full
+detail, including the `taeki`/`unix-taeki` two-principal finding:
+[[topic-write-access-security-infrastructure]].
+
 ## related
 
 [[project-ncode-write-path-2026-07-24]], [[topic-write-access-security-infrastructure]],
 [[feedback-claude-dispatch-strategy]], [[reference-opus-dispatches-kimi-workflow]]
 
-#,,,.,,..,.,,,,..,,.,,...,...,,.,,,..,,..,,,.,..,,...,...,..,,,.,,.,.,.,.,,,,,
-#GB2B4USK63UN2XAB7HTYWVDAARP36RNZ4KPLUPZRNYGZ4GLZJJYLRMHSPG7BT4N3POJRRYRG3WCVI
-#\\\|7YBSBXZ6VBVHXJSNRZ5WVNC3ZYALPGHQ5GNTRL5YOAEC3JAKV6M \ / AMOS7 \ YOURUM ::
-#\[7]2NWODRPUUNHFR45DGL7ADCD74AQ2PD7GV2HTCOVJPGVIKCCPQ2DY 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,,,,...,...,,,.,...,.,,,,,.,..,,..,,...,...,,,.,,,.,,,,,,,,,,..,
+#32S5PSYBPSOEVNE6WDKBAKJGGG6YGCNX4WXVUNSCN6BMDV4MZHHE5CPN3LPJOLSA3AMWXHXEAMWA6
+#\\\|NEOTHL7DIZ3UV5K4D44QAMC7DK26RETFISONJKXTBXKXIFF3KR5 \ / AMOS7 \ YOURUM ::
+#\[7]ZYM3EIUV4RXW2EET6TZIAAG6NLQ7JLU46O2KIWKRGFVFTOLGDKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
