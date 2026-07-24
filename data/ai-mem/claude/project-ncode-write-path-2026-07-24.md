@@ -98,19 +98,63 @@ full live shakeout of `ncode`'s never-before-tested write path. See
    leftover temp files anywhere, target mode restored, real content change
    confirmed.
 
+## update, same session: ncode.cmd.assess wired up (regex.assess pipeline)
+
+`ncode.regex.assess` (extracts a confidence-scored candidate regex pattern
+from an old/new diff) plus its five dependency modules
+(`context.diff.find_line_changes`/`.lines_similar`/`.find_resync`,
+`context.pattern.extract_from_change`/`.assess_generalizability`/
+`.calculate_confidence`/`.generate_name`/`.generate_description`,
+`context.string.common_prefix_len`/`.common_suffix_len`) all already
+existed, fully built, completely unexercised — no `ncode.cmd.*` entry point
+ever called any of it. Added `ncode.cmd.assess` (same JSON-args adapter
+shape as `suggest`) to expose it via `p7c`.
+
+**Root cause of why it silently failed at first** (`"subroutine
+context.diff.find_line_changes not defined"` despite the whitelist looking
+right): `context` is its own zenka namespace
+(`configuration/zenki/context/`), and `ncode`'s `modules.load` never
+included it — same class of incomplete port as the `chmod_child` gap above;
+`coding` already loads `context` for the same reason, `ncode` never got it
+added. `bin/dev/gen-sub-whitelist`'s namespace-leak-prevention filter
+(designed to stop dead call edges from *other* zenki polluting a
+whitelist — see `get_zenka_namespaces()` in `bin/dev/dep-graph`) was
+correctly stripping `context.*` from ncode's reachable set as an
+unintended side effect of the real bug, not a whitelist-generation bug
+itself. Fixed by adding `context` to `ncode`'s `modules.load`; a plain
+`ncode.reload` was sufficient to pick it up, no zenka restart needed.
+
+**Live test result — honestly mixed, and informative.** Assessed
+`open my $fh, '<', $path or die $!;` → `my $fh = <[file.open]>->($path);`.
+Got back a technically-valid but low-quality candidate: `0.65` confidence,
+`partial` coverage, 6 capture groups from the generic fallback branch of
+`context.pattern.extract_from_change`, but the `replace` value is the
+literal new text unchanged — it does **not** reconstruct from the captured
+groups, so this candidate would emit the wrong variable names if applied
+anywhere else. This is exactly the tier-A/tier-B boundary discussed in the
+same-session design conversation ([[topic-ncode-pattern-learning-loop]]):
+naive line-diffing handles simple substitutions well but can't safely
+auto-generalize a structural rewrite — the honest result here is "flag for
+human/LLM authoring," not "auto-apply," and the low confidence score
+correctly reflects that rather than over-claiming.
+
 ## known gaps, not yet fixed
 
-- **Pattern schema mismatch**: patterns loaded from
-  `data/yaml/ncode-patterns/*.yaml` that only define top-level
+- **Pattern schema mismatch, now traced further than `apply`**: patterns
+  loaded from `data/yaml/ncode-patterns/*.yaml` that only define top-level
   `pattern`/`replace` (used by `suggest`'s detection scan and by
   `ncode.regex.assess`'s candidate format) silently no-op in `apply`, which
   only reads the `steps` array. Confirmed live: `single-quote-to-qw-scalar`
   (no `steps` defined) reported "1 fixes applied" but left the file
   byte-identical. Only patterns with an explicit `steps: [{tool: ncode,
   search:, replace:}]` block (e.g. `p7-arg-regression`) actually mutate
-  content. Needs either a `pattern`→`steps` synthesis fallback in `apply`,
-  or an explicit YAML-authoring convention that `steps` is required for
-  patterns intended to be auto-applied.
+  content. **Traced the same gap into `ncode.regex.save`** (persists
+  `<ncode.patterns>` to YAML): it only exports `pattern`/`replace`, never
+  `steps` — so even a pattern that goes all the way through
+  assess→expand→save still wouldn't be usable by `apply` without a
+  `pattern`→`steps` synthesis step somewhere in that chain. Needs either
+  that synthesis, or an explicit YAML-authoring convention that `steps` is
+  required for patterns intended to be auto-applied.
 - **`apply`'s revert path never got the chmod-child treatment.** The
   success-path write (`if ($verify_pass and $step_ok and $syntax_ok)`) is
   fixed; the `else` branch a few lines down, which tries to write
@@ -127,8 +171,8 @@ full live shakeout of `ncode`'s never-before-tested write path. See
   or reviewer-gated, or gets folded into that bigger design is an open
   decision, not yet made.
 
-#,,,.,.,,,,,,,,,,,..,,,..,...,,.,,,,.,.,,,,.,,..,,...,...,,..,...,..,,,.,,,.,,
-#QLUSGMQADKIOUKJ47XW3RS4RFX4PDU7WOR7AFALIY32C5THZRUJSMXGTMS2CB4MJERVRCM5UQSERY
-#\\\|AVHAGXMTGQWKKWDC3FDEJQPWDT4XCHLXH36L3XS2X2AKM6YQOM7 \ / AMOS7 \ YOURUM ::
-#\[7]S7RM54X4WUV5LKPOJEB72MAZSP3MKWQQOTCZZI262UO2MM37CYCA 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,.,,,.,.,,,.,,,,,...,..,,..,,.,,,..,,...,...,..,,...,,,.,,..,.,.,
+#6YDDGU6NTMOYXQQRESROOTO2N3KJIW775KRNBLIBSXH46GZP7SZHOSAW7KGALWLMRN7P6DNKBMSNK
+#\\\|G57MM5N7CLPJZXRGK3V3WQXHEQASVLVO4NGDW5JSKF3FLZDFHTD \ / AMOS7 \ YOURUM ::
+#\[7]7WDE3YJ3YGA3NCW72RL6TPNUKOEM7KMTMMYQALQUNDUI4IFFGMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -22,18 +22,37 @@ metadata:
   which is a **repeat** of a 2026-06-06 finding in `write_append` that
   never got its own memory file and so didn't stop the same bug landing in
   `write_with_perms` afterward.
-- **open follow-ups from that session, not yet done:**
+- **`ncode.cmd.assess` wired up + live-tested** — exposed the
+  never-before-used `ncode.regex.assess` pattern-extraction pipeline to
+  `p7c`. Root cause of it silently failing: `context` (its own zenka
+  namespace) was missing from `ncode`'s `modules.load` entirely — same
+  incomplete-port class as `chmod_child` below. Live test against an
+  `open()`→`<[file.open]>` rewrite came back honestly low-confidence
+  (0.65, capture groups the `replace` doesn't reconstruct from) — correct
+  behavior, not a bug: this is the tier-B "needs a human/LLM to author the
+  real pattern" case, not a tier-A auto-apply case. Full design for what
+  comes next: [[topic-ncode-pattern-learning-loop]] (two-tier model,
+  reuse `stats`/`applicability.confidence` fields for self-reinforcement,
+  LLM-prefers-editing-patterns interaction model, namespace scope gating,
+  nested-dispatch for batch-apply without confirmation storms).
+- **open follow-ups, not yet done, roughly in priority order:**
   - fix `coding.tools.handler.write_with_perms`'s grant from `| 0002` to
     `| 0020` (confirmed-broken, see [[feedback-posix-group-write-precedence]])
+  - pattern schema: `apply` only reads `steps`, `regex.save` only exports
+    `pattern`/`replace` — a fully assessed→expanded→saved pattern still
+    can't be applied without a `pattern`→`steps` synthesis step somewhere
+    in that chain. Confirmed live with `single-quote-to-qw-scalar`
+    no-op'ing in `apply`. Blocks the whole tier-A auto-apply loop in
+    [[topic-ncode-pattern-learning-loop]] until fixed.
+  - start incrementing `stats.applied`/`false_positive` in `apply` (dead
+    fields right now) — prerequisite for any of the reinforcement-loop
+    design in [[topic-ncode-pattern-learning-loop]]
   - `ncode.cmd.apply`'s revert path (the `else` branch for failed
     verify/step/syntax checks) still does a bare `open '>', $file`, no
     chmod-child grant — hasn't bitten yet because failures caught so far
     never got that far, but it's the same latent gap
-  - pattern schema mismatch: YAML patterns with only top-level
-    `pattern`/`replace` (no `steps` array) silently no-op in `apply` —
-    confirmed live with `single-quote-to-qw-scalar`
-  - decide whether `suggest`/`apply` stay open on `ncode`'s cube whitelist
-    going forward, or get folded into
+  - decide whether `suggest`/`apply`/`assess` stay open on `ncode`'s cube
+    whitelist going forward, or get folded into
     [[topic-write-access-security-infrastructure]] once that exists —
     not yet decided
 
@@ -481,8 +500,8 @@ what it should actually invoke.
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,,.,,,,,...,,,,,...,,,,,,,.,.,,,,,.,..,,..,,..,,...,...,..,,.,.,,..,,,.,..,,
-#DTDWFGTI7HAHXC6ZQX5I4WANBU6JOSYRT67BUIPKN6S4NM6QDQHOA55FOXNWMOJONNLD4AIYJ6IRG
-#\\\|WSTWGQX2VR6X6SZAK3Y5DPLGCAJ3XM22XZ6C2G5Z7E2Z3O5BZCD \ / AMOS7 \ YOURUM ::
-#\[7]BXPAQA7BDHK7YHQFSVKFIL4OJECQLU2XTA67VU7JPLE2VDGUAQBY 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,..,,..,.,,,,,,,.,.,.,.,...,...,..,,...,..,,.,,,,,.,,..,,,.,...,
+#4WBTPDSIYFC5374MMXI4VU4CAVBNCBKUVPC7TA53NCB65TMVUZZSKVI2EZERAEBTWEDHSLPBWO5E4
+#\\\|M7SSJGUSCIO3CR5OZ7YCQW4NWZID5G7JZKFZUCVD5ME63HQZQ5I \ / AMOS7 \ YOURUM ::
+#\[7]XBII4IZD5YGQPVBJQQTXK2WE7N2YTCIWQ25TIFISENEDRYMJGMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
