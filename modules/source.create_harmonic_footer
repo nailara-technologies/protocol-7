@@ -79,7 +79,8 @@ my $data_pos     = 0;                     ##  at start of file  ##
 my $read_length  = 4282;
 my $content_size = length $src_ref->$*;
 
-## trailing newline count of on-disk body : restore(state) must reproduce this exactly ##
+## trailing newline count of on-disk body : restore(state) must reproduce ##
+## this exactly                                                           ##
 my ($orig_trailing_nl) = $$src_ref =~ /(\n+)$/;
 my $orig_nl_count = defined $orig_trailing_nl ? length($orig_trailing_nl) : 0;
 
@@ -196,8 +197,8 @@ if (   $sign_params_base->{'needs_separator_endline'}
     );
 }
 
-## guarded against stripping the appended \n\n ##
-##          at endline_modification_state == 7 ##
+## guarded against stripping the appended \n\n  at ##
+## endline_modification_state == 7                 ##
 if ( not $sign_params_base->{'last_line_incomplete'} ) {
 ## harmonize trailing endlines ##
     <[source.harmonize_payload_line_feed]>->(
@@ -205,9 +206,9 @@ if ( not $sign_params_base->{'last_line_incomplete'} ) {
     );
 }
 
-## state encodes the trailing newline count of the on-disk body ##
-## [ before any additions ] - restore(state) must reproduce     ##
-##   exactly that body for checksum verification                ##
+## state encodes the trailing newline count of the on-disk body [ before  ##
+## any additions ] - restore(state) must reproduce  exactly that body for ##
+## checksum verification                                                  ##
 if ( $content_size == 0 ) {
     $$src_ref .= "\n";
     $endline_modification_state = 6;
@@ -330,7 +331,7 @@ while ( not $asserted_true and $iterations_left ) {
     ##                                            ##
 
     ## Use the cached footer data from before the loop, not extract again ##
-    ## This prevents modifying $src_ref on every iteration ##
+    ## This prevents modifying $src_ref on every iteration                ##
     my $sign_params
         = {%$sign_params_base};    # Make a shallow copy for this iteration
 
@@ -438,8 +439,8 @@ if ( not $iterations_left ) {    ## warn about failed harmonization ##
 
 return $calc_result_href;        ##  return harmonized result data href  ##
 
-#,,,.,..,,.,,,.,.,,,,,,..,,..,...,.,,,,,,,,,.,.,.,...,..,,,,,,.,.,..,,.,.,,..,
-#J2AE5WXNOUX4YQ66HGXZVDQGTEJOKNOXNLOBDNVZFWBJ5PTVDKA7JU7S6EKGSFE7OYNHJX3YBZFBW
-#\\\|LUCK7EXK2QWHIU7VWAYAGZDKTHC5PQ74AGLGGAHU6ZVRBRCKJ3T \ / AMOS7 \ YOURUM ::
-#\[7]66T4UPQ7IZOLEHIGY3KILVTDFTPRPP6M2PZMW53ONJHJFGMVPQDY 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,.,.,,.,,,,,,,,,,,..,.,,,.,.,...,.,.,...,...,..,,.,.,..,,,,,,..,,
+#U2GMOOB4TDWSPAM5MQZHU4P2TFXY3D2CF36WIYKOYOEPLXUVPKTXKK72XAAUE52USMKNFQWHSTYEK
+#\\\|TDKHSA6X4PI33FCJVSWM3IA3WXAUGXNOQSDAWJPTCFPZQJGMLM6 \ / AMOS7 \ YOURUM ::
+#\[7]FDYC2UUJOPJ3V6ENQTQUZE3LJDZXAF5UBRFRZIOFX4G7CLO2NKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -28,20 +28,21 @@ my $endline_state_oct       = $cur_endline_state;         ##  unmodified  ##
 my $payload_size_delta      = 0;
 my $previous_payload_length = length $payload_sref->$*;
 
-##  Fix #3: CRITICAL - Remove state-dependent behavior for idempotence
-##  The canonical form is: [non-newline]\n\n (exactly 2 newlines as separator)
-##  MUST NOT use $mod_offset here - it causes oscillation!
+## Fix #3: CRITICAL - Remove state-dependent behavior for idempotence The
+## canonical form is: [non-newline]\n\n (exactly 2 newlines as separator) MUST
+## NOT use $mod_offset here - it causes oscillation!
 ##
 if ( $payload_sref->$* =~ m|\n{2,}$|s ) {
 
-    ##  Too many trailing newlines - reduce to exactly 2 (canonical separator)  ##
-    ##  This removes trailing newlines and adds back exactly 2 for canonical form
+    ## Too many trailing newlines - reduce to exactly 2 (canonical       ##
+    ## separator) This removes trailing newlines and adds back exactly 2 ##
+    ## for canonical form                                                ##
     $payload_sref->$* =~ s/\n+$/\n\n/s;
 
 } else {
 
-    ##  Not enough trailing newlines - add to reach exactly 2 (canonical separator)  ##
-    ##  Keep adding newlines until we have exactly 2 at the end
+    ## Not enough trailing newlines - add to reach exactly 2 (canonical   ##
+    ## separator) Keep adding newlines until we have exactly 2 at the end ##
 
     while ( $previous_payload_length > 0
         and $payload_sref->$* !~ m|\n\n$|s ) {
@@ -55,10 +56,10 @@ $payload_size_delta = length( $payload_sref->$* ) - $previous_payload_length;
 
 $endline_state_oct = 5 + $payload_size_delta;
 
-##  Fix #3 CRITICAL: Ensure deterministic state for canonical form
-##  If file is in canonical form (ends with exactly 2 newlines after harmonization),
-##  ALWAYS return state=5 to signal "normalized, no further changes needed"
-##  This prevents oscillation where successive signings toggle between states
+## Fix #3 CRITICAL: Ensure deterministic state for canonical form If file is
+## in canonical form (ends with exactly 2 newlines after harmonization),
+## ALWAYS return state=5 to signal "normalized, no further changes needed"
+## This prevents oscillation where successive signings toggle between states
 ##
 if ( $payload_sref->$* =~ m|\n\n$|s ) {
     $endline_state_oct = 5;
@@ -66,8 +67,8 @@ if ( $payload_sref->$* =~ m|\n\n$|s ) {
 
 return $endline_state_oct;
 
-#,,,.,,.,,,,,,,.,,,..,,,.,,,.,.,.,,.,,,..,..,,..,,...,...,,,,,,,.,,,,,.,,,.,,,
-#DKJLZD3JPIJ65PMDDT2WUZ6PZD5U45HVBEVONMH5TPHMXPBX3VRIAYT3FNG4HXVEYJSDKULVJCN7Y
-#\\\|J7EB6N46XHXO54LF3KXHQZ7N5FZ3MPFFAUYDLWIMYYXP7NHHLYI \ / AMOS7 \ YOURUM ::
-#\[7]JRAJ5SRCHBWSWLOLV527J3Q35D5EUIIXSP3ZUCTXYZA3FBGYAKBI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,.,,,...,..,,...,.,,,,..,,,,,,.,,..,,...,...,.,,,...,,,.,.,.,,.,,
+#6A22S3ITUKKWOKDZ5PIMZ3LDIVWY56KCKOCDSHUPJMMJ3R5H6DNKS5NHJL7IMPSNDVFJTSYBKSEA4
+#\\\|2ADKTWRYYD2LXD3ZYHPF4BFNJJRPXINVWXT5YF5M5WYMHCCNOAK \ / AMOS7 \ YOURUM ::
+#\[7]OBQV5WUF4V6SJCJ66KP4EUKD4SYHOBVM33MRN4XLKS4RM7IIUGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

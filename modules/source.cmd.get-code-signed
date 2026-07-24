@@ -41,10 +41,10 @@ return {
     and $code_dir eq <source.code_path>
     and index( $src_str, "## [:< ##" ) != 0;
 
-## Extract signature in strict mode for update-signatures
-## Repair mode is for verify-signatures where we need flexible extraction
-## For update-signatures, use strict mode - files should have valid structure
-## This prevents issues with endline restoration during signing preparation
+## Extract signature in strict mode for update-signatures  Repair mode is for
+## verify-signatures where we need flexible extraction For update-signatures,
+## use strict mode - files should have valid structure This prevents issues
+## with endline restoration during signing preparation
 my $footer_data = <[source.extract_sig_body]>->( \$src_str, qw| strip | );
 
 my $footer_found        = $footer_data->{'was-present'};
@@ -76,8 +76,8 @@ if ( $footer_found and $found_footer_valid ) {
     }
 }
 
-## checksum and signature verification ##
-## Use 'update' mode for update-signatures - allows recovery without repair mode messages
+## checksum and signature verification  Use 'update' mode for       ##
+## update-signatures - allows recovery without repair mode messages ##
 ##
 ( my $is_valid, my $report_ref ) = <[source.signature_valid]>->(
     \$src_str, $footer_data, {}, undef, 'update'
@@ -138,7 +138,8 @@ if ( $is_valid and not $footer_data->{'needs_separator_endline'} ) {
                     $footer_data->{'last_line_incomplete'}    = FALSE;
                     <[base.logs]>->(
                         2,
-                        ': : stale endline state : normalized for canonical path'
+                        ': : stale endline state : '
+                            . 'normalized for canonical path'
                     );
                 }
                 last;
@@ -225,8 +226,8 @@ if (   not defined $present_checksum
 ##  current \ updated source  ##
 return { 'mode' => qw| size |, 'data' => $src_str }
 
-#,,..,..,,,,,,.,,,,,,,...,.,,,,..,,.,,..,,.,,,..,,...,...,.,.,.,.,,,,,.,,,..,,
-#5JE7NSN2BXB2FEPHZKRT2DBWCHY25WCPFLIOCKO6XGQU4CFE2GXNO6OMHQFIVQL33PPOC264FRLXW
-#\\\|DJOQJMG7UA53OEW3VT4VAPV3BLIWKJSLUW36H6ZYYICGZCYIAFD \ / AMOS7 \ YOURUM ::
-#\[7]QYL7TSCXI4VAIASZCKUKCOE65FZCFWTOC7AOK6BWNYRQLKJHIIBQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,..,,,,,,...,,,.,,.,,.,,,.,.,.,,,..,,...,...,,.,,,..,,,,,,.,,,,.,
+#BW7PJYXUQ5IM66JGMPFUAKGPUXCV62PD2UDA5B3RHISQWIK5PDDON5B2EXNUOP3CO3LP4MX4WLL2O
+#\\\|DEPVNML43ORRHUW6U72C3EC33RNR6ZRJXRE66Q5I6QBGRZRIJQE \ / AMOS7 \ YOURUM ::
+#\[7]4D6TGZYUJEEMZPRAT227QMAZRL2CPMROZOXJPP7AMI3BBLWW7OBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
