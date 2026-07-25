@@ -5,6 +5,16 @@
 
 <zenka.init_return> //= 0;    ## init-done status code ##
 
+## register 'base' as a source dependency here, not at bootstrap : the    ##
+## p7_load_code(qw|base|) boot call [ bin/Protocol-7 ] runs before zenka  ##
+## identity exists and bypasses base.load_modules entirely, so it never   ##
+## reaches base.register_src_deps -- otherwise 'base' only ever gets      ##
+## registered via base.cmd.reload's source/all path, which unnetworked [  ##
+## standalone ] zenki like 'sourcecode' can never trigger, leaving the    ##
+## ancestor-collapse check in base.register_src_deps with nothing to find ##
+## and re-registering every nested lifecycle hook individually            ##
+<[base.register_src_deps]>->(qw| base |);
+
 <[base.perlmod.autoload]>->('Safe');
 <[base.perlmod.autoload]>->('Event');
 <[base.perlmod.autoload]>->('bytes');
@@ -310,8 +320,8 @@ if ( scalar(@INDEXCUBE) == 0 ) {
 
 return FALSE;
 
-#,,..,...,...,,.,,.,,,,,.,..,,..,,,.,,,,.,,..,..,,...,...,...,.,.,...,.,,,,..,
-#7WNNP2MANSLQ65NE4BXI3Q3LO5GQMREVC7H345JYYEY6323VO4SYOG5FERFP3CA5PC26COMRTMKYG
-#\\\|HJCJ3XPES2HMMS3I2YYAHTQVYQO4SBE2TAMI45QATUPBM5WCKXK \ / AMOS7 \ YOURUM ::
-#\[7]IZF2C35G3E2IH445DVPOBRCOEAVUHUP62O7KSVAARNWOTXDNVWBQ 7  DATA SIGNATURE ::
+#,,,,,...,,,.,..,,.,.,.,,,.,,,,.,,,,.,...,...,..,,...,...,..,,,,,,,..,,.,,...,
+#S3IM5S5IMNTASSAGMU75OAA6CTCKSTERLCFO2RGGBCIRGFAE2VCGAAXC34R6EV2ID26NMJXYFBJ6C
+#\\\|2VVNJVWSDXLU5WIEJ2FGUKAOJAO4NBBFBGZ5VX6LFRKMSNEUII6 \ / AMOS7 \ YOURUM ::
+#\[7]23YOR46W7HTBT7SGSC32OUU4T3M77WHIWGDQAXBHRC2EIBHCHEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

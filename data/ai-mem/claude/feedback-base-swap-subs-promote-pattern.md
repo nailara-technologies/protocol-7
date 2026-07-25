@@ -38,12 +38,30 @@ before assuming this was a new idea.
 **Why this matters over just editing every zenka's `modules.load`**: zero
 call-site changes, and it's the established idiom, not a workaround.
 
+## correction, 2026-07-25
+
+Point 3 overstated confidence: "`base.init_modules` auto-discovers and
+runs `pre_init`/`init_code`/`post_init` ... no wiring needed beyond
+adding the file" — true of `base.init_modules` itself, but it can only
+call a sub that already exists in `%code`, and `bin/Protocol-7`'s
+deferred-stub installer would silently skip giving a stub to any nested
+`base.<X>.pre_init` unless `<X>` happened to already be whitelisted.
+`base.file` (this file's own confirmed precedent) has the exact same
+one-segment-past-`base` shape as `base.base32`, so it was exposed to the
+identical risk — it likely only worked in practice because `file`/
+`base.file` ended up whitelisted somewhere along the way, not because
+the gate handled it generically. Fixed in
+[[bug-swap-subs-nested-lifecycle-hook-gate]] (`e90dd04ae`): the gate now
+accepts lifecycle hooks nested anywhere under the loading namespace, so
+step 2-3 of this pattern now hold unconditionally, as originally claimed.
+
 ## related
 
 [[topic-p7-text-formats-landed]]
+[[bug-swap-subs-nested-lifecycle-hook-gate]]
 
-#,,.,,,,.,,..,,.,,.,,,...,,..,,,,,,,.,...,..,,..,,...,...,,..,..,,..,,.,.,.,.,
-#62JFDDUKECXL4L2FBTL6KE4L2GZHGHMHKIKGI3DJF4FNPJ7JYLHZ2LCRRL7SVO4VI6JRVLLQPRVQU
-#\\\|MNRUQMGIEC4X33MK2L6XNUEJDJKLXGUCZ267CLHOPXF7MVJHIUA \ / AMOS7 \ YOURUM ::
-#\[7]74PWFY5TBRGVJUWX6ASZ4NQXPQNY6JMCTJFXIEBYTKJOZK4CLEAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,.,,,,.,..,,.,.,,,,,.,.,.,,,..,,..,,...,...,.,,,.,.,,..,.,.,.,,,
+#KAJZUTX2LUHUEMOGMEQH5JS23TRF6TOBW533YRH7EFY444NSRNTA6VOQMIGNEFS23GJEXLHKMTFWY
+#\\\|RQ33VTMBHNPUUOVL7O6GKDXYQ2RYA6C3XISV6DSAMR3TQYKTPYF \ / AMOS7 \ YOURUM ::
+#\[7]M6PTCEQNN3M5ZZLR2QBRWLMQNUNSG2FCZZ4QBYWNM6N7G7XMIEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

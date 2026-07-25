@@ -24,12 +24,13 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   fetch-files/huggingface, usb-backup, invoke-model-manager), tool-SHM architecture, tls-acme,
   unicode-encoding repair, core patterns/templates.
 
-- **[MEMORY-feedback.md](MEMORY-feedback.md)** (48 pointers) — gotchas & failure modes.
+- **[MEMORY-feedback.md](MEMORY-feedback.md)** (49 pointers) — gotchas & failure modes.
   open for: kimi/claude dispatch strategy & infra hardening, dispatch-summarize hang, tasks-completed
   scan distrust, no-sudo on p7-owned files, perl and/or precedence, p7 route-send wire protocol,
   coding-zenka reasoning/edits/inject pitfalls, ncode tooling & access-gap, perltidy self-heal,
   arg calling convention, memory-management/sync timing, git-log false-duplication, webkit-vs-firefox css,
-  undef-sub scanner verification (guards/eval-wrapping/dynamic-sprintf-dispatch before renaming).
+  undef-sub scanner verification (guards/eval-wrapping/dynamic-sprintf-dispatch before renaming),
+  swap_subs nested-lifecycle-hook gate (base32/chk-sum.bmw crash-instead-of-defer, e90dd04ae).
 
 - **[MEMORY-vision.md](MEMORY-vision.md)** (45 pointers) — long-horizon architecture, mostly design-only.
   open for: perspective/navigation geometry, C25519 trust identity & source-spoofing, namespace/routing
@@ -40,8 +41,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,..,,.,,,,.,,..,,,.,...,,.,,,,.,,..,..,,,,,,..,,...,,..,,..,,.,,.,,,.,,,,,.,
-#RDEC4TEDPWDFNLDM4DZLH7LRQ7AQH5TV5JGNA6EUFG4LLSODUW4PC7EI2TD7RK2HXW237Y5PDQHS2
-#\\\|UOZCDLS5N6SZWG2D5OMEVUEJ2DM44XNNXXKIO7Y2ZQRGNHSFYY4 \ / AMOS7 \ YOURUM ::
-#\[7]SXDQEAYL726TPGSCDNU74G6T65JO6T4EUWXLEH4RP5L3BGABC2CY 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,..,,.,,,,.,,,..,,,,,,..,.,,,,,,,..,,...,.,.,.,.,,,.,,..,..,,,..,
+#ZZDX4LWPXXJRU5FUI367BC6VPXKXARMU2EK76LWTY6DFZZYWBSCL2KOKQRMLL6KVHB4TUQHJUTVMA
+#\\\|OWWML5UVFYP2LNKNH5TRLKP6R2DNK7NGACKUHXN3L4767VU3D4V \ / AMOS7 \ YOURUM ::
+#\[7]WKLD4RTWT6YCJMLHLW7K5DK2RFVDUCJR342JIDU6ULPWE3K2LCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -56,8 +56,22 @@ signatures before the policy can trust them. sequence:
 scan that cold start cannot. same pattern as async inference spawning.
 forensics zenka receives audit trail; operator sees patterns, not noise.
 
-#,,,.,..,,..,,.,.,,,,,...,...,..,,.,.,,.,,.,.,..,,...,...,.,,,,..,.,,,,..,.,.,
-#CDBCSMCGHIDT5R2N4A2ZAV437POZVPFHWQN6OCLQERERZFH25NL6OTF4ZI5E57MTJ2NN5P5QFJOJK
-#\\\|CEZZDBAW3LZ4HYODFS22X7UZPMUQFL5FK5ITQEKF6JMTCTXMCNC \ / AMOS7 \ YOURUM ::
-#\[7]BRR2GVSEV6ZBLTDC3AJ3EI2W7WVCIJCSYJQU6OJQI6CT25OFLODI 7  DATA SIGNATURE ::
+## follow-up, 2026-07-25: the runtime-side counterpart bug
+
+The dep-graph swap-parser fix above only fixed the *offline whitelist
+generator*. It didn't touch the actual bug this session found: jobsite
+added live `<[base32.encode]>`/`<[base32.decode]>` call sites without
+regenerating `subroutines.load-early`, and instead of falling back to
+on-demand compile (the whole point of the deferred-stub mechanism), it
+crashed outright — `bin/Protocol-7`'s lifecycle-hook stub gate never
+gave `base.base32.pre_init` a stub at all when un-whitelisted, so the
+`swap_subs` mover never ran and the short name never existed in `%code`.
+Two more bugs stacked on top once that one was fixed (a self-recompile
+infinite loop in `deferred_compile`, and `register_src_deps` bloat).
+Full chain + fixes: [[bug-swap-subs-nested-lifecycle-hook-gate]].
+
+#,,,,,,,,,,,.,.,.,..,,.,.,,,.,.,.,,,.,.,,,..,,..,,...,...,...,.,.,,..,,,.,..,,
+#TOFI4ZUOJFJTIBL4TXRDHYN25WDGVU52PY3G7YATAZXSYHSMNMMS6O4LKDWV4XU6CZUME4MWGCWDM
+#\\\|IHMKYB2P3WAAKSU6JPMCXD7EOVK5ZRE2VA3R4QMKZRC5CNRS6MG \ / AMOS7 \ YOURUM ::
+#\[7]56L7MJOHZVKUFPVDMMVKSGKLOSDBYNOKT2BMU4HJIHK7WN4I5KCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
