@@ -67,6 +67,24 @@ if ( -d $src_deps and -w $src_deps ) {
         my $touch_file = catfile( $src_deps, $mod_name );
         next if $mod_name eq qw| devmod |;
 
+        ## collapse feature : a lifecycle/runtime sub-file [ e.g.       ##
+        ## base.base32.pre_init ] is already covered once any ancestor  ##
+        ## namespace [ 'base', 'base.base32', ... ] is registered -- or ##
+        ## about to be, within this same batch -- so skip its own file  ##
+        my @ancestors = split m|\.|, $mod_name;
+        pop @ancestors;    ## drop the leaf : ancestors only ##
+        my $covered = FALSE;
+        while (@ancestors) {
+            my $ancestor = join '.', @ancestors;
+            if ( exists $np7_src{$ancestor}
+                or -e catfile( $src_deps, $ancestor ) ) {
+                $covered = TRUE;
+                last;
+            }
+            pop @ancestors;
+        }
+        next if $covered;
+
         ## create file if it doesn't exist ##
         if ( !-e $touch_file ) {
             my $fh;    ## use mknod to create empty files ##  [LLL]
@@ -107,8 +125,8 @@ if ( -d $src_deps and -w $src_deps ) {
     <[base.log]>->( 2, "<< no [writable] src-deps directory found >>" );
 }
 
-#,,..,,,,,...,.,,,,,.,..,,,.,,...,,,.,,..,...,..,,...,...,..,,,.,,,..,,,.,...,
-#C6XXK4YCDKCLZ6B6GEWR7JDCUACD7ZL66HQBXZG5ZA5K7OKTYH4OYFJYUDH46DH5PE7U237FXHZE2
-#\\\|PWDNZK5Z3OPA7UKGT33NIXARFNNPPBFN6EXJ5LEMWCNJTUXYD5H \ / AMOS7 \ YOURUM ::
-#\[7]6DA5NZOV7LS7EUXYX5JY7PE2X32CKTCUY3C6ZVGFVSWIZTA2EYAQ 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,..,.,.,,.,,...,...,...,,..,,.,,..,,...,...,...,...,.,,,.,.,,..,
+#3WAJAAKO3KYQCL5KGE5HAEWH4DYH5IXB2FAMBLXIXK24HI2QLZQR3IMQPNPZMUKX6ARNYSSU6JD2W
+#\\\|5FDUAAOJXDQCVRSUEISTE3GLLBRYQQXEWDPE5ZOUL3E5DNGH6DU \ / AMOS7 \ YOURUM ::
+#\[7]652HY6PKBJXSTSEP372OYZNB2VMGS4ML2XBQ622LGUMCK2GZEMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
