@@ -238,27 +238,29 @@ if ( $mode eq qw| server | ) {    ##  SERVER SOCKET  ##
 
 ##[ FILEHANDLE [ READ ] ]#####################################################
 
-    $session->{'watcher'}->{'input_handler'} = Event->io(
-        'fd'     => $fd,
-        'cb'     => sub { &{ $code{'base.handler.read'} } },
-        'poll'   => scalar(@timeout_callback) ? qw| rt | : qw| r |,
-        'prio'   => 1,
-        'repeat' => FALSE,
-        'data'   => $id,
-        'desc'   => sprintf( '[%d] input handler', $id ),
-        @timeout_callback    # disabled eventually in 'base.handler.auth'
+    $session->{'watcher'}->{'input_handler'} = <[event.add_io]>->(
+        {   'fd'      => $fd,
+            'handler' => qw| base.handler.read |,
+            'poll'    => scalar(@timeout_callback) ? qw| rt | : qw| r |,
+            'prio'    => 1,
+            'repeat'  => FALSE,
+            'data'    => $id,
+            'desc'    => sprintf( '[%d] input handler', $id ),
+            @timeout_callback    # disabled eventually in 'base.handler.auth'
+        }
     );
 
 ##[ FILEHANDLE EXCEPTION ]####################################################
 
-    $session->{'watcher'}->{'input_error'} = Event->io(
-        'fd'     => $fd,
-        'cb'     => sub { &{ $code{'base.handler.session_error'} } },
-        'poll'   => qw| e |,
-        'prio'   => 2,
-        'repeat' => FALSE,
-        'data'   => $id,
-        'desc'   => sprintf( '[%d] input exception handler', $id )
+    $session->{'watcher'}->{'input_error'} = <[event.add_io]>->(
+        {   'fd'      => $fd,
+            'handler' => qw| base.handler.session_error |,
+            'poll'    => qw| e |,
+            'prio'    => 2,
+            'repeat'  => FALSE,
+            'data'    => $id,
+            'desc'    => sprintf( '[%d] input exception handler', $id )
+        }
     );
 }
 
@@ -277,8 +279,8 @@ if ( not <[base.session.init_state]>->( $id, 0 ) ) {
 
 return $id;
 
-#,,..,...,...,,,.,,,,,..,,,..,.,.,,,,,,.,,.,,,..,,...,...,...,...,,..,.,.,,,,,
-#AZLU633WVDYBKZFPBKW2A2KRRQZZ34MTDVOBR7GPNNBWFGHEIXOAOO47UPGW4GNIMJMYAVJIZOS2S
-#\\\|RLBAUFR56IADZDJ4DIIXMUC4BARB3USV3QE4ZQ6RMHNAQSUD2F7 \ / AMOS7 \ YOURUM ::
-#\[7]FLU6RWQLQMFP7LVKRZCGBXFAZJCMQ6RJP6GDEDG77ZK2YVXMEECA 7  DATA SIGNATURE ::
+#,,..,..,,...,.,.,...,,,,,,,.,.,.,,,.,,,,,,.,,..,,...,..,,..,,.,,,..,,,,,,.,,,
+#67ADWQKPREWMFQCWN3WR2YA66OIZ5WP2X6X5PQHVFHKLXTD6Q2HAHUQ3IFCP46LNKR633J44SVID4
+#\\\|Y3ZNBPFRIR72Q6LE4FZRMDCKH526CPHIQ25CNCISSH7WZCOJVEB \ / AMOS7 \ YOURUM ::
+#\[7]BTDOO64Y7XETJYW75JT46WUPKQSGRKWYSPBI5BYOWKRZNUB5D2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
