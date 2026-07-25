@@ -35,10 +35,10 @@ reentrant hang ("awaiting init-code on stdin" never resolved) because this is a
 long-lived repeating ones** without testing -- the docs' own warning is not
 theoretical.
 
-final state: `v7.zenka.start`'s `zenka_output` watcher has explicit `'prio' => 0`
-[ NOT yet committed as of this writing -- the committed version, `de3e345ca`, has
-no explicit prio key at all, defaulting to Event's own io default of `4`, which
-was NOT the live-tested-fastest value. needs a follow-up commit with `prio=>0` ].
+final state: `v7.zenka.start`'s `zenka_output` watcher has explicit `'prio' => 0`,
+landed in commit `1391ba11b` [ supersedes `de3e345ca`, which had no explicit
+prio key and defaulted to Event's own io default of `4` -- not the
+live-tested-fastest value ].
 
 ## thread 2 : -vvvq ANSI corruption chase -- inconclusive on root cause, real fixes landed anyway
 
@@ -124,12 +124,17 @@ portion to literal text first [ so a traced arg containing real color codes show
 as literal `\e[...` text, not live codes -- this is why `xsel -o`-copied trace
 lines show literal backslash-e, not real control chars: terminal text-selection
 never preserves real ANSI codes anyway, so that channel can't distinguish "real
-codes present" from "none" either way ]. has its own exclusion list (`base.log`,
-`base.buffer.add_line` w/ 'zenka' arg, `base.dump_data`, now `base.s_write`) to
-avoid recursion/noise. password/key-hiding logic lives here too (`auth.pwd.success`,
-`crypt.C25519.*`, etc. get redacted before display).
+codes present" from "none" either way ]. has an exclusion list (`base.log`,
+`base.buffer.add_line` w/ 'zenka' arg, `base.dump_data`) for noise, plus an
+unconditional reentrancy guard (`local $p7_devmod_sub_tracing`, landed
+`1391ba11b`) as the actual recursion defense -- the name-based exclusion
+approach (tried first for `base.s_write`/`base.stdout.raw_fh`) was missed
+twice in a row before the guard replaced it; don't add more names to the
+exclusion list expecting it to prevent recursion, the guard already covers
+that generically. password/key-hiding logic lives here too
+(`auth.pwd.success`, `crypt.C25519.*`, etc. get redacted before display).
 
-## thread 4 : redirectable stdout-write target -- IN PROGRESS, design-aligned
+## thread 4 : redirectable stdout-write target -- LANDED `1391ba11b`
 
 user wants the `base.s_write`-based write target (currently a hardcoded raw
 duplicate of the process's own STDOUT) generalized into a reassignable slot,
@@ -143,42 +148,41 @@ wire protocol over unix sockets, 8 type-tags in a 3-bit payload group riding on
 related -- as "the text-mode prototype" for a much larger vterm/5-of-7-consensus
 rendering architecture ].
 
-**agreed scope, explicitly NOT the full multiplex protocol**: extract the
-raw-fd-duplicate-plus-redirect-override logic that currently exists twice
+**agreed scope, explicitly NOT the full multiplex protocol**: extracted the
+raw-fd-duplicate-plus-redirect-override logic that previously existed twice
 [ near-identically, once in `modules/v7.handler.output_zenka_stdout`, once
-inline in `bin/Protocol-7`'s `p7_devmod_sub` ] into one shared `base.*` utility
-[ working name `base.stdout.raw_fh`, not yet landed as of this note -- was mid-
-implementation when this memory was written ], with an explicit override slot
-[ e.g. `<base.stdout.redirect_fh>` ] a future redirect command/feature can
-pre-populate, and a lazily-cached default [ e.g. `<base.stdout.default_fh>` ]
-that's the current raw-STDOUT-dup behavior, unchanged. this is deliberately a
-small, compatible step toward the documented vision, not an attempt to build the
-type-tag protocol now -- user's framing: "we can implement step by step,
-prioritizing keeping full existing functionality." **must be named/scoped as
-generic** [ not `v7.*` ] since `bin/Protocol-7`'s devmod tracer runs inside
-*every* traced zenka process, not just v7 -- an early naming instinct
+inline in `bin/Protocol-7`'s `p7_devmod_sub` ] into one shared module,
+`modules/base.stdout.raw_fh`, with an explicit override slot
+(`<base.stdout.redirect_fh>`) a future redirect command/feature can
+pre-populate, and a lazily-cached default (`<base.stdout.default_fh>`) that's
+the original raw-STDOUT-dup behavior, unchanged. both write sites now call
+this one utility instead of duplicating the logic. this is deliberately a
+small, compatible step toward the documented vision, not an attempt to build
+the type-tag protocol now -- user's framing: "we can implement step by step,
+prioritizing keeping full existing functionality." **named/scoped as
+generic** (`base.*`, not `v7.*`) since `bin/Protocol-7`'s devmod tracer runs
+inside *every* traced zenka process, not just v7 -- an early naming instinct
 (`v7.raw_stdout_fh`) was corrected for this reason before it landed anywhere
-permanent.
+permanent. `base.stdout.raw_fh` itself needed adding to `p7_devmod_sub`'s
+reentrancy guard for the same recursion reason as `base.s_write` (see
+thread 3) before it worked cleanly.
 
-## uncommitted state as of this note [ verify with `git status` before assuming current ]
+## committed state
 
-- `modules/v7.zenka.start` -- prio fix, needs the live-tested `prio=>0` value
-  (not yet matching what's committed in `de3e345ca`, which has no explicit prio).
-- `bin/Protocol-7` -- devmod tracer write-completion-loop + recursion fix +
-  raw-fd/binmode fix, all landed and syntax-verified, not yet committed.
-- `modules/v7.handler.output_zenka_stdout` -- relay write-completion-loop,
-  diagnostic scan already stripped back out, landed and syntax-verified, not
-  yet committed.
-- `modules/source.cmd.get-code-signed` -- unrelated, pre-existing pending TOCTOU
-  work from earlier in the same session, still incomplete, see
-  [[feedback-base-prefix-stripped]]'s sibling context / task history.
-- in-progress, not yet written to disk: `modules/base.stdout.raw_fh` (or
-  final chosen name) -- the thread-4 shared redirect-target utility.
+everything in this memory landed in commit `1391ba11b` on `base`:
+`v7.zenka.start` (`prio=>0`), `bin/Protocol-7` (devmod tracer write-loop +
+reentrancy-guard recursion fix + raw-fd/binmode handling),
+`modules/v7.handler.output_zenka_stdout` (relay write-completion-loop, the
+temporary diagnostic scan already stripped back out before commit), and the
+new `modules/base.stdout.raw_fh`. `modules/source.cmd.get-code-signed`
+remains separately uncommitted -- unrelated, pre-existing pending TOCTOU work
+from earlier in the same session, see [[feedback-base-prefix-stripped]]'s
+sibling context / task history.
 
 #,,,,,,,.,,,,,,,,,,,.,,,.,,.,,.,,,..,,,..,.,.,..,,...,...,...,,.,,.,,,.,.,.,.,
 
-#,,,,,...,.,,,,.,,.,.,...,,.,,,..,.,,,,,,,...,..,,...,..,,...,..,,.,.,,,.,..,,
-#Q4MPOF6EFCPYDUGUBNRFR7M64GQKEF2N66LMKXJKFN75VBMYCJFFXJBMQLBX6HCUDTDNUP5C2X6UA
-#\\\|NB42HZ3YOGNGZUNBKHHT2O47HUAEDAR7FNYPSJSDZIGXQRR75HV \ / AMOS7 \ YOURUM ::
-#\[7]EN6GPEUW4FMF7VFJMGAYLHTXVCSAZXRFGBSHITOYCFTL62ZHIWDQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,..,,..,,.,.,...,,,.,,,,,,,.,,,,,..,,...,...,...,,,,,,,.,.,,,,.,,
+#HLHSEOM3H35YKLGKXTAUEAUJTF6B2VHCAVKXDYEDDZDNWVCZ4FM2D37YWDCPJKB4ZWQSAPRFOY7XC
+#\\\|E2SM2AULTUMTYHGJZYR5SYE4QZZ36HXVEYQF3AI5DL3DKRGCC43 \ / AMOS7 \ YOURUM ::
+#\[7]3DWTTETA3ACCZXOWHJYRYF7EQELJ5Q4P7QKF6JAJQZNIDLQBZQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
