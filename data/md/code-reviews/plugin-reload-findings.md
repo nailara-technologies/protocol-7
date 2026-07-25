@@ -209,7 +209,7 @@ for my $cb_type (qw| end_code start_code error pre_init |) {
 ::[src]: m.,/plugin.auth.unix
 ...
 : ..: 11 subs., 38K src., no errors., =)
-:..: [004] code swap iteration successful =)
+:..: [004] code swap successful =)
 : :.installed rollback watcher..
 ```
 
@@ -225,8 +225,8 @@ for my $cb_type (qw| end_code start_code error pre_init |) {
 
 ---
 
-#,,.,,,..,,,,,,,.,,,,,..,,,..,,..,...,,,.,.,.,.,.,...,..,,..,,..,,...,,,.,,,.,
-#6XQEFDSDAGLJDS2GMX37AW2VNA4JNXLHKRUMJA76NBR5EXXKEEBCFPF2TQLBXVFOJGPG36Z5N4BLM
-#\\\|YVDDRJTWEYJTG6ZFNB6RLICPRZSQUEIPO2B2DFKNGQ3GMMTLEVQ \ / AMOS7 \ YOURUM ::
-#\[7]RQ3RK4TWYF5YEW3WRQXWCEUJBRLGYPCKOWKBMRNCHVOA2WTE5GDQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,.,,.,.,,,,,,..,,,.,...,..,,...,.,.,...,...,,..,,..,.,,,..,,...,
+#NQ5RYDGFA266LK6SITLB57OTGS6XJNEV5EFMEPPSHR5HKOAXDKAF3VDGOC5BKRB6KBOLCYH5Z36DW
+#\\\|ORUPGF3JSKZNYLZY5HYDSO2VIYVYAWW7Y5CA5TVT3BBGOKIY5CK \ / AMOS7 \ YOURUM ::
+#\[7]5ZCICHWZXBAGEO7O3MT4CAPUBTYJ5WKDPCKAHGAXG6GDB4XTIKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
