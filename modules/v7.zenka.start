@@ -55,7 +55,8 @@ if ($starting) {
     if ( $instance->{'handover_expansion'} ) {
         <[base.logs]>->(
             2,
-            'handover instance %d starting alongside existing [concurrent mode]',
+            'handover instance %d starting '
+                . 'alongside existing [concurrent mode]',
             $instance_id
         );
         ## proceed without delay - this is a concurrent restart
@@ -209,11 +210,11 @@ if ( exists $init_result_data->{'start_mode'}
 
         ## resolve the display for THIS zenka's own subname group [not a  ##
         ## flat global] -- e.g. tile[xvfb-0000] gets the xvfb-0000 X-11   ##
-        ## instance's display, not whichever X-11 instance last replied. ##
-        ## resolves synchronously here: v7's own process always takes    ##
-        ## the local fast path in base.zenki.resolve_primary_sid [no     ##
-        ## real network round-trip, callback fires before this returns]. ##
-        ## <x11.display> used to be a flat scalar [pre-multi-instance]; a  ##
+        ## instance's display, not whichever X-11 instance last replied.  ##
+        ## resolves synchronously here: v7's own process always takes the ##
+        ## local fast path in base.zenki.resolve_primary_sid [no real     ##
+        ## network round-trip, callback fires before this returns].       ##
+        ## <x11.display> used to be a flat scalar [pre-multi-instance]; a ##
         ## running v7 process that hasn't been restarted since may still  ##
         ## hold that old value -- coerce rather than crash dereferencing. ##
         <x11.display> = {} if ref(<x11.display>) ne qw| HASH |;
@@ -252,9 +253,10 @@ if ( exists $init_result_data->{'start_mode'}
             );
         }
 
-        ## %ENV is wiped above for exec-external zenki [ clean environment ];
-        ## env_include lets a zenka's v7-init config whitelist additional
-        ## keys to copy through from the live v7 process's own environment ##
+        ## %ENV is wiped above for exec-external zenki [ clean environment ##
+        ## ]; env_include lets a zenka's v7-init config whitelist          ##
+        ## additional keys to copy through from the live v7 process's own  ##
+        ## environment                                                     ##
         my $env_include_str = $init_result_data->{'env_include'};
         if ( defined $env_include_str and length $env_include_str ) {
             my @included;
@@ -365,12 +367,16 @@ $io->blocking(0);
 $instance->{'console-output'} = IO::Select->new();
 $instance->{'console-output'}->add($io);    ## <-- [ can_read ] ##
 
+## no explicit prio : this watcher must keep pace with child startup output ##
+## on a live feedback loop -- a stale 'prio => 5' here sat inert [ masked   ##
+## by the base.event.add_io prio-copy-paste bug ] until the wrapper fix     ##
+## made it real, deprioritizing zenka-output reads below StarvePrio and     ##
+## starving the startup-timeout's own liveness signal                       ##
 <[event.add_io]>->(
     {   'fd'      => $io,
         'handler' => qw| v7.handler.zenka_output |,
         'data'    => $instance_id,
         'poll'    => qw| re |,
-        'prio'    => 5
     }
 );
 ###
@@ -417,8 +423,8 @@ close($in_fh);    ## <-- no further use for zenka stdin handle [ for now ] ##
 
 <[base.logs]>->( '%s zenka started [ pid : %d ]', $zenka_sn_str, $pid );
 
-#,,,.,,,,,,.,,.,,,,,,,,,.,..,,,,,,.,.,.,.,,.,,..,,...,...,.,,,,..,...,..,,,..,
-#UIF6AA7D4ZU63FR357RSXT5KXEZBIQXNFIXBCCWOHMXGNGK7CCADWWDECFMAK2B245MAS5KYFSO4O
-#\\\|US77DGK5BTBGYYXJQBOW6LG2KCFU4E5APX5JCMIV4EN7QGGC52H \ / AMOS7 \ YOURUM ::
-#\[7]RJ4NZ2BMPJ54DUAAXZVZUAKEYJDGK2EK2SXARCDAZYSOY7QDQ6AA 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,...,,,,,...,,,,,.,.,..,,.,.,,,.,..,,...,..,,,..,,.,,...,,.,,,.,,
+#Y6TAVOQFAH3KXQEVQRFUJ6JJLHHPK4577VJOXJN7WICXUBWLGPA2OUOTMGOB3URRWD236HV37SOWM
+#\\\|CH6VQLWV3WOTPWMI4GO4YVLFKFG6I4JIBIWQMA3E35F34WK4CNB \ / AMOS7 \ YOURUM ::
+#\[7]ADOCIJ2AMJA5JXBX7OGOLROIO2LUTUDHV5N4FEG2PAJYGZAOSADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
