@@ -37,6 +37,23 @@ missing canonical "active namespace swaps" reference as a real
 documentation debt worth fixing (see [[project-swap-subs-doc-gap]] if
 that memory exists, otherwise this is the seed of it).
 
+## correction, 2026-07-25
+
+The core claim ("missing whitelist entry only delays lazy-load, never
+breaks correctness") was **only true after** the fix in
+[[bug-swap-subs-nested-lifecycle-hook-gate]]. Before it, `base.*`
+namespace-swap movers (`base.base32.pre_init` and ~15 siblings) never
+even got a deferred-compile *stub* when un-whitelisted — `bin/Protocol-7`'s
+lifecycle-hook gate was namespace-depth-blind, so nested movers under
+`base` were silently skipped entirely, not deferred. A fresh short-name
+call site (`<[base32.encode]>`) on such a namespace crashed outright
+(`$code{'base32.encode'}->()` on a key that never existed), rather than
+falling back to on-demand compile. The whitelist mechanism itself was
+never the fragile part — that judgment holds — but the *loader's*
+deferred-stub coverage for nested lifecycle hooks was genuinely broken,
+which is a distinct claim from "the whitelist step is risky." Landed
+`e90dd04ae`.
+
 **Concrete miss, 2026-07-23** (log-anonymization phase 1 landing,
 `dbd7ca8ba`): wrote new `p7-log.anon.store`/`.resolve` code calling
 `<[base.file.zenka_dir.data_path]>`, the pre-swap name — `base.file.
@@ -54,8 +71,8 @@ whitelist <zenka>` (confirmed still present on disk) — worked fine for
 this one-line addition, but the script is the canonical tool and should
 be preferred for anything bigger.
 
-#,,,.,,,.,,,.,.,.,..,,..,,..,,..,,,,,,...,...,..,,...,..,,..,,.,.,..,,,.,,,.,,
-#S7UZDA2CIS6O7CQR2VNUH72QFGUZFC7OC25L5T25GHWC57NO7LBWUKVWVNPP2X4TGMUSY5RYTZCUY
-#\\\|O5EHU6Q2UJBOPNR3EA7MVOJUZL44XWMGXT444AQZ5XO2KRZSON4 \ / AMOS7 \ YOURUM ::
-#\[7]S3TNQHJS4MF2QABN6FHIURZKTEIMMYNUGDKJ5EE5ED77RJEXV4BQ 7  DATA SIGNATURE ::
+#,,..,...,,,.,,,,,.,,,,,.,,..,,.,,..,,.,,,,,.,..,,...,..,,.,,,.,,,,,,,.,,,,,,,
+#PG6YTZC7EM2AVNF2Q2P27YZU5WP6DDZ5EMCTRHFJCHGWWRPDSS3A5AT6NTACR5B5HRDOQZNDOUGOA
+#\\\|R2YWZ46NBKPHD2SG24ZYMSEIRCN3K2GMRNK2QTWGRN6L5NDQLAH \ / AMOS7 \ YOURUM ::
+#\[7]M7JIKZELA2J7KS2BCEM7W5MDE7LZBKDWQ4QCNR3MW5T25RKPN6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
