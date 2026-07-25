@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = base.stdout.raw_fh
+# descr = returns a raw [ :raw, unlayered ] write target for this process's
+#         own console output -- redirectable
+# note  = default is a raw duplicate of this process's own STDOUT [ same fd,
+#         no new one, via '>&=' ] -- pre-set <base.stdout.redirect_fh> before
+#         this is first called to route console-relay output elsewhere
+#         [ e.g. a socket ], per the stdio-multiplex/redirect design intent
+#         in data/md/design/STDIO-MULTIPLEX-PROTOCOL.md
+
+return <base.stdout.redirect_fh> if defined <base.stdout.redirect_fh>;
+
+<base.stdout.default_fh> //= do {
+    open( my $raw_fh, qw| >&= |, fileno(STDOUT) )
+        or <[base.logs]>->(
+        0, ': cannot dup raw stdout : %s',
+        <[base.str.os_err]>
+        );
+    ## 'use open :encoding(UTF-8)' [ bin/Protocol-7, global ] applies to ##
+    ## this open() too by default -- strip it back to raw or syswrite [  ##
+    ## what base.s_write uses ] fails outright on the layered handle     ##
+    binmode( $raw_fh, qw| :raw | ) if defined $raw_fh;
+    $raw_fh;
+};
+
+return <base.stdout.default_fh>;
+
+#,,,,,..,,,..,...,,,,,.,.,,,.,,.,,..,,.,.,,..,.,.,...,...,.,.,,,,,.,.,,,.,.,,,
+
+#,,..,.,.,,.,,,.,,...,,,,,.,,,...,,,,,..,,..,,..,,...,...,.,.,...,,,.,.,,,..,,
+#6E3GG3JQ7VGT7JNAJRGDQOGW734IVRZCHNYH3P6X2GIRU5D23AWKSZ2ELH22PJ4ZI73RIUCABOY4I
+#\\\|5YYVZYSEHFARO6VWECUBWTHWHIYCYDYQ37LUPG5SAIGOUCUZ5IT \ / AMOS7 \ YOURUM ::
+#\[7]2TQIMUV4HSFZXFZ3WRL5RGHZWEXNPLPTZSNI7LJPUEXQYY7WWGCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

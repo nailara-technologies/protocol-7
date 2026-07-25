@@ -11,11 +11,44 @@ if ( defined <v7.stdout_log.fh> and fileno <v7.stdout_log.fh> ) {
     <[v7.stdout_log.write]>->($line);
 }
 
-## always output to console ##
-say $line;
+## always output to console ##  v7 zenka relay path only -- base.log's own  ##
+## console output is untouched, every other zenka keeps using plain 'say'.  ##
+## loop on syswrite instead of trusting a single buffered 'say' to complete ##
+## -- a short/interrupted write here would previously drop the remainder of ##
+## a line silently. base.stdout.raw_fh gives an unlayered [ :raw ], redir-  ##
+## ectable write target -- see data/md/design/STDIO-MULTIPLEX-PROTOCOL.md   ##
+my $raw_fh = <[base.stdout.raw_fh]>->();
 
-#,,,,,..,,,..,...,,,,,.,.,,,.,,.,,..,,.,.,,..,.,.,...,...,.,.,,,,,.,.,,,.,.,,,
-#FMQDJ42Y7AN74Y6CSDFNEFJLUHVWF2YCVHDTOIFZCJDXM43D7334SG3A7XRVEYXIKHDARFMV5F2KM
-#\\\|BHU2MR5BLUT256YBBDLAP66ORJPCYKLSV2RMQPELKBUXFG6HBZN \ / AMOS7 \ YOURUM ::
-#\[7]4OSHX6BUZIJIIU7ET2GGHMNH5PS2DVYIJZG3767F22576NEJWSBI 7  DATA SIGNATURE ::
+my $out_str     = $line . "\n";
+my $str_offset  = 0;
+my $out_len     = bytes::length($out_str);
+my $write_tries = 0;
+while ( defined $raw_fh and $str_offset < $out_len ) {
+    my $written = <[base.s_write]>->(
+        $raw_fh, \$out_str, $out_len - $str_offset, $str_offset
+    );
+    if ( not defined $written or $written < 0 ) {
+        <[base.logs]>->(
+            0, ': v7 stdout relay write error : %s',
+            <[base.str.os_err]>
+        );
+        last;
+    }
+    if ( $written == 0 ) {    ## EAGAIN : STDOUT is blocking, shouldn't    ##
+        ## happen -- log once if it ever does       ##
+        <[base.logs]>->( 0, ': v7 stdout relay : unexpected EAGAIN' );
+        last;
+    }
+    $str_offset += $written;
+    $write_tries++;
+    <[base.logs]>->(
+        1, ': v7 stdout relay : SHORT WRITE [ %d / %d bytes, retry %d ]',
+        $written, $out_len, $write_tries
+    ) if $write_tries > 1;
+}
+
+#,,.,,..,,,.,,..,,,,.,.,.,,..,.,.,,..,.,,,..,,.,.,...,...,...,.,,,,.,,,.,,,..,
+#QMT57N2YA4ROA6QAHYAWGBJI44U2L7VCNJE33AUY7NUDXYPASSD5MGSFAIFXA4S53LNNMIJ5SAL7G
+#\\\|RAAUSCT6F3SH5LOEAMC6I63RPWGYAS7LRGTIKEMNEJUS244JSGP \ / AMOS7 \ YOURUM ::
+#\[7]F3P6FGEVWNM434BT5TVT4L5YDMHKEITZX4DXGOJKI7K4JVFZTYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

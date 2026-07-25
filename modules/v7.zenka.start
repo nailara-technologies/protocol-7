@@ -367,14 +367,20 @@ $io->blocking(0);
 $instance->{'console-output'} = IO::Select->new();
 $instance->{'console-output'}->add($io);    ## <-- [ can_read ] ##
 
-## no explicit prio : this watcher must keep pace with child startup output ##
-## on a live feedback loop -- a stale 'prio => 5' here sat inert [ masked   ##
-## by the base.event.add_io prio-copy-paste bug ] until the wrapper fix     ##
-## made it real, deprioritizing zenka-output reads below StarvePrio and     ##
-## starving the startup-timeout's own liveness signal                       ##
+## prio 0 : live-swept 0/1/2/3/4/-1/5 under full backend start [-vvvq] : 0  ##
+## settled fastest, 1-4 all settled but slower, 5 and -1 both confirmed     ##
+## broken. -1 [ "bypass the queue, invoke immediately" per Event.pm docs ]  ##
+## reentrantly starved v7's own init-code-push step [ live hang at          ##
+## "awaiting init-code on stdin" ] -- unlike base.handler.write's /         ##
+## output_buffer's -1 usage, which is safe only because those are           ##
+## repeat=>FALSE one-shot EAGAIN retries, not a fitting model for this      ##
+## long-lived repeating drain. the prior 'prio => 5' sat inert for 11 years ##
+## [ masked by the base.event.add_io prio-copy-paste bug ] until the        ##
+## wrapper fix made it real and exposed the starvation the other way        ##
 <[event.add_io]>->(
     {   'fd'      => $io,
         'handler' => qw| v7.handler.zenka_output |,
+        'prio'    => 0,
         'data'    => $instance_id,
         'poll'    => qw| re |,
     }
@@ -423,8 +429,8 @@ close($in_fh);    ## <-- no further use for zenka stdin handle [ for now ] ##
 
 <[base.logs]>->( '%s zenka started [ pid : %d ]', $zenka_sn_str, $pid );
 
-#,,.,,,.,,..,,...,,,,,...,,,,,.,.,..,,.,.,,,.,..,,...,..,,,..,,.,,...,,.,,,.,,
-#Y6TAVOQFAH3KXQEVQRFUJ6JJLHHPK4577VJOXJN7WICXUBWLGPA2OUOTMGOB3URRWD236HV37SOWM
-#\\\|CH6VQLWV3WOTPWMI4GO4YVLFKFG6I4JIBIWQMA3E35F34WK4CNB \ / AMOS7 \ YOURUM ::
-#\[7]ADOCIJ2AMJA5JXBX7OGOLROIO2LUTUDHV5N4FEG2PAJYGZAOSADA 7  DATA SIGNATURE ::
+#,,..,...,,.,,.,,,,,,,,..,,,,,,,.,,,,,.,,,.,.,..,,...,...,...,...,.,,,...,.,.,
+#2SUBQSG76KWW6VS7NEDJKX5J4NW6VZV2N445KLZT7OIA5BFT2BOEA5UFHTYKIWAGP7347JITWZR2Q
+#\\\|WRNLLNWKOMX67C2A2XFAJRZUX6H7XBIBHQP3W4MNLQNFLXLTEY4 \ / AMOS7 \ YOURUM ::
+#\[7]IOXRRIOSRL4ZAIFHACY6O5IZGRDUG4KU6ZNXBU3AK5AWBFCTUSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
