@@ -5,6 +5,7 @@ identity, namespace/routing algebra, checksum-addressing trinity, harmonic mathe
 network-as-computer, dedup-tree unification, coding-as-artform / style-philosophy.
 
 ## Vision / Design
+- [style-dedup-self-recreation](topic-style-dedup-self-recreation.md) — format-code/ptd (deterministic) → ncode style-pattern dedup templates → self-recreate-in-waves → self-morphing code; user's own staged lineage, 2026-07-25
 - [anyevent-bridge-vs-replace](topic-anyevent-bridge-vs-replace.md) — event.anyevent.init_code was a stalled no-urgency replacement attempt (missing variable watchers); the live thread is bridging AnyEvent-only 3rd-party modules via its Event.pm backend, no swap_subs needed
 - [nested-zenka-simulation](topic-nested-zenka-simulation.md) — SEED: full nested zenka simulation as containment (restriction fails as a cliff, simulation fails as a slope); reasoning template `containment-through-simulation.yaml`; borrows orbital-data-space's nesting-chain-IS-the-address trick; not yet a design doc
 - [implicit-perspective-navigation](topic-implicit-perspective-navigation.md) — curves/thresholds ARE the nav decision; explicit/implicit/magnetic modes; design-only
@@ -40,8 +41,8 @@ network-as-computer, dedup-tree unification, coding-as-artform / style-philosoph
 - [zenka-name-routing-modes](topic-zenka-name-routing-modes.md) / `data/tasks/zenka-name-routing-modes.md` in repo — per-zenka routing_mode (default contact-oldest) + permissioned session-scoped admin override commands for bare-name ambiguity; idle-longest = free worker-pool load balancing
 - [subname-not-a-trust-domain](topic-subname-not-a-trust-domain.md) — user[taeki]/user[claude]/user[root] scoped/severity-judged per resolved name[subname] pair, same as distinct top-level zenka names; bare-name grants implicitly span every subname beneath
 
-#,,,.,.,.,..,,.,,,.,,,,..,...,...,..,,,.,,,,,,..,,...,...,..,,,..,...,,..,,,,,
-#STGNF4ZMGDTZEROYOGC4HXNR45QF45EYDBCDYGYWQCAU3CYZMYR3QDXDJJFX4JTO3VTOVTPEN5BCM
-#\\\|JGQL3JWQASV6FODFUW6ZXQLWXGJJXKXG4AUKLFM47PZXLF7HVND \ / AMOS7 \ YOURUM ::
-#\[7]QTCWPT3WAWEQOYJRDJ3TKXMMTVZGO67CDF3GUNYBLN25DBCVU2BQ 7  DATA SIGNATURE ::
+#,,..,..,,,..,...,.,,,,,,,,,.,,..,,.,,,,.,,,.,..,,...,...,..,,,,.,,..,,.,,.,.,
+#EPZICFTI26OITUKX5QHJMRBW7Q3EZPTWHN3MX55UFDEGS4GMXWGFLXGXSQDXQXWWKFCUBCGKN3NYS
+#\\\|ZLTS2DPCDEGJURO2YWGPRU2ZGFBGB5H7I3TYCE7DVPXVHN5NC62 \ / AMOS7 \ YOURUM ::
+#\[7]SP7K56T3IMT7NTOXPMU5EM72IF3OXWJ57E666LRTYHJTVUKD5ICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

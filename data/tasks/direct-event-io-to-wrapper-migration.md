@@ -10,12 +10,25 @@
 `base.event.add_io` had a real bug (fixed 2026-07-25, see
 data/ai-mem/claude/topic-anyevent-bridge-vs-replace.md and
 feedback-base-prefix-stripped.md for the discovery path): its `prio` field
-read `$params->{'desc'}` instead of `$params->{'prio'}`, silently
-discarding any caller's explicit priority. Confirmed live-affected caller:
-`nshell.setup_stdin_watcher`. This likely explains why some call sites
-bypass the wrapper and call `Event->io(...)` directly instead --
-`base.event.add_io`'s prio handling couldn't be trusted, so going straight
-to `Event->io` was the working alternative at the time.
+read `$params->{'desc'}` instead of `$params->{'prio'}` -- a copy-paste
+error from the line directly above it, silently discarding any caller's
+explicit priority. Confirmed live-affected caller:
+`nshell.setup_stdin_watcher`.
+
+**Why the direct `Event->io()` calls exist -- settled.** Two theories
+ruled out first: not the prio bug (didn't exist as a deterrent reason),
+and not "the wrapper was added later" (`base.event.add_io` has existed
+since 2015, well before these call sites). `event.add_idle` (added
+`c3628410d`, 2026-04-23) turned out to be a different, unrelated wrapper
+in the same family, not the explanation either. **Actual answer**: LLMs
+writing/editing this code over time simply ignored the existing wrapper
+-- and requests to use it -- falling back to direct `Event.pm` calls
+instead of checking for/using the already-established `event.add_io`
+convention. Same class of gap as the `swap_subs` pre-swap-name mistakes
+already tracked in [[feedback-swap-subs-not-fragile]] and
+[[feedback-base-prefix-stripped]] -- check for a promoted wrapper before
+writing new code near an established primitive family, don't assume none
+exists just because the immediate surrounding code doesn't use one.
 
 Now that the bug is fixed, these direct calls should go back through the
 wrapper for consistency (single choke point for future event-core work --
@@ -137,8 +150,8 @@ from a human watching results interactively rather than a cold dispatch
 self-certifying "looks fine." Scope it further / decide dispatch-vs-
 interactive once ready to pick this up.
 
-#,,,,,,,,,,,.,.,,,.,,,..,,...,,.,,.,.,,.,,.,,,..,,...,...,.,.,.,,,..,,..,,,..,
-#CXY2ES6KIKGB6XU5YARFK3FJUER4IFTYED32WNWT2HW5FDDAQUO7WSUZTJMOLNHUGTDQHBTZD6JO6
-#\\\|7XHKKZ2B7IFVNNNN66AK35FAYVKOMCAECIJMRBARBFWP5KEAZC6 \ / AMOS7 \ YOURUM ::
-#\[7]DMJJZS5ZBB5XHA3GURMKFGRMU6UOD5UZ42WENTOAL4MF73GDIADI 7  DATA SIGNATURE ::
+#,,,,,...,,,.,.,.,...,,,,,,,.,,,.,,,,,...,.,,,..,,...,...,,.,,..,,..,,,,.,...,
+#GJH7G6IRZB556QTSYI7KXSVCB2MVLM6B65JPYVEJ26QU2YXCHDFZ4V2UKFQYGSW7E6XJK2OS6SGBU
+#\\\|TCWPU4FSFPVTKKDV5EZR6W6KH6IS3QFG6DLXOHTPBGJZBMXED5I \ / AMOS7 \ YOURUM ::
+#\[7]3E2SZSYWOOO3YOQZ2GXFJRJJLVFP6ZWDWSE2BMRZX22UX22TA4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
