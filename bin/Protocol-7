@@ -1582,14 +1582,15 @@ sub p7_load_code {
                     and $data{'base'}{'loader'}{'sub_whitelist_enabled'}
                     and not exists $wl->{$file_name} ) {
 
-                    #  direct lifecycle hooks of the current namespace get a #
-                    #  deferred stub so base.init_modules can call them      #
+                    #  lifecycle hooks anywhere under the current namespace  #
+                    #  tree get a deferred stub so base.init_modules can     #
+                    #  call them [ incl. nested swap_subs movers like        #
+                    #  base.base32.pre_init when $code_name is just 'base' ] #
                     #  all other lifecycle hooks skip silently               #
-                    if ( $file_name
-                        =~ m{\.(pre_init|init_code|post_init|end_code)$}
+                    my $lc_hook = qr{pre_init|init_code|post_init|end_code};
+                    if (    $file_name =~ m{\.(?:$lc_hook)$}
                         and $file_name
-                        !~ m{^\Q$code_name\E\.(pre_init|init_code|post_init|end_code)$}
-                    ) {
+                        !~ m{^\Q$code_name\E(?:\.[\w-]+)*\.(?:$lc_hook)$} ) {
                         next;
                     }
 
@@ -2266,9 +2267,8 @@ sub p7_load_code {
         %code           = $staging->%*;    ##  atomic swap  ##  =)  ##
         $active_version = $new_version;
 
-        $code{'log.devmod'}->(
-            sprintf '..: [%03d] code swap iteration successful =)', $load_seq
-        );
+        $code{'log.devmod'}
+            ->( sprintf '..: [%03d] code swap successful =)', $load_seq );
 
         ##  rollback window : cancel prior watcher if still active  ##
         if ( defined $prev_version ) {
@@ -2504,7 +2504,7 @@ sub p7_devmod_sub {
         my $trace_line = sprintf(
             "$colors{p7_fg_0000}. %s$colors{p7_fg_0001} "
                 . ": $colors{p7_fg_0004}%s "
-                . "[ $colors{p7_fg_0003}%s$colors{p7_fg_0000} " . "]"
+                . "[ $colors{p7_fg_0003}%s$colors{p7_fg_0000} ]"
                 . $colors{'reset'},
             $data{'system'}{'zenka'}{'name'},
             $sub_name, $param_list
@@ -5761,8 +5761,8 @@ __DATA__
 :
 :.
 
-#,,.,,,,,,,.,,,,.,,.,,..,,,,,,...,...,.,,,.,,,..,,...,.,.,..,,,..,,..,,,.,,.,,
-#KFGVLSQN7KUK2JXMVOMOOLHBBFD3NPBQO7433AVC7LZQPVK23QW4M3RZ6N3C5ZVYHCUMBTTH7YYCW
-#\\\|5TXTXYU4Q3U2UB3YI4N7G64J5C4G37XJPKSB3UNTHUHRNGRJHUM \ / AMOS7 \ YOURUM ::
-#\[7]L52DPD2G7DKARH5SS7KYM52V6UQGLHSPUXSODCLJR4WTFBPNYCBA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,..,..,,,,.,,,,,.,.,..,,...,,..,..,,...,...,...,.,,,.,,,..,,,.,,
+#7TFLC3XMVZMGOM6M6ASTQ4UK6OOB37IIWR7KAPK2TLY6PU6QAPEVZWMEJMW2H26SUBMJAFMEY3674
+#\\\|A2BNFNL7VCVVRNJTCEJZVEOIPLGFDCVP6YNGBCB5KEUTN6M27DG \ / AMOS7 \ YOURUM ::
+#\[7]FOQQLQY7CLHX5DFN3MTJFWNJAOELMWCKGKHNLDOSKZI7VAKLW2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
