@@ -13,6 +13,17 @@ my $sub_name = [<[base.caller]>]->[0];    ##  own name via filename hint  ##
 ##  bypass whitelist : deferred stubs are for non-whitelisted modules  ##
 <[base.load_runtime_modules]>->($sub_name);
 
+## self-heal swapped-namespace aliases : if $sub_name was moved by          ##
+## swap_subs before this stub ever got compiled [ e.g. base.base32.* ->     ##
+## base32.* ], the short-name key still holds this very stub and would      ##
+## recompile from scratch on every future call -- copy the freshly compiled ##
+## sub there too so it stops re-entering here                               ##
+if ( ref $code{$sub_name} eq qw| CODE | ) {
+    my $moved_to = $data{'code'}{$sub_name}{'moved_to'};
+    $code{$moved_to} = $code{$sub_name}
+        if defined $moved_to and $moved_to ne $sub_name;
+}
+
 goto &{ $code{$sub_name} }    ##  transparent hand-off on first call  ##
     if ref $code{$sub_name} eq qw| CODE |;
 
@@ -37,8 +48,8 @@ $code{$sub_name} = eval(                         ##
 
 <[base.logs]>->( 0, '..: deferred compile failed [ %s ]', $sub_name );
 
-#,,.,,,,,,.,,,...,.,.,...,,,.,..,,.,.,,.,,,.,,..,,...,...,,..,,.,,..,,..,,,,.,
-#OZUZQHASF54RIRYCWATVDBROKVEAZBQDA3R22WY232CXK2G2OADRQZFID3KPIQZEUQTA4MOVCO752
-#\\\|KKY6SUNPALDJOUTU4FQI3LWTCZUZAQOUAREJ5IGXED3HNMZQF6U \ / AMOS7 \ YOURUM ::
-#\[7]GRDQ3AV5R4UT2N63SH4AXPB3423VD5VYJLF2KUQEQFPSY2BKOEDI 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,.,,,..,,.,.,..,,.,.,.,.,.,.,,..,..,,...,...,...,.,,,,..,,.,,.,,,
+#VJOOCJHT2PL3SHTSKNI5FJVEU3NJVOWN5T7IL5XVZ4SRDLEBVZ64WR3QYZ5BK6PMOFSKYCBGCB5QY
+#\\\|WUOCLXJLKGAV22PWWXFA3L3PIGLUS35PLOQEQEFHTYFL7I5XN4Q \ / AMOS7 \ YOURUM ::
+#\[7]QAMNKOZ7X6MN4J5MJKUIOK6Z7YHX6QIS2NFIKM4RJ6FH5NJINIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
