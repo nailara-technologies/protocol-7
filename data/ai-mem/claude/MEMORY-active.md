@@ -5,7 +5,7 @@ coding & kimi zenka state machines, jobsite, streaming transport, web-browser ca
 reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active Topics
-- [v7-prio-starvation-and-ansi-corruption](topic-v7-prio-starvation-and-ansi-corruption-2026-07-25.md) — v7.zenka.start prio=>0 fixes 11yr-inert starvation bug; -vvvq ANSI chase inconclusive (likely WezTerm-side), landed real write-completion-loop fixes; base.stdout.raw_fh redirect utility IN PROGRESS
+- [v7-prio-starvation-and-ansi-corruption](topic-v7-prio-starvation-and-ansi-corruption-2026-07-25.md) — LANDED 1391ba11b: v7.zenka.start prio=>0 fixes 11yr-inert starvation bug; -vvvq ANSI chase inconclusive (likely WezTerm-side); write-completion-loop fixes + base.stdout.raw_fh redirect utility
 - [p7-text-formats-landed](topic-p7-text-formats-landed.md) — LANDED: format.kv_block (retired/kept) + format.inline-nested (promoted to base.*, show-access consolidated onto it); OPEN: yaml-config-codegen, reverse perl->p7, comment-preserving config-writer parser
 - [format-code-bugs-fixed](topic-format-code-bugs-fixed.md) — LANDED: 17 bugs/features via dogfooding; applied clean to 13 namespaces/areas incl. base/coding/models/bin; perltidy-rejoin gap + whitespace-column list style + regex-literal safety + jobsite-apply still open
 - [fake-signature-footer-detection](topic-fake-signature-footer-detection.md) — LANDED c5b78611a-adjacent: source.extract_sig_body now catches a sequential-pattern LLM-hallucinated fake footer that slipped past the existing PLACEHOLDER/size-mismatch checks; related session-37 "1 char too long" bug still open
@@ -48,8 +48,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [scratchpad-import-tool](topic-scratchpad-import-tool.md), [scratchpad-rescue-coding-zenka-task](topic-scratchpad-rescue-coding-zenka-task.md) — mcp-server-p7 scratchpad tools tested; follow-up task filed w/ kimi K3 for native coding-zenka rescue tools + chmod g+rx fix
 - [ncode-pattern-learning-loop](topic-ncode-pattern-learning-loop.md) — design, not built: two-tier mechanical/LLM pattern model, reuse existing stats/confidence fields for self-reinforcement, LLM-prefers-editing-patterns interaction model, namespace scope gating, nested-dispatch for batch-apply without confirmation storms; next step is the pattern-schema fix (steps not persisted) blocking the loop
 
-#,,,.,.,.,,..,.,,,,.,,,.,,.,.,.,,,.,.,.,.,,,,,..,,...,..,,.,.,..,,,,.,...,,,,,
-#QIB6FC7RSW7H6Q2W67ZYXW7ATASLHPWZEF4L7KETKPKSLJVJM3QN6CG4PYSXJKOCSIM77B4KGJNFI
-#\\\|OELZS27AVVMAYFU45UEAFURIBXV3GCRPTHERJEDCMTGNC6FHDQD \ / AMOS7 \ YOURUM ::
-#\[7]MF762QWVIFN5VDTHBIRQKZTEBOSWTFDOTI3AMGIKAFKEDN2QJIDQ 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,...,,,.,,.,,...,,,.,,..,,,,,,,.,..,,...,...,..,,.,,,...,,.,,.,,,
+#FQ3EVGMGUZJBNDNU3JL7MBVIWOYVD3YB2MFDIEAEAO7A3GV7HLLIGJ5WXFRQOOG5636MZN4LPFVCQ
+#\\\|P64ODACSYAG2KYJRVTPUYEB5E22J2VSLYIBKRHNZBDVU7IRRSWM \ / AMOS7 \ YOURUM ::
+#\[7]WMSDBO635DZI7GJNWKAPIDQ2IHJSLSJIVURNHAITQ5ZVMX7JD6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
