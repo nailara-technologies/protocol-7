@@ -12,22 +12,23 @@ our %data;
 our %keys;
 our %colors;
 our @INDEXCUBE;
+our $p7_devmod_sub_tracing;    ##  reentrancy guard, p7_devmod_sub  ##
 our %signatures;
 our %p7_subroutines;
-our %fh_encoding;    ## [ file handle encoding mapping ] :.
+our %fh_encoding;              ## [ file handle encoding mapping ] :.
 ##  :. $fh_encoding{fileno($fh)} = 'UTF-8'|'OCTETS'|etc .:
 
-my %CODE;            ##  versioned code store  ##
-my $active_version;  ##  currently active version key  ##
+my %CODE;                      ##  versioned code store  ##
+my $active_version;            ##  currently active version key  ##
 
 p7_load_time_hires();
-p7_security_hardening();    ##  initializing @INC with local lib-path  ##
+p7_security_hardening();       ##  initializing @INC with local lib-path  ##
 p7_load_perl_modules();
 
 ##[ global constants ]##
-use constant TRUE    => 5;    ##  TRUE.  ##
-use constant FALSE   => 0;    ##  false  ##
-use constant UNKNOWN => 2;    ##  unknown  ##
+use constant TRUE    => 5;     ##  TRUE.  ##
+use constant FALSE   => 0;     ##  false  ##
+use constant UNKNOWN => 2;     ##  unknown  ##
 
 # is protocol 7 code? #
 our $PROTOCOL_SEVEN = TRUE;    ##  TRUE  ##
@@ -2366,6 +2367,16 @@ sub p7_devmod_sub {
 
     return if $data{'system'}{'verbosity'}{'console'} < 2;
 
+    ## reentrancy guard : anything this sub calls [ base.s_write,           ##
+    ## base.stdout.raw_fh, or whatever gets added to the write path next ]  ##
+    ## is itself a traced sub under verbosity>2 and would call back in here ##
+    ## -- name-based exclusion lists proved fragile [ missed twice ], this  ##
+    ## blocks *any* reentrant call unconditionally instead. 'local' [ not   ##
+    ## 'state'/'my' -- those can't be localized ] auto-resets on every exit ##
+    ## path, including an unexpected die                                    ##
+    return if $p7_devmod_sub_tracing;
+    local $p7_devmod_sub_tracing = TRUE;    ##  true  ##
+
     my $sub_name = shift @ARG;
 
     ## $code{'base.collect_sub_stats'}->($sub_name); #<--replace touch_dir
@@ -2480,18 +2491,54 @@ sub p7_devmod_sub {
              )
         }gxe if defined &{'encode_b32r'} and defined &Digest::JHash::jhash;
     ## [ LLL ] ids need to become resolvable + devmod command ..,
-    say sprintf(
-        "$colors{p7_fg_0000}. %s$colors{p7_fg_0001} : $colors{p7_fg_0004}%s "
-            . "[ $colors{p7_fg_0003}%s$colors{p7_fg_0000} ]"
-            . $colors{'reset'},
-        $data{'system'}{'zenka'}{'name'},
-        $sub_name, $param_list
-        )
-        if $sub_name ne qw| base.log |
-        and ( $sub_name ne qw| base.buffer.add_line |
-        or $ARG[0] ne qw| zenka | )    # skipping too much output ..,
+    if ($sub_name ne qw| base.log |
+        and (  $sub_name ne qw| base.buffer.add_line |
+            or $ARG[0] ne qw| zenka | )    # skipping too much output ..,
         and $sub_name ne qw| base.dump_data |
-        and defined fileno( \*STDOUT );
+        and $sub_name ne qw| base.s_write |       ## called BELOW to emit this
+        and $sub_name ne qw| base.stdout.raw_fh | ## trace line -- tracing
+        ## either one too is infinite recursion ##
+        and defined fileno( \*STDOUT )
+    ) {
+
+        my $trace_line = sprintf(
+            "$colors{p7_fg_0000}. %s$colors{p7_fg_0001} "
+                . ": $colors{p7_fg_0004}%s "
+                . "[ $colors{p7_fg_0003}%s$colors{p7_fg_0000} " . "]"
+                . $colors{'reset'},
+            $data{'system'}{'zenka'}{'name'},
+            $sub_name, $param_list
+        );
+
+        ## this call site only -- every other 'say'/print in bin/Protocol-7 ##
+        ## is untouched. loop on syswrite instead of trusting a single      ##
+        ## 'say' to complete -- a short/interrupted write into this pipe [  ##
+        ## read by v7.handler.zenka_output on the other end ] would         ##
+        ## previously drop the remainder silently.  base.stdout.raw_fh      ##
+        ## gives an unlayered, redirectable write target -- see             ##
+        ## data/md/design/STDIO-MULTIPLEX-PROTOCOL.md                       ##
+        if (    exists $code{'base.s_write'}
+            and exists $code{'base.stdout.raw_fh'} ) {
+            my $raw_fh = $code{'base.stdout.raw_fh'}->();
+            if ( defined $raw_fh ) {
+                my $out_str    = $trace_line . "\n";
+                my $str_offset = 0;
+                my $out_len    = bytes::length($out_str);
+                while ( $str_offset < $out_len ) {
+                    my $written = $code{'base.s_write'}->(
+                        $raw_fh,                \$out_str,
+                        $out_len - $str_offset, $str_offset
+                    );
+                    last if not defined $written or $written <= 0;
+                    $str_offset += $written;
+                }
+            } else {
+                say $trace_line;
+            }
+        } else {
+            say $trace_line;    ## before base.s_write/raw_fh is loaded ##
+        }
+    }
 }
 
 ##############################################################################
@@ -5714,8 +5761,8 @@ __DATA__
 :
 :.
 
-#,,..,,.,,.,,,.,,,,..,,.,,...,.,.,.,,,..,,.,,,..,,...,...,..,,,,.,,,,,,,.,,.,,
-#W4XX56M6GWYDA4QPA5PL73VNISQRJ7ALADSSFG2PHWSZFCYKATDKPEQ6CIW7NU63KA6HAAEYFQUQS
-#\\\|EQ3G6IFW37NES4W2L5MYZGHASVID3Y3RZCM4DQCNV3KZH2QIWY5 \ / AMOS7 \ YOURUM ::
-#\[7]NXFMBRVBK24DOROIAHEKE32XZZGQ46C42QUQVQST3THXFT6CTKCA 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,,.,,.,,..,,,,,,...,...,.,,,.,,,..,,...,.,.,..,,,..,,..,,,.,,.,,
+#KFGVLSQN7KUK2JXMVOMOOLHBBFD3NPBQO7433AVC7LZQPVK23QW4M3RZ6N3C5ZVYHCUMBTTH7YYCW
+#\\\|5TXTXYU4Q3U2UB3YI4N7G64J5C4G37XJPKSB3UNTHUHRNGRJHUM \ / AMOS7 \ YOURUM ::
+#\[7]L52DPD2G7DKARH5SS7KYM52V6UQGLHSPUXSODCLJR4WTFBPNYCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
