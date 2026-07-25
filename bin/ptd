@@ -164,7 +164,14 @@ exit( $check_only && $had_error ? 1 : 0 );
 sub real_syntax_errors {
     my $file_path = shift;
 
-    my @perl_c_output = qx{ perl -c "$file_path" 2>&1 };
+    ## -Mfeature=:5.24 : P7 modules have no 'use v5.10'/'use feature' of   ##
+    ## their own [ no standard 'use' header, custom [:< format instead ],  ##
+    ## so a bare 'perl -c' doesn't recognize 'state'/'say'/etc and         ##
+    ## misparses everything after the first use -- the colon-prefixed      ##
+    ## version bundle enables the full modern feature set WITHOUT the side ##
+    ## effect plain '-Mv5.24'/'use v5.24' has of also turning on strict,   ##
+    ## which these files were never written to pass                        ##
+    my @perl_c_output = qx{ perl -Mfeature=:5.24 -c "$file_path" 2>&1 };
     my @real_errors;
     for my $line (@perl_c_output) {
         ## p7 data/module macro syntax [ <data.key>, <[module.name]> ] ##
@@ -258,8 +265,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,..,...,,..,.,,,,,.,,..,,,,,.,,,.,.,,,,,.,.,..,,...,...,,,.,..,,,,,,.,,,,.,,
-#O646Z45DDNDGNUUWICTWI66RXG5ZVL6LRWBZ5PFJZIGZKC5XNGFPAL6HVLHSLPRJZIMFEFR2R4NK2
-#\\\|T73FBOE3VXLP7AMBOIMSAN5DGJEO3B3QPTK5SA3FTBUP23V6G6P \ / AMOS7 \ YOURUM ::
-#\[7]TUFJVWBBNAUR6MV6UG7YHV4MBXGKPXIWNGNVRJ2YATSAXR7LIIDQ 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,.,,,..,,,..,.,.,,,,,...,..,,,,,,..,,...,..,,.,.,,..,..,,,,.,,.,,
+#D3X6D6HBRAP5JQKL52FB7G75OOHKB5HYP52J3O4BJAHPD44MM336DWLEJPIVZXS5BQTUVYJ3OBCW6
+#\\\|Y5IJMCKNHAIJFMJX4YTZ265ALP6PPU7OIWGCFGCYO7UQ3EYF4CW \ / AMOS7 \ YOURUM ::
+#\[7]3HA5VFQYEFAWROS6N6AI5QAFCEHDAOEBGPOCAE4X7MMXDGVUR4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
