@@ -342,6 +342,16 @@ while ( not $asserted_true and $iterations_left ) {
 
     $calc_result_href = <[source.fill_source_template]>->($sign_params);
 
+    ## route through -- not consumed elsewhere in this function [ likely    ##
+    ## why they weren't previously exposed here ], but a caller needs the   ##
+    ## exact checksum + the exact fixed header line it was computed from to ##
+    ## re-verify against disk content later without re-running the          ##
+    ## iterations-remaining search [ see sourcecode.console.                ##
+    ## update-signatures' pre-write verification ]                          ##
+    $calc_result_href->{'data-chksum'} = $sign_params->{'data-chksum'};
+    $calc_result_href->{'first-header-line'}
+        = $sign_params->{'first-header-line'};
+
     if ($check_partial_signature) {
         ## signature substrings seperately ##
         foreach my $sig_part (qw| sig-part-0 sig-part-1 |) {
@@ -439,8 +449,8 @@ if ( not $iterations_left ) {    ## warn about failed harmonization ##
 
 return $calc_result_href;        ##  return harmonized result data href  ##
 
-#,,..,.,.,.,,,.,.,,.,,,,,,,,,,,..,.,,,.,.,...,.,.,...,...,..,,.,.,..,,,,,,..,,
-#U2GMOOB4TDWSPAM5MQZHU4P2TFXY3D2CF36WIYKOYOEPLXUVPKTXKK72XAAUE52USMKNFQWHSTYEK
-#\\\|TDKHSA6X4PI33FCJVSWM3IA3WXAUGXNOQSDAWJPTCFPZQJGMLM6 \ / AMOS7 \ YOURUM ::
-#\[7]FDYC2UUJOPJ3V6ENQTQUZE3LJDZXAF5UBRFRZIOFX4G7CLO2NKCY 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,...,,..,,.,,..,,...,...,,..,,..,.,.,...,..,,..,,...,,..,,.,,..,,
+#RVT54BE2MSSAFBVTRGSMTJ7LF7UBA6BGZJBNLC2BJRFENSCGIYTDBAMUAXEECYMFMQ5AGIJ3NMHNY
+#\\\|YQAMOYJ6K5CYQC732HHMXEZPEZUHFW754ICHY5VD3ZEJQ4F3UB3 \ / AMOS7 \ YOURUM ::
+#\[7]SR5ZMHFOYTBBUY76EBVGF7UAJOKIHVHDVR65IEWCJ3WZC6KKA4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
