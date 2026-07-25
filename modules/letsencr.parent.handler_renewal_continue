@@ -118,8 +118,8 @@ foreach my $domain ( keys %domains_map ) {
 
 if ( @new_domains > 0 ) {
     <[base.logs]>->(
-        2, 'found %d new domains needing certificates',
-        scalar(@new_domains)
+        2,                    'found %d domain%s with no certificate yet',
+        scalar(@new_domains), <[base.cnt_s]>->( scalar(@new_domains) )
     );
     ## TODO: implement automatic enrollment for new domains  for now, just log
     ## that they need certificates
@@ -129,8 +129,8 @@ if ( @new_domains > 0 ) {
 
 return TRUE;
 
-#,,,.,..,,,,.,,.,,.,,,,,,,.,.,.,,,.,.,,,.,,..,..,,...,...,.,,,,,,,.,,,,..,.,.,
-#57YB6LNLEF65EOKSDPGFTC5WJGBQM5P5APIFELQSE3IODOQNMEFV2EEF55KIGIOHWFGGTJR66ADBS
-#\\\|BL23VCQDEPPOPFOT7VIJNU5KM5HO672I47ZD3VAQL6ELJO6MFIO \ / AMOS7 \ YOURUM ::
-#\[7]IHVB6JPALOMEPPQUEWTRYDUHPSC7PEPAJRO5FCWXNXABTRCDGGDY 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,.,,,,,,,,,,.,.,..,,...,...,...,..,,...,...,...,,.,,.,.,,,,,...,
+#AN47PP7ZNAP34XXAEWNC3ZABTRQPVJLMCB3ZKH5LQT2QZ6YVLRUK4B6LPFZOLE42SJ42QWXFAR6XS
+#\\\|XEKP25FU2SHUXIHKJ4GQAVKDFJXJ43T5JRSJWCDPS5LXPRIO5NR \ / AMOS7 \ YOURUM ::
+#\[7]T5JB3E3MQMCLTHV4QOXBZ3DBWBEYPMTCX7M3OVGM3YTR465YDQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

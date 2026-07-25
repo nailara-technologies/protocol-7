@@ -67,6 +67,12 @@ my @perltidy_args = qw|
     |;
 @perltidy_args = grep { $ARG ne qw| -utf8 | } @perltidy_args if $no_utf8;
 
+## check-only mode : discard output, no backup, no in-place modification ##
+if ($check_only) {
+    @perltidy_args = grep { $ARG !~ m{^-b} } @perltidy_args;    ## -b -bext
+    push @perltidy_args, '-o', qw| /dev/null |;
+}
+
 my $perltidy_bin;
 if ( not $no_ptd ) {
     $perltidy_bin = which qw| perltidy |;
@@ -113,6 +119,56 @@ while ( my $file_path = shift @files ) {
         if ( $new_text ne $orig_text ) {
             print color_msg( 'would reflow', $file_path, $NEON_orange );
         }
+
+        ## write preprocessed text to a throwaway temp file so perltidy [   ##
+        ## '-o /dev/null' , set above ] and real_syntax_errors have         ##
+        ## something on disk to check -- same rationale as ptd -- perltidy  ##
+        ## alone doesn't reliably catch real syntax errors, and this tool   ##
+        ## needs to stand on its own as a syntax check without depending on ##
+        ## ptd being installed at all                                       ##
+        my $dir      = dirname($file_path) || qw| . |;
+        my $chk_file = "$dir/.chk." . basename($file_path);
+        if ( -e $chk_file ) {
+            warn color_msg( "temp file collision [ $chk_file ]", $file_path );
+            next;
+        }
+        open my $chk_fh, '>', $chk_file or do {
+            warn color_msg( lcfirst $OS_ERROR, $file_path );
+            next;
+        };
+        binmode $chk_fh, qw| :raw |;
+        print $chk_fh( $no_utf8 ? $new_text : encode_utf8($new_text) );
+        close $chk_fh;
+
+        if ( not $no_ptd ) {
+            ReadMode TRUE;
+            no warnings;
+            my $rc
+                = eval { system( $perltidy_bin, @perltidy_args, $chk_file ) };
+            use warnings;
+            ReadMode 0;
+            sleep 0.13;
+
+            if ( not defined $rc or $rc != 0 ) {
+                my $err_msg
+                    = lcfirst( $OS_ERROR // $EVAL_ERROR
+                        // 'perltidy ' . 'failed' );
+                warn color_msg( $err_msg, $file_path );
+                unlink $chk_file;
+                next;
+            }
+        }
+
+        my @real_errors = real_syntax_errors($chk_file);
+        if (@real_errors) {
+            my $detail = join( '', @real_errors );
+            chomp($detail);
+            warn color_msg( $detail, $file_path );
+        } else {
+            print color_msg( 'syntax ok', $file_path, $NEON_green_yellow );
+        }
+
+        unlink $chk_file;
         next;
     }
 
@@ -1167,6 +1223,42 @@ sub collect_quote_tokens {
 }
 
 ##[ shared utilities adapted from bin/ptd ]##
+
+##[ run perl -c and strip P7-specific false positives, return real errors ]##
+## ported from bin/ptd -- not required to stay in lockstep with it going ##
+## forward, this tool's own syntax reporting may grow independently      ##
+sub real_syntax_errors {
+    my $file_path = shift;
+
+    ## -Mfeature=:5.24 : P7 modules have no 'use v5.10'/'use feature' of   ##
+    ## their own [ no standard 'use' header, custom [:< format instead ],  ##
+    ## so a bare 'perl -c' doesn't recognize 'state'/'say'/etc and         ##
+    ## misparses everything after the first use -- the colon-prefixed      ##
+    ## version bundle enables the full modern feature set WITHOUT the side ##
+    ## effect plain '-Mv5.24'/'use v5.24' has of also turning on strict,   ##
+    ## which these files were never written to pass                        ##
+    my @perl_c_output = qx{ perl -Mfeature=:5.24 -c "$file_path" 2>&1 };
+    my @real_errors;
+    for my $line (@perl_c_output) {
+        ## p7 data/module macro syntax [ <data.key>, <[module.name]> ] ##
+        ## triggers glob-modification false positives under perl -c    ##
+        next if $line =~ m{Can't modify glob in .*assignment};
+        ## cascading noise once compilation aborts on the line above   ##
+        next if $line =~ m{BEGIN not safe after errors};
+        next if $line =~ m{syntax OK\s*$};
+        next if $line =~ m{^\s*$};
+        push @real_errors, $line;
+    }
+
+    ## remove trailing "had compilation errors" if it's the only line left ##
+    if (    @real_errors == 1
+        and $real_errors[0] =~ m{had compilation errors\.?$} ) {
+        @real_errors = ();
+    }
+
+    return @real_errors;
+}
+
 sub color_msg {
     my $err_msg   = shift;
     my $file_path = shift;
@@ -1225,8 +1317,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,,,,,,.,.,.,,,,,.,,,,..,..,,.,.,,.,,...,.,,,..,,...,...,,.,,,,.,...,,,,,,.,,
-#4DWCLM6DS3QWQWPF36ZPOGBWI3HO5UIJKXKCDH26GHHFW4FIVPKDX7X6Q5O7PXCH3X5HDYP2Z45CS
-#\\\|KOB5264TNMW6KHPYT5X3OPJHHMDWSXZNDV7SVAKNMDV4UIDIBT3 \ / AMOS7 \ YOURUM ::
-#\[7]CK6VJJVZIM56XEL4RR64ODS5TZYO2X7KQGY363TTI6XQZZTG7UDQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,.,.,,.,,,,.,,.,,..,,.,,,.,,,.,,,..,,...,...,.,.,.,,,.,.,,,.,,.,,
+#GJ2XADO35UI7UWK2SRD2PSGNC76JL3WYSFB76PPPDY5PAG2VA4DXY6ENH7JHYEBJL23JK767XSS5E
+#\\\|TM5STGPZ74FF4MUHRY2I4NUFKX2UYVEV5RYKYKGQPVV3K3CPZV5 \ / AMOS7 \ YOURUM ::
+#\[7]7WHA7D4IF45WMLDQYQLJ5VVBMYEXFFK6JKRPLGDJWD2ZHWOY2WBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
