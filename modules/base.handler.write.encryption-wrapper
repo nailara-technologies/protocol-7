@@ -24,11 +24,6 @@ if ( not defined $session->{'link_encryption_key'} ) {
     return $$output_ref;
 }
 
-## Load cipher module if not already loaded
-if ( not <[base.perlmod.loaded]>->('Crypt::AuthEnc::ChaCha20Poly1305') ) {
-    <[base.perlmod.load]>->('Crypt::AuthEnc::ChaCha20Poly1305');
-}
-
 my $plaintext = $$output_ref;
 
 ## Increment message counter for write side (before any operation)
@@ -72,8 +67,8 @@ return $ciphertext // '';
 
 1;
 
-#,,,,,..,,.,,,...,,.,,,.,,,..,...,,,.,,..,.,.,.,.,...,.,.,...,..,,.,.,..,,...,
-#7CWX2FFCCR4YZO4F334HMTMWCA5KNKXN2BNHMFXLQLQGD2YFLWAD62KUOZTMAT6AE2JKUMXYWXM76
-#\\\|CDRNUOORMD2NXT5IKZPMYWPPHALUW6VL57O5JL3JW7I3MLJLL2J \ / AMOS7 \ YOURUM ::
-#\[7]HQG6GUFICCRNZP3M3A7H5KWL5THXEILECEKT7DV2IHZNZEPRAUCQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,.,.,...,..,,,.,,..,,.,,,...,...,.,.,...,...,,,.,,,.,...,,..,,,,,
+#6TC5ET5LFVYHPVYRL5SFTO6P3SNVKPV36AZ7HNR53Q7DVOEPN4W6QEMRCDPOMQ6IGNIB5CFLBFQ6G
+#\\\|QIIWOSW7J7SJHNXFPACNQO4OOYLFKKTE2H2NLEKFW4VCRUCX7BK \ / AMOS7 \ YOURUM ::
+#\[7]GGSWPJPYTJURINU7HCT4KTS7NUZBCEWDFPNUGCBYTDIHSVD3VYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
