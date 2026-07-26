@@ -43,8 +43,27 @@ via scripts is safer and provides audit trail.
 **Why:** prior incident where invoke UI deletion wiped multiple models due to
 shared directory traversal under the old verbose-path storage scheme.
 
-#,,..,..,,.,.,,..,.,,,,,.,..,,...,,..,.,.,.,,,..,,...,...,...,,..,,.,,...,,..,
-#T7QL6TONP3C4QLTZFOBGBMXLMYM57CTZCGADEPRLTEXW62AX4WR3JCCWHPYPU2OT6B4O45PEMO5O4
-#\\\|TMFZHRCMPBH5RN2MHZK4TJ6XELEFOC5WVXJ5FDMJB3SACGKZ2Q6 \ / AMOS7 \ YOURUM ::
-#\[7]7N5FBGCQQAUCY7EPKZWOOTB4UYG3PQ7XAQ3AVNHZYGQ2AUPAGGBI 7  DATA SIGNATURE ::
+## origin of DBI/DBD::SQLite in .deps/profiles.yaml's `tools` profile (2026-07-26)
+
+`tools` installs `DBI`/`DBD::SQLite`, but `modules/` (the actual zenka
+codebase) has zero references to either — confirmed via grep. Root cause:
+InvokeAI itself stores its model registry in a SQLite DB, and reading it
+(model list/inspect, the tooling described above,
+`models.storage.adapter.invoke.discover`, `bin/scripts/invoke-ai/*`) needs
+DBI/DBD::SQLite dev-side, not for any zenka runtime need. This is also
+very likely the origin of `.deps/profiles.yaml`'s old `development` profile
+name (renamed to `basic-remote-server` this session,
+[[bug-inline-elf-perl-version-infinite-loop]]'s sibling commit) — a bundle
+that grew around AI-model dev-tooling needs rather than being designed
+around what a deployed zenka actually requires.
+
+**How to apply:** if `tools`' apt/cpan list ever looks over-scoped for
+"utility tools and scripts" again, check whether the actual justification
+is a zenka need or an invoke.ai/model-management dev-tooling need before
+assuming it's dead weight to prune.
+
+#,,,,,,,,,.,.,.,.,.,,,,,,,...,.,,,,.,,..,,,..,..,,...,...,...,.,.,,,.,.,,,,.,,
+#OIGERXB6GANBYCYI674VSSOW7QNBQCVI73TS2UQPRKZ6CHVWJ7UXPT4HU3C7UVEMYSZ57PFDAB7X2
+#\\\|Q5P3UQ65BG36MCZLX3TQU7REDUGCTORZZGE24VQDTPNWE3KYORO \ / AMOS7 \ YOURUM ::
+#\[7]4D32RER2NEYZ7Y57GKEVJMYSSWTV7255MFLY43HHRG2IB2ABOQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
