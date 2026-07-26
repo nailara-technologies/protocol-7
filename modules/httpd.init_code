@@ -4,7 +4,11 @@
 # todo = check for shared-mime-info, handle absence and also hashing at start..,
 
 <[base.perlmod.autoload]>->('URI');
-<[base.perlmod.autoload]>->('HTTP::Date');
+## explicit import list : default export set also includes str2time, which ##
+## this namespace never calls -- importing it anyway collided with         ##
+## httpsd.check_certificate_available's Date::Parse::str2time              ##
+## [ differently prototyped, same process via shared httpd route table ]##
+<[base.perlmod.autoload]>->( 'HTTP::Date', qw| time2str | );
 <[base.perlmod.autoload]>->('HTTP::Request');
 <[base.perlmod.autoload]>->('URI::QueryParam');
 <[base.perlmod.autoload]>->('File::MimeInfo::Magic');
@@ -126,8 +130,8 @@ if (<httpd.cfg.uploads_enabled>) {
 
 0;
 
-#,,..,..,,,.,,.,.,.,,,,.,,,.,,.,.,,,,,,,.,.,,,..,,...,...,,,.,..,,.,.,,,,,.,,,
-#PIOPHME5RQ2NUTPFV5FNQDXXOL2FQOUHHAUNCXEPZHIEBPP6VL5GBS7E5A35EVJVR3UHUGWUYJQYS
-#\\\|XHIWLLR6ONX5JWLJ5ROVSDKHINKEEXYU4UZCMXSJUVMRERXA5OG \ / AMOS7 \ YOURUM ::
-#\[7]3A5XJS2X6234BJBHMNXU3JID4BEEXDCMGLMBVRDZKHHB4AEA6YAI 7  DATA SIGNATURE ::
+#,,,.,...,,..,.,.,.,,,,.,,,..,,,,,..,,.,.,..,,..,,...,...,,..,...,,,,,.,.,,.,,
+#SQOGLXFHSDLY4GP5DH5XZDUKCO7I7V56XT3NGURLB3YOCGW5X3SJQF5CVGGKK5NEJUZOTUQTHCDGK
+#\\\|TCO2HOIILJESVBX6O4CKBCL5VUBFGEPBMGKSMD36CDJPSF2IYGS \ / AMOS7 \ YOURUM ::
+#\[7]O7HAF2JBL3EDXIIGZF3YVMC4VN72MQ4EGO4ZJVAUSEG26ZQLVWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
