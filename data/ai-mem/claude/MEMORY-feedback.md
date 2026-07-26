@@ -43,6 +43,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [design-ideation-capture](feedback-design-ideation-capture.md), [coding-timeout-restart-loop](feedback-coding-timeout-restart-loop.md) — offer spin-off docs
 - [swap-subs-not-fragile](feedback-swap-subs-not-fragile.md) — base.swap_subs whitelist itself isn't fragile; real gap was missing canonical doc of active swaps AND (corrected 2026-07-25) the loader's own nested-lifecycle-hook coverage, see [[bug-swap-subs-nested-lifecycle-hook-gate]]
 - [swap-subs-nested-lifecycle-hook-gate](bug-swap-subs-nested-lifecycle-hook-gate.md) — RESOLVED e90dd04ae: base.<X>.pre_init (base32, chk-sum.bmw, ...) never got a stub when un-whitelisted, so swap_subs never ran and short-name call sites crashed instead of deferred-compiling; also fixes deferred_compile self-recompile loop + register_src_deps ancestor collapse
+- [perlmod-load-noise-is-intentional](feedback-perlmod-load-noise-is-intentional.md) — base.perlmod.load's "skipping already present" log noise is a deliberate nag to find/fix redundant per-call loads, not a bug to silence; load vs autoload differ only in export behavior, not timing -- placement (init_code vs per-call handler) is the real eager/lazy axis
 - [init-reports-one-shot-flush](feedback-init-reports-one-shot-flush.md) — system.init_reports flushes once at connect only; deferred-reply/live-runtime sends need system.callbacks.initialized or direct route-send instead
 - [undef-sub-scanner-verification](feedback-undef-sub-scanner-verification.md) — check eval-wrapping/guards + grep for sprintf-constructed dynamic dispatch before renaming anything; scanner has zero reachability analysis
 - [v7-zenka-startup-config-placement](feedback-v7-zenka-startup-config-placement.md) — zenka-startup.v7 keys must be top-level not inside a ':' section, or v7 never sees them; v7.reload config doesn't re-parse the file, need v7.reload all/init
@@ -51,8 +52,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [kimi-dispatch-idle-timeout-recovery](feedback-kimi-dispatch-idle-timeout-recovery.md) — MCP 1800s-idle "failed" ≠ dispatch failed; underlying process often finishes fine, recover via session_catchup(client:kimi, session_id) not re-dispatch
 - [posix-group-write-precedence](feedback-posix-group-write-precedence.md) — chmod-child grants need | 0020 (group-write) not | 0002 (other-write); a process that's a supplementary-group member of the file gets checked against group bits only, other bits never consulted; write_with_perms still has this bug live
 
-#,,..,..,,,.,,,,,,...,,,.,,..,,.,,,..,,,,,.,.,..,,...,...,..,,,..,..,,...,,..,
-#YGCEPLYTWLNI4URUX6PA2CPUQFXADQIKJVN6LWFFXJCQGELMSIQ3COTQF7G6AWTSNBVQ57HZH5RCS
-#\\\|UERPRSPA6MK4TEVDJ55DE54C7F53RK5ULEGIR6XFZNIUSA7QB7I \ / AMOS7 \ YOURUM ::
-#\[7]PNXK6C7QWEOFW5GFUFTP56R5NKXLQT4WBPQRSE5BB5YGE6ILKECI 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,..,...,,..,,..,,,,,...,..,,...,..,,...,..,,.,.,...,...,.,,,...,
+#ER6AJPVNZXXTHJUWYXHXGFZCSB655RUWAZEJN6ZC766DI3MFUVBOM76PMBOGJJ6SW55QWACTOMEF4
+#\\\|RMFADHYUKRC6QAQADRTXFUBTI23QWFXANNHPKCE2LGUT3VT43CI \ / AMOS7 \ YOURUM ::
+#\[7]APTE2SIBCU5WQQQGGC7UIX6T2RBUJROV5G4PR5MUQ6ZKPEQMJYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

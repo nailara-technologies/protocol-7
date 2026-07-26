@@ -40,9 +40,10 @@ network-as-computer, dedup-tree unification, coding-as-artform / style-philosoph
 - cold-queue-gpu-cooldown-trigger (`data/tasks/task-zenka-cold-queue-gpu-cooldown-trigger.md` in repo, not memory) — task zenka should gate deferred background work on live GPU-temp cooldown, not a guessed debounce; full Opus implementation plan already written; motivating anecdote was debunked but design stands independently
 - [zenka-name-routing-modes](topic-zenka-name-routing-modes.md) / `data/tasks/zenka-name-routing-modes.md` in repo — per-zenka routing_mode (default contact-oldest) + permissioned session-scoped admin override commands for bare-name ambiguity; idle-longest = free worker-pool load balancing
 - [subname-not-a-trust-domain](topic-subname-not-a-trust-domain.md) — user[taeki]/user[claude]/user[root] scoped/severity-judged per resolved name[subname] pair, same as distinct top-level zenka names; bare-name grants implicitly span every subname beneath
+- [post-bootstrap-load-window](topic-post-bootstrap-load-window.md) — SEED: defer perl-module/subroutine loads to just after boot subsides, but preempt immediately on early real use, self-optimize later via dep-graph+timing stats; generalizes deferred_compile's existing self-heal pattern to CPAN deps; not implemented, zero deferred perl-module loading exists today
 
-#,,..,..,,,..,...,.,,,,,,,,,.,,..,,.,,,,.,,,.,..,,...,...,..,,,,.,,..,,.,,.,.,
-#EPZICFTI26OITUKX5QHJMRBW7Q3EZPTWHN3MX55UFDEGS4GMXWGFLXGXSQDXQXWWKFCUBCGKN3NYS
-#\\\|ZLTS2DPCDEGJURO2YWGPRU2ZGFBGB5H7I3TYCE7DVPXVHN5NC62 \ / AMOS7 \ YOURUM ::
-#\[7]SP7K56T3IMT7NTOXPMU5EM72IF3OXWJ57E666LRTYHJTVUKD5ICY 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,...,,,.,.,.,...,,,,,,.,,.,.,...,..,,...,...,..,,...,,.,,...,.,.,
+#HRE24VZXP7GVDFYUZWHYWGLXCUEO4VVXSCSZFFRRJB5LW3RFJUMW7USZC7AAV4FD5WXFDBCG3P4TU
+#\\\|5ZTVM5ZD73W3A6RWBUVUATSV4L57R2L43MKD6XD7AKKWVYHY32R \ / AMOS7 \ YOURUM ::
+#\[7]NSCNMGLAAFPCNYPLGHMMMIE6QFOT6GE4C57YRORTYNJW4WY4VIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
