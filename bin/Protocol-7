@@ -1392,6 +1392,12 @@ sub p7__dump_core_subs {
 
 ##############################################################################
 
+## a dependency-free copy of this sub also lives at                         ##
+## data/lib-path/pm/AMOS7/Protocol/P7Syntax.pm, used by bin/dev/ptd and     ##
+## bin/format-code to translate P7 macro syntax before running 'perl -c' -- ##
+## not shared with THIS copy on purpose: this one runs during bootstrap,    ##
+## before 'use lib' for data/lib-path/pm can be relied on, so it must stay  ##
+## fully inline here. keep both copies in lockstep by hand if this changes  ##
 sub p7_syntax__translate
 {    ## p7 syntax -> perl [ becomes base.syntax.translate ]
 
@@ -2452,6 +2458,14 @@ sub p7_devmod_sub {
             and $sub_name eq qw| v7.stdout_log.write |
             and $hide_log_write ) {
             @_p = (qw| <..log_msg..> |);
+        } elsif ( $sub_name eq qw| base.code.call_expected |
+            and defined $_p[1]
+            and $_p[1] eq qw| v7.stdout_log.write |
+            and $hide_log_write ) {
+            ## same call target as the branch above, just reached through  ##
+            ## the call_expected wrapper -- collapse only the rendered log ##
+            ## line [ index 2 ], keep condition/target visible for context ##
+            @_p = ( $_p[0], $_p[1], qw| <..log_msg..> | );
         } elsif ( $sub_name eq qw| base.log.format_entry |
             and $hide_log_write ) {
             @_p = ( qw| <..log_msg..> |, qw| <.colors.> | );
@@ -5765,8 +5779,8 @@ __DATA__
 :
 :.
 
-#,,.,,.,.,,.,,,,.,.,.,,.,,,,.,,..,,.,,...,.,,,..,,...,...,.,.,,.,,,,,,.,.,,.,,
-#FUPMW4I2TGMYCBP2SFJJJTKE6V3CU4ASK6YAPZGS65EIUCBA4V5NTLN5Z3GQTAG3JUSZRQXO57J4O
-#\\\|EHICTUIXXA2QPUSWXGXNSMYQQVNUVWUUOCZVIJQ7FOLQ752HXSA \ / AMOS7 \ YOURUM ::
-#\[7]2QO5VLHTVMLNMHEQT53576RKT6O4E55DK3IM6H5K2BOAFGF5JUCQ 7  DATA SIGNATURE ::
+#,,..,.,,,...,,,.,,..,,,,,,..,,.,,.,,,,.,,.,,,..,,...,...,,,,,.,,,,,.,,.,,,,,,
+#YYR6ROFQTKV7ANQT7JSPJL5ZAQOTTEAR2CQYMOQH76XQDWV5226IBWHHGY7WGJARY3GMKF32WOUHS
+#\\\|UUJBGTDUE6QYTXVBE7CNAIUAHMGSWTXRLAARJOABHFZVMAJPBOI \ / AMOS7 \ YOURUM ::
+#\[7]XL5N5233MNFAZQIPQ4IDI4HOQCN6TVDFCTO3TS54SGELYI2E66BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
