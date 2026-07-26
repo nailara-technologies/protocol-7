@@ -11,6 +11,11 @@ my $first_init          = $already_initialized ? FALSE : TRUE; ## ^ inverse ##
 
 ## load json parser modules [without importing] ##
 map { <[base.perlmod.load]>->($ARG) } qw| JSON::XS JSON::PP |;
+## load once here, not per call in coding.tools.handler.perltidy -- calling ##
+## base.perlmod.load() there on every tool call would still be a no-op      ##
+## after the first, but logs "skipping already present .." noise each time  ##
+## at log level 2                                                           ##
+<[base.perlmod.load]>->(qw| Perl::Tidy |);
 ## load all additionally used perl modules ##
 map { <[base.perlmod.autoload]>->($ARG) } qw[
     Cwd
@@ -604,8 +609,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,..,.,,,,..,,..,...,,.,,,..,,,.,,,,,.,,,,.,,.,.,...,..,,..,,,,,,,,.,.,.,,,,,
-#GPQB5DCTNOT5RTTPIHTTCZVRMRPXTKNO3YC5MSCLK4IVANUJTVB3SK556IUUDZ44W55GXV2CAID3I
-#\\\|DZR5NVO42ZKAFO6UKXAYQNRU6QKKCMNTTIEL4CKZ37G7Y5WVAHX \ / AMOS7 \ YOURUM ::
-#\[7]KFUPYJZ7YLCFHZJV5IG2ME7FUFGXPTKM5ZGUDQBWI4KDNPSZHADI 7  DATA SIGNATURE ::
+#,,,,,,..,...,,.,,...,.,.,,,,,.,.,..,,,,.,,..,.,.,...,..,,.,,,..,,,..,.,,,,.,,
+#ROQD2KTNTHAWQUDV5THCEE5NTKFSGT4LCZQDEGGZ367FJI3FJYQCSBBEFRWJRQAWRJ56UXOVWNIUM
+#\\\|332KGWLIRRP46UZTN42U5UV2HVO52PETD3Q44C4KJKPRMYI3CXJ \ / AMOS7 \ YOURUM ::
+#\[7]SA42SCGQR6FWJWB2NXXGBOWJFCQUGIH3PTSD6CR5BHB7CCKHO6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

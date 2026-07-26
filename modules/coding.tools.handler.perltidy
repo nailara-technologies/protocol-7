@@ -27,13 +27,16 @@ return 'error: path escapes project root'
 return 'error: file not found' unless -f $real_path;
 $abs_path = $real_path;
 
-## verify file is perl code [ protocol-7 header or shebang ] ##
+## verify file is perl code [ protocol-7 header or shebang ], and slurp the ##
+## whole file while we're at it -- the in-memory perltidy API needs the     ##
+## actual content, not just a filename for it to open itself                ##
 open( my $fh, qw| <:encoding(UTF-8) |, $abs_path )
     or return 'error: cannot read file';
-my $first = <$fh> // '';
+my $source = do { local $RS = undef; <$fh> };
 close($fh);
+my ($first) = $source =~ m|^(.*\n?)|;
 return 'error: file does not appear to be perl code'
-    unless $first =~ m|^## \[<:| or $first =~ m|^#!.*perl|;
+    unless $first =~ m|^## \[:<| or $first =~ m|^#!.*perl|;
 
 ## fetch perltidy options from config [ init_code sets defaults ] ##
 my $ptd_opts = <coding.tools.perltidy.options>;
@@ -49,42 +52,46 @@ if ( not ref $ptd_opts eq qw| ARRAY | or not @$ptd_opts ) {
     ];
 }
 
-my @ptd_args = @$ptd_opts;
+## no -o / -b / -bext needed any more : the in-memory API captures output   ##
+## via 'destination' regardless of check_only, and we decide ourselves      ##
+## whether to write it back -- Perl::Tidy itself is loaded once in          ##
+## coding.init_code, not here : loading it per call would still be a no-op  ##
+## after the first, but logs "skipping already present .." noise every time ##
+my @tidy_argv = grep { $ARG !~ m{^-b} } @$ptd_opts;
 
-if ($check_only) {
-    ## check-only: no backup, output to null ##
-    @ptd_args = grep { $ARG !~ m{^-b} } @ptd_args;
-    push @ptd_args, '-o', qw| /dev/null |;
-} else {
-    ## in-place with backup cleanup ##
-    push @ptd_args, '-b', '-bext=.ptd-bak';
-}
-
-## run perltidy [ list form : no shell, no quoting needed ] ##
-my $exit_code = system( 'perltidy', @ptd_args, $abs_path );
-
-## clean up backup file if in-place mode ##
-if ( !$check_only && -f "$abs_path.ptd-bak" ) {
-    unlink "$abs_path.ptd-bak";
-}
+my ( $tidy_out, $tidy_err, $tidy_errfile );
+my $tidy_rc = Perl::Tidy::perltidy(
+    source      => \$source,
+    destination => \$tidy_out,
+    stderr      => \$tidy_err,
+    errorfile   => \$tidy_errfile,
+    argv        => \@tidy_argv,
+);
 
 ## interpret result ##
-if ( $exit_code == 0 ) {
+if ( $tidy_rc == 0 ) {
+    if ( not $check_only and $tidy_out ne $source ) {
+        open( my $wfh, qw| >:encoding(UTF-8) |, $abs_path )
+            or return sprintf "perltidy failed on %s: cannot write file",
+            $path;
+        print {$wfh} $tidy_out;
+        close($wfh);
+    }
     return $check_only
         ? sprintf "perltidy check passed for %s [no issues]", $path
         : sprintf "perltidy formatted %s", $path;
-} elsif ( ( $exit_code >> 8 ) == 2 ) {
+} elsif ( $tidy_rc >= 2 ) {
     return
         sprintf "perltidy found formatting issues in %s "
         . "[run again without check_only to fix]",
         $path;
 } else {
-    my $err = $OS_ERROR // 'unknown error';
+    my $err = length($tidy_err) ? $tidy_err : 'unknown error';
     return sprintf "perltidy failed on %s: %s", $path, $err;
 }
 
-#,,,.,,,.,..,,,.,,,,.,,,.,...,.,.,.,.,.,.,,,,,..,,...,...,,,.,...,.,,,,..,.,,,
-#H72HZAM4ZOSJ436ZKK77HHV5CSI22NDPP2A6E6HMBN7BMUEGVJ7O6XA4CCCJ5ZIE7AZGVSOACLZ2E
-#\\\|RQX5OOYPPM2PM323N2CNCLH22LQUS5ITRVUBLIVTKZY6TVOOQDQ \ / AMOS7 \ YOURUM ::
-#\[7]A7MN73GCTEFEPPFISZDGJENI3YXSYUH4CSZNEZBDBYBNTBDD72BA 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,,,,.,.,,.,,,,,,,..,,..,,,,,,,,,..,,...,...,...,,,,,,..,..,,..,,
+#YEVQ2ICXUCHGELD7PC62SP3S73TKC47U4MESTRVBJLOVEJOERYY4SN2CQHDO2HB5YX3V52LVTEYP4
+#\\\|FUJJBIQXHCTF7WMN7IQR3AK6ZKINPUMI7ZX22QFDPOZZI4DRSU4 \ / AMOS7 \ YOURUM ::
+#\[7]JOZY4E2G7JM2BPEKWRFFY4IYPNHV6TC5NB3OXK5T4QFVG7USVEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
