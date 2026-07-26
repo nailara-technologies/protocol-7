@@ -36,8 +36,7 @@ if ( $subcmd eq 'resolve' ) {
 
 } elsif ( $subcmd eq 'list' ) {
     ## List available skins ##
-    my $site_root  = <httpd.cfg.site_dir> // '/var/httpd';
-    my $skins_root = "$site_root/_global_templates/skins";
+    my $skins_root = <web.cfg.skins_dir> // '/var/httpd/skins';
 
     unless ( -d $skins_root ) {
         return <[base.log]>->( 1, "skins directory not found : $skins_root" );
@@ -62,8 +61,8 @@ if ( $subcmd eq 'resolve' ) {
     return <[base.log]>->( 0, "skin info : missing skin name" )
         unless $skin_name;
 
-    my $site_root = <httpd.cfg.site_dir> // '/var/httpd';
-    my $skin_path = "$site_root/_global_templates/skins/$skin_name";
+    my $skins_root = <web.cfg.skins_dir> // '/var/httpd/skins';
+    my $skin_path  = "$skins_root/$skin_name";
 
     unless ( -d $skin_path ) {
         return <[base.log]>->( 1, "skin not found : $skin_name" );
@@ -96,8 +95,8 @@ if ( $subcmd eq 'resolve' ) {
     return TRUE;
 }
 
-#,,.,,,.,,.,.,,.,,,..,..,,.,,,,,,,.,.,,,,,...,..,,...,...,.,.,,,.,,.,,...,...,
-#5PBRBPWREOMB7TGSQFLGTRPVZ4QILZZ2OA7QP2OSJ5YACZTQNQLIXXKIGXVH5ALA5QPG6WXLRPZN6
-#\\\|7GOIESU4KVC4FYHS7BZSF3C37Q6LXBP3GFSWSP3LMGXMRECR7VK \ / AMOS7 \ YOURUM ::
-#\[7]YCE7SHGNRI5BITYG7SO34MMDRJNAK5KP4AYDVN5O6IGJAOZ52WBQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,,,.,,,,,,..,,..,,,,,...,...,.,,,..,,...,...,.,.,...,,,.,,.,,...,
+#IIVL2MLZRZUNSPPR7L27DKBNXJES5GRA3PJKDK5CIPTYET2XWXQP7AYBNPWN52DVD567LBK624EGA
+#\\\|MYWUUQZMSX44OXER25GCMHNQ6XUPH6NOZRLXOKFXD5V6IIRV2DI \ / AMOS7 \ YOURUM ::
+#\[7]GBSV6P5RT35WOUMWDMW7P4NJKNSZD62IDQTZBYHHBUCKXQHREKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
