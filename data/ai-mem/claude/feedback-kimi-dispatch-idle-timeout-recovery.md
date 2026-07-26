@@ -1,11 +1,11 @@
 ---
 name: feedback-kimi-dispatch-idle-timeout-recovery
-description: "kimi_dispatch MCP calls abort after 1800s of silence, but the underlying kimi-legacy process keeps running and finishing normally -- use session_catchup with the session_id (from session_catchup client:kimi list) to recover the result, not a re-dispatch"
+description: "kimi_dispatch and claude_dispatch MCP calls abort after 1800s of silence, but the underlying process/session keeps running and finishing normally -- use session_catchup with the session_id to recover the result, not a re-dispatch"
 metadata:
   node_type: memory
   type: feedback
   originSessionId: 595555b6-24d1-4413-a879-05d05128d8ab
-  modified: 2026-07-22T22:56:14.917Z
+  modified: 2026-07-26T21:00:00.000Z
 ---
 
 Two parallel `kimi_dispatch` (k3) calls both hit the MCP tool's 1800s
@@ -40,8 +40,22 @@ inspect — `session_catchup` was the only way to learn it had correctly
 found the zenka already fully implemented and made no changes, rather
 than silently having failed or duplicated work).
 
-#,,,.,...,.,.,.,,,,,.,.,,,,,.,..,,,,,,..,,...,..,,...,...,.,,,,.,,...,,..,,,.,
-#E5D2GODFK4IYNMJZ7RE2X5HFF7VPICGFHZONPOIEBP7L2KMYL7B64OXBFUYYI7JDHJ7LOYKACNUUW
-#\\\|YOSARTGA45DRBHNBALTSFWXJHFAAE7L6JC4JG5NWYI54UZ27IUF \ / AMOS7 \ YOURUM ::
-#\[7]CCNP6YII4NPBX7ODJ3YEQIPDS5SHPIUZHIBW6M7D4WG5HBGSPGCA 7  DATA SIGNATURE ::
+**confirmed to also apply to `claude_dispatch` (2026-07-26)**: an
+`opus`-model `claude_dispatch` design-review task (reviewing
+`data/tasks/audio-waveform-visualization.md` against reference
+screenshots) hit the identical 1800s idle-abort. `session_catchup(client:
+claude, limit: 5)` listed the session by its prompt prefix without
+needing a session_id first — the title-prefix list alone was enough to
+find it — then a second `session_catchup` call with that `session_id` and
+a targeted `instruction` recovered the full recommendation via the local
+9B summarizer. The user separately confirmed via `claude -r <session_id>`
+directly (bypassing MCP) that the underlying session had in fact finished
+normally with the same content `session_catchup` returned — a second,
+independent recovery path when the MCP wrapper itself is degraded (e.g.
+right after an MCP server restart).
+
+#,,,,,,,,,,,.,,,,,,..,,..,.,,,.,.,.,.,.,,,.,.,..,,...,...,..,,,..,.,,,,.,,.,,,
+#ISI2L3WKQLG3UQERSHC6F3NJREDCNV5IJZVHUPUN6YEOKO2MHCFOGCBR4VOMVROK5D6F3LGAA73WE
+#\\\|NSICFKKCIOMD24ZNJMXVHYQYWLPRN3QFZ56KCSPU3WTE446XKTI \ / AMOS7 \ YOURUM ::
+#\[7]T4SQSSRKHSZGQSQ3IAPV3IVCN55CHA4LJNFUC6F3LN5FYJUEEUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
