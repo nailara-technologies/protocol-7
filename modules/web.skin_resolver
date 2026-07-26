@@ -19,7 +19,7 @@
 #   Hash ref with resolved skin structure:
 #   {
 #     skin_name => "dark",
-#     skin_root => "/var/httpd/_global_templates/skins|dark",
+#     skin_root => "/var/httpd/skins/dark",
 #     cascade => ["dark", "default"],
 #     metadata => { ... }
 #   }
@@ -33,9 +33,10 @@ unless ( defined $vhost and length $vhost ) {
     <[base.log]>->( 0, "skin_resolver : missing vhost parameter" );
     return {
         skin_name => 'default',
-        skin_root => '/var/httpd/_global_templates/skins|default',
-        cascade   => ['default'],
-        metadata  => {}
+        skin_root => ( <web.cfg.skins_dir> // '/var/httpd/skins' )
+            . '/default',
+        cascade  => ['default'],
+        metadata => {}
     };
 }
 
@@ -185,8 +186,8 @@ my $result = {
 
 return $result;
 
-#,,.,,,.,,.,.,...,...,,.,,,..,.,.,,,,,,,,,..,,..,,...,...,..,,.,.,...,.,,,,.,,
-#FCIYJVJMV3I56ZDJLPO3XHB3IZX6WE5XCS3ARDTYL7TKLDDUMZS7J3BAS6TU3ZAMLKSARZQTINKRG
-#\\\|ZXPOAFW46CHFPUZD62D562XTTZ5DBSDST56YLJ67YXQ5QICIEQI \ / AMOS7 \ YOURUM ::
-#\[7]CPYNCHHZSSNVQWSTLDW4NSDSU3YFON2G222OIBYRYJS7TYER2WAA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,,.,...,.,,,,.,,,.,,...,...,...,..,,...,...,,,,,..,,,,,,.,.,.,,,
+#F663ODVFZDRLPRNQMYMXYSXPIRGIYFLSEY2L5HWIL4DVSYWMAOWP2NCG24CN6PDQ4WOUVQKQIF6V4
+#\\\|7HFS5QZCQW2XTB2WG73TRXVTQ7J7RCZQ7D3QDQWZSCFCF26H5QG \ / AMOS7 \ YOURUM ::
+#\[7]M7UVSYSAV2WRTRLOX6IJ4OC7F4ZBY2NTFRPK6TWI4EEFHJWKUODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
