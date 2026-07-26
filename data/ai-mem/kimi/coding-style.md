@@ -22,14 +22,14 @@ protocol-7 syntax extends perl in ways that confuse `perl -c`:
 - `<key.path> //= 0` looks like glob assignment to perl — produces false error
 - p7-specific constructs may pass silently but still be wrong
 
-### use `bin/ptd` instead
+### use `bin/dev/ptd` instead
 ```bash
 ## validate and reformat
-./bin/ptd modules/namespace.module.name
+./bin/dev/ptd modules/namespace.module.name
 
 ## check only (no reformat) — requires -c or -check flag
-./bin/ptd -c modules/namespace.module.name
-./bin/ptd -check modules/namespace.module.name
+./bin/dev/ptd -c modules/namespace.module.name
+./bin/dev/ptd -check modules/namespace.module.name
 ```
 
 ### verbatim escape for unusual constructs
@@ -501,7 +501,7 @@ use the signing system:
 ```
 
 ### pre-commit checklist
-1. `bin/ptd -c` passes on all modified modules (syntax check without reformat)
+1. `bin/dev/ptd -c` passes on all modified modules (syntax check without reformat)
 2. no manual signature lines added
 3. all returns use proper mode/data hashref
 4. no variable interpolation in log messages
@@ -757,8 +757,8 @@ grep -rn 'sprintf' modules/ | grep -i '<name-fragment>'
 
 ---
 
-#,,.,,,..,,.,,,..,.,.,,.,,,,.,,.,,,,,,.,,,..,,.,.,...,...,.,.,.,,,,.,,,,,,..,,
-#HKEJUUHGJPS7AJZOQC6JW435KDV5OZ4BVKEDDWH2CD7G552XWISQU6VSPZGLHQQRVETFIEXEH2KYS
-#\\\|MNTVU6CCA5RMPOB5U6MDCMLBUOJNCIOY6YP4VRYYTVYUHUQ4MH4 \ / AMOS7 \ YOURUM ::
-#\[7]YNSQVBQWHDMD534J5LW2S2L772YAAQ2OCQV4FIUUICALCQHWJKDY 7  DATA SIGNATURE ::
+#,,..,.,.,...,,,.,,.,,.,.,...,,,,,,..,...,,..,.,.,...,..,,.,.,...,...,.,.,,,,,
+#TGHIBRUOIPGPH3BNB2TWQLEVYEKSS44NG6VGAGJ4V3UPH6MRIBDHHYXRVZUD675SUZIUA5YELHGAG
+#\\\|BLBZKNIYEE52MZBM2A7QWIC423LW5AVD6QOPTFJTEW2JVTMMHTX \ / AMOS7 \ YOURUM ::
+#\[7]4CIRRXT7AZ7V33TZUTI77EJV7D5GO2NOJITQA2OKXMYXRYFVAMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

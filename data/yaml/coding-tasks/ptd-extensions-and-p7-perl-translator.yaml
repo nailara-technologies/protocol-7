@@ -4,11 +4,11 @@ priority: medium
 created: 2026-03-04
 
 ## completed ##
-- bin/ptd: -c flag for check-only (no reformat, no backup, syntax pass/fail only)
+- bin/dev/ptd: -c flag for check-only (no reformat, no backup, syntax pass/fail only)
 
 ## deferred items ##
 
-### bin/ptd: -d flag (diff-only) ###
+### bin/dev/ptd: -d flag (diff-only) ###
 description: >
   run perltidy to a temp file, then invoke ccdiff on original vs reformatted output.
   shows what ptd would change without modifying the file.
@@ -45,14 +45,14 @@ translation rules (p7 -> perl):
   - <key.path>->%*            =>  $data{'key'}{'path'}->%*
   - ## [:< ##  header         =>  (strip or convert to comment)
 
-tool name: bin/p7toperl  (or integrated into bin/ptd as -t flag)
+tool name: bin/p7toperl  (or integrated into bin/dev/ptd as -t flag)
 
 ccdiff integration:
   - p7toperl file | ccdiff /dev/stdin file  -- shows p7 layer visually
   - layered view: p7 source -> parsed perl -> formatted perl, each as ccdiff step
 
-#,,,.,.,,,.,,,,..,.,,,...,,,,,...,,..,...,,,,,..,,...,..,,,..,.,,,.,,,,,,,,..,
-#UR33J4HEFX4DE5D2NDR4KS3PFXZTZGKG4AARQUKHJBGPM3C4SB44QDOD5BMKDMDN2T7DHHNLEXMVW
-#\\\|XXB2YALETM73F5SJ4RYYGA7IM4P63DBHPNLIGIZHPD4DCW4WG6V \ / AMOS7 \ YOURUM ::
-#\[7]2COFEI2D4PJYU3ZAGAMZBATYJVMVD7JSU4SISWZMMU7C2PPQXYBY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,.,,...,,,.,,,,,.,.,.,.,..,,,,.,..,,...,...,...,..,,..,,..,,,,,,
+#GPQGF7MCWHD3SBXV2RGX3DVHMMZWTQU5I6ADWGNMJEPQ3YP5Y4MVERX2M4Q553XTKQC474FJMCVR4
+#\\\|VMB4HA3E26E7ULHYSRX7CHG5DZHAMZEDQGSLF3N6YJ6JVZBUGGP \ / AMOS7 \ YOURUM ::
+#\[7]JECZSAJBGJTHQGWS47GBUZO33M6JIGQBSHRZEBZQKPSIERRGZUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
