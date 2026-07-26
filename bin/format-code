@@ -6,20 +6,25 @@ use warnings;
 use utf8;
 use Encode          qw| decode_utf8 encode_utf8 |;
 use Text::Wrap      qw| wrap |;
-use File::Copy      qw| copy |;
 use File::Basename  qw| dirname basename |;
 use Cwd             qw| abs_path |;
 use List::MoreUtils qw| minmax uniq |;
-use File::Which     qw| which |;
-use Time::HiRes     qw| sleep |;
-use Term::ReadKey;
 use PPI;
+## Perl::Tidy required conditionally below [ not -n mode ] : its in-memory ##
+## API [ source/destination scalar refs ] replaces the old perltidy CLI    ##
+## subprocess entirely -- no temp files, no Term::ReadKey/ioctl dance      ##
+## around a tty-suspend that never applied when stdin wasn't a tty anyway  ##
 
 ##[ global constants ]##
 use constant TRUE  => 5;    ##  TRUE.  ##
 use constant FALSE => 0;    ##  false  ##
 
 use constant LINE_MAX => 78;
+
+## narrower than LINE_MAX on purpose : error reasons in color_msg wrap for ##
+## terminal readability, not for source-code column budget -- a full 78    ##
+## still reads as one dense wall of text for a run's worth of diagnostics  ##
+use constant ERR_WRAP_MAX => 42;
 
 ## perltidy runs AFTER this tool and re-indents continuation lines to its   ##
 ## own convention, which can land deeper than the quote's original column [ ##
@@ -57,32 +62,41 @@ my $NEON_green_yellow = "\e[38;2;71;195;6m";
 
 $SIG{'INT'} = \&sig_int;
 
-##[ locate perltidy binary directly [ avoids ptd progress display on tmpfile ] ]##
+##[ perltidy args : no -o / -b / -bext needed, in-memory API takes care of ##
+## both output capture and never touching the real file until we choose to ]##
 my @perltidy_args = qw|
     -q -pbp
     -wc=13 -cs
     -utf8 -l=78
     -bar -sot -ce
-    -nst -sil=0 -b -bext=.bak
+    -nst -sil=0
     |;
 @perltidy_args = grep { $ARG ne qw| -utf8 | } @perltidy_args if $no_utf8;
 
-## check-only mode : discard output, no backup, no in-place modification ##
-if ($check_only) {
-    @perltidy_args = grep { $ARG !~ m{^-b} } @perltidy_args;    ## -b -bext
-    push @perltidy_args, '-o', qw| /dev/null |;
-}
-
-my $perltidy_bin;
 if ( not $no_ptd ) {
-    $perltidy_bin = which qw| perltidy |;
-    die ":\n:: < format-code > : 'perltidy' not found in path .,\n\n"
-        if not defined $perltidy_bin or not -x $perltidy_bin;
+    eval { require Perl::Tidy };
+    die ":\n:: < format-code > : 'Perl::Tidy' not installed .,\n\n"
+        if $EVAL_ERROR;
 }
 
 ##[ filename selection ]##
 my @clean_argv
     = grep { not $ARG =~ m{(?:~$|\.md$|\.yaml$|\.yml$|\.asc$)} } @ARGV;
+
+## existence check comes first, with its own message : is_perl_code()       ##
+## returns FALSE for a missing path the same way it does for "exists but    ##
+## isn't perl/P7 code" [ its own -f check, line ~1300 below ], so a missing ##
+## file would otherwise vanish silently and surface as the generic          ##
+## "expected [perl] file name(s)" error instead of "not present"            ##
+map {
+    die ":\n:: < ${NEON_green_yellow}format-code$reset > $reset:$NEON_orange "
+        . "not present $reset : "
+        . "'$NEON_green_yellow$ARG$reset' $reset\n:\n"
+        if not -f $ARG
+} @clean_argv;
+
+## remaining check : does it actually look like perl/P7 module code      ##
+## [ starts with '## [:< ##' , a shebang , 'package ...;' , or is a .pm ] ##
 my @files = grep { is_perl_code($ARG) }
     uniq sort { length $a <=> length $b } reverse sort @clean_argv;
 
@@ -92,19 +106,23 @@ die ":\n:: < ${NEON_green_yellow}format-code$reset > $reset:$NEON_orange "
     . "[${NEON_orange}s${NEON_green_yellow}]${NEON_orange}.,$reset\n:\n"
     if not @files;
 
-map {
-    die ":\n:: < ${NEON_green_yellow}format-code$reset > $reset:$NEON_orange "
-        . "not found $reset : '$NEON_green_yellow$ARG$reset' $reset\n:\n"
-        if not -f $ARG
-} @files;
-
 my $file_count = scalar @files;
 ( undef, my $file_maxlen ) = minmax map {length} @files;
 
 say $blacklight, qw| : |;
 
+## show_progress's line ends with \r, not \n -- deliberately left open so   ##
+## the NEXT file's progress line overwrites it in place [ single animated   ##
+## status line ] when nothing gets printed for this file at all. the first  ##
+## color_msg call for a file needs to close it with a real \n first, but a  ##
+## second call for the same file must NOT re-close an already-\n-terminated ##
+## line -- that's the extra blank line bug ] this flag lets color_msg tell  ##
+## those two cases apart                                                    ##
+my $progress_line_open = FALSE;
+
 while ( my $file_path = shift @files ) {
     show_progress( $file_path, $file_count - scalar @files, $file_count );
+    $progress_line_open = TRUE;
 
     my $orig_text = slurp_file($file_path);
     my $new_text  = eval { preprocess_source( $orig_text, $file_path ) };
@@ -116,16 +134,28 @@ while ( my $file_path = shift @files ) {
     }
 
     if ($check_only) {
-        if ( $new_text ne $orig_text ) {
-            print color_msg( 'would reflow', $file_path, $NEON_orange );
+        my $final_text = $new_text;    ## best-effort fallback under -n ##
+        my $tidy_rc;
+
+        if ( not $no_ptd ) {
+            my ( $tidy_out, $tidy_err, $tidy_errfile );
+            $tidy_rc = Perl::Tidy::perltidy(
+                source      => \$new_text,
+                destination => \$tidy_out,
+                stderr      => \$tidy_err,
+                errorfile   => \$tidy_errfile,
+                argv        => [@perltidy_args],
+            );
+            $final_text = $tidy_out
+                if not $tidy_rc and defined $tidy_out;
         }
 
-        ## write preprocessed text to a throwaway temp file so perltidy [   ##
-        ## '-o /dev/null' , set above ] and real_syntax_errors have         ##
-        ## something on disk to check -- same rationale as ptd -- perltidy  ##
-        ## alone doesn't reliably catch real syntax errors, and this tool   ##
-        ## needs to stand on its own as a syntax check without depending on ##
-        ## ptd being installed at all                                       ##
+        ## the real syntax check still needs an actual 'perl' process --   ##
+        ## keep exactly one small temp file for that alone. piping the     ##
+        ## source into 'perl -c -' via an in-memory pipe risks a deadlock  ##
+        ## once the child's output fills the OS pipe buffer before we're   ##
+        ## done writing its input -- not theoretical here, this file's own ##
+        ## ~57K is already close to a typical 64K buffer                   ##
         my $dir      = dirname($file_path) || qw| . |;
         my $chk_file = "$dir/.chk." . basename($file_path);
         if ( -e $chk_file ) {
@@ -140,32 +170,40 @@ while ( my $file_path = shift @files ) {
         print $chk_fh( $no_utf8 ? $new_text : encode_utf8($new_text) );
         close $chk_fh;
 
-        if ( not $no_ptd ) {
-            ReadMode TRUE;
-            no warnings;
-            my $rc
-                = eval { system( $perltidy_bin, @perltidy_args, $chk_file ) };
-            use warnings;
-            ReadMode 0;
-            sleep 0.13;
+        my @real_errors = real_syntax_errors($chk_file);
 
-            if ( not defined $rc or $rc != 0 ) {
-                my $err_msg
-                    = lcfirst( $OS_ERROR // $EVAL_ERROR
-                        // 'perltidy ' . 'failed' );
-                warn color_msg( $err_msg, $file_path );
-                unlink $chk_file;
-                next;
-            }
+        ## perltidy itself failing is often just a symptom of a real syntax ##
+        ## error -- prefer the perl -c detail over a generic status message ##
+        ## when one is available (e.g. "unmatched right curly")             ##
+        if ( not $no_ptd and $tidy_rc ) {
+            my $err_msg
+                = @real_errors
+                ? join_real_errors( $file_path, @real_errors )
+                : perltidy_fail_reason($tidy_rc);
+            warn color_msg( $err_msg, $file_path );
+            unlink $chk_file;
+            next;
         }
 
-        my @real_errors = real_syntax_errors($chk_file);
+        ## real reflow verdict : compare perltidy's ACTUAL output against ##
+        ## the original -- comparing the pre-perltidy intermediate text   ##
+        ## instead [ as an earlier version did ] false-positives on every ##
+        ## continuation-line indent this tool's own split guesses         ##
+        ## differently than perltidy itself will re-indent it to right    ##
+        ## afterward [ see CONT_MARGIN note near the top of this file --  ##
+        ## that guess was never meant to be authoritative ]               ##
+        if ( $final_text ne $orig_text ) {
+            print color_msg(
+                'would reflow', $file_path,
+                $NEON_orange,   $NEON_green_yellow
+            );
+        }
+
         if (@real_errors) {
-            my $detail = join( '', @real_errors );
-            chomp($detail);
-            warn color_msg( $detail, $file_path );
+            warn color_msg( join_real_errors( $file_path, @real_errors ),
+                $file_path );
         } else {
-            print color_msg( 'syntax ok', $file_path, $NEON_green_yellow );
+            print color_msg( 'syntax valid', $file_path, $NEON_green_yellow );
         }
 
         unlink $chk_file;
@@ -177,56 +215,34 @@ while ( my $file_path = shift @files ) {
         next;
     }
 
-    ## write temp file in same directory : dot-prefixed so the module     ##
-    ## loader's bare glob() never sees it, and deterministic [ not        ##
-    ## pid/random-based ] so a leftover from a crashed prior run shows up ##
-    ## as a collision to abort on rather than being silently masked       ##
-    my $dir     = dirname($file_path) || qw| . |;
-    my $tmpfile = "$dir/.tmp." . basename($file_path);
+    my $final_text = $new_text;
 
-    if ( -e $tmpfile ) {
-        warn color_msg( "temp file collision [ $tmpfile ]", $file_path );
-        next;
+    if ( not $no_ptd ) {
+        my ( $tidy_out, $tidy_err, $tidy_errfile );
+        my $tidy_rc = Perl::Tidy::perltidy(
+            source      => \$new_text,
+            destination => \$tidy_out,
+            stderr      => \$tidy_err,
+            errorfile   => \$tidy_errfile,
+            argv        => [@perltidy_args],
+        );
+        if ($tidy_rc) {
+            ## terse, like ptd's non-check-only path : detail is a -c thing ##
+            warn color_msg( perltidy_fail_reason($tidy_rc), $file_path );
+            next;
+        }
+        $final_text = $tidy_out;
     }
 
-    open my $tmpfh, '>', $tmpfile or do {
+    next if $final_text eq $orig_text;    ##  nothing changed , skip  ##
+
+    open my $fh, '>', $file_path or do {
         warn color_msg( lcfirst $OS_ERROR, $file_path );
         next;
     };
-    binmode $tmpfh, qw| :raw |;
-    print $tmpfh( $no_utf8 ? $new_text : encode_utf8($new_text) );
-    close $tmpfh;
-
-    if ($no_ptd) {
-        if ( not copy( $tmpfile, $file_path ) ) {
-            unlink $tmpfile;
-            warn color_msg( lcfirst $OS_ERROR, $file_path );
-            next;
-        }
-        unlink $tmpfile;
-        next;
-    }
-
-    ##  invoke perltidy directly on temp file [ no ptd progress display ] ##
-    ReadMode TRUE;
-    no warnings;
-    my $rc = eval { system( $perltidy_bin, @perltidy_args, $tmpfile ) };
-    use warnings;
-    ReadMode 0;
-    sleep 0.13;
-
-    if ( defined $rc and $rc == 0 ) {
-        if ( not copy( $tmpfile, $file_path ) ) {
-            warn color_msg( lcfirst $OS_ERROR, $file_path );
-        }
-    } else {
-        my $err_msg
-            = lcfirst( $OS_ERROR // $EVAL_ERROR // 'perltidy ' . 'failed' );
-        warn color_msg( $err_msg, $file_path );
-    }
-
-    unlink $tmpfile;
-    unlink "$tmpfile.bak" if -f "$tmpfile.bak";
+    binmode $fh, qw| :raw |;
+    print $fh( $no_utf8 ? $final_text : encode_utf8($final_text) );
+    close $fh;
 }
 
 say "\n$blacklight:$reset";
@@ -1224,6 +1240,98 @@ sub collect_quote_tokens {
 
 ##[ shared utilities adapted from bin/ptd ]##
 
+##[ explain a system() wait status without touching stale $! ]##
+## $! only reflects a fork/exec failure [ $rc == -1 ] -- once the child     ##
+## actually ran, a nonzero $rc is a wait status, and $! may still hold      ##
+## errno from something unrelated earlier in this run [ e.g. ReadMode's own ##
+## ioctl() failing with ENOTTY under a non-tty stdin, as under xargs --     ##
+## that stays set until the next syscall failure, not the next call ] $rc   ##
+## here is Perl::Tidy::perltidy()'s own plain error flag [ in-memory API,   ##
+## not a wait status -- no fork/exec, no signal/exit-code decoding needed   ##
+## any more ] : 1 = could not run to completion [ severe/fatal ], 2 = ran   ##
+## to completion but reported error messages -- almost always a real syntax ##
+## error in the input, see real_syntax_errors for the detail                ##
+sub perltidy_fail_reason {
+    my $rc = shift;
+    ## same wording as bin/ptd's non-check-only path [ return_code 512 ] ##
+    return 'syntax error in perl code'                if $rc and $rc >= 2;
+    return 'perltidy could not complete [ status 1 ]' if $rc and $rc == 1;
+    return sprintf( 'perltidy failed [ status %s ]', $rc // 'undef' );
+}
+
+## compact multi-line perl -c output the same way base.format_error         ##
+## compacts die/warn text : strip each line's trailing "at FILE line N"     ##
+## clause and re-anchor it as a short "[file:line]" tag on the REAL source  ##
+## path [ not the throwaway .chk./.tmp. copy perl -c actually saw ],        ##
+## normalize quotes, then join everything onto one line -- same regex ideas ##
+## as base.format_error, ported standalone since this script has no zenka   ##
+## context [ %code / %data / base.caller ] for the real subroutine          ##
+sub join_real_errors {
+    my ( $real_path, @raw_lines ) = @_;
+
+    ## first pass : pull the location out of each fragment WITHOUT          ##
+    ## inserting the [file:line] tag yet -- inserted once per MERGED group  ##
+    ## below, not once per raw perl -c line ; not end-anchored : perl -c    ##
+    ## routinely appends more context after "line N" [ ", at end of line" / ##
+    ## ", near ..." ], so a trailing-only match [ like base.format_error's, ##
+    ## which assumes die/warn's plain "at FILE line N." tail ] would never  ##
+    ## fire                                                                 ##
+    my @parsed;
+    for my $line (@raw_lines) {
+        chomp $line;
+        my $lineno;
+        $line =~ s| at \S+ line (\d+)|| and $lineno = $1;
+        $line =~ s,\",\',g;    ## quotes -> single [ same as format_error ] ##
+        push @parsed, [ $line, $lineno ];
+    }
+
+    ## merge consecutive fragments sharing a line number : perl -c          ##
+    ## routinely emits two sentences for ONE problem [ "Unmatched ...       ##
+    ## bracket ..., at end of line" + "syntax error ..., near '...'" ],     ##
+    ## each redundantly carrying the same location -- collapse those into   ##
+    ## one concise message via merge_fragment ; anything else with the same ##
+    ## location just gets joined, still only tagged once                    ##
+    my @merged;
+    for my $p (@parsed) {
+        my ( $text, $lineno ) = @$p;
+        if (    @merged
+            and defined $lineno
+            and defined $merged[-1][1]
+            and $lineno == $merged[-1][1] ) {
+            $merged[-1][0] = merge_fragment( $merged[-1][0], $text );
+        } else {
+            push @merged, [ $text, $lineno ];
+        }
+    }
+
+    my $detail = join( '; ',
+        map { defined $_->[1] ? "$_->[0] [$real_path:$_->[1]]" : $_->[0] }
+            @merged );
+    $detail =~ s|\s+BEGIN failed.+$||s;
+    $detail =~ s|(?<=in \@INC).+$||s;
+    return $detail;
+}
+
+## merge two same-location perl -c fragments into one concise message : the ##
+## extremely common "Unmatched ... bracket ..., at end of line" + "syntax   ##
+## error ..., near '...'" pairing is really ONE diagnostic said twice --    ##
+## drop the filler and keep just the specific "near" detail                 ##
+sub merge_fragment {
+    my ( $first, $second ) = @_;
+    ## no /x here : it strips the literal spaces inside "curly bracket"     ##
+    ## etc, silently turning the alternation into un-matchable joined words ##
+    ## instead of ignoring insignificant whitespace as intended             ##
+    my $bracket_kind = 'curly bracket|square bracket|parenthesis';
+    ## two SEPARATE matches don't share $1/$2 numbering -- each capture ##
+    ## into its own lexical, or the second match's own $1 clobbers the  ##
+    ## first's before either gets read                                  ##
+    my ($kind)
+        = $first =~ m{^(Unmatched \S+ (?:$bracket_kind)), at end of line$};
+    my ($near) = $second =~ m{^syntax error, (near .+)$};
+    return "$kind $near" if defined $kind and defined $near;
+    return "$first; $second";    ## unknown pairing : keep both, fallback ##
+}
+
 ##[ run perl -c and strip P7-specific false positives, return real errors ]##
 ## ported from bin/ptd -- not required to stay in lockstep with it going ##
 ## forward, this tool's own syntax reporting may grow independently      ##
@@ -1243,6 +1351,9 @@ sub real_syntax_errors {
         ## p7 data/module macro syntax [ <data.key>, <[module.name]> ] ##
         ## triggers glob-modification false positives under perl -c    ##
         next if $line =~ m{Can't modify glob in .*assignment};
+        ## same macro syntax on a bare 'delete <data.key>;' line -- raw ##
+        ## perl -c sees an undeclared glob deref, not a hash/array elem ##
+        next if $line =~ m{delete argument is not a HASH or ARRAY};
         ## cascading noise once compilation aborts on the line above   ##
         next if $line =~ m{BEGIN not safe after errors};
         next if $line =~ m{syntax OK\s*$};
@@ -1250,22 +1361,44 @@ sub real_syntax_errors {
         push @real_errors, $line;
     }
 
-    ## remove trailing "had compilation errors" if it's the only line left ##
-    if (    @real_errors == 1
-        and $real_errors[0] =~ m{had compilation errors\.?$} ) {
-        @real_errors = ();
-    }
+    ## drop the trailing "had compilation errors" restatement whenever it  ##
+    ## is the last line -- with a detailed error already present it's pure ##
+    ## noise, and on its own it leaves nothing meaningful to report        ##
+    pop @real_errors
+        if @real_errors
+        and $real_errors[-1] =~ m{had compilation errors\.?$};
 
     return @real_errors;
 }
 
 sub color_msg {
-    my $err_msg   = shift;
-    my $file_path = shift;
-    my $color     = shift // $NEON_orange;
+    my $err_msg    = shift;
+    my $file_path  = shift;
+    my $color      = shift // $NEON_orange;
+    my $file_color = shift // $color;    ## lets a caller decouple the two ##
+
+    ## wrap a long reason the same way base.wrap_text wraps zenki log lines ##
+    ## : practical necessity, not cosmetic -- the compacted perl -c detail  ##
+    ## from join_real_errors routinely runs well past LINE_MAX on its own,  ##
+    ## and an unwrapped line is unreadable/unusable in a terminal --        ##
+    ## ERR_WRAP_MAX , not LINE_MAX : source-code width is too wide here     ##
+    my $lead_in = qw| ::[ |;    ## visible prefix before $err_msg starts ##
+    my $indent  = ' ' x ( length($lead_in) + 1 );    ## +1 : the space too ##
+    local $Text::Wrap::columns  = ERR_WRAP_MAX - length($indent) + 1;
+    local $Text::Wrap::break    = qr/\s+/;
+    local $Text::Wrap::huge     = qw| overflow |;
+    local $Text::Wrap::unexpand = 0;
+    my $wrapped_msg = Text::Wrap::wrap( '', $indent, $err_msg );
+
+    ## close the \r-based progress line with a real \n only the FIRST time ##
+    ## something prints for this file -- a second call finds the line      ##
+    ## already closed and must not add another blank one                   ##
+    my $lead = $progress_line_open ? "\n" : '';
+    $progress_line_open = FALSE;
+
     my $colored_msg
-        = "\n$blacklight:\n::[$color $err_msg $blacklight] "
-        . ".: $color$file_path$blacklight ::\n:$reset\n";
+        = "$lead$blacklight:\n$lead_in$color $wrapped_msg $blacklight] "
+        . ".: $file_color$file_path$blacklight ::\n:$reset\n";
 }
 
 sub is_perl_code {
@@ -1317,8 +1450,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,,,,,,.,,..,.,.,,.,,,,.,,.,,..,,.,,,.,,,.,,,..,,...,...,.,.,.,,,.,.,,,.,,.,,
-#GJ2XADO35UI7UWK2SRD2PSGNC76JL3WYSFB76PPPDY5PAG2VA4DXY6ENH7JHYEBJL23JK767XSS5E
-#\\\|TM5STGPZ74FF4MUHRY2I4NUFKX2UYVEV5RYKYKGQPVV3K3CPZV5 \ / AMOS7 \ YOURUM ::
-#\[7]7WHA7D4IF45WMLDQYQLJ5VVBMYEXFFK6JKRPLGDJWD2ZHWOY2WBY 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,..,,..,,,,.,...,,,,,,,.,,.,,,,,,..,,...,...,..,,...,,,,,...,,,,,
+#2OEVQXQJNQRWBOXSQ4HYCVOYALNJSZNHOXH5LWYRDV5UHBC7PPJZ7PONNDQRN6RQ3DHMVD57HSIRA
+#\\\|5DU2T3C6ZL572NBVDU7PNZRWMVISX33BR4LPHJ2FLYZNSFLIEYU \ / AMOS7 \ YOURUM ::
+#\[7]4RMJTHR4YFBZ3WUCAJSMFIG2YLFQYT6LDLZI6YB6EJEBGB4FXSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
