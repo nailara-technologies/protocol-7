@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = audio.finalize_decode
+# descr = finish decode : render pcm to png and reply to deferred caller
+# param = $decode_id
+
+my $id = shift // '';
+
+my $state = delete <audio.decode>->{$id};
+return unless defined $state and defined $state->{'reply_id'};
+
+## cancel leftover watchers + timeout, terminate decode process group ##
+eval { $state->{'w_err'}->cancel } if defined $state->{'w_err'};
+eval { $state->{'timer'}->cancel } if defined $state->{'timer'};
+kill( 9, -( $state->{'pid'} ) ) if $state->{'pid'};
+
+my $reply;
+my $pcm_bin = $state->{'pcm'} // '';
+
+if ( length $pcm_bin < <audio.cfg.fft_size> * 4 ) {
+    my $err = $state->{'stderr'} // '';
+    $err =~ s|\s+$||;
+    $err   = substr( $err, -200 ) if length $err > 200;
+    $reply = {
+        'mode' => qw| false |,
+        'data' => sprintf( 'decode produced no pcm : %s',
+            length $err ? $err : 'empty stream' )
+    };
+} else {
+    my @pcm = unpack( 'f<*', $pcm_bin );
+
+    ## output path chosen internally, never caller-controlled ##
+    my $out_dir = <audio.cfg.output_dir>;
+    $out_dir =~ s|/+$||;
+    if ( not -d $out_dir ) {
+        <[file.make_path]>->($out_dir);
+    }
+    chmod( 0775, $out_dir );    ## screenshot zenka precedent : 775/664 ##
+    my $stamp    = <[base.ntime.b32]>->( 5, TRUE );
+    my $out_path = sprintf '%s/spatial-%s.png', $out_dir, $stamp;
+
+    my ( $ok, $result, $stats ) = <[audio.render_standing_wave]>->(
+        \@pcm,
+        <audio.cfg.sample_rate>,
+        $out_path,
+        {   'size'     => <audio.cfg.image_size>,
+            'fft_size' => <audio.cfg.fft_size>
+        }
+    );
+
+    if ($ok) {
+        chmod( 0664, $result );
+        <[base.log]>->(
+            2,       'standing-wave render : %s [ %.1f%% lit, %d samples ]',
+            $result, 100 * ( $stats->{'lit_ratio'} // 0 ),
+            scalar @pcm
+        );
+        $reply = { 'mode' => qw| true |, 'data' => $result };
+    } else {
+        <[base.log]>->( 0, 'standing-wave render failed : %s', $result );
+        $reply = { 'mode' => qw| false |, 'data' => $result };
+    }
+}
+
+<[base.callback.cmd_reply]>->( $state->{'reply_id'}, $reply );
+
+return TRUE;
+
+#,,.,,.,.,...,..,,,,,,,..,.,.,..,,,..,,,.,,.,,..,,...,..,,.,,,...,,..,,,,,,.,,
+#X4XRSEHTHWZSUDHQRIU3FYSZRAILVW4ZKQCP4YC4TC7TKOLP6AC2PMU7I7ZEYQOWQJ3TCNUW222HK
+#\\\|VCLACP4NRZJNHAIXKRGVRSMUDRNZHESGAQB3BK4YOZW7TOELIH3 \ / AMOS7 \ YOURUM ::
+#\[7]FDNUQB4MP6ZT3URUT6ZUPJBRT6P62KXURVSXOB5BSYVYFKJ34GBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
