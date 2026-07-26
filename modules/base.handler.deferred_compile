@@ -19,6 +19,7 @@ my $sub_name = [<[base.caller]>]->[0];    ##  own name via filename hint  ##
 ## recompile from scratch on every future call -- copy the freshly compiled ##
 ## sub there too so it stops re-entering here                               ##
 if ( ref $code{$sub_name} eq qw| CODE | ) {
+    delete $data{'code'}{$sub_name}{'deferred_stub'};    ## real code now ##
     my $moved_to = $data{'code'}{$sub_name}{'moved_to'};
     $code{$moved_to} = $code{$sub_name}
         if defined $moved_to and $moved_to ne $sub_name;
@@ -31,8 +32,10 @@ goto &{ $code{$sub_name} }    ##  transparent hand-off on first call  ##
 if ( length( <whitelist.miss.policy> // '' ) ) {
     <[base.handler.whitelist_miss]>->($sub_name);
 
-    goto &{ $code{$sub_name} }
-        if ref $code{$sub_name} eq qw| CODE |;
+    if ( ref $code{$sub_name} eq qw| CODE | ) {
+        delete $data{'code'}{$sub_name}{'deferred_stub'};
+        goto &{ $code{$sub_name} };
+    }
 }
 
 ##  install broken stub : prevents retry loop, clears itself on reload  ##
@@ -48,8 +51,8 @@ $code{$sub_name} = eval(                         ##
 
 <[base.logs]>->( 0, '..: deferred compile failed [ %s ]', $sub_name );
 
-#,,..,,,.,,.,,.,,,..,,.,.,..,,.,.,.,.,.,.,,..,..,,...,...,...,.,,,,..,,.,,.,,,
-#VJOOCJHT2PL3SHTSKNI5FJVEU3NJVOWN5T7IL5XVZ4SRDLEBVZ64WR3QYZ5BK6PMOFSKYCBGCB5QY
-#\\\|WUOCLXJLKGAV22PWWXFA3L3PIGLUS35PLOQEQEFHTYFL7I5XN4Q \ / AMOS7 \ YOURUM ::
-#\[7]QAMNKOZ7X6MN4J5MJKUIOK6Z7YHX6QIS2NFIKM4RJ6FH5NJINIDY 7  DATA SIGNATURE ::
+#,,..,.,.,,..,...,,,,,...,.,,,...,.,,,,,,,,,.,..,,...,...,.,.,,..,.,.,.,,,...,
+#3ZGN5RZWGZ5UKZL3BKCIVR4DK6FJE5SG5ROC7JKMUTONKLRAWVWI6VSGTFSXQU4FB2PPMIXMCJBNY
+#\\\|IIRGFVDQOZRQK5AAPOUJOL45OUHQMI5HAST7WN7YQR5BVMHRV25 \ / AMOS7 \ YOURUM ::
+#\[7]J25W7QCLNP6NWMVW5TQJQWQQWATMBZCNC5SCZKFCSKYTDOIEMCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
