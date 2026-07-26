@@ -3,16 +3,20 @@ use v5.24;
 use strict;
 use English;
 use warnings;
-use Time::HiRes;
-use Term::ReadKey;    ## <-- replace with AMOS7::TERM ##
 use Cwd             qw| abs_path |;
 use List::MoreUtils qw| minmax uniq |;
-use File::Which     qw| which |;
 use Time::HiRes     qw| sleep |;
+use Text::Wrap      qw| wrap |;
 
 ##[ global constants ]##
 use constant TRUE  => 5;    ##  TRUE.  ##
 use constant FALSE => 0;    ##  false  ##
+
+use constant LINE_MAX => 78;
+
+## narrower than LINE_MAX on purpose : error reasons in color_msg wrap for ##
+## terminal readability, not for source-code column budget                 ##
+use constant ERR_WRAP_MAX => 40;
 
 my $no_utf8 = FALSE;        ##  false  ##
 
@@ -32,13 +36,15 @@ $check_only = TRUE
 $OUTPUT_AUTOFLUSH = TRUE;    ## true ##
 
 ###  ptd parser OPTIONS  ###
-##
+## no -o / -b / -bext needed : the in-memory API captures output via       ##
+## 'destination' regardless of check_only, and we decide ourselves whether ##
+## to write it back                                                        ##
 my @ptd_args = qw|
     -q -pbp
     -wc=13 -cs
     -utf8 -l=78
     -bar -sot -ce
-    -nst -sil=0 -b -bext='/backup'
+    -nst -sil=0
     |;
 ##
 ###
@@ -53,12 +59,6 @@ my @exclude_pattern = qw|  ~  .md  .yaml  .yml  .asc  |;
 
 @ptd_args = grep { $ARG ne qw| -utf8 | } @ptd_args if $no_utf8;
 
-## check-only mode : discard output, no backup, no in-place modification ##
-if ($check_only) {
-    @ptd_args = grep { $ARG !~ m{^-b} } @ptd_args;    ## remove -b and -bext
-    push @ptd_args, '-o', qw| /dev/null |;
-}
-
 my $reset             = "\e[0m";
 my $nailara_bg        = "\e[48;2;9;5;42m";
 my $blacklight        = "\e[38;2;68;39;172m";
@@ -69,16 +69,30 @@ my $NEON_green_yellow = "\e[38;2;71;195;6m";
 
 $SIG{'INT'} = \&sig_int;
 
-my $ptd_bin = which qw| perltidy |;
-die ":\n:: < ptd > : 'perltidy' executable not found in current path .,\n\n"
-    if not length($ptd_bin)
-    or not -x $ptd_bin;
+## in-memory API : no perltidy binary lookup, no subprocess, no          ##
+## Term::ReadKey/ioctl dance around a tty-suspend -- Perl::Tidy compiles ##
+## once for this process's whole lifetime instead of once per file       ##
+eval { require Perl::Tidy };
+die ":\n:: < ptd > : 'Perl::Tidy' not installed .,\n\n"
+    if $EVAL_ERROR;
 
 ##
 my @clean_argv
     = grep { not $ARG =~ m{(?:~$|\.md$|\.yaml$|\.yml$|\.asc$)} }
     @ARGV;    ### remove excluded files ###
 ##
+
+## existence check comes first, with its own message : is_perl_code()      ##
+## returns FALSE for a missing path the same way it does for "exists but   ##
+## isn't perl/P7 code", so a missing file would otherwise vanish silently  ##
+## and surface as the generic "expected [perl] file name(s)" error instead ##
+## of "not present"                                                        ##
+map {
+    die ":\n:: < ${NEON_green_yellow}ptd$reset > $reset:$NEON_orange not "
+        . "present $reset : '$NEON_green_yellow$ARG$reset' $reset\n:\n"
+        if not -f $ARG
+} @clean_argv;
+
 ## filter filenames for protocol-7 \ perl code ##
 #
 my @files = grep { is_perl_code($ARG) }
@@ -89,12 +103,6 @@ die ":\n:: < ${NEON_green_yellow}ptd$reset > $reset:$NEON_orange "
     . "${NEON_green_yellow}]${NEON_orange} file name${NEON_green_yellow}"
     . "[${NEON_orange}s${NEON_green_yellow}]${NEON_orange}.,$reset\n:\n"
     if not @files;
-
-map {
-    die ":\n:: < ${NEON_green_yellow}ptd$reset > $reset:$NEON_orange "
-        . "not found $reset : '$NEON_green_yellow$ARG$reset' $reset\n:\n"
-        if not -f $ARG
-} @files;
 
 my $file_count = scalar @files;
 
@@ -107,27 +115,34 @@ my $had_error = FALSE;    ##  false  ##
 while ( my $file_path = shift @files ) {
     show_progress( $file_path, $file_count - scalar @files, $file_count );
 
-    ## todo : use capurex , replace ReadKey .. [ using AMOS7::TERM ] ##
+    my $source = slurp_file($file_path);
 
-    ReadMode TRUE;
-    no warnings;
-    my $return_code = eval { system( $ptd_bin, @ptd_args, $file_path ) };
-    use warnings;
-    ReadMode 0;
+    my ( $tidy_out, $tidy_err, $tidy_errfile );
+    my $tidy_rc = Perl::Tidy::perltidy(
+        source      => \$source,
+        destination => \$tidy_out,
+        stderr      => \$tidy_err,
+        errorfile   => \$tidy_errfile,
+        argv        => \@ptd_args,
+    );
 
-    sleep 0.13;
-
-    if ( not defined $return_code or $return_code != 0 ) {
-        my $err_msg = lcfirst( $OS_ERROR // $EVAL_ERROR );
-        $err_msg = 'syntax error in perl code' if $return_code == 512;
+    if ($tidy_rc) {
+        ## perltidy itself failing is often just a symptom of a real syntax ##
+        ## error -- prefer the perl -c detail over a generic status message ##
+        ## when one is available                                            ##
+        my @real_errors = real_syntax_errors($file_path);
+        my $err_msg
+            = @real_errors
+            ? join_real_errors( $file_path, @real_errors )
+            : perltidy_fail_reason($tidy_rc);
         my $colored_msg = color_msg( $err_msg, $file_path );
-        if ( $return_code == 512 ) {
+
+        ## same wording as before : status 2 [ "ran to completion but      ##
+        ## reported error messages" ] is a soft warn + continue, any other ##
+        ## failure aborts the whole run                                    ##
+        if ( $tidy_rc == 2 ) {
             if ($check_only) {
-                my @real_errors = real_syntax_errors($file_path);
                 if (@real_errors) {
-                    my $detail = join( '', @real_errors );
-                    chomp($detail);
-                    $colored_msg = color_msg( $detail, $file_path );
                     warn $colored_msg;
                     $had_error = TRUE;    ##  true  ##
                 } else {
@@ -142,23 +157,111 @@ while ( my $file_path = shift @files ) {
         } else {
             die $colored_msg;
         }
-    } elsif ($check_only) {
+        next;
+    }
+
+    if ($check_only) {
         ## perltidy itself reported no problem, but it does not reliably ##
         ## detect real perl syntax errors -- always confirm with perl -c ##
         my @real_errors = real_syntax_errors($file_path);
         if (@real_errors) {
-            my $detail = join( '', @real_errors );
-            chomp($detail);
-            warn color_msg( $detail, $file_path );
+            warn color_msg( join_real_errors( $file_path, @real_errors ),
+                $file_path );
             $had_error = TRUE;    ##  true  ##
         } else {
             print color_msg( 'syntax ok', $file_path, $NEON_green_yellow );
         }
+        next;
     }
+
+    next if $tidy_out eq $source;    ##  nothing changed , skip  ##
+
+    open my $fh, '>', $file_path or do {
+        warn color_msg( lcfirst $OS_ERROR, $file_path );
+        next;
+    };
+    binmode $fh, qw| :raw |;
+    print $fh $tidy_out;
+    close $fh;
 }
 
 say "\n$blacklight:$reset";
 exit( $check_only && $had_error ? 1 : 0 );
+
+sub slurp_file {
+    my $f = shift;
+    open my $fh, qw| < |, $f or die "cannot read $f : $OS_ERROR\n";
+    local $RS = undef;
+    my $data = <$fh>;
+    close $fh;
+    return $data;
+}
+
+## $rc here is Perl::Tidy::perltidy()'s own plain error flag [ in-memory   ##
+## API, not a wait status -- no fork/exec, no signal/exit-code decoding    ##
+## needed any more ] : 1 = could not run to completion [ severe/fatal ], 2 ##
+## = ran to completion but reported error messages -- almost always a real ##
+## syntax error in the input, see real_syntax_errors for the detail        ##
+sub perltidy_fail_reason {
+    my $rc = shift;
+    return 'syntax error in perl code'                if $rc and $rc >= 2;
+    return 'perltidy could not complete [ status 1 ]' if $rc and $rc == 1;
+    return sprintf( 'perltidy failed [ status %s ]', $rc // 'undef' );
+}
+
+## compact multi-line perl -c output the same way base.format_error        ##
+## compacts die/warn text : strip each line's trailing "at FILE line N"    ##
+## clause and re-anchor it as a short "[file:line]" tag, normalize quotes, ##
+## merge perl -c's redundant "Unmatched ... bracket ..., at end of line" + ##
+## "syntax error ..., near '...'" pairing [ one diagnostic said twice ]    ##
+## into one message, then join everything onto one line                    ##
+sub join_real_errors {
+    my ( $real_path, @raw_lines ) = @_;
+
+    my @parsed;
+    for my $line (@raw_lines) {
+        chomp $line;
+        my $lineno;
+        ## not end-anchored : perl -c routinely appends more context after ##
+        ## "line N" [ ", at end of line" / ", near ..." ]                  ##
+        $line =~ s| at \S+ line (\d+)|| and $lineno = $1;
+        $line =~ s,\",\',g;    ## quotes -> single [ same as format_error ] ##
+        push @parsed, [ $line, $lineno ];
+    }
+
+    my @merged;
+    for my $p (@parsed) {
+        my ( $text, $lineno ) = @$p;
+        if (    @merged
+            and defined $lineno
+            and defined $merged[-1][1]
+            and $lineno == $merged[-1][1] ) {
+            $merged[-1][0] = merge_fragment( $merged[-1][0], $text );
+        } else {
+            push @merged, [ $text, $lineno ];
+        }
+    }
+
+    my $detail = join( '; ',
+        map { defined $_->[1] ? "$_->[0] [$real_path:$_->[1]]" : $_->[0] }
+            @merged );
+    $detail =~ s|\s+BEGIN failed.+$||s;
+    $detail =~ s|(?<=in \@INC).+$||s;
+    return $detail;
+}
+
+sub merge_fragment {
+    my ( $first, $second ) = @_;
+    ## no /x here : it strips the literal spaces inside "curly bracket"     ##
+    ## etc, silently turning the alternation into un-matchable joined words ##
+    ## instead of ignoring insignificant whitespace as intended             ##
+    my $bracket_kind = 'curly bracket|square bracket|parenthesis';
+    my ($kind)
+        = $first =~ m{^(Unmatched \S+ (?:$bracket_kind)), at end of line$};
+    my ($near) = $second =~ m{^syntax error, (near .+)$};
+    return "$kind $near" if defined $kind and defined $near;
+    return "$first; $second";    ## unknown pairing : keep both, fallback ##
+}
 
 ##[ run perl -c and strip P7-specific false positives, return real errors ]##
 sub real_syntax_errors {
@@ -177,6 +280,9 @@ sub real_syntax_errors {
         ## p7 data/module macro syntax [ <data.key>, <[module.name]> ] ##
         ## triggers glob-modification false positives under perl -c    ##
         next if $line =~ m{Can't modify glob in .*assignment};
+        ## same macro syntax on a bare 'delete <data.key>;' line -- raw ##
+        ## perl -c sees an undeclared glob deref, not a hash/array elem ##
+        next if $line =~ m{delete argument is not a HASH or ARRAY};
         ## cascading noise once compilation aborts on the line above   ##
         next if $line =~ m{BEGIN not safe after errors};
         next if $line =~ m{syntax OK\s*$};
@@ -184,11 +290,12 @@ sub real_syntax_errors {
         push @real_errors, $line;
     }
 
-    ## remove trailing "had compilation errors" if it's the only line left ##
-    if (    @real_errors == 1
-        and $real_errors[0] =~ m{had compilation errors\.?$} ) {
-        @real_errors = ();
-    }
+    ## drop the trailing "had compilation errors" restatement whenever it  ##
+    ## is the last line -- with a detailed error already present it's pure ##
+    ## noise, and on its own it leaves nothing meaningful to report        ##
+    pop @real_errors
+        if @real_errors
+        and $real_errors[-1] =~ m{had compilation errors\.?$};
 
     return @real_errors;
 }
@@ -197,8 +304,20 @@ sub color_msg {
     my $err_msg   = shift;
     my $file_path = shift;
     my $color     = shift // $NEON_orange;
+
+    ## wrap a long reason the same way base.wrap_text wraps zenki log lines ##
+    ## : practical necessity, not cosmetic -- ERR_WRAP_MAX, not LINE_MAX :  ##
+    ## source-code width is too wide for terminal readability               ##
+    my $lead_in = qw| ::[ |;    ## visible prefix before $err_msg starts ##
+    my $indent  = ' ' x ( length($lead_in) + 1 );    ## +1 : the space too ##
+    local $Text::Wrap::columns  = ERR_WRAP_MAX - length($indent) + 1;
+    local $Text::Wrap::break    = qr/\s+/;
+    local $Text::Wrap::huge     = qw| overflow |;
+    local $Text::Wrap::unexpand = 0;
+    my $wrapped_msg = Text::Wrap::wrap( '', $indent, $err_msg );
+
     my $colored_msg
-        = "\n$blacklight:\n::[$color $err_msg $blacklight] "
+        = "\n$blacklight:\n$lead_in$color $wrapped_msg $blacklight] "
         . ".: $color$file_path$blacklight ::\n:$reset\n";
 }
 
@@ -265,8 +384,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,..,,.,,.,.,.,,,..,,,..,.,.,,,,,...,..,,,,,,..,,...,..,,.,.,,..,..,,,,.,,.,,
-#D3X6D6HBRAP5JQKL52FB7G75OOHKB5HYP52J3O4BJAHPD44MM336DWLEJPIVZXS5BQTUVYJ3OBCW6
-#\\\|Y5IJMCKNHAIJFMJX4YTZ265ALP6PPU7OIWGCFGCYO7UQ3EYF4CW \ / AMOS7 \ YOURUM ::
-#\[7]3HA5VFQYEFAWROS6N6AI5QAFCEHDAOEBGPOCAE4X7MMXDGVUR4DY 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,,.,..,,,,,,,.,,...,.,.,.,,,,,,,..,,...,...,.,.,...,...,,..,...,
+#HKV3S45G77UYLTWXF5SZKVLHHGC6E4LITEMUDT5IUQ376GTJKFI6TSH4ESNOYGCQ6CTTEN5HQSN36
+#\\\|G4MNZ3C47RKFP6QI3NU6NRNW7HXVPGR3AJB2I4RZHFBRA7XYXZT \ / AMOS7 \ YOURUM ::
+#\[7]3ZMZGO37ZN3IBAAWDJIU7JK7HIR5I4CZELAWVXIIALIKSS4XD4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

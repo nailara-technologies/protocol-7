@@ -51,9 +51,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [eval-error-macro-call-site](feedback-eval-error-macro-call-site.md) — reading $EVAL_ERROR inline as an arg at a `<[...]>` call site can come back empty; capture into a lexical (or use `<[base.str.eval_error]>`) immediately after eval
 - [kimi-dispatch-idle-timeout-recovery](feedback-kimi-dispatch-idle-timeout-recovery.md) — MCP 1800s-idle "failed" ≠ dispatch failed; underlying process often finishes fine, recover via session_catchup(client:kimi, session_id) not re-dispatch
 - [posix-group-write-precedence](feedback-posix-group-write-precedence.md) — chmod-child grants need | 0020 (group-write) not | 0002 (other-write); a process that's a supplementary-group member of the file gets checked against group bits only, other bits never consulted; write_with_perms still has this bug live
+- [ptd-vs-format-code-two-reasons-to-keep](feedback-ptd-vs-format-code-two-reasons-to-keep.md) — ptd skips reflow AND never loads PPI (~175ms), format-code does both; don't retire ptd assuming feature-parity means redundancy
 
-#,,..,,.,,,.,,,..,...,,..,,..,,,,,...,..,,...,..,,...,..,,.,.,...,...,.,,,...,
-#ER6AJPVNZXXTHJUWYXHXGFZCSB655RUWAZEJN6ZC766DI3MFUVBOM76PMBOGJJ6SW55QWACTOMEF4
-#\\\|RMFADHYUKRC6QAQADRTXFUBTI23QWFXANNHPKCE2LGUT3VT43CI \ / AMOS7 \ YOURUM ::
-#\[7]APTE2SIBCU5WQQQGGC7UIX6T2RBUJROV5G4PR5MUQ6ZKPEQMJYCQ 7  DATA SIGNATURE ::
+#,,,,,,,.,...,.,,,.,,,.,,,,,.,.,,,,,.,,..,.,.,..,,...,...,.,.,.,,,..,,,,,,...,
+#W42IUP2XW3XL6SYRFZVVUHKNCIRKBVQS4F4STCMIZZXJ66GHPZL3PY6TFCJSIC6HR6ZASAO4PJQJ4
+#\\\|UVJIVQMT6LR772FHX7L6IGJVTPUQUSOZPLEZ5Q3L4LFFDVBBMIL \ / AMOS7 \ YOURUM ::
+#\[7]5CLZTOXSR5VGJMEI7OLN4KKI6U5IUH7S5YIBUJ2HXVLTQ3SNL4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
