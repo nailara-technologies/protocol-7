@@ -193,12 +193,20 @@ sub return_elf_c_sourcecode {
 
                 character = utf8_to_uvchr_buf( str, next_chr, &u8_len );
 
-                if ( character < 256 )
-
+                if ( character < 256 ) {
                     u8_len = 1;   //   not UTF-8 codepoint, single character
+                }
 
-                    len -= u8_len;
-                    str += u8_len;
+                // never allow zero-length advance : some malformed [ e.g.
+                // non-text binary input ] byte sequences can otherwise
+                // decode with u8_len == 0, which would spin the outer
+                // while(len>0) loop forever on the same byte
+                if ( u8_len == 0 ) {
+                    u8_len = 1;
+                }
+
+                len -= u8_len;
+                str += u8_len;
             }
 
             result = ( result << left ) + character;
@@ -219,8 +227,8 @@ sub return_elf_c_sourcecode {
 
 return TRUE ##################################################################
 
-#,,..,,,.,,,,,.,,,..,,,,.,,..,,.,,,..,,,.,,,.,..,,...,...,...,..,,,,,,,..,.,.,
-#M7PIL6E5HT4YBBEMNYOD2T5EXSTP57SSGX7YJ2SXSS7IKWFLLNAPAJB5IQJXK7VIOGEGTJJUDOOCS
-#\\\|3DXFUFQJXDDA7CV6SLSABPJAREMA6QYGJQKG7I54Y2UA3WQKY5Q \ / AMOS7 \ YOURUM ::
-#\[7]J6TA4QDZB5GRXHMYEOB47GPT3BBTMRWYNUVVQNGJFX2O45WBZKDQ 7  DATA SIGNATURE ::
+#,,..,.,.,..,,...,...,.,.,...,,..,,..,.,.,,,.,..,,...,.,.,...,.,.,,,.,.,,,,,.,
+#P3MYD2P3FY2M42MHXSEPAYCXMPKKK4BNGWIXRRGVTTNIBRXGRHAVJ6DA4UJ4QEYWLWQ2TIE6TFZI4
+#\\\|RFHSJSN5UPFNCKQISLXCMHLFEZKWHQJJR4KJX6NI7YFKK7KRBJF \ / AMOS7 \ YOURUM ::
+#\[7]TXKJL655233XHRSUKG5IYE4ZSJL45HMDDHKK2WNLTX6KFMHDZOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
