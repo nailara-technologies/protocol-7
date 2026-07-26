@@ -518,6 +518,24 @@ what it should actually invoke.
 - job automation — jobtracker integration (HTML/JS, CSV/PDF), email reply monitor
 - base.handler.command refactor — data/md/development/BASE-HANDLER-COMMAND-REFACTOR-PLAN.md
 
+## in flight (session 2026-07-26)
+
+- **perlmod load/autoload cleanup**: 152 candidate call sites categorized by
+  K2.7 (`data/tasks/perlmod-categorization-results.md`); human review found
+  6 misclassifications and a broader templated-reasoning problem, so a K3
+  re-verification of all 59 current MOVE rows was dispatched
+  (`data/tasks/perlmod-move-reverification.md` → expected
+  `perlmod-move-reverification-results.md`). See
+  [[feedback-perlmod-categorization-review-catches]] for the full trail and
+  what to check when the K3 dispatch returns, before drafting any actual
+  refactor-batch task. Two real fixes already landed ahead of the bulk
+  cleanup: `Perl::Tidy` → `coding.init_code`, `AMOS7::Twofish` →
+  `p7-log.init_code`.
+- **`base.devmod.dump_var` / `*main::dump_var` wrapper**: implemented in
+  `modules/base.init_code`, gated on `ref($code{'devmod.dump'}) eq 'CODE'`
+  (same canary `devmod.cmd.unload-devmod` already uses) — unstaged,
+  pending sign/stage.
+
 ## open bugs (session 37)
 
 - source.extract_sig_body: YOURUM fake stubs 1 char too long → size mismatch → error instead of strip
@@ -537,8 +555,8 @@ what it should actually invoke.
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,,,,.,,,..,,,..,,.,,...,,.,,,..,.,,,.,.,,.,,..,,...,..,,,..,...,,,,,,.,,,,,,
-#IMZJZCUNZITWTRYYXSUIEYH2APZXPTUR2KTDS7QAJQWRH2NDVDK53RSJBOLY2AXDQLAFZHEYHQSEI
-#\\\|22K4ZSOE3WHH3UWDU4ADV3IU42TYJO3O74AZUDTUUC5QAW37IZO \ / AMOS7 \ YOURUM ::
-#\[7]PLDDU7GSFEAIJ77HO7DZHI3RYFYS5EO5ZLOQGH4AYJN2WJ57X2AI 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,.,,,,..,..,,.,.,..,,,,,,,..,,.,,..,,...,...,.,,,...,,.,,.,.,,.,,
+#OEJKLPTMJKJC2KJ4SPTK4QDPYTUJK47OPTQER7UHDZLZQYXNONFEZN2BSEDS4CIYVNOWMML6OEZD6
+#\\\|32XT23QE7FV37X3I5LNVV5W3WY6YMDQW2FZ4MJIHUL5FN2WMQOE \ / AMOS7 \ YOURUM ::
+#\[7]Q2SEILPSFWYOTVFSUWCJWT4K546X24QYVTTLD5HKJKPX3RXMHODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

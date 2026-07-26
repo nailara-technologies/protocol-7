@@ -39,8 +39,18 @@ all 6 steps landed + live-verified on the running zenka. steps 4-6 added `wait-s
 
 value-injection replay landed + live-verified: `cmd.state-play`, `cmd.waypoint-set`, `cmd.goto-waypoint`; `__p7SetState` hook in visualization.html [ zoom hook pins manualZoom — updateCamera eases zoom->manualZoom every frame ]; `replay.dispatch` gained force_set [ FORCED exact-landing label ]. gotchas: $1/$2 clobbered by second regex test [ save captures immediately ]; pipe alternation inside m|..| breaks at runtime load [ use m{..} ]. see [topic-web-browser-state-play-waypoints.md](topic-web-browser-state-play-waypoints.md).
 
-#,,,.,...,...,.,,,.,,,,,,,..,,...,.,.,,..,,,,,..,,...,...,,..,...,,..,,,.,,,,,
-#KFMQBJ5DPKTCJUIJGGVYD4EZ3OYD7TL3F3IKWBYARVJJDLVF3QFIH5Q55LIWBSO5SBQZLHBOB4XPG
-#\\\|XBEITCADM4M7F5IG5MWFCQNGP4AWIG6ED36Q6FHDTYRPOPYOEVS \ / AMOS7 \ YOURUM ::
-#\[7]65O7UDGG7IKBWUBAMFYTRPV2FLPXJDCGW5TSAP2RS45JVES2QADI 7  DATA SIGNATURE ::
+## perlmod confirmed-MOVE refactor — COMPLETE (2026-07-26)
+
+all 11 confirmed loads from `data/tasks/perlmod-move-confirmed-refactor.md`
+moved: per-call loads removed from the 11 source files [ guards fully
+deleted ], preloads added to base/channels/coding/jobsite/context/models/
+screen.setup/zulum init_code [ ChaCha20Poly1305 once in base.init_code;
+Encode+HTML::Entities once in jobsite.init_code; Gtk3 already in
+screen.setup.init_code so only Cairo+Glib added ]. `ptd -c` clean on all
+19 touched files. signatures left to the system.
+
+#,,,,,..,,..,,,,,,,..,,.,,,,,,.,.,.,.,,..,.,,,..,,...,...,..,,.,,,,..,,,,,,,.,
+#CF6QZGR2MHBNSP6JM3X7CPEZEUDZHWYE7M556KPWYN7HUNMILMOL3I7ZRVLAPCVWSKEOAEUGTBFCY
+#\\\|I6JL2355EYKY5QVQCSNX4KFMHHMT5GVVB4NOPXZ7UZYGFFREDMG \ / AMOS7 \ YOURUM ::
+#\[7]LJD5LU6DJLGAMILW3WBOE3T4F2UPJJEMOUBWKWOBLIMYMNTFLYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

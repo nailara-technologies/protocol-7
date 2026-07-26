@@ -5,6 +5,7 @@
 #         subscriptions, timestamps, heartbeat
 
 <[base.perlmod.autoload]>->( 'Time::HiRes', qw| gettimeofday tv_interval | );
+<[base.perlmod.autoload]>->('YAML::XS');
 ##  Channel subscription and state tracking  ##
 <channels.subscriptions> //= {};
 #
@@ -61,8 +62,8 @@ foreach my $channel_path ( keys <channels.all_channels>->%* ) {
     'sort_key' => 'alpha-len:channel_path',
     'descr'    =>
         'active channels with subscription status and heartbeat tracking',
-    'mask' => '<key>:channel status:status updated:'
-        . 'last_update subscribers:sub_count',
+    'mask' => '<key>:channel status:status '
+        . 'updated:last_update subscribers:sub_count',
     'align' => {
         'channel'     => 'left+2',
         'status'      => 'center',
@@ -96,8 +97,8 @@ foreach my $channel_path ( keys <channels.all_channels>->%* ) {
 
 0;
 
-#,,..,,.,,,,.,,,,,,.,,.,.,,,,,...,,,.,,..,.,.,.,.,...,...,.,.,,.,,.,,,,,.,..,,
-#2JMCL5VIPK2E5BY5GOSP5L6L4YCYN7STANYI2N2GOBVIFQUXOSM2WPXIVZI4PX4HBNYZ3NOYJX3LM
-#\\\|4RPHIYLECOLE6AHNWMAC5TF3OBGHUWH6DHVUKQLEOIHFZJEWXJI \ / AMOS7 \ YOURUM ::
-#\[7]GC6BNEP72FLYJS6KIDWAFKOQLKIA57IUY7KYHBHB2NRMDSHM2KDY 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,.,.,,.,,,,.,,.,,...,..,,..,,.,,,.,.,...,...,,.,,.,,,.,,,...,..,,
+#ARMUKYOHCEAXKUI2DDU7F7HIVRNRUZT6AJ5A7PXUUB5VBB6UUIMZYP2EYTOPYK27CCOC5K2MFA7RQ
+#\\\|TJTKL3BT7LBLP2YWTTCEU4S46EN5HNJQXFJCT2SASXCDRDKU5R7 \ / AMOS7 \ YOURUM ::
+#\[7]BRMHBDTXAV6HSAFU423A7MVRZBYRBOIPCGZMWIC4CF37SNGL56AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

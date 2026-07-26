@@ -3,15 +3,15 @@
 # name  = jobsite.dispatch.assessments
 # descr = collect new untracked jobs and queue assessment tasks
 
-## re-entrant safe : a settle-timer (new job-upsert arrivals) or a queue-drain ##
-## signal can both call this while a previous batch is still mid-flight ; only ##
-## the call that finds cycle already idle is allowed to kick dispatch.next -- ##
-## an in-flight chain already re-invokes dispatch.next via assess-done, so a  ##
-## second kick here would double-dispatch a task ##
+## re-entrant safe : a settle-timer (new job-upsert arrivals) or a        ##
+## queue-drain signal can both call this while a previous batch is still  ##
+## mid-flight ; only the call that finds cycle already idle is allowed to ##
+## kick dispatch.next -- an in-flight chain already re-invokes            ##
+## dispatch.next via assess-done, so a second kick here would             ##
+## double-dispatch a task                                                 ##
 my $was_idle = ( <jobsite.cycle> // '' ) ne 'assessing';
 
 ## collect new untracked jobs from per-file store ##
-<[base.perlmod.autoload]>->('HTML::Entities');
 my $store = <[jobsite.job.load_all]>;
 
 my @to_assess;
@@ -31,8 +31,8 @@ for my $job_id ( keys %{$store} ) {
             $job_id, join( ', ', $chk->{'hits'}->@* )
         );
 
-        ## backfill checksums if missing [ original   ##
-        ##             assessment may predate store ] ##
+        ## backfill checksums if missing [ original  assessment may predate ##
+        ## store ]                                                          ##
         my $need_add   = 0;
         my $store_root = '/var/protocol-7/jobsite/checksum-store';
         for my $hit ( $chk->{'hits'}->@* ) {
@@ -62,14 +62,15 @@ for my $job_id ( keys %{$store} ) {
         };
         <[jobsite.job.write]>->( $job_id, $blocked_job );
 
-        ## job.write's rename-based cleanup trusts <jobsite.job.index> for the ##
-        ## old path, which can already point elsewhere if this id was blocked ##
-        ## under a different filename/epoch before (e.g. a resurrected repost ##
-        ## racing an index rebuild) -- that leaves this 'new' copy orphaned,  ##
-        ## re-detected and re-"blocked" forever without ever being removed.   ##
-        ## we know for certain this file lives at new/<enc_id>.yaml since we  ##
-        ## just loaded it from there, so remove it directly instead of       ##
-        ## trusting the index's single-slot memory of the old location ##
+        ## job.write's rename-based cleanup trusts <jobsite.job.index> for  ##
+        ## the old path, which can already point elsewhere if this id was   ##
+        ## blocked under a different filename/epoch before (e.g. a          ##
+        ## resurrected repost racing an index rebuild) -- that leaves this  ##
+        ## 'new' copy orphaned, re-detected and re-"blocked" forever        ##
+        ## without ever being removed.  we know for certain this file lives ##
+        ## at new/<enc_id>.yaml since we just loaded it from there, so      ##
+        ## remove it directly instead of trusting the index's single-slot   ##
+        ## memory of the old location                                       ##
         my $enc_id   = <[base.vax-int.encode]>->($job_id);
         my $new_path = join( '/',
             <system.path.zenka-dirs>->{'var_P7'},
@@ -109,16 +110,14 @@ my $profile_file = <jobsite.cfg.profile_file>
 my $profile_text = '';
 $profile_text = <[file.read]>->($profile_file)
     // 'no profile configured : score based on job listing alone';
-<[base.perlmod.autoload]>->('Encode');
 $profile_text = Encode::decode( 'UTF-8', $profile_text )
     unless utf8::is_utf8($profile_text);
 
-## build queue entries
-## queue_gen : bumped on every enqueue [ here and in apply_reverse's reassess ##
-## branch ] so dispatch.next can tell "still the freshest queued instance of ##
-## this job" from a stale duplicate left behind by a re-queue, uniformly for ##
-## both fresh-new dispatch and reassess -- see dispatch.next for the other  ##
-## half of this contract ##
+## build queue entries  queue_gen : bumped on every enqueue [ here and in   ##
+## apply_reverse's reassess branch ] so dispatch.next can tell "still the   ##
+## freshest queued instance of this job" from a stale duplicate left behind ##
+## by a re-queue, uniformly for both fresh-new dispatch and reassess -- see ##
+## dispatch.next for the other half of this contract                        ##
 my @queue;
 for my $job_id (@to_assess) {
     my $gen
@@ -138,15 +137,16 @@ for my $job_id (@to_assess) {
 <jobsite.assess_queue> //= [];
 push @{<jobsite.assess_queue>}, @queue;
 
-## dispatch first task only if nothing was already running -- an in-flight
-## chain's own assess-done -> dispatch.next will pick up the appended entries ##
+## dispatch first task only if nothing was already running -- an in-flight ##
+## chain's own assess-done -> dispatch.next will pick up the appended      ##
+## entries                                                                 ##
 <[jobsite.dispatch.next]>
     if $was_idle;
 
 return;
 
-#,,,.,.,,,,..,.,.,.,,,.,,,.,.,,..,,..,.,,,,,,,..,,...,..,,..,,,,,,,.,,...,..,,
-#T46CTATVFCOIW3TXDM6WK7IX2FPXPN4AIQXAY5YNJZOJ24XQXU4M2UIKS52CL7PDBEEO3KGOOXTKY
-#\\\|4QBG7GDLGI3EA6J6NT6GQRAZ3O7CALWG6ETGXZMYROW4SSAQ6YV \ / AMOS7 \ YOURUM ::
-#\[7]NOWOLYE5GDH725ZYWYM5364PRBWF3T7HAYBGSHYXYVAMULAAKYAI 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,..,,..,,..,...,,,.,,.,,...,,..,..,,...,...,..,,.,,,..,,.,,,.,.,
+#LBMTZD2T56SKX4RQ3BZIECYDHVG7KVLYTYT46HX74CSBZGO3GE6ZJFMGSVQDWJYSZQIIEJ6C2KRJY
+#\\\|MAJROLYLVRFXHFV4TULZWPQ7B7FW4SHEIAPDE44ZRPISMY6KP7W \ / AMOS7 \ YOURUM ::
+#\[7]MPBHYZEGBOD3H3LEHYZLESLIU7II2JD76E5HFUTGZ5ANWWDN6YAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

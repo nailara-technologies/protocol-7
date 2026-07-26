@@ -87,8 +87,31 @@ open: kimi zenka state machine upgrade (backend reconnect), coding zenka as thir
 
 `skipped` status restored across all index scanners, reassessment now protects manual stages, web sync carries `assertions`, UI delete actions wired, and orbital subscriber `.cmd.` syntax corrected. Assessed jobs now map to the `review` UI stage. See [jobs-pipeline-2026-06-28.md](jobs-pipeline-2026-06-28.md). Open: bulk-delete pending search/filter UI.
 
-#,,,.,,..,.,,,...,...,,,,,,.,,...,..,,.,.,..,,..,,...,...,...,..,,,..,,,,,.,,,
-#MPSQTMTSVTEHBHJCQUT2YHCERDIOIJNK3IC3SNU3643OJGI4ZP2SVCTQBO7LQAGJWD6DDYFSATBBE
-#\\\|BM632KCYWA2ZN3ZCRBYBAVL3TD6OZLTJ33MMG7MJSBLXL3ASTKA \ / AMOS7 \ YOURUM ::
-#\[7]5XH7VCYOC6B7E25POKTJXHSELCNG5FLFEYQ2HBXVZAR5CUYKPGCA 7  DATA SIGNATURE ::
+## perlmod load/autoload categorization notes (July 2026)
+
+static classification of 152 suspected call sites found ~8 files are grep false positives (they reference `base.perlmod.loaded` or contain the literal string, but make no actual `base.perlmod.load`/`autoload` call). a few modules use direct `use Module;` instead of the wrapper — those are outside the refactor scope. heavy GUI deps (`Gtk3`, `Curses::UI`) and interactive-only modules (`AMOS7::TERM` for password prompts) are intentionally kept lazy so non-GUI / non-interactive zenki do not pay the load cost at boot. see `data/tasks/perlmod-categorization-results.md` for the full table.
+
+MOVE re-verification (2026-07-26, `data/tasks/perlmod-move-reverification-results.md`):
+only **11 of 59** MOVE rows survived caller tracing — the rest were
+frequency-inflated `.cmd`/`.handler` rows or already-redundant loads. durable
+lessons for any future load-placement call:
+- `base.perlmod.load` short-circuits via `<base.perlmod.loaded>` — repeat per-call
+  loads are one hash lookup. a MOVE must be justified by first-call latency or boot
+  consolidation, not per-call overhead; this deflates most cases for core perl mods
+  (POSIX, JSON::PP, Time::HiRes, MIME::Base64, HTTP::Tiny, IPC::Open3, Math::BigRat).
+- Crypt::Misc is already base-loaded at startup in any networked zenka
+  (base.chk-sum.jha.init_code, base.handler.link-upgrade,
+  base.handler.write.encoding-wrapper) — inline loads elsewhere are no-ops.
+- channels zenka is `start.on-demand = 1` with dev-only cube wildcard grant —
+  "granted" != "hot". several channels/context.share/branch modules are dead or
+  unwired code with zero callers (design-stage namespaces).
+- image-quality.* runs inside vision-batch child processes whose own
+  vision-batch.child.init_code already preloads JSON::XS — moving the load to
+  image-quality.init_code would not cover the real execution path. always check
+  WHICH process actually executes the module.
+
+#,,,,,...,,..,,..,,..,,,.,.,,,,..,,..,,,.,,,.,..,,...,...,...,...,..,,.,.,,,,,
+#QTLAZ6POJ24VBO5EKNCDJHKME6NVQISC623IGPYLHBJQAWSDVN43A7WJ3G7HS6ZCGX4NRXJQ2GJXC
+#\\\|QQQGMFFWFFGPZ2376VQXW7THCKZGU5KLRVAAHYFJF2FZQQBT3O6 \ / AMOS7 \ YOURUM ::
+#\[7]HM6NQMSFZF7NKFIWYIXGNCNNKBL4TASQBAAV6BP6LRG2VIY2FWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
