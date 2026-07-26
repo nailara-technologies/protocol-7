@@ -45,7 +45,7 @@ invoke-model-recover -download modelname # existing name-based still works
 
 ### Progress Bar Style
 
-Adopt `bin/ptd` visual style for download progress ( `-bar -sot -ce -l=78` ).
+Adopt `bin/dev/ptd` visual style for download progress ( `-bar -sot -ce -l=78` ).
 `ptd` is already Perl + LWP-compatible — reuse its bar rendering approach.
 
 ## Phase 2 : Zeroing / Space Reclamation [ script ]
@@ -120,8 +120,8 @@ data/lib-path/pm/AMOS7/                       ## for checksum ID generation
 - zeroed vs missing behaviour in invoke.ai: **test before implementing zero**
 - `.z` suffix approach preserves original path as missing if zero is problematic
 
-#,,.,,.,.,,,,,,,.,,.,,,.,,,..,..,,,.,,,.,,...,.,.,...,...,,,.,..,,...,...,,..,
-#JPXPCDC2GPSAI5WMREXSYRCKIHSBCPJYOY36XEO5Y52MV6FLEX7QZB6U237GXMBJFJKWH6W6IO6I6
-#\\\|GDNVMNHJGNJA5F5HGQQNLUREKERYQTLQY7JCJW6VWI3ODAI57XA \ / AMOS7 \ YOURUM ::
-#\[7]XSZASJMS2GEN62H2I4YLJ47J4ROICY6BCIEWPNO2YXOEAPVI2MBQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,,.,,,.,..,,..,,.,.,.,,,...,,,.,.,.,...,...,.,,,...,.,.,.,,,,.,,
+#S5XOPK7SIT24IZZ4QO27BI4TFRCJMTNKHOZWNACDLKSFCBF3EV7Q6QO5F7A5HTVLWLRE364ABITR6
+#\\\|VRY4G4C6WMFAXS2UJYQR3A4FSMRXFC5FIR4PJWQM7R53JYZYBBJ \ / AMOS7 \ YOURUM ::
+#\[7]VJGXKG4E7CMISVJWRDZYTL4IQKTTSHBHRIR47DTVC5KTF3LFJGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

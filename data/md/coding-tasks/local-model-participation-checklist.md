@@ -201,8 +201,8 @@ ls var/inference-cache/
 curl -s http://localhost:8000/health | head -1
 
 ## check module syntax ##
-bin/ptd -c modules/coding.system_prompt
-bin/ptd -c modules/coding.context.read_module
+bin/dev/ptd -c modules/coding.system_prompt
+bin/dev/ptd -c modules/coding.context.read_module
 
 ## check cache directory structure ##
 find var/inference-cache/ -type f | head -20
@@ -273,8 +273,8 @@ noticeably better local model experience.
 - `modules/coding.handler.process-queued-task` — integration point
 - `data/yaml/context-templates/` — existing templates
 
-#,,..,,,,,...,.,,,,,.,,.,,,.,,.,.,..,,,,,,,,,,..,,...,...,,.,,..,,..,,.,.,,,,,
-#X7TFRXHGEF26TMUD2DHENOJXT3VITGKMCN5SSLUXIARBTUHQV75BPZ7DSQBKXQCQK5SBJAIVFVAK4
-#\\\|3QXRZNFCVRDBN6KMFL6QTR6WLHWY73U2O3GKDQ46SH37XTCJNQL \ / AMOS7 \ YOURUM ::
-#\[7]BVRYSHCGFAAMBGVAEJTAVHAEAYXSCR2PE2NCB6QZYCWJ53CBDGCQ 7  DATA SIGNATURE ::
+#,,,.,.,,,...,,,.,...,,.,,.,.,,,,,,.,,...,.,,,..,,...,..,,.,,,,,,,,.,,,..,..,,
+#67NSHPXIE4E4R7B3M3KOOXXDLBRK6WXFAJKQQP6KKDF4QMXM2M5QCX62DUHVEQS3CTFSPC2XY4WNM
+#\\\|FS7SVMGLTW2WGFVT7WFKI7FW336WH4BQE745RG6YFFSTKGK7ZBP \ / AMOS7 \ YOURUM ::
+#\[7]P2FAVQ3ERFKDGUXVVOIWLV6DOWZ7GGRD6HPRSAVKJQ4ZUYOJYSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

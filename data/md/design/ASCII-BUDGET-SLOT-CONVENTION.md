@@ -8,7 +8,7 @@
   cross-cutting convention. ]
 
 related prior art [ this document names the principle those already embody ]:
-- `bin/ptd` `show_progress` — simplest existing instance
+- `bin/dev/ptd` `show_progress` — simplest existing instance
 - `ascii.frame.bar` / `ascii.frame.slot.select` (see `topic-frame-plugin-slots.md`,
   `data/md/design/PLUGIN-SLOT-SELECTOR.md`) — closest existing implementation to
   the generalized form below: provider-based, interest-max selection, already
@@ -63,7 +63,7 @@ this is already exactly what `ascii.frame.bar` + `ascii.frame.slot.select`
 implement — a provider returns `{value, label, interest}`, the selector picks,
 the renderer fills a slot at a known position. `coding.round-progress` reimplements
 the same shape by hand, independently, with its own ANSI/bracket logic.
-`bin/ptd`'s `show_progress` is a third, simpler independent instance.
+`bin/dev/ptd`'s `show_progress` is a third, simpler independent instance.
 
 ## consequence, not urgent
 
@@ -84,13 +84,13 @@ from outside the frame-system's own docs before.
   implementation this document names the principle of
 - `data/md/design/PLUGIN-SLOT-SELECTOR.md`, `data/md/design/CONSOLE-FOLD-TREE-PHILOSOPHY.md`
   — the wider ascii-frame/console design family this sits alongside
-- `modules/coding.cmd.round-progress`, `bin/ptd` (`show_progress`) — independent
+- `modules/coding.cmd.round-progress`, `bin/dev/ptd` (`show_progress`) — independent
   existing instances of the pattern named here
 
 #,,.,,,.,,.,.,.,.,.,,,.,.,..,,.,,,,,,,,,,,,..,..,,...,...,,,,,..,,,,.,,.,,.,.,
 
-#,,,.,,,,,,,.,.,.,,..,...,,,.,,,.,.,.,,.,,,.,,..,,...,..,,.,,,.,.,...,,..,.,,,
-#ACNC5ESMLV3WFXJAPL2UEHM5IPTRUJK6JUONF6FIASUTBM4UIXTH2A6PA4GLSVGUVNI6ICBJ7K74C
-#\\\|6AOM4TMUFZHRZRIY7YYG3SET4EJ2ZRN2LPXGGACA5LEKOK2QBTK \ / AMOS7 \ YOURUM ::
-#\[7]IJB5DBAPIRETDOLOB4JWGEOFXAPY6X65WOSVJ7B2A44ZKS7HWSBQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,,.,,,,.,,,,,...,...,...,..,,,..,..,,...,...,.,,,,,,,..,,,,.,,..,
+#7PZJT5CJP25UFW4XUVLO7AUXNNAEHRRC63SZ3FYYAEJC6HRJJEOQAPDYRDRKOQFDYL5JDFE5OUWZK
+#\\\|Z6KN3XVW4PUX4PDY3II4QFLK6LEAF4PEQYDNWXLI4U4ANP3K2J6 \ / AMOS7 \ YOURUM ::
+#\[7]KWYHIB7WQJLMA2XYOIPBKT7DKIGRESNK2Y2ATJLFXMIQVNTEM6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
