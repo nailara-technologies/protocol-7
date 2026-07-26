@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = audio.handler.decode_timeout
+# descr = abort stalled ffmpeg decode and reply false to deferred caller
+
+my $event = shift;
+
+my $wdata = eval { $event->w->data } // {};
+my $id    = $wdata->{'id'}           // '';
+
+my $state = <audio.decode>->{$id} or return;
+
+<[base.log]>->( 0, 'audio decode timeout : %s', $state->{'path'} // $id );
+
+## empty pcm makes finalize_decode take the false-reply path ##
+$state->{'stderr'} = 'decode timeout';
+$state->{'pcm'}    = '';
+
+<[audio.finalize_decode]>->($id);
+
+return;
+
+#,,..,,..,.,.,.,,,...,,.,,,..,.,.,,,.,.,,,.,.,..,,...,...,...,..,,,,.,..,,...,
+#4M54WK4UGKYNPS6CV7A5VOKGUB77EFE7JMXT6TCP6GTVPHBPGKAAH7RQ6ALMH3VGLYQNCCKZI3HTE
+#\\\|ZWSU63DIQ6SPUSESQ6OMU3QRSIO2LHAMJ67PXZESQEJ3XXPF5ZI \ / AMOS7 \ YOURUM ::
+#\[7]WMWNDVGBG2VHAXTIWZHQKAYHXALWQZOBQRMHEP5AHAJKEJS5I2CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
