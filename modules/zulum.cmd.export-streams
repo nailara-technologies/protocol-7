@@ -4,8 +4,6 @@
 # descr = export all 13 stream states to a shared JSON file
 #         called periodically by zulum timer for httpd/iris to read
 
-<[base.perlmod.autoload]>->('JSON');
-
 my %export;
 for my $sid ( 1 .. 13 ) {
     my $s = <zulum.stream>->{$sid} // {};
@@ -24,8 +22,8 @@ return undef unless defined $json;
 
 return { 'mode' => qw| true |, 'data' => 'streams.json' };
 
-#,,.,,.,.,,,.,,,,,,,.,..,,,..,.,,,...,,,.,,.,,..,,...,...,.,,,,.,,,,.,.,.,,,,,
-#5MBXKZOA5WWEFPJT7BZHTJDTJ7SSEGA7SSVY24NZXTURSCDDZIQ2W2O4S2LBWADOQ5ETRWYXIROY4
-#\\\|2JXEFFJIQXXJJMJGM456FRMPXSLH5HDEQOJHKLWMWCZL2Z4OQTD \ / AMOS7 \ YOURUM ::
-#\[7]D4UXTAYQSYPBMXOJRVEL57O56ODTCNY66LIKCKGF7LR3Z4J3S4AA 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,,.,,,.,.,.,,.,,,,.,..,,.,.,.,,,..,,...,..,,.,,,..,,.,.,.,,,,..,
+#55SKLW7MT2EMMMJP64HQY6FQVMQU4DAWKDLSIZSHHJJUIW2WEMR5LCLZYXU4VH3VQ53OOIVG67S62
+#\\\|KFXDTTNDM44B4SE5OVSELIPKPA43B5MIMUU4LQWGWQMMXTJNJTP \ / AMOS7 \ YOURUM ::
+#\[7]KIEDNRXAKDRW2BWF7EU3UL5FHRM7W7IDNCRLNYAQK4OS5UEQKEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

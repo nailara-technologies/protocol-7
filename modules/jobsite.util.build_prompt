@@ -12,10 +12,8 @@ my $city     = $job->{'city'}        // '';
 my $ind      = $job->{'industry'}    // '';
 my $raw_desc = $job->{'description'} // '';
 
-<[base.perlmod.autoload]>->('HTML::Entities');
 HTML::Entities::decode_entities($raw_desc) if length $raw_desc;
 
-<[base.perlmod.autoload]>->('Encode');
 for ( $title, $co, $city, $ind, $raw_desc ) {
     $_ = Encode::decode( 'UTF-8', $_ ) unless utf8::is_utf8($_);
 }
@@ -47,13 +45,15 @@ my $model_pin = ':model:WZIZD6Y:2BIZKWY:';
 if ( defined $defects and @$defects ) {
     my $defect_note = join( ', ', @$defects );
     $task_preamble
-        = ":local: :simple: $model_pin"
-        . " /no_think Output ONLY YAML. No prose. No analysis. No markdown. Start your response with: score:"
-        . "\n\nThe previous assessment had these defects: $defect_note. Fix them in the YAML output.";
+        = ":local: :simple: $model_pin /no_think Output ONLY YAML. No prose. "
+        . "No analysis. No markdown. Start your response with: "
+        . "score:\n\nThe previous assessment had these "
+        . "defects: $defect_note. Fix them in the YAML output.";
 } else {
     $task_preamble
         = ":local: :simple: $model_pin"
-        . ' /no_think Output ONLY YAML. No prose. No analysis. No markdown. Start your response with: score:';
+        . ' /no_think Output ONLY YAML. No prose. No analysis. '
+        . 'No markdown. Start your response with: score:';
 }
 
 my $yaml_format = <<'YAML_TEMPLATE';
@@ -112,8 +112,8 @@ push @prompt_parts, "Branche: $ind\n\n$desc", "Beginne jetzt mit: score:";
 
 return join( "\n\n", @prompt_parts );
 
-#,,..,...,,,,,.,.,,.,,,,,,.,.,.,,,,,.,..,,,.,,.,.,...,...,...,.,.,,..,...,,,.,
-#5CFPC5TW2COQ4YZMKZ27HC6JVJBN5HMOEIYJHAROZKYWJ5ZDHA2QNEQQ2Q4HBADNZYIP6F7Z4R5MY
-#\\\|LZYBR3O6D6QO72SRHQSZBIIWYCVAIT2J2XYMJDLRGEEMTBC44N5 \ / AMOS7 \ YOURUM ::
-#\[7]QFTKJH22AQYLMRX2QV6ENBZ6OLU6O4OZ52GCTK4ZUEA7RVCFE2CA 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,..,...,..,,.,.,...,,,,,,,.,,.,,.,.,...,...,.,.,,,.,,.,,,,.,,.,,
+#5KF4IXBMTDUPHNSCJHXNBC7CQ2SREMUFTQXIERMOVNEQQQBI3NBOHIMDMUIYDWSROEOR3I3ZY64TS
+#\\\|O2ZRJ3Z5PJD4VXHIEKJ2YDOB5EFJHZ2JOINCHHPGFVYFXDTZ5FO \ / AMOS7 \ YOURUM ::
+#\[7]B5HC2XGATM6SFY2SHPBQI3ZACBCP26J5AW2C7KWEBFRPDNP7ZOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

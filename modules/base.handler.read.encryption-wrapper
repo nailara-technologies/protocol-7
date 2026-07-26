@@ -24,11 +24,6 @@ if ( not defined $session->{'link_encryption_key'} ) {
     return $code{$original_handler}->($event);
 }
 
-## Load cipher module if not already loaded
-if ( not <[base.perlmod.loaded]>->('Crypt::AuthEnc::ChaCha20Poly1305') ) {
-    <[base.perlmod.load]>->('Crypt::AuthEnc::ChaCha20Poly1305');
-}
-
 ## Apply decryption to input buffer before calling original handler
 my $input_ref = \$session->{'buffer'}->{'input'};
 
@@ -100,8 +95,8 @@ return $ret_code;
 
 1;
 
-#,,,,,,.,,.,.,,,.,,,,,..,,,..,,,.,.,.,,.,,,..,..,,...,...,...,,,.,,.,,,..,.,.,
-#3B3M77VJVFHGLIQFXAED6UZXYGLLPEDBILGIDU3FRRRCGMODL5WR7SLWU6DZVTEL4VZ7UMSQKKVK2
-#\\\|TMYC76NBBTJ4EH3EBQ5VR3J6757DNF3CMWYU5TS5MU75R6ZXOA6 \ / AMOS7 \ YOURUM ::
-#\[7]Q4OUEFUDX6SXOIANJLO55PMHSBQJ6QGMZKQP3VTFX25DVJA2Q4AA 7  DATA SIGNATURE ::
+#,,..,..,,,,.,...,,..,,,.,,,.,...,.,.,,..,,,,,..,,...,...,...,,.,,...,,,,,,..,
+#FI7HN4MSVADCGENHFFWOVY6Y6WHC6BQQCCGNUQFYUPY5LV3YZMHJ5Y73FUU2WD324SY3SIBHO5YLK
+#\\\|XGCO5SJ6KHUUXVOVPEAISCR33LMOKQ7BHCJZOGBLSKEK6KJFIP7 \ / AMOS7 \ YOURUM ::
+#\[7]MNROUN7I77VSXBK44HGA4LKNWRHEPOBBHFQ6IN4YXCNIWLDCO6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

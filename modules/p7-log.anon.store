@@ -11,10 +11,8 @@ return FALSE if ref $pairs ne qw| ARRAY | or not scalar @{$pairs};
 my $key32 = <[p7-log.anon.key]>;
 return FALSE if not defined $key32;
 
-map { <[base.perlmod.load]>->($ARG) } qw| AMOS7::Twofish |;
-
 ## var_P7 data dir [ /var/protocol-7/<zenka> ] -- NOT the source tree, so ##
-## the table survives git reset/clean and matches a real deployment path ##
+## the table survives git reset/clean and matches a real deployment path  ##
 <p7-log.anon.table_path> //= sprintf qw| %s/log-anon/table.bin |,
     <[file.zenka_dir.data_path]>->();
 my $table_path = <p7-log.anon.table_path>;
@@ -72,8 +70,8 @@ close($table_fh);
 
 return $stored;
 
-#,,,,,,.,,,..,,,.,,,,,,..,,..,,,,,,,,,,,.,..,,..,,...,...,,..,.,.,,,.,.,.,.,.,
-#K5K2NLVJC6A7EYXGLBS74I4HMK24VEC3NKLLE5DCTESEI3VCUM74X3KCD6KVD4QGBVVNWGXKXGQVC
-#\\\|BGOSLN4AHT5B4P5KVVFVGPJQIMIKSUXWCVBNXIYGREZPJONIKNB \ / AMOS7 \ YOURUM ::
-#\[7]XMD6ITQH32T4LWH3RXMOEYRVX7P4LFOP7NWDCRU47KAU7ZCN3QDI 7  DATA SIGNATURE ::
+#,,..,,..,,,,,.,.,,..,,,,,..,,.,.,.,,,..,,.,,,..,,...,...,.,.,.,,,,,,,.,.,,,,,
+#KVBIEAMT736PJLWKQXDIOF7P5IC2F3XAKSRK7NXYIFZOBJGWIVXXQNSC7N2C4UTOQO3SGVU6Z52MW
+#\\\|BE6WYXKH73GKLG7KYZDNGI47ZEVF35LVPCWYDTKL2S4QS3UWX5U \ / AMOS7 \ YOURUM ::
+#\[7]USGG4ZRDF7PS4UMK2DUHSR5YG6HAGKFINY76QPM37C3JAFJJOADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

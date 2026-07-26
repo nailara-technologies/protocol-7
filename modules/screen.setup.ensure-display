@@ -9,22 +9,18 @@ $ENV{'DISPLAY'}     = <x11.display>;
 $ENV{'GDK_BACKEND'} = 'x11';           ## force XWayland under WSL|Wayland ##
 delete $ENV{'WAYLAND_DISPLAY'};
 
-## under minimal xwayland|wsl no xsettings daemon propagates a cursor    ##
-## theme, so name an installed one + a sane size [ see window.place ]    ##
+## under minimal xwayland|wsl no xsettings daemon propagates a cursor ##
+## theme, so name an installed one + a sane size [ see window.place ] ##
 $ENV{'XCURSOR_THEME'} //= 'Adwaita';
 $ENV{'XCURSOR_SIZE'} = '24';
-
-<[base.perlmod.autoload]>->('Gtk3');
-<[base.perlmod.autoload]>->('Cairo');
-<[base.perlmod.autoload]>->('Glib');
 
 Gtk3->init if not <screen.setup.gtk.inited>;
 <screen.setup.gtk.inited> = TRUE;
 
 return TRUE;
 
-#,,.,,,..,,,.,,..,,..,.,.,,..,,,,,,,,,,.,,,.,,..,,...,...,.,.,,,.,.,,,.,,,..,,
-#NDMI5YMZ2XAGH7JC44UNAU3UJFEI7TX6LQOHL6KJCQI3YYLROIF7EDG75A4CVLANBLDXKHTU5YFLQ
-#\\\|LH3DBIVW3EO2ITDFYZHFUB5GP7OKNFPI6IIMUKOOCLVETTFN76W \ / AMOS7 \ YOURUM ::
-#\[7]7RA67GC44W6WC7LIO4JSMW6UB6AM3X7SLB3LRAS2FXPADXKYJODQ 7  DATA SIGNATURE ::
+#,,,,,,,,,...,,.,,.,,,,,,,,,,,...,,..,.,,,,..,..,,...,...,..,,.,.,.,,,,..,...,
+#SQHL5TUSTV7EISCFWOAEL5I4TWDCL6S4U7KSSIOKTNVSNIF2ZIFS7CI5UYMP6XQBVOTP3PQLUWYAW
+#\\\|BYOLAA3NX45NXWVVF366EZPAZXJPYAV6QX5QV3RPDEFYEWCNTSR \ / AMOS7 \ YOURUM ::
+#\[7]V6VJELDDC74M4BVTYZSARK7UIAFPWHEGM5ZADGGIFG6KLOPKI4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -52,9 +52,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [kimi-dispatch-idle-timeout-recovery](feedback-kimi-dispatch-idle-timeout-recovery.md) — MCP 1800s-idle "failed" ≠ dispatch failed; underlying process often finishes fine, recover via session_catchup(client:kimi, session_id) not re-dispatch
 - [posix-group-write-precedence](feedback-posix-group-write-precedence.md) — chmod-child grants need | 0020 (group-write) not | 0002 (other-write); a process that's a supplementary-group member of the file gets checked against group bits only, other bits never consulted; write_with_perms still has this bug live
 - [ptd-vs-format-code-two-reasons-to-keep](feedback-ptd-vs-format-code-two-reasons-to-keep.md) — ptd skips reflow AND never loads PPI (~175ms), format-code does both; don't retire ptd assuming feature-parity means redundancy
+- [perlmod-categorization-review-catches](feedback-perlmod-categorization-review-catches.md) — kimi dispatch review caught 6 templated/vague-reasoning misclassifications; caller-count grep meaningless for .cmd./.handler. (dynamic cube routing) and can false-positive on nested-namespace names; K3 re-verification of all 59 MOVE rows in flight, check results before trusting
 
-#,,,,,,,.,...,.,,,.,,,.,,,,,.,.,,,,,.,,..,.,.,..,,...,...,.,.,.,,,..,,,,,,...,
-#W42IUP2XW3XL6SYRFZVVUHKNCIRKBVQS4F4STCMIZZXJ66GHPZL3PY6TFCJSIC6HR6ZASAO4PJQJ4
-#\\\|UVJIVQMT6LR772FHX7L6IGJVTPUQUSOZPLEZ5Q3L4LFFDVBBMIL \ / AMOS7 \ YOURUM ::
-#\[7]5CLZTOXSR5VGJMEI7OLN4KKI6U5IUH7S5YIBUJ2HXVLTQ3SNL4AQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,,,,.,.,..,,,.,,,..,,,.,,.,,,,,,..,,...,...,.,.,...,,,.,,,,,.,.,
+#GIU4XFNSYXBO446GQV2VYH5W4POBM5OQUHNVDANA6TUJKUGFDP3H3WLOZS4KMVK2YGV7BNKVOWEQK
+#\\\|N3I5ULGKST4O7NR5BWWVALMWKLUJLYYW3ZYKRTDPZZM76ZVBLHM \ / AMOS7 \ YOURUM ::
+#\[7]K5OLQ6GW4QEK5RWO5S5EBUKO22DU2WFEDWG7HIVC52BT2ZNZ5EAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,15 +13,12 @@ unless ( defined $yaml_string && length($yaml_string) > 0 ) {
     return {};
 }
 
-##  Load YAML with error handling  ##
-<[base.perlmod.load]>->('YAML::XS');
-
 my $parsed_data;
 eval { $parsed_data = YAML::XS::Load($yaml_string); };
 
 if ($EVAL_ERROR) {
     <[base.logs]>->(
-        1,  'channels.yaml_decode error: %s [input: %s]',
+        1,           'channels.yaml_decode error: %s [input: %s]',
         $EVAL_ERROR, substr( $yaml_string, 0, 100 )
     );
     return {};
@@ -31,8 +28,8 @@ return defined $parsed_data ? $parsed_data : {};
 
 1;
 
-#,,..,.,.,..,,,..,,,.,..,,,,,,,.,,.,.,,,,,...,.,.,...,...,,,,,.,,,...,,,.,,,.,
-#VCQEKCBCXMTPNSNF7HQE5SJCGH7IFCYPUODSKCSOY56XFUNAM7CXTRJ3N4BCYP3QTPXYP2EICED4C
-#\\\|5OQVUXSMBJVGVRXTDKT6JARK42VRIWV4LQN3P3MEAXTPYMDD6M3 \ / AMOS7 \ YOURUM ::
-#\[7]COIWLZIDFR54QXVLRW725JDLYHAVC5BMT3SCZEXQNW3ACPSTUQBQ 7  DATA SIGNATURE ::
+#,,,.,...,,.,,..,,,,,,.,,,..,,...,,..,,..,,,.,.,.,...,...,.,,,,,.,,,,,,.,,.,,,
+#ISCIBKJXBBYA23A24MXQ6T4R5JJ7PXC4BZC2LFVM5JT3IWIITIGVNVZNZEPSTF6GDGQ4VO6X2P2IO
+#\\\|53DEHF3DYV2IVMR45TLM3HTH3WDCKPPCJINOAKLCNIARXHIPZNF \ / AMOS7 \ YOURUM ::
+#\[7]AEBA4DRY4BTOZI5QILA3GNB2HHLGASSAU72JWZBOIJHCT54JAYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

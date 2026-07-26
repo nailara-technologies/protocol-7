@@ -2,17 +2,19 @@
 
 # name = screen.setup.init_code
 
-## create [ + own + mode ] the zenka output dir while still root, with   ##
-## group-write so the dropped-privilege user can later write its files   ##
+## create [ + own + mode ] the zenka output dir while still root, with ##
+## group-write so the dropped-privilege user can later write its files ##
 <[base.path-set-up.check-zenka-paths]>->( TRUE, 0770 );
 
 <[base.perlmod.autoload]>->('Gtk3');
+<[base.perlmod.autoload]>->('Cairo');
+<[base.perlmod.autoload]>->('Glib');
 <[base.perlmod.autoload]>->('Glib::Object::Introspection');
 
 <[base.gtk.attempt_load.glib_event]>;  ##  load Glib::Event when installed  ##
 
-## subscribe to X-11 screen-change events once connected to cube - lets a  ##
-## monitor reconfigure retry any pending window-intent moves               ##
+## subscribe to X-11 screen-change events once connected to cube - lets a ##
+## monitor reconfigure retry any pending window-intent moves              ##
 push @{ <system.callbacks.initialized> //= [] },
     'screen.setup.subscribe-screen-change';
 
@@ -20,8 +22,8 @@ Gtk3->init;    ## initialize explicitly, required before Gtk3->main ##
 
 return 0;
 
-#,,,.,.,,,,,,,,,,,,,,,.,.,...,,..,.,.,.,,,.,.,..,,...,...,...,,.,,,..,...,.,.,
-#2MVGNEMFRFKKJE6X2TSOFVD6XZZKJSJ7DWGN4LKPOVD2NAD72X4HSB3R2SYXHBFLQRWOJGVH46XQO
-#\\\|AFL52L3EQOFP5LRNOLXHIS36UJ6A4SGQMOPC5AFWKTDPZE7BJYM \ / AMOS7 \ YOURUM ::
-#\[7]553UNGV2TE3ICJYR44WXDQQYJPMOT4V76VXXNUEB44EAYD2RIYCY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,.,,,..,,,,.,,.,,,.,,,..,...,.,,,..,,...,...,.,,,..,,,,,,..,,.,,,
+#UQYACHYFUJGYPTYLQKYOFRY3L64DYKO2EUZE3TVK6ERPXAOTJEFQTCRVYPV23VQZDHYTHUW5Z3QAS
+#\\\|LQC6X6377JGGTF36C2W6M7LYLAUTJCSETET74OIQIHH2D5SDESF \ / AMOS7 \ YOURUM ::
+#\[7]IVHZXSALGT3OFZLSJ44EHHHSPD2X72BBT7473PBOCBA6VODDHWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
