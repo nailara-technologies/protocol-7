@@ -105,12 +105,20 @@ sub inline_elf {    ##[ modified \ expanded elf hash algorithm ]##
 
                 character = utf8_to_uvchr_buf( str, next_chr, &u8_len );
 
-                if ( character < 256 )
-
+                if ( character < 256 ) {
                     u8_len = 1;   //   not UTF-8 codepoint, single character
+                }
 
-                    len -= u8_len;
-                    str += u8_len;
+                // never allow zero-length advance : some malformed [ e.g.
+                // non-text binary input ] byte sequences can otherwise
+                // decode with u8_len == 0, which would spin the outer
+                // while(len>0) loop forever on the same byte
+                if ( u8_len == 0 ) {
+                    u8_len = 1;
+                }
+
+                len -= u8_len;
+                str += u8_len;
             }
             result = ( result << left ) + character;
 
@@ -191,8 +199,8 @@ sub inline_elf {    ##[ modified \ expanded elf hash algorithm ]##
 
 return 5;    ##  true  ##
 
-#,,,,,...,,.,,,,,,.,,,..,,...,,,,,..,,.,.,..,,..,,...,...,.,,,.,.,,,,,,..,..,,
-#LY4GGJYKZVTI6QDY3K2FCP4IGGWIYKDU3HLXOCTCKQC7SIYRDTDICIFIXYU72DSTZGAZXVTIK5KZE
-#\\\|G2NXSJCTN5TBKY4MKHPPMHVQSEJ22HLAODUDI5YN3DZPIY5JUHI \ / AMOS7 \ YOURUM ::
-#\[7]3FGVZ4PQJFGX6SWEJYHOOERB6RZY4E2VAB7CWBOZTJPNRTGBRQAI 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,..,,..,,,,,.,,,,.,,,,,,,,,,,..,..,,...,...,,..,.,.,,.,,..,,,,.,
+#RDH42R36AHOMK63QJCE2UTJJIZWNSPRY4BLT57YRCYOG47ERK43BM5N6Z3EOM6U7OVJG2W5BUA25G
+#\\\|XLTUKJVK7FDE2KIZZNCUGIZSA5BRQNITX3K5FIBKPJ4KEG7SQMN \ / AMOS7 \ YOURUM ::
+#\[7]RJHI5EXKHYV5OA52RJZVTKURGNMIVPCVHAV5PP2L77OBY62VGYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
