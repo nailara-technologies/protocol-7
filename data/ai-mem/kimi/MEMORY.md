@@ -80,15 +80,15 @@ see [2026-07-19-coding-zenka-scratchpad-rescue-tools.md](2026-07-19-coding-zenka
 
 ## bin/chat — Multi-Model Conversation Script (May 14 2026)
 
-phase 1 operational (~950 lines); file-backed history at `data/chat/channel/*/history`; `data/ai-mem/handover.txt` retired.
+phase 1 operational (~950 lines); file-backed history at `data/development/chat/channel/*/history`; `data/ai-mem/handover.txt` retired.
 open: kimi zenka state machine upgrade (backend reconnect), coding zenka as third dispatch target, phase 2 channels zenka.
 
 ## Jobsite/Web Jobs Pipeline Fixes (2026-06-28)
 
 `skipped` status restored across all index scanners, reassessment now protects manual stages, web sync carries `assertions`, UI delete actions wired, and orbital subscriber `.cmd.` syntax corrected. Assessed jobs now map to the `review` UI stage. See [jobs-pipeline-2026-06-28.md](jobs-pipeline-2026-06-28.md). Open: bulk-delete pending search/filter UI.
 
-#,,,.,..,,,.,,...,..,,...,,.,,.,,,.,,,.,,,..,,..,,...,...,.,,,...,..,,,..,...,
-#EN5NAG4LMFC6NPKDOVPB4QVQFR7FWOUQQCSCP6HPHAVZJ72SCTCK52R7LYQIWKD3O7FCOXIEOPMEI
-#\\\|WTGJVZSYKEGNCONTIJANQNRLSXPKR2ZD4UFI4W5IISQILGX62DL \ / AMOS7 \ YOURUM ::
-#\[7]44MCASKB5OQNQIBFND3XL6QCJKBVB6EBWPJFHM2QFTEZJFHBXKAQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,...,...,,,,,,.,,...,..,,.,.,..,,..,,...,...,...,..,,,..,,,,,.,,,
+#MPSQTMTSVTEHBHJCQUT2YHCERDIOIJNK3IC3SNU3643OJGI4ZP2SVCTQBO7LQAGJWD6DDYFSATBBE
+#\\\|BM632KCYWA2ZN3ZCRBYBAVL3TD6OZLTJ33MMG7MJSBLXL3ASTKA \ / AMOS7 \ YOURUM ::
+#\[7]5XH7VCYOC6B7E25POKTJXHSELCNG5FLFEYQ2HBXVZAR5CUYKPGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

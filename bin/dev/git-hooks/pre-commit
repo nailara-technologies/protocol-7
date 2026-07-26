@@ -251,7 +251,7 @@ unless ($skip_signature_check) {
     my @unsigned_files;
     for my $file (@staged_files) {
         next if $skip_backup_files and $file =~ m|~$|;
-        next if $file =~ m{^data/chat/};  ## runtime chat data — not signed ##
+        next if $file =~ m{^data/development/chat/};  ## runtime chat data — not signed ##
         next if grep { my $e = $_; $e =~ /\$$/ ? $file =~ m{$e} : $file =~ m{^\Q$e\E} } @sig_exclude_paths;
         next
             unless $file =~ /\.(pl|pm|yaml|sh)$/
@@ -326,8 +326,8 @@ unless ($skip_signature_check) {
 print ":\n: done.\n:\n";
 exit 0;
 
-#,,,,,.,.,.,,,..,,,.,,,,.,,.,,.,,,...,.,,,,..,..,,...,...,,,,,..,,...,...,,,.,
-#AJ26OIRWB6NUXG6YQRYHEAQOKQSLVC36YYGNBVIVF5DXQV5G6TYIHRIC4KG7MCDRW37EKRM3VY6EM
-#\\\|5YGYJ5LKUBTFRKRZGTCFTRVXB44XVFIXUAZFNKISLKXEDNIWZT7 \ / AMOS7 \ YOURUM ::
-#\[7]LTJLV4NWT5HGS7MKENICDKOTDHYHNBM7OTDJYIDQFJIDCOL77WCI 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,...,..,,...,,..,..,,,.,,...,,,.,..,,...,...,..,,,.,,.,.,,,,,.,.,
+#C5CYQGKESFXV4VNRXLHPIEXOZJ7SW4DFUKNXQN2KRG76U5YN34TVVRURFLTXM2U6PDCHW2QN5TSA6
+#\\\|6FDY3SPX2JGHE63ADNL6RZJHA7TWZ3BTU25NCDHQK7P2AHZY67R \ / AMOS7 \ YOURUM ::
+#\[7]P6FLRY4YMZ2FVQIFNLSNQWMATLDFFDZ2WJ3CTFHA3D6MHGGN4EBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,6 +5,7 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
+- [settings-json-repair-mode-does-not-persist](feedback-settings-json-repair-mode-does-not-persist.md) — broken .claude/settings.local.json (e.g. trailing comma) triggers in-session repair that burns tokens but never saves; verify JSON validity on disk directly, restart required after manual fix
 - [web-browser ephemeral storage](feedback-web-browser-ephemeral-storage.md) — WebKit ephemeral=1: storage wiped every restart
 - [WSLg deiconify limitation](feedback-wslg-deiconify-limitation.md) — Weston/WSLg blocks deiconify at compositor level
 - [gtk-wsl-window-positioning](topic-gtk-wsl-window-positioning.md) / [weston-move-unreliable](feedback-weston-move-unreliable-use-compositor-grab.md) — begin_move_drag not move(); window.place grab-leak fixed fff81c212, initial-placement-before-show_all still open
@@ -41,8 +42,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,.,.,,,.,.,..,,.,,,,.,,,..,,,,,,..,.,,,,,,,..,,...,.,.,.,.,,,.,,..,..,,,..,
-#ZZDX4LWPXXJRU5FUI367BC6VPXKXARMU2EK76LWTY6DFZZYWBSCL2KOKQRMLL6KVHB4TUQHJUTVMA
-#\\\|OWWML5UVFYP2LNKNH5TRLKP6R2DNK7NGACKUHXN3L4767VU3D4V \ / AMOS7 \ YOURUM ::
-#\[7]WKLD4RTWT6YCJMLHLW7K5DK2RFVDUCJR342JIDU6ULPWE3K2LCAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,,..,.,.,..,,,,.,.,.,,..,,,,,.,.,..,,...,...,,.,,.,,,..,,,.,,..,,
+#G2YZFKTA4SNKHQFB26X5RB5WJWUHYTWA3X4WAPFS2CS3FM5GOI6DO6GUBLWLGAKPFXYSI4TMSBGX6
+#\\\|ZWXLR6DZDYZCBHAHX6WKKNJI25FQXNNFH5QTQ62EVQMJCKRP4YU \ / AMOS7 \ YOURUM ::
+#\[7]E2BYXJZ5ETHU37J6C6U6J5BM4CWHJ7XMKX65HV35KTTM5KFRJOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

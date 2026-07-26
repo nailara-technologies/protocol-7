@@ -10,7 +10,7 @@ bin/chat is fully implemented and operational at bin/chat (~1000 lines).
 
 **dispatch:**
 - kimi: `p7c kimi.ask-reply <b32r-encoded>` — reply captured and written to history
-- claude: inbox file at `data/chat/inbox/claude-code` — claude polls and replies via bin/chat
+- claude: inbox file at `data/development/chat/inbox/claude-code` — claude polls and replies via bin/chat
 - mcp: `P7_CHAT_CALLER=mcp` — 5 MCP tools in bin/mcp-server-p7
 
 **caller detection:**
@@ -23,7 +23,7 @@ bin/chat is fully implemented and operational at bin/chat (~1000 lines).
 - `:note:` — write to history, skip dispatch
 - `:reply-to:N:` — thread marker, quotes line N in dispatch
 - `:->>#channel:` / `:->>#channel:N:` — cross-channel context injection
-- per-channel persona: `data/chat/channel/<name>/persona`
+- per-channel persona: `data/development/chat/channel/<name>/persona`
 - `-search` / `-grep` / `-all-channels` — history search with 1-based indices
 - rolling model memory: auto-triggers at 500 lines, summarizes via model
 - `-summarize` — manual memory rotation trigger
@@ -44,14 +44,14 @@ bin/chat is fully implemented and operational at bin/chat (~1000 lines).
 - `p7_chat_channels` — list all channels with timestamps
 
 **file layout:**
-- `data/chat/channel/<name>/history` — committed
-- `data/chat/channel/<name>/summary.md` — committed (lazy, coding zenka)
-- `data/chat/channel/<name>/persona` — committed
-- `data/chat/model/<name>/memory` — committed
-- `data/chat/inbox/` — gitignored (transient IPC)
-- `data/chat/archive/` — gitignored (xz rotation archives)
+- `data/development/chat/channel/<name>/history` — committed
+- `data/development/chat/channel/<name>/summary.md` — committed (lazy, coding zenka)
+- `data/development/chat/channel/<name>/persona` — committed
+- `data/development/chat/model/<name>/memory` — committed
+- `data/development/chat/inbox/` — gitignored (transient IPC)
+- `data/development/chat/archive/` — gitignored (xz rotation archives)
 
-**pre-commit hook:** `data/chat/` exempt from signature checking
+**pre-commit hook:** `data/development/chat/` exempt from signature checking
 
 ## open items / next steps
 
@@ -61,8 +61,8 @@ bin/chat is fully implemented and operational at bin/chat (~1000 lines).
 - kimi flush_on_acquisition inline sub extraction (coding zenka extract-inline-subs template)
 - AMOS7::P7 dep-graph module loader (see topic-amos7-p7-loader.md)
 
-#,,,,,..,,,.,,,,,,,..,.,.,.,.,..,,,,,,,.,,,,,,..,,...,...,,..,,,.,.,.,,,,,.,.,
-#T4T4NZYXHRLKFBGI6WTL5RF775HZ635XQWDJQ7W3ATHU36MBYW755TFWW7NNBSI35FBMOUYDNNHQQ
-#\\\|CIPT6GN4TET5WZXLODTFCRA5H5N7ETSEKJEGET7ABB3G4MWN5LQ \ / AMOS7 \ YOURUM ::
-#\[7]EAPVF2JX3W4GXJBPFVBQZEYSMWOXFG724IBNJLBM4P2DUQ2JCKDA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,..,,,,.,,..,,,,,..,,,.,,,,,,..,,..,,...,...,,..,.,.,.,.,.,,,.,,,
+#QTBSVLXMUFIXAOVHHGAZCP4EVAVH4JQU7EMZ7635W5WCCQHANWQTA2NKL6GFPE3S4GSUDAA4QSF7M
+#\\\|FB6CKI7QFHAQ4C36XCYC2FHT2U7VDNRQ5I3P55IXO6VEJ37BP5Y \ / AMOS7 \ YOURUM ::
+#\[7]4AKCMA57WMN3F7PDDTHMGSUQ747B5BP5PB7CBG42HHQD2W5U5QAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -436,7 +436,7 @@ zenka-desk
   │     ├── attach/detach any panel to a named buffer
   │     ├── pipe external command output → buffer → panel
   │     ├── models and users subscribe to buffers by name
-  │     └── buffers committed to data/chat/channel/<name>/ on demand
+  │     └── buffers committed to data/development/chat/channel/<name>/ on demand
   │
   ├── menu layer         — protocol-7-menu zenka for interactive routines
   │     ├── command palette (fuzzy match over zenka commands)
@@ -490,7 +490,7 @@ p7_desk_browser    # navigate browser zenka, return rendered html + screenshot
 web-browser zenka (chromium headless or firefox)
   → renders url inside Xvfb display
   → screenshot zenka captures framebuffer
-  → image written to data/chat/channel/<name>/screenshots/
+  → image written to data/development/chat/channel/<name>/screenshots/
   → vision model analyzes image
   → summary injected into chat history or task context
 
@@ -527,8 +527,8 @@ phase 4 — node-transcending sessions
   roaming panels follow the user
 ```
 
-#,,..,..,,,..,,,.,,,,,...,..,,.,.,,.,,...,...,.,.,...,...,...,.,,,,.,,..,,..,,
-#X4GMH2DTQM5IBF4D54SVAW2GEP6V2SMMMSPTTZSYHAQJRMM6WCVJMPMAPCDDTPOTY6RUUAWLFBGBK
-#\\\|H43YNAN2LDXL4CRWHQAGZ6UFP477WRQNYB4IZI47QZZMQA42GE3 \ / AMOS7 \ YOURUM ::
-#\[7]DX623DAIHPWK7TXNOGPWEWCNXHANLHKKVQBFPRMNEIOXBGT2O4CI 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,..,.,,,,,,,,..,..,,,,,,.,,,..,,.,.,...,...,.,.,..,,,.,,,.,,,..,
+#72NOYHWOXWOXLC463RMYOHJKJWKIIHM6WNR575OPKF2SHAHUWJR2F6JLEZRE2HFAXP2Y3GMMREDQG
+#\\\|MKQI3KRTCYY6PCNKPH3JHLFTAMH7TAMP4NV77TIHZPF3G52W4HW \ / AMOS7 \ YOURUM ::
+#\[7]FIBSA6LUQTZRXYYPIIUFLNDUGAMPDPK3B5CDFV3YZWOWWHN3YODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
