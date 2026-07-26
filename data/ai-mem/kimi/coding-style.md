@@ -263,9 +263,9 @@ levels 7,8,9 are technically possible but unused.
 
 ### separate verbosity control
 logged verbosities can be controlled separately for different targets:
-- `<system.verbosity.console>` — console output
-- `<system.verbosity.zenka_buffer>` — uim-memory buffer
-- `<system.verbosity.zenka_logfile>` — log files (via network to p7-log zenka)
+- `<system.zenka.verbosity.console>` — console output
+- `<system.zenka.verbosity.buffer>` — uim-memory buffer
+- `<system.zenka.verbosity.logfile>` — log files (via network to p7-log zenka)
 
 the effective verbosity is the max of all three (see modules/base.get_max_verbosity).
 
@@ -757,8 +757,8 @@ grep -rn 'sprintf' modules/ | grep -i '<name-fragment>'
 
 ---
 
-#,,,,,,,,,,.,,...,,,,,,..,..,,..,,,..,...,,,.,.,.,...,...,,,.,,,.,,..,,,.,,.,,
-#35WPU36ZDV45LBYOBMYUI25QIZEYYF46NKVRDB7WG6EL4OEQ3VMGZ2EPVRNP64PGSYLBQY4FRBB3Q
-#\\\|4SYGMSFXUNJGC4XR5QFVIQZ3WKXJYVFIF56M53VWXWA7RN5DHOM \ / AMOS7 \ YOURUM ::
-#\[7]CDNDBZK6QDSQ5RLJXWETMU2QJIDRRXGLSTEQDZWK6FUXUZC252AQ 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,..,.,.,,.,,,,.,,.,,,,,,.,,,..,,.,.,...,...,.,.,.,,,,.,,,,,,..,,
+#HKEJUUHGJPS7AJZOQC6JW435KDV5OZ4BVKEDDWH2CD7G552XWISQU6VSPZGLHQQRVETFIEXEH2KYS
+#\\\|MNTVU6CCA5RMPOB5U6MDCMLBUOJNCIOY6YP4VRYYTVYUHUQ4MH4 \ / AMOS7 \ YOURUM ::
+#\[7]YNSQVBQWHDMD534J5LW2S2L772YAAQ2OCQV4FIUUICALCQHWJKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

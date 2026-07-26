@@ -12,12 +12,11 @@ return {
     }
     if defined $verbosity_type and $verbosity_type !~ m,buffer|file|console,;
 
-my $verbosities = <system.verbosity> // {};
+my $verbosities = <system.zenka.verbosity> // {};
 
 if ( defined $verbosity_type ) {
 
     $verbosity_type =~ s{^(file)$}{log$1};
-    $verbosity_type =~ s{^(buffer|logfile)$}{zenka_$1};
 
     return { 'mode' => qw| false |, 'data' => 'type not valid' }
         if not exists $verbosities->{$verbosity_type};
@@ -37,8 +36,8 @@ foreach my $key ( reverse sort keys %{$verbosities} ) {
 
 return { 'mode' => qw| size |, 'data' => ":\n$v_report:\n" };
 
-#,,,,,,.,,,.,,,..,..,,...,...,,.,,..,,,.,,...,..,,...,...,.,.,,,,,,,,,,,.,.,.,
-#6VM4EIVJYT54KH774QA5ONFI7NBM5OIP67IBKPWHTX53MIIQ77Y7YYULPHGXCODRT4XJVAJ32IGFS
-#\\\|EUTKZ5TLJSMSO4BCT3U4S4IRWEJNMAFYIZTN6T6JTBQFLUBMXMC \ / AMOS7 \ YOURUM ::
-#\[7]UWDQ4KFEESL5CEUPL7RLNPLSMIFHIC4JWOZHZLDXHXZ6NSBDPOAA 7  DATA SIGNATURE ::
+#,,.,,..,,,..,,.,,..,,.,.,...,,,,,.,,,,..,.,,,..,,...,...,,,.,.,,,.,.,,,.,,.,,
+#RCXBQ7GSWIMGYKH7AB5OSQZ6VQ4KVULYPJATO526ZSAESCQ2MWWYB2FRX4CJZKQ4EZQATN366GSBA
+#\\\|XLG4HXS3R4YUGRCO4FB5L5NW65YCNTA326QNMOCYN66V2FMZOX4 \ / AMOS7 \ YOURUM ::
+#\[7]G7FR5U2JO4YOHISJXWRX2XBGQA7O4I7SWMDZS6XMCMYEQS7KRECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

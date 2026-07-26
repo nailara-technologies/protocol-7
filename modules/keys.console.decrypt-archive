@@ -117,8 +117,8 @@ foreach my $extracted_filename ( <[base.sort]>->($read_user_keys) ) {
 if ( $identical_key_count == $archive_key_count ) {
     my %C = %AMOS7::C;
     return    ## nothing left to do here ##
-        say sprintf ":\n: %sall%s %d %s%sarchived keys "
-        . "are present and%s identical %s%s%s=)%s\n:",
+        say sprintf ":\n: %sall%s %d %s%sarchived keys are "
+        . "present and%s identical %s%s%s=)%s\n:",
         $C{'T'}, $C{'b'}, $archive_key_count, $C{'R'}, $C{'T'}, $C{'b'},
         $C{'R'}, $C{'T'}, $C{'B'},
         $C{'R'};
@@ -165,7 +165,7 @@ if (@not_yet_present_keys) {
     }
 }
 
-<system.verbosity.console>++ if not <system.verbosity.console>;
+<system.zenka.verbosity.console>++ if not <system.zenka.verbosity.console>;
 
 my $ntime_stamp_suffix = sprintf qw| .archive.%s |, <[base.ntime.b32]>->(13);
 <[base.logs]>->( 2, ': selected timestamp %s', $ntime_stamp_suffix );
@@ -206,8 +206,8 @@ return say sprintf "\n  ::[  wrote %d archived key file%s to disk. =)  ]::\n",
     $write_success_count, <[base.cnt_s]>->($write_success_count),
     if $write_success_count;
 
-#,,..,.,.,..,,.,,,...,.,.,,..,,,,,..,,,,.,,,.,..,,...,...,.,,,.,.,..,,...,,,,,
-#4LO2SL27OBT3QWSQBYAUPSWM3MSV4KVXJP6236CHRJMIU67MEKB33GAXDQOC2CYEOLB2B4AXHGT2G
-#\\\|D7CPDAT2ITEM4Q5ZXRM4E2R36HZTG6PRXGA5OJQY2RFNXHYVVGN \ / AMOS7 \ YOURUM ::
-#\[7]IJX2U6WIUH6QP5S2LKNJ3GFL5VLXZQH5L24434SFK3QHRD3G62CI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,,,,,,,,..,,,,,,,..,.,,,.,,,.,.,..,,...,...,.,.,.,.,.,,,,,.,.,.,
+#7CDKEXQ32Z7OCXO3K7TW55Q3KFLMEZS7ABXIEVDI6TJAT4R43EFMCIF6VAR5CHS37SLEFOBFSXE6W
+#\\\|HTEXN66AEFUOHBXAKT76OQ6I4HHJYJSCUBYJAQUIUKRJQTNPNPR \ / AMOS7 \ YOURUM ::
+#\[7]7SHSWEMM53OZ7JI5II2C6ZA4HWV3ZWKNXFWM7DA4TCI44EEC2MBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -106,7 +106,7 @@ every compiled sub gets this injected as its first statement when
 `verbosity.console > 2` [ `bin/Protocol-7`, `p7_load_code`, sub-compilation
 step ]:
 ```perl
-if ( $data{'system'}{'verbosity'}{'console'} > 2 ) {
+if ( $data{'system'}{'zenka'}{'verbosity'}{'console'} > 2 ) {
     $sub_code = <<~"EOC";
         sub {
         \$code{'base.devmod_sub'}->( qw| $sub_name |, \@ARG );
@@ -181,8 +181,8 @@ sibling context / task history.
 
 #,,,,,,,.,,,,,,,,,,,.,,,.,,.,,.,,,..,,,..,.,.,..,,...,...,...,,.,,.,,,.,.,.,.,
 
-#,,.,,,,,,,,.,..,,..,,.,.,...,,,.,,,,,,,.,,,,,..,,...,...,...,,,,,,,.,.,,,,.,,
-#HLHSEOM3H35YKLGKXTAUEAUJTF6B2VHCAVKXDYEDDZDNWVCZ4FM2D37YWDCPJKB4ZWQSAPRFOY7XC
-#\\\|E2SM2AULTUMTYHGJZYR5SYE4QZZ36HXVEYQF3AI5DL3DKRGCC43 \ / AMOS7 \ YOURUM ::
-#\[7]3DWTTETA3ACCZXOWHJYRYF7EQELJ5Q4P7QKF6JAJQZNIDLQBZQBY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,,,,,,,,.,,,,,,,.,.,..,,.,.,,.,,..,,...,...,...,,.,,.,,,...,,..,
+#EU4TEV5DBKPPYCZ2VT64IZ5UY6MI6KRICLPBEKA5VCVAV7Y4J5NBB3SZRR3EQLON2AGPW27ECDJB2
+#\\\|GGCN6BHZ5M7DMGXH37BNXK67PZDXIKNRQ7VLJC73RMHNEPIDZNQ \ / AMOS7 \ YOURUM ::
+#\[7]DW6SLACKSD52GPX7UXMWEMR6DY7V76G2RL4OJRPYWTQX3J4CKAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -36,7 +36,7 @@ my %key_chksums;
 if ($display_checksums) {    ## calculating key checksums ##
     my $calculating_message = 'calculating C25519 key checksums ..,';
     <[base.log]>->( 1, $calculating_message );
-    if ( not <system.verbosity.console> ) {
+    if ( not <system.zenka.verbosity.console> ) {
         $OUTPUT_AUTOFLUSH = TRUE;
         if ( <system.ansi_color> or <system.force_colors> ) {
             printf "\n: %s%s\r", $C{0}, $calculating_message;
@@ -97,7 +97,9 @@ $names_len
 <[base.logs]>->( "listing key files ['%s']", $key_dir );
 
 my $linefeed
-    = ( $display_checksums and not <system.verbosity.console> ) ? '' : "\n";
+    = ( $display_checksums and not <system.zenka.verbosity.console> )
+    ? ''
+    : "\n";
 
 my $key_list_string = join '', $linefeed,
     sprintf( "%40s\r :: %skeys for user %s :.\n",
@@ -182,8 +184,8 @@ $key_list_string .= "::\n";
 
 ## colorizing ##  [ NO WHITE TEXT ] ##
 ##
-##  Strategy: apply base teal FIRST, then specific colors, restore to teal
-##  after each colored element. Final reset at end only.
+## Strategy: apply base teal FIRST, then specific colors, restore to teal
+## after each colored element. Final reset at end only.
 ##
 if ( <system.ansi_color> or <system.force_colors> ) {
     my $_sn = $names_len + 2;
@@ -245,8 +247,8 @@ if ( <system.ansi_color> or <system.force_colors> ) {
 
 return say $key_list_string;
 
-#,,.,,,.,,,.,,..,,,,,,...,,,.,,,.,..,,.,,,,..,.,.,...,...,...,,.,,.,,,.,,,,,,,
-#C3N45T3QPTDKHKFIRCXWWWL4CIU6U52MYIY3E2EUCXNNSEWOJPSYIXA6CKTC7M6NCE5O5SY36755M
-#\\\|WASLNB3BQUGUBXQHEXVOXWPZKQV6MMDHTVUEQBJDRBNWH3OUKT6 \ / AMOS7 \ YOURUM ::
-#\[7]MP44X7WQOOGZZQK75GMZXHKIHID533TNM6SPLYAUQQ4CJSKVCGAY 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,...,.,,,,..,,,.,..,,,.,,...,...,.,.,...,..,,,..,..,,,,,,...,..,,
+#SAEHNSBQBRN6HYS5GZ3H3GPOZBK2YYSD2ZLZ7SZOVP3IGS65V7AQYPWTSJLDUK6QNWGPZGPERP7Q6
+#\\\|I5XEE2LVPWW544Y5W2LSI6SEORCE65ZM3NQAN3ENESACBHJ2UAD \ / AMOS7 \ YOURUM ::
+#\[7]MVF7NQUIRENDMUQNE7QBYNRF2JBBDDRZKFELM7CIMETREWESAACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

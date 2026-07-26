@@ -6,7 +6,8 @@ my ( $queue_name, $counter_ref ) = @{ $_[0]->w->data };
 <jobqueue.counter.last> //= {};
 <jobqueue.counter.last>->{$queue_name} //= 0;
 
-if ( <system.verbosity.console> > 1 or <system.verbosity.zenka_buffer> > 1 ) {
+if (   <system.zenka.verbosity.console> > 1
+    or <system.zenka.verbosity.buffer> > 1 ) {
     <[base.log]>->(
         2,
         sprintf(
@@ -34,8 +35,8 @@ if ( $queue_name eq 'queued' ) {
 }
 <[jobqueue.check_dependencies]>;
 
-#,,,,,,.,,,,,,,,.,..,,.,.,..,,,,,,.,,,.,.,,,,,..,,...,...,.,,,,..,.,,,.,,,...,
-#23CXHSGOGDRP3OCH4BONLP6D4U5J4FWF5T6AVYLOIYO7EVKWAMMVU63BSQ6SFK2FQIA4RYYCRO5BQ
-#\\\|3FHLTRLH3SGLA66LDPNFHZGLB2G7Q3QW4H33UQGN42JXDZWIG4S \ / AMOS7 \ YOURUM ::
-#\[7]IEUBH6F4MSBREZHW4MD6SASTSGTOLXOHHV2RGPUAKDCDSSLZDOAY 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,.,,,..,,..,,,,,,,..,.,.,..,,,.,,..,,...,...,..,,,,,,,..,,,.,.,.,
+#CKVC77RRRBGZ33COXFBYIS5PDIZ2LEKHCDTJFXQC6DXIZYFKYUHVYI72ABR324CQKF2PJQFMI5FR6
+#\\\|AMTU2UYEAA7NUNQNBGOVT2RPAGUYLPY4QRD6BKLA525G4KIR4O5 \ / AMOS7 \ YOURUM ::
+#\[7]OEKEWDBF2QATNXUKNV3JZKLR3XZSNYK5J5PL76E3MVTMN6OR2YDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

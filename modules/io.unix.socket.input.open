@@ -32,7 +32,7 @@ my $unix_sock = IO::Socket::UNIX->new(
 ) || die "io.unix.socket.input.open: socket: \l$OS_ERROR";
 
 if ( -S $socket_path ) {
-    if (<system.verbosity.console>) {
+    if (<system.zenka.verbosity.console>) {
         map { <[base.log]>->( 1, $ARG ) } ':',
             ': unix path exists. overwriting.,', ':';
     } else {
@@ -81,8 +81,8 @@ if ( defined $socket_owner ) {
 if ( defined $data{'handle'}{$unix_sock} ) {
     <[base.logs]>->(
         0,
-        "io.unix.socket.input.open: handle '%s' "
-            . "was not cleaned up, doing now .,",
+        "io.unix.socket.input.open: handle "
+            . "'%s' was not cleaned up, doing now .,",
         $unix_sock
     );
     delete $data{'handle'}{$unix_sock};
@@ -93,8 +93,8 @@ $data{'handle'}{$unix_sock}{'mode'} = qw| input |;
 
 return $unix_sock;
 
-#,,.,,,,.,,.,,.,,,,,.,,,.,,.,,,.,,.,,,,,,,,.,,..,,...,...,...,..,,...,..,,,,,,
-#B5Y4V64EBNTRD2O3UDRK5I72M2QMTJT3H7PKMCV54BGWRNJJMN2KD5MRK6JFXOMRK3MPG4GZCDSPM
-#\\\|5RIG3NFUBKHLMXNIIWQMQQTJABRP6Y5H2MLT7BSTVU4WTAOIPVP \ / AMOS7 \ YOURUM ::
-#\[7]LEH53SE3R5PSZBXCLVEAWPO3FL6T2LUZTRJEV6TT576EMJ6VMOBY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,..,,,,.,.,,,...,,..,,..,...,,..,..,,...,...,.,.,,,,,,..,.,,,...,
+#5PX7IDRZMBOM5VUF6EVQ5P2VEQ573QLLZBTHEFWJQMJGNWKNLXZJ77V2UDK647OLBECM3XOJLHW6O
+#\\\|JU73SKAZ4HSL2UUGHQ7UO6UHJS4LSKRU6JFWCUVQUJUUSTMZTLU \ / AMOS7 \ YOURUM ::
+#\[7]4T2ABXUFUDW7ZSBOVXF5DASPXHU4KTJTGAD733JKFO24XMN3MSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

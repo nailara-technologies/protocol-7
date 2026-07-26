@@ -26,9 +26,9 @@ my $timeout_secs
     || 17;    ##  <-- internal timeout fallback  ##
 
 ##  increase heartbeat response timeout when log output has high load  ##
-if ( <system.verbosity.console> > 1
+if ( <system.zenka.verbosity.console> > 1
     and $instance->{'heartbeat'}->{'load-factor'} == 0 ) {
-    my $verbosity_factor = 5.447 * ( <system.verbosity.console> - 1 );
+    my $verbosity_factor = 5.447 * ( <system.zenka.verbosity.console> - 1 );
     $instance->{'heartbeat'}->{'load-factor'} = $verbosity_factor;
     <[base.logs]>->(
         1, 'increased %s heartbeat response timeout to %.3f s [ verbosity ]',
@@ -65,8 +65,8 @@ delete $zenka_config->{'heartbeat'}
     if !keys %{ $zenka_config->{'heartbeat'} };
 delete $globals->{'heartbeat'} if !keys %{ $globals->{'heartbeat'} };
 
-#,,..,.,,,.,.,.,,,,,,,,.,,.,,,,,,,,,,,,,,,.,,,..,,...,..,,,,.,.,.,.,.,..,,,..,
-#FSGCGI7BNYJ2ZDRJL2K2TGQ6JFTYWEU2X7IZEW4RNF3R4DKYGZJO727WHWMUAVF2WGCVCU6X7DDKW
-#\\\|HA5JZIOCYJWVRHJVNGDLJ6BR725P6KEOE37WFOZJKEJR6YKYIUH \ / AMOS7 \ YOURUM ::
-#\[7]TVC6JSHRQHOCQ4OZHS2DYLORKKKKOXSNEGY7KEIIP2MGWQMHHWCI 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,,,.,,..,.,,,,..,...,.,.,.,.,,,.,..,,...,...,.,.,,,.,,.,,,..,,.,,
+#JBCGALTGYS7AJVWGUUPVXKYHFXTKLE3VKF7ETISQJN6MDBUTIEGJOBKSFE2QCLU5TY6QQ44AYVUNO
+#\\\|HKV5M6WOJIDJ7DR2LOHUCSGHD5CQVJCKSR7T75A5TIYGWODH523 \ / AMOS7 \ YOURUM ::
+#\[7]U3BK564BIW5VCKREAJELE5EAF2RSXXXJAWVVSY4IXDVOGW3OO4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
