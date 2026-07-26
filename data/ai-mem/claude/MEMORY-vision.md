@@ -42,9 +42,10 @@ network-as-computer, dedup-tree unification, coding-as-artform / style-philosoph
 - [subname-not-a-trust-domain](topic-subname-not-a-trust-domain.md) — user[taeki]/user[claude]/user[root] scoped/severity-judged per resolved name[subname] pair, same as distinct top-level zenka names; bare-name grants implicitly span every subname beneath
 - [post-bootstrap-load-window](topic-post-bootstrap-load-window.md) — SEED: defer perl-module/subroutine loads to just after boot subsides, but preempt immediately on early real use, self-optimize later via dep-graph+timing stats; generalizes deferred_compile's existing self-heal pattern to CPAN deps; not implemented, zero deferred perl-module loading exists today
 - [zenka-restart-intent-propagation-resumption](topic-zenka-restart-intent-propagation-resumption.md) — SEED: true crash resilience is intent propagation + resumption across a restart boundary (not state serialization); a zenka's in-flight goal, incl. an outstanding kimi/claude dispatch, should survive its process dying and auto-resume with a crash report, not silently restart fresh; design-only, sparked by a kimi session surviving a v7 crash only incidentally (MCP-managed, not protocol-7-designed)
+- [audio-render-cubic-zoom-transition](topic-audio-render-cubic-zoom-transition.md) — SEED: audio.render_standing_wave's nested lattice squares visually travel along a cubic grid under zoom; proposed as a transition mode overlaying the existing cubic-space desktop nav grid, bridging the audio renderer into the project's existing space-navigation visual language; relates to [[topic-implicit-perspective-navigation]]/[[topic-perspective-layers]]
 
-#,,,,,,..,.,.,,,.,,,,,,,,,,,.,..,,.,,,...,,,,,..,,...,...,,,.,.,,,,,.,.,,,,..,
-#ZGVKCHRPMHYGSCCIRP7L6L2VKQUCG42T6D5Z77SNIXF6C3HF66VLBNFZ3JS5RW5RA5TRHWPZVMJ6M
-#\\\|E27YF4ICVRVYEYH7WVOVEHZC3FHXVGOINTN37EGIGBYLKKRSBN3 \ / AMOS7 \ YOURUM ::
-#\[7]EQCZNBIKCXYSHFAJ6WLOATLDDKPBBKLEDOJ3DLH43SGSQQSWNEAY 7  DATA SIGNATURE ::
+#,,..,.,.,..,,..,,,..,,,,,..,,,,.,.,.,.,.,..,,..,,...,...,...,...,...,,.,,,..,
+#YHE3KGA2GUGANWMU7NH2AVRRJV3MMO3B7HMFMUDQSXBHHTG6ZNU5UAI7Z74W4EA2TLEOBO64MOAKU
+#\\\|JOGK2SE2LT7R6H2H45CMJLPVHK6CFWP7K5XPSIEUJYPKASEE6DJ \ / AMOS7 \ YOURUM ::
+#\[7]4HZFZFDKKRTSN4AUMLSFYVIVEZPLY2FKHRDKKDZM3WRGG65AMQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
