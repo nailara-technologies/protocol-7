@@ -20,6 +20,12 @@ if ( <system.zenka.name> eq qw| httpsd | and $EUID == 0 ) {
     if ( defined $httpd_uid and defined $httpsd_gid and -d $site_dir ) {
         foreach my $dir ( $site_dir, glob( $site_dir . '/*' ) ) {
             next unless -d $dir;
+            ## 'skins' sits alongside the vhost dirs but isn't one -- it's ##
+            ## web zenka's own content area [ web.init_code, protocol-7-   ##
+            ## owned, only web reads it, httpd/httpsd never touch it ] --  ##
+            ## this blanket vhost-normalization sweep was overwriting that ##
+            ## ownership on every httpsd (re)start                         ##
+            next if $dir =~ m{/skins$};
             chown( $httpd_uid, $httpsd_gid, $dir )
                 or <[base.logs]>->(
                 0,    'chown httpd:httpsd [ %s ] : %s',
@@ -40,9 +46,8 @@ unless ( defined <httpd.cfg.hostnames> ) {
     <httpd.cfg.hostnames> = {};
 }
 
-## set defaults with actual directory paths [not just 1/TRUE values]
-## force overwrite any placeholder values from
-## httpd.determine_host initialization
+## set defaults with actual directory paths [not just 1/TRUE values] force
+## overwrite any placeholder values from  httpd.determine_host initialization
 my $site_dir = <httpd.site_dir>;
 $site_dir =~ s|/$|| if $site_dir ne '/';
 my $default_dir = $site_dir . qw| /default |;
@@ -61,8 +66,8 @@ foreach my $hostname (qw| default localhost 127.0.0.1 |) {
 
 <[base.log]>->(
     2,
-    'initialized default hostnames for HTTP/HTTPS routing : '
-        . 'default, localhost, 127.0.0.1'
+    'initialized default hostnames for HTTP/HTTPS '
+        . 'routing : default, localhost, 127.0.0.1'
 );
 
 # critical fix: copy HTTPS handler configurations to HTTP namespace
@@ -76,8 +81,8 @@ if ( defined <https.handler.get> ) {
     <http.handler.options> = <https.handler.options> // <https.handler.get>;
     <[base.log]>->(
         2,
-        'copied https.handler.* definitions to http.handler.* '
-            . 'for httpd lookup'
+        'copied https.handler.* definitions '
+            . 'to http.handler.* for httpd lookup'
     );
 }
 
@@ -108,8 +113,7 @@ if ( defined <https.handler.get> ) {
 
 <[base.logs]>->(
     2,
-    "[protocol-7] configured https protocol"
-        . " state with httpsd.request_handler"
+    "[protocol-7] configured https protocol state with httpsd.request_handler"
 );
 
 # critical fix: register SSL socket type and HTTPS protocol handlers
@@ -191,8 +195,8 @@ if ( <[base.cfg_bool]>->( <httpsd.cfg.request_capture> // 1 ) ) {
 
 0;
 
-#,,.,,,,,,,,.,.,.,,,,,,..,...,.,.,...,,..,,,.,..,,...,...,.,.,...,,..,..,,..,,
-#BBLXRIR56NZDXZU3ZEI6XQVRLCONCQ5572LZRXUE3CGCNEY5YSOET52APOEEEXXWRCWVIVSGLKV7K
-#\\\|R3XI22AAGMWWASEEFJWV2XCGHNWGXGPM4JWNAG3576SJSR5WRMY \ / AMOS7 \ YOURUM ::
-#\[7]XCJNWN6PDNUY244BTOC5OHK6LJ7ZH24UZED24S7GEZAJR5VB44CQ 7  DATA SIGNATURE ::
+#,,.,,,..,,..,..,,,..,.,.,,.,,.,,,,,,,,.,,...,..,,...,...,.,,,..,,,,,,,,,,..,,
+#PWTL2PPEYA6L6HTE3S2ACQKUGVTQBWGHJTAKNEIX6Z52QY47BHHNDLB23LHO52MJ74FSE7N3I4T7U
+#\\\|RX3VKR5WG2GIALXSNQBISDJF7QU3UZRTEEFL2BUO7VTDFEBWPHI \ / AMOS7 \ YOURUM ::
+#\[7]CZTNEETYFUWRFUJ7GYFWU2MP2UGBCP6KSJKSP7Q7E23DSA2VAYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
