@@ -8,11 +8,10 @@
 <[base.perlmod.autoload]>->('JSON::XS');
 <[base.perlmod.autoload]>->('IO::Compress::Xz');
 <[base.perlmod.autoload]>->('IO::Uncompress::UnXz');
-<[base.perlmod.autoload]>->('Crypt::Misc');
 
-## ensure jobs storage paths are owned by the jobsite zenka user ##
-## only on a cold start : once privileges are dropped [ reload case ],
-## chown/chmod on files not already owned by us fails noisily and is a no-op ##
+## ensure jobs storage paths are owned by the jobsite zenka user only on a  ##
+## cold start : once privileges are dropped [ reload case ], chown/chmod on ##
+## files not already owned by us fails noisily and is a no-op               ##
 if ( $EFFECTIVE_USER_ID == 0 ) {
     <[base.path-set-up.check-zenka-paths]>->(
         TRUE, 0750, FALSE, 0700, 'jobs', TRUE
@@ -20,7 +19,8 @@ if ( $EFFECTIVE_USER_ID == 0 ) {
 } else {
     <[base.logs]>->(
         2,
-        'jobsite: skipping zenka-path ownership check [ privileges already dropped ]'
+        'jobsite: skipping zenka-path ownership '
+            . 'check [ privileges already dropped ]'
     );
 }
 
@@ -106,7 +106,7 @@ if ( glob("$jobs_root/*.yaml") ) {
 $data{'jobs'}{'store'} = <[jobsite.job.load_all]>;
 
 ## restore the removed-id tombstone log so a reload doesn't lose not-yet- ##
-## pushed removal signals for the web-cache ##
+## pushed removal signals for the web-cache                               ##
 my $removed_log_file = join qw| / |,
     <system.path.zenka-dirs>->{'var_P7'}, qw| jobsite removed-log.yaml |;
 if ( -f $removed_log_file ) {
@@ -131,8 +131,9 @@ for my $id ( keys %{$tasks} ) {
 ## load checksum-based dedup / blacklist index ##
 <[jobsite.checksum.index]>->(qw| load |);
 
-## seed checksum store for active jobs that were fetched before the
-## job-upsert checksum-add fix, so future scans skip them even if ids change ##
+## seed checksum store for active jobs that were fetched before the   ##
+## job-upsert checksum-add fix, so future scans skip them even if ids ##
+## change                                                             ##
 my %skip_checksum_status = map { $ARG => 1 } qw| blocked deleted trash |;
 for my $id ( keys %{$tasks} ) {
     my $rec = $tasks->{$id};
@@ -186,14 +187,14 @@ if ( $sync_interval > 0 ) {
     <[base.logs]>->( 1, 'jobsite: sync push timer %ds', $sync_interval );
 }
 
-## re-wire task.wait-done for any jobs stuck mid-assessment after restart ##
-## KNOWN GAP : task_id is never cleared on completion by assess-done /   ##
-## repair-done, so it can't be used alone as an in-flight signal [ that  ##
-## would re-flag every job ever assessed, every reload ]. stage is the   ##
-## only safe signal for now, but a protected stage [ e.g. applied ] mid- ##
-## reassessment keeps its real stage and would be missed here — narrow,  ##
-## restart-timing-window edge case, left open rather than risking a      ##
-## reload-triggered reassessment storm ##
+## re-wire task.wait-done for any jobs stuck mid-assessment after restart   ##
+## KNOWN GAP : task_id is never cleared on completion by assess-done /      ##
+## repair-done, so it can't be used alone as an in-flight signal [ that     ##
+## would re-flag every job ever assessed, every reload ]. stage is the only ##
+## safe signal for now, but a protected stage [ e.g. applied ] mid-         ##
+## reassessment keeps its real stage and would be missed here — narrow,     ##
+## restart-timing-window edge case, left open rather than risking a         ##
+## reload-triggered reassessment storm                                      ##
 $tasks = <jobsite.tasks> // {};
 my @orphans = grep { ( $tasks->{$ARG}{'stage'} // '' ) eq 'assessing' }
     keys %{$tasks};
@@ -218,9 +219,9 @@ if (@orphans) {
     );
 }
 
-## reset tasks stuck in 'queued' with no task_id : dispatch was interrupted
-## before the task zenka created the actual task ; clear so dispatch.assessments
-## can re-queue them on the deferred startup pass ##
+## reset tasks stuck in 'queued' with no task_id : dispatch was interrupted ##
+## before the task zenka created the actual task ; clear so                 ##
+## dispatch.assessments can re-queue them on the deferred startup pass      ##
 my @stuck_queued = grep {
     ( $tasks->{$ARG}{'stage'} // '' ) eq 'queued'
         and not length( $tasks->{$ARG}{'task_id'} // '' )
@@ -236,8 +237,8 @@ if (@stuck_queued) {
     delete $tasks->{$ARG} for @stuck_queued;
 }
 
-## deferred dispatch on startup : picks up any status=new jobs that survived
-## reload (rescan_interval=0 means nothing else triggers this) ##
+## deferred dispatch on startup : picks up any status=new jobs that     ##
+## survived reload (rescan_interval=0 means nothing else triggers this) ##
 <[event.add_timer]>->(
     {   'after'   => 4,
         'repeat'  => FALSE,
@@ -251,9 +252,9 @@ my $job_count = scalar keys %{$tasks};
     <jobsite.cycle>, $job_count
 );
 
-## on its own startup schedule, check configured zenki for job files
-## stranded under their own var dir [ eg from a past path-resolution
-## desync ] ; jobsite decides when to look, never an unsolicited push ##
+## on its own startup schedule, check configured zenki for job files        ##
+## stranded under their own var dir [ eg from a past path-resolution desync ##
+## ] ; jobsite decides when to look, never an unsolicited push              ##
 <[event.add_timer]>->(
     {   'after'   => 2,
         'repeat'  => FALSE,
@@ -263,8 +264,8 @@ my $job_count = scalar keys %{$tasks};
 
 TRUE;
 
-#,,..,..,,...,,.,,.,,,,,.,,..,,,.,,,.,,,,,.,.,..,,...,..,,,..,,,,,...,...,,..,
-#Z3UGNKWNTEXFSWUFFZIHKC3HRWJIL4FGIHAE2QYABG2FCEOUO46RL5E7PNNJGQI6GJPBDN7LRRCV6
-#\\\|OLGO6W4HAA5LSHQKZWPSLI7TZKENW2OJKC7TSVAPCIWCKLZM2MF \ / AMOS7 \ YOURUM ::
-#\[7]73HEMDVGJ3H5LA5A2DUUYL3QVKXM4W3R46RL4L6FBEBEKGUXC2CI 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,,.,..,,,..,.,.,,..,,.,,,..,.,.,..,,...,...,,..,.,,,.,,,,..,...,
+#KZT5BMSM2XCAD5GUWNO4VOPKXEXQXTBRFRPKQYSYLBVVC67OCF4HV5HESRH4IPKK4LAXFYCLDDYVC
+#\\\|5USNMDLJLITBO32FIGAWRJLK5MQAIYYB6KZUCKGCENA3AOIZSOC \ / AMOS7 \ YOURUM ::
+#\[7]DGZSK2MZUJABBWL4PP4TV53B3SHYYAS3VIDX7NEAJGFUNXYEPSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

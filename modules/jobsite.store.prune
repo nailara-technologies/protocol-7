@@ -46,8 +46,8 @@ if ( -d $trash_root ) {
             };
             next unless defined $raw;
 
-            my $compressed = eval { Crypt::Misc::decode_b32r($raw) };
-            if ( $@ or not defined $compressed ) {
+            my $compressed = <[base32.decode]>->($raw);
+            if ( not defined $compressed ) {
                 <[base.logs]>->(
                     0, 'prune: base32 decode failed for %s', $stub_path
                 );
@@ -234,8 +234,8 @@ return {
     'deleted_pruned' => $deleted_pruned,
 };
 
-#,,.,,,.,,...,,.,,,,,,,,,,..,,...,..,,...,,..,..,,...,..,,...,.,.,..,,,..,,,,,
-#SUG6SUMUVHDPG4T7H4EA6Q5RIMFXWUK5B52LSWND5I2MY2I5GYZF3M53QD5UENFIVVEKW73Q2JD5Q
-#\\\|7WMXNHIYM2TXKCCEXGALVZ7HKO43L3XITOIBRO2QPAQPJUIJPXE \ / AMOS7 \ YOURUM ::
-#\[7]34INTF2NQXQQDPZNV4T676AUDYRJWNDLYG33DCMDCZA4WUFYHSBY 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,.,.,,,,,..,,...,,..,,,.,.,,,,,,,..,,...,...,.,.,,..,.,,,...,,.,,
+#TG44PSZNI2A27N23IYCTFTDJMB5Q22XNC6D2JV2ORDMLI3TV5GQYZTN72JN3U5CDVAQMCN7TZUU2Q
+#\\\|E432C4S46KZVGFNBMZQ6G5JUPNWPWYTU3VRBC7GJDDPFIB2XBRY \ / AMOS7 \ YOURUM ::
+#\[7]3HGHBLZ2IEBME6Z7UIOA5YG666HY6XTXEMPT6ZG36XXYYOZM3CCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
