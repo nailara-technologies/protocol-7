@@ -61,6 +61,15 @@ rows (before drafting a namespace batch for K3) found two more real misses:
   time — proof the vague-reasoning problem isn't confined to the one exact
   boilerplate sentence. This is why the re-verification scope widened from
   "the 28 rows using that exact phrase" to "all 59 current MOVE rows."
+  User's own explanation (2026-07-26) for why it's genuinely unused:
+  written 2021-04-11 (`implemented 'base.file.open' and
+  'base.file.tie_array' routines`) as the FIRST approach, assumed to be the
+  simplest/most elegant/performant option in context at the time -- but
+  what actually shipped ended up even simpler than tying the file, removing
+  any good reason to still load the extra module just for that case. Kept
+  rather than deleted since it's fully functional, in case a future case
+  actually needs it. Zero-caller here is not dead code to clean up -- don't
+  flag it again in a future perlmod/unused-code sweep.
 - **`base.tmp_dir`**: its one real caller is `base.root.drop_privs`, which
   per `CLAUDE.md`'s own documented zenka startup sequence runs **exactly
   once per zenka lifetime** (step 5 of the typical start flow). A callee
@@ -132,8 +141,8 @@ design over a swap-on-load/restore-on-unload design — same behavior, but
 needs zero changes to `devmod.pre_init`/`devmod.cmd.unload-devmod`, so
 nothing to forget to keep in sync.
 
-#,,.,,..,,,..,...,..,,,,,,,.,,.,,,,..,,.,,.,,,..,,...,...,,.,,.,.,,.,,,.,,.,,,
-#2Z66H3N6ORSYYODIRYNBEG6VD3KHKSUZCCUBIMDIXP6WOBPRAX4HMLTFWMVNCVVT6PB2KINJPNNOK
-#\\\|RZBTE2JS5U6XIPZTZYYXSQXJOLSPN5UXUJUBPJBOVYV7R3VEPYP \ / AMOS7 \ YOURUM ::
-#\[7]SQZIUHYNXFGBKCRNPJZGPFNGC2B3YUKSUTKS65UBABIET4NL3ICI 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,.,,,,,.,,,.,,.,,,..,,,.,,.,,,..,..,,...,...,.,,,,..,,,,,,.,,,.,,
+#V7XBK6FUPNCXMPMQYTBLINZT6PX3W7PKSWVKSEPKTKVG2Z6DKBU2QVX662CVOMF5H3YXIMDMY5BSG
+#\\\|AYXFXB4YQQFMOPZQOHNOABQHKIICGREKWHYMTIWSSJA63AS2UPY \ / AMOS7 \ YOURUM ::
+#\[7]JNRAP5LFSUJAQWJ5Z3F4V4TNROTNC6WY22FCM2QGHPKH7CJLFIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
