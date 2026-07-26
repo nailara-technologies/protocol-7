@@ -8,6 +8,7 @@ my $cfg_path       = <system.conf_path>;
 my $start_cfg_name = qw| start |;
 
 my $file_perm = 0664;    ## zenka group gets write access ##
+my $lc_hook   = qr{pre_init|init_code|post_init|end_code};
 
 my $src_deps = <[base.get_path.zenka_cfg]>;
 $src_deps =~ s|zenki/$zenka/$start_cfg_name|$cfg_path/zenki/$zenka/source|;
@@ -64,7 +65,6 @@ if ( -d $src_deps and -w $src_deps ) {
     my $skip_chmod = !<[base.zenka.is_v7_started]>;
 
     foreach my $mod_name ( sort keys %np7_src ) {
-        my $touch_file = catfile( $src_deps, $mod_name );
         next if $mod_name eq qw| devmod |;
 
         ## collapse feature : a lifecycle/runtime sub-file [ e.g.       ##
@@ -84,6 +84,22 @@ if ( -d $src_deps and -w $src_deps ) {
             pop @ancestors;
         }
         next if $covered;
+
+        my $reg_name = $mod_name;
+
+        ## no registered ancestor yet : if this is a nested lifecycle    ##
+        ## hook, register the top-level namespace instead of the hook's  ##
+        ## own file -- whichever hook happens to compile first then      ##
+        ## creates the one covering file, and every sibling collapses    ##
+        ## under it above, regardless of compile order [ this is what   ##
+        ## lets 'base' itself get created before any of base.*.pre_init  ##
+        ## races ahead of base.init_code's own registration call ]      ##
+        if ( $mod_name =~ m{\.(?:$lc_hook)$} ) {
+            ($reg_name) = split m|\.|, $mod_name, 2;
+        }
+
+        my $touch_file = catfile( $src_deps, $reg_name );
+        next if $reg_name ne $mod_name and -e $touch_file;
 
         ## create file if it doesn't exist ##
         if ( !-e $touch_file ) {
@@ -125,8 +141,8 @@ if ( -d $src_deps and -w $src_deps ) {
     <[base.log]>->( 2, "<< no [writable] src-deps directory found >>" );
 }
 
-#,,.,,,..,,.,,,..,.,.,,.,,...,...,...,,..,,.,,..,,...,...,...,...,.,,,.,.,,..,
-#3WAJAAKO3KYQCL5KGE5HAEWH4DYH5IXB2FAMBLXIXK24HI2QLZQR3IMQPNPZMUKX6ARNYSSU6JD2W
-#\\\|5FDUAAOJXDQCVRSUEISTE3GLLBRYQQXEWDPE5ZOUL3E5DNGH6DU \ / AMOS7 \ YOURUM ::
-#\[7]652HY6PKBJXSTSEP372OYZNB2VMGS4ML2XBQ622LGUMCK2GZEMBI 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,,.,.,.,,.,,...,,,.,..,,,.,,,,.,..,,...,...,,,.,.,,,.,,,,..,...,
+#RSBR2ZX3JNCUKTKRSGUQC3V5KULOPJNEIKVI6BVJVCYQIKMZK52VFCBR5LSGUXHUBLJCBS2MJ7GZE
+#\\\|ZKYISPXGIBLFOTKKWQE2GGM4NARLFXXIFPOCUHXFNI4OG5YA2DI \ / AMOS7 \ YOURUM ::
+#\[7]ZVX3RQEXSCLZBR2XHKERAHZZQCKXVACOHISWLSM4XD7NACFA3OAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
