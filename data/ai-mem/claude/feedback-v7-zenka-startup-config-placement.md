@@ -38,8 +38,16 @@ top-level and in-section keys use the same `key = value` syntax.
 - `v7.reload config` does **not** re-parse `zenka-startup.v7` — that file is
   only parsed by `v7.init_start_setup`, called once from `v7.init_code` at
   v7's own process init. After editing any `zenka-startup.v7`, use
-  `v7.reload all` (or `v7.reload init`) to make v7 re-run its own init and
-  pick up the change. This is the same class of pitfall as
+  `v7.reload all` to make v7 re-run its own init and pick up the change.
+  **Correction (2026-07-26)**: the parenthetical `(or v7.reload init)`
+  this note originally suggested was confirmed to reliably crash the
+  entire backend — see [[feedback-v7-reload-init-live-swap-subs-crash]]
+  for the full incident and root cause (`base.swap_subs`'s destructive
+  wipe firing on a stale snapshot). **Fixed as of that note** (bin/Protocol-7
+  + base.swap_subs + base.handler.deferred_compile) — bare `v7.reload init`
+  is confirmed safe again on a live process. Still prefer `v7.reload all`
+  when in doubt, since it's the one that was always intended for this.
+  This is the same class of pitfall as
   [[feedback-config-reload-clobber]] (config-reload semantics being narrower
   or different than expected) but the inverse direction — there it clobbers
   runtime values on reload, here a reload silently *fails to apply* a file
@@ -54,8 +62,8 @@ See [[zenka-name-routing-modes]] for the downstream design work this
 incident motivated (bare-name routing ambiguity when a supposedly-singleton
 zenka ends up with multiple live sessions).
 
-#,,,,,.,,,.,.,...,.,,,,.,,.,.,...,...,.,,,,,.,..,,...,...,..,,,.,,,,.,,.,,..,,
-#FKJRJX57QHCEQVLDTAMITTD3ZZ73WAJSMCRXQYCEF3AM7Q5NA3Z2E5YD5YZ363Y3N6BYL2EOOQODY
-#\\\|YSPGTMZWBDZ5U5OMTCMOMR23PEK4OWOBBXX7MUW67IIFW7WZZPO \ / AMOS7 \ YOURUM ::
-#\[7]W4E7M2TVHSQ6IBQHH62OKQEZ6C46NYTFP6BJCYKK2SRGUMO3I2CQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,..,,,,,,,.,,...,.,.,.,.,,,,,,,.,..,,...,...,,,.,.,,,,,.,...,.,.,
+#2YOEZX6V2AVO4DXWOKHEADJSKATBTXNP3KXUPPI44VNQXCTKRGYJ4F6JRYQ37A2V3Y6AP5EV7T4GW
+#\\\|FVAEGZ3EQZ6LI4CP2TYFU7WQ6U3NFEXFNNY7BRHUFPVVZMGRYLM \ / AMOS7 \ YOURUM ::
+#\[7]4KRL5FFLAT55XQSZBJJUAP5DIOT23CC6637QLI6JAS6UWMV2PWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

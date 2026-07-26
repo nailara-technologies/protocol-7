@@ -115,3 +115,46 @@ lessons for any future load-placement call:
 #\\\|QQQGMFFWFFGPZ2376VQXW7THCKZGU5KLRVAAHYFJF2FZQQBT3O6 \ / AMOS7 \ YOURUM ::
 #\[7]HM6NQMSFZF7NKFIWYIXGNCNNKBL4TASQBAAV6BP6LRG2VIY2FWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+
+---
+
+## audio zenka : spatial-purr standing-wave renderer [ 2026-07-26 ]
+
+implemented data/tasks/audio-waveform-visualization.md : new `audio` zenka,
+`audio.spatial-purr <abs-audio-path>` → PNG path under /var/protocol-7/audio/
+[ zenka-chosen, 0775 dir / 0664 files per screenshot precedent ].
+
+- modules : audio.init_code, audio.cmd.spatial-purr [ deferred ],
+  audio.decode_to_pcm [ open3 + O_NONBLOCK + event.add_io, no blocking
+  system() ], audio.handler.pcm_data [ drain, finalize at pcm EOF ],
+  audio.handler.decode_timeout, audio.finalize_decode, and
+  audio.render_standing_wave [ PURE perl core : PDL FFT + Imager, no p7
+  paths, no purr keying — reusable primitive per
+  AUDIO-VISUAL-THUMBNAIL-GENERALIZATION.md ].
+- visuals : fixed palette [ indigo→royal→violet, pale lavender peaks ],
+  concentric squares [ lows ] + lattice cells [ mids ] + speckle at
+  intersections [ highs ], additive glow via gaussian-copy paste add,
+  lit-pixel budget 2% est → ~5-9% measured, per-pass allowances ∝ band
+  energies. tested on purring aa/ab/ac + saturnians.mp3 [ psytrance,
+  generalization test ] — deterministic, distinct outputs.
+- scaffold : configuration/zenki/audio/{start,zenka-startup.v7,source/,
+  pm-dep/[+Imager,PDL,PDL__FFT],os-dep/binary/ffmpeg}, cube auth.zenki +
+  access.zenki [ audio.spatial-purr in access.cmd.usr.* ],
+  subroutines.load-early generated. ALL UNSIGNED — operator signs.
+
+## incident : `v7.reload init` TORE DOWN the entire network [ again ]
+
+issued to re-scan zenka-startup.v7 files ; re-running v7.init_code hit
+the fatal init path [ ai-mem kimi topic-routing-mode-implementation.md
+warned exactly this ] → v7 SIGTERMed everything. root restarted v7 on
+pts/3 ~2min later ; fresh boot picked up the new zenka config fine.
+lesson confirmed : NEVER `v7.reload init|all` on a live network to
+register a new zenka — wait for a network restart instead. single-zenka
+`audio.reload source` worked fine for module iteration.
+
+#,,,.,.,,,,..,,..,,,,,..,,,,,,...,,..,...,.,.,...,...,...,.,,,...,,.,,...,...,
+#H7VFHJ5AWG4H5RMKNMH6DV2NHFNOAMUZCWVIGT6AGDZFERFFF7FJEQ4FRNRQMUO3YOEFXS3CUFFAA
+#\\\|ZLVYY5CXTSLF44L3N7WHNT56AL2JXW5YF47LS5P3XGLXRK5RQPB \ / AMOS7 \ YOURUM ::
+#\[7]JNJSXXOGD227D3X3SSBZJEHMUS4N2NHA6IKKPCZDTWPR6FG2QGAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -51,12 +51,13 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [eval-error-macro-call-site](feedback-eval-error-macro-call-site.md) — reading $EVAL_ERROR inline as an arg at a `<[...]>` call site can come back empty; capture into a lexical (or use `<[base.str.eval_error]>`) immediately after eval
 - [kimi-dispatch-idle-timeout-recovery](feedback-kimi-dispatch-idle-timeout-recovery.md) — MCP 1800s-idle "failed" ≠ dispatch failed (confirmed for kimi_dispatch AND claude_dispatch); underlying process/session often finishes fine, recover via session_catchup(client, session_id) not re-dispatch, or claude -r <id> directly
 - [posix-group-write-precedence](feedback-posix-group-write-precedence.md) — chmod-child grants need | 0020 (group-write) not | 0002 (other-write); a process that's a supplementary-group member of the file gets checked against group bits only, other bits never consulted; write_with_perms still has this bug live
+- [v7-reload-init-live-swap-subs-crash](feedback-v7-reload-init-live-swap-subs-crash.md) — RESOLVED: bare `v7.reload init` crashed backend when an un-whitelisted nested lifecycle hook (v7.zenka.init_code) resolved on a later pass than its whitelisted sibling, tricking swap_subs's destructive wipe; fixed via stub-flagging + per-namespace (not global) generation-gating in bin/Protocol-7 + base.swap_subs + base.handler.deferred_compile; confirmed via reproduction; corrects [[feedback-v7-zenka-startup-config-placement]]'s old advice (now safe again)
 - [ptd-vs-format-code-two-reasons-to-keep](feedback-ptd-vs-format-code-two-reasons-to-keep.md) — ptd skips reflow AND never loads PPI (~175ms), format-code does both; don't retire ptd assuming feature-parity means redundancy
 - [perlmod-categorization-review-catches](feedback-perlmod-categorization-review-catches.md) — kimi dispatch review caught 6 templated/vague-reasoning misclassifications; caller-count grep meaningless for .cmd./.handler. (dynamic cube routing) and can false-positive on nested-namespace names; K3 re-verification of all 59 MOVE rows in flight, check results before trusting
 - [inline-elf-perl-version-infinite-loop](bug-inline-elf-perl-version-infinite-loop.md) — FULLY RESOLVED, both atom+pri clean-start verified: dangling-if in inline_elf's UTF-8 decode (Perl 5.42.2 only) unpacked into 5 total independent bugs chasing one boot end-to-end (ptd P7-macro false-positives, deps profile gaps, httpsd/web skins ownership race, stale web.cmd.skin path); one symptom ≠ one bug, don't stop at the first plausible fix
 
-#,,,.,.,,,,.,,,,.,,..,...,,..,,.,,,.,,.,,,,.,,..,,...,...,,.,,.,.,...,,,.,,.,,
-#C4367DZ276VLGQ7J6IUWIGQT6RKBWED3B3L6UJHZATBJSPEGC3ZX4S2JTF2PDLPWFSYWFDVGSEU5E
-#\\\|HLLJOVNWSXHWF2XF6SCEBF6SYXFY6BUOKGFL34V5UWEPMMIPPIM \ / AMOS7 \ YOURUM ::
-#\[7]VR6B4IUMIWWGJROVM4HAF2ZW2UNIMHV67AEQKHFTJNZGI52DM6AY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,...,,.,,,.,,..,,.,,,,,.,,,,,..,,..,,...,..,,,.,,,.,,...,...,.,.,
+#PSYKKDX2JNZ7VATDJO3D33XD4AJP4VKV7OQ77ZZHMBXSMSJD2DVWI5MRCDXEOFM24KJ524FTETTCC
+#\\\|J7MF6D2QGELARCLMRZHSPT5IDDFPZNYUUON6I5UMD552M4I6BJG \ / AMOS7 \ YOURUM ::
+#\[7]K7BQP3WG2XOQI6KYZRWR5SFJYDCNYTVSNQXGOE45EOB3WAOSCCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

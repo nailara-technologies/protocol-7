@@ -12,7 +12,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 
 ## Category files — open the one that matches the topic in play
 
-- **[MEMORY-active.md](MEMORY-active.md)** (56 pointers) — in-flight / recently-landed work.
+- **[MEMORY-active.md](MEMORY-active.md)** (57 pointers) — in-flight / recently-landed work.
   open for: x11 (hardening, resolution-profiles, multi-server, bare-name routing), window placement,
   mpv startup/persistence, ascii-frame & ascii-desktop-domains UI, coding & kimi zenka state machines,
   jobsite ui/assessment, streaming transport & reply modes, web-browser capture/replay/waypoints,
@@ -25,7 +25,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   fetch-files/huggingface, usb-backup, invoke-model-manager), tool-SHM architecture, tls-acme,
   unicode-encoding repair, core patterns/templates.
 
-- **[MEMORY-feedback.md](MEMORY-feedback.md)** (49 pointers) — gotchas & failure modes.
+- **[MEMORY-feedback.md](MEMORY-feedback.md)** (50 pointers) — gotchas & failure modes.
   open for: kimi/claude dispatch strategy & infra hardening, dispatch-summarize hang, tasks-completed
   scan distrust, no-sudo on p7-owned files, perl and/or precedence, p7 route-send wire protocol,
   coding-zenka reasoning/edits/inject pitfalls, ncode tooling & access-gap, perltidy self-heal,
@@ -33,7 +33,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   undef-sub scanner verification (guards/eval-wrapping/dynamic-sprintf-dispatch before renaming),
   swap_subs nested-lifecycle-hook gate (base32/chk-sum.bmw crash-instead-of-defer, e90dd04ae).
 
-- **[MEMORY-vision.md](MEMORY-vision.md)** (45 pointers) — long-horizon architecture, mostly design-only.
+- **[MEMORY-vision.md](MEMORY-vision.md)** (46 pointers) — long-horizon architecture, mostly design-only.
   open for: perspective/navigation geometry, C25519 trust identity & source-spoofing, namespace/routing
   algebra, checksum-addressing trinity, harmonic-mathematics / mod-13 vs Rodin, reference-bubble,
   network-as-computer, dedup-tree unification, coding-as-artform / style-philosophy, write-access security.
@@ -42,8 +42,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,,,.,,,.,,,,.,,.,.,,.,,,,.,,.,,..,,...,.,.,..,,...,...,.,.,,..,,,,,..,,,.,,
-#MH4LLK667IZXES3II4DDL4BS6GOYNB4VS7EWLJJGGE7UQDKGV5SLBXRSYYEHEAXBC24WRCUR7NQ5Q
-#\\\|KVH73RKORFUOY75EZHYAK5L4QK4YWV4MC5JW42NBU73Q73ZMF6P \ / AMOS7 \ YOURUM ::
-#\[7]VDNOQRKBLIWTCFF3S6OR3AXEW2LFM3BZOEK7TP7W2UUV5DM55MBY 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,.,.,...,...,,,.,.,,,..,,,,.,,,,,..,,...,...,..,,.,.,.,.,.,.,.,,,
+#SFV7SYIHFJ3ITC6PJTCMOA5YEQAB7CU6QMA546SHUXDF5JXAQ4TF6FD7URUAKD4SYGBJRAJUHUNOQ
+#\\\|VZZETHH4K7BD7S7B6NYUHOES6S33WQW6IMITVKHACAQ5KXN2MBT \ / AMOS7 \ YOURUM ::
+#\[7]GK6CZSEJEPVEXFZL7EE76KYTIPXIDLWBSYDGPQMIEWEBM2Y75CCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
