@@ -1,6 +1,6 @@
 ---
 name: bug-inline-elf-perl-version-infinite-loop
-description: "RESOLVED 30d990d9c/31158e821: inline_elf's dangling-if (missing braces) let a malformed-UTF-8 decode with u8_len==0 spin while(len>0) forever at 100% CPU, zero syscalls; only manifested after a Perl 5.40.1->5.42.2 dist-upgrade feeding raw binary (an Ed25519 pubkey) through elf_chksum's UTF-8 codepath. gdb backtrace on the hung process was the decisive diagnostic."
+description: "FULLY RESOLVED across atom+pri, both clean-started 2026-07-26: inline_elf's dangling-if (missing braces) let a malformed-UTF-8 decode with u8_len==0 spin while(len>0) forever at 100% CPU on Perl 5.42.2; unpacked into 4 more independent bugs found chasing the full boot end-to-end (ptd's P7-macro false-positive gap, .deps/profiles.yaml gaps for graphics-matrix/opencv, an httpsd ownership-sweep race clobbering web zenka's skins dir, a stale web.cmd.skin path). gdb backtrace on the hung process was the decisive diagnostic for bug #1; live -vvvq tracing + stat timing tests for #3."
 metadata:
   type: feedback
 ---
@@ -88,6 +88,47 @@ dangling-if/unbounded-loop hazard — worth a pass if another
 version-dependent hang surfaces anywhere near truth-assertion or
 bit-string code.
 
+## full resolution, verified across both hosts (2026-07-26)
+
+What started as this one bug turned into a full clean-upgrade pass across
+both `atom` and `pri` (a second production/remote host, freshly getting
+`basic-remote-server` + `graphics-matrix` installed for the first time).
+Chain of fixes, all landed and live-verified on real hardware (not just
+locally), in commit order:
+
+- `30d990d9c` / `31158e821` — the `inline_elf` fix itself (both the live
+  copy and the dead-code duplicate).
+- `4ed4877bd` — root fix for the false-positive class that made verifying
+  the above harder than it should've been: `bin/dev/ptd`/`bin/format-code`
+  now translate P7 macro syntax before `perl -c`, via a new
+  dependency-free `AMOS7::Protocol::P7Syntax` module.
+- `cebd1f647` / `3f47cb3b3` / `d3be26a25` — `.deps/profiles.yaml` gaps
+  found installing fresh on `pri`: `graphics-matrix`/`opencv` were missing
+  `Graphics::Magick`/`Convert::Color`/`libgd-perl` entirely (only the much
+  heavier `X11-Desktop` profile had them — deliberately did NOT pull that
+  in for a headless box); renamed the misleadingly-named `development`
+  profile to `basic-remote-server` in the same pass.
+- `ec8f8f6de` — a second, independent bug found only by testing the real
+  multi-zenka boot sequence end-to-end: `httpsd.init_code`'s vhost
+  ownership-normalization sweep was blindly `glob()`-ing every entry
+  under `/var/httpd`, including `web` zenka's own `skins` dir (not a
+  vhost), reverting its ownership on every `httpsd` (re)start. Found via
+  live `-vvvq` tracing and a `stat`-before/after-stop timing test — no
+  static grep alone would have surfaced this, since `web` was the only
+  zenka with `skins` in its own source, but `httpsd` was the one actually
+  clobbering it.
+- `b2a137e64` — a third, unrelated latent bug surfaced while investigating
+  the above: `web.cmd.skin`'s `list`/`info` subcommands used a stale
+  `_global_templates/skins` path never wired to `web.cfg.skins_dir`,
+  so they'd always report "not found" even with skins correctly in place.
+
+**How to apply**: a single reported symptom ("zenka hangs on start") can
+legitimately unpack into several independent, unrelated bugs once you
+follow it through a real end-to-end boot on real hardware instead of
+stopping at the first plausible fix — don't assume "fixed one thing,
+done" until a full clean start/stop cycle is actually re-verified,
+ideally on more than one host.
+
 ## duplicate-code lesson
 
 `grep -r carryover data/` turned up a **second, byte-identical copy** of
@@ -103,8 +144,8 @@ plain "who calls this function" search would surface.
 
 #,,,,,,.,,.,.,,,,,.,.,..,,,.,,,..,,,.,,.,,,,,,..,,...,...,.,.,...,,,.,,,,,.,.,
 
-#,,,.,...,.,.,,.,,...,.,,,...,,,,,...,.,.,,.,,..,,...,...,,..,.,,,.,.,..,,,.,,
-#FJQSIAHEBGURIGYSQD64K4OUNAUR2DCN3WWCHM5KL3PLW2YYZZCMBU7TIRO7RALTP2UEIAK54IUJE
-#\\\|UFNRKTCUGMLG2P4HEWJJR6BM3JJVYHYECP3JUK22TR56ZC7XABQ \ / AMOS7 \ YOURUM ::
-#\[7]UJNTKEXLJE4QAYG7QGZYRJKA3U2GZAU2DNAEOEAQD3SFGIVGTMCA 7  DATA SIGNATURE ::
+#,,,,,...,,..,...,.,,,...,,,.,,,,,,,.,.,.,,..,..,,...,...,.,.,...,.,,,,.,,,.,,
+#FGGY45YF7FW6IXT2FQOJBHAVJUV2IUOH6QNPJSRZPZFZUB43GJIYOZPEPJYZRZGA7QJRTTCBW64TE
+#\\\|344EBVO5ADMKODLLXLIXI4TX53ZUJ5XXBL5JEPJL7TXWRCI5B43 \ / AMOS7 \ YOURUM ::
+#\[7]PG7H63HWY35VVFUG3M5IKOSX4HPE73F4D7QVJR72CJCU2I4IR2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
