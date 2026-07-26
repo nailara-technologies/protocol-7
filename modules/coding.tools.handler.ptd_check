@@ -15,7 +15,7 @@ return "error: module not found [ $module ]" unless -f $path;
 
 my $err_file = "/var/protocol-7/coding/state/.ptd_check.$$";
 my $output   = '';
-if ( open my $fh, '-|', "$root/bin/ptd -c $path 2>$err_file" ) {
+if ( open my $fh, '-|', "$root/bin/dev/ptd -c $path 2>$err_file" ) {
     local $/;
     $output = <$fh>;
     close $fh;
@@ -37,8 +37,8 @@ my $result = $output;
 $result .= "\n## warnings ##\n$warnings" if length $warnings;
 return $result;
 
-#,,,,,...,,.,,,,,,,,,,,..,,..,.,.,...,.,.,,.,,..,,...,...,..,,,,.,,,.,...,...,
-#5UFU7QZLI44Y4OBFQM4PSLKXGFWVA34RBA2OH3X564GD2M3XZSNECUAADZZJHUWE3GXM3A3DVU4OC
-#\\\|DNISS3MC5UXV7ADD4AFE6O4MSO7YTOHY6IANQE7CB5XCLFHVKBL \ / AMOS7 \ YOURUM ::
-#\[7]4ELZUQB75ZJY4J7WI5VQWBLAOOAICY5IJMRAULMSW4OJGAKWIGCA 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,..,,,..,.,,,..,,.,.,,,.,,,.,,,.,..,,...,...,...,,.,,,,.,.,,,.,,,
+#QBEMBDEGXM3NYQ3WCL3I3LKHAABRZWORHWMFZCKMHDJ3LZ5YCMUTBVZQYTJUZR2DXBRFGVYU3UBTW
+#\\\|M22STRM3OJRTSEPFAGIX3UEIUUUIIWHAFUVDO7ZZ25F3XFVDRXL \ / AMOS7 \ YOURUM ::
+#\[7]QVWO3RZEO7VCSRCNIO4SPY4BRJQXQYBKO4D3KEOEVAQGD5YJ3IDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

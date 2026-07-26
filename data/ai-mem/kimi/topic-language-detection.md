@@ -33,13 +33,13 @@ Layer 1 complete, Layer 2 stub, Layer 3 stub. Design docs committed. Code change
 **Checksum algorithms**: AMOS7 (`<[chk-sum.amos]>`) → 7-char; BMW-L13 (`<[chk-sum.bmw.str-b32.L13]>`) → 13-char base32.
 
 ## ptd -c Enhancement
-`bin/ptd -c` (perl syntax checker) now reports real `perl -c` errors while filtering out false positives from P7 angle-bracket syntax (`<site-yaml.import_max_pages>`). Returns exit code matching `perl -c`.
+`bin/dev/ptd -c` (perl syntax checker) now reports real `perl -c` errors while filtering out false positives from P7 angle-bracket syntax (`<site-yaml.import_max_pages>`). Returns exit code matching `perl -c`.
 
 ## Early Pagination Break Optimization
 Default scan stops when a page returns all duplicates. `scan :full:` disables optimization. Queue-preload protection for resumed scans prevents re-fetching already-queued jobs.
 
-#,,..,,,,,,,,,...,,,.,.,,,,..,.,.,.,,,,..,..,,..,,...,...,...,,,,,,..,.,,,,.,,
-#F2U7PWPY4DJZNFM4MZQZT32UW7OYMY4U5BNYT7BGAITKILG3IOWROCRZZIPKP24JQLQLYILRCFZOQ
-#\\\|TFFD4N245KXAKIHZ6Y772LZOGIBQWCVTYCZ7PGYNJZ24ZAD5ET2 \ / AMOS7 \ YOURUM ::
-#\[7]P2FSQQNIBNO5VNK5AUJLTIKMJJYBEW7QFSPT7U2RYKH3I4CM2CCI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,.,,.,,,,.,,...,..,,,,,,..,,...,..,,...,...,,..,,,,,,,.,,..,,..,
+#TKYMJ5JAJSIIJQUTRF2DQGXCCZDMDKXYQWTMAIM3PNTMA2EIETCQYX6SK564TDH4AQKOZNLVUH2S4
+#\\\|M4QXDZVXQBBDZ5ATAZ2A6EDP2VA3FLJHDGIUWFZFAHLP7SDZU6R \ / AMOS7 \ YOURUM ::
+#\[7]A7HXMOTCHVS7VCO6SK5L2UIJ6SZGKNCP2JDWARIGVOI2QTGYWGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

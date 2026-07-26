@@ -117,7 +117,7 @@ both httpd and httpsd, for every protocol they serve** -- per the scope
 note in topic-anyevent-bridge-vs-replace.md, this is not a place to trust
 `perl -c`/`ptd -c` alone.
 
-1. `bin/ptd -c` / `perl -c` clean on all touched files (baseline, not
+1. `bin/dev/ptd -c` / `perl -c` clean on all touched files (baseline, not
    sufficient alone).
 2. Start httpd and httpsd zenki fresh, confirm normal startup with no
    errors in the boot log.
@@ -150,8 +150,8 @@ from a human watching results interactively rather than a cold dispatch
 self-certifying "looks fine." Scope it further / decide dispatch-vs-
 interactive once ready to pick this up.
 
-#,,,,,...,,,.,.,.,...,,,,,,,.,,,.,,,,,...,.,,,..,,...,...,,.,,..,,..,,,,.,...,
-#GJH7G6IRZB556QTSYI7KXSVCB2MVLM6B65JPYVEJ26QU2YXCHDFZ4V2UKFQYGSW7E6XJK2OS6SGBU
-#\\\|TCWPU4FSFPVTKKDV5EZR6W6KH6IS3QFG6DLXOHTPBGJZBMXED5I \ / AMOS7 \ YOURUM ::
-#\[7]3E2SZSYWOOO3YOQZ2GXFJRJJLVFP6ZWDWSE2BMRZX22UX22TA4DI 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,..,,,,.,.,,,...,.,,,,.,,...,..,,..,,...,..,,..,,,..,...,...,,.,,
+#GQ56BSK2QMGOPD7PHBGOXOKJQ5EIWZBPFLNVKK542IOBGWVMSPRB7C637TBFUJOV6SRY6XUM6NIQG
+#\\\|MY7O6YBFHPOFC3JENYLP5IJK4R3SUZYBO7HENJXPYTYB6GTCLHQ \ / AMOS7 \ YOURUM ::
+#\[7]P45ZMMAIUMX45IEJWKP5YTQPEAC5FOMIN2BOTDP6IPLZXDDMEGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -34,7 +34,7 @@ the winner. inspiration: `read-me/documentation/dev/research-notes/user-interfac
     each, picks max `->{interest}`, earliest-wins tie, broken providers skipped,
     all-fail → empty. verified: max / skip / tie / all-fail.
   - `ascii.frame.bar` — `{frac=>0..1, width=>N, char=>':'}` → ptd-style fill bar
-    (`bin/ptd` `show_progress` is the reference), left-justified to width.
+    (`bin/dev/ptd` `show_progress` is the reference), left-justified to width.
 - **integration (NO render-path change):** border slots read straight from
   `%values` in `ascii.frame.render.border_line`; `render.color` is a
   POST-PROCESSOR (colorizes already-rendered lines, does not resolve slots). so
@@ -114,8 +114,8 @@ plus auto-generated: whitelist / src-ver / dep-graph / source-markers.
 - inspiration: `read-me/documentation/dev/research-notes/user-interfaces.00007.asc`
 - prior session: git `db76d35fb`, `data/ai-mem/claude/topic-memory-tree-zenka.md`
 
-#,,,.,.,,,.,,,,,.,.,,,...,,,.,..,,,,.,,..,.,,,..,,...,...,...,,,,,...,.,.,,.,,
-#5FYERDIJNJFMDS43AHP2IDKDDO5WOJAK6JOIYEMXPRX27NKVG7OIIUUU443DXF222CUWYBFS5ZEI6
-#\\\|GVVJOI2VY63L2XM2CEDXCUZJADKAQDDBZKSOTVGLQCFR6OBN6R2 \ / AMOS7 \ YOURUM ::
-#\[7]43PBY3YYWPO4C3RY2WE25MGVQOKV7E6T3BYAHT2RCMUPFN456SAQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,.,.,,..,.,,,...,...,,.,,,..,,.,,..,,...,...,,.,,,..,...,,.,,.,,,
+#YL7P2BWMWKIWXZUZSO6PPBNB7LXQQ7XYNDS7UCMRSX2SAKJ3WK3DU4XHNU76DYYCYUATQJOPALFFK
+#\\\|JFJE2U4CVROJRSXGDNBELRKNE6C7KSVKAHRA65WIWBP662QOWFH \ / AMOS7 \ YOURUM ::
+#\[7]5VJDOR5SRHOYSO2XSYOE6MV4R37TQO6NDJIOX2IDMVEBQKCN3CBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

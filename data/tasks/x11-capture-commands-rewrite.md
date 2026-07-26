@@ -177,7 +177,7 @@ X-11.handler.capture_reply
 - `p7c X-11.capture-window <id>` returns a png path
 - no `system()` calls remain in either module
 - no `output_path` parameter exists in either module
-- `bin/ptd -c` passes on all 3 modules
+- `bin/dev/ptd -c` passes on all 3 modules
 
 ## dispatch
 
@@ -185,8 +185,8 @@ X-11.handler.capture_reply
 ## create X-11.handler.capture_reply as described above.
 ## verify with p7c after each module. do not modify signature footer lines.
 
-#,,,.,,,.,,.,,.,.,..,,,..,,.,,...,...,.,,,.,.,..,,...,,..,,..,.,,,,.,,.,.,..,,
-#52QSSWRGKTHIPHD6TZBBOTO7H5AMJO4G6KRKU7J7XYD54S4EEF7EMA7JYQ6SLIZIBX2Q6RR5JEDPC
-#\\\|YCG5FIU2E27YFZNUM6EIVGC4PSSEWEOFC4G7LB2NWWB6NHMEILE \ / AMOS7 \ YOURUM ::
-#\[7]NF7TUBMUIBRCNXBJQWHUVT223SK5S4OIVEJ6YIWMSCLESU63Q2BQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,..,,.,,,...,,.,,,,.,.,,,,,,,.,,,..,,...,...,.,.,.,,,,..,,..,,,,,
+#KLYKRHXIC6YG7VJV2NSJBETWOKV2KMWEJ4G4DDYM4TYZNUSKIPS5IJBH5772STCZZHGG5DD3PLHJG
+#\\\|XST2TLAG6THZGJQ6MLE2GCBKPX247X2YWXCC46JCAQQG4GXVYW4 \ / AMOS7 \ YOURUM ::
+#\[7]YBBEXAK54MTYQ27RJZNBSUKXHOHG7XMK7QNWWPSV5SAYDL23K2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

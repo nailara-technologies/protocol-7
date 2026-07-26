@@ -63,7 +63,7 @@ strategy is itself pluggable (a different selector could blend instead of max).
 
 - `ascii.frame.bar` — render a fractional value (0..1) as a ptd-style fill bar
   to a given width: `$char x int( $width * $frac )`, left-justified to `$width`.
-  ptd reference: `bin/ptd` `show_progress` ( `:` x int(13*done/total), `%-13s` ).
+  ptd reference: `bin/dev/ptd` `show_progress` ( `:` x int(13*done/total), `%-13s` ).
 - optional flow-marker decorator so providers can wrap a value as
   `:. <value> .,` / `... <value> -->` consistently.
 
@@ -143,8 +143,8 @@ perfectly without it; scrollbars + bottom echo are purely additive.
   switches. `ascii.frame.bar` left-justifies to `$width`; text providers
   ( "7 of 162" ) must pad too.
 
-#,,..,,.,,,.,,...,...,.,,,,,.,.,.,,..,.,.,...,..,,...,...,.,.,.,,,,..,,,.,.,,,
-#GREUWSR5CNYW6PJVHJSSABK43CHLVDS7M5PHLB46DW5HM2EPLQE3BAJCGJZOWJMFFO7RLPTMGX7XO
-#\\\|ELA4RLDQHIYO43AHLWJ5Y3ZDA3IXYNNHNVCORTRPGS54RTQR6AQ \ / AMOS7 \ YOURUM ::
-#\[7]52NVVP7WOIIG4BZTFWFV3O6XZNV3CWS5ESW7HVIJXKRM2MV5ZIDY 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,,.,,.,,...,,,,,.,,,,,,,.,.,,..,..,,...,.,.,,.,,.,.,.,.,,,.,..,,
+#6SKQOMJ77AOB4DFCX2ZLBMWS2DYMQFD5MU6M3UKLUYZYCY5QMWZXI27VAJNWC6O7KJSWDRLV5Q3OU
+#\\\|6M2YGJTSBNQMQFPYD3D3DN5GUY2KW4QS4MPPBPUX4Q6UKTZGDGD \ / AMOS7 \ YOURUM ::
+#\[7]V7YTQIRHF6CKG7VQEMHKBJFJLFHPLA72FDBUVMJHK3YDJM33SCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

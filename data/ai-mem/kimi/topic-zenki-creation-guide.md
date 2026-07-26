@@ -81,7 +81,7 @@ From kimi-web implementation:
 
 ```bash
 # 1. Syntax check
-./bin/ptd modules/<zenka-name>.*
+./bin/dev/ptd modules/<zenka-name>.*
 
 # 2. Start zenka
 p7c v7.start <zenka-name>
@@ -116,8 +116,8 @@ p7c coding.ask template=zenki-create zenka_name=my-zenka zenka_type=standard
 
 ---
 
-#,,,.,.,.,,,.,,,.,,..,,,,,,,.,.,,,,,.,,..,,..,...,...,...,.,.,.,.,,,.,,,,,,.,,
-#XYYXLNVOJVH7RORM5RXBC7X5RAPELKUBYO2WKXLFA7CA6GGW2PZAT73KNYPUCQQ3GU65AA5BOUZX2
-#\\\|MD5DNHO77XNNQK3VD2O7PITLNJZA6FIA5IDQXBQGWZMBYC5MJUE \ / AMOS7 \ YOURUM ::
-#\[7]35TNYGLIGTEZIR6U5AM43TZ4KNJLYJ3IT4GBGHUO3PJUMPA6SIBI 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,,,,,..,,...,.,.,.,,,,.,,,,.,.,.,...,...,...,.,.,...,,.,,.,.,,,.,
+#NSDBRKPWNIEW4DRGQDQK4C43EMVFGGFATVZH4CWJ6K5FNF6LYSOH6LPDNDGFDLSU6XFNLGR3WHHSG
+#\\\|O4LCVBMGHNJAD7HEJIAAKGOWLZYR57MBHLXJVLBRM2Z6UT3HWXM \ / AMOS7 \ YOURUM ::
+#\[7]C7XH76LZGUP55DGNIGNGWL3CYK3VKLHS4ZRSNOXPKC34TN5LNSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
