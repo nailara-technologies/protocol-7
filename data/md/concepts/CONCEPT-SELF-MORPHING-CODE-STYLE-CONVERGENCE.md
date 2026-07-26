@@ -59,7 +59,7 @@ the components are already present — this is a new wiring, not a new system:
 | component | role |
 |-----------|------|
 | p7 ↔ perl translator | transformation substrate [ to be built ] |
-| bin/ptd | style direction oracle, syntax validation |
+| bin/dev/ptd | style direction oracle, syntax validation |
 | vterm consensus buffer | multi-agent verification layer |
 | idle detection | autonomous scheduling (on-demand zenki, timeouts) |
 | data signatures | integrity verification of transformed modules |
@@ -76,8 +76,8 @@ the perl foundation means no special model training is needed. any llm with perl
 understanding can participate as a reasoning agent in this process — asserting logical
 and semantic aesthetics natively, with the translator handling the p7 layer transparently.
 
-#,,,.,,.,,...,.,,,..,,,,.,.,.,.,.,..,,.,,,..,,..,,...,..,,...,,.,,,,,,..,,.,.,
-#4DCFKK6HBTHETBWYSU3JCFL3P3AHR7GUBEANMMQYE2WTLH4EKKHOVEAITQK4A2EKNTYHTRQHW5MY2
-#\\\|A3HU5AXAJDMUIDRUX4ZV5HMQ4UH3EHAMVG6QPOFPZ2XCKY3PVJT \ / AMOS7 \ YOURUM ::
-#\[7]CM7SCKH6VNOAHB6JGHOXUX5NB757IO3AEAY6PJGGBMPEDCPKUWBI 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,,..,,.,,..,,...,.,.,..,,.,,,..,,..,,...,..,,..,,,,,,..,,,,.,...,
+#TKGYPYINZBGRISU5RH55PS5HP3DLGQNWSVBEEEIXG6X3RWX7L5Z2RGMOAYKFJI4AAEJKHW5AK2IAI
+#\\\|TFN77YDM6VJLRSYWBSQNBMW45VR7NVYPE453H3WG6OIW6IS3D6M \ / AMOS7 \ YOURUM ::
+#\[7]CYHRKOGMMIBOPXMETA2TKZFKM4RDLZOYRBPO6LIAE4EKEGMZWWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

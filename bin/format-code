@@ -1238,7 +1238,7 @@ sub collect_quote_tokens {
     return @result;
 }
 
-##[ shared utilities adapted from bin/ptd ]##
+##[ shared utilities adapted from bin/dev/ptd ]##
 
 ##[ explain a system() wait status without touching stale $! ]##
 ## $! only reflects a fork/exec failure [ $rc == -1 ] -- once the child     ##
@@ -1253,7 +1253,8 @@ sub collect_quote_tokens {
 ## error in the input, see real_syntax_errors for the detail                ##
 sub perltidy_fail_reason {
     my $rc = shift;
-    ## same wording as bin/ptd's non-check-only path [ return_code 512 ] ##
+    ## same wording as bin/dev/ptd's non-check-only path [ return_code 512 ##
+    ## ]                                                                   ##
     return 'syntax error in perl code'                if $rc and $rc >= 2;
     return 'perltidy could not complete [ status 1 ]' if $rc and $rc == 1;
     return sprintf( 'perltidy failed [ status %s ]', $rc // 'undef' );
@@ -1333,8 +1334,8 @@ sub merge_fragment {
 }
 
 ##[ run perl -c and strip P7-specific false positives, return real errors ]##
-## ported from bin/ptd -- not required to stay in lockstep with it going ##
-## forward, this tool's own syntax reporting may grow independently      ##
+## ported from bin/dev/ptd -- not required to stay in lockstep with it    ##
+## going forward, this tool's own syntax reporting may grow independently ##
 sub real_syntax_errors {
     my $file_path = shift;
 
@@ -1450,8 +1451,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,,,,.,.,.,,,..,,..,,,,.,...,,,,,,,.,,.,,,,,,..,,...,...,..,,...,,,,,...,,,,,
-#2OEVQXQJNQRWBOXSQ4HYCVOYALNJSZNHOXH5LWYRDV5UHBC7PPJZ7PONNDQRN6RQ3DHMVD57HSIRA
-#\\\|5DU2T3C6ZL572NBVDU7PNZRWMVISX33BR4LPHJ2FLYZNSFLIEYU \ / AMOS7 \ YOURUM ::
-#\[7]4RMJTHR4YFBZ3WUCAJSMFIG2YLFQYT6LDLZI6YB6EJEBGB4FXSCA 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,...,,.,,...,.,,,..,,,.,,..,,,,.,..,,...,...,...,,..,,,.,,,,,..,,
+#DHDR2J7IDV5VHW7YL3LMIFON6RUFCKVPGSD26LPXNOMU63U2U5V2TUN5MVPOT3WUIPE3REQC5CH52
+#\\\|WSZNIGCYRENU5VC5Z6NLVTIX5FFUWPI2HT6RKPKWWECVUKEON2M \ / AMOS7 \ YOURUM ::
+#\[7]ZGSXTZ2MNAYYHUGIMZEOWZWEWQOH22WDJBA5YEMFBXLFFAARJYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

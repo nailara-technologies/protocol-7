@@ -146,7 +146,7 @@ d. Part 0's fix: construct an `llm-required` pattern, run it through
    `ncode.regex.apply` directly (or via `ncode.transform.wave` if that's
    easier to drive), confirm it's flagged not auto-applied even though its
    raw confidence would have cleared `auto_apply_threshold` on its own.
-e. `bin/ptd -c` syntax-ok on every file touched, same as phase 1.
+e. `bin/dev/ptd -c` syntax-ok on every file touched, same as phase 1.
 
 ## style
 
@@ -162,8 +162,8 @@ this is the security-sensitive gate itself, don't let a cold dispatch
 invent the scope-matching semantics). Once confirmed, this is
 self-contained enough to hand to Kimi K3 the same way phase 1 was.
 
-#,,.,,..,,,.,,,,,,,,.,,,.,,,.,.,,,..,,,.,,,..,..,,...,...,.,.,.,,,,..,,,,,,,.,
-#66J5BTV2U4XCJIYSRU2AJBLZWHWMLP2ZMC5H4GOVDFJ4LGTQE3ONICEKJXQMOPSZX6RKRGDISF3U2
-#\\\|EYXYB4LIUI5NDHHNZKVJDIBDLZYIQ63IDNFQ6KYTFCJOZBVOQMC \ / AMOS7 \ YOURUM ::
-#\[7]WDMPR2EUHGPSQBA5JIQIAZR7LTP3LXYSMRKGQQEYNJQQBNVEEGCI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,.,,,.,,,,,,.,,,...,.,.,,,,,.,,,..,,...,...,,..,.,.,...,,.,,,..,
+#2M7YXQ6YTULSBIIOGR5GR67GKK2DVK7AZOHGFNWSB7KXI622MQNVIPWIZSARRX3MNQTXI2KXXQ37E
+#\\\|UMY7TVO5UH2XGUMOYZMS47F55GLAKPOXUJJRU2NF6NVEE6I2EPL \ / AMOS7 \ YOURUM ::
+#\[7]ESJGPISFJDZMTCGWSCFLQIUUSNUHGIOF7VUBMKAQ7O26ETWTZWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
