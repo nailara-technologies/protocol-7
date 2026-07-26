@@ -28,8 +28,8 @@ my $bytes = $$raw;
 utf8::encode($bytes) if utf8::is_utf8($bytes);
 
 if ($is_trash) {
-    my $compressed = eval { Crypt::Misc::decode_b32r($bytes) };
-    if ( $@ or not defined $compressed ) {
+    my $compressed = <[base32.decode]>->($bytes);
+    if ( not defined $compressed ) {
         <[base.logs]>->(
             0,       'jss.job.read: base32 decode error for %s : %s',
             $job_id, $@ // 'unknown'
@@ -60,8 +60,8 @@ for my $v ( values %$job ) {
 
 return $job;
 
-#,,.,,,.,,.,,,,,.,..,,,..,.,,,...,...,.,,,...,..,,...,...,,..,.,,,,,,,,,,,.,.,
-#JPYWP7VPDCYMC4GJJRVGLDDT6TEJW2UOS5DKXBY4UQ6OKXXCY6BIGZ5YWA442LFP722JLZCQDCUNY
-#\\\|V4BQUFWGMK6VEM5YNI53HUL45Y4FO3MGYYADTJFDPMZTKKFXPC7 \ / AMOS7 \ YOURUM ::
-#\[7]V6TNROI5WLUVBHSB2ASRVT7NZAIOBT7SZVJ3EL3CX3T2PQJMUGAY 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,.,,,,,,,.,.,.,.,.,.,,..,..,,...,..,,...,...,,..,,,,,,.,,,,.,,..,
+#EMONGZSMLICVHT3HGPLXKCVH6SW5KICCGHYS6OYTO2L264ZXP2DMNTMCHKT3EHZWFTVKD7JZYBB5G
+#\\\|DDP7ECAQS2M47SDQQJP5DT7FL42NDFBC4B27DM75JBDVQVMZGCW \ / AMOS7 \ YOURUM ::
+#\[7]YOJAWLQS4XO3PMLU5NR4JYK2VAKGDBECGLJCJS6OT4ORJP7JXSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

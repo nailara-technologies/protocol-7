@@ -57,18 +57,18 @@ if ( length $old_status ) {
     }
 }
 
-## tombstone a genuine [ not-already-terminal ] transition into a terminal ##
-## state : jobsite.sync.push forwards this so the web-cache can prune the  ##
-## record instead of holding a stale copy forever [ trash/deleted/blocked ##
-## job content is never loaded into %jobs by job.load_all, so sync.push   ##
-## has no other way to notice the transition ] ##
+## tombstone a genuine [ not-already-terminal ] transition into a terminal  ##
+## state : jobsite.sync.push forwards this so the web-cache can prune the   ##
+## record instead of holding a stale copy forever [ trash/deleted/blocked   ##
+## job content is never loaded into %jobs by job.load_all, so sync.push has ##
+## no other way to notice the transition ]                                  ##
 ( my $old_base_status = $old_status ) =~ s{:.+$}{};
 if ( $status =~ m{^(?:blocked|deleted|trash)$} ) {
     if ( $old_base_status ne $status ) {
         <[jobsite.removed_log.append]>->($enc_id);
     }
 } elsif ( $old_base_status =~ m{^(?:blocked|deleted|trash)$} ) {
-    ## rescued/reset out of a terminal state : any earlier tombstone for  ##
+    ## rescued/reset out of a terminal state : any earlier tombstone for ##
     ## this id is now stale and must stop being forwarded as a removal   ##
     ## signal, or it keeps clobbering this job's real data on every sync ##
     <[jobsite.removed_log.prune]>->($enc_id);
@@ -109,7 +109,7 @@ if ($is_trash) {
         or return <[base.logs]>->(
         0, 'jss.job.write: xz compression failed for %s', $job_id
         );
-    my $b32 = Crypt::Misc::encode_b32r($compressed);
+    my $b32 = <[base32.encode]>->($compressed);
     $payload_ref = \$b32;
     $write_mode  = '>';
 } else {
@@ -188,8 +188,8 @@ rename( $index_tmp, $index_file )
 
 return $written;
 
-#,,,,,.,.,,,,,,.,,..,,,,.,,.,,...,,,.,.,,,,.,,..,,...,.,.,,.,,,.,,,.,,.,,,,.,,
-#DJU4FZKKGIJ3A3MWHA6WWIOAT2HRKKNL76SXBU4MEZ4PWAUUFOSRQDSSELQ5NW4VUOT3QJQM5GLG2
-#\\\|C2OPYRLL5FY6AV53HRCPDDUYAUYHL447BYLAETIAZO2ZMPJWITI \ / AMOS7 \ YOURUM ::
-#\[7]XPCLEGKFWL2XW4DHKPA5OX6RVKYK6HGROGHDAIB7STMUCHDFBSBQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,.,,,.,,,,,,,..,.,.,...,.,.,,..,..,,...,...,.,.,.,,,,.,,...,,,.,
+#L6KODFMVG3AJUTFAPPDRRHP7NFVXFXGFMPNQIKRHI3VZ4I2LNPFJSK6Y66KHSMOMX7CGHSR4IHFRY
+#\\\|PBCXP43I6P773MHBNP2UEBGKMBZ5H52J7WLMNWFTW6DSRUMJKYW \ / AMOS7 \ YOURUM ::
+#\[7]A4VXOABEWIHVHQNCBP2EKIAS6P6GRRIHA33Z2JFUNMDPDPHJUIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

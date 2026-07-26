@@ -11,11 +11,11 @@ my $index = {};
 my @active_statuses
     = qw| new assessed review apply applied interviewed rejected skipped |;
 
-## also index blocked/deleted/trash for completeness, but don't load content ##
-## scanned FIRST : an orphaned terminal-state file left behind by an        ##
-## incomplete cleanup [ e.g. a rescue that didn't remove the old trash      ##
-## copy ] must never win over a legitimate active-status record for the    ##
-## same id -- active statuses are scanned second and take priority below ##
+## also index blocked/deleted/trash for completeness, but don't load      ##
+## content scanned FIRST : an orphaned terminal-state file left behind by ##
+## an incomplete cleanup [ e.g. a rescue that didn't remove the old trash ##
+## copy ] must never win over a legitimate active-status record for the   ##
+## same id -- active statuses are scanned second and take priority below  ##
 my @epoch_statuses = qw| blocked deleted |;
 for my $status (@epoch_statuses) {
     my $dir = "$jobs_root/$status";
@@ -34,7 +34,7 @@ for my $status (@epoch_statuses) {
     closedir $dh;
 }
 
-## index compressed trash files (.yxz.B32) ##
+## index compressed trash files [.yxz.B32] ##
 my $trash_root = "$jobs_root/trash";
 if ( -d $trash_root ) {
     opendir my $dh, $trash_root or goto TRASH_DONE;
@@ -66,12 +66,12 @@ for my $status (@active_statuses) {
         $enc_id =~ s/\.yaml$//;
         my $job_id = <[base.vax-int.decode]>->($enc_id);
 
-        my $job_file = "$dir/$file";
+        my $job_file = catfile( $dir, $file );
         my $job      = eval { YAML::XS::LoadFile($job_file) };
-        if ($@) {
+        if ($EVAL_ERROR) {
             <[base.logs]>->(
                 0,         'jss.load_all: error loading %s: %s',
-                $job_file, $@
+                $job_file, <[base.str.eval_error]>
             );
             next;
         }
@@ -87,27 +87,28 @@ for my $status (@active_statuses) {
     2,
     'jss.load_all: loaded %d active jobs, index=%d',
     scalar keys %jobs,
-    scalar keys %{$index}
+    scalar keys $index->%*
 ) if scalar keys %jobs;
 
 ## populate in-memory task map from loaded job YAMLs ##
 ##
-## an in-flight marker ('queued'/'assessing') only ever exists in memory --
-## a still-'new' job on disk has no 'stage' field yet, so refreshing stage
-## unconditionally from the file wipes the marker dispatch.assessments just
-## set, moments before the task it dispatched even replies. that defeats
-## dispatch.assessments' own "already in flight" skip-check, so a re-entrant
-## call (settle-timer, or any repeat call while a batch is running) queues
-## the same job again -- keep the in-flight marker, refresh everything else ##
+## an in-flight marker ['queued'/'assessing'] only ever exists in memory -- ##
+## a still-'new' job on disk has no 'stage' field yet, so refreshing stage  ##
+## unconditionally from the file wipes the marker dispatch.assessments just ##
+## set, moments before the task it dispatched even replies. that defeats    ##
+## dispatch.assessments' own "already in flight" skip-check, so a           ##
+## re-entrant call [ settle-timer, or any repeat call while a batch is      ##
+## running ] queues the same job again -- keep the in-flight marker,        ##
+## refresh everything else                                                  ##
 for my $id ( keys %jobs ) {
     my $job           = $jobs{$id};
     my $prior_stage   = ( <jobsite.tasks>->{$id} // {} )->{'stage'} // '';
     my $keep_inflight = $prior_stage =~ m{^(?:queued|assessing)$};
-    ## queue_gen only ever exists in memory too, same reasoning as the      ##
-    ## in-flight stage marker above -- it has no on-disk field to refresh   ##
-    ## from, so it must be carried over explicitly or dispatch.next's       ##
-    ## staleness check [ see dispatch.next ] loses track of it on every     ##
-    ## single sync cycle and starts treating the current entry as stale ##
+    ## queue_gen only ever exists in memory too, same reasoning as the    ##
+    ## in-flight stage marker above -- it has no on-disk field to refresh ##
+    ## from, so it must be carried over explicitly or dispatch.next's     ##
+    ## staleness check [ see dispatch.next ] loses track of it on every   ##
+    ## single sync cycle and starts treating the current entry as stale   ##
     my $prior_gen = ( <jobsite.tasks>->{$id} // {} )->{'queue_gen'} // 0;
     <jobsite.tasks>->{$id} = {
         'status' => $job->{'status'} // 'new',
@@ -121,7 +122,7 @@ for my $id ( keys %jobs ) {
 
 ## directory name is the authoritative status ##
 my $tasks = <jobsite.tasks> // {};
-for my $id ( keys %{$tasks} ) {
+for my $id ( keys $tasks->%* ) {
     my $dir_status = $index->{$id} // '';
     ## strip epoch prefix for blocked/deleted ##
     $dir_status =~ s{^(blocked|deleted):.*}{$1};
@@ -130,8 +131,8 @@ for my $id ( keys %{$tasks} ) {
 
 return \%jobs;
 
-#,,,,,,,.,,,,,,..,,..,,,,,,,.,.,.,,.,,...,..,,..,,...,...,,..,.,.,.,.,..,,,.,,
-#5ZWYY7H2DDQ4DAAE3DXJAKBFKUNYXIZVQVFF5XSFQYEEPCE4AS6J7PSPMRYCBKGA5QNJQYWC4T7LE
-#\\\|TLRDCT7L7CCH4JT25O2MAVXTJ5AQRKR3ENEEIRV2PJQBNSTE27M \ / AMOS7 \ YOURUM ::
-#\[7]6U45EO4T3IUES55CMCGGUUVE2KEWGXHIKACBTPIP53AXIU6MKMDI 7  DATA SIGNATURE ::
+#,,.,,...,..,,..,,...,,,,,..,,,,.,,..,..,,.,,,..,,...,...,..,,.,,,...,..,,,..,
+#4CTGN6LV3RFOWSYUTSS4SET43P33252YJVOFHRV7PRNHL5C5GSOYQ4LFQ57HRFMLH4Y35BCIXTH6S
+#\\\|XY25YNWAMTPGPJI4UFZCPPJZVJZUCQFUSDGGRTILPSNK3WNNNDZ \ / AMOS7 \ YOURUM ::
+#\[7]MMAEC7VT7A3JRR3EUMCE5WYZHLM4NKEUJYBO4WFT7N7ID33ITICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
