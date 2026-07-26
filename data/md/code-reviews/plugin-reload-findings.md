@@ -82,7 +82,7 @@ map { $data{'plugins'}{'status'}{$ARG}{'load_errors'} = 0 } @plugins_to_load;
 ```perl
 # line 1522-1526
 if (length( $data{'code'}{$file_name}{'source'} ) > $orig_len
-    and $data{'system'}{'verbosity'}{'console'} > 3 ) {
+    and $data{'system'}{'zenka'}{'verbosity'}{'console'} > 3 ) {
     # ...
     $data{'plugins'}{'status'}{$code_name}{'load_errors'}++
         if not length($src_str);
@@ -225,8 +225,8 @@ for my $cb_type (qw| end_code start_code error pre_init |) {
 
 ---
 
-#,,.,,,,.,.,,,,.,,.,.,,,,,,..,,,.,...,..,,...,.,.,...,...,,..,,..,.,,,..,,...,
-#NQ5RYDGFA266LK6SITLB57OTGS6XJNEV5EFMEPPSHR5HKOAXDKAF3VDGOC5BKRB6KBOLCYH5Z36DW
-#\\\|ORUPGF3JSKZNYLZY5HYDSO2VIYVYAWW7Y5CA5TVT3BBGOKIY5CK \ / AMOS7 \ YOURUM ::
-#\[7]5ZCICHWZXBAGEO7O3MT4CAPUBTYJ5WKDPCKAHGAXG6GDB4XTIKCY 7  DATA SIGNATURE ::
+#,,,,,,..,,..,..,,...,,,.,.,,,...,,..,,.,,,,,,.,.,...,...,...,.,,,,.,,..,,,,,,
+#WQ2LQPEZUVRATTQQ4UQNJUFCW5MKEOOSVTP5U5UAHVKXJZG4CYUT6WURE5DE6E5LU5SA6I3MO3EN2
+#\\\|WM6OOK3VMN7TOODYQKRRMG57G73IBLWOACVGHKG4CIVVHC6RHFL \ / AMOS7 \ YOURUM ::
+#\[7]JHZOIKP4GA626T54BTP5ODCKNO24DZ4YICVJOIRVBEZRLPYUNQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -35,14 +35,14 @@ my $key_seed_entropy
 if ( not defined $key_password or length $key_password <= 1 ) {
     <[base.log]>->( 0, 'cannot create encrypted key without password' );
     say sprintf "%s:%s\n:,", $AMOS7::C{'0'}, $AMOS7::C{'0'}
-        if not <system.verbosity.console>;
+        if not <system.zenka.verbosity.console>;
     <[base.exit]>->(qw| 0110 |);
 } elsif ( not defined $key_seed_entropy or length $key_seed_entropy <= 1 ) {
     <[base.log]>->(
         0, 'cannot generate the key without seed entropy passphrase'
     );
     say sprintf "%s:%s\n:,", $AMOS7::C{'0'}, $AMOS7::C{'0'}
-        if not <system.verbosity.console>;
+        if not <system.zenka.verbosity.console>;
     <[base.exit]>->(qw| 0110 |);
 }
 
@@ -80,8 +80,8 @@ printf( " :\n :: [ created key '%s' %s in '%s' ]\n\n",
 print " :\n :: [ no keys created ]\n\n";
 <[base.exit]>->('0110');
 
-#,,.,,...,..,,.,.,.,,,,,,,.,.,..,,...,..,,...,..,,...,...,...,,,,,,,.,...,,,,,
-#YMOGHX2TZRC7LCTRISXJWM7RQJBSPZ5LU6WE56VOQKGCBMUS5P5ZJTMGLUPWQR4I7XFKYVHQWHXCW
-#\\\|M7KUG7EVQBW7VD7BKHXLPVRCFLO2YJXMSNIWCVRXQRT2X5M7C2V \ / AMOS7 \ YOURUM ::
-#\[7]2DTQRAHICVDXHHDNMKUX63TZ6LCPFK3EBGDL53R5JR7S5DWPH2CY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,.,,,.,,,.,.,,,,,,..,...,,,.,.,.,..,,...,...,,..,,..,,.,,.,,,,,.,
+#HEBGQDMKM3SN6Z6U6MMBV6VEI7W7ETU5O4FHYD2EBGJ2RLEQJ56GE7FCEBEROGAMNHXW4TAHB26XY
+#\\\|EQBLBDNW4E5NXQ5PJJPAABT225XIKDX6QRBHTVYJCD6E4MHQPEY \ / AMOS7 \ YOURUM ::
+#\[7]2HZMXDLTUVZ4MR2G23O4OUU4SMDDJ6LKIEYBY2ZZ4CROGXQP7KBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

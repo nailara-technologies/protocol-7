@@ -28,7 +28,7 @@
 - **Start config**: `access.cmd.usr.child = cube.v7.notify_online cube.p7-log.append`
   - keep `cube.` prefix — `has_access` checks command AFTER `parent.` hop is consumed
 - **sig_chld filter**: `<sig.chld.shutdown.pid>` triggers exit; `<sig.chld.ignore.pid>` silent skip
-- **Log storm trap**: child `zenka_logfile = 2` → feedback loop; keep at default (1)
+- **Log storm trap**: child `logfile = 2` → feedback loop; keep at default (1)
 - **Reference**: `data/yaml/coding-tasks/fork-child-pattern-remaining.yaml`
 
 ## protocol-7.network.parent_route
@@ -62,8 +62,8 @@
 - Always pass `model_path`/`mmproj_path` through to `spawn_smart` — it uses provided path
   directly, skipping metadata lookup that can resolve the wrong model
 
-#,,.,,,.,,.,.,,..,.,,,,.,,..,,,..,.,.,,,,,,..,..,,...,..,,,..,..,,.,,,,,.,.,,,
-#544YBCL7MSDGTR6NXA3S3PYLVEW45D2LYRFCUE7XURX6TE2O4BJJYWQWNWZ5J2BSBPYLHOYY3CY6A
-#\\\|6K2CDBJFVXB4T27OFBMGFPAT6VVULBFH4WM2LMWYUKWKWYAZEAH \ / AMOS7 \ YOURUM ::
-#\[7]SAPYGEWFNGFXWMXUDRC2XJBF64S6KSF577PGMQPPTSXOEIZCMODI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,,,,,.,,,..,,.,,,.,,,..,.,,,,.,,..,,...,...,,.,,...,.,.,.,.,.,.,
+#6JZBMMXERFD3DYLDBKZTIQRS6S2HS7U47EAABVWTV5CVG5LPVYLRTFMYEV4R754Z4WZQOTPPYELAI
+#\\\|RD4EWNY22DFODENR3C75EFRCYNHO5YEYRGSN5MAHY4M4DFFXPOT \ / AMOS7 \ YOURUM ::
+#\[7]Q4D6FQ4NFTYVJMPBFBTD4VVE2ZTJNEEALRVLKU2ASGJU47NXVSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
