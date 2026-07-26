@@ -1,0 +1,74 @@
+## [:< ##
+
+# name  = audio.handler.pcm_data
+# descr = drain ffmpeg pcm/stderr pipes; finalize render at pcm eof
+# note  = single-read io watcher : returns to event loop after each
+#         invocation. modeled after coding.handler.drain_pipe.
+
+my $event = shift;
+
+my $watcher = eval { $event->w };
+my $fh      = eval { $watcher->fd };
+return unless defined $fh;
+
+my $wdata  = eval { $watcher->data } // {};
+my $id     = $wdata->{'id'}          // '';
+my $stream = $wdata->{'stream'}      // qw| pcm |;
+
+my $state = <audio.decode>->{$id};
+if ( not defined $state ) {
+    $watcher->cancel if defined $watcher;
+    return;
+}
+
+## precheck: avoid Perl warning on closed filehandle ##
+unless ( defined fileno($fh) ) {
+    $watcher->cancel if defined $watcher;
+    return;
+}
+
+## single read per watcher invocation : yields to event loop, the watcher ##
+## fires again automatically if more data arrives                         ##
+my $buf = '';
+my $n   = sysread( $fh, $buf, 65536 );
+
+if ( not defined $n ) {
+    ## EBADF/EINVAL: fd closed between precheck and read ##
+    if ( $OS_ERROR == 9 or $OS_ERROR == 22 ) {
+        $watcher->cancel if defined $watcher;
+    }
+    ## EAGAIN and other transient errors: return without cancelling, the ##
+    ## watcher stays alive and fires again when readable                 ##
+    return;
+}
+
+if ( $n > 0 ) {
+    if ( $stream eq qw| pcm | ) {
+        $state->{'pcm'} .= $buf;
+    } elsif ( length $state->{'stderr'} < 4096 ) {
+        $state->{'stderr'} .= $buf;
+    }
+    return;
+}
+
+## :[ eof on this stream ]: ##
+
+$watcher->cancel if defined $watcher;
+
+if ( $stream eq qw| err | ) {
+    $state->{'err_done'} = TRUE;
+    return;
+}
+
+## pcm stream finished : render and reply [ stderr already drained or ##
+## irrelevant ; any ffmpeg remnant is killed in finalize ]            ##
+$state->{'out_done'} = TRUE;
+<[audio.finalize_decode]>->($id);
+
+return;
+
+#,,.,,,,.,...,,.,,.,.,,,,,..,,.,.,...,.,.,.,,,..,,...,.,.,..,,..,,.,,,,..,,,.,
+#CBEYS2Z4D3NA3QD2I4WLLLWG5UYVNUHQKVGCTYLBAHMDYFUWEPGIVWZSNAHQ2FE43SIWP7MRXUPRE
+#\\\|C3WFTJVRCT5XPADZ6RHJCQAHN5CLFGIP6NEMX5SJZZUSH3GFNYP \ / AMOS7 \ YOURUM ::
+#\[7]YGGJBEUGQQCEHE7JCIZ3PHVFLSTXCA5WI6XBQR4RJBXS4U4PY6AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

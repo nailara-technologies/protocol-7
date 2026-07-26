@@ -1,0 +1,36 @@
+## [:< ##
+
+# name = audio.init_code
+
+<[base.perlmod.load]>->(qw| PDL |);
+<[base.perlmod.load]>->(qw| PDL::FFT |);
+<[base.perlmod.load]>->(qw| Imager |);
+<[base.perlmod.load]>->( 'File::Path', qw| make_path | );
+<[base.perlmod.load]>->(qw| IPC::Open3 |);
+<[base.perlmod.load]>->(qw| Symbol |);
+<[base.perlmod.load]>->(qw| Fcntl |);
+<[base.perlmod.load]>->(qw| POSIX |);
+
+<audio.cfg.output_dir>         //= '/var/protocol-7/audio/';
+<audio.cfg.sample_rate>        //= 22050;
+<audio.cfg.fft_size>           //= 4096;
+<audio.cfg.image_size>         //= 512;
+<audio.cfg.decode_timeout>     //= 90;
+<audio.cfg.max_decode_seconds> //= 600;
+
+<audio.path.ffmpeg_bin> //= <[base.required_bin_path]>->('ffmpeg');
+
+if ( not -x <audio.path.ffmpeg_bin> ) {
+    <[base.log]>->( 0, "[!] 'ffmpeg' binary not found, shutting down..," );
+    exit(2);
+}
+
+<audio.decode> //= {};
+
+0;
+
+#,,..,.,,,,,.,...,,.,,...,,..,.,.,...,.,.,.,,,..,,...,...,,,.,,.,,,..,,,,,.,.,
+#5OO4LWO7M4EV7PUPAZR2VM2FHCJTXSKO57UNFAFBIXWNUKGCZH3YDPS4D53EZUQUCEYEE3CRNUQJA
+#\\\|LYZNQPLMDAPPCH676IA3ETC4XD65CIXGTJR56C5HMZPXKC3EAAW \ / AMOS7 \ YOURUM ::
+#\[7]C6ZIIRP4BNCLWDR46EA5YT7HDDRTVGLY6WBDR6FUYQC3HXPBBABQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

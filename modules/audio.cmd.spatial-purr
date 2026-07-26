@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = audio.cmd.spatial-purr
+# param = <audio_path>
+# descr = render audio file to standing-wave png, returns path
+
+my $audio_path = $call->{'args'} // '';
+$audio_path =~ s|^\s+||;
+$audio_path =~ s|\s+$||;
+
+return { 'mode' => qw| false |, 'data' => 'audio file path required' }
+    if not length $audio_path;
+return { 'mode' => qw| false |, 'data' => 'expected absolute path' }
+    if $audio_path !~ m|^/|;
+return { 'mode' => qw| false |, 'data' => "not readable : $audio_path" }
+    if not -f $audio_path or not -r $audio_path;
+
+my $id;
+do { $id = <[base.prng.chars-anum]>->(8) } while exists <audio.decode>->{$id};
+
+## output path is chosen by this zenka [ never caller-controlled ] and ##
+## returned in the reply, same contract as screenshot.capture-to-disk  ##
+
+my $spawn_err
+    = <[audio.decode_to_pcm]>->( $id, $audio_path, $call->{'reply_id'} );
+
+if ( defined $spawn_err ) {
+    delete <audio.decode>->{$id};
+    return { 'mode' => qw| false |, 'data' => $spawn_err };
+}
+
+return { 'mode' => qw| deferred | };
+
+#,,,,,.,.,..,,,,,,..,,,.,,..,,.,,,,,.,...,,,.,..,,...,...,.,,,,,,,,,,,.,.,,.,,
+#X724EEKYLQ5AYJWSGSJGE62OWBGH6PYMU2MW7S26OYV4HFUCV7ZRRA2IU6SZMCT7ICGKJVGQJOWHA
+#\\\|T7BYFKFSSZNCLZAKS722D4LT4DK43JS3DZZIVIKDN2PTC2J2AT7 \ / AMOS7 \ YOURUM ::
+#\[7]5XPAPWMSHLEQFWRJNC5EZLFWMZRMMJAF3DZLYN3QDC4JGREHL6CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

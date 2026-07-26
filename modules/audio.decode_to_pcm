@@ -1,0 +1,78 @@
+## [:< ##
+
+# name  = audio.decode_to_pcm
+# descr = spawn async ffmpeg pcm decode [ non-blocking, io watchers ]
+# param = $decode_id, $audio_path, $reply_id ; returns error or undef
+
+my ( $id, $audio_path, $reply_id ) = @ARG;
+
+my ( $pcm_fh, $err_fh );
+$err_fh = Symbol::gensym;
+
+my @cmd = (
+    <audio.path.ffmpeg_bin>, '-nostdin',
+    '-v',                    qw| error |,
+    '-t',                    <audio.cfg.max_decode_seconds>,
+    '-i',                    $audio_path,
+    '-f',                    'f32le',
+    '-ac',                   1,
+    '-ar',                   <audio.cfg.sample_rate>,
+    '-'
+);
+
+my $pid = eval { IPC::Open3::open3( undef, $pcm_fh, $err_fh, @cmd ) };
+
+if ( not $pid or length $EVAL_ERROR ) {
+    return sprintf 'ffmpeg spawn failed : %s', $EVAL_ERROR // 'unknown';
+}
+
+## set pipes to non-blocking : prevent event loop stall on partial reads ##
+for my $pipe_fh ( $pcm_fh, $err_fh ) {
+    my $flags = fcntl( $pipe_fh, Fcntl::F_GETFL(), 0 );
+    fcntl( $pipe_fh, Fcntl::F_SETFL(), $flags | Fcntl::O_NONBLOCK() )
+        if defined $flags;
+}
+
+POSIX::setpgid( $pid, $pid );    ## own process group for clean kill ##
+<[base.zenki.report_child_pid]>->($pid);
+
+<audio.decode>->{$id} = {
+    'pid'      => $pid,
+    'path'     => $audio_path,
+    'reply_id' => $reply_id,
+    'pcm'      => '',
+    'stderr'   => '',
+    'pcm_fh'   => $pcm_fh,
+    'err_fh'   => $err_fh,
+};
+
+<audio.decode>->{$id}{'w_out'} = <[event.add_io]>->(
+    {   'fd'      => $pcm_fh,
+        'handler' => qw| audio.handler.pcm_data |,
+        'data'    => { 'id' => $id, 'stream' => qw| pcm | },
+        'poll'    => qw| re |
+    }
+);
+
+<audio.decode>->{$id}{'w_err'} = <[event.add_io]>->(
+    {   'fd'      => $err_fh,
+        'handler' => qw| audio.handler.pcm_data |,
+        'data'    => { 'id' => $id, 'stream' => qw| err | },
+        'poll'    => qw| re |
+    }
+);
+
+<audio.decode>->{$id}{'timer'} = <[event.add_timer]>->(
+    {   'after'   => <audio.cfg.decode_timeout>,
+        'handler' => qw| audio.handler.decode_timeout |,
+        'data'    => { 'id' => $id }
+    }
+);
+
+return undef;
+
+#,,,,,.,.,,,,,.,,,,.,,,,,,...,.,,,,.,,,,,,,,,,..,,...,...,..,,..,,,,,,,.,,.,,,
+#N75XJM3L4EHGOQGRP45VKGIOBDEWAKX3CDDKHJTK55J53Y3IJFFY55TG6CBRDR2EGLJGZAWZ7JKNG
+#\\\|JOXDOPNH2JMSDBX4HZPBN7LWWKBDJ3JZ3YG4MN33DLDF2UX2FBF \ / AMOS7 \ YOURUM ::
+#\[7]KZ5FFRR33GXT4AVKE3TY7ORIURTLGCZOD42J4LAVS4CCOERBYCCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
