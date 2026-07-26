@@ -152,9 +152,9 @@ on-demand zenka. starts when queried, shuts down after 5-minute idle timeout.
     [load_config_file:'shared-params']
     [load_config_file:'external-inference-models']
 
-    system.verbosity.zenka_buffer  = 2
-    system.verbosity.zenka_logfile = 2
-    system.verbosity.zenka_console = 2
+    system.zenka.verbosity.buffer  = 2
+    system.zenka.verbosity.logfile = 2
+    system.zenka.verbosity.console = 2
 
     start.on-demand    = 1
     restart.disabled   = 1
@@ -587,8 +587,8 @@ look at configuration/zenki/invoke-web/subroutine.white-list for exact format.
     do not attempt to run — requires live invoke.ai instance.
     note any uncertain API field names as inline comments.
 
-#,,,.,,,,,...,,..,,,.,..,,...,,,.,,,.,,.,,,.,,..,,...,...,,.,,.,,,...,,,,,.,.,
-#K4KLXITRB7BNPDEZNCOANABLWMJLLW3RM3GCBDBMB3PD7PZ7VZRP7KUCNJ7N573GHNUIGU5BLZFS6
-#\\\|U6AO4MDRTYI6QV6444QF433CTVILBLE5JRMJBANJESWJHF5MD2H \ / AMOS7 \ YOURUM ::
-#\[7]V7W2R4JGJ3JYG7KQHBA7QU7ARNJDYTK3Z6YZS2X2LTSWVE3MZ2AY 7  DATA SIGNATURE ::
+#,,.,,..,,...,...,,..,,,,,.,.,.,.,...,,,,,.,,,..,,...,...,..,,,,,,,.,,..,,.,,,
+#CGXK22S7LUNF72SGMGXIADZWQZYETCHF5SZU7EKTZIHGB4IFESWWXXGK7ONB5GS5ITOZOX22BCKXY
+#\\\|D3BZKQLCF4476SGKSC5LYTH7T5WBTJR5QVXBQA7IP4ZOMKZY2FM \ / AMOS7 \ YOURUM ::
+#\[7]VK7OA7OIGNH3FEPWNCZPAK77PIPMMNOYUQ7BYT3QPMA6O5LCL6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

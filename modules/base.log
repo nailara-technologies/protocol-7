@@ -28,14 +28,14 @@ if ( $log_level !~ m|^\d+$| ) {
     $log_level = 0;
     $log_msg   = sprintf 'LOG-LEVEL not numerical %s', scalar <[base.caller]>;
 }
-<system.verbosity.console>       //= 0;
-<system.verbosity.zenka_buffer>  //= 1;
-<system.verbosity.zenka_logfile> //= 0;
+<system.zenka.verbosity.console> //= 0;
+<system.zenka.verbosity.buffer>  //= 1;
+<system.zenka.verbosity.logfile> //= 0;
 
 return TRUE    ## true ##
-    if $log_level > <system.verbosity.console>
-    and $log_level > <system.verbosity.zenka_buffer>
-    and $log_level > <system.verbosity.zenka_logfile>;
+    if $log_level > <system.zenka.verbosity.console>
+    and $log_level > <system.zenka.verbosity.buffer>
+    and $log_level > <system.zenka.verbosity.logfile>;
 
 $log_buffer = qw| zenka | if not length $log_buffer;
 
@@ -50,7 +50,7 @@ my $h_override   = <base.ntime-harmony> // TRUE;
 my $want_harmony = $log_level < 3 ? $h_override : FALSE;
 ##
 $want_harmony = FALSE    ## skipping harmonizing when not to disk ##
-    if $log_level > 1 or <system.verbosity.zenka_logfile> > 1;
+    if $log_level > 1 or <system.zenka.verbosity.logfile> > 1;
 
 $log_msg =~ s|\r|\\r|g;
 $log_msg =~ s|\n|\\n|g;
@@ -91,11 +91,11 @@ if ( defined $code{'base.buffer.add_line'} ) {
         $log_buffer, join( ' ', $time_stamp, $log_level, $log_msg ),
         $log_level
         )
-        if $log_level <= <system.verbosity.zenka_buffer>
-        or $log_level <= <system.verbosity.zenka_logfile>;
+        if $log_level <= <system.zenka.verbosity.buffer>
+        or $log_level <= <system.zenka.verbosity.logfile>;
 
 } elsif ( not defined $code{'base.buffer.add_line'}
-    and $log_level <= <system.verbosity.zenka_buffer> ) {
+    and $log_level <= <system.zenka.verbosity.buffer> ) {
 
     $time_stamp //= <[base.anum_log_time]>->( 5, $want_harmony );
 
@@ -105,7 +105,8 @@ if ( defined $code{'base.buffer.add_line'} ) {
 
 ## console output ##
 ##
-if ( length fileno(STDOUT) and $log_level <= <system.verbosity.console> ) {
+if ( length fileno(STDOUT)
+    and $log_level <= <system.zenka.verbosity.console> ) {
     if ( utf8::is_utf8($log_str)
         and defined $code{'base.utf8.clean_str'} ) {
         <[base.utf8.clean_str]>->( \$log_str, 2, 2 );    ## warn level 2 ##
@@ -124,8 +125,8 @@ if ( length fileno(STDOUT) and $log_level <= <system.verbosity.console> ) {
 
 return TRUE;
 
-#,,,,,.,.,.,,,..,,,.,,,,.,,,,,..,,,.,,.,.,,,,,..,,...,...,,,.,,.,,,,,,,,,,.,.,
-#MU57PFXZLSEAX7O4SJ2QH6YOJUCE6USRYQO7C7QT5V6IBQUUX5XZNMOLULWEERC2MJJ4EPMKN7BAA
-#\\\|WZ7O3W4VLEZ7HU32GJZTSEWSDFGCTUTNOERS3VYPC2JTNVIZJCT \ / AMOS7 \ YOURUM ::
-#\[7]XCK5ZZ2NIIR4QUALQIEG6IEQ5OWM5ISFQLDB5G2SARJP56BUZ2DY 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,..,,.,.,,,,,.,.,,.,,,.,,,,,,,,.,..,,...,...,.,.,,,.,,,,,,,,,,,,,
+#7GAQXBEVV5ZM7C357L3WO4IG3X75QV2QAVR4XQHKRNOFDCHHC3ENHY3ET4MHCAU3UOG62MNCAXQU4
+#\\\|7KKEQLATQW2DPS6VU4FM2NAS5D2PH7LIDIF5AGLJCQYQQBPDXBH \ / AMOS7 \ YOURUM ::
+#\[7]2MSN2OLU5XWG4ROGPMXGR6IJVOY66KDKQHOZE2ODILPPZOTZUSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

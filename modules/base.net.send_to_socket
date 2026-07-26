@@ -80,7 +80,7 @@ if ( fileno $send_fh ) {
     } else {    ##  write error \ recipient fh gone. ##
         <[base.s_warn]>->(    ##  output warning if console verbosity > 1  ##
             'write error in base.net.send_to_socket on %s <{C1}>', $send_fh
-        ) if <system.verbosity.console> > 1;
+        ) if <system.zenka.verbosity.console> > 1;
         if ( defined $cid ) {
             $data{'session'}->{$cid}->{'shutdown'} = TRUE;    ## true ##
         } else {
@@ -94,8 +94,8 @@ if ( fileno $send_fh ) {
     return 2;
 }
 
-#,,..,,,.,..,,.,.,.,,,.,.,...,,,.,..,,.,.,,,.,..,,...,...,...,..,,,,.,,..,,,.,
-#5QKJP664GYSDUCZLSQIQXZSZCOWWPTXH45HENC4RTUTOTT5LSXCGV6E6STVVYWROAI3JJFS4PJTBW
-#\\\|5NLAED7TBA4BSW3MIU5ZUAJ24YUOVHM7LMQDKVXO6NZWCWX2IKG \ / AMOS7 \ YOURUM ::
-#\[7]YPJHGMSIDOMMC7WHDT25QBJHK4ZW2KSKV3YRWL4LSZT2CS27ZYCA 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,...,,,,,,,,,,..,.,.,,,.,.,.,...,..,,...,...,...,,,.,,.,,,,,,,,,,
+#GMJ3H6RYZJBEDQ5M7PDXOBQTH4PGEGUHYH4CWRGHS5KORBSUM3IE37CQWVV5QXZWC4Z4N7XKZQ2AG
+#\\\|Q653IBVI3XTKCXRFELO7KN6ICNQQPINIRRWLPRLYU4H7XGP6XQ7 \ / AMOS7 \ YOURUM ::
+#\[7]W43WAXSGXGJ6LRXTI7T6PIGYY7RIVIYJ2M6HHHA645AIC5G3GEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

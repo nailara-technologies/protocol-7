@@ -80,14 +80,14 @@ Protocol-7 supports three independent verbosity controls:
 
 ### Console Output
 ```perl
-<system.verbosity.console>
+<system.zenka.verbosity.console>
 ```
 - Controls logging to terminal/console
 - Affects interactive visibility
 
 ### UIM-Memory Buffer
 ```perl
-<system.verbosity.zenka_buffer>
+<system.zenka.verbosity.buffer>
 ```
 - Controls logging to in-memory buffer
 - Used for runtime log inspection
@@ -95,7 +95,7 @@ Protocol-7 supports three independent verbosity controls:
 
 ### Log Files (Network)
 ```perl
-<system.verbosity.zenka_logfile>
+<system.zenka.verbosity.logfile>
 ```
 - Controls logging to persistent files
 - Uses network requests to `p7-log` zenka
@@ -107,9 +107,9 @@ The effective verbosity is the **maximum** of all three targets:
 
 ```perl
 my ( $verbosity_low, $max_verbosity ) = <[base.minmax]>->(
-    <system.verbosity.console>,
-    <system.verbosity.zenka_buffer>,
-    <system.verbosity.zenka_logfile>
+    <system.zenka.verbosity.console>,
+    <system.zenka.verbosity.buffer>,
+    <system.zenka.verbosity.logfile>
 );
 ```
 
@@ -169,7 +169,7 @@ See `modules/base.get_max_verbosity` for implementation.
 ### Conditional Logging
 ```perl
 <[base.log]>->(2, "debug info: %s", $data)
-    if <system.verbosity.console> >= 2;
+    if <system.zenka.verbosity.console> >= 2;
 ```
 
 ### Error Logging
@@ -211,7 +211,7 @@ See `modules/base.get_max_verbosity` for implementation.
 6. **Consider all targets** - A log may appear in one place but not another
 7. **Check verbosity before heavy ops**:
    ```perl
-   if (<system.verbosity.console> >= 2) {
+   if (<system.zenka.verbosity.console> >= 2) {
        ## expensive debug info
    }
    ```
@@ -246,8 +246,8 @@ See `modules/base.get_max_verbosity` for implementation.
 
 ---
 
-#,,..,,,.,.,,,.,.,,,,,,,.,...,,,,,,.,,,..,,,.,.,.,...,...,...,.,,,.,,,,,.,,,,,
-#FENPT4YQ5TLN65VQHF4TJFWQ2PGZGQBKXMHZ5RLQDDKW46RRN2IL57N2OG736QHO4ZRHZXXSPFSTY
-#\\\|ZTZP2RLSAB4F7PV6SJN3SUB5SILS2ZK6RNNGQW6CWPLBQJRE6EI \ / AMOS7 \ YOURUM ::
-#\[7]CEPLY63MHDQRR3RM6R3U4FY53P4NJB445IVDDRIPN7XANGKOWKCI 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,.,,,,,,,,.,,..,,.,,,,,,.,.,.,,,.,.,...,..,,..,,..,,..,,..,,,.,,
+#SIATP2FCBAL2U4326BRJ646DFCZIETWSHUYBDJAUKY3XIPAGG6Q7GZJVY7KFS6EGPYAXVG5MAU5IM
+#\\\|AOY2TEMLO2FM5NZ3E3M5T4PRWN4WOTCAXHPKS3ZPVDSEHDP3DC2 \ / AMOS7 \ YOURUM ::
+#\[7]B4K2ELH4SCSEIKHZSYACNAYCXRL55NQNMKLTNBOREK7QGTMDKEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

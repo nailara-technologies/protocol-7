@@ -769,7 +769,7 @@ sub terminal_title {
 
     my $clear_console
         = ( defined $main::PROTOCOL_SEVEN
-            and $main::data{'system'}{'verbosity'}{'console'} )
+            and $main::data{'system'}{'zenka'}{'verbosity'}{'console'} )
         ? ''    ##  do not clear screen with -v option  ##
         : "\e[H\e[2J\e[3J";
 
@@ -1595,8 +1595,8 @@ sub cursor_disable {
 
 return TRUE ##################################################################
 
-#,,,.,..,,.,.,...,.,.,.,.,,,,,,,.,,,.,...,,.,,..,,...,...,.,,,...,,..,,..,,,.,
-#VBK5LJQFS6PW3IIFDZ54OB2NH5SQ5YAXXCMIE4VT37AOI5IOQ3G3QPPFOYCIXONCJEEKCC6G3SMBE
-#\\\|4NG5PPLAYMYWJQCOUZI3Y4OXSONYK7A4M4A7H2DSENNRWKZPHXL \ / AMOS7 \ YOURUM ::
-#\[7]WZR4DHZRMST532XNJDWMLNUYRYM4LAW2T3IU2JXHT54P7BBVFUDQ 7  DATA SIGNATURE ::
+#,,,,,,,,,...,,,.,,,.,.,,,,,.,..,,,.,,,..,,,.,..,,...,...,,,.,..,,.,.,..,,,,,,
+#DKWGPERU5XXYW64UC6UCNYXRE2IQJKOL6HVKPOV2BR4M4SC43GTVYOH4MSPTIDNXXSCYYGOTN22LK
+#\\\|NOD3LXTE6X3SK72NN4MLTCW4KF2C7KBAI2WWY5PY27QR7U4GYPK \ / AMOS7 \ YOURUM ::
+#\[7]F4B37TBSLVUZQXLBLTLEDTXFTNWC43RGOG4JT6D5CHE3B3YNNEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

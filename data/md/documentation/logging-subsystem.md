@@ -129,23 +129,23 @@ three independent verbosity thresholds are checked per entry:
 
 | key | default | controls |
 |-----|---------|----------|
-| `system.verbosity.console` | 0 | what appears on stdout |
-| `system.verbosity.zenka_buffer` | 1 | what is kept in the in-memory zenka buffer |
-| `system.verbosity.zenka_logfile` | 0 | what is forwarded via the send-buffer to p7-log (which writes to disk) |
+| `system.zenka.verbosity.console` | 0 | what appears on stdout |
+| `system.zenka.verbosity.buffer` | 1 | what is kept in the in-memory zenka buffer |
+| `system.zenka.verbosity.logfile` | 0 | what is forwarded via the send-buffer to p7-log (which writes to disk) |
 
 no zenka writes log files directly to disk — disk logging is exclusively
 handled by the `p7-log` zenka receiving forwarded entries via the send-buffer
-pipeline. `zenka_buffer` and `zenka_logfile` thresholds can overlap depending
+pipeline. `buffer` and `logfile` thresholds can overlap depending
 on configured levels.
 
 an entry is suppressed entirely only if its level exceeds all three thresholds.
 
 harmony calculation (for log timestamps) is skipped at level > 1 or when
-`system.verbosity.zenka_logfile > 1`, reducing calculation load for
+`system.zenka.verbosity.logfile > 1`, reducing calculation load for
 high-frequency debug output.
 
-#,,..,,,.,,,.,..,,,..,...,,,,,.,.,,..,,.,,,,.,..,,...,..,,..,,,.,,,.,,,..,.,,,
-#BPIPPHVSIR2B3O7JNTLF7O536E77QQY2T24ZQJVNHKUTNPZ4M4ZNZAVHAD65WR3VSCEKCYVWQ7XJE
-#\\\|GNQE5MMHD2RQSQLVVRDPY2BIIAWH4DNMFNKAVHGRZATYXS5TRE6 \ / AMOS7 \ YOURUM ::
-#\[7]2UVUPSOFBPMTXM3BX5QWPDCR72YCVLPQD6KBTFZAUFVIQ6VLHKAQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,,.,,.,,,,,,,..,,,.,.,,,,,.,,,.,..,,...,...,,.,,.,,,.,,,,,.,,,,,
+#5VQPXTIRLB7V6PMQTEDA3ICE5OUZNNVBISPVASKFF37HJQKNXL4N4DC66RXQLOKJ6QQSO3JJUIZUY
+#\\\|LRICOC6QAFHFL4GZALIUUWVALV37CM3BYXJ42TOWFF57WOZXCLW \ / AMOS7 \ YOURUM ::
+#\[7]NPLUOTIEDW3OPB5Y45QI2BK37HDWGNECPAO3K6HMGRIJRJN4Z4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

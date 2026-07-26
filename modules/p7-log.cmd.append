@@ -42,7 +42,8 @@ if ( defined $err_msg ) {
     );
     <[base.logs]>->( "< request > [ '%s' ]", $param_str );
 
-    if ( <system.verbosity.console> and not <p7-log.disable_err_log_dump> ) {
+    if ( <system.zenka.verbosity.console>
+        and not <p7-log.disable_err_log_dump> ) {
         <[base.parser.ellipse_center]>->( \$param_str, 74 );
         my $s = ' ' x 76;
         printf " /%s\\ \n > %74s < \n \\%s/ \n", $s, $param_str, $s;
@@ -55,10 +56,10 @@ if ( defined $err_msg ) {
 my $default_mode = qw| ntime-b32 |;
 <log.timestamp_mode> //= $default_mode;
 
-## host-namespacing comes from our own node name, not the wire identity   ##
-## [ SOURCE_ZENKA no longer carries a hostname prefix - see base.handler. ##
-## command - so $node_zenka alone would collide across hosts in a multi- ##
-## host network ] ##
+## host-namespacing comes from our own node name, not the wire identity [ ##
+## SOURCE_ZENKA no longer carries a hostname prefix - see base.handler.   ##
+## command - so $node_zenka alone would collide across hosts in a multi-  ##
+## host network ]                                                         ##
 my $log_file = join qw| . |, <system.node.name>, $node_zenka, $buffer_name;
 
 ##[  input  ]##
@@ -115,8 +116,8 @@ return { 'mode' => qw| true |, 'data' => sprintf 'wrote %u bytes', $msg_len }
 <[base.log]>->( 0, $err_msg );
 return { 'mode' => qw| false |, 'data' => $err_msg };
 
-#,,,,,.,,,,,,,.,.,.,,,.,.,.,,,,.,,,,.,.,.,,.,,..,,...,...,..,,..,,,.,,,..,..,,
-#CZ4CSPHQLT2CW6MJ3N5OEHJ4FQJBGL2E5M37ZKLUZRRWW623YBDMIEO42NF7BH26P2FB2VJJY5ZPK
-#\\\|PVHBX2JPWJD4XGJOXZYU65UUEWM6BT5FDUR6EUTMSNSSIIS4CZ4 \ / AMOS7 \ YOURUM ::
-#\[7]BQTRHIIBRJEJ4FFIJ2Q5BEYJKLZMIF5TWY2GSEACN3VTXQE5IGCY 7  DATA SIGNATURE ::
+#,,,,,,..,...,...,,..,.,,,,,,,,..,...,...,.,,,..,,...,...,,..,,,.,..,,.,.,..,,
+#JHS6TMMCNVLXCBNMOSH6QQW75O45STRRDOQUMS2V24KR7FEA3GJIUXZQCFKALI4OMQ5M6YEWKAGCO
+#\\\|ZB6VWMEOEH6UQPT6GUBDUB5GP6IMX3EZXL45R7JN6ULGG7QYHJ2 \ / AMOS7 \ YOURUM ::
+#\[7]UPPKV66MIGBPK5N37I3FTGAY7CRUV6Y3P755VFKI6LKABH4XM4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

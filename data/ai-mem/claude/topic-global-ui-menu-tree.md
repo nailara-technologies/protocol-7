@@ -110,7 +110,7 @@ best way is to make it generic, addressable and made available").
   `execute_zenka_code`, which runs them as zenka-code statements — and
   those statements are routinely flat dot-path assignments like
   `credential_fabric.cfg.store_dir = var/credential_fabric/` or
-  `system.verbosity.zenka_buffer = 1`, which resolve through the exact
+  `system.zenka.verbosity.buffer = 1`, which resolve through the exact
   `<a.b.c>` = `$data{a}{b}{c}` addressing convention into nested `%data`
   *on assignment* — i.e. lazily, exactly the "store depth without
   immediately parsing into representation" property direction-1 wants.
@@ -666,8 +666,8 @@ becomes an *exception channel* for the rare cases where "correct" and
 "wanted" come apart. That is a dramatically smaller, sharper, and more
 buildable thing than "an authorization protocol for the network."
 
-#,,,.,.,,,,,,,..,,.,,,,..,,..,.,.,.,,,.,,,,,,,..,,...,...,...,,..,,..,,.,,,,.,
-#MGYRUEHMR4WNOWTW75IBNOJKLT4EOI7TIXRAGJ6SCE23EPDCLHEKU4B3GN6CZVLBVJU2CMI7YU576
-#\\\|LGLCVGVR6EEEKDBGFBO2QU2NPC7DIIANPC4CHDQOQEY6CPXDS3H \ / AMOS7 \ YOURUM ::
-#\[7]VTKMMWT2OUUF55IZT2LX3ZQ3QVADI2WS4COV6JMC6ZGR6LPUE4BA 7  DATA SIGNATURE ::
+#,,..,..,,,..,,..,,,.,,,,,,,.,.,,,,..,...,...,..,,...,...,.,.,,,,,...,.,,,.,,,
+#DFGGVL7LIMCJUH2L5P4BBYMRLYPV4EKR6YC6N5K7SJQOFGZFT7WO7MPBNNWL6365GTO7B6VPE7K2K
+#\\\|ZDFSAG7XT2ZGNMTUS2ITMMAJCSMGLRJKZJDARXDFPO73HCFWY3J \ / AMOS7 \ YOURUM ::
+#\[7]QBWTRCGWVICM23I6BCICZWNSZ35T7TUWNOMHBAKQONMXZS3VTKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -292,8 +292,8 @@ elsif ( $cmd =~ m|^\^(\w+)\.([^\.]+)$| )
             ? <log.level.cmd-offset>->{$cmd}
             : 0;                                   ## default offset 0 ##
         ## default log level 2 for network traffic ##
-        if (   <system.verbosity.console> >= $llvl_offs
-            or <system.verbosity.zenka_buffer> >= $llvl_offs ) {
+        if (   <system.zenka.verbosity.console> >= $llvl_offs
+            or <system.zenka.verbosity.buffer> >= $llvl_offs ) {
             <[base.logs]>->(
                 2 + $llvl_offs,
                 '[%d] %s ..:. %s ..:. %s [M=%s]',
@@ -311,8 +311,9 @@ elsif ( $cmd =~ m|^\^(\w+)\.([^\.]+)$| )
 
 ##[ LOGGING \ DEVMOD MODE  ]##################################################
 
-        if ( <system.verbosity.console> >= 3 and defined $call_args->{'args'}
-            or <system.verbosity.zenka_buffer> >= 3
+        if ( <system.zenka.verbosity.console> >= 3
+            and defined $call_args->{'args'}
+            or <system.zenka.verbosity.buffer> >= 3
             and defined $call_args->{'args'} ) {
             ( my $args_str = $call_args->{'args'} ) =~ s|"|\"|g;
             <[base.logs]>->( 3, "[%d] : args ['%s']", $id, $args_str );
@@ -403,8 +404,8 @@ elsif ( $cmd =~ m|^\^(\w+)\.([^\.]+)$| )
 
 return undef;    ##  fell through : caller handles unknown-command  ##
 
-#,,.,,,,.,.,.,.,.,,..,.,,,...,.,,,...,,.,,,..,..,,...,...,..,,,,.,,..,..,,,..,
-#6DHCSNDJN47IUGECJLJCCOGJ34FUHUA7RSR2IFCNJVG7U5FL3HOANVY57DYTD4TCRYO2ELPNBS6BK
-#\\\|WDL2SXP2YUXQ6UIOITN22K2DOODVF7F7G3BLQ7XVCINIX5TRHLO \ / AMOS7 \ YOURUM ::
-#\[7]XBF7ZNDAQCTIX46MLKMQEZ7N5KJ5YSHZDGKDM3KTCEMLNKUYLYCY 7  DATA SIGNATURE ::
+#,,..,.,.,...,,,.,.,,,,..,..,,.,.,.,.,,,.,..,,..,,...,...,...,.,.,,,,,,.,,.,.,
+#6ENTK2OTSDI35RNEWYNW2XXRAANQTTVPB7XAVAY4ROEA6IUG2XZUGND7OE7WSAT22GY7SNOCBFN36
+#\\\|FA55JB5UCEDTJLZAOQ2LRXEOT44QTBWY4QMUUJQAZBQYWFXZ2VN \ / AMOS7 \ YOURUM ::
+#\[7]DRSCBJXKUPL7CI7DAO7SUQUCJCU5YMVXLWRBWKKFPGQVMFSA5YAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

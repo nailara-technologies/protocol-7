@@ -48,9 +48,9 @@ on-demand zenka — starts when first queried, shuts down after idle timeout.
     [load_config_file:'shared-params']
     [load_config_file:'external-inference-models']
 
-    system.verbosity.zenka_buffer  = 2
-    system.verbosity.zenka_logfile = 2
-    system.verbosity.zenka_console = 2
+    system.zenka.verbosity.buffer  = 2
+    system.zenka.verbosity.logfile = 2
+    system.zenka.verbosity.console = 2
 
     start.on-demand    = 1
     restart.disabled   = 1
@@ -221,8 +221,8 @@ look at configuration/zenki/models/subroutine.white-list for format reference.
     - models zenka unified discover spans invoke + lmstudio via shared adapter modules
     - foundation for lmstudio inference API integration (next step)
 
-#,,..,,,,,,,.,,..,,..,.,,,,..,,..,,.,,,.,,,.,,..,,...,...,,,.,.,,,,,.,,.,,.,.,
-#F4YJLTXTESICUM5F3RHF3H2PVJ5Z7EX3AT5XPLKU75GPLZMPNADTBSHJUINV3MWFCZSSBUUXH3E72
-#\\\|JGIYFTC2FA5P3SBF7SM53LBYHM7OM4TVX3UPERI4NS2MH6FNAJK \ / AMOS7 \ YOURUM ::
-#\[7]J66HSOYTJNILW7NFJY7FGVN53S6DKEFHOZXFLRJDLS3DDUALQKAA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,.,,...,,..,.,.,.,.,,,.,.,,,.,,,..,,...,...,,,.,..,,...,.,,,.,.,
+#MU5E5AZFVAJ7ZL4EVRQBJBI2UVQXPZOJF6RWE6XTFMR4UMP3VAVAFCKKFRHDGGZ7S5EJNWGVX6QQQ
+#\\\|7HSMG26VS7EZXCOLMLKOHAAXV7E7SHB6TWEISKCOYZ6IQZAKD3J \ / AMOS7 \ YOURUM ::
+#\[7]RX7X23EXUA6WX2EAKZJUAXBFOEJBCTDGG2D3ZWBJTNVCRSLFRCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
