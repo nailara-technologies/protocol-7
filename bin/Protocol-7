@@ -1603,11 +1603,20 @@ sub p7_load_code {
 
                    #  deferred stub for runtime subs and current-namespace   #
                    #  lifecycle hooks [ so base.init_modules can call them ] #
-                    $code{$file_name}
-                        //= eval( "sub {\n# line 1 \"$file_name\"\n"
-                            . q|$code{'base.handler.|
-                            . q|deferred_compile'}->(@_)|
-                            . "\n}" );
+                    if ( not exists $code{$file_name} ) {
+                        $code{$file_name}
+                            = eval( "sub {\n# line 1 \"$file_name\"\n"
+                                . q|$code{'base.handler.|
+                                . q|deferred_compile'}->(@_)|
+                                . "\n}" );
+                        ## mark as an unresolved stub -- swap_subs must not ##
+                        ## treat a still-uncompiled stub as evidence of     ##
+                        ## real reloaded code [ see                         ##
+                        ## feedback-v7-reload-init-live- swap-subs-crash ]; ##
+                        ## cleared in  base.handler.deferred_compile once   ##
+                        ## real code lands at this key                      ##
+                        $data{'code'}{$file_name}{'deferred_stub'} = TRUE;
+                    }
                     next;
                 }
 
@@ -1800,7 +1809,22 @@ sub p7_load_code {
 
     state $load_seq = 0;
     my $new_version = sprintf qw| _v%d_ |, ++$load_seq;    ##  staging key  ##
-    my $staging     = {%code};    ##  seed with pre-imported subs  ##
+    ##  exposed for      ##
+    $data{'base'}{'loader'}{'load_seq'} = $load_seq;
+    ## base.swap_subs's per-generation idempotency guard, see ##
+    ## feedback-v7-reload-init-live-swap-subs-crash           ##
+
+    ## per-namespace generation : $load_seq alone is a single counter       ##
+    ## shared across every namespace this process ever compiles, so an      ##
+    ## unrelated namespace's reload would falsely look like "this namespace ##
+    ## just changed too" to anything gating on it. record the current       ##
+    ## generation against every $code_name actually present in THIS batch,  ##
+    ## so a consumer can tell "was my own namespace part of the compile     ##
+    ## that just happened" rather than "did anything change"                ##
+    my %namespaces_this_batch = map { $_ => 1 } values %module_code_map;
+    $data{'base'}{'loader'}{'namespace_generation'}{$_} = $load_seq
+        foreach keys %namespaces_this_batch;
+    my $staging = {%code};    ##  seed with pre-imported subs  ##
 
     ## detect reload batch : any module previously compiled successfully ##
     ## reload  : staging-only, swap aborted on error [ old code stays ]  ##
@@ -5779,8 +5803,8 @@ __DATA__
 :
 :.
 
-#,,..,.,,,...,,,.,,..,,,,,,..,,.,,.,,,,.,,.,,,..,,...,...,,,,,.,,,,,.,,.,,,,,,
-#YYR6ROFQTKV7ANQT7JSPJL5ZAQOTTEAR2CQYMOQH76XQDWV5226IBWHHGY7WGJARY3GMKF32WOUHS
-#\\\|UUJBGTDUE6QYTXVBE7CNAIUAHMGSWTXRLAARJOABHFZVMAJPBOI \ / AMOS7 \ YOURUM ::
-#\[7]XL5N5233MNFAZQIPQ4IDI4HOQCN6TVDFCTO3TS54SGELYI2E66BI 7  DATA SIGNATURE ::
+#,,,,,..,,,..,..,,..,,.,.,,,.,..,,,.,,,..,,..,..,,...,...,...,..,,..,,..,,,.,,
+#X5XZK3NS2ZLTEZDGJZXQSC3D5HAY5X3DYAYRD27BF7S7X5WOHCWNMHK6IRU5HRTGJTT642BG7JJVM
+#\\\|UCLBGFGNDMGC55APMLHRTTRP6NW4SRF4AN5FVAAXYLY2WWK6KPU \ / AMOS7 \ YOURUM ::
+#\[7]SC6KCNQP7E6ZUDUD2FE2XATUYWQPF37IRGSK6HT36NV754GRYQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
