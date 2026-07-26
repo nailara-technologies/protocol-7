@@ -1156,7 +1156,7 @@ sub tool_p7_chat_read {
     $lines = 200 if $lines > 200;
     $lines = 1   if $lines < 1;
 
-    my $path = "$ROOT_PATH/data/chat/channel/$channel/history";
+    my $path = "$ROOT_PATH/data/development/chat/channel/$channel/history";
     return send_tool_result( $id, "channel '$channel' has no history", 0 )
         if not -f $path;
 
@@ -1231,7 +1231,7 @@ sub tool_p7_chat_channels {
 sub check_chat_pending {
     my $current_tool = shift // '';
 
-    my $chat_dir = "$ROOT_PATH/data/chat/channel";
+    my $chat_dir = "$ROOT_PATH/data/development/chat/channel";
     return if not -d $chat_dir;
 
     my $newest_mtime = 0;
@@ -3678,8 +3678,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,..,.,.,..,,,,.,.,.,.,,,.,,,..,,,,.,...,,..,..,,...,...,..,,..,,.,.,.,,,,,,,
-#56UUZO23O43GZ2OIFGTSP6MUA3HZV2YZAG4AYJZ24GBSNEYIFOWG6V6HAXEP6C26H5GRELR4VM5QQ
-#\\\|5KORXSJEZ5MOTPIMAQWV6NPNQAQ2RZR7SKSS3QJM6CY6Z6UQVJU \ / AMOS7 \ YOURUM ::
-#\[7]AUMRD47OA76KAAUMACYJF6QIJUSGCBXRK2KEDDMKQSOJWJHUJUCY 7  DATA SIGNATURE ::
+#,,,.,,.,,...,...,,,,,.,,,,,.,,,.,,,,,.,.,,.,,..,,...,...,,..,.,.,,..,.,.,...,
+#U37YSLQ7H44DWJZSNHWUVVQHGU76BU56CJNT7SH64GHALU6FYHNR6UJNF3VEJ2QCJ5RTO4IARHYCI
+#\\\|UV4JMZRAL2LRKIYIVOQ3KSEYJUBVALKQZX26CZEQFBHC4WIN2YO \ / AMOS7 \ YOURUM ::
+#\[7]UMCNWOOQYUL3G3UJVQ32RCIGNJKLTOCPEN2YRNH3GQHOWF6D2KBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

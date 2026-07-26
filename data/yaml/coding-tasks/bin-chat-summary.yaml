@@ -9,7 +9,7 @@ task:
 
 context: >
   bin/chat is a file-backed multi-model conversation script. channel history
-  lives at data/chat/channel/<name>/history (plain text, one entry per line).
+  lives at data/development/chat/channel/<name>/history (plain text, one entry per line).
   the coding zenka is accessible via p7c and handles async inference.
   model names are 'kimi' and 'claude' (no -code suffix).
   current dispatch for kimi: open('-|', 'p7c', 'kimi.ask-reply', $encoded)
@@ -21,7 +21,7 @@ feature: >
   for the result. always synchronous from the caller's perspective.
   models call this at session start to load context cheaply.
 
-summary_file: "data/chat/channel/<name>/summary.md"
+summary_file: "data/development/chat/channel/<name>/summary.md"
 
 staleness_rule: >
   summary is fresh if summary.md exists AND
@@ -33,7 +33,7 @@ flags:
   summary:
     syntax: "bin/chat -summary [-c channel] [--all-channels]"
     behaviour: >
-      1. check staleness of data/chat/channel/<name>/summary.md
+      1. check staleness of data/development/chat/channel/<name>/summary.md
       2. if fresh: print summary.md content and exit
       3. if stale or missing: call summarize_channel(channel), wait for
          result, write to summary.md, print result and exit
@@ -87,8 +87,8 @@ deliverables:
   - perl -c bin/chat must pass
   - do not add signatures to bin/chat (plain perl script, not a module)
 
-#,,..,..,,,,,,,.,,,..,,.,,..,,,..,.,,,,..,..,,..,,...,...,..,,,.,,,,,,,.,,...,
-#7QDRLI5SMAI5A4UYVITFPFNFRHSKRUVI47ZQR7FNVCDR7QEB6COULYWJ5S24CM3JASDSYA4INSK7Y
-#\\\|FC373EIUJ43H3FQG27DQGTFZHMEPPNAKVV4OVJ6ZD4NDRRNIZDV \ / AMOS7 \ YOURUM ::
-#\[7]PC3KPLISISXNDOV2RSF3L7ZG35SQ55N3UOW5P5PY25EZNFCPPEDY 7  DATA SIGNATURE ::
+#,,..,,..,,,.,.,.,...,,,.,...,,,,,,,.,.,,,.,.,..,,...,...,,.,,,.,,...,..,,,..,
+#PFLZ6EYAI66QL2TAA66XSKRRVDRJ6SKM55TKJ67HBY24A5TLMIIIS65TMUM34TS2T4OEQDVTGNSQA
+#\\\|AS6C4DMCUUPKDTADZG2ARSNLPKRT7XFHIPHJ33AAMC7IPLNX6BS \ / AMOS7 \ YOURUM ::
+#\[7]I23KQNHQF7AIZ55B4KN64RHYRYDAEUATKBNCIEUDNQEZXJVWQEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

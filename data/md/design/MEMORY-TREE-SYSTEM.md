@@ -379,7 +379,7 @@ adapters:
   `sessions` branch, ntime from the session archive.
 - **`memory.source.git`** — `git log` commits → leaves; subject = title, body =
   message; ntime from commit date. high recency decay (exponential curve).
-- **`memory.source.chat`** — `data/chat/channel/*/history` messages → leaves
+- **`memory.source.chat`** — `data/development/chat/channel/*/history` messages → leaves
   under per-channel branches.
 - **`memory.source.task`** — `data/tasks/*.md` → leaves; the `## task:` line is
   the title, `## dispatch` the preview.
@@ -561,8 +561,8 @@ new frame YAMLs (`data/yaml/ascii-frames/`):
 - **deferred init** — push the first tree build onto `system.callbacks.initialized`.
 - **json** — `from_json`, not `decode_json`, for coding-zenka summary output.
 
-#,,,.,..,,,,,,,.,,.,.,,,,,.,.,,,,,,..,,,,,,..,..,,...,...,.,.,,.,,.,,,,.,,.,,,
-#2UYBRG4S5U47SQYKABLR54XSFTH54OMGCQRVMTEFZS7XH4KIZPWX6WJ5XKNX5OQ5CRR7XGB2PK65G
-#\\\|HFD7H6PNELK3G245FZLER6OMQEIXODWMACQPQQHTROM7CEVFBZ6 \ / AMOS7 \ YOURUM ::
-#\[7]X4JKFJQJGA7MEBHQN6YCGWI6LGEQ7XJKCNAW5XXPGDYXE5MV3IAY 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,..,,,.,,.,,.,.,,.,,,..,..,,.,,,..,,...,...,,,.,..,,.,.,,,,,...,
+#K2APO2UT2WAAFGQDYKOFNLA3FW3TZBB724AJJWRTEHST3VHVFIKRC7GAZDT5CIPDLFTWC2CUD3O56
+#\\\|JF5NLAFI7YQ23HKGMI5AOZMYWM3GXJ7N6WYQXQOUJTDU475BTWD \ / AMOS7 \ YOURUM ::
+#\[7]FQ7GTRARYJDQVIET76334F2QZX5FYEU3O6S6X6MOBRMPNF2JKOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
