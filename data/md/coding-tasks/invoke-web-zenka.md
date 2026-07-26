@@ -77,9 +77,9 @@ invoke.ai process is not running.
     [load_config_file:'shared-params']
     [load_config_file:'external-inference-models']
 
-    system.verbosity.zenka_buffer  = 2
-    system.verbosity.zenka_logfile = 2
-    system.verbosity.zenka_console = 2
+    system.zenka.verbosity.buffer  = 2
+    system.zenka.verbosity.logfile = 2
+    system.zenka.verbosity.console = 2
 
     start.on-demand    = 1
     restart.disabled   = 1
@@ -355,8 +355,8 @@ look at configuration/zenki/models/subroutine.white-list for exact format.
     do not attempt to run — invoke.ai process management requires the
     full zenka environment. report any uncertainties as inline comments.
 
-#,,.,,,..,,..,.,.,..,,,.,,...,...,,.,,...,,,,,..,,...,...,..,,...,...,...,...,
-#44JKZ5D54OCG2B365EXGZ5AISEVQCSJOQWCRTGVOLLF5Q5QWBU4BDTEP63QBY5HB5WDDVCKDFGF2S
-#\\\|UUTAEVBPNMHRRVGJ6GC6G2J24Y3WYPS3XLVZFW7BMTPYCYIUTME \ / AMOS7 \ YOURUM ::
-#\[7]6RQSGUAPNXJBJ55SZ6HSROHEIOVPSQ4RSAWTV3CJI7ACH7Y4UICQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,..,,,,.,,,,,...,..,,.,,,...,.,,,..,,...,...,.,,,,..,...,...,,..,
+#7Y66HK33YSFU5EGZ7UTAIIYBVF4AJJI2N3ZGGM4ECG7VC6Z5LJZMLAIYRUPCQ2XC3L57CDZXAM34Q
+#\\\|4LOPWRGGYOVJQSQY6LNDROGXJAXKPWOZRRB5YSYTK53IQ2OLN75 \ / AMOS7 \ YOURUM ::
+#\[7]VYVJ2E3GX5I4SIWGB7LCEFW33YXJH5ENWWLKFE6EJWJSLUDUTOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

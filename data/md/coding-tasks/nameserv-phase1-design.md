@@ -26,8 +26,8 @@ file: `configuration/zenki/nameserv/start`
 access.cmd.usr.cube = status reload-zones list-zones show-zone \
                       set-record remove-record get-record
 
-system.verbosity.zenka_buffer  = 2
-system.verbosity.zenka_console = 2
+system.zenka.verbosity.buffer  = 2
+system.zenka.verbosity.console = 2
 
 ## configuration ##
 nameserv.cfg.listen_addr = 0.0.0.0
@@ -593,8 +593,8 @@ format: `YYYYMMDDNN` where `nn` is 2-digit daily revision [ or simple increment 
 
 ---
 
-#,,,.,,,.,.,.,,.,,,..,,..,...,,,.,.,,,,,.,.,,,.,.,...,...,,.,,,,,,,..,.,.,.,.,
-#JAOF3MBHJEGQHZOUDMMIFRMQM4AJ75335G7OAL4IS3LALJIEMGQ47BTCMQUCXEAYWKGDCR42BQTGM
-#\\\|XPUOGD5Q44OVDUAQLAY7YNHD3OECQUM7BC2T6SAFFPRA3TQ3277 \ / AMOS7 \ YOURUM ::
-#\[7]FXBIH3AR2JXUOHIBPXMFWRXIXDA6TRRCCEZHJK5BCWYBDCKRHSAI 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,.,.,,,,,,,,,..,,,,,,,.,,...,.,.,.,.,...,...,,..,,..,..,,...,,,.,
+#5YB4JJZOVFGP66U2PSMN2K5WFMOGLVS2RHH62BI3DDXBT4COTRWYMBDKCXVFCQSWPMTL7USGFZVBQ
+#\\\|DUCUMMTM7ZHIOEAJSB4ZQ4YSFVLL3GXIDFQCNEOWQOBYEVURR37 \ / AMOS7 \ YOURUM ::
+#\[7]VBLXG5NCYN53CLIE3S3BD6M4OSO3IAD5E4DL6OCCE462VEWDQKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -15,7 +15,7 @@ if ( not defined $requested_X11_usr ) {
     return undef;
 }
 
-##[ ANALYZING CURRENT SET-UP ]##############################################
+##[ ANALYZING CURRENT SET-UP ]################################################
 
 <[base.logs]>->(
     2, "checking system set-up for unix user '%s' .,",
@@ -121,7 +121,7 @@ REPORT_AGAIN:
 <[base.log]>->( $change_report_log_level, qw| : | );
 
 if ( $EFFECTIVE_USER_ID != 0 ) {
-    if ( $change_report_log_level > <system.verbosity.console> ) {
+    if ( $change_report_log_level > <system.zenka.verbosity.console> ) {
         $change_report_log_level = 0;
         goto REPORT_AGAIN;
     }
@@ -131,8 +131,8 @@ if ( $EFFECTIVE_USER_ID != 0 ) {
     return FALSE;
 }
 
-## adduser is used for adding users to groups (addgroup two-arg form removed in
-## modern debian : 'addgroup user group' is now 'adduser user group')
+## adduser is used for adding users to groups (addgroup two-arg form removed
+## in modern debian : 'addgroup user group' is now 'adduser user group')
 my @adduser_bin_paths  = qw| /usr/sbin/adduser /sbin/adduser |;
 my @addgroup_bin_paths = qw| /usr/sbin/addgroup /sbin/addgroup |;
 
@@ -325,8 +325,8 @@ if ( not $ttys_req_perms ) {
 
 return TRUE;
 
-#,,,.,,..,.,.,,.,,,.,,,..,.,.,.,,,,..,..,,...,..,,...,...,.,.,..,,,,,,,,,,..,,
-#KHH6EPFQPMOXIX2UXILUBYPYFAARFSL4HGZ7OVMGKYX5CNLVBZOHF4PNM7V65LDEC7CLINBUAGUEA
-#\\\|I7PBJJFMCCROOZMJYTAH7PHKMWR32334C5S62UBMWA4BNXWU6PU \ / AMOS7 \ YOURUM ::
-#\[7]6ZFM6LCW5HKOJPQWR6HZ5RASB5LFFDDIF2ZR3RRKC7UFTUO6TCAQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,.,.,..,,.,.,,,.,..,,,..,,,.,,..,..,,...,..,,.,,,,,.,.,.,,,,,,.,,
+#Q4XHCNUGUDHM5KGSI2NTXTY7RNEVPR6HTVZAI55Z4VOKZ2BZ4DHOYMAIO3Z3TFEDGGAN4OXFR76B4
+#\\\|FNDDQJT5INHNRYKSDT2KTBVZX2BEUH2ZRT4HHOIWYPNCOVE43NU \ / AMOS7 \ YOURUM ::
+#\[7]FVQSQ42YLHBQ6ZPEYIZJPNT2RHN3DIP6DXT5LYOXPJMSHDCASIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

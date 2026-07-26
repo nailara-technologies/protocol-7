@@ -53,8 +53,8 @@ map { <[base.disable_command]>->($ARG) } qw[
 ];
 
 ##  INCREASE INSTANCE VERIFICATION TIMEOUT WHEN LOG OUTPUT HAS HIGH LOAD  ##
-if ( <system.verbosity.console> > 1 ) {
-    my $verbosity_factor = 5.447 * ( <system.verbosity.console> - 1 );
+if ( <system.zenka.verbosity.console> > 1 ) {
+    my $verbosity_factor = 5.447 * ( <system.zenka.verbosity.console> - 1 );
     <v7.timeout.verify_instance> *= $verbosity_factor;
     <[base.logs]>->(
         1,
@@ -140,7 +140,7 @@ map { <[v7.init_start_setup]>->($ARG) } @{ clone(<v7.cfg_data.start_setup>) };
 
 if (    exists <system.subs_loaded.devmod>
     and <system.subs_loaded.devmod> > 1
-    and <system.verbosity.console> > 4 ) {
+    and <system.zenka.verbosity.console> > 4 ) {
 
     <[base.perlmod.autoload]>->(qw| Data::Dumper |);
     $Data::Dumper::Sortkeys = 1;
@@ -250,8 +250,8 @@ delete <list.users>;
 
 return 0;    ## successful init ##
 
-#,,,,,,,,,..,,,,,,.,,,...,..,,..,,,,.,,.,,..,,..,,...,...,..,,..,,,..,,,.,.,,,
-#CTB3LBN5TFJYQSV6T7UHLTIUZBEH346KA3VVC5MMEFB3A5QH55YZKQRD7M4E3GKDJ2T5ACZDXSBXA
-#\\\|BFF4CBLW5TH7HVC4OL3YXZFN3HNXSTCIQPM4PP42YJYAN5T7VGO \ / AMOS7 \ YOURUM ::
-#\[7]V5UQXG6SQSXGZQR23XECBWSWJMWYR67UFUJUXLHHLBB7WISW6EDQ 7  DATA SIGNATURE ::
+#,,,,,...,,,,,..,,,..,..,,,.,,,.,,,,,,.,,,.,.,..,,...,...,...,..,,,,.,.,.,.,,,
+#5XXYZIMLW4SGJFU3HSMVSMRZHBXJITMMDLHX2KB22VHBLOBZYHQ4OCTUH6XFEXY6IE3P7F24JMCBI
+#\\\|EMJKWDBHWAJ6YL55LN6G7QAOM2U5ACCPPAKKBF755XZDNUC6HFJ \ / AMOS7 \ YOURUM ::
+#\[7]UJWEZFANNGDOGPUIIDJZ3XSTUU5JLI7SNBEP6GC76ESHQUXO2KDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

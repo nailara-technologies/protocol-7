@@ -83,8 +83,9 @@ my $start_timeout = <v7.start_setup.zenki.start-up.timeout>->{$zenka_name}
 );
 
 ##  INCREASE START TIMEOUT WHEN LOG OUTPUT HAS HIGH LOAD  ##
-if ( <system.verbosity.console> > 1 ) {
-    my $verbosity_factor = 1.22420707 * ( <system.verbosity.console> - 1 );
+if ( <system.zenka.verbosity.console> > 1 ) {
+    my $verbosity_factor
+        = 1.22420707 * ( <system.zenka.verbosity.console> - 1 );
     $start_timeout *= $verbosity_factor;
     <[base.logs]>->(
         ': increased instance start timeout to %.3f s [ verbosity ]',
@@ -303,7 +304,7 @@ push( @p_arg, join( '', qw| -lpw= |, $apw_href->{$zenka_name} ) )
     if defined $apw_href->{$zenka_name};
 
 ##                                       -v is min. [ zenka output patterns ]
-my $zenka_verbosity = <system.verbosity.console> || 1;
+my $zenka_verbosity = <system.zenka.verbosity.console> || 1;
 push @p_arg, join( '', qw| - |, qw| v | x $zenka_verbosity );
 
 <[base.logs]>->( 1, 'starting of %s zenka initiated ..,', $zenka_sn_str );
@@ -429,8 +430,8 @@ close($in_fh);    ## <-- no further use for zenka stdin handle [ for now ] ##
 
 <[base.logs]>->( '%s zenka started [ pid : %d ]', $zenka_sn_str, $pid );
 
-#,,..,...,,.,,.,,,,,,,,..,,,,,,,.,,,,,.,,,.,.,..,,...,...,...,...,.,,,...,.,.,
-#2SUBQSG76KWW6VS7NEDJKX5J4NW6VZV2N445KLZT7OIA5BFT2BOEA5UFHTYKIWAGP7347JITWZR2Q
-#\\\|WRNLLNWKOMX67C2A2XFAJRZUX6H7XBIBHQP3W4MNLQNFLXLTEY4 \ / AMOS7 \ YOURUM ::
-#\[7]IOXRRIOSRL4ZAIFHACY6O5IZGRDUG4KU6ZNXBU3AK5AWBFCTUSCA 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,,..,...,...,...,...,.,.,...,,,,,..,,...,...,,,.,.,,,.,.,.,.,.,,,
+#L6PBANIIDQ65GGGZCO2SAAESI5KHOZ6IXJHB7GDBCEVV2USN77N4B4SN6TYLVHRYRJUMBQMCY6JSM
+#\\\|K67HZGWQYPFL3KRIMPHDZGZ2RAQWUTAWZGSMUV72MTZBV7BMWN7 \ / AMOS7 \ YOURUM ::
+#\[7]RWLSIF3E275JFM54A5PKN33JXYMQPZHDZKIDK5P4NNID42VI3CCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

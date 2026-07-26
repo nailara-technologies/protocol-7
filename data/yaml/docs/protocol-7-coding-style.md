@@ -826,9 +826,9 @@ Set verbosity levels in zenka configuration files for different output targets:
 
 ```perl
 ## In configuration/zenki/httpd/start:
-system.verbosity.zenka_buffer   = 3  ## In-memory buffer
-system.verbosity.zenka_logfile  = 3  ## Persistent file logging
-system.verbosity.zenka_console  = 3  ## Console output
+system.zenka.verbosity.buffer   = 3  ## In-memory buffer
+system.zenka.verbosity.logfile  = 3  ## Persistent file logging
+system.zenka.verbosity.console  = 3  ## Console output
 ```
 
 ### Accessing Logs
@@ -1474,8 +1474,8 @@ Module A → Module B → Module A
 - **Configuration**: See `configuration/zenki/*/start` for zenka-specific configurations
 - **Dependency Management**: See `modules/debian.*` for example of complete zenka implementation
 
-#,,.,,,,.,.,.,,,,,...,,.,,...,.,,,..,,.,,,,,,,..,,...,...,..,,..,,,,.,,..,,.,,
-#54OHH2SUANVVBPNRREY7U25UWP7BFAW4W2SMYQAUCG3WWIGE3OV6BF7DGP2RQZA4N6D3RTVGBRR74
-#\\\|T2TL4A33RBOOEZZFRTTHUG2BJQU57PMQZ4W3CWK5FWCN7S4BZ56 \ / AMOS7 \ YOURUM ::
-#\[7]WZWE4BPCJ4JS6KGF3BQC3KGY3DFKP2SGHT4GBUWHVPBUOQE7WKAI 7  DATA SIGNATURE ::
+#,,,.,...,,,.,.,.,,..,,..,...,,.,,,,.,...,..,,..,,...,.,.,..,,..,,,,,,,,,,,,.,
+#JVPGTR6TZSKLWVYTMXIQMZLG7VCHNYA4RPQGNIHSCIQNI6XSYDSYBPJOT5IJRAGB5H5ZDF7LWWSKM
+#\\\|DRNSSU6KID5JTJO5UEPTJ3NPDXWVIBTYZ75SQAIMHY4KMJQN2JT \ / AMOS7 \ YOURUM ::
+#\[7]OW3JXMVGCJPN4P3CQLUCONA2LSQKC4LGQOCDL4JJYXGXUISZYSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

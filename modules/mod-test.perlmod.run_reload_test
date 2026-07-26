@@ -33,9 +33,9 @@ my %skip = <[mod-test.update_blacklist_aref]>;
 <[base.log]>->( 1, '.:[ starting module reload test ]:.' );
 
 my $console_verbosity_backup;
-if ( $test_run_console_verbosity > <system.verbosity.console> ) {
-    $console_verbosity_backup = <system.verbosity.console>;
-    <system.verbosity.console> = $test_run_console_verbosity;
+if ( $test_run_console_verbosity > <system.zenka.verbosity.console> ) {
+    $console_verbosity_backup = <system.zenka.verbosity.console>;
+    <system.zenka.verbosity.console> = $test_run_console_verbosity;
 }
 
 @modtest_list = <[base.reverse-sort]>->( keys %INC )
@@ -104,7 +104,7 @@ foreach my $module_pm_path_rel (@sorted_paths) {
 }
 
 ## restore previous console verbosity ##
-<system.verbosity.console> = $console_verbosity_backup
+<system.zenka.verbosity.console> = $console_verbosity_backup
     if defined $console_verbosity_backup;
 
 <[base.log]>->( 1, ': done.' );
@@ -113,8 +113,8 @@ return TRUE;    ## true \ success ##
 
 ## return  \@warnings_collected;
 
-#,,..,..,,.,,,...,,..,,.,,,.,,,,,,,..,..,,,,.,..,,...,...,...,..,,..,,,.,,..,,
-#BX7OOI27SXLGOQ36PE57MA2QZYH3754GRQDKA6XYYA6GQR5OULPUD2O6J65Q3WGCLGR55ERWHV5CO
-#\\\|GDCMFDE2QPGXCMDHTX2FUPRPSRMZKNULSU4JIUXAGMPKCVIQLZE \ / AMOS7 \ YOURUM ::
-#\[7]KVN7VMNS6M2LG2B4GPKCKD7R4WRYP4J7KB5CTJ4AKTZAJLXXYEAY 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,..,.,.,,,,,,,.,,.,,..,,..,,..,,..,,...,...,,..,,..,.,,,,..,...,
+#MQNOLP367GT5CZF73EHT6AA4YPLQ4SQC5UKLPNY2PHIYN6PINPKMXESAGDLW36WAQQ6IVXTUZBNDW
+#\\\|MTAZB4VQ7NYRVZ4ERRHQW5RDWU2JPNVCRGKNV2EQIUAOKN7UIBL \ / AMOS7 \ YOURUM ::
+#\[7]RNHBAGE44HOUGGWMCHVBKZE4V5P7RF6D2KIUORXB4X63CUH5SOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

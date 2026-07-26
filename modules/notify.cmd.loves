@@ -46,7 +46,9 @@ map {
 
 if ( defined $title or @matches ) {
     my $msg_str
-        = <system.verbosity.console> >= 3 ? " ['$call->{args}']" : ' ...';
+        = <system.zenka.verbosity.console> >= 3
+        ? " ['$call->{args}']"
+        : ' ...';
     <[base.log]>->( 2, "[$id] sending notification" . $msg_str );
     my @msg = $title;
     push( @msg, $body ) if defined $body;
@@ -79,8 +81,8 @@ if ( defined $title or @matches ) {
     return { 'mode' => qw| false |, 'data' => 'no message text submitted' };
 }
 
-#,,,.,,.,,.,.,.,.,,,,,,.,,,,,,,,,,,,,,,,.,.,,,..,,...,...,..,,.,.,...,,,.,...,
-#TSHQLRUBOKSM7EOLAZYO4LUNLKNS37OVRCRTCM6YW6DOYNMWFILNIFI6RJ5VCSDQADDIOR45CL24K
-#\\\|E7B2AHS25BSCNSS5NJ3PM5ERREGLC4U4NVO6OYNH3I6KILXM4LJ \ / AMOS7 \ YOURUM ::
-#\[7]YZNNOOHXFK7AX3R2OGCXYZ5ZDJ6RACOFMNT74S56R6EXUO63IQCY 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,,,.,.,,,,,,,,,.,.,.,,,.,...,.,.,..,,...,...,.,.,...,,,.,,.,,,,,,
+#JTSUVJNJFLXULVQS2WGXAV2TLSLG3OSHC36TSJ42GQIPJQN6EJB35H6JKDOJDROK4HLTUFOPCNN3W
+#\\\|6NON27JE7BWINDFWU2QK2ZXQF7XQKDWLFWCDVSS5CJJLZAOYBVP \ / AMOS7 \ YOURUM ::
+#\[7]PIPVC2DGHIHS7T3L2FGBCBXTZJTCJIQJXU5BEJD2ON5QOYWDCQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
