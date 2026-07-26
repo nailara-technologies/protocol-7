@@ -131,6 +131,25 @@ foreach my $path_rel (@source_paths) {
     <[base.logs]>->( ':::[ %s ]:.<+>.::', $path_rel );
     <[base.log]>->( 1, qw| : | );
 
+    ## TOCTOU guard : re-read the file fresh and confirm nothing changed    ##
+    ## underneath us since the read above [ event.once at line 116 yields   ##
+    ## the event loop, a real window for another writer ]. re-strip a fresh ##
+    ## disk read the same way get-code-signed did, compare length first [   ##
+    ## catches truncation / trailing garbage past the old footer, no        ##
+    ## checksum needed for that ], then the body checksum itself            ##
+    my $disk_now;
+    <[file.slurp]>->( $path_abs, \$disk_now, qw| :raw | );
+    <[source.extract_sig_body]>->( \$disk_now, qw| strip | );
+
+    if ( length($disk_now) != $code_data_ref->{'body-length'}
+        or <[chk-sum.bmw.strsum]>->( \$disk_now ) ne
+        $code_data_ref->{'body-chksum'} ) {
+        <[base.logs]>->(
+            0, ':E: file changed on disk since read, skipping: %s', $path_rel
+        );
+        next;
+    }
+
     # Write the updated file with signature
     if ( not <[file.put_bin]>->( $path_abs, $code_data_ref->{'data'} ) ) {
         <[base.logs]>->( 0, ':E: failed to write file: %s', $path_rel );
@@ -146,8 +165,8 @@ printf( "%s\r", ' ' x 18 ) if <system.zenka.verbosity.console> == 1;
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 #
 
-#,,.,,,,,,.,.,.,.,.,,,,,.,.,.,.,,,,..,,,.,,,.,..,,...,..,,.,,,,..,..,,,..,.,.,
-#CQNMDJ6GPVNG7TIARHAGME3B57IMP4QRNFSJBVT5TO5S3JXG3UWDBL33ITWOOJF4HZ5KVQEWQHUUC
-#\\\|VJJUVJQTHDGTC6XRVAZZDC2ATRV5FTY4WIUWHZBEAZMXAMXWZMN \ / AMOS7 \ YOURUM ::
-#\[7]WJUJVQD6XZPS2CWCMAMQKQOGW7HBPSY7JRD5BHTLSPIBQ2NWIGBY 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,..,,,,,,...,,,,,..,,,,,,,,,,,,.,..,,...,...,.,.,.,.,,,,,..,,..,,
+#J7665GW36CZVXKOT6BZU5XUWRCFS455F4KXZLJ2QWDSPXV44WAKTXIRSPYA4F5KHFGQ6RWBIY4TJS
+#\\\|ZPPS6UWNYSASRHKZVEA7UENN7WGEN7C27IJU33QU2QTF4N3DMVN \ / AMOS7 \ YOURUM ::
+#\[7]YP7Q2GSSINF3KYHJULIF4CGTLMDSNDYZN2G542DYCUKQ56NKZEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

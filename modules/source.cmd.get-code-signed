@@ -47,6 +47,22 @@ return {
 ## with endline restoration during signing preparation
 my $footer_data = <[source.extract_sig_body]>->( \$src_str, qw| strip | );
 
+## stable, independent body-only checksum -- deliberately NOT the           ##
+## proof-of-work-derived 'data-chksum' the harmonic footer computes [ that  ##
+## one mixes in a freshly-searched octal header on every call, so identical ##
+## body content can still produce a different value run to run -- see       ##
+## source.create_harmonic_footer's amos-iterations-remaining loop ]. this   ##
+## one is a plain BMW digest of the body substring alone, so a caller can   ##
+## re-derive the same value later and detect real changes [ used by         ##
+## sourcecode.console.update-signatures to catch a TOCTOU race between      ##
+## reading here and writing the signed result back to disk ]. body-length   ##
+## travels alongside it so the caller can re-strip a fresh disk read and    ##
+## fail fast on a length mismatch before even bothering with the checksum [ ##
+## catches truncation / trailing garbage past the old footer as well, not   ##
+## just body content changes ]                                              ##
+my $body_only_chksum = <[chk-sum.bmw.strsum]>->( \$src_str );
+my $body_only_length = length $src_str;
+
 my $footer_found        = $footer_data->{'was-present'};
 my $found_footer_valid  = $footer_data->{'structure-was-valid'};
 my $found_footer_length = $footer_data->{'footer-length-found'};
@@ -223,11 +239,23 @@ if (   not defined $present_checksum
     ##
 }
 
-##  current \ updated source  ##
-return { 'mode' => qw| size |, 'data' => $src_str }
+## current \ updated source  'body-chksum'/'body-length' : stable body-only ##
+## BMW digest + length, both captured before the footer was re-appended     ##
+## above -- lets a caller detect if the file changed on disk between this   ##
+## read and a later write [ TOCTOU race, see                                ##
+## sourcecode.console.update-signatures ] by re-stripping a fresh read and  ##
+## comparing length first [ fails fast on truncation/trailing garbage,      ##
+## skipping the checksum entirely ], then the checksum, instead of blindly  ##
+## overwriting                                                              ##
+return {
+    'mode'        => qw| size |,
+    'data'        => $src_str,
+    'body-chksum' => $body_only_chksum,
+    'body-length' => $body_only_length
+    }
 
-#,,,.,..,,,,,,..,,,,,,...,,,.,,.,,.,,,.,.,.,,,..,,...,...,,.,,,..,,,,,,.,,,,.,
-#BW7PJYXUQ5IM66JGMPFUAKGPUXCV62PD2UDA5B3RHISQWIK5PDDON5B2EXNUOP3CO3LP4MX4WLL2O
-#\\\|DEPVNML43ORRHUW6U72C3EC33RNR6ZRJXRE66Q5I6QBGRZRIJQE \ / AMOS7 \ YOURUM ::
-#\[7]4D6TGZYUJEEMZPRAT227QMAZRL2CPMROZOXJPP7AMI3BBLWW7OBQ 7  DATA SIGNATURE ::
+#,,.,,,.,,...,.,.,,.,,,..,,,,,,,.,,..,.,.,...,..,,...,...,,.,,.,,,,,.,,,.,...,
+#7M3NUCCBA6MGCTY3PMDNUHSQRU5OBOM4X4HNGQ6VYUEZ37FVEDMRJNW6NWXAHR4RWRY47FV7HTVF6
+#\\\|52RQZUHCHIL2232X6SLXGZOKQWWGRRZRVWUDBKO7ZH3IUBFSLYO \ / AMOS7 \ YOURUM ::
+#\[7]OQ26CQPXLHE32L7KHP5PY2QHSYWQXGMQFLQ3P6PKWX2QIRYJ3MCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
