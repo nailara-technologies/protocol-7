@@ -25,6 +25,8 @@
 
 <[base.perlmod.load]>->( 'Clone',         qw| clone | );
 <[base.perlmod.load]>->( 'Hash::Flatten', qw| flatten unflatten | );
+<[base.perlmod.load]>->( 'File::Path',    qw| make_path | );
+<[base.perlmod.load]>->('Crypt::AuthEnc::ChaCha20Poly1305');
 
 <[base.perlmod.load]>->( 'Time::Local',   qw| timegm_nocheck | );
 <[base.perlmod.load]>->( 'BSD::Resource', qw | getrlimit setrlimit | );
@@ -72,9 +74,20 @@ $data{'devmod'} //= {};
 ##
 <devmod.sig_int_dump> = FALSE; ## dump %data state on SIGINT in log level 2 ##
 
+## dump_var() : global debug convenience, callable from anywhere without   ##
+## the full P7 macro syntax -- deliberately gated on devmod actually being ##
+## loaded [ a policy signal that debug tooling is active, not a technical  ##
+## dependency -- base.devmod.dump_var is fully self-contained ] so a       ##
+## leftover un-committed debug call fails loudly instead of silently       ##
+## working. same canary devmod.cmd.unload-devmod already uses to detect    ##
+## devmod's own load state ]                                               ##
 {
     no warnings qw| redefine |;
-    *main::dump_var = $code{'base.devmod.dump_var'}
+    *main::dump_var = sub {
+        return warn "dump_var() needs devmod loaded first <{C1}>"
+            if ref( $code{'devmod.dump'} ) ne qw| CODE |;
+        goto &{ $code{'base.devmod.dump_var'} };
+    };
 }
 
 ## skipping p7-log.append commands in log level 2 devmod output ##
@@ -320,8 +333,8 @@ if ( scalar(@INDEXCUBE) == 0 ) {
 
 return FALSE;
 
-#,,,,,...,,,.,..,,.,.,.,,,.,,,,.,,,,.,...,...,..,,...,...,..,,,,,,,..,,.,,...,
-#S3IM5S5IMNTASSAGMU75OAA6CTCKSTERLCFO2RGGBCIRGFAE2VCGAAXC34R6EV2ID26NMJXYFBJ6C
-#\\\|2VVNJVWSDXLU5WIEJ2FGUKAOJAO4NBBFBGZ5VX6LFRKMSNEUII6 \ / AMOS7 \ YOURUM ::
-#\[7]23YOR46W7HTBT7SGSC32OUU4T3M77WHIWGDQAXBHRC2EIBHCHEAI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,...,,,,,...,.,.,.,.,..,,,..,,.,,..,,...,...,..,,,,.,...,,.,,,..,
+#WNHUJDMPVOPERC2NFN774ALBYTEZKSSC776UFDPSBHAZVKSITNGSNNUPDM5KL4KT4RH56ANYPTZK4
+#\\\|4KHFV44P6F2JSV2Y76NIMMEGLW5VHERCABBU3JYZQEOYK7Y6IAC \ / AMOS7 \ YOURUM ::
+#\[7]USGXNETT4OIGR5KHJXALG5FDZVA5DLDV3QFPPTF2K6LCWJNONUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

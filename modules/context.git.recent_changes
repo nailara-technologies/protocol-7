@@ -25,8 +25,6 @@ unless ( -d "$root/.git" ) {
     return "<!-- not a git repository -->";
 }
 
-## use Git::Wrapper for clean error handling ##
-<[base.perlmod.autoload]>->('Git::Wrapper');
 my $git = Git::Wrapper->new($root);
 
 ## git diff --stat for uncommitted changes ##
@@ -81,8 +79,8 @@ if ( $file_count >= $max_files ) {
 
 return $output;
 
-#,,..,,,,,,.,,,,.,,..,,,.,,,,,,.,,..,,,.,,,..,..,,...,...,.,,,,,.,,..,,,,,.,,,
-#7YXBNYVVXA4QCX4T7LNSTNU44ENYNMVVIZ7D6RRCBCHFD5NSZ6GNPMLVRWAU6Y7B7KWPQ7XC7LDH4
-#\\\|FRE7BI5W6FQM7TQ4GKJOY2YUFI4DC3SP23SLA6NJEFYJEJMPUD3 \ / AMOS7 \ YOURUM ::
-#\[7]PUYFBNAQYJNORO5TEGEIU7WUNEQUOD6RL7NFWF5MFKGOIXIJD6AY 7  DATA SIGNATURE ::
+#,,,.,...,,,,,..,,,.,,,,,,,,.,,,,,.,.,.,.,..,,..,,...,...,,..,.,,,.,,,...,...,
+#BATRFLKA4LBZHI2AG4QSXOXUMMPQVEJ6IX7GBAOSHN3BW4W7JYYDEJ4OBELNNWOZTR3DHBZEAS5J4
+#\\\|K6L2X62YJIYSWUE52NDZWWK7QXSET7K4C3G4FS22UVV7V3LODJB \ / AMOS7 \ YOURUM ::
+#\[7]ZGI4L45DDIHJBZDEN2CBWSP2P5MVXJUAMCWBSSOX5QTDAPTWAWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
