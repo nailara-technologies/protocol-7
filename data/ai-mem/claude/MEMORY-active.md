@@ -32,6 +32,7 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [os-command-zenka](topic-os-command-zenka.md) — planned command templates, security levels, STRM
 - [coding-round-timeout-adaptive](topic-coding-round-timeout-adaptive.md) — LANDED: soft/hard ceiling, stall detect, restart-round
 - [coding-round-timeout-no-autorestart-observed-2026-07-26](project-coding-round-timeout-no-autorestart-observed-2026-07-26.md) — FOLLOW-UP NEEDED: round hit 175% of ceiling with no auto-restart, manually aborted, not yet root-caused
+- [audio-waveform-visualization-landed-2026-07-26](project-audio-waveform-visualization-landed-2026-07-26.md) — LANDED (kimi K3): new `audio` zenka, PDL-FFT+Imager standing-wave renderer, tested clean on 4 samples incl. saturnians.mp3 generalization case; pending human sign-off on 7 modules + 4 config files + 2 cube edits
 - [plugin-web-jobs](topic-plugin-web-jobs.md) — LANDED, all fixes live through 2026-07-10, no longer CRITICAL
 - [jobsite-ui-usability](topic-jobsite-ui-usability.md) — CONFIRMED: badges + render-gated sync, focus preserved
 - [coding-zenka-abort-inference](topic-plugin-web-jobs.md), [jobsite-assessment-accuracy](topic-jobsite-assessment-accuracy.md) — LANDED; fix=consensus_vote
@@ -49,8 +50,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [scratchpad-import-tool](topic-scratchpad-import-tool.md), [scratchpad-rescue-coding-zenka-task](topic-scratchpad-rescue-coding-zenka-task.md) — mcp-server-p7 scratchpad tools tested; follow-up task filed w/ kimi K3 for native coding-zenka rescue tools + chmod g+rx fix
 - [ncode-pattern-learning-loop](topic-ncode-pattern-learning-loop.md) — design, not built: two-tier mechanical/LLM pattern model, reuse existing stats/confidence fields for self-reinforcement, LLM-prefers-editing-patterns interaction model, namespace scope gating, nested-dispatch for batch-apply without confirmation storms; next step is the pattern-schema fix (steps not persisted) blocking the loop
 
-#,,,,,,.,,.,,,.,.,.,,,.,,,,..,..,,,,.,,,.,..,,..,,...,,..,..,,,..,,..,.,.,,..,
-#FWLKK5G64V6JNHYVYTVKU46YV6KTO57DPH256HJHAPG2ZQH5KXWZXIKWVKBRXN7VIYR2NMEG4M7RG
-#\\\|NFFR4GSEJ3RBPNTK6YWLEAO5QGTT7B5SIOZ2PMAYPDNOXGMTKWF \ / AMOS7 \ YOURUM ::
-#\[7]6LMVZ2STV27SGCDRNM4SNDXOSP6TB475HVRNYD2S6FSHZSMQUQDY 7  DATA SIGNATURE ::
+#,,..,,.,,,..,...,,,,,..,,..,,,,,,...,..,,.,.,..,,...,...,.,.,,,.,,.,,,,,,,..,
+#UGPZG6ZG3C3TBQW34RB2RSY62QHQZMMDYAILTQMXRKSCPWU5MYXJXP3WTJOHLX2VBA6H6D5VLDJPS
+#\\\|6HPKDK6EZNYE6QLR56SHRU3AXO5VRGNEE7VBY6EL4M2Q57TDGIC \ / AMOS7 \ YOURUM ::
+#\[7]N6XKW3UZJBWNKG4EHIJELGC4D6PA3J4NLNLQWNUFJPGRW5C6YKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

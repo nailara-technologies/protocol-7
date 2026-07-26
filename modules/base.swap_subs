@@ -12,8 +12,14 @@ my @sub_names     = keys %code;
 my $subs_matching = 0;
 map {
     $subs_matching++
-        if $ARG =~ m|^$source_sub_prefix\.|
-        or $ARG eq $source_sub_prefix    ## exact match ##
+        if ( $ARG =~ m|^$source_sub_prefix\.|
+        or $ARG eq $source_sub_prefix )    ## exact match ##
+        and not $data{'code'}{$ARG}{'deferred_stub'}
+    ## an unresolved deferred-compile stub is not real reloaded code -- its ##
+    ## lone presence must not be read as "there's something to move," or    ##
+    ## the undefine step below wipes a fully-populated target namespace to  ##
+    ## make room for nothing real. see                                      ##
+    ## feedback-v7-reload-init-live-swap-subs-crash                         ##
 } @sub_names;
 if ( !$subs_matching ) {
     <[base.logs]>->(
@@ -23,7 +29,48 @@ if ( !$subs_matching ) {
     return FALSE;
 }
 
-if ( $overwrite_policy eq qw| undefine | ) {
+## per-generation idempotency guard : the destructive 'undefine' wipe is    ##
+## meant to fire once per real code reload (a genuinely new compile         ##
+## generation), matching the intentional "wipe stale code, load fresh"      ##
+## design -- not on every repeat call within the same unchanged generation  ##
+## just because a lifecycle hook happened to compile/discover slightly      ##
+## later than its siblings (e.g. an un-whitelisted nested hook resolving    ##
+## after its whitelisted sibling already swapped everything else this       ##
+## generation). without this, a lone late-arriving real sub gets read as    ##
+## "there's reloaded code" and the wipe nukes an already-correct target     ##
+## namespace to make room for just that one straggler. see                  ##
+## feedback-v7-reload-init-live-swap-subs-crash. interim fix pending the    ##
+## version-aware loader (data/md/coding-tasks/version-aware-loader.md)      ##
+## which eliminates this whole class structurally via a staged %CODE swap   ##
+##                                                                          ##
+## the generation must be tracked per-namespace, not as a single shared     ##
+## counter -- otherwise an unrelated namespace's reload would falsely look  ##
+## like "this namespace changed too." walk $source_sub_prefix from most- to ##
+## least-specific dot-segment to find the code_name the loader tracks       ##
+## generations against [ 'v7.zenka' itself is never a code_name -- only its ##
+## ancestor 'v7' is; multi-segment code_names like 'chk-sum.bmw384' match   ##
+## at full length instead ]                                                 ##
+my $current_generation;
+my @prefix_parts = split( m|\.|, $source_sub_prefix );
+while (@prefix_parts) {
+    my $candidate = join( '.', @prefix_parts );
+    if ( exists $data{'base'}{'loader'}{'namespace_generation'}{$candidate} )
+    {
+        $current_generation
+            = $data{'base'}{'loader'}{'namespace_generation'}{$candidate};
+        last;
+    }
+    pop @prefix_parts;
+}
+$current_generation //= <base.loader.load_seq> // 0;    ##  fallback  ##
+my $swap_key = "$source_sub_prefix\->$target_sub_prefix";
+my $last_wipe_generation
+    = $data{'base'}{'swap_subs'}{'last_wipe_generation'}{$swap_key};
+my $already_wiped_this_generation = defined $last_wipe_generation
+    && $last_wipe_generation == $current_generation;
+
+if ( $overwrite_policy eq qw| undefine |
+    and not $already_wiped_this_generation ) {
     map {
         if ( $ARG =~ m|^$target_sub_prefix\.| ) {
             delete $code{$ARG};
@@ -35,6 +82,13 @@ if ( $overwrite_policy eq qw| undefine | ) {
         2,              "undefined %d subs from '%s' namespace",
         $removed_count, $target_sub_prefix
     ) if $removed_count;
+    $data{'base'}{'swap_subs'}{'last_wipe_generation'}{$swap_key}
+        = $current_generation;
+} elsif ( $overwrite_policy eq qw| undefine | ) {
+    <[base.logs]>->(
+        2, '<swap_subs> wipe skipped [ already done this generation : %s ]',
+        $swap_key
+    );
 }
 
 my $moved      = 0;
@@ -48,6 +102,12 @@ foreach my $sub_name ( keys %code ) {
         if $new_sub eq $sub_name and $new_sub eq $source_sub_prefix;
 
     if ( $new_sub ne $sub_name ) {
+        ## leave unresolved stubs under their original name -- moving a   ##
+        ## stub before it's ever compiled just relocates the problem, and ##
+        ## it was already excluded from $subs_matching above for the same ##
+        ## reason                                                         ##
+        next if $data{'code'}{$sub_name}{'deferred_stub'};
+
         if ( $overwrite_policy eq 'if_missing' and exists $code{$new_sub} ) {
             delete $code{$sub_name};
             next;
@@ -134,8 +194,8 @@ if ( <[base.is_defined_recursive]>->(qw| base.subroutines.referenced |) ) {
     }
 }
 
-#,,,,,..,,..,,..,,,,.,...,.,,,.,.,,,,,.,.,.,.,..,,...,...,,,,,,,,,..,,.,,,...,
-#C2CUGGS374Q6XOPXQPQFYBLTS4HTM5BTPEXTSF27K6ZMO7IQMUPWLKI7XZ7CBGEBTOHDUSDWRLZ6E
-#\\\|MDBN7DTIL73KAJUMTLZGO2THMIOLW7FN4M2N4N5EFLB2ODFKOD5 \ / AMOS7 \ YOURUM ::
-#\[7]KKAGEFNYPILJCDXMCSYL44JXDAOIFHFZBOBL43RPHB33BQECQKDA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,,.,,,.,..,,,,.,,,,,,.,,,,,,,,.,..,,...,...,,,.,.,.,.,,,,,,,,,.,
+#X3NHXOWUNP33FQDPMDN2DFCSJN7QNFYYCJFRAMVWTMGMSDX3INSRB3YOPZOIQKYXLGQTNTDLLFAWK
+#\\\|4DYWMEDPRH7LEZVHGISU34UDWOOZLCHSO4DO37BOYC64U2Q7CXR \ / AMOS7 \ YOURUM ::
+#\[7]YGALGPSOU47CBBMKR6L3SYUGPVI3ZQKS6274QKZ6RJWL2UU36GCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
