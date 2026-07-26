@@ -7,6 +7,28 @@ use Cwd             qw| abs_path |;
 use List::MoreUtils qw| minmax uniq |;
 use Time::HiRes     qw| sleep |;
 use Text::Wrap      qw| wrap |;
+use File::Temp      qw| tempfile |;
+
+##[ LOCAL PM LIB PATH ]#######################################################
+
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd     qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    my $up_dir       = File::Spec->updir;
+    my $data_pm_path = qw| data/lib-path/pm |;
+    my $root_path
+        = abs_path( r2_abs( c_dir( $RealBin, $up_dir, $up_dir ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
+    die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
+    unshift( @INC, $local_lib_path )               if -d $local_lib_path;
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+
+use AMOS7::Protocol::P7Syntax qw| p7_syntax__translate |;
 
 ##[ global constants ]##
 use constant TRUE  => 5;    ##  TRUE.  ##
@@ -267,6 +289,20 @@ sub merge_fragment {
 sub real_syntax_errors {
     my $file_path = shift;
 
+    ## translate P7 macro syntax [ <data.key>, <[module.name]> ] to real    ##
+    ## perl BEFORE checking -- raw 'perl -c' has no idea what those mean    ##
+    ## and misparses them as glob derefs/subtraction, the actual root cause ##
+    ## of the false positives the two filters below patch over.             ##
+    ## translation is newline-preserving so line numbers still line up.     ##
+    open( my $src_fh, qw| < |, $file_path )
+        or die ":\n:: \l$OS_ERROR :: $file_path\n:\n";
+    my $src = do { local $RS = undef; <$src_fh> };
+    close $src_fh;
+    my $translated = p7_syntax__translate($src);
+    my ( $tmp_fh, $tmp_path ) = tempfile( SUFFIX => qw| .p7chk.pl | );
+    print {$tmp_fh} $translated;
+    close $tmp_fh;
+
     ## -Mfeature=:5.24 : P7 modules have no 'use v5.10'/'use feature' of   ##
     ## their own [ no standard 'use' header, custom [:< format instead ],  ##
     ## so a bare 'perl -c' doesn't recognize 'state'/'say'/etc and         ##
@@ -274,11 +310,16 @@ sub real_syntax_errors {
     ## version bundle enables the full modern feature set WITHOUT the side ##
     ## effect plain '-Mv5.24'/'use v5.24' has of also turning on strict,   ##
     ## which these files were never written to pass                        ##
-    my @perl_c_output = qx{ perl -Mfeature=:5.24 -c "$file_path" 2>&1 };
+    my @perl_c_output = qx{ perl -Mfeature=:5.24 -c "$tmp_path" 2>&1 };
+    unlink $tmp_path;
+    ## errors report the temp path -- swap in the real one for display ##
+    s{\Q$tmp_path\E}{$file_path}g for @perl_c_output;
     my @real_errors;
     for my $line (@perl_c_output) {
-        ## p7 data/module macro syntax [ <data.key>, <[module.name]> ] ##
-        ## triggers glob-modification false positives under perl -c    ##
+        ## p7 data/module macro syntax [ <data.key>, <[module.name]> ]      ##
+        ## triggers glob-modification false positives under perl -c --      ##
+        ## should no longer fire now that translation runs first, kept as a ##
+        ## defense net in case a macro form slips past the regex            ##
         next if $line =~ m{Can't modify glob in .*assignment};
         ## same macro syntax on a bare 'delete <data.key>;' line -- raw ##
         ## perl -c sees an undeclared glob deref, not a hash/array elem ##
@@ -384,8 +425,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,.,,..,,,.,,,,.,..,,,,,,,.,,...,.,.,.,,,,,,,..,,...,...,.,.,...,...,,..,...,
-#HKV3S45G77UYLTWXF5SZKVLHHGC6E4LITEMUDT5IUQ376GTJKFI6TSH4ESNOYGCQ6CTTEN5HQSN36
-#\\\|G4MNZ3C47RKFP6QI3NU6NRNW7HXVPGR3AJB2I4RZHFBRA7XYXZT \ / AMOS7 \ YOURUM ::
-#\[7]3ZMZGO37ZN3IBAAWDJIU7JK7HIR5I4CZELAWVXIIALIKSS4XD4BQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,.,,,..,,..,.,,,,,,,...,,.,,.,.,..,,...,...,...,,..,.,,,.,.,,,.,
+#CLZVVTUPZ2I2ZLJY3V732LS25325VZSWGFLNN2SOSUVF6CRB6RE2C2GZMP7UPYEQYFKM45Y2M673O
+#\\\|HDC44PE6MTDWFWCADIT244FU4OXWB27LL5F5O47AKL5TLRCDVSE \ / AMOS7 \ YOURUM ::
+#\[7]IKA4NPDIY7OMJDQQ3QWYSL7V4AGNGXT6JCQVVCNAQYGAXB5U6SCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
