@@ -182,12 +182,14 @@ profiles:
     description: "graphics processing and visual similarity [graphics-matrix zenka]"
     apt:
       - libgraphics-magick-perl
+      - libconvert-color-perl
     cpan:
       - Image::Hash
 
   opencv:
     description: "computer vision and GPU-accelerated image processing [opencv zenka]"
     apt:
+      - libgraphics-magick-perl
       - pdl
       - pkg-config
       - libopencv-dev                 # makes Alien::OpenCV use system OpenCV
@@ -207,6 +209,7 @@ profiles:
       - cryptography
       - tools
       - zenka-common
+      - graphics-matrix    # plugin.web.space.* [ orbital/cursor ] calls graphics-matrix.* cross-zenka
 
   ai-models:
     description: "AI/LLM model support [local and remote backends]"
