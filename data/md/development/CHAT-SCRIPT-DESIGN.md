@@ -6,7 +6,7 @@
 
     bin/chat is a lightweight, file-backed multi-model conversation script.
     it supports the user, kimi, claude, and local inference models as equal
-    participants. chat history is stored in data/chat/ and committed with the
+    participants. chat history is stored in data/development/chat/ and committed with the
     repository, making sessions persistent across nodes and resumable at any
     time.
 
@@ -22,7 +22,7 @@
 
 ##[ directory layout ]########################################################
 
-    data/chat/
+    data/development/chat/
       channel/
         main/                    ← ambient parent channel [ always present ]
           history                ← active chat log ( plain text, committed )
@@ -64,7 +64,7 @@
     the active channel persists until explicitly switched.
     sub-channels use slash notation in the keyword : :#main/social:
 
-    channels map directly onto directory names under data/chat/channel/.
+    channels map directly onto directory names under data/development/chat/channel/.
     creating a channel is just switching to one that does not yet exist.
 
 
@@ -138,7 +138,7 @@
     clear sequence :
 
         1. compress active history to xz with timestamp filename
-        2. move compressed archive to data/chat/archive/channel/<name>/
+        2. move compressed archive to data/development/chat/archive/channel/<name>/
         3. truncate active history file to empty
         4. commit happens at next natural git commit [ not automatic ]
 
@@ -153,7 +153,7 @@
 
         bin/chat -archive              list archives for current channel
         bin/chat -archive :#channel:   list archives for named channel
-        xzcat data/chat/archive/channel/main/2026-05-14T15:32:11.xz | less
+        xzcat data/development/chat/archive/channel/main/2026-05-14T15:32:11.xz | less
 
 
 ##[ consensus mode ]##########################################################
@@ -224,7 +224,7 @@
        can pull context without copy-paste — channels stay honest.
 
     3. per-channel system persona
-       a data/chat/channel/<name>/persona file containing plain-text context
+       a data/development/chat/channel/<name>/persona file containing plain-text context
        injected before the rolling history on dispatch. #debug gets terse
        technical voice, #docs gets narrative voice — channels become
        meaningfully different rather than just namespaces.
@@ -237,7 +237,7 @@
     5. rolling model memory ( compress-and-summarize )
        when a channel history exceeds N lines, summarize the oldest M lines
        via the model itself, append the summary to
-       data/chat/model/<name>/memory, and archive the raw lines. gives
+       data/development/chat/model/<name>/memory, and archive the raw lines. gives
        models persistent cross-channel context without unbounded growth.
 
     6. message threading ( :reply-to:N: )
@@ -263,8 +263,8 @@
 
 #############################################################################
 
-#,,..,,,,,,,.,...,,..,,,.,.,,,...,...,,.,,,..,..,,...,...,...,,..,,.,,,.,,,,.,
-#CVZPBA7PFL4GHQRLSGUL6QDVGGTBAVYQ3ZAAQNOJND4RES6BUI7XDOITJPPGIMVI53ZISKD3ILYIG
-#\\\|EMGZ4WTY6PNELMFRGJEEPCAEV4UG43UDQUF4RXL66WCQCLIZ7J2 \ / AMOS7 \ YOURUM ::
-#\[7]TQODFMYNYFK7MOKUFJ4NTYNBWAKEDYUPNW6DIHFOE3PXBWSIHUDQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,,.,.,.,.,.,.,.,.,,,,.,,,.,,,,,,..,,...,...,,..,..,,,..,...,,..,
+#GAUPXZLR62G2UNRYLQ6WHWLCMNU53LE2B7FOXSWLN4FDZERCEL3JOR6BGMK7FI4V6C34FBVEOLA5I
+#\\\|MUOCYIUUH25MMMGXWXVX7R75Y3TBXQLQZVVWVLYPSO6M5X3HTV2 \ / AMOS7 \ YOURUM ::
+#\[7]R6AYKGBMZ2QDFD7LSE57QVTKTSHEFKE3OWIT3GUXZ66DG3FGXABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

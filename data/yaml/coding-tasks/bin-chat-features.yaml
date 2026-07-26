@@ -12,7 +12,7 @@ context: >
   bin/chat (617 lines, Phase 1 complete). dispatch is now wired: kimi via
   p7c kimi.ask-reply + b32r encoding, claude-code via inbox file. history
   format is plain text: [2026-05-14T04:38:15] <caller>   message text.
-  channel files live at data/chat/channel/<name>/history.
+  channel files live at data/development/chat/channel/<name>/history.
   design doc: data/md/development/CHAT-SCRIPT-DESIGN.md
 
   the task is to implement the six features kimi proposed in the design doc,
@@ -56,7 +56,7 @@ features:
       before dispatch. keep the original $clean_msg for local write_history.
 
   3_per_channel_persona:
-    file: "data/chat/channel/<name>/persona"
+    file: "data/development/chat/channel/<name>/persona"
     behaviour: >
       if persona file exists for the active channel, its content is prepended
       to the message sent to the model as a system-style context block,
@@ -64,7 +64,7 @@ features:
       persona is NOT written to history — it is injection-only.
     impl_hint: >
       load in dispatch_model before encoding. check for
-      data/chat/channel/$channel/persona, slurp if present, prepend to $text.
+      data/development/chat/channel/$channel/persona, slurp if present, prepend to $text.
 
   4_search_grep:
     flags: "--search <term>  or  --grep <pattern>"
@@ -84,7 +84,7 @@ features:
     behaviour: >
       when auto-rotation triggers (or manually via --summarize), take the
       oldest half of lines, send them to the active model with a summarization
-      prompt, write the returned summary to data/chat/model/<name>/memory,
+      prompt, write the returned summary to data/development/chat/model/<name>/memory,
       xz-archive the raw lines, truncate history to the newer half.
       on dispatch, if model memory file exists, prepend it to the message
       as: "[ model memory: <content> ]\n\n" before the persona block.
@@ -117,8 +117,8 @@ deliverables:
   - syntax check: perl -c bin/chat must pass
   - do not add signatures to bin/chat (it is a plain perl script, not a module)
 
-#,,,,,.,,,.,.,.,.,.,.,,.,,,,.,,,,,.,.,,,,,.,,,..,,...,.,.,..,,.,,,.,.,.,,,...,
-#MDT3F6YVXUBCPG5EBWR5JVPCJSEFFCX2YKPOICXMD5L5TST3PAZAYVOSSQDLAJQ4QNSTSD4RW26BG
-#\\\|DSBI3K6QRNNRADMJGDMOGSLODEHSEGEPLZ4ZZVRUBP3AGTFC4DN \ / AMOS7 \ YOURUM ::
-#\[7]ST3TR5CD4PDESKAB7WUNALUF5OIBPE3V73RHUI73AODUKGPDZQCA 7  DATA SIGNATURE ::
+#,,..,...,...,,,,,...,.,,,,,.,,,,,,..,,,,,,.,,..,,...,...,...,,,.,,,,,,.,,...,
+#EQG4IPWRQVXYQCJ54AKDQBGTG5HYUNYX5KA7GNK42CDV5O4RWSICIMZU44CRLFRQEHERDODKNYDK2
+#\\\|MJJPCG3M4HQJ372OREZN7S4FXTY7UA7DWR3TMKK7JL7YZDMFMOA \ / AMOS7 \ YOURUM ::
+#\[7]4YIXX7STTTJ67FTKKDWSM3JVSV24XJO2LVT34IV42GRZKXDHSKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

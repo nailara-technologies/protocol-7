@@ -609,7 +609,7 @@ sub dispatch_model {
         write_history( $channel, $model, $reply )
             if defined $reply and length $reply;
     } elsif ( $model eq 'claude' ) {
-        ## write to inbox file — claude polls data/chat/inbox/claude ##
+        ## write to inbox file — claude polls data/development/chat/inbox/claude ##
         my $inbox_dir = File::Spec->catdir( $CHAT_DIR, qw| inbox | );
         make_path($inbox_dir) unless -d $inbox_dir;
         my $inbox_file = File::Spec->catfile( $inbox_dir, 'claude' );
@@ -1329,8 +1329,8 @@ sub colored {
     return "$C{0}:\n::$C{b} $C{T}$text$C{0} $C{R}\n$C{0}:$C{R}";
 }
 
-#,,.,,,.,,.,,,,..,,,.,,.,,.,.,,..,..,,...,...,..,,...,...,,..,,,.,.,,,.,,,...,
-#3E3XNHFSHAKYSUJJLWMZOFVX4WEDNZQF3JNXONDJWATS55XVTIUXGUSLDJ2SIGUWYSGQNCXSADLQI
-#\\\|4GNL6ZIJOPYSXI4MQYGKPAQB2NK6Y4IBBH34275LQCYQBZH4GMW \ / AMOS7 \ YOURUM ::
-#\[7]JJDSEPVT2MLHU4KI2UUYC5HGJXPNBT3KYK7CW435OZ4F2KQTCOBA 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,...,,,.,.,.,,,,,.,.,...,.,,,,..,..,,...,...,.,.,...,..,,..,,,..,
+#FB5NKEJ5KBHQCRUBK7DEPSIIWZ43QLBM4KWGHRHQYY2LVB7UBUKV5LYUGEJRMMTYPAFW6LAI7OXRA
+#\\\|UW4A7KBSLKIPC37Y5ITCZGDIJBTWSC5MOIAQKVXZZEITEZS2WR4 \ / AMOS7 \ YOURUM ::
+#\[7]ZF7M7Q5QO5NRZ6JK2Y5ZTALR6U2BBSXQDEGZQXZCXSA24AZU7ODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
