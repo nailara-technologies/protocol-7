@@ -58,9 +58,16 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   protocol-7-menu/powershell pointer-stream (SHM) across two consecutive v7.restart cycles, and
   base.strm.subscribe's own publisher-restart re-affirm gap (STRM, dispatched to kimi k3,
   independently re-verified) across two consecutive cred-mesh/proxy restart cycles.
+- [inline_elf Perl-version infinite loop + 4 more](bug-inline-elf-perl-version-infinite-loop.md) —
+  LANDED 30d990d9c..b2a137e64: started as one hang report on `atom` after a dist-upgrade to Perl
+  5.42.2, ended as a full clean-boot pass across `atom` and `pri` (5 independent bugs total: the
+  inline_elf C bug itself + its dead-code dup, ptd/format-code's P7-macro perl-c false-positive gap,
+  .deps/profiles.yaml gaps for graphics-matrix/opencv + a basic-remote-server profile rename, an
+  httpsd/web skins-ownership race, a stale web.cmd.skin path). Both hosts clean-start/stop verified,
+  all zenki online, no warnings.
 
-#,,..,.,.,,..,,,.,.,.,,.,,...,...,,,,,,..,,,,,..,,...,...,,..,..,,.,.,..,,.,,,
-#OBHOWVMXHE4Y4IEU5JF4JSYEBC6IS35IG4L2YP4QQSHJTSILPTCTHDKPFB6CJQL3PRIBIISUEMFHE
-#\\\|2OHBILRYZTCOFLWMQY2SFQE52IG7LSMVUXWLC3JJON2HXMYONQP \ / AMOS7 \ YOURUM ::
-#\[7]LMNFR7QZBC25HXUJDYCIJJEWDITJGMXLTEYPYPQJ54Q5UYERGKDQ 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,..,,...,.,,,,,.,...,.,.,.,,,,.,,..,,...,...,...,..,,,..,.,.,..,,
+#D474QB7AFL5SKCVVF4NKY63VX5N6SMMRDH22Q3O5HRY5JUMLOXNBIDPJ6CBSO6TWWTKO5NM2CMN4A
+#\\\|HOWQ4TNMNG6QOXYHHTFHUHDNYGHOS3D2V7HMPJVXAUUMP2OT6GD \ / AMOS7 \ YOURUM ::
+#\[7]GUYJMFM66BNTNLR2JX3ZJ5VUHG2OJHSN6KVWCU5PTLAXCX25XECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
