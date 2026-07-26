@@ -53,10 +53,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [posix-group-write-precedence](feedback-posix-group-write-precedence.md) — chmod-child grants need | 0020 (group-write) not | 0002 (other-write); a process that's a supplementary-group member of the file gets checked against group bits only, other bits never consulted; write_with_perms still has this bug live
 - [ptd-vs-format-code-two-reasons-to-keep](feedback-ptd-vs-format-code-two-reasons-to-keep.md) — ptd skips reflow AND never loads PPI (~175ms), format-code does both; don't retire ptd assuming feature-parity means redundancy
 - [perlmod-categorization-review-catches](feedback-perlmod-categorization-review-catches.md) — kimi dispatch review caught 6 templated/vague-reasoning misclassifications; caller-count grep meaningless for .cmd./.handler. (dynamic cube routing) and can false-positive on nested-namespace names; K3 re-verification of all 59 MOVE rows in flight, check results before trusting
-- [inline-elf-perl-version-infinite-loop](bug-inline-elf-perl-version-infinite-loop.md) — RESOLVED 30d990d9c/31158e821: dangling-if in inline_elf's UTF-8 decode spun forever on malformed binary input, only on Perl 5.42.2 not 5.40.1; gdb backtrace on the hung process (not Perl-level theorizing) was the decisive diagnostic; grep for duplicate hand-copied Inline::C source before declaring a fix complete
+- [inline-elf-perl-version-infinite-loop](bug-inline-elf-perl-version-infinite-loop.md) — FULLY RESOLVED, both atom+pri clean-start verified: dangling-if in inline_elf's UTF-8 decode (Perl 5.42.2 only) unpacked into 5 total independent bugs chasing one boot end-to-end (ptd P7-macro false-positives, deps profile gaps, httpsd/web skins ownership race, stale web.cmd.skin path); one symptom ≠ one bug, don't stop at the first plausible fix
 
-#,,.,,..,,.,,,,..,.,.,,..,...,.,,,...,,,.,.,.,..,,...,...,,,,,,,,,..,,,,,,,,.,
-#FKVJWXM7OGUCV7X3FTBB34Z67UTNXZ7XIDAP7R4R6O2FLZIOXXKBLO3PLYJWZBRJLDFDLOVWVNWJ4
-#\\\|TARYZARPOYPOCWART4TI62PKAL7JNL6WQY4JPHA4I4AQNXLGD6H \ / AMOS7 \ YOURUM ::
-#\[7]FGAYYCYXGEW5C7WFFZXD4ZMEWJNH4GPV6LUXBJ3PC76KTKEHXOAY 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,..,,,,,,..,,,..,,,.,,,.,,,,,,.,,..,,...,...,...,...,...,,,,,,,,,
+#7HSTZ73PSRSEROABZXJ2H4EPUHOLLWZ4CO7M3YFCTD7GX4FKPEIWFIWTB6XR5EFB6B3ZCPZIYBZVO
+#\\\|ZZWIUU4QV6X6LN35ORRQOUGAHZNEZ76FCGIXTZW6FC5IXR6WE63 \ / AMOS7 \ YOURUM ::
+#\[7]YTOTYFXOFJXSSMVHHMKKLLE5WZYZYS3L3OQSYVUJOS4PF4MN4IAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
