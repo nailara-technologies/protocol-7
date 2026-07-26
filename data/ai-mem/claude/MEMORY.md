@@ -33,7 +33,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   undef-sub scanner verification (guards/eval-wrapping/dynamic-sprintf-dispatch before renaming),
   swap_subs nested-lifecycle-hook gate (base32/chk-sum.bmw crash-instead-of-defer, e90dd04ae).
 
-- **[MEMORY-vision.md](MEMORY-vision.md)** (46 pointers) — long-horizon architecture, mostly design-only.
+- **[MEMORY-vision.md](MEMORY-vision.md)** (47 pointers) — long-horizon architecture, mostly design-only.
   open for: perspective/navigation geometry, C25519 trust identity & source-spoofing, namespace/routing
   algebra, checksum-addressing trinity, harmonic-mathematics / mod-13 vs Rodin, reference-bubble,
   network-as-computer, dedup-tree unification, coding-as-artform / style-philosophy, write-access security.
@@ -42,8 +42,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,..,,,.,,,,,.,.,...,...,,,.,.,,,..,,,,.,,,,,..,,...,...,..,,.,.,.,.,.,.,.,,,
-#SFV7SYIHFJ3ITC6PJTCMOA5YEQAB7CU6QMA546SHUXDF5JXAQ4TF6FD7URUAKD4SYGBJRAJUHUNOQ
-#\\\|VZZETHH4K7BD7S7B6NYUHOES6S33WQW6IMITVKHACAQ5KXN2MBT \ / AMOS7 \ YOURUM ::
-#\[7]GK6CZSEJEPVEXFZL7EE76KYTIPXIDLWBSYDGPQMIEWEBM2Y75CCA 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,..,,...,.,.,...,...,..,,,,.,...,..,,...,...,,.,,.,,,...,...,,,.,
+#AJURLDWVDG72MVZR5MF54UQRQHAO5MGAUNJYODFAXUOIGWNHQKIMM7CJPW7SW2MKDE4MCYS5MXK4O
+#\\\|L7VGOHOZIRI7HGTU57X5OXVU7SVKFD624RGUE6BMFD2R4MHYHXN \ / AMOS7 \ YOURUM ::
+#\[7]L7WDYHUL257A5XBYJ2D4LKHP2D37CX3UOWD7UL2CATCS3JSGSACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
