@@ -60,16 +60,33 @@ if ( length $pcm_bin < <audio.cfg.fft_size> * 4 ) {
         );
     }
 
+    ## post-process dispatch : orthogonal to render_style, applied in place ##
+    ## on the file the render_sub already wrote -- see                      ##
+    ## audio.post_process.rotation_stack.v1's own header                    ##
+    if (    $ok
+        and length <audio.cfg.post_process>
+        and <audio.cfg.post_process> ne 'none' ) {
+        my $pp_sub = "audio.post_process." . <audio.cfg.post_process>;
+        if ( exists $code{$pp_sub} ) {
+            my ( $pp_ok, $pp_result ) = $code{$pp_sub}->($result);
+            if ( not $pp_ok ) {
+                <[base.logs]>->( 0, 'post-process failed : %s', $pp_result );
+            }
+        } else {
+            <[base.logs]>->( 0, 'unknown post_process : %s', $pp_sub );
+        }
+    }
+
     if ($ok) {
         chmod( 0664, $result );
-        <[base.log]>->(
+        <[base.logs]>->(
             2,       'standing-wave render : %s [ %.1f%% lit, %d samples ]',
             $result, 100 * ( $stats->{'lit_ratio'} // 0 ),
             scalar @pcm
         );
         $reply = { 'mode' => qw| true |, 'data' => $result };
     } else {
-        <[base.log]>->( 0, 'standing-wave render failed : %s', $result );
+        <[base.logs]>->( 0, 'standing-wave render failed : %s', $result );
         $reply = { 'mode' => qw| false |, 'data' => $result };
     }
 }
@@ -78,8 +95,8 @@ if ( length $pcm_bin < <audio.cfg.fft_size> * 4 ) {
 
 return TRUE;
 
-#,,..,,,,,.,,,.,,,.,,,.,,,,.,,,.,,,,,,,,.,...,..,,...,..,,,..,..,,..,,.,,,...,
-#HLKG6CFQA7R46IOASMIV6RCM3PH3SOFXUIYXM4HUZNZ7OK2S2CFQHYZHO4GFW54UTJ2LX4SHOM3EU
-#\\\|2G2WE26CZ7TNLTDUHLCRDVYKXOHTFP6BVNMVGHVLZQBRMGUIP7F \ / AMOS7 \ YOURUM ::
-#\[7]FIVBF3WGMEE43LUVQKSTZKCMPANYPJVOTEY5J3JMLMU5KN6HI6BQ 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,.,.,.,.,,..,..,,.,,,,.,,..,,.,.,..,,...,...,.,.,,,,,,..,..,,,..,
+#SZLBDXRTPSLG2KDB3VF3ET6I3QA7WE4W32SDRV2IRO2YDBYLZBFE3ESMQOPY7BPP5KEFRHRP6KWVG
+#\\\|OBZ72ASDFVWQNJ6IVMFMSYLCFK3BEAKU4SXUNZJ55RC5GYCCL7O \ / AMOS7 \ YOURUM ::
+#\[7]2VXFAKQL6R4FU6XI3WR7G6XOA332MKLR5RTXGPAN6SEIBGFFXEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
