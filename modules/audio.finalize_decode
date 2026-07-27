@@ -29,6 +29,20 @@ if ( length $pcm_bin < <audio.cfg.fft_size> * 4 ) {
 } else {
     my @pcm = unpack( 'f<*', $pcm_bin );
 
+    ## format hint : am_depth predicts dense/coherent vs scattered/bursty   ##
+    ## renders (see data/tasks/audio-icon-format-hint-from-am-depth.md),    ##
+    ## computed once here independent of whichever render_style runs --     ##
+    ## it's a property of the content, not of any particular renderer.      ##
+    ## encoded into the filename [ not the reply ] since .cmd. replies must ##
+    ## stay { mode, data => STRING } with no extra keys                     ##
+    my ( $am_ok, $am_depth ) = <[audio.analyze.am_depth]>->(
+        \@pcm, <audio.cfg.sample_rate>, { 'fft_size' => <audio.cfg.fft_size> }
+    );
+    my $format_hint
+        = ( $am_ok and $am_depth >= <audio.cfg.format_hint_threshold> )
+        ? qw| wide |
+        : qw| square |;
+
     ## output path chosen internally, never caller-controlled ##
     my $out_dir = <audio.cfg.output_dir>;
     $out_dir =~ s|/+$||;
@@ -37,7 +51,8 @@ if ( length $pcm_bin < <audio.cfg.fft_size> * 4 ) {
     }
     chmod( 0775, $out_dir );    ## screenshot zenka precedent : 775/664 ##
     my $stamp    = <[base.ntime.b32]>->( 5, TRUE );
-    my $out_path = sprintf '%s/spatial-%s.png', $out_dir, $stamp;
+    my $out_path = sprintf '%s/spatial-%s-%s.png', $out_dir, $stamp,
+        $format_hint;
 
     ## style dispatch : render_style selects which versioned renderer to  ##
     ## call, so future divergent styles can coexist rather than overwrite ##
@@ -97,9 +112,14 @@ if ( length $pcm_bin < <audio.cfg.fft_size> * 4 ) {
     if ($ok) {
         chmod( 0664, $result );
         <[base.logs]>->(
-            2,       'standing-wave render : %s [ %.1f%% lit, %d samples ]',
-            $result, 100 * ( $stats->{'lit_ratio'} // 0 ),
-            scalar @pcm
+            2,
+            'standing-wave render : %s [ %.1f%% '
+                . 'lit, %d samples, am_depth=%.3f -> %s ]',
+            $result,
+            100 * ( $stats->{'lit_ratio'} // 0 ),
+            scalar @pcm,
+            $am_ok ? $am_depth : -1,
+            $format_hint
         );
         $reply = { 'mode' => qw| true |, 'data' => $result };
     } else {
@@ -112,8 +132,8 @@ if ( length $pcm_bin < <audio.cfg.fft_size> * 4 ) {
 
 return TRUE;
 
-#,,,,,..,,.,,,...,.,.,,,,,,,,,...,.,,,.,,,,,,,..,,...,...,.,,,,,.,..,,..,,.,.,
-#ILAK5DHL6DKJQOD2W7CSTIOM4BUU5OGFIYD2VYMSWU2VOJGEKHKNBD6IJU2L4BIFTZCMV3GCUOXDA
-#\\\|KRLNQNYZDOA42WPMKKLJCJPUZQBUWPSQYH7HNFJ3UBRAN5BCNPZ \ / AMOS7 \ YOURUM ::
-#\[7]TK6PEPBBPLTDDXCJCDMP42ZMMTWRLC3RXCWDR2OYYQE2NNAJOUAA 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,.,.,,..,,..,,,,,,..,,..,...,,,.,..,,...,...,..,,...,,.,,,.,,,.,,
+#L5LI4NZ4NPU35TX7TME7ANNZB4YEDHIDXOTZNYXSCMVWVPQYT33CLTU7MADXU6LHWQWFWA2FXZ4WE
+#\\\|C5H4VTL2VVLZTVJIJTJXPOMVOGFRPXH6C3RWM5STCVPZGTEMYDN \ / AMOS7 \ YOURUM ::
+#\[7]MQE5OLD45C6H7LFMPSSJPPTOFYAIDOZIWBX7E2O3P7FIYVUF2OCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
