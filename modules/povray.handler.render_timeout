@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = povray.handler.render_timeout
+# descr = abort stalled povray render, reply false to caller
+
+my $event = shift;
+
+my $wdata = eval { $event->w->data } // {};
+my $id    = $wdata->{'id'}           // '';
+
+my $state = <povray.render>->{$id} or return;
+
+<[base.logs]>->(
+    0,
+    'povray render timeout : %s',
+    $state->{'pov_path'} // $id
+);
+
+## timed_out makes finalize_render take the false-reply path even if a ##
+## partial png was left behind by the killed render                    ##
+$state->{'timed_out'} = TRUE;
+$state->{'stderr'}    = 'render timeout';
+
+<[povray.finalize_render]>->($id);
+
+return;
+
+#,,,,,..,,,,,,,.,,,,,,,..,...,,,,,,,.,.,.,.,,,..,,...,...,...,...,,,,,...,,,.,
+#EJZTZMRUNPZV77DIPSEP6JQJEPRYDHQBY5N72LPMJ54MQCUQCRLSN2OH7RLTULRVMEAWXFRWUBEEI
+#\\\|7RJRNKZW7H6NNEEG4BEUPHRIQSC4FEBKPYSVOP2C4XU5BTJYRU7 \ / AMOS7 \ YOURUM ::
+#\[7]FZXPUTSIWGGIGHUN4FYQO6PX55QX5ZYPNAOPILEBSTJ6F7RPDGCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

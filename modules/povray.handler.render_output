@@ -1,0 +1,80 @@
+## [:< ##
+
+# name  = povray.handler.render_output
+# descr = drain povray out/err pipes; finalize render at eof
+# note  = single-read io watcher : returns to event loop after each
+#         invocation. modeled after audio.handler.pcm_data, but the
+#         stdout stream carries no payload [ povray writes the png
+#         itself via +O ] -- it is drained only so the child does not
+#         block on a full pipe and eof detects child exit
+
+my $event = shift;
+
+my $watcher = eval { $event->w };
+my $fh      = eval { $watcher->fd };
+return unless defined $fh;
+
+my $wdata  = eval { $watcher->data } // {};
+my $id     = $wdata->{'id'}          // '';
+my $stream = $wdata->{'stream'}      // qw| out |;
+
+my $state = <povray.render>->{$id};
+if ( not defined $state ) {
+    $watcher->cancel if defined $watcher;
+    return;
+}
+
+## precheck: avoid Perl warning on closed filehandle ##
+unless ( defined fileno($fh) ) {
+    $watcher->cancel if defined $watcher;
+    return;
+}
+
+## single read per watcher invocation : yields to event loop, the watcher ##
+## fires again automatically if more data arrives                         ##
+my $buf = '';
+my $n   = sysread( $fh, $buf, 65536 );
+
+if ( not defined $n ) {
+    ## EBADF/EINVAL: fd closed between precheck and read ##
+    if ( $OS_ERROR == 9 or $OS_ERROR == 22 ) {
+        $watcher->cancel if defined $watcher;
+    }
+    ## EAGAIN and other transient errors: return without cancelling, the ##
+    ## watcher stays alive and fires again when readable                 ##
+    return;
+}
+
+if ( $n > 0 ) {
+    ## keep capped tails for diagnostics only [ no payload on stdout ] ##
+    if ( $stream eq qw| out | ) {
+        if ( length $state->{'stdout'} < 2048 ) {
+            $state->{'stdout'} .= $buf;
+        }
+    } elsif ( length $state->{'stderr'} < 4096 ) {
+        $state->{'stderr'} .= $buf;
+    }
+    return;
+}
+
+## :[ eof on this stream ]: ##
+
+$watcher->cancel if defined $watcher;
+
+if ( $stream eq qw| err | ) {
+    $state->{'err_done'} = TRUE;
+    return;
+}
+
+## stdout closed : child exited, the png should be on disk [ stderr remnant ##
+## is irrelevant ; any povray leftover is killed in finalize ]              ##
+$state->{'out_done'} = TRUE;
+<[povray.finalize_render]>->($id);
+
+return;
+
+#,,.,,...,.,.,,..,,,,,..,,,.,,,.,,...,..,,.,.,..,,...,..,,.,.,.,,,..,,.,.,,,,,
+#SSYMIGYZK7IFYEZ5O6C3EXHREGQECCPL57DCMG5HL7QPQ35HBTYKGWPMVIO7Y4Q3T5LQEW52AHEW6
+#\\\|C2F2OJWPBMVLAOPMLRODVXNEITYY532E7C2ICWDNF773SFEG2C4 \ / AMOS7 \ YOURUM ::
+#\[7]IHVLK7S2NF2WY2JS7YRUMGSARI2A3IP6P2TLGHRRECK3LPCG2IDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

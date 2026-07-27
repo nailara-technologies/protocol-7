@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = povray.template.resolve
+# descr = strict {{key}} substitution in a .pov.template
+# param = $template_name, $context_href [, $write_path ]
+# return = ( TRUE, $resolved_str ) or ( FALSE, $error_str )
+
+## strict : refuses when any {{..}} remains after substitution -- silent ##
+## under-substitution is the failure mode most likely to waste a full    ##
+## render [ data/tasks/povray-zenka-implementation.md ]                  ##
+
+my ( $template_name, $context, $write_path ) = @ARG;
+
+$template_name //= '';
+return ( FALSE, 'template name required' )
+    if $template_name !~ m|^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$|;
+return ( FALSE, 'context hashref required' )
+    if not defined $context
+    or ref $context ne qw| HASH |;
+
+my $template_path = sprintf '%s/%s.pov.template',
+    <povray.cfg.template_dir>, $template_name;
+
+return ( FALSE, sprintf 'template not readable : %s', $template_path )
+    if not -f $template_path or not -r $template_path;
+
+my $resolved = <[file.slurp]>->($template_path);
+return ( FALSE, sprintf 'cannot load template : %s', $template_path )
+    if not defined $resolved;
+$resolved = ${$resolved};
+
+## substitute only known scalar keys ; unknown keys stay as {{key}} and are ##
+## caught by the remaining-placeholder check below                          ##
+$resolved =~ s|\{\{\s*([A-Za-z0-9_.-]+)\s*\}\}|
+    my $key = $1;
+    if ( exists $context->{$key} and defined $context->{$key}
+        and not ref $context->{$key} ) {
+        $context->{$key};
+    } else {
+        "{{${key}}}";
+    }
+|gex;
+
+if ( my @missing = $resolved =~ m|\{\{\s*([A-Za-z0-9_.-]+)\s*\}\}|g ) {
+    return ( FALSE, sprintf 'unresolved placeholder(s) in template %s : %s',
+        $template_name, join( ', ', sort @missing ) );
+}
+
+if ( defined $write_path and length $write_path ) {
+    return ( FALSE, sprintf 'cannot write resolved scene : %s', $write_path )
+        if not <[file.write]>->( $write_path, $resolved );
+}
+
+return ( TRUE, $resolved );
+
+#,,.,,...,,,,,,,,,,.,,,..,,..,.,,,...,.,,,,,.,..,,...,...,.,.,..,,,,,,...,.,.,
+#EC2ULBMETR7F4466P5LMO3ILXGPLMNWHNXWVCAHXOUOLW5YBDK2A5OEGBUJH54CYVLS5GKEB2JBFK
+#\\\|3YIIRQQXTQSF3D6OZPKQ7WFOP6DBRNT43RXW2FB57DC4NYSPEVT \ / AMOS7 \ YOURUM ::
+#\[7]CUZIP3ATJIZJST3LPOZ5A55FMUX4EN4DLMXTT5LEBW7CGVQOYKCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

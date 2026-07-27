@@ -35,6 +35,7 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [audio-waveform-visualization-landed-2026-07-26](project-audio-waveform-visualization-landed-2026-07-26.md) — LANDED (kimi K3): new `audio` zenka, PDL-FFT+Imager standing-wave renderer, tested clean on 4 samples incl. saturnians.mp3 generalization case; pending human sign-off on 7 modules + 4 config files + 2 cube edits
 - [audio-icon-three-stage-pipeline-landed-2026-07-27](project-audio-icon-three-stage-pipeline-landed-2026-07-27.md) — LANDED: 3rd orthogonal `audio.cfg.overlay` axis alongside render_style/post_process; `audio.overlay.waveform_trace.v1` draws translucent phosphor-green min/max amplitude trace over a background (true per-pixel alpha, not black-fill-blended opacity); icon use case = v3 render + rotation_stack.v4 mirror bg + waveform foreground, live-verified via p7c
 - [audio-spatial-purr-icon-landed-2026-07-27](project-audio-spatial-purr-icon-landed-2026-07-27.md) — LANDED: audio.cmd.spatial-purr-icon, fixed-recipe sibling of spatial-purr via a per-call `pipeline` override in audio.finalize_decode (falls back to audio.cfg.* untouched), auto-crops wide via crop_wide.v1 when format_hint says so; keeps devmod experimentation on audio.cfg.* independent from "the current best, always working" command; had to add cmd to access.cmd.usr.cube before gen-sub-whitelist would discover it
+- [povray-zenka-milestone1-landed-2026-07-27](project-povray-zenka-milestone1-landed-2026-07-27.md) — LANDED (kimi K3, 2nd dispatch attempt after mcp-server-p7 fix): async POV-Ray render pipeline mirroring audio's IPC::Open3 pattern; live-verified incl. non-blocking event loop during an active render; v7.register_child perm gap fixed same as audio's; not yet wired into audio zenka
 - [plugin-web-jobs](topic-plugin-web-jobs.md) — LANDED, all fixes live through 2026-07-10, no longer CRITICAL
 - [jobsite-ui-usability](topic-jobsite-ui-usability.md) — CONFIRMED: badges + render-gated sync, focus preserved
 - [coding-zenka-abort-inference](topic-plugin-web-jobs.md), [jobsite-assessment-accuracy](topic-jobsite-assessment-accuracy.md) — LANDED; fix=consensus_vote
@@ -52,8 +53,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [scratchpad-import-tool](topic-scratchpad-import-tool.md), [scratchpad-rescue-coding-zenka-task](topic-scratchpad-rescue-coding-zenka-task.md) — mcp-server-p7 scratchpad tools tested; follow-up task filed w/ kimi K3 for native coding-zenka rescue tools + chmod g+rx fix
 - [ncode-pattern-learning-loop](topic-ncode-pattern-learning-loop.md) — design, not built: two-tier mechanical/LLM pattern model, reuse existing stats/confidence fields for self-reinforcement, LLM-prefers-editing-patterns interaction model, namespace scope gating, nested-dispatch for batch-apply without confirmation storms; next step is the pattern-schema fix (steps not persisted) blocking the loop
 
-#,,.,,,.,,.,.,,,.,,..,,,.,,.,,..,,.,.,,,,,...,..,,...,...,...,,.,,,..,.,.,..,,
-#4XOLUZR2TZYE3YB24VSRG7IKJZF76GUOAUGHQQJ7C5V6AJLQSLNETWE3H6JAV4WNWVUSIJGGIENTY
-#\\\|6OKG2CE2HY5QKXEHHS5V7YJJVN5XLGAKMEERUFZ537I73UK4BTQ \ / AMOS7 \ YOURUM ::
-#\[7]Z2RJXMVY7HFYFR5SHT6KSLE3NU4L7ALFWZ24SNDOPYCE64YTNQAQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,,,,.,.,,.,,...,.,.,...,,,.,.,.,..,,...,...,...,.,,,,,.,,,.,...,
+#5XZV7XD7DSAVAE6IMK5N4UAZDPIGIX77EMJXZF4BORJ63XZV2Q32SJD6D4OT2H5AR7CV3A7ON57MG
+#\\\|LEFRP2PXBDFMSQFGNKS7LDYPPYZX7WC3ENOQ7BHVYMDAPJRPFVU \ / AMOS7 \ YOURUM ::
+#\[7]GG3DASI5DZDUQQHPZSPHT7YF6Q47INUJBMOT3BFG5DBWKJXIOIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
