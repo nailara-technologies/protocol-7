@@ -70,6 +70,22 @@ confirmed end-to-end via `p7c audio.spatial-purr` with
 `overlay=waveform_trace.v1` all three active together, not just each
 stage individually.
 
+## design observation : the frame masks waveform edge-truncation
+
+confirmed on both `aa.mp3` (purring, dense) and `ac.mp3` (meowing,
+scattered) through the full `v3` + `rotation_stack.v4` +
+`waveform_trace.v1` combo. user's own observation on `aa`: its
+waveform trace is dense enough to run edge-to-edge within the overlay's
+margin frame, which on its own would read as an arbitrarily truncated
+crop — but the nested-square background frame surrounding it, combined
+with the overall canvas itself being square, makes that edge read as
+an intentional boundary instead. the background isn't just decorative
+alongside the waveform — it does real visual work resolving what would
+otherwise look like a clipping artifact into a deliberate framing
+choice. not something that was designed in on purpose, but a real
+emergent benefit of layering a bounded geometric frame under a
+content-derived foreground trace.
+
 ## status
 
 landed and signed. all three axes (`render_style`, `post_process`,
@@ -80,8 +96,16 @@ combination for the icon use case is `v3` + `rotation_stack.v4` +
 combination is valid since each axis only depends on the previous
 stage's output file (or, for overlay, the pcm already in memory).
 
-#,,..,,,.,...,.,.,...,.,,,,,.,...,,.,,.,.,,,.,..,,...,...,...,,,.,.,.,,,,,...,
-#BCFDPEKCBZQEBE7RI75332BG66G4CB6ENW3X6RFRHHLT2ZSE3QRHP7MXHNNSYQXKBV455ECF53PJY
-#\\\|HTARLAWUQGJ6TYNIQP5KYFGX5KEUOSX3XZ45HY2Z7VH36GUKB2I \ / AMOS7 \ YOURUM ::
-#\[7]P22CX3WCQK35EK5FQJTBTTKUJNMQ4ZJCT76J32ZKOZURSGPBT6AI 7  DATA SIGNATURE ::
+**known gap, not yet resolved:** `v3`'s color-boost + tinted
+background and `v4`'s mirror symmetry are two different
+`rotation_stack` variants, and `audio.cfg.post_process` only selects
+one at a time — there's currently no way to get boosted colors AND
+mirror symmetry together in a single render. would need either a
+combined variant or a chainable multi-step post_process dispatcher.
+not scoped or built this session.
+
+#,,.,,...,,..,,.,,...,.,,,,.,,,,,,..,,,.,,...,..,,...,...,.,.,.,.,.,,,,,,,,,.,
+#WYJO27IYMVBSYAH5C5JNOQF2IVD2UXZTMUXYGR6CIKW2XYHAGSYMFSF7FYS3RX7AMOVJOHZLX47HU
+#\\\|3YBWXJCL7ONAKTYB7XICSQP4D6FOYLTKVD4M2XDVAEFYWD377TV \ / AMOS7 \ YOURUM ::
+#\[7]PSC5W2YUD2KGWSSKUF7X6XBPCEIMSNBFJ36MMTVXXSGU5G2GF2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
