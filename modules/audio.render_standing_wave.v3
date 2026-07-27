@@ -1,0 +1,410 @@
+## [:< ##
+
+# name  = audio.render_standing_wave.v3
+# descr = standing-wave lattice png, phase-anchored off-center rings
+# param = $pcm_aref, $sample_rate, $out_path [, $opts_href ]
+
+## style v3 : divergent variant, per Opus code review. v1/v2 anchor every ##
+## pass to the fixed canvas center ($cx), which may be why different      ##
+## samples looked structurally similar despite different spectra -- the   ##
+## sameness could be geometric (imposed by always centering) rather than  ##
+## spectral (real). here, pass 1's ring centers are placed by the PHASE   ##
+## of each low-frequency peak (atan2 of a representative window's FFT     ##
+## bin) instead of always at $cx -- same stroke/palette vocabulary, but   ##
+## content genuinely determines *where* things sit, not just how many.    ##
+## everything else (FFT, band split, normalization, palette, highs/     ##
+## accents grid) is unchanged from v1.                                    ##
+##                                                                       ##
+## pure render core : no protocol-7 data or code path access and no     ##
+## purr-specific keying [ entity id, grid coords, fade-by-relevance all ##
+## belong to layers above this primitive ]                              ##
+##                                                                      ##
+## returns ( TRUE, $out_path, $stats_href ) or ( FALSE, $error_string ) ##
+
+my ( $pcm_aref, $sample_rate, $out_path, $opts ) = @ARG;
+$opts //= {};
+
+return ( FALSE, 'expected pcm sample array reference' )
+    if ref $pcm_aref ne qw| ARRAY |;
+return ( FALSE, 'invalid sample rate' )
+    if not defined $sample_rate or $sample_rate < 8000;
+
+my $size     = $opts->{'size'}      // 512;
+my $fft_size = $opts->{'fft_size'}  // 4096;
+my $lit_max  = $opts->{'lit_ratio'} // 0.02;
+
+my $total     = scalar $pcm_aref->@*;
+my $n_windows = int( $total / $fft_size );
+$n_windows = 96 if $n_windows > 96;
+return ( FALSE, 'audio too short for spectral analysis' )
+    if $n_windows < 1;
+
+## :[ averaged magnitude spectrum : evenly spaced hann windows ]: ##
+
+my $half = $fft_size / 2;
+my $pi2  = 8 * atan2( 1, 1 );
+my @hann
+    = map { 0.5 * ( 1 - cos( $pi2 * $ARG / ( $fft_size - 1 ) ) ) }
+    0 .. $fft_size - 1;
+
+my @offsets
+    = $n_windows == 1
+    ? (0)
+    : map { int( $ARG * ( $total - $fft_size ) / ( $n_windows - 1 ) ) }
+    0 .. $n_windows - 1;
+
+my $acc = PDL::Core::zeroes($half);
+
+foreach my $off (@offsets) {
+    my @windowed
+        = map { $pcm_aref->[ $off + $ARG ] * $hann[$ARG] } 0 .. $fft_size - 1;
+    my $re = PDL::Core::pdl( \@windowed );
+    my $im = PDL::Core::zeroes($fft_size);
+    PDL::FFT::fft( $re, $im );
+    my $mag = sqrt( $re->slice( "0:" . ( $half - 1 ) )**2
+            + $im->slice( "0:" . ( $half - 1 ) )**2 );
+    $acc += $mag;
+}
+
+my $avg    = $acc->unpdl;
+my $bin_hz = $sample_rate / $fft_size;
+
+## :[ normalize : 60 db dynamic range below spectral maximum ]: ##
+
+my $maxv = 0;
+foreach my $bin ( 1 .. $half - 1 ) {
+    $maxv = $avg->[$bin] if $avg->[$bin] > $maxv;
+}
+return ( FALSE, 'silence : no spectral energy' ) if $maxv <= 0;
+
+my $pcm_peak = 0;
+foreach my $s (@$pcm_aref) {
+    my $a = abs $s;
+    $pcm_peak = $a if $a > $pcm_peak;
+}
+my $pcm_dbfs = 20 * log( $pcm_peak + 1e-9 ) / log(10);
+$pcm_dbfs = -40 if $pcm_dbfs < -40;
+$pcm_dbfs =  0  if $pcm_dbfs > 0;
+my $loudness_scale = 0.4 + 0.6 * ( ( $pcm_dbfs + 40 ) / 40 );
+
+my @norm;
+foreach my $bin ( 0 .. $half - 1 ) {
+    my $db = 20 * log( $avg->[$bin] / $maxv + 1e-9 ) / log(10);
+    my $t  = ( $db + 60 ) / 60;
+    $t = $t < 0 ? 0 : $t > 1 ? 1 : $t;
+    $norm[$bin] = $t * $loudness_scale;
+}
+
+## :[ phase for low-band peaks : single representative window ]: ##
+
+## true phase averaged across multiple windows doesn't mean anything      ##
+## (phase wraps/cancels destructively) -- use the middle window as a      ##
+## deterministic, content-driven single sample for angular placement.     ##
+## only the low half of bins is kept, since only pass 1 (rings) uses this ##
+my $mid_off = $offsets[ int( @offsets / 2 ) ];
+my @phase_windowed
+    = map { $pcm_aref->[ $mid_off + $ARG ] * $hann[$ARG] } 0 .. $fft_size - 1;
+my $phase_re = PDL::Core::pdl( \@phase_windowed );
+my $phase_im = PDL::Core::zeroes($fft_size);
+PDL::FFT::fft( $phase_re, $phase_im );
+my @phase_re_arr = $phase_re->slice( "0:" . ( $half - 1 ) )->list;
+my @phase_im_arr = $phase_im->slice( "0:" . ( $half - 1 ) )->list;
+
+my $phase_of = sub {
+    my $bin = shift;
+    return atan2( $phase_im_arr[$bin] // 0, $phase_re_arr[$bin] // 0 );
+};
+
+## :[ band split : lows 20-250 / mids 250-2000 / highs 2000-11025 hz ]: ##
+
+my $nyq = $sample_rate / 2;
+
+my $band_bins = sub {
+    my ( $lo_hz, $hi_hz ) = @ARG;
+    $hi_hz = $nyq if $hi_hz > $nyq;
+    my $lo = int( $lo_hz / $bin_hz );
+    my $hi = int( $hi_hz / $bin_hz );
+    $lo = 1         if $lo < 1;
+    $hi = $half - 1 if $hi > $half - 1;
+    return ( $lo, $hi );
+};
+
+my $band_stats = sub {    ## mean energy + separated spectral peaks ##
+    my ( $lo, $hi, $min_gap, $max_peaks ) = @ARG;
+    return ( 0, [] ) if $hi <= $lo;
+    my $sum = 0;
+    $sum += $norm[$ARG] foreach $lo .. $hi;
+    my $mean = $sum / ( $hi - $lo + 1 );
+    my @peaks;
+CAND:
+    foreach my $bin ( sort { $norm[$b] <=> $norm[$a] } $lo .. $hi ) {
+        last if @peaks >= $max_peaks or $norm[$bin] < 0.18;
+        foreach my $p (@peaks) {
+            next CAND if abs( $p - $bin ) < $min_gap;
+        }
+        push @peaks, $bin;
+    }
+    return ( $mean, \@peaks );
+};
+
+my ( $e_low, $low_peaks )
+    = $band_stats->( $band_bins->( 20, 250 ), 3, 6 );
+my ( $e_mid, $mid_peaks )
+    = $band_stats->( $band_bins->( 250, 2000 ), 14, 40 );
+my ( $e_high, $high_peaks )
+    = $band_stats->( $band_bins->( 2000, 11025 ), 60, 90 );
+
+my $stats = {
+    'e_low'  => $e_low,
+    'e_mid'  => $e_mid,
+    'e_high' => $e_high,
+};
+
+## :[ palette : fixed cool ramp, pale lavender for peaks only ]: ##
+
+my @stops = (
+    [ 0.00, 0x0a, 0x0a, 0x3a ],    ## deep indigo   : lows       ##
+    [ 0.45, 0x1a, 0x3a, 0xff ],    ## royal blue    : mids       ##
+    [ 0.75, 0x7a, 0x3a, 0xff ],    ## violet        : upper-mids ##
+    [ 1.00, 0xb8, 0x50, 0xe0 ],    ## pale lavender : peaks only ##
+);
+
+my $ramp = sub {
+    my $t = shift // 0;
+    $t = 0 if $t < 0;
+    $t = 1 if $t > 1;
+    my $s = 0;
+    $s++ while $s < $#stops and $t > $stops[ $s + 1 ][0];
+    my ( $t0, @c0 ) = $stops[$s]->@*;
+    my ( $t1, @c1 ) = $stops[ $s + 1 ]->@*;
+    my $f = $t1 > $t0 ? ( $t - $t0 ) / ( $t1 - $t0 ) : 0;
+    return Imager::Color->new(
+        'red'   => int( $c0[0] + $f * ( $c1[0] - $c0[0] ) ),
+        'green' => int( $c0[1] + $f * ( $c1[1] - $c0[1] ) ),
+        'blue'  => int( $c0[2] + $f * ( $c1[2] - $c0[2] ) ),
+    );
+};
+
+my $dim = sub {    ## brightness-scale color by peak magnitude ##
+    my ( $color, $frac ) = @ARG;
+    $frac = 0.35 + 0.65 * $frac;
+    my ( $r, $g, $b ) = $color->rgba;
+    return Imager::Color->new(
+        'red'   => int( $r * $frac ),
+        'green' => int( $g * $frac ),
+        'blue'  => int( $b * $frac )
+    );
+};
+
+## :[ canvas + lit-pixel budget : emptiness is a style feature ]: ##
+
+my $img = Imager->new(
+    'xsize'    => $size,
+    'ysize'    => $size,
+    'channels' => 3
+);
+$img->box( 'filled' => 1, 'color' => 'black' );
+
+my $cx     = int( $size / 2 );
+my $budget = int( $lit_max * $size * $size );
+my $spent  = 0;
+my $limit  = $budget;    ## per-pass cumulative cap, set below each pass ##
+
+my $draw_box = sub {    ## axis-aligned outline, false on budget spent ##
+    my ( $x0, $y0, $x1, $y1, $color ) = @ARG;
+    return TRUE if $x1 < 0 or $y1 < 0 or $x0 >= $size or $y0 >= $size;
+    $x0 = 0         if $x0 < 0;
+    $y0 = 0         if $y0 < 0;
+    $x1 = $size - 1 if $x1 >= $size;
+    $y1 = $size - 1 if $y1 >= $size;
+    return TRUE if $x1 <= $x0 or $y1 <= $y0;
+    $img->box(
+        'xmin'  => $x0,
+        'ymin'  => $y0,
+        'xmax'  => $x1,
+        'ymax'  => $y1,
+        'color' => $color
+    );
+    $spent += 2 * ( $x1 - $x0 + $y1 - $y0 );
+    return $spent < $limit;
+};
+
+my $draw_stroke = sub {    ## short axis-aligned stroke ##
+    my ( $x, $y, $len, $horiz, $color ) = @ARG;
+    my ( $x1, $y1 ) = $horiz ? ( $x + $len, $y ) : ( $x, $y + $len );
+    $img->line(
+        'x1'    => $x,
+        'y1'    => $y,
+        'x2'    => $x1,
+        'y2'    => $y1,
+        'color' => $color
+    );
+    $spent += $len + 1;
+    return $spent < $limit;
+};
+
+my $hash = sub {    ## deterministic content-driven placement ##
+    my $v = shift;
+    $v = ( $v * 2654435761 ) % 4294967296;
+    $v ^= $v >> 13;
+    return $v;
+};
+
+## :[ per-pass pixel allowances follow band energies : ring count, lattice ##
+## density and speckle density all vary with fft content ]:                ##
+
+my $w_low  = $e_low + 0.15;
+my $w_mid  = $e_mid + 0.10;
+my $w_high = $e_high + 0.06;
+my $w_sum  = $w_low + $w_mid + $w_high;
+
+my $allow_low  = 0.94 * $budget * $w_low / $w_sum;
+my $allow_mid  = 0.94 * $budget * $w_mid / $w_sum;
+my $allow_high = 0.94 * $budget * $w_high / $w_sum;
+
+## :[ pass 1 : lows = few large outlines, phase-anchored off-center ]: ##
+
+$limit = $spent + $allow_low;
+
+my $n_rings = 2 + int( $e_low * 3.99 );
+$n_rings = scalar @$low_peaks if @$low_peaks < $n_rings;
+$stats->{'rings'} = $n_rings;
+
+if ( $n_rings > 0 ) {
+    my @ring_bins  = sort { $a <=> $b } @$low_peaks[ 0 .. $n_rings - 1 ];
+    my $max_offset = int( $size * 0.16 );
+    foreach my $bin (@ring_bins) {
+        my $f_hz = $bin * $bin_hz;
+        my $tf   = log( $f_hz / 20 ) / log(12.5);    ## 20..250 hz ##
+        $tf = 0 if $tf < 0;
+        $tf = 1 if $tf > 1;
+        my $half_side = int( 232 - $tf * 168 );      ## low = large ##
+
+        ## off-center placement : ring center follows this peak's own    ##
+        ## FFT phase angle instead of always sitting at the canvas       ##
+        ## center -- offset magnitude scales with the peak's own norm    ##
+        my $angle  = $phase_of->($bin);
+        my $offset = int( $max_offset * ( 0.3 + 0.7 * $norm[$bin] ) );
+        my $rcx    = $cx + int( $offset * cos($angle) );
+        my $rcy    = $cx + int( $offset * sin($angle) );
+
+        my $color
+            = $dim->( $ramp->( 0.05 + 0.30 * $norm[$bin] ), $norm[$bin] );
+        last
+            unless $draw_box->(
+            $rcx - $half_side,
+            $rcy - $half_side,
+            $rcx + $half_side,
+            $rcy + $half_side,
+            $color
+            );
+    }
+}
+
+## :[ pass 2 : mids = mid-scale lattice of cell outlines ]: ##
+
+$limit = $spent + $allow_mid;
+
+my @cell_sizes = ( 64, 48, 32, 24 );
+my $cell       = $cell_sizes[0];
+if (@$mid_peaks) {
+    my $tm = log( $mid_peaks->[0] * $bin_hz / 250 ) / log(8);
+    $tm   = 0     if $tm < 0;
+    $tm   = 0.999 if $tm > 0.999;
+    $cell = $cell_sizes[ int( $tm * 4 ) ];
+}
+$stats->{'cell'} = $cell;
+
+my $gw      = int( $size / $cell );
+my $n_cells = 6 + int( $e_mid * 26 );
+$n_cells = scalar @$mid_peaks if @$mid_peaks < $n_cells;
+$stats->{'cells'} = $n_cells;
+
+my %used;
+foreach my $k ( 0 .. $n_cells - 1 ) {
+    my $bin = $mid_peaks->[$k];
+    my $h   = $hash->( $bin + $k * 7919 );
+    my $gx  = $h % $gw;
+    my $gy  = ( $h >> 8 ) % $gw;
+    next if $used{"$gx,$gy"}++;
+    my $x0 = $gx * $cell;
+    my $y0 = $gy * $cell;
+    my $color
+        = $dim->( $ramp->( 0.38 + 0.30 * $norm[$bin] ), $norm[$bin] );
+
+    if ( $h & 256 ) {    ## full cell outline ##
+        last
+            unless $draw_box->( $x0, $y0, $x0 + $cell - 1,
+            $y0 + $cell - 1, $color );
+    } else {             ## L-shape : top + left edges only ##
+        last
+            unless $draw_stroke->( $x0, $y0, $cell - 1, TRUE, $color )
+            and $draw_stroke->( $x0, $y0, $cell - 1, FALSE, $color );
+    }
+}
+
+## :[ pass 3 : highs = fine speckle strokes at lattice intersections ]: ##
+
+my $hi_cell = 16;
+my $hi_gw   = int( $size / $hi_cell );
+
+$limit = $spent + $allow_high;
+
+my $n_speck = 8 + int( $e_high * 72 );
+$n_speck = scalar @$high_peaks if @$high_peaks < $n_speck;
+$stats->{'speckle'} = $n_speck;
+
+foreach my $k ( 0 .. $n_speck - 1 ) {
+    my $bin = $high_peaks->[$k];
+    my $h   = $hash->( $bin + $k * 104729 );
+    my $gx  = 1 + ( $h % ( $hi_gw - 1 ) );
+    my $gy  = 1 + ( ( $h >> 8 ) % ( $hi_gw - 1 ) );
+    my $len = 3 + ( ( $h >> 16 ) % 5 );
+    my $color
+        = $dim->( $ramp->( 0.66 + 0.22 * $norm[$bin] ), $norm[$bin] );
+    last
+        unless $draw_stroke->(
+        $gx * $hi_cell,
+        $gy * $hi_cell,
+        $len, ( $h >> 20 ) & 1, $color
+        );
+}
+
+## :[ pass 4 : pale lavender accents, strongest peaks only ]: ##
+
+$limit = $budget;
+
+my @all_peaks = sort { $norm[$b] <=> $norm[$a] }
+    grep { $norm[$ARG] > 0.84 } 1 .. $half - 1;
+my $n_accents = @all_peaks < 5 ? scalar @all_peaks : 5;
+$stats->{'accents'} = $n_accents;
+
+foreach my $k ( 0 .. $n_accents - 1 ) {
+    my $bin  = $all_peaks[$k];
+    my $h    = $hash->( $bin + 31337 );
+    my $gx   = 1 + ( $h % ( $hi_gw - 1 ) );
+    my $gy   = 1 + ( ( $h >> 8 ) % ( $hi_gw - 1 ) );
+    my $side = 5 + ( ( $h >> 16 ) % 5 );
+    my $x    = $gx * $hi_cell - int( $side / 2 );
+    my $y    = $gy * $hi_cell - int( $side / 2 );
+    last unless $draw_box->( $x, $y, $x + $side, $y + $side, $ramp->(1.0) );
+}
+
+## :[ additive glow : blurred copy added back onto the strokes ]: ##
+
+my $glow = $img->copy;
+$glow->filter( 'type' => 'gaussian', 'stddev' => 1.0 );
+$img->paste( 'src' => $glow, 'combine' => 'add', 'left' => 0, 'top' => 0 );
+
+$stats->{'lit_ratio'} = $spent / ( $size * $size );
+
+my $ok = $img->write( 'file' => $out_path, 'type' => 'png' );
+return ( FALSE, 'imager write failed : ' . Imager->errstr ) unless $ok;
+
+return ( TRUE, $out_path, $stats );
+
+#,,.,,.,,,,,.,..,,...,,..,..,,.,.,,.,,...,..,,..,,...,...,.,,,,,,,.,,,,..,,,.,
+#NFCM6AK3TMCM6EU7CL7ILB6ULP6BSP4O3KFTSM6XUFQ2IEGA6XEWQD5ITY2MHBVHY4YGYPQWTAX6G
+#\\\|OUG4UFTW75QJ6QQ6KVRRIBU6AWJBELBZDMT4GNQZ2HFMQOAZYRY \ / AMOS7 \ YOURUM ::
+#\[7]EFULN7T362JMRLDXZIYBXH6I4UOGWCPELHYA7URVO44TQLDMQEAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
