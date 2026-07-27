@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = audio.cmd.spatial-purr-icon
+# param = <audio_path>
+# descr = render audio file to the current best icon recipe, path
+
+## sibling of audio.cmd.spatial-purr, pinned to the current best-known icon ##
+## pipeline (render_style v3 + rotation_stack.v4 mirror background +        ##
+## waveform_trace.v1 foreground, auto-cropped wide when am_depth crosses    ##
+## the format_hint threshold) rather than whatever audio.cfg.* currently    ##
+## holds -- audio.cfg.* is the live experimentation surface (devmod-tuned   ##
+## per render_style/post_process/overlay while testing new variants), and   ##
+## this command exists so there is always one immediately working call that ##
+## reflects the latest deliberately-chosen combination, independent of      ##
+## whatever's mid-experiment on the global knobs.                           ##
+##                                                                          ##
+## update the $pipeline hashref below whenever a new variant is adopted as  ##
+## the new best -- see data/ai-mem/claude/                                  ##
+## project-audio-icon-three-stage-pipeline-landed-2026-07-27.md and         ##
+## data/tasks/audio-icon-format-hint-from-am-depth.md for the reasoning     ##
+## behind the current choices                                               ##
+
+my $audio_path = $call->{'args'} // '';
+$audio_path =~ s|^\s+||;
+$audio_path =~ s|\s+$||;
+
+return { 'mode' => qw| false |, 'data' => 'audio file path required' }
+    if not length $audio_path;
+return { 'mode' => qw| false |, 'data' => 'expected absolute path' }
+    if $audio_path !~ m|^/|;
+return { 'mode' => qw| false |, 'data' => "not readable : $audio_path" }
+    if not -f $audio_path or not -r $audio_path;
+
+my $id;
+do { $id = <[base.prng.chars-anum]>->(8) } while exists <audio.decode>->{$id};
+
+## output path is chosen by this zenka [ never caller-controlled ] and ##
+## returned in the reply, same contract as screenshot.capture-to-disk  ##
+
+my $spawn_err
+    = <[audio.decode_to_pcm]>->( $id, $audio_path, $call->{'reply_id'} );
+
+if ( defined $spawn_err ) {
+    delete <audio.decode>->{$id};
+    return { 'mode' => qw| false |, 'data' => $spawn_err };
+}
+
+## current best-known icon recipe -- read by audio.finalize_decode's ##
+## per-call pipeline override, see its own header                    ##
+<audio.decode>->{$id}{'pipeline'} = {
+    'render_style' => qw| v3 |,
+    'post_process' => qw| rotation_stack.v4 |,
+    'overlay'      => qw| waveform_trace.v1 |,
+    'auto_crop'    => TRUE,
+};
+
+return { 'mode' => qw| deferred | };
+
+#,,,,,,..,..,,,,.,..,,,.,,,.,,.,.,,..,,..,..,,..,,...,...,.,,,,..,.,,,..,,,.,,
+#GUXTLAERURS3SLY6V5F5LDFONLLH2R4GEFSNUDLN5PITOYVINUULOUNT7LXIYREDKVMWJGRFCB36W
+#\\\|MBBLHADWREP5XATZJPQ7LSVDVLGO23LFZMAU33GXUKG2HNVSGYA \ / AMOS7 \ YOURUM ::
+#\[7]VG7AZUDD7WEPOKPCZVMBGGYKI4VRSQZBUMKCB4MJP2W67TRTZMBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
