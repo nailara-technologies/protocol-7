@@ -1,6 +1,6 @@
 ---
 name: topic-audio-render-as-similarity-feature-source
-description: "vision seed: audio.render_standing_wave's visual output tracks actual audio similarity (confirmed empirically: two purring samples render visibly similar, a meowing sample renders visibly different/denser after fixing the shared-grid + normalization bugs) -- the renderer's own per-render stats (e_low/e_mid/e_high, ring/cell/speckle counts) are a lightweight deterministic feature vector that could feed the already-planned similarity-graph-cell-connections.md system, which explicitly needs an upstream similarity-score source it doesn't yet have"
+description: "vision seed + correction: audio.render_standing_wave's visual output tracks actual audio similarity empirically, but kimi K3 independent review found the multi-style (v1/v2/v3) cross-correlation idea overstates independence -- all three share one analysis front-end, so agreement is nearly guaranteed by construction, not a real signal, unless the analysis itself (not just geometry) is diversified. also found v3's absolute-phase placement is not shift-invariant (real bug), and that the renderer discards all temporal/rhythm information by averaging FFT windows -- a concrete v4 idea (per-window energy variance) would capture what v1-v3 structurally cannot"
 metadata:
   node_type: memory
   type: vision
@@ -91,6 +91,68 @@ this distinction explicit if this ever gets built — the value isn't just
 "more styles = more signal," it's "the right style for this input class
 = sharper signal than uniform stacking would give."
 
+## correction (kimi K3, 2026-07-27): the checksum analogy overstates current independence
+
+independent review flagged a real gap in the reasoning above: v1/v2/v3
+are **not** independent the way BMW/JHA/ELF checksums are. all three
+share the *identical* analysis front-end — `e_low`/`e_mid`/`e_high` and
+the peak lists are computed once and are exactly the same numbers across
+all three styles; only the *geometry/placement* differs. checksum
+algorithms are independent all the way down (different math, different
+collision surfaces); these three styles are independent only in their
+rendering layer, sitting on top of one shared analysis layer. cross-style
+agreement between v1/v2/v3 as currently built is therefore **nearly
+guaranteed by construction, not a meaningful signal** — two files
+produce correlated output across styles because they're fed the same
+underlying numbers three times, not because three genuinely independent
+measurements happened to agree.
+
+the fix, if this is pursued: diversify the *analysis*, not just the
+geometry. different `fft_size`/band splits per style, or genuinely
+different feature *types* (temporal-modulation energy vs. spectral peaks
+— see the next section) would make cross-style agreement an actual
+signal rather than a near-tautology. `v3`'s phase data is currently the
+only genuinely independent feature family across the three styles — and
+it's also the one flagged as unstable below, so as of this note there
+isn't yet a second truly independent signal to correlate against v1.
+
+## known issues found by independent review (kimi K3, 2026-07-27)
+
+- **v3's absolute-phase placement is not shift-invariant.** FFT phase
+  rotates by `2πfΔt` under any time-shift of the same content, so the
+  *same audio re-segmented from a different start offset* renders
+  differently under v3 — this is exactly the crossfaded/differently-
+  segmented-stream instability already flagged as a concern in
+  `AUDIO-VISUAL-THUMBNAIL-GENERALIZATION.md`'s "segmentation is upstream"
+  section, now confirmed to exist *inside* v3's own placement mechanism,
+  not just in hypothetical upstream stream-chunking. concrete fix
+  proposed: use phase *differences between adjacent peaks* (relative,
+  not absolute) instead — shift-invariant. not yet implemented.
+- **renders are underexposed independent of the `lit_ratio` budget** —
+  the actual ceiling is the hardcoded count caps (`n_rings≤6`,
+  `n_cells≤32`, `n_speck≤80`), not pixel budget; unused per-pass
+  allowance isn't redistributed, and `$dim`'s 0.35 floor on top of an
+  already-dark base color compounds it for sparse (purr) content. raising
+  `lit_ratio` alone will not fix this.
+- **the renderer discards all temporal information.** averaging all 96
+  Hann windows into one static magnitude spectrum eliminates the ~25Hz
+  amplitude modulation that's structurally what defines a purr's
+  character. the renderer is a pure spectral snapshot; it cannot
+  represent rhythm/variation at all, by construction, regardless of
+  style. this is also *why* the checksum-independence gap above matters
+  more than it might seem — no style currently derived from this same
+  front-end could ever capture temporal difference between two spectrally
+  similar but temporally distinct sources.
+- **v2's improvement is real but uneven** — visibly better on busy
+  content (`saturnians`), but v2's `aa` output is nearly indistinguishable
+  from v1's.
+- **concretely warranted v4 idea, not yet built**: per-window band-energy
+  *variance* (captures the purr's actual AM/rhythm — the temporal
+  information v1-v3 all discard) mapped to ring dash/gap patterns. cheap
+  to add since per-window FFT results already exist before being averaged
+  away; genuinely new information, not a geometry variant of existing
+  data like v2/v3 are.
+
 ## status
 
 design-only, seed stage. not scoped, not built. the practical next step
@@ -101,8 +163,8 @@ queryable per rendered file — e.g. alongside the PNG in
 doc's own note about checksum-keyed caching for non-purr audio — rather
 than only using it for the one-shot log line it currently produces.
 
-#,,,,,,,.,.,.,,..,.,,,,..,,..,..,,.,,,..,,.,.,..,,...,..,,.,,,..,,,,.,.,.,.,.,
-#5QZ6RDAMEPODEQGPB3EQEZV27IXSEAV2ESUOFNETWL56XFSWYOJOVUMMI3S5UL67AMGB6NGF5ADJY
-#\\\|JI2CNJF6IQ4RPQYTPV5RUPSDQY6CV6T7OMNBWIUD6JHKVXLWZ3U \ / AMOS7 \ YOURUM ::
-#\[7]MMMCTMCBQNHKIJ5D7QU76V2GS3RXME6FEPN6SASIGOOVO674IIBY 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,.,.,.,.,...,.,,,.,.,,,.,,.,,...,..,,...,...,.,,,,,.,,,,,,,,,...,
+#XDAHWGD6CYLFITDCVLKA46QGO6TUUXLFYCKUJBXWSUPWFG7XJFCCKTKZSJBDO5YCVI3TZWRQZWT4U
+#\\\|KRSUH7L6XUHHLKJFIORJHC7E7MTEWUAA7DB3GRAM3XE7EIGMCQD \ / AMOS7 \ YOURUM ::
+#\[7]BJBVIAF4WW2MZQAS6WQUMJ2GJWWFAWAT4PAPDNVXOCPLXXAZGUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
