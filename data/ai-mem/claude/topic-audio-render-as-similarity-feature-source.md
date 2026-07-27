@@ -44,6 +44,53 @@ rendered PNGs themselves (since the render is deterministic and content
 is proportionally represented, visual similarity IS a reasonable proxy
 for audio similarity, not just a coincidental resemblance).
 
+## multi-style cross-correlation strengthens the signal
+
+confirmed 2026-07-27, same session: with `audio.render_standing_wave.v2`
+(multi-scale mids) and `.v3` (phase-anchored off-center rings) landed
+alongside `.v1`, the same audio file rendered through all three produces
+outputs that are visibly distinct from each other *and* visibly
+correlated with each other — expected, since all three derive from the
+same underlying FFT/band-energy analysis, just visualized differently.
+
+this sharpens the similarity-feature-source idea above: comparing a
+single style's stats/render for two files is one signal; comparing
+*agreement across multiple independently-designed styles* for the same
+pair of files is a stronger one — two files that are genuinely similar
+should correlate across v1, v2, *and* v3, while a coincidental
+resemblance in just one style (an artifact of that style's specific
+geometry choices) would not carry across the others. this is a
+multi-dimensional similarity vector essentially for free, since each
+style already computes its own `$stats` independently and the styles are
+designed to diverge from each other precisely so their agreement means
+something when it happens.
+
+## relation to multi-algorithm checksum collision-avoidance
+
+the multi-style cross-correlation idea above is structurally the same
+technique as running multiple checksum algorithms in parallel against
+collisions (this project already does exactly this — BMW/JHA/ELF/AMOS
+families coexisting in `base.chk-sum.*` for that reason): independent
+functions over the same input, agreement across them is a much stronger
+signal than any one alone, since each function's own blind spots/false
+positives are unlikely to coincide.
+
+but there's a qualitative difference worth keeping distinct: blind
+algorithm-stacking (checksums) gains entropy *linearly* and generically,
+regardless of what's being hashed — more algorithms just means more
+collision resistance, uniformly, for any input. here, because there's
+visual feedback in the loop (a human can actually look at the output and
+judge whether a style resolves a given kind of audio well or poorly),
+style choice and parametrization can be deliberately matched to input
+type instead of blindly stacked — e.g. a style tuned for percussive/high
+transient content vs one tuned for sustained tones. that's not linear
+entropy gain, it's *contextualized resolution*: disproportionately better
+discrimination for the input classes a style was actually chosen/tuned
+for, rather than uniform improvement across all inputs. worth keeping
+this distinction explicit if this ever gets built — the value isn't just
+"more styles = more signal," it's "the right style for this input class
+= sharper signal than uniform stacking would give."
+
 ## status
 
 design-only, seed stage. not scoped, not built. the practical next step
@@ -54,8 +101,8 @@ queryable per rendered file — e.g. alongside the PNG in
 doc's own note about checksum-keyed caching for non-purr audio — rather
 than only using it for the one-shot log line it currently produces.
 
-#,,,.,.,,,.,.,,,,,,.,,.,.,,,,,,.,,.,,,,..,.,.,..,,...,...,...,.,.,,..,.,,,..,,
-#K5XMA5JHIGX7MDLTX44OPNZ5AGMHH52G5A36JHTTIAFN5EGOD23JKWWNJEM3IQH4YVWHQAXI4NTTW
-#\\\|RHPRZKSCU62HJUHNIVDHTFLCEK3NVD5YVULAFCLCJA24V3VUGFQ \ / AMOS7 \ YOURUM ::
-#\[7]5ZQKWXZ66HP3USK44OCHUO2XBUTSSF2CTSXEOQUP3726KEWOHACI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,..,.,,,,..,,..,..,,.,,,..,,.,.,..,,...,..,,.,,,..,,,,.,.,.,.,.,
+#5QZ6RDAMEPODEQGPB3EQEZV27IXSEAV2ESUOFNETWL56XFSWYOJOVUMMI3S5UL67AMGB6NGF5ADJY
+#\\\|JI2CNJF6IQ4RPQYTPV5RUPSDQY6CV6T7OMNBWIUD6JHKVXLWZ3U \ / AMOS7 \ YOURUM ::
+#\[7]MMMCTMCBQNHKIJ5D7QU76V2GS3RXME6FEPN6SASIGOOVO674IIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
