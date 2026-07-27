@@ -8,10 +8,6 @@
 my ( $set_keystring, $value_content )
     = split( m| |, $call->{'args'} // '', 2 );
 
-##  removing single quotes from value  ##
-##
-$value_content =~ s|^'(.*)'$|$LAST_PAREN_MATCH|;   ##  quoted value syntax  ##
-
 return { 'mode' => qw| false |, 'data' => 'expected key param' }
     if not defined $set_keystring or not length $set_keystring;
 
@@ -24,6 +20,10 @@ return { 'mode' => qw| false |, 'data' => $result[1] } if not $result[0];
 ##
 return { 'mode' => qw| false |, 'data' => 'no value supplied' }
     if not defined $value_content;
+
+##  removing single quotes from value  ##
+##
+$value_content =~ s|^'(.*)'$|$LAST_PAREN_MATCH|;   ##  quoted value syntax  ##
 
 my $setkey_init = 0;
 my $cid         = $call->{'session_id'};
@@ -50,7 +50,8 @@ if ( defined $set_keystring_ref and length $set_keystring_ref ) {
 
     }
     ##  equal  ##
-    elsif ( $set_keystring_ref->{'r-data'} eq $value_content ) {
+    elsif ( defined $set_keystring_ref->{'r-data'}
+        and $set_keystring_ref->{'r-data'} eq $value_content ) {
 
         <[base.logs]>->(
             "[%d] set key : no change : values identical [ %s = '%s']",
@@ -63,13 +64,21 @@ if ( defined $set_keystring_ref and length $set_keystring_ref ) {
 
     } else {    ##  change value  ##
 
+        ## prior value display : quoted string when defined, unquoted ##
+        ## [UNDEF] marker otherwise -- keeps it unambiguous vs a real ##
+        ## string that happens to read '[UNDEF]'                      ##
+        my $prev_display
+            = defined $set_keystring_ref->{'r-data'}
+            ? sprintf( "'%s'", $set_keystring_ref->{'r-data'} )
+            : qw| [UNDEF] |;
+
         <[base.set_key]>->( $set_keystring, $value_content );
 
         if ( <[base.set_key]>->( $set_keystring, $value_content ) ) {
 
             <[base.logs]>->(
-                "[%d] set key : data value updated [ %s = '%s']",
-                $cid, $set_keystring, $set_keystring_ref->{'r-data'}
+                "[%d] set key : data value updated [ %s = %s]",
+                $cid, $set_keystring, $prev_display
             );
             $reply = { 'mode' => qw| true |, 'data' => qw| updated | };
 
@@ -77,11 +86,11 @@ if ( defined $set_keystring_ref and length $set_keystring_ref ) {
 
             <[base.logs]>->(
                 0,
-                "[%d] set key : error updating"
-                    . " data value [ %s : '%s' != '%s' ]",
+                "[%d] set key : error updating "
+                    . "data value [ %s : %s != '%s' ]",
                 $cid,
                 $set_keystring,
-                $set_keystring_ref->{'r-data'},
+                $prev_display,
                 $value_content
             );
             $reply = { 'mode' => qw| false |, 'data' => 'error on update' };
@@ -96,8 +105,8 @@ if ( defined $set_keystring_ref and length $set_keystring_ref ) {
     $reply = { 'mode' => qw| false |, 'data' => 'not able to assign value' };
 }
 
-#,,.,,,,.,,,,,...,.,.,,,.,...,.,,,..,,...,.,,,..,,...,...,...,..,,.,.,,,,,,..,
-#DF5EK4IBOD3YBVXDGWXYZEQPYJKRGWK2AD43267B3IU3FQVEMSNW4LT5LQEPNQN5GDK3IXUJWNJ4K
-#\\\|TUZMKBWKP5DCHEAWORLP5KQ7ABE5NNA2RA4U7OOG5LVKS23PMKY \ / AMOS7 \ YOURUM ::
-#\[7]ZHP32GKHH3OCO4ORVPVWKO4E3BUADN7SY33IBVVGDUFCDYWKIQAQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,.,,,,,,,..,.,,,,.,,...,,.,,...,..,,...,...,.,,,,..,,..,...,,..,
+#QAZOSXV7YLQAK6NUJCWCNF26CWZYTRB4UJ5QIMQIHSCEYH7KC3KOYEH55I2QSQFJVYPVVWBYBPIT4
+#\\\|277QFKB4GHYU2HMK2WWAGITJVKPO5HY5YT5XRF4GJOD5XXWJSWW \ / AMOS7 \ YOURUM ::
+#\[7]XHWMPCV3N4W237JUMW4NB22KSUVD77MVLSUYCOXEZ2PQSZULF2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
