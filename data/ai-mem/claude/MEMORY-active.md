@@ -33,6 +33,7 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [coding-round-timeout-adaptive](topic-coding-round-timeout-adaptive.md) — LANDED: soft/hard ceiling, stall detect, restart-round
 - [coding-round-timeout-no-autorestart-observed-2026-07-26](project-coding-round-timeout-no-autorestart-observed-2026-07-26.md) — FOLLOW-UP NEEDED: round hit 175% of ceiling with no auto-restart, manually aborted, not yet root-caused
 - [audio-waveform-visualization-landed-2026-07-26](project-audio-waveform-visualization-landed-2026-07-26.md) — LANDED (kimi K3): new `audio` zenka, PDL-FFT+Imager standing-wave renderer, tested clean on 4 samples incl. saturnians.mp3 generalization case; pending human sign-off on 7 modules + 4 config files + 2 cube edits
+- [audio-icon-three-stage-pipeline-landed-2026-07-27](project-audio-icon-three-stage-pipeline-landed-2026-07-27.md) — LANDED: 3rd orthogonal `audio.cfg.overlay` axis alongside render_style/post_process; `audio.overlay.waveform_trace.v1` draws translucent phosphor-green min/max amplitude trace over a background (true per-pixel alpha, not black-fill-blended opacity); icon use case = v3 render + rotation_stack.v4 mirror bg + waveform foreground, live-verified via p7c
 - [plugin-web-jobs](topic-plugin-web-jobs.md) — LANDED, all fixes live through 2026-07-10, no longer CRITICAL
 - [jobsite-ui-usability](topic-jobsite-ui-usability.md) — CONFIRMED: badges + render-gated sync, focus preserved
 - [coding-zenka-abort-inference](topic-plugin-web-jobs.md), [jobsite-assessment-accuracy](topic-jobsite-assessment-accuracy.md) — LANDED; fix=consensus_vote
@@ -50,8 +51,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [scratchpad-import-tool](topic-scratchpad-import-tool.md), [scratchpad-rescue-coding-zenka-task](topic-scratchpad-rescue-coding-zenka-task.md) — mcp-server-p7 scratchpad tools tested; follow-up task filed w/ kimi K3 for native coding-zenka rescue tools + chmod g+rx fix
 - [ncode-pattern-learning-loop](topic-ncode-pattern-learning-loop.md) — design, not built: two-tier mechanical/LLM pattern model, reuse existing stats/confidence fields for self-reinforcement, LLM-prefers-editing-patterns interaction model, namespace scope gating, nested-dispatch for batch-apply without confirmation storms; next step is the pattern-schema fix (steps not persisted) blocking the loop
 
-#,,..,,.,,,..,...,,,,,..,,..,,,,,,...,..,,.,.,..,,...,...,.,.,,,.,,.,,,,,,,..,
-#UGPZG6ZG3C3TBQW34RB2RSY62QHQZMMDYAILTQMXRKSCPWU5MYXJXP3WTJOHLX2VBA6H6D5VLDJPS
-#\\\|6HPKDK6EZNYE6QLR56SHRU3AXO5VRGNEE7VBY6EL4M2Q57TDGIC \ / AMOS7 \ YOURUM ::
-#\[7]N6XKW3UZJBWNKG4EHIJELGC4D6PA3J4NLNLQWNUFJPGRW5C6YKBY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,..,...,,,,,.,,,...,.,,,,,,,...,..,,...,...,..,,.,,,...,...,.,.,
+#ZNGQLUBFOEW2XUG7CTRF6G3WCCGOXUBQ4FZRAT5427A6LKPOFHDW46XUMU2BPH25AYARZ6PVMA4EC
+#\\\|6ALXS7WYX4YJ23XX4KT32LLYHGYLBRW33GWPCXDK5ZDIGS3SAR4 \ / AMOS7 \ YOURUM ::
+#\[7]LIZWCCGQZ4VOGHUYXNIMDYBTQFCRX7RIKSM5JJ3LQMYEVGH7QMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
