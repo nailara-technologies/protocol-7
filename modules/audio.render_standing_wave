@@ -66,11 +66,29 @@ foreach my $bin ( 1 .. $half - 1 ) {
 }
 return ( FALSE, 'silence : no spectral energy' ) if $maxv <= 0;
 
+## absolute loudness reference : normalizing purely against this render's ##
+## own spectral peak stretches quiet and loud source material to the same ##
+## 0..1 range, so e_low/mid/high cluster near 0.4-0.6 regardless of how   ##
+## loud the actual audio is -- "content drives density" only held for     ##
+## relative structure within a render, not across renders. scale by       ##
+## absolute PCM peak (dBFS) too, so genuinely quiet audio produces        ##
+## measurably sparser output, not just differently-arranged output        ##
+my $pcm_peak = 0;
+foreach my $s (@$pcm_aref) {
+    my $a = abs $s;
+    $pcm_peak = $a if $a > $pcm_peak;
+}
+my $pcm_dbfs = 20 * log( $pcm_peak + 1e-9 ) / log(10);
+$pcm_dbfs = -40 if $pcm_dbfs < -40;
+$pcm_dbfs =  0  if $pcm_dbfs > 0;
+my $loudness_scale = 0.4 + 0.6 * ( ( $pcm_dbfs + 40 ) / 40 );
+
 my @norm;
 foreach my $bin ( 0 .. $half - 1 ) {
     my $db = 20 * log( $avg->[$bin] / $maxv + 1e-9 ) / log(10);
     my $t  = ( $db + 60 ) / 60;
-    $norm[$bin] = $t < 0 ? 0 : $t > 1 ? 1 : $t;
+    $t = $t < 0 ? 0 : $t > 1 ? 1 : $t;
+    $norm[$bin] = $t * $loudness_scale;
 }
 
 ## :[ band split : lows 20-250 / mids 250-2000 / highs 2000-11025 hz ]: ##
@@ -293,6 +311,14 @@ foreach my $k ( 0 .. $n_cells - 1 ) {
 
 ## :[ pass 3 : highs = fine speckle strokes at lattice intersections ]: ##
 
+## highs get their own finer grid, independent of whatever cell size mids   ##
+## happened to pick -- sharing $gw/$cell with pass 2 meant a coarse mids    ##
+## cell (64px) left only 8x8 possible intersections for highs to land on,   ##
+## so speckle collapsed onto positions mids had already outlined instead of ##
+## contributing independent geometry                                        ##
+my $hi_cell = 16;
+my $hi_gw   = int( $size / $hi_cell );
+
 $limit = $spent + $allow_high;
 
 my $n_speck = 8 + int( $e_high * 72 );
@@ -302,15 +328,15 @@ $stats->{'speckle'} = $n_speck;
 foreach my $k ( 0 .. $n_speck - 1 ) {
     my $bin = $high_peaks->[$k];
     my $h   = $hash->( $bin + $k * 104729 );
-    my $gx  = 1 + ( $h % ( $gw - 1 ) );
-    my $gy  = 1 + ( ( $h >> 8 ) % ( $gw - 1 ) );
+    my $gx  = 1 + ( $h % ( $hi_gw - 1 ) );
+    my $gy  = 1 + ( ( $h >> 8 ) % ( $hi_gw - 1 ) );
     my $len = 3 + ( ( $h >> 16 ) % 5 );
     my $color
         = $dim->( $ramp->( 0.66 + 0.22 * $norm[$bin] ), $norm[$bin] );
     last
         unless $draw_stroke->(
-        $gx * $cell,
-        $gy * $cell,
+        $gx * $hi_cell,
+        $gy * $hi_cell,
         $len, ( $h >> 20 ) & 1, $color
         );
 }
@@ -327,11 +353,11 @@ $stats->{'accents'} = $n_accents;
 foreach my $k ( 0 .. $n_accents - 1 ) {
     my $bin  = $all_peaks[$k];
     my $h    = $hash->( $bin + 31337 );
-    my $gx   = 1 + ( $h % ( $gw - 1 ) );
-    my $gy   = 1 + ( ( $h >> 8 ) % ( $gw - 1 ) );
+    my $gx   = 1 + ( $h % ( $hi_gw - 1 ) );
+    my $gy   = 1 + ( ( $h >> 8 ) % ( $hi_gw - 1 ) );
     my $side = 5 + ( ( $h >> 16 ) % 5 );
-    my $x    = $gx * $cell - int( $side / 2 );
-    my $y    = $gy * $cell - int( $side / 2 );
+    my $x    = $gx * $hi_cell - int( $side / 2 );
+    my $y    = $gy * $hi_cell - int( $side / 2 );
     last unless $draw_box->( $x, $y, $x + $side, $y + $side, $ramp->(1.0) );
 }
 
@@ -348,8 +374,8 @@ return ( FALSE, 'imager write failed : ' . Imager->errstr ) unless $ok;
 
 return ( TRUE, $out_path, $stats );
 
-#,,,.,...,.,,,,..,.,,,.,.,...,,,.,,.,,.,.,,..,..,,...,...,,,.,.,,,.,,,.,.,,..,
-#VFTKK4ULQ4H7A2J6GBA2KGAYCO7AAITYJYXHZ7JUBADU6HAI32C3Y6JUM36PDUKVJR7B3BOCCZJRA
-#\\\|NTLOWRDSC3H35NBWRDVQKKR6MRRF4ARXAZAALPYWAHBVCN56PMJ \ / AMOS7 \ YOURUM ::
-#\[7]XGMCC62T3LFE2SO4XE26T3SX56YLGSOMIYLLABIM4XYHTA6IJGBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,...,...,,.,,..,,...,,,,,..,,,..,.,,,..,,...,...,...,,..,,,.,,..,...,
+#6OJHCPZXNS2M5K52BIJFYAO6YACNGS4LKQWUPFNBUDAVYYA7L7T5JOI5VRY7EPCX77D54NFKO7GTQ
+#\\\|I5SQRKNNUSNAIFRZLNUQKO5BGAHFHDZO4XHOWTYVY3U4XQXHJP4 \ / AMOS7 \ YOURUM ::
+#\[7]63HZMAMY6IVMFCPJ6AMBJVOMB2BCMPDTGHMYUQKHFHNPJOF7TKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
