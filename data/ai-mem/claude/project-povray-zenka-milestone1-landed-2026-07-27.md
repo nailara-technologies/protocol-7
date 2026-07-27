@@ -123,8 +123,23 @@ integration step). explicitly deferred per the plan doc: distributed/
 slice rendering, checksum-cached results, data-driven scene generation,
 depth/normal/edge map outputs, STRM push of the PNG.
 
-#,,.,,,,.,,,.,,,.,.,.,,.,,..,,.,,,,..,,,.,,,,,..,,...,...,.,.,,..,.,.,.,.,...,
-#G36WOFIK2ARYONE3RLAFRPYUD4T6T3YGPXY6OJTJCQ6TSRGM4JJRV3OJLANLELU3XT45XEC7HFJHO
-#\\\|BOL24GWUTEHTFLS7J7RADAIMSXPMKMDW3DRBLINIUPC5F3NTCBW \ / AMOS7 \ YOURUM ::
-#\[7]UPWOZSCZRYCIJA7HJ4R73SULRDLN3QHPNBNBJTLAHQRJ6MIQ6ABY 7  DATA SIGNATURE ::
+## user's framing, post-landing : why generic mattered here
+
+user's own closing reflection confirms the direction already implied
+by `INITIATIVE-MAP.md` § P and `VISUAL-GENERATION-NATIVE-ZENKA.md`
+(distributed slice rendering; povray as one of several generic
+rendering paths) rather than adding new scope: the UI rendering layer
+is envisioned as a self-sufficient consumer of this same pipeline in
+its own right, alongside cubic-space network-perspective rendering of
+shared interest, alongside "whatever else is generic." concrete
+takeaway for why milestone 1 was built the way it was (template +
+async spawn + `{{variable}}` substitution, no audio-specific coupling
+anywhere in the povray-side code) rather than something narrower and
+audio-icon-specific — that genericity is the actual point, not
+incidental design hygiene.
+
+#,,.,,...,..,,,,.,.,.,,..,,.,,...,...,.,.,.,,,..,,...,...,...,...,,.,,,.,,...,
+#5TI3CKVMALXLP6BRQ57PZDG6XIFQSDMQR4UNQNKPZIW2OIAIVG7XWFNJTXOFZN6MQDLVMQNVGOPUI
+#\\\|BCSZRRKVW65REWNTMHBKNXIQRSG46GDGMU6XFSXRVMK6XPUD4XF \ / AMOS7 \ YOURUM ::
+#\[7]26UY7T57CVAH7F2YUF57GCPNQHVR6RPMXOMK3EK72OZUEXRSIEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
