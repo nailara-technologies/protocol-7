@@ -2,12 +2,42 @@
 
 ## status
 
-deferred / not started. captured from conversation so it isn't lost.
-depends on the povray cylinder-wrap work
-(`data/tasks/povray-zenka-implementation.md`,
+**signal generation landed and live-verified** — `audio.analyze.am_depth`
+(generic, extracted from `render_standing_wave.v4`'s per-window
+low-band energy tracking) computes `am_depth` independent of whichever
+`render_style` runs, and `audio.finalize_decode` threads it into a
+`format_hint` ('square' | 'wide') encoded in the output filename
+(`spatial-<stamp>-<hint>.png`) — not the `.cmd.` reply itself, since
+that contract is strict `{mode, data => STRING}` with no extra keys
+(see `feedback-cmd-data-must-be-string.md`). threshold is
+`audio.cfg.format_hint_threshold`.
+
+**threshold corrected 0.4 → 0.9 after visual spot-check.** first pass
+used `0.4` (the rough midpoint between `aa`/`ab` and `saturnians`/`ac`
+in am_depth alone), which classified `saturnians` (0.78) as `wide`.
+but rendering `saturnians` through the *actual* icon pipeline
+(`render_style=v3` + `post_process=rotation_stack.v4` +
+`overlay=waveform_trace.v1` — the real use case this hint serves, not
+just the raw number) showed a dense, edge-to-edge waveform trace much
+closer to `aa`'s square-appropriate look than `ac`'s corner-scattered
+one — `am_depth` numerically closer to `ac` did not mean it *looked*
+like `ac`. corrected the threshold to `0.9`, clearly above
+`saturnians` and only catching the `ac`-level extreme, re-verified live
+against all 4 samples with the new threshold: `aa`, `ab`, `saturnians`
+→ `square`, `ac` → `wide`. **lesson**: always spot-check a numeric
+threshold against the actual downstream visual it's meant to predict,
+not just against the raw metric's own value range.
+
+**still open, as originally scoped:** the threshold is calibrated on
+only these 4 samples, not a real distribution — `0.9` is a better-
+checked starting default than `0.4` was, but still not a settled value,
+and the correction above shows the metric can mislead if trusted
+numerically without a visual check. the hint is currently unconsumed —
+nothing reads the filename suffix yet, since it depends on the povray
+cylinder-wrap work (`data/tasks/povray-zenka-implementation.md`,
 `data/tasks/audio-icon-povray-glass-cylinder-wrap.md`) existing as a
-real alternate presentation before this decision has anything to
-switch between.
+real alternate presentation to switch to. the listing-mixing question
+(§ below) also remains a separate later decision.
 
 ## the idea
 
@@ -78,8 +108,8 @@ this task is only about generating the per-file signal; consuming it
 consistently across a listing context is deferred to whoever builds
 that UI.
 
-#,,.,,,..,,,,,.,,,.,.,,..,,,,,.,,,,..,.,.,..,,..,,...,...,,.,,.,,,...,..,,.,.,
-#ZUNRWMWNYVHXOMNE5ZBC5B73Q2TVO6AAJYC4NP7TJNF2P7ZNPZ76ZHV7F62TJIBRIK47NHY7WGIM2
-#\\\|4L7S3QW2LLWFHWTFLKUHGP2XKEJIN47ALXMPF3ILVJT75OUZ55E \ / AMOS7 \ YOURUM ::
-#\[7]R4H2SYRKFJQ4INBJ7DANTOR4GO6YGJBYBLNPT74HRBXGW5GVUUDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,,,.,.,,,,,.,,..,.,,,.,.,...,.,,,..,,...,...,...,..,,.,,,.,.,,..,
+#77LUK4CDS77O4CHPQX3DPIK37ANOOCR7IWH6DIZHTLGRGA32MZPQW3V66LDC4AV2IFEFFM2UVY5PY
+#\\\|M25BW2EOUERQR6ONHURWBKF2TJAXVMAQYJ4TMQF4UKZRKRS4DMY \ / AMOS7 \ YOURUM ::
+#\[7]2INTYUYV2VT6YHVJ4HHPUQXCLJOQ2T24VVMVB6VDYQKFTWK3IOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
