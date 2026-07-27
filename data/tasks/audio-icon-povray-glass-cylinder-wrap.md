@@ -2,6 +2,7 @@
 
 ## status
 
+**this file is the requirement, not the implementation plan.**
 **agreed as the intended default presentation** for the audio-icon
 pipeline going forward — not just an optional extra. deferred / not
 started as an implementation: `povray.init_code` is currently just a
@@ -12,6 +13,15 @@ pipeline (`render_style` + `post_process` + `overlay.waveform_trace.v1`)
 remains the real, live-verified, committed baseline this builds on top
 of — the cylinder wrap is a rendering step applied to its output, not a
 replacement for it.
+
+the actual technical plan for building the `povray` zenka out from a
+stub into working infrastructure — scene templating, invocation,
+output handling, and how it serves this and other use cases across the
+project — is being written separately as
+`data/tasks/povray-zenka-implementation.md`, since the povray zenka
+itself is broader in scope than this one audio use case (see that
+file's own references). this requirement doc feeds into that plan as
+one of its driving use cases, not the whole of it.
 
 ## the idea
 
@@ -138,8 +148,8 @@ new module *extracts* the waveform back out for povray's texture input
 4. if waveform-only is chosen, build the `graphics-matrix.filter.alpha`
    extraction step feeding into it.
 
-#,,,,,.,,,,.,,,,.,..,,...,.,,,,,.,.,,,,,,,.,.,..,,...,...,.,.,...,...,.,.,,,,,
-#DI7M34ZHVUIUN3ZQVF2BVB25HCCQTLWGARYCISW6APXYAW6HZTSJ54YDUBSQ5O2I4EAARRDED7R3U
-#\\\|7NYIEOR7WFTVIEFIGWY32KB4HUH6CVIOZFV4UEX55MKKC6ZOKLH \ / AMOS7 \ YOURUM ::
-#\[7]TDPCIWCGNDS6BYVGH3AOQG5OWTQW6TBMQYSJDQKA3WUN5SEZOQBA 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,.,,,..,,,,.,,,.,,,.,.,.,,.,,.,.,..,,...,...,,.,,,,.,...,,,.,,.,,
+#4S3DG3S4DTIYTL6H6UNS6RABMWD42GQZ6WZITON57EJJNMWCTXL6DH3GUSSQY4KCNDIHO72SBX5M4
+#\\\|6HDQTDXWVARFLT6WS6XQHXQUOGELOYMQRWL2OOBZMVT44BQQEL6 \ / AMOS7 \ YOURUM ::
+#\[7]7CXWFRYK47XNHGLTBLVCZLMBSX4TQI7IGBXT6ACE5A2QAQQQHQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
