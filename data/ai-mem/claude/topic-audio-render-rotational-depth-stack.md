@@ -151,19 +151,61 @@ vertical mirror, which pure rotation can never produce. prototyped
 standalone first and user-confirmed ("affirmative") before building the
 real module. live-verified via `p7c audio.spatial-purr` same as v1/v2.
 
+## v3 landed : color boost, tuned through 3 iterations
+
+built `audio.post_process.rotation_stack.v3` last, closing out the
+planned 4-variant sequence. first attempt (1.7x channel scale +
+`autolevels` contrast stretch) washed the cool indigo/blue/violet
+palette out entirely to near-uniform cyan — `autolevels` stretches each
+channel's min/max to full range, and since this image is mostly black
+with sparse bright pixels, nearly everything bright clips to max.
+dropped `autolevels`, landed on a gentle uniform channel scale alone
+(tuned 1.25x → 1.6x across 3 rounds of visual feedback) which preserves
+relative color relationships. also replaced the pure-black canvas fill
+with a slightly blue-tinted background (`#000013`) for more perceived
+depth than flat black.
+
+both the boost factor and bg tint are exposed as opts rather than
+fixed, per user's own follow-up: `#000013` was tuned for this layer
+*alone* — once a waveform overlay
+(`audio.overlay.waveform_trace.v1`) is drawn on top, a darker tint like
+`#000007` likely gives the neon foreground more contrast headroom, so
+the right value is genuinely context-dependent rather than a single
+universal default.
+
+## design principle : refining the container refines every entropy instance
+
+user's own observation on seeing v3: it "looks very balanced, like
+intentional design" — and the reason is structural, not luck. every
+render's actual content (rings, cells, speckle placement) comes from
+per-file FFT entropy and is never hand-tuned; what v1→v2→v3→v4 actually
+iterated on was the deterministic *container* around that entropy —
+blend math, palette, background tint, boost curve. because the
+container is shared by every possible input, refining it once makes
+*every* entropy-driven instance inherit that refinement automatically —
+the same mechanism that let two different purr samples visually read as
+similar despite being independently generated (see
+[[topic-audio-render-as-similarity-feature-source]]) also means a
+single round of container tuning reads as deliberate art-direction
+across arbitrarily many future inputs, without per-file work. worth
+keeping in mind for whatever gets built next (povray cylinder included)
+— the leverage is in refining the deterministic wrapper, not the
+content it wraps.
+
 ## status
 
-**v1, v2, and v4 built, landed, and live-verified** via `p7c
-audio.spatial-purr` against v3 renders. `v3` (color-boosted variant of
-v2's rotation blend) is the one remaining agreed number, not yet built
-— a smaller tuning pass on existing work, deliberately left for after
-v4 since v4 was the higher-value/more-requested technique. animated
-variant (darkening-as-history-cue) still unbuilt, waiting on the
-sliding-window infrastructure it depends on — see
-[[topic-audio-render-sliding-window-live-stream]].
+**all four planned variants (v1, v2, v3, v4) built, landed, and
+live-verified** via `p7c audio.spatial-purr`. the `rotation_stack`
+family is functionally complete as originally scoped. animated variant
+(darkening-as-history-cue) remains a distinct, still-unbuilt idea,
+waiting on the sliding-window infrastructure it depends on — see
+[[topic-audio-render-sliding-window-live-stream]]. broader next step is
+the povray glass-cylinder wrap
+(`data/tasks/audio-icon-povray-glass-cylinder-wrap.md`), which now
+has an agreed-default status of its own.
 
-#,,,.,,,,,,,.,,,,,..,,..,,.,.,,..,.,.,.,,,,.,,..,,...,..,,...,...,,,,,,,.,,..,
-#LNJF5E4KUKEQ7P2PKQGWRBFSMLO4UC4I6RVZUUGZUAQZLXZ5ISUE52QSNC6CSGF5EJCH5TQ6GJED4
-#\\\|3T3PSB5GUQSZWIJCIDDZAB63P2JHPC3UQ7QXUIUQUGVCYELLAAT \ / AMOS7 \ YOURUM ::
-#\[7]QLJULMH4EAO6YCZXB7BISYVNXX3J4O2HBMIGSXSGY4CE2DDNPMAY 7  DATA SIGNATURE ::
+#,,..,,,,,,..,.,.,.,,,,..,...,,..,..,,...,.,.,..,,...,..,,,..,.,.,,.,,,..,,,.,
+#M6PWOJZTN5QZMZIHFI3AADV2XD3VE3C4GT2NOL5USW63RMKK7ICNYVZWDKIFNYHHUBOQKYJALL7RW
+#\\\|62DUGZH27DPFAW7BHKCYT5LWW7ONU2PXMXZ2BDRDTPFK4L57ZTW \ / AMOS7 \ YOURUM ::
+#\[7]4NYGRKEZGRIKAIPS6R3O34ZDZJAYXX5TDFCY47OND7YO5N64CECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
