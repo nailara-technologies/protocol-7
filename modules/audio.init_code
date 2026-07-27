@@ -25,6 +25,17 @@
 ## optional : selects audio.overlay.<name>, applied last -- draws new ##
 ## content (from pcm) as a foreground on top, 'none' = no overlay     ##
 <audio.cfg.overlay> //= 'none';
+## am_depth threshold above which the format_hint filename suffix is 'wide' ##
+## instead of 'square' -- calibrated on only 4 samples so far (aa=0.125,    ##
+## ab=0.06, saturnians=0.78, ac=1.0). first attempt at 0.4 midpoint was too ##
+## permissive : rendering saturnians through the actual                     ##
+## v3+rotation_stack.v4+waveform_trace icon pipeline showed a dense,        ##
+## edge-to-edge waveform much closer to aa's square-appropriate look than   ##
+## ac's corner-scattered one, despite its am_depth being closer to ac's     ##
+## than aa's numerically -- raised to sit clearly above saturnians and only ##
+## catch the ac-level extreme. see                                          ##
+## data/tasks/audio-icon-format-hint-from-am-depth.md                       ##
+<audio.cfg.format_hint_threshold> //= 0.9;
 
 <audio.path.ffmpeg_bin> //= <[base.required_bin_path]>->('ffmpeg');
 
@@ -37,8 +48,8 @@ if ( not -x <audio.path.ffmpeg_bin> ) {
 
 0;
 
-#,,,,,,..,,,,,,..,,,.,...,,,,,..,,,..,.,,,,..,..,,...,...,.,.,,..,,,,,.,,,.,,,
-#2RBGK3NXADTPTMTBLEYZ3D4GRHDQIFW5W6R2UVUFUNXYXRHREHIGCGMYUKXL4MMBCBFE23TN7MLTU
-#\\\|YJNJDLZBHOW7CMTBEU3K6KTCKPPUKEDIU4TDE2SGUH5VU66FALV \ / AMOS7 \ YOURUM ::
-#\[7]VY4H2QBDOC4AUB5FHQRVLQ3Y2BUZG46PUUGAB4DH6VO45KCVHIDA 7  DATA SIGNATURE ::
+#,,.,,.,,,...,..,,..,,,..,,.,,,,.,,,.,.,.,...,..,,...,..,,...,,.,,...,.,.,...,
+#UYHZXFGSXQRHCNQAQQ2AAKBNLIKXOSLQ5EETWRRXDPEFQNLVSRXONYN2I4KJYKTRDHDMFZC2IWEDE
+#\\\|7SAOG4NWUJM36FGR5O32SIETV5CA6YEER5JOB7TP7QXPWHLFNGX \ / AMOS7 \ YOURUM ::
+#\[7]I5TKQAITOFKCLV4VIT3HKMZGEC7HHC3HFT4KBZ3ZQG7KHYLSKGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,89 @@
+## [:< ##
+
+# name  = audio.analyze.am_depth
+# descr = low-band amplitude-modulation depth : coefficient of variation
+# param = $pcm_aref, $sample_rate [, $opts_href ]
+
+## generic content signal, independent of render_style -- extracted from    ##
+## audio.render_standing_wave.v4's per-window low-band energy tracking,     ##
+## which was built to drive v4's dash/gap ring pattern but turns out to     ##
+## also directly predict whether a render comes out dense/coherent or       ##
+## scattered/bursty (see data/tasks/audio-icon-format-hint-from-am-depth.md ##
+## for the aa/ab/saturnians/ac correlation this was built on). computed     ##
+## once here regardless of which render_style actually runs, since it's a   ##
+## property of the audio content itself, not of any particular renderer.    ##
+##                                                                          ##
+## pure analysis core : no protocol-7 data or code path access              ##
+##                                                                          ##
+## returns ( TRUE, $am_depth ) or ( FALSE, $error_string )                  ##
+
+my ( $pcm_aref, $sample_rate, $opts ) = @ARG;
+$opts //= {};
+
+return ( FALSE, 'expected pcm sample array reference' )
+    if ref $pcm_aref ne qw| ARRAY |;
+return ( FALSE, 'invalid sample rate' )
+    if not defined $sample_rate or $sample_rate < 8000;
+
+my $fft_size = $opts->{'fft_size'} // 4096;
+
+my $total     = scalar $pcm_aref->@*;
+my $n_windows = int( $total / $fft_size );
+$n_windows = 96 if $n_windows > 96;
+return ( FALSE, 'audio too short for spectral analysis' )
+    if $n_windows < 1;
+
+my $half   = $fft_size / 2;
+my $bin_hz = $sample_rate / $fft_size;
+
+my $am_lo_bin = int( 20 / $bin_hz );
+$am_lo_bin = 1 if $am_lo_bin < 1;
+my $am_hi_bin = int( 250 / $bin_hz );
+$am_hi_bin = $half - 1 if $am_hi_bin > $half - 1;
+
+my $pi2 = 8 * atan2( 1, 1 );
+my @hann
+    = map { 0.5 * ( 1 - cos( $pi2 * $ARG / ( $fft_size - 1 ) ) ) }
+    0 .. $fft_size - 1;
+
+my @offsets
+    = $n_windows == 1
+    ? (0)
+    : map { int( $ARG * ( $total - $fft_size ) / ( $n_windows - 1 ) ) }
+    0 .. $n_windows - 1;
+
+my @low_energy_per_window;
+
+foreach my $off (@offsets) {
+    my @windowed
+        = map { $pcm_aref->[ $off + $ARG ] * $hann[$ARG] } 0 .. $fft_size - 1;
+    my $re = PDL::Core::pdl( \@windowed );
+    my $im = PDL::Core::zeroes($fft_size);
+    PDL::FFT::fft( $re, $im );
+    my $mag = sqrt( $re->slice( "0:" . ( $half - 1 ) )**2
+            + $im->slice( "0:" . ( $half - 1 ) )**2 );
+    push @low_energy_per_window, $mag->slice("$am_lo_bin:$am_hi_bin")->sum;
+}
+
+my $am_depth = 0;
+if ( @low_energy_per_window > 1 ) {
+    my $sum = 0;
+    $sum += $ARG foreach @low_energy_per_window;
+    my $mean = $sum / @low_energy_per_window;
+    if ( $mean > 0 ) {
+        my $var_sum = 0;
+        $var_sum += ( $ARG - $mean )**2 foreach @low_energy_per_window;
+        my $stddev = sqrt( $var_sum / @low_energy_per_window );
+        $am_depth = $stddev / $mean;    ## coefficient of variation ##
+    }
+}
+$am_depth = 1 if $am_depth > 1;         ## clamp : visual mapping, not a ##
+## calibrated physical unit        ##
+
+return ( TRUE, $am_depth );
+
+#,,,,,..,,,,.,..,,,,.,,..,.,,,.,,,,.,,.,,,,,,,..,,...,...,.,.,...,,,,,,..,...,
+#VRQ5GZICGVGTKNFSYDRNUMGHTW366UJTVRFPHE6VTVUUZ4LXM6ZQIA2325JTOEWDZMSX3HBU3YZL4
+#\\\|XJJLNTZBK4MVON7HDZ6SJRE6XPC3VWR2X7XCKOQYK3BNIS5E7U3 \ / AMOS7 \ YOURUM ::
+#\[7]NZKQJ5SCTBJGUWH4MW2ILYFJKA3MZNGJRIBC3WRQ3VYCMGN3JYAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
