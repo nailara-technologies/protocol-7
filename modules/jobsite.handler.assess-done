@@ -10,6 +10,7 @@ my $raw     = $call->{'data'} // '';
 my $result  = ref $raw ? $raw->$* : $raw;
 my $job_id  = <[base.vax-int.decode]>->( $call->{'params'}{'job_id'} // '' );
 my $task_id = $call->{'params'}{'task_id'} // '';
+my $attempt = $call->{'params'}{'attempt'} // 0;
 
 <[base.logs]>->(
     1, ':assess-done: job=%s mode=%s result_len=%d ..',
@@ -22,13 +23,17 @@ my $task_id = $call->{'params'}{'task_id'} // '';
 my $job_rec = <jobsite.tasks>->{$job_id};
 if ( not defined $job_rec ) {
     <[base.logs]>->( 0, ':assess-done: unknown job %s', $job_id );
+    if ( my $timer = delete <jobsite.assess_timer>->{$job_id} ) {
+        eval { $timer->cancel };
+    }
     <jobsite.pending_count>--;
     if ( <jobsite.pending_count> <= 0 ) {
         <jobsite.pending_count> = 0;
         <jobsite.cycle>         = 'idle';
         <[base.logs]>->( 1, 'all assessments complete, cycle=idle' );
         if (<jobsite.sync.push_in_progress>) {
-            ## current push already collected its job list; schedule follow-up ##
+            ## current push already collected its job list; schedule ##
+            ## follow-up                                             ##
             <jobsite.sync.push_after_assess> = TRUE;
             <[base.logs]>->(
                 1, 'assess-done: sync push in progress, scheduling follow-up'
@@ -42,20 +47,40 @@ if ( not defined $job_rec ) {
     return;
 }
 
+## stale reply : the watchdog already gave up on this attempt [ see        ##
+## dispatch.next ] and either requeued the job or moved it onto a fresh    ##
+## attempt -- do NOT touch pending_count [ already released by the timeout ##
+## ] or re-dispatch [ a newer attempt, if any, already owns the queue ],   ##
+## just drop this late arrival                                             ##
+if ( $attempt and $attempt != ( $job_rec->{'attempt'} // 0 ) ) {
+    <[base.logs]>->(
+        1,
+        ':assess-done: stale reply for job %s '
+            . '[ attempt %s, current %s ], ignoring',
+        $job_id,
+        $attempt,
+        $job_rec->{'attempt'} // 0
+    );
+    return;
+}
+
 if ( lc($mode) eq qw| false | ) {
     <[base.logs]>->(
         0,        'assess-done: task %s failed for job %s',
         $task_id, $job_id
     );
     ## hard infra failure [ no model result at all ] : flag it for the      ##
-    ## fehler tab, same as a validation-repair failure below, but do NOT   ##
-    ## touch stage/status -- unlike a real low score this carries no new   ##
-    ## information about the job, so evicting it out of wherever the user  ##
-    ## placed it [ e.g. review ] would be pure data loss dressed up as a   ##
-    ## pipeline decision. status='assessed' is also a dead end : the web   ##
-    ## plugin purges that legacy status on every restart [ see             ##
-    ## plugin.web.jobs.init_code ], so the job would eventually vanish     ##
-    ## from disk entirely ##
+    ## fehler tab, same as a validation-repair failure below, but do NOT    ##
+    ## touch stage/status -- unlike a real low score this carries no new    ##
+    ## information about the job, so evicting it out of wherever the user   ##
+    ## placed it [ e.g. review ] would be pure data loss dressed up as a    ##
+    ## pipeline decision. status='assessed' is also a dead end : the web    ##
+    ## plugin purges that legacy status on every restart [ see              ##
+    ## plugin.web.jobs.init_code ], so the job would eventually vanish from ##
+    ## disk entirely                                                        ##
+    if ( my $timer = delete <jobsite.assess_timer>->{$job_id} ) {
+        eval { $timer->cancel };
+    }
     $job_rec->{'repair_failed'} = TRUE;
     my $job_f = <[jobsite.job.read]>->($job_id) // {};
     $job_f->{'repair_failed'} = TRUE;
@@ -66,12 +91,12 @@ if ( lc($mode) eq qw| false | ) {
     return;
 }
 
-## protected stages : user decisions must survive pipeline activity ##
+## protected stages : user decisions must survive pipeline activity         ##
 ## 'review' is protected too : a manual reassess of a job the user is       ##
-## actively looking at must never auto-evict it into trash on a low score  ##
-## -- the user already chose to look at it and asked for a fresh opinion,  ##
-## a low score should update score/score_reason for their own judgement,  ##
-## not yank the job out from under them ##
+## actively looking at must never auto-evict it into trash on a low score   ##
+## -- the user already chose to look at it and asked for a fresh opinion, a ##
+## low score should update score/score_reason for their own judgement, not  ##
+## yank the job out from under them                                         ##
 my %protected_stage
     = map { $ARG => 1 }
     qw| review applied interviewed responded rejected skipped archived |;
@@ -94,7 +119,8 @@ my $yaml_src = $result;
 utf8::decode($yaml_src)
     if not utf8::is_utf8($yaml_src)
     and utf8::valid($yaml_src);
-## slice from the score: line onward : match score:\d anywhere, not just line-start ##
+## slice from the score: line onward : match score:\d anywhere, not just ##
+## line-start                                                            ##
 my $has_yaml = $yaml_src =~ m{score\s*:\s*\d};
 $yaml_src = substr( $yaml_src, $-[0] ) if $has_yaml;
 ## strip trailing markdown code fence if model wrapped output ##
@@ -157,13 +183,13 @@ if (    not $validation->{'is_valid'}
     return;
 }
 
-## a repair pass already failed once for this job [ from an earlier      ##
-## reassess cycle ] and this fresh full assessment is ALSO invalid : the  ##
-## log below has always claimed "keeping original", but the code that    ##
-## followed unconditionally overwrote score/reason/summary with this new ##
-## [ empty/defective ] result anyway -- that's the actual root cause of   ##
-## review-tab cards silently losing their text on a second bad reassess. ##
-## $give_up gates every overwrite below so "keeping original" is true.  ##
+## a repair pass already failed once for this job [ from an earlier        ##
+## reassess cycle ] and this fresh full assessment is ALSO invalid : the   ##
+## log below has always claimed "keeping original", but the code that      ##
+## followed unconditionally overwrote score/reason/summary with this new [ ##
+## empty/defective ] result anyway -- that's the actual root cause of      ##
+## review-tab cards silently losing their text on a second bad reassess.   ##
+## $give_up gates every overwrite below so "keeping original" is true.     ##
 my $give_up
     = ( not $validation->{'is_valid'} and $job_rec->{'repair_attempted'} );
 
@@ -230,9 +256,9 @@ if ($give_up) {
 }
 $job_rec->{'assertions'} = $assertions;
 
-## store result (original or post-repair) ##
-## sanitize encoding before storing ##
-## ensure utf8 flag is set so fix_encoding reaches mojibake repair, not raw-bytes short-circuit ##
+## store result (original or post-repair)  sanitize encoding before storing ##
+## ensure utf8 flag is set so fix_encoding reaches mojibake repair, not     ##
+## raw-bytes short-circuit                                                  ##
 for ( $reason, $summary ) {
     utf8::decode($_)
         if defined $_
@@ -254,9 +280,9 @@ for my $dim ( keys %{ $assertions->{'dimensions'} // {} } ) {
 }
 
 if ($give_up) {
-    ## no usable new data from this attempt : reuse whatever the job already ##
-    ## had so the threshold decision below and the on-disk write further    ##
-    ## down don't act on -- or persist -- an empty/defective result ##
+    ## no usable new data from this attempt : reuse whatever the job        ##
+    ## already had so the threshold decision below and the on-disk write    ##
+    ## further down don't act on -- or persist -- an empty/defective result ##
     $score   = $job_rec->{'score'}         // '';
     $reason  = $job_rec->{'score_reason'}  // '';
     $summary = $job_rec->{'score_summary'} // '';
@@ -305,11 +331,11 @@ $job->{'assertions'}    = $assertions if %{ $assertions // {} };
 $job->{'stage'}         = $job_rec->{'stage'};
 
 ## repair_failed/repair_attempted were previously memory-only [ set on     ##
-## job_rec but never mirrored to the on-disk file in this, the normal,    ##
-## completion path ] -- lost on reload, and since jobsite.sync.push reads ##
-## from disk, a clean success could never clear a stale flag the web      ##
-## cache already picked up from an earlier failed cycle. mirror both      ##
-## ways explicitly here so a clean pass really clears it everywhere ##
+## job_rec but never mirrored to the on-disk file in this, the normal,     ##
+## completion path ] -- lost on reload, and since jobsite.sync.push reads  ##
+## from disk, a clean success could never clear a stale flag the web cache ##
+## already picked up from an earlier failed cycle. mirror both ways        ##
+## explicitly here so a clean pass really clears it everywhere             ##
 if ($give_up) {
     $job->{'repair_failed'} = TRUE;
 } else {
@@ -323,6 +349,10 @@ if ($give_up) {
 
 ## add to checksum index for dedup on future scans ##
 <[jobsite.checksum.index]>->( qw| add |, $job );
+
+if ( my $timer = delete <jobsite.assess_timer>->{$job_id} ) {
+    eval { $timer->cancel };
+}
 
 <jobsite.pending_count>--;
 
@@ -345,8 +375,8 @@ if ( <jobsite.pending_count> <= 0 ) {
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.next]>
 
-#,,..,,.,,.,,,..,,,.,,,.,,,.,,.,,,..,,.,.,...,..,,...,...,..,,,..,,.,,,,.,,,,,
-#BXYQLIFFXGCPUML3UZHMP3GUUET66KRAD5S366LRLTCPF7FS6EMPJHG6S3ORT7LXYXXW7HDGWKHMI
-#\\\|VBHSXMZZZUEZQEA2G3LI2VPGGJI6UFM274U2WERTQDVWIIMERHP \ / AMOS7 \ YOURUM ::
-#\[7]KDIMH5JDNXIJJWDBZFNF56C2MF5R3AG7F6BA2FPE5MOMK5AYDSDY 7  DATA SIGNATURE ::
+#,,,,,,..,...,,.,,.,,,,.,,,,.,...,,,.,...,,,.,..,,...,...,,,,,,..,,.,,,,.,.,.,
+#XAUWMDXEQQ6KGHAUDSCR5ABQDHELX5YMMR3HZPPV5VF4SPNSRCHLOMFIFDQR27EY7AIOMOX3RULQW
+#\\\|EICV2ME2EPGHCFQZQJE7JKMYMJZL3HSTTWH53U34LQB2FHVRVVC \ / AMOS7 \ YOURUM ::
+#\[7]FGM4PYQFY3DOUVGNZ7ZJ5RG7D7Q5BJMWXA7UHCTLMJXPFKYZZSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

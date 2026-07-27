@@ -110,10 +110,25 @@ for my $id ( keys %jobs ) {
     ## staleness check [ see dispatch.next ] loses track of it on every   ##
     ## single sync cycle and starts treating the current entry as stale   ##
     my $prior_gen = ( <jobsite.tasks>->{$id} // {} )->{'queue_gen'} // 0;
+    ## attempt token [ see dispatch.next/dispatch.repair ] : same reasoning ##
+    ## as queue_gen above -- carry it forward or a re-entrant load_all call ##
+    ## while a task.create/task.wait-done round trip is in flight makes the ##
+    ## real reply's attempt param mismatch the freshly-wiped value and get  ##
+    ## dropped as "stale"                                                   ##
+    my $prior_attempt = ( <jobsite.tasks>->{$id} // {} )->{'attempt'} // 0;
+    ## task_id / repair_task_id : memory-only markers used by the startup   ##
+    ## re-wire pass and the watchdog's timeout cleanup ; same carry-forward ##
+    ## reasoning                                                            ##
+    my $prior_task_id = ( <jobsite.tasks>->{$id} // {} )->{'task_id'} // '';
+    my $prior_repair_task_id
+        = ( <jobsite.tasks>->{$id} // {} )->{'repair_task_id'} // '';
     <jobsite.tasks>->{$id} = {
         'status' => $job->{'status'} // 'new',
         'stage'  => $keep_inflight ? $prior_stage : ( $job->{'stage'} // '' ),
         'queue_gen'        => $prior_gen,
+        'attempt'          => $prior_attempt,
+        'task_id'          => $prior_task_id,
+        'repair_task_id'   => $prior_repair_task_id,
         'score'            => $job->{'score'}            // '',
         'repair_attempted' => $job->{'repair_attempted'} // FALSE,
         'repair_failed'    => $job->{'repair_failed'}    // FALSE,
@@ -131,8 +146,8 @@ for my $id ( keys $tasks->%* ) {
 
 return \%jobs;
 
-#,,.,,...,..,,..,,...,,,,,..,,,,.,,..,..,,.,,,..,,...,...,..,,.,,,...,..,,,..,
-#4CTGN6LV3RFOWSYUTSS4SET43P33252YJVOFHRV7PRNHL5C5GSOYQ4LFQ57HRFMLH4Y35BCIXTH6S
-#\\\|XY25YNWAMTPGPJI4UFZCPPJZVJZUCQFUSDGGRTILPSNK3WNNNDZ \ / AMOS7 \ YOURUM ::
-#\[7]MMAEC7VT7A3JRR3EUMCE5WYZHLM4NKEUJYBO4WFT7N7ID33ITICA 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,.,,..,,..,,,,.,,,,,.,,,.,.,...,..,,...,...,...,,,,,,,,,.,,,,.,,
+#GW7JUTX7J7YOQZ2UK3GC2RW3SYAXLRTK3HGEJ74PSBDPXTZSRCSIK7AQFWNX6YCWQBDVC6HIJUP74
+#\\\|CKGLMEVIET7O6MVBCLHX7HBCPRB3YMMXF3J552AE3LGPV6D7EFK \ / AMOS7 \ YOURUM ::
+#\[7]7PX35UYLBTXU5N7MOX5TIWGZFMSNBJOG6GBJ3IEKAO57Z6CP76CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
