@@ -138,18 +138,32 @@ a `v2.1`: `v3` = color-boosted variant of v2's equal-weight blend,
 user described as genuinely symmetric — a distinct operation from
 rotation, not a v2 tweak.
 
+## v4 landed : true mirror symmetry, built ahead of v3
+
+built `audio.post_process.rotation_stack.v4` next (out of numeric order
+— v3 is still unbuilt) since the user chose to build the mirror
+technique first, the effect they'd actually been asking for since v1.
+composites the original with its horizontal flip, vertical flip, and
+both-flipped (== 180° rotated) copy, all via the same equal-weight
+25%-each additive technique v2 introduced, but applied to reflection
+instead of rotation — genuinely symmetric under both a horizontal AND
+vertical mirror, which pure rotation can never produce. prototyped
+standalone first and user-confirmed ("affirmative") before building the
+real module. live-verified via `p7c audio.spatial-purr` same as v1/v2.
+
 ## status
 
-**v1 and v2 both built, landed, and live-verified** via `p7c
-audio.spatial-purr` against v3 renders. `v3` (color-boosted v2) and
-`v4` (mirrored/reflection-based, true mirror symmetry) are the agreed
-next numbers but not yet built. animated variant (darkening-as-
-history-cue) still unbuilt, waiting on the sliding-window
-infrastructure it depends on — see
+**v1, v2, and v4 built, landed, and live-verified** via `p7c
+audio.spatial-purr` against v3 renders. `v3` (color-boosted variant of
+v2's rotation blend) is the one remaining agreed number, not yet built
+— a smaller tuning pass on existing work, deliberately left for after
+v4 since v4 was the higher-value/more-requested technique. animated
+variant (darkening-as-history-cue) still unbuilt, waiting on the
+sliding-window infrastructure it depends on — see
 [[topic-audio-render-sliding-window-live-stream]].
 
-#,,..,,,.,,..,,,,,.,,,.,.,,,.,,.,,,.,,...,,,.,..,,...,...,..,,...,,,,,,.,,...,
-#RJHKS5OWGUXAHJTTLWIPF7P6ND7N7ANN5OWRRVAOWZE4653NYMFZJ6F5S77PYIHXCSIXMXEHTM7WC
-#\\\|JZAHXQDZ3THDBG2P37ONOCMRKZJKHXMXTWWT27CJFMUN5GAKYSK \ / AMOS7 \ YOURUM ::
-#\[7]YURPZFJNVT6QFFERAKRW3HFIXKVTUAFTWUP47KSONXTUH4TU54DA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,,,,..,,..,,.,.,,..,.,.,.,,,,.,,..,,...,..,,...,...,,,,,,,.,,..,
+#LNJF5E4KUKEQ7P2PKQGWRBFSMLO4UC4I6RVZUUGZUAQZLXZ5ISUE52QSNC6CSGF5EJCH5TQ6GJED4
+#\\\|3T3PSB5GUQSZWIJCIDDZAB63P2JHPC3UQ7QXUIUQUGVCYELLAAT \ / AMOS7 \ YOURUM ::
+#\[7]QLJULMH4EAO6YCZXB7BISYVNXX3J4O2HBMIGSXSGY4CE2DDNPMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
