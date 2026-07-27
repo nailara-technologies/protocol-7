@@ -1,0 +1,103 @@
+## [:< ##
+
+# name  = audio.overlay.waveform_trace.v1
+# descr = classic min/max amplitude envelope, translucent, drawn over a bg
+# param = $pcm_aref, $img_path [, $opts_href ]
+
+## third orthogonal axis alongside render_style (background geometry) and   ##
+## post_process (background transform) -- this one draws genuinely NEW      ##
+## content derived from the raw pcm (a literal time-domain waveform trace,  ##
+## the classic sample-editor look) and composites it as a FOREGROUND on top ##
+## of whatever background the earlier stages produced. different signature  ##
+## from post_process (needs pcm + an image, not just an image), so it isn't ##
+## folded into that family -- see topic-audio-render-rotational-depth-      ##
+## stack.md for the full reasoning that led here.                           ##
+##                                                                          ##
+## min/max envelope per pixel column [ same downsampling approach real      ##
+## sample editors use ], drawn on a genuinely transparent channels=>4 layer ##
+## [ NOT a black-filled layer blended at reduced opacity -- that darkens    ##
+## the entire background wherever the trace ISN'T drawn too, confirmed by   ##
+## direct pixel comparison during prototyping -- only per-pixel alpha       ##
+## leaves untouched background pixels identical ].  color defaults to the   ##
+## project's own phosphor-green console color [ p7_fg_0003, rgb 9,170,94,   ##
+## see bin/Protocol-7 ] rather than an arbitrary choice.                    ##
+##                                                                          ##
+## pure overlay core : reads/rewrites only the given path plus the pcm      ##
+## array already in memory, no protocol-7 data or code path access          ##
+##                                                                          ##
+## returns ( TRUE, $img_path ) or ( FALSE, $error_string )                  ##
+
+my ( $pcm_aref, $img_path, $opts ) = @ARG;
+$opts //= {};
+
+return ( FALSE, 'expected pcm sample array reference' )
+    if ref $pcm_aref ne qw| ARRAY |;
+return ( FALSE, 'expected an image path' ) if not defined $img_path;
+
+my $bg = Imager->new( 'file' => $img_path );
+return ( FALSE, 'imager read failed : ' . Imager->errstr )
+    if not defined $bg;
+
+my ( $w, $h ) = ( $bg->getwidth, $bg->getheight );
+
+## frame margin : trace fits inside a smaller frame, not the full canvas -- ##
+## keeps it from crowding the background's own edges                        ##
+my $margin_frac = $opts->{'margin_frac'} // 0.12;
+my $margin      = int( $w * $margin_frac );
+my $fx0         = $margin;
+my $fw          = $w - 2 * $margin;
+return ( FALSE, 'margin too large for canvas' ) if $fw <= 0;
+
+my $mid            = int( $h / 2 );
+my $amp_scale_frac = $opts->{'amp_scale_frac'} // 0.22;
+my $amp_scale      = $h * $amp_scale_frac;
+
+my $total   = scalar $pcm_aref->@*;
+my $per_col = int( $total / $fw );
+$per_col = 1 if $per_col < 1;
+
+my $layer = Imager->new(
+    'xsize'    => $w,
+    'ysize'    => $h,
+    'channels' => 4
+);
+$layer->box( 'filled' => 1, 'color' => Imager::Color->new( 0, 0, 0, 0 ) );
+
+## default : project's own phosphor-green console color [ p7_fg_0003 ] ##
+my $rgb_aref   = $opts->{'rgb'}   // [ 9, 170, 94 ];
+my $alpha      = $opts->{'alpha'} // 190;
+my $line_color = Imager::Color->new( $rgb_aref->@*, $alpha );
+
+foreach my $x ( 0 .. $fw - 1 ) {
+    my $off = $x * $per_col;
+    my ( $mn, $mx ) = ( 0, 0 );
+    foreach my $i ( 0 .. $per_col - 1 ) {
+        my $s = $pcm_aref->[ $off + $i ] // 0;
+        $mn = $s if $s < $mn;
+        $mx = $s if $s > $mx;
+    }
+    my $y0 = $mid - int( $mx * $amp_scale );
+    my $y1 = $mid - int( $mn * $amp_scale );
+    ( $y0, $y1 ) = ( $y1, $y0 ) if $y0 > $y1;
+    $y1 = $y0 + 1 if $y1 <= $y0;
+    $layer->line(
+        'x1'    => $fx0 + $x,
+        'y1'    => $y0,
+        'x2'    => $fx0 + $x,
+        'y2'    => $y1,
+        'color' => $line_color
+    );
+}
+
+$bg->compose( 'src' => $layer, 'tx' => 0, 'ty' => 0, 'combine' => 'normal' );
+
+my $ok = $bg->write( 'file' => $img_path, 'type' => 'png' );
+return ( FALSE, 'imager write failed : ' . Imager->errstr ) unless $ok;
+
+return ( TRUE, $img_path );
+
+#,,.,,.,,,.,.,.,.,...,...,,.,,,..,,..,...,.,.,..,,...,..,,.,.,,.,,,,,,,,,,,,,,
+#BHFH6HHUCN2QRY66ATDY2VEBMHZJALEXX447JNS3L3IYIY6VTOYXKAHVU3INQ4T2OZ6CQOL2TB7LA
+#\\\|HFBULINH4NQP45IXPKEIKL6UHURW3BKV2GWIM3WWPOZUQDUJW54 \ / AMOS7 \ YOURUM ::
+#\[7]UO6QQ4ILXD77U67XGPEONNOVX4JT3K56CWLNYXHLVSZRJCS354AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

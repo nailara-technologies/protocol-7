@@ -77,6 +77,23 @@ if ( length $pcm_bin < <audio.cfg.fft_size> * 4 ) {
         }
     }
 
+    ## overlay dispatch : third orthogonal axis, draws new content from pcm ##
+    ## as a foreground on top of the finished background -- see             ##
+    ## audio.overlay.waveform_trace.v1's own header                         ##
+    if (    $ok
+        and length <audio.cfg.overlay>
+        and <audio.cfg.overlay> ne 'none' ) {
+        my $ov_sub = "audio.overlay." . <audio.cfg.overlay>;
+        if ( exists $code{$ov_sub} ) {
+            my ( $ov_ok, $ov_result ) = $code{$ov_sub}->( \@pcm, $result );
+            if ( not $ov_ok ) {
+                <[base.logs]>->( 0, 'overlay failed : %s', $ov_result );
+            }
+        } else {
+            <[base.logs]>->( 0, 'unknown overlay : %s', $ov_sub );
+        }
+    }
+
     if ($ok) {
         chmod( 0664, $result );
         <[base.logs]>->(
@@ -95,8 +112,8 @@ if ( length $pcm_bin < <audio.cfg.fft_size> * 4 ) {
 
 return TRUE;
 
-#,,,,,..,,,.,,.,.,.,.,,..,..,,.,,,,.,,..,,.,.,..,,...,...,.,.,,,,,,..,..,,,..,
-#SZLBDXRTPSLG2KDB3VF3ET6I3QA7WE4W32SDRV2IRO2YDBYLZBFE3ESMQOPY7BPP5KEFRHRP6KWVG
-#\\\|OBZ72ASDFVWQNJ6IVMFMSYLCFK3BEAKU4SXUNZJ55RC5GYCCL7O \ / AMOS7 \ YOURUM ::
-#\[7]2VXFAKQL6R4FU6XI3WR7G6XOA332MKLR5RTXGPAN6SEIBGFFXEDQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,...,.,.,,,,,,,,,...,.,,,.,,,,,,,..,,...,...,.,,,,,.,..,,..,,.,.,
+#ILAK5DHL6DKJQOD2W7CSTIOM4BUU5OGFIYD2VYMSWU2VOJGEKHKNBD6IJU2L4BIFTZCMV3GCUOXDA
+#\\\|KRLNQNYZDOA42WPMKKLJCJPUZQBUWPSQYH7HNFJ3UBRAN5BCNPZ \ / AMOS7 \ YOURUM ::
+#\[7]TK6PEPBBPLTDDXCJCDMP42ZMMTWRLC3RXCWDR2OYYQE2NNAJOUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
