@@ -1,0 +1,71 @@
+## [:< ##
+
+# name  = audio.post_process.rotation_stack.v4
+# descr = true mirror symmetry : equal-weight h-flip + v-flip + hv-flip blend
+# param = $img_path
+
+## same family as v1/v2, different operation. v1/v2 are ROTATIONALLY      ##
+## symmetric (90deg steps) but not mirror-symmetric -- user's own         ##
+## correction: "symmetric would be horizontal and vertical mirroring".    ##
+## this composites the original with its horizontal flip, vertical flip,  ##
+## and both-flipped (== 180deg rotation) copy, each scaled to exactly 25% ##
+## and added -- same equal-weight technique as v2 (see its header for why ##
+## sequential opacity-blending would NOT be equal-weight), applied to     ##
+## reflection instead of rotation. result is symmetric under both a       ##
+## horizontal AND a vertical mirror, which rotation alone can never give. ##
+## numbered v4 (not v3) per the agreed sequence : v3 reserved for a       ##
+## color-boosted variant of v2's rotation blend, a smaller tuning pass on ##
+## existing work, built after this one despite the lower number -- see    ##
+## topic-audio-render-rotational-depth-stack.md                           ##
+##                                                                        ##
+## pure post-process core : reads/rewrites only the given path, no        ##
+## protocol-7 data or code path access                                    ##
+##                                                                        ##
+## returns ( TRUE, $img_path ) or ( FALSE, $error_string )                ##
+
+my ($img_path) = @ARG;
+
+return ( FALSE, 'expected an image path' ) if not defined $img_path;
+
+my $base = Imager->new( 'file' => $img_path );
+return ( FALSE, 'imager read failed : ' . Imager->errstr )
+    if not defined $base;
+
+my ( $w, $h ) = ( $base->getwidth, $base->getheight );
+
+my $stack = Imager->new(
+    'xsize'    => $w,
+    'ysize'    => $h,
+    'channels' => 3
+);
+$stack->box( 'filled' => 1, 'color' => 'black' );
+
+my $h_flip = $base->copy;
+$h_flip->flip( 'dir' => 'h' );
+my $v_flip = $base->copy;
+$v_flip->flip( 'dir' => 'v' );
+my $hv_flip = $base->copy;
+$hv_flip->flip( 'dir' => 'h' );
+$hv_flip->flip( 'dir' => 'v' );
+
+foreach my $layer ( $base, $h_flip, $v_flip, $hv_flip ) {
+    my $scaled = $layer->convert(
+        'matrix' => [ [ 0.25, 0, 0 ], [ 0, 0.25, 0 ], [ 0, 0, 0.25 ] ] );
+    $stack->compose(
+        'src'     => $scaled,
+        'tx'      => 0,
+        'ty'      => 0,
+        'combine' => 'add'
+    );
+}
+
+my $ok = $stack->write( 'file' => $img_path, 'type' => 'png' );
+return ( FALSE, 'imager write failed : ' . Imager->errstr ) unless $ok;
+
+return ( TRUE, $img_path );
+
+#,,.,,,,,,.,,,,..,,,.,,,.,.,,,,..,,,,,.,.,..,,..,,...,...,..,,,,,,,..,.,.,,..,
+#QA5URXUROMTN6BIAYGMX6NVCQAMK6FRMSN6BWSEXCFABIQZYWALEDFEYOK5WUNFN2JRN5426XFN7A
+#\\\|VJZ2AQQ3VA4M7YV76ELFSJRLLECL4TRUAIFIJ3KHPA5ZGX7FATQ \ / AMOS7 \ YOURUM ::
+#\[7]EWA6YORUWVZESZOTGOTW5XMCAS7R4E3PIJ5QXCP3OBLGMGTQIIAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
