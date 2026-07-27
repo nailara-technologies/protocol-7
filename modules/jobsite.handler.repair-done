@@ -65,9 +65,14 @@ if ( lc($mode) eq qw| false | ) {
     if ( my $timer = delete <jobsite.assess_timer>->{$job_id} ) {
         eval { $timer->cancel };
     }
+    ## hard infra failure [ repair task itself errored, no result at all ]  ##
+    ## : do NOT touch stage/status, same convention as assess-done's        ##
+    ## sibling branch -- status='assessed' is a legacy dead end             ##
+    ## plugin.web.jobs purges on every restart, and this job never got a    ##
+    ## real score/text at all, so it must not be evicted out of wherever it ##
+    ## already sits                                                         ##
     $job_rec->{'repair_failed'} = TRUE;
     my $job_f = <[jobsite.job.read]>->($job_id) // {};
-    $job_f->{'status'}        = 'assessed';
     $job_f->{'repair_failed'} = TRUE;
     <[jobsite.job.write]>->( $job_id, $job_f );
     <jobsite.pending_count>--;
@@ -275,8 +280,8 @@ if ( <jobsite.pending_count> <= 0 ) {
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.next]>;
 
-#,,,.,,,,,,.,,,.,,,,.,.,,,,.,,,..,,..,..,,,,,,..,,...,...,..,,,,,,,..,,..,.,,,
-#7VNXCJ556N5DXEHFYT5M72ZQS2SGA7P2PPU4HLTELIJ6JDRAOLEUVY4ORTEPZNWD3IB25T5VEBAA2
-#\\\|WMOBPI4MDMXZXTZIBEHHSWNQ74YLFHTLPDN6JWMZBIQZX4HKAVE \ / AMOS7 \ YOURUM ::
-#\[7]CXRPSOCFBWVX2NR4O4GP6XFAALUZMRIOPG7IQ4ZEF57QKHTED2DI 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,.,,,,,,..,,..,,...,..,,...,,,,,..,,...,...,.,.,,.,,,,.,,,.,.,,,
+#BO557ZUJM3CPPXHTENCPJMU4EVPEDQERECKBRMKAERZOE6J5IFPIGPUSELCXQE6OITXGLZFESCKGM
+#\\\|UUSZ42E4QZTXOJXXWG5AOWZ664R7S2EK5RWRPGZNTYWJCQ7YAUX \ / AMOS7 \ YOURUM ::
+#\[7]TDT5F6DOGOAF3NF34U62Y4AFYYMBUVAS23HMI63HMQCFT43ZJOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
