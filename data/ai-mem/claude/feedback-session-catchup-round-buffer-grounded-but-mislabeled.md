@@ -46,8 +46,47 @@ or pure fidelity.
   of this summarization tail and can be verified/used immediately —
   no need to wait for or trust the round-buffer's narrative either way
 
-#,,,.,...,,,.,,,,,.,,,...,.,,,..,,,,,,,..,.,.,..,,...,...,,,,,,,.,,..,..,,,..,
-#OKBYPBLMR57OL5UP2DTHTE22ADB2XMPD4A6OZDWJZ5CAMWKI2ATJPSOOI7LQCB2E7MZO5DLACGV2E
-#\\\|YCIAE7PJE4TDH4JNRDFKNJQOB725H4A7HV7RMLY74UAR2PJ66WC \ / AMOS7 \ YOURUM ::
-#\[7]BN4Q6H3RFPKJRBDMBNG2EFHUT4W5HJM46JJSCBJZXWDDK3CMMQDY 7  DATA SIGNATURE ::
+## sharper case, 2026-07-27 : possible stuck self-referential reprocessing
+
+separately, on the same date, caught the pipeline actively generating
+fresh rounds (`/var/protocol-7/coding/results/<task-id>`, growing input
+byte count round to round) describing content that matched the exact
+wording of a `kimi_dispatch` prompt (`crop_wide.v1`'s test-harness
+instructions — "black 512x512 with rectangle outlines," "row lit
+fraction," "boundary verification," "synthetic image") from a dispatch
+that had already completed successfully **over two hours earlier** —
+confirmed via `~/.kimi/sessions/` (no session newer than the completed
+one) and the real deliverable already existing, tested, and committed.
+no live kimi process, no session activity, yet the coding zenka's log
+(`/var/log/protocol-7/<host>.coding.zenka.log`) showed fresh inference
+rounds still dispatching against it, ~30s apart, each with a *larger*
+input than the last (172105 → 178034 bytes in one step). user's
+hypothesis (plausible, not fully proven — the actual per-round prompt
+tmp file, logged as `tmp-file-path` in that log, gets deleted
+immediately after use, so the exact mechanism couldn't be directly
+inspected): each round's prompt may include the *previous round's own
+generated summary* concatenated back in as if it were fresh transcript
+content, letting the model latch onto and elaborate on its own prior
+claims (e.g. "this is a repetitive loop") rather than tracking real new
+material — which would explain both the growing byte count with no
+live source and the narrative escalating in confidence/specificity
+each round without any new grounding evidence.
+
+**how to apply, additionally:**
+- if a round-buffer's subject matter doesn't match anything currently
+  active (compare wording/vocabulary against your actual recent
+  dispatch prompts, not just current session state), and the
+  underlying dispatch already completed and was independently
+  verified, the round-buffer may be stuck reprocessing stale content —
+  don't let it cast doubt on an already-verified deliverable
+- `/var/protocol-7/coding/results/<task-id>` (recent files, by mtime)
+  and `/var/log/protocol-7/<host>.coding.zenka.log` (grep for
+  `inference complete for <task-id>` to see input byte-count trend)
+  are the way to check whether input size is genuinely growing from
+  live activity or just churning
+
+#,,..,,.,,..,,,..,.,.,...,...,,,.,..,,.,.,.,.,..,,...,...,,..,,,,,,,,,.,.,,..,
+#YNHII4CJB47H7PYTDXHOALSR4UKPU36WADBKGPDDXCP62FI2BVTXTWEJFGT3JLOT63RZVPCY4NDSC
+#\\\|GWHBQOPF5W4U4ZEVAWOCDUQA5HQP2CNNSHY24RXMCEBZ4S6F4NA \ / AMOS7 \ YOURUM ::
+#\[7]BXCL57FXGCBPVPPAZQ4A5ZOGV3S65OVSSJ5CFYJK65CLVDVTTYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
