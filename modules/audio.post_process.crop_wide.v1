@@ -1,0 +1,153 @@
+## [:< ##
+
+# name  = audio.post_process.crop_wide.v1
+# descr = snap a wide crop to horizontal boundary lines, padded outward
+# param = $img_path [, $opts_href ]
+
+##        crops a square render down to a wide aspect ratio, but NOT        ##
+##        at a fixed row offset -- a fixed crop risks slicing               ##
+##        straight through the middle of a rectangle's edge stroke,         ##
+##        which reads as a broken/incomplete render rather than an          ##
+##        intentional wide crop (see                                        ##
+##        data/tasks/audio-icon-line-aligned-wide-crop.md). all the         ##
+##        render_standing_wave.* styles draw axis-aligned                   ##
+##        rectangles/strokes, so genuine horizontal boundary lines          ##
+##        are common and structurally meaningful. this module scans         ##
+##        a small search window around the target crop margin (top          ##
+##        and bottom independently), measures each row's lit- pixel         ##
+##        fraction across the full width -- deliberately generic, no        ##
+##        hardcoded color matching, works for any style/palette --          ##
+##        and snaps to the row showing a clear local spike (a               ##
+##        boundary line reads as much denser than the                       ##
+##        empty-background or rectangle-interior rows beside it).           ##
+##        the crop then sits padding_px OUTWARD of that line                ##
+##        (keeping more of the original image), so the line stays           ##
+##        fully visible with black breathing room to the new edge --        ##
+##        flush-against-the-edge would read as a cut-off icon               ##
+##        boundary just as badly as slicing through it.  if no clear        ##
+##        spike exists in a window (sparse/scattered render), that          ##
+##        side falls back to the plain target margin instead of             ##
+##        failing.                                                          ##
+##                                                                          ##
+##        intended future consumer of the 'wide' format_hint that           ##
+##        audio.finalize_decode already encodes into output                 ##
+##        filenames (see                                                    ##
+##        data/tasks/audio-icon-format-hint-from-am-depth.md) -- NOT        ##
+##        yet wired into the dispatcher on purpose : the single             ##
+##        post_process slot cannot currently combine crop_wide with         ##
+##        rotation_stack in the same render, and that integration           ##
+##        choice is left open.                                              ##
+##                                                                          ##
+##        opts : crop_fraction (per-side target trim, default 0.22          ##
+##        -> ~16:9 from 512x512), search_px (window half-size around        ##
+##        the target margin, default 48), padding_px (outward pad,          ##
+##        default 12), min_coverage (min lit fraction for a line            ##
+##        row, default 0.25), spike_ratio (line must be this much           ##
+##        denser than window background, default 4.0), lit_threshold        ##
+##        (per-channel lit cutoff, default 16)                              ##
+##                                                                          ##
+##        pure post-process core : reads/rewrites only the given            ##
+##        path, no protocol-7 data or code path access                      ##
+##                                                                          ##
+##        returns ( TRUE, $img_path ) or ( FALSE, $error_string )           ##
+
+my ( $img_path, $opts ) = @ARG;
+$opts //= {};
+
+return ( FALSE, 'expected an image path' ) if not defined $img_path;
+
+my $base = Imager->new( 'file' => $img_path );
+return ( FALSE, 'imager read failed : ' . Imager->errstr )
+    if not defined $base;
+
+my ( $w, $h ) = ( $base->getwidth, $base->getheight );
+
+my $crop_fraction = $opts->{'crop_fraction'} // 0.22;
+my $search_px     = $opts->{'search_px'}     // 48;
+my $padding_px    = $opts->{'padding_px'}    // 12;
+my $min_coverage  = $opts->{'min_coverage'}  // 0.25;
+my $spike_ratio   = $opts->{'spike_ratio'}   // 4.0;
+my $lit_threshold = $opts->{'lit_threshold'} // 16;
+
+return ( FALSE, 'crop_fraction out of range ( 0 .. 0.5 )' )
+    if $crop_fraction <= 0 or $crop_fraction >= 0.5;
+
+my $margin = int( $crop_fraction * $h + 0.5 );
+
+## lit-pixel fraction of one full-width row [ any channel above cutoff ] ##
+my $row_score = sub {
+    my $y       = shift;
+    my $samples = $base->getsamples( 'y' => $y, 'channels' => [ 0, 1, 2 ] );
+    my $lit     = 0;
+    for ( my $i = 0; $i < $w * 3; $i += 3 ) {
+        $lit++
+            if vec( $samples, $i,     8 ) > $lit_threshold
+            or vec( $samples, $i + 1, 8 ) > $lit_threshold
+            or vec( $samples, $i + 2, 8 ) > $lit_threshold;
+    }
+    return $lit / $w;
+};
+
+## strongest row in [ center +/- search_px ], kept only if it is a clear ##
+## spike above the window's own background level -- else undef [ caller  ##
+## falls back to the unsnapped margin for that side ]                    ##
+my $find_boundary = sub {
+    my $center = shift;
+    my $y0     = $center - $search_px;
+    my $y1     = $center + $search_px;
+    $y0 = 0      if $y0 < 0;
+    $y1 = $h - 1 if $y1 > $h - 1;
+
+    my %score;
+    my ( $best_y, $best_score ) = ( undef, -1 );
+    foreach my $y ( $y0 .. $y1 ) {
+        $score{$y} = $row_score->($y);
+        ( $best_y, $best_score ) = ( $y, $score{$y} )
+            if $score{$y} > $best_score;
+    }
+    return undef if $best_score < $min_coverage;
+
+    ## background level : mean of the window excluding the line itself and ##
+    ## its immediate neighbors [ a stroke can be 1-2 px thick ]            ##
+    my ( $sum, $n ) = ( 0, 0 );
+    foreach my $y ( $y0 .. $y1 ) {
+        next if abs( $y - $best_y ) <= 1;
+        $sum += $score{$y};
+        $n++;
+    }
+    my $bg = $n ? $sum / $n : 0;
+    return undef if $bg > 0 and $best_score < $spike_ratio * $bg;
+    return $best_y;
+};
+
+my $top_y = $find_boundary->($margin);
+my $bot_y = $find_boundary->( $h - 1 - $margin );
+
+## pad OUTWARD from the detected line so it keeps breathing room to the new ##
+## edge ; fallback is the plain target margin, no snapping                  ##
+my $top = defined $top_y ? $top_y - $padding_px : $margin;
+my $bot = defined $bot_y ? $bot_y + $padding_px : $h - 1 - $margin;
+
+$top = 0      if $top < 0;
+$bot = $h - 1 if $bot > $h - 1;
+return ( FALSE, 'crop collapsed : nothing left' ) if $bot - $top + 1 < 8;
+
+my $cropped = $base->crop(
+    'left'   => 0,
+    'top'    => $top,
+    'width'  => $w,
+    'height' => $bot - $top + 1
+);
+return ( FALSE, 'imager crop failed : ' . Imager->errstr )
+    if not defined $cropped;
+
+my $ok = $cropped->write( 'file' => $img_path, 'type' => 'png' );
+return ( FALSE, 'imager write failed : ' . Imager->errstr ) unless $ok;
+
+return ( TRUE, $img_path );
+
+#,,,,,.,.,,..,...,..,,,..,..,,..,,..,,..,,,,,,..,,...,...,,.,,.,.,,.,,,,,,..,,
+#KTBAFCF4J2CQWSJJ2C5QCTHJXW47W73U6P2LTVLK3KJ5TVRBRCNFHPJ6DA3YQ5KO6N5B5VVORKLG6
+#\\\|V2D2EM4Y4KXDSABG7OHS2MHUNQI7LFDN3ZF2AGE2FSYHVV2PCSZ \ / AMOS7 \ YOURUM ::
+#\[7]HCL2EXFRR7IBG3GYZSZZ35YFNMHXQASF4G2F2OTOPYKMJJP5ZUAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

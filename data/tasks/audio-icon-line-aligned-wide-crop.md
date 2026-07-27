@@ -2,7 +2,24 @@
 
 ## status
 
-deferred / not started. captured from conversation so it isn't lost.
+**module built and live-tested** — `audio.post_process.crop_wide.v1`,
+implemented by Kimi K3 dispatch, whitelisted for compile-timing. NOT
+yet wired into `audio.finalize_decode`'s dispatcher on purpose: the
+single-slot `audio.cfg.post_process` can't currently combine
+`crop_wide` with `rotation_stack` in the same render, and that
+integration decision is still open (see § below and
+`audio.cfg.post_process`'s existing single-select limitation, also
+noted in `project-audio-icon-three-stage-pipeline-landed-2026-07-27.md`).
+
+tested directly (loading the actual module file, not a reconstruction)
+against real renders: `ac` (the sample that actually crosses the
+`format_hint` threshold in production) cropped cleanly at both edges —
+boundary lines fully visible with padding, no square bisected. `aa`
+(generic sanity check only, never actually reaches this module since
+it stays `square`) cropped cleanly at top but fell back to a plain
+margin at bottom with less visible padding — a minor edge-case in the
+fallback path, not affecting the real target case.
+
 a simpler, flat alternative (or complement) to the povray cylinder
 wrap (`data/tasks/audio-icon-povray-glass-cylinder-wrap.md`) for
 producing an actually wide (non-square) image once
@@ -68,8 +85,8 @@ with breathing room, reading as an intentional frame edge.
   as the richer presentation for whenever that's built. not yet
   decided whether both should exist or one supersedes the other.
 
-#,,.,,,,,,.,,,,,.,..,,...,,,.,,,.,.,,,,,,,,,,,..,,...,...,.,.,,..,..,,,..,,,.,
-#4COGT2V6R2UYQTPFG33ILZ7W66C2EZA2WBCHPNI3WTXTLQPVEFEKZGYODYA2H3YHSB35VLYDSTZZO
-#\\\|Z4MJSETH5P6GZA2ODGW4EFM56DY5ZODLD2VOWLDPLA3HFSFELB3 \ / AMOS7 \ YOURUM ::
-#\[7]F23PMOVNMCJ6PFWCP7FJSE2CIZ5ULZYATITOOLZVLTRGLQZWFOCI 7  DATA SIGNATURE ::
+#,,..,..,,,..,,.,,..,,,,,,,.,,,..,,,,,..,,,.,,..,,...,..,,..,,...,,,,,,.,,..,,
+#BFWTEKCJWGKZT4XZWNMUACDSJQ6QH6PQ22IEVICQKOEEMBG54STW7NA22WGWD5OHH6FSPZ4YT2HFG
+#\\\|LCH7P63U7ARGSTOZV4RFU2LKE5WST3GQ5QOVAWSIPTF3XY6RLB3 \ / AMOS7 \ YOURUM ::
+#\[7]H6S66KNO45EQVVW5ZTAAAAYR4MXYDF22EHUWZGXVRLNAOB2DA6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
