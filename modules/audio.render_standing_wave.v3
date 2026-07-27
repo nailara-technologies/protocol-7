@@ -4,22 +4,22 @@
 # descr = standing-wave lattice png, phase-anchored off-center rings
 # param = $pcm_aref, $sample_rate, $out_path [, $opts_href ]
 
-## style v3 : divergent variant, per Opus code review. v1/v2 anchor every ##
-## pass to the fixed canvas center ($cx), which may be why different      ##
-## samples looked structurally similar despite different spectra -- the   ##
-## sameness could be geometric (imposed by always centering) rather than  ##
-## spectral (real). here, pass 1's ring centers are placed by the PHASE   ##
-## of each low-frequency peak (atan2 of a representative window's FFT     ##
-## bin) instead of always at $cx -- same stroke/palette vocabulary, but   ##
-## content genuinely determines *where* things sit, not just how many.    ##
-## everything else (FFT, band split, normalization, palette, highs/     ##
-## accents grid) is unchanged from v1.                                    ##
-##                                                                       ##
-## pure render core : no protocol-7 data or code path access and no     ##
-## purr-specific keying [ entity id, grid coords, fade-by-relevance all ##
-## belong to layers above this primitive ]                              ##
-##                                                                      ##
-## returns ( TRUE, $out_path, $stats_href ) or ( FALSE, $error_string ) ##
+## style v3 : divergent variant, per Opus code review. v1/v2 anchor every  ##
+## pass to the fixed canvas center ($cx), which may be why different       ##
+## samples looked structurally similar despite different spectra -- the    ##
+## sameness could be geometric (imposed by always centering) rather than   ##
+## spectral (real). here, pass 1's ring centers are placed by the PHASE of ##
+## each low-frequency peak (atan2 of a representative window's FFT bin)    ##
+## instead of always at $cx -- same stroke/palette vocabulary, but content ##
+## genuinely determines *where* things sit, not just how many.  everything ##
+## else (FFT, band split, normalization, palette, highs/ accents grid) is  ##
+## unchanged from v1.                                                      ##
+##                                                                         ##
+## pure render core : no protocol-7 data or code path access and no        ##
+## purr-specific keying [ entity id, grid coords, fade-by-relevance all    ##
+## belong to layers above this primitive ]                                 ##
+##                                                                         ##
+## returns ( TRUE, $out_path, $stats_href ) or ( FALSE, $error_string )    ##
 
 my ( $pcm_aref, $sample_rate, $out_path, $opts ) = @ARG;
 $opts //= {};
@@ -97,10 +97,10 @@ foreach my $bin ( 0 .. $half - 1 ) {
 
 ## :[ phase for low-band peaks : single representative window ]: ##
 
-## true phase averaged across multiple windows doesn't mean anything      ##
-## (phase wraps/cancels destructively) -- use the middle window as a      ##
-## deterministic, content-driven single sample for angular placement.     ##
-## only the low half of bins is kept, since only pass 1 (rings) uses this ##
+## true phase averaged across multiple windows doesn't mean anything (phase ##
+## wraps/cancels destructively) -- use the middle window as a               ##
+## deterministic, content-driven single sample for angular placement.  only ##
+## the low half of bins is kept, since only pass 1 (rings) uses this        ##
 my $mid_off = $offsets[ int( @offsets / 2 ) ];
 my @phase_windowed
     = map { $pcm_aref->[ $mid_off + $ARG ] * $hann[$ARG] } 0 .. $fft_size - 1;
@@ -166,7 +166,7 @@ my @stops = (
     [ 0.00, 0x0a, 0x0a, 0x3a ],    ## deep indigo   : lows       ##
     [ 0.45, 0x1a, 0x3a, 0xff ],    ## royal blue    : mids       ##
     [ 0.75, 0x7a, 0x3a, 0xff ],    ## violet        : upper-mids ##
-    [ 1.00, 0xb8, 0x50, 0xe0 ],    ## pale lavender : peaks only ##
+    [ 1.00, 0x78, 0x44, 0xd0 ],    ## pale lavender : peaks only ##
 );
 
 my $ramp = sub {
@@ -187,7 +187,8 @@ my $ramp = sub {
 
 my $dim = sub {    ## brightness-scale color by peak magnitude ##
     my ( $color, $frac ) = @ARG;
-    $frac = 0.35 + 0.65 * $frac;
+    ## floor raised 0.35->0.55 : see v1's identical fix and rationale ##
+    $frac = 0.55 + 0.45 * $frac;
     my ( $r, $g, $b ) = $color->rgba;
     return Imager::Color->new(
         'red'   => int( $r * $frac ),
@@ -273,6 +274,22 @@ $stats->{'rings'} = $n_rings;
 if ( $n_rings > 0 ) {
     my @ring_bins  = sort { $a <=> $b } @$low_peaks[ 0 .. $n_rings - 1 ];
     my $max_offset = int( $size * 0.16 );
+
+    ## anchor every ring's angle relative to the FIRST ring's own phase,    ##
+    ## rather than each independently absolute. absolute FFT phase rotates  ##
+    ## by 2*pi*f*dt under any time-shift of the same content, so per-peak   ##
+    ## absolute placement isn't stable if the same audio gets re-segmented  ##
+    ## from a different start offset -- flagged by kimi K3 review, see      ##
+    ## audio-render-v3-phase-bug-and-v4-temporal-idea.md.  true             ##
+    ## shift-invariance isn't achievable this way (different bins rotate at ##
+    ## different rates, so even a relative difference between two DIFFERENT ##
+    ## frequencies still drifts under a time-shift) -- but anchoring to a   ##
+    ## shared reference keeps the ring CONSTELLATION's internal shape       ##
+    ## coherent even though the whole cluster can still rotate together.    ##
+    ## full stream-segmentation stability is explicitly upstream scope per  ##
+    ## AUDIO-VISUAL-THUMBNAIL-GENERALIZATION.md                             ##
+    my $phase_ref = $phase_of->( $ring_bins[0] );
+
     foreach my $bin (@ring_bins) {
         my $f_hz = $bin * $bin_hz;
         my $tf   = log( $f_hz / 20 ) / log(12.5);    ## 20..250 hz ##
@@ -280,10 +297,11 @@ if ( $n_rings > 0 ) {
         $tf = 1 if $tf > 1;
         my $half_side = int( 232 - $tf * 168 );      ## low = large ##
 
-        ## off-center placement : ring center follows this peak's own    ##
-        ## FFT phase angle instead of always sitting at the canvas       ##
-        ## center -- offset magnitude scales with the peak's own norm    ##
-        my $angle  = $phase_of->($bin);
+        ## off-center placement : ring center follows this peak's phase     ##
+        ## relative to the shared reference above, instead of always        ##
+        ## sitting at the canvas center -- offset magnitude scales with the ##
+        ## peak's own norm                                                  ##
+        my $angle  = $phase_of->($bin) - $phase_ref;
         my $offset = int( $max_offset * ( 0.3 + 0.7 * $norm[$bin] ) );
         my $rcx    = $cx + int( $offset * cos($angle) );
         my $rcy    = $cx + int( $offset * sin($angle) );
@@ -390,11 +408,15 @@ foreach my $k ( 0 .. $n_accents - 1 ) {
     last unless $draw_box->( $x, $y, $x + $side, $y + $side, $ramp->(1.0) );
 }
 
-## :[ additive glow : blurred copy added back onto the strokes ]: ##
+## :[ additive glow : blurred + dimmed copy added back onto the strokes ]: ##
 
+## stddev=1.0 at full brightness was nearly a no-op on 1px strokes -- see ##
+## v1's identical fix and rationale                                       ##
 my $glow = $img->copy;
-$glow->filter( 'type' => 'gaussian', 'stddev' => 1.0 );
-$img->paste( 'src' => $glow, 'combine' => 'add', 'left' => 0, 'top' => 0 );
+$glow->filter( 'type' => 'gaussian', 'stddev' => 2.5 );
+$glow = $glow->convert(
+    'matrix' => [ [ 0.35, 0, 0 ], [ 0, 0.35, 0 ], [ 0, 0, 0.35 ] ] );
+$img->compose( 'src' => $glow, 'tx' => 0, 'ty' => 0, 'combine' => 'add' );
 
 $stats->{'lit_ratio'} = $spent / ( $size * $size );
 
@@ -403,8 +425,8 @@ return ( FALSE, 'imager write failed : ' . Imager->errstr ) unless $ok;
 
 return ( TRUE, $out_path, $stats );
 
-#,,.,,.,,,,,.,..,,...,,..,..,,.,.,,.,,...,..,,..,,...,...,.,,,,,,,.,,,,..,,,.,
-#NFCM6AK3TMCM6EU7CL7ILB6ULP6BSP4O3KFTSM6XUFQ2IEGA6XEWQD5ITY2MHBVHY4YGYPQWTAX6G
-#\\\|OUG4UFTW75QJ6QQ6KVRRIBU6AWJBELBZDMT4GNQZ2HFMQOAZYRY \ / AMOS7 \ YOURUM ::
-#\[7]EFULN7T362JMRLDXZIYBXH6I4UOGWCPELHYA7URVO44TQLDMQEAI 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,.,,..,,,..,.,,,,..,,..,..,,,,,,..,,...,...,,..,..,,,.,,..,,,.,,
+#VTGJ7FJ6U6M2CQBQB5K73SJUO5FMIXR766SPIKVPQOF3GEZJFYAIM2E5X57X24YROTCNP5SHJINJE
+#\\\|SAVO4ESUUKDHPEPCNIELBAIGFGHLKPS52XA4GNPKX2U5UV5R26L \ / AMOS7 \ YOURUM ::
+#\[7]2RVKM3ZSVUBYMFHXNCZETY7IRUC64NAOEZK6RBN3OQDIKW772WDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
