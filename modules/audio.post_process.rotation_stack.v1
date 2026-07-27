@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = audio.post_process.rotation_stack.v1
+# descr = static spiral : 4x translucent 90deg-ccw self-composite, in place
+# param = $img_path
+
+## optional post-process LAYER, orthogonal to render_style -- composites a  ##
+## rendered png with 3 copies of itself rotated 90/180/270 degrees ccw, all ##
+## at uniform 50% opacity, producing a spiral/depth effect from compositing ##
+## order alone. see topic-audio-render-rotational-depth-stack.md : needs an ##
+## ASYMMETRIC base to show any visible effect (v3's off-center rings), v1/  ##
+## v2/v4's centered geometry is rotation-invariant and barely changes. this ##
+## is the STATIC variant -- uniform opacity, no darkening.  darkening-as-   ##
+## history-cue is animation-only semantics, reserved for a future animated  ##
+## variant once sliding-window rendering exists (see                        ##
+## topic-audio-render-sliding-window-live-stream.md), not this v1.          ##
+##                                                                          ##
+## pure post-process core : reads/rewrites only the given path, no          ##
+## protocol- 7 data or code path access                                     ##
+##                                                                          ##
+## returns ( TRUE, $img_path ) or ( FALSE, $error_string )                  ##
+
+my ($img_path) = @ARG;
+
+return ( FALSE, 'expected an image path' ) if not defined $img_path;
+
+my $base = Imager->new( 'file' => $img_path );
+return ( FALSE, 'imager read failed : ' . Imager->errstr )
+    if not defined $base;
+
+my $stack = $base->copy;
+my $layer = $base;
+
+foreach ( 1 .. 3 ) {
+    $layer = $layer->rotate( 'degrees' => 90 );
+    $stack->compose(
+        'src'     => $layer,
+        'tx'      => 0,
+        'ty'      => 0,
+        'combine' => 'normal',
+        'opacity' => 0.5
+    );
+}
+
+my $ok = $stack->write( 'file' => $img_path, 'type' => 'png' );
+return ( FALSE, 'imager write failed : ' . Imager->errstr ) unless $ok;
+
+return ( TRUE, $img_path );
+
+#,,.,,,,.,.,,,..,,,,,,..,,..,,,..,,..,.,,,...,..,,...,..,,..,,,..,,,.,..,,..,,
+#AT35HWL276CXTMFR4SBUUPYLO5EM5QTPDSHYFRPTZXXZCHQM2UND2LAAU5FOFEGBV7F7CHKI6NANG
+#\\\|XSI3E6XAIWDYWI7G7OIQU63H25L5JOYTYDZOXXRVTNQWF6XYLWW \ / AMOS7 \ YOURUM ::
+#\[7]ZHH3QOZHK6JA4AQXCV2XKW2KFNMJ3R63N6O5K5FQLH57Z27APKBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
