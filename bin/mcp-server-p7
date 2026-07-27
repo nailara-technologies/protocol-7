@@ -690,15 +690,17 @@ our @tools = (
     },
     {   'name'        => 'scratchpad_import',
         'description' => 'import a claude session scratchpad [ '
-            . '/tmp/claude-*/<uuid>/scratchpad/ — volatile, does not '
-            . 'survive a reboot ] into the repository at '
-            . 'data/scratchpad/<bmw-L13 of the session /tmp path — '
-            . 'trailing slash, same as bin/bmw-L13 on '
-            . '/tmp/claude-*/<uuid>/ >/ , with an IMPORT-INFO file '
-            . 'recording the source. without session_id: list imported [ '
-            . 'repo ] and/or available [ /tmp ] scratchpads — see the '
-            . 'list parameter. with file=<name>: read one scratchpad '
-            . 'file raw [ capped ] without importing.',
+            . '/tmp/claude-*/<uuid>/scratchpad/ — volatile, '
+            . 'does not survive a reboot ] into the '
+            . 'repository at data/scratchpad/<bmw-L13 of '
+            . 'the session /tmp path — trailing slash, same '
+            . 'as bin/bmw-L13 on /tmp/claude-*/<uuid>/ >/ , '
+            . 'with an IMPORT-INFO file recording the '
+            . 'source. without session_id: list imported [ '
+            . 'repo ] and/or available [ /tmp ] scratchpads '
+            . '— see the list parameter. with file=<name>: '
+            . 'read one scratchpad file raw [ capped ] '
+            . 'without importing.',
         'inputSchema' => {
             'type'       => 'object',
             'properties' => {
@@ -810,8 +812,8 @@ our @tools = (
                 },
                 'sessions' => {
                     'type'        => 'integer',
-                    'description' => 'number of recent sessions to '
-                        . 'summarize (default: 1, 0 for none)'
+                    'description' => 'number of recent sessions to summarize '
+                        . '(default: 1, 0 for none)'
                 },
                 'git_changes' => {
                     'type'        => 'boolean',
@@ -2560,6 +2562,12 @@ sub _tree_query {
     my ($chk) = @ARG;
     return undef unless length $chk;
     my $result;
+    ## alarm() is one global process-wide timer, not stackable — a caller   ##
+    ## further up the stack (e.g. _do_summarize's session_catchup path) may ##
+    ## already have its own longer alarm pending. save + cancel it before   ##
+    ## setting ours, restore it after, so our short best-effort timeout can ##
+    ## never silently destroy an outer caller's deadline                    ##
+    my $outer_remaining = alarm(0);
     eval {
         local $SIG{'ALRM'} = sub { die "timeout\n" };
         alarm(3);
@@ -2567,6 +2575,7 @@ sub _tree_query {
         alarm(0);
         $result = $data if $ok;
     };
+    alarm($outer_remaining) if $outer_remaining and $outer_remaining > 0;
     if ($@) {
         cube_disconnect() if $@ eq "timeout\n";
         log_msg( '[tree] query failed/timed out [ chk=%s ] : %s', $chk, $@ );
@@ -2580,6 +2589,8 @@ sub _tree_query {
 sub _tree_notify {
     my ( $chk, $origin, $focus, $result ) = @ARG;
     return unless length $chk and length( $result // '' );
+    ## same global-alarm save/restore as _tree_query -- see its comment ##
+    my $outer_remaining = alarm(0);
     eval {
         local $SIG{'ALRM'} = sub { die "timeout\n" };
         alarm(5);
@@ -2606,6 +2617,7 @@ sub _tree_notify {
         cube_command("task.summary-tree-notify $args");
         alarm(0);
     };
+    alarm($outer_remaining) if $outer_remaining and $outer_remaining > 0;
     if ($@) {
         cube_disconnect() if $@ eq "timeout\n";
         log_msg( '[tree] notify failed/timed out [ chk=%s ] : %s', $chk, $@ );
@@ -3059,7 +3071,14 @@ sub tool_session_catchup {
     eval {
         local $SIG{ALRM} = sub { die "timeout\n" };
         alarm(590);
-        $result = _do_summarize( $text, $inst, 600, $origin );
+        ## 600 was too tight for the ROLLING carried-forward summary [ not ##
+        ## just the final answer ] -- each chunking round forces whatever  ##
+        ## state is being tracked through this same cap as "previous       ##
+        ## summary" input to the next round, so a too-small value causes   ##
+        ## lossy re-compression every round instead of genuine             ##
+        ## accumulation. bumped 5x ; still a real bound, just not one that ##
+        ## starves multi-round tracking on a long transcript               ##
+        $result = _do_summarize( $text, $inst, 3000, $origin );
         alarm(0);
     };
     if ($@) {
@@ -3640,8 +3659,32 @@ sub tool_external_command {
                 $ext->{'name'}, length($output), length($resume_line) );
             cube_disconnect()
                 ;    ## flush any stale socket state from subprocess ##
-            my $t0      = time;
-            my $summary = _do_summarize( $output, $instruction, 600 );
+            my $t0 = time;
+            ## this call site previously had NO timeout at all -- unlike    ##
+            ## every other _do_summarize call site in this file, nothing    ##
+            ## wrapped it in alarm(). since this whole server is single-    ##
+            ## threaded [ one blocking STDIN read loop, no fork/threads for ##
+            ## request handling ], a stuck summarize here blocked every     ##
+            ## other MCP tool call indefinitely, not just this one.  also   ##
+            ## bumped 600->3000 : see the matching fix + comment on the     ##
+            ## session_catchup call site for why 600 was too tight for a    ##
+            ## rolling carried-forward summary specifically                 ##
+            my $summary;
+            eval {
+                local $SIG{ALRM} = sub { die "timeout\n" };
+                alarm(590);
+                $summary = _do_summarize( $output, $instruction, 3000 );
+                alarm(0);
+            };
+            if ($@) {
+                cube_disconnect();
+                log_msg(
+                    '[auto_summarize] %s: summarize '
+                        . 'timed out/errored : %s',
+                    $ext->{'name'}, $@
+                );
+                $summary = undef;
+            }
             log_msg(
                 '[auto_summarize] %s: summary_defined=%d '
                     . 'summary_len=%d elapsed=%ds',
@@ -3678,8 +3721,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,.,,.,,...,...,,,,,.,,,,,.,,,.,,,,,.,.,,.,,..,,...,...,,..,.,.,,..,.,.,...,
-#U37YSLQ7H44DWJZSNHWUVVQHGU76BU56CJNT7SH64GHALU6FYHNR6UJNF3VEJ2QCJ5RTO4IARHYCI
-#\\\|UV4JMZRAL2LRKIYIVOQ3KSEYJUBVALKQZX26CZEQFBHC4WIN2YO \ / AMOS7 \ YOURUM ::
-#\[7]UMCNWOOQYUL3G3UJVQ32RCIGNJKLTOCPEN2YRNH3GQHOWF6D2KBQ 7  DATA SIGNATURE ::
+#,,..,,,,,,..,,,,,..,,,,,,.,.,,..,.,,,,.,,.,.,..,,...,...,...,.,,,,..,.,,,,,,,
+#UIVQGFXTVQMMHLHRELNYID7VOA2UVDXZ6ZSAFWOGRJD3K55MZOBR2BACC6HL6ZMRORY3JORD76OME
+#\\\|4CMZ2JZGMSLLMOGFH44NOGMCMVODYZ6QXSM5MSFNOON7TFV35HG \ / AMOS7 \ YOURUM ::
+#\[7]7RCPFM7YOMON7YT73QWFBASDWI4WIIHINTVRUZI4BDZ6N3YVTGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
