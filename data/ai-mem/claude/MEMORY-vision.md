@@ -43,9 +43,10 @@ network-as-computer, dedup-tree unification, coding-as-artform / style-philosoph
 - [post-bootstrap-load-window](topic-post-bootstrap-load-window.md) — SEED: defer perl-module/subroutine loads to just after boot subsides, but preempt immediately on early real use, self-optimize later via dep-graph+timing stats; generalizes deferred_compile's existing self-heal pattern to CPAN deps; not implemented, zero deferred perl-module loading exists today
 - [zenka-restart-intent-propagation-resumption](topic-zenka-restart-intent-propagation-resumption.md) — SEED: true crash resilience is intent propagation + resumption across a restart boundary (not state serialization); a zenka's in-flight goal, incl. an outstanding kimi/claude dispatch, should survive its process dying and auto-resume with a crash report, not silently restart fresh; design-only, sparked by a kimi session surviving a v7 crash only incidentally (MCP-managed, not protocol-7-designed)
 - [audio-render-cubic-zoom-transition](topic-audio-render-cubic-zoom-transition.md) — SEED: audio.render_standing_wave's nested lattice squares visually travel along a cubic grid under zoom; proposed as a transition mode overlaying the existing cubic-space desktop nav grid, bridging the audio renderer into the project's existing space-navigation visual language; relates to [[topic-implicit-perspective-navigation]]/[[topic-perspective-layers]]
+- [audio-render-as-similarity-feature-source](topic-audio-render-as-similarity-feature-source.md) — SEED: confirmed empirically that audio.render_standing_wave's output tracks real audio similarity (2 purrs render alike, a meow renders denser); its own per-render $stats (band energies, ring/cell/speckle counts) is a ready-made feature vector for [[similarity-graph-cell-connections]]'s unfilled upstream similarity-score gap
 
-#,,..,.,.,..,,..,,,..,,,,,..,,,,.,.,.,.,.,..,,..,,...,...,...,...,...,,.,,,..,
-#YHE3KGA2GUGANWMU7NH2AVRRJV3MMO3B7HMFMUDQSXBHHTG6ZNU5UAI7Z74W4EA2TLEOBO64MOAKU
-#\\\|JOGK2SE2LT7R6H2H45CMJLPVHK6CFWP7K5XPSIEUJYPKASEE6DJ \ / AMOS7 \ YOURUM ::
-#\[7]4HZFZFDKKRTSN4AUMLSFYVIVEZPLY2FKHRDKKDZM3WRGG65AMQDY 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,.,,,,.,,,,.,...,.,,,...,,,.,,,.,..,,...,...,.,,,..,,.,.,,.,,.,,,
+#JCEPEV7FNXHDIVQ6K4PO7ZG7B44OUSIIC3PAB5IN6G3C3NDYWAK4OJURSTXVNGME3OJXN4MJ45GHI
+#\\\|W3SVUD3AOMSHT2B6NFVKALAYL2HIDROPUAGOMR7AALL32EW7IMQ \ / AMOS7 \ YOURUM ::
+#\[7]CSDTMJGFUMT4OL47ARFPJ6HNEF3XWSGPU4K7S6BDYDX5AJBTTICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
