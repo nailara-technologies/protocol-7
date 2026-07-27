@@ -30,6 +30,11 @@ jobsite.cfg.rescan_interval = 0
 ## seconds between sync pushes to httpd cache
 jobsite.cfg.sync_interval = 300
 
+## seconds to wait for a dispatched assessment/repair task's reply before
+## giving up on it and draining the next queue entry [ watchdog against a
+## lost task.create/task.wait-done reply wedging cycle on 'assessing' ]
+jobsite.cfg.assess_timeout = 600
+
 ## two-stage delete retention (in V7 epochs)
 jobsite.cfg.trash_keep_epochs  = 1  ## recoverable compressed stage
 jobsite.cfg.deleted_keep_epochs = 2  ## plain deleted stage before purging
@@ -62,8 +67,8 @@ modules.load = auth.client net protocol io.unix ui jobsite clients.http devmod
 
 [zenka.loop]
 
-#,,,,,...,..,,..,,,..,,.,,.,,,,,,,.,,,,..,,..,..,,...,...,,..,.,,,.,,,.,,,.,.,
-#KXLDAIQSWMQXZXX5P24FSPY7MB3K27ASZKBSKZ2RPK32DY7ZYTILU5IFJ4GFL7S3DHLNPE7KI3KTE
-#\\\|JCWGCFRDWBVJIHPBCKJCQAJNRQJTGTAJZSQKVUI2ULD3S4MDYQ4 \ / AMOS7 \ YOURUM ::
-#\[7]HM5XQXQ7GCQ25DRN7PUY2YASA4VUPSPWKA33HCA5JWCXII6HX6AA 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,,,.,..,,.,,,.,,,,.,,,.,,...,...,..,,...,...,.,.,,..,,..,.,.,,,,,
+#RBKPR5QGGIIOKTPGCEQ6CVZUFLMYHT3QTDYVZRFQMC5JQFZM5UTWKX2YODZN3VKICWHUWZP7ZCM7E
+#\\\|XIONSELN6FXT6LIIR4OFHBEX5NJ2FEZZQLJB4GFPUWQLIH5JEY3 \ / AMOS7 \ YOURUM ::
+#\[7]MJGFAYKYQIDR4HEWRO2HNYFI4L2MJHINOBB5UPUHNYWGHH4QCYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

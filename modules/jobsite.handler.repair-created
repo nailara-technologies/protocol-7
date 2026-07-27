@@ -5,10 +5,26 @@
 
 my $call = shift // {};
 
-my $mode    = $call->{'mode'} // '';
-my $raw     = $call->{'data'} // '';
-my $task_id = ref $raw ? $raw->$* : $raw;
-my $job_id  = <[base.vax-int.decode]>->( $call->{'params'}{'job_id'} // '' );
+my $mode     = $call->{'mode'} // '';
+my $raw      = $call->{'data'} // '';
+my $task_id  = ref $raw ? $raw->$* : $raw;
+my $job_id   = <[base.vax-int.decode]>->( $call->{'params'}{'job_id'} // '' );
+my $attempt  = $call->{'params'}{'attempt'}                      // 0;
+my $cur_attt = ( <jobsite.tasks>->{$job_id} // {} )->{'attempt'} // 0;
+
+if ( $attempt and $attempt != $cur_attt ) {
+    ## stale reply : watchdog already gave up on this attempt -- see ##
+    ## task-created's identical guard for the full rationale         ##
+    <[base.logs]>->(
+        1,
+        'jss.repair-created: stale reply for job '
+            . '%s [ attempt %s, current %s ], ignoring',
+        $job_id,
+        $attempt,
+        $cur_attt
+    );
+    return;
+}
 
 if ( lc($mode) eq qw| false | ) {
     <[base.logs]>->(
@@ -17,7 +33,10 @@ if ( lc($mode) eq qw| false | ) {
     );
     ## repair task itself never got created : no watcher will ever fire for ##
     ## this job, so it must be decremented here or it orphans pending_count ##
-    ## forever [ mirrors task-created's false branch ] ##
+    ## forever [ mirrors task-created's false branch ]                      ##
+    if ( my $timer = delete <jobsite.assess_timer>->{$job_id} ) {
+        eval { $timer->cancel };
+    }
     <jobsite.tasks>->{$job_id}{'repair_failed'} = TRUE;
     <jobsite.pending_count>--;
     <jobsite.pending_count> = 0 if <jobsite.pending_count> < 0;
@@ -38,13 +57,17 @@ $task_id = uc( substr( $task_id, 0, 7 ) );
         'call_args' => { 'args' => $task_id },
         'reply'     => {
             'handler' => 'jobsite.handler.repair-done',
-            'params'  => { 'job_id' => $job_id, 'task_id' => $task_id },
+            'params'  => {
+                'job_id'  => $job_id,
+                'task_id' => $task_id,
+                'attempt' => $attempt
+            },
         },
     }
 );
 
-#,,,.,,,.,.,,,.,.,,..,,,,,,.,,,,.,,..,.,.,,..,..,,...,..,,,,.,,,.,...,.,,,.,.,
-#HB5OUVWAFTH6LCZZL4W3BJEP2VIHAIAR6ZPRWGVKGORXCAFHYLFVFDH4IO3TI53KBDAZI7E6TEOAW
-#\\\|2SBG3S35KIXVWJEBCQXZI5W2I6AS27ZMTIU3RK6XH2HAAOA46TG \ / AMOS7 \ YOURUM ::
-#\[7]KVK6RH5CJMY55LOU2TCZB56XBAWBOBZ3FQA5C5FWGKCCB5KZYAAI 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,,.,,,.,,.,,,.,,...,.,.,,.,,..,,..,,...,..,,.,,,,,,,.,.,..,,,,,,
+#FPG5GY2GU3PZ5VO2A56YMWKPHAEJXYOMDLAXJO5SIW6VI5DTF2TQBWKNAUIP7Y2HJVSCBMWYOOHXW
+#\\\|JZ2KPEPTNDLH4YTMKWRO4A23CQMBCJKS75PXVYAFYMVRJRPRUN2 \ / AMOS7 \ YOURUM ::
+#\[7]ILDYPQBOUC72ELXGIK7UXKE2NUGGUIBLBY66PMWOVUJA7DDXIYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
