@@ -43,10 +43,10 @@ network-as-computer, dedup-tree unification, coding-as-artform / style-philosoph
 - [post-bootstrap-load-window](topic-post-bootstrap-load-window.md) — SEED: defer perl-module/subroutine loads to just after boot subsides, but preempt immediately on early real use, self-optimize later via dep-graph+timing stats; generalizes deferred_compile's existing self-heal pattern to CPAN deps; not implemented, zero deferred perl-module loading exists today
 - [zenka-restart-intent-propagation-resumption](topic-zenka-restart-intent-propagation-resumption.md) — SEED: true crash resilience is intent propagation + resumption across a restart boundary (not state serialization); a zenka's in-flight goal, incl. an outstanding kimi/claude dispatch, should survive its process dying and auto-resume with a crash report, not silently restart fresh; design-only, sparked by a kimi session surviving a v7 crash only incidentally (MCP-managed, not protocol-7-designed)
 - [audio-render-cubic-zoom-transition](topic-audio-render-cubic-zoom-transition.md) — SEED: audio.render_standing_wave's nested lattice squares visually travel along a cubic grid under zoom; proposed as a transition mode overlaying the existing cubic-space desktop nav grid, bridging the audio renderer into the project's existing space-navigation visual language; relates to [[topic-implicit-perspective-navigation]]/[[topic-perspective-layers]]
-- [audio-render-as-similarity-feature-source](topic-audio-render-as-similarity-feature-source.md) — SEED: confirmed empirically that audio.render_standing_wave's output tracks real audio similarity (2 purrs render alike, a meow renders denser); its own per-render $stats (band energies, ring/cell/speckle counts) is a ready-made feature vector for [[similarity-graph-cell-connections]]'s unfilled upstream similarity-score gap
+- [audio-render-as-similarity-feature-source](topic-audio-render-as-similarity-feature-source.md) — SEED: confirmed empirically that audio.render_standing_wave's output tracks real audio similarity (2 purrs render alike, a meow renders denser); its own per-render $stats (band energies, ring/cell/speckle counts) is a ready-made feature vector for [[similarity-graph-cell-connections]]'s unfilled upstream similarity-score gap; extended after v2/v3 styles landed -- cross-style agreement (same file correlates across independently-designed v1/v2/v3) is a stronger multi-dimensional signal than any one style alone
 
-#,,,,,.,,,,.,,.,,,,.,,,,.,...,.,,,...,,,.,,,.,..,,...,...,.,,,..,,.,.,,.,,.,,,
-#JCEPEV7FNXHDIVQ6K4PO7ZG7B44OUSIIC3PAB5IN6G3C3NDYWAK4OJURSTXVNGME3OJXN4MJ45GHI
-#\\\|W3SVUD3AOMSHT2B6NFVKALAYL2HIDROPUAGOMR7AALL32EW7IMQ \ / AMOS7 \ YOURUM ::
-#\[7]CSDTMJGFUMT4OL47ARFPJ6HNEF3XWSGPU4K7S6BDYDX5AJBTTICQ 7  DATA SIGNATURE ::
+#,,..,.,,,...,,,.,.,,,,.,,,..,...,.,,,...,...,..,,...,...,.,,,...,.,,,,,.,..,,
+#5T3SWTM67QBNSZSMUWRYGXBIGZQ44PSC47CBXZXCIXN5GYWUHBJPSK7E7WEKRIJAH77FAJEPXILT6
+#\\\|4SQMOQ2EIJEPIPBBDBUOKHGRQC26UKLQYKEJUO2JDQLAZIXIH3D \ / AMOS7 \ YOURUM ::
+#\[7]KDITB7E7NVIIYDFUHSQ7XWC3BNVUDQ64PZJF6FT7Q466WATDVIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
