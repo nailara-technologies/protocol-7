@@ -39,14 +39,26 @@ if ( length $pcm_bin < <audio.cfg.fft_size> * 4 ) {
     my $stamp    = <[base.ntime.b32]>->( 5, TRUE );
     my $out_path = sprintf '%s/spatial-%s.png', $out_dir, $stamp;
 
-    my ( $ok, $result, $stats ) = <[audio.render_standing_wave]>->(
-        \@pcm,
-        <audio.cfg.sample_rate>,
-        $out_path,
-        {   'size'     => <audio.cfg.image_size>,
-            'fft_size' => <audio.cfg.fft_size>
-        }
-    );
+    ## style dispatch : render_style selects which versioned renderer to  ##
+    ## call, so future divergent styles can coexist rather than overwrite ##
+    ## this one -- see audio.render_standing_wave.v1's own header         ##
+    my $style      = <audio.cfg.render_style>;
+    my $render_sub = "audio.render_standing_wave.$style";
+
+    my ( $ok, $result, $stats );
+    if ( not exists $code{$render_sub} ) {
+        ( $ok, $result )
+            = ( FALSE, sprintf 'unknown render_style : %s', $style );
+    } else {
+        ( $ok, $result, $stats ) = $code{$render_sub}->(
+            \@pcm,
+            <audio.cfg.sample_rate>,
+            $out_path,
+            {   'size'     => <audio.cfg.image_size>,
+                'fft_size' => <audio.cfg.fft_size>
+            }
+        );
+    }
 
     if ($ok) {
         chmod( 0664, $result );
@@ -66,8 +78,8 @@ if ( length $pcm_bin < <audio.cfg.fft_size> * 4 ) {
 
 return TRUE;
 
-#,,.,,.,.,...,..,,,,,,,..,.,.,..,,,..,,,.,,.,,..,,...,..,,.,,,...,,..,,,,,,.,,
-#X4XRSEHTHWZSUDHQRIU3FYSZRAILVW4ZKQCP4YC4TC7TKOLP6AC2PMU7I7ZEYQOWQJ3TCNUW222HK
-#\\\|VCLACP4NRZJNHAIXKRGVRSMUDRNZHESGAQB3BK4YOZW7TOELIH3 \ / AMOS7 \ YOURUM ::
-#\[7]FDNUQB4MP6ZT3URUT6ZUPJBRT6P62KXURVSXOB5BSYVYFKJ34GBQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,.,,,.,,,.,,,,.,,,.,,,,,,,,.,...,..,,...,..,,,..,..,,..,,.,,,...,
+#HLKG6CFQA7R46IOASMIV6RCM3PH3SOFXUIYXM4HUZNZ7OK2S2CFQHYZHO4GFW54UTJ2LX4SHOM3EU
+#\\\|2G2WE26CZ7TNLTDUHLCRDVYKXOHTFP6BVNMVGHVLZQBRMGUIP7F \ / AMOS7 \ YOURUM ::
+#\[7]FIVBF3WGMEE43LUVQKSTZKCMPANYPJVOTEY5J3JMLMU5KN6HI6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
