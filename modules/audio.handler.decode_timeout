@@ -10,7 +10,7 @@ my $id    = $wdata->{'id'}           // '';
 
 my $state = <audio.decode>->{$id} or return;
 
-<[base.log]>->( 0, 'audio decode timeout : %s', $state->{'path'} // $id );
+<[base.logs]>->( 0, 'audio decode timeout : %s', $state->{'path'} // $id );
 
 ## empty pcm makes finalize_decode take the false-reply path ##
 $state->{'stderr'} = 'decode timeout';
@@ -20,8 +20,8 @@ $state->{'pcm'}    = '';
 
 return;
 
-#,,..,,..,.,.,.,,,...,,.,,,..,.,.,,,.,.,,,.,.,..,,...,...,...,..,,,,.,..,,...,
-#4M54WK4UGKYNPS6CV7A5VOKGUB77EFE7JMXT6TCP6GTVPHBPGKAAH7RQ6ALMH3VGLYQNCCKZI3HTE
-#\\\|ZWSU63DIQ6SPUSESQ6OMU3QRSIO2LHAMJ67PXZESQEJ3XXPF5ZI \ / AMOS7 \ YOURUM ::
-#\[7]WMWNDVGBG2VHAXTIWZHQKAYHXALWQZOBQRMHEP5AHAJKEJS5I2CQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,.,,,,.,,,..,.,.,.,,,,..,.,.,,..,..,,...,...,...,,,,,,,.,..,,...,
+#535MVWL2U3A7TO6QWUZ3JVI3UQCZ5Z4XXXLHTTU35GT7Y6E5HH2N6CLQLQAJHNTT7OOB2FB4KM6MM
+#\\\|XFI7OYY5JM72WPUHBUBWMW2BV2GLMMLIGDQRRBPIS6DOCQXDX4V \ / AMOS7 \ YOURUM ::
+#\[7]JXARRKRZ7U6VDODLAMVCJ3HZR7HJVWTSWU7D27FENAKAMDH3RWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
