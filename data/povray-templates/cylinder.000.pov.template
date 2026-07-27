@@ -1,0 +1,27 @@
+// cylinder.000.pov.template
+// wrap {{texture_image}} around a horizontal translucent glass cylinder
+
+#version 3.7;
+#global_settings { assumed_gamma 1.0 }
+#include "colors.inc"
+#include "textures.inc"
+
+camera { perspective angle {{camera_angle}}
+         location  {{camera_location}}
+         right     x*image_width/image_height
+         look_at   {{camera_look_at}} }
+
+light_source { {{light_position}} color rgb {{light_color}} }
+
+cylinder { {{cyl_start}}, {{cyl_end}}, {{cyl_radius}}
+    texture {
+        pigment { image_map { png "{{texture_image}}" once
+                              interpolate 2 }
+                  scale {{texture_scale}}
+                  translate {{texture_translate}} }
+        finish { ambient 0.1 diffuse 0.7
+                 reflection {{glass_reflection}}
+                 specular 0.8 roughness 0.005 }
+    }
+    interior { ior {{glass_ior}} }
+}

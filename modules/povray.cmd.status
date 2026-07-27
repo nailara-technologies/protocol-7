@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = povray.cmd.status
+# param = <render-id>
+# descr = poll render state, path if done
+
+my $id = $call->{'args'} // '';
+$id =~ s|^\s+||;
+$id =~ s|\s+$||;
+
+return { 'mode' => qw| false |, 'data' => 'render id required' }
+    if not length $id;
+
+if ( my $state = <povray.render>->{$id} ) {
+    return {
+        'mode' => qw| true |,
+        'data' => sprintf(
+            'running : pid %d, %ds elapsed, out %s',
+            $state->{'pid'} // 0,
+            time - ( $state->{'started'} // time ),
+            $state->{'out_png'} // ''
+        )
+    };
+}
+
+if ( my $finished = <povray.finished>->{$id} ) {
+    return {
+        'mode' => qw| true |,
+        'data' => sprintf 'done : %s',
+        $finished->{'path'}
+        }
+        if $finished->{'ok'};
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf 'error : %s',
+        $finished->{'error'} // 'unknown'
+    };
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf 'unknown render id : %s',
+    $id
+};
+
+#,,,,,.,.,...,..,,,,.,...,,,.,..,,,.,,.,.,...,..,,...,.,.,,..,..,,.,,,.,,,,,,,
+#CKQF2LG2XDOV4WKPLFO2VUEVKAAO3NL7FAVFF5NELNS76PQNEZWOBXWHN6VH2LDNVBPAZLMPFDYPE
+#\\\|ATZSCTZ6NDUOO2PGU4UDGZQKSURCA3K6PAYHZBT4NNE626V37W6 \ / AMOS7 \ YOURUM ::
+#\[7]4PSD3MCJR5QVANF5Z2K75INVHVEWM75DLT57TTOGLK27NHOP2EBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
