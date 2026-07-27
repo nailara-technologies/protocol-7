@@ -12,17 +12,18 @@ while ( @{$queue} ) {
 
     ## a stale duplicate can pile up in the queue if this job was already   ##
     ## dispatched/decided/re-queued by the time its turn comes around again ##
-    ## [ e.g. a re-entrant dispatch.assessments call, or a repeated reassess ##
-    ## request from the browser ] -- skip it instead of re-running a job    ##
-    ## that's no longer pending. two independent checks, either is fatal:   ##
-    ##  - terminal state : the job left the pool entirely [ trash/deleted/  ##
-    ##    blocked are the only statuses that mean "no longer assessable",   ##
-    ##    unlike the old check this does NOT require status=='new', since   ##
-    ##    a reassess entry's target is never 'new' to begin with ]          ##
-    ##  - stale generation : queue_gen was bumped by a newer enqueue for    ##
-    ##    this same id [ dispatch.assessments or apply_reverse's reassess   ##
-    ##    branch both stamp it ] since this entry was built, so a fresher   ##
-    ##    entry for the same job supersedes it ##
+    ## [ e.g. a re-entrant dispatch.assessments call, or a repeated         ##
+    ## reassess request from the browser ] -- skip it instead of re-running ##
+    ## a job that's no longer pending. two independent checks, either is    ##
+    ## fatal:                                                               ##
+    ## - terminal state : the job left the pool entirely [ trash/deleted/   ##
+    ## blocked are the only statuses that mean "no longer assessable",      ##
+    ## unlike the old check this does NOT require status=='new', since a    ##
+    ## reassess entry's target is never 'new' to begin with ]               ##
+    ## - stale generation : queue_gen was bumped by a newer enqueue for     ##
+    ## this same id [ dispatch.assessments or apply_reverse's reassess      ##
+    ## branch both stamp it ] since this entry was built, so a fresher      ##
+    ## entry for the same job supersedes it                                 ##
     my $current     = <[jobsite.job.read]>->($job_id) // {};
     my $cur_status  = $current->{'status'}            // '';
     my $entry_gen   = $entry->{'gen'}                 // 0;
@@ -64,23 +65,48 @@ if ( not defined $desc ) {
     $job_id, scalar $queue->@*
 );
 
-## encode multiline args as base32 to avoid protocol framing issues
-## :no_tools: prefix signals coding zenka to skip tool use (assessment only) ##
+## encode multiline args as base32 to avoid protocol framing issues    ##
+## :no_tools: prefix signals coding zenka to skip tool use (assessment ##
+## only)                                                               ##
 my $encoded
     = ':B32:' . encode_b32r( Encode::encode( 'UTF-8', ":no_tools:\n$desc" ) );
+
+## attempt token : bumped for every fresh dispatch of this job, threaded    ##
+## through the whole task.create/task.wait-done round trip via reply params ##
+## -- lets a late reply from an attempt the watchdog already gave up on be  ##
+## recognized and ignored instead of double-decrementing pending_count      ##
+my $attempt = 1 + ( ( <jobsite.tasks>->{$job_id} // {} )->{'attempt'} // 0 );
+<jobsite.tasks>->{$job_id}{'attempt'} = $attempt;
 
 <[protocol-7.route-send]>->(
     {   'command'   => 'task.create',
         'call_args' => { 'args' => $encoded },
         'reply'     => {
             'handler' => 'jobsite.handler.task-created',
-            'params'  => { 'job_id' => $job_id },
+            'params'  => { 'job_id' => $job_id, 'attempt' => $attempt },
         },
     }
 );
 
-#,,.,,...,,,.,.,.,..,,,..,,,.,,,,,,..,...,..,,..,,...,...,.,,,..,,,..,...,,,,,
-#4VLFQQ3XJXHP7M3JPMJTVB3YFCJYUOIGUTRFA25U7KR77ZUFBMQCSAL63BXZBJTAUJSWRP3JJSPT6
-#\\\|IS37MNZ2YVA24QLKDH5CZG5EPCRVRPPW6OFAZY7WA2K3JVPDQEB \ / AMOS7 \ YOURUM ::
-#\[7]OUKN3KZT54MXWKSFKVDRQKDZ3IUCCZ2AGPO5B5SHGZMX4IIIHWCY 7  DATA SIGNATURE ::
+## watchdog : if the task.create/task.wait-done round trip never replies [  ##
+## lost reply, dropped task, backend wedge -- see                           ##
+## data/tasks/jobsite-assessment-cycle-stuck-no-watchdog.md ], give up on   ##
+## it and keep the queue draining instead of stalling cycle=assessing       ##
+## forever. cancel any stray leftover first : a freshly-queued entry        ##
+## shouldn't have one, but a leaked timer here would otherwise keep ticking ##
+## under a clobbered hash key                                               ##
+if ( my $old_timer = <jobsite.assess_timer>->{$job_id} ) {
+    eval { $old_timer->cancel };
+}
+<jobsite.assess_timer>->{$job_id} = <[event.add_timer]>->(
+    {   'after'   => <jobsite.cfg.assess_timeout> // 600,
+        'handler' => 'jobsite.handler.assess-timeout',
+        'data'    => { 'job_id' => $job_id, 'attempt' => $attempt },
+    }
+);
+
+#,,,.,,,,,,,,,.,.,,,,,,.,,...,,.,,,,.,.,,,,,.,..,,...,...,,.,,.,,,,,.,,,,,.,,,
+#BUFUNPRH4L7TOYHJC23YTC2J6NPR73DSS44ENUQ6I324ZLEE74MGZR73PKSSFYLN2VMU3BOXQXZBY
+#\\\|IUKHDHOPJAHTN5SYFRWGYFTEJXI67GFX45FP5HDO434HZ5AWB5F \ / AMOS7 \ YOURUM ::
+#\[7]KVAZIOQ6G6DXVOIL4HNR4AJ3LU32LDXPXT2XQ2QYFQPJ64AOSABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

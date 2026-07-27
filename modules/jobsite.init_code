@@ -34,6 +34,12 @@ if ( $EFFECTIVE_USER_ID == 0 ) {
 ## per-job state lives under jobsite.tasks.<job_id>.*
 <jobsite.tasks> //= {};
 
+## in-flight watchdog timers, keyed by job_id -- NOT persisted [ mirrors  ##
+## audio.decode's transient-object hash ] : a fresh process has no timers ##
+## to restore, they're re-armed by dispatch.next/dispatch.repair as jobs  ##
+## are (re)dispatched after restart                                       ##
+<jobsite.assess_timer> = {};
+
 ## migrate flat layout to status-directory layout (one-time) ##
 my $jobs_root = join qw| / |,
     <system.path.zenka-dirs>->{'var_P7'}, qw| jobsite jobs |;
@@ -266,8 +272,8 @@ my $job_count = scalar keys %{$tasks};
 
 TRUE;
 
-#,,.,,,,,,.,,,,..,,..,.,.,...,.,.,.,,,.,.,,..,..,,...,...,,.,,,.,,,..,,,,,.,,,
-#CA5QGNOYSQDWT23FNSNTGRB2SQF77VQKR3LFW4QNDEN2XVKSM5D37PZ4QNKJ72WBP5XSNAHMEDNGI
-#\\\|XVYGHILLYS33I4BTD6V2OKY6ATULMGMJHFAB6D3Y55S5LKVQORV \ / AMOS7 \ YOURUM ::
-#\[7]R2RQDGAFOMHH6RMFRPS2X27D5E75BDLFSDMP6MJWVTLOQYYZOQCA 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,.,,,.,,,..,,,..,,,.,,.,,.,.,,..,..,,...,...,,.,,.,.,..,,.,.,.,.,
+#65NMDTMPGMGAE4WM2IUMUABBHW63XHL4FQIJFRXOHTTNUMDJL6JT4ZUMFQNJ66TXYO22636PJWVJS
+#\\\|P6UU22SLJ26OQES5YNGL37KG2X5IIDP2DDU6X2HMK3L7DW4MLPP \ / AMOS7 \ YOURUM ::
+#\[7]FO2WPSL4R3XAHVLYBFK22NP6LYEY6WMUANTBNBKZP7ZNB7BSZQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

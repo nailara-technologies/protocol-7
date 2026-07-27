@@ -2,6 +2,41 @@
 
 ## status
 
+fixed. a per-job watchdog timer now covers the whole
+task.create/task.wait-done round trip (and, separately, the repair leg),
+armed in `jobsite.dispatch.next`/`jobsite.dispatch.repair` and cancelled at
+every point that releases the job's `pending_count` slot
+(`jobsite.handler.task-created`, `jobsite.handler.assess-done`,
+`jobsite.handler.repair-created`, `jobsite.handler.repair-done`). on
+timeout, `jobsite.handler.assess-timeout` marks the job `repair_failed`
+(mirrors the existing "hard infra failure" convention — no score
+information, so status/stage untouched beyond clearing the in-flight
+marker), releases the slot via `jobsite.dispatch.consume_slot`, and calls
+`jobsite.dispatch.next` so the queue keeps draining instead of wedging on
+`cycle=assessing`. clearing `stage` away from `assessing` also makes the
+job reachable again by the next rescan (`jobsite.dispatch.assessments`
+only skips `queued|assessing|assessed|done`).
+
+a monotonically-bumped per-job `attempt` token (threaded through
+`route-send`'s local-only `reply.params`, confirmed not wire-transmitted)
+disambiguates a genuinely-late reply arriving after the watchdog already
+gave up and moved the job on — compared at the top of
+`assess-done`/`repair-done`/`task-created`/`repair-created` against the
+job's current `attempt`, mismatches are dropped without touching
+`pending_count` a second time. discovered along the way:
+`jobsite.job.load_all` (re-entrant, called from `dispatch.assessments` on
+every scan) was already unconditionally rebuilding
+`<jobsite.tasks>->{$id}` from scratch, carrying forward only `stage` and
+`queue_gen` — `attempt` needed the same carry-forward treatment (added),
+and `task_id`/`repair_task_id` turned out to have always been silently
+wiped there too (a pre-existing, separate latent gap — fixed as a
+byproduct, not a regression).
+
+new config: `jobsite.cfg.assess_timeout` (default 600s), in
+`configuration/zenki/jobsite/start`.
+
+## status (superseded, kept for history)
+
 not started — root-caused from code inspection + log correlation, not
 yet fixed. captured from conversation so it isn't lost.
 
@@ -85,8 +120,8 @@ has conventions for.
 - confirm the exact recovery semantics wanted: retry the same job,
   skip it and move on, or mark it failed/blocked pending manual review?
 
-#,,,.,,.,,,,.,,..,,..,,..,,,.,..,,,.,,,.,,...,..,,...,...,,.,,,..,,.,,,,,,,,,,
-#WILZL2XRUYWI36EBJGUHB3MYQ24B5NHFWVXC4TU5ROKSNRUVBPYVU43PCTKV5YHMARVXDXF44XV7W
-#\\\|3ZUPQRLNMYMAQDJF25INTQOX54VBQXMUN4QVR7S7N2ZMCLS2G3A \ / AMOS7 \ YOURUM ::
-#\[7]A2MW4YGYRFXM3ZHMBRIQIAKZ37E6TLLF6OZOBMY7WEQLGBE5GSDQ 7  DATA SIGNATURE ::
+#,,.,,...,...,,..,...,...,..,,,.,,...,...,...,..,,...,...,,..,,..,..,,,,,,,,.,
+#G5BX7CGLUPZ4OVHQRIIRCLWLAYIGOLLTHWBSNNZZSMCR4VFUECUR6OWR56DVZ2VBST3HUFCS4VTQO
+#\\\|YRAZLGA2I5WEYFODQFHAJXYUGO5RBI2AMAPNVLZZJRP44LC4FEB \ / AMOS7 \ YOURUM ::
+#\[7]327JRMTQORAYV7PQONXUP7ZY4WHP3DJ6MBAATWXKNPLCVZJ3HSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

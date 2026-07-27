@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = jobsite.handler.assess-timeout
+# descr = abort a stalled assessment/repair round-trip, keep the queue draining
+
+my $event = shift;
+
+my $wdata   = eval { $event->w->data } // {};
+my $job_id  = $wdata->{'job_id'}       // '';
+my $attempt = $wdata->{'attempt'}      // 0;
+
+return unless length $job_id;
+
+## already resolved by a real reply [ or a newer dispatch already re-armed ##
+## this job_id's slot in the hash ] : nothing to do -- this stray fire     ##
+## should be unreachable once ->cancel is called at every release/re-arm   ##
+## point, but the check is cheap insurance against a firing that was       ##
+## already queued by the event loop before cancel took effect              ##
+return unless delete <jobsite.assess_timer>->{$job_id};
+
+my $job_rec = <jobsite.tasks>->{$job_id};
+if (    defined $job_rec
+    and $attempt
+    and $attempt != ( $job_rec->{'attempt'} // 0 ) ) {
+    ## superseded by a newer dispatch [ shouldn't happen given the cancel ##
+    ## discipline above, but the newer attempt owns pending_count now ]   ##
+    return;
+}
+
+<[base.logs]>->(
+    0, 'jss.assess-timeout: job %s round-trip timed out after %ds, giving up',
+    $job_id, <jobsite.cfg.assess_timeout> // 600
+);
+
+if ( defined $job_rec ) {
+    ## clear in-flight markers : lets a later rescan pick this job back up  ##
+    ## [ dispatch.assessments skips stage=~/queued|assessing|assessed|done/ ##
+    ## ] and blanks task_id/repair_task_id so a genuinely-late reply for    ##
+    ## the abandoned attempt mismatches cleanly in                          ##
+    ## assess-done/repair-done's own attempt guard instead of being         ##
+    ## processed twice                                                      ##
+    $job_rec->{'stage'}          = 'timeout';
+    $job_rec->{'task_id'}        = '';
+    $job_rec->{'repair_task_id'} = '';
+    $job_rec->{'repair_failed'}  = TRUE;
+}
+
+my $job = <[jobsite.job.read]>->($job_id) // {};
+$job->{'repair_failed'} = TRUE;
+<[jobsite.job.write]>->( $job_id, $job );
+
+<[jobsite.dispatch.consume_slot]>;
+<[jobsite.state.persist]>;
+<[jobsite.dispatch.next]>;
+
+#,,.,,.,,,.,,,...,,..,.,,,,,.,,,.,,,.,,,.,..,,..,,...,...,..,,,,,,,,,,.,,,.,,,
+#G5IUSMABADGTMCTANF24KBBZ46IUEGOART7S5PHO6IGHOXGK6K3FTHVTDZUUL65GA4QN5XW53O42W
+#\\\|6YL5CMYPQ3DI23FSMCZK53AB3LMJF4BI73M2QRO73TQEBOKS7MU \ / AMOS7 \ YOURUM ::
+#\[7]VMPD6WQCM5C5K4EUX22764XWFDTLJKXBA755NSDDXQR6TKWTWIAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

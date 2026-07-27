@@ -20,18 +20,34 @@ my $prompt = <[jobsite.util.build_prompt]>->( $job, $defects );
 ## dispatch repair task ##
 my $encoded = ':B32:' . encode_b32r( Encode::encode( 'UTF-8', $prompt ) );
 
+## fresh attempt token for this new round trip -- see dispatch.next for the ##
+## full rationale ; re-arms the watchdog rather than leaving the original   ##
+## assess dispatch's timer (now stale) ticking against the repair leg       ##
+my $attempt = 1 + ( ( <jobsite.tasks>->{$job_id} // {} )->{'attempt'} // 0 );
+<jobsite.tasks>->{$job_id}{'attempt'} = $attempt;
+
 <[protocol-7.route-send]>->(
     {   'command'   => 'task.create',
         'call_args' => { 'args' => $encoded },
         'reply'     => {
             'handler' => 'jobsite.handler.repair-created',
-            'params'  => { 'job_id' => $job_id },
+            'params'  => { 'job_id' => $job_id, 'attempt' => $attempt },
         },
     }
 );
 
-#,,.,,,.,,,,.,.,.,,.,,.,,,.,.,..,,,,,,.,.,.,,,..,,...,...,.,,,,.,,,.,,...,...,
-#SK62LTYBS5SBUC73J4NFTYQUGUA3VZYHEIWRIJT4BH42AEQGMNC64SWXYA747PE4TE2P5FXL6EDTS
-#\\\|25D5IKAIRKOFDEVS3QUDK4KKG2RJYFZ327JEGYNZFIC3F6U6HQ5 \ / AMOS7 \ YOURUM ::
-#\[7]U6JDLBUM7S7N5KMQPN422BR2KFTROIH4NDOGAMQT26OA4NQ7OEDQ 7  DATA SIGNATURE ::
+if ( my $old_timer = <jobsite.assess_timer>->{$job_id} ) {
+    eval { $old_timer->cancel };
+}
+<jobsite.assess_timer>->{$job_id} = <[event.add_timer]>->(
+    {   'after'   => <jobsite.cfg.assess_timeout> // 600,
+        'handler' => 'jobsite.handler.assess-timeout',
+        'data'    => { 'job_id' => $job_id, 'attempt' => $attempt },
+    }
+);
+
+#,,,.,...,..,,.,,,...,.,,,,.,,,,,,...,..,,,,,,..,,...,...,..,,,..,...,,,,,...,
+#E2OFSIZWAEAFN5O2N5OE5YSHC3SPLQFFDGXZHKS5OUZL6E6URPHF6E2G7GGYCN6LA2OE23JK4ALQO
+#\\\|AKIIKV6JQ2BQJ7DBCMZEC6OLHWN4DMZTB7UWJFGNBMYL6ARUHQN \ / AMOS7 \ YOURUM ::
+#\[7]VJMZI4H7T4ZE5JXOYC72ORM6CKDFLS66RJ7RJDVZUU3XENEOBACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
