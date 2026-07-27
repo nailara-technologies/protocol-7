@@ -1,9 +1,15 @@
 ## [:< ##
 
-# name  = audio.render_standing_wave
+# name  = audio.render_standing_wave.v1
 # descr = render float pcm samples to holographic standing-wave lattice png
 # param = $pcm_aref, $sample_rate, $out_path [, $opts_href ]
 
+## style v1 : sparse rectilinear lattice, cool indigo/blue/violet ramp. ##
+## first landed style -- kept under an explicit version name so future  ##
+## divergent styles can coexist rather than overwrite this one. see     ##
+## audio.finalize_decode for the style dispatcher and                   ##
+## audio.cfg.render_style for the selector.                             ##
+##                                                                      ##
 ## pure render core : no protocol-7 data or code path access and no     ##
 ## purr-specific keying [ entity id, grid coords, fade-by-relevance all ##
 ## belong to layers above this primitive ]                              ##
@@ -374,8 +380,8 @@ return ( FALSE, 'imager write failed : ' . Imager->errstr ) unless $ok;
 
 return ( TRUE, $out_path, $stats );
 
-#,,,.,.,,,...,...,,.,,..,,...,,,,,..,,,..,.,,,..,,...,...,...,,..,,,.,,..,...,
-#6OJHCPZXNS2M5K52BIJFYAO6YACNGS4LKQWUPFNBUDAVYYA7L7T5JOI5VRY7EPCX77D54NFKO7GTQ
-#\\\|I5SQRKNNUSNAIFRZLNUQKO5BGAHFHDZO4XHOWTYVY3U4XQXHJP4 \ / AMOS7 \ YOURUM ::
-#\[7]63HZMAMY6IVMFCPJ6AMBJVOMB2BCMPDTGHMYUQKHFHNPJOF7TKAI 7  DATA SIGNATURE ::
+#,,..,...,.,.,..,,,.,,.,,,.,.,,,.,.,,,,,,,.,,,..,,...,...,,.,,..,,,,,,,,,,.,,,
+#XRRZCVD7KR2Z4TZGG22QS5ZNGHYV34SFII5VDYHGEALCAEEIHQODFE762UW3BEG4GO7DEZUD3RKZ4
+#\\\|UQFFJADETB7PN6SAYDMZ3SOBFCNLBXGFMEF325HO3JVYT4HVUOD \ / AMOS7 \ YOURUM ::
+#\[7]HQMED4UKRJRDJEPJETE2ODVBOWMYPOBZ7H2DOB3Q5I2RVOMAVEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
