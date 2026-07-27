@@ -101,18 +101,55 @@ brightness already (v3+aa/ac/saturnians all confirmed legible), so no
 brightness tuning was applied — correcting exposure here would be
 solving a problem this layer doesn't actually have on its own.
 
+## v1 live-verified, v2 added : equal-weight vs recency-biased blend
+
+`v1` was subsequently verified end-to-end through the actual running
+zenka via `p7c audio.spatial-purr` (not just the standalone harness) —
+confirmed working, and also surfaced two unrelated `base.log`-vs-
+`base.logs` argument-contract bugs in the audio zenka's log calls
+(base.log's 3rd positional arg is a buffer name, not sprintf args;
+fixed across `audio.finalize_decode` + `audio.handler.decode_timeout`).
+
+user's response to v1's output: correctly darker (see above), but also
+noted it still "isn't symmetric, as it is still the rotation" — pushed
+on what v1's compositing actually does: `compose(combine=>'normal',
+opacity=>0.5)` applied *sequentially* onto an accumulating stack is NOT
+an equal-weight 4-way blend. it's a recency-biased geometric series —
+the last-composited rotation ends up ~1/2 the final image, the one
+before it ~1/4, then 1/8, 1/8. that's why it still read as "mostly the
+original," not a genuine 4-fold blend.
+
+built `audio.post_process.rotation_stack.v2` to fix the weighting:
+scales each of the 4 rotations to exactly 25% brightness
+(`convert(matrix=>...)`, same technique as the existing glow-layer
+trick) and adds them (`combine=>'add'`), giving every rotation
+identical weight. user confirmed this reads as genuinely different from
+v1, worth keeping — but clarified "symmetric" in their original framing
+meant *mirror* symmetry (horizontal/vertical), not rotational — v2 is
+still rotation-only, just correctly *equal-weighted* rotation now, and
+is being kept as its own distinct variant rather than a strict
+correction/replacement of v1.
+
+**numbering decision for what comes next** (both still unbuilt):
+sticking with the project's flat-integer versioning convention (see
+`render_standing_wave.v1`-`.v4` — no decimal sub-versions) rather than
+a `v2.1`: `v3` = color-boosted variant of v2's equal-weight blend,
+`v4` = the actual mirrored (horizontal+vertical reflection) technique
+user described as genuinely symmetric — a distinct operation from
+rotation, not a v2 tweak.
+
 ## status
 
-**built and landed** as `audio.post_process.rotation_stack.v1` (static,
-uniform-opacity variant). not yet tested through the live zenka via
-`p7c` / devmod — only verified by loading the actual module file
-standalone against v3 renders (aa/ac/saturnians), output visually
-confirmed. animated variant (darkening-as-history-cue) still unbuilt,
-waiting on the sliding-window infrastructure it depends on — see
+**v1 and v2 both built, landed, and live-verified** via `p7c
+audio.spatial-purr` against v3 renders. `v3` (color-boosted v2) and
+`v4` (mirrored/reflection-based, true mirror symmetry) are the agreed
+next numbers but not yet built. animated variant (darkening-as-
+history-cue) still unbuilt, waiting on the sliding-window
+infrastructure it depends on — see
 [[topic-audio-render-sliding-window-live-stream]].
 
-#,,.,,.,,,...,.,.,..,,...,...,.,,,,..,,,.,..,,..,,...,...,...,,.,,,.,,.,,,.,.,
-#KFLRDYG6IJBWM3DRIUA7PGVTQ4X2RFO7BHBPZKPSNMUZ2FFOCM7J75CBHCAGDEZBINYCDTWMRHWGO
-#\\\|DZBXAGIPAHCGMQ4A2YDZJU5M3GJC7VXYMV4GT2UUVKCKQ2WCKL7 \ / AMOS7 \ YOURUM ::
-#\[7]XT6UXTK6GWDXEGYOPFVTH33B646UVDGW7YIYO6F4F7JFFB3Q5QAI 7  DATA SIGNATURE ::
+#,,..,,,.,,..,,,,,.,,,.,.,,,.,,.,,,.,,...,,,.,..,,...,...,..,,...,,,,,,.,,...,
+#RJHKS5OWGUXAHJTTLWIPF7P6ND7N7ANN5OWRRVAOWZE4653NYMFZJ6F5S77PYIHXCSIXMXEHTM7WC
+#\\\|JZAHXQDZ3THDBG2P37ONOCMRKZJKHXMXTWWT27CJFMUN5GAKYSK \ / AMOS7 \ YOURUM ::
+#\[7]YURPZFJNVT6QFFERAKRW3HFIXKVTUAFTWUP47KSONXTUH4TU54DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
