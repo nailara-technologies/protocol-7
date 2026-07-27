@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = audio.post_process.rotation_stack.v2
+# descr = equal-weight spiral : 4x 90deg-ccw self-composite, additive 25% each
+# param = $img_path
+
+## same rotation-stack family as v1, different weighting.  v1's sequential  ##
+## compose( combine=>'normal', opacity=>0.5 ) blends each new rotation      ##
+## 50/50 with whatever is already accumulated, which is NOT an equal-weight ##
+## average across the 4 rotations -- it's a recency-biased geometric series ##
+## (last rotation composited ends up ~1/2 the final image, the one before   ##
+## it ~1/4, then 1/8, 1/8). visually that reads as "mostly the last         ##
+## rotation," not a true 4-fold blend. v2 instead scales each of the 4      ##
+## rotations (0/90/180/270) to exactly 25% brightness and adds them, giving ##
+## every rotation identical weight in the final composite -- a genuinely    ##
+## symmetric-under-rotation blend (note: rotationally symmetric, not        ##
+## mirror-symmetric -- see topic-audio-render-rotational-depth-stack.md for ##
+## the planned mirrored variant, a distinct technique).                     ##
+##                                                                          ##
+## pure post-process core : reads/rewrites only the given path, no          ##
+## protocol-7 data or code path access                                      ##
+##                                                                          ##
+## returns ( TRUE, $img_path ) or ( FALSE, $error_string )                  ##
+
+my ($img_path) = @ARG;
+
+return ( FALSE, 'expected an image path' ) if not defined $img_path;
+
+my $base = Imager->new( 'file' => $img_path );
+return ( FALSE, 'imager read failed : ' . Imager->errstr )
+    if not defined $base;
+
+my ( $w, $h ) = ( $base->getwidth, $base->getheight );
+
+my $stack = Imager->new(
+    'xsize'    => $w,
+    'ysize'    => $h,
+    'channels' => 3
+);
+$stack->box( 'filled' => 1, 'color' => 'black' );
+
+my $layer = $base;
+foreach ( 1 .. 4 ) {
+    my $scaled = $layer->convert(
+        'matrix' => [ [ 0.25, 0, 0 ], [ 0, 0.25, 0 ], [ 0, 0, 0.25 ] ] );
+    $stack->compose(
+        'src'     => $scaled,
+        'tx'      => 0,
+        'ty'      => 0,
+        'combine' => 'add'
+    );
+    $layer = $layer->rotate( 'degrees' => 90 );
+}
+
+my $ok = $stack->write( 'file' => $img_path, 'type' => 'png' );
+return ( FALSE, 'imager write failed : ' . Imager->errstr ) unless $ok;
+
+return ( TRUE, $img_path );
+
+#,,..,,,,,..,,,,.,,,,,,,,,..,,,,,,,,.,,,,,,,,,..,,...,...,.,,,.,.,,..,,.,,...,
+#VGM7JD5OKV4K4ZBUFBWEFQKN2TPPJXPX6YHKMS4A2KDIVYM6V3FU5665KW2MHQ37YTUPXN5UIALEM
+#\\\|BG25G3UFZCGMILMTOVKIITIMA5QT6U2LF7AYFHZAU7J74SCVXZN \ / AMOS7 \ YOURUM ::
+#\[7]2L3VADHO7DYOJJFTRCNM3TQRSSU6V2QX2PNEUJU5O4PBCTVJIYBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
