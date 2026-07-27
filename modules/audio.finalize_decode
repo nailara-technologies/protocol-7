@@ -54,10 +54,17 @@ if ( length $pcm_bin < <audio.cfg.fft_size> * 4 ) {
     my $out_path = sprintf '%s/spatial-%s-%s.png', $out_dir, $stamp,
         $format_hint;
 
+    ## per-call pipeline override : lets a fixed-recipe caller [ see      ##
+    ## audio.cmd.spatial-purr-icon ] pin a specific render_style/         ##
+    ## post_process/overlay combo without touching the global audio.cfg.* ##
+    ## knobs those experiment with via devmod -- falls back to global cfg ##
+    ## for anything the override doesn't set, same as always when unset   ##
+    my $pipeline = $state->{'pipeline'} // {};
+
     ## style dispatch : render_style selects which versioned renderer to  ##
     ## call, so future divergent styles can coexist rather than overwrite ##
     ## this one -- see audio.render_standing_wave.v1's own header         ##
-    my $style      = <audio.cfg.render_style>;
+    my $style      = $pipeline->{'render_style'} // <audio.cfg.render_style>;
     my $render_sub = "audio.render_standing_wave.$style";
 
     my ( $ok, $result, $stats );
@@ -75,13 +82,14 @@ if ( length $pcm_bin < <audio.cfg.fft_size> * 4 ) {
         );
     }
 
+    my $post_process = $pipeline->{'post_process'}
+        // <audio.cfg.post_process>;
+
     ## post-process dispatch : orthogonal to render_style, applied in place ##
     ## on the file the render_sub already wrote -- see                      ##
     ## audio.post_process.rotation_stack.v1's own header                    ##
-    if (    $ok
-        and length <audio.cfg.post_process>
-        and <audio.cfg.post_process> ne 'none' ) {
-        my $pp_sub = "audio.post_process." . <audio.cfg.post_process>;
+    if ( $ok and length $post_process and $post_process ne 'none' ) {
+        my $pp_sub = "audio.post_process.$post_process";
         if ( exists $code{$pp_sub} ) {
             my ( $pp_ok, $pp_result ) = $code{$pp_sub}->($result);
             if ( not $pp_ok ) {
@@ -92,13 +100,13 @@ if ( length $pcm_bin < <audio.cfg.fft_size> * 4 ) {
         }
     }
 
+    my $overlay = $pipeline->{'overlay'} // <audio.cfg.overlay>;
+
     ## overlay dispatch : third orthogonal axis, draws new content from pcm ##
     ## as a foreground on top of the finished background -- see             ##
     ## audio.overlay.waveform_trace.v1's own header                         ##
-    if (    $ok
-        and length <audio.cfg.overlay>
-        and <audio.cfg.overlay> ne 'none' ) {
-        my $ov_sub = "audio.overlay." . <audio.cfg.overlay>;
+    if ( $ok and length $overlay and $overlay ne 'none' ) {
+        my $ov_sub = "audio.overlay.$overlay";
         if ( exists $code{$ov_sub} ) {
             my ( $ov_ok, $ov_result ) = $code{$ov_sub}->( \@pcm, $result );
             if ( not $ov_ok ) {
@@ -107,6 +115,21 @@ if ( length $pcm_bin < <audio.cfg.fft_size> * 4 ) {
         } else {
             <[base.logs]>->( 0, 'unknown overlay : %s', $ov_sub );
         }
+    }
+
+    ## auto-crop : pipeline-only opt-in [ not audio.cfg.*, since the single ##
+    ## post_process slot can't combine crop_wide with a rotation stack --   ##
+    ## see audio.post_process.crop_wide.v1's own header ]. only a           ##
+    ## fixed-recipe caller that already knows it isn't also asking for a    ##
+    ## rotation-family post_process opts into this                          ##
+    if (    $ok
+        and $pipeline->{'auto_crop'}
+        and $format_hint eq qw| wide |
+        and exists $code{'audio.post_process.crop_wide.v1'} ) {
+        my ( $cw_ok, $cw_result )
+            = $code{'audio.post_process.crop_wide.v1'}->($result);
+        <[base.logs]>->( 0, 'auto-crop failed : %s', $cw_result )
+            if not $cw_ok;
     }
 
     if ($ok) {
@@ -132,8 +155,8 @@ if ( length $pcm_bin < <audio.cfg.fft_size> * 4 ) {
 
 return TRUE;
 
-#,,.,,..,,,,.,.,.,,..,,..,,,,,,..,,..,...,,,.,..,,...,...,..,,...,,.,,,.,,,.,,
-#L5LI4NZ4NPU35TX7TME7ANNZB4YEDHIDXOTZNYXSCMVWVPQYT33CLTU7MADXU6LHWQWFWA2FXZ4WE
-#\\\|C5H4VTL2VVLZTVJIJTJXPOMVOGFRPXH6C3RWM5STCVPZGTEMYDN \ / AMOS7 \ YOURUM ::
-#\[7]MQE5OLD45C6H7LFMPSSJPPTOFYAIDOZIWBX7E2O3P7FIYVUF2OCI 7  DATA SIGNATURE ::
+#,,..,..,,...,.,,,.,.,..,,.,.,.,.,.,,,..,,,,,,..,,...,...,.,.,...,.,,,.,.,,,,,
+#ZZEQQ3ZYD66K5ZUQSWAP2MLW6RVE5BZ3INTHW7ZFAKP4CGWERJWU66FERNLL7E66KBX6EBAQZTHYK
+#\\\|6Y66Z5GLYA6O3ZL6WE3VWNWGJ76A4RBYBGYYSI2CSZU2FSE5FQU \ / AMOS7 \ YOURUM ::
+#\[7]3BW4WYB4QIGMTDASAYZ7G3LEDJ3EFC3QM5N6NYGGRB6ODVPONEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
