@@ -4,20 +4,20 @@
 # descr = standing-wave lattice png, multi-scale mids for zoom depth
 # param = $pcm_aref, $sample_rate, $out_path [, $opts_href ]
 
-## style v2 : v1's lattice, but pass 2 (mids) draws at three simultaneous ##
-## cell scales instead of one -- v1 picked a single dominant scale from  ##
-## @cell_sizes, so under zoom only one lattice layer ever "travels" (see ##
-## topic-audio-render-cubic-zoom-transition.md). the same principle      ##
-## already at work in pass 1's ring stack (several nested sizes at once) ##
-## applied laterally to pass 2 deepens the zoom illusion across a wider  ##
-## range. everything else is unchanged from v1 -- FFT, band split,       ##
-## normalization, palette, highs/accents grid, budget system.            ##
-##                                                                       ##
-## pure render core : no protocol-7 data or code path access and no     ##
-## purr-specific keying [ entity id, grid coords, fade-by-relevance all ##
-## belong to layers above this primitive ]                              ##
-##                                                                      ##
-## returns ( TRUE, $out_path, $stats_href ) or ( FALSE, $error_string ) ##
+## style v2 : v1's lattice, but pass 2 (mids) draws at three simultaneous   ##
+## cell scales instead of one -- v1 picked a single dominant scale from     ##
+## @cell_sizes, so under zoom only one lattice layer ever "travels" (see    ##
+## topic-audio-render-cubic-zoom-transition.md). the same principle already ##
+## at work in pass 1's ring stack (several nested sizes at once) applied    ##
+## laterally to pass 2 deepens the zoom illusion across a wider range.      ##
+## everything else is unchanged from v1 -- FFT, band split, normalization,  ##
+## palette, highs/accents grid, budget system.                              ##
+##                                                                          ##
+## pure render core : no protocol-7 data or code path access and no         ##
+## purr-specific keying [ entity id, grid coords, fade-by-relevance all     ##
+## belong to layers above this primitive ]                                  ##
+##                                                                          ##
+## returns ( TRUE, $out_path, $stats_href ) or ( FALSE, $error_string )     ##
 
 my ( $pcm_aref, $sample_rate, $out_path, $opts ) = @ARG;
 $opts //= {};
@@ -78,7 +78,7 @@ return ( FALSE, 'silence : no spectral energy' ) if $maxv <= 0;
 ## absolute loudness reference : normalizing purely against this render's ##
 ## own spectral peak stretches quiet and loud source material to the same ##
 ## 0..1 range -- scale by absolute PCM peak (dBFS) too, so quiet audio    ##
-## produces measurably sparser output, not just differently-arranged one ##
+## produces measurably sparser output, not just differently-arranged one  ##
 my $pcm_peak = 0;
 foreach my $s (@$pcm_aref) {
     my $a = abs $s;
@@ -148,7 +148,7 @@ my @stops = (
     [ 0.00, 0x0a, 0x0a, 0x3a ],    ## deep indigo   : lows       ##
     [ 0.45, 0x1a, 0x3a, 0xff ],    ## royal blue    : mids       ##
     [ 0.75, 0x7a, 0x3a, 0xff ],    ## violet        : upper-mids ##
-    [ 1.00, 0xb8, 0x50, 0xe0 ],    ## pale lavender : peaks only ##
+    [ 1.00, 0x78, 0x44, 0xd0 ],    ## pale lavender : peaks only ##
 );
 
 my $ramp = sub {
@@ -169,7 +169,8 @@ my $ramp = sub {
 
 my $dim = sub {    ## brightness-scale color by peak magnitude ##
     my ( $color, $frac ) = @ARG;
-    $frac = 0.35 + 0.65 * $frac;
+    ## floor raised 0.35->0.55 : see v1's identical fix and rationale ##
+    $frac = 0.55 + 0.45 * $frac;
     my ( $r, $g, $b ) = $color->rgba;
     return Imager::Color->new(
         'red'   => int( $r * $frac ),
@@ -313,8 +314,11 @@ foreach my $scale_i ( 0 .. $#mid_scales ) {
 
         if ( $h & 256 ) {    ## full cell outline ##
             last SCALE
-                unless $draw_box->( $x0, $y0, $x0 + $cell - 1,
-                $y0 + $cell - 1, $color );
+                unless $draw_box->(
+                $x0, $y0,
+                $x0 + $cell - 1,
+                $y0 + $cell - 1, $color
+                );
         } else {             ## L-shape : top + left edges only ##
             last SCALE
                 unless $draw_stroke->( $x0, $y0, $cell - 1, TRUE, $color )
@@ -372,11 +376,15 @@ foreach my $k ( 0 .. $n_accents - 1 ) {
     last unless $draw_box->( $x, $y, $x + $side, $y + $side, $ramp->(1.0) );
 }
 
-## :[ additive glow : blurred copy added back onto the strokes ]: ##
+## :[ additive glow : blurred + dimmed copy added back onto the strokes ]: ##
 
+## stddev=1.0 at full brightness was nearly a no-op on 1px strokes -- see ##
+## v1's identical fix and rationale                                       ##
 my $glow = $img->copy;
-$glow->filter( 'type' => 'gaussian', 'stddev' => 1.0 );
-$img->paste( 'src' => $glow, 'combine' => 'add', 'left' => 0, 'top' => 0 );
+$glow->filter( 'type' => 'gaussian', 'stddev' => 2.5 );
+$glow = $glow->convert(
+    'matrix' => [ [ 0.35, 0, 0 ], [ 0, 0.35, 0 ], [ 0, 0, 0.35 ] ] );
+$img->compose( 'src' => $glow, 'tx' => 0, 'ty' => 0, 'combine' => 'add' );
 
 $stats->{'lit_ratio'} = $spent / ( $size * $size );
 
@@ -385,8 +393,8 @@ return ( FALSE, 'imager write failed : ' . Imager->errstr ) unless $ok;
 
 return ( TRUE, $out_path, $stats );
 
-#,,,,,,,,,.,,,...,.,.,,.,,.,,,,.,,.,.,,,.,,..,..,,...,...,,..,..,,...,...,..,,
-#AT5PQZNK3DNYK2UVN5KG37TAXTTDNGNMIU4FFSTXTF6MNIVXWP3Q32577NB7AUWB5CD3Y2364D336
-#\\\|UPFJZTBDDNOSC6ZAS6JMFWEWWTPHIAFG5BM2RB5DYEYEX2TKAK3 \ / AMOS7 \ YOURUM ::
-#\[7]7ZPK25GPCSN7AZRHCNJKTZFRNFFUAB35O3QN6MSZEV6UR3JPZKBI 7  DATA SIGNATURE ::
+#,,..,...,.,.,,..,..,,...,.,,,.,.,...,,,,,,..,..,,...,...,.,.,,.,,,,.,,.,,,.,,
+#7NZP6U5QJ2GSSBAX57QTCY2JI3G5NL5JZB6SOK5A44H5KIMGZVYB5JNSDFKHL7OI7MOW7RXCDS74S
+#\\\|FYRG5SRYCAJEG73RG23AAFIEXS52FOTG7BT3RG6SGBABXTIRIE5 \ / AMOS7 \ YOURUM ::
+#\[7]SI5VYK6JWVG6P2M27CZJPGSDQZHESUEOZ57OAWWJQ5SRYHSKFAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
