@@ -1,14 +1,104 @@
 ## [:< ##
 
-# name  = povray.init_code
-# descr = povray zenka initialization stub
+# name = povray.init_code
 
-# stub init
+<[base.perlmod.load]>->(qw| IPC::Open3 |);
+<[base.perlmod.load]>->(qw| Symbol |);
+<[base.perlmod.load]>->(qw| Fcntl |);
+<[base.perlmod.load]>->(qw| POSIX |);
+<[base.perlmod.load]>->( 'File::Path', qw| make_path | );
+
+## config defaults [ overridable in configuration/zenki/povray/start ]      ##
+## output_dir derived from the already-registered zenka var path, not       ##
+## hardcoded -- see base.path-set-up.check-zenka-paths for the same pattern ##
+## [ catdir( <system.path.zenka-dirs.var_P7>, zenka name ) ]                ##
+<povray.cfg.output_dir>
+    //= catdir( <system.path.zenka-dirs.var_P7>, <system.zenka.name> );
+<povray.cfg.template_dir>   //= 'data/povray-templates/';
+<povray.cfg.scene_dir>      //= 'data/pov/';
+<povray.cfg.render_timeout> //= 300;    ## per-render kill deadline    ##
+<povray.cfg.image_width>    //= 1024;
+<povray.cfg.image_height>   //= 1024;
+<povray.cfg.quality>        //= 9;      ## povray +Q flag              ##
+<povray.cfg.antialias>      //= 1;      ## povray +A flag              ##
+
+## normalize : no trailing slashes, template/scene dirs resolved to   ##
+## absolute paths [ relative ones are against the zenka's start cwd ] ##
+<povray.cfg.output_dir>   =~ s|/+$||;
+<povray.cfg.template_dir> =~ s|/+$||;
+<povray.cfg.scene_dir>    =~ s|/+$||;
+
+if ( <povray.cfg.template_dir> !~ m|^/| ) {
+    <povray.cfg.template_dir> = sprintf '%s/%s', <[base.getcwd]>,
+        <povray.cfg.template_dir>;
+}
+if ( <povray.cfg.scene_dir> !~ m|^/| ) {
+    <povray.cfg.scene_dir> = sprintf '%s/%s', <[base.getcwd]>,
+        <povray.cfg.scene_dir>;
+}
+
+<povray.path.povray_bin> //= <[base.required_bin_path]>->('povray');
+
+if ( not -x <povray.path.povray_bin> ) {
+    <[base.log]>->( 0, "[!] 'povray' binary not found, shutting down..," );
+    exit(2);
+}
+
+## lazy povray.conf provisioning : the 3.7 unix binary flags a missing   ##
+## ~/.povray/3.7/povray.conf on stderr and i/o permissions gate on it -- ##
+## write a minimal one for the zenka user if absent [ decided : lazy     ##
+## self-check here, not an os-dep script, see                            ##
+## data/tasks/povray-zenka-implementation.md ]                           ##
+my $povray_user = <system.amos-zenka-user> // getpwuid($EFFECTIVE_USER_ID);
+my ( $p_uid, $p_gid, $p_home )
+    = ( getpwnam($povray_user) )[ 2, 3, 7 ];
+
+if ( not defined $p_home or not length $p_home ) {
+    <[base.logs]>->(
+        0,
+        'cannot resolve home dir for user %s : povray.conf '
+            . 'not provisioned [ povray will warn on stderr ]',
+        $povray_user
+    );
+} else {
+    my $conf_dir  = sprintf '%s/.povray/3.7', $p_home;
+    my $conf_path = sprintf '%s/povray.conf', $conf_dir;
+    if ( not -f $conf_path ) {
+        if ( not -d $conf_dir ) {
+            make_path($conf_dir);
+            chmod( 0775, sprintf '%s/.povray', $p_home );
+            chmod( 0775, $conf_dir );
+        }
+        my $conf_content
+            = sprintf(
+            "## minimal i/o permissions, self-provisioned by povray zenka "
+                . "##\n[Permitted Paths]\nread+write=%s\nread=%s\nread=%s\n",
+            <povray.cfg.output_dir>, <povray.cfg.template_dir>,
+            <povray.cfg.scene_dir> );
+        if ( <[file.write]>->( $conf_path, $conf_content ) ) {
+            chmod( 0664, $conf_path );
+            <[base.logs]>->( 2, 'provisioned %s', $conf_path );
+        } else {
+            <[base.logs]>->( 0, 'cannot write %s', $conf_path );
+        }
+    }
+    ## init runs before [root.drop_privs] : fix ownership when root ##
+    if ( $EFFECTIVE_USER_ID == 0 and defined $p_uid ) {
+        chown( $p_uid, $p_gid, sprintf( '%s/.povray', $p_home ),
+            $conf_dir, $conf_path );
+    }
+}
+
+## per-render state, keyed by render id, mirroring audio.decode ; finished ##
+## keeps the last result per id for povray.cmd.status after the live state ##
+## has been discarded by povray.finalize_render                            ##
+<povray.render>   //= {};
+<povray.finished> //= {};
 
 0;
 
-#,,..,,,.,,.,,,,.,,.,,,..,.,.,,..,.,,,,.,,...,..,,...,...,,,,,,.,,,..,..,,.,,,
-#JWFX3LUPUMQFF2ABETOFEPHSLSV5MBWNGEYM7WWRYBJAL2GUTU3CMITYKCFBIMH2BBFCIRCJKRRSW
-#\\\|LGMNN3632GZGE2N2SQEBOOYBEUNZOCVQ5ISQUCKTN4ZDUJPNNQM \ / AMOS7 \ YOURUM ::
-#\[7]2W43YJ6GH3M2CIZNFSEFZVF2C645SKAJPU6M5HHWFAKRI6MU4KAY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,,,,.,,,.,.,...,,..,,..,,..,.,.,..,,...,...,,..,.,,,.,.,,.,,...,
+#PY4Z4XI6WQDYMXJO7HNUXPW3A3WPYBERE4PYEA6IOF3BHLD3UOANPDTBOAQ63CO4F57H6UCJFDXYY
+#\\\|IP6GOP2KQDD2UZNEWVYRUM4BEJ4PNUGGW7EPBAP275ZMCOCZBDX \ / AMOS7 \ YOURUM ::
+#\[7]27JED73RUA45KEHLMMSYZK6CPL3EZF2GGFUKQ7ZVSG6DX2TII6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

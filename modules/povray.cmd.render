@@ -1,0 +1,67 @@
+## [:< ##
+
+# name  = povray.cmd.render
+# param = <template-name> <yaml-or-json context hash>
+# descr = render template with povray async, returns png path
+
+my $args = $call->{'args'} // '';
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
+
+my ( $template_name, $ctx_str ) = split( m|\s+|, $args, 2 );
+$template_name //= '';
+$ctx_str       //= '';
+
+return { 'mode' => qw| false |, 'data' => 'template name required' }
+    if not length $template_name;
+return { 'mode' => qw| false |, 'data' => 'context hash required' }
+    if not length $ctx_str;
+
+## yaml flow mappings are a json superset : one parser covers both ##
+my $context = <[format.yaml.load_str]>->($ctx_str);
+return {
+    'mode' => qw| false |,
+    'data' => 'context did not parse as a key-value hash'
+    }
+    if not defined $context
+    or ref $context ne qw| HASH |;
+
+my $id;
+do { $id = <[base.prng.chars-anum]>->(8) }
+    while exists <povray.render>->{$id};
+
+## output paths are chosen by this zenka [ never caller-controlled ] and ##
+## returned in the reply, same contract as audio.cmd.spatial-purr        ##
+my $out_dir    = <povray.cfg.output_dir>;
+my $scenes_dir = sprintf '%s/scenes', $out_dir;
+for my $dir ( $out_dir, $scenes_dir ) {
+    if ( not -d $dir ) {
+        <[file.make_path]>->($dir);
+        chmod( 0775, $dir );    ## screenshot zenka precedent : 775/664 ##
+    }
+}
+
+## resolved scene kept beside the png for debugging, not deleted ##
+my $pov_path = sprintf '%s/%s.pov', $scenes_dir, $id;
+my $out_png  = sprintf '%s/%s.png', $out_dir,    $id;
+
+my ( $ok, $result )
+    = <[povray.template.resolve]>->( $template_name, $context, $pov_path );
+return { 'mode' => qw| false |, 'data' => $result } if not $ok;
+
+my $spawn_err
+    = <[povray.spawn_render]>
+    ->( $id, $pov_path, $out_png, $call->{'reply_id'} );
+
+if ( defined $spawn_err ) {
+    delete <povray.render>->{$id};
+    return { 'mode' => qw| false |, 'data' => $spawn_err };
+}
+
+return { 'mode' => qw| deferred | };
+
+#,,,,,...,.,.,,,,,,.,,,,.,.,.,,.,,..,,,,.,...,..,,...,...,..,,.,.,,..,..,,.,.,
+#N2UXJ6PRGLKDYVFUOABTD4PWVYHDX4S4FSF37WVL5IEDRI24XDRX3XZUG3UOH643OYD5X634HKZTG
+#\\\|75V6LORITFMJHBPBB2PT2TSFDPKJLRKJ5YRBDI656EYAVKEBCCC \ / AMOS7 \ YOURUM ::
+#\[7]4AEV6ZRM5ACCGMMALSFWQLL55HJXQN42BG646TQ5YOYT3UFJGQAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

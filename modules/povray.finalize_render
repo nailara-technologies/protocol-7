@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = povray.finalize_render
+# descr = finish render : check png, reply deferred caller
+# param = $render_id
+
+my $id = shift // '';
+
+my $state = delete <povray.render>->{$id};
+return unless defined $state;
+
+## cancel leftover watchers + timeout, terminate render process group ##
+eval { $state->{'w_out'}->cancel } if defined $state->{'w_out'};
+eval { $state->{'w_err'}->cancel } if defined $state->{'w_err'};
+eval { $state->{'timer'}->cancel } if defined $state->{'timer'};
+kill( 9, -( $state->{'pid'} ) ) if $state->{'pid'};
+
+my $reply;
+my $out_png = $state->{'out_png'} // '';
+
+if ( $state->{'timed_out'} or not length $out_png or not -s $out_png ) {
+    my $err = $state->{'stderr'} // '';
+    $err =~ s|\s+$||;
+    $err   = substr( $err, -200 ) if length $err > 200;
+    $reply = {
+        'mode' => qw| false |,
+        'data' => sprintf( 'render produced no png : %s',
+            length $err ? $err : 'no output file' )
+    };
+    ## kept for povray.cmd.status after the live state is gone ##
+    <povray.finished>->{$id}
+        = { 'ok' => FALSE, 'error' => $reply->{'data'} };
+    <[base.logs]>->(
+        0,   'povray render %s failed : %s',
+        $id, $reply->{'data'}
+    );
+} else {
+    chmod( 0664, $out_png );    ## screenshot zenka precedent : 775/664 ##
+    <[base.logs]>->(
+        2,   'povray render %s : %s [ %d bytes, %ds ]',
+        $id, $out_png, -s $out_png, time - ( $state->{'started'} // time )
+    );
+    $reply = { 'mode' => qw| true |, 'data' => $out_png };
+    <povray.finished>->{$id} = { 'ok' => TRUE, 'path' => $out_png };
+}
+
+<[base.callback.cmd_reply]>->( $state->{'reply_id'}, $reply )
+    if defined $state->{'reply_id'};
+
+return TRUE;
+
+#,,,,,,.,,...,,,.,,.,,,,,,,.,,,..,...,.,,,.,.,..,,...,...,,.,,.,,,,,,,...,,,,,
+#6MZDP5O7AKNX2ZNZQKH52GDNUGBHWTH2ZFR6DDM2XRLKJALGE2FB7GSVMHCK5IMSW6UCIMAQRM4MU
+#\\\|NY3JJN4JWUFSMEAIVUR5NCX2NXSXWI6XVWEHQ4T35NCTF2BVQO3 \ / AMOS7 \ YOURUM ::
+#\[7]6OLCNUD6K6UHHQUZS65PH4GGNSPFTSELZSQSZYY3DJ3N2Q32AECY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

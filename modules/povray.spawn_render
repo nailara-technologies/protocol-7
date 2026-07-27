@@ -1,0 +1,84 @@
+## [:< ##
+
+# name  = povray.spawn_render
+# descr = spawn async povray render [ non-blocking io watchers ]
+# param = $render_id, $pov_path, $out_png, $reply_id ; returns err or undef
+
+## mirrors audio.decode_to_pcm ; the one difference : povray writes the png ##
+## itself via +O, so the stdout watcher only drains for eof -- the pipe     ##
+## carries no payload [ data/tasks/povray-zenka-implementation.md ]         ##
+
+my ( $id, $pov_path, $out_png, $reply_id ) = @ARG;
+
+my ( $out_fh, $err_fh );
+$err_fh = Symbol::gensym;
+
+my @cmd = (
+    <povray.path.povray_bin>, '-D',    ## no display [ headless zenka ] ##
+    qw| +FN |,                         ## png output format             ##
+    sprintf( '+I%s', $pov_path ),
+    sprintf( '+O%s', $out_png ),
+    sprintf( '+W%d', <povray.cfg.image_width> ),
+    sprintf( '+H%d', <povray.cfg.image_height> ),
+    sprintf( '+Q%d', <povray.cfg.quality> ),
+    <povray.cfg.antialias> ? (qw| +A |) : (),
+);
+
+my $pid = eval { IPC::Open3::open3( undef, $out_fh, $err_fh, @cmd ) };
+
+if ( not $pid or length $EVAL_ERROR ) {
+    return sprintf 'povray spawn failed : %s', $EVAL_ERROR // 'unknown';
+}
+
+## set pipes to non-blocking : prevent event loop stall on partial reads ##
+for my $pipe_fh ( $out_fh, $err_fh ) {
+    my $flags = fcntl( $pipe_fh, Fcntl::F_GETFL(), 0 );
+    fcntl( $pipe_fh, Fcntl::F_SETFL(), $flags | Fcntl::O_NONBLOCK() )
+        if defined $flags;
+}
+
+POSIX::setpgid( $pid, $pid );    ## own process group for clean kill ##
+<[base.zenki.report_child_pid]>->($pid);
+
+<povray.render>->{$id} = {
+    'pid'      => $pid,
+    'pov_path' => $pov_path,
+    'out_png'  => $out_png,
+    'reply_id' => $reply_id,
+    'stdout'   => '',
+    'stderr'   => '',
+    'started'  => time,
+    'out_fh'   => $out_fh,
+    'err_fh'   => $err_fh,
+};
+
+<povray.render>->{$id}{'w_out'} = <[event.add_io]>->(
+    {   'fd'      => $out_fh,
+        'handler' => qw| povray.handler.render_output |,
+        'data'    => { 'id' => $id, 'stream' => qw| out | },
+        'poll'    => qw| re |
+    }
+);
+
+<povray.render>->{$id}{'w_err'} = <[event.add_io]>->(
+    {   'fd'      => $err_fh,
+        'handler' => qw| povray.handler.render_output |,
+        'data'    => { 'id' => $id, 'stream' => qw| err | },
+        'poll'    => qw| re |
+    }
+);
+
+<povray.render>->{$id}{'timer'} = <[event.add_timer]>->(
+    {   'after'   => <povray.cfg.render_timeout>,
+        'handler' => qw| povray.handler.render_timeout |,
+        'data'    => { 'id' => $id }
+    }
+);
+
+return undef;
+
+#,,,.,,.,,,..,.,.,..,,,,.,,,.,.,,,...,,..,..,,..,,...,...,..,,,.,,..,,..,,,.,,
+#4U6OM7OCLHH6DUCGMIDBZW4WBEZHG7M4DHYIV4HFYFLSCSJHQ44MJ2WO7GW47GMBXLBBZ4GHC2GQS
+#\\\|PE2Z3MSVCKZBQBR3JS375S343YAX6QBRDSUY3A6RJRJNEWVBU5R \ / AMOS7 \ YOURUM ::
+#\[7]BPDBJ5FJKSL3NAVIPC7TRXWRYBHJR3WGZJJLNAYC3VA5YOSTWGBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

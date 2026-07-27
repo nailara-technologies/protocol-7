@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = povray.cmd.template-resolve
+# param = <template-name> <yaml-or-json context hash>
+# descr = resolve a .pov.template, returns the scene
+
+## exposed on its own so callers can inspect the resolved .pov before ##
+## rendering [ debugging, dry-runs, cache-key computation ]           ##
+
+my $args = $call->{'args'} // '';
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
+
+my ( $template_name, $ctx_str ) = split( m|\s+|, $args, 2 );
+$template_name //= '';
+$ctx_str       //= '';
+
+return { 'mode' => qw| false |, 'data' => 'template name required' }
+    if not length $template_name;
+return { 'mode' => qw| false |, 'data' => 'context hash required' }
+    if not length $ctx_str;
+
+my $context = <[format.yaml.load_str]>->($ctx_str);
+return {
+    'mode' => qw| false |,
+    'data' => 'context did not parse as a key-value hash'
+    }
+    if not defined $context
+    or ref $context ne qw| HASH |;
+
+my ( $ok, $result )
+    = <[povray.template.resolve]>->( $template_name, $context );
+
+return { 'mode' => $ok ? qw| true | : qw| false |, 'data' => $result };
+
+#,,,.,,.,,.,,,.,,,..,,,..,.,.,.,.,...,.,,,,..,..,,...,...,.,,,.,,,...,..,,,..,
+#6P3KZNMY3D5C4XUQT7UHAVEAQ6XGH4PUIUITKERFQXGR44KORWNSLEH4AYYVFP2CPWJP6N5EQSMLU
+#\\\|X2TGXWG63VC6OXMTTZ73VGMP6HJ7OA2QJNAA7R6JYJWIWF6HIZE \ / AMOS7 \ YOURUM ::
+#\[7]ZYYSISJ6PSMQYRLYPLENIX7EEK2STIRSRKW567Y54XVHCTSQNMBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
