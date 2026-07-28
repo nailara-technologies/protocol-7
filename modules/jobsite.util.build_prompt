@@ -40,7 +40,11 @@ if ( $profile_text =~ m{^#\s*Candidate Profile\s*[-\x{2014}]\s*(.+?)$}m ) {
 
 ## build task preamble ##
 my $task_preamble;
-my $model_pin = ':model:WZIZD6Y:2BIZKWY:';
+## configurable so it can track coding.cfg.start_model over time without a ##
+## code edit -- a prior hardcoded pin here drifted from the zenka's actual ##
+## default and forced an avoidable gpu server kill+respawn on every        ##
+## assessment ; see jobsite.cfg.assessment_model for the default           ##
+my $model_pin = ':model:' . <jobsite.cfg.assessment_model> . ':';
 
 if ( defined $defects and @$defects ) {
     my $defect_note = join( ', ', @$defects );
@@ -112,8 +116,8 @@ push @prompt_parts, "Branche: $ind\n\n$desc", "Beginne jetzt mit: score:";
 
 return join( "\n\n", @prompt_parts );
 
-#,,..,.,,,,,.,,..,...,..,,.,.,...,,,,,,,.,,.,,.,.,...,...,.,.,,,.,,.,,,,.,,.,,
-#5KF4IXBMTDUPHNSCJHXNBC7CQ2SREMUFTQXIERMOVNEQQQBI3NBOHIMDMUIYDWSROEOR3I3ZY64TS
-#\\\|O2ZRJ3Z5PJD4VXHIEKJ2YDOB5EFJHZ2JOINCHHPGFVYFXDTZ5FO \ / AMOS7 \ YOURUM ::
-#\[7]B5HC2XGATM6SFY2SHPBQI3ZACBCP26J5AW2C7KWEBFRPDNP7ZOCQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,...,,,,,,,.,,..,,,.,,.,,.,.,...,.,.,...,...,,.,,...,...,,..,.,.,
+#5QCOY4RRLDYILCBK4DX54M76YELLAR36D6FZ3NF5TAUKRE5MULOQB2LXY47FJ6NZARYY4V2ET2Z7S
+#\\\|5G536MSDOOBQP4TLBER2YLYBSN3U6PTFBM6ZQD6OTOPUGHYCG2W \ / AMOS7 \ YOURUM ::
+#\[7]PCRMFITOKQOPWWEIANC5EAVVZ5Y3J4LZ2LQL55ZNAQCH5SZVM2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
