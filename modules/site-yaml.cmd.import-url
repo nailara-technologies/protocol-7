@@ -1,0 +1,75 @@
+## [:< ##
+
+# name  = site-yaml.cmd.import-url
+# descr = queue one stepstone posting url for async fetch
+#
+# args format (single line, key=value pairs or bare url):
+#   url=<job-posting-url>
+#
+# seeds exactly one { id, url, reply_handler } entry into the fetch queue,
+# skipping the site-yaml.stepstone.search listing-page step entirely. the
+# reply handler is fixed to jobsite.job-upsert [ same allow-list as
+# site-yaml.cmd.import ].
+
+my $args_str = $call->{'args'} // '';
+$args_str =~ s/^\s+|\s+$//g;
+
+## parse key=value pairs; values are non-whitespace ##
+my %param = ( $args_str =~ m/(\w+)=([^\s]+)/g );
+
+my $url = $param{'url'} // '';
+if ( not length $url ) {
+    ## legacy: bare url as the whole argument line ##
+    $url = $args_str;
+}
+
+## same host + suffix contract site-yaml.stepstone.job relies on for id ##
+## extraction -- never trust a caller's client-side validation alone    ##
+my ($job_id)
+    = ( $url
+        =~ m{^https?://(?:[a-z0-9-]+\.)*stepstone\.de/\S*?
+            --(\d+)-inline\.html(?:[?#]\S*)?$}xi
+    );
+
+if ( not defined $job_id ) {
+    <[base.logs]>->( 0, 'site-yaml.import-url: rejected url [ pattern ]' );
+    return {
+        'mode' => qw| false |,
+        'data' => 'not a stepstone job posting url',
+    };
+}
+
+## refuse duplicates already sitting in the fetch queue ##
+my $queue = $data{'site-yaml'}{'fetch_queue'} //= [];
+for my $item ( @{$queue} ) {
+    if (   ( $item->{'id'} // '' ) eq $job_id
+        or ( $item->{'url'} // '' ) eq $url ) {
+        return { 'mode' => qw| false |, 'data' => "already queued: $job_id" };
+    }
+}
+
+## queue for async fetch with adaptive backoff [ handled by fetch_tick ] ##
+push @{ $data{'site-yaml'}{'fetch_queue'} },
+    {
+    'id'            => $job_id,
+    'url'           => $url,
+    'reply_handler' => qw| jobsite.job-upsert |,
+    };
+
+## start async fetch timer if not already running ##
+if ( not defined $data{'site-yaml'}{'fetch_timer'} ) {
+    <[site-yaml.fetch.schedule]>;
+}
+
+<[site-yaml.fetch.state]>->('save');
+
+my $summary = sprintf 'import-url queued: %s [%s]', $job_id, $url;
+<[base.logs]>->( 1, 'site-yaml.import-url : %s', $summary );
+
+return { 'mode' => 'size', 'data' => $summary };
+
+#,,.,,...,...,,..,,..,,.,,,..,.,.,,,.,..,,.,.,.,.,...,...,.,,,.,.,,,,,,,,,,,.,
+#W4TZ6URHYHLHSU5ROINBRVGWJUUYVWMH64WTUIQXCPMOB4B7GI7IBHLPIQPCLSIG6WKR5AQ3GT6KS
+#\\\|7NJ6D5777QDULCU2TDHIDUIHWXHILACQM75HJ4IPVHSHUDO4FT2 \ / AMOS7 \ YOURUM ::
+#\[7]MZ35P4QUTKRSNVOPD7324KBOECFUYBBKWYVBXZSKVWHT7SZTLQCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

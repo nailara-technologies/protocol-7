@@ -11,6 +11,7 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [session-catchup-subagent-support](reference-session-catchup-subagent-support.md) — recover lost Agent-tool subagent context via `subagents=2` / `subagent_id=<fragment>`, claude+kimi both supported
 - [opus-dispatches-kimi-workflow](reference-opus-dispatches-kimi-workflow.md) — Opus calls kimi_dispatch(K3,auto-summary) itself; session_catchup gets session id; kimi_continue resumes
 - [unicode-encoding-repair](reference-unicode-encoding-repair.md), [patterns](topic-patterns.md), [coding-zenka-templates](topic-coding-zenka-templates.md) — UTF8 fix; core patterns
+- [jobsite-vax-int-id-scheme](reference-jobsite-vax-int-id-scheme.md) — raw stepstone numeric id vs vax-int short id (job.write/read want raw); two differently-keyed index structures; trash-archive (.yxz.B32) decode recipe; V7-epoch dating; hand-write recovery pitfalls (heredoc mojibake, never job.write(id,{}) as a test)
 - [tool-shm-architecture](topic-tool-shm-architecture.md), [tool-suggestions](topic-tool-suggestions.md), [language-detection](topic-language-detection.md) — SHM+mmap vision; 30 langs
 - [site-yaml-zenka](topic-site-yaml-zenka.md), [site-yaml-web-research](topic-site-yaml-web-research.md), [usb-backup-zenka](topic-usb-backup-zenka.md) — URL→YAML; web research; udev→restore
 - [git-watch-zenka](topic-git-watch-zenka.md), [reasoning-design-templates](topic-reasoning-design-templates.md) — force-push detection; 7 viz designs
@@ -38,8 +39,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [user-perfectionism-and-pace](user-perfectionism-and-pace.md) — "done" means perfectly smooth; let solo tuning passes run
 - [scratchpad_import tool](topic-scratchpad-import-tool.md) — pulls /tmp session scratchpad into data/scratchpad/; list/raw-read modes; check repo+tasks/completed before keeping imports
 
-#,,.,,,,,,.,,,...,.,.,,.,,,..,...,.,,,,..,.,.,..,,...,...,...,.,,,,.,,,,.,..,,
-#L2MYZ6G2OW4BDOJ5F74XEJG2YRAFHNJL6MBULGWCNLVAZ5IHKMCBZVLNFU3KIGIYTQNCOJP5ICLA2
-#\\\|CVJ4VNZP2AMPTVCRML2563YPCLFBAGDHA25CRVNCEXSPOEHDE6M \ / AMOS7 \ YOURUM ::
-#\[7]3ZZ46FQQRZ7M5PHO5ZA32JQ5TPUIZUNUXYH7QQ73DBHSNOKP4QBA 7  DATA SIGNATURE ::
+#,,,,,...,..,,.,.,,..,,,,,...,.,.,,,,,,,.,.,,,..,,...,...,,..,,,.,,,.,,,,,...,
+#QPUMQWJZ6IE5IV44KVVTFL2B7FZBE4DWZP7CDNLQAISTD27U3MPDWYVKVJDI6XQ2O5TMTGIYCHKGA
+#\\\|A4L72ZMUN7OOTB5VUH533G5URJHUZCND2EAFF7BHF3AUJJOKIW4 \ / AMOS7 \ YOURUM ::
+#\[7]DULDB5VDVPIIR2PG5JEOXNJNASP2X56T65TYIQWTM4IUT4QWY4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

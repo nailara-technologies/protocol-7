@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = jobsite.handler.import-url-reply
+# descr = log the site-yaml.import-url reply of a manual url submission
+#
+# queue-level failures [ url rejected, already queued ] surface here since
+# the submitting command already replied "queued" to its caller -- this is
+# the visible, non-silent endpoint for that outcome class.
+
+my $call = shift // {};
+
+my $mode     = lc( $call->{'mode'} // '' );
+my $raw      = $call->{'data'} // '';
+my $data_str = ref $raw ? $raw->$* : $raw;
+my $id       = $call->{'params'}{'id'} // '';
+
+if ( $mode eq qw| false | ) {
+    <[base.logs]>->(
+        0,   'jss.import-url [%s]: queueing failed: %s',
+        $id, $data_str
+    );
+} else {
+    <[base.logs]>->( 1, 'jss.import-url [%s]: %s', $id, $data_str );
+}
+
+return;
+
+#,,.,,,,,,.,.,...,..,,,,,,.,,,,,,,,.,,.,.,.,,,..,,...,..,,,..,..,,.,.,.,,,..,,
+#CUG5YOKOFTA745POJ4VNBQMMCKK4QPELCQXHZY4D24NWDR5NA5HGZYZJTHWS4BJYNW7HQZOPWHRFU
+#\\\|S75UHJAEIQEBXTND56MPS62IQR5BFESNMBI7KLGGLYFWPCJ2OZF \ / AMOS7 \ YOURUM ::
+#\[7]P2ZVLU3KIAQPT3VBNNTTOEYJLKFQYCF4HOQWCAWPG4LGQSF3M4AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
