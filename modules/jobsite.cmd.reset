@@ -41,11 +41,19 @@ my $tasks = <jobsite.tasks> // {};
 ## build candidate list ##
 my @candidates;
 if ( defined $params{'job_id'} ) {
-    push @candidates, map { uc $ARG }
+    ## decode short encoded ids [ e.g. 'ZKP5U' ] to the raw numeric form    ##
+    ## <jobsite.tasks>/<jobsite.job.index>/job.read/job.write all key on -- ##
+    ## without this, a short id is used as-is under the wrong key, silently ##
+    ## creating a near-empty record that collides on disk with the real job ##
+    ## [ vax-int.encode of the real numeric id produces the same filename   ##
+    ## the bogus string-keyed write also lands on ]                         ##
+    push @candidates, map { <[base.vax-int.decode]>->($ARG) }
+        map { uc $ARG }
         grep { length $ARG } split /[,\s]+/, $params{'job_id'};
 } else {
     my %seen = map { $ARG => 1 } keys %{$tasks};
-    ## also scan job files for statuses not tracked in-memory (e.g. blocked) ##
+    ## also scan job files for statuses not tracked in-memory (e.g. ##
+    ## blocked)                                                     ##
     if ( defined $params{'status'} ) {
         my $status_val = $params{'status'};
         my $status_dir = "$jobs_dir/$status_val";
@@ -73,7 +81,8 @@ my ( $n_reset, $n_protected ) = ( 0, 0 );
 for my $job_id (@candidates) {
     my $rec = $tasks->{$job_id};
 
-    ## for jobs not in-memory (e.g. blocked), read status from index for filters ##
+    ## for jobs not in-memory (e.g. blocked), read status from index for ##
+    ## filters                                                           ##
     my $rec_status = defined $rec ? ( $rec->{'status'} // '' ) : do {
         my $idx = <jobsite.job.index>->{$job_id} // '';
         $idx =~ s/^(blocked|deleted):.*/$1/;
@@ -173,8 +182,8 @@ return {
     $n_protected ? " [$n_protected protected skipped]" : ''
 };
 
-#,,.,,.,,,,.,,.,,,,,,,,..,.,.,,,,,,.,,...,,.,,..,,...,...,,.,,..,,,,.,..,,,,.,
-#E4MV4K2XHM36TW7AE2ICVBFS2L56J4LYRWK5HBSGZKAW63U34NJEM2DAITDQG6NO6CCQW6ANMTN3I
-#\\\|NIFAYEOQPNLKL5YCHZHYCI2W72RBMDAOQXUNIHJ5M6JF3H3QZSX \ / AMOS7 \ YOURUM ::
-#\[7]T3UMULBCINUUNFHEJGPMEWMOUK22XFGQQMOZLQHAKJPKJAJ6LAAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,..,..,,,,.,...,,,.,.,.,,..,,,,,..,,...,...,.,.,.,,,.,.,...,,,,,
+#AIGBHOPBVRYKDTVDTG2JEC4UMYHQQUXGEIPHOZO5KMMZYTXLGJR5HTHMUCJL3RNDIZVLQAFMTWJUU
+#\\\|H3A3J6GECX6RKU6WFJTM23TV4PTPFZXYUCKMXODDENOULOQ2HPM \ / AMOS7 \ YOURUM ::
+#\[7]JBP3SH4JRHLMNVD763EXIZSYD4KB27QJ2XV5QKJLKOUAEAB356BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
