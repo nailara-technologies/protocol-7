@@ -2,11 +2,154 @@
 
 ## status
 
-not started — captured from conversation, scoped from code inspection.
+implemented (main feature only; the "search key list review/optimize"
+section below was explicitly left untouched, as were
+`jobsite.cfg.categories` / `jobsite.cfg.url.*`).
 concrete repro url that triggered this request:
 `https://www.stepstone.de/stellenangebote--Cyber-Security-Architect-m-w-d-Inhouse-Consulting-Villingen-Schwenningen-N-O-C-Engineering-GmbH--14110126-inline.html`
 (a real posting the category scan never surfaced — see "search key list"
 section below for why).
+
+### what was built
+
+one shared backend primitive, two callers, per the "proposed shape":
+
+1. **`modules/site-yaml.cmd.import-url`** (new) — takes `url=<posting-url>`
+   (bare url also accepted, same arg convention as `site-yaml.cmd.import`),
+   validates the `stepstone.de` host + `--\d+-inline\.html` suffix pattern
+   `site-yaml.stepstone.job` relies on for id extraction, refuses ids/urls
+   already sitting in the fetch queue, then pushes exactly one
+   `{ id, url, reply_handler: 'jobsite.job-upsert' }` entry into
+   `$data{'site-yaml'}{'fetch_queue'}` — the identical shape
+   `site-yaml.cmd.import`'s per-link loop builds — kicks
+   `site-yaml.fetch.schedule` if no fetch timer is running, and saves queue
+   state. `site-yaml.handler.fetch_tick` is reused completely unchanged:
+   fetch/backoff/retry/route-to-upsert all come from the existing code.
+2. **`modules/jobsite.cmd.import-url`** (new) — the p7c/console command
+   (`p7c jobsite.import-url url=https://www.stepstone.de/...`). re-validates
+   the url pattern server-side, then checks the two synchronous dedup
+   sources before queueing: `<jobsite.job.index>` by extracted numeric id
+   (answers "already known" including *where it sits* — active status, or
+   `trash:<epoch>` / `deleted:<epoch>` / `blocked:<epoch>` with a rescue
+   hint for trash) and `jobsite.checksum.index` 'check' on the url (catches
+   the same posting under a changed listing id). only then route-sends to
+   `site-yaml.import-url` and immediately replies "queued" — the fetch is
+   async by design, so this is an ack, not a fetch result.
+3. **`modules/jobsite.handler.import-url-reply`** (new) — receives the
+   `site-yaml.import-url` reply and logs it: queue-level rejections
+   (url rejected by site-yaml, already in fetch queue) land at log level 0
+   in the jobsite buffer, success at level 1. this is the visible endpoint
+   for the outcome class the caller already ack'd on.
+4. **UI wiring — design fork: thin dedicated web command, NOT an
+   `add_url` branch in `jobsite.sync.apply_reverse`.** reasons:
+   - the reverse channel's entry shape is hard-bound to an *existing*
+     vax-int job id in two places: `plugin.web.jobs.reverse.queue` refuses
+     entries with an empty id, and `apply_reverse` skips entries whose id
+     doesn't decode — both *before* any action dispatch. a "no id yet"
+     submission would mean weakening that guard in two existing modules
+     whose delete/stage staleness machinery is built around it.
+   - the reverse channel is poll-based and one-way: entries only reach
+     jobsite on the next sync flush and the browser gets no verdict back,
+     which can't satisfy "user-visible result per outcome" or an immediate
+     "queued" ack.
+   - an exact precedent already exists: `/jobs-trash-rescue` → httpd
+     web-relay → `jobsite.rescue-http`. the new
+     **`modules/jobsite.cmd.import-url-http`** mirrors it: parses the plain
+     POST body, delegates to `jobsite.cmd.import-url` (so validation,
+     dedup and queueing exist exactly once, shared with the CLI path), and
+     wraps the result as strm+json `{ok, message}` — the web-relay reply
+     handler 502s on true/false replies, which is why the `-http` face
+     exists at all (same reasoning documented in `jobsite.cmd.rescue-http`).
+   - new httpd route: `POST /jobs-import-url → web-relay
+     [command:jobsite.import-url-http]`.
+5. **UI panel** (`data/web-root/vhosts/jobs.vhost/index.html`) — a second
+   row inside the existing `[ + manuell ]` panel, below a divider: one url
+   input + `importieren` button (Enter key also submits). `addManual()` and
+   the pure-local tracking fields are untouched. client-side validation
+   fast-fails on non-matching urls before any network call using the same
+   regex as the server; the server re-validates regardless. feedback is
+   honest about asynchronicity: success shows the server's "queued …
+   [ async fetch ]" message via `notify()`, i.e. "submitted, check back",
+   not a faked synchronous result; the job then arrives through the normal
+   pipeline (`status: 'new'` → assessment → review/trash placement) and
+   shows up on a regular poll.
+
+### three outcomes, as required
+
+- **(a) fetch/parse succeeds** → queued exactly like a scan hit;
+  `jobsite.job-upsert` receives the fetched record via the existing
+  `fetch_tick` route-send, lands as `status: 'new'`, indistinguishable from
+  a scan-discovered job downstream.
+- **(b) well-formed url, page doesn't resolve to a JobPosting**
+  (404/410/expired/markup change) → the reused `fetch_tick` logs
+  `gone`/`drop` at error-visible levels in the site-yaml buffer (no silent
+  no-op), and the submission ack tells the caller the fetch is async so
+  there is no fake success. synchronous pre-fetch existence checks were
+  deliberately NOT added: the task's own open-questions section says the
+  manual path must go through the fetch_queue/backoff machinery rather
+  than fetching in-request.
+- **(c) url already known** → answered synchronously by
+  `jobsite.cmd.import-url` before anything is queued: job-index hit
+  reports the current location (e.g. `already known: 14110126 sits in
+  trash:V7XXXXX [ use jobsite.rescue to restore ]`), url-checksum hit
+  reports the decided-job match; site-yaml additionally refuses
+  double-queueing of an id/url already in flight. nothing is silently
+  re-processed.
+
+### files touched
+
+- new: `modules/site-yaml.cmd.import-url`, `modules/jobsite.cmd.import-url`,
+  `modules/jobsite.cmd.import-url-http`,
+  `modules/jobsite.handler.import-url-reply`
+- `configuration/zenki/jobsite/start` — `import-url` added to
+  `access.cmd.usr.cube` (only change there; `jobsite.cfg.*` untouched)
+- `configuration/zenki/site-yaml/start` — `import-url` added to
+  `access.cmd.usr.cube` (symmetric with existing `import`)
+- `configuration/zenki/cube/access.zenki` — `site-yaml.import-url` added to
+  `access.cmd.usr.jobsite`, `jobsite.import-url-http` added to
+  `access.cmd.usr.httpd`
+- `configuration/zenki/httpd/routes` — `POST /jobs-import-url` route
+- `configuration/zenki/site-yaml/subroutines.load-early`,
+  `configuration/zenki/jobsite/subroutines.load-early` — new modules added
+  next to their siblings (compile-timing whitelist; regenerable with
+  `bin/dev/gen-sub-whitelist`)
+- `data/web-root/vhosts/jobs.vhost/index.html` — import row in the
+  `[ + manuell ]` panel, `JOBS_IMPORT_URL` const, `submitImportUrl()`
+  (debounced, same WebKit double-click guard as the trash panel)
+
+### verification
+
+- all four new modules pass `perl -c` after `<[...]>`/`<var>` syntax
+  expansion (same transform `bin/Protocol-7` applies at load time).
+- the url regex was exercised against the concrete repro url (extracts
+  `14110126`), a query-string variant, a bare-host http variant
+  (accepted), and negatives: a category search url, `evilstepstone.de`,
+  `stepstone.de.evil.com`, non-numeric id — all correctly rejected. the
+  JS mirror regex was run through node with the same cases, same verdicts.
+- the edited page's `<script>` block passes `node --check`.
+- not run end-to-end: requires a live zenka network (site-yaml + jobsite
+  + httpd + cube) — restart the affected zenki and test with
+  `p7c jobsite.import-url url=<repro-url>`; expected: immediate "queued"
+  ack, `jss.import-url [14110126]: import-url queued: …` at level 1, then
+  the job appearing as `new`/assessed via the normal pipeline.
+
+### notes / follow-ups for the human
+
+- **signatures**: the four new module files carry placeholder AMOS7
+  footers (structure copied verbatim, signatures not valid), and the five
+  edited config files' signatures are now stale. run
+  `bin/Protocol-7 sourcecode update-signatures` before committing — needs
+  the private key, not done here.
+- **deviation from the task text**: the task floated wiring the UI through
+  `jobsite.sync.apply_reverse` as `action: 'add_url'`; the dedicated
+  `/jobs-import-url` endpoint was chosen instead (reasons above). this
+  affects only UI-side wiring, not the shared backend primitive — both
+  callers end at the same `jobsite.cmd.import-url`.
+- **rate limiting**: unchanged from the task's answer — the manual path
+  goes through the same fetch_queue/backoff machinery (fetch_tick
+  untouched), and site-yaml's queue dedup refuses exact double
+  submissions; no additional abuse guard was added (single-user tool,
+  same trust level as the existing `/jobs-trash-rescue` endpoint).
 
 ## the gap
 
@@ -157,6 +300,40 @@ judgment on which title variants are worth a dedicated search url
 so this is necessarily somewhat exploratory/iterative, not a one-shot
 fix).
 
+### second axis, same review pass: location-scoped search entries
+
+separately raised (2026-07-28, folded in here rather than a new task —
+same config file, same profile read, one coherent pass instead of two):
+the jobcenter specifically asked about local-area applications, and the
+current category list is entirely nationwide (every
+`jobsite.cfg.url.*` entry ends `/in-deutschland`). worth adding a handful
+of location-pinned variants for the highest-priority roles (assuming
+stepstone's url scheme supports swapping the location segment the way
+`in-deutschland` implies, e.g. `in-stuttgart` — not yet verified against
+a live fetch).
+
+the justification isn't page-cap truncation (`site-yaml.import_max_pages`,
+capped at 5) — on any *regular* re-scan the existing `skip_ids`/block-file
+dedup makes `site-yaml.cmd.import`'s early-break-on-all-duplicates logic
+stop well short of that cap, so page count isn't the bottleneck once a
+category has run a few times. the real justification is search
+*relevance*: a small local company's posting competes for ranking against
+the entire nationwide candidate pool in a broad role query and can rank
+arbitrarily low there regardless of page count, while the same posting is
+a top-page result in a location-scoped query simply because the pool is
+smaller. location-pinned entries give local postings a search context
+where they actually surface, rather than depending on stepstone's
+nationwide ranking to happen to favor them.
+
+start with a handful of location-pinned entries for the highest-priority
+roles (not a full category × location cross-product — that multiplies
+scan volume and rate-limit pressure for comparatively little marginal
+gain over pinning just the roles that matter most locally). the existing
+`remote-flexibility` assessment dimension already scores remote-friendly
+matches, so this is purely about *discovery* (getting local postings into
+the pipeline at all), not scoring — the reassess/scoring side already
+handles the local-vs-remote judgment once a posting is found.
+
 ## open questions
 
 - exact shape of the UI → `jobsite.cmd.import-url` call: through
@@ -176,8 +353,8 @@ fix).
   vs. leaning more on manual submission for one-off finds — not obviously
   one or the other, likely both.
 
-#,,.,,,.,,.,.,,,,,.,,,.,.,,,,,.,.,...,,,.,.,,,.,.,...,...,...,.,,,,,.,,,.,.,.,
-#JFOJORPPW77I6PRAX3R23D57D3NNECPQCPPZDPXME7DI4WR5S6WZQY2FLVHGDTEG2UNCIMNHAKZYS
-#\\\|WTUR5LK4PSNKKZJ3CNYF5QPJQRPTXUCDKUOJ4HKKERXVEMNSSFM \ / AMOS7 \ YOURUM ::
-#\[7]MTLAEY4IJCSLBDUCCKSJQ3F235PABMDB444AK4QDN65ZXXFDU2DY 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,..,.,.,,,.,,,,,.,.,.,,,,..,...,.,.,...,..,,..,,...,.,.,...,...,
+#OE2SRVBD2RFTXCSTXBD4QI3RIMG7AJV6VDD5ME54OQAXC4BYWVGQ5G4SFMOJYKZFMKGQ377QKCFMS
+#\\\|R3C7RXKX4XHEBHRUEYACZQZGLQCCIPAVUKKFUKQ7LBMBO5YXBKY \ / AMOS7 \ YOURUM ::
+#\[7]X7TPKAAUI7VEZVG4FGYKSWYX2FHJKXPI4BAN62LVKZUMLGLVLWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

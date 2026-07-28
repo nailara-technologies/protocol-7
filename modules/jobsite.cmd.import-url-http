@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = jobsite.cmd.import-url-http
+# param = url=<job-posting-url>  [ bare POST body also accepted ]
+# descr = http-facing manual url import : strm+json reply
+#         same queueing logic as jobsite.cmd.import-url -- the httpd
+#         web-relay reply handler only builds a real HTTP response for a
+#         strm [ or legacy SIZE ] reply, a true/false reply 502s over that
+#         path. POST body, plain text, same format as the console command
+
+my $args = $call->{'args'} // '';
+$args =~ s/^\s+|\s+$//g;
+
+my $result = <[jobsite.cmd.import-url]>->( { 'args' => $args } );
+
+my $ok = ( lc( $result->{'mode'} // '' ) eq qw| true | ) ? 1 : 0;
+
+my $json = eval {
+    JSON::XS::encode_json(
+        {   'ok'      => $ok ? JSON::XS::true() : JSON::XS::false(),
+            'message' => $result->{'data'} // '',
+        }
+    );
+} // '{"ok":false,"message":"encode failed"}';
+
+return {
+    'mode'         => qw| strm |,
+    'data'         => $json,
+    'content_type' => qw| application/json |,
+};
+
+#,,.,,,..,,,,,,,,,,..,.,,,,.,,,.,,,,.,,,.,,,.,..,,...,...,..,,.,,,,,.,.,,,.,,,
+#HZUC65QQH3H5ZZU3OQV2MVLPWIBT43EDEQQPCEUYLYRU2WA6EX5PXN55WCBSBHUJ6PDZDKXPE2INO
+#\\\|W2IL4TPV4QLTGOMJSZX3JU4EEDEBQI5TOBLN6E5SKI4EQAL34VH \ / AMOS7 \ YOURUM ::
+#\[7]7VEIBPRL3XIFMKSLCDF2YSLBAJ5M6JM62DLLMHPOKCXKDJKOH2DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
