@@ -50,7 +50,19 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
   multi-waiter bug -- only resolved the first deferred reply per task_id,
   silently orphaning any other caller watching the same task (3ae52794a);
   jobsite.job.write orphaned-status-file defensive scan, kimi K3 dispatch,
-  live-verified against a real leftover orphan (876981faf). see
+  live-verified against a real leftover orphan (876981faf); jobsite.cmd.reset
+  never decoded a short job_id= to raw numeric form -- silently created a
+  near-empty record under the wrong index key, colliding on disk with the
+  real job's file (vax-int.encode of both happens to produce the same
+  filename) -- fixed (451c5e44e), root-caused live via one job (Amprion/
+  ZKP5U) that kept reappearing in trash with score but no title/company;
+  confirmed the watchdog's attempt-token guard is NOT implicated (reply
+  routing is per-connection state, can't survive a restart to slip past
+  it); separately confirmed the restart re-wire logic's own documented
+  "narrow, restart-timing-window edge case" gap in jobsite.init_code is
+  real and was what re-surfaced the deleted job after a restart -- judged
+  an acceptable, already-deliberate tradeoff, not fixed further; job fully
+  purged (file + in-memory index + tasks) once the reset bug was fixed. see
   [[reference-jobsite-vax-int-id-scheme]] for the id-scheme forensics that
   came out of this session.
 - [jobsite-reports-archive-vision](project-jobsite-reports-archive-vision.md) — vision, "step by step": archive tying sent CSV/PDF reports to source rejection emails, for periodic jobcenter proof; blocked on a mail-reading zenka existing
@@ -69,8 +81,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [scratchpad-import-tool](topic-scratchpad-import-tool.md), [scratchpad-rescue-coding-zenka-task](topic-scratchpad-rescue-coding-zenka-task.md) — mcp-server-p7 scratchpad tools tested; follow-up task filed w/ kimi K3 for native coding-zenka rescue tools + chmod g+rx fix
 - [ncode-pattern-learning-loop](topic-ncode-pattern-learning-loop.md) — design, not built: two-tier mechanical/LLM pattern model, reuse existing stats/confidence fields for self-reinforcement, LLM-prefers-editing-patterns interaction model, namespace scope gating, nested-dispatch for batch-apply without confirmation storms; next step is the pattern-schema fix (steps not persisted) blocking the loop
 
-#,,..,,,,,,,.,,..,..,,,,,,..,,...,,..,,,.,..,,..,,...,...,.,.,,,,,..,,,,.,...,
-#XFAMRJBQSINUA5LTVSKESYWJ5IJHZB5UFIMANNPEEU7RSJFGMKWYGB22SMRF5TAIMGQL4ULU3HMSS
-#\\\|MMK2PJ5DO5O2P4LOE5A5QJTMDQSIB6WY7KGMF7H6N3DDK37E4CB \ / AMOS7 \ YOURUM ::
-#\[7]U4CS7EARX5NSRYKBLKZ3JK74OYVS6VI6AZX2H2TLNANQB6JAACBA 7  DATA SIGNATURE ::
+#,,..,...,,..,..,,.,.,.,,,,,,,..,,,,.,,,.,.,,,..,,...,...,...,,,.,.,,,,..,..,,
+#H5RRNFMLIBDHFDKM34PRODQGY5KYHYV6JHBOBY5I7B3OBI2KOTTZANEMVSUYFTVMOTUYK4RP5O6R4
+#\\\|BZUSK6D72QHBLNGNO5QB2AWTVSSICRQD3KCRCDTSN4BV6E7ZHGM \ / AMOS7 \ YOURUM ::
+#\[7]4IXLDWF5TJRZG2VG66HGPOZLP3Y7IJOEHVHFSZJDWSN2S6FIHWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
