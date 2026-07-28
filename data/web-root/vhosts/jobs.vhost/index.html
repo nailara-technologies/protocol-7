@@ -756,6 +756,12 @@ input[type="date"], textarea {
       <input type="text" id="f-reason"  placeholder="Begründung">
       <button id="btn-add-save">hinzufügen</button>
     </div>
+    <!-- server-side import : feeds a real posting through the pipeline, -->
+    <!-- distinct from the pure local tracking fields above              -->
+    <div class="row" style="border-top:1px solid var(--p7-accent2); padding-top:0.6rem;">
+      <input type="text" id="f-import-url" placeholder="Stepstone-URL importieren (…--1234567-inline.html)">
+      <button id="btn-import-url" style="flex:0 0 auto;">importieren</button>
+    </div>
   </div>
 
   <!-- job list -->
@@ -798,6 +804,7 @@ const JOBS_JSON   = '/jobs.json';
 const JOBS_SYNC   = '/jobs-sync';
 const JOBS_TRASH        = '/jobs-trash';
 const JOBS_TRASH_RESCUE = '/jobs-trash-rescue';
+const JOBS_IMPORT_URL   = '/jobs-import-url';
 const JOBS_PREFS        = '/jobs-prefs';
 const TRASH_WATERMARK_KEY = 'jobs_trash_watermark_v1';
 const POLL_MS     = 30000;
@@ -1987,6 +1994,35 @@ function addManual() {
     });
 }
 
+/* ── stepstone url import [ server pipeline, async ] ── */
+/* mirrors the server-side pattern : stepstone.de host + --<id>-inline.html */
+const STEPSTONE_JOB_RE = /^https?:\/\/(?:[a-z0-9-]+\.)*stepstone\.de\/\S*?--\d+-inline\.html(?:[?#]\S*)?$/i;
+async function submitImportUrl() {
+    const input = document.getElementById('f-import-url');
+    const btn   = document.getElementById('btn-import-url');
+    const url   = input.value.trim();
+    if (!url) return;
+    /* fast-fail before any network call ; the server re-validates anyway */
+    if (!STEPSTONE_JOB_RE.test(url)) {
+        notify('keine stepstone stellen-url (…--<id>-inline.html)', true);
+        return;
+    }
+    btn.disabled = true;
+    try {
+        const r = await fetch(JOBS_IMPORT_URL, { method: 'POST', body: 'url=' + url });
+        if (!r.ok) throw new Error(r.status);
+        const data = await r.json();
+        if (!data.ok) throw new Error(data.message || 'unknown error');
+        /* fetch is async server-side : submitted, check back after the poll */
+        notify('übermittelt: ' + data.message);
+        input.value = '';
+    } catch (e) {
+        notify('import fehler: ' + e.message, true);
+    } finally {
+        btn.disabled = false;
+    }
+}
+
 /* ── helpers ── */
 function escHtml(s) {
     return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -2166,6 +2202,10 @@ document.getElementById('btn-add-toggle').addEventListener('click', () => {
     document.getElementById('add-form').classList.toggle('open');
 });
 document.getElementById('btn-add-save').addEventListener('click', addManual);
+document.getElementById('btn-import-url').addEventListener('click', debounceClick(submitImportUrl));
+document.getElementById('f-import-url').addEventListener('keydown', e => {
+    if (e.key === 'Enter') submitImportUrl();
+});
 
 const sortBtns = ['btn-sort-score', 'btn-sort-asc', 'btn-sort-date'];
 function setSortMode(mode) {

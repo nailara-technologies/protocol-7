@@ -38,6 +38,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [povray-zenka-milestone1-landed-2026-07-27](project-povray-zenka-milestone1-landed-2026-07-27.md) — LANDED (kimi K3, 2nd dispatch attempt after mcp-server-p7 fix): async POV-Ray render pipeline mirroring audio's IPC::Open3 pattern; live-verified incl. non-blocking event loop during an active render; v7.register_child perm gap fixed same as audio's; not yet wired into audio zenka
 - [plugin-web-jobs](topic-plugin-web-jobs.md) — LANDED, all fixes live through 2026-07-10, no longer CRITICAL
 - [jobsite-ui-usability](topic-jobsite-ui-usability.md) — CONFIRMED: badges + render-gated sync, focus preserved
+- jobsite watchdog/repair-status fixes, 2026-07-28 session — LANDED: assess/repair dispatch watchdog timer + attempt-token stale-reply guard (65bbe1380); repair-done status='assessed' dead-end sibling fix (52e7c5fef); import-url feature (kimi K3 dispatch, reviewed, unsigned/uncommitted — see [[reference-jobsite-vax-int-id-scheme]])
+- [jobsite-reports-archive-vision](project-jobsite-reports-archive-vision.md) — vision, "step by step": archive tying sent CSV/PDF reports to source rejection emails, for periodic jobcenter proof; blocked on a mail-reading zenka existing
 - [coding-zenka-abort-inference](topic-plugin-web-jobs.md), [jobsite-assessment-accuracy](topic-jobsite-assessment-accuracy.md) — LANDED; fix=consensus_vote
 - [clients-http](topic-clients-http.md), [task-coordination](topic-task-coordination.md), [job-pipeline](topic-job-pipeline.md) — async http dispatch; jobs.vhost live
 - [reasoning-chain-repository](topic-reasoning-chain-repository.md), [reasoning-namespace](topic-reasoning-namespace.md) — dedup self-improvement; `reasoning.*` ns
@@ -53,8 +55,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [scratchpad-import-tool](topic-scratchpad-import-tool.md), [scratchpad-rescue-coding-zenka-task](topic-scratchpad-rescue-coding-zenka-task.md) — mcp-server-p7 scratchpad tools tested; follow-up task filed w/ kimi K3 for native coding-zenka rescue tools + chmod g+rx fix
 - [ncode-pattern-learning-loop](topic-ncode-pattern-learning-loop.md) — design, not built: two-tier mechanical/LLM pattern model, reuse existing stats/confidence fields for self-reinforcement, LLM-prefers-editing-patterns interaction model, namespace scope gating, nested-dispatch for batch-apply without confirmation storms; next step is the pattern-schema fix (steps not persisted) blocking the loop
 
-#,,..,.,.,.,.,,,,,.,.,,.,,...,.,.,...,,,.,.,.,..,,...,...,...,.,,,,,.,,,.,...,
-#5XZV7XD7DSAVAE6IMK5N4UAZDPIGIX77EMJXZF4BORJ63XZV2Q32SJD6D4OT2H5AR7CV3A7ON57MG
-#\\\|LEFRP2PXBDFMSQFGNKS7LDYPPYZX7WC3ENOQ7BHVYMDAPJRPFVU \ / AMOS7 \ YOURUM ::
-#\[7]GG3DASI5DZDUQQHPZSPHT7YF6Q47INUJBMOT3BFG5DBWKJXIOIAA 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,,.,,..,,.,,.,,,.,.,,,,,...,...,..,,...,...,.,,,,,,,..,,,,,,,.,,
+#RI43U7UOMMQURO4UFXUCHQJONXG7MRUHQ6AFDBNZRKMO3PS47E7UUCU6PCIZKQ7XV65GTED36S5RG
+#\\\|JRPR4SOH3Y47NHON4VMB7GSSZLNQRPT7MGAGKFIHCWW6CRSM7RC \ / AMOS7 \ YOURUM ::
+#\[7]DIE3SA5FV6YR46YLMJO4KIMVBBAJ3UGFT53WYV6EQVAYXCW7VUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
