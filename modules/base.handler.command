@@ -533,10 +533,18 @@ if ( $cmd eq q|!TRM!| ) {
             keys %{$streams};
         if ( $implicit and @active ) {
             ## sort by opened_at : highest timestamp = most recently opened ##
+            ## -- STRM/STRM-SIZE streams opened via process_reply's own     ##
+            ## open-handling [ as opposed to base.stream.open ] stamp       ##
+            ## 'started_at' instead of 'opened_at', so a comparison reading ##
+            ## only 'opened_at' hits undef <=> undef for any session whose  ##
+            ## active streams are all that kind -- fall back to             ##
+            ## 'started_at' before defaulting to 0                          ##
             my $newest = (
                 sort {
-                    $streams->{$b}{'opened_at'}
-                        <=> $streams->{$a}{'opened_at'}
+                    ( $streams->{$b}{'opened_at'}
+                            // $streams->{$b}{'started_at'} // 0 )
+                        <=> ( $streams->{$a}{'opened_at'}
+                            // $streams->{$a}{'started_at'} // 0 )
                 } @active
             )[0];
             $cmd_id = $newest;
@@ -1069,8 +1077,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,,.,,..,...,...,..,,..,,,,,,,,,,...,,,.,...,..,,...,...,,,.,...,..,,..,,,,,,
-#SGWJNPWVFY3GESK6UEHAILKIB27S6HNHTX2IANDWY3VESMH2M7PDYULKWZ6PEPRGZUME24QXQ2LW6
-#\\\|FVBNNLZO4TV6YLOCAPFBRCNTUZOXJSKKSBJJTTI2G2W65VANRM5 \ / AMOS7 \ YOURUM ::
-#\[7]JTHU4XMRRQU537AA4KO7VLDWUPFF5SZPX7HWL75ROBORL6QLBSAQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,,,,,,,,,..,,,,,,...,,.,,..,,...,..,,...,...,...,,..,..,,,,,,..,,
+#ZDJ6F46IR3GULMMY6N2AYPD5SPJA554P4KFZYPL7KF46RWZCMI6BP5AGKCMBTHFOFQSM3Y5OO2UQ2
+#\\\|EN3Y5CLAXFG2XCQJJBOMZGOGOTK5YBMURBPYORPX3DBJIACJWRC \ / AMOS7 \ YOURUM ::
+#\[7]LO2NUXJJGJKDWH2SK7SCQZR44PNID6JAUXDTQPKUWTWEZKSOT2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
