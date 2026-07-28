@@ -25,6 +25,11 @@ POST  /jobs-sync    httpd.route.handler.web-relay  [command:web.jobs-sync]
 GET   /jobs-trash          httpd.route.handler.web-relay  [command:jobsite.list-trashed]
 POST  /jobs-trash-rescue   httpd.route.handler.web-relay  [command:jobsite.rescue-http]
 
+## manual single-url import : same shape as trash-rescue -- straight to   ##
+## jobsite [ no content in the web cache ], jobsite.cmd.import-url does   ##
+## the actual validation/dedup/queueing, this is only the strm+json face  ##
+POST  /jobs-import-url     httpd.route.handler.web-relay  [command:jobsite.import-url-http]
+
 ## small shared client-prefs blob [ e.g. trash-panel watermark ] so a     ##
 ## purely-local, no-canonical-server-value setting can still agree across ##
 ## different browsers/profiles instead of drifting independently forever ##
@@ -42,8 +47,8 @@ POST  /iris/negotiate httpd.route.handler.iris-negotiate
 POST  /cursor       plugin.web.space.handler.cursor_update
 POST  /context      httpd.route.handler.context
 
-#,,.,,.,,,.,,,,,,,,,.,,,.,,,,,.,.,,.,,...,.,,,..,,...,...,,,.,..,,.,,,.,.,,,.,
-#YAIXQOAXTTXL47DWHU5Q3DXN7BIQ4XULRTTTNA6YJ5Y6Z43HWKRNIUIWXGDCPUDDFJJ4EBAALHNPS
-#\\\|MHW5IOXH7JGWYNG2DAZWRXZCRAGNZZSML7ET44UDIPPPDB3XRIC \ / AMOS7 \ YOURUM ::
-#\[7]OB56JG5L3DKMM5HEZSFNP2VFVD4R4YXZXSQOYEEP3QJEZ6T7X6CY 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,,,,.,,,..,,,,.,.,,,,..,.,,,.,.,..,,...,...,,..,,.,,.,.,..,,,,,,
+#2DXJXCHON6YGEZIJKIZ3VGFJCPWSQ6LSI6H3TVAJJ2SD2IY5OZY4L4D2FCB4V67IQUJBKHXCWROZM
+#\\\|FGZ2MKQQPANTIKNPS4QSNU736IBBKU77OVTAUN6ZKNRUNBCNHZ5 \ / AMOS7 \ YOURUM ::
+#\[7]7JYUJRRGM3LZ2OF5ZZZICPXSO7SQQ2DX627S6E5Q2KL5P6YXJIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

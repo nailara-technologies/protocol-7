@@ -1,0 +1,86 @@
+## [:< ##
+
+# name  = jobsite.cmd.import-url
+# descr = import one stepstone posting url into the pipeline
+# param = url=<job-posting-url>  [ bare url also accepted ]
+#
+# validates the url, checks the local job index and checksum store for
+# known duplicates [ reported synchronously ], then route-sends to
+# site-yaml.import-url which seeds the fetch queue. the fetch itself runs
+# async through the site-yaml fetch_queue/backoff machinery, so a true
+# reply here means "queued", not "fetched" -- a successful fetch lands in
+# the pipeline as status 'new' via jobsite.job-upsert, a page that does
+# not resolve to a JobPosting shows up in the site-yaml log [ gone/drop ].
+
+my $args_str = $call->{'args'} // '';
+$args_str =~ s/^\s+|\s+$//g;
+
+## parse key=value pairs; values are non-whitespace ##
+my %param = ( $args_str =~ m/(\w+)=([^\s]+)/g );
+
+my $url = $param{'url'} // '';
+if ( not length $url ) {
+    ## legacy: bare url as the whole argument line ##
+    $url = $args_str;
+}
+
+## re-validate server-side [ never trust a caller's client-side check ] ##
+my ($job_id)
+    = ( $url
+        =~ m{^https?://(?:[a-z0-9-]+\.)*stepstone\.de/\S*?
+            --(\d+)-inline\.html(?:[?#]\S*)?$}xi
+    );
+
+return {
+    'mode' => qw| false |,
+    'data' => 'not a stepstone job posting url',
+    }
+    if not defined $job_id;
+
+## already known to the local pipeline ? say where it currently sits ##
+my $idx_status = ( <jobsite.job.index> // {} )->{$job_id} // '';
+if ( length $idx_status ) {
+    my ($status) = split m|:|, $idx_status, 2;
+    my $hint
+        = $status eq qw| trash |   ? ' [ use jobsite.rescue to restore ]'
+        : $status eq qw| deleted | ? ' [ deleted stage, purges soon ]'
+        :                            '';
+    return {
+        'mode' => qw| false |,
+        'data' => "already known: $job_id sits in $idx_status$hint",
+    };
+}
+
+## same url under a changed listing id [ decided-job checksum dedup ] ##
+my $chk = <[jobsite.checksum.index]>->( 'check', { 'url' => $url } );
+if ( $chk->{'is_blocked'} ) {
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( 'already known: url checksum hit [ %s ]',
+            join( ', ', @{ $chk->{'hits'} // [] } ) ),
+    };
+}
+
+<[base.logs]>->( 1, 'jss.import-url: queueing %s [%s]', $job_id, $url );
+
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| site-yaml.import-url |,
+        'call_args' => { 'args' => "url=$url" },
+        'reply'     => {
+            'handler' => qw| jobsite.handler.import-url-reply |,
+            'params'  => { 'id' => $job_id, 'url' => $url },
+        },
+    }
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => "queued for import: $job_id [ async "
+        . "fetch, lands as 'new' on success ]",
+};
+
+#,,,,,.,,,..,,,,.,..,,,..,,.,,,,,,.,,,,..,,..,..,,...,..,,.,,,...,,,.,,..,,,.,
+#2KVHZ6OKP4MMUFJEDJULKXWZSDJAPCDF7NU4A65M4W7XKRS2LFXO6LAOXZK6KSLK3TSDXYS57RFDM
+#\\\|VYZQCWRF2LTPTCDL3AAJ26HAI4NOA77SGNCA47KNQOQKX4U5ERJ \ / AMOS7 \ YOURUM ::
+#\[7]2KD7K4OHA3YUJ7PBZN34Y5FTLXHVNQ45URAZAO6U452WIZ6IBMAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
