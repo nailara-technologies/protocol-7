@@ -2,11 +2,52 @@
 
 ## status
 
-not started — root-caused from two independent live repros in one
-session (2026-07-28), not yet fixed. a partial, single-call-site
-workaround for the same root cause already exists
-(`jobsite.dispatch.assessments`' blocked-job branch) but the general
-problem in `jobsite.job.write` itself remains open.
+implemented (2026-07-28) — defensive-scan fix in `jobsite.job.write`,
+unsigned/uncommitted (signing requires the human's private key).
+
+what was built: after the existing index-derived `$old_abs_path`
+computation (~line 60 in the edited file) and before the rename-based
+transition, job.write now globs for the job's `$enc_id` across all
+status dirs — one-level `$jobs_root/*/$enc_id.yaml` for the plain
+statuses, two-level `$jobs_root/*/*/$enc_id.yaml` and
+`$jobs_root/*/*/$enc_id.yxz.B32` for the epoch-bucketed
+blocked/deleted/trash dirs (glob covers their varying epoch subdir
+names). any match that is neither the new target `$abs_path` nor the
+index-derived `$old_abs_path` (which the existing rename logic already
+handles — never double-processed) is treated as an orphan: logged at
+base.logs level 1 with job_id + stray path, then plain-unlinked (trash
+`.yxz.B32` strays are also just unlinked — untracked duplicates don't
+go through the trash retention pipeline). the whole scan is wrapped in
+eval; a glob error logs at level 0 and skips the scan, an unlink
+failure logs at level 0 and skips that file — the write itself is
+never aborted by scan problems.
+
+design choice worth noting: instead of hardcoding the enumerated
+status list, the one-level glob uses `$jobs_root/*/` directly. the
+enumerated list in this file omitted `assessed/` — the exact dir of
+the WB2NK stray — plus other live statuses found in the codebase
+(`responded`, `to_apply`). a wildcard can never drift stale relative
+to `$job->{'status'}` (which job.write writes verbatim as the dir
+name) and `jobs/` contains nothing but status dirs, so it is both
+simpler and strictly more defensive.
+
+verification: `bin/format-code -c -n` (P7 `<[...]>` syntax translation
++ real `perl -c`) reports syntax valid; all lines <= 78 chars (awk
+check + `vc-changed-files -exc-len` clean). a standalone perl harness
+replicating the scan block verbatim was run against a fabricated
+jobs/ tree reproducing both live repro shapes: (1) WB2NK shape —
+strays in `assessed/` and `new/` removed, index-derived old path in
+`rejected/` and unrelated jobs' files untouched; (2) ZKP5U shape —
+old-epoch `trash/V7L36RI/*.yxz.B32` stray removed while the new-epoch
+target file and an empty-index (`$old_abs_path` eq '') case were
+handled safely. NOT tested against live job data (would require
+running the jobsite zenka against production state — out of scope);
+the AMOS7 data-signature footer is left in place but now stale, as
+expected for an unsigned edit.
+
+still open / out of scope (unchanged): the call-site audit option
+(`store.prune`, `job.rescue`, `cmd.reset`), the prune-side orphan
+detector idea, and the LLM-assesses-with-empty-input side-finding.
 
 ## root cause
 
@@ -103,8 +144,8 @@ now." two shapes worth considering, not mutually exclusive:
   producing a plausible-looking but groundless score? separate from the
   orphaned-file bug itself, but discovered via the same incident.
 
-#,,..,,,,,,,.,...,,,,,,.,,,.,,...,,..,,,.,...,.,.,...,...,.,.,,.,,,,.,,.,,,.,,
-#MVSJP6T5HK4ZKGMMGOCDHFJY2XYGFNYNBPYMREIWFOR7CYJCUSIJYIKRSDHGFI7AKINSIYFIIFWQM
-#\\\|UXMNUS3QPPQR36L2Z7DLXHDQ3LH7BTGLUFXE2AFYI4PMDEX3LWW \ / AMOS7 \ YOURUM ::
-#\[7]57EUR5ITOSF37QXPBL4MMIKT7YJJI5QV4QL23BU2Y2TAHU4AOIBA 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,,.,,,.,,.,,,..,,,.,,,,,,,..,..,,.,.,...,...,.,,,,..,.,,,...,.,.,
+#24AB7YH76BIQ7WW7JVGNZWJ4EUS5SFIXFPTDVJX4D5AGJYYUKC3EZG2R26UVA6VTACUL3HUSRQWO4
+#\\\|EFIFBW6WZZT5XA4WS5NCJXIU7JXBKQRWQGIWG6CUHQEDVOORD4E \ / AMOS7 \ YOURUM ::
+#\[7]WKITTOXNYBUAKAZAPCUMCJO2RAPIL2IEIZICKWLXFMDVKQOL7OAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
