@@ -32,6 +32,16 @@ accept the short form for convenience and decode it internally, but
 direct backend calls (`job.read`, `job.write`, devmod `eval-code` snippets)
 need the raw numeric id.
 
+**Confirmed real-world bug from this exact confusion**: `jobsite.cmd.reset`
+took `job_id=<short-id>` and only uppercased it — never decoded — unlike
+every sibling job-id command. Since `vax-int.encode` of the *real* numeric
+id and the *literal short-form string used as a raw id* both resolve to
+the same on-disk filename, this silently created a near-empty record
+under the wrong index key that collided with, and eventually corrupted,
+the real job's file (fixed 451c5e44e, 2026-07-28). If you're writing or
+reviewing any new job-id-accepting command, verify it decodes short-form
+input — this is not a hypothetical risk, it caused live data loss.
+
 **There are two distinct index structures, differently keyed — do not
 confuse them:**
 - in-memory `<jobsite.job.index>` (also rebuilt by
@@ -94,8 +104,8 @@ decoder).
 See also [[project-jobsite-reports-archive-vision]] for the case that
 motivated this investigation.
 
-#,,,,,..,,,,.,...,,,,,.,.,,..,,..,,,.,,,.,,,,,..,,...,...,...,.,.,.,.,.,.,.,,,
-#4XXQX7COINSVQ3EHRAX34H7VU33JGMCMAYKDLWMY33B6D674OFXPFE5EOGDAGFERFP2JNGOQOBXLI
-#\\\|E3LYUBDN6ZKZQV72QI5PXC7NAP4VDZWUSXUCS6PF7EQDGD65EVV \ / AMOS7 \ YOURUM ::
-#\[7]OG72W5XK2DEW23O3TW5XCM4DCGM6K7JTJSDSQR37EFBVEFAHOKBQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,..,.,,,,.,,,,,,..,,,..,.,,,,,,,..,,...,..,,.,,,,,.,..,,,..,,.,,
+#RVXW4U32IQWLHCD7MT72OCH6IFRANWMHP7R3LUBYVBYLMBDZICWGSJQUAS63U5XM4UM3Z5LZ6MC5A
+#\\\|FTB7X2VELE42BAXG6IZITMIO5AFGZIK4XCIKZSFJRDSZQY7EKDX \ / AMOS7 \ YOURUM ::
+#\[7]3SP23A6QKW56Y5YQQBQJ7S5IB4BAK45T5BVXQNWMPOBGCFWOMEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
