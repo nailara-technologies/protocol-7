@@ -25,17 +25,23 @@ if ( not length $url ) {
 }
 
 ## re-validate server-side [ never trust a caller's client-side check ] ##
-my ($job_id)
-    = ( $url
-        =~ m{^https?://(?:[a-z0-9-]+\.)*stepstone\.de/\S*?
+my ($job_id) = (
+    $url =~ m{^https?://(?:[a-z0-9-]+\.)*stepstone\.de/\S*?
             --(\d+)-inline\.html(?:[?#]\S*)?$}xi
-    );
+);
 
 return {
     'mode' => qw| false |,
     'data' => 'not a stepstone job posting url',
     }
     if not defined $job_id;
+
+## strip tracking query/fragment [ e.g. ?rltr=... ] : a scan-discovered url ##
+## never carries one [ site-yaml.stepstone.search's own href regex stops at ##
+## inline.html ], so a manually pasted url is the only source of a "dirty"  ##
+## one -- normalize before storing/checksumming/queueing so it matches what ##
+## the rest of the pipeline always produces                                 ##
+$url =~ s{[?#].*$}{};
 
 ## already known to the local pipeline ? say where it currently sits ##
 my $idx_status = ( <jobsite.job.index> // {} )->{$job_id} // '';
@@ -79,8 +85,8 @@ return {
         . "fetch, lands as 'new' on success ]",
 };
 
-#,,,,,.,,,..,,,,.,..,,,..,,.,,,,,,.,,,,..,,..,..,,...,..,,.,,,...,,,.,,..,,,.,
-#2KVHZ6OKP4MMUFJEDJULKXWZSDJAPCDF7NU4A65M4W7XKRS2LFXO6LAOXZK6KSLK3TSDXYS57RFDM
-#\\\|VYZQCWRF2LTPTCDL3AAJ26HAI4NOA77SGNCA47KNQOQKX4U5ERJ \ / AMOS7 \ YOURUM ::
-#\[7]2KD7K4OHA3YUJ7PBZN34Y5FTLXHVNQ45URAZAO6U452WIZ6IBMAI 7  DATA SIGNATURE ::
+#,,..,...,.,.,.,.,,,,,,..,,..,...,,..,.,.,,.,,..,,...,...,...,,..,,..,,,.,...,
+#I6OAKTYV5SBBCTUDF272RIJPLAKJUK5B2OVEJTDZGOMWRI74SPZRIOHAPW6SMIJSEM524D6BNZQJY
+#\\\|AT5QY5JP4B634S3FPOSYMQA3W2USTMMNI4MLUIXLXUUDEM25LR6 \ / AMOS7 \ YOURUM ::
+#\[7]PVSPAUBVUBPHULFAIESM5SMFTO2KUSPQOKSP7WWUZDFNIC3AQQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
