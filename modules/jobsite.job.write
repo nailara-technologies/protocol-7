@@ -57,6 +57,47 @@ if ( length $old_status ) {
     }
 }
 
+## defensive scan for orphaned copies : the index-derived old path above is ##
+## a single guess that can be stale relative to the filesystem [ e.g.       ##
+## rapid multi-step status sequences ], leaving copies of this job under    ##
+## other status dirs that neither this rename nor store.prune ever sees     ##
+## again -- glob for this id across all status dirs [ one-level for the     ##
+## plain statuses, two-level for the epoch-bucketed blocked/deleted/trash   ##
+## dirs with their varying epoch subdir names ] and remove any genuine      ##
+## stray that is neither the new target nor the handled old path            ##
+my @stray_matches = eval {
+    grep { -f $ARG } map { glob($ARG) }
+        "$jobs_root/*/$enc_id.yaml",
+        "$jobs_root/*/*/$enc_id.yaml",
+        "$jobs_root/*/*/$enc_id.yxz.B32";
+};
+if ($EVAL_ERROR) {
+    <[base.logs]>->(
+        0,       'jss.job.write: orphan scan glob error for %s: %s',
+        $job_id, $EVAL_ERROR
+    );
+} else {
+    for my $stray (@stray_matches) {
+        next if $stray eq $abs_path;
+        next if length $old_abs_path and $stray eq $old_abs_path;
+        if ( not unlink $stray ) {
+            <[base.logs]>->(
+                0,
+                'jss.job.write: orphan unlink '
+                    . 'failed for %s [ job %s ]: %s',
+                $stray,
+                $job_id,
+                $!
+            );
+            next;
+        }
+        <[base.logs]>->(
+            1, 'jss.job.write: removed orphaned status file for job %s : %s',
+            $job_id, $stray
+        );
+    }
+}
+
 ## tombstone a genuine [ not-already-terminal ] transition into a terminal  ##
 ## state : jobsite.sync.push forwards this so the web-cache can prune the   ##
 ## record instead of holding a stale copy forever [ trash/deleted/blocked   ##
@@ -188,8 +229,8 @@ rename( $index_tmp, $index_file )
 
 return $written;
 
-#,,.,,,,.,,.,,,.,,,.,,,,,,,..,.,.,...,.,.,,..,..,,...,...,.,.,.,,,,.,,...,,,.,
-#L6KODFMVG3AJUTFAPPDRRHP7NFVXFXGFMPNQIKRHI3VZ4I2LNPFJSK6Y66KHSMOMX7CGHSR4IHFRY
-#\\\|PBCXP43I6P773MHBNP2UEBGKMBZ5H52J7WLMNWFTW6DSRUMJKYW \ / AMOS7 \ YOURUM ::
-#\[7]A4VXOABEWIHVHQNCBP2EKIAS6P6GRRIHA33Z2JFUNMDPDPHJUIAI 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,.,.,,,,,,.,,,,,,.,,,,,.,.,.,,,.,..,,...,..,,.,.,...,,,.,,,.,,,,,
+#TJVXWTESDCX5YFNO3EGDMC3XSCD5YJPYJLVXOGPLNUS7PORY2Q4JLACVCIQ5T26IIJGGYX5NLEAFO
+#\\\|2QMOQVF7WPRXHJGHDIW5MIP2XAGQS6P63IK32L67UJIB53XQFU7 \ / AMOS7 \ YOURUM ::
+#\[7]4IYKPHPA2BSBMMANANOETKPGQH2P4XFOZNKETK4YMJTXATMQNODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
