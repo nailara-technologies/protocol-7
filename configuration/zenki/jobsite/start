@@ -24,6 +24,13 @@ jobsite.cfg.url.backend-architect = https://www.stepstone.de/jobs/softwarearchit
 ## minimum llm score [ 0..10 ] to flag job for review
 jobsite.cfg.threshold       = 7
 
+## model pinned in every assessment prompt [ composite registry key,
+## see coding.cfg.start_model / models.registry.lookup ] -- keep this in
+## step with whichever model is actually preferred, or every assessment
+## forces the gpu server to kill+respawn away from the zenka's own
+## default. ZDMAPAY:AR3OCKQ = Qwopus3.5 9B v3 ["more precise on analysis"]
+jobsite.cfg.assessment_model = ZDMAPAY:AR3OCKQ
+
 ## seconds between automatic rescans [ 0 = manual trigger only ]
 jobsite.cfg.rescan_interval = 0
 
@@ -67,8 +74,8 @@ modules.load = auth.client net protocol io.unix ui jobsite clients.http devmod
 
 [zenka.loop]
 
-#,,,,,,..,.,.,,,,,..,,,,.,..,,.,.,.,,,.,,,,..,..,,...,...,,,,,.,.,,..,,..,,,.,
-#557SKVYO4HU4LBZEWZA2QN3D67IKF2QHXOHZS7ZTBO2NE2HOX5BDBCZFIBFDC5NUSOVFUEQQOMCSC
-#\\\|6FAXOERYVUHON5JFY4HSHULNWC56VJIRZDD2S5JDO56VMI4GDWY \ / AMOS7 \ YOURUM ::
-#\[7]IZ7CYZUO2EH7BQ5Y7N7SW5FNZZKMUBCPAUSNVMAUNBKOFFZTB4CQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,.,,,.,.,.,.,,,,,.,,,..,,.,,,.,.,..,,...,...,.,.,,,,,.,.,..,,.,.,
+#2PXPJNHZLOOEE256CTC7LKH5NFKGNZJV4JQU42GJWOSKN7B6QUADQG3F7D5SFOKLOQFFJ3PK5J4YQ
+#\\\|UZAS5Z4NVASB5DN2MEIKIONIN43Z5VJNSXQUNGMBHEA47GIKHDD \ / AMOS7 \ YOURUM ::
+#\[7]W3H6GHVNOP2JZSQF5KQS4MPHZZY7XN7CJHOP6KZWMTYW4UZEDSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
