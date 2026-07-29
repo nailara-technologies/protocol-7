@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = forensics.cmd.sweep.run
+# descr = manually run nightly sweep [ same path as 04:07 slot ]
+
+my $result = <[forensics.event.nightly-sweep]>->();
+
+return {
+    'mode' => qw| true |,
+    'data' => 'sweep record written [ see zenka var-dir sweeps/ ]'
+    }
+    if $result;
+
+return { 'mode' => qw| false |, 'data' => 'sweep failed [ see zenka log ]' };
+
+#,,.,,..,,.,.,,.,,,..,.,.,,,,,,.,,...,,,,,,,.,..,,...,.,.,,.,,...,,.,,,,.,,..,
+#AY33IS3J5D2PIYZLDTL4HKIMXRTLNPHGGM6XFCA2FWC5OOOOSTIPKLY4S7C5VAX4ZUEN3IJJ2DB7W
+#\\\|KFCURLY7ZZVOSJ4SJSUBGKW5PHMPSM46XSADNZVBEVIWHUG57PM \ / AMOS7 \ YOURUM ::
+#\[7]CYK2JNKZVTAWQMYGHGZ7U35Y2UKQHVHLHAVKR33DPHNLTOLN2IAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
