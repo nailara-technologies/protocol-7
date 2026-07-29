@@ -1,0 +1,44 @@
+## [:< ##
+##
+## build recipe : impressive [ kind : tarball-extract ]
+##
+## wraps : bin/install-scripts/download_impressive.pl
+## fetch-verify-place : sourceforge/mirror tarball [ first success wins ],
+## sha1-verified archive AND extracted file, single file extracted straight
+## to its install path. no compilation -- the "build" is verify+extract.
+## the sha1 pins below mirror the backing script exactly [ algorithm kept
+## deliberately, do NOT silently swap ] ..,
+
+name: impressive
+kind: tarball-extract
+descr: impressive presentation tool [ tarball fetch, sha1 verify, extract ]
+
+backing_script: bin/install-scripts/download_impressive.pl
+
+source:
+  version: 0.11.1
+  mirrors:
+    - http://sourceforge.net/projects/impressive/files/Impressive/0.11.1/Impressive-0.11.1.tar.gz/download
+    - http://mirror.nailara.net/impressive/Impressive-0.11.1.tar.gz
+
+checksums:
+  algorithm: sha1
+  archive: 0f47caec3abd0398814550cabfb78ecca8b5eb85
+  files:
+    impressive.py: b35f9bdc5c702cb8865bfc618fc0fd497566af88
+  sizes:
+    archive: 195743
+    impressive.py: 244877
+
+extract:
+  member: Impressive-0.11.1/impressive.py
+
+install:
+  destination: /usr/local/impressive/bin/impressive
+  requires_root: 1
+
+reference: bin/install-scripts/download_impressive.pl
+notes: >
+  pinned checksums for BOTH the archive and the extracted file, as the
+  backing script already implements. recipe execution delegates to the
+  script; the registry declares the pins as data.

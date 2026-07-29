@@ -1,0 +1,39 @@
+## [:< ##
+##
+## build recipe : mediainfo [ kind : vendor-deb ]
+##
+## wraps : bin/install-scripts/install_mediainfo.pl
+## fetches PREBUILT vendor .deb packages directly from mediaarea.net
+## [ version checked against an rss feed, architecture detected ],
+## installs via dpkg. no source, no compilation -- the "build" is
+## fetch+dpkg-install ..,
+
+name: mediainfo
+kind: vendor-deb
+descr: mediainfo [ vendor prebuilt .deb packages from mediaarea.net ]
+
+backing_script: bin/install-scripts/install_mediainfo.pl
+
+version_check:
+  feed_url: https://mediaarea.net/rss/mediainfo_updates.xml
+  pattern: '<title>MediaInfo ([^u>]+)<'    ## as the backing script uses
+
+source:
+  base_url: https://mediaarea.net/download/binary/
+  packages:        ## fetch+install order matters [ libs before cli ]
+    - libzen0
+    - libmediainfo0
+    - mediainfo
+  arch_map:        ## uname -m -> vendor arch string
+    x86_64: amd64
+    i686: i386
+
+install:
+  method: dpkg
+  requires_root: 1
+
+reference: bin/install-scripts/install_mediainfo.pl
+notes: >
+  version comparison and per-arch package url selection stay with the
+  backing script; the recipe declares the feed, package set and arch
+  mapping as data.
