@@ -1,0 +1,196 @@
+## [:< ##
+
+# name  = nessus.cmd.scan-run
+# param = <target> [ports <ports>] [profile <name>]
+# descr = run nessus scan against target, write findings yaml
+
+##    backend control path decision [ host survey 2026-07-29 ] :            ##
+##                                                                          ##
+##    - nessus professional [ trial, expires 2026-08-05 ] installed and     ##
+##    running on this host : systemd service 'nessusd', REST API on         ##
+##    https://127.0.0.1:8834/ [ self-signed cert ] -- selected as           ##
+##    backend [ live-verified, unlike the openvas container path ]          ##
+##    - REST API auth : POST /session -> token. the trial license allows    ##
+##    exactly ONE user, so no dedicated service account exists -- the       ##
+##    shared UI user [ nessus.cfg.username ] authenticates with its         ##
+##    password from nessus.cfg.password. API keys [ X-ApiKeys ] are the     ##
+##    planned upgrade once generated in the UI                              ##
+##                                                                          ##
+##    LIVE TEST 2026-07-29 [ full round trip through this module ] :        ##
+##    login + template resolution verified against the running nessusd,     ##
+##    but scan CREATION is license-gated : POST /scans returns http 412     ##
+##    'API is not available' because the trial license has                  ##
+##    scan_api:false [ server/properties, nessus_type 'Nessus               ##
+##    Professional' trial ]. pipeline is verified up to the license         ##
+##    boundary; a live scan requires a license with scan_api enabled        ##
+##    [ paid tier ] -- the failure surfaces as a clean backend error,       ##
+##    never as fabricated findings.                                         ##
+##                                                                          ##
+##    the wrapper stays thin by design : this module shells out to the      ##
+##    python helper [ nessus.cfg.helper ] which drives the REST API and     ##
+##    emits json findings; this module validates, converts and writes       ##
+##    yaml into the zenka data dir. findings keys are identical to the      ##
+##    openvas backend [ oid, severity, name, target ] so downstream         ##
+##    modules need no backend branch -- nessus plugin ids carry a           ##
+##    'nessus-plugin-' prefix to keep the namespace distinct from nvt       ##
+##    oids. if the helper or backend is missing the scan fails cleanly --   ##
+##    results are never fabricated.                                         ##
+##                                                                          ##
+##    note : call blocks for the scan duration in phase 1 .., async         ##
+##    child-fork pattern [ weather.base.fork_weather_child ] is the         ##
+##    planned follow-up for long scans.                                     ##
+
+my $args_str = $call->{'args'} // '';
+
+##  parse 'target=x ports=y profile=z', 't ports p profile n' or bare  ##
+my %arg;
+my @words = grep {length} split m|\s+|, $args_str;
+while (@words) {
+    my $word = shift @words;
+    if ( $word =~ m{^(\w+)=(.+)$} ) {
+        $arg{$1} = $2;
+    } elsif ( @words and $word =~ m{^(ports|profile)$} ) {
+        $arg{$1} = shift @words;
+    } elsif ( not exists $arg{'target'} ) {
+        $arg{'target'} = $word;
+    }
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected : <target> ' . '[ports ..] [profile ..]'
+    }
+    if not length( $arg{'target'} // '' );
+
+return {
+    'mode' => qw| false |,
+    'data' =>
+        sprintf( 'target contains invalid characters [%s]', $arg{'target'} )
+    }
+    if $arg{'target'} =~ m{[^\w\.\-:/]};
+
+my $profile       = $arg{'profile'}                              // qw| full |;
+my $scan_template = $data{'nessus'}{'profile'}{$profile}{'name'} // '';
+
+return {
+    'mode' => qw| false |,
+    'data' =>
+        sprintf( 'unknown scan profile [%s] .., check nessus.profile.*',
+        $profile )
+    }
+    if not length $scan_template;
+
+my $helper = <nessus.cfg.helper>;
+
+return {
+    'mode' => qw| false |,
+    'data' => "backend helper not found [ $helper ]"
+    }
+    if !-f $helper;
+
+my $username = <nessus.cfg.username> // '';
+my $password = <nessus.cfg.password> // '';
+
+return {
+    'mode' => qw| false |,
+    'data' => 'nessus.cfg.username / nessus.cfg.password not set .., '
+        . 'authenticate against the nessus UI user [ trial license : '
+        . 'single user ] or switch the helper to API keys'
+    }
+    if not length $username or not length $password;
+
+require JSON::XS;
+require IPC::Open3;
+require Symbol;
+
+my @cmd = (
+    qw| python3 |,       $helper,
+    '--base-url',        <nessus.cfg.base_url> // qw| https://127.0.0.1:8834 |,
+    '--username',        $username,
+    '--password',        $password,
+    '--target',          $arg{'target'},
+    '--ports',           $arg{'ports'} // '',
+    '--scan-template',   $scan_template,
+    '--poll',            <nessus.cfg.poll_interval> // 15,
+    '--timeout',         <nessus.cfg.scan_timeout>  // 14400,
+);
+
+##  run helper [ blocking .., async planned ] capture stdout + stderr   ##
+my $err_fh  = Symbol::gensym();
+my $pid     = IPC::Open3::open3( undef, my $out_fh, $err_fh, @cmd );
+my $out_str = do { local $INPUT_RECORD_SEPARATOR = undef; <$out_fh> }
+    // '';
+my $err_str = do { local $INPUT_RECORD_SEPARATOR = undef; <$err_fh> }
+    // '';
+waitpid( $pid, 0 );
+my $exit_code = $CHILD_ERROR >> 8;
+
+my $result = eval { JSON::XS::decode_json($out_str) };
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf(
+        'scan helper failed [ exit %d ] : %s',
+        $exit_code, length $err_str ? $err_str : ( $EVAL_ERROR || $out_str )
+    )
+    }
+    if $exit_code != 0 or not defined $result;
+
+return {
+    'mode' => qw| false |,
+    'data' =>
+        sprintf( 'backend error : %s', $result->{'error'} // qw| unknown | )
+    }
+    if ( $result->{'status'} // '' ) eq qw| error |;
+
+##  write findings yaml to zenka data dir                               ##
+( my $target_safe = $arg{'target'} ) =~ s{[^\w\.\-]}{_}g;
+my $yaml_path = sprintf( '%s/scan-%s-%d.yaml',
+    <nessus.cfg.data_dir>, $target_safe, time );
+
+$result->{'findings'} //= [];
+
+my $yaml_data = {
+    'scan' => {
+        'target'    => $arg{'target'},
+        'ports'     => $arg{'ports'} // '',
+        'profile'   => $profile,
+        'status'    => $result->{'status'},
+        'scan_id'   => $result->{'scan_id'},
+        'report_id' => $result->{'report_id'},
+    },
+    'enrichment' => qw| pending |,                 ## phase 2 .., ##
+    'findings'   => $result->{'findings'} // [],
+};
+
+my ( $ok, $yaml_err )
+    = <[format.yaml.write_file]>->( $yaml_path, $yaml_data );
+
+return {
+    'mode' => qw| false |,
+    'data' =>
+        sprintf( 'cannot write findings yaml [ %s ]', $yaml_err // qw| ? | )
+    }
+    if not $ok;
+
+my @findings = $result->{'findings'}->@*;
+my $reply_text
+    = sprintf( "scan complete [ %s ] : %d " . "findings .., yaml : %s\n",
+    $result->{'status'}, scalar @findings, $yaml_path );
+
+foreach my $finding ( sort { $b->{'severity'} <=> $a->{'severity'} }
+    @findings[ 0 .. ( @findings < 7 ? $#findings : 6 ) ] ) {
+    $reply_text .= sprintf(
+        "  [%4.1f] %s : %s\n",
+        $finding->{'severity'},
+        $finding->{'oid'}, $finding->{'name'}
+    );
+}
+
+return { 'mode' => qw| true |, 'data' => $reply_text };
+
+#,,,.,...,..,,..,,,,.,.,,,.,.,.,,,,.,,...,...,.,.,...,...,..,,,.,,,..,..,,..,,
+#JAPOR5SA3EIKPNUIBX3DPXTYSUTGDGCGVXHIAW7K4WMYF7N5OZT4YM4STLLDGW4GSYKRONENO5U4S
+#\\\|CU4OXSGACYVOQ35QTNN2LJCE7Z5FCX7GHXUCCBUYQSHT4X4PHFV \ / AMOS7 \ YOURUM ::
+#\[7]6VFWSV2HHX6YL7CWQU2T3JAWR7S43QJCGWS7RFJ7Z62QJ7NXIYBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
