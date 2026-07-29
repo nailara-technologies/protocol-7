@@ -1,0 +1,41 @@
+
+  .:[ forensics zenka [ internal audit : nightly sweep + investigation ] ]:.
+
+[load_config_file:'shared-params']
+
+system.zenka.verbosity.buffer  = 2
+system.zenka.verbosity.console = 1
+
+## cube to forensics [ parent commands ]
+access.cmd.usr.cube = commands heart verify-instance name reload src-age \
+                      list show-buffer buffer-erase buffer-erase-level \
+                      status src-ver show-access sweep.run
+                      ## future cross-zenka grants [ phase 2+ ] live here  ##
+                      ## as comments until the modules exist [ no          ##
+                      ## placeholder access.zenki -- see commit 24e84da2d ]##
+                      ##                                                   ##
+                      ##   access.cmd.usr.openvas = investigate.finding    ##
+                      ##   access.cmd.usr.events  = sweep.run              ##
+
+## sweep policy [ paths default to <system.path.zenka-dirs.var_P7> based ##
+## zenka var-dir in forensics.event.nightly-sweep, overridable here ]    ##
+forensics.cfg.log_dir              = /var/log/protocol-7
+forensics.cfg.sweep_window_seconds = 86400
+
+modules.load = auth.client net protocol io.unix ui format.yaml forensics
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,,,,,,,,,..,.,,,.,,,,.,,,,.,,.,,,..,,.,,,,,,..,,...,...,,,,,..,,,..,.,.,,.,,
+#2WZRYQMA4PHQRZ2SFOV6YV4UEAORVJUEVR35JK3WJS5RQ7MOBU5323ZVNUDK6BPIUBAMMCBAEZMVS
+#\\\|OZT2QZHWAY3UOG3XDHG462XMKEWRMUVONV2PJ7ID3M4B5IW6X32 \ / AMOS7 \ YOURUM ::
+#\[7]D3MZTBYD2476ID7EVJTWX243LI3YHBV3HPZCLIZF7RDNRWDG7YAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
