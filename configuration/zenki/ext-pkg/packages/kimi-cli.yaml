@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = ext-pkg registry entry : kimi-cli
+# descr = kimi code cli [ moonshot ] .., installed via uv tool
+
+name: kimi-cli
+manager: uv-tool
+package: kimi-cli
+
+## presence check : exit 0 = present .., stdout captured for version     ##
+check: command -v kimi >/dev/null 2>&1 && kimi --version
+
+## install [ only ever run when the check fails .., never to upgrade ]  ##
+install: uv tool install kimi-cli
+
+## verified 2026-07-29 : PyPI package 'kimi-cli' .., uv tool install is  ##
+## how it is actually installed on this host [ shim ~/.local/bin/kimi    ##
+## -> ~/.local/share/uv/tools/kimi-cli/ ] .., uv is at /usr/local/bin    ##
+## [ system-wide , not user-scoped like nvm ] .., NOTE : the npm         ##
+## package named 'kimi-cli' is an UNRELATED front-end tool [ 0.0.2 ]     ##
+self_updating: true
+update_owner: uv tool upgrade kimi-cli
+
+#,,,.,,,.,,,.,,,.,,,,,,.,,,,,,..,,,..,,,,,.,,,..,,...,...,...,,,,,,.,,.,,,,,,,
+#RRJNH7JVCD2MORK4WQWCFQ7V3OIHXBLDMEIDTRUH6BFMHIYJCXOO7HVBODI6S3QVK5GEA2TGQAJMC
+#\\\|QCM6CH7KARKT2QYGWB2MOE7SNYXZRTIGZUX75JFF3YGOQTC6YYZ \ / AMOS7 \ YOURUM ::
+#\[7]OM6PD2SARC5OFRZBZFLS6I43JAIL6W4PSNJAWD7XO6LHHEGTSIAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

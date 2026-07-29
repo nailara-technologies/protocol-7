@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = ext-pkg registry entry : claude
+# descr = claude code cli [ anthropic ] .., installed via npm
+
+name: claude
+manager: npm
+package: '@anthropic-ai/claude-code'
+
+## presence check : exit 0 = present .., stdout captured for version     ##
+check: command -v claude >/dev/null 2>&1 && claude --version
+
+## install [ only ever run when the check fails .., never to upgrade ]  ##
+install: npm install -g @anthropic-ai/claude-code
+
+## verified 2026-07-29 : npm '@anthropic-ai/claude-code' latest is       ##
+## 2.1.220 -- identical to the natively-installed version on this host   ##
+## [ shim ~/.local/bin/claude -> ~/.local/share/claude/versions/2.1.220  ##
+## via claude's own installer ] .., npm chosen for the registry because  ##
+## it is a declarative package-manager mechanism and the two are         ##
+## equivalent in practice [ same cli , same version , presence check     ##
+## passes for either layout ]                                            ##
+##                                                                       ##
+## caveat : npm on this host is nvm-managed [ per-user PATH ] -- on a    ##
+## fresh machine node+npm must be bootstrapped first [ os-pkg\apt or     ##
+## nvm ] .., fallback if npm is unavailable : claude's native installer  ##
+## [ curl -fsSL https://claude.ai/install.sh | bash ] , equally          ##
+## scriptable but not a package manager .., install-if-missing semantics ##
+## mean this entry never touches an existing native install              ##
+self_updating: true
+update_owner: claude's built-in updater [ versions/ directory ]
+
+#,,.,,.,.,.,,,,,,,,,.,,..,,,,,.,,,..,,..,,.,.,..,,...,...,...,.,,,.,,,,.,,..,,
+#RF4SIN2S6RQ7YSHSGBLOH7TLGR2FR3ASZHXYAYP2PS37FQWWH7JZS5QRVFHXJU7BJX2LTMXMDHUKI
+#\\\|6R64WKR7Z6ELY662PMOUXN7UN43SV4GCIOQ2JVKSSO7OGKOHTII \ / AMOS7 \ YOURUM ::
+#\[7]IT55NMLCVT3Q3EURQ3K6VYDKDBY7VU7URA6RKRBNCXJWIPU4KYBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

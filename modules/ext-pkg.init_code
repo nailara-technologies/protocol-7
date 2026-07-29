@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = ext-pkg.init_code
+# descr = ext-pkg zenka init : ensure status data dir exists
+
+my $status_dir = <ext-pkg.cfg.status_dir>;
+
+if ( not -d $status_dir ) {
+    <[base.logs]>
+        ->( 0, ':. creating ext-pkg status dir [ %s ]', $status_dir );
+    <[base.perlmod.load]>->( 'File::Path', qw| make_path | );
+    make_path( $status_dir, { 'mode' => 0750 } );
+}
+
+## ownership : init runs as root under v7 [ before drop_privs ] ..,   ##
+## command-time status writes run as the zenka user -- chown both the ##
+## status dir and its zenka parent dir to the zenka user              ##
+my $zenka_user = <system.amos-zenka-user> // '';
+if (    length $zenka_user
+    and $EFFECTIVE_USER_ID == 0
+    and -d $status_dir ) {
+    my ( $uid, $gid ) = ( getpwnam($zenka_user) )[ 2, 3 ];
+    if ( defined $uid ) {
+        chown $uid, $gid, $status_dir;
+        ( my $parent_dir = $status_dir ) =~ s{|/[^/]+$}{};
+        chown $uid, $gid, $parent_dir
+            if -d $parent_dir
+            and $parent_dir =~ m{^/var/protocol-7/[^/]+$};
+    }
+}
+
+return TRUE;
+
+#,,,.,,..,,,,,.,,,.,,,.,,,,.,,..,,.,,,,,.,,.,,..,,...,..,,...,,,.,,,,,.,.,,,,,
+#EUQO35L3OKETD63V34VHHO3PTMAB4QO7PDWDT63IDKKQLF6W5E46ZTFBAVWTZVUCRR3UJNBSGKAG2
+#\\\|L3PERIFDKU7HQTKDMGHDIPPAVJT3OY2FP3RZWXGGJTT4VPIGLBF \ / AMOS7 \ YOURUM ::
+#\[7]H3VGJC2ATYYSG7UAV2NKMZZW6JNPCTRL255Y6GLKTDCIZ6I2SMCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

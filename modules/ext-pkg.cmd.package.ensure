@@ -1,0 +1,190 @@
+## [:< ##
+
+# name  = ext-pkg.cmd.package.ensure
+# param = <package-name>
+# descr = install-if-missing for external package manager tools
+
+##    lifecycle contract [ task goal 2 ] : install-if-missing ONLY ..,      ##
+##    never force-reinstall , never upgrade -- registered tools manage      ##
+##    their own updates [ kimi-cli via uv tool upgrade path , claude via    ##
+##    its own versions/ updater ] .., ext-pkg's job is bootstrap onto a     ##
+##    fresh machine , not ongoing version management ..,                    ##
+##                                                                          ##
+##    registry : configuration/zenki/ext-pkg/packages/<name>.yaml [         ##
+##    manager , package , check , install ] .., a status record is          ##
+##    written per check to <ext-pkg.cfg.status_dir>/<name>.yaml -- that     ##
+##    data feeds the phase-2 coverage audit [ task 2.1 ]                    ##
+
+my $args_str = $call->{'args'} // '';
+( my $pkg_name = $args_str ) =~ s{^\s+|\s+$}{}g;
+$pkg_name = $1 if $pkg_name =~ m{^name=(.+)$};
+
+return { 'mode' => qw| false |, 'data' => 'expected : <package-name>' }
+    if not length $pkg_name;
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( 'invalid package name [%s]', $pkg_name )
+    }
+    if $pkg_name =~ m{[^\w\.\-]};
+
+my $registry_file
+    = sprintf( '%s/%s.yaml', <ext-pkg.cfg.registry_dir>, $pkg_name );
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( 'no registry entry [ %s ] .., not an ext-pkg package',
+        $pkg_name )
+    }
+    if not -f $registry_file;
+
+my $entry = <[format.yaml.load_file]>->($registry_file);
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( 'cannot parse registry entry [ %s ]', $pkg_name )
+    }
+    if not defined $entry
+    or ref $entry ne qw| HASH |;
+
+##  validate registry fields                                            ##
+my %known_manager = map { $ARG => TRUE } qw| pip npm uv-tool |;
+
+foreach my $field (qw| manager package check install |) {
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf(
+            'registry entry %s : missing field [ %s ]',
+            $pkg_name, $field
+        )
+        }
+        if not length( $entry->{$field} // '' );
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf(
+        'registry entry %s : unknown manager [ %s ]',
+        $pkg_name, $entry->{'manager'}
+    )
+    }
+    if not exists $known_manager{ $entry->{'manager'} };
+
+## run shell command , capture merged output + exit code  [ registry ##
+## content is repo-controlled , shell form is intentional ]          ##
+my $run_cmd = sub {
+    my $cmd       = shift;
+    my $out       = qx( $cmd 2>&1 ) // '';
+    my $exit_code = $CHILD_ERROR >> 8;
+    chomp $out;
+    return ( $exit_code, $out );
+};
+
+##  parse first dotted version from check output                        ##
+my $parse_version = sub {
+    my $out = shift // '';
+    return $1 if $out =~ m{(\d+\.\d+(?:\.\d+)*)};
+    return '';
+};
+
+##  status record writer [ read by the phase-2 coverage audit ]         ##
+my $write_status = sub {
+    my ( $status, $version, $check_out, $detail ) = @ARG;
+    require POSIX;
+    my $record = {
+        'package'      => $pkg_name,
+        'manager'      => $entry->{'manager'},
+        'status'       => $status,
+        'version'      => $version                                // '',
+        'check_output' => ( split( m|\n|, $check_out // '' ) )[0] // '',
+        'checked_at'   =>
+            POSIX::strftime( qw| %Y-%m-%dT%H:%M:%SZ |, gmtime(time) ),
+        'detail' => $detail // '',
+    };
+    my $status_file
+        = sprintf( '%s/%s.yaml', <ext-pkg.cfg.status_dir>, $pkg_name );
+    my ( $ok, $yaml_err )
+        = <[format.yaml.write_file]>->( $status_file, $record );
+    <[base.logs]>->(
+        1,
+        sprintf(
+            'cannot write status record [ %s ] : %s',
+            $status_file, $yaml_err // qw| ? |
+        )
+    ) if not $ok;
+    return $ok;
+};
+
+##  presence check                                                       ##
+my ( $check_exit, $check_out ) = $run_cmd->( $entry->{'check'} );
+
+if ( $check_exit == 0 ) {    ##  present : report version , nothing more  ##
+    my $version = $parse_version->($check_out);
+    $write_status->(
+        qw| present |, $version, $check_out,
+        'self-updating tool .., left untouched [ install-if-missing ]'
+    );
+    return {
+        'mode' => qw| true |,
+        'data' => sprintf(
+            '%s present [ %s ] .., no action [ self-updating : %s ]',
+            $pkg_name,
+            length $version ? $version : 'version unknown',
+            $entry->{'update_owner'} // qw| tool-managed |
+        )
+    };
+}
+
+##  absent : run declared install command                                ##
+<[base.log]>->(
+    0,
+    sprintf(
+        ':. ext-pkg : installing %s [ %s ] ..,',
+        $pkg_name, $entry->{'install'}
+    )
+);
+
+my ( $install_exit, $install_out ) = $run_cmd->( $entry->{'install'} );
+
+##  re-run presence check to confirm                                     ##
+my ( $recheck_exit, $recheck_out ) = $run_cmd->( $entry->{'check'} );
+
+if ( $recheck_exit == 0 ) {
+    my $version = $parse_version->($recheck_out);
+    $write_status->(
+        qw| installed-this-run |,
+        $version, $recheck_out, sprintf( 'install exit %d', $install_exit )
+    );
+    return {
+        'mode' => qw| true |,
+        'data' => sprintf(
+            '%s installed [ %s ] ..,',
+            $pkg_name, length $version ? $version : 'version unknown'
+        )
+    };
+}
+
+$write_status->(
+    qw| install-failed |,
+    '',
+    $recheck_out,
+    sprintf(
+        'install exit %d : %s',
+        $install_exit, ( split( m|\n|, $install_out ) )[-1] // ''
+    )
+);
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf(
+        'install of %s failed [ exit %d ] : %s',
+        $pkg_name, $install_exit,
+        ( split( m|\n|, $install_out ) )[-1] // qw| no output |
+    )
+};
+
+#,,,.,,..,...,,.,,...,,.,,,..,,.,,,,.,,.,,,..,..,,...,...,...,.,.,,,.,..,,.,,,
+#ODTVWA7XXDXF2FUARYSQYA2COGTCG7QQSAFW7M74TOEAELCSTOJ4374SIFHPSWM7HHIYYRJJXQS3I
+#\\\|3FMSQ72HQO4E5LKASHAWRPQPXBFZL65B3PMZ5ZRA4XABLE34ADR \ / AMOS7 \ YOURUM ::
+#\[7]6WQUVFSHEJXVX4NV3Y2UXJUZ65UI7NRBVRHVB4CHEA4EUEOLKUAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,44 @@
+
+  .:[ ext-pkg zenka [ external package-manager installs [ pip npm uv-tool ] ] ]:.
+
+[load_config_file:'shared-params']
+
+system.zenka.verbosity.buffer  = 2
+system.zenka.verbosity.console = 1
+
+## cube to ext-pkg [ parent commands ]
+access.cmd.usr.cube = commands heart verify-instance name reload src-age \
+                      list show-buffer buffer-erase buffer-erase-level \
+                      status src-ver show-access \
+                      package.ensure
+
+## no other zenka holds ext-pkg command access yet -- per-consumer       ##
+## grants use the bare auto-registered cmd_name when needed, e.g. :      ##
+##     access.cmd.usr.setup = package.ensure                             ##
+
+## registry : one yaml per external package [ see README.md ]            ##
+## status   : per-package check records written here [ read by the       ##
+##            future coverage audit .., task 2.1 ]                       ##
+ext-pkg.cfg.registry_dir = <system.root_path>/configuration/zenki/ext-pkg/packages
+ext-pkg.cfg.status_dir   = /var/protocol-7/ext-pkg/status
+
+## lifecycle contract : install-if-missing ONLY .., never reinstall or   ##
+## upgrade -- registered tools self-update [ see README.md ]             ##
+
+modules.load = auth.client net protocol io.unix ui format.yaml ext-pkg
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,..,.,,,.,,,,,,,.,.,,..,.,.,,.,,..,,,,,,.,,,..,,...,..,,...,.,,,,,,,,..,.,.,
+#4AZHU6337FARENCEHPDLIP4XI7HBXEC7B45YX7N4BUF7UXOFHKJ37PYNZMDAXLXUFXGQRI5TTSYWY
+#\\\|BGU7N5XSPX2KHQXH2WTUGLM4TEMWMXGZDDAVNYNAACAXIAODAOA \ / AMOS7 \ YOURUM ::
+#\[7]FJ6IFXCBO4NIE47FY24KF6WV5SBTQUP4PE3442ENL4ZXIO2Z5GAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
