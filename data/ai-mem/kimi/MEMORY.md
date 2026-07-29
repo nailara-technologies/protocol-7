@@ -110,6 +110,21 @@ lessons for any future load-placement call:
   image-quality.init_code would not cover the real execution path. always check
   WHICH process actually executes the module.
 
+## duck.ai transcript → security task tree (2026-07-29, commit 737836d5d)
+
+split a 66-prompt design conversation into 7 task files (openvas-agent FIRST,
+nessus as licensed variant, forensics-agent for the live 04:07 slot,
+forensic-report-pipeline, security-intel-embedding-domains,
+dep-graph-semantic-embeddings, real-estate-agent-port), 2 design docs
+(HYBRID-LLM-GOVERNANCE, NETWORK-SNAPSHOT-AND-IDEA-POOL), 3 reasoning
+templates. interview strand lives OUTSIDE repo in `/data/interview/`.
+workflow lesson: parallel explore-agent exists-vs-gap scan per topic BEFORE
+writing task files — prevented duplication (fasttext pipeline + ncode
+pattern DB + memory tree already exist). key traps:
+MEMORY-TREE-SYSTEM.md "not built" header is STALE; `external-inference-models`
+means LOCAL backends not cloud; forensics zenka name must stay `forensics`.
+full map: [topic-duckai-extraction-security-task-tree.md](topic-duckai-extraction-security-task-tree.md)
+
 #,,,,,...,,..,,..,,..,,,.,.,,,,..,,..,,,.,,,.,..,,...,...,...,...,..,,.,.,,,,,
 #QTLAZ6POJ24VBO5EKNCDJHKME6NVQISC623IGPYLHBJQAWSDVN43A7WJ3G7HS6ZCGX4NRXJQ2GJXC
 #\\\|QQQGMFFWFFGPZ2376VQXW7THCKZGU5KLRVAAHYFJF2FZQQBT3O6 \ / AMOS7 \ YOURUM ::
@@ -153,8 +168,8 @@ lesson confirmed : NEVER `v7.reload init|all` on a live network to
 register a new zenka — wait for a network restart instead. single-zenka
 `audio.reload source` worked fine for module iteration.
 
-#,,,.,.,,,,..,,..,,,,,..,,,,,,...,,..,...,.,.,...,...,...,.,,,...,,.,,...,...,
-#H7VFHJ5AWG4H5RMKNMH6DV2NHFNOAMUZCWVIGT6AGDZFERFFF7FJEQ4FRNRQMUO3YOEFXS3CUFFAA
-#\\\|ZLVYY5CXTSLF44L3N7WHNT56AL2JXW5YF47LS5P3XGLXRK5RQPB \ / AMOS7 \ YOURUM ::
-#\[7]JNJSXXOGD227D3X3SSBZJEHMUS4N2NHA6IKKPCZDTWPR6FG2QGAY 7  DATA SIGNATURE ::
+#,,..,,..,,..,.,.,,.,,,..,...,,,.,.,,,.,.,,,,,...,...,...,...,..,,,,,,,..,...,
+#T5FZ4X6KTG46LVFCVC2J3VYGQURYUIREU6EHFHRQ6KEOIXAMX5QERMK6RET4JADIGOXUTEHPYOMOA
+#\\\|UHRIRAQXR3WDBPLWFEXZ2F234UNVF3FHTX5PEZ3PVRY72ZEL6OM \ / AMOS7 \ YOURUM ::
+#\[7]DQIJOJZDIY6DTBAZ4HF3VV3I4EOI5OSHQXB22LNIKDRS5NGPRKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
