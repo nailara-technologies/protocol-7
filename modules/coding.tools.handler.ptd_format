@@ -17,8 +17,11 @@ return "error: module not found [ $module ]" unless -f $path;
 my $before_ref = <[file.slurp]>->($path);
 return 'error: cannot read module' unless defined $before_ref;
 
-my $err_file = "/var/protocol-7/coding/state/.ptd_fmt.$$";
-my $output   = '';
+my $err_file = catfile(
+    <system.path.zenka-dirs.var_P7>, <system.zenka.name>,
+    'state',                         ".ptd_fmt.$$"
+);
+my $output = '';
 if ( open my $fh, '-|', "$root/bin/dev/ptd $path 2>$err_file" ) {
     local $/;
     $output = <$fh>;
@@ -48,8 +51,8 @@ $result
 $result .= "\n## warnings ##\n$warnings" if length $warnings;
 return $result;
 
-#,,..,,..,,,.,,,.,...,...,...,...,,,.,...,.,,,..,,...,..,,,.,,,,.,,..,.,,,,.,,
-#RIAQNL6TNX4YO4GZA7IU76IESBL5SWO3UYU4D45NTFGPRVIEDZTVLFUWVN5RJVCWX5F6TQ4G5D4AM
-#\\\|RSGCF2ZF2MBREHMK2TM67FNEVFMQQ7E3UMAX363NXQGOAEVBGQR \ / AMOS7 \ YOURUM ::
-#\[7]G73VFK6HXTCQEOF44QIZH4RASW5UCM4QEJCWHU2MRMBJPXQATMCQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,.,.,.,,,..,,,..,,.,,.,.,...,.,,,..,,...,...,..,,,,,,,..,,,.,,..,
+#XZYA2LDWFXBN5IJGKETLSGLKRJHO6Q6TVIG25I6DTUWQXXYKROB5TMF7B5HEE4IRDROQLLQN2UJNA
+#\\\|LBADHESEMFQN56BGXUHFWTRVLLSSTMMHRE4QGC5Q7I7MKGWUOTE \ / AMOS7 \ YOURUM ::
+#\[7]NIDCIVJT47RFVF7GU3AOZDBMO32IDKEKXMKRDEVD4L6BKDEJOEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

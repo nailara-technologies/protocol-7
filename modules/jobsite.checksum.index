@@ -6,8 +6,10 @@
 
 my $action = shift // 'check';
 
-my $store_root    = '/var/protocol-7/jobsite/checksum-store';
-my $old_yaml      = '/var/protocol-7/jobsite/checksum-index.yaml';
+my $store_root = catdir( <system.path.zenka-dirs.var_P7>,
+    <system.zenka.name>, 'checksum-store' );
+my $old_yaml = catfile( <system.path.zenka-dirs.var_P7>,
+    <system.zenka.name>, 'checksum-index.yaml' );
 my $migrated_flag = "$store_root/.migrated";
 
 if ( -f $old_yaml and not -f $migrated_flag ) {
@@ -79,12 +81,12 @@ if ( $action eq 'check' ) {
 if ( $action eq 'add' ) {
     my $job = shift // {};
 
-    ## a checksum means "this job was decided" (blocked or assessed), never
-    ## "this job was seen" -- registering a still-undecided 'new' job's own
-    ## checksum here means the very next dedup check (from any caller : a
-    ## repeat upsert, a startup backfill, dispatch.assessments itself) finds
-    ## its own entry and silently self-blocks it. gate every caller here
-    ## instead of re-guessing which call site is safe each time ##
+    ## a checksum means "this job was decided" (blocked or assessed), never ##
+    ## "this job was seen" -- registering a still-undecided 'new' job's own ##
+    ## checksum here means the very next dedup check (from any caller : a   ##
+    ## repeat upsert, a startup backfill, dispatch.assessments itself)      ##
+    ## finds its own entry and silently self-blocks it. gate every caller   ##
+    ## here instead of re-guessing which call site is safe each time        ##
     return TRUE
         if not length( $job->{'status'} // '' )
         or $job->{'status'} eq 'new';
@@ -188,8 +190,8 @@ if ( $action eq 'persist' ) { return TRUE; }
 
 return { 'mode' => 'false', 'data' => "unknown action: $action" };
 
-#,,.,,...,...,,,.,,..,,..,..,,,.,,.,,,,..,...,..,,...,...,..,,.,.,,..,,.,,,.,,
-#GBFRDR3P5EFZTSP7UWJTMWN57HRGN4UP66ZPZODW77EINTOBJHXZW6GUQ57447VTUHR3IY6HLYAWK
-#\\\|OUXUNS5WUH7HI5CTGCFZGUEDQZOH73E5MSVW7QJDQIBCQPGGS5G \ / AMOS7 \ YOURUM ::
-#\[7]JRAYN7G24LHKMYOIIR2RCJQYGQNZJB3RSJJJTS2K5TGQFYP632AQ 7  DATA SIGNATURE ::
+#,,..,,..,...,..,,,..,,..,...,,..,,.,,.,,,...,..,,...,..,,,,,,...,,,.,,,,,,,,,
+#IRSTHD7UDLKHSBUIOVKEVGRDP4VWAB6SOY6JV4PQ746NP3HZJAZK23DNQLFNAEFOSSQXQ2BWJNMGA
+#\\\|LZCM5ZP4ZWFHXZSMGHCLHYKIZAJMWNEMRJBSJUVQXYWX2T4WFQC \ / AMOS7 \ YOURUM ::
+#\[7]NLBTTH6U4QAHS3BL3QBL6UXPCKKVXNZRMTXMDOQFY2YIIYSWMADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

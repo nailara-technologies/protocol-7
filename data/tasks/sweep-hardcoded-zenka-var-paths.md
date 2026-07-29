@@ -2,9 +2,21 @@
 
 ## status
 
-not started. deferred to a future coding-zenka session, per user's
-own explicit call — not fixed ad-hoc during the povray landing that
-surfaced it.
+completed (2026-07-29). grep sweep found hardcoded `/var/protocol-7/...`
+defaults across `*.init_code`, `base.file.*_timestamped`, `jobsite.*`,
+`coding.*`, and command modules. all clear-cut instances where the path
+belongs to the running zenka were converted to
+`catdir( <system.path.zenka-dirs.var_P7>, <system.zenka.name> [, ...] )`,
+matching `base.path-set-up.check-zenka-paths`'s own pattern.
+
+deliberately left unchanged:
+- paths whose directory component intentionally differs from the zenka
+  name (e.g. smtpd → `mail`, letsencr → `certs`, web-browser →
+  `visual-feedback`), to avoid silently relocating data.
+- legacy one-off migration paths (e.g. jobsite `site-yaml/store.yaml`).
+- deprecated modules (`models.storage.tier_management`).
+- comments, infrastructure modules that already derive the path, and
+  cross-zenka shared dirs (`universal` → `ffmpeg/video_frames`).
 
 ## the pattern to fix
 
@@ -51,8 +63,8 @@ which the existing template doesn't explicitly call out.
 3. include `base.*` modules in scope, not just zenka-specific ones —
    user explicitly flagged base as containing instances too.
 
-#,,,.,,..,,.,,...,.,,,.,,,.,,,...,..,,..,,,,,,..,,...,..,,.,,,.,,,.,,,,..,..,,
-#YPA44BRXEUROK2EVMQT6CAUDFF5TKSCAZ2ETZ5KGXIVSXUOHZI5GM3YLE3BBVQQSF344TOTWZ6Y6G
-#\\\|YAPMGYTBLL6FSBCAVLTUO7GK35ULYNYRUNPNPWRF7UBP654DNWJ \ / AMOS7 \ YOURUM ::
-#\[7]CG2CGDOHMHUJYQCSNB7WD3N5YOAU3ARCS3RIONLKQ7VS423AYABQ 7  DATA SIGNATURE ::
+#,,..,..,,,,.,,..,,.,,,,.,,,,,.,.,.,,,,,.,,,.,..,,...,...,...,.,,,,.,,,,.,.,,,
+#RJF5LEXK5IVYRPATLUBLFNXNYBVKLLWRQS3NQUP52XVR67TCHOA3DNRKDFTZQFIJ7U5ND6KEBT3SM
+#\\\|UMZVDROUPIIH3HNZH7YXOYKDZ4KFROGWAN5IGMLUI2YDKT2DHSS \ / AMOS7 \ YOURUM ::
+#\[7]RWTNBSXHBW3VSOGUJDWYFVIWU7S4BXOO6QUT7TP5AIX6AJPQ7SAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

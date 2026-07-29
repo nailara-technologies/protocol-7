@@ -29,8 +29,9 @@ my $outcome = {
 };
 
 ## persist outcome to JSON file ##
-my $learn_dir     = '/var/protocol-7/coding/learning';
-my $outcomes_file = $learn_dir . '/outcomes.json';
+my $learn_dir = catdir( <system.path.zenka-dirs.var_P7>,
+    <system.zenka.name>, 'learning' );
+my $outcomes_file = catfile( $learn_dir, 'outcomes.json' );
 
 ## ensure directory exists ##
 if ( !-d $learn_dir ) {
@@ -70,8 +71,8 @@ return {
     message => sprintf( "recorded outcome for task : %s", $task_id )
 };
 
-#,,..,.,.,..,,.,.,..,,.,.,,.,,,,,,,..,...,.,,,..,,...,...,..,,,.,,..,,,,.,,,.,
-#4F3VVZVVBCWRTI24GJMMENOZI4426SAF7BJNN4SFU7XE2QSC6SOFSQT763U5AABEYMAUG6UPYWZHK
-#\\\|HNHYQL2CVCYLYYW77BXP4S77C7BJ4QRUNYY6UWMCX7FWDVFZXEU \ / AMOS7 \ YOURUM ::
-#\[7]INCBQTD5SMOSSOZGQN6ZSJYNHDQCHSBPK7GBQ22SFXU4QPUKPCDI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,..,.,,,,.,,.,,,..,,,,.,,.,,.,,,..,,...,...,.,.,,.,,.,,,,,.,,,,,
+#BLS3S34BFFHE3SQMEMBVWWE6T7FP6XY7LSGZKOYRM3JUE3GACOFNJL7OHLWMDXOXUF3PPAIAKX6BG
+#\\\|CHDKSEVD4QFPTPQR4FIJIWOHBMQ4OUYPJU3AGSIOEYDPQI3UWDU \ / AMOS7 \ YOURUM ::
+#\[7]MD62EKCSUIV7JUT24V756O5B4Z64UK4TKLSC3KHJFSB6O7Z5BWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
