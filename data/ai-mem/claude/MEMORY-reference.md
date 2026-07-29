@@ -29,6 +29,7 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [File Creation](feedback-file-io-api.md), [version files every commit](feedback-version-files-every-commit.md) — no fake signature stub; version files ride every commit
 - [tile openbox dep redundant](feedback-tile-openbox-dependency-redundant.md), [base. prefix stripped](feedback-base-prefix-stripped.md) — use `send.local`
 - [.cmd. segment stripped](feedback-cmd-segment-stripped.md), [filter-repo prefix](feedback-filter-repo-amend.md), [P7 data nesting](feedback-p7-data-nesting.md) — .cmd. callable w/o segment; <a.b.c>=$data{a}{b}{c}
+- [$call injection needs .cmd. filename](feedback-cmd-call-injection-not-caught-by-perl-c.md) — $call->{'args'} only auto-declared if filename has literal .cmd. segment (loader convention, cmd-only — .console. registers the same way but never gets $call, uses shift instead); perl -c won't catch a missing one, boot-test instead. distinct from access.cmd.usr.* (base.parser.access_conf's own naming, unrelated)
 - [s_warn single-arg](feedback-s-warn-single-arg.md), [access grant scope](feedback-access-grant-scope.md) — plain `warn` for single-msg; "no perm" needs whitelist only
 - [ondemand zenka start checklist](feedback-ondemand-zenka-start-checklist.md), [devmod leave disabled](feedback-devmod-leave-disabled.md) — start-file recipe; leave devmod eval/exec commented
 - [timer undef interval](feedback-timer-undef-interval.md), [each+continue+keys](feedback-each-continue-keys.md) — undef after/interval=max-rate; `continue{keys %h}` = infinite loop
@@ -39,8 +40,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [user-perfectionism-and-pace](user-perfectionism-and-pace.md) — "done" means perfectly smooth; let solo tuning passes run
 - [scratchpad_import tool](topic-scratchpad-import-tool.md) — pulls /tmp session scratchpad into data/scratchpad/; list/raw-read modes; check repo+tasks/completed before keeping imports
 
-#,,,,,...,..,,.,.,,..,,,,,...,.,.,,,,,,,.,.,,,..,,...,...,,..,,,.,,,.,,,,,...,
-#QPUMQWJZ6IE5IV44KVVTFL2B7FZBE4DWZP7CDNLQAISTD27U3MPDWYVKVJDI6XQ2O5TMTGIYCHKGA
-#\\\|A4L72ZMUN7OOTB5VUH533G5URJHUZCND2EAFF7BHF3AUJJOKIW4 \ / AMOS7 \ YOURUM ::
-#\[7]DULDB5VDVPIIR2PG5JEOXNJNASP2X56T65TYIQWTM4IUT4QWY4DQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,.,.,,,,,...,.,,,.,.,,,.,,.,,.,,,..,,...,..,,...,,,.,,.,,.,,,..,,
+#Y36QI6WR77TWOSUR2UV6C7XVEVD4UM3JSDUIW2LZN2MQQEBG7B3E3YLLYXV5RGHSBBX3SXTSS7MN6
+#\\\|G2WZC4BMABWQ642NYLT3N2SR5DSCM4DGY7H5GUWTHXLZ737XZUC \ / AMOS7 \ YOURUM ::
+#\[7]QWEPTZHI7VJQR4R5GFAPDLY4QBA2KUSQETK4WXZAQTECEARS4MBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
