@@ -6,16 +6,21 @@
 system.zenka.verbosity.buffer  = 2
 system.zenka.verbosity.console = 1
 
-## cube to forensics [ parent commands ]
+## cube to forensics [ parent commands + routed delivery : cube          ##
+## authenticates the source zenka [ cube/access.zenki ] and forwards     ##
+## as itself -- investigate.finding is the openvas phase 2 handoff ]     ##
 access.cmd.usr.cube = commands heart verify-instance name reload src-age \
                       list show-buffer buffer-erase buffer-erase-level \
-                      status src-ver show-access sweep.run
-                      ## future cross-zenka grants [ phase 2+ ] live here  ##
-                      ## as comments until the modules exist [ no          ##
-                      ## placeholder access.zenki -- see commit 24e84da2d ]##
+                      status src-ver show-access sweep.run \
+                      investigate.finding
+                      ## future cross-zenka grants live here as comments ##
+                      ## until the modules exist [ no placeholder          ##
+                      ## access.zenki -- see commit 24e84da2d ] :          ##
                       ##                                                   ##
-                      ##   access.cmd.usr.openvas = investigate.finding    ##
                       ##   access.cmd.usr.events  = sweep.run              ##
+
+## openvas to forensics [ phase 2 : report-to-forensics handoff ]
+access.cmd.usr.openvas = investigate.finding
 
 ## sweep policy [ paths default to <system.path.zenka-dirs.var_P7> based ##
 ## zenka var-dir in forensics.event.nightly-sweep, overridable here ]    ##
@@ -34,8 +39,8 @@ modules.load = auth.client net protocol io.unix ui format.yaml forensics
 
 [zenka.loop]
 
-#,,,,,,,,,,..,.,,,.,,,,.,,,,.,,.,,,..,,.,,,,,,..,,...,...,,,,,..,,,..,.,.,,.,,
-#2WZRYQMA4PHQRZ2SFOV6YV4UEAORVJUEVR35JK3WJS5RQ7MOBU5323ZVNUDK6BPIUBAMMCBAEZMVS
-#\\\|OZT2QZHWAY3UOG3XDHG462XMKEWRMUVONV2PJ7ID3M4B5IW6X32 \ / AMOS7 \ YOURUM ::
-#\[7]D3MZTBYD2476ID7EVJTWX243LI3YHBV3HPZCLIZF7RDNRWDG7YAI 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,,,,,.,,.,,,.,.,,,.,,,,,,,.,,..,..,,...,...,..,,,..,,.,,...,.,.,
+#PVMN7OIQNA6HZVD2TZNC4ALTUB7PN43ZBLO3TPJLDQH4PQIUWANKJA3RB23S63CYGC6OIRXDF6OYC
+#\\\|4KZ3AGNT2ZNCDDNAP4ACJ2FZXTEUC2K26PNAMDN3ICQWKXHTTT6 \ / AMOS7 \ YOURUM ::
+#\[7]L6F7PKFXODDCCCN4QMOSGLK3ZGENSMZTG4LPMMIUGFCJFYFUIKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

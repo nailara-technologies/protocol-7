@@ -5,6 +5,7 @@ identity, namespace/routing algebra, checksum-addressing trinity, harmonic mathe
 network-as-computer, dedup-tree unification, coding-as-artform / style-philosophy.
 
 ## Vision / Design
+- [zenka-bootstrap-permission-learning-mode](topic-zenka-bootstrap-permission-learning-mode.md) — new-zenka scaffolding: devmod+wildcard cube grant during boot-testing, then derive+commit the real narrow grant from observed commands, removing wildcard/devmod as last step; generalizes to a cube-wide learning mode with a mandatory destructive-command blacklist
 - [afk-dispatch-signing-key-system](topic-afk-dispatch-signing-key-system.md) — session-key/session-branch vs staging-repo options for letting AFK model dispatches commit without --no-verify; staging-repo favored (decouples model-commits from human-resign, room for a review gate)
 - [style-dedup-self-recreation](topic-style-dedup-self-recreation.md) — format-code/ptd (deterministic) → ncode style-pattern dedup templates → self-recreate-in-waves → self-morphing code; user's own staged lineage, 2026-07-25
 - [anyevent-bridge-vs-replace](topic-anyevent-bridge-vs-replace.md) — event.anyevent.init_code was a stalled no-urgency replacement attempt (missing variable watchers); the live thread is bridging AnyEvent-only 3rd-party modules via its Event.pm backend, no swap_subs needed
@@ -48,8 +49,8 @@ network-as-computer, dedup-tree unification, coding-as-artform / style-philosoph
 - [audio-render-cubic-zoom-transition](topic-audio-render-cubic-zoom-transition.md) — SEED: audio.render_standing_wave's nested lattice squares visually travel along a cubic grid under zoom; proposed as a transition mode overlaying the existing cubic-space desktop nav grid, bridging the audio renderer into the project's existing space-navigation visual language; relates to [[topic-implicit-perspective-navigation]]/[[topic-perspective-layers]]
 - [audio-render-as-similarity-feature-source](topic-audio-render-as-similarity-feature-source.md) — SEED + CORRECTED (kimi K3 review): similarity idea still stands but v1/v2/v3 share one analysis front-end so cross-style "agreement" is near-tautological, not independent like checksums, until the analysis itself is diversified; also found v3's absolute-phase placement is shift-*variant* (real bug -- re-segmented same audio renders differently) and the renderer discards all temporal/rhythm info by averaging FFT windows -- concrete v4 idea (energy variance per window) would fix that gap
 
-#,,,.,,.,,,,.,...,.,,,..,,,,,,...,,..,,,.,,..,..,,...,...,.,,,,,.,.,,,.,.,.,.,
-#A4JVSM3SMGQ3SOEIKZFVTBOC2VNKYCHKCQDGBN3L6MFOTLIODYGCOBUABST2SIK56UDOKLQTFIL3Y
-#\\\|7ZMHN6DDBXP46UCJ5ZRXJTQQPYI6AIQY74MI5V4RFD25Z763TKQ \ / AMOS7 \ YOURUM ::
-#\[7]T5WZD5HXLV3YMZFU4BBQTUVVQ267G42Z3R5RXEFEU3VDIP3JVODI 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,,,,,..,,,,,,.,,,,,,,,,,,.,,,,..,..,,...,...,..,,,,,,...,...,,,,,
+#KSVP5WMYYQ2HFYMYUHKLZPLGBDGISIDAFAGIBXD3FF4TYENDV3T57WTZILHIO4FMJ4IZY2JFRWDEQ
+#\\\|SQPNK2D7SWCH3KS2P762S7CLV5EPO4BPSTWKKPVNJLD54DZTU75 \ / AMOS7 \ YOURUM ::
+#\[7]ZKJKMUP4HOFL2MY7UARWSVEKMORJZGTFF4H5AITFPSRIFBOCZAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

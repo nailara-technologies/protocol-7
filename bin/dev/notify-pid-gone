@@ -1,0 +1,25 @@
+#!/bin/bash
+
+## usage: notify-pid-gone <pid> [poll_interval_seconds]
+## blocks until process <pid> no longer exists, then exits [ e.g. watching
+## an AFK kimi-legacy dispatch finish without babysitting a 1800s+ MCP call ]
+
+pid="$1"
+interval="${2:-5}"
+
+if [ -z "$pid" ]; then
+    echo "usage: notify-pid-gone <pid> [poll_interval_seconds]" >&2
+    exit 1
+fi
+
+until ! kill -0 "$pid" 2>/dev/null; do
+    sleep "$interval"
+done
+
+echo "gone: pid $pid"
+
+#,,,.,,.,,,,,,.,.,,.,,,..,,,,,,.,,,,,,.,,,.,.,..,,...,...,...,...,,.,,.,,,,,.,
+#HA7MFVJXMJSWIFEN6ERKURMIVBNLOAN766I2F63YG6345QJT77I3O7EKBHDV6CG43TDOMV7XMN5G6
+#\\\|ODK3FSWELCKVYVO6Q6PECBVR4FHQH3TA6HMY62ZV4HZUU6WCHFF \ / AMOS7 \ YOURUM ::
+#\[7]3HTS3M25ZJAK2CLX6H5WUIQKS4N6BRZMXFB5RJOCNRF47ELQSUCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

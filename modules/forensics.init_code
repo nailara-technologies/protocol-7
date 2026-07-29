@@ -26,6 +26,26 @@ if ( not -d $sweep_dir ) {
         or <[base.log]>->( 0, 'cannot create sweep dir [ %s ]', $sweep_dir );
 }
 
+##  investigation record dir [ consumed by forensics.investigate.finding, ##
+##  which documents it as "created at zenka init" ] -- the openvas        ##
+##  report-to-forensics handoff [ openvas phase 2 ] is the first real      ##
+##  producer routed into investigate.finding                               ##
+
+my $investigate_dir = <forensics.cfg.investigate_dir>
+    // sprintf qw| %s/%s/investigations |, $var_p7, <system.zenka.name>;
+
+if ( not -d $investigate_dir ) {
+    <[file.make_path]>->( $investigate_dir, 0750, <system.amos-zenka-user> )
+        and <[base.log]>->(
+        1, 'created investigation dir [ %s ]',
+        $investigate_dir
+        )
+        or <[base.log]>->(
+        0, 'cannot create investigation dir [ %s ]',
+        $investigate_dir
+        );
+}
+
 <[event.add_timer]>->(
     {   'after'   => 7,
         'repeat'  => FALSE,
@@ -35,8 +55,8 @@ if ( not -d $sweep_dir ) {
 
 return 0;
 
-#,,,.,...,,..,,,.,...,,.,,,,,,,..,..,,,,,,.,,,..,,...,...,,,.,,,.,,,,,.,,,.,,,
-#R72YSJW5QRN2LUZSU37PEK75ELVAUAZKQCLGAIEQKMPFVRDJBZ4AW6IGHSVQZE6FAOS6QR7NTV27K
-#\\\|QOSKMKCT7S3ASGGA3W66JX4DKB7RRXVNZFJUSBJNITU4LMJGKRX \ / AMOS7 \ YOURUM ::
-#\[7]LM2NCNUOKTSTN2V3WULIECZRF5HEZSQDPXX5FMBWJ47PP27JWIBY 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,,,.,.,.,,.,,,..,.,.,..,,..,,.,,,..,,...,.,.,...,..,,...,..,,,,.,
+#E5IYZ2F2MVWDNVXQD5D7NO5HE3HCZWLVMMAYTPKLUAHCTZXHV2Z42HC6KJ3Z64RQVT6BCC56MOXV2
+#\\\|Y4PSU7XEGOL6Z4UWL27IM2VYSJEHBE5S6N2NODG4S727CDWK7K2 \ / AMOS7 \ YOURUM ::
+#\[7]RY7UPLLZN3GYHSH23WXDKJ4FZXX55IDYKS4KK6COO2TAGCL3NKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

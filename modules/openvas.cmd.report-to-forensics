@@ -1,0 +1,217 @@
+## [:< ##
+
+# name  = openvas.cmd.report-to-forensics
+# param = file=<scan-or-finding.yaml> | inline k=v finding fields
+# descr = enrich finding(s) and hand off to forensics zenka
+
+##    inline form :                                                         ##
+##      target=.. oid=.. severity=.. name='..' [ports=.. profile=..]        ##
+##      [correlation_id=..] [modules=a,b] [paths=/x,/y]                     ##
+##    [ name may be quoted with '..' to contain spaces ]                    ##
+##                                                                          ##
+##    file= accepts a scan yaml from openvas.cmd.scan-run [ scan +          ##
+##    findings list -- every finding is enriched and handed off ] or a      ##
+##    single finding yaml.                                                  ##
+##                                                                          ##
+##    each enriched finding is written to the handoff dir [ zenka var       ##
+##    dir, created at init ] and routed as                                  ##
+##    'cube.forensics.investigate.finding file=<path>' -- the enriched      ##
+##    finding contract of forensics.investigate.finding, including the      ##
+##    correlation id as join key for the forensic-report-pipeline. the      ##
+##    forensics zenka is ondemand : cube queues the command and cold-       ##
+##    starts it when offline. replies are logged by                         ##
+##    openvas.handler.forensics-reply.                                      ##
+##                                                                          ##
+##    access : forensics/start grants access.cmd.usr.openvas =              ##
+##    investigate.finding [ phase 2 grant ].                                ##
+
+my $args_str = $call->{'args'} // '';
+
+##  quoted '..' values may contain spaces [ \x00 placeholder pattern ]    ##
+my $inline = $args_str;
+$inline =~ s{ \' ([^\']*) \' }
+    { my $q = $LAST_PAREN_MATCH; $q =~ s{\s}{\x00}g; $q }gex;
+my %arg;
+foreach my $word ( grep {length} split m|\s+|, $inline ) {
+    next if $word !~ m{^(\w+)=(.*)$};
+    my ( $key, $val ) = ( $1, $2 );
+    $val =~ s|\x00| |g;
+    $arg{$key} = $val;
+}
+
+## --- collect scan context + finding list [ file= or inline ] ----------- ##
+
+my $scan_ctx = { 'target' => $arg{'target'} // '' };
+my @findings;
+
+if ( length( $arg{'file'} // '' ) ) {
+    my $file_path = $arg{'file'};
+    return { 'mode' => qw| false |, 'data' => 'absolute path expected' }
+        if $file_path !~ m{^/[\w\.\-/]+$};
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( 'finding file not readable [ %s ]', $file_path )
+        }
+        if not -r $file_path;
+    my $yaml = <[format.yaml.load_file]>->($file_path);
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( 'cannot parse finding yaml [ %s ]', $file_path )
+        }
+        if ref $yaml ne qw| HASH |;
+    if ( ref $yaml->{'findings'} eq qw| ARRAY| ) {    ## scan-run yaml ##
+        $scan_ctx = $yaml->{'scan'} // {};
+        @findings = grep { ref $ARG eq qw| HASH | } $yaml->{'findings'}->@*;
+    } else {
+        push @findings, $yaml;
+        $scan_ctx = $yaml->{'scan'} // $scan_ctx;
+    }
+} else {
+    return {
+        'mode' => qw| false |,
+        'data' => 'expected : file=<yaml> or target=.. oid=.. name=..'
+        }
+        if not length( $arg{'target'} // '' )
+        or not length( $arg{'name'}   // '' )
+        and not length( $arg{'oid'}   // '' );
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( 'target contains invalid characters [%s]',
+            $arg{'target'} )
+        }
+        if $arg{'target'} =~ m{[^\w\.\-:/]};
+    push @findings,
+        {
+        'oid'      => $arg{'oid'}      // '',
+        'severity' => $arg{'severity'} // 0,
+        'name'     => $arg{'name'}     // '',
+        'target'   => $arg{'target'},
+        };
+    $scan_ctx = {
+        'target'  => $arg{'target'},
+        'ports'   => $arg{'ports'}   // '',
+        'profile' => $arg{'profile'} // '',
+    };
+}
+
+return { 'mode' => qw| false |, 'data' => 'no findings to report' }
+    if not @findings;
+
+my $var_p7      = <system.path.zenka-dirs.var_P7> // qw| /var/protocol-7 |;
+my $handoff_dir = <openvas.cfg.handoff_dir> // sprintf qw| %s/%s/enriched |,
+    $var_p7, <system.zenka.name>;
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( 'handoff dir missing [ %s ] -- created at zenka init',
+        $handoff_dir )
+    }
+    if not -d $handoff_dir;
+
+## --- enrich + hand off each finding ------------------------------------- ##
+
+my $reply_text = sprintf "report-to-forensics : %d finding(s)\n",
+    scalar @findings;
+my $reported = 0;
+
+foreach my $finding (@findings) {
+    $finding->{'target'} //= $scan_ctx->{'target'} // '';
+
+    my $cid = $arg{'correlation_id'} // sprintf qw| ovas-%d-%06d |, time,
+        int( rand 1000000 );
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( 'invalid correlation_id [ %s ]', $cid )
+        }
+        if $cid !~ m{^[\w\.\-:]{4,80}$};
+
+    my $enriched = <[openvas.enrich.finding]>->($finding);
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( 'enrichment failed : %s',
+            $enriched->{'data'} // qw| ? | )
+        }
+        if ref $enriched ne qw| HASH |
+        or exists $enriched->{'mode'};
+
+    ##  per-domain enrichment summary [ ok : ids / pending / no-vocab ]    ##
+    my @summary_parts;
+    foreach my $domain ( sort keys $enriched->{'enrichment'}->%* ) {
+        my $dom = $enriched->{'enrichment'}{$domain};
+        if ( $dom->{'status'} eq qw| ok | ) {
+            my @entry_ids = map { $ARG->{'id'} } $dom->{'entries'}->@*;
+            push @summary_parts,
+                sprintf( '%s:ok[%s]', $domain, join( ',', @entry_ids ) );
+        } else {
+            push @summary_parts,
+                sprintf( '%s:%s', $domain, $dom->{'status'} );
+        }
+    }
+    my $notes = join( ' ', @summary_parts );
+
+    ##  enriched finding contract [ forensics.investigate.finding ]        ##
+    my $handoff = {
+        'correlation_id' => $cid,
+        'scanner'        => qw| openvas |,
+        'scan'           => $scan_ctx,
+        'finding'        => $finding,
+        'enrichment'     => {
+            'related_modules' =>
+                [ grep {length} split m|,|, $arg{'modules'} // '' ],
+            'local_paths' =>
+                [ grep {length} split m|,|, $arg{'paths'} // '' ],
+            'notes'   => $notes,
+            'domains' => $enriched->{'enrichment'},
+        },
+    };
+
+    my $yaml_path = sprintf qw| %s/finding-%s.yaml |, $handoff_dir, $cid;
+    my ( $ok, $yaml_err )
+        = <[format.yaml.write_file]>->( $yaml_path, $handoff );
+    if ( not $ok ) {
+        $reply_text .= sprintf "  ! cannot write handoff yaml : %s\n",
+            $yaml_err // qw| ? |;
+        next;
+    }
+
+    ##  standard zenka routing : cube -> forensics [ ondemand cold-start ] ##
+    my $sent = <[protocol-7.command.send.local]>->(
+        {   'command'   => qw| cube.forensics.investigate.finding |,
+            'call_args' => { 'args' => sprintf qw| file=%s |, $yaml_path },
+            'reply'     => {
+                'handler' => qw| openvas.handler.forensics-reply |,
+                'params'  => { 'correlation_id' => $cid },
+            },
+        }
+    );
+
+    if ( $sent and $sent > 0 ) {
+        $reported++;
+        $reply_text .= sprintf "  %s : routed to forensics : %s\n",
+            $cid, $notes;
+        $reply_text .= sprintf "    yaml : %s\n", $yaml_path;
+    } else {
+        $reply_text .= sprintf
+            "  %s : NOT routed [ send.local = %s ] : %s\n",
+            $cid, $sent, $notes;
+    }
+}
+
+$reply_text .= sprintf "handed off %d of %d finding(s) ..,\n",
+    $reported, scalar @findings;
+
+return {
+    'mode' => $reported ? qw| true | : qw| false |,
+    'data' => $reply_text
+};
+
+#..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..:.
+#  signature debt :: written during an afk session; cannot be signed here.
+#  run bin/Protocol-7 sourcecode update-signatures before the next verified commit.
+#,,.,.,.,,,,..,,.,.,,,.,,,..,,,,.,.,.,,..,,,,.,..,,,,.,..,,.,,,.,,..,,.,,,..,
+
+#,,.,,.,.,...,,,.,,,.,,..,...,,,.,...,.,,,,,.,..,,...,...,..,,,,,,.,.,,,.,,..,
+#FPXFZBI7XK7VF7H65KCOBLMZQ2UOFEUXKDYJ7CJ5APMNDRP5H5NIBBZDAR5UGTRCHDHOQGXCETJQM
+#\\\|BVXMH42YZ772HD4IHNTO6OKHGLRKXQHKJHKNSS3CHZ7YZBVILSK \ / AMOS7 \ YOURUM ::
+#\[7]FSMGYFPGNPACM52ENSA6DIW76JKEZNV3C4ZEN22J3AIX57RRW6DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -83,14 +83,23 @@ decode gap). Same fix each time: check `ps aux | grep kimi` +
 with the same session id only if the process actually isn't running
 anymore; otherwise just wait, it's still going.
 
+**Task file written 2026-07-29**: `data/tasks/mcp-kimi-status-check-reattach.md`
+proposes a `kimi_check_status(session_id)` MCP tool to formalize today's
+manual recovery workaround (ps aux + log-tail + kimi_continue/kimi -r)
+into a real tool, since the 1800s cutoff is confirmed to be the outer
+Claude Code harness's own idle-silence watchdog
+(`CLAUDE_CODE_MCP_TOOL_IDLE_TIMEOUT`), not anything in `bin/mcp-server-p7`
+(which already declares `timeout => 4620`, 77 min, for both
+kimi_dispatch and kimi_continue). Not yet dispatched.
+
 ## related
 
 [[feedback-mcp-memory-update-agent-detection]] ·
 [[feedback-kimi-dispatch-pattern]] ·
 [[feedback-tasks-completed-scan-verdict-trust]]
 
-#,,,,,,,.,,,,,,,,,.,.,,.,,.,.,,..,,,.,...,,.,,..,,...,...,...,..,,.,.,.,,,,,.,
-#JZ4TUG6KVOIV2F6IA4JGWNAYHZRNKJQKECAREG5DVLN6X5MAZLXMWPGM4ULFSVUODTV6QQMZSUYMO
-#\\\|I7F2L7ADEO2WIZYO7KALVLK3MERUZUXNSD7U3SOPZ7FDNMCQ2H3 \ / AMOS7 \ YOURUM ::
-#\[7]VSZG2NH6GE4XAETEA23BF4MNC6YOXUB7XFHD6BWC2V3U5GSFZSBI 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,.,.,.,,,,..,,,.,...,,..,,.,,,..,..,,...,...,.,.,.,.,,,,,...,,..,
+#JJJUXZ4JPBXXNFM7OE4TEYAYPB6A2LCLTLNFEXPD77IN5HKWHUOLORSJKOLK66QKA6CO4CSDR3OSM
+#\\\|OVIW4RQR57RAZ3GPWIBMKKLF3WDEDEXAMERUWFTQ2OPA2IQTEG3 \ / AMOS7 \ YOURUM ::
+#\[7]D3EVLPSOMZSUINJ7S7NEHLZGDS472N343BJTIMIRE667OWQBXODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
