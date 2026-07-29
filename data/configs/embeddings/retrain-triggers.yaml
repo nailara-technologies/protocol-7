@@ -1,0 +1,25 @@
+# security-intelligence embedding retrain trigger registration
+# domains landed in task 1.1a / 1.1b; consumed by embeddings.check-retrain-triggers
+# when that module is implemented in task 2.2.
+
+security-intel-embeddings:
+  cisa:
+    corpus: data/training/cisa.txt
+    output: data/embeddings/cisa
+    protocol_dir: data/protocols/cisa
+    trigger: feed-update
+    source_url: https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json
+
+  mitre:
+    corpus: data/training/mitre.txt
+    output: data/embeddings/mitre
+    protocol_dir: data/protocols/mitre
+    trigger: source-version-bump
+    source_url: https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json
+
+  cwe:
+    corpus: data/training/cwe.txt
+    output: data/embeddings/cwe
+    protocol_dir: data/protocols/cwe
+    trigger: source-version-bump
+    source_url: https://cwe.mitre.org/data/xml/cwec_latest.xml.zip
