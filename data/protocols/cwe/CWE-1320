@@ -1,0 +1,11 @@
+id           = CWE-1320
+name         = Improper Protection for Outbound Error Messages and Alert Signals
+abstraction  = Base
+structure    = Simple
+status       = Draft
+
+description : Untrusted agents can disable alerts about signal conditions exceeding limits or the response mechanism that handles such alerts.
+
+extended description : Hardware sensors are used to detect whether a device is operating within design limits. The threshold values for these limits are set by hardware fuses or trusted software such as a BIOS. Modification of these limits may be protected by hardware mechanisms. When device sensors detect out of bound conditions, alert signals may be generated for remedial action, which may take the form of device shutdown or throttling. Warning signals that are not properly secured may be disabled or used to generate spurious alerts, causing degraded performance or denial-of-service (DoS). These alerts may be masked by untrusted software. Examples of these alerts involve thermal and power sensor alerts.
+
+notes : https://cwe.mitre.org/data/definitions/1320.html

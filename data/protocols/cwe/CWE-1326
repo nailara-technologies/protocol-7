@@ -1,0 +1,11 @@
+id           = CWE-1326
+name         = Missing Immutable Root of Trust in Hardware
+abstraction  = Base
+structure    = Simple
+status       = Draft
+
+description : A missing immutable root of trust in the hardware results in the ability to bypass secure boot or execute untrusted or adversarial boot code.
+
+extended description : A System-on-Chip (SoC) implements secure boot by verifying or authenticating signed boot code. The signing of the code is achieved by an entity that the SoC trusts. Before executing the boot code, the SoC verifies that the code or the public key with which the code has been signed has not been tampered with. The other data upon which the SoC depends are system-hardware settings in fuses such as whether "Secure Boot is enabled". These data play a crucial role in establishing a Root of Trust (RoT) to execute secure-boot flows. One of the many ways RoT is achieved is by storing the code and data in memory or fuses. This memory should be immutable, i.e., once the RoT is programmed/provisioned in memory, that memory should be locked and prevented from further programming or writes. If the memory contents (i.e., RoT) are mutable, then an adversary can modify the RoT to execute their choice of code, resulting in a compromised secure boot. Note that, for components like ROM, secure patching/update features should be supported to allow authenticated and authorized updates in the field.
+
+notes : https://cwe.mitre.org/data/definitions/1326.html

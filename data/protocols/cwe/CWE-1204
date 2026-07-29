@@ -1,0 +1,11 @@
+id           = CWE-1204
+name         = Generation of Weak Initialization Vector (IV)
+abstraction  = Base
+structure    = Simple
+status       = Incomplete
+
+description : The product uses a cryptographic primitive that uses an Initialization Vector (IV), but the product does not generate IVs that are sufficiently unpredictable or unique according to the expected cryptographic requirements for that primitive.
+
+extended description : By design, some cryptographic primitives (such as block ciphers) require that IVs must have certain properties for the uniqueness and/or unpredictability of an IV. Primitives may vary in how important these properties are. If these properties are not maintained, e.g. by a bug in the code, then the cryptography may be weakened or broken by attacking the IVs themselves.
+
+notes : https://cwe.mitre.org/data/definitions/1204.html

@@ -1,0 +1,11 @@
+id           = CWE-1391
+name         = Use of Weak Credentials
+abstraction  = Class
+structure    = Simple
+status       = Incomplete
+
+description : The product uses weak credentials (such as a default key or hard-coded password) that can be calculated, derived, reused, or guessed by an attacker.
+
+extended description : By design, authentication protocols try to ensure that attackers must perform brute force attacks if they do not know the credentials such as a key or password. However, when these credentials are easily predictable or even fixed (as with default or hard-coded passwords and keys), then the attacker can defeat the mechanism without relying on brute force. Credentials may be weak for different reasons, such as: Hard-coded (i.e., static and unchangeable by the administrator) Default (i.e., the same static value across different deployments/installations, but able to be changed by the administrator) Predictable (i.e., generated in a way that produces unique credentials across deployments/installations, but can still be guessed with reasonable efficiency) Previously Compromised (i.e., "leaked" credentials that were published as part of a data breach) Even if a new, unique credential is intended to be generated for each product installation, if the generation is predictable, then that may also simplify guessing attacks.
+
+notes : https://cwe.mitre.org/data/definitions/1391.html

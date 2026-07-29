@@ -1,0 +1,11 @@
+id           = CWE-590
+name         = Free of Memory not on the Heap
+abstraction  = Variant
+structure    = Simple
+status       = Incomplete
+
+description : The product calls free() on a pointer to memory that was not allocated using associated heap allocation functions such as malloc(), calloc(), or realloc().
+
+extended description : When free() is called on an invalid pointer, the program's memory management data structures may become corrupted. This corruption can cause the program to crash or, in some circumstances, an attacker may be able to cause free() to operate on controllable memory locations to modify critical program variables or execute code.
+
+notes : https://cwe.mitre.org/data/definitions/590.html

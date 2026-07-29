@@ -1,0 +1,11 @@
+id           = CWE-297
+name         = Improper Validation of Certificate with Host Mismatch
+abstraction  = Variant
+structure    = Simple
+status       = Incomplete
+
+description : The product communicates with a host that provides a certificate, but the product does not properly ensure that the certificate is actually associated with that host.
+
+extended description : Even if a certificate is well-formed, signed, and follows the chain of trust, it may simply be a valid certificate for a different site than the site that the product is interacting with. In order to ensure data integrity, the certificate must be valid, and it must pertain to the site that is being accessed. Even if the product attempts to check the hostname, it is still possible to incorrectly check the hostname. For example, attackers could create a certificate with a name that begins with a trusted name followed by a NUL byte, which could cause some string-based comparisons to only examine the portion that contains the trusted name.
+
+notes : https://cwe.mitre.org/data/definitions/297.html
