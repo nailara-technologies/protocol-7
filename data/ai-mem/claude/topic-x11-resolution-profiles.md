@@ -75,10 +75,8 @@ suffix parsed together, not two competing single-suffix designs.
 
 [[topic-x11-protocol-hardening]] · [[topic-x11-bare-name-routing-ambiguity]]
 
-#,,.,,,..,...,..,,,,,,,,.,...,.,,,,.,,,,.,,.,,..,,...,..,,,,.,.,,,,,.,...,.,,,
-
-#,,,.,,,,,,..,..,,.,,,.,.,,..,...,,..,,,,,..,,..,,...,...,,..,,,,,,..,.,,,.,,,
-#RWENYTNEAVTTNTDXC6SRKZH2B2E6RFS7DYXLD33CLLXY7JOAAKU25FPKOF4KKUKI2MGAQUNFN5M3U
-#\\\|DNIWFQLO3BMS6NESO6MUNM7FMX47MXGRPDJ63JJCB2KT623TBMN \ / AMOS7 \ YOURUM ::
-#\[7]4VJVSLUYC345MJN75Y5OGWG2L3BN5VAAKMPCKTNWBXWXFBQTNWAY 7  DATA SIGNATURE ::
+#,,,.,,..,...,..,,.,.,...,.,.,,,,,,,.,,..,,.,,..,,...,...,..,,,.,,,..,,.,,,.,,
+#JXW2MUXMKWFSJ42EXAFMU3HM6DEZWMWWA7J4H6NVIJWXFZJUCP7VJE2EFQH3VIK4MCOCF5VNLTEL4
+#\\\|5R6DZWN5K2KLBQ5BXR5RWC5M4MOU5RDDRSFVV7SJZC77XCZXJPZ \ / AMOS7 \ YOURUM ::
+#\[7]OV6MZLEV2AKR3DX6IHNBPTXTNLS7BXRPUXOPECDVYLGPAFNZE4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

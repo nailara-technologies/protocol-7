@@ -99,10 +99,8 @@ symbol '$call'` error visible when the target zenka is actually booted
   `subroutines.load-early` to verify, then revert the whitelist to the
   tool-generated state
 
-#,,.,,...,...,.,.,.,.,...,,,.,...,.,,,,,.,...,..,,...,...,,,,,,,,,,,,,,.,,,..,
-
-#,,..,.,.,,..,,..,.,.,,,.,,.,,,,.,,..,.,,,.,,,..,,...,...,,.,,...,..,,,.,,,.,,
-#4CS3OBAI7OQ2NQFEMEJBAR2H3CZ3ILMK52BEQJL2CXH4FVYENO7AMC736UMSISSAN3KLQRVP3VD3K
-#\\\|2FMU6K4KEAD54SEKKD2ACUBA7ZSPYB7ASAWJISQJV4MNDQ37WBA \ / AMOS7 \ YOURUM ::
-#\[7]7CGKXN3VM5R4SBTWHDZWEHFTRJY4Q2BNAQYYLCDDNNKTGHKSWCCQ 7  DATA SIGNATURE ::
+#,,,.,..,,..,,.,,,,,,,..,,.,,,.,.,,..,,,,,.,,,..,,...,...,.,.,,..,.,.,,.,,.,.,
+#WCLLELYYW6N75FG4KGEPZR5GYZ6YHPD74SW3YAZNQHGGW4V3ATMIBGF43A3NI5U3IEUFVYUQAKEB6
+#\\\|2VUXGF7NWVCXOYBL2KKOSPJBK7IWXG3OLOG3QPOOILHVQLLN6LG \ / AMOS7 \ YOURUM ::
+#\[7]QI73TNGIWY6XZP5JQSSIYTG6IPR4QKTXJFJXPOHLU5PZ7Y26P4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

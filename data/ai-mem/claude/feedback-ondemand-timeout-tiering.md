@@ -30,10 +30,8 @@ to interactive/recurring, re-check its tier against this list rather than
 leaving the original guess in place. See [[topic-zenka-naming-cleanup]] for
 the related screenshot/X-11 capture rewrite this came out of.
 
-#,,..,.,.,..,,.,.,..,,...,.,,,,.,,,,.,,,,,...,..,,...,...,...,.,,,,..,,..,.,.,
-
-#,,..,.,.,..,,...,,.,,...,,.,,,,.,...,,.,,,.,,..,,...,...,.,.,,.,,..,,..,,.,.,
-#E5YXSHTC6QCKFPL7YCVRKPY4MLF6FIQNW7A6WYFSJRVFNQDMVWFOXARIDGBBDRXV4ZYNRQYIX73KA
-#\\\|4GBJNZWS537WAFIZGTHLN3CFKQSJMKSFZWPJEN3AZ4GNJHSZ44T \ / AMOS7 \ YOURUM ::
-#\[7]KRWIEVA7TP3FY4Y3ZV33TRCMESPXSXRUURMXBGGX3LUUYNBAPWDY 7  DATA SIGNATURE ::
+#,,,.,..,,...,..,,.,.,.,.,...,,.,,.,.,,.,,,..,..,,...,...,...,.,,,..,,,,,,,.,,
+#DQGLIGWQ752GAGACAY6M3XHF7YRCV2FUWSHMPKV4BNAFJVW5PNGPM6L7UAMGLKCNJUEI6MC7ITOZA
+#\\\|VJ6PB72NTOTFHUYSY3OJJZI3A4AE35LWJDOHHTPBJWMXBIYTZQL \ / AMOS7 \ YOURUM ::
+#\[7]INSDNX6A4RHOBDYZJ5DHFMRZPW4PNFARF3FWF324N3DPS2LWNMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

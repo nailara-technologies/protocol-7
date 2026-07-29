@@ -158,10 +158,8 @@ about focus/stacking, not position, and contains no `move()`.
 [[feedback-source-identity-spoofing]] · [[topic-mpv-jobqueue-startup]] ·
 [[topic-zenka-naming-cleanup]] (select-region clone landed this session)
 
-#,,..,.,.,..,,.,.,..,,...,.,,,,.,,,,.,,,,,...,..,,...,...,...,.,,,,..,,..,.,.,
-
-#,,,.,.,.,..,,,,.,...,,..,,..,..,,.,,,,,,,,..,..,,...,...,,,.,..,,.,,,.,.,,.,,
-#C3OUSRQIURE7AHDFBMDRPONUDGMBVK6C2WY336TNMHUROLJZLUDOIBH3737YBVTZKVWMJMX2VYNGY
-#\\\|ORCRQ4N54UQTBPYXWSVPBQ5ZL4JYQOSFI2H7LI4RUJZDQLXV7DL \ / AMOS7 \ YOURUM ::
-#\[7]PP3HU2OP6JYOAXCDXDTF2HSXV7EI72XG4IDDXEHRJ5W5YUYCDICI 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,.,,,,.,..,,.,.,,,.,,.,,,..,..,,..,,...,...,,.,,..,,,,,,,,.,,.,,
+#M7S7ZSKRIR3MYMIA2BVYXHQWMWURJLEAKDHXECTBAIYSM6QNLNK2JFCNE4QGTVWNTRS6SBQLH3QTE
+#\\\|QXMCEISCVFYXMSE6JQPMUUQNJDGKS4JDCJDSNFXG5H7AUC6SOSX \ / AMOS7 \ YOURUM ::
+#\[7]RRFN5R3ISTTCUDA7R3HBPOEU2WRTBGBMS2R6BRYA6ZMTMP3JXIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
