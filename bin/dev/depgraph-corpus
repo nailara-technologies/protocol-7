@@ -1,0 +1,164 @@
+#!/usr/bin/perl
+#..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..:.
+#:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:
+
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Getopt::Long;
+
+###                 ###
+##  depgraph-corpus  ##                      #:..:..:..:..:..:..:..:..:..:
+###                 ###
+
+## fasttext skipgram corpus assembler for the module dependency graph      ##
+## transforms module-dependency-graph.asc [ source : callee ... ] into one ##
+## training line per module : 'source callee callee ...' reverse edges [   ##
+## callee : caller ... ] are emitted at lower weight [ fewer repetitions ] ##
+## so neighborhoods include calling context                                ##
+
+#:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:
+##[ LOCAL PM LIB PATH ]#######################################################
+
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd     qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    our $up_dir    = File::Spec->updir;
+    our $Bin       = $RealBin;
+    our $root_path = abs_path( r2_abs( c_dir( $Bin, $up_dir, $up_dir ) ) );
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ COMMAND LINE OPTIONS ]####################################################
+
+our $root_path;    ##  from BEGIN block  ##
+
+my %opt = (
+    qw| input          | => c_dir(
+        $root_path,
+        qw| data md documentation |,
+        qw| module-dependency-graph.asc |
+    ),
+    qw| output         | =>
+        c_dir( $root_path, qw| data training |, qw| codebase-depgraph.txt | ),
+    qw| reverse        | => 1,    ##  include callee -> callers lines  ##
+    qw| forward-repeat | => 2,    ##  forward edge weight [ repetitions ]  ##
+    qw| reverse-repeat | => 1,    ##  reverse edge weight [ lower ]  ##
+    qw| quiet          | => 0,
+);
+
+Getopt::Long::Configure('prefix_pattern=--|-');
+
+GetOptions(
+    qw| input=s          | => \$opt{input},
+    qw| output=s         | => \$opt{output},
+    qw| reverse!         | => \$opt{reverse},
+    qw| forward-repeat=i | => \$opt{'forward-repeat'},
+    qw| reverse-repeat=i | => \$opt{'reverse-repeat'},
+    qw| quiet            | => \$opt{quiet},
+) or die ":: invalid command line arguments\n";
+
+die ":: input adjacency file not found: $opt{input}\n"
+    if !-f $opt{input};
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ MAIN ]####################################################################
+
+my ( $forward, $reverse ) = parse_adjacency( $opt{input} );
+
+my @lines;
+
+##  forward lines : module with its callees [ full weight ]  ##
+for my $source ( sort keys %{$forward} ) {
+    my $line = join ' ', $source, sort @{ $forward->{$source} };
+    push @lines, $line for 1 .. $opt{'forward-repeat'};
+}
+
+##  reverse lines : callee with its callers [ lower weight ]  ##
+if ( $opt{reverse} ) {
+    for my $callee ( sort keys %{$reverse} ) {
+        my $line = join ' ', $callee, sort @{ $reverse->{$callee} };
+        push @lines, $line for 1 .. $opt{'reverse-repeat'};
+    }
+}
+
+write_file( $opt{output}, join( '', map {"$ARG\n"} @lines ) );
+
+if ( !$opt{quiet} ) {
+    my $edge_count = 0;
+    $edge_count += scalar @{ $forward->{$ARG} } for keys %{$forward};
+    say sprintf ':: corpus : %d modules, %d edges, %d training lines',
+        scalar( keys %{$forward} ), $edge_count, scalar @lines;
+    say ":: written to $opt{output}";
+}
+
+exit 0;
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ SUBROUTINES ]#############################################################
+
+sub parse_adjacency {
+    ##  parse 'source : callee ...' adjacency lines from .asc file  ##
+    my $path = shift;
+
+    open my $fh, qw| < |, $path
+        or die ":: cannot read $path: $OS_ERROR\n";
+
+    my %forward;    ##  source -> [ callees ]  ##
+    my %reverse;    ##  callee -> [ callers ]  ##
+
+    while ( my $line = <$fh> ) {
+        chomp $line;
+        next if $line =~ m/^\s*$/;    ##  skip blank lines  ##
+        next if $line =~ m/^\s*#/;    ##  skip .asc header comments  ##
+
+        ##  adjacency line : source : callee callee ...  ##
+        next if $line !~ m/^(\S+)\s+:\s+(\S.*)$/;
+        my ( $source, @callees ) = ( $1, split m|\s+|, $2 );
+
+        $forward{$source} //= [];
+        push @{ $forward{$source} }, @callees;
+
+        ##  accumulate reverse edges  ##
+        for my $callee (@callees) {
+            $reverse{$callee} //= [];
+            push @{ $reverse{$callee} }, $source;
+        }
+
+        ##  seed leaf modules so they get a line even without callers  ##
+        $reverse{$ARG} //= [] for @callees;
+    }
+    close $fh;
+
+    ##  deduplicate  ##
+    for my $table ( \%forward, \%reverse ) {
+        for my $key ( keys %{$table} ) {
+            my %seen;
+            $table->{$key}
+                = [ grep { !$seen{$ARG}++ } @{ $table->{$key} } ];
+        }
+    }
+
+    return ( \%forward, \%reverse );
+}
+
+sub write_file {
+    ##  write content to file  ##
+    my ( $path, $content ) = @ARG;
+
+    open my $fh, qw| > |, $path
+        or die ":: cannot write to $path: $OS_ERROR\n";
+    print $fh $content;
+    close $fh;
+}
+
+#,,.,,,,.,,,.,.,,,,..,,.,,,,.,,..,..,,..,,.,,,..,,...,...,,,,,,.,,,,,,...,.,,,
+#S2R67XAHHKZOKUSKRP2LN3AV67WWCUZQ2DQ2CZZQGZ33OFDMOMTVG4LNMO67TY3ZIK6TSC5MJMIYA
+#\\\|SL6Z5C3YLKLD5BRQYGAOEH7AQSXAHH6OYDR7GXDPO2WMQONGFIM \ / AMOS7 \ YOURUM ::
+#\[7]T5PBXTKUKKCCO3LA7THNPVILRIY42WYGWJE3JTY3KWENK4FYXMAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
