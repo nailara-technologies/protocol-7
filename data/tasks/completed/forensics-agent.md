@@ -1,5 +1,7 @@
 # forensics agent — task
 
+## status [ 2026-07-29 ] — phase 1 DONE, live-verified (86424b80c, 6b9cac588); phases 2-3 (investigation, rule synthesis, note-audit) not started
+
 ## context
 
 design: [[CONCEPT-SECURITY-AND-FORENSICS-ARCHITECTURE]] (data/md/concepts/)
@@ -91,8 +93,8 @@ the forensics channel. schedule: weekly event slot.
 - all analysis local: local models + pattern store, no external calls
   with operational data (see [[HYBRID-LLM-GOVERNANCE]]).
 
-#,,..,,,.,.,,,.,.,..,,,,,,.,,,...,,..,,,,,,,.,..,,...,...,.,.,.,.,.,.,.,.,,,,,
-#YKBX5LLJZZEJ7S4SVJIKE2HG654PM54QKR554DHWGDCGKCRD23A25USIQSMH4VOPWAAUSOKNSRZAE
-#\\\|DXRBEOCJGCESK4HB6N7LVTWH6PT72AIAYART4AW7M6M4LJN2EOU \ / AMOS7 \ YOURUM ::
-#\[7]ES5O4LXJXHF5XCBSR5ZWSKH7RBS6S2MIBCAIAPG7TPOSMGMLCWBQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,.,.,,,,,,,.,,,.,..,,,..,..,,...,..,,...,...,..,,,..,..,,,,,,,,.,
+#66D4CFHGQVPSSJSD3VGZX45QVT7NKLYCSD7PEE4UF5IR577ZC7AM7JKRIO4H4IIAPIXEC3CJWNPUI
+#\\\|XYNHU5YFAKE5O3SNLVZTJNSXY6CQEHPG5LPUH3LXJLNPZD24CHX \ / AMOS7 \ YOURUM ::
+#\[7]ZXTTTTJ5SQXVHPRDCD352QEER4HQFIBCFJ5LT7DQNIGQCWF36CDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,5 +1,7 @@
 # ext-pkg zenka — task
 
+## status [ 2026-07-29 ] — phase 1 DONE, live-verified (e9b437f6c); phase 2 (unified coverage audit) not started
+
 ## context
 
 related: [[build-zenka]], os-pkg zenka (configuration/zenki/os-pkg/,
@@ -128,8 +130,8 @@ looking up a source and installing something by hand.
   global-install permission questions) stay isolated per zenka instead
   of accumulating as special cases in one shared module.
 
-#,,.,,...,,..,...,,.,,.,.,,..,.,.,..,,,.,,..,,..,,...,...,.,,,..,,,.,,..,,,.,,
-#6X4LD6YPAGYWQRLL3D562GD3WS5BU2JUMNYF2YMAQLJZXBV3BJY5H4TWM7XCM2T5MSA5D7RWF3YUE
-#\\\|5N2RL22KBTMH7DUABQGGMTI4J4CTL6KMU4VPHUNLOQZDGQVRT2T \ / AMOS7 \ YOURUM ::
-#\[7]U3FLQA3S2TQO22ZI333Q3PGON3UA35CZW6DRWSZRB2BGQYL5WADY 7  DATA SIGNATURE ::
+#,,,,,...,,,.,,.,,,..,,.,,...,..,,.,.,,,.,,.,,..,,...,...,,,.,,..,,.,,..,,,.,,
+#EBGT3XKVP5LKO5UISDRAZUHRFU3GMYNQHBWWMVTMPF6JYEPZDAZ6ZYYGUU2UPYLQS23MLAUMRELQM
+#\\\|PDZJQO5URRR7AE3SB5NVKCYVIFRU6GBABFXYEOUBTPCVYRLURG5 \ / AMOS7 \ YOURUM ::
+#\[7]O5LUKVJRWCQXHD7XEMH4XOSLWXBHAW4JKYA2HUNSU72LE2WIWYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

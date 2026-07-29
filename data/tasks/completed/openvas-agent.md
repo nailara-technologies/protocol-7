@@ -1,5 +1,7 @@
 # openvas agent — task
 
+## status [ 2026-07-29 ] — phase 1 DONE, live-verified (7539ab70a, fixes 24e84da2d + 2f11bc91c); phase 2 (finding enrichment) blocked on security-intel-embedding-domains's nvt domain; phase 3 (integration) not started
+
 ## context
 
 source: duck.ai design conversation 2026-07-29 (INCOMING/duck.ai_2026-07-29_01-27-33.txt, prompt 50+)
@@ -104,8 +106,8 @@ until the forensics agent is live — do not scan without a consumer.
   (weekly freshness, see security-intel task 2.2).
 - no external AI calls for enrichment — embeddings + local models only.
 
-#,,.,,..,,,..,,,.,,..,,,.,..,,...,,.,,.,,,,,,,..,,...,...,..,,,,.,...,,..,,,.,
-#73UY7PZD3RADB6PQCMOV5LPBDJLQVUOU4EUQJYY3YESWJ75UXCZ5YDAJGWTGJI6NL4SCBZMI6SCHQ
-#\\\|3OSNMN7HFEU5G6VBVCDV5J7UI4XOXQNZRCV6IGDTDQZPSHCIMCS \ / AMOS7 \ YOURUM ::
-#\[7]H3D3ZBZN42LKIIR7GZHSTDDD7OQ34VMO4H3HAZWQGSBWVRFZEYCA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,.,,,,,,,..,,...,..,,..,,,.,,,,.,..,,...,...,,..,.,,,...,,.,,.,.,
+#PQ4ETLQCKQAJZBIT63Z442CGLCL3BT6MXNABD6ZVOSZLYZ2OMYN3OQL57CHHACRASJ4CYVTXHFNMU
+#\\\|H4PIG5ZCJ53KJPWGO3XGVOQ7YMYJICV7N6FOBYY7X54RKU3OKXX \ / AMOS7 \ YOURUM ::
+#\[7]IVHH6DSI4AYWG5IKM3VJ77QUQBXBGYFLRDAHIOYLXA7F5U62AYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
