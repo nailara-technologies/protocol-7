@@ -6,7 +6,7 @@
 #
 # control path : GMP over gvmd unix socket via the 'gvm' python library
 # [ gvm-tools ]. backend : greenbone community containers [ docker ].
-# see modules/openvas.cmd.scan.run header for the full backend decision notes.
+# see modules/openvas.cmd.scan-run header for the full backend decision notes.
 #
 # emits a single json document on stdout :
 #   { status, scan_id, report_id, target, findings : [ { oid, severity,
@@ -135,8 +135,8 @@ def main():
 if __name__ == '__main__':
     main()
 
-#,,..,..,,,.,,,.,,.,.,...,...,...,,.,,.,.,...,.,.,...,..,,,..,.,,,,..,.,.,,,,,
-#KMZRQD2GDCPGN6ZSCVWJFO2YEGXWPV2AM6XBBCANQOSKVLKW6E46MKVFOWALOY2G6HLM2K4F2RFAU
-#\\\|VZJ5YTLEHJ7LJIFXJEOQWTVEGCFHZIRSZCWOV25EPCTO46WSBT2 \ / AMOS7 \ YOURUM ::
-#\[7]TEW2JAAUSBDX5M4GGUDDIPCKNKW6LDAQZST7IXKG3RNPUKXJYUCI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,.,,,,,,,,,.,,,,,,..,.,.,,,,,.,.,.,.,...,...,,,,,,,.,,..,.,.,,,,,
+#XC6IOQ7TCU7DHGRCRAWMSPQOORXS4V3UGYIGEYFCPSGYVTJW4DHFRVEDSPLVC2U3UX5IAXZLTZXMC
+#\\\|H6MKF2OYKHXTY2SZWGVJB6IACE7A2HS4R4VAKGAYZFNM3BTTEXZ \ / AMOS7 \ YOURUM ::
+#\[7]WHXO5UOF32MEGPCJ4H6EWW3KWOQLZG4DEERKHIH7F2DAEZRBMKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
