@@ -58,6 +58,36 @@ of the 23 callers actually receive high-precision timestamps in
 practice today (likely few, since this bug went unnoticed until now) vs.
 which only ever see whole-second values and won't be affected either way.
 
+**RESOLVED 2026-07-29** (kimi, afk session): ported the
+`decode_b32r` -> `comp-int.is_valid` -> `unpack('w*', ...)` chain from
+`cube.cmd.localtime` into `base.ntime.B32_2_unix`, replacing its call to
+`base.ntime_BASE32_to_numerical`.
+
+Corrections to the original diagnosis, found during verification:
+
+1. `base.ntime_BASE32_to_numerical` (inline sub `p7_ntime_BASE32_to_numerical`
+   in `bin/Protocol-7`) ALREADY handles the two-value sub-second case
+   (`unpack('w*', ...)` + `s|^7||` on `@nt_val == 2`) -- verified live via
+   `p7c b32-ntime 3WKI7OE7AGA4XXMERXTB4` -> `3200856756097.000000000798`.
+2. `33WHIVSUBEGYLKXY` is NOT a valid high-precision ntime-b32: its decoded
+   BER compressed integer is unterminated (last byte 0xf8 has high bit set).
+   `p7c localtime 33WHIVSUBEGYLKXY` rejects it too ("decoded value not valid
+   [ expected compressed integer ]"). No decoder can accept it; the fix
+   makes B32_2_unix reject it cleanly via `base.comp-int.is_valid` instead
+   of a swallowed `unpack` die inside eval.
+3. The "23 callers" were callers of `base.ntime_BASE32_to_numerical`
+   (untouched). Actual callers of `B32_2_unix` per
+   `data/training/codebase-depgraph.txt`: only `base.file.read_timestamp`
+   and `forensics.event.nightly-sweep` -- both float-safe (definedness
+   check + numeric comparison / pass-through).
+
+Verification: 12 hand-picked vectors + 2000 randomized round-trip fuzz
+vectors through old vs new module (standalone harness wiring the real
+repo implementations): zero output differences. High-precision
+`3WKI7OE7AGA4XXMERXTB4` decodes to unix `1785336751.45166683197021`,
+matching `p7c localtime 3WKI7OE7AGA4XXMERXTB4`
+(`Wed Jul 29 2026 16:52:31 [ +0.45166683197021 ]`).
+
 #,,.,,,,,,,..,.,,,,.,,,..,,..,,,,,.,,,.,.,.,,,..,,...,...,.,.,.,.,.,.,.,,,.,,,
 
 #,,,.,..,,,.,,..,,...,,,.,,..,...,,.,,.,,,,.,,..,,...,..,,...,,,.,,..,,..,,..,
