@@ -1,0 +1,264 @@
+#!/usr/bin/perl
+#..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..:.
+#:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:
+
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Getopt::Long;
+use JSON::PP;
+
+###                      ###
+##  mitre-attack-corpus  ##                  #:..:..:..:..:..:..:..:..:..:
+###                      ###
+
+##  fetches the MITRE ATT&CK enterprise STIX bundle [ single bounded json  ##
+##  file ] and normalizes its attack-pattern objects into one file per     ##
+##  entry under data/protocols/mitre/<ATTACK-T####> — also emits a         ##
+##  fasttext skipgram training file at data/training/mitre.txt : one line  ##
+##  per entry with id + name + first ~10 description tokens, id repeated   ##
+##  3x for weighting                                                       ##
+##                                                                         ##
+##  http fetch is deliberately respectful : single request, no polling     ##
+##  loop, non-200 responses are reported, never retried indefinitely       ##
+
+#:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:
+##[ LOCAL PM LIB PATH ]#######################################################
+
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd     qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    our $up_dir    = File::Spec->updir;
+    our $Bin       = $RealBin;
+    our $root_path = abs_path( r2_abs( c_dir( $Bin, $up_dir, $up_dir ) ) );
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ COMMAND LINE OPTIONS ]####################################################
+
+our $root_path;    ##  from BEGIN block  ##
+
+my %opt = (
+    qw| url         | => qw| https://raw.githubusercontent.com/mitre/cti |
+        . qw| /master/enterprise-attack/enterprise-attack.json |,
+    qw| input       | => '',    ##  read json from file instead of fetch  ##
+    qw| output-dir  | => c_dir( $root_path, qw| data protocols mitre | ),
+    qw| corpus      | => c_dir( $root_path, qw| data training mitre.txt | ),
+    qw| id-repeat   | => 3,     ##  id weight [ repetitions ] in corpus  ##
+    qw| desc-tokens | => 10,    ##  description token budget per line  ##
+    qw| timeout     | => 120,
+    qw| quiet       | => 0,
+);
+
+Getopt::Long::Configure('prefix_pattern=--|-');
+
+GetOptions(
+    qw| url=s         | => \$opt{url},
+    qw| input=s       | => \$opt{input},
+    qw| output-dir=s  | => \$opt{'output-dir'},
+    qw| corpus=s      | => \$opt{corpus},
+    qw| id-repeat=i   | => \$opt{'id-repeat'},
+    qw| desc-tokens=i | => \$opt{'desc-tokens'},
+    qw| timeout=i     | => \$opt{timeout},
+    qw| quiet         | => \$opt{quiet},
+) or die ":: invalid command line arguments\n";
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ MAIN ]####################################################################
+
+my $json_text
+    = length $opt{input}
+    ? read_file( $opt{input} )
+    : fetch_bundle( $opt{url}, $opt{timeout} );
+
+my $bundle = decode_bundle($json_text);
+
+my @entries = extract_attack_patterns($bundle);
+
+die ":: no attack-pattern objects found in bundle\n" if !@entries;
+
+write_entries( \@entries, $opt{'output-dir'} );
+my $skipped = write_corpus( \@entries, $opt{corpus}, $opt{'id-repeat'},
+    $opt{'desc-tokens'} );
+
+if ( !$opt{quiet} ) {
+    printf ":: stix spec version %s\n", $bundle->{spec_version} // qw| ? |;
+    printf ":: %d attack-pattern entries -> %s\n", scalar @entries,
+        $opt{'output-dir'};
+    printf ":: corpus -> %s\n", $opt{corpus};
+    printf ":: skipped %d entries with empty description in corpus\n",
+        $skipped
+        if $skipped;
+}
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ SUBROUTINES ]#############################################################
+
+sub fetch_bundle {
+    ##  single respectful http request — report non-200, never loop  ##
+    my ( $url, $timeout ) = @ARG;
+
+    require HTTP::Tiny;
+    my $http = HTTP::Tiny->new(
+        timeout => $timeout,
+        agent   => 'protocol-7-mitre-attack-corpus/1.0',
+    );
+
+    my $response = $http->get($url);
+
+    die sprintf( ":: fetch failed : http status %s %s [ %s ]\n",
+        $response->{status}, $response->{reason} // qw| ? |, $url )
+        if !$response->{success};
+
+    return $response->{content};
+}
+
+sub decode_bundle {
+    ##  parse and sanity-check the stix bundle structure  ##
+    my ($json_text) = @ARG;
+
+    my $bundle = eval { JSON::PP->new->utf8->decode($json_text) };
+    die ":: cannot parse stix json : $EVAL_ERROR" if $EVAL_ERROR;
+
+    die ":: unexpected stix bundle structure [ no objects array ]\n"
+        if ref $bundle ne qw| HASH |
+        or ref $bundle->{objects} ne qw| ARRAY |;
+
+    return $bundle;
+}
+
+sub extract_attack_patterns {
+    ##  collect live attack-pattern objects, keyed by ATTACK-<external id>  ##
+    my ($bundle) = @ARG;
+
+    my %entries;
+    for my $object ( @{ $bundle->{objects} } ) {
+        next if ref $object ne qw| HASH |;
+        next if ( $object->{type} // '' ) ne qw| attack-pattern |;
+        next if $object->{revoked}    ##  superseded stix objects  ##
+            or $object->{x_mitre_deprecated};
+
+        my ($external_id) = map { $_->{external_id} // () }
+            grep { ( $_->{source_name} // '' ) eq qw| mitre-attack | }
+            @{ $object->{external_references} // [] };
+        next if !length( $external_id // '' );
+
+        $entries{ sprintf qw| ATTACK-%s |, $external_id } = {
+            id          => sprintf( qw| ATTACK-%s |, $external_id ),
+            name        => $object->{name}        // '',
+            description => $object->{description} // '',
+            platforms => join( ' ', @{ $object->{x_mitre_platforms} // [] } ),
+            tactics   => join( ' ',
+                map { $_->{phase_name} // () }
+                    @{ $object->{kill_chain_phases} // [] } ),
+            data_sources =>
+                join( ' ', @{ $object->{x_mitre_data_sources} // [] } ),
+            sub_technique => $object->{x_mitre_is_subtechnique} ? 1 : 0,
+            modified      => $object->{modified} // '',
+        };
+    }
+
+    return sort { $a->{id} cmp $b->{id} } values %entries;
+}
+
+sub write_entries {
+    ##  one normalized file per entry : data/protocols/mitre/<attack-id>  ##
+    my ( $entries, $output_dir ) = @ARG;
+
+    system qw| mkdir -p |, $output_dir
+        and die ":: cannot create $output_dir\n";
+
+    for my $entry ( @{$entries} ) {
+        my $id = $entry->{id} // next;
+        warn sprintf ":: skipping entry with invalid attack id : %s\n", $id
+            and next
+            if $id !~ m{^ATTACK-T\d+(\.\d+)?$}x;
+
+        my $description = $entry->{description} // '';
+        $description =~ s{\s+}{ }gx;    ##  collapse newlines/whitespace  ##
+
+        write_file(
+            c_dir( $output_dir, $id ),
+            join(
+                '',
+                sprintf( "id           = %s\n", $id ),
+                sprintf( "name         = %s\n", $entry->{name} ),
+                sprintf( "modified     = %s\n", $entry->{modified} ),
+                sprintf( "platforms    = %s\n", $entry->{platforms} ),
+                sprintf( "tactics      = %s\n", $entry->{tactics} ),
+                sprintf( "data_sources = %s\n", $entry->{data_sources} ),
+                "\n",
+                sprintf( "description : %s\n", $description ),
+                sprintf(
+                    "\nnotes : "
+                        . "https://attack.mitre.org/techniques/%s/\n",
+                    $id =~ s{^ATTACK-}{}r =~ s{\.}{/}r
+                ),
+            )
+        );
+    }
+    return;
+}
+
+sub write_corpus {
+    ##  skipgram training file : id x N + name + first desc tokens  ##
+    my ( $entries, $corpus_path, $id_repeat, $desc_tokens ) = @ARG;
+
+    my $skipped = 0;
+    my @lines;
+
+    for my $entry ( @{$entries} ) {
+        my $id = $entry->{id} // next;
+        next if $id !~ m{^ATTACK-T\d+(\.\d+)?$}x;
+
+        my @tokens
+            = ( ($id) x $id_repeat, tokenize( $entry->{name} // '' ), );
+
+        my @desc = tokenize( $entry->{description} // '' );
+        $skipped++ and next if !@desc;
+
+        push @tokens, splice( @desc, 0, $desc_tokens );
+        push @lines,  join( ' ', @tokens );
+    }
+
+    write_file( $corpus_path, join( '', map {"$_\n"} @lines ) );
+
+    return $skipped;
+}
+
+sub tokenize {
+    ##  split into lowercase word-ish tokens, punctuation stripped  ##
+    my ($text) = @ARG;
+    return grep {length} split /\s+/x, lc $text =~ s{[^\w\s.-]+}{ }gxr;
+}
+
+sub read_file {
+    my ($path) = @ARG;
+    open my $fh, qw| < |, $path
+        or die ":: cannot read $path: $OS_ERROR\n";
+    my $content = do { local $INPUT_RECORD_SEPARATOR = undef; <$fh> };
+    close $fh;
+    return $content;
+}
+
+sub write_file {
+    ##  write content to file  ##
+    my ( $path, $content ) = @ARG;
+
+    open my $fh, qw| > |, $path
+        or die ":: cannot write to $path: $OS_ERROR\n";
+    binmode $fh, qw| :encoding(UTF-8) |;
+    print $fh $content;
+    close $fh;
+}
+
+#,,,.,.,.,,..,,,.,..,,..,,...,.,.,,..,.,.,,,,,..,,...,...,...,.,,,...,..,,,,,,
+#YWG775XJWP4IEBWDVR2WEE6JMEQEB4DQMOAM2TYI4NB6VUIMNF3KFOE6JCQORMRS724N6GPSVSRI4
+#\\\|GXSBVK5WJXYDKSE7IX2N2XVOV5GW26KWMD3PDGBDXF53VCGIPE3 \ / AMOS7 \ YOURUM ::
+#\[7]L3GWWCEZBOTPKDKXR63MTMIAZF763JVAL63JT6RR62PD3LP6LOBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

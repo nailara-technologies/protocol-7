@@ -1,0 +1,11 @@
+id           = CWE-329
+name         = Generation of Predictable IV with CBC Mode
+abstraction  = Variant
+structure    = Simple
+status       = Draft
+
+description : The product generates and uses a predictable initialization Vector (IV) with Cipher Block Chaining (CBC) Mode, which causes algorithms to be susceptible to dictionary attacks when they are encrypted under the same key.
+
+extended description : CBC mode eliminates a weakness of Electronic Code Book (ECB) mode by allowing identical plaintext blocks to be encrypted to different ciphertext blocks. This is possible by the XOR-ing of an IV with the initial plaintext block so that every plaintext block in the chain is XOR'd with a different value before encryption. If IVs are reused, then identical plaintexts would be encrypted to identical ciphertexts. However, even if IVs are not identical but are predictable, then they still break the security of CBC mode against Chosen Plaintext Attacks (CPA).
+
+notes : https://cwe.mitre.org/data/definitions/329.html

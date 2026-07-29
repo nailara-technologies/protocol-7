@@ -1,0 +1,11 @@
+id           = CWE-25
+name         = Path Traversal: '/../filedir'
+abstraction  = Variant
+structure    = Simple
+status       = Incomplete
+
+description : The product uses external input to construct a pathname that should be within a restricted directory, but it does not properly neutralize "/../" sequences that can resolve to a location that is outside of that directory.
+
+extended description : This allows attackers to traverse the file system to access files or directories that are outside of the restricted directory. Sometimes a program checks for "../" at the beginning of the input, so a "/../" can bypass that check.
+
+notes : https://cwe.mitre.org/data/definitions/25.html

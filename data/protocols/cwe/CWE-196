@@ -1,0 +1,11 @@
+id           = CWE-196
+name         = Unsigned to Signed Conversion Error
+abstraction  = Variant
+structure    = Simple
+status       = Draft
+
+description : The product uses an unsigned primitive and performs a cast to a signed primitive, which can produce an unexpected value if the value of the unsigned primitive can not be represented using a signed primitive.
+
+extended description : Although less frequent an issue than signed-to-unsigned conversion, unsigned-to-signed conversion can be the perfect precursor to dangerous buffer underwrite conditions that allow attackers to move down the stack where they otherwise might not have access in a normal buffer overflow condition. Buffer underwrites occur frequently when large unsigned values are cast to signed values, and then used as indexes into a buffer or for pointer arithmetic.
+
+notes : https://cwe.mitre.org/data/definitions/196.html

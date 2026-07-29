@@ -1,0 +1,11 @@
+id           = CWE-551
+name         = Incorrect Behavior Order: Authorization Before Parsing and Canonicalization
+abstraction  = Base
+structure    = Simple
+status       = Incomplete
+
+description : If a web server does not fully parse requested URLs before it examines them for authorization, it may be possible for an attacker to bypass authorization protection.
+
+extended description : For instance, the character strings /./ and / both mean current directory. If /SomeDirectory is a protected directory and an attacker requests /./SomeDirectory, the attacker may be able to gain access to the resource if /./ is not converted to / before the authorization check is performed.
+
+notes : https://cwe.mitre.org/data/definitions/551.html

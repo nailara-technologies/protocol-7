@@ -1,0 +1,11 @@
+id           = CWE-1260
+name         = Improper Handling of Overlap Between Protected Memory Ranges
+abstraction  = Base
+structure    = Simple
+status       = Stable
+
+description : The product allows address regions to overlap, which can result in the bypassing of intended memory protection.
+
+extended description : Isolated memory regions and access control (read/write) policies are used by hardware to protect privileged software. Software components are often allowed to change or remap memory region definitions in order to enable flexible and dynamically changeable memory management by system software. If a software component running at lower privilege can program a memory address region to overlap with other memory regions used by software running at higher privilege, privilege escalation may be available to attackers. The memory protection unit (MPU) logic can incorrectly handle such an address overlap and allow the lower-privilege software to read or write into the protected memory region, resulting in privilege escalation attack. An address overlap weakness can also be used to launch a denial of service attack on the higher-privilege software memory regions.
+
+notes : https://cwe.mitre.org/data/definitions/1260.html

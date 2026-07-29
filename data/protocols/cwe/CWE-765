@@ -1,0 +1,11 @@
+id           = CWE-765
+name         = Multiple Unlocks of a Critical Resource
+abstraction  = Base
+structure    = Simple
+status       = Incomplete
+
+description : The product unlocks a critical resource more times than intended, leading to an unexpected state in the system.
+
+extended description : When the product is operating in a concurrent environment and repeatedly unlocks a critical resource, the consequences will vary based on the type of lock, the lock's implementation, and the resource being protected. In some situations such as with semaphores, the resources are pooled and extra calls to unlock will increase the count for the number of available resources, likely resulting in a crash or unpredictable behavior when the system nears capacity.
+
+notes : https://cwe.mitre.org/data/definitions/765.html

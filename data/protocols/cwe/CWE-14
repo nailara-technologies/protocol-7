@@ -1,0 +1,11 @@
+id           = CWE-14
+name         = Compiler Removal of Code to Clear Buffers
+abstraction  = Variant
+structure    = Simple
+status       = Draft
+
+description : Sensitive memory is cleared according to the source code, but compiler optimizations leave the memory untouched when it is not read from again, aka "dead store removal."
+
+extended description : This compiler optimization error occurs when: Secret data are stored in memory. The secret data are scrubbed from memory by overwriting its contents. The source code is compiled using an optimizing compiler, which identifies and removes the function that overwrites the contents as a dead store because the memory is not used subsequently.
+
+notes : https://cwe.mitre.org/data/definitions/14.html

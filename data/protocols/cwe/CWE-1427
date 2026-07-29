@@ -1,0 +1,11 @@
+id           = CWE-1427
+name         = Improper Neutralization of Input Used for LLM Prompting
+abstraction  = Base
+structure    = Simple
+status       = Incomplete
+
+description : The product uses externally-provided data to build prompts provided to large language models (LLMs), but the way these prompts are constructed causes the LLM to fail to distinguish between user-supplied inputs and developer provided system directives.
+
+extended description : When prompts are constructed using externally controllable data, it is often possible to cause an LLM to ignore the original guidance provided by its creators (known as the "system prompt") by inserting malicious instructions in plain human language or using bypasses such as special characters or tags. Because LLMs are designed to treat all instructions as legitimate, there is often no way for the model to differentiate between what prompt language is malicious when it performs inference and returns data. Many LLM systems incorporate data from other adjacent products or external data sources like Wikipedia using API calls and retrieval augmented generation (RAG). Any external sources in use that may contain untrusted data should also be considered potentially malicious.
+
+notes : https://cwe.mitre.org/data/definitions/1427.html

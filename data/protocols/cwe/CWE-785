@@ -1,0 +1,11 @@
+id           = CWE-785
+name         = Use of Path Manipulation Function without Maximum-sized Buffer
+abstraction  = Variant
+structure    = Simple
+status       = Incomplete
+
+description : The product invokes a function for normalizing paths or file names, but it provides an output buffer that is smaller than the maximum possible size, such as PATH_MAX.
+
+extended description : Passing an inadequately-sized output buffer to a path manipulation function can result in a buffer overflow. Such functions include realpath(), readlink(), PathAppend(), and others.
+
+notes : https://cwe.mitre.org/data/definitions/785.html

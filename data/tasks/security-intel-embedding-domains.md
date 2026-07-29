@@ -86,6 +86,26 @@ specifically for the cve domain — decide based on actual fetched entry
 size, not by assumption. do not tar/archive a whole domain into one
 compressed blob regardless of size: that breaks the "name = filepath,
 no registry, direct load" property the unified loader depends on.
+
+update (2026-07-29): partial completion — mitre + cwe domains done.
+  mitre: bin/dev/mitre-attack-corpus, 697 live attack-pattern entries
+  [ techniques + sub-techniques, revoked/deprecated excluded ] under
+  data/protocols/mitre/ (2.8MB), data/training/mitre.txt (96KB).
+  cwe: bin/dev/cwe-corpus, 944 weakness entries [ deprecated excluded ]
+  under data/protocols/cwe/ (3.8MB), data/training/cwe.txt (124KB).
+  source deviation: the cwe_2_0.json.zip url above is stale [ 404 —
+  CWE no longer publishes a json feed ]; the official xml catalog
+  cwec_latest.xml.zip [ v4.20 ] is parsed instead, same weakness data.
+  compression sanity check: cwe averages ~4KB/entry with only ~24%
+  xz -9 saving in sampling — the cve-domain xz concern does NOT apply
+  here; total volume is a few MB, git blob delta-compression is the
+  right tool, left as plain text. cve/nvd still deferred [ needs its
+  own size scoping pass ], nvt still bound to the openvas feed-sync
+  machinery, nessus still blocked on a backend existing.
+  signing note: bin/dev scripts + this file committed unsigned from
+  an afk session [ key passphrase unavailable ] — user must run
+  bin/Protocol-7 sourcecode update-signatures before the next hook-
+  checked commit.
 ```
 
 ### task 1.2 — train domain embeddings
@@ -134,8 +154,8 @@ reports stale domains to the forensics channel.
 - keep domains loadable independently — an agent should be able to run
   with only cve+cwe loaded (small memory footprint).
 
-#,,.,,,,,,,..,,.,,..,,...,..,,,..,.,.,,,.,..,,..,,...,...,,,,,..,,,..,...,,,,,
-#EUY2E5RCWCWZ7QJ4P5VIW3ICIKZ2Y4JJORL7FGPKAZHCLMIGUXMSPXDFRBC6HA6EYJPEG6AZMRWZE
-#\\\|2LUG7BSUZIYPUJLPS4MTTUVCTHF7SA3PC6GC7YJXGXQPEQKCOS6 \ / AMOS7 \ YOURUM ::
-#\[7]TH7IMKTAMIOG42NKF5JJ2LFD556445VK4ODGPMJHAMBSDQWOPSCQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,.,.,,,,,,.,,,,.,..,,,..,.,.,,,,,..,,...,...,..,,...,...,.,,,,,,,
+#KE6732TQ6TKUDWUVIJLCOYNWMQKPFKFF22UHSSBBG3XTJWMHVLNA6OCDCALCBJJXW2AHK55LPICFC
+#\\\|DTARRBNS2T5HYDA2OXMUYSSNGW6NCAOWMFANNB5NP6EJ2XIUSI2 \ / AMOS7 \ YOURUM ::
+#\[7]JVSM4CH372JNLZUKUVP7JGFRW5SINEIZ6RZVB4WHAAFIOSTC42AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

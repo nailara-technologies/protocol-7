@@ -1,0 +1,11 @@
+id           = CWE-1267
+name         = Policy Uses Obsolete Encoding
+abstraction  = Base
+structure    = Simple
+status       = Draft
+
+description : The product uses an obsolete encoding mechanism to implement access controls.
+
+extended description : Within a System-On-a-Chip (SoC), various circuits and hardware engines generate transactions for the purpose of accessing (read/write) assets or performing various actions (e.g., reset, fetch, compute, etc.). Among various types of message information, a typical transaction is comprised of source identity (identifying the originator of the transaction) and a destination identity (routing the transaction to the respective entity). Sometimes the transactions are qualified with a Security Token. This Security Token helps the destination agent decide on the set of allowed actions (e.g., access to an asset for reads and writes). A policy encoder is used to map the bus transactions to Security Tokens that in turn are used as access-controls/protection mechanisms. A common weakness involves using an encoding which is no longer trusted, i.e., an obsolete encoding.
+
+notes : https://cwe.mitre.org/data/definitions/1267.html

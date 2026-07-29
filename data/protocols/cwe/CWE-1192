@@ -1,0 +1,11 @@
+id           = CWE-1192
+name         = Improper Identifier for IP Block used in System-On-Chip (SOC)
+abstraction  = Base
+structure    = Simple
+status       = Draft
+
+description : The System-on-Chip (SoC) does not have unique, immutable identifiers for each of its components.
+
+extended description : A System-on-Chip (SoC) comprises several components (IP) with varied trust requirements. It is required that each IP is identified uniquely and should distinguish itself from other entities in the SoC without any ambiguity. The unique secured identity is required for various purposes. Most of the time the identity is used to route a transaction or perform certain actions, including resetting, retrieving a sensitive information, and acting upon or on behalf of something else. There are several variants of this weakness: A "missing" identifier is when the SoC does not define any mechanism to uniquely identify the IP. An "insufficient" identifier might provide some defenses - for example, against the most common attacks - but it does not protect against everything that is intended. A "misconfigured" mechanism occurs when a mechanism is available but not implemented correctly. An "ignored" identifier occurs when the SoC/IP has not applied any policies or does not act upon the identifier securely.
+
+notes : https://cwe.mitre.org/data/definitions/1192.html

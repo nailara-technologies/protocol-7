@@ -1,0 +1,11 @@
+id           = CWE-1231
+name         = Improper Prevention of Lock Bit Modification
+abstraction  = Base
+structure    = Simple
+status       = Stable
+
+description : The product uses a trusted lock bit for restricting access to registers, address regions, or other resources, but the product does not prevent the value of the lock bit from being modified after it has been set.
+
+extended description : In integrated circuits and hardware intellectual property (IP) cores, device configuration controls are commonly programmed after a device power reset by a trusted firmware or software module (e.g., BIOS/bootloader) and then locked from any further modification. This behavior is commonly implemented using a trusted lock bit. When set, the lock bit disables writes to a protected set of registers or address regions. Design or coding errors in the implementation of the lock bit protection feature may allow the lock bit to be modified or cleared by software after it has been set. Attackers might be able to unlock the system and features that the bit is intended to protect.
+
+notes : https://cwe.mitre.org/data/definitions/1231.html

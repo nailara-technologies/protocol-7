@@ -1,0 +1,11 @@
+id           = CWE-605
+name         = Multiple Binds to the Same Port
+abstraction  = Variant
+structure    = Simple
+status       = Draft
+
+description : When multiple sockets are allowed to bind to the same port, other services on that port may be stolen or spoofed.
+
+extended description : On most systems, a combination of setting the SO_REUSEADDR socket option, and a call to bind() allows any process to bind to a port to which a previous process has bound with INADDR_ANY. This allows a user to bind to the specific address of a server bound to INADDR_ANY on an unprivileged port, and steal its UDP packets/TCP connection.
+
+notes : https://cwe.mitre.org/data/definitions/605.html
