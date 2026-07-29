@@ -7,7 +7,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 
 ## Feedback
 - [combined-grep-conflated-caller-counts](feedback-combined-grep-conflated-caller-counts.md) — grep -rln 'A|B' reports files matching EITHER pattern; reported an inflated 23-caller blast radius (actually 2) in a dispatch prompt because I combined two function names' greps; kimi's own verification caught it, not me
-- [web-browser-tls-ignore-and-proxy-no-proxy](feedback-web-browser-tls-ignore-and-proxy-no-proxy.md) — ignore_tls_errors toggle (global, opt-in) + NO_PROXY fix (18e79492d); NO_PROXY fix currently inert, proxy_setup runs before open_window assigns web_context
+- [web-browser-tls-ignore-and-proxy-no-proxy](feedback-web-browser-tls-ignore-and-proxy-no-proxy.md) — ignore_tls_errors toggle (global, opt-in) + NO_PROXY fix (18e79492d); proxy call-order race (proxy_setup ran before open_window assigned web_context) RESOLVED same day by moving the call inside open_window; bare `<[X]>` macro call needs a trailing `;` before a comment+foreach line or ptd -c mis-locates the syntax error
 - [web-browser-js-form-fill-reset-on-submit](feedback-web-browser-js-form-fill-reset-on-submit.md) — synthetic React-input fill via run_js worked fine, but an XPath text-match click likely hit a nearby "Reset" button instead of "Continue"; verify which element a selector actually resolved to before assuming app-level validation is misbehaving
 - [edit-via-project-path-not-dotclaude](feedback-edit-via-project-path-not-dotclaude.md) — edit memory via data/ai-mem/claude/, not ~/.claude/projects/.../memory/ (same file, latter re-prompts every edit)
 - [base-prefix-stripped](feedback-base-prefix-stripped.md) — base.X→X swap_subs families (event, file, base32, templates, chk-sum, zenka.push, etc.); never conclude a bare call is broken from `ls modules/` alone; two families swapping to the same short name confuses dep-graph's scanner
@@ -60,8 +60,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [perlmod-categorization-review-catches](feedback-perlmod-categorization-review-catches.md) — kimi dispatch review caught 6 templated/vague-reasoning misclassifications; caller-count grep meaningless for .cmd./.handler. (dynamic cube routing) and can false-positive on nested-namespace names; K3 re-verification of all 59 MOVE rows in flight, check results before trusting
 - [inline-elf-perl-version-infinite-loop](bug-inline-elf-perl-version-infinite-loop.md) — FULLY RESOLVED, both atom+pri clean-start verified: dangling-if in inline_elf's UTF-8 decode (Perl 5.42.2 only) unpacked into 5 total independent bugs chasing one boot end-to-end (ptd P7-macro false-positives, deps profile gaps, httpsd/web skins ownership race, stale web.cmd.skin path); one symptom ≠ one bug, don't stop at the first plausible fix
 
-#,,.,,.,,,.,,,...,,.,,,..,,.,,..,,.,,,.,.,,.,,..,,...,...,...,,..,,.,,..,,.,,,
-#2LRSNYH33RWJO66CQU4XYBINDLEED73KC535PMMQUVPCBTUOACKPQOOR3VSDQWCCU6ZRZ5F22SUNC
-#\\\|2VEP5QRHBJFPFZEDRG3LJKDHCETPMCKWOH2AXWO3VAWPXOOSUZW \ / AMOS7 \ YOURUM ::
-#\[7]CL46HAYDXEPBOZTRFRLMRCEWN7SC43XGUWOA6LQTBJVYVVT7IEAI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,.,,,,,,,,,,,,.,,..,,.,,,,.,,..,,..,,...,...,.,,,,.,,.,,,,,.,,,,,
+#UDDYEZJUILEBI4ILI5AXBSA5MKH226FLVKQLLALHN4HCOD5UKT6SE2YSTGXERGCAK5UCQFIVMERIA
+#\\\|LODBQ3NBFJROTN4O4UAU4UFVCLLO4PGNIXHK3Z27XAX6MISQIYN \ / AMOS7 \ YOURUM ::
+#\[7]6I24QZ5L2QKCTYRI6JD2OLGH2ULQLXDNPS7DA6C3RLOIYWI2HEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,6 +1,6 @@
 ---
 name: feedback-web-browser-tls-ignore-and-proxy-no-proxy
-description: "web-browser zenka couldn't load local self-signed services (WebKit rejects by default, no override existed) and leaked http_proxy/https_proxy/ALL_PROXY env vars into WebKit's proxy resolver even with use_proxy=no; both fixed 2026-07-29 (commit 18e79492d), but proxy_setup runs before open_window assigns web_context so the NO_PROXY fix is currently a no-op"
+description: "web-browser zenka couldn't load local self-signed services (WebKit rejects by default, no override existed) and leaked http_proxy/https_proxy/ALL_PROXY env vars into WebKit's proxy resolver even with use_proxy=no; both fixed 2026-07-29 -- the proxy fix initially landed inert (proxy_setup ran before open_window assigned web_context) but was corrected same day by moving the call inside open_window"
 metadata:
   type: feedback
 ---
@@ -33,33 +33,41 @@ proxy and failing. Fix: explicitly set
 `WEBKIT_NETWORK_PROXY_MODE_NO_PROXY` in the `else` branch instead of
 leaving WebKit at its default.
 
-**Known follow-up, not fixed**: `configuration/zenki/web-browser/start`
-calls `[web-browser.proxy_setup]` at line 127, **before**
+**RESOLVED same day**: `configuration/zenki/web-browser/start` originally
+called `[web-browser.proxy_setup]` at line 127, **before**
 `[web-browser.open_window]` at line 128 — and `open_window` is what
 assigns `<web-browser.gtk_obj.web_context>`. So on every normal boot,
-`proxy_setup` runs while `web_context` is still undefined, and the fix
-above (both branches) never actually executes — confirmed by a live
+`proxy_setup` ran while `web_context` was still undefined, and the fix
+above (both branches) never actually executed — confirmed by a live
 crash (`cannot call method 'set_network_proxy_settings' on an undefined
 value` at `web-browser.proxy_setup:66`) the first time the `else`
 branch's code path got hit at all, since previously (before this fix)
-that branch was dead code when `use_proxy='no'`. Patched with an early
-`return <web-browser.init_proxy> if not defined $context;` guard to
-stop the crash, but this means **the NO_PROXY fix is currently inert on
-every boot** — the actual load-succeeding run that day was made possible
-by the TLS fix alone, not the proxy fix. Real fix needed: move the
-`proxy_setup` call to after `open_window` in the start file (or have
-`open_window` call it itself right after assigning `web_context`).
+that branch was dead code when `use_proxy='no'`. A defensive
+`return <web-browser.init_proxy> if not defined $context;` guard was
+added first to stop the crash, but that alone left **the NO_PROXY fix
+inert on every boot** — the actual load-succeeding run that day was made
+possible by the TLS fix alone, not the proxy fix.
+
+Real fix landed: removed the standalone `[web-browser.proxy_setup]`
+start-file step entirely and call `<[web-browser.proxy_setup]>;` from
+inside `web-browser.open_window`, right after
+`<web-browser.gtk_obj.web_context> = $web_context;` and before the
+`foreach my $view` init-view loop (which is what starts making real
+network requests). Gotcha hit while landing this: a bare `<[X]>` macro
+call immediately followed by a comment line then a `foreach` statement
+needs an explicit trailing `;` — without it, `ptd -c` failed with a
+`syntax error, near '$view ('` on the *following* statement, not the
+macro line itself.
 
 **How to apply:** if a local/self-signed HTTPS service needs to be
 reached via the web-browser zenka, flip `ignore_tls_errors` to `yes`
-temporarily. Don't assume `use_proxy='no'` alone protects against a
-proxy-poisoned shell environment reaching WebKit — until the call-order
-issue above is fixed, an inherited `https_proxy` env var can still leak
-through to the zenka's network requests regardless of this zenka's own
-config.
+temporarily and flip it back to `no` once done (it's a global toggle,
+not scoped to one host). The proxy call-order issue is now fixed, so
+`use_proxy='no'` reliably means no proxy on every boot, not just when
+timing happens to work out.
 
-#,,,,,,,.,...,,..,.,,,,,,,,,.,,.,,,,.,,..,.,.,..,,...,..,,.,,,.,,,,..,,.,,,,,,
-#DI4LVWOHSBTQXXRJHXIC45ENKIAYQ7KF5BZZS3SXQR7N2O7WAJJA46IVQ3CVMJ6IJQMU6PGIAGWG2
-#\\\|TL7ZQ5CXQB6IGJKMNGJGIR7STYRFDB2ERKZ6PFBNPVVKA2KSWQE \ / AMOS7 \ YOURUM ::
-#\[7]NSJ363BJFWP6DJG7GKHMCIKZFS4AOHHFTHVF4SUZKUXMZ3SN6WAY 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,.,,,,.,.,,,,..,,.,,,.,,,,,,.,,,..,,...,...,...,,,,,,.,,.,,,,,,,
+#3JB3EKR2G37P7CVXLRA4PYNIUCVDCSDX4TWRQIMGARRZPCKYS6D7MZGF2FOEJPZOASOPWGEJJPVMQ
+#\\\|6QCSNXLDMRSNEAZN4QBQKTZZOGKX7JVB3MFCRNDU2M3B752BVG4 \ / AMOS7 \ YOURUM ::
+#\[7]JYN3I7VG2ZI4JM3NR557BL7C2X274DMRZLPQFIYXKZNADBCET2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

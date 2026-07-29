@@ -191,6 +191,14 @@ if (<web-browser.cfg.no_memory_cache>) {
 $web_context->set_tls_errors_policy('WEBKIT_TLS_ERRORS_POLICY_IGNORE')
     if ( <web-browser.cfg.ignore_tls_errors> // qw| no | ) eq qw| yes |;
 
+## proxy_setup needs web_context to exist, which it only does from this    ##
+## point on -- calling it here (rather than as its own standalone start-   ##
+## file step before open_window ever runs) is what makes the NO_PROXY /    ##
+## CUSTOM proxy mode actually apply, instead of being silently skipped by  ##
+## its own not-yet-defined-context guard. Must run before init_view below, ##
+## since that's what starts making real network requests.                  ##
+<[web-browser.proxy_setup]>;
+
 # will use initialized web context
 foreach my $view (qw|  1  2  |) {
     <[web-browser.init_view]>->($view);
@@ -327,8 +335,8 @@ foreach my $signal_name (qw|  INT  TERM  |) {
     );
 }
 
-#,,..,...,...,...,..,,.,.,..,,,,.,.,.,,,,,..,,..,,...,...,.,.,...,.,,,,,.,,,,,
-#XJZTDGPIL4VQ7LUHOAEJGNYZDU6RJW3BIMVIN6ZR5POW2DJLCG5LYVLMLUT3SP74Y3O4ZDNHCHDMW
-#\\\|HNGXKNQXDUIEMR47EOLCGZMMLDNN3GWCTO57XUVAZ6PJPAXOCCD \ / AMOS7 \ YOURUM ::
-#\[7]6WIYHTJXRM773Y6RNIMUU63XB475ITF3I5GTSDMESLEYFHYMX2AI 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,,.,,,.,...,,,.,,,.,...,.,,,,,,,..,,...,...,.,.,,..,,.,,,..,,.,,
+#POCD4KFMIX4A7JMXRG7PS6TFWPSAKEPX67I4KQDZPPV3P662MTUUMHH4773BVUTXHUAL6A2TVM6C4
+#\\\|QQ3CH24BSDJO3SI6RDQB2IL4MMNAGFEX5M7YX2YEOEZ46LTBN27 \ / AMOS7 \ YOURUM ::
+#\[7]3GKS3DGP2LYKCLNPEGH6XPCENHW2YIY3LMNORHJSQQI3B4XN54DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
