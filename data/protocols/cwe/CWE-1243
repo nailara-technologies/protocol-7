@@ -1,0 +1,11 @@
+id           = CWE-1243
+name         = Sensitive Non-Volatile Information Not Protected During Debug
+abstraction  = Base
+structure    = Simple
+status       = Incomplete
+
+description : Access to security-sensitive information stored in fuses is not limited during debug.
+
+extended description : Several security-sensitive values are programmed into fuses to be used during early-boot flows or later at runtime. Examples of these security-sensitive values include root keys, encryption keys, manufacturing-specific information, chip-manufacturer-specific information, and original-equipment-manufacturer (OEM) data. After the chip is powered on, these values are sensed from fuses and stored in temporary locations such as registers and local memories. These locations are typically access-control protected from untrusted agents capable of accessing them. Even to trusted agents, only read-access is provided.
+
+notes : https://cwe.mitre.org/data/definitions/1243.html

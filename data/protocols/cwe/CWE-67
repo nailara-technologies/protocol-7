@@ -1,0 +1,11 @@
+id           = CWE-67
+name         = Improper Handling of Windows Device Names
+abstraction  = Variant
+structure    = Simple
+status       = Incomplete
+
+description : The product constructs pathnames from user input, but it does not handle or incorrectly handles a pathname containing a Windows device name such as AUX or CON. This typically leads to denial of service or an information exposure when the application attempts to process the pathname as a regular file.
+
+extended description : Not properly handling virtual filenames (e.g. AUX, CON, PRN, COM1, LPT1) can result in different types of vulnerabilities. In some cases an attacker can request a device via injection of a virtual filename in a URL, which may cause an error that leads to a denial of service or an error page that reveals sensitive information. A product that allows device names to bypass filtering runs the risk of an attacker injecting malicious code in a file with the name of a device.
+
+notes : https://cwe.mitre.org/data/definitions/67.html

@@ -1,0 +1,11 @@
+id           = CWE-1422
+name         = Exposure of Sensitive Information caused by Incorrect Data Forwarding during Transient Execution
+abstraction  = Base
+structure    = Simple
+status       = Incomplete
+
+description : A processor event or prediction may allow incorrect or stale data to be forwarded to transient operations, potentially exposing data over a covert channel.
+
+extended description : Software may use a variety of techniques to preserve the confidentiality of private data that is accessible within the current processor context. For example, the memory safety and type safety properties of some high-level programming languages help to prevent software written in those languages from exposing private data. As a second example, software sandboxes may co-locate multiple users' software within a single process. The processor's Instruction Set Architecture (ISA) may permit one user's software to access another user's data (because the software shares the same address space), but the sandbox prevents these accesses by using software techniques such as bounds checking. If incorrect or stale data can be forwarded (for example, from a cache) to transient operations, then the operations' microarchitectural side effects may correspond to the data. If an attacker can trigger these transient operations and observe their side effects through a covert channel, then the attacker may be able to infer the data. For example, an attacker process may induce transient execution in a victim process that causes the victim to inadvertently access and then expose its private data via a covert channel. In the software sandbox example, an attacker sandbox may induce transient execution in its own code, allowing it to transiently access and expose data in a victim sandbox that shares the same address space. Consequently, weaknesses that arise from incorrect/stale data forwarding might violate users' expectations of software-based memory safety and isolation techniques. If the data forwarding behavior is not properly documented by the hardware vendor, this might violate the software vendor's expectation of how the hardware should behave.
+
+notes : https://cwe.mitre.org/data/definitions/1422.html

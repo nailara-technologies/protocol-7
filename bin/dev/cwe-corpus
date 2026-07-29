@@ -1,0 +1,291 @@
+#!/usr/bin/perl
+#..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..:.
+#:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:
+
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Getopt::Long;
+use XML::LibXML;
+
+###              ###
+##  cwe-corpus  ##                          #:..:..:..:..:..:..:..:..:..:
+###              ###
+
+##  fetches the MITRE CWE weakness catalog [ single bounded zip archive ]  ##
+##  and normalizes it into one file per entry under                        ##
+##  data/protocols/cwe/<CWE-##> — also emits a fasttext skipgram training  ##
+##  file at data/training/cwe.txt : one line per entry with id + name +    ##
+##  first ~10 description tokens, id repeated 3x for weighting             ##
+##                                                                         ##
+##  note : the task file referenced cwe_2_0.json.zip — CWE no longer       ##
+##  publishes a json feed [ 404 ], so the official xml catalog is parsed   ##
+##  instead [ same weakness data, different container ]                    ##
+##                                                                         ##
+##  http fetch is deliberately respectful : single request, no polling     ##
+##  loop, non-200 responses are reported, never retried indefinitely       ##
+
+#:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:
+##[ LOCAL PM LIB PATH ]#######################################################
+
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd     qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    our $up_dir    = File::Spec->updir;
+    our $Bin       = $RealBin;
+    our $root_path = abs_path( r2_abs( c_dir( $Bin, $up_dir, $up_dir ) ) );
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ COMMAND LINE OPTIONS ]####################################################
+
+our $root_path;    ##  from BEGIN block  ##
+
+my %opt = (
+    qw| url         | => qw| https://cwe.mitre.org/data/xml |
+        . qw| /cwec_latest.xml.zip |,
+    qw| input       | => '',    ##  read xml file instead of fetch  ##
+    qw| output-dir  | => c_dir( $root_path, qw| data protocols cwe | ),
+    qw| corpus      | => c_dir( $root_path, qw| data training cwe.txt | ),
+    qw| id-repeat   | => 3,     ##  id weight [ repetitions ] in corpus  ##
+    qw| desc-tokens | => 10,    ##  description token budget per line  ##
+    qw| timeout     | => 120,
+    qw| quiet       | => 0,
+);
+
+Getopt::Long::Configure('prefix_pattern=--|-');
+
+GetOptions(
+    qw| url=s         | => \$opt{url},
+    qw| input=s       | => \$opt{input},
+    qw| output-dir=s  | => \$opt{'output-dir'},
+    qw| corpus=s      | => \$opt{corpus},
+    qw| id-repeat=i   | => \$opt{'id-repeat'},
+    qw| desc-tokens=i | => \$opt{'desc-tokens'},
+    qw| timeout=i     | => \$opt{timeout},
+    qw| quiet         | => \$opt{quiet},
+) or die ":: invalid command line arguments\n";
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ MAIN ]####################################################################
+
+my $xml_text
+    = length $opt{input}
+    ? read_file( $opt{input} )
+    : unzip_first_member( fetch_zip( $opt{url}, $opt{timeout} ) );
+
+my ( $catalog, @entries ) = parse_catalog($xml_text);
+
+die ":: no weakness entries found in catalog\n" if !@entries;
+
+write_entries( \@entries, $opt{'output-dir'} );
+my $skipped = write_corpus( \@entries, $opt{corpus}, $opt{'id-repeat'},
+    $opt{'desc-tokens'} );
+
+if ( !$opt{quiet} ) {
+    printf ":: cwe catalog version %s [ %s ]\n", $catalog->{version} // '?',
+        $catalog->{date} // qw| ? |;
+    printf ":: %d weakness entries -> %s\n", scalar @entries,
+        $opt{'output-dir'};
+    printf ":: corpus -> %s\n", $opt{corpus};
+    printf ":: skipped %d entries with empty description in corpus\n",
+        $skipped
+        if $skipped;
+}
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ SUBROUTINES ]#############################################################
+
+sub fetch_zip {
+    ##  single respectful http request — report non-200, never loop  ##
+    my ( $url, $timeout ) = @ARG;
+
+    require HTTP::Tiny;
+    my $http = HTTP::Tiny->new(
+        timeout => $timeout,
+        agent   => 'protocol-7-cwe-corpus/1.0',
+    );
+
+    my $response = $http->get($url);
+
+    die sprintf( ":: fetch failed : http status %s %s [ %s ]\n",
+        $response->{status}, $response->{reason} // qw| ? |, $url )
+        if !$response->{success};
+
+    return $response->{content};
+}
+
+sub unzip_first_member {
+    ##  extract the [ single ] xml member from the zip archive in memory  ##
+    my ($zip_data) = @ARG;
+
+    require IO::Uncompress::Unzip;
+
+    open my $zip_fh, qw| < |, \$zip_data
+        or die ":: cannot open zip data : $OS_ERROR\n";
+    my $zip = IO::Uncompress::Unzip->new($zip_fh)
+        or die ":: cannot read zip archive "
+        . ": $IO::Uncompress::Unzip::UnzipError\n";
+
+    my $xml = '';
+    my $buffer;
+    while ( $zip->read($buffer) > 0 ) { $xml .= $buffer }
+    $zip->close;
+
+    die ":: zip archive contained no xml data\n" if !length $xml;
+    return $xml;
+}
+
+sub parse_catalog {
+    ##  parse the weakness catalog xml into normalized entry hashes  ##
+    my ($xml_text) = @ARG;
+
+    my $dom = eval { XML::LibXML->load_xml( string => $xml_text ) };
+    die ":: cannot parse cwe xml : $EVAL_ERROR" if $EVAL_ERROR;
+
+    my $root    = $dom->documentElement;
+    my %catalog = (
+        version => $root->getAttribute(qw| Version |),
+        date    => $root->getAttribute(qw| Date |),
+    );
+
+    my @entries;
+    for my $node ( $dom->findnodes(q|//*[local-name()='Weakness']|) ) {
+        next
+            if ( $node->getAttribute(qw| Status |) // '' ) eq
+            qw| Deprecated |;
+
+        my $id = $node->getAttribute(qw| ID |) // next;
+        next if $id !~ m{^\d+$}x;
+
+        my ($description)
+            = map { clean_text( $_->textContent ) }
+            $node->findnodes(q|./*[local-name()='Description']|);
+        my ($extended)
+            = map { clean_text( $_->textContent ) }
+            $node->findnodes(q|./*[local-name()='Extended_Description']|);
+
+        push @entries,
+            {
+            id          => sprintf( qw| CWE-%s |, $id ),
+            name        => $node->getAttribute(qw| Name |)        // '',
+            abstraction => $node->getAttribute(qw| Abstraction |) // '',
+            structure   => $node->getAttribute(qw| Structure |)   // '',
+            status      => $node->getAttribute(qw| Status |)      // '',
+            description => $description                           // '',
+            extended    => $extended                              // '',
+            };
+    }
+
+    @entries = sort { $a->{id} cmp $b->{id} } @entries;
+    return ( \%catalog, @entries );
+}
+
+sub clean_text {
+    ##  collapse whitespace runs [ xml pretty-printing artifacts ]  ##
+    my ($text) = @ARG;
+    $text //= '';
+    $text =~ s{\s+}{ }gx;
+    $text =~ s{^\s+|\s+$}{}gx;
+    return $text;
+}
+
+sub write_entries {
+    ##  one normalized file per entry : data/protocols/cwe/<cwe-id>  ##
+    my ( $entries, $output_dir ) = @ARG;
+
+    system qw| mkdir -p |, $output_dir
+        and die ":: cannot create $output_dir\n";
+
+    for my $entry ( @{$entries} ) {
+        my $id = $entry->{id};
+        my ($cwe_num) = $id =~ m{^CWE-(\d+)$}x;
+
+        write_file(
+            c_dir( $output_dir, $id ),
+            join(
+                '',
+                sprintf( "id           = %s\n", $id ),
+                sprintf( "name         = %s\n", $entry->{name} ),
+                sprintf( "abstraction  = %s\n", $entry->{abstraction} ),
+                sprintf( "structure    = %s\n", $entry->{structure} ),
+                sprintf( "status       = %s\n", $entry->{status} ),
+                "\n",
+                sprintf( "description : %s\n", $entry->{description} ),
+                (   length $entry->{extended}
+                    ? sprintf( "\nextended description : %s\n",
+                        $entry->{extended} )
+                    : ''
+                ),
+                sprintf(
+                    "\nnotes : "
+                        . "https://cwe.mitre.org/data/definitions/%s.html\n",
+                    $cwe_num
+                ),
+            )
+        );
+    }
+    return;
+}
+
+sub write_corpus {
+    ##  skipgram training file : id x N + name + first desc tokens  ##
+    my ( $entries, $corpus_path, $id_repeat, $desc_tokens ) = @ARG;
+
+    my $skipped = 0;
+    my @lines;
+
+    for my $entry ( @{$entries} ) {
+        my $id = $entry->{id} // next;
+
+        my @tokens
+            = ( ($id) x $id_repeat, tokenize( $entry->{name} // '' ), );
+
+        my @desc = tokenize( $entry->{description} // '' );
+        $skipped++ and next if !@desc;
+
+        push @tokens, splice( @desc, 0, $desc_tokens );
+        push @lines,  join( ' ', @tokens );
+    }
+
+    write_file( $corpus_path, join( '', map {"$_\n"} @lines ) );
+
+    return $skipped;
+}
+
+sub tokenize {
+    ##  split into lowercase word-ish tokens, punctuation stripped  ##
+    my ($text) = @ARG;
+    return grep {length} split /\s+/x, lc $text =~ s{[^\w\s.-]+}{ }gxr;
+}
+
+sub read_file {
+    my ($path) = @ARG;
+    open my $fh, qw| < |, $path
+        or die ":: cannot read $path: $OS_ERROR\n";
+    my $content = do { local $INPUT_RECORD_SEPARATOR = undef; <$fh> };
+    close $fh;
+    return $content;
+}
+
+sub write_file {
+    ##  write content to file  ##
+    my ( $path, $content ) = @ARG;
+
+    open my $fh, qw| > |, $path
+        or die ":: cannot write to $path: $OS_ERROR\n";
+    binmode $fh, qw| :encoding(UTF-8) |;
+    print $fh $content;
+    close $fh;
+}
+
+#,,.,,.,.,,,,,,.,,.,,,,,.,.,,,.,.,...,.,,,.,.,..,,...,...,,,.,,,.,.,.,,,.,,.,,
+#JYZI7COU6QIP5REBJP3V2SN4LSEDQ76JKGBXVNUJ4LI55FGXSSK6CVU3XKWXK6ZVG7QOQ7B52IE7S
+#\\\|PBG42EOQJ3IILQMRLQPNE7ZCUSVXF3P7VK6A24SMQFZNBLV3ZHR \ / AMOS7 \ YOURUM ::
+#\[7]M4OL2TG3NIYMC2H42IGDTHHT5HAXUKWYWSFZMKC4A6NQTQBFA6AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

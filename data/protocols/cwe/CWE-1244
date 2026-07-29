@@ -1,0 +1,11 @@
+id           = CWE-1244
+name         = Internal Asset Exposed to Unsafe Debug Access Level or State
+abstraction  = Base
+structure    = Simple
+status       = Stable
+
+description : The product uses physical debug or test interfaces with support for multiple access levels, but it assigns the wrong debug access level to an internal asset, providing unintended access to the asset from untrusted debug agents.
+
+extended description : Debug authorization can have multiple levels of access, defined such that different system internal assets are accessible based on the current authorized debug level. Other than debugger authentication (e.g., using passwords or challenges), the authorization can also be based on the system state or boot stage. For example, full system debug access might only be allowed early in boot after a system reset to ensure that previous session data is not accessible to the authenticated debugger.
+
+notes : https://cwe.mitre.org/data/definitions/1244.html

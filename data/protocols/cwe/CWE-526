@@ -1,0 +1,11 @@
+id           = CWE-526
+name         = Cleartext Storage of Sensitive Information in an Environment Variable
+abstraction  = Variant
+structure    = Simple
+status       = Incomplete
+
+description : The product uses an environment variable to store unencrypted sensitive information.
+
+extended description : Information stored in an environment variable can be accessible by other processes with the execution context, including child processes that dependencies are executed in, or serverless functions in cloud environments. An environment variable's contents can also be inserted into messages, headers, log files, or other outputs. Often these other dependencies have no need to use the environment variable in question. A weakness that discloses environment variables could expose this information.
+
+notes : https://cwe.mitre.org/data/definitions/526.html

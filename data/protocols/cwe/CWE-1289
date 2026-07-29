@@ -1,0 +1,11 @@
+id           = CWE-1289
+name         = Improper Validation of Unsafe Equivalence in Input
+abstraction  = Base
+structure    = Simple
+status       = Incomplete
+
+description : The product receives an input value that is used as a resource identifier or other type of reference, but it does not validate or incorrectly validates that the input is equivalent to a potentially-unsafe value.
+
+extended description : Attackers can sometimes bypass input validation schemes by finding inputs that appear to be safe, but will be dangerous when processed at a lower layer or by a downstream component. For example, a simple XSS protection mechanism might try to validate that an input has no "<script>" tags using case-sensitive matching, but since HTML is case-insensitive when processed by web browsers, an attacker could inject "<ScrIpT>" and trigger XSS.
+
+notes : https://cwe.mitre.org/data/definitions/1289.html

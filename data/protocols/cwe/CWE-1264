@@ -1,0 +1,11 @@
+id           = CWE-1264
+name         = Hardware Logic with Insecure De-Synchronization between Control and Data Channels
+abstraction  = Base
+structure    = Simple
+status       = Incomplete
+
+description : The hardware logic for error handling and security checks can incorrectly forward data before the security check is complete.
+
+extended description : Many high-performance on-chip bus protocols and processor data-paths employ separate channels for control and data to increase parallelism and maximize throughput. Bugs in the hardware logic that handle errors and security checks can make it possible for data to be forwarded before the completion of the security checks. If the data can propagate to a location in the hardware observable to an attacker, loss of data confidentiality can occur. 'Meltdown' is a concrete example of how de-synchronization between data and permissions checking logic can violate confidentiality requirements. Data loaded from a page marked as privileged was returned to the CPU regardless of current privilege level for performance reasons. The assumption was that the CPU could later remove all traces of this data during the handling of the illegal memory access exception, but this assumption was proven false as traces of the secret data were not removed from the microarchitectural state.
+
+notes : https://cwe.mitre.org/data/definitions/1264.html

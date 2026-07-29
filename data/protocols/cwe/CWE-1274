@@ -1,0 +1,11 @@
+id           = CWE-1274
+name         = Improper Access Control for Volatile Memory Containing Boot Code
+abstraction  = Base
+structure    = Simple
+status       = Stable
+
+description : The product conducts a secure-boot process that transfers bootloader code from Non-Volatile Memory (NVM) into Volatile Memory (VM), but it does not have sufficient access control or other protections for the Volatile Memory.
+
+extended description : Adversaries could bypass the secure-boot process and execute their own untrusted, malicious boot code. As a part of a secure-boot process, the read-only-memory (ROM) code for a System-on-Chip (SoC) or other system fetches bootloader code from Non-Volatile Memory (NVM) and stores the code in Volatile Memory (VM), such as dynamic, random-access memory (DRAM) or static, random-access memory (SRAM). The NVM is usually external to the SoC, while the VM is internal to the SoC. As the code is transferred from NVM to VM, it is authenticated by the SoC's ROM code.
+
+notes : https://cwe.mitre.org/data/definitions/1274.html

@@ -1,0 +1,10 @@
+id           = ATTACK-T1552.002
+name         = Credentials in Registry
+modified     = 2026-05-12T15:12:00.624Z
+platforms    = Windows
+tactics      = credential-access
+data_sources = 
+
+description : Adversaries may search the Registry on compromised systems for insecurely stored credentials. The Windows Registry stores configuration information that can be used by the system or other programs. Adversaries may query the Registry looking for credentials and passwords that have been stored for use by other programs or services. Sometimes these credentials are used for automatic logons. Example commands to find Registry keys related to password information: (Citation: Pentestlab Stored Credentials) * Local Machine Hive: <code>reg query HKLM /f password /t REG_SZ /s</code> * Current User Hive: <code>reg query HKCU /f password /t REG_SZ /s</code>
+
+notes : https://attack.mitre.org/techniques/T1552/002/

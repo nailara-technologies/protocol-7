@@ -1,0 +1,11 @@
+id           = CWE-1254
+name         = Incorrect Comparison Logic Granularity
+abstraction  = Base
+structure    = Simple
+status       = Draft
+
+description : The product's comparison logic is performed over a series of steps rather than across the entire string in one operation. If there is a comparison logic failure on one of these steps, the operation may be vulnerable to a timing attack that can result in the interception of the process for nefarious purposes.
+
+extended description : Comparison logic is used to compare a variety of objects including passwords, Message Authentication Codes (MACs), and responses to verification challenges. When comparison logic is implemented at a finer granularity (e.g., byte-by-byte comparison) and breaks in the case of a comparison failure, an attacker can exploit this implementation to identify when exactly the failure occurred. With multiple attempts, the attacker may be able to guesses the correct password/response to challenge and elevate their privileges.
+
+notes : https://cwe.mitre.org/data/definitions/1254.html

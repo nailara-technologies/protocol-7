@@ -1,0 +1,11 @@
+id           = CWE-363
+name         = Race Condition Enabling Link Following
+abstraction  = Base
+structure    = Simple
+status       = Draft
+
+description : The product checks the status of a file or directory before accessing it, which produces a race condition in which the file can be replaced with a link before the access is performed, causing the product to access the wrong file.
+
+extended description : While developers might expect that there is a very narrow time window between the time of check and time of use, there is still a race condition. An attacker could cause the product to slow down (e.g. with memory consumption), causing the time window to become larger. Alternately, in some situations, the attacker could win the race by performing a large number of attacks.
+
+notes : https://cwe.mitre.org/data/definitions/363.html

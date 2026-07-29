@@ -1,0 +1,11 @@
+id           = CWE-1304
+name         = Improperly Preserved Integrity of Hardware Configuration State During a Power Save/Restore Operation
+abstraction  = Base
+structure    = Simple
+status       = Draft
+
+description : The product performs a power save/restore operation, but it does not ensure that the integrity of the configuration state is maintained and/or verified between the beginning and ending of the operation.
+
+extended description : Before powering down, the Intellectual Property (IP) saves current state (S) to persistent storage such as flash or always-on memory in order to optimize the restore operation. During this process, an attacker with access to the persistent storage may alter (S) to a configuration that could potentially modify privileges, disable protections, and/or cause damage to the hardware. If the IP does not validate the configuration state stored in persistent memory, upon regaining power or becoming operational again, the IP could be compromised through the activation of an unwanted/harmful configuration.
+
+notes : https://cwe.mitre.org/data/definitions/1304.html

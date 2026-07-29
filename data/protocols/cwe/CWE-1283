@@ -1,0 +1,11 @@
+id           = CWE-1283
+name         = Mutable Attestation or Measurement Reporting Data
+abstraction  = Base
+structure    = Simple
+status       = Incomplete
+
+description : The register contents used for attestation or measurement reporting data to verify boot flow are modifiable by an adversary.
+
+extended description : A System-on-Chip (SoC) implements secure boot or verified boot. During this boot flow, the SoC often measures the code that it authenticates. The measurement is usually done by calculating the one-way hash of the code binary and extending it to the previous hash. The hashing algorithm should be a Secure One-Way hash function. The final hash, i.e., the value obtained after the completion of the boot flow, serves as the measurement data used in reporting or in attestation. The calculated hash is often stored in registers that can later be read by the party of interest to determine tampering of the boot flow. A common weakness is that the contents in these registers are modifiable by an adversary, thus spoofing the measurement.
+
+notes : https://cwe.mitre.org/data/definitions/1283.html
