@@ -15,8 +15,8 @@ use Crypt::Misc      qw| encode_b32r |;
 ##  dep-graph  ##                                #:..:..:..:..:..:..:..:..:..:
 ###           ###
 
-##  static dependency graph generator for protocol-7 modules  ##
-##  maps module-to-module call sites across the modules/ directory  ##
+## static dependency graph generator for protocol-7 modules  maps ##
+## module-to-module call sites across the modules/ directory      ##
 
 #:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:
 ##[ LOCAL PM LIB PATH ]#######################################################
@@ -115,12 +115,12 @@ my $text_output_path
 my $dot_output_path = c_dir( $output_dir, qw| module-dependency-graph.dot | );
 my $txz_output_path = c_dir( $output_dir, qw| module-dependency-graph.txz | );
 
-##  targets seen only as base.code.call_optional/call_expected args :        ##
-##  these subs are namespace-conditional by contract [ silent-skip if the    ##
-##  owning namespace isn't loaded ] rather than hard static edges, so a      ##
-##  zenka's reachability must gate them on its own loaded-namespace set      ##
-##  same as it already does for zenka-owned namespaces -- see extract_calls  ##
-##  and the reachability filter in analyze_zenka_reachability                ##
+## targets seen only as base.code.call_optional/call_expected args : these ##
+## subs are namespace-conditional by contract [ silent-skip if the owning  ##
+## namespace isn't loaded ] rather than hard static edges, so a zenka's    ##
+## reachability must gate them on its own loaded-namespace set same as it  ##
+## already does for zenka-owned namespaces -- see extract_calls and the    ##
+## reachability filter in analyze_zenka_reachability                       ##
 my %conditional_targets;
 
 ##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
@@ -204,6 +204,9 @@ if ( $opt{text} ) {
             = graph_to_adjacency( $graph, { 'with-counts' => $opt{count} } );
         write_file( $text_output_path, $text_output );
         say ":: written to $text_output_path";
+
+        ##  regenerate fasttext skipgram corpus from updated adjacency  ##
+        regenerate_depgraph_corpus();
     }
 }
 
@@ -249,9 +252,9 @@ sub scan_modules {
         $module_names{$file} = $module_name if defined $module_name;
     }
 
-    ##  build known module set and reverse swap map  ##
-    ##  swap_subs renames base.X.* -> X.* at runtime  ##
-    ##  resolve swapped call targets back to their source module names  ##
+    ## build known module set and reverse swap map  swap_subs renames   ##
+    ## base.X.* -> X.* at runtime  resolve swapped call targets back to ##
+    ## their source module names                                        ##
     my %known     = map { $module_names{$ARG} => 1 } keys %module_names;
     my %swap_from = extract_swap_pairs( \@files );    ##  short -> base  ##
 
@@ -268,8 +271,8 @@ sub scan_modules {
         for my $target (@calls) {
             my $resolved = $target;
 
-            ##  resolve swapped name to source module name  ##
-            ##  try each known base prefix for the matched short prefix  ##
+            ## resolve swapped name to source module name  try each known ##
+            ## base prefix for the matched short prefix                   ##
             if ( !$known{$resolved} ) {
             SWAP: for my $short ( keys %swap_from ) {
                     ##  exact rename [ base.chk-sum.elf -> chk-sum.elf ]  ##
@@ -304,10 +307,10 @@ sub scan_modules {
 }
 
 sub extract_swap_pairs {
-    ##  scan module files for base.swap_subs calls  ##
-    ##  returns hash : short_prefix -> [ base_prefix, ... ]  ##
-    ##  e.g. 'event' -> [ 'base.event' ], 'file' -> [ 'base.file' ]  ##
-    ##  multiple sources can swap to the same short prefix, store all  ##
+    ## scan module files for base.swap_subs calls  returns hash :           ##
+    ## short_prefix -> [ base_prefix, ... ]  e.g. 'event' -> [ 'base.event' ##
+    ## ], 'file' -> [ 'base.file' ] multiple sources can swap to the same   ##
+    ## short prefix, store all                                              ##
     my $files_ref = shift;
     my %swap_from;
 
@@ -402,16 +405,16 @@ sub extract_calls {
             push @calls, $1;
         }
 
-        ##  namespace-conditional dispatch :                                 ##
-        ##  <[base.code.call_optional]>->( qw| ns.sub | ... )                ##
-        ##  <[base.code.call_expected]>->( $cond, qw| ns.sub | ... )         ##
-        ##  target arg may be qw| .. | or '..'/".. " and can land a couple   ##
-        ##  lines below the opening call -- these are soft edges [ silent-   ##
-        ##  skip by contract if the owning namespace isn't loaded ], so      ##
-        ##  track the target separately for the per-zenka reachability gate  ##
+        ## namespace-conditional dispatch :  <[base.code.call_optional]>->( ##
+        ## qw| ns.sub | ... ) <[base.code.call_expected]>->( $cond, qw|     ##
+        ## ns.sub | ... ) target arg may be qw| .. | or '..'/".. " and can  ##
+        ## land a couple lines below the opening call -- these are soft     ##
+        ## edges [ silent- skip by contract if the owning namespace isn't   ##
+        ## loaded ], so track the target separately for the per-zenka       ##
+        ## reachability gate                                                ##
         if ( $line =~ m/<\[base\.code\.call_(?:optional|expected)\]>/ ) {
             my $window = join '', @lines[ $i .. min( $i + 4, $end_idx ) ];
-            if ($window =~ m/qw\|\s*([a-zA-Z][\w-]*(?:\.[\w-]+)+)\s*\|/
+            if (   $window =~ m/qw\|\s*([a-zA-Z][\w-]*(?:\.[\w-]+)+)\s*\|/
                 || $window =~ m/['"]([a-zA-Z][\w-]*(?:\.[\w-]+)+)['"]/ ) {
                 my $target = $1;
                 push @calls, $target;
@@ -523,9 +526,9 @@ sub sort_by_length {
 }
 
 sub get_zenka_namespaces {
-    ##  scan configuration/zenki/ to find zenka-owned namespaces           ##
-    ##  returns hash of namespace names that correspond to zenki configs   ##
-    ##  these namespaces should only appear in whitelists when loaded      ##
+    ## scan configuration/zenki/ to find zenka-owned namespaces returns ##
+    ## hash of namespace names that correspond to zenki configs these   ##
+    ## namespaces should only appear in whitelists when loaded          ##
     state %zenka_ns;
     return %zenka_ns if %zenka_ns;
 
@@ -664,6 +667,20 @@ sub escape_dot_id {
     return $id;
 }
 
+sub regenerate_depgraph_corpus {
+    ## refresh fasttext training corpus [ data/training/codebase-depgraph ] ##
+    ## whenever the full adjacency .asc is rewritten -- keeps the embedding ##
+    ## corpus in sync with the dep-graph without a separate manual step     ##
+    my $assembler = c_dir( $root_path, qw| bin dev depgraph-corpus | );
+    return if !-x $assembler;    ##  assembler not installed [ optional ]  ##
+
+    my $exit_code = system( $assembler, qw| --quiet | );
+    warn sprintf ':: depgraph-corpus regeneration failed [ exit %d ]%s',
+        $exit_code, "\n"
+        if $exit_code != 0;
+    return;
+}
+
 sub write_file {
     ##  write content to file  ##
     my ( $path, $content ) = @ARG;
@@ -703,17 +720,17 @@ sub analyze_zenka_reachability {
         . " eager-load namespaces"
         if @{$whitelist_register};
 
-    ##  prune traversal through namespace-conditional targets               ##
-    ##  [ base.code.call_optional / call_expected ] whose owning namespace  ##
-    ##  isn't loaded for this zenka -- otherwise walk_reachable would drag  ##
-    ##  in their whole transitive subtree [ e.g. crypt.C25519.verify_sign   ##
-    ##  reached only via a gated crypt.C25519.load_from_string call ] even  ##
-    ##  though the gated target itself is correctly filtered out later.     ##
-    ##  the target node stays in the graph as a leaf -- only its outgoing   ##
-    ##  edges are cut, so any OTHER genuinely-unconditional path to the     ##
-    ##  same downstream subs is unaffected. based on config-declared        ##
-    ##  modules.load only [ known limitation vs. runtime-detected namespace ##
-    ##  loads discovered later in --list-subs mode ]                        ##
+    ## prune traversal through namespace-conditional targets [              ##
+    ## base.code.call_optional / call_expected ] whose owning namespace     ##
+    ## isn't loaded for this zenka -- otherwise walk_reachable would drag   ##
+    ## in their whole transitive subtree [ e.g. crypt.C25519.verify_sign    ##
+    ## reached only via a gated crypt.C25519.load_from_string call ] even   ##
+    ## though the gated target itself is correctly filtered out later.  the ##
+    ## target node stays in the graph as a leaf -- only its outgoing edges  ##
+    ## are cut, so any OTHER genuinely-unconditional path to the same       ##
+    ## downstream subs is unaffected. based on config-declared modules.load ##
+    ## only [ known limitation vs. runtime-detected namespace loads         ##
+    ## discovered later in --list-subs mode ]                               ##
     my %early_loaded_ns
         = map { ( split m|\.| )[0] => 1 } keys %{$loaded_set};
     $early_loaded_ns{'base'} = 1;
@@ -756,14 +773,15 @@ sub analyze_zenka_reachability {
     push @entry_modules, 'base.handler.deferred_compile'
         if exists $graph->{'base.handler.deferred_compile'};
 
-    #  base.locales lifecycle hooks — called implicitly by base.init_modules  #
-    #  and not traceable via static edges; seed when zenka has locale data    #
+   #  base.locales lifecycle hooks — called implicitly by base.init_modules  #
+   #  and not traceable via static edges; seed when zenka has locale data    #
     if ( defined $zenka_name and $zenka_name ne 'stdin' ) {
-        my $locales_dir = c_dir( $root_path, qw| data locales |, $zenka_name );
+        my $locales_dir
+            = c_dir( $root_path, qw| data locales |, $zenka_name );
         if ( -d $locales_dir ) {
             for my $locale_sub (
                 qw| base.locales.pre_init base.locales.init_code
-                    base.locales.load_file |
+                base.locales.load_file |
             ) {
                 push @entry_modules, $locale_sub
                     if exists $graph->{$locale_sub};
@@ -846,8 +864,8 @@ sub analyze_zenka_reachability {
 
     ##  flat subroutine list mode : output and exit  ##
     if ( $opt{'list-subs'} ) {
-        ##  include all subs from runtime-loaded modules  ##
-        ##  base.load_modules loads the full namespace at runtime  ##
+        ## include all subs from runtime-loaded modules  base.load_modules ##
+        ## loads the full namespace at runtime                             ##
         for my $loaded ( keys %{$loaded_set} ) {
             for my $node ( grep {m/^\Q$loaded\E(?:\.|$)/} keys %{$graph} ) {
                 my %new = walk_reachable( $pruned_graph, [$node] );
@@ -895,16 +913,17 @@ sub analyze_zenka_reachability {
                             keys %{$graph}
                         ) {
                             next if $reachable{$node};
-                            my %new = walk_reachable( $pruned_graph, [$node] );
+                            my %new
+                                = walk_reachable( $pruned_graph, [$node] );
                             %reachable = ( %reachable, %new );
                             push @to_scan, keys %new;
                         }
                     }
 
-                    #  pattern : <[base.load_code]>->('exact.sub.name')       #
-                    #  loads a single sub, not a namespace prefix -- exact    #
-                    #  match only, but still counts as "namespace is loaded"  #
-                    #  for the conditional-target gate below                  #
+                   #  pattern : <[base.load_code]>->('exact.sub.name')       #
+                   #  loads a single sub, not a namespace prefix -- exact    #
+                   #  match only, but still counts as "namespace is loaded"  #
+                   #  for the conditional-target gate below                  #
                     while (
                         $line =~ m{<\[base\.load_code\]>
                                    \s*->\s*\(\s*['"]([a-zA-Z0-9._-]+)['"]}xg
@@ -915,7 +934,8 @@ sub analyze_zenka_reachability {
                         $loaded_set->{$sub_ns} = 1;
                         next unless exists $graph->{$sub_name};
                         next if $reachable{$sub_name};
-                        my %new = walk_reachable( $pruned_graph, [$sub_name] );
+                        my %new
+                            = walk_reachable( $pruned_graph, [$sub_name] );
                         %reachable = ( %reachable, %new );
                         push @to_scan, keys %new;
                     }
@@ -962,7 +982,7 @@ sub analyze_zenka_reachability {
         if ( exists $loaded_set->{'net'} ) {
             my %loaded_ns
                 = map { ( split m|\.| )[0] => 1 } keys %{$loaded_set};
-            ## also index plugin sub-namespaces from loaded set ##
+            ## also index plugin sub-namespaces from loaded set  ##
             ## plugin.storage.inference → loaded_ns{storage} = 1 ##
             for my $loaded_key ( keys %{$loaded_set} ) {
                 if ( $loaded_key =~ m|^plugin\.([^.]+)| ) {
@@ -986,8 +1006,8 @@ sub analyze_zenka_reachability {
         #  seed 'base' explicitly since it is always loaded by bin/P7      #
         #  repeat until no new additions [ new subs may introduce new      #
         #  namespaces that need lifecycle subs — frozen for-list misses ]  #
-        ##  top-level namespace set: base always included,                 #
-        ##                             plus loaded modules                ##
+        ## top-level namespace set: base always included,                 # ##
+        ## plus loaded modules                                              ##
         my %loaded_ns
             = map { ( split m|\.| )[0] => 1 } keys %{$loaded_set};
         $loaded_ns{'base'} = 1;
@@ -1016,19 +1036,20 @@ sub analyze_zenka_reachability {
             }
         }
 
-        ##  filter reachable subs from zenka-owned namespaces not in loaded set ##
-        ##  this prevents namespace leaks where walk_reachable follows static   ##
-        ##  call edges into modules from unrelated zenki [e.g., channels.*,     ##
-        ##  httpd.*, v7.* subs appearing in X-11 whitelist ]                    ##
+        ## filter reachable subs from zenka-owned namespaces not in loaded ##
+        ## set this prevents namespace leaks where walk_reachable follows  ##
+        ## static call edges into modules from unrelated zenki [e.g.,      ##
+        ## channels.*, httpd.*, v7.* subs appearing in X-11 whitelist ]    ##
         my %zenka_ns = get_zenka_namespaces();
         my @filtered_ns;
         for my $sub ( keys %reachable ) {
             my ($ns) = $sub =~ m|^([^.]+)|;
 
-            ##  namespace-conditional target [ base.code.call_optional /      ##
-            ##  call_expected ] : silent-skip by contract when the owning     ##
-            ##  namespace isn't loaded, so gate the same as zenka-owned below ##
-            ##  even for otherwise-shared namespaces like crypt.* / source.*  ##
+            ## namespace-conditional target [ base.code.call_optional /  ##
+            ## call_expected ] : silent-skip by contract when the owning ##
+            ## namespace isn't loaded, so gate the same as zenka-owned   ##
+            ## below even for otherwise-shared namespaces like crypt.* / ##
+            ## source.*                                                  ##
             if ( $conditional_targets{$sub} ) {
                 push @filtered_ns, $sub if exists $loaded_ns{$ns};
                 next;
@@ -1047,12 +1068,12 @@ sub analyze_zenka_reachability {
         }
         %reachable = map { $_ => 1 } @filtered_ns;
 
-        ##  filter reachable subs based on access.cmd.* configuration  ##
-        ##  this implements Phase A (cmd access filtering) and         ##
-        ##  Phase B option c (access-config-gated devmod filtering)    ##
+        ## filter reachable subs based on access.cmd.* configuration this ##
+        ## implements Phase A (cmd access filtering) and Phase B option c ##
+        ## (access-config-gated devmod filtering)                         ##
         if ( defined $zenka_name && $zenka_name ne 'stdin' ) {
-            ##  $access_config already parsed above, use it  ##
-            ##  only filter when the zenka has access.cmd.* entries  ##
+            ## $access_config already parsed above, use it  only filter ##
+            ## when the zenka has access.cmd.* entries                  ##
             if ( keys %{$access_config} ) {
                 my @filtered;
                 for my $sub ( keys %reachable ) {
@@ -1064,8 +1085,8 @@ sub analyze_zenka_reachability {
                         next;
                     }
 
-                    ##  cmd and devmod subs : keep if command name matches  ##
-                    ##  mirrors base.has_access regex check at runtime      ##
+                    ## cmd and devmod subs : keep if command name matches ##
+                    ## mirrors base.has_access regex check at runtime     ##
                     if ( $sub =~ m/\.(?:cmd|console)\.(.+)$|^devmod\.(.+)$/ )
                     {
                         my $cmd_name = $1 // $2;
@@ -1097,8 +1118,8 @@ sub analyze_zenka_reachability {
 
     ##  output ambiguous dispatch warnings  ##
     if (@ambiguous) {
-        say ":: ambiguous dispatch [ runtime-resolved,"
-            . " may call any loaded module ] :.";
+        say ":: ambiguous dispatch [ runtime-resolved, "
+            . "may call any loaded module ] :.";
         for my $entry (@ambiguous) {
             my $range
                 = $entry->{start_line} eq '?'            ? "?-$entry->{line}"
@@ -1116,8 +1137,8 @@ sub analyze_zenka_reachability {
             ##  phase 2.5: add confidence annotation  ##
             my $conf_tag = " [$entry->{confidence}]";
 
-            say "   $entry->{module} [ $range :"
-                . " code{ \$$entry->{var} }$origin_tag$via_str$conf_tag ]";
+            say "   $entry->{module} [ $range : "
+                . "code{ \$$entry->{var} }$origin_tag$via_str$conf_tag ]";
         }
     }
 
@@ -1126,9 +1147,8 @@ sub analyze_zenka_reachability {
         say ":: rule-resolved dispatch [ static after rule application ] :.";
         for my $res (@resolved) {
             my $targets = join( ', ', @{ $res->{targets} } );
-            say "   $res->{module} [ $res->{line} :"
-                . " code{ \$$res->{var} } -> $targets ]"
-                . " [rule-resolved] [ $res->{rule} ]";
+            say "   $res->{module} [ $res->{line} : code{ \$$res->{var} "
+                . "} -> $targets ] [rule-resolved] [ $res->{rule} ]";
         }
     }
 
@@ -1236,8 +1256,7 @@ sub parse_start_lines {
     my @whitelist_register;
     for my $line (@joined_lines) {
         if ( $line
-            =~ m/^\s*\[(?:base\.)?white-list\.register\s*:\s*([^\]]+)\]/ )
-        {
+            =~ m/^\s*\[(?:base\.)?white-list\.register\s*:\s*([^\]]+)\]/ ) {
             my $arg = $1;
             $arg =~ s/^\s+|\s+$//g;
             if ( $arg =~ m/^['"](.+)['"]$/ ) {
@@ -1249,16 +1268,15 @@ sub parse_start_lines {
     }
 
     return (
-        \%loaded_set,   \@entry_commands,
-        \@config_files, \@config_ambiguous,
-        \@whitelist_register
+        \%loaded_set,       \@entry_commands, \@config_files,
+        \@config_ambiguous, \@whitelist_register
     );
 }
 
 sub parse_access_cmd_config {
-    ##  parse access.cmd.* entries from a zenka's start file and includes  ##
-    ##  compiles patterns to regexes — mirrors base.parser.access_conf     ##
-    ##  returns hashref: { target => qr/compiled_regex/ }                  ##
+    ## parse access.cmd.* entries from a zenka's start file and includes ##
+    ## compiles patterns to regexes — mirrors base.parser.access_conf    ##
+    ## returns hashref: { target => qr/compiled_regex/ }                 ##
     my $zenka_name = shift;
 
     my $start_file = c_dir( $root_path, qw| configuration zenki |,
@@ -1322,7 +1340,8 @@ sub parse_access_cmd_config {
         }
     }
 
-    ##  compile raw patterns to regexes — exact base.parser.access_conf logic  ##
+    ## compile raw patterns to regexes — exact base.parser.access_conf ##
+    ## logic                                                           ##
     my %access_regex;
     for my $target ( keys %raw_patterns ) {
         my @parts;
@@ -1343,7 +1362,7 @@ sub parse_access_cmd_config {
 }
 
 sub command_allowed {
-    ##  mirrors base.has_access : match cmd against compiled access regexes  ##
+    ## mirrors base.has_access : match cmd against compiled access regexes ##
     my ( $cmd, $regex_per_target ) = @ARG;
 
     return 0 if !defined $regex_per_target || !keys %{$regex_per_target};
@@ -1505,8 +1524,8 @@ sub load_rules {
             chomp $line;
             next if $line =~ m/^\s*(?:#.*)?$/;   ##  skip blank / comments  ##
 
-            ##  parse: module_glob : var ~ /pattern/ -> template  ##
-            ##     or: var ~ /pattern/ -> template                 ##
+            ## parse: module_glob : var ~ /pattern/ -> template ##
+            ## or: var ~ /pattern/ -> template                  ##
             my ( $module_glob, $var_name, $pattern, $template );
             if ( $line =~ m{^(\S+)\s*:\s*(\w+)\s*~\s*/(.+)/\s*->\s*(.+)$} ) {
                 ( $module_glob, $var_name, $pattern, $template )
@@ -1535,8 +1554,8 @@ sub load_rules {
 }
 
 sub module_matches_glob {
-    ##  check if module name matches a glob pattern  ##
-    ##  supports: '*' (any), 'foo.bar.*' (prefix), 'foo.bar' (exact)  ##
+    ## check if module name matches a glob pattern  supports: '*' (any), ##
+    ## 'foo.bar.*' (prefix), 'foo.bar' (exact)                           ##
     my ( $glob, $module ) = @ARG;
     return 1 if $glob eq '*';
     if ( $glob =~ s/\.\*$// ) {
@@ -1546,8 +1565,8 @@ sub module_matches_glob {
 }
 
 sub apply_rules {
-    ##  try each rule against a dispatch site  ##
-    ##  returns ( \@targets, $rule_source ) on match, or ( undef, undef )  ##
+    ## try each rule against a dispatch site  returns ( \@targets, ##
+    ## $rule_source ) on match, or ( undef, undef )                ##
     my ( $rules, $module, $var_name, $context_str ) = @ARG;
 
     for my $rule ( @{$rules} ) {
@@ -1572,8 +1591,8 @@ sub apply_rules {
 }
 
 sub backtrack_variable_origin {
-    ##  trace variable backwards to find where it was introduced  ##
-    ##  phase 2: follows handovers through multiple variables  ##
+    ## trace variable backwards to find where it was introduced phase 2: ##
+    ## follows handovers through multiple variables                      ##
     my ( $lines_ref, $usage_idx, $var_name, $visited_vars ) = @ARG;
     $visited_vars //= {};
     my @lines = @{$lines_ref};
@@ -1621,8 +1640,8 @@ sub backtrack_variable_origin {
             }
         }
 
-        ##  check for parameter assignment patterns  ##
-        ##  my $var = shift; my $var = $ARG[0]; my ( $var ) = @ARG;  ##
+        ## check for parameter assignment patterns  my $var = shift; my ##
+        ## $var = $ARG[0]; my ( $var ) = @ARG;                          ##
         if (   $line =~ m/^\s*my\s*\(?\s*\$\Q$var_name\E\s*\)?\s*=\s*shift\b/
             || $line
             =~ m/^\s*my\s*\$\Q$var_name\E\s*=\s*\$ARG\s*\[\s*\d+\s*\]/
@@ -1635,8 +1654,8 @@ sub backtrack_variable_origin {
             return $result;
         }
 
-        ##  check for my $var = ... assignment [local variable]  ##
-        ##  handles both: my $var = ...  and  my $var\n    = ...  ##
+        ## check for my $var = ... assignment [local variable] handles ##
+        ## both: my $var = ...  and  my $var\n    = ...                ##
         if ($line =~ m/^\s*my\s*\$\Q$var_name\E\s*=/
             || (   $line =~ m/^\s*my\s*\$\Q$var_name\E\s*$/
                 && $i < $#lines
@@ -1679,8 +1698,8 @@ sub backtrack_variable_origin {
 }
 
 sub classify_dispatch_confidence {
-    ##  phase 2.5: analyze code context to classify dispatch confidence  ##
-    ##  returns: 'probable' | 'constrained' | 'open'  ##
+    ## phase 2.5: analyze code context to classify dispatch confidence ##
+    ## returns: 'probable' | 'constrained' | 'open'                    ##
     my ( $lines_ref, $usage_idx, $var_name ) = @ARG;
     my @lines = @{$lines_ref};
 
@@ -1718,8 +1737,8 @@ sub classify_dispatch_confidence {
             $has_conditional_guard = 1 if $i < $usage_idx;
         }
 
-        ##  check for conditional guarding the dispatch  ##
-        ##  if ( $var =~ /.../ ) { ... $code{$var}->()   ##
+        ## check for conditional guarding the dispatch  if ( $var =~ /.../ ##
+        ## ) { ... $code{$var}->()                                         ##
         if ( $i < $usage_idx && $line =~ m/\b(if|unless|while)\s*\(/ ) {
             ##  check if condition involves our variable  ##
             my $cond_line = $line;
@@ -1734,8 +1753,8 @@ sub classify_dispatch_confidence {
         }
     }
 
-    ##  classify based on findings  ##
-    ##  probable: strong constraints [ regex + conditional ]  ##
+    ## classify based on findings  probable: strong constraints [ regex + ##
+    ## conditional ]                                                      ##
     if ( $has_regex_check && $has_conditional_guard ) {
         return 'probable';
     }
@@ -1754,8 +1773,8 @@ sub classify_dispatch_confidence {
     return 'open';
 }
 
-#,,.,,,,.,..,,,.,,,,.,,..,,.,,,,.,,.,,,,.,,,.,.,.,...,...,...,,,,,.,.,,..,,,,,
-#UGBAIYHBKNLVBSGABSN4GAJLCPIB4PJI332PKAAIIBVIMVKOPXFZNXUV7CYNCSVT6PTQ7H3JRMT6C
-#\\\|AV5WFPWZZOLPIY64FNCCLYIN5S2FN3NEWYMQERGDC2IGMKBUDII \ / AMOS7 \ YOURUM ::
-#\[7]7JUESERIKB2LO2CGTXVHXVHJ3YBU7LZFVYTCLKMOJ6S6GBGEIUBA 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,,..,,.,,,.,,.,,,.,.,.,,,,.,,,,,,.,.,...,...,.,.,,.,,.,,,.,,,.,,,
+#AOQLHE72KKA2QZ47GOFHNIIZJHZJLU46JCRZUXEPAP6TFMDJ5QAEBH5QBE2TMV74WOJH7BSW3IRSM
+#\\\|LC23B76MP2RRTBC6HTRGJKVK2UFU6PD4CAVDUM6A4VN4772ZRPK \ / AMOS7 \ YOURUM ::
+#\[7]4TUMXXILWJLF6X5SA5D25TFQ5T3QDUE3BA4Y6AT4CSHNMMOEC6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
