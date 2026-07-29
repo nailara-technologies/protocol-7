@@ -34,7 +34,8 @@ for my $job_id ( keys %{$store} ) {
         ## backfill checksums if missing [ original  assessment may predate ##
         ## store ]                                                          ##
         my $need_add   = 0;
-        my $store_root = '/var/protocol-7/jobsite/checksum-store';
+        my $store_root = catdir( <system.path.zenka-dirs.var_P7>,
+            <system.zenka.name>, 'checksum-store' );
         for my $hit ( $chk->{'hits'}->@* ) {
             if ( $hit =~ m{^url:([A-Z2-7]+)$} ) {
                 my $found = 0;
@@ -145,8 +146,8 @@ push @{<jobsite.assess_queue>}, @queue;
 
 return;
 
-#,,,,,...,,.,,,..,,..,,..,...,,,.,,.,,...,,..,..,,...,...,..,,.,,,..,,.,,,.,.,
-#LBMTZD2T56SKX4RQ3BZIECYDHVG7KVLYTYT46HX74CSBZGO3GE6ZJFMGSVQDWJYSZQIIEJ6C2KRJY
-#\\\|MAJROLYLVRFXHFV4TULZWPQ7B7FW4SHEIAPDE44ZRPISMY6KP7W \ / AMOS7 \ YOURUM ::
-#\[7]MPBHYZEGBOD3H3LEHYZLESLIU7II2JD76E5HFUTGZ5ANWWDN6YAA 7  DATA SIGNATURE ::
+#,,..,..,,...,,..,,,,,,,,,,,.,...,,,,,,,.,,,.,..,,...,...,.,,,.,.,..,,,..,,,.,
+#Q7BGC3ML2UNMG73YQEXJ7VCBUIYBFUNLRBSOGF5LZVI553TTJOGTWXMU7KGMDVDIKWLVGKEE3YTWQ
+#\\\|2OJC5BEB53ESUMJTML6NQIIXBYWXVUYLXCHD32A2H5TAOZSZCC5 \ / AMOS7 \ YOURUM ::
+#\[7]YMD2QOEORODENRICEUPH7CBEHANFD4UPWLZ2V3VARVVRRTVON4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

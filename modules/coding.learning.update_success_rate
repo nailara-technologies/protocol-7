@@ -10,7 +10,10 @@ return { success => FALSE, error => 'task type required' }
     unless defined $task_type;
 
 ## load outcomes from persistence file ##
-my $outcomes_file = '/var/protocol-7/coding/learning/outcomes.json';
+my $outcomes_file = catfile(
+    <system.path.zenka-dirs.var_P7>, <system.zenka.name>,
+    'learning',                      'outcomes.json'
+);
 my @outcomes;
 
 if ( -f $outcomes_file ) {
@@ -49,8 +52,8 @@ return {
     trend        => $trend
 };
 
-#,,,,,,,,,,.,,..,,.,.,...,,,,,..,,,,.,.,.,.,,,..,,...,..,,..,,,.,,,,,,..,,.,.,
-#NWEK75AWHFYXHZW53CHB5HIEOJSDOLF7V4AIBXJU4ZRTJBBMWYZM7NUK2LBJ45FNBGJEIPXKJWRX4
-#\\\|FEK6IJ3UDWOCY6ZCLK3CUVY6VLP4R47L4CPFTWNVENS62Y7ENRX \ / AMOS7 \ YOURUM ::
-#\[7]COAPINHNO7ANU3JZYYX7Z4P2JKXIFXJNBDKKXV4VL4ZGAGSTZQAI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,.,,,,,,,.,.,,.,,,..,,..,..,,,,.,..,,...,..,,...,,..,,,,,..,,,,.,
+#UTXWQLEUIV3HL5VHRFERTNGC2AJBCAIDTZNCLXUXBGHA3VNIT65YZED6F6CMWPOXRXMZS5YPJCVD4
+#\\\|HRS43L3MQ4FWOXZTVNJTOI6NXRFXZJZY4XZBX7K5GMJS6LLMS5R \ / AMOS7 \ YOURUM ::
+#\[7]J7OKQ5TEMXEHH6CGGNYXDM2L6E6P6ZHCTRW2ARXMHIER3PEAH2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

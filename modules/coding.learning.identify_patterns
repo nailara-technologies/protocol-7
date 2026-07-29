@@ -9,7 +9,10 @@ my ($min_samples) = @ARG;
 $min_samples //= 10;
 
 ## load outcomes from persistence file ##
-my $outcomes_file = '/var/protocol-7/coding/learning/outcomes.json';
+my $outcomes_file = catfile(
+    <system.path.zenka-dirs.var_P7>, <system.zenka.name>,
+    'learning',                      'outcomes.json'
+);
 my @outcomes;
 
 if ( -f $outcomes_file ) {
@@ -66,8 +69,8 @@ return { success => TRUE, patterns => \@patterns };
 #\[7]5RCGDZYI7W3EOHLNTUNMCCK24EWZR5HSDQ4MSBLNCLWGSCTDQ2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,.,,.,,,..,.,.,,..,,,.,.,,,,.,,.,,,.,,,...,..,,...,...,.,.,,,,,.,.,,..,,,.,
-#DMGUQ3LMED3M3AAZTPJ5JP5ARLHHATP33JCXWTLVQJXW7BC2H6MLJCJFZMVIGU2TLMAO6UXE6NDTQ
-#\\\|6OAMR3PX6XUQ2HWEL2P5XXSOOTJZUZZ3KCA4HN4BWM3EA3UOXLQ \ / AMOS7 \ YOURUM ::
-#\[7]EMFSMV6ZHZJBOJAI3R3OUJHTZ5WLV35IQZOWN5W2S4VV2P6FFWCA 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,,..,...,,..,,.,,.,,,,,,,.,.,...,..,,...,...,..,,.,,,.,.,...,.,,,
+#6VBDA7ALXWGUSN4WAV7SCESF2UVDMXGK66TM42BIY42ZM4MCYCZBWKEHKUVOE54XZOP7GM4SAPMDA
+#\\\|VMIBEINSKWJLDPWMPQTWB5N6LR2ZZ3SWXGZ32N5YWCMEBJZI7X3 \ / AMOS7 \ YOURUM ::
+#\[7]JCHOSWAADQKSRWT5PS7RBTA6Q2WMYDEDD3Q7YWQ7MARJDASHCQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

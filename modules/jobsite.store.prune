@@ -135,7 +135,8 @@ if ( -d $blocked_root ) {
 
             my $url        = $stub->{'url'}          // '';
             my $hit        = $stub->{'checksum_hit'} // '';
-            my $store_root = '/var/protocol-7/jobsite/checksum-store';
+            my $store_root = catdir( <system.path.zenka-dirs.var_P7>,
+                <system.zenka.name>, 'checksum-store' );
 
             if ( $hit =~ m{^title:([A-Z2-7]+)$} ) {
                 my $t_sum   = $1;
@@ -234,8 +235,8 @@ return {
     'deleted_pruned' => $deleted_pruned,
 };
 
-#,,..,,,.,,,.,.,.,,,,,..,,...,,..,,,.,.,,,,,,,..,,...,...,.,.,,..,.,,,...,,.,,
-#TG44PSZNI2A27N23IYCTFTDJMB5Q22XNC6D2JV2ORDMLI3TV5GQYZTN72JN3U5CDVAQMCN7TZUU2Q
-#\\\|E432C4S46KZVGFNBMZQ6G5JUPNWPWYTU3VRBC7GJDDPFIB2XBRY \ / AMOS7 \ YOURUM ::
-#\[7]3HGHBLZ2IEBME6Z7UIOA5YG666HY6XTXEMPT6ZG36XXYYOZM3CCI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,.,.,..,,,,,,...,...,,..,,.,,..,,..,,...,.,.,.,.,,..,...,,.,,,,,,
+#O3O6MIA4SN6Q4SM64Q5ZYSNSNOX3L4CTHRTDTXGTTE67WLTO26BLHPBBGCLQGWH4LXA5TT2R44QSE
+#\\\|LZ66MP7VWBKJ7JZ3YJ7K6DDPMA4T6ZGT6AEP7Z5K5ORHJM7WFGH \ / AMOS7 \ YOURUM ::
+#\[7]6PAJLGPDNMNZ66656PEY24GGJDU37N5QTWP2RBDQOLET46ZIMIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

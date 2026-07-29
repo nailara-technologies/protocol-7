@@ -13,8 +13,11 @@ my $root = <system.root_path>;
 my $path = "$root/modules/$module";
 return "error: module not found [ $module ]" unless -f $path;
 
-my $err_file = "/var/protocol-7/coding/state/.ptd_check.$$";
-my $output   = '';
+my $err_file = catfile(
+    <system.path.zenka-dirs.var_P7>, <system.zenka.name>,
+    'state',                         ".ptd_check.$$"
+);
+my $output = '';
 if ( open my $fh, '-|', "$root/bin/dev/ptd -c $path 2>$err_file" ) {
     local $/;
     $output = <$fh>;
@@ -37,8 +40,8 @@ my $result = $output;
 $result .= "\n## warnings ##\n$warnings" if length $warnings;
 return $result;
 
-#,,,,,,..,,,,,..,,,..,.,,,..,,.,.,,,.,,,.,,,.,..,,...,...,...,,.,,,,.,.,,,.,,,
-#QBEMBDEGXM3NYQ3WCL3I3LKHAABRZWORHWMFZCKMHDJ3LZ5YCMUTBVZQYTJUZR2DXBRFGVYU3UBTW
-#\\\|M22STRM3OJRTSEPFAGIX3UEIUUUIIWHAFUVDO7ZZ25F3XFVDRXL \ / AMOS7 \ YOURUM ::
-#\[7]QVWO3RZEO7VCSRCNIO4SPY4BRJQXQYBKO4D3KEOEVAQGD5YJ3IDQ 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,.,,,,.,,...,..,,,..,,.,,,..,.,,,..,,...,...,.,,,...,,..,.,.,..,,
+#37WKSY62YQHOFTFAED5TOBJDEA3OVQA4E6AXKAXZ7B5OKOZJTMB365WTFP74OEDFWRAQF65IV3OTO
+#\\\|RYSBFX32ZC246PPYFLUUQXQPNO6JDGTTCLWV3TUPP6S6IAUOGYF \ / AMOS7 \ YOURUM ::
+#\[7]6UQX7WUD25CQPFBINFTLTK24HEX4MUHJDGQUWBKD3DXGU2QMGSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
