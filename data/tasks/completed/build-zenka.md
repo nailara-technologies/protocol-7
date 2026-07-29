@@ -1,5 +1,7 @@
 # build zenka — task
 
+## status [ 2026-07-29 ] — phase 1 DONE, live-verified (e73bf2274); phase 2 (patch drift detection) not started
+
 ## context
 
 design: [[NETWORK-BUILD-SYSTEM]] (data/md/design/NETWORK-BUILD-SYSTEM.md) —
@@ -256,8 +258,8 @@ attention after an upstream pull, instead of discovering it mid-build.
   explicitly out of scope — see [[NETWORK-BUILD-SYSTEM]] for the full
   vision; this task is layer 1 only.
 
-#,,,.,...,,,.,.,.,..,,..,,.,.,,..,.,,,.,.,,,.,..,,...,...,.,.,,,.,..,,...,.,,,
-#NL6JW4MBH4TKJL7W7HLHRFPEZRQJODDRW4NC4DF7VFRRGTZTRKX2VRXIP5MM2BFW7QKKM2JGZWXAC
-#\\\|XBMLTUUVMPKG6XKRQ2EEEY7S44XSGA4QQEQZ3WYANWULFW64E7D \ / AMOS7 \ YOURUM ::
-#\[7]NMDQSM4456FB4LCGIT2C6VJSRPGEM2DYYUOX37KCEWG6HICY24AQ 7  DATA SIGNATURE ::
+#,,.,,...,,,.,,,,,,..,,,,,...,,..,...,,,,,.,.,..,,...,...,.,.,,,.,,,,,.,,,..,,
+#EWUCBPBQ7JYYHKH2YJ3YQM5P2AHOOT4ATDV27MXBOMONRJ3BB32YM2JLZXBDPGYXMRHMKFBYECBZY
+#\\\|RMLVIRJEV5OZKAID5M3H3EWWEVRYTOYRPM5CC453DLUV7NEFJOL \ / AMOS7 \ YOURUM ::
+#\[7]EBXT7ZBXHRAXYGYXLQV4P2QA7JBFQ7BDKPDNF2GZAPZYHX73V2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
