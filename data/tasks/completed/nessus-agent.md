@@ -1,5 +1,7 @@
 # nessus agent — task
 
+## status [ 2026-07-29 ] — phase 1 DONE, live-verified (a47ac3659) up to a hard license boundary: trial has scan_api:false, REST scan creation is blocked entirely (UI-only), not a code defect; phase 2 (enrichment, shared schema with openvas) not started and moot on this license
+
 ## context
 
 source: duck.ai design conversation 2026-07-29 (INCOMING/duck.ai_2026-07-29_01-27-33.txt, prompt 50+)
@@ -79,8 +81,8 @@ see note below.
 - same rule as openvas: no scanning without a live consumer; manual
   invocation until the forensics agent exists.
 
-#,,,,,.,,,.,,,,,.,...,...,...,.,.,.,.,...,.,,,..,,...,...,..,,.,,,,,,,,,,,.,.,
-#5SUDBW3BSEBHUTF2H27Z2646NRLH6Y6Q534I7IWTKD5XM4VN2XOQ72EVE63UOGI42OVKU2C2MTV5U
-#\\\|U55HIYQEKQR42CUE6SDNYMRDIQWWITQLYLEFCHMNT35NRSU2KOF \ / AMOS7 \ YOURUM ::
-#\[7]LKEXEUDLDV3O4ZZHDFHNVHUCMOGWJDZA4RF74462NKJ4HWXVVKDY 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,.,,,,,.,,.,,,.,,.,.,.,.,.,.,,.,,..,,...,...,...,...,...,...,,,,,
+#CVGZXK6CUEMONXDNKGM3GEROLOC4YHNIXJP4ILJY5AX5LBXWQM75MQFTOB6DZVR6PFIK73CTGS2FC
+#\\\|XH4ONGLPJ3D7X6XCVOSMTOD2E24QONLB5RDQWV5V6UMWBOT2JXO \ / AMOS7 \ YOURUM ::
+#\[7]4PDIFT5LH63CSAV6SAULRUERPF2FFV2D625VT73WVAMG774FAGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

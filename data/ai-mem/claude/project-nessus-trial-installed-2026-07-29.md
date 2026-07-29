@@ -30,16 +30,34 @@ to even view the setup UI through the web-browser zenka).
 CPU contention shows up again during/after a real scan — this is a
 known one-time (or per-feed-update) Nessus cost, not necessarily a bug.
 
-**How to apply:** `nessus-agent.md` (data/tasks/) can now be dispatched
-assuming full live-verification is possible against this real instance
-— no more "build-only, can't test" caveat. The license is time-limited
-though (2026-08-05) — don't assume it's still active in a future session
-without checking `systemctl status nessusd` first. If it has expired,
-either fall back to build-only verification again or note that a fresh
-trial/license would be needed to re-verify.
+**UPDATE 2026-07-29 22:12 (kimi, commit `a47ac3659`) — important
+limitation found**: this trial license has `scan_api: false`
+(`GET /server/properties`) — **scan creation via the REST API is
+blocked entirely**, UI-driven scanning only. `nessus.cmd.scan-run`
+(the zenka's REST-API wrapper) is verified end-to-end up to this exact
+boundary: login works, template resolution works, `POST /scans` always
+returns `412 "API is not available"` for every template. This is a hard
+license-tier restriction, not a bug — a real scan round-trip is **not
+achievable** with this trial via the API path no matter what the code
+does. A paid tier (or a different trial type) with `scan_api: true`
+would be needed for that. Side quirk also documented: the gated endpoint
+resets the connection for python urllib/http.client clients specifically
+(`ECONNRESET`) while curl and raw `openssl s_client` get a clean `412`
+body — verified deterministically, cause not fully identified (not TLS
+version, not HTTP/1.1-vs-h2, not headers/body bytes), the helper now
+converts it to a clean error either way.
 
-#,,..,..,,..,,,,.,,,,,,,.,.,.,.,.,..,,,,.,,..,..,,...,...,..,,..,,,,,,..,,..,,
-#PMVGOGUK2CDM2DCCOD34OALGP525DEIWCN2BXZUNZZ4XBMK3TIPNSIFQSDVAUSRPN3INM7MZ5M2H6
-#\\\|IDTOLBPS3VCQ7JG3PYEOR2465AEKNEAU7W3QPN6UV3I2RE2YLBK \ / AMOS7 \ YOURUM ::
-#\[7]2KJAWJI25UCTXQTHCTQM6U2AH66WUCJI65G35PSKPC34EG4R3CCQ 7  DATA SIGNATURE ::
+**How to apply:** `nessus-agent.md` phase 1 (zenka scaffold +
+`nessus.cmd.scan-run`) is DONE and properly live-verified up to the
+license boundary — don't re-dispatch expecting a different result on
+this same trial. Any future phase-2/enrichment work should assume no
+real scan data will ever come from this instance unless the license
+changes. The license itself is still time-limited (2026-08-05) — check
+`systemctl status nessusd` before assuming it's even running in a
+future session.
+
+#,,,.,..,,..,,,..,...,,.,,,,.,,,,,.,.,,,,,,,,,..,,...,...,...,,..,.,,,.,.,.,.,
+#E4OFM3NM5AZMZXD6ZKA437GLFX5G3VN54MW23DUZYUTUMRMRBIWKP6IUKNCQOFRROGCGZ2UHKPPBI
+#\\\|JY3TM65B7Y3AKITS2IWSFL2TA3ZL6SWUPIYJY7JIHD7A7HZTSTI \ / AMOS7 \ YOURUM ::
+#\[7]N4IJPBSRP3Y5GVSNKG47BEHP4T7KCLE3OQCPNPK2TDF2NCQ35CDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
