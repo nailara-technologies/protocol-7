@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = zenka-startup.v7
+# descr = 'openvas' zenka startup configuration used by 'v7' zenka
+
+dependencies       = cube
+start.on-demand    = 1
+restart.disabled   = 1
+heartbeat.disabled = 1
+
+: v7-init :
+  start_mode = stdin-zenka
+  cube.key = [base.prng.chars-anum:44]
+  [v7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<cube.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{cube.key}>']
+  [base.zenki.set_ondemand_timeout:1800]
+
+#,,,,,...,...,,,.,.,,,,..,..,,,..,..,,.,.,.,.,.,.,...,...,.,.,,.,,,.,,...,,.,,
+#LMQ4SIGF4R6OUEK542DMSNLJCR62CWHD5H5WWZLM3KUVJZS2XPU4GY4DUUZDB7GZ7KX57QJLY2IKW
+#\\\|575HOPSCTWFXFIRYRCPQQAORIN5FRZX2IDEJKF2FLZKXZE2LPVK \ / AMOS7 \ YOURUM ::
+#\[7]GQDPAFRZENE7WD2VHY63FXSJ3VWDVV53WQOFJ4UDK57AOQS7N6DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
