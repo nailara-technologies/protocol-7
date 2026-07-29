@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: 56cce73a-933a-4992-96e4-4d88e138e8f6
-  modified: 2026-07-22T22:56:35.241Z
+  modified: 2026-07-29T01:43:23.992Z
 ---
 
 ## done (2026-07-24, continued — ncode write path)
@@ -555,8 +555,44 @@ what it should actually invoke.
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-#,,,.,.,,,,,.,.,,,,..,..,,.,.,..,,,,,,,..,,.,,..,,...,...,.,,,...,,.,,.,.,,.,,
-#OEJKLPTMJKJC2KJ4SPTK4QDPYTUJK47OPTQER7UHDZLZQYXNONFEZN2BSEDS4CIYVNOWMML6OEZD6
-#\\\|32XT23QE7FV37X3I5LNVV5W3WY6YMDQW2FZ4MJIHUL5FN2WMQOE \ / AMOS7 \ YOURUM ::
-#\[7]Q2SEILPSFWYOTVFSUWCJWT4K546X24QYVTTLD5HKJKPX3RXMHODY 7  DATA SIGNATURE ::
+## queued (2026-07-29) — security task-tree: deferred domains + zenki
+
+security agent task tree (`data/tasks/openvas-agent.md`, `nessus-agent.md`,
+`forensics-agent.md`, `forensic-report-pipeline.md`,
+`security-intel-embedding-domains.md`, `build-zenka.md`, `ext-pkg-zenka.md`)
+landed this session. openvas-agent phase 1 (zenka scaffold + `openvas.scan.run`
+backend wrapper, greenbone-container/gvm-tools control path) is implemented
+and file-verified but NOT yet boot-tested live. deliberately deferred, so
+they don't get silently dropped:
+
+- **security-intel-embedding-domains task 1.1b** — cve (NIST NVD, large
+  multi-decade archive), mitre ATT&CK, cwe, and nvt (reuses openvas's feed
+  sync) domains still unfetched. only cisa KEV (task 1.1a, 1655 entries,
+  `data/protocols/cisa/`) is done. task 1.2 (train fasttext embeddings per
+  domain) and phase 2 (unified loader, retrain triggers) also untouched.
+  CVE/NVD size needs its own scoping pass before dispatch — do not assume
+  the cisa-KEV size/tracking precedent extends to it.
+- **build-zenka.md and ext-pkg-zenka.md** — both fully drafted (git-build/
+  tarball-extract/vendor-deb/pip-venv recipe kinds; pip/npm/uv-tool
+  package-manager zenka for kimi-cli + claude) but neither dispatched at
+  all — greenfield, phase 1 not started.
+- **os-pkg zenka** — still a bare stub (`modules/os-pkg.init_code` is
+  `0;`), referenced by build-zenka/ext-pkg-zenka as the apt/dpkg sibling;
+  its own implementation was never scoped as a task file.
+- **forensics-agent, forensic-report-pipeline, nessus-agent** — task files
+  only, correctly self-gated (forensics needs the topic-10 research
+  extraction first; report-pipeline needs openvas+forensics phase 1-2;
+  nessus is explicitly after openvas) — not a gap, just not reached yet.
+- kimi_dispatch reliability note for next time: `auto_summarize`'s local-9B
+  summarization step can hang independently of kimi's own work completing
+  (kimi exits clean, coding-zenka queue shows real completion, but the MCP
+  tool reports "failed" after a 30min idle timeout waiting on the
+  summarizer) — pass `auto_summarize: false` for tasks like these, or
+  cross-check `p7_task_queue`/`coding.show-buffer model_output` before
+  assuming a reported failure means no work happened.
+
+#,,.,,,..,..,,...,,,,,..,,.,.,.,,,,,.,,,.,..,,..,,...,...,..,,.,,,,.,,,..,,,.,
+#B6VHAPVEZWBRCGVUE5STMLVIRAPTOQ7BUEULJUNTZRZHLVWQOQAW5MNI6C46WGA4TZ6QDDRKSRLNC
+#\\\|YRIHAXBRNRXP7ZXLUIOH3OL24XC7LLOYPRATJDI6I2FUWX2HJGN \ / AMOS7 \ YOURUM ::
+#\[7]7TYLPIC3WZMDH2YHFGKOWNRDUAI6BE5VL7S55GCSK7SDL5ZNGOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
