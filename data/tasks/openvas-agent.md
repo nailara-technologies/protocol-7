@@ -42,9 +42,10 @@ from there into the self-improvement reasoning branches.
 ```
 ## dispatch + prompt
 create configuration/zenki/openvas/ following the pattern of an
-existing single-purpose zenka (e.g. letsencr): zenka-startup.v7,
-access.zenki, start script. bootable, stoppable, registered in network
-configs. no modules yet.
+existing single-purpose zenka (e.g. letsencr for zenka-startup.v7 +
+start script; cube or transport for access.zenki, since letsencr has
+none). bootable, stoppable, registered in network configs. no modules
+yet.
 ```
 
 ### task 1.2 — openvas backend wrapper
@@ -103,8 +104,8 @@ until the forensics agent is live — do not scan without a consumer.
   (weekly freshness, see security-intel task 2.2).
 - no external AI calls for enrichment — embeddings + local models only.
 
-#,,.,,,,,,,..,,.,,,.,,..,,,,.,,,,,,.,,,,,,...,..,,...,...,...,.,.,,.,,,..,,.,,
-#4P3XGE3T3NYP6ABYBLRKVOPQVQRTPCVRUL2YDEH5QMUURRK3VZPE7MLHKCEFZQO2GG77EIWQVBKL4
-#\\\|47XUHDK7PYMPFIKC4EKZYHQR3RAINMAVHD3YVYCALZ3GZFE5P35 \ / AMOS7 \ YOURUM ::
-#\[7]7O5CC46A6U7JF6KC4ZRTJRD2SWX7OXJIL2SDYE2C74UEPRAEUIDY 7  DATA SIGNATURE ::
+#,,.,,..,,,..,,,.,,..,,,.,..,,...,,.,,.,,,,,,,..,,...,...,..,,,,.,...,,..,,,.,
+#73UY7PZD3RADB6PQCMOV5LPBDJLQVUOU4EUQJYY3YESWJ75UXCZ5YDAJGWTGJI6NL4SCBZMI6SCHQ
+#\\\|3OSNMN7HFEU5G6VBVCDV5J7UI4XOXQNZRCV6IGDTDQZPSHCIMCS \ / AMOS7 \ YOURUM ::
+#\[7]H3D3ZBZN42LKIIR7GZHSTDDD7OQ34VMO4H3HAZWQGSBWVRFZEYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
