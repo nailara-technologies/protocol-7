@@ -30,7 +30,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [tile openbox dep redundant](feedback-tile-openbox-dependency-redundant.md), [base. prefix stripped](feedback-base-prefix-stripped.md) — use `send.local`
 - [.cmd. segment stripped](feedback-cmd-segment-stripped.md), [filter-repo prefix](feedback-filter-repo-amend.md), [P7 data nesting](feedback-p7-data-nesting.md) — .cmd. callable w/o segment; <a.b.c>=$data{a}{b}{c}
 - [$call injection needs .cmd. filename](feedback-cmd-call-injection-not-caught-by-perl-c.md) — $call->{'args'} only auto-declared if filename has literal .cmd. segment (loader convention, cmd-only — .console. registers the same way but never gets $call, uses shift instead); perl -c won't catch a missing one, boot-test instead. distinct from access.cmd.usr.* (base.parser.access_conf's own naming, unrelated)
-- [s_warn single-arg](feedback-s-warn-single-arg.md), [access grant scope](feedback-access-grant-scope.md) — plain `warn` for single-msg; "no perm" needs whitelist only
+- [s_warn single-arg](feedback-s-warn-single-arg.md), [access grant scope](feedback-access-grant-scope.md) — plain `warn` for single-msg; "no perm" needs whitelist only; also: when a per-zenka access.zenki file is even warranted vs inline start grant
+- [precommit signing/version workflow](feedback-precommit-signing-version-workflow.md) — version bump + signature check both re-verified per commit, not per batch; source_path_set_up's zenki/*/* glob misses 3-level paths (recipes/<name>.yaml, packages/<name>.yaml)
 - [ondemand zenka start checklist](feedback-ondemand-zenka-start-checklist.md), [devmod leave disabled](feedback-devmod-leave-disabled.md) — start-file recipe; leave devmod eval/exec commented
 - [timer undef interval](feedback-timer-undef-interval.md), [each+continue+keys](feedback-each-continue-keys.md) — undef after/interval=max-rate; `continue{keys %h}` = infinite loop
 - [ntime](feedback-ntime.md), [eval-code no angle-brackets](feedback-eval-code-no-angle-brackets.md), [zenka config relative paths](feedback-zenka-config-relative-paths.md) — cfg needs <system.root_path>
@@ -40,8 +41,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [user-perfectionism-and-pace](user-perfectionism-and-pace.md) — "done" means perfectly smooth; let solo tuning passes run
 - [scratchpad_import tool](topic-scratchpad-import-tool.md) — pulls /tmp session scratchpad into data/scratchpad/; list/raw-read modes; check repo+tasks/completed before keeping imports
 
-#,,,.,.,,,,.,,.,.,,,,,...,.,,,.,.,,,.,,.,,.,,,..,,...,..,,...,,,.,,.,,.,,,..,,
-#Y36QI6WR77TWOSUR2UV6C7XVEVD4UM3JSDUIW2LZN2MQQEBG7B3E3YLLYXV5RGHSBBX3SXTSS7MN6
-#\\\|G2WZC4BMABWQ642NYLT3N2SR5DSCM4DGY7H5GUWTHXLZ737XZUC \ / AMOS7 \ YOURUM ::
-#\[7]QWEPTZHI7VJQR4R5GFAPDLY4QBA2KUSQETK4WXZAQTECEARS4MBA 7  DATA SIGNATURE ::
+#,,..,..,,,,.,,..,...,,..,,,,,,,,,,,.,,,,,..,,..,,...,..,,,,,,,..,,,.,,,.,,..,
+#A6XE2RMYQAW3DQJBNH665PYIWIHUVZQXL6RNGNGJHHKRT2GBJM7V53GIP56GDBQVBQYT4Z2LMZZWI
+#\\\|767XMP5VZMAXDT4OAXXQ3552KLZAEQNYLSI2OPMWEKOKOVAL6IX \ / AMOS7 \ YOURUM ::
+#\[7]FXUEFLATWOTX5VCJOD2MGY3YY2EHIFS2SAVVAQYL3REAXK5RZACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
