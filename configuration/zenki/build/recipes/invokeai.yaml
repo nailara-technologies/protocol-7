@@ -1,0 +1,42 @@
+## [:< ##
+##
+## build recipe : invokeai [ kind : pip-venv ]
+##
+## encodes : data/md/documentation/INVOKE-MIGRATION-PLAN.md
+##           phase 2.1 option B [ uv venv + uv pip install ]
+## isolated project-local venv -- NOT a global pip install [ that is what
+## separates invokeai here from kimi-cli in ext-pkg-zenka ]. INVOKEAI_ROOT
+## points at model/output dirs OUTSIDE the venv, so venv deletion /
+## recreation never touches user data ..,
+
+name: invokeai
+kind: pip-venv
+descr: InvokeAI [ isolated uv venv, python 3.11, external INVOKEAI_ROOT ]
+
+python: '3.11'
+
+venv:
+  tool: uv
+  path: /opt/invokeai-new/.venv
+
+package:
+  name: invokeai
+  version: null    ## unpinned upstream : pin once migration plan lands
+                   ## a tested version
+
+env:
+  INVOKEAI_ROOT: /mnt/ext-xfs-data/invokeai-new   ## models + outputs live
+                                                  ## here, outside the venv
+
+data_dirs:                  ## recreate-safe : NEVER touched by venv ops
+  - /mnt/ext-xfs-data/invokeai-new
+
+install:
+  destination: /opt/invokeai-new/.venv/bin/invokeai-web
+  requires_root: 0
+
+reference: data/md/documentation/INVOKE-MIGRATION-PLAN.md [ phase 2.1 option B ]
+notes: >
+  env vars are written to data/build/env/invokeai.env for anything that
+  invokes the tool afterward -- the zenka cannot export into other
+  processes' environments.

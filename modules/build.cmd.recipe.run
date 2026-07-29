@@ -1,0 +1,585 @@
+## [:< ##
+
+# name  = build.cmd.recipe.run
+# param = <recipe-name> [force]
+# descr = run a named build recipe : dispatch + checksum
+
+##    design [ task : data/tasks/build-zenka.md, phase 1.3 ] :                ##
+##                                                                            ##
+##    wraps existing scripts, does not rewrite their logic :                  ##
+##      git-build       -> bin/build-scripts/llama-cpp/build-cuda-docker.sh   ##
+##      tarball-extract -> bin/install-scripts/download_impressive.pl         ##
+##      vendor-deb      -> bin/install-scripts/install_mediainfo.pl           ##
+##      pip-venv        -> INVOKE-MIGRATION-PLAN.md phase 2.1 option B        ##
+##                                                                            ##
+##    the zenka owns the orchestration around them : recipe yaml load,        ##
+##    git checkout + patch state [ clean-apply vs conflict : a conflict       ##
+##    HALTS the run, patches are never force-applied ], artifact              ##
+##    verification, post-install checksum record [ bmw-384 via                ##
+##    base.chk-sum.bmw.filesum ] and one build log yaml entry per run.        ##
+##                                                                            ##
+##    install steps declared 'requires_root' are SKIPPED with a reported      ##
+##    manual command when the zenka runs unprivileged -- the build and        ##
+##    the checksum record still complete, results are never fabricated.       ##
+##                                                                            ##
+##    note : the call blocks for the build duration in phase 1 .., async      ##
+##    child-fork pattern [ weather.base.fork_weather_child ] is the           ##
+##    planned follow-up for long docker builds.                               ##
+
+my $args_str = $call->{'args'} // '';
+
+##  parse '<recipe-name> [force]'  ##
+my @words = grep {length} split m|\s+|, $args_str;
+my $name  = shift @words // '';
+my $force = scalar grep {m{^(force|force=1|force-rebuild)$}} @words;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected : <recipe-name> [force] .., recipes '
+        . 'live in configuration/zenki/build/recipes/'
+    }
+    if not length $name;
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( 'recipe name contains invalid characters [%s]', $name )
+    }
+    if $name =~ m{[^\w\.\-]};
+
+##  load recipe yaml  ##
+my $root_path   = <system.root_path>;
+my $recipes_dir = <build.cfg.recipes_dir>
+    // sprintf( '%s/configuration/zenki/build/recipes', $root_path );
+my $recipe_path = sprintf( '%s/%s.yaml', $recipes_dir, $name );
+
+return {
+    'mode' => qw| false |,
+    'data' => "recipe not found [ $recipe_path ]"
+    }
+    if not -f $recipe_path;
+
+my ( $recipe, $yaml_err ) = <[format.yaml.load_file]>->($recipe_path);
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf(
+        'cannot load ' . 'recipe yaml [ %s ]', $yaml_err // qw| ? |
+    )
+    }
+    if not defined $recipe
+    or ref $recipe ne qw| HASH |;
+
+my $kind = $recipe->{'kind'} // '';
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf(
+        "recipe '%s' : invalid or missing kind '%s' [ git-build | "
+            . 'tarball-extract | vendor-deb | pip-venv ]',
+        $name, $kind
+    )
+    }
+    if $kind !~ m{^(git-build|tarball-extract|vendor-deb|pip-venv)$};
+
+<[base.logs]>->(
+    2, "build.cmd.recipe.run : recipe '%s' [ kind %s%s ]",
+    $name, $kind, $force ? ', force' : ''
+);
+
+##  shared state for the build log entry  ##
+my @steps;        ## { step, status, detail } per orchestration step
+my @artefacts;    ## verified absolute paths [ checksum record input ]
+
+my $abs_path = sub {    ## repo-relative -> absolute [ absolute passthrough ]
+    my $path = shift // return undef;
+    return $path =~ m{^/} ? $path : sprintf( '%s/%s', $root_path, $path );
+};
+
+## run helper [ blocking .., async planned ] : merged stdout+stderr capture ##
+## into one string [ single pipe : no slurp deadlock ] ..,                  ##
+my $run_cmd = sub {
+    my ( $argv, $opt ) = @ARG;
+    $opt //= {};
+
+    require IPC::Open3;
+    require Symbol;
+    require Cwd;
+
+    local %ENV = %ENV;
+    if ( ref $opt->{'env'} eq qw| HASH | ) {
+        $ENV{$ARG} = $opt->{'env'}{$ARG} foreach keys $opt->{'env'}->%*;
+    }
+
+    my $old_cwd = Cwd::getcwd();
+    chdir( $opt->{'chdir'} ) if length( $opt->{'chdir'} // '' );
+
+    ##  undef err handle : stderr merged into stdout [ open3 semantics ]  ##
+    my ( $exit_code, $out_str );
+    eval {
+        my $pid = IPC::Open3::open3( undef, my $out_fh, undef, $argv->@* );
+        $out_str = do { local $INPUT_RECORD_SEPARATOR = undef; <$out_fh> }
+            // '';
+        waitpid( $pid, 0 );
+        $exit_code = $CHILD_ERROR >> 8;
+    };
+    if ($EVAL_ERROR) {
+        ( $exit_code, $out_str ) = ( -1, $EVAL_ERROR );
+    }
+
+    chdir($old_cwd) if length( $opt->{'chdir'} // '' );
+
+    return ( $exit_code, $out_str );
+};
+
+my $log_step = sub {
+    my ( $step, $status, $detail ) = @ARG;
+    push(
+        @steps,
+        {   'step'   => $step,
+            'status' => $status,
+            'detail' => $detail // '',
+        }
+    );
+    <[base.logs]>->(
+        2, 'build.cmd.recipe.run : [%s] %s : %s',
+        $step, $status, $detail // ''
+    );
+    return;
+};
+
+##  finalize : checksum record + build log entry [ all kinds ]            ##
+my $finalize = sub {
+    my ( $status, $extra ) = @ARG;
+
+    my $checksum_dir = <build.cfg.checksum_dir>
+        // sprintf( '%s/data/build/checksums', $root_path );
+    my $log_dir = <build.cfg.log_dir>
+        // sprintf( '%s/data/build/logs', $root_path );
+    <[base.file.make_path]>->( $checksum_dir, 0755 ) if not -d $checksum_dir;
+    <[base.file.make_path]>->( $log_dir,      0755 ) if not -d $log_dir;
+
+    ##  bmw-384 checksum record of verified artefacts  ##
+    my @sums;
+    foreach my $path (@artefacts) {
+        next if not -f $path;
+        my $sum = <[base.chk-sum.bmw.filesum]>->( 384, $path );
+        push( @sums, { 'path' => $path, 'bmw-384' => $sum } )
+            if defined $sum and length $sum;
+    }
+
+    my $checksum_record = {
+        'recipe'    => $name,
+        'kind'      => $kind,
+        'ts'        => time,
+        'checksums' => \@sums,
+    };
+    <[format.yaml.write_file]>->(
+        sprintf( '%s/%s.yaml', $checksum_dir, $name ),
+        $checksum_record
+    );
+
+    ##  build log entry per run  ##
+    my $log_entry = {
+        'recipe'    => $name,
+        'kind'      => $kind,
+        'force'     => $force ? 1 : 0,
+        'ts'        => time,
+        'status'    => $status,
+        'steps'     => \@steps,
+        'checksums' => \@sums,
+        ( ref $extra eq qw| HASH | ? $extra->%* : () ),
+    };
+    my ( $ok, $write_err ) = <[format.yaml.write_file]>->(
+        sprintf( '%s/build-%s-%d.yaml', $log_dir, $name, time ), $log_entry
+    );
+    <[base.s_warn]>->( 'cannot write build log : %s', $write_err // qw| ? | )
+        if not $ok;
+
+    return;
+};
+
+##  shared failure path : log step + build log entry, then report  ##
+my $fail = sub {
+    my ( $step, $msg ) = @ARG;
+    $log_step->( $step, qw| failed |, $msg );
+    $finalize->(qw| failed |);
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf(
+            "recipe %s [%s] failed at %s : %s\n",
+            $name, $kind, $step, $msg
+        )
+    };
+};
+
+## install step shared by git-build / tarball-extract / vendor-deb : run ##
+## declared backing script, or report the manual command when the step   ##
+## needs root and the zenka is unprivileged ..,                          ##
+my $run_install = sub {
+    my $install = shift // {};
+    my $script  = $abs_path->( $install->{'script'} // '' );
+
+    return $log_step->( 'install', qw| skipped |, 'no install step declared' )
+        if not length( $script // '' );
+
+    if ( $install->{'requires_root'} and $EFFECTIVE_USER_ID != 0 ) {
+        return $log_step->(
+            'install',
+            qw| skipped |,
+            sprintf( 'requires root .., run manually : sudo bash %s',
+                $script )
+        );
+    }
+    if ( not -f $script ) {
+        return $log_step->(
+            'install', qw| failed |, "install script not found [ $script ]"
+        );
+    }
+
+    my ( $exit, $out ) = $run_cmd->( [ qw| bash |, $script ] );
+    $log_step->(
+        'install',
+        $exit == 0 ? qw| ok | : qw| failed |,
+        substr( $out, -400 )
+    );
+
+    ##  verify declared destination after install  ##
+    my $dest = $install->{'destination'} // '';
+    push( @artefacts, $dest ) if length $dest and -e $dest;
+
+    return $exit;
+};
+
+my $reply_extra = '';
+
+## ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: ##
+## kind : git-build  [ ik_llama-cuda ]                                   ##
+## ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: ##
+
+if ( $kind eq qw| git-build| ) {
+
+    my $src      = $recipe->{'source'} // {};
+    my $work_dir = $src->{'work_dir'}  // '';
+    my $branch   = $src->{'branch'}    // '';
+
+    return $fail->( 'source', 'recipe has no source.work_dir' )
+        if not length $work_dir;
+
+    ## idempotent skip : artefacts present and no force requested note : ##
+    ## recipe artefacts are declared relative to work_dir ..,            ##
+    my @declared_artefacts = map { m{^/} ? $ARG : "$work_dir/$ARG" }
+        @{ $recipe->{'artifacts'} // [] };
+
+    if (    not $force
+        and @declared_artefacts
+        and not grep { not -e $ARG } @declared_artefacts ) {
+        $log_step->(
+            'artifacts', qw| present |,
+            'all declared artefacts exist [ use force to rebuild ]'
+        );
+        push( @artefacts, grep { -f $ARG } @declared_artefacts );
+        $finalize->(qw| skipped-present |);
+        return {
+            'mode' => qw| true |,
+            'data' => "recipe $name : artefacts already "
+                . "present [ use 'force' to rebuild ] ..,\n"
+        };
+    }
+
+    ##  clone when missing  ##
+    if ( not -d "$work_dir/.git" ) {
+        return $fail->(
+            'clone',
+            "work_dir exists but is not a git checkout [ $work_dir ]"
+        ) if -e $work_dir and not -d "$work_dir/.git";
+        my ( $exit, $out )
+            = $run_cmd->( [ qw| git clone |, $src->{'git_url'}, $work_dir ] );
+        return $fail->( 'clone', substr( $out, -400 ) ) if $exit != 0;
+        $log_step->( 'clone', qw| ok |, $src->{'git_url'} );
+    } else {
+        $log_step->( 'clone', qw| skipped |, 'checkout exists' );
+    }
+
+    ##  fetch [ tolerated failure : offline rebuilds continue local ]  ##
+    my ( $fetch_exit, $fetch_out )
+        = $run_cmd->( [ qw| git -C |, $work_dir, qw| fetch --all --tags | ] );
+    $log_step->(
+        'fetch',
+        $fetch_exit == 0 ? qw| ok | : qw| warn |,
+        $fetch_exit == 0
+        ? 'upstream fetched'
+        : 'fetch failed .., continuing from local state'
+    );
+
+    ##  checkout declared branch/tag [ own-fork awareness ]  ##
+    if ( length $branch ) {
+        my ( $exit, $out )
+            = $run_cmd->( [ qw| git -C |, $work_dir, 'checkout', $branch ] );
+        return $fail->( 'checkout', substr( $out, -400 ) ) if $exit != 0;
+        $log_step->( 'checkout', qw| ok |, $branch );
+    }
+
+    ##  patches : clean-apply vs conflict [ never force-applied ]  ##
+    foreach my $patch ( @{ $recipe->{'patches'} // [] } ) {
+        my $patch_path = $abs_path->( $patch->{'path'} // '' );
+        return $fail->( 'patches', "patch not found [ $patch_path ]" )
+            if not defined $patch_path or not -f $patch_path;
+
+        my ( $check_exit, $check_out )
+            = $run_cmd->(
+            [ qw| git -C |, $work_dir, qw| apply --check |, $patch_path ] );
+
+        if ( $check_exit == 0 ) {
+            my ( $apply_exit, $apply_out )
+                = $run_cmd->(
+                [ qw| git -C |, $work_dir, 'apply', $patch_path ] );
+            return $fail->(
+                'patches',
+                "clean-check passed but apply failed : "
+                    . substr( $apply_out, -400 )
+            ) if $apply_exit != 0;
+            $log_step->( 'patches', qw| applied |, $patch->{'path'} );
+            next;
+        }
+
+        ##  reverse-check : patch already applied upstream?  ##
+        my ( $rev_exit, $rev_out ) = $run_cmd->(
+            [   qw| git -C |,                  $work_dir,
+                qw| apply --reverse --check |, $patch_path
+            ]
+        );
+        if ( $rev_exit == 0 ) {
+            $log_step->(
+                'patches',
+                qw| skipped |,
+                'already applied [ reverse-check clean ] : '
+                    . $patch->{'path'}
+            );
+            next;
+        }
+
+        ##  real conflict : declared known-conflict survives, else halt  ##
+        if ( ( $patch->{'expect'} // '' ) eq qw| known-conflict | ) {
+            $log_step->(
+                'patches',
+                qw| conflict |,
+                'declared known-conflict, not applied : ' . $patch->{'path'}
+            );
+            next;
+        }
+        return $fail->(
+            'patches',
+            sprintf(
+                'patch conflict [ %s ] -- halting, '
+                    . 'patches are never force-applied : %s',
+                $patch->{'path'}, substr( $check_out, -400 )
+            )
+        );
+    }
+
+    ##  build [ docker backend : declared script .., native : command ]  ##
+    my $build  = $recipe->{'build'} // {};
+    my $b_env  = $build->{'env'}    // {};
+    my $b_exit = 0;
+    my $b_out  = '';
+
+    if ( length( $build->{'script'} // '' ) ) {
+        my $script = $abs_path->( $build->{'script'} );
+        return $fail->( 'build', "build script not found [ $script ]" )
+            if not -f $script;
+        ( $b_exit, $b_out ) = $run_cmd->(
+            [ qw| bash |, $script ],
+            { 'env' => $b_env, 'chdir' => $work_dir }
+        );
+    } elsif ( length( $build->{'command'} // '' ) ) {
+        ( $b_exit, $b_out ) = $run_cmd->(
+            [ qw| /bin/sh -c |, $build->{'command'} ],
+            { 'env' => $b_env, 'chdir' => $work_dir }
+        );
+    } else {
+        return $fail->(
+            'build', 'recipe declares neither build.script nor build.command'
+        );
+    }
+    return $fail->( 'build', substr( $b_out, -400 ) ) if $b_exit != 0;
+    $log_step->(
+        'build', qw| ok |,
+        ( $build->{'backend'} // qw| native | ) . ' backend completed'
+    );
+
+    ##  artifact verification  ##
+    foreach my $a_path (@declared_artefacts) {
+        if ( -e $a_path ) {
+            push( @artefacts, $a_path ) if -f $a_path;
+            $log_step->( 'artifacts', qw| ok |, $a_path );
+        } else {
+            $log_step->(
+                'artifacts', qw| warn |,
+                "declared artifact missing [ $a_path ]"
+            );
+        }
+    }
+
+    ##  artifact extraction / install [ install_llama_cuda.sh step ]  ##
+    $run_install->( $recipe->{'install'} // {} );
+}
+
+## :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::   ##
+## kinds : tarball-extract + vendor-deb  [ impressive .., mediainfo ] both ##
+## are fetch-verify-place flows fully implemented by their backing scripts ##
+## -- wrap, do not rewrite ..,                                             ##
+## :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::   ##
+
+elsif ( $kind eq qw| tarball-extract | or $kind eq qw| vendor-deb | ) {
+
+    my $script = $abs_path->( $recipe->{'backing_script'} // '' );
+    return $fail->( 'backing-script', "backing script not found [ $script ]" )
+        if not defined $script or not -f $script;
+
+    my $install = $recipe->{'install'}      // {};
+    my $dest    = $install->{'destination'} // '';
+
+    if ( $install->{'requires_root'} and $EFFECTIVE_USER_ID != 0 ) {
+        ##  cannot fetch+place as non-root : verify what exists ..,  ##
+        if ( length $dest and -e $dest ) {
+            $log_step->(
+                'install',
+                qw| present |,
+                sprintf(
+                    'already installed [ %s ] .., '
+                        . 'refresh manually : sudo perl %s',
+                    $dest, $script
+                )
+            );
+            push( @artefacts, $dest );
+        } else {
+            return $fail->(
+                'install',
+                sprintf(
+                    'requires root and not installed [ '
+                        . '%s ] .., run manually : sudo perl %s',
+                    $dest, $script
+                )
+            );
+        }
+    } else {
+        my ( $exit, $out ) = $run_cmd->( [ $EXECUTABLE_NAME, $script ] );
+        return $fail->( 'backing-script', substr( $out, -400 ) )
+            if $exit != 0;
+        $log_step->( 'backing-script', qw| ok |, $script );
+        push( @artefacts, $dest ) if length $dest and -e $dest;
+    }
+}
+
+## ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: ##
+## kind : pip-venv  [ invokeai ]                                         ##
+## ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: ##
+
+elsif ( $kind eq qw| pip-venv | ) {
+
+    my $venv_path = $recipe->{'venv'}{'path'} // '';
+    my $uv_tool   = $recipe->{'venv'}{'tool'} // qw| uv |;
+    my $python    = $recipe->{'python'}       // '';
+
+    return $fail->( 'venv', 'recipe has no venv.path' )
+        if not length $venv_path;
+
+    my ( $uv_exit, $uv_out ) = $run_cmd->( [ $uv_tool, '--version' ] );
+    return $fail->(
+        'venv',
+        "venv tool '$uv_tool' not available : " . substr( $uv_out, -200 )
+    ) if $uv_exit != 0;
+
+    ## force : recreate-safe -- removes ONLY the venv itself, the declared ##
+    ## env data dirs [ INVOKEAI_ROOT .., ] are never touched               ##
+    if ( $force and -f "$venv_path/pyvenv.cfg" ) {
+        require File::Path;
+        File::Path::remove_tree($venv_path);
+        $log_step->(
+            'venv',
+            qw| recreated |,
+            "removed existing venv [ $venv_path ] for force rebuild"
+        );
+    }
+
+    if ( not -d $venv_path ) {
+        my @venv_cmd = ( $uv_tool, 'venv' );
+        push( @venv_cmd, '--python', $python ) if length $python;
+        push( @venv_cmd, $venv_path );
+        my ( $exit, $out ) = $run_cmd->( \@venv_cmd );
+        return $fail->( 'venv', substr( $out, -400 ) ) if $exit != 0;
+        $log_step->( 'venv', qw| ok |, $venv_path );
+    } else {
+        $log_step->( 'venv', qw| present |, $venv_path );
+    }
+
+    my $pkg = $recipe->{'package'}{'name'} // '';
+    $pkg .= '==' . $recipe->{'package'}{'version'}
+        if length( $recipe->{'package'}{'version'} // '' );
+    return $fail->( 'package', 'recipe has no package.name' )
+        if not length $pkg;
+
+    my $venv_python = "$venv_path/bin/python";
+    my ( $exit, $out )
+        = $run_cmd->(
+        [ $uv_tool, qw| pip install --python |, $venv_python, $pkg ] );
+    return $fail->( 'package', substr( $out, -400 ) ) if $exit != 0;
+    $log_step->( 'package', qw| ok |, $pkg );
+
+    ##  freeze record [ reinstallable state capture ]  ##
+    my ( undef, $freeze_out )
+        = $run_cmd->( [ $uv_tool, qw| pip freeze --python |, $venv_python ] );
+    $reply_extra = sprintf(
+        "\ninstalled packages :\n%s",
+        join( '',
+            map  {"  $ARG\n"}
+            grep {length} split( m|\n|, $freeze_out // '' ) )
+    );
+
+    ##  env file : declared vars for anything invoking the tool after .., ##
+    if ( ref $recipe->{'env'} eq qw| HASH | and $recipe->{'env'}->%* ) {
+        my $env_dir = <build.cfg.env_dir>
+            // sprintf( '%s/data/build/env', $root_path );
+        <[base.file.make_path]>->( $env_dir, 0755 ) if not -d $env_dir;
+        my $env_path = sprintf( '%s/%s.env', $env_dir, $name );
+        if ( open( my $env_fh, qw| > |, $env_path ) ) {
+            printf {$env_fh} "%s=%s\n", $ARG, $recipe->{'env'}{$ARG}
+                foreach sort keys $recipe->{'env'}->%*;
+            close($env_fh);
+            $log_step->( 'env', qw| ok |, $env_path );
+        } else {
+            $log_step->(
+                'env', qw| warn |,
+                "cannot write env file [ $env_path ] : $OS_ERROR"
+            );
+        }
+    }
+
+    ##  checksum record input : venv config + declared destination  ##
+    push( @artefacts, "$venv_path/pyvenv.cfg" )
+        if -f "$venv_path/pyvenv.cfg";
+    my $dest = $recipe->{'install'}{'destination'} // '';
+    push( @artefacts, $dest ) if length $dest and -f $dest;
+}
+
+##  finalize : checksum record + build log entry, then report  ##
+$finalize->(qw| ok |);
+
+my $reply_text
+    = sprintf( "recipe %s [%s] completed .., %d steps, "
+        . "log + checksum record in data/build/\n",
+    $name, $kind, scalar @steps );
+
+foreach my $step (@steps) {
+    $reply_text
+        .= sprintf( "  %-15s %s\n", $step->{'step'}, $step->{'status'} );
+}
+$reply_text .= $reply_extra;
+
+return { 'mode' => qw| true |, 'data' => $reply_text };
+
+#,,..,.,,,...,,,,,...,,.,,.,,,.,,,,..,,.,,,,.,..,,...,..,,,,.,,,,,.,,,.,.,.,.,
+#VRS4XLDL5I5ULRYCV54CZD7DLTRHATHYZD2ZVUA675HF4VQRT3TG2YFWWGWLLH3GHW4QPTE746NFA
+#\\\|UAWMBBA52Z2ICKUVQGMW5QTVM3GCR2QNHSX5GVZWEDG6HKKLAPG \ / AMOS7 \ YOURUM ::
+#\[7]XPAAQFX7HF2CIB4TO375D7B3H745OVNIIRPDIOV3C7V5DJ4YHWBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
