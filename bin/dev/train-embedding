@@ -1,0 +1,310 @@
+#!/usr/bin/perl
+#..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..:.
+#:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:
+
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Getopt::Long;
+use JSON::PP;
+use File::Path qw| make_path |;
+use File::Copy qw| move |;
+use File::Spec;
+use Time::HiRes qw| time |;
+
+###                 ###
+##  train-embedding  ##                      #:..:..:..:..:..:..:..:..:..:
+###                 ###
+
+##  fasttext training wrapper for categorical / domain embeddings            ##
+##  default invocation mirrors the security-intel task spec:                 ##
+##    train-embedding --category <name>                                      ##
+##  reads data/training/<name>.txt, writes data/embeddings/<name>.bin+vec     ##
+##                                                                             ##
+##  optional rolling-window mode (--rolling): trains to <output>/next,       ##
+##  compares against current.bin and promotes next->current if drift is      ##
+##  below --drift-threshold.                                                   ##
+
+#:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:
+##[ LOCAL PM LIB PATH ]#######################################################
+
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd     qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    our $up_dir    = File::Spec->updir;
+    our $Bin       = $RealBin;
+    our $root_path = abs_path( r2_abs( c_dir( $Bin, $up_dir, $up_dir ) ) );
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ COMMAND LINE OPTIONS ]####################################################
+
+our $root_path;    ##  from BEGIN block  ##
+
+my %opt = (
+    qw| category       | => '',
+    qw| corpus         | => '',
+    qw| output         | => c_dir( $root_path, qw| data embeddings | ),
+    qw| model          | => 'skipgram',
+    qw| epoch          | => 100,
+    qw| dim            | => 300,
+    qw| minn           | => 3,
+    qw| maxn           | => 6,
+    qw| thread         | => 0,          ##  0 = fasttext default  ##
+    qw| rolling        | => 0,
+    qw| drift-threshold| => 0.20,
+    qw| nn-top         | => 1000,
+    qw| fasttext       | => '/usr/bin/fasttext',
+    qw| quiet          | => 0,
+);
+
+Getopt::Long::Configure('prefix_pattern=--|-');
+
+GetOptions(
+    qw| category=s        | => \$opt{category},
+    qw| corpus=s          | => \$opt{corpus},
+    qw| output=s          | => \$opt{output},
+    qw| model=s           | => \$opt{model},
+    qw| epoch=i           | => \$opt{epoch},
+    qw| dim=i             | => \$opt{dim},
+    qw| minn=i            | => \$opt{minn},
+    qw| maxn=i            | => \$opt{maxn},
+    qw| thread=i          | => \$opt{thread},
+    qw| rolling!          | => \$opt{rolling},
+    qw| drift-threshold=f | => \$opt{'drift-threshold'},
+    qw| nn-top=i          | => \$opt{'nn-top'},
+    qw| fasttext=s        | => \$opt{fasttext},
+    qw| quiet             | => \$opt{quiet},
+) or die ":: invalid command line arguments\n";
+
+die ":: --category <name> is required\n" if !length $opt{category};
+
+##  sensible defaults for corpus / model basename  ##
+$opt{corpus}
+    ||= c_dir( $root_path, qw| data training |, $opt{category} . '.txt' );
+
+my $out_dir  = c_dir( $opt{output} );
+my $basename = c_dir( $out_dir, $opt{category} );
+my $train_to = $opt{rolling} ? c_dir( $out_dir, 'next' ) : $basename;
+
+make_path($out_dir) if !-d $out_dir;
+
+die ":: corpus file not found: $opt{corpus}\n"   if !-f $opt{corpus};
+die ":: fasttext binary not found: $opt{fasttext}\n" if !-x $opt{fasttext};
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ MAIN ]####################################################################
+
+my $start = time;
+
+say sprintf ':: training %s :: %s -> %s', $opt{category}, $opt{corpus},
+    $train_to
+    if !$opt{quiet};
+
+my @cmd = (
+    $opt{fasttext}, $opt{model},
+    '-input',  $opt{corpus},
+    '-output', $train_to,
+    '-epoch',  $opt{epoch},
+    '-dim',    $opt{dim},
+    '-minn',   $opt{minn},
+    '-maxn',   $opt{maxn},
+);
+push @cmd, '-thread', $opt{thread} if $opt{thread} > 0;
+
+system(@cmd) == 0
+    or die ":: fasttext training failed (exit $?): @cmd\n";
+
+my $bin_path = "$train_to.bin";
+my $vec_path = "$train_to.vec";
+
+die ":: expected model file missing: $bin_path\n" if !-f $bin_path;
+die ":: expected vector file missing: $vec_path\n" if !-f $vec_path;
+
+my $corpus_lines = count_lines( $opt{corpus} );
+my ( $drift, $promoted ) = ( undef, 0 );
+
+if ( $opt{rolling} ) {
+    my $current_bin = "$basename.bin";
+    my $prior_bin   = "$basename.prior.bin";
+
+    if ( -f $current_bin ) {
+        $drift = estimate_drift( $current_bin, $bin_path, $opt{'nn-top'} );
+
+        if ( $drift < $opt{'drift-threshold'} ) {
+            move( $current_bin, $prior_bin ) if -f $current_bin;
+            move( "$basename.vec", "$basename.prior.vec" ) if -f "$basename.vec";
+            move( $bin_path,       $current_bin );
+            move( $vec_path,       "$basename.vec" );
+            $promoted = 1;
+            say sprintf ':: drift %.4f < %.4f :: promoted next -> current',
+                $drift, $opt{'drift-threshold'}
+                if !$opt{quiet};
+        }
+        else {
+            my $flag = c_dir( $out_dir, "$opt{category}.drift-flag" );
+            write_file( $flag, drift_flag_text( $drift, $opt{'drift-threshold'} ) );
+            say sprintf
+                ':: drift %.4f >= %.4f :: keeping current; flag written',
+                $drift, $opt{'drift-threshold'}
+                if !$opt{quiet};
+        }
+    }
+    else {
+        move( $bin_path, $current_bin );
+        move( $vec_path, "$basename.vec" );
+        $promoted = 1;
+        say ':: no current model; promoted next -> current'
+            if !$opt{quiet};
+    }
+}
+
+write_metadata(
+    "$basename.meta.json",
+    {   category         => $opt{category},
+        corpus           => $opt{corpus},
+        corpus_lines     => $corpus_lines,
+        model            => $opt{model},
+        epoch            => $opt{epoch},
+        dim              => $opt{dim},
+        minn             => $opt{minn},
+        maxn             => $opt{maxn},
+        rolling          => $opt{rolling} ? \1 : \0,
+        drift            => defined $drift ? ( 0 + $drift ) : undef,
+        drift_threshold  => $opt{'drift-threshold'},
+        promoted         => $opt{rolling} ? ( $promoted ? \1 : \0 ) : undef,
+        duration_seconds => sprintf( '%.3f', time - $start ),
+        trained_at       => iso_timestamp(),
+    }
+);
+
+if ( !$opt{quiet} ) {
+    my $active_bin = $opt{rolling} ? "$basename.bin" : $bin_path;
+    my $size       = -s $active_bin;
+    say sprintf ':: %s model ready :: %d bytes :: %d corpus lines',
+        $opt{category}, $size, $corpus_lines;
+}
+
+exit 0;
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ SUBROUTINES ]#############################################################
+
+sub count_lines {
+    my $path = shift;
+    open my $fh, qw| < |, $path or die ":: cannot read $path: $OS_ERROR\n";
+    my $n = 0;
+    $n++ while <$fh>;
+    close $fh;
+    return $n;
+}
+
+sub write_file {
+    my ( $path, $content ) = @ARG;
+    open my $fh, qw| > |, $path or die ":: cannot write $path: $OS_ERROR\n";
+    binmode $fh, qw| :encoding(UTF-8) |;
+    print $fh $content;
+    close $fh;
+}
+
+sub iso_timestamp {
+    my ( $sec, $min, $hour, $mday, $mon, $year ) = localtime(time);
+    return sprintf '%04d-%02d-%02dT%02d:%02d:%02d',
+        $year + 1900, $mon + 1, $mday, $hour, $min, $sec;
+}
+
+sub write_metadata {
+    my ( $path, $data ) = @ARG;
+    my $json = JSON::PP->new->canonical->pretty->encode($data);
+    write_file( $path, $json );
+}
+
+sub drift_flag_text {
+    my ( $drift, $threshold ) = @ARG;
+    return join "\n",
+        ':: drift flag ::',
+        sprintf( 'drift = %.6f',         $drift ),
+        sprintf( 'threshold = %.6f',     $threshold ),
+        sprintf( 'timestamp = %s',       iso_timestamp() ),
+        'action required: review before promoting next -> current',
+        '';
+}
+
+sub estimate_drift {
+    ##  lightweight drift estimate: compare the first --nn-top word vectors   ##
+    ##  that appear in both the current and next models. returns 1 - mean     ##
+    ##  cosine similarity (higher == more drift). this is intentionally a     ##
+    ##  cheap, conservative approximation; a future pass can swap in an       ##
+    ##  exact nearest-neighbor overlap metric.                               ##
+    my ( $current_vec, $next_vec, $top_n ) = @ARG;
+
+    my $cur = read_word_vectors( $current_vec, $top_n );
+    my $nxt = read_word_vectors( $next_vec,    $top_n );
+
+    my $sum = 0;
+    my $cnt = 0;
+    for my $word ( keys %{$cur} ) {
+        next if !exists $nxt->{$word};
+        my $sim = cosine_similarity( $cur->{$word}, $nxt->{$word} );
+        $sum += $sim;
+        $cnt++;
+    }
+
+    return 1.0 if $cnt == 0;
+    return 1.0 - ( $sum / $cnt );
+}
+
+sub read_word_vectors {
+    my ( $vec_path, $max ) = @ARG;
+
+    ##  use .vec sibling if we were handed a .bin path  ##
+    $vec_path =~ s/\.bin$/.vec/;
+
+    open my $fh, qw| < |, $vec_path
+        or die ":: cannot read vector file $vec_path: $OS_ERROR\n";
+
+    my $header = <$fh>;
+    chomp $header;
+    my ( $words, $dim ) = split /\s+/, $header;
+
+    my %vectors;
+    my $read = 0;
+    while ( my $line = <$fh> ) {
+        last if $read >= $max;
+        chomp $line;
+        my ( $word, @values ) = split /\s+/, $line;
+        next if !defined $word;
+        $vectors{$word} = \@values;
+        $read++;
+    }
+    close $fh;
+
+    return \%vectors;
+}
+
+sub cosine_similarity {
+    my ( $a, $b ) = @ARG;
+    return 0 if scalar( @{$a} ) == 0 || scalar( @{$b} ) == 0;
+
+    my ( $dot, $na, $nb ) = ( 0, 0, 0 );
+    for my $i ( 0 .. $#{$a} ) {
+        my $va = $a->[$i] // 0;
+        my $vb = $b->[$i] // 0;
+        $dot += $va * $vb;
+        $na  += $va * $va;
+        $nb  += $vb * $vb;
+    }
+
+    my $den = sqrt($na) * sqrt($nb);
+    return $den == 0 ? 0 : $dot / $den;
+}
+
+#..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..:.
+#  signature debt :: written during an afk session; cannot be signed here.
+#  run bin/Protocol-7 sourcecode update-signatures before the next verified commit.
+#,,.,.,.,,,,..,,.,.,,,.,,,..,,,,.,.,.,,..,,,,.,..,,,,.,..,,.,,,.,,..,,.,,,..,
