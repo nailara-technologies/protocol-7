@@ -82,10 +82,8 @@ consumer exists (per-zenka log/output panes, [[topic-cube-tree-
 dashboard]] branch frames, or a generic "file minimap" for
 console/editor-like views).
 
-#,,..,...,,,.,,,,,,,.,,,,,.,,,,.,,.,.,...,.,.,..,,...,...,...,,,,,,.,,...,,,,,
-
-#,,..,,,,,,..,,..,,,.,,..,...,...,..,,,,.,,,.,..,,...,...,.,,,,,,,.,,,,,.,,,.,
-#QE2JVXGUMOXNQLYE7MNPUUU75B6UWSSJ2ZEFVRFLYJ5T5TUMBM6VY2K4MFKCOHLFHP3PZQIPK3KTS
-#\\\|R6KKZUA44DDY77ZSOGDGAMTCSBNOCKZNAQD2I2QO2TVYFT6M7KP \ / AMOS7 \ YOURUM ::
-#\[7]XHIAJ7NWTMTDTHJHHPMNBHC5KTWJG2Y3OJMYAEM4ZALSZ2CQ3UAI 7  DATA SIGNATURE ::
+#,,,.,...,...,.,,,...,,,.,,,,,...,,,,,.,,,,,.,..,,...,...,,..,...,.,,,,..,..,,
+#P5ZQHJ5FPHWVNZT4OXZVXDKELCSHBMPVXM4SX7GAPDMBO5SYYM5TMQBP7GLTTM4VDLWM6AETYZC42
+#\\\|64JDPGXWU7UU5UQORXGJOQWDWKPCK5QMBRBS6NOSKBJGFHOA2Q5 \ / AMOS7 \ YOURUM ::
+#\[7]G46E3ZNBYMEFLOEJNICRTD2OXERAJ2EAKZLQNYKOZIVBKD57KECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

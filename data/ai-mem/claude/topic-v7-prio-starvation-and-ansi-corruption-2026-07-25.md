@@ -179,10 +179,8 @@ remains separately uncommitted -- unrelated, pre-existing pending TOCTOU work
 from earlier in the same session, see [[feedback-base-prefix-stripped]]'s
 sibling context / task history.
 
-#,,,,,,,.,,,,,,,,,,,.,,,.,,.,,.,,,..,,,..,.,.,..,,...,...,...,,.,,.,,,.,.,.,.,
-
-#,,.,,.,.,.,.,,,,,,,,,.,,,,,,,.,.,..,,.,.,,.,,..,,...,...,...,,.,,.,,,...,,..,
-#EU4TEV5DBKPPYCZ2VT64IZ5UY6MI6KRICLPBEKA5VCVAV7Y4J5NBB3SZRR3EQLON2AGPW27ECDJB2
-#\\\|GGCN6BHZ5M7DMGXH37BNXK67PZDXIKNRQ7VLJC73RMHNEPIDZNQ \ / AMOS7 \ YOURUM ::
-#\[7]DW6SLACKSD52GPX7UXMWEMR6DY7V76G2RL4OJRPYWTQX3J4CKAAI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,,,.,,,.,,,,,..,,...,,..,,,,,..,,..,,...,..,,,.,,...,,,,,.,.,,.,,
+#IQYGAWUQPAO43BW6AOFVX5CN2TD2LPELFETCWYTYJUKY6D6JSG24MNIHEF3CDK4SY65K6UZFLAY6O
+#\\\|P3TRGQ55ZFNYSBU5V2WJAX7JHU5PQY34WBFDCNZ4CSKARVNBCJU \ / AMOS7 \ YOURUM ::
+#\[7]WCW5P3PFD6CIOYPEX3UGY3IWLRKKG773YYH7WJ23EGQEP34C4UDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

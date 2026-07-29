@@ -52,10 +52,8 @@ Retry the commit only after both gates pass. Don't try to pre-solve this
 by bumping/signing once for the whole batch up front — it won't survive
 past the first commit.
 
-#,,.,,...,...,.,.,.,.,...,,,.,...,.,,,,,.,...,..,,...,...,,,,,,,,,,,,,,.,,,..,
-
-#,,.,,,.,,,.,,,.,,..,,..,,.,,,.,,,,,,,,,.,,.,,..,,...,..,,...,..,,..,,,,,,...,
-#UPPYSIMRE3KXRHUFWGOXVMP46NXWEZH5HHDKRT4OEQWE5I3OSDZHW6WEIT3HKBTCRVYR7ZOX7OUCY
-#\\\|3UDG6BNHSCK3CFEUKTWOJO56WBFFO2UBCR66NF3EF3HIQZKLDWO \ / AMOS7 \ YOURUM ::
-#\[7]AI7RNVCZ32C4ZRHTBOUTDBBM5JU6KRPJKGDNTP7B5OG2LOYRFGCQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,.,,,..,...,.,.,.,.,,,,,,.,,...,..,,...,...,...,..,,...,,.,,,.,,
+#Z7V4U7M4GG5AKMK4BTM3UWNJ6REC64GRXD56ZLN3MWQUCA2WWQAZWSYFGQLNMTKZNT53MAOZPU4LC
+#\\\|4M636UND2LXHQ5IUE5MMDBMDJSZ3DRYXWA6EGLFUPSRLCXM3MG7 \ / AMOS7 \ YOURUM ::
+#\[7]CVJIOFTYAWZIBVYALR56ZWDRJLVPD4ATCSPHJ7OY6UBM4JNV5YBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -166,10 +166,8 @@ MCP tools in `bin/mcp-server-p7`. Claude CLI dispatch with `--dangerously-skip-p
 - epoch distance: `int(<[base.ntime.epoch_dec]>)`
 - checksum sync-only pattern: title checksum in `applied/` → future same-title inherits `applied` without assessment
 
-#,,,,
-
-#,,..,.,.,,..,.,,,...,,..,,,,,.,,,,,.,,,.,...,..,,...,..,,,,,,,..,..,,,.,,,.,,
-#5C2KG4QAVKFFXF7JL6N44OPIP5NN4GLIV5UK7QYKCRVNQ5J7TOEMWYDPJQU2A3WXVGVXALGIRBH5W
-#\\\|LGGZTTMI2BVJVEYVH3IWM3LXTCARVTFPKYYUVJ4IC7ET6BVQDNJ \ / AMOS7 \ YOURUM ::
-#\[7]AAA423FKNNCCRGBMPGAVUL3B34L6GS3HZVJXBU5QZRBJRSDKB2CY 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,.,.,,.,,,,,,.,.,,,,,..,,,,,,..,,..,,...,.,.,.,.,.,,,,,.,..,,,,,,
+#Q3LX5NY2QTMKY5LSENLOE5XHIHBKRQSHUXWJ2HNKYS6HY63M5I4NGRIJNCU3RPQULPFL2MYEML6DW
+#\\\|UYAF4DYCHSZSGCU7TALTX3YPPHDR23OCPJWB7J3DOVQ5CZ7CKCK \ / AMOS7 \ YOURUM ::
+#\[7]SHDBCSVAKPS44XNP3JJJARSN6JOOQY3HSQRLXUOGBELFFEG6Q2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

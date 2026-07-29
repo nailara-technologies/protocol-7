@@ -88,10 +88,8 @@ repo implementations): zero output differences. High-precision
 matching `p7c localtime 3WKI7OE7AGA4XXMERXTB4`
 (`Wed Jul 29 2026 16:52:31 [ +0.45166683197021 ]`).
 
-#,,.,,,,,,,..,.,,,,.,,,..,,..,,,,,.,,,.,.,.,,,..,,...,...,.,.,.,.,.,.,.,,,.,,,
-
-#,,,.,..,,,.,,..,,...,,,.,,..,...,,.,,.,,,,.,,..,,...,..,,...,,,.,,..,,..,,..,
-#NY7L4ZK6AARCPROMA2ESR2UEADAOC7EK4UJSQQLQKLFHL5HT76ENO4QS5UOLCVWN25OHGB4F3ZHOM
-#\\\|Y2KI3473UGEZQLPUBEKZCKQ56T7R23LTP6CTIAGHZECTQN356HX \ / AMOS7 \ YOURUM ::
-#\[7]EG6JJLR6KCKZIJTA735K5QXCPOHK7ZNUYYTFQNYRVVV67AASPGDQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,..,,,.,,,,.,,,,,,.,,.,,,,.,,..,,..,,...,...,...,,..,.,.,,.,,.,,,
+#X4MBZGHTR44A6XFLT4NGYYWGG5ANEEMICCOYOKTZTTVH3V4F3KVC2CFRGIPF66GZWO4BYXV5B4Y22
+#\\\|S2TZ4PXZDX33CDSXFIE6XF5KSBF7IRXWIGEFD5CV5YYRNBE3AYJ \ / AMOS7 \ YOURUM ::
+#\[7]BXXHJS62FPWWFZMZIJ2WBXRXLBFDWYUABD6HBTRP7GR2YQJSNKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
