@@ -35,7 +35,8 @@ for my $p (@protected) {
 }
 
 ## prepare trash directory ##
-my $trash_base = '/var/protocol-7/coding/trash';
+my $trash_base
+    = catdir( <system.path.zenka-dirs.var_P7>, <system.zenka.name>, 'trash' );
 <[file.path.make_dir]>->($trash_base) unless -d $trash_base;
 
 ## create timestamped backup name ##
@@ -94,8 +95,8 @@ if ($ok) {
 return { 'content' =>
         "error: delete failed: $err [ backup exists at trash/$trash_name ]" };
 
-#,,..,,,.,...,,..,,,.,,.,,.,,,...,.,.,...,,..,.,.,...,...,..,,,.,,,,,,.,.,...,
-#QJCUO4FLYKXWMRDFYE75Z4MER2G45ZWYNSUP3OKP54Y4RMII4Q73FREMPVAYHXIRGLIPXUR3IICOM
-#\\\|H3QDIU7ASDPSA6AUFSE2T2RUJSZGV5G45L5DSCXZWCVWN6NA7A4 \ / AMOS7 \ YOURUM ::
-#\[7]JKK5T52BE5UOGG3DLO34PLKP542ZOETZK4F2G4SD3TIPZLF4F6DI 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,.,.,.,.,,.,,,..,..,,,,,,.,.,,.,,.,.,...,..,,,..,...,.,.,.,,,...,
+#QOXCC3WXPPCMDQUYSQJX6CLDO2H4VB4IFBT634B6WVKCDESJFLHP6QI4LVUOAR6FA453WWFZPADFY
+#\\\|R6RHRCT2X3T2MOULNGFKR33AR4J35AO76D3HTPERURCRKN6WFVR \ / AMOS7 \ YOURUM ::
+#\[7]II4DOP4KSGCIHTLABIAS4IKZ3XESPMIAK32BEHIWWUEDNBPUSACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

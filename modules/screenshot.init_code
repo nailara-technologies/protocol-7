@@ -9,14 +9,15 @@
 
 $ENV{'DISPLAY'} = <x11.display>;
 
-<screenshot.cfg.output_dir> //= '/var/protocol-7/screenshot/';
+<screenshot.cfg.output_dir>
+    //= catdir( <system.path.zenka-dirs.var_P7>, <system.zenka.name> );
 
-## native x11 capture is silently non-functional under WSLg [ no error, no
-## hang detection possible - exhaustively proven elsewhere ]; /proc/version
-## is a stable, env-independent WSL marker, unlike $ENV{WSL_DISTRO_NAME}
-## which is absent when v7 itself was started from a non-interactive root
-## shell. detected once here rather than per-call, since there is no
-## reliable failure signal to fall back on after the fact ##
+## native x11 capture is silently non-functional under WSLg [ no error, no  ##
+## hang detection possible - exhaustively proven elsewhere ]; /proc/version ##
+## is a stable, env-independent WSL marker, unlike $ENV{WSL_DISTRO_NAME}    ##
+## which is absent when v7 itself was started from a non-interactive root   ##
+## shell. detected once here rather than per-call, since there is no        ##
+## reliable failure signal to fall back on after the fact                   ##
 <screenshot.cfg.use_powershell_passthrough> //= FALSE;
 if ( -r '/proc/version' ) {
     my $version_sref = <[file.slurp]>->( '/proc/version', qw| :raw | );
@@ -26,8 +27,8 @@ if ( -r '/proc/version' ) {
 
 return FALSE;
 
-#,,,,,.,,,.,,,..,,,.,,,..,,,.,,.,,...,,.,,,.,,..,,...,...,..,,.,,,,.,,.,,,.,.,
-#FFVEBSRVO62N4KGETQNFTIXQ35KZ4RNXYOS3KVP4V2WILIIMSJU7HY2KHWEOLZ7V4UXXJPUIZCI7Y
-#\\\|SINAEFXCXDHIQIKBLBR255FCG2E4DEUTWU33R75OFZ7AKPNP45S \ / AMOS7 \ YOURUM ::
-#\[7]G7MBETJGUGAEJWYISNC7T3F6WLOBWKA4NUXPBISHUFD47O5BA4CQ 7  DATA SIGNATURE ::
+#,,,,,...,.,.,.,,,...,...,,,,,,,.,..,,,.,,..,,..,,...,..,,,..,,,.,,.,,,..,..,,
+#3K55S3KE4TIODSZE33BPOKI5ZFOUKE7ZQSV333TGEKDOXKGLUWTRBKJVXPCD7SJK4OQGT4N5JYMRY
+#\\\|FOGHA4ZC4VTQDDSV5FGRCTOKBFDWYEA5AU2JK4A2TTZVXFNYPBO \ / AMOS7 \ YOURUM ::
+#\[7]DIAQPVZPQ6YTBM4ZJMDOKKQ3O6L7JODECRUOQZERBM7SRKOB7EDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

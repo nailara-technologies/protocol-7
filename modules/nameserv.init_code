@@ -10,7 +10,8 @@
 ## nameserv configuration
 <nameserv.bind.addr> //= '0.0.0.0';
 <nameserv.bind.port> //= 53;
-<nameserv.zone_dir>  //= '/var/protocol-7/nameserv/zones';
+<nameserv.zone_dir>  //= catdir( <system.path.zenka-dirs.var_P7>,
+    <system.zenka.name>, 'zones' );
 
 ## runtime state
 <nameserv.zones> //= {}; ## { zone_name => { records => [...], serial => N } }
@@ -44,8 +45,8 @@ if ( not -d <nameserv.zone_dir> ) {
 
 0;
 
-#,,,.,.,.,..,,,,.,.,.,,.,,,..,.,.,,,.,.,,,.,,,..,,...,...,,.,,...,.,.,..,,...,
-#CIWYWVZ3GEGUM5LKAOCFMYEQGRHEN3TFP747EUTPCPMK2HSTBDWD5BEXTLWBENJ7JFWVE74MOGWW4
-#\\\|NSV34TCFKKJTMS3G3BZVHLLMIHFVMNA4CTZNBCGRJ5WLU47ZIBT \ / AMOS7 \ YOURUM ::
-#\[7]LH45VVMB5UC7TZN7IIDOOJXX4NL24OPPFKLYGDQA6FZGCA3BLGAQ 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,..,,,..,,..,,..,..,,,..,,..,,,.,..,,...,...,,.,,,.,,..,,.,,,,,.,
+#WD7INUFE5LI4RGFRFU7KFMINTGNO4QZYLBBJ3ARFVDTG4EG4QDKIUYNRSUXZH5GR6HTUNWDMS2RAM
+#\\\|RSCRE43Q6URDL6G7RIUNPWVNUSKG5FWGHEHGE4OD72PXBXJJQO3 \ / AMOS7 \ YOURUM ::
+#\[7]2ZYVMK5WJ22TZNYKG5UHYUTB3S2SD2M3LLMWD7QYWNASTYHTQMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

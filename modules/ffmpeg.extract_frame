@@ -19,7 +19,8 @@ $target_dir =~ s|/$||g if defined $target_dir;
 die "target directory does not exist"
     if defined $target_dir and !-d $target_dir;
 
-$target_dir //= '/var/protocol-7/ffmpeg/video_frames';    # <-- default
+$target_dir //= catdir( <system.path.zenka-dirs.var_P7>,
+    <system.zenka.name>, 'video_frames' );    # <-- default
 
 if ( !-d $target_dir ) {
     make_path($target_dir)     or die "make_path($target_dir) : \l$OS_ERROR";
@@ -45,8 +46,8 @@ if (system( <ffmpeg.path.ffmpeg_bin>, '-i', $video_path, '-vf',
 
 return undef;
 
-#,,..,,..,.,.,,,,,,..,,.,,...,...,,,.,,,.,.,.,..,,...,..,,..,,...,.,.,.,.,,.,,
-#ULYBK7EIDKOW4T2TLUATZIGP3F7MGXPTR3WOXRYB5CV27OPZJW7BQW5ILKLZNPPHDUYGBLEI2KMBE
-#\\\|KYI54PQFWATHF2ZB2ZMUX3BIUK56MFET6F3ZY5HNWT42B3RUOUM \ / AMOS7 \ YOURUM ::
-#\[7]SQBB6JGZRN6NLC2AOCB7ZPCDJISGFPU7HWGPQKAQGU53LTJNQKCI 7  DATA SIGNATURE ::
+#,,,,,,.,,...,.,.,...,,.,,.,.,,,,,.,,,.,.,..,,..,,...,...,.,,,,,.,,,,,.,,,..,,
+#LHLJKVOJ4WPJB3LPCFFVVU5AG3PSFOWLXWYZVDRJFDS6FETRCRKNJABRKBPHSQM66JND426X2WVG6
+#\\\|EQ4VX45BGIWGW5DTFTV6Z6ZGIAC3F643YBHAX4JDBCN7MRS7ACP \ / AMOS7 \ YOURUM ::
+#\[7]OJYUEGOVNA7MMCDBR5QVCE6HE3ZCK24JURSAVDA5QXU6YYSD4CAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

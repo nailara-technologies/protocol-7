@@ -58,7 +58,8 @@ if ($apply) {
     } else {
         ## stage when no write access ##
         my $stage_name = $abs_path =~ s{/}{__}gr;
-        my $stage_path = "/var/protocol-7/coding/staged/$stage_name";
+        my $stage_path = catfile( <system.path.zenka-dirs.var_P7>,
+            <system.zenka.name>, 'staged', $stage_name );
         open my $fh, ">$norm_encoding", $stage_path;
         print {$fh} @lines;
         close $fh;
@@ -74,8 +75,8 @@ if ($apply) {
 return sprintf "preview: would delete %d line%s [ %d..%d ]",
     $count, $count == 1 ? '' : 's', $from_n, $to_n;
 
-#,,,.,..,,,.,,.,,,...,..,,,..,,.,,,,.,,,,,..,,..,,...,...,...,,,,,,.,,...,,,.,
-#DOJSIAMTOIG7NNII6NFXWSMHHPXH7OL24WP2CKXF5ZDWPSTSOVXWOOE6TWVWYK5EUYGRVMK5S6TP4
-#\\\|3PID26RMLAHKD5LZH5KHABTGCD457RKMO6QGGKKKQIECND5ABXN \ / AMOS7 \ YOURUM ::
-#\[7]R2CH5R5D64KNFOG23OEAU6ERRE3VJHBYDBCDLKKU5RTJZW5TIODY 7  DATA SIGNATURE ::
+#,,..,..,,,,.,,..,,,,,...,..,,.,.,...,.,,,...,..,,...,...,,,.,,.,,,,.,,,,,.,,,
+#LOS4MYAXQRB7WFL43HMON2G6ADUHOXFYQLKNZI666OEXBZ6324AOKH3RGRFWUMZBCU7YDU5ZMZVVI
+#\\\|FSLQCONLUWYIRC7KRASSJJM37KH33HH3YUZXWBWAOVOQDPEAJBF \ / AMOS7 \ YOURUM ::
+#\[7]35XW4AKIU4YVEAFQ2BFEE6R7KWVNB3O5DOQYKDYV6UQXQU26R6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
