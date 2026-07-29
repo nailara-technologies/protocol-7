@@ -145,3 +145,9 @@ every run writes :
 - `data/build/checksums/<name>.yaml` — checksum record : bmw-384 sums of
   installed artifacts [ via `base.chk-sum.bmw.filesum` ], install paths,
   recipe name/kind, timestamp
+
+#,,.,,,,.,,.,,,..,,.,,.,,,...,.,.,.,.,,..,,,,,..,,...,..,,..,,,..,...,,.,,,,.,
+#B6A256Y5BZBPYH2UR23OLB2Q7PSDJV7X6C6H7EMMQ4CEJCDFJJVMJ6CMRP7MCHWRULMXKHCEA7ZDE
+#\\\|OZC3DBHKRRCU4UANBNOYCZPXS7X3ORFQKSKJCWTRA55RBEKWGER \ / AMOS7 \ YOURUM ::
+#\[7]L5EVSOWBJYYQGYJYLG2GNTSRGXETV2XDCIWS34YDOPO6MKBEI4DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

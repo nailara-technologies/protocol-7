@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = zenka-startup.v7
+# descr = 'ext-pkg' zenka startup configuration used by 'v7' zenka
+
+dependencies       = cube
+max_concurrency    = 1
+start.on-demand    = 1
+restart.disabled   = 1
+heartbeat.disabled = 1
+
+: v7-init :
+  start_mode = stdin-zenka
+  cube.key = [base.prng.chars-anum:44]
+  [v7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<cube.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{cube.key}>']
+  [base.zenki.set_ondemand_timeout:1800]
+
+#,,,.,,..,,,.,,.,,,,.,...,..,,.,.,,.,,,,,,...,..,,...,...,..,,..,,...,,..,.,,,
+#OK2XZ7E66CXWY3CEN7Z2W7SCQYA4X4GMUEQDWGHVMATYDBSWFFLPTS4X4AZDUV66QXLXUJOFP56L4
+#\\\|XTTBCGSIB7LI457M2AGMQVZUIECLNTGQQL5RF6IYFFRD4ERCQ2E \ / AMOS7 \ YOURUM ::
+#\[7]SKAGN6QKCEEPAYM3YCBGP3KCMVAN2G7UOZ7WYH3H2V7QJLGO4GBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
