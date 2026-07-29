@@ -14,13 +14,13 @@ nearest neighbors and load only the relevant entries into context.
 
 domains (all greenfield — nothing exists yet):
 
-    protocols/cve/       CVE-2024-1234        ← NIST NVD feed
-    protocols/nvt/       1.3.6.1.4.1.25623..  ← greenbone community feed (PRIMARY)
-    protocols/mitre/     ATTACK-T1190         ← mitre cti repo json
-    protocols/weakness/  CWE-79               ← cwe.mitre.org json
-    protocols/cisa/      KEV-2024-0001        ← cisa known-exploited list
-    protocols/nessus/    plugin-10662         ← nessus plugin export (OPTIONAL,
-                                                only when a nessus backend exists)
+    data/protocols/cve/       CVE-2024-1234        ← NIST NVD feed
+    data/protocols/nvt/       1.3.6.1.4.1.25623..  ← greenbone community feed (PRIMARY)
+    data/protocols/mitre/     ATTACK-T1190         ← mitre cti repo json
+    data/protocols/weakness/  CWE-79               ← cwe.mitre.org json
+    data/protocols/cisa/      KEV-2024-0001        ← cisa known-exploited list
+    data/protocols/nessus/    plugin-10662         ← nessus plugin export (OPTIONAL,
+                                                     only when a nessus backend exists)
 
 the nvt domain is primary because the openvas agent is built first and
 the greenbone feed is free — scanner and knowledge base come from the
@@ -33,21 +33,59 @@ parallel and merges into one context bundle.
 
 ## phase 1 — domain corpora + embeddings
 
-### task 1.1 — fetch + normalize per domain
+### task 1.1a — fetch + normalize CISA KEV (scoped first slice)
 ```
 ## dispatch + prompt
-for each of the 5 domains: fetch the public source (urls below),
-normalize into one-file-per-entry under protocols/<domain>/, and emit a
+scoping decision (2026-07-29): start with cisa KEV only — smallest,
+highest signal-to-noise, single bounded JSON file (~1-2k entries), no
+multi-decade archive to page through. proves the fetch → normalize →
+skipgram → data/protocols/<domain>/<id> pipeline end-to-end before
+committing to the larger feeds.
+  cisa: https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json
+fetch, normalize into one-file-per-entry under data/protocols/cisa/, emit a
 skipgram training file (one line per entry: id + name + first ~10
 description tokens, id repeated 3x for weighting).
-  cve:   https://nvd.nist.gov/feeds/json/cve/2.0/ (json.gz per year)
+output layout: data/protocols/cisa/<id> files + data/training/cisa.txt
+
+update (2026-07-29): completed. 1655 files under data/protocols/cisa/
+(6.6MB), data/training/cisa.txt (297KB). path corrected from a bare
+top-level protocols/ to data/protocols/ for consistency with everything
+else fetched/generated this session (data/training/, data/embeddings/,
+data/patches/) — modules/ is the only legitimate top-level exception,
+being the executable code tree, not fetched reference data. tracked in
+git: small, public data, and this IS the knowledge-base data the
+unified loader reads at runtime, not a regenerable build artifact.
+this size/tracking judgment does NOT automatically extend to task
+1.1b's other domains — full NVD CVE history in particular could be
+orders of magnitude larger; revisit per-domain when 1.1b is dispatched.
+```
+
+### task 1.1b — fetch + normalize remaining domains (do not dispatch yet)
+```
+## dispatch + prompt
+once 1.1a's pipeline is verified, repeat the same fetch/normalize
+pattern for the other 4 domains:
+  cve:   https://nvd.nist.gov/feeds/json/cve/2.0/ (json.gz per year —
+         large multi-decade archive, page/rate-limit deliberately)
   mitre: https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json
   cwe:   https://cwe.mitre.org/data/json/cwe_2_0.json.zip
-  cisa:  https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json
   nvt:   greenbone community feed (synced by the openvas agent's feed
          machinery — reuse, don't duplicate); nessus: SKIP until a
          nessus backend exists (see [[nessus-agent]] ordering)
-output layout: protocols/<domain>/<id> files + data/training/<domain>.txt
+output layout: data/protocols/<domain>/<id> files + data/training/<domain>.txt
+
+compression note (2026-07-29): cisa KEV (task 1.1a) was left as plain
+text — entries average ~700 bytes, git's own blob delta-compression
+already handles that well, and individually xz-compressing files that
+small barely shrinks them (~23% in testing) while breaking git's
+delta-compression across near-duplicate entries. cve/nvd entries are a
+different case: full paragraph-length descriptions, not a handful of
+short fields. WHEN this task runs, evaluate per-file xz
+(data/protocols/cve/<id>.xz, decompressed on read by the phase-2 loader)
+specifically for the cve domain — decide based on actual fetched entry
+size, not by assumption. do not tar/archive a whole domain into one
+compressed blob regardless of size: that breaks the "name = filepath,
+no registry, direct load" property the unified loader depends on.
 ```
 
 ### task 1.2 — train domain embeddings
@@ -70,7 +108,7 @@ register the domains in the retrain-trigger config so source updates
 new module set embeddings.securityintel.* (or security.intel.*):
 load_unified_context(query, scope, limits) — queries each enabled
 domain's embedding model in parallel, converts hit ids directly to
-protocols/<domain>/<id> filepaths (name = filepath, no registry),
+data/protocols/<domain>/<id> filepaths (name = filepath, no registry),
 loads files, returns a merged context bundle keyed by domain.
 include per-scan memoization (cache key = query + scope).
 perl sketch exists in the conversation transcript (prompt 64) —
@@ -96,8 +134,8 @@ reports stale domains to the forensics channel.
 - keep domains loadable independently — an agent should be able to run
   with only cve+cwe loaded (small memory footprint).
 
-#,,,.,,,.,,,,,,..,,,.,,..,,..,.,.,,,,,,,.,,..,..,,...,..,,,.,,,,,,,,.,,,,,.,,,
-#H35UUIB2N73LL4XN5DLM3DRGMGUFTFPQG5Y6QRM45BOCDRSHSXXA44DT65UMK42SCNFUV4U5I2X3C
-#\\\|US3TKKUJTOHUQWQDFODLOD2CCVFB6F6IOBLDMYGM5YL6HPO2YD5 \ / AMOS7 \ YOURUM ::
-#\[7]D4E2ZPRJBQAZL2TOI2SNBESNQJHV7IA7GTSAKPZ4H2NFF6BH7WBA 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,.,,..,,...,..,,,..,.,.,,,.,..,,..,,...,...,,,,,..,,,..,...,,,,,
+#EUY2E5RCWCWZ7QJ4P5VIW3ICIKZ2Y4JJORL7FGPKAZHCLMIGUXMSPXDFRBC6HA6EYJPEG6AZMRWZE
+#\\\|2LUG7BSUZIYPUJLPS4MTTUVCTHF7SA3PC6GC7YJXGXQPEQKCOS6 \ / AMOS7 \ YOURUM ::
+#\[7]TH7IMKTAMIOG42NKF5JJ2LFD556445VK4ODGPMJHAMBSDQWOPSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
