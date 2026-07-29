@@ -185,6 +185,12 @@ if (<web-browser.cfg.no_memory_cache>) {
 
 <web-browser.gtk_obj.web_context> = $web_context;
 
+## local self-signed services [ e.g. Nessus's own web UI before a real cert ##
+## is configured ] are rejected by default -- opt-in only, never the        ##
+## default, since this disables TLS validation entirely.                    ##
+$web_context->set_tls_errors_policy('WEBKIT_TLS_ERRORS_POLICY_IGNORE')
+    if ( <web-browser.cfg.ignore_tls_errors> // qw| no | ) eq qw| yes |;
+
 # will use initialized web context
 foreach my $view (qw|  1  2  |) {
     <[web-browser.init_view]>->($view);
@@ -321,8 +327,8 @@ foreach my $signal_name (qw|  INT  TERM  |) {
     );
 }
 
-#,,,,,..,,...,...,.,,,,,,,,,,,,.,,..,,,.,,,,,,..,,...,...,,.,,..,,,,.,,,,,,..,
-#3D6YBAHDSDKF6EAFOPEYU4DIVHPOBLSFVFYXO77TLWG6R2B2X5WJBEUUGXVVDYIXW4JXCJ7LWZWLC
-#\\\|WPBCIGJ6236LW5F4RWRBIKOURJYIN3WVOBFJTVRPOFPHDYZJ7WV \ / AMOS7 \ YOURUM ::
-#\[7]4AT5E532EKOHNLEAI7KMMJIHC3KOIOHFMJC4YIYECV2JZ3GT7ACI 7  DATA SIGNATURE ::
+#,,..,...,...,...,..,,.,.,..,,,,.,.,.,,,,,..,,..,,...,...,.,.,...,.,,,,,.,,,,,
+#XJZTDGPIL4VQ7LUHOAEJGNYZDU6RJW3BIMVIN6ZR5POW2DJLCG5LYVLMLUT3SP74Y3O4ZDNHCHDMW
+#\\\|HNGXKNQXDUIEMR47EOLCGZMMLDNN3GWCTO57XUVAZ6PJPAXOCCD \ / AMOS7 \ YOURUM ::
+#\[7]6WIYHTJXRM773Y6RNIMUU63XB475ITF3I5GTSDMESLEYFHYMX2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

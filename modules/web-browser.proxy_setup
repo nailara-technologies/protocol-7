@@ -45,10 +45,14 @@ if (    defined <web-browser.cfg.proxy_addr>
     }
 }
 
+my $context = <web-browser.gtk_obj.web_context>;
+
+## proxy_setup can run before open_window has assigned web_context yet ##
+return <web-browser.init_proxy> if not defined $context;
+
 if (<web-browser.init_proxy>) {
     my $proxy_addr = <web-browser.cfg.proxy_addr>;
     my $proxy_port = <web-browser.cfg.proxy_port>;
-    my $context    = <web-browser.gtk_obj.web_context>;
 
     my $proxy_settings = Gtk3::WebKit2::NetworkProxySettings->new(
         "http://$proxy_addr:$proxy_port",
@@ -56,14 +60,22 @@ if (<web-browser.init_proxy>) {
     );
     $context->set_network_proxy_settings( 'WEBKIT_NETWORK_PROXY_MODE_CUSTOM',
         $proxy_settings );
+} else {
+
+    ## WebKit's own proxy default [ unset here ] falls back to glib's proxy ##
+    ## resolver, which reads http_proxy/https_proxy/ALL_PROXY from the      ##
+    ## environment regardless of use_proxy='no' -- explicitly forcing       ##
+    ## NO_PROXY mode is the only way to actually get no proxy.              ##
+    $context->set_network_proxy_settings(
+        'WEBKIT_NETWORK_PROXY_MODE_NO_PROXY', undef );
 }
 
 return
     <web-browser.init_proxy>
     ;    # no checks performed if use_proxy set to 'yes' ..,
 
-#,,.,,.,.,,.,,...,...,,..,..,,,..,,..,..,,.,,,..,,...,..,,,..,..,,..,,.,.,...,
-#5CMUT3YVDCOPHRVKCR23PROIG2L5KIFCZQIJPQT4CU5OOCDQHVW6F24STLFO235GSSJS2BVHLULMS
-#\\\|75HEGFBID4BCLJDQ2C34L4FNLM5VDY4YYMRAAH2WCGCEDBKHRM5 \ / AMOS7 \ YOURUM ::
-#\[7]X4ECXM5XQOY7TY2ZG4RJAR4F3BQS3QWYJW6GWBPSODUHQLD6YAAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,,,,..,,,..,,,.,,.,,.,.,.,,,..,,..,,...,...,..,,,,,,.,.,,..,,,.,
+#GN7HG3DCW6TB2KA3XQDZFIXQIO3X7BLIXEO6GP4MFWZFLS7I4MYQHVOWKTQZG2TH6H4TC55FDCRC2
+#\\\|DT2M6DSQHH6ED6D4QQSD4IDCR6DZGFEVUTMSGP7VQALT2YDOGCS \ / AMOS7 \ YOURUM ::
+#\[7]S6NO5N3VBU5DRXYK564B2XEZVZKWRBFBVFWYFWBAEDICYT7KE4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
