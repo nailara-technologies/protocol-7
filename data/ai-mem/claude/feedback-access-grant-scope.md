@@ -49,8 +49,26 @@ access (one zenka calling another's command), per
 [[feedback-buffer-access-control]]. Per-zenka `access.zenki` user grants
 are for non-admin users; don't add them for `taeki`.
 
-#,,,.,,,,,,..,,..,..,,,,,,.,,,.,,,,,.,..,,,.,,..,,...,...,.,.,.,.,,,.,.,.,,,,,
-#DQGLUZ42TQ6JX6KEHPADQ7JCVD3TGN2LEHNZJQRK3JX4F7MJYWYNTA7GW3LJ22GD5WEIUIXRU7QG4
-#\\\|LH23GGSOSCFOE7S2AUSWHRWA76XFGES3S55FFEITHGWKKXVYBWM \ / AMOS7 \ YOURUM ::
-#\[7]DE4JA64P73ARXZJTHQWVALDTWYCSNWPLX5TBUHBE7THFSAWXJCBA 7  DATA SIGNATURE ::
+**When to even create a per-zenka `access.zenki` file at all (2026-07-29,
+build-zenka/ext-pkg-zenka/openvas session):** a per-zenka `access.zenki`
+IS a real, load-bearing config (loaded via `[load_config_file:...]` in
+`start`, compiled by `base.parser.access_conf` — `transport`'s and
+`cube-13`'s have live `access.cmd.usr.<who> = ...` grants for non-cube
+users like `proxy`/`zulum`). But it exists for two specific reasons: (a)
+cube-scale zenki with so many routing entries that extracting them out
+of `start` keeps the file readable, or (b) parent/child zenka traffic
+(weather's pattern — child sessions granting/receiving commands).
+Neither applies to a fresh small zenka with zero current consumers other
+than cube itself. Don't scaffold a comment-only placeholder
+`access.zenki` + matching `[load_config_file:...]` line just because a
+reference zenka (e.g. openvas) had one — it's dead weight until an
+actual second consumer exists. Keep the `access.cmd.usr.cube` grant
+inline in `start` (where it already has to live anyway) and put any
+future-grant documentation as a comment next to it; add the separate
+`access.zenki` file only when a real non-cube grant is being added.
+
+#,,,,,,.,,,..,,.,,,..,.,,,.,,,...,,,.,..,,,,.,..,,...,..,,..,,,,.,.,,,,,,,..,,
+#5X2TB3KEKA2ZLFC6ED2F2ZSZON7NAP2FZ5YL6FID4LJRG2I7N2XUAZ6POXHKQZ2X6KVWU4RK2EDAK
+#\\\|LUBMZVLMRVSMWUX5IEZHAPYOU7S5K3HYQ3IXB4DYNTKIVICLVCF \ / AMOS7 \ YOURUM ::
+#\[7]ZT7ABQN6BUPC6O67ZL5MHJ3XLI5KIA527AX7KI6EE3DA46J6UGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
