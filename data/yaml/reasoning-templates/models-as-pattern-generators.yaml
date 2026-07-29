@@ -1,0 +1,76 @@
+---
+name: models-as-pattern-generators
+category: reasoning-template
+version: 1.0
+description: |
+  reasoning pattern for converting model inference into deterministic rules:
+  a model's best output for recurring work is not the work itself but a
+  pattern that makes the work repeatable without inference. applied when
+  deciding what a model should produce, and when a system's speed and
+  stability must survive hardware and model stagnation.
+
+---
+
+## the efficiency inversion
+
+model-centric: every change requires inference. cost stays constant or
+grows. quality depends on model version, uptime, and luck.
+
+pattern-centric: the model reasons ONCE about a class of work, emits a
+deterministic rule (regex + applicability context), and steps back:
+
+```
+first occurrence:   model discovers → pattern stored → applied
+occurrences 2..n:   pattern matched → applied. zero inference.
+next variant:       model refines existing pattern instead of
+                    rediscovering — optimization, not exploration
+```
+
+the system's capability then depends on pattern correctness (verified
+once, reused infinitely) and the matcher's accuracy — not on the model.
+even if the hardware and the local models are never updated, the system
+gets faster, more stable, and more capable over time.
+
+## teach models to offload themselves
+
+the model should prefer:
+
+  - "express this as a pattern" over "generate the modified output"
+  - the pattern store over ad-hoc one-off replacements
+  - refining an existing pattern over inventing a parallel one
+
+this is a preference to train and to prompt for, not an emergent
+property. the incentive is real for the model too: faster response,
+verifiable correctness (previews, backups), durable effect.
+
+## unforgetting context
+
+patterns are the model's externalized memory. before a task, surface
+what is already known — applicable patterns, success rates, edge cases,
+failed approaches and why they failed. the model then starts from known
+ground:
+
+  no rabbit trails re-explored. no rediscovery. no forgotten lessons.
+
+intelligence lives in the patterns; the model is the discovery and
+optimization engine that grows them.
+
+## the test
+
+  - after this task, is there a new or refined pattern — or only output?
+  - will the next similar task be cheaper because of this one?
+  - if the model went offline tomorrow, how much of today's capability
+    remains? (the right answer: almost all of it)
+
+## related
+
+- [[anti-entropic-threshold]] — inference→determinism is how reasoning
+  leaves the substrate more coherent
+- ncode pattern learning loop — the implemented form (tier A/B, streaks)
+- [[template-wave-refinement]] — patterns and templates evolve in waves
+
+#,,,.,,.,,,,,,,.,,,..,...,.,,,.,,,..,,..,,..,,..,,...,..,,.,.,,..,.,.,,,.,,,,,
+#ROFK2ZWOOQCFZDGGNGHR2XPLOINEMNN72ZRMPC3SPIPQI5QX5BZ3E6POKLOO73FDBVGFUFXYZ7C3C
+#\\\|GUZJOOVBDR2HREEZ6FYI5PTRDSLM6LCRBBGM3EWV4OPKHYODMBE \ / AMOS7 \ YOURUM ::
+#\[7]X5VOGIDXB4DPHCLD5DH3Q5FQTMN4YYT5EHR4PVISPMTMI445WACI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
