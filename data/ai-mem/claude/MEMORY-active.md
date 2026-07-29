@@ -5,7 +5,7 @@ coding & kimi zenka state machines, jobsite, streaming transport, web-browser ca
 reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active Topics
-- [nessus-trial-installed-2026-07-29](project-nessus-trial-installed-2026-07-29.md) — Nessus Pro trial live at localhost:8834, license expires 2026-08-05; nessus-agent can now be fully live-verified, not build-only
+- [nessus-trial-installed-2026-07-29](project-nessus-trial-installed-2026-07-29.md) — Nessus Pro trial live at localhost:8834, expires 2026-08-05; nessus-agent phase 1 LANDED+live-verified (a47ac3659) up to a hard license boundary — trial has scan_api:false, REST scan creation permanently blocked (UI-only), not a bug
 - [ntime-b32-2-unix-missing-compint-float-support](bug-ntime-b32-2-unix-missing-compint-float-support.md) — RESOLVED 2026-07-29 (kimi, 2c2cbf9f8): ported comp-int decode chain into B32_2_unix as a robustness/parity port (zero behavior change, 2000-vector fuzz-verified); original diagnosis had 2 errors caught during verification, see [[feedback-combined-grep-conflated-caller-counts]]
 - [v7-prio-starvation-and-ansi-corruption](topic-v7-prio-starvation-and-ansi-corruption-2026-07-25.md) — LANDED 1391ba11b: v7.zenka.start prio=>0 fixes 11yr-inert starvation bug; -vvvq ANSI chase inconclusive (likely WezTerm-side); write-completion-loop fixes + base.stdout.raw_fh redirect utility
 - [p7-text-formats-landed](topic-p7-text-formats-landed.md) — LANDED: format.kv_block (retired/kept) + format.inline-nested (promoted to base.*, show-access consolidated onto it); OPEN: yaml-config-codegen, reverse perl->p7, comment-preserving config-writer parser
@@ -83,8 +83,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [scratchpad-import-tool](topic-scratchpad-import-tool.md), [scratchpad-rescue-coding-zenka-task](topic-scratchpad-rescue-coding-zenka-task.md) — mcp-server-p7 scratchpad tools tested; follow-up task filed w/ kimi K3 for native coding-zenka rescue tools + chmod g+rx fix
 - [ncode-pattern-learning-loop](topic-ncode-pattern-learning-loop.md) — design, not built: two-tier mechanical/LLM pattern model, reuse existing stats/confidence fields for self-reinforcement, LLM-prefers-editing-patterns interaction model, namespace scope gating, nested-dispatch for batch-apply without confirmation storms; next step is the pattern-schema fix (steps not persisted) blocking the loop
 
-#,,,.,...,,..,,.,,.,,,.,,,,,.,...,.,.,,,.,,,,,..,,...,.,.,,,.,.,.,.,,,.,,,,,,,
-#D6YPYT6CNYVQCDZJI2WGM7SUGA3VFYFO5DLOM2AONXOEYZZ7L2HAO7U34NEIJCMTTMF5DOYYJ5V5G
-#\\\|K7J4JXT5KNWST57Z7ZC4QP6XILTFIWSMZEKJ72ZMCAYOP2OTZTL \ / AMOS7 \ YOURUM ::
-#\[7]HHIHFLQLPF7KWMAJAN2MA24TNGKBAM24LXLYRPBVY72BI2UJKKDI 7  DATA SIGNATURE ::
+#,,..,,..,.,.,.,,,..,,,..,.,.,.,,,..,,.,.,,,.,..,,...,..,,...,..,,..,,...,,..,
+#U3OD4454PYQ7PED74WVWYFTF4WS46E2HWINI5YEBCGW6DXNCV3SG7C4OTKGTE6CRPSTW4LYPQ7CU4
+#\\\|A5Z7HAT3B5FUSWAJ6SN75WIACDAC63S5WGY3GIYU27IRHIVI7MQ \ / AMOS7 \ YOURUM ::
+#\[7]LJY3LN4RBYJNJ5XRLTLZD4C3YTNSB2FQC5O63JL5EGNI7TF7PWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
