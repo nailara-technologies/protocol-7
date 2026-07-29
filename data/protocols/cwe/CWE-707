@@ -1,0 +1,11 @@
+id           = CWE-707
+name         = Improper Neutralization
+abstraction  = Pillar
+structure    = Simple
+status       = Incomplete
+
+description : The product does not ensure or incorrectly ensures that structured messages or data are well-formed and that certain security properties are met before being read from an upstream component or sent to a downstream component.
+
+extended description : If a message is malformed, it may cause the message to be incorrectly interpreted. Neutralization is an abstract term for any technique that ensures that input (and output) conforms with expectations and is "safe." This can be done by: checking that the input/output is already "safe" (e.g. validation) transformation of the input/output to be "safe" using techniques such as filtering, encoding/decoding, escaping/unescaping, quoting/unquoting, or canonicalization preventing the input/output from being directly provided by an attacker (e.g. "indirect selection" that maps externally-provided values to internally-controlled values) preventing the input/output from being processed at all This weakness typically applies in cases where the product prepares a control message that another process must act on, such as a command or query, and malicious input that was intended as data, can enter the control plane instead. However, this weakness also applies to more general cases where there are not always control implications.
+
+notes : https://cwe.mitre.org/data/definitions/707.html

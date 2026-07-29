@@ -1,0 +1,11 @@
+id           = CWE-1272
+name         = Sensitive Information Uncleared Before Debug/Power State Transition
+abstraction  = Base
+structure    = Simple
+status       = Stable
+
+description : The product performs a power or debug state transition, but it does not clear sensitive information that should no longer be accessible due to changes to information access restrictions.
+
+extended description : A device or system frequently employs many power and sleep states during its normal operation (e.g., normal power, additional power, low power, hibernate, deep sleep, etc.). A device also may be operating within a debug condition. State transitions can happen from one power or debug state to another. If there is information available in the previous state which should not be available in the next state and is not properly removed before the transition into the next state, sensitive information may leak from the system.
+
+notes : https://cwe.mitre.org/data/definitions/1272.html

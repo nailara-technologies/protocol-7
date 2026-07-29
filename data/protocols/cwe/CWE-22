@@ -1,0 +1,11 @@
+id           = CWE-22
+name         = Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal')
+abstraction  = Base
+structure    = Simple
+status       = Stable
+
+description : The product uses external input to construct a pathname that is intended to identify a file or directory that is located underneath a restricted parent directory, but the product does not properly neutralize special elements within the pathname that can cause the pathname to resolve to a location that is outside of the restricted directory.
+
+extended description : Many file operations are intended to take place within a restricted directory. By using special elements such as ".." and "/" separators, attackers can escape outside of the restricted location to access files or directories that are elsewhere on the system. One of the most common special elements is the "../" sequence, which in most modern operating systems is interpreted as the parent directory of the current location. This is referred to as relative path traversal. Path traversal also covers the use of absolute pathnames such as "/usr/local/bin" to access unexpected files. This is referred to as absolute path traversal.
+
+notes : https://cwe.mitre.org/data/definitions/22.html

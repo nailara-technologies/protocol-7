@@ -1,0 +1,11 @@
+id           = CWE-1279
+name         = Cryptographic Operations are run Before Supporting Units are Ready
+abstraction  = Base
+structure    = Simple
+status       = Incomplete
+
+description : Performing cryptographic operations without ensuring that the supporting inputs are ready to supply valid data may compromise the cryptographic result.
+
+extended description : Many cryptographic hardware units depend upon other hardware units to supply information to them to produce a securely encrypted result. For example, a cryptographic unit that depends on an external random-number-generator (RNG) unit for entropy must wait until the RNG unit is producing random numbers. If a cryptographic unit retrieves a private encryption key from a fuse unit, the fuse unit must be up and running before a key may be supplied.
+
+notes : https://cwe.mitre.org/data/definitions/1279.html
