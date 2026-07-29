@@ -61,10 +61,8 @@ confirms a kimi_continue (not kimi_dispatch) call happened.
    and `data/tasks/completed/` — stale not-yet-moved task files for
    already-landed work are common in this project's `data/tasks/` top level.
 
-#,,,.,,.,,..,,..,,..,,,,.,..,,,.,,...,,..,.,.,..,,...,...,...,,,,,.,.,.,.,.,.,
-
-#,,,.,...,,,,,..,,.,.,.,,,,,.,,,.,..,,,.,,...,..,,...,..,,,.,,,,.,.,,,,,.,,..,
-#2O5PBALJUHP5BOACK5FTNG2UWTZNPGWGASK6MSJDAI4TM2TOTXJWCVPZKOAJOCV76N6ZT3LUE4XYM
-#\\\|PEZLWVTT4HBFH7BDV7XZGI5JDWIQGIGO6LUZSOR7LZZSOKN6IAI \ / AMOS7 \ YOURUM ::
-#\[7]IJ5TXPUMOOZGZCEOECZ24E4SL42NGMBVRIQ7FF2SR6JEMYTZUCDY 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,..,,,..,,..,.,.,.,,,...,..,,,,,,..,,...,...,..,,,..,.,,,.,.,.,,,
+#QZLLGDUZYOJ6RNMLOFYRHZKRF6W2YEBY3N4KPEZ3G5J2SPYMF6W7VFG5GNT4Y2Q6QBCZDMCYS5BNG
+#\\\|JSLHO5ULHQZX5QWEABJZHWDB3ULT5D4Q4M4GZXTHZ3LHMQKGD7N \ / AMOS7 \ YOURUM ::
+#\[7]HHBUHA5TOP5A6SL7NJK3ARLLRPCN3EQEQUTLBWEXKKJLT3XHO2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

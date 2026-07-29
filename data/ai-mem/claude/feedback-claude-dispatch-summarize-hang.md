@@ -44,10 +44,8 @@ dispatch.
   tasks expected to produce large diffs/output, to sidestep this class
   of hang entirely
 
-#,,.,,...,...,.,.,.,.,...,,,.,...,.,,,,,.,...,..,,...,...,,,,,,,,,,,,,,.,,,..,
-
-#,,..,...,...,,..,,,.,,,,,,..,,..,.,.,..,,,..,..,,...,.,.,...,.,,,.,,,.,,,,..,
-#GQWHQRZKDXSRLVRMN5QHHSXIWH2RKD6NSBCWBVMCP4QABENQPK3LUGDHS5Z7OL3Z3CZL4DEXZW2DY
-#\\\|CMJW5F3RX74DTOTEZ4UVPB3RFQKGDRX4QTMNTVSWLPEATBD5O2Z \ / AMOS7 \ YOURUM ::
-#\[7]SZDUHNPQJQJK73PTV4OC4NWEEDXQPQ4EFR6TWAJ2TGV6DRIY7MCI 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,..,,..,,,,,..,,,,,,...,,,,,,.,,..,,...,...,..,,,,.,...,,..,...,
+#PWDUH2AJ4ZTANW53VITRFQJ5YSETZGF6SU5VK3DSMWI4DS7V73F7YY7S3YCFDQ3KCI52P4Q5KMML4
+#\\\|7SHZIYGJQLP3P3JZW3ZKE2MKII4YOVWBRQFVR4YT7PQTVPIKMH5 \ / AMOS7 \ YOURUM ::
+#\[7]D7BSKBF2O6RY44O3PWTP3RUTXR537X53XTGGSUC5PU4QYBWM22DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
