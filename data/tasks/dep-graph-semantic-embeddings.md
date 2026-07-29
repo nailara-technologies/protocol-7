@@ -89,8 +89,21 @@ channel. embedding-space diff = visible code-structure momentum.
 - the filesystem-as-index property is the elegance: no indirection
   layer. keep it that way.
 
-#,,.,,,..,,,,,,..,.,.,,,,,...,..,,,.,,,..,,,,,..,,...,...,..,,...,,,.,,,,,,,.,
-#LHA5NYUWM5PY32EARIJBE3JCV72BOEPCBXJP7MTRCTPPDMNPZ7APPAN3RFVAH2AJARAKLFS63OAXG
-#\\\|LYZJBXJQG6B4NFQUKBDHFFUK436PZP3LUTRNMKI6M4FQ5CT3WRY \ / AMOS7 \ YOURUM ::
-#\[7]KLGWZQGGCOD6RWFCFZARQUW3TQG4VEHMORSAT2YKBL7R6KX6Y2DY 7  DATA SIGNATURE ::
+### phase 1 status [ 2026-07-29 ] — DONE
+
+- 1.1: bin/dev/depgraph-corpus [ forward ×2 + reverse ×1 lines ],
+  auto-regenerates via hook in bin/dev/dep-graph. output:
+  data/training/codebase-depgraph.txt [ 3762 modules, 11540 edges ]
+- 1.2: fasttext CLI was not installed — built from source into
+  .deps/fasttext/ [ gitignored ]. model trained with task params:
+  data/embeddings/codebase-depgraph.{bin,vec}
+- verification: data.get.resolve_virtual clusters perfectly with
+  resolve_*/classify_*; base.log clusters with logging family but its
+  direct callees are weak [ hub-node effect, documented ]
+- full results: data/md/documentation/DEPGRAPH-EMBEDDING-PHASE1-RESULTS.md
+
+#,,,,,.,.,,..,,.,,...,.,.,,,,,...,,.,,,.,,..,,..,,...,...,.,,,.,.,..,,,,,,,,.,
+#33SQ6376BA4GJHRSTG6GTMRUHLTDJSTNMSVW5P7K6PG3ICOQP3WALER6O6SEOU6HMA35Z6UN7O5CM
+#\\\|NLEQMA7QDAKOOWKP4Z3PLAHWPBD3ON65WPPULLTYG7HZ2LBJATM \ / AMOS7 \ YOURUM ::
+#\[7]GAEYDFFFZQKTN47HOOF7UDPP4632BGTEBCB2JIUMHEPC5IXVQUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -18,6 +18,13 @@ bin/p-7-r
 # Dependency cache
 .deps/cache/
 
+## fasttext CLI: prefer the debian package [ profile: embeddings, bin/p7-deps ];
+## .deps/fasttext/ is a fallback local build kept only when the package is unavailable ##
+.deps/fasttext/
+
+## trained embedding binaries [ 2+ GB — regenerate via fasttext skipgram ] ##
+data/embeddings/*.bin
+
 ## generated dep-graph dot output [ regenerate with bin/dev/dep-graph -dot ] ##
 data/md/documentation/module-dependency-graph.dot
 
@@ -45,3 +52,7 @@ data/state/
 
 ## timing-test scratch output [ bin/dev/tests/timing/* ]
 .test-*-output/
+
+## python bytecode cache [ any zenka bin/ with a .py helper, e.g. openvas ] ##
+__pycache__/
+*.pyc
