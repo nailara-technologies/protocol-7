@@ -372,6 +372,7 @@ return [ qw[
         pager.sort.chain
         p7-log.init_code
         os-pkg.init_code
+        openvas.scan.run
         opencv.init_code
         openbox.start_wm
         nshell.term_init
@@ -522,6 +523,8 @@ return [ qw[
         power.read_states
         power.load_config
         power.cmd.all_off
+        povray.cmd.status
+        povray.cmd.render
         plugin.auth.zenka
         pager.buffer.page
         p7-log.cmd.append
@@ -902,6 +905,7 @@ return [ qw[
         radio.filter.jingle
         proxy.selector.load
         power-x11.init_code
+        povray.spawn_render
         plugin.auth.twofish
         plnx.cmd.get_ticker
         plnx.cmd.currencies
@@ -1605,6 +1609,7 @@ return [ qw[
         proxy.cmd.cred-rotated
         powershell.to_unc_path
         power.add_status_timer
+        povray.finalize_render
         plugin.web.space.state
         plugin.web.space.index
         plugin.web.space.fetch
@@ -1649,6 +1654,7 @@ return [ qw[
         jobsite.util.source-id
         jobsite.cmd.set-status
         jobsite.cmd.job-upsert
+        jobsite.cmd.import-url
         jobsite.cmd.group-jobs
         jobsite.checksum.index
         iteration.score_result
@@ -1762,6 +1768,7 @@ return [ qw[
         base.X-11.get_bg_color
         audio.handler.pcm_data
         audio.cmd.spatial-purr
+        audio.analyze.am_depth
         amos-term.window-close
         amos-term.fuse.readdir
         amos-term.fuse.getattr
@@ -1870,6 +1877,7 @@ return [ qw[
         proxy.client.send_error
         protocol.sftp.init_code
         power.cmd.remove_device
+        povray.template.resolve
         plugin.storage.checksum
         plan-9.client.read-file
         pdf.html.base.valid_pdf
@@ -2106,6 +2114,7 @@ return [ qw[
         source.acquire_checksums
         site-yaml.job.scan_stray
         site-yaml.fetch.schedule
+        site-yaml.cmd.import-url
         signal.cancel.cmd.filter
         set-up.cmd.export-config
         select.region.apply_drag
@@ -2837,6 +2846,7 @@ return [ qw[
         reasoning.threshold.crossed
         reasoning.branch.checkpoint
         proxy.selector.zenka_assert
+        povray.cmd.template-resolve
         plugin.web.space.index.scan
         plugin.web.space.index.load
         plugin.web.jobs.store.prune
@@ -2888,6 +2898,7 @@ return [ qw[
         jobsite.handler.repair-done
         jobsite.handler.fetch-drain
         jobsite.handler.assess-done
+        jobsite.cmd.import-url-http
         jobsite.cmd.blacklist-stats
         jobsite.chksum.branch-color
         jobqueue.check_dependencies
@@ -3001,6 +3012,7 @@ return [ qw[
         base.chk-sum.amos.init_code
         base.X-11.handler.geo_reply
         auth.client.zenka.init_code
+        audio.cmd.spatial-purr-icon
         amos-term.window-fullscreen
         amos-term.session.set_state
         amos-term.handler.key_press
@@ -3080,6 +3092,7 @@ return [ qw[
         reasoning.branch.stuck_score
         protocol.protocol-7.pre_init
         protocol.amos_term.init_code
+        povray.handler.render_output
         plugin.web.space.cmd.context
         plugin.web.auth.session.read
         plugin.web.auth.session.path
@@ -3294,6 +3307,7 @@ return [ qw[
         protocol-7-menu.position.save
         protocol-7-menu.position.load
         powershell.cmd.pointer-stream
+        povray.handler.render_timeout
         plugin.web.space.orbital.json
         plugin.web.jobs.reverse.queue
         plugin.web.jobs.reverse.flush
@@ -3454,6 +3468,9 @@ return [ qw[
         base.callback.report_children
         base.X-11.get_window_geometry
         auth.client.unix.authenticate
+        audio.render_standing_wave.v4
+        audio.render_standing_wave.v3
+        audio.render_standing_wave.v2
         audio.render_standing_wave.v1
         ascii.frame.parse.border_line
         amos7.decode_octal_bit_header
@@ -3580,6 +3597,7 @@ return [ qw[
         jobsite.handler.translate-done
         jobsite.handler.repair-created
         jobsite.handler.new-job-settle
+        jobsite.handler.assess-timeout
         jobsite.chksum.group-by-branch
         jobqueue.handler.queue_counter
         index.callback.wordlist-import
@@ -3845,6 +3863,8 @@ return [ qw[
         base.chk-sum.jha.b32.harmonized
         base.chk-sum.bmw384.arc-segment
         base.X-11.get_coordinates_async
+        audio.post_process.crop_wide.v1
+        audio.overlay.waveform_trace.v1
         amos-term.handler.nshell-output
         amos-term.decoder.init_patterns
         amos-term.buffer-attach_generic
@@ -3922,6 +3942,7 @@ return [ qw[
         kimi.handler.process-queued-task
         kimi-web.internal.http_post_sync
         keys.console.keys-backup-archive
+        jobsite.handler.import-url-reply
         index.cube.format.pack_dir_entry
         image2html.base.write_image_html
         image2html.base.write_error_page
@@ -4510,6 +4531,10 @@ return [ qw[
         base.callback.clean_data_source_hash
         base.X-11.handler.geo_fallback_reply
         auth.client.zenka.process_auth_reply
+        audio.post_process.rotation_stack.v4
+        audio.post_process.rotation_stack.v3
+        audio.post_process.rotation_stack.v2
+        audio.post_process.rotation_stack.v1
         ascii.frame.render.color.border_line
         workspace-transfer.console.checkpoint
         workspace-transfer.console.bug-commit
@@ -4967,8 +4992,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,,.,,,,,,,.,,,.,,,,.,...,..,,,,,,,..,,,.,.,.,...,...,.,,,..,,,,,,.,,,..,,
-#DDQXDTALYWDE4DNPX2JWK6FCHM73BVXAQLLURNZFS4LWHPADSCRYS7N7GKCI3XSDMK73ELFWLJWP6
-#\\\|XGC3ZUCMI4QWFGTIE2T4GENAP77WFEJ4SYY2KYDUSTAZWBN4F3A \ / AMOS7 \ YOURUM ::
-#\[7]DJ7MK3FA4KXQTLNGBRBRZXSLCFQHXKYA4W6LW6SRWJ5MGILEIQCA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,.,,,,.,,,.,,.,.,...,,..,,,,,...,.,.,...,...,,,,,...,,,.,,.,,,,,,
+#SYILPMIA6JKWG3O7VSRDYUEDY25OGZX7Z5L4FBNYAXITE2BB7W5JISRYHW5TGI4YHDVPNJUISQPTM
+#\\\|TLFULRCGEBMBZS4SOZI7JMFARWOVGEP4LUO6GRN4PHI5M6Q5V3R \ / AMOS7 \ YOURUM ::
+#\[7]DLRBGRG7QIV6PXGDQ7LLTTPK3DLRICHRFL67JDPEWMST2VWUW4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
