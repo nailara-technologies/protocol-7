@@ -1,0 +1,182 @@
+## [:< ##
+
+# name  = openvas.scan.run
+# param = <target> [ports <ports>] [profile <name>]
+# descr = run openvas scan against target, write findings yaml to data dir
+
+##    backend control path decision [ host survey 2026-07-29 ] :            ##
+##                                                                          ##
+##    - ospd-openvas cli : not installed and not packaged on this host [    ##
+##    apt-cache search empty ] -- rejected as control path                  ##
+##    - greenbone community container : docker 28.5.2 running, network      ##
+##    reachable -- selected as backend [ provides gvmd, ospd-openvas and    ##
+##    the community nvt feed ]                                              ##
+##    - gvm-tools : not installed but pip-installable [ pypi reachable,     ##
+##    26.0.7 available ] -- selected as control path : GMP protocol over    ##
+##    the gvmd unix socket exposed by the container                         ##
+##                                                                          ##
+##    the wrapper stays thin by design : this module shells out to the      ##
+##    python helper [ openvas.cfg.helper ] which drives gvm-tools and       ##
+##    emits json findings; this module validates, converts and writes       ##
+##    yaml into the zenka data dir. orchestration + per-finding             ##
+##    enrichment live in this zenka [ phase 2 ], scanner internals stay     ##
+##    with greenbone. if gvm-tools or the backend container is missing      ##
+##    the scan fails cleanly -- results are never fabricated.               ##
+##                                                                          ##
+##    note : call blocks for the scan duration in phase 1 .., async         ##
+##    child-fork pattern [ weather.base.fork_weather_child ] is the         ##
+##    planned follow-up for long scans.                                     ##
+
+my $args_str = $call->{'args'} // '';
+
+##  parse 'target=x ports=y profile=z', 't ports p profile n' or bare  ##
+my %arg;
+my @words = grep {length} split m|\s+|, $args_str;
+while (@words) {
+    my $word = shift @words;
+    if ( $word =~ m{^(\w+)=(.+)$} ) {
+        $arg{$1} = $2;
+    } elsif ( @words and $word =~ m{^(ports|profile)$} ) {
+        $arg{$1} = shift @words;
+    } elsif ( not exists $arg{'target'} ) {
+        $arg{'target'} = $word;
+    }
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected : <target> ' . '[ports ..] [profile ..]'
+    }
+    if not length( $arg{'target'} // '' );
+
+return {
+    'mode' => qw| false |,
+    'data' =>
+        sprintf( 'target contains invalid characters [%s]', $arg{'target'} )
+    }
+    if $arg{'target'} =~ m{[^\w\.\-:/]};
+
+my $profile     = $arg{'profile'}                               // qw| full |;
+my $scan_config = $data{'openvas'}{'profile'}{$profile}{'name'} // '';
+
+return {
+    'mode' => qw| false |,
+    'data' =>
+        sprintf( 'unknown scan profile [%s] .., check openvas.profile.*',
+        $profile )
+    }
+    if not length $scan_config;
+
+my $helper = <openvas.cfg.helper>;
+my $socket = <openvas.cfg.gvmd_socket>;
+
+return {
+    'mode' => qw| false |,
+    'data' => "backend helper not found [ $helper ]"
+    }
+    if !-f $helper;
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf(
+        'gvmd socket not present [ %s ] -- greenbone backend container '
+            . '[ %s ] not running ..,',
+        $socket, <openvas.cfg.container>
+    )
+    }
+    if not -S $socket;
+
+require JSON::XS;
+require IPC::Open3;
+require Symbol;
+
+my @cmd = (
+    qw| python3 |,   $helper,
+    '--socket',      $socket,
+    '--user',        <openvas.cfg.gvmd_user>,
+    '--password',    <openvas.cfg.gvmd_pass>,
+    '--target',      $arg{'target'},
+    '--ports',       $arg{'ports'} // '',
+    '--scan-config', $scan_config,
+    '--poll',        <openvas.cfg.poll_interval> // 15,
+    '--timeout',     <openvas.cfg.scan_timeout>  // 14400,
+);
+
+##  run helper [ blocking .., async planned ] capture stdout + stderr   ##
+my $err_fh  = Symbol::gensym();
+my $pid     = IPC::Open3::open3( undef, my $out_fh, $err_fh, @cmd );
+my $out_str = do { local $INPUT_RECORD_SEPARATOR = undef; <$out_fh> }
+    // '';
+my $err_str = do { local $INPUT_RECORD_SEPARATOR = undef; <$err_fh> }
+    // '';
+waitpid( $pid, 0 );
+my $exit_code = $CHILD_ERROR >> 8;
+
+my $result = eval { JSON::XS::decode_json($out_str) };
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf(
+        'scan helper failed [ exit %d ] : %s',
+        $exit_code, length $err_str ? $err_str : ( $EVAL_ERROR || $out_str )
+    )
+    }
+    if $exit_code != 0 or not defined $result;
+
+return {
+    'mode' => qw| false |,
+    'data' =>
+        sprintf( 'backend error : %s', $result->{'error'} // qw| unknown | )
+    }
+    if ( $result->{'status'} // '' ) eq qw| error |;
+
+##  write findings yaml to zenka data dir                               ##
+( my $target_safe = $arg{'target'} ) =~ s{[^\w\.\-]}{_}g;
+my $yaml_path = sprintf( '%s/scan-%s-%d.yaml',
+    <openvas.cfg.data_dir>, $target_safe, time );
+
+$result->{'findings'} //= [];
+
+my $yaml_data = {
+    'scan' => {
+        'target'    => $arg{'target'},
+        'ports'     => $arg{'ports'} // '',
+        'profile'   => $profile,
+        'status'    => $result->{'status'},
+        'scan_id'   => $result->{'scan_id'},
+        'report_id' => $result->{'report_id'},
+    },
+    'enrichment' => qw| pending |,                 ## phase 2 .., ##
+    'findings'   => $result->{'findings'} // [],
+};
+
+my ( $ok, $yaml_err )
+    = <[format.yaml.write_file]>->( $yaml_path, $yaml_data );
+
+return {
+    'mode' => qw| false |,
+    'data' =>
+        sprintf( 'cannot write findings yaml [ %s ]', $yaml_err // qw| ? | )
+    }
+    if not $ok;
+
+my @findings = $result->{'findings'}->@*;
+my $reply    = sprintf( "scan complete [ %s ] : %d findings .., yaml : %s\n",
+    $result->{'status'}, scalar @findings, $yaml_path );
+
+foreach my $finding ( sort { $b->{'severity'} <=> $a->{'severity'} }
+    @findings[ 0 .. ( @findings < 7 ? $#findings : 6 ) ] ) {
+    $reply .= sprintf(
+        "  [%4.1f] %s : %s\n",
+        $finding->{'severity'},
+        $finding->{'oid'}, $finding->{'name'}
+    );
+}
+
+return { 'mode' => qw| true |, 'data' => $reply };
+
+#,,..,,,.,,,,,,,,,...,,,,,..,,,,.,.,.,...,,..,.,.,...,...,..,,..,,,..,.,,,..,,
+#J4BXC2X4OZBY4WKKU5LOSGHF4RZACDDWMSQ6IJILYTOLOAMFM5FRZ3254ZQOWBJNJHDPCHBJN5GFQ
+#\\\|JMZYYMCWZHNT5Z6NGEGEXP6W5AANODMI4TY5TX4CAAFTHMLL6FO \ / AMOS7 \ YOURUM ::
+#\[7]R5KP75EZLY5G2BVGRZS6SDQ6HQBSGDHAMDRNSZ4IKMPG5EV6IYAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
