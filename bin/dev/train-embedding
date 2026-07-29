@@ -55,6 +55,7 @@ my %opt = (
     qw| dim            | => 300,
     qw| minn           | => 3,
     qw| maxn           | => 6,
+    qw| minCount       | => 1,          ## keep rare IDs (CWE-79 appears 3x) ##
     qw| thread         | => 0,          ##  0 = fasttext default  ##
     qw| rolling        | => 0,
     qw| drift-threshold| => 0.20,
@@ -74,6 +75,7 @@ GetOptions(
     qw| dim=i             | => \$opt{dim},
     qw| minn=i            | => \$opt{minn},
     qw| maxn=i            | => \$opt{maxn},
+    qw| minCount=i        | => \$opt{minCount},
     qw| thread=i          | => \$opt{thread},
     qw| rolling!          | => \$opt{rolling},
     qw| drift-threshold=f | => \$opt{'drift-threshold'},
@@ -114,6 +116,7 @@ my @cmd = (
     '-dim',    $opt{dim},
     '-minn',   $opt{minn},
     '-maxn',   $opt{maxn},
+    '-minCount', $opt{minCount},
 );
 push @cmd, '-thread', $opt{thread} if $opt{thread} > 0;
 
@@ -174,6 +177,7 @@ write_metadata(
         dim              => $opt{dim},
         minn             => $opt{minn},
         maxn             => $opt{maxn},
+        minCount         => $opt{minCount},
         rolling          => $opt{rolling} ? \1 : \0,
         drift            => defined $drift ? ( 0 + $drift ) : undef,
         drift_threshold  => $opt{'drift-threshold'},
