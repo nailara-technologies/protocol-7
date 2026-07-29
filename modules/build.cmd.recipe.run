@@ -155,8 +155,8 @@ my $finalize = sub {
         // sprintf( '%s/data/build/checksums', $root_path );
     my $log_dir = <build.cfg.log_dir>
         // sprintf( '%s/data/build/logs', $root_path );
-    <[base.file.make_path]>->( $checksum_dir, 0755 ) if not -d $checksum_dir;
-    <[base.file.make_path]>->( $log_dir,      0755 ) if not -d $log_dir;
+    <[file.make_path]>->( $checksum_dir, 0755 ) if not -d $checksum_dir;
+    <[file.make_path]>->( $log_dir,      0755 ) if not -d $log_dir;
 
     ##  bmw-384 checksum record of verified artefacts  ##
     my @sums;
@@ -540,7 +540,7 @@ elsif ( $kind eq qw| pip-venv | ) {
     if ( ref $recipe->{'env'} eq qw| HASH | and $recipe->{'env'}->%* ) {
         my $env_dir = <build.cfg.env_dir>
             // sprintf( '%s/data/build/env', $root_path );
-        <[base.file.make_path]>->( $env_dir, 0755 ) if not -d $env_dir;
+        <[file.make_path]>->( $env_dir, 0755 ) if not -d $env_dir;
         my $env_path = sprintf( '%s/%s.env', $env_dir, $name );
         if ( open( my $env_fh, qw| > |, $env_path ) ) {
             printf {$env_fh} "%s=%s\n", $ARG, $recipe->{'env'}{$ARG}
@@ -578,8 +578,8 @@ $reply_text .= $reply_extra;
 
 return { 'mode' => qw| true |, 'data' => $reply_text };
 
-#,,..,.,,,...,,,,,...,,.,,.,,,.,,,,..,,.,,,,.,..,,...,..,,,,.,,,,,.,,,.,.,.,.,
-#VRS4XLDL5I5ULRYCV54CZD7DLTRHATHYZD2ZVUA675HF4VQRT3TG2YFWWGWLLH3GHW4QPTE746NFA
-#\\\|UAWMBBA52Z2ICKUVQGMW5QTVM3GCR2QNHSX5GVZWEDG6HKKLAPG \ / AMOS7 \ YOURUM ::
-#\[7]XPAAQFX7HF2CIB4TO375D7B3H745OVNIIRPDIOV3C7V5DJ4YHWBI 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,.,,.,.,..,,,,.,,..,...,,.,,..,,..,,...,...,,..,,,,,,.,,,..,.,.,
+#VU72I3SVOTQ5ZO7Y3UMAY3AIDA4IS3X2IVEWVLRQ3ACNQQ6T5D3PZXULLFYBKTCZNM2GBF6R3ABEM
+#\\\|VLAG6MOO56AOU7BMG7OSMQPXNKHPKJ6IIFTC6YNLIV4SA7GGOV2 \ / AMOS7 \ YOURUM ::
+#\[7]3LI3GKTNPY527LZJFA66ALSWCTCROJSX3ANEZE7OWVSSVBVKFQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

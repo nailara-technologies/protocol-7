@@ -53,7 +53,20 @@ my $sent = <[protocol-7.route-send]>->(
 
 $state->{'last_attempt'} = <[base.time]>->(5);
 
-if ( $sent <= 0 ) {
+if ( $sent == -2 ) {
+
+    ## protocol mismatch : permanent failure, same reasoning as         ##
+    ## base.zenka.push -- do not retry a command string that will never ##
+    ## become valid no matter how many times the target comes online.   ##
+    <[base.logs]>->(
+        0,
+        'base.zenka.push : permanent failure [ protocol mismatch, '
+            . 'malformed command %s ] -- dropping, not retrying',
+        $payload->{'command'}
+    );
+    delete <base.zenka.push.state>->{$target};
+
+} elsif ( $sent <= 0 ) {
     ## send failed immediately : schedule retry ##
     my $backoff = 2**$state->{'backoff_n'};
     $backoff = 60 if $backoff > 60;
@@ -70,8 +83,8 @@ if ( $sent <= 0 ) {
 
 return;
 
-#,,.,,,.,,,.,,.,.,.,,,.,,,,,.,...,,,.,.,.,..,,..,,...,..,,..,,,.,,...,,..,,,,,
-#HV4KDLLFJLC45VMPZXLRUHWULRVW64YSNYSZCVHXNZ6XPLQHKOXT4XRBMDWYI5UOGVEI3BFYTM3QE
-#\\\|HXRWTTRHBOQPDMXPXDPVSAWYLDFC6UKSZ5ERRLCDXA6WJVIGCSP \ / AMOS7 \ YOURUM ::
-#\[7]5JUV72PR67X5VUVMR7XSDJSYO5RYWJPJJ4TJTDVIRM5WTRGMMWBA 7  DATA SIGNATURE ::
+#,,..,,.,,,..,.,,,..,,,.,,,..,,,.,,.,,,..,.,,,..,,...,...,.,.,,.,,,..,..,,,.,,
+#7V7VVZTSZBCHYJICHP7RIP6A54B7LRFPUGCTMP4KBX6I3BXZTKGUAILOMK2Q6P7F3VCYBXPTKG36S
+#\\\|EJSTH6M7JCVU7JEQTCP746DUPXNZU6IUFBAMAYHQC6QGZBS5B5C \ / AMOS7 \ YOURUM ::
+#\[7]KPT25QT7ZSBZVQSIURE4FJRJJCESS3LE35OPKNAIVHF7XT24B2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

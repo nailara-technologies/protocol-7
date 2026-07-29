@@ -68,14 +68,29 @@ cut off mid-reply. Disk state (`git status`, `ls modules/`) confirmed
 everything landed. Same lesson: check disk/logs before treating a
 `failed` task-notification as lost work.
 
+**Recurrence 2026-07-29 (3 for 3 in one session)**: `kcqwm9ylr`
+(security-intel dispatch) actually finished clean and committed
+(`27b5421ab`); `kfm4ggfbf`/`k41h2bfrf`/`k2u50wvde` (forensics-agent, the
+original dispatch + a resume) both hit the same MCP idle-timeout
+`status=failed` while `ps aux` + `~/.kimi/logs/kimi.log` timestamps
+confirmed the underlying `kimi-legacy` process was still alive and
+actively editing files each time, live-verified against real console
+output from the running `forensics` zenka as it iterated (auth.zenki
+fix, init_code fix, the `File::stat` shadowing bug, an ntime comp-int
+decode gap). Same fix each time: check `ps aux | grep kimi` +
+`grep <session_id> ~/.kimi/logs/kimi.log | tail` before assuming
+`status=failed` means the work stopped — resume via `kimi_continue`
+with the same session id only if the process actually isn't running
+anymore; otherwise just wait, it's still going.
+
 ## related
 
 [[feedback-mcp-memory-update-agent-detection]] ·
 [[feedback-kimi-dispatch-pattern]] ·
 [[feedback-tasks-completed-scan-verdict-trust]]
 
-#,,,.,,,.,,.,,...,...,,..,...,..,,,..,.,.,..,,..,,...,...,,,.,.,.,,,.,,.,,,,.,
-#KGJCH2EMGHGJAA5HTTI5G52WPOLCOBURT3ZZOL423EF2PNF6OU4Y7WOFYUEAPIRW7WRW3FXRFSKQ2
-#\\\|QZRVAB44ZVHHAD52RFO46NAG5SQDOS2X42FJ67IFQL32NVFPLRM \ / AMOS7 \ YOURUM ::
-#\[7]6IQT4LZVPZLDADPJMU3U6PGB2I52XGUADEKTHCLJK2X3B6BPGYAA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,,,,.,.,,.,,.,.,,..,,,.,...,,.,,..,,...,...,...,..,,.,.,.,,,,,.,
+#JZ4TUG6KVOIV2F6IA4JGWNAYHZRNKJQKECAREG5DVLN6X5MAZLXMWPGM4ULFSVUODTV6QQMZSUYMO
+#\\\|I7F2L7ADEO2WIZYO7KALVLK3MERUZUXNSD7U3SOPZ7FDNMCQ2H3 \ / AMOS7 \ YOURUM ::
+#\[7]VSZG2NH6GE4XAETEA23BF4MNC6YOXUB7XFHD6BWC2V3U5GSFZSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
