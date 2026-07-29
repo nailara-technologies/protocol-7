@@ -32,10 +32,8 @@ chasing anything more exotic.
 against `(declare|select)-` is cheap insurance, though the real fix already
 landed so new names should be safe now.
 
-#,,..,.,.,..,,.,.,..,,...,.,,,,.,,,,.,,,,,...,..,,...,...,...,.,,,,..,,..,.,.,
-
-#,,,,,.,.,.,.,..,,,..,.,.,.,.,.,,,,,,,,,,,,,,,..,,...,...,...,..,,,.,,...,.,.,
-#4Z3MRRCC3I7MC4IRSSITGBGYBG2ZTXTL55HUFBPWQWR6OXHNUFLBFKOT2QRG4NWZ36SAMRPGCNTEY
-#\\\|CF7NCZ6NOGK76TDBA3SMYISCMIURIU3QHP3BKWC3YJ3IJU2Z672 \ / AMOS7 \ YOURUM ::
-#\[7]OZF4TZBNJW73MTP2Z2VHX7HOOJ4D4IIVIXZIY5DQ7EH2GOVRPMDQ 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,,,,,.,,,,.,,,.,.,,,.,,,,..,..,,..,,...,...,,,.,.,.,,..,,.,,,,,,
+#JPD3JL5EP2IDBNV3K4AWKY2ESHNI4TVLCGKFPZ35767SXZYINGKYUUA2VBKZY5TAGNS7MKAFXQNLS
+#\\\|WVE2JJDV54B4BIE5KOTPOVFA4TK7C4ABGFDHORSDKRJXVDB2R6W \ / AMOS7 \ YOURUM ::
+#\[7]Z6524RZWQIHJZ5PS7D725D5ELQR5N2YHG6HWNCPWWZMJL3XCTWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

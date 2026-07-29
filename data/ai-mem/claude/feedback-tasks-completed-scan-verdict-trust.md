@@ -48,10 +48,8 @@ rate on "still open" is not a one-off — treat every batch-scan "still
 open" bucket in this repo as unverified by default, not just spot-check
 the surprising ones.
 
-#,,,.,,..,,.,.,,,,.,,,,.,.,,.,,,,,,.,.,,,,.,,,,,,,,.,,.,,,,,,,,,,.,,,,,,.,,
-
-#,,.,,,..,,,.,,,,,...,,,,,.,.,,.,,,..,...,...,..,,...,.,.,..,,,.,,,,.,,,,,,.,,
-#5I5VASH555ZMVMQKONYAYJ5ILVI3RKFLE2JODV4BFQ2PLVQIDAQTJJSM3345NQMLZ6ZMGPSB2GZ72
-#\\\|R6RMOFKYNNKZT6YIAHUH26Z6GSXAN4J2CYWICQC2KEB4IIJVYJO \ / AMOS7 \ YOURUM ::
-#\[7]JNKL4OEYNS3ECFVZB2DM7NQIK57IINTCADWKTNAMC6BEXR756GBY 7  DATA SIGNATURE ::
+#,,..,...,...,..,,.,,,.,,,.,,,.,.,,,,,,,,,,.,,..,,...,...,,,,,.,,,,..,.,,,.,.,
+#2PKVEUWEQEPEGM5XDGBZYAQG4LWFWFXM5GVDL42LBD6HRZWP73D3VOZ64GPVXY36B2ID2BJCBJTUM
+#\\\|3374UHJCR5QECQUUYBFVUABG4E64I6XB3ECM2YKWY7UC3VVZK3G \ / AMOS7 \ YOURUM ::
+#\[7]DJATAPYJAAWYTFFQSJCLXHVUL2YA4XNEFCFK4XUMFNZ66YYZ6YAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

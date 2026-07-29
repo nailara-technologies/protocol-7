@@ -61,10 +61,8 @@ how to continue converging it.
 
 [[topic-reference-bubble]] · [[topic-dedup-tree-unifying-mechanism]] · [[project-layer-matrix-convergence]] · [[topic-node-group-geometry]] · [[topic-harmonic-mathematics]]
 
-#,,.,,...,,.,,...,.,.,..,,,.,,.,,,,,,,...,,,.,..,,...,..,,,.,,,,,,,,.,,,,,.,,,
-
-#,,..,..,,.,,,,,,,...,,..,.,,,...,.,,,,..,,,,,..,,...,...,,,,,,,,,..,,...,,..,
-#NLENZEASA46RPU4FUUPNS45SFF3Q7RVQJEKP24QFZJLBJN6C5MA6XWABS4L72VY43CMFAO5APISDM
-#\\\|GTAFQT22WCL5TZJHZUK5NDIDGH2XI6VQADXCHQ7H74YFI2ESQSM \ / AMOS7 \ YOURUM ::
-#\[7]KNH3YVZ6UVJSLNBWE6D4NLJTV3PGL2UA65OXHEHPKCP3GNMBBCAQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,.,,.,.,,..,,,.,,.,,.,.,,,,,,..,..,,...,...,...,,,.,,.,,...,,,.,
+#EBSIDQMFJ7EGNV45PFH45QQHW55FZESRI5H2ZCSFUJVVPZ3KS2T34EDI4TJEZCWJNORDJ27WS63PE
+#\\\|CACBKTQ4FUESNA7GLWQOIVS4JDKPY752W7FSKRGRLAYVG5NMPUO \ / AMOS7 \ YOURUM ::
+#\[7]BLT7473YFRKNTUHIEBRQBFINZD664RPPOS4WT5DJP37ADJRSAOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

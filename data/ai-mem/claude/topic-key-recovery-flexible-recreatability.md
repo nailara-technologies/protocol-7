@@ -231,10 +231,8 @@ answered there.
 this could eventually feed into), [[topic-ncode-pattern-learning-loop]]
 (the session this conversation branched off from)
 
-#,,..,,,,,,,.,,..,,,,,,.,,,.,,.,.,,,.,.,.,,..,..,,...,.,.,...,,..,...,.,,,,..,
-
-#,,..,,,.,,.,,,,.,.,.,,,,,...,.,.,,..,,,.,,.,,..,,...,...,..,,,,,,,..,..,,...,
-#WF42SIHVQRZ42QGS63EIBNRGIJ6CPN4JJDZV5ZX7G2WEDIKI7JWLNPE77BD7TNNT4NW4O5IGHLWQ4
-#\\\|IKRCNWOWZDPMDQAM6YCQQAJ6YK6B4QG6WU7CYC4F4NAZSQABYRE \ / AMOS7 \ YOURUM ::
-#\[7]QQBSXSUBXACBVAVNBNMAATTQF2YP5XPRURNYDVYRCKJUFKENAECQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,..,,..,,.,,,,.,,,.,..,,,,.,.,,,..,,...,...,,..,.,.,,,,,..,,.,.,
+#TZX3TDB34HOXO72UJET25YONYA54U7DBR3HRX64GJC2RGVUZXU4LZ3SBOOFEU77JDPIC75KA6EJO4
+#\\\|2KUXB2G3WFT3R7TMEPJWS5DPTIUA2R5KW62I5S62AGS6Z7G2FL2 \ / AMOS7 \ YOURUM ::
+#\[7]NPXJF4PFDX2GVTQ6LNETXACJWKT3OFZEUOPPF3CPRLAUE2JKEODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

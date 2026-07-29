@@ -6,6 +6,9 @@ coding-zenka reasoning/edits/inject pitfalls, ncode tooling, perltidy self-heal,
 memory-management timing, git-log false-duplication, webkit-vs-firefox css blindspots.
 
 ## Feedback
+- [combined-grep-conflated-caller-counts](feedback-combined-grep-conflated-caller-counts.md) — grep -rln 'A|B' reports files matching EITHER pattern; reported an inflated 23-caller blast radius (actually 2) in a dispatch prompt because I combined two function names' greps; kimi's own verification caught it, not me
+- [web-browser-tls-ignore-and-proxy-no-proxy](feedback-web-browser-tls-ignore-and-proxy-no-proxy.md) — ignore_tls_errors toggle (global, opt-in) + NO_PROXY fix (18e79492d); NO_PROXY fix currently inert, proxy_setup runs before open_window assigns web_context
+- [web-browser-js-form-fill-reset-on-submit](feedback-web-browser-js-form-fill-reset-on-submit.md) — synthetic React-input fill via run_js worked fine, but an XPath text-match click likely hit a nearby "Reset" button instead of "Continue"; verify which element a selector actually resolved to before assuming app-level validation is misbehaving
 - [edit-via-project-path-not-dotclaude](feedback-edit-via-project-path-not-dotclaude.md) — edit memory via data/ai-mem/claude/, not ~/.claude/projects/.../memory/ (same file, latter re-prompts every edit)
 - [base-prefix-stripped](feedback-base-prefix-stripped.md) — base.X→X swap_subs families (event, file, base32, templates, chk-sum, zenka.push, etc.); never conclude a bare call is broken from `ls modules/` alone; two families swapping to the same short name confuses dep-graph's scanner
 - [filter-repo-amend](feedback-filter-repo-amend.md) — `AMEND=1` prefix required for any git history-rewrite: filter-repo AND plain `commit --amend` both, else silently blocked by pre-commit's version-mismatch check
@@ -57,8 +60,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [perlmod-categorization-review-catches](feedback-perlmod-categorization-review-catches.md) — kimi dispatch review caught 6 templated/vague-reasoning misclassifications; caller-count grep meaningless for .cmd./.handler. (dynamic cube routing) and can false-positive on nested-namespace names; K3 re-verification of all 59 MOVE rows in flight, check results before trusting
 - [inline-elf-perl-version-infinite-loop](bug-inline-elf-perl-version-infinite-loop.md) — FULLY RESOLVED, both atom+pri clean-start verified: dangling-if in inline_elf's UTF-8 decode (Perl 5.42.2 only) unpacked into 5 total independent bugs chasing one boot end-to-end (ptd P7-macro false-positives, deps profile gaps, httpsd/web skins ownership race, stale web.cmd.skin path); one symptom ≠ one bug, don't stop at the first plausible fix
 
-#,,.,,.,.,,..,,,.,.,.,.,.,...,,,,,...,..,,,,.,..,,...,...,...,.,.,,.,,.,,,.,,,
-#HMBZIXQRVQKSM7CEYE3YZK6YSCOGPBRKTWOTSX42PH7WZDF5QJOPZVL5I4T4JROSBXWVHKIL2ZGXO
-#\\\|TX7CESNABNEN4XOWEXOOGJDDF6SA7EYOBVSMSVEAKX2XGLEM3BL \ / AMOS7 \ YOURUM ::
-#\[7]DP7GZBC54G3B4EZTNTHWCLJOKBCCTPG4TTPYHKUAGPRW2QZJYCCI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,...,,.,,,..,,.,,..,,.,,,.,.,,.,,..,,...,...,...,,..,,.,,..,,.,,,
+#2LRSNYH33RWJO66CQU4XYBINDLEED73KC535PMMQUVPCBTUOACKPQOOR3VSDQWCCU6ZRZ5F22SUNC
+#\\\|2VEP5QRHBJFPFZEDRG3LJKDHCETPMCKWOH2AXWO3VAWPXOOSUZW \ / AMOS7 \ YOURUM ::
+#\[7]CL46HAYDXEPBOZTRFRLMRCEWN7SC43XGUWOA6LQTBJVYVVT7IEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

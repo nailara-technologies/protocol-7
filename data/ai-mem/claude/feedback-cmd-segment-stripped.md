@@ -39,10 +39,8 @@ grant.
   `.list-slots`/`.ui-show` all called live via console (`.cmd.` stripped),
   routed correctly, returned real data (not "no perm"/"not known"). Closed.
 
-#,,.,,...,...,.,.,.,.,...,,,.,...,.,,,,,.,...,..,,...,...,,,,,,,,,,,,,,.,,,..,
-
-#,,..,.,.,.,.,...,,,.,...,,..,..,,,,.,,,,,.,.,..,,...,.,.,...,,.,,.,,,..,,...,
-#DDUSE6E2B3PW3GFIWLPI7ONIFEY5QIYEQFOULYBRVC2T5LY6XHGCWXBXJCXDBO6GYUCNWID6BAAFW
-#\\\|SMTTLSIDUU572ISNNRVAO5OKEX2PNLTMVD6PPBQQCHF4EL6ZNA3 \ / AMOS7 \ YOURUM ::
-#\[7]5BF4YRGR2F7XHGOMGQQHEZ5L3B7WKZV5WKXXOKP5Q2WDIXQ2Z4AA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,..,,.,.,,,,,,,.,.,,,,,,,..,,,,,,..,,...,...,.,,,.,.,,,.,,,,,.,,,
+#HJ664H42YKI3HY4TUJ7ZLH7TUWL3DXBMJFAO2H2V4EF6DU5XVBB2AMNY5RAWLVV3EMJOYYV73LRGY
+#\\\|FKCHCTFIFTWYVTLV7AEFDVCEH3H4644MFFDDT2BWJYDHPYZMHYN \ / AMOS7 \ YOURUM ::
+#\[7]YODIX3FYQDVVHU2HUN2PSQ26ATUKV3ZITOB4L3EQZDXPGEO6RMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

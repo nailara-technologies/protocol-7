@@ -32,10 +32,8 @@ self-reported name strings or cube-stamped hostnames. Revisit `p7-log.cmd.append
 host-namespaced log filename (`<system.node.name>` + zenka name) at that
 point — it's a stopgap, not the final design.
 
-#,,..,.,.,..,,.,.,..,,...,.,,,,.,,,,.,,,,,...,..,,...,...,...,.,,,,..,,..,.,.,
-
-#,,.,,.,,,..,,,,.,.,,,.,.,.,.,,..,,,.,...,,.,,..,,...,...,.,.,.,.,.,,,.,,,,.,,
-#ZXKGHATW7O64C4GQKJWAXVC2AIBWTN76DURGZK2X6OE2PQQAXQSOOTETYVYU3JWLPK5VDFG4XSZPC
-#\\\|CV7QZWKFFIHR7XFUFFFIL7P3O6NMYHZUUOMFC47LZW3MJL7B3GO \ / AMOS7 \ YOURUM ::
-#\[7]X3SH4DSN4RWPPTYMUHNJFXS22DAT3CQ35JJX5XY2N36GZQFPZUBY 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,.,,,...,,..,,.,,,..,,,,,,,,,,..,..,,...,...,.,.,..,,.,,,...,,..,
+#5S27LTEU67QCAKT3XHRYTWGAWZ27QX7C5ALHSEYHX3XCP5HF7W3WUKNOADZHAAQEM73W6X5A2ZMEM
+#\\\|3R7IC3V5C26XJL7DMKZWBQZ62IERKGAVXTAIHNYGHX2GZ57IYPW \ / AMOS7 \ YOURUM ::
+#\[7]JDIG2YYNS4DIJXFJQBYLJG6FQLTERMROGJVE24RMEU6QZ6ECKQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
