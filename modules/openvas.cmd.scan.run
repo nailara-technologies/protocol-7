@@ -1,8 +1,8 @@
 ## [:< ##
 
-# name  = openvas.scan.run
+# name  = openvas.cmd.scan.run
 # param = <target> [ports <ports>] [profile <name>]
-# descr = run openvas scan against target, write findings yaml to data dir
+# descr = run openvas scan against target, write findings yaml
 
 ##    backend control path decision [ host survey 2026-07-29 ] :            ##
 ##                                                                          ##
@@ -79,8 +79,8 @@ return {
 return {
     'mode' => qw| false |,
     'data' => sprintf(
-        'gvmd socket not present [ %s ] -- greenbone backend container '
-            . '[ %s ] not running ..,',
+        'gvmd socket not present [ %s ] -- greenbone '
+            . 'backend container [ %s ] not running ..,',
         $socket, <openvas.cfg.container>
     )
     }
@@ -161,22 +161,23 @@ return {
     if not $ok;
 
 my @findings = $result->{'findings'}->@*;
-my $reply    = sprintf( "scan complete [ %s ] : %d findings .., yaml : %s\n",
+my $reply_text
+    = sprintf( "scan complete [ %s ] : %d " . "findings .., yaml : %s\n",
     $result->{'status'}, scalar @findings, $yaml_path );
 
 foreach my $finding ( sort { $b->{'severity'} <=> $a->{'severity'} }
     @findings[ 0 .. ( @findings < 7 ? $#findings : 6 ) ] ) {
-    $reply .= sprintf(
+    $reply_text .= sprintf(
         "  [%4.1f] %s : %s\n",
         $finding->{'severity'},
         $finding->{'oid'}, $finding->{'name'}
     );
 }
 
-return { 'mode' => qw| true |, 'data' => $reply };
+return { 'mode' => qw| true |, 'data' => $reply_text };
 
-#,,..,,,.,,,,,,,,,...,,,,,..,,,,.,.,.,...,,..,.,.,...,...,..,,..,,,..,.,,,..,,
-#J4BXC2X4OZBY4WKKU5LOSGHF4RZACDDWMSQ6IJILYTOLOAMFM5FRZ3254ZQOWBJNJHDPCHBJN5GFQ
-#\\\|JMZYYMCWZHNT5Z6NGEGEXP6W5AANODMI4TY5TX4CAAFTHMLL6FO \ / AMOS7 \ YOURUM ::
-#\[7]R5KP75EZLY5G2BVGRZS6SDQ6HQBSGDHAMDRNSZ4IKMPG5EV6IYAA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,,.,,,,,..,,...,,..,.,,,,,,,,..,.,.,...,...,,..,.,.,,..,,,,,...,
+#2VEBLOWETJYC5U5VTJ3Z5CKPF7EVWEZ5TJ5YFR5XGQBWR3BN3FWDP2H4QSOZIRWUAXV6XKXMDDLSC
+#\\\|WHHKW24LCHV6WRSMLLKNGEH66H5AUUCLPFSQCIPYNQMQXQJPPNU \ / AMOS7 \ YOURUM ::
+#\[7]3EXPFL23ZQZEONQHBJ5CA7NLPRWG6A533QW2FOQ3P6SHFDTOXKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
