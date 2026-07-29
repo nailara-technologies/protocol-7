@@ -1,0 +1,47 @@
+## [:< ##
+##
+## build recipe : ik_llama-cuda [ kind : git-build ]
+##
+## wraps : bin/build-scripts/llama-cpp/build-cuda-docker.sh
+##         bin/install-scripts/install_llama_cuda.sh
+## encodes the manual runbook in bin/build-scripts/README.md +
+## data/yaml/build-instructions/ik_llama_*.yaml as data, including the
+## fix_cli_log own-fork branch requirement [ disables the broken LOG_TEE
+## macro ] discovered by hand 2025-12-05 ..,
+
+name: ik_llama-cuda
+kind: git-build
+descr: ik_llama.cpp CUDA build [ docker, ubuntu 22.04 base, glibc workaround ]
+
+source:
+  git_url: https://github.com/ikawrakow/ik_llama.cpp.git
+  branch: fix_cli_log    ## own-fork branch : LOG_TEE fix must survive rebuilds
+  work_dir: /data/source/ik_llama.cpp
+
+patches:
+  - path: data/patches/iqk-symbol-extern-c-fix.patch
+    expect: clean-apply    ## own-fork patch : halt + report on conflict
+
+build:
+  backend: docker        ## glibc/CUDA incompatibility -> ubuntu 22.04 container
+  script: bin/build-scripts/llama-cpp/build-cuda-docker.sh
+  env:
+    CUDA_VERSION: '12.5.0'
+    UBUNTU_VERSION: jammy
+    IMAGE_NAME: ik_llama_cuda_gpu
+    OUTPUT_DIR: /data/source/ik_llama.cpp
+
+artifacts:                          ## relative to source.work_dir
+  - llama-mtmd-cli-cuda-fa-12.5.0   ## vision binary [ flash attention ]
+  - llama-mtmd-cli-cuda-fa          ## symlink to latest build
+
+install:
+  script: bin/install-scripts/install_llama_cuda.sh   ## extract + symlink step
+  destination: /usr/local/bin
+  requires_root: 1
+
+reference: bin/build-scripts/README.md
+notes: >
+  no debian package exists for ik_llama.cpp -- flagship fallback-only
+  recipe. the docker backend is the rescued manual solution for the
+  debian 12 glibc / CUDA incompatibility, not a new invention.
