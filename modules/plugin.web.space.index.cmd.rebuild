@@ -41,7 +41,8 @@ my $duration_ms = int( ( <[base.time]>->(4) - $start_time ) * 1000 );
 
 my $persist_dir = <web.space.index.cfg.persist_dir> // qw| space-index |;
 my $zenka_data_path
-    = eval {<[file.zenka_dir.data_path]>} // qw| /var/protocol-7/web |;
+    = eval {<[file.zenka_dir.data_path]>}
+    // catdir( <system.path.zenka-dirs.var_P7>, <system.zenka.name> );
 
 <web.space.index.running> = 0;
 
@@ -58,8 +59,8 @@ return {
     )
 };
 
-#,,,,,,..,.,.,...,.,.,,..,.,.,,..,..,,...,.,.,..,,...,...,,..,,,,,..,,,,,,..,,
-#QQFZCPP6EZQUMWFKMQDB4G5JTABFSQWJ4ZVXQCAVUFU7PNN5VOHY4FWP5H4B2PWKX3G77LQJAXTUM
-#\\\|XE7GHSTOKOE2OR2XACC6AMFV3JQSNQL37C65AVLLB662OREBRTD \ / AMOS7 \ YOURUM ::
-#\[7]KBITAAHM3PCYTVYNB6AN4RKWH2L3RZZI4VIX4VFYMMH2LIBOWADA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,.,.,,.,,.,.,,..,,,.,.,,,,,.,,..,..,,...,..,,..,,,..,,,.,,,.,,..,
+#RRYEDOCAVDSP3HYQFIYZ4K3BF77TNDACNSA52NBKQIFWKAMBK62LXZLD2OKDX4EZ3JBUWLBRSGAJA
+#\\\|J4SW7MXWBGLX54NKQHETVMC7FJMT32JHMHR4WMAE3D6D75V7JPR \ / AMOS7 \ YOURUM ::
+#\[7]AUY3R4Q3D6G6ZYM2VKNUHSVMSWRH4B3MHAQCTWVWGURNC6FMXEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

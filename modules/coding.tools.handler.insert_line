@@ -52,7 +52,8 @@ if ($apply) {
             $line_num, $path, $content;
     } else {
         my $stage_name = $abs_path =~ s{/}{__}gr;
-        my $stage_path = "/var/protocol-7/coding/staged/$stage_name";
+        my $stage_path = catfile( <system.path.zenka-dirs.var_P7>,
+            <system.zenka.name>, 'staged', $stage_name );
 
         ## stage the FULL file with the insertion already applied, not just ##
         ## the inserted line -- @lines already has it spliced in above, and ##
@@ -72,8 +73,8 @@ if ($apply) {
 return sprintf "preview: would insert before line %d\n  content: %s",
     $line_num, $content;
 
-#,,,,,.,,,..,,,,.,,..,...,,,.,,..,,,,,,,.,,.,,..,,...,...,,,.,,,.,.,,,.,,,.,,,
-#DJ7NL3PMEAQKMZQSXWAWVNYWBSOAYZNGTUJDBVMCG462EQJNZZI4HVCFSTJQQIVI3RAXGU6KQOZ3C
-#\\\|7ROFU2YB6KGKXTI5U7HWAUTOFVVOOBPHI2F5UNPDW555EPR4OY5 \ / AMOS7 \ YOURUM ::
-#\[7]QFFJA27EZWBYNWJ4AR5QLQVCYDHDTI46OEMNSUMNAF3KCM67LGAY 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,...,.,.,.,.,,,.,,.,,.,,,,,.,,,,,..,,...,...,.,.,...,,,,,,.,,...,
+#LOHCXTD5MLYRNA35ZTZYNE7P62HRD6TNTTRSWTIWTTBNTEPC3TIPD6S3TIHO6F4S4C6Y4QBCX4WA4
+#\\\|DSJGOZ36RKX4ZTXNQXVJ6J724C2BRXAVWE7INZSIILAFGMSVOWP \ / AMOS7 \ YOURUM ::
+#\[7]OOIYOBIFHTWENSCLZST5HB2WSRMHDFYARZZQUMGM3JNUDZEV3GAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

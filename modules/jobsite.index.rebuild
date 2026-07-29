@@ -3,14 +3,16 @@
 # name  = jobsite.index.rebuild
 # descr = rebuild index.yaml from all job files in status directories
 
-my $jobs_dir   = '/var/protocol-7/jobsite/jobs';
-my $index_file = '/var/protocol-7/jobsite/index.yaml';
+my $jobs_dir
+    = catdir( <system.path.zenka-dirs.var_P7>, <system.zenka.name>, 'jobs' );
+my $index_file = catfile( <system.path.zenka-dirs.var_P7>,
+    <system.zenka.name>, 'index.yaml' );
 
 my $index = {};
 
-## epoch-bucketed [ terminal ] statuses scanned FIRST : an orphaned     ##
-## blocked/deleted remnant must never win over a legitimate active     ##
-## record for the same id -- active statuses scanned second, win below ##
+## epoch-bucketed [ terminal ] statuses scanned FIRST : an orphaned       ##
+## blocked/deleted remnant must never win over a legitimate active record ##
+## for the same id -- active statuses scanned second, win below           ##
 for my $status (qw| blocked deleted |) {
     my $dir = "$jobs_dir/$status";
     next if not -d $dir;
@@ -73,8 +75,8 @@ if ( not rename( $tmp_file, $index_file ) ) {
 
 return TRUE;
 
-#,,,,,.,.,,.,,.,.,.,.,.,,,,.,,.,,,,.,,,..,...,..,,...,...,,,.,..,,,..,.,,,..,,
-#QRFA2AFBHVWVLWOU7YRTIID3JRFVQZLWDRFOHLPASHODLE4TKKC22YZMU2TUCKSPCORXVWJDHY2MQ
-#\\\|YKIRLE2HGOVJV54CRPJFAX5T7ZNKKL5KAL7AG66ZNMNZ4I7DFP5 \ / AMOS7 \ YOURUM ::
-#\[7]CTJAELQNHWBLSV5EYLX7ACNZNBJHNTLCKCBPJPRETAEHKN463WDA 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,...,...,..,,..,,.,,,,..,.,,,,,,,..,,...,...,.,.,.,.,,,.,,,,,.,.,
+#TVTRBN6AXXKKRT53IDI2UVNVCYFAW4GB5QDQ43UQF4WCH6X2DJ5ERXAH3STWCXAGZG6UJOGILYHNG
+#\\\|3AEKE22A6O3HNWRQDPIINDBSLULTBWTDJNJ5ZBOA72W62LBUWIS \ / AMOS7 \ YOURUM ::
+#\[7]WYXJTXKYOT3GKE53U7X2Q23XHHHOPTLOKWF2Z7VKGEYFHKUQMODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

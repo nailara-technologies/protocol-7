@@ -57,7 +57,8 @@ if ($apply) {
             $line_num, $old, $content;
     } else {
         my $stage_name = $abs_path =~ s{/}{__}gr;
-        my $stage_path = "/var/protocol-7/coding/staged/$stage_name";
+        my $stage_path = catfile( <system.path.zenka-dirs.var_P7>,
+            <system.zenka.name>, 'staged', $stage_name );
         open my $fh, ">$norm_encoding", $stage_path;
         print {$fh} @lines;
         close $fh;
@@ -72,8 +73,8 @@ if ($apply) {
 return sprintf "preview line %d\n  was: %s\n  now: %s", $line_num, $old,
     $content;
 
-#,,.,,,,,,,,,,,,.,.,,,.,,,..,,.,,,..,,...,,..,..,,...,..,,..,,.,,,,,.,,,.,,,.,
-#4S7ACAFG5ZQUUAP6S2GOB7IJE7TFVIHTPB6TCMZ3K4XKFDSQQPEKVPWDFP23IR7WYJR2SQT3X7F5E
-#\\\|MK5RU3VKN5XKHVVXZMYLBYELNUSQ5EDOJBTKWQA63R3FNM7UHHV \ / AMOS7 \ YOURUM ::
-#\[7]E6DIOAFZ7GBLKY6DE2LS64D46RHWAN4MG3RZOYHF2FJPGMN2BKAY 7  DATA SIGNATURE ::
+#,,.,,.,,,...,.,.,,,,,..,,.,.,,,.,.,,,,.,,,..,..,,...,...,.,.,.,,,,.,,,..,.,.,
+#3IZ6ND7J6TSLJAHPP7KWFHVECSVP3PBXXU742D5CVPLZED64MCHE6RWFAK7JSK3WBRPWDPSU3CP2I
+#\\\|6QL47UUYXVU7K46ATSFQIAYXCQ62TUQKLXCPJVEZH7VLR7RMQ72 \ / AMOS7 \ YOURUM ::
+#\[7]QAJ6PAFUISHKI5NYE6CHJI7GE5KWJGFRU2UTXWPJS2MCBVXTMSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

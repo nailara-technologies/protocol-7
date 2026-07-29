@@ -159,7 +159,10 @@ my %dispatch = (
         );
 
         ## capture stderr to tmpfile to avoid pipe deadlock ##
-        my $err_file = "/var/protocol-7/coding/state/.search_err.$$";
+        my $err_file = catfile(
+            <system.path.zenka-dirs.var_P7>, <system.zenka.name>,
+            'state',                         ".search_err.$$"
+        );
         if (open my $fh, '-|', "@{[ join ' ',
             map { quotemeta $ARG } @cmd ]} 2>$err_file"
         ) {
@@ -283,7 +286,10 @@ my %dispatch = (
         my $skipped = 0;
 
         ## capture stderr to tmpfile to avoid pipe deadlock ##
-        my $err_file = "/var/protocol-7/coding/state/.ncode_err.$$";
+        my $err_file = catfile(
+            <system.path.zenka-dirs.var_P7>, <system.zenka.name>,
+            'state',                         ".ncode_err.$$"
+        );
         if (open my $fh, '-|', "@{[ join ' ',
             map { quotemeta $ARG } @cmd ]} 2>$err_file"
         ) {
@@ -718,8 +724,8 @@ return {
     'content' => $content,
 };
 
-#,,.,,,..,.,.,..,,..,,,,,,...,,,.,,,.,,.,,,.,,..,,...,...,.,.,,..,,.,,,,.,,.,,
-#JNWSUNE5IROJOIANX2PPW2BMVLQRT4LYGO6ISZUPCQG6DNUOFL3IRC3PA43QQ4LL4N5IJMWDN6XNY
-#\\\|O2XDXSL7P7YDGOPNKE2ICE5G3B2QSWQ2T7AVORSUN5UPEPEOVHF \ / AMOS7 \ YOURUM ::
-#\[7]GZPIWFCNNSVVKZ7JTN7Y5NLIXVYA3COB427SGC2CKVYTP46HZ6AA 7  DATA SIGNATURE ::
+#,,..,,.,,...,..,,.,,,.,.,,..,,.,,,..,...,,.,,..,,...,...,,.,,,,,,.,,,.,,,,.,,
+#TNIHFU5FRIUFL45WQEZQ6FFYXC4ZOHBW2XFR2ROA24DTED4E5R7MNDJQPQ63X6IESW6RLBVBMC5N2
+#\\\|LXRCLJ5WC3NON2PVCHP6OKM2T3JC3CJ22LU5M3XXP4URNJSQLVJ \ / AMOS7 \ YOURUM ::
+#\[7]VJ26LFN3VKKOK2SISMKYC73V5FIY4LEDYGHV4QUS2WQTROPXU2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

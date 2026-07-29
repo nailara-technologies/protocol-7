@@ -12,7 +12,10 @@ my $task_type = $task->{'type'} // $task->{'task_type'} // '';
 return { found => 0 } unless length $task_type;
 
 ## load outcomes from persistence file ##
-my $outcomes_file = '/var/protocol-7/coding/learning/outcomes.json';
+my $outcomes_file = catfile(
+    <system.path.zenka-dirs.var_P7>, <system.zenka.name>,
+    'learning',                      'outcomes.json'
+);
 return { found => 0 } unless -f $outcomes_file;
 
 <[base.perlmod.autoload]>->('JSON::PP');
@@ -39,8 +42,8 @@ return {
     cache_key     => sprintf( '%s:%s', $task_type, $match->{'task_id'} )
 };
 
-#,,,.,.,.,.,,,,..,,..,...,.,,,..,,.,.,.,,,,..,..,,...,...,..,,,..,.,,,,..,.,,,
-#D2KXI7YRGQOM76WUDX4IS7LIKNYKK2IIJHQ4LZPB7PSJVXLW7CM3YXPM7ABIHDKIFC5WL4DC5LJ6U
-#\\\|NDBFEZW7SRMYUJ5YK4HN776AA7FGQMWYM4D3G3LR3UCQWLX2NS3 \ / AMOS7 \ YOURUM ::
-#\[7]BWGY5J6MCTVDED36MSLGILBC5BG23VC34FIBBABE533VZRDTHICI 7  DATA SIGNATURE ::
+#,,,.,,.,,...,,,,,,..,..,,...,.,.,.,,,,,.,,..,..,,...,...,...,..,,,.,,...,..,,
+#IYPPCNGP36IIJOOL37LJ4I5LJ2CN5X4ZK6TLEXTBBICLX6JVVNJLIGXZSXIIYCUYP2BSXBH4JDLLS
+#\\\|VCKR3WNXZNK35MAAKOEZSEQTPX7OYLTZBWZALJKHYLJGQDO45KL \ / AMOS7 \ YOURUM ::
+#\[7]4KUYWLZE73FNSSETYZE2BRQKB4EX3URD2IGM7PQPUWLD5OBHMEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

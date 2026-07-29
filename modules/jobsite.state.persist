@@ -25,15 +25,16 @@ if ( not defined $written ) {
 }
 
 ## ensure index.yaml exists : rebuild if missing
-my $index_file = '/var/protocol-7/jobsite/index.yaml';
+my $index_file = catfile( <system.path.zenka-dirs.var_P7>,
+    <system.zenka.name>, 'index.yaml' );
 if ( not -f $index_file ) {
     <[jobsite.index.rebuild]>;
 }
 
 return TRUE;
 
-#,,.,,,,.,,.,,,..,...,..,,.,,,,,,,,..,.,.,,,.,..,,...,...,..,,.,.,.,,,,.,,...,
-#I4R5M54T7ZM65HEJIPFICTYGCA7OZ7URK7HPBM6P7M4UAKQEGYENGO3AWHDGGATWJDDKMLXFC3DPG
-#\\\|FP7ZFZJBPIXDL34ZT36DISONABMGZ2CDUF34MRDZRY2RTTNO5OX \ / AMOS7 \ YOURUM ::
-#\[7]XJJIFRAKZTGQAGJC3CPWGLINI6Q6N5JSQU7WDGKHOD4VCS2I2MBY 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,.,,,...,,..,,..,,.,,..,,.,,,,.,,..,,...,..,,...,,,,,..,,...,,.,,
+#GP5COZWHUU6277GXC7ANLXGLQH4OKC5GCQTQYUEYEIIWCKBHCLPKTTANL24GL3NUF7KDOYWJLQK5O
+#\\\|KV4DLEIAYL4KVTYE3FVKLEDJ6WLLTZJOEVEAUF6WYPXIYLI5OLA \ / AMOS7 \ YOURUM ::
+#\[7]HGC2MTTAFBGZUX32BYMZSVFDMGJB7Q74THIV2V5CUSJMZSBXHKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
