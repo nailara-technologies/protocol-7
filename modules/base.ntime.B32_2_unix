@@ -10,10 +10,26 @@ if ( not defined $tstamp or $tstamp !~ m|^$b32_re?$| ) {
     return undef;
 }
 
-my $ntime_value = <[base.ntime_BASE32_to_numerical]>->($tstamp);
+my $ntime_decoded = eval { Crypt::Misc::decode_b32r($tstamp) };
+
+if ( not defined $ntime_decoded or length $EVAL_ERROR ) {
+    warn 'network time not valid [ BASE32 decoding not successful ] <{C1}>';
+    return undef;
+}
+
+if ( not <[base.comp-int.is_valid]>->($ntime_decoded) ) {
+    warn 'BASE32 decoding error [ timestamp not valid ] <{C1}>';
+    return undef;
+}
+
+## contains network time with arbitrary precision ##
+my @nt_val = unpack( qw| w* |, $ntime_decoded );
+$nt_val[1] =~ s|^7|| if @nt_val == 2;    ## <-- saves 0 prefixes
+my $ntime_value = join( qw| . |, @nt_val );
+$ntime_value =~ s|(\.0)+$||;    ## strip trailing zero components ##
 
 if ( not defined $ntime_value
-    or $ntime_value !~ m|^\d+(\.\d+)?$| ) {
+    or $ntime_value !~ m|^\d{1,17}(\.\d{1,20})?$| ) {
     warn 'BASE32 decoding error [ timestamp not valid ] <{C1}>';
     return undef;
 }
