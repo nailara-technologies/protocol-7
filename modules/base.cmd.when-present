@@ -2,7 +2,7 @@
 
 # name  = base.cmd.when-present
 # descr = forward a command when zenka is present
-# param = <command> [args]
+# param = <user> <command> [args]
 
 ( my $user, my $cmnd, my $params ) = split( m|\s+|, $call->{'args'}, 3 );
 
@@ -13,6 +13,16 @@ return { 'mode' => qw| false |, 'data' => 'no access permissions' }
 
 return { 'mode' => qw| false |, 'data' => 'no command specified' }
     if not defined $cmnd or not length $cmnd;
+
+## reject a bare <target> with no <.command> part right here, before it ##
+## ever reaches zenka.push -- a dotless command can never succeed [     ##
+## base.protocol-7.command.send.local always rejects it as a protocol   ##
+## mismatch ], so there is nothing to gain by queuing/retrying it.      ##
+return {
+    'mode' => qw| false |,
+    'data' => "invalid command [ '$cmnd' has no <target.command> part ]"
+    }
+    if index( $cmnd, qw| . | ) < 0;
 
 my $push_args = {
     qw| command |   => $cmnd,
@@ -26,8 +36,8 @@ $push_args->{'args'} = { qw| args | => $params }
 
 return { 'mode' => qw| true |, 'data' => 'queued' }
 
-#,,.,,..,,.,,,...,,.,,...,.,,,.,.,.,.,.,.,...,..,,...,...,.,.,,,.,.,,,,,,,...,
-#3YDYY2XVYAOOW2XNK4AZDLNUDHZTNVEDCIB5ZXB2HCWQ7YVIIYSVVEHLNTXLBLSHKQZKHO22WZN26
-#\\\|G5OZKGK3X7DUUSGOVPTWJAP65VQU5SVLK75MUEIEUZCMANXCVET \ / AMOS7 \ YOURUM ::
-#\[7]TEJZ3YEBF7TTTUKWVMOZPGBXOHUZSTLE5REUQQDWTOA67465BQDY 7  DATA SIGNATURE ::
+#,,..,.,,,...,...,,,.,.,.,,,.,,.,,,..,.,,,,,,,..,,...,.,.,...,.,,,,,.,,..,,,.,
+#EO56Z5ETJ7DEPKL6TXFXWKSIJJUVP3YDWEGG2FVH2K7MK7SP7FPGSHBKMCR7MLTT7MLZ5KSZ7I5RS
+#\\\|HUYIOISTNQ6PUHMJK5ZPBPYMQDTKC3J4GQ4X4XJZVSMFTJUOW4T \ / AMOS7 \ YOURUM ::
+#\[7]Q3YU5IDA7YTFBROX24LVU4762A7VMV6ZS7IXWYJ2V5O5ZQRJEUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

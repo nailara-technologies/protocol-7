@@ -5,6 +5,7 @@ coding & kimi zenka state machines, jobsite, streaming transport, web-browser ca
 reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active Topics
+- [ntime-b32-2-unix-missing-compint-float-support](bug-ntime-b32-2-unix-missing-compint-float-support.md) — found live 2026-07-29 debugging forensics-agent; B32_2_unix can't decode high-precision (comp-int/float) ntime-b32 values that cube.cmd.localtime already handles correctly; 23-caller blast radius, needs its own scoped task before fixing
 - [v7-prio-starvation-and-ansi-corruption](topic-v7-prio-starvation-and-ansi-corruption-2026-07-25.md) — LANDED 1391ba11b: v7.zenka.start prio=>0 fixes 11yr-inert starvation bug; -vvvq ANSI chase inconclusive (likely WezTerm-side); write-completion-loop fixes + base.stdout.raw_fh redirect utility
 - [p7-text-formats-landed](topic-p7-text-formats-landed.md) — LANDED: format.kv_block (retired/kept) + format.inline-nested (promoted to base.*, show-access consolidated onto it); OPEN: yaml-config-codegen, reverse perl->p7, comment-preserving config-writer parser
 - [format-code-bugs-fixed](topic-format-code-bugs-fixed.md) — LANDED: 17 bugs/features via dogfooding; applied clean to 13 namespaces/areas incl. base/coding/models/bin; perltidy-rejoin gap + whitespace-column list style + regex-literal safety + jobsite-apply still open
@@ -81,8 +82,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [scratchpad-import-tool](topic-scratchpad-import-tool.md), [scratchpad-rescue-coding-zenka-task](topic-scratchpad-rescue-coding-zenka-task.md) — mcp-server-p7 scratchpad tools tested; follow-up task filed w/ kimi K3 for native coding-zenka rescue tools + chmod g+rx fix
 - [ncode-pattern-learning-loop](topic-ncode-pattern-learning-loop.md) — design, not built: two-tier mechanical/LLM pattern model, reuse existing stats/confidence fields for self-reinforcement, LLM-prefers-editing-patterns interaction model, namespace scope gating, nested-dispatch for batch-apply without confirmation storms; next step is the pattern-schema fix (steps not persisted) blocking the loop
 
-#,,..,...,,..,..,,.,.,.,,,,,,,..,,,,.,,,.,.,,,..,,...,...,...,,,.,.,,,,..,..,,
-#H5RRNFMLIBDHFDKM34PRODQGY5KYHYV6JHBOBY5I7B3OBI2KOTTZANEMVSUYFTVMOTUYK4RP5O6R4
-#\\\|BZUSK6D72QHBLNGNO5QB2AWTVSSICRQD3KCRCDTSN4BV6E7ZHGM \ / AMOS7 \ YOURUM ::
-#\[7]4IXLDWF5TJRZG2VG66HGPOZLP3Y7IJOEHVHFSZJDWSN2S6FIHWBA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,..,,,.,,,.,...,..,,,,.,..,,,..,..,,...,...,...,,,.,,..,.,,,.,,,
+#5FEXDTG3ZXQEMCWFY5POCGBDUQKEXZOQ7MNFY7OXMQPFH74VTYIQ2JWTKTNJ5YNV4VBVLMDZSMCZU
+#\\\|T3PF3D4HZSPMCHUN4A6BZDFUOWEA7DRVG62M6WFR5GMVKFF7ETZ \ / AMOS7 \ YOURUM ::
+#\[7]OMYFYQFQIOCBWHV7DH6JHJ4SX7EUTK7UCTT5AGDBB4UCXD6NHIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
