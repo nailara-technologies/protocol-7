@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = forensics.init_code
+# descr = forensics zenka initialization : sweep dir + boot-triggered sweep
+
+##  the 04:07 nightly slot [ configuration/zenki/events/event-setup.base ]  ##
+##  is type zenka-present : the events zenka sends cube.v7.start_once and   ##
+##  the boot itself IS the trigger. the sweep runs from a one-shot timer    ##
+##  so it executes inside zenka.loop [ after drop_privs + cube connect ],   ##
+##  not as root during init [ the sweep record dir would end up root-owned  ##
+##  -- same hazard build.init_code documents ]                              ##
+##                                                                          ##
+##  the sweep dir IS created here at init, with the zenka user as owner [   ##
+##  p7-log.init_code precedent ] : file.make_path is only available during  ##
+##  the init phase -- post-init the deferred-compile sources are cleaned    ##
+##  and the sub resolves to undef [ verified live 2026-07-29 : probe via    ##
+##  forensics.cmd.sweep.run ]                                               ##
+
+my $var_p7    = <system.path.zenka-dirs.var_P7> // qw| /var/protocol-7 |;
+my $sweep_dir = <forensics.cfg.sweep_dir>       // sprintf qw| %s/%s/sweeps |,
+    $var_p7, <system.zenka.name>;
+
+if ( not -d $sweep_dir ) {
+    <[file.make_path]>->( $sweep_dir, 0750, <system.amos-zenka-user> )
+        and <[base.log]>->( 1, 'created sweep dir [ %s ]', $sweep_dir )
+        or <[base.log]>->( 0, 'cannot create sweep dir [ %s ]', $sweep_dir );
+}
+
+<[event.add_timer]>->(
+    {   'after'   => 7,
+        'repeat'  => FALSE,
+        'handler' => qw| forensics.event.nightly-sweep |,
+    }
+) or <[base.log]>->( 0, 'failed to schedule nightly-sweep timer' );
+
+return 0;
+
+#,,,.,...,,..,,,.,...,,.,,,,,,,..,..,,,,,,.,,,..,,...,...,,,.,,,.,,,,,.,,,.,,,
+#R72YSJW5QRN2LUZSU37PEK75ELVAUAZKQCLGAIEQKMPFVRDJBZ4AW6IGHSVQZE6FAOS6QR7NTV27K
+#\\\|QOSKMKCT7S3ASGGA3W66JX4DKB7RRXVNZFJUSBJNITU4LMJGKRX \ / AMOS7 \ YOURUM ::
+#\[7]LM2NCNUOKTSTN2V3WULIECZRF5HEZSQDPXX5FMBWJ47PP27JWIBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
