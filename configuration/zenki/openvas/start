@@ -11,10 +11,12 @@ access.cmd.usr.cube = commands heart verify-instance name reload src-age \
                       list show-buffer buffer-erase buffer-erase-level \
                       status src-ver show-access
                       ## scan.run intentionally not network-exposed :    ##
-                      ## openvas.scan.run is an internal module ..,       ##
-                      ## openvas.cmd.* exposure arrives with phase 2      ##
+                      ## openvas.cmd.scan.run is called directly via     ##
+                      ## <[openvas.cmd.scan.run]> module syntax ..,      ##
+                      ## network exposure [ bare cmd_name : scan.run ]   ##
+                      ## arrives with phase 2                            ##
 
-## backend control path [ see modules/openvas.scan.run header for reasoning ]
+## backend control path [ see modules/openvas.cmd.scan.run header for reasoning ]
 ## greenbone community containers provide gvmd + ospd-openvas + nvt feed ..
 ## control via gvm-tools [ GMP protocol ] over the gvmd unix socket
 openvas.cfg.helper        = <system.root_path>/configuration/zenki/openvas/bin/openvas_scan.py
@@ -39,8 +41,6 @@ modules.load = auth.client net protocol io.unix ui format.yaml openvas
 [load_modules:<modules.load>]
 [init_modules]
 
-[load_config_file:'zenki/openvas/access.zenki']
-
 [root.drop_privs:<system.amos-zenka-user>]
 
 [base.net.connect:'unix']
@@ -49,8 +49,8 @@ modules.load = auth.client net protocol io.unix ui format.yaml openvas
 
 [zenka.loop]
 
-#,,..,,..,..,,...,,..,,.,,,,,,,,,,,,,,...,.,.,.,.,...,...,,..,.,,,,.,,,.,,,,,,
-#UPJNO63J44SW7FPL3ZF3QE63TIFCVXSWBQLY75P5ADWHRO7PQSN7UWHZMCAZZRGXXRDBWDF3PHGOS
-#\\\|Q6TF2NKUG7XPN5S3YGNLFZ6L4A7UYBZOYXOWIG5HTHBPIDXUOSB \ / AMOS7 \ YOURUM ::
-#\[7]S77ESKD32GJ6GOZWK2P6JMCCYODJADQCFNGQNYZGSU24TEAWAMCA 7  DATA SIGNATURE ::
+#,,.,,,..,...,,..,,,,,,..,,,.,.,.,,.,,,.,,...,.,.,...,...,,..,.,.,.,.,.,,,,,.,
+#7IFWAQAYTJ4HRX77QT4HPT2FKUROJKQGQ7E2GXCYEE6PJDAUW5TCA5NPK6MKHLELXZSLCAKS7U6CU
+#\\\|ZJBV2LQYMM64SYH5JKDGYVOD7YLRPXJ4NOXSNWM5K2VJYXAR5EC \ / AMOS7 \ YOURUM ::
+#\[7]FM3INMN5SJTHGHAIVCDB2OKM2UREAU43SRWQOI3T3XJZ5YS43MDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
