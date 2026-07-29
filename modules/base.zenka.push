@@ -105,6 +105,23 @@ if ( $sent > 0 ) {
     return TRUE;
 }
 
+if ( $sent == -2 ) {
+
+    ## protocol mismatch [ malformed <target.command> string ] : a         ##
+    ## permanent failure, not an offline-target condition -- no amount of  ##
+    ## retrying or notify_online will ever fix a command string that never ##
+    ## had a dot in it. drop the queued payload and report clearly instead ##
+    ## of backing off forever.                                             ##
+    <[base.logs]>->(
+        0,
+        'base.zenka.push : permanent failure [ protocol mismatch, '
+            . 'malformed command %s ] -- dropping, not retrying',
+        $command
+    );
+    delete <base.zenka.push.state>->{$target_prefix};
+    return FALSE;
+}
+
 ## route-send failed (no session or unroutable) ##
 my $now     = <[base.time]>->(5);
 my $backoff = 2**$state->{'backoff_n'};
@@ -159,8 +176,8 @@ if ( $elapsed < $backoff ) {
 
 return TRUE;
 
-#,,,.,...,..,,...,..,,,.,,.,.,,,.,.,.,,,,,.,,,..,,...,...,.,.,..,,.,,,..,,,..,
-#32IEQUAC7GVFJUT4O7V3U4W6SBMYUXR5PPH7JRUX6BQ4ZC3VMX7RFDACAOISLZXLNIXOTZ7UQGZJ2
-#\\\|DPTWPAD7JNUBCWEEOBDFBAQKXODV2YXJBRISVKLKPHVP2ZQXBSV \ / AMOS7 \ YOURUM ::
-#\[7]JQLTUE35QAXSNRQATSOBVY5CIVADJJ55ECFPQSVMA43X2M6LEMDA 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,.,,,.,,.,,,,.,,,,.,,.,,.,.,,..,..,,...,...,...,..,,,,.,.,,,,,.,
+#BJDSJDWZDJ563BZQWOZOK3JOE6OQY6SLBMA2WP7LGNXKGMKHG7MPON7I2KNWHNQSENXSBXGY3PV74
+#\\\|PZQSJRCRWSG3K3MBHCFOL7QOSGTI2MSH2RBMAMTWLX3YAM4GDNP \ / AMOS7 \ YOURUM ::
+#\[7]6J6CMBNUETUNBLHMA3MU2SAPEUB73AXRYERYECJCIQRFXTHKFKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
