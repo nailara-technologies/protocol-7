@@ -1,0 +1,277 @@
+## [:< ##
+
+# name  = forensics.investigate.finding
+# descr = investigate an enriched scanner finding against local state and
+#         produce an investigation record [ verdict + evidence references ]
+# param = $finding_href [ enriched finding -- see contract below ]
+# return = { mode => true, verdict => .., record_path => .., evidence => .. }
+#          or { mode => false, data => <error> }
+
+##      phase 2 [ data/tasks/forensics-agent.md task 2.1 ] :                ##
+##      deliberately mechanical -- no LLM calls. local evidence only        ##
+##      [ HYBRID-LLM-GOVERNANCE offline invariant ].                         ##
+##                                                                          ##
+##      enriched finding contract [ producer : scan.cmd.report-to-         ##
+##      forensics -- not yet implemented, openvas phase 2 .., until then    ##
+##      forensics.cmd.investigate.finding builds the same shape ] :         ##
+##                                                                          ##
+##        correlation_id : stable id, preserved verbatim into the           ##
+##                         investigation record [ join key for the          ##
+##                         forensic-report-pipeline ]                       ##
+##        scanner        : openvas | nessus | ..                            ##
+##        scan           : { target, ports, profile, scan_id, report_id }   ##
+##        finding        : { oid, severity, name, target }                  ##
+##        enrichment     : { related_modules => [ zenka/module prefixes ], ##
+##                           local_paths     => [ absolute paths ],         ##
+##                           notes           => str }                       ##
+##                                                                          ##
+##      verdict rules [ first match wins ] :                                ##
+##        confirmed           -- local log lines within the window          ##
+##                                 corroborate finding identifiers          ##
+##                                 [ target | oid | name tokens ]           ##
+##        false-positive      -- no log corroboration AND enrichment        ##
+##                                 named local paths AND all of them        ##
+##                                 are absent on this system                ##
+##        needs-manual-review -- everything else [ incl. no enrichment ]    ##
+##                                                                          ##
+##      evidence collected :                                                ##
+##        log_lines      -- matching lines in *.zenka.log [ refs capped ]   ##
+##        modules        -- per related module : file count, newest         ##
+##                         mtime, recent commits [ git log -3, 30 days ]    ##
+##        local_paths    -- existence / readability per enrichment path     ##
+
+my $finding = shift;
+
+return { 'mode' => qw| false |, 'data' => 'expected finding hashref' }
+    if ref $finding ne qw| HASH |;
+
+my $correlation_id = $finding->{'correlation_id'} // '';
+return { 'mode' => qw| false |, 'data' => 'finding lacks correlation_id' }
+    if not length $correlation_id;
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( 'invalid correlation_id [ %s ]', $correlation_id )
+    }
+    if $correlation_id !~ m{^[\w\.\-:]{4,80}$};
+
+my $detail = $finding->{'finding'} // {};
+return { 'mode' => qw| false |, 'data' => 'finding detail hash expected' }
+    if ref $detail ne qw| HASH |;
+
+my $f_name = $detail->{'name'} // '';
+my $f_oid  = $detail->{'oid'}  // '';
+return {
+    'mode' => qw| false |,
+    'data' => 'finding requires at least a name or an oid'
+    }
+    if not length $f_name and not length $f_oid;
+
+my $f_target = $detail->{'target'} // $finding->{'scan'}{'target'} // '';
+my $enrichment = $finding->{'enrichment'} // {};
+$enrichment = {} if ref $enrichment ne qw| HASH |;
+
+my $log_dir = <forensics.cfg.log_dir> // qw| /var/log/protocol-7 |;
+my $window_seconds = <forensics.cfg.investigate_window_seconds>
+    // <forensics.cfg.sweep_window_seconds> // 86400;
+my $max_log_refs = <forensics.cfg.investigate_max_log_refs> // 8;
+
+my $var_p7 = <system.path.zenka-dirs.var_P7> // qw| /var/protocol-7 |;
+my $investigate_dir = <forensics.cfg.investigate_dir>
+    // sprintf qw| %s/%s/investigations |, $var_p7, <system.zenka.name>;
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf(
+        'investigation dir missing [ %s ] -- created at zenka init',
+        $investigate_dir
+    )
+    }
+    if not -d $investigate_dir;
+
+my @gm = gmtime;
+my $record_date = sprintf qw| %04d-%02d-%02d |, $gm[5] + 1900, $gm[4] + 1,
+    $gm[3];
+my $generated_str
+    = sprintf qw| %04d-%02d-%02dT%02d:%02d:%02dZ |,
+    $gm[5] + 1900, $gm[4] + 1, $gm[3], $gm[2], $gm[1], $gm[0];
+
+## --- evidence : local log corroboration ------------------------------ ##
+
+my @terms;    ## fixed strings, longest-first match quality ##
+push @terms, $f_target if length $f_target >= 3
+    and $f_target =~ m{^[\w\.\-:]+$};
+push @terms, $f_oid if length $f_oid >= 6 and $f_oid =~ m{^[\w\.\-]+$};
+
+my @name_tokens
+    = grep { length $ARG >= 6 }
+    grep { $ARG =~ m{^\w+$} } split m{[^\w]+}, $f_name;
+push @terms, @name_tokens[ 0 .. ( @name_tokens < 4 ? $#name_tokens : 3 ) ]
+    if @name_tokens;
+
+my %seen_term;
+@terms = grep { not $seen_term{$ARG}++ } @terms;
+
+my $logline_re = qr|^([A-Z2-7]{10,20})\s+\d{6,7}\s+\d\s|;
+my $cutoff     = time - $window_seconds;
+
+my @log_refs;
+my $log_hit_count   = 0;
+my $files_inspected = 0;
+
+if (@terms) {
+    foreach my $log_file ( sort glob( sprintf qw| %s/*.zenka.log |,
+        $log_dir ) ) {
+        my $log_st = File::stat::stat($log_file);
+        next if not $log_st or $log_st->mtime < $cutoff;
+        open( my $log_fh, qw| < |, $log_file ) or next;
+        $files_inspected++;
+        ( my $log_base = $log_file ) =~ s|^.*/||;
+
+        while ( my $line = <$log_fh> ) {
+            next if $line !~ $logline_re;
+            foreach my $term (@terms) {
+                next if index( $line, $term ) < 0;
+                $log_hit_count++;
+                if ( @log_refs < $max_log_refs ) {
+                    chomp $line;
+                    push @log_refs,
+                        {
+                        'file'    => $log_base,
+                        'term'    => $term,
+                        'snippet' => substr( $line, 0, 160 ),
+                        };
+                }
+                last;    ## first matching term per line wins ##
+            }
+        }
+        close($log_fh);
+    }
+}
+
+## --- evidence : related module state --------------------------------- ##
+
+my $root_path  = <system.root_path> // '';
+my @module_ev;
+my $rel_modules = $enrichment->{'related_modules'} // [];
+$rel_modules = [] if ref $rel_modules ne qw| ARRAY |;
+
+foreach my $mod_name ( @{$rel_modules} ) {
+    next if not defined $mod_name
+        or $mod_name !~ m{^[A-Za-z0-9_][\w\-]{0,60}$};
+
+    my @mod_files = glob( sprintf qw| %s/modules/%s.* |, $root_path,
+        $mod_name );
+    my $newest = 0;
+    foreach my $mf (@mod_files) {
+        my $st = File::stat::stat($mf) or next;
+        $newest = $st->mtime if $st->mtime > $newest;
+    }
+
+    my @commits;
+    if ( length $root_path and -d sprintf( qw| %s/.git |, $root_path ) ) {
+        my $git_cmd = sprintf(
+            q{git -C '%s' -c safe.directory='%s' log -3 }
+                . q{--format='%%h %%s' --since='30 days ago' }
+                . q{-- 'modules/%s.*' 2>/dev/null},
+            $root_path, $root_path, $mod_name
+        );
+        @commits = grep {length} map { $ARG =~ s|\s+$||r }
+            qx| $git_cmd |;
+    }
+
+    push @module_ev,
+        {
+        'module'         => $mod_name,
+        'file_count'     => scalar @mod_files,
+        'newest_mtime'   => $newest,
+        'recent_commits' => \@commits,
+        };
+}
+
+## --- evidence : enrichment local paths ------------------------------- ##
+
+my @path_ev;
+my $local_paths = $enrichment->{'local_paths'} // [];
+$local_paths = [] if ref $local_paths ne qw| ARRAY |;
+
+foreach my $path ( @{$local_paths} ) {
+    next if not defined $path or $path !~ m{^/[\w\.\-/]{1,200}$};
+    push @path_ev,
+        {
+        'path'     => $path,
+        'exists'   => ( -e $path ? TRUE : FALSE ),
+        'readable' => ( -r $path ? TRUE : FALSE ),
+        };
+}
+
+## --- verdict ---------------------------------------------------------- ##
+
+my $paths_checked = scalar @path_ev;
+my $paths_present = scalar grep { $ARG->{'exists'} } @path_ev;
+
+my $verdict;
+if ($log_hit_count) {
+    $verdict = qw| confirmed |;
+} elsif ( $paths_checked and not $paths_present ) {
+    $verdict = qw| false-positive |;
+} else {
+    $verdict = qw| needs-manual-review |;
+}
+
+## --- investigation record ---------------------------------------------- ##
+
+my $record = {
+    'investigation' => {
+        'correlation_id' => $correlation_id,
+        'verdict'        => $verdict,
+        'date'           => $record_date,
+        'generated'      => $generated_str,
+        'generated_unix' => time,
+        'window_seconds' => $window_seconds,
+        'investigator'   => sprintf qw| %s.investigate.finding |,
+            <system.zenka.name>,
+    },
+    'finding'  => $finding,
+    'evidence' => {
+        'log_lines' => {
+            'files_inspected' => $files_inspected,
+            'match_terms'     => \@terms,
+            'hit_count'       => $log_hit_count,
+            'references'      => \@log_refs,
+        },
+        'modules'     => \@module_ev,
+        'local_paths' => \@path_ev,
+    },
+};
+
+my $record_path = sprintf qw| %s/%s_%s.yaml |, $investigate_dir,
+    $record_date, $correlation_id;
+
+my ( $ok, $write_err )
+    = <[format.yaml.write_file]>->( $record_path, $record );
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( 'investigation record write failed [ %s ]',
+        $write_err // qw| ? | )
+    }
+    if not $ok;
+
+<[base.logs]>->(
+    1, 'investigation %s : %s [ log hits %d, modules %d, paths %d ] : %s',
+    $correlation_id, $verdict, $log_hit_count, scalar @module_ev,
+    $paths_checked, $record_path
+);
+
+return {
+    'mode'        => qw| true |,
+    'verdict'     => $verdict,
+    'record_path' => $record_path,
+    'evidence'    => $record->{'evidence'},
+};
+
+#,,,,,...,.,,,.,.,,,.,.,.,,..,,..,...,..,,...,..,,...,..,,.,.,,..,,..,..,,,.,,
+#GQKRQ3CMWBK7PHLWDFH2FGPGQ6YTVL6YZDOLCWZWTHAKZXGAELSF55RCTNLX6JY4KYIG732SXBUYO
+#\\\|XIEUNB5ZLS76KVZGDQSSIE6H7LEKGGNVQSZOI3FFWUMVNUOAB4C \ / AMOS7 \ YOURUM ::
+#\[7]2G2EP3DG4MXCT2GVAGYDNHLMNPFACGYISLZ76JB6QJQ6LKHGUSCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = openvas.init_code
+# descr = openvas zenka initialization : scan data dir + handoff dir creation
+
+##  both dirs are created here at init, with the zenka user as owner       ##
+##  [ nessus.init_code + p7-log.init_code + forensics.init_code            ##
+##  precedent ] : file.make_path is only available during the init         ##
+##  phase -- post-init the deferred-compile sources are cleaned and the    ##
+##  sub resolves to undef [ verified live 2026-07-29 ]                     ##
+##                                                                          ##
+##  handoff dir : enriched finding yaml written by                          ##
+##  openvas.cmd.report-to-forensics, read cross-zenka by the forensics     ##
+##  zenka [ file=.. argument of forensics.cmd.investigate.finding ]        ##
+
+my $data_dir = <openvas.cfg.data_dir> // sprintf qw| %s/data/openvas |,
+    <system.root_path>;
+
+if ( not -d $data_dir ) {
+    <[file.make_path]>->( $data_dir, 0750, <system.amos-zenka-user> )
+        and <[base.log]>->( 1, 'created scan data dir [ %s ]', $data_dir )
+        or
+        <[base.log]>->( 0, 'cannot create scan data dir [ %s ]', $data_dir );
+}
+
+my $var_p7      = <system.path.zenka-dirs.var_P7> // qw| /var/protocol-7 |;
+my $handoff_dir = <openvas.cfg.handoff_dir> // sprintf qw| %s/%s/enriched |,
+    $var_p7, <system.zenka.name>;
+
+if ( not -d $handoff_dir ) {
+    <[file.make_path]>->( $handoff_dir, 0750, <system.amos-zenka-user> )
+        and <[base.log]>->( 1, 'created handoff dir [ %s ]', $handoff_dir )
+        or
+        <[base.log]>->( 0, 'cannot create handoff dir [ %s ]', $handoff_dir );
+}
+
+return 0;
+
+#..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..:.
+#  signature debt :: written during an afk session; cannot be signed here.
+#  run bin/Protocol-7 sourcecode update-signatures before the next verified commit.
+#,,.,.,.,,,,..,,.,.,,,.,,,..,,,,.,.,.,,..,,,,.,..,,,,.,..,,.,,,.,,..,,.,,,..,
+
+#,,,,,,,.,,..,,.,,...,.,,,,.,,,.,,,..,,,.,,,,,..,,...,...,.,,,...,,..,..,,,..,
+#G447VODKCOKKTA43QTEKBQRNHBC3RJKBF3M4QNZDC4W7NRW6EAO4RIJCZDHB5LYCV4RPINK6XM2BI
+#\\\|PJEMMWG66H2H5753PCBWRAX2CWRA6VCMHDVQPLTD2755BQEBAOT \ / AMOS7 \ YOURUM ::
+#\[7]EWFIEPXF7A32O76PYSHLWE373D2VLHPTADRAW73MANOA6G3CO2BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

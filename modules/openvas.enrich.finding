@@ -1,0 +1,234 @@
+## [:< ##
+
+# name  = openvas.enrich.finding
+# param = $finding_href [ keys : oid, severity, name, target ]
+# return = enriched finding href [ finding, enrichment, summary, unix time ]
+# descr = per-finding unified context load from security-intel embedding
+#         domains [ task 2.1, data/tasks/completed/openvas-agent.md ]
+
+##      for each configured domain [ openvas.cfg.enrich.domains ] the       ##
+##      domain's skipgram word vectors [ data/embeddings/<domain>.vec,      ##
+##      committed output of bin/dev/train-embedding ] are queried for       ##
+##      nearest neighbors of the finding : CVE ids extracted from oid /     ##
+##      name plus the finding name words form the query [ mean vector ].    ##
+##      neighbor tokens that map to a protocol file on disk [ name =        ##
+##      filepath convention : data/protocols/<domain>/<id>, no registry ]   ##
+##      are loaded and attached as enrichment context. a finding CVE id     ##
+##      with a protocol file in the domain is attached as a direct hit      ##
+##      [ score 1.0 ] independent of the neighbor ranking.                  ##
+##                                                                          ##
+##      the .vec export is queried instead of the .bin model : the .bin     ##
+##      files are ~2.4 GB each and gitignored, the committed .vec files     ##
+##      carry the same trained input vectors, so pure-perl cosine over      ##
+##      .vec yields the same neighbors as `fasttext nn <domain>.bin` for    ##
+##      in-vocab tokens without loading gigabytes into a zenka [ cross-     ##
+##      validated live against the cisa .bin, 2026-07-29 ].                 ##
+##                                                                          ##
+##      per-domain graceful degradation [ the documented fallback ] :       ##
+##      a domain whose model export or protocol dir is missing [ nvt :      ##
+##      still bound to the unbuilt openvas feed-sync machinery ; cve :      ##
+##      deferred in security-intel-embedding-domains ] does not fail the    ##
+##      finding -- the finding is attached as-is and that domain alone is   ##
+##      marked status 'pending'. remaining domains still enrich normally.   ##
+##      a live domain with zero vocabulary overlap is marked                ##
+##      'no-vocab-match' [ distinct from 'pending' : the domain exists ].   ##
+##                                                                          ##
+##      parsed vectors are memoized per zenka process [ per-scan reuse ].   ##
+
+my $finding = shift;
+
+return { 'mode' => qw| false |, 'data' => 'expected finding hashref' }
+    if ref $finding ne qw| HASH |;
+
+my $root_path = <system.root_path> // '';
+my $embed_dir = <openvas.cfg.enrich.embeddings_dir>
+    // sprintf qw| %s/data/embeddings |, $root_path;
+my $proto_base = <openvas.cfg.enrich.protocols_dir>
+    // sprintf qw| %s/data/protocols |, $root_path;
+my $max_neighbors   = <openvas.cfg.enrich.neighbors>       // 5;
+my $max_proto_bytes = <openvas.cfg.enrich.max_proto_bytes> // 32768;
+my $domains_cfg = <openvas.cfg.enrich.domains>
+    // join( ' ', qw| cve mitre cwe cisa nvt | );
+my @domains = grep {length} split m{[\s,]+}, $domains_cfg;
+
+## --- query tokens : CVE ids from oid + name, then name words ----------- ##
+
+my $query_src
+    = join( ' ', $finding->{'oid'} // '', $finding->{'name'} // '' );
+my @cve_ids = $query_src =~ m{ ( CVE-\d{4}-\d{4,7} ) }gx;
+
+my @word_tokens = grep { length $ARG >= 3 }
+    split m{[^\w]+}, $finding->{'name'} // '';
+
+my %seen_token;
+my @query_tokens
+    = grep { not $seen_token{$ARG}++ } ( @cve_ids, @word_tokens );
+
+## --- per-domain enrichment ---------------------------------------------- ##
+
+my %enrichment;
+my ( @domains_ok, @domains_pending );
+
+foreach my $domain (@domains) {
+    next if $domain !~ m{^\w+$};
+
+    my $vec_path  = sprintf qw| %s/%s.vec |, $embed_dir,  $domain;
+    my $proto_dir = sprintf qw| %s/%s     |, $proto_base, $domain;
+
+    ##  documented fallback : domain not available / not trained [ nvt ]   ##
+    if ( not -f $vec_path or not -d $proto_dir ) {
+        $enrichment{$domain} = {
+            'status' => qw| pending |,
+            'reason' =>
+                'domain model or protocol dir not available [ not trained ]',
+        };
+        push @domains_pending, $domain;
+        next;
+    }
+
+    ##  load + memoize domain vectors [ token => [ vec, norm ] ]           ##
+    my $cache     = $data{'openvas'}{'enrich'}{'vec_cache'}{$domain};
+    my $vec_mtime = ( stat $vec_path )[9] // 0;
+    if ( not defined $cache or $cache->{'mtime'} != $vec_mtime ) {
+        $cache = { 'mtime' => $vec_mtime, 'token' => {} };
+        open( my $vec_fh, qw| < |, $vec_path ) or do {
+            $enrichment{$domain} = {
+                'status' => qw| pending |,
+                'reason' =>
+                    sprintf( 'cannot read domain vectors [ %s ]', $vec_path ),
+            };
+            push @domains_pending, $domain;
+            next;
+        };
+        my $header = <$vec_fh>;    ## "<vocab> <dim>" ##
+        while ( my $line = <$vec_fh> ) {
+            chomp $line;
+            my ( $token, @components ) = split ' ', $line;
+            next if not @components;
+            my $norm = 0;
+            $norm += $ARG * $ARG foreach @components;
+            $cache->{'token'}{$token} = [ \@components, sqrt($norm) ];
+        }
+        close($vec_fh);
+        $data{'openvas'}{'enrich'}{'vec_cache'}{$domain} = $cache;
+    }
+
+    ##  build query vector : mean of in-vocab query token vectors          ##
+    my %query_hit;
+    my @qvec;
+    foreach my $token (@query_tokens) {
+        my $entry = $cache->{'token'}{$token}
+            // $cache->{'token'}{ lc $token } // next;
+        $query_hit{$token} = TRUE;
+        my $vec = $entry->[0];
+        $qvec[$ARG] += $vec->[$ARG] foreach 0 .. $#{$vec};
+    }
+
+    ##  direct hits : finding CVE id has a protocol file in this domain    ##
+    my @entries;
+    my %attached;
+    foreach my $cve_id (@cve_ids) {
+        next if $attached{$cve_id}++;
+        next if not -f sprintf( qw| %s/%s |, $proto_dir, $cve_id );
+        push @entries,
+            {
+            'id'     => $cve_id,
+            'score'  => 1.0,
+            'direct' => TRUE,
+            'path'   => sprintf( qw| %s/%s |, $proto_dir, $cve_id ),
+            };
+    }
+
+    if ( not @qvec and not @entries ) {
+        $enrichment{$domain} = {
+            'status'       => qw| no-vocab-match |,
+            'reason'       => 'no finding tokens present in domain vocab',
+            'query_tokens' => \@query_tokens,
+            'entries'      => [],
+        };
+        next;
+    }
+
+    ##  nearest neighbors : cosine of query vector vs all vocab tokens,    ##
+    ##  filtered to tokens that map to a protocol file on disk             ##
+    if (@qvec) {
+        my $qnorm = 0;
+        $qnorm += $ARG * $ARG foreach @qvec;
+        $qnorm = sqrt($qnorm);
+
+        my @scored;
+        if ($qnorm) {
+            foreach my $token ( keys $cache->{'token'}->%* ) {
+                next if $query_hit{$token} or $attached{$token};
+                next if $token =~ m{ [\\/] | \.\. }x;  ## no path traversal ##
+                next if not -f sprintf qw| %s/%s |, $proto_dir, $token;
+                my ( $vec, $vnorm ) = $cache->{'token'}{$token}->@*;
+                next if not $vnorm;
+                my $dot = 0;
+                $dot += $qvec[$ARG] * $vec->[$ARG] foreach 0 .. $#{$vec};
+                push @scored, [ $token, $dot / ( $qnorm * $vnorm ) ];
+            }
+        }
+        @scored = sort { $b->[1] <=> $a->[1] } @scored;
+        foreach my $hit (
+            @scored[
+            0 .. ( @scored < $max_neighbors ? $#scored : $max_neighbors - 1 )
+            ]
+        ) {
+            push @entries,
+                {
+                'id'     => $hit->[0],
+                'score'  => sprintf( qw| %.4f |, $hit->[1] ) + 0,
+                'direct' => FALSE,
+                'path'   => sprintf( qw| %s/%s |, $proto_dir, $hit->[0] ),
+                };
+        }
+    }
+
+    ##  load protocol files for attached entries                           ##
+    foreach my $entry (@entries) {
+        next if not -r $entry->{'path'};
+        open( my $proto_fh, qw| < |, $entry->{'path'} ) or next;
+        my $content
+            = do { local $INPUT_RECORD_SEPARATOR = undef; <$proto_fh> }
+            // '';
+        close($proto_fh);
+        $entry->{'content'} = substr( $content, 0, $max_proto_bytes );
+    }
+
+    $enrichment{$domain} = {
+        'status'       => qw| ok |,
+        'query_tokens' => [ sort keys %query_hit ],
+        'direct_hits'  => [
+            map  { $ARG->{'id'} }
+            grep { $ARG->{'direct'} } @entries
+        ],
+        'neighbor_ids' => [
+            map  { $ARG->{'id'} }
+            grep { not $ARG->{'direct'} } @entries
+        ],
+        'entries' => \@entries,
+    };
+    push @domains_ok, $domain;
+}
+
+return {
+    'finding'    => $finding,
+    'enrichment' => \%enrichment,
+    'summary'    => {
+        'ok'      => \@domains_ok,
+        'pending' => \@domains_pending,
+    },
+    'enriched_unix' => time,
+};
+
+#..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..:.
+#  signature debt :: written during an afk session; cannot be signed here.
+#  run bin/Protocol-7 sourcecode update-signatures before the next verified commit.
+#,,.,.,.,,,,..,,.,.,,,.,,,..,,,,.,.,.,,..,,,,.,..,,,,.,..,,.,,,.,,..,,.,,,..,
+
+#,,..,.,,,..,,,,.,,,,,..,,.,,,,,.,,.,,,,,,.,,,..,,...,...,..,,,.,,,,,,,,,,,..,
+#E2IJCNSZTTLZBCNXWHHPIHHGTJL24GAPJXOBHSVDDQ647AFCF5DJ3WVPDE3QAVBWHBSDSZFIPGTI6
+#\\\|M5Z3M6LJSA7PFK3PZDJQBEPE4EUHLSXSKHP4TAIRJHVTJIPTI23 \ / AMOS7 \ YOURUM ::
+#\[7]CMX3A2MJ6LRC5I2ZBFHKA7MM6NFZPUU4FHGJEH6DUN4XJS3YIKBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

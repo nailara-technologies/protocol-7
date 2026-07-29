@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = openvas.handler.forensics-reply
+# descr = logs the forensics zenka reply to a report-to-forensics handoff
+#         [ confirms the enriched finding arrived and was investigated ]
+# param = $reply - { cmd, call_args, data, params } [ reply decoding as
+#         in forensics.handler.rule-proposal ]
+
+my $reply = shift;
+
+my $cmd       = $reply->{'cmd'}       // '';
+my $call_args = $reply->{'call_args'} // {};
+my $params    = $reply->{'params'}    // {};
+my $raw       = $reply->{'data'}      // '';
+my $data      = ref $raw ? $raw->$* : $raw;
+
+my $response;
+if ( $cmd eq 'TRUE' ) {
+    $response = $call_args->{'args'} // '';
+} elsif ( $cmd eq 'SIZE' ) {
+    $response = $data;
+} elsif ( $cmd eq 'FALSE' ) {
+    $response = sprintf qw| error : %s |, $call_args->{'args'} // qw| ? |;
+} else {
+    $response = sprintf qw| error : unknown reply type %s |, $cmd;
+}
+
+my $cid = $params->{'correlation_id'} // qw| ? |;
+$response =~ s{\s*\n\s*}{ | }g;
+
+<[base.logs]>->( 1, 'forensics reply [ %s ] : %s', $cid, $response );
+
+return 0;
+
+#..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..:.
+#  signature debt :: written during an afk session; cannot be signed here.
+#  run bin/Protocol-7 sourcecode update-signatures before the next verified commit.
+#,,.,.,.,,,,..,,.,.,,,.,,,..,,,,.,.,.,,..,,,,.,..,,,,.,..,,.,,,.,,..,,.,,,..,
+
+#,,.,,.,.,,,,,,,,,,,,,,,.,,..,,,.,,,,,.,,,,,,,..,,...,...,,,.,,,,,..,,.,.,,,.,
+#XQSTFJAFWYCJIJ24Q34MHC3ORNL2ILVIACEZAKYPTTEH577GNFTRLTW4VXHLPEFPIZC4H6G7GDXNU
+#\\\|KSTIO5ZEGFAYMXV2N33SEFIPCF7MXKZW7X7W6U53QEJWBOYKZT2 \ / AMOS7 \ YOURUM ::
+#\[7]JI5NPVM73PLORS2HKT4CYBVQUQFNDH4QYOXFOKOBCVETGF7UOSBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
