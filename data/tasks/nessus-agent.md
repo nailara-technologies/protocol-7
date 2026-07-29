@@ -38,8 +38,9 @@ ordering rationale:
 ```
 ## dispatch + prompt
 create configuration/zenki/nessus/ (zenka-startup.v7, access.zenki,
-start) mirroring the openvas zenka scaffold. bootable, stoppable,
-registered. no modules yet.
+start) mirroring the openvas zenka scaffold (see openvas-agent task
+1.1 for the access.zenki source pattern — letsencr has none).
+bootable, stoppable, registered. no modules yet.
 ```
 
 ### task 1.2 — nessus.scan.run
@@ -71,15 +72,15 @@ see note below.
 
 - plugin id namespaces differ (nessus plugin-10662 vs nvt oid): the
   security-intel domains keep them as SEPARATE domains
-  (protocols/nessus/ vs protocols/nvt/) so embeddings stay clean;
+  (data/protocols/nessus/ vs data/protocols/nvt/) so embeddings stay clean;
   cross-domain nearest-neighbor queries bridge them semantically.
 - never install nessus on infrastructure without a license for that
   context — the openvas path is the always-legal default.
 - same rule as openvas: no scanning without a live consumer; manual
   invocation until the forensics agent exists.
 
-#,,..,.,.,,.,,.,.,..,,,.,,...,...,,,.,.,.,,..,..,,...,...,,,,,...,.,.,.,.,,,,,
-#BUSFKZHJC6UFKY6TRT7YNCZPOKPTVUFXTTWJ4HMEDMQN7TL2XXJ6ITB2ELOXRJ2YHTTVBKOBBA7UU
-#\\\|DWNKVJLC5KDPLOPPRO4EXVK5XWP6O3XF2GPRZUXMYKVG4UTKP6R \ / AMOS7 \ YOURUM ::
-#\[7]DHIRPULGHLLUYT4YUOOYPNAH2IST4H3UFBSN3L3AYNNMUVZA5YCA 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,,.,...,...,...,.,.,.,.,...,.,,,..,,...,...,..,,.,,,,,,,,,,,.,.,
+#5SUDBW3BSEBHUTF2H27Z2646NRLH6Y6Q534I7IWTKD5XM4VN2XOQ72EVE63UOGI42OVKU2C2MTV5U
+#\\\|U55HIYQEKQR42CUE6SDNYMRDIQWWITQLYLEFCHMNT35NRSU2KOF \ / AMOS7 \ YOURUM ::
+#\[7]LKEXEUDLDV3O4ZZHDFHNVHUCMOGWJDZA4RF74462NKJ4HWXVVKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
