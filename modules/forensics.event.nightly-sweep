@@ -1,0 +1,169 @@
+## [:< ##
+
+# name  = forensics.event.nightly-sweep
+# descr = 04:07 entry point : collect MISS/BAD-family log lines from the
+#         last sweep window, deduplicate, store a dated sweep record
+
+##      phase 1 [ data/tasks/forensics-agent.md task 1.2 ] :                ##
+##      deliberately boring + mechanical. no LLM calls [ phase 2 ], no      ##
+##      tracer / route- tracing / quarantine mechanics [ undefined          ##
+##      design areas, see                                                   ##
+##      data/tasks/research-findings/forensics-zenka.md gaps section ]      ##
+##                                                                          ##
+##      pattern classes per                                                 ##
+##      data/tasks/completed/dep-graph-stdout-self-healing.md : MISS        ##
+##      -- signature block missing [ whitelist self-healing ] BAD   --      ##
+##      signature present but invalid  plus the :::[ NOT FOUND ]:::         ##
+##      whitelist-miss log shape that task's handler keys on. lines         ##
+##      logged to a future forensics channel by the self-healing            ##
+##      handler match the same classes, so this stand-in pattern set        ##
+##      survives the handler landing.                                       ##
+##                                                                          ##
+##      reruns on the same UTC date overwrite the dated record [ sweep      ##
+##      is idempotent -- manual test triggers do not accumulate             ##
+##      duplicates ]                                                        ##
+
+my $log_dir   = <forensics.cfg.log_dir>   // qw| /var/log/protocol-7 |;
+my $sweep_dir = <forensics.cfg.sweep_dir> // do {
+
+    ## zenka var-dir convention [ commit 7a50bf849,        ##
+    ## base.path-set-up.check-zenka-paths ] :              ##
+    ## <system.path.zenka-dirs.var_P7>/<zenka-name>/sweeps ##
+
+    my $var_p7 = <system.path.zenka-dirs.var_P7> // qw| /var/protocol-7 |;
+    sprintf qw| %s/%s/sweeps |, $var_p7, <system.zenka.name>;
+};
+my $window_seconds = <forensics.cfg.sweep_window_seconds> // 86400;
+
+my @pattern_classes = (
+    [ qw| NOT-FOUND |, qr| :::\[\s*NOT\s+FOUND\s*\]::: |x ],
+    [ qw| MISS      |, qr| \bMISS\b |x ],
+    [ qw| BAD       |, qr| \bBAD\b |x ],
+);
+
+## log line shape : <ntime-b32> <sid> <level> <message>  [ sid+level fields ##
+## required : keeps banner/junk lines from reaching the ntime decoder,      ##
+## which warns on invalid input ]                                           ##
+
+my $logline_re = qr|^([A-Z2-7]{10,20})\s+\d{6,7}\s+\d\s|;
+
+my @gm = gmtime;
+my $sweep_date = sprintf qw| %04d-%02d-%02d |, $gm[5] + 1900, $gm[4] + 1,
+    $gm[3];
+my $generated_str
+    = sprintf qw| %04d-%02d-%02dT%02d:%02d:%02dZ |,
+    $gm[5] + 1900, $gm[4] + 1, $gm[3], $gm[2], $gm[1], $gm[0];
+
+my $cutoff = time - $window_seconds;
+
+if ( not -d $sweep_dir ) {
+    <[file.make_path]>->( $sweep_dir, 0750 )
+        or return
+        <[base.log]>->( 0, 'cannot create sweep dir [ %s ]', $sweep_dir );
+}
+
+my %entries;
+my $files_scanned = 0;
+my $lines_matched = 0;
+
+my $node_name = <system.node.name> // '';
+
+foreach my $log_file ( sort glob( sprintf qw| %s/*.zenka.log |, $log_dir ) ) {
+
+    my $log_st = File::stat::stat($log_file);
+    ## no window content ##
+    next if not $log_st                    or $log_st->mtime < $cutoff;
+    open( my $log_fh, qw| < |, $log_file ) or next;
+    $files_scanned++;
+
+    my $zenka_name = $log_file;
+    $zenka_name =~ s|^.*/||;
+    $zenka_name =~ s|\.zenka\.log$||;
+    $zenka_name =~ s|^\Q$node_name\E\.|| if length $node_name;
+
+    my $in_window = 0;    ## logs are chronological : latch at cutoff ##
+
+    while ( my $line = <$log_fh> ) {
+
+        next if $line !~ $logline_re;
+        my $ts_b32 = $LAST_PAREN_MATCH;
+        my ( undef, $sid, $level, $message ) = split ' ', $line, 4;
+        next if not defined $message;
+
+        if ( not $in_window ) {
+            my $ts_unix;
+            {    ##  junk-shaped lines [ binary log content ] would warn   ##
+                ##  inside the decoder : noise, not signal -- suppressed ##
+                local $SIG{'__WARN__'} = sub { };
+                $ts_unix = <[base.ntime.B32_2_unix]>->($ts_b32);
+            }
+            next if not defined $ts_unix or $ts_unix < $cutoff;
+            $in_window = 1;
+        }
+
+        foreach my $class_ref (@pattern_classes) {
+            my ( $class, $pattern_re ) = @{$class_ref};
+            next if $message !~ $pattern_re;
+
+            my $key_message = $message;
+            $key_message =~ s|^\[\d+\]\s*||;    ## strip [pid] : dedupe key ##
+            $key_message =~ s|\s+$||;
+
+            $lines_matched++;
+            my $key = join "\x00", $class, $zenka_name, $key_message;
+            $entries{$key} //= {
+                'class'      => $class,
+                'zenka'      => $zenka_name,
+                'message'    => $key_message,
+                'count'      => 0,
+                'first_seen' => $ts_b32,
+                'last_seen'  => $ts_b32,
+            };
+            $entries{$key}->{'count'}++;
+            $entries{$key}->{'last_seen'} = $ts_b32;
+            last;    ## first matching class wins ##
+        }
+    }
+    close($log_fh);
+}
+
+my @entries = sort {
+           $a->{'class'} cmp $b->{'class'}
+        or $a->{'zenka'} cmp $b->{'zenka'}
+        or $a->{'message'} cmp $b->{'message'}
+} values %entries;
+
+my $record = {
+    'sweep' => {
+        'date'           => $sweep_date,
+        'generated'      => $generated_str,
+        'generated_unix' => time,
+        'window_seconds' => $window_seconds,
+        'log_dir'        => $log_dir,
+        'files_scanned'  => $files_scanned,
+        'lines_matched'  => $lines_matched,
+        'unique_entries' => scalar @entries,
+    },
+    'entries' => \@entries,
+};
+
+my $record_path = sprintf qw| %s/%s.yaml |, $sweep_dir, $sweep_date;
+
+my ( $ok, $write_err )
+    = <[format.yaml.write_file]>->( $record_path, $record );
+
+return <[base.log]>->( 0, 'sweep record write failed [ %s ]', $write_err )
+    if not $ok;
+
+<[base.logs]>->(
+    1, 'nightly sweep : %d files, %d matched lines, %d unique [ %s ]',
+    $files_scanned, $lines_matched, scalar @entries, $record_path
+);
+
+return TRUE;
+
+#,,.,,..,,..,,,.,,,..,..,,,,.,.,,,,,,,,,.,...,..,,...,..,,...,,.,,..,,,,,,,..,
+#ZREON52B33S4CRPGOL2M2JUAWFVGDMRIAJZVGZSMHPTX4BJD7ZTPM2ZDV53PUN7DOFOXTY2T3A6J6
+#\\\|MJD4OSWPJCET5KEKIDBT7MQ3222RVEDMZCRMZQPRTJEGC5YYPUP \ / AMOS7 \ YOURUM ::
+#\[7]SNCN5AVCRSDUMD3VUL3IGJXIXVBNBCB2P2SMHR42C2TRJMJRUUAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
