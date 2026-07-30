@@ -5,13 +5,14 @@ coding & kimi zenka state machines, jobsite, streaming transport, web-browser ca
 reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active Topics
+- [kimi-k3-256k-model](reference-kimi-k3-256k-model.md) — configured but never used as of 2026-07-31; no short alias in mcp-server-p7 but usable today via full string `kimi-code/k3-256k`; default to it for well-scoped single/few-file dispatches
 - [2026-07-30-gap-audit](project-2026-07-30-gap-audit.md) — checklist of open items from the 07-24→07-30 completion cluster (known-fixes-needed, unverified, human-decision-blocked); update in place as items land instead of re-extracting
 - [auto-summarize-cost-investigation](project-auto-summarize-cost-investigation.md) — user hypothesis: dispatch auto_summarize is slow-not-broken on small context; needs profiling + lighter-model/last-round-only alternative; kimi zenka's unused last-message-only path has its own approval-disassociation bug
 - [nessus-trial-installed-2026-07-29](project-nessus-trial-installed-2026-07-29.md) — Nessus Pro trial live at localhost:8834, expires 2026-08-05; nessus-agent phase 1 LANDED+live-verified (a47ac3659) up to a hard license boundary — trial has scan_api:false, REST scan creation permanently blocked (UI-only), not a bug
 - [ntime-b32-2-unix-missing-compint-float-support](bug-ntime-b32-2-unix-missing-compint-float-support.md) — RESOLVED 2026-07-29 (kimi, 2c2cbf9f8): ported comp-int decode chain into B32_2_unix as a robustness/parity port (zero behavior change, 2000-vector fuzz-verified); original diagnosis had 2 errors caught during verification, see [[feedback-combined-grep-conflated-caller-counts]]
 - [v7-prio-starvation-and-ansi-corruption](topic-v7-prio-starvation-and-ansi-corruption-2026-07-25.md) — LANDED 1391ba11b: v7.zenka.start prio=>0 fixes 11yr-inert starvation bug; -vvvq ANSI chase inconclusive (likely WezTerm-side); write-completion-loop fixes + base.stdout.raw_fh redirect utility
 - [p7-text-formats-landed](topic-p7-text-formats-landed.md) — LANDED: format.kv_block (retired/kept) + format.inline-nested (promoted to base.*, show-access consolidated onto it); OPEN: yaml-config-codegen, reverse perl->p7, comment-preserving config-writer parser
-- [format-code-bugs-fixed](topic-format-code-bugs-fixed.md) — LANDED: 17 bugs/features via dogfooding; applied clean to 13 namespaces/areas incl. base/coding/models/bin; perltidy-rejoin gap + whitespace-column list style + regex-literal safety + jobsite-apply still open
+- [format-code-bugs-fixed](topic-format-code-bugs-fixed.md) — LANDED: 17 bugs/features via dogfooding; applied clean to 13 namespaces/areas incl. base/coding/models/bin; perltidy-rejoin gap + whitespace-column list style + regex-literal safety + jobsite-apply still open; NEW 2026-07-31: step4_align_comment_block under-pads closing '##' by 1-2 chars on some box comments, confirmed reproducible by re-running the tool, cosmetic-only, not fixed
 - [fake-signature-footer-detection](topic-fake-signature-footer-detection.md) — LANDED c5b78611a-adjacent: source.extract_sig_body now catches a sequential-pattern LLM-hallucinated fake footer that slipped past the existing PLACEHOLDER/size-mismatch checks; related session-37 "1 char too long" bug still open
 - [agent-dispatch-worktree-isolation-escaped](feedback-agent-dispatch-worktree-isolation-escaped.md) — FEEDBACK: a nested Agent dispatch with isolation:worktree still corrupted the main working tree (agent's own cd + wrong-commit self-revert); fully recovered via git checkout HEAD, no commits touched; don't trust that isolation mode unverified
 - [perl-mod-reload-redefined-warnings](project-perl-mod-reload-subroutine-redefined-warnings.md) — OPEN bug, unrelated to any content change: cube's `reload perl-mods` doesn't clear old symbol-table entries first, so every sub in a reloaded .pm warns "redefined"; mod-test zenka exists to fix this, not yet done
@@ -83,10 +84,10 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [input-capture-replay-website-templates](project-input-capture-replay-website-templates.md) — LANDED, kimi K3
 - [web-browser-value-replay-waypoints](project-web-browser-value-replay-waypoints.md) — LANDED, kimi K3; multi-window fan-out + access.zenki fix
 - [scratchpad-import-tool](topic-scratchpad-import-tool.md), [scratchpad-rescue-coding-zenka-task](topic-scratchpad-rescue-coding-zenka-task.md) — mcp-server-p7 scratchpad tools tested; follow-up task filed w/ kimi K3 for native coding-zenka rescue tools + chmod g+rx fix
-- [ncode-pattern-learning-loop](topic-ncode-pattern-learning-loop.md) — phase 1 + phase 2 (namespace scope-stack) LANDED, staged 2026-07-30 (kimi K3): scope_match/widen-scope + ncode.regex.apply status-gate parity fix, live-verified via p7c; tier-A end-to-end chain (assess→expand→save→suggest→apply) still never run as one continuous pass
+- [ncode-pattern-learning-loop](topic-ncode-pattern-learning-loop.md) — phase 1 + phase 2 (namespace scope-stack) LANDED, staged+committed `f8108af44` 2026-07-30 (kimi K3): scope_match/widen-scope + ncode.regex.apply status-gate parity fix, live-verified via p7c; tier-A chain fully run (expand→apply on scratch 2026-07-24; assess entry point tried on a real occurrence 2026-07-31, blocked by [[bug-ncode-assess-replace-not-backreferenced]] — assess never backreferences its own capture group, so it can't produce a generalizing pattern)
 
-#,,,.,.,.,...,,..,,.,,,.,,..,,...,.,.,..,,.,,,..,,...,...,..,,.,,,...,..,,,,.,
-#KJJSTAF6YO5LJUVRLDZKVTUDEH3YW6V6KX6ROPVYLXXGJPKM3N2M6BHS7PBPXTTQ5HSVVM47SE7HU
-#\\\|V3IEVUYYHTRFEGEQVEMJV2Q4D7LQNOQCSLM67W6VOY4UOJ4IJ6Z \ / AMOS7 \ YOURUM ::
-#\[7]NOFQDXVRQZJMERO2V7JMFLMRNKTUOLLQWIDPQ7QNLB4FENHJ7ECY 7  DATA SIGNATURE ::
+#,,..,..,,...,,,,,.,,,,..,,.,,,..,,..,..,,,..,..,,...,...,,..,,..,..,,...,...,
+#MIS2JIYXXVUYNT663QOBXR432S45KIDHE363EFDOPL27JYQUSL3BGSOCZ4M4RUGI2WKQ3GA2QWAK6
+#\\\|K3EXJE3VLOZH3WWPBUCO2WN24ODAXNE2BRPVULOEILM5JTSPON4 \ / AMOS7 \ YOURUM ::
+#\[7]XF3LNN3EFIC2U2HTWCO4ZOR7HPX3JNBIDE743IU6IXVHD3GWCYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
