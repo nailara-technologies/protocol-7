@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = ncode.util.scope_match
+# descr = check a target namespace against a pattern's active scope entry
+# param = $namespace, $applicability [ pattern applicability hashref ]
+
+my $namespace = shift // '';
+my $app       = shift // {};
+
+return TRUE if ref $app ne qw| HASH |;
+
+## resolve the scope stack [ legacy single-string namespace is treated as a ##
+## one-entry stack ] ; no scope at all means unconstrained                  ##
+my $scope = $app->{'scope'};
+if ( ref $scope ne qw| ARRAY | or not @$scope ) {
+    $scope = [];
+    $scope = [ $app->{'namespace'} ]
+        if defined $app->{'namespace'} and length $app->{'namespace'};
+}
+
+return TRUE unless @$scope;
+
+my $active_idx = $app->{'scope_active_idx'} // 0;
+$active_idx = $#$scope if $active_idx > $#$scope;
+
+my $glob = $scope->[$active_idx] // qw| * |;
+
+return TRUE if $glob eq qw| * | or not length $glob;
+
+## a scoped pattern never matches an unknown [ empty ] target namespace ##
+return FALSE unless length $namespace;
+
+## trailing .* glob : the stem itself or anything below it ##
+if ( $glob =~ s|\.\*$|| ) {
+    return TRUE
+        if $namespace eq $glob or $namespace =~ m|^\Q$glob\E\.|;
+    return FALSE;
+}
+
+## plain entry : prefix match [ same semantics as the legacy check ] ##
+return $namespace =~ m|^\Q$glob\E| ? TRUE : FALSE;
+
+#,,,,,,,.,.,,,,..,..,,.,,,..,,.,.,,.,,.,.,,.,,..,,...,...,...,...,.,,,,.,,.,.,
+#ACDCCQPWVVJ2GRJ3ZHBFQDTPMLJZ4ZPODILSKKN5FUIL6HHG2RFBGG5OIBPFX6ZKDCNLBBYLUPPQW
+#\\\|BBHAH57W7FJ4HZYY5X4KLG5JIORTCTRVFGZQ3WQXAJIG6LD6Z5J \ / AMOS7 \ YOURUM ::
+#\[7]N6U7MUTPEYQD7GZIQ7CCX4HPSGURKN7WTOP7XUMFPAAMUKXO5OCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

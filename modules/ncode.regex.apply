@@ -37,11 +37,10 @@ foreach my $name ( sort keys %$patterns ) {
         next unless $file_type eq $app->{'file_type'};
     }
 
-    if ( defined $app->{'namespace'} and $app->{'namespace'} ne '*' ) {
-        if ( length $namespace ) {
-            next unless $namespace =~ m|^\Q$app->{'namespace'}\E|;
-        }
-    }
+    ## scope gate : pattern applies only when the caller-supplied namespace ##
+    ## matches the currently-active entry of its scope stack                ##
+    ## [ legacy single-string namespace handled inside scope_match ]      ##
+    next unless <[ncode.util.scope_match]>->( $namespace, $app );
 
     ## check for required predecessor patterns ##
     if ( defined $app->{'requires'}
@@ -70,6 +69,23 @@ foreach my $name ( sort keys %$patterns ) {
     }
 
     next unless @matches;
+
+    ## status gate [ phase 1 parity with ncode.cmd.apply ] : an           ##
+    ## llm-required pattern is never auto-applied here, regardless of its ##
+    ## own confidence -- flagged for review instead, same shape as the    ##
+    ## below-threshold branch below                                       ##
+    if ( ( $def->{'status'} // qw| llm-required | ) eq qw| llm-required | ) {
+        push @flagged,
+            {
+            'name'    => $name,
+            'matches' => scalar @matches,
+            'action'  => qw| requires_review |,
+            'conf'    => $conf,
+            'lines'   => [ map { $ARG->{'line'} } @matches ]
+            };
+        $def->{'stats'}->{'skipped'}++;
+        next;
+    }
 
     ## below threshold or flag-only: report but don't modify ##
     if ( $conf < $threshold or not defined $replace or $mode eq qw| scan | ) {
@@ -128,8 +144,8 @@ return {
     }
 };
 
-#,,,,,,..,.,,,.,,,,,,,,,,,..,,,.,,,,,,.,,,,.,,..,,...,...,..,,.,,,,..,,,.,.,.,
-#DON4727RKJWRM5RCXJOLI2H52RECWER5ELTSJSE2IN3DWYOTS3ZTWYJNDLOE7JFMJ6M73AEIVQIBU
-#\\\|LDGR2EE6NSQG5LMDOW7SF4LDFQWTVWRLNQIOB772RCX54BTN22I \ / AMOS7 \ YOURUM ::
-#\[7]WYFKFUFN5I4SVMDABAVEX6VYVH7CNSFHDFN2SHC7LFQYCUBZCKDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,.,,,.,,..,,.,.,,,,,,..,,,.,,,,,..,,...,..,,...,.,.,,.,,,,,,.,,,
+#E43MG3FPI7R5HOESJCH7D24Y6NLT6SFQS5H2QAUCEHVWWGSOJNJZSFCZ2XFELVN6RWCCKH3VBFDRM
+#\\\|TDVJWLSORJHV5EGUJS7M2Z65XVZCHVHNHTNZWJFI2KOR6L5CFZP \ / AMOS7 \ YOURUM ::
+#\[7]NF6SMLAGSY2BPDBZ667P3NXRI4CW47QXLOIJLSUCSIXPLZFIWSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

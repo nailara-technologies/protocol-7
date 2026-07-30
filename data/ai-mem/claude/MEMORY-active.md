@@ -5,6 +5,8 @@ coding & kimi zenka state machines, jobsite, streaming transport, web-browser ca
 reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active Topics
+- [2026-07-30-gap-audit](project-2026-07-30-gap-audit.md) — checklist of open items from the 07-24→07-30 completion cluster (known-fixes-needed, unverified, human-decision-blocked); update in place as items land instead of re-extracting
+- [auto-summarize-cost-investigation](project-auto-summarize-cost-investigation.md) — user hypothesis: dispatch auto_summarize is slow-not-broken on small context; needs profiling + lighter-model/last-round-only alternative; kimi zenka's unused last-message-only path has its own approval-disassociation bug
 - [nessus-trial-installed-2026-07-29](project-nessus-trial-installed-2026-07-29.md) — Nessus Pro trial live at localhost:8834, expires 2026-08-05; nessus-agent phase 1 LANDED+live-verified (a47ac3659) up to a hard license boundary — trial has scan_api:false, REST scan creation permanently blocked (UI-only), not a bug
 - [ntime-b32-2-unix-missing-compint-float-support](bug-ntime-b32-2-unix-missing-compint-float-support.md) — RESOLVED 2026-07-29 (kimi, 2c2cbf9f8): ported comp-int decode chain into B32_2_unix as a robustness/parity port (zero behavior change, 2000-vector fuzz-verified); original diagnosis had 2 errors caught during verification, see [[feedback-combined-grep-conflated-caller-counts]]
 - [v7-prio-starvation-and-ansi-corruption](topic-v7-prio-starvation-and-ansi-corruption-2026-07-25.md) — LANDED 1391ba11b: v7.zenka.start prio=>0 fixes 11yr-inert starvation bug; -vvvq ANSI chase inconclusive (likely WezTerm-side); write-completion-loop fixes + base.stdout.raw_fh redirect utility
@@ -34,7 +36,7 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [os-command-zenka](topic-os-command-zenka.md) — planned command templates, security levels, STRM
 - [coding-round-timeout-adaptive](topic-coding-round-timeout-adaptive.md) — LANDED: soft/hard ceiling, stall detect, restart-round
 - [coding-round-timeout-no-autorestart-observed-2026-07-26](project-coding-round-timeout-no-autorestart-observed-2026-07-26.md) — FOLLOW-UP NEEDED: round hit 175% of ceiling with no auto-restart, manually aborted, not yet root-caused
-- [audio-waveform-visualization-landed-2026-07-26](project-audio-waveform-visualization-landed-2026-07-26.md) — LANDED (kimi K3): new `audio` zenka, PDL-FFT+Imager standing-wave renderer, tested clean on 4 samples incl. saturnians.mp3 generalization case; pending human sign-off on 7 modules + 4 config files + 2 cube edits
+- [audio-waveform-visualization-landed-2026-07-26](project-audio-waveform-visualization-landed-2026-07-26.md) — LANDED (kimi K3): new `audio` zenka, PDL-FFT+Imager standing-wave renderer, tested clean on 4 samples incl. saturnians.mp3 generalization case; "pending human sign-off" note likely stale as of 2026-07-30 (working tree clean, later audio commits `be7734af5`/`5eaf8e3d5` build on top of it) — not independently re-verified, but treat as landed unless contradicted
 - [audio-icon-three-stage-pipeline-landed-2026-07-27](project-audio-icon-three-stage-pipeline-landed-2026-07-27.md) — LANDED: 3rd orthogonal `audio.cfg.overlay` axis alongside render_style/post_process; `audio.overlay.waveform_trace.v1` draws translucent phosphor-green min/max amplitude trace over a background (true per-pixel alpha, not black-fill-blended opacity); icon use case = v3 render + rotation_stack.v4 mirror bg + waveform foreground, live-verified via p7c
 - [audio-spatial-purr-icon-landed-2026-07-27](project-audio-spatial-purr-icon-landed-2026-07-27.md) — LANDED: audio.cmd.spatial-purr-icon, fixed-recipe sibling of spatial-purr via a per-call `pipeline` override in audio.finalize_decode (falls back to audio.cfg.* untouched), auto-crops wide via crop_wide.v1 when format_hint says so; keeps devmod experimentation on audio.cfg.* independent from "the current best, always working" command; had to add cmd to access.cmd.usr.cube before gen-sub-whitelist would discover it
 - [povray-zenka-milestone1-landed-2026-07-27](project-povray-zenka-milestone1-landed-2026-07-27.md) — LANDED (kimi K3, 2nd dispatch attempt after mcp-server-p7 fix): async POV-Ray render pipeline mirroring audio's IPC::Open3 pattern; live-verified incl. non-blocking event loop during an active render; v7.register_child perm gap fixed same as audio's; not yet wired into audio zenka
@@ -81,10 +83,10 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [input-capture-replay-website-templates](project-input-capture-replay-website-templates.md) — LANDED, kimi K3
 - [web-browser-value-replay-waypoints](project-web-browser-value-replay-waypoints.md) — LANDED, kimi K3; multi-window fan-out + access.zenki fix
 - [scratchpad-import-tool](topic-scratchpad-import-tool.md), [scratchpad-rescue-coding-zenka-task](topic-scratchpad-rescue-coding-zenka-task.md) — mcp-server-p7 scratchpad tools tested; follow-up task filed w/ kimi K3 for native coding-zenka rescue tools + chmod g+rx fix
-- [ncode-pattern-learning-loop](topic-ncode-pattern-learning-loop.md) — design, not built: two-tier mechanical/LLM pattern model, reuse existing stats/confidence fields for self-reinforcement, LLM-prefers-editing-patterns interaction model, namespace scope gating, nested-dispatch for batch-apply without confirmation storms; next step is the pattern-schema fix (steps not persisted) blocking the loop
+- [ncode-pattern-learning-loop](topic-ncode-pattern-learning-loop.md) — phase 1 + phase 2 (namespace scope-stack) LANDED, staged 2026-07-30 (kimi K3): scope_match/widen-scope + ncode.regex.apply status-gate parity fix, live-verified via p7c; tier-A end-to-end chain (assess→expand→save→suggest→apply) still never run as one continuous pass
 
-#,,..,,..,.,.,.,,,..,,,..,.,.,.,,,..,,.,.,,,.,..,,...,..,,...,..,,..,,...,,..,
-#U3OD4454PYQ7PED74WVWYFTF4WS46E2HWINI5YEBCGW6DXNCV3SG7C4OTKGTE6CRPSTW4LYPQ7CU4
-#\\\|A5Z7HAT3B5FUSWAJ6SN75WIACDAC63S5WGY3GIYU27IRHIVI7MQ \ / AMOS7 \ YOURUM ::
-#\[7]LJY3LN4RBYJNJ5XRLTLZD4C3YTNSB2FQC5O63JL5EGNI7TF7PWBY 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,..,,.,,,.,,..,,...,.,.,..,,.,,,..,,...,...,..,,.,,,...,..,,,,.,
+#KJJSTAF6YO5LJUVRLDZKVTUDEH3YW6V6KX6ROPVYLXXGJPKM3N2M6BHS7PBPXTTQ5HSVVM47SE7HU
+#\\\|V3IEVUYYHTRFEGEQVEMJV2Q4D7LQNOQCSLM67W6VOY4UOJ4IJ6Z \ / AMOS7 \ YOURUM ::
+#\[7]NOFQDXVRQZJMERO2V7JMFLMRNKTUOLLQWIDPQ7QNLB4FENHJ7ECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

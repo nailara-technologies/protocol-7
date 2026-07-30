@@ -89,6 +89,18 @@ my $entry_status
     ? qw| auto-apply |
     : qw| llm-required |;
 
+## carry the scope stack through [ without it the stored pattern would ##
+## silently lose the candidate's trust boundary ]                      ##
+my $new_app = {
+    'file_type'  => $app->{'file_type'} // qw| module |,
+    'confidence' => $conf,
+    'coverage'   => $app->{'coverage'} // qw| partial |
+};
+if ( ref $app->{'scope'} eq qw| ARRAY | and $app->{'scope'}->@* ) {
+    $new_app->{'scope'}            = $app->{'scope'};
+    $new_app->{'scope_active_idx'} = $app->{'scope_active_idx'} // 0;
+}
+
 ## add new pattern ##
 $patterns->{$name} = {
     'name'          => $name,
@@ -97,11 +109,7 @@ $patterns->{$name} = {
     'pattern'       => $pattern,
     'compiled'      => $compiled,
     'replace'       => $replace,
-    'applicability' => {
-        'file_type'  => $app->{'file_type'} // qw| module |,
-        'confidence' => $conf,
-        'coverage'   => $app->{'coverage'} // qw| partial |
-    },
+    'applicability' => $new_app,
     ## synthesize a single apply-step from pattern/replace when the        ##
     ## candidate didn't supply explicit steps -- same synthesis            ##
     ## ncode.regex.load does for YAML-loaded patterns [ cb45d56d0 ];       ##
@@ -143,8 +151,8 @@ return {
     'status' => qw| added |
 };
 
-#,,,.,.,.,,.,,..,,,,,,.,.,,,,,.,,,.,.,,.,,,..,..,,...,...,.,.,,,.,,.,,.,.,...,
-#7AYR4EUUQ52WBGCFXAMV7W6DDI6HJASCLMV5DKDOMEZEHTSI5A2C6NFIS7WXBOHHJY4M25D5SNDB4
-#\\\|HQFGVCSQ3YWT6YKA4PXC6II5SU2J75NY53I2ICXAC5WLLECWTOQ \ / AMOS7 \ YOURUM ::
-#\[7]MSMXQDJAJZVLWKUI7JJ2CVU3ISLPVAJ3W4V2ISCDV4WCOCFYBSDA 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,.,.,,,.,,,.,...,..,,,,,,,.,,...,..,,...,..,,..,,...,,.,,,..,,,.,
+#JL4T33HYVGAJDWJBBO7WQGV4B4PKCDXU5JJ4CNK4PF5O4FGGEY4PT5DBXGWAMRUYM45SIA32XOKBE
+#\\\|TIH2C5KYN3ECSJJOKPD4CM3VEUB3C2XC7HPK5EXJNF7CPNRFDCL \ / AMOS7 \ YOURUM ::
+#\[7]ACCYQCVHEKZ2UCODYFPENBF7W7H6MDJXN64ZVLTRPHCOESJIDQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -524,17 +524,20 @@ what it should actually invoke.
   K2.7 (`data/tasks/perlmod-categorization-results.md`); human review found
   6 misclassifications and a broader templated-reasoning problem, so a K3
   re-verification of all 59 current MOVE rows was dispatched
-  (`data/tasks/perlmod-move-reverification.md` → expected
-  `perlmod-move-reverification-results.md`). See
-  [[feedback-perlmod-categorization-review-catches]] for the full trail and
-  what to check when the K3 dispatch returns, before drafting any actual
-  refactor-batch task. Two real fixes already landed ahead of the bulk
-  cleanup: `Perl::Tidy` → `coding.init_code`, `AMOS7::Twofish` →
-  `p7-log.init_code`.
+  (`data/tasks/perlmod-move-reverification.md`). Re-verification confirmed
+  11/59 (`perlmod-move-reverification-results.md`), and the actual refactor
+  (`perlmod-move-confirmed-refactor.md`) **LANDED `d3f3ac001` (2026-07-26)**
+  — all 11 confirmed hot loads moved into init_code. Closed; corrected
+  2026-07-30 (this entry previously said "expected results", which was
+  already stale by then). See
+  [[feedback-perlmod-categorization-review-catches]] for the full trail.
+  Two real fixes landed ahead of the bulk cleanup: `Perl::Tidy` →
+  `coding.init_code`, `AMOS7::Twofish` → `p7-log.init_code`.
 - **`base.devmod.dump_var` / `*main::dump_var` wrapper**: implemented in
   `modules/base.init_code`, gated on `ref($code{'devmod.dump'}) eq 'CODE'`
-  (same canary `devmod.cmd.unload-devmod` already uses) — unstaged,
-  pending sign/stage.
+  (same canary `devmod.cmd.unload-devmod` already uses) — confirmed
+  committed as of 2026-07-30 (working tree clean, wrapper present); the
+  "unstaged, pending sign/stage" note above was stale.
 
 ## open bugs (session 37)
 
@@ -591,8 +594,8 @@ they don't get silently dropped:
   cross-check `p7_task_queue`/`coding.show-buffer model_output` before
   assuming a reported failure means no work happened.
 
-#,,.,,,..,..,,...,,,,,..,,.,.,.,,,,,.,,,.,..,,..,,...,...,..,,.,,,,.,,,..,,,.,
-#B6VHAPVEZWBRCGVUE5STMLVIRAPTOQ7BUEULJUNTZRZHLVWQOQAW5MNI6C46WGA4TZ6QDDRKSRLNC
-#\\\|YRIHAXBRNRXP7ZXLUIOH3OL24XC7LLOYPRATJDI6I2FUWX2HJGN \ / AMOS7 \ YOURUM ::
-#\[7]7TYLPIC3WZMDH2YHFGKOWNRDUAI6BE5VL7S55GCSK7SDL5ZNGOAY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,.,.,,..,,.,,,..,,.,,,..,.,.,.,,,..,,...,...,...,,..,,,.,,..,,.,,
+#B2FJLPOEQA6SCY2W33PIOSU3ZHSINY22DJZCWZQT625UTCKQSWQSYF6DSZFFRTD24BPQ4DCQWK34Y
+#\\\|XEOEFVUUCCXSTM5HBUCGJQVIEXNSIT2LO6TFGZYWTUYTBCMPJVQ \ / AMOS7 \ YOURUM ::
+#\[7]CHIAW4ZZKH24OPQ62GYL2W532OOCDCKIWVX7C3ZWVYKMISH2KKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

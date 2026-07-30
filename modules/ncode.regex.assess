@@ -21,6 +21,20 @@ return { 'mode' => qw| false |, 'data' => 'no input provided' }
 return { 'mode' => qw| false |, 'data' => 'no output provided' }
     unless length $output;
 
+## build the initial scope stack from the context namespace [ narrowest     ##
+## first : the exact namespace, then progressively wider .* globs up to the ##
+## catch-all ] -- scope_active_idx 0 is the starting trust boundary         ##
+my $scope = [];
+if ( length $namespace ) {
+    my @segments = split m|\.|, $namespace;
+    push @$scope, $namespace;
+    while ( @segments > 1 ) {
+        pop @segments;
+        push @$scope, join( '.', @segments ) . '.*';
+    }
+    push @$scope, qw| * |;
+}
+
 ## compute line-by-line diff ##
 my @input_lines  = split m|\n|, $input;
 my @output_lines = split m|\n|, $output;
@@ -76,7 +90,13 @@ foreach my $change (@changes) {
         'applicability' => {
             'file_type'  => $file_type,
             'confidence' => $confidence,
-            'coverage'   => $generalizability->{'coverage'}
+            'coverage'   => $generalizability->{'coverage'},
+            (   @$scope
+                ? ( 'scope'            => $scope,
+                    'scope_active_idx' => 0
+                    )
+                : ()
+            )
         },
         'origin'      => qw| llm-extracted |,
         'source_task' => $task_id,
@@ -91,8 +111,8 @@ return {
     'data' => \@candidates
 };
 
-#,,.,,..,,,,.,,,.,.,,,,.,,,,,,,..,,,.,.,,,,.,,.,.,...,...,...,,.,,,,,,...,.,,,
-#4VENP2KBLJGMZDVJJPVF2JR5V56NR4VQELM5X5GHORP5QCSBFSRGZNMLBD7JZ3ZJ75TEWIFJLKZ4W
-#\\\|WMSUFZYWSVFFNTEABXHMCE5SGQXXOP22BUH3C3CSBMTHZTDVPJR \ / AMOS7 \ YOURUM ::
-#\[7]4FYZUZPYAYN4VCW3NEJC23WR5BJXSDV2IIBVIIKE52RMJG6NRKDY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,..,,,,.,.,,,,.,,...,,.,,,.,,.,,,.,.,...,...,.,,,,,,,.,,,.,.,,.,,
+#UMK4PTZD6BSSCU3XZ7A3QNIB6ZH7UVCQBCAQOFKDP52TEGDOLSOPZ2VOYSVGMYGAGJOMGPEHJHXJW
+#\\\|IE742YBNJJIFSAT7RNNAMEEIOTN6TZOSIV5PRIQ6HTCHGKAZA5S \ / AMOS7 \ YOURUM ::
+#\[7]6QJICQ6JQYJDLK5RSZVRVTAIGPOSFDF4KL2EDFX5EOLMJ6QBXSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

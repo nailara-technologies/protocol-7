@@ -1,0 +1,98 @@
+## [:< ##
+
+# name  = ncode.cmd.widen-scope
+# descr = widen a pattern's scope to the next broader entry
+
+## accept a ready hashref [ programmatic call ] or a cube-dispatch call   ##
+## object carrying a json-encoded 'args' string [ p7c / network call ] -- ##
+## same adapter shape as ncode.cmd.graduate                               ##
+my $raw    = shift // {};
+my $params = {};
+if (    ref $raw eq qw| HASH |
+    and exists $raw->{'args'}
+    and not ref $raw->{'args'} ) {
+    my $args_str = $raw->{'args'} // '';
+    if ( length $args_str ) {
+        $params = eval { JSON::PP::decode_json($args_str) };
+        return {
+            'mode' => qw| false |,
+            'data' => "invalid JSON " . "arguments: $@"
+            }
+            if $@;
+    }
+} elsif ( ref $raw eq qw| HASH | ) {
+    $params = $raw;
+}
+
+my $pattern_name = $params->{'pattern_name'} // '';
+my $confirm      = $params->{'confirm'}      // 0;
+
+return { 'mode' => qw| false |, 'data' => 'pattern_name required' }
+    unless length $pattern_name;
+
+## explicit confirmation is mandatory ##
+return { 'mode' => qw| false |, 'data' => 'confirm required' }
+    unless $confirm;
+
+<ncode.patterns> //= {};
+my $def = <ncode.patterns>->{$pattern_name};
+
+return { 'mode' => qw| false |, 'data' => 'unknown pattern' }
+    if not defined $def
+    or ref $def ne qw| HASH |;
+
+my $app   = $def->{'applicability'} // {};
+my $scope = $app->{'scope'};
+
+return { 'mode' => qw| false |, 'data' => 'pattern has no scope stack' }
+    unless ref $scope eq qw| ARRAY | and @$scope;
+
+my $active_idx = $app->{'scope_active_idx'} // 0;
+
+return { 'mode' => qw| false |, 'data' => 'already at broadest scope' }
+    if $active_idx >= $#$scope;
+
+## re-check the streak right now [ never trust a stale widening_ask ] -- ##
+## same earned-trust mechanism graduation consumes, not a parallel one   ##
+my $streak_needed = <ncode.cfg.review_streak_needed> //= 5;
+my $streak        = $def->{'review'}{'approved_streak'} // 0;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'streak threshold not currently met'
+    }
+    if $streak < $streak_needed;
+
+## widen to the next, broader scope entry : trust at the new level is       ##
+## re-earned from zero [ one streak never covers two scope levels, same     ##
+## discipline as a decline resetting the streak within one scope ] ; status ##
+## [ auto-apply / llm-required ] is an independent axis and stays untouched ##
+$app->{'scope_active_idx'} = $active_idx + 1;
+$def->{'review'}{'approved_streak'} = 0;
+
+## expanding where a pattern applies without review : log it, same ##
+## security-relevant-event level as graduate                       ##
+<[base.logs]>->(
+    1,
+    ':. ncode.cmd.widen-scope: pattern %s widened to '
+        . 'scope %s [ idx %d, streak %d >= %d consumed ] :.',
+    $pattern_name,
+    $scope->[ $active_idx + 1 ] // qw| * |,
+    $active_idx + 1,
+    $streak,
+    $streak_needed
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        'pattern %s widened to scope %s',
+        $pattern_name, $scope->[ $active_idx + 1 ] // qw| * |
+    )
+};
+
+#,,..,,,.,.,.,...,,.,,.,.,.,.,..,,,,,,.,.,..,,..,,...,.,.,.,.,..,,,.,,.,,,.,,,
+#CAXUKYXLVQUVCXVIMZUL6TTRMYMB2XSCDDD6SG2CDIYXTQIR726SYXWWWVY3TLSP4WLQKFUI3KYF6
+#\\\|ETQ3WG2YUPKEIWAUVT5VPBBTK6LD2AWQDVPFKR6RLBYAQSKPQLV \ / AMOS7 \ YOURUM ::
+#\[7]V6SWVOFV2FKD3G5RP6FRRKMAY4Y5SJTLJU4K2YPNHU6DRB5IEGCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
