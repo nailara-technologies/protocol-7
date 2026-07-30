@@ -423,13 +423,29 @@ via a `p7c`-shelling agent, that needs its own `access.zenki` grant. Full
 detail, including the `taeki`/`unix-taeki` two-principal finding:
 [[topic-write-access-security-infrastructure]].
 
+**Phase 2 (namespace scope-stack) LANDED, staged 2026-07-30** — kimi K3
+dispatch, `data/tasks/ncode-pattern-scope-stack-phase2.md`. New
+`ncode.util.scope_match`/`ncode.util.file_to_namespace` +
+`ncode.cmd.widen-scope`; wired into `regex.apply`/`assess`/`expand`/
+`cmd.apply`. Also closed part-0's prerequisite gap: `ncode.regex.apply`
+(the second, `status`-blind apply engine used by `transform`/`wave`) now
+respects the same `llm-required`/`reviewed` gate as `ncode.cmd.apply`,
+before `transform` is ever whitelisted. Live-verified via real `p7c`
+calls: out-of-scope fixes skipped (new `out_of_scope_count`), widen
+resets the approval streak to 0, widened fix then applies while an
+unrelated namespace stays untouched. User confirmed all files signed +
+staged, including the `configuration/zenki/ncode/pm-dep/*` markers
+auto-registered by the zenka restart. Detail: see
+`data/ai-mem/kimi/topic-ncode-scope-stack-phase2.md` (kimi's own notes)
+and [[project-2026-07-30-gap-audit]].
+
 ## related
 
 [[project-ncode-write-path-2026-07-24]], [[topic-write-access-security-infrastructure]],
 [[feedback-claude-dispatch-strategy]], [[reference-opus-dispatches-kimi-workflow]]
 
-#,,.,,...,,,,,...,...,,..,.,,,.,.,,.,,,,.,,,,,..,,...,...,,,,,,..,,..,..,,,,,,
-#H7TADRYZVOXKLU4STHAVIR4LFMY2FYPKXFNJ277NYSBTHMWXGEZV3MVJTPRORO64DLR2Q6ZCGIAK4
-#\\\|SV5AYPP6X7LL76HXQ4AEUWABDDUCG7KUPWLBQ7BN76NA4SYLEWC \ / AMOS7 \ YOURUM ::
-#\[7]U3YHJNI44WMR7QMTZ2LTEBQYCNZ5N2PHUURHLSTVM5D45L5SM4DI 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,..,,,,,,,,.,,..,.,.,...,.,,,.,,,..,,...,...,,..,,..,.,.,.,,,..,,
+#ONNXGVQE47BCBDFCBHGN5IIYIGA3YX773UMLVDINRNNQPIK3IOGDB6KXJE4GCZBG676ZTM6BJAWIK
+#\\\|VRNIQMRUPUJI5AGUD4RUDSPXRURW3C6N4QNTSA4UUDMZUMMMANP \ / AMOS7 \ YOURUM ::
+#\[7]AX27PG4LZB6DA7GONYANUWIJZJ4DAWNVCMALYTUANJTELHRYOUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -51,6 +51,7 @@ if ( length $session ) {
 my $applied_count         = 0;
 my $failed_count          = 0;
 my $review_required_count = 0;
+my $out_of_scope_count    = 0;
 
 foreach my $fix_id (@fix_ids) {
     my $fix = $pending->{$fix_id};
@@ -87,6 +88,25 @@ foreach my $fix_id (@fix_ids) {
             $fix_id
         );
         $review_required_count++;
+        next;
+    }
+
+    ## scope gate : a pattern's trust is scoped to a namespace stack,       ##
+    ## widened only via ncode.cmd.widen-scope ; the target file's own       ##
+    ## namespace is derived from its path [ p7 dot-notation module naming ] ##
+    ## -- an out-of-scope fix is skipped [ not applied, not failed ] and    ##
+    ## reported separately, like the review gate above ; no stats counters  ##
+    ## touched [ never attempted ]                                          ##
+    if (not <[ncode.util.scope_match]>->(
+            <[ncode.util.file_to_namespace]>->($file),
+            $def->{'applicability'} // {}
+        )
+    ) {
+        <[base.logs]>->(
+            1, ':. ncode.cmd.apply: %s out of scope for %s [ %s ] :.',
+            $fix_id, $pname, $file
+        );
+        $out_of_scope_count++;
         next;
     }
 
@@ -328,11 +348,12 @@ my $summary = "$applied_count fixes applied";
 $summary .= ", $failed_count failed" if $failed_count;
 $summary .= ", $review_required_count require review"
     if $review_required_count;
+$summary .= ", $out_of_scope_count out of scope" if $out_of_scope_count;
 
 return { 'mode' => 'size', 'data' => $summary };
 
-#,,..,,,,,..,,..,,...,,,.,,..,.,,,,,.,,,.,,..,.,.,...,...,...,.,,,.,,,,,.,,..,
-#EN3NVS77RC4HEPT56F5OLE7BGNYGGFTCABK772GC7HGLQTS6QSXAPHANTRBHLSG2KIWIWIYHAE3TQ
-#\\\|WA7IDAXOWTBKTPFQWYZPNFLCQYTFXOPBGZWPEGQQVQEFHJZHKRW \ / AMOS7 \ YOURUM ::
-#\[7]ZMWVZFZZ7TGZFABMO2SKDT3OPA2HVQH7WFGPI3GD3V3ALE7B7EDY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,..,,,.,.,.,...,,,.,..,,..,,...,.,.,...,...,,..,.,,,,..,,,.,,.,,
+#YLAJYVYGRMHQ2FXEM64SAYWOVD333VLNK4V4QHQYOSNDNOW3ZSBFP5HOH22YVX7HKDXSN6VRJJUI6
+#\\\|VCQUVSQ3S4OTQHQXSAPFDN6WC43AA3FGSNKZUEDEJZ2JSHHCQV4 \ / AMOS7 \ YOURUM ::
+#\[7]4UJ3PXKEK6P4QIXUP3RZTA735RZERG52EJ7KGVIZQPLEMBTVVODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
