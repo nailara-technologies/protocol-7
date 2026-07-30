@@ -220,7 +220,16 @@ above, not commitments:
 
 - **identity** — normalize per-zenka/per-host key ownership & chaining
   on top of existing `crypt.C25519` key-signs-key, informed by
-  questions 1, 3, 5.
+  questions 1, 3, 5. **spun off 2026-07-30**: see
+  `ZENKA-IDENTITY-COMPONENT.md` — identity and signature-tree treated as
+  one component (identity IS the edge set), built entirely on existing
+  primitives (`sign_keys`, `create_signature_request`,
+  `store_remote_key`, the `SIGNED-COMMAND-INTERFACE.md` rotation
+  ceremony), no new crypto. narrows questions 1/3/5 for this component's
+  scope without closing them generally; four remaining decisions
+  (key-naming/storage location, succession-edge marking, group-key
+  custody, lineage-vs-membership in-band distinguishability) left there
+  for a human call.
 - **handshake/trust establishment, transport-agnostic** — generalize
   TOFU + chain-signature verification to run over http, informed by
   questions 6, 8.
@@ -245,6 +254,15 @@ against the new mechanism — then update this doc's status below.
 **2026-07-18**: open questions stage, no components started. jobs-sync
 auth disabled, sync works. next action not yet chosen.
 
+**2026-07-30**: first candidate component spun off — see `identity` above
+and `ZENKA-IDENTITY-COMPONENT.md`. also resolved in passing: the
+`remote-host.*` TOFU-pin-filename mystery (question 8) is confirmed to
+have no missing writer — those files were manually created test
+artifacts, not evidence of an unlocated writer function; see the new
+doc's "naming collisions" section. `credentials.*` vs `cred-mesh.*`
+remains unresolved. remaining candidates (handshake, credential storage,
+discovery) not started.
+
 ## related
 
 - `data/ai-mem/claude/project-cross-host-trust-bootstrap-gap.md` (ai
@@ -254,8 +272,8 @@ auth disabled, sync works. next action not yet chosen.
 - `data/ai-mem/claude/project-zenka-cryptographic-identity-survey.md`
   (ai memory) — ground-truth crypto/identity inventory this builds on.
 
-#,,,,,.,,,...,,..,,,.,,,,,,,.,,..,,,.,,.,,,,.,..,,...,..,,..,,,.,,,..,...,..,,
-#NBQ4XEIK6DC7BBSWG4UV4A4YXJLNOVO6DN7EFYSAXDFUYTSZ5EP2UGHJMH74DLU5BK2SUFTKOCDDE
-#\\\|YFUQN34IAVDQDJH3IQB5TJAICBGV5PSQUHBBFSERRRW7ZJPM52S \ / AMOS7 \ YOURUM ::
-#\[7]4VGAO3BDCWFRKCFKFH6I44IDET2ALVO655SOF4XOMHRGBJSVAEAI 7  DATA SIGNATURE ::
+#,,.,,...,.,.,...,,.,,...,,.,,.,.,.,,,,.,,,,.,..,,...,...,..,,.,.,,,,,,,,,.,.,
+#O4R4XRL6LEURX6QNIRVQBKHXH2AI7FSU6FFJ6ZACDJUV2V4UMGTXQDBLA5KBJSW55EBEJSWFIJOUA
+#\\\|CTWSSKXCP4OSMDLJ4QXV55VO4KN4KVQWVWFCMV3C7TL45MZXYLI \ / AMOS7 \ YOURUM ::
+#\[7]4LSKILZH7TASCWSEZPKJIJVBSTDLY4F5AZUSYDJZQQF2W3RNHIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
