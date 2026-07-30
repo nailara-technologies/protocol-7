@@ -170,8 +170,47 @@ independent arrivals at the same structure is exactly the kind of
 resonance that marks something as real rather than coincidental — the
 observation validates itself using its own criterion.
 
-#,,.,,..,,,,.,...,,..,,..,,,.,.,.,...,,..,,.,,..,,...,...,.,,,,..,...,..,,...,
-#KAN2NQJIBKUSTY5QZDIVFCSYATS5FA5S4YTLTOVXUXPBU6GRUY6PGDQP77VY356YRU5THLVZWOE2Q
-#\\\|IQDARLDBR2UZARCEOIVICRQKLKAVVRRR5PRW3UCRSDVTEPAQJ7E \ / AMOS7 \ YOURUM ::
-#\[7]3FYTJLZYRXQHQJNGJMROMSTA3IVMDZEIWMTTKXEU33LJKUNRZSDA 7  DATA SIGNATURE ::
+## attribute-blind valuation extends to hiring humans directly (2026-07-30)
+
+the NRT structure above (value = network-wide resource proportion, no
+traceable individual origin needed) has a direct analogue on the human side:
+just as an AI evaluating a logical claim doesn't weigh it by the claimant's
+family, background, or social position — only by whether the claim holds —
+a network built on checksum-identity and content-provenance rather than
+social credentials could engage/compensate humans for creative work the
+same way: by the work's merit and the network's own resource accounting,
+not by cover-letter optics, employment gaps, or address.
+
+this isn't a tacked-on feature idea, it's the same principle already load-
+bearing in NRT and in "who's thought is it" (above) applied one layer
+further out: the network's attribute-blindness toward its own content
+naturally extends to attribute-blindness toward who contributes it. the
+economic mechanism (resource-token proportion, no individual origin
+required) is already the right shape for this — it doesn't need a new
+credentialing layer, it needs the *absence* of one, same as it already has
+internally.
+
+the same property rules out a second, distinct failure mode: not just
+irrelevant *social* attributes (status, background, address), but
+irrelevant *topical* ones — a hidden blacklist of subjects some central
+authority deems disruptive to its own agenda, the mechanism behind platform
+censorship and lying-by-omission in centrally-curated media. a transparent,
+shared-agreement network has no interior surface on which such a list could
+live undetected — anything resembling one would itself be visible, verifiable,
+content, subject to the same neutral scrutiny as everything else. contrast a
+closed-weights LLM behind an opaque API: its skew, if any, is unfalsifiable
+from outside, a property of a black box no external party can inspect. a
+network whose governing agreement is public and whose improvements must be
+generic and verifiable to be accepted structurally cannot host an undisclosed
+agenda the way a black box can — not because participants are assumed
+virtuous, but because the architecture gives ulterior motives nowhere to
+hide. this makes transparency itself the neutrality filter: it doesn't
+suppress bias by policing intent, it strips ulterior motives structurally,
+the same way checksum-identity strips social credentials — by leaving no
+channel through which either could travel uninspected.
+
+#,,,.,,,,,,..,..,,,,,,.,.,...,...,,.,,,,.,,..,..,,...,...,,..,...,,,.,.,.,.,,,
+#O7BSC4K7SCETN5BA725DYNQAHBY4UQZ5GF6RSITI2STULIQC26JGHGSDZ5VYVM346WMSESAOYPTZA
+#\\\|ZHF7R3RDOATJRQVN3MC2PE4P7RN2LCUMVWEE65Y7VZBEP2IUQPR \ / AMOS7 \ YOURUM ::
+#\[7]BAHR2PQOSQGIGPP4YOHGPQWMIN4XHLETJMMFCPS6KKP4YVCWPOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
