@@ -173,3 +173,16 @@ register a new zenka — wait for a network restart instead. single-zenka
 #\\\|UHRIRAQXR3WDBPLWFEXZ2F234UNVF3FHTX5PEZ3PVRY72ZEL6OM \ / AMOS7 \ YOURUM ::
 #\[7]DQIJOJZDIY6DTBAZ4HF3VV3I4EOI5OSHQXB22LNIKDRS5NGPRKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+## ncode pattern-learning phase 2 — scope-stack landed (2026-07-30)
+part 0 status-gate in regex.apply + namespace scope-stack (scope_match /
+file_to_namespace helpers, assess stack creation, cmd.apply out_of_scope_count,
+ncode.cmd.widen-scope with streak-consuming widen + reset). verified live via
+p7c incl. coding.eval-code for the p7c-unreachable regex.apply. details +
+reusable verification notes: [topic-ncode-scope-stack-phase2.md](topic-ncode-scope-stack-phase2.md)
+
+#,,..,,,,,.,.,,..,,.,,.,,,,,,,,.,,...,...,,..,..,,...,...,..,,..,,,,,,...,,.,,
+#MLWR2X7QZU7BJAOZJENFYVXPHUCAEEYJSZFCK2LVOHJJ2Y3BFNHZGBTSZSULFTZ644G5QAVNH334S
+#\\\|3H6PDGVQALA2FZARGOVZYUIVWDACCJWGPFCDYKEM2ISOKASUX2Z \ / AMOS7 \ YOURUM ::
+#\[7]GU6D22VB4LR2MZD64SKTKXWSPVHW2UZBWGGDRJ6GWJHJIFSUQ4DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
