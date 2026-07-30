@@ -1,6 +1,6 @@
 ---
 name: feedback-claude-dispatch-summarize-hang
-description: claude_dispatch can hang indefinitely (near-zero CPU, alive for 1h+) when its auto_summarize coding_summarize call fails with prompt overflow — the poll loop doesn't treat "failed" as terminal
+description: claude_dispatch AND kimi_dispatch can hang indefinitely (near-zero CPU, alive for 1h+) when auto_summarize's coding_summarize call fails or stalls — the poll loop doesn't treat "failed" as terminal
 metadata:
   node_type: memory
   type: feedback
@@ -44,8 +44,31 @@ dispatch.
   tasks expected to produce large diffs/output, to sidestep this class
   of hang entirely
 
-#,,.,,,.,,,,.,,..,,..,,,,,..,,,,,,...,,,,,,.,,..,,...,...,..,,,,.,...,,..,...,
-#PWDUH2AJ4ZTANW53VITRFQJ5YSETZGF6SU5VK3DSMWI4DS7V73F7YY7S3YCFDQ3KCI52P4Q5KMML4
-#\\\|7SHZIYGJQLP3P3JZW3ZKE2MKII4YOVWBRQFVR4YT7PQTVPIKMH5 \ / AMOS7 \ YOURUM ::
-#\[7]D7BSKBF2O6RY44O3PWTP3RUTXR537X53XTGGSUC5PU4QYBWM22DA 7  DATA SIGNATURE ::
+**confirmed also on `kimi_dispatch`, 2026-07-30**: same shape — MCP tool
+reports "still running" long after the underlying `kimi-legacy` process
+has actually exited and its deliverable is already on disk. `bin/dev/
+notify-pid-gone <pid> [interval]` (blocks until the PID is gone, then
+returns — see the script itself, in `bin/dev/`) is a cleaner check than
+manual `ps -o pid,etime,time,pcpu` polling: grab the real PID from `ps
+aux | grep <dispatch-command-fragment>` right after firing the dispatch,
+then run `notify-pid-gone` in the background and treat *that*
+completion, not the MCP task's own status, as the signal to verify the
+actual output file/diff and `TaskStop` the still-"running" MCP task.
+
+**it may also self-resolve within ~13 minutes without intervention now**:
+the coding zenka's own hard timeout ceiling for a summarization round is
+`coding.http-timeouts.request-completed = 777s` (~13min), and per
+[[topic-coding-round-timeout-adaptive]] (landed 2026-07-16, `411b5635c`)
+it now escalates through a 384s adaptive soft ceiling and a 77s
+stall-detection timer first, recovering faster than the old flat 777s
+wait in most cases. so a stuck `auto_summarize` call is not necessarily
+wedged forever the way the original 2026-06-08 incident was (prompt
+overflow, which doesn't route through this timeout path at all) — check
+whether it clears on its own before assuming a hard hang, especially if
+under ~13 minutes have elapsed.
+
+#,,,,,...,,.,,,..,.,,,,,.,..,,..,,,,,,.,,,,,,,..,,...,...,..,,..,,..,,...,.,,,
+#XKVW7PE4TV7EWJWN2GIG6DLFMZJXRGCZHMLODMB2KOO4JO2V4ABCMXJSEL4ARYOFZCMORLYLVVJA6
+#\\\|PYHMWFVW6XAHESDIF2T4RGAIFQY66U2GNJPO6MYKX7JXRX5JKKS \ / AMOS7 \ YOURUM ::
+#\[7]RN6FMLVSASXRD3YRYX2V26ZRVDEX55LRCI3IG2RKTQ6VRXY32UAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
