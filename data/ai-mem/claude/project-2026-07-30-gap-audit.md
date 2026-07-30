@@ -18,8 +18,6 @@ scratch in a future session.
   closing `##` by 1-2 chars on some multi-line box comments — confirmed
   reproducible by re-running the tool directly, cosmetic only. See
   [[topic-format-code-bugs-fixed]] "open bug found 2026-07-31".
-- [ ] `task-append` backend-lock-leak — diagnosed + unstuck live 2026-07-21,
-  never code-fixed (see [[project-coding-zenka-resilience-and-model-switch-2026-07-21]])
 - [ ] `bin/dev/dep-graph` doesn't understand the conditional-call pattern
   (post [[project-depgraph-conditional-calls-blindspot]] `c3870ebe5`)
 - [ ] `base.cmd.reload` still misses `modules.preload`/literal
@@ -67,6 +65,20 @@ scratch in a future session.
   (`surface`/`offline`/`alternate`), independently re-verified via `ptd
   -c` and diff. Committed `d2b86045e`.
   See [[bug-ncode-assess-replace-not-backreferenced]].
+- [x] `task-append` backend-lock-leak — dispatched to kimi K3
+  (`kimi-code/k3-256k`, first real use of this model — worked well,
+  see [[reference-kimi-k3-256k-model]]). One-line fix
+  (`analysis.routed_to` not `execution.backend`), but the real value was
+  the traced root cause: a **double-acquire**, not a wrong-bucket
+  release — `task-append` stores the wrong key so `enqueue_round`
+  acquires under it, then `async.request` separately acquires under the
+  *correct* key, and every release path only ever reads the wrong stored
+  key back, leaking the correct-key lock forever. Live-verified by
+  reloading the module into the running coding zenka and reproducing the
+  original 66-minute-stall bug shape twice (leak case + gpu-routed
+  regression check), independently re-verified via `ptd -c` and diff.
+  Committed `ea2406122`. All three task files from this session archived
+  to `data/tasks/completed/` in the same commit.
 
 ## stale-memory corrections made this session (2026-07-30)
 - `perlmod-move-confirmed-refactor.md` **landed `d3f3ac001` (2026-07-26)** —
@@ -87,8 +99,8 @@ scratch in a future session.
   `elf_mode` consumer and threads it correctly through to
   `base.chk-sum.elf.inline` — not the same bug. No second instance found.
 
-#,,,.,.,,,..,,...,,.,,..,,,,.,.,,,,..,,..,,..,.,.,...,...,...,,,,,.,.,,.,,,,.,
-#BQOYH7YXIG6DSA34OL6RNQRWCC6E3GJLC7HCZ7HMZJRTHVAXTATTXIGTVP3W5E35EZSWN2MISMN6I
-#\\\|WMCFF6UOEXNDHMZXIIDYJ455OEY4GNNR4SKIG7EYLGCGPE5V2FC \ / AMOS7 \ YOURUM ::
-#\[7]UN5UNTG2ZQEBUMFY7Y3545TKNAGP6KDPGJRN4M4UWTBSFFCXU2DQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,,,,..,,.,,,,,,,,,,,,,.,..,,..,,.,.,...,...,,,,,..,,,..,,,,,,,,,
+#2UKLBMT2FNAX7GJLKQR2OFJQ7X47JGVATRYKPQTXYBDZN4L47EQYH4OP4MUAEOVZ4FYJ5PNMSZYGO
+#\\\|3KXZTGKIMZKVYHBRYXWIP3CIISFOQEGXQDZMA7AKDQW32KJLNM3 \ / AMOS7 \ YOURUM ::
+#\[7]YAHIQ536FLSUCYAJ5F5F7XKRT5QV57TB6W6Z7CC7XFM2JDKAYICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
