@@ -448,12 +448,49 @@ whole 15-bug arc is that principle in practice.
   `ptd`'s own file, where it's equally vestigial) rather than introducing
   an unexplained divergence between the two.
 
+## open bug found 2026-07-31, not fixed — step4 box-realign closing-'##' under-pads by 1-2 chars
+
+Spotted in a K3 dispatch's own output (two files, same commit `f8108af44`
+area), then **confirmed reproducible by running `bin/format-code` directly**
+on a copy — not just unformatted hand-typed code. Two independent real
+instances:
+
+```
+modules/context.pattern.extract_from_change:107 (block target width 77, this line 76)
+        ## reconstruct $replace around the $1 backreference [ same stored ##
+
+modules/ncode.regex.apply:42 (block target width 78, this line 76)
+    ## [ legacy single-string namespace handled inside scope_match ]      ##
+```
+
+Re-ran `bin/format-code` on a `/tmp` copy of the first file: output byte-
+identical, misalignment persists — this is the tool's own steady state,
+not a one-off artifact of code that was never formatted. Neither instance
+contains anything obviously special (no unicode, the `$1`/`$replace`
+literal-dollar theory doesn't hold since the second instance has no `$`
+at all) — genuinely looks like a `step4_align_comment_block`
+(`bin/format-code` ~line 492-673) padding-computation bug, not content-
+dependent. `$target_width` is computed once as the max `length` across
+the whole block's `@wrapped_lines` (line 659-660) and every line is
+right-padded to it via `sprintf('%-*s', ...)` (line 662-666) — in theory
+every line should land on the same width; root cause of why it
+occasionally doesn't was not chased further (Text::Wrap's greedy-fill
+line-length variance across segments is the most likely suspect, but
+unconfirmed).
+
+**Not fixed, just recorded** — cosmetic only (comment-only, cosmetic
+whitespace, zero functional impact), but real and reproducible. Good
+scoped candidate for a future task file/dispatch: reproduce via the two
+instances above, trace `step4_align_comment_block`'s `$target_width`/
+`sprintf` path, fix, and verify against a corpus of real multi-line box
+comments (not just these two).
+
 ## related
 
 [[topic-p7-text-formats-landed]], [[feedback-base-swap-subs-promote-pattern]], [[topic-fake-signature-footer-detection]], [[project-ncode-write-path-2026-07-24]]
 
-#,,,.,.,.,.,,,,.,,,,.,..,,.,.,,.,,..,,..,,...,..,,...,..,,,,.,,,.,,,,,.,,,...,
-#JOGSZIQRHCNQAYGMDKYCHSBKRLZD5AQI557DTPL5RXKMNMHU2RHQAEIG6UQM2E6HWSUWVVV4PJMIC
-#\\\|YUF7LZFZMC5AYY7YDHBCWMCUW43IM2RM7HWKB5M2U5SBANJHXTN \ / AMOS7 \ YOURUM ::
-#\[7]D5JGUHUGVUICRM2MW34W7FQ3CC2DTJUX4AFJBVH4YNFLPZGWXICQ 7  DATA SIGNATURE ::
+#,,,.,...,.,.,,.,,.,,,..,,,.,,...,..,,.,.,.,,,..,,...,...,,,,,,.,,.,,,.,.,,..,
+#AFVWA7QG7SNR7YLYKPQ5UCOITMRYY4J7XPQOGDXLFKHXHMX25KBW47ZHJKIPCDTZV2UNXLBYBNEXO
+#\\\|Z6KGSZHCK4NG7MQVFQZI4K4VVM6PN3LLULHIIQDEOJ3542WLBX7 \ / AMOS7 \ YOURUM ::
+#\[7]BSBQNE6G4Q6E2UQGAY6WXFG3BKXLEQMGKFSRWDFMUH3PAN4PEACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

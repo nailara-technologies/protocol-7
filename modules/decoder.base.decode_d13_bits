@@ -19,7 +19,7 @@ $type .= substr( $work, 0, 1, '' ) if $type eq qw| 011 |;
 ## type 1 : graphical character / 5x7 pixel matrix ##
 return sprintf( 'GFX[%s]', $work ) if $type eq qw| 1 |;
 
-## type 01 : 5x7 pixel matrix (alternate) ##
+## type 01 : 5x7 pixel matrix [ alternate ] ##
 return sprintf( 'PIX[%s]', $work ) if $type eq qw| 01 |;
 
 ## type 010 : BASE32 character ##
@@ -35,8 +35,7 @@ if ( $type eq qw| 010 | ) {
 return 'DOC[mono]'  if $type eq qw| 0110 |;
 return 'DOC[color]' if $type eq qw| 0111 |;
 
-## type 00 : routing direction ##
-## 00 + 2-bit turn + 3-bit hop count ##
+## type 00 : routing direction  00 + 2-bit turn + 3-bit hop count ##
 if ( $type eq qw| 00 | ) {
     my @bits = split '', $work;
     my $turn = join( '', shift @bits, shift @bits );
@@ -48,8 +47,8 @@ if ( $type eq qw| 00 | ) {
 
 return 'UNK';
 
-#,,.,,,,,,..,,.,,,,,.,,,.,...,...,.,,,,.,,,,.,.,.,...,...,...,..,,,,,,,.,,.,.,
-#CGKSTQLALZH4EWGVRW4GOGTY63WZGWYOUTW2LNIMRAU4UUKRFGPYIIGOOKNEDVU7STSQKYRKMMWFC
-#\\\|KK66CUXCUDOV3XR73EYAQFQRVRJUQ4RT5TRSIHTVWD4OC4E4IQG \ / AMOS7 \ YOURUM ::
-#\[7]XVHV66UYEOD45PITLJAUFLQQ7BFBF54YBUAY6GHU7J7T3DVVYMBQ 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,..,.,.,...,,.,,,,.,,,.,,.,,..,,.,.,...,...,.,,,...,.,,,,..,,.,,
+#H42NGJPV53NCXORYPFQO7I4UEJNGIRNB4GRFX6KXUJ2OJZTYOCYUJUG4JHKGSPUH6NOLQH2ZYIL7O
+#\\\|AKNKY7QJCFVDP3ELIA4ZW3M7BFX6ZKD6Q7JWCFRD2FYD3L55R6K \ / AMOS7 \ YOURUM ::
+#\[7]A36YSCM6FO3FOFUQ2K3LIH3PEN4EQGU4NBXSMHEHU6TNINTOFUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

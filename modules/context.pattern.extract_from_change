@@ -98,8 +98,43 @@ if ( length $old_middle and length $new_middle ) {
         $escaped_old =~ s|\s+|\\s+|g;
 
         $pattern = $prefix . $escaped_old . $suffix;
-        $replace = $new;
-        @vars    = qw| token |;
+
+        ## structural-wrap detection : the \w+ runs of $old_middle become  ##
+        ## the capture groups of $pattern [ the later \d+ and \s+ passes   ##
+        ## add none ] ; when there is exactly one such token and the new   ##
+        ## middle still contains it as a contiguous substring, the change  ##
+        ## is a wrap around the token [ e.g. ( word ) -> [ word ] ], so    ##
+        ## reconstruct $replace around the $1 backreference [ same stored ##
+        ## backreference convention ncode.cmd.apply expands post-cb45d56d0 ##
+        ## ] instead of overfitting to the training line ; genuine content ##
+        ## changes and multi-token cases keep the literal $new [ correct   ##
+        ## positional multi-group mapping is a deliberate follow-up ]      ##
+        my @tokens = $old_middle =~ m|\w+|g;
+
+        if ( @tokens == 1 and index( $new_middle, $tokens[0] ) >= 0 ) {
+            my $token       = $tokens[0];
+            my $token_pos   = index( $new_middle, $token );
+            my $wrap_prefix = substr( $new_middle, 0, $token_pos );
+            my $wrap_suffix
+                = substr( $new_middle, $token_pos + length $token );
+
+            ## raw [ unescaped ] prefix/suffix : $replace is a literal ##
+            ## replacement string, not a regex                         ##
+            my $raw_prefix = substr( $old, 0, $prefix_len );
+            my $raw_suffix
+                = $suffix_len
+                ? substr( $old, $old_len - $suffix_len )
+                : '';
+
+            $replace
+                = $raw_prefix
+                . $wrap_prefix . '$1'
+                . $wrap_suffix
+                . $raw_suffix;
+        } else {
+            $replace = $new;    ## literal [ not a structural wrap ] ##
+        }
+        @vars = qw| token |;
     }
 } else {
     ## addition or deletion - flag only pattern ##
@@ -127,8 +162,8 @@ return {
     'vars'    => \@vars
 };
 
-#,,,,,,,,,.,,,..,,,..,...,,..,..,,.,,,,,.,,,.,.,.,...,..,,..,,..,,..,,,,,,...,
-#NVB4SII4ELP4IHFBXWEQK7BWROQOEAC66ZJ5RLJ2TOIAFNJ7KBB7DQQZNINNU2457BDXIAPMSGVCM
-#\\\|YQYAR7FHYQR2NG6OFRGFCVNQZBKVDBT6T3MZHQCSCD7G3OCR6UE \ / AMOS7 \ YOURUM ::
-#\[7]AOCGAJ3CRIHGNWPJN4ALJRTEU66YAKGTQPOGYLFXSHFKEFRJX6BY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,...,.,,,.,.,..,,...,,,.,.,.,,..,.,.,...,...,..,,.,.,,.,,,,,,.,.,
+#GDLTTD4OJK2PB33YRNOKAHFLERD6HLHO4YJ6SIODUT2M3LUVEHKNTZUZM3MRRBHMTWWQ6ITBSPQIW
+#\\\|HYVGEZWZCFUQLXY3MBSKKZEY57LVLHXNM7ORG6PLJGU4YQCMVG3 \ / AMOS7 \ YOURUM ::
+#\[7]HQESZLXBPY6N6JPWSQ6LKH7MI3OWKH6TIB4QUZX3WCQNOEPCO6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
