@@ -14,6 +14,10 @@ Mark items done here as they land instead of re-deriving this list from
 scratch in a future session.
 
 ## known fix needed, not yet done
+- [ ] `bin/format-code`'s `step4_align_comment_block` under-pads the
+  closing `##` by 1-2 chars on some multi-line box comments — confirmed
+  reproducible by re-running the tool directly, cosmetic only. See
+  [[topic-format-code-bugs-fixed]] "open bug found 2026-07-31".
 - [ ] `task-append` backend-lock-leak — diagnosed + unstuck live 2026-07-21,
   never code-fixed (see [[project-coding-zenka-resilience-and-model-switch-2026-07-21]])
 - [ ] `bin/dev/dep-graph` doesn't understand the conditional-call pattern
@@ -30,9 +34,12 @@ scratch in a future session.
 ## verification never run
 - [ ] openvas-agent phase 1 — implemented + file-verified, **not boot-tested
   live** ([[project-nessus-trial-installed-2026-07-29]] area)
-- [ ] ncode tier-A chain (`assess → expand → save → suggest → apply`) —
-  pieces tested individually only, never run as one continuous chain; see
-  [[topic-ncode-pattern-learning-loop]]
+- [x] ncode tier-A chain — **corrected 2026-07-31, this line was already
+  stale**: `expand → suggest → apply` *was* run as one continuous chain on
+  2026-07-24 (kimi K3 dispatch `kbx4su758`, against a scratch file, found +
+  fixed 2 real bugs). What was genuinely untested was `assess` as the entry
+  point against a real repo occurrence — tried 2026-07-31, found a blocking
+  bug instead: see [[bug-ncode-assess-replace-not-backreferenced]].
 - [ ] `coding-round-timeout-no-autorestart` — round hit 175% of ceiling with
   no auto-restart, manually aborted, never root-caused
   ([[project-coding-round-timeout-no-autorestart-observed-2026-07-26]])
@@ -46,11 +53,20 @@ scratch in a future session.
 - [ ] whether `ncode.cmd.suggest/apply/assess` stay on the cube whitelist
   long-term, or fold into [[topic-write-access-security-infrastructure]]
 
-## dispatched and landed this session (2026-07-30)
+## dispatched and landed this session (2026-07-30 → 07-31)
 - [x] `ncode-pattern-scope-stack-phase2.md` dispatched to kimi K3
   (`auto_summarize=false`) — namespace scope-stack + part-0
   `ncode.regex.apply` status-gate fix, live-verified via p7c, user
-  confirmed signed+staged. See [[topic-ncode-pattern-learning-loop]].
+  confirmed signed+staged, committed `f8108af44`.
+  See [[topic-ncode-pattern-learning-loop]].
+- [x] `ncode-assess-replace-backreference-fix.md` dispatched to kimi K3
+  (`auto_summarize=false`) — fixed `context.pattern.extract_from_change`'s
+  token branch to reconstruct `replace` via `$1` instead of the literal
+  training value; persisted `comment-paren-annotation-to-bracket` and
+  applied it live against 3 real files with 3 different unseen words
+  (`surface`/`offline`/`alternate`), independently re-verified via `ptd
+  -c` and diff. Committed `d2b86045e`.
+  See [[bug-ncode-assess-replace-not-backreferenced]].
 
 ## stale-memory corrections made this session (2026-07-30)
 - `perlmod-move-confirmed-refactor.md` **landed `d3f3ac001` (2026-07-26)** —
@@ -71,8 +87,8 @@ scratch in a future session.
   `elf_mode` consumer and threads it correctly through to
   `base.chk-sum.elf.inline` — not the same bug. No second instance found.
 
-#,,,,,...,,,,,.,,,,..,.,.,,.,,,,.,.,.,,.,,...,.,.,...,...,..,,...,,..,..,,.,.,
-#GO3C5CEB732DUKGKP5UZBZSZPD75GMUJ27PLENXZ7GROWQKZSACA3HFXMDIFARYLHFAHSWMML6KX4
-#\\\|ND3YLKFQ4H5T3WHGRMVTCVER5VWU2JZGHUV6HTXJLPNHXR572B2 \ / AMOS7 \ YOURUM ::
-#\[7]ZZ4O3YJN3ROQJNWZ66F7XKOQPPHEV6VCGOPWQY24FDJOSIYG44AA 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,...,,.,,..,,,,.,.,,,,..,,..,,..,.,.,...,...,...,,,,,.,.,,.,,,,.,
+#BQOYH7YXIG6DSA34OL6RNQRWCC6E3GJLC7HCZ7HMZJRTHVAXTATTXIGTVP3W5E35EZSWN2MISMN6I
+#\\\|WMCFF6UOEXNDHMZXIIDYJ455OEY4GNNR4SKIG7EYLGCGPE5V2FC \ / AMOS7 \ YOURUM ::
+#\[7]UN5UNTG2ZQEBUMFY7Y3545TKNAGP6KDPGJRN4M4UWTBSFFCXU2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
