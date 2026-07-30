@@ -493,8 +493,15 @@ sub read_password_single {
             print $message_prompt . " " if length $message_prompt;
             STDOUT->flush();
             my $password = <STDIN>;
-            chomp($password) if defined $password;
             print "\n";
+
+            ## EOF on stdin ($password undef) must abort, not retry -- ##
+            ## otherwise a closed/exhausted stdin re-reads instantly   ##
+            ## forever (no blocking wait on true EOF), spinning the    ##
+            ## caller's retry loop at full CPU with no way out         ##
+            return ( undef, TRUE ) if not defined $password;
+
+            chomp($password);
             return ( $password, FALSE );
         }
     }
@@ -1595,8 +1602,8 @@ sub cursor_disable {
 
 return TRUE ##################################################################
 
-#,,,,,,,,,...,,,.,,,.,.,,,,,.,..,,,.,,,..,,,.,..,,...,...,,,.,..,,.,.,..,,,,,,
-#DKWGPERU5XXYW64UC6UCNYXRE2IQJKOL6HVKPOV2BR4M4SC43GTVYOH4MSPTIDNXXSCYYGOTN22LK
-#\\\|NOD3LXTE6X3SK72NN4MLTCW4KF2C7KBAI2WWY5PY27QR7U4GYPK \ / AMOS7 \ YOURUM ::
-#\[7]F4B37TBSLVUZQXLBLTLEDTXFTNWC43RGOG4JT6D5CHE3B3YNNEAY 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,,.,,.,.,.,.,...,,.,,,.,,,.,,,,,,..,,...,...,.,.,,..,...,,,.,,.,,
+#GPUKI2B6B6AAECIR7WEJAZFGMI4EITKGU25XAJHBUZP6WEK6QOQ4LOBXFSW5OYMAAQBFOK65HADYI
+#\\\|HPPYYH74YM5K5IHCMSROCEERSMNX5GNUXFVSFUX6W3H4QGPHVY4 \ / AMOS7 \ YOURUM ::
+#\[7]RXDVLRHHBHXYPE3AKZFRYBB5VXVI7OUCARI5JOLQXMLO3ZFZACDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,10 +6,19 @@
 
 my $name = shift;
 
-if ( not defined $name ) {
+if ( not defined $name or not length $name ) {
     say "\n  << expected <key_name> parameter >>\n";
     <[base.exit]>->(qw| 0110 |);
-} elsif ( not <[crypt.C25519.validate_keyname]>->($name) ) {
+}
+
+## intentionally NOT gated on crypt.C25519.validate_keyname here: removal  ##
+## must be able to clean up files that could never have been *created*     ##
+## through the validated path in the first place (manual/legacy artifacts, ##
+## see 'LLM-dev.sourcecode.*'). still refuse the specific characters that  ##
+## would be actually dangerous if this code ever grows a direct path use — ##
+## explicit guard rather than relying solely on today's \Q...\E-filters-an ##
+## -already-enumerated-list property to hold forever                       ##
+if ( $name =~ m{[/\x00]} ) {
     say sprintf "\n  <<  %s is not a valid key name  >>\n", $name;
     <[base.exit]>->(qw| 0113 |);
 }
@@ -68,8 +77,8 @@ foreach my $file_name (@k_files) {
 printf " :\n :: [ removed %d key file%s ]\n\n", $del_count,
     <[base.cnt_s]>->($del_count);
 
-#,,.,,,.,,,,,,..,,.,,,,,.,..,,,.,,,..,.,,,,..,..,,...,...,..,,,.,,,..,..,,..,,
-#QEVAHHJBYT3IKUC6ZNFHKJGRIISCKGEZBB43CHYNHPXCMPC56T54WBQOMDIPBTT5TS3YZNF3YHSHE
-#\\\|JWCVJM7NCM44VJJRIDZMTQOFN4BEPBZKQ25HPOGZOCQ7HRB5XGA \ / AMOS7 \ YOURUM ::
-#\[7]3UM53OF2L2I2DHS3MEJZICPEMQUHGREXKVM4ZCLOFS6OEKSCX4CI 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,.,,,,,,.,,,,.,,,,.,.,,,,..,,,,,..,,...,...,..,,,..,.,.,.,,,,,.,
+#MEUZ3FJEO3WYRQ6VJFBQOEDUOZNB346CBGKCLYYFPJ2RTEB7P53XNIW4PQ3S2BEHOT5PKLWOUT5SQ
+#\\\|3S6YFZNAVYEZ5VRQTFPKXKPSVECXAC7VH7OWGJ7LD6AC6ATTOMO \ / AMOS7 \ YOURUM ::
+#\[7]BWX7TW3OVGDOGG3G2YTFNOMRH66XLAWKYPSAK5OVGOA7X6DPTODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
