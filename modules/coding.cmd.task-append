@@ -78,8 +78,10 @@ if ( $status eq qw| completed | or $status eq qw| failed | ) {
     my @resume_messages
         = ( @{$saved_messages}, { 'role' => 'user', 'content' => $message } );
 
-    ## rebuild async state for the resumed conversation ##
-    my $prev_backend = $task->{'execution'}->{'backend'} // 'gpu';
+    ## rebuild async state for the resumed conversation  routed_to is the ##
+    ## lock namespace [ async.request:22 acquires under it ]              ##
+    ## execution.backend is only the hardware key [ task.execute:111 ]    ##
+    my $prev_backend = $task->{'analysis'}->{'routed_to'} // 'gpu';
     my $prev_round = scalar( @{$saved_messages} );  ## rough round estimate ##
     my $prev_tools = $task->{'execution'}->{'tools'} // [];
 
@@ -133,8 +135,8 @@ return {
     'data' => "cannot append to task $task_id [status:$status]"
 };
 
-#,,,,,,,,,,..,,..,.,,,.,,,,.,,..,,.,.,.,.,.,,,..,,...,...,.,.,..,,...,...,..,,
-#2GL4N2TVMFWNUN6CIBHB7A5DLI3H3V6VRGXEIMJYSQSCUZ6AT2XTQMZYLTPYOATJ2C6CSSJAX5SZS
-#\\\|IAGR66332PCG2XKCIPF7PZV44CCEDRA7HGDJAW726SXKUE5QOGB \ / AMOS7 \ YOURUM ::
-#\[7]DKQSRY4ACKREJGYGLLDHIBFIOSRV7NS3J43C7YVX2ZIMPXHZECCI 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,,..,.,.,,.,,,,,,,.,,.,.,.,,,.,.,..,,...,...,..,,.,,,,,,,.,,,,.,,
+#FOYMYFL4XF5AH64M5SANY6JIKX6GO4RCSITIBWUKI5U2KMJSL3TWVZNSOKYQTJAEDOK3PWS5LX5SW
+#\\\|5AOXRNRLGQUJ7SXJEIGIF6MNH4XO56BVZJYANOEFQCUF2RXZTKK \ / AMOS7 \ YOURUM ::
+#\[7]HMKRY67XNZW57SNPLDIRREO57OB2X4HESJH7Y2X4QNBCOBPTIMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
