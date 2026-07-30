@@ -9,17 +9,21 @@ buffer.session.max_size = 795648
 system.zenka.verbosity.buffer = 1
 
 ## named search categories — space separated list of category keys
-jobsite.cfg.categories         = linux-sysadmin linux-developer devops platform-engineer \
-                                       security-engineer ki-infrastruktur backend-architect
+jobsite.cfg.categories         = linux-sysadmin linux-developer devops \
+                                       platform-engineer security-engineer \
+                                       ki-infrastruktur backend-architect \
+                                                      solutions-architect
 
 ## per-category stepstone search urls
-jobsite.cfg.url.linux-sysadmin    = https://www.stepstone.de/jobs/linux-administrator/in-deutschland
-jobsite.cfg.url.linux-developer   = https://www.stepstone.de/jobs/linux-entwickler/in-deutschland
-jobsite.cfg.url.devops            = https://www.stepstone.de/jobs/devops-engineer/in-deutschland
-jobsite.cfg.url.platform-engineer = https://www.stepstone.de/jobs/platform-engineer/in-deutschland
-jobsite.cfg.url.security-engineer = https://www.stepstone.de/jobs/security-engineer/in-deutschland
-jobsite.cfg.url.ki-infrastruktur  = https://www.stepstone.de/jobs/ki-infrastruktur/in-deutschland
-jobsite.cfg.url.backend-architect = https://www.stepstone.de/jobs/softwarearchitekt/in-deutschland
+jobsite.cfg.url.linux-sysadmin      = https://stepstone.de/jobs/linux-administrator/in-Offenburg
+jobsite.cfg.url.linux-developer     = https://stepstone.de/jobs/linux-entwickler/in-Freiburg
+jobsite.cfg.url.devops              = https://stepstone.de/jobs/devops-engineer/in-Offenburg
+jobsite.cfg.url.platform-engineer   = https://stepstone.de/jobs/platform-engineer/in-deutschland
+jobsite.cfg.url.security-engineer   = https://stepstone.de/jobs/security-engineer/in-deutschland
+jobsite.cfg.url.ki-infrastruktur    = https://stepstone.de/jobs/ki-infrastruktur/in-deutschland
+jobsite.cfg.url.backend-architect   = https://stepstone.de/jobs/softwarearchitekt/in-Freiburg
+jobsite.cfg.url.solutions-architect = \       ## 'Home Office'-workaround [successful] ##
+    https://stepstone.de/jobs/software-architect?action=facet_selected%3bworkFromHome%3b1&wfh=1
 
 ## minimum llm score [ 0..10 ] to flag job for review
 jobsite.cfg.threshold       = 7
@@ -40,10 +44,10 @@ jobsite.cfg.sync_interval = 300
 ## seconds to wait for a dispatched assessment/repair task's reply before
 ## giving up on it and draining the next queue entry [ watchdog against a
 ## lost task.create/task.wait-done reply wedging cycle on 'assessing' ]
-jobsite.cfg.assess_timeout = 600
+jobsite.cfg.assess_timeout = 777
 
 ## two-stage delete retention (in V7 epochs)
-jobsite.cfg.trash_keep_epochs  = 1  ## recoverable compressed stage
+jobsite.cfg.trash_keep_epochs   = 1  ## recoverable compressed stage
 jobsite.cfg.deleted_keep_epochs = 2  ## plain deleted stage before purging
 
 ## httpd sync endpoint url
@@ -56,11 +60,11 @@ jobsite.cfg.profile_file    = /etc/protocol-7/jobsite/profile.txt
 access.cmd.usr.cube = heart subname name commands reload verify-instance \
                       list-jobs src-age src-ver show-buffer buffer-erase \
                       buffer-erase-level mail_received manual-sync \
-                      scan status list approve reject rescue reset set-threshold \
+                      scan status list approve reject reset set-threshold \
                       set-status job-upsert import-url import-url-http \
-                      clear-tasks blacklist-add \
-                      blacklist-stats show-prompt progress report-stray-jobs group-jobs \
-                      list-trashed rescue-http get-prefs set-prefs \
+                      clear-tasks blacklist-add blacklist-stats \
+                      show-prompt progress report-stray-jobs group-jobs \
+                      list-trashed rescue-http get-prefs set-prefs rescue \
                       get set dump del exec-sub eval-code # <-- devmod cmds !!
 
 modules.load = auth.client net protocol io.unix ui jobsite clients.http devmod
@@ -75,8 +79,8 @@ modules.load = auth.client net protocol io.unix ui jobsite clients.http devmod
 
 [zenka.loop]
 
-#,,.,,,,,,..,,,.,,..,,,.,,,,.,.,.,.,,,,.,,.,.,..,,...,...,...,.,.,,..,...,..,,
-#GYCAIVOCH7GIPSC6XRFSE7ET3EW2X6LSXHQ2PLUMN6EYLCHAKQQAO4OWBHXHIBD3MSWOY4VRQN4O2
-#\\\|CKYF2IHSVX7MDSYV3Q2W36S22U46MXCFXW3BVL4YWWP5JO7XA7W \ / AMOS7 \ YOURUM ::
-#\[7]L3VYZXJ2UPPFIHXLNIXUDCZNQWOLL4LAV5I5IJWEGURWJE5G42DI 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,...,,.,,...,...,...,,..,,,.,,.,,..,,...,...,,,,,,..,,..,..,,...,
+#35AH63CICB7EOUEWAL5CORIA7D7JUH6LP3OD6UPSJTBOS5CLZNCVMGPJCFEYPEGK5VFML3GKFQYM2
+#\\\|BINNAISBZQASC7TRNDDDUSYFPZKYL6MYDDIC3VB2ZIFFZZM6LZN \ / AMOS7 \ YOURUM ::
+#\[7]JTQOKNFT7BHZGZBKLDZESMB2BSV6LSYPVWSPCNAK6PQ5KDWUVYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
