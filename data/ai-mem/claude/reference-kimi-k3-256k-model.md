@@ -24,8 +24,12 @@ capabilities = [ "thinking", "always_thinking", "image_in", "tool_use" ]   ## no
 Same reasoning model, 1/4 the context (256k vs 1M), cheaper — no other
 capability loss besides `video_in` (`image_in` still present).
 
-**Not yet used in any real dispatch as of 2026-07-31**, despite being
-configured. `bin/mcp-server-p7`'s `kimi_dispatch`/`kimi_continue` model
+**First real use, 2026-07-31**: `coding-task-append-backend-lock-leak-fix.md`
+(committed `ea2406122`) — a single-file, well-scoped bug fix requiring a
+deep call-chain trace across 8+ files plus live reload-and-reproduce
+verification against the running coding zenka. Worked well, no signs of
+context pressure or degraded reasoning vs full `k3` on comparable prior
+tasks. No further data yet on where the 256k ceiling actually bites. `bin/mcp-server-p7`'s `kimi_dispatch`/`kimi_continue` model
 alias table (~line 3569) only maps the short names `k3`/`k2.7`/
 `k2.7-fast` to their `kimi-code/*` targets — `k3-256k` has no short
 alias. Unmapped model strings pass through verbatim (`// $args->{'model'}`
@@ -41,8 +45,8 @@ sweeps, long log/session analysis) or video input. If it proves out,
 worth adding a proper `k3-256k` short alias to `mcp-server-p7` for
 convenience.
 
-#,,,,,.,,,,..,,,.,...,,,.,.,,,..,,,,.,..,,,..,.,.,...,...,...,,.,,...,.,,,,,,,
-#5TA2UBPNJVWCWXZSXWDIQHKDLPO24MOIYE7QCO6TEMHYUTRCJVJF3CKL35CVQ2TL7ID6ZZENVAX7Y
-#\\\|AKZ32344YL42AKJOOP4LXUOMSQIWET4BDI365QSFCXWZ5TBKW5W \ / AMOS7 \ YOURUM ::
-#\[7]EBHU6MMYJRLMK576CQGV5BSO5BZU2ZS32XA7BUONZJD2PJWP6KCY 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,.,,.,.,,,.,,..,,..,,..,,..,,.,,.,.,...,...,..,,,..,.,.,,,,,...,
+#UWCJRDMF2DMVWU2Q6LFEPA43C4BLHYWIINSQ3C6CPQAXFGKAIFMZSRPXQ4HE3ICDIY2Q6EGY2NJPY
+#\\\|JYOI7SQFPYT3F4BPVZEX74U57DPHFKUG47BG3YG57NTWWZ62HG6 \ / AMOS7 \ YOURUM ::
+#\[7]K7FMSESKOXP5V42REP4VC5ETB2GEBEUC52YYE5NEG42ZE3Y57QCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
