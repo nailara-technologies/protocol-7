@@ -6,6 +6,7 @@ core patterns/templates. Settled conventions: cube auth prefix, .cmd. reply cont
 vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 config paths.
 
 ## Reference
+- [zenka-process-title-convention](reference-zenka-process-title-convention.md) — running zenki rename argv to `<hostname>.<zenka-name>` (or `<hostname>.<stdin>` pre-name); use `pkill -f <zenka-name>`, not a captured launch-command PID, to reliably kill a stuck one
 - [edit-memory-via-ai-mem-path](feedback-edit-memory-via-ai-mem-path.md) — always edit data/ai-mem/claude/*.md directly, not the ~/.claude symlink path, to avoid permission prompts
 - [base-swap-subs-promote-pattern](feedback-base-swap-subs-promote-pattern.md) — promote a module to default-loaded-on-every-zenka: live under base.X, add base.X.pre_init calling base.swap_subs(base.X,X), no call-site changes; precedent base.file/file
 - [session-catchup-subagent-support](reference-session-catchup-subagent-support.md) — recover lost Agent-tool subagent context via `subagents=2` / `subagent_id=<fragment>`, claude+kimi both supported
@@ -41,8 +42,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [user-perfectionism-and-pace](user-perfectionism-and-pace.md) — "done" means perfectly smooth; let solo tuning passes run
 - [scratchpad_import tool](topic-scratchpad-import-tool.md) — pulls /tmp session scratchpad into data/scratchpad/; list/raw-read modes; check repo+tasks/completed before keeping imports
 
-#,,..,..,,,,.,,..,...,,..,,,,,,,,,,,.,,,,,..,,..,,...,..,,,,,,,..,,,.,,,.,,..,
-#A6XE2RMYQAW3DQJBNH665PYIWIHUVZQXL6RNGNGJHHKRT2GBJM7V53GIP56GDBQVBQYT4Z2LMZZWI
-#\\\|767XMP5VZMAXDT4OAXXQ3552KLZAEQNYLSI2OPMWEKOKOVAL6IX \ / AMOS7 \ YOURUM ::
-#\[7]FXUEFLATWOTX5VCJOD2MGY3YY2EHIFS2SAVVAQYL3REAXK5RZACI 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,,,,,..,.,,,...,,..,.,.,..,,,,,,..,,...,...,,..,.,.,,,,,...,...,
+#SCN57YIC33LTFTO6TA6DFKOMLUGTBARDEM3Q4QVXFMXMSSHLAR23A4W7SISWSB76H6ZYUMSIGEYAS
+#\\\|QLR7THMJP5N4XRZQCEULOWNZTFJWYPTDTJIFPILMPCY7UZ2DHCJ \ / AMOS7 \ YOURUM ::
+#\[7]PQCKUMETDXW4MMEPBJ5IERO4Q2DY5KSKCQMTBHRVZS5OLSJ6NYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
