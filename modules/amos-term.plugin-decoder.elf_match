@@ -14,21 +14,25 @@ return undef unless defined $checksum and defined $mode;
 $checksum = uc($checksum);
 $checksum =~ s|[^A-Z2-7]||g;    # AMOS7 alphabet only
 
-## === calculate LOVES_IT score === ##
+## === calculate LOVES_IT score via harmonic truth assertion === ##
 my $loves_score = 0;
 
 if ( $mode == 4 ) {
-    $loves_score = 4 if length($checksum) >= 4;
-} elsif ( $mode == 7 ) {
-    my $mode7 = <[chk-sum.elf]>->($checksum);
-    $loves_score = 4 + $mode7 if $mode7 == 7;
-} elsif ( $mode == 13 ) {
-    my $mode4  = <[chk-sum.elf]>->( substr( $checksum, 0, 10 ) );
-    my $mode7  = <[chk-sum.elf]>->($checksum);
-    my $mode13 = <[chk-sum.elf]>->( substr( $checksum, -26 ) );
+    my $pass4 = AMOS7::Assert::Truth::is_true( \$checksum, 0, 1, 4 ) ? 1 : 0;
+    $loves_score = $pass4 ? 4 : 0;
 
-    $loves_score = $mode4 + $mode7;
-    $loves_score += 2 if $mode13 == 2;
+} elsif ( $mode == 7 ) {
+    my $pass4 = AMOS7::Assert::Truth::is_true( \$checksum, 0, 1, 4 ) ? 1 : 0;
+    my $pass7 = AMOS7::Assert::Truth::is_true( \$checksum, 0, 1, 7 ) ? 1 : 0;
+    $loves_score = ( $pass4 ? 4 : 0 ) + ( $pass7 ? 7 : 0 );
+
+} elsif ( $mode == 13 ) {
+    my $pass4 = AMOS7::Assert::Truth::is_true( \$checksum, 0, 1, 4 ) ? 1 : 0;
+    my $pass7 = AMOS7::Assert::Truth::is_true( \$checksum, 0, 1, 7 ) ? 1 : 0;
+    my $pass13
+        = AMOS7::Assert::Truth::is_true( \$checksum, 0, 1, 13 ) ? 1 : 0;
+    $loves_score
+        = ( $pass4 ? 4 : 0 ) + ( $pass7 ? 7 : 0 ) + ( $pass13 ? 2 : 0 );
 }
 
 ## === store result === ##
@@ -56,8 +60,8 @@ if ( defined $window ) {
 
 return $loves_score;
 
-#,,,,,,,,,,,,,.,.,...,.,,,..,,,,.,,,,,,,.,,.,,.,.,...,...,...,.,.,...,,..,,..,
-#5KVDKHDXALNPLIUBGCJFX4IYOFHVRNIOIQ34X3O7MVVCE2MOOTBVZPNKHSBUTQXIUBTJO5A24LM3M
-#\\\|35IFMVIPSHYWZ2ZJM7U2AJ27GFIOMS7P64SIHDT3OMXNKLGDSGP \ / AMOS7 \ YOURUM ::
-#\[7]P3PDG5TM7M4CFPGKR7E7CSUAJ535IPQJAWM5X3WJRFVYIFCJ7MCY 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,.,,,,,,,..,..,,.,.,...,..,,...,.,.,...,..,,...,.,.,..,,.,,,.,,,
+#JOLAGJHANMUCSMDNF5WH7PN4QJO4UCQJXOCQ7XCGDRMLXXZWKKA6QW53M6FDSUNTUYSI2NN4O5LUA
+#\\\|PCMNPQZ7G66MW7PZ6TS2US6PEO55PUULCET246GUDTVM5TLE4EW \ / AMOS7 \ YOURUM ::
+#\[7]7QCFK4TOH55VAE2WRHJO6OBTN4QHFKC6O43UACV5MOJEVDVGAMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
