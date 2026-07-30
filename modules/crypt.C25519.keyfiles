@@ -26,7 +26,9 @@ my $re_kfiles = $keys_re->{'key_files'};
 my @k_files;
 
 foreach my $file ( grep {m{$re_kfiles}} <[file.all_files]>->($key_dir)->@* ) {
-    next if defined $name and $name ne <[crypt.C25519.get_keyname]>->($file);
+    next
+        if defined $name
+        and $name ne ( <[crypt.C25519.get_keyname]>->($file) // '' );
 
     if ( not defined $type_param ) {
         push @k_files, $file;
@@ -41,8 +43,8 @@ foreach my $file ( grep {m{$re_kfiles}} <[file.all_files]>->($key_dir)->@* ) {
 
 return <[base.sort]>->(@k_files);
 
-#,,.,,...,.,.,..,,.,.,.,,,,..,..,,,,,,,.,,,.,,..,,...,...,.,,,,,,,.,,,,..,,,,,
-#2I4MBO3K63W6QPLL3ERHMVCYCMVCP3LBDIUR3URH2HHAEWLU2T76CRX4OZICGJJPPHVL5WOJI3SPY
-#\\\|Q35XU444QIAN5LMG6BS7XEYWJ3DU5Q3KB3PDFFCN436RGDRLGD2 \ / AMOS7 \ YOURUM ::
-#\[7]E3ZO2G2TVSBF6Q4R6HQYLUDW532OHWOQAU46J3UCA2E4I7WOLGAQ 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,..,,,.,,.,,.,,,.,.,,..,,.,,,,,,..,,...,...,.,.,,..,.,.,.,.,,.,,
+#A36EDZOS6I4BKRG3TCTF3NQ472PGM2YT6CZ4NRJ2UM36S76VSMBUSJUBMRW7OFMYUCPG4BMH4UIT2
+#\\\|CMZQFOJOQIKA6U7XYMH7JRZJFUB4JI3APH5QZIOTCAMZ2SQINRO \ / AMOS7 \ YOURUM ::
+#\[7]VL7CKF5EI66BLBLFKTRYPZELI4CIYTUSACFWAPFR26GANEFTWQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
