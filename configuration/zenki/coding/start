@@ -63,6 +63,7 @@ access.cmd.usr.cube = commands heart reload verify-instance list show-buffer \
                       context-size summarize-context drain safe-context-size \
                       tree-query-reply pause-task \
                       bury failed resurrect self-test-status self-test-run \
+                      self-test-detail \
                       exec-sub eval-code ## <-- temporary [ development only ]
 ##                    utf8-test-buffer utf8-stream-test \ ## <-- resolved =).
 ##                    test-strm test-strm-size            ## <-- resolved =).
@@ -225,7 +226,7 @@ coding.cfg.vision_switch_idle_timeout = 300
 ## at 52000 ]. 28000 tokens frees ~985MB of KV cache vs. 52000 [ 42KB/token *9B    ##
 ## class KV estimate ], comfortably covering the missing margin. revisit per-model ##
 ## if a future default is text-only and could again afford a much higher floor     ##
-inference.model.context_length = 37777
+inference.model.context_length = 35777
 ## inference.model.context_length = 52000 ## [ prior value, doubled for multi-round tool sessions -- unsafe for vision-capable defaults, see above ##
 ## inference.model.context_length = 32000 ## [ temporary override ] ##
 #inference.model.max_tokens = 32000  ## defaults to context_length if unset
@@ -283,8 +284,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,.,,,,,,..,,,.,,.,,,...,,..,,,,,...,,.,,,.,,.,.,...,...,.,,,.,.,...,,.,,,,,,
-#TWXWSH4NWIFVOHMI6L3OWHL75R2ZAWNP5LMXKSU3KN6HJPOB4WB73GBYDK7PLXH7N5F4GIEPFM5ZA
-#\\\|HDADEUVM6IKV7PXF4DWHSTLYKLQDCVD2RIFBRGTB2SOKJZSJ7VS \ / AMOS7 \ YOURUM ::
-#\[7]L2XWR2RNNU2H6EUDGLHPE5UK6DNHOAITUYLL3M4EGUTOCOIRUODI 7  DATA SIGNATURE ::
+#,,,.,...,..,,,..,..,,,,,,,,.,,,.,,.,,..,,,.,,.,.,...,...,.,.,.,,,..,,..,,,..,
+#LP2LP7JOXP4NHNHDE2P7MUCEL5SUAQQY5BPLY5JFNIHTKOJLC55FVAWZ6KZ2MO7SXK63SYQK6IFSG
+#\\\|G2624TXP5SXXYDFBJAXNI7ZNUGWGJND4OOBOPIFAHE7PRBDZEZO \ / AMOS7 \ YOURUM ::
+#\[7]GJKBUFR5QN3VBGGAHTJ6YEUIF7ZYRRKRZG5EKXXTQGXRZMOBOSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

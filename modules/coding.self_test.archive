@@ -23,6 +23,27 @@ $store->{'passed'}    = $result->{'passed'}    // FALSE;
 $store->{'answer'}    = $result->{'answer'}    // '';
 $store->{'prompt_id'} = $result->{'prompt_id'} // 0;
 
+## full per-prompt detail, keyed by prompt_id so a multi-prompt run [ eg    ##
+## prompt 1 + prompt 2 ] doesn't overwrite itself in the flat fields above  ##
+## - used by coding.self_test.cmd.self-test-detail to show exactly what was ##
+## sent/received on each tier1 reformat attempt                             ##
+$store->{'prompts'}{ $result->{'prompt_id'} // 0 } = {
+    prompt             => $result->{'prompt'}             // '',
+    answer             => $result->{'answer'}             // '',
+    reasoning          => $result->{'reasoning'}          // '',
+    finish_reason      => $result->{'finish_reason'}      // '',
+    server_tail        => $result->{'server_tail'}        // '',
+    expected           => $result->{'expected'}           // '',
+    passed             => $result->{'passed'}             // FALSE,
+    tier               => $result->{'tier'}               // '',
+    structural_reason  => $result->{'structural_reason'}  // '',
+    tier1_reason       => $result->{'tier1_reason'}       // '',
+    tier1_attempts     => $result->{'tier1_attempts'}     // [],
+    reformatted_answer => $result->{'reformatted_answer'} // '',
+    ttft               => $result->{'ttft'}               // 0,
+    timestamp          => $result->{'timestamp'} // <[base.time]>->(3),
+};
+
 if ( length $anomaly ) {
     my $prompt_id = $result->{'prompt_id'} // 0;
     $store->{'anomaly'}{$prompt_id} = {
@@ -36,8 +57,8 @@ if ( length $anomaly ) {
 
 return { mode => qw| true |, data => 'archived' };
 
-#,,..,..,,,,.,.,,,..,,,,.,..,,..,,,..,.,,,.,.,..,,...,..,,.,.,,..,.,,,..,,...,
-#KXR4NP2BHGNHYP4UBTPCF2AVEURG2CASF5KVYKWMA3QX52AYQKQTKG3FFJWX6R4AD36DIUCLHHTYO
-#\\\|SQCEVWKNIN6HIHH6POPN3WUTB26T4ZV3PO3EG6OTI4SCN4ARG2D \ / AMOS7 \ YOURUM ::
-#\[7]QLNXOR2DRYLWXDHAF6X246G2CMNX2HIBDFIJBCQB6KEAHUNNW2BA 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,.,,,...,,,,,.,.,...,,..,..,,,..,..,,...,...,.,,,.,.,..,,,..,,.,,
+#A32XDO7BALOQ2EB2ZPXX3R5B5AX2L5RLSQFDMHIZYZ2IRZLNADWSXIU6CUWYAZ7UIDNMCXGU7YC6U
+#\\\|DFL7QFD7FRXW4VYBSJUXSGFNDNF5P5WAZQ2DLKT2TJEWSYRJLOB \ / AMOS7 \ YOURUM ::
+#\[7]JCK2VRKBEZ352UYFTUYQ6IHLD7OP7H7CC4PJRS7GYO7WC2TI6IDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

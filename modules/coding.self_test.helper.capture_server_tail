@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = coding.self_test.helper.capture_server_tail
+# descr = synchronously drain whatever is already pending in a backend's stdout/stderr pipes
+
+## coding.handler.drain_pipe only runs when the event loop gets a turn -    ##
+## but self_test.run / coding.self_test.evaluate detect an http_5xx and     ##
+## read <coding.inference_servers>->{$backend}{tail_output} synchronously,  ##
+## still inside the same blocking LWP::UserAgent call chain, with no        ##
+## event-loop cycle in between - drain_pipe never got a chance to fire, so  ##
+## tail_output was still empty at read time [ confirmed live : zero "server ##
+## output at failure time" lines despite several real http_500s ] the pipes ##
+## are already non-blocking [ coding.spawn_inference_server, set at spawn   ##
+## time to prevent event-loop stall on partial reads ], so a direct sysread ##
+## here can't hang even with nothing pending - it just grabs whatever the   ##
+## server already wrote into the OS pipe buffer                             ##
+
+my $backend = shift                                            // 'gpu';
+my $srv     = ( <coding.inference_servers> // {} )->{$backend} // {};
+
+for my $fh_key (qw| io_stdout io_stderr |) {
+    my $fh = $srv->{$fh_key};
+    next unless defined $fh and defined fileno($fh);
+
+    my $buf = '';
+    while (1) {
+        my $n = sysread( $fh, my $chunk, 4096 );
+        last unless defined $n and $n > 0;
+        $buf .= $chunk;
+        last if $n < 4096;    ## drained everything immediately available ##
+    }
+    next unless length $buf;
+
+    my $tail_cap = 4096;
+    $srv->{'tail_output'}
+        = substr( ( $srv->{'tail_output'} // '' ) . $buf, -$tail_cap );
+}
+
+return $srv->{'tail_output'} // '';
+
+#,,,.,,,,,.,.,..,,,,.,...,,.,,,,,,,,.,,.,,.,.,.,.,...,.,.,,.,,,,.,,..,...,.,.,
+#MT7MWAVPW4R5X4BKU3DLOV3SKBDVKCNTACLQ3ABFMJDLDQJJZE4E445OIURQ4X5D63MDNBABU5SSC
+#\\\|UM72IFPRGGXR37W2ZNMGI3UFACOMJ2CQJM3OI42CYTDPIAGXH74 \ / AMOS7 \ YOURUM ::
+#\[7]2KDI2OI62DOPAKJMVIGVJQ5N7QWIWYWGYZ4Q4Q4VQTMPLMHIOSDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -62,13 +62,33 @@ for my $fh_key (qw| io_stdout io_stderr |) {
     my $fh = $old->{$fh_key};
     close($fh) if defined $fh;
 }
-if ( my $old_pid = $old->{'pid'} ) {
+my $old_pid = $old->{'pid'} // 0;
+if ($old_pid) {
     if ( kill( 0, $old_pid ) ) {    ## process still exists ##
         ## kill the entire process group : covers the server and any forked ##
         ## workers (llama-server forks on first request; all share the pgid ##
         ## set by our setpgid call at spawn time)                           ##
-        kill( 'KILL', -$old_pid );     ## negative pid = kill process group ##
-        <[base.waitpid]>->($old_pid);  ## reap the group leader's zombie    ##
+        kill( 'KILL', -$old_pid );    ## negative pid = kill process group ##
+
+        ## bounded reap poll, NOT an unbounded blocking waitpid : the vram ##
+        ## sanity check further down runs nvidia-smi against live GPU      ##
+        ## state, so racing a not-yet-reaped old process gives a false     ##
+        ## "insufficient vram" failure [ driver releases the CUDA context  ##
+        ## synchronously in the exit path waitpid blocks on ] - confirmed  ##
+        ## live. BUT an unbounded blocking waitpid is worse : if the old   ##
+        ## process is stuck in kernel D-state [ uninterruptible sleep,     ##
+        ## happens under heavy GPU-driver teardown - SIGKILL can't preempt ##
+        ## it ], waitpid never returns and freezes this single-threaded    ##
+        ## zenka's entire event loop indefinitely - confirmed live: the    ##
+        ## whole zenka went unresponsive to coding.heart, session stayed   ##
+        ## connected but nothing was ever processed again. poll WNOHANG    ##
+        ## with short sleeps instead, capped at ~3s : covers the normal    ##
+        ## case [ reap is near-instant ] without risking a permanent wedge ##
+        my $reap_attempts = 30;
+        while ( $reap_attempts-- > 0 ) {
+            last if <[base.waitpid]>->($old_pid) > 0;
+            select( undef, undef, undef, 0.1 );
+        }
         <[base.logs]>->(
             1, '[spawn_inference_server] killed old %s server group [pid:%d]',
             $backend, $old_pid
@@ -92,6 +112,13 @@ for my $orphan_path ( glob "$zenka_dir/state/inference.$backend.*.pid" ) {
     my ( $saved_pid, $saved_bin ) = split m|\s+|, $pid_bin_str, 2;
     $saved_pid //= '';
     $saved_bin //= '';
+
+    ## already handled + blocking-reaped above via the in-memory tracked  ##
+    ## pid - skip it here rather than re-running the liveness/kill/log    ##
+    ## dance a second time for the same pid. the file still gets unlinked ##
+    ## below regardless                                                   ##
+    next if $old_pid and $saved_pid eq $old_pid;
+
     if ( $saved_pid =~ m|^\d+$| and kill( 0, $saved_pid ) ) {
         my $proc_cmd = '';
         if ( open my $cfh, '<', "/proc/$saved_pid/cmdline" ) {
@@ -126,6 +153,15 @@ for my $orphan_path ( glob "$zenka_dir/state/inference.$backend.*.pid" ) {
 
 ## scan for stale llama-server processes on same port ##
 my @killed_stale_pids;
+
+## fuser writes matched pids to stdout but its "<port>/tcp:" header line to ##
+## stderr - the '-|' open only captures stdout, so that header leaked       ##
+## straight through to the zenka's inherited terminal, unfiltered by        ##
+## base.logs [ no color, no prefix ] - confirmed live. use the project's    ##
+## own stderr_redir/stderr_restore pair [ same one image2html.child and     ##
+## melt already use ] rather than a hand-rolled dup/restore dance           ##
+<[base.stderr_redir]>->(qw| :devnull: |);
+
 if ( open my $pfh, '-|', 'fuser', '-n', 'tcp', $port ) {
     while ( my $line = <$pfh> ) {
         for my $stale_pid ( $line =~ m|(\d+)|g ) {
@@ -150,6 +186,8 @@ if ( open my $pfh, '-|', 'fuser', '-n', 'tcp', $port ) {
     }
     close $pfh;
 }
+
+<[base.stderr_restore]>;
 
 <[base.logs]>->(
     1,        "[spawn_inference_server] backend=%s port=%d",
@@ -520,8 +558,8 @@ return {
     'port'    => $port
 };
 
-#,,.,,,,,,,..,.,,,.,.,,.,,,..,.,.,...,,..,,,.,..,,...,...,,..,.,,,,.,,,,.,.,.,
-#4YMSJIEDMQJTJRHAXBWPKEAJZJ3GZCMJMHMZZOF2G2EOED4LYAFNR2HRBHROUAPP65P3SN3TLXSCS
-#\\\|3XODNAFA3ZLVVTVXTV2MYMHAT7UP6ECBN2KREHQYQLZ5KEL5EF4 \ / AMOS7 \ YOURUM ::
-#\[7]ZOM6FNF77NPYB2Z55ESL65NKIEW5LRZMKSCANPQYDJDPAPSG4ACY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,..,,.,.,,.,,..,,...,.,.,,,,,,.,,..,,...,..,,.,,,..,,..,,.,.,,.,,
+#AMXNXQMS2CFIXWBKCQ2KYTUUIBFTRDGGC7QJO7BVYOBP5KA5MANLVEKLMXDG33WYZKMRD7QP2MRA6
+#\\\|NIECE3JMLPKHTKHJIRPWSLSH3PL4GSPB44XUPWNIWY4VBIY3SYE \ / AMOS7 \ YOURUM ::
+#\[7]RCWKSZGDH3GVCSWQNLSHYGAPY2VZ5MYQGM6PXPGIHZBZI234E6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
