@@ -6,7 +6,9 @@
 ## names, same resolution as mpv.cmd.setting ] so the <mpv.current.*> cache ##
 ## stays populated for state snapshots                                      ##
 
-my %observe = map { $ARG => TRUE } qw[ path width height ];
+my %observe
+    = map { $ARG => TRUE }
+    qw[ path width height seekable partially-seekable ];
 
 my $settings_map = <mpv.map.settings> // {};
 foreach my $setting_key ( keys %{$settings_map} ) {
@@ -32,8 +34,8 @@ if (<mpv.fade_idle_volume>) {
 ## would dispatch it correctly if it ever arrived.                        ##
 <[mpv.send_command]>->( qw| enable_event |, qw| client-message | );
 
-#,,,,,.,,,,..,...,.,.,,,.,,,.,,..,...,,..,.,,,..,,...,...,..,,.,,,,..,,,.,,,.,
-#TLBFD2T7FZWWKLVACT5QHF5WLTR6LFIL7Y5J4HZJRN3DNEBCFNF2KXB73ZIACDAXRJN2OENV7T6N4
-#\\\|N37CVCJFTF5OW5CCGA6ECLOLY2XBTTGLGLMWPYL4AXIOKPMUNWI \ / AMOS7 \ YOURUM ::
-#\[7]SY36JSIGFO3LGY4OMBQ5QY4PTFZBAGXXONYUOVYJVV7D2KMAZQAY 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,,,.,,..,.,.,,,.,.,,,,,.,,,.,,,,,..,,...,...,..,,...,,.,,.,,,,.,,
+#B2Z5ZM3R3GOYP2PRYH6WG2DIWT3AADIMVUVSUY3CHPQUWLK3PUYNZXVBEZURYGEFGO4WEHOXTUBX2
+#\\\|254E3N7VCXMCC52EYU6LVVFVMXHTSNZ3Q66K575TXBDUXSWNVEX \ / AMOS7 \ YOURUM ::
+#\[7]U23PFZJJ4SFPMIMAIR2XEANIEADKRC6HC2QTLXLJS2EI6GODBQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

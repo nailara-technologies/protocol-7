@@ -15,14 +15,32 @@ return if not defined $current_path or $current_path ne $pending_path;
 my $position = delete <mpv.snapshot.pending_pos>;
 delete <mpv.snapshot.pending_path>;
 
+## live/network streams [ eg. internet radio ] report seekable=no -- a      ##
+## restored position is meaningless there and seeking would only stutter or ##
+## rebuffer. undef [ never observed yet ] is treated as not-seekable too :  ##
+## safer to skip a restore seek than risk one on unknown state.             ##
+## partially-seekable [ cache-backed only ] is excluded too : per mpv's own ##
+## docs, only small relative seeks are reliable there -- our restore is a   ##
+## large absolute seek, exactly the case that "may fail anyway"             ##
+my $seekable           = <mpv.current.seekable>           // '';
+my $partially_seekable = <mpv.current.partially-seekable> // '';
+my $is_seekable        = $seekable !~ m{^(?:0|no|false)?$}i
+    and $partially_seekable =~ m{^(?:0|no|false)?$}i;
+
 if (    defined $position
     and $position =~ m|^\d+(\.\d+)?$|
-    and $position > 0 ) {
+    and $position > 0
+    and $is_seekable ) {
     <[base.logs]>->(
         1, '[snapshot] seeking to restored position %.1f', $position
     );
     push( @{<mpv.command.reply>}, { 'handler' => qw| dev.null | } );
     <[mpv.send_command]>->( 'seek', $position, 'absolute', 'exact' );
+} elsif ( defined $position and $position > 0 ) {
+    <[base.logs]>->(
+        2, '[snapshot] skipping restore seek [ not seekable : %s ]',
+        $current_path
+    );
 }
 
 ## pause restore is sent after the file-loaded handler's own pause logic so ##
@@ -35,8 +53,8 @@ if ( defined $pause and $pause =~ m{^(yes|no)$} ) {
 
 return;
 
-#,,.,,,,,,...,.,,,,,,,...,..,,..,,.,.,,,.,,..,..,,...,..,,.,.,...,...,,,,,.,,,
-#HHACTGIWA7KR3QIYVAZFUU77CHV5Y7ITCVBA2HFHUEBWQX6N5ZA46A442BRLAF3N7ICBVVRHJWHIU
-#\\\|XCXMFVJFUEQXGZ2U7UKR5KVU57Y4QTNWUM2H547ANUNM3BV3JUP \ / AMOS7 \ YOURUM ::
-#\[7]OG2VIK42QVCVP4CTLPFMPBQPWX4ZM4J2CWJGA3TQJFYCLOOI36BQ 7  DATA SIGNATURE ::
+#,,..,,..,.,.,.,,,.,.,.,.,,.,,,..,,..,,.,,.,,,..,,...,...,.,.,,.,,,,.,,,.,..,,
+#O3DLD7YRDDEKQ4HZITN42CEEXEIKL4AMFPB6LBVYFRB2M4IVJNSTTTW2ICGAPMNJ4N44CNBFARVFK
+#\\\|EIV5XXLI2GIOS2XBGJZTNHS5FVRIY73YKETPHEHSVS5MEQXLCDA \ / AMOS7 \ YOURUM ::
+#\[7]JTQ6ZXLIHDU674TCFMXDV3AMPA7Z5KPQ7FLLKFNGJK35WYXORSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

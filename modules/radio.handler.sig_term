@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = radio.handler.sig_term
+# descr = fade mpv[audio-N] out, then do the normal shutdown
+
+## installed via event.add_signal in radio.init_code, which cancels +       ##
+## replaces the generic base.sig_term watcher [ see base.event.add_signal ] ##
+## -- unlike radio.end_code [ removed, caused a segfault ], this runs from  ##
+## a normal Event::loop dispatch, a safe context to send a command and pump ##
+## the loop once so it actually reaches the socket before we fall through   ##
+## to the standard teardown+exit(0) sequence ourselves                      ##
+
+if (<radio.audio.active>) {
+    ## matches radio.audio.handler.* default ##
+    my $instance = 'mpv[audio-0]';
+
+    <[protocol-7.route-send]>->(
+        {   'command'   => "$instance.fade",
+            'call_args' => { 'args' => '0' },
+        }
+    );
+
+    <[event.once]>->(0.1);    ## flush the send before shutdown continues ##
+
+    <[base.logs]>->( 1, '[radio] sig_term: fading %s to silence', $instance );
+}
+
+## overriding base.sig_term's watcher means we now own completing the  ##
+## normal shutdown sequence too -- reuse it rather than reimplement it ##
+<[base.sig_term]>;
+
+#,,,,,,..,,,.,,,,,,..,,..,..,,.,.,...,.,.,,,.,..,,...,...,...,.,.,.,.,.,.,,,,,
+#XGHDVHWKB2H23KX67AXI3R465XQNGNFPULMA2HYZCTKEQ5RPUK7QFXCSFVBQF72DYCQ3IMS4FB444
+#\\\|VXBXBGT6ZJ33HKYIGWDBK3JDYWCMNURFMCTAXGMTICFQZQIFV3M \ / AMOS7 \ YOURUM ::
+#\[7]Z3RS47HEYHEK3AECTYPKKDK3PELXUXPXMHWTUQYZAWEHVX4F2IDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

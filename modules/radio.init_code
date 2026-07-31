@@ -88,10 +88,20 @@ if ( not exists <buffer.radio-jingle> ) {
     );
 }
 
+## override the generic base.sig_term watcher : fade mpv[audio-N] out      ##
+## before the normal shutdown sequence runs [ see radio.handler.sig_term ] ##
+<base.watcher.signal>->{'TERM'}->cancel
+    if defined <base.watcher.signal>->{'TERM'};
+<base.watcher.signal>->{'TERM'} = <[event.add_signal]>->(
+    {   'signal'  => 'TERM',
+        'handler' => qw| radio.handler.sig_term |
+    }
+);
+
 0;
 
-#,,,,,,.,,,.,,,..,.,.,..,,,,.,.,,,,,.,..,,.,.,..,,...,...,...,..,,,.,,,,.,..,,
-#JML32GUP52SRXWFV4YBLA6DJVS5CE5P2Y544FCDKKQJ3LQ7RT3BGUNOLC5VXUZFT46UB6I4I7YMJQ
-#\\\|CPIUDRIIQGPHTVSTJAFD2FGQA563GC2DRUVTCJEOVA6RUEI3HEP \ / AMOS7 \ YOURUM ::
-#\[7]DJ5DE6H6H6M4WGM7ODPSRPOHHXQTFIDF73FIXYNKJF3NC4V3KCCY 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,,,,,..,,,.,,,,,.,.,,.,,,..,,,.,..,,...,...,.,,,..,,...,..,,,.,,
+#UDXTS3CHCXWSIDMHIADODEQKEU5NMGL63ZIB6HQ4T6F62Q6FUHWXXMLKAXLEE6L7JHL3E42HGHB7C
+#\\\|3LZVJPD5ALNGWG65QPT2P3UGEVYVJSCU7R7ADSGTPNNLHU7FQDX \ / AMOS7 \ YOURUM ::
+#\[7]W5QUDH7DSBXOABNBY3YH5SQUJZ7RR2TGVMHSAJSQAIHVXSGGJMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
