@@ -1,6 +1,6 @@
 ---
 name: bug-forensics-dotted-command-names
-description: 6 modules codebase-wide (forensics x2, build x1, ext-pkg x1, calc x2) have dot-containing bare .cmd. command names, which base.regex's cmd_str pattern (used by all cross-zenka routing) cannot represent -- gets misparsed as a routing hop-chain instead of one atomic command. 4 of the 6 (forensics x2, build, ext-pkg) are live-routed today and need a hyphenated rename; calc's 2 aren't routing bugs at all -- they're private helpers of calc.cmd.val that should never have had the .cmd. segment, fix is to drop it, not hyphenate. build.cmd.recipe.run renamed 2026-07-31 (b7d9d163e); 5 remain.
+description: RESOLVED 2026-07-31 -- 6 modules codebase-wide (forensics x2, build x1, ext-pkg x1, calc x2) had dot-containing bare .cmd. command names, which base.regex's cmd_str pattern (used by all cross-zenka routing) cannot represent -- gets misparsed as a routing hop-chain instead of one atomic command. All 6 fixed across 4 commits (b7d9d163e build, 5e6987573 calc, be1e24add ext-pkg, 017d8c24b forensics). The forensics fix also caught the actual live breakage point: openvas.cmd.report-to-forensics was constructing the broken dotted command string for real cross-zenka dispatch.
 metadata:
   node_type: memory
   type: project
@@ -107,44 +107,55 @@ sub-calls from `openvas.cmd.report-to-forensics`/`openvas.init_code`/
 directly, no protocol regex involved. It's specifically the
 cube/access.zenki-routed paths that are broken.)
 
-**Fix in progress, done manually via `ncode` (not dispatched) — 1 of 6 so
-far.** Two different fix shapes depending on tier:
+**ALL 6 FIXED, 2026-07-31 — done manually via `ncode` across 4 commits.**
+Two different fix shapes were used depending on tier:
 
-For the 4 real routable commands (rename to a hyphenated single-segment
-bare command — hyphens ARE in `cmd_re`'s character class, dots aren't —
+The 4 real routable commands, renamed to a hyphenated single-segment
+bare command (hyphens ARE in `cmd_re`'s character class, dots aren't —
 matching this project's established precedent: the
 `X-11.get_pointer_scr_rect` 23-char-limit rename and the
 `ncode.cmd.review` → `pattern-review` collision rename, both in
 `data/ai-mem/claude/topic-ncode-pattern-learning-loop.md`):
 
-- `forensics.cmd.sweep.run` → `forensics.cmd.sweep-run`
-- `forensics.cmd.investigate.finding` → `forensics.cmd.investigate-finding`
-- [x] `build.cmd.recipe.run` → `build.cmd.recipe-run` — **DONE, `b7d9d163e`**
-  (2026-07-31): `start`/`init_code`/`subroutines.load-early`/docs all
-  updated, `ptd -c` clean, no stale references left. (Old name kept
-  as-written above and elsewhere in this file's history/evidence
-  sections deliberately — this is a bug report, rewriting the broken
-  name in place would invert what it's documenting.)
-- `ext-pkg.cmd.package.ensure` → `ext-pkg.cmd.package-ensure`
+- [x] `build.cmd.recipe.run` → `build.cmd.recipe-run` — **`b7d9d163e`**:
+  `start`/`init_code`/`subroutines.load-early`/docs all updated.
+- [x] `ext-pkg.cmd.package.ensure` → `ext-pkg.cmd.package-ensure` —
+  **`be1e24add`**: also caught two stale docs (`README.md` usage
+  examples, a commented-out per-consumer grant placeholder) still
+  showing the old name after the initial rename.
+- [x] `forensics.cmd.sweep.run` → `forensics.cmd.sweep-run` and
+  `forensics.cmd.investigate.finding` → `forensics.cmd.investigate-finding`
+  — **`017d8c24b`**: the important one. First pass renamed only the
+  module files; a follow-up check caught 3 more real gaps —
+  `forensics/start`'s `access.cmd.usr.cube` whitelist AND its
+  `access.cmd.usr.openvas` grant, `cube/access.zenki`'s openvas
+  phase-2 handoff grant, and — the actual live breakage point —
+  `openvas.cmd.report-to-forensics`, which constructs
+  `cube.forensics.investigate.finding` as a real routed command string
+  via `protocol-7.command.send.local`. Every enriched-finding handoff
+  from openvas to forensics would have hit the hop-chain misparse this
+  whole bug report describes, until that call site was fixed too.
+  `forensics.investigate.finding` (no `.cmd.`, the internal
+  implementation the wrapper calls directly) correctly left untouched —
+  never part of the bug.
 
-For calc's 2 (not routable commands at all — see the corrected tier
-analysis above): **drop `.cmd.` entirely, don't hyphenate into a bare
-command name**:
+calc's 2 (not routable commands at all — confirmed via `calc.commands`,
+the zenka's own live listing, which never showed them): `.cmd.` dropped
+entirely rather than hyphenated into a bare command name that was never
+meant to exist —
 
-- `calc.cmd.val.eval_bigrat` → `calc.val.eval_bigrat`
-- `calc.cmd.val.format_truncated` → `calc.val.format_truncated`
+- [x] `calc.cmd.val.eval_bigrat` → `calc.val.eval_bigrat`,
+  `calc.cmd.val.format_truncated` → `calc.val.format_truncated` —
+  **`5e6987573`**.
 
-(check for an existing internal-helper namespace convention in `calc`
-before picking the exact target — these two just need to stop being
-in the `.cmd.`-triggered auto-registration table, the exact non-cmd
-namespace they land in is a smaller detail)
-
-For each: update the `name =` header comment, any `access.zenki`/`start`
-grant lines, any direct `<[...]>` call sites elsewhere in the codebase,
-and `subroutines.load-early` for the owning zenka (and any zenka with a
-cross-zenka grant, e.g. `openvas` for forensics). Should not have been
+**Lesson for next time a rename like this lands**: don't stop at the
+module file + its own `start`/`subroutines.load-early` — grep the whole
+tree for the bare old name afterward. Every one of these renames except
+the first turned up at least one more live reference (docs, a second
+zenka's grant, or — in forensics' case — the actual call site
+constructing the broken routed command string). Should not have been
 caught by this project's own `gen-sub-whitelist`/access-grant tooling as
-a length/shape violation — worth checking why not as part of the fix,
+a length/shape violation in the first place — worth checking why not,
 in case other zenki have a similar latent bug this scan's naive
 `ack '\.'` filter didn't catch (e.g. a dot buried deeper than the first
 one after `.cmd.`, or a non-`.cmd.` command path with the same shape
@@ -157,8 +168,8 @@ adjacent command-naming/routing gotcha (bare-name collision across
 zenki sharing a process, not a regex-shape violation) found the same
 general class of naming trap in this project before.
 
-#,,.,,,,,,,,.,.,.,,,.,,,,,..,,,,,,.,.,,,.,,,.,.,.,...,..,,,,.,,..,,..,,..,.,,,
-#BIZVSXOQ7OC3XECTTPKW4LH6PNY7ZPP3VZG3LQUKJHLRLZ5TGNI7RCO5NODRJEPL5IONOG35CRBIM
-#\\\|5DYYTMGW4Y72JBVWHU7KBJ6C4WQHRJIPLKIX6DMSCEMX22L35QU \ / AMOS7 \ YOURUM ::
-#\[7]4WXPZHXL2K72UXVVIBKV3RVUEFFXSFMWHWLFEP4DKTDIO2QNEUBY 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,.,.,..,,,..,.,.,...,,..,,,.,..,,.,.,...,..,,...,,,,,..,,...,..,,
+#2QZFAYW3UHGUUDPKXUQTMALNVDYMRL7GURZFQETS3XMTBBJI3Z7BD7L7WQBECRIJYJUDZVRC6AOKA
+#\\\|UPG6IBXNRS7HM7LFVMDAPGFRWJLTMMJCM2O3BKZ3A7RXRIRBORJ \ / AMOS7 \ YOURUM ::
+#\[7]QSA2CJOTUITMPUHMS3HTZMVQNGKHA4GI6QHGJ3656CRLH3AFG2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
