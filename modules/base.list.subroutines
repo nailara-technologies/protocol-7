@@ -539,6 +539,7 @@ return [ qw[
         ncode.regex.apply
         ncode.cmd.suggest
         ncode.cmd.replace
+        mpv.snapshot.save
         mpv.handler.event
         mpv.cmd.set-speed
         mpv.cmd.get-speed
@@ -715,6 +716,7 @@ return [ qw[
         ncode.cmd.graduate
         nameserv.zone.save
         nameserv.init_code
+        mpv.snapshot.write
         mpv.handler.stdout
         mpv.handler.stderr
         mpv.cmd.set-volume
@@ -1142,6 +1144,7 @@ return [ qw[
         ncode.transform.wave
         ncode.cmd.sign-batch
         nameserv.zone.lookup
+        mpv.snapshot.restore
         mpv.loop_plist_param
         mpv.cmd.pipe-cmd-raw
         mpv.cmd.pause-toggle
@@ -1378,6 +1381,7 @@ return [ qw[
         ncode.cmd.diff-staged
         mpv.init_settings_map
         mpv.cmd.stop-autoskip
+        mpv.cmd.snapshot-save
         mpv.cmd.show-playlist
         mpv.cmd.current-hwdec
         mpv.cmd.clear-profile
@@ -1612,6 +1616,7 @@ return [ qw[
         route.bmw384.init_code
         reenc-msg.cmd.finished
         reasoning.tree.narrate
+        radio.handler.sig_term
         proxy.transport.select
         proxy.template.resolve
         proxy.template.generic
@@ -1635,6 +1640,8 @@ return [ qw[
         ncode.util.scope_match
         nameserv.handler.query
         nameserv.cmd.show-zone
+        mpv.snapshot.send_quit
+        mpv.snapshot.cmd_reply
         mpv.handler.pipe.float
         mpv.handler.path_reply
         mpv.handler.audio_fade
@@ -2160,6 +2167,7 @@ return [ qw[
         mpv.handler.pipe.version
         mpv.handler.pipe.command
         mpv.handler.error_output
+        mpv.cmd.snapshot-restore
         mpv.cmd.shuffle-playlist
         mpv.callback.init_volume
         models.storage.yaml_save
@@ -2644,6 +2652,7 @@ return [ qw[
         nodes.cmd.orbital-position
         ncode.chmod_child.readline
         nameserv.cmd.remove-record
+        mpv.snapshot.apply_pending
         mpv.handler.resume_timeout
         mpv.handler.get_list_reply
         mpv.handler.cmd_prop.pause
@@ -3204,6 +3213,7 @@ return [ qw[
         context.conversation.history
         content.cmd.entries_withheld
         coding.self_test.tier2_judge
+        coding.self_test.async_probe
         coding.self_test.apply_tier2
         coding.parse.json_tool_calls
         coding.intake.normalize_task
@@ -3948,6 +3958,7 @@ return [ qw[
         openbox.callback.already_running
         nshell.no-tty-debug.cmd.char-add
         mpv.startup.handler.coords_reply
+        mpv.handler.snapshot_collect_pos
         mpv.handler.event.client-message
         models.registry.find_alternative
         models.gguf.file.is_garbage_name
@@ -4156,6 +4167,7 @@ return [ qw[
         coding.handler.switch_model_reply
         coding.handler.http_stall_timeout
         coding.handler.http_io_parse_line
+        coding.handler.defer_seed_restart
         coding.file.strip_trailing_spaces
         coding.callback.object_memory_gpu
         channels.memory-sync.sync-handler
@@ -4246,6 +4258,7 @@ return [ qw[
         nshell.hook.unknown_command_global
         nodes.handler.discover_node_online
         ncode.transform.handler.wave_reply
+        mpv.handler.snapshot_collect_error
         models.registry.populate_from_yaml
         models.handler.notify-online-reply
         models.conversation.consensus_vote
@@ -4430,6 +4443,7 @@ return [ qw[
         coding.tools.handler.write_new_file
         coding.tools.handler.recent_changes
         coding.tools.handler.note_summarize
+        coding.self_test.handler.poll_probe
         coding.learning.update_success_rate
         coding.helper.get_service_breakdown
         channels.memory-sync.register-watch
@@ -4586,6 +4600,7 @@ return [ qw[
         pager.util.viewport.default_formatter
         pager.util.sort.compute_adaptive_keys
         pager.util.encode.encode_base32_chunk
+        mpv.handler.snapshot_collect_playlist
         models.storage.adapter.invoke.resolve
         models.statistics.invocation_tracking
         models.registry.init_from_definitions
@@ -4848,6 +4863,7 @@ return [ qw[
         plugin.auth.auth-keypair.tofu-notification
         pager.util.filter.calculate_harmonic_score
         ncode.transform.wave.util.build_llm_prompt
+        mpv.handler.event.property-change.seekable
         letsencr.parent.handler_httpd_reload_reply
         impressive.handler.screen-change_strm_open
         discover.orbital.handler.local_p7ref_reply
@@ -4882,6 +4898,7 @@ return [ qw[
         data.topology.interference.map.MAX_RGB_DIST
         data.mount.shm.header.write.pack_shm_header
         coding.tools.handler.validate_module_format
+        coding.self_test.helper.capture_server_tail
         coding.handler.models_recommendations_reply
         base.zenka.push.reply-handler.notify-online
         base.referenced_subroutines.clear_from_disk
@@ -4982,6 +4999,7 @@ return [ qw[
         data.mount.shm.permission.verify.path_pattern_match
         data.init_holographic.calculate_magnetic_trajectory
         v7.handler.stdio_multiplex_demux.decode_payload_text
+        mpv.handler.event.property-change.partially-seekable
         llm.service.consensus_vote.interpret_certainty_level
         llm.service.consensus_vote.encode_harmonic_certainty
         data.topology.interference.map.determine_source_type
@@ -5017,8 +5035,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,,,,,,,.,...,..,,,.,,..,,,..,,,,,,,,,,,.,..,,...,...,,.,,...,,..,...,...,
-#JZHFWWMGO24KLQPD3Q5WL64SYWWFAINOD2GLW5WRBBJ5FUQX4CF262GULNGNJL5QJ36XGYA6MJDHE
-#\\\|EXSRKUBWW6VOI3QA5HMWWZR6RB47TR4WNR5BHZFE7TTEXFEBQJT \ / AMOS7 \ YOURUM ::
-#\[7]4VRC5HRZDMMWJ624A5POZUF6SRT4E7JUSRVG5NM5SQEZVCSKVQDI 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,..,,,,,,.,.,..,,.,.,,.,,,..,...,.,.,...,...,,..,...,,,.,,,.,,,.,
+#C2EVWLF5M5WE7NXROBDZV3IGIZCECVRWQZEE7XDTRBQGGF6YELFBUKVXH2QU74PSN6IH5M6YHTOYS
+#\\\|ZTHK5B5CWUCVJQOXTG7SL7XLFOISKVJ7N2FSB7NFWLHFQKD5DG6 \ / AMOS7 \ YOURUM ::
+#\[7]VJLAGESLKWSGMOCPK2VA4GYRDXW3VPJ6XBQ77LHXWLJCP6WD46DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
