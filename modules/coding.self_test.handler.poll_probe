@@ -1,0 +1,489 @@
+## [:< ##
+
+# name  = coding.self_test.handler.poll_probe
+# descr = timer-driven state machine for one async self-test run
+
+my $event = shift;
+## data lives on the watcher, not the raw event wrapper - same pattern as ##
+## coding.self_test.handler.poll_switch                                   ##
+my $timer_data = eval { $event->w->data }  // {};
+my $probe_id   = $timer_data->{'probe_id'} // '';
+
+my $state = $data{'coding'}{'self_test_probe_state'}{$probe_id};
+if ( !defined $state ) {
+    <[base.logs]>->(
+        0, '[poll_probe] no state for probe_id=%s, stopping timer', $probe_id
+    );
+    $event->w->cancel if defined $event->w and $event->w->is_active;
+    return;
+}
+
+my $now      = <[base.time]>->(3);
+my $backend  = $state->{'backend'}  // 'gpu';
+my $model_id = $state->{'model_id'} // '';
+my $elapsed  = $now - ( $state->{'started'} // $now );
+
+## overall watchdog : bounded, never unbounded. worst case per prompt is ~2 ##
+## probe attempts + 4 tier1 attempts at the 90s timeout each plus gaps [    ##
+## ~560s ] - two prompts + slack rounds to 1200s. a state machine phase     ##
+## with no ceiling is an unbounded wait wearing a costume                   ##
+my $max_total = 1200;
+if ( $elapsed > $max_total and $state->{'phase'} ne qw| done | ) {
+    <[base.logs]>->(
+        0, '[poll_probe] probe %s exceeded %ds total budget : aborting',
+        $probe_id, $max_total
+    );
+    if ( $state->{'in_flight'} and defined $state->{'http_state'} ) {
+        ## synthesize an error through the probe's own pipeline : releases ##
+        ## the backend lock via async_probe's $finish and settles once     ##
+        my $cb = $state->{'http_state'}{'callbacks'} // {};
+        $cb->{'on_error'}->('probe watchdog abort')
+            if ref $cb->{'on_error'} eq qw| CODE |;
+        <[coding.async.http_cleanup]>->( $state->{'http_state'} );
+    }
+    $state->{'all_passed'}     = FALSE;
+    $state->{'watchdog_abort'} = TRUE;
+    $state->{'phase'}          = qw| done |;
+}
+
+## helper : fire one async probe request [ probe or tier1 ] through         ##
+## coding.self_test.async_probe. acquires the backend lock first - only     ##
+## when FREE, never queued : a queued pseudo-id would later be handed to    ##
+## coding.async.send_request by backend_release, which has no task for it [ ##
+## task spec, step 2 ]. returns FALSE when the lock is held - the caller    ##
+## re-tries on the next tick [ watchdog bounds the total wait ]             ##
+my $fire_request = sub {
+    my ( $kind, $prompt_text ) = @_;
+
+    my $bs = ( <coding.state.backend> // {} )->{$backend} // {};
+    if ( defined $bs->{'lock'} ) {
+        <[base.logs]>->(
+            2,        '[poll_probe] backend %s busy [lock=%s], probe waiting',
+            $backend, $bs->{'lock'}
+        ) if int($elapsed) % 5 == 0;
+        return FALSE;
+    }
+    <[coding.async.backend_acquire]>->( $probe_id, $backend );
+
+    $state->{'in_flight'}    = TRUE;
+    $state->{'request_kind'} = $kind;
+    $state->{'probe_result'} = undef;
+
+    my $http = <[coding.self_test.async_probe]>->(
+        {   url      => $state->{'url'},
+            model_id => $model_id,
+            prompt   => $prompt_text,
+            backend  => $backend,
+            timeout  => $state->{'timeout'},
+            probe_id => $probe_id,
+            ## max_tokens : 4096 for the initial probe call [ settled ],  ##
+            ## the client default 1024 for tier1 reformat - same split as ##
+            ## the old blocking path                                      ##
+            max_tokens => $kind eq qw| probe | ? 4096 : 1024,
+            on_done    => sub {
+                my ($result) = @ARG;
+                $state->{'probe_result'}  = $result;
+                $state->{'probe_arrived'} = <[base.time]>->(9);
+                $state->{'in_flight'}     = FALSE;
+                return;
+            },
+        }
+    );
+    $state->{'http_state'}
+        = ref $http eq qw| HASH | ? $http->{'state'} : undef;
+    return TRUE;
+};
+
+## helper : transport-level retry decision - one retry on the same 5xx / ##
+## connection-failure class as the old blocking loop, never on a genuine ##
+## 4xx / encode error that a retry can't fix                             ##
+my $retryable = sub {
+    my ($err) = @_;
+    return ( $err =~ m{^http_5\d\d$} or $err eq qw| request_failed | );
+};
+
+if ( $state->{'phase'} eq qw| gap | ) {
+    ## the old blocking <[base.sleep]>->(1.5) inter-prompt gap as a      ##
+    ## timestamp check - the spacing itself was a confirmed fix, it must ##
+    ## not be silently dropped, and it must not survive as a sleep       ##
+    return TRUE if $now < ( $state->{'gap_until'} // 0 );
+
+    $state->{'phase'}        = qw| probe |;
+    $state->{'retries_left'} = 1;
+    $state->{'prompt_start'} = undef;
+    $state->{'probe_result'} = undef;
+    $state->{'cur'}          = undef;
+    $state->{'eval_final'}   = undef;
+    $state->{'eval_step'}    = qw| init |;
+    $state->{'test_count'}++;
+    ## fall through into probe ##
+}
+
+if ( $state->{'phase'} eq qw| probe | ) {
+    return TRUE if $state->{'in_flight'};
+    return TRUE if $now < ( $state->{'retry_not_before'} // 0 );
+
+    my $prompt_def = $state->{'prompts'}[ $state->{'idx'} ];
+    my $prompt_id  = $prompt_def->{'id'};
+
+    if ( !defined $state->{'probe_result'} ) {
+        return TRUE
+            if !$fire_request->( qw| probe |, $prompt_def->{'text'} );
+        $state->{'prompt_start'} //= <[base.time]>->(9);
+        return TRUE;
+    }
+
+    my $result = $state->{'probe_result'};
+    $state->{'probe_result'} = undef;
+
+    my $ok = $result && $result->{'mode'} eq qw| true |;
+
+    if ( !$ok ) {
+        my $err = $result->{'data'} // 'no reply';
+        if ( $state->{'retries_left'} > 0 and $retryable->($err) ) {
+            $state->{'retries_left'}--;
+            <[base.logs]>->(
+                1,
+                '[self_test] prompt %d : model %s '
+                    . ': retrying after %s [attempt %d/%d]',
+                $prompt_id,
+                $model_id,
+                $err,
+                1,
+                1
+            );
+            $state->{'retry_not_before'} = $now + 0.5;    ## short backoff ##
+            return TRUE;
+        }
+
+        <[base.logs]>->(
+            0, '[self_test] prompt %d : model %s : inference failed : %s',
+            $prompt_id, $model_id, $err
+        );
+
+        ## on an http_5xx grab whatever the server itself said right before ##
+        ## the request failed [ coding.self_test.helper.                    ##
+        ## capture_server_tail ]                                            ##
+        my $server_tail = '';
+        if ( $err =~ m{^http_5\d\d$} ) {
+            $server_tail
+                = <[coding.self_test.helper.capture_server_tail]>->($backend)
+                // '';
+            $server_tail
+                = <[base.parser.ellipse_center]>->( $server_tail, 800 )
+                if length $server_tail;
+        }
+
+        ## hard fail : evaluate is skipped entirely when the initial call   ##
+        ## failed - running tier1 against an EMPTY prior answer could fluke ##
+        ## a spurious PASS [ confirmed live ]                               ##
+        $state->{'cur'} = {
+            inference_failed => $err,
+            answer           => '',
+            reasoning        => '',
+            finish_reason    => '',
+            ttft             => 0,
+            total            => <[base.time]>->(9)
+                - ( $state->{'prompt_start'} // <[base.time]>->(9) ),
+            server_tail => $server_tail,
+        };
+        $state->{'phase'} = qw| record |;
+        return TRUE;
+    }
+
+    my $ttft = ( $state->{'probe_arrived'} // <[base.time]>->(9) )
+        - ( $state->{'prompt_start'} // <[base.time]>->(9) );
+    my $answer = $result->{'data'} // '';
+    $answer =~ s/[\x00-\x08\x0b\x0c\x0e-\x1f]//g;
+
+    $state->{'cur'} = {
+        answer        => $answer,
+        reasoning     => $result->{'reasoning'}     // '',
+        finish_reason => $result->{'finish_reason'} // '',
+        ttft          => $ttft,
+        total         => $ttft,
+        server_tail   => '',
+    };
+
+    ## visible content empty but the model DID reason - most likely the     ##
+    ## whole max_tokens budget went to the <think> trace [ confirmed live ] ##
+    if ( !length $answer and length $state->{'cur'}{'reasoning'} ) {
+        <[base.logs]>->(
+            1,
+            '[self_test] prompt %d : model %s : empty content, '
+                . 'reasoning present [ finish_reason=%s, %d chars ]',
+            $prompt_id,
+            $model_id,
+            $state->{'cur'}{'finish_reason'} || 'unknown',
+            length $state->{'cur'}{'reasoning'}
+        );
+    }
+
+    $state->{'phase'} = qw| evaluate |;
+    return TRUE;
+}
+
+if ( $state->{'phase'} eq qw| evaluate | ) {
+    my $prompt_def = $state->{'prompts'}[ $state->{'idx'} ];
+
+    if ( $state->{'eval_step'} eq qw| init | ) {
+        ## tier0 + hint computation [ synchronous, no inference ] ##
+        my $r = <[coding.self_test.evaluate]>->(
+            {   step       => qw| init |,
+                model_id   => $model_id,
+                prompt     => $prompt_def->{'text'},
+                answer     => $state->{'cur'}{'answer'},
+                expected   => $prompt_def->{'expected'},
+                constraint => $prompt_def->{'result_constraint'},
+                backend    => $backend,
+            }
+        );
+        if ( $r->{'outcome'} eq qw| final | ) {
+            $state->{'eval_final'} = $r->{'eval'};
+            $state->{'phase'}      = qw| record |;
+            return TRUE;
+        }
+        ## a tier1 reformat round-trip is needed : arm it, fire next tick ##
+        $state->{'eval_state'}   = $r->{'state'};
+        $state->{'eval_hint'}    = $r->{'hint'};
+        $state->{'eval_request'} = $r->{'request_prompt'};
+        $state->{'retries_left'} = 1;
+        $state->{'eval_step'}    = qw| tier1 |;
+        return TRUE;
+    }
+
+    ## eval_step 'tier1' : fire / wait / complete a reformat round ##
+    return TRUE if $state->{'in_flight'};
+    return TRUE if $now < ( $state->{'retry_not_before'} // 0 );
+
+    if ( !defined $state->{'probe_result'} ) {
+        return TRUE
+            if !$fire_request->( qw| tier1 |, $state->{'eval_request'} );
+        return TRUE;
+    }
+
+    my $result = $state->{'probe_result'};
+    $state->{'probe_result'} = undef;
+
+    if ( !( $result && $result->{'mode'} eq qw| true | ) ) {
+        my $err = $result->{'data'} // 'no reply';
+        if ( $state->{'retries_left'} > 0 and $retryable->($err) ) {
+            $state->{'retries_left'}--;
+            <[base.logs]>->(
+                1,
+                '[self_test] tier1 : model %s : '
+                    . 'retrying after %s [attempt %d/%d]',
+                $model_id,
+                $err,
+                1,
+                1
+            );
+            $state->{'retry_not_before'} = $now + 0.5;    ## short backoff ##
+            return TRUE;
+        }
+        ## exhausted : falls through, tier1_done records the failure ##
+    }
+
+    my $r = <[coding.self_test.evaluate]>->(
+        {   step    => qw| tier1_done |,
+            state   => $state->{'eval_state'},
+            hint    => $state->{'eval_hint'},
+            backend => $backend,
+            tier1   => $result,
+        }
+    );
+    if ( $r->{'outcome'} eq qw| final | ) {
+        $state->{'eval_final'} = $r->{'eval'};
+        $state->{'phase'}      = qw| record |;
+        return TRUE;
+    }
+    ## strict-hint round armed : fire on the next tick ##
+    $state->{'eval_hint'}    = $r->{'hint'};
+    $state->{'eval_request'} = $r->{'request_prompt'};
+    $state->{'retries_left'} = 1;
+    return TRUE;
+}
+
+if ( $state->{'phase'} eq qw| record | ) {
+    my $prompt_def = $state->{'prompts'}[ $state->{'idx'} ];
+    my $prompt_id  = $prompt_def->{'id'};
+    my $cur        = $state->{'cur'} // {};
+    my $eval       = $state->{'eval_final'};
+
+    my $passed             = FALSE;
+    my $needs_tier2        = FALSE;
+    my $tier               = '';
+    my $reformatted_answer = '';
+    my $structural_reason  = '';
+    my $tier1_reason       = '';
+    my $tier1_attempts     = [];
+    my $server_tail        = $cur->{'server_tail'} // '';
+    my $anomaly            = '';
+
+    if ( defined $cur->{'inference_failed'} ) {
+        $tier1_reason = 'inference_failed: ' . $cur->{'inference_failed'};
+        <[base.logs]>->(
+            1, "[self_test] prompt %d : model %s : FAIL [ no answer : %s ]",
+            $prompt_id, $model_id, $tier1_reason
+        );
+        if ( length $server_tail ) {
+            <[base.logs]>->(
+                1,
+                "[self_test] prompt %d : model %s : "
+                    . "server output at failure time :\n%s",
+                $prompt_id,
+                $model_id,
+                $server_tail
+            );
+        }
+    } elsif ( $eval && $eval->{'mode'} eq qw| true | ) {
+        $passed             = TRUE;
+        $tier               = $eval->{'tier'}               // 'literal';
+        $reformatted_answer = $eval->{'reformatted_answer'} // '';
+        $structural_reason  = $eval->{'structural_reason'}  // '';
+        $tier1_attempts     = $eval->{'tier1_attempts'}     // [];
+        $state->{'pass_count'}++;
+        <[base.logs]>->(
+            1, '[self_test] prompt %d : model %s : PASS [ %s ttft=%.2fs ]',
+            $prompt_id, $model_id, $tier, $cur->{'ttft'} // 0
+        );
+    } else {
+        $needs_tier2        = $eval->{'needs_tier2'}        // FALSE;
+        $reformatted_answer = $eval->{'reformatted_answer'} // '';
+        $structural_reason  = $eval->{'structural_reason'}  // '';
+        $tier1_reason       = $eval->{'tier1_reason'}       // '';
+        $tier1_attempts     = $eval->{'tier1_attempts'}     // [];
+        if ( !length $server_tail ) {
+            $server_tail = $eval->{'server_tail'} // '';
+            $server_tail
+                = <[base.parser.ellipse_center]>->( $server_tail, 800 )
+                if length $server_tail;
+        }
+        ## anomaly text [ follow_up explanation ] is produced later by the ##
+        ## tier-2 disposition path on a NO verdict - not here              ##
+        <[base.logs]>->(
+            1,
+            "[self_test] prompt %d : model %s : "
+                . "FAIL [ got '%s' expected '%s' tier1=%s ]",
+            $prompt_id,
+            $model_id,
+            $cur->{'answer'} // '',
+            $prompt_def->{'expected'},
+            $tier1_reason || 'n/a'
+        );
+        if ( length $server_tail ) {
+            <[base.logs]>->(
+                1,
+                "[self_test] prompt %d : model %s : "
+                    . "server output at failure time :\n%s",
+                $prompt_id,
+                $model_id,
+                $server_tail
+            );
+        }
+    }
+
+    $state->{'all_passed'} = FALSE if !$passed;
+
+    my $result_record = {
+        prompt_id          => $prompt_id,
+        prompt             => $prompt_def->{'text'},
+        answer             => $cur->{'answer'}        // '',
+        reasoning          => $cur->{'reasoning'}     // '',
+        finish_reason      => $cur->{'finish_reason'} // '',
+        server_tail        => $server_tail,
+        expected           => $prompt_def->{'expected'},
+        constraint         => $prompt_def->{'result_constraint'},
+        ttft               => $cur->{'ttft'}  // 0,
+        total              => $cur->{'total'} // 0,
+        passed             => $passed,
+        needs_tier2        => $needs_tier2,
+        tier               => $tier,
+        reformatted_answer => $reformatted_answer,
+        structural_reason  => $structural_reason,
+        tier1_reason       => $tier1_reason,
+        tier1_attempts     => $tier1_attempts,
+        timestamp          => <[base.time]>->(3),
+    };
+
+    push @{ $state->{'results'} }, $result_record;
+
+    <[coding.self_test.archive]>->(
+        {   epoch    => $state->{'epoch'},
+            model_id => $model_id,
+            result   => $result_record,
+            anomaly  => $anomaly,
+        }
+    );
+
+    <[coding.self_test.multiplier]>->(
+        {   model_id => $model_id,
+            ttft     => $cur->{'ttft'} // 0,
+        }
+    ) if ( $cur->{'ttft'} // 0 ) > 0;
+
+    $state->{'idx'}++;
+    if ( $state->{'idx'} < scalar @{ $state->{'prompts'} } ) {
+        ## inter-prompt spacing [ confirmed fix ] as a timestamp, never a ##
+        ## blocking sleep                                                 ##
+        $state->{'phase'}     = qw| gap |;
+        $state->{'gap_until'} = $now + 1.5;
+    } else {
+        $state->{'phase'} = qw| done |;
+    }
+    return TRUE;
+}
+
+if ( $state->{'phase'} eq qw| done | ) {
+    <[base.logs]>->(
+        1, '[self_test] complete : model %s : %d/%d passed',
+        $model_id,
+        $state->{'pass_count'},
+        $state->{'test_count'}
+    );
+    <[base.logs]>->(
+        0, '[self_test] probe %s aborted by watchdog : partial results',
+        $probe_id
+    ) if $state->{'watchdog_abort'};
+
+    my $summary = {
+        model_id   => $model_id,
+        epoch      => $state->{'epoch'},
+        pass_count => $state->{'pass_count'},
+        total      => $state->{'test_count'},
+        all_passed => $state->{'all_passed'},
+        results    => $state->{'results'},
+    };
+
+    my $final = {
+        mode => $state->{'all_passed'} ? qw| true | : qw| false |,
+        data => $summary,
+    };
+
+    my $on_done = $state->{'on_done'};
+
+    ## release the in-flight guard and state BEFORE invoking the caller  ##
+    ## continuation - it may legitimately start a new self-test [ eg the ##
+    ## seed-retry respawn path ]                                         ##
+    <coding.self_test_probe_in_flight> = FALSE;
+    $event->w->cancel if defined $event->w and $event->w->is_active;
+    delete $data{'coding'}{'self_test_probe_state'}{$probe_id};
+
+    $on_done->($final) if ref $on_done eq qw| CODE |;
+    return TRUE;
+}
+
+## unknown phase : defensive cleanup, same shape as poll_switch ##
+<[base.logs]>->(
+    0, '[poll_probe] unknown phase %s for probe_id=%s, aborting',
+    $state->{'phase'}, $probe_id
+);
+$state->{'all_passed'} = FALSE;
+$state->{'phase'}      = qw| done |;
+return TRUE;
+
+#,,..,.,,,.,.,..,,.,,,...,,,,,,..,..,,,..,,.,,..,,...,...,..,,.,.,...,,..,,,,,
+#WCZBIBSNWTYXIGLYJTYF36QZJ5CDSJNQG3XLJG5JQZ2LJDJTSPXFK7CKTF6IDAI6FB7IBGGWZSWUM
+#\\\|DCKBEYVWP4ZUFIHJHN2ERFEFKN6HYPTI2ANZXNHHOU6SKHWTD3Y \ / AMOS7 \ YOURUM ::
+#\[7]C33A255RP7OHOSDOEDWOJ24KUQUXQA6NYCIYYX4TJWBRQAZVLGAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

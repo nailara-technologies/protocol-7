@@ -1,0 +1,98 @@
+## [:< ##
+
+# name  = coding.handler.defer_seed_restart
+# descr = defer self-test seed-retry respawn until the backend is idle
+
+my $event      = shift;
+my $timer_data = eval { $event->w->data }  // {};
+my $defer_id   = $timer_data->{'defer_id'} // '';
+
+my $defer = $data{'coding'}{'seed_restart_defer'}{$defer_id};
+if ( !defined $defer ) {
+    $event->w->cancel if defined $event->w and $event->w->is_active;
+    return;
+}
+
+my $backend  = $defer->{'backend'}  // 'gpu';
+my $model_id = $defer->{'model_id'} // '';
+my $now      = <[base.time]>->(3);
+
+my $finish = sub {
+    $event->w->cancel if defined $event->w and $event->w->is_active;
+    delete $data{'coding'}{'seed_restart_defer'}{$defer_id};
+    return TRUE;
+};
+
+## stale guard : the server this restart decision was made for has been     ##
+## replaced by a newer spawn while waiting - the decision no longer applies ##
+## to what's running                                                        ##
+my $srv = <coding.inference_servers>->{$backend};
+if ( !defined $srv or ( $srv->{'pid'} // 0 ) != ( $defer->{'pid'} // -1 ) ) {
+    <[base.logs]>->(
+        1,
+        '[defer_seed_restart] backend=%s server changed '
+            . '[pid %s -> %s] : abandoning deferred restart',
+        $backend,
+        $defer->{'pid'} // 'undef',
+        $srv->{'pid'}   // 'undef'
+    );
+    return $finish->();
+}
+
+## bounded, never unbounded : a wait with no ceiling is an unbounded wait   ##
+## wearing a costume. giving up leaves the [ failing ] server running - the ##
+## next readiness event re-arms the whole decision anyway                   ##
+if ( $now - ( $defer->{'started'} // $now ) > 120 ) {
+    <[base.logs]>->(
+        0,
+        '[defer_seed_restart] backend=%s still busy after 120s : giving '
+            . 'up on deferred seed restart for %s [server left running]',
+        $backend,
+        $model_id
+    );
+    return $finish->();
+}
+
+## a real task holds the backend [ or is queued for it ] : a respawn here ##
+## would kill the server mid-request. wait for the next tick              ##
+my $bs = ( <coding.state.backend> // {} )->{$backend} // {};
+if ( defined $bs->{'lock'} or scalar @{ $bs->{'queue'} // [] } ) {
+    <[base.logs]>->(
+        2,
+        '[defer_seed_restart] backend=%s busy [lock=%s queue=%d] : waiting',
+        $backend,
+        $bs->{'lock'} // 'none',
+        scalar @{ $bs->{'queue'} // [] }
+    );
+    return TRUE;
+}
+
+## idle : same restart recipe as the old synchronous path [ confirmed live ##
+## ] - spawn_servers_deferred only spawns what ISN'T already running, so   ##
+## mark for restart and clear the cached pid first                         ##
+<[base.logs]>->(
+    0,
+    '[defer_seed_restart] backend=%s idle : '
+        . 'proceeding with seed-retry respawn for %s',
+    $backend,
+    $model_id
+);
+$srv->{'status'} = qw| restart_needed |;
+<inference.gpu_pid> = 0 if $backend eq qw| gpu |;
+delete <coding.awaiting_resources>
+    if <coding.awaiting_resources>;
+
+<[event.add_timer]>->(
+    {   'after'   => 0.5,
+        'handler' => qw| coding.handler.spawn_servers_deferred |,
+        'data'    => { 'reason' => 'self_test_cat_failure' }
+    }
+);
+
+return $finish->();
+
+#,,.,,.,.,,..,.,.,.,,,,.,,.,,,,,.,,..,.,,,...,..,,...,...,,,.,...,..,,,..,,.,,
+#DS25YAPDZW4NXEFEOQQAAWAWIEFGISF7YYTQRNDDYEBNDATRO4BCDFYV63C65IAWNO2CUQVVSOOVQ
+#\\\|LNDXU66YK4EOZ4OAPXO2GDY7ZBNBPCR3F33WSS6DCRQELLUEPT2 \ / AMOS7 \ YOURUM ::
+#\[7]6CTSNJ3EW65FA2BESTFNIIMB5PL4NKANOIUNLNCB4ACLHHI4H6BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
