@@ -37,7 +37,7 @@ protocol-7 already has hand-run, manually-documented build recipes:
     bin/install-scripts/install_llama_cuda.sh  — the extract/symlink
     step (source binaries in build/bin → /usr/local/bin) NETWORK-BUILD-
     SYSTEM.md already describes as part of layer 1; not a new concern,
-    confirms build.recipe.run's artifact-extraction step (task 1.3).
+    confirms build.recipe-run's artifact-extraction step (task 1.3).
 
 this is a rescue-and-generalize task, not greenfield: the manual runbook
 already solved the hard part (glibc/CUDA incompatibility → Docker with
@@ -189,10 +189,10 @@ rewriting their logic:
                                         phase 2.1 option B
 ```
 
-### task 1.3 — build.recipe.run
+### task 1.3 — build.recipe-run
 ```
 ## dispatch + prompt
-new module build.recipe.run: args recipe name, optional force-rebuild
+new module build.recipe-run: args recipe name, optional force-rebuild
 flag. loads the recipe yaml and dispatches on `kind`:
 
   git-build: checks out source at the declared branch/tag, applies
@@ -243,7 +243,7 @@ attention after an upstream pull, instead of discovering it mid-build.
 
 - do NOT build anything as part of scaffolding — task 1.1/1.2/1.3 are
   registry + orchestration only; running the actual ik_llama.cpp build
-  is a manual verification step once build.recipe.run exists, not part
+  is a manual verification step once build.recipe-run exists, not part
   of the implementation task.
 - fasttext is explicitly NOT a recipe candidate — it has a debian
   package now (`embeddings` profile). recipes are for genuinely
@@ -258,8 +258,8 @@ attention after an upstream pull, instead of discovering it mid-build.
   explicitly out of scope — see [[NETWORK-BUILD-SYSTEM]] for the full
   vision; this task is layer 1 only.
 
-#,,.,,...,,,.,,,,,,..,,,,,...,,..,...,,,,,.,.,..,,...,...,.,.,,,.,,,,,.,,,..,,
-#EWUCBPBQ7JYYHKH2YJ3YQM5P2AHOOT4ATDV27MXBOMONRJ3BB32YM2JLZXBDPGYXMRHMKFBYECBZY
-#\\\|RMLVIRJEV5OZKAID5M3H3EWWEVRYTOYRPM5CC453DLUV7NEFJOL \ / AMOS7 \ YOURUM ::
-#\[7]EBXT7ZBXHRAXYGYXLQV4P2QA7JBFQ7BDKPDNF2GZAPZYHX73V2CA 7  DATA SIGNATURE ::
+#,,..,...,,.,,.,,,,.,,.,.,..,,...,..,,.,.,...,..,,...,...,..,,,.,,,,.,...,,,,,
+#6AIETOHFLZALKZK5M6CPFS5NUPSTYFDWIRMN3Y4KXW6226OR6R43MILTUFFFH7WUZCNJMRMQKJI6C
+#\\\|PZTTGFZ6WZORMJUGEWCEF5HWVILJW7M2BI7O42MNJGNM2AQMCPG \ / AMOS7 \ YOURUM ::
+#\[7]KMPV5IDJ25MQ363MDMK4DHSIDZDAHNI7VK2UDCFTKA6WMAGGKUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
