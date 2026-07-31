@@ -116,8 +116,8 @@ map {
         if not -f $ARG
 } @clean_argv;
 
-## remaining check : does it actually look like perl/P7 module code      ##
-## [ starts with '## [:< ##' , a shebang , 'package ...;' , or is a .pm ] ##
+## remaining check : does it actually look like perl/P7 module code [   ##
+## starts with '## [:< ##' , a shebang , 'package ...;' , or is a .pm ] ##
 my @files = grep { is_perl_code($ARG) }
     uniq sort { length $a <=> length $b } reverse sort @clean_argv;
 
@@ -412,7 +412,7 @@ sub preprocess_source {
 
 ##[ shared : does line $lnum start/continue a '##  text  ##' comment block ]##
 sub comment_block_line_parts {
-    my $line = shift;
+    my ( $line, $as_continuation ) = @_;
 
     ## only the leading '##  ' marker is required -- authors [ and LLMs ] ##
     ## often forget the trailing '##' on interior lines of a multi-line   ##
@@ -438,9 +438,14 @@ sub comment_block_line_parts {
     ## widely-used atomic-remark convention -- protect it from reflow ONLY  ##
     ## while it already fits ; once it exceeds LINE_MAX there's no fallback ##
     ## that ever wraps it otherwise, so it would overflow forever instead   ##
-    ## of just this once                                                    ##
+    ## of just this once. the protection gates whether a LONE standalone    ##
+    ## bracket line ever gets reflowed at all -- it must NOT apply while    ##
+    ## scanning continuations of an already-multi-line block that started   ##
+    ## elsewhere [ $as_continuation ] , or a bracket-shaped 3rd line of an  ##
+    ## ordinary paragraph would silently truncate the block before itself   ##
     return undef
-        if $content =~ m{^\[.*\]$}
+        if not $as_continuation
+        and $content =~ m{^\[.*\]$}
         and length_no_nl($line) <= LINE_MAX;
     ## strip only leading/trailing whitespace -- the has_close branch above ##
     ## already consumed any right-padding that sat before a misaligned '##' ##
@@ -479,7 +484,12 @@ sub comment_block_length {
     my $count = 1;
     my $lnum  = $start_lnum + 1;
     while ( $lnum <= scalar @$lines and not $skip->{$lnum} ) {
-        my $parts = comment_block_line_parts( $lines->[ $lnum - 1 ] );
+        ## continuation check passes $as_continuation -- the atomic     ##
+        ## bracket-remark protection is only meant for lone standalone  ##
+        ## lines, not for judging whether a line continues an           ##
+        ## already-multi-line block [ a bracket-wrapped 3rd line of an  ##
+        ## ordinary paragraph IS a continuation, not an atomic remark ] ##
+        my $parts = comment_block_line_parts( $lines->[ $lnum - 1 ], 1 );
         last if not $parts;
         last if $parts->{indent} ne $first->{indent};
         $count++;
@@ -500,8 +510,13 @@ sub step4_align_comment_block {
     my @lead_pads;       ## original padding depth , non-blank lines only ##
     my $any_close = 0;
     for my $i ( 0 .. $block_len - 1 ) {
+        ## lines past the first are continuations [ see comment_block_    ##
+        ## length ] -- without this a bracket-wrapped interior line would ##
+        ## return undef here and crash the ->{content} dereference once   ##
+        ## comment_block_length correctly counts it into the block        ##
         my $parts
-            = comment_block_line_parts( $lines->[ $start_lnum - 1 + $i ] );
+            = comment_block_line_parts( $lines->[ $start_lnum - 1 + $i ],
+            $i > 0 );
         push @content_parts, $parts->{content};
         push @content_lens,  length( $parts->{content} );
         push @lead_pads,     $parts->{lead_pad} if length $parts->{content};
@@ -518,11 +533,20 @@ sub step4_align_comment_block {
     ## trigger this, two or more confirms a genuine snippet -- pass the    ##
     ## whole block through completely untouched rather than realign it,    ##
     ## since even indentation is part of what the author is preserving     ##
+    ## dereference alternatives split by adjacency : '->' / '=>' keep the    ##
+    ## loose match [ this codebase does write '$key => $val' with a space ] ##
+    ## while '{' / '[' require the bracket to IMMEDIATELY follow the sigil  ##
+    ## variable -- real subscript/deref style here is always '$var->{key}'  ##
+    ## / '$var[0]' , never '$var [0]' , so a space before the bracket means ##
+    ## ordinary prose referencing a variable next to an English bracket     ##
+    ## annotation [ 'the capture groups of $pattern [ the later...' ] , not ##
+    ## commented-out code                                                   ##
     my $code_marker_re = qr{
         [;{}]\s*$
       | ^(?:if|elsif|else|unless|while|until|for|foreach|sub
         |my|our|local|return|package)\b
-      | \$\w+\s*(?:->|=>|\{|\[)
+      | \$\w+\s*(?:->|=>)
+      | \$\w+(?:\{|\[)
       | ->\s*\w+\s*\(
     }x;
     my $code_line_count = grep { $ARG =~ $code_marker_re } @content_parts;
@@ -1491,8 +1515,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,,.,,.,,,..,,.,,,,,,,,.,.,.,..,,,.,,.,,,,,.,..,,...,...,,.,,,.,,.,.,.,.,...,
-#YH2UXTSQQ6NGPVFLOO4F5FR54YZ2AFZBTOPBVF3XC2NCMDGFBR5DEMIH5TBU5D5N6TVIXQCYCG56K
-#\\\|YPOFEKUDUBKMWNKV5HDNRRMO6Q7Y4SSOE27NQYJQ7VK3YCXYDIW \ / AMOS7 \ YOURUM ::
-#\[7]4KKUT34DFT2C6AISGYKH7GL2F6UVZ7PCMRKWEKQJTSI7GIQMFWCQ 7  DATA SIGNATURE ::
+#,,.,,,.,,...,.,,,.,,,,,.,,..,,,,,.,,,.,.,.,.,..,,...,...,,..,.,.,,..,,,.,,,.,
+#K6VXHEEUHUUENLANLNJ6C4CRLVNYGPVGJV2FD3PFBK2BT3WRURGGO35FSI5DJ6KFCL6E3IR4CFH76
+#\\\|3NIA6UOC2QDEIRNMPZ46H43EQYDUMZFKYWBONBOSKDNTODGLKVR \ / AMOS7 \ YOURUM ::
+#\[7]TSJQMM4C7YMFICD4BTC7TZ727J6WJ763RQYQJNHL5VC6WDLVYGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

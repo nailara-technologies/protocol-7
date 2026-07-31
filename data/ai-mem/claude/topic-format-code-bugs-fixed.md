@@ -448,49 +448,98 @@ whole 15-bug arc is that principle in practice.
   `ptd`'s own file, where it's equally vestigial) rather than introducing
   an unexplained divergence between the two.
 
-## open bug found 2026-07-31, not fixed — step4 box-realign closing-'##' under-pads by 1-2 chars
+## open bug, root-caused 2026-07-31 (2 DISTINCT causes, not one padding-math bug)
 
-Spotted in a K3 dispatch's own output (two files, same commit `f8108af44`
-area), then **confirmed reproducible by running `bin/format-code` directly**
-on a copy — not just unformatted hand-typed code. Two independent real
-instances:
+Spotted in a K3 dispatch's own output, confirmed reproducible by running
+`bin/format-code` directly on a copy. Original theory (a
+`step4_align_comment_block` `$target_width`/`sprintf` padding-math bug)
+was wrong — both real instances turned out to be caused by the block
+never being touched at all, for two unrelated reasons. Confirmed via
+careful instrumentation (see the debugging-methodology note below — the
+first few instrumentation attempts gave false signals from a real Perl
+gotcha, worth remembering).
 
-```
-modules/context.pattern.extract_from_change:107 (block target width 77, this line 76)
-        ## reconstruct $replace around the $1 backreference [ same stored ##
+**Bug A — `code_marker_re`'s dereference-chain branch has no
+"immediately adjacent" requirement, false-triggering on ordinary prose.**
+`modules/context.pattern.extract_from_change:102-111`: this whole
+10-line prose block is passed through **completely untouched**
+(confirmed via debug instrumentation: `$code_line_count = 2`, crossing
+the `>= 2` "commented-out code, don't touch it" threshold at
+`step4_align_comment_block`'s very first early-return, ~line 529). The
+2 lines that triggered it are ordinary sentences, not code:
+`"the capture groups of $pattern [ the later..."` and `"...keep the
+literal $new [ correct..."` — both match `code_marker_re`'s
+`\$\w+\s*(?:->|=>|\{|\[)` alternative purely because it allows
+**arbitrary whitespace** between the sigil-variable and the following
+bracket. Real Perl subscript/dereference syntax in this codebase's own
+style never has a space there (`$var->{key}`, `$var[0]`, never `$var
+[0]`) — only English prose referencing a variable name followed by a
+bracketed aside (exactly CLAUDE.md's own `[ word ]` annotation
+convention) produces that shape. Confirmed independently in Python
+(`re.search` against the same pattern) against all 10 lines of the real
+block — exactly 2 matches, exactly the 2 identified above, zero
+false-negatives/positives beyond that.
 
-modules/ncode.regex.apply:42 (block target width 78, this line 76)
-    ## [ legacy single-string namespace handled inside scope_match ]      ##
-```
+**Bug B — the atomic single-line bracket-remark protection in
+`comment_block_line_parts` (~line 442-444: `return undef if $content =~
+m{^\[.*\]$} and length_no_nl($line) <= LINE_MAX`) is also consulted
+while SCANNING to extend an already-multi-line block, not just when
+deciding whether to touch a lone standalone line.** `comment_block_length`
+(~line 468-489) walks forward calling `comment_block_line_parts` per
+line and does `last if not $parts;` — so a **continuation line** that
+happens to be entirely bracket-wrapped (e.g.
+`modules/ncode.regex.apply:42`, `"[ legacy single-string namespace
+handled inside scope_match ]"`) gets silently treated as if it weren't
+part of the block at all, even though it's the natural 3rd line of a
+paragraph that started 2 lines earlier. Confirmed via direct
+instrumentation of `comment_block_length`'s return value:
+`BLOCKLEN lnum=40 -> 2` (only lines 40-41 form the "block" as far as
+step4 is concerned; line 42 is excluded entirely and keeps whatever
+padding it originally had — 2 chars short of the width lines 40-41 got
+aligned to).
 
-Re-ran `bin/format-code` on a `/tmp` copy of the first file: output byte-
-identical, misalignment persists — this is the tool's own steady state,
-not a one-off artifact of code that was never formatted. Neither instance
-contains anything obviously special (no unicode, the `$1`/`$replace`
-literal-dollar theory doesn't hold since the second instance has no `$`
-at all) — genuinely looks like a `step4_align_comment_block`
-(`bin/format-code` ~line 492-673) padding-computation bug, not content-
-dependent. `$target_width` is computed once as the max `length` across
-the whole block's `@wrapped_lines` (line 659-660) and every line is
-right-padded to it via `sprintf('%-*s', ...)` (line 662-666) — in theory
-every line should land on the same width; root cause of why it
-occasionally doesn't was not chased further (Text::Wrap's greedy-fill
-line-length variance across segments is the most likely suspect, but
-unconfirmed).
+**Debugging-methodology note, worth remembering**: several early
+instrumentation attempts (adding a `warn` immediately *after* a postfix
+`return ... if COND;` statement) produced false "never reached" signals
+— a postfix return exits the function immediately when `COND` is true,
+so anything textually after it on the next line is unreachable on
+exactly the path you're trying to observe. To detect whether an early
+return fired, put the `warn` (gated on the *same* condition, or
+unconditional) *before* the return, not after.
 
-**Not fixed, just recorded** — cosmetic only (comment-only, cosmetic
-whitespace, zero functional impact), but real and reproducible. Good
-scoped candidate for a future task file/dispatch: reproduce via the two
-instances above, trace `step4_align_comment_block`'s `$target_width`/
-`sprintf` path, fix, and verify against a corpus of real multi-line box
-comments (not just these two).
+**FIXED 2026-07-31** — K3 dispatch
+(`data/tasks/completed/format-code-code-marker-and-block-truncation-bugs.md`,
+`kimi-code/k3-256k`). Bug A: `code_marker_re`'s dereference alternative
+split so `\{`/`\[` require the bracket to *immediately* follow the
+variable (no `\s*`), while `->`/`=>` keep the looser match (this
+codebase does write `$key => $value` with a space). Bug B: a new
+`$as_continuation` flag threaded through `comment_block_line_parts` —
+`comment_block_length`'s forward-scan passes it (so a bracket-shaped
+continuation line no longer wrongly truncates the block), and
+`step4_align_comment_block`'s own content-collection loop passes it too
+for `$i > 0` (K3 caught this second call site itself — without it, a
+line newly counted into the block by the first fix would return `undef`
+there and crash the `->{content}` dereference).
+
+Independently re-verified: both real motivating files now format
+correctly (`ptd -c` clean on `bin/format-code`, direct diff on fresh
+copies of both files matches expectations), and a direct regression
+check confirms genuine dereference code (`$formula->value`, `$data{key}`,
+`$arr[0]`, `$key => $val`) is still detected while the two originally
+false-positive prose lines are correctly ignored. K3's own 53-file sweep
+(all `modules/` files touched in the last 5 commits + 40 random ones):
+pre-fix vs post-fix byte-identical everywhere except pre-existing,
+unrelated first-apply transforms (step0 rejoin/resplit, perltidy
+re-indent), verified content-preserving. Correctly declined to run
+`format-code` on itself (a different, already-known open bug — #18 in
+its own doc comment — would corrupt that pass).
 
 ## related
 
 [[topic-p7-text-formats-landed]], [[feedback-base-swap-subs-promote-pattern]], [[topic-fake-signature-footer-detection]], [[project-ncode-write-path-2026-07-24]]
 
-#,,,.,...,.,.,,.,,.,,,..,,,.,,...,..,,.,.,.,,,..,,...,...,,,,,,.,,.,,,.,.,,..,
-#AFVWA7QG7SNR7YLYKPQ5UCOITMRYY4J7XPQOGDXLFKHXHMX25KBW47ZHJKIPCDTZV2UNXLBYBNEXO
-#\\\|Z6KGSZHCK4NG7MQVFQZI4K4VVM6PN3LLULHIIQDEOJ3542WLBX7 \ / AMOS7 \ YOURUM ::
-#\[7]BSBQNE6G4Q6E2UQGAY6WXFG3BKXLEQMGKFSRWDFMUH3PAN4PEACY 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,..,,.,,..,,..,,..,,...,,.,,.,.,..,,...,...,.,.,,..,,,,,,,,,,,.,
+#DTOA6HFSAKXGG3Q3QZSYORGESGCYZHXH743O44AZKBHGMGHJ4OVP5NM6FBMOHJZ2JNURGJPN5NTA2
+#\\\|5B2LI4X5PJDK26WBRQXBUJWBKOUQOP5D6EC6NPFOW2CWOYNXC22 \ / AMOS7 \ YOURUM ::
+#\[7]OXPFR76OS3PYIIWJ3YOMCK233J23VIVOQOLWWLAV4LZC2YKSQABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
