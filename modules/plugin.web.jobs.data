@@ -5,6 +5,16 @@
 
 my $call = shift // {};
 
+## stamp the watermark handed back to the client FIRST, before reading the ##
+## cache/removed-log below -- a tombstone appended by an interleaved event ##
+## between those reads and returning the response would otherwise be       ##
+## silently excluded from @removed while still predating the ntime we hand ##
+## back, permanently orphaning it from every future delta poll from this   ##
+## client [ its watermark can only move forward ]. stamping here instead   ##
+## guarantees anything appended mid-request is still >= this ntime, so the ##
+## client's next poll will pick it up rather than skip it                  ##
+my $current_ntime = <[base.ntime.b32]>;
+
 ## parse since=<ntime_b32> from args [forwarded from GET query string] ##
 my $since_str = '';
 my $args      = $call->{'args'} // '';
@@ -24,9 +34,9 @@ my @ids = sort {
 
 my @array;
 for my $job_id (@ids) {
-    ## delta filter : skip jobs unchanged since the watermark ##
-    ## note: browser-owned fields [stage/notes] don not bump last_modified,
-    ##       so multi-device sync of those goes via POST reverse-queue only ##
+    ## delta filter : skip jobs unchanged since the watermark note:      ##
+    ## browser-owned fields [stage/notes] don not bump last_modified, so ##
+    ## multi-device sync of those goes via POST reverse-queue only       ##
     if ( defined $since_num ) {
         my $lm_str = $jobs->{$job_id}{'last_modified'} // '';
         my $lm_num
@@ -57,9 +67,9 @@ for my $job_id (@ids) {
     push @array, $j;
 }
 
-## tombstoned removals since the watermark : lets a delta-syncing browser
-## prune ids that vanished [ trashed/deleted/blocked ] instead of holding a
-## stale cached copy forever ##
+## tombstoned removals since the watermark : lets a delta-syncing browser   ##
+## prune ids that vanished [ trashed/deleted/blocked ] instead of holding a ##
+## stale cached copy forever                                                ##
 my @removed;
 if ( defined $since_num ) {
     my $log = <plugin.web.jobs.removed_log> // [];
@@ -74,8 +84,6 @@ if ( defined $since_num ) {
         push @removed, $entry->{'id'};
     }
 }
-
-my $current_ntime = <[base.ntime.b32]>;
 
 my $json = eval {
     JSON::XS::encode_json(
@@ -108,8 +116,8 @@ return {
     'content_type' => qw| application/json |
 };
 
-#,,.,,,..,.,,,,,,,,,.,,..,,.,,,,,,.,.,,,,,,,,,..,,...,..,,...,,,.,,.,,,.,,.,,,
-#7ZZD7LEYVOAYNK5PVK7K5GDTNNPVB63YJNXAJFLWKXMAD77DCDCVDZWQRGFL3SPLJ5BYYFCDNRPPQ
-#\\\|YZAHPJEWDDCQFQXPJFB4SFS2M6OBNKGSP2RLCWGNMNL4WREQHZS \ / AMOS7 \ YOURUM ::
-#\[7]WWF55FJKI5P6VTYS5OPHDWA5KY3OZUU2T2DAP7JXX4UKWQBF64CY 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,..,,,,,,,.,,,.,,...,,,.,...,,,.,..,,...,...,...,..,,..,,..,,.,,,
+#I2GTTZNJ5P47JEOFU24CY5ACVQQB3J27JWSF5SCLORYX3PK7XDLT4IZ75K7SYA4FSU6I3DOOL4BKW
+#\\\|6WAIBRFO2YHVQ7DJZPBLO7XN6IZD5FWXTAR6K2CTNGP276XD4DA \ / AMOS7 \ YOURUM ::
+#\[7]MDAXJ6X7WOTGWNJFV6H42U2JJ3RFXDLP4U7XNQIFKFZ6EPWO4IAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
