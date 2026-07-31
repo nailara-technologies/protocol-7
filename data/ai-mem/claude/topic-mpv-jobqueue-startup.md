@@ -76,7 +76,10 @@ window.
 
 ## open work
 
-- **state snapshot/restore**: full property map save on shutdown; restore via deferred queue
+- ~~**state snapshot/restore**~~ **DONE** (`218cc382b`, 2026-07-31) —
+  see [[topic-mpv-persistence]] layers 1-2; restore ended up synchronous
+  from `mpv.startup.job.finalize`, not via the deferred queue as
+  originally planned here
 - **visual curve automation**: brightness/contrast/gamma/saturation via `base.curve.*` (same as volume)
 - **cross-mapped curves**: parameter driven by another param or external signal
 - **player restart job**: re-fork on binary death, zenka stays alive, restore from snapshot
@@ -100,8 +103,8 @@ logic that needs the player socket uses mpv.dep.socket as its dependency.
 [[topic-self-improving-system]]
 [[topic-mpv-persistence]]
 
-#,,..,...,,..,..,,,.,,,.,,,,,,...,.,.,.,,,.,.,..,,...,...,.,.,.,,,,,.,...,..,,
-#A2L75XRXB2KYW3HMZN3VZMN6MRXRAHOIDDV33TYGFIDUEENYSFSPXJVFV6PY3YMT57WZOTEDN63AO
-#\\\|JA7ZUAGK2I3ZINT4YELIU5GRBHYNKHYO55SA4PMIUZCUSHOJXH6 \ / AMOS7 \ YOURUM ::
-#\[7]6MC4ITQDJYXQGL2IEEJRN4VRXZ4EWWYDKFKJLNHMKI3ABCUUIMDY 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,.,.,...,..,,,,,,..,,..,,,,,,...,..,,...,...,,,,,,,,,,,,,,,.,,,.,
+#2S4W6UKULRL3YSRSCM7EZXUJFTJV3I6NU7P3IJ2B5ALN2TWQAGIQIFVBK2E5A4H5IOE44PUF4TNCS
+#\\\|AZK3CPHNIJ3ROQYRJP63MKBBM6MEIPMU5YF54GV6N546EQVAFDS \ / AMOS7 \ YOURUM ::
+#\[7]5OMVZUBFPVOA6LDCEWEDLBG7TNDA5FFUVSDKZ7R4OCNOOLWANOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

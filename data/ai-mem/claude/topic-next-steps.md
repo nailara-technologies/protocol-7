@@ -195,8 +195,22 @@ metadata:
   mpv.startup.init, mpv.init_code) carry a signature footer on disk. no
   further per-module "sign X" tracking needed anywhere in this file going
   forward.
-- **mpv state snapshot/restore** — full property map + curve phase; restore via
-  deferred send_command queue on restart [[topic-mpv-persistence]]
+- ~~mpv state snapshot/restore~~ **DONE** (`218cc382b`, 2026-07-31,
+  kimi K3 dispatch, live-verified) — `mpv.snapshot.save`/`.write`/`.restore`
+  + `mpv.cmd.snapshot-save`/`snapshot-restore`; periodic checkpoint
+  (`mpv.snapshot_interval_seconds`, default 60s) + graceful pre-quit save
+  (`mpv.cmd.quit`) + startup restore via `mpv.startup.job.finalize`
+  (`mpv.restore_on_startup`). Observed properties expanded from a
+  hardcoded 5 to the full `mpv.map.settings` set. Two real bugs found and
+  fixed post-dispatch: (1) `mpv.handler.event.property-change.path`
+  deletes the whole `<mpv.current>` cache on idle/stop — `mpv.snapshot.
+  write` now skips the write instead of overwriting a good snapshot with
+  an empty one; (2) `mpv.pulse.disable_idle_suspend` ran from
+  `configuration/zenki/mpv/start` before `[init_modules]`, too early for
+  `base.exec.with_timeout`'s transitive POSIX (`WNOHANG`)/`IPC::Open3`
+  deps — call site moved into `mpv.init_code`. Curve-phase persistence
+  (layer 5 of [[topic-mpv-persistence]]) deliberately NOT done — depends
+  on the curve automation item below landing first.
 - **visual curve automation** — extend base.curve.* to brightness/contrast/gamma/
   saturation/shader; same shape as existing volume fade
 - **cross-mapped curve routing** — param driven by another param or external signal
@@ -642,14 +656,21 @@ forensics/openvas integration work):**
   `package.ensure`→`package-ensure` and forensics'
   `sweep.run`/`investigate.finding`→hyphenated (`017d8c24b`, `be1e24add`).
 
+- ~~**forensic-report-pipeline**~~ **phase 1 DONE** (`378f269ac`,
+  2026-07-31, kimi K3 dispatch, live-verified) — `forensics.report.
+  assemble`/`.generalize` + `forensics.cmd.report-assemble`/
+  `report-generalize`, archived to `data/tasks/completed/`. Real bug
+  found and fixed: unparenthesized `sprintf` inside a hash literal is a
+  low-precedence list operator in Perl, so it silently swallowed every
+  subsequent key/value pair until the closing brace — both report
+  modules lost their metadata fields (`source_dir`, `records_found`,
+  `entry_count`, etc.) this way until parenthesized. Phase 2
+  (self-improvement task-tree wiring, ncode pattern-candidate
+  extraction) and phase 3 (external template-refinement gate) not
+  started.
+
 **still genuinely open, not started:**
 
-- **forensic-report-pipeline** — the openvas↔forensics enrichment/handoff
-  connective tissue it depends on is now built (`b71fadde1`), so this is
-  unblocked and next in line, but the pipeline itself (join scanner
-  findings + investigation results by correlation id, generate
-  GENERALIZED reports, feed the self-improvement reasoning-branch loop)
-  has no commits of its own yet.
 - **os-pkg zenka** — still a bare stub on this branch
   (`modules/os-pkg.init_code` is `0;`), referenced by
   build-zenka/ext-pkg-zenka as the apt/dpkg sibling. note: a `sys-deps`
@@ -667,8 +688,8 @@ summarizer) — pass `auto_summarize: false` for tasks like these, or
 cross-check `p7_task_queue`/`coding.show-buffer model_output` before
 assuming a reported failure means no work happened.
 
-#,,.,,.,,,...,.,.,,,,,,,.,.,,,,,,,,.,,.,,,..,,..,,...,...,,,.,,,,,,,,,,,.,,,,,
-#4CUGJ6YJUY2IP7IRZWE2S6FK3LMGVGMSJD3ZWP27PDPVPZQZ6FGC6NN2AKFM7B6C2ZHUR46IIOXAQ
-#\\\|K2W2MG6HONNNNVGE7K7TTWQYERYA7NHG6ZYCWQWX6LN76JRJLZY \ / AMOS7 \ YOURUM ::
-#\[7]MX4JLOWSI2BY53PD642M4AD5GCPSL7F7ULVSFXQEICYNLL62AABI 7  DATA SIGNATURE ::
+#,,,.,...,,,,,.,.,.,,,,.,,.,.,,..,,,.,.,.,.,.,..,,...,.,.,...,,.,,.,.,,,.,,..,
+#BUMUOCKK3A6FYL7WNYWF4KOP7JPFPVCHA5EGSV4XQFD2WY4KZTCJU4BQPVVLYYK5JGKW7JBZ4PJKC
+#\\\|W7WQBPCMCH2X6RN56T3MEESKE5HQINSPNEMFXS22KMLV3R4T2MQ \ / AMOS7 \ YOURUM ::
+#\[7]F5OFE4UF35NS2NKY3OFHCW7RJRMAXAKU6QGGGPHGIP3TGCCEDWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
