@@ -593,20 +593,45 @@ what it should actually invoke.
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-## security task-tree: deferred domains + zenki — mostly landed since 2026-07-29
+## security task-tree: deferred domains + zenki — well past phase 1 as of 2026-07-30/31
 
 security agent task tree (`openvas-agent.md`, `nessus-agent.md`,
 `forensics-agent.md`, `forensic-report-pipeline.md`,
 `security-intel-embedding-domains.md`, `build-zenka.md`, `ext-pkg-zenka.md`)
-was drafted 2026-07-29. **updated 2026-07-31 — phase 1 has since landed for
-five of the seven** (all archived to `data/tasks/completed/`):
+was drafted 2026-07-29. **corrected 2026-07-31 (second pass, git-log-first
+this time — the first pass under-counted progress on the embeddings and
+forensics/openvas integration work):**
 
 - **openvas-agent** — phase 1 DONE, live-verified (`2f11bc91c` region).
+  **phase 2 also DONE** (`b71fadde1`, 2026-07-30): `openvas.enrich.finding`
+  (per-finding context load against the security-intel embedding domains;
+  cve/mitre/cwe wired, nvt correctly degrades to `status: pending` since
+  its feed-sync was never built), `openvas.cmd.report-to-forensics` +
+  `openvas.handler.forensics-reply` for the correlation-id round trip to
+  the forensics zenka. live-verified via
+  `data/openvas/scan-synthetic-test.yaml`.
+- **forensics-agent** — beyond the phase 1 scaffold+nightly-sweep
+  (`86424b80c`), the zenka now also has `forensics.cmd.investigate-finding`,
+  `forensics.investigate.finding`, `forensics.event.rule-synthesis`, and
+  `forensics.handler.rule-proposal` — the openvas↔forensics handoff side
+  of `b71fadde1` above. rule-synthesis/rule-proposal haven't been
+  independently confirmed live-tested (only the enrichment+handoff path
+  was called out as verified in the commit message) — check before
+  trusting them unattended.
+- **security-intel-embedding-domains** — **much further along than
+  previously noted.** cisa KEV (1.1a, 1655 entries) done; task 1.1b's
+  mitre ATT&CK + cwe domains also landed (`3690f3f7a`, `data/protocols/
+  mitre/`, `data/protocols/cwe/`); task 1.2 fasttext/skipgram embeddings
+  trained for cisa/mitre/cwe (`e2f78a696`, `ec4d8718e`). **still open**:
+  cve (NIST NVD — large multi-decade archive, needs its own scoping pass,
+  do not assume the cisa-KEV precedent extends to it) and nvt (blocked on
+  openvas's own feed-sync, which was never built — out of scope until
+  that lands) domains remain unfetched; phase 2 (unified loader, retrain
+  triggers) untouched.
 - **nessus-agent** — phase 1 DONE, live-verified (`a47ac3659`), but hit a
   hard license boundary: trial license has `scan_api:false`, REST scan
   creation is UI-only-blocked — not a code defect. phase 2 (enrichment,
   shared schema with openvas) not started and moot on this license.
-- **forensics-agent** — phase 1 scaffold + nightly-sweep DONE (`86424b80c`).
 - **build-zenka** — phase 1 DONE, live-verified (`e73bf2274`); phase 2
   (patch drift detection) not started.
 - **ext-pkg-zenka** — phase 1 DONE, live-verified (`e9b437f6c`); phase 2
@@ -619,19 +644,20 @@ five of the seven** (all archived to `data/tasks/completed/`):
 
 **still genuinely open, not started:**
 
-- **security-intel-embedding-domains task 1.1b** — cve (NIST NVD, large
-  multi-decade archive), mitre ATT&CK, cwe, and nvt (reuses openvas's feed
-  sync) domains still unfetched. only cisa KEV (task 1.1a, 1655 entries,
-  `data/protocols/cisa/`) is done. task 1.2 (train fasttext embeddings per
-  domain) and phase 2 (unified loader, retrain triggers) also untouched.
-  CVE/NVD size needs its own scoping pass before dispatch — do not assume
-  the cisa-KEV size/tracking precedent extends to it.
-- **forensic-report-pipeline** — task file only; needs openvas+forensics
-  phase 1-2 (now both landed) before it can start, so this is now
-  unblocked and next in line, not just deferred.
-- **os-pkg zenka** — still a bare stub (`modules/os-pkg.init_code` is
-  `0;`), referenced by build-zenka/ext-pkg-zenka as the apt/dpkg sibling;
-  its own implementation was never scoped as a task file.
+- **forensic-report-pipeline** — the openvas↔forensics enrichment/handoff
+  connective tissue it depends on is now built (`b71fadde1`), so this is
+  unblocked and next in line, but the pipeline itself (join scanner
+  findings + investigation results by correlation id, generate
+  GENERALIZED reports, feed the self-improvement reasoning-branch loop)
+  has no commits of its own yet.
+- **os-pkg zenka** — still a bare stub on this branch
+  (`modules/os-pkg.init_code` is `0;`), referenced by
+  build-zenka/ext-pkg-zenka as the apt/dpkg sibling. note: a `sys-deps`
+  zenka + `bin/os-pkg` implementation exists in history (`11e21a163`,
+  2026-05-23) but is **not an ancestor of current HEAD** — it's on a
+  different branch/history line, so it isn't available here without an
+  explicit merge/cherry-pick decision.
+- security-intel cve/nvt domains (see above).
 
 kimi_dispatch reliability note, still relevant: `auto_summarize`'s local-9B
 summarization step can hang independently of kimi's own work completing
@@ -641,8 +667,8 @@ summarizer) — pass `auto_summarize: false` for tasks like these, or
 cross-check `p7_task_queue`/`coding.show-buffer model_output` before
 assuming a reported failure means no work happened.
 
-#,,..,,..,...,,,,,,,,,.,.,,,.,,,,,.,,,,.,,,.,,..,,...,...,,.,,...,.,.,,.,,,,,,
-#BSK7DOVSQRQRCWSSEI7MU3FUL6SYFYYBINQYBGMRAKQTL4QJOONZVPGHPONUBF3SS5JNR76EOIHME
-#\\\|V7D7BRWZ6YDN4UYMHYYZP6I242IMMVTFK4UTNMHNZC5NU5PWUQS \ / AMOS7 \ YOURUM ::
-#\[7]X3DYOOVZWLSJ3RYEP2QJAMD2GDOKTFRRHNPUWMORGBFEYC2H6YAA 7  DATA SIGNATURE ::
+#,,.,,.,,,...,.,.,,,,,,,.,.,,,,,,,,.,,.,,,..,,..,,...,...,,,.,,,,,,,,,,,.,,,,,
+#4CUGJ6YJUY2IP7IRZWE2S6FK3LMGVGMSJD3ZWP27PDPVPZQZ6FGC6NN2AKFM7B6C2ZHUR46IIOXAQ
+#\\\|K2W2MG6HONNNNVGE7K7TTWQYERYA7NHG6ZYCWQWX6LN76JRJLZY \ / AMOS7 \ YOURUM ::
+#\[7]MX4JLOWSI2BY53PD642M4AD5GCPSL7F7ULVSFXQEICYNLL62AABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

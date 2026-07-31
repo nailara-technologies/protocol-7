@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = forensics.cmd.report-generalize
+# param = report_path=<report.yaml> | bare absolute path
+# descr = produce a report's public-safe generalized form
+
+## thin wrapper around forensics.report.generalize [ phase 1 of the         ##
+## forensic-report-pipeline ] -- pure transform, no network I/O ; the reply ##
+## shows the EXTERNAL [ generalized ] form only, the internal form stays    ##
+## local by design                                                          ##
+
+my $args_str = $call->{'args'} // '';
+
+my $report_path;
+if ( $args_str =~ m{\breport_path=(\S+)} ) {
+    $report_path = $LAST_PAREN_MATCH;
+} elsif ( $args_str =~ m{^(/\S+)$} ) {
+    $report_path = $LAST_PAREN_MATCH;    ## bare path ##
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => 'report_path=PATH expected [ absolute path ]'
+    }
+    if not defined $report_path or not length $report_path;
+
+my $result = <[forensics.report.generalize]>->($report_path);
+
+return $result
+    if not ref $result
+    or ( $result->{'mode'} // '' ) ne qw| true |;
+
+my $external = $result->{'external'} // {};
+my $ext_meta = $external->{'report'} // {};
+
+my ( $ext_yaml, $dump_err )
+    = <[format.yaml.dump_str]>->( $external, { 'omit_marker' => 1 } );
+
+return {
+    'mode' => qw| false |,
+    'data' =>
+        sprintf( 'external form dump failed [ %s ]', $dump_err // qw| ? | )
+    }
+    if not length $ext_yaml;
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        "report generalized : %d external entries [ internal "
+            . "form stays local ]\n  distribution : %s\n\n%s",
+        $ext_meta->{'entry_count'}  // 0,
+        $ext_meta->{'distribution'} // '',
+        $ext_yaml,
+    )
+};
+
+#,,,,,.,,,..,,.,.,,,,,,..,,,.,.,.,...,,..,,.,,..,,...,...,,..,.,,,,.,,.,.,,,,,
+#MQ5XUFNMCLBJ2NJNXA2RWIZJ3ER7UPZGMWENLLQXL4LA6ILAV4SAFBLWI53HYNQAKFCSHV4XJEOZK
+#\\\|7MBXSPXTVFBV22LMUIMO6OZKH7XX6NISGPRFIXSSF35AUQHG2CM \ / AMOS7 \ YOURUM ::
+#\[7]NP4WGSC4KWH3HWSZY5NZOCS7KKBZYN2Q7N66KTII3INWAYBTPIAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

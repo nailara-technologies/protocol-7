@@ -1,0 +1,122 @@
+## [:< ##
+
+# name  = forensics.report.generalize
+# descr = transform an assembled report record [ forensics.report.assemble
+#         ] into its public-safe generalized form : keeps only pattern
+#         classes, risk categories, verification status and control
+#         recommendations -- no target identifiers, no operational
+#         detail, no exploit specifics
+# param = $report_href | $report_path [ yaml file to load ]
+# return = { mode => true, internal => .., external => .. }
+#          or { mode => false, data => <error> }
+
+##                   phase 1 [                                                ##
+##                   data/tasks/forensic-report-pipeline.md                   ##
+##                   task 1.2 ] : PURE TRANSFORM -- no                        ##
+##                   file writes, no network I/O. the                         ##
+##                   "may leave the network" property of                      ##
+##                   the external form is a label on the                      ##
+##                   output, not an action this module                        ##
+##                   performs.                                                ##
+##                                                                            ##
+##                   internal : the input record,                             ##
+##                   unchanged [ stays local ] external :                     ##
+##                   whitelist-rebuilt form [ safe to                         ##
+##                   leave the network -- external model                      ##
+##                   template refinement, public                              ##
+##                   reasoning corpora ]                                      ##
+##                                                                            ##
+##                   the external entry shape is an                           ##
+##                   explicit KEY WHITELIST, not a                            ##
+##                   strip-list : anything not named here                     ##
+##                   [ correlation ids, scanner, oids, or                     ##
+##                   any future internal field ] can                          ##
+##                   never leak by construction.                              ##
+##                                                                            ##
+##                   TODO : standards mapping [ e.g. IEC                      ##
+##                   62443 SL levels ] deferred -- no                         ##
+##                   reference mapping exists anywhere in                     ##
+##                   the repo yet, and the pipeline does                      ##
+##                   not fabricate compliance-standard                        ##
+##                   claims. add the mapping table here                       ##
+##                   once an authoritative in-repo                            ##
+##                   reference lands.                                         ##
+
+my $input  = shift;
+my $report = $input;
+
+if ( defined $input and not ref $input ) {    ## report path given ##
+    return { 'mode' => qw| false |, 'data' => 'absolute path expected' }
+        if $input !~ m{^/[\w\.\-/]+$};
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( 'report file not readable [ %s ]', $input )
+        }
+        if not -r $input;
+    $report = <[format.yaml.load_file]>->($input);
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => 'report record hashref [ or readable report path ] expected'
+    }
+    if ref $report ne qw| HASH |
+    or ref $report->{'entries'} ne qw| ARRAY |;
+
+## --- external form : whitelist rebuild ##
+## -----------------------------------   ##
+
+my @external_entries;
+foreach my $entry ( @{ $report->{'entries'} } ) {
+    next if ref $entry ne qw| HASH |;
+    push @external_entries,
+        {
+        'pattern_class' => $entry->{'pattern_class'} // qw| unclassified |,
+        'pattern'       => $entry->{'pattern'}       // '',
+        'risk_category' => $entry->{'risk_category'} // '',
+        'verification_status' => $entry->{'verification_status'}
+            // qw| needs-manual-review |,
+        'proposed_control' => $entry->{'proposed_control'} // '',
+        };
+}
+
+my $meta = $report->{'report'} // {};
+$meta = {} if ref $meta ne qw| HASH |;
+
+my $external = {
+    'report' => {
+        'period' => {
+            'from' => $meta->{'period'}{'from'} // '',
+            'to'   => $meta->{'period'}{'to'}   // '',
+        },
+        'generated'   => $meta->{'generated'} // '',
+        'entry_count' => scalar @external_entries,
+        'generator'   =>
+            sprintf( qw| %s.report.generalize |, <system.zenka.name> ),
+        'distribution' => 'generalized : safe to leave the network',
+        'content_note' => 'pattern classes, risk categories and control '
+            . 'recommendations only -- no target '
+            . 'identifiers, no operational detail, no '
+            . 'exploit specifics',
+    },
+    'entries' => \@external_entries,
+};
+
+<[base.logs]>->(
+    1,
+    'report generalized : %d entries [ internal '
+        . 'stays local, external safe to leave the network ]',
+    scalar @external_entries
+);
+
+return {
+    'mode'     => qw| true |,
+    'internal' => $report,
+    'external' => $external,
+};
+
+#,,,,,...,,,,,..,,.,,,.,.,.,.,,,.,..,,,,.,,.,,..,,...,...,.,.,,..,,.,,.,,,.,.,
+#6TB7ZEWV77TCCG7FKO6LRXEXLKSLJOMXIKGVL3Q3264RFMONJETTS4G3KIBDF32ADJ22IPBKYNVQC
+#\\\|MFQYI25SYA7TWHC6P2J372TBJ4FKVU42F3OAF4O7BF6XTNXSP6J \ / AMOS7 \ YOURUM ::
+#\[7]5JL63TB5V4QZOR26YQ366JOT7NN2BUIY5IYDKPNVEZS6HDILOWBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
