@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = coding.self_test.run
-# descr = execute model self-test cycle: calibration prompts, timing, evaluation
+# descr = start async model self-test cycle : timer-driven probe state machine
 
 my $params   = shift                 // {};
 my $model_id = $params->{'model_id'} // '';
@@ -22,6 +22,12 @@ my $model_id = $params->{'model_id'} // '';
 ## chasing the timeout further for now [ ondemand zenki don't have          ##
 ## heartbeat/restart yet, so blocking isn't an active hazard today, but     ##
 ## shouldn't be pushed needlessly high either ]                             ##
+##                                                                          ##
+## UPDATE 2026-07-31 [ async transport rewrite ] : hypothesis CONFIRMED -   ##
+## with stream=true the http_500s stopped entirely ; the old 500s were      ##
+## LWP's inactivity timeout disconnecting mid-generation. this module now   ##
+## only STARTS the test : the actual cycle runs non-blocking in             ##
+## coding.self_test.handler.poll_probe via coding.self_test.async_probe     ##
 my $timeout = $params->{'timeout'} // 90;
 my $backend = $params->{'backend'} // 'gpu';
 my $url     = $params->{'url'}
@@ -29,6 +35,23 @@ my $url     = $params->{'url'}
 
 return { mode => qw| false |, data => 'model_id required' }
     if !length $model_id;
+
+## transport is now async : the result is delivered to this continuation as ##
+## { mode => all_passed ? true : false, data => $summary } - the same shape ##
+## this module used to return synchronously                                 ##
+my $on_done = $params->{'on_done'};
+return {
+    mode => qw| false |,
+    data => 'on_done coderef required [ async self-test transport ]'
+    }
+    if ref $on_done ne qw| CODE |;
+
+## idempotency guard : a second self-test starting while one is in flight   ##
+## would race the probe state machine on the same backend [ same exposure   ##
+## class as the verify_inference_startup stacked-timer bug - multiple paths ##
+## each scheduling their own lifecycle with no cancellation ]               ##
+return { mode => qw| false |, data => 'self-test already in progress' }
+    if <coding.self_test_probe_in_flight>;
 
 my $epoch = <[base.time]>->(3);
 
@@ -76,295 +99,42 @@ my @prompts = (
     },
 );
 
-my $test_count = 0;
-my $pass_count = 0;
-my $all_passed = TRUE;
-my @results;
+$data{'coding'}{'self_test_probe_state'} //= {};
+my $probe_id = <[base.gen_id]>->( $data{'coding'}{'self_test_probe_state'} );
 
-for my $prompt_def (@prompts) {
-    ## give the server a moment to settle after the previous prompt before ##
-    ## firing the next one : self-test is the only caller that fires two   ##
-    ## requests back-to-back with zero gap - a normal session always has   ##
-    ## natural spacing between requests. suspected cause of the http_500s  ##
-    ## seen only during self-test [ never during regular session inference ##
-    ## - if it were a hard context-size ceiling it would show as timeouts, ##
-    ## not 500s, during normal use too ] : likely post-request cleanup /   ##
-    ## buffer churn on the server still in flight when the very next       ##
-    ## request lands immediately after the first response                  ##
-    <[base.sleep]>->(1.5) if $test_count > 0;
+$data{'coding'}{'self_test_probe_state'}{$probe_id} = {
+    'model_id'   => $model_id,
+    'url'        => $url,
+    'backend'    => $backend,
+    'timeout'    => $timeout,
+    'epoch'      => $epoch,
+    'started'    => <[base.time]>->(3),
+    'prompts'    => \@prompts,
+    'idx'        => 0,                    ## which prompt we are on ##
+    'phase'      => qw| gap |,
+    'gap_until'  => 0,
+    'results'    => [],
+    'pass_count' => 0,
+    'test_count' => 0,
+    'all_passed' => TRUE,
+    'on_done'    => $on_done,             ## caller continuation ##
+};
 
-    $test_count++;
-    my $prompt_id   = $prompt_def->{'id'};
-    my $prompt_text = $prompt_def->{'text'};
-    my $expected    = $prompt_def->{'expected'};
+<coding.self_test_probe_in_flight> = TRUE;
 
-    my $start      = <[base.time]>->(9);
-    my $ttft_start = $start;
-
-    ## http_inference_client is a one-shot blocking call with no lock/retry ##
-    ## of its own [ unlike coding.async.request's backend_acquire + retry-  ##
-    ## once-on-5xx via http_error ] -- a transient 5xx right after a fresh  ##
-    ## server spawn [ observed live, twice ] would otherwise hard-fail      ##
-    ## self-test permanently instead of being absorbed like a real task's   ##
-    ## request would be. one retry, same 5xx/connection-failure class as    ##
-    ## http_error's match, short delay, never retries a genuine 4xx/encode  ##
-    ## error that a retry can't fix                                         ##
-    my $result;
-    my $max_retries = 1;
-    for my $attempt ( 0 .. $max_retries ) {
-        $result = <[coding.tools.http_inference_client]>->(
-            {   url      => $url,
-                model_id => $model_id,
-                prompt   => $prompt_text,
-                timeout  => $timeout,
-                ## generous headroom for a reasoning model's <think> trace ##
-                ## before it commits to a final answer - the default 1024  ##
-                ## was getting fully consumed by reasoning alone on prompt ##
-                ## 2 once its "reply with only the animal name" terseness  ##
-                ## instruction was removed, leaving content empty even     ##
-                ## though the reasoning itself was on track - confirmed    ##
-                ## live [ ttft=28.97s, answer='' ]                         ##
-                max_tokens => 4096,
-            }
-        );
-
-        last if $result && $result->{'mode'} eq qw| true |;
-        last if $attempt >= $max_retries;
-
-        my $err = $result->{'data'} // '';
-        last unless $err =~ m{^http_5\d\d$} or $err eq qw| request_failed |;
-
-        <[base.logs]>->(
-            1,
-            '[self_test] prompt %d : model %s '
-                . ': retrying after %s [attempt %d/%d]',
-            $prompt_id,
-            $model_id,
-            $err,
-            $attempt + 1,
-            $max_retries
-        );
-        select( undef, undef, undef, 0.5 );    ## short backoff ##
+<[event.add_timer]>->(
+    {   'interval' => 0.5,
+        'repeat'   => TRUE,
+        'handler'  => qw| coding.self_test.handler.poll_probe |,
+        'data'     => { 'probe_id' => $probe_id },
+        'desc'     => "self-test probe $probe_id"
     }
-
-    my $ttft          = 0;
-    my $total         = 0;
-    my $answer        = '';
-    my $reasoning     = '';
-    my $finish_reason = '';
-    my $passed        = FALSE;
-    my $anomaly       = '';
-    my $inference_ok  = ( $result && $result->{'mode'} eq qw| true | );
-
-    my $server_tail = '';
-
-    if ( !$inference_ok ) {
-        <[base.logs]>->(
-            0, '[self_test] prompt %d : model %s : inference failed : %s',
-            $prompt_id, $model_id, $result->{'data'} // 'no reply'
-        );
-        $total = <[base.time]>->(9) - $start;
-
-        ## once 'ready', the server's stdout/stderr are drained-not-logged ##
-        ## [ coding.handler.drain_pipe ] - on an http_5xx, grab whatever   ##
-        ## the server itself said right before the request failed instead  ##
-        ## of just reporting the bare status code with no server-side      ##
-        ## context                                                         ##
-        my $err = $result->{'data'} // '';
-        if ( $err =~ m{^http_5\d\d$} ) {
-            $server_tail
-                = <[coding.self_test.helper.capture_server_tail]>->($backend)
-                // '';
-            ## llama-server's own cache/checkpoint bookkeeping chatter can ##
-            ## run to several KB per request - shorten before it ever hits ##
-            ## a log line or gets archived, keeping start [ often has the  ##
-            ## actual error ] and end [ state right before the failure ]   ##
-            $server_tail
-                = <[base.parser.ellipse_center]>->( $server_tail, 800 )
-                if length $server_tail;
-        }
-    } else {
-        $ttft          = <[base.time]>->(9) - $ttft_start;
-        $total         = <[base.time]>->(9) - $start;
-        $answer        = $result->{'data'}          // '';
-        $reasoning     = $result->{'reasoning'}     // '';
-        $finish_reason = $result->{'finish_reason'} // '';
-        $answer =~ s/[\x00-\x08\x0b\x0c\x0e-\x1f]//g;
-
-        ## visible content came back empty but the model DID reason - most  ##
-        ## likely the whole max_tokens budget went to the <think> trace and ##
-        ## generation stopped [ finish_reason 'length' ] before it could    ##
-        ## commit to a final answer - confirmed live. surface it as a real  ##
-        ## diagnostic instead of a silent empty answer                      ##
-        if ( !length $answer and length $reasoning ) {
-            <[base.logs]>->(
-                1,
-                '[self_test] prompt %d : model %s : empty content, '
-                    . 'reasoning present [ finish_reason=%s, %d chars ]',
-                $prompt_id,
-                $model_id,
-                $finish_reason || 'unknown',
-                length $reasoning
-            );
-        }
-    }
-
-    my $needs_tier2        = FALSE;
-    my $tier               = '';
-    my $reformatted_answer = '';
-    my $structural_reason  = '';
-    my $tier1_reason       = '';
-    my $tier1_attempts     = [];
-
-    if ( !$inference_ok ) {
-        ## the initial call never produced an answer - there is nothing for ##
-        ## evaluate to reformat or judge. calling it anyway [ prior         ##
-        ## behaviour ] ran tier1 reformat against an EMPTY prior_answer,    ##
-        ## which could still get a lucky standalone answer back and report  ##
-        ## PASS for a prompt that never actually got a real reply -         ##
-        ## confirmed live: "tier1 reformat PASS :  -> cat" straight off an  ##
-        ## http_500. hard fail here instead, skip evaluate entirely         ##
-        $passed = FALSE;
-        $tier1_reason
-            = 'inference_failed: ' . ( $result->{'data'} // 'no reply' );
-        <[base.logs]>->(
-            1, "[self_test] prompt %d : model %s : FAIL [ no answer : %s ]",
-            $prompt_id, $model_id, $tier1_reason
-        );
-        if ( length $server_tail ) {
-            <[base.logs]>->(
-                1,
-                "[self_test] prompt %d : model %s : "
-                    . "server output at failure time :\n%s",
-                $prompt_id,
-                $model_id,
-                $server_tail
-            );
-        }
-    } else {
-        my $eval = <[coding.self_test.evaluate]>->(
-            {   model_id   => $model_id,
-                prompt     => $prompt_text,
-                answer     => $answer,
-                expected   => $expected,
-                constraint => $prompt_def->{'result_constraint'},
-                backend    => $backend,
-                timeout    => $timeout,
-            }
-        );
-
-        if ( $eval && $eval->{'mode'} eq qw| true | ) {
-            $passed             = TRUE;
-            $tier               = $eval->{'tier'}               // 'literal';
-            $reformatted_answer = $eval->{'reformatted_answer'} // '';
-            $structural_reason  = $eval->{'structural_reason'}  // '';
-            $tier1_attempts     = $eval->{'tier1_attempts'}     // [];
-            $pass_count++;
-            <[base.logs]>->(
-                1,
-                '[self_test] prompt %d : model %s : PASS [ %s ttft=%.2fs ]',
-                $prompt_id, $model_id, $tier, $ttft
-            );
-        } else {
-            $passed             = FALSE;
-            $needs_tier2        = $eval->{'needs_tier2'}        // FALSE;
-            $reformatted_answer = $eval->{'reformatted_answer'} // '';
-            $structural_reason  = $eval->{'structural_reason'}  // '';
-            $tier1_reason       = $eval->{'tier1_reason'}       // '';
-            $tier1_attempts     = $eval->{'tier1_attempts'}     // [];
-            if ( !length $server_tail ) {
-                $server_tail = $eval->{'server_tail'} // '';
-                $server_tail
-                    = <[base.parser.ellipse_center]>->( $server_tail, 800 )
-                    if length $server_tail;
-            }
-            ## anomaly text [ follow_up explanation ] is now produced later ##
-            ## by the tier-2 disposition path on a NO verdict - not here    ##
-            $anomaly = '';
-            <[base.logs]>->(
-                1,
-                "[self_test] prompt %d : model %s : "
-                    . "FAIL [ got '%s' expected '%s' tier1=%s ]",
-                $prompt_id,
-                $model_id,
-                $answer,
-                $expected,
-                $tier1_reason || 'n/a'
-            );
-            if ( length $server_tail ) {
-                <[base.logs]>->(
-                    1,
-                    "[self_test] prompt %d : model %s : "
-                        . "server output at failure time :\n%s",
-                    $prompt_id,
-                    $model_id,
-                    $server_tail
-                );
-            }
-        }
-    }
-
-    $all_passed = FALSE if !$passed;
-
-    my $result_record = {
-        prompt_id          => $prompt_id,
-        prompt             => $prompt_text,
-        answer             => $answer,
-        reasoning          => $reasoning,
-        finish_reason      => $finish_reason,
-        server_tail        => $server_tail,
-        expected           => $expected,
-        constraint         => $prompt_def->{'result_constraint'},
-        ttft               => $ttft,
-        total              => $total,
-        passed             => $passed,
-        needs_tier2        => $needs_tier2,
-        tier               => $tier,
-        reformatted_answer => $reformatted_answer,
-        structural_reason  => $structural_reason,
-        tier1_reason       => $tier1_reason,
-        tier1_attempts     => $tier1_attempts,
-        timestamp          => <[base.time]>->(3),
-    };
-
-    push @results, $result_record;
-
-    <[coding.self_test.archive]>->(
-        {   epoch    => $epoch,
-            model_id => $model_id,
-            result   => $result_record,
-            anomaly  => $anomaly,
-        }
-    );
-
-    <[coding.self_test.multiplier]>->(
-        {   model_id => $model_id,
-            ttft     => $ttft,
-        }
-    ) if $ttft > 0;
-}
-
-<[base.logs]>->(
-    1, '[self_test] complete : model %s : %d/%d passed',
-    $model_id, $pass_count, $test_count
 );
 
-my $summary = {
-    model_id   => $model_id,
-    epoch      => $epoch,
-    pass_count => $pass_count,
-    total      => $test_count,
-    all_passed => $all_passed,
-    results    => \@results,
-};
+return { mode => qw| deferred | };
 
-return {
-    mode => $all_passed ? qw| true | : qw| false |,
-    data => $summary,
-};
-
-#,,.,,,,.,,,.,,,,,.,.,.,.,,.,,,,,,.,,,...,,,.,..,,...,..,,,..,,,.,,.,,..,,,..,
-#N3LLXL4NPSHYY3DF563OC24F2Z5ZAZGX6MDGNI2SR3EI2AM35Z5YANOGFVMXHARCJG7B4UISZNAPI
-#\\\|TJN6BH6RL2GQU7H5I3SU633FLUKPCZFQ52RXGUPAWEGPEYVPLN4 \ / AMOS7 \ YOURUM ::
-#\[7]CK7BTG7Y5OL57VOMT4XBFFHPKEOYNXNKNL7ZXHUUKCWNT2U5I2CA 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,,.,,,,.,.,.,,.,,,,.,,,.,.,.,.,.,..,,...,..,,...,,,.,.,,,.,.,,,,,
+#GUJXDKJKFCKMQFFXV5LCVITTUJZ7K4T5LYOVVFX2SJP3JOT2ZY6CCXJSU76ZP3AG4VC7NMMDW2N7Y
+#\\\|GX37W5TWGTCNAQ6MY3XEWLQEMSWSDQR3QWPJCFMQF7VCZ266UUM \ / AMOS7 \ YOURUM ::
+#\[7]3BJHJUQ6RW2QBHAE7TA2PPSMW2266YMG5JZOG6JVSEUVSTSSKMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

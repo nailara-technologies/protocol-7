@@ -146,6 +146,34 @@ my $apply_pending_tier2 = sub {
     return $result;
 };
 
+## helper: initiate the unconditional restore to the original model, then  ##
+## flip to the restoring phase [ shared by the switching-success callback, ##
+## the switching-failure path and the testing-timeout path ]               ##
+my $start_restore = sub {
+    <[base.logs]>->(
+        1,             '[poll_switch] restore initiated : %s -> %s',
+        $target_model, $original_model
+    );
+    eval {
+        <[coding.cmd.switch-model]>->( { args => $original_model } );
+        1;
+    } or do {
+        my $err = $@ || 'unknown error';
+        <[base.logs]>->(
+            0, '[self_test] restore switch-model call failed : %s', $err
+        );
+    };
+
+    ## restoring waits for a NEW pid than the one serving right now ##
+    my $live_gpu_pid = ( <coding.inference_servers> // {} )->{'gpu'}{'pid'}
+        // 0;
+    $state->{'phase'}        = qw| restoring |;
+    $state->{'started'}      = <[base.time]>->(3);
+    $state->{'target_model'} = $original_model;     ## now we wait for this ##
+    $state->{'prior_pid'}    = $live_gpu_pid;
+    return;
+};
+
 if ( $phase eq qw| switching | ) {
     ## pid_changed + ready is the load-bearing check. model_id is logged  ##
     ## for visibility only, not AND'd in - it shares one generic global   ##
@@ -163,40 +191,50 @@ if ( $phase eq qw| switching | ) {
             $target_model, $gpu_pid
         );
 
-        ## run calibration against the target model ##
-        my $result;
-        eval {
-            $result
-                = <[coding.self_test.run]>->( { model_id => $target_model } );
-            1;
-        } or do {
-            my $err = $@ || 'unknown error';
-            <[base.logs]>->(
-                0, '[self_test] self-test run errored : %s', $err
-            );
-        };
-        $state->{'result'} = $result;
+        ## run calibration against the target model : ASYNC [ 2026-07-31  ##
+        ## transport rewrite ] - self_test.run returns immediately and    ##
+        ## delivers its result to this continuation from the probe state  ##
+        ## machine's 'done' phase ; the switch state machine waits in the ##
+        ## new 'testing' phase below instead of blocking                  ##
+        my $run_started = <[coding.self_test.run]>->(
+            {   model_id => $target_model,
+                on_done  => sub {
+                    my ($result) = @ARG;
 
-        ## begin unconditional restore to original model ##
-        <[base.logs]>->(
-            1,             '[poll_switch] restore initiated : %s -> %s',
-            $target_model, $original_model
+                    ## the switch state may be gone [ testing-timeout     ##
+                    ## fallback already moved on ] - only act while still ##
+                    ## in the testing phase                               ##
+                    my $st = $data{'coding'}{'self_test_switch_state'}
+                        {$switch_id};
+                    return
+                        if !defined $st
+                        or ( $st->{'phase'} // '' ) ne qw| testing |;
+
+                    $st->{'result'} = $result;
+                    $start_restore->();
+                    return;
+                },
+            }
         );
-        eval {
-            <[coding.cmd.switch-model]>->( { args => $original_model } );
-            1;
-        } or do {
-            my $err = $@ || 'unknown error';
-            <[base.logs]>->(
-                0, '[self_test] restore switch-model call failed : %s', $err
-            );
-        };
 
-        $state->{'phase'}        = qw| restoring |;
-        $state->{'started'}      = $now;
-        $state->{'target_model'} = $original_model; ## now we wait for this ##
-        $state->{'prior_pid'}
-            = $gpu_pid;    ## restoring waits for a NEW pid than this ##
+        if ( !ref $run_started
+            or $run_started->{'mode'} ne qw| deferred | ) {
+            ## the run refused to start [ eg another self-test already in ##
+            ## flight ] : do not hang the switch waiting for a callback   ##
+            ## that never comes - restore with an error                   ##
+            $state->{'error'} = sprintf 'self-test did not start: %s',
+                ( ref $run_started ? $run_started->{'data'} : undef )
+                // 'no reply';
+            <[base.logs]>->(
+                0,             '[poll_switch] %s : %s',
+                $target_model, $state->{'error'}
+            );
+            $start_restore->();
+            return TRUE;
+        }
+
+        $state->{'phase'}   = qw| testing |;
+        $state->{'started'} = $now;          ## testing gets its own window ##
         return TRUE;
     }
 
@@ -210,25 +248,7 @@ if ( $phase eq qw| switching | ) {
         $state->{'error'} = sprintf 'switch failed: %s', $reason;
 
         ## still attempt restore so we do not leave the wrong model loaded ##
-        <[base.logs]>->(
-            1,             '[poll_switch] restore initiated : %s -> %s',
-            $target_model, $original_model
-        );
-        eval {
-            <[coding.cmd.switch-model]>->( { args => $original_model } );
-            1;
-        } or do {
-            my $err = $@ || 'unknown error';
-            <[base.logs]>->(
-                0, '[self_test] restore switch-model call failed : %s', $err
-            );
-        };
-
-        $state->{'phase'}        = qw| restoring |;
-        $state->{'started'}      = $now;
-        $state->{'target_model'} = $original_model;
-        $state->{'prior_pid'}
-            = $gpu_pid;    ## restoring waits for a NEW pid than this ##
+        $start_restore->();
         return TRUE;
     }
 
@@ -237,6 +257,35 @@ if ( $phase eq qw| switching | ) {
         2, '[poll_switch] switching : waiting for %s [gpu=%s model=%s]',
         $target_model, $gpu_status, $gpu_model
     ) if int($elapsed) % 5 == 0;
+
+    return TRUE;
+}
+
+if ( $phase eq qw| testing | ) {
+    ## the async self-test probe is running against the target model ; its  ##
+    ## on_done [ switching phase above ] stores the result and initiates    ##
+    ## the restore. guard with the same max_wait semantics as the other     ##
+    ## phases : a probe that never calls back must not hang the switch      ##
+    ## state machine forever holding  <coding.self_test_switch_in_progress> ##
+    ## TRUE                                                                 ##
+    if ($timed_out) {
+        <[base.logs]>->(
+            0,
+            '[poll_switch] testing : self-test probe never '
+                . 'completed within %ds for %s : falling through to restore',
+            $max_wait,
+            $target_model
+        );
+        $state->{'error'} = sprintf 'self-test probe timeout after %ds',
+            $max_wait;
+        $start_restore->();
+        return TRUE;
+    }
+
+    <[base.logs]>->(
+        2, '[poll_switch] testing : waiting for self-test probe on %s [%ds]',
+        $test_model, int($elapsed)
+    ) if int($elapsed) % 10 == 0;
 
     return TRUE;
 }
@@ -328,8 +377,8 @@ return $finish->(
     }
 );
 
-#,,.,,,..,,,,,,,.,..,,,,.,,.,,...,,.,,,.,,,..,..,,...,...,,,.,.,.,,,.,,,,,,,,,
-#C767GW5YFYU5BJFPW53QZUDMFLKJ56SIFTFW25OL3Y7SOALO54TIGU7A3HIUJLXEP53XOUZP6HCBO
-#\\\|V4CIZ7LCLKDC6XPWWKMFA2TMRLMCWQB7T4V5R6XFOAZPC7SC76O \ / AMOS7 \ YOURUM ::
-#\[7]6WVGMIB5FVZRGMJJFTVIM2EA4VOYNA6MY5O57GJHI56XCDIQLQBI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,.,.,,,.,,.,,,.,,..,,,,.,,.,,..,,..,,...,...,...,,,.,,.,,,..,...,
+#P7MZ7X3TR6FLWRM55XZ3H5JOTTXZ5MCKYYTZVUHYQGH5EKG5YKHL7JNTL2ZBAJDZTV52XBMGU53NC
+#\\\|BVGWBOMRVUEA2S7TOORVV3TK6P2VYWNZYARHODZGIX4JFZUFL33 \ / AMOS7 \ YOURUM ::
+#\[7]GVJRS5HD4QY4EVMEZVDWER4IBH4DFB4NZT2X7T54H43M6MEPPICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

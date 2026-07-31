@@ -26,6 +26,43 @@ if ( $is_ready && $pid > 0 && kill 0, $pid ) {
     if ( ( $server_info->{'verify_confirmed_pid'} // 0 ) == $pid ) {
         return TRUE;
     }
+
+    ## don't declare the server fully verified / resume the task queue      ##
+    ## while self-test is still probing it - confirmed live 2026-07-31 :    ##
+    ## this fallback timer runs independently of self-test's own state      ##
+    ## machine and used to unconditionally resume the queue the instant the ##
+    ## server merely responded, letting real tasks dispatch before the      ##
+    ## reasoning-sanity check (prompt 2) had even concluded. bounded defer  ##
+    ## [ 2s x 60 = 120s ceiling, matching defer_seed_restart's ceiling ] :  ##
+    ## fails open rather than stalling forever if self-test's own watchdog  ##
+    ## somehow never clears the flag                                        ##
+    if (<coding.self_test_probe_in_flight>) {
+        my $defer_count = ( $server_info->{'queue_resume_defer_count'} // 0 );
+        if ( $defer_count < 60 ) {
+            $server_info->{'queue_resume_defer_count'} = $defer_count + 1;
+            <[base.logs]>->(
+                2,
+                '[verify_inference_startup] %s server ready [pid=%d] but '
+                    . 'self-test still in flight : deferring queue resume',
+                $backend,
+                $pid
+            );
+            <[event.add_timer]>->(
+                {   'after'   => 2.0,
+                    'handler' => 'coding.handler.verify_inference_startup',
+                    'params'  => { 'backend' => $backend }
+                }
+            );
+            return FALSE;
+        }
+        <[base.logs]>->(
+            0,
+            '[verify_inference_startup] %s server : self-test still in '
+                . 'flight after 120s defer ceiling - resuming queue anyway',
+            $backend
+        );
+    }
+    delete $server_info->{'queue_resume_defer_count'};
     $server_info->{'verify_confirmed_pid'} = $pid;
 
     <[base.logs]>->(
@@ -74,8 +111,8 @@ if ( $restart_count >= 5 ) {
 
 return FALSE;
 
-#,,.,,...,,..,,,,,..,,,,.,,..,..,,,..,,.,,.,,,..,,...,...,,.,,..,,.,.,,,.,..,,
-#BKH4RCK3SNUA7MHCRDS5OAKG4UL2Y6K7UL2F43T2HAWDRL7T57G4Q6272HU4AHQPSRRCQI572KGVW
-#\\\|HRIGDFMUGYO2GZIGTDGX4NSFF2INIGXOMTDLJSGZIGYQVBTV4JW \ / AMOS7 \ YOURUM ::
-#\[7]BKWMVDC5RYRDJUGUMONSD223YLPOYQVCRK6PGTKLFM3IBOVTAMCY 7  DATA SIGNATURE ::
+#,,..,...,...,,..,,.,,,.,,,.,,.,,,,,.,..,,.,,,..,,...,...,...,.,.,,.,,.,.,,.,,
+#OGMTJ6ELQ3XHQAVFFXULCFCSITI5VZCRUJBWTNBVIJB4JHMJNZNWBOA6JHHOPCNY6N3LT5GHSWIJ6
+#\\\|XQJSXOWUMV75NIVFUGWRPRASI7B5IRMIIDSC35AVGPRS6WXWRCR \ / AMOS7 \ YOURUM ::
+#\[7]MKAOWJMWVC7JVVFP27L4YRKLLRUWYW4QIJ7N5XYJGMPOF73XY6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
