@@ -120,14 +120,41 @@ unified delivery rate curve driven by buffer fill level — one curve, no state 
   → mpv[audio-0].set-speed calls
 - mpv cache thresholds tuned against curve's target fill level (not arbitrary values)
 
-### phase 4 (mpv twin crossfade) — pending
+### phase 4 (mpv twin crossfade) — still pending, confirmed not done (2026-08-01)
 
-use mpv[audio-1] for crossfade on jingle/track transitions. task file:
-`data/yaml/coding-tasks/radio-phase4-mpv-audio-background.yaml` (already complete)
-dispatcher: kimi task `L45OX7I` (verify status first).
+use mpv[audio-1] for crossfade on jingle/track transitions. Re-checked
+2026-08-01 (user recalled possibly missing it — checked, they hadn't):
+only "step 1" of `data/yaml/coding-tasks/radio-phase4-mpv-audio-background.
+yaml` ever landed — `mpv.open_player`'s subname regex already accepts
+`audio-0`/`audio-1` (confirmed live in code). The actual twin-instance
+orchestration and crossfade logic was never written: no `radio.*` module
+references `audio-1` anywhere, only `audio-0`. The task file itself
+explicitly scoped this out at authoring time ("audio-1 is not used in
+this phase (reserved for crossfade in a later extension)") — that later
+extension never happened. Dispatcher `L45OX7I` status unverified/unknown.
 
-#,,,,,.,,,.,.,.,.,,,.,.,.,,,.,,,,,,,.,,,,,,..,..,,...,...,.,,,...,,..,.,,,..,,
-#IBPGCBFQDE65C5FK4ZUH6YVEXD6ISSDE7U3CRSMFGRLFWE77RNXE2JGJY4YXX6OAGURVWKQHGVLKO
-#\\\|5OO4DW4BJGZQPVC65XDRJQ4TZIFIHGWFNDM2IVD7J2ZOSLOZ3CU \ / AMOS7 \ YOURUM ::
-#\[7]J3OXOP3A6HT2YK5NIWEZFTLPY4TDTGCZV3IOOEBJZHCYBYWH5UDY 7  DATA SIGNATURE ::
+### shutdown fade + endpoint dedup fixes (2026-08-01, `bac000eef`)
+
+`radio.handler.sig_term` (overrides the generic `base.sig_term` watcher,
+mirroring `tile.init_code`'s precedent) now fades `mpv[audio-0]` to
+silence on both restart and stop, before chaining to `base.sig_term`'s
+normal teardown+exit(0) — live-verified smooth in both cases, no more
+abrupt cutoff. First attempt (`radio.end_code`, a plain `<callbacks.
+end_code>` callback) segfaulted — see [[feedback-zenka-shutdown-end-code-callback]]
+for why that mechanism can't safely pump the event loop. Also fixed:
+`plugin.httpd.radio.cmd.radio_online` was re-subscribing to
+`v7.notify_offline` on every call with no guard, so repeated restarts
+during testing left multiple stale subscriptions that all fired at once
+on the next real shutdown (observed as 3 duplicate "endpoint disabled"
+log lines) — now guarded to only subscribe once per active period.
+
+This shutdown-fade work is a natural stepping stone toward the phase 4
+crossfade above — the fade primitive it reuses (`$instance.fade` via
+`protocol-7.route-send`) is exactly what twin-instance crossfading would
+need for both instances, just not yet orchestrated between two of them.
+
+#,,,.,,,.,.,,,,,.,..,,,,,,,,,,,,.,,.,,,,.,...,..,,...,...,,..,,,,,,,,,..,,,,.,
+#KLYRU5CVD4WEIT26AQXOKLMIEFZ7DPBTTEUWWBS6IOO6RZ6SOOMYOONTLOH3KZ4MCXSI6DA6WLD4G
+#\\\|POSPLE7GVFYFD7GXVNTLWCHTD5OBBPX56FW22KPKJTOOZYGJFYJ \ / AMOS7 \ YOURUM ::
+#\[7]R3UZ7UNKVLDR6TWKONWU5226FYWLIFQIAGREWVWDQI3BMXWEHKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

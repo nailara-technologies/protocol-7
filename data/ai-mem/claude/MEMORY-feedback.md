@@ -6,6 +6,7 @@ coding-zenka reasoning/edits/inject pitfalls, ncode tooling, perltidy self-heal,
 memory-management timing, git-log false-duplication, webkit-vs-firefox css blindspots.
 
 ## Feedback
+- [zenka-shutdown-end-code-callback](feedback-zenka-shutdown-end-code-callback.md) — `<callbacks.end_code>` is safe for local cleanup ONLY; anything needing the event loop (network sends) must override base.sig_term/sig_int via event.add_signal instead — confirmed via a real segfault (radio.end_code pumping Event::loop from an END{} block)
 - [git-log-before-disk-read](feedback-git-log-before-disk-read.md) — for staleness/"is this done yet" checks, `git log --grep`/`-- <path>` is the first move (cheaper, less context), fall through to reading files only if git log comes up empty
 - [console-command-warning-policy](feedback-console-command-warning-policy.md) — console-facing commands must catch/collect subroutine warns and report one specific reason, never let raw warn() noise stream to the user; check for redundant-rediscovery too (memoize), not just add a quiet flag over correct-but-noisy repetition
 - [combined-grep-conflated-caller-counts](feedback-combined-grep-conflated-caller-counts.md) — grep -rln 'A|B' reports files matching EITHER pattern; reported an inflated 23-caller blast radius (actually 2) in a dispatch prompt because I combined two function names' greps; kimi's own verification caught it, not me
@@ -62,8 +63,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [perlmod-categorization-review-catches](feedback-perlmod-categorization-review-catches.md) — kimi dispatch review caught 6 templated/vague-reasoning misclassifications; caller-count grep meaningless for .cmd./.handler. (dynamic cube routing) and can false-positive on nested-namespace names; K3 re-verification of all 59 MOVE rows in flight, check results before trusting
 - [inline-elf-perl-version-infinite-loop](bug-inline-elf-perl-version-infinite-loop.md) — FULLY RESOLVED, both atom+pri clean-start verified: dangling-if in inline_elf's UTF-8 decode (Perl 5.42.2 only) unpacked into 5 total independent bugs chasing one boot end-to-end (ptd P7-macro false-positives, deps profile gaps, httpsd/web skins ownership race, stale web.cmd.skin path); one symptom ≠ one bug, don't stop at the first plausible fix
 
-#,,,,,.,,,...,,.,,..,,,..,,,,,.,,,...,.,,,...,..,,...,..,,..,,,,.,...,.,.,.,.,
-#DEBBQDCQC42HXDAJ7NKXDXFJ6LKYUMQSX3I3Q42NMS7GWZ75RRAQVCM7GVVBCUJ2E6HYPU56G7UAI
-#\\\|R3CIRQ7YFWTSJGOXY7X7U7DJEM4KXT3KHGMNYWUSJ7TFFGD5J5K \ / AMOS7 \ YOURUM ::
-#\[7]GVMZV6A2EUJ7JLOTW4IT7GJMICMNMJZ35SZTMEU3676IYQKEKSAY 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,,.,...,,.,,,,,,.,,,,,,,...,..,,..,,...,.,.,,..,,.,,.,,,,.,,,.,,
+#26CXEZUNIA4WXNCO2JHE6L2BUEARVZYD63EGUADGXSF6SFUBKKJ4AISLAAGY6FALOR4KSOYHHNMCQ
+#\\\|OPR7LD7G7IG2J4CZRWC62YXKOD65OVYZSPC7YFCQS77SVYYGW54 \ / AMOS7 \ YOURUM ::
+#\[7]AMH64WGT2SZJ3SKA346MW6WBPOWCS7FTKRH2E3XHKL3ANFFXJ4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
