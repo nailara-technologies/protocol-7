@@ -20,10 +20,15 @@ scratch in a future session.
   live breakage point: `openvas.cmd.report-to-forensics` was
   constructing the broken dotted command string for actual cross-zenka
   dispatch. See [[bug-forensics-dotted-command-names]].
-- [ ] `bin/format-code`'s `step4_align_comment_block` under-pads the
-  closing `##` by 1-2 chars on some multi-line box comments — confirmed
-  reproducible by re-running the tool directly, cosmetic only. See
-  [[topic-format-code-bugs-fixed]] "open bug found 2026-07-31".
+- [x] `bin/format-code` **FIXED 2026-07-31** — 2 distinct root causes
+  (not a padding-math bug): `code_marker_re` false-triggered on prose
+  (`$var [` with a space, tightened to require immediate adjacency),
+  and the atomic bracket-remark protection wrongly truncated a
+  multi-line block's extension scan (`$as_continuation` flag added).
+  K3 dispatch (`k3qbv0g17`, `kimi-code/k3-256k`), 53-file regression
+  sweep byte-identical, independently re-verified on both real
+  motivating files + dereference-detection regression check. See
+  [[topic-format-code-bugs-fixed]] "open bug, root-caused 2026-07-31".
 - [ ] `bin/dev/dep-graph` doesn't understand the conditional-call pattern
   (post [[project-depgraph-conditional-calls-blindspot]] `c3870ebe5`)
 - [ ] `base.cmd.reload` still misses `modules.preload`/literal
@@ -113,8 +118,8 @@ scratch in a future session.
   `elf_mode` consumer and threads it correctly through to
   `base.chk-sum.elf.inline` — not the same bug. No second instance found.
 
-#,,..,,.,,..,,,,.,.,.,..,,...,..,,.,.,.,,,..,,.,.,...,...,.,,,.,,,.,,,,,.,.,.,
-#O7GL6UQ33PZCOE5QFZPXPDTC5AK6PXRAVHIEDZPJD42FCPEVKBB7UZMRRPKEJRIRCIR36S5CNIFQO
-#\\\|62U3WPNTBNXI2ZSSDQBOOLKYFYW4JP2PK6HQ3H4Z4GP44V2PTHZ \ / AMOS7 \ YOURUM ::
-#\[7]UDDBEP25DXLUDYOWUJTSOJPI2PHSR7QJHOGABKFPZ5F53CXO5ACA 7  DATA SIGNATURE ::
+#,,,,,..,,..,,..,,...,.,,,,,.,,.,,..,,...,.,.,.,.,...,...,...,.,.,..,,,,,,.,.,
+#F3UEPNEEL3R3KGNMTXSEPVFUA6A6M6AYPOWQV4X3VWJOIIK27KHQQQAHGAOS53W7UBRSXRC73WUTS
+#\\\|7AHBMOUSAJQEWD4IIMVRHNFOQYBFMYFM6OS4SPENACXQJVWCE7W \ / AMOS7 \ YOURUM ::
+#\[7]CC665APODXAVRTNYN7FB3JMBFBTX46KAP4AQFYCX2ICUHPU6FSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
