@@ -76,8 +76,21 @@ skips the write entirely when the collected state is empty.
 Layers 3-5 (curve automation, cross-mapped routing, active-curve-state
 in snapshot) remain open — see [[topic-next-steps]] "open — mpv".
 
-#,,..,,,,,.,.,.,,,,..,,.,,,.,,,,,,..,,...,..,,..,,...,..,,,.,,.,.,.,.,,,,,,,,,
-#FTYO7KZHW2BK5CF5FZ7BD3YX6ACT3XGVVY7N3TRSLQYSHAG36ME5PVBYHP6AUDZ542N2BSZ2FQLJE
-#\\\|KSCBH6DDH6SB5LUVPCWWIJQFPH45OLG2XI5YL6SX66NWQKUQPJK \ / AMOS7 \ YOURUM ::
-#\[7]MGMLYUHM2KC4LOEAC5BPIY4QPW5EZSWJIDDZCKQNXTYXYH5M7GAY 7  DATA SIGNATURE ::
+## restore-seek non-seekable guard (2026-08-01, `bac000eef`)
+
+live testing surfaced a real gap: restoring a saved position against a
+live/network stream (radio's `http://127.0.0.1/radio/stream`) tried to
+seek to a meaningless timestamp. Fixed by observing mpv's own `seekable`
+and `partially-seekable` properties (same property-cache mechanism as
+the rest of this feature) and gating `mpv.snapshot.apply_pending`'s
+restore seek on both: `seekable` must be true AND `partially-seekable`
+must be false, since restore does a large absolute seek — exactly the
+case mpv's own docs say "may fail anyway" for cache-only (partial)
+seekability. Undefined (property never observed yet) is treated as
+not-seekable, the safe default.
+
+#,,,,,.,,,...,.,,,.,.,,,,,,.,,,.,,..,,,..,...,..,,...,...,.,.,,,.,.,,,,,.,.,.,
+#5BFZ66MKFKJ3EXMGG74Y6HDYUUD4EBGSLSY6U34OONBFNNGLIXASF5ROCKR63NHCCTNT4NBYIWA2E
+#\\\|3TXCPVBSI5HFVUFNP7T6VIMMCYUIN2SMXXKFYAUH4FAURTDYFXC \ / AMOS7 \ YOURUM ::
+#\[7]Z3JL267ZJVDRMVANGDYSF4WVQSYR6P6M735YYY3QT6CP5AHROIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
