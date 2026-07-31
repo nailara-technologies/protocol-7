@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: 56cce73a-933a-4992-96e4-4d88e138e8f6
-  modified: 2026-07-29T01:43:23.992Z
+  modified: 2026-07-31T00:00:00.000Z
 ---
 
 ## done (2026-07-24, continued — ncode write path)
@@ -186,10 +186,15 @@ metadata:
 
 ## open — mpv
 
-- **sign all mpv session modules** — mpv.send_command, mpv.job.deferred_send_command,
-  mpv.startup.job.fork_player, mpv.startup.job.finalize, mpv.callback.object.mpv_flag,
+- ~~sign all mpv session modules~~ **moot** — `bin/dev/git-hooks/pre-commit`
+  enforces signature integrity on every commit, so any tracked module is
+  signed by construction; confirmed all 10 listed modules (mpv.send_command,
+  mpv.job.deferred_send_command, mpv.startup.job.fork_player,
+  mpv.startup.job.finalize, mpv.callback.object.mpv_flag,
   mpv.open_control_socket, mpv.open_player, mpv.startup.handler.socket_poll,
-  mpv.startup.init, mpv.init_code + configs
+  mpv.startup.init, mpv.init_code) carry a signature footer on disk. no
+  further per-module "sign X" tracking needed anywhere in this file going
+  forward.
 - **mpv state snapshot/restore** — full property map + curve phase; restore via
   deferred send_command queue on restart [[topic-mpv-persistence]]
 - **visual curve automation** — extend base.curve.* to brightness/contrast/gamma/
@@ -293,19 +298,25 @@ metadata:
   investigated, NOT a bug: `ui-show` access is currently scoped same as
   before (credential_fabric-only in `cube/access.zenki`'s `usr.*` block).
 
-## OPEN: ui-show generic access — blocked on security-level design
+## ui-show generic access — DONE (verified 2026-07-31)
 
-opening `*.ui-show` to `access.cmd.usr.*` (the obvious next step) was
-considered and explicitly deferred: `ui.unfold`/`ui.render.fallback`
-currently render raw `%data` tree contents with no filtering, so a
-generic grant would leak any zenka's internal state to any caller.
-design doc written: `data/md/design/UI-SHOW-SECURITY-LEVELS.md` —
-security-level field maps (level 0 = pid/paths/stats/idle/source-age,
-always safe), caller level via existing admin-group resolution
-(`<admin-user>`/`<AMOS-user>` already grant `taeki` `..*.** **`), future
-key-based level auth. implementation queue is in the doc; not yet split
-into task files. DO NOT add `*.ui-show` to `cube/access.zenki` until
-step (1)-(3) of that queue (level-0 field map + filtering) lands.
+was previously blocked pending security-level design (see history below,
+kept for context). now landed: `*.ui-show` is granted generically in
+`configuration/zenki/cube/access.zenki`, gated by
+`modules/ui.caller.security-level` (per-group level resolution +
+`ui.unfold`'s `$caller_level` filtering). task file archived as
+`data/tasks/completed/ui-caller-security-level.md`; related fallback
+work in `data/tasks/completed/console-fold-primitive-ui-show-fallback.md`.
+steps 5-6 from [[topic-ui-show-security-levels]] (per-zenka level-1+
+fields, key-based auth) not re-verified — check that doc if picking this
+back up.
+
+original deferral note, kept for why it was blocked: opening
+`*.ui-show` to `access.cmd.usr.*` was considered and explicitly deferred
+because `ui.unfold`/`ui.render.fallback` rendered raw `%data` tree
+contents with no filtering, so a generic grant would have leaked any
+zenka's internal state to any caller. design doc:
+`data/md/design/UI-SHOW-SECURITY-LEVELS.md`.
 
 note: the literal `harmony <module>` checks in task files don't map to
 the real `/usr/local/bin/harmony` binary (an unrelated AMOS7
@@ -429,20 +440,42 @@ what it should actually invoke.
 
 ## jobs pipeline open items
 
-- profile.txt: /var/protocol-7/jobs/profile.txt — CV/skills for LLM scoring
-- multi-page search: stepstone 25/page; cfg.max_pages per category
-- orphan re-queue: re-create tasks stuck in 'assessing' after restart
-- note_read pagination (offset/limit on sections)
+- ~~profile.txt: CV/skills for LLM scoring~~ **DONE** — lives at
+  `/etc/protocol-7/jobsite/profile.txt` (not `/var/...` as the old note
+  said), wired via `jobsite.cfg.profile_file` in
+  `configuration/zenki/jobsite/start` and read by
+  `jobsite.util.build_prompt`/`jobsite.dispatch.assessments`/
+  `jobsite.sync.apply_reverse`
+- ~~multi-page search: stepstone 25/page; cfg.max_pages per category~~
+  **DONE** — `site-yaml.cmd.import` loops `1..$max_pages` (config
+  `site-yaml.import_max_pages`, default 4, clamped 1-5), with early-break
+  support; single-page `site-yaml.cmd.search` still exists separately for
+  the one-shot case
+- ~~orphan re-queue: re-create tasks stuck in 'assessing' after restart~~
+  **DONE** — `jobsite.state.load` resets `scanning`/`assessing` cycle to
+  idle on load (comment: "in-flight work ... that will never report back,
+  wedging cycle on 'assessing' forever"); `d0f8b3e5d` ("reload-safe startup
+  dispatch") separately fixed jobs stuck at `stage=queued` with no `task_id`
+  the same way.
+- note_read pagination (offset/limit on sections) — still open, no
+  offset/limit params in `coding.tools.handler.note_read` as of 2026-07-31
 - active deps execution (requires list in task dispatcher)
-- think-block stripping — `<think>...</think>` from Kimi/Deepseek leaks into output
-- task.cmd.start — task zenka step 3
+- ~~think-block stripping~~ **DONE** — `coding.async.chunk_handler` strips
+  `<think>...</think>` (and stray unopened `</think>`) from model output
+- ~~task.cmd.start~~ **DONE** — landed `e987e4cf9`/`f8aafc5ab`
+  ("feat: task.cmd.start, valued.cmd.query; ...")
 - model selection for assessment: `preferred_model` param on task.create needed
-- site-yaml 403 backoff: currently fixed at 10s; should scale with consecutive count
+  (still open — no matches found in `task.*`/`jobsite.*` as of 2026-07-31)
+- ~~site-yaml 403 backoff: currently fixed at 10s; should scale with
+  consecutive count~~ **DONE** — `site-yaml.fetch.backoff` implements
+  exponential backoff with jitter (1.5-2.0× multiplier), triggered from
+  `site-yaml.handler.fetch_tick` on 403/429/rate-limit detection
 - sync ?since=N browser delta ✓ DONE session 66 — server filters by last_modified, browser sends ?since=<B32ntime>; key bug: lastNtime > 0 fails when B32 string (NaN > 0 = false), fixed to truthy check
 - inline subroutine warning ✓ DONE session 66 — extracted to plugin.web.space.orbital.synthetic-zenka-node; double-load root cause fixed in base.cmd.reload
 - repair-jobsite-encoding: committed (1916318) but damages files (zeroes text fields); do not run again without investigation
-- bin/dev/merge-jobsite-from-backup: useful script, exists on disk, not yet committed
-- assessment re-run: 306 jobs status=new (294 reset from repair_failed + 12 new); coding zenka scan in progress
+- ~~bin/dev/merge-jobsite-from-backup: useful script, exists on disk, not
+  yet committed~~ **DONE** — tracked in git (landed with `21462beba`/
+  `4f7f61c55` "jobs delta sync + browser UI polish")
 
 ## shm pipeline (next major infra)
 
@@ -546,8 +579,10 @@ what it should actually invoke.
   was found+fixed 2026-07-24, see [[topic-fake-signature-footer-detection]])
 - signature oscillation Variant B — double-footer on never-signed non-empty files
 - ~~signature endline restoration~~ — FIXED session 48b: stale delta clamp + normalize recovery
-- repo var/ cleanup — var/httpd/ tracked from Nov 2025 AI error
-- kimi auto-approval regression (Apr 16) — some tool calls not auto-approved
+- repo var/ cleanup — var/httpd/ tracked from Nov 2025 AI error (still
+  tracked as of 2026-07-31 — `var/httpd/skins/`, `var/httpd/static/` — still open)
+- ~~kimi auto-approval regression (Apr 16)~~ **FIXED** — `783c14b31`
+  "kimi auto-approve always restored on reconnect+reload"
 
 ## open bugs (session 39 — letsencr)
 
@@ -558,15 +593,31 @@ what it should actually invoke.
 
 After a failed tool-using task, Glitter backend needs restart before `:no_tools:` tasks work. Model gets stuck in tool-mode. Restart coding zenka or wait before dispatching `:no_tools:` priming tasks.
 
-## queued (2026-07-29) — security task-tree: deferred domains + zenki
+## security task-tree: deferred domains + zenki — mostly landed since 2026-07-29
 
-security agent task tree (`data/tasks/openvas-agent.md`, `nessus-agent.md`,
+security agent task tree (`openvas-agent.md`, `nessus-agent.md`,
 `forensics-agent.md`, `forensic-report-pipeline.md`,
 `security-intel-embedding-domains.md`, `build-zenka.md`, `ext-pkg-zenka.md`)
-landed this session. openvas-agent phase 1 (zenka scaffold + `openvas.scan.run`
-backend wrapper, greenbone-container/gvm-tools control path) is implemented
-and file-verified but NOT yet boot-tested live. deliberately deferred, so
-they don't get silently dropped:
+was drafted 2026-07-29. **updated 2026-07-31 — phase 1 has since landed for
+five of the seven** (all archived to `data/tasks/completed/`):
+
+- **openvas-agent** — phase 1 DONE, live-verified (`2f11bc91c` region).
+- **nessus-agent** — phase 1 DONE, live-verified (`a47ac3659`), but hit a
+  hard license boundary: trial license has `scan_api:false`, REST scan
+  creation is UI-only-blocked — not a code defect. phase 2 (enrichment,
+  shared schema with openvas) not started and moot on this license.
+- **forensics-agent** — phase 1 scaffold + nightly-sweep DONE (`86424b80c`).
+- **build-zenka** — phase 1 DONE, live-verified (`e73bf2274`); phase 2
+  (patch drift detection) not started.
+- **ext-pkg-zenka** — phase 1 DONE, live-verified (`e9b437f6c`); phase 2
+  (unified coverage audit) not started.
+- a related cleanup landed alongside this arc: dotted-command-name routing
+  bug (`.cmd.` segment required for `$call` dispatch) found and fixed
+  across all 6 affected commands, incl. `ext-pkg`'s
+  `package.ensure`→`package-ensure` and forensics'
+  `sweep.run`/`investigate.finding`→hyphenated (`017d8c24b`, `be1e24add`).
+
+**still genuinely open, not started:**
 
 - **security-intel-embedding-domains task 1.1b** — cve (NIST NVD, large
   multi-decade archive), mitre ATT&CK, cwe, and nvt (reuses openvas's feed
@@ -575,27 +626,23 @@ they don't get silently dropped:
   domain) and phase 2 (unified loader, retrain triggers) also untouched.
   CVE/NVD size needs its own scoping pass before dispatch — do not assume
   the cisa-KEV size/tracking precedent extends to it.
-- **build-zenka.md and ext-pkg-zenka.md** — both fully drafted (git-build/
-  tarball-extract/vendor-deb/pip-venv recipe kinds; pip/npm/uv-tool
-  package-manager zenka for kimi-cli + claude) but neither dispatched at
-  all — greenfield, phase 1 not started.
+- **forensic-report-pipeline** — task file only; needs openvas+forensics
+  phase 1-2 (now both landed) before it can start, so this is now
+  unblocked and next in line, not just deferred.
 - **os-pkg zenka** — still a bare stub (`modules/os-pkg.init_code` is
   `0;`), referenced by build-zenka/ext-pkg-zenka as the apt/dpkg sibling;
   its own implementation was never scoped as a task file.
-- **forensics-agent, forensic-report-pipeline, nessus-agent** — task files
-  only, correctly self-gated (forensics needs the topic-10 research
-  extraction first; report-pipeline needs openvas+forensics phase 1-2;
-  nessus is explicitly after openvas) — not a gap, just not reached yet.
-- kimi_dispatch reliability note for next time: `auto_summarize`'s local-9B
-  summarization step can hang independently of kimi's own work completing
-  (kimi exits clean, coding-zenka queue shows real completion, but the MCP
-  tool reports "failed" after a 30min idle timeout waiting on the
-  summarizer) — pass `auto_summarize: false` for tasks like these, or
-  cross-check `p7_task_queue`/`coding.show-buffer model_output` before
-  assuming a reported failure means no work happened.
 
-#,,,,,,.,,.,,,.,.,,..,,.,,,..,,.,,,..,.,.,.,,,..,,...,...,...,,..,,,.,,..,,.,,
-#B2FJLPOEQA6SCY2W33PIOSU3ZHSINY22DJZCWZQT625UTCKQSWQSYF6DSZFFRTD24BPQ4DCQWK34Y
-#\\\|XEOEFVUUCCXSTM5HBUCGJQVIEXNSIT2LO6TFGZYWTUYTBCMPJVQ \ / AMOS7 \ YOURUM ::
-#\[7]CHIAW4ZZKH24OPQ62GYL2W532OOCDCKIWVX7C3ZWVYKMISH2KKBA 7  DATA SIGNATURE ::
+kimi_dispatch reliability note, still relevant: `auto_summarize`'s local-9B
+summarization step can hang independently of kimi's own work completing
+(kimi exits clean, coding-zenka queue shows real completion, but the MCP
+tool reports "failed" after a 30min idle timeout waiting on the
+summarizer) — pass `auto_summarize: false` for tasks like these, or
+cross-check `p7_task_queue`/`coding.show-buffer model_output` before
+assuming a reported failure means no work happened.
+
+#,,..,,..,...,,,,,,,,,.,.,,,.,,,,,.,,,,.,,,.,,..,,...,...,,.,,...,.,.,,.,,,,,,
+#BSK7DOVSQRQRCWSSEI7MU3FUL6SYFYYBINQYBGMRAKQTL4QJOONZVPGHPONUBF3SS5JNR76EOIHME
+#\\\|V7D7BRWZ6YDN4UYMHYYZP6I242IMMVTFK4UTNMHNZC5NU5PWUQS \ / AMOS7 \ YOURUM ::
+#\[7]X3DYOOVZWLSJ3RYEP2QJAMD2GDOKTFRRHNPUWMORGBFEYC2H6YAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
