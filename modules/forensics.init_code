@@ -14,7 +14,7 @@
 ##  p7-log.init_code precedent ] : file.make_path is only available during  ##
 ##  the init phase -- post-init the deferred-compile sources are cleaned    ##
 ##  and the sub resolves to undef [ verified live 2026-07-29 : probe via    ##
-##  forensics.cmd.sweep.run ]                                               ##
+##  forensics.cmd.sweep-run ]                                               ##
 
 my $var_p7    = <system.path.zenka-dirs.var_P7> // qw| /var/protocol-7 |;
 my $sweep_dir = <forensics.cfg.sweep_dir>       // sprintf qw| %s/%s/sweeps |,
@@ -26,10 +26,10 @@ if ( not -d $sweep_dir ) {
         or <[base.log]>->( 0, 'cannot create sweep dir [ %s ]', $sweep_dir );
 }
 
-##  investigation record dir [ consumed by forensics.investigate.finding, ##
-##  which documents it as "created at zenka init" ] -- the openvas        ##
-##  report-to-forensics handoff [ openvas phase 2 ] is the first real      ##
-##  producer routed into investigate.finding                               ##
+## investigation record dir [ consumed by forensics.investigate.finding, ##
+## which documents it as "created at zenka init" ] -- the openvas        ##
+## report-to-forensics handoff [ openvas phase 2 ] is the first real     ##
+## producer routed into investigate.finding                              ##
 
 my $investigate_dir = <forensics.cfg.investigate_dir>
     // sprintf qw| %s/%s/investigations |, $var_p7, <system.zenka.name>;
@@ -55,8 +55,8 @@ if ( not -d $investigate_dir ) {
 
 return 0;
 
-#,,,.,.,,,.,,,,,.,.,.,,.,,,..,.,.,..,,..,,.,,,..,,...,.,.,...,..,,...,..,,,,.,
-#E5IYZ2F2MVWDNVXQD5D7NO5HE3HCZWLVMMAYTPKLUAHCTZXHV2Z42HC6KJ3Z64RQVT6BCC56MOXV2
-#\\\|Y4PSU7XEGOL6Z4UWL27IM2VYSJEHBE5S6N2NODG4S727CDWK7K2 \ / AMOS7 \ YOURUM ::
-#\[7]RY7UPLLZN3GYHSH23WXDKJ4FZXX55IDYKS4KK6COO2TAGCL3NKCY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,,,,,,.,,..,..,,,,,,...,,,,,..,,..,,...,...,.,.,,..,,..,.,,,..,,
+#GOI32NDJ7NWAFBLFNYAG74R3DG4OQPVXWLKGHFV7TRL2P7BK5UV4QSID6HGUGZ3WJQUYH4QJF24AI
+#\\\|RN75WAF4AZRDLUI7CFLD7ZQN2NUS7KTHNT7277O2IDBXUMWWHMX \ / AMOS7 \ YOURUM ::
+#\[7]QJGLTK3WDVX3NF25LOWJD6NIHALOCDZT6UAIC5PGHW7ZBQ5O7YDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
