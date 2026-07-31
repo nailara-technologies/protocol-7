@@ -58,7 +58,7 @@ register here as a fourth manager.** rationale :
 
 ## status records
 
-every `package.ensure` run writes
+every `package-ensure` run writes
 `/var/protocol-7/ext-pkg/status/<name>.yaml` :
 
 ```yaml
@@ -76,12 +76,12 @@ this is the data the phase-2 coverage audit [ task 2.1 ] reads ..,
 ## usage
 
 ```bash
-p7c ext-pkg.package.ensure kimi-cli
-p7c ext-pkg.package.ensure claude
+p7c ext-pkg.package-ensure kimi-cli
+p7c ext-pkg.package-ensure claude
 ```
 
-module implementing this command : `modules/ext-pkg.cmd.package.ensure`
-[ auto-registered cmd_name : `package.ensure` , the `.cmd.` filename
+module implementing this command : `modules/ext-pkg.cmd.package-ensure`
+[ auto-registered cmd_name : `package-ensure` , the `.cmd.` filename
 segment is what the loader uses to derive it -- see CLAUDE.md module
 file format ]
 
@@ -95,8 +95,8 @@ file format ]
 - unsigned files : sign before commit with
   `bin/Protocol-7 sourcecode update-signatures <path>`
 
-#,,..,,,,,,.,,,,.,,,,,,..,.,.,...,,.,,,,,,...,..,,...,...,..,,,,,,,,,,...,.,,,
-#U4XWHOUSSD2FG47QDQNLCBFRALUCNQNQTJZ5AVRYBHVJIN2A2RKW5USLCMLYBJIZ7CV3CEV4WC2E4
-#\\\|B2U73GZXCOXWW56Q6YM4SLQTEW2FL4IVGSH5NPSBBUNCAUKAOK4 \ / AMOS7 \ YOURUM ::
-#\[7]MBPJKPN3NF5MHFCC5YDNEU25DB3X67KR3T3IP6WFMQMOQCR7AIBI 7  DATA SIGNATURE ::
+#,,,.,..,,..,,.,.,.,.,.,.,,.,,,,.,,,.,.,,,...,..,,...,...,.,,,,.,,.,.,,..,,.,,
+#3O75EOPJFOY2DTSYWZZSIOWBAHOD6GNJABJXDIZ5XODA7NDVTSFVFPSSPZSAUA2BGFEM6MFBS274Y
+#\\\|IDY772U6IO4FBQVX2CCSZHQIA3ZHEH5DPP7Z336TQPJH4T3GAX5 \ / AMOS7 \ YOURUM ::
+#\[7]AL6FOOQCUO446ZLHM4HJZEXNYSK6QH7L72KV2IZULQKBBKMZTECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
