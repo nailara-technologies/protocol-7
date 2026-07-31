@@ -5,6 +5,7 @@ coding & kimi zenka state machines, jobsite, streaming transport, web-browser ca
 reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active Topics
+- [coding-self-test-http500-and-hint-fixes-2026-07-31](topic-coding-self-test-http500-and-hint-fixes-2026-07-31.md) — cat-riddle self-test: fixed spurious-pass-on-failed-inference, restart-race dupes, riddle wording, server-tail diagnostic; OPEN: http_500 root cause (duration alone doesn't explain it — suspect stream:false vs the proven-stable async client's stream:true/stall-timeout design; async rewrite considered + rejected for now, advisor-consulted), `$content_already_correct` guard untested live, timeout=90s provisional
 - [kimi-k3-256k-model](reference-kimi-k3-256k-model.md) — configured but never used as of 2026-07-31; no short alias in mcp-server-p7 but usable today via full string `kimi-code/k3-256k`; default to it for well-scoped single/few-file dispatches
 - [2026-07-30-gap-audit](project-2026-07-30-gap-audit.md) — checklist of open items from the 07-24→07-30 completion cluster (known-fixes-needed, unverified, human-decision-blocked); update in place as items land instead of re-extracting
 - [auto-summarize-cost-investigation](project-auto-summarize-cost-investigation.md) — user hypothesis: dispatch auto_summarize is slow-not-broken on small context; needs profiling + lighter-model/last-round-only alternative; kimi zenka's unused last-message-only path has its own approval-disassociation bug
@@ -86,8 +87,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [scratchpad-import-tool](topic-scratchpad-import-tool.md), [scratchpad-rescue-coding-zenka-task](topic-scratchpad-rescue-coding-zenka-task.md) — mcp-server-p7 scratchpad tools tested; follow-up task filed w/ kimi K3 for native coding-zenka rescue tools + chmod g+rx fix
 - [ncode-pattern-learning-loop](topic-ncode-pattern-learning-loop.md) — phase 1 + phase 2 (namespace scope-stack) LANDED, staged+committed `f8108af44` 2026-07-30 (kimi K3): scope_match/widen-scope + ncode.regex.apply status-gate parity fix, live-verified via p7c; tier-A chain fully run (expand→apply on scratch 2026-07-24; assess entry point tried on a real occurrence 2026-07-31, blocked by [[bug-ncode-assess-replace-not-backreferenced]] — assess never backreferences its own capture group, so it can't produce a generalizing pattern)
 
-#,,..,..,,...,,,,,.,,,,..,,.,,,..,,..,..,,,..,..,,...,...,,..,,..,..,,...,...,
-#MIS2JIYXXVUYNT663QOBXR432S45KIDHE363EFDOPL27JYQUSL3BGSOCZ4M4RUGI2WKQ3GA2QWAK6
-#\\\|K3EXJE3VLOZH3WWPBUCO2WN24ODAXNE2BRPVULOEILM5JTSPON4 \ / AMOS7 \ YOURUM ::
-#\[7]XF3LNN3EFIC2U2HTWCO4ZOR7HPX3JNBIDE743IU6IXVHD3GWCYAA 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,...,..,,..,,,..,.,,,,.,,,,.,...,..,,...,.,.,..,,..,,.,,,.,.,.,.,
+#2YFQAUX2NEWYCZKWTYU2EETBM5J54LBMKJUPEJPUA3G3U5UZ2ZM5W7DCHOBXE2YMOQSRJ4RBXBCJS
+#\\\|RQC7BXOGS2QL5ZVUYR32VHCN6TN4UDVSDPUP2Z3XRCDL7MIOZD4 \ / AMOS7 \ YOURUM ::
+#\[7]HEBKEIEK27UBDP4FMPMDKB4EZLACXKOWBSG7R4DADUI4IIEO4IBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

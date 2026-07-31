@@ -1,0 +1,101 @@
+## [:< ##
+
+# name  = coding.self_test.cmd.self-test-detail
+# descr = show full per-prompt self-test detail + tier1 attempts
+
+my $params   = shift // {};
+my $model_id = $params->{'args'} // $params->{'model_id'} // '';
+
+$model_id = <inference.model.amos_id> // '' if !length $model_id;
+
+return {
+    mode => qw| false |,
+    data => 'usage: coding.self-test-detail '
+        . '[model_id] (no model currently loaded)'
+    }
+    if !length $model_id;
+
+my $self_test = <coding.self_test> // {};
+
+## find latest epoch that has a record for this model ##
+my $last_epoch = 0;
+for my $epoch ( keys %$self_test ) {
+    next                 if !exists $self_test->{$epoch}{$model_id};
+    $last_epoch = $epoch if $epoch > $last_epoch;
+}
+
+return {
+    mode => qw| size |,
+    data => "no self-test record found for $model_id\n"
+    }
+    if !$last_epoch;
+
+my $store   = $self_test->{$last_epoch}{$model_id};
+my $prompts = $store->{'prompts'} // {};
+
+my @lines;
+push @lines, sprintf "self-test detail : %s : epoch %d\n", $model_id,
+    $last_epoch;
+
+for my $prompt_id ( sort { $a <=> $b } keys %$prompts ) {
+    my $p = $prompts->{$prompt_id};
+    push @lines, sprintf "prompt %d : %s", $prompt_id,
+        $p->{'passed'} ? 'PASS' : 'FAIL';
+    push @lines, sprintf "  question : %s", $p->{'prompt'};
+    push @lines, sprintf "  answer   : '%s'  expected : '%s'", $p->{'answer'},
+        $p->{'expected'};
+
+    ## empty content but a reasoning trace exists : most likely the whole ##
+    ## max_tokens budget went to <think> and generation stopped before a  ##
+    ## final answer - show it so it's visible instead of just '' with no  ##
+    ## explanation                                                        ##
+    if ( !length $p->{'answer'} and length( $p->{'reasoning'} // '' ) ) {
+        push @lines, sprintf "  finish_reason : %s",
+            $p->{'finish_reason'} || 'unknown';
+        my $reasoning = $p->{'reasoning'};
+        my $preview
+            = length($reasoning) > 400
+            ? substr( $reasoning, 0, 400 ) . '... [truncated]'
+            : $reasoning;
+        push @lines, "  reasoning (no final answer emitted) : $preview";
+    }
+
+    ## the initial call outright failed [ eg http_500 ] : show whatever the ##
+    ## llama-server process itself said right before the failure - the bare ##
+    ## status code alone gives no clue why it 500'd                         ##
+    if ( length( $p->{'server_tail'} // '' ) ) {
+        push @lines, "  server output at failure time :";
+        push @lines, "    $_" for split /\n/, $p->{'server_tail'};
+    }
+
+    push @lines, sprintf "  tier     : %s", $p->{'tier'} || '-';
+    push @lines, sprintf "  structural_reason : %s",
+        $p->{'structural_reason'} || '-';
+    push @lines, sprintf "  tier1_reason      : %s",
+        $p->{'tier1_reason'} || '-';
+
+    my $attempts = $p->{'tier1_attempts'} // [];
+    if (@$attempts) {
+        for my $i ( 0 .. $#$attempts ) {
+            my $a = $attempts->[$i];
+            push @lines, sprintf "  tier1 attempt %d : %s", $i + 1,
+                $a->{'ok'} ? 'OK' : 'FAIL';
+            push @lines, sprintf "    hint sent : %s",   $a->{'hint'};
+            push @lines, sprintf "    got back  : '%s'", $a->{'reformatted'};
+            push @lines, sprintf "    reason    : %s", $a->{'reason'} || '-'
+                if !$a->{'ok'};
+        }
+    } else {
+        push @lines, "  tier1 attempt : none [ tier0 structural "
+            . "check passed or answer never sent for reformat ]";
+    }
+    push @lines, '';
+}
+
+return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
+
+#,,.,,.,,,,,.,..,,.,,,,,.,.,,,,..,,,,,,.,,,.,,.,.,...,...,...,,,.,..,,.,.,,.,,
+#XK3SWIB24T7JD6OZNB4UHUFU55D5J3TWFMZHXKYHDSEO6ZT5Z73FKIVFUST5DIELYAKICZZR6JH54
+#\\\|YCFBRINV5RPCAVGJEZM7RZYXYFYSTPQELVTL3VWJI63K2WNLRMW \ / AMOS7 \ YOURUM ::
+#\[7]3QXHUW2E6V4MBHFOPFDZTK3SE3OXWAL6VW2JNBMXPE7B7HL3HUBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

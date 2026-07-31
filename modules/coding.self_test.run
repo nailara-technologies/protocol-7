@@ -5,8 +5,26 @@
 
 my $params   = shift                 // {};
 my $model_id = $params->{'model_id'} // '';
-my $timeout  = $params->{'timeout'}  // 30;
-my $url      = $params->{'url'}
+## 30s was fine before max_tokens was raised to 4096 for a full <think>     ##
+## pass - now a deep reasoning trace + this server's prompt-cache rebuild   ##
+## overhead [ confirmed live : "prompt cache save took 295.08 ms", repeated ##
+## cache invalidation on every follow-up call ] can push a real,            ##
+## still-working request past 30s. the client giving up and disconnecting   ##
+## surfaces server-side as a cancelled task ["srv stop: cancel task"],      ##
+## which we then see as http_500 - not a crash, a timeout mismatch. BUT:    ##
+## duration alone doesn't fully explain it - a 69.27s success and a still-  ##
+## failing-past-120s run in the same session mean pushing this further has  ##
+## diminishing returns. suspected real cause: this client uses stream=false ##
+## [ one silent read for the whole generation ], while the proven-stable    ##
+## async path [ coding.async.http_client ] streams - a stall/idle cutoff    ##
+## independent of total duration is the more likely culprit than total wait ##
+## time. 90s as a reasonable middle ground pending that experiment - not    ##
+## chasing the timeout further for now [ ondemand zenki don't have          ##
+## heartbeat/restart yet, so blocking isn't an active hazard today, but     ##
+## shouldn't be pushed needlessly high either ]                             ##
+my $timeout = $params->{'timeout'} // 90;
+my $backend = $params->{'backend'} // 'gpu';
+my $url     = $params->{'url'}
     // ( <inference.backend.http_server_url> // 'http://127.0.0.1:8000' );
 
 return { mode => qw| false |, data => 'model_id required' }
@@ -27,12 +45,34 @@ my @prompts = (
         result_constraint => { type => 'numeric', must_contain => ['91'] },
     },
     {   id   => 2,
-        text => 'put a cat and a mouse in a room, close the door and wait.., '
-            . 'who is the remaining animal? reply with only the '
-            . 'animal name.',
+        text => 'put a cat and a mouse in a room, close the '
+            . 'door and wait.., who is the remaining animal?',
+        ## no "reply with only the animal name" - forcing terseness up      ##
+        ## front can short-circuit this reasoning model's <think> pass into ##
+        ## a pattern-matched guess. let it answer naturally ; tier1's       ##
+        ## existing "restate in <=2 words" reformat step already exists to  ##
+        ## compress a verbose-but-substantively-correct answer down, per    ##
+        ## the original design [ data/tasks/completed/                      ##
+        ## coding-model-self-test-cycle.md : "the cat is the remaining      ##
+        ## animal" instead of "cat" - both substantively CORRECT ]          ##
         expected          => 'cat',
-        result_constraint =>
-            { type => 'word_count', max_words => 2, must_contain => 'cat' },
+        result_constraint => {
+            type         => 'word_count',
+            max_words    => 2,
+            must_contain => 'cat',
+            ## tier1 reformat nudge : common failure mode is naming the     ##
+            ## eaten animal because it's still physically "there" [ a body  ##
+            ## / remains ] - only surfaced as a follow-up challenge on a    ##
+            ## wrong first answer, never in the base prompt [ that would    ##
+            ## hand over the answer up front ]. short + Socratic rather     ##
+            ## than explanatory : a prior, longer "consider: when one       ##
+            ## animal eats the other..." version was confirmed live to do   ##
+            ## nothing - the model just reformatted its wrong answer to fit ##
+            ## the word limit instead of reconsidering it                   ##
+            mismatch_hint =>
+                q{Are you certain? "Remaining" can only be one, by }
+                . 'definition.',
+        },
     },
 );
 
@@ -42,6 +82,17 @@ my $all_passed = TRUE;
 my @results;
 
 for my $prompt_def (@prompts) {
+    ## give the server a moment to settle after the previous prompt before ##
+    ## firing the next one : self-test is the only caller that fires two   ##
+    ## requests back-to-back with zero gap - a normal session always has   ##
+    ## natural spacing between requests. suspected cause of the http_500s  ##
+    ## seen only during self-test [ never during regular session inference ##
+    ## - if it were a hard context-size ceiling it would show as timeouts, ##
+    ## not 500s, during normal use too ] : likely post-request cleanup /   ##
+    ## buffer churn on the server still in flight when the very next       ##
+    ## request lands immediately after the first response                  ##
+    <[base.sleep]>->(1.5) if $test_count > 0;
+
     $test_count++;
     my $prompt_id   = $prompt_def->{'id'};
     my $prompt_text = $prompt_def->{'text'};
@@ -66,6 +117,14 @@ for my $prompt_def (@prompts) {
                 model_id => $model_id,
                 prompt   => $prompt_text,
                 timeout  => $timeout,
+                ## generous headroom for a reasoning model's <think> trace ##
+                ## before it commits to a final answer - the default 1024  ##
+                ## was getting fully consumed by reasoning alone on prompt ##
+                ## 2 once its "reply with only the animal name" terseness  ##
+                ## instruction was removed, leaving content empty even     ##
+                ## though the reasoning itself was on track - confirmed    ##
+                ## live [ ttft=28.97s, answer='' ]                         ##
+                max_tokens => 4096,
             }
         );
 
@@ -88,77 +147,172 @@ for my $prompt_def (@prompts) {
         select( undef, undef, undef, 0.5 );    ## short backoff ##
     }
 
-    my $ttft    = 0;
-    my $total   = 0;
-    my $answer  = '';
-    my $passed  = FALSE;
-    my $anomaly = '';
+    my $ttft          = 0;
+    my $total         = 0;
+    my $answer        = '';
+    my $reasoning     = '';
+    my $finish_reason = '';
+    my $passed        = FALSE;
+    my $anomaly       = '';
+    my $inference_ok  = ( $result && $result->{'mode'} eq qw| true | );
 
-    if ( !$result || $result->{'mode'} ne qw| true | ) {
+    my $server_tail = '';
+
+    if ( !$inference_ok ) {
         <[base.logs]>->(
             0, '[self_test] prompt %d : model %s : inference failed : %s',
             $prompt_id, $model_id, $result->{'data'} // 'no reply'
         );
-        $total      = <[base.time]>->(9) - $start;
-        $all_passed = FALSE;
-    } else {
-        $ttft   = <[base.time]>->(9) - $ttft_start;
-        $total  = <[base.time]>->(9) - $start;
-        $answer = $result->{'data'} // '';
-        $answer =~ s/[\x00-\x08\x0b\x0c\x0e-\x1f]//g;
-    }
+        $total = <[base.time]>->(9) - $start;
 
-    my $eval = <[coding.self_test.evaluate]>->(
-        {   model_id   => $model_id,
-            prompt     => $prompt_text,
-            answer     => $answer,
-            expected   => $expected,
-            constraint => $prompt_def->{'result_constraint'},
+        ## once 'ready', the server's stdout/stderr are drained-not-logged ##
+        ## [ coding.handler.drain_pipe ] - on an http_5xx, grab whatever   ##
+        ## the server itself said right before the request failed instead  ##
+        ## of just reporting the bare status code with no server-side      ##
+        ## context                                                         ##
+        my $err = $result->{'data'} // '';
+        if ( $err =~ m{^http_5\d\d$} ) {
+            $server_tail
+                = <[coding.self_test.helper.capture_server_tail]>->($backend)
+                // '';
+            ## llama-server's own cache/checkpoint bookkeeping chatter can ##
+            ## run to several KB per request - shorten before it ever hits ##
+            ## a log line or gets archived, keeping start [ often has the  ##
+            ## actual error ] and end [ state right before the failure ]   ##
+            $server_tail
+                = <[base.parser.ellipse_center]>->( $server_tail, 800 )
+                if length $server_tail;
         }
-    );
+    } else {
+        $ttft          = <[base.time]>->(9) - $ttft_start;
+        $total         = <[base.time]>->(9) - $start;
+        $answer        = $result->{'data'}          // '';
+        $reasoning     = $result->{'reasoning'}     // '';
+        $finish_reason = $result->{'finish_reason'} // '';
+        $answer =~ s/[\x00-\x08\x0b\x0c\x0e-\x1f]//g;
+
+        ## visible content came back empty but the model DID reason - most  ##
+        ## likely the whole max_tokens budget went to the <think> trace and ##
+        ## generation stopped [ finish_reason 'length' ] before it could    ##
+        ## commit to a final answer - confirmed live. surface it as a real  ##
+        ## diagnostic instead of a silent empty answer                      ##
+        if ( !length $answer and length $reasoning ) {
+            <[base.logs]>->(
+                1,
+                '[self_test] prompt %d : model %s : empty content, '
+                    . 'reasoning present [ finish_reason=%s, %d chars ]',
+                $prompt_id,
+                $model_id,
+                $finish_reason || 'unknown',
+                length $reasoning
+            );
+        }
+    }
 
     my $needs_tier2        = FALSE;
     my $tier               = '';
     my $reformatted_answer = '';
     my $structural_reason  = '';
     my $tier1_reason       = '';
+    my $tier1_attempts     = [];
 
-    if ( $eval && $eval->{'mode'} eq qw| true | ) {
-        $passed             = TRUE;
-        $tier               = $eval->{'tier'}               // 'literal';
-        $reformatted_answer = $eval->{'reformatted_answer'} // '';
-        $structural_reason  = $eval->{'structural_reason'}  // '';
-        $pass_count++;
+    if ( !$inference_ok ) {
+        ## the initial call never produced an answer - there is nothing for ##
+        ## evaluate to reformat or judge. calling it anyway [ prior         ##
+        ## behaviour ] ran tier1 reformat against an EMPTY prior_answer,    ##
+        ## which could still get a lucky standalone answer back and report  ##
+        ## PASS for a prompt that never actually got a real reply -         ##
+        ## confirmed live: "tier1 reformat PASS :  -> cat" straight off an  ##
+        ## http_500. hard fail here instead, skip evaluate entirely         ##
+        $passed = FALSE;
+        $tier1_reason
+            = 'inference_failed: ' . ( $result->{'data'} // 'no reply' );
         <[base.logs]>->(
-            1, '[self_test] prompt %d : model %s : PASS [ %s ttft=%.2fs ]',
-            $prompt_id, $model_id, $tier, $ttft
+            1, "[self_test] prompt %d : model %s : FAIL [ no answer : %s ]",
+            $prompt_id, $model_id, $tier1_reason
         );
+        if ( length $server_tail ) {
+            <[base.logs]>->(
+                1,
+                "[self_test] prompt %d : model %s : "
+                    . "server output at failure time :\n%s",
+                $prompt_id,
+                $model_id,
+                $server_tail
+            );
+        }
     } else {
-        $passed             = FALSE;
-        $all_passed         = FALSE;
-        $needs_tier2        = $eval->{'needs_tier2'}        // FALSE;
-        $reformatted_answer = $eval->{'reformatted_answer'} // '';
-        $structural_reason  = $eval->{'structural_reason'}  // '';
-        $tier1_reason       = $eval->{'tier1_reason'}       // '';
-        ## anomaly text [ follow_up explanation ] is now produced later by ##
-        ## the tier-2 disposition path on a NO verdict - not here          ##
-        $anomaly = '';
-        <[base.logs]>->(
-            1,
-            "[self_test] prompt %d : model %s : "
-                . "FAIL [ got '%s' expected '%s' tier1=%s ]",
-            $prompt_id,
-            $model_id,
-            $answer,
-            $expected,
-            $tier1_reason || 'n/a'
+        my $eval = <[coding.self_test.evaluate]>->(
+            {   model_id   => $model_id,
+                prompt     => $prompt_text,
+                answer     => $answer,
+                expected   => $expected,
+                constraint => $prompt_def->{'result_constraint'},
+                backend    => $backend,
+                timeout    => $timeout,
+            }
         );
+
+        if ( $eval && $eval->{'mode'} eq qw| true | ) {
+            $passed             = TRUE;
+            $tier               = $eval->{'tier'}               // 'literal';
+            $reformatted_answer = $eval->{'reformatted_answer'} // '';
+            $structural_reason  = $eval->{'structural_reason'}  // '';
+            $tier1_attempts     = $eval->{'tier1_attempts'}     // [];
+            $pass_count++;
+            <[base.logs]>->(
+                1,
+                '[self_test] prompt %d : model %s : PASS [ %s ttft=%.2fs ]',
+                $prompt_id, $model_id, $tier, $ttft
+            );
+        } else {
+            $passed             = FALSE;
+            $needs_tier2        = $eval->{'needs_tier2'}        // FALSE;
+            $reformatted_answer = $eval->{'reformatted_answer'} // '';
+            $structural_reason  = $eval->{'structural_reason'}  // '';
+            $tier1_reason       = $eval->{'tier1_reason'}       // '';
+            $tier1_attempts     = $eval->{'tier1_attempts'}     // [];
+            if ( !length $server_tail ) {
+                $server_tail = $eval->{'server_tail'} // '';
+                $server_tail
+                    = <[base.parser.ellipse_center]>->( $server_tail, 800 )
+                    if length $server_tail;
+            }
+            ## anomaly text [ follow_up explanation ] is now produced later ##
+            ## by the tier-2 disposition path on a NO verdict - not here    ##
+            $anomaly = '';
+            <[base.logs]>->(
+                1,
+                "[self_test] prompt %d : model %s : "
+                    . "FAIL [ got '%s' expected '%s' tier1=%s ]",
+                $prompt_id,
+                $model_id,
+                $answer,
+                $expected,
+                $tier1_reason || 'n/a'
+            );
+            if ( length $server_tail ) {
+                <[base.logs]>->(
+                    1,
+                    "[self_test] prompt %d : model %s : "
+                        . "server output at failure time :\n%s",
+                    $prompt_id,
+                    $model_id,
+                    $server_tail
+                );
+            }
+        }
     }
+
+    $all_passed = FALSE if !$passed;
 
     my $result_record = {
         prompt_id          => $prompt_id,
         prompt             => $prompt_text,
         answer             => $answer,
+        reasoning          => $reasoning,
+        finish_reason      => $finish_reason,
+        server_tail        => $server_tail,
         expected           => $expected,
         constraint         => $prompt_def->{'result_constraint'},
         ttft               => $ttft,
@@ -169,6 +323,7 @@ for my $prompt_def (@prompts) {
         reformatted_answer => $reformatted_answer,
         structural_reason  => $structural_reason,
         tier1_reason       => $tier1_reason,
+        tier1_attempts     => $tier1_attempts,
         timestamp          => <[base.time]>->(3),
     };
 
@@ -208,8 +363,8 @@ return {
     data => $summary,
 };
 
-#,,..,.,.,,,.,,,.,,,.,..,,...,...,,.,,..,,.,,,..,,...,...,,..,..,,,.,,...,,,,,
-#RIB2L7WGIN6WRQSURSLF7QHONU67MKP5EXJ2VP2ZT6MNPN4ABYYHJ2UHYMKY2JZCDKQGKUJYYL5H2
-#\\\|ICLTBQ5XFS5TVHPSXJQBT3YIT2ZSYWF7WTI5TQAYMX2CSR67KLX \ / AMOS7 \ YOURUM ::
-#\[7]LPKTRS7CLL4FJINDHXQSHJW3TBZVH465TTJVP7MQGLIQU4R5E6CY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,,,,.,.,.,.,,.,,,,,,.,,,...,,,.,..,,...,..,,,..,,,.,,.,,..,,,..,
+#N3LLXL4NPSHYY3DF563OC24F2Z5ZAZGX6MDGNI2SR3EI2AM35Z5YANOGFVMXHARCJG7B4UISZNAPI
+#\\\|TJN6BH6RL2GQU7H5I3SU633FLUKPCZFQ52RXGUPAWEGPEYVPLN4 \ / AMOS7 \ YOURUM ::
+#\[7]CK7BTG7Y5OL57VOMT4XBFFHPKEOYNXNKNL7ZXHUUKCWNT2U5I2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

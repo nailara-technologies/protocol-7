@@ -41,13 +41,38 @@ if ( $n == 0 ) {
     return;
 }
 
+## keep a bounded rolling tail instead of fully discarding : once a server ##
+## is 'ready', ITS stdout/stderr are drained-not-logged, so a request-time ##
+## error [ eg an inference call getting http_500 ] left NO trace anywhere  ##
+## of what the server itself said - confirmed live, repeatedly, chasing    ##
+## http_500s with no server-side error visible. cap keeps memory bounded ; ##
+## same fileno-match lookup coding.cancel_watcher.backend_monitor uses to  ##
+## find which backend a drained fd belongs to                              ##
+my $fileno = fileno($fh);
+if ( defined $fileno ) {
+    my $servers = <coding.inference_servers> // {};
+    for my $backend ( keys %$servers ) {
+        my $srv = $servers->{$backend};
+        my $out = $srv->{'io_stdout'};
+        my $err = $srv->{'io_stderr'};
+        if (   ( defined $out && eval { fileno($out) } == $fileno )
+            || ( defined $err && eval { fileno($err) } == $fileno ) ) {
+            my $tail_cap = 4096;
+            $srv->{'tail_output'}
+                = substr( ( $srv->{'tail_output'} // '' ) . $buf,
+                -$tail_cap );
+            last;
+        }
+    }
+}
+
 ## successfully discarded $n bytes ##
 <[base.logs]>->( 3, "drain_pipe: discarded %d bytes from server pipe", $n );
 
 return;
 
-#,,,,,.,,,,..,...,,..,..,,.,,,.,.,..,,.,,,...,..,,...,...,...,,.,,,,.,,,,,,,,,
-#PIDNI5T7CWPPCFRCO3GQ5BD6OMU5TDHZGSUCDZ5D3I33725V72J6INJ35O6FQY5WRYY6ES3WFHQQA
-#\\\|NWRD56NRTJCRHTNTFA7VN7FHCZACU3QIQKNWGTM3DXDVDOZ6XGK \ / AMOS7 \ YOURUM ::
-#\[7]H3L5AZMODM3NVIP4OZQMFWDLU7QQNSV7P7Y5EUZMNPCRX65OP4DA 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,,.,..,,..,,..,,,..,,,,,,.,,,,.,..,,...,...,,,.,.,.,.,,,,,.,,,.,
+#OIUB2YSEZEBUIFS5IRWELAYMUBJVCQ5GO64SIAC3PSFTTGEKXYEQKCGU6USRAQOYR6AGF5ZEBV4BW
+#\\\|TAD5AV2T7ZOP3L67G4THJABUVE5DMRURDXOSZK6SFCZEVGGSOIN \ / AMOS7 \ YOURUM ::
+#\[7]53IDA7G55CNVDPUMUGY2OWU5EIDTK3GMT7WOKGCPZUO57ACMJKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -60,8 +60,31 @@ my $reply = eval {
     }
 
     my $data    = JSON::PP::decode_json( $response->decoded_content );
-    my $content = $data->{'choices'}[0]{'message'}{'content'} // '';
-    return { mode => qw| true |, data => $content };
+    my $message = $data->{'choices'}[0]{'message'} // {};
+    my $content = $message->{'content'}            // '';
+
+    ## capture the reasoning trace separately rather than silently dropping ##
+    ## it : some servers return it as its own field [ analogous to the      ##
+    ## streaming delta.reasoning_content coding.async.chunk_handler already ##
+    ## handles ], others leave it inline as <think>...</think> inside       ##
+    ## content - strip that out too so callers get clean content either     ##
+    ## way, with the trace available for diagnostics when content comes     ##
+    ## back empty [ eg the model spent its whole max_tokens budget          ##
+    ## reasoning and never got to emit an answer - confirmed live ]         ##
+    my $reasoning = $message->{'reasoning_content'} // '';
+    while ( $content =~ s|<think>(.*?)</think>||s ) {
+        $reasoning .= $1;
+    }
+    $content =~ s|^\s*</think>\s*||;    ## stray closing tag, no opener ##
+
+    my $finish_reason = $data->{'choices'}[0]{'finish_reason'} // '';
+
+    return {
+        mode          => qw| true |,
+        data          => $content,
+        reasoning     => $reasoning,
+        finish_reason => $finish_reason,
+    };
 };
 
 if ($@) {
@@ -73,8 +96,8 @@ if ($@) {
 
 return $reply;
 
-#,,.,,.,,,,,.,.,.,,.,,.,.,...,,.,,.,,,,,,,,..,..,,...,...,...,.,.,.,.,,,,,..,,
-#W6BPIU3HXTBLOJFK3Q3CN6P4ESQJW5LBHQ5REY2KD477M2KJ6BM7XM7IFNNI43L6T6LH5BNPIOPYG
-#\\\|NR3JIWTAXFNE2SBD7PHPN5DAGZ7VI4F5I5UJ5NP4FAG43RJSV3L \ / AMOS7 \ YOURUM ::
-#\[7]LHGQ35KIARD4UZ7RFLZW5BDQBK2Y4ODJBTJERIXC42KIMYP434DI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,..,,..,,.,.,,..,,,.,,,.,,.,,..,,..,,...,..,,...,,,,,.,,,,,.,,,.,
+#BMMH4VLINIMGSHCQ7D2SJSNZIDYUPGLF2SCVFDSRW55YFFADYAVUQJ27RUOIQ3UVRWVQI624X6Z5A
+#\\\|5RJTX4FIWWCY3ZSMX7QU66HAVMGCDKO5Q4RQ43QQTSVU4RWP2NK \ / AMOS7 \ YOURUM ::
+#\[7]YRPV742NYS2LGDYOCITT2CIVTAB7XJ3URU4UECGQ54PNLIXHWSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

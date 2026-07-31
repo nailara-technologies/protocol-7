@@ -6,21 +6,26 @@
 my $fd = $_[0]->w->fd;
 my $id = $_[0]->w->data;
 
-<[base.logs]>->( 2, '[%d] socket exception, stopping input ..,', $id );
+<[base.logs]>->(
+    2,
+    '[%s] socket exception, stopping input ..,',
+    $id // 'unknown'
+);
 
-if ( defined $data{'session'}->{$id} ) {
+if ( defined $id and defined $data{'session'}->{$id} ) {
     my $session = $data{'session'}->{$id};
     $session->{'shutdown'} = 1;
     map { $session->{'watcher'}->{$ARG}->cancel } ## halting input-watchers ##
         grep {m|input(*nla:_buffer)|} ## input buffer allowed to keep state ##
         <[base.reverse-sort]>->( $session->{'watcher'} );
-} else {
+## still open : avoid double-close warn ##
+} elsif ( defined fileno($fd) ) {
     shutdown( $fd, 2 );
     close($fd);
 }
 
-#,,,,,,,.,,,,,,,.,..,,,,.,,,,,.,,,,,.,.,.,..,,..,,...,...,..,,.,,,,,.,.,,,,,,,
-#OD3JLH64VXEPJDX53R4XPSKDLBULDSXOC62RS5PRDMJMHJOEJB2AO74HRVSL3XY6IYBN4P6FN3H3M
-#\\\|EHN6TMH3Z64TWSR45B3UTZWDKJHX7GLSOK3I6M2IBEMKRJP2FAM \ / AMOS7 \ YOURUM ::
-#\[7]7BIVFJ4GWDRU7SSSI6RKF7L3PCQ5DYHFWAV4DS4URI3GJIGTQOAA 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,..,,.,,,..,..,,,..,..,,,,.,,.,,..,,...,...,,..,..,,,,,,.,,,,..,
+#M73OXP4IVCV3RTUP6NCQIHFJBDFGCU44PKGT7LIVNPJSAIOTJLBMKR7FOVONJATLES7MVE5QUBVCA
+#\\\|JDO5G7UPORQ3JM2IZ4VRNLJDHGEXCE5O7CWCVEBEICCXZ4P7JUC \ / AMOS7 \ YOURUM ::
+#\[7]QVJIFBIB3UXBMSSR3RZ4MBHBJANXRNTTFRPFJULVLGNJGWTRGCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

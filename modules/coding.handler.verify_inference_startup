@@ -14,6 +14,20 @@ my $is_ready = ( $server_info->{'status'} // '' ) eq qw| ready |;
 my $pid      = $server_info->{'pid'} // 0;
 
 if ( $is_ready && $pid > 0 && kill 0, $pid ) {
+
+    ## idempotency guard : multiple restart paths [ spawn_servers_deferred, ##
+    ## inference_crash_restart, http_error's timeout restart ] each         ##
+    ## schedule their own 10s fallback verify timer without cancelling any  ##
+    ## earlier one still pending. when several restarts stack up [ eg the   ##
+    ## cat-test seed-retry loop ], every stale fallback timer eventually    ##
+    ## fires against the same settled pid and redundantly re-logs +         ##
+    ## re-resumes the queue. skip silently once this exact pid has already  ##
+    ## been confirmed ready                                                 ##
+    if ( ( $server_info->{'verify_confirmed_pid'} // 0 ) == $pid ) {
+        return TRUE;
+    }
+    $server_info->{'verify_confirmed_pid'} = $pid;
+
     <[base.logs]>->(
         1, '[verify_inference_startup] %s server verified ready [pid=%d]',
         $backend, $pid
@@ -60,8 +74,8 @@ if ( $restart_count >= 5 ) {
 
 return FALSE;
 
-#,,.,,...,.,,,...,,..,,,,,.,.,.,,,.,,,,,,,..,,..,,...,...,,.,,,,,,...,,..,.,.,
-#YJ42X5MQH4GYJHUH3IQFEYRKA3A7AY6PHQVFEGNL44MXK7RCDFHYGOEWGMPANWYOGUOZMJ54N7FY6
-#\\\|5N7DFXAI5KGXKK2IHEQXHRTGSK4MBK7BBCFR2JK3CZQFMEKOQ2J \ / AMOS7 \ YOURUM ::
-#\[7]ZMJPUIX5V5GDD3U6RJNZJO36QO52DXE7GPXDXHRCW75HQKBIZ2BI 7  DATA SIGNATURE ::
+#,,.,,...,,..,,,,,..,,,,.,,..,..,,,..,,.,,.,,,..,,...,...,,.,,..,,.,.,,,.,..,,
+#BKH4RCK3SNUA7MHCRDS5OAKG4UL2Y6K7UL2F43T2HAWDRL7T57G4Q6272HU4AHQPSRRCQI572KGVW
+#\\\|HRIGDFMUGYO2GZIGTDGX4NSFF2INIGXOMTDLJSGZIGYQVBTV4JW \ / AMOS7 \ YOURUM ::
+#\[7]BKWMVDC5RYRDJUGUMONSD223YLPOYQVCRK6PGTKLFM3IBOVTAMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

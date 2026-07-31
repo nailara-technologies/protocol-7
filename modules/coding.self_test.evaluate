@@ -8,9 +8,13 @@ my $model_id   = $params->{'model_id'} // '';
 my $prompt     = $params->{'prompt'}   // '';
 my $answer     = $params->{'answer'}   // '';
 my $expected   = $params->{'expected'} // '';
+my $backend    = $params->{'backend'}  // 'gpu';
 my $constraint = $params->{'constraint'}
     // { type => 'exact', value => $expected };
-my $timeout = $params->{'timeout'} // 30;
+## kept in sync with coding.self_test.run's default : a reformat request   ##
+## carries the same reasoning-model + cache-rebuild timing pressure as the ##
+## initial call, not just a quick restate                                  ##
+my $timeout = $params->{'timeout'} // 90;
 
 ## tier 0 : deterministic structural check, no inference ##
 my $check = <[coding.self_test.check_constraint]>->(
@@ -30,6 +34,31 @@ if ( $check && $check->{'mode'} eq qw| true | ) {
 }
 
 my $structural_reason = ( $check->{'data'} // 'mismatch' );
+
+## did the ORIGINAL answer already contain every required token ? tier0's   ##
+## word_count check short-circuits on over_word_limit BEFORE ever testing   ##
+## must_contain, so structural_reason alone can't tell us this - a          ##
+## verbose-but-substantively-correct answer [ eg "The cat. Because it ate   ##
+## the mouse." ] and a genuinely wrong one both produce over_word_limit.    ##
+## check independently : only a genuine content problem should ever see the ##
+## mismatch_hint challenge - confirmed live: appending it to a purely       ##
+## format-only reformat second-guessed an already-correct answer and        ##
+## flipped it to wrong during the restate                                   ##
+my $content_already_correct = FALSE;
+{
+    my $must_param = $constraint->{'must_contain'};
+    my @required
+        = ref $must_param eq qw| ARRAY |
+        ? @$must_param
+        : ( defined $must_param ? ($must_param) : () );
+    if (@required) {
+        my $folded = lc $answer;
+        $content_already_correct = !grep {
+            my $needle = lc $_;
+            $folded !~ m{(?:^|[^a-z0-9])\Q$needle\E(?:[^a-z0-9]|$)}
+        } @required;
+    }
+}
 
 ## tier 1 : same-context reformat request to the same model, up to two ##
 ## attempts. neither hint may disclose $expected - only the constraint ##
@@ -91,8 +120,24 @@ my $strict_hint = sub {
         . 'nothing but the short phrase itself, no explanation.';
 };
 
+## append the constraint's optional reasoning nudge [ never $expected ##
+## itself ] to a base/strict hint - same scope rule as $base_hint /   ##
+## $strict_hint : guides logic, never states the answer               ##
+my $with_mismatch_hint = sub {
+    my ($hint) = @_;
+    return $hint if $content_already_correct;    ## format-only fix, no ##
+    ## logic challenge     ##
+    my $extra = $constraint->{'mismatch_hint'} // '';
+    return length $extra ? "$hint $extra" : $hint;
+};
+
 my $server_url = <inference.backend.http_server_url>
     // 'http://127.0.0.1:8000';
+
+## per-attempt trail : lets coding.self_test.cmd.self-test-detail show the  ##
+## exact reformat prompt [ hint text incl. mismatch_hint, if any ] sent and ##
+## what came back, instead of just the final pass/fail reason               ##
+my @attempts;
 
 ## one reformat round-trip + recheck; returns (ok, reformatted, reason) ##
 my $try_reformat = sub {
@@ -101,17 +146,54 @@ my $try_reformat = sub {
         = "For the question: $prompt\nYou answered: $prior_answer\n\n"
         . $hint;
 
-    my $tier1 = <[coding.tools.http_inference_client]>->(
-        {   url      => $server_url,
-            model_id => $model_id,
-            prompt   => $reformat_prompt,
-            timeout  => $timeout,
-        }
-    );
+    ## retry once on a transient 5xx/connection failure, same class + same  ##
+    ## one-retry pattern as self_test.run's initial call - without this, a  ##
+    ## substantively CORRECT answer that only needed word-count compression ##
+    ## was thrown away as a hard FAIL purely because the reformat follow-up ##
+    ## call itself hit a transient http_500 - confirmed live                ##
+    my $tier1;
+    my $max_retries = 1;
+    for my $attempt ( 0 .. $max_retries ) {
+        $tier1 = <[coding.tools.http_inference_client]>->(
+            {   url      => $server_url,
+                model_id => $model_id,
+                prompt   => $reformat_prompt,
+                timeout  => $timeout,
+            }
+        );
+
+        last if $tier1 && $tier1->{'mode'} eq qw| true |;
+        last if $attempt >= $max_retries;
+
+        my $err = $tier1->{'data'} // '';
+        last unless $err =~ m{^http_5\d\d$} or $err eq qw| request_failed |;
+
+        select( undef, undef, undef, 0.5 );    ## short backoff ##
+    }
 
     if ( !$tier1 || $tier1->{'mode'} ne qw| true | ) {
-        return ( FALSE, '',
-            'tier1_inference_failed: ' . ( $tier1->{'data'} // 'no reply' ) );
+        my $reason
+            = 'tier1_inference_failed: ' . ( $tier1->{'data'} // 'no reply' );
+
+        ## same server-output visibility as self_test.run's own inference  ##
+        ## failure path : an http_5xx here previously vanished with just a ##
+        ## bare status code, no clue what the server itself said           ##
+        my $tail = '';
+        if ( ( $tier1->{'data'} // '' ) =~ m{^http_5\d\d$} ) {
+            $tail
+                = <[coding.self_test.helper.capture_server_tail]>->($backend)
+                // '';
+        }
+
+        push @attempts,
+            {
+            hint        => $hint,
+            reformatted => '',
+            reason      => $reason,
+            ok          => FALSE,
+            server_tail => $tail,
+            };
+        return ( FALSE, '', $reason, $tail );
     }
 
     my $reformatted = $tier1->{'data'} // '';
@@ -124,22 +206,36 @@ my $try_reformat = sub {
         }
     );
 
-    return ( TRUE, $reformatted, '' )
-        if $recheck && $recheck->{'mode'} eq qw| true |;
-    return ( FALSE, $reformatted,
-        $recheck->{'data'} // 'tier1_recheck_mismatch' );
+    my $ok = $recheck && $recheck->{'mode'} eq qw| true |;
+    my $reason
+        = $ok ? '' : ( $recheck->{'data'} // 'tier1_recheck_mismatch' );
+    push @attempts,
+        {
+        hint        => $hint,
+        reformatted => $reformatted,
+        reason      => $reason,
+        ok          => $ok,
+        };
+
+    return ( TRUE,  $reformatted, '' ) if $ok;
+    return ( FALSE, $reformatted, $reason );
 };
 
-my ( $tier1_ok, $reformatted, $tier1_reason )
-    = $try_reformat->( $answer, $base_hint->() );
+my ( $tier1_ok, $reformatted, $tier1_reason, $tier1_server_tail )
+    = $try_reformat->( $answer, $with_mismatch_hint->( $base_hint->() ) );
 
 if ( !$tier1_ok && $tier1_reason !~ m{^tier1_inference_failed} ) {
     <[base.logs]>->(
         1, '[self_test] tier1 reformat attempt 1 failed : model %s : %s',
         $model_id, $tier1_reason
     );
-    ( $tier1_ok, $reformatted, $tier1_reason )
-        = $try_reformat->( $reformatted, $strict_hint->($tier1_reason) );
+    my $retry_tail;
+    ( $tier1_ok, $reformatted, $tier1_reason, $retry_tail )
+        = $try_reformat->(
+        $reformatted, $with_mismatch_hint->( $strict_hint->($tier1_reason) )
+        );
+    $tier1_server_tail = $retry_tail
+        if defined $retry_tail and length $retry_tail;
 }
 
 if ($tier1_ok) {
@@ -154,6 +250,7 @@ if ($tier1_ok) {
         original_answer    => $answer,
         reformatted_answer => $reformatted,
         structural_reason  => $structural_reason,
+        tier1_attempts     => \@attempts,
     };
 }
 
@@ -167,10 +264,12 @@ return {
     reformatted_answer => $reformatted,
     structural_reason  => $structural_reason,
     tier1_reason       => $tier1_reason // 'tier1_recheck_mismatch',
+    tier1_attempts     => \@attempts,
+    server_tail        => $tier1_server_tail // '',
 };
 
-#,,,.,,..,,.,,,.,,,,.,..,,,,.,,,,,,,.,.,.,,,.,..,,...,...,..,,.,,,,,.,,,.,,.,,
-#XVWAZSKPRP3A73ETATPX5SZJREUNRQQ2RV64LMI4DZNMUQRCPH4HY3ACHMYHGMKI225ZZ7SEBWTJ2
-#\\\|PHFM2UMBZQGUM4UKBYAKQRXVQS42M5TXPA2IPHLZ7BJNSUFXRJS \ / AMOS7 \ YOURUM ::
-#\[7]QBPWE6O4A4TMQHTBK225HDUDF7WUFFMJVBF7GBCS4EVWOYXKJMDQ 7  DATA SIGNATURE ::
+#,,..,...,...,,,.,...,,..,.,.,...,.,,,,..,,..,..,,...,...,.,.,.,,,...,,,.,...,
+#EBGLYN6EZHOYAEJLVS6EFQENF2LC4ZKGPFCF7JGBOZLLUGAWQAZTICJFZKRPOUIBY3U52655A5VQQ
+#\\\|LQPIEMFVAZDTORFLC23AFXRJVAKGHFVSXO6RRJMIEL5DX6RTRST \ / AMOS7 \ YOURUM ::
+#\[7]6TJPSJH6DJFGKMPQDLQT4M3D6XWSRC43DWS2TKN7HVPNH2REYYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
