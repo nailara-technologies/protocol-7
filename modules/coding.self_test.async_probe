@@ -1,0 +1,138 @@
+## [:< ##
+
+# name  = coding.self_test.async_probe
+# descr = single non-blocking self-test inference probe [ SSE streaming ]
+
+my $params   = shift                 // {};
+my $url      = $params->{'url'}      // '';
+my $prompt   = $params->{'prompt'}   // '';
+my $model_id = $params->{'model_id'} // '';
+my $backend  = $params->{'backend'}  // 'gpu';
+my $timeout  = $params->{'timeout'}  // 90;
+my $on_done  = $params->{'on_done'};    ## coderef : ( $result_hashref ) ##
+
+## LOAD-BEARING : the SAME id poll_probe used to acquire the backend lock.  ##
+## ownership split : poll_probe acquires [ only when free, never queued ],  ##
+## async_probe releases [ $finish below ]. if this is undef/empty,          ##
+## backend_release:13-19 fails its holder guard, returns FALSE, and logs at ##
+## level 2 ONLY - the gpu lock stays held forever, every real task queues   ##
+## behind it, and nothing is visible at default log level. worse than the   ##
+## wedge this task exists to fix                                            ##
+my $probe_id = $params->{'probe_id'} // '';
+
+return { success => FALSE, error => 'prompt required' } if !length $prompt;
+
+## normalize to the completions endpoint, same as ##
+## coding.tools.http_inference_client:19-24       ##
+my $completion_url = $url;
+if ( $completion_url !~ m{/v1/chat/completions$} ) {
+    $completion_url =~ s{/+$}{};
+    $completion_url .= '/v1/chat/completions';
+}
+
+## same body shape as coding.tools.http_inference_client, but streaming ##
+my $body = {
+    model       => $model_id,
+    messages    => [ { role => 'user', content => $prompt } ],
+    max_tokens  => $params->{'max_tokens'} // 4096,
+    temperature => 0.3,
+    stream      => JSON::PP::true,
+};
+
+my $acc     = { content => '', reasoning => '', finish_reason => '' };
+my $settled = FALSE;    ## on_error and on_complete can BOTH fire : guard ##
+
+## every terminal path goes through here - which is why the backend lock ##
+## release lives here and nowhere else                                   ##
+my $finish = sub {
+    my ($result) = @ARG;
+    return if $settled;
+    $settled = TRUE;
+    <[coding.async.backend_release]>->( $probe_id, $backend )
+        if length $probe_id;
+    $on_done->($result) if ref $on_done eq qw| CODE |;
+    return;
+};
+
+my $callbacks = {
+    ## deliberate empty task_id : makes the shared downstream handlers     ##
+    ## degrade to safe no-ops rather than touching the task queue [ coding ##
+    ## .abort.check_stream:11-12, coding.handler.http_timeout:32-36 ]      ##
+    task_id => '',
+    backend => $backend,
+    timeout => $timeout,
+
+    on_chunk => sub {
+        my ($data) = @ARG;
+        return unless ref $data eq qw| HASH |;
+
+        ## self-test IS the first request after a spawn : clear the         ##
+        ## cold-start grace the same way coding.callback.http_chunk:22-34   ##
+        ## does, or the flag stays set and the next REAL request gets a 90s ##
+        ## data-start window it hasn't earned                               ##
+        my $srv = ( <coding.inference_servers> // {} )->{$backend};
+        delete $srv->{'cold_start'} if $srv && $srv->{'cold_start'};
+
+        ## accumulate delta.content / delta.reasoning_content /           ##
+        ## finish_reason - mirrors coding.async.chunk_handler:26-105, but ##
+        ## NOTHING else from it [ no state_machine, no task.queue ]       ##
+        my $choice = $data->{'choices'}[0] // {};
+        my $delta  = $choice->{'delta'}    // {};
+        $acc->{'content'}   .= $delta->{'content'}           // '';
+        $acc->{'reasoning'} .= $delta->{'reasoning_content'} // '';
+        $acc->{'finish_reason'} = $choice->{'finish_reason'}
+            if defined $choice->{'finish_reason'};
+        return;
+    },
+
+    on_complete => sub {
+        ## strip inline <think>..</think> out of content into reasoning, ##
+        ## strip a stray leading </think> - identical to                 ##
+        ## coding.tools.http_inference_client:74-78 so downstream        ##
+        ## check_constraint sees exactly what it sees today              ##
+        my $content = $acc->{'content'};
+        while ( $content =~ s|<think>(.*?)</think>||s ) {
+            $acc->{'reasoning'} .= $1;
+        }
+        $content =~ s|^\s*</think>\s*||;    ## stray closing, no opener ##
+        $finish->(
+            {   mode          => qw| true |,
+                data          => $content,
+                reasoning     => $acc->{'reasoning'},
+                finish_reason => $acc->{'finish_reason'},
+            }
+        );
+        return;
+    },
+
+    on_error => sub {
+        my ($error) = @ARG;
+        ## map to the SAME error strings self_test.run already matches on : ##
+        ## http_5\d\d / request_failed. http_io:109-123 reports "HTTP       ##
+        ## error: <code>" - translate, do not invent new tokens, or the     ##
+        ## existing retry + capture_server_tail logic stops recognizing     ##
+        ## failures                                                         ##
+        my $code
+            = $error =~ m{HTTP error:\s*(\d+)} ? "http_$1" : 'request_failed';
+        $finish->( { mode => qw| false |, data => $code } );
+        return;
+    },
+};
+
+my $http
+    = <[coding.async.http_client]>->( $completion_url, $body, $callbacks );
+
+## synchronous setup failure [ connect / add_io / write ] : http_client   ##
+## already fired on_error [ settled above ], this is just the belt to its ##
+## suspenders - the $settled guard makes it a no-op in that case          ##
+$finish->( { mode => qw| false |, data => 'request_failed' } )
+    if !ref $http
+    or !$http->{'success'};
+
+return $http;
+
+#,,..,.,.,,.,,..,,,.,,,,,,...,,..,,,,,,.,,.,.,..,,...,...,..,,...,,,,,,,,,,,.,
+#3QRLQL5JREYMX7RAYIDPGOBHHOPGVPIA6LAKTB46ELXDWN5FBDD337G5RL5XCHKLK7ZGZ7SUCGWQE
+#\\\|TO67KATYWTHLUVAQ2RGM2BTTWEFIVOH7JYNAI35N6W2FKRFYMKC \ / AMOS7 \ YOURUM ::
+#\[7]WIMTHIX74ZJ3FNJTVUPM46Z3GVYPRPXQ74XTOOGAU23TUMF6EYAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

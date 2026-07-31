@@ -23,18 +23,23 @@ if ( $completion_url !~ m{/v1/chat/completions$} ) {
     $completion_url .= '/v1/chat/completions';
 }
 
-## NOTE: llama-server serves exactly one model, fixed at process-spawn time
-## via --model <path> [ see coding.spawn_inference_server ]. it does NOT route
-## by this 'model' field - which port you connect to (8000=gpu, 8001=cpu) is
-## what actually selects the model, not this request body.  $model_id here is
-## a label for logging/archival only - confirmed live 2026-06-21 after the
-## field was mistaken for a working switch param.
+## NOTE: llama-server serves exactly one model, fixed at process-spawn time ##
+## via --model <path> [ see coding.spawn_inference_server ]. it does NOT    ##
+## route by this 'model' field - which port you connect to (8000=gpu,       ##
+## 8001=cpu) is what actually selects the model, not this request body.     ##
+## $model_id here is a label for logging/archival only - confirmed live     ##
+## 2026-06-21 after the field was mistaken for a working switch param.      ##
+## step-1 experiment [ 2026-07-31, task coding-self-test-async-http-        ##
+## client-rewrite ] : stream => true, still blocking LWP - keeps bytes      ##
+## flowing so a silence-based cutoff [ the leading http_500 hypothesis :    ##
+## stream=false is one long silent read ] can't trip. SSE deltas are        ##
+## accumulated below exactly like coding.async.chunk_handler does           ##
 my $request_body = {
     model       => $model_id,
     messages    => [ { role => 'user', content => $prompt } ],
     max_tokens  => $max_tokens,
     temperature => 0.3,
-    stream      => JSON::PP::false,
+    stream      => JSON::PP::true,
 };
 
 my $json_body = eval { JSON::PP->new->utf8->encode($request_body) };
@@ -45,12 +50,69 @@ if ($@) {
 
 my $reply = eval {
     use LWP::UserAgent;
+
+    my $content       = '';
+    my $reasoning     = '';
+    my $finish_reason = '';
+    my $sse_buffer    = '';
+
+    ## one complete SSE line : strip 'data: ' prefix, skip [DONE], decode ##
+    ## json, accumulate delta.content / delta.reasoning_content and the   ##
+    ## finish_reason - mirrors coding.async.chunk_handler:26-105, nothing ##
+    ## else                                                               ##
+    my $process_line = sub {
+        my ($line) = @ARG;
+        return unless $line =~ m{^data:\s*(.+)};
+        my $json_str = $1;
+        return if $json_str eq '[DONE]';
+        my $chunk = eval { JSON::PP::decode_json($json_str) };
+        return if $@ or ref $chunk ne qw| HASH |;
+        my $choice = $chunk->{'choices'}[0] // {};
+        my $delta  = $choice->{'delta'}     // {};
+        $content   .= $delta->{'content'}           // '';
+        $reasoning .= $delta->{'reasoning_content'} // '';
+        $finish_reason = $choice->{'finish_reason'}
+            if defined $choice->{'finish_reason'};
+        return;
+    };
+
+    ## LWP's own timeout is an INACTIVITY timeout : the request is aborted  ##
+    ## if no activity is observed for $timeout seconds. that is exactly why ##
+    ## stream=false tripped at 90s - one long silent generation is one long ##
+    ## inactivity gap. with stream=true bytes arrive continuously, so LWP's ##
+    ## timeout can NEVER fire : enforce a real wall-clock ceiling by hand   ##
+    ## here or this call becomes unbounded [ the precise failure class of   ##
+    ## the waitpid incident this task exists to prevent ]                   ##
+    my $deadline = <[base.time]>->(9) + $timeout;
+
     my $ua       = LWP::UserAgent->new( timeout => $timeout );
     my $response = $ua->post(
         $completion_url,
         'Content-Type' => 'application/json',
         Content        => $json_body,
+        ':content_cb'  => sub {
+            my ( $data_chunk, $resp, $proto ) = @ARG;
+
+            ## die - NOT return - is what actually aborts the transfer.    ##
+            ## LWP catches it, stops reading and reports it via the X-Died ##
+            ## response header [ verified live against LWP 6.83 : it does  ##
+            ## NOT rethrow ] - re-thrown right after ->post below          ##
+            die 'self_test_stream_deadline'
+                if <[base.time]>->(9) > $deadline;
+
+            $sse_buffer .= $data_chunk;
+            while ( $sse_buffer =~ s{^([^\r\n]*)\r?\n}{} ) {
+                $process_line->($1);
+            }
+            return;
+        },
     );
+
+    ## deadline trip [ or any other callback death ] : LWP swallows the die ##
+    ## into X-Died and can still report is_success on partial content -     ##
+    ## rethrow so the enclosing eval maps it to 'request_failed', the same  ##
+    ## contract a transport failure has today                               ##
+    die $response->header('X-Died') if $response->header('X-Died');
 
     if ( !$response->is_success ) {
         return {
@@ -59,9 +121,13 @@ my $reply = eval {
         };
     }
 
-    my $data    = JSON::PP::decode_json( $response->decoded_content );
-    my $message = $data->{'choices'}[0]{'message'} // {};
-    my $content = $message->{'content'}            // '';
+    ## flush a trailing SSE line that arrived without a terminating newline ##
+    if ( length $sse_buffer ) {
+        my $remaining = $sse_buffer;
+        $remaining =~ s|\r$||;
+        $sse_buffer = '';
+        $process_line->($remaining);
+    }
 
     ## capture the reasoning trace separately rather than silently dropping ##
     ## it : some servers return it as its own field [ analogous to the      ##
@@ -71,13 +137,10 @@ my $reply = eval {
     ## way, with the trace available for diagnostics when content comes     ##
     ## back empty [ eg the model spent its whole max_tokens budget          ##
     ## reasoning and never got to emit an answer - confirmed live ]         ##
-    my $reasoning = $message->{'reasoning_content'} // '';
     while ( $content =~ s|<think>(.*?)</think>||s ) {
         $reasoning .= $1;
     }
     $content =~ s|^\s*</think>\s*||;    ## stray closing tag, no opener ##
-
-    my $finish_reason = $data->{'choices'}[0]{'finish_reason'} // '';
 
     return {
         mode          => qw| true |,
@@ -96,8 +159,8 @@ if ($@) {
 
 return $reply;
 
-#,,,.,.,,,.,,,..,,..,,.,.,,..,,,.,,,.,,.,,..,,..,,...,..,,...,,,,,.,,,,,.,,,.,
-#BMMH4VLINIMGSHCQ7D2SJSNZIDYUPGLF2SCVFDSRW55YFFADYAVUQJ27RUOIQ3UVRWVQI624X6Z5A
-#\\\|5RJTX4FIWWCY3ZSMX7QU66HAVMGCDKO5Q4RQ43QQTSVU4RWP2NK \ / AMOS7 \ YOURUM ::
-#\[7]YRPV742NYS2LGDYOCITT2CIVTAB7XJ3URU4UECGQ54PNLIXHWSDI 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,.,,,.,,.,,,,,,,,,.,..,,.,,,,.,,..,,...,...,,..,,..,,,,,,.,,,..,
+#NR6JXZCJO6HXJUW3DOF2JXQ3KMCJIPFJBQFOBKFIEH2FW6YT4KK3ZHDNK7RWPBBWVDF54SVPCRUGS
+#\\\|YSRYOEXFTE7AIFBQLG2JJ6QJBD6EE2SO63XWVPYUDV2GENKLAIJ \ / AMOS7 \ YOURUM ::
+#\[7]HV56ORIG4Q374VSX4DK7VBD2RY5VYV5MW4VCPUXC5AO54WB4YCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

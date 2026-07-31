@@ -125,6 +125,12 @@ MEMORY-TREE-SYSTEM.md "not built" header is STALE; `external-inference-models`
 means LOCAL backends not cloud; forensics zenka name must stay `forensics`.
 full map: [topic-duckai-extraction-security-task-tree.md](topic-duckai-extraction-security-task-tree.md)
 
+## coding self-test async transport rewrite — landed + verified (2026-07-31)
+stream:true alone confirmed as the http_500 fix [LWP inactivity-timeout
+disconnect]; full poll_probe state-machine conversion verified live incl.
+heart mid-probe, 6a/6b/6c paths. signing + version + commit left for user.
+details: [topic-coding-self-test-async-transport-2026-07-31.md](topic-coding-self-test-async-transport-2026-07-31.md)
+
 #,,,,,...,,..,,..,,..,,,.,.,,,,..,,..,,,.,,,.,..,,...,...,...,...,..,,.,.,,,,,
 #QTLAZ6POJ24VBO5EKNCDJHKME6NVQISC623IGPYLHBJQAWSDVN43A7WJ3G7HS6ZCGX4NRXJQ2GJXC
 #\\\|QQQGMFFWFFGPZ2376VQXW7THCKZGU5KLRVAAHYFJF2FZQQBT3O6 \ / AMOS7 \ YOURUM ::
@@ -181,8 +187,8 @@ ncode.cmd.widen-scope with streak-consuming widen + reset). verified live via
 p7c incl. coding.eval-code for the p7c-unreachable regex.apply. details +
 reusable verification notes: [topic-ncode-scope-stack-phase2.md](topic-ncode-scope-stack-phase2.md)
 
-#,,..,,,,,.,.,,..,,.,,.,,,,,,,,.,,...,...,,..,..,,...,...,..,,..,,,,,,...,,.,,
-#MLWR2X7QZU7BJAOZJENFYVXPHUCAEEYJSZFCK2LVOHJJ2Y3BFNHZGBTSZSULFTZ644G5QAVNH334S
-#\\\|3H6PDGVQALA2FZARGOVZYUIVWDACCJWGPFCDYKEM2ISOKASUX2Z \ / AMOS7 \ YOURUM ::
-#\[7]GU6D22VB4LR2MZD64SKTKXWSPVHW2UZBWGGDRJ6GWJHJIFSUQ4DA 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,.,,,..,,.,,,.,,,..,,..,,,,,..,,..,,...,...,.,.,...,,,.,,.,,,,,,
+#AX6IAI55UGHZDKZFANYYUKZRZKIGI5YNDVFOCHHWVFX4AQ4UBNRSPRSBQHBGDGOKASRQETCZCKD7Q
+#\\\|HWVGPERGF7OJHUREZ2Y6Z5LOJJ7I6UEJ2VVDKFSSWLI75D244F3 \ / AMOS7 \ YOURUM ::
+#\[7]RQ46ZSVSSP3F2EK3ICOTPLB7CPSU42EN7QPRAGSKPOR2IEGCKOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -34,10 +34,10 @@ my $format_result = sub {
         };
     }
 
-    ## self_test.run always returns data => $summary [ a hashref ], even on   ##
-    ## mode=false [ "false" just means not all prompts passed ] - the prior  ##
-    ## code mistakenly treated $result->{'data'} as a string on mode=false,  ##
-    ## stringifying the hashref into 'HASH(0x...)' in the output             ##
+    ## self_test.run always returns data => $summary [ a hashref ], even on ##
+    ## mode=false [ "false" just means not all prompts passed ] - the prior ##
+    ## code mistakenly treated $result->{'data'} as a string on mode=false, ##
+    ## stringifying the hashref into 'HASH(0x...)' in the output            ##
     my $data    = $result->{'data'};
     my $summary = sprintf "self-test complete for %s: %d/%d passed\n",
         $id, $data->{'pass_count'} // 0, $data->{'total'} // 0;
@@ -56,31 +56,64 @@ my $format_result = sub {
 
 ## common case: requested model is already loaded - run directly ##
 if ( $model_checksum eq $current_model_id ) {
-    my $result
-        = <[coding.self_test.run]>->( { model_id => $model_checksum } );
+    ## async transport : deferred-reply pattern, same as the switch path   ##
+    ## below - the result is delivered to this continuation from the probe ##
+    ## state machine's 'done' phase                                        ##
+    my $reply_id = $call->{'reply_id'} // '';
 
-    ## tier-2 disposition : same model judges its own deferred mismatches   ##
-    ## in a FRESH one-shot context [ http_inference_client per call ] - not ##
-    ## appending to the contaminated conversation                           ##
-    if ( $result && ref $result->{'data'} eq qw| HASH | ) {
-        my $summary = $result->{'data'};
-        my $any_pending
-            = grep { $_->{'needs_tier2'} } @{ $summary->{'results'} // [] };
-        if ($any_pending) {
-            <[coding.self_test.apply_tier2]>->(
-                {   summary        => $summary,
-                    judge_model_id => $model_checksum,
-                    test_model_id  => $model_checksum,
-                    epoch          => $summary->{'epoch'},
+    my $run_started = <[coding.self_test.run]>->(
+        {   model_id => $model_checksum,
+            on_done  => sub {
+                my ($result) = @ARG;
+
+                ## tier-2 disposition : same model judges its own deferred ##
+                ## mismatches in a FRESH one-shot context [                ##
+                ## http_inference_client per call ] - not appending to the ##
+                ## contaminated conversation                               ##
+                if ( $result && ref $result->{'data'} eq qw| HASH | ) {
+                    my $summary = $result->{'data'};
+                    my $any_pending
+                        = grep { $_->{'needs_tier2'} }
+                        @{ $summary->{'results'} // [] };
+                    if ($any_pending) {
+                        <[coding.self_test.apply_tier2]>->(
+                            {   summary        => $summary,
+                                judge_model_id => $model_checksum,
+                                test_model_id  => $model_checksum,
+                                epoch          => $summary->{'epoch'},
+                            }
+                        );
+                        ## flip top-level mode flag to match recomputed ##
+                        ## all_passed                                   ##
+                        $result->{'mode'}
+                            = $summary->{'all_passed'}
+                            ? qw| true |
+                            : qw| false |;
+                    }
                 }
-            );
-            ## flip top-level mode flag to match recomputed all_passed ##
-            $result->{'mode'}
-                = $summary->{'all_passed'} ? qw| true | : qw| false |;
+
+                <[base.callback.cmd_reply]>->(
+                    $reply_id, $format_result->( $model_checksum, $result )
+                ) if length $reply_id;
+                return;
+            },
         }
+    );
+
+    ## the run itself refused to start [ guard rejection ] : answer now ##
+    if ( !ref $run_started or $run_started->{'mode'} ne qw| deferred | ) {
+        return {
+            mode => qw| size |,
+            data => sprintf(
+                "self-test failed for %s: %s\n",
+                $model_checksum,
+                ( ref $run_started ? $run_started->{'data'} : undef )
+                    // 'no reply'
+            )
+        };
     }
 
-    return $format_result->( $model_checksum, $result );
+    return { mode => qw| deferred | };
 }
 
 ## non-loaded model: require a current model to restore to ##
@@ -169,8 +202,8 @@ return { mode => qw| deferred | };
 #\[7]6CTAA7SKMHL6YP6ZXMBRKAK56CL4JXFWKS3OSQF 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,..,...,..,,,,,,...,,,,,,.,,,.,,...,,..,,..,..,,...,..,,..,,.,.,.,,,.,,,,,.,
-#SLSN7YFM4UIUPFKQWBMZISWIMWO6YUNLZZIBYSZUNCPFPURMSP57EGNAHWAMRSUVIY2UJWSIKAVGM
-#\\\|HSL56O3NM4VBRIUNKOA4TMJYPLCENMVMN2FKWEV5HYS2FWY7FMU \ / AMOS7 \ YOURUM ::
-#\[7]NYRKDK2MNIE5425RFWI6TY4HCGY7R27ACEPOP7UALUJRIKC2YCCI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,,.,..,,,.,,,..,,,,,,.,,,,.,..,,..,,...,...,..,,.,.,..,,.,,,,,.,
+#IA7IKWZVPNVR54V32DYZ7SIBMGRRRW4YNGOGK7YJQ3HD3E7ND2FFN5XJ6YOUVZIUYGT6LOXBFXSTC
+#\\\|VL6VHFIBNKVE35SIRWH2Y2LPRO3WAJYZDC5DX2Q4QJ4O2J5K65O \ / AMOS7 \ YOURUM ::
+#\[7]34L4A67K53D3RUM4OLDF25RRMPVPMQD4T5WFNW7W3BR3PQKPU6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
