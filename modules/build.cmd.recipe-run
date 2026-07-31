@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = build.cmd.recipe.run
+# name  = build.cmd.recipe-run
 # param = <recipe-name> [force]
 # descr = run a named build recipe : dispatch + checksum
 
@@ -82,7 +82,7 @@ return {
     if $kind !~ m{^(git-build|tarball-extract|vendor-deb|pip-venv)$};
 
 <[base.logs]>->(
-    2, "build.cmd.recipe.run : recipe '%s' [ kind %s%s ]",
+    2, "build.cmd.recipe-run : recipe '%s' [ kind %s%s ]",
     $name, $kind, $force ? ', force' : ''
 );
 
@@ -141,7 +141,7 @@ my $log_step = sub {
         }
     );
     <[base.logs]>->(
-        2, 'build.cmd.recipe.run : [%s] %s : %s',
+        2, 'build.cmd.recipe-run : [%s] %s : %s',
         $step, $status, $detail // ''
     );
     return;
@@ -578,8 +578,8 @@ $reply_text .= $reply_extra;
 
 return { 'mode' => qw| true |, 'data' => $reply_text };
 
-#,,,.,,,.,,.,,,.,,.,.,..,,,,.,,..,...,,.,,..,,..,,...,...,,..,,,,,,.,,,..,.,.,
-#VU72I3SVOTQ5ZO7Y3UMAY3AIDA4IS3X2IVEWVLRQ3ACNQQ6T5D3PZXULLFYBKTCZNM2GBF6R3ABEM
-#\\\|VLAG6MOO56AOU7BMG7OSMQPXNKHPKJ6IIFTC6YNLIV4SA7GGOV2 \ / AMOS7 \ YOURUM ::
-#\[7]3LI3GKTNPY527LZJFA66ALSWCTCROJSX3ANEZE7OWVSSVBVKFQDI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,..,,..,.,.,...,,.,,.,.,,.,,..,,..,,...,...,...,..,,,.,,,,,,...,
+#G32FCTK5IWNUA4IAGGNYHG5WZYYVWOO4YD3Z2DWXXJRZEQ2MB7IXIOXC5VWQBYMEA67FSOJIKBWFW
+#\\\|Y5CJB5F4DHFMDD2NNXSVIASKY2DNVWTMA5VLCHIR7FGBJDDEKHR \ / AMOS7 \ YOURUM ::
+#\[7]B2OFRLHN4V4UGHRKDXXJWDHSX7IZZX7HVEUGR5REPXBO6ZTZJEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
