@@ -14,6 +14,14 @@ Mark items done here as they land instead of re-deriving this list from
 scratch in a future session.
 
 ## known fix needed, not yet done
+- [ ] 6 modules codebase-wide (forensics x2, `build.cmd.recipe.run`,
+  `ext-pkg.cmd.package.ensure`, `calc.cmd.val.eval_bigrat`,
+  `calc.cmd.val.format_truncated`) have dot-containing bare command
+  names that `base.regex`'s `cmd_str` pattern can't represent — gets
+  misparsed as a routing hop-chain, not a style nit. 4 of 6 are
+  live-routed today (forensics x2, build, ext-pkg); calc's 2 aren't
+  currently reachable via any grant. Rename all to hyphenated form. See
+  [[bug-forensics-dotted-command-names]].
 - [ ] `bin/format-code`'s `step4_align_comment_block` under-pads the
   closing `##` by 1-2 chars on some multi-line box comments — confirmed
   reproducible by re-running the tool directly, cosmetic only. See
@@ -38,9 +46,17 @@ scratch in a future session.
   fixed 2 real bugs). What was genuinely untested was `assess` as the entry
   point against a real repo occurrence — tried 2026-07-31, found a blocking
   bug instead: see [[bug-ncode-assess-replace-not-backreferenced]].
-- [ ] `coding-round-timeout-no-autorestart` — round hit 175% of ceiling with
-  no auto-restart, manually aborted, never root-caused
-  ([[project-coding-round-timeout-no-autorestart-observed-2026-07-26]])
+- [x] `coding-round-timeout-no-autorestart` — **RESOLVED 2026-07-31, for
+  real this time**: original theory (reasoning-only stream falls into
+  `http_complete`'s dead "clean close" no-op branch) was correct all
+  along. My own mid-investigation "refutation" was itself wrong — based
+  on a substring grep that didn't isolate the log's level field; this
+  logfile's verbosity is 1 and records zero level-2 lines ever, so
+  absence of that log string proved nothing either way. K3 dispatch
+  confirmed live via tracer + mock server: no exception, exact branch
+  fires as diagnosed. Fix (bounded answer-nudge retry, then visible
+  failure) staged and signed. See
+  [[project-coding-round-timeout-no-autorestart-observed-2026-07-26]].
 
 ## waiting on a human decision, not on K3
 - [ ] 4 identity-component decisions from `48ea62376` (2026-07-30):
@@ -99,8 +115,8 @@ scratch in a future session.
   `elf_mode` consumer and threads it correctly through to
   `base.chk-sum.elf.inline` — not the same bug. No second instance found.
 
-#,,,.,.,,,,,,,,,,,..,,.,,,,,,,,,,,,,.,..,,..,,.,.,...,...,,,,,..,,,..,,,,,,,,,
-#2UKLBMT2FNAX7GJLKQR2OFJQ7X47JGVATRYKPQTXYBDZN4L47EQYH4OP4MUAEOVZ4FYJ5PNMSZYGO
-#\\\|3KXZTGKIMZKVYHBRYXWIP3CIISFOQEGXQDZMA7AKDQW32KJLNM3 \ / AMOS7 \ YOURUM ::
-#\[7]YAHIQ536FLSUCYAJ5F5F7XKRT5QV57TB6W6Z7CC7XFM2JDKAYICQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,...,.,,,,.,,,,.,,..,,,,,,,.,..,,.,.,...,..,,...,.,.,...,,..,,,,,
+#EAEANQ5PV75Q5DCJ2T4PXQFW4YGUY534SOKNZCLABXV3AMHNB4U24VDCJQT6XY7WSU6EIXATTAEDG
+#\\\|EL4YCCPM6CEI7HKEBLY67VBLP6TBKWDJ6H4BOJLOGX4VDGWFOXH \ / AMOS7 \ YOURUM ::
+#\[7]XS3DZK5BOPSE57CXZBOGP5EU3EMIXWC3VPWIA2ULJV6R5H6S4ABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
