@@ -49,8 +49,35 @@ LLM-assisted fallback recovery, and eventually cross-machine state propagation.
 checkpoint. restore pass issues `set_property` for each value. curve state
 needs phase + target + current-value triple.
 
-#,,..,..,,,.,,,,.,.,.,.,.,,.,,,,,,,,.,,.,,.,.,..,,...,...,...,..,,.,,,,,.,,.,,
-#TEGUBVH7P5N4FBRGDNGUIHYQ3OQL5GMCCDGYWIKEDE7YZ3WO2LAHG6LSSCTPTMQTHU5LB7PVARRQK
-#\\\|7RIDLWBM4CZNITNCFYEREVHDQWJXKFCOAVJCF7IUACI5HJ4BME2 \ / AMOS7 \ YOURUM ::
-#\[7]S46XRMHNLR6M6APCEU47FSAHZWE2QALEHZOXCIW5BLWNSXJQV4DI 7  DATA SIGNATURE ::
+## layers 1-2 landed (2026-07-31, `218cc382b`, kimi K3 dispatch,
+live-verified)
+
+state snapshot + smooth restore are done, built differently than the
+original "deferred send_command queue" plan above: instead of queuing
+snapshot-restore as `mpv.job.deferred_send_command` entries, restore
+runs synchronously from `mpv.startup.job.finalize` (after the control
+socket dep resolves) via direct `set_property_string` calls — simpler,
+and avoids interleaving ordering issues with the cube playlist's own
+`get_list_reply`/`file-loaded` flow. `mpv.snapshot.save` collects the
+full `mpv.map.settings` property cache (observed properties expanded
+from a hardcoded 5), path, position, and playlist; writes
+`state/snapshot.yaml` via the same `file.zenka_dir.write` convention as
+`window.profile.save`. Periodic checkpoint (`mpv.snapshot_interval_
+seconds`, default 60s) + graceful pre-quit save (`mpv.cmd.quit` →
+`mpv.snapshot.send_quit`, 2s safety-timer fallback if save stalls).
+
+Real bug found post-dispatch: `mpv.handler.event.property-change.path`
+(pre-existing, unrelated to this dispatch) deletes the whole
+`<mpv.current>` cache when the player goes idle/stops — without a
+guard, the next periodic checkpoint or quit-time save would silently
+overwrite a good snapshot with an empty one. `mpv.snapshot.write` now
+skips the write entirely when the collected state is empty.
+
+Layers 3-5 (curve automation, cross-mapped routing, active-curve-state
+in snapshot) remain open — see [[topic-next-steps]] "open — mpv".
+
+#,,..,,,,,.,.,.,,,,..,,.,,,.,,,,,,..,,...,..,,..,,...,..,,,.,,.,.,.,.,,,,,,,,,
+#FTYO7KZHW2BK5CF5FZ7BD3YX6ACT3XGVVY7N3TRSLQYSHAG36ME5PVBYHP6AUDZ542N2BSZ2FQLJE
+#\\\|KSCBH6DDH6SB5LUVPCWWIJQFPH45OLG2XI5YL6SX66NWQKUQPJK \ / AMOS7 \ YOURUM ::
+#\[7]MGMLYUHM2KC4LOEAC5BPIY4QPW5EZSWJIDDZCKQNXTYXYH5M7GAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
