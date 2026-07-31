@@ -205,14 +205,72 @@ if ( $sm_state eq 'streaming' ) {
                 );
             }
         } elsif ( ( $http_state->{'bytes_received'} // 0 ) > 0 ) {
-            ## data was received and processed via on_chunk (tool calls,  ##
-            ## finish_reason, etc.) : clean close, nothing left to handle ##
-            <[base.logs]>->(
-                2,
-                "http_complete: task %s clean close after %d bytes processed",
-                $task_id,
-                $http_state->{'bytes_received'}
-            );
+            ## data was received and processed via on_chunk but nothing     ##
+            ## usable accumulated : no content, no tool_calls and no        ##
+            ## finish_reason [ reasoning-only stream : thinking models      ##
+            ## closing after reasoning_content without ever emitting an     ##
+            ## answer ]. any finish/tool processing would have moved the    ##
+            ## state machine out of 'streaming' already, so reaching this   ##
+            ## branch always means the round produced nothing actionable.   ##
+            ## a silent no-op here orphans the task in sm_state 'streaming' ##
+            ## forever [ http_cleanup cancels all watchers, no timer        ##
+            ## pending ] : retry with an answer-nudge, bounded, then fail   ##
+            ## visibly [ mirrors chunk_handler's  unparseable-tool-call     ##
+            ## retry discipline ]. the reasoning trace itself is NOT        ##
+            ## injected into messages : a truncated thinking trace in the   ##
+            ## next round's prompt is worse than a bare retry               ##
+            my $retry_max = <coding.cfg.reasoning_only_retry_max> // 2;
+            my $retries   = $state->{'reasoning_only_retries'}    // 0;
+            my $reasoning_len
+                = length( $state->{'chunk_context'}->{'reasoning'} // '' );
+
+            if ( $retries < $retry_max ) {
+                $state->{'reasoning_only_retries'} = $retries + 1;
+                <[base.logs]>->(
+                    1,
+                    'http_complete: %s closed after %d bytes with no '
+                        . 'content/tool_calls/finish_reason [ reasoning %d '
+                        . 'bytes ] : enqueuing answer-nudge round [ attempt '
+                        . '%d/%d ]',
+                    $task_id,
+                    $http_state->{'bytes_received'},
+                    $reasoning_len,
+                    $retries + 1,
+                    $retry_max
+                );
+                push @{ $state->{'messages'} },
+                    {
+                    'role'    => 'user',
+                    'content' => 'Your previous response ended before any '
+                        . 'answer was produced [ the stream '
+                        . 'contained only reasoning ]. Respond '
+                        . 'now with your actual answer, or a '
+                        . 'properly formatted tool call if one '
+                        . 'is required.',
+                    };
+                $state->{'round'}++;
+                <coding.async.task_state>->{$task_id} = $state;
+                <[coding.task.enqueue_round]>
+                    ->( $task_id, $state->{'round'} );
+            } else {
+                <[base.logs]>->(
+                    0,
+                    'http_complete: %s reasoning-only close '
+                        . 'persisted across %d nudges : failing task',
+                    $task_id,
+                    $retry_max
+                );
+                <[coding.async.state_machine]>->(
+                    'transition',
+                    $task_id,
+                    {   'event' => 'error',
+                        'error' => 'model closed stream with reasoning-only '
+                            . 'output and no finish_reason across '
+                            . ( $retry_max + 1 )
+                            . ' attempts [ answer-nudge retries exhausted ]',
+                    }
+                );
+            }
         } else {
             <[base.logs]>->(
                 0, "http_complete: task %s connection closed with no data",
@@ -238,8 +296,8 @@ my $backend_early = $state->{'backend'} // '';
 
 return;
 
-#,,,,,,..,,..,.,.,,,,,.,,,,.,,.,.,.,,,.,,,,.,,..,,...,...,..,,.,,,,,.,.,,,,,.,
-#5YV4BGVJMOTDK64YH5D7EPETIKCAWJGJTT6HE6IMSOSMBKV5RL64KL4LPKNBS6C3BIVSFDMWNRNGW
-#\\\|FB6Z7V3QOS4LRQOTDMQCSOZH4PZ6VWQFIZXEBVABFXGYWQ5A33V \ / AMOS7 \ YOURUM ::
-#\[7]WVLXC2ADPOMXPUDY6QTNZGW2BE3JVLT3J7NFEOQWBMHKND6A56DQ 7  DATA SIGNATURE ::
+#,,,.,...,,,,,.,.,...,...,.,,,.,.,,..,...,.,.,..,,...,...,.,,,.,.,..,,,..,,,,,
+#PUVEIGQK4NRUY236UI5L4NCC65OUURPVFSOHTTCZRISRPEZNYIBG3MONDLTCR4SH7INM63XDFH57G
+#\\\|L43D67KJ2YOI4BRSMNFC5YKMMW4UOIZ733K4LCKQQAYJMQMGCG4 \ / AMOS7 \ YOURUM ::
+#\[7]2D3SWCLPM6KWC2GAJOSII55XIJADNOXURRSTAQA7BDBXB3GFMMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
