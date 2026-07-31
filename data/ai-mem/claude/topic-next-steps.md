@@ -210,7 +210,11 @@ metadata:
   `base.exec.with_timeout`'s transitive POSIX (`WNOHANG`)/`IPC::Open3`
   deps — call site moved into `mpv.init_code`. Curve-phase persistence
   (layer 5 of [[topic-mpv-persistence]]) deliberately NOT done — depends
-  on the curve automation item below landing first.
+  on the curve automation item below landing first. Follow-up fix same
+  day (`bac000eef`): restore-seek now gated on mpv's own `seekable`/
+  `partially-seekable` properties, so restoring against a live stream
+  (radio) skips the meaningless seek instead of attempting it — see
+  [[topic-mpv-persistence]] "restore-seek non-seekable guard".
 - **visual curve automation** — extend base.curve.* to brightness/contrast/gamma/
   saturation/shader; same shape as existing volume fade
 - **cross-mapped curve routing** — param driven by another param or external signal
@@ -688,8 +692,8 @@ summarizer) — pass `auto_summarize: false` for tasks like these, or
 cross-check `p7_task_queue`/`coding.show-buffer model_output` before
 assuming a reported failure means no work happened.
 
-#,,,.,...,,,,,.,.,.,,,,.,,.,.,,..,,,.,.,.,.,.,..,,...,.,.,...,,.,,.,.,,,.,,..,
-#BUMUOCKK3A6FYL7WNYWF4KOP7JPFPVCHA5EGSV4XQFD2WY4KZTCJU4BQPVVLYYK5JGKW7JBZ4PJKC
-#\\\|W7WQBPCMCH2X6RN56T3MEESKE5HQINSPNEMFXS22KMLV3R4T2MQ \ / AMOS7 \ YOURUM ::
-#\[7]F5OFE4UF35NS2NKY3OFHCW7RJRMAXAKU6QGGGPHGIP3TGCCEDWCQ 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,,,,.,,,,,,,,,.,.,,,...,,,,,,,.,..,,...,..,,...,,..,,.,,,,.,,,.,
+#YTUBH7UIVJKB7EPIXMHXNA3CDVRVLGTBLPZDFSPUEWJ3WVJHJIW6GWNW6WY5XVHK4GLSNNYC5ZBJI
+#\\\|D74LVZSIFC6YLM5BWN6SVAMHINTWO7M7JTKR73SZLLDWN5JAKBP \ / AMOS7 \ YOURUM ::
+#\[7]QFNQ56OAGC6NF7M5OI223U6TUYYO22EIZG4AJ6CJNEJAE2IIQKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
