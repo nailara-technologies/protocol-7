@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = forensics.cmd.report-assemble
+# param = date=<YYYY-MM-DD> | from=<YYYY-MM-DD> to=<YYYY-MM-DD> |
+#         bare YYYY-MM-DD [ default : today ]
+# descr = aggregate a period's investigations into a report
+
+## thin wrapper around forensics.report.assemble [ phase 1 of the      ##
+## forensic-report-pipeline ] -- the nightly 04:07 slot is the natural ##
+## trigger, this command is the manual path                            ##
+
+my $args_str = $call->{'args'} // '';
+
+my %param;
+if ( $args_str =~ m{\bdate=(\S+)} ) {
+    $param{'date'} = $LAST_PAREN_MATCH;
+} else {
+    if ( $args_str =~ m{\bfrom=(\S+)} ) {
+        $param{'from'} = $LAST_PAREN_MATCH;
+    }
+    if ( $args_str =~ m{\bto=(\S+)} ) {
+        $param{'to'} = $LAST_PAREN_MATCH;
+    }
+    if ( not %param and $args_str =~ m{^(\d{4}-\d{2}-\d{2})$} ) {
+        $param{'date'} = $LAST_PAREN_MATCH;    ## bare date ##
+    }
+}
+
+my $result = <[forensics.report.assemble]>->( \%param );
+
+return $result
+    if not ref $result
+    or ( $result->{'mode'} // '' ) ne qw| true |;
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        "report assembled : %d entries\n  report : %s\n",
+        $result->{'count'} // 0,
+        $result->{'report_path'},
+    )
+};
+
+#,,,.,,,.,.,.,,,,,.,.,.,.,,,.,.,.,...,...,,..,..,,...,...,,..,.,.,,,,,,.,,,.,,
+#INR4BCADTJTAIC4JHCYMXAIKZC5ASKA67WTOFIPDX2NBLEGWJMNWMKSBL7QGLASFXV2YSNQD52JNS
+#\\\|ARK6PDG6YBMLWPQ4BJ2RNRCJX2VAUWRFOV7OS2ZCKSFRL6I6O2Q \ / AMOS7 \ YOURUM ::
+#\[7]R66XVEQJQTLS35P5TAZIZVI6E2UKXO6I4ENW62PE7PLLAAIA22CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,307 @@
+## [:< ##
+
+# name  = forensics.report.assemble
+# descr = aggregate the investigation records of a period [ investigate
+#         dir, written by forensics.investigate.finding ] into a single
+#         structured report record : per finding -- abstract pattern
+#         class, risk category, verification status, proposed control
+# param = { date => YYYY-MM-DD } | { from => .., to => .. } [ optional,
+#         default : today, same UTC gmtime convention as the nightly
+#         sweep and the investigation record filenames ]
+# return = { mode => true, report_path => .., count => N }
+#          or { mode => false, data => <error> }
+
+##      phase 1 [ data/tasks/forensic-report-pipeline.md task 1.1 ] :       ##
+##      deliberately mechanical -- no LLM calls, local records only [       ##
+##      HYBRID-LLM-GOVERNANCE offline invariant ].                          ##
+##                                                                          ##
+##      no cross-store join : the investigation records ALREADY embed       ##
+##      the full enriched finding [ scanner, oid, name, severity,           ##
+##      target ] alongside the verdict, keyed by correlation id in the      ##
+##      filename <date>_<correlation_id>.yaml -- this module                ##
+##      aggregates and transforms those records over a period, nothing      ##
+##      else.                                                               ##
+##                                                                          ##
+##      reports are GENERALIZED by design : entries carry the pattern       ##
+##      CLASS of an issue, never target identifiers or exploit detail       ##
+##      [ forensics.report.generalize produces the network-safe form        ##
+##      ].                                                                  ##
+##                                                                          ##
+##      a period with no investigation records is NOT an error -- an        ##
+##      empty-but-valid report is written [ consistent with the sweep       ##
+##      writing a record even with zero matched lines ]                     ##
+
+my $param = shift // {};
+$param = { 'date' => $param } if not ref $param;    ## bare date string ##
+
+return { 'mode' => qw| false |, 'data' => 'expected param hashref' }
+    if ref $param ne qw| HASH |;
+
+## --- period resolution ------------------------------------------------- ##
+
+my @gm    = gmtime;
+my $today = sprintf qw| %04d-%02d-%02d |, $gm[5] + 1900, $gm[4] + 1, $gm[3];
+
+my $from = $param->{'from'} // $param->{'date'} // $today;
+my $to   = $param->{'to'}   // $param->{'date'} // $from;
+
+my $date_re = qr{^(\d{4})-(\d{2})-(\d{2})$};
+
+foreach my $check_date ( $from, $to ) {
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( 'invalid date [ %s ] -- YYYY-MM-DD expected',
+            $check_date )
+        }
+        if $check_date !~ $date_re
+        or $2 > 12
+        or $2 < 1
+        or $3 > 31
+        or $3 < 1;
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( 'invalid period [ from %s after to %s ]', $from, $to )
+    }
+    if $from gt $to;
+
+my $generated_str
+    = sprintf qw| %04d-%02d-%02dT%02d:%02d:%02dZ |,
+    $gm[5] + 1900, $gm[4] + 1, $gm[3], $gm[2], $gm[1], $gm[0];
+
+## --- directories [ created at zenka init -- see forensics.init_code ] -- ##
+
+my $var_p7 = <system.path.zenka-dirs.var_P7> // qw| /var/protocol-7 |;
+my $investigate_dir = <forensics.cfg.investigate_dir>
+    // sprintf qw| %s/%s/investigations |, $var_p7, <system.zenka.name>;
+my $reports_dir = <forensics.cfg.reports_dir> // sprintf qw| %s/%s/reports |,
+    $var_p7, <system.zenka.name>;
+
+return {
+    'mode' => qw| false |,
+    'data' =>
+        sprintf( 'investigation dir missing [ %s ] -- created at zenka init',
+        $investigate_dir )
+    }
+    if not -d $investigate_dir;
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( 'reports dir missing [ %s ] -- created at zenka init',
+        $reports_dir )
+    }
+    if not -d $reports_dir;
+
+## --- pattern classes : abstract issue class + generic control ---------- ##
+## [ keyed on finding name tokens -- describes the CLASS of issue, never   ##
+## the exploit path ; extend conservatively, the fallback stays generic ]  ##
+
+my @pattern_rules = (
+    [   'remote-code-execution',
+        qr{remote\s+code\s+execution|\bRCE\b}i,
+        'remote code execution in a network-reachable component',
+        'restrict network reachability of the affected '
+            . 'service class and prioritize vendor remediation',
+    ],
+    [   'privilege-escalation',
+        qr{privilege\s+escalation|elevation\s+of\s+privilege}i,
+        'privilege escalation through a local component',
+        'audit local privilege boundaries and apply vendor fixes',
+    ],
+    [   'default-credentials',
+        qr{default\s+(?:password|credentials?)|brute[\s-]?force}i,
+        'default or guessable credentials on an exposed service',
+        'enforce unique credentials and rotate existing ones',
+    ],
+    [   'weak-cryptography',
+        qr{weak\s+(?:cipher|crypto)|deprecated\s+(?:cipher|protocol)
+            |\b(?:SSLv2|SSLv3|TLSv1\.0|RC4|\bDES\b|MD5|SHA-?1)\b}ix,
+        'obsolete cryptographic algorithm or protocol version in use',
+        'enforce modern protocol versions and cipher suites',
+    ],
+    [   'missing-encryption',
+        qr{cleartext|unencrypted|plaintext\s+(?:password|credential)}i,
+        'sensitive data transmitted or stored without encryption',
+        'enforce encrypted transport and storage for the affected data class',
+    ],
+    [   'denial-of-service',
+        qr{denial\s+of\s+service|\bDoS\b|resource\s+exhaustion}i,
+        'resource exhaustion or crash condition in an exposed service',
+        'apply vendor fixes and bound the resource '
+            . 'consumption of the affected service class',
+    ],
+    [   'certificate-validation',
+        qr{certificate|x\.509}i,
+        'transport-security certificate validation weakness',
+        'enforce certificate lifecycle management and validation',
+    ],
+    [   'information-disclosure',
+        qr{information\s+(?:disclosure|leak)|version\s+disclosure
+            |banner\s+grab}ix,
+        'service discloses internal version or configuration details',
+        'reduce service fingerprinting surface in exposed services',
+    ],
+    [   'injection',
+        qr{sql\s+injection|command\s+injection|code\s+injection
+            |\bxss\b|cross[\s-]site\s+scripting}ix,
+        'improper input handling in an exposed component',
+        'enforce input validation and output encoding boundaries',
+    ],
+    [   'path-traversal',
+        qr{path\s+traversal|directory\s+traversal|arbitrary\s+file\s+read}i,
+        'insufficient path validation in an exposed component',
+        'enforce path validation and least-privilege file access',
+    ],
+    [   'unsupported-software',
+        qr{\bEOL\b|end[\s-]of[\s-]life|unsupported\s+version|outdated}ix,
+        'software version no longer receiving security fixes',
+        'establish a patch-management and upgrade cycle',
+    ],
+    [   'firmware-signature',
+        qr{firmware.*sign|unsigned\s+firmware}i,
+        'device firmware lacks signature verification',
+        'enforce signed firmware updates and secure boot',
+    ],
+);
+
+my $fallback_class   = 'unclassified';
+my $fallback_pattern = 'unclassified exposure reported by scanner '
+    . '[ manual pattern review recommended ]';
+my $fallback_control = 'perform manual assessment and apply vendor guidance';
+
+my %verdicts
+    = map { $ARG => TRUE } qw| confirmed false-positive needs-manual-review |;
+
+## --- collect investigation records of the period ------------------------ ##
+
+my @record_files = sort grep {
+    my ($file_date) = m{^.*/(\d{4}-\d{2}-\d{2})_[^/]+\.yaml$};
+    defined $file_date and $file_date ge $from and $file_date le $to;
+} glob( sprintf qw| %s/????-??-??_*.yaml |, $investigate_dir );
+
+my @entries;
+my $skipped = 0;
+
+foreach my $record_path (@record_files) {
+    my $record = <[format.yaml.load_file]>->($record_path);
+
+    if ( ref $record ne qw| HASH | ) {
+        $skipped++;
+        <[base.logs]>->(
+            2, 'report assemble : skipping unreadable record [ %s ]',
+            $record_path
+        );
+        next;
+    }
+
+    my $investigation = $record->{'investigation'} // {};
+    my $finding       = $record->{'finding'}       // {};
+    my $detail        = $finding->{'finding'}      // {};
+
+    my $correlation_id = $investigation->{'correlation_id'} // '';
+    if ( not length $correlation_id ) {    ## fall back to the filename ##
+        ($correlation_id) = $record_path =~ m{([^/]+)\.yaml$};
+    }
+
+    my $verdict = $investigation->{'verdict'} // '';
+    $verdict = qw| needs-manual-review | if not $verdicts{$verdict};
+
+    my $f_name = $detail->{'name'} // '';
+    my $f_oid  = $detail->{'oid'}  // '';
+
+    my ( $class, $pattern, $control )
+        = ( $fallback_class, $fallback_pattern, $fallback_control );
+    foreach my $rule (@pattern_rules) {
+        my ( $r_class, $r_re, $r_pattern, $r_control ) = @{$rule};
+        next if $f_name !~ $r_re;
+        ( $class, $pattern, $control ) = ( $r_class, $r_pattern, $r_control );
+        last;    ## first matching class wins ##
+    }
+
+    ## risk category : from scanner severity [ numeric cvss or word ], ##
+    ## conservative default medium when absent or unparseable          ##
+
+    my $severity = $detail->{'severity'} // '';
+    my $risk;
+    if ( $severity =~ m{^(\d+(?:\.\d+)?)$} ) {
+        my $score = $1 + 0;
+        $risk
+            = $score >= 9.0 ? qw| critical      |
+            : $score >= 7.0 ? qw| high          |
+            : $score >= 4.0 ? qw| medium        |
+            : $score > 0    ? qw| low           |
+            :                 qw| informational |;
+    } elsif ( $severity =~ m{^(high|medium|low|critical)$}i ) {
+        $risk = lc $severity;
+    } elsif ( $severity =~ m{^(log|debug|info|informational)$}i ) {
+        $risk = qw| informational |;
+    } else {
+        $risk = qw| medium |;    ## conservative : neither dismissed ##
+    }    ## nor escalated when unknown       ##
+
+    push @entries,
+        {
+        'correlation_id'      => $correlation_id,
+        'scanner'             => $finding->{'scanner'} // qw| unknown |,
+        'finding_oid'         => $f_oid,
+        'pattern_class'       => $class,
+        'pattern'             => $pattern,
+        'risk_category'       => $risk,
+        'verification_status' => $verdict,
+        'proposed_control'    => $control,
+        };
+}
+
+## --- report record                                       ##
+## ------------------------------------------------------- ##
+
+my $report = {
+    'report' => {
+        'period'         => { 'from' => $from, 'to' => $to },
+        'generated'      => $generated_str,
+        'generated_unix' => time,
+        'generator'      =>
+            sprintf( qw| %s.report.assemble |, <system.zenka.name> ),
+        'source_dir'      => $investigate_dir,
+        'records_found'   => scalar @record_files,
+        'records_skipped' => $skipped,
+        'entry_count'     => scalar @entries,
+    },
+    'entries' => \@entries,
+};
+
+my $report_name
+    = $from eq $to
+    ? sprintf qw| %s.yaml |, $from
+    : sprintf qw| %s_%s.yaml |, $from, $to;
+my $report_path = sprintf qw| %s/%s |, $reports_dir, $report_name;
+
+my ( $ok, $write_err )
+    = <[format.yaml.write_file]>->( $report_path, $report );
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( 'report write failed [ %s ]', $write_err // qw| ? | )
+    }
+    if not $ok;
+
+<[base.logs]>->(
+    1,
+    'report assembled : %d entries [ %d records, %d skipped, %s..%s ] : %s',
+    scalar @entries,
+    scalar @record_files,
+    $skipped, $from, $to, $report_path
+);
+
+return {
+    'mode'        => qw| true |,
+    'report_path' => $report_path,
+    'count'       => scalar @entries,
+};
+
+#,,,.,,.,,...,,..,.,.,,,.,...,,..,,.,,,,.,.,,,..,,...,...,...,.,,,,,.,,..,,.,,
+#G6EMCG52C2ZMUKHQML5BHJAIWUEU3EJBY6MCGAEOZCRNY4W3HVAOOSPZOWRLSA37PA6PCPBFHX5KW
+#\\\|KLWMYJNOXPLKLSADKH5FYP56S275CDZJ76IJOIT4CYKUPOOH4WZ \ / AMOS7 \ YOURUM ::
+#\[7]NT6PUPFFCQ4QXEGGCJCY2OC7BK5NOBVKLGCKRIYUPV3UXWHOJOCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
