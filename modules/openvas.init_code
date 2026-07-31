@@ -3,15 +3,15 @@
 # name  = openvas.init_code
 # descr = openvas zenka initialization : scan data dir + handoff dir creation
 
-##  both dirs are created here at init, with the zenka user as owner       ##
-##  [ nessus.init_code + p7-log.init_code + forensics.init_code            ##
-##  precedent ] : file.make_path is only available during the init         ##
-##  phase -- post-init the deferred-compile sources are cleaned and the    ##
-##  sub resolves to undef [ verified live 2026-07-29 ]                     ##
+##  both dirs are created here at init, with the zenka user as owner [      ##
+##  nessus.init_code + p7-log.init_code + forensics.init_code precedent ]   ##
+##  : file.make_path is only available during the init phase -- post-init   ##
+##  the deferred-compile sources are cleaned and the sub resolves to undef  ##
+##  [ verified live 2026-07-29 ]                                            ##
 ##                                                                          ##
 ##  handoff dir : enriched finding yaml written by                          ##
-##  openvas.cmd.report-to-forensics, read cross-zenka by the forensics     ##
-##  zenka [ file=.. argument of forensics.cmd.investigate.finding ]        ##
+##  openvas.cmd.report-to-forensics, read cross-zenka by the forensics      ##
+##  zenka [ file=.. argument of forensics.cmd.investigate-finding ]         ##
 
 my $data_dir = <openvas.cfg.data_dir> // sprintf qw| %s/data/openvas |,
     <system.root_path>;
@@ -41,8 +41,8 @@ return 0;
 #  run bin/Protocol-7 sourcecode update-signatures before the next verified commit.
 #,,.,.,.,,,,..,,.,.,,,.,,,..,,,,.,.,.,,..,,,,.,..,,,,.,..,,.,,,.,,..,,.,,,..,
 
-#,,,,,,,.,,..,,.,,...,.,,,,.,,,.,,,..,,,.,,,,,..,,...,...,.,,,...,,..,..,,,..,
-#G447VODKCOKKTA43QTEKBQRNHBC3RJKBF3M4QNZDC4W7NRW6EAO4RIJCZDHB5LYCV4RPINK6XM2BI
-#\\\|PJEMMWG66H2H5753PCBWRAX2CWRA6VCMHDVQPLTD2755BQEBAOT \ / AMOS7 \ YOURUM ::
-#\[7]EWFIEPXF7A32O76PYSHLWE373D2VLHPTADRAW73MANOA6G3CO2BQ 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,..,,.,.,...,...,.,.,..,,,,.,,,,,..,,...,...,.,,,...,...,...,,,,,
+#732A4H7OEDCVUS4VM4UWQIJHBM6MBQ5SE46GUY6GLWNS6IDD4WH2C54BZNLUN3FI4VVK4OQIBGI5O
+#\\\|F5GX2HB2MQ2XPVH5RRBTZL5U27VW7SLUXBB3QHRJ6EWCSSFDFN4 \ / AMOS7 \ YOURUM ::
+#\[7]5MB3DU4HD5VQHGMG6E3W7WYUWQ3K63VTSQPNV4KUU4WLVDMOZ4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

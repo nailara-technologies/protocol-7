@@ -1,17 +1,16 @@
 ## [:< ##
 
-# name  = forensics.cmd.investigate.finding
+# name  = forensics.cmd.investigate-finding
 # param = file=<finding.yaml> | inline k=v finding fields
 # descr = investigate an enriched finding, write record
 
-##    entry point for the future scan.cmd.report-to-forensics handoff      ##
-##    [ openvas phase 2 .., grant reserved in zenka start file ] and for    ##
-##    manual investigation via p7c.                                         ##
-##                                                                          ##
-##    inline form :                                                         ##
-##      correlation_id=.. scanner=.. target=.. oid=.. severity=.. \         ##
-##      name=.. modules=a,b paths=/x,/y                                     ##
-##    [ name may be quoted with '..' to contain spaces ]                    ##
+##      entry point for the future scan.cmd.report-to-forensics           ##
+##      handoff [ openvas phase 2 .., grant reserved in zenka start       ##
+##      file ] and for manual investigation via p7c.                      ##
+##                                                                        ##
+##      inline form :  correlation_id=.. scanner=.. target=.. oid=..      ##
+##      severity=.. \ name=.. modules=a,b paths=/x,/y  [ name may be      ##
+##      quoted with '..' to contain spaces ]                              ##
 
 my $args_str = $call->{'args'} // '';
 
@@ -55,11 +54,10 @@ if ( $args_str =~ m{file=(\S+)} ) {
             'target'   => $arg{'target'}   // '',
         },
         'enrichment' => {
-            'related_modules' => [
-                grep {length} split m|,|, $arg{'modules'} // ''
-            ],
-            'local_paths'
-                => [ grep {length} split m|,|, $arg{'paths'} // '' ],
+            'related_modules' =>
+                [ grep {length} split m|,|, $arg{'modules'} // '' ],
+            'local_paths' =>
+                [ grep {length} split m|,|, $arg{'paths'} // '' ],
             'notes' => $arg{'notes'} // '',
         },
     };
@@ -67,13 +65,15 @@ if ( $args_str =~ m{file=(\S+)} ) {
 
 my $result = <[forensics.investigate.finding]>->($finding);
 
-return $result if not ref $result or ( $result->{'mode'} // '' ) ne qw| true |;
+return $result
+    if not ref $result
+    or ( $result->{'mode'} // '' ) ne qw| true |;
 
-my $ev = $result->{'evidence'} // {};
+my $ev         = $result->{'evidence'} // {};
 my $reply_text = sprintf(
-    "investigation complete : %s\n  verdict      : %s\n  record       : %s\n"
-        . "  log evidence : %d hits in %d files\n"
-        . "  modules      : %d checked\n  local paths  : %d checked\n",
+    "investigation complete : %s\n  verdict      : %s\n  record       : %s\n "
+        . " log evidence : %d hits in %d files\n  modules      : %d "
+        . "checked\n  local paths  : %d checked\n",
     $finding->{'correlation_id'},
     $result->{'verdict'},
     $result->{'record_path'},
@@ -85,8 +85,8 @@ my $reply_text = sprintf(
 
 return { 'mode' => qw| true |, 'data' => $reply_text };
 
-#,,.,,,,,,,..,,,,,,,,,.,.,,,,,,.,,,,.,,..,..,,..,,...,..,,.,.,,,,,.,,,..,,.,,,
-#MH35QLE35NFD3ANEWL4FICSH2PFBAK6QC2AAPRJ3525X3D25A6LPJ27PXBQCEP4SBFIIUOUWNQYIO
-#\\\|2J7BN3TSBNPKCNYIFK4US3IIXWQZGONC7IFO4THELYIFI5SXWIE \ / AMOS7 \ YOURUM ::
-#\[7]3C7DZHXT22VWGUIXYIKBNLLCNYIZNB5RHSLKK4XY6DDJJYSR2GCY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,..,..,,,.,,..,,..,,,,,,..,,,,,,..,,...,..,,...,.,.,.,.,...,..,,
+#GG2MTAML6YV6NVETEPPPRVLMHXDIXO64BKVEHBE4YX2F7VLCBY277DP5XL5ZJG4LJRF5YVBPFMSWA
+#\\\|37XL2RFFTLMHB2JRUWB2FJVT6TK5GRISCA7TTQZDXNWTNQAR7I2 \ / AMOS7 \ YOURUM ::
+#\[7]2NIXFSJ3FAE3TNTYIYC3ZU3RAFDP2NJYRFPNHIZPYQTJB3E26KBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
