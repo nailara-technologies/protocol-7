@@ -363,6 +363,17 @@ Browser fields (POST from browser): stage notes date_applied
 stage appears in both — pipeline sets it, browser can override via reverse sync.
 `userDecisions` localStorage ensures browser override survives subsequent pipeline pushes.
 
+**Watermark-ordering gotcha (fixed 2026-07-31, commit cab203d14, see
+[[topic-job-pipeline]] for the full writeup)**: `plugin.web.jobs.data`
+now stamps the `ntime` watermark it hands back to the client at the very
+*start* of the handler, before reading the job cache or the
+`removed_log`. Stamping it at the end (the original bug) let a tombstone
+appended mid-request slip past the already-built `removed` array while
+the client was still handed a watermark newer than it — permanently
+orphaning that tombstone, since a client's `since=` watermark only moves
+forward. Any future endpoint here that hands back a delta watermark
+should stamp it before reading the data it's answering from, not after.
+
 ## Config (jobsite start)
 
 ```
@@ -380,8 +391,8 @@ jobsite.cfg.sync_interval = 300
 - reset button: clears jobs + userDecisions + lastNtime (destructive, dialog warns)
 - 30s auto-poll via `startPoll()` using `?since=lastNtime` delta
 
-#,,,,,,,,,...,,,,,..,,,.,,,,,,,,,,,..,.,,,,,.,..,,...,...,.,,,...,,,,,,..,,.,,
-#6UAG6WEVSQR6YZZL6BFS3JNSMFDTFOTORGH3C3TGOG4QNQQLMB65OB7OCRV5NQMJ5Q73CTEGUFRT6
-#\\\|E73FOJEEALQXBDNRD2JZXNADGXWED5Z5RS3F5XJHKNVM7K634NZ \ / AMOS7 \ YOURUM ::
-#\[7]BH6L6WPJSMYLTTE476EO42ODKRIMBXVQICUAH4PYXCVYCXLHWSDI 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,,,,...,.,.,...,.,.,.,,,...,.,.,..,,...,...,.,.,..,,...,,,.,,.,,
+#RPXFEEUKFRCA4X4IJOFBALDJBXQ7PSNJDOFEOE4IEIXJBHWFFDAE2KVZVQ2MDQPBNYVOHEL55XA7I
+#\\\|ZTG5UX2T6J74VAWT35UH3EYH2KJCQOFQATA5GWJ2ERZX6RZMI5Y \ / AMOS7 \ YOURUM ::
+#\[7]BWCPSJ2O3OYHRBM2GHR75X5YHT7572RFUERYMO7ILSWWRUBVCYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
