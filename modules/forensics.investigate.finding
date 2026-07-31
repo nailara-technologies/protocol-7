@@ -13,7 +13,7 @@
 ##                                                                          ##
 ##      enriched finding contract [ producer : scan.cmd.report-to-         ##
 ##      forensics -- not yet implemented, openvas phase 2 .., until then    ##
-##      forensics.cmd.investigate.finding builds the same shape ] :         ##
+##      forensics.cmd.investigate-finding builds the same shape ] :         ##
 ##                                                                          ##
 ##        correlation_id : stable id, preserved verbatim into the           ##
 ##                         investigation record [ join key for the          ##
@@ -66,11 +66,11 @@ return {
     }
     if not length $f_name and not length $f_oid;
 
-my $f_target = $detail->{'target'} // $finding->{'scan'}{'target'} // '';
+my $f_target   = $detail->{'target'} // $finding->{'scan'}{'target'} // '';
 my $enrichment = $finding->{'enrichment'} // {};
 $enrichment = {} if ref $enrichment ne qw| HASH |;
 
-my $log_dir = <forensics.cfg.log_dir> // qw| /var/log/protocol-7 |;
+my $log_dir        = <forensics.cfg.log_dir> // qw| /var/log/protocol-7 |;
 my $window_seconds = <forensics.cfg.investigate_window_seconds>
     // <forensics.cfg.sweep_window_seconds> // 86400;
 my $max_log_refs = <forensics.cfg.investigate_max_log_refs> // 8;
@@ -81,10 +81,9 @@ my $investigate_dir = <forensics.cfg.investigate_dir>
 
 return {
     'mode' => qw| false |,
-    'data' => sprintf(
-        'investigation dir missing [ %s ] -- created at zenka init',
-        $investigate_dir
-    )
+    'data' =>
+        sprintf( 'investigation dir missing [ %s ] -- created at zenka init',
+        $investigate_dir )
     }
     if not -d $investigate_dir;
 
@@ -98,12 +97,12 @@ my $generated_str
 ## --- evidence : local log corroboration ------------------------------ ##
 
 my @terms;    ## fixed strings, longest-first match quality ##
-push @terms, $f_target if length $f_target >= 3
+push @terms, $f_target
+    if length $f_target >= 3
     and $f_target =~ m{^[\w\.\-:]+$};
 push @terms, $f_oid if length $f_oid >= 6 and $f_oid =~ m{^[\w\.\-]+$};
 
-my @name_tokens
-    = grep { length $ARG >= 6 }
+my @name_tokens = grep { length $ARG >= 6 }
     grep { $ARG =~ m{^\w+$} } split m{[^\w]+}, $f_name;
 push @terms, @name_tokens[ 0 .. ( @name_tokens < 4 ? $#name_tokens : 3 ) ]
     if @name_tokens;
@@ -119,10 +118,10 @@ my $log_hit_count   = 0;
 my $files_inspected = 0;
 
 if (@terms) {
-    foreach my $log_file ( sort glob( sprintf qw| %s/*.zenka.log |,
-        $log_dir ) ) {
+    foreach
+        my $log_file ( sort glob( sprintf qw| %s/*.zenka.log |, $log_dir ) ) {
         my $log_st = File::stat::stat($log_file);
-        next if not $log_st or $log_st->mtime < $cutoff;
+        next if not $log_st                    or $log_st->mtime < $cutoff;
         open( my $log_fh, qw| < |, $log_file ) or next;
         $files_inspected++;
         ( my $log_base = $log_file ) =~ s|^.*/||;
@@ -150,17 +149,18 @@ if (@terms) {
 
 ## --- evidence : related module state --------------------------------- ##
 
-my $root_path  = <system.root_path> // '';
+my $root_path = <system.root_path> // '';
 my @module_ev;
 my $rel_modules = $enrichment->{'related_modules'} // [];
 $rel_modules = [] if ref $rel_modules ne qw| ARRAY |;
 
 foreach my $mod_name ( @{$rel_modules} ) {
-    next if not defined $mod_name
+    next
+        if not defined $mod_name
         or $mod_name !~ m{^[A-Za-z0-9_][\w\-]{0,60}$};
 
-    my @mod_files = glob( sprintf qw| %s/modules/%s.* |, $root_path,
-        $mod_name );
+    my @mod_files
+        = glob( sprintf qw| %s/modules/%s.* |, $root_path, $mod_name );
     my $newest = 0;
     foreach my $mf (@mod_files) {
         my $st = File::stat::stat($mf) or next;
@@ -169,14 +169,12 @@ foreach my $mod_name ( @{$rel_modules} ) {
 
     my @commits;
     if ( length $root_path and -d sprintf( qw| %s/.git |, $root_path ) ) {
-        my $git_cmd = sprintf(
-            q{git -C '%s' -c safe.directory='%s' log -3 }
+        my $git_cmd
+            = sprintf( q{git -C '%s' -c safe.directory='%s' log -3 }
                 . q{--format='%%h %%s' --since='30 days ago' }
                 . q{-- 'modules/%s.*' 2>/dev/null},
-            $root_path, $root_path, $mod_name
-        );
-        @commits = grep {length} map { $ARG =~ s|\s+$||r }
-            qx| $git_cmd |;
+            $root_path, $root_path, $mod_name );
+        @commits = grep {length} map { $ARG =~ s|\s+$||r } qx| $git_cmd |;
     }
 
     push @module_ev,
@@ -229,7 +227,7 @@ my $record = {
         'generated_unix' => time,
         'window_seconds' => $window_seconds,
         'investigator'   => sprintf qw| %s.investigate.finding |,
-            <system.zenka.name>,
+        <system.zenka.name>,
     },
     'finding'  => $finding,
     'evidence' => {
@@ -258,9 +256,14 @@ return {
     if not $ok;
 
 <[base.logs]>->(
-    1, 'investigation %s : %s [ log hits %d, modules %d, paths %d ] : %s',
-    $correlation_id, $verdict, $log_hit_count, scalar @module_ev,
-    $paths_checked, $record_path
+    1,
+    'investigation %s : %s [ log hits %d, modules %d, paths %d ] : %s',
+    $correlation_id,
+    $verdict,
+    $log_hit_count,
+    scalar @module_ev,
+    $paths_checked,
+    $record_path
 );
 
 return {
@@ -270,8 +273,8 @@ return {
     'evidence'    => $record->{'evidence'},
 };
 
-#,,,,,...,.,,,.,.,,,.,.,.,,..,,..,...,..,,...,..,,...,..,,.,.,,..,,..,..,,,.,,
-#GQKRQ3CMWBK7PHLWDFH2FGPGQ6YTVL6YZDOLCWZWTHAKZXGAELSF55RCTNLX6JY4KYIG732SXBUYO
-#\\\|XIEUNB5ZLS76KVZGDQSSIE6H7LEKGGNVQSZOI3FFWUMVNUOAB4C \ / AMOS7 \ YOURUM ::
-#\[7]2G2EP3DG4MXCT2GVAGYDNHLMNPFACGYISLZ76JB6QJQ6LKHGUSCI 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,,,,,,,.,.,,,.,.,..,,,,,,..,,.,,,..,,...,...,.,,,,..,.,.,,.,,,,.,
+#3JCJL2FSWTS4YKUKVKPPDGVVI2GQJNBLKR3CNRWT3LB3E3KZYXWA7WIZG7QVKWFZSUDIOGIVK3M3G
+#\\\|4TR4G4XWHTOAI3SHCINHQVARE7GILHMZ4VTMG6GKADV3RCBO5TT \ / AMOS7 \ YOURUM ::
+#\[7]ZF7Z63OSSVG3RDHCVFIURO2NMBZ257SOQUOT3DBQUY5IXN4ZNKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -15,7 +15,7 @@
 ##                                                                          ##
 ##    each enriched finding is written to the handoff dir [ zenka var       ##
 ##    dir, created at init ] and routed as                                  ##
-##    'cube.forensics.investigate.finding file=<path>' -- the enriched      ##
+##    'cube.forensics.investigate-finding file=<path>' -- the enriched      ##
 ##    finding contract of forensics.investigate.finding, including the      ##
 ##    correlation id as join key for the forensic-report-pipeline. the      ##
 ##    forensics zenka is ondemand : cube queues the command and cold-       ##
@@ -23,7 +23,7 @@
 ##    openvas.handler.forensics-reply.                                      ##
 ##                                                                          ##
 ##    access : forensics/start grants access.cmd.usr.openvas =              ##
-##    investigate.finding [ phase 2 grant ].                                ##
+##    investigate-finding [ phase 2 grant ].                                ##
 
 my $args_str = $call->{'args'} // '';
 
@@ -176,7 +176,7 @@ foreach my $finding (@findings) {
 
     ##  standard zenka routing : cube -> forensics [ ondemand cold-start ] ##
     my $sent = <[protocol-7.command.send.local]>->(
-        {   'command'   => qw| cube.forensics.investigate.finding |,
+        {   'command'   => qw| cube.forensics.investigate-finding |,
             'call_args' => { 'args' => sprintf qw| file=%s |, $yaml_path },
             'reply'     => {
                 'handler' => qw| openvas.handler.forensics-reply |,
@@ -210,8 +210,8 @@ return {
 #  run bin/Protocol-7 sourcecode update-signatures before the next verified commit.
 #,,.,.,.,,,,..,,.,.,,,.,,,..,,,,.,.,.,,..,,,,.,..,,,,.,..,,.,,,.,,..,,.,,,..,
 
-#,,.,,.,.,...,,,.,,,.,,..,...,,,.,...,.,,,,,.,..,,...,...,..,,,,,,.,.,,,.,,..,
-#FPXFZBI7XK7VF7H65KCOBLMZQ2UOFEUXKDYJ7CJ5APMNDRP5H5NIBBZDAR5UGTRCHDHOQGXCETJQM
-#\\\|BVXMH42YZ772HD4IHNTO6OKHGLRKXQHKJHKNSS3CHZ7YZBVILSK \ / AMOS7 \ YOURUM ::
-#\[7]FSMGYFPGNPACM52ENSA6DIW76JKEZNV3C4ZEN22J3AIX57RRW6DA 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,.,,,.,.,..,,,,,,,..,..,,,..,,..,..,,...,...,,,.,.,.,.,,,.,.,..,,
+#KSFYLTOAWSEXFP4J72SXWDNU7Z756QCFSCQS53ZULPFPWCDCL3RMSG54VLKVHLQ7GKX3T4YOJP37K
+#\\\|JFATK6T7MPKJ7AEZLFP3N7MD5QQ5TCT2LPQ6LM5PJSIUU3MVNVJ \ / AMOS7 \ YOURUM ::
+#\[7]NHH65CN6QDZSTGE63JQJ5UM2M7HXTIW3UGXFMWUFWFESBJDEVADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
