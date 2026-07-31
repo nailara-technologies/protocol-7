@@ -131,6 +131,7 @@ if (
             my $st_result     = <[coding.self_test.run]>->(
                 {   model_id => $test_model_id,
                     url      => $server->{'url'},
+                    backend  => $backend,
                 }
             );
 
@@ -232,8 +233,8 @@ if (
         <[jobqueue.check_dependencies]>;
     }
 
-    ## cancel watcher once ready : no need to keep reading server output ##
-    ## [ continuing to read monopolizes the event loop during inference ] ##
+    ## cancel watcher once ready : no need to keep reading server output [ ##
+    ## continuing to read monopolizes the event loop during inference ]    ##
     <[coding.cancel_watcher.backend_monitor]>->($event);
 
 ### [ LLL : needs combined event cancel handler [ stdout stderr ] ]
@@ -307,8 +308,8 @@ if ( $bytes <= 0 ) {
     }
 }
 
-#,,.,,,,,,.,,,,..,...,.,.,,,,,,.,,..,,.,.,,.,,..,,...,.,.,,,.,..,,.,,,,.,,,..,
-#KN7Q3GZHJUMHAFMCZEFBYCJDMABXTKPHIWGPAAR4YY4GFAQWPJZMDTGSBZFBOHT4KLAG4USRRL55Y
-#\\\|UXGKRODPC5MTQ6B36H7QC5NO7M6Y6IYJIS2VRV2Z5NRC7RP5HX7 \ / AMOS7 \ YOURUM ::
-#\[7]UUKMSTNSBKUWQI3DTDRVM62KRZKKG33JBUPRGS2F37KAOLDQPKCA 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,...,...,,..,..,,.,.,,,,,,.,,..,,..,,...,...,...,,,.,.,,,...,,,,,
+#TJSTEN6AEG3UNWEW7YOPIG63TA74SXQZ45XBTTTPAWHECWOGHIGWVOPNQUNOZJGUNHOBRGBUWSFZM
+#\\\|J3XOT2OHZDMQRJ5R4O6MC4QPJTVJJK2JW2W3TIHB23VOFTAE3EA \ / AMOS7 \ YOURUM ::
+#\[7]PF6PASSBKKMMSFV72RG4ZRCPQ4ZK7YFU6X2LMPVL6PS24YDUMWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
