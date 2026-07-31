@@ -1,5 +1,9 @@
 # forensic report pipeline — task
 
+## status [ 2026-07-31 ] — phase 1 DONE, live-verified (`378f269ac`); phase 2
+(self-improvement task-tree wiring, ncode pattern-candidate extraction) and
+phase 3 (external template-refinement gate) not started
+
 ## context
 
 related: [[nessus-agent]], [[forensics-agent]], [[HYBRID-LLM-GOVERNANCE]]
@@ -89,8 +93,8 @@ external refinement is optional enrichment per wave.
 - reports are also training corpus for the security FastText domains —
   see [[security-intel-embedding-domains]].
 
-#,,,.,...,..,,.,.,..,,.,,,,,.,..,,,,,,.,,,...,..,,...,...,..,,,..,...,,..,.,,,
-#WTKLREZKNYXUDJLWN7MUOZ3CCRETA7HIEGA7MY4NVLLP6HB2OXKRYZLILANM6CU46PD4WIBXBF3OG
-#\\\|FWBD2REKEIPN2BNHV55XXRPRO5YVV4TLAMNZVEOL26VGUQV2G25 \ / AMOS7 \ YOURUM ::
-#\[7]5DWQBY4QA37GRJDNYOHUYEE5COKBD4A5EZOWYJRPG5VLU5456ICQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,.,.,,,,,,,,,...,..,,...,...,,..,..,,...,...,.,,,.,.,,..,,,,,..,,
+#S6ATYNNHDGTRFEZIODSKRXP5T24QX2BNHOWL4WI3USXJUGSEJQ54SILUKQQG54ZIUN7HSIT4KFWTK
+#\\\|NRYJJVXFOIVGFKBDTCABWTADWLUS5QH2BJ7W2G6HKCWEG7BIOCZ \ / AMOS7 \ YOURUM ::
+#\[7]QLWMSPLA5TJBHRORXFUVHH5S4PGO7OTRPKGIMTQTPWISCZ7SPWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
