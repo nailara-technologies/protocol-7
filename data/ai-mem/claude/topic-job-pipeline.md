@@ -284,8 +284,72 @@ calls with individually-caught, individually-notified errors is easy to
 miss in a large batch; flagged to the user as a known follow-up, not
 addressed this session.
 
-#,,..,,,,,...,..,,.,,,,,.,...,.,.,,..,.,.,.,.,..,,...,...,.,,,,..,,,,,,..,,.,,
-#KJVYZUF2WZQKGIRYWLA5KSH3CZ7ZA5MPAXLN5FQ3AZY6Q7UWYQPEZ4Q6QU3VW32MJYPLHDZWS45ZA
-#\\\|QIWOXGVTXEUESRLBGC2SYYPC2PCLIRXRZINKO32OIA5G43EPXKM \ / AMOS7 \ YOURUM ::
-#\[7]WCDE7UHLYMYRKGXTXROMOY3VHCHRVEOZQ7NKC5LS55BGKCEWSQCA 7  DATA SIGNATURE ::
+## Session 2026-07-31 — trash-tombstone watermark race (commit cab203d14),
+## Fehler-badge false-positive diagnosed but not code-fixed
+
+User reported two symptoms after a scan: (1) the "Fehler" badge lit up on
+almost every card in the UI while the "fehler" tab and its error counter
+stayed at 0, and (2) after the scan finished, 14 jobs that had just been
+correctly trashed (deservedly low-scored, real content) kept showing up
+in one Firefox tab's "alle" tab as if still unassessed — full title/
+company, but score empty, stuck on `stage: new`.
+
+**Bug 1 — Fehler badge, diagnosed, NOT fixed**: `index.html` checks
+`repair_failed` two different ways — the badge (`if (j.repair_failed)`,
+plain JS truthiness) vs. the tab filter/counter (`== 5 || === true`).
+Pulled the live feed directly (`p7c web.jobs-data`) and found 22 of 23
+jobs had `repair_failed` serialized as the **string** `"0"`, not the
+number `0` — `Boolean("0")` is `true` in JS, so the badge false-positives
+on nearly everything while the strict-equality checks stay correctly
+empty. Root cause: this codebase's `use constant FALSE => 0;`
+(`AMOS7.pm`) returns the *same shared scalar* every call; if that shared
+scalar is ever used in a string context anywhere in the process (e.g. a
+`%s`-formatted log line), Perl caches a string representation on it
+permanently for the life of the process, and every later `// FALSE`
+default (e.g. `jobsite.sync.push:82`) then serializes as JSON string
+`"0"` for the rest of that zenka's uptime — a classic Perl/JSON::XS
+dualvar footgun. **Not code-fixed this session** — the badge check at
+`index.html:1103` should be tightened to match the `==5||===true` test
+already used at the tab filter/counter, so a restart-triggered taint of
+the shared constant can't cause this again. Flagged to the user; they
+report it now displays correctly, most likely because the affected
+zenka's process was restarted/reloaded during this session, clearing the
+taint — this will resurface on its own the next time anything
+process-wide stringifies the `FALSE` constant.
+
+**Bug 2 — trash-tombstone watermark race, fixed, commit `cab203d14`**:
+`plugin.web.jobs.data` built the `removed` array from a snapshot of
+`<plugin.web.jobs.removed_log>`, then stamped the `ntime` watermark handed
+back to the client *afterward*. A tombstone appended between those two
+points [ interleaved event mid-request during the busy 32-minute scan ]
+was silently excluded from that response's `removed` array while the
+`ntime` handed back was already past it — permanently orphaning that
+tombstone from every future delta poll of that client, since its
+watermark can only move forward. Confirmed empirically, not just by code
+reading: replayed the exact `since=` value from the stuck tab via `p7c
+"web.jobs-data since=<lastNtime>"` and got 0 removed/0 jobs for the
+affected ids, then replayed with an *older* since (one of the tombstones'
+own ntimes) and got them back correctly — proving the tab's watermark had
+already jumped past tombstones it never actually received. Fix: stamp
+`$current_ntime` at the very top of the handler, before reading the
+cache/removed-log, so anything appended mid-request is still `>=` the
+watermark handed back and gets picked up on the client's next poll
+instead of being skipped forever. **No retroactive fix for clients
+already past the point of loss** — the only remedy for an already-
+orphaned tab is clearing its `jobs_pipeline_v1` localStorage key to force
+a fresh full load, confirmed clean server-side via `p7c web.jobs-data`
+(23 real jobs, no ghosts) before recommending it.
+
+**Diagnostic pattern worth repeating**: for any "one client shows stale/
+wrong state, server looks fine" report in this sync system, replay the
+client's own `since=`/`lastNtime` value directly against `p7c
+web.jobs-data since=<value>` rather than trusting code-reading alone —
+it's what turned a plausible-sounding race hypothesis into a proven one
+here, and would have caught bug 1's dualvar taint just as fast if tried
+first.
+
+#,,..,,,.,.,,,,,.,,.,,.,.,,,.,.,,,,.,,.,.,..,,..,,...,...,,,,,,,,,...,.,.,,..,
+#MPAVFP5QWTFTALWR5XHQF22TW6SSEJET6BIM6X5TERG6QFWSOUNH7IXHYP32ELVZOYURKGLMLGVQ6
+#\\\|U3C4W47P6E4MZVOKYS4EX5V4GKZJ2QCKJAPTBEGPQ3H6SZ7NJA3 \ / AMOS7 \ YOURUM ::
+#\[7]QP5ST454XOOQ5V3FXTMAQNRSZBHUU5BYOOZGXDISAFBL4DQVG2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
