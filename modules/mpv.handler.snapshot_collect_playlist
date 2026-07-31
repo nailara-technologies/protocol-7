@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = mpv.handler.snapshot_collect_playlist
+# descr = snapshot collect chain : playlist reply, then write snapshot
+
+my $playlist_json = shift // '';
+
+## same playlist property shape as mpv.handler.pipe.playlist ##
+if ( length $playlist_json ) {
+    my $playlist_data = eval { <mpv.json.parser>->decode($playlist_json) };
+    if ( ref $playlist_data eq qw| ARRAY | and @{$playlist_data} ) {
+        my @filenames;
+        my $current_idx;
+        foreach my $entry ( @{$playlist_data} ) {
+            push( @filenames, $entry->{'filename'} );
+            $current_idx = $#filenames
+                if not defined $current_idx
+                and ref $entry eq qw| HASH |
+                and ( exists $entry->{'current'}
+                or exists $entry->{'playing'} );
+        }
+        <mpv.snapshot.pending.playlist>         = \@filenames;
+        <mpv.snapshot.pending.playlist_current> = $current_idx;
+    }
+}
+
+<[mpv.snapshot.write]>;
+
+return;
+
+#,,..,,,,,,..,,,,,..,,,,,,...,,..,,..,.,,,,,.,..,,...,...,..,,...,.,.,,,,,.,.,
+#UJ2KNYYL3MJHMQMPZZYW6PLKXHYTT5H7JMF2SGV7OVAP6YI57TQOFH2GEDVVB7N7J42KYDMPYWCW6
+#\\\|AVHSR6TU3S3U2KCMQKIQEHIXD4HZKJLFKJTM7TBLQKEHX2ELI67 \ / AMOS7 \ YOURUM ::
+#\[7]36Q3PILEHV2UXCEX6I4QF3CWK6KM7OCSSM4JYM5HG2E7HTP6BIAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
