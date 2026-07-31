@@ -14,13 +14,15 @@ Mark items done here as they land instead of re-deriving this list from
 scratch in a future session.
 
 ## known fix needed, not yet done
-- [ ] 6 modules codebase-wide (forensics x2, `build.cmd.recipe.run`,
-  `ext-pkg.cmd.package.ensure`, `calc.cmd.val.eval_bigrat`,
-  `calc.cmd.val.format_truncated`) have dot-containing bare command
-  names that `base.regex`'s `cmd_str` pattern can't represent — gets
-  misparsed as a routing hop-chain, not a style nit. 4 of 6 are
-  live-routed today (forensics x2, build, ext-pkg); calc's 2 aren't
-  currently reachable via any grant. Rename all to hyphenated form. See
+- [ ] 5 of 6 modules codebase-wide still need fixing.
+  `build.cmd.recipe.run` → `recipe-run` **done manually via ncode,
+  `b7d9d163e`**. Remaining: forensics x2 + `ext-pkg.cmd.package.ensure`
+  are real routing bugs (hyphenate). `calc.cmd.val.eval_bigrat` /
+  `calc.cmd.val.format_truncated` turned out **not** to be routing bugs
+  at all — user caught this 2026-07-31: they're private helpers of
+  `calc.cmd.val`, called only via direct `<[...]>` sub-calls, never
+  cube-routed. Fix is to drop `.cmd.` entirely (→ `calc.val.*`), not
+  hyphenate into a bare command name that was never meant to exist. See
   [[bug-forensics-dotted-command-names]].
 - [ ] `bin/format-code`'s `step4_align_comment_block` under-pads the
   closing `##` by 1-2 chars on some multi-line box comments — confirmed
@@ -115,8 +117,8 @@ scratch in a future session.
   `elf_mode` consumer and threads it correctly through to
   `base.chk-sum.elf.inline` — not the same bug. No second instance found.
 
-#,,.,,,,,,.,.,...,.,,,,.,,,,.,,..,,,,,,,.,..,,.,.,...,..,,...,.,.,...,,..,,,,,
-#EAEANQ5PV75Q5DCJ2T4PXQFW4YGUY534SOKNZCLABXV3AMHNB4U24VDCJQT6XY7WSU6EIXATTAEDG
-#\\\|EL4YCCPM6CEI7HKEBLY67VBLP6TBKWDJ6H4BOJLOGX4VDGWFOXH \ / AMOS7 \ YOURUM ::
-#\[7]XS3DZK5BOPSE57CXZBOGP5EU3EMIXWC3VPWIA2ULJV6R5H6S4ABI 7  DATA SIGNATURE ::
+#,,.,,..,,...,..,,,..,..,,.,.,,.,,,.,,,..,,.,,.,.,...,...,,..,..,,,..,.,,,..,,
+#FY7MFZ35AR6I2KZ5QDVKFGXRJZJP2PWEO3GWNA3WXORHTIFVT5FEN64GBZ235XKFHB2XN7T2D3AZ2
+#\\\|TNUOM43MHA7LEN7XGIOQTWUROS5VIO2RSQDC6ATBMPUFJ5VJCYF \ / AMOS7 \ YOURUM ::
+#\[7]45RLNXDENV33P4WZ4ZMMBYG3OAKVQBTEVJYYL33IW5Z7V2ZHHEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
