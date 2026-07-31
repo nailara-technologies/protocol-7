@@ -1,6 +1,6 @@
 ---
 name: bug-forensics-dotted-command-names
-description: 6 modules codebase-wide (forensics x2, build x1, ext-pkg x1, calc x2) have dot-containing bare .cmd. command names, which base.regex's cmd_str pattern (used by all cross-zenka routing) cannot represent -- gets misparsed as a routing hop-chain instead of one atomic command. 4 of the 6 are live-routed today (forensics x2, build, ext-pkg); calc's 2 aren't currently reachable via any grant (naming inconsistency, not live-broken).
+description: 6 modules codebase-wide (forensics x2, build x1, ext-pkg x1, calc x2) have dot-containing bare .cmd. command names, which base.regex's cmd_str pattern (used by all cross-zenka routing) cannot represent -- gets misparsed as a routing hop-chain instead of one atomic command. 4 of the 6 (forensics x2, build, ext-pkg) are live-routed today and need a hyphenated rename; calc's 2 aren't routing bugs at all -- they're private helpers of calc.cmd.val that should never have had the .cmd. segment, fix is to drop it, not hyphenate. build.cmd.recipe.run renamed 2026-07-31 (b7d9d163e); 5 remain.
 metadata:
   node_type: memory
   type: project
@@ -35,14 +35,34 @@ assumed uniform**:
   (bare `package.ensure` is in `ext-pkg/start`'s active
   `access.cmd.usr.cube` — the *other* per-consumer grant below it is
   commented out, but this one isn't).
-- **not currently reachable, naming inconsistency only (2 files, 1
-  zenka)**: `calc/start`'s `access.cmd.usr.cube` grants bare `val` —
-  which doesn't match `val.eval_bigrat`/`val.format_truncated` at all, so
-  neither is reachable via that grant today. Likely internal helpers that
-  borrowed the `.cmd.` naming convention without being wired for cube
-  routing. Lower urgency, but worth renaming anyway — the bug would
-  reappear the moment anyone adds a real grant for them, inheriting the
-  same trap.
+- **not a routing bug at all, confirmed by user 2026-07-31 — a
+  misapplied `.cmd.` segment (2 files, 1 zenka)**: `calc/start`'s
+  `access.cmd.usr.cube` grants bare `val`, which routes to
+  `modules/calc.cmd.val` — the real, correctly-named command. Read
+  `calc.cmd.val` directly: it calls both
+  `<[calc.cmd.val.eval_bigrat]>->($formula)` and
+  `<[calc.cmd.val.format_truncated]>->($bigrat, $digits)` as plain
+  internal Perl subroutine calls, never through cube routing. These two
+  are **private helpers of `calc.cmd.val`, not commands at all** — the
+  `.cmd.` segment on them is simply wrong (the loader auto-registers
+  anything with `.cmd.`/`.console.` in its name into the global
+  bare-command table, per the collision mechanism documented in
+  `topic-ncode-pattern-learning-loop.md`'s "Bug A" — these two get
+  registered as routable commands nobody ever intended to expose).
+  Confirmed directly via `calc.commands`, the zenka's own live operator
+  command listing: only `val` appears, `val.eval_bigrat`/
+  `val.format_truncated` are absent entirely — they were never live,
+  registered commands from the operator's side at all.
+  **Correct fix is different from the other 4**: don't hyphenate them
+  into a new bare command name (that would just invent a routable
+  command that was never supposed to exist) — **drop the `.cmd.`
+  segment entirely**: `calc.cmd.val.eval_bigrat` → `calc.val.eval_bigrat`,
+  `calc.cmd.val.format_truncated` → `calc.val.format_truncated` (or
+  wherever this project's convention puts internal non-routable helpers
+  — check for an existing `calc.val.*`/similar sibling pattern before
+  picking the exact target namespace). This removes them from the
+  auto-registration table entirely rather than giving them a
+  syntactically-valid-but-pointless bare command name.
 
 **Root cause, confirmed via the actual protocol regex**
 (`modules/base.regex`):
@@ -87,24 +107,37 @@ sub-calls from `openvas.cmd.report-to-forensics`/`openvas.init_code`/
 directly, no protocol regex involved. It's specifically the
 cube/access.zenki-routed paths that are broken.)
 
-**Not yet fixed, for any of the 6.** Fix shape, matching this project's
-own established precedent (rename over workaround — see the
-`X-11.get_pointer_scr_rect` 23-char-limit rename, and the
+**Fix in progress, done manually via `ncode` (not dispatched) — 1 of 6 so
+far.** Two different fix shapes depending on tier:
+
+For the 4 real routable commands (rename to a hyphenated single-segment
+bare command — hyphens ARE in `cmd_re`'s character class, dots aren't —
+matching this project's established precedent: the
+`X-11.get_pointer_scr_rect` 23-char-limit rename and the
 `ncode.cmd.review` → `pattern-review` collision rename, both in
-`data/ai-mem/claude/topic-ncode-pattern-learning-loop.md`): rename each
-file to a hyphenated single-segment bare command (hyphens ARE in
-`cmd_re`'s character class, dots aren't) —
+`data/ai-mem/claude/topic-ncode-pattern-learning-loop.md`):
 
 - `forensics.cmd.sweep.run` → `forensics.cmd.sweep-run`
 - `forensics.cmd.investigate.finding` → `forensics.cmd.investigate-finding`
-- `build.cmd.recipe.run` → `build.cmd.recipe-run`
+- [x] `build.cmd.recipe.run` → `build.cmd.recipe-run` — **DONE, `b7d9d163e`**
+  (2026-07-31): `start`/`init_code`/`subroutines.load-early`/docs all
+  updated, `ptd -c` clean, no stale references left. (Old name kept
+  as-written above and elsewhere in this file's history/evidence
+  sections deliberately — this is a bug report, rewriting the broken
+  name in place would invert what it's documenting.)
 - `ext-pkg.cmd.package.ensure` → `ext-pkg.cmd.package-ensure`
-- `calc.cmd.val.eval_bigrat` → `calc.cmd.val-eval-bigrat` (or similar —
-  whoever fixes this should pick a name consistent with `calc`'s other
-  `val.*` siblings, if any exist, rather than just mechanically
-  hyphenating the dot)
-- `calc.cmd.val.format_truncated` → `calc.cmd.val-format-truncated`
-  (same caveat)
+
+For calc's 2 (not routable commands at all — see the corrected tier
+analysis above): **drop `.cmd.` entirely, don't hyphenate into a bare
+command name**:
+
+- `calc.cmd.val.eval_bigrat` → `calc.val.eval_bigrat`
+- `calc.cmd.val.format_truncated` → `calc.val.format_truncated`
+
+(check for an existing internal-helper namespace convention in `calc`
+before picking the exact target — these two just need to stop being
+in the `.cmd.`-triggered auto-registration table, the exact non-cmd
+namespace they land in is a smaller detail)
 
 For each: update the `name =` header comment, any `access.zenki`/`start`
 grant lines, any direct `<[...]>` call sites elsewhere in the codebase,
@@ -124,8 +157,8 @@ adjacent command-naming/routing gotcha (bare-name collision across
 zenki sharing a process, not a regex-shape violation) found the same
 general class of naming trap in this project before.
 
-#,,.,,,..,,,.,.,.,,,.,,..,,..,.,,,...,,,,,,.,,.,.,...,...,...,.,.,...,,,,,.,,,
-#IKFY23UD3VHYBK6MBKTN4ZNMWZ7KAL66DB6EH3HL5CE2NDCBKUJCEKMB5E7KSD7FFYQX4RFAS5JVI
-#\\\|GWEHEBZYA6NX3AGWCXQNK3VBIT3ZEMTNPTPXENX7XGJLKOICVQD \ / AMOS7 \ YOURUM ::
-#\[7]RYLLDVURAY6YEXZGCUML3U2OJNSEKNGJ35MMJUJXNASHLHTWXGBY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,.,.,,,.,,,,,..,,,,,,.,.,,,.,,,.,.,.,...,..,,,,.,,..,,..,,..,.,,,
+#BIZVSXOQ7OC3XECTTPKW4LH6PNY7ZPP3VZG3LQUKJHLRLZ5TGNI7RCO5NODRJEPL5IONOG35CRBIM
+#\\\|5DYYTMGW4Y72JBVWHU7KBJ6C4WQHRJIPLKIX6DMSCEMX22L35QU \ / AMOS7 \ YOURUM ::
+#\[7]4WXPZHXL2K72UXVVIBKV3RVUEFFXSFMWHWLFEP4DKTDIO2QNEUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = calc.cmd.val.eval_bigrat
+# name  = calc.val.eval_bigrat
 # param = $node  [ a Math::Symbolic tree node ]
 # descr = recursively evaluate a Math::Symbolic tree as an exact
 #         Math::BigRat, if every node is rational-representable;
@@ -28,7 +28,7 @@ my $op_type = $node->{type};
 if ( $op_type == 0 ) {    ## [ Math::Symbolic::B_SUM ] ##
     my $result;
     for my $operand ( @{ $node->{operands} } ) {
-        my $value = <[calc.cmd.val.eval_bigrat]>->($operand);
+        my $value = <[calc.val.eval_bigrat]>->($operand);
         return undef if not defined $value;
         $result = defined $result ? $result + $value : $value;
     }
@@ -38,7 +38,7 @@ if ( $op_type == 0 ) {    ## [ Math::Symbolic::B_SUM ] ##
 ## [ subtraction ] ##
 elsif ( $op_type == 1 ) {    ## [ Math::Symbolic::B_DIFFERENCE ] ##
     my @values
-        = map { <[calc.cmd.val.eval_bigrat]>->($ARG) } @{ $node->{operands} };
+        = map { <[calc.val.eval_bigrat]>->($ARG) } @{ $node->{operands} };
     return undef if grep { not defined $ARG } @values;
     my $result = shift @values;
     $result = $result - $ARG for @values;
@@ -49,7 +49,7 @@ elsif ( $op_type == 1 ) {    ## [ Math::Symbolic::B_DIFFERENCE ] ##
 elsif ( $op_type == 2 ) {    ## [ Math::Symbolic::B_PRODUCT ] ##
     my $result;
     for my $operand ( @{ $node->{operands} } ) {
-        my $value = <[calc.cmd.val.eval_bigrat]>->($operand);
+        my $value = <[calc.val.eval_bigrat]>->($operand);
         return undef if not defined $value;
         $result = defined $result ? $result * $value : $value;
     }
@@ -58,8 +58,8 @@ elsif ( $op_type == 2 ) {    ## [ Math::Symbolic::B_PRODUCT ] ##
 
 ## [ division ] ##
 elsif ( $op_type == 3 ) {    ## [ Math::Symbolic::B_DIVISION ] ##
-    my $left  = <[calc.cmd.val.eval_bigrat]>->( $node->{operands}[0] );
-    my $right = <[calc.cmd.val.eval_bigrat]>->( $node->{operands}[1] );
+    my $left  = <[calc.val.eval_bigrat]>->( $node->{operands}[0] );
+    my $right = <[calc.val.eval_bigrat]>->( $node->{operands}[1] );
     return undef if not defined $left or not defined $right;
     return undef if $right->is_zero;
     return $left / $right;
@@ -67,15 +67,15 @@ elsif ( $op_type == 3 ) {    ## [ Math::Symbolic::B_DIVISION ] ##
 
 ## [ unary negation ] ##
 elsif ( $op_type == 4 ) {    ## [ Math::Symbolic::B_NEG ] ##
-    my $value = <[calc.cmd.val.eval_bigrat]>->( $node->{operands}[0] );
+    my $value = <[calc.val.eval_bigrat]>->( $node->{operands}[0] );
     return undef if not defined $value;
     return -$value;
 }
 
 ## [ exponentiation, integer exponents only ] ##
 elsif ( $op_type == 7 ) {    ## [ Math::Symbolic::B_EXP ] ##
-    my $base = <[calc.cmd.val.eval_bigrat]>->( $node->{operands}[0] );
-    my $exp  = <[calc.cmd.val.eval_bigrat]>->( $node->{operands}[1] );
+    my $base = <[calc.val.eval_bigrat]>->( $node->{operands}[0] );
+    my $exp  = <[calc.val.eval_bigrat]>->( $node->{operands}[1] );
     return undef if not defined $base or not defined $exp;
     return undef if not $exp->is_int;
     return $base->copy->bpow( $exp->numerator );
@@ -83,8 +83,8 @@ elsif ( $op_type == 7 ) {    ## [ Math::Symbolic::B_EXP ] ##
 
 return undef;
 
-#,,,.,...,..,,,,,,.,,,.,.,,.,,,,,,.,.,..,,,,.,..,,...,...,.,,,,,,,.,.,..,,,,,,
-#MOPVZBJ3KAQCSYI7KB3NBFIXUYGIAINP6AUOPDTZRN3FIN6FZXDSMVBUGR3SUDWKSALWHC2CPKVVS
-#\\\|KOH27V42PIESULZZ7DNBDJWM6574UTSJV5224YG5LAAIK6J7AL2 \ / AMOS7 \ YOURUM ::
-#\[7]GVGCWPZUKOOTCM7WGDKNMD2SSABG372FXQ6RYKCCWXQFJLJHB2DA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,..,..,,..,,,,,,,.,,..,,,.,,...,..,,...,...,...,.,.,...,,,.,.,,,
+#M5HI5T37VXG4C2HODRL4UNZYABQQB4MSFKACYC6MQ3J2F4QMFEVMSAXWMEVX2BJFQUN3RPKOKQB42
+#\\\|UTSWBEGLRBAA6OBLNOYJSHUXRFLL7SLHKXFHWKHUHJGLTROQMHJ \ / AMOS7 \ YOURUM ::
+#\[7]VJ7GFYYR2PR6SK5VT3J5PT4E4XX3EEI5GT2BYSQYN3N2OX2VY6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
