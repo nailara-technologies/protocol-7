@@ -113,6 +113,30 @@ if (
         $server->{'model'}       = <inference.model.amos_id>     // '';
         $server->{'mmproj_path'} = <inference.model.mmproj_path> // '';
 
+        ## reset dependency object (may have been marked failed by a        ##
+        ## previous server that was killed mid-startup, e.g. during         ##
+        ## switch-model) + recheck waiting jobs. gated on self-test         ##
+        ## actually concluding [ pass OR fail ] - NOT fired the instant the ##
+        ## server merely responds. a real production task must never start  ##
+        ## against a server whose reasoning- sanity check [ prompt 2 ]      ##
+        ## hasn't resolved yet - confirmed live 2026-07-31 : the async      ##
+        ## conversion originally ran this immediately, letting tasks start  ##
+        ## mid-self-test, sometimes well before a bad-seed cat-test failure ##
+        ## was even detected                                                ##
+        my $resume_queue = sub {
+            <coding.task.queue_paused> = 0;
+            my $dep_id_ready
+                = $backend eq qw| gpu |
+                ? ( <coding.dep.gpu_server> // 0 )
+                : ( <coding.dep.cpu_server> // 0 );
+            if ( $dep_id_ready
+                && exists <dependency.object>->{$dep_id_ready} ) {
+                <dependency.object>->{$dep_id_ready}->{'failed'} = FALSE;
+                delete <dependency.object>->{$dep_id_ready}->{'error'};
+            }
+            <[jobqueue.check_dependencies]>;
+        };
+
         ## run model self-test cycle after server is ready [ timeout_stats, ##
         ## TTFT, anomaly detection ] must come after $server->{'model'} is  ##
         ## set above, not before SKIP if a self-test-driven                 ##
@@ -126,111 +150,171 @@ if (
                 '[monitor_startup] skipping auto self-test '
                     . ': switch-driven cycle in progress'
             );
+            ## no on_done will ever fire from this branch - resume now ##
+            $resume_queue->();
         } else {
             my $test_model_id = $server->{'model'} // '';
-            my $st_result     = <[coding.self_test.run]>->(
+            my $tested_pid    = $server->{'pid'}   // 0;
+
+            ## explicit pause : coding.task.queue_paused defaults falsy and ##
+            ## nothing else sets it for a normal (non-crash) fresh spawn -  ##
+            ## coding.async.send_request's gate was a no-op this whole time ##
+            ## for this path. real tasks must not dispatch while            ##
+            ## self-test's reasoning-sanity check is still running          ##
+            <coding.task.queue_paused> = 1;
+
+            ## async transport [ 2026-07-31 ] : self_test.run returns      ##
+            ## immediately { mode => 'deferred' } and delivers its result  ##
+            ## to this continuation from the probe state machine's 'done'  ##
+            ## phase. $resume_queue now runs from on_done, NOT immediately ##
+            ## here - see the comment above it for why                     ##
+            my $run_started = <[coding.self_test.run]>->(
                 {   model_id => $test_model_id,
                     url      => $server->{'url'},
                     backend  => $backend,
+                    on_done  => sub {
+                        my ($st_result) = @ARG;
+
+                        ## $server from the outer scope is a live hashref ##
+                        ## and may have been replaced by a newer spawn    ##
+                        ## while the probe ran - re-fetch and bail if the ##
+                        ## pid no longer matches [ same stale guard shape ##
+                        ## as the watcher guard above ]                   ##
+                        my $srv = <coding.inference_servers>->{$backend};
+                        if ( !defined $srv
+                            or ( $srv->{'pid'} // 0 ) != $tested_pid ) {
+                            <[base.logs]>->(
+                                1,
+                                '[monitor_startup] self-test result for '
+                                    . 'stale server [backend=%s '
+                                    . 'tested_pid=%s] : skipping seed-retry '
+                                    . 'decision',
+                                $backend,
+                                $tested_pid
+                            );
+                            return;
+                        }
+
+                        ## cat-test (prompt_id 2) tier1 structural failure  ##
+                        ## : restart the server rather than just recording  ##
+                        ## the fail. seed=0 [ the configured default ]      ##
+                        ## derives a fresh harmonic seed from ntime+fortuna ##
+                        ## on every spawn, so a plain restart already gives ##
+                        ## a different seed -- no separate seed-forcing     ##
+                        ## needed. guarded against looping forever on a     ##
+                        ## genuinely broken model: caps at                  ##
+                        ## coding.cfg.self_test_seed_retry_max attempts per ##
+                        ## model_id, reset on any clean self-test pass      ##
+                        my $cat_failed = FALSE;
+                        if ( ref $st_result eq qw| HASH |
+                            and $st_result->{'data'} ) {
+                            my $data = $st_result->{'data'};
+                            if ( not $data->{'all_passed'} ) {
+                                for my $r ( @{ $data->{'results'} // [] } ) {
+                                    $cat_failed = TRUE
+                                        if ( $r->{'prompt_id'} // 0 ) == 2
+                                        and not $r->{'passed'};
+                                }
+                            }
+                        }
+
+                        ## NOTE: deliberately NOT nested under              ##
+                        ## <coding.self_test> -- that hash is the self-test ##
+                        ## ARCHIVE ( epoch => model_id => record ), keyed   ##
+                        ## entirely by numeric epoch timestamps [ see       ##
+                        ## coding.self_test.archive /                       ##
+                        ## coding.self_test.cmd.self-test-status ]. a       ##
+                        ## sibling string key there breaks status's numeric ##
+                        ## epoch comparison [ confirmed live : "argument    ##
+                        ## 'seed_retry_count' isn't numeric in numeric gt   ##
+                        ## (>)" ]. use a separate, non- colliding top-level ##
+                        ## key instead                                      ##
+                        <coding.self_test_seed_retry_count> //= {};
+                        if ($cat_failed) {
+                            my $retry_max
+                                = <coding.cfg.self_test_seed_retry_max> // 2;
+                            my $retries
+                                = <coding.self_test_seed_retry_count>
+                                ->{$test_model_id} // 0;
+
+                            if ( $retries < $retry_max ) {
+                                <coding.self_test_seed_retry_count>
+                                    ->{$test_model_id} = $retries + 1;
+                                <[base.logs]>->(
+                                    0,
+                                    '[monitor_startup] cat-test failed for '
+                                        . '%s : restarting for a fresh seed '
+                                        . '[attempt %d/%d]',
+                                    $test_model_id,
+                                    $retries + 1,
+                                    $retry_max
+                                );
+
+                                ## consequence of the async inversion :     ##
+                                ## dependencies were already rechecked      ##
+                                ## above, so real tasks can be streaming    ##
+                                ## while this decision fires - a respawn    ##
+                                ## right here could kill the server         ##
+                                ## mid-task. defer until the backend lock   ##
+                                ## is free and the queue empty [ bounded at ##
+                                ## 120s in the handler ]                    ##
+                                $data{'coding'}{'seed_restart_defer'}
+                                    //= {};
+                                my $defer_id = <[base.gen_id]>->(
+                                    $data{'coding'}{'seed_restart_defer'} );
+                                $data{'coding'}{'seed_restart_defer'}
+                                    {$defer_id} = {
+                                    'backend'  => $backend,
+                                    'model_id' => $test_model_id,
+                                    'pid'      => $tested_pid,
+                                    'started'  => <[base.time]>->(3),
+                                    };
+                                <[event.add_timer]>->(
+                                    {   'interval' => 2,
+                                        'repeat'   => TRUE,
+                                        'handler'  =>
+                                            qw| coding.handler.defer_seed_restart |,
+                                        'data' => { 'defer_id' => $defer_id },
+                                        'desc' =>
+                                            "seed restart deferral $defer_id"
+                                    }
+                                );
+                            } else {
+                                <[base.logs]>->(
+                                    0,
+                                    '[monitor_startup] cat-test still '
+                                        . 'failing for %s after %d seed '
+                                        . 'retries : giving up, leaving '
+                                        . 'server as-is',
+                                    $test_model_id,
+                                    $retry_max
+                                );
+                            }
+                        } else {
+                            delete <coding.self_test_seed_retry_count>
+                                ->{$test_model_id};
+                        }
+
+                        ## self-test has now actually concluded [ pass or ##
+                        ## fail, decision made above ] - safe to let real ##
+                        ## tasks start                                    ##
+                        $resume_queue->();
+                        return;
+                    },
                 }
             );
-
-            ## cat-test (prompt_id 2) tier1 structural failure : restart    ##
-            ## the server rather than just recording the fail. seed=0 [ the ##
-            ## configured default ] derives a fresh harmonic seed from      ##
-            ## ntime+fortuna on every spawn, so a plain restart already     ##
-            ## gives a different seed -- no separate seed-forcing needed.   ##
-            ## guarded against looping forever on a genuinely broken model: ##
-            ## caps at coding.cfg.self_test_seed_retry_max attempts per     ##
-            ## model_id, reset on any clean self-test pass                  ##
-            my $cat_failed = FALSE;
-            if ( ref $st_result eq qw| HASH | and $st_result->{'data'} ) {
-                my $data = $st_result->{'data'};
-                if ( not $data->{'all_passed'} ) {
-                    for my $r ( @{ $data->{'results'} // [] } ) {
-                        $cat_failed = TRUE
-                            if ( $r->{'prompt_id'} // 0 ) == 2
-                            and not $r->{'passed'};
-                    }
-                }
-            }
-
-            ## NOTE: deliberately NOT nested under <coding.self_test> --    ##
-            ## that hash is the self-test ARCHIVE ( epoch => model_id =>    ##
-            ## record ), keyed entirely by numeric epoch timestamps [ see   ##
-            ## coding.self_test.archive / coding.self_test.cmd.self-test-   ##
-            ## status ]. a sibling string key there breaks status's numeric ##
-            ## epoch comparison [ confirmed live : "argument 'seed_retry_   ##
-            ## count' isn't numeric in numeric gt (>)" ]. use a separate,   ##
-            ## non-colliding top-level key instead                          ##
-            <coding.self_test_seed_retry_count> //= {};
-            if ($cat_failed) {
-                my $retry_max = <coding.cfg.self_test_seed_retry_max> // 2;
-                my $retries
-                    = <coding.self_test_seed_retry_count>->{$test_model_id}
-                    // 0;
-
-                if ( $retries < $retry_max ) {
-                    <coding.self_test_seed_retry_count>->{$test_model_id}
-                        = $retries + 1;
-                    <[base.logs]>->(
-                        0,
-                        '[monitor_startup] cat-test failed for %s : '
-                            . 'restarting for a fresh seed [attempt %d/%d]',
-                        $test_model_id,
-                        $retries + 1,
-                        $retry_max
-                    );
-
-                    ## spawn_servers_deferred only spawns what ISN'T       ##
-                    ## already running -- scheduling the timer alone does  ##
-                    ## nothing if the server still looks up and ready [    ##
-                    ## confirmed live: "deferred spawn: GPU server already ##
-                    ## running, skipping" ]. mark it for restart and clear ##
-                    ## the cached pid first, same recipe                   ##
-                    ## coding.callback.http_error's working restart path   ##
-                    ## already uses                                        ##
-                    $server->{'status'} = qw| restart_needed |;
-                    <inference.gpu_pid> = 0 if $backend eq qw| gpu |;
-                    delete <coding.awaiting_resources>
-                        if <coding.awaiting_resources>;
-
-                    <[event.add_timer]>->(
-                        {   'after'   => 0.5,
-                            'handler' =>
-                                qw| coding.handler.spawn_servers_deferred |,
-                            'data' => { 'reason' => 'self_test_cat_failure' }
-                        }
-                    );
-                } else {
-                    <[base.logs]>->(
-                        0,
-                        '[monitor_startup] cat-test still failing for %s '
-                            . 'after %d seed retries : giving up, leaving '
-                            . 'server as-is',
-                        $test_model_id,
-                        $retry_max
-                    );
-                }
-            } else {
-                delete <coding.self_test_seed_retry_count>->{$test_model_id};
+            if ( !ref $run_started
+                or $run_started->{'mode'} ne qw| deferred | ) {
+                <[base.logs]>->(
+                    0,
+                    '[monitor_startup] async self-test did not start : %s',
+                    $run_started->{'data'} // 'unknown'
+                );
+                ## on_done will never fire if the probe never started - ##
+                ## don't leave the queue paused forever                 ##
+                $resume_queue->();
             }
         }
-
-        ## reset dependency object (may have been marked failed by a ##
-        ## previous server that was killed mid-startup, e.g. during  ##
-        ## switch-model)                                             ##
-        my $dep_id_ready
-            = $backend eq qw| gpu |
-            ? ( <coding.dep.gpu_server> // 0 )
-            : ( <coding.dep.cpu_server> // 0 );
-        if ( $dep_id_ready && exists <dependency.object>->{$dep_id_ready} ) {
-            <dependency.object>->{$dep_id_ready}->{'failed'} = FALSE;
-            delete <dependency.object>->{$dep_id_ready}->{'error'};
-        }
-
-        ## trigger dependency recheck for waiting jobs ##
-        <[jobqueue.check_dependencies]>;
     }
 
     ## cancel watcher once ready : no need to keep reading server output [ ##
@@ -308,8 +392,8 @@ if ( $bytes <= 0 ) {
     }
 }
 
-#,,,,,..,,,,.,...,...,,..,..,,.,.,,,,,,.,,..,,..,,...,...,...,,,.,.,,,...,,,,,
-#TJSTEN6AEG3UNWEW7YOPIG63TA74SXQZ45XBTTTPAWHECWOGHIGWVOPNQUNOZJGUNHOBRGBUWSFZM
-#\\\|J3XOT2OHZDMQRJ5R4O6MC4QPJTVJJK2JW2W3TIHB23VOFTAE3EA \ / AMOS7 \ YOURUM ::
-#\[7]PF6PASSBKKMMSFV72RG4ZRCPQ4ZK7YFU6X2LMPVL6PS24YDUMWCA 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,..,,,,,.,.,...,,,.,,.,,,..,,.,,..,,...,.,.,.,,,,..,,..,...,..,,
+#IW2GHMAJUQZPSF7D5WDKE4DCWDCI3FGPDJY43C24U5UMIXGZ54JWUWLCCEYARQ7PDO6CWDURU6LLQ
+#\\\|XSEYX67W3IUJEIKTPTLXETWBKKZPVOZTAE3DAXNYQZ6Q4SIUMZD \ / AMOS7 \ YOURUM ::
+#\[7]J2ITLSNLSV2PCXHXEURVF4FIXHEL6VQUDILPG4VICNEBKYE6F4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
