@@ -9,6 +9,11 @@ my $call_args = shift;
 my $path = ( $call_args // {} )->{'args'};
 $path = '/radio/stream' if not defined $path or not length $path;
 
+## already active : re-announcing the same endpoint must NOT re-subscribe   ##
+## -- each call used to push another v7.notify_offline entry that never got ##
+## cleared until an eventual real shutdown fired ALL of them at once        ##
+my $already_active = <plugin.httpd.radio.active>;
+
 <plugin.httpd.radio.stream.path> = $path;
 <plugin.httpd.radio.active>      = 1;
 
@@ -26,12 +31,12 @@ $data{'route_cache'} = {}
         'call_args' => { 'args' => 'radio' },
         'reply' => { 'handler' => 'plugin.httpd.radio.handler.radio_offline' }
     }
-);
+) if not $already_active;
 
 return { 'mode' => qw| true |, 'data' => "radio endpoint active: $path" };
 
-#,,,.,,,.,.,,,..,,.,.,,,,,,.,,,,.,,,.,...,.,,,..,,...,...,.,.,,..,.,,,,.,,,,,,
-#4SU7VJ2NFAE524ET6S4TR2C3CB42D3FV7A7ZMVX5VDQ2GYKTSQJ3YBPWIMLCDJJNI3IA36U2JSA6C
-#\\\|4BNXD6EFMHFZEOOQNKWR3DE7GIEPRBHNDTFKEKWGMMXPCSK3354 \ / AMOS7 \ YOURUM ::
-#\[7]AYYUIKGJQ6GWKEBKIBNA2BTHHZCDQ3UZNEGIEZKMNENG627W7KBI 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,..,.,.,..,,,..,,,,,...,.,.,,..,..,,...,.,.,,,,,,,,,.,,,,.,,...,
+#PJPD3RQKL7OVHE6BF3AGKQNXEOFOHAWDSI7N6NDOI5CPKA6X4RAOK5LSI5B6BQT74MX4UVTRAQ24O
+#\\\|7JXQHDMXE3SMLXGXXML27FE3AGI7HD6PHRDMPYJXZQ2DXXKT47F \ / AMOS7 \ YOURUM ::
+#\[7]KL4HRJTUUEWXSZ3FMDCHL7IF3O56RX2HOAXVEBGWQM5AIFPKO2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
