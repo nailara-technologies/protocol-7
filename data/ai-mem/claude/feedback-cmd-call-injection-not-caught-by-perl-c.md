@@ -62,7 +62,7 @@ itself, and most of any given zenka's grant list, has nothing to do with
 `.cmd.` filenames.
 
 A module that references `$call->{'args'}` but is named without a
-`.cmd.` segment (e.g. `build.recipe.run`, `ext-pkg.package.ensure`,
+`.cmd.` segment (e.g. `build.recipe-run`, `ext-pkg.package.ensure`,
 `openvas.scan.run` — all three hit this in the same session, 2026-07-29)
 fails to boot with `Global symbol '$call' requires explicit package name`.
 **`perl -Idata/lib-path/pm -c <file>` on the raw file passes clean** —
@@ -99,8 +99,8 @@ symbol '$call'` error visible when the target zenka is actually booted
   `subroutines.load-early` to verify, then revert the whitelist to the
   tool-generated state
 
-#,,,.,..,,..,,.,,,,,,,..,,.,,,.,.,,..,,,,,.,,,..,,...,...,.,.,,..,.,.,,.,,.,.,
-#WCLLELYYW6N75FG4KGEPZR5GYZ6YHPD74SW3YAZNQHGGW4V3ATMIBGF43A3NI5U3IEUFVYUQAKEB6
-#\\\|2VUXGF7NWVCXOYBL2KKOSPJBK7IWXG3OLOG3QPOOILHVQLLN6LG \ / AMOS7 \ YOURUM ::
-#\[7]QI73TNGIWY6XZP5JQSSIYTG6IPR4QKTXJFJXPOHLU5PZ7Y26P4DY 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,..,,,,,,..,,,,,,.,.,..,,..,,.,,,..,,...,...,,,.,,,.,,..,.,,,,.,,
+#546BY6K7UJXBB2MQIJQJRELBL5U6ELIU35AGD6BCTPFSFBQZ4FGON7C46XC3TFHR6CVHIEKDVWKAK
+#\\\|2TGESS3RON3LQRXCOARSY4YAXAI7KZYA2CEQBH5EFYFZWFAAGCU \ / AMOS7 \ YOURUM ::
+#\[7]YW4IMLYCN4V3YOB55Y62JZBZQO4WY3ZKSL4TZVWHEKNKSWL5LEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
