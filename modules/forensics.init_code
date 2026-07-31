@@ -46,6 +46,20 @@ if ( not -d $investigate_dir ) {
         );
 }
 
+## report dir [ consumed by forensics.report.assemble -- phase 1 of the   ##
+## forensic-report-pipeline, data/tasks/forensic-report-pipeline.  md ] : ##
+## aggregated + generalized report records live under reports/            ##
+
+my $reports_dir = <forensics.cfg.reports_dir> // sprintf qw| %s/%s/reports |,
+    $var_p7, <system.zenka.name>;
+
+if ( not -d $reports_dir ) {
+    <[file.make_path]>->( $reports_dir, 0750, <system.amos-zenka-user> )
+        and <[base.log]>->( 1, 'created reports dir [ %s ]', $reports_dir )
+        or
+        <[base.log]>->( 0, 'cannot create reports dir [ %s ]', $reports_dir );
+}
+
 <[event.add_timer]>->(
     {   'after'   => 7,
         'repeat'  => FALSE,
@@ -55,8 +69,8 @@ if ( not -d $investigate_dir ) {
 
 return 0;
 
-#,,.,,,,,,.,.,,,,,,,.,,..,..,,,,,,...,,,,,..,,..,,...,...,.,.,,..,,..,.,,,..,,
-#GOI32NDJ7NWAFBLFNYAG74R3DG4OQPVXWLKGHFV7TRL2P7BK5UV4QSID6HGUGZ3WJQUYH4QJF24AI
-#\\\|RN75WAF4AZRDLUI7CFLD7ZQN2NUS7KTHNT7277O2IDBXUMWWHMX \ / AMOS7 \ YOURUM ::
-#\[7]QJGLTK3WDVX3NF25LOWJD6NIHALOCDZT6UAIC5PGHW7ZBQ5O7YDY 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,,,,...,.,.,,,.,...,..,,.,.,,.,,..,,...,...,..,,,..,.,,,.,,,,,,,
+#4ZL3LT74QMIRDXRIOSEKCOH3ZATA2NBSK35AGHUBWMJSKPW65XM34SFXTF7GURXAETNLGITIPFHYG
+#\\\|QTA2DZEZHSEAA4VZVANAA6YLPYAP22VEIPYQQNKR7GM3AHK24GK \ / AMOS7 \ YOURUM ::
+#\[7]ZCRC2IYVEFJILOOEE6U22HZB5MIQY5FAEMJKW5P5ZDYYWG25J2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
