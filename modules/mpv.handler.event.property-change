@@ -13,10 +13,16 @@ return
 my $handler_name = sprintf qw| mpv.handler.event.property-change.%s |,
     $params->{'name'};
 
-$code{$handler_name}->($params) if exists $code{$handler_name};
+if ( exists $code{$handler_name} ) {
+    $code{$handler_name}->($params);
+} else {
+    ## generic fallback : properties without a dedicated handler module ##
+    ## still populate the <mpv.current.*> cache [ state snapshots ]     ##
+    $data{'mpv'}{'current'}{ $params->{'name'} } = $params->{'data'};
+}
 
-#,,.,,.,,,...,,.,,.,,,.,,,,..,,,,,.,,,,.,,,,.,..,,...,...,...,.,,,..,,.,,,,..,
-#IZPGHAIAHCCX2HHZWDVZNPDUTHROSO75VVILVRKYPL2RHDMAK23H5EEZMQLGEMLY67BTNFOEVQ7FY
-#\\\|3EUFEZUJZBHFUAJA7YWVZQQYQAYAQEFYSG7MPCBSM7H2RUAGLO2 \ / AMOS7 \ YOURUM ::
-#\[7]NGJJCW5L5WVGMJRMVMSJLKLZG53TC66OH6MQP77XA5XX2ICTJKCY 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,..,,.,,,.,.,,,.,...,...,,,,,,,.,..,,...,...,,,,,,,,,.,,,,,.,,.,,
+#T2EAGBONNEXSZF7IMQIAZ5CRIWM3UNISFXAMWXSUV5SLZSTAIUEHEMZNBU7UQUNJPCXLGIHVBWI5K
+#\\\|SJ7W3SIUUDS6IH5PSKX4WVHUWV4WUAGB4GW42YT7QREEBXSOTFX \ / AMOS7 \ YOURUM ::
+#\[7]FJEM2FL3SK4OLHSBN3YNX33RFH275PJVEURVHNQF65JXWLUPEACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

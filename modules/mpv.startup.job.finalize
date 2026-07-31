@@ -5,6 +5,15 @@
 
 <[mpv.initialize.observe_properties]>;
 
+## restore saved player state after observation is re-established [ so the ##
+## initial property-change notifications are already accounted for and     ##
+## later events only carry actual changes ] -- before the playlist fetch : ##
+## the deferred seek applies once the saved file loads                     ##
+if ( <[base.cfg_bool]>->( <mpv.restore_on_startup> //= TRUE ) ) {
+    <[base.code.call_optional]>
+        ->( qw| mpv.snapshot.restore |, qw| startup | );
+}
+
 <[event.add_timer]>->(
     {   'after' => 0,
         'cb'    => sub { <[mpv.get_playlist]>->(<mpv.playlist_type>) }
@@ -13,8 +22,8 @@
 
 <[base.log]>->( 1, '[startup] player startup complete' );
 
-#,,,.,.,.,...,,..,...,,,,,...,,,.,.,.,.,,,.,,,.,.,...,...,,.,,...,...,,..,,,,,
-#SX2GGKCVD6272FO6GCX3LQPBHS3EHJINPNWQKILZQ7MIB2SGXHBRH6GPZBI7YH4M4QIACYEXVCJUO
-#\\\|VHHMKNTBN5IKK4G2GIMDFDHSRZ5ZGIK7YJ7RDQXITIW2XYLHYWJ \ / AMOS7 \ YOURUM ::
-#\[7]A4Z63JDU2SNUKNWI2GUCHIVZJXGQBDXBNAKSA44IF6HUDIC76CAI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,,,,,,.,..,,...,,,,,,.,,..,,,,,,..,,...,...,.,.,,.,,,..,,..,,,,,
+#Z6HCOP22D3WC3ZZ7SBEZIE5RPOS5ZLBCE4EUB5L3772Q4FHBMMCZ2HXEW2H3FWZ5LN5IG6QFLRKWO
+#\\\|HDC3TGAU7BSJYEGT2MCILUQ7VWCKOAMHEYGTBYAXQEEOT5FRHPR \ / AMOS7 \ YOURUM ::
+#\[7]AS2F7BRT3XIAGT75R3XPB32LFB4MKDO6XNO62HCV5KBO6XWY2WAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
