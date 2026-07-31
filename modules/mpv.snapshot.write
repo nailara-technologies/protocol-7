@@ -1,0 +1,97 @@
+## [:< ##
+
+# name  = mpv.snapshot.write
+# descr = serialize collected snapshot state to state/snapshot.yaml
+#         [ zenka-local, same convention as window.profile.save ]
+
+<[base.perlmod.load]>->( 'YAML::XS', qw| Dump | );
+
+my $pending     = delete <mpv.snapshot.pending>     // {};
+my $completions = delete <mpv.snapshot.completions> // [];
+<mpv.snapshot.saving> = FALSE;
+
+my $snapshot = {
+    'version'    => 1,
+    'saved_at'   => <[base.time]>->(3),
+    'path'       => $pending->{'path'},
+    'position'   => $pending->{'pos'},
+    'properties' => $pending->{'properties'} // {},
+};
+$snapshot->{'playlist'} = $pending->{'playlist'}
+    if defined $pending->{'playlist'};
+$snapshot->{'playlist_current'} = $pending->{'playlist_current'}
+    if defined $pending->{'playlist_current'};
+
+## never let an empty collection [ e.g. property-change.path wiping the ##
+## whole <mpv.current> cache while idle/stopped ] clobber a previously  ##
+## saved, populated snapshot -- skip the write entirely in that case,   ##
+## rather than persisting a blank restore point                         ##
+if (    not defined $snapshot->{'path'}
+    and not %{ $snapshot->{'properties'} }
+    and not $snapshot->{'playlist'} ) {
+    <[base.log]>->(
+        2,
+        '[snapshot] nothing to save [ player '
+            . 'idle/cache empty ], keeping previous snapshot'
+    );
+    map { $code{$ARG}->() if defined $code{$ARG} } @{$completions};
+    return;
+}
+
+## skip the write when nothing changed since the last snapshot ##
+my $signature_str = join( '|',
+    map { sprintf( '%s=%s', $ARG, $snapshot->{'properties'}->{$ARG} ) }
+    sort keys $snapshot->{'properties'}->%* )
+    . '|'
+    . ( $snapshot->{'path'}     // '' ) . '|'
+    . ( $snapshot->{'position'} // '' ) . '|'
+    . join( ',', @{ $snapshot->{'playlist'} // [] } );
+my $snapshot_bmw = <[chk-sum.bmw.224.B32]>->($signature_str);
+
+if ( defined <mpv.snapshot.last_bmw>
+    and <mpv.snapshot.last_bmw> eq $snapshot_bmw ) {
+    <[base.log]>->( 2, '[snapshot] state unchanged, skipping write' );
+} else {
+    my $yaml_content;
+    eval { $yaml_content = Dump($snapshot); };
+    if ($EVAL_ERROR) {
+        <[base.s_warn]>->(
+            'snapshot YAML serialization failed: %s',
+            <[base.str.eval_error]>
+        );
+    } elsif ( not defined $yaml_content or not length $yaml_content ) {
+        <[base.s_warn]>
+            ->( 'snapshot YAML serialization ' . 'produced empty content' );
+    } else {
+        my $bytes_written = <[file.zenka_dir.write]>->(
+            qw| state/snapshot.yaml |,
+            \$yaml_content,
+            '>',       # overwrite mode
+            0600,      # permissions
+            ':utf8'    # encoding
+        );
+        if ( defined $bytes_written ) {
+            <mpv.snapshot.last_bmw> = $snapshot_bmw;
+            <[base.logs]>->(
+                2, '[snapshot] saved player state [bytes:%d]',
+                $bytes_written
+            );
+        } else {
+            <[base.s_warn]>->(
+                'failed to write snapshot file [ %s ]',
+                qw| state/snapshot.yaml |
+            );
+        }
+    }
+}
+
+## completion callbacks [ e.g. mpv.snapshot.send_quit from cmd.quit ] ##
+map { $code{$ARG}->() if defined $code{$ARG} } @{$completions};
+
+return;
+
+#,,..,,,.,,..,...,.,,,,,.,,.,,,,,,.,.,,..,.,,,..,,...,...,,,.,...,.,,,..,,...,
+#5YIN6MDT6BZ6EA75XLXZNPQOMZHR6MD3K5ZXCCTN6V7J4S4NRAFI2UOA5PTLUJ4KOUSIUTNRMPJKI
+#\\\|X2J45V5JAVYMMNH4UHJE5UMBGLW2NPV6CNU7YVNULJEYG7XFV7H \ / AMOS7 \ YOURUM ::
+#\[7]3FV5FY4ELJHRNTO2XRVVL7JLIVBCDXEX3HCONICX4HA746B5XEAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

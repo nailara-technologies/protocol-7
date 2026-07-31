@@ -20,6 +20,12 @@ if ( <[base.cfg_bool]>->( <mpv.network.skip_proxy> //= FALSE ) ) {
 
 <mpv.json.parser> = JSON::XS->new->pretty(0);
 
+## WSLg pulse bridge cork/resume fix -- runs here [ not from start's own  ##
+## early [module] calls ] because base.exec.with_timeout needs POSIX's    ##
+## WNOHANG [ base.waitpid ] + IPC::Open3's open3, both only autoloaded by ##
+## base.init_code, which has already run by this point                    ##
+<[mpv.pulse.disable_idle_suspend]>;
+
 <mpv.bin_path> //= <[base.required_bin_path]>->('mpv');
 
 die "[!] mpv binary not found, aborting startup.,"
@@ -73,6 +79,10 @@ die "[!] mpv binary not found, aborting startup.,"
 <mpv.last_saved_geometry>
     //= undef;    ## in-memory signature of last written profile ##
 
+## state snapshot / restore [ see mpv.snapshot.* ] ##
+<mpv.restore_on_startup>        //= TRUE;    ## replay state/snapshot.yaml ##
+<mpv.snapshot_interval_seconds> //= 60;      ## periodic checkpoint ##
+
 ## dependency setup — callbacks auto-discovered from mpv.callback.object.* ##
 <[dependency.install_callbacks]>->('mpv');
 
@@ -81,7 +91,8 @@ die "[!] mpv binary not found, aborting startup.,"
     ->( { 'type' => 'mpv_flag', 'flag_key' => 'mpv.socket' } );
 <[dependency.add]>->( <mpv.dep.socket>, <mpv.dep.socket> );
 
-## overriding ## no audio fade in 'universal-child' mode ## [LLL] change later ?
+## overriding ## no audio fade in 'universal-child' mode ## [LLL] change later
+## ?
 <mpv.fade_idle_volume> = FALSE if <system.zenka.mode> eq qw|universal-child|;
 
 if ( <mpv.autorescale> and defined <mpv.rescale_path> ) {
@@ -101,10 +112,23 @@ if ( <mpv.autorescale> and defined <mpv.rescale_path> ) {
     }
 }
 
+## periodic snapshot checkpoint [ player unreachable : timer skips ] ##
+if (<mpv.snapshot_interval_seconds>) {
+    <mpv.timer.snapshot> = <[event.add_timer]>->(
+        {   'after'    => <mpv.snapshot_interval_seconds>,
+            'interval' => <mpv.snapshot_interval_seconds>,
+            'cb'       => sub {
+                <[base.code.call_optional]>->(qw| mpv.snapshot.save |)
+                    if defined <mpv.socket>;
+            }
+        }
+    );
+}
+
 0;
 
-#,,,,,...,.,,,,,,,,.,,,,,,.,.,,,,,...,,.,,.,,,..,,...,...,..,,.,,,..,,,..,,..,
-#6INZCVMSVX7GVVFKPGZLJI2LC7HTXGWO3LVQGH3CN6ZMLDWIA5RXG73ORSEZS2F5MDEH3QUPJLCO6
-#\\\|3BVGUZM7SYW3ZI5HL7QYXA65ZEM6RFFSBFZFWE7EU7YZC4DA7E4 \ / AMOS7 \ YOURUM ::
-#\[7]7HX2LO7DAY4BSDJ7KFKGOO3XICVY6CRX5ZMRLW7J2JTUWNMGXQBI 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,,..,,,.,,,.,,,,,,,.,.,.,..,,.,,,..,,...,..,,..,,,,.,..,,,,,,...,
+#TKY33IW3ZYMAXNHEIZMZBPOT6S2PGJNSXG4QJU3M54HAEEZ2D5CX4N3DIF5CK2XE5TRMXGSPN4XHE
+#\\\|NYNKBS3POW5TSPQIR2VTHSNISABKIZLU6EO4MHR6XLSMFDK2SPG \ / AMOS7 \ YOURUM ::
+#\[7]VI5NVBHFDTW2UXQNT4INNBWIPTXEESOU257D4EXP3QPUJBQCAKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,126 @@
+## [:< ##
+
+# name  = mpv.snapshot.restore
+# descr = restore player state from state/snapshot.yaml
+# param = [mode] 'startup' : properties + deferred seek only [ playlist
+#                             loading left to the regular content flow ]
+#                'full'    : also load playlist/file when nothing playing
+
+<[base.perlmod.load]>->( 'YAML::XS', qw| Load | );
+
+my $mode = shift // qw| full |;
+
+my $yaml_content_ref
+    = <[file.zenka_dir.load]>->( qw| state/snapshot.yaml |, qw| :utf8 | );
+
+if ( not defined $yaml_content_ref ) {
+    <[base.log]>->( 2, '[snapshot] no saved state found, nothing to do' );
+    return 0;    ## missing file is not an error ##
+}
+
+my $snapshot;
+eval { $snapshot = Load( $yaml_content_ref->$* ); };
+if ($EVAL_ERROR) {
+    <[base.s_warn]>->(
+        'snapshot YAML parse error: %s',
+        <[base.str.eval_error]>
+    );
+    return 0;
+}
+if ( ref $snapshot ne qw| HASH | ) {
+    <[base.s_warn]>->('snapshot file did not contain a state hash');
+    return 0;
+}
+
+<[base.logs]>->(
+    1,
+    '[snapshot] restoring player state saved at %s',
+    $snapshot->{'saved_at'} // qw| unknown |
+);
+
+## replay tunable properties directly via send_command [ same internal  ##
+## property-set style as mpv.callback.init_volume, not the cube command ##
+## calling convention of mpv.cmd.setting ] -- pause is applied together ##
+## with the deferred seek below                                         ##
+my $properties = $snapshot->{'properties'} // {};
+foreach my $mpv_property ( sort keys %{$properties} ) {
+    next if $mpv_property eq qw| pause |;
+    my $value = $properties->{$mpv_property};
+    next if not defined $value;
+    push( @{<mpv.command.reply>}, { 'handler' => qw| dev.null | } );
+    <[mpv.send_command]>->( 'set_property_string', $mpv_property, $value );
+}
+
+my $snap_path = $snapshot->{'path'};
+my $position  = $snapshot->{'position'};
+
+## deferred pause restore [ consumed by mpv.snapshot.apply_pending ] ##
+<mpv.snapshot.pending_pause> = $properties->{'pause'}
+    if defined $properties->{'pause'};
+
+return 1 if not defined $snap_path or not length $snap_path;
+
+my $current_path = <mpv.current.path>;
+
+if ( defined $current_path and $current_path eq $snap_path ) {
+
+    ## saved file already loaded : seek + pause apply directly ##
+    if (    defined $position
+        and $position =~ m|^\d+(\.\d+)?$|
+        and $position > 0 ) {
+        push( @{<mpv.command.reply>}, { 'handler' => qw| dev.null | } );
+        <[mpv.send_command]>->( 'seek', $position, 'absolute', 'exact' );
+    }
+    if ( defined <mpv.snapshot.pending_pause> ) {
+        push( @{<mpv.command.reply>}, { 'handler' => qw| dev.null | } );
+        <[mpv.send_command]>->(
+            'set_property_string', 'pause',
+            delete <mpv.snapshot.pending_pause>
+        );
+    }
+    return 1;
+}
+
+## different or no file loaded : defer the seek until the saved file is ##
+## [re]loaded [ mpv.snapshot.apply_pending from file-loaded event ]     ##
+<mpv.snapshot.pending_path> = $snap_path;
+<mpv.snapshot.pending_pos>  = $position;
+
+return 1 if $mode ne qw| full |;
+return 1 if defined $current_path;    ## something else playing : leave it ##
+
+## nothing playing : restore playlist [ rotated so the saved current entry ##
+## starts playback, relative order preserved ] or the single file          ##
+my @playlist = @{ $snapshot->{'playlist'} // [] };
+if (@playlist) {
+    my $start_idx = $snapshot->{'playlist_current'} // 0;
+    $start_idx = 0 if $start_idx !~ m|^\d+$| or $start_idx > $#playlist;
+    my @ordered = (
+        @playlist[ $start_idx .. $#playlist ],
+        @playlist[ 0 .. $start_idx - 1 ]
+    );
+    my $first = shift @ordered;
+    push( @{<mpv.command.reply>}, { 'handler' => qw| dev.null | } );
+    <[mpv.send_command]>->( 'loadfile', $first, 'replace' );
+    map {
+        push( @{<mpv.command.reply>}, { 'handler' => qw| dev.null | } );
+        <[mpv.send_command]>->( 'loadfile', $ARG, 'append' );
+    } @ordered;
+    <[base.logs]>->(
+        1,
+        '[snapshot] restored playlist [%d entries, start #%d]',
+        scalar @playlist, $start_idx
+    );
+} else {
+    push( @{<mpv.command.reply>}, { 'handler' => qw| dev.null | } );
+    <[mpv.send_command]>->( 'loadfile', $snap_path, 'replace' );
+    <[base.logs]>->( 1, '[snapshot] reloading saved file' );
+}
+
+return 1;
+
+#,,..,,.,,,.,,...,.,.,.,,,,.,,,.,,,..,..,,,.,,..,,...,...,..,,,.,,,,,,.,.,,,.,
+#FOPX73RZ4ZH6UGN5LDUVY4CJIKKGHICSKU5W5MHVFDOELJJIB5DD5Z76O4YSY6ZBVSH6GWXDXQO7M
+#\\\|DGJXTW6MQP7OD4S3J7USWZJD3KVQLRSR6OXVGUR7TXXHOU4LFHI \ / AMOS7 \ YOURUM ::
+#\[7]AM5RSCS5EIBJ5MXLJD5R572ZLGH7BQ4KNGECKHX7PGQ3GKBTBGBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
