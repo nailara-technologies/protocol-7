@@ -23,6 +23,7 @@ access.cmd.usr.cube = name commands heart subname reload verify-instance play \
                       current-hwdec current-vo current-ao drop-buffers fade \
                       buffer-erase buffer-erase-level cur-pid \
                       clear-profile reposition \
+                      snapshot-save snapshot-restore \
                       src-ver src-age  ##  *
 
 modules.load = auth.client net protocol io.unix io.ip ui set-up.json chk-sum mpv \
@@ -34,6 +35,12 @@ mpv.network.skip_proxy = yes  ### ignore proxy variables from %ENV ? ###
 mpv.restore_last_position = yes ## restore last saved window position on  ####
                                 ## startup instead of re-querying placement ##
                                 ## zenka — set to 0 to always ask fresh   ####
+
+mpv.restore_on_startup = 1   ## replay saved player state [ properties,   ##
+                             ## position, pause ] from state/snapshot.yaml ##
+                             ## on startup -- set to 0 to disable       ##
+mpv.snapshot_interval_seconds = 60  ## periodic state snapshot checkpoint ##
+                                    ## [ 0 disables the periodic save ] ##
 
 mpv.log_played = 0   # seperately log which files or urls have been played ..,
 
@@ -60,7 +67,9 @@ mpv.ao = pulse,sdl
 
 ## WSLg's native bridge -- no manual pulseaudio.exe needed ##
 [set_env:'PULSE_SERVER','unix:/mnt/wslg/PulseServer']      ##
-[mpv.pulse.disable_idle_suspend]  ## fixes pause/resume hang -- see module descr ##
+## [mpv.pulse.disable_idle_suspend] moved into mpv.init_code -- this runs ##
+## before [init_modules], too early for base.exec.with_timeout's POSIX/  ##
+## IPC::Open3 dependencies [see module descr] ##
 
 mpv.xmode.xnest.vo  = x11
 mpv.xmode.nxagent.vo = sdl
@@ -173,8 +182,8 @@ mpv.audio_params = -vo null -ao=<mpv.ao> --idle=yes <mpv.loop_plist_param> \
 
 [zenka.loop]
 
-#,,,.,,,.,.,.,,..,,.,,.,.,.,,,..,,...,...,..,,..,,...,...,.,,,,,.,,,.,...,,.,,
-#GRZ3N4YKMOJYKQ2HCXGLPVCZ4Q562FLDXMCGHETA7ZBQT2VSFGZDGYAUB7KCHNQUGBU6H5DATW3NE
-#\\\|SVWQXV77EWM4R4W6RWQXC5HPNRTQS5K7WUJ6EO37HDFZWAQ2D32 \ / AMOS7 \ YOURUM ::
-#\[7]NF5RQZCJE7SBJ4ZMA3H2JIE4RRFN5NRKDUIQNB623X6V7QKGESCA 7  DATA SIGNATURE ::
+#,,,.,..,,...,..,,,,.,,,.,..,,,,,,..,,...,...,..,,...,..,,,..,...,,,.,.,,,...,
+#6Y3C3OYQ3XGVYHQO3KP4QYKSUO73KEQQKN6ITNMH63V2RV7IBRG6PMOKTQA7DWA5VJ7LV2HAWHAWY
+#\\\|6BWGTNNGGGFA7JV3PJP4DGYMOBXSVZLQ6SYNXDQ32GQNDNTAQ54 \ / AMOS7 \ YOURUM ::
+#\[7]3BKOGD66234YHJUINHADT3KOR7EF34HS7TY3VKQH3VCRI2VP6GBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

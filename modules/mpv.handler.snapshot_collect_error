@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = mpv.handler.snapshot_collect_error
+# descr = snapshot collect chain : property request failed, save partial
+
+my $error_str = shift // '';
+
+return if $error_str eq qw| success |;
+
+<[base.logs]>->(
+    1, '[snapshot] property request failed [%s], saving partial state',
+    $error_str
+);
+
+## continue the chain or write with what was collected so far ##
+if ( ( <mpv.snapshot.pending.stage> // '' ) eq qw| pos | ) {
+    <mpv.snapshot.pending.stage> = qw| playlist |;
+    push(
+        @{<mpv.command.reply>},
+        {   'handler'  => qw| mpv.handler.snapshot_collect_playlist |,
+            'callback' => qw| mpv.handler.snapshot_collect_error |,
+        }
+    );
+    <[mpv.send_command]>->( 'get_property_string', 'playlist' );
+} else {
+    <[mpv.snapshot.write]>;
+}
+
+return;
+
+#,,..,.,,,..,,,,.,.,.,...,,,,,,,.,...,...,,..,..,,...,...,,,.,,..,,.,,,..,,,,,
+#NN3XO4OQJ2YL5I6KQD6FG7RMJUVOQQOZ2SPQQIGUWJEP3PH4FKPRLZWNUBCTYP5RGMZQ6OTK3BDG2
+#\\\|YYEFXUFVT3LWWB252L4NA3JSR2BK4SJIV54J7Y4NBRXELLEB3HO \ / AMOS7 \ YOURUM ::
+#\[7]6ELWYSILW3HFQRXU4B6LNHLPFANSF4QIQCA5XRF5P3VEXOFFOAAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

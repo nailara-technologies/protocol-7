@@ -1,21 +1,34 @@
 ## [:< ##
 
 # name  = mpv.cmd.quit
-# descr = initiate mpv zenka shutdown
+# descr = initiate mpv zenka shutdown [ + pre-quit snapshot ]
 
 <zenka.shutdown> = 1;
 
 <[base.log]>->( 1, "quit command received.." );
 
-push( @{<mpv.reply_ids>}, $call->{'reply_id'} );
-<mpv.success_reply_str> = 'shutting down mpv zenka';
+<mpv.snapshot.quit_reply_id> = $call->{'reply_id'};
+<mpv.snapshot.quit_sent>     = FALSE;
 
-<[mpv.send_command]>->('quit');
+## graceful pre-quit snapshot : 'quit' is sent on completion ##
+<[base.code.call_optional]>->(
+    qw| mpv.snapshot.save |,
+    qw| mpv.snapshot.send_quit |
+);
+
+## safety net : quit anyway when snapshot collection stalls ##
+<[event.add_timer]>->(
+    {   'after' => 2,
+        'cb'    => sub {
+            <[base.code.call_optional]>->(qw| mpv.snapshot.send_quit |);
+        }
+    }
+);
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,.,.,,,.,,..,,,,,..,,...,,,.,,,,,,..,...,..,,...,...,...,...,.,.,.,.,..,,
-#AADGJZBAHRF666HW4JZJU76JSWVC5RELDTM7FDHNUMZGBEDXP5PS6VLMTGABMFRRGHJRZUTEOI7G4
-#\\\|3BH3PRIX55Z4HEI6GM4SZLP5H5VFUGNJ7P53NCELJRRKWSRKATI \ / AMOS7 \ YOURUM ::
-#\[7]63NIJOBZAA2FRQPJQ7PGDH4ZGKNAJTGD5GLJ6VF227TYFY52I4CA 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,.,.,...,.,.,,,,,.,,,,.,,...,,,,,..,,...,...,..,,,,,,,..,.,.,,..,
+#VZLDUTFDYNGXGI7O7SJTCISK2PNUWG5UU77KWSS6ODDPT5M7R74MWUA7DMUKZOHSMVEVEUYUICQWE
+#\\\|BW34ZX5G43O547BXWCLFMYPHNAMOP3I2LJJWQXZHLSGGM5VDU3Z \ / AMOS7 \ YOURUM ::
+#\[7]O73VW7R3KQHIGOXR6I3KV6GIXCK6SZWOFH22SNWAEJOMN7KDPUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

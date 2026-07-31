@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = mpv.snapshot.save
+# descr = collect player state [ settings-map properties, path, position,
+#         playlist ] and write to state/snapshot.yaml [ async collect ]
+# param = [completion_sub_name] .. called after write [ e.g. cmd.quit ]
+
+my $completion = shift;
+
+## a save is already collecting : chain completion and return ##
+if ( <mpv.snapshot.saving> // FALSE ) {
+    push( @{ <mpv.snapshot.completions> //= [] }, $completion )
+        if defined $completion;
+    return;
+}
+
+<mpv.snapshot.saving>      = TRUE;
+<mpv.snapshot.completions> = defined $completion ? [$completion] : [];
+<mpv.snapshot.pending>     = {};
+
+## settings-map properties from the observed-property cache ##
+my $settings_map = <mpv.map.settings> // {};
+my %seen_property;
+foreach my $setting_key ( sort keys %{$settings_map} ) {
+    my $map_entry = $settings_map->{$setting_key} // {};
+    my @mpv_properties
+        = ref( $map_entry->{'keys'} ) eq qw| ARRAY |
+        ? @{ $map_entry->{'keys'} }
+        : ( $map_entry->{'key'} // $setting_key );
+    foreach my $mpv_property (@mpv_properties) {
+        next if $seen_property{$mpv_property}++;
+        my $value = $data{'mpv'}{'current'}{$mpv_property};
+        next if not defined $value;
+        <mpv.snapshot.pending.properties>->{$mpv_property} = $value;
+    }
+}
+
+<mpv.snapshot.pending.path> = <mpv.current.path>
+    if defined <mpv.current.path>;
+
+if ( not defined <mpv.socket> ) {
+    ## player not reachable : write cached state only ##
+    <[mpv.snapshot.write]>;
+    return;
+}
+
+## fetch precise position + playlist async, then write [ see .write ] ##
+<mpv.snapshot.pending.stage> = qw| pos |;
+push(
+    @{<mpv.command.reply>},
+    {   'handler'  => qw| mpv.handler.snapshot_collect_pos |,
+        'callback' => qw| mpv.handler.snapshot_collect_error |,
+    }
+);
+<[mpv.send_command]>->( 'get_property_string', 'time-pos' );
+
+return;
+
+#,,..,,,,,,.,,...,.,,,.,.,..,,,,.,.,.,,,.,,,,,..,,...,...,,.,,,,,,.,.,..,,,,.,
+#3FFSB2LBWMWHFFETLYOFPUBGQFPPZELRFHAZJDR3JS7JMBZQLUNIP2UFL6KFPUDU2ZHPFRPF7POMU
+#\\\|FSOP72D2GIAKSZGDSCQQ7PRRDZDKU5ATVDRDJUKFJ6UJEG7E6OC \ / AMOS7 \ YOURUM ::
+#\[7]WW2HZXB5QVMGR772BVPPKHAUG73GW2PA45ZIGYPEGRJWJ3PAVOAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

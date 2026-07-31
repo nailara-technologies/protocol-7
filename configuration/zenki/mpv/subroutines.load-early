@@ -149,6 +149,7 @@ auth.auth_select
 ascii.frame.load
 plugin.auth.zenka
 net.read_bytewise
+mpv.snapshot.save
 mpv.handler.event
 mpv.cmd.set-speed
 mpv.cmd.get-speed
@@ -178,6 +179,7 @@ base.chk-sum.amos
 ascii.frame.parse
 ui.render.fallback
 ui.fields.fallback
+mpv.snapshot.write
 mpv.handler.stdout
 mpv.handler.stderr
 mpv.cmd.set-volume
@@ -231,6 +233,7 @@ base.diff.hash_keys
 base.dependency.add
 base.curve.register
 base.calc_unix_path
+mpv.snapshot.restore
 mpv.loop_plist_param
 mpv.cmd.pause-toggle
 mpv.cmd.drop-buffers
@@ -264,6 +267,7 @@ window.profile.delete
 set-up.json.init_code
 mpv.init_settings_map
 mpv.cmd.stop-autoskip
+mpv.cmd.snapshot-save
 mpv.cmd.show-playlist
 mpv.cmd.current-hwdec
 mpv.cmd.clear-profile
@@ -294,6 +298,8 @@ base.cmd.buffer-erase
 base.cfg.profile.list
 base.balanced-average
 base.X-11.get_display
+mpv.snapshot.send_quit
+mpv.snapshot.cmd_reply
 mpv.handler.pipe.float
 mpv.handler.path_reply
 mpv.handler.audio_fade
@@ -359,6 +365,7 @@ mpv.startup.job.finalize
 mpv.handler.pipe.version
 mpv.handler.pipe.command
 mpv.handler.error_output
+mpv.cmd.snapshot-restore
 mpv.cmd.shuffle-playlist
 mpv.callback.init_volume
 io.unix.socket.init_code
@@ -408,6 +415,7 @@ base.X-11.get_coordinates
 window.profile.color.apply
 set-up.json.cmd.get-config
 protocol.sftp.read_ssh_env
+mpv.snapshot.apply_pending
 mpv.handler.resume_timeout
 mpv.handler.get_list_reply
 mpv.handler.cmd_prop.pause
@@ -509,6 +517,7 @@ base.p7refs.gen_template_chksum
 base.file.zenka_dir.unlink_file
 set-up.json.cmd.get-config-names
 mpv.startup.handler.coords_reply
+mpv.handler.snapshot_collect_pos
 mpv.handler.event.client-message
 base.perlmod.install_cpan_module
 base.perlmod.get_collision_index
@@ -535,6 +544,7 @@ protocol.amos-chksum.ext-cmd.close
 protocol.amos-chksum.ext-cmd.clear
 protocol.amos-chksum.ext-cmd.bytes
 plugin.auth.auth-keypair.init_code
+mpv.handler.snapshot_collect_error
 jobqueue.event.register_job_queues
 base.protocol-7.command.send.local
 base.path-set-up.zenka-directories
@@ -574,6 +584,7 @@ protocol.protocol-7.message-templates
 protocol.protocol-7.link-upgrade.init
 protocol.amos-chksum.ext-cmd.commands
 protocol.amos-chksum.connect_callback
+mpv.handler.snapshot_collect_playlist
 base.zenka.push.reply-handler.offline
 base.perlmod.unregister_loaded_module
 base.handler.write.encryption-wrapper
@@ -609,8 +620,8 @@ protocol.protocol-7.protocol-version-path-set-up
 base.log.send-buffer.reply-handler.notify-online
 mpv.handler.event.property-change.video-aspect-override
 
-#,,..,.,,,,.,,...,.,,,.,,,,.,,,,,,,,.,.,.,,.,,..,,...,...,.,,,.,,,,,.,..,,.,,,
-#ZHXWWMDUWOP4RENYJXHOKS35X2DJFT5724JDNXSW26RV4LBUSA2YU7TINOELAELZL3D7SDKPGBTPO
-#\\\|CZMVACMGNECTFIS2PGBQAEH2ARVTXZZ63HD7LQEK3Y5DRYKPN76 \ / AMOS7 \ YOURUM ::
-#\[7]XXZBKI5TZFUDPQNSYBGSUMZZG6HF7KI2XGPDPPQWLNQUJKMDMIAA 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,...,..,,,,.,.,.,.,,,.,.,.,,,,..,..,,...,...,...,.,.,...,.,,,,,.,
+#FQA2W2IX7NSTKQWISIYZDRU6L2H4MBW6LPTUN5DYS6JIG7N6MFM3VGW5C6N5KMA6SCHQRXXWTL7FO
+#\\\|ARTIQQCIDLP7VYGC2TB54ZEGMKHTYTJLYUTJKZ5UAPCIOYWCVFV \ / AMOS7 \ YOURUM ::
+#\[7]4VQM7B44QSMUK53XWO4CU25WTGRAFO7BASUY6VWGKNM2FJK4P6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

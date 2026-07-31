@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = mpv.snapshot.send_quit
+# descr = send 'quit' to the player once [ idempotent ] -- called as     ##
+#         snapshot-save completion from mpv.cmd.quit and by its safety   ##
+#         timer in case snapshot collection stalls                       ##
+
+return if <mpv.snapshot.quit_sent> // FALSE;
+<mpv.snapshot.quit_sent> = TRUE;
+
+push( @{<mpv.reply_ids>}, <mpv.snapshot.quit_reply_id> // qw| silent | );
+<mpv.success_reply_str> = 'shutting down mpv zenka';
+
+<[mpv.send_command]>->('quit');
+
+return;
+
+#,,,,,,,,,,,,,.,.,,,.,,,.,,,.,,,,,,,.,,..,,..,..,,...,...,,,.,,,.,.,.,.,.,,.,,
+#RWNRARKCZ6AULLQOOZGG2L2LOABCUOYLWCV2NDPKNCL5ZZIJTID74NPTY5RZLHUAREUPIPYGQ543I
+#\\\|HGDXJLTB5K6QNPTJEHOVEUXEJDHVLVHR6DGEJ7NB33TPENENLI3 \ / AMOS7 \ YOURUM ::
+#\[7]MJ55APC5QZVS6YGEDRHAURRZH2CLOCYIH73PZ3IG5DRVW7HKACAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

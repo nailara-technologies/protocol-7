@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = mpv.handler.snapshot_collect_pos
+# descr = snapshot collect chain : time-pos reply, then request playlist
+
+my $time_pos = shift;
+
+## time-pos restores more precisely than percent-pos [ absolute seconds, no ##
+## dependency on stream duration ]                                          ##
+<mpv.snapshot.pending.pos> = $time_pos
+    if defined $time_pos and $time_pos =~ m|^-?\d+(\.\d+)?$|;
+
+<mpv.snapshot.pending.stage> = qw| playlist |;
+push(
+    @{<mpv.command.reply>},
+    {   'handler'  => qw| mpv.handler.snapshot_collect_playlist |,
+        'callback' => qw| mpv.handler.snapshot_collect_error |,
+    }
+);
+<[mpv.send_command]>->( 'get_property_string', 'playlist' );
+
+return;
+
+#,,..,...,...,..,,,,,,,,,,,,,,.,.,...,,..,.,,,..,,...,...,..,,..,,..,,.,,,.,,,
+#RHBTGI2IHSM6CPRJICWQZ26AYQAMYJGVY7AK6LALQHKPXALJQ7XI5OUEPZRGTFIO3VGW72AQGDJKK
+#\\\|HWS7JS7VFF2JSBY6UOULSUVC34SYWQOEOF5BRUH5AMUYF55AWY7 \ / AMOS7 \ YOURUM ::
+#\[7]W6PUNMRHD554LF2TU7TBTJ6MN6VR4FID6MMVQ3KBT2DJRCH2DEBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

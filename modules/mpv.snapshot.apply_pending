@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = mpv.snapshot.apply_pending
+# descr = file-loaded hook : apply deferred seek + pause from a snapshot
+#         restore once the saved file is actually the one playing
+
+my $pending_path = <mpv.snapshot.pending_path>;
+return if not defined $pending_path;
+
+## wait until the saved file is the loaded one [ playlist flow may load ##
+## other entries first ]                                                ##
+my $current_path = <mpv.current.path>;
+return if not defined $current_path or $current_path ne $pending_path;
+
+my $position = delete <mpv.snapshot.pending_pos>;
+delete <mpv.snapshot.pending_path>;
+
+if (    defined $position
+    and $position =~ m|^\d+(\.\d+)?$|
+    and $position > 0 ) {
+    <[base.logs]>->(
+        1, '[snapshot] seeking to restored position %.1f', $position
+    );
+    push( @{<mpv.command.reply>}, { 'handler' => qw| dev.null | } );
+    <[mpv.send_command]>->( 'seek', $position, 'absolute', 'exact' );
+}
+
+## pause restore is sent after the file-loaded handler's own pause logic so ##
+## the snapshot state wins                                                  ##
+my $pause = delete <mpv.snapshot.pending_pause>;
+if ( defined $pause and $pause =~ m{^(yes|no)$} ) {
+    push( @{<mpv.command.reply>}, { 'handler' => qw| dev.null | } );
+    <[mpv.send_command]>->( 'set_property_string', 'pause', $pause );
+}
+
+return;
+
+#,,.,,,,,,...,.,,,,,,,...,..,,..,,.,.,,,.,,..,..,,...,..,,.,.,...,...,,,,,.,,,
+#HHACTGIWA7KR3QIYVAZFUU77CHV5Y7ITCVBA2HFHUEBWQX6N5ZA46A442BRLAF3N7ICBVVRHJWHIU
+#\\\|XCXMFVJFUEQXGZ2U7UKR5KVU57Y4QTNWUM2H547ANUNM3BV3JUP \ / AMOS7 \ YOURUM ::
+#\[7]OG2VIK42QVCVP4CTLPFMPBQPWX4ZM4J2CWJGA3TQJFYCLOOI36BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

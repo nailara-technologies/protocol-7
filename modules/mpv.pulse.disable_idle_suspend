@@ -3,10 +3,10 @@
 # name  = mpv.pulse.disable_idle_suspend
 # descr = unload pulse's module-suspend-on-idle [ WSLg bridge cork/resume fix ]
 
-## module-suspend-on-idle suspends a sink after a period with no active   ##
-## stream -- fine on a real linux box, but on the WSLg pulse bridge a     ##
+## module-suspend-on-idle suspends a sink after a period with no active  ##
+## stream -- fine on a real linux box, but on the WSLg pulse bridge a    ##
 ## suspended sink needs genuine re-initialization to resume, not just    ##
-## un-corking, causing an intermittent hang/huge-delay on pause->resume.  ##
+## un-corking, causing an intermittent hang/huge-delay on pause->resume. ##
 ## unloading it defensively on every start keeps pause/resume reliable   ##
 ## without needing to touch WSLg's own internal distro filesystem, which ##
 ## isn't meant for user edits and may not persist across restarts anyway ##
@@ -16,18 +16,26 @@ return FALSE if $pulse_server !~ m|^unix:|;
 
 local $ENV{'PULSE_SERVER'} = $pulse_server;
 
+## NOTE: this must run after base.init_code [ POSIX/IPC::Open3 autoload ] ##
+## has executed -- see the call site in mpv.init_code, not configuration/ ##
+## zenki/mpv/start, which runs before [init_modules]                      ##
+
 my $result = <[base.exec.with_timeout]>->(
-    5, [ qw| pactl unload-module module-suspend-on-idle | ] );
+    5, [qw| pactl unload-module module-suspend-on-idle |]
+);
 
 <[base.logs]>->(
-    2, '[mpv.pulse] disable_idle_suspend : %s',
-    defined $result ? 'ok [or already unloaded]' : 'pactl call failed/timed out'
+    2,
+    '[mpv.pulse] disable_idle_suspend : %s',
+    defined $result
+    ? 'ok [or already unloaded]'
+    : 'pactl call ' . 'failed/timed out'
 );
 
 return TRUE;
 
-#,,,.,..,,,,.,,,.,,..,...,..,,,..,.,.,,,,,,,,,..,,...,...,,..,,,,,..,,...,..,,
-#ERT2SCLZHHZ5QOWGZQAS35XJREIHYWL6JAJAWIQYBHSSHHPCPKOKLEIEIZNF5MMZDSHFEHBNK5FVY
-#\\\|46ZJD36BSFFKPF34DXYGEDTMP6AIGNDXDE5D3BOWNBHZTZC3QZ6 \ / AMOS7 \ YOURUM ::
-#\[7]XSYX4LWBFYWE5PP7LAPF2IN5AHF5MWD5DMYJUGHNZQGE3IMQX2CY 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,.,,,.,,,,,.,,..,.,.,,,.,.,.,.,.,..,,...,...,...,.,.,,.,,,,,,,,,,
+#TXO2EBRADLXAZ3BK2L4LV7DXOJYK4WSKGSCFYO4VFZYZYI6YYYWIUBLWMVO5S4JQYFAXT4PXBT3RG
+#\\\|5GWDOALWULUOQ7S6BIZBK4MWRI66FDKD53Y7KY5GNZNFYE4EHEI \ / AMOS7 \ YOURUM ::
+#\[7]ONJH6QONLLBIX2352ANZOBOAWUXYLVRUVUPJEAQHZYFJLB5KXWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

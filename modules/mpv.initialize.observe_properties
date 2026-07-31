@@ -2,29 +2,38 @@
 
 # name = mpv.initialize.observe_properties
 
-map { <[mpv.send_command]>->( qw| observe_property |, 1, $ARG ) } qw[
+## observe every tunable settings-map property [ resolved mpv property      ##
+## names, same resolution as mpv.cmd.setting ] so the <mpv.current.*> cache ##
+## stays populated for state snapshots                                      ##
 
-    video-aspect-override
-    path
-    width
-    height
-    volume
+my %observe = map { $ARG => TRUE } qw[ path width height ];
 
-];
+my $settings_map = <mpv.map.settings> // {};
+foreach my $setting_key ( keys %{$settings_map} ) {
+    my $map_entry = $settings_map->{$setting_key} // {};
+    my @mpv_properties
+        = ref( $map_entry->{'keys'} ) eq qw| ARRAY |
+        ? @{ $map_entry->{'keys'} }
+        : ( $map_entry->{'key'} // $setting_key );
+    map { $observe{$ARG} = TRUE } @mpv_properties;
+}
+
+map { <[mpv.send_command]>->( qw| observe_property |, 1, $ARG ) }
+    sort keys %observe;
 
 if (<mpv.fade_idle_volume>) {
     <[mpv.send_command]>->( qw| set_property |,     qw| volume |, 0 );
     <[mpv.send_command]>->( qw| observe_property |, 1, qw| core-idle | );
 }
 
-## client-message isn't one of the events enabled by default -- without    ##
-## this our control socket never receives the 'protocol7-window-released'  ##
-## script-message p7-osc.lua sends, even though mpv.handler.pipe_output    ##
-## would dispatch it correctly if it ever arrived.                         ##
+## client-message isn't one of the events enabled by default -- without   ##
+## this our control socket never receives the 'protocol7-window-released' ##
+## script-message p7-osc.lua sends, even though mpv.handler.pipe_output   ##
+## would dispatch it correctly if it ever arrived.                        ##
 <[mpv.send_command]>->( qw| enable_event |, qw| client-message | );
 
-#,,,,,,.,,.,.,.,,,.,.,,..,...,,.,,,.,,.,.,,,,,..,,...,...,..,,,..,..,,.,.,..,,
-#E445XS5E6YOOLIK4SQ4LFGVR2FGSH25WZABMLGF4OALJ2XLBJ4DEHVDMSNKUZCTADOH3PW5PB5MZK
-#\\\|6TULUOR7ORFLLJGTSLAPMJ5KOLMBUOSGZPEZYILBJK7U746JYNY \ / AMOS7 \ YOURUM ::
-#\[7]OX6YESJY33EBZTYBCLORM7S63KSL2JSJRRGJAH2DLY6HYNUTQCCA 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,...,.,.,,,.,,,.,,..,...,,..,.,,,..,,...,...,..,,.,,,,..,,,.,,,.,
+#TLBFD2T7FZWWKLVACT5QHF5WLTR6LFIL7Y5J4HZJRN3DNEBCFNF2KXB73ZIACDAXRJN2OENV7T6N4
+#\\\|N37CVCJFTF5OW5CCGA6ECLOLY2XBTTGLGLMWPYL4AXIOKPMUNWI \ / AMOS7 \ YOURUM ::
+#\[7]SY36JSIGFO3LGY4OMBQ5QY4PTFZBAGXXONYUOVYJVV7D2KMAZQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
