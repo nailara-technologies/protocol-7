@@ -15,13 +15,22 @@ prompts since it resolves outside the recognized project tree at request
 time; editing via the real in-repo path `data/ai-mem/claude/<file>.md`
 does not, since it's a normal path inside the project directory.
 
+Root cause is sharper than "outside path = prompts every time": the
+permission dialog offers a "remember this decision" option, but selecting
+it does not actually persist for the `~/.claude/...` path — it re-prompts
+on the very next edit anyway (confirmed by the user, 2026-08-01). So this
+isn't an inherent property of out-of-project paths, it's the harness's
+remember-choice mechanism silently failing to stick for this specific
+path. Don't assume "allow once" or "always allow" will hold across calls
+for `~/.claude/...` — it won't, regardless of what's selected.
+
 **How to apply:** always target `data/ai-mem/claude/<name>.md` with
 Read/Edit/Write when saving or updating memory in this project, never the
 `~/.claude/projects/.../memory/...` path — same file, fewer prompts. The
 `MEMORY.md` index lives at `data/ai-mem/claude/MEMORY.md` the same way.
 
-#,,..,,,,,,,.,,..,,,,,,.,,,.,,.,.,,,.,.,.,,..,..,,...,.,.,...,,..,...,.,,,,..,
-#V4YU7EWOALQ62FZ7GCCTXAQIAFCGQAZQVH4HCQWKFB6Q344HRPKI73RBLL7CUBVUKRTGHYYQDGPJA
-#\\\|7YUHBK2HZD457KRZ6RJHVNUPLPJDJNBYDSRRBHTIZSCYHR4YEKB \ / AMOS7 \ YOURUM ::
-#\[7]DC6IQLB577UGE4G7WAPBFHQK564TIN4MSOPRXEHQYGZHPQSJAQBQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,.,,,.,,,,.,...,.,.,,.,,.,.,,,.,..,,...,...,.,,,,..,,,.,.,,,..,,
+#FLQEOAAS2MD7Q566377LWVHBTHXDTVN66CT6V3XGMQMMEMP6OTAMBHAQLCMA6GHP4OP6S4XH2TDP4
+#\\\|PA2AOLRC5V33W6P472XVZSKVG7E3DOXFCENXKIBFVZDV33SQE7F \ / AMOS7 \ YOURUM ::
+#\[7]4IQ6FF4D4UNMAMHXPGNR6L5GYOBAYS5G5LTBANNBCSKTYHFP66CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
