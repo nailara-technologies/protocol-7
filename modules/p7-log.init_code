@@ -25,10 +25,25 @@
 ## yet, and p7-log is the exclusive writer of these files                ##
 <[p7-log.startup.repair_nul_gaps]>;
 
+## write-rate telemetry [ p7-log.handler.rate_tick ] -- the real settle ##
+## signal p7-log.startup.legacy_gap_sweep waits on before doing its     ##
+## one-time mid-file zero-byte gap sweep                                ##
+<p7-log.stats.write_count_since_tick> = 0;
+<p7-log.stats.rate_samples>           = [];
+<system.timer>->{'p7-log.rate_tick'}  = <[event.add_timer]>->(
+    {   'interval' => 1.2,
+        'handler'  => qw| p7-log.handler.rate_tick |,
+    }
+);
+
+## kick off the legacy-gap sweep poll -- no-op after the first ever sweep [ ##
+## gated by a persisted marker file, see the module itself ]                ##
+<[p7-log.startup.legacy_gap_sweep]>;
+
 return FALSE;
 
-#,,..,.,,,...,,,.,,..,,..,.,.,..,,,,.,..,,...,..,,...,...,.,.,,.,,...,.,.,,,,,
-#Q32UX62XBPYWWQCY64VMGJDRZLA6YEDNI7SQ2ZZE6CR5CGIOOAPYDBQA2PS7M33EE4AU6KMN3MGES
-#\\\|UOJ26WX5KXGTW6YEI6SEKYDDN4PLPNM5ARJHCTBAB3XS2FYO7AD \ / AMOS7 \ YOURUM ::
-#\[7]E6GMWRBIZ5WXX5US6VKLV27MOUPJET7QQDADHOUDTBI26FU4CCBY 7  DATA SIGNATURE ::
+#,,..,,,,,...,,,.,,.,,.,.,,,,,..,,,,,,,,.,,,.,..,,...,...,.,,,.,,,...,,.,,...,
+#KABVFS7TYOEH3O6IHE6CH6PVXATKFPLA5FVLZLN5AJ6TEIGQA5X2JLYK6SDDJSJY7Y44EXVXYYCS2
+#\\\|3ZOIP2ZSNZ5YRNJVHDRQC7AWS4K4QQITBMOS6DEQN7QJSJ3DMTB \ / AMOS7 \ YOURUM ::
+#\[7]ETCJR5YZ5GXKMVTMVK66TTNSU3SQCD4YOPMC346SFYTLDYGRFUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,72 @@
+## [:< ##
+
+# name  = p7-log.startup.legacy_gap_sweep
+# descr = self-rescheduling poll [ same 'call to self' idiom as
+#          base.session.send_init_reports ] -- waits for p7-log's own
+#          write-rate telemetry [ p7-log.handler.rate_tick ] to settle
+#          below threshold before starting a chunked, resumable, non-
+#          blocking sweep for mid-file zero-byte gaps [ see
+#          p7-log.startup.legacy_gap_sweep.run / p7-log.handler.
+#          legacy_sweep_tick for the bounded-per-tick I/O ]. runs on
+#          EVERY p7-log boot, deferred until settled : any given boot may
+#          follow a fresh crash, so this can't be a one-time-ever check --
+#          only the tail-check [ p7-log.startup.repair_nul_gaps ] runs
+#          immediately \ unconditionally ; the full scan is what gets
+#          deferred, not skipped
+
+my $poll_interval  = 5;     ## seconds between settle checks ##
+my $settle_samples = 10;    ## last N 1.2s rate samples to average ##
+my $rate_threshold = 1;     ## avg lines/tick below this counts as settled ##
+
+my $samples      = <p7-log.stats.rate_samples> // [];
+my $sample_count = scalar @{$samples};
+
+my $reschedule = sub {
+    <system.timer>->{'legacy_gap_sweep'} = <[event.add_timer]>->(
+        {   'repeat'  => 0,
+            'after'   => $poll_interval,
+            'handler' => __FILE__          ##  call to self  ##
+        }
+    );
+};
+
+if ( $sample_count < $settle_samples ) {
+    ## not enough telemetry yet to judge settledness -- wait for more ##
+    $reschedule->();
+    return;
+}
+
+my $recent_total = 0;
+$recent_total += $_ for @{$samples}[ -$settle_samples .. -1 ];
+my $avg_rate = $recent_total / $settle_samples;
+
+if ( $avg_rate >= $rate_threshold ) {
+    <[base.logs]>->(
+        2,
+        'legacy_gap_sweep : write rate %.2f/tick '
+            . 'still above threshold, waiting..,',
+        $avg_rate
+    );
+    $reschedule->();
+    return;
+}
+
+<[base.logs]>->(
+    1,
+    'legacy_gap_sweep : write rate settled [ %.2f/tick ], starting sweep .,',
+    $avg_rate
+);
+
+## the marker is now written by p7-log.handler.legacy_sweep_tick once the   ##
+## whole file list is actually exhausted -- the sweep itself is chunked and ##
+## resumable, not a single synchronous call, so "started" here is not       ##
+## "finished"                                                               ##
+<[p7-log.startup.legacy_gap_sweep.run]>;
+
+return TRUE;
+
+#,,..,.,,,.,,,,,,,.,,,,,,,.,.,.,.,,,.,.,,,...,..,,...,...,.,.,.,.,...,.,.,,.,,
+#SWSHF6MCHMVF635LSLRRSBWK7QZSAEMSH4HF47M6A6TZB66ZTTCLUHNAP6T3DCJNJPDOI2TQQTVZM
+#\\\|GGY3NND3JA6MM5R5NQMVXH3SR2ZLZFU24EGA2RZZ4M6O6TDTWJJ \ / AMOS7 \ YOURUM ::
+#\[7]MMJZPS3B772NQMBVBBJQH4GVKNJPN5SFKI6IG7AVOEWLBBZFKIBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

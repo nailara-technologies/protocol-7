@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = p7-log.startup.legacy_gap_sweep.run
+# descr = builds the file list and initializes state for the mid-file
+#          zero-byte gap sweep, then kicks off the first chunked tick [ see
+#          p7-log.handler.legacy_sweep_tick, which does the actual bounded,
+#          resumable I/O ] -- called once by p7-log.startup.legacy_gap_sweep
+#          after write-rate settles. safe to do the directory scan here
+#          synchronously : file.match_files only reads directory entries,
+#          not file content, so it's cheap regardless of file sizes
+
+my $system_name  = <system.host.hostname>;
+my $log_dir_path = <log.protocol_7.path>;
+
+my @logfile_paths;
+<[file.match_files]>->(
+    \@logfile_paths, $log_dir_path, "$system_name.**.log"
+);
+
+<p7-log.legacy_sweep.state> = {
+    'system_name'    => $system_name,
+    'file_list'      => \@logfile_paths,
+    'total_files'    => scalar(@logfile_paths),
+    'repaired_files' => 0,
+    'repaired_runs'  => 0,
+    'current'        => undef,
+};
+
+<[p7-log.handler.legacy_sweep_tick]>;
+
+return TRUE;
+
+#,,,.,,,.,..,,,,.,...,.,.,,,,,,,.,..,,..,,,,.,..,,...,.,.,...,,,,,,,,,...,...,
+#LFH3KCRFNUTOYJ44HRGLKLO7LUTGLS65XWGQTUYXN2T7WMSK4TOW44PUVFVSH6C6KNFAXM7ZWW5Q4
+#\\\|UXT4WTHG2PPERYG6F3FHNVSA6URVLSOKADFN2FLBHVE5AEW5XPF \ / AMOS7 \ YOURUM ::
+#\[7]4J52OVBXJ5DFEG5Q5NDBPDP4XWAEZ6FI2VRAWT57763XICZUAYCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
