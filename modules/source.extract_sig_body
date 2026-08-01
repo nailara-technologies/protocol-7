@@ -45,9 +45,15 @@ my $bit_size = <source.chksum_bitsize>;
 ### extract [ optionally strip ] code signature footer #######################
 my $footer_body;
 my $footer_start;
-## Flexible regex to handle footer lines that exceed template length
-my $footer_start_regex        = qr|#[\.,]{70,85}|;    ## Allow 70-85 chars ##
-my $footer_start_regex_length = 78;                   ## Default length ##
+## Left-anchored, right-tolerant footer recognition : the leading '#' plus  ##
+## a long run of only '.'/',' chars is the structural marker.  Length is    ##
+## open-ended on the right [ {70,} ] so hand-typed/fake footers with        ##
+## over-long lines cannot bypass recognition -- a fixed ceiling would just  ##
+## move the bypass one character further out. The recognition confidence is ##
+## carried by the marker tokens [ AMOS7, YOURUM, DATA-SIGNATURE, \\|, \[7]  ##
+## ] on the enclosed lines, not by the character count.                     ##
+my $footer_start_regex        = qr|#[\.,]{70,}|;    ## 70+ chars ##
+my $footer_start_regex_length = 78;                 ## Default length ##
 
 <[base.logs]>->(
     3,     ': source.extract_sig_body called with mode: %s, strip: %s',
@@ -66,10 +72,9 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
     # instead of signatures By removing them upfront, we prevent them from
     # being matched before real signatures
     my $pl_str = qw| PLACEHOLDER |;
-    ## old format: block ending with #[:]{70,80}
+    ## old format: block ending with #[:]{70,}
     if ( $src_ref->$*
-        =~ s|\n?#[\.,]{70,85}\n(?:#[^\n]*$pl_str[^\n]*\n)+#[:]{70,80}\n?||sg )
-    {
+        =~ s|\n?#[\.,]{70,}\n(?:#[^\n]*$pl_str[^\n]*\n)+#[:]{70,}\n?||sg ) {
         <[base.logs]>->(
             3, ': stripped %s stub footers (old format) from file', $pl_str
         );
@@ -78,7 +83,7 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
     ## complete stub: comma-line + checksum + PLACEHOLDER lines + colon-line
     if ($src_ref->$* =~ s{
             \n? \# [,\.]+ \n                    ## comma-line ##
-            \# [A-Z0-9]{60,100} \n              ## checksum line ##
+            \# [A-Z0-9]{60,} \n                 ## checksum line ##
             \#+ \\+ \| PLACEHOLDER [^\n]* \n    ## pipe-line ##
             \#+ \\+ \[7] PLACEHOLDER [^\n]* \n  ## bracket-7-line ##
             \# :+                               ## colon-line ##
@@ -114,12 +119,12 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
     ## unconditionally, same as the PLACEHOLDER stubs, so the real footer   ##
     ## behind it becomes extractable and valid again                        ##
     if ($src_ref->$* =~ s{
-            \n? \# [,\.]{70,90} \n            ## comma-line ##
+            \n? \# [,\.]{70,} \n             ## comma-line ##
             \# (?:[A-Z]\d){15,} [A-Z0-9]* \n   ## sequential fake checksum ##
             \# \\+ \| [^\n]* \n                ## pipe-line ##
             \# \\+ \[7\] [^\n]* \n             ## bracket-7-line ##
             \n?
-            \# :{70,90} \n?                    ## colon-line ##
+            \# :{70,} \n?                      ## colon-line ##
         }{}sgx
     ) {
         <[base.logs]>->(
@@ -215,8 +220,8 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
             qr|SIGNATURE|                 # Generic signature
         );
 
-        my $start_marker = qr|#[\s\.,_]{70,80}|
-            ;    # More flexible start marker for start line
+        my $start_marker
+            = qr|#[\s\.,_]{70,}|;  # More flexible start marker for start line
         my $end_marker
             = qr|#[:\.]+[\s\n]*|;    # End line pattern (colons or periods)
 
@@ -245,26 +250,26 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
                 ## pattern 1 : separator + AMOS7 keyword + signature ##
                 ## markers                                           ##
                 qr{(.*?)
-                   (\n\#[\.,]{70,80}\n
+                   (\n\#[\.,]{70,}\n
                     (?:\#[^\n]*AMOS7[^\n]*\n)*?
                     (?:\#[^\n]*SIGNATURE[^\n]*\n)*?
-                    \#[:]{70,80}\n?)$}sx,
+                    \#[:]{70,}\n?)$}sx,
 
                 ## pattern 2 : separator + AMOS7 or YOURUM marker ##
                 qr{(.*?)
-                   (\n\#[\.,]{70,80}\n
+                   (\n\#[\.,]{70,}\n
                     (?:\#[^\n]*(?:AMOS7|YOURUM)[^\n]*\n)*?
-                    \#[:]{70,80}[\s\n]*?)$}sx,
+                    \#[:]{70,}[\s\n]*?)$}sx,
 
                 ## pattern 3 : no separator, clear signature markers ##
                 qr{(.*?)
-                   (\#[\.,]{70,80}\n
+                   (\#[\.,]{70,}\n
                     (?:\#[^\n]*(?:AMOS7|YOURUM|SIGNATURE)[^\n]*\n)*?
-                    \#[:]{70,80}[\s\n]*)$}sx,
+                    \#[:]{70,}[\s\n]*)$}sx,
 
                 ## pattern 4 : most lenient, footer markers + some content ##
                 qr{(.*?)
-                   (\#[\.,\s\.]{70,80}\n
+                   (\#[\.,\s\.]{70,}\n
                     (?:\#[^\n]+\n)*?
                     \#[:]{65,}[\s\n]*)$}sx
             );
@@ -457,8 +462,8 @@ if ( not defined $footer_start ) {
         # before it This happens when signature exists but is directly at
         # end without blank line
         my $has_separator_issue
-            = (    $$src_ref =~ /#[\.,]{70,80}\n(?:#[^\n]+\n)+#[:]{70,80}/
-                && $$src_ref !~ /\n#[\.,]{70,80}\n/ );
+            = (    $$src_ref =~ /#[\.,]{70,}\n(?:#[^\n]+\n)+#[:]{70,}/
+                && $$src_ref !~ /\n#[\.,]{70,}\n/ );
 
         if ($has_separator_issue) {
 
@@ -822,8 +827,8 @@ if ( $mode eq qw| repair | ) {
 
 return $footer_data;
 
-#,,,,,.,.,..,,.,,,,..,,..,...,,..,,..,..,,.,,,..,,...,...,...,.,,,..,,,,,,.,,,
-#SXJGQ2Y2WVDFLWAMCYTNM5UJVJ7CSHYHPW3HZXFRIFITC2YRFZZ5BKAXJM5KDBQ7THDFHZQUDHA2G
-#\\\|RK7AHMXHI7Q2XW42UEB4LW7KKBLJ4QNZ2LAMB66AIKZHKKDURSQ \ / AMOS7 \ YOURUM ::
-#\[7]PCOUYASV5ZYMCBXQXKSBLBVJI2SZISMVKFLATAGMZTQJFTMCSYCQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,,.,,..,.,,,,.,,.,.,,..,.,,,.,,,..,,...,...,,..,.,,,.,.,,,.,.,,,
+#O4R2D2TYAEDVZ6FVLNT7C77HXWYKJG5TUQYLRYJQJYCSABZXEGLO5GMDBDPCWQH4CLFUQLRJJSV4G
+#\\\|D55NZLIAYODKPANMCWX2BSATNV6RE6EVX724TTZVL2IHN5VAWHL \ / AMOS7 \ YOURUM ::
+#\[7]NZUP5MXWV74CJZA3AZYVPIGN3LXASTZFGUC3YLXYEWPYS3ZHCYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

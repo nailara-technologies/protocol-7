@@ -82,23 +82,52 @@ area, rather than leaving a stylistic split between old and new code.
 
 ## related but NOT the same bug
 
-`topic-next-steps.md` (session 37) already tracked: "source.extract_sig_body:
+`topic-next-steps.md` (session 37) tracked: "source.extract_sig_body:
 YOURUM fake stubs 1 char too long → size mismatch → error instead of
 strip" — that's the EXISTING size-mismatch-based fake-detection path
-(`$footer_body =~ /YOURUM/` after a length check fails) misfiring on a
-near-real stub that's merely the wrong size. Still open, not touched by
-this fix. The bug found and fixed here is a structurally different fake
-that never triggers the size-mismatch path at all, because — per the
-earlier trace — the SUBSTITUTION happens before the size check is even
-reached for the wrong footer (the real one gets matched/removed first,
-the fake one never gets far enough into the pipeline to hit that check).
+(`$footer_body =~ /YOURUM/` after a length check fails) firing on a
+near-real stub that's merely the wrong size. The bug found and fixed
+here is a structurally different fake that never triggers the
+size-mismatch path at all, because — per the earlier trace — the
+SUBSTITUTION happens before the size check is even reached for the
+wrong footer (the real one gets matched/removed first, the fake one
+never gets far enough into the pipeline to hit that check).
+
+**RULED OUT 2026-08-01** — the session-37 item is not a bug: real
+generated footers are deterministic in length, so the size-mismatch
+branch can only ever fire on a fake stub, and every live caller
+(`strip-signature-footer`, `verify-p7-signatures`, `update-signatures`)
+already handles the `yourum-fake-signature` flag correctly (strip
+anyway / report invalid / unconditional strip respectively). See
+[[project-2026-07-30-gap-audit]] for the reproduction + full caller
+audit.
+
+**REAL BUG FOUND + FIXED 2026-08-02 (kimi)** — the user's actual
+recollection behind the session-37 report was a different variant:
+fake footers whose comma/colon lines run *longer* than the hard-coded
+ceilings every footer-recognition regex allowed (`{70,85}`/`{70,90}`
+etc.). Those matched NO pattern at all — not even the generic
+real-signature extraction pattern, which reuses the same
+`$footer_start_regex` as its start marker — so extract returned
+`extraction_failed_with_markers` without stripping and the console
+skipped the file. Fix: all footer-recognizing regexes in
+`modules/source.extract_sig_body` are now left-anchored /
+right-tolerant (`{70,}` open minimums; recognition confidence carried
+by the `AMOS7`/`YOURUM`/`DATA-SIGNATURE`/`\\|`/`\[7]` marker tokens,
+not the char count), plus a caller fix in
+`sourcecode.console.strip-signature-footer` to persist in-memory
+stub-strips when no real footer remains (previously the cleaned
+content was silently discarded). Task file:
+`data/tasks/source-extract-sig-body-overlong-fake-footer-not-stripped.md`.
+Live-verified via the sourcecode console zenka; uncommitted, pending
+human sign-off.
 
 ## related
 
 [[topic-format-code-bugs-fixed]]
 
-#,,,.,,,.,,,,,,,.,,,,,,..,..,,.,,,.,.,.,,,.,,,.,.,...,...,.,,,.,,,.,,,,,,,,,,,
-#XLSKQTH3SARAES6D4VNP2IBNM7MD5RVYD45VLHZ7RPA6FRQEQGWQBHIWR7WZY5SNIINOXKMMMXR7A
-#\\\|D2EWXYXJXTYUERKCYLAZI2UBKO2VELZCHSVMCJS736YRUMMIJJ2 \ / AMOS7 \ YOURUM ::
-#\[7]4ZT4QBH5DAKQ43BXRBRU5GMT5PB5IQ4L366QM3LU2YXG3DK2GCDY 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,,.,..,,,..,,,.,,..,,..,..,,,,,,.,.,...,...,,.,,.,.,,,,,,,,,.,,,
+#GMQ2L4L6QFRQS24ABAG2647NNMXBDVCGRK6IDYO6HVT6NRNAM7OTN76THWREOJCUYRJVQ3KD4YJWA
+#\\\|DXKEKTBJW4JGEUVB35P5RSP5JLWE5S3GPXU7B2PWAND2EZ5MPDR \ / AMOS7 \ YOURUM ::
+#\[7]4LKPFW6MEKE4RYVFKB2X67QOT5IWQEHSVGKL3VWLOOKWLBA7QCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

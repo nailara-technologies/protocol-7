@@ -68,13 +68,33 @@ foreach my $source_path (@source_paths) {
         next;
     }
 
+    ## keep original to detect in-memory stub/fake footer strips ##
+    my $src_orig = $src_str;
+
     # Extract signature footer in strict mode (strip operation)
     my $footer_data = <[source.extract_sig_body]>->( \$src_str, qw| strip | );
 
     if ( not $footer_data->{'was-present'} ) {
-        <[base.log]>->( 2, ': no signature footer found' )
-            if $strip_verbosity >= 2;
-        $files_no_sig++;
+        if ( $src_str ne $src_orig ) {
+
+            ## stub/fake footer was stripped in-memory by extract_sig_body ##
+            ## but no real signature footer remained : persist the cleaned ##
+            ## content so the fake footer does not survive on disk         ##
+            <[base.logs]>->( 2, ': %s', 'fake/stub footer stripped' )
+                if $strip_verbosity >= 2;
+            if ( not <[file.put_bin]>->( $source_path, $src_str ) ) {
+                <[base.logs]>->(
+                    0, ':E: unable to write file: %s', $path_rel
+                );
+                $files_error++;
+                next;
+            }
+            $files_stripped++;
+        } else {
+            <[base.log]>->( 2, ': no signature footer found' )
+                if $strip_verbosity >= 2;
+            $files_no_sig++;
+        }
         next;
     }
 
@@ -171,8 +191,8 @@ if ( $files_error > 0 ) {
 
 return FALSE;
 
-#,,..,,..,,.,,,,,,,..,,.,,,,.,,.,,,,.,,,.,.,,,..,,...,..,,..,,,.,,...,,,,,,,.,
-#BBW5NDS56Q5QKBXMXRJMJA6OEAIA4QQQQY7V6AZAASG3TCFOGPEUR4WMYV6KOQR246DMHTQ6HXITI
-#\\\|LA7Y64HOPGNGRGHU65CPDHVOEG5DCSNFOPQE5JSI6GKYNXSME7M \ / AMOS7 \ YOURUM ::
-#\[7]AXIYQFBFAOF7YZV6YJAHZUD34LILMKWZ2G7D77XMWYKCKYMWWABQ 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,,..,...,.,.,,,.,.,.,,.,,,.,,..,,..,,...,...,.,,,.,,,,,,,,..,...,
+#5SDDNAPLEJWYOBKFNQD57FNGTV6LO4254BYWJOGHPNSFAPGOV6YU5WEWGHVPPL4IDYBZ4KPTWCIJU
+#\\\|Z4YG7XZPEJR4F2ILCKURVLHGDDENFIFQU5ZPR74KMIVZURJB7C4 \ / AMOS7 \ YOURUM ::
+#\[7]OKJONSQBS3GXPET424YTODOO5R3LD5ZTKJ2MVWTGA3N7DGO2Z6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -37,8 +37,35 @@ scratch in a future session.
 - [ ] `perl-mod-reload` "subroutine redefined" warnings — mod-test zenka
   exists to fix this, not started (see
   [[project-perl-mod-reload-subroutine-redefined-warnings]])
-- [ ] session-37 `source.extract_sig_body` "1 char too long" bug — distinct
-  from the fake-footer bug already fixed, see [[topic-fake-signature-footer-detection]]
+- [x] session-37 `source.extract_sig_body` "1 char too long" bug —
+  **RULED OUT 2026-08-01, not a bug.** Reproduced the size-mismatch
+  condition itself with a synthetic footer (regex-level test, `+1` char
+  in a checksum line vs `<source.sign_template>`): it does set
+  `yourum-fake-signature => TRUE` in strict mode, confirmed. But real
+  generated footers are deterministic in length (always exactly
+  `length(<source.sign_template>)`), so this branch can *only* ever fire
+  on a hand-typed/hallucinated stub — never on a genuine signature. Every
+  live caller already does the correct thing with the flag:
+  `strip-signature-footer` strips it anyway (footer is removed from
+  `$src_ref` unconditionally before the size check even runs, per
+  `source.extract_sig_body:172`), `verify-p7-signatures` reports it
+  invalid (correct — it IS fake), `update-signatures` discards the
+  return value and always strips. `work.parent.scan_history` /
+  `base.handler.whitelist_miss` don't special-case the flag but only
+  check `structure-was-valid`, and falling through to "not validly
+  signed" is the correct outcome for a fake stub in both. The
+  caller-side handling traces back to `1623337c7` (Nov 2025), predating
+  the session-37 bug note — it was likely already fixed when reported.
+  See [[topic-fake-signature-footer-detection]].
+  **FOLLOW-UP 2026-08-02 (kimi)**: the *actual* reported symptom
+  ("over-long fake footer never stripped") was a real, distinct bug —
+  lines longer than every regex ceiling (`{70,85}`/`{70,90}`) bypassed
+  all strip patterns AND the real-signature extraction start marker.
+  Fixed: open-ended `{70,}` minimums across all footer-recognizing
+  regexes in `source.extract_sig_body` + stub-strip persistence fix in
+  `sourcecode.console.strip-signature-footer`. Live-verified before/
+  after via the sourcecode console zenka. Uncommitted, for human
+  review.
 
 ## verification never run
 - [ ] openvas-agent phase 1 — implemented + file-verified, **not boot-tested
@@ -118,8 +145,8 @@ scratch in a future session.
   `elf_mode` consumer and threads it correctly through to
   `base.chk-sum.elf.inline` — not the same bug. No second instance found.
 
-#,,,,,..,,..,,..,,...,.,,,,,.,,.,,..,,...,.,.,.,.,...,...,...,.,.,..,,,,,,.,.,
-#F3UEPNEEL3R3KGNMTXSEPVFUA6A6M6AYPOWQV4X3VWJOIIK27KHQQQAHGAOS53W7UBRSXRC73WUTS
-#\\\|7AHBMOUSAJQEWD4IIMVRHNFOQYBFMYFM6OS4SPENACXQJVWCE7W \ / AMOS7 \ YOURUM ::
-#\[7]CC665APODXAVRTNYN7FB3JMBFBTX46KAP4AQFYCX2ICUHPU6FSAA 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,...,.,,,..,,,,,,..,,..,,.,.,.,.,.,.,...,...,,..,...,...,,..,.,,,
+#P3N75367N4Q4JWJD2HSJV6M35NU4DJZAO2QHC6YNVFY5HE53S3J2UZ6RU43LSNFUWX4VAWUOHVQRO
+#\\\|FF4EN4Q5DIQ53KRCKU622N5PYIZDVL4OKE6ZOIMLYTKOUY4KIMZ \ / AMOS7 \ YOURUM ::
+#\[7]L3BHKXIBNKBZ3JRX7QVJZU2266SIWRMT76OTPR7Y4ZHSLJHAG2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
