@@ -5,6 +5,7 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
+- [memory-write-path](feedback-edit-memory-via-ai-mem-path.md) — always Read/Edit/Write memory via data/ai-mem/claude/<file>, never the ~/.claude/projects/.../memory/ symlink path (same files, home path re-prompts every edit)
 - [settings-json-repair-mode-does-not-persist](feedback-settings-json-repair-mode-does-not-persist.md) — broken .claude/settings.local.json (e.g. trailing comma) triggers in-session repair that burns tokens but never saves; verify JSON validity on disk directly, restart required after manual fix
 - [web-browser ephemeral storage](feedback-web-browser-ephemeral-storage.md) — WebKit ephemeral=1: storage wiped every restart
 - [WSLg deiconify limitation](feedback-wslg-deiconify-limitation.md) — Weston/WSLg blocks deiconify at compositor level
@@ -42,8 +43,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,,,.,,,.,,,.,.,.,,,,,,,...,,,,,..,,,,.,...,..,,...,..,,...,,,,,...,,,.,,,.,
-#IGOMJM2TEFTV3NSHG7IW2PGBKL3RLEFM4HFBTFWHSQKR7QASVUO5NGD6HFBEJ6EPX7PNSQJIUPM22
-#\\\|I2GL66FLZCBIKWVNYUND3EAX4TOWSG7MS65D62AFURGUFBZA634 \ / AMOS7 \ YOURUM ::
-#\[7]GLKNCGA2NM6QXVPUNT4TG7KPSVTMICUD7L3ADIJGUDAWX6MYBCBI 7  DATA SIGNATURE ::
+#,,..,,..,...,.,,,,,.,..,,,..,,..,,.,,,,,,.,,,..,,...,...,..,,,,.,..,,.,.,,.,,
+#57HGNX7PBONVOIYVQHSFOYTW4XBQL5Z3VRRNU4D5JKLUWISNTUPRGDT5O2ANKQUG725DOJ2YGTEVM
+#\\\|UVKE5XPBVC7U7QN3XSCXNRHLPTQWFKEYGQHRRSPVEKDUVS43IIX \ / AMOS7 \ YOURUM ::
+#\[7]NMRVGCZL63BRYF4J6Z4ECIQDT3REVWDT43BZQVTAXTUBMTX446CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
