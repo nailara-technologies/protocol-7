@@ -51,6 +51,7 @@ ui.layout.fit
 ui.budget.tty
 net.init_code
 net.calc_port
+mpv.post_init
 mpv.init_code
 mpv.cmd.pause
 base.timezone
@@ -65,8 +66,10 @@ base.get_file
 base.file.put
 base.cmd.name
 base.cmd.list
+base.cmd.exit
 base.cfg_bool
 ui.render.tree
+ui.cmd.ui-show
 mpv.cmd.resume
 mpv.cmd.append
 jobqueue.count
@@ -88,6 +91,7 @@ base.file.open
 base.dump_data
 base.conf-wrap
 base.cmd.heart
+base.cmd.clear
 auth.auth_list
 plugin.auth.pwd
 net.read_binary
@@ -95,8 +99,10 @@ mpv.open_player
 mpv.cmd.version
 mpv.cmd.setting
 mpv.cmd.is-idle
+mpv.cmd.command
 mpv.cmd.align-y
 mpv.cmd.align-x
+devmod.pre_init
 chk-sum.md5.hex
 chk-sum.crc.b32
 base.zenka.push
@@ -114,6 +120,7 @@ base.event.loop
 base.curve.tick
 base.curve.init
 base.curve.eval
+base.cmd.whoami
 base.cmd.reload
 base.calc_gauss
 ui.estimate.cost
@@ -124,6 +131,8 @@ mpv.send_command
 mpv.json.command
 mpv.get_playlist
 jobqueue.add_job
+devmod.post_init
+devmod.init_code
 chk-sum.md5.b64u
 base.stream.push
 base.stream.open
@@ -141,6 +150,9 @@ base.code.exists
 base.cmd.subname
 base.cmd.src-ver
 base.cmd.src-age
+base.cmd.rel-ver
+base.cmd.ptl-ver
+base.cmd.present
 base.cmd.cur-pid
 base.chk-sum.elf
 base.call_filter
@@ -174,6 +186,9 @@ base.file.content
 base.event.add_io
 base.curve.cancel
 base.context.list
+base.cmd.term-all
+base.cmd.last-sid
+base.cmd.cpu-time
 base.cmd.commands
 base.chk-sum.amos
 ascii.frame.parse
@@ -202,6 +217,7 @@ base.file.line_map
 base.file.all_dirs
 base.event.add_var
 base.dependency.ok
+base.cmd.verbosity
 base.clear_p7_mods
 base.clean_unicode
 base.clean_hashref
@@ -214,6 +230,7 @@ plugin.auth.twofish
 mpv.cmd.append-play
 jobqueue.remove_job
 io.ip.tcp.init_code
+devmod.console-dump
 base.utf8.clean_str
 base.str.eval_error
 base.round_truncate
@@ -235,6 +252,7 @@ base.curve.register
 base.calc_unix_path
 mpv.snapshot.restore
 mpv.loop_plist_param
+mpv.cmd.pipe-cmd-raw
 mpv.cmd.pause-toggle
 mpv.cmd.drop-buffers
 mpv.cmd.current-file
@@ -260,6 +278,8 @@ base.eval.comp_regex
 base.disable_command
 base.devmod.dump_var
 base.cmd.show-buffer
+base.cmd.show-access
+base.cmd.amos-chksum
 base.buffer.add_line
 base.base32.pre_init
 ascii.frame.validate
@@ -293,7 +313,10 @@ base.list.element.add
 base.file.match_files
 base.event.add_signal
 base.dependency.setup
+base.console.describe
 base.console.commands
+base.cmd.when-present
+base.cmd.dependencies
 base.cmd.buffer-erase
 base.cfg.profile.list
 base.balanced-average
@@ -315,10 +338,12 @@ base.register_src_deps
 base.register_bin_deps
 base.perlmod.init_code
 base.path.resolved_abs
+base.net.cmd.timestamp
 base.get_max_verbosity
 base.file.get-non-dirs
 base.exec.with_timeout
 base.comp-int.is_valid
+base.cmd.cancel-stream
 base.cfg.profile.apply
 window.geometry.resolve
 set-up.json.import_file
@@ -352,6 +377,9 @@ base.dump.data_key_list
 base.convert.hex_to_int
 base.code.call_optional
 base.code.call_expected
+base.cmd.set-name-width
+base.cmd.ondemand-zenka
+base.cmd.loaded-configs
 base.chk-sum.elf.inline
 base.callback.cmd_reply
 base.auth.set_zenka_key
@@ -456,6 +484,7 @@ base.chk-sum.amos.init_code
 auth.client.zenka.init_code
 protocol.protocol-7.pre_init
 protocol.amos_term.init_code
+mpv.startup.resolve_x11_info
 mpv.startup.request_geometry
 mpv.handler.reposition_reply
 mpv.handler.pipe.val_percent
@@ -527,6 +556,7 @@ base.format.inline-nested.encode
 base.file.last_existing_dir_path
 base.file.get_swapped_subs_pairs
 base.config.load_proto_7_version
+base.cfg.profile.cmd.set-profile
 ascii.frame.parse.border_segment
 protocol.amos-chksum.ext-cmd.exit
 mpv.initialize.observe_properties
@@ -622,8 +652,8 @@ base.log.send-buffer.reply-handler.notify-online
 mpv.handler.event.property-change.partially-seekable
 mpv.handler.event.property-change.video-aspect-override
 
-#,,,,,.,.,..,,,..,,,.,..,,...,,,.,..,,.,,,.,,,..,,...,...,..,,,.,,,.,,.,.,...,
-#5RLENNOFKZNUTT3JYBVRTJOCPHYKC7RA26C4CEHFOH6XUSLF2JQGHWPHOI4EE3Z6M77Y4B3WDGBD4
-#\\\|YZJFTEVCKTINYE4IFVXUQF6B5UZXYKGFOT3F4SU7ARENTSBASB4 \ / AMOS7 \ YOURUM ::
-#\[7]JRIMJPYAQJQMIDLCN6K7AQW65HAP4JQH6YUOIVW5H567527J32DA 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,.,.,.,.,.,.,...,..,,,.,,.,.,,,,,..,,...,...,...,.,,,,,.,,.,,.,,,
+#FZTY76MA6DTONJOS4ALYAMHGBNUYGJRA46UQNEODT6DMJ24FPPZVZX5RJI3PKHP2YK3FUFN4KR3KK
+#\\\|2JEW7GOXNCTHR3J2W4L4DSOCCKOWYR5MANHJNCVIFDZI7RE32JI \ / AMOS7 \ YOURUM ::
+#\[7]ILQIRFETNEUO4AOBDE67HCJKG33JV2CCWAQD5UAYRK2YHUXC6KAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
