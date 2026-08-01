@@ -7,7 +7,7 @@ my ($index_file) = @ARG;
 
 return TRUE unless -f $index_file;
 
-my $mtime = ( stat($index_file) )[9];
+my $mtime = File::stat::stat($index_file)->mtime;
 return TRUE unless defined $mtime;
 
 my $age       = time() - $mtime;
@@ -15,8 +15,8 @@ my $index_ttl = <work.cfg.index_ttl>;
 
 return $age > $index_ttl;
 
-#,,,.,,,,,.,.,,.,,,.,,,.,,..,,,.,,,,,,,,,,,..,..,,...,...,...,,..,.,.,,,,,,.,,
-#7UE27ESRCISNXR4IIZHDBRLUUOHWRL7UVHSPAUWE65UAHQ2JDBBLXK47YQHWI2EAKPQV5ZQZ4FLIG
-#\\\|NPGKIXMAN6J77DDRGIIACY4XFU52TPUQYAYWISNDULZUH4OF2BQ \ / AMOS7 \ YOURUM ::
-#\[7]LGWMCEIVOSFY756D3F3QJ5E3M3AONBSTAJO4R753A2XWFTS2DEBI 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,.,.,,,.,...,..,,,,,,,,,,,,,,,.,,..,,...,...,.,,,...,,.,,..,,.,.,
+#YD4YR6LZ66NN5REU4HNCQBQHKTHYZHQ4ML6FEQSTVGCBNFIFRHKBRMRYVR43Y35JN23H6DSEACW2K
+#\\\|FISWZUUMW3OLIQXF3CG52YHQ3LJNZLTCLO2JURRB2233MJFJLE6 \ / AMOS7 \ YOURUM ::
+#\[7]AGQAMOTSWZWMBKKC7QJW446VOKAXWWKR7UVW4TJGADLTXAAGSADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

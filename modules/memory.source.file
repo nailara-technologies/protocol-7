@@ -23,7 +23,7 @@ foreach my $file (@files) {
     $content =~ s|^#,,.*\n.*\n.*AMOS7.*\n.*DATA\sSIGNATURE.*\n.*\n||ms;
 
     ## [ file mtime as ntime source ] ##
-    my $mtime     = ( stat($file) )[9] // time;
+    my $mtime     = File::stat::stat($file)->mtime // time;
     my $ntime_num = <[base.ntime]>->($mtime);
     my $ntime_b32 = <[base.ntime.b32]>->($ntime_num);
 
@@ -107,8 +107,8 @@ foreach my $file (@files) {
 
 return \@leaves;
 
-#,,,,,.,,,,,.,...,,.,,,,.,...,,,.,,..,,,,,..,,..,,...,...,.,,,,,.,,,.,..,,,,,,
-#6VPMS47WCPLPOMERO3ENKPVVCUUZGDGR673NHHRMJ7XVDILPEOLOKANNEIXFJZCURNFF7FCO3ZYXG
-#\\\|T3NJBGDBQO42APJ4LKXIK44IZ3E2OPYKU7QFZUBFDLQNHBXEB7P \ / AMOS7 \ YOURUM ::
-#\[7]WWJ3KQ62KAZLNUDN5QW5KVMWZMJRZ7N55M7A5XFUIOXSTL5CZIDQ 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,.,,,,.,,.,.,,.,,,,.,..,,.,.,.,.,..,,...,...,,..,.,.,..,,.,.,.,,,
+#ITKXFLML42M4WWLINKRIPRHWTPWGKYJUJ4N6CMJREIFWLWFTXJOI3IEVN3AFF7RVRSDSJ76WVSKB6
+#\\\|ZZTX4N6F72VT3HGSUCKNVYPP5SQV6HRGGNFM2L3NNBLMDYAMYML \ / AMOS7 \ YOURUM ::
+#\[7]JWI5WXL6R3CDMLTNS2L5FSN25J3Q3LAD24RIN3URPK6ZFU62I4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
