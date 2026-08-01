@@ -1,0 +1,269 @@
+## [:< ##
+
+# name  = p7-log.handler.legacy_sweep_tick
+# descr = one bounded chunk of p7-log.startup.legacy_gap_sweep's mid-file
+#          repair work per call, self-rescheduling via a short timer until
+#          the whole file list is exhausted -- bounds per-tick blocking
+#          time to one chunk read/write regardless of how large any single
+#          file is [ batching by *file* would not bound the worst case : a
+#          single pathologically large file could still blow v7's
+#          heartbeat window on its own and get this zenka restarted
+#          mid-sweep ]. safe to read to whatever EOF is seen at any moment
+#          : these are append-only files with p7-log as sole writer, and
+#          content legitimately appended during a live scan can never
+#          itself be zero bytes [ that only happens via the crash /
+#          writeback race p7-log.handler.close_log's fsync already closes
+#          -- and a crash mid-scan would kill this p7-log process too,
+#          ending the scan along with it ]
+
+my $chunk_size = 4 * 1024 * 1024;    ## 4MB per tick ##
+my $tick_delay = 0.05;               ## seconds between ticks ##
+
+my $state = <p7-log.legacy_sweep.state>;
+return TRUE if not defined $state;    ## nothing in progress ##
+
+my $reschedule = sub {
+    <system.timer>->{'legacy_gap_sweep_tick'} = <[event.add_timer]>->(
+        {   'repeat'  => 0,
+            'after'   => $tick_delay,
+            'handler' => qw| p7-log.handler.legacy_sweep_tick |,
+        }
+    );
+};
+
+## attribute a notice to the session id [sid] of the last real line seen so ##
+## far, not a synthetic placeholder -- '0000000' is reserved to mean "from  ##
+## cube itself" [ see p7-log.add_line's cube-zenka source sid strip ], and  ##
+## a new zenka boot always logs its own new sid first, so "the last one     ##
+## seen" can never have silently gone stale. if a file's very first bytes   ##
+## are already a gap [ no prior line exists at all ], fall back to 7777777  ##
+## -- distinct from real ids and never '0000000', so it reads as an         ##
+## intentional "no prior context" marker rather than a false cube           ##
+## attribution [ same spirit as this project's ELF-7 checksum fix : +=777   ##
+## per zero-byte instead of +=0, so a zero byte's presence actually shows   ##
+## up instead of being a silent no-op ]                                     ##
+my $gen_notice = sub {
+    my $gap_len = shift;
+    my $repl_id = <[base.ntime.b32]>;
+    my $sid     = $state->{'current'}->{'last_sid'} // 7777777;
+    return
+        sprintf(
+        "%s %s 0 [p7-log] recovered zero-byte gap [ %d bytes ] .,\n%s %s 0 "
+            . "[p7-log] likely unflushed writeback lost to a crash / "
+            . "shutdown [ pre-fsync-fix ] .,\n%s %s 0 [p7-log] see "
+            . "p7-log.handler.close_log\n",
+        $repl_id, $sid, $gap_len, $repl_id, $sid, $repl_id, $sid );
+};
+
+## track the last real line's session id [sid] seen, from whatever was just ##
+## written [ including previously-generated notices, which carry a real sid ##
+## too -- chaining forward off one of our own notices for a second gap in   ##
+## the same chunk is a fine approximation, not wrong ]                      ##
+my $update_last_sid = sub {
+    my $written = shift;
+    $state->{'current'}->{'last_sid'} = $2
+        if $written =~ m{(?:^|\n)(\S+) (\S+) \d+ [^\n]*\n\z};
+};
+
+## advance to the next file if none currently in progress ##
+if ( not defined $state->{'current'} ) {
+
+    if ( not @{ $state->{'file_list'} } ) {
+        ## every file processed -- done, report + persist marker ##
+        if ( $state->{'repaired_files'} ) {
+            <[base.logs]>->(
+                1,
+                "legacy_gap_sweep : %d gap%s repaired across %d file%s",
+                $state->{'repaired_runs'},
+                <[base.cnt_s]>->( $state->{'repaired_runs'} ),
+                $state->{'repaired_files'},
+                <[base.cnt_s]>->( $state->{'repaired_files'} )
+            );
+        } else {
+            <[base.logs]>->(
+                1,
+                "legacy_gap_sweep : scanned %d file%s, all clean .,",
+                $state->{'total_files'},
+                <[base.cnt_s]>->( $state->{'total_files'} )
+            );
+        }
+
+        <[file.zenka_dir.write]>->(
+            qw| legacy-nul-gaps-swept |,
+            \sprintf( "swept at ntime %s\n", <[base.ntime]> )
+        );
+
+        delete <p7-log.legacy_sweep.state>;
+        return TRUE;
+    }
+
+    my $log_path = shift @{ $state->{'file_list'} };
+    my ($log_name)
+        = $log_path =~ m|^.*/\Q$state->{'system_name'}\E\.(.+)\.log$|;
+
+    if ( not defined $log_name or <log.files>->{$log_name}->{'locked'} ) {
+        $reschedule->();
+        return TRUE;
+    }
+
+    my $file_stat = File::stat::stat($log_path);
+    if ( not defined $file_stat or not $file_stat->size ) {
+        $reschedule->();
+        return TRUE;
+    }
+
+    my $in_fh;
+    if ( not open( $in_fh, '<:raw', $log_path ) ) {
+        <[base.log]>->(
+            0,         "legacy_gap_sweep : cannot open [%s] : %s",
+            $log_path, <[base.str.os_err]>
+        );
+        $reschedule->();
+        return TRUE;
+    }
+
+    my $tmp_path = sprintf( qw| %s.repair-tmp.%d |, $log_path, $PID );
+    my $out_fh;
+    if ( not open( $out_fh, '>:raw', $tmp_path ) ) {
+        <[base.log]>->(
+            0,         "legacy_gap_sweep : cannot write [%s] : %s",
+            $tmp_path, <[base.str.os_err]>
+        );
+        close($in_fh);
+        $reschedule->();
+        return TRUE;
+    }
+
+    $state->{'current'} = {
+        'log_path' => $log_path,
+        'log_name' => $log_name,
+        'in_fh'    => $in_fh,
+        'out_fh'   => $out_fh,
+        'tmp_path' => $tmp_path,
+        'carry'    => 0,
+        'runs'     => 0,
+        'last_sid' => 7777777,     ## no prior line yet -- see gen_notice ##
+    };
+}
+
+my $cur = $state->{'current'};
+
+my $chunk;
+my $read_len = read( $cur->{'in_fh'}, $chunk, $chunk_size );
+
+if ( not defined $read_len ) {
+    <[base.log]>->(
+        0,                  "legacy_gap_sweep : read error on [%s] : %s",
+        $cur->{'log_path'}, <[base.str.os_err]>
+    );
+    close( $cur->{'in_fh'} );
+    close( $cur->{'out_fh'} );
+    unlink( $cur->{'tmp_path'} );
+    $state->{'current'} = undef;
+    $reschedule->();
+    return TRUE;
+}
+
+if ( $read_len == 0 ) {
+    ## EOF -- finalize any carried trailing zero run [ genuinely ends here, ##
+    ## no more chunks coming ], then commit or discard                      ##
+    if ( $cur->{'carry'} > 0 ) {
+        $cur->{'runs'}++;
+        print { $cur->{'out_fh'} } $gen_notice->( $cur->{'carry'} );
+    }
+
+    close( $cur->{'in_fh'} );
+    close( $cur->{'out_fh'} );
+
+    if ( not $cur->{'runs'} ) {
+        unlink( $cur->{'tmp_path'} );
+        $state->{'current'} = undef;
+        $reschedule->();
+        return TRUE;
+    }
+
+    my $orig_stat = File::stat::stat( $cur->{'log_path'} );
+    chmod( $orig_stat->mode & 07777, $cur->{'tmp_path'} )
+        if defined $orig_stat;
+    chown( $orig_stat->uid, $orig_stat->gid, $cur->{'tmp_path'} )
+        if defined $orig_stat;
+
+    if ( <log.files>->{ $cur->{'log_name'} }->{'locked'} ) {
+        <[base.logs]>->(
+            2,
+            'legacy_gap_sweep : [%s] became active before rename, skipping',
+            $cur->{'log_name'}
+        );
+        unlink( $cur->{'tmp_path'} );
+        $state->{'current'} = undef;
+        $reschedule->();
+        return TRUE;
+    }
+
+    if ( not rename( $cur->{'tmp_path'}, $cur->{'log_path'} ) ) {
+        <[base.log]>->(
+            0,                  "legacy_gap_sweep : cannot replace [%s] : %s",
+            $cur->{'log_path'}, <[base.str.os_err]>
+        );
+        unlink( $cur->{'tmp_path'} );
+        $state->{'current'} = undef;
+        $reschedule->();
+        return TRUE;
+    }
+
+    $state->{'repaired_files'}++;
+    $state->{'repaired_runs'} += $cur->{'runs'};
+    <[base.logs]>->(
+        1,              "legacy_gap_sweep : repaired %d gap%s in [%s]",
+        $cur->{'runs'}, <[base.cnt_s]>->( $cur->{'runs'} ),
+        $cur->{'log_path'}
+    );
+
+    $state->{'current'} = undef;
+    $reschedule->();
+    return TRUE;
+}
+
+## got a chunk -- combine with any carried-over trailing zero run from the ##
+## previous chunk, then resolve as much as we can confirm is complete      ##
+my $buf = ( "\x00" x $cur->{'carry'} ) . $chunk;
+
+if ( index( $buf, "\x00" ) == -1 ) {
+    ## cheap common-case check first : nothing to do at all, skip the more ##
+    ## expensive trailing-run detection and replace-regex entirely         ##
+    $cur->{'carry'} = 0;
+    print { $cur->{'out_fh'} } $buf;
+    $update_last_sid->($buf);
+} elsif ( $buf =~ m|\x00+\z| ) {
+    my $trailing_start = $LAST_MATCH_START[0];
+    my $head           = substr( $buf, 0, $trailing_start );
+    $cur->{'carry'} = length($buf) - $trailing_start;
+
+    $head =~ s{ \x00+ }{
+        $cur->{'runs'}++;
+        $cur->{'last_sid'} = $2
+            if $PREMATCH =~ m{(?:^|\n)(\S+) (\S+) \d+ [^\n]*\n\z};
+        $gen_notice->( length($MATCH) );
+    }gex;
+    print { $cur->{'out_fh'} } $head;
+    $update_last_sid->($head);
+} else {
+    $cur->{'carry'} = 0;
+    $buf =~ s{ \x00+ }{
+        $cur->{'runs'}++;
+        $cur->{'last_sid'} = $2
+            if $PREMATCH =~ m{(?:^|\n)(\S+) (\S+) \d+ [^\n]*\n\z};
+        $gen_notice->( length($MATCH) );
+    }gex;
+    print { $cur->{'out_fh'} } $buf;
+    $update_last_sid->($buf);
+}
+
+$reschedule->();
+return TRUE;
+
+#,,,,,..,,,..,..,,.,.,,,,,.,,,...,,..,,,,,,,,,..,,...,...,,,.,.,,,,.,,.,.,..,,
+#7IKRXDR2RSM24LP4QF5GRN3U665MP65U5RVNC3DZWRGEGZXUJ4EZU4GWCRMEXZQZ2OB32V62HTPOK
+#\\\|4PAOKJTXB54OF5ZRMPJVY5UP64BHHIO4XIOHMMLJO4LHLHXMZEO \ / AMOS7 \ YOURUM ::
+#\[7]SKATKZLZUO2VHBE4642N3VKWIVEQ4DO35AISZW7B4V2JD5AZAUBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

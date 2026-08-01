@@ -6,6 +6,7 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active Topics
 - [mpv-x11-dependency-cascade-restart](topic-mpv-x11-dependency-cascade-restart.md) — X-11 crash SIGKILLed mpv[audio-0]/radio via v7's blanket zenka-level dependency cascade; instance-exemption mechanism coded (v7.zenka.start seed + v7.handler.zenka_status check + mpv.startup.resolve_x11_info), config directive syntax still undecided
+- [session-id-range-division-planned](topic-session-id-range-division-planned.md) — future numbering: session ids split into ranges, 7<nnnnnn> becomes a "resource range" (parent vs locally-managed client branches); why p7-log's gap-repair notices use 7777777 as their no-prior-context sentinel, revisit if that range gets designed for real
 - [model-auto-eval-file-stat-test-case](project-model-auto-eval-file-stat-test-case.md) — commit 8af36568a's coding-zenka dispatch (unreliable self-report, verified via diff) is a ready-made candidate test case for the not-yet-built local-model auto-eval feature
 - [coding-self-test-http500-and-hint-fixes-2026-07-31](topic-coding-self-test-http500-and-hint-fixes-2026-07-31.md) — cat-riddle self-test: fixed spurious-pass-on-failed-inference, restart-race dupes, riddle wording, server-tail diagnostic; OPEN: http_500 root cause (duration alone doesn't explain it — suspect stream:false vs the proven-stable async client's stream:true/stall-timeout design; async rewrite considered + rejected for now, advisor-consulted), `$content_already_correct` guard untested live, timeout=90s provisional
 - [kimi-k3-256k-model](reference-kimi-k3-256k-model.md) — configured but never used as of 2026-07-31; no short alias in mcp-server-p7 but usable today via full string `kimi-code/k3-256k`; default to it for well-scoped single/few-file dispatches
@@ -89,8 +90,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [scratchpad-import-tool](topic-scratchpad-import-tool.md), [scratchpad-rescue-coding-zenka-task](topic-scratchpad-rescue-coding-zenka-task.md) — mcp-server-p7 scratchpad tools tested; follow-up task filed w/ kimi K3 for native coding-zenka rescue tools + chmod g+rx fix
 - [ncode-pattern-learning-loop](topic-ncode-pattern-learning-loop.md) — phase 1 + phase 2 (namespace scope-stack) LANDED, staged+committed `f8108af44` 2026-07-30 (kimi K3): scope_match/widen-scope + ncode.regex.apply status-gate parity fix, live-verified via p7c; tier-A chain fully run (expand→apply on scratch 2026-07-24; assess entry point tried on a real occurrence 2026-07-31, blocked by [[bug-ncode-assess-replace-not-backreferenced]] — assess never backreferences its own capture group, so it can't produce a generalizing pattern)
 
-#,,..,.,.,,..,,.,,,.,,,..,..,,.,,,,..,.,,,,,.,..,,...,...,.,.,.,.,...,,..,,,.,
-#FDNCE4M765AR5GHSW4IEEVFQFPR3T7WBUOK7RWRPN2WWH5WHMJ2DKPMFUXPVEQ5HAAUSC6Z52UW5W
-#\\\|4A23KVBTXHJXAQGIYKFH6XOE2QL5CMOGNYARVQ5ITXNTQHWMYBG \ / AMOS7 \ YOURUM ::
-#\[7]ZLHNSVJ7H5BWHOSNT7ICM3L32MYZYNRK5R654Z374JFNL37QYYCI 7  DATA SIGNATURE ::
+#,,,.,..,,..,,.,,,,..,,..,,,.,...,..,,..,,.,,,..,,...,...,.,,,,,,,..,,.,,,..,,
+#35KGQKPTKESOUJC74ZAOYPBM4WBY5UTGMNKUK6CRBR2AM77OS3PHMFLPV2T3XENQUSLRCSS3XV5YW
+#\\\|7BHKBPIJSUJAVKY3BYRJMLIQN6A4L4O6XXHURZQ4RBKEN4IRKRO \ / AMOS7 \ YOURUM ::
+#\[7]WODV7FMVNSEUUXEAKLBRQL4DRBMM3BJDGZQQWA4Q4GYJVL5IAQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -86,43 +86,72 @@ foreach my $log_path (@logfile_paths) {
 
     $repaired_files++;
     <[base.logs]>->(
-        1, "repair_nul_gaps : truncated %d trailing zero-byte(s) from [%s]",
-        $trailing_len, $log_path
+        1, "repair_nul_gaps : truncated %d trailing zero-byte%s from [%s]",
+        $trailing_len, <[base.cnt_s]>->($trailing_len), $log_path
     );
 
-    ## append a short multi-line notice into the repaired file itself, via  ##
-    ## the same command a normal zenka uses to log -- '-' log-time triggers ##
-    ## p7-log.cmd.append's own current-time fallback, so no ntime API needs ##
-    ## to be duplicated here. kept short per line : this log format still   ##
-    ## expects console-width-tight single lines, no wrapping support yet    ##
-    my ($rest) = $log_path =~ m|^.*/$system_name\.(.+)\.log$|;
-    next if not defined $rest;
-    my ( $node_zenka, $buffer_name ) = split( m|\.|, $rest, 2 );
-    next if not defined $node_zenka or not defined $buffer_name;
+    ## find the session id [sid] of the last real line still in the file,   ##
+    ## to attribute the notice to -- a new zenka boot always logs its own   ##
+    ## new sid first, so "the last one seen" can never have silently gone   ##
+    ## stale. base.log/base.logs can't write into another zenka's log file  ##
+    ## [ they only ever report the CALLING zenka's own operation ], so this ##
+    ## notice is a direct write, same as legacy_gap_sweep.run's mid-file    ##
+    ## notices -- kept short per line : this log format still expects       ##
+    ## console-width-tight single lines, no wrapping support yet no prior   ##
+    ## line found [ file starts with the gap ] -- 7777777, never '0000000'  ##
+    ## [ reserved for "from cube itself" ], distinct enough from real ids   ##
+    ## to read as an intentional "no prior context" marker [ same spirit as ##
+    ## this project's ELF-7 checksum fix : +=777 per zero-byte instead of   ##
+    ## +=0, so a zero byte's presence actually shows up ]                   ##
+    my $own_sid = 7777777;
+    {
+        my $ctx_fh;
+        if ( open( $ctx_fh, '<:raw', $log_path ) ) {
+            my $read_len = $new_size < 4096 ? $new_size : 4096;
+            seek( $ctx_fh, $new_size - $read_len, 0 );
+            my $ctx;
+            read( $ctx_fh, $ctx, $read_len );
+            close($ctx_fh);
+            $own_sid = $1 if $ctx =~ m|\S+ (\S+) \d+ [^\n]*\n?\z|;
+        }
+    }
 
-    foreach my $notice_line (
-        sprintf( "[p7-log] truncated %d trailing zero-byte(s) at boot .,",
-            $trailing_len ),
-        '[p7-log] likely unflushed writeback lost to a crash / shutdown .,',
-        '[p7-log] see p7-log.handler.close_log',
-    ) {
-        <[p7-log.cmd.append]>->(
-            {   'args' => sprintf( "%s 0 %s - 0 %s",
-                    $node_zenka, $buffer_name, $notice_line )
-            }
+    ## base.log gates every write against configured verbosity before it ##
+    ## ever reaches a log file -- a hand-assembled write has to respect  ##
+    ## that too, or it ignores what the operator configured              ##
+    my $notice_level = 0;
+    next if $notice_level > ( <system.zenka.verbosity.logfile> // 0 );
+
+    my $repl_id = <[base.ntime.b32]>;
+    my $notice  = sprintf(
+        "%s %s 0 [p7-log] truncated %d trailing zero-byte%s at boot .,\n%s "
+            . "%s 0 [p7-log] likely unflushed writeback lost to a crash / "
+            . "shutdown .,\n%s %s 0 [p7-log] see p7-log.handler.close_log\n",
+        $repl_id, $own_sid, $trailing_len, <[base.cnt_s]>->($trailing_len),
+        $repl_id, $own_sid, $repl_id,      $own_sid
+    );
+
+    my $out_fh;
+    if ( open( $out_fh, '>>:raw', $log_path ) ) {
+        print {$out_fh} $notice;
+        close($out_fh);
+    } else {
+        <[base.log]>->(
+            0,         "repair_nul_gaps : cannot append notice to [%s] : %s",
+            $log_path, <[base.str.os_err]>
         );
     }
 }
 
 <[base.logs]>->(
-    1, "repair_nul_gaps : %d file(s) " . "had a trailing gap truncated",
-    $repaired_files
+    1, "repair_nul_gaps : %d file%s had a trailing gap truncated",
+    $repaired_files, <[base.cnt_s]>->($repaired_files)
 ) if $repaired_files;
 
 return TRUE;
 
-#,,..,,,,,,.,,,..,...,,,.,.,,,.,.,,..,,,.,,,.,..,,...,...,...,.,,,.,,,...,,,.,
-#DDKEJJLQZYABJH5YL5HJOTASEERP4BX7KBSYFDRXYGUXOHNO5F4QAY77FZDRAI44S5YH3EZT3Y6WK
-#\\\|Y7B2TBXAKQV4IZVLMMHHVE6EUKXV6FQQGK5WBQYNE5CQR7M3VS4 \ / AMOS7 \ YOURUM ::
-#\[7]RNNG77U23CXRCIEQHM2YCPUXSTO5E6KXIZJKPF3C7TZW237DLOBY 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,,.,,,.,,.,,,,,,,,.,,,.,,,,,...,..,,...,.,,,...,,..,.,,,,..,,,,,
+#LRMOGLKVBABC2I5ZQM4CB5EVS7QOVDQWQE5EB32F3KQNHKXR7TM2VCZNPEPBHHCSW5XXGDOQAQ7CS
+#\\\|QO2W6UB3LWBHETGKB5EYB2E2UHXSE6A2DZZ4CJOY45A3X5QVA35 \ / AMOS7 \ YOURUM ::
+#\[7]KXYJ5H3UVC2HPXE6MIGHUAGHEKQ55IM4VFWA4MYLIRI7GUGCF6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = p7-log.handler.rate_tick
+# descr = repeating 1.2s sample of p7-log's own write rate [ lines/tick ],
+#          kept as a small ring buffer -- the real signal
+#          p7-log.startup.legacy_gap_sweep waits to settle on, not just an
+#          event-loop idle watcher [ which only tells you nothing was
+#          pending at one instant, not that a write burst isn't about to
+#          start ]
+
+my $max_samples = 300;    ## ~6 minutes at 1.2s resolution ##
+
+my $count = <p7-log.stats.write_count_since_tick> // 0;
+<p7-log.stats.write_count_since_tick> = 0;
+
+my $samples = <p7-log.stats.rate_samples> //= [];
+push @{$samples}, $count;
+shift @{$samples} while @{$samples} > $max_samples;
+
+return TRUE;
+
+#,,,,,,,.,.,.,.,.,,.,,.,.,.,.,,,,,,.,,,.,,.,,,..,,...,...,...,..,,,,,,.,,,,,,,
+#LPCSZX7Y7S2LGRVMK23KANLG2DBO5RWUHSEGD6UBM4ZQ76NCKOK2YL4QGMMR5YFSZAO5GTSNV3A3Y
+#\\\|WBGRKWBAU3PZGUIYUSGMCLOWWSTOULYWX6GMGTD2QQ7NCF5TOU2 \ / AMOS7 \ YOURUM ::
+#\[7]TYVRFP3MZD2F34SJZ3RJOELEALBHUR6XJCHQLDUCZII2A2P4H2BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
