@@ -131,6 +131,13 @@ disconnect]; full poll_probe state-machine conversion verified live incl.
 heart mid-probe, 6a/6b/6c paths. signing + version + commit left for user.
 details: [topic-coding-self-test-async-transport-2026-07-31.md](topic-coding-self-test-async-transport-2026-07-31.md)
 
+## source.extract_sig_body over-long fake-footer bypass — fixed (2026-08-02)
+95+ char fake-footer lines bypassed every strip regex incl. the real-signature
+start marker (`{70,85}` ceilings) → never stripped. fix: open `{70,}` minimums
+across all footer regexes (marker tokens carry confidence) + caller persists
+in-memory stub strips. live-verified via sourcecode console zenka, uncommitted.
+details + reusable verification notes: [topic-extract-sig-body-overlong-fake-footer.md](topic-extract-sig-body-overlong-fake-footer.md)
+
 #,,,,,...,,..,,..,,..,,,.,.,,,,..,,..,,,.,,,.,..,,...,...,...,...,..,,.,.,,,,,
 #QTLAZ6POJ24VBO5EKNCDJHKME6NVQISC623IGPYLHBJQAWSDVN43A7WJ3G7HS6ZCGX4NRXJQ2GJXC
 #\\\|QQQGMFFWFFGPZ2376VQXW7THCKZGU5KLRVAAHYFJF2FZQQBT3O6 \ / AMOS7 \ YOURUM ::
@@ -187,8 +194,8 @@ ncode.cmd.widen-scope with streak-consuming widen + reset). verified live via
 p7c incl. coding.eval-code for the p7c-unreachable regex.apply. details +
 reusable verification notes: [topic-ncode-scope-stack-phase2.md](topic-ncode-scope-stack-phase2.md)
 
-#,,.,,,..,.,.,,.,,,..,,.,,,.,,,..,,..,,,,,..,,..,,...,...,.,.,...,,,.,,.,,,,,,
-#AX6IAI55UGHZDKZFANYYUKZRZKIGI5YNDVFOCHHWVFX4AQ4UBNRSPRSBQHBGDGOKASRQETCZCKD7Q
-#\\\|HWVGPERGF7OJHUREZ2Y6Z5LOJJ7I6UEJ2VVDKFSSWLI75D244F3 \ / AMOS7 \ YOURUM ::
-#\[7]RQ46ZSVSSP3F2EK3ICOTPLB7CPSU42EN7QPRAGSKPOR2IEGCKOAY 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,..,,..,..,,,.,,..,,.,,,.,.,,..,..,,...,...,...,,,.,,,,,..,,.,,,
+#ERJHXI2OZ64M3I25S6TGO34EL3YL6WWZRZUFNSUAYHSAA5MNVU7QLOYXBHOUDMFOV3I44YMFCFDE2
+#\\\|GFHJTLZTDF3LQ6PIEOT4CDIUCVY4XPFBPYZDPTAXIIMIPMBPYYK \ / AMOS7 \ YOURUM ::
+#\[7]RTIFZLV3ZGUIQV3QE6MDISIBB2V5IF7WL6WL5ZTRKIE2TCDBBQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
