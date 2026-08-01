@@ -90,16 +90,23 @@ if ( not <log.files>->{$log_name}->{'locked'} ) {
     $log_fh = <log.files>->{$log_name}->{'fh'};
 }
 
-## wire-transported messages arrive as raw utf-8 bytes [ no perl utf8 flag ] #
-## decode once here so the :encoding(UTF-8) filehandle doesn't re-encode  ####
+## wire-transported messages arrive as raw utf-8 bytes [ no perl utf8 flag ##
+## ] # decode once here so the :encoding(UTF-8) filehandle doesn't         ##
+## re-encode                                                               ##
 utf8::decode($$log_msg_ref) if not utf8::is_utf8($$log_msg_ref);
 
 print {$log_fh} $$log_msg_ref;
 
+## write-rate telemetry [ sampled by p7-log.handler.rate_tick ] -- used to ##
+## detect a genuinely settled write rate, not just a momentary event-loop  ##
+## idle signal, before running background maintenance like                 ##
+## p7-log.startup.legacy_gap_sweep                                         ##
+<p7-log.stats.write_count_since_tick>++;
+
 return TRUE;
 
-#,,,,,..,,...,,..,,.,,,,,,,,.,,..,,.,,...,.,.,..,,...,..,,,.,,..,,,,,,,,,,.,.,
-#D43K7TYBCZNODNXGY5GOKZEFZPNQCAUOQCAJXTWXCK6Z7N5KYMICQPRFEZ7WH32K6WPE57BZN33AQ
-#\\\|WFMWFN6UZKE2PMIRRXQGIBPUWB6RDEE76A4C43C35HEIUVRJ4NW \ / AMOS7 \ YOURUM ::
-#\[7]XYRXCUCPKETKBVADHZD7UYSBJRDIQAS3DVW7P7LGPLFGVBRBDQDI 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,,,,...,.,.,.,.,.,,,..,,,,.,...,..,,...,...,..,,..,,,,.,.,.,..,,
+#NJQ4RVU5SAYSLX2CMONIZZX7ARMYBIGKSJSSTVMLSWHOYAEIE5TZBCCRA75OY46Y5W4FEHWHPQVZG
+#\\\|MX6ELXNXVBP6UYYX73RFDDFCOUSHXWDTHYNZJQF7DS5FHAEJDEA \ / AMOS7 \ YOURUM ::
+#\[7]K5OOME7K2YPKFYFZJ5NTKSLUF6QQ3IAXW5CYDEMDJGHLGHPLOMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
