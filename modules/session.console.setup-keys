@@ -17,7 +17,7 @@ my $key_dir = "$home/.n/user-keys";
 
 ## Check if already exists
 if ( -d $key_dir ) {
-    my $perms     = ( stat($key_dir) )[2] & 0777;
+    my $perms     = File::stat::stat($key_dir)->mode & 0777;
     my $perms_oct = sprintf( "%04o", $perms );
 
     <[base.log]>->(
@@ -63,7 +63,7 @@ mkdir( $key_dir, 0700 ) or do {
 <[base.log]>->( 2, "  ✓ Created $key_dir" );
 
 ## Verify permissions
-my $perms     = ( stat($key_dir) )[2] & 0777;
+my $perms     = File::stat::stat($key_dir)->mode & 0777;
 my $perms_oct = sprintf( "%04o", $perms );
 
 <[base.log]>->( 2, "  Permissions : $perms_oct" );
@@ -89,8 +89,8 @@ push @output, "::";
 
 return say join( "\n", @output );
 
-#,,,.,,,,,,..,...,,,.,,,.,,,.,,,,,,..,.,.,,.,,..,,...,...,.,.,.,.,,,,,..,,,,.,
-#C4OWVWE33E4ZU2VNSDL2KSCMLJ6ZRESQ7AJRCV3QBZNEQECEA3AIRQQFM4V23QE7K55UAQN7K73RC
-#\\\|ENDT7GYZXLL7AE7DHWZFMQECZEGMUF3OGBRJX5LBRL6VYI66KF3 \ / AMOS7 \ YOURUM ::
-#\[7]L7A5UOPUIVCIKCOOT3VJC3EWNNQOIPX6VFWELJLBJZLC4DZ3CYBY 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,,.,.,.,.,,,,,.,...,.,.,,,.,.,.,..,,...,...,..,,..,,,..,,.,,...,
+#WJIDMI2X3AGXLOM3DP6GC7CRK6NVP2A2MCUDB2IWIH4WWO7C227V742SOWW5M4D2K4HVX3LAWSR6I
+#\\\|JWRD2NFG4BU6OGHI4Y26AW5VEY546ZBKLEF5BUMURAV4PYYNCBG \ / AMOS7 \ YOURUM ::
+#\[7]JUFGUI27BVEKLT7SC772MAXDDZ4XKYAYLSTULYTQBXUNLJIRKSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
