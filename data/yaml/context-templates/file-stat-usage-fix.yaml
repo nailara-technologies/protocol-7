@@ -1,0 +1,119 @@
+---
+name: file-stat-usage-fix
+descr: find and fix raw stat()/lstat() list-context usage broken by the global File::stat override
+budget: 4000
+sections:
+  ## core knowledge ##
+  - include: system-base
+    priority: 1
+    budget_pct: 8
+
+  ## instructions ##
+  - static: |
+      find and fix broken stat()/lstat() usage in protocol-7 modules.
+
+      ## round budget: aim for 15-25 tool rounds max ##
+      ## fix the most impactful patterns first ##
+      ## call task_complete when key fixes are applied ##
+
+      ## scope ##
+      {{scope}}
+
+      ## the bug ##
+
+      `File::stat` is loaded globally in this codebase. That replaces the
+      core `stat()`/`lstat()` functions so they return a blessed
+      `File::stat` object with accessor methods [ ->size, ->mode, ->mtime,
+      ->uid, ->gid, ->dev, ->ino, ->nlink, ->rdev, ->atime, ->ctime,
+      ->blksize, ->blocks ] instead of the classic 13-element list.
+
+      code written assuming the classic list -- e.g. `(stat($path))[7]`
+      for size, or `my @st = stat($path); $st[7]` -- silently breaks: the
+      returned "list" is a single element [ the object itself ], so any
+      numeric index beyond [0] is always undef, with **no error and no
+      warning**. this is a correctness bug, not a style issue -- code
+      built on it does the wrong thing at runtime and looks fine at a
+      glance. it was found live 2026-08-01 in
+      p7-log.startup.repair_nul_gaps [ silently made file-size detection
+      always undef, causing the whole repair loop to skip every file ].
+
+      confirmed correct idiom already used elsewhere in this codebase:
+      `File::stat::stat($ARG)->size` [ see p7-log.cmd.file-sizes ] and
+      `File::stat::stat($path)->mode` [ see base.file.open ].
+
+      ## patterns to flag ##
+
+      list-context index into stat/lstat:
+        (stat($path))[N]
+        (lstat($path))[N]
+        my @st = stat($path); ... $st[N]
+        should be: stat($path)->METHOD  [ pick the accessor matching N -
+        see the index table below ]
+
+      classic stat index → File::stat accessor:
+        0 dev, 1 ino, 2 mode, 3 nlink, 4 uid, 5 gid, 6 rdev, 7 size,
+        8 atime, 9 mtime, 10 ctime, 11 blksize, 12 blocks
+
+      truthiness/existence check on stat result:
+        if (stat($path)) { ... }
+        still works [ object is truthy ] -- do not flag on its own,
+        but check whether the surrounding code then tries to index it
+
+      ## when raw stat() is fine as-is ##
+      - `-f`, `-d`, `-e`, `-r`, `-w`, `-x` and other filetest operators
+        [ unaffected by File::stat -- these return plain booleans ]
+      - `stat($path)->size` / `->mode` / etc. [ already correct ]
+      - explicit `CORE::stat($path)` when the classic list is genuinely
+        wanted [ rare -- confirm intent before leaving as-is ]
+
+      ## process ##
+
+      ### step 1: scan ###
+      search_code for `stat(` and `lstat(` across scope. for each hit,
+      check whether it's a filetest operator [ skip ], an accessor call
+      [ already correct, skip ], or a list-context index [ flag ].
+
+      ### step 2: classify ###
+      for each flagged hit:
+      - **fix**: clear list-index usage, direct accessor replacement
+      - **verify**: ambiguous context [ e.g. wantarray-dependent code,
+        or ($a,$b,...) = stat(...) destructuring multiple fields at once
+        -- these need `my $st = stat($path); ($st->dev, $st->ino, ...)`
+        style rewrites, not a single accessor swap ]
+      - **skip**: intentional CORE::stat or already-correct accessor use
+
+      ### step 3: apply fixes ###
+      for each fixable pattern:
+      1. replace_in_file with the exact accessor-based replacement
+      2. ptd_check the modified module
+      3. if the surrounding code has a `next if not defined $size`-style
+         guard, keep it -- stat() on a missing file still correctly
+         returns undef under File::stat
+
+      ### step 4: summary ###
+
+      ## file::stat usage fix report ##
+
+      **modules scanned**: N
+      **broken patterns found**: N
+      **fixes applied**: N
+      **flagged for manual verify**: N [ with reason ]
+
+      ### fixes applied ###
+      for each: module, old pattern, new pattern
+
+      call task_complete with counts.
+    priority: 2
+    budget_pct: 92
+    label: file::stat usage fix instructions
+
+on_complete:
+  - when: [output_contains=fixes applied]
+    action: memory_update
+    topic: "fix:file-stat-usage"
+
+#,,.,,,..,.,,,.,,,,..,,..,.,.,,,,,..,,...,..,,..,,...,...,,,.,.,,,.,,,...,..,,
+#S7RNQNJQAMLVZ5DFN6ZT5JBBLO7KLDPJ5QBD2URZ77DH6GMFWIQ4GVZFDFEMEQ52AIMVQ5A457ZLC
+#\\\|5CELAGTWPYBDCFQSJKCTJYIA4DSSEIBTXBQ2EUJQHBG7HAJP34X \ / AMOS7 \ YOURUM ::
+#\[7]S7SX2AMRMDAIEK7JIDOIRA4LXGKEAHIKLPGXE2TUGP6PNOYCJUDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

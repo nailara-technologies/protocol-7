@@ -104,8 +104,8 @@ while ( my $current_dir = shift @dirs_to_scan ) {
             }
 
             ## get file stats ##
-            my $mtime = ( stat($full_path) )[9] // 0;
-            my $size  = -s $full_path           // 0;
+            my $mtime = File::stat::stat($full_path)->mtime // 0;
+            my $size  = -s $full_path                       // 0;
 
             ## store in index ##
             $index->{ "/" . $rel_path } = {
@@ -139,8 +139,8 @@ return {
     index   => $index,
 };
 
-#,,.,,,.,,,,.,,,.,,,,,,.,,.,.,...,.,,,,,,,..,,..,,...,...,,..,,..,,,,,.,.,,.,,
-#PQYIXYP6FOJ53DKSEXDUI2IYHVIKU3QJA7JKMR2CBLAXDOXKXY22KAML3NKC2MWRZMMTFRODJDHDM
-#\\\|LDQHQNDUJFJLZBXX65CJRVQCX262APTTG7JN4FANOOH7572GT7Q \ / AMOS7 \ YOURUM ::
-#\[7]WKGQKF6Q4CVN34JHR36GGVWCY7JVXQEMWUGIT3EB7RKQDLI6XCBA 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,..,,.,,,..,.,,,,.,,.,.,.,.,..,,..,,...,,.,,.,,,,..,,,,,,.,,.,,,
+#2LZDVMU2J4E36HPCKOLYLHIJXR3MIXRKWXDQSYXEDASMJ4ILKVYCQUQLSPREIHLWKFVWRLBBMLICG
+#\\\|PL2MZFCEIEL23N7DCIQKRYNMTGS6TC4H34XAEILQ7PUNDHVSDNX \ / AMOS7 \ YOURUM ::
+#\[7]BW4XBSPHFHJ6JUFIRS5CHA2CAZT6DROQFFBFHK3FBV4UIGELLIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
