@@ -64,8 +64,8 @@ scratch in a future session.
   Fixed: open-ended `{70,}` minimums across all footer-recognizing
   regexes in `source.extract_sig_body` + stub-strip persistence fix in
   `sourcecode.console.strip-signature-footer`. Live-verified before/
-  after via the sourcecode console zenka. Uncommitted, for human
-  review.
+  after via the sourcecode console zenka. **LANDED `2528fb353`**, task
+  file archived to `data/tasks/completed/`.
 
 ## verification never run
 - [ ] openvas-agent phase 1 — implemented + file-verified, **not boot-tested
@@ -145,8 +145,8 @@ scratch in a future session.
   `elf_mode` consumer and threads it correctly through to
   `base.chk-sum.elf.inline` — not the same bug. No second instance found.
 
-#,,,.,.,,,,..,...,.,,,..,,,,,,..,,..,,.,.,.,.,.,.,...,...,,..,...,...,,..,.,,,
-#P3N75367N4Q4JWJD2HSJV6M35NU4DJZAO2QHC6YNVFY5HE53S3J2UZ6RU43LSNFUWX4VAWUOHVQRO
-#\\\|FF4EN4Q5DIQ53KRCKU622N5PYIZDVL4OKE6ZOIMLYTKOUY4KIMZ \ / AMOS7 \ YOURUM ::
-#\[7]L3BHKXIBNKBZ3JRX7QVJZU2266SIWRMT76OTPR7Y4ZHSLJHAG2BI 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,..,,.,.,,..,,,,,,,,,.,.,..,,...,.,.,...,..,,...,,,.,,,.,...,,,,,
+#CTIEUGMQ6JIR3R7Y6WDAXQYE56RTMVTBWCKBP4FJJ7K6EQKHZJTAWS2A3TYOLIYJJZPNVZ6UM3KGW
+#\\\|4B6KEQFJL7Q7EZTGO4S4O4O2G5B7TFVJCB6JUGRKZDTPNC3BAHC \ / AMOS7 \ YOURUM ::
+#\[7]7F5YU4JKDQVFHUJGVI4NA4EW6ZVOJ4GCXX2GKCOGY2WP4QANJ4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
