@@ -43,6 +43,15 @@ foreach my $zenka_ref ( @{$zenki_init_code} ) {
             push( @config_code, $config_element );    # [zenka] config section
         }
     }
+    ## reset this zenka's whole config-file-domain subtree before          ##
+    ## rebuilding it from @config_code below -- everything under           ##
+    ## zenki.config.<name> is declared file-domain [ only ever written by  ##
+    ## this loading pass ], so a full clear immediately followed by a full ##
+    ## rebuild in the same iteration is safe : it prevents a stale value   ##
+    ## from a previously-differently-shaped directive [ e.g. a key that    ##
+    ## used to be a leaf scalar, now nested deeper ] from surviving a      ##
+    ## reload and breaking autovivification on the new, deeper assignment  ##
+    <v7.start_setup.zenki.config>->{$zenka_name} = {};
     <[base.execute_zenka_code]>->(
         <[base.parser.config]>->(
             \@config_code,
@@ -72,8 +81,8 @@ foreach my $zenka_ref ( @{$zenki_init_code} ) {
     }
 }
 
-#,,..,..,,,,,,.,,,,,,,...,.,,,,.,,,.,,...,,,,,..,,...,...,.,,,..,,..,,.,,,.,,,
-#3JS3ROLLG4GOO6T3QIRA3D2H55WTASZGJRM5DDQ5VQBZU2ONU7E2LJRDJ6IF2LHYNH2F5BBR4LU7A
-#\\\|K4GBC4VTJULFH3RHWYWRNLYQNS5KBJRENVNYQIB7ON5ABY5A4DQ \ / AMOS7 \ YOURUM ::
-#\[7]76P5S3DCRAEEXQOKYG7IS65CP2FCRNSSAACS6SGSM2ZVWJAHXCBY 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,...,,,,,,.,,...,..,,...,...,,,,,..,,...,..,,,.,,,,.,,..,...,,..,
+#ER7WTJOQQ6CIMPLFZBU4EHJMCYHVRGNOP2CYPGWY64BVWOW7X7BZO3JCIQF2YLFZWTGNIAWUL5VUM
+#\\\|LNIKHADRLUI7KZORVZN65FRFXFGQ5DUC3DPE32YLDN2PMOHPN5X \ / AMOS7 \ YOURUM ::
+#\[7]425VYIZSY5BTQKBZYYYQ2KT5LX2VFKCI2GURUDRGDRK2KTLF5KBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
