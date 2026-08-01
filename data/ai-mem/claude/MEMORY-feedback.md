@@ -21,6 +21,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [webkit-double-click-dispatch](feedback-webkit-double-click-dispatch.md) — web-browser zenka's WebKit fires click twice for one tap on some buttons, Firefox doesn't; wrap every handler in a shared debounceClick() from the start, don't patch button-by-button
 - [tasks-completed-scan-verdict-trust](feedback-tasks-completed-scan-verdict-trust.md) — "still open" as unreliable as "move to completed"; 31/52 false negs, incl. live auth gap
 - [kimi-dispatch-infra-hardening](topic-kimi-dispatch-infra-hardening.md) — --afk flag, k3/k2.7/k2.7-fast routing; MCP bridge timeout ≠ dispatch failure
+- [kimi-dispatch-model-verify-before-send](feedback-kimi-dispatch-model-verify-before-send.md) — check the model string against reference-kimi-k3-256k-model BEFORE dispatching; if wrong model caught after the fact, use session_catchup(client:kimi) to find the UUID + kimi_continue to switch — never TaskStop+restart
 - [kimi-k3-thinking-effort](topic-kimi-k3-thinking-effort.md) — Low/High/Max in vendor UI, not in API/installed CLI
 - [coding-zenka buffer rescue](topic-coding-zenka-session9.md) — idle-shutdown backups readable via group-perm `xz -dc`, no sudo
 - [nested-dispatch-session-tracking](feedback-nested-dispatch-session-tracking.md), [webkit vs firefox css blindspots](feedback-webkit-vs-firefox-css-blindspots.md)
@@ -63,8 +64,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [perlmod-categorization-review-catches](feedback-perlmod-categorization-review-catches.md) — kimi dispatch review caught 6 templated/vague-reasoning misclassifications; caller-count grep meaningless for .cmd./.handler. (dynamic cube routing) and can false-positive on nested-namespace names; K3 re-verification of all 59 MOVE rows in flight, check results before trusting
 - [inline-elf-perl-version-infinite-loop](bug-inline-elf-perl-version-infinite-loop.md) — FULLY RESOLVED, both atom+pri clean-start verified: dangling-if in inline_elf's UTF-8 decode (Perl 5.42.2 only) unpacked into 5 total independent bugs chasing one boot end-to-end (ptd P7-macro false-positives, deps profile gaps, httpsd/web skins ownership race, stale web.cmd.skin path); one symptom ≠ one bug, don't stop at the first plausible fix
 
-#,,..,,.,,,,.,,,.,...,,.,,,,,,.,,,,,,,...,..,,..,,...,.,.,,..,,.,,.,,,,.,,,.,,
-#26CXEZUNIA4WXNCO2JHE6L2BUEARVZYD63EGUADGXSF6SFUBKKJ4AISLAAGY6FALOR4KSOYHHNMCQ
-#\\\|OPR7LD7G7IG2J4CZRWC62YXKOD65OVYZSPC7YFCQS77SVYYGW54 \ / AMOS7 \ YOURUM ::
-#\[7]AMH64WGT2SZJ3SKA346MW6WBPOWCS7FTKRH2E3XHKL3ANFFXJ4CI 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,..,,..,,...,..,,,,,,,.,,,,.,...,..,,...,...,..,,.,.,,..,,,,,..,,
+#SDB2FXGBWYWBX5L3JB73O2BSNM2I6CPKBRWWISDICT263G6BFCJAP6KW6NR6YZCGFWMYSATHJ2DY4
+#\\\|374RSFSMGCLHD3K4DZRWFPIEL2EU4RP2WSBCT4N5THG7KSBRV46 \ / AMOS7 \ YOURUM ::
+#\[7]4ADY7LVDDJ6RPN2CEKH6LYF3QVTGNPLOLCCUP7ZS4QRXEHTCAEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

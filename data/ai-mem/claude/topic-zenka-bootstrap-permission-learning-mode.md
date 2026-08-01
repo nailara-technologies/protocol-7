@@ -59,10 +59,8 @@ Open questions before it becomes a task file:
   — the auto-derived grant needs to respect the same rules a human
   author already has to follow
 
-#,,.,,,,,,,..,.,,,,.,,,..,,..,,,,,.,,,.,.,.,,,..,,...,...,.,.,.,.,.,.,.,,,.,,,
-
-#,,,.,...,.,.,..,,,..,.,,,,..,.,,,..,,,,.,.,,,..,,...,...,,.,,,..,.,.,...,.,,,
-#YWZBKM3YFEBFLKRCSNSFDPZ7HMHUXFR3YXUBIM447GZJVNY76OFMG2WTRBCZDWQAKJZCTDVG2PTF2
-#\\\|5DCPREFXNABOVMAXPEFWU64225QET5XXX3DN7HODPXBMOXJ3O2K \ / AMOS7 \ YOURUM ::
-#\[7]VZ46UNLTN2IJW6VCZZ3YTVTRDM2F22QF2P33B6CBPV5FL3CIGWBY 7  DATA SIGNATURE ::
+#,,..,.,.,,..,.,.,..,,.,,,,.,,...,.,.,..,,..,,..,,...,...,,,,,..,,.,,,,..,,,,,
+#N6NURNWAACTN4ETFMWX5VKL7JENNW2V5XO6VVK4QRUX2OE3DYYRLEIYINHGPTPVGFNQFPKMXTAP2M
+#\\\|GFAA7NIEHGZVWOQJ64JT3ZLM6OSZ3D6JRU35X6VRQGYEK5UCAGU \ / AMOS7 \ YOURUM ::
+#\[7]WBHSNSRTULP3JPEEJNQHOA2ROZ2DNOHG2JH3SVSOWDILUAV524AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
