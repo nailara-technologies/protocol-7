@@ -95,9 +95,9 @@ foreach my $entry ( sort @entries ) {
         = length($current_path) ? "$current_path/$entry" : $entry;
 
     ## Get file stats ##
-    my @stat     = stat($entry_path);
-    my $size     = $stat[7];
-    my $mtime    = $stat[9];
+    my $st       = File::stat::stat($entry_path);
+    my $size     = $st->size;
+    my $mtime    = $st->mtime;
     my $is_index = ( $entry =~ /^index\.(txt|md|html?)$/ );
 
     ## Check for duplicate names (dir and file with same base name) ##
@@ -151,8 +151,8 @@ return {
     count        => scalar(@items),
 };
 
-#,,,,,,.,,.,,,..,,.,,,,,,,.,.,,..,..,,...,...,..,,...,...,...,,,,,.,,,..,,,,.,
-#JGLLRNF6L7CR62MQT3CSLLEE4ED6KULBXBM6PHRIEHURZ6G5DGTGLW6KTBUTOSAGNKYVP6UU5WLR4
-#\\\|NTK5M6MA35DY3I6SOHQVI5F6D5CFMP7B26U5AVX4YPSSJ25AWSG \ / AMOS7 \ YOURUM ::
-#\[7]W6VVIZ3657D2TG3NWU54V2ZK2O7DHLP7XJSC5XKYA3GKSXZVAMDA 7  DATA SIGNATURE ::
+#,,..,..,,...,,.,,,..,,.,,...,,.,,.,.,..,,,.,,..,,...,...,...,..,,,..,,,,,...,
+#KQAG6JXWF5WXJXVH7QCKI3CSG7JYTLTFNOY5QU3IT4J4UOMFT4D5DCNSYUR34T4CID2T72QCYYZHO
+#\\\|CI6SY7XCCN42BCYGUE7U7U5FBIRL2H7E4OJ66L5PPNI4FSGHF4T \ / AMOS7 \ YOURUM ::
+#\[7]UFPZIC75VMBUKZQGTAXXK5ZENF5YJSMYAYEKJG5CIRWBRQIAXEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

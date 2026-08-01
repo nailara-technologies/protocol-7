@@ -35,7 +35,7 @@ if (@$agents) {
 my $admin_group = '';
 my $root_path   = <system.root_path> // '';
 if ( length $root_path and -d $root_path ) {
-    my ( undef, undef, $gid ) = stat($root_path);
+    my $gid = File::stat::stat($root_path)->gid;
     if ( defined $gid ) {
         $admin_group = getgrgid($gid) // '';
     }
@@ -109,8 +109,8 @@ return {
     'spawned'  => 1,
 };
 
-#,,.,,.,,,.,.,,,.,.,,,...,.,,,.,.,.,,,,,,,,.,,..,,...,...,.,.,.,,,...,,,,,,,.,
-#BNU2PWZGYRD3L7P4LXLK76FTIXEHUMIN3XP7M3MDH5NZHPAWBU6TFI437QYJUYYBRFOOWMWTYFQ36
-#\\\|2AH2ONGYCHJE5EW4DJMDJX7RCW3YSGG5LU64MLVXC7AEWBTFTPC \ / AMOS7 \ YOURUM ::
-#\[7]5OBBJ3UC4IDUIETPTDBEECUYXHU6AOU6MHRR6W53KLJJZ22HWIDI 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,.,,,.,.,...,,.,,,..,,.,,.,,,..,,..,,...,...,.,.,,..,,,.,.,.,.,.,
+#TJF7SFYM3K7DQBVFX5QLVEGHEKQE7HTP37RFEXBMPV7ZQFAH5B7G6JOOOPLDWEY5QXAJYUDUMN63G
+#\\\|MQMRC4N4WE3GD3RXLNV2RMVN7TRDRSXXLEH6ZUMWL2ULHQOPHJG \ / AMOS7 \ YOURUM ::
+#\[7]CBDOQFA3LDPDFMHGEDC2BY474PTN4ZHOWWJY6QIDTZOI2ISNP6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

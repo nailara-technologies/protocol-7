@@ -32,9 +32,9 @@ if ( opendir my $dh, $save_dir ) {
     foreach my $file ( sort @files ) {
         my $file_path = catfile( $save_dir, $file );
         if ( -f $file_path ) {
-            my @stat  = stat($file_path);
-            my $size  = $stat[7] // 0;
-            my $mtime = $stat[9] // 0;
+            my $fstat = File::stat::stat($file_path);
+            my $size  = $fstat->size  // 0;
+            my $mtime = $fstat->mtime // 0;
 
             push @saved,
                 {
@@ -68,8 +68,8 @@ return {
     'elapsed_ms'      => $elapsed_ms
 };
 
-#,,,.,,.,,,,.,,.,,.,,,,,,,,,.,..,,.,,,,..,.,.,..,,...,...,.,.,,.,,.,,,.,.,.,.,
-#7TZ774DSPBWGRQAXYDLXFLLQDLJT5OB2T4KSUFFW2UULYVJWDH7EDYMYQLB5SB7AXRCJDOKS5MU7C
-#\\\|KCN4AVE3PMUTXC6PDLDKFEB7JG3EUV5XTEUJ4AVRG2VGAZIOM4U \ / AMOS7 \ YOURUM ::
-#\[7]IG23GOBKAL3OLL7GNXQK4QDE2IBSJCLEBKDEUFPVQAEVQC4WZWBY 7  DATA SIGNATURE ::
+#,,..,..,,,,.,...,.,,,,.,,,,,,,.,,...,,,.,,.,,..,,...,...,,,,,..,,.,,,..,,,,,,
+#EYUJ6XHMMENB5YSOS7JTFK3OCKLVNEUKUQQJ4DN6OOGDIJ7TYUHAIE4QAG3LKEOPLYMIJJGCUPZWI
+#\\\|TJMYYZIB2WIVCUOMILPZNDOWKRMSVWS42JBRZIHFH2OZWOBK5L3 \ / AMOS7 \ YOURUM ::
+#\[7]ZSOXDXDKKBK2IFDRQCMO77TIJKFB2ELK5GTMUV6FNIYQJZOXRYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

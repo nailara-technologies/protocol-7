@@ -27,7 +27,8 @@ if ( $content =~ m|^---\s*\n.*?^name:\s*(.+?)\s*\n|ms ) {
 }
 
 ## [ ntime from file mtime ] ##
-my $mtime     = ( stat($file) )[9] // time;
+my $file_stat = File::stat::stat($file);
+my $mtime     = defined $file_stat ? $file_stat->mtime : time;
 my $ntime_num = <[base.ntime]>->($mtime);
 my $ntime_b32 = <[base.ntime.b32]>->($ntime_num);
 
@@ -44,8 +45,8 @@ return {
     source_ref   => $file
 };
 
-#,,,.,,,.,,,.,,.,,,,,,,.,,,.,,,..,.,,,,..,...,..,,...,...,,,,,...,.,.,.,.,,,.,
-#3IKXIDEBIWXQSYMCIBGSZDRGY3CVZIHEXICZTFHAOGKDFXYKWQO3BQEGSSR6T7E2ZUVIYC3KVBNBM
-#\\\|MZNL2AK7I4PWKDQNDZRSBRUX33IB4NR4ABCZG5QXHU7RZY6ECOZ \ / AMOS7 \ YOURUM ::
-#\[7]7XPP4FMGSN2OIGGNFIRZRQBEHWJHNPQTA3FTDI7SKWPXV5N6QKDI 7  DATA SIGNATURE ::
+#,,..,...,...,,,.,,,.,...,,.,,.,.,,,,,...,.,.,..,,...,...,...,,..,,,.,.,,,,.,,
+#3B4NIHWJZH3P2GU4N6IK6L535C5POGOTMAMGTSRUOWJFGIBGA6CCIMDONJYO4UQEMVSJYXQJCRX7S
+#\\\|M2AS2MTJQUJCGPYE5ZY5SIXYMLEXKVDWVQPNRJQA7UI2P363L4E \ / AMOS7 \ YOURUM ::
+#\[7]BGPIT6WFFXUB37IALP4TJ5SQ4P5RDSEKAKQQNMCOB7IZD43H72CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

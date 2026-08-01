@@ -35,14 +35,14 @@ foreach my $file_path (@incoming_files) {
     my $file_name = basename($file_path);
     next if $file_name =~ m|^\.|;    ## skip hidden files ##
 
-    ##  Extract username from filename  ##
-    ##  Format: username.public or username.host_port.public  ##
+    ## Extract username from filename  Format: username.public or ##
+    ## username.host_port.public                                  ##
     my ($username) = $file_name =~ m|^([^\.]+)\.(?:[0-9a-z_]+_\d+\.)?public$|;
 
     next unless defined $username and length $username;
 
-    ##  Check if this key is authorized by any zenka  ##
-    ##  An authorized key has a symlink in authorized/<zenka>/username.public  ##
+    ## Check if this key is authorized by any zenka  An authorized key has ##
+    ## a symlink in authorized/<zenka>/username.public                     ##
     my $is_authorized = FALSE;
 
     if ( -d $authorized_base ) {
@@ -65,7 +65,7 @@ foreach my $file_path (@incoming_files) {
     }
 
     ##  Unpinned key - check age and remove if expired  ##
-    my $file_mtime = ( stat($file_path) )[9];
+    my $file_mtime = File::stat::stat($file_path)->mtime;
     my $file_age   = $now_time - $file_mtime;
 
     if ( $file_age >= $cleanup_ttl_seconds ) {
@@ -92,8 +92,8 @@ return $cleanup_count;
 
 1;
 
-#,,,,,.,.,..,,,.,,,..,,..,,,,,.,.,,.,,,,.,,.,,.,.,...,...,,.,,..,,,..,,..,.,.,
-#SFOBGDLDDF33JA2KIWOGGOLMCJFDDCFKETA5ICUY2MEDSGPGM66OSPUEIAECFHRQUOJQUWJUXDPGE
-#\\\|EXIO5ZCBQPURE2FDCMWOWCQOIKWHIYHJCAXQ7NTRXA2TQ5UADPH \ / AMOS7 \ YOURUM ::
-#\[7]MUYKBDP6JF4PNJ3LKNIGHFFK4NHZUHPGYCU4CQXCQWSSF4GHQGDY 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,,.,...,...,.,.,,..,,,,,,,.,...,.,.,...,...,...,,..,.,.,...,.,.,
+#LC6KN6UJPXW36ZGCTPISKG3P4OU3CYDR3TPR7P552WDHR4VVXEYD7XADEL4S2N6FQZZTQYFKOQGU6
+#\\\|D2T2EWNVI7FNJ2SUF2G6SPAYUNX3PCVEIUTDFA2RB76TFNFYJRL \ / AMOS7 \ YOURUM ::
+#\[7]Q23I4LIPCLVETPZ2EFXSGJRGN3UUOT65W57USHRJFKP7SHX5EYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

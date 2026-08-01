@@ -4,30 +4,43 @@
 # descr = Show menu-commands zenka status
 
 # Get zenka data directory path
-my $zenka_dir_href = <system.path.zenka-dirs>;
-my $zenka_name = <system.zenka.name>;
-my $zenka_data_dir = $zenka_dir_href->{'var_P7'} . '/' . $zenka_name;
-my $mappings_file = $zenka_data_dir . '/data/mappings.yaml';
+my $zenka_dir_href  = <system.path.zenka-dirs>;
+my $zenka_name      = <system.zenka.name>;
+my $zenka_data_dir  = $zenka_dir_href->{'var_P7'} . '/' . $zenka_name;
+my $mappings_file   = $zenka_data_dir . '/data/mappings.yaml';
 my $categories_file = $zenka_data_dir . '/data/categories.yaml';
 
-my $mappings_size = -f $mappings_file ? ((stat($mappings_file))[7] // 0) : 0;
-my $categories_size = -f $categories_file ? ((stat($categories_file))[7] // 0) : 0;
+my $mappings_size
+    = -f $mappings_file ? ( File::stat::stat($mappings_file)->size // 0 ) : 0;
+my $categories_size
+    = -f $categories_file
+    ? ( File::stat::stat($categories_file)->size // 0 )
+    : 0;
 
 my $output = '';
 $output .= "\n";
 $output .= "Menu-Commands Zenka Status\n";
 $output .= "===========================\n";
 $output .= "\n";
-$output .= sprintf("Mappings:          %d\n", scalar(keys %{<menu-commands.mappings>}));
-$output .= sprintf("Categories:        %d\n", scalar(keys %{<menu-commands.categories>}));
+$output .= sprintf(
+    "Mappings:       " . "   %d\n",
+    scalar( keys %{<menu-commands.mappings>} )
+);
+$output .= sprintf(
+    "Categories:       " . " %d\n",
+    scalar( keys %{<menu-commands.categories>} )
+);
 $output .= "\n";
 $output .= "Persistent Storage:\n";
-$output .= sprintf("  Mappings file:   %s (%d bytes)\n", $mappings_file, $mappings_size);
-$output .= sprintf("  Categories file: %s (%d bytes)\n", $categories_file, $categories_size);
-$output .= sprintf("  Zenka data dir:  %s\n", $zenka_data_dir);
+$output .= sprintf( "  Mappings file: " . "  %s (%d bytes)\n",
+    $mappings_file, $mappings_size );
+$output .= sprintf( "  Categories file: %s " . "(%d bytes)\n",
+    $categories_file, $categories_size );
+$output .= sprintf( "  Zenka data dir:  %s\n", $zenka_data_dir );
 $output .= "\n";
 $output .= "Registration:\n";
-$output .= sprintf("  Protocol-7-Menu: available (updates pushed on change)\n");
+$output .= sprintf(
+    "  Protocol-7-Menu: available " . "(updates pushed on change)\n" );
 $output .= "\n";
 $output .= "Configuration:\n";
 $output .= sprintf("  On-demand:       enabled (70 minute idle timeout)\n");
@@ -39,8 +52,8 @@ return {
     'data' => $output,
 };
 
-#,,,.,.,,,,..,.,,,..,,,..,,,,,,,.,.,.,..,,.,,,..,,...,..,,.,,,.,,,..,,,..,,,.,
-#MWJRBP3UBJAEHHXAHNTZJC6BNYNS5LHXWNDS5ADIU4DXQQ6Q6NNAYSJV3AYZ6ISM37RQMXM2TXFAQ
-#\\\|C22SLJDSV6QRLHGBU6EQAPZPMRSW7HNUJJCI2VZH32V3AXCLINL \ / AMOS7 \ YOURUM ::
-#\[7]GPRDUSX5TV3SSICNYPTZCP4WEYOJLT3DHOG4R73CU2XRUNI37WDI 7  DATA SIGNATURE ::
+#,,,.,,,.,...,.,,,,,.,.,,,,.,,,,.,...,,..,...,..,,...,.,.,,..,,,,,,..,,..,,.,,
+#PS44ZV4W2M2EBZDAAXUKXRWSZWDBZT43QK3DRVG2VJKOEZ4FJLDSWDEJUPFZZBYK52KBUAKIU2KMQ
+#\\\|ZGZADZC26ZHGGQ46UA4YKZ2HA5LAOX5IK536J2CK6SY3ZXMLXI4 \ / AMOS7 \ YOURUM ::
+#\[7]36LIK75JPLK6VFP5OKNL47PS2ZDSCEOKAYPM7NVV4EXSSSTTYWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

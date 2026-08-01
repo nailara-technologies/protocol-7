@@ -8,7 +8,8 @@ my $path = $data->{path} // '';
 my %metrics;
 
 if ( -f $path ) {
-    my ( $atime, $mtime, $ctime ) = ( stat($path) )[ 8, 9, 10 ];
+    my $st = File::stat::stat($path);
+    my ( $atime, $mtime, $ctime ) = ( $st->atime, $st->mtime, $st->ctime );
     my $now = time();
 
     # Age in days (normalized)
@@ -26,8 +27,8 @@ if ( -f $path ) {
 
 return \%metrics;
 
-#,,,.,,..,,..,...,,.,,...,.,.,...,,..,...,,.,,..,,...,...,...,,,,,,.,,..,,.,,,
-#73B4H5WTS2GDLJIYTNT5VHVF53W2WOTXQ5LOTHX42M7TXMWPZM2TFW4OMH4ZTD6URF7ZOEQ2VACS4
-#\\\|KHC4NC4TXV2ZPMH4KHG46D6ZPNFCBM4KZAY2RSV3SXM5UA2WROW \ / AMOS7 \ YOURUM ::
-#\[7]Y4J2LMWIWMK2H7EPG767DCCJQBWNVYOTECAV6IOYUNBBTMLQGODI 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,.,,,,.,,,.,,,,,,.,,.,.,.,.,,..,..,,...,...,,,,,...,,,,,,,,,.,,,
+#3RJ3NE3PQPGEQEPP4J4IFPFS7QBKMS2TCGTJ77MKEVBGMK7JIBI3HT6NM2324GRXVFU7ORRABL3I4
+#\\\|Q7FDJ56FM76LQ5L3EI7RUMOU6H7J7GKJPFHNQGJ23B3XGONNUM4 \ / AMOS7 \ YOURUM ::
+#\[7]7G4QD6VAQ7Z6JGMDVIDXIDMCPGZSLCASDA5EGOI6NAJJ53MEOKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
