@@ -117,17 +117,16 @@ by the `AMOS7`/`YOURUM`/`DATA-SIGNATURE`/`\\|`/`\[7]` marker tokens,
 not the char count), plus a caller fix in
 `sourcecode.console.strip-signature-footer` to persist in-memory
 stub-strips when no real footer remains (previously the cleaned
-content was silently discarded). Task file:
-`data/tasks/source-extract-sig-body-overlong-fake-footer-not-stripped.md`.
-Live-verified via the sourcecode console zenka; uncommitted, pending
-human sign-off.
+content was silently discarded). Task file archived to
+`data/tasks/completed/source-extract-sig-body-overlong-fake-footer-not-stripped.md`.
+Live-verified via the sourcecode console zenka; **LANDED `2528fb353`**.
 
 ## related
 
 [[topic-format-code-bugs-fixed]]
 
-#,,.,,..,,.,.,,,.,..,,,..,,,.,,..,,..,..,,,,,,.,.,...,...,,.,,.,.,,,,,,,,,.,,,
-#GMQ2L4L6QFRQS24ABAG2647NNMXBDVCGRK6IDYO6HVT6NRNAM7OTN76THWREOJCUYRJVQ3KD4YJWA
-#\\\|DXKEKTBJW4JGEUVB35P5RSP5JLWE5S3GPXU7B2PWAND2EZ5MPDR \ / AMOS7 \ YOURUM ::
-#\[7]4LKPFW6MEKE4RYVFKB2X67QOT5IWQEHSVGKL3VWLOOKWLBA7QCAY 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,..,,..,,,,,,,,,,..,...,.,.,.,.,.,.,...,...,...,,..,...,...,,.,,
+#TFNZGCKP7XQXP5HCHHXY747EISOSY3C2WCFHYKAZGPBF2QZ4U4O2BGWC4PNAJHVIRHHQQEISS3YQ6
+#\\\|WBEYNUBXWS2UM56BIKWOQATACPVYSBICM7ZNYGDYJCVUJXGXSG2 \ / AMOS7 \ YOURUM ::
+#\[7]7A7CKESDXERUEVTFYQTQMBDWDFRSFXIKFNORPTNN3ZUC3R2D5EAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

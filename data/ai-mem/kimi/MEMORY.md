@@ -135,7 +135,7 @@ details: [topic-coding-self-test-async-transport-2026-07-31.md](topic-coding-sel
 95+ char fake-footer lines bypassed every strip regex incl. the real-signature
 start marker (`{70,85}` ceilings) → never stripped. fix: open `{70,}` minimums
 across all footer regexes (marker tokens carry confidence) + caller persists
-in-memory stub strips. live-verified via sourcecode console zenka, uncommitted.
+in-memory stub strips. live-verified via sourcecode console zenka. LANDED `2528fb353`.
 details + reusable verification notes: [topic-extract-sig-body-overlong-fake-footer.md](topic-extract-sig-body-overlong-fake-footer.md)
 
 #,,,,,...,,..,,..,,..,,,.,.,,,,..,,..,,,.,,,.,..,,...,...,...,...,..,,.,.,,,,,
@@ -194,8 +194,8 @@ ncode.cmd.widen-scope with streak-consuming widen + reset). verified live via
 p7c incl. coding.eval-code for the p7c-unreachable regex.apply. details +
 reusable verification notes: [topic-ncode-scope-stack-phase2.md](topic-ncode-scope-stack-phase2.md)
 
-#,,,,,,.,,...,,..,,..,..,,,.,,..,,.,,,.,.,,..,..,,...,...,...,,,.,,,,,..,,.,,,
-#ERJHXI2OZ64M3I25S6TGO34EL3YL6WWZRZUFNSUAYHSAA5MNVU7QLOYXBHOUDMFOV3I44YMFCFDE2
-#\\\|GFHJTLZTDF3LQ6PIEOT4CDIUCVY4XPFBPYZDPTAXIIMIPMBPYYK \ / AMOS7 \ YOURUM ::
-#\[7]RTIFZLV3ZGUIQV3QE6MDISIBB2V5IF7WL6WL5ZTRKIE2TCDBBQCI 7  DATA SIGNATURE ::
+#,,,,,,,,,...,.,.,,.,,,..,.,.,.,,,...,..,,.,,,..,,...,...,..,,,.,,,,,,..,,,..,
+#S6RKAR44XGHJCN75XJIN3RBGITCYRCZ7YJ5S2CXZJ4SS4XE5ECEA6ZOFBKTHCQFSU6T3SSE4RPH4W
+#\\\|NXOZRXFMWCPFH37ADFWGIZUB3IPNGBEUBX6AJ27M4XTSU72JYY4 \ / AMOS7 \ YOURUM ::
+#\[7]OT3ZEGGCTLFXMBF5MGLINEFPYMCBHHXSQOBXVWCJVZUP6MSBC6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
