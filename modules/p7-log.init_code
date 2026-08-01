@@ -19,10 +19,16 @@
 
 <log.files> //= {};
 
+## scan + repair zero-byte gaps left by a prior host crash / abrupt WSL  ##
+## shutdown catching an fsync-less idle-close window [ see               ##
+## p7-log.handler.close_log ] -- safe here : no live file handle is open ##
+## yet, and p7-log is the exclusive writer of these files                ##
+<[p7-log.startup.repair_nul_gaps]>;
+
 return FALSE;
 
-#,,.,,..,,,.,,,.,,.,,,.,.,.,.,,..,,..,,..,,,.,..,,...,...,...,,.,,,..,,..,..,,
-#K7THMGXRA6PQU2Q22Z2HI25CDFF246XKLDS4NRUF4IAUG427FVARAJXP2UXOJBLTB52ZVWIKJVH34
-#\\\|N3BUQ2VQ6G3FJFOUZ4LICCNDUD765JJKSFC7OG4R52DUQVQOOQV \ / AMOS7 \ YOURUM ::
-#\[7]JVS6H2NUCTCCKJMO44ADRMVVQBMJMDIGH7VIX2HVCTPBUCMDSWDQ 7  DATA SIGNATURE ::
+#,,..,.,,,...,,,.,,..,,..,.,.,..,,,,.,..,,...,..,,...,...,.,.,,.,,...,.,.,,,,,
+#Q32UX62XBPYWWQCY64VMGJDRZLA6YEDNI7SQ2ZZE6CR5CGIOOAPYDBQA2PS7M33EE4AU6KMN3MGES
+#\\\|UOJ26WX5KXGTW6YEI6SEKYDDN4PLPNM5ARJHCTBAB3XS2FYO7AD \ / AMOS7 \ YOURUM ::
+#\[7]E6GMWRBIZ5WXX5US6VKLV27MOUPJET7QQDADHOUDTBI26FU4CCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

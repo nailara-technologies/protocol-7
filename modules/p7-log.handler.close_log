@@ -9,12 +9,21 @@ $file_data->{'timer'} = undef;
 
 <[base.log]>->( <devmod.p7_log_level> // 3, "closing log '$log_name'" );
 
+## force written lines out of the OS page cache before releasing the handle ##
+## -- close() alone only flushes perl's own buffer via write(2), the data   ##
+## can still sit unflushed in the kernel page cache for its normal          ##
+## writeback interval. p7-log is a dedicated zenka specifically so its I/O  ##
+## never blocks other zenki, so a blocking fsync here is fine -- this is    ##
+## exactly the idle window a host crash / abrupt WSL shutdown can catch,    ##
+## leaving a zero-filled gap [ metadata committed, data not ]               ##
+$file_data->{'fh'}->sync or die lcfirst($OS_ERROR);
+
 flock( $file_data->{'fh'}, 8 ) or die lcfirst($OS_ERROR);    # LOCK_UN
 $file_data->{'locked'} = 0;
 close( $file_data->{'fh'} ) or die lcfirst($OS_ERROR);
 
-#,,..,,,,,...,.,.,,,.,,..,.,.,.,,,,..,...,,,,,..,,...,..,,.,.,.,.,.,,,,,,,,,.,
-#QVFA6XK2CDV5Q5FIN574AXYIRTWMZRV47FEMRH5SXIP57CWIG5GUS6MMEYQLHU6CRYVHXKOJRMR5Q
-#\\\|PPLZCGWRTC6ACPUNGSC6U5ZGUHBDGWPBV6EDTPYM3YJRSSBHC4I \ / AMOS7 \ YOURUM ::
-#\[7]IBD7CDQD7LYJCENM5ELYUDFJD4FVUYY4BKQEI4BIYK5XDYBY62DQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,.,,,..,,,,.,,..,.,.,,..,..,,.,,,..,,...,...,..,,.,,,,,.,,.,,,,,,
+#6HHBMOFZ3NCJSSNQ4EYSYBWKV3VG4YQQHOATDGI4UZSW4X36VEE2NFJNYD4TEHTG5FKR7ZTEP6CDI
+#\\\|5FSR6Y3NLJ3OTZGANAL3YYVMW7A23WGMN4H7VQCQFHAC5FW76LK \ / AMOS7 \ YOURUM ::
+#\[7]ZPQY75QXCA4PHCZ6E3U6BJZAJOBSTORD3ZTOSWLU6CQD4GFUNEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

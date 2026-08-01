@@ -1,0 +1,128 @@
+## [:< ##
+
+# name  = p7-log.startup.repair_nul_gaps
+# descr = at boot, before any new line is appended, check the tail of each
+#          own log file for a trailing zero-byte run and truncate it off --
+#          the only way a gap can form [ see p7-log.handler.close_log ] is
+#          an idle-closed file whose last write never got fsynced before a
+#          host crash / abrupt WSL shutdown, which can only ever leave
+#          trailing zeros at the exact end of the file as it stood at that
+#          moment -- mid-file gaps [ from older, already-passed-over
+#          restarts ] are a separate, historical issue and untouched here.
+#          cheap : single-byte check per file in the common [ no gap ] case
+
+my $system_name  = <system.host.hostname>;
+my $log_dir_path = <log.protocol_7.path>;
+
+my @logfile_paths;
+<[file.match_files]>->(
+    \@logfile_paths, $log_dir_path, "$system_name.**.log"
+);
+
+my $repaired_files = 0;
+
+foreach my $log_path (@logfile_paths) {
+
+    ## File::stat is in effect globally here : stat() returns a blessed  ##
+    ## object [ ->size, ->mode, .. ], NOT the classic 13-element list -- ##
+    ## see File::stat::stat($ARG)->size in p7-log.cmd.file-sizes         ##
+    my $file_stat = File::stat::stat($log_path);
+    next if not defined $file_stat;
+    my $file_size = $file_stat->size;
+    next if not $file_size;
+
+    my $fh;
+    if ( not open( $fh, '<:raw', $log_path ) ) {
+        <[base.log]>->(
+            0,         "repair_nul_gaps : cannot open [%s] : %s",
+            $log_path, <[base.str.os_err]>
+        );
+        next;
+    }
+
+    ## cheapest possible check first -- just the last byte ##
+    seek( $fh, $file_size - 1, 0 );
+    my $last_byte;
+    read( $fh, $last_byte, 1 );
+
+    if ( $last_byte ne "\x00" ) {
+        close($fh);
+        next;
+    }
+
+    ## last byte is NUL -- read backwards in growing chunks until we find ##
+    ## the boundary between real content and the trailing zero run        ##
+    my $chunk_size = 4096;
+    my $trailing_len;
+    while (1) {
+        my $read_len = $chunk_size < $file_size ? $chunk_size : $file_size;
+        seek( $fh, $file_size - $read_len, 0 );
+        my $tail;
+        read( $fh, $tail, $read_len );
+
+        if ( $tail =~ m|(\x00+)\z| ) {
+            $trailing_len = length($1);
+            last if $trailing_len < $read_len or $read_len == $file_size;
+        } else {
+            ## shouldn't happen [ last byte was NUL ] -- bail out safely ##
+            $trailing_len = undef;
+            last;
+        }
+        $chunk_size *= 4;    ## whole chunk was zero -- widen and retry ##
+    }
+    close($fh);
+
+    next if not defined $trailing_len or $trailing_len == 0;
+
+    my $new_size = $file_size - $trailing_len;
+
+    if ( not truncate( $log_path, $new_size ) ) {
+        <[base.log]>->(
+            0,         "repair_nul_gaps : cannot truncate [%s] : %s",
+            $log_path, <[base.str.os_err]>
+        );
+        next;
+    }
+
+    $repaired_files++;
+    <[base.logs]>->(
+        1, "repair_nul_gaps : truncated %d trailing zero-byte(s) from [%s]",
+        $trailing_len, $log_path
+    );
+
+    ## append a short multi-line notice into the repaired file itself, via  ##
+    ## the same command a normal zenka uses to log -- '-' log-time triggers ##
+    ## p7-log.cmd.append's own current-time fallback, so no ntime API needs ##
+    ## to be duplicated here. kept short per line : this log format still   ##
+    ## expects console-width-tight single lines, no wrapping support yet    ##
+    my ($rest) = $log_path =~ m|^.*/$system_name\.(.+)\.log$|;
+    next if not defined $rest;
+    my ( $node_zenka, $buffer_name ) = split( m|\.|, $rest, 2 );
+    next if not defined $node_zenka or not defined $buffer_name;
+
+    foreach my $notice_line (
+        sprintf( "[p7-log] truncated %d trailing zero-byte(s) at boot .,",
+            $trailing_len ),
+        '[p7-log] likely unflushed writeback lost to a crash / shutdown .,',
+        '[p7-log] see p7-log.handler.close_log',
+    ) {
+        <[p7-log.cmd.append]>->(
+            {   'args' => sprintf( "%s 0 %s - 0 %s",
+                    $node_zenka, $buffer_name, $notice_line )
+            }
+        );
+    }
+}
+
+<[base.logs]>->(
+    1, "repair_nul_gaps : %d file(s) " . "had a trailing gap truncated",
+    $repaired_files
+) if $repaired_files;
+
+return TRUE;
+
+#,,..,,,,,,.,,,..,...,,,.,.,,,.,.,,..,,,.,,,.,..,,...,...,...,.,,,.,,,...,,,.,
+#DDKEJJLQZYABJH5YL5HJOTASEERP4BX7KBSYFDRXYGUXOHNO5F4QAY77FZDRAI44S5YH3EZT3Y6WK
+#\\\|Y7B2TBXAKQV4IZVLMMHHVE6EUKXV6FQQGK5WBQYNE5CQR7M3VS4 \ / AMOS7 \ YOURUM ::
+#\[7]RNNG77U23CXRCIEQHM2YCPUXSTO5E6KXIZJKPF3C7TZW237DLOBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
