@@ -22,9 +22,8 @@ access.cmd.usr.cube = name commands heart subname reload verify-instance play \
                       start-autoskip stop-autoskip autoskip-interval loop pos \
                       current-hwdec current-vo current-ao drop-buffers fade \
                       buffer-erase buffer-erase-level cur-pid \
-                      clear-profile reposition \
-                      snapshot-save snapshot-restore \
-                      src-ver src-age  ##  *
+                      clear-profile reposition snapshot-save snapshot-restore \
+                      src-ver src-age  * ## <-- disable again [devmod]
 
 modules.load = auth.client net protocol io.unix io.ip ui set-up.json chk-sum mpv \
               jobqueue window.profile window.profile.color window.geometry
@@ -170,8 +169,7 @@ mpv.audio_params = -vo null -ao=<mpv.ao> --idle=yes <mpv.loop_plist_param> \
 
 [base.net.connect:'unix']
 
-[base.X-11.get_mode]
-[base.X-11.get_display]
+[mpv.startup.resolve_x11_info]
 # [set-up.json.import_file:'mpv.set-up.json'] # ../etc/protocol-7/import/..,
 
 [mpv.startup.init]
@@ -182,8 +180,8 @@ mpv.audio_params = -vo null -ao=<mpv.ao> --idle=yes <mpv.loop_plist_param> \
 
 [zenka.loop]
 
-#,,,.,..,,...,..,,,,.,,,.,..,,,,,,..,,...,...,..,,...,..,,,..,...,,,.,.,,,...,
-#6Y3C3OYQ3XGVYHQO3KP4QYKSUO73KEQQKN6ITNMH63V2RV7IBRG6PMOKTQA7DWA5VJ7LV2HAWHAWY
-#\\\|6BWGTNNGGGFA7JV3PJP4DGYMOBXSVZLQ6SYNXDQ32GQNDNTAQ54 \ / AMOS7 \ YOURUM ::
-#\[7]3BKOGD66234YHJUINHADT3KOR7EF34HS7TY3VKQH3VCRI2VP6GBY 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,,.,,,,,...,..,,,,.,,,.,.,.,..,,..,,...,...,,.,,..,,...,,,.,.,,,
+#GUZS2AUBOYRIDGBAKU7B7B6IFATVPE64XFKZORG3DFFESXFJRY33672XRFH2KEJEAYCJKE435HGK2
+#\\\|QAIC23KITLVHHWO7W7HTBICZLQRJ2KVV4KU3IEKAULV2AKATIAI \ / AMOS7 \ YOURUM ::
+#\[7]AR2UNAQ2KT4FMXHA6QUUL44LXL43Z7T7HJIH4AHV3KLRWSYZN6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

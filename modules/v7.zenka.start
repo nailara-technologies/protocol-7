@@ -46,6 +46,27 @@ my $instance = $instances->{$instance_id};
 <jobqueue.joblist.by_id>->{$job_id}->{'instance_id'} //= $instance_id;
 $instance->{'job_id'} = $job_id;
 
+## seed instance-level dependency exemptions from 'exempt-dependency.      ##
+## by-subname.<n>.regex' / '.<n>.deps' [ e.g. mpv[audio-0] does not need   ##
+## X-11/openbox ] -- indexed rule list, regex matched against this         ##
+## instance's own subname, deps are space-separated dependency zenka names ##
+## -- not a flat per-zenka setting                                         ##
+if ( defined $zenka_subname ) {
+    my $by_subname = <v7.start_setup.zenki.config>
+        ->{$zenka_name}->{'exempt-dependency'}->{'by-subname'};
+    if ( ref($by_subname) eq qw| HASH | ) {
+        foreach my $rule_id ( keys %{$by_subname} ) {
+            my $sn_regex = $by_subname->{$rule_id}->{'regex'};
+            my $deps_str = $by_subname->{$rule_id}->{'deps'};
+            next if not defined $sn_regex or not length $sn_regex;
+            next if not defined $deps_str or not length $deps_str;
+            next if $zenka_subname !~ m|$sn_regex|;
+            map { $instance->{'dependency_exempt'}->{$ARG} = TRUE }
+                split( m| +|, $deps_str );
+        }
+    }
+}
+
 my $starting = 0;    # check status of zenki with same name ..,
 map { $starting++ if $instances->{$ARG}->{'status'} eq qw| starting | }
     <[zenka.instance.get_ids]>->($zenka_id)->@*;
@@ -430,8 +451,8 @@ close($in_fh);    ## <-- no further use for zenka stdin handle [ for now ] ##
 
 <[base.logs]>->( '%s zenka started [ pid : %d ]', $zenka_sn_str, $pid );
 
-#,,.,,.,,,,,,,,..,...,...,...,...,.,.,...,,,,,..,,...,...,,,.,.,,,.,.,.,.,.,,,
-#L6PBANIIDQ65GGGZCO2SAAESI5KHOZ6IXJHB7GDBCEVV2USN77N4B4SN6TYLVHRYRJUMBQMCY6JSM
-#\\\|K67HZGWQYPFL3KRIMPHDZGZ2RAQWUTAWZGSMUV72MTZBV7BMWN7 \ / AMOS7 \ YOURUM ::
-#\[7]RWLSIF3E275JFM54A5PKN33JXYMQPZHDZKIDK5P4NNID42VI3CCY 7  DATA SIGNATURE ::
+#,,,,,...,,..,,..,,,,,..,,.,.,.,.,,.,,.,.,...,..,,...,.,.,..,,..,,,,.,,,.,..,,
+#SICDSEPIROOVICZMKL6HMAJ5Y7E5GLJCOVXAVBBOVOWNBSWUAHNVUWUTVRZAIPZAYKEKW6GGKXDBI
+#\\\|TQHV4BD6TDAR7DGJCLQDFQ3IPYJBR7IX7WD3Q2GVIN4KWOWAAIO \ / AMOS7 \ YOURUM ::
+#\[7]UGHT426GX3TWN6LPXQ5SOD55HU3B2NM6RUPSSZ6DBOPSI6O6PODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

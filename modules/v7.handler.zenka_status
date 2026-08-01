@@ -238,15 +238,16 @@ if ( $status eq qw| offline | or $status eq qw| error | ) {
         my $new_instance_id = $instance->{'being_replaced_by'};
         <[zenka.instance.handover_cleanup]>->($instance_id);
         if ( defined $new_instance_id ) {
-            ## old instance terminated — suppress restart if handover succeeded
+            ## old instance terminated — suppress restart if handover
+            ## succeeded
             my $new_inst   = <v7.zenka.instance>->{$new_instance_id};
             my $new_online = defined $new_inst
                 && ( $new_inst->{'status'} eq qw| online |
                 or $new_inst->{'status'} eq qw| extbin | );
             if ($new_online) {
                 <[base.logs]>->(
-                    "handover complete for '%s' — suppressing restart"
-                        . " of old instance %d",
+                    "handover complete for '%s' — "
+                        . "suppressing restart of old instance %d",
                     $zenka_name, $instance_id
                 );
                 <[zenka.cmd.stop]>->(
@@ -256,28 +257,28 @@ if ( $status eq qw| offline | or $status eq qw| error | ) {
             ## new instance also failed — fall through to normal restart
             <[base.logs]>->(
                 1,
-                'handover instance %d not online — allowing'
-                    . ' restart of old instance %d',
+                'handover instance %d not online — '
+                    . 'allowing restart of old instance %d',
                 $new_instance_id,
                 $instance_id
             );
         }
         if ( defined $old_instance_id ) {
             <[base.logs]>->(
-                "twin restart failed for '%s' [instance %d]"
-                    . " — original instance %d still running",
+                "twin restart failed for '%s' [instance "
+                    . "%d] — original instance %d still running",
                 $zenka_name, $instance_id, $old_instance_id
             );
-            ## resolve notify_online callbacks for this instance only
-            ## [ name-keyed stay pending — original zenka still running ]
+            ## resolve notify_online callbacks for this instance only [
+            ## name-keyed stay pending — original zenka still running ]
             if ( exists <v7.zenka.notify_online>->{$instance_id} ) {
                 map {
                     <[base.callback.cmd_reply]>->(
                         $ARG,
                         {   'mode' => qw| false |,
                             'data' => sprintf(
-                                "twin restart failed for '%s' [instance %d]"
-                                    . " — original instance %d still running",
+                                "twin restart failed for '%s' [instance %d] "
+                                    . "— original instance %d still running",
                                 $zenka_name, $instance_id,
                                 $old_instance_id
                             )
@@ -304,8 +305,8 @@ if ( $status eq qw| offline | or $status eq qw| error | ) {
     }
 }
 
-##  restart-disabled ondemand zenki : tolerate a few consecutive start   ##
-##  failures [ several known distinct causes ] before finally giving up  ##
+## restart-disabled ondemand zenki : tolerate a few consecutive start  ##
+## failures [ several known distinct causes ] before finally giving up ##
 my $ondemand_failure_tolerance
     = $zenka_config->{'restart'}->{'consecutive-failure-tolerance'} // 3;
 
@@ -465,6 +466,10 @@ if (    $status ne qw| online |
         map {
             <[zenka.instance.restart]>->($ARG)
                 if not exists <v7.zenka.instance>->{$ARG}->{'stopping'}
+                ## instance-level opt-out ., e.g. headless mpv[audio-N]   ##
+                ## does not need X-11/openbox ., seeded by v7.zenka.start ##
+                and not <v7.zenka.instance>
+                ->{$ARG}->{'dependency_exempt'}->{$zenka_name}
             } @{
             <[zenka.instance.get_ids]>->(
                 <dependency.object>->{$dep_id}->{'zenka_id'}
@@ -494,13 +499,13 @@ if ( $status eq qw| shutdown |
     }
 }
 
-## fire persistent restart-notify registrations : entries were stored     ##
-## with the cube_sid current at registration time ; a fire only happens   ##
-## for entries whose recorded at_sid differs from this new online         ##
-## cube_sid [ or was undef ], and the entry is deleted after firing so    ##
-## the caller must re-register via base.zenka.on_restart's re-arm loop -- ##
-## instance_id does NOT change across v7.zenka.instance.restart [ same    ##
-## instance_id reused in place ], only cube_sid changes on every restart  ##
+## fire persistent restart-notify registrations : entries were stored with  ##
+## the cube_sid current at registration time ; a fire only happens for      ##
+## entries whose recorded at_sid differs from this new online cube_sid [ or ##
+## was undef ], and the entry is deleted after firing so the caller must    ##
+## re-register via base.zenka.on_restart's re-arm loop -- instance_id does  ##
+## NOT change across v7.zenka.instance.restart [ same instance_id reused in ##
+## place ], only cube_sid changes on every restart                          ##
 if ( ( $status eq qw| online | or $status eq qw| extbin | )
     and exists <v7.zenka.notify_restart>->{$zenka_name} ) {
     my $entries      = <v7.zenka.notify_restart>->{$zenka_name};
@@ -599,8 +604,8 @@ if ( $old_status ne qw| online | and $status eq qw| online | ) { # LLL extbin?
 
 <[jobqueue.check_dependencies]>;
 
-#,,,.,.,.,,,,,,,.,.,.,.,.,...,.,.,,,,,..,,,.,,..,,...,...,,..,..,,..,,,..,,..,
-#7TTCQ7EVWYGGYKYA6R3YMRXWOIUJQMQPBVXMTDQ7X5BYIQ7XGHOZD5HBYJWV5PCXUIORS2VQFHANW
-#\\\|Y5ESB4KJC3JKUHYMOW5HKANJQA2YMYQCPZC44HAWE2D2OZ5DDTQ \ / AMOS7 \ YOURUM ::
-#\[7]27ZR5HJUVD2PSBPFPN46Y6CZVHLH44FLVNKI33OZ4R5WMIY262DA 7  DATA SIGNATURE ::
+#,,..,...,..,,..,,.,,,..,,...,,..,.,,,,,.,,.,,..,,...,...,...,.,.,,.,,.,,,..,,
+#3IHW3VEZ3EKITMT75Q2OPT4MKG7GKILXOCBZTGEMKBQDYJRNK7IM7VPOJTQ5O3YM3YYDLJ3RMX4TK
+#\\\|MN6Y2IKSZMULH4IGA2FBFVB36QA6CQFMBZ4BT3PBDT4QDB33GZS \ / AMOS7 \ YOURUM ::
+#\[7]BHUE3MJRNUYWZ7NTZ4BETTBNFUOVSNMZP7MCHTMTKAPTSIE5UOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
