@@ -4,26 +4,26 @@
 # param = file=<scan-or-finding.yaml> | inline k=v finding fields
 # descr = enrich finding(s) and hand off to forensics zenka
 
-##    inline form :                                                         ##
-##      target=.. oid=.. severity=.. name='..' [ports=.. profile=..]        ##
-##      [correlation_id=..] [modules=a,b] [paths=/x,/y]                     ##
-##    [ name may be quoted with '..' to contain spaces ]                    ##
+##      inline form :  target=.. oid=.. severity=.. name='..'               ##
+##      [ports=.. profile=..] [correlation_id=..] [modules=a,b]             ##
+##      [paths=/x,/y] [ name may be quoted with '..' to contain spaces      ##
+##      ]                                                                   ##
 ##                                                                          ##
-##    file= accepts a scan yaml from openvas.cmd.scan-run [ scan +          ##
-##    findings list -- every finding is enriched and handed off ] or a      ##
-##    single finding yaml.                                                  ##
+##      file= accepts a scan yaml from openvas.cmd.scan-run [ scan +        ##
+##      findings list -- every finding is enriched and handed off ] or      ##
+##      a single finding yaml.                                              ##
 ##                                                                          ##
-##    each enriched finding is written to the handoff dir [ zenka var       ##
-##    dir, created at init ] and routed as                                  ##
-##    'cube.forensics.investigate-finding file=<path>' -- the enriched      ##
-##    finding contract of forensics.investigate.finding, including the      ##
-##    correlation id as join key for the forensic-report-pipeline. the      ##
-##    forensics zenka is ondemand : cube queues the command and cold-       ##
-##    starts it when offline. replies are logged by                         ##
-##    openvas.handler.forensics-reply.                                      ##
+##      each enriched finding is written to the handoff dir [ zenka         ##
+##      var dir, created at init ] and routed as                            ##
+##      'cube.forensics.investigate-finding file=<path>' -- the             ##
+##      enriched finding contract of forensics.investigate.finding,         ##
+##      including the correlation id as join key for the                    ##
+##      forensic-report-pipeline. the forensics zenka is ondemand :         ##
+##      cube queues the command and cold- starts it when offline.           ##
+##      replies are logged by  openvas.handler.forensics-reply.             ##
 ##                                                                          ##
-##    access : forensics/start grants access.cmd.usr.openvas =              ##
-##    investigate-finding [ phase 2 grant ].                                ##
+##      access : forensics/start grants access.cmd.usr.openvas =            ##
+##      investigate-finding [ phase 2 grant ].                              ##
 
 my $args_str = $call->{'args'} // '';
 
@@ -197,21 +197,16 @@ foreach my $finding (@findings) {
     }
 }
 
-$reply_text .= sprintf "handed off %d of %d finding(s) ..,\n",
-    $reported, scalar @findings;
+$reply_text .= sprintf "handed off %d of %d finding%s.,\n",
+    $reported, scalar @findings, <[base.cnt_s]>->( scalar @findings );
 
 return {
     'mode' => $reported ? qw| true | : qw| false |,
     'data' => $reply_text
 };
 
-#..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..:.
-#  signature debt :: written during an afk session; cannot be signed here.
-#  run bin/Protocol-7 sourcecode update-signatures before the next verified commit.
-#,,.,.,.,,,,..,,.,.,,,.,,,..,,,,.,.,.,,..,,,,.,..,,,,.,..,,.,,,.,,..,,.,,,..,
-
-#,,,.,,..,,.,,.,,,.,.,..,,,,,,,..,..,,,..,,..,..,,...,...,,,.,.,.,.,,,.,.,..,,
-#KSFYLTOAWSEXFP4J72SXWDNU7Z756QCFSCQS53ZULPFPWCDCL3RMSG54VLKVHLQ7GKX3T4YOJP37K
-#\\\|JFATK6T7MPKJ7AEZLFP3N7MD5QQ5TCT2LPQ6LM5PJSIUU3MVNVJ \ / AMOS7 \ YOURUM ::
-#\[7]NHH65CN6QDZSTGE63JQJ5UM2M7HXTIW3UGXFMWUFWFESBJDEVADQ 7  DATA SIGNATURE ::
+#,,,,,...,,,.,.,,,,.,,,..,,.,,,,.,...,,,,,.,.,..,,...,...,...,...,,..,,,,,,,,,
+#DGQPUB4VGWXW7PR2YR5RWQKKQBXCPPBH3HJ6ZDLHOFG4YSQ56SPO4RJYNYOJNA54SDMUV2O7YFMZM
+#\\\|YWUAZTYG3HPLDGJTWHDBJY4CVBOWBXCI5CNU4RY4FAZVOOP6SA2 \ / AMOS7 \ YOURUM ::
+#\[7]3ANTY65XVQNQNLBRSZ2VNIXHVET5ZD64IUD3QAWL4DDC344AGICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
