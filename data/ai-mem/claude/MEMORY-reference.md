@@ -13,6 +13,7 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [opus-dispatches-kimi-workflow](reference-opus-dispatches-kimi-workflow.md) — Opus calls kimi_dispatch(K3,auto-summary) itself; session_catchup gets session id; kimi_continue resumes
 - [unicode-encoding-repair](reference-unicode-encoding-repair.md), [patterns](topic-patterns.md), [coding-zenka-templates](topic-coding-zenka-templates.md) — UTF8 fix; core patterns
 - [jobsite-vax-int-id-scheme](reference-jobsite-vax-int-id-scheme.md) — raw stepstone numeric id vs vax-int short id (job.write/read want raw); two differently-keyed index structures; trash-archive (.yxz.B32) decode recipe; V7-epoch dating; hand-write recovery pitfalls (heredoc mojibake, never job.write(id,{}) as a test)
+- [decorative-footer-shaped-lines-not-auto-strippable](topic-decorative-footer-shaped-lines-not-auto-strippable.md) — footer-header-shaped lines sometimes carry real checksum/state/counter data or serve as mid-file dividers; no shape-based auto-strip rule is safe, use ncode-assisted manual cleanup instead; also: stop hand-adding decorative footer-shaped lines when writing new modules
 - [tool-shm-architecture](topic-tool-shm-architecture.md), [tool-suggestions](topic-tool-suggestions.md), [language-detection](topic-language-detection.md) — SHM+mmap vision; 30 langs
 - [site-yaml-zenka](topic-site-yaml-zenka.md), [site-yaml-web-research](topic-site-yaml-web-research.md), [usb-backup-zenka](topic-usb-backup-zenka.md) — URL→YAML; web research; udev→restore
 - [git-watch-zenka](topic-git-watch-zenka.md), [reasoning-design-templates](topic-reasoning-design-templates.md) — force-push detection; 7 viz designs
@@ -42,8 +43,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [user-perfectionism-and-pace](user-perfectionism-and-pace.md) — "done" means perfectly smooth; let solo tuning passes run
 - [scratchpad_import tool](topic-scratchpad-import-tool.md) — pulls /tmp session scratchpad into data/scratchpad/; list/raw-read modes; check repo+tasks/completed before keeping imports
 
-#,,,.,,,.,,,.,,,,,,..,.,,,...,,..,.,.,..,,,,,,..,,...,...,,..,.,.,,,,,...,...,
-#SCN57YIC33LTFTO6TA6DFKOMLUGTBARDEM3Q4QVXFMXMSSHLAR23A4W7SISWSB76H6ZYUMSIGEYAS
-#\\\|QLR7THMJP5N4XRZQCEULOWNZTFJWYPTDTJIFPILMPCY7UZ2DHCJ \ / AMOS7 \ YOURUM ::
-#\[7]PQCKUMETDXW4MMEPBJ5IERO4Q2DY5KSKCQMTBHRVZS5OLSJ6NYAQ 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,.,,...,.,.,.,.,,..,,.,,,..,,,.,..,,...,..,,.,.,.,,,..,,...,..,,
+#PU5QMDQH3XCN7XMKWRL4UMLFNVI7KAQBSY5FXO65M5MBLJKQCQO56WJCRFPYK7PFIY3Z47C72VYIE
+#\\\|IIIUQUS6HZ5BDE5QS5JTBVYTUWRUCIORL7ZVOCIT5HE62QBLXNJ \ / AMOS7 \ YOURUM ::
+#\[7]H4XO2DABCQZHPQTDKJZWA2CKK2FVWG2IMXATN2GHP3EPQLSVYMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
