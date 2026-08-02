@@ -279,6 +279,18 @@ configurable per-zenka via start file or runtime command.
 
 #### phase 1: versioned staging hash + atomic swap
 
+**known bug found 2026-08-02, see
+`data/tasks/loader-reload-stale-cmd-modules.md`**: an already-loaded
+zenka-local `.cmd.` module silently fails to actually reload on a live
+process (`<zenka>.reload` reports success but the dispatched coderef never
+changes) — traced to `$is_reload_batch` (added in `08b42f019`, gating on
+`$active_version` + `$data{'code'}{$sub}{status}`), a behavioral fork this
+doc's phase-1 design doesn't describe (the swap here is meant to be
+unconditional after a clean compile, per the note below on
+`$active_version` not being load-critical). checklist below is unchecked
+throughout despite the code being live since `4f64720b5` — treat it as
+stale bookkeeping, not "not started".
+
 - [ ] add `%CODE` and `$active_version` to `bin/Protocol-7` core
 - [ ] compile new loads into `$CODE{$new_version}` staging
 - [ ] implement atomic swap on success
@@ -358,8 +370,8 @@ step does NOT need to be re-run on lazy compilation, only the `eval`.
 - `## todo-list` comment at line 1730 documents the known intent this task fulfills
 - speed/memory profiles should be adjustable at runtime without restart
 
-#,,.,,..,,.,,,,..,,,,,,,,,...,,,,,.,,,.,.,,..,..,,...,...,...,...,,,,,..,,,,,,
-#M6DIXHKUUPSUTH5RWVM7MGWA6MJVNCNHSM6YU2DMSNHTTMAED7VWY6KNSWMYO6VUNAI6J7EKE7ZVQ
-#\\\|CGAA2CA6ZPJCPN3V3XVPVRLJMEEFHZHN2X5IYQMT5GKVNUZ6R5O \ / AMOS7 \ YOURUM ::
-#\[7]3YFJY5QPY2MXXTTEGG2RNHSVHL63EPVUNCPAWQTXX6JICBK76GDA 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,.,.,...,.,.,...,...,,,,,..,,.,.,..,,...,..,,...,,.,,,..,.,,,,..,
+#WQS7GSL65ITJVK7LJTYSHM3REM5JM5Y65FTJPCV473GW6SXCUEKYDJBQKVJSFWC3GIU3DO3GXJYU4
+#\\\|Z7UZZWKOYNTRTRWHYTRCGBDD6GT6GKZZV62VFLY3JDFBHDYK7UE \ / AMOS7 \ YOURUM ::
+#\[7]RZXMA5IA4G6WMXACYNWMFAWB2P342VMCA46E6H2IJ4ZGTMCW34DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
