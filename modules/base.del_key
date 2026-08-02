@@ -46,12 +46,17 @@ if ( not defined $key_href ) {
 my $parent_href = $key_href->{'key-href'};
 my $last_key    = $key_href->{'last-key'};
 
-<[base.logs]>->( ": del_key : deleting key '%s'", $d_key_string );
+## silent [ default ] : level 2 [ quiet ] -- explicit non-silent : level 1 ##
+<[base.logs]>->(
+    $silent ? 2 : 1,
+    ": del_key : deleting key '%s'",
+    $d_key_string
+);
 
 return delete $parent_href->{$last_key};    ##  returning deleted  ##
 
-#,,.,,.,,,,,.,..,,,.,,,..,,,,,..,,,.,,.,,,,.,,..,,...,...,.,.,...,,,,,..,,,,,,
-#4UPMFVSIKW5NXE72VI4R2U2BNCJNUUNH25MMVJQVNZYMBIKWTZCINSIAYSLCVJXJQ3JWFFIF64FQC
-#\\\|HEIA3J545U5WJDKVSY4HNALGXBSG4F6VKF4URMBA5WSTALISNEX \ / AMOS7 \ YOURUM ::
-#\[7]H7GXCKKOWIX2SKRDLGYCX4CBB6I6E4X6UOULBKSUFS7GUAJ6MOCA 7  DATA SIGNATURE ::
+#,,..,..,,,..,.,,,...,,,.,..,,.,,,.,.,,.,,.,,,..,,...,..,,,..,.,.,...,,,,,.,.,
+#O3BABGZGFI5GEJHHN2BLDG4JIC6OWTOIE6XIUXTCJTKQRH4F2WANFV2DYU2XQ2KZQ7IFALFQMTHLI
+#\\\|YRIVY4YW2SMK2RG6DZLHRRMKWGP2QX7JI5C4F26VBDNI3GWXYYO \ / AMOS7 \ YOURUM ::
+#\[7]SKMIJR7M6DYIHCRQDKE2WCJQQWVOBYY4ELH4OMHAJYL4BGNQAUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
