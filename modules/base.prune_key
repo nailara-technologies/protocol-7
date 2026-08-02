@@ -1,0 +1,105 @@
+## [:< ##
+
+# name  = base.prune_key
+# descr = delete a key from %data hash [ or supplied hash ref ] and remove
+#         any ancestor hashes left empty by that delete
+
+my $params = shift // {};
+
+my $data_ref = *data{HASH};
+my $d_key_string;
+my $silent = 1;
+
+if ( ref $params eq qw| HASH | ) {    ##  parameter hashref syntax  ##
+
+    $data_ref     = $params->{'data_ref'} if defined $params->{'data_ref'};
+    $d_key_string = $params->{'del_key'}  if defined $params->{'del_key'};
+    $silent       = $params->{'silent'}   if defined $params->{'silent'};
+
+} elsif ( length $params ) {    ##  key as string [ parameter syntax ]  ##
+    $d_key_string = $params;
+    $data_ref     = shift if @ARG;    ##  hashref supplied  ##
+}
+
+if ( ref $data_ref ne qw| HASH | ) {
+    warn 'not a hash reference [param] <{C1}>';
+    return undef;
+}
+
+if ( not defined $d_key_string or not length $d_key_string ) {
+    return warn 'no key specified <{C1}>';
+} elsif ( not <[base.validate.data_key_syntax]>->($d_key_string) ) {
+    <[base.s_warn]>->(
+        "%%data key [%s] syntax not valid <{C1}>",
+        $d_key_string
+    );
+    return undef;
+}
+
+my @dtree = <[base.parser.data_hkey_tree]>->($d_key_string);
+
+## walk down the path, remembering every level's [ href, key ] pair so we ##
+## can walk back up afterwards and prune any ancestor left empty by the   ##
+## delete -- base.resolve_key only hands back the immediate parent, which ##
+## is enough for a flat delete but not for pruning further up the chain   ##
+my @chain;
+my $cur_href = $data_ref;
+while ( my $sub_key = shift @dtree ) {
+
+    if ( ref $cur_href ne qw| HASH | or not exists $cur_href->{$sub_key} ) {
+
+        ## not-found is routine for cleanup-style callers [ e.g. pruning a  ##
+        ## key that was never set this boot ] -- quiet level-2 log by       ##
+        ## default so idempotent calls don't become noise; an explicit      ##
+        ## silent=>0 caller genuinely expects the key to be there, so raise ##
+        ## it via s_warn [ unconditional, includes call site ] instead of a ##
+        ## verbosity-gated log line that could still be missed              ##
+        if ($silent) {
+            <[base.logs]>->(
+                2, ": prune_key : key not found '%s'",
+                $d_key_string
+            );
+        } else {
+            <[base.s_warn]>->(
+                "prune_key : key not found ['%s'] <{C1}>",
+                $d_key_string
+            );
+        }
+        return undef;
+    }
+
+    push @chain, { qw| href | => $cur_href, qw| key | => $sub_key };
+
+    last if not @dtree;    ## reached the last [ leaf ] segment ##
+
+    $cur_href = $cur_href->{$sub_key};
+}
+
+my $leaf      = $chain[-1];
+my $del_value = delete $leaf->{'href'}->{ $leaf->{'key'} };
+
+## silent [ default ] : level 2 [ quiet ] -- explicit non-silent : level 1 ##
+<[base.logs]>->(
+    $silent ? 2 : 1,
+    ": prune_key : deleted key '%s'",
+    $d_key_string
+);
+
+## walk back up the chain, pruning any ancestor hash the delete left empty ##
+## -- stops at the first ancestor that still holds other keys              ##
+my $pruned = 0;
+for ( my $i = $#chain - 1; $i >= 0; $i-- ) {
+    my $child_href = $chain[ $i + 1 ]->{'href'};
+    last if keys %$child_href;    ##  still holds other keys : stop  ##
+
+    delete $chain[$i]->{'href'}->{ $chain[$i]->{'key'} };
+    $pruned++;
+}
+
+return wantarray ? ( $del_value, $pruned ) : $del_value;
+
+#,,,,,.,,,,..,...,.,.,..,,..,,,,,,,,,,,,,,,..,..,,...,...,,..,...,,,.,...,.,,,
+#WR2RJIP5446BU3FGEBYSY67H6FAE6HZSHNZOBVRYDJVMXU4BITVDBW4AH7KYE3R6O7TV44Y3XUBSO
+#\\\|VY4QKEU2J7F43QHSYCEGSDK7LC3YNWWUBUKYNKA7Z5K3KUIR25B \ / AMOS7 \ YOURUM ::
+#\[7]YUGV57TNR4VU5XCTKG5WB5AHMYV2JY5XKMPH2HRYNPQKK5RGI4AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
