@@ -5,6 +5,8 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
+- [user-screen-brightness-sensitivity](feedback-user-screen-brightness-sensitivity.md) — real physical reaction to bright screens, not aesthetic; default new HTML/UI work to dark violet/blue-toned themes proactively, keep print forced light
+- [no-personal-data-in-repo-tree](feedback-no-personal-data-in-repo-tree.md) — never hardcode emails/PII into any repo-tracked file, even gitignored; use `<[file.zenka_dir.load]>->('cfg-dir:<zenka>/file')` or `/data/<project>-data/` external dirs instead
 - [memory-write-path](feedback-edit-memory-via-ai-mem-path.md) — always Read/Edit/Write memory via data/ai-mem/claude/<file>, never the ~/.claude/projects/.../memory/ symlink path (same files, home path re-prompts every edit)
 - [settings-json-repair-mode-does-not-persist](feedback-settings-json-repair-mode-does-not-persist.md) — broken .claude/settings.local.json (e.g. trailing comma) triggers in-session repair that burns tokens but never saves; verify JSON validity on disk directly, restart required after manual fix
 - [web-browser ephemeral storage](feedback-web-browser-ephemeral-storage.md) — WebKit ephemeral=1: storage wiped every restart
@@ -43,8 +45,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,..,,..,...,.,,,,,.,..,,,..,,..,,.,,,,,,.,,,..,,...,...,..,,,,.,..,,.,.,,.,,
-#57HGNX7PBONVOIYVQHSFOYTW4XBQL5Z3VRRNU4D5JKLUWISNTUPRGDT5O2ANKQUG725DOJ2YGTEVM
-#\\\|UVKE5XPBVC7U7QN3XSCXNRHLPTQWFKEYGQHRRSPVEKDUVS43IIX \ / AMOS7 \ YOURUM ::
-#\[7]NMRVGCZL63BRYF4J6Z4ECIQDT3REVWDT43BZQVTAXTUBMTX446CI 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,,.,.,,,,.,,..,,,..,.,,,,,.,.,,,..,,...,..,,,,.,,.,,,.,,.,.,,,,,
+#4EUDURECNGC5IYTAFDD2GC2RRE7DHMHKJK7LK655OLWTB6NTHKU3RS7C3QBAH7ZC32AYBEXR3V3MS
+#\\\|VWGBX5O3ICVMOEI3VJGDXDO5YPR3FECBPCOPQYD26QKSD7YKM55 \ / AMOS7 \ YOURUM ::
+#\[7]KJZ2UM6TDGK7MASZEJEYJRGP3PYPX6BK2TF2UF2M7SPUI4EZ5MAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

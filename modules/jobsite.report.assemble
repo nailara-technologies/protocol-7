@@ -1,0 +1,255 @@
+## [:< ##
+
+# name  = jobsite.report.assemble
+# descr = aggregate csv exports + live jobsite records into one
+#         deduplicated, period-filtered report record
+# param = { from => 'YYYY-MM-DD', to => 'YYYY-MM-DD', csv_dir =>
+#         [opt], include_live => 1 [opt, default true] }
+# return = { mode => true, report_path => .., count => N }
+#          or { mode => false, data => <error> }
+
+## each periodic csv export is a snapshot : the same job can appear in      ##
+## several exports as its status progresses [ beworben -> absage ]. entries ##
+## are deduplicated by stepstone id [ from url ] or normalized              ##
+## title+company, keeping the entry from the LATEST snapshot -- live        ##
+## jobsite records count as "today"'s snapshot and always win over any csv  ##
+## export.                                                                  ##
+
+my $param = shift // {};
+return { 'mode' => qw| false |, 'data' => 'expected param hashref' }
+    if ref $param ne qw| HASH |;
+
+my @gm    = gmtime;
+my $today = sprintf qw| %04d-%02d-%02d |, $gm[5] + 1900, $gm[4] + 1, $gm[3];
+
+my $from = $param->{'from'} // '';
+my $to   = $param->{'to'}   // $today;
+
+my $date_re = qr{^(\d{4})-(\d{2})-(\d{2})$};
+foreach my $check_date ( $from, $to ) {
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( 'invalid date [ %s ] -- YYYY-MM-DD expected',
+            $check_date )
+        }
+        if $check_date !~ $date_re;
+}
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( 'invalid period [ from %s after to %s ]', $from, $to )
+    }
+    if $from gt $to;
+
+my $csv_dir = $param->{'csv_dir'} // <jobsite.cfg.csv_import_dir>
+    // '/data/jobcenter-report-data/reports-sent/csv';
+my $reports_dir = $param->{'reports_dir'} // <jobsite.cfg.report_dir>
+    // '/data/jobcenter-report-data/reports';
+
+if ( not -d $reports_dir ) {
+    my $p7_user = <system.amos-zenka-user> // qw| protocol-7 |;
+    <[file.make_path]>->( $reports_dir, 0750, $p7_user, $p7_user );
+}
+
+## German/UI status label -> canonical jobsite status ; undef = excluded ##
+my %status_map = (
+    'noch ausstehend'                    => 'applied',
+    'absage erhalten'                    => 'rejected',
+    'vorstellungsgespräch abgeschlossen' => 'interviewed',
+    'beworben'                           => 'applied',
+    'absage'                             => 'rejected',
+    'applied'                            => 'applied',
+    'rejected'                           => 'rejected',
+    ## "responded"/"rückmeldung" only mean *some* reply arrived -- neutral, ##
+    ## still-pending feedback, NOT proof an interview was offered ; a real  ##
+    ## interview is only ever recorded via the explicit                     ##
+    ## 'vorstellungsgespräch abgeschlossen' status above                    ##
+    'responded'   => 'applied',
+    'rückmeldung' => 'applied',
+    'interviewed' => 'interviewed',
+    'to_apply'    => 'apply',
+    'apply'       => 'apply',
+    'review'      => 'review',
+    'assessed'    => 'assessed',
+    'new'         => 'new',
+    'skipped'     => undef,
+    'übersp.'     => undef,
+    'archived'    => undef,
+    'archiv'      => undef,
+);
+
+my $normalize = sub {
+    my $s = shift // '';
+    $s = lc $s;
+    $s =~ s|^\s+||;
+    $s =~ s|\s+$||;
+    $s =~ s|\s+| |g;
+    return $s;
+};
+
+my $stepstone_id = sub {
+    my $url = shift // '';
+    return $1 if $url =~ m|--(\d+)-inline\.html$|;
+    return undef;
+};
+
+## --- collect csv snapshot entries --------------------------------------- ##
+
+my %by_key;    ## dedup : key -> { snapshot_date => .., entry => {..} }
+my $skipped = 0;
+
+for my $csv_path ( sort glob("$csv_dir/*.csv") ) {
+
+    ## snapshot date : trailing YYYY-MM-DD in filename, else file mtime ##
+    my ($snapshot_date) = $csv_path =~ m|(\d{4}-\d{2}-\d{2})|;
+    if ( not defined $snapshot_date ) {
+        my @mt = gmtime( ( stat($csv_path) )[9] // time );
+        $snapshot_date = sprintf qw| %04d-%02d-%02d |, $mt[5] + 1900,
+            $mt[4] + 1, $mt[3];
+    }
+
+    my $rows = <[jobsite.report.csv_parse]>->($csv_path);
+    for my $row ( @{$rows} ) {
+        my $canon_status
+            = $status_map{ $normalize->( $row->{'status_raw'} ) };
+        if ( not defined $canon_status ) {
+            $skipped++;
+            next;
+        }
+
+        my $canon_date
+            = length $row->{'app_date'}
+            ? $row->{'app_date'}
+            : $row->{'date'};
+
+        my $sid = $stepstone_id->( $row->{'url'} );
+        my $key
+            = defined $sid
+            ? "id:$sid"
+            : join '||', $normalize->( $row->{'title'} ),
+            $normalize->( $row->{'company'} );
+
+        next if not length $key or $key eq '||';
+
+        my $existing = $by_key{$key};
+        next if $existing and $existing->{'snapshot_date'} gt $snapshot_date;
+
+        $by_key{$key} = {
+            'snapshot_date' => $snapshot_date,
+            'entry'         => {
+                'date'    => $canon_date,
+                'company' => $row->{'company'},
+                'title'   => $row->{'title'},
+                'city'    => $row->{'city'},
+                'score'   => $row->{'score'},
+                'status'  => $canon_status,
+                'url'     => $row->{'url'},
+                'source'  => $csv_path,
+            },
+        };
+    }
+}
+
+## --- merge live jobsite records : always "today", always wins ---------- ##
+
+if ( $param->{'include_live'} // 1 ) {
+    my $jobs = $data{'jobs'}{'store'} // <[jobsite.job.load_all]>;
+    for my $job_id ( keys %{$jobs} ) {
+        my $job = $jobs->{$job_id};
+        my $canon_status
+            = $status_map{ $normalize->( $job->{'status'} // '' ) };
+        next if not defined $canon_status;
+
+        my $sid = $stepstone_id->( $job->{'url'} // '' );
+        my $key
+            = defined $sid
+            ? "id:$sid"
+            : join '||', $normalize->( $job->{'title'} // '' ),
+            $normalize->( $job->{'company'} // '' );
+        next if not length $key or $key eq '||';
+
+        $by_key{$key} = {
+            'snapshot_date' => $today,
+            'entry'         => {
+                'date'    => $job->{'date_applied'} // $today,
+                'company' => $job->{'company'}      // '',
+                'title'   => $job->{'title'}        // '',
+                'city'    => $job->{'city'}         // '',
+                'score'   => $job->{'score'}        // '',
+                'status'  => $canon_status,
+                'url'     => $job->{'url'} // '',
+                'source'  => 'jobsite:live',
+            },
+        };
+    }
+}
+
+## --- filter to period, sort chronologically ----------------------------- ##
+
+my @entries;
+for my $key ( keys %by_key ) {
+    my $entry = $by_key{$key}{'entry'};
+    my $date  = $entry->{'date'} // '';
+    next if $date !~ $date_re;
+    next if $date lt $from or $date gt $to;
+    push @entries, $entry;
+}
+
+## newest first : a caseworker cares most about recent activity ##
+@entries = sort { $b->{'date'} cmp $a->{'date'} } @entries;
+
+my $nr = 0;
+$_->{'nr'} = ++$nr for @entries;
+
+## --- write report record -------------------------------------------------##
+
+my $generated_str
+    = sprintf qw| %04d-%02d-%02dT%02d:%02d:%02dZ |,
+    $gm[5] + 1900, $gm[4] + 1, $gm[3], $gm[2], $gm[1], $gm[0];
+
+my $report = {
+    'report' => {
+        'period'         => { 'from' => $from, 'to' => $to },
+        'generated'      => $generated_str,
+        'generated_unix' => time,
+        'generator'      => 'jobsite.report.assemble',
+        'csv_dir'        => $csv_dir,
+        'entry_count'    => scalar @entries,
+        'rows_skipped'   => $skipped,
+    },
+    'entries' => \@entries,
+};
+
+my $report_path = sprintf qw| %s/%s_%s.yaml |, $reports_dir, $from, $to;
+my $report_tmp  = "$report_path.NEW";
+
+eval { YAML::XS::DumpFile( $report_tmp, $report ) };
+if ($EVAL_ERROR) {
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( 'report write failed [ %s ]', $EVAL_ERROR )
+    };
+}
+rename( $report_tmp, $report_path )
+    or return {
+    'mode' => qw| false |,
+    'data' => sprintf( 'report rename failed [ %s ]', $! )
+    };
+
+<[base.logs]>->(
+    1,
+    'jobsite report assembled : %d entries [ %s..%s ] : %s',
+    scalar @entries,
+    $from, $to, $report_path
+);
+
+return {
+    'mode'        => qw| true |,
+    'report_path' => $report_path,
+    'count'       => scalar @entries,
+};
+
+#,,.,,.,,,.,,,,,,,..,,.,,,..,,,,.,..,,,,.,,..,.,.,...,...,...,..,,,..,..,,,.,,
+#UIHIGQS4GFW64P5KU3QCCEWNMEYQZVXOILMSNLPVBSSFMNQPUN7NSJRSFQIUHUOHFEDDVJCW3TEDU
+#\\\|Y7NVSRFV2T5KXKOPWPIH3AIAJF3Q6JPRE4EALKBQ2YKIFU55RME \ / AMOS7 \ YOURUM ::
+#\[7]Y43SL3D6ZFFWH7B4HYTL3QMT7AMFOBUPLFMP4P4QAE7JHC4O56CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

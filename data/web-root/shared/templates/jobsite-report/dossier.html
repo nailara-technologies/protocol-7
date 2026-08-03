@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Bewerbungsnachweise [PERIOD]</title>
+<style>
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  body {
+    font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background: #ffffff;
+    margin: 0;
+    padding: 20px;
+  }
+
+  .page {
+    /* widened to compensate for evidence-item's larger left/right padding */
+    /* below -- otherwise pre-formatted content designed for a wide canvas */
+    /* [ e.g. the cv's manually-spaced centered header line ] wraps        */
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    color: #5e35b1;
+    text-shadow: 0 0 2px rgba(94, 53, 177, 0.25);
+    margin: 0 0 0.2rem;
+    font-size: 1.5rem;
+  }
+
+  .meta { color: #666; font-size: 0.85rem; margin-bottom: 1.5rem; }
+
+  h2 {
+    color: #5e35b1;
+    font-size: 1.15rem;
+    margin: 2.6rem 0 1rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid rgba(94, 53, 177, 0.3);
+  }
+
+  .section-card {
+    background: #f1f1f5;
+    border-radius: 10px;
+    padding: 1.2rem 1.4rem;
+    box-shadow: 0 0 15px rgba(100, 100, 150, 0.15);
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  th, td { padding: 0.45rem 0.6rem; text-align: left; vertical-align: top; border-bottom: 1px solid rgba(94, 53, 177, 0.15); }
+  th { color: #5e35b1; font-weight: 600; border-bottom: 1px solid rgba(94, 53, 177, 0.4); }
+  tr:nth-child(even) td { background: rgba(94, 53, 177, 0.04); }
+
+  .status-applied     { color: #3f51b5; font-weight: 500; }
+  .status-rejected    { color: #8e3b5e; }
+  .status-interviewed { color: #2e7d63; font-weight: 600; }
+  .status-apply, .status-review, .status-assessed, .status-new { color: #888; }
+
+  .highlight { color: #3f51b5; font-weight: 500; }
+
+  .evidence-item {
+    /* no page-break-inside: avoid here : for large blocks [ CV, long   */
+    /* emails ] it forces the WHOLE block to the next page when it     */
+    /* doesn't fit the remaining space, leaving big empty gaps -- worse */
+    /* than letting content split across a page boundary naturally     */
+    margin: 0 0 1.4rem;
+    background: #ffffff;
+    border-left: 4px solid #5e35b1;
+    border-radius: 0 8px 8px 0;
+    /* symmetric left/right : a centered element inside [ e.g. a detected */
+    /* centered pdf title ] centers within the content box, so asymmetric */
+    /* padding here would throw its centering off relative to the whole  */
+    /* bordered frame even though the css text-align itself is correct   */
+    padding: 1.6rem 5.7rem;
+    box-shadow: 0 0 8px rgba(100, 100, 150, 0.1);
+  }
+  /* a long original filename [ "...].pdf" ] wraps naturally in the      */
+  /* narrower box, often leaving just ".pdf" orphaned alone on its own    */
+  /* trailing line -- text-wrap:pretty asks the browser's line-breaking   */
+  /* algorithm to avoid exactly that; harmless no-op on older browsers    */
+  /* that don't support it yet, still wraps normally, just without the    */
+  /* orphan-avoidance                                                     */
+  .evidence-item h3 { margin: 0 0 0.3rem; font-size: 0.95rem; color: #5e35b1; text-wrap: pretty; }
+  .evidence-meta { color: #666; font-size: 0.8rem; margin-bottom: 0.6rem; }
+  .evidence-meta .unmatched { color: #8e3b5e; }
+  .evidence-text { white-space: pre-wrap; font-size: 0.82rem; line-height: 1.35; font-family: "DejaVu Sans Mono", monospace; }
+
+  .section-note { color: #666; font-size: 0.9rem; font-style: italic; }
+
+  /* screen-only dark theme : the sent/printed document must stay light   */
+  /* [ a caseworker printing this should get plain black-on-white, not a  */
+  /* dark background wasting toner ] -- scoped to "screen" so @media     */
+  /* print below always wins regardless of the viewer's OS theme         */
+  @media screen and (prefers-color-scheme: dark) {
+    body { color: #8a7eb0; background: #15111e; }
+    h1, h2, .evidence-item h3, th { color: #4f3f66; }
+    h1 { text-shadow: 0 0 2px rgba(79, 63, 102, 0.3); }
+    .meta, .evidence-meta { color: #6e6690; }
+    .section-card { background: #1e1a2a; box-shadow: 0 0 15px rgba(0, 0, 0, 0.4); }
+    th { border-bottom-color: rgba(143, 111, 179, 0.4); }
+    td { border-bottom-color: rgba(143, 111, 179, 0.15); }
+    tr:nth-child(even) td { background: rgba(143, 111, 179, 0.06); }
+    .status-applied     { color: #7f87b0; }
+    .status-rejected    { color: #6c4e76; }
+    .status-interviewed { color: #2d5570; }
+    .status-apply, .status-review, .status-assessed, .status-new { color: #726f80; }
+    .highlight { color: #7f87b0; }
+    .evidence-item { background: #1e1a2a; border-left-color: rgba(143, 111, 179, 0.45); box-shadow: 0 0 8px rgba(0, 0, 0, 0.3); }
+    .evidence-meta .unmatched { color: #6c4e76; }
+    .section-note { color: #6e6690; }
+    h2 { border-bottom-color: rgba(143, 111, 179, 0.3); }
+  }
+
+  @media print {
+    body { margin: 0.5cm; padding: 0; color: #333 !important; background: #ffffff !important; }
+    h1, h2, .evidence-item h3, th, .highlight { color: #603da7 !important; }
+    .meta, .evidence-meta, .section-note { color: #666 !important; }
+    .section-card { background: none; box-shadow: none; border: 1px solid rgba(96, 61, 167, 0.25); }
+    /* print has a fixed physical page width, unlike the screen -- the    */
+    /* screen's 5.7rem padding leaves too little room on paper, pushing   */
+    /* the last word or two of a wrapped line onto its own near-empty     */
+    /* trailing line. keep it symmetric [ so centered content, e.g. a     */
+    /* detected centered pdf title, still centers correctly ] but smaller */
+    .evidence-item { background: #ffffff !important; box-shadow: none; border: 1px solid #e0e0e6; border-left: 4px solid #603da7; padding: 1.6rem 2.2rem !important; }
+    tr:nth-child(even) td { background: rgba(96, 61, 167, 0.04) !important; }
+    .status-applied     { color: #4856a6 !important; }
+    .status-rejected, .evidence-meta .unmatched { color: #854360 !important; }
+    .status-interviewed { color: #377661 !important; }
+    table { font-size: 0.78rem; }
+    h2 { page-break-after: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>Bewerbungsnachweise — [PERIOD]</h1>
+<div class="meta">[ENTRY_COUNT] Einträge · erstellt [GENERATED]</div>
+
+<h2>1. Übersicht</h2>
+<div class="section-card">
+<table>
+<thead>
+<tr><th>Nr</th><th>Datum</th><th>Unternehmen</th><th>Position</th><th>Ort</th><th>Status</th></tr>
+</thead>
+<tbody>
+[ROWS]
+</tbody>
+</table>
+</div>
+
+<h2>2. Verwendeter Lebenslauf</h2>
+[CV_SECTION]
+
+<h2>3. Arbeitszeugnisse</h2>
+[REFERENCES_SECTION]
+
+<h2>4. Bewerbungsschreiben</h2>
+[LETTERS_SECTION]
+
+<h2>5. Rückmeldungen der Unternehmen (E-Mails)</h2>
+[MAIL_SECTION]
+
+<h2>6. Eingangsbestätigungen</h2>
+<div class="section-card">
+<table>
+<thead>
+<tr><th>Datum</th><th>Betreff / Unternehmen</th><th>Absender</th></tr>
+</thead>
+<tbody>
+[CONFIRMATIONS_ROWS]
+</tbody>
+</table>
+</div>
+
+</div>
+</body>
+</html>

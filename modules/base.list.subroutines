@@ -215,6 +215,7 @@ return [ qw[
         base.sig_NUM41
         base.sig_NUM37
         base.route.add
+        base.prune_key
         base.post_init
         base.list.init
         base.init_code
@@ -1943,6 +1944,7 @@ return [ qw[
         keys.console.github-pat
         jobsite.util.block-line
         jobsite.sync.push_chunk
+        jobsite.report.assemble
         jobsite.job.index.build
         jobsite.dispatch.repair
         jobsite.cmd.show-prompt
@@ -2201,6 +2203,8 @@ return [ qw[
         keys.select_archive_path
         keys.console.remove-type
         jobsite.stray.claim_next
+        jobsite.report.csv_parse
+        jobsite.cmd.report-build
         jobsite.cmd.list-trashed
         iteration.template.delta
         io.unix.socket.init_code
@@ -2444,9 +2448,11 @@ return [ qw[
         kimi-web.cmd.find-session
         jobsite.util.fix_encoding
         jobsite.util.build_prompt
+        jobsite.report.mail_split
         jobsite.removed_log.prune
         jobsite.cmd.set-threshold
         jobsite.cmd.mail_received
+        jobsite.cmd.dossier-build
         jobsite.cmd.blacklist-add
         jobsite.client_prefs.read
         jobqueue.priorities_table
@@ -2682,6 +2688,7 @@ return [ qw[
         keys.console.clear-chksums
         keys.console.change-passwd
         jobsite.sync.apply_reverse
+        jobsite.report.render_html
         jobsite.removed_log.append
         jobsite.handler.rewire-all
         jobsite.handler.queue-poll
@@ -2919,6 +2926,7 @@ return [ qw[
         keys.console.get-sp-pub-key
         keys.console.enc-key-chksum
         jobsite.validate.assessment
+        jobsite.report.extract_text
         jobsite.handler.repair-done
         jobsite.handler.fetch-drain
         jobsite.handler.assess-done
@@ -3389,6 +3397,7 @@ return [ qw[
         keys.select_archive_path.curs
         keys.console.remove-signature
         keys.console.encoding-upgrade
+        jobsite.report.render_dossier
         jobsite.handler.sync-response
         jobsite.handler.rewire-assess
         jobsite.dispatch.consume_slot
@@ -3809,6 +3818,8 @@ return [ qw[
         letsencr.child.cmd.repair-chain
         kimi.handler.dispatch_next_task
         kimi-web.internal.http_get_sync
+        jobsite.report.mime_decode_body
+        jobsite.report.evidence_collect
         jobsite.handler.pending-changed
         invoke-web.handler.check_health
         image2html.base.write_stub_page
@@ -4528,6 +4539,7 @@ return [ qw[
         letsencr.child.acme_register_account
         kimi.handler.reconnect_grace_timeout
         kimi-web.handler.batch_timeout_check
+        jobsite.report.mail_evidence_collect
         image2html.child.check_cache_timeout
         httpsd.startup.validate_certificates
         httpd.handler.download_transfer.test
@@ -5041,8 +5053,8 @@ return [ qw[
     ]
 ];
 
-#,,..,.,.,...,,..,,..,.,.,..,,,.,,.,,,...,,..,.,.,...,...,...,,.,,,..,.,.,...,
-#C3GRNA7WACOB5IFXQHCD7UW2I52FZDZ33ZDYLL4PGYQV3HODPCFNP2MFLAZM7SLRI2XH4UJW2X5V4
-#\\\|2OIKWYBVSGXARW7LT2CS3TTACVWBEH45DVTBZRCVBWRGYS4T7RD \ / AMOS7 \ YOURUM ::
-#\[7]RX375XOAWYKJZX5GEGKLRD4SO444Z3XI4HY5F4UR6NNWHTEY3UDQ 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,.,,...,,.,,,,,,,.,,.,.,.,.,,,.,.,.,...,...,,..,.,,,...,...,,..,
+#JI6L2NPN7PQKYOI7YCY5OKYHYABFO7VGF73QNHKLIQXO5VNC3CLI6UK36Z2LU6SKYDCJ3XWRGHAJI
+#\\\|S4FRWPS4RWYY6FLDP4KHV3EZCWB7VQCNZIEMVRTLGMOW3WGKBLK \ / AMOS7 \ YOURUM ::
+#\[7]H4C2A2X2W6YGJJRY47GA6YIKJWJ5KCA6QKDX7TG6MCX5JVZJRCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
