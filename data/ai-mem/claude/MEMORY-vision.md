@@ -5,6 +5,7 @@ identity, namespace/routing algebra, checksum-addressing trinity, harmonic mathe
 network-as-computer, dedup-tree unification, coding-as-artform / style-philosophy.
 
 ## Vision / Design
+- [epoch-orbital-harmonic-math-2026-08-03](project-epoch-orbital-harmonic-math-2026-08-03.md) — pointer to 4 design docs (epoch length, orbital ring geometry, network-time consensus, AMOS signature footer bit structure); start here before re-deriving any of it
 - [vision-jobsite-parameter-sweep-zenka](vision-jobsite-parameter-sweep-zenka.md) — jobsite zenka: parameter-sweep search tuning (variant → score correlation) + reverse coherence audit of the application package (dead links, misspellings, inconsistencies)
 - [zenka-bootstrap-permission-learning-mode](topic-zenka-bootstrap-permission-learning-mode.md) — new-zenka scaffolding: devmod+wildcard cube grant during boot-testing, then derive+commit the real narrow grant from observed commands, removing wildcard/devmod as last step; generalizes to a cube-wide learning mode with a mandatory destructive-command blacklist
 - [afk-dispatch-signing-key-system](topic-afk-dispatch-signing-key-system.md) — session-key/session-branch vs staging-repo options for letting AFK model dispatches commit without --no-verify; staging-repo favored (decouples model-commits from human-resign, room for a review gate)
@@ -18,7 +19,7 @@ network-as-computer, dedup-tree unification, coding-as-artform / style-philosoph
 - [key-recovery-flexible-recreatability](topic-key-recovery-flexible-recreatability.md) — C25519 recovery via re-derivability not backup; duress/decoy passphrases; key-archive steganography boundary; superseded by `PRIVACY-PRESERVING-IDENTITY-CREDENTIALS.md`'s parent/child signed-key hierarchy + mode-A/B credential upgrade
 - [zenka-crypto-identity-survey](project-zenka-cryptographic-identity-survey.md) — all trust roots to per-user C25519 key; no per-zenka identity concept yet
 - [cross-host-trust-bootstrap-gap](project-cross-host-trust-bootstrap-gap.md) — confirmed no doc solves cross-host-no-shared-cube; jobs-sync chosen as pilot; SIGNED-COMMAND-INTERFACE.md has closest reusable TOFU shape
-- [multidimensional-identity-session-topology](topic-multidimensional-identity-session-topology.md) — roots are multi-perspectival (single-root vs every-key-a-root), everything incl. network identity may be a session, known links = routing shortcuts
+- [multidimensional-identity-session-topology](topic-multidimensional-identity-session-topology.md) — roots multi-perspectival, everything may be a session; 2026-08-03: grounded by stargate mechanic (topology made of session-events) + verified in code — C25519 signature-requests/TOFU pins already carry ntime inside the signed payload, so "identity is timestamped edges" is live, not vision-only
 - [latency-algorithmic-authority-entropy-toll](topic-latency-algorithmic-authority-entropy-toll.md) — latency as 3rd algorithmic authority (w/ keys, checksums); self-organizing latency-grid placement; mandatory generic-workload participation = privacy+fairness by construction; check TASK-CUBE-CONSENSUS-ARCHITECTURE.md before extending
 - [source-identity-spoofing](feedback-source-identity-spoofing.md), [project-vision-origin](project-vision-origin.md) — hostnames aren't a security boundary, C25519 is; 24yr vision
 - [synchronous-multi-legged-pattern-extraction](topic-synchronous-multi-legged-pattern-extraction.md), [distributed-hybrid-inhabitants](topic-distributed-hybrid-inhabitants.md) — parallel component search
@@ -50,8 +51,8 @@ network-as-computer, dedup-tree unification, coding-as-artform / style-philosoph
 - [audio-render-cubic-zoom-transition](topic-audio-render-cubic-zoom-transition.md) — SEED: audio.render_standing_wave's nested lattice squares visually travel along a cubic grid under zoom; proposed as a transition mode overlaying the existing cubic-space desktop nav grid, bridging the audio renderer into the project's existing space-navigation visual language; relates to [[topic-implicit-perspective-navigation]]/[[topic-perspective-layers]]
 - [audio-render-as-similarity-feature-source](topic-audio-render-as-similarity-feature-source.md) — SEED + CORRECTED (kimi K3 review): similarity idea still stands but v1/v2/v3 share one analysis front-end so cross-style "agreement" is near-tautological, not independent like checksums, until the analysis itself is diversified; also found v3's absolute-phase placement is shift-*variant* (real bug -- re-segmented same audio renders differently) and the renderer discards all temporal/rhythm info by averaging FFT windows -- concrete v4 idea (energy variance per window) would fix that gap
 
-#,,.,,.,.,,.,,,.,,.,,,.,.,..,,...,,,,,,,,,,,.,..,,...,...,..,,,,.,.,.,.,,,,,.,
-#E6YPQ5O5Q4LE4SSLLNSJPG6SKIMLM5RKVGZRWATNA4YQMYAATRVGHY6K3BCSJG4DJZ5ICDZ7KIIZQ
-#\\\|FUMMPLQVPTZXMYFPOYIF6DDP5GHIZKMCFIGJR6MWUIWYVDRVSSZ \ / AMOS7 \ YOURUM ::
-#\[7]XVT44M6WJJJB3EDMG32FNNPZAMQIIYIQZRQTNY62YIGBSNTMZKBA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,..,,,,,,.,,,..,,,.,,..,,,,,,,.,,..,,...,...,,..,,..,,..,,,,,.,.,
+#4DYOVMYQTX4JKI2TDWBHXSXVNFMHUZSEVJQRK6S5SFPGXQVCPS7LY3GW3NQ6IHFUAIG2SMAAVKYDG
+#\\\|JJ5SMVE6NXF32GHJ6UFYYXNK6L2LBNURVI65A64SWRA5MAQFYWW \ / AMOS7 \ YOURUM ::
+#\[7]NOGJCYIMUCUAGJLEEHVWBSLPBMEUBBLJW3BMZY3YMACK4AGYOMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
