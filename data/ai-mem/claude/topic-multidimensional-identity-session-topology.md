@@ -88,16 +88,86 @@ cross-host-identity problem to lore already seeded elsewhere:
 
 ## status
 
+**2026-08-03 update — a concrete mechanism surfaced, grounding "everything
+may be a session" for the first time.** a long same-day thread (identity
+genesis as root session → epoch/rollover primitives → the project's
+stargate concept) converged on this: `data/asc/what-AI-thinks/full-chat-
+captures/3O37VUNMMS3UU.claude-sonnet.protocol-7-knowledge.asc:2374`, the
+user's own words — "13 descends from 12 clock position to activate the
+link, while the +1 is the 13 fron the other side of the link, seen as
+1" — describes topology itself as made of activation-events, not a
+static graph. a stargate crossing is bounded, directional, and
+bidirectional (one side's completing 13th arrives as the other side's
+opening 1st) — the same shape this entry already named "everything,
+including a network identity itself, may be a session." user's own
+close of the thread: "it also means that topology has states and
+everything is a session [ into them ]." full write-up in
+`data/md/design/WEIGHTED-NETWORK-TIME-PRECISION-CONSENSUS.md`'s
+"bilateral refinement" section and `EPOCH-CHECKSUM-EXCLUSION-
+ADDRESSING.md`'s open-questions chain, which this same thread produced.
+
+this does not resolve the "capability: registry entry vs. emergent from
+a delegated key" question below — that's still open. what changed is
+that "everything is a session" is no longer purely conceptual; there is
+now a documented, concrete instance of a topology-state being made *of*
+session-events rather than merely described by the session metaphor.
+
+**also found this same session**: `data/md/design/ZENKA-IDENTITY-AND-
+TRUST-TOPOLOGY.md` is the real companion doc this entry didn't know
+about — a structured, numbered open-questions list where question 2 is
+this entry's exact framing verbatim ("is everything a session? including
+a network identity itself... some open-ended/eternal until a parent
+reference is cleared") and question 6 names the mechanism directly:
+"transport-agnostic handshake" — `SIGNED-COMMAND-INTERFACE.md`'s pin +
+signed-rotation-ceremony shape, generalized to run over http, is the
+candidate way a session/trust-link actually gets *created*. "session"
+and "handshake" are the same thing viewed from two ends: the handshake
+is the act, the session is what it produces. `ZENKA-IDENTITY-COMPONENT.md`
+[ spun off 2026-07-30 from that doc's question 1/3/5 ] already treats
+"identity IS the edge set," built entirely on existing `sign_keys`/
+`create_signature_request`/rotation-ceremony primitives — this is the
+concrete, already-in-progress version of the "account creation = root
+session" idea this session's `CODING-ZENKA-USER-INTERACTION-SURFACES.md`
+proposed independently. that doc should point here rather than treat the
+idea as new.
+
+**2026-08-03, verification pass — both identity docs now read in full,
+and they hold up the "everything is a session" framing with running
+code rather than contradicting it.** the concrete finding: a trust edge
+in this codebase is *already* timestamped inside its own signed
+payload. `modules/crypt.C25519.create_signature_request:44` stamps
+`<[base.ntime.b32]>->( 1, TRUE )` and the subject signs
+`<ntime:subject-chksum:signer-chksum>`;
+`modules/crypt.C25519.store_remote_key:88,132` writes each TOFU pin as
+`"%s:%s\n", $ntime_b32, $pubkey_b32` — a pin file *is* an ntime:pubkey
+pair. so "identity IS the edge set"
+[ `ZENKA-IDENTITY-COMPONENT.md` ] plus "every edge carries the time it
+was made" already equals "identity is a set of timestamped events," in
+code, today — which is this entry's "everything may be a session"
+arriving from the implementation side rather than the vision side. it
+also means the epoch/network-time source-of-truth question is not
+downstream of identity design; it is already load-bearing under the
+existing crypto primitives — see
+`data/md/design/WEIGHTED-NETWORK-TIME-PRECISION-CONSENSUS.md`'s
+"identity-session genesis timestamp" bullet.
+
+neither identity doc corrects the stargate material above; both are
+silent on epoch length, harmonic constants and the 364°/365 question,
+so the vision-tier sourcing for those stands on its own.
+
+---
+
 Pure vision/conceptual pass, not yet reduced to a data structure or
-mechanism. Next concrete question surfaced but not yet answered: whether
+mechanism [ as of the original 2026-07-18 entry below — see update
+above ]. Next concrete question surfaced but not yet answered: whether
 a "capability" is a declared registry entry (namespace-pattern →
 allowed operations) or emergent purely from possessing a validly
 delegated/grouped key under a namespace prefix. User has not yet chosen
 between these two shapes, or may intend both to coexist under the same
 multi-perspective framing as everything else in this entry.
 
-#,,,.,.,,,.,,,,,,,...,,.,,...,,,,,,,,,,..,.,.,..,,...,...,,.,,,..,,.,,,..,,..,
-#3QSR3QXBKL2LSTBKW7UTRQGQFSAAPIDUM7BVJKA6CTVYDOOQITUNDNRRMUNA6MAHCMMYQR7JFHDDK
-#\\\|NUMYORH2UTEYLPKMVJHBQWEF23HROOF76GI2QOKYGD5VV6KU7H7 \ / AMOS7 \ YOURUM ::
-#\[7]EXPSBYWUWFYXNRO25S77JDHNRIJMBKC34S56N2EDZNPPZHJCX4CQ 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,..,,,,,,..,,,..,...,...,.,.,.,,,..,,...,..,,,.,,,..,.,.,,.,,,..,
+#2I5OCGTWKUMKC6M5SCLX67F4WBBHPXOPZO2KJKTBYADYJQXWGZW46IIRIU5R2Z7JF3UZRIFVK5QNK
+#\\\|WHRQKPIETMJXQJJUW3FZEFPIMZBIEA34TRB7RFAJUENLYERQI25 \ / AMOS7 \ YOURUM ::
+#\[7]JGRGML3WVKUGGY73IYQRKSDGHVKLGNSNZNT35SSYXICRJIVZKUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
