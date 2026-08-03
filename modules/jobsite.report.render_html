@@ -1,0 +1,102 @@
+## [:< ##
+
+# name  = jobsite.report.render_html
+# descr = render an assembled report yaml into print-ready html
+# param = $report_path [ written by jobsite.report.assemble ]
+# return = { mode => true, html_path => .. } or { mode => false, data => .. }
+
+my $report_path = shift // '';
+
+return { 'mode' => qw| false |, 'data' => 'report path required' }
+    if not length $report_path;
+
+my $report = eval { YAML::XS::LoadFile($report_path) };
+if ($EVAL_ERROR) {
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( 'report load failed [ %s ]', $EVAL_ERROR )
+    };
+}
+
+my $template_dir
+    = <system.root_path> . '/'
+    . <system.web-root-templates>
+    . '/jobsite-report';
+my $template_file = "$template_dir/report.html";
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( 'template missing [ %s ]', $template_file )
+    }
+    if not -f $template_file;
+
+my $html_ref = <[file.slurp]>->($template_file);
+return { 'mode' => qw| false |, 'data' => 'template load failed' }
+    if not defined $html_ref;
+
+my %status_label = (
+    'applied'     => 'beworben',
+    'rejected'    => 'Absage erhalten',
+    'interviewed' => "Vorstellungsgespr\x{e4}ch",
+    'apply'       => 'vorzumerken',
+    'review'      => "in Pr\x{fc}fung",
+    'assessed'    => 'bewertet',
+    'new'         => 'neu',
+);
+
+my $esc = sub {
+    my $s = shift // '';
+    return HTML::Entities::encode_entities($s);
+};
+
+my $rows_str = '';
+for my $entry ( @{ $report->{'entries'} // [] } ) {
+    my $status = $entry->{'status'}     // '';
+    my $label  = $status_label{$status} // $status;
+    $rows_str
+        .= sprintf
+        qq|<tr><td>%d</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td>|
+        . qq|<td class="status-%s">%s</td></tr>\n|,
+        $entry->{'nr'} // 0,
+        $esc->( $entry->{'date'}    // '' ),
+        $esc->( $entry->{'company'} // '' ),
+        $esc->( $entry->{'title'}   // '' ),
+        $esc->( $entry->{'city'}    // '' ),
+        $esc->($status),
+        $esc->($label);
+}
+
+my $period = sprintf "%s \x{2013} " . "%s",
+    $report->{'report'}{'period'}{'from'} // '',
+    $report->{'report'}{'period'}{'to'}   // '';
+
+$$html_ref =~ s|\[PERIOD\]|$period|g;
+$$html_ref =~ s|\[GENERATED\]|$report->{'report'}{'generated'} // ''|ge;
+$$html_ref =~ s|\[ENTRY_COUNT\]|$report->{'report'}{'entry_count'} // 0|ge;
+$$html_ref =~ s|\[ROWS\]\n?|$rows_str|;
+
+( my $html_path = $report_path ) =~ s|\.yaml$|.html|;
+my $html_tmp = "$html_path.NEW";
+
+## bin/Protocol-7 sets `use open qw| :encoding(UTF-8) |` globally, so       ##
+## base.file.put's plain open() already encodes on write -- a manual        ##
+## utf8::encode here would double-encode ; write the decoded string through ##
+## as-is                                                                    ##
+if ( not <[file.put]>->( $html_tmp, $$html_ref ) ) {
+    return { 'mode' => qw| false |, 'data' => 'html write failed' };
+}
+rename( $html_tmp, $html_path )
+    or return {
+    'mode' => qw| false |,
+    'data' => sprintf( 'html rename failed [ %s ]', $! )
+    };
+
+<[base.logs]>->( 1, 'jobsite report rendered : %s', $html_path );
+
+return { 'mode' => qw| true |, 'html_path' => $html_path };
+
+#,,,.,.,.,,,.,,.,,,,,,,,.,..,,..,,.,,,,.,,..,,..,,...,...,...,,..,.,.,,..,.,.,
+#4FOH6NFUUUDZ2AAVPI7F2UKOOFX36UOBH4BAKTLO2KQMZAI4GKJ3X2SFLWWNZ6BA3UDHO3DWHHPT4
+#\\\|T6W5Y4RB5OBLFVVNOJZJV7HYWIUGAF4S552OROQLHYZFPQBWU7S \ / AMOS7 \ YOURUM ::
+#\[7]LOU4YQXDJLK7LW7HWP72VXS6B3SEOUDIVBN3W7XNAFWHUUNJAICI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

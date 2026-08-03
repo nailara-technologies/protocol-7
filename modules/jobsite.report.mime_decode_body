@@ -1,0 +1,264 @@
+## [:< ##
+
+# name  = jobsite.report.mime_decode_body
+# descr = decode a raw rfc2822 message into readable plain text
+# param = $raw_message
+# return = plain text string [ best-effort, never dies ]
+
+my $raw = shift // '';
+return '' if not length $raw;
+
+## normalize line endings once, up front : a bare "(.*)$/m" header-value  ##
+## capture happily includes a trailing \r on CRLF input [ '.' matches \r, ##
+## only \n anchors '$' in multiline mode ], corrupting every header value ##
+## with an invisible trailing \r [ e.g. "quoted-printable\r" never        ##
+## eq-matches 'quoted-printable', silently skipping decode entirely ]     ##
+$raw =~ s/\r\n/\n/g;
+
+my $parse_headers = sub {
+    my $block = shift // '';
+    ## unfold continuation lines [ leading whitespace = prior header ] ##
+    $block =~ s/\n[ \t]+/ /g;
+    my %headers;
+    while ( $block =~ /^([\w-]+):\s*(.*)$/mg ) {
+        $headers{ lc $1 } = $2;
+    }
+    return \%headers;
+};
+
+my $decode_leaf = sub {
+    my ( $part_headers, $part_body ) = @_;
+
+    my $cte = lc( $part_headers->{'content-transfer-encoding'} // '' );
+    if ( $cte eq 'quoted-printable' ) {
+        $part_body
+            = eval { MIME::QuotedPrint::decode_qp($part_body) } // $part_body;
+    } elsif ( $cte eq 'base64' ) {
+        $part_body
+            = eval { MIME::Base64::decode_base64($part_body) } // $part_body;
+    }
+
+    utf8::decode($part_body) if not utf8::is_utf8($part_body);
+
+    ## neutralize href/src attribute VALUES whole, quote-aware, before the  ##
+    ## generic bare-url regex below runs -- that regex's `\S+` does not     ##
+    ## stop at a closing quote, so on `href="https://x" style="...">` it    ##
+    ## eats the url AND swallows the closing `"`, leaving behind            ##
+    ## `href=[Link entfernt] style="...">` : an unparseable tag whose       ##
+    ## dangling `style="...">` fragment html::treebuilder's parser recovery ##
+    ## then leaks into the visible output as literal text instead of        ##
+    ## silently consuming it as part of the (broken) tag                    ##
+    $part_body =~ s{(href|src)\s*=\s*"[^"]*"}{$1="#"}gi;
+    $part_body =~ s{(href|src)\s*=\s*'[^']*'}{$1='#'}gi;
+    $part_body =~ s{(href|src)\s*=\s*([^"'\s>]+)}{$1="#"}gi;
+
+    ## strip links entirely, before any html parsing/formatting : link text ##
+    ## extraction alone wouldn't catch this [ HTML::FormatText already      ##
+    ## drops href attributes by default -- the garbage seen is a raw url    ##
+    ## shown as literal visible text, e.g. security-gateway rewritten       ##
+    ## tracking links ]. stripping AFTER formatting is unreliable since     ##
+    ## word-wrap would already have fragmented a long url across several    ##
+    ## lines by then -- do it while still one string match stops at `<` [   ##
+    ## not just whitespace ] : when a visible-text url sits directly        ##
+    ## against the next tag with no space in between [ e.g.                 ##
+    ## "...xyz</a><span style=\"...\">" ], plain `\S+` treats `<` as an     ##
+    ## ordinary non-space char and eats straight through the                ##
+    ## closing/opening tags too -- orphaning the next tag's attributes as   ##
+    ## unowned text that html::treebuilder's parser recovery then leaks     ##
+    ## into the visible output instead of consuming as markup               ##
+    $part_body =~ s{https?://[^\s<]+}{[Link entfernt]}g;
+    ## a wrapped tracking link can split mid-url onto the next line [ the   ##
+    ## sender's own line-wrap, not something we introduce ], leaving a      ##
+    ## percent-encoded continuation fragment with no leading "http" for the ##
+    ## pattern above to catch. the %XX groups aren't necessarily            ##
+    ## consecutive [ e.g. "%26u%3Dhttps%253A%252F%252F..." — literal chars  ##
+    ## sit between them ], so match any non-space run containing 3+ %XX     ##
+    ## occurrences anywhere within it                                       ##
+    $part_body =~ s{[^\s<]*(?:%[0-9A-Fa-f]{2}[^\s<]*){2,}}{[Link entfernt]}g;
+    ## some hr/erp systems render an inline attachment reference as         ##
+    ## "filename.pdf<x?id=...&xsrf=...&somekey=...>" visible text -- not an ##
+    ## http(s) link, so the patterns above miss it. keep the filename [     ##
+    ## useful : notes an attachment existed ], drop only the bracketed      ##
+    ## internal-reference tracking uri                                      ##
+    $part_body =~ s{<\w\?id=[^>]*>}{}g;
+
+    my $ctype = lc( $part_headers->{'content-type'} // '' );
+    if ( $ctype =~ m{text/html} ) {
+        my $tree = HTML::TreeBuilder->new;
+        $tree->parse($part_body);
+        $tree->eof;
+        my $formatter = HTML::FormatText->new(
+            'leftmargin'  => 0,
+            'rightmargin' => 100
+        );
+        $part_body = $formatter->format($tree) // '';
+        $tree->delete;
+    }
+
+    return $part_body;
+};
+
+## recursively walk a (possibly nested) mime tree, collecting the best ##
+## available text/plain and text/html leaf found anywhere in it        ##
+my $walk;
+$walk = sub {
+    my ( $headers, $body, $found, $depth ) = @_;
+    $depth //= 0;
+    ## guard against pathological/malformed nesting ##
+    return if $depth > 8;
+
+    my $ctype_raw = $headers->{'content-type'} // '';
+    my $ctype     = lc($ctype_raw);
+
+    ## boundary token is case-sensitive [ e.g. "WqmrIOlv" ] -- extract it   ##
+    ## from the ORIGINAL, not the lowercased copy, or the split below never ##
+    ## matches the actual mixed-case delimiters in the body at all          ##
+    if ( $ctype =~ m{multipart/} and $ctype_raw =~ m{boundary="?([^";]+)"?} )
+    {
+        my $boundary = $1;
+        my @parts    = split /--\Q$boundary\E(?:--)?\n?/, $body;
+        for my $part_raw (@parts) {
+            next if not length $part_raw;
+            my ( $p_header_block, $p_body ) = split /\n\n/, $part_raw, 2;
+            $p_body //= '';
+            my $p_headers = $parse_headers->( $p_header_block // '' );
+            $walk->( $p_headers, $p_body, $found, $depth + 1 );
+        }
+        return;
+    }
+
+    ## a leaf carrying a filename [ content-type "name=" param or an       ##
+    ## explicit content-disposition: attachment ] is an attached FILE, not ##
+    ## the message body -- e.g. a boilerplate "datenschutz.txt"            ##
+    ## privacy-policy attachment sent alongside a real text/html reply.    ##
+    ## without this check a text/plain attachment can win the 'plain' slot ##
+    ## before the real text/html body [ nested deeper, e.g. inside a       ##
+    ## multipart/related sibling part ] is ever reached, so the disclaimer ##
+    ## silently replaces the actual reply as this mail's entire content    ##
+    my $disposition = lc( $headers->{'content-disposition'} // '' );
+    return
+        if $ctype_raw   =~ m{[;\s](?:file)?name\s*=}i
+        or $disposition =~ m{attachment};
+
+    my $decoded = $decode_leaf->( $headers, $body );
+    ## a multipart/alternative's text/plain sibling is often "empty" in     ##
+    ## practice but not literally zero bytes -- a single stray whitespace   ##
+    ## or newline left over from the template survives decoding. a plain    ##
+    ## length() check let that one whitespace byte still win the 'plain'    ##
+    ## slot below and permanently hide the real content sitting in the html ##
+    ## sibling [ found{'plain'} wins the final selection unless it's still  ##
+    ## undef ] -- require at least one non-whitespace character             ##
+    return if $decoded !~ /\S/;
+
+    if ( $ctype =~ m{text/plain} or not length $ctype ) {
+        $found->{'plain'} //= $decoded;
+    } elsif ( $ctype =~ m{text/html} ) {
+        $found->{'html'} //= $decoded;
+    } else {
+        $found->{'any'} //= $decoded;
+    }
+};
+
+my ( $header_block, $body ) = split /\n\n/, $raw, 2;
+$body //= '';
+my $headers = $parse_headers->( $header_block // '' );
+
+my %found;
+$walk->( $headers, $body, \%found );
+
+my $result = $found{'plain'} // $found{'html'} // $found{'any'} // '';
+
+## a reply quoting its own prior message back [ outlook's "-----           ##
+## Ursprüngliche Nachricht-----" / "-----Original Message-----" block, or  ##
+## the "Von: .. Gesendet: .. An: .. Betreff: .." header line it inserts    ##
+## just above the quoted body ] carries no new evidentiary content -- the  ##
+## real reply is always above it -- and after several layers of forward/   ##
+## reply nesting its tracking links get hard-wrapped into an unrecoverable ##
+## mess of base64 fragments no regex can reliably reassemble. truncate the ##
+## whole quoted trailer rather than trying to clean it                     ##
+$result =~ s{
+    ^-{3,}\s*(?:Urspr\x{fc}ngliche\ Nachricht|Original\ Message)\s*-{3,}
+    .*
+}{}xism;
+$result =~ s{
+    ^Von:\s*\S.*\n
+    ^Gesendet:\s*\S.*\n
+    (?:^An:\s*\S.*\n)?
+    ^Betreff:.*
+    .*
+}{}xism;
+
+## strip invisible unicode padding [ zero-width space/joiner, soft hyphen, ##
+## combining grapheme joiner ] some marketing html inserts for             ##
+## anti-clipping purposes -- harmless to a browser, but shows as a wall of ##
+## visible dot-like glyphs in a plain-text render. leaves behind runs of   ##
+## the *real* spaces that separated them, and stripped-link replacements   ##
+## leave blank paragraphs -- collapse both down after portal-registration  ##
+## receipts sometimes echo the account's own login credentials back in     ##
+## plain text [ "Benutzername: .. / Passwort: .." ] -- this is real leaked ##
+## secret material, not evidence, and must never reach a rendered report   ##
+## regardless of how the mail gets classified                              ##
+if ( length $result ) {
+    ## the colon is NOT reliably present -- "Passwort skdöl08530" [ no ":" ##
+    ## at all ] leaked a real password straight through the first version  ##
+    ## of this regex, which required one                                   ##
+    $result =~ s{
+        ^ ( [ \t]* (?:Passwort|Kennwort|Password|Pass|Benutzername|
+              Username|Login|Zugangsdaten|Bewerber-ID|Benutzer-ID|
+              Einwahldaten)
+            \s*:?\s* ) \S.*$
+    }{$1\[entfernt\]}mgix;
+    $result =~ s/[\x{200B}\x{200C}\x{200D}\x{00AD}\x{034F}]//g;
+    $result =~ s/ {2,}/ /g;
+    ## a line containing only spaces/tabs isn't a truly empty line to the   ##
+    ## \n{3,} collapse just below [ there's always a non-\n char breaking   ##
+    ## up the run ], so a run of such near-blank lines still shows up as an ##
+    ## oversized empty gap -- normalize them to genuinely empty first       ##
+    $result =~ s/^[ \t]+$//mg;
+    $result =~ s/\n{3,}/\n\n/g;
+
+    ## a single tracking url can be hard-wrapped by the sender's own mail   ##
+    ## client across MANY separate physical lines before it ever reaches us ##
+    ## -- each fragment doesn't individually look like a url [ no http      ##
+    ## prefix, no %XX run ], so most of them slip straight past the link-   ##
+    ## stripping regexes above and leak as raw base64url gibberish, while   ##
+    ## the few fragments that DO match produce one "[Link entfernt]" per    ##
+    ## wrapped line instead of one for the whole link -- collapse any       ##
+    ## contiguous run of "already stripped" markers and/or bare base64url-  ##
+    ## charset noise lines [ optionally quote-prefixed, e.g. "> " ] down to ##
+    ## a single marker                                                      ##
+    if ( $result =~ /\[Link entfernt\]/ ) {
+        my @rlines   = split /\n/, $result, -1;
+        my $is_noise = sub {
+            my $l = shift // '';
+            $l =~ s/^(?:>[ \t]*)+//;
+            $l =~ s/^\[+|\]+$//g;
+            return 1 if $l eq 'Link entfernt';
+            return 1 if $l =~ /^[A-Za-z0-9+\/=_-]{15,}$/;
+            return 0;
+        };
+        my @rout;
+        my $i = 0;
+        while ( $i <= $#rlines ) {
+            if ( $is_noise->( $rlines[$i] ) ) {
+                my $j = $i;
+                $j++ while $j <= $#rlines and $is_noise->( $rlines[$j] );
+                my ($prefix) = $rlines[$i] =~ /^(>[ \t]*(?:>[ \t]*)*)/;
+                push @rout, ( $prefix // '' ) . '[Link entfernt]';
+                $i = $j;
+            } else {
+                push @rout, $rlines[$i];
+                $i++;
+            }
+        }
+        $result = join "\n", @rout;
+    }
+}
+
+return $result;
+
+#,,.,,.,,,,..,,..,..,,,,,,,,.,,.,,,.,,..,,,..,.,.,...,...,...,,.,,.,.,..,,,,.,
+#NJSOFLND544L5JMLW5VV5WB6MBDKMUQ5X4SKLNSXQWIQUTKRP262HWAZ4TYRUYMMKQ7BM7B32KTBY
+#\\\|QGESZPPE6LNKEYSDOSA3NWOOT4XBAR42BRP57KVUC6QYC6OXDBN \ / AMOS7 \ YOURUM ::
+#\[7]DDBMOOZBQRTOUDCC7V4C4RU4O3BOD6CGPX5DPSBK44IGZU55IEBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
