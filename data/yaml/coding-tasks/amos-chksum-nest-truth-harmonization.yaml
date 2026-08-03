@@ -1,7 +1,7 @@
 ---
 title: amos-chksum -nest — add truth-template harmonization, currently missing
 priority: medium
-status: open
+status: completed
 type: bug-fix
 
 design_doc: data/md/design/AMOS-SIGNATURE-FOOTER-BIT-FRAME-HIERARCHY.md
@@ -41,19 +41,109 @@ open_question: |
   -nest output would see different values after the change ]. not decided
   here — flagging the gap and the fix shape, not the rollout policy.
 
+resolution: |
+  implemented 2026-08-03. AMOS7::CHKSUM::Nested::child_chksum() now builds the
+  nest output shape `[%s:<parent>]` as a single-%s sprintf truth template
+  [ parent baked in, child derived ] and calls
+  AMOS7::CHKSUM::amos_template_chksum() — the same entry point `amos-chksum -T`
+  uses — so the INVERT_TRUTH_STATE convergence loop in AMOS7::CHKSUM.pm only
+  exits once is_true() passes on the full bracketed `[child:parent]` string
+  [ via AMOS7::TEMPLATE::template_is_true ], in addition to the raw child value
+  which was already harmonized. the `sprintf-test-template` hash key path was
+  inspected but not used: the hash form of amos_chksum() carries no input data
+  [ it only accepts precomputed elf/BMW checksums ], amos_template_chksum()
+  reaches the identical assign_truth_templates() machinery with scalar input.
+
+  rollout policy [ open_question resolved ]: harmonization is default-on, no
+  opt-out — matching -T and base.ntime.harmonized_epoch, which also harmonize
+  unconditionally. caller audit before the change [ grep over modules/, bin/,
+  data/ ]: only bin/amos-chksum -nest and the zenka modules
+  amos.chksum.cmd.nest / .verify-nested / .parse-nested consume the module;
+  reconstruct_chain() has no callers and is parse-only [ does not recompute
+  child_chksum ]; verify_nesting() recomputes via child_chksum() itself, so it
+  stays consistent automatically [ deterministic convergence ]. no stored
+  [child:parent] notations exist in repo data — only illustrative doc examples
+  — so no persisted values shift. pre-change notations [ e.g. the original
+  [METUEMA:PKHKHVA] ] no longer verify, as expected for a value-changing fix.
+
+  regression test added: bin/test-scripts/test-amos-chksum-nest.pl
+  [ 29 checks: full-notation is_true, child-alone is_true, verify_nesting
+  round-trip, parse_nested, reconstruct_chain, invalid-input handling ].
+  no pre-existing test suite covered AMOS7::CHKSUM::Nested or amos-chksum.
+
+  extension 2026-08-03 [ human review follow-up ]: the initial fix only
+  guaranteed is_true() TRUE for the bracketed `[child:parent]` string, not
+  for the bare unbracketed `child:parent` form. proven live: is-true on
+  `[PKHKHVA:MVG3GRA]` was TRUE while `[MVG3GRA:PKHKHVA]` was FALSE [ same
+  values, order swapped — is_true is exact-string-sensitive, brackets
+  included ], and the bare form of the post-fix result was FALSE [ e.g.
+  is-true 'NUFY2TI:PKHKHVA' -> FALSE ].
+
+  human reviewer's rationale: if a user double-clicks to select the checksum
+  value in a terminal, word-boundary selection typically stops at brackets —
+  so a copy-pasted value comes out as bare `child:parent`, not
+  `[child:parent]`. that copy-pasted form should independently validate as
+  true too, not just the explicitly-bracket-selected one. stated tradeoff:
+  this is a proof-of-work style cost — each additional simultaneous template
+  clause increases average convergence search time [ more constraints to
+  satisfy at once ], but it also reduces the chance of degenerate
+  "everything happens to read true at once" collisions across unrelated
+  representations.
+
+  fix: child_chksum() now builds a comma-joined multi-template
+  `[%s:<parent>],%s:<parent>` covering both the bracketed and bare forms,
+  using the existing AMOS7::TEMPLATE::split_truth_templates() /
+  template_is_true() mechanism [ splits on unescaped commas, requires ALL
+  clauses to pass is_true() before the convergence loop exits — true
+  "combined and separate" ] — the same precedent as
+  modules/crypt.C25519.key_bin_checksums [ `'<:%s:>,:%s:'` ]. no new logic
+  added. format_nested() unchanged: still emits only the bracketed form;
+  the bare form is validated but is not a separate output shape — it is a
+  guarantee about what you get if you strip the brackets. values shift once
+  more with this change [ same value-changing-fix caveat as the original
+  resolution: -nest PKHKHVA CY4FN3A now -> [B5JI5LY:PKHKHVA] ].
+
+  iteration cost delta [ rough, 5 sample pairs, module-level reads of
+  $AMOS7::CHKSUM::bmw_mod_step — note: `amos-chksum -v -nest` does not
+  actually print the counter, the -nest path exits before the verbose
+  block ]: before avg ~323 steps/call [ range 13..681 ], after avg ~793
+  steps/call [ range 13..1653 ] — ~2.5x average convergence cost, wall time
+  ~0.003s..0.025s per call, negligible in absolute terms.
+
+  regression test extended: bin/test-scripts/test-amos-chksum-nest.pl now
+  34 checks — adds a bare-notation is_true assertion [ brackets stripped ]
+  for every test pair, alongside the existing full-bracket and child-alone
+  checks. 34/34 passing.
+
 verification:
-  - is-true on a -nest result is TRUE for arbitrary parent/child inputs,
-    not just ones that happen to already satisfy the harmonic test
-  - existing callers of -nest [ if any in modules/ ] audited before the
-    change ships, since output values would shift
+  - satisfied — is-true on a -nest result is TRUE for arbitrary parent/child
+    inputs [ 6/6 live CLI pairs + 5/5 module-level pairs, including the
+    original failing case — -nest PKHKHVA CY4FN3A -> [NUFY2TI:PKHKHVA], TRUE ];
+    result matches the manual `-T '[%s:PKHKHVA]'` output exactly
+  - satisfied — callers audited [ bin/amos-chksum -nest, amos.chksum.cmd.nest,
+    amos.chksum.cmd.verify-nested, amos.chksum.cmd.parse-nested ]; no stored
+    [child:parent] notations in repo data; verify_nesting stays consistent via
+    recomputation; reconstruct_chain unaffected [ parse-only ]
+  - satisfied [ extension ] — bare form validates independently — live CLI
+    amos-chksum -nest PKHKHVA CY4FN3A -> [B5JI5LY:PKHKHVA],
+    is-true '[B5JI5LY:PKHKHVA]' TRUE and is-true 'B5JI5LY:PKHKHVA' TRUE —
+    module-level 3/3 pairs TRUE on bracketed, bare and child-alone forms;
+    format_nested() output shape unchanged [ bracketed only ]; test script
+    34/34 [ per-pair bare is_true assertion included ]
 
 notes: |
   found 2026-08-03 live, testing -nest interactively; the -T workaround
   demonstrating the intended behavior is already fully worked out above,
   this task is "wire that into -nest itself," not "design the fix."
+  fixed same day: child_chksum() now harmonizes default-on through
+  amos_template_chksum(); see resolution block.
+  review follow-up same day: multi-template extension so both bracketed
+  and bare [ copy-pasted ] forms validate true — see resolution block for
+  the double-click/word-boundary rationale and the PoW-cost-vs-collision-
+  resistance tradeoff as stated by the human reviewer.
 
-#,,..,.,,,,..,,..,.,.,.,.,.,,,,..,,.,,,,,,,,,,..,,...,...,,,.,.,.,..,,,,,,,,,,
-#5T5ISX6BLF6AZKWEPQSY4AKKLC7MUZHWMEY6HRGIDXYXU6276X3UGVKYANJV2YKTWQFZKPASF5WHG
-#\\\|LORCQFXXBFXMDT7ITRS6CHU3OX4UXL3IDHFARICPVPISVROLUPY \ / AMOS7 \ YOURUM ::
-#\[7]66YTFPM2UJFP7DOMFIVLEVV5X56QZG2FMFMAYTZ7ZF5UDGZQAKAI 7  DATA SIGNATURE ::
+#,,..,,.,,,..,,..,..,,.,,,..,,..,,.,,,.,,,,..,..,,...,..,,..,,,.,,...,,,,,..,,
+#54IERZYIHMPZTV7UZ3BQ5EBRQOJWCOZ2LVEKOUFZ5FPV72ECOXKKGHTOYQTF75FSHDUEWSYROIVUW
+#\\\|JIVZASIN625TUTOJLOPLGWWMIIQAW6TNAIC2AMVGGOMY2PDGYAV \ / AMOS7 \ YOURUM ::
+#\[7]OGIJ2NIVCOYLC27BKQCU3BMFA3LLQRQXDTHEJPVQOSQZKCN7RGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

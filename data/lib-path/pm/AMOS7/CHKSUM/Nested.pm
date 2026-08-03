@@ -15,7 +15,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT $VERSION |;
 
-use AMOS7::CHKSUM qw| amos_chksum |;
+use AMOS7::CHKSUM qw| amos_template_chksum |;
 
 $VERSION = qw| AMOS7::CHKSUM::Nested-VERSION.7UA5BUI |;
 
@@ -39,7 +39,21 @@ sub child_chksum {
         or not defined $child_name
         or not length $child_name;
 
-    return amos_chksum( $parent_chksum . '.' . $child_name );
+    ## bracketed and bare notation shapes as comma-joined truth templates [ ##
+    ## split_truth_templates splits on unescaped commas and                 ##
+    ## template_is_true requires all clauses to pass, so the result is true ##
+    ## combined and separate : both [child:parent] and the bare             ##
+    ## child:parent form [ e.g. terminal double-click copy-paste, where     ##
+    ## word-boundary selection stops at the brackets ] validate ]           ##
+    my $nest_template = join( ',',
+        sprintf( qw| [%s:%s] |, qw| %s |, $parent_chksum ),
+        sprintf( qw| %s:%s |,   qw| %s |, $parent_chksum ) );
+
+    ## convergence loop searches until [child:parent] and child:parent are  ##
+    ## both true [ multiple simultaneous representations, same mechanism as ##
+    ## crypt.C25519.key_bin_checksums ]                                     ##
+    return amos_template_chksum( $nest_template,
+        $parent_chksum . '.' . $child_name );
 }
 
 ##[ NOTATION FORMATTING ]#####################################################
@@ -115,8 +129,8 @@ sub reconstruct_chain {
 
 return TRUE ##################################################################
 
-#,,.,,,,,,,,.,..,,,,,,...,.,.,,.,,,,.,.,,,..,,..,,...,...,,..,.,.,,..,..,,,,,,
-#IS4QQHMOZ7JNSJ3RBJIOZRSAZJXU7FCMH4JIMZQNF2YZQGTNWE7C3LBCUINQ5SWFX67OCEM76BJ5U
-#\\\|MA4FNXJI74TLWU5T7D5QS7OJU4ATWHG2S5PNAHTEVNMMPC2WMVK \ / AMOS7 \ YOURUM ::
-#\[7]MVM77OA2XFZTXJ44XGZ5OVMIIKLMREMH2H2QHKZPBSJDDCSULMCI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,,.,,,.,,,,,.,,,.,,,,,.,...,,,.,..,,...,..,,.,,,,,.,,..,,.,,,,,,
+#QGHXWDWI7HNTQC3XRSY6SBPOERA5YJRGIR7NGM5UVFQAS5KMT3C656MMZNCI36WZIVWN7REUBVYFQ
+#\\\|ATMUJHJCYENFMRFMNOMIYCAVIEVR5VCIANEZHTAR3HLLMFDD54Q \ / AMOS7 \ YOURUM ::
+#\[7]YZOTG5664K7PWTY3DBROCANE6OXAFBQT4CNVZAGRBIRUYH2I6ACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
