@@ -1,0 +1,73 @@
+---
+title: protocol-7-menu — dialog-type plugin registry + input-choice dialog
+priority: medium
+status: open
+type: new-feature
+
+design_doc: data/md/design/CODING-ZENKA-USER-INTERACTION-SURFACES.md
+
+context: |
+  protocol-7-menu.cmd.input-text and .cmd.input-password already implement the exact
+  interaction shape needed for short, blocking, model-initiated questions: modal GTK3
+  dialog, transient-for the graphical window, RGBA visual when composited, styled via
+  Gtk3::CssProvider [ #000013 background, #0055CC text/accent ]. missing piece is a
+  registry for dialog *types* the way amos-term.plugin-init_code has a registry for plugin
+  types [ decoder / routing / render / input, each with a hook and a modules/ dir ].
+  protocol-7-menu currently only has a provider registry [ push-based menu items, see
+  protocol-7-menu.provider-register ], which is a different concern.
+
+scope:
+  dialog_types_registry:
+    - add <protocol-7-menu.dialog-types> hash modeled on amos-term.plugin-types
+    - initial entries: input-text, input-password [ wrap existing modules, no behavior
+      change ], input-choice [ new ], notification [ new ]
+    - each entry: { dir => 'modules/protocol-7-menu.dialog-<type>' }
+
+  input_choice_dialog:
+    module: protocol-7-menu.cmd.input-choice
+    param: [ question_text, options_json ]
+    behavior: |
+      same modal dialog shell as cmd.input-text [ decorated=0, app_paintable, modal,
+      transient-for graphical window, RGBA visual when composited, same CSS provider
+      palette #000013 / #0055CC ]. instead of an Entry widget, render one button per
+      option [ from options_json, model pre-generates the list ]. clicking a button
+      returns { mode => true, data => <chosen option> }; dialog close without selection
+      returns { mode => false, data => 'no selection' }.
+    reuses: protocol-7-menu.cmd.input-text as structural template [ dialog setup,
+      transparency detection, CSS provider block are near-verbatim reusable ]
+
+  notification_dialog:
+    module: protocol-7-menu.dialog-notification
+    behavior: |
+      non-modal, auto-dismissing or click-to-dismiss, for "suggest_new_topic" style
+      non-urgent surfacing. lower priority than input-choice — stub only in this task,
+      full implementation can follow once input-choice validates the palette/shell reuse.
+
+  ambient_pending_indicator: |
+    expose "N pending questions" as an ordinary protocol-7-menu provider push [ same
+    mechanism as protocol-7-menu.example-provider's weather pattern ], not a new dialog
+    type. clicking opens the oldest pending item via input-choice or input-text. bridges
+    to the amos-term interaction track without needing new UI of its own.
+
+palette: |
+  background #000013, text/accent #0055CC, entry focus #001066 — reuse unchanged from
+  cmd.input-text / cmd.input-password. do not introduce a new color for input-choice or
+  notification; visual consistency across dialog types is the point.
+
+verification:
+  - protocol-7-menu.cmd.input-choice returns the clicked option's value, or a clean
+    'no selection' on close
+  - dialog visually indistinguishable in palette from existing input-text/input-password
+  - dialog-types registry lists all four types and is inspectable [ analogous to
+    amos-term's plugin-registry ]
+  - pending-indicator provider updates live when questions are queued/answered
+
+notes: |
+  smallest, most immediately useful branch of the three [ fallback-chain tools,
+  protocol-7-menu dialogs, amos-term interaction plugin ] — start here.
+
+#,,..,.,,,,,,,,,,,,,.,,.,,,,.,,..,,.,,...,.,.,..,,...,...,,..,..,,,.,,,,,,,..,
+#7U4KF4OQLZ4EORDMHWGXFEQ7J36T2JZLWZMX7KREEXZFVBBYIEU7VJEURLBPFC7JAW7YONRPIOE36
+#\\\|26JFXGKDGGZSCZGWOWANGF5MA5T43NIZ7IE7BN6AD2BDRRJTVFQ \ / AMOS7 \ YOURUM ::
+#\[7]T4PDIXH4DCUTI5MTJ2KXIN5GUR4RGOF5N6BEYFT5VFCWJCOGXGDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
