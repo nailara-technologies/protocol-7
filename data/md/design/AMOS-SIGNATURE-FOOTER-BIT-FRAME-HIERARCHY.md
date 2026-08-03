@@ -314,6 +314,65 @@ spiral reframe — record what's *possible* before committing to *which*
 mapping, since committing early tends to foreclose options a wider read
 would have kept open.
 
+### `-T` as a category-translation primitive — live-demonstrated, not
+speculative, 2026-08-03
+
+unlike the loose axis-mapping possibilities above, this one is fully
+worked with real commands and real output, and it exposes a gap [ see
+`data/yaml/coding-tasks/amos-chksum-nest-truth-harmonization.yaml` —
+`-nest` produces this same shape but without the truth-harmonization
+step, and can come out FALSE where `-T` cannot ]:
+
+```
+loves.png checksum                              -> ESJNRQA
+amos-chksum -T MCBZXFY:%s ESJNRQA  [ "file.name" category ] -> WNPOLBQ
+amos-chksum -T LERCKVI:%s ESJNRQA  [ "image.kitten" category ] -> YFMS5BY
+```
+
+one item, `loves.png`, translated into two different category contexts
+[ `MCBZXFY` = checksum of the literal string `file.name`, `LERCKVI` =
+checksum of `image.kitten` ], yields two different, independently
+TRUE-guaranteed lookup keys — neither leaks the other, since each is
+derived separately rather than sharing a base value. a real, working
+multi-category content-addressing primitive, not a proposal.
+
+**one-step shortcut, confirmed equivalent to the two-step form**:
+`amos-chksum -T LERCKVI:%s loves.png` [ raw content straight into the
+template ] returns the same `ESJNRQA` as computing the plain checksum
+first and feeding *that* through `-T` separately. the intermediate
+plain-checksum step is not required.
+
+**the fall-through caveat — this is the load-bearing subtlety, not a
+footnote**: `amos-chksum -T LERCKVI:%s another kitten` → `Q7R7M4Y`, and
+separately, plain `amos-chksum another kitten` → **also `Q7R7M4Y`**.
+zero search iterations occurred — the plain checksum already satisfied
+the template with no modification needed. in that case the "translated"
+value is *indistinguishable* from the untranslated one. only when a
+real search happens [ `-T LERCKVI:%s Q7R7M4Y` → `MV4RTWY`, genuinely
+different from its input ] does translation actually obscure anything.
+**category-translation via `-T` is not unconditional** — it holds when
+a search happens, and silently does not hold on a trivial fall-through.
+a protocol requiring guaranteed term-bound anonymization [ translated
+value must always differ from the plain value, no exceptions ] needs an
+explicit additional step [ e.g. forcing at least one iteration, or
+detecting and re-deriving on a trivial fall-through ] — the mechanism
+as it stands does not guarantee this on its own. "all a matter of
+protocol definition and outcome attribute requirement" — user's own
+framing, and the right one: this is a design choice to make deliberately
+if this gets built on, not a property to assume.
+
+**epistemic caveat on the fall-through coincidence itself**: two
+checksums coincidentally both satisfying a template [ as happened with
+`loves.png` and `another kitten` under the `image.kitten` category
+above ] is cheap and unremarkable — checksums are just numbers, and the
+space of values satisfying a loose harmonic test is not small. this is
+*not* evidence that the two underlying concepts are meaningfully
+related. the same alignment holding at the level of actual semantic
+meaning, rather than checksum coincidence, would be a different and
+much stronger claim — not fakeable the way a checksum fall-through can
+be stumbled into. worth stating precisely rather than letting a cute
+coincidence read as more significant than it is.
+
 ## open resolution slots
 
 places a future pass could add depth **inside an existing frame**
@@ -332,8 +391,8 @@ rather than starting a new one:
   throughout? currently: no evidence either way, flagged open rather
   than assumed.
 
-#,,,.,...,...,.,,,.,.,...,,,.,,,.,,,,,...,.,.,..,,...,...,..,,...,..,,.,,,..,,
-#5XDUP6TJAG5LEKLNQMIE3SNWD2XWAQPHB3SPISMRQAMOWZCPU4MQQUUTZX37C6EUJJ47VIUMS6IYA
-#\\\|6ZZ4Q7CFWGLHLKD2RNQMV3GG35DTJYUF33FVN63QXJEINTBSYWS \ / AMOS7 \ YOURUM ::
-#\[7]JU6ECQW5E4LDJBKDYR32TRNGC6JU2NH7EUGKKYVVN5XUXXIQXIAQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,.,.,,,.,...,,,,,.,,,,,.,,.,,,..,..,,...,...,,..,,.,,...,.,.,.,.,
+#24XBZXCRCQVVONW2SAAN2RZYNP2VQS6E4UUOGZD7HP66HMCKECF3PW2IISZGT2GMOT2YTMDODNNN4
+#\\\|CPZS7UWDU3IXOCCZC4MTRBSYAV2PSWCGKVF4J3OJVTFO5LFR4J2 \ / AMOS7 \ YOURUM ::
+#\[7]AFMXT5GSLISORJSNBVKC6IF3CQTP6QQ26ZNN7IGFJFWTW7ZNE4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

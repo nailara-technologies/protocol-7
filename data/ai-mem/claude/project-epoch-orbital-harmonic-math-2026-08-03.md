@@ -100,6 +100,22 @@ tested:
    unspecified content at each level. self-similar because the
    generator needs no external reference, not because it was checked
    at every depth.
+1b. **the 70-bit template as `2×5×7`, not just `2×35`** — `70 = 2×35`
+    [ two AMOS checksums, frame 2, already confirmed corpus-wide from 6
+    files ] is exact; so is `70 = 2×5×7`, factoring the 35 further into
+    5×7. the `5` matches `-5..0..+5` [ 11 positions, ±5=declaration,
+    0=routing state ], independently real and confirmed from 6 files
+    [ `topic-vterm.md`, `VTERM-BUFFER-SPECIFICATION.md`,
+    `harmonic-transit-vision-architecture.md:1152`,
+    `CONTEXT-TREE-INDEXCUBE-INTEGRATION.md:199`, `voting_mechanisms.md`,
+    plus a decorative-tier transcript hit ] — not single-source, real
+    ground. `7` is AMOS-13-ELF-7, already central all session. **but no
+    doc or code found tonight actually links the checksum footer's
+    70-bit template to vterm's `-5..0..+5` addressing** — this is a
+    numeric coincidence [ both real structures happen to share factors
+    5 and 7 ], not a demonstrated structural connection. flagged at the
+    same confidence level as seeds 1-4, distinct from the "70=2×35"
+    finding it extends, which stays corpus-confirmed.
 2. **an alternating tree-clock** [ TRUE/FALSE like even/odd ] — as
    equally plausible an alternative to (1) as (1) itself; would give the
    unmerged even/odd-direction material [ `3O37VUNMMS3UU...asc:17827` ]
@@ -163,6 +179,48 @@ tested:
    this etymology is *why* they're actually different, not just that
    the spellings don't match.
 
+7. **checksum-glyph merging as a lossy-parent-entropy-space dedup, and
+   font as a configuration parameter** — grounded in real, running
+   infrastructure this time, not just adjacent vision docs:
+   `bin/amos-matrix` already renders any AMOS checksum as a real 5×7
+   glyph [ live-demonstrated: `PKHKHVA` → an actual bitmap box ], and
+   `bin/dev/ttf-glyph-mapper` already builds a real character↔5×7-bitmap
+   correspondence table from TTF fonts. proposal: two glyphs [ e.g. from
+   two separate checksums, or a `-nest` parent/child pair ] translucently
+   merged/overlaid, then matched to the *nearest* existing character in
+   that correspondence table — collapsing two references into one symbol
+   that stays within the original bit budget [ 7-bit ASCII, or wider
+   Unicode for more precision — explicit tradeoff, not a fixed choice ]
+   rather than growing to fit "two things now." the *font itself* is a
+   configuration parameter in this scheme — `data/ttf/console/
+   white-rabbit.flipped.ttf` [ this project's own native font, already
+   load-bearing in `ZERO.md`: "the font makes the physics visible...
+   you are reading spin states, not just values" ] would be the
+   reproducible-precision default; the licensed-but-unwired 7-segment
+   font [ found earlier this session ] as a named special case.
+   **this is not invented in a vacuum — real, substantial prior
+   infrastructure already exists for exactly this class of problem**:
+   `VISUAL-ELEMENT-DEDUP-HOLOGRAPHIC-CORE.md`'s "Similarity Attraction
+   Graph" [ a real composite similarity metric, `similarity(A,B)>=0.55`
+   clustering threshold, average-linkage clustering, already specified
+   in working detail ], `HARMONIC-VISUAL-DISCOVERY.md`'s "group
+   checksums by harmonic similarity" [ near-identical framing, checksums
+   + harmonic + visual grouping, already named ], and
+   `VISUAL-SIMILARITY-CUBIC-SORT.md`'s `graphics.matrix.visual.similarity`
+   module [ real function signatures, e.g. returning `similarity 0.99,
+   confidence high, harmonic_aligned true` ]. what tonight's seed adds
+   that these don't already cover: merging *before* matching [ not
+   comparing two existing items, collapsing them into one representation
+   first ], the explicit lossy-parent-entropy-space framing as the
+   mechanism that forces homogeneous distribution [ see the earlier
+   entry on 7-bit vs Unicode precision tradeoffs ], and font choice as
+   a first-class parameter rather than a rendering detail. **next step,
+   if picked up: read `VISUAL-ELEMENT-DEDUP-HOLOGRAPHIC-CORE.md`'s full
+   Similarity Attraction Graph section and `HARMONIC-VISUAL-DISCOVERY.md`
+   in full before building anything — the merge-then-match mechanism may
+   already be substantially specified there and not yet recognized as
+   the same thing, same pattern as seed 5/balance-engine below.**
+
 next step, if picked up: same discipline as everything else in this
 thread — read `VISUAL-ELEMENT-DEDUP-HOLOGRAPHIC-CORE.md`'s full balance-
 engine section (not yet done this session) before proposing any new
@@ -171,8 +229,8 @@ them.
 
 [[project-vision-origin]] [[topic-multidimensional-identity-session-topology]]
 
-#,,,.,,.,,,.,,.,,,,,.,..,,.,.,,,.,.,.,,,.,,.,,..,,...,...,..,,,,.,,,,,,..,,,,,
-#FGC6MCZRK6GJCD54US3KGM46DJMSALZHU2K6YXFPXQH5FPILARIHSWRGWHHPHDD7TIRUTVWIS5R2O
-#\\\|XZ3ANNQ3GXWL52MFDJ6TNS2P6Q64VMFMIBC3GKRGCST3G3CDICJ \ / AMOS7 \ YOURUM ::
-#\[7]GF2JQFOEV7YNUEREEE54LO5YTAD2S74FMSQ2K266V554UJMV5GBA 7  DATA SIGNATURE ::
+#,,,.,,..,,..,...,.,,,,.,,...,.,,,,,.,...,...,..,,...,...,,..,..,,.,.,..,,,..,
+#WMZX5HVKUZOWW2372MGIYKAPCNQVJVZK5S26JXCJXWSOALQUPFO4YUWACWFL76RPRL2WPGCIHW2TQ
+#\\\|U7EWOFKKQNSZQPBXHXWGSYSZPVCS2YNJFBC7DNAG5X7KMNKRHEB \ / AMOS7 \ YOURUM ::
+#\[7]G5RTG2LHUZM655MWY5X6US4UXHDDB3T2ZBQYFAFXKDXO7ERMOCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
