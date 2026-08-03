@@ -1,0 +1,74 @@
+---
+title: amos-term — interaction plugin type for streaming model/user exchange
+priority: low
+status: open
+type: new-feature
+
+design_doc: data/md/design/CODING-ZENKA-USER-INTERACTION-SURFACES.md
+
+context: |
+  amos-term is already a plugin-typed, hot-reloadable extension system
+  [ amos-term.plugin-init_code ]: types decoder / routing / render / input, each with a
+  hook and a modules/amos-term.plugin-<type>/ dir, registry watched by inotify for
+  hot-reload. it already has the primitive needed for a live back-and-forth:
+  buffer-attach_generic( buffer_id, kind, { cursor_x, cursor_y, cursor_z, write, read,
+  data => { on_buffer_change => ... } } ) — the same mechanism amos-term.nshell.bridge uses
+  to wire an interactive shell session into a 3D buffer today.
+
+  this is the track for open-ended, multi-turn exchanges [ "let's talk through this
+  design" ] where a modal popup [ see protocol-7-menu-dialog-plugin-system.yaml ] would be
+  the wrong shape.
+
+scope:
+  new_plugin_type:
+    name: interaction
+    hook: agent.query
+    dir: modules/amos-term.plugin-interaction
+    registration: |
+      add to <amos-term.plugin-types> alongside decoder/routing/render/input, following
+      the exact structure already used for those four.
+
+  buffer_lifecycle_decision: |
+    open design question, not yet resolved: does an interaction buffer get its own
+    dedicated window [ like amos-term.window-open per session ], or does it attach into
+    an existing window the user already has open [ closer to how nshell.bridge attaches
+    into a buffer that already exists ]? resolve before implementation — this determines
+    whether ask_user_stream needs a window handle or just a buffer_id.
+
+  coding_zenka_side: |
+    ask_user_stream(question) -> open/reuse buffer, buffer-write the question,
+    buffer-attach_generic( read=>TRUE, write=>TRUE, on_buffer_change => own handler ),
+    continue working — reply arrives via callback, not a blocking call.
+
+  timeout_degrade: |
+    an open interaction buffer unanswered for N minutes [ configurable,
+    amos-term.cfg.interaction_timeout, no default chosen yet ] auto-degrades to a
+    record_question entry, model proceeds on a flagged assumption. streaming interaction
+    must never become a silent deadlock — this is the track's main risk versus track 1's
+    modal dialogs, which fail visibly (dialog just sits open) rather than silently.
+
+visual_style: |
+  reuse the existing amos-term background rgba(0,0,0.024,alpha) and cursor #4427AC, with
+  the existing depth-alpha falloff [ 1.0 -> 0.3 over Z=13, via
+  graphics-3d.calc.cursor-translucency ] applied to an idle/unanswered interaction buffer
+  the same way it already applies to unfocused Z-layers — no new color introduced.
+
+verification:
+  - a coding-zenka ask_user_stream call opens a buffer, question text appears in it
+  - a user reply in the buffer triggers on_buffer_change and is delivered back to the
+    calling task without blocking its other work
+  - an unanswered buffer past the configured timeout produces a record_question entry
+    and the task proceeds
+  - plugin hot-reloads via the existing inotify watcher without restarting the zenka
+
+notes: |
+  largest and least-specified of the three branches [ fallback-chain tools, protocol-7-menu
+  dialogs, this one ] — the buffer_lifecycle_decision above should be resolved first, likely
+  by prototyping against amos-term.nshell.bridge directly before writing new plugin-type
+  scaffolding.
+
+#,,..,,,,,...,,..,.,.,..,,.,.,.,,,,.,,.,,,..,,..,,...,...,..,,,,.,...,.,.,.,,,
+#FCKDO5YXXVELXECEZEVNIRKXE4MKPB7A2XHUF76R2MG4I3ES6U3GTCS7H72LT7IA34YWIUE6C3SY4
+#\\\|Y35QEZO4IYIKBEBI7MZI6KUBQI2QPOKJE2VXCBKPHT7R2N34ZDP \ / AMOS7 \ YOURUM ::
+#\[7]65QU4GYMGLNUY4YCF4IRP2KRVIXVWP6CC7VUR6CUISYPOWIIZOCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

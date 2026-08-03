@@ -1,0 +1,82 @@
+---
+title: coding zenka — search fallback chain + user-interaction tool wrappers
+priority: medium
+status: open
+type: new-feature
+depends_on:
+  - protocol-7-menu-dialog-plugin-system
+  - amos-term-interaction-plugin
+
+design_doc: data/md/design/CODING-ZENKA-USER-INTERACTION-SURFACES.md
+
+context: |
+  the coding zenka's only exits when a query doesn't match anything in the codebase are
+  `escalate` [ blocking, "something is wrong" framing ] and `record_question` /
+  `record_suggestion` [ fire-and-forget, no reply loop ]. observed failure mode: a general
+  knowledge question mentioned alongside a P7-flavored one triggered an exhaustive,
+  self-doubting search spiral rather than a clean "this isn't in the project" conclusion.
+  this task covers the prompt-level fallback chain and the tool wrappers that let the model
+  choose the right response shape instead of defaulting to more search.
+
+fallback_chain: |
+  widen the search before concluding "not found," in order:
+    1. code search [ search_code / ncode_search / module_deps / dep_graph ]
+    2. context + reasoning templates [ system-default and sibling templates ]
+    3. design docs [ data/md/design/, data/md/documentation/ ]
+    4. task files [ task_file_search, data/yaml/coding-tasks, data/md/coding-tasks ]
+    5. notes [ note_search, note_list ]
+    6. memory [ search_memory ]
+  only after all six are empty does the model classify the query:
+    - general knowledge -> offer_general_answer
+    - technical but unfiled -> suggest_new_topic
+    - genuinely stuck / needs a decision -> escalate [ unchanged ]
+
+new_tools:
+  ask_user_choice:
+    routes_to: protocol-7-menu.dialog-input-choice
+    shape: blocking, modal, bounded options [ model pre-generates the choices ]
+  ask_user_text:
+    routes_to: protocol-7-menu.cmd.input-text  # existing, no change needed
+    shape: blocking, modal, free text
+  ask_user_stream:
+    routes_to: amos-term.plugin-interaction
+    shape: non-blocking, buffer callback, open-ended / multi-turn
+  suggest_new_topic:
+    routes_to: record_suggestion, tag=topic-proposal
+    shape: non-blocking, no UI
+    audit_trail: attach which fallback-chain steps were checked before suggesting
+  offer_general_answer:
+    routes_to: no tool call
+    shape: permission to answer outside project scope, flagged as such
+
+close_the_loop: |
+  answers obtained via ask_user_text / ask_user_choice / ask_user_stream should be written
+  back via note_write [ tag: answered-question ] so fallback-chain step 5 [ note_search ]
+  finds them next time. without this, the same class of question gets re-asked indefinitely
+  instead of the system learning the answer once.
+
+batching: |
+  non-urgent ask_user_choice items should be accumulate-able rather than firing a modal the
+  instant one arises — presented together at a natural checkpoint [ before task_complete, or
+  on an idle timer ] instead of interrupting flow per-question. exact mechanism [ a pending
+  queue in %data, flushed on checkpoint ] is an open design question, not yet specified.
+
+verification:
+  - a query with no codebase match runs the full six-step chain before classifying [ visible
+    in self-test-detail output, not skipped ]
+  - offer_general_answer responses are visibly flagged as out-of-scope in the reply
+  - suggest_new_topic entries carry the audit trail of checked steps
+  - a repeated question [ same class, second session ] is answered from notes without
+    re-triggering ask_user_*
+
+notes: |
+  first noted 2026-08-03, motivated by a coding-model self-test transcript that spent ~28%
+  of context re-searching for a general-knowledge term ["catlike reflexees", Tesla's
+  autobiography] purely because the system prompt gave it no permission to conclude
+  "not a codebase question" and move on.
+
+#,,..,,.,,,,.,...,,.,,,..,,..,,,,,.,.,,..,,,,,..,,...,...,...,...,...,...,,.,,
+#2QIWSMOSCRWHCWFKE6NX2LATBJFR7WU73BGOCZFNCCJZLW27LQBK7UB273OVT3MT3ZLNOINN5WP2U
+#\\\|KXCX4MVOVIH4FGTA2AESZLXPXRK5A733F6GG7GC7ADWIYAKSP4E \ / AMOS7 \ YOURUM ::
+#\[7]VEEXLOCKE4BMMRPB5EMHF73CV3WR66HE7FSDRUMALXYKW27HYGBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
