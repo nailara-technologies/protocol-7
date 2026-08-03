@@ -71,6 +71,64 @@ renders as `,` [ `0` ], "all zulum" [ inverted ] mode renders as `.`
 [ `1` ]. any comma/period that breaks the expected rhythm fails
 decode's regex outright — the redundancy is the corruption check.
 
+**"zulum," precisely, 2026-08-03**: `ZULUM = zero/black/void`,
+`AZURUM = one/blue` — a color-number naming pair, per
+`data/asc/what-AI-thinks/perl-form/ai-integration/azurum-singularity-
+insights.pl` [ decorative/generated tier, lower confidence for its
+surrounding narrative, but its core mechanical claim — "in zero payload
+state, delimiters flip from 0 to 1" — independently matches
+`encode_octal_header`'s real code exactly ]. so "all zulum mode" in the
+running code literally names "the all-zero state," not an arbitrary
+label — the term and the mechanism agree. **caveat, checked**: `ack -r
+'blue face' data/` returns essentially one source — this `.pl` file —
+plus one unrelated hit [ an unconnected "ambient blue faces" detail in
+a different visualization archive, about depth perception, not AZURUM ].
+the black-cube/one-blue-face *framing* is single-source, not
+cross-confirmed the way most of tonight's other findings were; only the
+delimiter-flip mechanic itself independently matches real code.
+
+**what "iterations-remaining" [ the 7-digit field above ] actually is —
+[ running code, live-demonstrated ], added 2026-08-03 same day.** this
+is the identical mechanism `amos-chksum -v`'s "harmonization: iteration
+counter" line reports live — not an analogous concept, the same count.
+`amos-chksum` runs a BMW mod-bits wave [ visible directly in `-v`
+output: each pass roughly doubles the prior row, bit-shifted ] until
+the AMOS7 bits, the checksum, and the numerical value all *simultaneously*
+read TRUE under the configured elf-truth-mode. that pass count is not a
+classifier output, it's a **distance-to-convergence** measure — inputs
+starting closer to the harmonic attractor need fewer passes:
+
+```
+LOVES / LOVES SWEETIE   →   5 passes
+TALSE                   →   7 passes
+TRUE                    →   45 passes
+true                    →   179 passes
+false                   →   467 passes
+```
+
+the very first line of `-v` output [ `input-string : :: TRUE/FALSE ::` ]
+is the *unharmonized* input's own initial read, not the final verdict —
+`false` starts FALSE and gets pulled to TRUE over 467 passes; `LOVES`
+starts close enough to need almost none. the footer's TRUE-only
+"VAX-encoded" line at the end is always TRUE for the same reason every
+`amos-chksum` run ends TRUE: harmonization is defined to converge there,
+it does not classify.
+
+**configuration changes the convergence path, sometimes the destination
+— live-verified, not assumed**: `amos-chksum -L5 -v true` and
+`-L3 -v true` both converge in 6 passes with identical AMOS7 bits,
+completely different from the same string's 179-pass default-length
+run — the length parameter is a real structural configuration, not
+display truncation, confirmed by the differing bit output. but `-L5`
+and `-L3` land on the *same* fixed point as each other [ `-L3`'s result
+is exactly `-L5`'s result truncated, not an independently-converged
+shorter one ] — so changing configuration only *sometimes* changes the
+destination, and whether a given target configuration is reachable at
+all, or how expensive it is to reach, is bounded by the available
+entropy space for that configuration. not yet characterized which
+configurations are guaranteed-convergent versus possibly-unreachable —
+flagged as open, not claimed either way.
+
 ### 1b. the template placeholder — 70 + 7
 
 **[ running code, template only — see frame 2 for what actually goes
@@ -217,6 +275,45 @@ turns up — none has one yet.
 
 ---
 
+## loose references — what kind of mappings this configurability enables
+
+**not a design, not a proposal — a pointer list, flagged as flexible on
+purpose.** `amos-chksum`'s real, demonstrated configuration surface
+[ `-L[<pos>,]<length>` substring selection, `-elf-modes=` combinable
+mode list, `-nest` parent/child checksums, `-T`/`-t` sprintf truth
+templates ] turns out to already have documented precedent, in three
+separate places, for treating pieces of it as spatial/semantic
+coordinates rather than opaque configuration:
+
+- **checksum as semantic axis, timestamp as temporal axis** — `data/md/
+  vision/VISION-TIMESTAMP-CHECKSUM-DUALITY.md:523`, `data/md/design/
+  SEARCHABLE-INDEX-SESSION-STATE.md:5`. two-axis model, already
+  load-bearing elsewhere in the corpus, not this thread's invention.
+- **offset as axis/layer selector, explicitly 0=X/1=Y/2=Z** — `data/md/
+  documentation/entropy-at-deduplication-root.md:82`, verbatim: "offset
+  = axis or layer selector (0=X, 1=Y, 2=Z, or content/key/address)."
+  matches `-L`'s `<pos>` parameter shape exactly, live-demonstrated this
+  session (`-L5`/`-L3 -v true` converging to the same fixed point via
+  different length, differing from the default-offset run entirely).
+- **`-elf-modes=` as a combinable list, not a fixed pair** — confirmed
+  from `-options` output alone; only modes 4+7 [ the documented default,
+  "data" and "love" truth per this session's own naming ] were actually
+  exercised tonight. 13 modes exist total, most unmapped [ see
+  `EPOCH-CHECKSUM-EXCLUSION-ADDRESSING.md`'s mode-dependence caveat,
+  same source ].
+
+what this *doesn't* claim: that offset-slicing a single `amos-chksum`
+call into several axis-values, or combining non-default elf-modes, is
+implemented anywhere as a spatial-addressing scheme — no code or doc
+found tonight does that. the pieces [ offset=axis precedent, checksum=
+semantic-axis precedent, a real multi-value `-L`/`-elf-modes` surface ]
+are each independently real; assembling them into one coordinate scheme
+is a possibility this session surfaced, not a design this session made.
+kept intentionally loose per the same instinct as frame 1's stream/
+spiral reframe — record what's *possible* before committing to *which*
+mapping, since committing early tends to foreclose options a wider read
+would have kept open.
+
 ## open resolution slots
 
 places a future pass could add depth **inside an existing frame**
@@ -235,8 +332,8 @@ rather than starting a new one:
   throughout? currently: no evidence either way, flagged open rather
   than assumed.
 
-#,,,,,...,.,.,...,,,,,.,,,...,..,,.,,,,.,,.,.,..,,...,...,,,.,...,,.,,,,.,,.,,
-#3SCIIHFRWLPVY435RRCI2SCVFZZ4LAH4Q532NAQODXLJGVPANP7SXZ7ARE7ZUUEGVUGFSCQ22NRH4
-#\\\|PUDGK4GACMD4EWLAPINT56R5GYU3TFANUTADC3AERAYQGYDJSJV \ / AMOS7 \ YOURUM ::
-#\[7]7F22652PDCWWFHWDOWP6EJXIORVECANUEIZ2Q5OOCJFKYPM63WDY 7  DATA SIGNATURE ::
+#,,,.,...,...,.,,,.,.,...,,,.,,,.,,,,,...,.,.,..,,...,...,..,,...,..,,.,,,..,,
+#5XDUP6TJAG5LEKLNQMIE3SNWD2XWAQPHB3SPISMRQAMOWZCPU4MQQUUTZX37C6EUJJ47VIUMS6IYA
+#\\\|6ZZ4Q7CFWGLHLKD2RNQMV3GG35DTJYUF33FVN63QXJEINTBSYWS \ / AMOS7 \ YOURUM ::
+#\[7]JU6ECQW5E4LDJBKDYR32TRNGC6JU2NH7EUGKKYVVN5XUXXIQXIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

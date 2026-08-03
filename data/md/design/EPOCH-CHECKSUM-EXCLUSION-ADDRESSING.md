@@ -83,9 +83,65 @@ path is not the second-class citizen.
 
 `<[base.ntime.epoch_timestamp]>` encodes integers `0..385279`
 [ ~29,623 years at one-epoch-per-1/13-year ] into a `V7xxxxx` BASE32
-form; `<[base.ntime.harmonized_epoch]>` wraps it as `<V7xxxxx[;:]{4}>`
-with the harmony-bit suffix searched at integer-interval `0..12`. that
-encoded form is what cube exposes as `epoch-num` / `epoch_v7`.
+form; `<[base.ntime.harmonized_epoch]>` appends a 4-bit `[01]{4}`
+harmony suffix directly [ **no `<>` wrapper, no `;:` characters — that
+was the pre-`013ec8ab5`/`a922ebc3e` format** [ commits "harmonized
+epoch_v7 uses 0/1 suffix, drops <> wrapper" and "completing transition
+of harmonized epoch time to new format", 2026-06-30 ], corrected here
+after checking live current code rather than trusting the doc's own
+stale citation ]. that encoded form is what cube exposes as `epoch-num`
+/ `epoch_v7`.
+
+**why the suffix is searched, not computed — confirmed live, 2026-08-03,
+same session as `AMOS-SIGNATURE-FOOTER-BIT-FRAME-HIERARCHY.md`'s
+harmonization work.** `base.ntime.harmonized_epoch`'s actual loop,
+current code:
+
+```perl
+for my $interval ( 0 .. 12 ) {
+    my $bits = join '', reverse split( '', sprintf( qw| %04B |, $interval ) );
+    $epoch_harmoized = sprintf qw| %s%s |, $epoch_encoded, $bits;
+    last if AMOS7::Assert::Truth::is_true( $epoch_harmoized, 0, 1 );
+}
+```
+
+the 4-bit suffix isn't padding — it's the exact same harmonizing-entropy
+mechanism demonstrated in the footer doc for `amos-chksum` version
+strings [ `AMOS-CHKSUM-V-KNDGQPA`, etc., where the *whole* templated
+string, fixed prefix included, is searched until it reads TRUE ]: the
+loop tries each candidate `$epoch_encoded.$bits` in turn and stops at
+the first one `is_true()` accepts. a live `epoch_v7` output,
+`V7L36RI0110`, confirms the result directly: `is-true V7L36RI0110` →
+**TRUE** — the full string, `V7` prefix and all, not just the numeric
+epoch portion. identical sprintf-truth-template principle as the
+version strings, applied to epoch timestamps instead of identifiers.
+cost is iterations [ bounded here to at most 13, per the `0..12` loop —
+tighter than the unbounded pass counts seen for version strings, since
+this search space is deliberately small ], not possibility.
+
+**a third nesting shape, distinct from the footer doc's version-string
+case — user's framing, 2026-08-03.** the sprintf-truth-template
+mechanism now has three demonstrated shapes, not one:
+
+1. **checksum of free content** — content is free, the algorithm
+   computes once, no search.
+2. **template-fixed generation** [ `amos-chksum`'s version strings ] —
+   the *template* is held constant, the entropy suffix is searched
+   freely over an effectively unbounded space until it fits.
+3. **value-fixed harmonization** [ epoch timestamps, here ] — inverted
+   from (2): "time not being controllable," the *value itself*
+   [ `$epoch_encoded`, the `V7xxxxx` epoch number ] is what's held fixed
+   by external reality — it becomes the template, in effect — and only
+   a small appended binary expansion [ the 4-bit suffix ] gets searched.
+   the search space is bounded to 13 states specifically *because* the
+   thing doing the varying has to stay small when the thing it's
+   attached to can't move at all: freedom has to live in the part that
+   is allowed to be free.
+
+not yet checked whether any fourth shape exists [ e.g. both value and
+template fixed, nothing free to search — would that even be
+representable, or does harmonization require at least one free
+dimension by construction? ] — flagged as open, not claimed either way.
 
 epochs are **`365/13` days long — about 28.08 days, one "month" of the
 V7 network's 13-month year** [ confirmed from `base.ntime.epoch_dec`'s
@@ -776,8 +832,8 @@ because they are mathematically bound to that bucket's template.
 - no policy decisions about *which* trees adopt the epoch outer
   dimension. that's per-consumer; this dispatch ships the substrate.
 
-#,,.,,,..,,,.,..,,..,,,,,,...,,.,,...,..,,.,,,..,,...,...,,..,.,.,.,.,.,.,,,,,
-#4FAWCEBWDKGLJ2EZILFITCXDL2IXWHSYZ4H4GGZQEU3R4DU3CEOFG27NT5LFRPT4OMUYAPWBZWZCI
-#\\\|RCTPO3EUSGHZ3EAZMTFIHETUGBOINLGQP7PNFAZINHVAYD4AMTI \ / AMOS7 \ YOURUM ::
-#\[7]KHNJGD3XNMWGHLD2LOGVHHEXHPJWTVPDYPJDI2X5IVYQRGNYXICQ 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,.,,,,,.,.,,,,,,,,,,,,,,,.,.,,..,..,,...,...,.,.,,.,,,..,.,,,.,.,
+#4JNV2NZACOPFTTN6UAWB2QTN3QM3VH6PG73UK36CB7JM5G5P3HG3RTHXDQZ5XYOVNMF6ORUQHLCZI
+#\\\|XGX7XJ2R4ZBXSGXONQVVF6HZYQYLWIBH7KU4Q3CYNN6CTPYPM4Q \ / AMOS7 \ YOURUM ::
+#\[7]K4CISNWICDRO4IB4KISUNVT54CHB3OQEL7E2JK352VUHPT2CYABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
