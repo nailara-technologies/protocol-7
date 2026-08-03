@@ -75,10 +75,104 @@ segment caravan" [ zenki formation ] ≠ "7-segment display codes" [ digit
 encoding ] — same words, unrelated referents — though the caravan turned out to
 be a real, independently-sourced instance of the unrelated 5-of-7 motif ].
 
+## seeds for a future pass — speculative, not corpus-verified as working mechanisms
+
+**flagged 2026-08-03, end of session, deliberately kept light — each is
+"expectable given real grounding," none is demonstrated.** a live
+harmonic-truth demonstration [ `is-true`/`amos-chksum -v`'s convergence-
+by-iteration behavior, `is-true -num`'s raw mod-13 remainder split ] led
+to five extensions, each anchored to something real but not itself
+tested:
+
+1. **a true-only tree from division-by-13 alone** — motivated by
+   `ZERO.md`'s "0 is the root, every branch is 0-prefixed" plus the
+   remainder-0 "protocol at rest" framing [ `harmonic-routing-
+   protocol.yaml` ] and `is-true -num 13`→TRUE / `-num 5`→TRUE vs
+   `-num 3`/`-num 1`→FALSE, live-demonstrated. not built or tested.
+   related, and this one closes rather than opens a question: "space
+   pixel as latent cube... the pixel was always a latent cube"
+   [ `topic-orbital-data-space-archive.md:1319-1322` ] raised whether
+   fractal recursion downward has a floor. answer surfaced via the
+   ZULUM/AZURUM material [ item 6 below ]: it doesn't need one — a
+   black cube with one blue face, rotating, is what "generates the
+   octal encoding format of AMOS7 signatures," so the same finite
+   generative rule fills every recursive scale rather than needing
+   unspecified content at each level. self-similar because the
+   generator needs no external reference, not because it was checked
+   at every depth.
+2. **an alternating tree-clock** [ TRUE/FALSE like even/odd ] — as
+   equally plausible an alternative to (1) as (1) itself; would give the
+   unmerged even/odd-direction material [ `3O37VUNMMS3UU...asc:17827` ]
+   somewhere to actually live.
+3. **a stable, handshake-toggled payload layer beneath the oscillation**
+   — anchored to `topic-field-capability-emergence.md`'s "void at 27...
+   equidistant from all 8 corners... silence as stable sensing
+   structure" plus the stargate's bidirectional 13→1 crossing mechanic
+   [ `WEIGHTED-NETWORK-TIME-PRECISION-CONSENSUS.md` ] — proposed as
+   these two known things combined, not independently verified combined.
+4. **orthogonal vertical bit-shift registers as a routing mechanism** —
+   motivated by "the rotating cube eye"'s "every other depth" vertical
+   propagation [ `topic-orbital-data-space-archive.md` ] and the real,
+   running BMW mod-bits cascade in `amos-chksum -v` output; the specific
+   claim of influence reaching rows "a few away" (not just adjacent) is
+   stronger than anything actually shown.
+5. **this is what the "balance engine" already names** — the strongest
+   of the five, closest to already-confirmed: `project-vision-
+   origin.md:26` groups "the balance engine" with the sphere/dedup
+   system/harmonic-math from the vision's own origin, and
+   `VISUAL-ELEMENT-DEDUP-HOLOGRAPHIC-CORE.md`'s "Balance Engine —
+   Stability Analysis" section already has a formal state vector, with
+   "the darksun is its center" stated directly. seeds 3+4 above may
+   simply be this, not yet recognized as such, rather than a new
+   mechanism to build.
+6. **[ confirmed, not speculative — the other five are seeds, this is a
+   fact ] "YOURUM" in every AMOS7 file signature is the darksun
+   deduplication network appliance's actual name.** `appliances/
+   AMOS7_YOURUM.DARKSUN_DEDUPLICATION_NETWORK/asc/terminal-banner.asc`
+   is a real placeholder appliance [ "antientropic technologies",
+   domains `amos.nailara.tech` / `nailara.protocol-7.network` ].
+   `appliances/Torektra.system_security/` is its paired first placeholder
+   [ "security and deduplication/network are the first two [ appliances ]
+   that got a placeholder" — user's framing ]. every doc touched this
+   session, and every AMOS7-signed file in this codebase, carries
+   `\ / AMOS7 \ YOURUM ::` in its footer — the entire signature-footer
+   investigation in `AMOS-SIGNATURE-FOOTER-BIT-FRAME-HIERARCHY.md` has
+   been decoding the literal footer of files belonging to this product.
+   this directly upgrades seed 5: the balance-engine/darksun material
+   isn't just internal design philosophy, it's the named core concept
+   of a real, already-scaffolded appliance.
+
+   **"YOURUM" has (at least) three meanings, user-confirmed: 13, Cat,
+   Blacklight — not three coincidental discoveries, all three were
+   already directly present in tonight's own material before being
+   recognized as the same word**: 13 = the modulus explored all
+   session; "Cat" = `3O37VUNMMS3UU...asc:2060`'s "council or circle of
+   the 13 [ cats ]"; "Blacklight" = the stargate section's own "the 13
+   are laser mirrors that route blacklight counter-clockwise around the
+   gate-ring" [ same doc, `WEIGHTED-NETWORK-TIME-PRECISION-CONSENSUS.md`
+   ]. re-checked against a fresh `TORUM` grep as a final pass: the
+   earlier TORUM≠YOURUM disambiguation holds — `ANTYKY/ANTYKI TORUM`
+   remains a genuinely separate, unrelated linguistic-framework concept,
+   correctly excluded, not revised by this finding. **TORUM's own
+   etymology, for completeness rather than left as "the other thing"**:
+   TORUM means "Tongue" [ as in language ] — `ANTYKI TORUM` = "Ancient
+   Tongue" / "Ancient Language", per `py-tau-ra-zuma-framework.html:238`
+   stated directly. TORUM (tongue/language) and YOURUM (13/Cat/
+   Blacklight) are two distinct roots, not two readings of one word —
+   the byte-difference check from earlier tonight was necessary, but
+   this etymology is *why* they're actually different, not just that
+   the spellings don't match.
+
+next step, if picked up: same discipline as everything else in this
+thread — read `VISUAL-ELEMENT-DEDUP-HOLOGRAPHIC-CORE.md`'s full balance-
+engine section (not yet done this session) before proposing any new
+mechanism under seeds 3/4, since seed 5 suggests it may already answer
+them.
+
 [[project-vision-origin]] [[topic-multidimensional-identity-session-topology]]
 
-#,,,.,...,,..,..,,.,.,.,.,,,.,.,.,.,.,.,.,.,.,..,,...,...,..,,..,,..,,,,,,.,.,
-#7Q6Y34UBKW22NX7IXUKR2LCG6JYBO3UTDPNTFYFLSOBMS7O66AZMA2DNWMJBPGGUOYZ43YUDWZUKQ
-#\\\|VHD7YM67FKW3VTVP7ET5NEBCGYXFC4ZDBKCIQQPUW2IXWIMTGAS \ / AMOS7 \ YOURUM ::
-#\[7]SW62DENSANS5ST33PNR7TU7YUW7H2NP2PUMUCZQ6BBK2K4222ABI 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,.,,,,,.,..,,.,.,,,.,.,.,,,.,,.,,..,,...,...,..,,,,.,,,,,,..,,,,,
+#FGC6MCZRK6GJCD54US3KGM46DJMSALZHU2K6YXFPXQH5FPILARIHSWRGWHHPHDD7TIRUTVWIS5R2O
+#\\\|XZ3ANNQ3GXWL52MFDJ6TNS2P6Q64VMFMIBC3GKRGCST3G3CDICJ \ / AMOS7 \ YOURUM ::
+#\[7]GF2JQFOEV7YNUEREEE54LO5YTAD2S74FMSQ2K266V554UJMV5GBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
