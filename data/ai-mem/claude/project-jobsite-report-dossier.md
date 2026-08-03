@@ -26,6 +26,14 @@ built a periodic-reporting pipeline inside the existing `jobsite` zenka (not a n
 
 **Config** (`configuration/zenki/jobsite/start`): added `csv_import_dir`, `report_dir`, `cv_dir`, `applications_html_dir`, `reference_docs_dir`, `mail_dir`, all pointing under `/data/jobcenter-report-data/` (external, not in repo — personal data). `report-build`/`dossier-build` added to `access.cmd.usr.cube`.
 
+**How to re-render for a different period** (e.g. a caseworker asking for a shorter window): both commands take plain positional `<from> <to>` (YYYY-MM-DD each), no other setup needed —
+```
+p7c jobsite.dossier-build 2025-04-10 2026-08-02   ## full evidence dossier
+p7c jobsite.report-build  2025-04-10 2026-08-02   ## lightweight summary-table only
+```
+**Param format history**: originally implemented as a JSON arg (`'{"from":"...","to":"..."}'`), matching a pattern seen in ~46 other `.cmd.` modules across the codebase — but that pattern is for web/UI-facing endpoints (browser↔backend), not a general backend convention. `jobsite`'s own sibling `.cmd.` modules (e.g. `jobsite.cmd.set-status`, `args = "<id> <status>"`) use plain space-separated positional args instead — the actual native P7 backend convention. User corrected this and asked for the conversion; converted both commands to `split ' ', $args` positional parsing. Also noted in passing: the project is trending away from JSON as an intermediate format generally (moving some file-based use cases to YAML, with planned seamless format conversion between them) — JSON wasn't wrong/bloated here, just not the native choice for a non-UI-facing command.
+Output paths are printed in the reply (`report:`/`dossier:`/`html:`), written under `report_dir` (default `/data/jobcenter-report-data/reports/`) as `<from>_<to>.yaml` + `<from>_<to>.dossier.html` (or `.html` for the summary version). Delete the existing `<from>_<to>.*` files first if re-running the *same* period after a code change — `jobsite.report.assemble` overwrites its own output file but the caller (`v7.restart jobsite` after any module edit) is still required for code changes to take effect, per the reload-regression note above.
+
 **Known upstream bug hit hard during this work**: `<zenka>.reload` does not reliably recompile already-loaded `.cmd.` modules on a live process — always use `p7c v7.restart <zenka>` after editing jobsite modules. Documented separately as `data/tasks/loader-reload-stale-cmd-modules.md` (committed, commit `138895123`).
 
 **How to apply / remaining follow-ups**:
@@ -56,8 +64,8 @@ built a periodic-reporting pipeline inside the existing `jobsite` zenka (not a n
 - **Last polish: uniform blank-line spacing between every bullet item**: the source pdf packs its bullet list with zero blank-line spacing between items (tight word-processor list style) — after the indent fix, items read correctly but as one dense block. Rather than special-case only the one blank line at the former page-break/footer join (fragile, and would leave an arbitrary-looking inconsistency — spacing at exactly one join, none anywhere else), generalized: strip every blank line already sitting between two list lines first, then uniformly re-insert exactly one blank line before every bullet marker except the first (whose own lead-in paragraph already ends in a real blank line, checked via `$out[-1] =~ /\S/` on the just-built output array so it self-skips instead of needing a separate special case). Net effect: consistent one-blank-line-per-item spacing throughout, independent of where page breaks originally fell.
 - **Screen-only dark theme added, print forced light regardless, text color tuned on user feedback**: body/meta text was initially a plain light gray (`#d6d3e0`/`#a9a4b8`) — user asked for something in the blue/violet range instead, changed to `#c2b8ec`/`#9791c4` to match the purple heading palette instead of reading as gray+purple. `data/web-root/shared/templates/jobsite-report/dossier.html` had only a light theme, unusable for extended on-screen reading. Added `@media screen and (prefers-color-scheme: dark)` (purple/indigo accents adapted to a dark `#1a1625`/`#241f33` background) and hardened the existing `@media print` block with `!important` on every color/background override so it always wins regardless of the viewer's OS theme — a caseworker's printer should always get plain black-on-white. Note found in passing (not yet acted on): the user's own CV HTML source files (`/data/jobcenter-report-data/cv/CV.latest.April.25.P0.html` etc.) actually force a *dark* background even `@media print` via `print-color-adjust: exact !important` — the opposite of what the user believed ("the CV proves it prints light") — but this doesn't affect the dossier, since the CV section embeds the already-rendered `.pdf` (extracted via `pdftotext`, no styling involved), not the HTML source.
 
-#,,.,,,..,,,,,,,,,.,.,...,,,,,,.,,...,,,.,,,,,..,,...,...,..,,,.,,...,.,,,,,,,
-#O6HKZRRYP5SCE3I475TTB4GCRR4XX47BOPREC5RX2I7SS2GPZ7BZLPIIXMZB3BLI77RGALJT2SDSA
-#\\\|6EA4ZBQXXVNNQGXOETVWSY4NWDYWWMGIPDU2B2OROZCMTOK2OC5 \ / AMOS7 \ YOURUM ::
-#\[7]2RVMCPNHM3LARCMREYS2KDEBPKVGGPAVOPXQAZ7VHVT6OWO2KMDQ 7  DATA SIGNATURE ::
+#,,,.,..,,...,,..,,.,,,,,,.,.,.,.,,,.,...,.,,,..,,...,...,..,,,.,,,.,,,,,,.,.,
+#HQYSMRNXDA6OK4GISGGWHR4LS4J62TJRLLFX7BY7ZTQZOL3TU4SWWZRXD3IFO74MOC2DT3E42XILQ
+#\\\|ESFG7HIU2C2HWGGWW2MEIVSXKQFSCAS6WQNVYCB6YD734JJWPJH \ / AMOS7 \ YOURUM ::
+#\[7]ZKKHHOHE2L2X4MR53EL4EMQRZKMPSQSMLJWCMR424IO4MK4CH6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

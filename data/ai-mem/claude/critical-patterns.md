@@ -107,6 +107,7 @@ my $cmd_count = <[base.protocol-7.command.send.local]>->({
 - Set `max_payload_size => 16 * 1024 * 1024` for large messages; `->next` DIES on oversized — wrap in eval
 - `decode_json` expects raw UTF-8 bytes; `from_json` accepts decoded strings
 - Use `from_json` for websocket text frames
+- JSON `.cmd.` args are for web/UI-facing endpoints (browser↔backend) only — NOT a general backend `.cmd.` convention. For a multi-field param on a command only ever called via `p7c`/other zenki, use plain space-separated positional args instead (e.g. `split ' ', $args`), matching sibling commands like `jobsite.cmd.set-status`'s `"<id> <status>"`. Check same-zenka sibling `.cmd.` modules for the actual local convention before defaulting to JSON just because other unrelated `.cmd.` modules elsewhere use it.
 
 ## Watcher state machines
 - IO::Async variable watchers are the proven reliable pattern
@@ -147,8 +148,8 @@ my $cmd_count = <[base.protocol-7.command.send.local]>->({
 ## ptd usage
 - Use `ptd` (not `ptd -c`) after writing modules — formats + checks syntax in one pass
 
-#,,,,,,..,.,,,.,.,.,,,,,.,.,,,,,,,.,.,,..,.,,,..,,...,...,.,.,...,,,,,,..,,.,,
-#PIRIOWJQAHG33DMTRFZHGMJSTFP25I5AXLBVRCRBTZ7LJLZUKWYRPFKIGQA23ZWRBUD53R6D27TM2
-#\\\|5GLO6MZBLRYU425CBGNLJCLTGBGOSXTJIYCA6GLPQQW7J66BRSY \ / AMOS7 \ YOURUM ::
-#\[7]4CFNRUTZ6YZ46FGP6HVXR4MZ6D654IWKR2ERBLFZJWZMMIJB4ABI 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,.,,,.,.,,..,.,,,.,,,..,,,,,,..,,..,,...,.,.,.,.,,,,,...,..,,...,
+#VTMYIKDECKSFCI45JZ2UAD7NWBODKVYLVAF7STXVPPWIDO2YAJGAB32YRCL5MITYIQVTCGICVRKQO
+#\\\|NX2AE74CH52ITWFHMTNVHFZU4R6TUOMZP4YXF5AXIF62ZKXKPHR \ / AMOS7 \ YOURUM ::
+#\[7]KYS7UAAGN6T3CI2BYE5NMXOAAKQO6YNSEFHLRJ4YFVFPRPWKA6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
