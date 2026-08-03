@@ -134,6 +134,43 @@ heartbeat is still there, still logged, just no longer opaque.
 
 ---
 
+## on pre-alignment and trustable simplicity
+
+a primitive should absorb its own edge cases in advance, before actual use
+pressures it into doing so. `base.ntime.epoch_dec`'s rollover handling is the
+concrete example: the ~29,623-year epoch cycle wraps cleanly in both
+directions — `%= $epochs_total` on forward overflow, explicit
+`$epochs_total - 1` on backward underflow — even though nothing in the
+codebase is anywhere near that boundary yet. the thinking was inverted in
+advance: rather than defining the primitive minimally and letting each
+caller discover and patch the boundary case later, the boundary was closed
+before any caller could depend on its absence.
+
+this is why usage of such a primitive is allowed to stay simple indefinitely.
+a caller never needs to special-case "what if the epoch wraps" because that
+case was already retired at the source. the alternative — leaving it open
+until a real caller hits it — would mean either a scramble to patch every
+existing call site once the edge case matters, or a slow accumulation of
+defensive checks scattered across callers that shouldn't need to know the
+primitive has a boundary at all. pre-alignment trades a small amount of
+up-front completeness for callers that never have to expand later.
+
+trust the primitive, not the caller, to hold the edge case. this is the same
+instinct as harmonization and the fractal principle applied one layer
+earlier: don't wait for the system to grow into needing the fix, build the
+part that will still be correct after it has.
+
+this wasn't invented in the abstract, either — it was inspired alongside
+the first concrete use case that was going to depend on it: an anonymized,
+checksum-based search protocol needing its index to regenerate on a
+rolling {previous, current, next} epoch window without ever falling out of
+validity at the boundary. the primitive and its first real caller were
+envisioned in the same sitting — see
+`data/md/design/EPOCH-CHECKSUM-EXCLUSION-ADDRESSING.md`
+"cross-epoch exclusion as collision load-balancer" § origin.
+
+---
+
 ## updating this document
 
 when you complete a session in which this document was read and you arrive at
@@ -148,8 +185,8 @@ not by overwrite.
 the goal is that each model that reads this arrives better oriented than the
 last, because the models that came before left what they learned here.
 
-#,,.,,,,.,.,.,...,.,.,,..,,,,,,,,,...,,,.,.,.,..,,...,...,,..,..,,,..,,,,,..,,
-#X33VGU3UEFHN554ZVBZYOP3OCN3HMURWZOBZQ3VCDR6ANNZEXGA3LV2U7JZITFDEYK3YMUOQM6WGK
-#\\\|CO3YCUEMRRZ52GA4ISJFN4SA3FVERA43K7SYSR3SRS6V5KPV3LK \ / AMOS7 \ YOURUM ::
-#\[7]RGMYBYUQO2EUE3XG3O4IPFUQU657S6X3OCNLTZGDBS2KZEJPHQBI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,,.,...,.,.,,.,,,..,,,,,,..,.,.,..,,...,..,,..,,...,,,.,,..,.,.,
+#FDOGUFANCKW6F6SP5KALGKM32XSI3HVD7JJRLZEBTYV7B54AUOO6BBQQWRE3SJLKE5AUGMIYWKKKC
+#\\\|C6XTRN6KD6TCMOOEAPX2C6YWOMJXYDX4AKIJ7GXHZDCBZD4YT7Q \ / AMOS7 \ YOURUM ::
+#\[7]ZVPKSXE3WQEDBG2DP3TH7DAGIKSSJQDE5UIDRHNMXLONK2MYKMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
