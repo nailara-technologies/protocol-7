@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = jobsite.cmd.dossier-build
+# descr = build full evidence dossier for a period
+# param = json { from, to }
+
+my $args   = $call->{'args'}                   // '';
+my $params = eval { JSON::decode_json($args) } // {};
+if ( $@ or ref $params ne 'HASH' ) {
+    return { 'mode' => 'false', 'data' => 'expected json { from, to }' };
+}
+
+my $assembled = <[jobsite.report.assemble]>->($params);
+return { 'mode' => 'false', 'data' => $assembled->{'data'} }
+    if not $assembled->{'mode'};
+
+my $rendered
+    = <[jobsite.report.render_dossier]>->( $assembled->{'report_path'} );
+return { 'mode' => 'false', 'data' => $rendered->{'data'} }
+    if not $rendered->{'mode'};
+
+return {
+    'mode' => 'true',
+    'data' => sprintf(
+        'report: %s  dossier: %s  entries: %d',
+        $assembled->{'report_path'}, $rendered->{'html_path'},
+        $assembled->{'count'}
+    ),
+};
+
+#,,,.,..,,.,,,,,.,..,,,,.,,..,,,,,.,,,..,,,,.,..,,...,...,,..,...,...,,,,,.,.,
+#BTZ6XYKJY5YZDANDAY6U4SW4SJTADDYAGX56YPGJOOARWMZILUQDLFRLAN77F3HZC7TK7GIDBNEIC
+#\\\|IYHIRSL63VPMXAXBLKAISFT4FO43C2ZFDV2JNZF73GHMYNRAK2B \ / AMOS7 \ YOURUM ::
+#\[7]AY66WMWDJGGIIELA4BW7QEUODQB5COGHPSJ3XYLJVOCNB4NHW4DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

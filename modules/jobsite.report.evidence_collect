@@ -1,0 +1,148 @@
+## [:< ##
+
+# name  = jobsite.report.evidence_collect
+# descr = gather cv/reference/letter evidence text for a report
+# param = { entries => [ report entries, for company matching ] }
+# return = { cv => { filename, text } | undef,
+#            references => [ { filename, text } ],
+#            letters => [ { filename, text, date_guess, company_guess,
+#            matched_nr } ] }
+
+my $param   = shift               // {};
+my $entries = $param->{'entries'} // [];
+
+my $cv_dir      = <jobsite.cfg.cv_dir> // '/data/jobcenter-report-data/cv';
+my $letters_dir = <jobsite.cfg.applications_html_dir>
+    // '/data/jobcenter-report-data/applications-html';
+
+## --- pick "current" cv : most recently modified file in cv_dir --------- ##
+
+my $cv;
+my $newest_mtime = -1;
+for my $path ( glob("$cv_dir/*") ) {
+    next if not -f $path;
+    my $mtime = ( stat($path) )[9] // 0;
+    next if $mtime <= $newest_mtime;
+    $newest_mtime = $mtime;
+    $cv           = $path;
+}
+
+my $cv_result;
+if ( defined $cv ) {
+    my $text = <[jobsite.report.extract_text]>->($cv);
+    $cv_result = {
+        'filename' => ( $cv =~ m|([^/]+)$| )[0],
+        'text'     => $text,
+    };
+}
+
+## --- reference documents (arbeitszeugnisse etc.), sent alongside the --- ##
+## cv with most applications -- all files, not just the newest one         ##
+
+my $reference_dir = <jobsite.cfg.reference_docs_dir>
+    // '/data/jobcenter-report-data/references';
+
+my @references;
+for my $path ( sort glob("$reference_dir/*") ) {
+    next if not -f $path;
+    my $text = <[jobsite.report.extract_text]>->($path);
+    next if not length $text;
+    push @references,
+        {
+        'filename' => ( $path =~ m|([^/]+)$| )[0],
+        'text'     => $text,
+        };
+}
+
+## --- application letters : extract + best-effort date/company guess ---- ##
+
+my $date_re = qr{
+      (\d{4}-\d{2}-\d{2})                       ## yyyy-mm-dd ##
+    | (\d{1,2}\.\d{1,2}\.\d{2,4})                ## dd.mm.yyyy ##
+}x;
+
+my @companies = grep {length}
+    map { $_->{'company'} // '' } @{$entries};
+
+my @letters;
+for my $path ( sort glob("$letters_dir/*") ) {
+    next if not -f $path;
+    my $text = <[jobsite.report.extract_text]>->($path);
+    next if not length $text;
+
+    my ($date_guess) = $text =~ $date_re;
+    $date_guess //= '';
+
+    my ( $company_guess, $matched_nr );
+    for my $entry ( @{$entries} ) {
+        my $company = $entry->{'company'} // '';
+        next if not length $company;
+        next if index( lc $text, lc $company ) < 0;
+        $company_guess = $company;
+        $matched_nr    = $entry->{'nr'};
+        last;
+    }
+
+    push @letters,
+        {
+        'path'          => $path,
+        'filename'      => ( $path =~ m|([^/]+)$| )[0],
+        'text'          => $text,
+        'date_guess'    => $date_guess,
+        'company_guess' => $company_guess // '',
+        'matched_nr'    => $matched_nr,
+        };
+}
+
+## same letter frequently exists as both a sent .pdf and its .html source [ ##
+## pdftotext -layout handles the two-column letterhead block -- sender      ##
+## address / recipient address / date -- correctly, spacing them onto       ##
+## separate lines ; HTML::FormatText has no concept of the CSS columns and  ##
+## linearizes the dom, merging them onto one garbled line ] -- keep only    ##
+## one copy per letter, preferring .pdf. dedup key is matched_nr when       ##
+## available, else a normalized-whitespace fingerprint of the text so       ##
+## unmatched duplicates of the same letter still collapse                   ##
+my %by_dedup_key;
+for my $letter (@letters) {
+    ## strip everything but letters/digits, not just whitespace --       ##
+    ## pdftotext and HTML::FormatText render the same source letter with ##
+    ## tiny punctuation-level differences [ en-dash vs hyphen, curly vs  ##
+    ## straight quotes, a stray form-feed ] that a whitespace-only strip ##
+    ## still lets slip through as "different" text and defeats the dedup ##
+    ## entirely                                                          ##
+    my $fingerprint = lc( $letter->{'text'} // '' );
+    $fingerprint =~ s|[^a-z0-9äöüß]+||g;
+    my $key
+        = defined $letter->{'matched_nr'}
+        ? "nr:$letter->{'matched_nr'}"
+        : "fp:$fingerprint";
+
+    my $existing = $by_dedup_key{$key};
+    if ( not $existing ) {
+        $by_dedup_key{$key} = $letter;
+        next;
+    }
+    my $existing_is_pdf = $existing->{'path'} =~ m|\.pdf$|i ? 1 : 0;
+    my $this_is_pdf     = $letter->{'path'}   =~ m|\.pdf$|i ? 1 : 0;
+    $by_dedup_key{$key} = $letter if $this_is_pdf and not $existing_is_pdf;
+}
+@letters = values %by_dedup_key;
+
+## sort : matched-and-dated first (newest first), then unmatched by name ##
+@letters = sort {
+           ( $a->{'date_guess'} ? 0 : 1 ) <=> ( $b->{'date_guess'} ? 0 : 1 )
+        || $b->{'date_guess'} cmp $a->{'date_guess'}
+        || $a->{'filename'} cmp $b->{'filename'}
+} @letters;
+
+return {
+    'cv'         => $cv_result,
+    'references' => \@references,
+    'letters'    => \@letters,
+};
+
+#,,,,,,,,,,,.,.,.,,.,,..,,,.,,,,,,,,,,...,..,,.,.,...,...,.,.,,..,..,,.,,,,,,,
+#WI3X5EX4Y7ER3MQDKPXHEELSYKPY44XU3RXAW35SE2MOGAWKQYTT7RJ4YOO4DCXN6APHGH7A2RB2S
+#\\\|T74X7WYMVQD5TT7ZNINJ42TZRYR27H2QQ65LPIBEBX2BMR3SXS6 \ / AMOS7 \ YOURUM ::
+#\[7]2EA3MVHI2K3M7I6EIM72DFFBMXX7LNWNBJBKZMFSYERY3HUVLAAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

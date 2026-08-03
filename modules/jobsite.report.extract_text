@@ -1,0 +1,263 @@
+## [:< ##
+
+# name  = jobsite.report.extract_text
+# descr = extract plain text from a html or pdf evidence file
+# param = $path
+# return = plain text string, or '' on failure
+
+my $path = shift // '';
+return '' if not -f $path;
+
+if ( $path =~ m|\.pdf$|i ) {
+    my $text = '';
+    my $pid  = open( my $fh, '-|', 'pdftotext', '-layout', $path, '-' );
+    if ($pid) {
+        local $/;
+        $text = <$fh> // '';
+        close($fh);
+    }
+
+    ## pdftotext marks each page boundary with a literal form-feed byte,   ##
+    ## sitting right before that page's first line of text with no \n of   ##
+    ## its own -- strip it FIRST, before any other cleanup below, or every ##
+    ## ^-anchored regex on that line silently fails to match [ ^ anchors   ##
+    ## right after the preceding \n, landing on the form-feed byte itself, ##
+    ## which isn't in any of the character classes those regexes expect ]  ##
+    $text =~ s/\x0C//g;
+
+    ## a document's title page/letterhead area often has real, deliberate   ##
+    ## vertical whitespace [ several blank lines before a centered title ]  ##
+    ## that -layout reproduces literally -- fine in a real page layout, but ##
+    ## reads as an oddly large empty gap once embedded as running text in a ##
+    ## report. collapse any run of 2+ blank lines down to exactly one       ##
+    ## everywhere, early, before any of the more targeted fixes below       ##
+    $text =~ s/\n{3,}/\n\n/g;
+
+    ## a decoratively letter-spaced all-caps name/title line [ single       ##
+    ## letters spaced apart as a design choice, e.g. a cv's own name header ##
+    ## ] can come out of pdftotext with inconsistent glyph-spacing          ##
+    ## reconstruction across different runs of the source pdf -- e.g. a     ##
+    ## 2-letter cluster stuck together instead of evenly single-letter-     ##
+    ## spaced, visually reading as suddenly packed tight partway through.   ##
+    ## detect a line made ONLY of capital letters and whitespace, grouped   ##
+    ## in clusters of 1-3 letters [ covers both the correctly single-       ##
+    ## spaced runs and the occasional 2-letter glitch cluster ], and        ##
+    ## re-normalize it to a single uniform space between every letter       ##
+    $text =~ s{
+        ^([ \t]*)([A-ZÄÖÜ](?:[ \t]+[A-ZÄÖÜ]{1,3})+)[ \t]*$
+    }{
+        my ( $indent, $chars ) = ( $1, $2 );
+        my @clusters = split /[ \t]+/, $chars;
+        my @pieces;
+        for my $cluster (@clusters) {
+            ## a 2-3 letter glitch cluster [ e.g. "TA" ] is exactly where  ##
+            ## the original reconstruction broke down -- that's the most   ##
+            ## likely spot a genuinely WIDER real gap [ a word boundary,   ##
+            ## e.g. between first and last name ] got miscounted down to a ##
+            ## single space, so mark it with a double space instead of     ##
+            ## uniform single-spacing everywhere, or first/last name fuse  ##
+            ## into one unbroken run with no visible word break at all     ##
+            push @pieces, '   ' if @pieces and length($cluster) > 1;
+            for my $letter ( split //, $cluster ) {
+                push @pieces, ' ' if @pieces and $pieces[-1] !~ /^\s+$/;
+                push @pieces, $letter;
+            }
+        }
+        $indent . join( '', @pieces );
+    }mgex;
+
+    ## a short header/subtitle line [ e.g. a cv's centered job-title line ] ##
+    ## can wrap mid-phrase the same way the arbeitszeugnis bullets did --   ##
+    ## "...AI" / "Infrastructure" split across two lines with no sentence-  ##
+    ## ending punctuation before the break. limit this merge to the         ##
+    ## document's first ~10 lines only [ where such short, deliberately     ##
+    ## laid-out header text lives ] so ordinary body-paragraph line-wraps   ##
+    ## further down are never touched -- only merge when the FOLLOWING line ##
+    ## is itself short and just a couple of words, a strong signal it's an  ##
+    ## orphaned tail fragment rather than a new line of prose               ##
+    {
+        my @hlines = split /\n/, $text, -1;
+        my $limit  = $#hlines < 10 ? $#hlines : 10;
+        my @merged;
+        my $i = 0;
+        while ( $i <= $#hlines ) {
+            ( my $next_trimmed = $hlines[ $i + 1 ] // '' ) =~ s/^\s+|\s+$//g;
+            if (    $i < $limit
+                and $hlines[$i] =~ /\S/
+                and $hlines[$i] !~ /[.:;!?-]\s*$/
+                and length( $hlines[$i] ) <= 80
+                and defined $hlines[ $i + 1 ]
+                ## check the TRIMMED next line, not the raw one -- a short ##
+                ## word can carry 40+ leading spaces of layout-derived     ##
+                ## centering indent, which would otherwise fail the length ##
+                ## check even though the actual content is tiny            ##
+                and $next_trimmed =~ /^\S+(?:\s+\S+){0,2}$/
+                and length($next_trimmed) <= 30
+            ) {
+                push @merged, $hlines[$i] . ' ' . $next_trimmed;
+                $i += 2;
+            } else {
+                push @merged, $hlines[$i];
+                $i++;
+            }
+        }
+        $text = join "\n", @merged;
+    }
+
+    ## a cv/letterhead's header block [ name, job title, contact line ]    ##
+    ## typically has each line individually centered in the source pdf --  ##
+    ## -layout fakes that with leading-space indentation sized for its OWN ##
+    ## assumed page width, which is narrower than our actual evidence-item ##
+    ## box. the result never reaches true visual center here, and instead  ##
+    ## reads as uniformly shoved toward the left [ "left weighted" ] since ##
+    ## every line's indent falls well short of this box's real center.     ##
+    ## same fix as the earlier single-title case, just applied to every    ##
+    ## indented header line in the first ~10 lines rather than just one :  ##
+    ## wrap it in \x01 sentinel markers so render_dossier's $esc converts  ##
+    ## it to a real, properly-centered html block instead of dead spacing  ##
+    {
+        my @hlines2 = split /\n/, $text, -1;
+        my $limit2  = $#hlines2 < 10 ? $#hlines2 : 10;
+        for my $i ( 0 .. $limit2 ) {
+            next if $hlines2[$i] !~ /^[ \t]{3,}(\S.*\S|\S)[ \t]*$/;
+            $hlines2[$i] = "\x01CENTER\x01$1\x01ENDCENTER\x01";
+        }
+        $text = join "\n", @hlines2;
+    }
+
+    ## a multi-page letter/reference doc repeats its letterhead footer [   ##
+    ## bank iban/bic, geschäftsführer, registergericht, steuer-nr ] on     ##
+    ## every page -- pdftotext has no page boundary marker, so that footer ##
+    ## ends up spliced straight into the running body text wherever a page ##
+    ## break happened to fall, interrupting a list or paragraph mid-flow.  ##
+    ## strip it -- company-name-agnostic, matches on the field labels ;    ##
+    ## must run before the bullet-merge/blank-collapse pass below, or at   ##
+    ## the time that pass runs this is still footer TEXT, not yet a blank  ##
+    ## line, so the collapse never sees anything to collapse               ##
+    $text =~ s{
+        ^.*\bIBAN\b.*\bBIC:?.*\n
+        (?:^.*(?:Geschäftsführer|Registergericht).*\n)?
+        (?:^.*(?:Geschäftsführer|Registergericht).*\n)?
+        (?:^.*Steuer-?Nr\.?:?.*\n)?
+    }{}mgix;
+
+    ## word/office-generated pdfs often use a symbol-font bullet glyph [   ##
+    ## e.g. wingdings U+F0B7 ] that pdftotext preserves as its raw private ##
+    ## use area codepoint -- with no symbol font available it renders as a ##
+    ## missing-glyph box/blank instead of a bullet. swap any private-use   ##
+    ## area char for a normal, universally renderable bullet               ##
+    $text =~ s/[\x{E000}-\x{F8FF}]/•/g;
+
+    ## pdftotext -layout re-derives each bullet's column position from the ##
+    ## pdf's absolute coordinates independently per page -- a source doc   ##
+    ## whose page-1 and page-2 list indent differ by even a font-metric    ##
+    ## rounding fraction comes out with a visibly different number of      ##
+    ## leading spaces before the bullet on either side of a page break.    ##
+    ## normalize every bullet line to the same fixed indent so page breaks ##
+    ## don't read as a formatting change                                   ##
+    $text =~ s/^[ \t]*•[ \t]*/  • /mg;
+
+    ## normalizing the bullet marker itself only fixes half the picture :   ##
+    ## each item's WRAPPED continuation lines keep whatever indent          ##
+    ## pdftotext -layout derived for that page's column position, which can ##
+    ## differ from the indent used on another page for the same list.  [    ##
+    ## tried merging each item into one logical line and letting the        ##
+    ## browser's pre-wrap reflow it -- wrong call : wrapped continuation    ##
+    ## then has no hanging indent at all [ plain text, not a real <li>, so  ##
+    ## nothing re-applies the bullet's indent after a soft wrap ], and      ##
+    ## consecutive items read as one dense run-on block with no breathing   ##
+    ## room between them ]. instead keep every physical line separate and   ##
+    ## just re-indent continuation lines to the fixed column "  • " already ##
+    ## establishes [ 4 chars : 2 spaces + bullet + 1 space ], so both pages ##
+    ## of the same list line up under the same column regardless of what    ##
+    ## indent pdftotext originally derived for that page                    ##
+    my $in_bullet = 0;
+    my @lines     = split /\n/, $text, -1;
+    for my $i ( 0 .. $#lines ) {
+        if ( $lines[$i] =~ /^  • / ) {
+            $in_bullet = 1;
+        } elsif ( $in_bullet and $lines[$i] =~ /\S/ ) {
+            ( my $trimmed = $lines[$i] ) =~ s/^\s+//;
+            $lines[$i] = '    ' . $trimmed;
+        } else {
+            $in_bullet = 0;
+        }
+    }
+    $text = join "\n", @lines;
+
+    ## the source pdf packs bullet items with no blank line between them at ##
+    ## all [ tight word-processor list spacing ], which reads as one dense  ##
+    ## block in plain text with no visual item boundary -- and the blank    ##
+    ## line that used to separate the list from the now-removed page-1      ##
+    ## footer is still sitting there too, but only at THAT one join, not    ##
+    ## between every item, which would look like an arbitrary inconsistency ##
+    ## rather than a deliberate style. normalize both cases the same way :  ##
+    ## strip every blank line that sits between two list lines [ a bullet   ##
+    ## marker or a re-indented continuation line ], then re-insert exactly  ##
+    ## one blank line before every bullet marker except the first [ whose   ##
+    ## lead-in paragraph already ends in a real, correct blank line ] --    ##
+    ## uniform spacing between every item regardless of page-break origin   ##
+    {
+        my $is_list_line
+            = sub { defined $_[0] and $_[0] =~ /^(?:  • |    \S)/ };
+        my @stripped;
+        for my $i ( 0 .. $#lines ) {
+            next
+                if $lines[$i] !~ /\S/
+                and $i > 0
+                and $is_list_line->( $lines[ $i - 1 ] )
+                and $is_list_line->( $lines[ $i + 1 ] );
+            push @stripped, $lines[$i];
+        }
+        my @out;
+        for my $line (@stripped) {
+            push @out, '' if $line =~ /^  • / and @out and $out[-1] =~ /\S/;
+            push @out, $line;
+        }
+        $text = join "\n", @out;
+    }
+
+    ## a short, heavily right-indented title line [ e.g. a centered         ##
+    ## "Zeugnis" heading ] both sits glued directly to the next paragraph   ##
+    ## with zero blank line, AND its large run of leading spaces is         ##
+    ## -layout's way of faking a centered position via plain-text column    ##
+    ## offset -- verified against the actual source pdf : it IS genuinely   ##
+    ## centered there, not an arbitrary indent, so left-aligning it         ##
+    ## (previous fix) loses real layout intent. wrap it in \x01 sentinel    ##
+    ## markers instead -- consumed downstream by                            ##
+    ## jobsite.report.render_dossier's $esc helper, which turns it into an  ##
+    ## actual centered html block once the surrounding text has been        ##
+    ## html-escaped [ can't emit real markup here -- this sub returns plain ##
+    ## text, shared by cv/reference/letter extraction alike ]               ##
+    $text =~ s{
+        ^[ \t]{10,}(\S.{0,20})\n(?=\S)
+    }{
+        "\x01CENTER\x01$1\x01ENDCENTER\x01\n\n"
+    }mgex;
+
+    return $text;
+}
+
+if ( $path =~ m|\.html?$|i ) {
+    my $html_ref = <[file.slurp]>->($path);
+    return '' if not defined $html_ref;
+
+    my $tree = HTML::TreeBuilder->new;
+    $tree->parse($$html_ref);
+    $tree->eof;
+
+    my $formatter
+        = HTML::FormatText->new( 'leftmargin' => 0, 'rightmargin' => 100 );
+    my $text = $formatter->format($tree);
+    $tree->delete;
+
+    return $text // '';
+}
+
+return '';
+
+#,,,.,...,,.,,..,,,.,,,.,,..,,...,,..,...,...,.,.,...,...,...,.,.,,..,.,,,.,,,
+#RBPFNZ7NIGNARGZZDXPKBZ5Q46BI5TRM7LYTXFRYTOYBD4WCT7JMTVVHUT3XOPASZTWKHBMOFANZG
+#\\\|5QJ7R6YIXIIKSUYZB5ZKDO77EVGRKRRZFOVI3IR4YXOCPHFAZA5 \ / AMOS7 \ YOURUM ::
+#\[7]4CSDH7K3EWQ3FY3X2BDMAFPKR7TCZBZSJYWHICJ73WMSGK7O64DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = jobsite.cmd.report-build
+# descr = assemble + render bewerbungsübersicht for a period
+# param = json { from, to }
+
+my $args   = $call->{'args'}                   // '';
+my $params = eval { JSON::decode_json($args) } // {};
+if ( $@ or ref $params ne 'HASH' ) {
+    return { 'mode' => 'false', 'data' => 'expected json { from, to }' };
+}
+
+my $assembled = <[jobsite.report.assemble]>->($params);
+return { 'mode' => 'false', 'data' => $assembled->{'data'} }
+    if not $assembled->{'mode'};
+
+my $rendered
+    = <[jobsite.report.render_html]>->( $assembled->{'report_path'} );
+return { 'mode' => 'false', 'data' => $rendered->{'data'} }
+    if not $rendered->{'mode'};
+
+return {
+    'mode' => 'true',
+    'data' => sprintf(
+        'report: %s  html: %s  entries: %d',
+        $assembled->{'report_path'}, $rendered->{'html_path'},
+        $assembled->{'count'}
+    ),
+};
+
+#,,.,,.,,,.,,,..,,...,.,,,,,.,,,.,.,.,.,.,..,,..,,...,...,.,.,.,,,.,,,.,,,,,,,
+#CYONJWA3GUO2MMFNKIGDSWVMRZRXTJ2UVSYEJ5DRZOC7JXY53XTNYET3SWWERMBU54Y5XMKGCVOH6
+#\\\|BXW72GEGXYYFEFZBO4JQWWFO7UMMAW3AQCVX7IKY6CZVZ5KU5EX \ / AMOS7 \ YOURUM ::
+#\[7]PZU72VSCVIIAT25S7Z3BSFMLOBHZ6RY6WI7AEMTSB4YUJDLAIUBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
