@@ -1,0 +1,59 @@
+---
+title: amos-chksum -nest — add truth-template harmonization, currently missing
+priority: medium
+status: open
+type: bug-fix
+
+design_doc: data/md/design/AMOS-SIGNATURE-FOOTER-BIT-FRAME-HIERARCHY.md
+
+context: |
+  amos-chksum's other checksum-generation paths guarantee the result harmonizes
+  TRUE: version strings (-VCS/-VL7/-VS) and base.ntime.harmonized_epoch's suffix
+  search both run a convergence loop [ same mechanism `EPOCH-CHECKSUM-EXCLUSION-
+  ADDRESSING.md` documents for the network epoch encoding ] before returning.
+  -nest does not — it returns the raw parent-child checksum computation
+  unharmonized, and it can come out FALSE.
+
+live_demonstration: |
+  amos-chksum LOVES               -> PKHKHVA
+  amos-chksum LOVES SWEETIE       -> CY4FN3A
+  amos-chksum -nest PKHKHVA CY4FN3A -> [METUEMA:PKHKHVA]
+  is-true [METUEMA:PKHKHVA]       -> FALSE
+
+  contrast with -T, which does harmonize by searching:
+  amos-chksum -T PKHKHVA:%s CY4FN3A -> MVG3GRA
+  is-true PKHKHVA:MVG3GRA         -> TRUE
+  is-true PKHKHVA                 -> TRUE  [ parent alone ]
+  is-true MVG3GRA                 -> TRUE  [ derived child alone ]
+
+recommendation: |
+  -nest should run the same truth-template search loop as -T / harmonized_epoch
+  before returning its bracketed [parent:child] result, rather than returning
+  the raw unharmonized computation. concretely: treat the nest output shape
+  itself [ `[%s:%s]` or equivalent ] as the sprintf template and search over
+  the child-derived entropy the same way `-T <parent>:%s <child>` already does
+  manually — -nest should not require the caller to reach for -T themselves to
+  get a guaranteed-true nested checksum.
+
+open_question: |
+  whether -nest's harmonization should be default-on or opt-in [ backward
+  compatibility: any existing caller relying on the current raw/unharmonized
+  -nest output would see different values after the change ]. not decided
+  here — flagging the gap and the fix shape, not the rollout policy.
+
+verification:
+  - is-true on a -nest result is TRUE for arbitrary parent/child inputs,
+    not just ones that happen to already satisfy the harmonic test
+  - existing callers of -nest [ if any in modules/ ] audited before the
+    change ships, since output values would shift
+
+notes: |
+  found 2026-08-03 live, testing -nest interactively; the -T workaround
+  demonstrating the intended behavior is already fully worked out above,
+  this task is "wire that into -nest itself," not "design the fix."
+
+#,,..,.,,,,..,,..,.,.,.,.,.,,,,..,,.,,,,,,,,,,..,,...,...,,,.,.,.,..,,,,,,,,,,
+#5T5ISX6BLF6AZKWEPQSY4AKKLC7MUZHWMEY6HRGIDXYXU6276X3UGVKYANJV2YKTWQFZKPASF5WHG
+#\\\|LORCQFXXBFXMDT7ITRS6CHU3OX4UXL3IDHFARICPVPISVROLUPY \ / AMOS7 \ YOURUM ::
+#\[7]66YTFPM2UJFP7DOMFIVLEVV5X56QZG2FMFMAYTZ7ZF5UDGZQAKAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
