@@ -883,18 +883,24 @@ function mergeJobs(serverJobs) {
         }
         if (!jobs[id]) {
             jobs[id] = { ...sj, id };
+            /* server persists this field as `notes` [see jobsite.sync.apply_reverse],  */
+            /* but the UI renders/edits it as `note` -- map on the way in or a fresh    */
+            /* load [new job entries, or an emptied localStorage cache] never surfaces  */
+            /* a note that genuinely exists server-side                                 */
+            if (sj.notes != null) jobs[id].note = sj.notes;
             if (ud) {
                 if (ud.stage && USER_OWNED_STAGES.has(ud.stage)) jobs[id].stage = ud.stage;
-                if (ud.notes        != null) jobs[id].notes        = ud.notes;
+                if (ud.notes        != null) jobs[id].note         = ud.notes;
                 if (ud.date_applied != null) jobs[id].date_applied = ud.date_applied;
             }
             added++;
         } else {
             /* server provides base data; user decisions overlay user-owned fields */
             jobs[id] = { ...jobs[id], ...sj, id };
+            if (sj.notes != null) jobs[id].note = sj.notes;
             if (ud) {
                 if (ud.stage && USER_OWNED_STAGES.has(ud.stage)) jobs[id].stage = ud.stage;
-                if (ud.notes        != null) jobs[id].notes        = ud.notes;
+                if (ud.notes        != null) jobs[id].note         = ud.notes;
                 if (ud.date_applied != null) jobs[id].date_applied = ud.date_applied;
             }
             updated++;
@@ -1100,7 +1106,7 @@ function renderCard(j) {
         badges.push('<span class="assert-badge assert-archive">archiv</span>');
     }
     if (j.repair_applied)      badges.push('<span class="repair-badge">repariert</span>');
-    if (j.repair_failed)       badges.push('<span class="repair-badge repair-fail">fehler</span>');
+    if (j.repair_failed == 5 || j.repair_failed === true) badges.push('<span class="repair-badge repair-fail">fehler</span>');
 
     /* dimension breakdown */
     const dims = _dims;
@@ -1626,7 +1632,7 @@ function render() {
 
 function updateStats(all) {
     const del = all.filter(j => (j.assertions && j.assertions.suggest && j.assertions.suggest.delete) === 'true' && !USER_OWNED_STAGES.has(j.stage)).length;
-    const rfl = all.filter(j => j.repair_failed && j.stage !== 'archived').length;
+    const rfl = all.filter(j => (j.repair_failed == 5 || j.repair_failed === true) && j.stage !== 'archived').length;
     document.getElementById('stat-total').textContent  = all.length + ' gesamt';
     document.getElementById('stat-review').textContent = all.filter(j=>j.stage==='review').length + ' review';
     document.getElementById('stat-apply').textContent  = all.filter(j=>j.stage==='to_apply').length + ' bewerben';
