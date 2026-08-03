@@ -1,0 +1,341 @@
+## [:< ##
+
+# name  = jobsite.report.mail_evidence_collect
+# descr = scan mbox exports for application mail evidence
+# param = { entries => [ report entries ], mail_dir => .. [opt] }
+# return = arrayref of { subject, date, from, intent, body_excerpt,
+#          matched_nr, matched_company, source }
+
+my $param   = shift               // {};
+my $entries = $param->{'entries'} // [];
+
+my $mail_dir = $param->{'mail_dir'} // <jobsite.cfg.mail_dir>
+    // '/data/jobcenter-report-data/mail-rejections';
+
+## mbox files directly in mail_dir, plus one level of subdirs [ per-account ##
+## ]                                                                        ##
+my @mbox_files = (
+    glob("$mail_dir/*.mbox"), glob("$mail_dir/*/*.mbox"),
+    glob("$mail_dir/*"),      glob("$mail_dir/*/*")
+);
+my %seen_file;
+@mbox_files = grep { -f $_ and not $seen_file{$_}++ } @mbox_files;
+
+my @companies = grep {length}
+    map { $_->{'company'} // '' } @{$entries};
+
+my $header_re = qr{^(Subject|Date|From|To):\s*(.*)$}m;
+
+## recipient-alias signal : mail sent to a dedicated jobs@... address is ##
+## reliably application-related regardless of subject wording -- only    ##
+## applies to accounts that actually route through such an alias         ##
+my $to_alias_re = <jobsite.cfg.mail_to_alias_re> // qr{jobs@}i;
+
+## our own job-search mailboxes : a message we SENT [ e.g. a courtesy   ##
+## reply acknowledging a rejection ] is not company feedback and       ##
+## doesn't belong in this section, regardless of subject/exclude match ##
+## -- one address per line in /etc/protocol-7/<zenka>/own-addresses.txt ##
+## [ base.file.zenka_dir.load's 'cfg-dir:<zenka>/' convention, same     ##
+## external-to-the-repo location jobsite.cfg.profile_file already uses ##
+## for this zenka's other personal-data file ] ; entirely optional --  ##
+## no exclusion applied at all if the file doesn't exist                ##
+my $own_address_re;
+my $own_address_ref
+    = <[file.zenka_dir.load]>->('cfg-dir:<zenka>/own-addresses.txt');
+
+if ( defined $own_address_ref and length $$own_address_ref ) {
+    my @addrs = grep {length}
+        map { s/^\s+|\s+$//g; $_ } split /\n/, $$own_address_ref;
+    $own_address_re = join( '|', map {quotemeta} @addrs ) if @addrs;
+}
+
+## hard exclusion, checked before any inclusion heuristic : the jobcenter   ##
+## itself uses words like "bewerbung"/"jobsuche" when discussing your own   ##
+## search effort with you, which would otherwise false-positive-match --    ##
+## extend this pattern [ '|'-separated alternation ] as more excludable     ##
+## senders/subjects turn up scanning a mixed personal inbox  '.jobcenter@'  ##
+## matches the common <caseworker>.jobcenter@<kreis>.de address form        ##
+## generically, without hardcoding any specific district's domain into a    ##
+## shared default. 'arbeitsagentur.de' is included too -- not the current   ##
+## institution [ that's a Kreis-run Jobcenter, SGB II ], but Bundesagentur  ##
+## für Arbeit [ SGB III ] is a real future case if a move to another region ##
+## ever changes which agency is the caseworker                              ##
+my $exclude_re = <jobsite.cfg.mail_exclude_re>
+    // qr{\.jobcenter@|jobcenter|arbeitsagentur\.de}i;
+
+## portal/marketing noise : job-board re-engagement nudges and "similar    ##
+## jobs" recommendation blasts that aren't about a specific application at ##
+## all -- checked against subject only [ these phrases legitimately appear ##
+## in a real rejection's footer body text too, so matching body would      ##
+## wrongly drop genuine evidence ]. extend as more noise turns up.         ##
+my $noise_subject_re = <jobsite.cfg.mail_noise_subject_re> // qr{
+      spare\ zeit
+    | vergiss\ nicht\ deine\ bewerbung
+    | suchen\ kandidaten\ wie\ dich
+    | ^stellenangebot:
+    | wir\ haben\ neue\ jobs
+    | passende\ jobs\ f.r\ dich
+    | mehr\ bewerbungen,?\ mehr\ chancen
+    | more\ applications,?\ more\ opportunities
+    | ihre\ zugangsdaten\ f.r
+    | (?:deine|ihre)\ einwahldaten
+}ix;
+
+## stems, not full inflected forms : "nicht berücksichtigt" [ past         ##
+## participle ] silently failed to match the equally common infinitive     ##
+## phrasing "leider ... nicht berücksichtigen können" -- verified against  ##
+## real rejection mail, 41 of 59 real ones turned out to depend solely on  ##
+## the generic 'leider' fallback below because this and 'nicht ausgewählt' ##
+## [ not actually idiomatic german in this context ] never matched at all  ##
+my %rejection_words = map { $ARG => 1 }
+    ( 'absage', 'ablehnung', 'nicht berücksichtig', 'rejection', 'regret', );
+## "es klappt [vorher] bei denen nicht" -- same idiom as 'nicht geklappt' ##
+## but with the negation trailing instead of leading ; word order varies  ##
+my $klappt_re = qr{nicht\s+geklappt|klappt\s+(?:\S+\s+){0,6}nicht}i;
+## 'leider'/'unfortunately' are the dominant real-world rejection signal [ ##
+## "Leider müssen wir Ihnen mitteilen..." ] but too generic to trust alone ##
+## -- "leider konnte ich Sie telefonisch nicht erreichen" [ a recruiter    ##
+## apologizing for a missed *phone call* while chasing a still- pending    ##
+## skill-sheet request ] matched and misclassified a live, never- answered ##
+## lead as a rejection. require a decision-verb word to co-occur anywhere  ##
+## in the same mail before trusting the generic apology word               ##
+my $leider_re  = qr{leider|unfortunately}i;
+my $verdict_re = qr{
+      ## mitteilen / mitzuteilen / mitgeteilt [ separable ##
+      mit\w*teil
+                          ## verb -- past participle inserts "ge" in the ##
+                          ## middle : "mit-ge-teil-t", breaking a plain  ##
+                          ## "mitteil" substring match                   ##
+    | berücksichtig
+    ## entscheiden / entschieden [ irregular verb, ei→ie ##
+    | entsch(?:eid|ied)
+                          ## vowel change in the past participle ] ##
+    | entschlossen
+    | einbeziehen
+    | keine[nm]?\ (?:positive|bessere|passende|geeignete)
+    | keinen?\ einstieg\ anbieten
+    | zug\ kommen | in\ betracht | absag | ablehnung
+}ix;
+my %interview_words = map { $ARG => 1 }
+    ( 'vorstellungsgespräch', 'interview', 'einladung', 'kennenlernen', );
+## automated receipts [ "your application went out"/"was received" ] --    ##
+## real correspondence, but not a decision -- superseded by any later      ##
+## rejection/interview mail for the same job, same as a csv snapshot being ##
+## superseded by a newer one                                               ##
+my %confirmation_words = map { $ARG => 1 } (
+    'ist raus',                       'wurde versendet', 'haben wir erhalten',
+    'application was sent',           'application has been sent',
+    'thank you for your application', 'vielen dank für deine bewerbung',
+    'vielen dank für ihre bewerbung', 'herzlichen dank für ihre bewerbung',
+    'herzlichen dank für deine bewerbung',
+    ## portal account/registration receipts -- greeting wording varies too  ##
+    ## much to enumerate, but the login-data/account-activation block is a  ##
+    ## reliable signal regardless of phrasing ; also covers the variant     ##
+    ## where the account isn't set up yet [ "click here to set a password"  ##
+    ## rather than a login block already filled in ] -- e.g. a bvu.de       ##
+    ## "Zugang zum Bewerbermanagement" mail with zero real content besides  ##
+    ## a portal-activation link, redundant with the real correspondence for ##
+    ## the same application appearing elsewhere in the dossier              ##
+    'persönlichen benutzerdaten', 'benutzerdaten lauten',
+    'passwort festlegen', 'konto zu aktivieren', 'account zu aktivieren',
+);
+
+## best-effort rfc822 date -> sortable "yyyymmddhhmmss" string ##
+my %month_num = (
+    jan => 1,
+    feb => 2,
+    mar => 3,
+    apr => 4,
+    may => 5,
+    jun => 6,
+    jul => 7,
+    aug => 8,
+    sep => 9,
+    oct => 10,
+    nov => 11,
+    dec => 12,
+);
+my $date_sort_key = sub {
+    my $date_str = shift // '';
+    if ( $date_str
+        =~ /(\d{1,2})\s+(\w{3})\w*\s+(\d{4})\s+(\d{2}):(\d{2}):(\d{2})/ ) {
+        my ( $day, $mon_str, $year, $h, $m, $s ) = ( $1, $2, $3, $4, $5, $6 );
+        my $mon = $month_num{ lc $mon_str } // 0;
+        return sprintf '%04d%02d%02d%02d%02d%02d', $year, $mon, $day, $h, $m,
+            $s;
+    }
+    return '00000000000000';
+};
+
+my @evidence;
+for my $mbox_path (@mbox_files) {
+    ## a lone .eml file [ e.g. proton mail export tool's one-file-per-   ##
+    ## message layout ] IS a single message already -- only genuine mbox ##
+    ## files [ concatenated messages ] need splitting                    ##
+    my $messages;
+    if ( $mbox_path =~ /\.eml$/i ) {
+        my $content_ref = <[file.slurp]>->($mbox_path);
+        $messages = defined $content_ref ? [$$content_ref] : [];
+    } else {
+        $messages = <[jobsite.report.mail_split]>->($mbox_path);
+    }
+
+    for my $raw ( @{$messages} ) {
+        ## normalize line endings : mail_split-derived messages already  ##
+        ## lose \r [ its own splitting is \r?\n-based ], but a lone .eml ##
+        ## file read as-is keeps CRLF -- a bare "(.*)$/m" header capture ##
+        ## would otherwise include a trailing \r on every header value   ##
+        $raw =~ s/\r\n/\n/g;
+
+        ## header block = everything before first blank line ##
+        my ($header_block) = split /\r?\n\r?\n/, $raw, 2;
+        $header_block //= '';
+        ## unfold continuation lines before extracting header values ##
+        ( my $unfolded = $header_block ) =~ s/\r?\n[ \t]+/ /g;
+
+        my %headers;
+        while ( $unfolded =~ /$header_re/g ) {
+            $headers{ lc $1 } = $2;
+        }
+
+        my $subject = $headers{'subject'} // '';
+        $subject
+            = eval { Encode::decode( 'MIME-Header', $subject ) } // $subject;
+        my $to_addr = $headers{'to'} // '';
+
+        my $to_alias_match = $to_addr =~ $to_alias_re ? 1 : 0;
+        next if not length $subject and not $to_alias_match;
+
+        ## hard exclude wins over any inclusion signal below ##
+        my $from_addr = $headers{'from'} // '';
+        $from_addr = eval { Encode::decode( 'MIME-Header', $from_addr ) }
+            // $from_addr;
+        next
+            if "$from_addr $to_addr $subject" =~ $exclude_re;
+        next if $subject                               =~ $noise_subject_re;
+        next if defined $own_address_re and $from_addr =~ /$own_address_re/i;
+
+        ## quick pre-filter : recipient alias, or subject mentioning an ##
+        ## application via the 'bewerbung' keyword or a known position  ##
+        my $matched_company;
+        for my $company (@companies) {
+            next if not length $company;
+            next if index( lc $subject, lc $company ) < 0;
+            $matched_company = $company;
+            last;
+        }
+        my ($matched_nr)
+            = defined $matched_company
+            ? (
+            grep { ( $entries->[$ARG]{'company'} // '' ) eq $matched_company }
+                0 .. $#{$entries}
+            )[0]
+            : undef;
+        $matched_nr = $entries->[$matched_nr]{'nr'} if defined $matched_nr;
+
+        my $is_candidate
+            = $to_alias_match
+            || $subject =~ m{bewerbung}i
+            || defined $matched_company
+            || grep { length($_) and $subject =~ m{\Q$_\E}i }
+            map { $_->{'title'} // '' } @{$entries};
+        next if not $is_candidate;
+
+        my $decoded_body = <[jobsite.report.mime_decode_body]>->($raw);
+        my @body_lines   = split /\r?\n/, $decoded_body;
+        ## drop leading blank lines from the decoded text ##
+        shift @body_lines while @body_lines and $body_lines[0] !~ /\S/;
+        ## keep the full body, not just an excerpt : the sender's contact  ##
+        ## block [ name, direct phone/email, company registration ] -- the ##
+        ## part a caseworker would actually use to verify this mail is     ##
+        ## genuine -- is often near the END of the message, not the top,   ##
+        ## and must never be truncated away. a generous cap only guards    ##
+        ## against a pathological giant quoted thread.                     ##
+        my $cap = $#body_lines > 400 ? 400 : $#body_lines;
+        my $body_excerpt = join "\n", @body_lines[ 0 .. $cap ];
+
+        my $lc_all = lc("$subject $body_excerpt");
+        my $intent = 'other';
+        for my $word ( keys %rejection_words ) {
+            if ( index( $lc_all, $word ) >= 0 ) {
+                $intent = 'rejected';
+                last;
+            }
+        }
+        $intent = 'rejected' if $intent eq 'other' and $lc_all =~ $klappt_re;
+        if (    $intent eq 'other'
+            and $lc_all =~ $leider_re
+            and $lc_all =~ $verdict_re ) {
+            $intent = 'rejected';
+        }
+        if ( $intent eq 'other' ) {
+            for my $word ( keys %interview_words ) {
+                if ( index( $lc_all, $word ) >= 0 ) {
+                    $intent = 'interview';
+                    last;
+                }
+            }
+        }
+        if ( $intent eq 'other' ) {
+            for my $phrase ( keys %confirmation_words ) {
+                if ( index( $lc_all, $phrase ) >= 0 ) {
+                    $intent = 'confirmation';
+                    last;
+                }
+            }
+        }
+
+        my $date = $headers{'date'} // '';
+        push @evidence,
+            {
+            'subject'         => $subject,
+            'date'            => $date,
+            'date_sort_key'   => $date_sort_key->($date),
+            'from'            => $from_addr,
+            'intent'          => $intent,
+            'body_excerpt'    => $body_excerpt,
+            'matched_nr'      => $matched_nr,
+            'matched_company' => $matched_company,
+            'source'          => $mbox_path,
+            };
+    }
+}
+
+## exact-duplicate guard : the same physical message can turn up twice [    ##
+## e.g. present in both mail accounts, or duplicated within one export ] -- ##
+## these bypass the per-job dedup below entirely when unmatched, so catch   ##
+## them here by identical subject+sender+date before that runs              ##
+my %seen_exact;
+@evidence = grep {
+    my $k = join( "\x1e", $_->{'subject'}, $_->{'from'}, $_->{'date'} );
+    not $seen_exact{$k}++;
+} @evidence;
+
+## keep only the last known state per matched job : several mails may exist ##
+## for the same application [ receipt, then later a rejection ]-- the most  ##
+## recent one is what's currently true, same dedup philosophy as the csv    ##
+## snapshots. unmatched mail can't be grouped, keep as-is.                  ##
+my %latest_by_nr;
+my @unmatched;
+for my $item (@evidence) {
+    if ( not defined $item->{'matched_nr'} ) {
+        push @unmatched, $item;
+        next;
+    }
+    my $nr = $item->{'matched_nr'};
+    $latest_by_nr{$nr} = $item
+        if not exists $latest_by_nr{$nr}
+        or $item->{'date_sort_key'} gt $latest_by_nr{$nr}{'date_sort_key'};
+}
+
+my @result = ( values %latest_by_nr, @unmatched );
+## newest first : matches assemble/evidence_collect's ordering ##
+@result = sort { $b->{'date_sort_key'} cmp $a->{'date_sort_key'} } @result;
+
+return \@result;
+
+#,,,,,.,,,,,.,.,,,,,,,...,,..,,,.,,,.,,,,,,..,.,.,...,...,.,.,...,.,,,,.,,,.,,
+#EILLC2BAHBLT4UXITFW2FN6BW6CXWSPVFFV7KKUIVUXV42E45FSR644IX643HDKAQZRIJDZXIMNKS
+#\\\|22EMDKHCFADLCNHUK4FZGO3QHXE7C57BWWZJXE5KAJU6T3OXX3U \ / AMOS7 \ YOURUM ::
+#\[7]54OJ75M6PZCKZMCWF4QQ3XVI4AUZUS42H3JLJVFCGZK4YEARCACA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

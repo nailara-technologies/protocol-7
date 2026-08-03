@@ -1,0 +1,106 @@
+## [:< ##
+
+# name  = jobsite.report.csv_parse
+# descr = parse one periodic bewerbungen-csv export into entries
+# param = $path
+# return = arrayref of { date, company, title, city, score, status_raw,
+#          app_date, url, source }
+
+my $path = shift // '';
+return [] if not -f $path;
+
+my $content_ref = <[file.slurp]>->($path);
+return [] if not defined $content_ref;
+
+my $text = $$content_ref;
+$text =~ s|^\x{EF}\x{BB}\x{BF}||;    ## utf-8 bom, raw-byte form ##
+
+$text =~ s|^\x{FEFF}||;              ## utf-8 bom, decoded form  ##
+
+## a quoted field [ e.g. a multi-line "Notiz" note ] can contain a real    ##
+## embedded newline -- splitting on every \n naively cuts such a row in    ##
+## half, silently dropping every column after the break [ including the    ##
+## url, which is what the dedup-by-stepstone-id logic downstream relies on ##
+## -- losing it causes the same job to be treated as two different entries ##
+## across snapshots and show up twice ]. rejoin physical lines back into   ##
+## one logical row while an odd number of quotes is open                   ##
+my @raw_lines = split /\r?\n/, $text;
+my @lines;
+my $pending;
+
+for my $raw_line (@raw_lines) {
+    $pending = defined $pending ? "$pending\n$raw_line" : $raw_line;
+    my $quote_count = () = $pending =~ /"/g;
+    if ( $quote_count % 2 == 0 ) {
+        push @lines, $pending;
+        undef $pending;
+    }
+}
+## unbalanced tail : keep as-is ##
+push @lines, $pending if defined $pending;
+
+my $header = shift @lines // '';
+
+my @entries;
+
+## columns per row, quotes stripped ##
+my $split_row = sub {
+    my @cols = split /;/, shift;
+    for (@cols) { s|^"||; s|"$||; s|^\s+||; s|\s+$||; }
+    return @cols;
+};
+
+if ( $header =~ m|Checksum_H|i ) {
+    ## dedup/blacklist checksum export -- no status field, not an ##
+    ## application record ; nothing to contribute to the report   ##
+    return [];
+} elsif ( $header =~ m|Unternehmen|i or $header =~ m|Bewerbungsdatum|i ) {
+    ## extended format : Nr;Datum;Unternehmen;Position;Ort;Score;Status;  ##
+    ## Bewerbungsdatum;Notiz;Link[;...additional score-breakdown columns] ##
+    for my $line (@lines) {
+        next if $line !~ m|\S|;
+        my ($nr,    $date,   $company,  $title, $city,
+            $score, $status, $app_date, $note,  $url
+        ) = $split_row->($line);
+        next if not length $company and not length $title;
+        push @entries,
+            {
+            'date'       => $date,
+            'company'    => $company,
+            'title'      => $title,
+            'city'       => $city,
+            'score'      => $score,
+            'status_raw' => $status,
+            'app_date'   => $app_date,
+            'url'        => $url,
+            'source'     => $path,
+            };
+    }
+} else {
+    ## simple format : Datum;Firma;Position;Status ##
+    for my $line (@lines) {
+        next if $line !~ m|\S|;
+        my ( $date, $company, $title, $status ) = $split_row->($line);
+        next if not length $company and not length $title;
+        push @entries,
+            {
+            'date'       => $date,
+            'company'    => $company,
+            'title'      => $title,
+            'city'       => '',
+            'score'      => '',
+            'status_raw' => $status,
+            'app_date'   => '',
+            'url'        => '',
+            'source'     => $path,
+            };
+    }
+}
+
+return \@entries;
+
+#,,..,,.,,.,,,,.,,...,.,.,,,.,,..,,,.,,.,,,,,,.,.,...,...,..,,.,.,.,.,...,.,.,
+#HYQAJ3DIRO2CLT5RQCC63A6GPKEIYLV3E7BEBJVLFSYDWMVZ4WWD2MO7QKYHXOQCS3AM7KZ7KAYL2
+#\\\|ZNGFODUYZVFXTO576ZCGTB4SUANQK544OF6DGNF36XSWPBGXVDC \ / AMOS7 \ YOURUM ::
+#\[7]JJEFHHOFZLOIY4V62T7WP7BVHSNXWAEVGVYJUDX6QOP733DYOADI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

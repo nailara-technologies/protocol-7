@@ -1,0 +1,227 @@
+## [:< ##
+
+# name  = jobsite.report.render_dossier
+# descr = render report + cv/letter evidence into sectioned html
+# param = $report_path [ written by jobsite.report.assemble ]
+# return = { mode => true, html_path => .. } or { mode => false, data => .. }
+
+my $report_path = shift // '';
+
+return { 'mode' => qw| false |, 'data' => 'report path required' }
+    if not length $report_path;
+
+my $report = eval { YAML::XS::LoadFile($report_path) };
+if ($EVAL_ERROR) {
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( 'report load failed [ %s ]', $EVAL_ERROR )
+    };
+}
+
+my $template_dir
+    = <system.root_path> . '/'
+    . <system.web-root-templates>
+    . '/jobsite-report';
+my $template_file = "$template_dir/dossier.html";
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( 'template missing [ %s ]', $template_file )
+    }
+    if not -f $template_file;
+
+my $html_ref = <[file.slurp]>->($template_file);
+return { 'mode' => qw| false |, 'data' => 'template load failed' }
+    if not defined $html_ref;
+
+my $esc = sub {
+    my $s       = shift // '';
+    my $escaped = HTML::Entities::encode_entities($s);
+    ## jobsite.report.extract_text wraps a detected centered/right-aligned  ##
+    ## pdf title [ e.g. a letterhead's "Zeugnis" heading ] in \x01 sentinel ##
+    ## markers rather than trying to guess plain-text spacing -- convert    ##
+    ## that marker to a real centered block here, once, for every evidence  ##
+    ## text this closure touches, instead of duplicating the substitution   ##
+    ## at each individual section-render call site below  encode_entities   ##
+    ## above already turned \x01 into its numeric entity form -- match the  ##
+    ## POST-escape representation, not the raw byte                         ##
+    $escaped =~ s{&\#1;CENTER&\#1;(.*?)&\#1;ENDCENTER&\#1;}
+                 {<span style="display:block;text-align:center">$1</span>}gs;
+    return $escaped;
+};
+
+## --- section 1 : summary table ------------------------------------------ ##
+
+my %status_label = (
+    'applied'     => 'beworben',
+    'rejected'    => 'Absage erhalten',
+    'interviewed' => "Vorstellungsgespr\x{e4}ch",
+    'apply'       => 'vorzumerken',
+    'review'      => "in Pr\x{fc}fung",
+    'assessed'    => 'bewertet',
+    'new'         => 'neu',
+);
+
+my $entries  = $report->{'entries'} // [];
+my $rows_str = '';
+for my $entry ( @{$entries} ) {
+    my $status = $entry->{'status'}     // '';
+    my $label  = $status_label{$status} // $status;
+    $rows_str
+        .= sprintf
+        qq|<tr><td>%d</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td>|
+        . qq|<td class="status-%s">%s</td></tr>\n|,
+        $entry->{'nr'} // 0,
+        $esc->( $entry->{'date'}    // '' ),
+        $esc->( $entry->{'company'} // '' ),
+        $esc->( $entry->{'title'}   // '' ),
+        $esc->( $entry->{'city'}    // '' ),
+        $esc->($status),
+        $esc->($label);
+}
+
+## --- evidence : cv + application letters -------------------------------- ##
+
+my $evidence
+    = <[jobsite.report.evidence_collect]>->( { 'entries' => $entries } );
+
+my $cv_section;
+if ( defined $evidence->{'cv'} ) {
+    $cv_section
+        = sprintf qq|<div class="evidence-item"><h3>%s</h3>|
+        . qq|<div class="evidence-text">%s</div></div>\n|,
+        $esc->( $evidence->{'cv'}{'filename'} ),
+        $esc->( $evidence->{'cv'}{'text'} );
+} else {
+    $cv_section = qq|<p class="section-note">kein Lebenslauf gefunden.</p>\n|;
+}
+
+my $references_section = '';
+for my $ref ( @{ $evidence->{'references'} // [] } ) {
+    $references_section
+        .= sprintf qq|<div class="evidence-item"><h3>%s</h3>|
+        . qq|<div class="evidence-text">%s</div></div>\n|,
+        $esc->( $ref->{'filename'} ), $esc->( $ref->{'text'} );
+}
+$references_section
+    = qq|<p class="section-note">keine Arbeitszeugnisse gefunden.</p>\n|
+    if not length $references_section;
+
+my $letters_section = '';
+for my $letter ( @{ $evidence->{'letters'} // [] } ) {
+    my $meta_str
+        = defined $letter->{'matched_nr'}
+        ? sprintf 'zugeordnet zu Nr. %d (%s)', $letter->{'matched_nr'},
+        $esc->( $letter->{'company_guess'} )
+        : '<span class="unmatched">keine automatische '
+        . 'Zuordnung -- bitte manuell prüfen</span>';
+    $meta_str .= sprintf ' · Datum im Text: %s',
+        $esc->( $letter->{'date_guess'} )
+        if length $letter->{'date_guess'};
+
+    $letters_section
+        .= sprintf qq|<div class="evidence-item"><h3>%s</h3>|
+        . qq|<div class="evidence-meta">%s</div>|
+        . qq|<div class="evidence-text">%s</div></div>\n|,
+        $esc->( $letter->{'filename'} ),
+        $meta_str,
+        $esc->( $letter->{'text'} );
+}
+$letters_section
+    = qq|<p class="section-note">keine Bewerbungsschreiben gefunden.</p>\n|
+    if not length $letters_section;
+
+## --- mail replies -------------------------------------------------------##
+
+my $mail_evidence
+    = <[jobsite.report.mail_evidence_collect]>->( { 'entries' => $entries } );
+
+my %mail_intent_label = (
+    'rejected'  => 'Absage',
+    'interview' => "Vorstellungsgespr\x{e4}ch / Einladung",
+    'other'     => "Sonstige R\x{fc}ckmeldung",
+);
+
+## confirmations carry little verifiable value beyond "this was sent on ##
+## this date" -- a full evidence-item block per receipt just buries the ##
+## decisive correspondence in auto-reply boilerplate ; keep them as a   ##
+## compact date/subject/sender table in their own section instead       ##
+my $mail_section       = '';
+my $confirmations_rows = '';
+for my $mail ( @{ $mail_evidence // [] } ) {
+    if ( $mail->{'intent'} eq 'confirmation' ) {
+        $confirmations_rows .= sprintf
+            qq|<tr><td>%s</td><td>%s</td><td>%s</td></tr>\n|,
+            $esc->( $mail->{'date'} ), $esc->( $mail->{'subject'} ),
+            $esc->( $mail->{'from'} );
+        next;
+    }
+
+    my $meta_str
+        = defined $mail->{'matched_nr'}
+        ? sprintf 'zugeordnet zu Nr. %d (%s)', $mail->{'matched_nr'},
+        $esc->( $mail->{'matched_company'} )
+        : '<span class="unmatched">keine automatische '
+        . 'Zuordnung -- bitte manuell prüfen</span>';
+    $meta_str .= sprintf ' · %s · Absender: %s · Datum: %s',
+        $esc->( $mail_intent_label{ $mail->{'intent'} }
+            // $mail->{'intent'} ),
+        $esc->( $mail->{'from'} ), $esc->( $mail->{'date'} );
+
+    $mail_section
+        .= sprintf qq|<div class="evidence-item"><h3>%s</h3>|
+        . qq|<div class="evidence-meta">%s</div>|
+        . qq|<div class="evidence-text">%s</div></div>\n|,
+        $esc->( $mail->{'subject'} ),
+        $meta_str,
+        $esc->( $mail->{'body_excerpt'} );
+}
+$mail_section
+    = qq|<p class="section-note">noch keine E-Mail-Nachweise erfasst.</p>\n|
+    if not length $mail_section;
+$confirmations_rows
+    = qq|<tr><td colspan="3" class="section-note">keine|
+    . qq| Eingangsbest\x{e4}tigungen erfasst.</td></tr>\n|
+    if not length $confirmations_rows;
+
+## --- assemble ------------------------------------------------------------##
+
+my $period = sprintf "%s \x{2013} " . "%s",
+    $report->{'report'}{'period'}{'from'} // '',
+    $report->{'report'}{'period'}{'to'}   // '';
+
+$$html_ref =~ s|\[PERIOD\]|$period|g;
+$$html_ref =~ s|\[GENERATED\]|$report->{'report'}{'generated'} // ''|ge;
+$$html_ref =~ s|\[ENTRY_COUNT\]|$report->{'report'}{'entry_count'} // 0|ge;
+$$html_ref =~ s|\[ROWS\]\n?|$rows_str|;
+$$html_ref =~ s|\[CV_SECTION\]\n?|$cv_section|;
+$$html_ref =~ s|\[REFERENCES_SECTION\]\n?|$references_section|;
+$$html_ref =~ s|\[LETTERS_SECTION\]\n?|$letters_section|;
+$$html_ref =~ s|\[MAIL_SECTION\]\n?|$mail_section|;
+$$html_ref =~ s|\[CONFIRMATIONS_ROWS\]\n?|$confirmations_rows|;
+
+( my $html_path = $report_path ) =~ s|\.yaml$|.dossier.html|;
+my $html_tmp = "$html_path.NEW";
+
+## bin/Protocol-7 sets `use open qw| :encoding(UTF-8) |` globally, so       ##
+## base.file.put's plain open() already encodes on write -- a manual        ##
+## utf8::encode here would double-encode ; write the decoded string through ##
+## as-is                                                                    ##
+if ( not <[file.put]>->( $html_tmp, $$html_ref ) ) {
+    return { 'mode' => qw| false |, 'data' => 'html write failed' };
+}
+rename( $html_tmp, $html_path )
+    or return {
+    'mode' => qw| false |,
+    'data' => sprintf( 'html rename failed [ %s ]', $! )
+    };
+
+<[base.logs]>->( 1, 'jobsite dossier rendered : %s', $html_path );
+
+return { 'mode' => qw| true |, 'html_path' => $html_path };
+
+#,,,.,.,,,,,.,,.,,,,.,...,,,,,.,.,,,,,,.,,,..,..,,...,...,...,.,,,,,,,,,.,,,.,
+#3ZMMC4RBEIPNYUF4GD6NNCN2LTV7YMBPZRMWETIT4RLJVQ24UNFF4BVZFBGF2MAO4MJDM5N4MDIJM
+#\\\|MD5EACR5MCUA45Q33ENDQF4DQGK2JR3R2PWEZ7OIDIJI2VZZ56A \ / AMOS7 \ YOURUM ::
+#\[7]D46PDR2QPVCEI3WZWWWNRQUZQGW5UWYJ4W3DXIRVIG2XZ3AGMMAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

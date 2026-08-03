@@ -5,6 +5,7 @@ coding & kimi zenka state machines, jobsite, streaming transport, web-browser ca
 reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active Topics
+- [jobsite-report-dossier](project-jobsite-report-dossier.md) — jobcenter evidence-dossier pipeline (jobsite.report.*/jobsite.cmd.*), uncommitted; own-address self-reply exclusion + credential-leak redaction + PDF/HTML letter dedup (prefer .pdf, HTML::FormatText mangles multi-column letterheads) all verified and resent
 - [reload-safe-transient-config-keys](topic-reload-safe-transient-config-keys.md) — modules.load/preload cleanup design paused before implementation (base.register_prune + config.reload.prune + base.pre_init/base.reload_config hooks); full design in data/md/design/RELOAD-SAFE-TRANSIENT-CONFIG-KEYS.md; mod-test/start carries a known-incomplete base.prune_key placeholder as a reminder
 - [mpv-x11-dependency-cascade-restart](topic-mpv-x11-dependency-cascade-restart.md) — X-11 crash SIGKILLed mpv[audio-0]/radio via v7's blanket zenka-level dependency cascade; instance-exemption mechanism coded (v7.zenka.start seed + v7.handler.zenka_status check + mpv.startup.resolve_x11_info), config directive syntax still undecided
 - [session-id-range-division-planned](topic-session-id-range-division-planned.md) — future numbering: session ids split into ranges, 7<nnnnnn> becomes a "resource range" (parent vs locally-managed client branches); why p7-log's gap-repair notices use 7777777 as their no-prior-context sentinel, revisit if that range gets designed for real
@@ -91,8 +92,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [scratchpad-import-tool](topic-scratchpad-import-tool.md), [scratchpad-rescue-coding-zenka-task](topic-scratchpad-rescue-coding-zenka-task.md) — mcp-server-p7 scratchpad tools tested; follow-up task filed w/ kimi K3 for native coding-zenka rescue tools + chmod g+rx fix
 - [ncode-pattern-learning-loop](topic-ncode-pattern-learning-loop.md) — phase 1 + phase 2 (namespace scope-stack) LANDED, staged+committed `f8108af44` 2026-07-30 (kimi K3): scope_match/widen-scope + ncode.regex.apply status-gate parity fix, live-verified via p7c; tier-A chain fully run (expand→apply on scratch 2026-07-24; assess entry point tried on a real occurrence 2026-07-31, blocked by [[bug-ncode-assess-replace-not-backreferenced]] — assess never backreferences its own capture group, so it can't produce a generalizing pattern)
 
-#,,,.,,.,,.,.,,.,,,,.,,..,,,.,..,,,,.,,..,,.,,..,,...,...,..,,...,,,,,,,,,,..,
-#EGZVAGI7AYNLGR4JGMXLEIXMOTCSDLLH342J3QLGAQ6OZRILVRI6QIZXMCCZ2OFE5FYCH4526BQBI
-#\\\|IBDJRYJ55ALT5ON4GOXKIITZJDE6I5ORKNGXQWWS36ALDC4NH4U \ / AMOS7 \ YOURUM ::
-#\[7]UHMO3N5C33WDUWJCXPZRXGQ4RHH2HWC4IMLWYP3WDJKIDIKLNMBQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,...,,.,,.,.,,..,.,,,.,.,,,,,..,,..,,...,..,,.,.,.,,,,,.,,,.,...,
+#KA5VVXEW4D7GDSUKUSRQQWJUVNCX4PQ4PZMRGZYIVYQ7X4XJARLZLVFOPKQJ5WIBCKPGCQOSPFOCW
+#\\\|CXSX3VPDV27GRBKKPJWEXBN22E3UUDFSCEBXO5JKHGORVX5KYAO \ / AMOS7 \ YOURUM ::
+#\[7]FQGB6XAXKEASGUVYOMKOBDB6TR7OB5DICODG7JFBI3YMSVJPW4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
