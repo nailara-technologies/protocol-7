@@ -19,8 +19,15 @@ Confirmed working and staged (2026-07-13): jobsite review-tab UI usability upgra
 
 **How to apply:** for future jobsite (or similar poll-driven) UI work, default to gating full-rebuild renders on an actual-change check rather than firing on every poll, and prefer capture/restore of interactive DOM state (focus, cursor, open menus, scroll) around any render() call that can land asynchronously mid-user-interaction. See [[topic-plugin-web-jobs]] for the broader jobsite plugin history.
 
-#,,.,,,,,,...,.,,,...,,..,,,,,,..,,,,,..,,.,,,..,,...,...,...,,..,..,,,,.,.,,,
-#6D3T5MSUL6N7UTAYXGX6VZV4LHEW32CYUTG6UFRZRGNEEQAQFTPHA5CATPX4OTJSAPBZI4AMH3ZY4
-#\\\|PIYSULS4KGDERZ4KHIXG7J5GLZQY5QBTC4BUXBSILFIASFGNYXH \ / AMOS7 \ YOURUM ::
-#\[7]7EAROABBRS7VW5U2T7WFAEI46F3SG3VDYWOBNUKWWPMYXVYTZQCQ 7  DATA SIGNATURE ::
+## follow-up fix (2026-08-03, commit `7688320c5`)
+
+Landed by the coding zenka in a session that had timed out; user committed directly with the zenka's suggested message.
+
+- `mergeJobs()` was dropping notes on fresh loads / empty localStorage: server persists the field as `notes`, UI reads/renders `note` — no mapping existed between the two, so new jobs (or a cleared cache) silently lost existing notes on merge. Fixed by mapping server `notes` → UI `note` inside `mergeJobs()`.
+- `repair_failed` badge/stat checks used `=== true`/similar, which never matches the zenka's `TRUE=5` constant arriving over JSON — see [[critical-patterns]]'s TRUE≠1 entry, now cross-referenced there. Fixed in `renderCard()` (badge display) and `updateStats()` (rfl metric count).
+
+#,,..,,..,..,,...,...,,,,,.,.,,,.,.,.,,,,,,..,..,,...,...,,,.,...,,,.,...,.,.,
+#BNGSUVROI32PNHKH6CJQ45IDXO3NYB7VQWOZW73NRWBUJYGV3E6IVXIPRULVC7WDVAV5LLGN2T2ZS
+#\\\|JFNMMIDQJKGZTFLSEZE6WWI75EDGZKL6GC5P6GSGWSTOOWFCEHC \ / AMOS7 \ YOURUM ::
+#\[7]BJL5LVUSAS3RY3N74RKK5QMANEHTOEYVG64TNUYBEJILK6JUC6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
