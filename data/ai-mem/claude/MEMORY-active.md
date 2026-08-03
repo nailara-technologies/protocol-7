@@ -5,6 +5,7 @@ coding & kimi zenka state machines, jobsite, streaming transport, web-browser ca
 reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active Topics
+- [jobqueue-check-dependencies-splice-bug](topic-jobqueue-check-dependencies-splice-bug.md) — FIXED (not yet zenka-restarted/live-verified): shared jobqueue.check_dependencies iterated the array move_job splices, stranding ~half of resolved dep-queue jobs per pass; hits mpv/coding/models/vision-batch/X-11 identically
 - [jobsite-report-dossier](project-jobsite-report-dossier.md) — jobcenter evidence-dossier pipeline (jobsite.report.*/jobsite.cmd.*), uncommitted; own-address self-reply exclusion + credential-leak redaction + PDF/HTML letter dedup (prefer .pdf, HTML::FormatText mangles multi-column letterheads) all verified and resent
 - [reload-safe-transient-config-keys](topic-reload-safe-transient-config-keys.md) — modules.load/preload cleanup design paused before implementation (base.register_prune + config.reload.prune + base.pre_init/base.reload_config hooks); full design in data/md/design/RELOAD-SAFE-TRANSIENT-CONFIG-KEYS.md; mod-test/start carries a known-incomplete base.prune_key placeholder as a reminder
 - [mpv-x11-dependency-cascade-restart](topic-mpv-x11-dependency-cascade-restart.md) — X-11 crash SIGKILLed mpv[audio-0]/radio via v7's blanket zenka-level dependency cascade; instance-exemption mechanism coded (v7.zenka.start seed + v7.handler.zenka_status check + mpv.startup.resolve_x11_info), config directive syntax still undecided
@@ -92,8 +93,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [scratchpad-import-tool](topic-scratchpad-import-tool.md), [scratchpad-rescue-coding-zenka-task](topic-scratchpad-rescue-coding-zenka-task.md) — mcp-server-p7 scratchpad tools tested; follow-up task filed w/ kimi K3 for native coding-zenka rescue tools + chmod g+rx fix
 - [ncode-pattern-learning-loop](topic-ncode-pattern-learning-loop.md) — phase 1 + phase 2 (namespace scope-stack) LANDED, staged+committed `f8108af44` 2026-07-30 (kimi K3): scope_match/widen-scope + ncode.regex.apply status-gate parity fix, live-verified via p7c; tier-A chain fully run (expand→apply on scratch 2026-07-24; assess entry point tried on a real occurrence 2026-07-31, blocked by [[bug-ncode-assess-replace-not-backreferenced]] — assess never backreferences its own capture group, so it can't produce a generalizing pattern)
 
-#,,,.,,..,.,.,...,,.,,.,.,,..,.,,,.,.,,,,,..,,..,,...,..,,.,.,.,,,,,.,,,.,...,
-#KA5VVXEW4D7GDSUKUSRQQWJUVNCX4PQ4PZMRGZYIVYQ7X4XJARLZLVFOPKQJ5WIBCKPGCQOSPFOCW
-#\\\|CXSX3VPDV27GRBKKPJWEXBN22E3UUDFSCEBXO5JKHGORVX5KYAO \ / AMOS7 \ YOURUM ::
-#\[7]FQGB6XAXKEASGUVYOMKOBDB6TR7OB5DICODG7JFBI3YMSVJPW4CY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,.,,,,,,..,,,.,,.,,,,.,,,..,,..,..,,...,...,.,.,.,.,.,.,...,,,.,
+#A7GA6F4S3LEOR57ZMPWYSGQ2XF7WRGFOGHZVRD2U46NR2L5M56PS6SIASHQZZU6G5VXPRA3IKI3PM
+#\\\|2P4XFWH5HKX45TXI2ASO3TX53Z2OWKVAY5PMP54NRPKKP3LX4SY \ / AMOS7 \ YOURUM ::
+#\[7]7LVHA7FBS2572SIWKN2JTYYOPCO36BC33P24IIHUBLVYAOWDZ4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

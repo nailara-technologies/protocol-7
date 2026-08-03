@@ -15,7 +15,10 @@ my $prio_queue = $job_queue->{'by_priority'};
 foreach my $prio ( sort { $a <=> $b } keys $prio_queue->%* ) {
     next if !@{ $prio_queue->{$prio} };
 
-    foreach my $job_id ( @{ $prio_queue->{$prio} } ) {
+    ## snapshot: move_job splices resolved ids out of this same array, so ##
+    ## iterating the live ref here skips every other entry                ##
+    my @pending_ids = @{ $prio_queue->{$prio} };
+    foreach my $job_id (@pending_ids) {
         my $object_id = $job_list->{'by_id'}->{$job_id}->{'object_id'};
         if ( not defined $object_id ) {
             <[base.logs]>->(
@@ -43,8 +46,8 @@ foreach my $prio ( sort { $a <=> $b } keys $prio_queue->%* ) {
     }
 }
 
-#,,,,,.,.,..,,,.,,...,.,.,.,.,.,.,,.,,...,.,,,..,,...,...,,..,,,,,.,,,,.,,,..,
-#E63TQWZOVVOKVCZYKIOYGLDO3ICHNWGGM2OMZHCS6ZQ3V5RHDH6F22NBNFFU2GSDFRLFQLQD4ZSGU
-#\\\|NQWR7BB5TK3L2HZRNE3HFF2PVGXWSNDYO3AG6TBHLWAN6CDWR3G \ / AMOS7 \ YOURUM ::
-#\[7]X4KHELJ67BNBLMG6EBWZDRG6Z2ELNW3XSRGPAZ3B4CNLPDMRQCAQ 7  DATA SIGNATURE ::
+#,,.,,...,,,.,,,,,..,,,,.,,,,,...,,.,,..,,...,..,,...,..,,.,.,,.,,.,,,.,.,,..,
+#NVPFOBQYFDZFZYA2T6BYGHLTS7WSIEYUKCK7EFG7QTFWFJ7Y3U24NBGAZ3CWAHDUVFYXCYF2BUXY2
+#\\\|VHH6JO3VMP5KO64AZ2V5IHYZEC53Q3GPNGGJP7CHY7IJE2SN2PH \ / AMOS7 \ YOURUM ::
+#\[7]SAGNFKTU62UKHN3YTADEHTNPFIX3K7VWZG2HGXQNMXSM4NFQUABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
