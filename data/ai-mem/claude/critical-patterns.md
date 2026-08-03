@@ -59,6 +59,7 @@ my $cmd_count = <[base.protocol-7.command.send.local]>->({
 ## Style: TRUE ≠ 1
 - `TRUE=5`, `FALSE=0`, `UNKNOWN=2`
 - `> 1` checks trigger on `TRUE` (5) — use literal `1` for "more to read" return codes
+- Same hazard crosses into browser JS when a zenka's TRUE=5 value reaches JSON/UI code: `value === true` or `if (value)` truthiness assumptions are fine, but strict comparisons/badges keyed on `=== true` silently miss it — check `value == 5 || value === true`. Hit in jobsite's `repair_failed` badge/stat logic (commit `7688320c5`).
 
 ## file.slurp Returns Scalar Ref
 - `<[file.slurp]>->($path)` returns `\$content`, NOT `$content`
@@ -148,8 +149,8 @@ my $cmd_count = <[base.protocol-7.command.send.local]>->({
 ## ptd usage
 - Use `ptd` (not `ptd -c`) after writing modules — formats + checks syntax in one pass
 
-#,,,.,..,,,,,,.,,,.,.,,..,.,,,.,,,..,,,,,,..,,..,,...,.,.,.,.,,,,,...,..,,...,
-#VTMYIKDECKSFCI45JZ2UAD7NWBODKVYLVAF7STXVPPWIDO2YAJGAB32YRCL5MITYIQVTCGICVRKQO
-#\\\|NX2AE74CH52ITWFHMTNVHFZU4R6TUOMZP4YXF5AXIF62ZKXKPHR \ / AMOS7 \ YOURUM ::
-#\[7]KYS7UAAGN6T3CI2BYE5NMXOAAKQO6YNSEFHLRJ4YFVFPRPWKA6BY 7  DATA SIGNATURE ::
+#,,.,,...,...,,,.,,.,,...,,.,,,,,,,,,,,,,,,,.,..,,...,...,..,,,.,,...,..,,,,,,
+#5FHGO5U4YV6CK2JXWGWYFCNAR54NDUSS3EFJYUH5QNZWBFXBL55GBBHBTOOHUV7MVOKGCR2BV23CM
+#\\\|MHSXQ4TJIT5RDDMRUOHLTOBFMI452OBH4AV3U4BOEQAKU4SX3O3 \ / AMOS7 \ YOURUM ::
+#\[7]TN2QXGJ7AL2RYGOLVZGOPRRQQMUIZAGASI4NZTPAJDVTAZBPEKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
