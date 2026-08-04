@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = amos-term.cmd.interaction-status
+# descr = report interaction channel state
+
+my $state = <amos-term.interaction.state>;
+
+my @report;
+push @report,
+    sprintf( "buffer_name " . "  : %s", $state->{'buffer_name'} // 'undef' );
+push @report,
+    sprintf( "window_id " . "    : %s", $state->{'window_id'} // 'undef' );
+push @report,
+    sprintf( "attach_id " . "    : %s", $state->{'attach_id'} // 'undef' );
+push @report,
+    sprintf( "user_attach   : %s", $state->{'user_attach_id'} // 'undef' );
+push @report,
+    sprintf( "pending       : %s",
+    defined $state->{'pending'}
+    ? $state->{'pending'}->{'question'}
+    : 'none' );
+push @report,
+    sprintf( "reply_buffer " . " : %s", $state->{'reply_buffer'} // q|| );
+
+my $answered = $state->{'answered'} // [];
+push @report, sprintf( "answered      : %d", scalar $answered->@* );
+foreach my $a ( $answered->@* ) {
+    push @report, sprintf( "  Q: %s", $a->{'question'} );
+    push @report, sprintf( "  A: %s", $a->{'reply'} );
+}
+
+return { 'mode' => 'true', qw| data | => join( "\n", @report ) . "\n" };
+
+0;
+
+#AMOS7_SIGNATURE_PLACEHOLDER
+
+#,,.,,.,,,,.,,,,,,,,,,.,,,...,...,,,.,...,..,,..,,...,...,..,,,..,,.,,,.,,,..,
+#RV7CXWIYUMPAHN2ZP4KWOX26FDTFBJI2STNXL6MO6C2HOLN3BTLEQG3ADJZRS76ZQXOKMLNFL5N4A
+#\\\|4SPYAT47XWUT5QZGQDXW6O5K25IU6R4NLKHQJ2FV2LZDRJF4TEX \ / AMOS7 \ YOURUM ::
+#\[7]Z2LAW2YBAPFPOH5VAR4KTGXJOP6M3JGI2DQOPC64Q3KVQBTTYOCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
