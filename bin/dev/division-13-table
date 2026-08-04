@@ -4,7 +4,7 @@ use v5.24;
 use strict;
 use English;
 use warnings;
-use Encode qw| encode |;
+use Encode      qw| encode |;
 use Crypt::Misc qw| decode_b32r |;
 
 ###                   ###
@@ -16,7 +16,7 @@ use Crypt::Misc qw| decode_b32r |;
 BEGIN {
     use English;
     use File::Spec;
-    use Cwd qw| abs_path |;
+    use Cwd     qw| abs_path |;
     use FindBin qw| $RealBin |;
     our $Bin    = $RealBin;
     our $up_dir = File::Spec->updir;
@@ -139,12 +139,8 @@ sub display_result {
 ## decoded states ## of 7 bit data ..,
 ##
 ###[ 00 00 110 ] hop count is 1 + 3 bit decimal value
-##                     directional nominator : 0 = forward : 110 <-- hop count
-##                                         1 = 90 deg angle : 10 <-- direction
-##                                                            00 : 0 : UP
-##                                                            10 : 2 : LEFT
-##                                                            01 : 1 : RIGHT
-##                                                            11 : 3 : DOWN
+## directional nominator : 0 = forward : 110 <-- hop count  1 = 90 deg angle :
+## 10 <-- direction  00 : 0 : UP  10 : 2 : LEFT  01 : 1 : RIGHT  11 : 3 : DOWN
 
 ###[ 01 <0|1> 00000 ]
 ##
@@ -152,30 +148,26 @@ sub display_result {
 ##
 ##        1[0|1] + 4 bits : numerical document cube header
 ##
-##           0 : monochrome document [ 4 + 1 set are size [compressed int] ]
-##           1 : color document [ 4 [ + 1 set ] bits declare color depth ]
+## 0 : monochrome document [ 4 + 1 set are size [compressed int] ] 1 : color
+## document [ 4 [ + 1 set ] bits declare color depth ]
 ##
-## monochrome bits: 23 : size, 17 : pages, 12 : files, 1 orientation, 4 : style
+## monochrome bits: 23 : size, 17 : pages, 12 : files, 1 orientation, 4 :
+## style
 ##
 ## style [ 2 bits background, 2 bits foreground ] : black=0, blue=1, white=2
 ##
-##        blue background style : #09052A : foreground blue : #0647C3
-##        when both blue styles enabled, curvature blur 42 is applied
+## blue background style : #09052A : foreground blue : #0647C3  when both blue
+## styles enabled, curvature blur 42 is applied
 ##
 ## color bits: 23 : size, 17 : pages, 12 : files, 1 orientation, 4 : 8 + depth
 ##
 ## color depth : 8 + value of 4 bits [ depth range in bits : 8 .. 24 ]
 
 ###[ 1 000000 ]
-## graphical 5x7 pixel matrix payload, <0-4><oct> [pos]
-##                                       <48> 0 background color
-##                                       <49> 1 monochrome or foreground color
-##                                       <50> reset color [ to monochrome ]
-##                                       <51> reset alpha [ to opaque ]
-##                                       <52> set add color
-##                                       <53> subtract color
-##                                        54 .. 61 : color
-##                                        62 .. 63 : alpha
+## graphical 5x7 pixel matrix payload, <0-4><oct> [pos]  <48> 0 background
+## color  <49> 1 monochrome or foreground color  <50> reset color [ to
+## monochrome ]  <51> reset alpha [ to opaque ]  <52> set add color  <53>
+## subtract color  54 .. 61 : color  62 .. 63 : alpha
 
 sub decoded_bits {
 
@@ -185,10 +177,8 @@ sub decoded_bits {
     $type .= substr( $bits, 0, 1, '' ) if $type eq qw| 01 |;
     $type .= substr( $bits, 0, 1, '' ) if $type eq qw| 011 |;
 
-    ## graphical character ##
+    ## graphical character [ 5x7 pixel matrix ] ##
     return decoded_bits_chars($bits) if $type eq qw| 1 |;
-
-    return decoded_bits_chars($bits) if $type eq qw| 01 |;    ## 5x7 pixel ##
 
     return sprintf qw| %s< |, decoded_bits_BASE32($bits)
         if $type eq qw| 010 |;    ##  BASE32 UTF-7  ##
@@ -263,8 +253,8 @@ sub decoded_bits_chars {
 sub entropy_body {
 
     return ++$entropy_started if $entropy_started < 0;
-    printf "%s: ===== : $C{0} MAIN ENTROPY"
-        . " START$C{0}  | %42s | DECODED :%s%s%s\n",
+    printf "%s: ===== : $C{0} MAIN ENTROPY "
+        . "START$C{0}  | %42s | DECODED :%s%s%s\n",
         "$C{0}$C{b}",
         scalar( '-' x 9 )
         . " .:$C{T}$C{B} MAIN ENTROPY BODY $C{0}:. "
@@ -272,8 +262,8 @@ sub entropy_body {
     return $entropy_started = 5;
 }
 
-#,,,,,...,,,,,,,,,...,.,.,,.,,,..,...,.,,,...,..,,...,...,,..,,,,,...,.,.,..,,
-#QNQKDSBLTUSQJZK5PHRY2QMQ6GDP4MWMOGJ74IOJMI25OCCRZI5QF6IIYVWBIINYB6WIZKNAJODU4
-#\\\|JBIYOPQXZQ5BZJNEDPR6SRN67AERPGOQYLR5DOCQR3P3MOGTPRE \ / AMOS7 \ YOURUM ::
-#\[7]O7R5ZINM5CAI46ZKBHMLGXB6NDTJIDUCLRS5PCA6F5DTTLE3NUDI 7  DATA SIGNATURE ::
+#,,,,,...,,,.,,,,,,,.,...,,..,...,...,,.,,,..,..,,...,...,...,.,,,.,,,.,,,,..,
+#4P6REBBU3R7IIOD3WTDVDNMK6FF5S6ESENV7QRYM6S2KRVPOYUOEMZNWEG26EYGK7ECAVF6AY4UQI
+#\\\|HICU65RQYNGJIXD63Y7UMX7MZRGAODPYRX2GDKPGPJRLGBOXKKJ \ / AMOS7 \ YOURUM ::
+#\[7]AKFDSJWHINX2FZR6TWESLUAEKZFKBOLIHMWVQVQ46S7K3L6TCMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
