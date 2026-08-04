@@ -18,6 +18,53 @@ crossing them — this ledger is the structured precursor to that, tiered so a
 future visualization can distinguish signal from noise at a glance rather than
 re-deriving the tier for every entry.
 
+## headline finding — the doubling-inversion symmetry, LIVE-VERIFIED (not a new discovery, a new proof)
+
+**Correction, same session**: initially framed as a new finding — it
+isn't. `data/md/documentation/harmonic-cycle-correlations.md:256`
+already documents this exact phenomenon: `"bit-shift left flips is_true
+state, period 12"`. What's actually new here is narrower: an exhaustive
+live proof against the real `bin/is-true` tool (zero exceptions, all 12
+members individually run, not asserted from theory), and pinning the
+mechanism to direct division by 13 on the family's own blocks rather
+than the more abstract "bit-shift" framing — both land on the same
+residue progression because `2` is a primitive root mod `13` (order 12,
+`2^12 mod 13 = 1`), which is also the reason the period is exactly `12`
+and not something else. Found while correcting an initial testing error
+(`is-true` run on the wrong operand — see the "resolving a real
+discrepancy" entry below for the full trace). The verified law:
+
+```
+block(k)/13's decimal tail  ==  block(2k mod 13), exactly     — algebraic identity
+is_true(k)  !=  is_true(2k mod 13), for every k in 1..12       — zero exceptions
+```
+
+Both halves independently confirmed exhaustively across all 12 members
+of the `1/13` family: the arithmetic identity holds exactly every time,
+and the TRUE/FALSE state inverts every single time doubling is applied,
+no exceptions. This composes into one complete, closed law: dividing any
+family member by 13 doesn't just produce another family member, it
+deterministically produces the one guaranteed to hold the opposite truth
+value under this codebase's own live truth-assertion tool. Not a new
+law — already documented (see correction above) — but the strongest
+*verification* of the whole session: full exhaustive proof against real
+running code, not inference from a sample or trust in the prior doc.
+
+## resolving a real discrepancy — TRUE/FALSE is about the numerator, not the block
+
+Early confusion, corrected in place rather than silently: `true-false-
+description.asc` documents `TRUE === 384615`, `FALSE === 230769`.
+Running `bin/is-true` directly on those 6-digit blocks gives `FALSE` for
+*both* (plain mode) or the *opposite* labels (`-num` mode) — neither
+matches the doc. Resolution: the assertion was never about the 6-digit
+repeating block at all. It's `is-true -num <k>` on the small numerator
+(`k=3` → FALSE, matching `230769`; `k=5` → TRUE, matching `384615`) —
+the decimal block just carries that label by association, displayed
+alongside it, not independently tested. Confirmed for all 12: `k=2,5,6,
+7,8,11` are TRUE, `k=1,3,4,9,10,12` are FALSE — an exact 6/6 split. The
+doc's claim holds; the error was testing the wrong operand, not a flaw
+in the documented material.
+
 ## tier definitions
 
 - **STRONG** — passes a test stronger than surface resemblance: exact integer
@@ -132,6 +179,82 @@ From `true-false-description.asc:37` (`384615/0.7=549450`): split into
 `chr(54)='6'`, `chr(94)='^'`, `chr(50)='2'` — literally `6^2`, no
 rounding or interpretation involved, confirmed via direct `chr()` calls.
 
+## half-implies-half: lossless 3-digit encoding — STRONG, exhaustively proven
+
+Direct consequence of the digit-complement theorem, not a separate claim:
+for any member of the `1/7` family (k=1..6) or `1/13` family (k=1..12),
+storing only the first `L/2` digits is sufficient to losslessly reconstruct
+the rest — the second half is always exactly `9` minus each digit of the
+first half, position by position. Checked exhaustively, zero exceptions:
+all 6 members of `1/7`, all 12 of `1/13`. A real 50% storage reduction for
+any number known to be in one of these families, not a coincidence-shaped
+claim — it follows necessarily from `10^(L/2)≡−1 mod p` the same way the
+digit-complement theorem itself does. Trigger for
+`CROSS-READOUT-RING-KEY-ADDRESSING.md`'s single-character-plus-complement
+addressing idea (see that doc; not yet incorporated there as of this
+entry).
+
+**Immediate caveat, also checked**: this only identifies the *half*, not
+*which* member. The 12 basic `k/13` rotations are a closed, addressable
+set (`offset 1..12`), but the wider family found this session
+(`967032=76923×88/7`, `483516=76923×44/7`, `648351=10989×59`,
+`351648=10989×32`) are confirmed-exact family members that are **not**
+among those 12 rotations — checked directly, none matched. So a simple
+rotation-offset cannot address the full family; the real family is open
+over the rationals (any exact multiple of the shared root `10989`), and
+identifying *which* multiple requires more than an offset index. The
+half-implies-half compression is complete *within* a member; addressing
+*which* member is a separately open problem, not solved by this entry.
+
+## character-encoding spot checks — mixed results, one real cross-tool confirmation
+
+`bin/dev/bin-elf-table -R <n>..<n>` gives a per-number Unicode character
+(ELF-hash-derived byte table, distinct mechanism from `asc-enc`). Checked
+several family-half/complement pairs against each other:
+
+- `076→L`, `923→Λ` — Latin `L` is the actual historical descendant of
+  Greek `Λ` (via Etruscan), a real alphabetic lineage, not just visual
+  resemblance. One hit, single tool, not yet base-rate-checked.
+- `538→Ț`, `461→Ǎ` — striking individually, but no relationship to each
+  other (different base letters, unrelated diacritic types). Doesn't
+  replicate the `L`/`Λ` pattern.
+- `384→ƀ`, `615→ɧ` — `ƀ` is cleanly "b"+stroke; `ɧ` ("heng with hook")
+  is not simply "h"+diacritic, a more independently-derived letterform —
+  don't force a matching "base letter" reading here.
+- **`692→ʴ`, `307→ĳ` — STRONG, cross-tool confirmed.** This exact pairing
+  is already documented, independently, in
+  `data/md/documentation/harmonic-cycle-correlations.md:174,231-233` —
+  found there via `asc-enc -d3` (a completely different mechanism:
+  Unicode-depth projection, not ELF-hash byte mixing), described as "the
+  ×9 cycle position... IPA modifier and Dutch digraph ligature." Two
+  independent tools landing on the identical `ʴĳ` for the same number's
+  halves is real corroboration, not the same observation counted twice —
+  the strongest result in this character-encoding thread so far.
+
+Net: the "one character + complement character" idea from
+`CROSS-READOUT-RING-KEY-ADDRESSING.md` has one cross-tool-confirmed hit
+(`692`/`307`) and one single-tool historically-grounded hit (`076`/`923`)
+out of five pairs checked — real signal exists in this space, but it's
+sparse, not universal across all family members. Worth a systematic sweep
+(all 12 `k/13` halves through both tools) before treating this as a
+general property rather than scattered hits.
+
+**Printability degrades with magnitude — mechanistic, not a family
+property.** Checked 4-digit lookups (`6923`, `3076`, `9230`) against the
+3-digit ones above: `6923→ᬋ` is a real letter but from an exotic script
+block (Balinese Letter Ra Repa, confirmed via `unicodedata.name`);
+`9230→␎` isn't a letter at all — it's the Unicode "Symbol for Shift Out,"
+a control-picture glyph (`unicodedata.category` = `So`, symbol-other, not
+a letter category); `3076` and plain `769` landed on unprintable/blank
+glyphs. Reason: Unicode's low code-point range is densely packed with
+common Latin/Greek letters (where every "nice" hit above lives); higher
+values increasingly land in exotic-script or symbol/control-picture
+territory that was simply assigned to less "central" Unicode space. This
+is a property of the *target character space's* density, not of the
+`7`/`13` family losing structure at larger magnitudes — worth keeping in
+mind before reading anything into which specific characters higher family
+members or their multiples happen to hash to.
+
 ## the `52` state-count reconciliation — STRONG
 
 Two partitions of the identical 52-element set, not competing claims:
@@ -225,8 +348,8 @@ own "open items" section) — don't treat as verified architecture.
   looking for *other* already-fixed bugs this session that match a
   reasoning-template's abstract principle — not yet swept systematically.
 
-#,,..,...,...,,.,,,..,.,.,.,,,,,,,,.,,..,,..,,.,.,...,...,...,,,.,.,.,,.,,.,.,
-#FC3WIFDCN6GJXK4V4VMTN3QW3YHILJIA3BAFZM6PFZ4R6C2GDOABVCWI3E66JZOPUK6Q752R4U3AS
-#\\\|JXMMYR6MAI5PLDIA5TBNK3NMQ344JFXGDZHSEA37MWYFEY5SVDB \ / AMOS7 \ YOURUM ::
-#\[7]37QXVPRKGWVFCSUNHB5BO6PESBTUZBQACAEVOPHJ4OI7C6IELGDY 7  DATA SIGNATURE ::
+#,,..,..,,,.,,...,...,.,.,,.,,,.,,...,..,,...,.,.,...,...,,,.,,.,,..,,,,.,,.,,
+#WQQTTW4KQPTBNXRM6XOWWO53GIWMF7VT7UVIFTZQBMVS3UCYPVECYD5ZAGRSNHCHZFH3RDC6GQ5Y2
+#\\\|G35MBJA5FI325FSTT6WTKCJFARHNCOHC7D2E33SZNS54HXAIBYU \ / AMOS7 \ YOURUM ::
+#\[7]QRYD4QMWDX3NRMSF6RJG7WDAWQQHCC3FBC4PMRE27EWPDSVAXWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
