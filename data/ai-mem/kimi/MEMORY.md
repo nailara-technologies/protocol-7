@@ -139,6 +139,14 @@ payload dump in the handler branch. live-verified against the real pending
 question 657eda84-... [ re-sent on reconnect ] — stuck task CB0FF0E resumed.
 staged unsigned for user. protocol + gotchas: [topic-kimi-question-request-decline.md](topic-kimi-question-request-decline.md)
 
+## amos-term interaction prototype + SHM fixes — landed (2026-08-04)
+ask_user_stream buffer-lifecycle design resolved (dedicated named buffer,
+no window handle needed); prototype modules live + verified headless. Two
+real SHM bugs fixed in amos-term.buffer-create affecting ALL SHM consumers,
+not just this feature (whole-scalar assign was detaching the Sys::Mmap
+mapping; voxel data wasn't offset past the 512-byte header). Committed
+`5d85fd319`. details: [topic-amos-term-interaction-prototype.md](topic-amos-term-interaction-prototype.md)
+
 ## source.extract_sig_body over-long fake-footer bypass — fixed (2026-08-02)
 95+ char fake-footer lines bypassed every strip regex incl. the real-signature
 start marker (`{70,85}` ceilings) → never stripped. fix: open `{70,}` minimums
@@ -202,8 +210,8 @@ ncode.cmd.widen-scope with streak-consuming widen + reset). verified live via
 p7c incl. coding.eval-code for the p7c-unreachable regex.apply. details +
 reusable verification notes: [topic-ncode-scope-stack-phase2.md](topic-ncode-scope-stack-phase2.md)
 
-#,,,.,,.,,,.,,,,.,.,,,,,.,,,,,,,,,.,,,.,,,,..,..,,...,...,..,,...,...,,,.,,,,,
-#CWFT43NITL25NDWK4JFS6PYUB4MIYTVVOOHFUYRMXU42Q775DAHRPQFF6IFCX7WCOO6GD53W5JG3O
-#\\\|TS2EQ6AR6NCUB4H4ZYPGUTOZFONGODH3GT3MT6TQQLF7EEVWJJ2 \ / AMOS7 \ YOURUM ::
-#\[7]HLLBPRMJRUFDCQQ2SJJO5XVFU6TXPYNW4HAGCH7TAHN72YKQXWCY 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,,,,,,,,...,,..,,..,,,.,,,.,,,,,..,,...,...,.,.,.,.,,..,,,,,...,
+#5HFKODQ5IGGIKFEM66XXC7DIEIUIHVGVYF73OE2Z6MQ5RH3LB5M5QJIW77O7F725YQC73I2LYQ5UG
+#\\\|FHTGRXNHNASYVVMDNNR2ESTV53RWV3PLPD6U6466GDPMC26ZWMG \ / AMOS7 \ YOURUM ::
+#\[7]BA7I3RN6ZM2NCVJXZ5QU4DDYHDOONFJD2M2BWY44OUSXC2XLD4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
