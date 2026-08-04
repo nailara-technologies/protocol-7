@@ -850,8 +850,33 @@ gotchas hit while wiring kimi.cmd.list-models / set-model :
 
 ---
 
-#,,,,,,,,,...,,.,,,,.,.,,,,.,,.,,,..,,..,,,..,.,.,...,...,,.,,,,,,..,,..,,,..,
-#7NYJOSQU2JPSS4ZUTOLUJQHFZAAOP2P73DIVUSDU4HBU5QA6EKYR6ZD3BDAHQ343BH47YIQGDBOKQ
-#\\\|5TZV3JY45LCIORBQDHB6SWZO37UAQ5LGXNCRHRXV76PE6SKAWIU \ / AMOS7 \ YOURUM ::
-#\[7]7SLQ4HVGR75GETG45SN5FKBIV6SKKRZYBPDRUFT2R52MRD53WQCY 7  DATA SIGNATURE ::
+## local inference from shell + scoring-harness gotchas [ 2026-08-04 ]
+
+- shell env carries `http_proxy=http://10.0.110.7:4040` : curl to
+  `127.0.0.1:8000` [ local llama-server ] gets proxied and returns empty
+  502. always `curl --noproxy '*'` for localhost inference.
+- the qwen3.5 server burns the whole `max_tokens` budget on reasoning
+  unless you pass `"chat_template_kwargs": {"enable_thinking": false}`
+  [ `reasoning_effort: low/none` does NOT stop it ]. with thinking off,
+  a strict 4-line score card returns in ~14s.
+- `coding_summarize` / `coding.cmd.summarize-context` hardwire a
+  compaction-style system prompt [ `summarize_enqueue` ] — custom
+  instructions in the prompt get ignored for file input. unusable as a
+  generic scoring/judging endpoint; call the server directly instead.
+- `consensus_query` routes by `<inference.backend.cpu.enabled>` [ set in
+  configuration/zenki/coding/start ] — points at the cpu backend :8001
+  which is usually down; `tree_write` can't flip it [ restricted to
+  coding/context/observations/task namespaces ].
+- `bin/Protocol-7 sourcecode test-sign-and-verify <paths>` signs scratch
+  copies with a temp key [ no passphrase needed ] BUT regenerates
+  `test-proto7-sourcecode` fresh per console invocation — footer values
+  [ incl. amos-iterations-remaining ] are only comparable within ONE
+  invocation. pass all variant paths space-separated in a single call.
+
+---
+
+#,,.,,.,.,.,.,,,.,...,,,,,,,.,,,,,.,.,...,.,,,.,.,...,...,...,,..,...,,,.,.,,,
+#XVP5LT2FLJ6NPCFWHTVTWR7E4C3PSNF3NHZG7BUP5FH3QX6AYV6LPYJRDRJ5L3QNBISKHWLVZU3SS
+#\\\|RYTCEJL75OHIV5PIFOKL6KHYBCTMDTSPEC5Z756NQ64KBO6FS76 \ / AMOS7 \ YOURUM ::
+#\[7]WSY7D44MEB3RND6TX34MALDICGDQN55L7EF534TRD2SRKBFT4MAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -131,6 +131,21 @@ disconnect]; full poll_probe state-machine conversion verified live incl.
 heart mid-probe, 6a/6b/6c paths. signing + version + commit left for user.
 details: [topic-coding-self-test-async-transport-2026-07-31.md](topic-coding-self-test-async-transport-2026-07-31.md)
 
+## iteration-counter vs code-quality — REJECTED-ON-CHECK (2026-08-04)
+file-level test of the footer's amos-iterations-remaining as quality signal:
+three blind measurements [ 9B n=240 rho=+0.057 ; k2.7 n=168 rho=+0.033 ;
+scripted metric n=5055 rho=+0.008 ] + distortion-injection [ 12 bugs +
+2 comment-only controls, both directions, controls swing as much as bugs ].
+also: the count is signing-KEY dependent — identical body, different key →
+unrelated count. full writeup: data/tasks/iteration-counter-quality-results.md.
+
+## incident : v7.stop vs v7.restart deadlock (2026-08-04)
+ran `v7.stop kimi` instead of `v7.restart kimi` while iterating — with the
+zenka stopped there is NO path to send `v7.start kimi` from inside the
+session [ all p7_command/cube routing to kimi dies with it ]. needed user
+to restart by hand. NEVER use bare `v7.stop` on the zenka you are running
+inside; use `v7.restart` [ stops AND starts ] or don't touch it.
+
 ## kimi QuestionRequest silent-hang — fixed (2026-08-04)
 QuestionRequest had zero response handling [ kimi-web hung until manual UI
 answer ]. new kimi.wire.question_respond declines with empty answers [
@@ -210,8 +225,8 @@ ncode.cmd.widen-scope with streak-consuming widen + reset). verified live via
 p7c incl. coding.eval-code for the p7c-unreachable regex.apply. details +
 reusable verification notes: [topic-ncode-scope-stack-phase2.md](topic-ncode-scope-stack-phase2.md)
 
-#,,,.,,.,,..,,,,,,,,,,...,,..,,..,,,.,,,.,,,,,..,,...,...,.,.,.,.,,..,,,,,...,
-#5HFKODQ5IGGIKFEM66XXC7DIEIUIHVGVYF73OE2Z6MQ5RH3LB5M5QJIW77O7F725YQC73I2LYQ5UG
-#\\\|FHTGRXNHNASYVVMDNNR2ESTV53RWV3PLPD6U6466GDPMC26ZWMG \ / AMOS7 \ YOURUM ::
-#\[7]BA7I3RN6ZM2NCVJXZ5QU4DDYHDOONFJD2M2BWY44OUSXC2XLD4DY 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,.,.,,.,,,..,,..,,..,,,,,...,..,,..,,...,..,,.,,,,,.,..,,.,.,,,.,
+#IDWXHNKJ6BMBNDJO6XJ3UYJ7M67LORCDVJFJAQEO3MEL2V5DLOADPBQNK4F3BVZML5NET25PVP7WS
+#\\\|JZJWHRFX7CRVHC5NQ73CVLG5NPIBQDUNUUHCJIWS23KS26O6BO2 \ / AMOS7 \ YOURUM ::
+#\[7]TEH7K3SUNK7CJ2ZQNH66MCV4HKLM2PHYQ4FUO2ZPBA6DH6QTAQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
