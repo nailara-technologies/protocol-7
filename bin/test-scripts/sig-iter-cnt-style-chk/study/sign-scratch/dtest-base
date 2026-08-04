@@ -1,0 +1,132 @@
+## [:< ##
+
+# name  = base.log
+# descr = generate a log entry
+# args  = log_level log_msg [log_buffer] [time-stamp]
+# note  = used routines here need to be registered in protocol-7 [purge_code]
+
+my ( $log_level, $log_msg, $log_buffer, $time_stamp );
+
+## support optional log_level parameter with default to 1 [matching base.logs]
+## if first arg is single digit, treat as log_level; otherwise default to 1
+if ( @ARG > 0 and defined $ARG[0] and $ARG[0] =~ m|^\d$| ) {
+    ## first arg is single digit log level
+    $log_level  = shift @ARG;
+    $log_msg    = shift @ARG // '';
+    $log_buffer = shift @ARG // '';
+    $time_stamp = shift @ARG;
+} else {
+    ## no log level provided, default to 1
+    $log_level  = 1;
+    $log_msg    = shift @ARG // '';
+    $log_buffer = shift @ARG // '';
+    $time_stamp = shift @ARG;
+}
+
+if ( $log_level !~ m|^\d+$| ) {
+    ## log_level is not numerical
+    $log_level = 0;
+    $log_msg   = sprintf 'LOG-LEVEL not numerical %s', scalar <[base.caller]>;
+}
+<system.zenka.verbosity.console> //= 0;
+<system.zenka.verbosity.buffer>  //= 1;
+<system.zenka.verbosity.logfile> //= 0;
+
+return TRUE    ## true ##
+    if $log_level > <system.zenka.verbosity.console>
+    and $log_level > <system.zenka.verbosity.buffer>
+    and $log_level > <system.zenka.verbosity.logfile>;
+
+$log_buffer = qw| zenka | if not length $log_buffer;
+
+my $log_str;
+if ( not length $log_msg ) {
+    $log_msg = sprintf 'UNDEF LOG MSG %s', scalar <[base.caller]>;
+}
+
+## reducing calculation load., ##
+##
+my $h_override   = <base.ntime-harmony> // TRUE;
+my $want_harmony = $log_level < 3 ? $h_override : FALSE;
+##
+$want_harmony = FALSE    ## skipping harmonizing when not to disk ##
+    if $log_level > 1 or <system.zenka.verbosity.logfile> > 1;
+
+$log_msg =~ s|\r|\\r|g;
+$log_msg =~ s|\n|\\n|g;
+$log_msg =~ s|\0|\\0|g;
+$log_msg =~ s|\e|\\e|g;
+
+## prevent deep recursions in error log system  Only trigger on actual Perl ##
+## "Deep recursion on subroutine" warnings (not on commit messages that     ##
+## happen to mention "deep recursion")                                      ##
+##
+my $fatal_exit
+    = ( $log_msg =~ m|Deep recursion on subroutine| )
+    ? TRUE
+    : FALSE;
+
+$log_msg = sprintf( "%scall to unknown subroutine while executing '%s'",
+    $colors{'p7_fg_0002'}, ${^CAPTURE}[0] )
+    if $log_msg
+    =~ m|\$code\{'([^\']*)'\}.+ use string \(""\) as a subroutine|;
+
+my $zenka_prefix = <[log.format_name]>;
+
+$log_str = <[base.log.format_entry]>->( $log_level, $log_msg, $zenka_prefix );
+
+if ($fatal_exit) {    ## improve detection ## [LLL]
+    say STDERR sprintf( "%s%s%s\n<< EMERGENCY SHUTDOWN >> %s",
+        $log_str, $zenka_prefix, $colors{'p7_fg_0002'},
+        '[ anticipated deep recursion in log system ]' );
+    exit 2;
+}
+
+##  zenka log buffer  ##
+##
+if ( defined $code{'base.buffer.add_line'} ) {
+
+    $time_stamp //= <[base.anum_log_time]>->( 5, $want_harmony );
+    <[base.buffer.add_line]>->(
+        $log_buffer, join( ' ', $time_stamp, $log_level, $log_msg ),
+        $log_level
+        )
+        if $log_level <= <system.zenka.verbosity.buffer>
+        or $log_level <= <system.zenka.verbosity.logfile>;
+
+} elsif ( not defined $code{'base.buffer.add_line'}
+    and $log_level <= <system.zenka.verbosity.buffer> ) {
+
+    $time_stamp //= <[base.anum_log_time]>->( 5, $want_harmony );
+
+    push <system.start.zenka-buffer>->@*,
+        join( ' ', $time_stamp, $log_level, $log_msg );
+}
+
+## console output ##
+##
+if ( length fileno(STDOUT)
+    and $log_level <= <system.zenka.verbosity.console> ) {
+    if ( utf8::is_utf8($log_str)
+        and defined $code{'base.utf8.clean_str'} ) {
+        <[base.utf8.clean_str]>->( \$log_str, 2, 2 );    ## warn level 2 ##
+    }
+    say $log_str;    ## clean UTF-8 passed through ##
+}
+##
+
+## stdout log buffer output [ with colors, unlike zenka buffer ] ##
+##
+<[base.code.call_expected]>->(
+    ( defined <v7.stdout_log.fh> and fileno <v7.stdout_log.fh> ),
+    qw| v7.stdout_log.write |, $log_str
+);
+##
+
+return TRUE;
+
+#,,,,,..,,,.,,..,,.,.,,,,,.,.,,.,,,.,,,,,,,,.,..,,...,...,.,.,,,.,,,,,,,,,,,,,
+#7GAQXBEVV5ZM7C357L3WO4IG3X75QV2QAVR4XQHKRNOFDCHHC3ENHY3ET4MHCAU3UOG62MNCAXQU4
+#\\\|7KKEQLATQW2DPS6VU4FM2NAS5D2PH7LIDIF5AGLJCQYQQBPDXBH \ / AMOS7 \ YOURUM ::
+#\[7]2MSN2OLU5XWG4ROGPMXGR6IJVOY66KDKQHOZE2ODILPPZOTZUSAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

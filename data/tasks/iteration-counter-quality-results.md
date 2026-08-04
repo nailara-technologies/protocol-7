@@ -29,7 +29,7 @@ inspects code semantics.
 
 ## part 1 — extraction (all 5055 modules/ files)
 
-- Standalone Python decoder (`iter-quality/extract_iterations.py`),
+- Standalone Python decoder (`bin/test-scripts/sig-iter-cnt-style-chk/quality/extract_iterations.py`),
   cross-verified against the real `amos7.decode_octal_bit_header` logic
   and against `bin/dev/iter-rank` — exact match.
 - All 5055 files decoded, 0 undecodable, 0 inverted-mode (all-zero)
@@ -37,14 +37,14 @@ inspects code semantics.
 - Distribution of iterations-taken: min 0, p10 2066, median 14144,
   p90 48118, p99 93594, max 178667 (of 2097151 possible), 4756 distinct
   values. Plausibly geometric-ish, no clustering.
-- Data: `iter-quality/iterations.tsv` (columns: taken, remaining, endline,
+- Data: `bin/test-scripts/sig-iter-cnt-style-chk/quality/iterations.tsv` (columns: taken, remaining, endline,
   path).
 
 ## part 2 — blind quality scoring
 
 Two independent blind scorers plus one deterministic metric set. In all
 cases the scorer never saw the iteration count — footers were stripped
-from scoring copies (`iter-counter-study/scratch/`) or the scorer was
+from scoring copies (`bin/test-scripts/sig-iter-cnt-style-chk/study/scratch.tar.xz`) or the scorer was
 instructed to treat the footer as opaque, and the count never appeared in
 any prompt.
 
@@ -53,16 +53,16 @@ any prompt.
    0-3). Stratified sample: 240 files, 40 per stratum across 6 log-spaced
    iteration-count strata (seed 13). 240/240 scored. Rubric grounded in
    `data/yaml/code-style/CONVENTIONS.yaml`.
-   Scripts/data: `iter-counter-study/{score_batch.py,sample.tsv,scores.tsv}`.
+   Scripts/data: `bin/test-scripts/sig-iter-cnt-style-chk/study/{score_batch.py,sample.tsv,scores.tsv}`.
 2. **Kimi k2.7 scorer** — independent model, 5-criterion rubric, batches
    of 12. Stratified sample: 240 files, 30 per octile (seed 13). 168/240
    scored before the run was stopped (see "scoring dataset decision"
-   below). Data: `iter-quality/scores/`.
+   below). Data: `bin/test-scripts/sig-iter-cnt-style-chk/quality/scores/`.
 3. **Scripted style metrics** — deterministic, full corpus n=5055: header
    presence, 78-column violations, comment lowercase fraction, paren-style
    annotations, `s///`-form regexes, interpolated log format strings,
    unguarded data reads — composite 0-10.
-   Data: `iter-quality/{style_metrics.py,metrics.tsv}`.
+   Data: `bin/test-scripts/sig-iter-cnt-style-chk/quality/{style_metrics.py,metrics.tsv}`.
 
 ### scoring dataset decision (stated explicitly per review)
 
@@ -70,7 +70,7 @@ The k2.7 second pass was abandoned at 168/240 (batches 00-13 of 20).
 Rationale: at n=168 the replication is already adequately powered for the
 effect sizes of interest (|rho| >= 0.22 detectable at 80% power), all
 three measurements agree, and part 4 is the decisive test anyway. The
-remaining 6 batch prompts are unused; `iter-quality/batches/` documents
+remaining 6 batch prompts are unused; `bin/test-scripts/sig-iter-cnt-style-chk/quality/batches/` documents
 exactly which files went unscored.
 
 ## part 3 — correlation results (Spearman primary)
@@ -148,7 +148,7 @@ Reading:
   across invocations: 19444, 26471, 81601, 19772 — the console
   regenerates `test-proto7-sourcecode` per invocation). Absolute
   iteration counts are not even stable properties of a file's content.
-- Variants: `iter-counter-study/sign-scratch/` (v00-v10, w00-w04).
+- Variants: `bin/test-scripts/sig-iter-cnt-style-chk/study/sign-scratch/` (v00-v10, w00-w04).
 
 ## part 5 — real-transformation check: pre/post `bin/format-code` (added later)
 
@@ -239,15 +239,15 @@ boring alternative explanation. The outliers aren't hiding a signal on
 either end — they're where the underlying checksum-search chaos happens
 to land hardest, consistent with the mechanism already established.
 
-Data: `iter-quality/format-scratch/` (60 files, `_before`/`_after` pairs),
+Data: `bin/test-scripts/sig-iter-cnt-style-chk/quality/format-scratch/` (60 files, `_before`/`_after` pairs),
 sample list in this task's reproduction notes.
 
 ## appendix — sorted iteration counts, full corpus
 
 Part 1 asked for a plain sorted list before any scoring ran, as a sanity
 check and a standalone artifact even independent of the correlation
-result. Full sorted files: `iter-quality/iterations-sorted-asc.tsv` and
-`iter-quality/iterations-sorted-desc.tsv` (5055 rows each, the 6-row
+result. Full sorted files: `bin/test-scripts/sig-iter-cnt-style-chk/quality/iterations-sorted-asc.tsv` and
+`bin/test-scripts/sig-iter-cnt-style-chk/quality/iterations-sorted-desc.tsv` (5055 rows each, the 6-row
 signature footer that `iterations.tsv` itself picked up as a committed
 file filtered out). 30 from each end below — read this as "which files
 took the fewest/most checksum-search iterations to sign," not as a
@@ -366,16 +366,16 @@ quality ranking.
 ## reproduction
 
     # part 1
-    python3 data/tasks/iter-quality/extract_iterations.py modules
+    python3 bin/test-scripts/sig-iter-cnt-style-chk/quality/extract_iterations.py modules
     # part 2 (9B scorer, needs local inference on :8000)
-    python3 data/tasks/iter-counter-study/score_batch.py
+    python3 bin/test-scripts/sig-iter-cnt-style-chk/study/score_batch.py
     # part 3
-    python3 data/tasks/iter-quality/analyze.py
+    python3 bin/test-scripts/sig-iter-cnt-style-chk/quality/analyze.py
     # part 4 (one invocation per series -- key regenerates per run)
     bin/Protocol-7 sourcecode test-sign-and-verify "<space-separated paths>"
 
-#,,,,,.,,,...,,,.,..,,,.,,.,.,.,,,...,,,,,,,,,..,,...,...,.,,,,,,,..,,.,.,.,.,
-#ZFK6VHUW3LKREHEJWZ6DO26YFSGPQM2DWECMKRJ5LLHD72EQDROGRRZQZSKJCQB4MYJ22PCANDK4S
-#\\\|D2XLEJYZ53GX3WJWSONYCV2QOK5B627WNXKPOBSCHOITIOVFAUZ \ / AMOS7 \ YOURUM ::
-#\[7]3KW4XRIBSA2NCRPQIISUVQ5U37ISKGPCAVZE2A33ARJ755JETSDY 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,..,.,,,,,,,...,.,,,..,,,.,,,,.,..,,...,...,,.,,,..,,,,,.,,,..,,
+#EYBAQ3L7IL66VVJUCEQAF3HSHOASZLIUYPRM6UJ44Z7AV3PJT7LLEVAZL2FYQDQG7DVWZOAS3XM3G
+#\\\|JL3WMW7CNFFHNOX7WM77UVA4MDRUV47PM54PSG4MQTNG5CYXPMV \ / AMOS7 \ YOURUM ::
+#\[7]7WAW442P6RL5ZK6ZSDZUXCCDGMFOMHQTLTUYZ4XP2CDNHLMVGGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
