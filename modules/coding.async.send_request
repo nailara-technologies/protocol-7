@@ -274,8 +274,8 @@ my $request_body = {
     'model'    => $task->{'execution'}->{'model_used'} // 'default',
     'messages' => \@messages,
     ## use streaming : SSE chunks accumulate content as they arrive if ##
-    ## connection drops mid-generation, we keep partial content        ##
-    ## [ non-streaming returns single JSON blob, vulnerable to drops ] ##
+    ## connection drops mid-generation, we keep partial content [      ##
+    ## non-streaming returns single JSON blob, vulnerable to drops ]   ##
     'stream'      => JSON::PP::true(),
     'max_tokens'  => $max_tokens,
     'temperature' => $temperature,
@@ -285,6 +285,18 @@ my $request_body = {
 if (@$tools) {
     $request_body->{'tools'}       = $tools;
     $request_body->{'tool_choice'} = 'auto';
+}
+
+## thinking-mode pass-through : only set when a caller explicitly opted in ##
+## or out via task_ref->{thinking} defined leaves server default alone,    ##
+## unlike no_tools this has no project-wide default -- callers that care   ##
+## about generation latency [ e.g. summarize_enqueue ] set it themselves   ##
+if ( defined $task_ref->{'thinking'} ) {
+    $request_body->{'chat_template_kwargs'} = {
+        'enable_thinking' => $task_ref->{'thinking'}
+        ? JSON::PP::true()
+        : JSON::PP::false()
+    };
 }
 
 ## estimate context usage and log CTX% ##
@@ -332,8 +344,8 @@ if (@messages) {
 return
     <[coding.async.request]>->( $task_id, $request_body, $state->{'job_id'} );
 
-#,,.,,,,,,,.,,,,.,...,..,,,..,..,,,,,,...,..,,..,,...,...,.,.,,.,,.,,,.,,,,.,,
-#TFUJD2JY2L4Z62CBVYFJOTPNJO2PUPQGKXMEZV5QKT5X7HKHVL2HSL7ENKGQJKTIDJDCDECTIGQ6K
-#\\\|2LCYBN2S5PMSNC76LBEWBTEV52MYCPI2WKV4DCSQ2WBL2C4X3KZ \ / AMOS7 \ YOURUM ::
-#\[7]GJKC7UM5U3E4BKNFJJBGG6XZU3D5FASNDS6AULRG5U7PC4V3H6BA 7  DATA SIGNATURE ::
+#,,..,..,,,,.,,.,,..,,..,,,..,.,,,,.,,,,,,,..,..,,...,..,,.,,,,,.,,,,,,.,,...,
+#CRVY3HWPRG6X3VDK4TG2SNNBFQJVAZHEZP2366AQIFCQSYVTK6ZQ7ET7HPNNA4DP7PAFNGZTDBBKW
+#\\\|S4HKK3PNBOYVLHI6XB6VXZT56SBLFWAPOB6X45QBXBCXFOSMA3A \ / AMOS7 \ YOURUM ::
+#\[7]BX3K4DXLJJ7YBNYRCYJ6HZ7CLTIMOIHIBRYLHIVBMUJFRNLPFICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
