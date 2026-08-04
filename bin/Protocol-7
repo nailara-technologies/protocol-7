@@ -1616,8 +1616,18 @@ sub p7_load_code {
                         ## cleared in  base.handler.deferred_compile once   ##
                         ## real code lands at this key                      ##
                         $data{'code'}{$file_name}{'deferred_stub'} = TRUE;
+                        next;
                     }
-                    next;
+
+                    ## still an uncompiled stub -- nothing to recompile yet ##
+                    next if $data{'code'}{$file_name}{'deferred_stub'};
+
+                    ## else : real compiled code already lands at this key  ##
+                    ## [ e.g. a non-whitelisted .cmd. module previously     ##
+                    ## reached via base.load_runtime_modules ] -- fall      ##
+                    ## through to a normal compile so it stays reachable by ##
+                    ## reload instead of being silently excluded forever [  ##
+                    ## see data/tasks/loader-reload-stale-cmd-modules.md ]  ##
                 }
 
                 local $RS = undef;
@@ -1692,8 +1702,8 @@ sub p7_load_code {
                     }
 
                     ## detect heredoc opener [ <<'TAG' <<"TAG" <<~'TAG' ] ##
-                    ## require operator context before <<                 ##
-                    ## [ prevents matching << inside string literals ] ##
+                    ## require operator context before <<  [ prevents     ##
+                    ## matching << inside string literals ]               ##
                     if ( $line =~ m{(?:^|[=\(,;\s])<<~?\s*(['"])(\w+)\1} ) {
                         $heredoc_end = $2;
                     }
@@ -5803,8 +5813,8 @@ __DATA__
 :
 :.
 
-#,,,,,..,,,..,..,,..,,.,.,,,.,..,,,.,,,..,,..,..,,...,...,...,..,,..,,..,,,.,,
-#X5XZK3NS2ZLTEZDGJZXQSC3D5HAY5X3DYAYRD27BF7S7X5WOHCWNMHK6IRU5HRTGJTT642BG7JJVM
-#\\\|UCLBGFGNDMGC55APMLHRTTRP6NW4SRF4AN5FVAAXYLY2WWK6KPU \ / AMOS7 \ YOURUM ::
-#\[7]SC6KCNQP7E6ZUDUD2FE2XATUYWQPF37IRGSK6HT36NV754GRYQBI 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,..,,...,...,..,,,.,,,,.,.,.,.,.,..,,...,...,...,..,,,,,,.,,,,.,,
+#6FBAXNC6CVJ5V6EQA43N2EGWSDNB4TMYQ5CK7ZBWUTEUBWH2OOA3SHUSK5UKXLYQ4WTXCBJAWAJBC
+#\\\|AMKBR3HY5W3AU2S6H7VW7LLROIUF4V2CSQ5AR2V36KK6LEIFVLJ \ / AMOS7 \ YOURUM ::
+#\[7]CUVQWYTFKJSAS77RG6XJQH5MR2N75VPSC2D33JE2E76HLYODM4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
