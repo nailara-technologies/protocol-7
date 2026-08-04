@@ -1,0 +1,133 @@
+## [:< ##
+
+# name  = ncode.init_code
+# descr = initialize ncode config, paths and regex engine state
+
+## set up project paths for ncode command modules ##
+<ncode.root> = <system.root_path>;
+<ncode.bin>  = <system.root_path> . '/bin/ncode';
+
+return FALSE
+    if not -x <ncode.bin>;
+
+## allow git commands as protocol-7 user in taeki-owned repo ##
+if ( defined <system.root_path> and -d <system.root_path> . '/.git' ) {
+    $ENV{'GIT_CONFIG_COUNT'}   = 1;
+    $ENV{'GIT_CONFIG_KEY_0'}   = 'safe.directory';
+    $ENV{'GIT_CONFIG_VALUE_0'} = <system.root_path>;
+}
+
+## needed to decode json args on cmd.* handlers invoked via cube dispatch ##
+<[base.perlmod.load]>->(qw| JSON::PP |);
+
+## config defaults ##
+<ncode.cfg.pattern_dir>          //= 'data/yaml/ncode-patterns';
+<ncode.cfg.confidence_threshold> //= 0.70;
+<ncode.cfg.auto_apply_threshold> //= 0.90;
+<ncode.cfg.max_patterns>         //= 500;
+
+## approvals in a row before ncode.cmd.review asks about graduation ##
+<ncode.cfg.review_streak_needed> //= 5;
+
+## runtime state ##
+<ncode.patterns>    //= {};
+<ncode.stats>       //= {};
+<ncode.preferences> //= {};
+<ncode.pending>     //= {};
+<ncode.workflows>   //= {};
+
+## load patterns from yaml ##
+my $pattern_dir = <ncode.cfg.pattern_dir>;
+
+## resolve relative path against system root ##
+if ( $pattern_dir !~ m|^/| and defined <system.root_path> ) {
+    $pattern_dir = <system.root_path> . '/' . $pattern_dir;
+}
+
+if ( -d $pattern_dir ) {
+    my @files = glob "$pattern_dir/*.yaml";
+    foreach my $file (@files) {
+        my $result = $code{'ncode.regex.load'}->( { 'file' => $file } );
+        if ( ref $result eq qw| HASH | and $result->{'mode'} eq qw| true | ) {
+            my $loaded = $result->{'data'}->{'loaded'} // 0;
+            <[base.logs]>->(
+                2,       ':. ncode.init: loaded %d patterns from %s :.',
+                $loaded, $file
+            );
+        }
+    }
+} else {
+    ## create pattern directory ##
+    my @parts = split m|/|, $pattern_dir;
+    my $path  = '';
+    foreach my $part (@parts) {
+        $path .= "$part/";
+        mkdir $path, 0775 if -d $path;
+    }
+    <[base.logs]>->(
+        1, ':. ncode.init: created pattern dir %s :.', $pattern_dir
+    );
+}
+
+my $total = scalar keys <ncode.patterns>->%*;
+<[base.logs]>->( 1, ':. ncode.init: %d patterns loaded :.', $total );
+
+## privilege-drop + chmod-child fork are ncode-the-zenka's own startup    ##
+## responsibility only -- other zenki (e.g. coding) load the bare 'ncode' ##
+## namespace group purely as a regex/transform library and run this       ##
+## init_code too; they must NOT also fork a second chmod-child or drop    ##
+## privileges a second time [ that broke coding's own drop_privs ]        ##
+if ( <system.zenka.name> eq qw| ncode | ) {
+
+    ## resolve drop_privs args [ secondary admin group for .git access ] ##
+    my $assume_admin
+        = <[base.cfg_bool]>->( <ncode.cfg.assume_admin_group> // 0 );
+    <ncode.cfg.drop_privs_user> = <system.amos-zenka-user>;
+    ## default: zenka's own group [ no-op in drop_privs ] ##
+    my ( undef, undef, undef, $zenka_gid )
+        = getpwnam(<system.amos-zenka-user>);
+    <ncode.cfg.drop_privs_admin_group> = getgrgid($zenka_gid) // '';
+    if ($assume_admin) {
+        my $root_stat  = File::stat::stat( <system.root_path> // '' );
+        my $root_gid   = defined $root_stat ? $root_stat->gid     : undef;
+        my $group_name = defined $root_gid  ? getgrgid($root_gid) : undef;
+        if ( defined $group_name ) {
+            <ncode.cfg.drop_privs_admin_group> = $group_name;
+            <[base.logs]>->(
+                2, ': admin group : %s [ secondary, from project root ]',
+                $group_name
+            );
+        } else {
+            <[base.logs]>->(
+                0,
+                ': admin group : cannot stat root_path [%s]',
+                <system.root_path> // 'undef'
+            );
+        }
+    }
+
+    ## fork privileged chmod child, grant .git group-write [ before ##
+    ## drop_privs ]                                                 ##
+    <[ncode.start.chmod_child]>;
+    if ( defined <ncode.chmod_child.w_fh> and defined <system.root_path> ) {
+        my $git_dir = <system.root_path> . '/.git';
+        if ( -d $git_dir ) {
+            printf {<ncode.chmod_child.w_fh>} "gwd %s\n", $git_dir;
+            my $reply = <[ncode.chmod_child.readline]>;
+            <[base.logs]>->( 2, ': .git group-write grant : %s', $reply );
+        }
+    }
+
+    ## drop privileges [ after path setup + chmod child fork ] ##
+    <[base.root.drop_privs]>->(
+        <ncode.cfg.drop_privs_user>, <ncode.cfg.drop_privs_admin_group>
+    );
+}
+
+return TRUE;
+
+#,,.,,.,.,,.,,.,,,...,,.,,,.,,,..,.,.,.,,,.,,,.,.,...,..,,..,,,,,,.,.,,,.,.,,,
+#FJ4KU44AEVQGVRHC6SQLTNZN3X4AC7X7CAB6ZFH6F4BDRD2B3RUBPSOWN4C43SFQD4XKFYDCOY7WK
+#\\\|KX636S6APBLKMDKRRNQ5LNZFRBXNOV32FDB6TB7P3YLQ5DMQBXS \ / AMOS7 \ YOURUM ::
+#\[7]5VIIGQ5RVKKIWEBA3LZUNFU3VZX5AKS5NHKSDUYQ5QCDAF3T5IDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
