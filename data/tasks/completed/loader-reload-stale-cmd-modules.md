@@ -1,5 +1,44 @@
 ## task: fix `.cmd.` modules not actually reloading on an already-running zenka
 
+## RESOLVED 2026-08-04
+
+root cause was not `$is_reload_batch` (the doc's own leading hypothesis) —
+it was one level upstream, in the whitelist-gate block in
+`bin/Protocol-7`'s `p7_load_code` (~line 1586-1621, the block right
+before phase A's disk-read). for a non-whitelisted file, the gate's
+`if ( not exists $code{$file_name} )` guard was meant to distinguish
+"needs a fresh deferred stub" from "already handled" — but its else-branch
+was an unconditional `next`, which also caught the case where real
+compiled code already lives at that key (reached earlier via
+`base.load_runtime_modules`'s whitelist-bypass, e.g. a zenka-local `.cmd.`
+command invoked once at runtime after the zenka was already up). once
+real code is there, `exists $code{$file_name}` stays true forever, so
+every subsequent `p7_load_code` pass — including every future `reload` —
+skipped the file entirely: never re-read from disk, never re-queued into
+`@compile_order`, hence never recompiled. only a full `v7.restart`
+(fresh `%code`, `$active_version` undef) could recover it.
+
+fix: split the else-branch on `$data{'code'}{$file_name}{'deferred_stub'}`
+— still-uncompiled stub → `next` (nothing to recompile yet, unchanged
+behavior); real compiled code already present → fall through to the
+normal read-from-disk + compile path instead of skipping, so it
+participates in `@compile_order` like any other file on every future
+reload. minimal, scoped to this one gap — no change to `$is_reload_batch`,
+the staging/swap mechanism, or the nested-lifecycle-hooks task
+(`loader-eager-compile-nested-hooks-under-loaded-ancestor.md`, left
+untouched per its own caution against bundling).
+
+verified live against the `mod-test` zenka (temporary
+`mod-test.cmd.reload-probe`, added/removed for this test only): after
+`v7.restart mod-test` to load the fixed `bin/Protocol-7`, probe returned
+`probe-v1` on first (runtime-bypass) access, then correctly picked up
+edits to `probe-v2` and `probe-v3` across two consecutive
+`mod-test.reload source` calls with no restart — the exact failure mode
+reported above no longer reproduces. `mod-test.reload all` (covering
+`base.*`) also still succeeds with no regression.
+
+---
+
 **priority raised 2026-08-04 — second independent confirmation.** Hit again
 on the `kimi` zenka this session: after landing the `QuestionRequest`
 silent-hang fix (`modules/kimi.wire.question_respond` [new] +
@@ -262,8 +301,8 @@ by the signing system. do not add fake/stub signatures to new files.
 
 ## dispatch
 
-#,,..,...,,..,.,,,,,.,,,,,,.,,,..,,..,..,,.,,,..,,...,...,..,,...,,,.,,,.,,,.,
-#IJ5K3NQDBZ5PVYJ6I456W4RIQYRLJXHK5OIJA4JWAYXLODFLLIXOUMWCMKS6W6RTOBBGAZTFKAW5K
-#\\\|NFXUTQ3JQFE5MQXSNDM4E2MAFBKNZYNRTNSR54NX4OV4XNM7XDU \ / AMOS7 \ YOURUM ::
-#\[7]IXRUSEPGCWTKILCBGNYYK5GIQUB4PI33NX3JZSY2NBAZA4WPBABI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,.,,.,,,..,,,,,,.,.,...,...,..,,..,,...,...,,..,...,...,,..,...,
+#UX5NXAWDLGPWHSE5QTXOL5BA2FTSONYUU6XNTCTWFTAH4CTWNSEKPLX4AODGG2G5DPFB67YTGWLEK
+#\\\|JLQPEQS6ULS3N7TAIEXTLSG3YLPQTITJSRWGL2BQAZZMAHRMDMX \ / AMOS7 \ YOURUM ::
+#\[7]ANRCJY3PZDCZQ55MKR7LVU2WOJEF2WUP3U5RQMPNYWLWCHYD34DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

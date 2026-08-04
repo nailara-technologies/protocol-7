@@ -18,7 +18,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [filter-repo-amend](feedback-filter-repo-amend.md) — `AMEND=1` prefix required for any git history-rewrite: filter-repo AND plain `commit --amend` both, else silently blocked by pre-commit's version-mismatch check
 - [whitelist-vs-access-cmd-usr-cube](feedback-whitelist-vs-access-cmd-usr-cube.md) — subroutine.white-list renamed to subroutines.load-early 2026-07-25 (compile timing only); access.cmd.usr.cube (cube routing) is the separate mechanism, don't conflate
 - [file-stat-shadowing](feedback-file-stat-shadowing.md) — bin/Protocol-7's global `use File::stat` makes bare `stat()` return an object everywhere, not a 13-elem list; use `File::stat::stat(...)->mtime` etc. (was orphaned/unindexed — cost a live debugging detour before being found)
-- [reload-success-doesnt-guarantee-new-file-loaded](feedback-reload-success-doesnt-guarantee-new-file-loaded.md) — `reload all` reported success twice without recompiling a fresh jobsite.cmd.* file; verify with a literal marker, escalate to a full v7.restart, don't just re-reload
+- [reload-success-doesnt-guarantee-new-file-loaded](feedback-reload-success-doesnt-guarantee-new-file-loaded.md) — FIXED 2026-08-04: p7_load_code whitelist-gate skipped already-compiled non-whitelisted .cmd. modules forever; v7.restart-by-default workaround no longer needed
 - [webkit-double-click-dispatch](feedback-webkit-double-click-dispatch.md) — web-browser zenka's WebKit fires click twice for one tap on some buttons, Firefox doesn't; wrap every handler in a shared debounceClick() from the start, don't patch button-by-button
 - [tasks-completed-scan-verdict-trust](feedback-tasks-completed-scan-verdict-trust.md) — "still open" as unreliable as "move to completed"; 31/52 false negs, incl. live auth gap
 - [kimi-dispatch-infra-hardening](topic-kimi-dispatch-infra-hardening.md) — --afk flag, k3/k2.7/k2.7-fast routing; MCP bridge timeout ≠ dispatch failure
@@ -66,8 +66,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [perlmod-categorization-review-catches](feedback-perlmod-categorization-review-catches.md) — kimi dispatch review caught 6 templated/vague-reasoning misclassifications; caller-count grep meaningless for .cmd./.handler. (dynamic cube routing) and can false-positive on nested-namespace names; K3 re-verification of all 59 MOVE rows in flight, check results before trusting
 - [inline-elf-perl-version-infinite-loop](bug-inline-elf-perl-version-infinite-loop.md) — FULLY RESOLVED, both atom+pri clean-start verified: dangling-if in inline_elf's UTF-8 decode (Perl 5.42.2 only) unpacked into 5 total independent bugs chasing one boot end-to-end (ptd P7-macro false-positives, deps profile gaps, httpsd/web skins ownership race, stale web.cmd.skin path); one symptom ≠ one bug, don't stop at the first plausible fix
 
-#,,,.,,..,,..,,.,,.,.,.,,,..,,...,,.,,.,.,..,,..,,...,...,..,,,..,,.,,...,,..,
-#SZPOVGIUSNX7OV2I2B3IMAUTJXGV324HPVCHXPGUBDBFXQ3VR65AILAJGDOYYOQ6DWUHXTG6IB75O
-#\\\|E3NGMFAYZAGQJEMHCWI2A2DHF3VMKOOJLKJJ25MSBW7XOXEVYQN \ / AMOS7 \ YOURUM ::
-#\[7]V6X4OR3R3ERWCUT2M75IDIDFSNV4ZMW6NSQN3V4YIIO3ATDX7WCI 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,.,,,,,,,,,,,,,,,.,.,,,,,,,.,,.,,..,,...,..,,.,,,.,.,.,,,.,,,,,.,
+#E2L2DAEKWYYNLRWIFAX2KUFNBKYWET3XKPQPKU6TJS63F7CZKRITKAKNMJKH64JHSOG2UZOJLHRWW
+#\\\|SAMO3SCDK6OURL2QXWUZCYHPLGB2HUSAQPV63S6NSHUJ36RNTOH \ / AMOS7 \ YOURUM ::
+#\[7]JX4ZQFJEFLWJ3QVTKTUVBVZ2IIWEFOBJ36HNCN7L6WN5Y56Z5EAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
