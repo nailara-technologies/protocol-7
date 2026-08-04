@@ -804,6 +804,24 @@ devmod.cmd.eval-code wraps source in `use warnings 'FATAL'` : any warning
 becomes a die — wrap risky calls in an inner `eval {}` and restore swapped
 state after it, never skip the restore on the failure path.
 
+pipe() handles in the kimi zenka carry a `:utf8` layer : syswrite dies with
+"syswrite() isn't allowed on :utf8 handles" — binmode BOTH ends right after
+pipe() when using a pipe as a swapped capture socket. outbound frames decode
+with `Protocol::WebSocket::Frame->new` + `->append($bytes)` + `->next`.
+
+---
+
+## kimi QuestionRequest decline pattern [ 2026-08-04 ]
+
+`QuestionRequest` [ kimi-web AskUserQuestion ] is NOT approval-shaped : reply
+is a json-rpc success response with result `{request_id, answers:{}}` — empty
+answers resolve as "user dismissed", the tool returns a non-error result and
+the model proceeds. never force-fit `kimi.wire.approval_respond` [ its result
+fails QuestionResponse validation ]. use `kimi.wire.question_respond`.
+kimi-web re-sends unanswered questions on every reconnect — answer each one,
+no responded-set tracking needed. protocol details + live-verify notes :
+[topic-kimi-question-request-decline.md](topic-kimi-question-request-decline.md)
+
 ---
 
 ## kimi api-child mini-protocol + reload gotchas [ 2026-08-04 ]
@@ -832,8 +850,8 @@ gotchas hit while wiring kimi.cmd.list-models / set-model :
 
 ---
 
-#,,,.,,.,,...,..,,,.,,.,.,.,.,,.,,..,,,..,,.,,.,.,...,...,,..,,..,...,...,,.,,
-#CKFP76MUK2OLQRQZ6OOCFPZEKYDMFNVQV73RWKMCJOMQTGGJQUJJKAJO7ZAWFAFB2QTJ6NLU2QGR4
-#\\\|GXGM2QLZLYVJBCQDRYYGZTBFJTAT2DI6RBD76JRAIVNFKFHXN7D \ / AMOS7 \ YOURUM ::
-#\[7]CAJ47JBZ7QI5GOQ6UUMYKXJI7JRVWK33CLQMHIDQNSNQ2W5KAQBA 7  DATA SIGNATURE ::
+#,,,,,,,,,...,,.,,,,.,.,,,,.,,.,,,..,,..,,,..,.,.,...,...,,.,,,,,,..,,..,,,..,
+#7NYJOSQU2JPSS4ZUTOLUJQHFZAAOP2P73DIVUSDU4HBU5QA6EKYR6ZD3BDAHQ343BH47YIQGDBOKQ
+#\\\|5TZV3JY45LCIORBQDHB6SWZO37UAQ5LGXNCRHRXV76PE6SKAWIU \ / AMOS7 \ YOURUM ::
+#\[7]7SLQ4HVGR75GETG45SN5FKBIV6SKKRZYBPDRUFT2R52MRD53WQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

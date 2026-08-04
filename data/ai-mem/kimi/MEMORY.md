@@ -131,6 +131,14 @@ disconnect]; full poll_probe state-machine conversion verified live incl.
 heart mid-probe, 6a/6b/6c paths. signing + version + commit left for user.
 details: [topic-coding-self-test-async-transport-2026-07-31.md](topic-coding-self-test-async-transport-2026-07-31.md)
 
+## kimi QuestionRequest silent-hang — fixed (2026-08-04)
+QuestionRequest had zero response handling [ kimi-web hung until manual UI
+answer ]. new kimi.wire.question_respond declines with empty answers [
+QuestionResponse shape, resolves as 'user dismissed', model proceeds ] +
+payload dump in the handler branch. live-verified against the real pending
+question 657eda84-... [ re-sent on reconnect ] — stuck task CB0FF0E resumed.
+staged unsigned for user. protocol + gotchas: [topic-kimi-question-request-decline.md](topic-kimi-question-request-decline.md)
+
 ## source.extract_sig_body over-long fake-footer bypass — fixed (2026-08-02)
 95+ char fake-footer lines bypassed every strip regex incl. the real-signature
 start marker (`{70,85}` ceilings) → never stripped. fix: open `{70,}` minimums
@@ -194,8 +202,8 @@ ncode.cmd.widen-scope with streak-consuming widen + reset). verified live via
 p7c incl. coding.eval-code for the p7c-unreachable regex.apply. details +
 reusable verification notes: [topic-ncode-scope-stack-phase2.md](topic-ncode-scope-stack-phase2.md)
 
-#,,,,,,,,,...,.,.,,.,,,..,.,.,.,,,...,..,,.,,,..,,...,...,..,,,.,,,,,,..,,,..,
-#S6RKAR44XGHJCN75XJIN3RBGITCYRCZ7YJ5S2CXZJ4SS4XE5ECEA6ZOFBKTHCQFSU6T3SSE4RPH4W
-#\\\|NXOZRXFMWCPFH37ADFWGIZUB3IPNGBEUBX6AJ27M4XTSU72JYY4 \ / AMOS7 \ YOURUM ::
-#\[7]OT3ZEGGCTLFXMBF5MGLINEFPYMCBHHXSQOBXVWCJVZUP6MSBC6DI 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,,.,.,,,,,.,,,,,,,,,.,,,.,,,,..,..,,...,...,..,,...,...,,,.,,,,,
+#CWFT43NITL25NDWK4JFS6PYUB4MIYTVVOOHFUYRMXU42Q775DAHRPQFF6IFCX7WCOO6GD53W5JG3O
+#\\\|TS2EQ6AR6NCUB4H4ZYPGUTOZFONGODH3GT3MT6TQQLF7EEVWJJ2 \ / AMOS7 \ YOURUM ::
+#\[7]HLLBPRMJRUFDCQQ2SJJO5XVFU6TXPYNW4HAGCH7TAHN72YKQXWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
