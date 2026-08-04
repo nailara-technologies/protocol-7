@@ -19,9 +19,6 @@ $type .= substr( $work, 0, 1, '' ) if $type eq qw| 011 |;
 ## type 1 : graphical character / 5x7 pixel matrix ##
 return sprintf( 'GFX[%s]', $work ) if $type eq qw| 1 |;
 
-## type 01 : 5x7 pixel matrix [ alternate ] ##
-return sprintf( 'PIX[%s]', $work ) if $type eq qw| 01 |;
-
 ## type 010 : BASE32 character ##
 if ( $type eq qw| 010 | ) {
     my $num = 0;
@@ -47,8 +44,8 @@ if ( $type eq qw| 00 | ) {
 
 return 'UNK';
 
-#,,.,,,,,,...,,..,.,.,...,,.,,,,.,,,.,,.,,..,,.,.,...,...,.,,,...,.,,,,..,,.,,
-#H42NGJPV53NCXORYPFQO7I4UEJNGIRNB4GRFX6KXUJ2OJZTYOCYUJUG4JHKGSPUH6NOLQH2ZYIL7O
-#\\\|AKNKY7QJCFVDP3ELIA4ZW3M7BFX6ZKD6Q7JWCFRD2FYD3L55R6K \ / AMOS7 \ YOURUM ::
-#\[7]A36YSCM6FO3FOFUQ2K3LIH3PEN4EQGU4NBXSMHEHU6TNINTOFUDY 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,,.,,..,,.,.,.,,,...,..,,...,,.,,.,.,...,...,.,.,..,,.,.,,,.,.,.,
+#74KH7CU5V3XLQEHM554J6P2B7WEN2I4MQ6KFWYY26BW3DEKXLKFNEAFVZ2NC5MZW2V5ZG75TQSNUI
+#\\\|547JPMBVTRP5GAQBKKIC6CJT2VVEGJEPECRKPXK6EXOGM7GRUZY \ / AMOS7 \ YOURUM ::
+#\[7]PK325QVOOVGLGABSQXZ5QRGM36R52AQV4P6VMYYPBOEXY6EDMKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
