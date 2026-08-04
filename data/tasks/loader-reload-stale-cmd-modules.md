@@ -1,5 +1,23 @@
 ## task: fix `.cmd.` modules not actually reloading on an already-running zenka
 
+**priority raised 2026-08-04 — second independent confirmation.** Hit again
+on the `kimi` zenka this session: after landing the `QuestionRequest`
+silent-hang fix (`modules/kimi.wire.question_respond` [new] +
+`modules/kimi.handler.ws_message`), `kimi.reload source` reported success
+but the edited handler branch did not actually take effect — the user had
+to explicitly direct a `v7.restart kimi` instead, and K3 discovered the
+staleness itself mid-verification rather than trusting the reload's own
+"success" report. Same shape as the original `jobsite.cmd.reload-probe`
+finding below: a `.cmd.`/handler-class module on an **already-running**
+zenka silently keeps the pre-edit coderef after `reload`, full stop only
+via `v7.restart`. Two unrelated zenki (`jobsite`, `kimi`), two unrelated
+sessions, same failure mode — this is not a one-off. Raising priority: the
+"use `v7.restart <zenka>` instead of `<zenka>.reload`" workaround noted
+below needs to become the *default* guidance for every live-fix dispatch
+until this actually lands, not just a footnote — every K3/Opus dispatch
+this session that edits an already-loaded module and tries to verify live
+is at risk of the same false-positive "reload succeeded" trap.
+
 ### symptoms
 
 editing an already-loaded `.cmd.` module's source and running `<zenka>.reload`
@@ -244,8 +262,8 @@ by the signing system. do not add fake/stub signatures to new files.
 
 ## dispatch
 
-#,,..,...,,.,,...,,..,.,.,,,.,.,,,,,.,...,,..,..,,...,...,..,,.,,,.,,,.,,,,.,,
-#AIK76DFFEO52SAZRPAYFQ7ST4ZXOJMYEA3CLAWGGS4TIIXIAPDKB7NDHHHSZNUT5W5YV6SKHMKQDS
-#\\\|KRX36WANKA7TJFP5UCKFJXG5P2YBX5KJJNBW3LZPJJVSQ67CUHD \ / AMOS7 \ YOURUM ::
-#\[7]FIZ7AFKOXNSJRI5MQL6Z4WFERMCDWREGDGUI5X45IP6ZUA2GCUDY 7  DATA SIGNATURE ::
+#,,..,...,,..,.,,,,,.,,,,,,.,,,..,,..,..,,.,,,..,,...,...,..,,...,,,.,,,.,,,.,
+#IJ5K3NQDBZ5PVYJ6I456W4RIQYRLJXHK5OIJA4JWAYXLODFLLIXOUMWCMKS6W6RTOBBGAZTFKAW5K
+#\\\|NFXUTQ3JQFE5MQXSNDM4E2MAFBKNZYNRTNSR54NX4OV4XNM7XDU \ / AMOS7 \ YOURUM ::
+#\[7]IXRUSEPGCWTKILCBGNYYK5GIQUB4PI33NX3JZSY2NBAZA4WPBABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

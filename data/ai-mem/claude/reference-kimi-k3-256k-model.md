@@ -45,8 +45,28 @@ sweeps, long log/session analysis) or video input. If it proves out,
 worth adding a proper `k3-256k` short alias to `mcp-server-p7` for
 convenience.
 
-#,,.,,...,,.,,,.,,.,.,,,.,,..,,..,,..,,..,,.,,.,.,...,...,..,,,..,.,.,,,,,...,
-#UWCJRDMF2DMVWU2Q6LFEPA43C4BLHYWIINSQ3C6CPQAXFGKAIFMZSRPXQ4HE3ICDIY2Q6EGY2NJPY
-#\\\|JYOI7SQFPYT3F4BPVZEX74U57DPHFKUG47BG3YG57NTWWZ62HG6 \ / AMOS7 \ YOURUM ::
-#\[7]K7FMSESKOXP5V42REP4VC5ETB2GEBEUC52YYE5NEG42ZE3Y57QCI 7  DATA SIGNATURE ::
+**Second data point, larger task, 2026-08-04**: the `amos-term-
+interaction-plugin.yaml` prototype dispatch (`bin/kimi-task`, ran on the
+`kimi` zenka's default model, `kimi-code/k3`, per
+[[project-kimi-k2.7-vs-k3-tier-economics]]'s real-API-name note) — new
+plugin-type design decision resolved, 6 new modules written, 2 real bugs
+found and fixed in `amos-term.buffer-create`/`buffer-write` (an SHM
+`Sys::Mmap` detach bug and a header-offset bug affecting *all* SHM
+consumers, not just this feature) — used **126k tokens total (12.1% context utilized at completion), roughly
+half of `k3-256k`'s 262144 ceiling still unused** — for a real diff of
+1000 lines added, 95 removed, across 34 files touched. This was a
+substantially larger, more open-ended task than the single-file bug fix
+above (new subsystem, live SHM debugging across process boundaries, a
+genuine design decision to resolve), and it still fit comfortably under
+`k3-256k`. Raises the bar on what "well-scoped enough for 256k" actually
+covers — this class of multi-file prototype-plus-real-bug-hunting task
+may not need full `k3`'s 1M context by default either; worth defaulting
+to `k3-256k` more aggressively and only reaching for full `k3` when a
+task is concretely expected to approach the 256k ceiling, not just
+because it sounds large.
+
+#,,..,.,.,,,,,..,,,,,,...,,.,,.,.,,.,,,.,,,,,,.,.,...,...,,..,,,,,..,,...,.,,,
+#7ZV63JKDG6FO6KL63SIZVBYACSVZ6PM7ARI3OICX6OBX2ATBBQVWT4TUEL4R5IHCHHITZG45YLQEK
+#\\\|XA2JNFB4HOGBXP6OTTPHWYMQQN4HRMRBETO4YVSFJRPGUPEXWPR \ / AMOS7 \ YOURUM ::
+#\[7]7UH676DVRGBIXIG6D3H7D6RK2W4VZM74PEJPTB6CZWVIYK73YICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

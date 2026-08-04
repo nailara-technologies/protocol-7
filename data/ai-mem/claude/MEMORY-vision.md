@@ -36,6 +36,8 @@ network-as-computer, dedup-tree unification, coding-as-artform / style-philosoph
 - [self-assembling-network](topic-self-assembling-network.md), [creative-field-behaviour](topic-creative-field-behaviour.md) — pre-loaded potential
 - [addressing-trinity](topic-addressing-trinity.md), [checksum-addressing](topic-checksum-addressing.md), [node-group-geometry](topic-node-group-geometry.md) — tree+checksums+timestamps
 - [1001](topic-1001.md), [perspective-layers](topic-perspective-layers.md), [observer-centric-space](topic-observer-centric-space.md) — cube tunnel/gate nesting
+- [harmonic-correlation-ledger](topic-harmonic-correlation-ledger.md) — tiered STRONG/REAL-BUT-WEAK/REJECTED log of 7-family/13-family numeric findings (10989 shared core, digit-complement theorem, 56/63/504=7×8×9), extend rather than re-derive
+- [cross-readout-ring-key-addressing](../../md/design/CROSS-READOUT-RING-KEY-ADDRESSING.md) — speculative BMW-L13 cross + ring-rotation key-addressing design (52=2×26=4×13 state-count), design-only, not implemented, several open items
 - [routing-crystal](topic-routing-crystal.md), [checksum-tree-wire](topic-checksum-tree-wire.md), [tree-protocol](topic-tree-protocol.md), [data-protocol](topic-data-protocol.md)
 - [reference-bubble](topic-reference-bubble.md), [branch-namespace](topic-branch-namespace.md) — rhizome bubble (5+2=7)
 - [dynamic-context-prep-vs-model-size](topic-dynamic-context-prep-vs-model-size.md) — discovery cost, not model size/tokens, is the real lever; front-load gotchas/conventions into task briefs
@@ -51,8 +53,8 @@ network-as-computer, dedup-tree unification, coding-as-artform / style-philosoph
 - [audio-render-cubic-zoom-transition](topic-audio-render-cubic-zoom-transition.md) — SEED: audio.render_standing_wave's nested lattice squares visually travel along a cubic grid under zoom; proposed as a transition mode overlaying the existing cubic-space desktop nav grid, bridging the audio renderer into the project's existing space-navigation visual language; relates to [[topic-implicit-perspective-navigation]]/[[topic-perspective-layers]]
 - [audio-render-as-similarity-feature-source](topic-audio-render-as-similarity-feature-source.md) — SEED + CORRECTED (kimi K3 review): similarity idea still stands but v1/v2/v3 share one analysis front-end so cross-style "agreement" is near-tautological, not independent like checksums, until the analysis itself is diversified; also found v3's absolute-phase placement is shift-*variant* (real bug -- re-segmented same audio renders differently) and the renderer discards all temporal/rhythm info by averaging FFT windows -- concrete v4 idea (energy variance per window) would fix that gap
 
-#,,,.,.,,,.,.,..,,,,,,.,,,..,,,.,,..,,,,,,,.,,..,,...,...,,..,,..,,..,,,,,.,.,
-#4DYOVMYQTX4JKI2TDWBHXSXVNFMHUZSEVJQRK6S5SFPGXQVCPS7LY3GW3NQ6IHFUAIG2SMAAVKYDG
-#\\\|JJ5SMVE6NXF32GHJ6UFYYXNK6L2LBNURVI65A64SWRA5MAQFYWW \ / AMOS7 \ YOURUM ::
-#\[7]NOGJCYIMUCUAGJLEEHVWBSLPBMEUBBLJW3BMZY3YMACK4AGYOMAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,,.,..,,,.,,.,,,,,.,..,,.,.,.,.,..,,...,...,.,,,...,.,,,.,.,,..,
+#K7SQXDO2RKAW55H5KRVKKSV4CDOX7VCFDOWT6YAWXFRNV2GO565GNUHQOQQ6R22ZLYW2IWPHFWICE
+#\\\|LWVN2QGVPDMJSHPS767LLBPSNAMUSLI3ZL6G3VROC5A6NP67KCM \ / AMOS7 \ YOURUM ::
+#\[7]ABSNUPGHM73VDE4S2O7LWPPB5EFJ3H5TRQDVYG3QIOTETUBA5YDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
