@@ -235,10 +235,16 @@ if ( $method eq qw| request | ) {
     }
 
     if ( $type eq qw| QuestionRequest | ) {
-        ## structured question : not yet implemented
+        ## structured question : not yet implemented : log payload, decline
+        my $payload_str = eval { JSON::XS::encode_json($payload) } // '?';
         <[base.logs]>->(
-            1, ': question request [ %s ] : not handled', $msg_id
+            1,       ': QuestionRequest [ %s ] payload=%s',
+            $msg_id, $payload_str
         );
+        ## decline with empty answers so kimi-web stops waiting : resolves as
+        ## 'user dismissed', model proceeds without an answer instead of
+        ## hanging until manual UI intervention
+        <[kimi.wire.question_respond]>->( $payload->{'id'} // $msg_id );
         return;
     }
 
@@ -373,8 +379,8 @@ if ( not length($method) and length($msg_id) ) {
     }
 }
 
-#,,..,..,,.,.,.,.,,,,,.,,,,..,,.,,.,,,,.,,,,,,.,.,...,..,,..,,.,,,,.,,,.,,..,,
-#3TUAOQNTMPRIJZMTDQZMQVFYJAQQXKALGS4L7ZI5MBAMBS65AQLZO2SMW2Z2CV66VUX7NHKFW7DIA
-#\\\|JH2JN4FJJLHODHAUUTMGPLCXLGYCVM73NJLAHDVKQJVAKDEWT5C \ / AMOS7 \ YOURUM ::
-#\[7]WFJPY3GFOK2U5W5BDLDGCMFDUQBXKTYBJDK6KB43AN6HT4XOW4AA 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,,,,.,.,,,.,.,.,,.,,...,...,,.,,.,.,...,...,...,..,,,.,,,..,,,,,
+#KEVXG7DGFTQ3LII6VKKKBCX656DOGAPYRWCHZ3LTSDWMDRF6YO42UCQMP2EGSA56WAIKM7TN7R54W
+#\\\|XZFLVETQJFD2XDUZ525FYBRE6ESPFS4XIGLGOBXPYWT3DQGQYUI \ / AMOS7 \ YOURUM ::
+#\[7]J7MNNZOL533SGGE7B46ZOCVEI45G4DVH7OUYGUTF4BHJPHUF7MBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
