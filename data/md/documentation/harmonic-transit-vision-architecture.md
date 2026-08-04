@@ -19,7 +19,12 @@ Core components:
 
 ```
 topology.dtm          →  darkening transmission matrix zenka
-AMOS7 footer line 5   →  15-bit spatial coordinate per signed packet
+AMOS7 footer line 4   →  15-bit spatial coordinate per signed packet
+                          [ right-aligned, positions 47-77 — the left
+                            side of this line carries a second,
+                            independent 15-bit field, the zenka litter
+                            bitmap, see data/tasks/litter-row-encoding.md
+                            and data/tasks/footer-line4-field-reconciliation.md ]
 source.init_code      →  binary sunburst crossing map (already present)
 multi-speed lanes     →  77-bit window, lens effect on distance
 PYTAURAZUMA protocol  →  self-framing stream sync (4 zero-crossing preamble)
@@ -163,7 +168,7 @@ Three axes × one base32 symbol = complete spatial address.
 
 ### Footer encoding: the #::::: line
 
-The fifth (bottom) line of every AMOS7 signature footer carries the
+The fourth (bottom) line of every AMOS7 signature footer carries the
 15-bit assertion register, right-aligned, octal-interlaced:
 
 **Format**: `[b2][:][b1][:][b0][:]` per group, 5 groups, right-aligned
@@ -191,7 +196,12 @@ level 5  :  value matches mod-15 state      harmonic assertion
 **Right-alignment is structurally correct**: the auxiliary bits sit at
 the right of the 64-bit row in `division-13-table` output. The footer
 mirrors this — newest at right, aging leftward. The left side of the
-`#:::::` line is available for future prefix fields.
+`#:::::` line [ positions 2-46 ] is available for other fields — as of
+2026-08-04 that space is partially claimed: positions 3-5 carry the
+zenka litter bitmap from `data/tasks/litter-row-encoding.md` (a static
+routing manifest, unrelated to this dynamic spatial coordinate).
+Positions 7-46 remain unclaimed. See
+`data/tasks/footer-line4-field-reconciliation.md` for the full layout.
 
 **Perl encoding (one line):**
 ```perl
@@ -1634,8 +1644,8 @@ its own boundary address.
 - `modules/source.init_code`        — dimensional table (lines 32-64)
 - `data/md/philosophy/HARMONIC-ENTROPY-INFORMATION-TRANSFER-RESEARCH.md`
 
-#,,,.,,.,,.,,,,..,..,,..,,..,,,,,,.,.,...,.,.,.,.,...,...,.,,,,.,,..,,,..,,,,,
-#XODZXCM5EBRQHOY5REH7ED4HWBFHJ62Z6OECEHQGVHHCJO4R2L73WKVYABK3F4MUFY4HF24ZPRIEY
-#\\\|7RQ66EBOOA65GGBIJUHC2U5662LITBPZFRRT7ATWX3RCVDSRKUJ \ / AMOS7 \ YOURUM ::
-#\[7]K57L3YGQDZYVVUOUFNBN5YAJJFYZMEQD6UF5LFBMUDTWW757MKBA 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,.,,..,,,,,,.,.,.,.,,,.,,.,,,.,,.,.,...,...,...,,,.,,,,,...,,..,
+#75N2VXMYDXVRTBTLBBEXY3YKB24I2UAYRTFXVNM6HAELVADOW3YFSZMQJ3GZFFVDULSP4TVA4C6U4
+#\\\|7DI3IU3T7KCAKEYYCIM6WPT4LAFPEAFQSZ62R32KFDI6DA3XP2A \ / AMOS7 \ YOURUM ::
+#\[7]YFQCH2H3QXXJHMR4DZX6LD7CM6WDBNKMEJ2WFRS7IQKD5ICZQGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

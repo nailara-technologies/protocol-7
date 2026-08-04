@@ -590,14 +590,383 @@ count and the doubled-checksum-length observation aren't two separate
 resonances, they're the same harmonic ratio applied at the
 node-coordinate scale and the checksum-length scale respectively.
 
+## Follow-up research pass: verdicts on the three open questions (2026-08-04)
+
+Research/design-only pass (no code touched) on the three questions flagged
+unresolved in the 2026-08-04 `-nest` riff above. Grounding re-read:
+`AMOS7::CHKSUM.pm`'s `INVERT_TRUTH_STATE` loop, `AMOS7::CHKSUM::Nested.pm`,
+the task yaml's resolution/iteration-cost block, `dancing_kittens_formation.md`
+Part 7 + Home-Ring Architecture, `crystal_desktop.md` ring gates,
+`crypt.C25519.init_code` sizetype table + `key_bin_checksums` templates.
+
+### Q1 — joint/mutual 2nd-level harmonization: RESOLVED (in design), with a constraint
+
+Key structural observation that collapses the problem: as long as the
+**derivation relation stays intact** (`child = H(parent . name)`), the joint
+search is NOT 2-dimensional. The child value is fully determined once the
+parent candidate is chosen — the only free variable is the parent-side
+entropy. So "search over both jointly" decomposes into exactly one search
+with more acceptance predicates:
+
+```
+search parent-layer entropy P' (e.g. nonce-suffixed parent, same 0/1-suffix
+mechanism already documented for epoch_v7) until ALL of:
+    is_true(P')                       -- parent alone, anonymized
+    is_true(H(P' . name))             -- raw derived child alone
+    is_true(combined/bracketed forms) -- the -nest fix's template clauses
+```
+
+- This is the **existing convergence loop with more template clauses**, not
+  a new algorithm. Cost asymptotics: each step of `INVERT_TRUTH_STATE` is an
+  independent re-draw (XOR with 32 fresh pool bits, resaturated from the BMW
+  512-bit pool at +13 offsets), so steps-to-success is geometric with mean
+  p^-1 where p = joint acceptance probability. Adding k near-independent
+  clauses multiplies expected cost by the product of their rejection
+  factors. Measured data point from the task yaml: going from ~3 effective
+  constraints to ~5 cost 2.5x (~1.58x per added clause, i.e. clauses are
+  correlated, not fully independent — bare and bracketed forms share most of
+  the string). Extrapolating: 2-3 extra clauses for the mutual scheme lands
+  at ~4-10x the current ~793 steps/call — SAME order of magnitude, wall time
+  still tens of milliseconds. Not the "different order of magnitude" feared
+  in the riff.
+- **Termination**: geometric tail, terminates with probability 1 — same
+  guarantee class as the current loop, and the existing
+  `AMOS7::TEMPLATE::template_timeout()` backstop applies unchanged.
+- The **naive alternating version** (harmonize parent given tentative child,
+  then re-harmonize child given new parent, repeat) is genuinely bad and
+  should not be built: each side's re-roll destroys the other side's joint
+  constraints, there is no monotone objective/Lyapunov function, and each
+  inner `child_chksum()` call is itself a ~793-step search — cost becomes
+  multiplicative (outer candidates x inner search, ~10^5-10^6 steps,
+  seconds-scale and frequently timeout-hitting). It terminates only in the
+  almost-sure/geometric sense (each outer round is a Bernoulli trial),
+  never with a hard bound.
+- **The one rule that keeps it cheap: never nest two convergence loops —
+  flatten to one loop with more predicates.** Check the raw derived child as
+  a pass/fail predicate inside the parent search instead of harmonizing the
+  child per candidate.
+- **Verdict: RESOLVED — practical** under the flattened single-loop design
+  with bounded clause count (say <= 6 effective clauses, cost ~10x current,
+  cf. `key_bin_checksums` already runs 4-clause templates in production).
+  Fully-symmetric two-sided perturbation (breaking derivation, `<C0>:<C1>`
+  as pure relation) is NOT practical as alternation; if ever wanted, only
+  as outer geometric retry loop with hard depth cap N_max and fallback to
+  the landed one-sided scheme. Concrete next step: prototype the flattened
+  parent-side search (nonce suffix on parent input, raw-child-truth as an
+  added predicate) and measure the real per-clause cost exponent against
+  the 2.5x data point.
+
+### Q2 — verify_nesting() under mutual harmonization: RESOLVED (contract redesign)
+
+Re-reading `verify_nesting()`: it recomputes `child_chksum(parent, name)`
+and compares. Crucially, that check verifies the **derivation direction
+forward from the supplied parent** — it never needed the parent to be the
+*clean* origin value, only to be the value the child was actually derived
+from. So the recompute-and-compare contract SURVIVES mutual harmonization
+almost unchanged, with a semantic split into levels:
+
+- **Level 1 — relational verification (current code, unchanged)**: caller
+  supplies the *anonymized* parent P' (the one embedded in the notation
+  anyway, per `parse_nested`), plus child_name. Recompute C' from P' and
+  compare. This still proves internal consistency of the pair: "this child
+  was derived from this parent under this name." No original needed.
+- **Level 0 — structural/PoW verification (new, no inputs beyond the
+  notation)**: check `is_true` on all guaranteed forms (child alone, parent
+  alone, bare, bracketed). Under mutual harmonization a jointly-true pair is
+  expensive to produce (Q1's multiplied search cost), so joint-truth itself
+  becomes a proof-of-work-style validity witness — exactly the human
+  reviewer's stated tradeoff from the fix ("more clauses = more PoW cost =
+  fewer degenerate collisions"), now doing security duty.
+- **Level 2 — identity anchoring (optional, new parameter or third-party
+  lookup)**: proving the anonymized pair corresponds to a *specific* clean
+  parent identity P0 requires either the caller to supply P0 (+ the
+  parent-layer nonce, so the P0->P' perturbation is re-verifiable) OR a
+  lookup against whoever holds the mapping. Property traded off: without
+  Level 2 you verify *consistency*, not *identity* — which is not a bug but
+  precisely the anonymization goal the riff asked for (traceability and
+  truth-harmonization are separate properties; the pair becomes
+  self-certifying as a relation).
+- Natural home for the Level 2 mapping: the third/combined checksum
+  (`amos-3`, the BMW384-style fast-reject value from this thread) committed
+  to a dated registry — `<epoch_v7>:<amos-3>` resolving to
+  `<epoch_v7>:<amos-3>:<amos-0>:<amos-1>`. The registry holder (see Q3:
+  the home zenki ring) is then the *only* party that can anchor identity;
+  everyone else gets Levels 0-1. This makes verification-capability
+  tiering a structural property instead of a policy.
+- **Verdict: RESOLVED.** Signature can stay `(notation, parent, name)` with
+  `parent` redefined as the anonymized value; add an optional original-
+  parent parameter for Level 2. No verification-without-original scheme is
+  needed for consistency — only for identity, and that gap is the intended
+  anonymization, closable via the ring-backed registry when wanted.
+
+### Q3 — C25519 forward/reverse -> zenki-ring role mapping: PARTIALLY RESOLVED
+
+Grounding in the actual one-way property (not verbal analogy): C25519
+`public = scalarmult(secret, basepoint)`; private->public is cheap, the
+reverse (ECDLP) is infeasible. ECDH makes both *holders* compute the same
+shared secret cheaply — so the role asymmetry can't be "client computes,
+ring un-computes" (both compute S). The real asymmetry that maps to roles
+is **possession of the private scalar**, and the OWF guarantees nobody
+else can compute what the scalar-holder computes. Concretely:
+
+- **Forward (easy, public, stateless) = data plane / session discovery.**
+  Any client derives a discoverable session address from the ring's
+  published identity key: pick ephemeral secret e, compute
+  `S = scalarmult(e, ring_pub)`, then
+  `session_addr = amos_chksum(S . epoch_v7)` (or the dated
+  `<Ca>:<epoch>:<Cb>` form — expiration baked in, staleness self-evident
+  after window rollover, no lookup needed). Anyone can do forward;
+  session addresses are publishable, route via normal BMW384/checksum
+  field addressing, and cost nothing to create. This is the 5 feeding
+  zenki + clients side of the formation.
+- **Reverse (hard, ring-internal) = control plane / session setup.** Only
+  a holder of `ring_secret` can complete the ECDH from the client's
+  ephemeral public key (`S = scalarmult(ring_secret, client_eph_pub)`) and
+  thereby re-derive/validate session_addr — i.e. only the ring can map a
+  presented session address back to an authenticated session and hence to
+  a control decision: admit, schedule, filter by
+  latency/bandwidth/priority/reachability. To everyone else session_addr
+  is an opaque, unlinkable checksum (one-way by the ECDLP assumption).
+  This is the 2 ring zenki / home-ring role: the ring gates in
+  `crystal_desktop.md` (controlled, zero-perceived-latency entry point)
+  are this control plane visualized.
+- **Dancing-zenki handoff = time-boxed grant of reverse capability.**
+  Part 7's temporary 3-ring state (saturated feeder ascends, stays
+  "accessible on ring" to resolve references, then descends) maps exactly:
+  during handoff the ascending zenki transiently holds the live session
+  context (its own S values / session state) and can answer reference
+  requests — a bounded admission to the control plane — which it loses on
+  descent. Session continuity = controlled, TTL'd reverse-direction
+  capability, matching `ttl => $HANDOFF_PERIOD` in the reference
+  resolution protocol.
+- **5-of-7 wraps the control decisions**: session admission/filtering is a
+  quorum decision (5-of-7, tolerating f=2 = the ring pair itself, per
+  [[topic-node-group-geometry]]: 5 active + 2 initialized-idle alternates).
+  Ring rotation (the dance) then doubles as key-custody rotation: the
+  ring-held scalar should rotate with shift-change and be epoch-bound, so
+  session addresses from a rolled-out epoch fail ring validation
+  structurally.
+- **Verdict: PARTIALLY RESOLVED.** The forward=discoverable-address /
+  reverse=ring-only-control mapping holds and is grounded in the real OWF
+  (possession asymmetry via ECDH, not a byte-level mirror). Residual open
+  item, concrete: how the ring scalar is shared/rotated between the 2 ring
+  zenki (threshold split vs. alternating custody during the dance) and the
+  exact epoch-binding wire format. Next step: sketch the handshake against
+  the existing `crypt.C25519.*` modules — `key_bin_checksums` already
+  harmonizes key-derived checksums through 4-clause templates, so the
+  `session_addr` derivation has a direct in-repo precedent to build on.
+
+## Dot-notation checksum routes, implying routing (2026-08-04)
+
+New addition to the thread, distinct from the `[child:parent]` nested-pair
+notation above: a **flat dot-joined string as a single route address**,
+where each dot-separated segment is a hop. Live example (verified,
+reproducible):
+
+```
+amos-chksum -v P.KY.62.BY
+  input-string : P.KY.62.BY
+  VAX-encoded  : I2NNYAY : 64789062
+```
+
+- Unlike `[child:parent]`, this is not two checksums paired — it's ONE
+  checksum of a single string that already encodes a hierarchical path
+  (`P` -> `KY` -> `62` -> `BY`, 1/2/2/2 chars). The route structure lives
+  in the input, not in the output pairing.
+- **26 chars + `.` = 27-symbol route alphabet**: base32 here contributes
+  its 26 letters as hop-name characters (`P`, `KY`, `BY` above); `.` as
+  the 27th symbol is the hop separator, distinct from any hop-name
+  character. Numbers and binary (`62` above) layer in as an additional
+  character class for hop segments — consistent with the existing
+  0/1-suffix harmonization mechanism already used for `epoch_v7`.
+- **"3 axis x 255 bits [base32]"** — raised, not yet worked out how this
+  maps onto the dot-hop structure; flagged for a follow-up pass rather
+  than guessed at here.
+- **Namespace separation by hop length, checked against real data**:
+  claim was "zenki names start with 3 characters, so 1 and 2 character
+  routes stay available for routing/coordinate hops." Checked
+  `configuration/zenki/` (125 entries): **1-char is fully free — zero
+  1-char zenki names exist.** **2-char is *mostly* free but not
+  entirely** — `v7` and `fs` are real 2-char zenki names already in use
+  (2 of 125), so a 2-char hop segment isn't unconditionally
+  collision-free the way 1-char is; anything routing through 2-char hops
+  would need to special-case those two names or accept the (very small)
+  collision surface.
+- **Character = grid, number = angle**: proposed mapping of hop-segment
+  character class to coordinate type — alphabetic hops as discrete
+  grid/cell addressing, numeric hops as continuous angle addressing, with
+  angle+distance resolving onto grid coordinates in some contexts. This is
+  the same grid/angular split already documented for BMW384 in
+  [[topic-checksum-addressing]] (24-bit color/angular channel vs. the grid
+  based node-group geometry in [[topic-node-group-geometry]]) — not a new
+  duality, an application of the existing one to hop-segment typing.
+- **Each hop adds precision by lengthening the address, direction/scale
+  agnostic**: matches the lambda-principle framing already documented
+  ("each hop encodes routing decision into local field state... hop
+  decision deterministic from coordinates" in
+  [[topic-checksum-addressing]]) — progressive resolution refinement via
+  address length, same shape as the coarse-to-fine BMW384 routing already
+  established, now stated generically for dot-hop routes of arbitrary
+  length rather than just the color-prefix/angle split.
+- **Memory efficiency**: local routing decisions stay cheap (short
+  hop segments, small local lookup), while the full dotted path can grow
+  to arbitrary length for deep addressing — standard trie/hierarchical
+  property, consistent with the namespace-tree material earlier in this
+  doc (`<C0>:<C1>` parenting) but applied to a flat path string instead
+  of a checksum-pair chain.
+- Also raised: ring structure or direct cubic-space routes as alternate
+  hop-resolution topologies — not elaborated, ties to the cubic routing
+  space material in [[topic-addressing-trinity]].
+
+### Host-digit as statistically-derived address, not assigned (2026-08-04, same riff)
+
+Extends the dot-notation hop-addressing idea above: a node's single-
+character host digit need not be assigned — it can be **derived from the
+node's own reference pool**. If, among all immediate references a node
+holds, `L` is statistically the most-held character [ relative to all
+other candidate characters present ], that node's address to its
+neighbors becomes `L` — emergent from content, not allocated.
+
+- **Routing consequence — pool, not pointer**: a neighbor needing to route
+  something keyed on `L` is not required to route through the specific
+  node that "is" `L` — it chooses whichever reachable node currently has
+  the **widest reference count for `L`**, which may be a different node
+  entirely. The nominal `L`-node stays **in the pool** as a valid fallback
+  — degraded routing, not broken routing, if the top-ranked node is
+  unreachable.
+- This is the **same mirror-principle mechanism already documented**, not
+  a new one: [[topic-checksum-addressing]]'s "route as symmetry condition"
+  section states routing is *"not constructed, revealed by attained
+  symmetry"* and *"mirror point shifts with field conditions → load
+  distributes automatically."* Here the field condition being sensed is
+  literally per-character reference density; the route resolving to
+  "whoever currently scores highest for `L`" rather than a fixed
+  address-holder is exactly that shifting-mirror-point property, applied
+  to the dot-notation hop addressing from the section above.
+- Closest outside-world analogue for calibration (not a repo precedent,
+  just a sanity-check reference point): this is structurally similar to
+  rendezvous/highest-random-weight hashing, except the weight is *real,
+  observed reference density* rather than a synthetic hash-of-(key,node)
+  score — so the ranking is content-derived and changes as the network's
+  actual reference distribution shifts, rather than being fixed at
+  assignment time.
+- Open: how ties are broken (two nodes statistically equal for `L`), how
+  often the ranking needs re-evaluation vs. being cached, and whether this
+  composes with the 1-char/2-char zenki-name-collision finding above [ a
+  zenki with a real fixed name like `v7` presumably can't also become a
+  statistically-derived `L`-address without a namespace-priority rule ].
+  Not worked out — flagged for the same later pass as the rest of this
+  section.
+- **Sort key is pluggable, not just reference-count**: same "widest wins,
+  nominal holder stays fallback" mechanism generalizes to additional
+  routing-preference attributes — lowest latency, highest bandwidth — not
+  a new idea here, the same list already named earlier in this thread for
+  the home-zenki-ring's session-control filtering [ "latency, bandwidth,
+  priority, or reachability" ]. Open question raised alongside this: is
+  latency/bandwidth better represented as a **cycle-distributed** metric
+  [ measured per rotation, same clocked-rotation mechanism
+  `TASK-CUBE-CONSENSUS-ARCHITECTURE.md` already uses — "a logical
+  (virtual, calculated) clock... counts face advances, not wall-clock
+  ticks" ] rather than a single instantaneous scalar? If so, the sort key
+  itself would be a per-cycle distribution rather than a point value —
+  not resolved here, flagged alongside the other open items in this
+  section.
+
+**Status**: recorded per user request ("either now or later is likely
+worth another pass") — not yet dispatched for a deeper pass. The live
+example and the zenki-name-length check above are verified; everything
+else in this section, including this host-digit addition, is
+open/unelaborated.
+
+### Grounding pass: pluggable sort key + cycle-distributed metric vs. existing material (2026-08-04)
+
+Research/design-only pass (no code touched) on the two claims in the
+"Sort key is pluggable" bullet above, against the existing latency/
+bandwidth corpus (`topic-latency-algorithmic-authority-entropy-toll.md`,
+`bandwidth_optimization.md`, `models-zenka-complete-architecture.md`,
+`WEIGHTED-NETWORK-TIME-PRECISION-CONSENSUS.md`, plus two docs surfaced
+on the way: `ROUTING-AS-SEARCH-DISTRIBUTED-DISCOVERY.md` and
+`OBSERVER-CENTRIC-REFERENCE-SPACE.md`).
+
+- **"Sort key is pluggable" — CONFIRMED-EXISTING, three independent
+  precedents.** (1) `ROUTING-AS-SEARCH-DISTRIBUTED-DISCOVERY.md`
+  already sketches per-hop multi-attribute route metrics as code shape:
+  `update_route_metrics($hop, { latency => measure_latency(...),
+  reliability => ..., popularity => ..., resonance => ... })` — a
+  pluggable metrics vector, not a single key. (2) `TASK-CUBE-CONSENSUS-
+  ARCHITECTURE.md` layer 2: "network routes around it using nodes with
+  better success statistics" — routing preference by observed statistic,
+  same "best-currently wins, not assigned" shape as the host-digit pool.
+  (3) `topic-latency-algorithmic-authority-entropy-toll.md` names
+  latency itself as "a third algorithmic authority" and describes a
+  self-organizing latency grid that places nodes "not by central
+  assignment" — the emergent-ordering claim of this riff, already stated
+  for latency specifically. What remains new here is only the
+  *application* to the 1-char host-digit reference pool, not the
+  mechanism.
+- **Cycle-distributed bandwidth — RESOLVED by existing material, in a
+  stronger form than the question posed.** `OBSERVER-CENTRIC-REFERENCE-
+  SPACE.md` ("temporal bandwidth — the serialization clock") already
+  *defines* bandwidth as a per-cycle distribution: clock period = 13
+  slots (harmonic, generator 076923), faces get slots proportional to
+  reference count, "leaf count per face per cycle = bandwidth... the
+  sequence IS the allocation," and explicitly "spatial: reference count
+  -> distance from darksun [position] / temporal: reference count ->
+  slots per clock cycle [bandwidth] / same gravity. two domains. one
+  mechanism." Mirrored in `topic-observer-centric-space.md`. So for
+  bandwidth the answer isn't "should it be per-rotation" — it already
+  is, and it's driven by the *same* reference-count statistic as the
+  host-digit address itself, i.e. the sort key and the cycle-
+  distribution are one mechanism there, not two.
+- **Cycle-distributed latency — CORRECTED/REFINED, not "measured per
+  rotation."** The open question assumed the choice was raw per-rotation
+  measurement vs. instantaneous scalar. The existing corpus rejects the
+  scalar but establishes a *different* alternative:
+  `WEIGHTED-NETWORK-TIME-PRECISION-CONSENSUS.md` treats measured
+  time-precision as a **weighted historical statistic** — "a node's
+  historical precision determines how much its current time sample
+  counts," a dynamic tolerance window that "shrinks over successive
+  cycles," "integer-per-cycle-type consequences," plus second-order
+  scoring on *predicted* vs. actual precision. The epistemic split that
+  matters: the task-cube/orbital clock is logical — "calculated is more
+  precise than measured" — while latency is physical and per the
+  WEIGHTED doc "has to be measured and agreed on across independently-
+  clocked nodes," which is exactly why the weighted consensus exists.
+  So the established shape is: bandwidth = *calculated* per-cycle slot
+  density (free, derived from references); latency = *measured*,
+  weighted-consensus statistic with per-cycle accounting and shrinking
+  windows — not a raw per-rotation sample. Supporting habit-level
+  evidence that the project never uses point scalars for latency:
+  `SETTINGS-STATISTICS-ZENKA.md` classifies "Synchronization latency
+  distributions" as statistics-zenka data; `models-zenka-complete-
+  architecture.md` tracks latency as avg/p95/p99 percentiles.
+- **Residual genuinely-new items** (not found answered anywhere in the
+  corpus): (a) the two cycle vocabularies are not yet unified — the
+  task-cube logical clock counts face advances, the serialization clock
+  counts 13 slots; folding the weighted-precision latency statistic into
+  either frame is unworked. (b) Multi-statistic pool ranking: bandwidth
+  and position share one statistic (reference count), so "widest wins"
+  is unambiguous there; adding latency as a *second, independent*
+  statistic raises unaddressed tie-break/composite-ordering questions
+  for the fallback pool (same open class as the tie-breaking item
+  already flagged in the host-digit section).
+
+**Verdict**: pluggable sort key = confirmed-existing (cite the three
+precedents above when developing it further); cycle-distributed
+bandwidth = resolved-existing, stronger form (13-slot serialization
+clock); cycle-distributed latency = corrected — existing answer is the
+weighted precision consensus with per-cycle accounting, not per-rotation
+measurement; genuinely new = cycle-clock unification + multi-statistic
+pool ranking only.
+
 ## Status
 
 User said "let us first dispatch something" while still mid-riff — dispatched
 to opus via claude_dispatch to draft a design doc capturing this material
 (see commit/doc once written). More nodes in this tree are expected to follow.
 
-#,,.,,.,.,.,,,,,.,,,.,,.,,,,,,...,.,,,,..,.,.,..,,...,...,,..,,,.,,.,,..,,,..,
-#FVU2WXG7BKHHHMCHGVLDWLNP3KWSX5ITQ42I4GMEYIR67RERUNZQJUHBI5HGI2ITYLH2RPZF3OEMC
-#\\\|NURHBNDPO7R7GOM5FPMZYPNB7IRGF3ABRPNHFF6K7BCCIDRKO3G \ / AMOS7 \ YOURUM ::
-#\[7]P33IOTKXSQOIFPEDWAXKWZPIVBBECKGRUQA3YUULZ3J57JMM7ACI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,,.,,...,.,,,.,,,,,,,,,.,.,,,,,,,..,,...,.,.,,,.,,..,,..,,,.,.,,,
+#JO7A2S2JA5HTEAIMKXA4VERKBGDJ5VYCMEUPNTDSKFNH5BNUZYWDA6BY7L6WC3L6KMJKAIMZMIHJK
+#\\\|VBT4KTACMWLOOL34ON5P7NMNPZFMND7IOTVHODCAZRIPDWWTMWH \ / AMOS7 \ YOURUM ::
+#\[7]U2QQ6NH6UZ57BXN5H35X2YANRGVGZQWMDP4CU4W35PEWUS5OGEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

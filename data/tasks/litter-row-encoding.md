@@ -34,9 +34,45 @@ remaining colons maintain visual consistency and line length.
 
 ```
 bits 0-6:    zenka involvement flags (which zenki use this module)
-bit  7:      special flag (reserved / void marker)
+bit  7:      transport state — 0 = local, 1 = routing
 bits 8-14:   routing flags (which transport trunks / layers)
 ```
+
+bit 7 [ human-reviewer proposal, 2026-08-04, adopted ]: a single bit
+distinguishing whether this module's traffic is contained to the local
+litter neighborhood [ 0 ] vs. handed off across a longer routing path
+[ 1 ]. it's the natural hinge between the two halves — bits 0-6 say
+*who* touches the module, bit 7 says *how far* that touch travels,
+bits 8-14 say *which trunks* carry it when it does. a module with only
+local zenka involvement leaves bit 7 and bits 8-14 at zero; a module
+that's also routed cross-trunk sets bit 7 and populates the trunk flags.
+
+open question [ not resolved by adopting the definition ]: every other
+bit in this bitmap derives from a static property, the module's
+namespace prefix, computed once at sign time by the "namespace →
+bitmap rules" below. "is this routed cross-trunk" is not a namespace
+property — it may not be knowable purely from the module's own source
+at sign time, unlike bits 0-6 and 8-14. whoever implements this needs
+to decide bit 7's actual derivation rule [ e.g. inferred from which
+trunk-flag bits end up set, since routing implies at least one trunk
+flag on; or left as a manually-asserted flag in the module's own
+metadata ]. flagged here rather than guessed at, since it's the one bit
+the human reviewer asked about directly.
+
+### coexistence with the harmonic-transit 15-bit spatial coordinate
+
+`data/md/documentation/harmonic-transit-vision-architecture.md` [ section
+2 and section 10 ] also describes "the 15-bit footer field" — a 13-bit
+L-matrix + 2-bit orientation selector, encoded right-aligned across
+positions 47-77 of this same line. that is a different value [ a
+dynamic per-signing spatial coordinate, not a static zenka manifest ]
+occupying a different character range, so it does not collide with the
+3-char litter payload here [ positions 3-5 ]. see
+`data/tasks/footer-line4-field-reconciliation.md` for the full
+character-position layout and reasoning — including a third, unadopted
+candidate [ a 3×5-bit zenki-address routing chain ] logged there as an
+open idea for the still-unclaimed positions 7-46, distinct from this
+bitmap and from the harmonic coordinate.
 
 zenka bit assignments (0-indexed):
 ```
@@ -131,8 +167,8 @@ $ARG not $_ in loops
 <[base.logs]>->( N, fmt, args ) for logging  
 lowercase comments, [ word ] bracket annotations
 
-#,,,,,,,.,..,,,.,,.,,,,,,,,.,,.,,,..,,...,.,,,..,,...,..,,,..,...,,,,,,..,,,,,
-#CQBIV5V7AO62T2XCDG7DLLBLBXAXH743XG4GH3GMCZX5JB7ECT635QZGGF4CEKCUOLLZHG2B57YZM
-#\\\|LZPPHQRADVZVXTCLOO2MDHMHLBYHND4WFULOCFLXHF5JV2WDAAI \ / AMOS7 \ YOURUM ::
-#\[7]6ECLCUSXQB75KUKM3EHIATUCVXRENAJM2LCYL6MRUVJQOXWJJSDQ 7  DATA SIGNATURE ::
+#,,,,,...,.,.,...,.,.,...,...,,..,.,,,.,,,.,.,..,,...,...,,,,,...,.,,,...,.,.,
+#BZ6PT6KPJUGZDYCMNEUVQZPRBEX3YTVYNM4EPZAHV2T7QWKIA4RWQCDUHEZNWNZE2SDQN6JPATGK4
+#\\\|JOTIDL4KBLQVM7SKIVYRPFA76YRQ555DWAKMPEZRHR5BE76ZGDW \ / AMOS7 \ YOURUM ::
+#\[7]PFM65ZLHP4GUEQ4DGSSHN23QKA3CXRFC6VWOT553HTRZHJ5Z2QAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
