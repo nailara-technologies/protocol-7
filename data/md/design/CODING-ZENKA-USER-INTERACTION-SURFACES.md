@@ -89,6 +89,30 @@ this is the track for genuinely open-ended exchanges [ "let's talk through this 
 where a modal popup would be the wrong shape — closer to how nshell already lives inside
 amos-term than to a dialog box.
 
+buffer lifecycle [ resolved 2026-08-04 ]: a dedicated, lazily-created, *named*, reusable
+buffer — `name:agent-interaction` [ must match `<regex.base.usr>`, no dots:
+`window-create` passes `client_name` as the session user name to
+`base.session.init` ] — not an attachment into an arbitrary window the user
+already has open. the zenka cannot know which existing window the user is watching, a
+shared buffer interleaves question text with that buffer's own output, and the idle-fade
+timeout semantics only make sense on a buffer the channel owns. nshell.bridge attaches
+into a buffer created for nshell's own session; the interaction channel does the same.
+consequences:
+
+- `ask_user_stream` needs only the well-known buffer name [ `buffer-attach_generic`
+  already resolves `name:<name>` ] — no window handle crosses the tool boundary
+- multi-turn scrollback via Z-layer history shift [ Z+1, newest at Z=0 ], same as nshell
+- window lifecycle is internal to the plugin: `window-create` + `window-open` on first
+  question when a GTK session exists; headless → degrade straight to `record_question`;
+  reopening a closed window re-attaches to the same named buffer, history survives
+
+implementation caveat [ found 2026-08-04 ]: the amos-term plugin infrastructure described
+above is only partially built — `<amos-term.plugin-watcher>` is declared but no inotify
+watch is installed, the type hooks are never dispatched, and `on_buffer_change` is
+registered by nshell.bridge but never invoked [ `buffer-write` does not notify
+attachments ]. this track must add the notify-on-write dispatch, the hot-reload watcher,
+and the timeout→`record_question` degrade timer as part of its scope.
+
 ### when to use which
 
 - pre-generated, bounded options / confirmations / short text → track 1 [ protocol-7-menu ]
@@ -171,11 +195,17 @@ design only. nothing in this document has been implemented. next concrete steps,
    input-text's dialog shell almost verbatim ]
 2. `protocol-7-menu.dialog-types` registry + hot-reload wiring [ mirrors amos-term pattern ]
 3. coding-zenka tool wrappers for track 1
-4. amos-term `interaction` plugin type [ larger — needs a buffer-lifecycle decision: does
-   an interaction buffer get its own window, or attach into an existing one? ]
+4. amos-term `interaction` plugin type [ buffer-lifecycle decision resolved
+   2026-08-04: dedicated named buffer `name:agent-interaction`, lazy window, Z-shift
+   scrollback — see track 2 above. PROTOTYPED live 2026-08-04: notify-on-write
+   dispatch added to `buffer-write`, ask/reply round-trip verified headless in
+   the amos-term zenka; two `buffer-create` SHM bugs found + fixed [ mmap detach
+   via whole-scalar assign, voxel/header offset ]. remaining: timeout-degrade
+   timer, inotify watcher, plugin-type scaffolding, GTK window-open path —
+   details in `data/yaml/coding-tasks/amos-term-interaction-plugin.yaml` ]
 
-#,,..,..,,...,,,,,,,.,..,,.,,,...,,,.,.,,,...,..,,...,...,.,.,,,,,,,,,.,,,...,
-#RXWWAL5ZMCWIIIGZP3B6A2P5ELIRBKDKKEKWFW5MLQMNJT3KMDR5X5MOKPXQRIJMHWM5XLFMSVVXI
-#\\\|IY6WB2LVNTOIJF57YAJ45EB4SBXBR3APBDGIY5ZAZQIAHSU3PEU \ / AMOS7 \ YOURUM ::
-#\[7]KQPOJPM5ACLPI5I6FXSV7GIZS4S4T2QELYSHDLTXGRPOQEZJIGCQ 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,.,,.,.,...,,.,,,,,,,,.,..,,.,,,..,,...,...,,,.,...,.,,,.,.,,,.,
+#SCVX4NMFO3BTEPBXI5LDKELDE7LJQ5PBWENEOQO6UIMH32LCTTFDQXSTPQB5SPGWJKNI5N72RDHAO
+#\\\|ULR6AE3VJIML7PN6VAUUAAQL3BSI7RCLIMEGZMCV3JDAIDO6UIQ \ / AMOS7 \ YOURUM ::
+#\[7]HCRWYQBPOMITITUWACANEGX2OOGRJ6RNUMQ47L6NBNO4L7VB3IAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

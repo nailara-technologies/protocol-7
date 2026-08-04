@@ -1,9 +1,9 @@
 ## [:< ##
 
 # name  = amos-term.buffer-write
-# descr = Write voxel to 3D buffer
+# descr = Write voxel to 3D buffer [ + notify attachments ]
 
-my ( $window_id, $x, $y, $z, $char, $color_idx ) = @ARG;
+my ( $window_id, $x, $y, $z, $char, $color_idx, $client_type ) = @ARG;
 
 $color_idx //= 4;    # default p7_fg_0004
 
@@ -25,10 +25,37 @@ my $offset = ( $z * 56 + $y * 8 + $x ) * 2;
 ## write voxel (color byte + attr byte) ##
 substr( $$shm_ptr, $offset, 2 ) = pack( 'CC', $color_idx, ord($char) // 0 );
 
+## === notify attachments of buffer change === ##
+if ( defined $window->{'attachments'} ) {
+    local $window->{'notify_guard'} = TRUE;    # re-entrancy guard
+    my $change_info = {
+        qw| window_id   | => $window_id,
+        qw| amos_id     | => $window->{'amos_id'},
+        qw| x |           => $x,
+        qw| y |           => $y,
+        qw| z |           => $z,
+        qw| char |        => $char,
+        qw| color_idx |   => $color_idx,
+        qw| client_type | => $client_type // qw| unknown |,
+    };
+    foreach my $attach_id ( $window->{'attachments'}->@* ) {
+        my $attach  = <amos-term.buffer-attachments>->{$attach_id}   // next;
+        my $handler = $attach->{'client_data'}->{'on_buffer_change'} // next;
+        if ( ref $handler eq 'CODE' ) {
+            $handler->( $attach_id, $change_info );
+        } else {
+            <[base.load_code]>->($handler)
+                if not defined $code{$handler};
+            $code{$handler}->( $attach_id, $change_info )
+                if defined $code{$handler};
+        }
+    }
+}
+
 return TRUE;
 
-#,,..,,..,.,,,,,.,..,,.,,,.,.,,.,,,.,,,..,,,,,.,.,...,...,.,,,.,,,,,,,.,.,.,,,
-#7RRKE5NOQZ6V35CSMJPNVB5XKZW5PGQZTEAA52X52QABWVC6HWSNKMNKPLODF5R3FN5Y6IV7CKSB4
-#\\\|KQVRZJS24IPL6F7UMVZFQ2OMFALRJNHUP2JVFYXEHJ7HXYIGEMA \ / AMOS7 \ YOURUM ::
-#\[7]OYE5TRQQHFCRYORAG3RQE3YXBXJ36NDL2Q6NQFM3EQDIRZ6IFWAQ 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,..,,...,.,.,,,.,,.,,.,.,,.,,,,.,.,.,...,.,.,.,,,..,,,..,.,,,,,.,
+#4CLU7TNGVNZZBETREEGOVCX24ITU3MNFXGZMQYR7W3E4EPOOMX4PX26XISDIAGBAXPCLATU66UTY2
+#\\\|U74CZTO72MPSTSSO2G2VJEG6UQ4JUOLPHMUCZB4RA342JMKSPZ3 \ / AMOS7 \ YOURUM ::
+#\[7]LDQ76PBPPCR3ILX4SYNZMSD2GHZB4PSDATTWT4JXJLXGEZNPE4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

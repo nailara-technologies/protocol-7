@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = amos-term.handler.interaction-changed
+# descr = Interaction prototype: accumulate user reply, deliver to pending caller
+#
+# Invoked via the on_buffer_change dispatch in amos-term.buffer-write for any
+# non-interaction client writing into the 'agent.interaction' buffer. Reply
+# completes on newline; the pending question's reply_handler is then called as
+# ->( $question, $reply_text ) and the pending state is cleared.
+
+my ( $attach_id, $change_info ) = @ARG;
+
+## === ignore own writes [ question text from the interaction client ] === ##
+return TRUE if ( $change_info->{'client_type'} // qw|| ) eq qw| interaction |;
+
+my $state = <amos-term.interaction.state>;
+return TRUE unless defined $state and defined $state->{'pending'};
+
+my $char = $change_info->{'char'};
+return TRUE unless defined $char;
+
+if ( $char eq "\n" or $char eq "\r" ) {
+
+    ## === reply complete -> deliver to calling task === ##
+    my $pending = $state->{'pending'};
+    my $reply   = $state->{'reply_buffer'} // qw||;
+
+    $state->{'pending'}      = undef;
+    $state->{'reply_buffer'} = qw||;
+
+    <[base.logs]>->(
+        2,              "[interaction] reply received [%d chars] : %s",
+        length($reply), $reply
+    );
+
+    my $handler = $pending->{'reply_handler'} // return TRUE;
+    if ( ref $handler eq 'CODE' ) {
+        $handler->( $pending->{'question'}, $reply );
+    } else {
+        <[base.load_code]>->($handler)
+            if not defined $code{$handler};
+        $code{$handler}->( $pending->{'question'}, $reply )
+            if defined $code{$handler};
+    }
+
+} else {
+    ## === accumulate reply character === ##
+    $state->{'reply_buffer'} .= $char;
+}
+
+return TRUE;
+
+0;
+
+#AMOS7_SIGNATURE_PLACEHOLDER
+
+#,,..,...,,,,,,.,,,,,,.,.,.,.,.,.,.,.,.,,,,.,,..,,...,..,,.,,,,..,...,,,.,,,,,
+#I3Z6OUJZVRLOAI6F3IBG7RYVFGOGF5USTJGNTGX2LZU3VBFXDOJMUBMDTSRYEIU76NIC2C5NXGT42
+#\\\|RCYQFZ5ICO5ZRZEICWLUJK5STUYDIWMOWIDTXYXJ3PFYP7E4EIH \ / AMOS7 \ YOURUM ::
+#\[7]ABR46JP4QHVMKTUNZNK67K4KKHRGLN7HYG274TWENTSCKYHID4BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

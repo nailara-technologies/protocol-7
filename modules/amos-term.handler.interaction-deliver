@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = amos-term.handler.interaction-deliver
+# descr = Interaction prototype: default reply delivery endpoint
+#
+# Default reply_handler for amos-term.interaction.ask. In the full plugin this
+# is where the reply routes back into the calling coding-zenka task; in the
+# prototype it logs the completed exchange and stores it in the channel state
+# for inspection.
+
+my ( $question, $reply ) = @ARG;
+
+my $state = <amos-term.interaction.state>;
+$state->{'answered'} //= [];
+
+push $state->{'answered'}->@*,
+    {
+    qw| question | => $question,
+    qw| reply |    => $reply,
+    qw| answered | => <[base.time]>->(3),
+    };
+
+<[base.logs]>->(
+    2,         "[interaction] delivered :: Q: %s :: A: %s",
+    $question, $reply
+);
+
+return TRUE;
+
+0;
+
+#AMOS7_SIGNATURE_PLACEHOLDER
+
+#,,..,,,.,.,.,,,.,,.,,,,.,.,.,,,.,..,,,,,,...,..,,...,...,.,.,,,.,,,,,...,...,
+#CB2BU7XWHZT7YSF7GBUULTQRFI3P3IQTFVSODYUI2P4EHMX2FGFBECOOEQDC2XRDWHAFJWLVWND3Y
+#\\\|RA2AQVYQLWDOUCZNWSG5Y436Y3JG5OMDZTPMVK4ADKFLOAMUF3B \ / AMOS7 \ YOURUM ::
+#\[7]Z6JBE36WN4AEA7FLJUOY4PHVI4KIEOM6W6P6K6T6V57SJUMNXIBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
