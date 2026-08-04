@@ -19,8 +19,9 @@ center.
 **Zero is transparent**: the center position (`0` on both axes) does not
 carry an address of its own and is defined not to leak state across itself —
 a non-conducting boundary, structurally similar to differential-signaling
-isolation, rather than a rule that has to be separately enforced. What
-"leaking" formally means here is not yet specified — open item, see below.
+isolation, rather than a rule that has to be separately enforced. See
+"zero-transparency mechanism" below — this now has a real, resolved
+implementation pattern rather than an open, unspecified property.
 
 ## the security property: centered radial vision
 
@@ -90,10 +91,33 @@ facts sharing a product is expected, not evidence they're the same
 mechanism — the exact trap this whole session's verification discipline has
 been built to catch.
 
-## open items, honestly still open
+## zero-transparency mechanism — resolved, real prior art found and confirmed
 
-- What "leaking across zero" formally means — currently a design intent,
-  not a specified property.
+**No longer open.** This project already has a working, live, production
+implementation of exactly this class of problem — self-marking an
+all-zero payload rather than declaring zero "transparent" by fiat.
+`modules/amos7.encode_octal_header:22-23` / `modules/
+amos7.decode_octal_bit_header:21`, confirmed full round-trip in real
+running code: when a payload value is entirely zero, the encoding
+*inverts* its bit-to-character mapping (normal mode `0→,`/`1→.`,
+inverted mode `1→,`/`0→.`) rather than emitting the genuinely ambiguous
+all-same-character state. The decoder recognizes the specific inverted
+signature pattern and reconstructs the all-zero payload correctly.
+
+Adopt this pattern here instead of the vague "`0` doesn't leak" framing:
+the cross-readout's `0` position should be **self-marking** the same
+way — its own encoding should flip in a recognizable, decodable pattern
+specifically when the readout would otherwise be indistinguishable from
+"nothing here," not simply be treated as a symbol that requires no
+address. This closes what was the single largest open item in this
+design with real, tested, already-shipping prior art rather than new
+invention. Traced back through
+`data/asc/what-AI-thinks/full-chat-captures/3O37VUNMMS3UU...asc:10213-
+10291` (the original design conversation, chat-transcript tier) to
+confirm the live code is a full implementation of that idea, not just a
+similarly-named coincidence.
+
+## open items, honestly still open
 - Whether the rotating-observer mode's `-90°`/4-step cycle is the *same*
   rotation as `ORBITAL-CYCLE-CLOCK-AND-MAPPING-CANVAS.md`'s documented one,
   or a separately-arising instance of the number 4.
@@ -116,8 +140,8 @@ allowed to change without destabilizing an in-progress readout.
 `data/md/design/ORBITAL-CYCLE-CLOCK-AND-MAPPING-CANVAS.md` — the
 pre-existing `-90° CCW` rotation material this may or may not connect to.
 
-#,,,.,.,,,...,.,,,..,,.,,,.,.,.,,,,..,,,.,.,.,.,.,...,...,,..,,..,,,,,...,,,.,
-#A2SX5FKGDXGRCWPJDZI3YFTTZKNSMJKZXAI3GJ44TP6MDPBYC5DJP53AAGGCFLXWUHWLOS6W2HK6S
-#\\\|E6OCE2TFI43X7PNRQGMUXPQWXON2CDSIO2Y7Z5DIZAPJEVELHAW \ / AMOS7 \ YOURUM ::
-#\[7]G3DMBECNH3KIUQHRPJYPVOKWOWXV7AX6OPLDCO3NAJDANFT2RIAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,.,,,,.,...,,..,..,,,..,,..,.,.,.,.,...,...,..,,...,,,.,..,,,.,,
+#6PD2SRGDQQXYXZK3MJBYS4IF6AWBTO2RZ7QQS2ATLHKN7FMCPIOB4F5M3UFCUZ3URFZ7SPBL7VIQG
+#\\\|VS6DVWWBMFLF4DGJRTLH6CIK7ZTN53FIRJBMQRIGNSAKLAUVSXX \ / AMOS7 \ YOURUM ::
+#\[7]FONY2SLMZ4Z73LAFV52SHVDTCXADZXN5VXMP54AELDJQUNWI5GDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
