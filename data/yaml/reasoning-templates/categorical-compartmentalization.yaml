@@ -215,9 +215,18 @@ same hologram. distance as coherence amplifier rather than degradation factor.
 - [[eternal-completion]]: the rolling triple-window is the temporal mechanism
   by which prior contributions remain present and available even as new
   waves of understanding integrate
+- [[topic-kimi-zenka-state-machine]]: a live, unprompted instance of this
+  template's "prior cannot be destabilized until next is verified" rule,
+  found and fixed 2026-08-04 in real running code (not designed toward
+  this doc) — `kimi.wire.approval_respond`'s TOCTOU bug marked `prior`
+  state (an approval as "responded") committed before `next` (the actual
+  websocket send) was confirmed, so a `next` that should have been
+  rejectable instead silently corrupted `prior`. the fix — commit `prior`
+  only after `next` is confirmed — is this template's anti-crash property,
+  independently arrived at under production pressure rather than design
 
-#,,,,,,,.,.,,,..,,.,,,,..,.,.,,.,,,..,.,,,.,,,..,,...,...,.,,,,,,,..,,.,,,..,,
-#BUDWY2OUAGPZNU2BD4JL6ENPC4ZURKQ7QCYTCSX6N2LQ5LJOAKF44NMQFCK2OGCOPCCZA3TMFK5PW
-#\\\|NYG6XTTCP3PEQJ4A6JPCKLKTEON2BV2QPJQ4RNJ2YD5LMC2VQLM \ / AMOS7 \ YOURUM ::
-#\[7]FJSYE6TTVDJ7TP236NKNW3OLSNB6JPVYEAIDIVPHEHFYSEJRT2CY 7  DATA SIGNATURE ::
+#,,.,,...,,,,,,,,,...,,,.,.,,,...,...,,.,,...,..,,...,...,...,,,.,,..,..,,.,,,
+#UGDT7RRCJM2AO6JFAS4LE4DICMBJDCMMAAF2VM5YO2ZIEU5G7RFLHY4B6XTHFO4VKJGOSOGPYZBAS
+#\\\|DOMI7FPCNSRD4LHFVYZOEETDLZSALORUDLQV3AIQN6ESES53R6G \ / AMOS7 \ YOURUM ::
+#\[7]FHRTZCOM5MC3Q74SCYHJKKM7U2WVY4PJQRWZBJ7FRD35E7PW6UDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

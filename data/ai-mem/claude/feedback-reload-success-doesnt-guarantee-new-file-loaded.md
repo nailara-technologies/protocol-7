@@ -1,6 +1,6 @@
 ---
 name: reload-success-doesnt-guarantee-new-file-loaded
-description: base.cmd.reload can report "reload source [ success ]" without actually recompiling a freshly-created or freshly-edited module — confirmed twice in one session, only a full zenka restart picked it up
+description: base.cmd.reload can report "reload source [ success ]" without actually recompiling a freshly-created or freshly-edited module — confirmed on three separate zenki across two sessions, only a full zenka restart picked it up
 metadata:
   type: feedback
 ---
@@ -41,8 +41,26 @@ hit. This may also retroactively explain otherwise-confusing "why isn't
 my fix working" sessions that got attributed to a different root cause
 because the real one (stale reload) was never suspected.
 
-#,,,.,,..,,..,..,,,..,.,.,,,,,,,,,,,,,...,...,...,...,...,,,,,.,.,,,.,.,.,.,.,
-#4TEDBRKE6S7X3HSV55VRHKONLSCMLO73CW5HFOXBXFIQFLRB2GZQGAAKM7A3MR5BWN67XIJRRRUBI
-#\\\|PCNTNQLDS4ULHTKGTNALDI3OJF2TXJMB222APJVOUPKH3TOMVDU \ / AMOS7 \ YOURUM ::
-#\[7]O7KWYJCDBQ6TSDNHWEKT2BIUZIWO4G5XWMVLGXAIFFG3FPB2D6AQ 7  DATA SIGNATURE ::
+**Third occurrence, 2026-08-04, `kimi` zenka**: after landing the
+`QuestionRequest` silent-hang fix (new module
+`modules/kimi.wire.question_respond` + a `modules/kimi.handler.ws_message`
+branch edit), `kimi.reload source` reported success but the edit did not
+take effect — the user had to direct `v7.restart kimi` explicitly, and K3
+discovered the staleness itself mid-verification. Same shape, third zenka
+(`jobsite` twice, now `kimi`), confirms this is a real, general loader bug
+not specific to one zenka or one kind of edit. Root-cause investigation
+and fix plan: [[loader-reload-stale-cmd-modules]] (`data/tasks/
+loader-reload-stale-cmd-modules.md`, priority explicitly raised same day
+given this third hit) — has already traced the likely faulty commit
+(`08b42f019`'s `$is_reload_batch` staging-vs-direct-install fork) and a
+minimal isolated reproduction via coderef-address comparison. Until that
+lands: **default every live-fix dispatch's verification instructions to
+`v7.restart <zenka>` after editing an already-loaded module**, not
+`<zenka>.reload` — treat reload-then-verify as unreliable by default,
+not just as a fallback for when something looks wrong.
+
+#,,,,,..,,,..,,,.,,,,,,,,,...,,,.,..,,...,,,.,...,...,...,,..,,,,,,,.,,.,,...,
+#UEDBXVKROEVC7ED4C3SAMRQYMB5CYB2MMW4HLLRFXSN57JELI3QH76LNSTI5QENY5AZDF65YMCKEG
+#\\\|F7JG27NQ5QD5ZSI2LJLTSKJRWUPYMMSYEZGDCS5TC5NSFO5HIZX \ / AMOS7 \ YOURUM ::
+#\[7]WXY7XFFDWUBEEDKC2XILR7JHD3BKWC7TUQSEX3MHVEEDXUTYDICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
