@@ -1,0 +1,119 @@
+## [:< ##
+
+# name  = kimi.cmd.set-model
+# descr = set global default model for new kimi-web dispatches
+# param = <model-name> [ -restart [ -force ] ]
+# note  = model selection is global to the kimi-web process [ new sessions ] ;
+#         -restart restarts running sessions, -force also busy ones
+
+my $args = $call->{'args'} // '';
+
+my $restart = $args =~ s|\s*-restart\b||g ? 1 : 0;
+my $force   = $args =~ s|\s*-force\b||g   ? 1 : 0;
+$restart = 1 if $force;    ## force implies restart
+$args =~ s{^\s+|\s+$}{}g;
+my $model_name = $args;
+
+if ( not length $model_name or $model_name =~ m{\s} ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'usage : set-model <model-name> [ -restart [ -force ] ]'
+    };
+}
+
+my $handles = <[kimi.session.start_api_child]>;
+if ( not defined $handles ) {
+    return { 'mode' => qw| false |, 'data' => 'api child unavailable' };
+}
+my ( $r_fh, $w_fh ) = @{$handles};
+
+## fresh config : validate model name against the live list [ never cached ]
+my $config_url = sprintf( '%s/api/config/', <kimi.web.base_url> );
+print $w_fh "get $config_url\n";
+my $get_reply = <$r_fh>;
+chomp $get_reply if defined $get_reply;
+
+if ( not defined $get_reply or $get_reply !~ m{^json (.+)$} ) {
+    return {
+        'mode' => qw| false |,
+        'data' =>
+            sprintf( 'config query failed : %s', $get_reply // 'no reply' )
+    };
+}
+
+my $config = eval { JSON::from_json($1) };
+if ( $@ or ref $config ne qw| HASH | ) {
+    return { 'mode' => qw| false |, 'data' => 'invalid config response' };
+}
+
+my @known = map { $_->{'name'} // '' } @{ $config->{'models'} // [] };
+if ( not grep { $_ eq $model_name } @known ) {
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf(
+            "unknown model '%s' [ known : %s ]",
+            $model_name, join( ' , ', @known )
+        )
+    };
+}
+
+my $patch_body = JSON::encode_json(
+    {   'default_model'               => $model_name,
+        'restart_running_sessions'    => $restart ? JSON::true : JSON::false,
+        'force_restart_busy_sessions' => $force   ? JSON::true : JSON::false,
+    }
+);
+
+print $w_fh "patch $config_url $patch_body\n";
+my $child_reply = <$r_fh>;
+chomp $child_reply if defined $child_reply;
+
+if ( not defined $child_reply or $child_reply !~ m{^json (.+)$} ) {
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf(
+            'config update failed : %s', $child_reply // 'no reply'
+        )
+    };
+}
+
+my $updated = eval { JSON::from_json($1) };
+if (   $@
+    or ref $updated ne qw| HASH |
+    or ref $updated->{'config'} ne qw| HASH | ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'invalid config update response'
+    };
+}
+
+my $new_default = $updated->{'config'}->{'default_model'} // '?';
+
+my @notes;
+if ( ref $updated->{'restarted_session_ids'} eq qw| ARRAY |
+    and @{ $updated->{'restarted_session_ids'} } ) {
+    push @notes,
+        sprintf( 'restarted sessions : %d',
+        scalar @{ $updated->{'restarted_session_ids'} } );
+}
+if ( ref $updated->{'skipped_busy_session_ids'} eq qw| ARRAY |
+    and @{ $updated->{'skipped_busy_session_ids'} } ) {
+    push @notes,
+        sprintf( 'skipped busy sessions : %d',
+        scalar @{ $updated->{'skipped_busy_session_ids'} } );
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        'default model now %s%s',
+        $new_default,
+        @notes ? sprintf( ' [ %s ]', join( ' , ', @notes ) ) : ''
+    )
+};
+
+#,,,,,,.,,...,.,,,.,.,,..,.,,,,..,,,.,...,...,..,,...,...,...,,..,.,.,..,,...,
+#NA2M4NBJHG6VOKXSIP3QWKCP7HEOHOW25VREXCZOTHXCAKCVDI5R2HGBN6X6ZRLEIPANYT2J3KOVI
+#\\\|LP46HU5RET6I2BMZUNQ6YDU6JVZDQPY5JPDAFD77KNWGO4X2U5Z \ / AMOS7 \ YOURUM ::
+#\[7]KQZUVNYEI6EQUSDWKWCJXKWQOA3HV5ECB6ITAQFZDVB2LKL4NSBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
