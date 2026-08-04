@@ -1,11 +1,40 @@
 ---
 name: reload-success-doesnt-guarantee-new-file-loaded
-description: base.cmd.reload can report "reload source [ success ]" without actually recompiling a freshly-created or freshly-edited module — confirmed on three separate zenki across two sessions, only a full zenka restart picked it up
+description: FIXED 2026-08-04 (bin/Protocol-7 p7_load_code whitelist-gate) — base.cmd.reload used to report "success" without recompiling an already-loaded non-whitelisted .cmd. module; the v7.restart workaround below is no longer needed
 metadata:
   type: feedback
 ---
 
-## the trap
+## RESOLVED 2026-08-04
+
+Root cause and fix: [[loader-reload-stale-cmd-modules]]
+(`data/tasks/completed/loader-reload-stale-cmd-modules.md`). Not
+`$is_reload_batch` as suspected below — the actual bug was in
+`p7_load_code`'s whitelist-gate block (`bin/Protocol-7` ~line 1586-1621):
+once a non-whitelisted `.cmd.` module got real compiled code installed
+(via `base.load_runtime_modules`'s whitelist-bypass on first runtime
+access), the gate's `if (not exists $code{$file_name})` guard treated
+"already exists" as "nothing to do" and unconditionally skipped the file
+on every future `p7_load_code` pass — it never re-entered
+`@compile_order`, so no `reload` could ever pick up further edits, only
+`v7.restart`. Fixed by distinguishing "still an uncompiled deferred
+stub" (unchanged: skip) from "real code already there" (now: falls
+through to normal recompilation, like any other file).
+
+Verified live on `mod-test`: two consecutive `reload source` calls
+correctly picked up edits with no restart needed.
+
+**Updated guidance**: the "default every live-fix dispatch's
+verification to `v7.restart <zenka>` instead of `<zenka>.reload`"
+workaround below is no longer necessary as a blanket default — plain
+`<zenka>.reload` can be trusted again for modules reached via the
+normal load path. Still worth a literal-marker sanity check on
+first verification of any given fix, as general hygiene, but not
+because reload itself is suspect anymore.
+
+---
+
+## the trap [ historical, pre-fix ]
 
 `p7c <zenka>.reload all` (or `reload source`) reporting
 `reload source  [ success ]` is not proof the edited file's new content
@@ -59,8 +88,8 @@ lands: **default every live-fix dispatch's verification instructions to
 `<zenka>.reload` — treat reload-then-verify as unreliable by default,
 not just as a fallback for when something looks wrong.
 
-#,,,,,..,,,..,,,.,,,,,,,,,...,,,.,..,,...,,,.,...,...,...,,..,,,,,,,.,,.,,...,
-#UEDBXVKROEVC7ED4C3SAMRQYMB5CYB2MMW4HLLRFXSN57JELI3QH76LNSTI5QENY5AZDF65YMCKEG
-#\\\|F7JG27NQ5QD5ZSI2LJLTSKJRWUPYMMSYEZGDCS5TC5NSFO5HIZX \ / AMOS7 \ YOURUM ::
-#\[7]WXY7XFFDWUBEEDKC2XILR7JHD3BKWC7TUQSEX3MHVEEDXUTYDICY 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,,.,.,.,,,.,..,,..,,,..,,,,,.,,,...,...,...,,..,.,,,.,.,,..,...,
+#HL3PTIRQSFTUOLSMUXSRHSDFCFEF7W42N2BJSU4KLHU5IGADCQA4OQDZ4MZREB467O6EKNRHFQAIA
+#\\\|2YT7DFAOYT66MCHYZ335KJPHNZC7ZERZIUTHVRFQIQFD4HUF3MK \ / AMOS7 \ YOURUM ::
+#\[7]QBXAHKDLWVTP46XU4RCRIS346EY3MEK7BJSRYQRXSPMWYIJ2DWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
