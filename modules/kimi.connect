@@ -140,16 +140,18 @@ if (@stale) {
         @stale == 1 ? '' : 's'
     );
     for my $rid (@stale) {
-        delete $pending->{$rid};
-        <kimi.approval.responded>->{$rid} = 1;
-        <[kimi.wire.approval_respond]>->( $rid, 'approve' );
+        ## approval_respond marks responded itself on confirmed send : keep in
+        ## pending on failure so the next reconnect flush retries
+        if ( defined <[kimi.wire.approval_respond]>->( $rid, 'approve' ) ) {
+            delete $pending->{$rid};
+        }
     }
 }
 
 <[base.logs]>->( 2, 'kimi.connect: websocket connected [ %s ]', $ws_url );
 
-#,,,.,..,,...,..,,.,,,.,,,..,,,,,,..,,.,,,..,,.,.,...,...,.,,,..,,.,,,.,.,.,,,
-#W67KSLSAMIZ2ABUU44VQA5O7OKUO34WUNKGSVL4C7WWRFF5C6UJMFMFQRFJIE4ZNL52UURC4NJIDW
-#\\\|QOWNPVRB6XXULUPAAONXHIKDISGF6GXDGGA4ADXOGUELDZS47GF \ / AMOS7 \ YOURUM ::
-#\[7]WSEWKQZBI7W4YW7DALXTVGXXQ6IKRRJDUYUUB4Z72LZWUTIRZ2CQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,.,.,,,,,.,,,,,,,,,.,,..,...,,..,.,.,...,...,,..,,..,..,,,,.,.,,,
+#WDHAYCLY77FOOAOIOXSV4KOG6WCYGDFJFSHY6M4O5GBRYB4C7TEFHV3BTLSOMT7E75CGX5ACKKUY6
+#\\\|UW6II6HM2RFH2HBE3FTR6SVB4B3SRWPX34AVE2OH3M4XIZYIMYR \ / AMOS7 \ YOURUM ::
+#\[7]F6MXPQ47FA462QKFPR3PLTAFMC5CDSXCWYMCFH5RDAXGCDWJBKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

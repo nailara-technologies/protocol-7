@@ -37,14 +37,32 @@ and the summarize-cost question) are believed fixable, but treat them as
 two separate fixes — don't conflate "make the kimi zenka's last-message
 path work" with "make auto_summarize faster."
 
+**Update 2026-08-04 — the two threads are actually coupled, per the
+user**: fixing the reconnect/approval-disassociation bug re-enables the
+kimi zenka's own last-message-only return path — once that's live, `kimi`
+dispatches go back to returning only the final round (kimi-generated),
+never the full session context, which sidesteps the `coding_summarize`
+local-9B cost/slowness question for kimi-routed dispatches specifically
+(it stops being invoked at all on that path). Root cause found and a K3
+fix dispatched this session: `modules/kimi.flush_on_acquisition` is
+defined but never called from the reconnect branch of
+`modules/kimi.handler.ws_message`, plus two more bugs inside
+`flush_on_acquisition` itself (arrayref/hashref type mismatch on reset;
+re-flushes a fabricated blank payload instead of the original stored
+approval data). Task file: `data/tasks/kimi-zenka-approval-reconnect-
+disassociation-fix.md`, dispatch task id `k8usgy2y0` (K3, in flight as of
+this update). If this lands, revisit whether the `coding_summarize`
+profiling investigation below is still needed at all, or only for
+non-kimi dispatch paths (e.g. `claude_dispatch`).
+
 **How to apply:** before assuming a slow `kimi_dispatch`/`claude_dispatch`
 return is the known hang from [[feedback-claude-dispatch-summarize-hang]],
 consider it may just be legitimately working but slow on a small-context
 session — check elapsed time against the ~13min self-resolve window noted
 there before intervening.
 
-#,,..,,.,,,,.,.,.,...,...,,.,,,..,,,.,,.,,.,,,.,.,...,...,..,,,,,,.,,,.,.,.,.,
-#FZI2U5XSBYMKHQJQMXFAOWK2OIJ5SJUP242SENJKAGSFJS3CVXVKND5IRPFNB2NA4YADJDDGE755C
-#\\\|G4QT4PDKOVCXNMQZPSS4BXEWTI3ZMS7KBPIU66F2DLDWTMPW5UC \ / AMOS7 \ YOURUM ::
-#\[7]UOWF76VE24FDWC5SZVDR4ZXRLNQY2JZCTNJNIFRY7HNZ2FXMYUAA 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,,,,.,,,,,,,...,...,,,,,,.,,,..,.,.,...,...,,.,,..,,,,.,..,,,..,
+#B7K7NQTYWIWTFEFK6ZRY6XHDBCSA54BQVM6JXEGI4YIT64IA5MORTMW4GN322BPFFDHS3ZVBBYAKM
+#\\\|QOR6J3SLT7OVL7CXO2366MUCL5VGNJC7YZHKI6I2J4IEULI7A45 \ / AMOS7 \ YOURUM ::
+#\[7]Y2YC2NDCS6F6IU25Q44ZZ74HDU3YJ4CZEK5RYFDPKAVWKGQJDSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
