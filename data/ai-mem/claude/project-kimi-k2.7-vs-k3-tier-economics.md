@@ -60,8 +60,26 @@ where the quality jump is actually worth ~3.75x output / >3x input cost. See
 `bin/mcp-server-p7` ~line 3048) and [[project-kimi-token-economics-2026-07]] for the separate
 speed-tier (6x) vs regular-speed usage-multiplier finding — a different axis from the k2.7-vs-k3 choice.
 
-#,,..,.,,,..,,,.,,,,.,.,.,,,.,,,.,,,,,,..,,..,..,,...,...,...,,,,,...,,,.,.,.,
-#NCGYX2UXONOTDEE4CZHKVEKTXE4N2AVDWZ4TABFL3ZHJJFIULX5X7ZVCNWE7OL75GPJONB6SITASA
-#\\\|PCKY3YQDQBV673ONBMHYJ3JUKDTMCYSSCCOKLAS2KIFQQADUCSY \ / AMOS7 \ YOURUM ::
-#\[7]2OZDOAZSZOUH5XM2UCSD3EUUGDR7D7VYJBLR45HIO6ABSC5IMWCI 7  DATA SIGNATURE ::
+**Real API model-key names, confirmed live 2026-08-04** against the running
+`kimi-web` backend's own `GET /api/config/` (`http://127.0.0.1:5494`, needs
+`--noproxy '*'`/`no_proxy=localhost,127.0.0.1` — plain localhost gets
+intercepted by proxy env vars in this environment): the short aliases used
+elsewhere in memory (`k2.7`, `k2.7-fast`) are **not** the literal API keys.
+Real names: `kimi-code/kimi-for-coding` = k2.7 (262144 ctx), `kimi-code/
+kimi-for-coding-highspeed` = k2.7-fast (262144 ctx), `kimi-code/k3` (1048576
+ctx), `kimi-code/k3-256k` (262144 ctx). All four currently show
+`capabilities: [video_in, image_in, thinking]` except `k3-256k` (no
+`video_in`, matches [[reference-kimi-k3-256k-model]]). `default_model` was
+`kimi-code/k3`, `default_thinking: true` at check time. `PATCH /api/config/`
+can change the global default (optionally forcing already-running sessions
+to restart onto it) — model selection is global to the kimi-web process,
+not settable per-session (`CreateSessionRequest`/`UpdateSessionRequest` have
+no model field). See `data/tasks/kimi-zenka-model-awareness.md` (K3 dispatch
+`kcbdrrlm1`, in flight) for wiring this into `kimi.cmd.list-models`/
+`kimi.cmd.set-model`.
+
+#,,,.,.,,,,,,,.,,,,.,,..,,.,.,,,,,.,,,...,.,,,..,,...,...,...,,.,,,.,,.,,,,,.,
+#BHJSNMK6U7IVWXFUEXEF3MMU7TMAXXP4JZ4PPD4D7TV3AMWJ7U6LK3BZ7Q2YKTSEWYM7ZHZMZH7J2
+#\\\|6V5SM35PJUVEC6AIXP2NMXFU6N7NHHUK5YRV5VFUEAXEV4GRCAT \ / AMOS7 \ YOURUM ::
+#\[7]U4TRWBLC7KWNLHAHURLKKEOAM2V3ZYL6YQQTW2UVMOREIIJKD4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
