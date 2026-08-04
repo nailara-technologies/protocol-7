@@ -8,6 +8,40 @@ metadata:
   modified: 2026-07-31T00:00:00.000Z
 ---
 
+## queued idea (2026-08-04) — evaluate opencode as an alternative code-terminal
+
+user flagged this as a "somewhen soon" try, not urgent: test **opencode**
+(open-source AI coding-agent terminal) as a potential alternative/addition
+to the current code-terminal lineup (kimi-legacy CLI, Claude Code CLI).
+No specific gap driving this yet — worth a scoped trial run against a
+well-bounded task once picked up, compared against the existing
+[[feedback-kimi-dispatch-pattern]] / [[feedback-model-routing-opus-cubic-viz-k3-design]]
+routing baseline rather than adopted wholesale.
+
+**Bring `bin/mcp-server-p7` along, not a fresh setup** — it's a standard
+MCP server, already shared identically between Claude Code and Kimi
+(`.claude/settings.local.json`, `data/json/claude/.mcp.json`); opencode
+supports MCP servers generically, so pointing it at the same
+`bin/mcp-server-p7` should give it the same `p7c`/coding-zenka/memory
+toolset from the start rather than opencode starting with a bare
+environment. Combine with [[reference-kimi-as-third-party-model-backend]]'s
+opencode-as-K3-backend path for a fuller trial: same tools, potentially
+same underlying model, different agent harness — isolates what's actually
+harness-specific vs. model-specific.
+
+**Correction, checked live 2026-08-04**: `bin/mcp-server-p7-expansions.md`
+Phase 1 describes a generic `p7_agent_spawn`/`list`/`dispatch` with an
+`agent_type` enum (`kimi-web`/`claude-web`/`local-llm`) — that's an
+aspirational roadmap doc, not what's built. The live implementation
+(`bin/mcp-server-p7` ~line 469-530 for the tool defs, ~line 1066 for
+dispatch) hardcodes these three tools to **kimi-web sub-agents only** —
+no `agent_type` param exists on the real `p7_agent_spawn`. So "same tools"
+across backends is true for the memory/session/chat/coding-zenka MCP
+tools, but *not* yet true for agent-spawning specifically — an
+opencode-agent_type (or a general `local-llm`/third-party slot) would be
+new work against the expansions.md roadmap, not something already wired
+and waiting to be pointed at.
+
 ## done (2026-07-24, continued — ncode write path)
 
 - **`ncode.cmd.suggest`/`ncode.cmd.apply` wired up + live-verified end to
@@ -692,8 +726,8 @@ summarizer) — pass `auto_summarize: false` for tasks like these, or
 cross-check `p7_task_queue`/`coding.show-buffer model_output` before
 assuming a reported failure means no work happened.
 
-#,,.,,,.,,..,,,,,,.,,,,,,,,,.,.,,,...,,,,,,,.,..,,...,..,,...,,..,,.,,,,.,,,.,
-#YTUBH7UIVJKB7EPIXMHXNA3CDVRVLGTBLPZDFSPUEWJ3WVJHJIW6GWNW6WY5XVHK4GLSNNYC5ZBJI
-#\\\|D74LVZSIFC6YLM5BWN6SVAMHINTWO7M7JTKR73SZLLDWN5JAKBP \ / AMOS7 \ YOURUM ::
-#\[7]QFNQ56OAGC6NF7M5OI223U6TUYYO22EIZG4AJ6CJNEJAE2IIQKCY 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,,.,,..,,,,,..,,...,,,,,,.,,,.,,..,,...,...,...,...,,.,,..,,.,,,
+#PTM7HTZMIHZPY6MX6MONAXDPIBKRMCQR3NI7DJGCH4X2PEGLDS3L5OHMUCSMIRBLVTU2ZBHLRITHO
+#\\\|66XNGMYUALEEOBHLOFY37EXY4OEDGW4PTLMN5BGXNTC3NFPJRWY \ / AMOS7 \ YOURUM ::
+#\[7]NE6RKY36NBPCCJ34RC66CDS5LGLKCJKLL2TXUQZH52AXP5UYVEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

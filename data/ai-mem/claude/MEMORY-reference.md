@@ -11,6 +11,7 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [base-swap-subs-promote-pattern](feedback-base-swap-subs-promote-pattern.md) — promote a module to default-loaded-on-every-zenka: live under base.X, add base.X.pre_init calling base.swap_subs(base.X,X), no call-site changes; precedent base.file/file
 - [session-catchup-subagent-support](reference-session-catchup-subagent-support.md) — recover lost Agent-tool subagent context via `subagents=2` / `subagent_id=<fragment>`, claude+kimi both supported
 - [opus-dispatches-kimi-workflow](reference-opus-dispatches-kimi-workflow.md) — Opus calls kimi_dispatch(K3,auto-summary) itself; session_catchup gets session id; kimi_continue resumes
+- [kimi-as-third-party-model-backend](reference-kimi-as-third-party-model-backend.md) — K3/K2.7 can back Claude Code itself (ANTHROPIC_BASE_URL override) or opencode (auth login), separate path from the kimi_dispatch MCP bridge; not yet tried
 - [unicode-encoding-repair](reference-unicode-encoding-repair.md), [patterns](topic-patterns.md), [coding-zenka-templates](topic-coding-zenka-templates.md) — UTF8 fix; core patterns
 - [jobsite-vax-int-id-scheme](reference-jobsite-vax-int-id-scheme.md) — raw stepstone numeric id vs vax-int short id (job.write/read want raw); two differently-keyed index structures; trash-archive (.yxz.B32) decode recipe; V7-epoch dating; hand-write recovery pitfalls (heredoc mojibake, never job.write(id,{}) as a test)
 - [decorative-footer-shaped-lines-not-auto-strippable](topic-decorative-footer-shaped-lines-not-auto-strippable.md) — footer-header-shaped lines sometimes carry real checksum/state/counter data or serve as mid-file dividers; no shape-based auto-strip rule is safe, use ncode-assisted manual cleanup instead; also: stop hand-adding decorative footer-shaped lines when writing new modules
@@ -43,8 +44,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [user-perfectionism-and-pace](user-perfectionism-and-pace.md) — "done" means perfectly smooth; let solo tuning passes run
 - [scratchpad_import tool](topic-scratchpad-import-tool.md) — pulls /tmp session scratchpad into data/scratchpad/; list/raw-read modes; check repo+tasks/completed before keeping imports
 
-#,,,.,,..,,..,,.,,...,.,.,.,.,,..,,.,,,..,,,.,..,,...,..,,.,.,.,,,..,,...,..,,
-#PU5QMDQH3XCN7XMKWRL4UMLFNVI7KAQBSY5FXO65M5MBLJKQCQO56WJCRFPYK7PFIY3Z47C72VYIE
-#\\\|IIIUQUS6HZ5BDE5QS5JTBVYTUWRUCIORL7ZVOCIT5HE62QBLXNJ \ / AMOS7 \ YOURUM ::
-#\[7]H4XO2DABCQZHPQTDKJZWA2CKK2FVWG2IMXATN2GHP3EPQLSVYMDY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,.,.,.,,,,,.,..,,,.,,,..,,..,.,.,..,,...,...,,.,,..,,,,,,...,.,.,
+#2XJBLNF4NZHOY7CM3HPHAXBTNLWHTITYEEGQSTN37FO6VE6NNSTSIC2NYS7OMEZPLEWQPYY4NIEJC
+#\\\|KWLNTAANJ4CNL3VYCHUUULOOL2H2DG5E72MIEX7KTQFTTAR7RLH \ / AMOS7 \ YOURUM ::
+#\[7]UI72ILWL52VRBHKKAMFCQPNJT7BGDSIAC3233YE2J5SGTRCWP6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
