@@ -39,6 +39,11 @@ my $task = {
     'system'     => $system_prompt,
     'no_tools'   => TRUE,
     'max_rounds' => 1,
+    ## thinking-mode off by default : summarization has no need for a  ##
+    ## reasoning pass and the local model appears to default to it on, ##
+    ## dominating small-content call latency. caller may override via  ##
+    ## thinking=1 in coding.cmd.summarize-context                      ##
+    'thinking' => $p->{'thinking'} // FALSE,
 };
 
 my $queue_result = <[coding.task.enqueue]>->($task);
@@ -69,8 +74,8 @@ $data{'coding'}{'deferred_replies'}->{$deferred_id} = {
 
 return { mode => qw| deferred | };
 
-#,,,.,,,.,.,.,...,,.,,,..,...,,,,,,,.,,.,,...,..,,...,...,,..,,..,...,...,,,.,
-#2ODC46GE753PQROKRPLOTAMGFTRMXIUII5UTDTJIDOLXMH5ODHYY2QXU2APILJHJE57W3HPF7LXTM
-#\\\|QYOVUB3UPTBK5573WRGAQU67EB7NF47X5PVDJ43XRVO2NBY2COQ \ / AMOS7 \ YOURUM ::
-#\[7]AJ7BL6FFHUEPYP43Y2C24GYY3EHM6OKLIDNHZD7HM2FPDUH7YOBY 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,,..,,,.,,,,,.,,,,,,,,..,.,.,...,..,,...,...,.,.,.,,,,..,.,,,.,,,
+#HITHBF4VDMIRK7B4NMHKKLGTUTHFZ435BLV6SQF27TKHYDKEKP7T5TB3GTQZJ74DXBX2ARNUOJRBE
+#\\\|BAKIWSTAAAGWJE6MMBDUZPYPH54URE252ATQFIGSARZIBIAKLL3 \ / AMOS7 \ YOURUM ::
+#\[7]AIW3ZTYE6FSQIZAVAMK7TL5KMXZX4RK57UOPXPCNURAPPPMGSKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

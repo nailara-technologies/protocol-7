@@ -17,6 +17,7 @@ my $path    = '';
 my $callback_id = '';
 my $tree        = 0;
 my $origin      = '';
+my $thinking    = '';
 
 if ( $args_str =~ s|focus=(\S+)|| )         { $focus       = $1 }
 if ( $args_str =~ s|model=(\S+:\S+)|| )     { $model       = $1 }
@@ -28,6 +29,7 @@ if ( $args_str =~ s|path=(\S+)|| )          { $path        = $1 }
 if ( $args_str =~ s|callback_id=(\S+)|| )   { $callback_id = $1 }
 if ( $args_str =~ s|tree=(\d+)|| )          { $tree        = $1 }
 if ( $args_str =~ s|origin=(\S+)|| )        { $origin      = $1 }
+if ( $args_str =~ s|thinking=(\d)|| )       { $thinking    = $1 }
 $args_str =~ s{^\s+|\s+$}{}g;    ## trim remaining whitespace ##
 
 ## content: multiline data takes precedence, else remaining args ##
@@ -72,6 +74,7 @@ unless ($tree) {
             focus       => $focus,
             reply_id    => $call->{'reply_id'},
             callback_id => $callback_id,
+            ( length $thinking ? ( thinking => $thinking ) : () ),
         }
     );
 }
@@ -94,7 +97,11 @@ my $pending = {
     'callback_id' => $callback_id,
     'chk'         => $chk,
     'origin'      => $origin,
-    'enqueue'     => { content => $content, focus => $focus },
+    'enqueue'     => {
+        content => $content,
+        focus   => $focus,
+        ( length $thinking ? ( thinking => $thinking ) : () ),
+    },
 };
 
 ## fallback timer : query is best-effort, never block the caller on a    ##
@@ -129,14 +136,15 @@ unless ($sent) {
             callback_id => $callback_id,
             chk         => $chk,
             origin      => $origin,
+            ( length $thinking ? ( thinking => $thinking ) : () ),
         }
     );
 }
 
 return { mode => qw| deferred | };
 
-#,,..,,..,.,.,...,..,,.,.,...,...,...,,..,,.,,..,,...,...,...,,,.,.,,,..,,,.,,
-#WK5P22LLW3L25IAAJ47F4S427MNKO6BMSBMAQXIACEOOADFM3QIWCGFRZB5HSJNRWXFUP6ROM5Q44
-#\\\|7ZBIPPDJZEGVNAH4NUQG2T6IGA75RRUX7CX2HSI3TZRC2UKQTWL \ / AMOS7 \ YOURUM ::
-#\[7]STQB5V3YDEN5SDQJGFSULA44KQNAAMHYV5JW7KB7EFKLOVOQOACI 7  DATA SIGNATURE ::
+#,,,.,...,..,,,.,,,,.,..,,,.,,.,,,,..,,,,,..,,..,,...,...,,.,,,,.,,,.,.,,,,.,,
+#DLCDPIJ2XCXHAXCXQN3XJPWDIAHWDNBFNXVVHS5EFGIHINQMP5BJFKXV5FKNATFYGON2LVAQEG6IQ
+#\\\|7YUZ2EE7LMFZV3DHIFDLSM6EMN737465JNRKQXWILW36HYEMIHD \ / AMOS7 \ YOURUM ::
+#\[7]YZQMG45BATR2YBCVCIMN2F54ZT6CFMYWSGYEK4A3AGKTXQ4T7IDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
