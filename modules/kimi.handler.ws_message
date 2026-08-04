@@ -17,8 +17,8 @@ if ( not defined $text ) {
             if <kimi.ws.io_watcher>->is_active;
         <kimi.ws.io_watcher> = undef;
     }
-    ## check for active prompt entries : preserve them across reconnect
-    ## so TurnEnd can still deliver the result after kimi-web finishes
+    ## check for active prompt entries : preserve them across reconnect so
+    ## TurnEnd can still deliver the result after kimi-web finishes
     my $has_active_prompt = FALSE;
     foreach my $pend_id ( keys %{<kimi.wire.pending>} ) {
         my $pend = <kimi.wire.pending>->{$pend_id};
@@ -63,8 +63,8 @@ if ( not defined $text ) {
 
     <kimi.ws.status> = qw| disconnected |;
 
-    ##  watcher only fires if value changed :
-    ## call directly when already disconnected
+    ## watcher only fires if value changed :  call directly when already
+    ## disconnected
     <[kimi.connect.schedule_retry]>
         if <kimi.session.was_ready> // FALSE;
     return;
@@ -195,14 +195,16 @@ if ( $method eq qw| event | ) {
             <kimi.wire.accumulator> = '';
         }
 
-        ## status change : call watcher directly (no recursive var watcher in IO cb)
+        ## status change : call watcher directly (no recursive var watcher in
+        ## IO cb)
         <kimi.ws.status>         = qw| ready |;
         <kimi.session.was_ready> = TRUE;
         <[kimi.watcher.ws_status]>;
         return;
     }
 
-    ## other event types [ TurnBegin, StepBegin, ToolCall, etc. ] : log at debug
+    ## other event types [ TurnBegin, StepBegin, ToolCall, etc. ] : log at
+    ## debug
     <[base.logs]>->( 3, 'kimi.handler.ws_message: event [ type=%s ]', $type );
     return;
 }
@@ -279,6 +281,11 @@ if ( not length($method) and length($msg_id) ) {
             } else {
                 <[base.logs]>->( 2, 'kimi: reconnected : status ready' );
             }
+
+            ## re-process approvals queued while session was not acquired [
+            ## both branches : backend can re-send approvals before the
+            ## initialize response arrives on first connect and reconnect ]
+            <[kimi.flush_on_acquisition]>;
 
             ## status change : call watcher directly since variable watchers
             ## do not fire recursively from within IO event callbacks
@@ -366,8 +373,8 @@ if ( not length($method) and length($msg_id) ) {
     }
 }
 
-#,,,,,..,,.,.,,,,,...,,,,,..,,,.,,.,.,.,.,,.,,.,.,...,..,,,.,,.,.,,..,,,,,,,,,
-#U33UTOLGD7VTHMM245Q5RJH5A4CEIPGK5JXHCB3C34UWUYN5ZQ6NOJE3F76K352N7XWJUV6G7EFLQ
-#\\\|B2ZWKLWTRRC4ESR2VYA7ED2PGBRGFK6OJWKAB2OYBPRZIKHWNSP \ / AMOS7 \ YOURUM ::
-#\[7]4GI2T45WEEYPJ5XATLI5VUP2MTCA3DUISZYCB63YGW63RFBWW2DQ 7  DATA SIGNATURE ::
+#,,..,..,,.,.,.,.,,,,,.,,,,..,,.,,.,,,,.,,,,,,.,.,...,..,,..,,.,,,,.,,,.,,..,,
+#3TUAOQNTMPRIJZMTDQZMQVFYJAQQXKALGS4L7ZI5MBAMBS65AQLZO2SMW2Z2CV66VUX7NHKFW7DIA
+#\\\|JH2JN4FJJLHODHAUUTMGPLCXLGYCVM73NJLAHDVKQJVAKDEWT5C \ / AMOS7 \ YOURUM ::
+#\[7]WFJPY3GFOK2U5W5BDLDGCMFDUQBXKTYBJDK6KB43AN6HT4XOW4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
