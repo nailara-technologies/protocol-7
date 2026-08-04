@@ -1,0 +1,60 @@
+# kimi zenka : QuestionRequest wire protocol + decline fix [ 2026-08-04 ]
+
+task : data/tasks/kimi-zenka-question-request-silent-hang-fix.md
+fix  : modules/kimi.wire.question_respond [ new ] + QuestionRequest branch in
+       modules/kimi.handler.ws_message. staged, unsigned, uncommitted.
+
+## the wire shape [ ground truth : kimi_cli/wire/types.py + wire/server.py ]
+
+QuestionRequest payload is NOT approval-shaped :
+
+```json
+{ "id" : "...", "tool_call_id" : "...",
+  "questions" : [ { "question" : "...", "header" : "...",
+      "options" : [ { "label" : "...", "description" : "..." } ],
+      "multi_select" : false, "body" : "",
+      "other_label" : "", "other_description" : "" } ] }
+```
+
+reply is a json-rpc SUCCESS response [ envelope id == request id ] with
+result = QuestionResponse : `{ "request_id" : "...", "answers" : {} }`.
+answers maps question-text -> chosen label [ comma-joined for multi ].
+do not force-fit kimi.wire.approval_respond : its `{request_id, response}`
+result fails QuestionResponse validation [ server logs error, resolves {} ].
+
+## empty answers = the graceful decline
+
+server-side [ wire/server.py _handle_response ] : empty/invalid answers or a
+json-rpc error response all resolve the pending request with `{}`. the
+AskUserQuestion tool treats `{}` as "user dismissed the question" and returns
+a NON-error tool result telling the model to proceed on its own — exactly the
+fall-through behavior wanted. a json-rpc error response also works but logs a
+server-side error ; the empty-answers success response is the clean decline.
+
+## kimi-web re-sends unanswered questions on every reconnect
+
+the same QuestionRequest id [ 657eda84-... ] was re-sent ~10 times across
+natural reconnects before the fix. unlike approvals there is no responded-set
+tracking for questions and none is needed : each re-send is a fresh pending
+request server-side, so just respond every time.
+
+## live verification notes
+
+- real-path verification beat synthesized frames : after `kimi.reload source`
+  the still-pending real QuestionRequest was re-sent on the next natural
+  reconnect and the new branch logged the full payload + sent the decline ;
+  the previously-stuck task [ CB0FF0E ] resumed immediately.
+- eval-code socket-swap capture works for outbound frames [ pipe + parse with
+  Protocol::WebSocket::Frame->new ; ->append ; ->next ] BUT pipe() handles in
+  the kimi zenka carry a :utf8 layer : syswrite dies with "syswrite() isn't
+  allowed on :utf8 handles". binmode BOTH pipe ends after pipe().
+- literal JSON through the cube command transport [ p7_command kimi.eval-code
+  with q|{...}| ] is fragile : arrived corrupted [ JSON::from_json parse
+  error with empty $@ ]. building JSON in-code via JSON::encode_json hit a
+  transport-level "syntax error near '})'". prefer real-path triggers.
+
+#,,..,,,.,,..,,..,.,,,.,,,,..,,,.,.,.,,,,,,..,..,,...,...,,,,,...,,.,,,.,,,..,
+#ERQMPDNH366QF7VMA7WWSKFVLHDNJZCULP34Y53XMHX77URN6QNDEDDKYJBTH4GQZZCG2XPPM2UIY
+#\\\|6KTMCFZ7JCEGSHTSSIZM7JA3AAN3ZAC4ZGZYATVTH5RX5FXM6DU \ / AMOS7 \ YOURUM ::
+#\[7]D7MMOVI7F4Y2FJTGHYMJFD44N7SKE7KY2BVL4KYU5OQZFDNTV2CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

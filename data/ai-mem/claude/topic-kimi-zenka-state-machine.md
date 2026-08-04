@@ -113,25 +113,63 @@ injection technique to `data/ai-mem/kimi/coding-style.md` ("live-
 verifying send failure paths" section) — reusable for testing any other
 send-path failure mode in this zenka without risking a crash.
 
+**Cross-referenced 2026-08-04**: this bug/fix pair is a live, unprompted
+instance of [[categorical-compartmentalization]]'s "prior cannot be
+destabilized until next is verified" anti-crash rule
+(`data/yaml/reasoning-templates/categorical-compartmentalization.yaml`)
+— `prior` (the approval marked `responded`) was committed before `next`
+(the confirmed send) actually verified, exactly the failure mode that
+template describes in the abstract. Nobody was referencing that doc
+while fixing this; the convergence is worth keeping on record as a real
+design-to-implementation correspondence, not a numerological one.
+
 Staged, not committed, syntax-checked (`bin/dev/ptd -c`), signature
 footers left stale for user re-signing per house convention.
 
-## separate, lower-priority gap found same session — zero model-awareness
+## model-awareness gap — closed, 2026-08-04
 
-Grepped all of `modules/kimi.*` for `model` — no hits describing model
-selection at all (the only `model` hits are unrelated comment text in
-the approval modules). The `kimi` zenka predates K3's introduction and
-has no concept of which model (`kimi-code/k3` / `kimi-code/k3-256k` /
-`k2.7`) the connected `kimi-web` backend is running, and no way to
-switch it — model choice today is entirely a property of how the
-external `kimi-web` process was launched, invisible to and uncontrolled
-by the zenka. Not urgent (feature gap, not a bug); before any P7-side
-work here, first confirm whether kimi-web's own protocol even exposes a
-model-switch RPC — not yet checked. See
-[[reference-kimi-k3-256k-model]] for the model variants themselves.
+**Was**: `modules/kimi.*` had zero model concept at all. **Now fixed and
+committed** (`f332c2e41`, K3 dispatch `kcbdrrlm1`): verified live against
+`kimi-web`'s own `GET/PATCH /api/config/` REST API (real model keys —
+`kimi-code/kimi-for-coding` = k2.7, `-highspeed` = k2.7-fast, `kimi-code/
+k3`, `kimi-code/k3-256k`; global to the process, not per-session) before
+writing anything. Added `kimi.cmd.list-models` / `kimi.cmd.set-model
+<name> [-restart [-force]]`, both live-verified end to end including a
+direct curl cross-check. See
+[[project-kimi-k2.7-vs-k3-tier-economics]] for the real API-key mapping
+and [[reference-kimi-k3-256k-model]] for the model variants themselves.
 
-#,,,,,,,,,,..,,.,,...,..,,...,...,..,,.,.,..,,..,,...,..,,..,,,,,,,,.,...,,.,,
-#OZLZJK5TD6AU6BONSB4EEZ4R7FGU3MM7LLCNNK2I2DEW6Y2IZUM6NJJ6NL2D2GB5F7S27IDZGBUPM
-#\\\|N4MBG47UOA4Q4SPJLDSLFMBFVPJT4MAKM6LNHMH7KKZVHWDUFG5 \ / AMOS7 \ YOURUM ::
-#\[7]UGRQIRBQOV7NS4ODSQ6VJL6APGEVJPAW7XHAVT6OFY4IMCNYJKCQ 7  DATA SIGNATURE ::
+## third gap found live-testing the first two fixes — QuestionRequest silently dropped
+
+**Not a regression** of either fix above — both were confirmed working
+correctly in this same real dispatch (two genuine `ApprovalRequest`s
+round-tripped cleanly, including across a natural reconnect). This is a
+third, separate, never-implemented code path producing the same
+user-visible symptom (silent hang, forced manual kimi-web-UI
+intervention). `modules/kimi.handler.ws_message`'s `QuestionRequest`
+branch (lines 237-243) logs a bare message-id and returns — no response
+sent to kimi-web at all, unlike the adjacent `ToolCallRequest` branch
+(lines 222-235, same file) which is *also* unimplemented but explicitly
+sends a `reject` so kimi-web doesn't hang.
+
+**Live-reproduced**: dispatching a real task
+(`data/yaml/coding-tasks/amos-term-interaction-plugin.yaml`) triggered a
+`QuestionRequest` for an MCP tool-call confirmation (one of the `p7_*`
+tools from `bin/mcp-server-p7`) — logged as `question request [ ... ] :
+not handled` twice (once before a reconnect, again identically after),
+stuck until the user manually answered via kimi-web's UI directly.
+
+K3 dispatch in flight: task id `ktbi8za15`, task file
+`data/tasks/kimi-zenka-question-request-silent-hang-fix.md`. Scope is
+deliberately minimal — stop the silent hang (send an explicit
+decline/reject, matching `ToolCallRequest`'s pattern, after dumping the
+real payload live to confirm the reply shape), not full interactive
+question-answering (that's the much larger, already-designed
+[[topic-next-steps]]-adjacent fallback-chain/interaction-surfaces thread,
+`db8e3cbba`, `data/md/design/CODING-ZENKA-USER-INTERACTION-SURFACES.md`).
+
+#,,,,,,,,,,.,,..,,,.,,..,,.,,,,,,,,,,,...,,,,,..,,...,...,,,.,..,,.,,,,.,,..,,
+#4LOWBIWZXIMCZGHZEL37XFRJOSQ3CALF2GRAQ3HX2YJUQ4R6P27VEU2WEK4GQ62JJDU3I3V5DIELG
+#\\\|G6M5EL465VITIHTAGQTONIGEPLZ6VYVPBIKKNBK3XTG2XP5ZA7R \ / AMOS7 \ YOURUM ::
+#\[7]Q3SZLYN6MYSVOVK5UHKACUIPRH5T6ZKHJYMICI4GNT62K76TEWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

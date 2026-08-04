@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = kimi.wire.question_respond
+# descr = decline a QuestionRequest with empty answers [ question dismissed ]
+
+my $request_id = shift // return undef;
+
+## QuestionResponse result shape differs from ApprovalResponse : { request_id,
+## answers : { question => label } } [ kimi_cli wire/types.py ] empty answers
+## resolve the request as dismissed : the AskUserQuestion tool then reports
+## 'user dismissed' and the model proceeds on its own, instead of kimi-web
+## waiting forever [ silent-hang fix ]
+unless ( <kimi.ws.connected> and defined <kimi.ws.socket> ) {
+    <[base.logs]>->( 0, 'kimi.wire.question_respond: not connected' );
+    return undef;
+}
+
+my %msg = (
+    'jsonrpc' => '2.0',
+    'id'      => $request_id,
+    'result'  => {
+        'request_id' => $request_id,
+        'answers'    => {},
+    },
+);
+
+my $json = eval { JSON::encode_json( \%msg ) };
+if ($@) {
+    <[base.logs]>->( 0, 'kimi.wire.question_respond: encode error : %s', $@ );
+    return undef;
+}
+
+<[base.logs]>->( 2, ': question response [ %s ] -> dismissed', $request_id );
+
+## websocket.send returns written byte count, undef on error
+my $sent = <[websocket.send]>->( <kimi.ws.socket>, $json );
+if ( not defined $sent or $sent == 0 ) {
+    <[base.logs]>->(
+        0,
+        'kimi.wire.question_respond: send failed [ %s ] : '
+            . 'kimi-web resolves unanswered questions on disconnect',
+        $request_id
+    );
+    return undef;
+}
+
+return $sent;
+
+#,,,.,,.,,,,.,..,,.,.,.,,,,..,.,.,.,,,,,,,,.,,..,,...,...,,,.,,..,.,.,.,,,...,
+#PJG35FTPUYPVTRCJGNNBLXHDJXXDBR54CHK4O67GXLSO4A6EXQN7UQFENFPCL3W7I63D5PTYWN57E
+#\\\|WC4IHIZBT2HGGS7FZTZJTFZA6ZZ42R5XEJB2YNSXXUJEVLFVBLY \ / AMOS7 \ YOURUM ::
+#\[7]EDDBXGFF6FK4YSPLPZU7VDS6FVVZ2I2XGRSTS75OUY2U6BKZXYCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
