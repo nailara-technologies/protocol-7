@@ -32,8 +32,106 @@ multiplexing foundation laid. full round-trip verified: `p7c kimi.ask-reply` →
   optional decline reason message parameter
 - task multiplexing: currently max_concurrent=1; design ready for N when needed
 
-#,,,.,,,,,,.,,.,,,,,,,.,,,,,.,..,,,.,,..,,,.,,..,,...,..,,...,.,,,.,,,,,,,,..,
-#HJJJDY5LWALPEWLIK3ZGNTGW6SCKRVFXIQKKKAQCEPABVZYTHQ3OGLKALHJ4YICYYPTOF575O4B2E
-#\\\|JS3XF3V2QKJSNCWYHWCK4N5SJXOZSRY7NYA2TCSCMSWPJZ2KK77 \ / AMOS7 \ YOURUM ::
-#\[7]JBTGNJRBV7PFJS6SLRTBPYZ63URUCKJRW7SVNHGO3ZTJJQ4NISDY 7  DATA SIGNATURE ::
+## correction, 2026-08-04 — the arrayref/hashref fix above did not survive
+
+Live-read `modules/kimi.flush_on_acquisition` this session: line 17 is
+`<kimi.approval.pending> = [];` — an **arrayref** reset, while every other
+use of `<kimi.approval.pending>` (`kimi.handler.approval_request:34`, and
+this same file's own `keys %{$href_pending}` at line 7) treats it as a
+**hashref**. Whatever fixed this in session 24 either regressed later or
+the "fixed" note above described a different pass than what's live now —
+not re-investigated here, just flagged as contradicted by current code,
+not silently trusted. Also found, separately: `kimi.flush_on_acquisition`
+is never actually *called* anywhere in `modules/` outside its own
+self-listing in `base.list.subroutines` — the reconnect branch of
+`kimi.handler.ws_message` (~line 279-281) should call it and doesn't,
+which is the likely root cause of
+[[project-auto-summarize-cost-investigation]]'s "approval-request
+disassociates on reconnect" bug. K3 dispatch in flight to verify+fix:
+task id `k8usgy2y0`, task file `data/tasks/kimi-zenka-approval-reconnect-
+disassociation-fix.md`.
+
+**User's follow-on idea, same thread**: `kimi-web` (the backend process
+`kimi` zenka connects to) is currently started manually; the *separate*
+`kimi-web.*` zenka-management modules (`kimi-web.cmd.spawn_agent`,
+`kimi-web.bridge.ensure_local_agent`) are new and not yet confirmed
+production-ready. If/when that management layer works cleanly, the `kimi`
+zenka could trigger it to start the backend on-demand instead of relying
+on a manual pre-start — a further-out roadmap item, not part of the
+current dispatch's scope (that dispatch was explicitly told not to touch
+`kimi-web.*`).
+
+## second bug found live-testing the first fix, 2026-08-04 — approval-respond TOCTOU race
+
+The `flush_on_acquisition` fix (`k8usgy2y0`, deployed + zenka restarted,
+confirmed live via `data/tasks/kimi-zenka-approval-reconnect-
+disassociation-fix.md`) covers *pending* (never-yet-decided) approvals
+surviving reconnect. Live testing (real natural reconnects observed —
+`kimi.handler.ws_message: websocket disconnected` on the order of
+seconds during normal operation, not hypothetical) surfaced a **second,
+deeper bug** the user correctly predicted might exist ("none of the many
+fixes so far truly solved the problem, only made it slightly less often
+occurring"): `modules/kimi.wire.approval_respond` marks
+`<kimi.approval.responded>->{$request_id} = 1` and persists it to disk
+*before* confirming the actual `websocket.send` succeeded (lines 42-49).
+If the connection drops between the line-13 connectivity check and the
+line-49 send, the zenka believes the approval was delivered when it
+wasn't — and `kimi.handler.approval_request`'s dedup check then silently
+swallows kimi-web's legitimate re-send of that same request forever, no
+error logged above level 2. **This reproduces with `auto_approve` at its
+normal default (on)** — not just in a manual-approval-pending scenario —
+which is why the symptom kept recurring despite prior fixes: the
+auto-approve *decision* was always fine, it's the *delivery* of that
+decision that could silently fail while being marked as succeeded.
+**Fixed, live-verified, staged 2026-08-04** (task id `k0sawgih1`, task
+file `data/tasks/kimi-zenka-approval-respond-toctou-race-fix.md`).
+`modules/kimi.wire.approval_respond` now sends first, marks+persists
+`responded` only after a confirmed send (`defined $sent and $sent > 0`,
+where `$sent` is `websocket.send`'s return — byte count on success,
+undef on syswrite error). **K3 also found and fixed a second instance of
+the identical bug**, not in the original task scope: `modules/
+kimi.connect`'s reconnect-flush loop pre-marked `responded` before
+calling `approval_respond` (redundant even before the fix, since
+`approval_respond` already marks it) — now only deletes from `pending`
+when the respond call actually succeeds, so a failed flush retries on
+the next reconnect instead of being silently lost.
+
+Live-verified via `devmod.cmd.eval-code` after `kimi.reload source`,
+with `auto_approve` left ON (the user was explicit this reproduces even
+in the normal/default state, unlike the manual-pending scenario) — three
+paths, all against the real running zenka:
+- success: real send (121 bytes) → marked + persisted to disk
+- failure: **discovered the kimi zenka runs with `$SIG{PIPE}` at
+  DEFAULT** — a genuine in-process dead-socket write test would kill
+  the zenka, so it used a safer injection instead (temporarily swap
+  `<kimi.ws.socket>` for a read-only filehandle; `syswrite` → EBADF →
+  undef, no signal) → confirmed not marked, not persisted
+- dedup: re-injected a genuinely-responded id, confirmed still suppressed
+
+Logged the `$SIG{PIPE}`-DEFAULT danger + the safe read-only-filehandle
+injection technique to `data/ai-mem/kimi/coding-style.md` ("live-
+verifying send failure paths" section) — reusable for testing any other
+send-path failure mode in this zenka without risking a crash.
+
+Staged, not committed, syntax-checked (`bin/dev/ptd -c`), signature
+footers left stale for user re-signing per house convention.
+
+## separate, lower-priority gap found same session — zero model-awareness
+
+Grepped all of `modules/kimi.*` for `model` — no hits describing model
+selection at all (the only `model` hits are unrelated comment text in
+the approval modules). The `kimi` zenka predates K3's introduction and
+has no concept of which model (`kimi-code/k3` / `kimi-code/k3-256k` /
+`k2.7`) the connected `kimi-web` backend is running, and no way to
+switch it — model choice today is entirely a property of how the
+external `kimi-web` process was launched, invisible to and uncontrolled
+by the zenka. Not urgent (feature gap, not a bug); before any P7-side
+work here, first confirm whether kimi-web's own protocol even exposes a
+model-switch RPC — not yet checked. See
+[[reference-kimi-k3-256k-model]] for the model variants themselves.
+
+#,,,,,,,,,,..,,.,,...,..,,...,...,..,,.,.,..,,..,,...,..,,..,,,,,,,,.,...,,.,,
+#OZLZJK5TD6AU6BONSB4EEZ4R7FGU3MM7LLCNNK2I2DEW6Y2IZUM6NJJ6NL2D2GB5F7S27IDZGBUPM
+#\\\|N4MBG47UOA4Q4SPJLDSLFMBFVPJT4MAKM6LNHMH7KKZVHWDUFG5 \ / AMOS7 \ YOURUM ::
+#\[7]UGRQIRBQOV7NS4ODSQ6VJL6APGEVJPAW7XHAVT6OFY4IMCNYJKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

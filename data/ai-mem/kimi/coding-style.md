@@ -113,6 +113,25 @@ $data{'key'}{'path'}             ## explicit data read — always valid
 <web.metrics>->{commands_executed}    ## data hash deref
 ```
 
+### `<module.name>->(...)` without brackets is a fatal data access [ gotcha ]
+
+writing a subroutine call in data-access syntax compiles fine but dies at
+runtime with `undefined value as subroutine reference` — the data store has
+no coderef at that key :
+
+```perl
+<kimi.handler.approval_request>->( $id, $payload )    ## WRONG : data access,
+                                                      ## undef->() : fatal
+<[kimi.handler.approval_request]>->( $id, $payload )  ## correct : sub call
+```
+
+found live in `kimi.flush_on_acquisition` [ 2026-08-04 ] : the extracted
+module had this bug plus a fabricated blank payload and an arrayref reset of
+the hashref `<kimi.approval.pending>` — all invisible because nothing called
+the module. lesson : after extracting an inline sub to its own module, grep
+for a real call site AND invoke it once live [ `kimi.eval-code` ] to prove
+the wiring.
+
 ### assignment patterns
 ```perl
 <key.path> = $value;                 ## simple assignment
@@ -757,8 +776,38 @@ grep -rn 'sprintf' modules/ | grep -i '<name-fragment>'
 
 ---
 
-#,,..,.,.,...,,,.,,.,,.,.,...,,,,,,..,...,,..,.,.,...,..,,.,.,...,...,.,.,,,,,
-#TGHIBRUOIPGPH3BNB2TWQLEVYEKSS44NG6VGAGJ4V3UPH6MRIBDHHYXRVZUD675SUZIUA5YELHGAG
-#\\\|BLBZKNIYEE52MZBM2A7QWIC423LW5AVD6QOPTFJTEW2JVTMMHTX \ / AMOS7 \ YOURUM ::
-#\[7]4CIRRXT7AZ7V33TZUTI77EJV7D5GO2NOJITQA2OKXMYXRYFVAMCI 7  DATA SIGNATURE ::
+## live-verifying send failure paths [ 2026-08-04, kimi zenka ]
+
+`websocket.send` returns the written byte count on success, undef on
+syswrite error — the correct send-confirmation check is
+`defined $sent and $sent > 0` [ kimi.wire.approval_respond uses this after
+the toctou fix : `kimi.approval.responded` is marked + persisted only
+after a confirmed send, never before, or a reconnect silently swallows
+the legitimate kimi-web re-send of the same approval request ].
+
+the kimi zenka runs with `$SIG{PIPE}` at DEFAULT : an in-process write
+test against a peer-closed socket kills the zenka. safe failure injection
+for send paths via devmod eval-code : temporarily swap the socket data key
+for a read-only filehandle — syswrite fails with EBADF, returns undef, no
+signal, no die :
+
+```perl
+open my $rfh, '<', '/dev/null';
+my $saved = <kimi.ws.socket>;
+<kimi.ws.socket> = $rfh;
+my $r = eval { <[kimi.wire.approval_respond]>->( 'test-id', 'approve' ) };
+<kimi.ws.socket> = $saved;    ## restore even when the eval dies
+close $rfh;
+```
+
+devmod.cmd.eval-code wraps source in `use warnings 'FATAL'` : any warning
+becomes a die — wrap risky calls in an inner `eval {}` and restore swapped
+state after it, never skip the restore on the failure path.
+
+---
+
+#,,.,,,..,,,,,.,,,...,,..,,.,,,,,,,,,,,.,,..,,.,.,...,...,,,.,,.,,,,.,..,,,,,,
+#5X5A2V53ADKEQV436GNP5MQWLYLD4SLQJPAVKWUYTCZIRD4UR3JSBLX6667MTKADF5BU57YMUPFDC
+#\\\|RL43ELEBQPHAFGYLUEW3TSZYZ6Q4O6T3CJYM6UFGWNW6PTQUCRX \ / AMOS7 \ YOURUM ::
+#\[7]FO75UBC2M2MUDVRISWJ6QRNN4VEXTVX34GLVREGOHRCDGB5ENMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

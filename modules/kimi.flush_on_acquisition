@@ -4,20 +4,27 @@
 # descr = flush pending approvals when kimi session is acquired
 
 my $href_pending = <kimi.approval.pending> // {};
+
+## reset store first [ hashref ] : handler re-stores entries it leaves pending
+## for manual approval : a trailing reset would wipe those
+<kimi.approval.pending> = {};
+
 foreach my $request_id ( keys %{$href_pending} ) {
+    ## re-invoke handler with the original stored record [ not a blank payload
+    ## ] so sudo check and auto_allow policy see real fields
+    my $stored  = $href_pending->{$request_id} // {};
     my $payload = {
         'id'           => $request_id,
-        'tool_call_id' => '',
-        'sender'       => '',
-        'action'       => '',
-        'description'  => ''
+        'tool_call_id' => $stored->{'tool_call'}   // '',
+        'sender'       => $stored->{'sender'}      // '',
+        'action'       => $stored->{'action'}      // '',
+        'description'  => $stored->{'description'} // ''
     };
-    <kimi.handler.approval_request>->( $request_id, $payload );
+    <[kimi.handler.approval_request]>->( $request_id, $payload );
 }
-<kimi.approval.pending> = [];
 
-#,,,.,...,,,.,..,,,,.,,,.,.,,,..,,,..,..,,.,.,..,,...,...,.,.,,,,,.,,,...,.,,,
-#RTTUM4YHEYIZ6JVX5UUGBJUUSGQROWI6MXWKN3GJ2I4F5CSMFW7L4NC3DJ3GNC5UDI2CWNXQARHH2
-#\\\|HPYLJZIJRAIN327Z2F35KWAYJFVMTNIBZYQ62E5IE3OTM6PGOPG \ / AMOS7 \ YOURUM ::
-#\[7]HLWADFW7FAJ4UUTUUO56KCZUW55URBYSTDMSC4K7TEHR2PWVYMBY 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,,.,,,.,.,.,.,.,.,,,,,.,.,.,...,..,,...,...,,.,,.,,,,..,,..,...,
+#C6ZEM34TABFRCCTFJ3Y4VJ4S6NEWES6N7MWKKFQAUQLWMVPU3JLEWBARGLTM3H4MFMFPEZOFIXKHY
+#\\\|XQI5WLMST5CTGMQJNYDKNZXDEEEVR7ANOF2OL4OSPFCAV4NUVAA \ / AMOS7 \ YOURUM ::
+#\[7]CWDXLDZXLZH6MT74GZLZKQ227MAII5QLFPPCCNSGX3UL4LLND6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
