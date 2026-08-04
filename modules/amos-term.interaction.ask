@@ -1,0 +1,112 @@
+## [:< ##
+
+# name  = amos-term.interaction.ask
+# descr = Interaction prototype: ask user via dedicated named buffer [ non-blocking ]
+#
+# Prototype for the 'interaction' plugin type, modeled on amos-term.nshell.bridge.
+# Opens [ or reuses ] the dedicated named buffer 'agent.interaction', writes the
+# question into it, and returns immediately. A user reply arrives via the
+# on_buffer_change callback path [ amos-term.handler.interaction-changed ].
+#
+# Usage: <[amos-term.interaction.ask]>->( $question, $reply_handler )
+#   $reply_handler : module-name string or coderef, called as
+#                    ->( $question, $reply_text ) once the reply completes
+
+my ( $question, $reply_handler ) = @ARG;
+
+return undef unless defined $question and length $question;
+
+## === interaction channel state === ##
+<amos-term.interaction.state> //= {
+    qw| buffer_name | => qw| agent-interaction |
+    ,                                 # [a-z0-9-_]: <regex.base.usr>
+    qw| window_id |      => undef,
+    qw| attach_id |      => undef,    # interaction [ model-side ] client
+    qw| user_attach_id | => undef,    # user-side client [ reply path ]
+    qw| pending |        => undef,    # { question, reply_handler, asked }
+    qw| reply_buffer |   => qw||,
+};
+my $state = <amos-term.interaction.state>;
+
+## === resolve or lazily create the dedicated named buffer === ##
+my $sid = <amos-term.windows.by_name>->{ $state->{'buffer_name'} };
+if ( not defined $sid ) {
+    $sid = <[amos-term.window-create]>
+        ->( { qw| client_name | => $state->{'buffer_name'} } );
+    if (   not defined $sid
+        or not defined <[amos-term.buffer-create]>->($sid) ) {
+        <[base.logs]>->( 0, ":: interaction: buffer creation failed" );
+        return undef;
+    }
+    <[base.logs]>->(
+        2,
+        "[interaction] created dedicated buffer '%s' [sid:%d]",
+        $state->{'buffer_name'}, $sid
+    );
+}
+$state->{'window_id'} = $sid;
+
+## === attach interaction client [ once, reused across questions ] === ##
+if ( not defined $state->{'attach_id'} ) {
+    my $attachment = <[amos-term.buffer-attach_generic]>->(
+        'name:' . $state->{'buffer_name'},
+        qw| interaction |,
+        {   qw| cursor_x | => 0,
+            qw| cursor_y | => 0,
+            qw| cursor_z | => 0,      # newest exchange lives at Z=0
+            qw| write |    => TRUE,
+            qw| read |     => TRUE,
+            qw| data |     => {
+                qw| on_buffer_change | =>
+                    qw| amos-term.handler.interaction-changed |,
+            }
+        }
+    );
+    return undef unless defined $attachment;
+    $state->{'attach_id'} = $attachment->{'attach_id'};
+}
+
+## === write question into buffer [ Z-shift history, same as nshell ] === ##
+my $cursor
+    = <amos-term.buffer-attachments>->{ $state->{'attach_id'} }->{'cursor'};
+
+foreach my $char ( split //, $question . "\n" ) {
+    if ( $char eq "\n" ) {
+        <[amos-term.buffer-shift_z]>->($sid);    # previous line recedes Z+1
+        $cursor->{'x'} = 0;
+        $cursor->{'y'} = 0;
+    } else {
+        <[amos-term.buffer-write]>->(
+            $sid,           $cursor->{'x'}, $cursor->{'y'},
+            $cursor->{'z'}, $char,          4,                # p7_fg_0004
+            qw| interaction |    # own writes: no callback
+        );
+        $cursor->{'x'} = ( $cursor->{'x'} + 1 ) % 8;
+        $cursor->{'y'} = ( $cursor->{'y'} + 1 ) % 7 if $cursor->{'x'} == 0;
+    }
+}
+
+## === register pending question [ reply arrives via callback ] === ##
+$state->{'pending'} = {
+    qw| question |      => $question,
+    qw| reply_handler | => $reply_handler,
+    qw| asked |         => <[base.time]>->(3),
+};
+$state->{'reply_buffer'} = qw||;
+
+<[base.logs]>->(
+    2,                     "[interaction] question pending [%s] : %s",
+    $state->{'attach_id'}, $question
+);
+
+return $state->{'attach_id'};
+
+0;
+
+#AMOS7_SIGNATURE_PLACEHOLDER
+
+#,,,,,,..,,,,,.,,,...,.,,,,,,,...,.,.,,,.,,..,..,,...,...,...,,.,,,,,,.,.,..,,
+#S4FELHPWUSPKZGQ35M3WPRZV5BIPU4P6HJ6JJNBUK3QGSKTJD4ZFK2LL24EPBRPYP7FMPCORAHE6U
+#\\\|PNOZ537AYURYJAPXC23Q4SO7MJT3UROH5OKWJKXRM6XP2H5FLOD \ / AMOS7 \ YOURUM ::
+#\[7]ZIFJ2KOVXUANDZOR7JH7WK5VGFVDMVOPD3CNPETID5V7DT5Q66DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = amos-term.cmd.interaction-ask
+# descr = ask user a question via interaction buffer
+
+my $question = $call->{'args'} // '';
+
+return {
+    'mode'     => 'false',
+    qw| data | => "usage: interaction-ask " . "<question>\n"
+    }
+    unless length $question;
+
+my $attach_id = <[amos-term.interaction.ask]>->(
+    $question, qw| amos-term.handler.interaction-deliver |
+);
+
+return {
+    'mode'     => defined($attach_id) ? 'true' : 'false',
+    qw| data | => defined $attach_id
+    ? sprintf( "question pending [%s]\n", $attach_id )
+    : "Error: interaction ask failed\n"
+};
+
+0;
+
+#AMOS7_SIGNATURE_PLACEHOLDER
+
+#,,,.,,..,.,.,.,,,,..,..,,..,,..,,,,.,,,,,,,,,..,,...,...,,,,,.,,,,,.,...,,..,
+#QHDGBJW4XTTT7RPKSAPCXNFIUAXNBYUBKCCDJXAVF6MFC3ZB2T2SAXC57ARXAZHXL2LTYLIOUKULW
+#\\\|TVFWJHAQNOTGGV2O2YD5IOMQCEHO662O2JADZM5CXLSDMNB6V2Z \ / AMOS7 \ YOURUM ::
+#\[7]JSQLT3BRAWK7IDHTKM27VROJKFRK4WNEDHICMZCS4ZLVWZPIJOCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
