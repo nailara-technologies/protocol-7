@@ -806,8 +806,34 @@ state after it, never skip the restore on the failure path.
 
 ---
 
-#,,.,,,..,,,,,.,,,...,,..,,.,,,,,,,,,,,.,,..,,.,.,...,...,,,.,,.,,,,.,..,,,,,,
-#5X5A2V53ADKEQV436GNP5MQWLYLD4SLQJPAVKWUYTCZIRD4UR3JSBLX6667MTKADF5BU57YMUPFDC
-#\\\|RL43ELEBQPHAFGYLUEW3TSZYZ6Q4O6T3CJYM6UFGWNW6PTQUCRX \ / AMOS7 \ YOURUM ::
-#\[7]FO75UBC2M2MUDVRISWJ6QRNN4VEXTVX34GLVREGOHRCDGB5ENMDQ 7  DATA SIGNATURE ::
+## kimi api-child mini-protocol + reload gotchas [ 2026-08-04 ]
+
+`kimi.session.start_api_child`'s persistent child speaks single-line verbs
+[ verify / create / get / patch — get and patch reply `json <compact-json>`
+on one line, errors prefixed `error ` ]. adding a verb = one more
+`^cmd ...` regex branch in the child heredoc [ HTTP::Request for PATCH,
+LWP::UserAgent has no ->patch convenience on this install ].
+
+gotchas hit while wiring kimi.cmd.list-models / set-model :
+
+- the child is a singleton : after editing the heredoc, `reload source` is
+  NOT enough — the old child process still runs the old verbs. kill
+  `<kimi.api_child.pid>` and undef the `r_fh` / `w_fh` / `pid` data keys to
+  force a respawn on next call.
+- cmd module bodies compile into a scope that already declares `$call` and
+  `$reply` — a fresh `my $reply = ...` masks it and fires a "masks earlier
+  declaration" compile warning on reload [ visible in `show-buffer zenka` ].
+  use distinct names [ e.g. `$child_reply` ].
+- `length $x and $y ? a : b` parses as `(length $x) and (...) ?: ...` :
+  `and` binds looser than `?:`, leaving the ternary arms as void constants
+  [ "useless use of a constant" compile warnings ]. use an if statement.
+- access.cmd.usr.cube changes need `kimi.reload config` — `reload source`
+  recompiles modules only, the access list comes from config.
+
+---
+
+#,,,.,,.,,...,..,,,.,,.,.,.,.,,.,,..,,,..,,.,,.,.,...,...,,..,,..,...,...,,.,,
+#CKFP76MUK2OLQRQZ6OOCFPZEKYDMFNVQV73RWKMCJOMQTGGJQUJJKAJO7ZAWFAFB2QTJ6NLU2QGR4
+#\\\|GXGM2QLZLYVJBCQDRYYGZTBFJTAT2DI6RBD76JRAIVNFKFHXN7D \ / AMOS7 \ YOURUM ::
+#\[7]CAJ47JBZ7QI5GOQ6UUMYKXJI7JRVWK33CLQMHIDQNSNQ2W5KAQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
