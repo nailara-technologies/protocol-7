@@ -23,6 +23,9 @@ delete $data{'decoder'}{'level6_acc'};    ## clean up old global if present ##
 $data{'decoder'}{'boundary_count'} = 0;
 $data{'decoder'}{'INDEXCUBE'}      = [];
 
+## d13 type-prefix histogram : keyed by GFX/B32/DOC/RT/UNK ##
+$data{'decoder'}{'d13_types'} = {};
+
 ## initialize level-5-B32 rolling buffer ##
 if ( not exists <buffer.level-5-B32> ) {
     <buffer.level-5-B32.max_size> = 65536;
@@ -44,6 +47,19 @@ if ( not exists <buffer.level-6-D3> ) {
         join( ' ',
             $time_stamp, 0,
             'level-6 d3 linguistic projection initialized .., ' ),
+        0
+    );
+}
+
+## initialize level-7-D13 rolling buffer ##
+if ( not exists <buffer.level-7-D13> ) {
+    <buffer.level-7-D13.max_size> = 65536;
+    my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
+    <[base.buffer.add_line]>->(
+        qw| level-7-D13 |,
+        join( ' ',
+            $time_stamp, 0,
+            'level-7 d13 type-prefix decode initialized .., ' ),
         0
     );
 }
@@ -73,13 +89,13 @@ $data{'decoder'}{'vterm_screen'} = $screen;
 
 <[base.log]>->(
     2,
-    "decoder initialized : level-5 B32, level-6 D3, vterm 25×80, jobs queue"
+    "decoder initialized : level-5 B32, level-6 D3, level-7 D13, vterm 25×80, jobs queue"
 );
 
 return TRUE;
 
-#,,,,,.,,,...,.,.,..,,...,,..,,,,,.,,,..,,,,.,..,,...,...,..,,,..,,.,,.,,,,,.,
-#AGAESHCW3BBPT3SMPSBGOIG24WMX6GNWSI6G2TYEY2MFTTNFTVUQVXZT7MXN3VSZNVIILLRT5MSCE
-#\\\|6MQUOQ32RYKDQOOMDVETOKMWVUAVX5FF4BKBUTNC3CDKXWFKOXG \ / AMOS7 \ YOURUM ::
-#\[7]V3XEDCPAC6PZBSJOQPZO7H3QZF5N7U7XC6NE34COPPF77AM5UEDQ 7  DATA SIGNATURE ::
+#,,..,...,.,.,.,.,..,,.,.,.,.,,.,,,,,,,,.,,..,..,,...,..,,.,.,.,.,,,,,,,,,..,,
+#HODL272A3NXH264HYFDC7YUW4XWZ7CKY3HG6ZPEEOEGTRSOFYYKMD7HIRRS2J3NLA6OFNVO3LY4P6
+#\\\|CEYLWICVCMJHP6HLRIPZJMREW6QNDRT765IEK7XWTPQI2DU75HS \ / AMOS7 \ YOURUM ::
+#\[7]YPL2VGPMPU26AS4S64B7BROZKW26GMIB3EWKWFYFMA3LRBSNTODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
