@@ -14,7 +14,7 @@ if (    defined <kimi.api_child.w_fh>
 
 my $child_code = <<~'EOT';
 use v5.24; use strict; use warnings; use English;
-use LWP::UserAgent; use JSON;
+use LWP::UserAgent; use HTTP::Request; use JSON;
 $| = 1;
 $PROGRAM_NAME = 'kimi-api-child';
 my $ua = LWP::UserAgent->new( timeout => 10 );
@@ -73,6 +73,53 @@ while ( my $line = <STDIN> ) {
         next;
     }
 
+    ## get <url>
+    if ( $line =~ m{^get (\S+)$} ) {
+        my $url  = $1;
+        my $resp = eval { $ua->get($url) };
+        if ( $@ or not $resp ) {
+            print "error " . ( $@ // 'request failed' ) . "\n";
+            next;
+        }
+        if ( not $resp->is_success ) {
+            print "error " . $resp->status_line . "\n";
+            next;
+        }
+        my $body = eval { JSON::from_json( $resp->decoded_content ) };
+        if ( $@ or not defined $body ) {
+            print "error invalid response\n";
+            next;
+        }
+        print "json " . JSON::to_json( $body, { 'canonical' => 1 } ) . "\n";
+        next;
+    }
+
+    ## patch <url> <json_body>
+    if ( $line =~ m{^patch (\S+) (.+)$} ) {
+        my ( $url, $json_body ) = ( $1, $2 );
+        my $request = HTTP::Request->new(
+            'PATCH', $url,
+            [ 'Content-Type' => 'application/json' ],
+            $json_body
+        );
+        my $resp = eval { $ua->request($request) };
+        if ( $@ or not $resp ) {
+            print "error " . ( $@ // 'request failed' ) . "\n";
+            next;
+        }
+        if ( not $resp->is_success ) {
+            print "error " . $resp->status_line . "\n";
+            next;
+        }
+        my $body = eval { JSON::from_json( $resp->decoded_content ) };
+        if ( $@ or not defined $body ) {
+            print "error invalid response\n";
+            next;
+        }
+        print "json " . JSON::to_json( $body, { 'canonical' => 1 } ) . "\n";
+        next;
+    }
+
     print "error unknown command\n";
 }
 EOT
@@ -104,8 +151,8 @@ $w_fh->autoflush(1);
 
 return [ $r_fh, $w_fh ];
 
-#,,..,.,.,...,.,.,.,.,,..,.,.,..,,.,.,...,,..,.,.,...,...,,.,,.,.,..,,,..,,..,
-#UI3ETDZGQ4XJK3JLY2F3CWGUNCMGBCIE35HSWDAJ6YYVMUWVG4CYQTJ7VHLLZTZTNAXJNANQPDFOG
-#\\\|MUXY76W5ASKSI3YCDACEXJL6YUSSPJUKOOR5YXEDHUUY4XJLJ5U \ / AMOS7 \ YOURUM ::
-#\[7]FHZIXS5WDRREQ7NNL3VBZOWK7P4OCL7Y533W7SK6OANSAOIW7SDQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,.,,,,,,,,.,,.,,.,,,,,,,,,,,,.,,.,.,...,...,,.,,,,.,..,,,..,.,.,
+#W2FTUDBOBXSJYNUSHY2OVWWWQXJCUJYROJUOUAZBKIT4MWYXGPISAMUBVZDLAWVWEXB7ONV3ISHWC
+#\\\|NTVN2ZR22RVHE2GUM3DBHAGPSKXHJDVACKKCBGO3L5NGRO2I5LG \ / AMOS7 \ YOURUM ::
+#\[7]2WNIIWBN3MZEX63D63GVJKTU6BLB3TNKLL6PPRYG6CTBSPPKZ4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,62 @@
+## [:< ##
+
+# name  = kimi.cmd.list-models
+# descr = list available kimi-web models and active default
+
+my $handles = <[kimi.session.start_api_child]>;
+if ( not defined $handles ) {
+    return { 'mode' => qw| false |, 'data' => 'api child unavailable' };
+}
+my ( $r_fh, $w_fh ) = @{$handles};
+
+my $config_url = sprintf( '%s/api/config/', <kimi.web.base_url> );
+print $w_fh "get $config_url\n";
+my $child_reply = <$r_fh>;
+chomp $child_reply if defined $child_reply;
+
+if ( not defined $child_reply or $child_reply !~ m{^json (.+)$} ) {
+    return {
+        'mode' => qw| false |,
+        'data' =>
+            sprintf( 'config query failed : %s', $child_reply // 'no reply' )
+    };
+}
+
+my $config = eval { JSON::from_json($1) };
+if ( $@ or ref $config ne qw| HASH | ) {
+    return { 'mode' => qw| false |, 'data' => 'invalid config response' };
+}
+
+my $default_model = $config->{'default_model'} // '';
+
+my @lines;
+push @lines, sprintf( 'default model    : %s', $default_model );
+push @lines,
+    sprintf( 'default thinking : %s',
+    $config->{'default_thinking'} ? 'on' : 'off' );
+push @lines, '';
+
+foreach my $model ( @{ $config->{'models'} // [] } ) {
+    my $mark = ' ';
+    $mark = '*'
+        if length $default_model and $model->{'name'} eq $default_model;
+    push @lines,
+        sprintf(
+        '%s %-36s  ctx %8d  [ %s ]',
+        $mark,
+        $model->{'name'}             // '?',
+        $model->{'max_context_size'} // 0,
+        join( ' ', @{ $model->{'capabilities'} // [] } )
+        );
+}
+
+return {
+    'mode' => qw| size |,
+    'data' => join( "\n", @lines ) . "\n"
+};
+
+#,,,.,.,.,..,,,,,,...,,..,,.,,,,,,.,.,,..,,.,,..,,...,...,,..,,,.,.,,,.,,,.,.,
+#2ATCOUWQ76ORP5KXQNFFX7UKBOAAOMU3MBRNOKCITGRGXQ3QZNCE55NHHXZCE5ZEEJX4HQJWOYYS6
+#\\\|5KXEIL22ZW5GK3VJR7UXYISC33J2UP4J4L57GCNOCZCV4BLFJKB \ / AMOS7 \ YOURUM ::
+#\[7]SHCFZSJC6RKOPPLEICJBYCFGQG6YNOJ23ZLE3RLGASN2MHS4AWBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
