@@ -333,6 +333,47 @@ C25519 key-length finding above — same product, different, independently
 consistent reason. Design-only, several items still open (see that doc's
 own "open items" section) — don't treat as verified architecture.
 
+## iteration-counter vs. word "quality" — REJECTED-ON-CHECK
+
+`amos-chksum -v`'s harmonization iteration counter (visible in every
+signed file's footer as `amos-iterations-remaining`, free to read) was
+proposed as a possible code-quality/typo-detection signal, motivated by
+`LOVES`=5 iterations vs `FRICTION`=163. Tested properly with a controlled
+comparison before building anything on it:
+
+```
+real words:  LOVES=5  TRUTH=32  PEACE=110  HAPPY=96  BEAUTY=112  WISDOM=65  COURAGE=45  HARMONY=73
+gibberish:   XQZVWJ=16  PLKJHG=22  QAZWSX=244  MNBVCX=27  ZXCVBN=39  LKJHGF=38  POIUYT=64
+typo test:   LOVES=5→LOVEZ=11,LOVES1=76,LOFES=69,LOVSE=3
+             FRICTION=163→FRICTON=157,FRIKTION=7,FRICTIOn=25
+```
+
+No separation between real words and gibberish (averages `~67` vs `~64`,
+heavily overlapping ranges). Decisive disproof from the typo test:
+`LOVSE` (a transposition typo) converges *faster* than the correctly-
+spelled `LOVES` (`3` vs `5`); `FRIKTION` (one letter changed from
+`FRICTION`) drops from `163` to `7` iterations, a `23×` swing from a
+single substitution. The iteration counter is highly sensitive to exact
+byte content in a way disconnected from meaning or correctness for short
+strings — consistent with the counter being the output of an iterative
+convergence search (`$Z <<= is_true($Z) ? 2 : 1` in `division-13-table`)
+rather than a smooth function of anything a human would call "quality."
+
+**Closed, also REJECTED-ON-CHECK at file level** (2026-08-04,
+`data/tasks/iteration-counter-quality-results.md`, K3 dispatch
+`kfgs1vanv` complete): the rigorous version ran — 5055-file extraction,
+two independent blind LLM scorers [ 9B n=240 rho=+0.057 p=0.38 ; k2.7
+n=168 rho=+0.033 p=0.68 ], deterministic style metric on the full
+corpus [ n=5055 rho=+0.008 p=0.57 ], and a controlled within-file
+distortion-injection test [ 12 typo-class bugs + 2 comment-only
+controls across 2 base files, temp-key scratch signing ]. bugs moved
+the count in both directions [ 9 down / 3 up, swings to ±25k ],
+comment-only controls moved it as much as real bugs [ +8671 / -16023 ],
+and identical bodies re-signed under different keys give unrelated
+counts [ the counter is key/session-dependent, not even a stable
+content property ]. the counter tracks bytes chaotically, not quality.
+not a usable review-priority signal.
+
 ## open / not yet checked
 
 - The `19-to-19` functional-label resonance (`27−8` vs the 19-bit
@@ -348,8 +389,8 @@ own "open items" section) — don't treat as verified architecture.
   looking for *other* already-fixed bugs this session that match a
   reasoning-template's abstract principle — not yet swept systematically.
 
-#,,..,..,,,.,,...,...,.,.,,.,,,.,,...,..,,...,.,.,...,...,,,.,,.,,..,,,,.,,.,,
-#WQQTTW4KQPTBNXRM6XOWWO53GIWMF7VT7UVIFTZQBMVS3UCYPVECYD5ZAGRSNHCHZFH3RDC6GQ5Y2
-#\\\|G35MBJA5FI325FSTT6WTKCJFARHNCOHC7D2E33SZNS54HXAIBYU \ / AMOS7 \ YOURUM ::
-#\[7]QRYD4QMWDX3NRMSF6RJG7WDAWQQHCC3FBC4PMRE27EWPDSVAXWDQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,.,,...,...,,.,,,,,,.,,,.,,,..,,.,.,...,..,,,..,,..,,,,,.,.,.,,,
+#7WF7XP3O3AUANYYSFYEELCP5JRLP33ARBNTS3BW37ISSLMUYXOZSBQ65CD5LUQQJIGPT47S76GHZC
+#\\\|ZITVBVXPGLWMV3GUH4745H4OE7EPFDSLC2F5HIMHUSVDYJX3YUC \ / AMOS7 \ YOURUM ::
+#\[7]SGP3N37YYLG7VWYBI3R6VG2YZGVQLF4CFIDL26EPR6LX7HDPUODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
