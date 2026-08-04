@@ -1,5 +1,42 @@
 ## task: skip lazy-stub deferral for nested lifecycle hooks whose ancestor namespace is already being compiled
 
+## RESOLVED 2026-08-04
+
+Implemented the proposed approach essentially as written: in
+`bin/Protocol-7`'s whitelist-gate block (~line 1586-1650), added
+`$nested_hook_ancestor_in_batch` — the same ancestor-match regex that
+already existed for the early-`next` decision, reused to also gate the
+stub-install path. When true, the block now falls through to a normal
+eager compile (same as any whitelisted file in the batch) instead of
+installing/leaving a deferred stub. Also clears a stale
+`deferred_stub` flag on that fallthrough so a later pass where the
+ancestor is *not* in the batch won't misread leftover real code as
+still-a-stub. Landed together with (but scoped as a separate patch on
+top of) [[loader-reload-stale-cmd-modules]]'s fix, per this task's own
+caution against bundling into that just-stabilized area — verified
+independently.
+
+Verified live on `cube-13` (small, low-traffic zenka, real repro
+target — confirmed via grep across `/var/log/protocol-7/*.zenka.log`
+for `p7-source : base.locales.` / `base.chk-sum.` hits): before the
+fix, both a fresh `v7.restart` and a `reload all` showed individual
+`. loading p7-source : base.locales.pre_init` /
+`base.chk-sum.bmw384.init_code` / etc. lines, each with its own solo
+`..: 1 sub., 0K src., no errors., =)` summary, interleaved between
+`running 'base' pre-init code.,` and `running 'base' init code.,`.
+After the fix: zero such lines on both a restart and a `reload all` —
+these hooks now compile silently as part of the single `base` batch
+(`..: N subs...` count includes them), and `base.init_modules` calls
+already-real code directly with no solo-compile hop.
+
+Acceptance criteria from below: both met (no separate `p7-source`
+lines for in-batch nested hooks; `v7.reload init`'s live-swap fix
+re-verified working, no regression, per the reload-all cycle above).
+Also confirmed fixed on the `coding` zenka — the original zenka whose
+log first surfaced this redundancy in this session.
+
+---
+
 ### origin
 
 surfaced 2026-07-27 while reviewing the newly-landed `audio` zenka's
@@ -104,8 +141,8 @@ already-fragile, just-stabilized area without re-testing in between.
   (fresh restart, `v7.reload init` × 2, `v7.reload all`) to confirm no
   regression.
 
-#,,,.,,..,...,,,.,...,,..,,,.,...,..,,..,,,,,,..,,...,..,,..,,.,.,,.,,.,.,.,.,
-#P72PDYGUQBUZSCU6IJBCALBYZ3OPR4WBIUE2QXBBOUGDLQWOXNW5O7DDXV2QDPSRLCK422TKMRP5G
-#\\\|3XTFQPLB55SK4NDPVAQUBGM6GB4UWAG63H5GNQLXEQIYJ455RP2 \ / AMOS7 \ YOURUM ::
-#\[7]PKZDGQVCYLO6YGAC6FBJAJF6VPA2KSOWEJHI5CDSVCWGWMGLOSCQ 7  DATA SIGNATURE ::
+#,,,.,...,.,,,..,,,..,,..,,..,,..,,,.,,..,,..,..,,...,...,...,..,,.,.,.,,,,..,
+#OQOS6GR2BNOCVQIJTEJOK2BVNOEACTYNNWBBGZNM7ZXA2MDBIQS7ZZBD5VJKMXN3EORRJTFCMCZBS
+#\\\|IPHMF6DMIHJ2ZVJEX7UIS32J5ORYSIPJOL4Q5J7SMUCBA5UFLYV \ / AMOS7 \ YOURUM ::
+#\[7]WS4BTAUCGNHIW3DNV35VUSMA5X3SBGGM7SLKPHCPKB4ZVZGCPQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

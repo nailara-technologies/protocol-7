@@ -1,8 +1,8 @@
 # Protocol-7 Release Versions
 
 ## Current Release
-- **Release Version**: AMOS7-v5.44.2
-- **Release Tag**: [AMOS7-v5.44.2](https://github.com/nailara-technologies/protocol-7/releases/tag/AMOS7-v5.44.2)
+- **Release Version**: AMOS7-v5.53.3
+- **Release Tag**: [AMOS7-v5.53.3](https://github.com/nailara-technologies/protocol-7/releases/tag/AMOS7-v5.53.3)
 
 ### Version Signature
 ```
@@ -58,8 +58,8 @@ Key Characteristics:
 - Captures the cumulative development effort
 - Maintains a clear, predictable versioning trajectory
 
-#,,.,,..,,...,,.,,,..,,,.,,,.,.,,,...,,,,,,.,,..,,...,...,..,,.,.,.,.,,.,,.,.,
-#4P7K3HGGC3ON7DPHXM2RHDBAWW5DEGLDRWG3LIDZFFRX6XXQDT26YDKMG3HOAPQVLEG2SPO5556G6
-#\\\|B67HAXQOOUUWIOHEXYTDR7Q57WGVC6GKBWB46KUVFYYXH5FT3HA \ / AMOS7 \ YOURUM ::
-#\[7]DQ4VRQRATHA6DXXKMMFEC2WKS6EVYQDBSU6BKUL5ZOLAUBFWLIAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,..,,.,,...,,,,,,.,,.,,,.,,,,.,,..,,...,...,..,,,,,,.,,,..,,,..,
+#B4UASLVKOIZAWKUUG5GXTBXONONTTOLRZ367WCE2YSU32AWHSYWBXEOJGYIEJYK5M3PKIK7GNIQ3A
+#\\\|5FK2FO42IUOSNPNLJLY77ONC77CRFHYLTRWUXZ5E4JWOBATKVFG \ / AMOS7 \ YOURUM ::
+#\[7]LSJFWYKABKA4UW2XSQEX3LYRQ4VINTEQQEDCCHBZX4FYJDFYTWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
