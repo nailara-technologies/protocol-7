@@ -45,6 +45,24 @@ transport doesn't need to be designed — it emerges from the proportions.
 a live or simulated system with these proportions HAS transport automatically.
 the topology IS the transport.
 
+## gate-crossing via +1001 lands on another sealed ring (2026-08-04)
+
+Cross-reference from [[topic-harmonic-mathematics]]: `999999 [ the
+harmonic-ceiling gate, 13×76923 ] + 1001 = 1001000 = 1001 × 1000` —
+verified exactly. Unlike crossing the gate via `+1`, which lands on
+remainder 1 [ same residue as the generator's own position, per the
+harmonic-mathematics gate-crossing material ], crossing via `+1001` lands
+on a **clean multiple of 1001 itself** — i.e. it switches to another
+ring-sealed value rather than overflowing into an unproportioned number.
+This is a concrete instance of this doc's own "eternal loop — every gate
+opens to another gate with identical proportions": stepping by the ring
+constant (`1001`) rather than by `1` moves between sealed states, not out
+of the sealed structure. User's framing: "1001 was already noted as the
+inversion marker... looks like switching channels" — the "opposite
+roles, same ring" duality above [ 13 as divisor vs. multiplier ] is the
+inversion; landing on `1001×1000` after crossing the gate is that duality
+expressed as a channel-switch rather than an overflow.
+
 ## relative ntime
 
 position is observer-centric (observer = 0).
@@ -52,8 +70,8 @@ time is observer-relative — ntime measures from own creation event.
 `00` tunnel duration = ntime delta between gate entry and exit = always 2.
 comparing ntimes = comparing relative distance from own darksuns.
 
-#,,,,,.,.,,..,,..,,,.,,..,,,.,.,,,,,,,,.,,.,,,..,,...,...,,..,...,,.,,..,,,.,,
-#5S42CCAIV322C3UYBY35MXPAQGKAA36P3HRIC7QA2BDPQ6AWS564PSQHIEE4LI357F5PB22EX3IXE
-#\\\|2FVNVV7RLPFNZGE432PFJHQ25DCTQD2YSY2GM3MJFE5AHJNIX2Q \ / AMOS7 \ YOURUM ::
-#\[7]SSBLMGXZGVSJPCNMZAYYRTZNVMOMKNYBSXN3XEJJ6MQVSF42TOAI 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,,,,,.,,..,,.,.,...,,,,,..,,,.,,..,,...,...,,.,,,.,,...,..,,..,,
+#7KXYUE6P2AL3257ROWYJGTI5XBZ5R2XYCXB6PPQEHKAJWMHNIOKIQACOMFYKX646NSHF63VMJYG2S
+#\\\|FJQAYJRNOGFQTV533HFS2CU2TZCJUIGSUAFX5A6ZTVYINGNFVVT \ / AMOS7 \ YOURUM ::
+#\[7]5THZZLBGEYVXJ5RQJ65MYWX4WDZWKRPZM555GZESO5HOPQ6OHUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -26,12 +26,14 @@ return {
 ## Create callback wrapper ##
 my $callback = sub {
     ## phase 2 : route through cube-13 switch matrix ##
-    my ( $sid, $entropy, $iteration ) = @ARG;
+    my ( $sid, $entropy, $iteration, $decode_chunk ) = @ARG;
     my $stream  = <zulum.stream>->{$sid};
     my $is_true = $stream->{'is_true'} // 0;
+    $decode_chunk //= '';
     <[protocol-7.command.send.local]>->(
         {   'command'   => 'cube-13.receive-entropy',
-            'call_args' => { 'args' => "$sid $entropy $is_true" },
+            'call_args' =>
+                { 'args' => "$sid $entropy $is_true $decode_chunk" },
         }
     );
 };
@@ -52,8 +54,8 @@ return {
     'data' => "attached to stream $stream_id"
 };
 
-#,,..,..,,.,.,...,...,.,.,,..,.,.,.,,,,,,,...,.,.,...,...,,,.,.,.,.,.,...,,,.,
-#644L7NYVNCDH4CSUZCW3X2BYDWHDTXSAR3OM6NMSJOGOCU5X6UWVQAWJLWSNTWNO5MVYMYHCA2F6E
-#\\\|H7WGRQUZTQDNDXVTAC25WBFP4Q464B7RTPCGMDVCD6OCCU2MSBQ \ / AMOS7 \ YOURUM ::
-#\[7]LJUS74HACXYLXB4LMYSK3CVCK7YAELJHONSVSRP6MHE5EB6JG2CY 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,.,.,.,.,..,,.,.,.,,,..,,.,,,,..,.,.,...,...,,,.,,..,,,,,,,,,,,,,
+#JRWGA5FKHRIPOZQ63X6GFAKSAQJ3EST766DJR5LMQ7CRCZXTNPRGBEDAVUDLHQAMU2SGGMPXA4W7S
+#\\\|B5WPHPGP65CO5EWMNPQAJUA2DJJ4VIDHMB32TEWFFS3MFRQL7ZX \ / AMOS7 \ YOURUM ::
+#\[7]UTGD4RUI5QQDDTON4X6ZUJJI7VAUANRUFTMVXQYDYKMGCDNYD2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

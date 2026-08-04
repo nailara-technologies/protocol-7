@@ -19,12 +19,12 @@ $type .= substr( $work, 0, 1, '' ) if $type eq qw| 011 |;
 ## type 1 : graphical character / 5x7 pixel matrix ##
 return sprintf( 'GFX[%s]', $work ) if $type eq qw| 1 |;
 
-## type 010 : BASE32 character ##
+## type 010 : BASE32 character [ RFC 4648 alphabet : 2-7 then A-Z ] ##
 if ( $type eq qw| 010 | ) {
     my $num = 0;
     $num = $num << 1 | $_ for split '', $work;
-    ## 0-5 or A-Z ##
-    my $char = $num <= 5 ? chr( 48 + $num ) : chr( 55 + $num );
+    ## 2-7 or A-Z -- matches division-13-table's decoded_bits_BASE32() ##
+    my $char = $num <= 5 ? $num + 2 : chr( 59 + $num );
     return sprintf( 'B32[%s]', $char );
 }
 
@@ -44,8 +44,8 @@ if ( $type eq qw| 00 | ) {
 
 return 'UNK';
 
-#,,.,,.,.,,,.,,.,,..,,.,.,.,,,...,..,,...,,.,,.,.,...,...,.,.,..,,.,.,,,.,.,.,
-#74KH7CU5V3XLQEHM554J6P2B7WEN2I4MQ6KFWYY26BW3DEKXLKFNEAFVZ2NC5MZW2V5ZG75TQSNUI
-#\\\|547JPMBVTRP5GAQBKKIC6CJT2VVEGJEPECRKPXK6EXOGM7GRUZY \ / AMOS7 \ YOURUM ::
-#\[7]PK325QVOOVGLGABSQXZ5QRGM36R52AQV4P6VMYYPBOEXY6EDMKAY 7  DATA SIGNATURE ::
+#,,.,,...,,,,,,.,,.,,,..,,.,.,,..,,,.,,,.,,,.,.,.,...,...,..,,,,,,..,,..,,,,,,
+#PZQ7JG2Y6JJBVV4K7UMOOS2A6WMQFY4O3O7PV3VZRBIGHJIJZYSCAMHCHUKH7CYRAWLGUFCS4WOA2
+#\\\|UVGA2IADX36LTXT6RO4RJ5SFZOKKDWKRPILV37G77GNFDV4URBW \ / AMOS7 \ YOURUM ::
+#\[7]PXMF2MUZGIDZXYNJ74HMXGCBGH2ZKBYC6AXW4MKTZVS4MUTPWSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

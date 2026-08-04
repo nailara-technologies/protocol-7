@@ -2,10 +2,10 @@
 
 # name  = cube-13.cmd.receive-entropy
 # descr = receive entropy from zulum and route to active decoder
-# param = <stream_id> <bits> <is_true>
+# param = <stream_id> <bits> <is_true> [decode_chunk]
 
 my $args = $call->{'args'} // '';
-my ( $stream_id, $entropy, $is_true ) = split m| +|, $args, 3;
+my ( $stream_id, $entropy, $is_true, $decode_chunk ) = split m| +|, $args, 4;
 
 <[base.log]>->(
     0, "[cube-13] receive-entropy called: sid=$stream_id is_true=$is_true"
@@ -34,9 +34,11 @@ if ( $stream_id == $active_sid ) {
 
     ## Route to decoder via main cube ##
     ## Use send.local targeting decoder through main cube ##
+    my $chunk_arg = defined $decode_chunk ? " $decode_chunk" : '';
     <[protocol-7.command.send.local]>->(
-        {   'command'   => 'decoder.receive-entropy',
-            'call_args' => { 'args' => "$stream_id $entropy $boundary" },
+        {   'command' => 'decoder.receive-entropy',
+            'call_args' =>
+                { 'args' => "$stream_id $entropy $boundary$chunk_arg" },
         }
     );
 
@@ -52,8 +54,8 @@ if ( $stream_id == $active_sid ) {
     };
 }
 
-#,,.,,..,,,.,,,.,,..,,,..,,,,,,,,,,.,,..,,,,.,..,,...,...,..,,,,.,,,,,,,,,..,,
-#4I4BOHG7HQ43WRAKTARIL45BOSTLY6TSS45WVYVHJLZREK4MHALJU7QRXGDKT5PYACQ4DUFBYB6PE
-#\\\|GBMLIN3UJNODDYWHESGHYQXYPEDDKQHKAIGBTN3U4LFJYDI46S3 \ / AMOS7 \ YOURUM ::
-#\[7]OOY65BALATL5X7AQYJE4GSASHZMDS2TFZY47O4QJDJLWSGSPKCAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,.,.,.,.,.,,,...,.,,,.,,,..,,,.,,..,,...,...,..,,,,,,..,,...,,,.,
+#OZOJ7HJNRGMDTDQJVFCOTB5BLYMMZEIVGEI2VMFSEQU2XZKLRV3YOSGWIEYUQ23NKKEZETW53JZIM
+#\\\|2ZPJLWVFT7SHPDPLUEJZOZQXZO6SJEXY4GI7AAMUFLRB5LVIUQT \ / AMOS7 \ YOURUM ::
+#\[7]MGANT2L2CFMSOMLLGZTYW7EKTSW5DIZ6X4EB6A4JYPMEYVNVVKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

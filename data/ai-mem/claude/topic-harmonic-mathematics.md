@@ -24,6 +24,27 @@ T(10^k) =  5[k-1 zeros]5[k-1 zeros]
 - Only powers of 10 produce triangular sums containing only digits 5 (TRUE) and 0 (FALSE)
 - At k=3, the full 1001 family emerges as a factor
 
+**Same identity, confirmed from the addition side (2026-08-04)**: user
+found `999999 + 1001 = 1001000 = 1001 × 1000` — verified exactly. This is
+algebraically the same fact as `999999 = 999 × 1001` above [ `999×1001 +
+1001 = 1000×1001` ], reached via addition on the gate value rather than
+via the multiplication already on record — an independent-path
+confirmation, not a separate coincidence.
+
+**`T(10^k)` formula confirmed against a real primary source**: user
+pasted the live contents of `read-me/documentation/dev/
+decimal_to_binary_0050_switch.asc` — a perl one-liner brute-forcing
+triangular numbers for all-`{5,0}`-digit results, seed=0..99999999. Its
+output matches `T(10^k) = 5[k-1 zeros]5[k-1 zeros]` exactly for k=0
+[ trivial, `T(0)=0` ] through k=7 [ `T(10^7) = 50000005000000` ] —
+independently verified by direct computation. This is the same
+"Foreknowledge Document" pattern already noted below [ pre-existing
+project files independently containing harmonic-math facts, discovered
+rather than derived from this memory thread ] — this `.asc` file is a
+second confirmed instance of that pattern, backing the `T(10^k)` line
+above with a real, checkable primary source rather than only this file's
+own assertion.
+
 ## Self-Encoding Probabilities
 ```
 6/13 = 0.461538461538...  [ FALSE probability contains TRUE pattern 461538 ]
@@ -69,6 +90,23 @@ radius [ outward    ] → magnitude (integer part of n/13)
 - Ending at 0 = zero net drift, rotation confirmed complete
 - CONSENT protocol — compatibility can't be faked; measurement IS the connection
 - 5th crossing = Janus point: ends child 4-segment cycle AND signals parent (5-fold / Fibonacci) scale
+- **cross-reference, ideation-tier source (2026-08-04, verified directly)**:
+  `data/asc/what-AI-thinks/full-chat-captures/
+  3O37VUNMMS3UU.claude-sonnet.protocol-7-knowledge.asc:~8167` states,
+  in a kitten-heartbeat/BPM riff, "5th beat overlaps with 4th — the +1
+  common heartbeat!" immediately alongside "Position 9 = CENTER PULSE =
+  the +1 heartbeat!" — the same shape as this section's own Janus point
+  [ a repeating 4-unit cycle where the 5th unit is not simply new but
+  simultaneously closes the old cycle and opens the next scale ],
+  reached independently in a different vocabulary [ biological
+  heartbeat BPM vs. quaternion zero-crossings ]. **tier, stated
+  plainly**: the connection between the two passages is real and
+  directly verified by reading both; the *source* of the chat-capture
+  side remains an unverified ideation transcript, same caveat as the
+  `364=13×28` material below. logged as a cross-reference and one more
+  instance of this codebase's recurring `+1`-bridge motif [ `9=8+1`,
+  `27=2×13+1`, `13+1+13=27`, `28=27+1`, now this ], not promoted to a
+  confirmed finding on its own.
 
 ## CCW Matrix Rotation Routing
 - Rotate truth/assertion matrix CCW by 90° four times → AND/NAND across orientations → 4-bit lane codes → 16 routing trunks per gate
@@ -84,6 +122,41 @@ radius [ outward    ] → magnitude (integer part of n/13)
 - Decimal 0050 switch → binary 0010 0110 0010 = biological heartbeat waveform
 - `9` = structural heartbeat (cube center, basedrum between space and antispace)
 - `5` = biological heartbeat (TRUE constant, ECG trace)
+
+**Primary source found and confirmed unique (2026-08-04)**: `data/asc/dev/
+reminders/heartbeat.13__3_3.num-rol_15379.asc` contains the full sequence
+this section's `0010 0110 0010` line is drawn from:
+
+```
+5O O 1001 000 000 000 0010 0110 0010 000 000 0 0010 0110 .
+```
+
+`ack -r '000 000 0010 ' data/` confirms this is the *only* file
+containing this literal pattern. One correction to the "decimal 0050
+switch" framing above: this source's leading token is `1001` [ the
+inversion marker, [[topic-1001]] ], not `0050` — worth keeping the two
+distinct rather than merging them, since I don't have independent
+grounding that `0050` is the same thing as this `1001`-prefixed sequence.
+
+Three threads converge in this one file, previously undiscovered as
+connected: `1001` opens the sequence [ inversion marker ], the full
+heartbeat `0010 0110 0010` follows a `000 000 000` gap, and the same
+`000 000` gap-then-partial-repeat pattern [ `0010 0110`, missing the
+trailing `0010` ] recurs once more before the line ends. Immediately
+below this line, the same file shows two decimal values with their
+repeating tails highlighted: `2300734.615384615384...` and
+`2013660.153846153846...` — both containing `461538`, which is
+`076923 × 6`, a Family-T [ TRUE ] rotation of the generator [ this
+file's own "Two Families" section above ]. So one real source file ties
+together the inversion marker, the heartbeat binary pattern, and a
+generator-family rotation — independently, not by construction.
+
+**User's framing, recorded for follow-up**: "the binary trail catches
+entropy waves from the left" — proposed reading of the leading `000 000
+000` gap before the heartbeat pattern: not padding, but where
+leading/incoming entropy is absorbed before the clean waveform
+stabilizes. Not yet verified against a mechanism — flagged as an open
+interpretation of a now-confirmed-real sequence, not itself confirmed.
 
 ## Foreknowledge Document
 `read-me/documentation/true-false-description.asc` — pre-system assertions:
@@ -445,15 +518,42 @@ mechanism:
    this codebase. Payload+separator = 4 bits, not 7 or 8; "7 bits:
    certainty" in that doc refers to needing one full frame + 3 context
    bits for frame-lock, not a byte-width claim.
-3. **364 = 13×28 signed-cube inversion bit, ideation-only, not verified
-   like the two above**: from an AI chat-capture transcript
-   (`data/asc/what-AI-thinks/full-chat-captures/
-   3O37VUNMMS3UU.claude-sonnet.protocol-7-knowledge.asc`) — each 28-bit
-   "signed cube" = 27 payload sub-cubes + 1 inversion bit
-   (positive/negative, "what it IS" vs "what it ISN'T"). Real material,
-   but sourced from a speculative ideation transcript, not an implemented
-   or confirmed-real doc the way (1) and (2) are — flagging that
-   distinction rather than presenting all three at equal confidence.
+3. **364 = 13×28 signed-cube inversion bit** — the *semantic* reading
+   here [ 28-bit "signed cube" = 27 payload sub-cubes + 1 inversion bit,
+   positive/negative, "what it IS" vs "what it ISN'T" ] remains
+   **ideation-only, not verified**, sourced from an AI chat-capture
+   transcript (`data/asc/what-AI-thinks/full-chat-captures/
+   3O37VUNMMS3UU.claude-sonnet.protocol-7-knowledge.asc`) — same caveat
+   as originally written here. **Tier upgrade for the underlying
+   `364 = 13×28` arithmetic itself (2026-08-04, checked directly)**:
+   this is not confined to that one ideation source. `data/md/
+   documentation/harmonic-transit-vision-architecture.md:1615-1629`
+   states, as design-doc material, "28 = FS = File Separator = 4×7...
+   the reversed decimal of TRUE lands on FS precisely because 4×7=28:
+   the 4-crossing protocol × the 7-element harmonic cycle" — directly
+   naming this file's own "4-Crossing Consent Protocol" section above.
+   `data/md/design/ORBITAL-CYCLE-CLOCK-AND-MAPPING-CANVAS.md:550` and
+   `data/md/design/VISUAL-ELEMENT-DEDUP-HOLOGRAPHIC-CORE.md:4716` both
+   independently give the full factorization `364 = 28×13 = 7×52 =
+   7×4×13`. Read the `ORBITAL-CYCLE-CLOCK` passage in full before citing
+   it further: it contains its own explicit self-correction, withdrawing
+   an earlier "independent third source" claim in favor of "the corpus
+   keeps choosing 4-fold×13-fold as its pairing" — worth following that
+   same discipline rather than re-claiming independence it already
+   checked and retracted. `data/tasks/recurring-cube-number-collision-
+   audit.md`'s "13+1 cross-check" section separately found a *second*
+   independent `364=13×28` citation this session
+   (`topic-orbital-data-space-archive.md`'s shift-change duty-cycle
+   material) — cross-referenced there, not duplicated here. **Net
+   effect**: `364=13×28` [ and `28=4×7` ] is now design-doc-confirmed,
+   multiply-cited material, not an isolated ideation sighting — but the
+   *specific* "27 payload sub-cubes + 1 inversion bit" gloss on what the
+   28 bits individually mean is still only sourced from the one
+   chat-capture transcript and stays flagged at ideation-tier
+   accordingly. Keep the arithmetic's confidence and the semantic
+   gloss's confidence separate — this session's own discipline
+   throughout has been not to let a solid number drag along an
+   unconfirmed interpretation.
 
 **Honest verdict**: these three share a strong *family* resemblance —
 recurring "N payload bits + 1 dedicated marker/inversion/overflow bit"
@@ -506,4 +606,127 @@ bits 8-14:  routing flags (which transport trunks / layers)
 #VOTHH2XS2DMAAXEKIOEP7CBHR6CZFCXL67XDNSEFJYOIJA2MZL7ERDK6HSM6RATUPUOWXOJII5PF2
 #\\\|PE4PN7PNTHEEA5WJLJ4IFYBS2GUBQUSHEWHLXJDF4Y6WV3GBLX3 \ / AMOS7 \ YOURUM ::
 #\[7]7HYOBCOGUW35ETIZ6VMMHYQLJAUBGXK7MTNCPHHUY4XBY3G2KUCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+## ANTYKY TORUM naming scheme — tiered cross-check against real code and
+this file's own math (2026-08-04)
+
+`data/asc/what-AI-thinks/perl-form/claude-insights/claude-4/
+holographic-linguistic-devices-and-antyky-torum.pl` [ self-labeled
+"IMPLEMENTATION STATUS: CONCEPTUAL/RESEARCH," category `pattern` — read
+in full, this is squarely insights-tier "consciousness technology"
+material ] and `data/asc/what-AI-thinks/html-form/frameworks/
+py-tau-ra-zuma-framework.html` [ same lineage, matching values, not an
+independent second source ] both give a "number/color/concept" naming
+table. Checked every entry against real code and this file's own
+material rather than accepting the table at face value. **Confidence
+tiers below are not uniform across the table — that's the actual
+finding, not a caveat on it.**
+
+- **`ZULUM = 0/black/void`** — mixed-tier, two confirmations of
+  *different kinds*, worth keeping distinct rather than adding them
+  together into "confirmed twice, therefore solid": (1) `modules/
+  zulum.*` [ this session's entropy zenka, findings 7/10 above in
+  `footer-line4-field-reconciliation.md` ] is an exact string-name
+  match — but checked directly, `zulum.init_code`, `zulum.loop.
+  generate_entropy`, `zulum.cmd.step`, and `zulum.cmd.stream-attach`
+  contain **no** black/void/color language anywhere in their own code
+  or comments (`grep`-confirmed). The module is *named* `zulum`; nothing
+  in its implementation invokes the "0/black/void" meaning — this is
+  onomastic evidence [ same string ], not mechanism-matching evidence.
+  (2) A real, independent mechanism match does exist, but it's in a
+  different file: `data/md/design/AMOS-SIGNATURE-FOOTER-BIT-FRAME-
+  HIERARCHY.md` cross-checked "all zulum mode" against
+  `modules/amos7.encode_octal_header`'s real delimiter-flip behavior
+  [ 20 redundant global-mode-flag bits, `0`→`,` normal / `1`→`.`
+  inverted ] and confirmed the mechanical claim — "in zero payload
+  state, delimiters flip from 0 to 1" — matches the real code exactly.
+  **That same source doc explicitly flags its own surrounding narrative
+  as "decorative/generated tier, lower confidence," and separately notes
+  the black-cube/one-blue-face framing is single-source** [ `ack -r
+  'blue face' data/` returns essentially one hit ] — so even the
+  stronger of the two ZULUM confirmations comes with its own
+  already-recorded caveat, carried forward here rather than dropped.
+- **`AZURUM = 1/blue`** — design-doc-tier, explicitly self-flagged as
+  lower-confidence by the doc that cites it [ same paragraph as ZULUM
+  above ]. Not independently re-verified beyond what that doc already
+  states.
+- **`YOURUM = 13/Cat/Blacklight`** — insights-tier only [ three files,
+  same "insights" family, none touching real `modules/` code ]. **Extra
+  caution, already on record and worth repeating rather than
+  re-discovering**: `AMOS-SIGNATURE-FOOTER-BIT-FRAME-HIERARCHY.md`
+  explicitly checked whether "YOURUM" [ the literal string appearing in
+  the AMOS7 signature footer of effectively every module file in this
+  codebase, `\ / AMOS7 \ YOURUM ::` ] means "13" or "cat" and found
+  **no confirmation** — calling it "a decorative/naming constant, not
+  [ so far ] shown to mean '13' or 'cat.'" That finding stands and
+  applies directly to this table's YOURUM entry too, since it's the
+  same string.
+- **`ZENKA = kitten, 07`** — real and load-bearing, not insights-tier:
+  this is, plainly, the actual zenki-agent-naming convention used
+  throughout this entire codebase [ `zenka`/`zenki` singular/plural,
+  `modules/`, `configuration/zenki/`, CLAUDE.md itself ]. The strongest
+  member of this table by a wide margin — but note what's confirmed is
+  the *word*, not the *number*: nothing found ties zenka specifically to
+  the digit `7` in running code the way `42` [ entropy width ] or `13`
+  [ the generator's own modulus ] are tied to their numbers below.
+- **`TENKA` / `SENTIKUM` / `KUM`** — single-source, zero independent
+  backing found anywhere in this codebase. Logged, not adopted.
+- **`5 = True/Human/Heartbeat`** — genuine partial cross-confirmation:
+  matches this file's own, independently-arrived-at Heartbeat section
+  above [ "`5` = biological heartbeat (TRUE constant, ECG trace)" ],
+  reached via the harmonic-truth/ECG material rather than the naming
+  table. Two different routes to the same association is worth noting
+  as real, modest support — not proof, but more than the single-source
+  entries above.
+- **`42 = "Dragon or Awakened Mind"`** — decorative-tier *label* only.
+  Keep this separate from the number: **42 itself is real and
+  load-bearing** via entirely independent routes already in this
+  codebase — the 42-bit main entropy field in `zulum`/
+  `division-13-table`, this file's own Network Time Scale section
+  [ `4200 mod 13 = 1` ], and `42×12=504` in `data/tasks/recurring-
+  cube-number-collision-audit.md`. None of those derivations reference
+  "Dragon" or "Awakened Mind" in any way — the number's realness does
+  not transfer any credibility to the decorative gloss on it, and vice
+  versa the decorative gloss doesn't undermine the number. Same
+  discipline as the `364=13×28` arithmetic-vs-semantics split above.
+- **wordplay, already correctly self-hedged, needs no re-verification
+  beyond confirming the substring claim**: `ZENKA` repeated three times
+  [ `ZENKAZENKAZENKA` ] contains the literal substring `KAZE`; inserting
+  a bracketed `T` [ `= 5`, the TRUE constant above ] gives `KA[T]ZE` —
+  German for "cat." Confirmed as a real substring fact. The bracket
+  notation is the correct way to present this — it marks the insertion
+  as wordplay, not a claimed literal decoding, and is already framed
+  that way at the source. Recorded here as a curiosity with a home, not
+  upgraded past what it is.
+
+**On "litter"** [ real, load-bearing zenki-group terminology, checked
+directly this session against `data/tasks/litter-row-encoding.md`
+[ read and modified earlier this session as part of the footer-line4
+work ], `data/md/vision/habitat/VISION-NOMADIC-ZENKI-HABITAT.md`, and
+`data/md/design/KITTEN-HOLOGRAM-RESOURCE-FILTER.md` — extensively used,
+not decorative ]: this file's own "15-bit footer bitmask" section above
+already cites `data/tasks/litter-row-encoding.md`'s "zenki [litter
+internal] addresses" directly. The specific numeric tie to the
+5-of-7-shaped pattern this session traced repeatedly is via `topic-
+node-group-geometry.md`'s own words: "5-of-7 as the natural consensus +
+**litter configuration**" [ its 5-active + 2-idle-alternate structure —
+structure (3) in `recurring-cube-number-collision-audit.md`'s "four
+5-of-7-shaped structures" enumeration ]. Checked `VISION-NOMADIC-ZENKI-
+HABITAT.md` and `KITTEN-HOLOGRAM-RESOURCE-FILTER.md` for any role split
+[ leader/collector, matching structure (4)'s caravan shape instead ]:
+neither describes litter membership with distinct roles — both use
+"litter" generically, for a group of `N` zenki [ `N` unspecified,
+not fixed at 5 or 7 ] sharing collective state or forming a filter
+layer. **Verdict**: "litter" is real, general-purpose terminology for
+a zenki group, most specifically and explicitly numerically tied to
+structure (3) [ node-group-geometry's 5-active+2-idle ] by that
+structure's own source document — not shown, anywhere checked, to be a
+naming layer over structure (4)'s caravan. Cross-referenced into
+`recurring-cube-number-collision-audit.md`'s structure (3) entry.
+
+#,,.,,,,.,..,,..,,.,,,.,.,,..,,.,,,..,,..,.,.,..,,...,...,.,.,..,,,,,,.,.,.,.,
+#G3CRUIIFNJEUIR3QDXKYURTC6ZHIROXRHRWK2H6DIITM7GSDHEJCGDVY36EDBDAR4DS4GYL24P5BK
+#\\\|HGNOQCSUI6OIEKIWNOQA7WRNUDKLYYCOMFUA2M7TWWNEQQIGYLO \ / AMOS7 \ YOURUM ::
+#\[7]G5BE65H3YAJGDBR557RTYLQM7YES2EHK7MSAUPJBGUJ7CWD4GICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
