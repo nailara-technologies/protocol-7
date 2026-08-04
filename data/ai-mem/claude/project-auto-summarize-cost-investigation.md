@@ -55,14 +55,46 @@ this update). If this lands, revisit whether the `coding_summarize`
 profiling investigation below is still needed at all, or only for
 non-kimi dispatch paths (e.g. `claude_dispatch`).
 
+**Update 2026-08-04 — likely root cause found, thinking-mode never
+disabled**: motivated by watching K3's own local coding-zenka batch
+scoring step during an unrelated dispatch — it visibly burned its whole
+reasoning budget on the local model before assertion sped up, once
+thinking got disabled. Traced the actual `coding_summarize` call chain
+directly: `coding.cmd.summarize-context` →
+`coding.tools.handler.summarize_enqueue` → the inference payload build.
+**No `enable_thinking`/`no_think`/reasoning-mode control exists anywhere
+in that path** — grepped the whole codebase for it, one unrelated hit
+only (`jobsite.util.build_prompt`). So every summarization call goes to
+the local model with whatever reasoning-mode it defaults to, completely
+unaddressed by this code. If the local model defaults to thinking-on,
+that's a roughly *constant* per-call overhead regardless of input size —
+which would make it dominate small-context calls (almost all time is
+reasoning, little is summarization) while being proportionally smaller
+and less noticeable on large-context calls. That directly resolves the
+original "backwards" mystery: it stops being backwards once thinking-mode
+overhead, not content volume, is the actual cost driver.
+
+**Not yet fixed, only diagnosed** — next step, per the user: pass the
+inference parameter through rather than hardcode a single choice. Add a
+`thinking`/`enable_thinking` option all the way up the call chain
+(`coding.cmd.summarize-context` → `coding.tools.handler.summarize_enqueue`
+→ the inference payload) so callers can control it explicitly per call,
+defaulting to whatever's fastest for summarization specifically (likely
+off) rather than leaving it silently at the model/server's own default.
+If the model/server doesn't expose a thinking toggle at all, fall back to
+the original "lighter model" swap-in idea above. Measure small-context
+summarization time before/after to confirm the fix actually worked —
+don't treat this as closed until that's tested, diagnosis isn't the same
+as verification.
+
 **How to apply:** before assuming a slow `kimi_dispatch`/`claude_dispatch`
 return is the known hang from [[feedback-claude-dispatch-summarize-hang]],
 consider it may just be legitimately working but slow on a small-context
 session — check elapsed time against the ~13min self-resolve window noted
 there before intervening.
 
-#,,,.,,..,,..,,,,,.,,,,,,,...,...,,,,,,.,,,..,.,.,...,...,,.,,..,,,,.,..,,,..,
-#B7K7NQTYWIWTFEFK6ZRY6XHDBCSA54BQVM6JXEGI4YIT64IA5MORTMW4GN322BPFFDHS3ZVBBYAKM
-#\\\|QOR6J3SLT7OVL7CXO2366MUCL5VGNJC7YZHKI6I2J4IEULI7A45 \ / AMOS7 \ YOURUM ::
-#\[7]Y2YC2NDCS6F6IU25Q44ZZ74HDU3YJ4CZEK5RYFDPKAVWKGQJDSDY 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,.,,.,.,,,,,..,,.,.,,..,.,,,,,.,.,.,...,...,..,,.,,,..,,..,,..,,
+#3ZHPGMP4H4NAOFSB26TCV2MU4DDMRAH4RJHHHQ7WDFGAVAPSR3436TSZGCQKE4O2SSI5ANS3LILZO
+#\\\|F73KYDJSLC5VHPR42KZV4IMR7KYIHOQIOGVGOLLEG4KEJXIQWYF \ / AMOS7 \ YOURUM ::
+#\[7]UCHN2YYKIE4BIIZ752TFRBAU3VSXTTKTT36R3SWZAFINDIUB4EBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
