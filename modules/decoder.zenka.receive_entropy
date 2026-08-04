@@ -1,11 +1,13 @@
 ## [:< ##
 
 # name  = decoder.zenka.receive_entropy
-# descr = Receive 42-bit entropy frame : boundary detection, B32, D3, vterm
+# descr = Receive 42-bit entropy frame : boundary detection, B32, D3, D13, vterm
+# param = <stream_id> <42-bit-entropy> [decode_chunk]
 
-my $params    = shift                  // {};
-my $stream_id = $params->{'stream_id'} // $ARG[0];
-my $entropy   = $params->{'entropy'}   // $ARG[1];
+my $params       = shift                     // {};
+my $stream_id    = $params->{'stream_id'}    // $ARG[0];
+my $entropy      = $params->{'entropy'}      // $ARG[1];
+my $decode_chunk = $params->{'decode_chunk'} // $ARG[2];
 
 return { 'mode' => qw| false |, 'data' => 'missing stream_id' }
     unless defined $stream_id;
@@ -67,6 +69,24 @@ while ( length( $L6->{'accumulator'} ) >= 3 ) {
     );
 }
 
+## level-7 : passive d13 type-prefix decode of the 7-bit chunk that rides ##
+## alongside the 42-bit entropy [ GFX / B32 / DOC / RT<dir><hops> / UNK ] ##
+## observation only -- no routing or state change is driven by this yet ##
+my $d13_decoded;
+if ( defined $decode_chunk and length($decode_chunk) == 7 ) {
+    $d13_decoded = <[decoder.base.decode_d13_bits]>->($decode_chunk);
+
+    my ($type_tag) = $d13_decoded =~ m|^(\w+)\[|;
+    $type_tag //= $d13_decoded;    ## e.g. plain 'UNK' ##
+
+    $data{'decoder'}{'d13_types'}{$type_tag}++;
+
+    <[base.buffer.add_line]>->(
+        qw| level-7-D13 |,
+        sprintf( "%s [ stream %s ]", $d13_decoded, $stream_id ), 2
+    );
+}
+
 <[base.logs]>->(
     2, "decoder stream %s : decimal %d : +%d B32 chunks",
     $stream_id, $decimal, $chunks_added
@@ -82,11 +102,12 @@ return {
         'total_values' =>
             scalar( @{ <decoder.level5>->{$stream_id}{'values'} } ),
         'pending_bits' => <decoder.level5>->{$stream_id}{'bit_count'},
+        'd13_decoded'  => $d13_decoded,
     }
 };
 
-#,,,.,..,,.,,,,.,,...,..,,..,,,,.,..,,,,.,,,,,..,,...,.,,,.,,,.,,,...,,,,,,..,
-#MFYFODEDOJFKKTD5S6R6CYA6WVLZ4N5S6ADOTMQHDZ353H62PXWZG6DUCLFQPPL6LHBVYI5DYCY7U
-#\\\|AJL3MLNLPKN2TUHLHSJ6KQ4OGQXZD73ACZTVU6IWM3VYMOW37AV \ / AMOS7 \ YOURUM ::
-#\[7]75XIF52RDBZIORIJWIWOP34AIRFYCBZZS3SQVZU5LXC2AVIAAACY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,...,,,,,,.,,.,,,...,.,,,.,,,...,..,,...,...,.,,,,,.,.,.,.,.,,.,,
+#OPNZU6AHMDQL7PAHIG3CIZ3OUICFFGS63XY6Y4232DCQ6AKNGMQAF7MZVANXCJLT6AXXDPW2VMA26
+#\\\|Q4TWQYECCZEIWGG2N3B65NK6BAYI7AAHEOT5MSKRCE44LM4TGHR \ / AMOS7 \ YOURUM ::
+#\[7]BSVUE53OLTTMPBL24QJJIS4X7JSCW2YIXIFGFKIUM6XEDLNE5IDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

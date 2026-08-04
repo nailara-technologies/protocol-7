@@ -34,32 +34,40 @@ $Z <<= is_true($Z) ? 2 : 1;
 my $num_bits_64      = sprintf( '%064b', int($Z) );
 my $main_entropy_bin = substr( $num_bits_64, 0, 42 );
 
+## bits 42-48 : same 7-bit d13 type-prefix chunk division-13-table decodes ##
+## [ carried alongside main entropy, previously computed and discarded ] ##
+my $decode_chunk = substr( $num_bits_64, 42, 7 );
+
 ## Regenerate if truth checks fail ##
 goto RECALC unless is_true( $Z, 2, 1 ) && is_true( $main_entropy_bin, 0, 1 );
 
 ## Update stream state ##
-$stream->{'state'}   = $Z;
-$stream->{'entropy'} = $main_entropy_bin;
-$stream->{'is_true'} = is_true($Z);       ## required for cube-13 jump true ##
+$stream->{'state'}        = $Z;
+$stream->{'entropy'}      = $main_entropy_bin;
+$stream->{'decode_chunk'} = $decode_chunk;
+$stream->{'is_true'}      = is_true($Z);    ## required for cube-13 jump true ##
 
 ## Notify attached consumers ##
 foreach my $callback ( @{ $stream->{'attached'} } ) {
-    eval { $callback->( $stream_id, $main_entropy_bin, $iteration ) };
+    eval {
+        $callback->( $stream_id, $main_entropy_bin, $iteration, $decode_chunk );
+    };
 }
 
 ## Return 42-bit entropy value ##
 return {
     'mode' => qw| true |,
     'data' => {
-        'stream_id' => $stream_id,
-        'iteration' => $iteration,
-        'entropy'   => $main_entropy_bin,
-        'state'     => $Z,
+        'stream_id'    => $stream_id,
+        'iteration'    => $iteration,
+        'entropy'      => $main_entropy_bin,
+        'decode_chunk' => $decode_chunk,
+        'state'        => $Z,
     }
 };
 
-#,,.,,,..,,,.,,..,,,.,,..,,..,.,,,,,.,,,.,.,.,.,.,...,..,,,,.,..,,,,,,,,.,,,,,
-#AA6Q3WZCWBOJTUZ22ATLXQE3ZQIKPAVDTQCJQZEKSTU5ML6R4HVVXW77GAIXFJUF2YGB4MGRPYVOM
-#\\\|CSNDFUELTFDZ6GILDNXXZRAN6FQT3AFIBLWPWXWMZQVMZTLEWWO \ / AMOS7 \ YOURUM ::
-#\[7]QTOYQJUVXAPDPVE7FIGK4G2XAECHL4CPBL75J5OA7YQ7LHSQYIBQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,,,,,,,,,,.,,.,,..,,.,.,...,,.,,.,.,...,...,..,,,,.,,,,,,.,,,,.,
+#WQ6QETMBF5UFH6UBYMWLJI2NQIJEMWRD5TFBZTZVEBJ6PCXHGMR3PVODCLOIACCI7DAJIDK2F46E4
+#\\\|JWOQQ45W2E7RX7YJLLF25L6UJFRC62O2VWJYQ7DY4K4HOJM46NZ \ / AMOS7 \ YOURUM ::
+#\[7]I6MYQ3FPJ6QUDZU7MLYEFGS2CLLVT23F46MDFY2AL6H2Q6OA7KCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

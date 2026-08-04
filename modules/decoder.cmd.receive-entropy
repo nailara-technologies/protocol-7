@@ -2,28 +2,33 @@
 
 # name  = decoder.cmd.receive-entropy
 # descr = Command wrapper for decoder.zenka.receive_entropy
-# param = <stream_id> <entropy_bits>
+# param = <stream_id> <entropy_bits> [boundary] [decode_chunk]
 
 my $args_str = $call->{'args'} // '';
-my ( $stream_id, $entropy );
-if ( $args_str =~ m|^(\d+) ([01]{42})| ) {
-    ( $stream_id, $entropy ) = ( $1, $2 );
-}
+my ( $stream_id, $entropy, $boundary, $decode_chunk )
+    = split m| +|, $args_str;
 
 return {
     'mode' => qw| false |,
     'data' => 'expected: <stream_id> <entropy_bits>'
     }
-    unless defined $stream_id && defined $entropy;
+    unless defined $stream_id
+    && defined $entropy
+    && $entropy =~ m|^[01]{42}$|;
+
+## decode_chunk : optional 7-bit d13 type-prefix chunk [ GFX/B32/DOC/RT ] ##
+undef $decode_chunk
+    unless defined $decode_chunk && $decode_chunk =~ m|^[01]{7}$|;
 
 return <[decoder.zenka.receive_entropy]>->(
-    {   'stream_id' => $stream_id,
-        'entropy'   => $entropy,
+    {   'stream_id'    => $stream_id,
+        'entropy'      => $entropy,
+        'decode_chunk' => $decode_chunk,
     }
 );
 
-#,,..,.,.,.,,,,,.,.,.,.,.,,,,,,..,,..,,..,...,..,,...,...,...,,,.,.,.,,,.,,..,
-#DLULPZCN7TKUOHFX2O6WIEQZYNLIF6FXYZR3PEPWTZQSOOWFFJVIDJDT2ANDM7QG3SQH2EG66JHSA
-#\\\|747YA5WHPTMNYKJ5WR6IVT6HMTTIVWEKT45O3IZKMUWI4FITC45 \ / AMOS7 \ YOURUM ::
-#\[7]FFFRPAR6UTUDXQFVM7JT3UXGRK773KMAS5M2NSV55DVBTSNA2OCY 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,,.,,.,,.,,,,.,,..,,.,,,..,,,,,,..,,...,...,,.,,,..,...,,,,,,,.,
+#3UHIENPMH7ABT3BGKOBEUMJZS2GHMY7HP2DHVLPJ5QV3AUCOJ56KIXXYDYHWNXJQXG42SH7PHQVTU
+#\\\|3G5YD4IEDBRBFQNZTD5PKRIWWIJL77OIVXZY5U3KODQ35LE6JYY \ / AMOS7 \ YOURUM ::
+#\[7]TYA5LZYDQGLHFOEUZ26DTWNMLJALVG7QDHUNMUL2RATHYQUUCQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
