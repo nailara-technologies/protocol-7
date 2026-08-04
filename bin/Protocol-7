@@ -1590,20 +1590,32 @@ sub p7_load_code {
                     and not exists $wl->{$file_name} ) {
 
                     #  lifecycle hooks anywhere under the current namespace  #
-                    #  tree get a deferred stub so base.init_modules can     #
-                    #  call them [ incl. nested swap_subs movers like        #
-                    #  base.base32.pre_init when $code_name is just 'base' ] #
-                    #  all other lifecycle hooks skip silently               #
+                    #  tree get compiled eagerly, right here, same as any    #
+                    #  other file in this batch [ incl. nested swap_subs     #
+                    #  movers like base.base32.pre_init when $code_name is   #
+                    #  just 'base' ] -- no lazy-loading benefit to deferring #
+                    #  them when their ancestor namespace is already being   #
+                    #  bulk-loaded in this very pass [ see                   #
+                    #  loader-eager-compile-nested-hooks-under-loaded-       #
+                    #  ancestor.md ]. hooks whose ancestor is NOT part of    #
+                    #  this batch skip silently [ genuinely deferred ]       #
                     my $lc_hook = qr{pre_init|init_code|post_init|end_code};
-                    if (    $file_name =~ m{\.(?:$lc_hook)$}
-                        and $file_name
-                        !~ m{^\Q$code_name\E(?:\.[\w-]+)*\.(?:$lc_hook)$} ) {
+                    my $nested_hook_ancestor_in_batch
+                        = $file_name =~ m{\.(?:$lc_hook)$}
+                        && $file_name
+                        =~ m{^\Q$code_name\E(?:\.[\w-]+)*\.(?:$lc_hook)$};
+                    if ( $file_name =~ m{\.(?:$lc_hook)$}
+                        and not $nested_hook_ancestor_in_batch ) {
                         next;
                     }
 
-                   #  deferred stub for runtime subs and current-namespace   #
-                   #  lifecycle hooks [ so base.init_modules can call them ] #
-                    if ( not exists $code{$file_name} ) {
+                   #  ancestor already being loaded right here -- fall       #
+                   #  through to normal compile below, same as any           #
+                   #  whitelisted file in this batch [ skip the stub path ]  #
+                   #  deferred stub for runtime subs [ so base.init_modules  #
+                   #  can call them if their ancestor isn't in this batch ]  #
+                    if (    not $nested_hook_ancestor_in_batch
+                        and not exists $code{$file_name} ) {
                         $code{$file_name}
                             = eval( "sub {\n# line 1 \"$file_name\"\n"
                                 . q|$code{'base.handler.|
@@ -1620,14 +1632,26 @@ sub p7_load_code {
                     }
 
                     ## still an uncompiled stub -- nothing to recompile yet ##
-                    next if $data{'code'}{$file_name}{'deferred_stub'};
+                    ## [ unless its ancestor is right here in this batch,   ##
+                    ## in which case fall through and compile it for real   ##
+                    ## instead of leaving the stub in place ]               ##
+                    next
+                        if $data{'code'}{$file_name}{'deferred_stub'}
+                        and not $nested_hook_ancestor_in_batch;
 
-                    ## else : real compiled code already lands at this key  ##
-                    ## [ e.g. a non-whitelisted .cmd. module previously     ##
-                    ## reached via base.load_runtime_modules ] -- fall      ##
-                    ## through to a normal compile so it stays reachable by ##
-                    ## reload instead of being silently excluded forever [  ##
-                    ## see data/tasks/loader-reload-stale-cmd-modules.md ]  ##
+                    ## else : real compiled code already lands at this key, ##
+                    ## or this is a nested hook whose ancestor is being     ##
+                    ## bulk-loaded right here -- fall through to a normal   ##
+                    ## compile so it stays reachable by reload instead of   ##
+                    ## being silently excluded forever [ see data/tasks/    ##
+                    ## completed/loader-reload-stale-cmd-modules.md ] and   ##
+                    ## isn't left to an expensive solo lazy-compile later [ ##
+                    ## see loader-eager-compile-nested-hooks-under-         ##
+                    ## loaded-ancestor.md ]  clear now-stale flag -- about  ##
+                    ## to compile for real, a later pass with the ancestor  ##
+                    ## NOT in its batch must not misread this as "still     ##
+                    ## just a stub"                                         ##
+                    delete $data{'code'}{$file_name}{'deferred_stub'};
                 }
 
                 local $RS = undef;
@@ -5813,8 +5837,8 @@ __DATA__
 :
 :.
 
-#,,.,,,..,,,.,..,,...,...,..,,,.,,,,.,.,.,.,.,..,,...,...,...,..,,,,,,.,,,,.,,
-#6FBAXNC6CVJ5V6EQA43N2EGWSDNB4TMYQ5CK7ZBWUTEUBWH2OOA3SHUSK5UKXLYQ4WTXCBJAWAJBC
-#\\\|AMKBR3HY5W3AU2S6H7VW7LLROIUF4V2CSQ5AR2V36KK6LEIFVLJ \ / AMOS7 \ YOURUM ::
-#\[7]CUVQWYTFKJSAS77RG6XJQH5MR2N75VPSC2D33JE2E76HLYODM4AQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,..,..,,,..,,.,,...,...,.,.,...,..,,...,...,..,,.,,,.,.,,..,,,.,
+#TNBLFASCWKE6NEQ5AT3C6TJPCSBOF6HNQA6EZZEHSONUPSTKYCI53ONYHI4OUVVFJIYB4U6XA3J2S
+#\\\|QEV54Z4DQHNM56YUN2DMUVMMHCZYKQNYFQADROADXZIG2C5VXEN \ / AMOS7 \ YOURUM ::
+#\[7]4YQPYTLYYX4AIZXGHZOSK7UJVZTJJHHO34XTQRAIPXEB54DCQICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
