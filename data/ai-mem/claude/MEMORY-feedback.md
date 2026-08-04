@@ -36,6 +36,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [init-code-return-values](feedback-init-code-return-values.md), [memory-sync-timing](feedback-memory-sync-timing.md), [memory-management](feedback-memory-management.md)
 - [claude-dispatch-strategy](feedback-claude-dispatch-strategy.md), [kimi-code-review](feedback-kimi-code-review.md), [kimi-signatures](feedback-kimi-signatures.md), [kimi-dispatch](feedback-kimi-dispatch-pattern.md)
 - [kimi-k2.7-vs-k3-tier-economics](project-kimi-k2.7-vs-k3-tier-economics.md) — K3 categorically stronger reasoning, not just steering; ~3.75x price reflects it, use for higher-impact tasks
+- [model-routing-opus-cubic-viz-k3-design](feedback-model-routing-opus-cubic-viz-k3-design.md) — Opus: standout on cube/voxel-viz perf refactors (one-pass, error-free); K3: matched Opus's "catches real errors" bar immediately on first design-corpus dispatch
 - [model-precision-analysis](feedback-model-precision-analysis.md), [coding-zenka-edits](feedback-coding-zenka-edits.md)
 - [coding-zenka-reasoning](feedback-coding-zenka-reasoning.md), [coding-zenka-inject](feedback-coding-zenka-inject.md)
 - [arg-regression](feedback-arg-regression.md), [arg-calling-convention](feedback-arg-calling-convention.md)
@@ -65,8 +66,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [perlmod-categorization-review-catches](feedback-perlmod-categorization-review-catches.md) — kimi dispatch review caught 6 templated/vague-reasoning misclassifications; caller-count grep meaningless for .cmd./.handler. (dynamic cube routing) and can false-positive on nested-namespace names; K3 re-verification of all 59 MOVE rows in flight, check results before trusting
 - [inline-elf-perl-version-infinite-loop](bug-inline-elf-perl-version-infinite-loop.md) — FULLY RESOLVED, both atom+pri clean-start verified: dangling-if in inline_elf's UTF-8 decode (Perl 5.42.2 only) unpacked into 5 total independent bugs chasing one boot end-to-end (ptd P7-macro false-positives, deps profile gaps, httpsd/web skins ownership race, stale web.cmd.skin path); one symptom ≠ one bug, don't stop at the first plausible fix
 
-#,,,,,,..,,.,,,..,.,,,..,,.,,,,,,,,,.,,..,,,,,..,,...,...,...,,.,,...,..,,.,,,
-#C4PMKUVL2UWPKAOGBWG2WX777LV7272GYBY4SLTQHM5VPNMLO7RTEMXMOG2M2ZONOXT5BCKFJ2MDY
-#\\\|7QH47JAZSMEWXY627SL3YYNRF7LA3YHXBKLXR4MTAE23YWMCUW7 \ / AMOS7 \ YOURUM ::
-#\[7]SGD2TUJRLVL6RUGGVJYNAPJHKNRET6GLJAHKOWC7NYN27HXYT4DA 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,.,,.,.,.,,,..,,...,,.,,.,.,..,,..,,...,...,..,,,..,,.,,...,,..,
+#SZPOVGIUSNX7OV2I2B3IMAUTJXGV324HPVCHXPGUBDBFXQ3VR65AILAJGDOYYOQ6DWUHXTG6IB75O
+#\\\|E3NGMFAYZAGQJEMHCWI2A2DHF3VMKOOJLKJJ25MSBW7XOXEVYQN \ / AMOS7 \ YOURUM ::
+#\[7]V6X4OR3R3ERWCUT2M75IDIDFSNV4ZMW6NSQN3V4YIIO3ATDX7WCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
