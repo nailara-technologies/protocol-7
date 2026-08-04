@@ -29,11 +29,35 @@ scope:
       the exact structure already used for those four.
 
   buffer_lifecycle_decision: |
-    open design question, not yet resolved: does an interaction buffer get its own
-    dedicated window [ like amos-term.window-open per session ], or does it attach into
-    an existing window the user already has open [ closer to how nshell.bridge attaches
-    into a buffer that already exists ]? resolve before implementation — this determines
-    whether ask_user_stream needs a window handle or just a buffer_id.
+    RESOLVED [ 2026-08-04 ]: dedicated, lazily-created, named, reusable buffer —
+    NOT attach-into-an-arbitrary-existing-window.
+
+    rationale:
+      1. visibility — the zenka cannot know which existing window the user is
+         currently watching; attaching into an arbitrary buffer fails the core
+         purpose [ the question must be seen ]. nshell.bridge attaches into a
+         buffer created for nshell's own session — the honest analog is a buffer
+         the interaction channel owns.
+      2. contention — a shared buffer interleaves question text with that
+         buffer's own output stream.
+      3. timeout-fade — the idle/unanswered depth-alpha fade applies cleanly to
+         a dedicated buffer; fading someone else's working buffer is wrong.
+      4. addressing — buffer-attach_generic already resolves name:<name>, so
+         ask_user_stream needs only a well-known buffer name, not a window
+         handle. sub-question resolved: buffer_id [ by name ], no window handle.
+
+    shape:
+      - one well-known named buffer per channel: name:agent-interaction
+        [ per-task name:agent-interaction-<task_id> possible later ]. lazily
+        created on first ask_user_stream, reused thereafter.
+        [ name must match <regex.base.usr> -- no dots: window-create passes
+          client_name as session user name to base.session.init ]
+      - multi-turn scrollback via Z-layer history shift [ Z+1, newest at Z=0 ],
+        same pattern as nshell.
+      - window lifecycle is internal to the plugin: on first question, if a GTK
+        session is available, window-create + window-open on the buffer;
+        headless -> degrade straight to record_question [ track 3 ]. reopening a
+        closed window re-attaches to the same named buffer, history survives.
 
   coding_zenka_side: |
     ask_user_stream(question) -> open/reuse buffer, buffer-write the question,
@@ -63,12 +87,68 @@ verification:
 
 notes: |
   largest and least-specified of the three branches [ fallback-chain tools, protocol-7-menu
-  dialogs, this one ] — the buffer_lifecycle_decision above should be resolved first, likely
-  by prototyping against amos-term.nshell.bridge directly before writing new plugin-type
-  scaffolding.
+  dialogs, this one ] — buffer_lifecycle_decision resolved 2026-08-04 [ see scope above ].
 
-#,,..,,,,,...,,..,.,.,..,,.,.,.,,,,.,,.,,,..,,..,,...,...,..,,,,.,...,.,.,.,,,
-#FCKDO5YXXVELXECEZEVNIRKXE4MKPB7A2XHUF76R2MG4I3ES6U3GTCS7H72LT7IA34YWIUE6C3SY4
-#\\\|Y35QEZO4IYIKBEBI7MZI6KUBQI2QPOKJE2VXCBKPHT7R2N34ZDP \ / AMOS7 \ YOURUM ::
-#\[7]65QU4GYMGLNUY4YCF4IRP2KRVIXVWP6CC7VUR6CUISYPOWIIZOCA 7  DATA SIGNATURE ::
+  PREMISE CORRECTION [ found during resolution, 2026-08-04 ]: the infrastructure this
+  task's context describes as existing is only partially implemented —
+    - <amos-term.plugin-watcher> is declared //= undef but no inotify watch is ever
+      installed on plugin dirs [ hot-reload does not exist yet ]
+    - the type hooks [ buffer.decode / event.route / render.frame / input.key ] are
+      registered as metadata but never dispatched anywhere
+    - on_buffer_change is registered by nshell.bridge but nothing in the codebase
+      invokes it [ amos-term.buffer-write does not notify attachments ]
+  scope must therefore additionally include:
+    a. notify-on-write dispatch in amos-term.buffer-write [ or SHM watch ] invoking
+       client_data.on_buffer_change handlers
+    b. installing the inotify hot-reload watcher on plugin dirs [ verification item 4
+       depends on this ]
+    c. the timeout timer -> record_observation [ type=question ] degrade path
+
+prototype_results: |
+  PROTOTYPED live 2026-08-04 against the nshell.bridge pattern [ in the running
+  amos-term zenka, headless ]:
+    modules/amos-term.interaction.ask               [ core, mirrors nshell.bridge ]
+    modules/amos-term.handler.interaction-changed   [ reply accumulation + delivery ]
+    modules/amos-term.handler.interaction-deliver   [ default delivery endpoint ]
+    modules/amos-term.cmd.interaction-ask           [ test entry: ask ]
+    modules/amos-term.cmd.interaction-reply         [ test entry: simulated user reply ]
+    modules/amos-term.cmd.interaction-status        [ channel state inspection ]
+    amos-term.buffer-write                          [ scope item (a) DONE:
+      on_buffer_change notify dispatch, re-entrancy-guarded, optional client_type
+      param so a writer can filter its own writes ]
+  verified live [ verification items 1+2 PASS ]:
+    [1] interaction-ask -> lazily creates name:agent-interaction buffer, question
+        text visible in the SHM segment [ cross-process read of /dev/shm file,
+        Z-history shift works ]
+    [2] interaction-reply -> on_buffer_change accumulates reply chars, newline
+        finalizes, reply_handler invoked with [ question, reply ] — no blocking
+        of other work; Q/A pair stored in channel state
+  bugs found + fixed during prototyping:
+    - amos-term.buffer-create: whole-scalar assign of the mmap'd SHM scalar
+      [ ${$mmap_ptr} = "\0" x N ] DETACHES the Sys::Mmap mapping -> segment
+      silently process-private, backing file never updated. fixed with in-place
+      substr assignment.
+    - amos-term.buffer-create: voxel data was addressed from mapping offset 0,
+      on top of the 512-byte P7SH header [ SHM_HEADER_SIZE ]. fixed by storing a
+      data-region alias [ \substr( $$mmap_ptr, header_size ) ] as shm_ptr [ raw
+      mapping kept as shm_map_ptr ] — all consumers [ buffer-write, shift_z,
+      erase, render ] transparently offset.
+    - window client_name must match <regex.base.usr> [ alnum + - _ , NO dots ]:
+      base.session.init rejects it otherwise -> channel buffer is named
+      'agent-interaction', not 'agent.interaction'.
+    - loader: `reload source` does not pick up edits to already-loaded cmd
+      modules [ known issue: data/tasks/loader-reload-stale-cmd-modules.md ] —
+      use v7.restart <zenka> during development.
+  remaining scope [ NOT done ]:
+    - timeout degrade timer -> record_question [ verification 3 ]
+    - inotify hot-reload watcher on plugin dirs [ verification 4 ]
+    - 5th plugin-type registration + modules/amos-term.plugin-interaction/
+      scaffolding [ unblocked: lifecycle resolved, mechanism proven ]
+    - GTK window-open path [ prototype ran headless; window-open untested ]
+    - new modules are UNSIGNED: run bin/Protocol-7 sourcecode update-signatures
+
+#,,,.,.,.,.,.,,,,,,,,,..,,,,,,,.,,,..,,,,,,..,..,,...,...,,.,,,.,,,,,,..,,,.,,
+#52Z4IOSOSTQWU4BNNBURI7BNVPMUL7JHQM7BYNC77V5UE7JBIRP6QTSIJYSKXJ5DBCZQFPID7K5UK
+#\\\|PSAM4X3OGNN6PYNZOAJ6XS7AXHDAWZ4OVOLPR4YVEUZSIV77KCO \ / AMOS7 \ YOURUM ::
+#\[7]T5MOHLR63YJBX4TMLGKBSO7TUZDOH5R72XFJBN47VYY2NB33E4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

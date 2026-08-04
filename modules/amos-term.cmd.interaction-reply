@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = amos-term.cmd.interaction-reply
+# descr = write a user reply into the interaction buffer
+#
+# Simulates the user side of the exchange: types the reply text into the
+# 'agent.interaction' buffer as a 'user' client, terminated by newline. The
+# on_buffer_change dispatch delivers the completed reply to the pending
+# question's reply_handler.
+
+my $reply = $call->{'args'} // '';
+
+return {
+    'mode'     => 'false',
+    qw| data | => "usage: interaction-reply " . "<text>\n"
+    }
+    unless length $reply;
+
+my $state = <amos-term.interaction.state>;
+return { 'mode' => 'false', qw| data | => "Error: no interaction channel\n" }
+    unless defined $state and defined $state->{'window_id'};
+
+my $sid = $state->{'window_id'};
+
+## === attach user-side client [ once ] === ##
+if ( not defined $state->{'user_attach_id'} ) {
+    my $attachment = <[amos-term.buffer-attach_generic]>->(
+        'name:' . $state->{'buffer_name'},
+        qw| user |,
+        {   qw| cursor_x | => 0,
+            qw| cursor_y | => 6,      # reply line: bottom row of Z=0
+            qw| cursor_z | => 0,
+            qw| write |    => TRUE,
+            qw| read |     => TRUE,
+        }
+    );
+    return { 'mode' => 'false', qw| data | => "Error: attach failed\n" }
+        unless defined $attachment;
+    $state->{'user_attach_id'} = $attachment->{'attach_id'};
+}
+
+my $cursor = <amos-term.buffer-attachments>
+    ->{ $state->{'user_attach_id'} }->{'cursor'};
+
+foreach my $char ( split //, $reply . "\n" ) {
+    <[amos-term.buffer-write]>->(
+        $sid,           $cursor->{'x'}, $cursor->{'y'},
+        $cursor->{'z'}, $char,          4,                # p7_fg_0004
+        qw| user |
+    );
+    $cursor->{'x'} = ( $cursor->{'x'} + 1 ) % 8;
+}
+
+return { 'mode' => 'true', qw| data | => "reply written\n" };
+
+0;
+
+#AMOS7_SIGNATURE_PLACEHOLDER
+
+#,,.,,.,.,..,,,,.,..,,,,,,.,.,,.,,.,,,..,,.,,,..,,...,...,..,,...,,..,.,.,,..,
+#T7XKAI5S75O6EPVINT7TTR3HY7F67DWK3GFZW6GKHNMIMU5K2POFIURCY5GTCGVHK3Z25FTW43QHO
+#\\\|2ZKULKT3SKHQKQPCNT6T6EJPLDZYDKHIKH2P47ASKVIU2M54VWJ \ / AMOS7 \ YOURUM ::
+#\[7]YWQ3OHKWSBLYJ3USAWOSCFKEC4UGLS5O62A2YFQAYNV3RBOXMABI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
