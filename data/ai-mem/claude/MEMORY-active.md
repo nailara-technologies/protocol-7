@@ -22,7 +22,7 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [format-code-bugs-fixed](topic-format-code-bugs-fixed.md) — LANDED: 17 bugs/features via dogfooding; applied clean to 13 namespaces/areas incl. base/coding/models/bin; perltidy-rejoin gap + whitespace-column list style + regex-literal safety + jobsite-apply still open; NEW 2026-07-31: step4_align_comment_block under-pads closing '##' by 1-2 chars on some box comments, confirmed reproducible by re-running the tool, cosmetic-only, not fixed
 - [fake-signature-footer-detection](topic-fake-signature-footer-detection.md) — LANDED c5b78611a-adjacent: source.extract_sig_body now catches a sequential-pattern LLM-hallucinated fake footer that slipped past the existing PLACEHOLDER/size-mismatch checks; related session-37 "1 char too long" bug still open
 - [agent-dispatch-worktree-isolation-escaped](feedback-agent-dispatch-worktree-isolation-escaped.md) — FEEDBACK: a nested Agent dispatch with isolation:worktree still corrupted the main working tree (agent's own cd + wrong-commit self-revert); fully recovered via git checkout HEAD, no commits touched; don't trust that isolation mode unverified
-- [perl-mod-reload-redefined-warnings](project-perl-mod-reload-subroutine-redefined-warnings.md) — OPEN bug, unrelated to any content change: cube's `reload perl-mods` doesn't clear old symbol-table entries first, so every sub in a reloaded .pm warns "redefined"; mod-test zenka exists to fix this, not yet done
+- [perl-mod-reload-redefined-warnings](project-perl-mod-reload-subroutine-redefined-warnings.md) — RESOLVED 2026-08-05, 88b45e89f: base.perlmods.refresh_stale + base.perlmod.wipe_file_subs undefine stale subs before reload, staleness-preserving, 3-pass integration-tested
 - [startup-race-send-before-connect](feedback-startup-race-send-before-connect.md) — LANDED 55abd6848+d6fdc1dc1; recurring bug class, 3 fix shapes, diagnostic technique
 - [strm-subscription-evolution](topic-strm-subscription-evolution.md) — vision: reflection-vector → variable-target/fixed-suffix → STRM → future route-less pubkey channels
 - [p7-log-wire-utf8-double-encoding](topic-p7-log-wire-utf8-double-encoding.md) — LANDED 2973129e6; devmod.cmd.echo = wire test tool
@@ -95,8 +95,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [scratchpad-import-tool](topic-scratchpad-import-tool.md), [scratchpad-rescue-coding-zenka-task](topic-scratchpad-rescue-coding-zenka-task.md) — mcp-server-p7 scratchpad tools tested; follow-up task filed w/ kimi K3 for native coding-zenka rescue tools + chmod g+rx fix
 - [ncode-pattern-learning-loop](topic-ncode-pattern-learning-loop.md) — phase 1 + phase 2 (namespace scope-stack) LANDED, staged+committed `f8108af44` 2026-07-30 (kimi K3): scope_match/widen-scope + ncode.regex.apply status-gate parity fix, live-verified via p7c; tier-A chain fully run (expand→apply on scratch 2026-07-24; assess entry point tried on a real occurrence 2026-07-31, blocked by [[bug-ncode-assess-replace-not-backreferenced]] — assess never backreferences its own capture group, so it can't produce a generalizing pattern)
 
-#,,..,,,.,,..,..,,,,,,,..,,.,,..,,..,,.,.,,,,,..,,...,...,,.,,.,.,.,.,.,,,..,,
-#KP5UG5OKGVFDWZZHPDHHWC2OKCCQDGDQ63WDN7QE3ZNTORPEWYX2VIQMICNPMUMCIQQOF2HUL6LBK
-#\\\|T7PTYYBDCZSUNEIP4UKCDRHUYTGG2EAGNHK26GQLFOZTC7FQQAP \ / AMOS7 \ YOURUM ::
-#\[7]7M5APIJWIONLKLRPDNVL3TJK4LNUN3EDXUYWMCE5VUJ75OBFFYCI 7  DATA SIGNATURE ::
+#,,..,...,.,.,..,,.,.,,..,,,.,.,,,,,,,,..,,.,,..,,...,...,.,,,..,,.,,,,.,,.,,,
+#EJ2HPHHAEPCIP3MJ7NRO4PZFBJXTBR6ASG75Q6UMQKE6UHHZOGKLJOG6THXBOSHNU3LG5LIJ5RBG6
+#\\\|MLBQVYDSRK6E7PDB46RB4DSBWOLBDK6PIWCERG2N3QUXLJUIOWC \ / AMOS7 \ YOURUM ::
+#\[7]LCTBIMBOGNQCEIRAOKY2CE254QWDOLRTXCVB7AEQLAY5IFQ566CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
