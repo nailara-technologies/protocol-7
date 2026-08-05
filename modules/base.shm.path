@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = base.shm.path
+# descr = return the shm transfer directory path [ create if absent, mode 711 ]
+
+my $shm_dir = <base.cfg.shm_dir> // qw| /var/protocol-7/shm |;
+
+##  strip any trailing slashes for consistent path joins  ##
+$shm_dir =~ s|/+$||;
+
+if ( not -d $shm_dir ) {
+    ##  world-unreadable transfer dir [ owner list only ]  ##
+    if ( not <[base.file.make_path]>->( $shm_dir, 0711 ) ) {
+        <[base.logs]>->(
+            0, 'base.shm.path : cannot create shm dir %s', $shm_dir
+        );
+        return undef;
+    }
+    <[base.logs]>->( 2, 'base.shm.path : created shm dir %s', $shm_dir );
+}
+
+if ( not -w $shm_dir ) {
+    <[base.logs]>->(
+        0, 'base.shm.path : shm dir %s not writable by this zenka', $shm_dir
+    );
+    return undef;
+}
+
+return $shm_dir;
+
+#,,.,,,,.,.,,,,..,,..,.,.,.,,,..,,,.,,.,.,,..,..,,...,...,...,,,,,,..,.,.,...,
+#RSHC2FHOSDWFGFUEB7HXXWEJFZXJ2BLCJKSWWJFXNCHJEEPKVGVXHZCAHG62N6TI3H6MWPSZI26TQ
+#\\\|PME4GEK4KHJMFDDKSRTIPGJGQGP527CIVSEXZHRWXZVTVWN5GGD \ / AMOS7 \ YOURUM ::
+#\[7]TWGEO2CUMUCIYGMJOIOEWWNBXWMYFCHE6YXTMHUL745ZTOUJOWDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

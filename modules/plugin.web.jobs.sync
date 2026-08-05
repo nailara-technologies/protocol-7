@@ -6,6 +6,36 @@
 my $call = shift           // {};
 my $body = $call->{'args'} // '';
 
+## shm transfer [ large authenticated jobsite push ] : body was streamed to ##
+## disk + validated by httpd.handler.shm_write -- read via base.shm.read    ##
+## instead of the inline call_args body. backwards-compatible : requests    ##
+## without shm_path [ browser updates ] use the inline body as before       ##
+if ( defined $call->{'shm_path'} ) {
+    my $shm_data = <[base.shm.read]>->(
+        {   'path' => $call->{'shm_path'},
+            'key'  => $call->{'shm_key'},
+        }
+    );
+    if ( not defined $shm_data ) {
+        <[base.logs]>->(
+            1, '[web.jobs.sync] shm read failed : %s',
+            $call->{'shm_path'}
+        );
+        return {
+            'mode'         => qw| strm |,
+            'data'         => '{"ok":false,"error":"shm read failed"}',
+            'content_type' => 'application/json',
+        };
+    }
+    <[base.logs]>->(
+        2,
+        '[web.jobs.sync] shm payload : %d bytes [ %s ]',
+        length( $shm_data->$* ),
+        $call->{'shm_path'}
+    );
+    $body = $shm_data->$*;
+}
+
 my $payload = eval { JSON::XS::decode_json($body) };
 if ( $EVAL_ERROR or ref $payload ne qw| HASH | ) {
     return {
@@ -15,11 +45,11 @@ if ( $EVAL_ERROR or ref $payload ne qw| HASH | ) {
     };
 }
 
-## last_modified deliberately excluded : it must reflect when the record   ##
-## actually lands in THIS cache [ cache.write stamps a fresh local time ], ##
-## not jobsite's own write-time clock -- copying jobsite's timestamp lets  ##
-## a browser's delta watermark [ taken from a poll's "now" ] step past a   ##
-## push that is still in flight, permanently hiding it from future deltas ##
+## last_modified deliberately excluded : it must reflect when the record    ##
+## actually lands in THIS cache [ cache.write stamps a fresh local time ],  ##
+## not jobsite's own write-time clock -- copying jobsite's timestamp lets a ##
+## browser's delta watermark [ taken from a poll's "now" ] step past a push ##
+## that is still in flight, permanently hiding it from future deltas        ##
 my @pipeline_fields = qw| title company url score score_reason score_summary
     fetched_at status stage description blocked_epoch checksum_hit
     assertions city industry country postal_code repair_attempted repair_failed |;
@@ -45,16 +75,17 @@ my $ok        = TRUE;
 my $cache_dir = <[plugin.web.jobs.cache.path]>;
 my @conflicts;
 
-## the resulting watermark for a single browser push, handed back so the   ##
-## caller can adopt it locally -- otherwise a same-browser follow-up push  ##
-## [ e.g. hitting undo right after a stage move ] still carries the STALE  ##
-## pre-push base_last_modified and false-conflicts against its own write  ##
+## the resulting watermark for a single browser push, handed back so the    ##
+## caller can adopt it locally -- otherwise a same-browser follow-up push [ ##
+## e.g. hitting undo right after a stage move ] still carries the STALE     ##
+## pre-push base_last_modified and false-conflicts against its own write    ##
 my $single_last_modified;
 
-## collect pending reverse-delete IDs so a batch push does not resurrect them ##
-## also collect pending reverse-stage-change IDs : a browser stage push not  ##
-## yet round-tripped back into jobsite's own copy must not get clobbered by  ##
-## jobsite's batch, which was built from its own [ still older ] on-disk view ##
+## collect pending reverse-delete IDs so a batch push does not resurrect    ##
+## them also collect pending reverse-stage-change IDs : a browser stage     ##
+## push not yet round-tripped back into jobsite's own copy must not get     ##
+## clobbered by jobsite's batch, which was built from its own [ still older ##
+## ] on-disk view                                                           ##
 my %pending_delete;
 my %pending_stage_change;
 if ($is_batch) {
@@ -78,8 +109,8 @@ for my $job_data (@job_list) {
     my $cached
         = ref $mem->{$job_id} eq qw| HASH | ? { %{ $mem->{$job_id} } } : {};
 
-    ## skip jobs the browser already asked to delete but jobsite has not yet ##
-    ## processed; remove any resurrected on-disk copy as well                 ##
+    ## skip jobs the browser already asked to delete but jobsite has not ##
+    ## yet processed; remove any resurrected on-disk copy as well        ##
     if ( $is_batch and $pending_delete{$job_id} ) {
         my $old_status = <plugin.web.jobs.index>->{$job_id} // '';
         my $old_path   = '';
@@ -97,8 +128,8 @@ for my $job_data (@job_list) {
         next;
     }
 
-    ## jobsite batch push signalling a transition into a terminal state :   ##
-    ## minimal payload [ id + status only ], prune the cache entry instead  ##
+    ## jobsite batch push signalling a transition into a terminal state :  ##
+    ## minimal payload [ id + status only ], prune the cache entry instead ##
     ## of caching a stale record that would otherwise never get corrected  ##
     if ( $is_batch
         and ( $job_data->{'status'} // '' ) =~ m{^(blocked|deleted|trash)$} )
@@ -120,16 +151,16 @@ for my $job_data (@job_list) {
     }
 
     if ($is_batch) {
-        ## staleness guard : jobsite builds its outbound batch from its OWN  ##
+        ## staleness guard : jobsite builds its outbound batch from its OWN ##
         ## on-disk view, which can still predate a browser-initiated stage  ##
         ## change already applied straight to this cache -- only skip the   ##
-        ## clobber for a job that actually HAS an unconfirmed reverse-queue  ##
-        ## entry still pending [ not yet round-tripped into jobsite's own    ##
-        ## copy ] ; self-corrects once jobsite drains the reverse queue.     ##
-        ## [ wall-clock last_modified comparison doesn't work here : jobsite  ##
-        ## pushes their own writes re-stamp the cache's last_modified to now  ##
-        ## too, so it drifts ahead of jobsite's frozen data-change time on   ##
-        ## every cycle and would treat every job as permanently stale ]     ##
+        ## clobber for a job that actually HAS an unconfirmed reverse-queue ##
+        ## entry still pending [ not yet round-tripped into jobsite's own   ##
+        ## copy ] ; self-corrects once jobsite drains the reverse queue.  [ ##
+        ## wall-clock last_modified comparison doesn't work here : jobsite  ##
+        ## pushes their own writes re-stamp the cache's last_modified to    ##
+        ## now too, so it drifts ahead of jobsite's frozen data-change time ##
+        ## on every cycle and would treat every job as permanently stale ]  ##
         my $jobsite_stale = $pending_stage_change{$job_id} ? TRUE : FALSE;
 
         ## jobsite push : update pipeline fields, keep browser fields ##
@@ -138,15 +169,15 @@ for my $job_data (@job_list) {
             $cached->{$f} = $job_data->{$f} if exists $job_data->{$f};
         }
 
-        ## force cache.write below to stamp a fresh local time : jobsite    ##
-        ## only forwards jobs it considers changed, so every batch entry   ##
-        ## here is a real update -- carrying over a stale cached value     ##
-        ## would re-trigger the same watermark race last_modified was      ##
-        ## dropped from @pipeline_fields to avoid ##
+        ## force cache.write below to stamp a fresh local time : jobsite ##
+        ## only forwards jobs it considers changed, so every batch entry ##
+        ## here is a real update -- carrying over a stale cached value   ##
+        ## would re-trigger the same watermark race last_modified was    ##
+        ## dropped from @pipeline_fields to avoid                        ##
         delete $cached->{'last_modified'};
 
         ## jobsite only guarantees 'status'; derive UI 'stage' from status ##
-        ## (preserve browser/user-owned stages: applied, rejected, etc.)  ##
+        ## (preserve browser/user-owned stages: applied, rejected, etc.)   ##
         my $status          = $cached->{'status'} // '';
         my %status_to_stage = (
             'assessed' => 'review',     ## legacy assessed → review tab  ##
@@ -160,12 +191,12 @@ for my $job_data (@job_list) {
             $cached->{'stage'} = $derived;
         }
     } else {
-        ## browser update : browser-owned fields only, queue reverse ##
-        ## stale-write guard : a stage push is only applied if the browser's ##
-        ## last known last_modified still matches the cache — otherwise the ##
-        ## record moved [ pipeline advance or another browser ] since this  ##
-        ## browser last saw it, and blindly applying would silently revert ##
-        ## a newer state ##
+        ## browser update : browser-owned fields only, queue reverse        ##
+        ## stale-write guard : a stage push is only applied if the          ##
+        ## browser's last known last_modified still matches the cache —     ##
+        ## otherwise the record moved [ pipeline advance or another browser ##
+        ## ] since this browser last saw it, and blindly applying would     ##
+        ## silently revert a newer state                                    ##
         my $stage_conflict;
         if ( exists $job_data->{'stage'} ) {
             my $base_lm = $job_data->{'base_last_modified'} // '';
@@ -180,7 +211,8 @@ for my $job_data (@job_list) {
                 push @conflicts, $stage_conflict;
                 <[base.logs]>->(
                     1,
-                    '[web.jobs.sync] stage conflict %s : browser base=%s current=%s, rejecting stage push',
+                    '[web.jobs.sync] stage conflict %s : browser '
+                        . 'base=%s current=%s, rejecting stage push',
                     $job_id,
                     $base_lm,
                     $cur_lm
@@ -197,13 +229,15 @@ for my $job_data (@job_list) {
             }
         }
         if (%changed) {
-            ## bump last_modified so delta queries on other browsers pick up this change ##
+            ## bump last_modified so delta queries on other browsers pick ##
+            ## up this change                                             ##
             $cached->{'last_modified'} = <[base.ntime.b32]>;
             <[plugin.web.jobs.reverse.queue]>->(
                 { 'id' => <[base.vax-int.encode]>->($job_id), %changed } );
         }
 
-        ## action entries (e.g. reassess, delete) bypass browser_fields and queue directly ##
+        ## action entries (e.g. reassess, delete) bypass browser_fields and ##
+        ## queue directly                                                   ##
         if ( exists $job_data->{'action'}
             and length( $job_data->{'action'} ) ) {
             <[plugin.web.jobs.reverse.queue]>->(
@@ -242,7 +276,7 @@ for my $job_data (@job_list) {
 }
 
 ## flush reverse queue only for jobsite batch pulls, not browser POSTs ##
-## browser POSTs must not drain the queue or action entries are lost ##
+## browser POSTs must not drain the queue or action entries are lost   ##
 my @reverse;
 if ($is_batch) {
     my $all_reverse = <[plugin.web.jobs.reverse.flush]>;
@@ -285,8 +319,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,.,,,,,,...,,.,,,.,,.,,,,.,,..,,,.,,...,,,.,..,,...,...,,.,,...,.,,,,,.,..,,
-#B4TDJ2BWD4JGUAMLFCOAKASA3TNEWAZZDJP4AVLRL4QR3QVQ7YVNSZ472NIPGULU5BDY2OPZCMT2W
-#\\\|USKXYOZPIFWB3EL7A6VXFQQ5KE4R5QVTD5ZAAVQG2G6EZKUXJH5 \ / AMOS7 \ YOURUM ::
-#\[7]DQ4WBSUPW4HLJQW4ABDMA6RAQMKZ5VLPCU4PNSMK7BVQXHQLE4BQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,..,,...,,..,.,.,..,,,,,,,,.,,.,,..,,...,..,,.,.,.,,,,,.,,,,,...,
+#4YUDISVIZ3EYMTWNFXMYZK7S2VYLKQNT5VIBRHVYM35TKIDCRDM345LANGLDUXI4MZTGQJ7XNLTCA
+#\\\|WHR5DMCQQRMRKZO66YVKCOWX5SB77P4HEXMH7DUQTPDFZHF5VU3 \ / AMOS7 \ YOURUM ::
+#\[7]EBCLJNKF33KRPPME7NDXGGVCLXCVKW6SQVLRXRLV6NIC574STMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
