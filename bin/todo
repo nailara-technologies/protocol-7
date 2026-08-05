@@ -19,16 +19,22 @@ BEGIN {
     my $root_path = abs_path(
         File::Spec->rel2abs( File::Spec->catdir( $RealBin, $up_dir ) ) );
     $ENV{'P7_ROOT'} //= $root_path if defined $root_path and -d $root_path;
+
+    ## make the project-local AMOS7 pm tree loadable for standalone use ##
+    my $lib_pm = defined $root_path ? "$root_path/data/lib-path/pm" : undef;
+    unshift @INC, $lib_pm if defined $lib_pm and -d $lib_pm;
 }
+
+use AMOS7::TERM qw| frame_border_line |;
 
 my $root      = $ENV{'P7_ROOT'} // '';
 my $list_name = 'default';
 
-## parse --file / --list / $P7_TODO_FILE before other args
+## parse -file / -list / $P7_TODO_FILE before other args
 my @argv_clean;
 my $i = 0;
 while ( $i < @ARGV ) {
-    if ( $ARGV[$i] eq '--file' and defined $ARGV[ $i + 1 ] ) {
+    if ( $ARGV[$i] eq '-file' and defined $ARGV[ $i + 1 ] ) {
         $ENV{'P7_TODO_FILE'} = $ARGV[ $i + 1 ];
         $i += 2;
     } elsif ( $ARGV[$i] eq '-list' and defined $ARGV[ $i + 1 ] ) {
@@ -170,20 +176,42 @@ sub count_items {
 
 sub draw_header {
     my $width = shift // $TERM_WIDTH;
-    my $text  = ' .: todo :.';
-    my $fill  = $width - length($text);
-    $fill = 0 if $fill < 0;
-    say $text . ( '─' x $fill );
+    say AMOS7::TERM::frame_border_line(
+        {   width    => $width,
+            reset    => $C{R} // '',
+            elements => [
+                {   type  => 'anchor',
+                    value => ' .: todo :. ',
+                    color => $C{T} // '',
+                },
+                {   type  => 'fill',
+                    char  => '─',
+                    min   => 1,
+                    color => $C{0} // '',
+                },
+            ],
+        }
+    );
 }
 
 sub draw_footer {
     my ( $width, $open, $done, $high ) = @_;
     $width //= $TERM_WIDTH;
-    my $text  = "$open open  ·  $done done  ·  $high high";
-    my $total = length($text) + 3;    ## space before, space after, trailing ─
-    my $left  = $width - $total;
-    $left = 0 if $left < 0;
-    say( '─' x $left ) . " $text ─";
+    my $text = " $open open · $done done · $high high ";
+    say AMOS7::TERM::frame_border_line(
+        {   width    => $width,
+            reset    => $C{R} // '',
+            elements => [
+                {   type  => 'fill',
+                    char  => '─',
+                    min   => 1,
+                    color => $C{0} // '',
+                },
+                { type => 'anchor', value => $text, color => $C{T} // '' },
+                { type => 'anchor', value => '─', color => $C{0} // '' },
+            ],
+        }
+    );
 }
 
 sub format_items {
@@ -263,6 +291,44 @@ sub format_items {
     }
 
     return ( \@lines, $max_width );
+}
+
+##[ options / help ]##########################################################
+
+my $option_list = <<'EOL';
+
+    .: todo command line options :.
+
+    list [open|done|all|<tag>] .....  list items [ default : open ]
+    add [-h|-l] [-t tag,..] <text> .  add a new item
+    done <id> [<id>..] .............  mark item[s] as done
+    rm <id> ........................  remove an item
+    edit <id> <text> ...............  replace item text
+    tag <id> <tag> .................  add a tag to an item
+    untag <id> <tag> ...............  remove a tag from an item
+    clear ..........................  remove all done items
+    reset ..........................  remove all items [ tty confirm ]
+
+    -file <path> ...................  use given todo file
+    -list <name> ...................  use named list [ default : default ]
+
+    -options / help ................  show this option list
+
+EOL
+
+sub list_options {
+    if ( not $TTY ) {
+        print $option_list;
+        return;
+    }
+    chomp( my $s = $option_list );
+    my @lines = split "\n", $s;
+    ## structural punctuation in $C{0}, textual content in $C{T} ##
+    for my $l (@lines) {
+        $l =~ s|(\s?\W+\s?)|$C{0}$1$C{T}|g;
+        print "$C{T}$l$C{R}\n";
+    }
+    print "\n";
 }
 
 ##[ commands ]################################################################
@@ -481,14 +547,18 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
     cmd_clear();
 } elsif ( $cmd eq 'reset' ) {
     cmd_reset();
+} elsif ( $cmd eq '-options' or $cmd eq 'help' or $cmd eq '-h' ) {
+    list_options();
 } else {
-    die "unknown command: $cmd\n";
+    warn "unknown command: $cmd\n\n";
+    list_options();
+    exit 1;
 }
 
 exit 0;
 
-#,,,.,,,,,..,,,,.,,,,,,,,,,,.,...,.,,,,,.,,.,,..,,...,...,,,,,,,,,.,.,,,.,.,,,
-#A3KQWICMZODPO4RLASYE63GOKZ47P5KDJNJQU4DBRPTFALHSC2E7USE7YIYRMQGH3PJJDWEQMZ4CE
-#\\\|VS5LAMIPJ6CCTIDOXTR7AZNBEOWBLTSFMAFNC3UPSW7IRTTGGYO \ / AMOS7 \ YOURUM ::
-#\[7]2OEM32KMSDXI25C3CBNBZXPDODWEXBQJ2RONXSNZNB7WZV3BT4CI 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,,,,.,.,.,,,,.,,,,.,,,.,.,,,,.,,..,,...,...,.,,,,,.,,..,,..,,..,
+#EWUEYZAGL2VASBZDN2BG7WDMGEPIJBK347GENDKA5ODJBTTVBDOWKLLVGKBEQ6SG7BECEIUGESENY
+#\\\|R4FBU2KOR7HFFIOXWTCDHC63T5TVJJXFQ7GG7SZJANJDMZ7FC46 \ / AMOS7 \ YOURUM ::
+#\[7]XCDMILIK5ZEBCRMLFCC2UZJXC2ICVWRBERGIBSUCV3UG52DXQCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
