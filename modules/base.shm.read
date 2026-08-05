@@ -1,0 +1,108 @@
+## [:< ##
+
+# name  = base.shm.read
+# param = { path, key [optional], keep [optional] }
+# descr = generic shm read for consumer zenki : decrypt, verify BMW384, unlink
+
+my $param = shift // {};
+
+if ( ref $param ne qw| HASH | or not length( $param->{'path'} // '' ) ) {
+    warn 'expected { path [, key, keep ] } hash parameter <{C1}>';
+    return undef;
+}
+
+my $shm_dir = <[base.shm.path]>;
+return undef if not defined $shm_dir;
+
+##  name sanitization : content-addressed names only, no traversal  ##
+my $name = $param->{'path'};
+if ( $name !~ m|^[A-Z2-7\-]+$| ) {
+    <[base.logs]>->( 0, 'base.shm.read : path name not valid : %s', $name );
+    return undef;
+}
+
+my $full_path = sprintf '%s/%s', $shm_dir, $name;
+if ( not -f $full_path ) {
+    <[base.logs]>->( 1, 'base.shm.read : no such shm file : %s', $name );
+    return undef;
+}
+
+my $fh;
+if ( not open( $fh, qw| < |, $full_path ) ) {
+    <[base.logs]>->(
+        0,          'base.shm.read : cannot open %s : %s',
+        $full_path, <[base.str.os_err]>
+    );
+    return undef;
+}
+binmode($fh);
+my $payload = do { local $INPUT_RECORD_SEPARATOR = undef; <$fh> }
+    // '';
+close($fh);
+
+##  optional twofish decryption  ##
+my $key = $param->{'key'};
+if ( defined $key and length $key ) {
+    <[base.perlmod.load]>->('AMOS7::Twofish')
+        if not <[base.perlmod.loaded]>->('AMOS7::Twofish');
+
+    $key = decode_b32r($key) if length($key) != 32;    ## transport encoded ##
+    if ( not defined $key or length($key) != 32 ) {
+        <[base.logs]>->( 0, 'base.shm.read : twofish key not valid' );
+        return undef;
+    }
+
+    AMOS7::Twofish::key_init( $key, qw| decryption shm_read | ) or do {
+        <[base.logs]>->( 0, 'base.shm.read : twofish key_init failed' );
+        return undef;
+    };
+    my $dec_ref = AMOS7::Twofish::decrypt( qw| shm_read |, \$payload );
+    AMOS7::Twofish::delete_table_entry(qw| decryption shm_read |);
+
+    if ( ref $dec_ref ne qw| SCALAR | ) {
+        <[base.logs]>->( 0, 'base.shm.read : decryption failed : %s', $name );
+        return undef;
+    }
+    $payload = $dec_ref->$*;
+
+    ##  strip pkcs7 padding  ##
+    my $pad_len = ord( substr( $payload, -1 ) );
+    if ( $pad_len < 1 or $pad_len > 16 or $pad_len > length($payload) ) {
+        <[base.logs]>->( 0, 'base.shm.read : padding not valid : %s', $name );
+        return undef;
+    }
+    $payload = substr( $payload, 0, length($payload) - $pad_len );
+}
+
+##  integrity : content-addressed names are BMW384 of the plaintext  ##
+my $is_valid = TRUE;
+if ( $name =~ m|^[A-Z2-7]{77}$| ) {
+    my $bmw_ctx = <[base.chk-sum.bmw.ctx]>->(384);
+    $bmw_ctx->add($payload);
+    if ( encode_b32r( $bmw_ctx->digest ) ne $name ) {
+        <[base.logs]>->(
+            0, 'base.shm.read : BMW384 mismatch, destroying : %s', $name
+        );
+        $is_valid = FALSE;
+    }
+}
+
+##  unlink after read [ configurable via keep ] : tampered data always  ##
+if ( not $is_valid or not $param->{'keep'} ) {
+    unlink($full_path);
+}
+
+return undef if not $is_valid;
+
+<[base.logs]>->(
+    2,                'base.shm.read : returned %d bytes from %s',
+    length($payload), $name
+);
+
+return \$payload;
+
+#,,,,,.,.,,..,...,..,,,,,,,..,,,.,,,.,,.,,,,.,..,,...,...,..,,,..,.,.,.,,,..,,
+#5JZUKDDQAOB2U3HHR4KE54Y4UJVSGVAZVEON4UC2NAZDJWA6WWSF3WCXHLGZNFGFYVOSESOZRSAKC
+#\\\|4P4HYFDGWIIJ4ZAGPJCDY6X3I2PLWBHELCM23APLDMER3N7QZP3 \ / AMOS7 \ YOURUM ::
+#\[7]KDGLEWSA54XTGVIKHO22SVXV5VQLAXIXJKJ2YUAZHE7WILFTAUCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

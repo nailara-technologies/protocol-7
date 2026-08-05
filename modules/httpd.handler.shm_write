@@ -1,0 +1,387 @@
+## [:< ##
+
+# name  = httpd.handler.shm_write
+# descr = secure streaming body handler for authenticated large POSTs :
+#         progressive gates [ ntime -> C25519 sig -> byte/line -> BMW384 ],
+#         streams body to shm temp file, never buffers body in memory
+
+my $event_or_id = shift;
+my $id          = ref $event_or_id ? $event_or_id->w->data : $event_or_id;
+my $session     = $data{'session'}->{$id};
+
+return 2 if not defined $session;
+
+##[ stream mode : var watcher callback draining the input buffer ]############
+
+if ( ref $event_or_id ) {
+
+    my $event = $event_or_id;
+    my $shm   = $session->{'http'}->{'shm'} // return 2;
+
+    my $fail = sub {
+        my $reason = shift;
+        <[base.logs]>->( 1, '[%d] shm_write rejected : %s', $id, $reason );
+        close( $shm->{'fh'} )        if defined $shm->{'fh'};
+        unlink( $shm->{'tmp_path'} ) if defined $shm->{'tmp_path'};
+        ##  destroy twofish key [ data cryptographically irrecoverable ]  ##
+        if ( defined $shm->{'key'} ) {
+            $shm->{'key'} = "\0" x length( $shm->{'key'} );
+            undef $shm->{'key'};
+        }
+        AMOS7::Twofish::delete_table_entry( qw| encryption |,
+            $shm->{'twofish_name'} )
+            if defined $shm->{'twofish_name'};
+        $event->w->stop;
+        delete $session->{'http'}->{'shm'};
+        <[httpd.send_error_page]>->( $id, 400 );
+        return 2;
+    };
+
+    ##  drain buffer : body never accumulates in memory  ##
+    my $chunk = $session->{'buffer'}->{'input'} // '';
+    $session->{'buffer'}->{'input'} = '';
+
+    ##  gate 6 [ O(n) ] : single pass, all checks in parallel  ##
+    if ( length $chunk ) {
+        $shm->{'byte_count'} += length($chunk);
+        $shm->{'line_count'} += ( $chunk =~ tr/\n// );
+        $shm->{'bmw_ctx'}->add($chunk);
+
+        ##  exact byte commitment : reject the moment it is exceeded  ##
+        return $fail->('byte count exceeds signed header')
+            if $shm->{'byte_count'} > $shm->{'decl_bytes'};
+
+        ##  stream-encrypt full 16 byte blocks, partial stays pending  ##
+        if ( defined $shm->{'key'} ) {
+            $shm->{'pending'} .= $chunk;
+            my $full_len
+                = length( $shm->{'pending'} )
+                - ( length( $shm->{'pending'} ) % 16 );
+            if ($full_len) {
+                my $blocks  = substr( $shm->{'pending'}, 0, $full_len, '' );
+                my $enc_ref = AMOS7::Twofish::encrypt( $shm->{'twofish_name'},
+                    \$blocks );
+                return $fail->('twofish encrypt failed')
+                    if ref $enc_ref ne qw| SCALAR |;
+                print( { $shm->{'fh'} } $enc_ref->$* );
+            }
+        } else {
+            print( { $shm->{'fh'} } $chunk );
+        }
+    }
+
+    return 1 if $shm->{'byte_count'} < $shm->{'decl_bytes'};
+
+    ##[ body complete : finalize ]############################################
+
+    ##  pkcs7 pad final block [ always 1..16 bytes ]  ##
+    if ( defined $shm->{'key'} ) {
+        my $pad_len = 16 - ( length( $shm->{'pending'} ) % 16 );
+        my $final   = $shm->{'pending'} . ( chr($pad_len) x $pad_len );
+        my $enc_ref
+            = AMOS7::Twofish::encrypt( $shm->{'twofish_name'}, \$final );
+        return $fail->('twofish final encrypt failed')
+            if ref $enc_ref ne qw| SCALAR |;
+        print( { $shm->{'fh'} } $enc_ref->$* );
+    }
+    close( $shm->{'fh'} );
+    undef $shm->{'fh'};
+
+    ##  gate 7 [ ~ns ] : final comparisons against the signed header  ##
+    return $fail->('line count mismatch')
+        if $shm->{'line_count'} != $shm->{'decl_lines'};
+
+    my $digest_b32 = encode_b32r( $shm->{'bmw_ctx'}->digest );
+    return $fail->('BMW384 digest mismatch')
+        if $digest_b32 ne $shm->{'decl_b32'};
+
+    ##  all gates passed : content-addressed rename + read permission  ##
+    my $final_path = sprintf '%s/%s', $shm->{'shm_dir'}, $digest_b32;
+    if ( not rename( $shm->{'tmp_path'}, $final_path ) ) {
+        return $fail->( sprintf 'rename failed : %s', <[base.str.os_err]> );
+    }
+    chmod( 0440, $final_path );
+
+    <[base.logs]>->(
+        2,   '[%d] shm_write validated : %d bytes, %d lines [ %s ]',
+        $id, $shm->{'byte_count'}, $shm->{'line_count'}, $digest_b32
+    );
+
+    ##  cipher objects destroyed; key survives only as transport token  ##
+    AMOS7::Twofish::delete_table_entry( qw| encryption |,
+        $shm->{'twofish_name'} )
+        if defined $shm->{'twofish_name'};
+
+    $session->{'http'}->{'shm_path'} = $digest_b32;
+    $session->{'http'}->{'shm_key'}
+        = defined $shm->{'key'}
+        ? encode_b32r( $shm->{'key'} )
+        : undef;
+    delete $session->{'http'}->{'shm'};
+
+    ##  restore the original input_buffer watcher  ##
+    $event->w->stop;
+    if ( defined $session->{'http'}->{'original_input_watcher'} ) {
+        $session->{'watcher'}->{'input_buffer'}
+            = delete $session->{'http'}->{'original_input_watcher'};
+        $session->{'watcher'}->{'input_buffer'}->again;
+    }
+
+    ##  dispatch to the pending route handler  ##
+    if ( defined $session->{'http'}->{'pending_route_sub'} ) {
+        my $sub_name     = delete $session->{'http'}->{'pending_route_sub'};
+        my $handler_args = delete $session->{'http'}->{'pending_route_args'}
+            // {};
+        <[base.logs]>->(
+            2,   '[%d] shm body complete, dispatching route : %s',
+            $id, $sub_name
+        );
+        return $code{$sub_name}->( $id, $handler_args )
+            if exists $code{$sub_name};
+        <[base.logs]>->( 0, '[%d] route sub missing : %s', $id, $sub_name );
+        return <[httpd.send_error_page]>->( $id, 500 );
+    }
+
+    return 2;
+}
+
+##[ init mode : header gates, cheapest first ]################################
+
+my $route_sub  = shift;
+my $route_args = shift // {};
+
+my $request = $session->{'http'}->{'request'};
+my $headers = $request->{'headers'};
+
+my $window_secs = <httpd.cfg.shm_replay_window> // 60;
+
+##  gate 1 [ ~ns ] : parse the signed content-hash header  ##
+my $content_hash = $headers->{'x-p7-content-hash'} // '';
+my ( $ntime_b32, $decl_bytes, $decl_lines, $decl_b32 )
+    = $content_hash
+    =~ m|^([A-Z2-7]{6,32}):(\d{1,20}):(\d{1,20}):([A-Z2-7]{77})$|;
+
+if ( not defined $decl_b32 ) {
+    <[base.logs]>->(
+        1,   '[%d] shm_write : content-hash header not valid : %s',
+        $id, $content_hash
+    );
+    return <[httpd.send_error_page]>->( $id, 400 );
+}
+
+##  transport sanity : content-length must equal the signed byte count  ##
+my $content_length = $headers->{'content-length'} // 0;
+if ( $content_length != $decl_bytes ) {
+    <[base.logs]>->(
+        1,   '[%d] shm_write : content-length %d != signed bytes %d',
+        $id, $content_length, $decl_bytes
+    );
+    return <[httpd.send_error_page]>->( $id, 400 );
+}
+
+##  gate 2 [ ~ns ] : ntime replay window, reject stale/future early  ##
+my $timestamp_num = <[base.ntime_BASE32_to_numerical]>->($ntime_b32);
+if ( not defined $timestamp_num ) {
+    <[base.logs]>->( 1, '[%d] shm_write : ntime not decodable', $id );
+    return <[httpd.send_error_page]>->( $id, 403 );
+}
+my $now_ntime  = <[base.ntime]>->(3);
+my $delta_secs = ( $timestamp_num - $now_ntime ) / 4200;
+if ( abs($delta_secs) > $window_secs ) {
+    <[base.logs]>->(
+        1,   '[%d] shm_write : ntime outside %ds window [ delta %.1f ]',
+        $id, $window_secs, $delta_secs
+    );
+    return <[httpd.send_error_page]>->( $id, 403 );
+}
+
+##  sender host key [ needed for cert, signature and replay cache ]  ##
+my $pkey_bin = eval { decode_b32r( $headers->{'x-p7-host-key'} // '' ) };
+if ( not defined $pkey_bin or length($pkey_bin) != 32 ) {
+    <[base.logs]>->( 1, '[%d] shm_write : host key not valid', $id );
+    return <[httpd.send_error_page]>->( $id, 403 );
+}
+my $pkey_L13 = <[base.chk-sum.bmw.L13-str]>->($pkey_bin);
+
+## replay cache : exact replay within the window is rejected [ insert only ##
+## after signature gate, no cache pollution ]                              ##
+if ( exists $data{'shm.seen_ntimes'}{$pkey_L13}{$ntime_b32} ) {
+    <[base.logs]>->(
+        1,   '[%d] shm_write : replay of seen ntime [ %s ]',
+        $id, $pkey_L13
+    );
+    return <[httpd.send_error_page]>->( $id, 403 );
+}
+
+##  gate 3 [ ~us ] : parent key cert on the presented host key  ##
+<[base.perlmod.load]>->('Crypt::Ed25519')
+    if not <[base.perlmod.loaded]>->('Crypt::Ed25519');
+
+if ( <httpd.cfg.shm_require_cert> // TRUE ) {
+    my $cert = $headers->{'x-p7-key-cert'} // '';
+    my ( $parent_name, $parent_sig_b32 )
+        = $cert =~ m|^([\w\-\.]{1,64}):([A-Z2-7]{103})$|;
+    my $parent_pkey
+        = defined $parent_name
+        ? $keys{'C25519'}{$parent_name}{'public'}
+        : undef;
+    my $parent_sig_bin
+        = defined $parent_sig_b32
+        ? eval { decode_b32r($parent_sig_b32) }
+        : undef;
+    if (   not defined $parent_pkey
+        or not defined $parent_sig_bin
+        or
+        not Crypt::Ed25519::verify( $pkey_bin, $parent_pkey, $parent_sig_bin )
+    ) {
+        <[base.logs]>->(
+            1,   '[%d] shm_write : key cert verification failed [ %s ]',
+            $id, $parent_name // 'no cert'
+        );
+        return <[httpd.send_error_page]>->( $id, 403 );
+    }
+    <[base.logs]>->(
+        2,   '[%d] shm_write : key cert verified [ parent %s ]',
+        $id, $parent_name
+    );
+}
+
+##  gate 4 [ ~us ] : C25519 signature over the full content-hash header  ##
+my $sig_bin = eval { decode_b32r( $headers->{'x-p7-signature'} // '' ) };
+if (   not defined $sig_bin
+    or not Crypt::Ed25519::verify( $content_hash, $pkey_bin, $sig_bin ) ) {
+    <[base.logs]>->(
+        1,   '[%d] shm_write : signature verification failed [ %s ]',
+        $id, $pkey_L13
+    );
+    return <[httpd.send_error_page]>->( $id, 403 );
+}
+
+<[base.logs]>->(
+    2,   '[%d] shm_write : header gates passed [ %s : %d bytes, %d lines ]',
+    $id, $pkey_L13, $decl_bytes, $decl_lines
+);
+
+##  header fully validated : record ntime against replays  ##
+$data{'shm.seen_ntimes'}{$pkey_L13}{$ntime_b32}
+    = $now_ntime + ( $window_secs * 4200 );
+
+##  amortized sweep of expired replay entries on each request  ##
+for my $seen_pkey ( keys %{ $data{'shm.seen_ntimes'} } ) {
+    for my $seen_ntime ( keys %{ $data{'shm.seen_ntimes'}{$seen_pkey} } ) {
+        delete $data{'shm.seen_ntimes'}{$seen_pkey}{$seen_ntime}
+            if $data{'shm.seen_ntimes'}{$seen_pkey}{$seen_ntime} < $now_ntime;
+    }
+    delete $data{'shm.seen_ntimes'}{$seen_pkey}
+        if not keys %{ $data{'shm.seen_ntimes'}{$seen_pkey} };
+}
+
+##  sweep timer [ matching replay window ] for idle periods, once only  ##
+if ( not defined $data{'httpd'}{'shm_sweep_timer'} ) {
+    $data{'httpd'}{'shm_sweep_timer'} = <[event.add_timer]>->(
+        {   'interval' => $window_secs,
+            'desc'     => 'shm replay cache sweep',
+            'cb'       => sub {
+                my $sweep_now = <[base.ntime]>->(3);
+                for my $seen_pkey ( keys %{ $data{'shm.seen_ntimes'} } ) {
+                    for my $seen_ntime (
+                        keys %{ $data{'shm.seen_ntimes'}{$seen_pkey} } ) {
+                        delete $data{'shm.seen_ntimes'}{$seen_pkey}
+                            {$seen_ntime}
+                            if $data{'shm.seen_ntimes'}{$seen_pkey}
+                            {$seen_ntime} < $sweep_now;
+                    }
+                    delete $data{'shm.seen_ntimes'}{$seen_pkey}
+                        if not keys %{ $data{'shm.seen_ntimes'}{$seen_pkey} };
+                }
+            },
+        }
+    );
+}
+
+##  gate 5 [ free ] : temp file + ephemeral twofish key  ##
+my $shm_dir = <[base.shm.path]>;
+if ( not defined $shm_dir ) {
+    <[base.logs]>->( 0, '[%d] shm_write : shm dir not available', $id );
+    return <[httpd.send_error_page]>->( $id, 500 );
+}
+
+my $encrypt = <httpd.cfg.shm_encrypt> // TRUE;
+my $key     = $encrypt ? <[base.prng.bytes]>->(32) : undef;
+
+if ($encrypt) {
+    <[base.perlmod.load]>->('AMOS7::Twofish')
+        if not <[base.perlmod.loaded]>->('AMOS7::Twofish');
+}
+
+my $tmp_name = sprintf '%s-%s',
+    $ntime_b32,
+    encode_b32r( <[base.prng.bytes]>->(5) );
+my $tmp_path = sprintf '%s/%s', $shm_dir, $tmp_name;
+
+my $fh;
+if ( not open( $fh, qw| > |, $tmp_path ) ) {
+    <[base.logs]>->(
+        0,   '[%d] shm_write : cannot open %s : %s',
+        $id, $tmp_path, <[base.str.os_err]>
+    );
+    return <[httpd.send_error_page]>->( $id, 500 );
+}
+binmode($fh);
+chmod( 0000, $tmp_path );    ##  no one reads during transfer  ##
+
+my $shm_state = {
+    'tmp_path'   => $tmp_path,
+    'shm_dir'    => $shm_dir,
+    'fh'         => $fh,
+    'key'        => $key,
+    'bmw_ctx'    => <[base.chk-sum.bmw.ctx]>->(384),
+    'decl_bytes' => $decl_bytes,
+    'decl_lines' => $decl_lines,
+    'decl_b32'   => $decl_b32,
+    'byte_count' => 0,
+    'line_count' => 0,
+    'pending'    => '',
+};
+
+if ( defined $key ) {
+    my $twofish_name = sprintf 'shm_%d', $id;
+    AMOS7::Twofish::key_init( $key, qw| encryption |, $twofish_name ) or do {
+        close($fh);
+        unlink($tmp_path);
+        <[base.logs]>->( 0, '[%d] shm_write : twofish key_init failed', $id );
+        return <[httpd.send_error_page]>->( $id, 500 );
+    };
+    $shm_state->{'twofish_name'} = $twofish_name;
+}
+
+$session->{'http'}->{'shm'} = $shm_state;
+
+##  stream into the validated temp file instead of accumulating in memory  ##
+$session->{'http'}->{'pending_route_sub'}  = $route_sub;
+$session->{'http'}->{'pending_route_args'} = $route_args;
+$session->{'http'}->{'original_input_watcher'}
+    = $session->{'watcher'}->{'input_buffer'};
+if ( defined $session->{'watcher'}->{'input_buffer'} ) {
+    $session->{'watcher'}->{'input_buffer'}->stop;
+}
+$session->{'watcher'}->{'input_buffer'} = <[event.add_var]>->(
+    {   'var'     => \$session->{'buffer'}->{'input'},
+        'handler' => qw| httpd.handler.shm_write |,
+        'poll'    => qw| w |,
+        'repeat'  => TRUE,
+        'data'    => $id,
+        'desc'    => sprintf( '[%d] shm streaming write watcher', $id )
+    }
+);
+
+##  process any body bytes that already arrived with the headers  ##
+$session->{'watcher'}->{'input_buffer'}->now;
+
+return 1;
+
+#,,.,,..,,..,,.,.,..,,.,,,.,.,...,..,,..,,,..,..,,...,...,.,,,..,,,,,,,,.,.,.,
+#FONWZMZNNHJMNZQZ62KE4PLBUB4DQNC27UIOAO7VANUCTXT2QK7ZC4D3GT6L7FDYJO23V6BIAZPFE
+#\\\|QFIGMCIJV67UK7I6QOBKUDTNAMKR5DH7NBWCVJ63JSV6OUH4BTQ \ / AMOS7 \ YOURUM ::
+#\[7]BNPU4UMJZOEYWW5WSGYZPCKB3E7RSN5FKPZSGD7CNH2XQFRUAYAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

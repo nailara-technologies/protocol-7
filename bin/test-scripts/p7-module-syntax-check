@@ -1,0 +1,59 @@
+#!/usr/bin/perl
+## p7 module syntax check : translate P7 macro syntax, then perl -c ##
+use v5.24;
+use strict;
+use warnings;
+use FindBin    qw| $RealBin |;
+use File::Temp qw| tempfile |;
+
+BEGIN { unshift( @INC, "$RealBin/../../data/lib-path/pm" ) }
+use AMOS7::Protocol::P7Syntax qw| p7_syntax__translate |;
+
+my $rc = 0;
+for my $file (@ARGV) {
+    open( my $fh, '<', $file ) or die "cannot open $file: $!";
+    my $src = do { local $/; <$fh> };
+    close($fh);
+
+    ## strip the AMOS7 signature footer [ not valid perl ] ##
+    $src =~ s{\n#,[^\n]*\n#[A-Z2-7]{40,}[^\n]*\n#\\\\\\\|.*\z}{}s;
+
+    my $translated = p7_syntax__translate($src);
+
+    ## wrap like the module loader does : file body becomes a sub ##
+    my $wrapped
+        = "package main;\nuse v5.24;\nuse strict;\nuse warnings;\nuse "
+        . "English qw| -no_match_vars |;\nuse constant { TRUE => 5, "
+        . "FALSE => 0, UNKNOWN => 2 };\nour ( \%data, \%code, \%keys "
+        . ");\nno warnings 'uninitialized';\nsub {\n"
+        . $translated
+        . "\n};\n";
+
+    my ( $tfh, $tname ) = tempfile( SUFFIX => '.pl', UNLINK => 1 );
+    print {$tfh} $wrapped;
+    close($tfh);
+
+    my $out = `perl -I$RealBin/../../data/lib-path/pm -c $tname 2>&1`;
+    my $ok  = ( $? >> 8 ) == 0;
+    ## filter noise from missing runtime modules ##
+    my @errs = grep {
+                length $_
+            and $_ !~ m{syntax OK}
+            and $_ !~ m{Can't locate (Event|JSON|Crypt|Digest|IO|Const|AMOS7)}
+            and $_ !~ m{BEGIN failed}
+            and $_ !~ m{compilation aborted}
+    } split /\n/, $out;
+    if ( @errs and $out !~ m{syntax OK} ) {
+        print "FAIL $file\n$out\n";
+        $rc = 1;
+    } else {
+        print "OK   $file\n";
+    }
+}
+exit $rc;
+
+#,,.,,.,.,,..,,,,,,,.,,,,,.,.,,.,,.,.,..,,.,,,..,,...,...,,,,,.,.,,,,,..,,...,
+#QUOAGDTIA2F5OZYXX6X333SGUWADWFPBO55F64VIK3LWLQS4DX4P5WVXQL4C6OEMKIF4TGF6SGJ4O
+#\\\|7Y2TUCVH4U2AIBQBU6DTSTHDOOVYBB5EY3JZ7QVSFV7AGXELLDI \ / AMOS7 \ YOURUM ::
+#\[7]R2OA25C54CADK6JSU76DP5DTFTL5MV34NH3VJIOHIL3EMXPW7GDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

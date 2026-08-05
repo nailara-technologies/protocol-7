@@ -1,0 +1,107 @@
+## [:< ##
+
+# name  = base.shm.write
+# param = { data, path [optional], key [optional] }
+# descr = generic shm write : content-addressed name, rename + permission mgmt
+
+my $param = shift // {};
+
+if ( ref $param ne qw| HASH | or not defined $param->{'data'} ) {
+    warn 'expected { data [, path, key ] } hash parameter <{C1}>';
+    return undef;
+}
+
+my $data_ref
+    = ref $param->{'data'} eq qw| SCALAR |
+    ? $param->{'data'}
+    : \$param->{'data'};
+
+my $shm_dir = <[base.shm.path]>;
+return undef if not defined $shm_dir;
+
+##  content-addressed name : BMW384 of the plaintext payload  ##
+my $bmw_ctx = <[base.chk-sum.bmw.ctx]>->(384);
+$bmw_ctx->add( $data_ref->$* );
+my $sum_b32 = encode_b32r( $bmw_ctx->digest );
+
+my $final_name = $param->{'path'} // $sum_b32;
+if ( $final_name !~ m|^[A-Z2-7\-]+$| ) {
+    <[base.logs]>->(
+        0, 'base.shm.write : target name not valid : %s', $final_name
+    );
+    return undef;
+}
+
+##  optional twofish encryption [ zenka-level confidentiality ]  ##
+my $key = $param->{'key'};
+if ( defined $key ) {
+    <[base.perlmod.load]>->('AMOS7::Twofish')
+        if not <[base.perlmod.loaded]>->('AMOS7::Twofish');
+
+    $key = decode_b32r($key) if length($key) != 32;    ## transport encoded ##
+    if ( not defined $key or length($key) != 32 ) {
+        <[base.logs]>->( 0, 'base.shm.write : twofish key not valid' );
+        return undef;
+    }
+
+    ##  pkcs7 pad to 16 byte blocks [ twofish cbc requires this ]  ##
+    my $pad_len = 16 - ( length( $data_ref->$* ) % 16 );
+    my $padded  = $data_ref->$* . ( chr($pad_len) x $pad_len );
+
+    AMOS7::Twofish::key_init( $key, qw| encryption shm_write | ) or do {
+        <[base.logs]>->( 0, 'base.shm.write : twofish key_init failed' );
+        return undef;
+    };
+    my $enc_ref = AMOS7::Twofish::encrypt( qw| shm_write |, \$padded );
+    AMOS7::Twofish::delete_table_entry(qw| encryption shm_write |);
+    return undef if ref $enc_ref ne qw| SCALAR |;
+    $data_ref = $enc_ref;
+}
+
+##  temp name : <ntime-b32>-<random-8> [ collisions + timing inference ]  ##
+my $tmp_name = sprintf '%s-%s',
+    <[base.ntime.b32]>->( 3, TRUE ),
+    encode_b32r( <[base.prng.bytes]>->(5) );
+
+my $tmp_path = sprintf '%s/%s', $shm_dir, $tmp_name;
+my $dst_path = sprintf '%s/%s', $shm_dir, $final_name;
+
+my $fh;
+if ( not open( $fh, qw| > |, $tmp_path ) ) {
+    <[base.logs]>->(
+        0,         'base.shm.write : cannot open %s : %s',
+        $tmp_path, <[base.str.os_err]>
+    );
+    return undef;
+}
+binmode($fh);
+chmod( 0000, $tmp_path );    ##  no one reads during transfer  ##
+print( {$fh} $data_ref->$* );
+close($fh);
+
+##  content-addressed rename only after complete write  ##
+if ( not rename( $tmp_path, $dst_path ) ) {
+    <[base.logs]>->(
+        0, 'base.shm.write : rename %s -> %s failed : %s',
+        $tmp_path, $final_name, <[base.str.os_err]>
+    );
+    unlink($tmp_path);
+    return undef;
+}
+
+##  owner + group read after validation  ##
+chmod( 0440, $dst_path );
+
+<[base.logs]>->(
+    2,
+    'base.shm.write : stored %d bytes as %s',
+    length( $data_ref->$* ), $final_name
+);
+
+return $final_name;
+
+#,,,.,,,.,,,.,,,.,.,,,.,,,,..,...,,..,.,,,,,.,..,,...,...,,,.,,,,,,.,,,,.,.,,,
+#3JDJ4F2PTKCNQPQLPZXC5LTQYLHIFYVJOBCY3YSOFUAJRTCNB2FDHJSPSZ47JZBYBK2WDSALCS3SI
+#\\\|SVI5MD2OMKKUNPHHOY5LWYE2G3U6VX5GQD3VCAR2MOGZXMLWRIV \ / AMOS7 \ YOURUM ::
+#\[7]BZQ2TBGQJW46AZWXIEDU7MOWJIXFSSBAZXGMAZSCAODQTJMQPWBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

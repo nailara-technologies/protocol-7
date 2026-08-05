@@ -20,10 +20,21 @@ my $http_uri = $request->{'uri'};
     $id, $http_uri, $headers->{'content-length'} // 'unknown'
 );
 
+## authenticated shm streaming transfer [ signed content-hash header ] :  ##
+## large bodies stream to disk through httpd.handler.shm_write instead of ##
+## accumulating in memory -- a separate, higher size ceiling applies      ##
+my $shm_transfer
+    = (     defined $headers->{'x-p7-content-hash'}
+        and defined $headers->{'x-p7-signature'} )
+    ? TRUE
+    : FALSE;
+
 ## Check Content-Length to prevent massive uploads
 my $content_length = $headers->{'content-length'} // 0;
-my $max_post_size  = <httpd.cfg.max_post_size>
-    // ( 1024 * 1024 );    ## 1MB default
+my $max_post_size
+    = $shm_transfer
+    ? ( <httpd.cfg.max_shm_post_size> // ( 64 * 1024 * 1024 ) )
+    : ( <httpd.cfg.max_post_size> // ( 1024 * 1024 ) );         ## 1MB default
 
 if ( $content_length > $max_post_size ) {
     <[base.logs]>->(
@@ -48,6 +59,20 @@ for my $try_method (qw| POST ANY |) {
 }
 
 if ( defined $route_sub ) {
+
+    ## signed shm transfer : stream body to disk via progressive gates  ##
+    ## instead of buffering -- shm_write installs its own watcher and   ##
+    ## dispatches the pending route after full cryptographic validation ##
+    if ($shm_transfer) {
+        <[base.logs]>->(
+            2,
+            '[%d] shm transfer detected [POST:%s] -> httpd.handler.shm_write',
+            $id,
+            $http_uri
+        );
+        return <[httpd.handler.shm_write]>->( $id, $route_sub, $route_args );
+    }
+
     my $current_body   = $session->{'buffer'}->{'input'} // '';
     my $bytes_received = length($current_body);
 
@@ -160,8 +185,8 @@ if (   $http_uri =~ m|^/api/certificate|
 
 return 2;    ## Should not reach here
 
-#,,..,,.,,..,,,..,.,.,,..,..,,.,.,.,.,.,,,,,.,..,,...,...,.,.,...,..,,,,.,,.,,
-#HRGRX3QB35JJTRYHSTW3GBSSY23CECLCJXGN2HWIXXNYBE7RK44CGFKR74TZCOP7KLKOCSZPYORWE
-#\\\|A76NSBWQJDHH7AU63DTF5DTUE27HJ7T3CSNMZYBLE7Y3F7FO4CV \ / AMOS7 \ YOURUM ::
-#\[7]BTIN2K2DSM5TSYF5B4QYFW5T6CU4MJ6Y5EXBFQJTSI2NX3VMIMBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,...,...,.,.,,.,,,,.,..,,,..,,,,,..,,...,...,,,,,,.,,,,.,,..,,.,,
+#IPWUJNGHNA2RARSYJGCAGRXTYXCWLPT2MAVTX5M3LVE6M5UPCMPT2OX5HXITCQ6CXK3HX6JWEXL5U
+#\\\|57B2FDLUPIS4P4YJYEAXQ5EA7RHAWWBQB7UGEEIBTBKJDOBOYKX \ / AMOS7 \ YOURUM ::
+#\[7]Q5ZVPXKS7CAQX6PKPNAPJTUCO2T6NX43VRPOFYZJSYOQEHB2V2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

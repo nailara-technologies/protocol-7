@@ -7,15 +7,15 @@ my $queue = <jobsite.sync.push_queue> // [];
 my $item  = shift $queue->@*;
 
 if ( not defined $item ) {
-    ## all chunks done : advance per-url watermark ##
-    ## a url with zero chunk failures this cycle advances fully to cycle   ##
-    ## start ntime, as before. a url that had ANY chunk fail does not      ##
-    ## advance at all this cycle : chunks are not built in timestamp       ##
-    ## order, so a later [ newer ] chunk can succeed while an earlier      ##
-    ## [ older ] one fails -- capping to "highest confirmed" would still   ##
-    ## silently skip that older failed job forever. leaving the watermark ##
-    ## untouched instead re-sends the whole cycle's batch next round,     ##
-    ## which is safe because the receiving write is idempotent ##
+    ## all chunks done : advance per-url watermark  a url with zero chunk  ##
+    ## failures this cycle advances fully to cycle start ntime, as before. ##
+    ## a url that had ANY chunk fail does not advance at all this cycle :  ##
+    ## chunks are not built in timestamp order, so a later [ newer ] chunk ##
+    ## can succeed while an earlier [ older ] one fails -- capping to      ##
+    ## "highest confirmed" would still silently skip that older failed job ##
+    ## forever. leaving the watermark untouched instead re-sends the whole ##
+    ## cycle's batch next round, which is safe because the receiving write ##
+    ## is idempotent                                                       ##
     my $cycle_ntime = delete <jobsite.sync.push_cycle_ntime>     // '';
     my $urls        = delete <jobsite.sync.push_urls>            // [];
     my $had_failure = delete <jobsite.sync.push_had_failure>     // {};
@@ -26,7 +26,8 @@ if ( not defined $item ) {
         if ( $had_failure->{$url} ) {
             <[base.logs]>->(
                 1,
-                'jss.sync: %s had failures this cycle, watermark unchanged [ retrying whole batch next cycle ]',
+                'jss.sync: %s had failures this cycle, watermark '
+                    . 'unchanged [ retrying whole batch next cycle ]',
                 $url
             );
         } elsif ( length $cycle_ntime ) {
@@ -38,7 +39,8 @@ if ( not defined $item ) {
     if ( $attempted and $attempted != $confirmed ) {
         <[base.logs]>->(
             1,
-            'jss.sync: reconciliation mismatch [ attempted:%d confirmed:%d ] : %d job%s will retry next cycle',
+            'jss.sync: reconciliation mismatch [ attempted:%d '
+                . 'confirmed:%d ] : %d job%s will retry next cycle',
             $attempted,
             $confirmed,
             $attempted - $confirmed,
@@ -89,9 +91,49 @@ if ( not length $body ) {
 
 <jobsite.sync.push_total_attempted> += scalar $chunk->@*;
 
+## signed shm content-hash headers [ large body streams to disk at the      ##
+## receiving httpd instead of traversing call_args buffers ] : commitment   ##
+## header '<ntime>:<bytes>:<lines>:<B32-BMW384>' signed with the zenka host ##
+## key. when no signing key is loaded, fall back to the plain inline-body   ##
+## request [ backwards compatible ]                                         ##
+my $headers = {};
+if ( exists $code{'crypt.C25519.sign_data'} ) {
+    my $key_vars = <[crypt.C25519.key_vars]>;
+    my $key_name = ref $key_vars ? $key_vars->{'key_name'} : undef;
+    if (    defined $key_name
+        and exists $keys{'C25519'}{$key_name}{'private'}
+        and exists $keys{'C25519'}{$key_name}{'public'} ) {
+        my $ntime    = <[base.ntime.b32]>->( 3, TRUE );
+        my $b32_hash = <[base.chk-sum.bmw.strsum]>->( $body, 384 );
+        my $bytes    = length($body);
+        my $lines    = () = $body =~ /\n/g;
+        my $header   = join ':', $ntime, $bytes, $lines, $b32_hash;
+        my $sig_bin  = <[crypt.C25519.sign_data]>->( \$header );
+        if ( defined $sig_bin ) {
+            $headers = {
+                'X-P7-Content-Hash' => $header,
+                'X-P7-Signature'    => encode_b32r($sig_bin),
+                'X-P7-Host-Key'     =>
+                    encode_b32r( $keys{'C25519'}{$key_name}{'public'} ),
+            };
+            ##  optional parent key cert [ cross-host trust topology ]  ##
+            $headers->{'X-P7-Key-Cert'} = <jobsite.cfg.sync_key_cert>
+                if length( <jobsite.cfg.sync_key_cert> // '' );
+            <[base.logs]>->(
+                2,
+                'jss.sync.push_chunk: signed shm '
+                    . 'headers [ %d bytes, %d lines ]',
+                $bytes,
+                $lines
+            );
+        }
+    }
+}
+
 <[clients.http.post]>->(
     {   'url'     => $url,
         'body'    => $body,
+        'headers' => $headers,
         'timeout' => 32,
         'on_done' => qw| jobsite.handler.sync-response |,
         'params'  => {
@@ -101,8 +143,8 @@ if ( not length $body ) {
     }
 );
 
-#,,,.,.,.,,..,,,.,,.,,.,,,,.,,..,,..,,...,,..,..,,...,..,,.,,,,..,..,,,..,.,,,
-#XPK2WXADYZI2TMN3YWJ4DJLTDBYXX5WBBGX7IWDIHJWBXM5WVRONT4R2MTNZMDC5ZM3YHPD36FJZI
-#\\\|STYZF5H6NXVQ77VFNYXTGTH4DYDAVV7OK4KXM2ZVNCHBQN4DUQO \ / AMOS7 \ YOURUM ::
-#\[7]DDGLI7HFZQBOK4DPZPKYVW7QUNLBSQEVAMMK5II5BI44ZCDFQIAA 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,.,.,.,,,..,,..,,..,,..,,,.,,,.,,..,,...,...,,.,,,,,,...,.,,,...,
+#ZZXII5O6LJF7SLJU4NHSFG3M35RNGW3GUPR2OEBVMOLV55E4ILYDTJXE7HDB52CWX2QWXZ6BRUS7K
+#\\\|BNSX3CABKGUPN5PCUJI7G26HEKALT2BWQFNA5VPMK2NTTAREI4D \ / AMOS7 \ YOURUM ::
+#\[7]BA5DBGTWXVIVBEKHMXXWSPPQTPONXT534GRHSXX4SAWMKDKJ2MCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
