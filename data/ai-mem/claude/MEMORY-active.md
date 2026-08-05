@@ -41,6 +41,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [global-ui-menu-tree](topic-global-ui-menu-tree.md), [credential-fabric-proxy-transport](topic-credential-fabric-proxy-transport.md) — menu tree planned; transport.select LANDED
 - [ascii-frame-system](topic-ascii-frame-system.md), [frame-plugin-slots](topic-frame-plugin-slots.md), [frame-idiom-convergence](topic-frame-idiom-convergence.md) — parser/renderer/validator; 5 frames pending
 - [ascii-desktop-domains](topic-ascii-desktop-domains.md), [ui-show-security-levels](topic-ui-show-security-levels.md) — border glyphs nest desktops; step 6 open
+- [bin-todo-style-refresh](topic-bin-todo-style-refresh.md) — port ascii.frame border/color logic into AMOS7::TERM for bin/todo; sized for one Opus/Kimi dispatch
+- [amos7-p7-loader](topic-amos7-p7-loader.md) — dep-graph loader vision now also covers standalone bin/* scripts, not just MCP handlers; duplication OK until it lands
 - [os-command-zenka](topic-os-command-zenka.md) — planned command templates, security levels, STRM
 - [coding-round-timeout-adaptive](topic-coding-round-timeout-adaptive.md) — LANDED: soft/hard ceiling, stall detect, restart-round
 - [coding-round-timeout-no-autorestart-observed-2026-07-26](project-coding-round-timeout-no-autorestart-observed-2026-07-26.md) — FOLLOW-UP NEEDED: round hit 175% of ceiling with no auto-restart, manually aborted, not yet root-caused
@@ -93,8 +95,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [scratchpad-import-tool](topic-scratchpad-import-tool.md), [scratchpad-rescue-coding-zenka-task](topic-scratchpad-rescue-coding-zenka-task.md) — mcp-server-p7 scratchpad tools tested; follow-up task filed w/ kimi K3 for native coding-zenka rescue tools + chmod g+rx fix
 - [ncode-pattern-learning-loop](topic-ncode-pattern-learning-loop.md) — phase 1 + phase 2 (namespace scope-stack) LANDED, staged+committed `f8108af44` 2026-07-30 (kimi K3): scope_match/widen-scope + ncode.regex.apply status-gate parity fix, live-verified via p7c; tier-A chain fully run (expand→apply on scratch 2026-07-24; assess entry point tried on a real occurrence 2026-07-31, blocked by [[bug-ncode-assess-replace-not-backreferenced]] — assess never backreferences its own capture group, so it can't produce a generalizing pattern)
 
-#,,.,,.,,,,,.,,.,,,,,,..,,,.,,.,,,,.,,,..,,..,..,,...,...,.,.,.,.,.,.,...,,,.,
-#A7GA6F4S3LEOR57ZMPWYSGQ2XF7WRGFOGHZVRD2U46NR2L5M56PS6SIASHQZZU6G5VXPRA3IKI3PM
-#\\\|2P4XFWH5HKX45TXI2ASO3TX53Z2OWKVAY5PMP54NRPKKP3LX4SY \ / AMOS7 \ YOURUM ::
-#\[7]7LVHA7FBS2572SIWKN2JTYYOPCO36BC33P24IIHUBLVYAOWDZ4CY 7  DATA SIGNATURE ::
+#,,..,,,.,,..,..,,,,,,,..,,.,,..,,..,,.,.,,,,,..,,...,...,,.,,.,.,.,.,.,,,..,,
+#KP5UG5OKGVFDWZZHPDHHWC2OKCCQDGDQ63WDN7QE3ZNTORPEWYX2VIQMICNPMUMCIQQOF2HUL6LBK
+#\\\|T7PTYYBDCZSUNEIP4UKCDRHUYTGG2EAGNHK26GQLFOZTC7FQQAP \ / AMOS7 \ YOURUM ::
+#\[7]7M5APIJWIONLKLRPDNVL3TJK4LNUN3EDXUYWMCE5VUJ75OBFFYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
