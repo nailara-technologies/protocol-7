@@ -92,14 +92,47 @@ Claude Code harness's own idle-silence watchdog
 (which already declares `timeout => 4620`, 77 min, for both
 kimi_dispatch and kimi_continue). Not yet dispatched.
 
+**2026-08-05, mechanism confirmed (corrected twice, this is the settled
+version)**: `p7c coding.show-buffer T-<task_id>-F` returning text matching
+`session_catchup`'s kimi-session output is real and IS a valid recovery
+technique — but not because the `coding` zenka natively tracks/manages kimi
+tasks (it doesn't; a separate `models` zenka is the one that knows about
+kimi, unused this session). The actual mechanism: **`bin/mcp-server-p7`
+itself — the bridge process implementing `kimi_dispatch`/`kimi_continue`/
+`session_catchup` — writes/mirrors each dispatch's final summary into the
+`coding` zenka's buffer system as a side effect of running the dispatch**,
+independent of whether `coding` itself has any involvement in the actual
+kimi work. So `p7c coding.list buffers` → `p7c coding.show-buffer T-<id>-F`
+is a legitimate, fast alternative to `session_catchup(client=kimi)` (list) →
+`session_catchup(session_id=...)` (summarize) for recovering a dispatch's
+result — same underlying data, different retrieval path, both real.
+
+Also confirmed real: `kimi_dispatch` hits genuine `kimi.com` hosted-API
+billing (a live HTTP 403 "Usage limit reached for this billing cycle ...
+purchase extra usage or upgrade plan" was seen) — it is not free local
+compute, regardless of which path recovers its output.
+
+**Better recovery technique than session_catchup alone**: `p7c coding.list
+buffers` shows per-task buffers named `T-<task_id>` (raw)/`T-<task_id>-T`
+(thinking)/`T-<task_id>-F` (final) — `p7c coding.show-buffer T-<id>-F` pulls
+a task's final report directly, often faster to correlate than matching
+`session_catchup`'s kimi-session list by title/timestamp guesswork. Still
+subject to the same narrative-compression issue as `session_catchup`
+(neither reliably returns an exhaustive itemized list when a session's own
+final answer was already prose-with-examples — asking either tool to "not
+summarize" doesn't recover detail that was never written out in the first
+place; a fresh dispatch told to write its result directly to a file on disk,
+one row per item, forces completeness far better than asking for a chat-style
+report after the fact).
+
 ## related
 
 [[feedback-mcp-memory-update-agent-detection]] ·
 [[feedback-kimi-dispatch-pattern]] ·
 [[feedback-tasks-completed-scan-verdict-trust]]
 
-#,,,.,..,,.,.,.,.,.,,,,..,,,.,...,,..,,.,,,..,..,,...,...,.,.,.,.,,,,,...,,..,
-#JJJUXZ4JPBXXNFM7OE4TEYAYPB6A2LCLTLNFEXPD77IN5HKWHUOLORSJKOLK66QKA6CO4CSDR3OSM
-#\\\|OVIW4RQR57RAZ3GPWIBMKKLF3WDEDEXAMERUWFTQ2OPA2IQTEG3 \ / AMOS7 \ YOURUM ::
-#\[7]D3EVLPSOMZSUINJ7S7NEHLZGDS472N343BJTIMIRE667OWQBXODQ 7  DATA SIGNATURE ::
+#,,..,,.,,...,..,,,..,.,,,,,,,,,.,,,.,.,.,,.,,..,,...,..,,...,..,,,..,,,,,...,
+#WVWGLAHV6IFX2VPES3YIV7CVNLAYPVBOFT7FF6U6LZN526HBDGFJFXIQYDT3NIZ5T4CFZFEHKJ6IK
+#\\\|5DSPVKCXHKDVX3XQKJGZOGPUTXBSZ5XAHUGVNNDBSHSUJ23ESSU \ / AMOS7 \ YOURUM ::
+#\[7]VYX2BSRJCMZAGVBI5AGCMNSFO5JUSVCTYTEFSPJQGECUBWWCD2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
