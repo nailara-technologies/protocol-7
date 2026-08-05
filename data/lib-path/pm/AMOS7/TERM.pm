@@ -96,6 +96,10 @@ our %p7_colors = (
     'p7_fg_0002' => "\e[38;2;170;94;2m",     ##   brown  ##
     'p7_fg_0003' => "\e[38;2;9;170;94m",     ##  phosphor green [ cursor ]  ##
     'p7_fg_0004' => "\e[38;2;6;71;195m",     ##  TRUE blue       [ text ]   ##
+    ##  neon amber  [ brighter 0002 ]  ##
+    'p7_fg_0005' => "\e[38;2;197;141;7m",
+    ##  neon green  [ brighter 0003 ]  ##
+    'p7_fg_0006' => "\e[38;2;71;195;6m",
 );
 
 ##[ HISTORY MANAGEMENT ]######################################################
@@ -1791,8 +1795,8 @@ sub frame_bar {
 
 return TRUE ##################################################################
 
-#,,..,.,.,.,.,,..,,..,..,,...,,.,,,..,,..,.,.,..,,...,...,..,,..,,,..,..,,..,,
-#LK26FAMWTJUCEYPPTXCTDND4ZDNLVQW55GVIGFNL74KE2DIDRE6ZVMBHTR36LH5F4VKAIEXUTSXSU
-#\\\|RSFWOFT3YPMHUBD2XMDOSPOSVVBHVLYTNINMHSPKJPBO6YXLOC6 \ / AMOS7 \ YOURUM ::
-#\[7]W3MNC2IBROI7JIWLM72GB7MUPJZDJGALGUNUTVGG5IP3FNIQVQAI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,,,,,,,.,...,,,,,,,,,...,,,.,..,,..,,...,...,..,,,,.,,,,,,..,..,,
+#3AJ7UGRGPYOJMZZ7IHN2UMDDSADDQZMV5R4GSIUUA7V67L4YU4JWCXIQJ3AOI6CTMR4TDREEOAZAK
+#\\\|WVKCRYRZN3ZD7VPK7D3MSOPCDLZSBKDLPULU54NC3XYTXMCBKGD \ / AMOS7 \ YOURUM ::
+#\[7]6K3T5VZMBIIB3NNBEDP5D55F4M6K6ZWHJF6HYE36ZKF6M2DXRGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
