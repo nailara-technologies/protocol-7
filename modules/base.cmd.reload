@@ -41,8 +41,8 @@ if ( $arg eq qw| config | or $arg eq qw| all | ) {
 if ( $arg eq qw| perl-mods | or $arg eq qw| all | ) {
     $keyword_match = TRUE;    ## true ##
     <[base.logs]>->( '[%d] < reload perl-mods >', $id );
-    eval { Module::Refresh->refresh };
-    if ( not length $EVAL_ERROR ) {
+    ##  staleness-aware refresh [ wipes old subs of changed files first ] ##
+    if (<[base.perlmods.refresh_stale]>) {
 
         $success &&= TRUE;    ## true ##
         $reply->{'data'} .= sprintf "%s reload p-mods  [ success ]\n", $s_str;
@@ -223,8 +223,8 @@ delete <system.reload>;    ## completed ##
 $reply->{'mode'} = qw| data |;
 $reply->{'data'} .= $reply_footer;
 
-#,,.,,,,,,..,,,.,,.,.,,.,,.,.,,,.,,,,,,..,,,.,..,,...,...,,.,,...,.,.,.,.,.,.,
-#4MFJ6IS5VTBYTFR6M5FP2AO2OXGZ53LX3NCVI5QEJPFO5HWAVZU5NURYU72LIBEWJTNHL3AIZR5G4
-#\\\|WTL75FWQ7WDCO3VPY7QMQ4ZETBFBAEZJ2RF3ZUSXGYT4U2PN2JS \ / AMOS7 \ YOURUM ::
-#\[7]D6CIPIGKO24FMJ6KKSDTRJYBFKJYDYGA6TIODPZDUHEVSVTW4WDY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,,,,,,.,...,,.,,.,.,..,,.,.,..,,..,,...,...,.,.,,,.,,,,,,,.,,,.,
+#OK7C7GMDZMRVDTUHMQ7MZO6WVEOGA3IXDAKERBOQ7QC4NVYSKM2BQF62VX7E65BSN2FLNLTKNU3WC
+#\\\|QAXXAO6LLTUVWX727PCCRVZQ3OATM36B5JCW6Z367NVTEGP34NJ \ / AMOS7 \ YOURUM ::
+#\[7]SMXXY2UCO72MZGG2MYRDMFZBTH6KYMK4ZC6AM2ZENKERCISRHEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
