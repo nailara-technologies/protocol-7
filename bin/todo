@@ -227,7 +227,9 @@ sub format_items {
     my @rows;
 
     foreach my $item ( $items->@* ) {
-        my ( $marker, $c_start, $c_end ) = ( '', '', '' );
+        ## marker always occupies exactly one column [ space when unused ] ##
+        ## so the id/text columns don't shift between marked/unmarked rows ##
+        my ( $marker, $c_start, $c_end ) = ( ' ', '', '' );
 
         if ( $item->{status} eq 'done' ) {
             $marker = '✓';
@@ -236,15 +238,21 @@ sub format_items {
                 $c_end   = $C{R};
             }
         } elsif ( $item->{priority} eq 'high' ) {
-            $marker = '▲';
+            $marker = '△';
             if ($TTY) {
-                $c_start = $C{2};              ## neon orange ##
+                $c_start = $C{3};              ## phosphor green ##
                 $c_end   = $C{R};
             }
         } elsif ( $item->{priority} eq 'low' ) {
             $marker = '▽';
             if ($TTY) {
-                $c_start = $C{dim} . $C{3};    ## dim phosphor green ##
+                $c_start = $C{dim} . $C{2};    ## dim neon orange ##
+                $c_end   = $C{R};
+            }
+        } else {
+            if ($TTY) {
+                ## TRUE blue [ normal priority ] ##
+                $c_start = $C{T};
                 $c_end   = $C{R};
             }
         }
@@ -365,7 +373,11 @@ sub cmd_list {
     say "";
 
     if ( @items == 0 ) {
-        say "  no items";
+        say "  "
+            . ( $C{dim} // '' )
+            . ( $C{3}   // '' )
+            . "no items"
+            . ( $C{R} // '' );
     } else {
         say for @$lines;
     }
@@ -557,8 +569,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,,.,,.,,...,,,,,,,.,..,,..,,..,,...,,..,..,,..,,...,...,...,..,,,,,,,,,,.,.,
-#TQTGVHPDGK46UY6VDEFHUY2TI3FXE4K6ZLKP2NTQ6P5PE4RBYYERXIX3Q2FBQXVNLHAX7IGNEL5XG
-#\\\|RZLZJW7LUO6MA55ZB44EK3QPFZSYYY6P6Z7GJNGRUZ2UYITHLGH \ / AMOS7 \ YOURUM ::
-#\[7]LFEV2TRZPS5K7GE6VKT652MTTNIO43RTNWCWFF3WLUSERBMRVSBQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,...,.,,,.,,,,..,,..,,..,,..,...,..,,...,...,...,...,,,,,...,,.,,
+#RW7FCJMSODEEPMSZK7YOYHCIKNC6FLRH43RREZJXQM5G5DRT7HYKYWPTHI6NKNXCY3MMV77NDXS3W
+#\\\|ILAD2AXLWTE6653J2COS2BHQ5LSROHKYJL4P6JW6IE2ZOFH3D3S \ / AMOS7 \ YOURUM ::
+#\[7]QHCPFIUOPLD36RB6ZEUKBBJM2WNOLMG5MPIKRT25HNVHALA56CAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
