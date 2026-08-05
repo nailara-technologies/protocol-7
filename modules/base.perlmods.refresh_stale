@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = base.perlmods.refresh_stale
+# descr = refresh perl modules changed on disk, wiping their old subs first
+
+## staleness-aware replacement for 'Module::Refresh->refresh' in the        ##
+## 'reload perl-mods' command path : only .pm files whose mtime changed     ##
+## since Module::Refresh's own cache was last updated are reloaded [ no     ##
+## forced reload of unchanged modules ], and for those the file's old subs  ##
+## are removed from the symbol table first [ wipe_file_subs ] so the reload ##
+## no longer collides with previous definitions [ which perl reported as    ##
+## spurious 'subroutine redefined' warnings for every sub ]                 ##
+
+<base.perlmods.refresh> //= Module::Refresh->new;
+my $mod = <base.perlmods.refresh>;
+
+my ( $count_reloaded, $error_count ) = ( 0, 0 );
+
+foreach my $module_key ( sort keys %INC ) {
+
+    next if not $INC{$module_key};
+
+    if ( not defined $Module::Refresh::CACHE{$module_key} ) {
+        $mod->update_cache($module_key);    ##  first sight : no reload  ##
+        next;
+    }
+    next
+        if $mod->mtime( $INC{$module_key} ) eq
+        $Module::Refresh::CACHE{$module_key};    ##  unchanged  ##
+
+    <[base.perlmod.wipe_file_subs]>->( $INC{$module_key} );
+
+    eval { $mod->refresh_module($module_key) };
+    if ( length $EVAL_ERROR ) {
+        $error_count++;
+        <[base.s_warn]>->( ':. error while reloading %s', $module_key );
+    } else {
+        $count_reloaded++;
+        <[base.logs]>->( 2, ': reloaded perl module %s .,', $module_key );
+    }
+}
+
+<[base.logs]>->(
+    1, ': perl-mods refresh : %d reloaded, %d error%s',
+    $count_reloaded, $error_count, <[base.cnt_s]>->($error_count)
+) if $count_reloaded or $error_count;
+
+return $error_count ? FALSE : TRUE;
+
+#,,.,,..,,,.,,,.,,,,.,,,.,..,,...,.,.,,..,...,..,,...,...,...,.,.,,..,...,,.,,
+#5CZGGTATKHRQKPY7HPTMTXDGPZFFL4SW6CWZIOTICCZA3AQTNW6CV554XI7Q63DE5QU2GGPYSX4QM
+#\\\|IE5YHOZWOETZNGCFZXQLYFKTM5XQGVWQ22SFRJMQCCEFMO4RB3L \ / AMOS7 \ YOURUM ::
+#\[7]5GSMHAMWCJHXAV37KZPCQI2ICZE5VWEBQJLC6GKYADOKHW2M32BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

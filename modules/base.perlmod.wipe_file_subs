@@ -1,0 +1,79 @@
+## [:< ##
+
+# name  = base.perlmod.wipe_file_subs
+# param = < .pm file path [ %INC value ] >
+# descr = remove all subs a perl module file defines from the symbol table
+
+## called before Module::Refresh->refresh_module so the re-execution of the ##
+## file does not collide with its previous definitions [ which perl reports ##
+## as 'subroutine redefined' warnings ]. the %DB::sub entries for the file  ##
+## are removed as well : otherwise unload_subs would do an undef+delete on  ##
+## them that leaves reinstalled subs uncallable on perl >= 5.38.            ##
+## mro::method_changed_in flushes perl's stash caches after the direct      ##
+## symbol table changes [ same as constant.pm does ]                        ##
+
+my $file_path = shift // '';
+return FALSE if not length $file_path;
+
+eval { require mro };    ##  core [ method_changed_in cache flush ]  ##
+
+my %pkg_touched;
+
+##  subs tracked in %DB::sub [ file compiled with $^P & 0x10 ]  ##
+foreach my $sym ( keys %DB::sub ) {
+    next if index( $DB::sub{$sym}, "$file_path:" ) != 0;
+    if ( $sym =~ m|^(.*::)([^:]+)$| ) {
+        no strict 'refs';
+        delete ${$1}{$2};
+        $pkg_touched{$1} = TRUE;
+    }
+    delete $DB::sub{$sym};    ##  so unload_subs finds nothing left  ##
+}
+
+## declarations %DB::sub cannot cover : modules compiled before $^P was set ##
+## [ no %DB::sub entries at all ] and 'use constant' subs [ stored as stash ##
+## proxy refs, never tracked ]. over-matching is safe here : deleting a     ##
+## non-existent stash entry is a no-op                                      ##
+if ( open my $fh, qw| < |, $file_path ) {
+    my $current_pkg = qw| main |;
+    my $in_pod      = FALSE;
+    foreach my $line (<$fh>) {
+        if ( $line =~ m|^=\w| ) { $in_pod = TRUE; next }    ##  pod start  ##
+        if ($in_pod)            { $in_pod = ( $line !~ m|^=cut| ); next }
+        if ( $line =~ m|^\s*package\s+([\w:]+)| ) {
+            $current_pkg = $1;
+            next;
+        }
+        my @sub_names;
+        if ( $line =~ m|^\s*sub\s+([A-Za-z_]\w*)| ) {
+            push @sub_names, $1;
+        } elsif ( $line =~ m|^\s*use\s+constant\s+(.*)| ) {
+            my $rest = $1;
+            if ( $rest =~ m|^\s*\{| ) {    ##  hashref form  ##
+                push @sub_names, $rest =~ m|([A-Za-z_]\w*)\s*=>|g;
+            } elsif ( $rest =~ m|^\s*([A-Za-z_]\w*)| ) {
+                push @sub_names, $1;
+            }
+        }
+        foreach my $sub_name (@sub_names) {
+            no strict 'refs';
+            delete ${ $current_pkg . q|::| }{$sub_name};
+            $pkg_touched{ $current_pkg . q|::| } = TRUE;
+        }
+    }
+    close $fh;
+}
+
+##  flush perl's stash lookup caches [ constant.pm does the same ]  ##
+foreach my $pkg_name ( keys %pkg_touched ) {
+    $pkg_name =~ s|::$||;
+    mro::method_changed_in($pkg_name);
+}
+
+return TRUE;    ## true ##
+
+#,,..,,,,,...,.,,,,..,,.,,,,.,,.,,.,,,,..,,..,..,,...,...,.,.,,.,,,,.,...,...,
+#YIEHGNFC5VGR3SA5H47BRSUNHOA3CLXBPVZ4UWNNMLUC4SEVLB2HKNUKMEBTUZ2DLFAO43XNQMF64
+#\\\|ZJEFRRJVDGZ57O2V67J62553KEATER6AQIZB4MLKFLJ7IQI7UYQ \ / AMOS7 \ YOURUM ::
+#\[7]3674FAEHRPNKQE3RXOEQA5GNGHAYGDPGRFZCYS5EY2O43QC66UBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
