@@ -81,14 +81,14 @@ if ($TTY) {
 my %C;
 if ($TTY) {
     %C = (
-        T   => "\e[38;2;6;71;195m",     ## bright blue (titles)
-        0   => "\e[38;2;68;39;172m",    ## purple
-        2   => "\e[38;2;170;94;2m",     ## amber / orange
-        3   => "\e[38;2;9;170;94m",     ## green
-        g   => "\e[38;2;9;170;94m",     ## green
-        B   => "\e[1m",                 ## bold
-        R   => "\e[0m",                 ## reset
-        dim => "\e[2m",                 ## dim
+        T => $AMOS7::TERM::p7_colors{'p7_fg_0004'},  ## TRUE blue (titles)
+        0 => $AMOS7::TERM::p7_colors{'p7_fg_0000'},  ## purple
+        2 => $AMOS7::TERM::p7_colors{'p7_fg_0002'},  ## neon orange [ high ]
+        3 => $AMOS7::TERM::p7_colors{'p7_fg_0003'},  ## phosphor green [ low ]
+        g => $AMOS7::TERM::p7_colors{'p7_fg_0003'},  ## phosphor green
+        B => "\e[1m",                                ## bold
+        R => "\e[0m",                                ## reset
+        dim => "\e[2m",                              ## dim
     );
 }
 
@@ -232,19 +232,19 @@ sub format_items {
         if ( $item->{status} eq 'done' ) {
             $marker = '✓';
             if ( $TTY and $show_done ) {
-                $c_start = $C{dim};
+                $c_start = $C{dim} . $C{3};    ## dim phosphor green ##
                 $c_end   = $C{R};
             }
         } elsif ( $item->{priority} eq 'high' ) {
             $marker = '▲';
             if ($TTY) {
-                $c_start = $C{2};
+                $c_start = $C{2};              ## neon orange ##
                 $c_end   = $C{R};
             }
         } elsif ( $item->{priority} eq 'low' ) {
             $marker = '▽';
             if ($TTY) {
-                $c_start = $C{dim};
+                $c_start = $C{dim} . $C{3};    ## dim phosphor green ##
                 $c_end   = $C{R};
             }
         }
@@ -557,8 +557,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,,,,,,,,,..,,,,,.,.,.,,,,.,,,,.,,,.,.,,,,.,,..,,...,...,.,,,,,.,,..,,..,,..,
-#EWUEYZAGL2VASBZDN2BG7WDMGEPIJBK347GENDKA5ODJBTTVBDOWKLLVGKBEQ6SG7BECEIUGESENY
-#\\\|R4FBU2KOR7HFFIOXWTCDHC63T5TVJJXFQ7GG7SZJANJDMZ7FC46 \ / AMOS7 \ YOURUM ::
-#\[7]XCDMILIK5ZEBCRMLFCC2UZJXC2ICVWRBERGIBSUCV3UG52DXQCBI 7  DATA SIGNATURE ::
+#,,,.,,.,,...,,,,,,,.,..,,..,,..,,...,,..,..,,..,,...,...,...,..,,,,,,,,,,.,.,
+#TQTGVHPDGK46UY6VDEFHUY2TI3FXE4K6ZLKP2NTQ6P5PE4RBYYERXIX3Q2FBQXVNLHAX7IGNEL5XG
+#\\\|RZLZJW7LUO6MA55ZB44EK3QPFZSYYY6P6Z7GJNGRUZ2UYITHLGH \ / AMOS7 \ YOURUM ::
+#\[7]LFEV2TRZPS5K7GE6VKT652MTTNIO43RTNWCWFF3WLUSERBMRVSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
