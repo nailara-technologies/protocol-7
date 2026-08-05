@@ -71,14 +71,32 @@ down") — this note exists so the observation and the above two concrete
 leads aren't lost for months before that work is picked up again, not to
 duplicate tracking that already has a home.
 
+**RESOLVED 2026-08-05 (commit 88b45e89f, kimi dispatch)**: `base.cmd.reload`'s
+`perl-mods` branch now calls a new `base.perlmods.refresh_stale` instead of
+raw `Module::Refresh->refresh` — it walks `%INC`, compares each module's
+mtime against `Module::Refresh`'s own cache (so unchanged files are still
+skipped, preserving the original no-forced-reload behavior), and for
+genuinely stale files calls a new `base.perlmod.wipe_file_subs` to undefine
+the file's previous subs first (via `%DB::sub` where populated, falling back
+to a source scan for `use constant`-defined subs which never appear in
+`%DB::sub`) before `Module::Refresh` re-execs it. Verified via a 3-pass
+integration test against a scratch copy of `AMOS7.pm`: touch-only reload
+(the original bug) now produces zero warnings, a real content change
+reloads correctly with the new sub callable, and a no-change pass is a true
+no-op with a stable mtime cache. The "open nuance" above (whether
+unload-first alone eliminates the warning) is confirmed yes for both normal
+subs and `use constant` subs, once the constant-fallback scan is included —
+the dispatch's investigation found `%DB::sub` alone insufficient for
+`use constant` since those never get %DB::sub entries.
+
 ## related
 
 [[topic-format-code-bugs-fixed]] — unrelated content-correctness work;
 this note exists only because the AMOS7 module batch from that work is
 what the user happened to be live-testing when this surfaced.
 
-#,,..,,,.,.,,,,..,..,,,..,.,,,,.,,,,,,,.,,,,,,.,.,...,...,.,.,..,,,,.,,,,,.,,,
-#UM2P6KAELAY4M73C2HBKJR2TLVS4KCCV65RMGBWRKF6SXI2L5C4X4J3A2SUUPI5QVDG63BJ4NQ7YU
-#\\\|2X7ZYQOVAWTCCPMOA7BNQBSKOE62Q5UVP4DU465MWBTBTYHU7U7 \ / AMOS7 \ YOURUM ::
-#\[7]CW6OIMBOQNSBY5ZOE5SOAAA3HEDMN5V4U6NAZCZUTPWVTX6PREDI 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,.,.,.,,,,,,,,..,...,...,.,.,,,.,.,.,...,...,.,.,.,.,..,,..,,.,,,
+#DNLVQWAWANMLZBFU5NDIQWG7HLTQTXXMZPDVB2OVIJV6NB23WFA4EZY24VXERZXAHTJKKRGKGLE6I
+#\\\|YGERJINPXVQMEC3YUZRV4WA4DRRY7C3ODOP2AKW2UHXAUOMHWTI \ / AMOS7 \ YOURUM ::
+#\[7]S4F6LCYW74PA3Q6ZTOZDAV4FQE3DG2UU7AR7XANOOG6UPEWNH6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
