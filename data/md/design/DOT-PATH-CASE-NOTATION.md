@@ -228,10 +228,8 @@ pair implementing the forward [ string -> path ] direction first
 [ always safe ], with reverse serialization gated on auditing
 precondition 3 across whatever subtree it's applied to.
 
-#,...,...,...,...,...,...,...,...,...,...,...,...,...,...,...,...,...,...,...,
-
-#,,,.,,.,,.,,,,,,,,,,,.,,,...,,..,,,.,...,...,..,,...,...,...,,,,,.,.,,,.,.,,,
-#VJS5GSGSAD5YJIZOCYNGXKM65KIQY43NYZLCQ5XHW4CVDF5CFLFA7UI6ULFAZDDJFPEHLVUEHYXKE
-#\\\|42OKNFAJOVYZXZ25HTTOXQ7ZMTI3UOIXTKEXQM2HJC4YNV2KJAS \ / AMOS7 \ YOURUM ::
-#\[7]XB45KKNAPJ7F5BSI6CUL3CW2YYFMGIKYYJ3ZY7EX376QHI3ZG2CQ 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,,,,..,,.,.,,..,,,.,,.,,.,,,.,.,..,,...,.,,,.,.,,..,.,.,.,,,,..,
+#3OZQAINVW2IPZAXI4LMB7C2VSVXHJKIJFZDE6VQQCZY4PTYP7QT2ORYG6LPS2Y6EBHL72L7UQBS6I
+#\\\|4DOJM62LN2ZC4WDAMP4JOV4QL73R2JAM5KX5RXAWJW7DAOL7CZZ \ / AMOS7 \ YOURUM ::
+#\[7]FCLD56LLSYHPQ4NANVXPXTEIOZ4BI6I5MQVO5ISXY456IKBSNQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

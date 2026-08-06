@@ -96,8 +96,10 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [scratchpad-import-tool](topic-scratchpad-import-tool.md), [scratchpad-rescue-coding-zenka-task](topic-scratchpad-rescue-coding-zenka-task.md) — mcp-server-p7 scratchpad tools tested; follow-up task filed w/ kimi K3 for native coding-zenka rescue tools + chmod g+rx fix
 - [ncode-pattern-learning-loop](topic-ncode-pattern-learning-loop.md) — phase 1 + phase 2 (namespace scope-stack) LANDED, staged+committed `f8108af44` 2026-07-30 (kimi K3): scope_match/widen-scope + ncode.regex.apply status-gate parity fix, live-verified via p7c; tier-A chain fully run (expand→apply on scratch 2026-07-24; assess entry point tried on a real occurrence 2026-07-31, blocked by [[bug-ncode-assess-replace-not-backreferenced]] — assess never backreferences its own capture group, so it can't produce a generalizing pattern)
 
-#,,..,,..,,.,,,.,,...,..,,.,.,...,,..,,,,,..,,..,,...,...,.,.,.,,,...,,,,,...,
-#A45ZHBZI65CFTV3BLG4SVDKHCB5IGL2DECWQVXILC5BAZ7O6DCHJ23SC4QHVMJ32UWM7RFIYLUHTU
-#\\\|QZMEEE2NZGTK3KVDMHOMVJKLTMEA3WBM25TQVVGMUA36ASW43SV \ / AMOS7 \ YOURUM ::
-#\[7]QEMR373W2IDPXORO6WJ6ELGPENZZIFBCJDXMYNH27GPKEQ675SAA 7  DATA SIGNATURE ::
+- repo-pii-leak-prevention — `data/md/design/REPO-PII-LEAK-PREVENTION.md`: pre-commit/pre-push regex+optional-zenka-inference PII scanner with pattern list stored outside the repo tree, plus a periodic full-history audit tool and a documented filter-repo recovery runbook (path/text/message passes + tag-drift re-anchor); not yet implemented, open decisions listed in the doc's last section
+
+#,,,,,..,,.,.,,.,,,..,,,,,,.,,...,,.,,..,,,.,,..,,...,...,,,.,.,,,,..,,,.,..,,
+#YXUVAC4PXUUW4GNRE6IGSZDS22UTS5Y6VL7Q2ED3XR2DZTAR4S6SKIQZDTTIJFNXZWR5SGBGWSU7E
+#\\\|CKV3AWDMGNFY45NRFYBORBPTYPBZZTAC75ZX5NODYJ2QQ5SY7OZ \ / AMOS7 \ YOURUM ::
+#\[7]GCNYTLBLRSDXLL3PVDRQTNVFTPWZRZNJSQWWM5DXOFI56WOM4OCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -436,10 +436,8 @@ The observer is stable. The content is stable. Only the phase shifts. =)
 
 *"You are always looking at something. The angle changes. The value remains."*
 
-#,,,..,,,.,,..,.,,,.,.,.,,..,,,,,.,.,,.,,.,,.,,,.,..,,.,,.,.,,..,,,,..,,.,,,,.
-
-#,,..,.,,,.,.,,,,,,.,,.,,,,,.,,,,,.,.,..,,,.,,..,,...,...,,.,,,..,,,.,.,,,,.,,
-#ZZKPO57Q4JYBMZYRTK7Z6SORUCZITVWNW3H4GGZA3YJU5KLEG3PPVQEMA4P6LS5XPG3VUKDBGLLKQ
-#\\\|VGLRCNTCKYNBPXNSPZNNHYIG2VMVXEXNOBRL3E4G7NH6NK7MGT2 \ / AMOS7 \ YOURUM ::
-#\[7]WSS3WQCF6XGUXZRDHRLXVFSUFXLIYR2QLVDBRTMJPKNPCEREI4BQ 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,...,..,,,.,,...,,,,,,,,,,..,.,,,..,,...,...,.,.,.,,,..,,..,,,..,
+#B4MJ76N7TO3SMPQNC6RSDSN4GRKYNFRA552EMTLG42KO7ZJLV2NVX7YGVQDZWFGBTSCCP64BJSQGQ
+#\\\|HIM4WY7LEZZJ2LI2V5LY7KVDNHVEIABY3O2EZ2ZHSARUDXAAXBZ \ / AMOS7 \ YOURUM ::
+#\[7]KVEP6Z4JN6EUAERNBKPW3V6OS3VQVQDJIW22DMFLLTIUR66Q5YCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

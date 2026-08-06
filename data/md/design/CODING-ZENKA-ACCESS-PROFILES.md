@@ -374,10 +374,8 @@ execution-time backstop already present in dispatch from phase 1.
   `modules/base.path-set-up.check-zenka-paths` — the existing per-zenka
   ownership convention this design relies on rather than reinventing
 
-#,,..,..,,...,,,.,,,.,,.,,,,.,,..,,..,...,...,..,,...,..,,,..,...,,..,,..,,,.,
-
-#,,,.,,,.,,,.,,.,,,..,,,.,,,,,,,,,..,,,..,,..,..,,...,...,..,,.,,,,..,,.,,.,.,
-#L5SL6ITBFDMOVS4VY5FY2RKPEKLM2VA5ZWD3NXPC7KC35NKZLMINJP5QBCV57JKNVYYRDSV6WGVC6
-#\\\|PB2RKA6CB7MUTGN6WQR54A23ZVWULXDGRYQ6PLL2X7FENF4MLUW \ / AMOS7 \ YOURUM ::
-#\[7]BI2DJWUQTYFR2ECCLA6KNQ5PRP4EOHHPP5UPVJCDDRR5BDMTYIBI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,,,,,,,,,,,,...,,,.,,..,...,,.,,..,,...,...,...,,,,,,,,,,,.,,,.,
+#DZ4S57S67D2ZUGQTGAGGMU4W7JZD2MJWYI7QP5633PC7U7XVLQC5BZ55KJPVVORTLCNHEIEEK24WI
+#\\\|TWQJ3CD42ZW4POB34PJ2VZJPAPGX5ZVPVJN623DNRITP2LJQ3WC \ / AMOS7 \ YOURUM ::
+#\[7]LYGZA46IGRH5M2GS3OLGRAXSN2IM7AQGZEFD75L3PNC7F3PHAABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
