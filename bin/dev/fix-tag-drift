@@ -1,0 +1,155 @@
+#!/usr/bin/perl
+
+## [:< ##
+
+# name = dev.fix-tag-drift
+# descr = re-anchor release tags that drifted off a branch's real history
+#         (eg. after a filter-repo/filter-branch rewrite orphaned them),
+#         matching each drifted tag to its branch-mainline equivalent by
+#         exact commit subject line, then recreating the tag object with
+#         identical tagger/date/message, pointing at the new commit.
+
+use v5.24;
+use strict;
+use warnings;
+use English;
+
+##[ config ]##################################################################
+
+my $branch = shift @ARGV // 'base';
+my $apply  = grep { $_ eq '--apply' } @ARGV;
+my $push   = grep { $_ eq '--push' } @ARGV;
+my $remote = 'hub';
+
+##[ colors ]##################################################################
+
+my $rst = "\e[0m";
+my $bl  = "\e[1m";
+my $ok  = "\e[38;2;71;195;6m";
+my $no  = "\e[38;2;197;141;7m";
+my $fg  = "\e[38;2;68;39;172m";
+
+##[ collect all tags not reachable from $branch ]#############################
+
+chomp( my @all_tags
+        = qx| git for-each-ref --format='%(refname:short)' refs/tags | );
+
+my @drifted;
+for my $t (@all_tags) {
+    chomp( my $commit = qx| git rev-parse "$t^{commit}" 2>/dev/null | );
+    next unless $commit;
+    system(
+        qq| git merge-base --is-ancestor "$commit" "$branch" 2>/dev/null |);
+    push @drifted, { tag => $t, commit => $commit } if $CHILD_ERROR;
+}
+
+print "${fg}:: ${bl}$branch${rst}${fg} :: found "
+    . scalar(@drifted)
+    . " drifted tag(s) out of "
+    . scalar(@all_tags)
+    . "$rst\n";
+exit 0 unless @drifted;
+
+##[ build a subject-line -> commit index for $branch, once ]##################
+
+my %by_subject;
+open( my $log_fh, '-|', qq| git log "$branch" --format='%H%x01%s' | )
+    or die "git log: $!\n";
+while (<$log_fh>) {
+    chomp;
+    my ( $hash, $subj ) = split /\x01/, $_, 2;
+    push @{ $by_subject{$subj} //= [] }, $hash;
+}
+close $log_fh;
+
+##[ match, report, optionally apply ]#########################################
+
+my ( @clean, @ambiguous, @unmatched, @dirty );
+
+for my $d (@drifted) {
+    chomp( my $subj = qx| git log -1 --format=%s "$d->{commit}" | );
+    my $hits = $by_subject{$subj} // [];
+
+    if ( @$hits == 0 ) {
+        push @unmatched, $d;
+        next;
+    }
+    if ( @$hits > 1 ) {
+        push @ambiguous, { %$d, subj => $subj, hits => $hits };
+        next;
+    }
+
+    my $target = $hits->[0];
+    chomp( my $diffstat = qx| git diff "$d->{commit}" "$target" --stat | );
+
+    $d->{target}   = $target;
+    $d->{subj}     = $subj;
+    $d->{diffstat} = $diffstat;
+
+    if   ($diffstat) { push @dirty, $d }
+    else             { push @clean, $d }
+}
+
+for my $group (
+    [ 'clean match (identical content)',                  \@clean ],
+    [ 'match with content diff (review before trusting)', \@dirty ],
+    [   'ambiguous (multiple subject ' . 'matches, needs manual pick)',
+        \@ambiguous
+    ],
+    [ 'no match found on branch', \@unmatched ]
+) {
+    my ( $label, $list ) = @$group;
+    next unless @$list;
+    print "\n${fg}:: ${bl}$label${rst}${fg} :: " . scalar(@$list) . "$rst\n";
+    for my $d (@$list) {
+        print "   $d->{tag}  $d->{commit}"
+            . ( $d->{target} ? "  ->  $d->{target}" : '' ) . "\n";
+        print "     $ok$d->{diffstat}$rst\n" if $d->{diffstat};
+        print "     ${no}ambiguous hits: @{$d->{hits}}$rst\n" if $d->{hits};
+    }
+}
+
+exit 0 unless $apply;
+
+##[ apply: recreate each clean-matched tag, preserving identity ]#############
+
+print "\n${fg}:: ${bl}applying${rst}${fg} :: retagging "
+    . scalar(@clean)
+    . " clean match(es)$rst\n";
+
+for my $d (@clean) {
+    my $raw           = qx| git cat-file -p "$d->{tag}" |;
+    my ($tagger_line) = $raw =~ m|^tagger (.+)$|m;
+    my ($msg)         = $raw =~ m|\n\n(.*)|s;
+    my ( $name_email, $date, $tz )
+        = $tagger_line =~ m|^(.+) (\d+) ([+-]\d{4})$|;
+
+    chomp( my $msg_file = qx| mktemp | );
+    open( my $mfh, '>', $msg_file ) or die "$msg_file: $!\n";
+    print $mfh $msg;
+    close $mfh;
+
+    local $ENV{'GIT_COMMITTER_DATE'} = "$date $tz";
+    system( qw| git tag -f -a |, $d->{tag}, '-F', $msg_file, $d->{target} )
+        == 0
+        or die "${no}:: failed to retag $d->{tag}$rst\n";
+    unlink $msg_file;
+    print "   ${ok}retagged$rst $d->{tag} -> $d->{target}\n";
+}
+
+exit 0 unless $push;
+
+print "\n${fg}:: ${bl}pushing${rst}${fg} :: force-pushing "
+    . scalar(@clean)
+    . " tag(s) to $remote$rst\n";
+my @refs = map {"refs/tags/$_->{tag}"} @clean;
+system( qw| git push |, $remote, '--force', @refs ) == 0
+    or die "${no}:: push failed$rst\n";
+
+#,,,.,.,,,,,,,.,,,,.,,..,,.,.,,,,,.,,,...,.,,,..,,...,...,...,,.,,,.,,.,,,,,.,
+
+#,,.,,.,.,,.,,..,,,,.,...,,.,,,..,.,.,.,.,...,..,,...,...,.,.,..,,..,,..,,,..,
+#QNUKC25R3WC2LUOAJQQOSKN5RGWLNQKMGZVJ75ZCLU34UTGR26HU3CJTGWLIRSKP33XCHH3PHR6R6
+#\\\|74XMQIRPZH52DJQ5KQK47FPMBR4Z7GMZM2YTGCE4GFSDWHNRSPU \ / AMOS7 \ YOURUM ::
+#\[7]3BTZHFBCPYU6ASMAWKGN562KNDNPZK4K6OMWUMDTQD3XKBRDYEDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
