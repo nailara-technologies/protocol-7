@@ -65,14 +65,14 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   .deps/profiles.yaml gaps for graphics-matrix/opencv + a basic-remote-server profile rename, an
   httpsd/web skins-ownership race, a stale web.cmd.skin path). Both hosts clean-start/stop verified,
   all zenki online, no warnings.
-- [PII purge + tag-drift incident, 2026-08-06](project-2026-08-06-pii-purge-and-tag-drift-incident.md) —
-  resumed task-archive audit found + purged PII files via filter-repo, which surfaced a repo-wide
-  release-tag-drift bug (105/127 tags orphaned, mostly pre-existing from a Nov 2025 filter-branch
-  event). New `bin/dev/fix-tag-drift` script + `commit-map` root-cause-split method fixed 124/127,
+- [repo history hygiene + tag-drift fix, 2026-08-06](project-2026-08-06-repo-history-hygiene-and-tag-drift-fix.md) —
+  resumed task-archive audit turned up a repo-wide release-tag-drift bug (105/127 tags orphaned,
+  mostly pre-existing from a Nov 2025 filter-branch event) surfaced during unrelated history
+  hygiene work. New `bin/dev/fix-tag-drift` script + `commit-map` root-cause-split method fixed 124/127,
   deleted 3 genuinely-abandoned-release tags rather than force-matching them.
 
-#,,.,,.,,,,..,,,,,,.,,.,,,,,.,,.,,.,,,,..,,.,,..,,...,...,...,,..,,,,,,,.,..,,
-#QCKN22SLYSCTL6UMWHAZUBKFUESFLJHUAD4C5TUNEJQSFZSATJI2XM3CGPJCRU2CIPOG6GSTIIUS2
-#\\\|CLJYM77IUOM2QEJOVSVYOTJ2AVZQ4EXBUF5AOUGRMFQTW67533J \ / AMOS7 \ YOURUM ::
-#\[7]4C4FCIF566QVQI2LKOT4YIXLKJVUIYUISX6VFB4BVHK4773QTAAI 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,,.,...,.,,,,.,,,..,,..,...,.,,,..,,...,...,.,,,,..,,.,,...,,,.,
+#OYUYZ7HRBU77DYCJ632XERZFPIUZIB7ULUJHK4XVCWIH4MKZEAMEYWEMMHR3WPIRXGIO34G5PFMGI
+#\\\|PUBNDORYSD5GJAGWPNELSD7F2G5KOGJWOEOSWN3PEVDLA4KV4QM \ / AMOS7 \ YOURUM ::
+#\[7]NNPEYRT4IJKZM5KLST2SDZG4Q7JFGNKLXBO6ZITXNBFWPIAZQQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

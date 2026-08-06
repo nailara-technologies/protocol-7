@@ -569,10 +569,8 @@ The result IS the harmonic neighborhood.
 
 *"The indexer maps the harmonic coordinates of knowledge. The search zenka provides navigation through resonance. Together, they make the network discoverable through aesthetic intuition."*
 
-#,,.,,.,,.,,.,,.,.,.,.,.,,.,.,.,,.,.,.,,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,
-
-#,,..,,,.,...,,..,,..,.,,,...,..,,,.,,...,.,,,..,,...,...,.,.,..,,.,,,.,,,,,.,
-#GK4G32I64VSSVU55E7MULGYXC3EOTK4AFTU3KXZ4UPE6GFORXYJZAWVDAZPIYTBPWLZAAKNMG6S6U
-#\\\|PH4SL5HTYYKT6J6IHIVS3DRNU5JGF4VIPKUY6QTUFJRZ4BCZAGX \ / AMOS7 \ YOURUM ::
-#\[7]H6P3S6BQRDIFVO2UEZHEPSNUSDAPI3AJOP5JX7S3K4JNJX6LQ2DI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,,,,,,,.,.,,,.,,,,..,..,,,..,.,.,..,,...,...,,.,,...,,..,.,,,,,.,
+#AIMXCSIZVKAUYGQE3X3BKCYMSDFOU5LG2A36BYEKIICWVDHM5VLZT4XPZ2PWEDLZ5CCT7E4IUCCII
+#\\\|V3MCQAYXYBQUUTU5IQMLSAHCTEOJ2OA6F5NHBONYYATLVDUU4VG \ / AMOS7 \ YOURUM ::
+#\[7]BVBWW6KU2B4NZNLIQJAVHN3DY2NDAZRWWVVVJCYJLNEABT7QCICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

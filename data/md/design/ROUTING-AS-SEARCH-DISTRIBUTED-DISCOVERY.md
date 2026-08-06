@@ -512,10 +512,8 @@ Self-organizing discovery.
 
 *"In Protocol-7, to send a message is to explore the network. To explore the network is to discover its knowledge. The route is the query. The journey is the search. The arrival is the answer."*
 
-#,,.,,.,,.,,.,,.,.,.,.,.,,.,.,.,,.,.,.,,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,
-
-#,,,.,.,,,.,.,...,,,,,.,.,,,,,..,,.,.,,,.,..,,..,,...,...,,.,,,.,,,..,,,.,,.,,
-#YWZ2ERRCZVXONQCA7IHYIQK3ZV3G3SXCMMARJORKLRCYJ4D2YG4RF75C5T6NPJKKQEPVQSCRMMA44
-#\\\|RWLXNJQ3PFJZKSLURCRMVUPCRLVKGKKVU4U63CEYJW2DNLYA2P7 \ / AMOS7 \ YOURUM ::
-#\[7]TVO3CDWTG7RAOQIRUS4476GJ4SR55IDMFYZRFMJH5IRP3NGS46CA 7  DATA SIGNATURE ::
+#,,,,,...,...,.,.,,..,,.,,.,.,...,,,.,...,,,.,..,,...,...,...,.,,,,..,,..,,,.,
+#FQPLCEHLKW4ZDXLV2NS4GAKWBM7AOWPVYGG57TRWT5YQUPXRZ7OLKSP3HEUGYO3J6CNDWCJYUF6EY
+#\\\|IDWXB6B42JDL5JJSK5QLK6BCHVK4N7F5BVZBV7PHCFXZHVKH5MH \ / AMOS7 \ YOURUM ::
+#\[7]MQ6OHHUWNAD2SSI5FYUA6XKWY4FATVYY5ZZKW5L5MTMTXZQ2CKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

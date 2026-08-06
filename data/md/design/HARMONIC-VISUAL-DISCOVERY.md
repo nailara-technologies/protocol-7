@@ -493,10 +493,8 @@ A picture is worth:
 
 *"Navigation through harmonic space is not search—it is resonance. Not query—it is recognition. Not finding—it is remembering what was always true."*
 
-#,,.,,.,,,,.,,.,,,.,.,,,.,,.,.,.,,,,.,.,.,,,..,,...,...,...,..,,,..,,..,...,,
-
-#,,.,,.,.,,,,,..,,,.,,,,,,,,.,,.,,,..,...,,.,,..,,...,...,..,,..,,,,,,.,,,,,.,
-#5RMT6XRZTT776OIB6EI7PDJ4RK25KQ6N2HUTBTMYIK2RJINHOU37KGUVPCWK2ZPLWMJ57C3SOBNYK
-#\\\|VMR4SHJJKJVC4F6SWXP63TUFVA2DQ5AN5ZB5LIRS6KNIR7LQGCJ \ / AMOS7 \ YOURUM ::
-#\[7]LG56C2Z4N4GFU44WKPEYNTCVSRWQTCLJVYUHDPAVEZG6JBNESOCY 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,..,.,,,..,,.,.,...,,,,,,,,,.,.,..,,...,...,.,.,,,.,,..,,,,,.,.,
+#SUZT6PG7ATGC7F73JHMEJMXV4SIWJBCGPGKDL3KZLYOJXMEXOESF24PDTIN5TVLCCR4JFKVES7FYG
+#\\\|JLFNHFAKMY5EPBM2ELJMMQ3EIC3YDZD37FX756WNB3TGSUYAYZN \ / AMOS7 \ YOURUM ::
+#\[7]ZVRDLKCY5Y52SRDLYSEIGUFNATSH55NYA7VMWFMTI4AIA435XADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

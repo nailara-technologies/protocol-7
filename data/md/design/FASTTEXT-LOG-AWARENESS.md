@@ -179,10 +179,8 @@ relates to:
   data/tasks/coding-model-self-test-cycle.md (calibration + test harness)
   data/md/design/HARMONIC-SILENCE.md         (canvas of absence concept)
 
-#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-
-#,,,,,..,,.,,,,,.,.,,,...,,.,,...,,,.,,,.,.,.,..,,...,...,.,.,,,,,,,.,,.,,..,,
-#246LECQY3ZPNYHX2EJDMOFSDEHGWYOVFKEQPWQ64KYUDOKYTW4IA5TEA4YIW357DICQSU3Y3OACBU
-#\\\|RDCHN3JRM4XS77DZMUKWUQI4Q4ICYKWN4U3H3KAJHX5XD5D2LCI \ / AMOS7 \ YOURUM ::
-#\[7]GGQA4AOLVBYME3J5CXJXXCM4KPVULQWKIEPBI3Z3RIY72BXQFIDY 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,,.,.,,,,..,,.,,,.,,,,.,.,.,...,..,,...,...,,,,,.,,,..,,,.,,.,,,
+#JUCJDS6W26YUMNZ3EN3YFOZDRPR3A5RKNX7BVUZT4HMAP2MDKVTVEYHSYUL3GSSA26BWKSHI52RY6
+#\\\|JSTW26ZUJT555ALZGXZMCGJG27DL5R3M44DRKRFEAUF4OW2C3VS \ / AMOS7 \ YOURUM ::
+#\[7]W4OMRLERPL6TXKZOYAAJ6ECRLZJJYTPE7YJD6PMHXNT25KTSNKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

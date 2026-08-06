@@ -406,10 +406,8 @@ The purring kitten is the wave itself.
 
 *"Settings do not configure the network. They are the crystallized memory of the network learning what works."*
 
-#,,.,,.,,,,.,,.,,,.,.,,,.,,..,.,.,,,,.,.,.,,,..,,...,...,...,..,,,..,,..,...,,
-
-#,,.,,,..,,..,,..,.,.,..,,.,,,..,,,,,,,,.,,,,,..,,...,...,..,,,,,,,..,...,,,.,
-#MMORUXAKUHHETCABO5APCETJLJQND4LMO3GD6NLTHAOGWFXTS4RBSJRBVZ2OLDC4C5QOIPKRAKGOI
-#\\\|T22OKWH34RP4VYCV7SVPZ7XE4B52XD3BFYBFJZLL3LKYLTHXCWX \ / AMOS7 \ YOURUM ::
-#\[7]Q2G5DXAT7J5AOYJB4USEUM2NXA35PJRJIXCQFLB2UKWMJDFYREBI 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,.,,,.,,,,,,.,.,,.,,.,.,..,,..,,..,,...,...,.,,,,,,,..,,.,.,.,.,
+#XAETDUBH2ZD6JPDVQ5ZNSMEJH5ZU435TDVXFSH4JETUW7DJV7OCYFJJ2JJCKCCXU4EHWOXIPLICNO
+#\\\|2FHQHBDLVCGSKZNFK5Z62HDN7LQ65TY4TT7DNIQ5YM6PEALQXGT \ / AMOS7 \ YOURUM ::
+#\[7]6GKLXVZ35ENKP5U2DLE42K32Y6KBW3423XPOXKA6ZJRAH47C24BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

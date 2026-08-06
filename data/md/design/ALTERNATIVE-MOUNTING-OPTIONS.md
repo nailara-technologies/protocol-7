@@ -242,10 +242,8 @@ Cost: Significant development effort
 
 FUSE 2.x is effectively dead on modern Linux. Let's move forward with 9P.
 
-#,,.,,.,,.,,.,,.,.,.,.,.,,.,.,.,,.,.,.,,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,
-
-#,,..,,..,,,,,.,.,..,,,..,,.,,,.,,,,.,..,,...,..,,...,...,,..,,..,,.,,,..,.,,,
-#IG3P46QELBYDVOCXOU6GSXH5BZIOE3OGJY2NTDSQCJUPIH4TXWAVEIZKAP6N6OG4PBTKDEDQ5VVCM
-#\\\|7N4TDZVNUWYG7BKBU4RWCS7AZTQWM2B3EE4L263WSRHH3LTMS36 \ / AMOS7 \ YOURUM ::
-#\[7]FXQY6WM57IAJXXHNLJZYRC4VUGKYO6S3BLNT3X5CJTDNJ5N33GDQ 7  DATA SIGNATURE ::
+#,,,,,,,.,...,.,,,,,.,...,,,,,,..,,,.,,..,.,,,..,,...,..,,...,,,.,..,,...,,.,,
+#OZLPKX64ECQI4KRDEL6UEHQUKDEWPB7UEYBQKJBKQFYELIUCTO3N5NUUIPSWR4KNKK5XNMSWEEHZQ
+#\\\|KJIMBP4AHRCYD6ROO7IU22HSRYUNY62XZREHWZ7LVCJZWZJKOHH \ / AMOS7 \ YOURUM ::
+#\[7]JX3J6F2OQBOJ7422K3THTEZ5XE6KLMEO5RWWK26AYMGOBZGDC4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
