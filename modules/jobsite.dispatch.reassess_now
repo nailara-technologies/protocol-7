@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = jobsite.dispatch.reassess_now
+# descr = build prompt from current on-disk job data and queue for LLM re-assessment
+#
+# split out of jobsite.sync.apply_reverse's reassess branch so the LLM pass
+# can be deferred until a source refetch actually lands [ see
+# jobsite.handler.reassess-refetch-queued / jobsite.cmd.job-upsert's
+# awaiting_refetch check ] instead of always scoring whatever stale data
+# was on disk at the moment the user clicked reassess
+
+my $id  = shift // '';
+my $gen = shift // 0;
+return if not length $id;
+
+my $job = <[jobsite.job.read]>->($id);
+return if ref $job ne 'HASH';
+
+my $prompt = <[jobsite.util.build_prompt]>->($job);
+my $entry  = { 'job_id' => $id, 'desc' => $prompt, 'gen' => $gen };
+
+<jobsite.assess_queue> //= [];
+unshift @{<jobsite.assess_queue>}, $entry;    ## front of queue ##
+
+## dispatch now only if nothing else is in flight -- an in-flight chain's   ##
+## own assess-done -> dispatch.next will pick up this entry otherwise, same ##
+## contract as dispatch.assessments/apply_reverse's original reassess       ##
+## dispatch                                                                 ##
+my $was_idle = ( <jobsite.cycle> // 'idle' ) ne 'assessing';
+<jobsite.cycle> = 'assessing';
+<[jobsite.dispatch.next]>
+    if $was_idle;
+
+<[base.logs]>->(
+    1,   '[job:%s] reassess resumed after refetch [ gen %d ]',
+    $id, $gen
+);
+
+#,,..,,..,,,,,.,.,..,,,.,,...,..,,..,,,,.,,..,..,,...,...,.,.,,,.,.,.,,,,,.,.,
+#XUB7IOQR2AAIZYFI5SKR4CC7EEN5Z7MVZGB5XKS3GT222HVEWAZ3PM23PXKXYAOOHLB3KUQQSQSJM
+#\\\|YMTX5QZ3WGLJUURSI56CVR57J6VVL5BZIVXHJJZAAXBXOQMZIRT \ / AMOS7 \ YOURUM ::
+#\[7]L3OZZ62DCQH2K4FX6ITICOQYRSVK2BHD2VJC4GTKAIBPKTBI5GCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

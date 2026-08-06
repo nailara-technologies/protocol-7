@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = jobsite.handler.reassess-refetch-queued
+# descr = handle the site-yaml.import-url ack for a reassess-triggered refetch
+#
+# this only sees the immediate "queued or rejected" ack, not the fetch
+# itself completing -- the real continuation, once fresh data has actually
+# landed on disk, happens in jobsite.cmd.job-upsert's awaiting_refetch check.
+# this handler exists purely for the "can't refetch at all" case : an
+# unsupported source url, so the job would otherwise be stranded forever
+# waiting for a refetch that will never come. a genuine in-flight duplicate
+# [ same url already queued by something else ] is left alone here -- that
+# fetch will still complete and still land on job-upsert's normal path
+
+my $call = shift // {};
+
+my $mode     = lc( $call->{'mode'} // '' );
+my $raw      = $call->{'data'} // '';
+my $data_str = ref $raw ? $raw->$* : $raw;
+my $job_id   = $call->{'params'}{'job_id'} // '';
+my $gen      = $call->{'params'}{'gen'}    // 0;
+
+return if $mode ne qw| false |;
+return if $data_str =~ m{already queued}i;
+
+my $rec          = <jobsite.tasks>->{$job_id} // {};
+my $current_gen  = $rec->{'queue_gen'}        // -1;
+my $still_wanted = $rec->{'awaiting_refetch'};
+
+## superseded by a newer reassess request already, or already resolved -- ##
+## nothing to fall back to                                                ##
+return if not defined $still_wanted;
+return if $gen != $current_gen;
+
+delete <jobsite.tasks>->{$job_id}{'awaiting_refetch'};
+
+<[base.logs]>->(
+    1,
+    'jss.reassess [%s]: refetch unavailable '
+        . '(%s), falling back to on-disk data',
+    $job_id,
+    $data_str
+);
+
+<[jobsite.dispatch.reassess_now]>->( $job_id, $gen );
+
+return;
+
+#,,,.,...,..,,.,,,.,,,,..,...,..,,.,.,..,,...,..,,...,..,,,..,.,.,.,,,,,.,...,
+#7PVSJOVQEVL6U5B62CQ4IQE3EPPCLBQGEFUW5IXEC2JCCVSHRIAA3A3E5BA4F46MSTEIVCX7OW2YO
+#\\\|46AELKGDRUNMBZQ6A3TSQJSPI7O2LLTTOIPMUC3YGZZHL7KTF5M \ / AMOS7 \ YOURUM ::
+#\[7]OWY5YQSXUIV65CMHHIYO5TBITYAU5BGJIC3D2LVGOVEMX42LKSBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

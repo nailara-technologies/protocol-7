@@ -42,7 +42,8 @@ if ( $attempt and $attempt != ( $job_rec->{'attempt'} // 0 ) ) {
 ## evict it to trash on a low score                                         ##
 my %protected_stage
     = map { $ARG => 1 }
-    qw| review applied interviewed responded rejected skipped archived |;
+    qw| review to_apply applied interviewed responded rejected skipped
+    archived |;
 
 my %stage_to_status = (
     'review'      => 'review',
@@ -280,8 +281,8 @@ if ( <jobsite.pending_count> <= 0 ) {
 <[jobsite.state.persist]>;
 <[jobsite.dispatch.next]>;
 
-#,,,.,,.,,.,.,,.,,,,,,..,,..,,...,..,,...,,,,,..,,...,...,.,.,,.,,,,.,,,.,.,,,
-#BO557ZUJM3CPPXHTENCPJMU4EVPEDQERECKBRMKAERZOE6J5IFPIGPUSELCXQE6OITXGLZFESCKGM
-#\\\|UUSZ42E4QZTXOJXXWG5AOWZ664R7S2EK5RWRPGZNTYWJCQ7YAUX \ / AMOS7 \ YOURUM ::
-#\[7]TDT5F6DOGOAF3NF34U62Y4AFYYMBUVAS23HMI63HMQCFT43ZJOCQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,..,,,,,.,.,,,,,,..,,.,,,.,,.,.,..,,...,...,.,,,,,,,,,,,..,,,,,,
+#34IGL3NBT7ILJVHU5TCOF5WHPC52U2NEHJ42CCHX43AVNPQ4K2GNWHIKD4RQU6HULTXG2QJWQTXLM
+#\\\|WWZSIJG2NN4JPWBPZVRP3E5GVO35JOCTR5GWLEQ6CGN2YJW4YEQ \ / AMOS7 \ YOURUM ::
+#\[7]7I7JGDKKATJBAY6OETAYZQO5NVWHHIDYB362TZTLIRYQ6DFF6EDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
