@@ -31,12 +31,12 @@ for my $entry ( @{$entries} ) {
         $job->{'trash_epoch'} //= <[base.ntime.epoch_timestamp]>;
         <[jobsite.job.write]>->( $id, $job );
 
-        ## mid-assessment : the coding zenka may still be working this job's
-        ## task. fail the generic task now so the task.wait-done watcher
-        ## resolves instead of leaving pending_count/cycle stuck forever.
-        ## grab the record before deleting it, but delete it FIRST so the
-        ## async reply lands on assess-done's unknown-job path and doesn't
-        ## re-write the job file we just trashed ##
+        ## mid-assessment : the coding zenka may still be working this      ##
+        ## job's task. fail the generic task now so the task.wait-done      ##
+        ## watcher resolves instead of leaving pending_count/cycle stuck    ##
+        ## forever.  grab the record before deleting it, but delete it      ##
+        ## FIRST so the async reply lands on assess-done's unknown-job path ##
+        ## and doesn't re-write the job file we just trashed                ##
         my $rec
             = ( ref <jobsite.tasks> eq 'HASH' )
             ? <jobsite.tasks>->{$id}
@@ -56,7 +56,8 @@ for my $entry ( @{$entries} ) {
             );
             <[base.logs]>->(
                 1,
-                'jss.sync.apply: aborted in-flight task %s for deleted job %s',
+                'jss.sync.apply: aborted in-flight '
+                    . 'task %s for deleted job %s',
                 $task_id,
                 $id
             );
@@ -107,8 +108,8 @@ for my $entry ( @{$entries} ) {
         delete $rec->{$ARG}
             for qw| score score_reason score_summary assertions
             repair_attempted repair_failed |;
-        ## keep user-selected stage/status so assess-done treats it as
-        ## protected ##
+        ## keep user-selected stage/status so assess-done treats it as ##
+        ## protected                                                   ##
         $rec->{'stage'}  = $job->{'stage'}  if defined $job->{'stage'};
         $rec->{'status'} = $job->{'status'} if defined $job->{'status'};
 
@@ -118,41 +119,42 @@ for my $entry ( @{$entries} ) {
         ## a new queue entry here, but only the LAST one [ highest gen ]   ##
         ## will still match by the time dispatch.next reaches it, so       ##
         ## earlier duplicates are skipped as stale instead of each firing  ##
-        ## its own real reassessment ##
+        ## its own real reassessment                                       ##
         my $gen = 1 + ( $rec->{'queue_gen'} // 0 );
         $rec->{'queue_gen'} = $gen;
         <jobsite.tasks>->{$id} = $rec;
-
-        ## inject at front of assess queue (prioritized) ##
-        my $profile_file = <jobsite.cfg.profile_file>
-            // '/etc/protocol-7/jobsite/profile.txt';
-        my $profile_text = <[file.read]>->($profile_file)
-            // 'no profile configured';
-        <[base.perlmod.autoload]>->('Encode');
-        $profile_text = Encode::decode( 'UTF-8', $profile_text )
-            unless utf8::is_utf8($profile_text);
-
-        my $prompt = <[jobsite.util.build_prompt]>->($job);
-        my $entry  = { 'job_id' => $id, 'desc' => $prompt, 'gen' => $gen };
-
-        <jobsite.assess_queue> //= [];
-        unshift @{<jobsite.assess_queue>}, $entry;    ## front of queue ##
 
         ## always count this new slot, even mid-cycle -- if a batch is    ##
         ## already 'assessing', this entry rides along on the same tally  ##
         ## instead of being silently uncounted [ uncounted slots never    ##
         ## bring pending_count to 0, same failure class as a skipped-slot ##
-        ## leak; see jobsite.dispatch.consume_slot ] ##
+        ## leak; see jobsite.dispatch.consume_slot ]                      ##
         <jobsite.pending_count> = ( <jobsite.pending_count> // 0 ) + 1;
 
-        ## if idle: start the cycle ##
-        if ( ( <jobsite.cycle> // 'idle' ) eq 'idle' ) {
-            <jobsite.cycle> = 'assessing';
-            <[jobsite.dispatch.next]>;
-        }
+        ## refresh source data before re-scoring, when the source supports  ##
+        ## it : site-yaml.import-url re-scrapes and calls                   ##
+        ## jobsite.cmd.job-upsert, which now preserves the full protected   ##
+        ## field set and merges in whatever changed on the live posting [   ##
+        ## salary estimate, updated description, ... ]. the actual LLM pass ##
+        ## is deferred until that refresh really lands -- see               ##
+        ## jobsite.dispatch.reassess_now, fired either from job-upsert's    ##
+        ## awaiting_refetch check or, if the source url isn't refetchable,  ##
+        ## from jobsite.handler.reassess-refetch-queued's fallback -- so a  ##
+        ## reassess never scores stale data when a fresher fetch was        ##
+        ## possible                                                         ##
+        <jobsite.tasks>->{$id}{'awaiting_refetch'} = $gen;
+        <[protocol-7.route-send]>->(
+            {   'command'   => 'site-yaml.import-url',
+                'call_args' => { 'args' => 'url=' . ( $job->{'url'} // '' ) },
+                'reply'     => {
+                    'handler' => 'jobsite.handler.reassess-refetch-queued',
+                    'params'  => { 'job_id' => $id, 'gen' => $gen },
+                },
+            }
+        );
 
         <[base.logs]>->(
-            1, 'jss.sync.apply: reassess %s queued (front)', $id
+            1, 'jss.sync.apply: reassess %s queued (refetch requested)', $id
         );
         next;
     }
@@ -183,8 +185,8 @@ for my $entry ( @{$entries} ) {
         }
     }
 
-    ## stage change also drives backend status so jobs don't stay in review
-    ## forever ##
+    ## stage change also drives backend status so jobs don't stay in review ##
+    ## forever                                                              ##
     if (    exists $entry->{'stage'}
         and exists $stage_to_status{ $entry->{'stage'} } ) {
         my $new_status = $stage_to_status{ $entry->{'stage'} };
@@ -195,8 +197,8 @@ for my $entry ( @{$entries} ) {
     }
 
     if ($updated) {
-        ## keep in-memory task record in sync so assess-done protect check
-        ## sees current stage ##
+        ## keep in-memory task record in sync so assess-done protect check ##
+        ## sees current stage                                              ##
         if ( exists $entry->{'stage'} ) {
             my $tasks = <jobsite.tasks>;
             if ( ref $tasks eq 'HASH' and defined $tasks->{$id} ) {
@@ -210,8 +212,8 @@ for my $entry ( @{$entries} ) {
     }
 }
 
-#,,..,,..,,,,,,.,,.,,,,.,,,,,,.,.,...,.,,,,..,..,,...,...,...,,,,,.,,,,..,...,
-#EZMPBSV7UDSLNVQQ5HW3AQDJJWB22M54SH3DLR4IIHT24TNE3JV57WDW6ZYDPDFKTOLXXE26I4UXG
-#\\\|737XQVWQTLEEDHDCLNWMA5LBTGRM7RDRQIH55JNQNPODLSNQD65 \ / AMOS7 \ YOURUM ::
-#\[7]PTTA43LK3QRNQOWPN5KL76AG345RKCRIROOBFFO3AFP2IDVMTGDY 7  DATA SIGNATURE ::
+#,,.,,...,,..,,,,,,,.,,,,,,,,,,..,.,.,.,.,.,,,..,,...,...,,,.,,.,,,..,..,,,..,
+#QGXVM7CP7GYX5BPR2XC5B4PO4DPLF3GUPO4PM2L3LXTNU3IILGKM4Y7XZTILHHQJIGBSD6CUDXTHW
+#\\\|CE6AOEJLALJQITGOXIBV3CQTOM6A2NKLW2SX6MQZFNKOW6LI3CD \ / AMOS7 \ YOURUM ::
+#\[7]5MFEM73NKL6ZROT5T42UV2JNM5OIZZ6F43HWW7MUUYX3DZE4DWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
