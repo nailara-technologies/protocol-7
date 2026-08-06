@@ -43,8 +43,29 @@ invent), or if explicitly asked to prepare it, run the read-only dry-run
 touching any version file. Never call `release-version -s` before the
 matching commit exists.
 
-#,,,.,.,,,,,.,,.,,,..,,.,,.,.,,,.,,..,,,.,,.,,..,,...,...,.,.,,..,.,,,...,,,.,
-#HJQ2APP4D3M6AZE2ZX43OWCGVJYP424MQSRDN4HCFEXTU2EYZV2FSA3EX7IXXNLEDNT54T62K47XM
-#\\\|K37OU3WTXBCKLYIBWNQ5GSZYEY5EAT7RLIS2FOW7ZMRXUZYWVGJ \ / AMOS7 \ YOURUM ::
-#\[7]RYTMU42DDTPYH26XVAR6DZ4FQ3Y2UHA57X7JBMYQLHZI7LWYBKCQ 7  DATA SIGNATURE ::
+**`update-version amend` / `update-version reset amend`, confirmed live
+2026-08-06**: a third variant alongside plain `update-version` (advances
+to a new commit id, `.0` revision) and `update-version reset` (backfills
+a *missing* version bump for the prior commit — see [[project-2026-08-06-
+pii-purge-and-tag-drift-incident]] for that one live). `amend` keeps the
+**commit-id segment unchanged** and increments only the revision suffix
+— `3WPLH7ORLY-8893.0` → `3WPLNBEJDI-8893.1` (network-time portion moves
+since it's timestamp-based, but the `-8893` commit-count stays fixed).
+`reset amend` composes both: gets the amendable version for the
+*already-committed* change (like plain `reset`) but as a revision bump
+of it rather than a fresh commit-id (`-8892.1` in the confirmed run,
+matching the prior commit's id with `.1` instead of advancing to
+`-8893`). Purpose: force-pushing a fix *over* an already-pushed version
+number when a critical bug needs to go away fast, while the `.N` suffix
+still honestly marks that a revision occurred, rather than silently
+rewriting history with no trace. A subsequent plain `update-version`
+correctly moves forward to a fresh commit-id with revision reset to
+`.0` (confirmed: `-8892.1` → next plain call gave `-8894.0`, skipping
+past `-8893` since that id was already used/superseded in this test
+sequence).
+
+#,,..,,,.,..,,,,.,,,.,,..,,..,,.,,,..,..,,.,.,..,,...,...,.,,,,..,,,.,,.,,,,,,
+#OV2ZUWTCWXAZLD7LLB7HSD4EXATEC2RBML5SVDG3HFYZLD4NUK5B7T4IX7DJEVCKLWMHIZCK6SLXQ
+#\\\|RZP73K4B275IT4VWOEMF5QHFEOPH6JCY6YJUZEJWQFSU6P37IR2 \ / AMOS7 \ YOURUM ::
+#\[7]POHIHMIFVNHLUPEROEKPBGI65CSUSM6OV7UCMP7HNF5H6XZVGQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
