@@ -21,9 +21,9 @@ $job->{'id'} = $id;
 if ( length( $job->{'title'} // '' ) ) {
     $job->{'title'} =~ s{^\s*\[Hiring\]\s+}{}i;
     $job->{'title'} =~ s{\s*\(all genders\)}{}gi;
-    ## any 2-4 letter permutation of the gender-marker set [ m w f d x ],  ##
-    ## slash-separated in parens -- new combos [ f/m/x etc ] keep showing  ##
-    ## up, a fixed list of permutations can never keep pace ##
+    ## any 2-4 letter permutation of the gender-marker set [ m w f d x ], ##
+    ## slash-separated in parens -- new combos [ f/m/x etc ] keep showing ##
+    ## up, a fixed list of permutations can never keep pace               ##
     $job->{'title'} =~ s{\s*\(\s*[mwfdx](?:\s*/\s*[mwfdx]){1,3}\s*\)}{}gi;
     $job->{'title'} =~ s{\s+$}{};
 }
@@ -40,6 +40,30 @@ if ( $idx_status =~ m{^(blocked|deleted|trash)(:|$)} ) {
 
 my $store = $data{'jobs'}{'store'} // <[jobsite.job.load_all]>;
 
+## hard-block student-only positions [ thesis / internship / apprenticeship ##
+## ] -- candidate is a 25+ year full-time professional, not enrolled in any ##
+## degree program, so these are categorically inapplicable no matter how    ##
+## strong the technical overlap looks to the LLM [ see F5INW : a            ##
+## Masterarbeit scored 7 and landed in review purely on skill-keyword match ##
+## ]. checked by title only -- not the full description, since phrases like ##
+## "abgeschlossene Ausbildung" are normal requirement-section text, not a   ##
+## signal the position itself is one -- and only for genuinely new jobs,    ##
+## same gating as the checksum blacklist below                              ##
+if (not exists $store->{$id}
+    and ( $job->{'title'} // '' )
+    =~ m{
+        \b(?: Masterarbeit | Bachelorarbeit | Abschlussarbeit
+        | Werkstudent(?:in)? | Praktikum | Praktikant(?:in)?
+        | Duales?\s+Studium | Ausbildung | Azubi )\b
+    }xi
+) {
+    <[base.logs]>->(
+        2,   'jobs.upsert: skipping %s (student-only position: %s)',
+        $id, $job->{'title'} // ''
+    );
+    return { 'mode' => 'true', 'data' => 'exists' };
+}
+
 ## checksum-based dedup / blacklist check for new jobs ##
 if ( not exists $store->{$id} ) {
     my $chk = <[jobsite.checksum.index]>->( 'check', $job );
@@ -54,9 +78,18 @@ if ( not exists $store->{$id} ) {
 
 my $is_new = 0;
 if ( exists $store->{$id} ) {
-    ## preserve status and score set by user or LLM
+    ## preserve everything the user or the assessment pipeline has already ##
+    ## decided about this job -- a re-upsert [ reassess refetch, or the    ##
+    ## same posting simply showing up again in a later scan ] must never   ##
+    ## regress a decided job back to bare scraped-field state. same        ##
+    ## protected set as                                                    ##
+    ## jobsite.handler.{task-created,assess-done,repair-done}              ##
     my $existing = $store->{$id};
-    for my $key (qw| status score score_reason applied_at |) {
+    for my $key (
+        qw| status score score_reason score_summary applied_at
+        stage stage_changed_at assertions notes date_applied
+        repair_attempted repair_failed repair_applied |
+    ) {
         $job->{$key} = $existing->{$key} if defined $existing->{$key};
     }
     $store->{$id} = $job;
@@ -72,21 +105,36 @@ if ( exists $store->{$id} ) {
 ## write per-job file
 <[jobsite.job.write]>->( $id, $store->{$id} );
 
-## register url checksum so future scans skip this job even if the source
-## site changes the listing id -- but NOT for a brand-new, still-undecided
-## job : dispatch.assessments' own checksum check runs moments later (via
-## the settle timer below) and would otherwise self-match this job's own
-## just-registered hash, silently "blocking" every genuinely new posting.
-## a checksum means "this job was decided" (blocked or assessed), not
-## "this job was seen" -- assess-done and the dispatch-time backfill both
-## register it once a real decision exists ##
+## if a reassess triggered this refetch, resume the deferred LLM pass now ##
+## that fresh source data has actually landed on disk -- only for the     ##
+## generation that's still current, so a newer reassess request that came ##
+## in while this fetch was in flight isn't double-fired [ see             ##
+## jobsite.sync.apply_reverse's reassess branch and                       ##
+## jobsite.handler.reassess-refetch-queued for the other halves of this   ##
+if ( not $is_new ) {
+    my $rec      = <jobsite.tasks>->{$id} // {};
+    my $awaiting = $rec->{'awaiting_refetch'};
+    if ( defined $awaiting and $awaiting == ( $rec->{'queue_gen'} // -1 ) ) {
+        delete <jobsite.tasks>->{$id}{'awaiting_refetch'};
+        <[jobsite.dispatch.reassess_now]>->( $id, $awaiting );
+    }
+}
+
+## register url checksum so future scans skip this job even if the source   ##
+## site changes the listing id -- but NOT for a brand-new, still-undecided  ##
+## job : dispatch.assessments' own checksum check runs moments later (via   ##
+## the settle timer below) and would otherwise self-match this job's own    ##
+## just-registered hash, silently "blocking" every genuinely new posting.   ##
+## a checksum means "this job was decided" (blocked or assessed), not "this ##
+## job was seen" -- assess-done and the dispatch-time backfill both         ##
+## register it once a real decision exists                                  ##
 <[jobsite.checksum.index]>->( 'add', $store->{$id} ) unless $is_new;
 
-## settle-timer : site-yaml's queue-depth hitting 0 races ahead of the last
-## few upsert round-trips landing here, which used to strand fresh 'new'
-## jobs unassessed until the next manual scan. re-arm a short debounce on
-## every new arrival so assessments get dispatched once arrivals actually
-## stop, instead of trusting site-yaml's queue-depth alone ##
+## settle-timer : site-yaml's queue-depth hitting 0 races ahead of the last ##
+## few upsert round-trips landing here, which used to strand fresh 'new'    ##
+## jobs unassessed until the next manual scan. re-arm a short debounce on   ##
+## every new arrival so assessments get dispatched once arrivals actually   ##
+## stop, instead of trusting site-yaml's queue-depth alone                  ##
 if ($is_new) {
     if ( defined $data{'jobsite'}{'new_job_settle_timer'} ) {
         $data{'jobsite'}{'new_job_settle_timer'}->cancel;
@@ -103,8 +151,8 @@ return {
     'data' => $is_new ? qw| new | : qw| updated |
 };
 
-#,,,.,,,,,,,.,,.,,,,.,,.,,,..,,.,,,,.,.,.,...,.,.,...,...,,.,,.,,,,,,,,,.,.,,,
-#44FYSXF2DMPHT3CP2DE72Y7Z73C6BYH3TE42RT7MXOK5YSUYUFEQCVVDN7QTGPN3KJK6KRCL7YRBM
-#\\\|GR5MO4A4UFIZ5TRTNSLGDGHDBB6MB3FLLW7X2WWPJHUEN356K4T \ / AMOS7 \ YOURUM ::
-#\[7]XERONXSZIIHUNG53NXLDCLSTKSVOQYVGCYAD3JDMZBXBCYGX7MDY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,,.,,..,..,,,,,,.,.,,.,,.,,,...,.,.,...,...,,.,,,.,,,.,,,..,..,,
+#L2APJP6PVVGV4CLYADVHNEFK6TQ7D3NDXWFPOWDWPDBEIG37DHP3JXXXDTDSZAYDMLCX3EVZLR4TI
+#\\\|5HNBZGTYMVHN37G3C5JHHB4KP3GBI45IZVTHLK7QJZXCCSHDK7D \ / AMOS7 \ YOURUM ::
+#\[7]BEBK2WHSUAEDBG63UUI4TYFGSZ6WYCV3AISFCJD4TYXF2RHXE2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
