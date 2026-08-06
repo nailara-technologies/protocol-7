@@ -504,10 +504,8 @@ sub find_by_attraction {
 
 *"The tree does not just store—it attracts. Branch nodes are magnets for meaning. Novelty is the spark that ignites discovery. And in the magnetic field, similar interests find each other without searching."*
 
-#,,.,,.,,.,,.,,.,.,.,.,.,,.,.,.,,.,.,.,,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,
-
-#,,.,,.,,,,,.,,,,,.,.,.,,,,..,,.,,,..,,,.,,,,,..,,...,...,..,,...,...,,,.,...,
-#CVU7PLWZEE6C4KYQDI3MJPN5JJ734K5DPNOSEBOMAPIOSCQL572GGVTNHTKP2N4ASA7GVHDKJPE5U
-#\\\|SWRRT3SOU5JPVDH4D3ULXK7NH2AMRNLYXJSZUTG2KIH33BLBWPD \ / AMOS7 \ YOURUM ::
-#\[7]A5GRTFUHAGUFRJMUOSFGLI46GEQKWOGJLMSDJU2RMSN63XIK5WAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,.,,,..,,.,,,...,.,,,,,.,,,,,..,,..,,...,...,..,,.,.,,.,,,,.,.,.,
+#7GLNTDUIZT62UMQD3EUHNYESRYR3H7FOIU32E75M2E4HBVXTIRYPC7LQW2RTMXAUJWLMOGBIMDX3M
+#\\\|YNF7HVJVSZCZV5V55PCYI67M5VF5BM3RYQ4PDH62RY4TONRSUWY \ / AMOS7 \ YOURUM ::
+#\[7]ZTO6ZN6MOPEYCWYNPJIYDERZBKZDF4HWFBQFEMKEABHOGJNMHOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

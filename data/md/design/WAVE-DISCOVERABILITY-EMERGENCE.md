@@ -325,10 +325,8 @@ Through inclusion.
 
 *"Discovery is not a search result—it is a wave passing through, giving everything a chance to shine."*
 
-#,,.,,.,,.,,.,,.,.,.,.,.,,.,.,.,,.,.,.,,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,.,.,.,,
-
-#,,,.,..,,,,,,..,,...,,..,...,..,,.,.,,,.,...,..,,...,...,...,...,,..,,,.,...,
-#CPDMVWAK4PK7WFQVMMYFNTDZTRWZCCMY423EOG5X5Z7CHHNLR5GR2NTZIWXL4MK5IZ6YRNFGI242I
-#\\\|XGOBEGBIFHKJNLPOJJOE7K24A3H2HEDRGRANXZR7SWELHHT6FC2 \ / AMOS7 \ YOURUM ::
-#\[7]I6HTJ7GJICZ2FEAUQHGJB6PKD64ZWRSRN7LVPRYWGA44WRN4NUCQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,,.,,.,.,...,,,.,,.,,.,,,...,,.,,..,,...,...,..,,...,,..,,,,,,,,,
+#V6F4H3Z2MY2UV3D2Q6GLIA5H5JEJ5ZPB3HFUATMXVA27CCQ2HZDSDBTKXDYKELHSTJCE7LQ7NSU24
+#\\\|ZRHX47OLK6OXYLQ2S5QD4MX74YHENDORJHQTOJBAN6Z36VY2RUB \ / AMOS7 \ YOURUM ::
+#\[7]6RX3VXCKTKZXTIQ4FVMRPY3MEU26IGUB4AT7LWLJ4RDNT3LL42DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

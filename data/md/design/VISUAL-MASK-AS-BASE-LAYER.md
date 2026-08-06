@@ -338,10 +338,8 @@ And the visual mask provides the **all-encompassing base layer** upon which ever
 
 *"What you see is where you are. Where you are is what transmits. What transmits is what you are."*
 
-#,,..,,..,,,.,..,,...,..,,,,,,,..,,.,,,,.,.,.,..,,...,...,...,..,,,..,,..,...
-
-#,,.,,..,,...,,,.,,,.,,,.,...,..,,,..,.,.,,.,,..,,...,...,,.,,...,,,,,...,,,.,
-#QNZ2J2SNYLKVKVTQXH6MYX6KSRB3IR3HIW5P2XILEWWJDWHT6BKTADP3VGW3ATFPUBX7F2HW23YA4
-#\\\|KZZZ2S3U7BRBYZRU4MRJ7IMFGNPKOYJOL2BTBTX2XKPA3XVL42E \ / AMOS7 \ YOURUM ::
-#\[7]WWFH4SA4FIIPY3C2NFLIK3YZXIDHYXXPODX7L2VNLKXBL2S6XOBA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,.,.,..,,,,.,.,,,.,.,.,.,...,.,,,..,,...,...,,,.,,,.,,,,,,,,,..,,
+#RUXGLV6BLY2XKHDV6VDFVJ24BOJPRKZN3R6RJHK3QVUIYYMARPMTU4HYI4T7E7GIPFUS64YNX4GIY
+#\\\|FZS74HKRK2BTR5APVTDK4QKFHTMEP7L6EFACSIJ75Y2WMHSDIPF \ / AMOS7 \ YOURUM ::
+#\[7]ZGMD5OGA7JST2MRSU4K26MUQSG5ELH7TUFTJQ36QBNCOIRSU6IAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

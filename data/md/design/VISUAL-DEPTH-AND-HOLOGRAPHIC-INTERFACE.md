@@ -253,10 +253,8 @@ Harsh input → Depth cubes (absorbed, softened)
 
 *"The depth is not behind the interface. The depth is the interface."*
 
-#,,..,,..,,,.,..,,...,..,,,,,,,..,,.,,,,.,.,.,..,,...,...,...,..,,,..,,..,...
-
-#,,,,,.,,,.,,,...,.,,,...,.,,,..,,.,.,...,,,,,..,,...,...,.,.,,,,,,.,,,..,.,.,
-#CQDIJJUCXT62B2ZZZJQDNQA3L3HEF44W3D4VCCG2PNCWX5PSCNXRUVBVCZRK65RAAC5FZRR4GTKTU
-#\\\|Y76MGKYYEGGIYY7W4KKOKQL73OTSXTIQ6M7DWFQSC5VO2BXQFML \ / AMOS7 \ YOURUM ::
-#\[7]7PTXRBNLOAFDD2LR52SATHPH5FAAFZRVKYZQSGDGJNG53L7V5EDY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,..,,..,,,,,.,,,,,.,..,,,,,,..,,..,,...,...,.,.,.,,,.,.,.,,,.,,,
+#ZIXDKQY5UYVCSSQOUNZVPKHRL7UI27SILDFICGQQ2OCVYT5TN6J22XWCHB4HSYFDDA7JWK56UZ346
+#\\\|JZLS7IJGGHT67N5KIXSOTOUOHIE5VUYOA5JIM2Y7BAWCQX6FFOQ \ / AMOS7 \ YOURUM ::
+#\[7]QLHYBCAY6KRESTKFRBRZUKE7UXRAOXZP7GTQX2K7G4XRNCBNUQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

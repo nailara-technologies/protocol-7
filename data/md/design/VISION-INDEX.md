@@ -227,10 +227,8 @@ In simpler terms:
 
 *Vision documentation complete. Implementation in progress.*
 
-#,,.,,.,.,,,.,,.,.,,..,..,,.,.,.,...,.,.,.,,,...,..,,...,.,,,.,..,.,,.,..,..,
-
-#,,,.,...,..,,...,.,.,,,,,..,,,,.,,.,,..,,,.,,..,,...,...,..,,,,.,...,,.,,...,
-#AX522LZKOPKK7U74CYBJFSQ6RRLY2RJ32GNHIGNWHJU2EKOAT7EC3TNTFDHKHXX6NS2REKQ5MEFKC
-#\\\|SMCCDAJJ5LSLZKPZX47VST5CR4FFHDCKNHNTM5KABS5IGNDV3H2 \ / AMOS7 \ YOURUM ::
-#\[7]OMQ5OCRQJ6HDWJ3JZZ5O7NYECKKQBBCRNZQUPPNVG2RC6QRCRQCQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,.,.,.,,,,..,.,,,.,.,,,,,..,,,..,..,,...,...,.,.,,,.,..,,.,.,,.,,
+#WU7CUKUHGFCEDZQRHD5MWXXDCSMNN2VCYNCMQTMV3Y4YDBLJTWCHMNVWR2SWRXFLB2JSS63O7COAG
+#\\\|2YSAKLSVXZUGSFWFJWKWGXYLZNROIVRAE3ZIUMN4YBXWWNYUUVN \ / AMOS7 \ YOURUM ::
+#\[7]JEC3YTTLJF5UXOTHU4B3MC6ZX7IATRPEP5M3TBIXHOODZKBVZCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
