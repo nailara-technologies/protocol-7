@@ -13,13 +13,21 @@ return
 <mpv.fade_idle_volume> //= TRUE;
 
 if ( $cube_idle and <mpv.fade_idle_volume> ) {
-    <[mpv.callback.silenced]> if <mpv.fade_idle_volume>;
+
+    ## intentionally not calling mpv.callback.silenced here any more --     ##
+    ## pause/resume [ mpv.handler.cmd_prop.pause ] and stop  [ mpv.cmd.stop ##
+    ## ] each now own their own silence/fade sequencing directly and        ##
+    ## deterministically. this event fires too late [ mpv already stopped   ##
+    ## producing audio by the time core-idle flips ] to be useful for a     ##
+    ## fade, and having it *also* run mpv.callback.  silenced's device      ##
+    ## reassignment here raced with, and could swallow the start of,        ##
+    ## do_resume's fade-in.,                                                ##
 } else {    # LLL: s|start|current| volume ..,
     <[mpv.cmd.fade]>->( { qw| args | => <mpv.current.volume_target> } );
 }
 
-#,,.,,.,,,,.,,,.,,.,,,,,,,,.,,..,,..,,,,.,..,,..,,...,...,,..,.,.,,,.,.,,,.,,,
-#CEFGKLHWG2BYVSPB4MSFAOLY5QYBI477MNJ6PXA62TBGRPIZGKAGV2XEX6DMXQYR4X64Y2XG44O3Y
-#\\\|LD7SJN7BKWZY6AECV6RYMQPDAAT5JIFFA7HD5YPTHSVWJBKHPIA \ / AMOS7 \ YOURUM ::
-#\[7]DFSRWALH6KXM6MT3EKI3M42KEXVW3EJ2DFEC4QDVI4DOKDHVG4AA 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,,.,,,,,.,,,,,,,,..,.,,,,,,,.,,,..,,...,...,,..,..,,,,.,.,,,.,,,
+#G2L3A7MW6O3GBVEFLQENSGEROEHUBRUPBQ6SFTBSW6J5KBBYM2OHUEE4LRR2EZPJ55QRGVDFKWFGI
+#\\\|SLGV2LW6CLQHIT6IIF2XOT2JD6WLNRLIVYIGXQT5HQ2QZZCGAT6 \ / AMOS7 \ YOURUM ::
+#\[7]FJRL73NBTP2L6T67NIKNOBEBWM7MV6QTE532S2PG2HXEMCAF4ABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
