@@ -3,7 +3,7 @@
 # name = mpv.handler.pipe.float
 
 my $fp_val_str = shift // '';
-my $reply_id   = shift @{<mpv.reply_ids>};
+my $reply_id   = shift // '';
 
 return <[base.callback.cmd_reply]>->(
     $reply_id, { 'mode' => qw| false |, 'data' => 'undefined' }
@@ -15,8 +15,8 @@ $fp_val_str =~ s|\.?0+$||g;
     $reply_id, { 'mode' => qw| true |, 'data' => $fp_val_str }
 );
 
-#,,,.,,,,,,.,,,,.,,.,,...,.,.,.,.,..,,.,,,...,..,,...,...,..,,,,.,...,,..,...,
-#466Z2BWZR7C377QIA66K2ELRF3QHF2WLXXT4LC437DROQVAX7XACXKRRALCMKUHEGLHSIGV7QACD2
-#\\\|67TUKRSCOW7TLRH3MSVWFJRQSS2BGCVEP6ZBYITEBH2TSWRJ6N2 \ / AMOS7 \ YOURUM ::
-#\[7]3N4RIP2QETTIKFXULUL7HTD2CUAPC4HZLVGHEZZ3H2K6FJFC56AI 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,,,,,,.,...,,,.,.,.,,,,,,,,,...,..,,...,...,...,.,.,...,,..,,.,,
+#H2CKZAZ3WD2WOGPKP3LG4EMPBYRLPI3TPQ5WVOSMJHRP5J5AZ5YDSRCWIAHTROBA7YISLDO45MQS4
+#\\\|N3TYDXVA3XPIWMPOUJTMGTJTRIYYCIVYRIVM2GC2XWW4T7JDJWB \ / AMOS7 \ YOURUM ::
+#\[7]4CPV5MP3KZY2YV4JAGWLOSGFNWQSL4UTHQI4KD63W2XEEMIKVWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

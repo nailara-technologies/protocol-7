@@ -3,14 +3,14 @@
 # name = mpv.handler.pipe.version
 
 my $version_str = shift // 'unknown';
-my $reply_id    = shift @{<mpv.reply_ids>};
+my $reply_id    = shift // '';
 $version_str =~ s|^mpv ||;
 <[base.callback.cmd_reply]>->(
     $reply_id, { 'mode' => qw| true |, 'data' => $version_str }
 );
 
-#,,,.,..,,..,,..,,..,,,,.,,,,,,..,,..,.,,,..,,..,,...,..,,,.,,,.,,.,,,,..,.,,,
-#ARQ3LFHHST4OWYIQFMLTCQNWNFAM6VC5VWOFZQIHK5BKXJPPDPZTB33GJVY6I3OJLELHODIG33R5E
-#\\\|7JF5W6II4EIFZPNRE2JZFXASVY7IVRFYMGFUA3WFHACZMNCAGSA \ / AMOS7 \ YOURUM ::
-#\[7]EW3DU7FUHSGTLE3FG3VPSOGIBTKVPEYYGCVIQZUXW4J5TFC6GGDA 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,,,,...,,,.,.,,,,,.,,..,.,,,,,,,..,,...,...,...,,,.,,.,,,,.,,.,,
+#GXOZE4OZOMHMBDN7X33YVEDF3SQBE3XUQPSIYFAEC7N5N2RU5D2RWFKNSCZLYQAUULSVQZXZEW7KQ
+#\\\|U5Y6V7VCZTMXH6WVTVTR4RHS34C5E7ODGSU6SCN23XVGZJMCBI2 \ / AMOS7 \ YOURUM ::
+#\[7]RR2RQ22RXF5PRY7QBHHXUZC227OSNTKB5C7AGDGR33Q3OZAPQGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

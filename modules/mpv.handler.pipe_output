@@ -39,7 +39,6 @@ if ( $bytes <= 0 or not defined <mpv.pipe.buffer> ) {
 }
 
 while ( <mpv.pipe.buffer> =~ s|^([^\n]*)\n||s ) {
-    my $reply_id;
     my $output_line = $LAST_PAREN_MATCH;
     my $decoded     = <mpv.json.parser>->decode($output_line);
 
@@ -49,12 +48,23 @@ while ( <mpv.pipe.buffer> =~ s|^([^\n]*)\n||s ) {
         <[mpv.handler.event]>->($decoded);
     }
 
+    ## match replies by request_id, not arrival order -- a dropped,     ##
+    ## deferred, or reordered reply can no longer desync unrelated      ##
+    ## in-flight commands the way shift()-based FIFO matching used to., ##
+    my $pending
+        = defined $decoded->{'request_id'}
+        ? delete <mpv.pending_reply>->{ $decoded->{'request_id'} }
+        : undef;
+
     if (    exists $decoded->{'error'}
         and $decoded->{'error'} ne qw| success |
-        and $reply_id = shift <mpv.reply_ids>->@* ) {
+        and $pending
+        and defined $pending->{'reply_id'} ) {
+
+        my $reply_id = $pending->{'reply_id'};
 
         <[base.logs]>->(
-            0,         '[%d] pipe-FALSE [%s]',
+            0,         '[%s] pipe-FALSE [%s]',
             $reply_id, $decoded->{'error'}
         );
         <[base.callback.cmd_reply]>->(
@@ -66,36 +76,36 @@ while ( <mpv.pipe.buffer> =~ s|^([^\n]*)\n||s ) {
         );
         next;
     } elsif ( exists $decoded->{'error'}
-        and exists <mpv.command.reply>
-        and ref(<mpv.command.reply>) eq qw| ARRAY |
-        and <mpv.command.reply>->@* ) {
-        my $reply_setup = shift <mpv.command.reply>->@*;
+        and $pending
+        and $pending->{'reply_setup'} ) {
+        my $reply_setup = $pending->{'reply_setup'};
 
         my $command_handler  = $reply_setup->{'handler'}  // '';
         my $command_callback = $reply_setup->{'callback'} // '';
 
-        $code{$command_handler}->( $decoded->{'data'} )
+        $code{$command_handler}
+            ->( $decoded->{'data'}, $pending->{'reply_id'} )
             if $decoded->{'error'} eq qw| success |
             and exists $code{$command_handler};
 
-        $code{$command_callback}->( $decoded->{'error'} )
+        $code{$command_callback}
+            ->( $decoded->{'error'}, $pending->{'reply_id'} )
             if defined $code{$command_callback};
 
         next;
     } elsif ( exists $decoded->{'error'}
         and $decoded->{'error'} eq qw| success |
-        and exists <mpv.success_reply_str>
-        and $reply_id = shift <mpv.reply_ids>->@* ) {
+        and $pending
+        and defined $pending->{'success_reply_str'}
+        and defined $pending->{'reply_id'} ) {
 
-        <[base.logs]>->(
-            2,         '[%d] pipe-TRUE [%s]',
-            $reply_id, <mpv.success_reply_str>
-        );
+        my $reply_id    = $pending->{'reply_id'};
+        my $success_str = $pending->{'success_reply_str'};
+
+        <[base.logs]>->( 2, '[%s] pipe-TRUE [%s]', $reply_id, $success_str );
         <[base.callback.cmd_reply]>->(
-            $reply_id,
-            { 'mode' => qw| true |, 'data' => <mpv.success_reply_str> }
+            $reply_id, { 'mode' => qw| true |, 'data' => $success_str }
         );
-        delete <mpv.success_reply_str>;
         next;
     }
 
@@ -109,8 +119,8 @@ while ( <mpv.pipe.buffer> =~ s|^([^\n]*)\n||s ) {
     <[base.logs]>->( $log_level, '< mpv > %s', $output_line );
 }
 
-#,,..,.,.,,,.,...,,.,,.,,,,.,,,,,,,.,,.,,,..,,..,,...,...,.,,,.,.,...,,,.,..,,
-#XRVNQ5ZZEWZBZD2ZDAFHNDXP5LKBVJSF4ESOFI2ZPCNRF2XROFEMNVASJKI7JODA6GKV7DYMXL6UE
-#\\\|5DPDLH5P6N55YSHSM6CEOZVZ6MD3IICIWN4CSNJOTKC7AC7QMTL \ / AMOS7 \ YOURUM ::
-#\[7]BDXC6DL2YI5Z5AZWW6O653CEBSDMKR2GZEK3LJTBRNP6SJGHOGCQ 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,.,.,.,.,..,,,.,,.,,,.,,,,..,,,,,..,,...,...,...,.,,,.,.,..,,,.,,
+#UDTXCALBVOOD22HZI63JSECWBAMOLL4ZEQ52TZEYGTU2PUM4WL6AE654HLJTHXC435U5URGAI4DZY
+#\\\|PIR4SAMR52OFDIZUGW6DSTCBPZMRWYFRAXFNYBZA3XY5EX7WKAZ \ / AMOS7 \ YOURUM ::
+#\[7]QUDH43F7WYUOH5LK62JNKFG5KEG35CRGAYEWVMZN36XJGGQRV2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

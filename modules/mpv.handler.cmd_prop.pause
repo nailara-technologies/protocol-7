@@ -4,43 +4,118 @@
 # descr = pause playback
 
 my $pause_status = shift // '';
+my $reply_id     = shift // '';
 <mpv.universal_resume_mode> //= 0;
 my $pause_mode = delete <mpv.pause_cmd_mode>;
 
+## fade-then-pause / unpause-then-fade have to be driven synchronously from ##
+## here, not from mpv.handler.event.property-change.core-idle -- by the     ##
+## time mpv's own core-idle flips, pause has already cut audio output, so   ##
+## any fade attached to that event fires too late to be audible [ confirmed ##
+## live: the fade completed, just after the fact ]                          ##
+my $do_pause = sub {
+
+    ## capture the level to return to *before* fading to 0 -- cmd.fade    ##
+    ## unconditionally overwrites mpv.current.volume_target with whatever ##
+    ## it's asked to fade to, so reading it back after fading to 0 would  ##
+    ## just read back 0 [ confirmed live: resume never climbed off 0 ] ., ##
+    <mpv.pause.prior_volume> = <mpv.current.volume_target>
+        // <mpv.current.volume> // <mpv.start_volume> // 100;
+
+    if ( <mpv.fade_idle_volume> and ( <mpv.current.volume> // 0 ) ) {
+        ## fade out first [ while still audible ], pause once silent ##
+        <[mpv.cmd.fade]>->(
+            {   'args'          => '0',
+                'on_done_extra' => sub {
+                    push <mpv.reply_ids>->@*, $reply_id;
+                    <mpv.success_reply_str> = 'playback paused';
+                    <[base.logs]>->( 2, '[ playback paused ]' );
+                    <[mpv.send_command]>->(
+                        'set_property_string', 'pause', 'yes'
+                    );
+
+                    ## mpv.audio_device / mpv.audio_channel are never set   ##
+                    ## anywhere else -- this always resolves to the same    ##
+                    ## fixed 'auto'/1 values, so its real job isn't         ##
+                    ## restoring a preference, it's forcing mpv to re-open  ##
+                    ## the audio output while idle [ same family as the     ##
+                    ## WSLg pulse-bridge cork/resume fix in mpv.init_code   ##
+                    ## -- dropping this made resume's fade climb the volume ##
+                    ## property with no audio actually coming out           ##
+                    <[mpv.callback.silenced]>;
+                },
+            }
+        );
+    } else {
+        push <mpv.reply_ids>->@*, $reply_id;
+        <mpv.success_reply_str> = 'playback paused';
+        <[base.logs]>->( 2, '[ playback paused ]' );
+        <[mpv.send_command]>->( 'set_property_string', 'pause', 'yes' );
+        <[mpv.callback.silenced]> if <mpv.fade_idle_volume>;
+    }
+};
+
+my $do_resume = sub {
+    my $target_volume = delete <mpv.pause.prior_volume> // <mpv.start_volume>
+        // 100;
+
+    if (<mpv.fade_idle_volume>) {
+
+        ## force true silence before unpausing -- volume may have been      ##
+        ## changed while idle [ someone touched the slider, another fade    ##
+        ## landed, etc. ], and resuming at whatever it happens to read      ##
+        ## would jump straight to that level before any fade-in starts --   ##
+        ## the same jump-then-fade artifact pausing without a fade-out used ##
+        ## to have. fire-and-forget [ no reply tracking pushed ], so it     ##
+        ## doesn't steal the 'playback resumed' reply.                      ##
+        <[mpv.send_command]>->( 'set_property', 'volume', 0 );
+
+        ## optimistic local update -- mpv's property-change ack for the     ##
+        ## write above hasn't round-tripped yet, and cmd.fade below reads   ##
+        ## mpv.current.volume synchronously to pick the fade's starting     ##
+        ## point; without this it would start from whatever stale value was ##
+        ## cached before, not the 0 just commanded.,                        ##
+        <mpv.current.volume> = 0;
+    }
+
+    push <mpv.reply_ids>->@*, $reply_id;
+    <mpv.success_reply_str> = 'playback resumed';
+    <[base.logs]>->( 2, '[ playback resumed ]' );
+    <[mpv.send_command]>->( 'set_property_string', 'pause', 'no' );
+
+    ## fade back in now that mpv is actually producing audio again ##
+    <[mpv.cmd.fade]>->( { 'args' => $target_volume } )
+        if <mpv.fade_idle_volume>;
+};
+
 if ( $pause_mode eq 'pause' and $pause_status eq 'yes' ) {
     <[base.callback.cmd_reply]>->(
-        shift @{<mpv.reply_ids>},
+        $reply_id,
         {   'mode' => qw| false |,
             'data' => 'playback was already paused'
         }
     );
 } elsif ( $pause_mode eq 'pause' ) {
-    <mpv.success_reply_str> = 'playback paused';
-    <[mpv.send_command]>->( 'set_property_string', 'pause', 'yes' );
-
-    <[mpv.callback.silenced]> if <mpv.fade_idle_volume>;
-
+    $do_pause->();
     return { 'mode' => 'deferred' };
 } elsif ( $pause_mode eq 'resume' and $pause_status eq 'no' ) {
+    delete <mpv.pause.prior_volume>;    ## no matching pause to resume from ##
     <[base.callback.cmd_reply]>->(
-        shift @{<mpv.reply_ids>},
+        $reply_id,
         {   'mode' => qw| false |,
             'data' => 'playback wasn\'t paused'
         }
     );
 } elsif ( $pause_mode eq 'resume' ) {
-    <mpv.success_reply_str> = 'playback resumed';
-    <[mpv.send_command]>->( 'set_property_string', 'pause', 'no' );
+    $do_resume->();
     return { 'mode' => 'deferred' };
 } elsif ( $pause_mode eq 'toggle' ) {
-    <mpv.success_reply_str>
-        = $pause_status eq 'yes' ? 'playback resumed' : 'playback paused';
-    <[mpv.send_command]>->( 'cycle', 'pause' );
+    $pause_status eq qw| yes | ? $do_resume->() : $do_pause->();
     return { 'mode' => 'deferred' };
 }
 
-#,,.,,..,,.,.,,,.,.,,,.,.,.,,,...,,,,,,.,,...,..,,...,...,.,,,..,,.,.,,.,,,,.,
-#H325VIH5WX5INRRN2KCACUI3VEURRAUEHQAEWTKDMBOBDPSVJIJSWPHVFIJMLFMCEHIP4Z3SYYQVO
-#\\\|PROXUL7NGIWJXRTPYURY7RRERYE6ZI45EHXIPHE6R4FX3AAU4TN \ / AMOS7 \ YOURUM ::
-#\[7]WFBQ4UBBWD2HJIQXBMBJ3RNGALS3ZQAUEBHIBXVF74RX3TTNQ6AA 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,,,.,..,,,,.,,,.,..,,.,.,,,.,.,,,..,,...,...,..,,..,,...,,,.,,.,,
+#BAUOBHAJCDPRPZP6GZEZ7XKXVA5WS6SFWCAVUYGETONU6Y67I64Q4UQDDMLMQUWZ5Z3E2EOFZWDP2
+#\\\|BH7GJR5VACYIYRH2ESHHICKQMWRH7ZGBFVFLA6GJ6ZJ74WHTSH5 \ / AMOS7 \ YOURUM ::
+#\[7]A2FC6YSCK2HO5SWDUPKLS54DZZEFDZ6JQMP5WYZ5HOHKZ5UUHQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
