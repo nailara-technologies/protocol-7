@@ -726,8 +726,8 @@ summarizer) — pass `auto_summarize: false` for tasks like these, or
 cross-check `p7_task_queue`/`coding.show-buffer model_output` before
 assuming a reported failure means no work happened.
 
-#,,.,,.,.,,..,,,.,,..,,,,,..,,...,,,,,,.,,,.,,..,,...,...,...,...,,.,,..,,.,,,
-#PTM7HTZMIHZPY6MX6MONAXDPIBKRMCQR3NI7DJGCH4X2PEGLDS3L5OHMUCSMIRBLVTU2ZBHLRITHO
-#\\\|66XNGMYUALEEOBHLOFY37EXY4OEDGW4PTLMN5BGXNTC3NFPJRWY \ / AMOS7 \ YOURUM ::
-#\[7]NE6RKY36NBPCCJ34RC66CDS5LGLKCJKLL2TXUQZH52AXP5UYVEBA 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,...,,.,,...,,,.,...,,,.,.,.,,,,,..,,...,...,...,.,,,,..,.,,,...,
+#LDPAXRJBIQ537QCSQM3FBPTP4T3YHOJ7ZTH6CAQLLSAT7SMH7K3IRZAMHEG5PJJUUOIO5YRAOEJ6O
+#\\\|4OGDH6Q3LACWDTX6TQGCZZH4SJO2JIRS26OYUZMGGSTLPGJR6LJ \ / AMOS7 \ YOURUM ::
+#\[7]TYDUN4RK2ZEP4SDWZSROI2WNB6WFZLMUUEP6I7RROKLNT4TQIQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
