@@ -391,8 +391,8 @@ jobsite.cfg.sync_interval = 300
 - reset button: clears jobs + userDecisions + lastNtime (destructive, dialog warns)
 - 30s auto-poll via `startPoll()` using `?since=lastNtime` delta
 
-#,,..,..,,.,,,,,,,...,.,.,...,.,.,.,,,...,.,.,..,,...,...,.,.,..,,...,,,.,,.,,
-#RPXFEEUKFRCA4X4IJOFBALDJBXQ7PSNJDOFEOE4IEIXJBHWFFDAE2KVZVQ2MDQPBNYVOHEL55XA7I
-#\\\|ZTG5UX2T6J74VAWT35UH3EYH2KJCQOFQATA5GWJ2ERZX6RZMI5Y \ / AMOS7 \ YOURUM ::
-#\[7]BWCPSJ2O3OYHRBM2GHR75X5YHT7572RFUERYMO7ILSWWRUBVCYAA 7  DATA SIGNATURE ::
+#,,,,,...,,,,,,.,,.,,,,,.,..,,,..,,..,,,.,,,,,..,,...,...,..,,,,.,..,,,,,,...,
+#SMEKNZZ2NDFYORVWNHYY3BADKIW22C5VDPQZWDNFXTYSPI7NEXTDNJU3OJ42I4X4K6Z2BZKC5KNX6
+#\\\|VT6TLQBVC7LABHJ5F424OA7RZ3OQ5A7PIFPB2P5MHB7YRTGKL6B \ / AMOS7 \ YOURUM ::
+#\[7]SMTUF3R2DL4NVHUMSRGZ2YFMQSZBALNSUWXMDYGA6LCAODNWWOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
