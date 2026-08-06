@@ -74,6 +74,13 @@ system that only checks a subset:
    *category* of exposure without repeating identifying specifics
    (names, filenames that embed names, domains). the documentation
    should not become vector 1.
+9. **outbound dispatch payloads** — a genuinely different channel from
+   git history: prompts sent to external inference APIs (`kimi_dispatch`/
+   `claude_dispatch` and equivalents) can carry the same personal data
+   the other vectors guard against, just leaving via a request instead of
+   a commit. same underlying problem, different surface, needs its own
+   check at dispatch time rather than being assumed covered by the
+   repo-history-focused parts of this design.
 
 ## requirements
 
@@ -91,6 +98,31 @@ system that only checks a subset:
   equivalent) for patterns too context-dependent for regex alone — e.g.
   distinguishing an intentional public author-attribution mention from
   an unrelated personal-data leak using a name that happens to match.
+- entity taxonomy and substitution shape: don't invent one from scratch —
+  the established pattern (a standard entity taxonomy — PERSON, LOCATION,
+  PHONE_NUMBER, EMAIL_ADDRESS, etc. — feeding a detect → replace-with-
+  numbered-placeholder (`[PERSON_1]`, `[ADDRESS_1]`) → reconstruct-on-
+  return pipeline) is well-precedented in existing open PII-anonymization
+  tooling and is the right reference shape, both for the pre-commit
+  scanner's pattern categories and for vector 9's outbound dispatch check
+  (send the placeholder-substituted version externally, reconstruct
+  locally on the response). pick a specific free/open implementation to
+  reference once evaluated — not chosen yet.
+- **existing in-project precedent for reversible protection**: `modules/
+  p7-log.anon.*` already does domain-separated Twofish key derivation
+  from the system key-tree (`p7-log.anon.key`) and stores
+  `[checksum, twofish(plaintext)]` pairs, reversible via `p7-log.anon.
+  resolve`/`p7-log.anon.store` (`AMOS7::Twofish`). that pipeline targets
+  log entries specifically, but the mechanism generalizes to files on
+  disk: instead of encrypting an entire file (expensive, and requires
+  knowing up front that it needs protecting) or fully deleting/redacting
+  a detected span (lossy, no reconstruction), selectively Twofish-encrypt
+  *only the matched sensitive spans* in place, using the same key-tree-
+  derived domain-separated key approach. this is the useful middle
+  ground specifically for the case where what needs protecting isn't
+  known ahead of time — detection can run opportunistically/retroactively
+  and encrypt just what it finds, without committing to a fixed entity
+  taxonomy or an all-or-nothing encryption decision at write time.
 
 **periodic full-history audit** (separate tool, not just the commit-time
 gate, since gates only catch what passes through them going forward):
@@ -133,8 +165,8 @@ they should be a runbook, not re-derived each time):
 
 #,,,.,.,,,,,,,.,,,,.,,..,,.,.,,,,,.,,,...,.,,,..,,...,...,...,,.,,,.,,.,,,,,.,
 
-#,,,,,,..,,..,.,,,.,.,,,,,.,,,...,..,,,.,,...,..,,...,..,,.,,,...,,..,.,.,..,,
-#CZZMEW3BQBYJWLWNAAULPNL6SIR7E7XXS6EVN74U3FPP4A6B647SMZO3P4AQ4HETHBEYO6LE67R66
-#\\\|73R6UECOGZXOF7JYCWWMHSZXK2KS6ATTKCPMOFFXQWBI4IF3BCX \ / AMOS7 \ YOURUM ::
-#\[7]QQNUHMBQORFATHFNEOTADTRGPQ2OMQZPS24TKWY2ELMRTSZDHGCY 7  DATA SIGNATURE ::
+#,,,,,...,,,,,,..,.,,,,,,,.,.,,..,.,.,,..,.,,,..,,...,..,,.,.,.,.,..,,...,,..,
+#V42G23VHZLJKTVUPVOT3GQT5U2DDUOVGQJ2IBXDG4YZZDIC64FRADMLDK2QY6ZSEQE6BXIJC4VGJW
+#\\\|ZAECN2RAS5R2TYU35WNZX67U54GNM4MEGCYXBY7IYLOL7V37KPF \ / AMOS7 \ YOURUM ::
+#\[7]HU5KRR62GGKJ7XXCOACIIK2Z7FHRC2EDZSVICO3ER73VC5HE4QAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
