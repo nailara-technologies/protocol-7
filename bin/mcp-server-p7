@@ -93,14 +93,19 @@ my @external_tools = (
             . 'resume a long-running task. specify '
             . 'model=k2.7 for cheap token-heavy work, '
             . 'model=k3 (default) for complex reasoning, '
-            . 'model=k2.7-fast for faster turnaround at mid ' . 'cost.',
+            . 'model=k3-256k for the same reasoning quality '
+            . 'at ~1/2 the quota within a 256k ceiling (no '
+            . 'video input), model=k2.7-fast for faster '
+            . 'turnaround at mid cost.',
         'command' => 'kimi-legacy -y --afk -p %s --model %s',
         'params'  => [
             [ 'prompt', 'the task or question for kimi to work on', 1 ],
             [   'model',
-                'model: k3 (default, best reasoning, large context) | k2.7 '
-                    . '(cheapest, good for broad search/verification) | '
-                    . 'k2.7-fast (faster turnaround, mid cost)',
+                'model: k3 (default, best reasoning, large context) | '
+                    . 'k3-256k (same quality, ~1/2 quota, 256k ceiling, no '
+                    . 'video) | k2.7 (cheapest, good for broad '
+                    . 'search/verification) | k2.7-fast (faster turnaround, '
+                    . 'mid cost)',
                 0
             ],
             [   'auto_summarize',
@@ -123,8 +128,10 @@ my @external_tools = (
             . 'the uuid from "To resume this session: kimi -r <uuid>". '
             . 'kimi resumes with full prior context and acts on the new '
             . 'prompt. specify model=k2.7 for cheap token-heavy work, '
-            . 'model=k3 (default) for complex reasoning, model=k2.7-fast '
-            . 'for faster turnaround at mid cost.',
+            . 'model=k3 (default) for complex reasoning, model=k3-256k '
+            . 'for the same reasoning quality at ~1/2 the quota within a '
+            . '256k ceiling (no video input), model=k2.7-fast for faster '
+            . 'turnaround at mid cost.',
         'command' => 'kimi-legacy -y --afk -r %s -p %s --model %s',
         'params'  => [
             [ 'session_id', 'the kimi session uuid from the resume line', 1 ],
@@ -132,9 +139,11 @@ my @external_tools = (
                 'the next task or instruction for the resumed session', 1
             ],
             [   'model',
-                'model: k3 (default, best reasoning, large context) | k2.7 '
-                    . '(cheapest, good for broad search/verification) | '
-                    . 'k2.7-fast (faster turnaround, mid cost)',
+                'model: k3 (default, best reasoning, large context) | '
+                    . 'k3-256k (same quality, ~1/2 quota, 256k ceiling, no '
+                    . 'video) | k2.7 (cheapest, good for broad '
+                    . 'search/verification) | k2.7-fast (faster turnaround, '
+                    . 'mid cost)',
                 0
             ],
             [   'auto_summarize',
@@ -3557,7 +3566,7 @@ sub tool_external_command {
             'opus'   => 'claude-opus-4-7',
         );
         if ( defined $args->{'model'} ) {
-            $args->{'model'} = $model_map{ $args->{'model'} }
+            $args->{'model'} = $model_map{ lc $args->{'model'} }
                 // $args->{'model'};
         }
     }
@@ -3568,11 +3577,12 @@ sub tool_external_command {
 
         my %model_map = (
             'k3'        => 'kimi-code/k3',
+            'k3-256k'   => 'kimi-code/k3-256k',
             'k2.7'      => 'kimi-code/kimi-for-coding',
             'k2.7-fast' => 'kimi-code/kimi-for-coding-highspeed',
         );
         if ( defined $args->{'model'} ) {
-            $args->{'model'} = $model_map{ $args->{'model'} }
+            $args->{'model'} = $model_map{ lc $args->{'model'} }
                 // $args->{'model'};
         }
     }
@@ -3679,10 +3689,8 @@ sub tool_external_command {
             if ($@) {
                 cube_disconnect();
                 log_msg(
-                    '[auto_summarize] %s: summarize '
-                        . 'timed out/errored : %s',
-                    $ext->{'name'}, $@
-                );
+                    '[auto_summarize] %s: summarize timed out/errored : %s',
+                    $ext->{'name'}, $@ );
                 $summary = undef;
             }
             log_msg(
@@ -3721,8 +3729,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,..,,,,,,..,,,,,..,,,,,,.,.,,..,.,,,,.,,.,.,..,,...,...,...,.,,,,..,.,,,,,,,
-#UIVQGFXTVQMMHLHRELNYID7VOA2UVDXZ6ZSAFWOGRJD3K55MZOBR2BACC6HL6ZMRORY3JORD76OME
-#\\\|4CMZ2JZGMSLLMOGFH44NOGMCMVODYZ6QXSM5MSFNOON7TFV35HG \ / AMOS7 \ YOURUM ::
-#\[7]7RCPFM7YOMON7YT73QWFBASDWI4WIIHINTVRUZI4BDZ6N3YVTGDI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,..,,..,,,,,,,.,.,.,.,.,.,,,,,,,..,,...,...,.,.,..,,,,.,.,.,,,.,
+#2KMSVLCXIF4WAVTBGG2SKSLTNCF47DEDI6K5R6MSW23DQEFDNEEIIWV5WEKY2GOSJN6O6L552M6VK
+#\\\|DJX3COMNGEY426VUGNZ66ETGBXSKTDSY3EWRMS2T72WLP2WFEWA \ / AMOS7 \ YOURUM ::
+#\[7]QSCVZR7LPOSPCT4RW5R4YBHE2MOEASOAYUE5SHTRHLRVGPQLE2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
