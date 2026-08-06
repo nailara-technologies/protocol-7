@@ -1,11 +1,11 @@
 ---
 name: reference-kimi-k3-256k-model
-description: kimi-code/k3-256k model is configured and available for kimi_dispatch/kimi_continue but has never actually been used yet -- cheaper than full K3, no video_in, image_in still works
+description: kimi-code/k3-256k -- confirmed ~2x cheaper quota-wise than full K3 within the 256k ceiling (forum-sourced, not just a feeling), no video_in, image_in still works
 metadata:
   node_type: memory
   type: reference
   originSessionId: 8a65c64f-bcd4-43e6-9d47-e37ee5dc8750
-  modified: 2026-07-31
+  modified: 2026-08-06
 ---
 
 `~/.kimi-code/config.toml` has a `[models."kimi-code/k3-256k"]` entry
@@ -65,8 +65,31 @@ to `k3-256k` more aggressively and only reaching for full `k3` when a
 task is concretely expected to approach the 256k ceiling, not just
 because it sounds large.
 
-#,,..,.,.,,,,,..,,,,,,...,,.,,.,.,,.,,,.,,,,,,.,.,...,...,,..,,,,,..,,...,.,,,
-#7ZV63JKDG6FO6KL63SIZVBYACSVZ6PM7ARI3OICX6OBX2ATBBQVWT4TUEL4R5IHCHHITZG45YLQEK
-#\\\|XA2JNFB4HOGBXP6OTTPHWYMQQN4HRMRBETO4YVSFJRPGUPEXWPR \ / AMOS7 \ YOURUM ::
-#\[7]7UH676DVRGBIXIG6D3H7D6RK2W4VZM74PEJPTB6CZWVIYK73YICY 7  DATA SIGNATURE ::
+**Pricing confirmed, 2026-08-06** — no official published price for
+`k3-256k` separately (only regular K3's $3/$15 per 1M in/out was found
+anywhere), but a Kimi-user forum thread gives a direct data point: "k3-256k
+is now available. Within 256k context, it delivers the same results. k3
+(1M) consumes about **twice as much quota** as k3-256k." Matches the
+already-observed dispatches here: this session's resumed task-archive
+audit (74-file review, `840b069f`) cost only 5% session / 1% weekly
+budget on `k3-256k`. Not a controlled A/B (no matched k3 run on the same
+task), but consistent with the 2x figure and with the earlier low-cost
+data points above.
+
+Revises the "same reasoning model, just less context" framing above: the
+video_in capability gap doesn't reduce to a context-ceiling parameter —
+video tokenization needs its own encoder path, so dropping it implies a
+genuinely different model config/checkpoint, not `k3` served with a
+smaller context window. A forum poster's explanation fits better: likely a
+separate model/serving tier for load-balancing and bimodal usage patterns
+(most users stay well under 256k; a minority push to 1M), priced/
+provisioned differently rather than being the same weights with a dial
+turned down. Practical implication unchanged either way — default to
+`k3-256k` unless a task concretely needs video input or is expected to
+approach the 256k ceiling.
+
+#,,..,,,.,,..,,,,,,..,.,.,,,,,.,.,.,.,...,...,.,.,...,...,.,.,...,,..,..,,.,,,
+#566OHRIZTWYFFBX27ZQA3L7J5FENNZO7EU6QWIHH3D5LD3XO5VJ5RJ7RVCI2UQCPQJWI7VGCX6P6Q
+#\\\|IRWYUEG7NDXPN5KR36ELVDX4NAUGFEE2ZFAXZL6WPB3VD35G3FG \ / AMOS7 \ YOURUM ::
+#\[7]CNKDHOWGAFKTTU3SLNN4NG4XWL66IYX3Q3M2MF4RWWQKYCMF4KDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
