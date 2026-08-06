@@ -221,6 +221,96 @@ foreach my $tc (@$tool_calls) {
         );
     }
 
+    ## reject-with-instructions instead of appending an oversized tool     ##
+    ## result -- never truncate mid-content [ could cut off mid-tag/line ] ##
+    ## ; tell the model exactly how to retry narrower, mirroring           ##
+    ## edit_file's auto-split pattern [ coding.tools.dispatch ~line 393 ]  ##
+    my $tool_result_too_large = FALSE;
+    {
+        my $routed  = $state->{'backend'} // 'gpu';
+        my $srv_key = $routed eq qw| cpu | ? qw| cpu | : qw| gpu |;
+        my $srv_n_ctx
+            = ( <coding.inference_servers> // {} )->{$srv_key}->{'n_ctx'}
+            // <inference.model.context_length> // 16384;
+
+        my $chars_per_token = 3.2;
+        my $existing_chars  = length(
+            JSON::PP->new->utf8->encode(
+                {   'messages' => $state->{'messages'} // [],
+                    'tools'    => $state->{'tools'}    // [],
+                }
+            )
+        );
+        my $headroom     = 500;
+        my $budget_chars = ( $srv_n_ctx - $headroom ) * $chars_per_token;
+
+        if ( $existing_chars + length($result_content) > $budget_chars ) {
+            $tool_result_too_large = TRUE;
+            my $result_tokens
+                = int( length($result_content) / $chars_per_token );
+            my $available_tokens = int(
+                ( $budget_chars - $existing_chars ) / $chars_per_token );
+            $available_tokens = 0 if $available_tokens < 0;
+            <[base.logs]>->(
+                0,
+                "tool_executor: %s result too large [ ~%d tokens, "
+                    . "only ~%d available ], rejecting with instructions",
+                $tool_name,
+                $result_tokens,
+                $available_tokens
+            );
+            $result_content
+                = sprintf(
+                "ERROR: %s result too large to fit remaining context [ ~%d "
+                    . "tokens, only ~%d available ].\nRetry with a narrower "
+                    . "range: read_file offset=N length=M [ smaller M ], or "
+                    . "use search_code / ncode_search to locate the exact "
+                    . "target line first, then read_file a small range "
+                    . "around it.",
+                $tool_name, $result_tokens, $available_tokens );
+        }
+    }
+
+    ## replace-in-place paging for read_file : a repeat call against the   ##
+    ## same path supersedes its prior page in message history instead of   ##
+    ## appending -- keeps context bounded no matter how many pages a task  ##
+    ## walks. content is overwritten but role/tool_call_id stay untouched, ##
+    ## so the assistant/tool tool_call_id pairing the backend template     ##
+    ## expects is never broken                                             ##
+    if (    $tool_name eq 'read_file'
+        and ref $args eq 'HASH'
+        and not $tool_result_too_large ) {
+        my $rf_path = $args->{'path'} // '';
+        if ( length $rf_path ) {
+            my $paged = $state->{'paged_reads'} //= {};
+            if ( my $prior_id = $paged->{$rf_path} ) {
+                for my $m ( @{ $state->{'messages'} // [] } ) {
+                    if (    ( $m->{'role'} // '' ) eq 'tool'
+                        and ( $m->{'tool_call_id'} // '' ) eq $prior_id ) {
+                        my ($prior_range)
+                            = $m->{'content'}
+                            =~ m/^\.:\[ file: \Q$rf_path\E\s+lines (\S+)/;
+                        $m->{'content'}
+                            = sprintf( "[ superseded: lines %s of %s -- "
+                                . "replaced by a later read_file call ]",
+                            $prior_range // '?', $rf_path );
+                        last;
+                    }
+                }
+            }
+
+            ## still partial [ footer's continuation hint present ] : keep ##
+            ## tracking this path so the *next* page supersedes this one.  ##
+            ## reached end of file : stop tracking, this page is the final ##
+            ## one and should stay intact                                  ##
+            if ( $result_content =~ /to continue: read_file path=/ ) {
+                $paged->{$rf_path} = $call_id;
+            } else {
+                delete $paged->{$rf_path};
+            }
+        }
+    }
+
     ## build tool result message ##
     my $tool_result_msg = {
         'role'         => 'tool',
@@ -306,8 +396,8 @@ if (<coding.tool_loop.stop>) {
 
 return { success => TRUE, tool_results => \@tool_results };
 
-#,,,,,...,..,,,.,,..,,,,,,,,.,...,,,.,,..,.,.,.,.,...,...,...,..,,.,,,,,,,..,,
-#ZAMMEQZU5JI5PIKUENP24WYB3L7HLAW7GKOBXN3X2ZCMFEM4ZCITSNT6OBQ5APAU7UXHGBC5XQJYI
-#\\\|OEPLUU7Q52WJ3TD2QHOWSQXIS5C3KNSP3SR2BYBTMI55BOITLFY \ / AMOS7 \ YOURUM ::
-#\[7]VBOERK4VISIUO4Y6RW3KTDYWA74KE4TD6RQHFKG2P67OYIJHLECQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,.,,,.,.,...,,,,,...,,.,,..,,...,.,.,...,..,,..,,.,.,,.,,,,,,..,,
+#7FTACDJAVZS7JVB3WRGRDVLCIJXMOGCYZS6SBQZGPUPRGJROQXZGU7RKUQLE53THXKNNJTEBFPTRA
+#\\\|YGV7JPROPXE7VKQWO44TK2CO4Q3ALRT7CLYPTP7S3UNMBACXD4P \ / AMOS7 \ YOURUM ::
+#\[7]UNGQXKQJGVOXYQLMY52MCDGDLJU4CNVHMUEULTOSR3JZJTGNT4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
