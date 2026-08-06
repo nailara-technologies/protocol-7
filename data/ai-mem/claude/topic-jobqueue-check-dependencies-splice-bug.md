@@ -71,17 +71,29 @@ mid-loop needs the same snapshot-before-iterate treatment — the bug class is
 "iterate live array, mutate live array via shared queue reference," not
 specific to `check_dependencies`.
 
-**Not yet done:** requires `p7c v7.restart <zenka>` on each of mpv/coding/
-models/vision-batch/X-11 to pick up the fix (`<zenka>.reload` doesn't
-reliably recompile live `.cmd`/loaded modules — see the reload-regression
-note in [[project-jobsite-report-dossier]]). Not live-tested against the
-original mpv cascade yet — the fix is verified via standalone Perl
-semantics, not an in-zenka reproduction.
+**Live-verified (2026-08-06):** restarted mpv+radio after this fix; the
+splice-skip itself is confirmed fixed. But the user's *reported symptom*
+("still logs the same issue") turned out to be a **separate, deeper bug**
+this fix didn't touch: mpv's own IPC reply routing
+(`mpv.handler.pipe_output`) matched command replies to callers by pure
+`shift()`-order across `mpv.reply_ids`/`mpv.command.reply`, with no id in
+the payload — any dropped/deferred/reordered reply permanently desynced
+that FIFO (confirmed live: `mpv.is-idle` hanging, `mpv.get-volume`
+returning a boolean value instead of a percentage — a stuck slot from the
+pre-fix jobqueue splice bug had likely seeded exactly this kind of
+one-off desync). See [[topic-mpv-ipc-reply-request-id-matching]] for the
+full fix (request_id tagging, landed same session, commit `ca1370fe9`).
 
-[[topic-mpv-jobqueue-startup]]
+**Lesson:** a correct, verified fix for the *mechanism* a user points at
+doesn't guarantee the *symptom* they're describing is explained by it —
+the same log noise can have two independent root causes stacked on top of
+each other. Live-reproduce the exact reported symptom after a fix lands,
+don't just confirm the mechanism you fixed is now correct in isolation.
 
-#,,,,,.,.,..,,,.,,,.,,,,.,...,..,,,,.,.,,,..,,.,.,...,...,.,.,...,,..,,..,.,.,
-#IV3MU7Z4EBC3YYB6XLFR5NMQSTXLJAUNVQHSCMOZBHDOPNUQRU24XFWLRHU7TP4J6BCG5MBE54SS4
-#\\\|TYHLWEI7W4A2OLM2QT2B7GRCJZGU4P2UYZ52JX5NQAUDUZ5MRR5 \ / AMOS7 \ YOURUM ::
-#\[7]7EFSQ6S5TWPRSGKOG5ZZVEI6NDGSGGZMHM2EYM35M5YE7KJIXSCI 7  DATA SIGNATURE ::
+[[topic-mpv-jobqueue-startup]] [[topic-mpv-ipc-reply-request-id-matching]]
+
+#,,..,,.,,,,,,...,,,.,,,.,,.,,.,,,,,,,...,,.,,.,.,...,...,...,..,,,.,,.,.,.,.,
+#BABS4WAPFMG3SWBIVFI634SM452JFXXW4CM3J53FTZ3ZATVK75YAHU766L66K2KYK6IV3LFV5O7WI
+#\\\|JBL4GQTYE2A3JXDPSGNIWFICU7KGMQNC2NPEH6CF3NVMG563BDY \ / AMOS7 \ YOURUM ::
+#\[7]JRDSZ5MSM6B4L7BDBLC5K23PGL7GBEI2SH3C4EEFVVE3XC22F2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

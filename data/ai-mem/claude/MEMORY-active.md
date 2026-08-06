@@ -5,7 +5,8 @@ coding & kimi zenka state machines, jobsite, streaming transport, web-browser ca
 reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active Topics
-- [jobqueue-check-dependencies-splice-bug](topic-jobqueue-check-dependencies-splice-bug.md) — FIXED (not yet zenka-restarted/live-verified): shared jobqueue.check_dependencies iterated the array move_job splices, stranding ~half of resolved dep-queue jobs per pass; hits mpv/coding/models/vision-batch/X-11 identically
+- [jobqueue-check-dependencies-splice-bug](topic-jobqueue-check-dependencies-splice-bug.md) — FIXED + live-verified 2026-08-06: shared jobqueue.check_dependencies iterated the array move_job splices, stranding ~half of resolved dep-queue jobs per pass; hits mpv/coding/models/vision-batch/X-11 identically. Reported symptom persisted after this fix for a separate reason, see next entry
+- [mpv-ipc-reply-request-id-matching](topic-mpv-ipc-reply-request-id-matching.md) — FIXED + live-verified 2026-08-06, commit `ca1370fe9`: mpv.handler.pipe_output matched IPC replies by shift()-order FIFO with no id in the payload, permanently desyncing on any dropped/reordered reply (mpv.is-idle hung, mpv.get-volume returned wrong-shaped answers). Fixed with request_id tagging end-to-end. Same session also fixed pause/resume volume fade-out/fade-in (was firing via the wrong event, silently discarding mpv.callback.silenced's real payload — device reopen, not volume mute)
 - [jobsite-report-dossier](project-jobsite-report-dossier.md) — jobcenter evidence-dossier pipeline (jobsite.report.*/jobsite.cmd.*), uncommitted; own-address self-reply exclusion + credential-leak redaction + PDF/HTML letter dedup (prefer .pdf, HTML::FormatText mangles multi-column letterheads) all verified and resent
 - [reload-safe-transient-config-keys](topic-reload-safe-transient-config-keys.md) — modules.load/preload cleanup design paused before implementation (base.register_prune + config.reload.prune + base.pre_init/base.reload_config hooks); full design in data/md/design/RELOAD-SAFE-TRANSIENT-CONFIG-KEYS.md; mod-test/start carries a known-incomplete base.prune_key placeholder as a reminder
 - [mpv-x11-dependency-cascade-restart](topic-mpv-x11-dependency-cascade-restart.md) — X-11 crash SIGKILLed mpv[audio-0]/radio via v7's blanket zenka-level dependency cascade; instance-exemption mechanism coded (v7.zenka.start seed + v7.handler.zenka_status check + mpv.startup.resolve_x11_info), config directive syntax still undecided
@@ -95,8 +96,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [scratchpad-import-tool](topic-scratchpad-import-tool.md), [scratchpad-rescue-coding-zenka-task](topic-scratchpad-rescue-coding-zenka-task.md) — mcp-server-p7 scratchpad tools tested; follow-up task filed w/ kimi K3 for native coding-zenka rescue tools + chmod g+rx fix
 - [ncode-pattern-learning-loop](topic-ncode-pattern-learning-loop.md) — phase 1 + phase 2 (namespace scope-stack) LANDED, staged+committed `f8108af44` 2026-07-30 (kimi K3): scope_match/widen-scope + ncode.regex.apply status-gate parity fix, live-verified via p7c; tier-A chain fully run (expand→apply on scratch 2026-07-24; assess entry point tried on a real occurrence 2026-07-31, blocked by [[bug-ncode-assess-replace-not-backreferenced]] — assess never backreferences its own capture group, so it can't produce a generalizing pattern)
 
-#,,..,...,.,.,..,,.,.,,..,,,.,.,,,,,,,,..,,.,,..,,...,...,.,,,..,,.,,,,.,,.,,,
-#EJ2HPHHAEPCIP3MJ7NRO4PZFBJXTBR6ASG75Q6UMQKE6UHHZOGKLJOG6THXBOSHNU3LG5LIJ5RBG6
-#\\\|MLBQVYDSRK6E7PDB46RB4DSBWOLBDK6PIWCERG2N3QUXLJUIOWC \ / AMOS7 \ YOURUM ::
-#\[7]LCTBIMBOGNQCEIRAOKY2CE254QWDOLRTXCVB7AEQLAY5IFQ566CA 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,.,,...,..,,.,.,...,,..,,,,,..,,..,,...,...,.,.,.,,,...,,,,,...,
+#A45ZHBZI65CFTV3BLG4SVDKHCB5IGL2DECWQVXILC5BAZ7O6DCHJ23SC4QHVMJ32UWM7RFIYLUHTU
+#\\\|QZMEEE2NZGTK3KVDMHOMVJKLTMEA3WBM25TQVVGMUA36ASW43SV \ / AMOS7 \ YOURUM ::
+#\[7]QEMR373W2IDPXORO6WJ6ELGPENZZIFBCJDXMYNH27GPKEQ675SAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
