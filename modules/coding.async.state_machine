@@ -94,6 +94,10 @@ elsif ( $action eq 'init' ) {
         'content'       => '',
         'tool_calls'    => [],
         'pending_tools' => [],
+        ## path => tool_call_id of the most recent read_file page for that ##
+        ## path -- lets tool_executor replace a superseded page in-place   ##
+        ## instead of letting paged reads accumulate in message history    ##
+        'paged_reads'   => {},
         'awaiting_user' => FALSE,
         'subtask_id'    => undef,
         'backend'       => $data->{'backend'} // 'gpu',
@@ -603,8 +607,8 @@ elsif ( $action eq 'constants' ) {
 
 return { error => sprintf "unknown action : '%s'", $action };
 
-#,,,,,...,..,,...,,.,,,,.,..,,.,,,..,,.,.,.,,,.,.,...,...,..,,.,,,...,,.,,.,.,
-#P57QVDTCA6XCWGVCWVPQU6FAH3AP4YV7FMUNUD2VMXQIQLMITKS7FFYKS5ODTJL4R3TKEGBIYHMJY
-#\\\|FB7A46JFM4X74GLQ7TAH2V7ECQE7RDBGEINZRZGILDCMIJCKNNY \ / AMOS7 \ YOURUM ::
-#\[7]UI7JCOWCNG2TU4XI3F7BXCIXWTQ72GCCH2YF3Q24PVLOMOCXL6DA 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,.,,,...,...,.,.,...,..,,,.,,,.,,.,.,...,...,..,,...,...,,,.,,.,,
+#C767QLOH3GRZOV3NY3SAN6GY5TQSP7GHYSH4A5YEEK7PW6TXL6LHITHZCNHEV4X5BTM7A4GTRWME6
+#\\\|GFSW3PHP6KJS2YRI6VYDWTQJMAHCEBR4KNGQILHCRQTC3GQFTFI \ / AMOS7 \ YOURUM ::
+#\[7]B5QSW6XAHGRUX2HJHCKUTIRUDH6YZWWEYHTX6WLIBT7TPG7SBGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
