@@ -44,17 +44,19 @@ die "[!] mpv binary not found, aborting startup.,"
     'descr'    => 'adjustable mpv set-up'
 };
 
-<mpv.current.volume>    //= 100;
-<mpv.start_volume>      //= 100;      # <-- ./configuration/zenki/mpv
-<mpv.fade_in>           //= FALSE;    # <-- video fade (in)
-<mpv.fade_idle_volume>  //= TRUE;     # <-- audio zero-vol/fade-in on idle
-<mpv.audio.fade_speed>  //= 24;       # <-- audio volume fade speed [ 0..100 ]
-<mpv.reply_ids>         //= [];
-<mpv.pause_next>        //= FALSE;
-<mpv.autorescale>       //= FALSE;
-<mpv.disable_reenc_msg> //= FALSE;
-<mpv.file_map.rescaled> //= {};
-<mpv.xmode.xephyr.vo>   //= qw| gpu |;
+<mpv.current.volume>   //= 100;
+<mpv.start_volume>     //= 100;   # <-- ./configuration/zenki/mpv
+<mpv.fade_in>          //= FALSE; # <-- video fade (in)
+<mpv.fade_idle_volume> //= TRUE;  # <-- audio zero-vol/fade-in on idle
+<mpv.audio.fade_speed> //= 24;    # <-- audio volume fade speed [ 0..100 ]
+<mpv.reply_ids>        //= [];
+<mpv.command.reply>    //= [];
+<mpv.pending_reply>    //= {};    ## reply bookkeeping, keyed by request_id ##
+<mpv.pause_next>       //= FALSE;
+<mpv.autorescale>      //= FALSE;
+<mpv.disable_reenc_msg>  //= FALSE;
+<mpv.file_map.rescaled>  //= {};
+<mpv.xmode.xephyr.vo>    //= qw| gpu |;
 <mpv.xmode.xephyr.hwdec> //= qw| auto |;
 <mpv.fade_start_geom>    //= qw| 1x1--0--0 |;
 <system.zenka.mode>      //= qw| stand-alone |;
@@ -127,8 +129,8 @@ if (<mpv.snapshot_interval_seconds>) {
 
 0;
 
-#,,..,,,.,.,,,,..,,,.,,,.,,,,,,,.,.,.,..,,.,,,..,,...,..,,..,,,,.,..,,,,,,...,
-#TKY33IW3ZYMAXNHEIZMZBPOT6S2PGJNSXG4QJU3M54HAEEZ2D5CX4N3DIF5CK2XE5TRMXGSPN4XHE
-#\\\|NYNKBS3POW5TSPQIR2VTHSNISABKIZLU6EO4MHR6XLSMFDK2SPG \ / AMOS7 \ YOURUM ::
-#\[7]VI5NVBHFDTW2UXQNT4INNBWIPTXEESOU257D4EXP3QPUJBQCAKCI 7  DATA SIGNATURE ::
+#,,,,,,..,...,,..,...,.,.,...,,.,,,.,,,..,.,.,..,,...,...,...,.,,,...,.,,,...,
+#A23IKC45ECX43NEKPR4VNLUC2HGPD3XXCQJU7TOQZ6URYEMKZ5Q2NO65SEE2DGZ6KWLKPPDIRRSN6
+#\\\|VI5A2RCP7KZ6EYQRUYMU5GB6CHTFKCWXVYDQZ6KS7L4GF3D6HWC \ / AMOS7 \ YOURUM ::
+#\[7]N5ZW7VH6JOK3ACTQPIPUGASOUCT2A6ROOVMN6D5ZOIAXX3SKT6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

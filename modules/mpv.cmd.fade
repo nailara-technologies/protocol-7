@@ -4,9 +4,10 @@
 # param = [+-]<vol_%> [speed]
 # descr = fade audio volume to given level
 
-my $params   = $call->{'args'} // '';
-my $reply_id = $call->{'reply_id'};
-my $id       = $call->{'session_id'};
+my $params        = $call->{'args'} // '';
+my $reply_id      = $call->{'reply_id'};
+my $id            = $call->{'session_id'};
+my $on_done_extra = $call->{'on_done_extra'};
 
 my ( $volume, $speed ) = split( m| +|, $params // '', 2 );
 
@@ -38,19 +39,17 @@ return {
     or $speed > 100;    # min. 0.00001, max. 100
 
 ( my $vol_str = sprintf( qw| %.2f |, $volume ) ) =~ s|\.?0+$||;
-return {
-    'mode' => qw| true |,
-    'data' => sprintf( 'audio volume already at %s%%', $vol_str )
-    }
-    if sprintf( qw| %.2f |, <mpv.current.volume> // 0 ) == $vol_str;
+if ( sprintf( qw| %.2f |, <mpv.current.volume> // 0 ) == $vol_str ) {
+    $on_done_extra->() if ref($on_done_extra) eq qw| CODE |;
+    return {
+        'mode' => qw| true |,
+        'data' => sprintf( 'audio volume already at %s%%', $vol_str )
+    };
+}
 
 my $id_str = defined $id ? sprintf( '[%u] ', $id ) : '';
 
-my $log_level = length($id_str) ? 1 : 2;
-<[base.logs]>->(
-    $log_level, '%s[ fading volume to %.1f%% ]',
-    $id_str,    $vol_str
-);
+<[base.logs]>->( 2, '%s[ fading volume to %.1f%% ]', $id_str, $vol_str );
 
 <mpv.current.volume_target> = <mpv.audio_fade.target> = $volume;
 
@@ -64,6 +63,7 @@ delete <mpv.time.fade_volume>;
     and <mpv.timer.audio_fade>->is_active;
 delete <mpv.timer.audio_fade>;
 <[base.curve.cancel]>->(qw| mpv_audio_fade |);
+
 <[base.callback.cmd_reply]>->(
     shift( <mpv.audio_fade.reply_ids>->@* ),
     {   'mode' => qw| true |,
@@ -77,12 +77,12 @@ delete <mpv.timer.audio_fade>;
 <mpv.audio_fade.delta_vol>
     = sprintf( qw| %.5f |, $volume - ( <mpv.current.volume> // 0 ) );
 
-<[mpv.handler.audio_fade]>->($volume);
+<[mpv.handler.audio_fade]>->( $volume, $speed, $on_done_extra );
 
 return { 'mode' => qw| deferred | }
 
-#,,,.,,..,...,,.,,..,,.,.,,,.,...,,,.,..,,..,,..,,...,...,...,,,,,.,.,.,.,...,
-#TBLWWLXF5MZATQPFCYW2UC2Y62CFOFLI6HHT7LS7RP5AEQFYWE3RTNGIC7JU5GDCBGXA7K6JRFT2W
-#\\\|DEAQBIIBU2PLGJARH4HYAUCWC5STZOMMWHJT73P7SG7LLIOOFIG \ / AMOS7 \ YOURUM ::
-#\[7]EJPAZ4RBAZMIIYFPX6CIEYCVCPE25V554I56ZQP27KY46TAIBQBY 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,..,,..,,..,.,,,..,,,..,,..,,.,,..,,...,...,,.,,.,.,,,,,,,,,,,.,
+#WAY5LYF3LLLAEHNG4HMAO3J5R5EST4ECICP77QPFW27N2HSAJWHX34I352ARAWZYOECUZVJEMFBSU
+#\\\|6JO5VG5TQF2FO74LKIVKO6JM5E66CNTS4UXFNQE4VIETDP5GQZ3 \ / AMOS7 \ YOURUM ::
+#\[7]VC5V5DZLL276JW5KDAAPTTPOG5O5SXG4WFJSGQKT6ASWUZ4PUECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
