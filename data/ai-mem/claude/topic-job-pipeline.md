@@ -348,8 +348,79 @@ it's what turned a plausible-sounding race hypothesis into a proven one
 here, and would have caught bug 1's dualvar taint just as fast if tried
 first.
 
-#,,..,,,.,.,,,,,.,,.,,.,.,,,.,.,,,,.,,.,.,..,,..,,...,...,,,,,,,,,...,.,.,,..,
-#MPAVFP5QWTFTALWR5XHQF22TW6SSEJET6BIM6X5TERG6QFWSOUNH7IXHYP32ELVZOYURKGLMLGVQ6
-#\\\|U3C4W47P6E4MZVOKYS4EX5V4GKZJ2QCKJAPTBEGPQ3H6SZ7NJA3 \ / AMOS7 \ YOURUM ::
-#\[7]QP5ST454XOOQ5V3FXTMAQNRSZBHUU5BYOOZGXDISAFBL4DQVG2DA 7  DATA SIGNATURE ::
+## Session 2026-08-06 — reassess to_apply-stage clobbering, salary refetch, job-upsert data-loss gap (commits d4b31f357, 01ec9c91a)
+
+**Trigger**: user queued a reassess on an `apply`-stage job (already moved out of
+`review`) to pick up a salary figure the original scrape missed; nothing visibly
+changed and the score fields went blank with no replacement ever landing.
+
+**Root causes, three separate bugs in the reassess path**:
+1. `%protected_stage` in `task-created`/`assess-done`/`repair-done` covered
+   `review applied interviewed responded rejected skipped archived` but never
+   `to_apply` — even though the frontend's `USER_OWNED_STAGES` already treats it
+   as user-owned. A reassess dispatch against a `to_apply` job could get its
+   stage clobbered to `assessing` in `task-created`, then a low re-score would
+   fall through to the normal threshold branch in `assess-done` and silently
+   demote/trash a job the user had already decided to apply to. Traced the
+   history: the July 15 fix (`6090ee533`) added `review` after its own incident
+   but never added `to_apply`, which never had its own incident until now — same
+   *class* of bug as the earlier review-tab fix, just never generalized to every
+   user-owned stage. Fixed by adding `to_apply` to all three protected_stage sets.
+2. Reassess never re-fetched the source posting — it just reran the LLM over
+   whatever was already stored, so a field missing from the original scrape
+   (e.g. `salary_estimate_min/max`) could *never* be corrected by reassessing,
+   no matter how many times. Fixed: `apply_reverse`'s reassess branch now marks
+   `<jobsite.tasks>->{$id}{'awaiting_refetch'}` and dispatches
+   `site-yaml.import-url`; the actual LLM pass is deferred to new
+   `jobsite.dispatch.reassess_now`, fired either from `job-upsert`'s
+   `awaiting_refetch` check once fresh data lands, or as a fallback from new
+   `jobsite.handler.reassess-refetch-queued` if the source url isn't
+   refetchable at all (non-stepstone, pattern rejected) — so a job is never
+   stranded waiting on a refetch that will never come. Verified end-to-end live
+   against a real job (salary appeared, LLM score updated on the correct data).
+3. **Standing gap, wider than reassess**: `jobsite.cmd.job-upsert`'s merge for
+   an *existing* job only preserved `status score score_reason applied_at` from
+   the record before overwriting with freshly-scraped fields — `stage`,
+   `assertions`, `score_summary`, `notes`, `date_applied`, `repair_*` were all
+   silently dropped on any re-upsert of an already-decided job. This isn't
+   reassess-specific: the same code path fires whenever a periodic scan
+   re-lists a posting whose id the store already has. Broadened the preserved
+   set to match the protected_stage fields. Caught live mid-session: the first
+   post-fix reassess test showed byte-identical stale score/reason text instead
+   of a fresh result, traced to `$data{'jobs'}{'store'}` only being populated
+   once at zenka init/reload (`jobsite.init_code:122`) and never refreshed from
+   disk on a plain `jobsite.job.write` — so `job-upsert`'s `$existing` reflected
+   whatever was cached at the last reload, not the just-cleared on-disk state.
+   Resolves itself after a reload (which repopulates the cache from disk), but
+   the caching gap itself is still open — flagged, not fixed.
+
+**Profile-tuning additions this session** (`/etc/protocol-7/jobsite/profile.txt`,
+NOT repo-tracked, external `/etc` path): an `Eligibility` hard-exclude section
+(student-only postings — Masterarbeit/Bachelorarbeit/Werkstudent/Praktikum/
+Ausbildung/duales Studium/Trainee — score 0-1, `delete:true`, regardless of
+technical fit; live-verified against a real Masterarbeit posting that had
+scored 7 on skill-keyword overlap alone before the fix), and a `Compensation`
+section reframing below-market pay as non-disqualifying **if acceptable**,
+paired with an explicit standing exception for exploitative/unstable pay — see
+[[feedback-jobsite-candidate-preferences]] for why. Also added a **mechanical**
+title-regex pre-filter in `job-upsert` for the same student-position class
+(cheaper/more reliable than relying on the LLM every time — catches it before
+any assessment dispatch at all, not just via profile guidance) and a
+company-blacklist workflow note: for a company the user has already made a
+firm, non-negotiable decision about (not a soft preference), prefer
+`jobsite.blacklist-add <company>` — deterministic, checksum-gated before any
+LLM call — over encoding the reasoning in `profile.txt` and hoping the model
+infers it correctly every time from a posting's text.
+
+**Debugging note**: this repo's outbound network egress proxy
+(`10.0.110.7:4040`, from `$http_proxy`/`$https_proxy`) silently hung
+(zero response, no error) against `stepstone.de` while a direct connection
+(`curl --noproxy '*' ...`) succeeded in under a second. Worth trying
+`--noproxy '*'` first if any live-page fetch/debug against a job-board domain
+times out through the configured proxy.
+
+#,,,,,.,.,,..,,..,.,.,.,.,.,,,...,,,.,.,.,.,.,..,,...,...,,..,.,,,,,,,.,.,,,.,
+#2YWLPMHWFRZ2G6QG2EIZCHOOZQLM7HRNYPQ2KM5CINMEMYBJA6DGSBGFZTYRTILGBXL6XRKS2MYII
+#\\\|RTQYKKSEHQHK4ABJQVK7T5E2POSOIQOAYKJTFNUVF6JWFF7KLJ7 \ / AMOS7 \ YOURUM ::
+#\[7]ZLTROKRIWHC3GEKOEA25HP43ELPJ2S5IJAMHWDLBX3KZN3D2VEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
