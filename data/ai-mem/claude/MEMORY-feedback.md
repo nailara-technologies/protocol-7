@@ -67,9 +67,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [ptd-vs-format-code-two-reasons-to-keep](feedback-ptd-vs-format-code-two-reasons-to-keep.md) — ptd skips reflow AND never loads PPI (~175ms), format-code does both; don't retire ptd assuming feature-parity means redundancy
 - [perlmod-categorization-review-catches](feedback-perlmod-categorization-review-catches.md) — kimi dispatch review caught 6 templated/vague-reasoning misclassifications; caller-count grep meaningless for .cmd./.handler. (dynamic cube routing) and can false-positive on nested-namespace names; K3 re-verification of all 59 MOVE rows in flight, check results before trusting
 - [inline-elf-perl-version-infinite-loop](bug-inline-elf-perl-version-infinite-loop.md) — FULLY RESOLVED, both atom+pri clean-start verified: dangling-if in inline_elf's UTF-8 decode (Perl 5.42.2 only) unpacked into 5 total independent bugs chasing one boot end-to-end (ptd P7-macro false-positives, deps profile gaps, httpsd/web skins ownership race, stale web.cmd.skin path); one symptom ≠ one bug, don't stop at the first plausible fix
+- [check-local-session-log-before-kimi-continue-roundtrip](feedback-check-local-session-log-before-kimi-continue-roundtrip.md) — before paying for another kimi_continue round-trip to re-extract data a session already produced, check kimi-legacy -r session log, session_catchup, or coding.show-buffer first
 
-#,,.,,,,,,,,.,.,.,.,.,,.,,..,,,,,,,..,.,.,...,..,,...,...,,,.,,..,,.,,,,,,.,.,
-#HVE3WPH3O7QMQQ6VQF2FLIWUMVWSINLBI3AYFNW7OUDOWOUFK5OVZAXSUX3L7TBDBS5SXOVAJZL44
-#\\\|X53WW2VF3OZDLJOCZTCZA3JU6TS25Y3PUCH7BRAOQVIP3QRNXEC \ / AMOS7 \ YOURUM ::
-#\[7]IE73ZKZD2YQF4NXVDPLA43JI4RW62E5VEEVR4U6CECMVUDNFRGDA 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,.,.,,,.,,..,..,,,..,,.,,,,.,,,,,..,,...,...,,,,,,..,,,,,..,,.,.,
+#I5JR6J477S7IADXT7KJS4CN56E5CBXFU6UAG3HNAWDLZAFBX4DOP5TGZ4HKJ7YHKZKJOHBGMHYT5I
+#\\\|CGUQLBJMOCXJRYNKMDDFM7GBYGND7XSRDVZS5ADEVMCG33JGBCL \ / AMOS7 \ YOURUM ::
+#\[7]PYEYUBAROTVOG763BMSUOHU6DCRNNBPWC6ITIK5L7VBQXPI2USCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
