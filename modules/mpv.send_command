@@ -2,11 +2,33 @@
 
 # name = mpv.send_command
 
-my $json_string = <[mpv.json.command]>->(@ARG);
+return <[base.log]>->( 0, 'no command defined' ) if not @ARG;
 
-return <[base.log]>->( 0, 'no command defined' ) if not $json_string;
+<mpv.request_id_seq> = ( <mpv.request_id_seq> // 0 ) + 1;
+my $request_id = <mpv.request_id_seq>;
+
+my $json_string = <[mpv.json.command]>->( $request_id, @ARG );
 
 <[base.logs]>->( 2, '<send_command> %s', $json_string );
+
+## claim whatever reply bookkeeping the caller just registered [always      ##
+## synchronous -- no other command call can interleave between the caller's ##
+## push and this line] and re-file it under $request_id, so                 ##
+## mpv.handler.pipe_output can match replies by id instead of arrival       ##
+## order. a single dropped, deferred, or reordered reply used to            ##
+## permanently desync the old shift()-based FIFO matching.,                 ##
+if (   ( <mpv.reply_ids> and <mpv.reply_ids>->@* )
+    or ( <mpv.command.reply> and <mpv.command.reply>->@* ) ) {
+    <mpv.pending_reply>->{$request_id} = {
+        'reply_id' => ( <mpv.reply_ids> and <mpv.reply_ids>->@* )
+        ? pop <mpv.reply_ids>->@*
+        : undef,
+        'reply_setup' => ( <mpv.command.reply> and <mpv.command.reply>->@* )
+        ? pop <mpv.command.reply>->@*
+        : undef,
+        'success_reply_str' => delete <mpv.success_reply_str>,
+    };
+}
 
 if ( not defined <mpv.socket> ) {
     <[base.log]>->( 1, '[send_command] player not ready — queuing command' );
@@ -22,8 +44,8 @@ if ( not defined <mpv.socket> ) {
 
 <[base.s_write]>->( <mpv.socket>, $json_string );
 
-#,,..,,.,,,.,,,.,,,,.,..,,,..,,.,,,.,,,,,,,..,..,,...,.,.,,.,,,,.,,..,,,,,..,,
-#EUM3DP4ZMG4OFMONSLH7MHRUQLRQ52AJTW7LXAWBUFZHE6XOM2GFSXQXKYBN3255P4RBIPI74FUGK
-#\\\|DXZGPCLTY2FWK67USSJEJBWCDUFR6HOEURVOUJ5ZFBHOBN7VJ2I \ / AMOS7 \ YOURUM ::
-#\[7]ZIAONSWN5V7MGFZ4PQUOZ235FKBS3TKD6QNTN6YP2SPLBWH7WADA 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,,,.,...,.,.,.,,,...,,.,,,,.,,,,,..,,...,...,..,,.,,,..,,.,.,,,.,
+#GZWETI3Z6TPSHACVCXBNLFQAWOP2ZR7WMB3TPCRTMATZVENSMWDMPNPETKFERKOAVQSRWRPOG7ELW
+#\\\|S57T3QVMDY3HEJNMQB7IP64PBQR47TIM6AYXJSWT3ZEEMPOFKTW \ / AMOS7 \ YOURUM ::
+#\[7]JI7QHIBDGPTZH6X3WRYUDJIKMOD2P4VVWZFTNJTTSEJ4TFTRNYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,11 +1,16 @@
 ## [:< ##
 
-# name = mpv.json.command
+# name  = mpv.json.command
+# param = <request_id> <command> [args...]
 
-return <mpv.json.parser>->encode( { 'command', [@_] } ) . "\n"
+my $request_id = shift;
 
-#,,.,,,..,,,.,.,,,.,,,...,.,.,.,.,,,.,.,,,..,,..,,...,...,.,.,..,,,.,,,,,,,..,
-#PFWOBGLVYWCMX64V7I4JN5RQ5DGZS5H3X66CMG5QOY6CSJRQSQQ6JOQFV32O2N5T3EP5JEBFWDIKI
-#\\\|YSCJKLPNKUQCKTISW3BNTJ4XDSRRNGV4T5MV2EZTFTSVNTX6X4Z \ / AMOS7 \ YOURUM ::
-#\[7]QJJAPZCVYCE6OWEQZYR3NYBDIQ6BOL2U3WIVNTRXKDF3LK3A5OBQ 7  DATA SIGNATURE ::
+return
+    <mpv.json.parser>
+    ->encode( { 'command' => [@_], 'request_id' => $request_id } ) . "\n"
+
+#,,..,...,,,,,,,,,.,.,,..,,..,...,.,,,...,...,..,,...,...,..,,...,,,.,,.,,...,
+#ZSIO47P7T3IUPSQ7YXETOOSZAURI6MJFA5S2QGENX35CNP5JF63RBA5SEW3AH6BUP467GNLTI7CCS
+#\\\|V53IE7JHVYLO2NEJVHG2SEEG42VQDO22GI7DZCALBXNCVH7IJ2V \ / AMOS7 \ YOURUM ::
+#\[7]E2LHBNSWQFNPAYGZ4ZIMMHCRBJBYCJYNBHREI6M4UZJ3EWVCKSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

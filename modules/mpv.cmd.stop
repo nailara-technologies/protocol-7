@@ -8,6 +8,11 @@ push( @{<mpv.reply_ids>}, $call->{'reply_id'} );
 
 <[mpv.send_command]>->('stop');
 
+## core-idle no longer runs mpv.callback.silenced on our behalf [ see   ##
+## mpv.handler.event.property-change.core-idle -- pause/resume now own  ##
+## their own sequencing and that event fired too late to be useful for  ##
+## those ], so stop -- which doesn't go through that dedicated fade-out ##
+## chain -- still needs to call it directly, same as before.,           ##
 <[mpv.callback.silenced]> if <mpv.fade_idle_volume>;
 
 <[protocol-7.command.send.local]>->( { 'command' => "cube.report_paused" } )
@@ -15,8 +20,8 @@ push( @{<mpv.reply_ids>}, $call->{'reply_id'} );
 
 return { 'mode' => qw| deferred | };
 
-#,,,.,,.,,,.,,.,,,...,,..,...,,,.,.,.,.,,,.,.,..,,...,...,.,.,,,,,.,.,,,,,..,,
-#FILMSQLW3MIFK4RL6U23GEBQOCUIHGHU46BXW5PXB426JFTBOBY352BE6JWQIZ24LTPHOPNL63INE
-#\\\|ZAPJFCIPE5TM3FG3RZTUU57PN6X5YH4OJFW4EKPTOSETUFATN3V \ / AMOS7 \ YOURUM ::
-#\[7]7OVIB7S26DQKXMI2Z74VYFJUJNZTAV7FANAUHANUOTHKGJREUUAA 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,,,,,.,,,.,,...,,,.,.,,,.,.,...,..,,...,...,,..,,,.,,,.,,,,,..,,
+#B2DHEDQ6UY6X2Q73JCEMRPNNP4IQG4AW7UWAD47XBAFXCXIW7MFUSAEPSWOTE6EXQMQOZP5YBT7WM
+#\\\|BHF4ZBP6IDBWKNWWXKGLJIQZ6AQS2K4MRYLVDVE6VX5663ZTZJ5 \ / AMOS7 \ YOURUM ::
+#\[7]GNVS363TMK7QBKV2XRQ5GZWELQSJZTKBUNMHPIFKURD6XUSROUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

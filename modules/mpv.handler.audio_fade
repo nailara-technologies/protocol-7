@@ -3,11 +3,12 @@
 # name  = mpv.handler.audio_fade
 # descr = Register a base.curve for volume fade (replaces timer-driven loop)
 
-my $volume = shift;
+my $volume        = shift;
+my $speed         = shift // <mpv.audio.fade_speed> // 24;
+my $on_done_extra = shift;
 
 <mpv.audio_fade.start_vol> //= <mpv.current.volume> // 0;
 
-my $speed    = <mpv.audio.fade_speed> // 24;
 my $duration = sprintf qw| %.3f |,
     ( 4.0 + abs( <mpv.audio_fade.delta_vol> // 0 ) / 100 ) * ( 24 / $speed );
 
@@ -44,6 +45,8 @@ my $duration = sprintf qw| %.3f |,
             } <mpv.audio_fade.reply_ids>->@*;
             delete <mpv.audio_fade.reply_ids>;
             delete <mpv.audio_fade>;
+
+            $on_done_extra->() if ref($on_done_extra) eq qw| CODE |;
         },
     }
 );
@@ -56,8 +59,8 @@ return;
 #\[7]UAVIZI43N3JZA2K2P73SVMWG2SZHOG66PHL4MWF4APWBSIHQ7YCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,.,,,..,.,.,.,,,..,,,,.,.,.,,..,.,.,...,.,,,..,,...,...,...,..,,.,,,.,.,,..,
-#6X63FK2Y3OGCLBTBYOFWDL5V3U2RTFSK24VSPM4Z6WWXXZGSZXR7VSN7QMYRFEPV6NYY7XPIPOWIE
-#\\\|3W2AOGWT6KEWNWFZY47LXMKGOAT37WYU7JJ6OUUCUHVMRITERX3 \ / AMOS7 \ YOURUM ::
-#\[7]NL3KUQ5CJEYEDNJ7B7TH5DHFE2XKYHGD22CWQVX62XET4CBLOYBI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,.,,,,.,,,.,,,.,,,..,,..,,,,,,.,,..,,...,...,,.,,..,,,,.,,.,,,.,,
+#2CWEAVWD3QNCBUYPMDJYXWXE7PI6NCIIWFFUWJGECNRSFJIEOKZCVDWECZTYRI2ZEX4EAO7TTM7T6
+#\\\|XFBTJSG4DTXSFAGSZXAQ5O5PUOQJFZNOUYHNYEADRHRNGTNMB2X \ / AMOS7 \ YOURUM ::
+#\[7]4ZWRFUT6AZYVXCU7FFNE3SVRIBNOBBN63HNB2YAYFUZ4VIAUKCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

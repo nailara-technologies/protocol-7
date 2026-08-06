@@ -3,7 +3,7 @@
 # name = mpv.handler.pipe.val_percent
 
 my $value_str = shift // '';
-my $reply_id  = shift @{<mpv.reply_ids>};
+my $reply_id  = shift // '';
 
 return <[base.callback.cmd_reply]>->(
     $reply_id, { 'mode' => qw| false |, 'data' => 'value undefined' }
@@ -18,8 +18,8 @@ my $what = delete <mpv.request>->{$reply_id};
     $reply_id, { 'mode' => qw| true |, 'data' => $value_str . '%' }
 );
 
-#,,..,,,.,.,.,,.,,,,.,.,.,,,.,.,,,...,,,.,.,,,..,,...,...,,..,.,.,,,.,,,.,.,.,
-#V3XE5AHVVQD2GJARER2HVKOG54CG57YHDVX7Q3QELRW2QSNQMXUWSRWWLUUKRVGN2G3N5AP3SYELG
-#\\\|PQ2QEQDTNESY3GHI7FG7IFNHAUSR66HSAPBBHMP7KRBYBUHJCED \ / AMOS7 \ YOURUM ::
-#\[7]NVRDQZOC4IUAI2ZLW3FXTHFRF2LJGKUT33YGF65V33JEZNFYCCDY 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,.,,,,.,,.,.,,.,,,,,,.,.,,,.,,..,..,,...,...,...,...,...,,.,,.,.,
+#2QVOTUWSWPDUOLUNPYK5OYZNH2TNGB2YCBGORAF66OBQZU2RDCR7PZGDURAPWX6HYUBVJB7W6JVBI
+#\\\|CID4WYSJPZCXQK222TRTZUIKVMJBOBHYHEMUCTUHCGRKCRJ4N6N \ / AMOS7 \ YOURUM ::
+#\[7]DFDQVA7RUB7T7NVY23WA7FOIIMAH24RUV5XE2RDTRY6RFPERAYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
