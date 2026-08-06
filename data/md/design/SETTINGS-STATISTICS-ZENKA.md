@@ -438,10 +438,8 @@ access.cmd.usr.cube = report status opt-out
 
 *Privacy-preserving configuration through inheritance and minimal diffs.*
 
-#,,.,,.,.,,.,,,,.,,,,.,.,,,,,,..,,.,.,.,,,.,.,,.,,..,,,.,.,,,..,,.,,,.,.,,,,.
-
-#,,,,,...,.,.,...,,.,,...,,,,,,,.,,..,...,..,,..,,...,...,..,,,.,,.,,,,,,,..,,
-#BFOJPEQAKLF4D7AYU7MNLTFMO7L3ASRGEHTRRDLRQRFESBP5H5C5HI5O4ZZITBNCX24U63UKGVSMA
-#\\\|PS27ASL2VICD4D3WH7KXHJVL3JZUISZFPZDRLPGHDV5LIIW62OQ \ / AMOS7 \ YOURUM ::
-#\[7]KGNH2SZWVLH5JTCIPCCA72HWTYD67RMPPJ5WPY77OBMI326BBEDY 7  DATA SIGNATURE ::
+#,,.,,...,.,,,...,.,,,,..,,.,,,,,,,.,,,,.,,..,..,,...,...,...,,.,,.,.,.,,,.,.,
+#AKSTNTDHKEW3KVLWVA3J47ZOH3NJDEZBDHOZUXJYO7DNVZT5QJD2MLRIPWSTMQ5L2HUDAJ3WD4KAO
+#\\\|PD3CGD3LNKCXTW7JTOFNP3UADBMX3ZSBFHATFNXBAXBFGEIE3QQ \ / AMOS7 \ YOURUM ::
+#\[7]BM3FWRPOXI5PF6V3S6VYMQ5LAN2RYOJOO4JEBWYOO7ALV6NHFGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

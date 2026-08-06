@@ -192,10 +192,8 @@ relates to: `data/yaml/reasoning-templates/categorical-compartmentalization.yaml
 6. knowledge base 3D grid     — longer horizon, builds on memory tree system
 ```
 
-#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-
-#,,,.,..,,..,,.,,,,.,,,.,,,,,,,,.,..,,,..,.,.,..,,...,...,,,.,...,..,,,..,,,,,
-#BMUTAVRTPTV6W2XFJ7A22XMTSHWVRPT3MHM6JV6RE3AHNA7EHWXYRJJFCHIQTTIGUFGB4F2PZUK2S
-#\\\|ORYXZTSVJXHH5PBU4XG5T7B2T2NGSUOMM3QFT2WDWTHNBTK7VV3 \ / AMOS7 \ YOURUM ::
-#\[7]4NGYFWCPSMU3BG2HCKVIT6HHFAQTFONPCPEEAUKFDGVAHY33LUCI 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,,.,.,.,.,.,.,.,,..,,.,,,.,,,.,,..,,...,...,...,..,,..,,...,,..,
+#2MRLU3JOUQQASR57XVQNQY6I355ZRHCCK3YEOWZIUI4752QFZOYP425ZRNCVQK64XEGYHL46KFW4S
+#\\\|FWZHRF76NBOOVODKV3XEIHVTY6QWCCSDGFPTEH7SHV5QISZP4AL \ / AMOS7 \ YOURUM ::
+#\[7]HNXNUPZMGKYCZLCUTULFD4WHE6GFSF6FIMXOSQD6S2OVC2HSJ2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

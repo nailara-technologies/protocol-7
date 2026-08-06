@@ -87,10 +87,8 @@ from outside the frame-system's own docs before.
 - `modules/coding.cmd.round-progress`, `bin/dev/ptd` (`show_progress`) — independent
   existing instances of the pattern named here
 
-#,,.,,,.,,.,.,.,.,.,,,.,.,..,,.,,,,,,,,,,,,..,..,,...,...,,,,,..,,,,.,,.,,.,.,
-
-#,,,.,,,.,,,,,,.,,,,.,,,,,...,...,...,..,,,..,..,,...,...,.,,,,,,,..,,,,.,,..,
-#7PZJT5CJP25UFW4XUVLO7AUXNNAEHRRC63SZ3FYYAEJC6HRJJEOQAPDYRDRKOQFDYL5JDFE5OUWZK
-#\\\|Z6KN3XVW4PUX4PDY3II4QFLK6LEAF4PEQYDNWXLI4U4ANP3K2J6 \ / AMOS7 \ YOURUM ::
-#\[7]KWYHIB7WQJLMA2XYOIPBKT7DKIGRESNK2Y2ATJLFXMIQVNTEM6DQ 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,,,,.,,,,.,,,,.,...,,..,,..,..,,..,,...,...,,.,,,,,,,..,..,,,.,,
+#AKUAZSSNDHGEWBUXF4OATRLQ64276OMKB6BNHAEKONMO4VPOSLIUFRR6WL22QCOBNETFY4ALPMQ6C
+#\\\|ENKJ2OSXDNSQSMLROQOWMJHSXDQMVQHUEF3NE2UWSCU6AL54XAH \ / AMOS7 \ YOURUM ::
+#\[7]HOMULTNM7WEBQ2GM5FOPNQ7I76NHAIZRB4YOBE2QUWBRR4RQEGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
