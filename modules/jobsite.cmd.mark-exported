@@ -1,0 +1,91 @@
+## [:< ##
+
+# name  = jobsite.cmd.mark-exported
+# param = <id> [stage] [ts]
+# descr = manually stamp exported_stage/exported_at on one job
+# note  = repair tool for when the browser's own dedup markers were lost;
+#         ts = epoch or YYYY-MM-DD[ HH:MM], defaults to now. pushed to the
+#         web cache over HTTP as a single-job update, exactly like a real
+#         browser push, via jobsite's own existing sync transport
+#         (jobsite.cfg.sync_url/clients.http) -- NOT a direct cross-zenka
+#         reach into 'web', which owns a separate store that can live on a
+#         different host entirely
+
+my $args = $call->{'args'} // '';
+$args =~ s/^\s+|\s+$//g;
+
+return {
+    'mode' => 'false',
+    'data' => 'usage: mark-exported <id> [stage] [epoch|YYYY-MM-DD[ HH:MM]]'
+    }
+    if not length $args;
+
+my ( $id_in, $stage_in, $ts_in ) = split /\s+/, $args, 3;
+
+my $job_id = <[base.vax-int.decode]>->($id_in);
+return { 'mode' => 'false', 'data' => "could not decode id: $id_in" }
+    if not length $job_id;
+
+my $job = <[jobsite.job.read]>->($job_id);
+return { 'mode' => 'false', 'data' => "unknown job: $id_in" }
+    if not defined $job;
+
+my $stage = length( $stage_in // '' ) ? $stage_in : ( $job->{'stage'} // '' );
+return {
+    'mode' => 'false',
+    'data' => "job $id_in has no stage to " . "mark; pass one explicitly"
+    }
+    if not length $stage;
+
+my $epoch;
+if ( not length( $ts_in // '' ) ) {
+    $epoch = time;
+} elsif ( $ts_in =~ m{^\d+$} ) {
+    $epoch = $ts_in + 0;
+} elsif ( $ts_in =~ m{^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?$} ) {
+    my ( $y, $mo, $d, $h, $mi ) = ( $1, $2, $3, $4 // 0, $5 // 0 );
+    $epoch = eval { Time::Local::timelocal( 0, $mi, $h, $d, $mo - 1, $y ) };
+}
+return { 'mode' => 'false', 'data' => "could not parse timestamp: $ts_in" }
+    if not defined $epoch;
+
+my @urls = split /\s+/,
+    ( <jobsite.cfg.sync_urls> || <jobsite.cfg.sync_url> || '' );
+return { 'mode' => 'false', 'data' => 'no sync_url configured' }
+    if not @urls;
+
+my $enc_id = <[base.vax-int.encode]>->($job_id);
+my $body   = eval {
+    JSON::XS::encode_json(
+        {   'id'             => $enc_id,
+            'exported_stage' => $stage,
+            'exported_at'    => $epoch,
+        }
+    );
+};
+return { 'mode' => 'false', 'data' => "encode failed: $EVAL_ERROR" }
+    if not defined $body;
+
+for my $url (@urls) {
+    <[clients.http.post]>->(
+        {   'url'     => $url,
+            'body'    => $body,
+            'timeout' => 15,
+            'on_done' => qw| jobsite.handler.mark-exported-response |,
+            'params'  => { 'url' => $url, 'id' => $id_in, 'stage' => $stage },
+        }
+    );
+}
+
+return {
+    'mode' => 'true',
+    'data' => "queued: marking $id_in exported at stage '$stage', "
+        . scalar( localtime($epoch) ) . ' -> '
+        . join( ', ', @urls ),
+};
+
+#,,.,,.,.,...,.,.,,..,.,,,,,,,.,.,..,,,,.,,.,,..,,...,...,,..,,,,,..,,,..,,,.,
+#S6AEQLNRUNZE5SY5NTZLWCWZNZ2YOWQ2RUXFBHDBU4XDIHWEMILHO5STFCU4OQ4CAOVJGKWIGCMJA
+#\\\|D6SHKPINM2VTK4GXIPBMEAOPEUKUJIE3W5GCCC5CM4NSU4RZIYZ \ / AMOS7 \ YOURUM ::
+#\[7]QDUZJRZVTJA4AMVNKCELAOLJHTHJ74YKAKTH2MU5TN2NNGCEDGDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

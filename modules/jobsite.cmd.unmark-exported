@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = jobsite.cmd.unmark-exported
+# param = <id>
+# descr = clear exported_stage/exported_at on one job
+# note  = undo for jobsite.cmd.mark-exported : e.g. a job was marked exported
+#         based on a stage it held at export time, but its CURRENT stage is
+#         itself the new reportable fact (a rejection that happened after
+#         the last report, not just housekeeping like rejected->archived)
+#         and must not be treated as already covered. same HTTP transport
+#         as mark-exported, see there for why it isn't a direct cross-zenka
+#         call into 'web'
+
+my $id_in = $call->{'args'} // '';
+$id_in =~ s/^\s+|\s+$//g;
+
+return { 'mode' => 'false', 'data' => 'usage: unmark-exported <id>' }
+    if not length $id_in;
+
+my $job_id = <[base.vax-int.decode]>->($id_in);
+return { 'mode' => 'false', 'data' => "could not decode id: $id_in" }
+    if not length $job_id;
+
+my @urls = split /\s+/,
+    ( <jobsite.cfg.sync_urls> || <jobsite.cfg.sync_url> || '' );
+return { 'mode' => 'false', 'data' => 'no sync_url configured' }
+    if not @urls;
+
+my $enc_id = <[base.vax-int.encode]>->($job_id);
+my $body   = eval {
+    JSON::XS::encode_json(
+        {   'id'             => $enc_id,
+            'exported_stage' => undef,
+            'exported_at'    => undef,
+        }
+    );
+};
+return { 'mode' => 'false', 'data' => "encode failed: $EVAL_ERROR" }
+    if not defined $body;
+
+for my $url (@urls) {
+    <[clients.http.post]>->(
+        {   'url'     => $url,
+            'body'    => $body,
+            'timeout' => 15,
+            'on_done' => qw| jobsite.handler.mark-exported-response |,
+            'params'  =>
+                { 'url' => $url, 'id' => $id_in, 'stage' => '(cleared)' },
+        }
+    );
+}
+
+return {
+    'mode' => 'true',
+    'data' => "queued: clearing exported marker for $id_in -> "
+        . join( ', ', @urls ),
+};
+
+#,,..,,,.,,..,,..,...,,..,...,.,,,,,,,.,.,.,,,..,,...,...,,,.,...,,,,,..,,,..,
+#R7H2NWCNF3R3DGMPBGOZLVXR3BJOIP2CJ6SL3LLXVQWN7VGZWGL4DPRBMRZD3ZWLSOTVJLTXJWFCY
+#\\\|AZRCXILMKNZURRRH4ZVEFJYDMOHACI5PEYU3COGSVPGBIKD7PPU \ / AMOS7 \ YOURUM ::
+#\[7]P7GRREFARLTN5FUCPCKAB3RFAVLK3WAPWRIU3IA4MG7UR7R6GOBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
