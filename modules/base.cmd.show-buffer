@@ -2,25 +2,60 @@
 
 # name  = base.cmd.show-buffer
 # descr = return buffer content ['list buffers']
-# param = <name>
+# param = <name> [lines] [pattern]
 
-my $param  = $_[0];
-my $id     = $$param{'session_id'};
-my $buffer = $$param{'args'};
+my $param = $_[0];
+my $id    = $$param{'session_id'};
+my $args  = $$param{'args'};
 
 return { 'mode' => qw| false |, 'data' => 'buffer name required' }
-    if not defined $buffer;
+    if not defined $args or not length $args;
+
+## <name> is the leading token ; anything after it is [lines] and/or       ##
+## [pattern] -- a numeric leading token of up to 5 digits is taken as      ##
+## [lines] [tail count], since no real buffer runs past ~99999 lines ; a   ##
+## longer digit run is more likely a pattern [ pid, hash, timestamp ] than ##
+## a line count, so it falls through to [pattern]                          ##
+my ( $buffer, $rest ) = split( m|\s+|, $args, 2 );
+$rest //= '';
+
+my ( $lines, $pattern );
+if ( $rest =~ m|^(\d{1,5})(?:\s+(.*))?$|s ) {
+    $lines   = $1;
+    $pattern = $2;
+} elsif ( length $rest ) {
+    $pattern = $rest;
+}
 
 return { 'mode' => qw| false |, 'data' => 'no such buffer' }
     if not defined $data{'buffer'}{$buffer};
 
+my @buf_lines = @{ $data{'buffer'}{$buffer}{'data'} };
+
+## tail [lines] first, then filter within that window ##
+if ( defined $lines and $lines < @buf_lines ) {
+    @buf_lines = @buf_lines[ -$lines .. -1 ];
+}
+
+if ( defined $pattern and length $pattern ) {
+    my ( $regex_filter, $regex_err ) = <[base.eval.comp_regex]>->($pattern);
+
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( 'invalid pattern [ %s ]', $regex_err->$* )
+        }
+        if not defined $regex_filter;
+
+    @buf_lines = grep { $ARG =~ $regex_filter } @buf_lines;
+}
+
 return {
     'mode' => qw| size |,
-    'data' => join( '', map {"$ARG\n"} @{ $data{'buffer'}{$buffer}{'data'} } )
+    'data' => join( '', map {"$ARG\n"} @buf_lines )
 };
 
-#,,,.,,,.,...,.,,,..,,.,,,.,,,..,,.,.,,.,,.,,,..,,...,...,,..,,,.,,,,,,,.,,..,
-#EPZE2NDPKJIAZ754UCO6K33RCO3R52ECGQA3V2MWXVWVYUDDQ7FW3C4APNVDIQT2UI6ZFPTLW3MCU
-#\\\|ZJICEENBVS4P25ETUVE2S3QMLU23QDNHPKUZEDNGD3S2YS7OZBY \ / AMOS7 \ YOURUM ::
-#\[7]UEUG3774FKAX4AKR3FIGN4J5YB7AVLJRQAKN37BHB6WXYCOCDOBA 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,,,,..,,,.,,.,,,.,.,,.,,..,,,,,,..,,...,...,.,,,.,,,,,,,.,.,,.,,
+#256HNR7ZZIDRTHK44QA7Y5JX6XXH3ZY4DOURSHHFCXCXMCQ3YRJUBC663IJ4NDPWN4ABJFSRS7SNO
+#\\\|7O4BKU5Q3JKYSYQQXH35TTSZBYGSZBSIRHSFL3T63SI4EHBUG6Z \ / AMOS7 \ YOURUM ::
+#\[7]HQXXLAZ4BLDUMEUR2WLNFLY5COO5RS4BUEM7LUNOBN6K4FA32QAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
