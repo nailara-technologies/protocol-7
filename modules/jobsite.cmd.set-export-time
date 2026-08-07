@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = jobsite.cmd.set-export-time
+# param = <ts>
+# descr = force-set the shared last-export timestamp
+# note  = ts = epoch or YYYY-MM-DD[ HH:MM]. bypasses the usual max-merge
+#         (jobsite.cmd.set-prefs never lowers a value, which is right for
+#         the browser's own push but wrong for a manual repair that may
+#         need to correct the value in either direction)
+
+my $val = $call->{'args'} // '';
+$val =~ s/^\s+|\s+$//g;
+
+return {
+    'mode' => 'false',
+    'data' => 'usage: set-export-time ' . '<epoch|YYYY-MM-DD[ HH:MM]>'
+    }
+    if not length $val;
+
+my $epoch = <[jobsite.util.parse_ts]>->($val);
+return { 'mode' => 'false', 'data' => "could not parse: $val" }
+    if not defined $epoch;
+
+my $prefs = <[jobsite.client_prefs.read]>;
+$prefs->{'last_export_at'} = $epoch;
+<[jobsite.client_prefs.write]>->($prefs);
+
+return {
+    'mode' => 'true',
+    'data' => "last-export time set to " . scalar( localtime($epoch) )
+};
+
+#,,,,,,..,...,...,.,.,..,,...,,..,...,...,,.,,..,,...,..,,..,,.,,,,,,,,..,,,.,
+#JROZL5CKB452KHSI4HRKVTC2YYQZEF3TRO52NNU2DMZAOF4MYAAXBKF5ZZI2HVW7ER6ZR6KDM3YJW
+#\\\|Y7AH5YZ5GXSATNWTJEFPO727RV7SNOL6R3F5WSNH4AIDN5INPM4 \ / AMOS7 \ YOURUM ::
+#\[7]EKEDVRJVMPO4WEVAEYLTQW7FB6NAZDXTXUMIE6D5IYA3K7KQZMDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
