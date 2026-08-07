@@ -193,9 +193,19 @@ my $stall_timeout_sec = ( <coding.http-timeouts.stall> // 77 )
     * ( <coding.stretch.timeout_factor> // 1.0 );
 $state->{'stall_timeout_sec'} = $stall_timeout_sec;
 
+## identify what this connection is FOR : real tasks have a task_id, self- ##
+## test probes don't [ deliberately - see coding.self_test.async_probe ]   ##
+## and rely on request_kind [ probe / tier1 ] instead - without either,    ##
+## this line used to just say "connected", leaving the reader to infer the ##
+## purpose from whatever log line follows several chunks later             ##
+my $conn_label
+    = length( $callbacks->{'task_id'} // '' ) ? $callbacks->{'task_id'}
+    : $callbacks->{'request_kind'}            ? $callbacks->{'request_kind'}
+    :                                           $backend_name || '?';
+
 <[base.logs]>->(
-    1,     "async.http_client: connection established to %s:%d",
-    $host, $port
+    1, "async.http_client: connection established to %s:%d [ %s ]",
+    $host, $port, $conn_label
 );
 
 return {
@@ -203,8 +213,8 @@ return {
     state   => $state,
 };
 
-#,,,,,,..,,..,.,.,,..,,.,,,.,,.,.,,,.,.,,,,,,,.,.,...,..,,.,.,,..,,,,,..,,..,,
-#4OIK743364D6A46IN566YERRDT5ULXSFKNWWL35FHVDSM6VKVDGQXR3CU4TJ6WT2MUHOWVTQL3H3Q
-#\\\|XJ4HQG6XUXJBUY6FL2KZ7L7C4EEO7LVOR2AKEVOMLRIO3AGU6WF \ / AMOS7 \ YOURUM ::
-#\[7]DQ5DUCWIFFQ5WQ5G65PADIM3SOW32EJHBP73JZMN2SWXIYAGS2AA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,...,..,,...,.,.,..,,,..,...,..,,.,.,...,..,,...,,..,.,,,,..,.,,,
+#YR6UVRBNYSKROX2MMDI7C2EF3YYWVPVJUVMJ3CAQT7DW7Z6R6GKNEX3J4E7ERPEZPRQGPJLMROY3Y
+#\\\|4745COHYR7M2PUGWUK2W4D3DPGG4MR7IIAMM4H7EYRDHX6CKXZF \ / AMOS7 \ YOURUM ::
+#\[7]XICDDKH6YV6XZF4UUJZELPPX4M4OGLP3ERLXKF4ZP27MPSUI6EAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
