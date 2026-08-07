@@ -45,7 +45,7 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 - [bin-todo-style-refresh](topic-bin-todo-style-refresh.md) — port ascii.frame border/color logic into AMOS7::TERM for bin/todo; sized for one Opus/Kimi dispatch
 - [amos7-p7-loader](topic-amos7-p7-loader.md) — dep-graph loader vision now also covers standalone bin/* scripts, not just MCP handlers; duplication OK until it lands
 - [os-command-zenka](topic-os-command-zenka.md) — planned command templates, security levels, STRM
-- [coding-round-timeout-adaptive](topic-coding-round-timeout-adaptive.md) — LANDED: soft/hard ceiling, stall detect, restart-round
+- [coding-round-timeout-adaptive](topic-coding-round-timeout-adaptive.md) — LANDED: soft/hard ceiling, stall detect, restart-round; 2026-08-07 follow-up (4c3cf0e73): soft-ceiling gate was keyed on task_state existence not actual liveness (self-test could never take it), queue-resume ceiling misaligned with self-test's own watchdog, new degenerate-stream repetition detector
 - [coding-round-timeout-no-autorestart-observed-2026-07-26](project-coding-round-timeout-no-autorestart-observed-2026-07-26.md) — FOLLOW-UP NEEDED: round hit 175% of ceiling with no auto-restart, manually aborted, not yet root-caused
 - [audio-waveform-visualization-landed-2026-07-26](project-audio-waveform-visualization-landed-2026-07-26.md) — LANDED (kimi K3): new `audio` zenka, PDL-FFT+Imager standing-wave renderer, tested clean on 4 samples incl. saturnians.mp3 generalization case; "pending human sign-off" note likely stale as of 2026-07-30 (working tree clean, later audio commits `be7734af5`/`5eaf8e3d5` build on top of it) — not independently re-verified, but treat as landed unless contradicted
 - [audio-icon-three-stage-pipeline-landed-2026-07-27](project-audio-icon-three-stage-pipeline-landed-2026-07-27.md) — LANDED: 3rd orthogonal `audio.cfg.overlay` axis alongside render_style/post_process; `audio.overlay.waveform_trace.v1` draws translucent phosphor-green min/max amplitude trace over a background (true per-pixel alpha, not black-fill-blended opacity); icon use case = v3 render + rotation_stack.v4 mirror bg + waveform foreground, live-verified via p7c
@@ -98,8 +98,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 - repo-pii-leak-prevention — `data/md/design/REPO-PII-LEAK-PREVENTION.md`: pre-commit/pre-push regex+optional-zenka-inference PII scanner with pattern list stored outside the repo tree, plus a periodic full-history audit tool and a documented filter-repo recovery runbook (path/text/message passes + tag-drift re-anchor); not yet implemented, open decisions listed in the doc's last section
 
-#,,,,,..,,.,.,,.,,,..,,,,,,.,,...,,.,,..,,,.,,..,,...,...,,,.,.,,,,..,,,.,..,,
-#YXUVAC4PXUUW4GNRE6IGSZDS22UTS5Y6VL7Q2ED3XR2DZTAR4S6SKIQZDTTIJFNXZWR5SGBGWSU7E
-#\\\|CKV3AWDMGNFY45NRFYBORBPTYPBZZTAC75ZX5NODYJ2QQ5SY7OZ \ / AMOS7 \ YOURUM ::
-#\[7]GCNYTLBLRSDXLL3PVDRQTNVFTPWZRZNJSQWWM5DXOFI56WOM4OCA 7  DATA SIGNATURE ::
+#,,..,,,.,...,,..,,.,,,,.,,,.,,,.,,,.,,.,,,,,,..,,...,...,...,.,.,,.,,,,,,,.,,
+#4E3O2SGB62TUBMIVSDLQPO3PTHWETC52D5KJEIU7FY2KGB6L26RBYQLPHCDNW63WFP3JNZYFEOATI
+#\\\|OBNZT7ZEDDMR7JW6ZGPTDUPQWZ5OONTDJADPPXWLKICN4ICPEEG \ / AMOS7 \ YOURUM ::
+#\[7]S5JNF7EMTRJK62FQ5GRFUX3MOUEBS7Z4SEFADA2GKYQGYH7EIOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
