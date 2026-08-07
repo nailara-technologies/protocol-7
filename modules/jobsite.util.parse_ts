@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = jobsite.util.parse_ts
+# args  = <epoch seconds | YYYY-MM-DD[ HH:MM]>
+# descr = shared timestamp parsing for manual export-time repair commands
+# return = epoch seconds, or undef if unparseable
+
+my $val = shift // '';
+$val =~ s/^\s+|\s+$//g;
+return undef if not length $val;
+
+return $val + 0 if $val =~ m{^\d+$};
+
+if ( $val =~ m{^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?$} ) {
+    my ( $y, $mo, $d, $h, $mi ) = ( $1, $2, $3, $4 // 0, $5 // 0 );
+    return eval { Time::Local::timelocal( 0, $mi, $h, $d, $mo - 1, $y ) };
+}
+
+return undef;
+
+#,,.,,,.,,,.,,.,.,,.,,,,,,,.,,,.,,..,,,.,,,.,,..,,...,...,.,.,..,,,,.,...,.,.,
+
+#,,..,...,...,..,,,,.,,..,..,,...,.,.,,.,,,.,,..,,...,..,,...,.,.,,,,,.,,,.,.,
+#DC6VSOFIC5HLYD4LZJVXNX6ZS5X6PIIRJUOM7OMOKDPEKR6HJV2SNK3KQH3VXGJVZ6YGZAGROCFRW
+#\\\|MUBGA567ALXGAJYEQDDLNUJ6BXL7IRP4YNRMLULKIYJ67OZKXEQ \ / AMOS7 \ YOURUM ::
+#\[7]VACHOMTRA4JJMKJSCTPH7CIRM2PZFNNBFODJNZBBLYCDMB5K4WCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
