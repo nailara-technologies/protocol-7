@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Job Pipeline — Application Tracker</title>
 <style>
+@font-face {
+    font-family: 'White Rabbit';
+    src: url('white-rabbit.flipped.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+}
+
 :root {
     --p7-bg:        #00040c;
     --p7-bg-mid:    #031542;
@@ -25,7 +32,7 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-    font-family: 'Courier New', Courier, monospace;
+    font-family: 'White Rabbit', 'Courier New', Courier, monospace;
     background:
         radial-gradient(circle at 15% 15%, rgba(68,39,172,0.14) 0%, transparent 40%),
         radial-gradient(circle at 85% 85%, rgba(0,58,255,0.10) 0%, transparent 35%),
@@ -33,13 +40,22 @@ body {
         var(--p7-bg);
     color: var(--p7-fg);
     min-height: 100vh;
-    padding: 1rem;
+    padding: 0.55rem 1rem 1rem;
     line-height: 1.5;
 }
 .container { max-width: 900px; margin: auto; display: flex; flex-direction: column; gap: 1.2rem; }
 
-h1 { color: var(--p7-fg-bright); font-size: 1.4rem; margin-bottom: 0.2rem; font-weight: bold; text-shadow: 0 0 12px rgba(0,58,255,0.18); }
-.subtitle { color: var(--p7-fg-dim); font-size: 0.8rem; }
+h1 { color: var(--p7-fg-bright); font-size: 1.25rem; font-weight: bold; text-shadow: 0 0 12px rgba(0,58,255,0.18); }
+.subtitle { color: var(--p7-fg-dim); font-size: 0.72rem; }
+.header-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    line-height: 1.1;
+    padding: 0 0.27rem;
+    margin-bottom: -0.5rem;
+}
 
 /* controls bar */
 .controls {
@@ -631,9 +647,9 @@ input[type="date"], textarea {
 <div class="container">
 
   <!-- header -->
-  <div class="no-print">
+  <div class="no-print header-row">
     <h1>application tracker</h1>
-    <p class="subtitle">protocol-7 · stepstone.de · automatisierte Bewertung</p>
+    <span class="subtitle">protocol-7 · stepstone.de · automatisierte Bewertung</span>
   </div>
 
   <!-- controls -->
