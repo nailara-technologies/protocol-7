@@ -35,8 +35,24 @@ See also [[topic-buffer-access-control]] (future per-buffer ACL), and the
 used to crash the regex compile — fixed by escaping only the `'` delimiter, not backslash,
 since `qr'...'` hands `\`-escapes straight to the regex engine).
 
-#,,.,,,.,,,.,,,,,,,,,,,..,.,,,,.,,.,,,.,,,,..,..,,...,...,.,,,.,,,..,,,.,,,,,,
-#6OP6C7YUKH6QTXAZ65XCXOEFTNOKYXMMKDY34UK6QYOMQWPSUH3T535OCFMXUPCEXEA7QKJFG6JFG
-#\\\|6RCGR5LQFUDTLS3PC2NRBNMCTQYCXC4SXFCMLPKCPTKAR3AR2F2 \ / AMOS7 \ YOURUM ::
-#\[7]FOXO2HYEEUVCXITOE5HZRNCJKKVTZ7ZH35Q54QKK523GZVEDMQBY 7  DATA SIGNATURE ::
+**Correction 2026-08-07**: the `zenka` buffer (and named buffers generally) is a passive
+review sink only — it has no functional role in the zenka's actual runtime logic. Its
+retention is governed purely by `system.zenka.verbosity.buffer` (default 1) vs. how
+chatty the code logging into it happens to be at each level; nothing downstream reads it.
+I initially over-interpreted a rotated-out buffer (`coding`'s zenka buffer, 130777-byte
+cap, blown through within a single self-test prompt because `coding.handler.http_io` /
+`http_io_parse_line` log every SSE chunk at level 2 — ~5 log lines per streamed token)
+as evidence that the underlying timeout/retry *behavior* itself was somehow unverifiable
+or unreliable. The user corrected this directly: the buffer's rotation only affects what
+a human can review after the fact through `show-buffer` — it says nothing about whether
+the code path itself is correct. Don't conflate "I can't see it in the buffer" with "the
+system can't see it either" — the buffer is strictly downstream of behavior, never load-
+bearing for it. (The user separately lowered the coding zenka's `verbosity.buffer` to
+match console level 1, which stopped the chunk-spam eviction problem for future review —
+but that was a review-quality fix, not a correctness one.)
+
+#,,..,.,.,.,,,,,,,.,,,..,,.,,,,,.,.,.,.,,,,..,..,,...,...,,..,,..,.,,,...,.,.,
+#MQG3LBRBEEQHMEEIO2OFFSZLU3OW4E756IUEMMLZVKCQPMGPIUTBP2T7YAF5A7TLL5BGLZIU6IRNI
+#\\\|TE6AFSUCOSXQ57FU6CNFCPHY4GTWWPDT3H6WCXLFMJ3MATLJZK3 \ / AMOS7 \ YOURUM ::
+#\[7]QPY4FMBK4KJHQOLSLBERLHC6XXOOEL5GNQ6MIQCCOQUIAO4SDUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

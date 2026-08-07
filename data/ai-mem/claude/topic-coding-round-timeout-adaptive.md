@@ -99,8 +99,69 @@ stall timeout multiply their base value by the current factor at
 round/connection start — read once per round/connection, not
 continuously, consistent with how the ceiling itself already works.
 
-#,,,.,...,,,,,,,.,.,.,,..,...,,,,,,.,,.,.,..,,..,,...,...,,,.,..,,.,,,...,.,,,
-#YMPBDSH4K5LG6KVYCTKQGFXUVGUHQNQM3LHD4RIGUEOSZL3OW5KGUFUQVZ4R54FC4XMTF3M2VULZ4
-#\\\|2L32BAETS3YLNQNHBDDY2AABRIGXN55LCOMEKWG6X55G5RU5CB5 \ / AMOS7 \ YOURUM ::
-#\[7]F6LWJ2SPYONNY2BCK4RXMICTEZHKNVFHLRRLDGRV3SEVI4LW5KCY 7  DATA SIGNATURE ::
+## soft-ceiling gate was keyed on the wrong signal — LANDED 2026-08-07 (`4c3cf0e73`)
+
+Found while chasing a self-test failure (`prompt 2 : inference failed :
+request_failed` after a 90s timeout, despite the server actively
+streaming). Root cause: `coding.handler.http_timeout`'s soft-ceiling
+escalation branch (the "still streaming, just slow, extend instead of
+hard-fail" path described above) was gated on `defined $task_state` —
+i.e. "does this belong to a real queued task" — not on whether the
+stream was actually alive. `coding.self_test.async_probe` deliberately
+passes an empty `task_id` to stay decoupled from the task queue, so
+self-test requests could **never** take the soft path and always
+hard-failed at the flat per-request ceiling (90s), even mid-stream with
+valid tokens still arriving. The `task_state`-existence check was a
+proxy for liveness that happened to correlate for real tasks but said
+nothing for self-test — same *shape* of bug as
+[[feedback-coding-timeout-restart-loop]]'s floor/ceiling mixup: a gate
+built on a condition that's merely correlated with the thing you
+actually need to check.
+
+Fix: the gate now checks real liveness directly — `chunks_received > 0`
+and `last_activity` within `stall_timeout_sec` (the same signal the
+stall watcher itself already uses) — then branches on `task_state` only
+to decide *how* to continue: task-based requests still get the existing
+tear-down-and-redispatch `round_soft_restart`; non-task requests (self-
+test) get the deadline extended **in place** on the same open connection
+instead (no redispatch machinery exists for them, and redispatching
+would throw away real in-flight progress for no reason).
+
+Two more fixes landed alongside it, all same commit:
+- `coding.handler.verify_inference_startup`'s independent fallback
+  queue-resume timer had its own 120s deferral ceiling — shorter than
+  self-test's *own* worst-case duration. It could fire mid-retry and
+  force-resume the task queue before self-test had actually concluded,
+  which is the exact premature-resume race the
+  `self_test_probe_in_flight` guard exists to prevent, just via a second
+  uncoordinated timer nobody had reconciled against the first. Ceiling
+  now derives from self-test's own hard watchdog
+  (`coding.cfg.self_test_max_total`, `coding.self_test.handler.poll_probe`)
+  instead of a smaller hardcoded number picked independently.
+- new `coding.detect_stream_repetition` (cheap bounded-tail regex, unit
+  8–60 chars repeated 4+ times back-to-back) wired into the shared
+  `coding.handler.http_io_parse_line` transport layer, next to the
+  existing `coding.abort.check_stream` pattern-match check. Needed
+  because liveness-gated extension alone would let a technically-alive
+  but content-degenerate stream (a model looping on its own output) run
+  far longer than before — chunks-flowing and content-sane are
+  completely decoupled signals. Real tasks route a match through the
+  same `on_abort` recovery path already trusted for pattern-match
+  aborts; self-test reports it as a non-retryable `on_error`, which for
+  the cat-test prompt flows straight into the existing
+  `monitor_inference_startup` seed-restart path used for any other
+  prompt-2 failure — no new escalation plumbing needed, it composes with
+  what already existed.
+
+**How to apply**: when a boolean gate exists to answer "is this thing
+still legitimately working," grep for what it's actually testing before
+trusting it — `defined $x` where `$x` is merely *correlated* with
+liveness (exists-because-it's-a-task, not exists-because-it's-alive) is
+a different question than liveness itself, and the two conditions can
+silently diverge for any caller that doesn't populate `$x` the same way.
+
+#,,.,,,..,..,,...,,.,,,..,.,,,...,...,..,,,.,,..,,...,...,,,,,,.,,,..,,,,,,,.,
+#7GBUO6VAHDJ4ERQSCI2CREW66AG4YS4ORBVVPQZJUSFGLV7WNVGN4CCNJOPPCYHKPTOOHX74D3NFO
+#\\\|EQJPCITHFTDGXLAEBV27N7VAWY6Z5DVYY7QEFGU26IE2EKIAYM6 \ / AMOS7 \ YOURUM ::
+#\[7]J3MVYC2ZV2FDENYBM44WQU5Z7RG32ZPK3WXWMGXZ6NHFWURMUEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
