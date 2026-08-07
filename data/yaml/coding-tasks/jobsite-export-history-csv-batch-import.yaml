@@ -1,0 +1,131 @@
+---
+title: jobsite export table — CSV batch-import to reconstruct exported_stage history
+priority: low
+status: open
+type: new-feature
+
+context: |
+  grew out of a real incident, 2026-08-07: an accidental CSV export followed by clicking
+  "letzten export vergessen" wiped the exported_stage marker on every job jobsite had ever
+  exported (the old clearExportHistory() cleared unconditionally, not just the accidental
+  batch). fixed same session by adding exported_at [ epoch, added to the browser-writable
+  field whitelist in modules/plugin.web.jobs.sync:57 ] and scoping "vergessen" to the
+  current batch only.
+
+  that fix only protects against FUTURE over-broad clears. reconstructing the PRE-EXISTING,
+  never-tracked history [ export tracking predates this fix by months ] required manually
+  reading four separate old CSV files from the user's Downloads folder [ 2026-07-01,
+  2026-07-09, 2026-07-15, 2026-08-03 ], matching each row to a live job by its stepstone
+  URL, and batch-applying exported_stage/exported_at via three new p7c commands built for
+  this purpose:
+    - jobsite.cmd.mark-exported <id> [stage] [ts]   — stamp one job exported
+    - jobsite.cmd.unmark-exported <id>               — clear one job's marker
+    - jobsite.cmd.set-export-time <ts>               — force-set the shared display
+      timestamp [ bypasses jobsite.cmd.set-prefs's max-only merge ]
+  all three live in jobsite [ mark-exported/unmark-exported push over HTTP via
+  jobsite.cfg.sync_url + clients.http, deliberately NOT a direct cross-zenka reach into
+  'web', which owns the actual web-cache store and can live on a different host ].
+
+  this task is the natural next step: turn that manual, one-off detective process into a
+  repeatable tool. the user's own framing: a per-row "[mark exported]" button in a
+  repair-mode UI column is a viable last-resort fallback, but a CSV importer that does what
+  was just done by hand — parse + URL-match + batch-apply — is architecturally simpler and
+  the primary tool, given how well URL-matching worked in practice.
+
+  related but distinct: see [[topic-jobsite-export-history-log-vision]] [
+  data/ai-mem/claude/topic-jobsite-export-history-log-vision.md ] for the separate, larger
+  idea of a true per-batch history log with browse/undo UI [ mirroring the trash panel's
+  list+rescue pattern ] — that's about undo granularity going forward. THIS task is about
+  reconstructing/reconciling against records that already exist as files, which is a
+  different problem with a much smaller shape.
+
+scope:
+  csv_import_tool: |
+    accepts a CSV in the same format jobsite's own export already produces [ same columns:
+    Nr;Datum;Unternehmen;Position;Ort;Score;Status;Bewerbungsdatum;Notiz;Link;... — see
+    exportCSV() in data/web-root/vhosts/jobs.vhost/index.html for the exact column list ].
+    for each row:
+      1. match by the stepstone URL [ 'Link' column ] against live job.url — this is the
+         reliable key, company+title matching is fuzzy and was avoided this session for
+         good reason
+      2. on match, determine the stage to mark: default to the job's CURRENT live stage,
+         NOT the CSV row's historical 'Status' value — but see the correctness pitfall
+         below, this default is only safe for pure housekeeping transitions
+      3. exported_at = the CSV file's own mtime [ or an explicit override if the file was
+         copied/re-saved after the fact — this session found exactly that: a duplicate
+         '-2' filename with a much later mtime than its actual content's real send date ]
+
+  correctness_pitfall_found_this_session: |
+    marking ESONO AG and SINTEC Informatik using their CURRENT stage [ 'rejected' ] was
+    WRONG and had to be manually undone via unmark-exported: on the report date they were
+    still 'beworben' [ applied ], and the rejection itself happened AFTER that report — it
+    is new, unreported information, not something the old report already covered.
+    'rejected'->'archived' is safe to treat as still-covered [ pure housekeeping, no new
+    fact ]; 'applied'->'rejected' is NOT [ the stage change IS the new fact ]. the importer
+    must not blindly default to "current stage" — needs either:
+      a. compare the CSV row's own Status against current stage, and only auto-mark when
+         they match [ i.e. only mark the pipeline-safe case, skip + flag anything where
+         they've since diverged for manual review ], or
+      b. a --dry-run/preview step that lists exactly what would be marked, with the CSV's
+         recorded status ALONGSIDE current live status per row, so a human catches
+         status-drift before committing [ recommended — this session's mistake was caught
+         only because the user happened to notice the 'absage' count didn't match memory ]
+
+  reuse_not_reinvent: |
+    the three p7c commands built this session [ mark-exported, unmark-exported,
+    set-export-time, all in modules/jobsite.cmd.* ] are the correct underlying primitives —
+    the importer should call these [ or their shared internal logic, factored out if
+    duplicated ] per matched row rather than re-implementing the HTTP push to the web cache.
+
+  interface_undecided: |
+    not yet decided whether this should be a p7c command taking a file path [
+    jobsite.import-export-csv /path/to/file.csv --dry-run ], a browser-side file upload
+    added to the jobsite UI's export panel, or both. given the source files live on the
+    user's own machine [ /user/Downloads/*.csv ], a p7c command reading a local path is
+    probably simplest to ship first; a browser upload adds real UI work for comparatively
+    little gain until server-vs-browser filesystem-access assumptions are worked out.
+
+  per_row_repair_ui: |
+    secondary, lightweight fallback for the single-accidental-export case [ no file needed
+    ] — user's own idea, worth keeping alongside the CSV importer, not instead of it: after
+    "letzten export vergessen", add a per-row way to manually re-mark an individual entry as
+    exported directly in the export table, removing it from the pending list. either a
+    button in an added table column, or a checkbox per row — user was explicit neither
+    specific form is settled yet and it "will need some thinking and refinement for style
+    and usability" before implementing. whoever picks this up should treat the exact
+    control [ button vs checkbox vs something else ], its placement, and its interaction
+    with the existing "bereits exportierte ausblenden" filter [ does checking it
+    immediately hide the row, or only on next filter re-apply? ] as open design questions,
+    not settled spec — this entry only preserves the idea, not a decided shape. see also
+    [[topic-jobsite-export-history-log-vision]] for the larger per-batch history+browse/undo
+    idea this connects to, and [[topic-jobsite-ui-polish-queue-2026-08-07]] for the existing
+    checkbox-contrast issue already flagged for this same UI area — any new checkbox control
+    added here should get that same contrast fix, not repeat the mistake.
+
+verification:
+  - given one of the real historical CSVs from this session as input, dry-run output lists
+    every row matched to a live job by URL, its recorded Status vs current live stage side
+    by side, and flags [ not auto-marks ] any row where they differ
+  - committing [ non-dry-run ] applies exported_stage/exported_at only to rows where
+    recorded Status matches current stage [ or where a flagged row was explicitly
+    confirmed ], matching the corrected outcome this session arrived at by hand for all 19
+    rows across the four files
+  - re-running the same file a second time is a safe no-op [ idempotent — already-marked
+    rows with matching exported_at aren't re-pushed unnecessarily ]
+
+notes: |
+  full incident + all commands run this session are in the conversation history around
+  2026-08-07; the four source files used for reconstruction were
+  /user/Downloads/bewerbungen_2026-07-01.csv, bewerbungen_2026-07-09.csv,
+  bewerbungen_2026-07-14.csv [ saved 07-15 00:24, filename doesn't match send date ], and
+  bewerbungen_2026-08-03.csv. low priority / not urgent — the manual reconstruction is
+  already done and correct as of this session; this task exists so the NEXT time this
+  happens [ and given how easily 'vergessen'/an accidental export can still create a gap
+  for jobs exported before this session's fixes, it will ], the fix takes minutes instead
+  of the multi-hour investigation this session required.
+
+#,,,,,.,.,,,,,,,.,,,,,,.,,...,,.,,,,,,,,,,.,.,..,,...,..,,.,.,.,,,.,.,,,.,,,.,
+#HX42ZFF76BO675SWDHT65GTOIVXHYFRWT527QQS77OQYMZF2FK75MCFTLIGTQKGMVPQG5TBHYIRUU
+#\\\|QXDB72BB2Y5TGZGBLFDDMWOFPYAOGYGGLTJFJHZQ77PP4STYMLC \ / AMOS7 \ YOURUM ::
+#\[7]YJVWWB5E75NYXBSCRVHGEJPJMCK5R447QSX2RYXGLWVOUUTRHSCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

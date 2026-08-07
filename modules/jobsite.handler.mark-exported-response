@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = jobsite.handler.mark-exported-response
+# descr = logs the async outcome of jobsite.cmd.mark-exported's http push
+
+my $result = shift               // {};
+my $ok     = $result->{'ok'}     // FALSE;
+my $body   = $result->{'body'}   // '';
+my $params = $result->{'params'} // {};
+my $url    = $params->{'url'}    // '';
+my $id     = $params->{'id'}     // '';
+my $stage  = $params->{'stage'}  // '';
+
+my $reply   = $ok ? eval { JSON::XS::decode_json($body) }        : undef;
+my $body_ok = ref $reply eq 'HASH' ? ( $reply->{'ok'} // FALSE ) : FALSE;
+
+if ( $ok and ref $reply eq 'HASH' and $body_ok ) {
+    <[base.logs]>->(
+        1,   'jss.mark-exported: %s marked exported (stage=%s) via %s',
+        $id, $stage, $url
+    );
+} else {
+    <[base.logs]>->(
+        0,
+        'jss.mark-exported: FAILED for %s (stage=%s) via %s: %s',
+        $id, $stage, $url,
+        $ok
+        ? (   ( ref $reply eq 'HASH' )
+            ? ( $reply->{'error'} // 'server ok:false' )
+            : 'bad response body'
+            )
+        : 'transport failure'
+    );
+}
+
+#,,..,.,.,,..,..,,,.,,,.,,.,,,,,,,...,,..,.,.,..,,...,...,,.,,,,.,.,.,,,.,,.,,
+#VCCWQYOK6TEXUKCF55Q2TDKNKX2S7C7VSRJD4JVZHB3TFKI2UVQDUB3OIRQBD7LIHKB2SW5P25BQS
+#\\\|HGWNW7AKJY43VUR2M74QQAHDLE6S5MMIXNYQ2GSUVGYEPD6V5LM \ / AMOS7 \ YOURUM ::
+#\[7]IDEIFLMD3K3IYY6EDOEMHVM2R6YNNJXELBYU75JJHWAPCKBRA2AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,6 +13,8 @@ network-as-computer, dedup-tree unification, coding-as-artform / style-philosoph
 - [anyevent-bridge-vs-replace](topic-anyevent-bridge-vs-replace.md) — event.anyevent.init_code was a stalled no-urgency replacement attempt (missing variable watchers); the live thread is bridging AnyEvent-only 3rd-party modules via its Event.pm backend, no swap_subs needed
 - [nested-zenka-simulation](topic-nested-zenka-simulation.md) — SEED: full nested zenka simulation as containment (restriction fails as a cliff, simulation fails as a slope); reasoning template `containment-through-simulation.yaml`; borrows orbital-data-space's nesting-chain-IS-the-address trick; not yet a design doc
 - [implicit-perspective-navigation](topic-implicit-perspective-navigation.md) — curves/thresholds ARE the nav decision; explicit/implicit/magnetic modes; design-only
+- [jobsite-export-history-log-vision](topic-jobsite-export-history-log-vision.md) — SEED: recency-scoped "vergessen" (undo last export batch, landed 2026-08-07) is a cheap partial fix; true undo-to-any-point needs a real per-batch history log + browse/delete UI (reuse trash panel's list+rescue pattern), not yet built, user-confirmed bigger scope
+- [generic-web-template-resource-error-tripwire](topic-generic-web-template-resource-error-tripwire.md) — SEED: URL-tag existing fetch errors → passive string-match tripwire for browser-blocked resources (custom fonts etc.) → active probe only once tripwire fires → contextualized remediation message in generic templates, minimal 'custom font loading failed' in one-off pages like jobsite; grew out of [[topic-jobsite-firefox-webfont-resolved]], not yet coded
 - [dynamic-dependency-resolution](topic-dynamic-dependency-resolution.md) — local-capability-first, then preference match, then discovered capability chains
 - [decision-node-polarity-geometry](topic-decision-node-polarity-geometry.md) — seed: polarity node = reference-bubble's 5-of-7; not yet reconciled w/ node-group-geometry
 - [write-access-security-infrastructure](topic-write-access-security-infrastructure.md) — signature-gated approvals, PIN auth, review UI; design-only
@@ -53,8 +55,8 @@ network-as-computer, dedup-tree unification, coding-as-artform / style-philosoph
 - [audio-render-cubic-zoom-transition](topic-audio-render-cubic-zoom-transition.md) — SEED: audio.render_standing_wave's nested lattice squares visually travel along a cubic grid under zoom; proposed as a transition mode overlaying the existing cubic-space desktop nav grid, bridging the audio renderer into the project's existing space-navigation visual language; relates to [[topic-implicit-perspective-navigation]]/[[topic-perspective-layers]]
 - [audio-render-as-similarity-feature-source](topic-audio-render-as-similarity-feature-source.md) — SEED + CORRECTED (kimi K3 review): similarity idea still stands but v1/v2/v3 share one analysis front-end so cross-style "agreement" is near-tautological, not independent like checksums, until the analysis itself is diversified; also found v3's absolute-phase placement is shift-*variant* (real bug -- re-segmented same audio renders differently) and the renderer discards all temporal/rhythm info by averaging FFT windows -- concrete v4 idea (energy variance per window) would fix that gap
 
-#,,.,,,.,,..,,,,.,..,,,.,,.,,,,,.,..,,.,.,.,.,..,,...,...,.,,,...,.,,,.,.,,..,
-#K7SQXDO2RKAW55H5KRVKKSV4CDOX7VCFDOWT6YAWXFRNV2GO565GNUHQOQQ6R22ZLYW2IWPHFWICE
-#\\\|LWVN2QGVPDMJSHPS767LLBPSNAMUSLI3ZL6G3VROC5A6NP67KCM \ / AMOS7 \ YOURUM ::
-#\[7]ABSNUPGHM73VDE4S2O7LWPPB5EFJ3H5TRQDVYG3QIOTETUBA5YDQ 7  DATA SIGNATURE ::
+#,,..,,..,,,.,...,.,.,,.,,.,,,,..,,,,,...,..,,..,,...,...,,,.,...,..,,,,,,,,,,
+#EYWNQMAZYXNXPNWXGBZK3G3VZ6OO7MPAJQPJ2JIKXMLT4MGJHIE73GU2VXMRIQ4DTKNZTT6INRN2W
+#\\\|JJB6SZMWNYHBQ5WYVYIQ3EFKQN2HBQSQ7RZD4565XLEEB6EXYAB \ / AMOS7 \ YOURUM ::
+#\[7]HBTZKKJ3E5AVNOHCIQHZYB3VUVHHJXUMH4SQ24TCNSSC5PZVT2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

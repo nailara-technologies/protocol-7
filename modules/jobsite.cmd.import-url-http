@@ -1,12 +1,13 @@
 ## [:< ##
 
 # name  = jobsite.cmd.import-url-http
-# param = url=<job-posting-url>  [ bare POST body also accepted ]
+# param = url=<url>
 # descr = http-facing manual url import : strm+json reply
-#         same queueing logic as jobsite.cmd.import-url -- the httpd
-#         web-relay reply handler only builds a real HTTP response for a
-#         strm [ or legacy SIZE ] reply, a true/false reply 502s over that
-#         path. POST body, plain text, same format as the console command
+# note  = bare POST body also accepted, plain text, same format as the
+#         console command. same queueing logic as jobsite.cmd.import-url --
+#         the httpd web-relay reply handler only builds a real HTTP
+#         response for a strm [ or legacy SIZE ] reply, a true/false reply
+#         502s over that path
 
 my $args = $call->{'args'} // '';
 $args =~ s/^\s+|\s+$//g;
@@ -29,8 +30,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,.,,,..,,,,,,,,,,..,.,,,,.,,,.,,,,.,,,.,,,.,..,,...,...,..,,.,,,,,.,.,,,.,,,
-#HZUC65QQH3H5ZZU3OQV2MVLPWIBT43EDEQQPCEUYLYRU2WA6EX5PXN55WCBSBHUJ6PDZDKXPE2INO
-#\\\|W2IL4TPV4QLTGOMJSZX3JU4EEDEBQI5TOBLN6E5SKI4EQAL34VH \ / AMOS7 \ YOURUM ::
-#\[7]7VEIBPRL3XIFMKSLCDF2YSLBAJ5M6JM62DLLMHPOKCXKDJKOH2DY 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,.,,,.,.,...,.,,,.,.,,,,,,,.,,,,,..,,...,...,.,.,,,,,.,.,.,.,..,,
+#YHEKQ7ZQRAWRARM6YZM7DVQLRGU7YPMFBBFBGRHRQQCYFH323YEUN54CSY4X3BEXAFZR7LFHNAFTU
+#\\\|LZWG5QHP4E6UBHOQOIEMXAKLBFTZBRD3QNG74VXZ4U3XDAHMQTH \ / AMOS7 \ YOURUM ::
+#\[7]KNRSXM4VDGCEEKBLEAF4MTQ6UBQGAUZSVIQGA6V6274G6LP2WADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

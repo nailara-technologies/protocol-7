@@ -22,7 +22,6 @@
     --p7-btn:       #001a88;
     --p7-btn-top:   #000ea0;
     --p7-accent:    #4427AC;
-    --p7-accent2:   #001EBB;
     --p7-gold:      #C58D07;
     --p7-outline:   #000208;
     --p7-held:      #05082A;
@@ -172,9 +171,9 @@ h1 { color: var(--p7-fg-bright); font-size: 1.25rem; font-weight: bold; text-sha
 #export-filters input[type="checkbox"]:checked,
 #export-panel input[type="checkbox"]:checked,
 #export-stage-toggles input[type="checkbox"]:checked {
-    background: rgba(0,58,255,0.4);
-    border-color: rgba(68,39,172,0.65);
-    box-shadow: 0 0 8px rgba(0,58,255,0.25);
+    background: rgba(68,39,172,0.55);
+    border-color: var(--p7-gold);
+    box-shadow: 0 0 8px rgba(68,39,172,0.35);
 }
 #export-filters input[type="checkbox"]:checked::after,
 #export-panel input[type="checkbox"]:checked::after,
@@ -185,7 +184,7 @@ h1 { color: var(--p7-fg-bright); font-size: 1.25rem; font-weight: bold; text-sha
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #cfe0ff;
+    color: var(--p7-gold);
     font-size: 0.62rem;
     line-height: 1;
 }
@@ -215,16 +214,16 @@ button {
     white-space: nowrap;
 }
 button:hover {
-    color: #cfe0ff;
+    color: var(--p7-fg-bright);
     box-shadow: 0 0 10px rgba(68,39,172,0.3);
-    background: rgba(0,58,255,0.3);
+    background: rgba(68,39,172,0.35);
     border-color: rgba(68,39,172,0.65);
 }
 button.active {
-    background: rgba(20,70,90,0.28);
-    box-shadow: 0 0 8px rgba(0,58,255,0.25);
-    color: #a0c0ff;
-    border-color: rgba(0,58,255,0.55);
+    background: rgba(68,39,172,0.28);
+    box-shadow: 0 0 8px rgba(68,39,172,0.3);
+    color: var(--p7-gold);
+    border-color: var(--p7-gold);
 }
 button.orange { color: #e0c060; background: rgba(150,110,0,0.15); border-color: rgba(197,141,7,0.4); box-shadow: 0 0 5px rgba(197,141,7,0.12); }
 button.orange:hover { color: #ffe08a; background: rgba(197,141,7,0.26); border-color: rgba(197,141,7,0.55); box-shadow: 0 0 10px rgba(197,141,7,0.25); }
@@ -233,7 +232,7 @@ button.red:hover { color: #ffb0b0; background: rgba(120,20,20,0.3); border-color
 
 .btn-note-toggle {
     color: var(--p7-text-mid); background: rgba(5,8,42,0.55);
-    box-shadow: none; border: 1px solid var(--p7-accent2);
+    box-shadow: none; border: 1px solid var(--p7-accent);
     transition: color 0.2s, border-color 0.2s;
 }
 .btn-note-toggle:hover {
@@ -267,7 +266,7 @@ button:active, .btn-note-toggle:active {
     transition: all 0.15s;
     white-space: nowrap;
 }
-.ftab:hover  { color: var(--p7-text-soft); border-color: var(--p7-accent2); }
+.ftab:hover  { color: var(--p7-text-soft); border-color: var(--p7-accent); }
 .ftab.active { color: var(--p7-text-soft); border-color: var(--p7-accent); background: rgba(3,37,82,0.55); }
 #search-input::placeholder { color: var(--p7-text-dim); opacity: 1; }
 
@@ -292,8 +291,6 @@ button:active, .btn-note-toggle:active {
     border-color: rgba(68,39,172,0.55);
     box-shadow: 0 0 22px rgba(68,39,172,0.18);
 }
-.job-card.dragging { opacity: 0.5; }
-.job-card.drag-over { border-top: 2px solid var(--p7-fg-bright); }
 /* review stage: left accent set dynamically by JS based on score */
 .job-card[data-stage="to_apply"]  { border-left-color: var(--p7-fg); }
 .job-card[data-stage="applied"]    { border-left-color: #a08020; }
@@ -573,7 +570,7 @@ input[type="date"], textarea {
     padding: 1px 5px;
     color: var(--p7-text-mid);
     background: rgba(5,8,42,0.5);
-    border: 1px solid var(--p7-accent2);
+    border: 1px solid var(--p7-accent);
     border-radius: 3px;
     cursor: pointer;
     opacity: 0.6;
@@ -583,13 +580,13 @@ input[type="date"], textarea {
 
 /* hover: lift description/reason/note toward cobalt for beamer legibility */
 .job-card:hover .card-summary {
-    color: var(--p7-text-soft); border-left-color: var(--p7-accent2);
+    color: var(--p7-text-soft); border-left-color: var(--p7-accent);
 }
 .job-card:hover .card-reason {
     color: var(--p7-text-soft); border-left-color: var(--p7-accent);
 }
 .job-card:hover .card-note-preview {
-    color: var(--p7-text-soft); border-left-color: var(--p7-accent2);
+    color: var(--p7-text-soft); border-left-color: var(--p7-accent);
 }
 
 /* add form */
@@ -601,7 +598,7 @@ input[type="date"], textarea {
 .add-form .row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 .add-form input, .add-form select {
     padding: 4px 8px; border-radius: 3px; font-size: 0.82rem;
-    background: var(--p7-bg); border: 1px solid var(--p7-accent2); color: var(--p7-text-soft);
+    background: var(--p7-bg); border: 1px solid var(--p7-accent); color: var(--p7-text-soft);
     flex: 1; min-width: 140px;
 }
 
@@ -612,15 +609,16 @@ input[type="date"], textarea {
     font-size: 0.7rem;
 }
 .export-section h3 { font-size: 0.9rem; color: var(--p7-text-mid); margin-bottom: 0.6rem; }
+.export-section label { color: var(--p7-text-soft); }
 #print-table { display: none; padding: 1rem; border-radius: 4px; margin-top: 0.8rem; }
 #print-table table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
 #print-table th, #print-table td {
-    border: 1px solid var(--p7-accent2); padding: 4px 8px; text-align: center; color: var(--p7-text-soft);
+    border: 1px solid var(--p7-accent); padding: 4px 8px; text-align: center; color: var(--p7-text-soft);
 }
 #print-table th { background: var(--p7-bg-dark); color: var(--p7-text-soft); }
 .download-link {
     color: var(--p7-text-soft); font-size: 0.82rem; text-decoration: none;
-    padding: 3px 10px; border: 1px solid var(--p7-accent2); border-radius: 3px;
+    padding: 3px 10px; border: 1px solid var(--p7-accent); border-radius: 3px;
 }
 .download-link:hover { color: #c0d4ff; }
 
@@ -719,6 +717,15 @@ input[type="date"], textarea {
         <button id="btn-print-run" style="padding:2px 10px;">print</button>
         <button id="btn-export-cancel" style="padding:2px 10px; color:#506070;">✕</button>
         <span id="export-last-time" style="margin-left:auto; font-size:0.7rem; color:#3a5060;"></span>
+        <button id="btn-export-time-repair" title="letzten export-zeitpunkt manuell setzen" style="padding:1px 6px;">✎</button>
+      </div>
+      <div id="export-time-repair-panel" style="display:none; margin-top:0.5rem; padding:0.5rem 0.7rem;
+           border:1px solid var(--p7-accent); border-radius:4px; background:rgba(3,37,82,0.35);
+           align-items:center; gap:0.5rem; flex-wrap:wrap;">
+        <span style="font-size:0.7rem; color:#7aabcc;">zeitpunkt korrigieren:</span>
+        <input type="datetime-local" id="export-time-repair-input" style="font-size:0.72rem;">
+        <button id="export-time-repair-save" style="padding:2px 8px;">speichern</button>
+        <button id="export-time-repair-cancel" style="padding:2px 8px; color:#506070;">abbrechen</button>
       </div>
     </div>
     <div id="trash-panel" style="display:none; margin-top:0.5rem;
@@ -753,7 +760,7 @@ input[type="date"], textarea {
              line-height:1.2; border-radius:3px;
              background:rgba(5,8,42,0.6); border:1px solid var(--p7-outline);
              color:var(--p7-text-mid); width:90px; outline:none; -webkit-appearance:none;"
-      onfocus="this.style.borderColor='var(--p7-accent2)'"
+      onfocus="this.style.borderColor='var(--p7-accent)'"
       onblur="this.style.borderColor='var(--p7-outline)'">
   </div>
 
@@ -774,7 +781,7 @@ input[type="date"], textarea {
     </div>
     <!-- server-side import : feeds a real posting through the pipeline, -->
     <!-- distinct from the pure local tracking fields above              -->
-    <div class="row" style="border-top:1px solid var(--p7-accent2); padding-top:0.6rem;">
+    <div class="row" style="border-top:1px solid var(--p7-accent); padding-top:0.6rem;">
       <input type="text" id="f-import-url" placeholder="Stepstone-URL importieren (…--1234567-inline.html)">
       <button id="btn-import-url" style="flex:0 0 auto;">importieren</button>
     </div>
@@ -823,6 +830,7 @@ const JOBS_TRASH_RESCUE = '/jobs-trash-rescue';
 const JOBS_IMPORT_URL   = '/jobs-import-url';
 const JOBS_PREFS        = '/jobs-prefs';
 const TRASH_WATERMARK_KEY = 'jobs_trash_watermark_v1';
+const EXPORT_TIME_KEY     = 'jobs_last_export_epoch_v1';
 const POLL_MS     = 30000;
 const USER_DECISIONS_KEY = 'jobs_user_decisions_v1';
 const USER_OWNED_STAGES  = new Set(['to_apply','applied','interviewed','responded','rejected','skipped','archived']);
@@ -834,7 +842,6 @@ let sortMode = 'score';  // 'score' | 'asc' | 'date'
 let filterMode = 'review';
 let minScore = 7;
 let showArchived = false;
-let dragSrcId = null;
 let pollTimer = null;
 let userDecisions = {};  // id → { stage?, notes?, date_applied?, ts }
 const pushChains = {};   // id → tail promise, serializes same-job pushes so ##
@@ -1089,7 +1096,6 @@ function renderCard(j) {
     el.className = 'job-card' + (_sug.archive === 'true' && !USER_OWNED_STAGES.has(j.stage) ? ' suggest-archive' : '');
     el.dataset.stage = j.stage;
     el.dataset.id = j.id;
-    el.draggable = true;
 
     /* score-influenced left accent for review stage: dark violet → deep cobalt */
     if (j.stage === 'review' && j.score != null) {
@@ -1303,11 +1309,20 @@ function renderCard(j) {
 
     let longPressTimer = null;
     const isInteractive = e => !!e.target.closest('.card-actions, select, input, textarea, a, button');
+    /* a click/dblclick that lands at the end of a text-selection drag (or a  */
+    /* native double-click-to-select-word) must not also fold/expand or fire */
+    /* a stage action — window.getSelection() still holds the just-made      */
+    /* selection at the moment 'click' fires, before the next mousedown      */
+    /* clears it, so this reliably tells the two apart                      */
+    const hasSelection = () => {
+        const sel = window.getSelection();
+        return !!sel && sel.toString().length > 0;
+    };
 
     let lastClickMs = 0;
     let singleClickTimer = null;
     el.addEventListener('click', e => {
-        if (isInteractive(e)) return;
+        if (isInteractive(e) || hasSelection()) return;
         const now = Date.now();
         clearTimeout(singleClickTimer);
         if (now - lastClickMs < 260) {
@@ -1330,6 +1345,7 @@ function renderCard(j) {
         if (isInteractive(e)) return;
         longPressTimer = setTimeout(() => {
             longPressTimer = null;
+            if (hasSelection()) return;
             const fn = longActions[jobs[j.id].stage];
             if (fn) fn();
         }, 600);
@@ -1337,21 +1353,11 @@ function renderCard(j) {
     el.addEventListener('pointerup',    () => { clearTimeout(longPressTimer); longPressTimer = null; });
     el.addEventListener('pointerleave', () => { clearTimeout(longPressTimer); longPressTimer = null; });
 
-    /* drag */
-    el.addEventListener('dragstart', e => { dragSrcId = j.id; el.classList.add('dragging'); });
-    el.addEventListener('dragend',   () => el.classList.remove('dragging'));
-    el.addEventListener('dragover',  e => { e.preventDefault(); el.classList.add('drag-over'); });
-    el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
-    el.addEventListener('drop', e => {
-        e.preventDefault(); el.classList.remove('drag-over');
-        if (dragSrcId && dragSrcId !== j.id) reorderCards(dragSrcId, j.id);
-    });
-
     /* expand reason / summary on click */
     const reasonEl  = el.querySelector('.card-reason');
     const summaryEl = el.querySelector('.card-summary');
-    if (reasonEl)  reasonEl.addEventListener('click',  () => reasonEl.classList.toggle('expanded'));
-    if (summaryEl) summaryEl.addEventListener('click', () => summaryEl.classList.toggle('expanded'));
+    if (reasonEl)  reasonEl.addEventListener('click',  () => { if (!hasSelection()) reasonEl.classList.toggle('expanded'); });
+    if (summaryEl) summaryEl.addEventListener('click', () => { if (!hasSelection()) summaryEl.classList.toggle('expanded'); });
 
     /* custom stage dropdown */
     const dropdown = el.querySelector('.stage-dropdown');
@@ -1476,7 +1482,8 @@ function renderCard(j) {
     const cardDims = el.querySelector('.card-dims');
     const cardDimsDetail = el.querySelector('.card-dims-detail');
     if (cardDims && cardDimsDetail) {
-        cardDims.addEventListener('click', () => {
+        cardDims.addEventListener('click', e => {
+            e.stopPropagation();
             cardDimsDetail.classList.toggle('visible');
         });
     }
@@ -1485,7 +1492,8 @@ function renderCard(j) {
     const toggleDim = el.querySelector('.toggle-dim');
     const dimGrid = el.querySelector('.dim-grid');
     if (toggleDim && dimGrid) {
-        toggleDim.addEventListener('click', () => {
+        toggleDim.addEventListener('click', e => {
+            e.stopPropagation();
             const show = dimGrid.style.display === 'none';
             dimGrid.style.display = show ? 'grid' : 'none';
             toggleDim.textContent = show ? '▲ dimensionen' : '▼ dimensionen';
@@ -1494,17 +1502,6 @@ function renderCard(j) {
 
     el.classList.toggle('assert-collapsed', isAssertCollapsed(j.id, j.stage));
     return el;
-}
-
-function reorderCards(srcId, dstId) {
-    const all = Object.values(jobs);
-    const srcIdx = all.findIndex(j => j.id === srcId);
-    const dstIdx = all.findIndex(j => j.id === dstId);
-    if (srcIdx < 0 || dstIdx < 0) return;
-    const [item] = all.splice(srcIdx, 1);
-    all.splice(dstIdx, 0, item);
-    all.forEach((j, i) => { j.sort_order = i; });
-    saveCache(); render();
 }
 
 function sortedJobs() {
@@ -1755,7 +1752,7 @@ function buildExportPanel() {
             </label>`;
     });
     document.getElementById('export-current-filter').checked = exportPrefs.currentFilter;
-    document.getElementById('export-last-time').textContent = '';
+    updateExportLastTimeDisplay();
     renderExportStageToggles();
     renderExportFilters();
 }
@@ -1829,14 +1826,23 @@ async function migrateLegacyExportHistory() {
 }
 
 async function clearExportHistory() {
-    /* clear the server-side marker for every job that has one */
-    const ids = Object.keys(jobs).filter(id => jobs[id].exported_stage != null);
+    /* "vergessen" only undoes the MOST RECENT export batch [ matched by the  */
+    /* shared exported_at epoch every job in that batch was stamped with, see */
+    /* exportCSV() ], not every export this jobsite has ever done — jobs      */
+    /* exported before this field existed (no exported_at at all) or in an    */
+    /* earlier batch are left alone, since there's no way to reconstruct      */
+    /* which of those an all-clear would be safe to touch                    */
+    const lastEpoch = getLastExportTime();
+    const ids = Object.keys(jobs).filter(id =>
+        jobs[id].exported_stage != null && jobs[id].exported_at === lastEpoch);
+    if (!ids.length) { notify('kein rückgängig machbarer export gefunden', true); return; }
     await Promise.all(ids.map(id => {
         delete jobs[id].exported_stage;
-        return pushChange(id, { exported_stage: null });
+        delete jobs[id].exported_at;
+        return pushChange(id, { exported_stage: null, exported_at: null });
     }));
     buildExportPanel();
-    notify('export-verlauf zurückgesetzt');
+    notify(`letzter export (${ids.length} einträge) vergessen`);
 }
 
 function passesCurrentFilter(j) {
@@ -1940,11 +1946,17 @@ async function exportCSV() {
     a.href = url; a.download = 'bewerbungen_' + new Date().toISOString().slice(0,10) + '.csv';
     a.click(); URL.revokeObjectURL(url);
 
-    /* mark each exported row on the server so every browser sees exported_stage */
+    /* mark each exported row on the server so every browser sees exported_stage.  */
+    /* exported_at is the same epoch for the whole batch — it's what lets         */
+    /* "vergessen" (below) undo just THIS export instead of every export ever     */
+    const batchEpoch = Math.floor(Date.now() / 1000);
     await Promise.all(rows.map(j => {
         jobs[j.id].exported_stage = j.stage;
-        return pushChange(j.id, { exported_stage: j.stage });
+        jobs[j.id].exported_at = batchEpoch;
+        return pushChange(j.id, { exported_stage: j.stage, exported_at: batchEpoch });
     }));
+    setLastExportTime(batchEpoch);
+    await syncLastExportTime();
 }
 
 /* ── print table ── */
@@ -1954,7 +1966,7 @@ function showPrintTable() {
     const date = new Date().toLocaleDateString('de-DE');
     const fmtDate = j => exportDisplayDate(j);
     const overview = `
-      <h2 style="margin:0 0 0.3rem;font-size:1.1rem">Bewerbungsübersicht — ${date}</h2>
+      <h2 style="margin:0 0 0.3rem;font-size:1.1rem;color:var(--p7-fg-bright)">Bewerbungsübersicht — ${date}</h2>
       <p style="margin:0 0 0.8rem;font-size:0.8rem;color:#5080a0">${rows.length} Einträge</p>
       <table>
         <tr><th>Nr</th><th>Datum</th><th>Unternehmen</th><th>Position</th><th>Ort</th><th>Score</th><th>Status</th></tr>
@@ -2008,7 +2020,6 @@ function addManual() {
         reason:   document.getElementById('f-reason').value.trim(),
         stage:    'to_apply', date_added: new Date().toISOString().slice(0,10),
         date_applied: '', note: '', source: 'manual',
-        sort_order: Object.keys(jobs).length
     };
     saveCache(); render();
     ['f-title','f-company','f-city','f-url','f-score','f-reason'].forEach(id => {
@@ -2067,7 +2078,8 @@ function highlightTerms(text, terms) {
     }
     return html;
 }
-function notify(msg, err) {
+function notify(msg, err, opts) {
+    opts = opts || {};
     const n = document.createElement('div');
     n.textContent = msg;
     const bg = err ? 'rgba(50,10,15,0.88)' : 'rgba(5,8,35,0.9)';
@@ -2077,8 +2089,57 @@ function notify(msg, err) {
     n.style.cssText = `position:fixed;bottom:1rem;right:1rem;padding:8px 14px;border-radius:4px;
       font-size:0.8rem;z-index:9999;background:${bg};border:1px solid ${border};color:${color};
       box-shadow:0 0 14px ${glow};font-family:'Courier New',Courier,monospace;`;
+    if (opts.onClick) {
+        n.style.cursor = 'pointer';
+        n.style.textDecoration = 'underline dotted';
+        n.title = 'für details klicken';
+        n.addEventListener('click', () => { opts.onClick(); n.remove(); });
+    }
     document.body.appendChild(n);
-    setTimeout(() => n.remove(), 4000);
+    setTimeout(() => n.remove(), opts.timeout || 4000);
+}
+
+/* ── custom-font active probe : only runs once at startup, not on every ── */
+/* ── error — canvas-measures the actual glyph width against the page's  ── */
+/* ── own fallback stack, so it catches ANY reason the font silently     ── */
+/* ── failed to apply (Firefox document-font blocking, 404, CORS, ...)   ── */
+function checkCustomFontLoaded() {
+    try {
+        const c = document.createElement('canvas');
+        const ctx = c.getContext('2d');
+        const testStr = 'mmmmmmmmmmlli0123 White Rabbit';
+        ctx.font = "32px 'Courier New', Courier, monospace";
+        const fallbackWidth = ctx.measureText(testStr).width;
+        ctx.font = "32px 'White Rabbit', 'Courier New', Courier, monospace";
+        const customWidth = ctx.measureText(testStr).width;
+        if (Math.abs(customWidth - fallbackWidth) < 0.5) {
+            notify('custom font loading failed', true, { timeout: 6500, onClick: showFontFixPopup });
+        }
+    } catch(e) { /* best-effort diagnostic only, never block the app on it */ }
+}
+function showFontFixPopup() {
+    if (document.getElementById('font-fix-popup')) return;
+    const overlay = document.createElement('div');
+    overlay.id = 'font-fix-popup';
+    overlay.style.cssText = `position:fixed;inset:0;z-index:10000;background:rgba(0,2,8,0.7);
+      display:flex;align-items:center;justify-content:center;`;
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    const box = document.createElement('div');
+    box.style.cssText = `max-width:420px;padding:1.2rem 1.4rem;border-radius:6px;
+      background:var(--p7-bg-dark);border:1px solid var(--p7-accent);
+      box-shadow:0 0 24px rgba(68,39,172,0.4);color:var(--p7-text-soft);
+      font-family:'Courier New',Courier,monospace;font-size:0.8rem;line-height:1.5;`;
+    box.innerHTML = `
+      <h3 style="margin:0 0 0.6rem;color:var(--p7-gold);font-size:0.95rem">custom font blocked</h3>
+      <p style="margin:0 0 0.6rem">this browser didn't load the White Rabbit terminal font — common
+      with privacy-hardened Firefox profiles (e.g. arkenfox) that disable custom web fonts.</p>
+      <p style="margin:0 0 0.6rem"><strong>fix:</strong> open <code>about:config</code>, set
+      <code>browser.display.use_document_fonts</code> to <code>true</code> — or, to keep it off
+      globally, add this site's font ('White Rabbit') to your font exception allowlist instead.</p>
+      <div style="text-align:right"><button id="font-fix-close" style="padding:2px 10px">schließen</button></div>`;
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+    document.getElementById('font-fix-close').addEventListener('click', () => overlay.remove());
 }
 function notifyUndo(id, prevStage, restoreFn) {
     const n = document.createElement('div');
@@ -2313,6 +2374,36 @@ document.getElementById('btn-export-cancel').addEventListener('click', () => {
 });
 document.getElementById('btn-export-clear-history').addEventListener('click', clearExportHistory);
 
+/* ── manual repair of the shared last-export timestamp — for when it's   */
+/* ── blank/stale (e.g. a browser that never had it) or needs correcting  */
+document.getElementById('btn-export-time-repair').addEventListener('click', () => {
+    const panel = document.getElementById('export-time-repair-panel');
+    const showing = panel.style.display !== 'none' && panel.style.display !== '';
+    if (showing) { panel.style.display = 'none'; return; }
+    const input = document.getElementById('export-time-repair-input');
+    const t = getLastExportTime();
+    if (t) {
+        /* datetime-local wants local time with no timezone suffix */
+        const d = new Date(t * 1000);
+        const pad = n => String(n).padStart(2, '0');
+        input.value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+    panel.style.display = 'flex';
+});
+document.getElementById('export-time-repair-save').addEventListener('click', async () => {
+    const input = document.getElementById('export-time-repair-input');
+    if (!input.value) return;
+    const epoch = Math.floor(new Date(input.value).getTime() / 1000);
+    if (!isFinite(epoch)) return;
+    setLastExportTime(epoch);
+    await syncLastExportTime();
+    document.getElementById('export-time-repair-panel').style.display = 'none';
+    notify('export-zeitpunkt gesetzt');
+});
+document.getElementById('export-time-repair-cancel').addEventListener('click', () => {
+    document.getElementById('export-time-repair-panel').style.display = 'none';
+});
+
 /* ── trash-history panel : recent trashed jobs + rescue, see topic in ── */
 /* ── conversation history for the design [ watermark clear + reveal ] ── */
 let trashList = [];         // full list fetched from /jobs-trash, newest first
@@ -2349,6 +2440,41 @@ async function syncTrashWatermark() {
             setTrashWatermark(data.trash_watermark);
         }
     } catch (e) { /* best-effort : local watermark still works standalone */ }
+}
+
+function getLastExportTime() {
+    return parseInt(localStorage.getItem(EXPORT_TIME_KEY) || '0', 10);
+}
+function setLastExportTime(v) {
+    localStorage.setItem(EXPORT_TIME_KEY, String(v));
+    updateExportLastTimeDisplay();
+}
+function updateExportLastTimeDisplay() {
+    const el = document.getElementById('export-last-time');
+    if (!el) return;
+    const t = getLastExportTime();
+    el.textContent = t ? 'letzter export: ' + new Date(t * 1000).toLocaleString('de-DE') : 'letzter export: unbekannt';
+}
+/* same shared-prefs max-merge as trash_watermark above — a manual repair  */
+/* (the ✎ panel below) can only move this value FORWARD via this path,    */
+/* never back, since the server only ever keeps the numerically larger of */
+/* two values per key (jobsite.cmd.set-prefs). that's fine for the common */
+/* case (fixing a blank/stale value to the real, more recent export time)  */
+/* but can't correct a value that's wrongly too large — not a case that's  */
+/* come up yet, so not building a force-override path for it today        */
+async function syncLastExportTime() {
+    try {
+        const local = getLastExportTime();
+        const r = await fetch(JOBS_PREFS, {
+            method: 'POST',
+            body: JSON.stringify({ last_export_at: local }),
+        });
+        if (!r.ok) return;
+        const data = await r.json();
+        if (typeof data.last_export_at === 'number' && data.last_export_at > local) {
+            setLastExportTime(data.last_export_at);
+        }
+    } catch (e) { /* best-effort : local value still displays standalone */ }
 }
 
 async function loadTrashPanel() {
@@ -2510,9 +2636,13 @@ minScoreInput.value = 10 - minScore;
 minScoreVal.textContent = minScore % 1 === 0 ? minScore : minScore.toFixed(1);
 renderExportStageToggles();
 renderExportFilters();
+updateExportLastTimeDisplay();
+syncLastExportTime();
 render(); // show cached data immediately
 syncPipeline(); // full sync from server (may advance lastNtime)
 startPoll();    // delta polls every 30s thereafter
+(document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve())
+    .then(checkCustomFontLoaded);
 </script>
 </body>
 </html>
