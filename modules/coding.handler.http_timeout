@@ -35,22 +35,63 @@ my $task_state
     ? <[coding.async.state_manager]>->( qw| get |, $task_id )
     : undef;
 
-## soft-ceiling trip : the stream is still alive [ stall timer would have  ##
-## fired first if it weren't ], it's just taking longer than the fast      ##
-## default — escalate to the full ceiling and restart THIS round in place, ##
-## not the heavier on_error pipeline [ which assumes a broken connection   ##
-## and does backend-restart + full task requeue ]                          ##
-if ( defined $task_state and $ceiling_used < $hard_ceiling ) {
+## soft-ceiling trip : only worth escalating [ instead of hard-failing ]    ##
+## when the stream is actually still alive - confirmed live 2026-08-07 :    ##
+## this used to gate purely on `defined $task_state`, which says nothing    ##
+## about liveness. coding.self_test.async_probe deliberately passes an      ##
+## empty task_id [ "makes the shared downstream handlers degrade to safe    ##
+## no-ops" ] to stay decoupled from the task queue, which meant self-test   ##
+## requests could NEVER take this branch and always hard-failed at the flat ##
+## per-request ceiling [ 90s ] even while genuinely streaming valid tokens  ##
+## the whole time - the stall watcher [ coding.handler.http_io : re-armed   ##
+## on every chunk ] is the thing that actually detects a hung connection ;  ##
+## check its own signal directly [ chunks received + recent activity within ##
+## the stall window ] rather than inferring liveness from whether a task    ##
+## happens to exist for this request                                        ##
+my $now          = <[base.time]>->(3);
+my $stream_alive = ( $state->{'chunks_received'} // 0 ) > 0
+    && ( $now - ( $state->{'last_activity'} // 0 ) )
+    < ( $state->{'stall_timeout_sec'} // 77 );
+
+if ( $stream_alive and $ceiling_used < $hard_ceiling ) {
+    if ( defined $task_state ) {
+        ## task-based request : restart THIS round in place, not the     ##
+        ## heavier on_error pipeline [ which assumes a broken connection ##
+        ## and does backend-restart + full task requeue ]                ##
+        <[base.logs]>->(
+            1,
+            "async.http_timeout: soft ceiling [%ds] "
+                . "hit for %s, restarting round with full %ds",
+            $ceiling_used,
+            $task_id,
+            $hard_ceiling
+        );
+        <[coding.async.http_cleanup]>->($state);
+        <[coding.async.round_soft_restart]>->( $task_id, $hard_ceiling );
+        return;
+    }
+
+    ## no task to restart [ eg self-test probes ] : the connection is still ##
+    ## open and actively producing valid output, tearing it down and        ##
+    ## re-sending from scratch would just throw away real progress and      ##
+    ## repeat the same slow generation - extend the deadline on the SAME    ##
+    ## in-flight connection instead                                         ##
     <[base.logs]>->(
         1,
-        "async.http_timeout: soft ceiling [%ds] "
-            . "hit for %s, restarting round with full %ds",
+        "async.http_timeout: soft ceiling [%ds] hit but stream "
+            . "is alive [chunks=%d] : extending to full %ds in place",
         $ceiling_used,
-        $task_id,
+        $state->{'chunks_received'} // 0,
         $hard_ceiling
     );
-    <[coding.async.http_cleanup]>->($state);
-    <[coding.async.round_soft_restart]>->( $task_id, $hard_ceiling );
+    $callbacks->{'timeout'}     = $hard_ceiling;
+    $state->{'timeout_watcher'} = <[event.add_timer]>->(
+        {   'after'   => $hard_ceiling,
+            'handler' => qw| coding.handler.http_timeout |,
+            'data'    =>
+                { state => $state, io_watcher => $data->{'io_watcher'} },
+        }
+    );
     return;
 }
 
@@ -60,8 +101,8 @@ $callbacks->{'on_error'}->($error) if exists $callbacks->{'on_error'};
 
 <[coding.async.http_cleanup]>->($state);
 
-#,,,.,.,,,.,.,,.,,,..,..,,.,.,.,,,...,.,.,...,.,.,...,...,.,.,,.,,,,.,,..,,..,
-#I6CJNMSXHX4EDMLBWSDB2RVHVLXTSFIAKHRBTBEELDAITN7TFCHPXQY354EMHUEE37M6FFH4FWBPS
-#\\\|UU7MQE4ICJEL6TDHX6F2YOJWD55CDA5TV6DDBE2RG4ERF7TTSDS \ / AMOS7 \ YOURUM ::
-#\[7]OQR2AFR7JKDSESRCKTTH6INRRA4MOOHFBIVB445N4ORY3PZK3MCA 7  DATA SIGNATURE ::
+#,,,.,.,,,...,.,.,..,,..,,,..,...,,..,,..,.,.,.,.,...,...,...,,,.,,.,,...,.,,,
+#3MYGTJ72EDVGXL4QOVAC4XJ6JXZJW2NSQACET77JTH3HSD4EAKYMO7KXNHXDEQV4EDGUZQQAL2CFO
+#\\\|INUCAMU2KX7GBDKRKGHMNUNE4IPKB3YAOFAJT2YS4ZRA24KHXLT \ / AMOS7 \ YOURUM ::
+#\[7]P7Y3R34TIAHX4PUSUPO7I3OCXNTK5MEWZNOWOBCPCXLPBWDUWOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

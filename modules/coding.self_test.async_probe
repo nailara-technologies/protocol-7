@@ -61,6 +61,11 @@ my $callbacks = {
     task_id => '',
     backend => $backend,
     timeout => $timeout,
+    ## probe / tier1 : which round this is - task_id is deliberately blank ##
+    ## above, so this is the only thing that lets the connect-established  ##
+    ## log line [ coding.async.http_client ] say what a self-test          ##
+    ## connection is actually for                                          ##
+    request_kind => $params->{'kind'} // 'probe',
 
     on_chunk => sub {
         my ($data) = @ARG;
@@ -131,8 +136,8 @@ $finish->( { mode => qw| false |, data => 'request_failed' } )
 
 return $http;
 
-#,,..,.,.,,.,,..,,,.,,,,,,...,,..,,,,,,.,,.,.,..,,...,...,..,,...,,,,,,,,,,,.,
-#3QRLQL5JREYMX7RAYIDPGOBHHOPGVPIA6LAKTB46ELXDWN5FBDD337G5RL5XCHKLK7ZGZ7SUCGWQE
-#\\\|TO67KATYWTHLUVAQ2RGM2BTTWEFIVOH7JYNAI35N6W2FKRFYMKC \ / AMOS7 \ YOURUM ::
-#\[7]WIMTHIX74ZJ3FNJTVUPM46Z3GVYPRPXQ74XTOOGAU23TUMF6EYAI 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,...,.,,,,,.,...,.,.,.,,,...,,.,,..,,...,...,,.,,,..,,.,,...,,..,
+#4SYQ5OQGZJXW3QZIRPXVTBXBEELJSNCKEBZRL76B2ZKJIP7QWUCGGXOPIFPRFIDJYRPGYZC2S4KXI
+#\\\|2I2IZEO5F55L3HJX47UUQUTKACIRCY4OSPU3KMMH7KLDIDRMSOM \ / AMOS7 \ YOURUM ::
+#\[7]OKIQBRTNNU4CRF4W5KV3P5GGZG2HPUIMYOMGUVAJE6WTOWVT7WCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
