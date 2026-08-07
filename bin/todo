@@ -197,7 +197,7 @@ sub draw_header {
 sub draw_footer {
     my ( $width, $open, $done, $high ) = @_;
     $width //= $TERM_WIDTH;
-    my $text = " $open open · $done done · $high high ";
+    my $text = "[ $open open · $done done · $high high ]";
     say AMOS7::TERM::frame_border_line(
         {   width    => $width,
             reset    => $C{R} // '',
@@ -208,7 +208,7 @@ sub draw_footer {
                     color => $C{0} // '',
                 },
                 { type => 'anchor', value => $text, color => $C{T} // '' },
-                { type => 'anchor', value => '─', color => $C{0} // '' },
+                { type => 'anchor', value => '──', color => $C{0} // '' },
             ],
         }
     );
@@ -246,7 +246,7 @@ sub format_items {
         } elsif ( $item->{priority} eq 'low' ) {
             $marker = '▽';
             if ($TTY) {
-                $c_start = $C{dim} . $C{2};    ## dim neon orange ##
+                $c_start = $C{0};              ## blacklight ##
                 $c_end   = $C{R};
             }
         } else {
@@ -312,6 +312,7 @@ my $option_list = <<'EOL';
     done <id> [<id>..] .............  mark item[s] as done
     rm <id> ........................  remove an item
     edit <id> <text> ...............  replace item text
+    pri <id> <high|normal|low> .....  change item priority
     tag <id> <tag> .................  add a tag to an item
     untag <id> <tag> ...............  remove a tag from an item
     clear ..........................  remove all done items
@@ -363,12 +364,13 @@ sub cmd_list {
         } @items;
     }
 
-    @items = sort { $a->{id} <=> $b->{id} } @items;
+    @items = sort { $b->{id} <=> $a->{id} } @items;
 
     my ( $lines, $content_width ) = format_items( \@items, $show_done );
     my $width = $TERM_WIDTH;
     $width = $content_width + 4 if $content_width + 4 > $width;
 
+    say "";
     draw_header($width);
     say "";
 
@@ -385,6 +387,7 @@ sub cmd_list {
     say "";
     my ( $open, $done, $high ) = count_items( $data->{items} );
     draw_footer( $width, $open, $done, $high );
+    say "";
 }
 
 sub cmd_add {
@@ -476,6 +479,26 @@ sub cmd_edit {
     die "item $id not found\n";
 }
 
+sub cmd_pri {
+    my ( $id, $priority ) = @_;
+    die "expected item id and priority\n"
+        unless defined $id and defined $priority;
+    die "priority must be high, normal, or low\n"
+        unless $priority =~ m{^(?:high|normal|low)$};
+
+    $id = int($id);
+    my $data = load_data();
+
+    foreach my $item ( $data->{items}->@* ) {
+        next unless $item->{id} == $id;
+        $item->{priority} = $priority;
+        save_data($data);
+        return;
+    }
+
+    die "item $id not found\n";
+}
+
 sub cmd_tag {
     my ( $id, $tag ) = @_;
     die "expected item id and tag\n"
@@ -551,6 +574,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
     cmd_rm(@ARGV);
 } elsif ( $cmd eq 'edit' ) {
     cmd_edit(@ARGV);
+} elsif ( $cmd eq 'pri' ) {
+    cmd_pri(@ARGV);
 } elsif ( $cmd eq 'tag' ) {
     cmd_tag(@ARGV);
 } elsif ( $cmd eq 'untag' ) {
@@ -569,8 +594,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,,,,.,,,,.,,...,.,,,.,,,,..,,..,,..,,..,...,..,,...,...,...,...,,,,,...,,.,,
-#RW7FCJMSODEEPMSZK7YOYHCIKNC6FLRH43RREZJXQM5G5DRT7HYKYWPTHI6NKNXCY3MMV77NDXS3W
-#\\\|ILAD2AXLWTE6653J2COS2BHQ5LSROHKYJL4P6JW6IE2ZOFH3D3S \ / AMOS7 \ YOURUM ::
-#\[7]QHCPFIUOPLD36RB6ZEUKBBJM2WNOLMG5MPIKRT25HNVHALA56CAY 7  DATA SIGNATURE ::
+#,,..,..,,,,.,..,,...,,..,...,...,,..,,,.,,..,..,,...,...,,..,..,,,,,,,,.,,,,,
+#6FVCMCDBGPSBIEN22OLZ2UDDPEZAT2IWHWKIIZB5OKDU5IJNEIU2ME73S5RZHAT3IGYW3X2AH4KXG
+#\\\|T74GYODFT3L3CNFHTBEY4GNOFE2B3WD4YKXHNG2USFY4ZCH7V6A \ / AMOS7 \ YOURUM ::
+#\[7]V2OAAJ7NYMW3NNGBHMUCCIR56RR6SVVBBBLSRVJHBVLB37H476BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
