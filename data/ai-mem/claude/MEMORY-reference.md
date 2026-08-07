@@ -43,10 +43,10 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [config reload clobber](feedback-config-reload-clobber.md), [route-send command format](feedback-route-send-command-format.md) — `reload config/all` overwrites runtime; no cube. prefix
 - [user-perfectionism-and-pace](user-perfectionism-and-pace.md) — "done" means perfectly smooth; let solo tuning passes run
 - [scratchpad_import tool](topic-scratchpad-import-tool.md) — pulls /tmp session scratchpad into data/scratchpad/; list/raw-read modes; check repo+tasks/completed before keeping imports
-- [show-buffer command](reference-show-buffer-command.md) — no `p7-log.tail` exists; use `show-buffer <name> [lines] [pattern]` (`list buffers` first); don't invent `.tail`-style command names
+- [show-buffer command](reference-show-buffer-command.md) — no `p7-log.tail` exists; use `show-buffer <name> [lines] [pattern]` (`list buffers` first); don't invent `.tail`-style command names; buffer is a passive review sink only, rotation ≠ behavior unreliability
 
-#,,,,,,..,,,,,..,,..,,.,.,.,,,,,.,..,,...,,..,..,,...,...,...,,..,,,.,,,.,,..,
-#CPXRBFRBTOUX2RM55VC44QXFM6ZEM7HQT2GZ6CDQ5ZUSZBOEXC63MC7YZAWQFISNQS4VEYSAHROWM
-#\\\|2RLVQT3OVZ4TWFZOGC7XN6E3FMRTAO4DSFLIHZ25KKDJ2DEFD3U \ / AMOS7 \ YOURUM ::
-#\[7]M7644JD7MLILTMYGUX4OKY3NHOSW4UT7TA3NPK2HPLZGIEVB66DA 7  DATA SIGNATURE ::
+#,,.,,,..,,..,..,,,.,,,,.,,,,,,..,,,,,,.,,...,..,,...,...,..,,...,..,,,,.,.,.,
+#VYQH3HHZBHKESR6GJYUMGTCY2VM4YDLODXB6ID6IDMD3DYVUIIK2TMIXC6ZTD3YLTGRDM2W5QAMIU
+#\\\|ZEGMPEBO6HRNEGNLMREZTZC5OYBHQN3RPNNTXQRXRY4PML24JHJ \ / AMOS7 \ YOURUM ::
+#\[7]5QJ3UAFHC6K2ZKCCZMK2HNXOC3YI2YB2UVBVKU7W24G6UG3N22AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
