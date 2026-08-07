@@ -2,6 +2,15 @@
 
 # name  = base.session.send_init_reports
 
+## backoff for the 'not initialized yet' retry below [ same *1.2 growth /  ##
+## min+max envelope shape as v7.handler.zenka_status's restart_delay ] :   ##
+## starts fast [ low latency right after start ], grows to a 5s ceiling so ##
+## a long-stuck zenka tapers off instead of washing out its own log buffer ##
+## with retry noise forever ; reset to the fast interval once reports      ##
+## actually send                                                           ##
+state $retry_delay     = 0.777;
+state $max_retry_delay = 5;
+
 <system.timer>->{'send_reports'}->cancel
     if defined <system.timer>->{'send_reports'}
     and <system.timer>->{'send_reports'}->is_active;
@@ -17,6 +26,7 @@ my $report_count = scalar <system.init_reports>->@*;
 ##
 if ( $report_count == 0 ) {
     delete <system.init_reports>;
+    $retry_delay = 0.777;    ## reset backoff : nothing left pending ##
     return FALSE;
 
 } elsif ( not <[base.is_defined_recursive]>->(qw| system.zenka.initialized |)
@@ -27,13 +37,17 @@ if ( $report_count == 0 ) {
     );
     <system.timer>->{'send_reports'} = <[event.add_timer]>->(
         {   'repeat'  => FALSE,
-            'after'   => 0.777,
-            'handler' => __FILE__    ##  call to self  ##
+            'after'   => $retry_delay,
+            'handler' => __FILE__        ##  call to self  ##
         }
     );
+    $retry_delay = $retry_delay * 1.2;
+    $retry_delay = $max_retry_delay if $retry_delay > $max_retry_delay;
     return;
 ##
 }
+
+$retry_delay = 0.777;    ## reset backoff : reports are being sent now ##
 
 ##  initialized , sending reports  ##
 ##
@@ -86,8 +100,8 @@ foreach my $item (@pending_reports) {
 
 return $report_count;
 
-#,,.,,.,,,,,,,,,,,,,.,,,,,..,,.,.,..,,,..,,,,,..,,...,...,,,.,,,,,,,.,,..,...,
-#XBOXSFI4TMPR3V3X5733RTGRXRSKTLFRFA4MOZOTCEZGF72KV25FVWBIEO4URAGJXYIL3TDMZMTNC
-#\\\|Z6MXVS4EPKFUJSOXJOZR3F2KJIH4MDR57KGCPIW5Y23SFMBEXDF \ / AMOS7 \ YOURUM ::
-#\[7]3LXKUQZW6XVEXFXCTPLLIP5QW52PGYGHADIJT5ZRP4ZWKGB3F2CY 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,,.,,,,,,.,,,,..,,..,.,,,,.,,.,,,..,,...,...,.,.,...,.,,,,..,,..,
+#MJEGMKHNKUIPMVVL63GQHVRKF4DKYZ6S534NN3FVF6FRQH6O3QRLLB3H5HTTRNG6JE7W2XGA4D3MW
+#\\\|BXE4HLFJ7HV44CC3BOOHWR22GTVYIA7BWGW4BSZ2V5LNTEMOLYM \ / AMOS7 \ YOURUM ::
+#\[7]RSTWNU3DGHE6C5RYA2WJXNWUPT3GNB55O5IVQQPHG7PBGI7RIUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
