@@ -43,9 +43,10 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [config reload clobber](feedback-config-reload-clobber.md), [route-send command format](feedback-route-send-command-format.md) — `reload config/all` overwrites runtime; no cube. prefix
 - [user-perfectionism-and-pace](user-perfectionism-and-pace.md) — "done" means perfectly smooth; let solo tuning passes run
 - [scratchpad_import tool](topic-scratchpad-import-tool.md) — pulls /tmp session scratchpad into data/scratchpad/; list/raw-read modes; check repo+tasks/completed before keeping imports
+- [show-buffer command](reference-show-buffer-command.md) — no `p7-log.tail` exists; use `show-buffer <name> [lines] [pattern]` (`list buffers` first); don't invent `.tail`-style command names
 
-#,,.,,.,,,,,.,.,.,.,,,,,.,..,,,.,,,..,,..,.,.,..,,...,...,,.,,..,,,,,,...,.,.,
-#2XJBLNF4NZHOY7CM3HPHAXBTNLWHTITYEEGQSTN37FO6VE6NNSTSIC2NYS7OMEZPLEWQPYY4NIEJC
-#\\\|KWLNTAANJ4CNL3VYCHUUULOOL2H2DG5E72MIEX7KTQFTTAR7RLH \ / AMOS7 \ YOURUM ::
-#\[7]UI72ILWL52VRBHKKAMFCQPNJT7BGDSIAC3233YE2J5SGTRCWP6CA 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,..,,..,,.,.,.,,,,,.,..,,...,,..,..,,...,...,...,,..,,,.,,,.,,..,
+#CPXRBFRBTOUX2RM55VC44QXFM6ZEM7HQT2GZ6CDQ5ZUSZBOEXC63MC7YZAWQFISNQS4VEYSAHROWM
+#\\\|2RLVQT3OVZ4TWFZOGC7XN6E3FMRTAO4DSFLIHZ25KKDJ2DEFD3U \ / AMOS7 \ YOURUM ::
+#\[7]M7644JD7MLILTMYGUX4OKY3NHOSW4UT7TA3NPK2HPLZGIEVB66DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

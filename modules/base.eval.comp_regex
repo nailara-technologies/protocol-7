@@ -27,7 +27,13 @@ $parse->permit_only(qw| :base_core :base_orig |);
 
 ## evaluate regular expression with 'qr' ##
 #
-my $perlcode_qr_str = sprintf 'qr\'%s\'', $regex_str;
+## escape the delimiter so an un-escaped ' in the pattern can't terminate  ##
+## the qr'...' literal early and leak stray text into the eval'd source -- ##
+## backslash itself is left untouched, since qr'...' hands \-escapes [ \d  ##
+## \s \\ etc. ] straight to the regex engine rather than pre-collapsing    ##
+## them the way q'...' would                                               ##
+( my $escaped_str = $regex_str ) =~ s|'|\\'|g;
+my $perlcode_qr_str = sprintf 'qr\'%s\'', $escaped_str;
 my $result          = $parse->reval( $perlcode_qr_str, 1 );
 #
 ##
@@ -60,8 +66,8 @@ if ( defined $error_sref->$* ) {
     return $result;    ##  no errors occured  ##
 }
 
-#,,,.,.,.,...,,,,,,..,..,,...,..,,,.,,,..,,,.,..,,...,...,.,.,...,.,,,,,,,...,
-#VVOPDKVVNPI5FPZT2A52ZL3X3BBYKZ2T266HOBMLZEMTOCHN5S6EX44PYRILAOMA3MIG6UKPW3WZM
-#\\\|5JEXJLN6QXR5E66MVHPR7ZGWQKWLDMABKIAASFVB6D2VUM5YYBF \ / AMOS7 \ YOURUM ::
-#\[7]4V6ECFDW5OZZ42GSALVBAAAONIANQ5CPB274HKUZ4R3SC62SSKCI 7  DATA SIGNATURE ::
+#,,.,,,,,,...,...,.,.,,,,,,.,,,..,,.,,,,,,,,,,..,,...,...,.,,,..,,.,,,,,,,..,,
+#G5IAJR5NA73H3DCFJJWK2U7FLDBSVLAFNDYZQY6CPHHM2ZUVZUXEMBT3IGA43OYQAXQFVHRUKWEBS
+#\\\|QBGZMQGTIGTV5W6XRLOK4FEFDLJ3NGY7223RJXOJJ2URTCD5XNL \ / AMOS7 \ YOURUM ::
+#\[7]O3SWSB556H7QGXUEBWCPEAQJYECCFGENBNE23I4WELMWW5VKQKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
