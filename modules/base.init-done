@@ -2,6 +2,10 @@
 
 # name  = base.init-done
 # descr = called after module loading and initialization is done
+# param = [hybrid-init:TRUE|FALSE]
+
+## set initialized in zenki other than cube? [ hybrid, non-v7 managed ]
+my $hybrid_init = <[base.cfg_bool]>->( shift // FALSE );
 
 if ( defined <zenka.init_return> and <zenka.init_return> == TRUE ) {
     warn 'skipping init-done [ already completed ] <{C1}>';
@@ -13,12 +17,13 @@ if ( defined <zenka.init_return> and <zenka.init_return> == TRUE ) {
 
 <[base.log]>->( 2, 'init-done completed [ success ]' );
 
-<system.zenka.initialized> = TRUE if <system.zenka.name> eq qw| cube |;
+<system.zenka.initialized> = TRUE
+    if $hybrid_init or <system.zenka.name> eq qw| cube |;
 
 return <zenka.init_return> = TRUE;    ## true ##
 
-#,,.,,...,...,.,,,,..,,.,,,,,,.,,,..,,,..,,..,..,,...,...,,,,,.,.,,..,..,,...,
-#2KNESELGWITFIMDEJQQPYZJHIDPEJBN7AE3CRAEDD75KDZDT67SUPYSHHUVVZO2BUI73HT6RQWVSO
-#\\\|E5CBQRDH4V7OLNCAGK4QNUPM4TV7QAOFKFIKWGK7A3X3OZM4Z6L \ / AMOS7 \ YOURUM ::
-#\[7]OPBUOJJFWWT2WATYHUA5GA63UX26BMGCJIQOTGNLS2WBIBWNIQBI 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,..,,.,.,...,,,.,,,.,.,,,.,,,...,..,,...,...,,,,,,.,,.,,,.,,,.,.,
+#IJCVAG37XQB74YM636X5DEUYGUTNC54CNM3K2SITCHJUMFEQDH3TQ2PVM7EIGOWUXDCRGNUIE3EPK
+#\\\|WVEUKUTAKHTU2E2PJJ56FYLUEHWKJWMUHKQ6BIVQB4JM22CMFFD \ / AMOS7 \ YOURUM ::
+#\[7]FHLLFWWAM3ZZXTCPUDKRCKMWA7VAIF6VTK2CDK2MGX7GVJR2CUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
