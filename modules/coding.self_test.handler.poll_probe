@@ -26,8 +26,13 @@ my $elapsed  = $now - ( $state->{'started'} // $now );
 ## overall watchdog : bounded, never unbounded. worst case per prompt is ~2 ##
 ## probe attempts + 4 tier1 attempts at the 90s timeout each plus gaps [    ##
 ## ~560s ] - two prompts + slack rounds to 1200s. a state machine phase     ##
-## with no ceiling is an unbounded wait wearing a costume                   ##
-my $max_total = 1200;
+## with no ceiling is an unbounded wait wearing a costume. exposed as a     ##
+## config so coding.handler.verify_inference_startup's fallback-resume      ##
+## ceiling can derive from this exact number instead of guessing a smaller  ##
+## one and racing a legitimate-but-slow self-test [ confirmed live          ##
+## 2026-08-07 : a 120s fallback ceiling fired mid-retry on prompt 2 and     ##
+## force-resumed the task queue before self-test had actually concluded ]   ##
+my $max_total = <coding.cfg.self_test_max_total> // 1200;
 if ( $elapsed > $max_total and $state->{'phase'} ne qw| done | ) {
     <[base.logs]>->(
         0, '[poll_probe] probe %s exceeded %ds total budget : aborting',
@@ -76,6 +81,7 @@ my $fire_request = sub {
             backend  => $backend,
             timeout  => $state->{'timeout'},
             probe_id => $probe_id,
+            kind     => $kind,    ## surfaced in the connect log below ##
             ## max_tokens : 4096 for the initial probe call [ settled ],  ##
             ## the client default 1024 for tier1 reformat - same split as ##
             ## the old blocking path                                      ##
@@ -482,8 +488,8 @@ $state->{'all_passed'} = FALSE;
 $state->{'phase'}      = qw| done |;
 return TRUE;
 
-#,,..,.,,,.,.,..,,.,,,...,,,,,,..,..,,,..,,.,,..,,...,...,..,,.,.,...,,..,,,,,
-#WCZBIBSNWTYXIGLYJTYF36QZJ5CDSJNQG3XLJG5JQZ2LJDJTSPXFK7CKTF6IDAI6FB7IBGGWZSWUM
-#\\\|DCKBEYVWP4ZUFIHJHN2ERFEFKN6HYPTI2ANZXNHHOU6SKHWTD3Y \ / AMOS7 \ YOURUM ::
-#\[7]C33A255RP7OHOSDOEDWOJ24KUQUXQA6NYCIYYX4TJWBRQAZVLGAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,.,.,,..,..,,,.,,.,,,,,,,..,,,..,..,,...,...,,..,..,,,.,,..,,.,.,
+#W6OSQQIE7CJKGJFTVRCDIMI23DYXBN6XQUCJTBE6X4FXOUBG642CJBEY5DXCWJBIBSYSIGREBPLWS
+#\\\|365BC7LMCBEPAZ4D672QLQWSLBYEHIKZEZUKQUGPHV46556SSUC \ / AMOS7 \ YOURUM ::
+#\[7]QKCS2PR3GYCXUQZXZAOPGJ6MW5QVNQVC5T7YQDA53DY2AZ4QJAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

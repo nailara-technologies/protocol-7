@@ -78,6 +78,67 @@ if ( defined $abort_match ) {
     return;
 }
 
+## degenerate repetition check : cheap regex against a bounded tail window  ##
+## regardless of total accumulated length - catches a model looping on its  ##
+## own output while technically still "alive" [ chunks flowing ], a case    ##
+## the total-duration timeout no longer catches early on its own now that   ##
+## it extends whenever the stream shows activity [ see                      ##
+## coding.handler.http_timeout ]. lives here rather than per-caller so both ##
+## self-test's probes [ no task_id, no abort patterns configured ] and real ##
+## tasks get it uniformly                                                   ##
+my $choice0
+    = ref( $data->{'choices'} ) eq qw| ARRAY |
+    ? $data->{'choices'}[0] // {}
+    : {};
+my $delta0 = $choice0->{'delta'} // $choice0->{'message'} // {};
+my $piece  = ( $delta0->{'content'} // '' )
+    . ( $delta0->{'reasoning_content'} // '' );
+
+if ( length $piece ) {
+    my $rc = $state->{'repetition_ctx'} //= { accumulated => '' };
+    $rc->{'accumulated'} .= $piece;
+
+    ## only the tail matters for detection - cap retained history so a ##
+    ## long-but-healthy response never grows this unbounded            ##
+    substr( $rc->{'accumulated'}, 0, length( $rc->{'accumulated'} ) - 1200,
+        '' )
+        if length( $rc->{'accumulated'} ) > 2000;
+
+    my $rep_match
+        = <[coding.detect_stream_repetition]>->( $rc->{'accumulated'} );
+    if ( defined $rep_match ) {
+        <[base.logs]>->(
+            0,
+            "async.http_io: degenerate repetition "
+                . "detected for task %s [unit=%d chars]",
+            $state->{'task_id'} || '[none]',
+            $rep_match->{'unit_len'} // 0
+        );
+        $state->{'abort_triggered'} = TRUE;
+        $state->{'abort_match'}     = {
+            pattern_id => qw| degenerate_repetition |,
+            matched    => $rep_match->{'matched'},
+            task_id    => $state->{'task_id'} // '',
+        };
+        if ( exists $callbacks->{'on_abort'} ) {
+            ## real tasks : same recovery path already trusted for a ##
+            ## pattern-based abort match                             ##
+            $callbacks->{'on_abort'}->($state);
+        } elsif ( exists $callbacks->{'on_error'} ) {
+            ## no task machinery [ eg self-test probes ] : report through   ##
+            ## on_error same as any other stream failure - self_test.run's  ##
+            ## own retry classification treats this as non-retryable [      ##
+            ## correctly - see coding.handler.http_timeout's history ], and ##
+            ## for the cat-test prompt specifically it flows straight into  ##
+            ## monitor_inference_startup's existing seed-restart path the   ##
+            ## same as any other prompt-2 failure                           ##
+            $callbacks->{'on_error'}->('degenerate_stream');
+        }
+        <[coding.async.http_cleanup]>->($state);
+        return;
+    }
+}
+
 ## call on_chunk callback ##
 if ( exists $callbacks->{'on_chunk'} ) {
     <[base.logs]>->( 2, "async.http_io: calling on_chunk callback" );
@@ -86,8 +147,8 @@ if ( exists $callbacks->{'on_chunk'} ) {
 
 return;
 
-#,,,.,,,,,.,,,,,.,...,.,.,,.,,.,.,..,,,.,,,.,,.,.,...,.,.,,..,,.,,,,.,.,.,,,.,
-#MGPJVE2T7AMKASZOYGNAI2243MAPNWRADHW7VCDS62QYZH5TXFBEMEHEJXALGUBTR34LDTZEO66XO
-#\\\|II7I3FMSW665N3GJOCYT7M6ZVDQ5ZW6ZVC4NKEKZN7HJ5HTNTXZ \ / AMOS7 \ YOURUM ::
-#\[7]I7MDVFFCLX4PLCAHUC4GBFNSTHXK3X4L5QAE4BBJ4B6P7K7GZ6AQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,..,..,,,,,,.,.,,..,...,,,.,,..,.,.,...,.,.,,..,...,.,.,...,..,,
+#WP3BKQ5A4BFFVGRB5FEBTPADGWEZB7DSLFTZXBY6T6XZI2WJHFW3PYLT76KRSXRE6TCWXFXMR7A5K
+#\\\|RTZTS7UXIDZAUU6AT7UBGTHKBQNW4O24DPD2E7TDOSQVQIH4RSC \ / AMOS7 \ YOURUM ::
+#\[7]CZKII2OCPHKWHU22AKVK4ET6MM2577S2KKZW2AFEFDDSSDN4QGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
