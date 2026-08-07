@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = coding.detect_stream_repetition
+# descr = detect a degenerate immediately-repeating pattern in stream text
+
+my $text = shift // '';
+
+my $unit_min = <coding.cfg.stream_repetition_unit_min> // 8;
+my $unit_max = <coding.cfg.stream_repetition_unit_max> // 60;
+my $min_run  = <coding.cfg.stream_repetition_min_run>  // 4;
+my $window   = <coding.cfg.stream_repetition_window>   // 600;
+
+return undef if length($text) < $unit_min * $min_run;
+
+## only the tail matters for detection - bounds the regex cost regardless ##
+## of how long the overall response has grown                             ##
+my $tail = length($text) > $window ? substr( $text, -$window ) : $text;
+
+## a short unit [ unit_min..unit_max chars ] repeated immediately min_run+ ##
+## times back-to-back - the classic degenerate-loop shape [ a model        ##
+## regurgitating the same phrase/token run ], independent of what the unit ##
+## actually contains                                                       ##
+my $re = qr/(.{$unit_min,$unit_max}?)\1{$min_run,}/s;
+
+return undef unless $tail =~ $re;
+
+return { matched => $1, unit_len => length($1) };
+
+#,,..,,,.,,,.,,,,,.,,,,.,,...,,..,.,.,..,,,,,,.,.,...,...,,.,,,,,,,,,,...,,,,,
+#SIRHYUCBUGMKG4SMBP7Y2TRCOEQPK4PIUYYB4LQLFAQV6NTWLIYWYPZLEV3FLAFSCGLTGASDLFNI4
+#\\\|PWGHG7ZWQ4MBKGHDKU2DHTMJFHXG4CTCAAWA45KU3RZVX2HSVGX \ / AMOS7 \ YOURUM ::
+#\[7]FJ6L4FP4VKQAUSUHWCRWAD65UXPH4IMPMFUCOPBGFUKUBAW4NMCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
