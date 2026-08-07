@@ -69,9 +69,11 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [inline-elf-perl-version-infinite-loop](bug-inline-elf-perl-version-infinite-loop.md) — FULLY RESOLVED, both atom+pri clean-start verified: dangling-if in inline_elf's UTF-8 decode (Perl 5.42.2 only) unpacked into 5 total independent bugs chasing one boot end-to-end (ptd P7-macro false-positives, deps profile gaps, httpsd/web skins ownership race, stale web.cmd.skin path); one symptom ≠ one bug, don't stop at the first plausible fix
 - [check-local-session-log-before-kimi-continue-roundtrip](feedback-check-local-session-log-before-kimi-continue-roundtrip.md) — before paying for another kimi_continue round-trip to re-extract data a session already produced, check kimi-legacy -r session log, session_catchup, or coding.show-buffer first
 - [jobsite-candidate-preferences](feedback-jobsite-candidate-preferences.md) — steady income > top-of-market pay in salary advice/profile.txt tuning, but exploitative/unstable pay stays a hard line; anchor salary asks mid-upper-estimate, one number not a range; prefer jobsite.blacklist-add over profile.txt prose for settled company exclusions
+- [comp-regex-qr-delimiter-escaping](feedback-comp-regex-qr-delimiter-escaping.md) — qr'...' only needs the delimiter (') escaped, never backslash; qr'...' hands \-escapes to the regex engine unlike q'...', so backslash-doubling silently breaks \d/\s for every caller
+- [standalone-zenka-init-done-hybrid](feedback-standalone-zenka-init-done-hybrid.md) — non-v7-managed zenki need `[init-done:TRUE]` in start file or system.zenka.initialized never becomes TRUE, stalling init reports forever; canonical backoff shape to reuse is v7.handler.zenka_status's restart_delay (*1.2 growth, min/max envelope)
 
-#,,,.,.,,,..,,,,.,.,.,...,..,,,,,,,..,..,,,,.,..,,...,...,.,.,,..,.,,,...,...,
-#KKHHSZXGB5M4T3LB6N3D54M6GVWSCHCIRLRPOR3LQDAZX7P4AD6LEEBDSN4YZ3765VVNTGP6SDJZG
-#\\\|NZUKD2JA3ZSRGQZQQIIJXNBGP7EWI7G56R4LCYOMYRK7FUUPUZ5 \ / AMOS7 \ YOURUM ::
-#\[7]ZWZM7N7ZZGANESQ5745C6IPOZDKRFKY5FSTFMZPJPAQG7XEMMOBA 7  DATA SIGNATURE ::
+#,,..,,,,,,..,..,,.,.,.,.,,.,,.,.,,..,.,,,,..,..,,...,.,.,..,,.,,,,..,,,,,,..,
+#ZE4C5H23UQ5AF53WA5IWCRDUPAKXTRCVIK4CORZSSY7VBYYI4PTS6GATY2QUVNZJNWNS4Y4DXQJQA
+#\\\|VFNHLSBP3Q3YLICJUATCOIQ5DABRPJSNYPS2EVYOCLDMOVJAZZQ \ / AMOS7 \ YOURUM ::
+#\[7]KDWZFDVCILJ4BC7SMEWP42WTPWK2F5W7S2TGVTYBBPKPXN3W2EDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
