@@ -31,7 +31,7 @@ return { 'mode' => qw| false |, 'data' => "branch not found: $id" }
 
 $branch->{'state'}       = qw| resolved |;
 $branch->{'output'}      = $params->{'output'} // '';
-$branch->{'resolved_at'} = <[base.time]>->(4);
+$branch->{'resolved_at'} = <[base.ntime]>;
 
 <[base.logs]>->( 1, "reasoning.branch.resolve: %s resolved", $id );
 
@@ -76,8 +76,8 @@ return {
     'data' => { resolved => $id, resumed => \@resumed }
 };
 
-#,,..,...,..,,..,,,.,,..,,...,.,.,.,.,,,,,...,..,,...,...,...,,.,,,.,,,..,,,,,
-#TXTBITKYSLHVFWEVR77JALPTMICL2IX2I6MY5COBEBXDBORN7W7333UGDENSRXUW42ZIIVTNH5KEO
-#\\\|GUJNF2KT7KHREEQ7PZNU4QS423TL2YUCV23Q4E7LXR4YBAKMDTD \ / AMOS7 \ YOURUM ::
-#\[7]CJC7GAAMUVE2VL3HQG2FM3HBBD44GEVRU5SXOMSZJCEJCDEPOGAY 7  DATA SIGNATURE ::
+#,,.,,...,,.,,.,,,.,,,,.,,..,,.,,,,,.,,..,,,.,..,,...,...,..,,...,...,...,,..,
+#N53435MKXWI74CYKXU34QUMFRJN3U3YYFYMPKDXMDV4RN3PNUXDKRYQWDWVSV4HZZU7SEAKX2Z3FM
+#\\\|VN42OLIHYG2LZQ67VBG4OOI5RODZRAGGWLT6K2DAUPMVWCT3YLH \ / AMOS7 \ YOURUM ::
+#\[7]7LAGXPUWT5JPAVIPAZJED3NZP5DFRIN4WS6ECFSR5IBFONHWK2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
