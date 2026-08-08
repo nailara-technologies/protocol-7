@@ -5,14 +5,14 @@
 
 <[base.log]>->( 2, "initializing holographic topology extensions" );
 
-##[ REGISTER CORE ]#########################################################
+##[ REGISTER CORE ]###########################################################
 
 my $mapper = <[devmod.cmd.get]>->('data.topology.interference.map');
 $data{'topology'}{'interference'}{'map'} = $mapper;
 
 $data{'get'} = <[devmod.cmd.get]>->('data.get');
 
-##[ UNIFIED PHYSICS ]#######################################################
+##[ UNIFIED PHYSICS ]#########################################################
 
 $data{'unified'}{'physics'}{'electrical'} = sub {
     my ( $position, $options ) = @ARG;
@@ -73,7 +73,7 @@ $data{'unified'}{'physics'}{'field'} = sub {
     return $field->{'unified'};
 };
 
-##[ TOPOLOGY ACCESS ]#######################################################
+##[ TOPOLOGY ACCESS ]#########################################################
 
 $data{'topology'}{'resolve'} = sub {
     my ( $x, $y, $z, $property ) = @ARG;
@@ -82,7 +82,7 @@ $data{'topology'}{'resolve'} = sub {
     return $property ? $data->{$property} : $data;
 };
 
-##[ INTENT REGISTRY ]#######################################################
+##[ INTENT REGISTRY ]#########################################################
 
 $data{'intent'}{'register'} = sub {
     my ( $entity_id, $current_pos, $intent_pos, $phase ) = @ARG;
@@ -95,7 +95,7 @@ $data{'intent'}{'register'} = sub {
         'from'      => $current_pos,
         'to'        => $intent_pos,
         'phase'     => $phase,
-        'timestamp' => <[base.time]>->(2),
+        'timestamp' => <[base.ntime]>,
     };
 
     return $ghost_key;
@@ -118,7 +118,7 @@ $data{'intent'}{'query_at'} = sub {
     return \@affecting;
 };
 
-##[ WORKHOLE REGISTRY ]#####################################################
+##[ WORKHOLE REGISTRY ]#######################################################
 
 $data{'workhole'}{'register'} = sub {
     my ( $from_func, $to_func, $path_coords ) = @ARG;
@@ -155,8 +155,8 @@ $data{'workhole'}{'find'} = sub {
 
 return 1;
 
-#,,..,..,,,..,...,,,.,..,,,.,,.,.,,,,,,,,,,,.,..,,...,...,.,,,.,,,...,,.,,..,,
-#LFTD3IC5ZDIQCCRYCDOGG7646PKDZIABXEM6QJK3SFQKDMRG7FHDSUZHJCSUWF3VK5YHY7VSZRYF2
-#\\\|UDJ2W2YOHERZTTTMXRKFKPGDT3YNPMKJH3BNVLOTAUV45GBMDTO \ / AMOS7 \ YOURUM ::
-#\[7]XNAIYODDEXA6HAH42SUSEIDET2VBZ6RDCBMWCGYK6QR7YE2IXWDY 7  DATA SIGNATURE ::
+#,,,,,...,,..,,,,,...,,.,,,.,,.,.,.,.,...,,..,..,,...,...,,..,,,.,.,.,.,,,.,.,
+#FPIZH2NTOI772SKI3KM4YLUIEFJQ6UDLYDUIZ3GHCTHJCTXX67B3LVHORZQZOR5EVBZJU7R6NP7T2
+#\\\|ZLFWG4MP4O4TDMY2QDAUCKNURFFL5326EVBAJUMGOPKGT5Y6TL4 \ / AMOS7 \ YOURUM ::
+#\[7]EDCO3RFMZNEEWGFUZBGYSGGA3UDJNXX4Y4K76MQMJVIXTSONAUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

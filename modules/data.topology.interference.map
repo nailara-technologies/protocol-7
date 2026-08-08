@@ -16,7 +16,7 @@ my $options   = shift // {};
 
 return undef unless defined $data_hash;
 
-##[ OPTIONS ]###############################################################
+##[ OPTIONS ]#################################################################
 
 my $include_spatial      = $options->{'include_spatial'}      // 1;
 my $include_interference = $options->{'include_interference'} // 1;
@@ -25,7 +25,7 @@ my $include_routing      = $options->{'include_routing'}      // 1;
 my $include_metadata     = $options->{'include_metadata'}     // 1;
 my $temporal_phase       = $options->{'temporal_phase'};
 
-##[ CONSTANTS ]#############################################################
+##[ CONSTANTS ]###############################################################
 
 my $PROTOCOL_BLUE = <[data.topology.interference.map.PROTOCOL_BLUE]>;
 my $MAX_RGB_DIST  = <[data.topology.interference.map.MAX_RGB_DIST]>;
@@ -33,7 +33,7 @@ my $CUBE_SIZE     = <[data.topology.interference.map.CUBE_SIZE]>;
 my $SUBCUBES_PER_GROUP
     = <[data.topology.interference.map.SUBCUBES_PER_GROUP]>;
 
-##[ SPATIAL ]###############################################################
+##[ SPATIAL ]#################################################################
 
 my $spatial = {};
 
@@ -59,7 +59,7 @@ if ($include_spatial) {
     };
 }
 
-##[ INTERFERENCE ]##########################################################
+##[ INTERFERENCE ]############################################################
 
 my $interference = {};
 
@@ -89,7 +89,7 @@ if ($include_interference) {
     };
 }
 
-##[ VISUAL ]################################################################
+##[ VISUAL ]##################################################################
 
 my $visual = {};
 
@@ -122,7 +122,7 @@ if ($include_visual) {
     };
 }
 
-##[ ROUTING ]###############################################################
+##[ ROUTING ]#################################################################
 
 my $routing = {};
 
@@ -149,14 +149,14 @@ if ($include_routing) {
     };
 }
 
-##[ METADATA ]##############################################################
+##[ METADATA ]################################################################
 
 my $metadata = {};
 
 if ($include_metadata) {
     $metadata = {
         'original_hash' => $data_hash,
-        'mapped_time'   => <[base.time]>->(2),
+        'mapped_time'   => <[base.ntime]>,
         'source_type'   =>
             <[data.topology.interference.map.determine_source_type]>->(
             $data_hash),
@@ -169,7 +169,7 @@ if ($include_metadata) {
     };
 }
 
-##[ RETURN ]################################################################
+##[ RETURN ]##################################################################
 
 return {
     'spatial'      => $spatial,
@@ -182,8 +182,8 @@ return {
     ),
 };
 
-#,,,,,,..,.,,,.,.,,.,,.,,,,..,.,.,.,.,,.,,,..,..,,...,...,.,.,.,,,...,,..,...,
-#GVWWIY2XIKENFQ2I5EIVMQ2O4JRWMS3X2PALZV6YVVBAKVQPQUJ3B6JHKCY7CJEECXI5NZRKBHNWK
-#\\\|OCHZS5EVKL2ED4JN5P3ABZR2TTWHQ4ZDEP37JZRKOU6AHDY3BCP \ / AMOS7 \ YOURUM ::
-#\[7]BOQK7MCGFOVKUS3YFYW6MXBHJK2FQB3NUKB6DE7K6F6HUQUWQIDY 7  DATA SIGNATURE ::
+#,,.,,,..,..,,.,,,.,.,,..,,.,,...,...,..,,..,,..,,...,.,.,,..,...,...,.,.,.,,,
+#URE6OM6Z6F6PSK24QSWCWOF2KJZWIMZO5GNRESJBF2MSAONSIHJ4D76YWGXKNFDZWJEH74NMUCCYI
+#\\\|H42XN7PYFNSRLCYVV3ENSE2UR6CNX5TB3VWLS6C6MEUUVW3RNEO \ / AMOS7 \ YOURUM ::
+#\[7]OTDYQUSCURWYCXRPQ7IUARWLCMZ7ZXMF2PIFHG3AEWZPA5QNGMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

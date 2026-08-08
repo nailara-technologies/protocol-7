@@ -23,7 +23,7 @@ $section =~ s|[^a-zA-Z0-9._-]|_|g;
 my $note_file = "$workspace_dir/$section.md";
 
 ## replace entire section with timestamp header ##
-my $timestamp = <[base.time]>->(2);
+my $timestamp = <[base.ntime]>;
 my $entry     = "## $timestamp [ updated ] ##\n\n$content\n";
 
 <[file.write]>->( $note_file, $entry );
@@ -48,8 +48,8 @@ return {
     'data' => { 'section' => $section, 'bytes' => length $entry }
 };
 
-#,,,,,.,,,,,.,...,.,.,,..,,,,,.,.,,,,,..,,,..,.,.,...,...,...,..,,..,,..,,..,,
-#L7CMQKS7OSQTVHSN3GTMWN3U5ZOPUQAJGZSE77FT7HSLMLWV3WYHSGCTBZTSHEJ6BEBA5WLGT2RKQ
-#\\\|F4FT3N5LHRXIUYMMDMBQCJATCIA3MO75RHLO7VL2B3ALEMRN424 \ / AMOS7 \ YOURUM ::
-#\[7]RJ3BDQWPDXXDLYH4VJ42SZBLV5QOU33URVTFLCISVH6GUP5FFECI 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,.,,.,,,..,,.,,,.,,,,..,.,,,,,.,.,.,...,...,,,,,.,,,..,,.,.,.,,,
+#OR3FJ6HGOTVUC7VQTZYMYCC3B5AHY7CHKXMW3LFDL6IGXV4TV3GVWGFV7JASBACE6IQULRQOXJP7M
+#\\\|FEXRRWNZ5Y6BESGMZPUAYFRO5A73T4KQI4DUIMY5LOQ7PJ5W3YB \ / AMOS7 \ YOURUM ::
+#\[7]MDEPNBMMSCPWUXFFZMEAFBULOGTGH5Q4XHPXQNC3UCTBK6DTC4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

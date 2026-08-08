@@ -6,7 +6,7 @@
 my $path = shift;
 return undef unless defined $path && length($path);
 
-##[ SECURITY ]##############################################################
+##[ SECURITY ]################################################################
 
 my $security_check = <[data.get.validate_path_security]>->($path);
 return {
@@ -17,18 +17,18 @@ return {
     }
     unless $security_check->{'allowed'};
 
-##[ CLASSIFICATION ]########################################################
+##[ CLASSIFICATION ]##########################################################
 
 my $classification = <[data.get.classify_path]>->($path);
 my $source_type    = $classification->{'type'};
 
-##[ RESOLUTION ]############################################################
+##[ RESOLUTION ]##############################################################
 
 my $metadata = {
     'path'           => $path,
     'source_type'    => $source_type,
     'classification' => $classification,
-    'resolved_time'  => <[base.time]>->(2),
+    'resolved_time'  => <[base.ntime]>,
 };
 
 my $result;
@@ -51,7 +51,7 @@ if ( $source_type eq 'virtual' ) {
     };
 }
 
-##[ RETURN ]################################################################
+##[ RETURN ]##################################################################
 
 return {
     'value'        => $result->{'value'},
@@ -65,8 +65,8 @@ return {
     'metadata' => { %$metadata, %{ $result->{'metadata'} // {} } },
 };
 
-#,,.,,,,.,,,,,..,,.,.,.,.,.,.,.,.,...,,,,,.,,,..,,...,...,,..,.,,,,,,,,,.,,,,,
-#B2ILM7CJSZAGSFD75THWCIWDVUIN5MQTDKR3Q6YECBEKUPJF2EYGFHDIXUBJ756EOF4VDPZYHFCHI
-#\\\|SLOD2MFPCXLLRDWCIPMIEBQUQNRZJYXG7B7LBKYQ54SQMSR7OBA \ / AMOS7 \ YOURUM ::
-#\[7]X3WILXN7MIALT4ZNM544IRVT4ALIZCBWJFC2IWN5A2J54VJMSICA 7  DATA SIGNATURE ::
+#,,,,,,..,...,...,.,.,,,,,.,,,,,.,..,,..,,...,..,,...,...,...,,,,,...,.,,,..,,
+#62GDYSPU7XVPYXH525TUUP2MAPZT2XVDBEWEUKGTTWBT423MRTA3IRD6KKQK4YZM7GH62JGKWW2XI
+#\\\|6UZGG5CB3BKSMHEAHBYX2J4YOBB6BTJWJTINNTG5Z2J3GA2VEOT \ / AMOS7 \ YOURUM ::
+#\[7]G7WEHCO7XS4RIZSYWPZ2APMHDZNRHOZZ4PFPQQNCLZRCZR54PICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -30,7 +30,7 @@ my $meta_file = "$task_dir/.meta";
 if ( -f $meta_file ) {
     my $meta = eval { JSON::PP::decode_json( <[file.read]>->($meta_file) ) };
     if ( ref $meta eq qw| HASH | ) {
-        $meta->{'summarized'} = <[base.time]>->(3);
+        $meta->{'summarized'} = <[base.ntime]>;
         $meta->{'has_L1'} = ( -f "$task_dir/summary.short" && -s _ ) ? 1 : 0;
         $meta->{'has_L2'} = ( -f "$task_dir/summary.long"  && -s _ ) ? 1 : 0;
         <[file.write]>->( $meta_file, JSON::PP::encode_json($meta) );
@@ -46,8 +46,8 @@ return {
     }
 };
 
-#,,,,,,.,,,,.,,,.,,..,.,.,...,.,.,,..,..,,,,.,.,.,...,...,...,,,.,,,,,..,,.,,,
-#JMHU53DIJSDJ4RMK26PVSXGTQS7TIKCI6ZWGGTKXZZ2PDTDLBS5UTGV3TF6ES2KMUHEOFYNOFJJQO
-#\\\|VZPWK75NZCY7JRHURV76HQGFQ67WVAXZ4FVMJWWHDJXCVA5IAO3 \ / AMOS7 \ YOURUM ::
-#\[7]CF3TI74VLSSBKEPYIHARKJJLOZ7CAFF5LLH3FMWMKOWVK2IZ5ABA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,.,.,,,.,,.,,.,,,,.,,.,.,,.,,...,.,.,...,...,,.,,.,,,.,,,,,,,.,.,
+#GLTELNS22STKZKARLYKCIHGEJ2OV7BZJ7UC3MEAPHCVIY4L245QXWJCRNZ46EW4PZGASZWKEH7VQG
+#\\\|JDPGUDFAXDBJMFOBU5TDOJSDOL5IGVQSTKMCFWLK3XBXUY5NGYI \ / AMOS7 \ YOURUM ::
+#\[7]TK7Q3OCNOL6CI7ISNI3GJ6SFGM4DCY5G3UMNQJ5SRRSATXMLBQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
