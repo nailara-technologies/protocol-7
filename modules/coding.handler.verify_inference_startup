@@ -34,15 +34,18 @@ if ( $is_ready && $pid > 0 && kill 0, $pid ) {
     ## server merely responded, letting real tasks dispatch before the      ##
     ## reasoning-sanity check (prompt 2) had even concluded. bounded defer, ##
     ## but the bound must sit ABOVE self-test's own hard watchdog [         ##
-    ## coding.self_test.handler.poll_probe's max_total, default 1200s ],    ##
-    ## not below it - confirmed live 2026-08-07 : a 120s ceiling here fired ##
-    ## while self-test was legitimately still retrying prompt 2 after a 90s ##
+    ## coding.self_test.handler.poll_probe's max_total ], not below it -    ##
+    ## confirmed live 2026-08-07 : a 120s ceiling here fired while          ##
+    ## self-test was legitimately still retrying prompt 2 after a 90s       ##
     ## timeout [ well within self-test's own bounded budget ], and forced   ##
     ## the queue open mid-self-test - exactly the premature-resume this     ##
     ## guard exists to prevent. self-test's own watchdog is what guarantees ##
     ## the flag eventually clears ; this ceiling is a last-resort net for   ##
     ## the case that guarantee itself somehow fails, so it only needs to be ##
-    ## comfortably past it, not tight                                       ##
+    ## comfortably past it, not tight. self_test_max_total's default is     ##
+    ## derived once at coding.init_code from self_test_tier1_extra_rounds - ##
+    ## read here, never recomputed, so this ceiling and poll_probe's        ##
+    ## watchdog can never silently drift out of sync with each other        ##
     if (<coding.self_test_probe_in_flight>) {
         my $self_test_budget = <coding.cfg.self_test_max_total> // 1200;
         my $defer_ceiling    = int( ( $self_test_budget + 120 ) / 2 );
@@ -123,8 +126,8 @@ if ( $restart_count >= 5 ) {
 
 return FALSE;
 
-#,,,,,..,,...,...,,,.,...,,.,,,,,,,.,,,,,,..,,..,,...,...,.,,,,,,,...,,.,,..,,
-#HSYBDGGMVRKR2FYJWZIEG25G32LBLWQHIWMGBWSMCCIZNLRHPHJU6CORA5M4KY7WIRXBV4A4OQCRW
-#\\\|VFZL4CX6I7SQ63KOQTXGQJ4PMOGDDGCIEE577PUYUBNQ3CJJTBL \ / AMOS7 \ YOURUM ::
-#\[7]2HWKPPFRR53ZE3TC5I7QWRNMOFCO4X7HGDI7NYXSKLY3JMAI7UAI 7  DATA SIGNATURE ::
+#,,..,,..,,,,,,..,.,.,,,,,,,,,.,,,,,.,,,,,.,,,..,,...,...,..,,.,,,...,,,.,,,.,
+#MHPFUIMRWLRAW43LD77VD3LOMGUKXBUCRXSWENNUW2ILHQMRDNNV4RACCEPTBLZJPGVUIN65I4HXI
+#\\\|K4BH4T2X3ZIUHOZMSRSBZRMOBD3BXKCSA5ECSRCOG4UCBPC4I5T \ / AMOS7 \ YOURUM ::
+#\[7]VI3XOER3HRAVFXOR4NYXT7FH5BGGUNU7IIUXGILC5MFDSA4VS4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

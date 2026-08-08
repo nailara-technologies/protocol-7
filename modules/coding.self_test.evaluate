@@ -162,7 +162,7 @@ if ( $step eq qw| init | ) {
             structural_reason  => $structural_reason,
             strict_hint        => $strict_hint,
             with_mismatch_hint => $with_mismatch_hint,
-            strict_done        => FALSE,
+            strict_rounds_used => 0,
             attempts           => [],
         },
     };
@@ -243,14 +243,29 @@ if ( $step eq qw| tier1_done | ) {
     }
 
     ## strict-hint round : only on a genuine mismatch, never on a transport ##
-    ## failure [ same condition as the old blocking code ]                  ##
-    if (   !$eval_state->{'strict_done'}
+    ## failure [ same condition as the old blocking code ]. round count is  ##
+    ## config-bounded [ coding.cfg.self_test_tier1_extra_rounds, default 1  ##
+    ## -- matches the original single-strict-hint behaviour ] rather than a ##
+    ## single boolean, so operators can trade more retries for slower       ##
+    ## worst-case runs. poll_probe derives its watchdog budget from this    ##
+    ## same config value -- see the comment there -- so raising it here     ##
+    ## alone is safe and won't race the queue-resume ceiling fixed in       ##
+    ## 4c3cf0e73. reusing $strict_hint for every round is deliberate, not   ##
+    ## an oversight: it's not a static repeat -- $reason (and so the hint   ##
+    ## text) reflects whatever the LATEST violation was, so round 3 nudges  ##
+    ## on round 2's actual mistake, not round 1's. a model that flips its   ##
+    ## own answer between rounds on an identical hint is itself useful      ##
+    ## nondeterminism signal, not a bug to route around.                    ##
+    my $extra_rounds_allowed = <coding.cfg.self_test_tier1_extra_rounds> // 1;
+    if (    $eval_state->{'strict_rounds_used'} < $extra_rounds_allowed
         and $reason !~ m{^tier1_inference_failed} ) {
         <[base.logs]>->(
-            1, '[self_test] tier1 reformat attempt 1 failed : model %s : %s',
+            1,
+            '[self_test] tier1 reformat attempt %d failed : model %s : %s',
+            $eval_state->{'strict_rounds_used'} + 1,
             $model_id, $reason
         );
-        $eval_state->{'strict_done'} = TRUE;
+        $eval_state->{'strict_rounds_used'}++;
         my $strict = $eval_state->{'with_mismatch_hint'}
             ->( $eval_state->{'strict_hint'}->($reason) );
         return {
@@ -287,8 +302,8 @@ return {
     eval    => { mode => qw| false |, data => "unknown evaluate step $step" },
 };
 
-#,,,.,,..,.,,,...,.,.,,.,,..,,,,.,.,,,...,,,.,..,,...,...,.,,,,..,,..,...,,..,
-#EPOHFW2PWPC5QNCO2HRFPFEQBQRMGN34U6VN5FERAFODTR4HTN4MYO4CP24UA47OTXD2GM5NUU2YM
-#\\\|A7QEFYOWXTUDITTLZPELBSEZZXRTKWKI6LVA5MCDVZPYOREG7EG \ / AMOS7 \ YOURUM ::
-#\[7]6DKWCY5A4LDGA7KPEFIZJ3OIZBVFP3FOQOOUJF27UOGY7GNE7WDA 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,,.,,.,,..,,,.,,,.,,.,.,..,,..,,..,,...,...,,..,.,.,...,..,,...,
+#ZZAE6IQZB47HSQJDDNK5ITNHEVL2MZIK3R64BRZVZ6CNAP7JV35EDRO6TSR7NHIXUVJTYODCGHR2A
+#\\\|S57BITV2GB3BUQPUKZGDKZFELQQMUDZ5HO3BI5MWPC4UTYMI62R \ / AMOS7 \ YOURUM ::
+#\[7]MYA42MDG4YAAKJKDAK42KA4PBBU3H2PYCFHMMHEV6UVRI76MTSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -37,6 +37,38 @@ my @lines;
 push @lines, sprintf "self-test detail : %s : epoch %d\n", $model_id,
     $last_epoch;
 
+## durable cross-restart stats [ coding.self_test.archive ] - separate from ##
+## the epoch-scoped detail above, which resets every restart. this is the   ##
+## actual answer to "how many retries does this model typically need"       ##
+{
+    my $stats_yaml = <[file.zenka_dir.load]>->('self_test-stats.yaml');
+    my $stats
+        = ( defined $stats_yaml and length $$stats_yaml )
+        ? ( <[format.yaml.load_str]>->($$stats_yaml) // {} )
+        : {};
+    my $model_stats = $stats->{$model_id} // {};
+
+    if (%$model_stats) {
+        push @lines, "durable stats [ across all runs, this model ] :";
+        for my $prompt_id ( sort { $a <=> $b } keys %$model_stats ) {
+            my $e        = $model_stats->{$prompt_id};
+            my $hist     = $e->{'attempts_histogram'} // {};
+            my $hist_str = join ', ', map {"$_ attempt(s): $hist->{$_}x"}
+                sort { $a <=> $b } keys %$hist;
+            push @lines, sprintf "  prompt %d : %d pass / %d fail",
+                $prompt_id, $e->{'pass_count'} // 0, $e->{'fail_count'} // 0;
+            push @lines, "    attempts " . "needed : $hist_str"
+                if length $hist_str;
+            my $fc = $e->{'failure_class_counts'} // {};
+            if (%$fc) {
+                my $fc_str = join ', ', map {"$_: $fc->{$_}x"} sort keys %$fc;
+                push @lines, "    failure classes : $fc_str";
+            }
+        }
+        push @lines, '';
+    }
+}
+
 for my $prompt_id ( sort { $a <=> $b } keys %$prompts ) {
     my $p = $prompts->{$prompt_id};
     push @lines, sprintf "prompt %d : %s", $prompt_id,
@@ -94,8 +126,8 @@ for my $prompt_id ( sort { $a <=> $b } keys %$prompts ) {
 
 return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
 
-#,,.,,.,,,,,.,..,,.,,,,,.,.,,,,..,,,,,,.,,,.,,.,.,...,...,...,,,.,..,,.,.,,.,,
-#XK3SWIB24T7JD6OZNB4UHUFU55D5J3TWFMZHXKYHDSEO6ZT5Z73FKIVFUST5DIELYAKICZZR6JH54
-#\\\|YCFBRINV5RPCAVGJEZM7RZYXYFYSTPQELVTL3VWJI63K2WNLRMW \ / AMOS7 \ YOURUM ::
-#\[7]3QXHUW2E6V4MBHFOPFDZTK3SE3OXWAL6VW2JNBMXPE7B7HL3HUBQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,,,,...,...,,,,,.,.,,,.,.,.,,,,,.,.,...,...,.,,,.,,,.,,,,.,,,.,,
+#3AU3OAQ2MS5LWPBTSROBBI5VKYNDTD3FUNQZRT7UK62AK52TZUDHEGAFXXARZATS6YF3AE24WLJ5I
+#\\\|3GQORBBL2NE747SMAJV7VQ7WZN3C2SLBVN5JES5DZQUJ5OEJKB3 \ / AMOS7 \ YOURUM ::
+#\[7]MX3UPWOYBJZTFTXJIIWIN6DAFPIHUAIB7YCD4RL3OA2EEW3VJ6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

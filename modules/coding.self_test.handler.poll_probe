@@ -24,14 +24,17 @@ my $model_id = $state->{'model_id'} // '';
 my $elapsed  = $now - ( $state->{'started'} // $now );
 
 ## overall watchdog : bounded, never unbounded. worst case per prompt is ~2 ##
-## probe attempts + 4 tier1 attempts at the 90s timeout each plus gaps [    ##
-## ~560s ] - two prompts + slack rounds to 1200s. a state machine phase     ##
-## with no ceiling is an unbounded wait wearing a costume. exposed as a     ##
-## config so coding.handler.verify_inference_startup's fallback-resume      ##
-## ceiling can derive from this exact number instead of guessing a smaller  ##
-## one and racing a legitimate-but-slow self-test [ confirmed live          ##
-## 2026-08-07 : a 120s fallback ceiling fired mid-retry on prompt 2 and     ##
-## force-resumed the task queue before self-test had actually concluded ]   ##
+## probe attempts + tier1 [ 1 initial attempt + configurable extra strict-  ##
+## hint rounds, coding.cfg.self_test_tier1_extra_rounds ], each try up to 2 ##
+## http attempts [ 1 transport retry ] at the 90s timeout, plus gaps - all  ##
+## prompts + slack. a state machine phase with no ceiling is an unbounded   ##
+## wait wearing a costume. self_test_max_total is derived from the same     ##
+## extra-rounds knob ONCE at coding.init_code, not recomputed here, so this ##
+## and coding.handler.verify_inference_startup's fallback-resume ceiling    ##
+## always agree -- an independent recompute in either module risks exactly  ##
+## the premature-resume race fixed in 4c3cf0e73 [ confirmed live 2026-08-07 ##
+## : a 120s fallback ceiling fired mid-retry on prompt 2 and force-resumed  ##
+## the task queue before self-test had actually concluded ]                 ##
 my $max_total = <coding.cfg.self_test_max_total> // 1200;
 if ( $elapsed > $max_total and $state->{'phase'} ne qw| done | ) {
     <[base.logs]>->(
@@ -391,6 +394,43 @@ if ( $state->{'phase'} eq qw| record | ) {
 
     $state->{'all_passed'} = FALSE if !$passed;
 
+    ## failure classification : computed here, at the one point where both  ##
+    ## failure shapes converge [ tier0/probe death via inference_failed,    ##
+    ## and tier1-attempts mismatches ] - an aggregator reading only         ##
+    ## tier1_attempts would silently miss every probe-death case, which is  ##
+    ## the larger of the two clusters in practice. order matters : resource ##
+    ## suspicion [ server_tail pattern match ] is checked first and wins    ##
+    ## over a generic transport label when both signals are present, since  ##
+    ## it's the more actionable of the two. empty-answer is checked before  ##
+    ## content_mismatch because "returned nothing" and "returned the wrong  ##
+    ## word" are different signals that a bare tier1_reason [ both read     ##
+    ## missing_token:X ] can't otherwise distinguish                        ##
+    my $failure_class = '';
+    if ( !$passed ) {
+        my $resource_re = qr{
+            out\s+of\s+memory | \boom\b | cuda(?:_error|malloc)
+            | failed\s+to\s+allocate | insufficient\s+memory
+            | context.*(?:exceed|overflow|full) | exceeds.*context
+        }xi;
+        my $last_answer
+            = length($reformatted_answer)
+            ? $reformatted_answer
+            : ( $cur->{'answer'} // '' );
+
+        if ( length($server_tail) and $server_tail =~ $resource_re ) {
+            $failure_class = 'resource_suspected';
+        } elsif ( defined $cur->{'inference_failed'}
+            or $tier1_reason =~ m{^tier1_inference_failed} ) {
+            $failure_class = 'transport';
+        } elsif ( !length $last_answer ) {
+            $failure_class = 'empty_answer';
+        } elsif ( length $tier1_reason or length $structural_reason ) {
+            $failure_class = 'content_mismatch';
+        } else {
+            $failure_class = 'other';
+        }
+    }
+
     my $result_record = {
         prompt_id          => $prompt_id,
         prompt             => $prompt_def->{'text'},
@@ -409,6 +449,7 @@ if ( $state->{'phase'} eq qw| record | ) {
         structural_reason  => $structural_reason,
         tier1_reason       => $tier1_reason,
         tier1_attempts     => $tier1_attempts,
+        failure_class      => $failure_class,
         timestamp          => <[base.time]>->(3),
     };
 
@@ -488,8 +529,8 @@ $state->{'all_passed'} = FALSE;
 $state->{'phase'}      = qw| done |;
 return TRUE;
 
-#,,,.,,.,,,..,.,.,,..,..,,,.,,.,,,,,,,..,,,..,..,,...,...,,..,..,,,.,,..,,.,.,
-#W6OSQQIE7CJKGJFTVRCDIMI23DYXBN6XQUCJTBE6X4FXOUBG642CJBEY5DXCWJBIBSYSIGREBPLWS
-#\\\|365BC7LMCBEPAZ4D672QLQWSLBYEHIKZEZUKQUGPHV46556SSUC \ / AMOS7 \ YOURUM ::
-#\[7]QKCS2PR3GYCXUQZXZAOPGJ6MW5QVNQVC5T7YQDA53DY2AZ4QJAAI 7  DATA SIGNATURE ::
+#,,,.,,..,...,...,.,,,...,,..,.,.,...,,.,,...,..,,...,...,,..,..,,..,,.,,,.,.,
+#IHZMH75OSGVX4CUIDB2SVJOSWDN7QLTBI7GJ3IFH574PLHBF4FVJZSLQLQIVEBJYVZNV5I5KHMGTM
+#\\\|J3DO4ZI4STS7P2HKUH4GJ6RA6ZHTKEBBDX4WHSYHKV25TADG7V7 \ / AMOS7 \ YOURUM ::
+#\[7]MQ4VI7BGZSNX47GCEAOETSKF2PXFTSFLSWS2X6MM4FVH7L6QTYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
