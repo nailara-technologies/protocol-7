@@ -42,12 +42,13 @@ unless ( $module_path =~ /^[\w\-_.]+$/ ) {
 }
 
 ## Track pending command ##
-my $cmd_id = sprintf( '%s_%s_%d', $template_id, $module_path, time() );
+my $cmd_id
+    = sprintf( '%s_%s_%s', $template_id, $module_path, <[base.ntime.b32]> );
 <web.commands.pending>->{$cmd_id} = {
     command_name => $module_path,
     template_id  => $template_id,
     status       => qw| executing |,
-    created_at   => time(),
+    created_at   => <[base.ntime]>,
 };
 
 ## Check if module exists ##
@@ -95,8 +96,8 @@ if ($EVAL_ERROR) {
     } else {
         <[base.log]>->(
             1,
-            "[$session_id] command execution error:"
-                . " $module_path - $EVAL_ERROR"
+            "[$session_id] command execution "
+                . "error: $module_path - $EVAL_ERROR"
         );
         $exec_status  = qw| error |;
         $exec_message = qq| command execution error: $EVAL_ERROR |;
@@ -124,8 +125,8 @@ if ( ref($result) eq qw| HASH | ) {
     } else {
         <[base.log]>->(
             2,
-            "[$session_id] command returned hash without"
-                . " 'content' key: $module_path"
+            "[$session_id] command returned hash "
+                . "without 'content' key: $module_path"
         );
         $result = '';
     }
@@ -152,8 +153,8 @@ return {
     result  => $result,
 };
 
-#,,.,,...,,,.,.,.,.,.,,,.,,.,,,.,,,,.,.,,,..,,..,,...,..,,,,.,..,,,..,..,,..,,
-#BQILP2VEHKW53YMXXE4GCINGGWEFV6FPUHQCROB6FTHFAFOPSVRPJKTNKNDBWJQQVFI3MLHJVWMW4
-#\\\|LBPH7F6KS7MSXKB5GVOPVS3C3IAVX4IUPLCSNV7UEXJM77W46HF \ / AMOS7 \ YOURUM ::
-#\[7]6BPN6FVIHQ7YBQWQUGOAK6RDTFOEI4ZMI7WISVAXJRBH2GHDLEBI 7  DATA SIGNATURE ::
+#,,,,,.,.,...,,,.,,,.,.,,,,..,,,.,,,.,,,,,,..,..,,...,..,,...,,,.,,..,.,,,.,,,
+#Q6L2ZPSNKAZXCYZQH73OKXWKLXPJLBJWG3XGTOKMWUCKAZRPWNS2TL73FZBZCEQHUJ6MRW4VBJ6JA
+#\\\|K26FJIUEKAXB7O3OBID7ZPWCSTSHTQOLU5AYTYT5MXETEE4AIA5 \ / AMOS7 \ YOURUM ::
+#\[7]OUWARNQ2BPWP2OL6HKB3KR5JECFROE4CQHYJSOER4HTDIN65OCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

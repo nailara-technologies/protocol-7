@@ -14,7 +14,7 @@ my $meta_vars  = $params->{'meta'}       // {};
 my $budget     = $params->{'budget'}     // 0;  ## token budget, 0 = unlimited
 my $reply_id   = $params->{'reply_id'}   // '';
 my $session_id = $params->{'session_id'} // <session.id>
-    // 'render_' . time();
+    // 'render_' . <[base.ntime.b32]>;
 
 ## validate input ##
 unless ( length($template_path) or length($template_content) ) {
@@ -58,9 +58,9 @@ if ( length($template_path) and not length($template_content) ) {
 }
 
 ## generate template id ##
-my $template_id = sprintf( 'render_%s_%d',
+my $template_id = sprintf( 'render_%s_%s',
     <[chk-sum.elf.vax-BASE32]>->( substr( $template_content, 0, 256 ) ),
-    time() );
+    <[base.ntime.b32]> );
 
 <[base.log]>->(
     2, "render-template: starting $template_id (budget: $budget)"
@@ -112,8 +112,8 @@ if ( $result->{status} eq qw| success | ) {
     };
 }
 
-#,,.,,,,,,,,,,,.,,,,,,.,,,,,.,,,.,,,.,,..,...,..,,...,...,...,.,.,..,,,..,.,.,
-#2LCZT4W7Z2VXVTQ36BOLOGCRJCS3KABPXPJOOSXX5KTPRUZ2MYUFLHN635B6BLSLXS4NBSP5KXA3E
-#\\\|GN5GFRIE23TBC6TWB7OJRNUK6ESB2Y6BSUACQZYWI33SM5HST3Z \ / AMOS7 \ YOURUM ::
-#\[7]6IFGJHJUU5MIKWNGHBZDX3AF43UUWX47TGZ532DX7TAE2IICRWAI 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,,,,.,,,,.,,,,.,.,.,.,.,..,,,,.,..,,...,...,...,,,,,,,.,,,.,.,.,
+#7HBMNXTPYJYEZIPVWSG5VPMS634WUGF7NJIK2ENTWXCA5AZOG24GV6NOALIGMUTE3KME5JYJW6ECO
+#\\\|5FAAZZWOFKOWNLG3EYCP4DWUKBWKIKY6PGPPZC7MED7TUOOH262 \ / AMOS7 \ YOURUM ::
+#\[7]ZLIYP3P3KDNIIQY6FW4A6LMXSC4VYXITGLKKNJGUE5UFBEV6OIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
