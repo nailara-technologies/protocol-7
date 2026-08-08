@@ -19,13 +19,11 @@ return { success => FALSE, error => 'prompt required' }
     unless length $prompt;
 
 ## generate task id from content + timestamp ##
-my $raw_id  = sprintf( '%s:%d', $prompt, <[base.time]>->(3) );
-my $task_id = uc(
-    substr(
-        unpack( 'H*', pack( 'N', int( <[base.time]>->(3) * 1000 ) ) ),
-        0, 7
-    )
-);
+my $raw_id = sprintf( '%s:%d', $prompt, <[base.ntime]> );
+my $task_id
+    = uc(
+    substr( unpack( 'H*', pack( 'N', int( <[base.ntime]> * 1000 ) ) ), 0, 7 )
+    );
 
 my $task = {
     id   => $task_id,
@@ -55,8 +53,8 @@ return {
     message => "task ingested: $task_id"
 };
 
-#,,.,,.,,,..,,,,.,.,,,.,,,.,,,,..,,,.,,..,..,,.,.,...,...,,..,.,,,...,.,,,,,.,
-#NXOWD3K26Y5EJC7EM3KLXNGOYMI3INFR4CM7OUF7HUHYFNRNONGL56MFWGLADL7M6B5C46VGZPKO2
-#\\\|HLCPQ7Q4UNSNCNWPA7WO4NBTAPWW4GN7EHP2JFKMM4EMPEYL6VB \ / AMOS7 \ YOURUM ::
-#\[7]3BPT4YY6TKUQN4Q6UPCRHUFBB6TR7OFZB26FA3I4HXLV6G2XZUBQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,..,,,,.,,..,,.,,.,,,,..,,.,,,,,,.,.,...,..,,...,.,,,,,.,..,,,..,
+#MFFASMY4QGZQNWFJB6IZXXIOOIF5UFCKZVNIQACB54CLE5OQZDO5YVPKRIHHGIHYRL7KIBQW3VGXU
+#\\\|GZ267ZYATCLHQRFWKRS2KBJDDHTT42QXNMASBAAUH3NUTA5BEWN \ / AMOS7 \ YOURUM ::
+#\[7]OKGAHWZCOTZY5YN4KFRYFHLVZUQDHC4CSVY44P3RYET4Y7A2G4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

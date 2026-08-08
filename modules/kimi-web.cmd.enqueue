@@ -15,7 +15,7 @@ my $task = {
     'args'   => $args,
     'sid'    => $call->{'session_id'},
     'cmd_id' => $call->{'cmd_id'},
-    'queued' => <[base.time]>->(3),
+    'queued' => <[base.ntime]>,
 };
 
 push <kimi-web.task.queue>->@*, $task;
@@ -24,8 +24,8 @@ push <kimi-web.task.queue>->@*, $task;
 
 return { 'mode' => qw| true |, 'data' => "queued: $task->{id}" };
 
-#,,.,,,..,.,,,,,.,,..,...,.,,,..,,..,,,..,...,.,.,...,...,,,.,.,.,..,,,.,,,,,,
-#6UXI7OLMBHQJ3LEHKOJKVT2PVP6WGBKYKCYSQYBS3YW676K6DJXK7TCUKQHGZFVJSUYASF7A7LLU4
-#\\\|3DBXY7NNNTEUGN2YRFCPNTXBSJBFELUTNINLZYABLYEGPOHPLTT \ / AMOS7 \ YOURUM ::
-#\[7]NRHWJIAUDZLAE6QOVTHZQXQCGF5WRIY7JQG5QMEXSMMDJABDXODI 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,,,,..,,,..,,,.,,,,,,.,,..,,.,,,.,.,...,...,,,.,,..,.,.,,,.,,..,
+#MEQ4Z2HB6LA4ADDPTYJX6UHXZJD6OFJX45UB7NAAD5OIY3J2WQZIYYB7SB6BFZDE2PXL5GB62OTE2
+#\\\|ZP3ONZ4LBLJGZRD572X4HL4X73T7VKUTEBKCMAWQRJ2IPTYB3EL \ / AMOS7 \ YOURUM ::
+#\[7]ZNC2ODKXSSUA3FTA4GLNXUNI3AO5KZNSM6BHJBDG4A76T57S2OCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

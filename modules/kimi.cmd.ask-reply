@@ -4,7 +4,8 @@
 # descr = send prompt to kimi-web and return response
 # param = <prompt>
 
-## extract prompt from call args [ supports base32r-encoded multiline prompts ]
+## extract prompt from call args [ supports base32r-encoded multiline prompts
+## ]
 my $prompt;
 
 if ( defined $call->{'param'} and ref $call->{'param'} eq qw| HASH | ) {
@@ -88,8 +89,8 @@ if ( not <kimi.ws.connected> or <kimi.ws.status> eq qw| disconnected | ) {
     return { 'mode' => qw| deferred | };
 }
 
-## if busy, defer : task is already in pending queue
-## dispatch_next_task will start it when current work completes
+## if busy, defer : task is already in pending queue  dispatch_next_task will
+## start it when current work completes
 if ( <kimi.ws.status> ne qw| ready | ) {
     if ( defined $task_id ) {
         <[base.logs]>->(
@@ -108,7 +109,7 @@ if ( defined $task_id ) {
     my $task = <kimi.task.queue>->{$task_id};
     if ( defined $task ) {
         $task->{'execution'}->{'status'}  = qw| in_progress |;
-        $task->{'execution'}->{'started'} = <[base.time]>->(3);
+        $task->{'execution'}->{'started'} = <[base.ntime]>;
     }
 
     ## move from pending to active ##
@@ -148,8 +149,8 @@ if ( defined $task_id ) {
 
 return { 'mode' => qw| deferred | };
 
-#,,..,.,.,.,.,,.,,,..,...,.,,,,,.,.,.,,.,,...,.,.,...,...,,..,,,.,,..,,,.,...,
-#A6WAU3QC74KRYXT7CDRHFNVZE5ZWYXI5VQLMVG6GS26RUWZLTEWT6J7TKOJBLQBSRMF46BSI5YKUU
-#\\\|2XETXITASOSYWYYZNIOUU72EGC23TV3QJDCR4YV467G3MZ5UZQ7 \ / AMOS7 \ YOURUM ::
-#\[7]MWGLKSAIM6PNL4B2MHIA3YXSF2RCEUXRDMHRH4IWGO3Q6YQUHKBQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,..,,.,,,,..,...,..,,..,,..,,,,,,.,.,...,...,.,.,,..,...,..,,,,,,
+#TSRX7MPESFJZWOQDFFPTWCLITFLZAGGMFPCFJMJZV6ME252CRZSHMZGS7N3YZGC37NE5PNJZ2TT4Y
+#\\\|OZIEVXTUBIOO6QC64E52D3ELA5SPJSMPJHARXFBDNMWA3EAO4ZB \ / AMOS7 \ YOURUM ::
+#\[7]IKCWFOEF7XKEYB42J5WI3UA3IH26TW6QZAXWAI3KQHONX4S4JSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

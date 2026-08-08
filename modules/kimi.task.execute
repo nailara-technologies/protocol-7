@@ -30,7 +30,7 @@ $task->{'job_id'} = $job_id;
 
 ## mark task as in_progress ##
 $task->{'execution'}->{'status'}  = qw| in_progress |;
-$task->{'execution'}->{'started'} = <[base.time]>->(3);
+$task->{'execution'}->{'started'} = <[base.ntime]>;
 
 ## move from pending to active ##
 my $aref_pending = <kimi.task.pending> // [];
@@ -43,16 +43,16 @@ push $aref_active->@*, $task_id;
 
 <[base.logs]>->( 2, "kimi.task.execute: starting task %s", $task_id );
 
-## call the actual kimi handler ##
-## expects: { params => { task_id => ... } } for jobqueue callback mode ##
+## call the actual kimi handler  expects: { params => { task_id => ... } } ##
+## for jobqueue callback mode                                              ##
 my $result = <[kimi.handler.process-queued-task]>
     ->( { 'params' => { 'task_id' => $task_id } } );
 
 ## handle job completion based on result ##
 if ( defined $result && $result->{'success'} ) {
     if ( $result->{'deferred'} ) {
-        ## prompt submitted : completion arrives via TurnEnd
-        ## job stays in running until kimi.task.complete is called
+        ## prompt submitted : completion arrives via TurnEnd  job stays in
+        ## running until kimi.task.complete is called
         return { success => TRUE, deferred => TRUE };
     }
     ## synchronous result [ fallback path ]
@@ -65,8 +65,8 @@ if ( defined $result && $result->{'success'} ) {
         ? $result->{'error'} // 'unknown error'
         : 'handler returned undef';
 
-    ## if kimi is not ready, defer instead of failing
-    ## the status watcher will retry when ready
+    ## if kimi is not ready, defer instead of failing  the status watcher will
+    ## retry when ready
     if ( defined $result and $error_msg =~ m{^kimi not ready} ) {
         my $aref_pending = <kimi.task.pending> //= [];
         my $aref_active  = <kimi.task.active>  //= [];
@@ -94,8 +94,8 @@ if ( defined $result && $result->{'success'} ) {
 
 return $result;
 
-#,,..,...,.,,,...,.,,,..,,...,,,,,..,,.,.,...,..,,...,..,,..,,..,,.,.,,.,,.,,,
-#5VJEJOCT6M6FGMW2SLUP43HAETNRG6SG35L3PJ5DNUMICMWGTB322FWDPHGCZQTMIZTDSI5HPY3PY
-#\\\|Q3JNAOCTMKZPSDS6TJJMBF5LM6AZJATGKW5HSNL6JNB2EW2A6DT \ / AMOS7 \ YOURUM ::
-#\[7]2GFKPAN47HILE2Z2MPJF3AYTXBRMFGEF2KP5RQ5YFINONCQJSWBQ 7  DATA SIGNATURE ::
+#,,.,,..,,...,.,.,,,,,...,..,,,,,,,..,,,,,..,,..,,...,...,..,,...,,,.,,,.,.,,,
+#PVCQECTNMTC6VMSKZ3RULU2EPBCKMTZB33MULDT7UPR6WUQN6SUXE4BOJZYTND7PPTBHJUWAACEJQ
+#\\\|TFSNSZDHYGNDXYXFRWTECA4KODA4NPS37WFY6FC6OZ2V7YDRDOH \ / AMOS7 \ YOURUM ::
+#\[7]2GY7RTZNDB6X6QY7ASSFNH5RSJLXAS3UDRL5ZBPCYOPQB7YRLCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

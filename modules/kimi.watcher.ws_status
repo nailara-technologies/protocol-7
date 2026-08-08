@@ -24,8 +24,8 @@ if ( $new_status eq qw| disconnected | ) {
         <kimi.liveness.timer> = undef;
     }
 
-    ## drop session binding when the bound session is lost so a retry
-    ## to a fresh session can pick up the deferred prompt
+    ## drop session binding when the bound session is lost so a retry to a
+    ## fresh session can pick up the deferred prompt
     if (    defined <kimi.next.deferred>
         and defined <kimi.next.deferred>->{'for_session_id'} ) {
         my $bound_id   = <kimi.next.deferred>->{'for_session_id'};
@@ -125,8 +125,8 @@ if ( $new_status eq qw| disconnected | ) {
                 <kimi.session_id> // 'none'
             );
 
-            ## guard: old session became ready before new one :
-            ## do NOT consume deferred prompt
+            ## guard: old session became ready before new one : do NOT consume
+            ## deferred prompt
             if ( defined $def->{'for_session_id'}
                 and ( <kimi.session_id> // '' ) ne $def->{'for_session_id'} )
             {
@@ -152,7 +152,7 @@ if ( $new_status eq qw| disconnected | ) {
                             $task->{'execution'}->{'status'}
                                 = qw| in_progress |;
                             $task->{'execution'}->{'started'}
-                                = <[base.time]>->(3);
+                                = <[base.ntime]>;
                         }
                         my $aref_pending = <kimi.task.pending> //= [];
                         my $aref_active  = <kimi.task.active>  //= [];
@@ -167,7 +167,8 @@ if ( $new_status eq qw| disconnected | ) {
                 } elsif ( defined $def_task_id ) {
                     <[base.logs]>->(
                         0,
-                        ': deferred prompt failed for task %s : marking failed',
+                        ': deferred prompt failed '
+                            . 'for task %s : marking failed',
                         $def_task_id
                     );
                     <kimi.task.active_id> = undef;
@@ -180,10 +181,10 @@ if ( $new_status eq qw| disconnected | ) {
             } ## end of guarded deferred dispatch
         }
 
-        ## re-send in-flight prompt if connection dropped mid-turn
-        ## kimi-web does not resume automatically after reconnect :
-        ## find the preserved pending prompt and re-submit it
-        ## skip if we just dispatched a fresh deferred prompt above
+        ## re-send in-flight prompt if connection dropped mid-turn kimi-web
+        ## does not resume automatically after reconnect : find the preserved
+        ## pending prompt and re-submit it  skip if we just dispatched a fresh
+        ## deferred prompt above
         if (    not defined <kimi.next.deferred>
             and defined <kimi.task.active_id>
             and ( <kimi.ws.status> // '' ) ne qw| busy | ) {
@@ -209,7 +210,8 @@ if ( $new_status eq qw| disconnected | ) {
                 if ( defined $re_prompt and length $re_prompt ) {
                     <[base.logs]>->(
                         1,
-                        ': re-sending in-flight prompt for task %s after reconnect',
+                        ': re-sending in-flight prompt '
+                            . 'for task %s after reconnect',
                         $active_id
                     );
                     my $new_mid
@@ -250,8 +252,8 @@ if ( $new_status eq qw| disconnected | ) {
 
 return TRUE;
 
-#,,.,,,.,,.,,,...,.,,,,,.,,..,.,.,..,,,,.,,.,,..,,...,...,,..,.,,,.,.,.,.,.,,,
-#TEQZCG6CXPFGBNLLHRHM5CQUHQ2P4OM47SQXHBV2AF6ICGQNNBWZ7NP22WP66QMPJ65IL32KNIF7Y
-#\\\|ORRP5YPEUBBISE6GGOYFKOP67ECE7I36NW2SAK536N7CS5MZ37R \ / AMOS7 \ YOURUM ::
-#\[7]BG6ZRNDTB5EW2DDMTBX7DK5Q53RHJWEBYJRIUSBAOMI4GG6OAYAY 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,..,,..,,.,,,.,,,..,,.,.,,..,.,.,..,,...,..,,,.,,.,,,.,,,,.,,,..,
+#5RI62KACD4QMOXGLKVVVXQ75A5QJA3MK6HO54375Z6WECJPRZQTQLPWUAOEZZCDUT6ESJBEZQOMP2
+#\\\|ZURCN26BXKPSJYTFL2TRMZKNDTNV53XOD4KAM4DB5TA5VSB6DSW \ / AMOS7 \ YOURUM ::
+#\[7]BLK3TNEYAMG4Z5AZ7EHHRRGBEXLP6CK7CI5HC5L5RSZQA2PVF4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
