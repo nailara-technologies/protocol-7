@@ -47,7 +47,7 @@ return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
                 <coding.stats.gpu.temp.load_1s> = 0 + $temp_1s;
                 <coding.stats.gpu.temp.load_5s>
                     = defined $avg_5s ? 0 + $avg_5s : undef;
-                <coding.stats.gpu.temp.updated_at> = <[base.time]>->(2);
+                <coding.stats.gpu.temp.updated_at> = <[base.ntime]>;
 
                 ## adaptive timeout stretch : same continuous proportional- ##
                 ## feedback shape as web-browser.handler.gpu_load_reply's   ##
@@ -103,8 +103,8 @@ return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
 <[base.logs]>
     ->( 2, 'gpu temp STRM consumer registered [cmd_id=%d]', $cmd_id );
 
-#,,,,,..,,.,.,,.,,..,,,,,,,,,,...,,.,,.,,,..,,..,,...,...,.,,,,,.,,,,,...,,..,
-#TU5RN2CXYCEUGB34D45PCEWM5CEYQA4O47H4YORELGI56WYCMFKIQGWLGCSLJJZYR4ONBYKRGN47S
-#\\\|G6DZPUMOHCSDAZBHSVKPDMNAEQVRCVLT2UIGNZAXQRDEIOOOCZY \ / AMOS7 \ YOURUM ::
-#\[7]HOFK6MAG2JUE5DDBRFQ7M7ILRD6QJFTU7HIFBTLORPIDTIVDVSAQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,..,,.,.,,..,..,,,.,,,.,,,,,,..,,..,,...,...,.,.,,..,...,..,,..,,
+#JM3SZPH773ICAWFW3ERIS2AEGTYVI2DDIBWR4HNLYDVEMJSC3EUFULNEGTHB76OALLY63PIXNMBVE
+#\\\|ACEVYWN6IPNJYHW4YQIGAI6JMAGGGTPMJ46JTQA6BRJSPHPPIS5 \ / AMOS7 \ YOURUM ::
+#\[7]KJ6WXDRF73644HJ33AESTZ3QDUK7ADOTFRLA74TRKMJMQZ64QWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -47,7 +47,7 @@ return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
                 <coding.stats.gpu.load_1s> = 0 + $load_1s;
                 <coding.stats.gpu.load_5s>
                     = defined $avg_5s ? 0 + $avg_5s : undef;
-                <coding.stats.gpu.updated_at> = <[base.time]>->(2);
+                <coding.stats.gpu.updated_at> = <[base.ntime]>;
 
                 my $buf = <coding.stats.gpu.sparkline_buf>;
                 push @$buf, 0 + $load_1s;
@@ -70,8 +70,8 @@ return if not defined $cmd_id or $cmd_id !~ m|^\d+$|;
     2, 'gpu stats STRM consumer registered [cmd_id=%d]', $cmd_id
 );
 
-#,,,.,,..,,,.,..,,.,,,,,,,.,,,,..,,,.,,,,,,.,,..,,...,...,...,,,.,..,,,,,,..,,
-#UIDOFYXBXHCZF3NL6GDC2C6DP2TXKK4TEXT327WX2ZP46MZ5S47TXV7XV23RHL4K5TYK3JVE3MZA6
-#\\\|3KFWLA66ECAXE7UYY6DDAJBOWJWIIYX2WVPJQRKUWIOKXTBYFRF \ / AMOS7 \ YOURUM ::
-#\[7]NCPUPWFK2LTCEOYWT3G3UGUV4CJQ3Y4JSHW5VVVMSYMB5NF36SBI 7  DATA SIGNATURE ::
+#,,..,..,,,.,,,,,,,..,,,,,,,.,.,.,...,,.,,..,,..,,...,...,.,,,...,,,.,.,.,,.,,
+#4CWDOHFPKZR7C2YMR2UHCF73LWPVZFA623YUAYKKZ3HHOSW2AQEHRBJAJ6Z2OEM4AOY3LPR3VDVE6
+#\\\|NEGN6SD7WWHQMKL4NHE2NBB7QPKTP244WT2E543EG6BLH6FLDVH \ / AMOS7 \ YOURUM ::
+#\[7]HSRAEDTUYAHJWXPL4NFDNR3IENG3DRNCYD4R3AGPHW6SVLRUW4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
