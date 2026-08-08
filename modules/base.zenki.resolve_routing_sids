@@ -119,13 +119,13 @@ if ( @resolved > 1 and $mode ne qw| group | ) {
 
 ##[ LAST-CONTACTED BOOKKEEPING \ idle-longest BASIS ]#########################
 
-map { $data{'session'}{$ARG}{'last_contacted'} = <[base.time]>->(3) }
+map { $data{'session'}{$ARG}{'last_contacted'} = <[base.ntime]> }
     grep { exists $data{'session'}{$ARG} } @resolved;
 
 return @resolved;
 
-#,,,,,.,.,,,,,,.,,,.,,,,.,,..,..,,,,,,...,..,,..,,...,...,,..,..,,...,...,...,
-#M64BXLAKZ5223VNTXPJC7H5MWRHNUKGPOWPUT5LE5V3YDRAGMQSW7JGFARLWAMVVQO37VSOBKN5RI
-#\\\|XZDJLKTVPJUWIPUSNFQ55KCI4ERC3X3U7S3QMD3VIISWDWURTZP \ / AMOS7 \ YOURUM ::
-#\[7]LOMPSAIBTMNSJE5XYLQ35VLHM3UDP2Z3WFMN5Z4XK4ALCYQOIGBY 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,,,,.,.,,.,,,..,.,,,.,,,,,.,,.,,..,,...,..,,..,,,..,,,.,..,,,..,
+#T5VFPRYJMWCC2OEGRROQALFJDOAJRKNKYJK6U6I2HAMBOTMCUBDGB64MSBHFEG6ZMFYA66Q5GCULQ
+#\\\|HM6AGIOPYLJ4HQ7Z7WHL4POXUFAWCGXCZEMW5P2S37PV7ZX7TIA \ / AMOS7 \ YOURUM ::
+#\[7]POR2L2ALIUFBZTKJPIS4LWNSJPNGUNMZXLFNU7DQWTF7A67HWADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
