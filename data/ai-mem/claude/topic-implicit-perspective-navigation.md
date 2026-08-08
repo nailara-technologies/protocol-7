@@ -107,10 +107,15 @@ meantime.
 [[topic-ascii-desktop-domains]] · [[topic-perspective-layers]] ·
 [[topic-observer-centric-space]] · [[topic-reference-bubble]] ·
 [[topic-node-group-geometry]] · [[topic-window-canvas-addressing]] ·
-[[topic-zoom-jump-debug-instrumentation]]
+[[topic-zoom-jump-debug-instrumentation]] ·
+[[vision-consensus-vote-as-curve-decision]] (same magnetic-clustering
+principle applied to multi-model consensus voting instead of camera nav) ·
+[[vision-orbital-hop-sequence-hyperspace-flight-animation]] (same explicit/
+implicit split independently rediscovered for orbital hop-sequence
+animation vs. local fluid rendering)
 
-#,,,,,,,.,.,,,,..,,.,,..,,,,,,,..,.,.,,,.,..,,..,,...,...,...,,..,...,,..,.,,,
-#B2DQXCOQBY42UX4LHHABM7H7ICH3V2326XGIXJRRH2FA5N7XHPDT5FHYTAKMKTZL7MWNV2XANHG6M
-#\\\|JTWC2T7TASLQMMRGWP4NOUKX5NNIDQNPSK3DSYEG7L46LBPUY7D \ / AMOS7 \ YOURUM ::
-#\[7]6BARHDWRCLIU46XJRZ2KLTSYF5KRFEDHPL5W6TSOAEBBXMBT2SDQ 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,..,,,..,.,.,.,,,,,,,.,,,,,.,.,,,..,,...,...,.,,,..,,.,,,,,.,...,
+#Y4VLPMN3VIWYKGPZTIKFC2UYZGKT6LALLL3SOTFIIRT4VHIDND3CVCXCUGHG7AT377J72VRHGKQCO
+#\\\|MSRNLO7M3JILYV774VT75H37KGOHHOY2UJPKBNURZTGWVB4VFSY \ / AMOS7 \ YOURUM ::
+#\[7]LI7SMXIA2RBB6OUC7L44GBNIWUSTBEA2UYKC4YM3DFI7OX4DB2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

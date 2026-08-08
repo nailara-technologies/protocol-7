@@ -6,6 +6,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 
 ## CRITICAL
 - [user-screen-brightness-sensitivity](feedback-user-screen-brightness-sensitivity.md) — real physical reaction to bright screens, not aesthetic; default new HTML/UI work to dark violet/blue-toned themes proactively, keep print forced light
+- [rapid-pattern-visual-disruption-risk](feedback-rapid-pattern-visual-disruption-risk.md) — real, lasting adverse effect (temporary inability to read text) from sustained attentive exposure to dense high-entropy ANSI-cycling visuals (bin/atom-delta-term); default any future rapid/psychedelic visual work (incl. vision-orbital-hop-sequence-hyperspace-flight-animation) to conservative, easily-slowed cycling rate, not max intensity
 - [no-personal-data-in-repo-tree](feedback-no-personal-data-in-repo-tree.md) — never hardcode emails/PII into any repo-tracked file, even gitignored; use `<[file.zenka_dir.load]>->('cfg-dir:<zenka>/file')` or `/data/<project>-data/` external dirs instead
 - [memory-write-path](feedback-edit-memory-via-ai-mem-path.md) — always Read/Edit/Write memory via data/ai-mem/claude/<file>, never the ~/.claude/projects/.../memory/ symlink path (same files, home path re-prompts every edit)
 - [settings-json-repair-mode-does-not-persist](feedback-settings-json-repair-mode-does-not-persist.md) — broken .claude/settings.local.json (e.g. trailing comma) triggers in-session repair that burns tokens but never saves; verify JSON validity on disk directly, restart required after manual fix
@@ -45,8 +46,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,.,..,,..,,,,.,.,,,,.,,..,,,..,.,,,,,.,.,,,..,,...,..,,,,.,,.,,,.,,.,.,,,,,
-#4EUDURECNGC5IYTAFDD2GC2RRE7DHMHKJK7LK655OLWTB6NTHKU3RS7C3QBAH7ZC32AYBEXR3V3MS
-#\\\|VWGBX5O3ICVMOEI3VJGDXDO5YPR3FECBPCOPQYD26QKSD7YKM55 \ / AMOS7 \ YOURUM ::
-#\[7]KJZ2UM6TDGK7MASZEJEYJRGP3PYPX6BK2TF2UF2M7SPUI4EZ5MAA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,..,,,,,,,,,,,,,,,,,,,.,,,.,,...,..,,...,..,,...,,,,,,.,,,.,,,,,,
+#TV3BXBQE4JN7LSDOODLI4DDQNCUKHGH7UKRFNKLXF3KQZOBXMO545PUTO2NBER7O4C5I3TVFHWKVK
+#\\\|TVRCHOHAQ5CXSOY7ZMAVRWNNFRN3ESZUPXZI6T6WRZOVQDUNXVI \ / AMOS7 \ YOURUM ::
+#\[7]JJVQYVGOEK2WPZXYR4CUPYUDWDDDSUUZ2ISZI6OB4Q2S5ZHXLOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

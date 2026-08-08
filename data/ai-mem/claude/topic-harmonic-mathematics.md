@@ -394,6 +394,11 @@ Block, non-printing). Confirmed live; this isn't a coincidental read.
   without `-d2` specified — a real tooling gotcha, confirmed while
   checking this, not a flaw in the user's math ].
 
+Cross-filed as STRONG in [[topic-harmonic-correlation-ledger]] (added
+2026-08-08, so this finding isn't islanded from that file's tiered
+STRONG/REAL-BUT-WEAK/REJECTED tracking of the same TRUE=384615/
+FALSE=230769 material).
+
 ## gen×10 = 769230 — Convergence Attractor
 - `asc-enc 769230` → `L\` (corner + diagonal boundary marker)
 - `L` = ASCII 76 = first two digits of generator 76923
@@ -725,8 +730,8 @@ structure's own source document — not shown, anywhere checked, to be a
 naming layer over structure (4)'s caravan. Cross-referenced into
 `recurring-cube-number-collision-audit.md`'s structure (3) entry.
 
-#,,.,,,,.,..,,..,,.,,,.,.,,..,,.,,,..,,..,.,.,..,,...,...,.,.,..,,,,,,.,.,.,.,
-#G3CRUIIFNJEUIR3QDXKYURTC6ZHIROXRHRWK2H6DIITM7GSDHEJCGDVY36EDBDAR4DS4GYL24P5BK
-#\\\|HGNOQCSUI6OIEKIWNOQA7WRNUDKLYYCOMFUA2M7TWWNEQQIGYLO \ / AMOS7 \ YOURUM ::
-#\[7]G5BE65H3YAJGDBR557RTYLQM7YES2EHK7MSAUPJBGUJ7CWD4GICI 7  DATA SIGNATURE ::
+#,,..,...,,,.,.,,,,..,.,,,.,,,..,,..,,.,.,..,,..,,...,...,.,,,.,.,..,,...,..,,
+#IRUGRHH55KIBQDTL6E6YNZOLBWQOXOQPNYRWQTEVJKIOEUMYVDRX7GHEJP2CL46NI5773J2KL652C
+#\\\|BAN3T6CJPHJFSQVY4OFEF332HLJLIIRDFPP4ZGJP65HMN74PSWY \ / AMOS7 \ YOURUM ::
+#\[7]5H2CSUX4NLQEUC5R7FF3CZK4N5TQ7OM35UOVJEGBAUWM6JEGMCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

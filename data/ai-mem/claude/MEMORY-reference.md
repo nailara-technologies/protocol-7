@@ -44,9 +44,10 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [user-perfectionism-and-pace](user-perfectionism-and-pace.md) — "done" means perfectly smooth; let solo tuning passes run
 - [scratchpad_import tool](topic-scratchpad-import-tool.md) — pulls /tmp session scratchpad into data/scratchpad/; list/raw-read modes; check repo+tasks/completed before keeping imports
 - [show-buffer command](reference-show-buffer-command.md) — no `p7-log.tail` exists; use `show-buffer <name> [lines] [pattern]` (`list buffers` first); don't invent `.tail`-style command names; buffer is a passive review sink only, rotation ≠ behavior unreliability
+- [add new on-demand zenka](reference-add-new-ondemand-zenka.md) — `start` file alone isn't enough: needs zenka-startup.v7 + v7.reload (spawn/connect), then cube's auth.zenki + access.zenki + bare `reload config` to cube itself (not `cube.reload`) for the connection handshake; each missing piece has a distinct error message, verified live bringing up opencv
 
-#,,.,,,..,,..,..,,,.,,,,.,,,,,,..,,,,,,.,,...,..,,...,...,..,,...,..,,,,.,.,.,
-#VYQH3HHZBHKESR6GJYUMGTCY2VM4YDLODXB6ID6IDMD3DYVUIIK2TMIXC6ZTD3YLTGRDM2W5QAMIU
-#\\\|ZEGMPEBO6HRNEGNLMREZTZC5OYBHQN3RPNNTXQRXRY4PML24JHJ \ / AMOS7 \ YOURUM ::
-#\[7]5QJ3UAFHC6K2ZKCCZMK2HNXOC3YI2YB2UVBVKU7W24G6UG3N22AI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,.,.,,..,.,,,,.,,.,,,,,.,,,.,,,.,..,,...,..,,,,,,.,.,.,,,,,,,...,
+#BFRBORE6OLLL43PSLETCJTZEA5PYSS7Q5XJGRG357NLSRZ7357DFBTS2DYDNLHYZKRBLNWOG3HGOM
+#\\\|MQZOCT5W2GJTKWATKIWCWR4Z3WYWQN7VNPAB6BSTPIDPMN5OVZK \ / AMOS7 \ YOURUM ::
+#\[7]LWEEH6TOKNPDP3SNJLNINRZUSAM4ZE7NJBQ4YU3FYZHWKTFI22BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
