@@ -20,7 +20,7 @@ my $result = <[kimi.handler.process-queued-task]>
 if ( defined $result and $result->{'success'} ) {
     <kimi.task.active_id> = $task_id;
     $task->{'execution'}->{'status'}  = qw| in_progress |;
-    $task->{'execution'}->{'started'} = <[base.time]>->(3);
+    $task->{'execution'}->{'started'} = <[base.ntime]>;
 
     $aref_pending->@* = grep { $ARG ne $task_id } $aref_pending->@*;
     my $aref_active = <kimi.task.active> //= [];
@@ -35,8 +35,8 @@ if ( defined $result and $result->{'success'} ) {
 
 return;
 
-#,,,.,..,,..,,..,,,..,..,,.,,,,..,,,,,,,,,.,,,..,,...,...,,.,,...,,,,,,..,,.,,
-#4IG6WEMWJZO5H7PEZW364RNCBXLWEXHPMYAACLPJDP7IKT2F3B2ON35VVMF7YCBVWDYMX7LHDX33Y
-#\\\|E6A36J5VAZJKZRGLU5GM3WX2ZTLCRNZLG7M6PT4TTG4U65YTWL4 \ / AMOS7 \ YOURUM ::
-#\[7]SECDXFE3R2CPHJR3YJUD4SPG45C5EZQONYVN7RDEG3LEDLUOWABQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,,,,,,,,..,,.,,,..,,..,,..,,,.,,..,,...,.,.,.,.,,..,.,.,,..,.,,,
+#5X6G6ZVOZRPFDEI2N2GEZB7QWVUOVY57E5YHPR7NB3JDNLN52W2FAW7JS3NWH5TN2KT5TSBJPVKQ2
+#\\\|IJ2LYCSZZUMYZIU62YWP2PZTMZV3NQKT4AK2YTL2WJYVZOB2IOE \ / AMOS7 \ YOURUM ::
+#\[7]BGVURFQANSTAO67DJ2CALHKZGYSDAXWXCUCLNIPFHGKTR2WPSGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

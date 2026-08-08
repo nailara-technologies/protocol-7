@@ -39,7 +39,7 @@ if ( defined $response and $response =~ m|ready| ) {
     ## agent is ready ##
     if ( $agent->{'status'} ne qw| ready | ) {
         $agent->{'status'}   = qw| ready |;
-        $agent->{'ready_at'} = <[base.time]>->(3);
+        $agent->{'ready_at'} = <[base.ntime]>;
         <kimi-web.agent.registry> = $registry;
 
         <[base.logs]>->(
@@ -88,8 +88,8 @@ if ( $agent->{'status'} eq qw| starting | ) {
 
 $timer->cancel() if defined $timer;
 
-#,,..,...,.,.,,,.,,,.,.,.,.,,,.,.,,.,,.,,,,.,,.,.,...,...,...,,.,,,..,...,,,,,
-#BRJ6VXT5SN4BICJE7I267R7DBXR5G3GMRL4JTQ7K2BIHBKBI5PW5SFRR7YHDGSZBPLCCPROAFK7KG
-#\\\|7VQRESUSJ4HP5SDE7DKYHCHIBECKHLWFKQK6ANA22ORQV4SSCO6 \ / AMOS7 \ YOURUM ::
-#\[7]RXICVT6X6RFPJCMTVL4KL4XNJDTFS3PNYZW2PGZQKD6PG4USB4DI 7  DATA SIGNATURE ::
+#,,,,,...,.,.,.,,,,.,,,..,,,,,,,,,.,.,.,,,...,.,.,...,...,,.,,,,.,..,,,,,,..,,
+#GC45M7Y3TBJJRSEBLTXJFHS64QM72SGK6EMV4XOBW5IFQXC74K7AM2DR5B3RQFKYFLROOIP7YQNRO
+#\\\|OK77PGWEF3DHRTSN4R4OKOYX4XSEYMJ4L33GFF7L3IXWKKESRO5 \ / AMOS7 \ YOURUM ::
+#\[7]7POREMLY4T6UJPMAVH3PMRQAUP6OD32SMEUD74E5FSC6RVVFJECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
