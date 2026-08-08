@@ -119,8 +119,8 @@ if ( $input->$* =~ s|^(auth\.)?close\n|| ) {
     ## [ not optional ] - a bare '(declare|select)-\S+' line collides with  ##
     ## the zenka-auth wire format '<zenka_name> <key>\n', since any zenka   ##
     ## named e.g. 'select-region' or 'declare-foo' produces a line this     ##
-    ## branch would otherwise swallow before the real auth plugin sees it   ##
-    ## [ found live 2026-06-19, select-region zenka auth timeout ] ##
+    ## branch would otherwise swallow before the real auth plugin sees it [ ##
+    ## found live 2026-06-19, select-region zenka auth timeout ]            ##
     my $action     = $1;
     my $capability = $2;
     my $args       = $3 // '';
@@ -243,7 +243,7 @@ elsif ( defined $auth_method
             // qw| none |;
         $$session{'user'}          = $auth_name;
         $$session{'mode'}          = qw| client |;
-        $$session{'auth_time'}     = <[base.time]>->(5);
+        $$session{'auth_time'}     = <[base.ntime]>;
         $$session{'initialized'}   = TRUE if $auth_method ne qw| zenka |;
         $$session{'authenticated'} = qw| yes |;
 
@@ -254,7 +254,7 @@ elsif ( defined $auth_method
 
         $data{'user'}{$auth_name}{'session'}{$id}{'mode'} = qw| client |;
 
-        $data{'user'}{$auth_name}{'connected_since'} = time()
+        $data{'user'}{$auth_name}{'connected_since'} = <[base.ntime]>
             if delete $data{'user'}{$auth_name}{'last_seen'}
             or keys( $data{'user'}{$auth_name}{'session'}->%* ) == 1;
 
@@ -298,8 +298,8 @@ elsif ( defined $auth_method
     return 2;               ##  no auth method selected + session closing  ##
 }
 
-#,,,.,,,,,,,,,...,..,,,..,.,.,..,,..,,.,.,...,..,,...,...,...,.,,,,..,.,,,...,
-#2ZUETYBIAZOAJIMUW7EJCN462E2F6SE2TOZYETES7QQVPNAYTQYDP5HXKZRCKED67ARAAZUD2J6RG
-#\\\|JDRQ75KMDRFRVOQTPYVG6DJJEIH764SGBXRIBR6IQMIV7Y42T6A \ / AMOS7 \ YOURUM ::
-#\[7]Z5GLPQ437LKQBFMXHWYY3HORC52CP7HEKGX7RAJ3EYTN4GRHJ6DY 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,...,.,,,,,.,.,,,,.,,,,,,..,,,..,..,,...,..,,...,,..,,..,,..,.,.,
+#SMFCJKYRXKW7VGGVDB4RNRY5NVUKM5LXS7KWCMD5UUN3BESFVAJT42OI3GJ2C5FVA6AFRE5ZX6ZHY
+#\\\|VI3OEW7GZJ7H7W65ROUMXPCO5AJOO7BUH4VTCPI476U4SWFDJR6 \ / AMOS7 \ YOURUM ::
+#\[7]WFZEKSU5F5YQB22LPKBGAD7LXJ5YQ57HNWK24V7RCQV7XCGJM4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

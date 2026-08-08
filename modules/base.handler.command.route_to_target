@@ -147,9 +147,8 @@ elsif ( $cmd =~ m|^\^(\w+)\.([^\.]+)$| )
             );
 
             if ( not exists <zenki.virtual>->{$v_id}->{'starting'} ) {
-                <zenki.virtual>->{$v_id}->{'starting'} = 5;    ## true ##
-                <zenki.virtual>->{$v_id}->{'starting_since'}
-                    = <[base.time]>->(3);
+                <zenki.virtual>->{$v_id}->{'starting'}       = 5;   ## true ##
+                <zenki.virtual>->{$v_id}->{'starting_since'} = <[base.ntime]>;
 
                 ##  watchdog : reconcile if the reply never arrives  ##
                 my $starting_timeout
@@ -404,8 +403,8 @@ elsif ( $cmd =~ m|^\^(\w+)\.([^\.]+)$| )
 
 return undef;    ##  fell through : caller handles unknown-command  ##
 
-#,,..,.,.,...,,,.,.,,,,..,..,,.,.,.,.,,,.,..,,..,,...,...,...,.,.,,,,,,.,,.,.,
-#6ENTK2OTSDI35RNEWYNW2XXRAANQTTVPB7XAVAY4ROEA6IUG2XZUGND7OE7WSAT22GY7SNOCBFN36
-#\\\|FA55JB5UCEDTJLZAOQ2LRXEOT44QTBWY4QMUUJQAZBQYWFXZ2VN \ / AMOS7 \ YOURUM ::
-#\[7]DRSCBJXKUPL7CI7DAO7SUQUCJCU5YMVXLWRBWKKFPGQVMFSA5YAA 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,.,,,..,,...,.,.,.,.,.,,,.,,,.,,,..,,...,...,..,,..,,.,.,.,.,...,
+#ARO4DEDQZ2OBD6QC3BOL762YKS2GEGIAFX42XAJVQ54X6O4KVKMDNDR3NUW5326HACLMMCICWCUHO
+#\\\|WIDMQO4QKJG3BYP7UJUWNEKSZWAXOHVAKQW352L3Y3ROT6CPM6I \ / AMOS7 \ YOURUM ::
+#\[7]LEP3NZX4KPKOUCOQOAX2N6SY6KDQWFH2YAWK7AKNX66RIWCNMIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
