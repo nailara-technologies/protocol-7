@@ -11,7 +11,7 @@ my $next_hop = $params->{'next_hop'} // '';
 
 return FALSE unless length $hop and length $target and length $next_hop;
 
-my $ntime = <[base.time]>->(4);
+my $ntime = <[base.ntime]>;
 
 $data{'branch.route.cache'}{$hop}{$target} = {
     'next_hop' => $next_hop,
@@ -20,8 +20,8 @@ $data{'branch.route.cache'}{$hop}{$target} = {
 
 return TRUE;
 
-#,,.,,.,,,..,,,..,..,,,..,,,,,.,.,...,.,.,,,.,..,,...,..,,,,,,..,,,.,,,..,,,.,
-#3J23LTR3EBUJWZWQVP5KYX7VGKU7TOAT4EX4BTWYDAB2QM4HZXPEZ5L56DJK7CDK434XSR5R32ZAC
-#\\\|DRZYXMRARI36TJU7JIWOSDQIVGGVX35NBHH5UNM23ZHPFO67V67 \ / AMOS7 \ YOURUM ::
-#\[7]43PXRKJL3JC6P756V6LO42MN2TBE5P65UIL4CO3BTM5E22RD4SAY 7  DATA SIGNATURE ::
+#,,..,.,,,...,,.,,,,,,,,.,..,,.,.,,..,...,...,..,,...,...,...,...,.,,,.,,,,,.,
+#Y5FTVW7PVAAXKA6KOHZFPWIGNCGTF7D5RH53U4T5MKWKTMK6OLD5SOWGFEQX4GKSKGEOIH7M5KV42
+#\\\|ZDVZ53FEGO6GQVVDVLXQQRYUHD2XI3LN2VROHT455ORNSIGVINY \ / AMOS7 \ YOURUM ::
+#\[7]7TFVBF44YP773PTKAIWJOMU5F24YXV4C2RQXYM2HXU3P4E2JO2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

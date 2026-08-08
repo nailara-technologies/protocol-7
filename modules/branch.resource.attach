@@ -21,7 +21,7 @@ return { 'mode' => 'false', 'data' => 'node not found' }
 return { 'mode' => 'false', 'data' => 'data required' }
     unless defined $rdata;
 
-my $ntime = <[base.time]>->(4);
+my $ntime = <[base.ntime]>;
 
 ## generate res_id from AMOS chksum of node::type::ntime if not given ##
 unless ( length $id ) {
@@ -45,8 +45,8 @@ push @{ $data{'branch.resources'}{$node}{$type} },
 
 return { 'mode' => 'true', 'data' => $id };
 
-#,,,,,,..,.,.,..,,,..,..,,,.,,...,..,,,.,,,,,,..,,...,...,..,,,,,,,,,,,..,,.,,
-#A4EP6DT6MHBZYJXMCMVMULSWRR2WPZUKPSO6JN5NBD2XEQJDRGMHXBSYMIZN6SWSRJFPZUQ7RVFJU
-#\\\|MIJLNN4EGXLANFDK3ZPCJ2MZYGYT7A7BOZJ7FO43IDASPE2T4NR \ / AMOS7 \ YOURUM ::
-#\[7]SXIWO6S5ADXVGX6ICOZESSXXMYIZCTUEHJ6UHBUEZ4MDF4MY4WBQ 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,..,,,,,,..,.,.,,..,,.,,.,.,,,.,..,,...,...,,,.,,,,,...,,,,,...,
+#6VWOGQAWJWDEAVX6YPV37FNDEQWYSBYBQ6LP7JBI2AJ34QKMKYJEPQKIQJLH7XG7XZYDFY5EI2AI4
+#\\\|TNMZB6DF36GP3AYPDISCO2XD65D5GVRXOSLSYSVR2QFGN67747U \ / AMOS7 \ YOURUM ::
+#\[7]NKWKUYDCGADADV5LUMUWFH3FGP7VHS5PEUAWWJBADM5R7X32IYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

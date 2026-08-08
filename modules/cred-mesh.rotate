@@ -35,12 +35,12 @@ return {
     if not $write_ok;
 
 ## update registry metadata ##
-$meta->{'rotated'}       = <[base.time]>->(3);
+$meta->{'rotated'}       = <[base.ntime]>;
 $meta->{'rotate_reason'} = $reason;
 
 ## append to rotation log ##
 my $log_entry = {
-    'ntime_b32' => <[base.time]>->(3),
+    'ntime_b32' => <[base.ntime.b32]>,
     'slot'      => $slot,
     'actor'     => $reason,
     'result'    => qw| ok |,
@@ -72,8 +72,8 @@ eval {
 
 return { 'mode' => qw| true |, 'data' => 'rotated' };
 
-#,,..,,,,,,,,,,,,,..,,,,.,.,,,,..,.,.,..,,..,,..,,...,...,,..,..,,,,,,...,,.,,
-#CAWRYPEBNO7JTEIF4T3PHDFNJELDGDHFYV73LUGQCF7EKUT2LNQUOBCJQCLFRWYNVZWABJICZXVZW
-#\\\|42CVC55UM5BKBP7SK6RWCJKK5Q4AP34CRWNYVLCZEJPVGRQ2VYZ \ / AMOS7 \ YOURUM ::
-#\[7]6MD2ZPLYTV7APNXGN52YJJR35FSGU4ZEJGH3JCDG63YK4TZP4EAA 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,.,,,,.,.,.,,,.,...,.,,,,.,,..,,..,,...,...,..,,..,,...,...,...,
+#NXJFW5KUIK3DS57ODDQXLBKYPSM3BRBOQO5RHS5KPZGZFNZMBVSCLG3FQ2GRXBVSEUAC6CJBWKJG6
+#\\\|XCWIX4HZ5UEY4QU47HR7LCCZ3AKFWHHPADAEKYKJ2IAWOXNVVJQ \ / AMOS7 \ YOURUM ::
+#\[7]WZWVOOMIL55V2RSSUN5YTC2BOGWLZIQ4VFDHULSBDIBRGMEZSWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
