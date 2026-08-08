@@ -14,7 +14,7 @@ my $session_id = $window->{'session_id'};
 ## create unique SHM identifier (must be >= 32 chars for ##
 ## data.mount.shm.create)                                ##
 my $shm_owner_id = sprintf( "amos-term-buffer:%s:%010d:%08d",
-    $amos_id, $session_id, time() % 100000000 );
+    $amos_id, $session_id, <[base.ntime]> % 100000000 );
 my $shm_path = <amos-term.cfg.shm_base_path> . "/$amos_id";
 
 ## create SHM using data zenka ##
@@ -51,8 +51,8 @@ substr( ${ $window->{'buffer'}->{'shm_ptr'} }, 0, $shm_size )
 
 return $shm;
 
-#,,,.,..,,..,,..,,,,.,...,..,,.,,,.,.,,,,,,.,,.,.,...,...,,,.,,,,,,..,,,.,,,.,
-#VXRIDZEVRXYYUDVZM2UEISK7SOOFGMZDUJDG7QHFY2JHKNRPRBCPME6CTFN7COHCARXDYIJEUOPGC
-#\\\|4LCKIZDATVY4WYQ55N5JXSJHB6ML7FVARHF34UYJT5Y3YTHB7E5 \ / AMOS7 \ YOURUM ::
-#\[7]5PNDOIDSP5ZEB2J5PFWFEH2TNCXHMUW4BTKKIGJOU2FR7JSFQGBQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,...,..,,,.,,,.,,.,,,...,...,,,.,.,.,...,...,...,,,.,.,,,..,,,,.,
+#D5JZRX4Y4G57EX2OFUJ6RKFUJOYNK2UJY6UZJOVPYU553YMIFX42H65KLJGJIRND5ADMGFIEGSQBG
+#\\\|ATVUHQ5CM7HTLTO6C2RZGLX7ER3Q4HDLVEVPYBYTJEWDII6K63L \ / AMOS7 \ YOURUM ::
+#\[7]MET7KBJES7VGICKKK7X4SGTWCIZUCBXJPMPDV6LJW2FVGV4TKEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
