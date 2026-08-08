@@ -24,7 +24,7 @@ my $record_outcome = sub {
         success     => $success ? 1 : 0,
         tokens_used => $tokens_used // 0,
         duration_ms => $duration_ms // 0,
-        timestamp   => <[base.time]>,
+        timestamp   => <[base.ntime]>,
         efficiency  => $tokens_used && $duration_ms > 0
         ? int( $tokens_used / ( $duration_ms / 1000 ) )
         : 0
@@ -174,7 +174,7 @@ my $generate_recommendations = sub {
         success         => TRUE,
         analysis_type   => $analysis_type,
         recommendations => \@recommendations,
-        generated_at    => <[base.time]>
+        generated_at    => <[base.ntime]>
     };
 };
 
@@ -219,8 +219,8 @@ if ( $cmd eq 'record' ) {
     };
 }
 
-#,,,,,,..,...,,..,,,,,.,.,,.,,,,.,...,,,.,,.,,..,,...,..,,..,,.,,,,.,,..,,.,.,
-#3WJJFB3C5WWB4AMP3ZEAJ7KRALVVABHDXK7LUOQNGRABWMMDAH2UZ5DR6OCALZTVXLOJGVZRX3VR4
-#\\\|QAFTTU33F2OOLZNRHGUYHIHE3N7VSMUWJCTZY7QCOR7USM2ISD7 \ / AMOS7 \ YOURUM ::
-#\[7]ZRHLWVTALE63DDYTQZNBFR6KXU2DXR4A2H63CEDZGT4NQM57JSAI 7  DATA SIGNATURE ::
+#,,..,...,,,.,.,,,,,.,,.,,.,,,,,.,.,,,,.,,,.,,..,,...,...,.,.,.,,,..,,,,,,,,.,
+#AF36EZMOUIUYHV7O2YUPX7ZN2F2AECVPP7EBMDGM3ZEGCYCKKIDGFX2W4FF3ZBS7CQMDTH6ZRKK6E
+#\\\|T32WCYPN5FRYVBDAKQGNRH2B6YXNOR6UIUET6H4QC36MFLFBXRR \ / AMOS7 \ YOURUM ::
+#\[7]VE2L2AFND3NZDA7DJK5FPPBVDAONCYNRDIOC4QL6WP3IB4EANEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

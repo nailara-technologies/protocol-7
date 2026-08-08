@@ -162,7 +162,7 @@ my $child_task    = {
     },
     analysis   => { routed_to => $backend },
     execution  => { status    => qw| pending | },
-    created_at => <[base.time]>->(3),
+    created_at => <[base.ntime]>,
     system     => ( $task->{'system'} // '' ),
     no_tools   => 1,
     max_rounds => 1,
@@ -179,7 +179,8 @@ if ( !$enqueue_result->{'success'} ) {
     my $overflow = $est_tokens - $n_ctx;
     my $err
         = sprintf( 'initial prompt overflow: estimated %d tokens exceeds '
-            . 'n_ctx=%d by %d : reduce task description or tool output size',
+            . 'n_ctx=%d by %d : reduce task description or tool '
+            . 'output size',
         $est_tokens, $n_ctx, $overflow > 0 ? $overflow : 0 );
     $task->{'execution'}->{'status'} = qw| failed |;
     $task->{'execution'}->{'error'}  = $err;
@@ -204,8 +205,8 @@ $parent_state->{'pending_subtask'}         = $child_task_id;
 
 return { success => TRUE, mode => qw| deferred |, task_id => $task_id };
 
-#,,,,,...,,,.,.,,,,.,,.,,,.,.,,.,,...,.,.,...,.,.,...,...,.,.,,,,,.,,,.,.,,.,,
-#MQPCFC37TEM7VEMK2HIXUDT4KNUZ6RDWTLWYWX7FLKQNS5ISHVIBP7WE7S5TVVRAHUYHFNQLWCOX2
-#\\\|FHFK75ZBULXAKMRFW2CKR6VPNMUA5TEFKXTCQNFUKSE7UCFIF6X \ / AMOS7 \ YOURUM ::
-#\[7]5TFX2UWUX2X6JOUTQEJNOMZOA726XCBMNFH6XDENMA4U56PTLCCQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,..,,,,.,,.,,,..,.,.,...,.,,,.,.,.,.,...,...,...,,,,,.,,,.,,,..,,
+#SJ3GLW5JZHCSMQPHVVG7W2OJNZH34LUCJKYR7YISAERFCSMUGGT67CQY25X6EW7KRAQP23OODPEEE
+#\\\|XYL7BBKKJXTRIIFTUSTIVLUHIY6XYYEUBMVUKGJ6FHA4DAADGIS \ / AMOS7 \ YOURUM ::
+#\[7]GCC5ISVRC4Q2WCHCZG3CYQCVSLBDYK5ZGX32JJEMZMK5ECQ7USCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

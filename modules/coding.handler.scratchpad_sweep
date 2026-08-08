@@ -52,7 +52,7 @@ for my $e (@pending) {
     <coding.scratchpad_sweep.verdicts>->{ $e->{'bmw'} } = {
         'uuid'    => $e->{'uuid'},
         'verdict' => $verdict,
-        'ts'      => time,
+        'ts'      => <[base.ntime]>,
     };
 
     if ( $verdict eq 'keep' ) {
@@ -62,7 +62,7 @@ for my $e (@pending) {
         <[base.logs]>->( 2, 'scratchpad sweep rescue : %s', $result );
     }
 }
-<coding.scratchpad_sweep.last_run> = time;
+<coding.scratchpad_sweep.last_run> = <[base.ntime]>;
 
 <[base.logs]>->(
     2, 'scratchpad sweep done : %d triaged, %d rescued, %d pending left',
@@ -71,8 +71,8 @@ for my $e (@pending) {
 
 return TRUE;
 
-#,,,,,,,.,,.,,,.,,...,...,..,,...,..,,,,.,,..,..,,...,...,,,.,.,.,,.,,,..,.,.,
-#2XE6FYCULUOZJKWTBAJZB2CF5KK3GZTG4M6Y2HMKTOG3EVPMB3TAKMGWSBGQP2F64IYH7Z4C3K2UA
-#\\\|BHLXL3RBRMJQL7TAQKL6NFX5OFA2PLWGCVNDEBRYLX5IAOWEVTF \ / AMOS7 \ YOURUM ::
-#\[7]BQOSW4ORX4JM4VYGCXXUCWUTFF5QURCICKN6OJ2V6PFOUNGSSCCQ 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,.,,...,,,,,,..,,,,,,,,,,,.,,,.,..,,...,...,.,.,,,,,,.,,.,,,,,,,
+#N3XC2IVTAJHFCIY7CTZ7PX2XFEH3YPELIS5QH65LPTVWFA62CCEDCZYBN7X7CXPNOKUBLRENG64KU
+#\\\|4E5WUERNWU6SNYD4XVB7AJRRWVVDGVVPZ33MDZAVRXE6ERAJKDY \ / AMOS7 \ YOURUM ::
+#\[7]IG77ODY2TENIMYVVITUC53XUUHYYWDQYUFBO6OELDTODXOTUUMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

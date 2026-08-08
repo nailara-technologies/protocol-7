@@ -40,7 +40,7 @@ my $trash_base
 <[file.path.make_dir]>->($trash_base) unless -d $trash_base;
 
 ## create timestamped backup name ##
-my $timestamp  = <[base.time]>->(3);
+my $timestamp  = <[base.ntime.b32]>;
 my $basename   = <[file.basename]>->($real_path);
 my $trash_name = sprintf( '%s.%s', $basename, $timestamp );
 my $trash_path = "$trash_base/$trash_name";
@@ -95,8 +95,8 @@ if ($ok) {
 return { 'content' =>
         "error: delete failed: $err [ backup exists at trash/$trash_name ]" };
 
-#,,.,,,..,.,.,.,.,.,.,,.,,,..,..,,,,,,.,.,,.,,.,.,...,..,,,..,...,.,.,.,,,...,
-#QOXCC3WXPPCMDQUYSQJX6CLDO2H4VB4IFBT634B6WVKCDESJFLHP6QI4LVUOAR6FA453WWFZPADFY
-#\\\|R6RHRCT2X3T2MOULNGFKR33AR4J35AO76D3HTPERURCRKN6WFVR \ / AMOS7 \ YOURUM ::
-#\[7]II4DOP4KSGCIHTLABIAS4IKZ3XESPMIAK32BEHIWWUEDNBPUSACI 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,...,,..,,,.,.,,,..,,.,,,,,.,.,.,.,.,...,..,,.,,,.,,,.,,,..,,,,,,
+#EUOIS34JLZBTZTSIJXQBFQVW47WHA4TRVTAP3GJKXG52CQBC72WROF5HTHTKAE37PNOZQHK5G3ZEU
+#\\\|EXIYXDPEMIOE7C6673EWCQCDMITJRUOGNMCXDAPFVGDUQKMHJKC \ / AMOS7 \ YOURUM ::
+#\[7]3AMICTQZJLJ5C33ZIHYZGYGNSQP4ZOICFIWQBCXWTG75QRHFEOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

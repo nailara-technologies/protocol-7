@@ -102,8 +102,8 @@ elsif ( $action eq 'init' ) {
         'subtask_id'    => undef,
         'backend'       => $data->{'backend'} // 'gpu',
         'port'          => $data->{'port'}    // 8000,
-        'start_time'    => <[base.time]>->(3),
-        'history'       => [],                   # state transition history
+        'start_time'    => <[base.ntime]>,
+        'history'       => [],               # state transition history
     };
 
     <coding.async.task_state>->{$task_id} = $initial;
@@ -149,7 +149,7 @@ elsif ( $action eq 'transition' ) {
         'from'  => $current,
         'to'    => $new_state,
         'event' => $event,
-        'time'  => <[base.time]>->(3),
+        'time'  => <[base.ntime]>,
         };
 
     ## update state ##
@@ -607,8 +607,8 @@ elsif ( $action eq 'constants' ) {
 
 return { error => sprintf "unknown action : '%s'", $action };
 
-#,,.,,,..,.,.,.,,,...,...,.,.,...,..,,,.,,,.,,.,.,...,...,..,,...,...,,,.,,.,,
-#C767QLOH3GRZOV3NY3SAN6GY5TQSP7GHYSH4A5YEEK7PW6TXL6LHITHZCNHEV4X5BTM7A4GTRWME6
-#\\\|GFSW3PHP6KJS2YRI6VYDWTQJMAHCEBR4KNGQILHCRQTC3GQFTFI \ / AMOS7 \ YOURUM ::
-#\[7]B5QSW6XAHGRUX2HJHCKUTIRUDH6YZWWEYHTX6WLIBT7TPG7SBGBA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,...,,.,,,.,,..,,,,.,.,,,,..,,..,.,.,...,...,..,,,.,,...,...,,,.,
+#FH3JFLOMD4JRLQCL6THZ6SDWZELSTWOZNH5RRICZNG7OOJ2W6PYXLLMWBVKGB4EM3QDAH4FYNUOYY
+#\\\|QTHGOSWYDHN32S7FHKQPGUKDHJCOFZPXC2B6FQSX7ECR6QKC4CO \ / AMOS7 \ YOURUM ::
+#\[7]JZGSIXERQV37YX4XCQSURN5UC2CWWYOIYN7MC5HTS77J5HKRF2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

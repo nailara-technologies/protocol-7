@@ -10,7 +10,7 @@ my $data_str = $reply->{'call_args'}->{'args'} // '';
 if ( $data_str =~ m|^(\d+(?:\.\d+)?)%?$| ) {
     my $pct = $1 + 0;
     <coding.system_mem_pct>      = $pct;
-    <coding.system_mem_pct_time> = <[base.time]>->(3);
+    <coding.system_mem_pct_time> = <[base.ntime]>;
     <[base.logs]>->( 3, 'system memory usage cached :. %.2f%% used', $pct );
 } else {
     <[base.logs]>->( 1, 'unexpected memory stats format :. %s', $data_str );
@@ -18,8 +18,8 @@ if ( $data_str =~ m|^(\d+(?:\.\d+)?)%?$| ) {
 
 return TRUE;
 
-#,,,.,,,,,,.,,..,,,,.,...,.,.,,,,,...,,.,,.,,,..,,...,...,...,,,.,,,,,.,,,,..,
-#QZA7FY3VCEIAHY4T2IQ5BFKOSDRLAC4TYQJFBQIV4THTDWEYSV4MZRIZTBITHL44FAUSMFDRDJD2S
-#\\\|BLWFWFH6GP6QJGSHHOUYSKGYZU5RTPF65EHWDM4CGAV6KKLMSNK \ / AMOS7 \ YOURUM ::
-#\[7]JSH3T3ALVMDOKUS2N5VCSJTUKJQCH3WJO2FTYTHU3FQKXLJWSCDI 7  DATA SIGNATURE ::
+#,,,,,...,,,,,,.,,,..,..,,,,,,,..,.,.,,,,,.,,,..,,...,...,...,...,,,.,..,,,,.,
+#FH2FJRMK3DWQZDFQEYZF7HGICHZ5ZETJHGUEWOMNFJATYO72EE7LOEBWJPIUARCQ6LPB6FWBYNIJO
+#\\\|6GM6YSV2R5B3PQYDNRCXJP63TJK5OA76H6WI3XKJ4JEBXESDD7O \ / AMOS7 \ YOURUM ::
+#\[7]6ZQIL6BOMMT62U6TGGVNR2QKE5RSHL2YTDI7OLHFDF5MND6LWCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
