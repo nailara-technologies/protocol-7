@@ -40,13 +40,14 @@ my $reply_str = '';
 $reply_str .= "model_amos: $model_amos\n";
 $reply_str .= "context: $context\n";
 $reply_str .= "recorded: 1\n";
-$reply_str .= "timestamp: " . ( $result->{timestamp} // time() ) . "\n";
-$reply_str .= "date: " .      ( $result->{date}      // 'unknown' ) . "\n";
+$reply_str
+    .= "timestamp: " . ( $result->{timestamp} // <[base.ntime]> ) . "\n";
+$reply_str .= "date: " . ( $result->{date} // 'unknown' ) . "\n";
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,,.,...,.,,,...,.,.,.,.,...,,,.,.,,,.,,,...,..,,...,...,.,.,,.,,,..,.,.,..,,
-#EJPMUCBQQBD4OM6QLMQSVTIWM2ACIGP4IKPYTHUCQVRMSGNEFH5AVWE7INOC4BOWZSLYGQUEZ6JDS
-#\\\|2Y3JT5G2GIAWUD3TLRQW2JRKLDZMLTA7ZSAHTXVMSK7LHLDLTH4 \ / AMOS7 \ YOURUM ::
-#\[7]7CIVRDVPB2SIIUC6YSG2XDRY2AHNEWY4SVQSIHLHVIXQH5X2SIDY 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,,,,,..,,..,...,..,,.,,,,.,,,..,..,,...,.,.,..,,,..,..,,.,,,..,,
+#WDCFJHJ3YM2CLYXDELM2YG5TNQ7S5WXTQMKVEV4IS5FRCNJXBNL77L5DQQOAMWUKKYGHSDMVYUXUU
+#\\\|AX5XGYGBD4USXMMFT3WZXVAK23RV4PPUMYHVT2CW75JHMEL5YBT \ / AMOS7 \ YOURUM ::
+#\[7]JU3RT3P4FTEBIYQE4MUO6SQ3XCODNNXOJW6SO467KDP4CSDLL4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

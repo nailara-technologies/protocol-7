@@ -75,7 +75,7 @@ my $summary_turn = {
     'content' =>
         "Summary of conversation (turns 1-$summarize_count):\n$summary",
     'tokens'     => $summary_tokens,
-    'timestamp'  => time(),
+    'timestamp'  => <[base.ntime]>,
     'is_summary' => 1
 };
 
@@ -85,7 +85,7 @@ $conversation->{'turns'} = \@remaining_turns;
 
 ## Update compaction tracking
 $conversation->{'compaction_count'}++;
-$conversation->{'last_compaction'} = time();
+$conversation->{'last_compaction'} = <[base.ntime]>;
 
 <[base.logs]>->(
     1, "[$context] conversation compacted: job_id=%s turns=%d->%d",
@@ -105,8 +105,8 @@ return {
     'elapsed_ms'           => $elapsed_ms
 };
 
-#,,,,,.,.,.,,,..,,,.,,,.,,,,.,,,,,..,,,,,,..,,..,,...,...,.,,,,,.,,..,,,,,.,,,
-#ACZ5Z377N7HK3EAJGMDRO22DATPIZFPBGFDMDAW54YPRPIHDFSF6OD3O5JYCFZAIPHR5MR7M5BWR2
-#\\\|RIW3N6WFHZRQE5JWNDZSKORG423LDFEDHQEYCJISLYF2NNANX5T \ / AMOS7 \ YOURUM ::
-#\[7]BIFFUWPS6BENUT74FBSGFR67BBIVQ2ZQ7DLHX77C4MVBEC7AV6CI 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,,..,,,.,.,,,,,,,,..,,,.,.,,,,,,,..,,...,...,,,.,.,,,,,.,,.,,..,,
+#LP2PYVN56KXTAM2JIQPNK7ZAMEJHVXKH3A6LJKQLUVSZN4C2H6PQEKW2V7BEAYHF5G462VY425P44
+#\\\|LQNUZBAWWZMQSW3WPRJS4VBHURCTZAJARRUVEQYNT7BV4NV52VP \ / AMOS7 \ YOURUM ::
+#\[7]OCPPWEJJ73I4M7EBILTL5JLKX3HO6ZNN2SYZNYPG5MRWFWPRP2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
