@@ -53,7 +53,7 @@ if ( exists <letsencr.child.active_challenges>->{$token} ) {
     <letsencr.child.active_challenges>->{$token}{status}
         = $response->{data}{status};
     <letsencr.child.active_challenges>->{$token}{responded_at}
-        = time();
+        = <[base.ntime]>;
 }
 
 return {
@@ -61,8 +61,8 @@ return {
     processing => $response->{data}{status} eq 'processing',
 };
 
-#,,..,.,,,.,,,,..,.,,,,..,,,.,,.,,,.,,,,,,..,,..,,...,...,..,,,,.,...,,.,,,,,,
-#B7AVGPI5GGJHB5HCSZ2BOCPOE35NSCQQMWJMWLGXIF6LWUOWC7WWFDBMQNRDIARBCV5MGOUGUBJFA
-#\\\|VU6JV5KMNMM2HZZHQZQUPWH2K4RCBAG6CN4PUF2G6672IMVHNCH \ / AMOS7 \ YOURUM ::
-#\[7]I7EAZAO4TWXDDUK7YFDDAWQDUA72WLMHSY25PQL5ZCSIRWXS4CAI 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,,.,..,,..,,,,,,.,.,...,.,,,.,,,..,,...,...,..,,,.,,,.,,,..,..,,
+#YX62MOSMU37YJAJIYIMVE4ULMOG4QXW4IMLD5O7OVZI4JZ2XMZZIHRAWIXEFGCKRHCCT5EEKFZARQ
+#\\\|4SEVAADYQ5K3W2XMX6CJSGWGHS5CUFBT7B5NC7ABFKE3NS6ZTSK \ / AMOS7 \ YOURUM ::
+#\[7]EAIJEVFMVRUGJFLYE44IR7SGI2IH45DQYWBGWP3SFG46UFGDH2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

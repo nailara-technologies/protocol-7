@@ -34,7 +34,7 @@ if ( $mode eq 'TRUE' ) {
 
     ## mark challenge as validated
     $challenge->{status}       = qw| valid |;
-    $challenge->{validated_at} = time();
+    $challenge->{validated_at} = <[base.ntime]>;
 
 } elsif ( $mode eq 'FALSE' ) {
     my $error = $validation_data->{'data'} // 'validation failed';
@@ -50,10 +50,10 @@ if ( $mode eq 'TRUE' ) {
     ## mark challenge as failed
     $challenge->{status}    = qw| failed |;
     $challenge->{error}     = $error;
-    $challenge->{failed_at} = time();
+    $challenge->{failed_at} = <[base.ntime]>;
 
-    ## request HTTPd to clean up the challenge file
-    ## [ parameters as space-separated args: domain token ]
+    ## request HTTPd to clean up the challenge file  [ parameters as
+    ## space-separated args: domain token ]
     <[protocol-7.command.send.local]>->(
         {   'command'   => 'httpd.cmd.remove-acme-challenge',
             'call_args' => { 'args' => "$domain $token" }
@@ -71,8 +71,8 @@ if ( $mode eq 'TRUE' ) {
 
 return FALSE;
 
-#,,..,.,.,..,,.,.,..,,.,.,...,,,,,.,,,.,,,.,,,..,,...,...,..,,,,.,...,,..,..,,
-#ULSH4H2V2ATCGW5LGQOHRCVX5ON4RD3MNJE44AGI5VK5RDQ4TZWAWABP4PUXPP7PQC2VPCNHN27SG
-#\\\|4TSD3P6EMGJAVTIWUSXV3HZXJTA3RMUE54X7AIPXU7TNMBZLLDA \ / AMOS7 \ YOURUM ::
-#\[7]AK6TWIJJDNN4AKKG4GFIWTIPXUIH3GNYHT3DLGAFZJO6FDAL22BI 7  DATA SIGNATURE ::
+#,,..,,,.,...,,,,,.,,,,,,,..,,..,,...,.,,,...,..,,...,...,,,,,,,,,..,,,..,..,,
+#26NQQE5NGBWP4HONR2BQFAJL5SVP724ZXVTHVXY5OS4MBFXPGZ4Q2K3RVQ7IOXA5JUXRTA7ZQYQOE
+#\\\|7LOSDYTABYGMHOOZ5BTURWCEDPA5FXNVSC6V3CTQUU76FHGP2WX \ / AMOS7 \ YOURUM ::
+#\[7]WNR4HVBHHDDK3ITLMHXXS4KNGY4BZYFA7AV2EIPTANUTTAD7PUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

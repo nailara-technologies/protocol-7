@@ -69,7 +69,7 @@ $new_pem .= "\n" . $key_block if defined $key_block;
 $new_pem .= "\n";
 
 ## backup current pem
-my $backup_path = "$pem_path.backup." . time();
+my $backup_path = "$pem_path.backup." . <[base.ntime.b32]>;
 <[file.put]>->( $backup_path, \$pem_content );
 chmod 0640, $backup_path;
 <[base.logs]>->( 1, ': backed up current pem to %s', $backup_path );
@@ -97,8 +97,8 @@ return {
     )
 };
 
-#,,.,,,.,,...,.,,,,.,,.,.,...,,.,,,,.,,,,,,..,..,,...,...,.,,,.,.,,..,...,,,,,
-#CVJ6QPSH54IS7QKJYYNSNMOKGIEBVZCEQFG7JUURX6P7W4S5U5HWQXIT2YSPUBLSOY56E6WIXLI3U
-#\\\|VZXAJERP32ICPXAODKLCP63E2WTCTK3TZWBCLIEGSOWHUK7OZWF \ / AMOS7 \ YOURUM ::
-#\[7]CD7MV7WYVR6IKQO3DVYEP4XBSB4FQ5BU63AMBS3JOPWMDJVO7SAI 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,,,,...,,..,,.,,,,.,,,,,,,,,,.,,..,,...,...,..,,.,,,,,.,..,,.,,,
+#F3CBHJKZVA6DSTBLMMAXT5DMH4SD3OEDFGPEVFJ444FAT42D2CYQMIOJ32Y4O2QRQFEPQMQZIYM52
+#\\\|POZVZNJRW5CDGH5HTMGMZM55UZE2D4P4KNMW5AIOKNOED6CKXKO \ / AMOS7 \ YOURUM ::
+#\[7]BSCB5Z26XXCEIPCPLWUTPZUN7F2EGQ2T377GNA6STS5KU446LSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

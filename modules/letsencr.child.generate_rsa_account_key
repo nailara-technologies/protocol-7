@@ -7,8 +7,8 @@
 
 my $start_time = time();
 
-## generate RSA 2048-bit keypair using Crypt::OpenSSL::RSA
-## [ OpenSSL library with proper PKCS#1 v1.5 padding for RS256 ]
+## generate RSA 2048-bit keypair using Crypt::OpenSSL::RSA  [ OpenSSL library
+## with proper PKCS#1 v1.5 padding for RS256 ]
 my $rsa = Crypt::OpenSSL::RSA->generate_key(2048);
 
 <[base.log]>->(
@@ -61,7 +61,7 @@ $keys{'RSA'}->{$key_name} = {
     'modulus'     => $modulus_b64,
     'exponent'    => $exponent_b64,
     'pem_private' => $pem_private,
-    'time-loaded' => time(),
+    'time-loaded' => <[base.ntime]>,
 };
 
 ## cache private key to disk
@@ -87,8 +87,8 @@ return {
     'exponent' => $exponent_b64,
 };
 
-#,,,.,...,..,,,,,,,..,.,,,..,,.,,,,.,,.,.,.,,,..,,...,...,..,,,.,,.,,,.,,,.,.,
-#FQBVITJPVY7S327OSH3QU4FZ5N2Y7FBQDWLWKLPP64UKJDRQZJF2LMVNAWI4NBM57RMEFK7B46P4G
-#\\\|MTOVHCVB5OHW27TXKUFV7DIOWE6FV3XRWCJPMUBDSYYDPD23XH3 \ / AMOS7 \ YOURUM ::
-#\[7]FPCXCFOSMPNNQCZX2YSYUGKKDFGXRAIDAQZARJ2NDNL5HTVS6CDI 7  DATA SIGNATURE ::
+#,,.,,...,...,.,.,.,,,.,.,..,,,,.,...,.,,,.,,,..,,...,...,.,.,,.,,.,.,,,.,.,.,
+#DE5L44QR67KBFGXGRLYQFAKV43VOZQ6C7UKEEJNNICYPH5N4WWILSTAFR3SMNXZGN6IND6LAYMSZO
+#\\\|ZPSDN7X4MSL6JPZ5UN67HZWKDFYNC53C3RHVUGJ4PK5UNWYYUCH \ / AMOS7 \ YOURUM ::
+#\[7]SXG5DKJAE37XKPHDEZQJABQSBJ2O3JNYUBLCSZAUDIHU4JA3FABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
