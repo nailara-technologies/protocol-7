@@ -4,7 +4,7 @@
 # descr = return pending auth-relay requests with computed age
 
 my $pending = <cred-mesh.auth_relay_pending> // {};
-my $now     = <[base.time]>->(3);
+my $now     = <[base.ntime]>;
 
 my @entries;
 for my $req_id ( sort keys %$pending ) {
@@ -12,7 +12,7 @@ for my $req_id ( sort keys %$pending ) {
     my $ntime = $entry->{'ntime'} // 0;
     my $age_s = 0;
     if ( $ntime =~ m{^\d+\.\d+$} ) {
-        $age_s = int( $now - $ntime );
+        $age_s = int( ( $now - $ntime ) / 4200 );
         $age_s = 0 if $age_s < 0;
     }
 
@@ -28,8 +28,8 @@ for my $req_id ( sort keys %$pending ) {
 
 return { 'relays' => \@entries };
 
-#,,.,,,,.,,,.,,..,,,,,.,.,.,,,.,.,..,,...,...,..,,...,..,,.,.,,.,,,,.,,,,,.,,,
-#6DO6MHTUDJRYULDMQA5O76QDVPEU3MGWU75FTQ5IAA7H2N7XOZRHSZEEYNA2MFLIBEJBIKIEA257I
-#\\\|EYX3JEVS6FPVLOJA5KVB5HP24ZYK22QRWDBPRJYUKXK3GSRMURC \ / AMOS7 \ YOURUM ::
-#\[7]T4QBNYR5RL7GM3XMMIY3YD4XHPDTCQENQVX6BZYPASVLCFPDHOBY 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,.,,,,,,,..,,,.,,.,,,.,,,.,.,,.,,..,,...,..,,,,.,,,.,.,,,..,,.,,,
+#MRSXJJWYNCIFVL64UATET32IEB5ABVVN7O5FVNQPCMMR5ZVWT2XE6V7PLFECV2DRTUFPF7BAXBZOQ
+#\\\|A2I3YTS5FTKOCDS5OUKIRVALUTPEWJJLYNKOUSKDMJYU35IWDLX \ / AMOS7 \ YOURUM ::
+#\[7]WAHQEFLNSQPZNKEUBB5SF3A5TKC5NLRDPOTINUPXQ7YKXIVZ2KCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

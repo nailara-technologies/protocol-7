@@ -22,11 +22,11 @@ my $req_id = <[base.gen_id]>->( $data{'route'}, undef, undef, 0 );
 <cred-mesh.auth_relay_pending>->{$req_id} = {
     'domain'  => $domain,
     'context' => $context,
-    'ntime'   => <[base.time]>->(3),
+    'ntime'   => <[base.ntime]>,
 };
 
-## persist the new pending entry -- relay_pending.yaml otherwise only
-## ever gets written on approval-completion cleanup, never on creation ##
+## persist the new pending entry -- relay_pending.yaml otherwise only ever ##
+## gets written on approval-completion cleanup, never on creation          ##
 my $pending_yaml
     = eval { YAML::XS::Dump( %{<cred-mesh.auth_relay_pending>} ); };
 <[file.zenka_dir.write]>->( 'relay_pending.yaml', \$pending_yaml, '>', 0600 )
@@ -42,8 +42,8 @@ if ( length $slot_hint
         qw| high |;
 }
 
-## pick dialog type by credential sensitivity ##
-## [ note: cube strips '.cmd.' segment for cross-zenka routing ] ##
+## pick dialog type by credential sensitivity  [ note: cube strips '.cmd.' ##
+## segment for cross-zenka routing ]                                       ##
 my $dialog_cmd
     = $high_sensitivity
     ? 'protocol-7-menu.input-password'
@@ -66,8 +66,8 @@ return {
     'req_id' => $req_id,
 };
 
-#,,.,,,,,,,..,..,,.,,,.,.,.,,,,,,,.,.,,,,,.,,,..,,...,...,.,.,,,,,,..,,..,..,,
-#QWZDT4O5ELX57KJ4ACNCUYFG6PCOVXG52YK55SOIZ6UABARBS7NWJT4NB5ZWJCFUMZ3M3KAWCOK6A
-#\\\|UIQTEFU53GWLXP5IZVDGPP4PY7IFBMGIOULJD2YWKRIPAEBYI5S \ / AMOS7 \ YOURUM ::
-#\[7]LW25YRGPBRP3YEQHXLXLERRVPYF6VHCNUBE47F4EYSXUYM3V7SAI 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,,,,,..,,,,,,,.,,..,,,.,,.,.,..,,..,,...,..,,...,,,.,,,,,,,.,.,,,
+#AS7SBI5UMQSC4RLVM4WO6VVWMFKHOATBWIJPBMNTIGE6FL6SW3734P77GVOAZTJYDHSVDBWXGHJZK
+#\\\|LXJCMGVDCB5XTBFQXA7G2673FZVWWXKNDHUVLCW5BZ35P5Y2FOO \ / AMOS7 \ YOURUM ::
+#\[7]AMUJJASSWNUGGJFMSUXOZJAMMAI2INTYFNRCT77S3ZKNIRF4PKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

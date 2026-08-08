@@ -9,7 +9,7 @@ my $query_id = $reply->{'params'}{'query_id'} // '';
 return unless length $query_id;
 
 $data{'branch.discover.results'}{$query_id} = {
-    'ntime'  => <[base.time]>->(4),
+    'ntime'  => <[base.ntime]>,
     'data'   => $reply->{'data'},
     'status' => 'complete',
 };
@@ -24,8 +24,8 @@ if ( exists $data{'branch.discover.queries'}{$query_id} ) {
 
 return { 'mode' => 'true', 'data' => $query_id };
 
-#,,,,,...,...,,..,...,,,.,,.,,...,.,.,,.,,,..,.,.,...,...,..,,,,,,,,,,,,.,.,.,
-#JJO64GTKTKTEUQLQIZ2B6PMH7H5AEOR7DL3CSKBXJYVKIQ4DZCXCGTKJJQSI2OTTZUJLZWHH4L3NS
-#\\\|WN2GYB6CL5TNYKUAZI6ICL5UW3EAI5FJOBQY225ZKY5XYKLNUGU \ / AMOS7 \ YOURUM ::
-#\[7]WN3YKOCKMKJJETIRON45TGZFMKJJM6YTAWTFI2WJTBCJY3543GDQ 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,...,,,.,,,.,...,,.,,..,,.,,,.,,,.,.,...,...,..,,..,,,..,.,.,.,.,
+#O25EAP7T3YEHTQFV4JLXDVZLU7K3E4XR4B4II6DKH3YC4J5ZPNURT7ZPBDTDOERNL7U3FIRB3FR2Y
+#\\\|DMBIGVXCAQ2V57KJXTCOX4JKJNXINDL5X6DZUB5G3WOO3RGZLFJ \ / AMOS7 \ YOURUM ::
+#\[7]CKJ6HE2IP3SS473N5TWCFNUUZI63LOVQT2Q5546DZDBHQINKOADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -14,7 +14,7 @@ return { 'mode' => qw| false |, 'data' => 'node_id required' }
 return { 'mode' => qw| false |, 'data' => 'checksum required' }
     unless length $checksum;
 
-my $ntime = <[base.time]>->(4);
+my $ntime = <[base.ntime]>;
 
 ## record passage ##
 my $passages = <space.orbit.passages>->{$node_id} //= [];
@@ -45,8 +45,8 @@ if ( $passage_count >= $threshold ) {
 
 return { 'mode' => qw| true |, 'data' => $passage_count };
 
-#,,.,,,.,,,,,,.,.,...,,,.,..,,..,,,..,.,.,.,,,.,.,...,..,,,.,,,..,,,.,...,...,
-#ATY4DH7Z3OTBUUISUG44KOPOILFR4YX2Y2Y3A44URGJ573MKSQO5RZD5QZT6N6P6FC4454QKP34UO
-#\\\|L7L44G5V3IPVWKUIG527MT7LEQNL6MTZ7KR5GFB2NGY7M3GZE4X \ / AMOS7 \ YOURUM ::
-#\[7]YMHMC4NMN77IFNAA3THRRJR4WM6QVVRUPGRWWD4EGGVI5MXO2KAA 7  DATA SIGNATURE ::
+#,,.,,...,.,.,.,,,,..,,,.,,..,...,,..,...,,,.,.,.,...,...,,,,,,..,..,,,..,,,.,
+#YDVSSMYTI3WKLFJ4RVPA3V2KPLSR6PLTNLQ6FC3J7A5CFVZRAW372ENDGX53KXK37JWGZSQR2DNNC
+#\\\|RTTRNDEVFPS63XCJD7A5SJSC7WMNZTTRGFCLCUAJYLIKXP34LDU \ / AMOS7 \ YOURUM ::
+#\[7]TIXCKXRPKVMIPMJSZZGEXRMPX4DPXKT6QHPZORM35GSIJ4HHU2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

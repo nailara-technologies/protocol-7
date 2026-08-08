@@ -15,7 +15,7 @@ return { 'mode' => 'false', 'data' => 'node not found' }
 my $subtree       = $params->{'subtree'}       // TRUE;
 my $snapshot_name = $params->{'snapshot_name'} // '';
 
-my $ntime = <[base.time]>->(4);
+my $ntime = <[base.ntime]>;
 
 ## generate snapshot_id from AMOS swap-boundary checksum of id::ntime ##
 my $chk_payload = join( '::', $id, $ntime );
@@ -132,8 +132,8 @@ $data{'branch.storage.backend'} = $backend;
 
 return { 'mode' => 'true', 'data' => $snapshot_id };
 
-#,,..,,,,,.,.,,..,,.,,,.,,...,.,.,..,,,.,,.,.,.,.,...,...,...,...,,..,,.,,,,.,
-#5HPCQS7RKVB35ZUYGZPSVKVMZGWFK4HD322L63VKMX5RLNBROFQ7DBPIDCY2ISVF3ZC2MXWOXQ5GY
-#\\\|M6GWUK6LMQA3CKXRJBALBT4UKIJAK2K6IMNJ5O7JBDMCFOYJIQR \ / AMOS7 \ YOURUM ::
-#\[7]VWIR2HOQP7262GML5Q6MY7JPG7PMIO3Q3HVDEJSCHNRIVG7M4IBA 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,..,.,.,...,,,.,,.,,,..,...,,,,,.,.,...,...,.,,,..,,,,,,,.,,..,,
+#43IVL6DFKBKJYVJPVLU3PIBLMEM3SQZ7S5VUUP56OBFVTWNMABG6T67763SBSL3OI46CFU6J3WFZA
+#\\\|LQCABU7NIGYDZYUJQALE3X3WPUIKDPLIRUEMMRNCPPTSJYRCXKY \ / AMOS7 \ YOURUM ::
+#\[7]DJ3I7LVEBPYGWPLJ5PHLKL7CCOVMV2KZYJTLZ4D4XYSUBYU4COAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
