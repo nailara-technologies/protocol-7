@@ -51,7 +51,7 @@ foreach my $job (@$batch_queue) {
                 duration => $result->{duration_ms},
                 model_used => $result->{model_used},
                 method     => $result->{method},
-                timestamp  => <[base.time]>->(3)
+                timestamp  => <[base.ntime]>
                 };
 
             # Update quality distribution histogram
@@ -75,7 +75,7 @@ foreach my $job (@$batch_queue) {
                 job_id     => $job_id,
                 image_path => $job->{image_path},
                 error      => $result->{error},
-                timestamp  => <[base.time]>->(3),
+                timestamp  => <[base.ntime]>,
                 type       => 'analysis_failure'
                 };
         }
@@ -97,8 +97,8 @@ return {
     }
 };
 
-#,,,.,,.,,...,,..,,,,,.,,,..,,..,,...,,,.,.,,,..,,...,..,,..,,.,.,...,,,,,,,.,
-#ZC443YD2SU5K5R7NLRTPDQLYREMHWQZHOFL2H5TM4IA6B2VOMBHEMHSJU3E73BAPFXN3IURHMYUEC
-#\\\|TJZAKBPZZMGVBWZACPMHUYSJA2KSXGN7HNAUWEO23EICV7YH6TJ \ / AMOS7 \ YOURUM ::
-#\[7]YPE5FGXQBQMEVC4EP7KIHFVHMVQD33QQVFBKYOCMWP4QGCG6T6DQ 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,...,.,.,,..,...,,,.,,.,,,..,,,.,..,,...,..,,..,,.,.,,,.,...,...,
+#DEK773BM7B4IAW62POWRWFHKY6ZLFZ6WXJ4O2AF25VZQTY3YJSQ5Q7EDGHZH5F62IJR5ELN5WFL7C
+#\\\|EA4LUBFXQPJXB6RMJ3YZ2DZCOKIWGFF5WDAPWVWKVNCP4SIVLBR \ / AMOS7 \ YOURUM ::
+#\[7]HAOVHTKB26YVYFD5QXLKERPMGGTMMBKDKC7NLRUYMYUIZGDMZQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

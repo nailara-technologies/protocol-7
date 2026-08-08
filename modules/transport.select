@@ -63,8 +63,8 @@ $try_next = sub {
         ## all primary transports failed: try fallback ##
         <[base.logs]>->(
             1,
-            'transport.select: all primary transports failed for %s,'
-                . ' trying fallback %s',
+            'transport.select: all primary transports '
+                . 'failed for %s, trying fallback %s',
             $dest,
             $fallback
         );
@@ -78,7 +78,7 @@ $try_next = sub {
                     <transport.registry>->{'active'}{$dest} = {
                         'type'    => 'fallback:' . $fallback,
                         'handle'  => $handle,
-                        'started' => <[base.time]>->(4),
+                        'started' => <[base.ntime]>,
                     };
                     $ctx->{'transport'}{'degraded'} = TRUE;
                     $finish->($handle);
@@ -131,8 +131,8 @@ $try_next = sub {
             and defined $quality->{'loss_rate'} ) {
             if ( $quality->{'loss_rate'} > $min->{'loss_max'} ) {
                 <[base.logs]>->(
-                    'transport.select: %s quality too low for %s'
-                        . ' (loss %.2f > %.2f)',
+                    'transport.select: %s quality '
+                        . 'too low for %s (loss %.2f > %.2f)',
                     $type, $dest, $quality->{'loss_rate'},
                     $min->{'loss_max'}
                 );
@@ -158,14 +158,14 @@ $try_next = sub {
             <transport.registry>->{'active'}{$dest} = {
                 'type'    => $type,
                 'handle'  => $handle,
-                'started' => <[base.time]>->(4),
+                'started' => <[base.ntime]>,
             };
 
             <transport.registry>->{'quality'}{$type}{$dest} //= {
                 'loss_rate'            => 0.0,
                 'rtt_ms'               => 0,
                 'goodput_kbps'         => 0,
-                'last_measured'        => <[base.time]>->(4),
+                'last_measured'        => <[base.ntime]>,
                 'consecutive_failures' => 0,
             };
 
@@ -194,8 +194,8 @@ $try_next->();
 
 return;
 
-#,,,.,..,,,.,,,,.,.,.,,,.,,,.,.,,,,,.,,.,,..,,..,,...,..,,...,...,.,.,,,,,,.,,
-#X4PWJCQ6P2OJ3J7IVCEYGBFYRJCY7UTPTTFY4YYC3L77WFQ7VRWLCXEB7L4W2WSSFC5RNSAXT5BJ4
-#\\\|MRMZUJ65WAAZTDUW5TMJM5F6G3JKS3YPWJ6HHU7X2LAN6ARAQJJ \ / AMOS7 \ YOURUM ::
-#\[7]TYYW2LQSHIYNMY2LBWAPNVI75NDEOEEXYPU43L5VSBCFSB4PCYAQ 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,.,,,,.,,.,,,...,.,,,,,.,,,,,,,.,..,,...,..,,..,,...,,,,,,,,,,,,,
+#RXDKWYAA26YTY2LSJY246FGCVPDADEAYPD2HVKELZOA7ME5DFHLQKPBSFH35KY4PLFSPAMITSTPPU
+#\\\|67GB6UIKVMHZ4YVV6DHG6LMBWMN7LH65EDACPZ6HYQ3TYHJ364J \ / AMOS7 \ YOURUM ::
+#\[7]43J5PKGKL3SNOG32Y6RJ7ZVVV5LNLJKL2MEUWABXCX456AC6GODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

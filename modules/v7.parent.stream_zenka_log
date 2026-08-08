@@ -26,8 +26,8 @@ unless ($instance) {
     };
 }
 
-## create unix domain socket for this zenka's log stream
-## path: /var/run/.7/logs/<zenka_name>.<instance_id>
+## create unix domain socket for this zenka's log stream  path:
+## /var/run/.7/logs/<zenka_name>.<instance_id>
 my $socket_dir  = '/var/run/.7/logs';
 my $socket_path = "$socket_dir/$zenka_name.$instance_id";
 
@@ -38,23 +38,23 @@ unless ( -d $socket_dir ) {
     };
 }
 
-## TODO: Implement unix domain socket server
-## features needed:
+## TODO: Implement unix domain socket server  features needed:
 ## 1. Create unix socket at $socket_path
 ## 2. Accept multiple observer connections (clone)
 ## 3. Stream output_buffer data to all connected observers
 ## 4. Support detach (close connection, keep socket)
 ## 5. Support reattach (reconnect to existing socket)
-## 6. Stop v7 console pass-through when terminal zenka with ANSI buffer attached
+## 6. Stop v7 console pass-through when terminal zenka with ANSI buffer
+## attached
 
 ## for now, register the log stream
 <v7.log_streams> //= {};
 <v7.log_streams>->{$instance_id} //= {
     zenka       => $zenka_name,
     socket_path => $socket_path,
-    created     => time(),
+    created     => <[base.ntime]>,
     observers   => [],
-    passthrough => 1               ## v7 shows logs by default
+    passthrough => 1                 ## v7 shows logs by default
 };
 
 ## add observer if specified
@@ -62,7 +62,7 @@ if ($observer_id) {
     push @{ <v7.log_streams>->{$instance_id}{'observers'} },
         {
         id       => $observer_id,
-        attached => time()
+        attached => <[base.ntime]>
         };
 }
 
@@ -79,8 +79,8 @@ return {
 
 0;
 
-#,,,,,...,,,,,..,,,,.,,..,,,.,..,,...,,,,,,..,..,,...,...,..,,,.,,...,.,.,,,.,
-#V6SQHBEPBWDOGDMR54DF43MBB3C3M4L2LRSU3G72BFMMGTBFOSO3AHBCSVD25GN6WF4EE3BPH3MK6
-#\\\|TWIRW7AB6MHSXFPFD7TSUTN4VNN4GVFNMGOJU3VYTSCR3NQLTLF \ / AMOS7 \ YOURUM ::
-#\[7]UK466ZXUNCUMFGHA4MBNT6PWGD5W3EOKBQS2QW7PJCOF4LWV4ACA 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,.,,,,.,,.,,,,,.,,,.,,,.,..,,...,..,,...,...,,.,,.,.,,.,,,..,..,,
+#GQDGV3RVBLQJ2IQKLMAYJYS2LOGWJWBTCRL7DGKNBY3GSQQ43NG7MMQUSSVPQKEKZTWJWILX72UVW
+#\\\|47D4B3FPQALUR3VC4UNVPEEDQHA2HHV3DNQHEAYUJ77GYQZ5R2V \ / AMOS7 \ YOURUM ::
+#\[7]ORPFQ4ZA34RCPD5PHT45WBU6M47N7P6J2CXYBXTUBP6VLFEI3OCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
