@@ -47,8 +47,8 @@ my $metadata = {
     status          => 'valid',
 };
 
-## warn if chain intermediate does not match leaf issuer
-## [ full AIA repair happens in child.validate_chain : this is a safety net ]
+## warn if chain intermediate does not match leaf issuer  [ full AIA repair
+## happens in child.validate_chain : this is a safety net ]
 if ( length($chain_pem) ) {
     my $issuer_check
         = <[letsencr.x509_field]>->( $certificate_pem, '-issuer' );
@@ -97,7 +97,8 @@ foreach my $ext ( keys %files ) {
 
         if ( -d $backup_dir ) {
             my $backup_path
-                = catfile( $backup_dir, "$domain.$ext." . time() );
+                = catfile( $backup_dir,
+                "$domain.$ext." . <[base.ntime.b32]> );
             my ( $src, $dst );
             unless ( open( $src, '<', $file_path )
                 && open( $dst, '>', $backup_path ) ) {
@@ -115,8 +116,8 @@ foreach my $ext ( keys %files ) {
         }
     }
 
-    ## unlink before write so open() creates a new inode
-    ## [ setgid group inheritance only applies to newly created files ]
+    ## unlink before write so open() creates a new inode  [ setgid group
+    ## inheritance only applies to newly created files ]
     unlink $file_path if -f $file_path;
 
     ## write new file
@@ -177,8 +178,8 @@ return {
     error_msg => undef
 };
 
-#,,,.,..,,,.,,,.,,,,,,.,.,,..,...,...,.,.,..,,..,,...,.,,,,.,,...,,,.,,.,,,.,,
-#AB43SAT5ELC4OLZB6TAUWL2SAEEGRSNWKRWSBBDHLMCCHDPBGNDYETIGDFX36NQYPUKTB23N3HEOM
-#\\\|O2RDK5ICLQUB6CACB5SBOYDKZFC6PSOOR2I6JGG2HWGN3RL5FPO \ / AMOS7 \ YOURUM ::
-#\[7]FMO5ZLGKLHYFPWOREQNOKYVWAWYSMY6HOKVYMAUGIIG6HPRIICCI 7  DATA SIGNATURE ::
+#,,,,,..,,,..,.,,,,,.,..,,,.,,.,.,...,.,,,..,,..,,...,...,...,,.,,,.,,..,,.,.,
+#A2PS3HNXDYP4IJLPTPEOHVYOM5F53E6QUZANSKVT4L7JIOMKR56ITN5CU4HYEKGWKLOANFBNM4ESE
+#\\\|THJDH5BZNAXOR5VNIXFYDOVJL4WC2M6M3Z5ICWRRP3726S5TAM4 \ / AMOS7 \ YOURUM ::
+#\[7]YYYFIB7PS4KD2NYH7IXXG2JRNIM3WNZVLYVQCULWGVQ57NXN2OAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

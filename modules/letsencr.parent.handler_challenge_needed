@@ -40,8 +40,8 @@ if ( $mode eq 'http-01' ) {
         type       => 'http-01',
         token      => $token,
         key_auth   => $key_auth,
-        created_at => time(),
-        expires_at => time() + 300,    ## 5 minute timeout (standard ACME)
+        created_at => <[base.ntime]>,
+        expires_at => time() + 300,     ## 5 minute timeout (standard ACME)
         status     => 'pending',
     };
 
@@ -110,7 +110,7 @@ if ( $mode eq 'http-01' ) {
             type            => 'dns-01',
             token           => $token,
             challenge_value => $challenge_value,
-            created_at      => time(),
+            created_at      => <[base.ntime]>,
             expires_at      => time() + 300,
             status          => 'pending',
         };
@@ -131,8 +131,8 @@ if ( $mode eq 'http-01' ) {
 
 return FALSE;
 
-#,,..,,,,,,,,,.,.,..,,...,.,,,,..,.,,,.,,,..,,..,,...,..,,.,.,..,,.,.,,..,,.,,
-#J6R2SE2G2C7QFQCE4HRS2UGRZGZGADK4VKIJ2TUD2RAFQRJS7PVU5RXJBL46Q4JYJ3PS767BADLQO
-#\\\|QQ753MJEZLJY77NEWIQ7X6FAUDWGJ6R54EUFM2LGESJPJACQ6AF \ / AMOS7 \ YOURUM ::
-#\[7]A7ZHRAP64XDPFH4DCPN4MYH2ZFK7FLW2QTYZN4USK64N5AWQFKDA 7  DATA SIGNATURE ::
+#,,..,,..,.,,,.,.,.,,,,..,.,,,,,.,.,.,,,.,,..,..,,...,...,,,.,...,,,,,.,.,.,,,
+#OKU2J5ANMK7HPQVY6YFVEQSKW6OOXMMCZOWCY2WE5PWEY7JVWWQQ5XXFPKGRXMS5Q6MU6F6W275UI
+#\\\|MQMPH3HSNT3LSEJHPCVOGJUZ7ASZH5CZOWX33GML3DVAF3RZA5O \ / AMOS7 \ YOURUM ::
+#\[7]OETNS6S5CHOJTQQCWLOJI7BYZZYN4P4UXL5AC5II7PSB7246JCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
