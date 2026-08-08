@@ -54,7 +54,7 @@ $review->{'ai_feedback'} = {
     'feedback'    => $feedback_ref->{'feedback'}    // '',
     'issues'      => $feedback_ref->{'issues'}      // [],
     'suggestions' => $feedback_ref->{'suggestions'} // [],
-    'reviewed_at' => <[base.time]>->(2)
+    'reviewed_at' => <[base.ntime]>
 };
 
 ##  Mark as approved if status is 'approved'  ##
@@ -69,7 +69,7 @@ my $notification = {
     'suggestions' => $feedback_ref->{'suggestions'},
     'branch'      => $review->{'branch'},
     'developer'   => $review->{'developer'},
-    'reviewed_at' => <[base.time]>->(2),
+    'reviewed_at' => <[base.ntime]>,
     'message'     => $status eq 'approved'
     ? 'AI approved your changes - ready to commit'
     : "AI feedback: $feedback_ref->{'feedback'}"
@@ -108,8 +108,8 @@ return {
 
 1;
 
-#,,,,,,,,,,,,,,.,,..,,,.,,,..,,,.,.,,,,,,,...,..,,...,..,,,,.,,,,,..,,...,,.,,
-#R2MPU6UDI4Q3PLSSHLOZ7MQ7S3XF4SCQOOUR2UWBUPUAGYAVXCEO7LD6Y4QQCGO62HSCNVROKCLCY
-#\\\|QFID4NZOE6BWFZCN5EQAKZRE7UUXV2CWWRGYFBKUS7EBNRIANS6 \ / AMOS7 \ YOURUM ::
-#\[7]IE7UIITDCKHPLYXKIG4GZIJTKFQS5FB5DXYEWMNF3A6DTHPHMQAI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,,..,...,,,,,.,.,...,.,.,..,,...,..,,...,...,..,,,.,,...,,,.,,.,,
+#KLKWCLFIRJG2X6CAHC5A27XWFVPDCKJXOLNLMUDLEOD3LWVWSNPLZKVDCJX5RZVGFVVD6XNOU7BS2
+#\\\|SAH6ODUAN3AY6APSIOJDSB3YJ3MGBO2YS4FUPIEQBUITTCE4US6 \ / AMOS7 \ YOURUM ::
+#\[7]HBXXP4YW5HQZDNRUX2APJOAWWRXXW26TISDJUGLUE3FSGUD3LIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

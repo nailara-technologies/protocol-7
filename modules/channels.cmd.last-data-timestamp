@@ -10,8 +10,7 @@ my $channel_path = $args;
 $channel_path =~ s|^\s+||;    ## trim leading whitespace ##
 $channel_path =~ s|\s+$||;    ## trim trailing whitespace ##
 
-my $current_time   = <[base.time]>->(3);  ## unix timestamp with subseconds ##
-my $current_ts_b32 = encode_b32r( pack( 'Q>', int($current_time) ) );
+my $current_ts_b32 = <[base.ntime.b32]>;
 
 ##  If no specific channel requested, return global timestamp  ##
 unless ( length $channel_path ) {
@@ -22,15 +21,15 @@ unless ( length $channel_path ) {
     };
 }
 
-##  Validate channel path syntax  ##
-##  Absolute syntax: /channel.name (single key only)  ##
-##  Implicit tree: channel.name (includes subtree)  ##
+## Validate channel path syntax                     ##
+## Absolute syntax: /channel.name (single key only) ##
+## Implicit tree: channel.name (includes subtree)   ##
 
 my $is_absolute = $channel_path =~ m|^/|;
 $channel_path =~ s|^/||;    ## strip leading / for processing ##
 
-##  For now, return same timestamp regardless of path  ##
-##  (Route-dependent dedup happens at routing layer)  ##
+## For now, return same timestamp regardless of path  (Route-dependent ##
+## dedup happens at routing layer)                                     ##
 
 return {
     'mode' => qw| timestamp |,
@@ -39,8 +38,8 @@ return {
 
 1;
 
-#,,.,,...,,..,,,,,.,,,.,.,..,,,..,,,,,,,.,..,,.,.,...,..,,,,,,,,.,..,,,,.,,.,,
-#UONIIIU7K3TZIGTPO4VGCPFJABNV5HLQSLYGWEQ2UUNHBVCNELUVPJUN3YSAORJAVL6V2CDDUEWQY
-#\\\|LWRWUJ5667PRKXO63UPCWML64KDTID5MDFCEOQXUDHMMEUYGGU3 \ / AMOS7 \ YOURUM ::
-#\[7]A6TT2VGR2LZIP6GW2GJVDDKQUNF47TMID5F5XYY5AFQMN63VZAAA 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,.,,,,,,,,.,...,.,.,..,,,..,,,.,.,.,...,...,,.,,,.,,.,.,,.,,,..,
+#LAFDQFEZLMJGSQGH3RNBAEUGHJZ67DVM6REHNG4IM42DKKD4FQITHF72HLEMNNEOPQHWD4HKKOS2A
+#\\\|CFKDKCZ7DALXM7I7XDDJJBQE3KK2M5E27VUJ7SXCJGVWCHRPQRR \ / AMOS7 \ YOURUM ::
+#\[7]SRWMOPREFC3T46KL2WWY5KO2IK76LP5EXLWISR2HDG2CUOSSFMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

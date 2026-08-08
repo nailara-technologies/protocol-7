@@ -18,7 +18,7 @@ return { 'mode' => qw| false |, 'data' => 'key required' }
 <channels.memory_sync_store>->{$channel} //= {};
 <channels.memory_sync_store>->{$channel}->{$key} = {
     'data'         => $data,
-    'published_at' => time(),
+    'published_at' => <[base.ntime]>,
     'source'       => <system.zenka.name> // qw| unknown |
 };
 
@@ -29,7 +29,7 @@ if ( length $target ) {
         'remote_zenka'  => $target,
         'remote_path'   => "memory_sync_store.$channel.$key",
         'changed_value' => $data,
-        'queued_at'     => time(),
+        'queued_at'     => <[base.ntime]>,
         'watch_id'      => "publish.$key"
     };
 }
@@ -39,8 +39,8 @@ return {
     'data' => { 'key' => $key, 'channel' => $channel }
 };
 
-#,,..,...,..,,..,,..,,,,.,,..,,..,...,.,.,,,.,..,,...,...,...,..,,..,,..,,,,,,
-#SZUAIMFH3Z4TVXUET6O7ZP3BNF37TZJUXLVV3H4YZJYDHAOIPDHKSKKWKUYNZAILQSSCG55TBHYYK
-#\\\|AGQ4CRRSXYOI3C37FPYKDQ5AYKPC2XWNABLQ7LNGYTX2IORHPA4 \ / AMOS7 \ YOURUM ::
-#\[7]E4NJMVJPSI4HYLT7YPWVKFM5NEGZ4LHT5ICODJS6JEKAGVG6EGDQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,.,,,,..,,..,,.,,,,,,,.,,,.,,.,,,..,,...,..,,..,,,.,,,,,,..,,.,,,
+#DWR7FNDPGHUDB3IBD4TZBRM5W42QXIYJPC6COIBHDA5KDOGCQBGJW2RLWSUW7GQD2DOSOEECWQ6C6
+#\\\|RJBF2MCXF2HWVRBTFJOOBVLODUXRVN743XAROEBZE6KE57D2GVD \ / AMOS7 \ YOURUM ::
+#\[7]YH2KZC2WCBLPL7CUGIPHRDKR6R43DT3AIFWJDURQJ22J456FGYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

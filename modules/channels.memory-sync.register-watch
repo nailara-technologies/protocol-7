@@ -44,18 +44,19 @@ push @{ <channels.memory_sync>->{$local_path} },
     'priority'      => $config->{'priority'} // 5,
     'compress'      => $config->{'compress'} // 0,
     'retry'         => $config->{'retry'}    // 3,
-    'registered_at' => <[base.time]>->(2),
+    'registered_at' => <[base.ntime]>,
     'last_sync'     => undef,
     'sync_count'    => 0,
     'error_count'   => 0
     };
 
-##  Register with events system for automatic triggering
-##  (Integration point: events zenka will monitor and trigger on changes)
+## Register with events system for automatic triggering  (Integration point:
+## events zenka will monitor and trigger on changes)
 
 <[base.logs]>->(
     1,
-    "channels memory-sync: registered watch '%s' for '%s' -> %s.%s (mode: %s)",
+    "channels memory-sync: registered "
+        . "watch '%s' for '%s' -> %s.%s (mode: %s)",
     $watch_id,
     $local_path,
     $remote_zenka,
@@ -70,8 +71,8 @@ return {
 
 1;
 
-#,,,,,,.,,..,,.,,,,,,,...,.,.,,..,..,,,,,,.,.,..,,...,...,,..,.,.,,,,,,.,,..,,
-#4VHS7EKP4PKHF5QLMXHBMXC3NQL7IQGH5FUQFVZ5EJRAAQWEEMM6MMO2W7LRUA3FI4IV5RVPVZGJ4
-#\\\|EBQPL2JP7GI4UESAGVSUEUHRY65574HNANNLJ5ZNYR4KKQCKO3F \ / AMOS7 \ YOURUM ::
-#\[7]2D6ZGZUJGOB6ZFDZYWZTCCVI7MULO6GFBCI454OKJDR4VECBVSDA 7  DATA SIGNATURE ::
+#,,..,.,.,...,,,,,.,,,,,.,...,,,.,..,,,,,,.,.,..,,...,...,..,,.,,,,,.,,.,,,.,,
+#3PE42XXTZ7UITVWSK6OJFAM47HMEOLMXP5ACBR4RB6YZI6YVP6QOLWSW74LWAPFZM57DQ4S4PNCZO
+#\\\|RO2EVLSYUBP4TASET3BPQXLDTE3IIBM5UK4UPSKPGTG4AU3WOLM \ / AMOS7 \ YOURUM ::
+#\[7]P2TONWLXJ2DL2A6DID3WNSYU5MUCJVN35UQTNR4AI7YA3VTUN2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
