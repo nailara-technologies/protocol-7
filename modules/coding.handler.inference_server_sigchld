@@ -34,7 +34,7 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
 
             ## mark server as crashed ##
             $server_info->{'status'}      = qw| crashed |;
-            $server_info->{'crashed_at'}  = <[base.time]>->(3);
+            $server_info->{'crashed_at'}  = <[base.ntime]>;
             $server_info->{'exit_status'} = $exit_status;
 
             ## skip crash recovery if zenka is draining [ new twin instance ##
@@ -107,8 +107,8 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {
 ## note: if $reaped == 0, the child was already reaped by another path (e.g.
 ## Perl's system() waitpid) : this is normal, no action needed.
 
-#,,..,,,.,.,.,.,,,..,,...,...,,,,,...,..,,.,,,..,,...,...,.,,,...,...,.,,,,.,,
-#YMKGKAK3LBEGV5SX5ZXIRVBDWUHSIWMZAU6NQ4ZYPO4UEFQ5U5K6PC3HGHVFDCUMJUMS33YVJTKWI
-#\\\|57P6MFDPMULR67J3GNETRULW4WYM2WYEH3R7BIDTOS7344ZCOKP \ / AMOS7 \ YOURUM ::
-#\[7]23IRFBHA23E2WTNSFNDDKHGKTC2RLI5HMOM3DAX3WZWFLWZX4QDQ 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,,,,,,,,,,.,,..,.,,,,..,,,.,,,.,..,,...,...,..,,,.,,..,,,,.,,,,,
+#WSPQDTWHQXJC63W4OIKJP744QKICQYMWLSE2ND5YZ73EPETZNA5TUWQGV3VSUROQF3E2LNMTG56Q2
+#\\\|KO2P6IXL2DJK5ZJCA63DZ6J7ER57BKK5NGUF75LJHLZQJJR2HPM \ / AMOS7 \ YOURUM ::
+#\[7]23UEOYVE3YDL4ONASA6RFS56YTFRUHC3QIELX5ITIM4SE6W43GCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

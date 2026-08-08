@@ -19,7 +19,7 @@ my %variants = (
 ## collect metadata from task queue ##
 my $task      = <coding.task.queue>->{$task_id} // {};
 my $exec      = $task->{'execution'}            // {};
-my $timestamp = <[base.time]>->(7);    ## network timestamp ##
+my $timestamp = <[base.ntime.b32]>;    ## network timestamp ##
 my $result    = $exec->{'result'}                   // '';
 my $model     = <coding.inference.current_model_id> // '';
 
@@ -78,8 +78,8 @@ for my $variant ( sort keys %variants ) {
 
 return $saved > 0 ? TRUE : FALSE;
 
-#,,,,,.,,,,..,,,.,...,,.,,,,.,,,,,..,,...,..,,..,,...,...,.,.,.,.,,..,..,,.,,,
-#AA6WKO4X227Y25FCB6H64TGXUBU4LZEPB5OYH3W27AR3NVWW72KPRPS7JWEWDSF2MBUEB5Z4LPM2A
-#\\\|X2YNOGHRNPVJSM4V2NGX23GRTYHE5RJ7NN6P6YSIZNBTJRAGHEO \ / AMOS7 \ YOURUM ::
-#\[7]VNJ2M4LJDR6HNOJKBQHZ734XZMF5D3PNIRHFAZMXH4ERTFRWFEAQ 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,.,,,.,,...,.,,,...,.,,,,..,..,,..,,...,...,,..,...,.,.,...,.,.,
+#I34H56R7FE3WNR3QBEAGVTMJAYYVFWODUX72WSMQODNL7NWJBM54XOMLJLAXLHQKQ7PNY4IYY2YAU
+#\\\|ZL3Q7FOAMOMWR7TBDKATGR7WF45WOUWDS4TB4DYB37J7BBXGMS6 \ / AMOS7 \ YOURUM ::
+#\[7]X2IAPXTCA7GM5XJDRG53O7TMQRJSTJ6DBE2WCM4FZJ2RHUFEGIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

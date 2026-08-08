@@ -28,17 +28,17 @@ my $multiplier = $p95 * 1.5;
 $models_ref->{$model_id}{'ttft_p95'}     = $p95;
 $models_ref->{$model_id}{'baseline_tps'} = 0;
 $models_ref->{$model_id}{'multiplier'}   = $multiplier;
-$models_ref->{$model_id}{'last_update'}  = <[base.time]>->(3);
+$models_ref->{$model_id}{'last_update'}  = <[base.ntime]>;
 
 ## update global aggregate values ##
 $data{'coding'}{'cfg'}{'timeout_stats'}{'percentile_95'} = $p95;
 $data{'coding'}{'cfg'}{'timeout_stats'}{'multiplier'}    = $multiplier;
-$data{'coding'}{'cfg'}{'timeout_stats'}{'last_update'}   = <[base.time]>->(3);
+$data{'coding'}{'cfg'}{'timeout_stats'}{'last_update'}   = <[base.ntime]>;
 
 return { mode => qw| true |, data => $multiplier };
 
-#,,..,..,,,,.,.,,,,,.,,,.,.,,,.,.,..,,,,.,.,.,..,,...,...,...,..,,,,,,.,,,.,.,
-#MOTNZSXAWN3GG5VKXFWZJ3PCW3B2534YUGUQLWXF32A6KXYXHEGWHM6S3UKXTFSX5KYN5BTQDCQCI
-#\\\|JIRPLLCNC2NBBNXKXQWJ2XCIURD2SR5QV2KRYUYJXCJ7H4YNFGS \ / AMOS7 \ YOURUM ::
-#\[7]X526QVN2FLY7ECZWQRBTOAL5KKU5WAVAM27HGS3WXB72Z54GUUCA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,,,,,,.,,,,.,,,.,,..,.,,,,,.,,..,..,,...,..,,.,,,.,.,,.,,,,,,,,.,
+#BQAOBUVNMYLXELJHGXUPNKHW2KV4QAOZOJFY3N3EZ7ISXSULWBEJVGQUKKAKM3M7CXU4AVW5NJF7U
+#\\\|A2RLNEJPDVD7UDJRV3UJCCYYFFGG7LU6CNALMZ73OK2KYWYD6EK \ / AMOS7 \ YOURUM ::
+#\[7]RZWJY7B73ZTWUSJNY6UUKG2BH23MVFESO3TPJWIVIHZ53CRWHMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
