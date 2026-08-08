@@ -38,7 +38,7 @@ my $review_id = 'review_' . <[base.gen_id]>->( {} );
     'diff'               => $data_ref->{'diff'},
     'message'            => $data_ref->{'message'},
     'urgency'            => $data_ref->{'urgency'} // 'normal',
-    'submitted_at'       => <[base.time]>->(2),
+    'submitted_at'       => <[base.ntime]>,
     'ai_feedback'        => undef,
     'ai_approved'        => FALSE,
     'developer_approved' => FALSE,
@@ -53,7 +53,7 @@ my $submission_payload = {
     'diff'         => $data_ref->{'diff'},
     'message'      => $data_ref->{'message'},
     'urgency'      => $data_ref->{'urgency'},
-    'submitted_at' => <[base.time]>->(2)
+    'submitted_at' => <[base.ntime]>
 };
 
 my $json_str = do {
@@ -93,8 +93,8 @@ return {
 
 1;
 
-#,,,.,,..,...,..,,..,,..,,,,,,,,,,,.,,,,,,..,,..,,...,...,,,,,.,,,,,.,,.,,.,,,
-#CVKZFICGDADWG3ZWD6L3XZ46TAI4JYLQJMA6VYSOMQT4PX7J57USCVWJ5D5CW4GX26P7XBP7QUSB2
-#\\\|3PC2MBXBAKISVGDUQM7GYQDR57IIK7DQBA5KFWDCTZ2GEU36IEU \ / AMOS7 \ YOURUM ::
-#\[7]UQOSSIQ5FZVUKFPCDLMQAF5YOQOMYASLC6T5H4GNUF2B2J2LHKAA 7  DATA SIGNATURE ::
+#,,.,,..,,...,,..,.,,,,..,...,,..,.,,,.,,,,,,,..,,...,.,.,..,,.,.,.,,,,,,,.,.,
+#L6R2SUU7HTVSPB5CFJ4UXZMXUKUH7NBTQ7ITBKZFWEAZF2MJTVRKRYDCRZEJWMZ25NZUK2CD7G4HS
+#\\\|T7K2RLCAOIMR4ZP5AINLZR74ERLP2TIV3AQACTNQ466W3HUV6NK \ / AMOS7 \ YOURUM ::
+#\[7]7BIMTKG4UJKZRUD3ZQTNBBXQN6P2RYS5S4NPLWIGTNUY3JBNRQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

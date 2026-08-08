@@ -57,7 +57,7 @@ my $queue_id = "queue_" . <[base.gen_id]>->( {} );
     'target_channel' => $target_channel,
     'priority'       => $content_data->{'priority'}
         // ( <channels.discovery.cfg.default_priority> // 5 ),
-    'queued_at' => <[base.time]>->(2),
+    'queued_at' => <[base.ntime]>,
     'status'    => 'pending',
     'routed_to' => []
 };
@@ -96,7 +96,8 @@ if ( length $EVAL_ERROR ) {
 
     <[base.logs]>->(
         1,
-        "channels content-discovery: queued '%s' (type: %s) for routing to %s",
+        "channels content-discovery: queued "
+            . "'%s' (type: %s) for routing to %s",
         $title,
         $content_type,
         $target_channel
@@ -105,7 +106,7 @@ if ( length $EVAL_ERROR ) {
     ##  Update statistics  ##
     <channels.discovery.stats>->{'total_discovered'}++;
     <channels.discovery.stats>->{'total_queued'}++;
-    <channels.discovery.stats>->{'last_discovery'} = <[base.time]>->(2);
+    <channels.discovery.stats>->{'last_discovery'} = <[base.ntime]>;
 }
 
 return {
@@ -115,8 +116,8 @@ return {
 
 1;
 
-#,,..,..,,,.,,.,,,,,,,,,,,,,.,,,,,.,.,,.,,.,.,..,,...,...,,,.,..,,...,..,,,,,,
-#CJVEB5ETWXLVD4ZFDMBBAANXT27ACBZHQMUAICN3AKKG2KFZBW7WTFFW6HU2QIRS3OZXJNA4I73SE
-#\\\|6RPSIXBUOWHEQLGAXTHWPXITEEHF2O4YSYTJCRYV5EPQIALNIAB \ / AMOS7 \ YOURUM ::
-#\[7]SKYKVDQL3P3RC6Y2TIRNUGJ4DNE2GZVXGFOXIIQK6LBMPXNHYIAY 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,..,.,.,.,,,,..,,,,,,..,,,,,,.,,..,,...,...,,,,,,..,...,.,.,,,,,
+#3T7EK7AS65LJNFWS3OVFNIK5T3WKG4CCZBZZORNW3ZYFL4JX6YJOP5CO4MKG5KDFN5WD2VXUNBT5E
+#\\\|CJJZU3B5NPS2BKIQHBEVLQV5AH3LGS6QKKECO6AFU2NN6EFXDVX \ / AMOS7 \ YOURUM ::
+#\[7]ITS7TDEBBUCY6TWMCNYHMBYR3XXXKRI2DYWQGYXGT4XDHKMMA4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

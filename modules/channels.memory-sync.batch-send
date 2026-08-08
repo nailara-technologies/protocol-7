@@ -39,7 +39,7 @@ foreach my $dest_key ( keys %grouped_changes ) {
     ##  Build sync payload  ##
     my $sync_payload = {
         'memory_sync_batch' => TRUE,
-        'timestamp'         => <[base.time]>->(2),
+        'timestamp'         => <[base.ntime]>,
         'destination'       => {
             'zenka' => $remote_zenka,
             'path'  => $remote_path
@@ -47,8 +47,8 @@ foreach my $dest_key ( keys %grouped_changes ) {
         'changes' => $batch
     };
 
-    ##  Send via memory-sync channel using channels.cmd.update  ##
-    ##  (Routes through cube to memory-sync channel)  ##
+    ## Send via memory-sync channel using channels.cmd.update (Routes ##
+    ## through cube to memory-sync channel)                           ##
 
     my $json_payload = do {
         my $json = <[base.perlmod.load]>->('JSON::PP');
@@ -98,8 +98,8 @@ return {
 
 1;
 
-#,,.,,,,,,.,.,..,,.,,,,..,.,.,.,.,.,,,,.,,,.,,..,,...,...,,,.,.,,,.,.,.,,,...,
-#2B6OJCTM7I75YFPPLFYC2VZZ3SQ6C5DR5HEJY7OHLGBTZTO7DTSWOW3PQEASZV7ZCWWP7VN2TCZN6
-#\\\|FWCIPBQKRAZVXBNGA3PTQPNSSO6WHRNG2JNPXZ5QNOV4HERIPWA \ / AMOS7 \ YOURUM ::
-#\[7]NPHMX42LYK3RZNR7K4QGLEXF7R64RS2UQLKCLZCMTRPD3XBSQGAI 7  DATA SIGNATURE ::
+#,,..,..,,.,.,.,.,.,.,,..,.,.,,.,,,..,.,,,,..,..,,...,...,,..,,..,,,.,.,,,.,,,
+#2B3VGFKDGQYS72KJSBWMGAPVHF34KKW7WE7CX54AX3XINHBWTQKE3Z7OTWVIAKFRPKPQW2YTJDFOG
+#\\\|HPTBHLU2FPKHWFRJVDO23BIJNXOI3Z3ZI45K6IYJLU2JKLDXKEO \ / AMOS7 \ YOURUM ::
+#\[7]P6R2OPL7OP2Q4Q5EOIDH26KPKJ2MXSIU74MIH2W4QODQC2GXWWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

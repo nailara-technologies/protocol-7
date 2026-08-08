@@ -21,8 +21,8 @@ return { 'processed' => 0, 'errors' => ['data is not a hash'] }
 my $processed_count = 0;
 my @errors;
 
-##  Find all subscriptions for this channel  ##
-##  (In production, would be indexed by source_channel for efficiency)  ##
+## Find all subscriptions for this channel  (In production, would be ##
+## indexed by source_channel for efficiency)                         ##
 
 unless ( defined <channels.zenka_subscriptions> ) {
     return {
@@ -57,8 +57,8 @@ foreach my $zenka_name ( keys %{<channels.zenka_subscriptions>} ) {
         );
 
         if ( $mapped->{'success'} ) {
-            ##  Store mapped variables in zenka's data context  ##
-            ##  (In production, would route through cube to zenka's context)  ##
+            ## Store mapped variables in zenka's data context (In       ##
+            ## production, would route through cube to zenka's context) ##
 
             <[base.logs]>->(
                 1,
@@ -69,7 +69,7 @@ foreach my $zenka_name ( keys %{<channels.zenka_subscriptions>} ) {
             );
 
             ##  Update subscription's last_sync timestamp  ##
-            $subscription->{'last_sync'}  = <[base.time]>->(2);
+            $subscription->{'last_sync'}  = <[base.ntime]>;
             $subscription->{'last_error'} = undef;
 
             $processed_count++;
@@ -96,8 +96,8 @@ return {
 
 1;
 
-#,,.,,.,,,,.,,.,.,,,.,,..,..,,..,,,,.,,.,,,,.,..,,...,..,,.,,,,.,,.,,,.,,,.,.,
-#K4O6B3OWGSDJT6CN63TL2FNBY5SZXATW3TTFWJUC4WENI5WSHXSU3EQZ7ZFJHY5QEMIPJU6TDY5NY
-#\\\|WRAWJJQFIPFQ6GNCCUGB6JGQC23K2EF7TLK4OROITX6QVNNZEWV \ / AMOS7 \ YOURUM ::
-#\[7]RE4YOJSUDLF5JDN7TVZXWHCXZJDUIQC4IOZIDFUEF7OVMP7Z2OCI 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,,.,,,.,.,.,,..,,.,,...,,,,,..,,..,,...,..,,.,,,,..,..,,,..,,,,,
+#FTV5Y3AIJ56Z5IJDI3SUFPY3GEXCZMLQ7SEYWU2YJCWNPGF2HMQT3E43QZAJBAAM442EEU5N2QOHK
+#\\\|MLJHXSWG7LCHTQRMCX4DRAC327MHEWVOBKOWKVOSS2TSKI6U5SX \ / AMOS7 \ YOURUM ::
+#\[7]AP6XR2OTJJTDM36AMFZKBS7U2U3MHTD7IKIQAW3R65WEOLSSRWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

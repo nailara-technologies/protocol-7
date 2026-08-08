@@ -65,15 +65,16 @@ foreach my $change ( @{$changes} ) {
         next;
     }
 
-    ##  Apply to local %data (nested path assignment)  ##
-    ##  For MVP, simple assignment; full nested path assignment in future
+    ## Apply to local %data (nested path assignment)  For MVP, simple ##
+    ## assignment; full nested path assignment in future              ##
     ##
-    ##  Future: use Data::Nested or similar for complex path traversal
-    ##  Example: data.security.policies.rule_1 -> $data{'security'}{'policies'}{'rule_1'} = $value
+    ## Future: use Data::Nested or similar for complex path traversal
+    ## Example: data.security.policies.rule_1 ->
+    ## $data{'security'}{'policies'}{'rule_1'} = $value
     ##
 
     ##  For now, update metadata about the sync  ##
-    $watch_config->{'last_sync'} = <[base.time]>->(2);
+    $watch_config->{'last_sync'} = <[base.ntime]>;
     $watch_config->{'sync_count'}++;
 
     <[base.logs]>->(
@@ -96,8 +97,8 @@ return {
 
 1;
 
-#,,,,,.,.,,.,,,,,,,.,,,,,,.,.,,,,,.,,,..,,,,,,..,,...,...,..,,,..,.,,,,,,,.,.,
-#5PFREF5QEG63WBIHJT5OZ4XCMSIOFAUP4GGZEMTIOKN6XCLGMUTXRCPZLVZLIKQFFNX2AUWPM2LZG
-#\\\|6BTQCN5NROX2E6LWB7UELHZ2RPVKMCZ5USIKAUAIMGB2ZR2OB7F \ / AMOS7 \ YOURUM ::
-#\[7]ZBRDBUGHBLWMHAO6W4IJHBHAXD4VX6QSEFVHK6QUSSKIJTDRY4DY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,.,,.,.,.,,,,,,,.,,,...,...,,,.,..,,...,...,...,.,,,.,.,.,.,,.,,
+#CWKQSTLNADIFPGQQR7UBZSTXM6YNB3OZHEEOIJ5KZZSPHD7FJHO4LJMYNDFTWXEN5K3RYIFSJXMHI
+#\\\|Z36P7XJYIR2ZGGKQEX6ZQ6BCGT2BCGYNVOLEFF4VGAHD3O4C2GR \ / AMOS7 \ YOURUM ::
+#\[7]ZYGQY42I5AFFFPP34HU6Z4RLZYA4ITJN5O7FANWISETGYYYBH6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
