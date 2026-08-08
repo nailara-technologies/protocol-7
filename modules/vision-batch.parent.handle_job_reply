@@ -19,7 +19,7 @@ my $batch_state = <vision-batch.batch_state>;
 # Update job result in jobqueue and log to operation_log
 my $operation_log = <vision-batch.operation_log>;
 my $error_log     = <vision-batch.error_log>;
-my $timestamp     = <[base.time]>->(3);
+my $timestamp     = <[base.ntime]>;
 
 if ( $reply_data->{success} ) {
     <[jobqueue.move_job]>->( $job_id, 'completed' );
@@ -84,8 +84,8 @@ if ( $completed + $errored == $total ) {
 
 return { success => TRUE, message => "Job result processed: $job_id" };
 
-#,,,,,,,.,,.,,..,,.,,,.,.,.,.,.,,,,,.,...,,.,,..,,...,...,..,,,..,,..,.,,,...,
-#L52NFWXNCYTWSCFWND3UIRJ7MR5524GQMSU6HLJ2FN6XZG3RVYFKVQPC6RIOMDAI6TNB2PSDRN3FI
-#\\\|KZVUKPMJFA7V422IELAQJ33BYZ2DGAON6SHSD5FGKDOLXZLIGMY \ / AMOS7 \ YOURUM ::
-#\[7]UW5XY23BFOCQ2MDK4LR752VIKS4LJEZNDD4ESBV3TJTJOMZ4GMDY 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,..,,,.,,.,,,,,.,.,.,.,.,.,,,,,.,..,,...,...,.,.,,.,,..,,.,,,.,,,
+#UU3YSRD3VBEUGRHZP3XIH3ZD3J6VWAW5JMHWSZUECIAE65SJ2WP55CBJPBGTCWCHOUFEYL5AQLAPM
+#\\\|COTKLMTVD23KUZ6AQZ4PH5XPGIKNWJIPTKLX6QJPEGVPC745Y6J \ / AMOS7 \ YOURUM ::
+#\[7]5CRFH6YTSQDJRTKXTEWWHYRIO5GIKCD7XRC63RVSOTSV5UBWUWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

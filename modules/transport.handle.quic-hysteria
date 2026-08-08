@@ -24,7 +24,8 @@ my $build_handle = sub {
             or ( $cred->{'mode'} // '' ) ne qw| true | ) {
             <[base.logs]>->(
                 1,
-                'transport.handle.quic-hysteria: credential %s resolution failed',
+                'transport.handle.quic-hysteria: '
+                    . 'credential %s resolution failed',
                 $entry->{'credential'}
             );
             $continue->(undef) if ref $continue eq qw| CODE |;
@@ -81,7 +82,7 @@ if (   not exists $entry->{'credential'}
 
 ## async credential resolve via cred-mesh ##
 my $req_id = sprintf( 'qh-%d-%d-%d',
-    <[base.time]>->(0) // 0,
+    <[base.ntime.b32]> // 0,
     $PROCESS_ID, int( rand(1_000_000) ) );
 
 <transport.registry>->{'pending_resolve'}{$req_id} = {
@@ -103,8 +104,8 @@ my $req_id = sprintf( 'qh-%d-%d-%d',
 
 return;
 
-#,,.,,..,,..,,,,.,,,,,...,.,,,,,,,,.,,,,,,.,,,..,,...,...,,..,..,,,..,..,,..,,
-#V2VWWMZ6OTMNCCDH43TTRGRJELN5EIKGDNJ275WXBK4O3N5BT4XTLTKGF67WLL2YSM634EYFGUR6E
-#\\\|AQFD3AM4WZBLZ57CEVAD5PLI4HKF63KALC42AZ56MUTWHKFVMJ6 \ / AMOS7 \ YOURUM ::
-#\[7]EUVOT77NUNYNLLMNYXQGS7Y33AHZ4LQZHG4G6SYRSCVBICUDXCAY 7  DATA SIGNATURE ::
+#,,,,,,.,,...,.,,,,..,,.,,.,,,,..,...,.,.,,.,,..,,...,..,,..,,..,,.,.,..,,,,,,
+#UROXOMEPNFZSKKCQ4AOWNX4F77TJNFW5LVKQNN73SU4XHAI3EHBMGLX3AZTJXUKSK7FRVXCQCBLPI
+#\\\|P2ZVSQVKARHOMM7IY2FFKRSZBFT6FU2CINN5F5UQVDEJ6BDQQTC \ / AMOS7 \ YOURUM ::
+#\[7]ATKEH2J2EKPDBDI5HDYECXTBSCMELHKQPV7MSJSRADZ66ACPBEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

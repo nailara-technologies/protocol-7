@@ -48,7 +48,8 @@ while (1) {
                 if ( $job->{job_id} eq $job_id ) {
                     $job->{status} = 'failed';
                     $job->{error}
-                        = "Child process exited unexpectedly (PID: $child_pid, exit: $exit_status)";
+                        = "Child process exited unexpectedly "
+                        . "(PID: $child_pid, exit: $exit_status)";
 
                     # Update batch statistics
                     my $stats = $batch_state->{statistics};
@@ -62,7 +63,7 @@ while (1) {
                         job_id     => $job_id,
                         image_path => $job->{image_path},
                         error      => $job->{error},
-                        timestamp  => <[base.time]>->(3),
+                        timestamp  => <[base.ntime]>,
                         type       => 'child_exit'
                         };
 
@@ -77,8 +78,8 @@ while (1) {
 
 return { success => TRUE, reaped_count => $reaped_count };
 
-#,,,,,.,.,,,,,,,.,,.,,.,,,..,,.,,,..,,.,.,,..,..,,...,...,,..,...,,..,..,,.,.,
-#55CO4NENWQBGQQ6Q7Y66GGEOGRIYYGF7DTFXYZE4WT4VGLXRHSZIEWLCQPOH3AWKPKVYFT2ENQJO2
-#\\\|X2SO5ITJ7ZCF2BRPWOPPIWK4JO4YCJ3VAGNS56WSFEE43P7II3I \ / AMOS7 \ YOURUM ::
-#\[7]UAIUW6YNDLIFCNY7NJDWYRJMXNYYNXS35GRQFEIGREM2OLBBFQDY 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,..,,.,,,..,,,,,,,.,,...,,.,,...,..,,...,..,,...,.,.,.,.,.,.,.,.,
+#U7MWPZ5JC3ST6LQL4GT7A65LT4CPGFN2GNB4TEMTDM7ZT3AZZMBKUJMBGYOYSQ4GPXTWE6CPUTRXI
+#\\\|ZMNVCE2E7LGG25GKTQF7P2GVPX7JGAYRC3H5LJO6SNYXU5VDYDE \ / AMOS7 \ YOURUM ::
+#\[7]F3B36O7JATLHF5ECHQLL4ICIYECWBFGANSM3SJDB2AW2CYBHVQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

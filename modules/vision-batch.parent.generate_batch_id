@@ -23,15 +23,15 @@ if ( !defined $batch_id && $modules_available->{'UUID::Tiny'} ) {
 
 # If UUID libraries unavailable, create a simple deterministic ID
 if ( !defined $batch_id ) {
-    my $timestamp = int( <[base.time]>->(3) );
+    my $timestamp = <[base.ntime.b32]>;
     my $random    = int( rand(999999) );
     $batch_id = sprintf( 'batch-%d-%06d', $timestamp, $random );
 }
 
 return { success => TRUE, batch_id => $batch_id };
 
-#,,.,,.,.,,.,,,,,,,.,,,,,,,.,,,,,,..,,.,,,..,,..,,...,...,.,.,.,.,.,.,,,,,,,,,
-#FW4S6BPKEWS4OEQYOOTENQ3RDIITEBME2PUK6RFUM3G5OY7FPGR4MCNV227IFT5A7DV6WWNSXYU7E
-#\\\|BMQ3DZQA3WTDIT6FYLWWGB6QBVUPFKCG5OH45ABUFLECZBPXFBD \ / AMOS7 \ YOURUM ::
-#\[7]F4LSSZ2VAT3BZU2QRAXXVY336P3ER6AMIUGXIUL4F2F3K2MSA6CA 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,,.,,,,,.,,,..,,.,,,,,.,.,.,...,..,,...,...,.,,,.,,,,,.,,,,,,,,,
+#37WT543QVUQDVZPU7GFL5WAFXACRRBMOODXXGM27GRPOMKSV3IY2M6U5ZYK432UHKMSVHKOGEVHAA
+#\\\|ZZC4I37ANTIJT46U3Y7FOWPNPRFUWJBI5S7RO5HZ4JDKPPRWT2J \ / AMOS7 \ YOURUM ::
+#\[7]D5ZHTAH3TDU7LMS5GGFZQPJ57RGN3ZA2K2KVBFUJHWO26BMSBYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
