@@ -97,6 +97,37 @@ my @prompts = (
                 . 'definition.',
         },
     },
+    {   id   => 3,
+        text => 'put a cat and a mouse in a room, close the door and wait.., '
+            . 'who is the remaining animal? Reply with only the '
+            . 'animal name (at most 2 words).',
+        ## primed sibling of prompt 2 : same riddle, but the word-limit is  ##
+        ## stated UP FRONT instead of only surfacing via tier1's reformat   ##
+        ## step. prompt 2 deliberately withholds it [ see its own comment - ##
+        ## forcing terseness up front can short-circuit the <think> pass    ##
+        ## into a pattern-matched guess ] specifically to test reasoning    ##
+        ## under free-form conditions; this variant tests the opposite      ##
+        ## question - does the model answer correctly when it KNOWS the     ##
+        ## format constraint from the start, without needing any reformat   ##
+        ## round at all. NOT designed to be adversarial or to sometimes     ##
+        ## fail on purpose : id 3 participates in the same all_passed /     ##
+        ## switch-model accept-reject gate as prompts 1-2 [ see             ##
+        ## coding.self_test.handler.poll_switch ], so it must stay a fair,  ##
+        ## normally-passing check like prompt 1, not a probe engineered to  ##
+        ## flip pass/fail - that distinction is what keeps this additive    ##
+        ## rather than a new way to spuriously reject a model switch. does  ##
+        ## NOT reuse prompt_id 2 : coding.handler.monitor_inference_startup ##
+        ## 's seed-restart-on-failure loop is hardcoded to prompt_id == 2   ##
+        ## specifically, and coding.self_test.archive keys its per-prompt   ##
+        ## store by prompt_id, so a collision would either wrongly trigger  ##
+        ## that restart loop or silently overwrite prompt 2's own record    ##
+        expected          => 'cat',
+        result_constraint => {
+            type         => 'word_count',
+            max_words    => 2,
+            must_contain => 'cat',
+        },
+    },
 );
 
 $data{'coding'}{'self_test_probe_state'} //= {};
@@ -133,8 +164,8 @@ $data{'coding'}{'self_test_probe_state'}{$probe_id} = {
 
 return { mode => qw| deferred | };
 
-#,,,,,,.,,..,,,.,,,,.,.,.,,.,,,,.,,,.,.,.,.,.,..,,...,..,,...,,,.,.,,,.,.,,,,,
-#GUJXDKJKFCKMQFFXV5LCVITTUJZ7K4T5LYOVVFX2SJP3JOT2ZY6CCXJSU76ZP3AG4VC7NMMDW2N7Y
-#\\\|GX37W5TWGTCNAQ6MY3XEWLQEMSWSDQR3QWPJCFMQF7VCZ266UUM \ / AMOS7 \ YOURUM ::
-#\[7]3BJHJUQ6RW2QBHAE7TA2PPSMW2266YMG5JZOG6JVSEUVSTSSKMCY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,.,,,,,.,,.,,..,,,.,,,.,,,,,,.,,,..,,...,...,.,.,,,,,,..,...,,.,,
+#YR4Y4H7BOHYFGHBQHNWXJDQNLSLLJJRFJZJBPORTNVF6TP7CBGFUWGGJZCBPF3D7ONTWPPMN34OZA
+#\\\|LNLXMCLI7ZMWN4Q2ZZM3B2XIG7OLKFISV2T7OC7BUB7G6TR3DOC \ / AMOS7 \ YOURUM ::
+#\[7]NMIUDAQFMIOVALMQQEFQ54TLENQT2LNFEWQOD3R4TAUZ4YJ3HSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
