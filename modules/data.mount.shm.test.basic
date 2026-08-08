@@ -5,7 +5,7 @@
 
 <[base.log]>->( 2, "=== SHM Mount Basic Test ===" );
 
-##[ TEST 1: Create SHM Segment ]###########################################
+##[ TEST 1: Create SHM Segment ]##############################################
 
 my $test_pubkey = 'TEST1234ABCD5678EFGH9012IJKL3456MNOP7890QRST1234UVWX';
 <[base.log]>->( 2, "Creating SHM for pubkey: $test_pubkey" );
@@ -26,14 +26,14 @@ if ( !defined $mount ) {
     2, "Type: $mount->{'type'}, Total size: $mount->{'total_size'}"
 );
 
-##[ DEBUG: Raw header bytes ]##############################################
+##[ DEBUG: Raw header bytes ]#################################################
 
 my $raw_bytes = substr( ${ $mount->{'mmap_ptr'} }, 0, 64 );
 <[base.log]>->(
     2, "Raw header (first 64 bytes): " . unpack( "H*", $raw_bytes )
 );
 
-##[ TEST 2: Read Header ]###################################################
+##[ TEST 2: Read Header ]#####################################################
 
 my $header = <[data.mount.shm.header.read]>->( $mount->{'mmap_ptr'} );
 
@@ -53,10 +53,10 @@ if ( $header->{'owner_pubkey'} ne $test_pubkey ) {
     2, "TEST PASS: Header verified, owner=$header->{'owner_pubkey'}"
 );
 
-##[ TEST 3: Write/Read Data ]###############################################
+##[ TEST 3: Write/Read Data ]#################################################
 
 # Write test data to SHM (after header)
-my $test_data = "Protocol-7 SHM Test Data " . time();
+my $test_data = "Protocol-7 SHM Test Data " . <[base.ntime]>;
 substr( ${ $mount->{'mmap_ptr'} }, 512, length($test_data) ) = $test_data;
 
 # Read it back
@@ -71,7 +71,7 @@ if ( $read_data ne $test_data ) {
 
 <[base.log]>->( 2, "TEST PASS: Data write/read verified" );
 
-##[ CLEANUP ]###############################################################
+##[ CLEANUP ]#################################################################
 
 # Cleanup test file
 if ( $mount->{'type'} eq 'file' ) {
@@ -82,8 +82,8 @@ if ( $mount->{'type'} eq 'file' ) {
 
 return TRUE;    ## [success] ##
 
-#,,,,,...,,,.,,,,,,,,,,,.,...,...,,,.,,..,,.,,..,,...,...,...,.,,,,.,,...,...,
-#DPR7ZLR7LLGFW72G65HLUUQ4FWSMIMH5LLFB3YGKBDG3ZJHUOX3ZKVUL73LVBFZMHKAWBHDKAZAQC
-#\\\|CJUVXXHLSMUFACMJZ6FS7S5JYTNJAWEXEV53AXMP4EZCRBMHYOG \ / AMOS7 \ YOURUM ::
-#\[7]44MORHARMO2Z2H4LVKFHETOV4PPK5OTVOVCH7ADZQSKHID5WKQBI 7  DATA SIGNATURE ::
+#,,..,..,,...,..,,.,.,,,.,.,,,,,.,,..,,..,.,,,..,,...,..,,,,.,.,.,.,,,...,,,.,
+#QCV57HKKJWWC6NI47FDHEWHNYVOU3YSOGENRNCDMEHYPAEYUYUWQ57TAX5PZWFI2GDANZK4FBMYR4
+#\\\|JD6LG7236YXD55QXKXEML25WJCRN7NFFLH6N5CXDYALAYC3OUQ5 \ / AMOS7 \ YOURUM ::
+#\[7]X2AQ5AW3LWPFXOGI5BN4STBIIWHXMW2ZPSRIQHUMK2LM34AWZAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

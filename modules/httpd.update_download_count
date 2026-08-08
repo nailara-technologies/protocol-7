@@ -31,7 +31,7 @@ if ( !exists $data{'httpd'}{'downloads'}{'files'}{$file_path} ) {
     $data{'httpd'}{'downloads'}{'files'}{$file_path} = {
         'count'      => 0,
         'bytes'      => 0,
-        'first_time' => <[base.time]>->(3),
+        'first_time' => <[base.ntime]>,
         'last_time'  => 0
     };
 }
@@ -39,12 +39,12 @@ if ( !exists $data{'httpd'}{'downloads'}{'files'}{$file_path} ) {
 $data{'httpd'}{'downloads'}{'files'}{$file_path}{'count'}++;
 $data{'httpd'}{'downloads'}{'files'}{$file_path}{'bytes'} += $bytes;
 $data{'httpd'}{'downloads'}{'files'}{$file_path}{'last_time'}
-    = <[base.time]>->(3);
+    = <[base.ntime]>;
 
 # Update global download statistics
 $data{'httpd'}{'downloads'}{'totals'}{'count'}++;
 $data{'httpd'}{'downloads'}{'totals'}{'bytes'} += $bytes;
-$data{'httpd'}{'downloads'}{'totals'}{'last_time'} = <[base.time]>->(3);
+$data{'httpd'}{'downloads'}{'totals'}{'last_time'} = <[base.ntime]>;
 
 # Log download at debug level
 <[base.log]>->(
@@ -71,8 +71,8 @@ if ( scalar( keys %{ $data{'httpd'}{'downloads'}{'files'} } ) > 1000 ) {
 
 return TRUE;
 
-#,,.,,,,,,.,,,.,,,.,,,.,,,...,..,,,..,,..,,,.,..,,...,...,..,,,,,,.,,,,,.,,..,
-#VB3X4MV5LZXHQ7BR5RDGPZWC5JV3D4HZJMGC2XOEDVMB3QYIWNSFCGAJDS3Y36NLHH2VBXLLEH3RK
-#\\\|TKZ36TTS5P4BEX7G62MPVK7CSSSVJNELXBYJNEZHXBDOPTFSWY2 \ / AMOS7 \ YOURUM ::
-#\[7]KUZ26BWY6AW5CN2TBDB24HMYBAWORKYSMHLPMGKDMCATN4T6BKBQ 7  DATA SIGNATURE ::
+#,,..,...,.,,,...,.,.,...,...,,.,,.,,,...,...,..,,...,...,,.,,..,,...,,..,..,,
+#LED3HTWU3SW4CEV6N3E7Y3Q6MAKFSYBKDBNL2RM46NAVQSNH7WSO2ZLPBJT6HWNKHVPSX75ZRZQ5I
+#\\\|XHECOBGQ3ZSUSC7XXHO3OEPDNC7UP4Z5E5NIDEKD5C6HJVLEH22 \ / AMOS7 \ YOURUM ::
+#\[7]L42VX5DB367Z5N757NP7EKE6YHTNOIAZW65O23ZETNR52NGJIWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
