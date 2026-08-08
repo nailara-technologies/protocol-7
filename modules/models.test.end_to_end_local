@@ -34,14 +34,14 @@ unless ( $endpoint_check->{'alive'} ) {
 );
 
 ## Step 2: Create test conversation
-my $job_id = 'e2e-local-' . int( <[base.time]>->(2) );
+my $job_id = 'e2e-local-' . int(<[base.ntime.b32]>);
 <models.conversations> //= {};
 
 <models.conversations>->{$job_id} = {
     'job_id'        => $job_id,
     'token_budget'  => 2000,
     'tokens_used'   => 0,
-    'created_at'    => <[base.time]>->(4),
+    'created_at'    => <[base.ntime]>,
     'turns'         => [],
     'participants'  => {},
     'template_name' => 'default',
@@ -155,8 +155,8 @@ return {
     'full_response'    => $response,
 };
 
-#,,.,,.,,,...,...,..,,,,,,,,,,,,.,,.,,,..,.,.,.,.,...,..,,.,.,,.,,...,...,,,.,
-#ESL3PPRUZ2ME5DCHYPNMNAJ6RHO3LXCKHRKZKDCEPSGWGLQ3MN2X2W55KFGTRAHJAM6BOGM2627VQ
-#\\\|2BXGQMZ5H27YKJJ7SKTYCASW47RYK5JXBVZEZVJJGEFEHJGDPF5 \ / AMOS7 \ YOURUM ::
-#\[7]QPR7F5LGKNRBIXNAVGTIXQUS7NGWK2L6SRWU2ZO4WCTAMSAO4GCQ 7  DATA SIGNATURE ::
+#,,..,...,,,.,.,.,...,...,.,.,,..,,,,,,.,,...,.,.,...,...,..,,,.,,,,.,,,.,.,,,
+#B56J3ZNBNHJTNV2CYB5526DMVIKZHO4IJCZ335IZHIOKJUICFRPOCIOTMLRU2H6H5VQBHDB6FXZVE
+#\\\|EP5L5XXXS4KTTPRYIQ5DDBAFUJCSHGLTSFOGGZ5KQB47QCH3HE4 \ / AMOS7 \ YOURUM ::
+#\[7]SMHX74LBPNBG7FZMLLXZRKBA4U7SEBNK77Q2ADXITWGL3DN5A6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

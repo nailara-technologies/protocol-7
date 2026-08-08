@@ -58,7 +58,7 @@ foreach my $model_id ( keys %$models_defs ) {
         is_vision    => $model->{is_vision}              // FALSE,
         size_gb => sprintf( qw| %.3f |, ( -s $model->{path} ) / ( 1024**3 ) ),
         source  => qw| yaml |,
-        registered_at => <[base.time]>->(3)
+        registered_at => <[base.ntime]>
     };
 }
 
@@ -66,8 +66,8 @@ foreach my $model_id ( keys %$models_defs ) {
 
 return { success => TRUE, count => scalar( keys $registry->%* ) };
 
-#,,,.,.,,,...,..,,,,.,.,,,,..,...,,..,,,.,,..,..,,...,...,...,...,..,,.,,,,,,,
-#K2VBGIXZHGNJNLVF3VJPZHJ3G6UHGZAW6MGJA3D5YJJVGX3JI5LS3LFIOCV6HVY77DEPVM2FVPKTG
-#\\\|DZSAWOJOZWU2NGMRKHCSKNQ4LREJCTDNOGWNZHXVSQZE7NOQ5AH \ / AMOS7 \ YOURUM ::
-#\[7]YB5QKZ6262IIB2EBVQ2LPA36L6YLNYWZUH7QE6UGRC2OE3QV2KCI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,,,,..,,.,,,...,.,,,,,.,,,.,...,..,,...,..,,,.,,,.,,,,,,,,.,...,
+#MEBVXWYLMWDPMCR3ZMYTZ45AE3Q3FTOGQY6WG7EVMN4BTSP3ADDC7SELZHN2L22DN2BAL6C4HDT7E
+#\\\|NNC2YM4SCJYTV673NYW34QLTP3ITAXKUCDMQT5ZUEJJ7NLN55S2 \ / AMOS7 \ YOURUM ::
+#\[7]B27M5RM6KJXWZRYCKHRD7FNMWHRWTLZEH25RCSD646DS4INPIAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

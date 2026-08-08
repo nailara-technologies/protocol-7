@@ -59,7 +59,7 @@ foreach my $model ( $discovered->@* ) {
             $existing_entry->{'size_gb'}      = $fresh{'size_gb'};
             $existing_entry->{'is_vision'}    = $fresh{'is_vision'};
             $existing_entry->{'mmproj_path'}  = $fresh{'mmproj_path'};
-            $existing_entry->{'updated_at'}   = <[base.time]>->(3);
+            $existing_entry->{'updated_at'}   = <[base.ntime]>;
             $updated_count++;
         }
 
@@ -100,7 +100,7 @@ foreach my $model ( $discovered->@* ) {
         is_vision     => $model->{'is_vision'}   // FALSE,
         mmproj_path   => $model->{'mmproj_path'} // '',
         source        => qw| discovered |,
-        registered_at => <[base.time]>->(3)
+        registered_at => <[base.ntime]>
     };
 
     $added_count++;
@@ -114,8 +114,8 @@ return {
     'updated' => $updated_count
 };
 
-#,,..,..,,..,,.,,,...,,,.,...,.,,,...,,,,,.,.,..,,...,...,..,,,..,.,,,,,,,,,.,
-#YZ3SBP5EYYK2EMZNX4WVM3DXOXXC6KE6QAPOYBAV4DIEC7I7TMP3GG4D36H74VTXGYIKLGM5KQZYI
-#\\\|44X7DWFO7FDNH3CK4XLWQJSRVB3ORP3SD3ZPRBGNOMN2D2OARNZ \ / AMOS7 \ YOURUM ::
-#\[7]DC5Q2ENMXDZ7OIEQHV4DNUCWPOHWTHUHJFM2FYHOV2QBPW2AMQDY 7  DATA SIGNATURE ::
+#,,..,.,.,..,,..,,.,,,,,,,,..,,.,,.,,,..,,..,,..,,...,...,,..,.,,,.,,,,.,,.,,,
+#2FCWUBBQC7PJ2WZE2SPVJ244FDFQOLTKIDUKVUJNIH53KHKW7JP4GX4DIQL6VWXEN7MVSVIEK2BIS
+#\\\|PPPJNNG4PK22WJLG5E7GKOBFT6FTRARNVSRSZKXUV4JXN6HEJ5F \ / AMOS7 \ YOURUM ::
+#\[7]N2YMBSFJJ2AZ4GTJRHRLFRYAFQ46EDDW7ULRND5SZGWILMLVECCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

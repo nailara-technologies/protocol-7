@@ -25,7 +25,7 @@ return { 'success' => FALSE, 'error' => 'no messages' }
 
 ## Generate inference ID for tracking ##
 my $inference_id
-    = <[chk-sum.elf.vax-BASE32]>->( $job_id . <[base.time]>->(2) );
+    = <[chk-sum.elf.vax-BASE32]>->( $job_id . <[base.ntime.b32]> );
 
 ## Render dynamic system message from template if no explicit prompt ##
 if ( !length($system_prompt) && length($system_template) ) {
@@ -119,8 +119,8 @@ if ( length($reply_id) ) {
     };
 }
 
-#,,..,,,,,,,.,,..,..,,,.,,,.,,...,.,,,,,,,,..,.,.,...,.,.,...,.,,,,,.,.,,,...,
-#6R2BOCG674KDCZ3FDDHX7W4H6CPBEYVAF2P3Y36OJA7R5EZQ6OVODTKRLIK4ISWIKUOHGMV4O3GH6
-#\\\|62RPZGOWYSWIPDUP77K34UL4SBVVNQLLURKQNKI7HNKDOE6AR4F \ / AMOS7 \ YOURUM ::
-#\[7]NW3ZAMBM5UO4LWQ6PPBIHAQT662ZS32ZREXUMWJA423YCDRHHSDY 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,,.,,.,,.,,,,.,,,.,,...,,,.,.,.,.,.,...,.,.,.,,,..,,,,.,..,,,,,,
+#OQG2N7QUXDK3FMQ6OVQPZO6IVKP63GL5ZII6ILMU2K7LBKWVL52YJXCQ5N7ZXMW42ZSGMEEOVUA5Q
+#\\\|IWOXLO36ZWSYUGXHWDG5SNXFBGKS7F2ZNDBQ4ZVGQGREBEH2VSZ \ / AMOS7 \ YOURUM ::
+#\[7]TSI3GGHZG4PJ7OUQ2VSYMEHI2NBUJBCKRNBW3P3BH7BDQQLNSCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
