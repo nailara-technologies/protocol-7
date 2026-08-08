@@ -6,8 +6,7 @@
 
 use strict;
 use warnings;
-use JSON::XS;
-use Math::Trig qw(cos sin atan2 pi);
+<[base.perlmod.autoload]>->( 'Math::Trig', qw| cos sin atan2 pi | );
 use List::Util qw(sum min max);
 
 # Configuration for available models
@@ -58,8 +57,8 @@ my $query_single_model = sub {
         if ( $llm_result->{error} =~ /not found/ ) {
             return {
                 success => FALSE,
-                error   =>
-                    "llama-cli not available. Install ik_llama.cpp: https://github.com/ikawrakow/ik_llama.cpp",
+                error   => "llama-cli not available. Install ik_llama.cpp: "
+                    . "https://github.com/ikawrakow/ik_llama.cpp",
                 help => "For now, using mock responses for testing",
                 fallback_response =>
                     <[llm.service.consensus_vote.generate_mock_response]>->(
@@ -226,13 +225,20 @@ my $consensus_vote = sub {
         };
     }
 
+    # per-model distance lookup, built once [ fixes two bugs: the old
+    # best-answer loop always read distances[0] regardless of $coord, and
+    # the old model_responses map's grep compared $_->{model} to itself
+    # (inner grep $_ shadows the outer map $_ ), always matching the first
+    # entry -- both silently picked distances unrelated to the actual model ]
+    my %distance_by_model
+        = map { $_->{model} => $_->{distance} } @{ $consensus->{distances} };
+
     # Select answer closest to consensus (center)
     my $best_answer;
     my $best_distance = 999999;
 
     foreach my $coord (@coordinates) {
-        my $distance = $consensus->{consensus}->{distances}[0]->{distance}
-            // 0;
+        my $distance = $distance_by_model{ $coord->{model} } // 0;
         if ( $distance < $best_distance ) {
             $best_distance = $distance;
             $best_answer   = $coord;
@@ -251,10 +257,8 @@ my $consensus_vote = sub {
                 map {
                     {   model                   => $_->{model},
                         answer                  => $_->{answer},
-                        distance_from_consensus => (
-                            grep { $_->{model} eq $_->{model} }
-                                @{ $consensus->{distances} }
-                        )[0]->{distance} // 0
+                        distance_from_consensus =>
+                            $distance_by_model{ $_->{model} } // 0
                     }
                 } @responses
             ],
@@ -299,8 +303,8 @@ if ( $cmd eq 'vote' ) {
     };
 }
 
-#,,.,,,,,,,..,,,.,.,,,,..,.,.,,,.,,..,...,,.,,..,,...,...,.,,,.,,,,,,,,,,,,..,
-#SKDRHXQAVC5BHSOJ7RK7ADKYIZ3W2PIYFC2CEE4AWJEZNYQA7YTVC7PAPKEKULV77GS2Z6MHI73EM
-#\\\|P6XOUTRNOEHIZSK5T7IHPLOWFO4BRSCJYRMFRLC3NRDDLUW7IGX \ / AMOS7 \ YOURUM ::
-#\[7]LUJPRSMRP6Y3DDRUXV67BHPZCIGMNUQVRQ7HXIH3S5XESSWLCACI 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,.,,,,,,,,,,..,,.,,,.,,,.,,,,,.,..,,...,...,,..,,,.,,..,,..,,,,,
+#SNCS7UA6LKDJ5GTT7PH4LVRP7KTWFNA4ON7FTRDZGWSI2SFN7AWBMHO5TUB2WDOFZM75NS427MMHC
+#\\\|Q2IPA74S6ZIS2IYPBV2ALIB6Z6AB6RCWQNWSOTH6Y6Z6XKHNJAX \ / AMOS7 \ YOURUM ::
+#\[7]Y36JYPHF6YCWHOLKMATIXZEEYBPIELMUA2COGTZ2SEIHALSBHKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
