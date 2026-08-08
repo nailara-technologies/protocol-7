@@ -1,10 +1,10 @@
 ## [:< ##
 
 # name  = coding.self_test.archive
-# descr = store one self-test result in epoch-scoped data tree
+# descr = store one self-test result in ntime-scoped data tree
 
 my $params   = shift                 // {};
-my $epoch    = $params->{'epoch'}    // <[base.time]>->(3);
+my $ntime    = $params->{'ntime'}    // <[base.ntime]>;
 my $model_id = $params->{'model_id'} // '';
 my $result   = $params->{'result'}   // {};
 my $anomaly  = $params->{'anomaly'}  // '';
@@ -14,9 +14,9 @@ return { mode => qw| false |, data => 'model_id required' }
 return { mode => qw| false |, data => 'empty result' }
     if !%$result;
 
-my $store = <coding.self_test>->{$epoch}{$model_id} //= {};
+my $store = <coding.self_test>->{$ntime}{$model_id} //= {};
 
-$store->{'timestamp'} = $result->{'timestamp'} // <[base.time]>->(3);
+$store->{'timestamp'} = $result->{'timestamp'} // <[base.ntime]>;
 $store->{'ttft'}      = $result->{'ttft'}      // 0;
 $store->{'tps'}       = $result->{'tps'}       // 0;
 $store->{'passed'}    = $result->{'passed'}    // FALSE;
@@ -42,7 +42,7 @@ $store->{'prompts'}{ $result->{'prompt_id'} // 0 } = {
     failure_class      => $result->{'failure_class'}      // '',
     reformatted_answer => $result->{'reformatted_answer'} // '',
     ttft               => $result->{'ttft'}               // 0,
-    timestamp          => $result->{'timestamp'} // <[base.time]>->(3),
+    timestamp          => $result->{'timestamp'}          // <[base.ntime]>,
 };
 
 if ( length $anomaly ) {
@@ -54,10 +54,10 @@ if ( length $anomaly ) {
     };
 }
 
-<coding.self_test>->{$epoch}{$model_id} = $store;
+<coding.self_test>->{$ntime}{$model_id} = $store;
 
 ## durable cross-restart stats : <coding.self_test> above is an in-memory  ##
-## %data tree keyed by epoch - it does not survive a zenka restart, so it  ##
+## %data tree keyed by ntime - it does not survive a zenka restart, so it  ##
 ## can only ever answer "this run", never "how many retries does model X   ##
 ## typically need" [ the actual point of collecting this ]. persisted here ##
 ## via the zenka_dir wrappers [ atomic write, permission-safe -- same      ##
@@ -90,7 +90,7 @@ if ( length $anomaly ) {
         my $fc = $result->{'failure_class'} // 'other';
         $entry->{'failure_class_counts'}{$fc}++;
     }
-    $entry->{'last_updated'} = $result->{'timestamp'} // <[base.time]>->(3);
+    $entry->{'last_updated'} = $result->{'timestamp'} // <[base.ntime]>;
 
     my $yaml_str = <[format.yaml.dump_str]>->($stats);
     if ( length $yaml_str ) {
@@ -103,8 +103,8 @@ if ( length $anomaly ) {
 
 return { mode => qw| true |, data => 'archived' };
 
-#,,..,.,.,.,,,,..,,..,,.,,,..,,..,..,,,,,,.,,,..,,...,...,,..,...,,.,,,..,...,
-#7VLE4QPRH5FAVIXG46LQOZREBRIRCFLJ2VFVMPBXH66LINWHAWJW4IQVUD7VDJQCUUBBXS5B3AHHQ
-#\\\|C57LQSEFJBRIIH4EUXJIKK2WUQ457CJBULZHR42W2QZ2754YI7E \ / AMOS7 \ YOURUM ::
-#\[7]3DNXMNHARGJHLZHKBZWOZZRD2WYMV33YOBKONLEXTUCNAU4FWCDA 7  DATA SIGNATURE ::
+#,,,.,.,,,...,..,,,.,,,..,.,.,.,,,...,...,,,,,..,,...,...,..,,..,,,,,,,,,,,..,
+#NV4B45W5LP5LQYIM4UQLQ3XKXWQT7UQI6DPMNL4G6K4RGNIEG5TNB3SJAXDC72IUAHU47TF4ATBCS
+#\\\|O7O5E6CYC2YWJHVW56Y7AMJ6Q2BYRHL6TTIOOBZNZSLEJZJ77L6 \ / AMOS7 \ YOURUM ::
+#\[7]UOE6UEVXIU43WM5U5NEC5OOX6KNA53CUQ2W3J2JOJC55Y4VP22AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

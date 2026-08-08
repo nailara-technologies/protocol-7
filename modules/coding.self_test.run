@@ -53,7 +53,7 @@ return {
 return { mode => qw| false |, data => 'self-test already in progress' }
     if <coding.self_test_probe_in_flight>;
 
-my $epoch = <[base.time]>->(3);
+my $ntime = <[base.ntime]>;
 
 <[base.logs]>->( 1, '[self_test] starting : model %s', $model_id );
 
@@ -138,7 +138,7 @@ $data{'coding'}{'self_test_probe_state'}{$probe_id} = {
     'url'        => $url,
     'backend'    => $backend,
     'timeout'    => $timeout,
-    'epoch'      => $epoch,
+    'ntime'      => $ntime,
     'started'    => <[base.time]>->(3),
     'prompts'    => \@prompts,
     'idx'        => 0,                    ## which prompt we are on ##
@@ -164,8 +164,8 @@ $data{'coding'}{'self_test_probe_state'}{$probe_id} = {
 
 return { mode => qw| deferred | };
 
-#,,.,,,.,,,,,,.,,,,,.,,.,,..,,,.,,,.,,,,,,.,,,..,,...,...,.,.,,,,,,..,...,,.,,
-#YR4Y4H7BOHYFGHBQHNWXJDQNLSLLJJRFJZJBPORTNVF6TP7CBGFUWGGJZCBPF3D7ONTWPPMN34OZA
-#\\\|LNLXMCLI7ZMWN4Q2ZZM3B2XIG7OLKFISV2T7OC7BUB7G6TR3DOC \ / AMOS7 \ YOURUM ::
-#\[7]NMIUDAQFMIOVALMQQEFQ54TLENQT2LNFEWQOD3R4TAUZ4YJ3HSAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,.,,,,.,,.,.,,..,.,,,,,.,...,,.,,..,,...,...,..,,,.,,.,,,,,.,,.,,
+#MVCWQEAEKT2PSNIIHISVTFLGQ4GAF3EW7YO4ABU5OAEUV3Q5BTB7TYPZEYHBTESCVU55OMIEF7CEO
+#\\\|BXQWCT4HLNRNR3UTNKDMFJWHKIQUM2KOULJKJPCLLFWTZ7YVO2F \ / AMOS7 \ YOURUM ::
+#\[7]3LYN4BKCDTB6XF5Y7XPZCC2GQNX2AWMHULOBIJHE433U3CGO2IAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
