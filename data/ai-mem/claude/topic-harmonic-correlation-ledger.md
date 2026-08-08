@@ -65,6 +65,23 @@ alongside it, not independently tested. Confirmed for all 12: `k=2,5,6,
 doc's claim holds; the error was testing the wrong operand, not a flaw
 in the documented material.
 
+## STRONG — asc-enc symbolic decode of both families (cross-ref, not re-derived)
+
+[[topic-harmonic-mathematics]]'s "The generator itself, read via asc-enc:
+BEL / E / ETB (2026-08-04)" section holds findings that belong on this
+ledger too — filed there instead of here originally, leaving the two
+files' TRUE/FALSE=384615/230769 material split across an undiscoverable
+boundary. Not re-derived, just pointed to: `bin/asc-enc -d2 076923`
+(FALSE family, the generator itself) decodes as three ASCII control/
+printing chars — **BEL** (07), **`E`** (69, the only printing one, hence
+the tool's one-character visible output), **ETB** (23, End of
+Transmission *Block* specifically — real telecom semantics, "more
+blocks follow, only this one ends," not EOT/end-of-transmission
+entirely). Confirmed live against the actual tool, not asserted.
+Same technique applied to the TRUE family gives `846153 → T=5`
+(same section). Both are STRONG by this ledger's own tier definition —
+directly checkable against running code, not surface resemblance.
+
 ## tier definitions
 
 - **STRONG** — passes a test stronger than surface resemblance: exact integer
@@ -389,8 +406,8 @@ not a usable review-priority signal.
   looking for *other* already-fixed bugs this session that match a
   reasoning-template's abstract principle — not yet swept systematically.
 
-#,,..,,.,,,,.,,.,,...,...,,.,,,,,,.,,,.,,,..,,.,.,...,..,,,..,,..,,,,,.,.,.,,,
-#7WF7XP3O3AUANYYSFYEELCP5JRLP33ARBNTS3BW37ISSLMUYXOZSBQ65CD5LUQQJIGPT47S76GHZC
-#\\\|ZITVBVXPGLWMV3GUH4745H4OE7EPFDSLC2F5HIMHUSVDYJX3YUC \ / AMOS7 \ YOURUM ::
-#\[7]SGP3N37YYLG7VWYBI3R6VG2YZGVQLF4CFIDL26EPR6LX7HDPUODA 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,.,,,,,.,.,,,,,.,,.,,,..,...,,..,.,.,...,...,.,,,..,,,,.,..,,.,,,
+#OJ2ALVWG3AYO7IKHAPGPXPK55MQNSLTJGTOZDERT7IH7HEBPUXO6ZMISDZNEOOYJZHFBELCD6A7ZS
+#\\\|EZJN3WPXGL3SXTYGIA7VTPBPCKRGWTKMVN5QSPIKB5N74WEP52M \ / AMOS7 \ YOURUM ::
+#\[7]7PZ7AJDSS7HYCW3VLR4XMTYXIEWZZE2Z47GTSLNGJ27YIC4WJCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

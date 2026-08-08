@@ -95,14 +95,49 @@ structure as navigable space" territory those already explore in the
 abstract — this may be the first concrete, buildable expression of that
 broader idea rather than a fully separate concept.
 
+## fourth independent confirmation, plus two concrete implementation gifts
+
+[[vision-orbital-hop-sequence-hyperspace-flight-animation]] re-derived
+the same root principle from a completely different starting point
+(fast-paging cubic-space screenshots, not audio-render zoom) — a fourth
+independent instance of this pattern surfacing (after audio-render, the
+ASCII banner corners, and the abstract navigation-design notes this file
+already links). That note sharpens the claim further: not just "produces
+implicit movement," but "no two frames at any scale/position are ever
+visually incompatible," and specifically that mismatched-scale frames
+read as an intentional *translucent overlay*, not a jarring cut.
+
+That translucent-overlay mechanism already has a literal, working
+implementation here, not just an analogy: `audio.overlay.waveform_trace.v1`
+draws a translucent min/max amplitude envelope over the standing-wave
+lattice background — the same "different layer shown through the base
+layer, reads as intentional" effect, already shipped. Similarly,
+`audio.post_process.rotation_stack.v1` through `.v4` (culminating in true
+h+v mirror-symmetry blending, [[topic-audio-render-rotational-depth-stack]])
+is existing, mature (4 iterations) precedent for compositing multiple
+simultaneous layers/orientations into one coherent frame — directly
+relevant groundwork for the orbital note's living-icon idea (looping
+through sampled layers to preview an "essence").
+
+Also newly identified: `povray.*` (`povray.cmd.render`,
+`povray.template.resolve`, template-driven `.pov` raytrace rendering) is
+a candidate additional rendering PATH for cubic-space frames — a
+photoreal/3D mode alongside the audio-lattice PNG mode and whatever
+space.v7.ax's own web renderer does, all as interchangeable "typers" of
+the same underlying cubic structure (same principle as
+[[topic-ascii-desktop-domains]]'s ascii/box-drawing/gtk3 interchangeable
+typers).
+
 ## status
 
 design-only, seed stage — not built, not scoped, no implementation plan
 yet. captured immediately after the observation so it isn't lost before
-being developed further.
+being developed further. now cross-linked with a fourth independent
+confirmation and two concrete pieces of existing, reusable code
+(`waveform_trace.v1`'s overlay, `rotation_stack`'s layer compositing).
 
-#,,.,,,..,..,,,.,,,,,,.,,,,,,,...,,,.,.,,,.,.,..,,...,...,.,.,...,..,,...,...,
-#ZUELRESTDXGX55P4MVSKCLDAEPZUWXC42MMEVRWVBE3Y7WTH6PQ4CB7J3L37H477DCIJHROHZMPQI
-#\\\|LWC42ZPH4MESWJF5UGMTXX63PEDGJXBROSDO7CXW6Z3XUNZZILU \ / AMOS7 \ YOURUM ::
-#\[7]7GM5DF2E55V3G3ML7IXWCP7B4JFAN5O5QUXP6NOPHTU3YVU26QCI 7  DATA SIGNATURE ::
+#,,..,...,...,,..,.,.,.,,,,,.,,.,,,..,,,,,,.,,..,,...,...,.,,,,.,,,,.,...,,,.,
+#MQGOXGVG73NZVMBHH4DHYTIFWHOX63ZCWVFRPTRLP5OM6C6AMPT46POULKUNATCAFDV5X5ONUAMRC
+#\\\|XQ4LJNDYWCYJQEJ3V2YNFLWQ5Z6ZWLBRSWA2LJ33I4DDTSJKAG4 \ / AMOS7 \ YOURUM ::
+#\[7]MYY2YCWLFUDR3HONIKEQ3W6YVKMZTFGII4IOEX6B5OEEUVCDIKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
