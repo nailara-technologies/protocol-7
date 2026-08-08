@@ -17,15 +17,15 @@ foreach my $key ( keys %$updates ) {
     $entry->{$key} = $updates->{$key};
 }
 
-$entry->{updated_at} = time();
+$entry->{updated_at} = <[base.ntime]>;
 
 ## persist to YAML [ single source of truth ]
 <[models.storage.yaml_save]>->($registry);
 
 return 1;
 
-#,,,.,,,.,..,,.,,,,..,..,,.,.,...,,,.,,..,...,..,,...,...,...,,,.,.,,,,,,,.,.,
-#YTRD7C6MVJHKQZ5PW7NZBJD54TTMQBK7U3JS2EECQG7DYVFO6VZMVYRQKOG5HINMHVDI3W3YY5XF6
-#\\\|5DQIJ7QWKZI7EQIRY53GUW3JU2BMVV3CGWLFPFFAPAO67DJ34Y7 \ / AMOS7 \ YOURUM ::
-#\[7]TUTKVV45LTCTRLMP3BLLXPAHDPPWJC6J2IC4QMGCYIZGBL5KAIAI 7  DATA SIGNATURE ::
+#,,..,.,.,..,,.,.,.,.,,..,,,.,,,,,,,.,,,.,...,..,,...,...,..,,..,,,,,,.,,,..,,
+#AQ32A77VD7LDBSGLZYRLENK3HTS3HXAZ3KFJTYFNXU3PRIZ243G7BZBEUCYOEMEMWMAPMHR6S76CO
+#\\\|7ICLMZO5XKTKIBALAX7EXT7N3N5LOW27BMBSH64DBNPNTZP5UB2 \ / AMOS7 \ YOURUM ::
+#\[7]IBRR73WWHXEA6F67SZVCZ6VPCDOLS4XUE3G2U6VKUFD2NR4PQIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

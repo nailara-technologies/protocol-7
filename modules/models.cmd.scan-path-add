@@ -65,7 +65,7 @@ $scan_paths->{$path_id} = {
     'recursive'        => TRUE,
     'tier'             => 3,           # Default tier for manually added paths
     'discovered_count' => 0,
-    'added_at'         => <[base.time]>->(3)
+    'added_at'         => <[base.ntime]>
 };
 
 <models.scan_paths> = $scan_paths;
@@ -146,7 +146,7 @@ foreach my $model ( $discovered->@* ) {
         'is_vision'      => $model->{'is_vision'}    // FALSE,
         'source'         => $path_id,
         'scan_path_id'   => $path_id,
-        'discovered'     => <[base.time]>->(3)
+        'discovered'     => <[base.ntime]>
     };
 
     $added_count++;
@@ -180,8 +180,8 @@ return {
     'data' => "added path [$path_id] with $added_count models"
 };
 
-#,,..,,.,,..,,,,.,,,,,,,.,,,,,,..,.,.,.,.,...,..,,...,.,.,...,..,,.,.,,,.,,,.,
-#DFMFBJ6A62GRA2B6C44DDMFK73KD4O2SP5A5OVZAAOKJIEOMBOPPZW5K4KB5MFY6WXORBIROAQRIS
-#\\\|FJE36WMT5RTXVAXCBNQHOFMUVTUTTR6W3P7PMZCAPJOFKQNJLDY \ / AMOS7 \ YOURUM ::
-#\[7]ZIV4SM3DFDQBFI5NMVV3BMEY5QE7WEMTYQ2AIDCK4QH3DG7CQKDQ 7  DATA SIGNATURE ::
+#,,,.,...,,,,,.,.,,,,,,,.,...,,,,,.,.,,,.,..,,..,,...,...,..,,..,,...,.,,,..,,
+#FC2N6BATJV3Q6QF6WNWR4Z24ELMEZR27OQQFJZFG77TMSZSCE5ZYXS5B3ZGFV237D532FVK5E42RQ
+#\\\|WAJ2QDPJEQ5GQHKKIOVNNBH2YYJKGA2FWZ4ATJ22FVM4XQKBJJ3 \ / AMOS7 \ YOURUM ::
+#\[7]WMX5GUH4ZDQC5KP7NMFO3LY7CBEJZPQPCOKKQUVBTTWPVP2QAYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,14 +11,14 @@ my $context = $params->{'context'} // qw| test |;
     ->( 1, "[$context] simulating API limit with fallback scenario" );
 
 ## Create test conversation
-my $job_id = 'fallback-test-' . int( <[base.time]>->(2) );
+my $job_id = 'fallback-test-' . int(<[base.ntime.b32]>);
 <models.conversations> //= {};
 
 <models.conversations>->{$job_id} = {
     'job_id'        => $job_id,
     'token_budget'  => 5000,
     'tokens_used'   => 0,
-    'created_at'    => <[base.time]>->(4),
+    'created_at'    => <[base.ntime]>,
     'turns'         => [],
     'participants'  => {},
     'template_name' => 'default',
@@ -115,8 +115,8 @@ return {
         . 're-invoke',
 };
 
-#,,,,,,,,,.,,,..,,,,.,,.,,,,.,..,,.,,,..,,,,.,.,.,...,...,.,.,,,,,.,.,...,,,,,
-#JKENWDQNWRZ7O7G7KHVNWNGKLVPOXD2IWIRG7CLF6GXX3DUPZAHBECZSJGJGKXX63KC6YHAQXHGQ4
-#\\\|VFXSF3H2DEVFLPLYHJHG3MJ4PVBGDHNCP4FLTMIGFCRBLCUWEHG \ / AMOS7 \ YOURUM ::
-#\[7]DMEXJXKFJSH7UJWSTXDWPJRHF3KGPQEYGH5J7KGUDC24ZDTK4WBQ 7  DATA SIGNATURE ::
+#,,..,,,.,,..,...,,.,,,.,,.,,,.,.,.,,,,.,,,,,,.,.,...,...,,.,,...,..,,,,.,,..,
+#VKNJBFG7QBBIWV3UIWIQKEAKRIIIJKEH7N6Z5FOQZN2UQ2FKURL5MIWF2HK2KC66CQQDV3IHGGP42
+#\\\|QJCPIMKPDKGFSPOQH6GD4D252R2PXODXBMGVEZESM3BDDMD4ZRZ \ / AMOS7 \ YOURUM ::
+#\[7]VCX7TDYTBDDOEZQ5NETX7YP4FV6OTTVXEK5JMKU526IO7Q6ZTMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
