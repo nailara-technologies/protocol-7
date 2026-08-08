@@ -6,7 +6,6 @@
 
 use strict;
 use warnings;
-use JSON::XS;
 use IPC::Run    qw(run);
 use Time::HiRes qw(time);
 
@@ -148,8 +147,9 @@ my $query_subprocess = sub {
 my $get_available_models = sub {
     my @available = ();
 
-    foreach my $model_id ( keys %MODEL_CONFIG ) {
-        my $config = $MODEL_CONFIG{$model_id};
+    foreach my $model_id ( keys %MODEL_ALIASES ) {
+        my $config = $get_model_config->($model_id);
+        next unless $config;
 
         push @available,
             {
@@ -183,11 +183,11 @@ my $check_llama_cli = sub {
     return {
         success => FALSE,
         error   => "llama-cli not found in PATH",
-        help    => "Install ik_llama.cpp from:"
-            . " https://github.com/ikawrakow/ik_llama.cpp",
+        help    => "Install ik_llama.cpp from: "
+            . "https://github.com/ikawrakow/ik_llama.cpp",
         alternatives => [
-            "Build from source: git clone"
-                . " https://github.com/ikawrakow/ik_llama.cpp.git",
+            "Build from source: git clone "
+                . "https://github.com/ikawrakow/ik_llama.cpp.git",
             "Download pre-built binaries from GitHub releases",
             "Install via package manager if available"
         ]
@@ -217,8 +217,8 @@ if ( $cmd eq 'query' ) {
     };
 }
 
-#,,..,.,,,..,,.,,,,,,,,,.,,,,,,,,,,,.,,,.,,.,,..,,...,...,.,,,,,,,,,.,,,,,,,,,
-#3EWDGYREJ55PEJVT2T7DPVF4IRAYG2A74PERI3PGIKLM2JV36UOFCMLK7GNYKHJ7NXF6C2EUE53KO
-#\\\|NAAZ4IH2YIPFMHGCK4IAYQ2ZQ2AM3GSJLFLW3NLK3SSZLPYEJQI \ / AMOS7 \ YOURUM ::
-#\[7]LD7A7IUDOG3QXADUKKZSSRWPRZW2FASLCBRQLB4OYCONXSPKQWCA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,..,,...,,.,,..,,.,,,,..,,.,,.,.,..,,...,...,,,,,.,,,,..,.,.,,,.,
+#FQ4PFHIIHQSE37IS33JKT6XUROQKZ226DU43EKT2JABV7ZEZ57TPNCLK2L5KWOMNX262IM3NC4N3C
+#\\\|DDV47O4SAY6VRCRCT5CRNSW4776VA5GD7YHBIYA52MREMV6QKDX \ / AMOS7 \ YOURUM ::
+#\[7]KBZLDREQSDYCPDYRXHR7NTYJIKWKTM44HGSZJGYH3WH2JEMRZOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

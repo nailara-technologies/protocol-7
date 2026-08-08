@@ -36,7 +36,7 @@ my $body = {
     messages    => [ { role => 'user', content => $prompt } ],
     max_tokens  => $params->{'max_tokens'} // 4096,
     temperature => 0.3,
-    stream      => JSON::PP::true,
+    stream      => JSON::PP::true(),
 };
 
 my $acc     = { content => '', reasoning => '', finish_reason => '' };
@@ -136,8 +136,8 @@ $finish->( { mode => qw| false |, data => 'request_failed' } )
 
 return $http;
 
-#,,,.,.,,,..,,...,.,,,,,.,...,.,.,.,,,...,,.,,..,,...,...,,.,,,..,,.,,...,,..,
-#4SYQ5OQGZJXW3QZIRPXVTBXBEELJSNCKEBZRL76B2ZKJIP7QWUCGGXOPIFPRFIDJYRPGYZC2S4KXI
-#\\\|2I2IZEO5F55L3HJX47UUQUTKACIRCY4OSPU3KMMH7KLDIDRMSOM \ / AMOS7 \ YOURUM ::
-#\[7]OKIQBRTNNU4CRF4W5KV3P5GGZG2HPUIMYOMGUVAJE6WTOWVT7WCI 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,,,,,.,,...,.,.,,,,,,,.,,,.,.,,,..,,...,..,,,..,,.,,..,,,..,.,,,
+#56MFS7VUWXUTPR2ZFMK2JNGZC6BBPYK7BTPAJP7RV4PDPW5VPXGXQIG24VZJ3TS5MULASJ5CCATHC
+#\\\|F3T5LC2CYXUO2ZY4IQYE3WLO7LXXVZKICBK74EIUTTMAZLH6SVO \ / AMOS7 \ YOURUM ::
+#\[7]CNJ67A2MC6KTBEBKNNAU7MITYNHQGL5MJ3IQSQASB7IU3G2FFUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
