@@ -6,6 +6,7 @@ coding-zenka reasoning/edits/inject pitfalls, ncode tooling, perltidy self-heal,
 memory-management timing, git-log false-duplication, webkit-vs-firefox css blindspots.
 
 ## Feedback
+- [interrupted-signing-session-recovery](feedback-interrupted-signing-session-recovery.md) — after an AFK-timeout mid signing/commit: `git reset` (mixed) a stale pre-signing index before re-staging; recover the prior session's exact batch plan from /tmp/claude-*/<session-id>/scratchpad, not just session_catchup's summary (which can time out on structured detail)
 - [esoteric-research-verification-pipeline](feedback-esoteric-research-verification-pipeline.md) — validated Opus-verify-then-Fable-consolidate sequence + citation/tiering discipline for harmonic-math/vision corpus deep-dives; propose proactively when speculative-chain ratio climbs
 - [zenka-shutdown-end-code-callback](feedback-zenka-shutdown-end-code-callback.md) — `<callbacks.end_code>` is safe for local cleanup ONLY; anything needing the event loop (network sends) must override base.sig_term/sig_int via event.add_signal instead — confirmed via a real segfault (radio.end_code pumping Event::loop from an END{} block)
 - [git-log-before-disk-read](feedback-git-log-before-disk-read.md) — for staleness/"is this done yet" checks, `git log --grep`/`-- <path>` is the first move (cheaper, less context), fall through to reading files only if git log comes up empty
@@ -73,8 +74,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [comp-regex-qr-delimiter-escaping](feedback-comp-regex-qr-delimiter-escaping.md) — qr'...' only needs the delimiter (') escaped, never backslash; qr'...' hands \-escapes to the regex engine unlike q'...', so backslash-doubling silently breaks \d/\s for every caller
 - [standalone-zenka-init-done-hybrid](feedback-standalone-zenka-init-done-hybrid.md) — non-v7-managed zenki need `[init-done:TRUE]` in start file or system.zenka.initialized never becomes TRUE, stalling init reports forever; canonical backoff shape to reuse is v7.handler.zenka_status's restart_delay (*1.2 growth, min/max envelope)
 
-#,,..,..,,,,.,,..,.,,,,,,,.,,,.,,,,,,,,..,.,.,..,,...,.,.,,..,,,,,,,.,,,.,.,.,
-#NZ7HH5NSNPYNLFHRQ554QN5K7YSYIZ7PNMXD3E664E6WGF7UTNMCTPGAUTV5JKMHOCFN5DUTT2M5K
-#\\\|YE376SHQV5NYQQYXBRCMT5SDJPFUCZH2IF25KBAZNC5CDDVATT6 \ / AMOS7 \ YOURUM ::
-#\[7]HOAKRDHHAWPA36BN32GB2K6PAEJYRKONTYWBC6BLIF2XZQT22QCI 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,,,.,,.,,,.,,,.,,,,.,.,.,,,,,...,..,,...,...,.,.,,,.,.,.,,..,...,
+#KG2XEGTUTXW3REJXUC7D3XVGHKDBM6JPDP42FSYNTM65XVQJP4ACFQFV2X4OOIIVBDEX2FSHNI74Y
+#\\\|3L6COUFMJ4WR2SUHJCSGS6QGOAN2CAIXG7SF2VZPKLZ73USXQWQ \ / AMOS7 \ YOURUM ::
+#\[7]WWUPSOHGZ4S2J2HRCKUVA476QDY3ZRZLSC4K4MHIESYOAL3VKWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
