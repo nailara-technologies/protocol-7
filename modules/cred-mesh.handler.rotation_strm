@@ -14,12 +14,12 @@ my $all_subs = <cred-mesh.rotation_subscribers>->{'*'}   // [];
 my @combined = ( @$subs, @$all_subs );
 return undef if not @combined;
 
-my $ntime = <[base.time]>->(3);
+my $ntime = <[base.ntime]>;
 
-## base32-encode the payload before sending: YAML::XS::Dump is multi-line
-## block style, but the command wire protocol here is line-based (one
-## command per \n) -- an unencoded dump would get truncated at its own
-## first internal newline on delivery ##
+## base32-encode the payload before sending: YAML::XS::Dump is multi-line ##
+## block style, but the command wire protocol here is line-based (one     ##
+## command per \n) -- an unencoded dump would get truncated at its own    ##
+## first internal newline on delivery                                     ##
 my $event_yaml = YAML::XS::Dump(
     {   'event'  => 'credential.rotated.' . $slot,
         'slot'   => $slot,
@@ -30,10 +30,10 @@ my $event_yaml = YAML::XS::Dump(
 my $event_b32 = <[base32.encode]>->( \$event_yaml );
 
 foreach my $source_zenka (@combined) {
-    ## dispatch STRM-style notification via protocol-7 route-send ##
-    ## variable target [ verified subscriber identity ], fixed suffix : ##
-    ## subscribers are stored as authenticated zenka names only, so no  ##
-    ## caller can dictate what command is fired under our own identity  ##
+    ## dispatch STRM-style notification via protocol-7 route-send variable ##
+    ## target [ verified subscriber identity ], fixed suffix : subscribers ##
+    ## are stored as authenticated zenka names only, so no caller can      ##
+    ## dictate what command is fired under our own identity                ##
     <[protocol-7.route-send]>->(
         {   'command'   => $source_zenka . qw| .cred-rotated |,
             'call_args' => { 'args' => $event_b32 },
@@ -43,8 +43,8 @@ foreach my $source_zenka (@combined) {
 
 return scalar @$subs;
 
-#,,,.,,.,,.,.,.,.,...,,.,,,,.,.,.,...,,..,.,.,..,,...,...,.,.,.,.,...,,.,,.,.,
-#2JQWSESQZIEH4OUNL6477FFMUFTNUYV3LUCAWXN2SYNW6ZVK7OPU4V4NNPNOXH7VQIGWKLWA4R6XC
-#\\\|JD45CXCYWW3WOU7Q4ALMIMK75XZXSW3RZEDLKZUFODJBBG2JHRY \ / AMOS7 \ YOURUM ::
-#\[7]36PMEPLYMT4QCZRHNFGFZLCQHGQLNEM67LKE3LICLN3NFFV3AEDI 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,,.,,..,,,.,...,..,,...,,,.,.,,,..,,...,...,,,.,,.,,..,,,..,.,.,
+#H7I6TRGF5JYOIH4V5CL6T7367BC26BIR67YVVT35LMYOTBYXUQDWIHGNRPCJJA45YSSXIZOPW2SRA
+#\\\|DCWOLPEAKBQHFTOYKAQ2EHTL5NHULIXSM77NAEM52LVIJ4PYR7K \ / AMOS7 \ YOURUM ::
+#\[7]FR7L7H3KS53WTQ5RWLCP7O4CEJY3Z4DJA3YIVENZSGZDAI6CLQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
