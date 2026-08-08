@@ -20,7 +20,7 @@ my $meta   = $params->{'meta'}   // {};
 
 $face = int($face) % 8;
 
-my $ntime = <[base.time]>->(4);
+my $ntime = <[base.ntime]>;
 
 ## node identity payload: timestamp :: pubkey :: parent :: name ##
 my $id_payload = join( '::', $ntime, $pubkey, $parent, $name );
@@ -52,8 +52,8 @@ $data{'branch.root'} //= $node_id unless length $parent;
 
 return { 'id' => $node_id, 'ntime' => $ntime };
 
-#,,..,..,,.,,,.,,,.,.,.,.,,,,,,.,,.,.,...,..,,..,,...,...,..,,.,.,,,.,.,.,,.,,
-#5ZIX22VUDRMLJTTKMTCLNODN7BAFMDSWCMQWRVT3DYF7LR2BD5OO5I7IL3W2FAA5IFPYWQN7EFLQS
-#\\\|6KCDKBWXVLSCZYGNYJ4U2XL5EQI2LJJCN5JFPQPZFFSIP5GSOYA \ / AMOS7 \ YOURUM ::
-#\[7]F4QDGU7CXR7BPSCSVUA4O7N4F7J3BEWQWGZDH3JE5P2R2DRNAODI 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,.,,,,,.,.,,,.,,,,..,,..,,..,,.,,..,,...,..,,.,.,.,.,,.,,...,.,.,
+#TDX7F6GPV7F2PX3U5VK2AO3FVSRWSO4RDT3HHKI3RLJQ2IF6H5ROILMPOFZT3KLKLJGXZAWXPW6HM
+#\\\|MOS7TTCSQVQYLRO4XYZMHM73ZNIPLXMO3MLNE2TGEY67JCFVH3O \ / AMOS7 \ YOURUM ::
+#\[7]6TMUXJN7BCLJQTF3AFZV37XXG2MB26IJW7WEXKM3Z3WQGZXCKMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
