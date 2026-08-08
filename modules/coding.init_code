@@ -36,6 +36,31 @@ use Errno  qw| EAGAIN EWOULDBLOCK |;
 map { <[base.perlmod.autoload]>->($_) }
     qw| IPC::Open3 YAML::XS FreezeThaw Fcntl Cwd IO::Compress::Xz |;
 
+## self-test tier1 retry budget : computed once here, at init, so both      ##
+## coding.self_test.handler.poll_probe [ its own hard watchdog ] and        ##
+## coding.handler.verify_inference_startup [ the fallback queue-resume      ##
+## ceiling that must derive from the SAME number, per 4c3cf0e73 ] read one  ##
+## consistent value instead of each computing their own default and risking ##
+## drift the moment self_test_tier1_extra_rounds is raised above 1 -- an    ##
+## independent recompute in either module would reintroduce exactly the     ##
+## premature-resume race that commit fixed                                  ##
+<coding.cfg.self_test_tier1_extra_rounds> //= 1;
+{
+    my $tier1_extra_rounds = <coding.cfg.self_test_tier1_extra_rounds>;
+    my $tier1_tries_per_prompt
+        = 2 * ( 1 + $tier1_extra_rounds );    ## 2 http tries per attempt ##
+    my $per_prompt_worst_case
+        = 90 * ( 2 + $tier1_tries_per_prompt );    ## + probe's 2 tries ##
+    ## prompt count here MUST track @prompts in coding.self_test.run [ no   ##
+    ## shared single source of truth - this runs at init, before that array ##
+    ## is ever in scope ] - currently 3 [ math, unprimed cat/mouse, primed  ##
+    ## cat/mouse ]. under-counting this silently re-opens the same          ##
+    ## premature-timeout race 4c3cf0e73 fixed, just with a longer run       ##
+    my $prompt_count = 3;
+    <coding.cfg.self_test_max_total>
+        //= $prompt_count * $per_prompt_worst_case + 80;
+}
+
 ## resolve drop_privs args [ secondary admin group for project file access ##
 ## ]                                                                       ##
 my $assume_admin
@@ -472,8 +497,8 @@ if ( exists $code{'coding.tools.definitions'} ) {
     my @missing_dispatch;
     my @undefined_dispatch;
 
-    ## tools handled directly in coding.tools.dispatch ##
-    ## [ not via handler modules ] ##
+    ## tools handled directly in coding.tools.dispatch  [ not via handler ##
+    ## modules ]                                                          ##
     my %dispatch_table_tools = map { $_ => 1 } qw(
         list_files search_code dep_graph ncode_search ncode_search_context
         edit_file record_question record_suggestion
@@ -521,8 +546,8 @@ if ( exists $code{'coding.tools.definitions'} ) {
     }
 }
 
-## fetch fresh model discovery from models zenka
-## [ init_reports fires when cube is ready to route ]
+## fetch fresh model discovery from models zenka  [ init_reports fires when
+## cube is ready to route ]
 if ( not $already_initialized ) {
     <system.init_reports> //= [];
     push(
@@ -610,8 +635,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,.,,,,,,..,,.,.,,.,,,..,,.,,.,.,,,,,,,,,,.,,.,.,...,...,...,.,.,,..,.,.,,..,
-#GUVNAKUOGMKZBZCAQGYFPWZ5HZWJEQFGV4RACISPPFRKBLZPLOVEWHYXYXZVGFSZKEDLOWUWSLMYQ
-#\\\|RBKVLH3E6Y2M5CGSWFEQMKEELJPUPVQGM2ONCMBLNUVGHR3YQ2J \ / AMOS7 \ YOURUM ::
-#\[7]SSY545QI3TXMF5KZVPBXPF77TFFWQYFDMFJ4NCB56E37GQPI32CQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,.,,,.,.,.,,,,,.,,.,,,.,,,.,,..,,.,.,...,...,...,,..,...,.,.,,,.,
+#LLE7MWOCMBS5AYRQ5BMTXBYNTHUBOTRAJ2Y2CGJEBKFEARQRDOEGL7Y6SXZGN4IFIAEJE33R33LWY
+#\\\|GFD2FWGXGMDNSMUI4ZDCH2I2HFIXB63DVJEASGGIDWMHLJX6DSD \ / AMOS7 \ YOURUM ::
+#\[7]UYYNDRY4YU5432PGIZ6HXBG4SO2RA3ZQQN6DMIHIVB7OKUOAHACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
