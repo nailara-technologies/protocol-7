@@ -17,28 +17,28 @@ return {
 
 my $self_test = <coding.self_test> // {};
 
-## find latest epoch that has a record for this model ##
-my $last_epoch = 0;
-for my $epoch ( keys %$self_test ) {
-    next                 if !exists $self_test->{$epoch}{$model_id};
-    $last_epoch = $epoch if $epoch > $last_epoch;
+## find latest ntime that has a record for this model ##
+my $last_ntime = 0;
+for my $ntime ( keys %$self_test ) {
+    next                 if !exists $self_test->{$ntime}{$model_id};
+    $last_ntime = $ntime if $ntime > $last_ntime;
 }
 
 return {
     mode => qw| size |,
     data => "no self-test record found for $model_id\n"
     }
-    if !$last_epoch;
+    if !$last_ntime;
 
-my $store   = $self_test->{$last_epoch}{$model_id};
+my $store   = $self_test->{$last_ntime}{$model_id};
 my $prompts = $store->{'prompts'} // {};
 
 my @lines;
-push @lines, sprintf "self-test detail : %s : epoch %d\n", $model_id,
-    $last_epoch;
+push @lines, sprintf "self-test detail : %s : ntime %s\n", $model_id,
+    $last_ntime;
 
 ## durable cross-restart stats [ coding.self_test.archive ] - separate from ##
-## the epoch-scoped detail above, which resets every restart. this is the   ##
+## the ntime-scoped detail above, which resets every restart. this is the   ##
 ## actual answer to "how many retries does this model typically need"       ##
 {
     my $stats_yaml = <[file.zenka_dir.load]>->('self_test-stats.yaml');
@@ -126,8 +126,8 @@ for my $prompt_id ( sort { $a <=> $b } keys %$prompts ) {
 
 return { mode => qw| size |, data => join( "\n", @lines ) . "\n" };
 
-#,,.,,,..,,,.,,,,,...,...,,,,,.,.,,,.,.,.,,,,,.,.,...,...,.,,,.,,,.,,,,.,,,.,,
-#3AU3OAQ2MS5LWPBTSROBBI5VKYNDTD3FUNQZRT7UK62AK52TZUDHEGAFXXARZATS6YF3AE24WLJ5I
-#\\\|3GQORBBL2NE747SMAJV7VQ7WZN3C2SLBVN5JES5DZQUJ5OEJKB3 \ / AMOS7 \ YOURUM ::
-#\[7]MX3UPWOYBJZTFTXJIIWIN6DAFPIHUAIB7YCD4RL3OA2EEW3VJ6AI 7  DATA SIGNATURE ::
+#,,,.,...,,,.,...,..,,..,,,,,,,,.,...,.,.,,..,.,.,...,...,.,,,.,,,...,...,.,.,
+#ZPDM6IFJZJ2SMFGI424ATNKLJ7JNG2OJQKNEC4TQ6UNLT4X35534YT5EDEFEEAQW4NUWBBJOAUSHA
+#\\\|BRBHY4NT73YCTVKN3YEN5PQW2NQZHCFH6YXLSEUKSYMJ3EEITWJ \ / AMOS7 \ YOURUM ::
+#\[7]MN2ICWNPYYXW7NTAPEYPC25OB733TST7HMQB74OVGZDU7KO74CCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

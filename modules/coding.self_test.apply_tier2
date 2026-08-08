@@ -6,7 +6,7 @@
 my $params         = shift                       // {};
 my $summary        = $params->{'summary'}        // {};
 my $judge_model_id = $params->{'judge_model_id'} // '';
-my $epoch          = $params->{'epoch'} // ( $summary->{'epoch'} // 0 );
+my $ntime          = $params->{'ntime'} // ( $summary->{'ntime'} // 0 );
 my $test_model_id  = $params->{'test_model_id'}
     // ( $summary->{'model_id'} // '' );
 
@@ -49,7 +49,7 @@ for my $r (@$results) {
 
         ## re-archive with updated passed=true + tier annotation ##
         <[coding.self_test.archive]>->(
-            {   epoch    => $epoch,
+            {   ntime    => $ntime,
                 model_id => $test_model_id,
                 result   => $r,
                 anomaly  => '',
@@ -81,7 +81,7 @@ for my $r (@$results) {
     );
 
     <[coding.self_test.archive]>->(
-        {   epoch    => $epoch,
+        {   ntime    => $ntime,
             model_id => $test_model_id,
             result   => $r,
             anomaly  => $anomaly,
@@ -103,8 +103,8 @@ $summary->{'all_passed'} = $all_passed;
 
 return { mode => qw| true |, data => $summary };
 
-#,,,.,..,,,..,..,,.,.,.,,,,,.,.,.,,,,,...,.,,,..,,...,...,,,.,,,,,.,.,,..,,,.,
-#FCJMF7RGMJBVB7XSUVQPU22AZZXQHVDWNQR4SLQJWWWGATTVHIRDVH7QCM2ZKUX5MLYYCN25HTEYI
-#\\\|3IJLBGKAZCAWIDN5RQWWH7MLOYT6EI6J6SSJNUW56ODODZR2MQM \ / AMOS7 \ YOURUM ::
-#\[7]X5ZCTTQADJOHJHUVD5PGK6JYVXZZQSK3CEXBYTSG3EF6W7Q6UEBY 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,..,,..,...,.,.,,..,...,...,.,,,..,,...,...,.,.,...,..,,,,.,,,,,
+#UALDM6EARAFH2W656NZQKJEF2OJKWPLFCNKA2TQHFFZ7VYHT3HGGS7LYS4W5SKODMUOTT4TVMWJ7Q
+#\\\|DJ4I46NAFENRLJLQ3XWC5SAYNQ426I5MLL3ITTZUUN3OOFYNGK2 \ / AMOS7 \ YOURUM ::
+#\[7]7UZDE47NA7UU6OQAXDVKG3KCVCKTZVJGGL7SSUKOCPPUTDMBRSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
