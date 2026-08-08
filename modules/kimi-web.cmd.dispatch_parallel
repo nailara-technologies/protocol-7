@@ -48,7 +48,7 @@ if ( not @ready_agents ) {
 
 ## dispatch to all agents in parallel (async) ##
 my $reply_id = $call->{'reply_id'} // '';
-my $batch_id = sprintf( 'batch-%d', <[base.time]>->(3) );
+my $batch_id = sprintf( 'batch-%d', <[base.ntime.b32]> );
 
 ## store batch state ##
 <kimi-web.agent.batches> //= {};
@@ -59,7 +59,7 @@ my $batch_id = sprintf( 'batch-%d', <[base.time]>->(3) );
     'total'       => scalar @ready_agents,
     'aggregation' => $aggregation,
     'reply_id'    => $reply_id,
-    'started_at'  => <[base.time]>->(3),
+    'started_at'  => <[base.ntime]>,
     'timeout'     => $timeout,
 };
 
@@ -102,8 +102,8 @@ for my $agent_id (@ready_agents) {
 
 return { 'mode' => qw| deferred | };
 
-#,,,.,.,.,...,,,.,,..,,..,.,.,.,.,.,.,,.,,.,,,.,.,...,...,.,,,,..,,,,,..,,.,,,
-#XTGI7RC5BS3N4U7CBAMQSB7HOLDKS222FLRIPJF7MEOOIP6OCZN4ISBYH3TE6NEWVRB5GBXUSELMC
-#\\\|6GVJ3KACYSISKJBNNAIUMG7JO2PDK4LWHLCXB2MI3PK3A7N4LX3 \ / AMOS7 \ YOURUM ::
-#\[7]74LCHAU6SPPP2UKUI6V4E7OJIXL75QGBVLJHRGWD5AE57UNSH4BA 7  DATA SIGNATURE ::
+#,,..,..,,,,.,..,,,.,,..,,,..,...,.,.,...,,.,,.,.,...,..,,...,.,,,,,,,,.,,,,,,
+#MDAQDWPBWL3HHEW3XTQPM2KV3PAWOVPJRTDH5IKUTKNRXYHTDZLVCPVVU5FN3FPU4FPH2UGWI3Y6G
+#\\\|4SA22FW5DFKOT3KEBENVXMQLTZ6R52WLEEED3F736CT4K5RUW22 \ / AMOS7 \ YOURUM ::
+#\[7]DCDJSQL2DL3UPIZ64SNUTLWCEABIVBDDLZ5UKGIZ4DKBRVB5PICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
