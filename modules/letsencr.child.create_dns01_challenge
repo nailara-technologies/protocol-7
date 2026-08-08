@@ -36,8 +36,8 @@ my $key_auth = "$token.$thumbprint";
 
 <[base.log]>->( 3, "key authorization : $key_auth" );
 
-## For DNS-01, we need to create TXT record at:  _acme-challenge.{domain}
-## with value: base64url(SHA256(key_auth))
+## For DNS-01, we need to create TXT record at:  _acme-challenge.{domain} with
+## value: base64url(SHA256(key_auth))
 
 my $dns_value = encode_base64url( sha256($key_auth) );
 
@@ -110,7 +110,7 @@ unless ($dns_result) {
     challenge_url   => $challenge->{url},
     type            => 'dns-01',
     provider        => $dns_provider,
-    created_at      => time(),
+    created_at      => <[base.ntime]>,
 };
 
 return {
@@ -122,8 +122,8 @@ return {
     provider        => $dns_provider,
 };
 
-#,,,,,,,,,.,,,..,,,,,,...,..,,.,,,.,.,.,.,,..,..,,...,...,,,,,,,,,.,,,..,,..,,
-#ALZCNK72B5YI4Q2L3H3RCFM6CKENN4KCRVFVWOATYKRKEFMRK6EOFP6P4VYJOC4OBUAQ4PW5JPQSO
-#\\\|5Q5ZKUUU5GI5EAQLBXKNXQNZQ5TNYHKKYNCD62AGQHXCZZK323A \ / AMOS7 \ YOURUM ::
-#\[7]JQH5CBIVGVRAFGLAR7KA2QELF5FIHN5R3YBRACHK6G7DZGZYLIBQ 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,,..,,,,,.,.,.,,,...,,.,,..,,,,.,..,,...,..,,,,.,.,,,.,,,.,,,,..,
+#6A7LP4M2WNGLHDSFLMNVBLFEDTP5NKTVJK3LA2JPE44QLYVSXGCL5VJRLI34JTTFDEX6UGYLKGX5O
+#\\\|WT6XHXZ6DVFAZBEYFBCKY7PWNFS6BZIGCYUWMA5LGDWSXHAEVQ4 \ / AMOS7 \ YOURUM ::
+#\[7]RLPIOJ2EEF6GVNTOPIBQD3VLMPQFBZNHGSCNQFHRHCBXX2UPH4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
