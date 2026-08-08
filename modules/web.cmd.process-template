@@ -7,10 +7,8 @@
 my @args = @_;
 
 unless ( @args >= 1 ) {
-    return (
-        0,
-        qq| usage: process-template <template-path> [meta-var=value ...] |
-    );
+    return ( 0,
+        qq| usage: process-template <template-path> [meta-var=value ...] | );
 }
 
 my $template_path = shift @args;
@@ -22,8 +20,7 @@ foreach my $arg (@args) {
         my ( $var_name, $var_value ) = ( $1, $2 );
         $meta_vars{$var_name} = $var_value;
         <[base.log]>->(
-            2,
-            "process-template: meta variable set: $var_name = $var_value"
+            2, "process-template: meta variable set: $var_name = $var_value"
         );
     } else {
         return ( 0, qq| invalid meta variable format: $arg | );
@@ -53,7 +50,9 @@ if ( $file_size > $max_size ) {
     );
 }
 
-<[base.log]>->( 2, "process-template: loading $template_path ($file_size bytes)" );
+<[base.log]>->(
+    2, "process-template: " . "loading $template_path ($file_size bytes)"
+);
 
 ## Load template content ##
 my $template_content = <[file.slurp]>->($template_path);
@@ -63,11 +62,9 @@ unless ( defined $template_content ) {
 }
 
 ## Generate unique template ID ##
-my $template_id = sprintf(
-    'manual_%s_%d',
+my $template_id = sprintf( 'manual_%s_%s',
     <[chk-sum.elf.vax-BASE32]>->($template_path),
-    time()
-);
+    <[base.ntime.b32]> );
 
 ## Track active template processing ##
 <web.templates.active>->{$template_id} = {
@@ -100,9 +97,9 @@ delete <web.templates.active>->{$template_id};
 ## Update metrics ##
 <web.templates.processed>++;
 my $prev_avg = <web.metrics>->{avg_processing_time_ms};
-<web.metrics>->{avg_processing_time_ms} =
-    ( $prev_avg * ( <web.templates.processed> - 1 ) + $elapsed_ms )
-    / <web.templates.processed>;
+<web.metrics>->{avg_processing_time_ms}
+    = ( $prev_avg * ( <web.templates.processed> - 1 ) + $elapsed_ms ) /
+    <web.templates.processed>;
 
 if ( $result->{status} eq qw| success | ) {
     <[base.log]>->(
@@ -118,19 +115,14 @@ if ( $result->{status} eq qw| success | ) {
 
 } else {
     <[base.log]>->(
-        1,
-        "process-template: processing failed: " . $result->{message}
+        1, "process-template: processing failed: " . $result->{message}
     );
 
-    return (
-        0,
-        qq| template processing failed: |
-            . $result->{message}
-    );
+    return ( 0, qq| template processing failed: | . $result->{message} );
 }
 
-#,,.,,...,...,..,,,,.,,,.,.,.,,..,,,,,,.,,,,.,..,,...,...,...,...,...,,..,...,
-#QLQDJ5TTME3B33BK6LGAEEZRNUA5525E7NNO7PWZO5TP72OUHDE3FBPKRGEO7LHYCFZG2CYP3OCGM
-#\\\|ZQ3EQQ4KHAIZLLD7S6VVRLM5DLEQRIUWVLPWMS5SP24VDMQ7H75 \ / AMOS7 \ YOURUM ::
-#\[7]QQHLLNYKC2BXEE4BZ52GIYFEZAJP7UQXYCRJB72UJSWGZDYDSCBI 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,...,,..,.,,,,,.,.,,,,,.,...,...,..,,...,...,...,,.,,,..,.,,,.,,,
+#7OQ3WX5TW2YL2VQYA5XJDD4WU6Q5MIDLUYLDGVT7SBPQIJWFFLG3TQPACO3R7WOIULUEEWXZ24HLG
+#\\\|2EVEPXT67KRJM4WIXDMG3WL5UIC77KXGHEYMMCCHAIOCFQ4APJP \ / AMOS7 \ YOURUM ::
+#\[7]WN5YR3M4FETQCYUKEP6S5TN3RC24R7TLOHZXK5C4XBC4OWGUC4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

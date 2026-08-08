@@ -20,8 +20,8 @@ $content_path =~ s|\.\.+|.|g;
 
 <[base.log]>->(
     2,
-    "[$session_id] web.render_skinned_content:"
-        . " path='$content_path', vhost='$vhost', skin='$skin_name'"
+    "[$session_id] web.render_skinned_content: "
+        . "path='$content_path', vhost='$vhost', skin='$skin_name'"
 );
 
 ## Build full content file path ##
@@ -110,18 +110,21 @@ my $meta_vars = {
     vhost        => $vhost,
     skin         => $skin_name,
     content_type => $content_type,
-    request_time => time(),
+    request_time => <[base.ntime]>,
     session_id   => $session_id,
 };
 
 ## Generate template ID ##
-my $template_id = sprintf( 'content_%s_%s_%d',
-    $vhost, <[chk-sum.elf.vax-BASE32]>->($content_path), time() );
+my $template_id = sprintf(
+    'content_%s_%s_%s',
+    $vhost, <[chk-sum.elf.vax-BASE32]>->($content_path),
+    <[base.ntime.b32]>
+);
 
 <[base.log]>->(
     2,
-    "[$session_id] processing content through recursive"
-        . " template parser: $template_id"
+    "[$session_id] processing content through "
+        . "recursive template parser: $template_id"
 );
 
 ## Process content through recursive template parser ##
@@ -182,8 +185,8 @@ my $skin_template = <[file.slurp]>->($skin_file);
 unless ( defined $skin_template ) {
     <[base.log]>->(
         1,
-        "[$session_id] failed to read skin file: $skin_file,"
-            . " using content only"
+        "[$session_id] failed to read skin "
+            . "file: $skin_file, using content only"
     );
     return {
         status       => qw| success |,
@@ -213,7 +216,8 @@ $meta_vars->{menu}
     = <[plugin.web.menu.tree]>->( $content_path, $base_dir, 3 );
 
 ## Process skin template ##
-my $skin_template_id = sprintf( 'skin_%s_%d', $skin_name, time() );
+my $skin_template_id
+    = sprintf( 'skin_%s_%s', $skin_name, <[base.ntime.b32]> );
 
 <[base.log]>->(
     2, "[$session_id] processing skin template: $skin_template_id"
@@ -231,8 +235,8 @@ my $final_html = <[web.process_template_recursive]>->(
 if ( $final_html->{status} ne qw| success | ) {
     <[base.log]>->(
         1,
-        "[$session_id] skin processing failed,"
-            . " returning content without skin: "
+        "[$session_id] skin processing failed, "
+            . "returning content without skin: "
             . $final_html->{message}
     );
     return {
@@ -257,8 +261,8 @@ return {
     title        => $title,
 };
 
-#,,,.,,.,,.,,,,..,.,,,.,.,,,,,,,,,...,,,,,,.,,..,,...,..,,,.,,,.,,..,,,.,,,,.,
-#AHP6Y6WVFUIR5VVO4UNDB5HMP2UPIQWJLPAZV4C2MDTN44RDFNA4CVADAWSRRG4MERGTCLYAJ3LE2
-#\\\|5NOIVSFBVQYUUVSZWH6AUGXXEFO4PZIXALYWEC5TPCTKZEPCEPB \ / AMOS7 \ YOURUM ::
-#\[7]ILBWYESC6GAKFLNADKWOOHGAS4GPEVUSKIJNQJSNSRYXSVBIXQCA 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,.,,,...,.,,,,,,,..,,,,.,...,,,,,..,,...,..,,..,,...,,,,,.,,,.,,,
+#LGCDCQP5DSTDIEGIFFSJQN7K2EAKD3OSANIGGNUEJXLDEWASRCI5CIVVPIVFGEEKMSUXSXHIEBA44
+#\\\|NRP37B3PGTPILYCZCU45BAHNSLBSPNOTFDQNH6M26PYZIHE45YD \ / AMOS7 \ YOURUM ::
+#\[7]EVHVS3LTW3B6I3J4375DUTAETH4RJT4VIXUZTABTODKSJZZ46ABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
