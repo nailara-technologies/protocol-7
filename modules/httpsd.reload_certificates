@@ -34,20 +34,20 @@ delete <httpsd.cert_cache> if exists <httpsd.cert_cache>;
 <httpsd.cert_cache> = {
     cert_path => $cert_path,
     key_path  => $key_path,
-    loaded_at => time(),
+    loaded_at => <[base.ntime]>,
 };
 
 <[base.logs]>->( 2, 'HTTPSD: certificate updated [ %s ]', $cert_path );
 
-## ssl socket must be re-bound as root on port 443 - request restart
-## [ httpsd drops privileges before zenka.loop - restart runs post_init again ]
+## ssl socket must be re-bound as root on port 443 - request restart [ httpsd
+## drops privileges before zenka.loop - restart runs post_init again ]
 <[base.log]>->( 1, 'httpsd: requesting self-restart to activate new cert' );
 <[httpsd.self_restart]>;
 
 return TRUE;
 
-#,,.,,,.,,,.,,,,.,..,,,.,,.,.,,,,,...,.,.,...,..,,...,...,..,,..,,,..,,,,,,,,,
-#JKVOI6KHAKI3AMKJ5YHORJGN6BVMNOEA7FHVA22KZZYW6TEOUNVICY6RRGIUT4XTJ3ITGSJAC53NK
-#\\\|MVM5MSPEEZNUB2NEJ2CGL2UMWYIIEW6CFD4ODXTKHXEFP4QEQAI \ / AMOS7 \ YOURUM ::
-#\[7]HH36XTFOXDHO4R7OCSDCYC2QSNNAZTIYNITHJ5PXZQIQNQINMACQ 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,,.,,..,,..,,,.,.,,,...,,,.,,.,,..,,...,...,.,.,,,.,...,.,,,,,,,
+#AQNPFHI5GHNV5SCPH5LMH42OITRDOTOUSPLH46AZSDSECUSHCRW42DXHUWEOHGQ4IOYE2WTQHI5QS
+#\\\|5XT7DG252KGUFYUFTPRDEDHPJCZUPU7DQVDTXPE4SRJPQ4W3O7R \ / AMOS7 \ YOURUM ::
+#\[7]2OXLBC72HNKJXMNJHUJBLECE5IWTG5AWTWHSKVZBBUSQJ7SE3OCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

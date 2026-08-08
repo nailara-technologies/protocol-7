@@ -107,7 +107,7 @@ my @ffmpeg_params = (
 
 new_log_name:
 my $error_log_file = sprintf( qw| /var/protocol-7/.ffmpeg.%u.%f.log |,
-    $PID, <[base.time]>->(5) );
+    $PID, <[base.ntime.b32]> );
 goto new_log_name if -e $error_log_file;
 
 if ( !-f $output_file ) {
@@ -145,8 +145,8 @@ unlink($error_log_file) if -f $error_log_file;
 
 return { 'mode' => qw| true |, 'data' => $output_file }
 
-#,,..,.,.,...,.,.,,..,..,,,.,,,..,..,,.,,,...,..,,...,...,,..,,..,...,...,.,,,
-#UXSNY6VTUTB3VYPVHL2XQ2EJU46B6PYW4PWPBM5EJHCKHZDGF5WQN5SQ7ERVTWMQCVC6BJB7RLBII
-#\\\|NQN4Q43IRDECCPUKKRLIVYAGDU7GPX4HIFGUVXPHLNMMARMIZD2 \ / AMOS7 \ YOURUM ::
-#\[7]RW7CYJK25IUROWI5MM35E57LLGVH3VFUVBOLTNJKZUGP7PE2YMCQ 7  DATA SIGNATURE ::
+#,,..,..,,,..,,..,..,,..,,,..,...,.,,,...,..,,..,,...,...,.,.,,..,.,.,,,.,.,,,
+#O4ONE3RYS6XQ33NWB6WRS4DHKVU3HFUISCK6IFIHFM25OFBLWAPQSJHYDMCREIF7EZB5EVEOZKZW6
+#\\\|AT7T2TXDAXH3L4JBNBQOIWCPEMCFAATE6A43OKCFNYAOJQDK2CP \ / AMOS7 \ YOURUM ::
+#\[7]PAINK2F2WOIPOS2RJMQ7BQV52B5HNQQFVXRP7ZWRTTEXEUWO3IBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

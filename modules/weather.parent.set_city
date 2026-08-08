@@ -14,7 +14,7 @@ my $city_file = "$cache_dir/city.current";
 
 <[base.log]>->( 1, "writing location '$city' to disk cache.," );
 
-<[file.put_bin]>->( $city_file, time() . " $city\n" )
+<[file.put_bin]>->( $city_file, <[base.ntime]> . " $city\n" )
     ;                          # encod. utf8 passthrough
 
 if ( defined <weather.station_id> ) {    # cached station id present
@@ -46,8 +46,8 @@ if ( defined <weather.station_id> ) {    # cached station id present
     }
 }
 
-#,,.,,,,.,.,,,,,.,.,,,.,,,,..,...,,,,,,..,.,.,..,,...,...,...,..,,.,,,.,.,..,,
-#HXUBTNWVTDIYHINS3L3L7FJSG6EH632ZXN7HRPQLHX7UFB5FBINHBSHE3IKDM627MA3M2M3TU7S2U
-#\\\|OIQFJ7IUH3GSET5XVEZK6SU6QWURAU6OHNZFCFYHWUJAFUE3PSH \ / AMOS7 \ YOURUM ::
-#\[7]2QQQG6PB4XMKUXIGOF6DLL7OH6IU4PKVHML6LM6XTY7VJCJRHYDI 7  DATA SIGNATURE ::
+#,,.,,,..,,..,.,,,,,,,.,,,,,,,,,.,.,.,.,,,,.,,..,,...,..,,.,.,.,,,,,,,..,,,.,,
+#3ZGCFB76CYOOVRQZFTS5NPSWEJ257JAJUOLCCV7PSE4A4UT2P3QVWHX3TG4HG22YMHMWFPWSXIVMU
+#\\\|X7YUFA6B4M7XZ2AW3E7S7QDHWFXEZF7GHADFWSLXWCU4IUXOI2Q \ / AMOS7 \ YOURUM ::
+#\[7]TW4CZFIY77KAVBTJWLAZXCTX3C7GVKUD72SJUIRMXAFBRWLIPOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

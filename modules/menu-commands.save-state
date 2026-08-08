@@ -9,34 +9,42 @@ use YAML::XS qw| Dump |;
 my $mappings_data = {
     'mappings' => <menu-commands.mappings>,
     'metadata' => {
-        'saved_at' => <[base.time]>->(3),
-        'count' => scalar(keys %{<menu-commands.mappings>})
+        'saved_at' => <[base.ntime]>,
+        'count'    => scalar( keys %{<menu-commands.mappings>} )
     }
 };
 my $yaml_content = Dump($mappings_data);
 my $mappings_ref = \$yaml_content;
-unless (<[file.zenka_dir.write]>->('data/mappings.yaml', $mappings_ref, '>', 0600, ':utf8')) {
+unless (
+    <[file.zenka_dir.write]>->(
+        'data/mappings.yaml', $mappings_ref, '>', 0600, ':utf8'
+    )
+) {
     return 0;
 }
 
 # Save categories
 my $categories_data = {
     'categories' => <menu-commands.categories>,
-    'metadata' => {
-        'saved_at' => <[base.time]>->(3),
-        'count' => scalar(keys %{<menu-commands.categories>})
+    'metadata'   => {
+        'saved_at' => <[base.ntime]>,
+        'count'    => scalar( keys %{<menu-commands.categories>} )
     }
 };
 my $yaml_content_cats = Dump($categories_data);
-my $categories_ref = \$yaml_content_cats;
-unless (<[file.zenka_dir.write]>->('data/categories.yaml', $categories_ref, '>', 0600, ':utf8')) {
+my $categories_ref    = \$yaml_content_cats;
+unless (
+    <[file.zenka_dir.write]>->(
+        'data/categories.yaml', $categories_ref, '>', 0600, ':utf8'
+    )
+) {
     return 0;
 }
 
 1;
 
-#,,.,,,,,,,,,,,.,,..,,..,,..,,.,,,.,.,..,,,,,,..,,...,...,,..,.,.,..,,.,,,,,,,
-#PGLDF2ZPIZZE2VGEF6FOQYMUXCAL4IME7EURYSCYO6ZMQYUVIL5BCHHRDBB2CJVNEEBJKAK554UYU
-#\\\|GGTXWOCTGDZ2UOBHATAJJJWXB4EI2UOSUXG37WK42QJLOLAKHJY \ / AMOS7 \ YOURUM ::
-#\[7]TCV6PWU2JGFB4NRUBI77YBA2LRIDK5CXC77MIV72N2VI4MQIYWAI 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,.,,,..,,.,,,,,,.,,,,,,,.,,,,.,,..,,...,...,..,,,.,,.,.,,,.,,.,,
+#UTON3ZMNHCZ3LY5FBFRG5R3ATJ2Z6IEO3MH7MMOTPKT5GI65KI43G37UNCDERUX3H4CFME47LDWAQ
+#\\\|U5PBVDLCB3VZM3JLEQXDVZX4HG6KVVKVSCL6KFCZLLYA3TC4SI7 \ / AMOS7 \ YOURUM ::
+#\[7]IRUWK3E65FQ6EH3YJEC2VF2YSAPNKOMQEFFXCML6XILK767PBADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

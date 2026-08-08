@@ -4,29 +4,31 @@
 # descr = generate workspace-transfer index
 
 my $repos = <[work.scan_workspace_repos]>;
-my $bugs = <[work.extract_workspace_bugs]>;
+my $bugs  = <[work.extract_workspace_bugs]>;
 
 my $index_data = {
-    generated_at => scalar(localtime()),
-    timestamp => time(),
-    repos => $repos,
-    total_bugs => scalar(@$bugs),
-    bugs => $bugs
+    generated_at => scalar( localtime() ),
+    timestamp    => <[base.ntime]>,
+    repos        => $repos,
+    total_bugs   => scalar(@$bugs),
+    bugs         => $bugs
 };
 
 # Ensure index directory exists
 my $index_dir = <work.cfg.index_dir>;
-unless (-d $index_dir) {
+unless ( -d $index_dir ) {
+
     # Create with parents if needed
     require File::Path;
-    File::Path::make_path($index_dir) or die "Cannot create index directory: $!";
+    File::Path::make_path($index_dir)
+        or die "Cannot create " . "index directory: $!";
 }
 
 # Check if existing index exists and compare content (ignoring timestamps)
 my $workspace_index = <work.index.workspace>;
-my $should_write = 1;
+my $should_write    = 1;
 
-if (-f $workspace_index) {
+if ( -f $workspace_index ) {
     my $existing_data = YAML::XS::LoadFile($workspace_index);
 
     # Compare content excluding timestamp fields
@@ -39,18 +41,18 @@ if (-f $workspace_index) {
     delete $new_copy->{timestamp};
 
     # Compare serialized versions to detect any actual changes
-    if (YAML::XS::Dump($existing_copy) eq YAML::XS::Dump($new_copy)) {
-        $should_write = 0;  # Only timestamp changed, skip write
+    if ( YAML::XS::Dump($existing_copy) eq YAML::XS::Dump($new_copy) ) {
+        $should_write = 0;    # Only timestamp changed, skip write
     }
 }
 
 # Write index only if content actually changed
-YAML::XS::DumpFile($workspace_index, $index_data) if $should_write;
+YAML::XS::DumpFile( $workspace_index, $index_data ) if $should_write;
 
 return $index_data;
 
-#,,,.,.,.,..,,...,,.,,,,.,..,,...,,,.,,.,,,..,..,,...,...,,..,,..,...,,..,.,.,
-#NVVI5YPQPV5A7W3ANBTO7HSN6WDPJZKOMVHB4BJ3YH63QFZEP3BNVXHAMOJ73QX6S2VEQCQW2L3GA
-#\\\|NR4OJCKHRXETNHN7OJI55XTL557GIPMUPNWEWFSKYRTEMFL4FAK \ / AMOS7 \ YOURUM ::
-#\[7]MRAPZU4G2UKPFH6YLFNAFMH4WVLWVVOVI6VIJYHCXSAVAR34N6DQ 7  DATA SIGNATURE ::
+#,,..,.,.,...,,,.,,,,,,..,...,...,..,,.,,,...,..,,...,...,...,...,,.,,,.,,,..,
+#4P4GT5XUVLFEEOJQFXIQZQHBVCUM3TAAW4ITPF5ZOOS42WHQ5NPHUA3L4WWYZBZBDXJVNDGVQ2ACU
+#\\\|ASF7AWRKITXNR7W6IKDTZF7Q4GLWIKSNCZN27F2WI6FJOQ6XIC7 \ / AMOS7 \ YOURUM ::
+#\[7]3AYSDBPZFANXLDE4Y4AREB5SVKWUDJJWIEWUAOBVE4URWZYZKYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

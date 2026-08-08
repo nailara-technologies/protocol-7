@@ -20,10 +20,9 @@ if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
     ## set server socket to non-blocking ##
     $fd->blocking(0);
 
-    ## accept tcp connection without ssl handshake ##
-    ##               [ blocking would stall here ] ##
-    ## IO::Socket::IP::accept bypasses SSL's accept override ##
-    ## but preserves IP socket layer [ buffering, sockopt ]  ##
+    ## accept tcp connection without ssl handshake  [ blocking would stall ##
+    ## here ]  IO::Socket::IP::accept bypasses SSL's accept override but   ##
+    ## preserves IP socket layer [ buffering, sockopt ]                    ##
     my $tcp_client = $fd->IO::Socket::IP::accept();
 
     if ( not $tcp_client ) {
@@ -60,9 +59,9 @@ if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
     $tcp_client->blocking(0);
     binmode( $tcp_client, ':raw' );
 
-    ## upgrade tcp socket to ssl with deferred handshake ##
-    ## SSL_reuse_ctx accepts IO::Socket::SSL instance directly ##
-    ## [ inherits cert, key, ciphers from server socket ]      ##
+    ## upgrade tcp socket to ssl with deferred handshake  SSL_reuse_ctx ##
+    ## accepts IO::Socket::SSL instance directly [ inherits cert, key,  ##
+    ## ciphers from server socket ]                                     ##
     my $ssl_client = eval {
         IO::Socket::SSL->start_SSL(
             $tcp_client,
@@ -87,7 +86,11 @@ if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
     }
 
     ## create unique handshake id ##
-    my $hs_id = 'ssl_hs_' . $id . '_' . fileno($ssl_client) . '_' . time;
+    my $hs_id
+        = 'ssl_hs_'
+        . $id . '_'
+        . fileno($ssl_client) . '_'
+        . <[base.ntime.b32]>;
 
     ## get handshake timeout from config ##
     my $hs_timeout = <httpsd.cfg.ssl_handshake_timeout> // 10;
@@ -99,7 +102,7 @@ if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
         'peerhost'   => $p_host,
         'peerport'   => $p_port,
         'server_id'  => $id,
-        'start_time' => time,
+        'start_time' => <[base.ntime]>,
         'io_watcher' => undef,                 ## will be set below
         'timer'      => undef,                 ## will be set below
     };
@@ -145,8 +148,8 @@ if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
 
     $data{'ssl_handshake'}{$hs_id}{'timer'} = $timer;
 
-    ## return undef : handshake completion handled by event callbacks ##
-    ## the actual client socket will be registered after handshake completes ##
+    ## return undef : handshake completion handled by event callbacks the ##
+    ## actual client socket will be registered after handshake completes  ##
     return undef;
 
 } else {
@@ -157,8 +160,8 @@ if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
     return undef;    ## <-- connection closed \ error connecting ##
 }
 
-#,,,,,.,.,.,,,,,,,,,,,..,,.,,,.,.,,.,,,..,...,.,.,...,...,,.,,,,,,,..,...,,..,
-#WTVUBQALWJEMZ2CH3RVWSPJE7XXZFX52QN5UUZEVTXYCS26N4E2K3HUCVRP5I5OG5N4JOM5P4CJLS
-#\\\|UZH6IZ2MLU4TLSS3UJ7KHMD23S3I6SBJF5TIKMI4HNW3GNCOZHA \ / AMOS7 \ YOURUM ::
-#\[7]EPGKZTL7GIUM542LT7IVI54MBKC3GO5WIKSXU3FJ4DYEW5YSLQCQ 7  DATA SIGNATURE ::
+#,,,,,.,,,...,.,.,,.,,,,,,.,.,...,...,...,,..,.,.,...,...,.,,,,,,,,.,,.,.,,,,,
+#A57T4ZV3PXYBRAAFERCJUBPOZRPAQDUR2GOZBJ3W6RVULCOPSVF72TTLF2Z34CK7XXTQUQBQ3OHKI
+#\\\|IDMUWRLRDWHTLMSS462PI23UZPCJMBVBTZQHXBKL5Y6DZQIJF3P \ / AMOS7 \ YOURUM ::
+#\[7]XK5FQPEQVYHYHHO4KKACPOPW4ANBCRL2S5S4YAKL46PXBYSLQOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

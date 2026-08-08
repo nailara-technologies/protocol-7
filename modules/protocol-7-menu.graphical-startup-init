@@ -53,9 +53,9 @@ my $img_h = $pbuf->get_height();
 my $scr_w = $screen->get_width();
 my $scr_h = $screen->get_height();
 
-## positions are grouped by screen resolution: a position saved on one ##
-## screen size [ eg. host display ] must never apply on another        ##
-## [ eg. a small xephyr screen ], where it could fall off-screen        ##
+## positions are grouped by screen resolution: a position saved on one  ##
+## screen size [ eg. host display ] must never apply on another [ eg. a ##
+## small xephyr screen ], where it could fall off-screen                ##
 my $screen_key = sprintf( qw| %dx%d |, $scr_w, $scr_h );
 
 my $win_width = sprintf( qw|%.0f|, $scr_w * $scale_factor );
@@ -82,13 +82,14 @@ my $window_center_x = $win_width / 2;
 my $window_center_y = $win_height / 2;
 
 ## drag tracking state [ begin_move_drag avoided : it takes a compositor grab
-## that weston sometimes does not release, freezing mouse input to this window ]
+## that weston sometimes does not release, freezing mouse input to this window
+## ]
 my $is_dragging = FALSE;
 my ( $drag_start_xr,    $drag_start_yr )    = ( 0, 0 );
 my ( $drag_win_start_x, $drag_win_start_y ) = ( 0, 0 );
 
-## forward-declared : real values assigned after saved-position load
-## [ closures below capture these variables; declaration must precede them ]
+## forward-declared : real values assigned after saved-position load [
+## closures below capture these variables; declaration must precede them ]
 my ( $win_x_cache, $win_y_cache ) = ( 0, 0 );
 
 ## button press handler : detect drag or menu zone
@@ -110,9 +111,9 @@ $window->signal_connect(
             ## drag zone - left button only [ other buttons fall through ]
             return 0 unless $event->button == 1;
 
-            ## Weston's XWM sends ConfigureNotify with WM-frame-relative coords
-            ## instead of root coords, so $win_x/y_cache may be wrong [ eg 230
-            ## when the actual root pos is 4635 ]. get_origin() calls
+            ## Weston's XWM sends ConfigureNotify with WM-frame-relative
+            ## coords instead of root coords, so $win_x/y_cache may be wrong [
+            ## eg 230 when the actual root pos is 4635 ]. get_origin() calls
             ## XTranslateCoordinates which returns the true root position.
             my $gdk_win = eval { $widget->get_window() };
             if ( defined $gdk_win ) {
@@ -170,8 +171,9 @@ $window->signal_connect(
             my $save_offset_x = $cfg_val->{'position_save_offset_x'} //= 38;
             my $save_offset_y = $cfg_val->{'position_save_offset_y'} //= 58;
 
-            ## drag-calculated final position : start was set from get_origin()
-            ## [ true X11 root coords ] + root-coord delta from events = exact
+            ## drag-calculated final position : start was set from
+            ## get_origin() [ true X11 root coords ] + root-coord delta from
+            ## events = exact
             my $final_x
                 = $drag_win_start_x + ( $event->x_root - $drag_start_xr );
             my $final_y
@@ -224,8 +226,8 @@ if ( defined $saved_position ) {
     $pos_y = $saved_position->{'y'};
 
     ## no manual clamp here : snap_to_monitor [ called below ] handles
-    ## off-screen and void positions correctly, and negative coordinates
-    ## are valid for secondary monitors positioned above or left of primary
+    ## off-screen and void positions correctly, and negative coordinates are
+    ## valid for secondary monitors positioned above or left of primary
     <[base.logs]>->( 1, "loaded saved position : x=%d y=%d", $pos_x, $pos_y );
 } else {
 
@@ -246,10 +248,10 @@ if ( defined $saved_position ) {
 # [ must set position before window is mapped to window  manager ]
 $window->set_gravity('north-west');
 
-## sanitize against the real monitor rects : the default + restore clamps ##
+## sanitize against the real monitor rects : the default + restore clamps   ##
 ## above only bound to the virtual screen, which has voids on offset multi- ##
-## monitor layouts -- an off-all-outputs position cannot map and hangs the ##
-## compositor [ the top-right-of-virtual default landed in such a void ]   ##
+## monitor layouts -- an off-all-outputs position cannot map and hangs the  ##
+## compositor [ the top-right-of-virtual default landed in such a void ]    ##
 ( $pos_x, $pos_y )
     = <[base.gtk.snap_to_monitor]>
     ->( $pos_x, $pos_y, $win_width, $win_height );
@@ -273,13 +275,13 @@ $data{'protocol-7-menu'}{'window'} = {
 $window->signal_connect(
     'configure-event' => sub {
         my ( $widget, $event ) = @ARG;
-        ## Weston XWM sends ConfigureNotify with WM-frame-relative coords,
-        ## not root coords. use get_origin() [ XTranslateCoordinates ] for
-        ## the true root position [ $event->x/y would give ~230 while the
-        ## real root X11 position is ~4635 in a multi-monitor setup ].
-        ## guard against the X11 "not yet mapped" sentinel (-32736) that
-        ## XTranslateCoordinates returns during the initial-map configure-event
-        ## before weston has committed the surface position.
+        ## Weston XWM sends ConfigureNotify with WM-frame-relative coords, not
+        ## root coords. use get_origin() [ XTranslateCoordinates ] for the
+        ## true root position [ $event->x/y would give ~230 while the real
+        ## root X11 position is ~4635 in a multi-monitor setup ].  guard
+        ## against the X11 "not yet mapped" sentinel (-32736) that
+        ## XTranslateCoordinates returns during the initial-map
+        ## configure-event before weston has committed the surface position.
         my $gdk_win = eval { $widget->get_window() };
         if ( defined $gdk_win ) {
             my ( $rx, $ry ) = eval { $gdk_win->get_origin() };
@@ -295,10 +297,11 @@ $window->signal_connect(
 
 $window->show_all;
 
-## when no saved position exists, the pre-show_all default is only a best   ##
-## guess. weston can silently place the window in a void, so verify post-map ##
-## with real move+readback and cycle through corner candidates until one     ##
-## lands. fall back to a random unverified placement if nothing works.       ##
+## when no saved position exists, the pre-show_all default is only a best ##
+## guess. weston can silently place the window in a void, so verify       ##
+## post-map with real move+readback and cycle through corner candidates   ##
+## until one lands. fall back to a random unverified placement if nothing ##
+## works.                                                                 ##
 if ( not defined $saved_position ) {
     my $placement_attempts     = 0;
     my $max_placement_attempts = 10;
@@ -317,8 +320,8 @@ if ( not defined $saved_position ) {
                 if ( not defined $xid ) {
                     <[base.log]>->(
                         0,
-                        'graphical menu startup: no xid yet, deferring '
-                            . 'placement'
+                        'graphical menu startup: no '
+                            . 'xid yet, deferring placement'
                     );
                     $placement_timer->cancel
                         if $placement_attempts >= $max_placement_attempts;
@@ -369,8 +372,8 @@ if ( not defined $saved_position ) {
                 if ( defined $safe ) {
                     <[base.logs]>->(
                         1,
-                        'graphical menu startup: landed at x=%d y=%d on '
-                            . 'monitor %d',
+                        'graphical menu startup: landed '
+                            . 'at x=%d y=%d on monitor %d',
                         $safe->{'x'},
                         $safe->{'y'},
                         $safe->{'monitor_index'} // -1
@@ -390,9 +393,9 @@ if ( not defined $saved_position ) {
 
                 return if $placement_attempts < $max_placement_attempts;
 
-                ## exhausted: one random unverified placement as last resort, ##
-                ## still inset by margin so it never lands flush against the ##
-                ## screen border.                                            ##
+                ## exhausted: one random unverified placement as last    ##
+                ## resort, still inset by margin so it never lands flush ##
+                ## against the screen border.                            ##
                 my $random_mon
                     = $monitors->[ int( rand( scalar @$monitors ) ) ];
                 my $rand_x = $random_mon->{'x'} + $margin;
@@ -409,8 +412,8 @@ if ( not defined $saved_position ) {
                 );
                 <[base.logs]>->(
                     1,
-                    'graphical menu startup: random fallback to x=%d y=%d '
-                        . 'on monitor %s',
+                    'graphical menu startup: random '
+                        . 'fallback to x=%d y=%d on monitor %s',
                     $rand_x,
                     $rand_y,
                     $random_mon->{'index'} // '?'
@@ -460,8 +463,8 @@ if ($use_transparency) {
 
     ## calibration : offset aligns windows virtual-screen coords to x11 coords
     ## [ negative pointer values reveal the offset : offset = -min_ptr ]
-    ## max_dist scales the opacity curve to the observed reachable range
-    ## both are keyed by screen_key and self-correct as the mouse explores
+    ## max_dist scales the opacity curve to the observed reachable range both
+    ## are keyed by screen_key and self-correct as the mouse explores
     my $ptr_offset_x = 0;
     my $ptr_offset_y = 0;
     my $max_dist     = $scr_w;    ## screen-width as sensible baseline ##
@@ -521,8 +524,7 @@ if ($use_transparency) {
                                     'max_dist' => int($max_dist),
                                 }
                             },
-                            'metadata' =>
-                                { 'saved_at' => <[base.time]>->(3) },
+                            'metadata' => { 'saved_at' => <[base.ntime]> },
                         }
                     );
                 };
@@ -555,8 +557,8 @@ if ($use_transparency) {
             my ( $ptr_x, $ptr_y )
                 = unpack( 'l<l<',
                 substr( $$shm_ptr, AMOS7::SHM::SHM_HEADER_SIZE(), 8 ) );
-            ## self-correcting offset : negative ptr coords are impossible
-            ## in x11 space [ screen starts at 0 ] so they reveal the offset
+            ## self-correcting offset : negative ptr coords are impossible in
+            ## x11 space [ screen starts at 0 ] so they reveal the offset
             if ( $ptr_x < -$ptr_offset_x ) {
                 $ptr_offset_x = -$ptr_x;
                 $calib_dirty  = 1;
@@ -571,9 +573,9 @@ if ($use_transparency) {
             my $dist = sqrt( ( $ptr_x + $ptr_offset_x - $cx )**2
                     + ( $ptr_y + $ptr_offset_y - $cy )**2 );
 
-            ## grow instantly on new max; gentle decay otherwise so calibration
-            ## self-corrects when cursor consistently stays closer over time
-            ## [ ~1.7% per minute at 50ms tick rate ]
+            ## grow instantly on new max; gentle decay otherwise so
+            ## calibration self-corrects when cursor consistently stays closer
+            ## over time [ ~1.7% per minute at 50ms tick rate ]
             if ( $dist > $max_dist ) {
                 $max_dist    = $dist;
                 $calib_dirty = 1;
@@ -606,8 +608,8 @@ if ($use_transparency) {
 
 return 0;
 
-#,,,.,,,.,,,,,.,.,,..,,,.,,,,,...,..,,...,..,,.,.,...,...,,,,,...,,,.,..,,,,.,
-#V6ADTMV3MXU4KNXLSZX3GQOAOW5POGTIPAXZY7PHENQUIXPEOST5H53IBABWT4THH4F4AMKJT5RB2
-#\\\|2GX2V6OGOWHR6LPNTZRPHJBQ5MDH6XEITHRHEICR2CIK2743TNZ \ / AMOS7 \ YOURUM ::
-#\[7]PXWKH3VITM7MEIQI25UBI3OZUJKHUMVGEZ4VMNFKNOCCVQP75QCI 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,..,,,,,,,,,.,,,,.,,.,.,,,.,.,.,.,.,...,...,,.,,,,,,,,.,,..,,,.,
+#EU4QUJMTTVSVXYUONRLUFVJLP2NBHZVSXAIOL3YMVINY7KWF23B7EQ3AWRD3DLO7EXWTFDTOMLZPM
+#\\\|3OQYGVNUT5OEWEI5OQWKNNTNUVPFKFKM6EYGIKBDL5PG4KB6VPL \ / AMOS7 \ YOURUM ::
+#\[7]4IFZVRMCFM67I7TGGO4WG2C6UJO6ZROWRSF4JFSYQG75UXFBT2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

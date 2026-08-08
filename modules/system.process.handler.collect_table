@@ -6,7 +6,7 @@
 
 <process.count>     = 0;
 <process.table.top> = {};
-<process.poll.last> = <[base.time]>->(2);
+<process.poll.last> = <[base.ntime]>;
 
 my $mem_statistics = <system.statistics>->get->memstats;
 <system.mem.used_percent> = my $mem_used_pct
@@ -47,7 +47,8 @@ foreach my $p ( @{ <system.process.pt>->table } ) {
     } @{<system.blacklist.autokill>};
     next if $bl_match;
 
-    ## custom process limits ## [ currently 'max_mem' and 'max_cpu' in percent ]
+    ## custom process limits ## [ currently 'max_mem' and 'max_cpu' in percent
+    ## ]
     foreach my $lp_name ( keys %{<process.limits>} ) {
         next
             if $p->fname !~ /\Q$lp_name\E/
@@ -69,8 +70,8 @@ foreach my $p ( @{ <system.process.pt>->table } ) {
                 <[base.log]>->(
                     0,
                     sprintf(
-                        "<< ! >> MEMORY USAGE ALERT: (( %s )) "
-                            . "[ .. %s%% .. limit=%s%% ]",
+                        "<< ! >> MEMORY USAGE ALERT: (( "
+                            . "%s )) [ .. %s%% .. limit=%s%% ]",
                         $rl_name, $mem, $lp->{'max_mem'}
                     )
                 );
@@ -168,8 +169,8 @@ if ( $mem_limit_reached and <mem.autokill> )
     }
 }
 
-#,,.,,..,,,..,.,.,,,.,,..,,.,,...,,,.,,,,,,..,..,,...,...,..,,.,,,,,,,,,.,.,.,
-#54NND3I4ZP44GNOVZOTIQBRH5X5KKLIYQTTC2RSASLYLZOHLIIZ7JTD4NQYI57YO5S5CZSIQ4APME
-#\\\|42COLWI7JZZTIETTKIEWXDW73DW44UOPTZJ7CFSZB35MV7HJ7OW \ / AMOS7 \ YOURUM ::
-#\[7]GPMYHTQI373SSDSQPIPMU5RN2EWZH75OOVOLLBC2W4EL6FOCQKCA 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,.,,,.,,,,,.,,.,,,.,,,,.,...,,,.,..,,...,...,,.,,.,,,..,,...,...,
+#7XJT2ZF5NOGXRU753J47AODHHMHSG6PH6XS3KYOLXYVWXUBO6ZAW5OFKNS2WHVFCZNKH4HJ4YAOCI
+#\\\|YXRUA6VAB47EFGFSCXUNAFZQWCIOGMEMVSVLEUN5NEC7PYFXFZP \ / AMOS7 \ YOURUM ::
+#\[7]HBGVT7LSXCWXEA7RT3LP5IDQTBU2UNGVLZKOQQWZ4AL4PXXL5CCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
