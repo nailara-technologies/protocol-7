@@ -29,7 +29,7 @@ if ( $vendor eq 'nvidia' ) {
     }
     push( @{<system.kill_list>}, <X-11.gpu_top.pid> );
 
-    <X-11.gpu_top.process_started> = <[base.time]>->(2);
+    <X-11.gpu_top.process_started> = <[base.ntime]>;
     <X-11.gpu_top.out_fh>          = $out_fh;   ## keep fh alive past scope ##
 
     <[event.add_io]>->(
@@ -79,7 +79,7 @@ if ( $vendor eq 'nvidia' ) {
     }
     push( @{<system.kill_list>}, <X-11.gpu_top.pid> );
 
-    <X-11.gpu_top.process_started> = <[base.time]>->(2);
+    <X-11.gpu_top.process_started> = <[base.ntime]>;
 
     <[event.add_io]>->(
         {   'fd'      => $out_fh,
@@ -89,8 +89,8 @@ if ( $vendor eq 'nvidia' ) {
     );
 }
 
-#,,.,,,.,,,..,,.,,...,...,,..,,,,,,,.,,..,...,.,.,...,...,..,,,,,,,.,,.,.,,,,,
-#75373HHIA5VV5VCIWMALK5WRWIPLN77CPWEW537PJY5GOGAMEGOELVNBDPVZBQ2AO5HKIFXKV4D36
-#\\\|MH7BXMEJD6R5Z6HL6VWUCEFDPFM6TJX3WKJRNGDOHX54F3TFUWC \ / AMOS7 \ YOURUM ::
-#\[7]6WW5JTMY63QEUGUMYPINYKUIA5C4FISMIQC4JTGPAE6TFKZH4KCY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,..,,,,.,...,..,,,..,,.,,,,,,,.,,.,.,...,...,..,,.,.,..,,,,.,...,
+#ILPDROUSR63U7FR6DYTQE5U2VNJLEKNMPLDBGVVYISLBG7ZJWYH2N4UFEL5Z43Z66RUGCIOFRK7AO
+#\\\|QJBBQV742P75FFZLTCQFCKGXVICOTVV2F7ZMMOQQMSEBZITJBKD \ / AMOS7 \ YOURUM ::
+#\[7]NXDFTDFLSNMKYD7KA5DZRFPUISWB45WSOIMS3ZQ2PTQ62Q7Z72CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

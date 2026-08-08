@@ -27,8 +27,8 @@ my $elf_result = eval { <[chk-sum.elf]>->($workload_hash) } // '';
 ## Calculate AMOS7 checksum (provides harmonic validation)
 my $amos_result = eval { <[chk-sum.amos]>->($workload_hash) } // '';
 
-## Derive loves_it score from checksum properties
-## Mode 4 (data truth): Checksum exists and is valid
+## Derive loves_it score from checksum properties  Mode 4 (data truth):
+## Checksum exists and is valid
 my $mode4 = ( defined $elf_result && length($elf_result) > 0 ) ? 1 : 0;
 
 ## Mode 7 (love-truth): AMOS checksum validates with harmonic properties
@@ -136,8 +136,8 @@ if ( !$response->is_success ) {
         $response->status_line
     );
 
-    ## re-register for coding startup notification on http error ##
-    ## [ wakes coding after idle shutdown and resumes polling ] ##
+    ## re-register for coding startup notification on http error [ wakes ##
+    ## coding after idle shutdown and resumes polling ]                  ##
     <lm-vision.poll_paused> = 0;
     <[protocol-7.route-send]>->(
         {   'command'   => qw| v7.notify_online |,
@@ -191,7 +191,7 @@ my $job_id = <[base.gen_id]>->(<lm-vision.jobs>);
     'output'          => $generated_text,
     'finish_reason'   => $finish_reason,
     'start_time'      => <[base.time]>->(3),
-    'end_time'        => <[base.time]>->(3),
+    'end_time'        => <[base.ntime]>,
     'backend'         => 'http',
     'loves_score'     => $loves_score,
     'loves_it'        => $loves_it,
@@ -221,8 +221,8 @@ return {
     }
 };
 
-#,,..,.,,,,,,,.,.,,.,,,,.,..,,...,,.,,...,..,,.,.,...,...,,..,.,.,...,...,.,.,
-#CBIKT4XMJ2CUJWKSCMV2TIKTSS3F5QHNBBWDPULDH3HKU6X7OYVV3UJGUVNCJRRBGNT73JJV4QQ6S
-#\\\|W4ZEHSMN75QDIOMKPC4KEASIOTMIWUVAYCNCTGYV3C4WCKMR2HX \ / AMOS7 \ YOURUM ::
-#\[7]M4SEWQ33MVLJOATTQ3M35SXI63RKGMZDQ3FBTO752SF7OGY35EAY 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,,.,,.,,,...,.,,,.,.,..,,,..,..,,.,.,...,...,.,.,,,.,,,,,.,,,.,,,
+#NRD3CZ3AVDXLQLTXU7YT5QD3YBY5S5JMJV6PCFTQQWMNCQI3DLCJQWHN6P5GHQMF72RWMJTIHIZNW
+#\\\|ZHYY76AYVFRRAHPKGXFQIBAOVYZ3F3HFXAHGQUSV4JM46MD2A2V \ / AMOS7 \ YOURUM ::
+#\[7]WJLEDXCIIUFUEKDF4IM26FYZ6376EWR7EELTYD57SUEWK2NB44DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

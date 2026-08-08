@@ -7,9 +7,7 @@ my $params = shift || {};
 
 ## Check if already loaded this session
 if (<work.cfg.signing_key_loaded>) {
-    <[base.log]>->(
-        3, "work.key: signing key already loaded this session"
-    );
+    <[base.log]>->( 3, "work.key: signing key already loaded this session" );
     return {
         success        => TRUE,
         already_loaded => 1
@@ -18,8 +16,7 @@ if (<work.cfg.signing_key_loaded>) {
 
 <[base.log]>->( 2, "work.key: loading signing key for this session..." );
 
-## TODO: Integrate with sourcecode zenka key loading pattern
-## This should:
+## TODO: Integrate with sourcecode zenka key loading pattern  This should:
 ## 1. Prompt for passphrase ONCE
 ## 2. Decrypt key into memory
 ## 3. Store in <work.signing_key.decrypted>
@@ -27,7 +24,7 @@ if (<work.cfg.signing_key_loaded>) {
 ## 5. Reuse for all operations this session
 
 ## For now, just mark as loaded (placeholder)
-<work.cfg.signing_key_loaded> = time();
+<work.cfg.signing_key_loaded> = <[base.ntime]>;
 
 <[base.log]>->( 2, "  ✓ Key loaded and ready for batch operations" );
 
@@ -38,8 +35,8 @@ return {
 
 0;
 
-#,,,.,,.,,,,.,...,.,,,,,,,,.,,,..,...,...,..,,..,,...,...,...,,,.,.,,,.,.,.,.,
-#S4N5V4FV3G7IV45EMWBUZYLVWLY4S7PBNTLDALHVY4IWUC4C6BREDMHTOVBYOC7TYQVB7AKK2JPYI
-#\\\|EDKWD6AKS4XUD5RWR4JMXIZ7GSGXC4X4TOOYNB26FXFPPFOOARR \ / AMOS7 \ YOURUM ::
-#\[7]HLT6DPJBMTHSOIPVNQKYNTL42CUEUORUZ22D3OVQUMHMI3O7EKBI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,...,...,,,.,.,,,..,,.,.,..,,,.,,..,,...,...,.,.,,,,,...,,,.,,,.,
+#4JN5VDPVVQLBD2QHPXB2WFGAAQTF77HYTOWLT3IFM2QPADVZ4DH6WFXY7JDU47ZHED3NFBCLYMWYM
+#\\\|WYR35ZBTYN3NV3ZSPWFMLREG7HBKUPHI4GDS2HPYZGHYO232HL6 \ / AMOS7 \ YOURUM ::
+#\[7]3RGUA6IPLMA3MGRASA2FIQMZNBURMO7HX6FMX3PZAF3OMFJ3WWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

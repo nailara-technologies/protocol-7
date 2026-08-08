@@ -8,7 +8,7 @@
 # This enables key-based auth without passwords
 
 my $session_id = $call->{'session_id'};
-my $args = $call->{'args'} // '';
+my $args       = $call->{'args'} // '';
 
 my ( $username, $pubkey_b32 ) = split( m|\s+|, $args, 2 );
 
@@ -49,32 +49,28 @@ if ( $EVAL_ERROR or not defined $pubkey_bin ) {
 unless ( length($pubkey_bin) == 32 ) {
     return {
         'mode' => qw| false |,
-        'data' => sprintf(
-            'invalid pubkey length: expected 32 bytes, got %d',
-            length($pubkey_bin)
-        )
+        'data' => sprintf( 'invalid pubkey length: expected 32 bytes, got %d',
+            length($pubkey_bin) )
     };
 }
 
 ## Register the master key
 $keys{'auth'}{'c25519-master'}{$username} = {
-    'public_b32' => $pubkey_b32,
-    'pubkey_bin' => $pubkey_bin,
-    'registered_at' => time(),
+    'public_b32'    => $pubkey_b32,
+    'pubkey_bin'    => $pubkey_bin,
+    'registered_at' => <[base.ntime]>,
     'registered_by' => 'manual',
 };
 
 <[base.logs]>->(
-    1, 'C25519 master key registered for user \'%s\'',
-    $username
+    1, 'C25519 master key registered for user \'%s\'', $username
 );
 
 return {
     'mode' => qw| true |,
     'data' => sprintf(
         'Ed25519 master key registered for user \'%s\' (key: %s...)',
-        $username,
-        substr( $pubkey_b32, 0, 16 )
+        $username, substr( $pubkey_b32, 0, 16 )
     )
 };
 
@@ -86,8 +82,8 @@ return {
 #\[7]TEST1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890ABCDEFGHIJKLMNO 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,.,,,,,.,,,...,,,,,..,,,..,,..,.,,,.,,,,,,,..,,...,...,...,,.,,.,.,.,.,,,,,
-#AW2SSWXNPBVO4NL337FGGIESRVICEFAQQH4BNFCWR4JMI5H5AJHMTVO34IECTR7N5LOHXYHTDB2QG
-#\\\|LAZ26NHQDE5JENAAEQULJX6CO5UBHMMUV5XJTZWEEUGJZBUB4RV \ / AMOS7 \ YOURUM ::
-#\[7]G5PMJXKPDSAYYTVHRBOIZUR4OF3FGTPUM7OHMFT5Z56PIXMKWGCQ 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,...,...,,.,,,,,,,,.,.,,,..,,..,,..,,...,.,.,..,,.,.,..,,.,.,.,.,
+#3S5QBY5RN6BE6OC44ASHKUJJBBWSYJAFS7LYMDPFVR2RGJ5YZDB7JOMC3HL6V6CQMWC4GXHNWZH3I
+#\\\|POM4N7ERJHBCQ576O77ZEIQBBNTK2KX6BN2SZ3VSMPKN7OPVUOV \ / AMOS7 \ YOURUM ::
+#\[7]MZXXKOI5SGAB5MTKM4OEEFOJY6XBZ7F72GH62O4VPOMJSR6SFYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

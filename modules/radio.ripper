@@ -12,7 +12,7 @@ $safe = substr( $safe, 0, 120 ) if length($safe) > 120;
 make_path(<radio.keep_library.path>)
     if not -d <radio.keep_library.path>;
 
-my $ts   = int( <[base.time]>->(3) );
+my $ts   = <[base.ntime.b32]>;
 my $path = <radio.keep_library.path> . "/${safe}_${ts}.mp3";
 
 open( my $fh, '>:raw', $path )
@@ -24,8 +24,8 @@ open( my $fh, '>:raw', $path )
 
 <[base.logs]>->( 2, '[radio] ripping: %s -> %s', $title, $path );
 
-#,,,,,...,..,,,.,,..,,..,,.,,,...,..,,,..,.,.,.,.,...,..,,,..,,..,,,,,,,,,.,.,
-#SL6FQQ5OXGWC7ANVPVASZQBSBUYFYET32JREJJGXY7QW3QD47DSVC246TD6YKERIUQLJE7PBWWJES
-#\\\|JNCT74NDR3GU3IUMVGTRNBFGPU7KOJYYCFJBBOURJP372T2UH3R \ / AMOS7 \ YOURUM ::
-#\[7]YBWVCIGHCROCOUYWU7PSHVFTFV3OFFKD5R6MU4POYJXKGWKPMCDY 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,,..,,..,.,.,,,.,.,,,,,.,,,,,,.,,.,.,...,...,..,,,.,,...,.,,,,.,,
+#TUIQYFSO2JFP4QKWUOD4BAKOWRMCS2AQ5DXISKHGVNUANKQH2GWIN5WKVTTI6DT2ZXLCD7ARZBDAE
+#\\\|CWLN5HZLE4AW73D2MM5P5ZZF7EWUUYRRROP5F3CXCVPKWTUV5L3 \ / AMOS7 \ YOURUM ::
+#\[7]Q6VYH7SQJMYRWKENHJZLKXOAMATX4TLIZ4XYXOURTVQ7PJUNMQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

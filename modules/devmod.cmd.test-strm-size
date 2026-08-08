@@ -12,14 +12,15 @@ my $size_kb = 0 + $args;
 $size_kb = 100 if $size_kb < 10 or $size_kb > 10000;
 
 ##  Generate test data with repeating pattern  ##
-my $pattern      = "SIZE mode data block " . time() . "\n";
+my $pattern      = "SIZE mode data block " . <[base.ntime]> . "\n";
 my $repeat_count = int( ( $size_kb * 1024 ) / length($pattern) ) + 1;
 my $test_data    = ( $pattern x $repeat_count );
 $test_data = substr $test_data, 0, $size_kb * 1024;
 
 <[base.logs]>->(
     1,
-    "cube.test-strm-size: returning %d bytes in SIZE mode (will auto-fragment if >64KB)",
+    "cube.test-strm-size: returning %d bytes "
+        . "in SIZE mode (will auto-fragment if >64KB)",
     bytes::length($test_data)
 );
 
@@ -31,8 +32,8 @@ return {
 
 1;
 
-#,,,.,..,,,,,,.,,,,..,.,,,..,,,..,.,,,,..,..,,..,,...,...,..,,,,.,...,,,.,,,,,
-#EUZQOKIT6SXYZDECN4SF64PT2LLMCCCZFNOBLXJUPF6L445U3A3XIF5B7YUTC4BK462H5BJEVBTUI
-#\\\|XSBINYF4OSMNW2FFSGBNPIOJNBAQLEYZNVC6K2BWVZGLED6PBRD \ / AMOS7 \ YOURUM ::
-#\[7]JEJYBZ5Z4O6SZDNHSWYB5J6FXCI53OVLKP7KBIMXBDS4V5XYNCAQ 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,,.,,,,.,...,,..,,..,,.,,,,.,.,,,..,,...,...,.,,,..,,..,,...,,..,
+#GLTIMC6VIEESWIVPHWOICBBFCUPZWLSD5WMNHBW5DCQKY7EMUGLTLQPLZ5ZEY3LZWGIOXBYAUOQH6
+#\\\|HQ6GXMUHTUUPGZYN3CIQWWUSGJHBAGFX2HFW2MRIH2LGFXGVEM3 \ / AMOS7 \ YOURUM ::
+#\[7]ADDVAM2ZBGWNHZTKUICPICPZHUZGHAB72LH2VDPT7VCPQHZJOWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -12,7 +12,7 @@ my $size_kb = 0 + $args;
 $size_kb = 100 if $size_kb < 10 or $size_kb > 10000;
 
 ##  Generate test data with repeating pattern  ##
-my $pattern      = "STRM test block " . time() . "\n";
+my $pattern      = "STRM test block " . <[base.ntime]> . "\n";
 my $repeat_count = int( ( $size_kb * 1024 ) / length($pattern) ) + 1;
 my $test_data    = ( $pattern x $repeat_count );
 $test_data = substr $test_data, 0, $size_kb * 1024;
@@ -30,8 +30,8 @@ return {
 
 1;
 
-#,,,,,.,,,,..,,.,,...,,.,,,..,...,...,,..,,..,..,,...,...,..,,...,...,,.,,...,
-#2E772ZK6LROQIKSQJU7LSYTSWDDGYQXK2CGBV4RKCOPO7HUGM7ODJY7HN6KCCICWVYZTQYAVACKW6
-#\\\|MZ5ASJEXOC2Q75GLREU3V5STTVZZLYT7ETTI4WKRA7IF7UIMGOL \ / AMOS7 \ YOURUM ::
-#\[7]X2EJ5HXPPZKAPTUNLEDG2PHUDP4STOQH7YYFFQPGBRYOTHI62YCQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,,.,,,.,,,.,,..,,.,,,,,,...,,.,,..,,...,...,...,.,,,,.,,,,,,...,
+#RCLVP3GRWDP2PZLG7HQHOAMQLARHS3IVR4BNHEDN4CUC722NHVXB2RB3J4R5SRQCYXKKCT5SEK4UY
+#\\\|P6YKSMM2XDDFJHP7MSMXJ5BRXTWW7IXZNBXSTDYONAPX5TT4D3P \ / AMOS7 \ YOURUM ::
+#\[7]HLWVHR3LAO6OKURETVQUCDEEGF5XGBZ35D65R3ZLT5FFNVYSHGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

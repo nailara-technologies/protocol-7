@@ -178,7 +178,7 @@ $window->signal_connect(
         ## aborting an in-progress fade-out so the ticker does not swap. ##
         if ( <[base.cfg_bool]>->(<ticker.mouse.swap_edge>)
             and not <ticker.swap.disabled> ) {
-            <ticker.mouse.swap_left_at> = <[base.time]>->(3);
+            <ticker.mouse.swap_left_at> = <[base.ntime]>;
             delete <ticker.swap.pending_until>
                 if defined <ticker.swap.pending_until>;
             <[base.log]>->(
@@ -603,8 +603,8 @@ my $ft_face   = $freetype->face($font_path);
 
 <ticker.obj.window>->queue_draw;
 
-#,,,.,.,.,,.,,,..,..,,,..,...,,..,.,,,.,,,.,,,..,,...,...,.,.,,.,,,,.,,..,.,.,
-#KEKJGDZABZF6VRCRYS7HSIIT45DAFRXDMYKEYUF3VFOXEKUGRUDLFX5WI3VL7ARGMYOU2JAQCHS4O
-#\\\|H43DVDPBZFDDESVKSJTTCHT6TYKBKXP53SU5WUBFCDB45C44CST \ / AMOS7 \ YOURUM ::
-#\[7]MPRVZWXY5HPVFPT33GK2XZFE5ZF2SZ2J3SD3U5BY6W2NBMLCQ2AA 7  DATA SIGNATURE ::
+#,,,,,...,,,,,,,.,..,,...,.,.,.,.,,,,,.,,,...,..,,...,...,..,,..,,...,,,.,.,.,
+#B47QVOL3VCTUUYGDUNBKO3KQ3XTEABCNK2SOCBH5PM6QZUN3I2I5COQS37HZV66MC32TPKLK4J6VG
+#\\\|3QKUIPYDM3KN6RTTSJHQEYNMN3WYGML5FSMVFQXA463XD6E4S4Y \ / AMOS7 \ YOURUM ::
+#\[7]PL7B4GLS4KNM3QPIBS3QFIVVR5GEYNI7ODSRWJMMK2NPJH2XUMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

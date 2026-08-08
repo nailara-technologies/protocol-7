@@ -93,7 +93,7 @@ if ( defined $station_id ) {
     if ( !-f $city_file ) {
         <[base.log]>->( 1, "writing location '$city' to disk cache.," );
 
-        <[file.put_bin]>->( $city_file, time() . " $city\n" )
+        <[file.put_bin]>->( $city_file, <[base.ntime]> . " $city\n" )
             ;    # utf8 content ##
     }
     <[weather.parent.write_pages]>->($station_id) if $custom_zoom;
@@ -110,8 +110,8 @@ if ( defined $station_id ) {
     return { 'mode' => 'deferred' };
 }
 
-#,,,.,.,.,,.,,.,.,,.,,..,,..,,.,,,,..,,..,,.,,..,,...,...,,,,,...,..,,.,,,..,,
-#D3W6SUXH4BMHPAXI432ZJKMKDZ4JHFOYTHZQGHBMG37SUULI4MBIP3JPU7Y25CVWYOFNJCA7KTG7U
-#\\\|VXN7UZZNBKAOZF3PP7P3JVE3XZ7I5UNKL64ZJGNJSS3OJIAL4C5 \ / AMOS7 \ YOURUM ::
-#\[7]J3WAYMSXJDANSEZIGT3BR3XJP27NVZGOGQAVOQQ2I4QYEBCIFGBA 7  DATA SIGNATURE ::
+#,,.,,...,,,.,,.,,.,,,,..,,.,,.,,,...,,.,,,,.,..,,...,.,.,,..,...,,,.,...,...,
+#3X56672XOOZ4J7VY7X3SXDDZA33P64KGJNA7DN6GTIYNNHPJUPS7VOYVOKFEI3CSBRG545GI3RVO2
+#\\\|QOTIPIVJURKOWELYMN7CEAJXT5U4OFZUII2U32EIIPSED2RCMBP \ / AMOS7 \ YOURUM ::
+#\[7]KFU2ZKSVJYIOQWKXAINMMPCWEGA2TN56UNX4CMQPHT67P3LF7UCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

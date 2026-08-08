@@ -7,7 +7,7 @@ my $cube_reply = shift // {};
 die "[!] no tile transition data defined"
     if not defined <tile.transition.status>
     or !keys %{<tile.transition.status>};
-<tile.transition.status>->{'start_time'} //= <[base.time]>->(4);
+<tile.transition.status>->{'start_time'} //= <[base.ntime]>;
 
 my $fade_out_duration = 0.8;    # --> config
 
@@ -290,8 +290,8 @@ if ( defined <tile.transition.status.waiting> ) {    ## in progress? ##
 #print STDERR ">---\n" . Dumper( $cube_reply, <tile.transition> ) . "<---\n";
 #     if $event_type eq 'fade_out';
 
-#,,..,,..,..,,,.,,.,,,.,.,...,,,.,,,.,...,,..,..,,...,...,,..,,,.,,..,,.,,,,.,
-#Z3JU7Z6OPSMD5V3XSU7QI3VMWDRTWIGVS4ZG3FPC4BP3E73CEMWMN753PL7FKIJX3VUTB5YE4CKLK
-#\\\|UCB32TNG2K44X73YXSTJJTCSWEBPVTEDM5JV7W6MCKFBRIREYMG \ / AMOS7 \ YOURUM ::
-#\[7]X2FFRHXLHDGJPDSR3QISC2LDMFVGIVDVIXC6G7ZI7JZDXJUD4CAI 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,,.,,.,,.,.,.,.,,.,,,.,,,,.,...,..,,...,...,...,.,.,...,...,...,
+#F73SNV4W2QEFTQBV7J3RVBDYG66AK44BAK66JBJAAO3B25DGOZFYJBEWIS4SDNJZ5FRYEPSVCATAW
+#\\\|UPH5UNZPWDEC5ET3O53KSXATCSCDMMO3XB3OEXIIURNWEOPR4WB \ / AMOS7 \ YOURUM ::
+#\[7]XEAFUBMINCHK2JKPLVI4XLL23LJKITQDPWKKYZJWNL562CLZCAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

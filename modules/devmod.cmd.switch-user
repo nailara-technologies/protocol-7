@@ -22,13 +22,13 @@ if ( not defined $new_usr or !length($new_usr) ) {
 
     <[base.log]>->(
         0,
-        "[$id] << ! >> switching session "
-            . "from user '$old_usr' to '$new_usr' << ! >>"
+        "[$id] << ! >> switching session from "
+            . "user '$old_usr' to '$new_usr' << ! >>"
     );
 
     $data{'session'}{$id}{'user'} = $new_usr;
 
-    $data{'user'}{$new_usr}{'connected_since'} = <[base.time]>->(5);
+    $data{'user'}{$new_usr}{'connected_since'} = <[base.ntime]>;
 
     $data{'user'}{$new_usr}{'session'}{$id}    ## moving session data
         = delete $data{'user'}{$old_usr}{'session'}{$id};
@@ -37,7 +37,7 @@ if ( not defined $new_usr or !length($new_usr) ) {
     if ( !keys $data{'user'}{$old_usr}{'session'}->%* ) {
         delete $data{'user'}{$old_usr};        ## clear all data ##
         ## record last seen timestamp for 'present' command
-        $data{'user'}{$old_usr}{'last_seen'} = <[base.time]>;
+        $data{'user'}{$old_usr}{'last_seen'} = <[base.ntime]>;
     }
 
     return {
@@ -49,8 +49,8 @@ if ( not defined $new_usr or !length($new_usr) ) {
     return { 'mode' => qw| false |, 'data' => 'invalid user name syntax' };
 }
 
-#,,..,..,,..,,...,..,,.,,,.,.,,.,,...,...,,,,,..,,...,...,..,,,,,,,..,.,.,.,,,
-#SF5WLVTP6KMG77T3MF5HWY32CQMB3QQGNJRZ2YU4YD3DAZEIW33UE3XQCMVGOW3CDQ23PPSUK7KAC
-#\\\|BRQMUD5JAYNXIDW3ZJEPRLKRJCO37GAOYJTFPCQHVWVSG7QPXMP \ / AMOS7 \ YOURUM ::
-#\[7]2VSCZVOZQQER5Y56E34CIFJX55LMGSULRPJU62ASX5NHDZIYBABA 7  DATA SIGNATURE ::
+#,,..,...,...,...,...,...,.,.,,.,,,,.,,,,,.,,,..,,...,...,,,,,..,,...,,,,,.,.,
+#SBNCZ5TGI55AVQANA5GCJDYD7KUGSCO6AMC2TXORFGBE4JLKZPE76CHQCEEBEFB2HPBXJKJ3SSEAY
+#\\\|K5TJ4K23ADLDOJCMQ3AC2XUGEWCFUIXOPMSA7VMP3D2PIPSBBF6 \ / AMOS7 \ YOURUM ::
+#\[7]2VQ7QEOZRTD4HE5SD54LVVXUUK4VYRXQLJ252JHH4D4MLBUERUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

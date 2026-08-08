@@ -11,7 +11,7 @@ return { 'mode' => 'false', 'data' => "unknown job: $job_id" }
     if not defined $rec;
 
 $rec->{'stage'}       = 'rejected';
-$rec->{'rejected_at'} = time;
+$rec->{'rejected_at'} = <[base.ntime]>;
 
 ## update per-job file
 my $job = <[jobsite.job.read]>->($job_id) // {};
@@ -32,8 +32,8 @@ if ( not $remaining and <jobsite.cycle> eq 'reviewing' ) {
 
 return { 'mode' => 'true', 'data' => "rejected: $job_id" };
 
-#,,.,,,..,...,.,,,..,,,,.,.,.,..,,...,,..,,,.,..,,...,...,.,.,.,.,,,,,,,.,.,.,
-#L7KDKFOY4CTZZFHCJWYP2ZEERONMFVO44A5VCDNFFYHYFAXRZAAQ47LPZAKDVXQUEEIGBUIT5RB4Q
-#\\\|J4BHITDUWDJXPR72PVLR6WNQL5SIRXI5YEW3XCSNXV6IWFTL7SR \ / AMOS7 \ YOURUM ::
-#\[7]45N7ISMEI4FNBUAFRHUZMLMCF5SKHUC7BHI3RP2A3HCONESXG6DQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,.,.,,,,,..,,,,,,.,.,.,.,.,.,.,.,..,,...,...,..,,..,,,..,.,,,,.,,
+#33SWNARK3N57GWEWZNU4QBS3OZCESTGR7WUW3ZXE7ULLLKPVVSHID4QIA7CTRNPNMNWPQQ2VX3BLI
+#\\\|W3KWZBFSTD2AGFM6ATGA67B76PXY2GZLYCRHA5BQIQV62UWQQHG \ / AMOS7 \ YOURUM ::
+#\[7]HJZJMNHJ4XL2I5DOY4A4C2BOQ2O4IFD72U2PXCTMX24XIMNOSKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

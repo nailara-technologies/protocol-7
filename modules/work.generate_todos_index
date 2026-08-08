@@ -14,35 +14,37 @@ my $workspace_todos = <[work.extract_workspace_todos]>;
 push @todos, @$workspace_todos;
 
 my $index_data = {
-    generated_at => scalar(localtime()),
-    timestamp => time(),
-    total_count => scalar(@todos),
-    by_source => {},
-    by_priority => {},
-    by_status => {},
-    todos => \@todos
+    generated_at => scalar( localtime() ),
+    timestamp    => <[base.ntime]>,
+    total_count  => scalar(@todos),
+    by_source    => {},
+    by_priority  => {},
+    by_status    => {},
+    todos        => \@todos
 };
 
 # Aggregate statistics
 foreach my $todo (@todos) {
-    $index_data->{by_source}{$todo->{source}}++;
-    $index_data->{by_priority}{$todo->{priority}}++;
-    $index_data->{by_status}{$todo->{status}}++;
+    $index_data->{by_source}{ $todo->{source} }++;
+    $index_data->{by_priority}{ $todo->{priority} }++;
+    $index_data->{by_status}{ $todo->{status} }++;
 }
 
 # Ensure index directory exists
 my $index_dir = <work.cfg.index_dir>;
-unless (-d $index_dir) {
+unless ( -d $index_dir ) {
+
     # Create with parents if needed
     require File::Path;
-    File::Path::make_path($index_dir) or die "Cannot create index directory: $!";
+    File::Path::make_path($index_dir)
+        or die "Cannot create " . "index directory: $!";
 }
 
 # Check if existing index exists and compare content (ignoring timestamps)
-my $todos_index = <work.index.todos>;
+my $todos_index  = <work.index.todos>;
 my $should_write = 1;
 
-if (-f $todos_index) {
+if ( -f $todos_index ) {
     my $existing_data = YAML::XS::LoadFile($todos_index);
 
     # Compare content excluding timestamp fields
@@ -55,18 +57,18 @@ if (-f $todos_index) {
     delete $new_copy->{timestamp};
 
     # Compare serialized versions to detect any actual changes
-    if (YAML::XS::Dump($existing_copy) eq YAML::XS::Dump($new_copy)) {
-        $should_write = 0;  # Only timestamp changed, skip write
+    if ( YAML::XS::Dump($existing_copy) eq YAML::XS::Dump($new_copy) ) {
+        $should_write = 0;    # Only timestamp changed, skip write
     }
 }
 
 # Write index only if content actually changed
-YAML::XS::DumpFile($todos_index, $index_data) if $should_write;
+YAML::XS::DumpFile( $todos_index, $index_data ) if $should_write;
 
 return $index_data;
 
-#,,,,,,,.,..,,,,,,,,,,.,,,...,.,,,...,,..,...,..,,...,..,,..,,,,,,,..,..,,.,.,
-#BNAPTBTA4JSFAHBF6ZX4O5FL4DDAPK3SG4VLNHAGWFBM4XAU3GQR7O2BPPYJC4HRS7OD5VAP7VQT6
-#\\\|JRJVMNL7I7RIPYCWSWW6OHCDPPMPGTRZF7X22Y62PPODWR5LSYZ \ / AMOS7 \ YOURUM ::
-#\[7]5C7DTTB7WAHWY75TFS4Q4XPAKB6FJ6AXFTYPEVJXHMMTJDJFICAI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,,..,.,.,..,,...,.,,,...,,..,,,,,..,,...,...,..,,..,,.,,,.,.,..,,
+#4EHC4MQLRYIR3DCIT7FUK7EV32JUI4V4YNK37NCONBPR2QTY4OG5I6DA3KUOW72MAA4V2K42SIWQG
+#\\\|XFHHB7V5T2QXC6JXI2L7JRMQNGGMHHZJ56OCGYY4STZDR5PP773 \ / AMOS7 \ YOURUM ::
+#\[7]JZ6PRSLVIM7XB6RSQS47KM4NY3LHETMW7W55ZAHSAFXWLA4572DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
