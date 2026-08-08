@@ -450,13 +450,13 @@ if ( $state->{'phase'} eq qw| record | ) {
         tier1_reason       => $tier1_reason,
         tier1_attempts     => $tier1_attempts,
         failure_class      => $failure_class,
-        timestamp          => <[base.time]>->(3),
+        timestamp          => <[base.ntime]>,
     };
 
     push @{ $state->{'results'} }, $result_record;
 
     <[coding.self_test.archive]>->(
-        {   epoch    => $state->{'epoch'},
+        {   ntime    => $state->{'ntime'},
             model_id => $model_id,
             result   => $result_record,
             anomaly  => $anomaly,
@@ -495,7 +495,7 @@ if ( $state->{'phase'} eq qw| done | ) {
 
     my $summary = {
         model_id   => $model_id,
-        epoch      => $state->{'epoch'},
+        ntime      => $state->{'ntime'},
         pass_count => $state->{'pass_count'},
         total      => $state->{'test_count'},
         all_passed => $state->{'all_passed'},
@@ -529,8 +529,8 @@ $state->{'all_passed'} = FALSE;
 $state->{'phase'}      = qw| done |;
 return TRUE;
 
-#,,,.,,..,...,...,.,,,...,,..,.,.,...,,.,,...,..,,...,...,,..,..,,..,,.,,,.,.,
-#IHZMH75OSGVX4CUIDB2SVJOSWDN7QLTBI7GJ3IFH574PLHBF4FVJZSLQLQIVEBJYVZNV5I5KHMGTM
-#\\\|J3DO4ZI4STS7P2HKUH4GJ6RA6ZHTKEBBDX4WHSYHKV25TADG7V7 \ / AMOS7 \ YOURUM ::
-#\[7]MQ4VI7BGZSNX47GCEAOETSKF2PXFTSFLSWS2X6MM4FVH7L6QTYAY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,...,.,.,...,...,..,,,.,,.,.,,..,..,,...,...,.,.,.,.,,,,,,.,,..,,
+#IKONTRDPEUDOPQZ4A5C7LN6S23KCYFZFUEWZYETBVDHWOWWK6L7JYLM3IGQ3OW47WGPUK5JAKL5UI
+#\\\|LTF4EVQVATEBJIWVBLS7L7ALWJG57TCHOTOUHWA3CT5633TN3GN \ / AMOS7 \ YOURUM ::
+#\[7]AEBO23KZEHM6ZPEMQ535DFYULJNEXH5W72W7WSMFPOZ52HCBXKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
