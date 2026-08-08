@@ -38,7 +38,7 @@ my $yaml_data = {
     'profile'  => 'saved',
     'metadata' => {
         'caller'   => $caller,
-        'saved_at' => <[base.time]>->(3)
+        'saved_at' => <[base.ntime]>
     }
 };
 
@@ -59,8 +59,8 @@ unless ( defined $yaml_content and length $yaml_content ) {
     return undef;
 }
 
-## key the saved position file on the caller name so each caller   ##
-## [ e.g. each shell/window kind ] gets its own remembered position ##
+## key the saved position file on the caller name so each caller [ e.g. ##
+## each shell/window kind ] gets its own remembered position            ##
 my $caller_chksum = <[chk-sum.amos]>->($caller);
 my $position_path = sprintf 'window/position.%s.yaml', $caller_chksum;
 
@@ -87,8 +87,8 @@ unless ( defined $bytes_written ) {
 
 return $bytes_written;
 
-#,,,,,,,.,,..,..,,,.,,.,,,..,,,.,,.,,,,,,,,.,,..,,...,...,,..,...,,,.,..,,,.,,
-#RWPXQA2GUEP6J2D2EXBKA2BUMB7STGVUQ64SD7AIXI3N6E3NJULZ67VETRTLL47Z2TV6JB6SM4DXQ
-#\\\|YV2ZODB6TKV3P6AN52WSXILKQZ3EAJNNV7BE5ESRTXADAB4K5JH \ / AMOS7 \ YOURUM ::
-#\[7]GU62M5NZU4GEFKEO2BHQ3L2R4WYCB5JBZ24V7XTWMY2IJVFGTICA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,,,,.,.,,..,...,,,.,,,,,...,,..,..,,...,...,...,..,,.,.,,,,,,,.,
+#AJ3455SGFW6NK6G6KQ4SCWVBF5O7LJGA3OZXAV5ZOBFLMX5M7MT2TKEZ2VQBK5YOM6EVYLAVIOZ42
+#\\\|ZFFKIBHJHNLVRPAP56LL23V4AAPQ6XDI3FCVNFV6FUUHTBVPRMQ \ / AMOS7 \ YOURUM ::
+#\[7]Y3ZAEGE3RVPOGAJOY2STCIVMNGZCLJ6GQDFOD2FOZ2TNRG2FZMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,11 +8,11 @@ my $cluster = shift // {};
 my $center = <[graphics.matrix.visual.cluster-center]>->($cluster);
 my $sphere = $cluster->{'sphere'} // 0;
 
-return
-    sprintf( "cubic-batch-s%d-%d%d%d-%d", $sphere, @$center, time() % 10000 );
+return sprintf( "cubic-batch-s%d-%d%d%d-%d",
+    $sphere, @$center, <[base.ntime]> % 10000 );
 
-#,,.,,.,,,,,.,,,.,,,.,,,.,..,,.,,,,,,,..,,,,,,.,.,...,...,..,,...,,,,,,,,,,..,
-#R4QSTHCITJ5QV6CDXMCMGCVFZEM5OCWODJVLFHGSBXBU56IHXRU52S4HKGJEKCZBJF6O2JBN32VMM
-#\\\|YMWDTAXQPFZF42C4DJ3QW5FS4RLJEWR4PO7C2JKTG64WMAUAS6U \ / AMOS7 \ YOURUM ::
-#\[7]GY5T7XPXBK7UD4CW6WON6VRQMR3Q74O543K34DGZ7XNKN2GK5KCI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,,.,,.,,,,,,..,,,,,,.,,,.,,,.,.,.,.,...,...,,,,,.,.,,,.,.,,,,.,,
+#WDXX25I3CRASH5ZGMIKBU7I26HJ3MVAJLDBZDMRBVF5D2ZZSIUW655GFTIMKGWGCB7KB45SAHYMWG
+#\\\|KI7C3ACTXQAXMQGDUI7UMFE5MYWRX5ERXCIJSKTM65PJ4WUXFSK \ / AMOS7 \ YOURUM ::
+#\[7]GKHQVVF6NFF2FQ3GXC2JYTHFMX4LSOCGW3KUJUJERDLNOZWT2EDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

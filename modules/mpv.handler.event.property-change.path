@@ -23,8 +23,8 @@ if ( <system.zenka.mode> eq 'universal-child' and $path eq '[PAUSE]' ) {
     if ( !-d $base_path and !-r "$base_path/.." ) {
         <[base.log]>->(
             0,
-            " : reencoded content directory is gone,"
-                . " shutting down., [ permissions ]"
+            " : reencoded content directory is "
+                . "gone, shutting down., [ permissions ]"
         );
         exit(1);
     } else {
@@ -36,15 +36,15 @@ if ( <system.zenka.mode> eq 'universal-child' and $path eq '[PAUSE]' ) {
     <[base.log]>->( 2, "playing '$path'" );
 
     <[base.buffer.add_line]>->(
-        'played', join( ' ', <[base.time]>->(5), 1, $path )
+        'played', join( ' ', <[base.ntime]>, 1, $path )
     ) if <mpv.log_played>;
 
     <[mpv.update_resc_timestamp]>->($path)
         if exists <mpv.file_map.rescaled.source>->{$path};
 }
 
-#,,,,,,.,,,..,.,,,,..,,..,,,.,...,,,.,...,...,..,,...,...,...,,,,,..,,..,,...,
-#2K4ZIN2RDHVGKO2R755BDC7BMNAW677VJ2NV47IE7TEKRM6QMNJM2DOSV3LQ2DCRSYXJDGCBTBAIK
-#\\\|ADWFZQ6LVIXPGCT2CZTJX3IRZPSEB3WNSVJ3ROXNP2Z2VOPHUIT \ / AMOS7 \ YOURUM ::
-#\[7]BXP3CWRVVFPBBOBGLZGRIUX4QCHYPAVKDXLD6HI6KLMRJUWDYSCY 7  DATA SIGNATURE ::
+#,,..,..,,..,,,,,,.,,,,,.,,..,,,.,,,,,,,,,,.,,..,,...,...,...,,.,,.,,,,,,,,.,,
+#H74A6UJVUEIYIF5PR3ISABNV22IQOJ4QK6YM6AAWQUHD3XE6JULNAARQAIDG7Q3BR53ROLSJDAR3M
+#\\\|HXK6JWGODH6FUCE2BHQ2NLY3TD764DSKL6ZBI2UEESC7DAZTMLQ \ / AMOS7 \ YOURUM ::
+#\[7]CWJMGZND7NMHOVSXZDN6OOTX3KLUVLUOOFHQ5AXROZQ2YSZJ7QCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
