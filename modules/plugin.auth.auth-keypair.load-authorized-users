@@ -36,7 +36,7 @@ if ( opendir( my $dh, $auth_key_dir ) ) {
                 $keys{'authorized-remote'}{$username} = {
                     'public_b32' => $pubkey_b32,
                     'public'     => $pubkey_bin,
-                    'loaded_at'  => <[base.time]>->(3),
+                    'loaded_at'  => <[base.ntime]>,
                 };
                 $loaded_count++;
                 <[base.logs]>->(
@@ -64,8 +64,8 @@ if ( $loaded_count > 0 ) {
 
 return $loaded_count;
 
-#,,..,..,,,.,,.,.,,..,,..,...,,.,,.,.,,.,,,..,.,.,...,...,...,,.,,,.,,.,.,,,,,
-#7DSXLWI2FBXSR5OEAEF5UF4ABU323SV4L5FJ3VOGF4NZT6KZNE5TSMAL6M47KR2FGK4ILOGQ673WW
-#\\\|DEKVGBXI5XS2BSCSYHZ3S2DWF6TZTW5VLKODVC3PGDBNLUWYSDK \ / AMOS7 \ YOURUM ::
-#\[7]75INF2K6EEA6O4L355NF6UC3UFJATNJIJBBEMSOVY27ICPSMEQCY 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,,,,.,,,..,,,..,,..,.,,,.,,,,.,,.,.,...,...,.,,,,..,,.,,.,,,.,.,
+#4Y3CKFJEYOIQLVVXVBG7E7B2S735N4MPZWPRGFDP42EA7QBPZQQPWCZDSUVCC2BE3G4EZK6NH2B34
+#\\\|DUX6F4ZHMU24LINW7J23GGWCBRRDM3EOJBIAHIB2S2NPMBU3LG3 \ / AMOS7 \ YOURUM ::
+#\[7]WL4ZRW4HBB327XY2YQUKXO6B4H7DS6C3G4DDL7J2YSK7VCBFOWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

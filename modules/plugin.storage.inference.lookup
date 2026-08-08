@@ -53,7 +53,7 @@ if ( defined $bmeta_ref ) {
 
 $branch_info{'hit_count'} //= 0;
 $branch_info{'hit_count'}++;
-$branch_info{'last_access'} = time();
+$branch_info{'last_access'} = <[base.ntime]>;
 
 ## write updated hit count via zenka_dir ##
 my $bmeta_content = join '', map {"$ARG=$branch_info{$ARG}\n"}
@@ -154,12 +154,12 @@ if ( @results > $max_results ) {
 ## update in-memory hot index ##
 $registry->{'branches'}{$L13} //= {
     'hit_count'    => 0,
-    'created'      => $branch_info{'created'} // time(),
-    'last_hit'     => time(),
+    'created'      => $branch_info{'created'} // <[base.ntime]>,
+    'last_hit'     => <[base.ntime]>,
     'result_count' => scalar @results,
 };
 $registry->{'branches'}{$L13}{'hit_count'}++;
-$registry->{'branches'}{$L13}{'last_hit'} = time();
+$registry->{'branches'}{$L13}{'last_hit'} = <[base.ntime]>;
 
 $registry->{'stats'}{'hits'}++;
 
@@ -196,8 +196,8 @@ return {
     },
 };
 
-#,,,.,.,,,,,,,...,,.,,,,.,..,,,,,,...,,,,,,.,,..,,...,...,.,,,.,.,..,,,.,,,,,,
-#B6UDGQ2X6C25PER2GBZHZFDORCHNC6RMJMRRRBMXX6AJSJZHNQSZKPQO5NDLZTUPLCDOKK27YDIFU
-#\\\|BV2EJBCADPROUC745KFWOJJW7CS3MNTUL5OMR622HM3ZUMUQEWU \ / AMOS7 \ YOURUM ::
-#\[7]ZYYCPTF7QIQFWCQAJCCUM7QUZRPCIF7N35RF7FOEOPQ26Z3XEGBY 7  DATA SIGNATURE ::
+#,,..,,..,,..,...,.,.,,.,,.,.,,.,,...,.,.,.,.,..,,...,...,..,,...,..,,.,,,.,.,
+#KDJNDGU4XQYCERWG2OPHTHOXVKHIUKIYPJ7SKDYA4PG5TJVUMA2TTPWRBRYKGW5YTBVW7B5JTTE7I
+#\\\|NJSRFBRD2ZQYZWTUVLH3U5DVQNQ2YEP23W5GXCAR2XU3VECDFUC \ / AMOS7 \ YOURUM ::
+#\[7]KP5HXYE2RCKJO5DZCNHYCAD23ZKHSNKN2TF2HSCG6AAJIWN3JOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

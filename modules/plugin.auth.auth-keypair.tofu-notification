@@ -9,22 +9,20 @@ my ( $username, $peerhost, $peerport ) = @_;
 
 return 2 unless defined $username and defined $peerhost and defined $peerport;
 
-##  Determine notification type based on TOFU status  ##
-##  This is called from validate-incoming-tofu callback  ##
-##  Build notification data  ##
+## Determine notification type based on TOFU status  This is called from ##
+## validate-incoming-tofu callback  Build notification data              ##
 
 my $notification_data = {
     'event'     => 'tofu-client-pinned',
     'username'  => $username,
     'host'      => $peerhost,
     'port'      => $peerport,
-    'timestamp' => <[base.time]>->(3),
+    'timestamp' => <[base.ntime]>,
     'action'    => 'awaiting authorization',
     'zenka'     => <system.zenka.name> // 'unknown'
 };
 
-##  Publish to security channel  ##
-##  Format: channel.path + JSON data  ##
+## Publish to security channel  Format: channel.path + JSON data ##
 
 my $json_module = <[base.perlmod.load]>->('JSON::PP');
 my $json_str    = eval { JSON::PP::encode_json($notification_data) };
@@ -48,7 +46,8 @@ unless ( ( $update_result->{'mode'} // '' ) eq qw| timestamp | ) {
 
 <[base.logs]>->(
     1,
-    "auth-keypair: published TOFU pinning notification for user '%s' from %s:%s",
+    "auth-keypair: published TOFU pinning "
+        . "notification for user '%s' from %s:%s",
     $username,
     $peerhost,
     $peerport
@@ -58,8 +57,8 @@ return 0;
 
 1;
 
-#,,,,,..,,.,,,,.,,..,,...,,,,,..,,.,,,,.,,...,.,.,...,...,,,,,,,,,.,,,.,,,.,,,
-#AB7WSCSHFARK2QPPCLGXUOMVDIPMW4KIXRTQ3W2XMHJGYTTDMJFGRP47JZAFC57UW2KMPX2UOUBLA
-#\\\|ONSQTSIIOG4IRVBQ4XPMZYGFD35CGLCNWFVWCUJVQ6N7HORT7LA \ / AMOS7 \ YOURUM ::
-#\[7]BAD72TYXWCGVKLR6BXRV62OWDN55PIFYHYXY5I6LS7CWZHNVYWBA 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,,.,...,.,,,,.,,..,,..,,..,,,,.,.,.,...,...,...,.,,,,,.,,,,,,.,,
+#74MSPI4MOSCF75XAQNARDIOCP34TKPXKJ7P4OTPGUHJO62SKRBABFT5VZQMOCPI37UJTE24ZXXSHA
+#\\\|M5RCCLTXLAC44GVREGUZ4ECVO7QAC3HZ3TKWBDU4SHZEI74UH7N \ / AMOS7 \ YOURUM ::
+#\[7]ESUL3AESXOUR7QKVA7I6APEQAUUDP6ASZLJIMKBKHJEBK6QO24DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

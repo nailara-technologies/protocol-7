@@ -21,8 +21,9 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
     my ( $username, $pubkey_b32, $sig_b32 )
         = ( ${^CAPTURE}[0], ${^CAPTURE}[1], ${^CAPTURE}[2] );
 
-    ## Get authorized remote user's Ed25519 public key for signature verification
-    ## Username must be in authorized-remote registry with public key
+    ## Get authorized remote user's Ed25519 public key for signature
+    ## verification Username must be in authorized-remote registry with public
+    ## key
     my $authorized_user_ref = $keys{'authorized-remote'}{$username};
 
     unless ( defined $authorized_user_ref
@@ -57,7 +58,8 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
         $output->$* .= "AUTH_ERROR invalid session pubkey format\n";
         <[base.logs]>->(
             0,
-            '[%d] auth-keypair failed: invalid session pubkey for user \'%s\'',
+            '[%d] auth-keypair failed: invalid '
+                . 'session pubkey for user \'%s\'',
             $id,
             $username
         );
@@ -76,8 +78,8 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
         return 2;    ## access denied - invalid signature ##
     }
 
-    ## Verify Ed25519 signature on the C25519 pubkey
-    ## Signature must be over the raw C25519 public key bytes
+    ## Verify Ed25519 signature on the C25519 pubkey  Signature must be over
+    ## the raw C25519 public key bytes
     my $signature_valid = FALSE;
 
     eval {
@@ -102,7 +104,7 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
         my $client_sock_fd = $data{'session'}{$id}{'handle'};
         my $tofu_result    = 0;
 
-        ##  Validate TOFU for TCP connections (not for unix domain sockets)  ##
+        ## Validate TOFU for TCP connections (not for unix domain sockets) ##
         if (    defined $client_sock_fd
             and defined $data{'handle'}{$client_sock_fd}
             and $data{'handle'}{$client_sock_fd}{'link'} eq 'ip.tcp' ) {
@@ -122,10 +124,12 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
             } elsif ( $tofu_result == 1 ) {
                 ##  TOFU pinned but awaiting authorization  ##
                 $output->$*
-                    .= "AUTH_ERROR TOFU: key pinned, awaiting authorization\n";
+                    .= "AUTH_ERROR TOFU: key pinned, "
+                    . "awaiting authorization\n";
                 <[base.logs]>->(
                     1,
-                    '[%d] auth-keypair: TOFU awaiting auth for \'%s\' from %s:%s',
+                    '[%d] auth-keypair: TOFU awaiting '
+                        . 'auth for \'%s\' from %s:%s',
                     $id,
                     $username,
                     $peerhost,
@@ -135,7 +139,8 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
             } elsif ( $tofu_result == 2 ) {
                 ##  TOFU mismatch - key compromise suspected!  ##
                 $output->$*
-                    .= "AUTH_ERROR TOFU mismatch - key compromise suspected\n";
+                    .= "AUTH_ERROR TOFU mismatch - "
+                    . "key compromise suspected\n";
                 <[base.logs]>->(
                     0,
                     '[%d] auth-keypair: TOFU violation for \'%s\' from %s:%s',
@@ -156,7 +161,8 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
             }
         }
 
-        ## Signature verified and TOFU validated - authenticate user with C25519 session key
+        ## Signature verified and TOFU validated - authenticate user with
+        ## C25519 session key
         $output->$* .= "AUTH_TRUE =)\n";
 
         ## Store C25519 session key for this user
@@ -164,7 +170,7 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
             'username'   => $username,
             'pubkey_b32' => $pubkey_b32,
             'pubkey_bin' => $c25519_pubkey_bin,
-            'timestamp'  => <[base.time]>->(3),
+            'timestamp'  => <[base.ntime]>,
         };
 
         <[base.logs]>->(
@@ -192,8 +198,8 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
 
 1;
 
-#,,,.,.,,,,,.,.,,,...,...,.,.,,..,,,.,.,.,.,,,..,,...,...,...,..,,,,.,,..,.,,,
-#I7KDXZADHQXSDCX3FLSGRLYYRN6F67S6V7ZBXUAFWXYVZJM6MU6FGFIU6QO3IDKI5RAPJQMY7HE7Q
-#\\\|64LKP2NWTHG2RWESVSASK4KH2D47TIOHB2W46HXHNP7ZPW4X4DE \ / AMOS7 \ YOURUM ::
-#\[7]X6GY3U276XGG77EKYGKHE3BGALRGXO5W3L7CM2NTB3BRVPBP6CDY 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,.,,,.,,,,.,.,.,.,,,...,...,...,..,,...,...,.,,,.,,,.,,,,.,,,,,,
+#CF7C3PKKWUNHCZ2SYLOVMY6ILQKG3P6W3SYB6ILKYZ5UIQQMPXVG5BTG5ER6F6TPWGEJPZ7O2ZU4O
+#\\\|PQ6W3B32AY355SEOLGVY3ICQTIII5D4F5HJ2YS3YD3G4VUYB5XY \ / AMOS7 \ YOURUM ::
+#\[7]4L6FSQIME5ZHYWBZC7GEIELD4BLDEZZ53XARBJNMNAXPG363QODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
