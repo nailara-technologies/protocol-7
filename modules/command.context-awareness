@@ -21,12 +21,9 @@ for my $arg (@$args) {
 if ( $cmd eq 'status' ) {
     my $tree = $data{'context'}{'tree'}{'summary'};
     return sprintf(
-        "Awareness Tree Status:\n"
-            . "  Version: %s\n"
-            . "  Events: %d (added: %d, compacted: %d)\n"
-            . "  Summaries: %d\n"
-            . "  Queries served: %d\n"
-            . "  Branches: %d",
+        "Awareness Tree Status:\n  Version: %s\n  Events: %d (added: %d, "
+            . "compacted: %d)\n  Summaries: %d\n  Queries served: %d\n  "
+            . "Branches: %d",
         $tree->{'version'},
         scalar( keys %{ $tree->{'events'} } ),
         $tree->{'stats'}{'events_added'},
@@ -40,8 +37,8 @@ if ( $cmd eq 'status' ) {
     my $branch      = $opts{'branch'}  // 'general';
     my $payload_str = $opts{'payload'} // '{}';
 
-    return
-        "Usage: context-awareness publish <type> [:branch: name] [:payload: json]"
+    return "Usage: context-awareness publish "
+        . "<type> [:branch: name] [:payload: json]"
         unless $type;
 
     my $payload = <[format.json.read]>->($payload_str) // {};
@@ -98,7 +95,7 @@ if ( $cmd eq 'status' ) {
 
     my $result = <[context.tree.summary.checkpoint]>->(
         {   'operation' => $operation,
-            'tag'       => $opts{'tag'} // time(),
+            'tag'       => $opts{'tag'} // <[base.ntime.b32]>,
             'branches'  => [ $opts{'branches'} // 'all' ],
         }
     );
@@ -133,8 +130,8 @@ Commands:
 HELP
 }
 
-#,,.,,..,,,,,,.,.,.,,,...,.,,,..,,.,.,.,.,,,.,.,.,...,...,..,,,.,,,.,,.,,,.,.,
-#JCUYM7BSDUXOT3HTGIFRB2KBLLCYKGYTVWJUW3FVDUDDN52AKSQ764NJHR7ADOWJAOFNJD2DVKYIA
-#\\\|7UKKQWIYO6LTHJPSEZU643TGCYJFKVY7VAUWL3BCWWUMXAQN54C \ / AMOS7 \ YOURUM ::
-#\[7]7ZGPKOPWUVWZY4M6XKDOUL7UMUVXRKWKFML7EEPFVOEYADKPKECI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,.,.,,,.,,.,,,,.,.,.,,..,,,,,.,.,.,.,...,...,...,,.,,,,.,,.,,,.,,
+#7HIQYIYWDLCTIXYMX7M7DLXJXMRISXHSRFUB7PJYWAWGBOEMJTEO2L5EKJKBZTBA5MQWME6OARZE4
+#\\\|W7DNFQBYLNC7FOQKXNF6DZDWT6OPPVE3QBGC2BBJTSF4IWW46WW \ / AMOS7 \ YOURUM ::
+#\[7]3VHQDOW57SJXEINFN65THRCXPS2N5OA35KABEPHQLGCLYCKDSKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

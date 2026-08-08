@@ -28,7 +28,7 @@ return { 'mode' => qw| false |, 'data' => 'no accumulated values' }
     if not @{$values_ref};
 
 my $job_id = <[chk-sum.elf.inline]>
-    ->( join( ':', $stream_id, scalar @{$values_ref}, time() ) );
+    ->( join( ':', $stream_id, scalar @{$values_ref}, <[base.ntime]> ) );
 
 return { 'mode' => qw| false |, 'data' => 'reduction job already running' }
     if exists <decoder.jobs>->{$job_id};
@@ -59,8 +59,8 @@ my $index_job = {
 
 return { 'mode' => 'deferred' };
 
-#,,,,,.,.,,,,,.,,,.,.,,,,,..,,.,.,,..,.,,,,.,,..,,...,...,...,,..,.,,,,.,,..,,
-#4LGK4ZSMOQM2RHWY6PWAROQZ4EQ6OMFBUNBYGQA2SDRTJHQAN2ZOZKQMJ2EPJE76UQXNFUX42Z7JQ
-#\\\|2A6OBJALRYB5JR5W2RMRSS7FWUBIV4O2TE6H5EDFHGVWVHYPX3Z \ / AMOS7 \ YOURUM ::
-#\[7]MHN7CE2JUQB3HA5RWTZ7ARTI5WVFHJ77IBTZFJPCVHJPUF5J2CBY 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,,.,,,.,,,.,,..,.,,,..,,,.,,,..,..,,...,...,,,.,,.,,,..,,..,..,,
+#OFQCVHM5O6OSZMKFZNQWHNPZUKN5SRBAG6LZIYCEBVZKHJ5VIBZNPD5N4KOZL67DH4DWRGZCMHCTO
+#\\\|4OB7FFZCK7OCCUEMIDTY64EO3O7QG6LGWEOEW4DZW5KSPGGVYHN \ / AMOS7 \ YOURUM ::
+#\[7]6OCENS562M2ZQVLKQ2YGO7XT73RJRVUZM5CVKMCUK75GI3WDE2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

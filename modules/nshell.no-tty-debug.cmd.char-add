@@ -107,7 +107,7 @@ if ( not exists <buffer.nshell-state-track> ) {
     <[base.buffer.add_line]>->(
         qw| nshell-state-track |,
         sprintf( '=== nshell state tracking initialized [%s] ===',
-            <[base.time]>->(9) )
+            <[base.ntime]> )
     );
 }
 
@@ -277,8 +277,8 @@ while ( length( <nshell.buffer.debug_input> // '' ) && $iteration < 20 ) {
     $iteration++;
     my $result = <[nshell.read_from_buffer]>;
     if ( defined $result and length $result ) {
-        ## command was submitted [ Enter key processed ]
-        ## route to cube same as shell_loop does
+        ## command was submitted [ Enter key processed ]  route to cube same
+        ## as shell_loop does
         my ($cube_sid) = keys <user.cube.session>->%*;
         if ( defined $cube_sid
             and exists $data{'session'}{$cube_sid} ) {
@@ -296,8 +296,8 @@ $diag_editor = <nshell.state>->{'editor'};
 $log_debug_event->(
     'POST_LOOP',
     sprintf(
-        'iterations=%d, debug_buf_len=%d, editor_buf="%s",'
-            . ' editor_defined=%d, mode=%d, hist_idx=%d',
+        'iterations=%d, debug_buf_len=%d, editor_buf="%s", '
+            . 'editor_defined=%d, mode=%d, hist_idx=%d',
         $iteration,
         length( <nshell.buffer.debug_input> // '' ),
         substr( ( ( $diag_editor // {} )->{'buffer'} // '' ), 0, 40 ),
@@ -365,14 +365,10 @@ if ( defined $nshell_state->{'ctrl_o_start_position'} ) {
 ### [ prepare formatted state reply ]
 ##
 my $state_transition_reply = sprintf(
-    "\n  : nshell state after processing\n\n"
-        . "  : current_mode        : %s (%d)\n"
-        . "  : current_history_idx : %d\n"
-        . "  : editor_buffer       : %s\n"
-        . "  : ctrl_o_start_pos    : %s\n"
-        . "  : ctrl_o_entries_add  : %d\n"
-        . "  : preload_entry       : %d\n"
-        . "  : .\n",
+    "\n  : nshell state after processing\n\n  : current_mode        : %s "
+        . "(%d)\n  : current_history_idx : %d\n  : editor_buffer       : "
+        . "%s\n  : ctrl_o_start_pos    : %s\n  : ctrl_o_entries_add  : %d\n  "
+        . ": preload_entry       : %d\n  : .\n",
     $mode_name,
     $nav_mode,
     $hist_idx,
@@ -392,8 +388,8 @@ my $state_transition_reply = sprintf(
 
 return { 'mode' => qw| size |, 'data' => $state_transition_reply }
 
-#,,,.,,..,.,.,..,,,,,,.,,,,.,,.,.,,,.,,,,,..,,..,,...,..,,...,,..,,,.,..,,...,
-#S72EFXKLYB6FPMIWES2QQRHNZNWBK7HDQQJ2FYYRR5GPNQ3SMEEB3LYYZM3HCAWFIDWATWRM224PW
-#\\\|Z4CWJQLHO26IGJZSPTSEWTCJ5ZK7DIK5NM2CKFBZEAJQGAUYYBV \ / AMOS7 \ YOURUM ::
-#\[7]7BV3YXLM7SBLC6GI3LFCSWF5FU42THMXIX2KC573PIYOINXQAKBY 7  DATA SIGNATURE ::
+#,,..,,.,,...,...,.,,,.,.,,.,,,,,,.,.,..,,,,,,..,,...,.,.,,..,.,.,..,,.,,,.,.,
+#L2CY4FSUD2P5PBEDNRJVXMHOR6IN2SSYUIJ3E2SLIVCGBGRWPSBH73BU7WUXMSRQDGRATUEYWXQZS
+#\\\|RYX2HSXNE4CJD4TBFFJSRL7DTBJK37I2K4HVBUZ5SJF6XSAWJ4N \ / AMOS7 \ YOURUM ::
+#\[7]TK24RMCWYIZ4SEXVO4M6VEZUFT5BLNK3MDB26D44ENP3K7HMIEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

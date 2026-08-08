@@ -18,8 +18,8 @@ unless ( -f $image_path ) {
     1, "[complete-analysis] starting auto-resume loop: image=%s", $image_path
 );
 
-## Create meta-job to track the completion chain
-## Initialize completion jobs store if needed
+## Create meta-job to track the completion chain  Initialize completion jobs
+## store if needed
 <lm-vision.complete_analysis_jobs> = {}
     unless defined <lm-vision.complete_analysis_jobs>;
 
@@ -33,8 +33,8 @@ my $meta_job = {
     'current_job'  => undef,
     'accumulated'  => '',
     'resume_count' => 0,
-    'max_resumes'  => 5,    ## safety limit to prevent infinite loops
-    'start_time'   => <[base.time]>->(3),
+    'max_resumes'  => 5,             ## safety limit to prevent infinite loops
+    'start_time'   => <[base.ntime]>,
 };
 
 <lm-vision.complete_analysis_jobs>->{$meta_id} = $meta_job;
@@ -62,13 +62,13 @@ if ( $backend eq qw| http | ) {
     );
     return {
         'mode' => qw| false |,
-        'data' =>
-            'complete-analysis requires cli backend, use analyze_image for http'
+        'data' => 'complete-analysis requires cli '
+            . 'backend, use analyze_image for http'
     };
 }
 
-## Spawn initial analysis via lm-vision.analyze_image internally
-## We need to call it as a deferred handler, so manually spawn the analysis
+## Spawn initial analysis via lm-vision.analyze_image internally We need to
+## call it as a deferred handler, so manually spawn the analysis
 my $binary      = <lm-vision.binary>;
 my $model_path  = <lm-vision.vision_model_path>;
 my $mmproj_path = <lm-vision.vision_mmproj_path>;
@@ -200,8 +200,8 @@ $job->{'err_io'} = <[event.add_io]>->(
 
 return { 'mode' => 'deferred' };
 
-#,,,.,,,,,,.,,,..,,..,,,,,,.,,...,,..,.,,,.,,,..,,...,...,.,.,,,,,.,.,.,,,,,.,
-#FPYCIBCRGH73W35LJWAQWOHQ3KBSXERDKWQ4PU3M24YRK2F7PSHT7OZCWI4KHU62VK4MNUREM7YDY
-#\\\|N2AFOK5D2RK62Q6YSXES232I6XESPUFNGHGE5OFEBIDNFNXBTSS \ / AMOS7 \ YOURUM ::
-#\[7]HE2NOKFR4DAO6T5KQAUZ7CXS6Y3H3I5YBB7N3GTK2QCPRHP2MGDQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,,.,..,,,,,,,..,,..,..,,,..,...,..,,...,..,,.,.,...,...,..,,,..,
+#BF6REZSB2US4VXS5SFMIRZQ2V6T7NWVV7P5X26ADRSIJ5E37L6YFGNGY2XJEEQN6EN4B43R5KGP2S
+#\\\|6LANVQDTTATTR7P3AU7N7TXL2LFZSBK4FQU4G54CAPI5UDB5UHC \ / AMOS7 \ YOURUM ::
+#\[7]HPABCTLLGEUNT5BQO7B67ZHARHKINHLF4L6FHVU365KIXIGCTSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
