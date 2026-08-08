@@ -47,7 +47,7 @@ my $coord_b32 = substr( $chksum_fn->( \$coord_str ), 0, 6 );
 my $p7ref = 'SPACE:' . $engine_node_id . ':' . $coord_b32;
 my $entry = {
     'p7ref'     => $p7ref,
-    'timestamp' => <[base.time]>->(5),
+    'timestamp' => <[base.ntime]>,
     'depth'     => 0,
 };
 
@@ -70,8 +70,8 @@ $INDEXCUBE[0] = $entry;
 
 return { 'mode' => qw| true |, 'data' => $engine_node_id };
 
-#,,,.,,,.,,..,,,,,..,,.,,,..,,...,.,.,,.,,,..,.,.,...,...,.,,,..,,...,..,,.,.,
-#RUMI5YQ4AHFM63QVTEGLMZQMSPFBABFFTATS3NN5A2BVEH2J66E5KL3IBL6EVVLJH74DORQFXCFJY
-#\\\|EJL2HBSPETFWGJN3XVBRPLAKIHRC24HUJODW7URHFY4TKSOF3TW \ / AMOS7 \ YOURUM ::
-#\[7]6LGUAKWUNWFTVDYTWQEFUJRLZYJ7F6JND4PYOMVMJCTGSRBOTWDY 7  DATA SIGNATURE ::
+#,,,,,..,,,..,..,,..,,,,.,,.,,,,,,...,,,.,.,.,.,.,...,...,.,,,.,,,.,,,.,.,.,.,
+#2F3JWS5IWA73NWWTIG6WHOKSVMXF45S7O2QY7F6NZ5ZSUOQX5AG4SPKX3REGYPZJERX5ZKVI64T46
+#\\\|ZN3L3J3IFKCUL3M56KSFVL7KGPIOHSUYUBYXHBIYWB2CF3ZUP7R \ / AMOS7 \ YOURUM ::
+#\[7]3WCJDV6XBTX6Z4IM763GL6MDXXQCNVGFQU3HHPXL5MDBVTFUPWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

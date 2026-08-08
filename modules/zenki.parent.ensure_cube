@@ -30,8 +30,9 @@ if ( $cube_check->{running} ) {
     ## Update registry
     $data{'zenki'}{'running'}{'cube'} = {
         pid     => $cube_check->{pid},
-        started => $data{'zenki'}{'running'}{'cube'}{'started'} || time(),
-        status  => qw| running |
+        started => $data{'zenki'}{'running'}{'cube'}{'started'}
+            || <[base.ntime]>,
+        status => qw| running |
     };
 
     return {
@@ -59,7 +60,7 @@ while ( time() - $start_time < $timeout ) {
         ## Update registry and statistics
         $data{'zenki'}{'running'}{'cube'} = {
             pid     => $check->{pid},
-            started => time(),
+            started => <[base.ntime]>,
             status  => qw| running |
         };
 
@@ -82,8 +83,8 @@ return {
 
 0;
 
-#,,,.,.,.,.,,,.,,,,,.,..,,.,,,,.,,,,,,,,.,.,,,..,,...,..,,.,,,,..,,,.,,..,...,
-#OV5DEWW5JJEQAAZOZD3N7JF53BMKTAWHOI2RYIID7D7SBWR4KGYEYW2NME3BHJE55AKG7P36UHCTU
-#\\\|RPPBV6SN3MPO44CS6UGAHLAWHLD2SYW4RGW4VOWRI4VDUXFWOWD \ / AMOS7 \ YOURUM ::
-#\[7]RNCJADFOSU6HAVFSCH6WC56NVWQQI4QVKEVDKSS2CIAGPJGWDMDI 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,.,,...,,,,,..,,...,..,,,..,.,,,..,,...,...,,,,,,,,,,..,,..,..,,
+#F5EY4NSHLFEDOEW4E7G42FHH5DEJ23RB72YOLAYJQMLFVROCTNJ4UFQT25RQYXJWCMUQLJMFGOPFM
+#\\\|HY47LPPMSMXF64CX6576XEZDIMIEQQCITXUARKDU5OGUSESZMDE \ / AMOS7 \ YOURUM ::
+#\[7]VFX36Y633NTD3JHNWMWM6GRXT4EIRTKNKHIZARC26OHZVFSIJCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

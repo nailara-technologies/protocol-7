@@ -28,8 +28,8 @@ if ( $action eq qw| create | ) {
         ## metadata ##
         'bytes_in'  => 0,
         'chunks'    => 0,
-        'created'   => <[base.time]>->(4),
-        'last_add'  => <[base.time]>->(4),
+        'created'   => <[base.ntime]>,
+        'last_add'  => <[base.ntime]>,
         'state_id'  => <[base.gen_id]>,
         'finalized' => FALSE,
     };
@@ -85,8 +85,8 @@ if ( $action eq qw| create | ) {
         }
     }
 
-    ## update ELF sum incrementally ##
-    ## ELF naturally supports resumption via start_checksum parameter ##
+    ## update ELF sum incrementally  ELF naturally supports resumption via ##
+    ## start_checksum parameter                                            ##
     my $new_elf_sum = <[chk-sum.elf]>->(
         $data,
         $state->{'elf_sum'},    ## start from previous sum ##
@@ -99,7 +99,7 @@ if ( $action eq qw| create | ) {
     ## update metadata ##
     $state->{'bytes_in'} += length $data;
     $state->{'chunks'}++;
-    $state->{'last_add'} = <[base.time]>->(4);
+    $state->{'last_add'} = <[base.ntime]>;
 
     ## optionally index position for stream addressing ##
     if ( defined $position and $position =~ m|^\d+$| ) {
@@ -148,8 +148,8 @@ if ( $action eq qw| create | ) {
         $bmw_digest = $ctx_for_digest->digest;
     }
 
-    ## harmonize ELF and BMW via AMOS7::CHKSUM ##
-    ## pass pre-calculated inputs to avoid re-processing ##
+    ## harmonize ELF and BMW via AMOS7::CHKSUM  pass pre-calculated inputs ##
+    ## to avoid re-processing                                              ##
     my $amos_result;
     eval {
         ## AMOS7::CHKSUM supports hashref form with pre-calculated values ##
@@ -218,7 +218,7 @@ if ( $action eq qw| create | ) {
         'bytes_in'  => $state->{'bytes_in'},
         'chunks'    => $state->{'chunks'},
         'positions' => $state->{'positions'},    ## position index ##
-        'saved_at'  => <[base.time]>->(4),
+        'saved_at'  => <[base.ntime]>,
     };
 
     ## try to serialize BMW state if getstate method exists ##
@@ -306,12 +306,13 @@ if ( $action eq qw| create | ) {
     if ( not ref $state->{'bmw_ctx'} ) {
         <[base.logs]>->(
             2,
-            ':. checksum.state: BMW not restored, will restart [ state_id=%s ]',
+            ':. checksum.state: BMW not restored, '
+                . 'will restart [ state_id=%s ]',
             $state_id
         );
-        ## this is acceptable : ELF continuity is maintained ##
-        ## BMW will restart, final checksum will differ but that's ok ##
-        ## for position-addressed indexing, we use ELF sum anyway ##
+        ## this is acceptable : ELF continuity is maintained BMW will ##
+        ## restart, final checksum will differ but that's ok for      ##
+        ## position-addressed indexing, we use ELF sum anyway         ##
     }
 
     <context.tree.checksum.states>->{$state_id} = $state;
@@ -351,7 +352,7 @@ if ( $action eq qw| create | ) {
         'bytes_in'      => $state->{'bytes_in'},
         'chunks'        => $state->{'chunks'},
         'positions'     => { $state->{'positions'}->%* },   ## shallow copy ##
-        'created'       => <[base.time]>->(4),
+        'created'       => <[base.ntime]>,
         'state_id'      => $new_state_id,
         'cloned_from'   => $state_id,
     };
@@ -382,8 +383,8 @@ if ( $action eq qw| create | ) {
 
 return { 'mode' => qw| false |, 'data' => 'unknown action' };
 
-#,,.,,.,,,...,,,,,,.,,,..,...,..,,,,,,..,,.,,,..,,...,...,,..,,,,,,,.,.,.,...,
-#EXX5APKQNSWQD56UMYRKCT3IUHC7FR6QZJGCXPUQBDEO43QIZOQHTIDTC26UN3SHG6QNNK3ITV5NY
-#\\\|H4X73SCBGXLPLDI26K37PAKCOHMDSDWXBBVNTBPNN65DROUGI73 \ / AMOS7 \ YOURUM ::
-#\[7]AFOYBDTFPAXD7KBNBJ7JABWUR3H2D4XBDYPBRVNTVV2RII4P6AAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,..,..,,,..,...,,.,,.,.,,,,,,..,..,,...,...,.,.,.,.,,..,,,.,,,,,
+#5LXIHWDDCOAC3JZD2Q7QCIWKU2I3SJJG444IYC5VFYX7FVXPFVLRSNHJOC4QLOEQSPVRXZFAWDRME
+#\\\|C37UDZHPJXV6X7OMXFABTZ7KPOOGGKTPAOWA553EC4WZ3FB7ENJ \ / AMOS7 \ YOURUM ::
+#\[7]O2ZUMXLW3GSFQWCVY6365DLTRNATFL5BWKAHAJHEFCVPEW43GUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
