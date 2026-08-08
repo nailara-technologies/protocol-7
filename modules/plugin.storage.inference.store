@@ -44,11 +44,11 @@ my $rel_content = "$rel_prefix/$question_L13/$ntime/$response_B32";
 my $rel_meta    = "$rel_prefix/$question_L13/$ntime/.meta";
 my $rel_bmeta   = "$rel_prefix/$question_L13/.meta";
 
-my $now    = time();
+my $now    = <[base.ntime]>;
 my $is_new = not -d $branch_dir;
 
-## check for near-duplicate response at this branch [ entropy check ] ##
-## scan timestamp directories reverse-sorted [ newest first ] ##
+## check for near-duplicate response at this branch [ entropy check ] scan ##
+## timestamp directories reverse-sorted [ newest first ]                   ##
 if ( -d $branch_dir and opendir my $bdh, $branch_dir ) {
     my $threshold = $registry->{'config'}{'entropy_threshold'};
     my @ts_dirs   = sort { $b cmp $a }
@@ -98,7 +98,8 @@ DEDUP_SCAN:
 
                     <[base.logs]>->(
                         2,
-                        ':. inference.store: dedup skip at %s [ divergence=%.3f < %.3f ]',
+                        ':. inference.store: dedup skip '
+                            . 'at %s [ divergence=%.3f < %.3f ]',
                         $question_L13,
                         $divergence,
                         $threshold
@@ -236,8 +237,8 @@ return {
     }
 };
 
-#,,,,,,..,..,,..,,,,,,..,,.,.,.,,,,,.,,,,,..,,.,.,...,...,...,..,,,..,...,.,,,
-#7IFGTV2KJ43GKOYK4QKXFLDPMH6IXORMC7XQVTU75RGXXJTWFSAX42M65NLVRYTANUYWEY2IOR3LY
-#\\\|7AOEXWBERY67S5AKR3PJAPZC7TZNHOWPP67AGS4OLATSXAAMG4Q \ / AMOS7 \ YOURUM ::
-#\[7]MO7Q2HSQNBWAXCDEZEC5ADVWFRNFZ6SALNHIURMTDUIH7H2MIYDA 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,..,,,.,,..,...,,.,,...,,.,,..,,.,.,...,...,...,.,,,.,.,.,.,.,,,
+#BNQQLALX6R4KRJKOSP7XRS32ZZN6HRBF7CNLVP4A4QSS6BCEI7PH3JXV7IPGXO76WBFKKTNHQLD6Q
+#\\\|CSJZIXNT7PRNUBACQJNH6KHPLMJWVUDYNUNCT3DPS2EA36BKBS7 \ / AMOS7 \ YOURUM ::
+#\[7]YIFHFZBC4DNNQE4BRHEVTRW3SO7SJ4SAEE752TLJ4JJGOW4LTMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

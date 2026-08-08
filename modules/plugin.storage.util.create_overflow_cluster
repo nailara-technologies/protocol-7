@@ -6,7 +6,7 @@
 my ( $parent_id, $members ) = @ARG;
 
 return <[plugin.storage.checksum.cluster.create]>->(
-    {   'checksum' => $parent_id . '-overflow-' . time(),
+    {   'checksum' => $parent_id . '-overflow-' . <[base.ntime.b32]>,
         'type'     => 'overflow',
         'members'  => $members,
         'metadata' => {
@@ -16,8 +16,8 @@ return <[plugin.storage.checksum.cluster.create]>->(
     }
 );
 
-#,,,.,...,.,.,..,,,..,...,,..,..,,,..,,..,.,,,..,,...,...,.,.,..,,,.,,,,,,.,,,
-#I2BYBN7C6G55W5EQSZ3BW6WCCRP5Q6XBUDRA4PLHLH6JZD3CZLOW3ZWXTCQOUKKFAF7C6MDBG5IT4
-#\\\|VAU6SMG4J6UOOUWOTAYR3UY57SXRW25776SUYSZBWRQX5E5VZQ7 \ / AMOS7 \ YOURUM ::
-#\[7]A34PWV44KSX3WOEB7VR3ZWG6NU6RUXCNII72QWR6YM4U7FZCPYDA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,..,..,,..,,,..,.,.,,.,,...,,,,,..,,...,...,.,,,,.,,.,.,.,,,...,
+#IAJD6FEGF75BC3AE7FEJVBUOIG4TJBXTMBBPZ5DIBFNECISFUNVYM4LSD7LPGV2M2AW6GCJSEMBR4
+#\\\|BK2RHSAMPIM3SQLTA63U56GFEYJWEFHJYMYCUTEQGR7O4EXQXN2 \ / AMOS7 \ YOURUM ::
+#\[7]I43PTFIDFCKYXG5ZE5P4LHCXZI4P3VOK6JMLMDGHWWMCMUWZBUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
