@@ -19,8 +19,9 @@ if ( $v7_check->{running} ) {
     ## Update registry
     $data{'zenki'}{'running'}{'v7'} = {
         pid     => $v7_check->{pid},
-        started => $data{'zenki'}{'running'}{'v7'}{'started'} || time(),
-        status  => qw| running |
+        started => $data{'zenki'}{'running'}{'v7'}{'started'}
+            || <[base.ntime]>,
+        status => qw| running |
     };
 
     return {
@@ -59,8 +60,8 @@ unless ( -x $v7_binary ) {
 
 <[base.log]>->( 2, "  Starting v7 : $v7_binary v7 &" );
 
-## Start v7 in background using system() with output redirection
-## This is the bootstrap case - v7 doesn't exist yet so we can't use jobqueue
+## Start v7 in background using system() with output redirection This is the
+## bootstrap case - v7 doesn't exist yet so we can't use jobqueue
 my $result = system("$v7_binary v7 </dev/null >/dev/null 2>&1 &");
 
 if ( $result != 0 ) {
@@ -87,7 +88,7 @@ while ( time() - $start_time < $timeout ) {
         ## Update registry and statistics
         $data{'zenki'}{'running'}{'v7'} = {
             pid     => $check->{pid},
-            started => time(),
+            started => <[base.ntime]>,
             status  => qw| running |
         };
 
@@ -110,8 +111,8 @@ return {
 
 0;
 
-#,,,.,,..,.,,,,,.,,,.,...,.,,,,.,,,,,,,,.,,,,,..,,...,...,,,,,.,.,.,,,,,,,.,,,
-#WSS4NN3L3SEVSTWZBFUFT66FY3SJZBGH2BVVN2CALSNEYQRHNJL6F4I22VPKKWLJYWUZQNHQIO6OC
-#\\\|SZGODDVF5LGUIC2LFRWEPCYK5EUHNVS6IXMR6IKLYXVPNCCNY23 \ / AMOS7 \ YOURUM ::
-#\[7]JYAYZ3SSCIHZ6I2TBUME5JTW4TSOREUYRGDKWXZAYE7QGIWZUADQ 7  DATA SIGNATURE ::
+#,,,,,...,,.,,..,,,,.,,.,,,,,,.,.,.,.,.,.,..,,..,,...,...,,,,,.,.,.,.,,,,,,,.,
+#XGKIGCYDMMTGHISS76W4J3MZSWZADCX6NJDDBZBMTGMYA6DVPT5H7LQWIJXK7EZ2A3QLAFKDQCWJQ
+#\\\|HFUAU654YWPW6VPCOL3OEN6CK5HB644LINYVQPHQM4SR4LQXT7V \ / AMOS7 \ YOURUM ::
+#\[7]AZP42KWV6RQPUT73HTTAEO5IG2CPU27OLGH2BT3ASPRSAVVRRSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

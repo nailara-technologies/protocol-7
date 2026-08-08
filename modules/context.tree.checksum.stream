@@ -35,8 +35,8 @@ if ( $action eq qw| open | ) {
         'bytes_total' => 0,
         'chunks'      => 0,
         'positions'   => {},           ## position -> { elf_sum, checksum } ##
-        'created'     => <[base.time]>->(4),
-        'last_chunk'  => <[base.time]>->(4),
+        'created'     => <[base.ntime]>,
+        'last_chunk'  => <[base.ntime]>,
     };
 
     <context.tree.checksum.streams>->{$stream_id} = $stream;
@@ -83,7 +83,7 @@ if ( $action eq qw| open | ) {
     my $data_len = length $data;
     $stream->{'bytes_total'} += $data_len;
     $stream->{'chunks'}++;
-    $stream->{'last_chunk'} = <[base.time]>->(4);
+    $stream->{'last_chunk'} = <[base.ntime]>;
 
     ## record position checksum ##
     my $elf_sum = $add_result->{'data'}->{'elf_sum'};
@@ -167,8 +167,8 @@ if ( $action eq qw| open | ) {
             'elf_sum'       => $pos_data->{'elf_sum'},
             'bytes_in'      => $pos_data->{'bytes_in'},
             'chunk_num'     => $pos_data->{'chunk_num'},
-            ## note: exact checksum at position requires re-processing ##
-            ## from closest checkpoint if delta is non-zero ##
+            ## note: exact checksum at position requires re-processing from ##
+            ## closest checkpoint if delta is non-zero                      ##
         }
     };
 
@@ -313,7 +313,7 @@ if ( $action eq qw| open | ) {
         'chunks'      => $meta->{'chunks'},
         'positions'   => $meta->{'positions'},
         'resumed'     => TRUE,
-        'resumed_at'  => <[base.time]>->(4),
+        'resumed_at'  => <[base.ntime]>,
     };
 
     <context.tree.checksum.streams>->{$stream_id} = $stream;
@@ -330,8 +330,8 @@ if ( $action eq qw| open | ) {
 
 return { 'mode' => qw| false |, 'data' => 'unknown action' };
 
-#,,,.,,..,,..,,,,,,.,,,,.,.,.,,..,,,.,,.,,.,.,..,,...,...,..,,,.,,.,.,.,.,..,,
-#NCFK2FCDIAEOW3LYVEKDXNUZJH27QJQYX73CEJ4MVBQDBKJHJV6CZSZ5BGVUZBBXPP56PIGMMOB4Q
-#\\\|RDZK76PJY2HGLH43KDKOK656ZGXDGLBTCJN4LZR6Q6KCDDIKCCU \ / AMOS7 \ YOURUM ::
-#\[7]AIKHDPUO7JVD5GNGWTV7LLQZRB7ZYFMDCOR6XCSE26Z4UFFN2GAQ 7  DATA SIGNATURE ::
+#,,,,,,..,..,,.,,,,..,,..,,..,.,.,,,.,.,.,,..,..,,...,...,.,,,,.,,.,.,,,,,.,.,
+#X37KN3ECXHQK7VVE5W3GWP4L7KND7MTCAWDKIJV5WNNMALNN4KCRBBFSL4CSCG2IZNRAAF5KOYRDA
+#\\\|7BNLRFRUKV4JAWQO3OJT5SLCMKRCCKV7R2JTNXHIAKLDMPPZMD2 \ / AMOS7 \ YOURUM ::
+#\[7]7UEFNV244DZ66PVFMUQAROPDG5EFGQSKP3JGQOPY2LSUVBWMDYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
