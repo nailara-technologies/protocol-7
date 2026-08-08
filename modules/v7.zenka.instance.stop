@@ -41,7 +41,7 @@ my $is_running = defined $process_id
     $instance_id, $zenka_name
 ) if $is_running;
 
-<zenka.instance.shutdown>->{$instance_id} = <[base.time]>->(5);
+<zenka.instance.shutdown>->{$instance_id} = <[base.ntime]>;
 
 <[v7.cancel_instance_timers]>->($instance_id);
 
@@ -55,8 +55,8 @@ if ( defined $process_id and $is_running ) {
 
 <[jobqueue.remove_job]>->($job_id) if defined $job_id;
 
-#,,,.,...,.,.,...,..,,,..,,.,,.,,,,,,,,,,,..,,..,,...,...,..,,.,.,,,,,,,,,.,,,
-#RJ5GRP7OHWEBEE3LD2JEJK3CLD5QSBLIHV2YMSIXFXVEPOW7WQEBZHDN3K7R7VLK7B65UU3SW7JKG
-#\\\|EVKZCOHIUJ2LFJEUE4J6PZ7IVKBUNYVSLUHPF7EQDNRVKDM7UBB \ / AMOS7 \ YOURUM ::
-#\[7]ECXU2PEVECVGXQRBMUVJMGJDVVJ2PQASMJUEZJZCPWOBYL65EGAI 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,,,,,..,,,.,,,,,,,.,.,.,..,,,,.,..,,...,...,.,,,,.,,...,,,,,.,.,
+#F7ISCBWP53IG5HITVUNKW7YHVWCYRDPDKVNYALP7P2YRU65CZYEMQMR2O7CHAH5UPLCT44P6W3VGG
+#\\\|LPOJTTZCTACGQHKJSDTKQ65DGXBH53WZGR7MW5NDULWJWIS6T5O \ / AMOS7 \ YOURUM ::
+#\[7]YQ6JFXKJ4JA4CQQML7XQB3R4YLPNXPVQ3QZ3IIEZIJFAZDKDJWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
