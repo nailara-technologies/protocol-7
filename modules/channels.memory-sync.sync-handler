@@ -39,13 +39,13 @@ foreach my $watch ( @{$watches} ) {
         'remote_zenka'  => $remote_zenka,
         'remote_path'   => $remote_path,
         'changed_value' => $changed_value,
-        'queued_at'     => <[base.time]>->(3),
+        'queued_at'     => <[base.ntime]>,
         'retry_count'   => 0,
         'max_retries'   => $watch->{'retry'} // 3
     };
 
-    ##  In production: event system would batch and send periodically
-    ##  For now, log the pending change  ##
+    ## In production: event system would batch and send periodically For ##
+    ## now, log the pending change                                       ##
 
     <[base.logs]>->(
         2, "channels memory-sync: queued change for watch '%s' (%s -> %s.%s)",
@@ -62,8 +62,8 @@ return {
 
 1;
 
-#,,.,,,.,,,,.,.,,,,.,,,,.,,..,,,.,.,.,,.,,,..,..,,...,...,,.,,.,,,,..,,,.,,..,
-#W2YWOQYJVZ2PHIR7IHGZFZ3PDC46DOUWHM6KBMNDETQ5PBJ5TPSP7OICNOMTQOQ57FUN55VWDZY4Q
-#\\\|7AIFPREK6FSTP3RZYSCHF7C7SDCRROAZXLM75HG6SLZMDCQJYMA \ / AMOS7 \ YOURUM ::
-#\[7]7YKJ7WB33WQHAB3X6I7SR337DVILXCJC3DAUFIO3E4A6KBTG76CI 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,..,,..,,.,,,..,,.,,..,,,.,,.,.,..,,...,...,.,.,,..,,..,.,,,.,,,
+#FBPTRRPFK3YHJRSVJKRE2NOVH34RYEOKEHCMTL2ST6D7N665IZBRR7AAEQI33TUXUYD55NOJSWNSA
+#\\\|PTFQO6QDFV6F4AZXCDVKDC2ZXCHHHXBFMJJX24PG2T54E6ZNPOM \ / AMOS7 \ YOURUM ::
+#\[7]NEPIEF5R7FF66QOWXGNFNIVYC6EWIMKXL555PLPLKVHBJCV2BGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

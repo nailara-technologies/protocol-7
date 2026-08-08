@@ -34,14 +34,13 @@ my $session_id = $call->{'session_id'} // 'unknown';
 my $subscriber_id = "${session_id}_" . <[base.gen_id]>->( {} );
 <channels.subscriptions>->{$channel_path}->{$subscriber_id} = {
     'session_id'    => $session_id,
-    'subscribed_at' => <[base.time]>->(2),
+    'subscribed_at' => <[base.ntime]>,
     'status'        => 'ACTIVE'
 };
 
 ##  Initialize channel data if not present  ##
-<channels.data>->{$channel_path} //= {};
-<channels.timestamps>->{$channel_path}
-    //= encode_b32r( pack( 'Q>', <[base.time]>->(2) ) );
+<channels.data>->{$channel_path}       //= {};
+<channels.timestamps>->{$channel_path} //= <[base.ntime.b32]>;
 
 <[base.logs]>->(
     1,           "channels: session %s subscribed to '%s'",
@@ -55,8 +54,8 @@ return {
 
 1;
 
-#,,..,.,.,,,.,.,.,,.,,,..,,,.,,,.,..,,.,,,,,,,.,.,...,...,..,,.,,,...,,..,,..,
-#OEFQVHP2XZCX6PNZMHVCVIZTGI7ST267LB7AOYNUMD6VKRA7VT655JUP4QJKDIECS2H3BEEMAVB2W
-#\\\|2JFW265KB6DKCGZOROTT5CTXJR35BRODS76HGTI6KBA7I5FZVLU \ / AMOS7 \ YOURUM ::
-#\[7]GBWPZ5MGYVTTU6BF2UBCONRBHWAIARNZE6C2UGOC3ZFJZ7M7LEAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,.,,,,,,,...,,..,,..,,..,,.,,..,,.,.,...,...,..,,,..,,..,,..,,..,
+#H5DZ6LZ45G6GYFODJBKYZV3QWEAAWX54ZOEEVFAOAE53WVIEE75RB3GBUD5KM657WBUGLCJWQIWK4
+#\\\|YGVRUZM7YAVHTYZQ6T3URRTLHQTQ5RZM3BPJJLKDZDK57RGUICF \ / AMOS7 \ YOURUM ::
+#\[7]MWACFHDFWQQRM5BVJVSHDV2GCDYDP5OLLPH42PC63FXPAVBT5IAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

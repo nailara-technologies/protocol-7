@@ -36,7 +36,7 @@ my $playlist_entry = {
     'url'           => $content_data->{'url'},
     'type'          => $content_data->{'type'}   // 'generic',
     'source'        => $content_data->{'source'} // 'discovered',
-    'added_at'      => <[base.time]>->(2),
+    'added_at'      => <[base.ntime]>,
     'description'   => $content_data->{'description'} // '',
     'duration'      => $content_data->{'duration'},
     'author'        => $content_data->{'author'},
@@ -56,8 +56,8 @@ if ( length $EVAL_ERROR ) {
     return { 'routed' => 0, 'errors' => \@errors };
 }
 
-##  Route to playlist zenka via channels  ##
-##  Target channel: playlist.${playlist_context}.add-item
+## Route to playlist zenka via channels  Target channel: ##
+## playlist.${playlist_context}.add-item                 ##
 ##
 
 my $playlist_channel = "playlist.$playlist_context.add-item";
@@ -86,8 +86,8 @@ unless ( defined $add_result and $add_result->{'mode'} eq 'timestamp' ) {
     <channels.discovery.stats>->{'total_routed'}++;
 }
 
-##  Also enable intelligent filtering based on LLM interest evaluation  ##
-##  (Will be evaluated by interested LLM zenka subscribing to these channels)  ##
+## Also enable intelligent filtering based on LLM interest evaluation (Will ##
+## be evaluated by interested LLM zenka subscribing to these channels)      ##
 
 return {
     'routed' => $routed_count,
@@ -96,8 +96,8 @@ return {
 
 1;
 
-#,,,,,...,,,,,,,.,,.,,,..,,..,.,.,.,.,,..,,.,,..,,...,...,,,.,,,.,.,.,,,,,,..,
-#ZEZBR64NFMDLHJGFPF2QTR6WFAFQ2TRGPD7WW62LLDYY2H4U2OKUF2ISJADQPZR53ADP3WI26WLVY
-#\\\|5JAKO74TOSYR47AQSVOINWYXXAXBSEYTSWYACJWQM7E3WO5M25Y \ / AMOS7 \ YOURUM ::
-#\[7]NAUEIH2BVFJEGYC4IWEILZ62PMPAE2L4OZMICRBZOF7BTOXOHWAY 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,,.,,,,,,.,,,..,.,.,...,,,.,..,,..,,...,...,...,.,,,...,.,,,.,,,
+#RTX25N35UNVSCNIBM3GQ3N5X6VJP6UVMKITMQFQPSIJ2X5HQ2I4QZ7WDY7J2ZT3XU575D7BWELPQI
+#\\\|2LCIQYHJSL7J7PWFI56E77Y4DOOVKIXADJJRUJC5VOJEL7QNDGE \ / AMOS7 \ YOURUM ::
+#\[7]MWXFZFMT66SI5OWFX5JHEOFXZWTDCD5RPWDUKSE5H5JMSLGHS2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -63,7 +63,7 @@ return {
 
 ##  Mark as developer-approved  ##
 $review->{'developer_approved'} = TRUE;
-$review->{'approved_at'}        = <[base.time]>->(2);
+$review->{'approved_at'}        = <[base.ntime]>;
 
 ##  Prepare commit information  ##
 my $commit_msg = $approval_ref->{'commit_message'}
@@ -76,7 +76,7 @@ my $approval_notification = {
     'branch'             => $review->{'branch'},
     'ai_approved'        => TRUE,
     'developer_approved' => TRUE,
-    'approved_at'        => <[base.time]>->(2),
+    'approved_at'        => <[base.ntime]>,
     'commit_message'     => $commit_msg
 };
 
@@ -103,14 +103,15 @@ if ( length $EVAL_ERROR ) {
 
 <[base.logs]>->(
     1,
-    "channels: developer %s approved review %s on branch '%s' (AI-approved + dev-approved)",
+    "channels: developer %s approved review %s "
+        . "on branch '%s' (AI-approved + dev-approved)",
     $developer,
     $review_id,
     $review->{'branch'}
 );
 
-##  Return success - in production, would also trigger automatic commit
-##  via event system or separate admin approval layer
+## Return success - in production, would also trigger automatic commit via
+## event system or separate admin approval layer
 
 return {
     'mode' => qw| true |,
@@ -119,8 +120,8 @@ return {
 
 1;
 
-#,,..,..,,,..,.,,,,,,,,,.,,,,,,,,,,.,,..,,..,,..,,...,...,.,,,...,,,.,..,,.,,,
-#D6R5OPVPMSFQDSVU5FK4C3I7CRLVR2IEJTNRW75HVHPNXPS7L2USTDRVI7ZDUBZC7KKLLEEWFVVOC
-#\\\|CJWHNH6WVOQQAPPQPDPV6YAW33CC4BBHACEBN5XN4S6LW6RWG2U \ / AMOS7 \ YOURUM ::
-#\[7]UFCR6AT7W4PBMQHBJHIAJOQULE6M6LYH4L4QI2B3RVRTT4E3EICY 7  DATA SIGNATURE ::
+#,,..,.,,,...,,,,,.,,,,..,..,,,.,,.,,,...,.,,,..,,...,..,,..,,,..,,..,,,,,.,.,
+#W2LUUC5SYW3VI72B2JFPVX4LVPNXH3D3A4NERKR26CU2TGZEQAJ52XJRKLPDYSU3ECKKGUOY5GU3O
+#\\\|TRDNE3J72BN3BQ5Y4RYUYBGP4PGEEP5II6RX3GXCNYPQHUISDAN \ / AMOS7 \ YOURUM ::
+#\[7]EXQJ5BC6IQ5OJ3HIY5BOYCSLHICNKMG33RZ7YXIZDTP3OI5DMWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -68,8 +68,7 @@ my $status = 'ACTIVE';
 
 ##  Update timestamp (for this channel)  ##
 <[base.logs]>->( 2, "channels.update: updating timestamp" );
-my $current_time   = <[base.time]>->(3);
-my $current_ts_b32 = encode_b32r( pack( 'Q>', int($current_time) ) );
+my $current_ts_b32 = <[base.ntime.b32]>;
 <channels.timestamps>->{$channel_path} = $current_ts_b32;
 
 ##  Update all_channels list with computed timestamp  ##
@@ -107,8 +106,8 @@ return {
 
 1;
 
-#,,,.,...,..,,,..,.,.,,..,.,.,,,,,,..,,,,,,,.,.,.,...,...,,,.,,.,,,..,.,,,,.,,
-#FI4EXYNUABLUPNA2VDHWCXFWSFTQFW2ERHPBZGLTBE6C4OS3252ZLJ5XYE7CY6BQQU53TQEFK6I3Y
-#\\\|QJIIUSOWTGFREZJYQ3JGG7D26UHYKDSFTYVNXZQQ6STGEJGDLZP \ / AMOS7 \ YOURUM ::
-#\[7]FSPXXXN4FSJCJ2XCGSE7M67OVZDLNNU3IPFF7SEBG3R72JYNOWBA 7  DATA SIGNATURE ::
+#,,..,,..,.,.,.,.,..,,.,,,..,,,,,,,,.,..,,...,.,.,...,...,,.,,...,,,.,,.,,,,,,
+#I4J57TV2AIOT252JQOT7CS2DNWMXFQ4XBHZMT5VZ6HZ62E7H74XMMWXHUU7Q6WXDJAICIO3QWMQLK
+#\\\|2EFBZCRYN7MST4ENJHS3BJGQAMQPMSLJLAQYZR2VZCTAOFGD6B6 \ / AMOS7 \ YOURUM ::
+#\[7]ZG6BMDVUMOWCWSYB3VVBVO2YLHLCCFQTMXNLGMQZSSTTD66WMOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

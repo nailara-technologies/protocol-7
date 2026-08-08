@@ -8,8 +8,7 @@
 my $channel_path = shift;
 return 0 unless defined $channel_path and length $channel_path;
 
-my $current_time   = <[base.time]>->(3);
-my $current_ts_b32 = encode_b32r( pack( 'Q>', int($current_time) ) );
+my $current_ts_b32 = <[base.ntime.b32]>;
 
 my $clients_notified = 0;
 
@@ -35,8 +34,8 @@ foreach my $request_id ( keys %{<channels.blocking_clients>} ) {
 
     next unless $matches;
 
-    ##  Send push notification with new timestamp  ##
-    ##  (In production, this routes via cube to client's session)  ##
+    ## Send push notification with new timestamp  (In production, this ##
+    ## routes via cube to client's session)                            ##
 
     <[base.logs]>->(
         2,           "channels: notifying client %s of change in '%s'",
@@ -44,13 +43,13 @@ foreach my $request_id ( keys %{<channels.blocking_clients>} ) {
     );
 
     ##  Mark this blocking client as handled  ##
-    $client->{'notified_at'}     = $current_time;
+    $client->{'notified_at'}     = $current_ts_b32;
     $client->{'notification_ts'} = $current_ts_b32;
 
     $clients_notified++;
 
-    ##  In real implementation, send response to client via cube/routing  ##
-    ##  Response format: TRUE <timestamp_b32>  ##
+    ## In real implementation, send response to client via cube/routing ##
+    ## Response format: TRUE <timestamp_b32>                            ##
 }
 
 <[base.logs]>->(
@@ -62,8 +61,8 @@ return $clients_notified;
 
 1;
 
-#,,,,,.,.,,..,...,,,.,.,.,...,,..,,,,,,,,,..,,.,.,...,..,,.,,,.,,,,,,,,,,,,,,,
-#4IKYSNYUCQP7HNDRHPUHGQWRVKE2Y7TL647XHBWY27DFNAYG6LB3C2AH2XVS33RYAYL47KLZNTB6Q
-#\\\|DJOIAZ4SVR7VZNEWU5DS532CW5B4775CIUW7M576SJJ556324HG \ / AMOS7 \ YOURUM ::
-#\[7]35MHGH4WSHCKXBWBSALDQ6HAKQ7MVNKGDC3J6LKE2FI4SRS6FSAI 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,,,,,,,,,.,.,,,.,,..,,,,,..,,.,.,.,.,...,...,.,.,...,...,,.,,..,,
+#SAXOFMXYRBB64DDSDJOJ3KPBZWDHVUSELKBW6N2423L6S7PZRVGQIJXGJGTVTB5C2JEEGLYQ3QGHQ
+#\\\|PZNPVZSQXH72VKS7C7GHOFYYAPI5VVA7HWWC3HKPGN36HJPT5CI \ / AMOS7 \ YOURUM ::
+#\[7]VWQYMN5YRS76ZYPHBYPEU4Z6TRFR7GS7CMCXVSN4PLMYSMAYH2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
