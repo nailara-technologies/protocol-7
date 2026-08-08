@@ -15,16 +15,16 @@ my $context = $args->{'evaluation_context'} // {};
 return { 'interest_score' => 0, 'relevant' => FALSE }
     unless defined $content and ref $content eq qw| HASH |;
 
-##  Evaluation criteria ##
-##  - Content type match (podcasts, technical articles, etc.)
-##  - Author/source relevance (known quality sources)
-##  - Keyword matching against interest domains
-##  - Duration suitability (not too short/long)
-##  - Recency (prefer fresh content)
-##  - Engagement metrics (if available)
+## Evaluation criteria                                       ##
+## - Content type match (podcasts, technical articles, etc.) ##
+## - Author/source relevance (known quality sources)         ##
+## - Keyword matching against interest domains               ##
+## - Duration suitability (not too short/long)               ##
+## - Recency (prefer fresh content)                          ##
+## - Engagement metrics (if available)                       ##
 
 my $evaluation = {
-    'timestamp'       => <[base.time]>->(2),
+    'timestamp'       => <[base.ntime]>,
     'content_title'   => $content->{'title'} // '',
     'criteria_scores' => {}
 };
@@ -121,7 +121,7 @@ my $is_relevant = $final_score >= 65 ? TRUE : FALSE;
     'evaluation'     => $evaluation,
     'interest_score' => $final_score,
     'relevant'       => $is_relevant,
-    'evaluated_at'   => <[base.time]>->(2)
+    'evaluated_at'   => <[base.ntime]>
 };
 
 <[base.logs]>->(
@@ -139,8 +139,8 @@ return {
 
 1;
 
-#,,.,,..,,,.,,,.,,...,.,.,.,,,,,.,,,.,,..,,,,,..,,...,...,.,,,,,,,...,..,,.,,,
-#O5BHX6IQ46TCZ7WJ2DPHHN2VVHEOT45EPMZMMVT5P7CFITWXUL37BRWGYY6QVIQQQDAH53YFQ2HLO
-#\\\|K2EYFDHBOKQRPZS4JWOMWABH4YJEMP77HTJM46EQCKVG7E4E6UL \ / AMOS7 \ YOURUM ::
-#\[7]NSGDAU5HFKGXDPWEUZJBGFFH7JDCZOARYHLBF7UYK7Y3XOEV2IAA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,.,,,...,,,.,.,.,,,,,,.,,,,,,,,,,..,,...,...,.,.,...,,..,,.,,.,,,
+#SIZ2CTKSV6BB7ANMQLZUO4V7PIE2ERXZE77NMYWSGC2XNLP2LQ44GE3VDNQB6MSPMWOHUBCPOKZM4
+#\\\|BLTFPX3BB2SXT34BSI5CWMIIZMV3OABF2AWYEV7KHMVN3S6NCU5 \ / AMOS7 \ YOURUM ::
+#\[7]L4BAJ5IRPS44QRS2C74KMTX2Q336N2VOPJGENKYOHULGHPYJNCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

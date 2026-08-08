@@ -22,7 +22,7 @@ my @errors;
 <channels.zenka_subscriptions> //= {};
 <channels.zenka_subscriptions>->{$zenka_name} //= {
     'subscriptions' => [],
-    'subscribed_at' => <[base.time]>->(2),
+    'subscribed_at' => <[base.ntime]>,
     'status'        => 'ACTIVE',
     'error_count'   => 0
 };
@@ -53,14 +53,14 @@ foreach my $mapping ( @{$mappings} ) {
         'channel_path'    => $channel_path,
         'source_channel'  => $source_channel,
         'map_rules'       => $map_rules,
-        'subscribed_at'   => <[base.time]>->(2),
+        'subscribed_at'   => <[base.ntime]>,
         'status'          => 'ACTIVE',
         'last_sync'       => undef,
         'last_error'      => undef
         };
 
-    ##  Subscribe to source channel if not already subscribed  ##
-    ##  (In production, routes through cube to channels zenka)  ##
+    ## Subscribe to source channel if not already subscribed (In ##
+    ## production, routes through cube to channels zenka)        ##
 
     <[base.logs]>->(
         1, "channels: %s subscribed to '%s' (mapped to '%s')",
@@ -73,7 +73,8 @@ foreach my $mapping ( @{$mappings} ) {
 ##  Log summary  ##
 <[base.logs]>->(
     1,
-    "channels: subscription manager configured %d mappings for '%s' (errors: %d)",
+    "channels: subscription manager configured "
+        . "%d mappings for '%s' (errors: %d)",
     $subscribed_count,
     $zenka_name,
     scalar @errors
@@ -86,8 +87,8 @@ return {
 
 1;
 
-#,,,,,...,.,.,,..,,,,,,.,,,.,,,,.,,.,,..,,,..,..,,...,...,,.,,,,.,.,,,...,.,,,
-#6BDSRFMNT6NKQXVL7BWHEVL3GIGP23DMXAFZFPP23LWYVEBA4SE74FD237GQQVNVJWJNC7FSDUNF6
-#\\\|XXQQ22NYCBP6YNSYOJS3LXWFLLGUPD2PFTBGYIYPBYNUOWGK3CH \ / AMOS7 \ YOURUM ::
-#\[7]MJAEIXRV2CNAZ2HTYVRCM5X2Q4XTUV67SPN3H3VSU3GNALS7XUBY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,..,,,..,..,,.,,,,.,,,,,,,,.,,,,,..,,...,...,,,.,.,.,.,,,,..,..,,
+#L2SODNYHXSNQPM27IPYTQDKEBVJI3EYDNY5MOHA654WYPALURSKTBNBPGRALSIIUOOBPMSTVYNOTC
+#\\\|N6R5JLNWOYKDD33MRBPHOIUFQ5Y3DTQNFYIXXXH6AOOIERVK6GJ \ / AMOS7 \ YOURUM ::
+#\[7]MHJKFYMQLKW2D7QWNWJUCVK2CD7DVWX3FK3JXXCPEIKG7V4EV6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
