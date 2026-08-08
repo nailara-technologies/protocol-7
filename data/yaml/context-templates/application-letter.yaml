@@ -1,0 +1,149 @@
+---
+name: application-letter
+descr: draft a German Bewerbungsschreiben [cover letter] for a specific job posting
+budget: 4000
+sections:
+  - provider: context.file
+    budget_pct: 20
+    priority: 1
+    params:
+      path: "{{job_yaml_path}}"
+
+  ## candidate profile lives outside the repo -- see feedback-no-personal- ##
+  ## data-in-repo-tree; jobsite.cfg.profile_file convention, fixed path,   ##
+  ## never inline candidate facts into this template itself                ##
+  - provider: context.file
+    budget_pct: 15
+    priority: 2
+    params:
+      path: "/etc/protocol-7/jobsite/profile.txt"
+
+  ## most recent cv from jobsite.cfg.cv_dir -- caller resolves the actual  ##
+  ## filename [ no "latest file in dir" provider exists yet, see note      ##
+  ## below ]                                                               ##
+  - provider: context.file
+    budget_pct: 15
+    priority: 3
+    params:
+      path: "{{cv_path}}"
+
+  ## a previously-sent letter, picked by the caller for closest role/tone ##
+  ## match, from jobsite.cfg.applications_html_dir -- gives the model a   ##
+  ## real style/structure reference instead of inventing formatting       ##
+  - provider: context.file
+    budget_pct: 20
+    priority: 4
+    params:
+      path: "{{example_letter_path}}"
+
+  - static: |
+      ## goal ##
+
+      write the TEXT of one German Bewerbungsschreiben (cover letter),
+      addressed to the contact named in the job posting, tailored to the
+      specific overlap between the posting's requirements and the candidate
+      profile / cv content above. see "output" below for the exact field
+      format -- no HTML.
+
+      ## hard rules ##
+
+      - never invent an attachment (Arbeitszeugnis, Zertifikat, etc.) --
+        only list documents that actually exist. if unsure whether a
+        specific reference letter still exists, ask rather than assume from
+        employment duration alone.
+      - never hardcode candidate PII [ name, address, phone, email ] as a
+        literal string in THIS template file -- it is repo-tracked. the
+        generated letter itself is written to an external output path
+        [ see below ], which is fine -- this instruction is about the
+        template, not the output.
+      - state one salary number, not a range, anchored upper-middle of the
+        posting's estimate range when a number is warranted -- see
+        feedback-jobsite-candidate-preferences: steady income outweighs
+        top-of-market pay, but don't anchor at the floor either.
+      - match the structure of the example letter above [ sender block /
+        recipient block / date / subject / salutation / body paragraphs /
+        Anlagen list / signature ] rather than inventing a new layout.
+
+      ## style ##
+
+      - dark screen theme via `@media screen and (prefers-color-scheme:
+        dark)`, forced-light `@media print` [ regardless of viewer OS theme,
+        via !important ] -- printed/sent documents must stay plain
+        black-on-white, screen reading should not be a bright white page.
+        see the palette + rule shape already established in
+        data/web-root/shared/templates/jobsite-report/dossier.html.
+      - lowercase-narrative tone does not apply here -- this is a formal
+        German business letter (Sie-Form), not project code.
+
+      ## output -- CONTENT ONLY, no HTML ##
+
+      do NOT write html/css. the model's job ends at the letter's TEXT --
+      wasting context re-deriving markup/theme/print-css for every single
+      letter is exactly what a fixed skeleton + substitution step exists to
+      avoid. this project already has a general-purpose, project-wide
+      template engine for exactly this split -- canonical spec:
+      data/yaml/system/template-markup-syntax.yaml. `<{VAR_NAME}>` is the
+      standard meta-variable token (not web-zenka-specific despite living
+      in `web.init_code`'s implementation), `<[INCLUDE:path]>` composes
+      shared partials [ e.g. a shared sender-block/footer fragment across
+      all letters ], and `web.cmd.render-template` [ routable cross-zenka
+      as `web.render-template <template_path> [meta-var=value ...]` ] is a
+      real, in-production consumer of it today. a jobsite-side wrapper
+      resolves cv_path /
+      example_letter_path, calls this coding-zenka template to get the
+      fields below, then routes `web.render-template` with the skeleton
+      path and the fields as `meta` -- no bespoke jobsite render module
+      needed.
+
+      emit exactly these fields, nothing else:
+
+        RECIPIENT_BLOCK   : company name [ + "z. Hd. Herrn/Frau X" line if
+                             a named contact is given in the posting ]
+        SUBJECT            : "Bewerbung als <title>" [ + Tätigkeits-
+                             ID/Referenznummer if the posting has one ]
+        SALUTATION          : "Sehr geehrte(r) Herr/Frau <name>," or
+                             "Sehr geehrte Damen und Herren," if no named
+                             contact
+        BODY_PARAGRAPHS     : the letter body, one paragraph per line,
+                             <span class="highlight">...</span> around
+                             concrete skill/project terms worth calling out
+        SALARY_LINE          : omit entirely if the posting gives no
+                             number to react to; otherwise one sentence,
+                             one number [ see hard rules above ]
+        ANLAGEN               : plain list, one item per line, only
+                             documents confirmed present in
+                             jobsite.cfg.reference_docs_dir / cv_dir
+
+      each field name IS the meta-var name the render step substitutes --
+      e.g. the model's SUBJECT becomes `<{SUBJECT}>` in the skeleton. the
+      model never touches file paths, CSS, or the dark/print theme.
+
+    priority: 5
+    budget_pct: 30
+    label: application-letter instructions
+
+## known gaps -- this is a first draft, not yet wired for one-shot         ##
+## coding-zenka generation:                                                ##
+##  - {{cv_path}} / {{example_letter_path}} must be resolved by the caller ##
+##    today; no "most recent file in dir" / "best style match" provider    ##
+##    exists yet to pick them automatically from jobsite.cfg.cv_dir /      ##
+##    jobsite.cfg.applications_html_dir                                    ##
+##  - no canonical, PII-free HTML/CSS skeleton with <{RECIPIENT_BLOCK}> /  ##
+##    <{SUBJECT}> / <{SALUTATION}> / <{BODY_PARAGRAPHS}> /                 ##
+##    <{SALARY_LINE}> / <{ANLAGEN}> meta-var tokens lives in the repo yet  ##
+##    [ dossier.html is the closest visual reference, but uses its own     ##
+##    ad-hoc [BRACKET] substitution done directly in Perl, not this        ##
+##    engine's <{...}> tokens -- worth converting for consistency, not     ##
+##    done here ]                                                          ##
+##  - the render step itself (`web.cmd.render-template` /                  ##
+##    `web.process_template_recursive`) is real and already in production  ##
+##    for the web zenka's own pages -- confirmed by inspection this        ##
+##    session, not assumed. only the jobsite-side wrapper (resolve paths,  ##
+##    call the coding zenka for the fields above, then route               ##
+##    `web.render-template` with the skeleton + fields) remains to build.  ##
+
+#,,,.,,,.,,,,,,,,,,,,,..,,..,,,,,,,,.,,,,,,..,..,,...,...,.,.,..,,...,.,,,..,,
+#47O7T4YS7N5K5FW7WDFRQ33DH27EN5O7EDCJPBGOARV3BB7YYGLAO267SR3UXM4NEP455F4CGOTVM
+#\\\|3ISA7ZEDRKZNVYYVPF4QPKY773LD6I3F6OZUBXXUYJK32NHZUNL \ / AMOS7 \ YOURUM ::
+#\[7]I5KZNYL7NQ6FSCZOW7F5SRW2EOPKN7GT23FFH433BU3WLMLX5ICQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
