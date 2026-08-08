@@ -30,7 +30,7 @@ if (@sorted) {
     my $task    = $next->{'task'};
 
     $task->{'execution'}->{'status'}  = qw| in_progress |;
-    $task->{'execution'}->{'started'} = <[base.time]>->(3);
+    $task->{'execution'}->{'started'} = <[base.ntime]>;
 
     $aref_pending->@* = grep { $ARG ne $task_id } $aref_pending->@*;
     push $aref_active->@*, $task_id;
@@ -50,8 +50,8 @@ return {
     queue_size => scalar( $aref_pending->@* )
 };
 
-#,,..,,..,,,,,.,,,,.,,,.,,,.,,...,...,,.,,.,.,.,.,...,...,...,,,.,,,.,,..,.,,,
-#C74VNQLMPJQBXSDV5QBL5P7MZS3APJAPD7CCHLILU5B76NEGLLNG4CB5YJ5AAIXAD6EVWUQDWNRIW
-#\\\|TPTDK7EFV6ADKDCF4RWZXQ7SWOZDBBOVZB43F3XTMIYTIQCRXDX \ / AMOS7 \ YOURUM ::
-#\[7]5AYG3GKX662NGFDA5ATPVJCHSQMS3R2KWOKUZI6RVDGZY245OGDY 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,..,,..,,,,,,.,,,,.,,..,,,,,..,,.,.,...,...,.,.,,,.,,,,,...,,.,,
+#773CTTAISMPBGKRWNN2IABNEZ7J72RYC746MLAA4WLTIG54VMPON6GQNMXETHDKC4Y2TKILIY6XTK
+#\\\|OBIQXNNIZZP5NCVCDO6GBOJCFN4645G552HR7PIPYW4DZOX2LT2 \ / AMOS7 \ YOURUM ::
+#\[7]WCAS4QNJ3GKGKGD62OWOMRGSJPAVK3FD247EZLZMNQEFEHWXD6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
