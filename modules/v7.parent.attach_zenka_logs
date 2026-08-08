@@ -17,8 +17,8 @@ unless ( $zenka_name && $zenka_pid ) {
 
 <[base.log]>->( 2, "v7.logs: attaching to '$zenka_name' (PID: $zenka_pid)" );
 
-## create unix domain socket for log streaming
-## path: /var/run/.7/logs/<zenka_name>
+## create unix domain socket for log streaming  path:
+## /var/run/.7/logs/<zenka_name>
 my $socket_dir  = '/var/run/.7/logs';
 my $socket_path = "$socket_dir/$zenka_name";
 
@@ -30,8 +30,7 @@ unless ( -d $socket_dir ) {
     };
 }
 
-## TODO: Implement log streaming via unix domain socket
-## key features needed:
+## TODO: Implement log streaming via unix domain socket  key features needed:
 ## 1. Capture zenka stdout/stderr in v7
 ## 2. Stream to unix socket for observers
 ## 3. Support multiple simultaneous observers (clone)
@@ -42,7 +41,7 @@ unless ( -d $socket_dir ) {
 $data{'v7'}{'zenki_logs'}{$zenka_name} = {
     pid         => $zenka_pid,
     socket_path => $socket_path,
-    attached    => time(),
+    attached    => <[base.ntime]>,
     observers   => []
 };
 
@@ -57,8 +56,8 @@ return {
 
 0;
 
-#,,..,.,,,.,.,,.,,..,,..,,..,,..,,,,.,,,.,,,.,..,,...,...,.,.,.,.,,,,,.,.,..,,
-#J7NS7AKNBJWDC7L6R5JRZMLVHMFBHIVBL46VBYDEJHDO7DZU74UJKTMW4ZEF4TPZSY3LO34B75RPM
-#\\\|6QM5QFKANRSYD4VMVSIK4PRKVHXJ7BREPXJSI4ODTPW2N76GYF5 \ / AMOS7 \ YOURUM ::
-#\[7]3EN5VPGXQFDX5O5WSYQLLKD7AJVALDBYRII23MKFTTQIOD4ZG2AQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,,,,...,,.,,.,,,.,,,..,,,..,..,,..,,...,...,,..,.,,,,,,,...,.,.,
+#AJZEPTTE4AVI7775OW4RJSOWNH5QVSFMCTHDRI55BJLDLI6XUA6E6NXIJ46Y4SQ2IKRO6DXNMR7EA
+#\\\|E7PMM7WQDQCBULKSMC2TAZEUQMRARFJGY2T6MHOGXFTNEOTRKM7 \ / AMOS7 \ YOURUM ::
+#\[7]3P4PNSCTEP7L2E2RNJNJL2B3QO62VKEJCDXZBW4FKHZ6X5G4JUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

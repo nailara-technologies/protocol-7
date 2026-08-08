@@ -36,7 +36,8 @@ my $build_handle = sub {
             or ( $cred->{'mode'} // '' ) ne qw| true | ) {
             <[base.logs]>->(
                 1,
-                'transport.handle.udt-tunnel: credential %s resolution failed',
+                'transport.handle.udt-tunnel: '
+                    . 'credential %s resolution failed',
                 $entry->{'credential'}
             );
             $continue->(undef) if ref $continue eq qw| CODE |;
@@ -95,7 +96,7 @@ if (   not exists $entry->{'credential'}
 
 ## async credential resolve via cred-mesh ##
 my $req_id = sprintf( 'udt-%d-%d-%d',
-    <[base.time]>->(0) // 0,
+    <[base.ntime.b32]> // 0,
     $PROCESS_ID, int( rand(1_000_000) ) );
 
 <transport.registry>->{'pending_resolve'}{$req_id} = {
@@ -117,8 +118,8 @@ my $req_id = sprintf( 'udt-%d-%d-%d',
 
 return;
 
-#,,..,..,,,,,,.,.,,,.,.,,,.,,,..,,..,,...,.,.,..,,...,...,.,.,.,,,..,,..,,,..,
-#CONUDK3DPCFCT6GNHLDYRCMDXTVTCSVLIXMJR3MGLIMLUZKXIYBCRZTQJ2MN6KUNLGK4MWW3K3J6A
-#\\\|CBOLG6KKVYX5LQHMF3OYEH23OFIT7HG4TYHBBYK6DDCF645EK5X \ / AMOS7 \ YOURUM ::
-#\[7]YSGF2F5EIITYLLRZ2ZRTF67NXVHLWPWNF6EHETFL4JK7EGKXE2CQ 7  DATA SIGNATURE ::
+#,,..,..,,...,.,,,...,,.,,,..,..,,,.,,,..,,,.,..,,...,...,,.,,,,,,,,.,,..,,.,,
+#HLWZFGE2M3ESORSJSDWJ2STOTVGPC764NBMIQ7QGWHT7IH3HAE7UYQ2M63I2JTJZBZXWBIHHG5B7E
+#\\\|RCZ6CXH7UF3V4YJ2OZQTY3RRD375CS2DWJDFXQU3SVU564JEBYX \ / AMOS7 \ YOURUM ::
+#\[7]QPXIJ4GAUSNA36YKZAFLKN4SD3ER7PXFQWJH5NDHP7YPZ3G2AYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
