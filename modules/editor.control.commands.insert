@@ -1,0 +1,17 @@
+## [:< ##
+
+# name  = editor.control.commands.insert
+# descr = insert text into a field buffer at CHARACTER position
+
+my ( $editor_state, $field, $pos, $text ) = @ARG;
+
+return undef if ref $editor_state ne qw| HASH |;
+my $buffer = $editor_state->{'fields'}{$field} // return undef;
+
+return <[editor.buffer.memory.insert]>->( $buffer, $pos, $text );
+
+#,,,,,,.,,..,,..,,,,.,,,.,,.,,,..,...,,,,,...,..,,...,...,,,.,.,,,.,.,.,,,,,,,
+#4ZOB4CLMZVD3SOE5L33RR6SPYSHKPJBDUHA5LSQQPM6KLWCIS6HQDCTRNIEW32JYLQBMLP5PTJUIW
+#\\\|CCPWDXM4TXW6FIDTSQJ42GRILI65GEGSMK3GDKWYQQ3N7N7MRYJ \ / AMOS7 \ YOURUM ::
+#\[7]ZPHVW325D5ZUVNYUJ7ADNUESNTHVNU6J6IFSTDDD4EU7LN5VUGDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

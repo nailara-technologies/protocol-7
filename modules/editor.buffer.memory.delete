@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = editor.buffer.memory.delete
+# descr = delete CHARACTER range [start,end) from in-memory editor buffer
+
+## char offsets, half-open [ $start, $end ) [ design: position_units ].
+## cursor inside the deleted range moves to $start ; cursor past the range
+## shifts left by the deleted length.
+
+my ( $buffer, $start, $end ) = @ARG;
+
+return undef if ref $buffer ne qw| HASH |;
+return undef if $buffer->{'readonly'};
+
+my $buf_len = length $buffer->{'text'};
+$start //= 0;
+$end   //= $buf_len;
+$start = 0        if $start < 0;
+$end   = $buf_len if $end > $buf_len;
+return TRUE if $end <= $start;
+
+my $del_len = $end - $start;
+substr( $buffer->{'text'}, $start, $del_len, '' );
+
+if ( $buffer->{'cursor'} > $start ) {
+    $buffer->{'cursor'} -= $del_len;
+    $buffer->{'cursor'} = $start if $buffer->{'cursor'} < $start;
+}
+
+return TRUE;
+
+#,,,,,,.,,.,.,,.,,,..,...,.,,,..,,,,,,...,,.,,..,,...,...,..,,,,.,..,,,..,.,.,
+#BHRMCIALAGSNSXLHXVVQH2ENBYF7F23VZMGLZMM5IVUWL3CLDKGOF7ZEBBTE3QSXKJELSTFLVPASU
+#\\\|LTVMIQN6JVA7QGXCBYEK6HYGGDCPSYVBWK5ROVDDKK2FJK3NNPW \ / AMOS7 \ YOURUM ::
+#\[7]2KF4WOYACE253KKRHNAS47B62NSDEPOQ3HPRJJHSVFJSSHZI7EDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
