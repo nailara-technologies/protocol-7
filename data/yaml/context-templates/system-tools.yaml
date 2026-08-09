@@ -43,6 +43,12 @@ sections:
       - summarize_context(content, focus, model, backend) — inference-backed summarization, model-pinned [ default cpu backend ]
       - record_question(question) — record a question for later research
       - record_suggestion(suggestion) — record a suggestion for improvement
+      - ask_user_choice(question, options[], urgent=false) —
+        modal option dialog; urgent=true asks now, urgent=false batches
+      - ask_user_text(question) — modal free-text input dialog
+      - ask_user_stream(question) — non-blocking interaction buffer
+      - suggest_new_topic(title, rationale, audit_trail, priority) —
+        file a topic proposal with fallback-chain audit trail
       - task_complete(summary) — mark task as complete with summary
       - escalate(reason) — escalate to human operator
 
@@ -63,6 +69,29 @@ sections:
       - use note_* tools to persist findings across tasks
       - use pagination (offset) for large files or search results
 
+      ### fallback chain: before concluding "not found" ###
+      When a query appears to have no match in the codebase, run the
+      six-step widening search in order and record which steps you
+      actually checked:
+      1. code search — search_code, ncode_search, module_deps, dep_graph
+      2. context + reasoning templates — note which template matched
+      3. design docs — search_code over data/md/design/ and
+         data/md/documentation/
+      4. task files — task_file_search
+      5. notes — note_search or note_list
+      6. memory — search_memory
+      Only after all six are empty, classify the query:
+      - general knowledge → use offer_general_answer (no tool call). Start
+        your final reply with `[out-of-scope: general knowledge]` so the
+        flag is visible.
+      - technical but unfiled → use suggest_new_topic with audit_trail
+        listing the step names you checked.
+      - genuinely stuck / needs a human decision → escalate.
+      Accepted answers from ask_user_text, ask_user_choice, and
+      ask_user_stream are automatically written back to notes with section
+      `answered-question` and tag `answered-question` so step 5 finds them
+      next time.
+
       ### important: output restrictions ###
       - never use jinja2 syntax: {{ var }}, {% tag %}, or namespace() calls
       - the inference server uses jinja2 and will fail on such output
@@ -71,8 +100,8 @@ sections:
     budget_pct: 100
     label: available tools
 
-#,,,.,...,,,.,,,.,,,,,.,.,...,.,,,...,.,,,,,.,..,,...,...,...,,..,,..,,..,...,
-#CYWPEJKUNXKJNZQFDFOV2MHNAQVXQEPJQWE3JTWJH3G2RV66WO5XYTTESVR2PD2FWU44OX3E4FQ42
-#\\\|25NTXOTTVCCWHYMGT4DYTDKJVLF7EBYP7D6ZNZ223Q5762DWMR4 \ / AMOS7 \ YOURUM ::
-#\[7]XQ4SNUJ344ARHGR4642CXBXOE4IAII5MGY74BKQHQGJUNT45SMAY 7  DATA SIGNATURE ::
+#,,,.,...,,,.,.,,,...,,..,.,.,.,.,..,,.,.,...,..,,...,...,,..,,..,..,,,..,...,
+#KNSCPJQBSHVR4RZM7G5V4LWU6LOVI6WIZS7SRLQJYQX2DR5FLYD2FIPONNVCXEAL4SLN7YF4WSRUE
+#\\\|7ZJ7IH3RM7UM5S2VJLNDK7SU2ODH5R2C2TCVXIYSPWQPVPJRACD \ / AMOS7 \ YOURUM ::
+#\[7]QDIBTW2JAAO5KCUA5LOAQO4IILQAPT2YWQHLXH5TLZ2GRD5LXEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
