@@ -7,10 +7,10 @@
 my ( $editor, $key, $colors ) = @ARG;
 
 ## Initialize editor on first key
-$editor //= AMOS7::TERM::editor_init();
+$editor //= <[editor.control.create]>->(<[nshell.editor.default_schema]>);
 
 ## Process key through editor
-my $edit_result = AMOS7::TERM::editor_process_key( $editor, $key, %$colors );
+my $edit_result = <[editor.control.process_key]>->( $editor, $key );
 
 return unless defined $edit_result;
 
@@ -48,8 +48,18 @@ if ( $action =~ m{^(kill_to_end|kill_from_start|kill_word|yank)$} ) {
 ## Signal (Ctrl+C, etc.)
 if ( $action eq 'signal' ) {
     ## Clear cursor before sending signal, preserve buffer content
-    my $cursor_pos     = AMOS7::TERM::editor_get_cursor($editor);
-    my $buffer         = AMOS7::TERM::editor_get_buffer($editor);
+    my $cursor_pos = <[editor.control.get_cursor]>->( $editor, 'command' )
+        // 0;
+    my $buffer = <[editor.control.get_value]>->( $editor, 'command' ) // '';
+
+    ## editor.* state is character-based [ design: position_units ] ; the
+    ## terminal path below is byte-oriented — reconstruct the byte view at the
+    ## boundary, byte-identical to the old AMOS7::TERM path
+    my $prefix = substr( $buffer, 0, $cursor_pos );
+    utf8::encode($prefix);
+    $cursor_pos = length $prefix;
+    utf8::encode($buffer);
+
     my $char_at_cursor = substr( $buffer, $cursor_pos, 1 ) // '';
 
     ## Go to start of line, clear any cursor remnants, then print buffer
@@ -57,16 +67,25 @@ if ( $action eq 'signal' ) {
     STDOUT->flush();
 
     ## Send signal to current process
-    my $sig = $edit_result->{should_signal} // 'INT';
+    my $sig = $edit_result->{signal} // 'INT';
     kill( $sig, $$ );
 
     return undef;    ## Continue processing
 }
 
-## Newline - submit command
-if ( $action eq 'newline' ) {
-    my $cursor_pos = AMOS7::TERM::editor_get_cursor($editor) // 0;
-    my $buffer     = AMOS7::TERM::editor_get_buffer($editor) // '';
+## Newline - submit command [ action 'submit' in the new contract ]
+if ( $action eq 'submit' ) {
+    my $cursor_pos = <[editor.control.get_cursor]>->( $editor, 'command' )
+        // 0;
+    my $buffer = <[editor.control.get_value]>->( $editor, 'command' ) // '';
+
+    ## char-based editor state -> byte view for terminal output [ same bytes
+    ## as the old byte-based AMOS7::TERM path ]
+    my $prefix = substr( $buffer, 0, $cursor_pos );
+    utf8::encode($prefix);
+    $cursor_pos = length $prefix;
+    utf8::encode($buffer);
+
     my $buffer_len = length($buffer);
 
     ## get terminal width to choose render path
@@ -93,11 +112,20 @@ if ( $action eq 'newline' ) {
         print "\e[0m" . $colors{'p7_fg_0004'};
     }
 
-    ## print the newline
-    print $edit_result->{output};
+    ## print the newline [ new contract has no {output} key ; it was always
+    ## exactly "\n" on this path ]
+    print "\n";
     STDOUT->flush();
 
-    my $result = AMOS7::TERM::editor_submit($editor);
+    my $submit_result = <[editor.control.submit]>->($editor);
+    my $result        = (
+          $submit_result->{'ok'}
+        ? $submit_result->{'values'}{'command'}
+        : ''
+    ) // '';
+    ## returned command crosses back into the byte world [ execution, history
+    ## file ] — same bytes the old editor_submit path returned
+    utf8::encode($result);
 
     ## editor_submit already reset the editor; reset viewport for next command
     my $state_ref = $data{'nshell'}{'state'} //= {};
@@ -121,8 +149,8 @@ if ( $action eq 'newline' ) {
 ## Unknown action - ignore
 return undef;
 
-#,,,,,,.,,..,,,..,.,,,,..,,,,,.,.,..,,,.,,...,.,.,...,...,...,,,,,,.,,...,,,,,
-#76KAFCM6EQ3HA55TYFVX3RB6EKEOBSDD5YPW2IP6R5VJJPC6KRARBLY5K7HNSCP2WRQGMDEWTHYO4
-#\\\|55SQBUOHEQMPIEOPUVVBZ754IYIMHPEWWJ3S5H3RZ5IRABDFHUM \ / AMOS7 \ YOURUM ::
-#\[7]3HXT46LFTYA7Q7OOSO6WRO66UID3JG26OYB4WZJLVOGWPZEBFSAA 7  DATA SIGNATURE ::
+#,,..,.,,,...,,.,,...,,,.,,..,.,,,.,,,,..,...,.,.,...,...,.,,,,.,,,.,,..,,,..,
+#BD6CIU3J4JKRFRS6ZS5K3UW6ARC2OR6IAMYO7JBVHGHB5DNDP5VTWYYSIE6Q24XMDB35YYFKMVWQ2
+#\\\|IFAO7XBUUBBPEBAYCOXNY6HVDMQAQYZYNA2E3DEMDTCSAHZNLG4 \ / AMOS7 \ YOURUM ::
+#\[7]N63AJGO2BBWBFTB3T4SGDZOEYOGQ7STF4K3YPPVEOXYCLXB2NKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

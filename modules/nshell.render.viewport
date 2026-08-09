@@ -9,9 +9,18 @@
 
 my ( $editor, $colors ) = @ARG;
 
-my $buffer     = AMOS7::TERM::editor_get_buffer($editor);
-my $cursor_pos = AMOS7::TERM::editor_get_cursor($editor);
-my $buf_len    = length($buffer);
+my $buffer     = <[editor.control.get_value]>->( $editor, 'command' )  // '';
+my $cursor_pos = <[editor.control.get_cursor]>->( $editor, 'command' ) // 0;
+
+## editor.* state is character-based [ design: position_units ] ; this
+## renderer's column math + terminal output is byte-oriented — reconstruct the
+## byte view at the boundary, byte-identical to the old AMOS7::TERM path
+my $prefix = substr( $buffer, 0, $cursor_pos );
+utf8::encode($prefix);
+$cursor_pos = length $prefix;
+utf8::encode($buffer);
+
+my $buf_len = length($buffer);
 
 ## get terminal width [ terminal_size returns ( cols, rows ) ]  prefer cached
 ## value from SIGWINCH handler; fall back to live query
@@ -137,8 +146,8 @@ print "\x08" x $back if $back > 0;
 STDOUT->flush();
 return;
 
-#,,..,..,,,,.,,,.,,.,,,..,,,.,,..,,..,,..,,,,,..,,...,...,...,,,.,,..,...,.,,,
-#YWSC37VZIQJ6M42QDVPMUHZRENA7W4RLRCRRQP2YWMM3AKP2JXPY6A5U4X7GFHXIJ4HTCAKIYGPUQ
-#\\\|72EUYHEYMRGSF2HS7NDQ4ZOQKI2ENV5WAK5R3RZLPZ6E7ETWVAA \ / AMOS7 \ YOURUM ::
-#\[7]T2NVIFB5STOFW7GO2C2ELNCMBYF6XQA5XCFDEKVZ66TUKCWQSMBY 7  DATA SIGNATURE ::
+#,,,.,...,,,.,,.,,.,,,.,,,,.,,..,,.,,,..,,..,,..,,...,..,,,,,,.,.,,.,,,,,,,,,,
+#GJ5FEALNPMI4FJBIEBGMDBRMCCWEKOXKYCAXAIXAZMEVX7WO7RCVQ6Y3VR5MVJJROJQ4J66CR3WX6
+#\\\|3K2IZGJNMII5QI4ZAEQI3XSZKEUHA5JA7QLX6VURGBLLKLRLVSM \ / AMOS7 \ YOURUM ::
+#\[7]PVXUHGZHD5JFJME4IJ52CRCNHFW3R62U6PEIXTSWCCRRYLWUZWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
