@@ -4,15 +4,17 @@
 # descr = Interaction prototype: ask user via dedicated named buffer [ non-blocking ]
 #
 # Prototype for the 'interaction' plugin type, modeled on amos-term.nshell.bridge.
-# Opens [ or reuses ] the dedicated named buffer 'agent.interaction', writes the
+# Opens [ or reuses ] the dedicated named buffer 'agent-interaction', writes the
 # question into it, and returns immediately. A user reply arrives via the
 # on_buffer_change callback path [ amos-term.handler.interaction-changed ].
 #
-# Usage: <[amos-term.interaction.ask]>->( $question, $reply_handler )
+# Usage: <[amos-term.interaction.ask]>->( $question, $reply_handler, $context )
 #   $reply_handler : module-name string or coderef, called as
 #                    ->( $question, $reply_text ) once the reply completes
+#   $context       : optional hashref with 'task_id' and other metadata
 
-my ( $question, $reply_handler ) = @ARG;
+my ( $question, $reply_handler, $context ) = @ARG;
+$context //= {};
 
 return undef unless defined $question and length $question;
 
@@ -25,6 +27,7 @@ return undef unless defined $question and length $question;
     qw| user_attach_id | => undef,    # user-side client [ reply path ]
     qw| pending |        => undef,    # { question, reply_handler, asked }
     qw| reply_buffer |   => qw||,
+    qw| timeout_timer |  => undef,
 };
 my $state = <amos-term.interaction.state>;
 
@@ -46,6 +49,20 @@ if ( not defined $sid ) {
 }
 $state->{'window_id'} = $sid;
 
+## === open GTK window when a display session is available === ##
+if ( defined $ENV{'DISPLAY'} or defined <x11.display> ) {
+    eval {
+        <[base.perlmod.autoload]>->(qw| Gtk3 |);
+        <[amos-term.window-open]>->($sid);
+    };
+    if ($@) {
+        <[base.logs]>->(
+            2, "[interaction] window-open skipped [ no GTK display ] : %s",
+            $@
+        );
+    }
+}
+
 ## === attach interaction client [ once, reused across questions ] === ##
 if ( not defined $state->{'attach_id'} ) {
     my $attachment = <[amos-term.buffer-attach_generic]>->(
@@ -64,6 +81,12 @@ if ( not defined $state->{'attach_id'} ) {
     );
     return undef unless defined $attachment;
     $state->{'attach_id'} = $attachment->{'attach_id'};
+}
+
+## === cancel any previous timeout timer === ##
+if ( defined $state->{'timeout_timer'}
+    and not $state->{'timeout_timer'}->is_cancelled ) {
+    $state->{'timeout_timer'}->cancel;
 }
 
 ## === write question into buffer [ Z-shift history, same as nshell ] === ##
@@ -87,26 +110,38 @@ foreach my $char ( split //, $question . "\n" ) {
 }
 
 ## === register pending question [ reply arrives via callback ] === ##
+my $attach_id = $state->{'attach_id'};
 $state->{'pending'} = {
     qw| question |      => $question,
     qw| reply_handler | => $reply_handler,
     qw| asked |         => <[base.ntime]>,
+    qw| attach_id |     => $attach_id,
+    qw| task_id |       => $context->{'task_id'} // qw||,
 };
 $state->{'reply_buffer'} = qw||;
 
-<[base.logs]>->(
-    2,                     "[interaction] question pending [%s] : %s",
-    $state->{'attach_id'}, $question
+## === install timeout degrade timer === ##
+my $timeout = <amos-term.cfg.interaction_timeout> // 5 * 60;
+$state->{'timeout_timer'} = <[event.add_timer]>->(
+    {   qw| repeat |  => FALSE,
+        qw| after |   => $timeout,
+        qw| handler | => qw| amos-term.handler.interaction-timeout |,
+        qw| data |    => {
+            qw| attach_id | => $attach_id,
+            qw| asked |     => $state->{'pending'}->{'asked'}
+        }
+    }
 );
 
-return $state->{'attach_id'};
+<[base.logs]>->(
+    2,          "[interaction] question pending [%s] : %s",
+    $attach_id, $question
+);
 
-0;
+return $attach_id;
 
-#AMOS7_SIGNATURE_PLACEHOLDER
-
-#,,..,,,,,,,,,,,,,..,,,.,,,,.,,..,...,..,,...,..,,...,...,,,.,...,,,,,,,.,.,.,
-#7EGDN2HZDKBZSUUZHSYTIBF7KVRS7YYOFQFIV6ZCJ7XXURK6JMIK6QZWMRX7PKJW2WSYW6MUE7YS2
-#\\\|CL3IQJCGTDMYKVLOA2QFOOQEEND2BLHS3A7NFZ3EKRBTMJZZPS4 \ / AMOS7 \ YOURUM ::
-#\[7]3YGYVEGK6G6EGUPG2OSILZ7JZNCALYUFEY32HYNGEQR56RYCVQBI 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,..,,,,,,,,,,,..,,..,.,.,.,.,.,,,..,,...,..,,,.,,.,,,.,,,,,,,,,.,
+#7G2XV2X6PHBPSUQ5UJLORJWWJTLIEBO2HTNQ326PFQFCUDS5C2DK7KRNOWFVIJZT5OBJBPO2W2CS2
+#\\\|MUD7V3ZVTX2CAIV63JPMN2W33B2KBIKZ4PI342UPC664LC6OUAH \ / AMOS7 \ YOURUM ::
+#\[7]JXRQEDVCZDB3G6QOKQKR4LPKD5Y7QAV3SGHQJ5VASKDSRX2MFUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

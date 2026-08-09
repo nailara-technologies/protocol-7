@@ -1,0 +1,83 @@
+## [:< ##
+
+# name  = amos-term.handler.interaction-timeout
+# descr = Degrade an unanswered interaction buffer to a record_observation
+#
+# Fired by the timer installed in amos-term.interaction.ask. If the pending
+# question is still unanswered, record it as a question observation and call
+# the reply_handler with a flagged timeout sentinel so the calling task can
+# proceed on a flagged assumption.
+
+my $event  = shift;
+my $data_h = $event->w->data;
+
+my $attach_id = $data_h->{'attach_id'} // return TRUE;
+my $asked     = $data_h->{'asked'};
+
+my $state = <amos-term.interaction.state>;
+return TRUE unless defined $state and defined $state->{'pending'};
+
+## === only degrade if the same question is still pending === ##
+my $pending = $state->{'pending'};
+return TRUE if $pending->{'attach_id'} ne $attach_id;
+return TRUE if defined $asked and $pending->{'asked'} ne $asked;
+
+my $question = $pending->{'question'} // qw||;
+
+<[base.logs]>->(
+    0,
+    "[interaction] timeout degrade for buffer '%s' : %s",
+    $state->{'buffer_name'}, $question
+);
+
+<[base.perlmod.autoload]>->(qw| JSON::PP |);
+
+## === record as a question observation [ same shape as
+#     coding.tools.handler.record_observation ] === ##
+my $entry = {
+    qw| type |      => qw| question |,
+    qw| content |   => $question,
+    qw| category |  => qw| interaction-timeout |,
+    qw| priority |  => qw| normal |,
+    qw| task_id |   => $pending->{'task_id'} // qw||,
+    qw| timestamp | => <[base.ntime]>,
+};
+
+my $json_line = JSON::PP->new->utf8->canonical->encode($entry);
+my $rel_path  = qw| observations/questions.jsonl |;
+
+my $existing_ref = <[file.zenka_dir.load]>->($rel_path);
+my $new_content
+    = defined $existing_ref
+    ? $existing_ref->$* . "$json_line\n"
+    : "$json_line\n";
+
+<[file.zenka_dir.write]>->(
+    $rel_path, \$new_content, qw| > |, 0664, qw| :encoding(UTF-8) |
+);
+
+## === clear pending state and notify caller === ##
+$state->{'pending'}      = undef;
+$state->{'reply_buffer'} = qw||;
+
+my $handler = $pending->{'reply_handler'} // return TRUE;
+my $timeout_reply
+    = qw| [unanswered - timeout degrade] | . ' '
+    . qw| proceed on flagged assumption |;
+
+if ( ref $handler eq qw| CODE | ) {
+    $handler->( $question, $timeout_reply );
+} else {
+    <[base.load_code]>->($handler)
+        if not defined $code{$handler};
+    $code{$handler}->( $question, $timeout_reply )
+        if defined $code{$handler};
+}
+
+return TRUE;
+
+#,,,.,,,,,...,,,.,..,,,,.,..,,.,,,,,,,..,,,.,,..,,...,...,,.,,..,,,,.,,.,,,,,,
+#CNDMFPW2XTYRB5RPR622ACCUQN3MS7EG6UDFWOIFGAR5HFMFTLHE3M7CBWCX2DCRTLE6LM2YNHWMC
+#\\\|MAGUK3T5SGXMEGD6FCSCVVPM4BB3MVKTIEJ5H4LNR44QX756UUP \ / AMOS7 \ YOURUM ::
+#\[7]QRO6XYM7S4AL2GXE2XA36PCA5YJMK6ESG6RISPHYMQTRCZBZEWAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

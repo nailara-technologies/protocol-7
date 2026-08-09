@@ -28,6 +28,12 @@ if ( $char eq "\n" or $char eq "\r" ) {
     $state->{'pending'}      = undef;
     $state->{'reply_buffer'} = qw||;
 
+    ## === cancel timeout timer === ##
+    if ( defined $state->{'timeout_timer'}
+        and not $state->{'timeout_timer'}->is_cancelled ) {
+        $state->{'timeout_timer'}->cancel;
+    }
+
     <[base.logs]>->(
         2,              "[interaction] reply received [%d chars] : %s",
         length($reply), $reply
@@ -50,12 +56,8 @@ if ( $char eq "\n" or $char eq "\r" ) {
 
 return TRUE;
 
-0;
-
-#AMOS7_SIGNATURE_PLACEHOLDER
-
-#,,..,...,,,,,,.,,,,,,.,.,.,.,.,.,.,.,.,,,,.,,..,,...,..,,.,,,,..,...,,,.,,,,,
-#I3Z6OUJZVRLOAI6F3IBG7RYVFGOGF5USTJGNTGX2LZU3VBFXDOJMUBMDTSRYEIU76NIC2C5NXGT42
-#\\\|RCYQFZ5ICO5ZRZEICWLUJK5STUYDIWMOWIDTXYXJ3PFYP7E4EIH \ / AMOS7 \ YOURUM ::
-#\[7]ABR46JP4QHVMKTUNZNK67K4KKHRGLN7HYG274TWENTSCKYHID4BY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,,.,,..,,.,,,.,,,.,,.,,,.,,,.,.,..,,...,...,..,,.,,,,.,,,.,,..,,
+#2RJWLYLQADM3F33H5YC5ARDMEXFBHXEXTNG2A5UYRSECZKSMUVOWJW2PILWTBCUUWDLLD3NYI6QCU
+#\\\|GIRT76XIK5FKAISMWBUMANW26I3VQPCXJAPONT3D6YMMWIL4MSZ \ / AMOS7 \ YOURUM ::
+#\[7]YWSZGGX2MHG55MHVOFMMO55VXU6YAJNCVD6MSCWUR7QLDBLHZMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
