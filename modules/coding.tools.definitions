@@ -859,6 +859,132 @@ push @tools,
     },
     };
 
+## ask_user_choice : modal option-selection dialog ##
+if ( exists $code{'coding.tools.handler.ask_user_choice'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'ask_user_choice',
+            'description' =>
+                'ask the user to choose one option from a pre-generated '
+                . 'list. urgent=true pops the dialog immediately; '
+                . 'urgent=false (default) queues the question and asks it '
+                . 'at the next checkpoint flush.',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'question' => {
+                        'type'        => 'string',
+                        'description' => 'short question text'
+                    },
+                    'options' => {
+                        'type'        => 'array',
+                        'description' => 'list of option strings',
+                        'items'       => { 'type' => 'string' }
+                    },
+                    'urgent' => {
+                        'type'        => 'boolean',
+                        'description' =>
+                            'ask now instead of batching [ default false ]'
+                    },
+                },
+                'required' => [ 'question', 'options' ],
+            },
+        },
+        };
+}
+
+## ask_user_text : blocking free-text input dialog ##
+if ( exists $code{'coding.tools.handler.ask_user_text'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'ask_user_text',
+            'description' =>
+                'ask the user a short free-text question via a modal '
+                . 'dialog. the answer is written back to notes.',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'question' => {
+                        'type'        => 'string',
+                        'description' => 'short question text'
+                    },
+                },
+                'required' => ['question'],
+            },
+        },
+        };
+}
+
+## ask_user_stream : non-blocking conversational interaction buffer ##
+if ( exists $code{'coding.tools.handler.ask_user_stream'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'ask_user_stream',
+            'description' =>
+                'ask the user an open-ended question in the amos-term '
+                . 'interaction buffer. replies arrive asynchronously and '
+                . 'are written back to notes.',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'question' => {
+                        'type'        => 'string',
+                        'description' => 'question or prompt text'
+                    },
+                },
+                'required' => ['question'],
+            },
+        },
+        };
+}
+
+## suggest_new_topic : file a topic proposal with audit trail ##
+if ( exists $code{'coding.tools.handler.suggest_new_topic'} ) {
+    push @tools,
+        {
+        'type'     => 'function',
+        'function' => {
+            'name'        => 'suggest_new_topic',
+            'description' =>
+                'record a technical topic that belongs in the project '
+                . 'but is not yet filed. carries an audit trail of which '
+                . 'fallback-chain steps were checked.',
+            'parameters' => {
+                'type'       => 'object',
+                'properties' => {
+                    'title' => {
+                        'type'        => 'string',
+                        'description' => 'short topic title'
+                    },
+                    'rationale' => {
+                        'type'        => 'string',
+                        'description' => 'why this topic should be tracked'
+                    },
+                    'audit_trail' => {
+                        'type'        => 'array',
+                        'description' =>
+                            'list of fallback-chain step names that were '
+                            . 'checked before filing',
+                        'items' => { 'type' => 'string' }
+                    },
+                    'priority' => {
+                        'type'        => 'string',
+                        'description' =>
+                            'low, normal, or high [ default normal ]'
+                    },
+                },
+                'required' => ['title'],
+            },
+        },
+        };
+}
+
 ## tree_read : read value at a dot-separated path in %data ##
 push @tools,
     {
@@ -1949,8 +2075,8 @@ if ( exists $code{'coding.tools.handler.scratchpad_rescue'} ) {
 
 return \@tools;
 
-#,,..,...,.,,,,.,,,.,,..,,,.,,..,,,..,,.,,.,,,..,,...,...,.,,,,,.,,..,.,,,.,,,
-#RKIUL242MV2RLDC3TLK7TDULM2MQCJQAJCLFKYLTNNOERQ3EFA6KP257GG26WWKWBAWR3RX6ODGZO
-#\\\|IQPOD4EBVPPZR44PILZZ25L6TJHFR2BP3VRPZR6EL6UU6G6KIL3 \ / AMOS7 \ YOURUM ::
-#\[7]WC752OZYCMHZRRY6OJ2NYEXSC44B3JHZ255WGUMI5GJSD3JVEMAA 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,,.,,,..,,,.,,,.,..,,,.,,...,,.,,..,,...,...,,..,.,.,..,,,,.,,,.,
+#YE6RDS53Q3FTTXRDA6UEBVXNEERCT5L2ZGFQPL4GU3QLGX64LES7I4M7KX4XLCKAT45BALRMSARVK
+#\\\|UDELXNUY4ICQS7UXF6APBRHNTMJ7TOQLHYVMNAZGVOBYWDJYXZ5 \ / AMOS7 \ YOURUM ::
+#\[7]COC5TXA5AHEC72SFM5HRCB7TKYG3AGACHVHFQ57KIVREQTQVE6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

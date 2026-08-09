@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = coding.tools.handler.write_answered_note
+# descr = persist a user answer back to task notes for later note_search
+
+my $args = shift // {};
+
+my $question = $args->{'question'} // return 'question required';
+my $answer   = $args->{'answer'}   // return 'answer required';
+my $section  = $args->{'section'}  // qw| answered-question |;
+
+my $content = sprintf "Q: %s\n\nA: %s", $question, $answer;
+
+my $write_result = <[note.write]>->( $section, $content );
+
+if ( ref $write_result eq qw| HASH |
+    and $write_result->{'mode'} eq qw| true | ) {
+    <[note.tag]>->( $section, qw| answered-question | );
+    return 'saved answered question to notes';
+}
+
+return sprintf "failed to save answered question: %s",
+    $write_result->{'data'} // 'unknown';
+
+#,,.,,,,,,.,,,,,,,.,,,..,,,,,,.,,,.,.,..,,,.,,..,,...,.,.,..,,.,.,,.,,,.,,,,.,
+#F46VJH2B3BCZFRH5QIRA7HBINKEKAKBKB42HPKIEFKY7MFMVUTW75JZEOHI2L4MER55D7AQWKIEFE
+#\\\|SX4K5FX2YQYFIJQDAXGCNELWOEE56SFMF5SDQVLGCHPQZPNK2MJ \ / AMOS7 \ YOURUM ::
+#\[7]YF4G36SF7Y2MJ253ASLEMVSMKUBYCAFNYKXDSBBXD7SIBJBBTECY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
