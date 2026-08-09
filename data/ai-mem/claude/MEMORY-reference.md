@@ -48,9 +48,10 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [scratchpad_import tool](topic-scratchpad-import-tool.md) — pulls /tmp session scratchpad into data/scratchpad/; list/raw-read modes; check repo+tasks/completed before keeping imports
 - [show-buffer command](reference-show-buffer-command.md) — no `p7-log.tail` exists; use `show-buffer <name> [lines] [pattern]` (`list buffers` first); don't invent `.tail`-style command names; buffer is a passive review sink only, rotation ≠ behavior unreliability
 - [add new on-demand zenka](reference-add-new-ondemand-zenka.md) — `start` file alone isn't enough: needs zenka-startup.v7 + v7.reload (spawn/connect), then cube's auth.zenki + access.zenki + bare `reload config` to cube itself (not `cube.reload`) for the connection handshake; each missing piece has a distinct error message, verified live bringing up opencv
+- [ext-bundle backup alias](reference-ext-bundle-backup-alias.md) — `gbc` bash alias creates+verifies the ext-bundle git backup; it's a `.bundle` file not a real remote, `git push` to it always fails harmlessly
 
-#,,..,...,...,...,,,,,,.,,...,,..,...,..,,..,,..,,...,...,.,.,,,,,,,,,,,,,,,.,
-#IGXNHG3A2OC6PI7PZS3GCKYBNR5GDBKUCASSK7TTG76XFGZFB22RQXNNZNNNV7KDN7Z3SAJU65SFY
-#\\\|VK34B3FH6OIT3MNWHIWVLBRMPCBNZW4LJ55NU3LEEXXW4R3JZ7D \ / AMOS7 \ YOURUM ::
-#\[7]KOO23XGJVKH4P2UFWMYES3RORK5YSHSBZGPVN2U7VLNVAUN5A2AI 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,,.,..,,.,.,,..,,,,,,..,..,,,,,,..,,...,..,,...,,,,,...,,.,,...,
+#FDNLAA7DBC7DAQYGQDEJZTU6AYK4RMNBLMNNSPETWH53HSYMBR5MXQ3APTABAEYGDBPNEWSU6HFKA
+#\\\|ZNHX76IAAOWVHB6L7XO53SIBUM4U3Q7YOGSDBTWJKXNL67EGXAD \ / AMOS7 \ YOURUM ::
+#\[7]A6ALB56XWOCO7PBSR6TTUW2DTG32XXKAUDCB3YQUL2AVKQOMSKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
