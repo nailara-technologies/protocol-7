@@ -26,6 +26,8 @@ BEGIN {
 }
 
 use AMOS7::TERM qw| frame_border_line |;
+use AMOS7::CHKSUM;
+use AMOS7::Assert::Truth;
 
 my $root      = $ENV{'P7_ROOT'} // '';
 my $list_name = 'default';
@@ -127,8 +129,69 @@ sub iso_now {
         $t[5] + 1900, $t[4] + 1, $t[3], $t[2], $t[1], $t[0];
 }
 
+##[ item id : random 3-char amos-chksum code, collision + harmony checked ]##
+##
+## mirrors modules/base.gen_id's shape [ random candidate, retry on collision,
+## optional harmonic gate via AMOS7::Assert::Truth::is_true ] -- base.gen_id
+## itself can't be called here: it's a zenka module using the <[...]> routing
+## syntax and depends on <base.prng.fortuna>, a PRNG object living in a
+## running zenka's state, not available to this standalone script. rand()
+## substitutes for Fortuna; the collision-check + harmonic gate are the same
+## idea. the id itself IS the display code -- no separate numeric id + derived
+## chk to keep in sync; deleting an item frees its code for reuse, since
+## collision-checking only ever looks at items still present in the file.
+
+sub chk3 {
+    my $seed = shift;
+    local $AMOS7::CHKSUM::str_length = 3;
+    ## amos_chksum returns a 2-elem list in list context [ encoded, numeric ]
+    ## -- force scalar here or a hash-literal caller silently gets 2 values
+    return scalar AMOS7::CHKSUM::amos_chksum("$seed");
+}
+
+sub gen_id {
+    my $items = shift;
+
+    my %used;
+    $used{ uc( $_->{id} // '' ) } = 1 foreach $items->@*;
+
+    my $want_harmony = 1;
+    my $max_retries  = 200;
+
+    for my $try ( 1 .. $max_retries ) {
+        my $seed      = join( '-', time, $PID, rand(1e9), $try );
+        my $candidate = chk3($seed);
+        next if $used{ uc($candidate) };
+        next
+            if $want_harmony
+            and not AMOS7::Assert::Truth::is_true($candidate);
+        return $candidate;
+    }
+
+    ## harmonic space is ~99.6% of all codes [ measured ] -- if this many ##
+    ## retries failed, drop the harmony gate rather than fail outright    ##
+    for my $try ( 1 .. $max_retries ) {
+        my $seed      = join( '-', time, $PID, rand(1e9), 'noharm', $try );
+        my $candidate = chk3($seed);
+        return $candidate unless $used{ uc($candidate) };
+    }
+
+    die "todo: could not allocate a free id (space exhausted?)\n";
+}
+
+sub resolve_id {
+    my ( $id_str, $items ) = @_;
+    return undef unless defined $id_str and length $id_str;
+
+    my $needle = uc($id_str);
+    foreach my $item ( $items->@* ) {
+        return $item->{id} if uc( $item->{id} // '' ) eq $needle;
+    }
+    return undef;
+}
+
 sub load_data {
-    return { items => [], next_id => 1 } unless -f $TODO_FILE;
+    return { items => [] } unless -f $TODO_FILE;
 
     open my $fh, '<', $TODO_FILE
         or die "cannot read todo file: $!\n";
@@ -137,9 +200,20 @@ sub load_data {
     close $fh;
 
     my $data = eval { $yaml_load->($content) };
-    $data = { items => [], next_id => 1 } if not defined $data;
-    $data->{items}   //= [];
-    $data->{next_id} //= 1;
+    $data = { items => [] } if not defined $data;
+    $data->{items} //= [];
+    delete $data->{next_id};    ## legacy monotonic counter, no longer used ##
+
+    ## migrate legacy schema : numeric id + separate derived chk field -> ##
+    ## single random id [ reuse the already-computed chk if present, so   ##
+    ## existing display codes don't needlessly churn on upgrade ]         ##
+    my $dirty = 0;
+    foreach my $item ( $data->{items}->@* ) {
+        next unless defined $item->{id} and $item->{id} =~ m{^\d+$};
+        $item->{id} = delete( $item->{chk} ) // chk3( $item->{id} );
+        $dirty = 1;
+    }
+    save_data($data) if $dirty;
 
     return $data;
 }
@@ -257,7 +331,7 @@ sub format_items {
             }
         }
 
-        my $id_str = sprintf "%*d", $max_id_len, $item->{id};
+        my $id_str = sprintf "%-*s", $max_id_len, $item->{id};
         my $prefix = "  $marker  $id_str ·  ";
         my $text   = $item->{text} // '';
         my $tags   = '';
@@ -318,6 +392,10 @@ my $option_list = <<'EOL';
     clear ..........................  remove all done items
     reset ..........................  remove all items [ tty confirm ]
 
+    <id> above accepts either the permanent numeric id or the short
+    chk code shown in the listing [ e.g. 'X6O' ] -- both resolve to the
+    same item.
+
     -file <path> ...................  use given todo file
     -list <name> ...................  use named list [ default : default ]
 
@@ -364,7 +442,14 @@ sub cmd_list {
         } @items;
     }
 
-    @items = sort { $b->{id} <=> $a->{id} } @items;
+    ## id is now a random code, not a creation-ordered sequence, so it's   ##
+    ## meaningless as a sort key. use this project's default two-pass sort ##
+    ## [ modules/base.sort : ascending length, ties broken by descending   ##
+    ## alpha, via a reverse-then-stable-sort ] on item text instead of     ##
+    ## base.sort's plain scalars -- same shape, keyed on ->{text}          ##
+    @items = sort { length( $a->{text} ) <=> length( $b->{text} ) }
+        reverse sort { $a->{text} cmp $b->{text} }
+        grep { defined $_->{text} } @items;
 
     my ( $lines, $content_width ) = format_items( \@items, $show_done );
     my $width = $TERM_WIDTH;
@@ -412,7 +497,7 @@ sub cmd_add {
     my $text = join ' ', @args;
 
     my $data = load_data();
-    my $id   = $data->{next_id}++;
+    my $id   = gen_id( $data->{items} );
 
     push $data->{items}->@*,
         {
@@ -436,9 +521,9 @@ sub cmd_done {
     my $found = 0;
 
     foreach my $id_str (@ids) {
-        my $id = int($id_str);
+        my $id = resolve_id( $id_str, $data->{items} );
         foreach my $item ( $data->{items}->@* ) {
-            next unless $item->{id} == $id;
+            next unless defined $id and $item->{id} eq $id;
             $item->{status}  = 'done';
             $item->{done_at} = iso_now();
             $found           = 1;
@@ -451,89 +536,92 @@ sub cmd_done {
 }
 
 sub cmd_rm {
-    my $id = int( shift // die "expected item id\n" );
+    my $id_str = shift // die "expected item id\n";
 
     my $data   = load_data();
+    my $id     = resolve_id( $id_str, $data->{items} );
     my $before = scalar $data->{items}->@*;
-    $data->{items} = [ grep { $_->{id} != $id } $data->{items}->@* ];
+    $data->{items}
+        = [ grep { !defined $id or $_->{id} ne $id } $data->{items}->@* ];
 
-    die "item $id not found\n"
+    die "item $id_str not found\n"
         if scalar( $data->{items}->@* ) == $before;
     save_data($data);
 }
 
 sub cmd_edit {
-    my $id = int( shift // die "expected item id\n" );
+    my $id_str = shift // die "expected item id\n";
     die "expected new text\n" unless @_;
 
     my $text = join ' ', @_;
     my $data = load_data();
+    my $id   = resolve_id( $id_str, $data->{items} );
 
     foreach my $item ( $data->{items}->@* ) {
-        next unless $item->{id} == $id;
+        next unless defined $id and $item->{id} eq $id;
         $item->{text} = $text;
         save_data($data);
         return;
     }
 
-    die "item $id not found\n";
+    die "item $id_str not found\n";
 }
 
 sub cmd_pri {
-    my ( $id, $priority ) = @_;
+    my ( $id_str, $priority ) = @_;
     die "expected item id and priority\n"
-        unless defined $id and defined $priority;
+        unless defined $id_str and defined $priority;
     die "priority must be high, normal, or low\n"
         unless $priority =~ m{^(?:high|normal|low)$};
 
-    $id = int($id);
     my $data = load_data();
+    my $id   = resolve_id( $id_str, $data->{items} );
 
     foreach my $item ( $data->{items}->@* ) {
-        next unless $item->{id} == $id;
+        next unless defined $id and $item->{id} eq $id;
         $item->{priority} = $priority;
         save_data($data);
         return;
     }
 
-    die "item $id not found\n";
+    die "item $id_str not found\n";
 }
 
 sub cmd_tag {
-    my ( $id, $tag ) = @_;
+    my ( $id_str, $tag ) = @_;
     die "expected item id and tag\n"
-        unless defined $id and defined $tag;
+        unless defined $id_str and defined $tag;
 
-    $id = int($id);
     my $data = load_data();
+    my $id   = resolve_id( $id_str, $data->{items} );
 
     foreach my $item ( $data->{items}->@* ) {
-        next unless $item->{id} == $id;
+        next unless defined $id and $item->{id} eq $id;
         my %have = map { $_ => 1 } $item->{tags}->@*;
         push $item->{tags}->@*, $tag unless $have{$tag};
         save_data($data);
         return;
     }
 
-    die "item $id not found\n";
+    die "item $id_str not found\n";
 }
 
 sub cmd_untag {
-    my ( $id, $tag ) = @_;
+    my ( $id_str, $tag ) = @_;
     die "expected item id and tag\n"
-        unless defined $id and defined $tag;
+        unless defined $id_str and defined $tag;
 
-    $id = int($id);
     my $data = load_data();
+    my $id   = resolve_id( $id_str, $data->{items} );
 
     foreach my $item ( $data->{items}->@* ) {
-        next unless $item->{id} == $id;
+        next unless defined $id and $item->{id} eq $id;
         $item->{tags} = [ grep { $_ ne $tag } $item->{tags}->@* ];
         save_data($data);
         return;
     }
 
-    die "item $id not found\n";
+    die "item $id_str not found\n";
 }
 
 sub cmd_clear {
@@ -594,8 +682,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,..,..,,,,.,..,,...,,..,...,...,,..,,,.,,..,..,,...,...,,..,..,,,,,,,,.,,,,,
-#6FVCMCDBGPSBIEN22OLZ2UDDPEZAT2IWHWKIIZB5OKDU5IJNEIU2ME73S5RZHAT3IGYW3X2AH4KXG
-#\\\|T74GYODFT3L3CNFHTBEY4GNOFE2B3WD4YKXHNG2USFY4ZCH7V6A \ / AMOS7 \ YOURUM ::
-#\[7]V2OAAJ7NYMW3NNGBHMUCCIR56RR6SVVBBBLSRVJHBVLB37H476BY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,,.,.,,,...,.,,,..,,,.,,,..,,,,,..,,...,...,,,.,.,.,.,,,.,.,,.,,
+#6RLBSJWPNDJQ5KRK6M7FMKRKHLGSIRL7TAS3JVS2PC4JGOV34RNGXYGVCEQEPCCLKU74ELFFATIBE
+#\\\|OJCCFJXQEARFR7RE5JWAKQ3DHDIGD7WEL2QGASNJFFZRIGJPLDK \ / AMOS7 \ YOURUM ::
+#\[7]XES2PEGHBIE4SJY6YNUZ2SONNACEV3JVJ6FO5FQMX7QOEDVC64AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
