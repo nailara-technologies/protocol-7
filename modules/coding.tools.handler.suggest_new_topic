@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = coding.tools.handler.suggest_new_topic
+# descr = record a topic proposal with fallback-chain audit trail
+
+my $args = shift // {};
+
+my $title       = $args->{'title'}       // return 'title required';
+my $rationale   = $args->{'rationale'}   // '';
+my $audit_trail = $args->{'audit_trail'} // [];
+my $priority    = $args->{'priority'}    // qw| normal |;
+
+my @steps
+    = ( ref $audit_trail eq qw| ARRAY | )
+    ? @$audit_trail
+    : ( $audit_trail // () );
+
+my $content = sprintf "topic proposal: %s\n", $title;
+$content .= sprintf "rationale: %s\n", $rationale if length $rationale;
+$content .= sprintf "fallback_chain checked: %s",
+    ( @steps ? join( ', ', @steps ) : qw| none | );
+
+my $target = qw| coding.tools.handler.record_observation |;
+
+return 'record_observation handler is not loaded'
+    unless <[base.code.exists]>->($target);
+
+return $code{$target}->(
+    {   'type'     => 'suggestion',
+        'content'  => $content,
+        'category' => 'topic-proposal',
+        'priority' => $priority,
+    }
+);
+
+#,,,,,.,.,..,,...,.,,,...,.,.,.,.,..,,...,,.,,..,,...,...,.,.,...,..,,.,,,.,.,
+#IYRGBW4MP75YOAKL3BE46ZCG7M766LEHQ3SG6QSIEMJZJG2ZSDAAMN7AS6K6Z2D7EZGVGGDIY3U4G
+#\\\|AMKSJUO27742EIOT7YTDCHX3U5BQ54LISVOUTPJSPP6DUGZ3RW5 \ / AMOS7 \ YOURUM ::
+#\[7]UXDVAD4P5XG53XHITHO4Q3SLJ3WCYLWTGHN7EWYIDSK5QGVTNUAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
