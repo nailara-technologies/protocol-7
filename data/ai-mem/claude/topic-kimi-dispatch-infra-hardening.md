@@ -125,14 +125,54 @@ place; a fresh dispatch told to write its result directly to a file on disk,
 one row per item, forces completeness far better than asking for a chat-style
 report after the fact).
 
+**LANDED 2026-08-09** (commit `6686041a9`): `kimi_check_status(session_id,
+lines?)` shipped in `bin/mcp-server-p7`, closing out the 2026-07-29 task file
+above. Dispatched to kimi (model `k3-256k`) for implementation, then two real
+bugs were caught in human+Claude review before commit — worth the extra pass:
+
+1. **Lingering-wrapper false positive** (the exact pattern documented above,
+   observed 2026-07-17): the first draft's liveness check trusted bare
+   process existence (`ps` argv match on the session_id) with no
+   corroboration, so a lingering idle wrapper would report `status=running`
+   forever even though the session had actually finished hours earlier.
+   Fixed by adding a unified freshness gate both liveness branches funnel
+   through: `wire.jsonl` mtime freshness (<180s) OR a trailing `TurnEnd`
+   event demotes a process match to `status=completed` (with a
+   `note=stale_wrapper_process_ignored` marker), rather than trusting the
+   process alone.
+2. **Silent decode failure on non-ASCII completed-session results**: `$json`
+   in this file is `JSON->new->utf8->canonical` (line ~303) — `->utf8` mode
+   means `decode()` expects **raw UTF-8 bytes**, not an already-decoded Perl
+   string. Every other `$json->decode()` call in the file reads its source
+   via a `<:raw` filehandle first to get bytes; the new code instead read its
+   JSON line via `qx($grep_cmd)`, and because the whole script runs under
+   `perl -C31` (UTF-8 on all I/O layers, including new pipes from `qx`), that
+   string comes back already decoded. Feeding it to `$json->decode()` threw
+   `"Wide character in subroutine entry"`, caught silently by the wrapping
+   `eval`, so `status=completed` recovery silently returned "no final
+   assistant text found" for any real (near-universally non-ASCII, e.g. em
+   dashes) response — i.e. it was broken for almost every actual use.
+   Fix: `encode('UTF-8', $last_text_line)` before `decode()`. **Lesson for
+   this file specifically**: any new code that pipes `qx()` output into
+   `$json->decode()` needs that same re-encode step first — the `<:raw`-read
+   convention isn't just style, `->utf8` mode requires it.
+
+Both bugs were found by testing the actual tool end-to-end after dispatch
+(live stdio JSON-RPC smoke tests, plus a synthetic `exec -a 'kimi-legacy...'`
+process to simulate the lingering-wrapper case) rather than trusting the
+dispatch's own "tested, verified" self-report at face value — the second bug
+in particular only showed up once a completed session with real prose
+(non-ASCII punctuation) was checked; the initial verification pass had only
+exercised sessions/synthetic text that happened to be pure ASCII.
+
 ## related
 
 [[feedback-mcp-memory-update-agent-detection]] ·
 [[feedback-kimi-dispatch-pattern]] ·
 [[feedback-tasks-completed-scan-verdict-trust]]
 
-#,,..,,.,,...,..,,,..,.,,,,,,,,,.,,,.,.,.,,.,,..,,...,..,,...,..,,,..,,,,,...,
-#WVWGLAHV6IFX2VPES3YIV7CVNLAYPVBOFT7FF6U6LZN526HBDGFJFXIQYDT3NIZ5T4CFZFEHKJ6IK
-#\\\|5DSPVKCXHKDVX3XQKJGZOGPUTXBSZ5XAHUGVNNDBSHSUJ23ESSU \ / AMOS7 \ YOURUM ::
-#\[7]VYX2BSRJCMZAGVBI5AGCMNSFO5JUSVCTYTEFSPJQGECUBWWCD2AQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,..,,..,,.,.,..,,,,.,,.,,,.,,,..,..,,...,...,,,.,..,,.,,,,.,,,,,,
+#5KQD54ZUBAYBUO5WG42DCG6G63EBKMUIMR4MRPSNVL7URY2I2RPJO3KC53TJFRBLSB5K4CGI6MZFG
+#\\\|3QLBPC2DFLX3PQWV2L3KPLAPE7O6LYMPZNEHRKX25Q3KFQDCAJM \ / AMOS7 \ YOURUM ::
+#\[7]SLBIZSUKWBU6JRFP6EKTFNJ7FP4QGVD7LX64SVZ3KDCIMFQBHGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
