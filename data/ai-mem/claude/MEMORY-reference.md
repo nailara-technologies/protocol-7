@@ -8,6 +8,7 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 ## Reference
 - [zenka-process-title-convention](reference-zenka-process-title-convention.md) — running zenki rename argv to `<hostname>.<zenka-name>` (or `<hostname>.<stdin>` pre-name); use `pkill -f <zenka-name>`, not a captured launch-command PID, to reliably kill a stuck one
 - [edit-memory-via-ai-mem-path](feedback-edit-memory-via-ai-mem-path.md) — always edit data/ai-mem/claude/*.md directly, not the ~/.claude symlink path, to avoid permission prompts
+- [spdx-marker-flags-suspect-session](reference-spdx-marker-flags-suspect-session.md) — trailing "SPDX-License-Identifier: ISC" in a module is a fabricated tag on public-domain code from a bad session (~30 files, mostly pager.*); kept as a review marker until data/tasks/spdx-license-string-cleanup.md is done, then stripped with no replacement
 - [base-swap-subs-promote-pattern](feedback-base-swap-subs-promote-pattern.md) — promote a module to default-loaded-on-every-zenka: live under base.X, add base.X.pre_init calling base.swap_subs(base.X,X), no call-site changes; precedent base.file/file
 - [session-catchup-subagent-support](reference-session-catchup-subagent-support.md) — recover lost Agent-tool subagent context via `subagents=2` / `subagent_id=<fragment>`, claude+kimi both supported
 - [opus-dispatches-kimi-workflow](reference-opus-dispatches-kimi-workflow.md) — Opus calls kimi_dispatch(K3,auto-summary) itself; session_catchup gets session id; kimi_continue resumes
@@ -46,8 +47,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [show-buffer command](reference-show-buffer-command.md) — no `p7-log.tail` exists; use `show-buffer <name> [lines] [pattern]` (`list buffers` first); don't invent `.tail`-style command names; buffer is a passive review sink only, rotation ≠ behavior unreliability
 - [add new on-demand zenka](reference-add-new-ondemand-zenka.md) — `start` file alone isn't enough: needs zenka-startup.v7 + v7.reload (spawn/connect), then cube's auth.zenki + access.zenki + bare `reload config` to cube itself (not `cube.reload`) for the connection handshake; each missing piece has a distinct error message, verified live bringing up opencv
 
-#,,,,,,,.,,,.,.,.,,..,.,,,,.,,.,,,,,.,,,.,,,.,..,,...,..,,,,,,.,.,.,,,,,,,...,
-#BFRBORE6OLLL43PSLETCJTZEA5PYSS7Q5XJGRG357NLSRZ7357DFBTS2DYDNLHYZKRBLNWOG3HGOM
-#\\\|MQZOCT5W2GJTKWATKIWCWR4Z3WYWQN7VNPAB6BSTPIDPMN5OVZK \ / AMOS7 \ YOURUM ::
-#\[7]LWEEH6TOKNPDP3SNJLNINRZUSAM4ZE7NJBQ4YU3FYZHWKTFI22BI 7  DATA SIGNATURE ::
+#,,.,,...,,,.,..,,,..,,,.,,..,,.,,..,,,,,,.,.,..,,...,...,,..,.,.,,.,,,,,,..,,
+#S42SJTI2VOYA4XMECYCAA2RT6BASDH46FPEUB6RFZIXRMFF72AKSEQEPFNPB57ROXB2DNH7FKJ44O
+#\\\|HYIJ67HQFV3AOIASVRPKSVNNOADPQWTLGYUY4XG7WPAUEYXJRK6 \ / AMOS7 \ YOURUM ::
+#\[7]CN24PBE57QER5S3CKFGG7CA2AF2LN5VQCWEZU7EP7ATEBKICBUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
