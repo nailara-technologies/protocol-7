@@ -24,7 +24,7 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [release-versioning-workflow](feedback-release-versioning-workflow.md) — vc=git alias, not encrypted; release-version -s only AFTER commit or it tags the wrong one; rel-ver file written via `2>` redirect not stdout; push branch then push --tags separately
 - [webkit-double-click-dispatch](feedback-webkit-double-click-dispatch.md) — web-browser zenka's WebKit fires click twice for one tap on some buttons, Firefox doesn't; wrap every handler in a shared debounceClick() from the start, don't patch button-by-button
 - [tasks-completed-scan-verdict-trust](feedback-tasks-completed-scan-verdict-trust.md) — "still open" as unreliable as "move to completed"; 31/52 false negs, incl. live auth gap
-- [kimi-dispatch-infra-hardening](topic-kimi-dispatch-infra-hardening.md) — --afk flag, k3/k2.7/k2.7-fast routing; MCP bridge timeout ≠ dispatch failure
+- [kimi-dispatch-infra-hardening](topic-kimi-dispatch-infra-hardening.md) — --afk flag, k3/k2.7/k2.7-fast routing; MCP bridge timeout ≠ dispatch failure; kimi_check_status tool landed 2026-08-09 (lingering-wrapper + ->utf8 decode gotchas)
 - [kimi-dispatch-model-verify-before-send](feedback-kimi-dispatch-model-verify-before-send.md) — check the model string against reference-kimi-k3-256k-model BEFORE dispatching; if wrong model caught after the fact, use session_catchup(client:kimi) to find the UUID + kimi_continue to switch — never TaskStop+restart
 - [kimi-k3-thinking-effort](topic-kimi-k3-thinking-effort.md) — Low/High/Max in vendor UI, not in API/installed CLI
 - [coding-zenka buffer rescue](topic-coding-zenka-session9.md) — idle-shutdown backups readable via group-perm `xz -dc`, no sudo
@@ -74,8 +74,8 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 - [comp-regex-qr-delimiter-escaping](feedback-comp-regex-qr-delimiter-escaping.md) — qr'...' only needs the delimiter (') escaped, never backslash; qr'...' hands \-escapes to the regex engine unlike q'...', so backslash-doubling silently breaks \d/\s for every caller
 - [standalone-zenka-init-done-hybrid](feedback-standalone-zenka-init-done-hybrid.md) — non-v7-managed zenki need `[init-done:TRUE]` in start file or system.zenka.initialized never becomes TRUE, stalling init reports forever; canonical backoff shape to reuse is v7.handler.zenka_status's restart_delay (*1.2 growth, min/max envelope)
 
-#,,,,,,,,,,,,,,,.,,.,,,.,,,.,,,,.,.,.,,,,,...,..,,...,...,.,.,,,.,.,.,,..,...,
-#KG2XEGTUTXW3REJXUC7D3XVGHKDBM6JPDP42FSYNTM65XVQJP4ACFQFV2X4OOIIVBDEX2FSHNI74Y
-#\\\|3L6COUFMJ4WR2SUHJCSGS6QGOAN2CAIXG7SF2VZPKLZ73USXQWQ \ / AMOS7 \ YOURUM ::
-#\[7]WWUPSOHGZ4S2J2HRCKUVA476QDY3ZRZLSC4K4MHIESYOAL3VKWCY 7  DATA SIGNATURE ::
+#,,..,,.,,...,.,.,..,,..,,.,,,...,.,.,,.,,.,,,..,,...,...,..,,.,,,...,,.,,,.,,
+#SCKROYQ7BO7CYN3ZEW7BFSX2JU7Y5HZDMOX5GSQE6HYMBOIDRGP53JVYJCDUP2MHV4TMUKIZ5EAA2
+#\\\|EKAKFWIFS5PWKKOAIYI4YBNNC2K6TPJSCM5N5SGGVDVXTSWNJYX \ / AMOS7 \ YOURUM ::
+#\[7]RKEEFFEBY3OV33ROVY3NG4REK3NUKDJMPKU6SQ2HUGZILST2QCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
