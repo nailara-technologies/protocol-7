@@ -8,6 +8,7 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 ## Reference
 - [zenka-process-title-convention](reference-zenka-process-title-convention.md) — running zenki rename argv to `<hostname>.<zenka-name>` (or `<hostname>.<stdin>` pre-name); use `pkill -f <zenka-name>`, not a captured launch-command PID, to reliably kill a stuck one
 - [edit-memory-via-ai-mem-path](feedback-edit-memory-via-ai-mem-path.md) — always edit data/ai-mem/claude/*.md directly, not the ~/.claude symlink path, to avoid permission prompts
+- [bin-todo-random-id-scheme](project-bin-todo-random-id-scheme.md) — for a short reusable display id, generate-random-and-check-against-current-set beats hash-of-a-growing-counter (birthday saturation grows with all-time count, not live-set size); base.gen_id's shape mirrored for a standalone script that can't use `<[...]>`/`<base.prng.fortuna>`
 - [spdx-marker-flags-suspect-session](reference-spdx-marker-flags-suspect-session.md) — trailing "SPDX-License-Identifier: ISC" in a module is a fabricated tag on public-domain code from a bad session (~30 files, mostly pager.*); kept as a review marker until data/tasks/spdx-license-string-cleanup.md is done, then stripped with no replacement
 - [base-swap-subs-promote-pattern](feedback-base-swap-subs-promote-pattern.md) — promote a module to default-loaded-on-every-zenka: live under base.X, add base.X.pre_init calling base.swap_subs(base.X,X), no call-site changes; precedent base.file/file
 - [session-catchup-subagent-support](reference-session-catchup-subagent-support.md) — recover lost Agent-tool subagent context via `subagents=2` / `subagent_id=<fragment>`, claude+kimi both supported
@@ -47,8 +48,8 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 - [show-buffer command](reference-show-buffer-command.md) — no `p7-log.tail` exists; use `show-buffer <name> [lines] [pattern]` (`list buffers` first); don't invent `.tail`-style command names; buffer is a passive review sink only, rotation ≠ behavior unreliability
 - [add new on-demand zenka](reference-add-new-ondemand-zenka.md) — `start` file alone isn't enough: needs zenka-startup.v7 + v7.reload (spawn/connect), then cube's auth.zenki + access.zenki + bare `reload config` to cube itself (not `cube.reload`) for the connection handshake; each missing piece has a distinct error message, verified live bringing up opencv
 
-#,,.,,...,,,.,..,,,..,,,.,,..,,.,,..,,,,,,.,.,..,,...,...,,..,.,.,,.,,,,,,..,,
-#S42SJTI2VOYA4XMECYCAA2RT6BASDH46FPEUB6RFZIXRMFF72AKSEQEPFNPB57ROXB2DNH7FKJ44O
-#\\\|HYIJ67HQFV3AOIASVRPKSVNNOADPQWTLGYUY4XG7WPAUEYXJRK6 \ / AMOS7 \ YOURUM ::
-#\[7]CN24PBE57QER5S3CKFGG7CA2AF2LN5VQCWEZU7EP7ATEBKICBUDQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,...,..,,,.,,..,,.,.,,..,...,,,.,..,,...,...,.,.,,,,,,,,,,.,,,,,,
+#B6LFII66CSCJU24H2YSOHKRQBMUGUA22CEGKCAQS5HIYW47BRBBVOFDCXBOCJTTYLCNWYBFEW4HFY
+#\\\|7LPK4OL77WE5WDTTX6P2YLYB7ZXVQPUOKAVR34JHYMKWMBITHDI \ / AMOS7 \ YOURUM ::
+#\[7]6TWCQMKWQLFWUEI5ZZLJOWEJZB73KQ5I5GJOV5EQT4EWUCFSMYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
