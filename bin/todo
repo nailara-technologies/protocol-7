@@ -389,7 +389,7 @@ my $option_list = <<'EOL';
     list [open|done|all|<tag>] .....  list items [ default : open ]
     add [-h|-l] [-t tag,..] <text> .  add a new item
     done <id> [<id>..] .............  mark item[s] as done
-    rm <id> ........................  remove an item
+    del <id> .......................  remove an item
     edit <id> <text> ...............  replace item text
     pri <id> <high|normal|low> .....  change item priority
     tag <id> <tag> .................  add a tag to an item
@@ -540,7 +540,7 @@ sub cmd_done {
     save_data($data);
 }
 
-sub cmd_rm {
+sub cmd_del {
     my $id_str = shift // die "expected item id\n";
 
     my $data   = load_data();
@@ -663,8 +663,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
     cmd_add(@ARGV);
 } elsif ( $cmd eq 'done' ) {
     cmd_done(@ARGV);
-} elsif ( $cmd eq 'rm' ) {
-    cmd_rm(@ARGV);
+} elsif ( $cmd eq 'del' ) {
+    cmd_del(@ARGV);
 } elsif ( $cmd eq 'edit' ) {
     cmd_edit(@ARGV);
 } elsif ( $cmd eq 'pri' ) {
@@ -687,8 +687,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,.,,,.,,...,,,.,..,,,,,,,.,,...,,,.,,.,,..,,..,,...,...,,,,,,,.,.,.,..,,..,,
-#AT3NELN2YDTUQSRWLL4VKP7WGK6SJSXN27CD7RT6PSG5JURCPHJD27LWKDPUMGRVU2YPUTMRQNI4Y
-#\\\|UPASJAAMWAIA3CYJWYVG7IKLUPANBOE7FMDFGAWQSSV5ZMTVLTB \ / AMOS7 \ YOURUM ::
-#\[7]MBPUGAXZWMRGVECZPY35FS6I6RQFWWVHW36SVB7BGIL5B3XZ5GAA 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,,..,,,,,,.,,,.,,,,.,...,,.,,,..,..,,...,...,..,,..,,,,,,.,,,..,,
+#XWGRBVOAJC6VPA375INENVIDM6YLKIUDDTFAT4LVK63WIAY7AHKPCZHY47K552JHUXM7T7OLVDMIW
+#\\\|PZZ6WXX75V7BYPYOOZOAXYRS4CMC3Y2PN3K4SZKELHAFZ53BOYX \ / AMOS7 \ YOURUM ::
+#\[7]SCT2HOIVGLB3KGXC7XQAWZCLV26XA7MTVGHY5ZI43PJLZMKG54DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
