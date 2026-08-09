@@ -225,8 +225,16 @@ ncode.cmd.widen-scope with streak-consuming widen + reset). verified live via
 p7c incl. coding.eval-code for the p7c-unreachable regex.apply. details +
 reusable verification notes: [topic-ncode-scope-stack-phase2.md](topic-ncode-scope-stack-phase2.md)
 
-#,,,,,,,,,,..,.,.,,.,,,..,,..,,..,,,,,...,..,,..,,...,..,,.,,,,,.,..,,.,.,,,.,
-#IDWXHNKJ6BMBNDJO6XJ3UYJ7M67LORCDVJFJAQEO3MEL2V5DLOADPBQNK4F3BVZML5NET25PVP7WS
-#\\\|JZJWHRFX7CRVHC5NQ73CVLG5NPIBQDUNUUHCJIWS23KS26O6BO2 \ / AMOS7 \ YOURUM ::
-#\[7]TEH7K3SUNK7CJ2ZQNH66MCV4HKLM2PHYQ4FUO2ZPBA6DH6QTAQCY 7  DATA SIGNATURE ::
+## user-edit local outbox primitives — unlink choice (2026-08-10)
+
+`user-edit.outbox.clear` uses plain `unlink` on the keyword-resolved
+absolute path instead of `file.zenka_dir.unlink_file`. The zenka_dir
+wrapper owns its own relative-path prefix logic for var/etc dirs; the
+outbox file is already an absolute path from `[VAR_P7]/outbox/<id>.yaml`
++ `base.path.resolve_keywords`, so direct `unlink` is the simpler fit.
+
+#,,.,,,..,,,,,,.,,,,.,.,,,.,,,.,.,,..,,.,,..,,..,,...,...,..,,...,,.,,,..,..,,
+#AXPZRWIT7EQ33MKIEI6RIPSEAPXUJSW3JEEIO4JGXCVW5O7YCJOFJK4WJVOFDXDKV3IZJUL6MZO6S
+#\\\|5CCWWR4XLMOZQBTUW4X4E7MZZFVVVLTZ7TVRVGZFQDZBCQFZ6SW \ / AMOS7 \ YOURUM ::
+#\[7]RAEGHVHAFDC5HYYHHZLQPAV3KHIOOXM747MYR2KWV6XAZZKIU4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

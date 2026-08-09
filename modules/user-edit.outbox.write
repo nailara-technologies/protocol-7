@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = user-edit.outbox.write
+# descr = write an edit record to the local outbox as yaml
+# param = $id, $yaml_data
+
+my ( $id, $yaml_data ) = @ARG;
+
+if ( not defined $id or not length $id ) {
+    <[base.logs]>->( 0, 'outbox.write : entry id required' );
+    return wantarray ? ( FALSE, 'entry id required' ) : FALSE;
+}
+
+if (   index( $id, qw| / | ) != -1
+    or index( $id, qw| .. | ) != -1 ) {
+    <[base.logs]>->( 0, 'outbox.write : invalid entry id [ %s ]', $id );
+    return wantarray ? ( FALSE, 'invalid entry id' ) : FALSE;
+}
+
+my $path = sprintf qw| [VAR_P7]/outbox/%s.yaml |, $id;
+
+my $resolved_path = <[base.path.resolve_keywords]>->($path);
+
+( my $outbox_dir = $resolved_path ) =~ s|/[^/]+$||;
+
+<[file.make_path]>->( $outbox_dir, 0750 )
+    or return wantarray
+    ? ( FALSE, 'cannot create outbox directory' )
+    : FALSE;
+
+return <[format.yaml.write_file]>->( $resolved_path, $yaml_data );
+
+#,,.,,,..,,.,,,.,,,.,,.,,,...,.,,,,,.,,..,,,.,..,,...,...,,..,..,,,,,,,..,,.,,
+#ULTUMH5CZNIQW3WQ7LTP7EMK5IR5DBXLFOPF5UCA6WF55UJ3NV7U4PJ5LPQ2KLHNULSLPHDXVEU5S
+#\\\|PVT6VYRQ2L3PQ6AP4NEFHN5YAQDLQLGZ4G5VMZNNNK5TDQFHUMW \ / AMOS7 \ YOURUM ::
+#\[7]X6LKRSHKUULSAYST2FV7XMBX44UYN4U6RBEBQCMJ3FJ7ZI6RQKCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
