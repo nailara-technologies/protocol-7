@@ -1,0 +1,238 @@
+## [:< ##
+
+# name  = editor.control.process_key
+# descr = dispatch one key against editor state ; SEMANTICS ONLY result
+
+## ported from AMOS7::TERM::editor_process_key [ key dispatch only ]:
+## - result is { action, field, dirty, signal?, passthrough? } — NO {output},
+## no ANSI bytes, no %colors [ design: control_ui_boundary ]
+## - all cursor arithmetic in CHARACTERS via editor.buffer.memory and
+## editor.control.commands.* [ design: position_units ]
+## - action=signal is ADVISORY: never kill() here, the host decides
+
+my ( $editor_state, $key ) = @ARG;
+
+return undef if !defined $editor_state or !defined $key;
+
+my $schema = $editor_state->{'schema'}           // return undef;
+my $index  = $editor_state->{'active_field'}     // 0;
+my $field  = $schema->{'fields'}[$index]{'name'} // return undef;
+my $buffer = <[editor.control.active_buffer]>->($editor_state)
+    // return undef;
+
+my $result = {
+    'action' => 'none',
+    'field'  => $field,
+    'dirty'  => 'none',
+};
+
+my $multi_field = scalar $schema->{'fields'}->@* > 1 ? TRUE : FALSE;
+
+## Tab / Shift-Tab : field_next / field_prev — never fires for a ##
+## single-field schema [ design: editor.control.process_key ]    ##
+if ( $key eq "\x09" and $multi_field ) {
+    $result->{'action'} = 'field_next';
+    $result->{'dirty'}  = 'form';
+    return $result;
+}
+if ( $key eq "\e[Z" and $multi_field ) {    ## Shift-Tab ##
+    $result->{'action'} = 'field_prev';
+    $result->{'dirty'}  = 'form';
+    return $result;
+}
+
+## newline / enter : submit [ 'newline' action is only meaningful for
+## multiline field types ; freeform_line + submit_on=enter submits ]
+if ( $key eq "\n" or $key eq "\r" ) {
+    my $submit_on = $schema->{'submit_on'} // qw| enter |;
+    if ( $submit_on eq qw| enter | ) {
+        $result->{'action'} = 'submit';
+        $result->{'dirty'}  = 'form';
+    }
+    return $result;
+}
+
+## Ctrl-C : advisory signal, host acts on it [ or not ]
+if ( $key eq "\x03" ) {
+    $result->{'action'} = 'signal';
+    $result->{'signal'} = 'INT';
+    return $result;
+}
+
+my $cursor_pos = $buffer->{'cursor'};
+my $buf_len    = <[editor.buffer.memory.length]>->($buffer);
+
+## Ctrl-D : delete char at cursor
+if ( $key eq "\x04" ) {
+    if ( $cursor_pos < $buf_len ) {
+        <[editor.control.commands.delete]>->(
+            $editor_state, $field, $cursor_pos, $cursor_pos + 1
+        );
+        $result->{'action'} = 'delete';
+        $result->{'dirty'}  = 'field';
+    }
+    return $result;
+}
+
+## Ctrl-A : cursor to start of line
+if ( $key eq "\x01" ) {
+    if ( $cursor_pos > 0 ) {
+        <[editor.control.commands.move_cursor]>->(
+            $editor_state, $field, -$cursor_pos
+        );
+        $result->{'action'} = 'cursor_left';
+        $result->{'dirty'}  = 'cursor';
+    }
+    return $result;
+}
+
+## Ctrl-E : cursor to end of line
+if ( $key eq "\x05" ) {
+    if ( $cursor_pos < $buf_len ) {
+        <[editor.control.commands.move_cursor]>->(
+            $editor_state, $field, $buf_len - $cursor_pos
+        );
+        $result->{'action'} = 'cursor_right';
+        $result->{'dirty'}  = 'cursor';
+    }
+    return $result;
+}
+
+## Ctrl-K : kill to end of line [ save to kill buffer ]
+if ( $key eq "\x0b" ) {
+    if ( $cursor_pos < $buf_len ) {
+        my $text = <[editor.buffer.memory.get_text]>->($buffer);
+        $editor_state->{'kill_buffer'}
+            = substr( $text, $cursor_pos, $buf_len - $cursor_pos );
+        <[editor.control.commands.delete]>->(
+            $editor_state, $field, $cursor_pos, $buf_len
+        );
+        $result->{'action'} = 'kill_to_end';
+        $result->{'dirty'}  = 'field';
+    }
+    return $result;
+}
+
+## Ctrl-U : kill from start of line to cursor [ save to kill buffer ]
+if ( $key eq "\x15" ) {
+    if ( $cursor_pos > 0 ) {
+        my $text = <[editor.buffer.memory.get_text]>->($buffer);
+        $editor_state->{'kill_buffer'} = substr( $text, 0, $cursor_pos );
+        <[editor.control.commands.delete]>->(
+            $editor_state, $field, 0, $cursor_pos
+        );
+        $result->{'action'} = 'kill_from_start';
+        $result->{'dirty'}  = 'field';
+    }
+    return $result;
+}
+
+## Ctrl-W : kill word backward [ save to kill buffer ]
+if ( $key eq "\x17" ) {
+    if ( $cursor_pos > 0 ) {
+        my $text      = <[editor.buffer.memory.get_text]>->($buffer);
+        my $start_pos = $cursor_pos;
+
+        ## skip trailing whitespace
+        while ( $start_pos > 0
+            and substr( $text, $start_pos - 1, 1 ) =~ m|\s| ) {
+            $start_pos--;
+        }
+        ## skip word characters [ non-whitespace ]
+        while ( $start_pos > 0
+            and substr( $text, $start_pos - 1, 1 ) !~ m|\s| ) {
+            $start_pos--;
+        }
+
+        if ( $start_pos < $cursor_pos ) {
+            $editor_state->{'kill_buffer'}
+                = substr( $text, $start_pos, $cursor_pos - $start_pos );
+            <[editor.control.commands.delete]>->(
+                $editor_state, $field, $start_pos, $cursor_pos
+            );
+            $result->{'action'} = 'kill_word';
+            $result->{'dirty'}  = 'field';
+        }
+    }
+    return $result;
+}
+
+## Ctrl-Y : yank [ paste kill buffer at cursor position ]
+if ( $key eq "\x19" ) {
+    if ( length $editor_state->{'kill_buffer'} ) {
+        <[editor.control.commands.insert]>->(
+            $editor_state, $field, $cursor_pos, $editor_state->{'kill_buffer'}
+        );
+        $result->{'action'} = 'yank';
+        $result->{'dirty'}  = 'field';
+    }
+    return $result;
+}
+
+## left arrow : move cursor left one CHARACTER [ ANSI: \e[D ]
+if ( $key eq "\e[D" or $key eq "\x1b[D" ) {
+    if ( $cursor_pos > 0 ) {
+        <[editor.control.commands.move_cursor]>
+            ->( $editor_state, $field, -1 );
+        $result->{'action'} = 'cursor_left';
+        $result->{'dirty'}  = 'cursor';
+    }
+    return $result;
+}
+
+## right arrow : move cursor right one CHARACTER [ ANSI: \e[C ]
+if ( $key eq "\e[C" or $key eq "\x1b[C" ) {
+    if ( $cursor_pos < $buf_len ) {
+        <[editor.control.commands.move_cursor]>->( $editor_state, $field, 1 );
+        $result->{'action'} = 'cursor_right';
+        $result->{'dirty'}  = 'cursor';
+    }
+    return $result;
+}
+
+## delete key [ ANSI: \e[3~ ] : delete character at cursor
+if ( $key eq "\e[3~" or $key eq "\x1b[3~" ) {
+    if ( $cursor_pos < $buf_len ) {
+        <[editor.control.commands.delete]>->(
+            $editor_state, $field, $cursor_pos, $cursor_pos + 1
+        );
+        $result->{'action'} = 'delete';
+        $result->{'dirty'}  = 'field';
+    }
+    return $result;
+}
+
+## backspace [ \x08 and \x7f ] : delete character before cursor
+if ( $key eq "\x08" or $key eq "\x7f" ) {
+    if ( $cursor_pos > 0 ) {
+        <[editor.control.commands.delete]>->(
+            $editor_state, $field, $cursor_pos - 1, $cursor_pos
+        );
+        $result->{'action'} = 'backspace';
+        $result->{'dirty'}  = 'field';
+    }
+    return $result;
+}
+
+## printable character [ possibly multi-byte utf-8 sequence ] : check first
+## byte/char exactly like AMOS7::TERM does, then insert — byte->char decoding
+## happens inside the buffer adapter
+if ( length $key and ord( substr( $key, 0, 1 ) ) >= 32 ) {
+    return $result if $buffer->{'readonly'};
+    <[editor.control.commands.insert]>->(
+        $editor_state, $field, $cursor_pos, $key
+    );
+    $result->{'action'} = 'echo';
+    $result->{'dirty'}  = 'field';
+    return $result;
+}
+
+## unclaimed key : host may claim it [ arrows up/down, ctrl-o, ctrl-r .. ]
+$result->{'passthrough'} = $key;
+return $result;
+
+#,,..,.,,,,,,,,.,,,.,,,,,,...,,,.,,,.,.,.,.,.,..,,...,...,.,.,,.,,.,.,,..,,.,,
+#2BNFIZD4NHURO6J4EVQ7EJDHXHXGAOPXC3WF7IMPNML5FLK3ML7KTFOZFFIZPQVTFLRGCP4GDOJ3S
+#\\\|LCHT4DTT4LIPQR67FJYJ5SGUMLCBREZW2K257N65DRTGGP6EJHD \ / AMOS7 \ YOURUM ::
+#\[7]4XOXATZW4N6K5GACEQJ5BGN4TX2CI2DNI3KRD2NSCTSNG5POQOCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = editor.control.active_buffer
+# descr = resolve the active field's buffer ref
+
+## {fields} is keyed by field NAME while active_field is an INDEX into
+## $schema->{fields} [ revision-2 indexing fix ] — always go through this
+## helper instead of inlining the lookup.
+
+my $editor_state = shift;
+
+return undef if ref $editor_state ne qw| HASH |;
+
+my $index = $editor_state->{'active_field'} // 0;
+my $name  = $editor_state->{'schema'}{'fields'}[$index]{'name'}
+    // return undef;
+
+return $editor_state->{'fields'}{$name};
+
+#,,.,,,,,,.,.,.,.,...,,..,.,.,.,.,...,,,,,,.,,..,,...,...,,..,.,,,...,,,.,,.,,
+#YOPV6NLVPUGVBNQU352MNMXL6RBATOWEX2SMNSALMPZJSLS3IEGH4HTUSS3NV4FELUCL3MSQV6FU6
+#\\\|JRMCZE4ZKWVI7NQWZWMUS2NMX2PBFUEPQBMJR5LZSAPWMUPW2VO \ / AMOS7 \ YOURUM ::
+#\[7]TZ7L4VIE3WQFAOWEZWVL47YAUBKV6XV7PORWL5JYFBXUBUARPGAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
