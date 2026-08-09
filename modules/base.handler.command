@@ -844,7 +844,7 @@ if (   $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$,
                         <[base.stream.close]>->($h);
 
                         <[base.logs]>->(
-                            1,
+                            2,
                             "[%d] STRM streaming complete: "
                                 . "%d bytes in %d chunks",
                             $id,
@@ -1077,8 +1077,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,..,,.,,,,,,,,,,,,,,..,,,,,,...,,.,,..,,...,..,,...,...,...,,..,..,,,,,,..,,
-#ZDJ6F46IR3GULMMY6N2AYPD5SPJA554P4KFZYPL7KF46RWZCMI6BP5AGKCMBTHFOFQSM3Y5OO2UQ2
-#\\\|EN3Y5CLAXFG2XCQJJBOMZGOGOTK5YBMURBPYORPX3DBJIACJWRC \ / AMOS7 \ YOURUM ::
-#\[7]LO2NUXJJGJKDWH2SK7SCQZR44PNID6JAUXDTQPKUWTWEZKSOT2BY 7  DATA SIGNATURE ::
+#,,..,...,,,,,,..,...,..,,,.,,,.,,,,.,,,.,,,,,..,,...,...,,,.,,,.,...,,,,,..,,
+#OVEYGIMNJRTE37IKU5MI3SQMJ2CK4QBPD7O5YNRLSZENHPYDUOGFG6IQXC7IAWPDJNWDMULWZOCX2
+#\\\|MIYHBYQX3XHAQRGGMOLBHLGVLIVWDIKZXFGDUIXIOJKCW5G5ZGA \ / AMOS7 \ YOURUM ::
+#\[7]YKGNLXV4MD5KUKMJGXYFA73OEWCVN5COOK3RKXNRWKG3TZGOMSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
