@@ -6,6 +6,13 @@
 my $args    = shift              // {};
 my $summary = $args->{'summary'} // 'task completed';
 
+## flush any queued non-urgent questions before the task ends ##
+if ( <[base.code.exists]>->(
+        qw| coding.tools.handler.flush_pending_questions | )
+) {
+    <[coding.tools.handler.flush_pending_questions]>->();
+}
+
 ## set the stop flag that process-queued-task checks ##
 <coding.tool_loop.stop>         = TRUE;
 <coding.tool_loop.stop_reason>  = 'task_complete';
@@ -16,8 +23,8 @@ my $oneliner = <[coding.filter.summarize_oneline]>->($summary);
 
 return $summary;
 
-#,,,.,,..,,..,...,...,,,.,,.,,...,...,..,,,..,.,.,...,...,,..,,,.,,..,.,.,..,,
-#A3RCLEAM5VLMB3SGWFZPLBIG6JYLT3HTYOUYRQSLQYOMNNBOEMLETLQQWZHE66R6I55FVQYG3T6NM
-#\\\|CBI62S5D2AQDY75SWHPMRJP7A2KYGRM2EBW4A3VRB6LTSIDJKGX \ / AMOS7 \ YOURUM ::
-#\[7]TZARUR2E54KSGBQXL6ED4QZFUAXSLN52ZY4C3JO564OMM3GLZEBI 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,.,.,.,,,,..,,..,.,,,...,,.,,..,,.,.,...,...,...,,,,,,..,...,,,,,
+#HOMKK4NEIOQKSFR2CH7IZXULOBX6PIW7S2EEXNNQ2SHOIZVDDSPR3LVWPOKD4RZO55LSXNQPCNXP4
+#\\\|TB27ZXPREBEWX7K2LFTEDFSSOI7N2XXA7B3E4W7GQI4RHEXXAD4 \ / AMOS7 \ YOURUM ::
+#\[7]WLLONMOZLDQK5DO6KX752FR2HRA4FMOAHKKMQUCFW2ECWZEL7EAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
