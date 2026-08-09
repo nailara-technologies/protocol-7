@@ -22,21 +22,30 @@ if (   <system.zenka.verbosity.console> > 1
 
 return if $$counter_ref == 0;
 if ( $queue_name eq 'queued' ) {
-    my ( $job_id, $job_data ) = <[jobqueue.get_next_job]>->($queue_name);
-    return if not defined $job_id;
-    my $object_id = $job_data->{'object_id'};
-    if ( !<[dependency.ok]>->($object_id) ) {
-        <[jobqueue.move_job]>->( $job_id, 'depending' );
-        <[base.log]>->( 1, "moved job '$job_id' into 'depending' queue" );
-    } else {
-        <[jobqueue.move_job]>->( $job_id, 'running' );
-        <[jobqueue.exec_job]>->($job_id);
+    ## the var watcher is edge-triggered on the *next* event loop tick -- a ##
+    ## burst of synchronous move_job calls [ eg. check_dependencies         ##
+    ## bulk-resolving many jobs at once ] only fires this handler once, so  ##
+    ## draining a single job per firing starves the rest of the burst.      ##
+    ## bounded to the counter snapshot so an exec_job that re-queues more   ##
+    ## work here gets picked up on the next tick, not this one.,            ##
+    my $drain_budget = $$counter_ref;
+    while ( $drain_budget-- > 0 ) {
+        my ( $job_id, $job_data ) = <[jobqueue.get_next_job]>->($queue_name);
+        last if not defined $job_id;
+        my $object_id = $job_data->{'object_id'};
+        if ( !<[dependency.ok]>->($object_id) ) {
+            <[jobqueue.move_job]>->( $job_id, 'depending' );
+            <[base.log]>->( 1, "moved job '$job_id' into 'depending' queue" );
+        } else {
+            <[jobqueue.move_job]>->( $job_id, 'running' );
+            <[jobqueue.exec_job]>->($job_id);
+        }
     }
 }
 <[jobqueue.check_dependencies]>;
 
-#,,,.,,,,,.,,,.,,,..,,..,,,,,,,..,.,.,..,,,.,,..,,...,...,..,,,,,,,..,,,.,.,.,
-#CKVC77RRRBGZ33COXFBYIS5PDIZ2LEKHCDTJFXQC6DXIZYFKYUHVYI72ABR324CQKF2PJQFMI5FR6
-#\\\|AMTU2UYEAA7NUNQNBGOVT2RPAGUYLPY4QRD6BKLA525G4KIR4O5 \ / AMOS7 \ YOURUM ::
-#\[7]OEKEWDBF2QATNXUKNV3JZKLR3XZSNYK5J5PL76E3MVTMN6OR2YDY 7  DATA SIGNATURE ::
+#,,,.,,,,,...,..,,,.,,.,,,...,.,,,,.,,,.,,,.,,..,,...,..,,...,.,.,...,,,.,.,,,
+#6CVT6IRNAXH4UGRSI7ZFM7U72KHZ7U3X7E24AGLUELWBDYFIVPFUWE3U3FPQAOH42OH2IXVUJMLBI
+#\\\|K6GBU7AATTHMVYW5N7UZFLWSUCT2DIHLBTOYR5FUSB6KUR5SLNX \ / AMOS7 \ YOURUM ::
+#\[7]EKRY6TIQWU3N62HXB4NCW6XHLIRHXNYRNRPSGBBHPVJUQ7BQ7UAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
