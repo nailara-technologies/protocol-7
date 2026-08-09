@@ -5,6 +5,7 @@ coding & kimi zenka state machines, jobsite, streaming transport, web-browser ca
 reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## Active Topics
+- [editor-namespace-migration-status](topic-editor-namespace-migration-status.md) — editor.* design reviewed twice; step_0 (nshell accessor port, `290a8f72f`) + step_1 (isolated editor.buffer.memory/control.* modules, `e039f1912`) landed and independently verified; step_2 (wire nshell to call them) is next
 - [jobqueue-check-dependencies-splice-bug](topic-jobqueue-check-dependencies-splice-bug.md) — FIXED + live-verified 2026-08-06: shared jobqueue.check_dependencies iterated the array move_job splices, stranding ~half of resolved dep-queue jobs per pass; hits mpv/coding/models/vision-batch/X-11 identically. Reported symptom persisted after this fix for a separate reason, see next entry
 - [mpv-ipc-reply-request-id-matching](topic-mpv-ipc-reply-request-id-matching.md) — FIXED + live-verified 2026-08-06, commit `ca1370fe9`: mpv.handler.pipe_output matched IPC replies by shift()-order FIFO with no id in the payload, permanently desyncing on any dropped/reordered reply (mpv.is-idle hung, mpv.get-volume returned wrong-shaped answers). Fixed with request_id tagging end-to-end. Same session also fixed pause/resume volume fade-out/fade-in (was firing via the wrong event, silently discarding mpv.callback.silenced's real payload — device reopen, not volume mute)
 - [jobsite-report-dossier](project-jobsite-report-dossier.md) — jobcenter evidence-dossier pipeline (jobsite.report.*/jobsite.cmd.*), uncommitted; own-address self-reply exclusion + credential-leak redaction + PDF/HTML letter dedup (prefer .pdf, HTML::FormatText mangles multi-column letterheads) all verified and resent
@@ -100,8 +101,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 - repo-pii-leak-prevention — `data/md/design/REPO-PII-LEAK-PREVENTION.md`: pre-commit/pre-push regex+optional-zenka-inference PII scanner with pattern list stored outside the repo tree, plus a periodic full-history audit tool and a documented filter-repo recovery runbook (path/text/message passes + tag-drift re-anchor); not yet implemented, open decisions listed in the doc's last section
 
-#,,.,,,.,,.,,,..,,..,,,.,,,.,,,,,,,.,,..,,.,,,..,,...,...,.,,,.,,,,..,.,.,..,,
-#BVKDP3RRV6TY5ZMADW3PTDWWMO5BRJVYKWGJP4GJ3QFJYPW5Q4CMKQWQ5SABHJNA7VCAHVJ5ZNLVW
-#\\\|KJZQA73PY4V4IQAHGTMTWQA662OSDFN3R7DXNDSZBRRZEQBSFX2 \ / AMOS7 \ YOURUM ::
-#\[7]WR3XNUSZSJEBUSISDS6UQQO664TJ2H4JO2RVJPFHCHBRKNQDUQCI 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,,,,.,.,..,,.,,,,,,,..,,...,.,.,..,,...,..,,...,...,,..,,.,,...,
+#JZ2E2V4PWASORRMHPIKKVICGCHNPSAFOEINQLZEC4O7ARAP2SVNVERP5EK63TJOHJMHNLPBTSHMLC
+#\\\|I7XATCUXUFVMUJTQFMMT23W7ZC5MUS22WKHMKOBGTCAL4WQWVOR \ / AMOS7 \ YOURUM ::
+#\[7]4UX5RCFCKP3HKXOCCGAFFIOQXHJUSUVXHENJV5NRH6ADUXYHHOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
