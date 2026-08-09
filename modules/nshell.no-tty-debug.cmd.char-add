@@ -246,7 +246,10 @@ $log_debug_event->(
     sprintf(
         'debug_buf_len=%d, editor_buf="%s", editor_defined=%d, mode=%d',
         length( <nshell.buffer.debug_input> // '' ),
-        substr( ( ( $diag_editor // {} )->{'buffer'} // '' ), 0, 40 ),
+        substr(
+            ( AMOS7::TERM::editor_get_buffer($diag_editor) // '' ),
+            0, 40
+        ),
         ( defined $diag_editor ? 1 : 0 ),
         ( <nshell.state>->{'current_mode'} // 0 )
     )
@@ -263,7 +266,10 @@ $log_debug_event->(
         'debug_buf_len=%d, editor_buf="%s", '
             . 'editor_defined=%d, mode=%d, hist_idx=%d',
         length( <nshell.buffer.debug_input> // '' ),
-        substr( ( ( $diag_editor // {} )->{'buffer'} // '' ), 0, 40 ),
+        substr(
+            ( AMOS7::TERM::editor_get_buffer($diag_editor) // '' ),
+            0, 40
+        ),
         ( defined $diag_editor ? 1 : 0 ),
         ( <nshell.state>->{'current_mode'}          // 0 ),
         ( <nshell.state>->{'current_history_index'} // -1 )
@@ -300,7 +306,10 @@ $log_debug_event->(
             . 'editor_defined=%d, mode=%d, hist_idx=%d',
         $iteration,
         length( <nshell.buffer.debug_input> // '' ),
-        substr( ( ( $diag_editor // {} )->{'buffer'} // '' ), 0, 40 ),
+        substr(
+            ( AMOS7::TERM::editor_get_buffer($diag_editor) // '' ),
+            0, 40
+        ),
         ( defined $diag_editor ? 1 : 0 ),
         ( <nshell.state>->{'current_mode'}          // 0 ),
         ( <nshell.state>->{'current_history_index'} // -1 )
@@ -313,7 +322,7 @@ STATUS_SECTION:
 ##
 my $nshell_state  = <nshell.state>                           // {};
 my $editor        = $nshell_state->{'editor'}                // {};
-my $editor_buffer = $editor->{'buffer'}                      // '';
+my $editor_buffer = AMOS7::TERM::editor_get_buffer($editor)  // '';
 my $nav_mode      = $nshell_state->{'current_mode'}          // 0;
 my $hist_idx      = $nshell_state->{'current_history_index'} // -1;
 
@@ -388,8 +397,8 @@ my $state_transition_reply = sprintf(
 
 return { 'mode' => qw| size |, 'data' => $state_transition_reply }
 
-#,,..,,.,,...,...,.,,,.,.,,.,,,,,,.,.,..,,,,,,..,,...,.,.,,..,.,.,..,,.,,,.,.,
-#L2CY4FSUD2P5PBEDNRJVXMHOR6IN2SSYUIJ3E2SLIVCGBGRWPSBH73BU7WUXMSRQDGRATUEYWXQZS
-#\\\|RYX2HSXNE4CJD4TBFFJSRL7DTBJK37I2K4HVBUZ5SJF6XSAWJ4N \ / AMOS7 \ YOURUM ::
-#\[7]TK24RMCWYIZ4SEXVO4M6VEZUFT5BLNK3MDB26D44ENP3K7HMIEBA 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,.,,,,.,...,,,.,...,,,.,...,,.,,..,,...,...,.,.,,,,,.,.,,..,..,,
+#TNV6EWYBPFVTU3RNHWVNZTZV3QBQQVASOAR42HXDGYSRTUQNNUHULBRN2PFSNSYFEGLEKAYGIH5LK
+#\\\|5PHQTBGDTNV7TFB3C6E7VQSBBP4XNXVTKPKOE7XWM4L4RE5BTY4 \ / AMOS7 \ YOURUM ::
+#\[7]ZJTXIAFLH2UAZJKIP3C6WFMWV3IKHWE4FLYTN2NHQ3HZW2FJPCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

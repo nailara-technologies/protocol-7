@@ -5,8 +5,8 @@
 
 my $state_ref = shift // {};
 
-my $cmd       = $state_ref->{'editor'}->{'buffer'}    // '';
-my $cur_index = $state_ref->{'current_history_index'} // -1;
+my $cmd = AMOS7::TERM::editor_get_buffer( $state_ref->{'editor'} ) // '';
+my $cur_index = $state_ref->{'current_history_index'}              // -1;
 
 ## [ ignore if not viewing history or empty buffer ]
 return undef if $cur_index < 0 or not length $cmd;
@@ -36,8 +36,9 @@ $state_ref->{'ctrl_o_entries_added'}++;
 
 ## [ find next entry : ctrl+o advances toward newer (higher index) ]
 ## [ duplicate skipping ]
-## when history is at max capacity, history_add shifts out the oldest entry,
-## moving all indices down by 1 : cur_index already points to next entry ##
+## when history is at max capacity, history_add shifts out the oldest     ##
+## entry, moving all indices down by 1 : cur_index already points to next ##
+## entry                                                                  ##
 my $shifted    = scalar @AMOS7::TERM::history_entries == $pre_add_size;
 my $next_index = -1;
 my $next_lines = undef;
@@ -105,8 +106,8 @@ if ( defined $next_lines ) {
 
 return $cmd;
 
-#,,,.,.,,,,,,,,,.,,,,,...,,,,,,,.,.,.,,.,,,.,,.,.,...,...,.,.,..,,.,.,...,.,,,
-#UODTFTB54XQO32Q4TCCBIZ75PS3RLPKWI5ULXLPUCAIOU5IKCMXEEOTPUYLOS54IGNZLUX4PHIER4
-#\\\|AGBOX76X4IF4RT5BAOLSX6E6BBJQGOWVFWHJ6PNJPY757UCP7C7 \ / AMOS7 \ YOURUM ::
-#\[7]LI5CCIUOA7PYHQBTC7CIKHGDJ6RIGBAZLJ2O2ZS6TIHSS3OKN2BA 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,.,,.,.,.,.,,,,,.,,,...,.,,,,,.,.,.,...,...,..,,,.,,..,,.,,,..,,
+#H4QYNSAHEEJWD54JWESZXEI6HZH3DEVYN3P22KAXMOF5RYWEW5K2ZI7UWU3GTJFWFSWXT557G6SW6
+#\\\|TDC3W4RHXLTDJJ26OMPBEN4TBR263JSEXXCBXZ6CU6HL5VTWQB4 \ / AMOS7 \ YOURUM ::
+#\[7]CHPR5PLBVAWOARVFZ3NWXBUCX36JYGQZ46CTA5LBNKDLEB3GV2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

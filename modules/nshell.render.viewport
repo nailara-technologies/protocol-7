@@ -9,12 +9,12 @@
 
 my ( $editor, $colors ) = @ARG;
 
-my $buffer     = $editor->{'buffer'};
-my $cursor_pos = $editor->{'cursor_pos'};
+my $buffer     = AMOS7::TERM::editor_get_buffer($editor);
+my $cursor_pos = AMOS7::TERM::editor_get_cursor($editor);
 my $buf_len    = length($buffer);
 
-## get terminal width [ terminal_size returns ( cols, rows ) ]
-## prefer cached value from SIGWINCH handler; fall back to live query
+## get terminal width [ terminal_size returns ( cols, rows ) ]  prefer cached
+## value from SIGWINCH handler; fall back to live query
 my $term_cols = $data{'nshell'}{'cfg'}{'term_cols'}
     // ( eval { ( AMOS7::TERM::terminal_size() )[0] } // 80 );
 $term_cols = 20 if $term_cols < 20;    ## minimum sanity
@@ -60,14 +60,13 @@ if ( $buf_len < $term_cols ) {
 my $ml = $data{'nshell'}{'cfg'}{'overflow_marker_left'}  // '<';
 my $mr = $data{'nshell'}{'cfg'}{'overflow_marker_right'} // '>';
 
-## reserve one column so total render never reaches term_cols
-## printing exactly term_cols chars puts the cursor in pending-wrap state,
-## where \e[K] wraps to the next line and erases the rightmost marker char
+## reserve one column so total render never reaches term_cols  printing
+## exactly term_cols chars puts the cursor in pending-wrap state, where \e[K]
+## wraps to the next line and erases the rightmost marker char
 my $available = $term_cols - 1;
 
-## update view_offset to keep cursor visible
-## reserve space for both potential markers
-## (worst case: available - 2 content)
+## update view_offset to keep cursor visible  reserve space for both potential
+## markers  (worst case: available - 2 content)
 my $min_content_w = $available - length($ml) - length($mr);
 $min_content_w = 4 if $min_content_w < 4;
 
@@ -138,8 +137,8 @@ print "\x08" x $back if $back > 0;
 STDOUT->flush();
 return;
 
-#,,..,...,,.,,...,..,,,.,,..,,...,...,.,,,,,.,..,,...,...,..,,,.,,.,,,,.,,...,
-#TNZLR453X4ZABYAWFC265DXUE6XDSGP2GODH4PSXEQPIRPBLCEWCBWGGCBPTVXE2MTAEFLC6LPQCA
-#\\\|IA4PIJXLVJ3LFPJPM4B6MWTPZAOY7REU37OHEHIJZNKEZVSTNSZ \ / AMOS7 \ YOURUM ::
-#\[7]OWZLG7O66PJFWVWOHQJGXIWXTUWL25NMEQSBP43WHZDBGFNJ3AAI 7  DATA SIGNATURE ::
+#,,..,..,,,,.,,,.,,.,,,..,,,.,,..,,..,,..,,,,,..,,...,...,...,,,.,,..,...,.,,,
+#YWSC37VZIQJ6M42QDVPMUHZRENA7W4RLRCRRQP2YWMM3AKP2JXPY6A5U4X7GFHXIJ4HTCAKIYGPUQ
+#\\\|72EUYHEYMRGSF2HS7NDQ4ZOQKI2ENV5WAK5R3RZLPZ6E7ETWVAA \ / AMOS7 \ YOURUM ::
+#\[7]T2NVIFB5STOFW7GO2C2ELNCMBYF6XQA5XCFDEKVZ66TUKCWQSMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

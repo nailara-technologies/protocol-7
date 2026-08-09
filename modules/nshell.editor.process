@@ -48,8 +48,8 @@ if ( $action =~ m{^(kill_to_end|kill_from_start|kill_word|yank)$} ) {
 ## Signal (Ctrl+C, etc.)
 if ( $action eq 'signal' ) {
     ## Clear cursor before sending signal, preserve buffer content
-    my $cursor_pos     = $editor->{cursor_pos};
-    my $buffer         = $editor->{buffer};
+    my $cursor_pos     = AMOS7::TERM::editor_get_cursor($editor);
+    my $buffer         = AMOS7::TERM::editor_get_buffer($editor);
     my $char_at_cursor = substr( $buffer, $cursor_pos, 1 ) // '';
 
     ## Go to start of line, clear any cursor remnants, then print buffer
@@ -65,8 +65,8 @@ if ( $action eq 'signal' ) {
 
 ## Newline - submit command
 if ( $action eq 'newline' ) {
-    my $cursor_pos = $editor->{cursor_pos} // 0;
-    my $buffer     = $editor->{buffer}     // '';
+    my $cursor_pos = AMOS7::TERM::editor_get_cursor($editor) // 0;
+    my $buffer     = AMOS7::TERM::editor_get_buffer($editor) // '';
     my $buffer_len = length($buffer);
 
     ## get terminal width to choose render path
@@ -99,9 +99,7 @@ if ( $action eq 'newline' ) {
 
     my $result = AMOS7::TERM::editor_submit($editor);
 
-    ## clear editor buffer and reset viewport for next command
-    $editor->{buffer}     = '';
-    $editor->{cursor_pos} = 0;
+    ## editor_submit already reset the editor; reset viewport for next command
     my $state_ref = $data{'nshell'}{'state'} //= {};
     $state_ref->{'view_offset'} = 0;
 
@@ -123,8 +121,8 @@ if ( $action eq 'newline' ) {
 ## Unknown action - ignore
 return undef;
 
-#,,,.,,..,.,,,,..,.,.,...,,.,,..,,...,...,,..,.,.,...,...,..,,..,,.,,,,.,,.,,,
-#RPXD4KXWRQT3EQ24EHK3CWR7U2VRU4CNAABZTWL2VE7PKC4Q7DB4GOZKMDDG47DE4Q5DSPCNZSZVI
-#\\\|XEASBNLSBUGB4DGRG4VEV67ZQSJOTMFAEVH7UZLOVHYNBXH3MXA \ / AMOS7 \ YOURUM ::
-#\[7]GTRJ4NA372WMIL37NH6YTZTFQKYL2CTCYPOIGH67MYM6V6IVRQBA 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,,..,.,,,,..,,,,,.,.,..,,,.,,...,.,.,...,...,...,,,,,,.,,...,,,,,
+#76KAFCM6EQ3HA55TYFVX3RB6EKEOBSDD5YPW2IP6R5VJJPC6KRARBLY5K7HNSCP2WRQGMDEWTHYO4
+#\\\|55SQBUOHEQMPIEOPUVVBZ754IYIMHPEWWJ3S5H3RZ5IRABDFHUM \ / AMOS7 \ YOURUM ::
+#\[7]3HXT46LFTYA7Q7OOSO6WRO66UID3JG26OYB4WZJLVOGWPZEBFSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
