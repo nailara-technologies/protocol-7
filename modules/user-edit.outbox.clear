@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = user-edit.outbox.clear
+# descr = remove a staged edit entry from the local outbox
+# param = $id
+
+my $id = shift;
+
+if ( not defined $id or not length $id ) {
+    <[base.logs]>->( 0, 'outbox.clear : entry id required' );
+    return wantarray ? ( FALSE, 'entry id required' ) : FALSE;
+}
+
+if (   index( $id, qw| / | ) != -1
+    or index( $id, qw| .. | ) != -1 ) {
+    <[base.logs]>->( 0, 'outbox.clear : invalid entry id [ %s ]', $id );
+    return wantarray ? ( FALSE, 'invalid entry id' ) : FALSE;
+}
+
+my $path = sprintf qw| [VAR_P7]/outbox/%s.yaml |, $id;
+
+my $resolved_path = <[base.path.resolve_keywords]>->($path);
+
+if ( unlink($resolved_path) ) {
+    return wantarray ? ( TRUE, undef ) : TRUE;
+}
+
+my $err = sprintf 'cannot remove outbox entry [ %s ] : %s',
+    $id, <[base.str.os_err]>;
+
+<[base.logs]>->( 0, $err );
+
+return wantarray ? ( FALSE, $err ) : FALSE;
+
+#,,,.,.,.,,..,.,,,,..,,,.,,..,,,,,.,.,.,.,.,,,..,,...,...,...,...,,.,,.,,,..,,
+#BLP54RFJ5MIQOS72RLUGTEGCRLUQKCL5FTUQRTKN42UXSE2PE4GA23W5VNDNRDBEIBXJZAUF6OOVA
+#\\\|LSUFUSTJ4OESFNIZP3BBW6N7GMRFPFE6TA5UUHGEJP66ME5OM22 \ / AMOS7 \ YOURUM ::
+#\[7]UQCE4X6OVZZEQVV5WIXIFQIV6FNLIPZVCAJARVIWSBCQFEBIMKBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
