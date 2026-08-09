@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = protocol-7-menu.cmd.pending-question-add
+# param = <question_json>
+# descr = Add a pending question to the ambient indicator queue
+
+my $args = $call->{'args'} // '';
+
+my $question = eval { JSON::decode_json($args) } // {};
+
+return { 'mode' => qw| false |, 'data' => 'expected JSON question object' }
+    unless ref $question eq qw| HASH |;
+
+return { 'mode' => qw| false |, 'data' => 'question type required' }
+    unless defined $question->{'type'} and length $question->{'type'};
+
+return { 'mode' => qw| false |, 'data' => 'question text required' }
+    unless defined $question->{'question'}
+    and length $question->{'question'};
+
+$question->{'id'}    //= <[base.gen_id]>->( $data{'route'}, undef, undef, 0 );
+$question->{'added'} //= <[base.time]>->(4);
+
+<protocol-7-menu.pending-questions> //= [];
+push <protocol-7-menu.pending-questions>->@*, $question;
+
+<[protocol-7-menu.pending-indicator-update]>;
+
+<[base.logs]>->(
+    1,                 "pending question added : id=%s type=%s",
+    $question->{'id'}, $question->{'type'}
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => $question->{'id'}
+};
+
+#,,.,,,,,,,,.,,.,,.,,,,.,,,.,,.,.,...,,,,,.,,,..,,...,...,...,,.,,.,.,...,,,,,
+#SQALVRK4J3DPF5ZHFMNT3XPVYCVOR6DT3ZF3DNW25MOC6GPMKNJIGGILL6Y3RYHFY5RAZYSUJYA2E
+#\\\|MV642OMTDMNDMES6S5IIJ37V2CJQZG3WTAUOJZUXTUIA2V7DQQW \ / AMOS7 \ YOURUM ::
+#\[7]7XRPPZPZ6TZDEHJHCOXLCDYVXVB4JLJY67H6IFVNYPZJENC2JODI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = protocol-7-menu.pending-indicator-update
+# descr = Push current pending-question count as ordinary menu provider
+
+my $questions = <protocol-7-menu.pending-questions> // [];
+my $count     = scalar @$questions;
+
+my $label
+    = $count > 0
+    ? sprintf( "coding zenka: %d pending", $count )
+    : qw| coding zenka: no pending questions |;
+
+my $provider_data = {
+    'items' => {
+        'count' => {
+            'label'   => $label,
+            'command' => 'p7c protocol-7-menu.cmd.pending-question-open',
+        },
+        'open' => {
+            'label'   => 'open oldest pending question',
+            'command' => 'p7c protocol-7-menu.cmd.pending-question-open',
+        }
+    }
+};
+
+my $menu_structure = <protocol-7-menu.menu-structure>;
+$menu_structure->{'providers'}{qw| coding-pending |} = $provider_data;
+$menu_structure->{'last-changed'} = <[base.ntime.b32]>;
+
+<[base.logs]>->( 1, "pending-indicator updated : %d question(s)", $count );
+
+return 0;
+
+#,,.,,...,,,,,,,,,.,.,...,.,,,,.,,...,.,,,..,,..,,...,...,...,...,...,.,,,,..,
+#YEDBXE3TWE7F7IVPHSCGBTVOHRGNMJIF2I2H2O7QKM7B7IU55LH62WJLLFA7S5EDG36A3ORIIGXSM
+#\\\|FSMGUY3ZPIJS5WBORDNSVXHGECADI7HSTE2JLGULWWMRAFCPZDL \ / AMOS7 \ YOURUM ::
+#\[7]D76AIXSH7YIKWAUKP3OIRWV2JAKT6B6USEZ2H3MAMPWIRBAKXSAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

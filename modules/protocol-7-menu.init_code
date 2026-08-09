@@ -26,6 +26,12 @@ my $init_gtk3 = <[base.cfg_bool]>->( $ENV{'P7_GTK3_INIT'} //= FALSE );
 ##  initialize push-based menu structure  ##
 <[protocol-7-menu.menu-structure-init]>;
 
+##  initialize dialog-type registry  ##
+<[protocol-7-menu.dialog-types]>;
+
+##  initialize pending-question indicator  ##
+<[protocol-7-menu.pending-questions-init]>;
+
 ##  load console mode dependencies  ##
 if (<protocol-7-menu.init-console>) {
     <[base.perlmod.autoload]>->('Curses::UI');
@@ -49,10 +55,10 @@ if (<protocol-7-menu.init-graphical>) {
 
     Gtk3->init;    ## initialize explicitly ##
 
-    ## needed for $window->get_window->get_xid - without this setup the     ##
-    ## method isn't exposed at all under the plain Gtk3 binding [ same as   ##
-    ## ticker.init_code ] - required to move/verify this window's real      ##
-    ## position via the raw X11 cross-zenka commands.                       ##
+    ## needed for $window->get_window->get_xid - without this setup the   ##
+    ## method isn't exposed at all under the plain Gtk3 binding [ same as ##
+    ## ticker.init_code ] - required to move/verify this window's real    ##
+    ## position via the raw X11 cross-zenka commands.                     ##
     Glib::Object::Introspection->setup(
         qw| basename | => qw| GdkX11 |,
         qw| version  | => qw|  3.0   |,
@@ -66,23 +72,23 @@ if (<protocol-7-menu.init-graphical>) {
         if not -f $logo_image_path;
 }
 
-## Defer graphical initialization until zenka loop runs
-## This ensures display context is available before creating Gtk3 widgets
+## Defer graphical initialization until zenka loop runs  This ensures display
+## context is available before creating Gtk3 widgets
 <protocol-7-menu.graphical-initialized> //= FALSE;
 
 ## subscribe to X-11 screen-change events once the cube connection is ready ##
 ## [ same deferred-init pattern as tile.subscribe-screen-change ] - lets    ##
-## this zenka relocate itself if its current position becomes unreachable  ##
-## after a monitor topology change, instead of staying invisible until a   ##
-## full restart [ confirmed live: only a restart recovered it before ].    ##
+## this zenka relocate itself if its current position becomes unreachable   ##
+## after a monitor topology change, instead of staying invisible until a    ##
+## full restart [ confirmed live: only a restart recovered it before ].     ##
 push @{ <system.callbacks.initialized> //= [] },
     'protocol-7-menu.subscribe-screen-change'
     if <protocol-7-menu.init-graphical>;
 
 return 0;
 
-#,,,.,,.,,.,.,.,,,,.,,,,.,.,,,..,,...,..,,...,..,,...,...,,.,,,.,,,..,..,,..,,
-#7AFA2PMJYGHADIXJN4C3QSSTYAWMKYXUKJOQ42OC5LU6Q7QGCC4WJMEVYZ2V66C3CBI2THDBNSDIC
-#\\\|YMIDWSEDZ2SVG3DJY5TTVMPPF6Z3PC2IGWX4AX2UXIK2SGNJH4X \ / AMOS7 \ YOURUM ::
-#\[7]L3JM6CTEFR7SE65ZAI5EYGJYSV2EDPL76JGUU2TELOZLGQCKLCDA 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,.,.,.,,,.,,,,,,,,,.,,,.,.,.,.,,,..,,...,...,..,,..,,,..,,.,,,..,
+#I5MVRMZWB4KXM3RZMINI5KO7P6Y76JTYSJIS5RIPJYDZ5WNO3YKLR4TYRGZWGZY2LRLLKIH4PFMRW
+#\\\|YNHUSA3YSOW4LRZAAZXRV6XC434MZBOZ25XZLY7RL3C6KG5GZTY \ / AMOS7 \ YOURUM ::
+#\[7]GHM2LLHRA53APNKYDDHSM5W76GWAI7MAQGQIOS4UVOVWMNVHGUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

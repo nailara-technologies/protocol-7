@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = protocol-7-menu.cmd.pending-question-answer
+# param = <question_id> | { id, answer }
+# descr = Mark a pending question answered, refresh indicator
+
+my $args = $call->{'args'} // '';
+
+my $input = eval { JSON::decode_json($args) } // $args;
+my ( $question_id, $answer );
+
+if ( ref $input eq qw| HASH | ) {
+    $question_id = $input->{'id'}     // '';
+    $answer      = $input->{'answer'} // '';
+} else {
+    $question_id = $input;
+    $answer      = '';
+}
+
+return { 'mode' => qw| false |, 'data' => 'question id required' }
+    unless defined $question_id and length $question_id;
+
+my $questions = <protocol-7-menu.pending-questions> // [];
+my $removed   = 0;
+
+@$questions = grep {
+    my $keep = ( $_->{'id'} // '' ) ne $question_id;
+    $removed++ unless $keep;
+    $keep;
+} @$questions;
+
+<[protocol-7-menu.pending-indicator-update]>;
+
+if ($removed) {
+    <[base.logs]>->( 1, "pending question answered : id=%s", $question_id );
+    return { 'mode' => qw| true |, 'data' => $question_id };
+} else {
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( "question id not found: %s", $question_id )
+    };
+}
+
+#,,.,,,,.,...,,,.,...,,,,,...,,,,,.,,,,,,,...,..,,...,...,,,.,,..,.,,,.,.,,..,
+#J7U5UZMVJYT7JTO4U6OM64BNJR6SX6ZLUZJ66R5J23LMNG4H5AEAMHENGXBY7PD6QFK5P6U753TJS
+#\\\|RULRE2AN633X4HJZUNLY2IYAUS4OY4QZPS7VG4SPCYDI3PCSBU6 \ / AMOS7 \ YOURUM ::
+#\[7]XIJ3AFLEE5365GY33WEMOXWGXD2FUHBU4E7QOGLHJAILSCOFT4CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
