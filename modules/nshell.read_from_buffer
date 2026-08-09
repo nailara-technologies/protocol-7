@@ -4,10 +4,9 @@
 # descr = Orchestrator for keyboard input - delegates to
 #         refactored handler modules
 
-## Non-blocking keyboard input with buffered I/O
-## Delegates to specialized modules: history navigation, search, editor
-## Returns complete line when user presses Enter
-## Persists state across calls (static variables)
+## Non-blocking keyboard input with buffered I/O  Delegates to specialized
+## modules: history navigation, search, editor Returns complete line when user
+## presses Enter  Persists state across calls (static variables)
 
 ## Get shared nshell state reference (initialized in nshell.init_code)
 state $state_ref           = <nshell.state>;
@@ -21,8 +20,8 @@ $main::data{'nshell'}{'edit_state'} = {
     search_mode           => $state_ref->{'search_mode'},
 };
 
-## show cursor at start of each call
-## (after command execution or on first call)
+## show cursor at start of each call  (after command execution or on first
+## call)
 if ($show_cursor_on_call) {
     $show_cursor_on_call = FALSE;
 
@@ -33,25 +32,29 @@ if ($show_cursor_on_call) {
     if ( $state_ref->{'display_preloaded_entry'} ) {
         $state_ref->{'display_preloaded_entry'} = FALSE;
         ## [ display the preloaded buffer with cursor ]
-        my $buffer = $state_ref->{'editor'}->{'buffer'} // '';
+        my $buffer = AMOS7::TERM::editor_get_buffer( $state_ref->{'editor'} )
+            // '';
         if (<nshell.mode.no_tty_debug>) {
             <[base.logs]>->(
                 2,       "[ preload display: buffer='%s' color_0004='%s' ]",
                 $buffer, $colors{'p7_fg_0004'} // '<undef>'
             );
         }
-        ## [ recover terminal state after raw-ANSI reply with no trailing newline ]
+        ## [ recover terminal state after raw-ANSI reply with no trailing
+        ## newline ]
         if ( $state_ref->{'needs_newline_prefix'} ) {
             print "\n\n";
             delete $state_ref->{'needs_newline_prefix'};
         }
         ## [ clear line and render preloaded entry ]
-        ## [ \r\e[2K avoids wrap on long lines, matches arrow handler behavior ]
+        ## [ \r\e[2K avoids wrap on long lines, matches arrow handler behavior
+        ## ]
         print "\r\e[2K";
         $state_ref->{'view_offset'} = 0;
         <[nshell.render.viewport]>->( $state_ref->{'editor'}, \%colors );
     } else {
-        ## recover terminal state after raw-ANSI reply with no trailing newline
+        ## recover terminal state after raw-ANSI reply with no trailing
+        ## newline
         if ( $state_ref->{'needs_newline_prefix'} ) {
             print "\n\n";
             delete $state_ref->{'needs_newline_prefix'};
@@ -70,8 +73,8 @@ if ( <nshell.mode.no_tty_debug> && length <nshell.buffer.debug_input> ) {
     if ( !length $input_chars ) {
         $input_chars = <nshell.buffer.debug_input>;
 
-        ## clear the buffer for next input,
-        ## pausing watcher to prevent re-triggering
+        ## clear the buffer for next input,  pausing watcher to prevent
+        ## re-triggering
         <nshell.watcher.buffer.debug_input>->stop;     ## pause watcher ##
         <nshell.buffer.debug_input> = '';              ## clear buffer ##
         <nshell.watcher.buffer.debug_input>->start;    ## resume watcher ##
@@ -151,7 +154,9 @@ while ( length $input_chars ) {
             next;
         } elsif ( $result == 2 ) {
             ## Selected command - return it for execution
-            my $selected = $state_ref->{'editor'}->{buffer} // '';
+            my $selected
+                = AMOS7::TERM::editor_get_buffer( $state_ref->{'editor'} )
+                // '';
 
             ## Clear editor buffer for next command
             $state_ref->{'editor'}->{buffer}     = '';
@@ -253,7 +258,8 @@ while ( length $input_chars ) {
             $state_ref->{'search_mode'}  = TRUE;
             $state_ref->{'current_mode'} = 1;      # SEARCHING
             $state_ref->{'pre_search_buffer'}
-                = $state_ref->{'editor'}->{buffer} // '';
+                = AMOS7::TERM::editor_get_buffer( $state_ref->{'editor'} )
+                // '';
             $state_ref->{'search_term'}    = '';
             $state_ref->{'search_results'} = [];
             $state_ref->{'search_index'}   = 0;
@@ -337,8 +343,8 @@ while ( length $input_chars ) {
 
 return undef;
 
-#,,.,,,..,..,,.,.,..,,..,,,..,.,,,.,,,..,,,,.,.,.,...,...,,,.,.,,,..,,,,,,.,,,
-#F3LC56QXQB7W6NT24OZ2QJRP23F4MAA3N7K3O2BZTI6RBOTD6H7SH36B2KBQWVDXKVIY3BRE3RWNG
-#\\\|QWAQPHJ2RJ54PURQ4H7SURQOTKV2IZD57S633ZLKKWTOESJKT27 \ / AMOS7 \ YOURUM ::
-#\[7]4W72LNLNKWOE2KACT67SB6VDRAQ6GT42SG5GEY5R2A6EZNY2HEAY 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,,.,...,,..,.,,,,,,,..,,,,,,,,,,.,.,...,...,...,,,.,,.,,,,.,,,,,
+#AMAOEECBWRKOOOUQCQWYYXPOHTHGOUVCEO6VTU33JDDBR6WA3C4U524GPHORVNK75PB2TL4SBYMP2
+#\\\|RNUDT43TJU7XW4NMOM52PJBIB75JUVUJYOAHDI2M7A2NT5XX6BY \ / AMOS7 \ YOURUM ::
+#\[7]IQLWNP7Q3447AH4VF5CXO7CYNT43WJWTXBPAL7A36KFFW4TBHADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
