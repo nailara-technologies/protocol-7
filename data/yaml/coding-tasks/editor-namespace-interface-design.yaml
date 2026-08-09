@@ -1,0 +1,456 @@
+# Editor Namespace — Interface Sketch (pre-implementation)
+# Companion to generic-editor-namespace-and-hybrid-zenka.yaml
+#
+# Purpose: pin down call signatures BEFORE any editor.* module is written,
+# so the first real caller (nshell) doesn't lock in a shape that later
+# consumers (settings/user-edit forms, chat-style multiline input to
+# coding zenka) would need to break. No implementation here — interface
+# only. Build only the field types/plugins a real caller needs; the schema
+# just has to not preclude the others.
+
+status: design-sketch
+supersedes_none: true   # extends generic-editor-namespace-and-hybrid-zenka.yaml, doesn't replace it
+revision: 2   # reviewed against live code [ AMOS7::TERM 1194-1522, nshell.*, amos-term.* ]
+
+review_verdict: |
+  the field generalization holds — it is not where the mismatch is. the
+  mismatch is one layer down, at the control/ui boundary: AMOS7::TERM's
+  editor_process_key returns pre-baked terminal bytes and takes %colors,
+  so "control" today is not ui-agnostic. that, not the field model, is
+  what the interface has to fix. see control_ui_boundary below.
+
+known_consumers:
+  nshell:
+    status: exists today via AMOS7::TERM::editor_* + nshell.editor.process
+    shape: one field, freeform_line, submit_on=enter
+  pager:
+    status: |
+      DEAD STUB TODAY, not aspirational — pager.editor.integration calls
+      base.editor.init_buffer / set_line_callback / set_total_lines, and
+      all three are marked "## [ stub ]" with "TODO: allocate editor buffer
+      structure in amos-term". this consumer is LITERALLY BLOCKED on
+      editor.* not existing — it is not a future nice-to-have, it is
+      finishing something already half-wired.
+    shape: |
+      virtual, read-only, callback-backed — NOT in-memory text. pager
+      registers a line_callback (fetch one line by number) and a
+      total_lines_callback instead of loading content, because pager
+      buffers can be arbitrarily large [ file listings, checksums ] and
+      materializing them defeats the point. this is a buffer SHAPE the
+      original design missed — see editor.buffer.virtual below.
+      also note: pager already mints per-buffer ids as "pager_$buffer_id"
+      — i.e. it already assumes multiple concurrent editor states, one
+      per pager screen, before this namespace even exists.
+  user-edit / users zenka:
+    status: not yet written, referenced as future intent only
+    shape: n fields, mixed types (text/enum/masked), tab-navigable, submit_on=explicit_key
+  coding-zenka chat input / bin/chat:
+    status: bin/chat exists standalone today, not editor.*-backed
+    shape: one field, freeform_multiline, newline_on=enter, submit_on=double_enter|ctrl_enter
+
+namespace_collision: |
+  base.editor.* already occupies $data{'editor'}{'buffers'}{$buffer_id} as
+  a stub. this is not free real estate — the real editor.* implementation
+  must absorb/rename these three stub files [ base.editor.init_buffer,
+  base.editor.set_line_callback, base.editor.set_total_lines ] rather than
+  leaving two parallel "editor" data roots. init_buffer's $virtual/$read_only
+  args map directly onto editor.buffer.virtual's create() below — this is
+  confirmation the shape was already anticipated, just never finished.
+
+core_idea: |
+  A buffer is not "a rope of chars" — it's one or more named FIELDS, each
+  with a type. nshell's line input is a schema of exactly one freeform_line
+  field. That's the generalization that lets the same control/buffer/ui
+  code serve a single-line shell prompt, a multi-field settings form, and a
+  multiline chat box without three separate implementations.
+
+schema:
+  description: passed to editor.control.create; defines what is being edited
+  shape: |
+    {
+      fields => [
+        {
+          name        => 'command',            # field id
+          type        => 'freeform_line',       # see field_types below
+          lang        => undef,                 # optional, drives syntax plugin
+          default     => '',
+          validator   => undef,                 # coderef or registered name
+          masked      => FALSE,
+          readonly    => FALSE,
+          submit_on   => undef,                  # per-field OVERRIDE of schema submit_on [ usually undef ]
+          newline_on  => undef,                  # only meaningful for multiline types
+        },
+        ...
+      ],
+      active_field => 0,        # index into fields, for multi-field (form) schemas
+      submit_on    => 'enter',  # schema-level default: 'enter' | 'double_enter'
+                                # | 'ctrl_enter' | 'explicit_key:F2' | 'none'
+    }
+    # NOTE: active_field is authoritative in $editor_state, not in $schema.
+    # the schema value is an initial position only; $schema is treated as
+    # immutable once passed to create().
+
+position_units: |
+  DECIDED, not open: all positions/lengths crossing an editor.* boundary
+  [ commands.insert/delete, move_cursor, get_cursor, load_field ] are
+  CHARACTER offsets into the decoded text, never byte offsets.
+
+  AMOS7::TERM today uses BYTE offsets with hand-rolled utf-8 continuation
+  scanning repeated in six places [ ctrl-d, ctrl-w, left, right, del,
+  backspace ] and nshell.render.viewport does substr() column math on
+  those bytes — so a multi-byte char inside an overflowing line already
+  miscounts display columns. that scanning becomes an implementation
+  detail INSIDE editor.buffer.memory; it must not be part of the contract.
+
+  display width is a third unit and belongs to editor.ui.* only
+  [ char != column: wide/combining chars ]. editor.control.* never
+  computes columns.
+
+field_types: |
+  freeform_line       : multiline = FALSE, cursor = 1d
+  freeform_multiline  : multiline = TRUE,  cursor = 1d-wrapped
+  enum                : multiline = FALSE, cursor = none, cycles = TRUE
+  masked              : multiline = FALSE, cursor = 1d,   display = redacted
+  readonly            : multiline = n/a,   cursor = none, display = verbatim
+  # amos-term's 3D voxel buffer is a distinct UI concern, not a new field
+  # type — but revision 1 described it wrongly [ "freeform_multiline field
+  # with cursor.z" ]. corrected in amos_term_z below.
+
+control_ui_boundary: |
+  editor.control.* returns SEMANTICS ONLY — no terminal bytes, no colors,
+  no escape sequences. this is a deliberate break from AMOS7::TERM, which
+  returns $result->{output} containing backspaces / \e[K / $colors{p7_fg_0004}
+  and takes %colors as an argument.
+
+  the break is cheap, because the live caller already ignores it:
+  nshell.editor.process discards $edit_result->{output} for echo,
+  backspace, delete, cursor_left/right and all kill/yank actions — it calls
+  <[nshell.render.viewport]> instead — and only prints {output} on the
+  newline path [ where it is just "\n" ]. so the ANSI-baking in
+  editor_process_key is already vestigial in the only real consumer.
+
+  corollary: $editor->{color_set} is not editor state. "field became
+  non-empty" is a transition editor.ui.terminal derives itself from the
+  field value it is rendering.
+
+editor.control.*:
+  create: |
+    editor.control.create( $schema ) -> $editor_state
+      $editor_state = {
+        schema        => $schema,
+        fields        => { $name => $buffer_ref, ... },  # one per schema field, from editor.buffer.*
+        active_field  => 0,
+        mode          => 'insert',   # only used by field types that support modal editing
+      }
+  process_key: |
+    editor.control.process_key( $editor_state, $key ) -> $result
+      $result = {
+        action  => 'echo' | 'backspace' | 'delete' | 'cursor_left' | 'cursor_right'
+                 | 'kill_to_end' | 'kill_from_start' | 'kill_word' | 'yank'
+                 | 'newline' | 'submit' | 'field_next' | 'field_prev'
+                 | 'signal' | 'none',
+        field   => $name,     # which field the action applied to
+        dirty   => 'field' | 'cursor' | 'form' | 'none',   # redraw hint for editor.ui.*
+        signal  => 'INT',     # only with action=signal; ADVISORY
+        passthrough => $key,  # only with action=none: host may claim the key
+      }
+    # action=signal is advisory, never acted on by editor.*. nshell chooses
+    # kill( $sig, $$ ); a gtk3 form must NOT sigint the hosting zenka, it
+    # would take the whole zenka down. same key, different host policy.
+    # action=none + passthrough is how the host gets its unclaimed keys back
+    # [ nshell needs this: arrow up/down, ctrl-o, ctrl-r are host features,
+    #   not editor features — see external_mutation below ]
+    # dispatch order unchanged from generic-editor-namespace-and-hybrid-zenka.yaml's
+    # keybinding_dispatch section: plugin keys > mode keys > global editor keys >
+    # host passthrough. field_next/field_prev (Tab/Shift-Tab) only fire when
+    # scalar(@{$schema->{fields}}) > 1 — a single-field schema never sees them.
+  commands: |
+    editor.control.commands.insert( $editor_state, $field, $pos, $text )
+    editor.control.commands.delete( $editor_state, $field, $start, $end )
+    editor.control.commands.move_cursor( $editor_state, $field, $delta )
+    # these are the same primitives AMOS7::TERM::editor_process_key already
+    # implements for nshell today, retargeted from one implicit buffer to
+    # $editor_state->{fields}{$field}. the insert/delete/kill/yank LOGIC
+    # carries over, but this is not a free lift — see
+    # migration_path.step_1_is_not_mechanical for the four blockers.
+    # kill_buffer [ the yank source ] has no home in $editor_state yet:
+    # per-field, or one ring shared across a form's fields? additive
+    # either way, but pick before the first form consumer exists.
+  accessors: |
+    ## MISSING from revision 1 — these are the interface's real load-bearing
+    ## calls. AMOS7::TERM::editor_load has EIGHT live call sites outside the
+    ## key loop [ nshell.history.arrow_up/arrow_down/page_up/page_down,
+    ## nshell.search.handler x3, nshell.handler.ctrl_o_cycle x2,
+    ## nshell.render.empty_prompt ]. most of nshell's UX mutates the field
+    ## from outside process_key. an interface with only
+    ## create/process_key/commands/submit cannot host nshell at all.
+    editor.control.load_field( $editor_state, $field, $text, $cursor )
+        # $cursor: 'end' [ default, matches editor_load ] | 'start' | int offset
+        # a form consumer prefilling defaults wants 'start', not 'end' —
+        # so cursor placement must be an argument, not baked in
+    editor.control.get_value( $editor_state, $field )   -> $text
+    editor.control.get_cursor( $editor_state, $field )  -> $char_offset
+    editor.control.reset( $editor_state, $field )       # $field undef = all fields
+    # get_value/get_cursor exist so editor.ui.* stops reaching into
+    # $editor->{buffer} / $editor->{cursor_pos} directly, as
+    # nshell.render.viewport and nshell.editor.process do today [ 4+4 sites ].
+  submit: |
+    editor.control.submit( $editor_state ) -> { ok => 1, values => { $name => $text, ... } }
+                                             | { ok => 0, errors => { $name => $msg, ... } }
+    # runs each field's validator; nshell's single-field case is the
+    # degenerate form of this (values => { command => $buffer }).
+    # RESET SEMANTICS: submit resets the fields ONLY on ok => 1.
+    # AMOS7::TERM::editor_submit resets unconditionally — safe today because
+    # there are no validators; the moment one exists, unconditional reset
+    # would discard the user's input on a validation failure.
+
+external_mutation: |
+  history, reverse-search and ctrl-o cycling are HOST features, not editor
+  features — nshell owns them and pushes results in via load_field. the
+  editor must therefore accept being externally rewritten between keys, and
+  must not cache anything derived from field text across calls.
+
+  the scroll/viewport offset is likewise host/ui state, not editor state:
+  today it lives in $data{nshell}{state}{view_offset}, written by both
+  nshell.render.viewport and nshell.editor.process. it belongs to
+  editor.ui.terminal's $viewport, and nothing in editor.control.* may read it.
+
+amos_term_z: |
+  checked against live code [ amos-term.buffer-create/-shift_z/-get_layer,
+  amos-term.nshell.bridge ]. the voxel buffer is a fixed-dimension SHM raster
+  — dimensions [8,7,13], 2 bytes per voxel, layer = dims[0]*dims[1]*2 — and
+  buffer-shift_z pushes every layer to z+1 and CLEARS z=0. that is scrollback
+  of already-submitted OUTPUT, not a third dimension of the text being edited.
+  amos-term.nshell.bridge attaches with cursor_z => 0 and the comment
+  "nshell operates at Z=0 (surface)".
+
+  therefore:
+    - z is NOT a cursor coordinate of a field. drop it from update_cursor.
+    - z is a property of the VIEWPORT [ which history layer is displayed ].
+    - "edit an older layer" is not a new capability: it is load_field( $text
+      recovered from that layer ), exactly how nshell history recall already
+      works. the field model expresses it without extension.
+    - the voxel grid is fixed-size cells while a field may exceed it, so
+      $viewport must carry dims + scroll offset for every ui backend, not
+      just vterm.
+  open: amos-term stores per-voxel color/attributes. that is where syntax
+  spans would have to land for vterm — editor.plugin.syntax returns spans,
+  editor.ui.vterm maps them onto voxel attribute bytes. no interface change
+  needed, but it is the one place the ui contract must not be lossy.
+
+editor.buffer.*:
+  description: |
+    Storage adapters. ALL adapters (memory/shm/file/mount) implement the
+    same contract below, so editor.control.* never knows which backend a
+    field uses — this contract is already implicit in the original yaml's
+    buffer_plugin interface, restated here per-field instead of per-buffer.
+  contract: |
+    load( $buffer, $source )
+    save( $buffer, $destination )
+    insert( $buffer, $position, $text )      # $position in CHARACTERS
+    delete( $buffer, $start, $end )          # char offsets, half-open [start,end)
+    get_line( $buffer, $line_num )           # single-line fields: line 0 only
+    get_text( $buffer )
+    length( $buffer )                        # in characters — every caller needs it
+    # utf-8 byte handling is internal to the adapter. no caller ever sees a
+    # byte offset. memory/shm/file/mount must agree on this or the adapters
+    # are not interchangeable.
+  memory: editor.buffer.memory.create( $field_def ) -> $buffer_ref   # rope, per original yaml
+  shm:    editor.buffer.shm.create( $field_def )    -> $buffer_ref   # data.mount.shm.* backed
+  file:   editor.buffer.file.create( $field_def, $path )
+  mount:  editor.buffer.mount.create( $field_def )                  # FUSE-exposed, via data.mount.fuse.* (already exists — reuse, don't reimplement per amos-term.fuse.*)
+  virtual: |
+    editor.buffer.virtual.create( $field_def, { line_callback => $cb,
+                                                 total_lines_callback => $cb2 } )
+    NEW adapter, not in the original yaml — required to un-stub
+    base.editor.* / pager.editor.integration [ see namespace_collision ].
+    forced read_only => TRUE always [ a callback-backed view has nowhere
+    to write an edit back to by default ]. implements only get_line/
+    get_text/length from the buffer contract; insert/delete are no-ops
+    that return an error, not silently swallowed. get_text() for a
+    virtual buffer materializing "everything" is almost certainly wrong
+    for a huge pager listing — callers needing full text from a virtual
+    buffer should not exist; this is enforced by convention, not code,
+    for now.
+
+editor.buffer.multi_instance: |
+  NOT an edge case — pager's "pager_$buffer_id" convention already assumes
+  N concurrent editor states per zenka [ one per pager screen ], and the
+  user's stated intent extends this further: independent buffers per file,
+  synchronized ACROSS zenki/hosts via editor.buffer.shm [ data.mount.shm.*
+  already provides the cross-process primitive ]. resolves the
+  open_questions "where does $editor_state live" item below: BOTH modes,
+  matching base.editor.*'s existing precedent —
+    - registry-backed by id: $data{'editor'}{'buffers'}{$buffer_id}, so a
+      handler that only has an id [ e.g. a routed command from another
+      zenka ] can look the state up
+    - AND the same object returned directly from create()/init_buffer, so
+      a caller that already holds the ref [ nshell's single embedded
+      editor ] never needs to round-trip through the registry
+  these are not two designs to choose between — the registry entry and
+  the returned ref are the same underlying hashref; create() both stores
+  and returns it. distributed sync [ editor.buffer.shm mirroring a buffer
+  across zenki ] is additive on top of this — it does not change
+  editor.control.*'s interface, only which editor.buffer.* adapter backs
+  a given field.
+
+editor.ui.*:
+  description: |
+    Rendering. Given $editor_state + $viewport, render either the single
+    active field (terminal/nshell case) or all fields with a focus
+    indicator (form case). vterm is a UI backend, not a field type.
+  contract: |
+    render_field( $editor_state, $field_name, $viewport )
+    render_form( $editor_state, $viewport )     # iterates fields, shows focus on active_field
+    update_cursor( $editor_state, $field_name, $viewport )
+    refresh_display( $editor_state, $viewport )
+    $viewport = {
+      cols, rows,          # available cells [ vterm: fixed voxel dims ]
+      offset_x, offset_y,  # scroll — REPLACES $data{nshell}{state}{view_offset}
+      z_layer => 0,        # history layer, vterm only; 0 = surface
+      colors  => { ... },  # %colors moves here, out of editor.control.*
+    }
+    # $viewport is owned and mutated by the ui backend [ scroll-to-keep-
+    # cursor-visible is a rendering decision, as nshell.render.viewport
+    # already implements it ]. editor.control.* must never read it.
+    # display-column math [ char != column ] lives here and nowhere else.
+  terminal: editor.ui.terminal   # nshell today, in-place single-line redraw
+  gtk3:     editor.ui.gtk3       # widget per field for multi-field forms
+  vterm:    editor.ui.vterm      # 3D voxel; z = history layer, per original yaml
+
+editor.plugin.*:
+  syntax: |
+    registered per $field_def->{lang}, not per UI backend — a 'perl'
+    tokenizer plugin works identically whether editor.ui.terminal or
+    editor.ui.gtk3 is rendering it. plugin returns spans, UI backend
+    applies its own color/attribute representation of those spans.
+    editor.plugin.syntax.register( $lang, $tokenizer_coderef )
+    editor.plugin.syntax.tokenize( $lang, $text ) -> [ { start, end, class }, ... ]
+  completion / search / macro: |
+    unchanged from original yaml, but operate on the active field's buffer,
+    NOT on a bare buffer. revision 1 wrote
+    $editor_state->{fields}{$active_field} — a type error: {fields} is keyed
+    by field NAME while active_field is an INDEX into $schema->{fields}.
+    the correct spelling is
+    $editor_state->{fields}{ $schema->{fields}[ $editor_state->{active_field} ]{name} },
+    which is ugly enough to justify a helper:
+    editor.control.active_buffer( $editor_state ) -> $buffer_ref
+
+migration_path:
+  step_1_is_not_mechanical: |
+    revision 1 called step_1 an extraction/rename. it is not. four concrete
+    couplings in AMOS7::TERM / nshell break the straight lift:
+      1. editor_process_key bakes terminal bytes + %colors into {output}
+         [ mitigated: nshell already ignores {output} except on newline ]
+      2. cursor_pos is a BYTE offset, with utf-8 scanning open-coded in six
+         branches; the new contract is character offsets
+      3. editor_load has 8 external call sites — history/search/ctrl-o/
+         empty-prompt all rewrite the buffer between keys
+      4. view_offset lives in $data{nshell}{state}, written by two modules,
+         and must migrate into $viewport
+    the "single hidden field named 'command'" framing itself survives all
+    four — it is the right framing, it just is not free.
+  step_0: |
+    NEW, and do this first: port nshell to accessors WITHOUT moving any code.
+    add editor_get_cursor/editor_set_cursor to AMOS7::TERM, convert the 8
+    direct $editor->{buffer}/{cursor_pos} touches in nshell.render.viewport
+    and nshell.editor.process to use them, and stop consuming
+    $edit_result->{output} on the newline path. cheap, independently
+    reviewable, and it makes step_1 a genuine move.
+  step_1: |
+    extract AMOS7::TERM::editor_init/editor_process_key/editor_submit into
+    editor.buffer.memory + editor.control.commands, WITHOUT changing
+    nshell's calling convention yet — single hidden field named 'command'.
+    convert byte offsets to character offsets inside the buffer adapter here,
+    not later; doing it after multiline exists means fixing it twice.
+  step_2: |
+    switch nshell.editor.process to call editor.control.process_key
+    directly (drop the AMOS7::TERM indirection), still single-field.
+  step_3: |
+    add freeform_multiline field type when the first real multiline
+    consumer shows up (chat-style input to coding zenka) — do not build
+    it speculatively before that caller exists.
+  step_4: |
+    add multi-field schema support (field_next/field_prev, render_form)
+    when user-edit/users zenka is actually started.
+  note: |
+    enum/masked/readonly field types and editor.plugin.syntax stay
+    interface-only (named in the schema, unimplemented) until a real
+    caller needs them. the point of this doc is that adding them later
+    is additive to the schema, not a breaking change to editor.control.*.
+  alternate_step_0: |
+    pager.editor.integration is arguably a SAFER place to cut in first
+    than nshell: it is currently dead [ stub, no real behavior to
+    regress ], read-only [ no insert/delete/kill/yank path to get wrong ],
+    and single-field. un-stubbing base.editor.init_buffer/
+    set_line_callback/set_total_lines as a thin wrapper over
+    editor.buffer.virtual.create() would exercise create()/get_line()/
+    length() end to end with zero risk to nshell's live editing path,
+    before nshell's four real couplings [ step_1_is_not_mechanical ] are
+    touched at all. worth doing before or in parallel with step_0/step_1,
+    not instead of them — pager alone never exercises process_key,
+    commands.*, or submit.
+
+    CAVEAT: "safer" describes blast radius [ dead code, nothing to
+    regress ], not code quality. pager.editor.integration's caller side —
+    pager.buffer.page.get, the page cache/LRU/prefetch machinery,
+    pager.buffer.virtual itself — carries the same trailing
+    "SPDX-License-Identifier: ISC" marker the user uses to flag files from
+    a specific low-quality authoring session [ ~30 files repo-wide, mostly
+    pager.* ]. that marker is intentional and must not be removed — it is
+    how those files are tracked for review. treat pager.* as UNVERIFIED
+    scaffolding: fine as an integration target [ interface shape still
+    holds, get_line/total_lines callbacks are a real pattern to match ],
+    not as a design or implementation to copy without reading it first.
+
+resolved_questions:
+  submit_on: |
+    was open in revision 1 — resolved: schema-level default with optional
+    per-field override [ see schema above ]. submit is an action on the
+    FORM, not on a field: 'explicit_key:F2' submitting only the focused
+    field is meaningless. the per-field key stays available for the mixed
+    case revision 1 worried about [ enter submits the enum field's form
+    while a multiline notes field needs double_enter ], but it is the
+    exception, not the shape.
+  masked: |
+    kept, and split — revision 1 conflated two enforcement points:
+      - display redaction  -> editor.ui.*  [ never renders plaintext ]
+      - storage refusal    -> editor.buffer.*  [ save() / mount export dies
+        on a masked field ]
+    and the leak surface is wider than file/mount: editor.buffer.shm is
+    data.mount.shm.* backed and therefore readable by other zenki. a masked
+    field must be memory-only, full stop. enforcement in buffer.*, agreed —
+    a caller that marked the field masked should not also have to remember
+    which adapters are safe.
+
+resolved_questions_2: |
+  editor_state location — RESOLVED by editor.buffer.multi_instance above:
+  both registry ($data{'editor'}{'buffers'}{$id}, precedent: base.editor.*
+  stubs) and caller-held ref (precedent: nshell's own $data{nshell}{state}
+  {editor}) simultaneously, because create() returns the same hashref it
+  stores. config-reload survival is still genuinely open [ see below ] —
+  resolving WHERE it lives doesn't resolve whether it's rebuilt or
+  preserved across a reload.
+
+open_questions:
+  - |
+    config-reload survival: does $data{'editor'}{'buffers'}{$id} get
+    clobbered on a config reload the way other zenka state can [ known
+    failure pattern elsewhere in this codebase ]? a long-lived chat/editor
+    buffer surviving a config reload untouched is a real requirement if
+    editor.buffer.shm is meant to keep a buffer alive across zenki restarts
+    — needs a decision, not covered by the multi_instance resolution above.
+  - |
+    does editor.control.* need an undo/redo journal in the interface, or is
+    it a plugin? kill_buffer already exists as ad-hoc single-slot undo for
+    yank. deferring is fine, but if commands.* is not journalled from the
+    start, retrofitting undo means rewriting every mutator.
+
+created: 2026-08-09
+tags: [editor, interface-design, nshell, amos-term, forms, chat, syntax-highlighting]
+
+#,,.,,...,,,.,..,,,.,,,.,,,,.,,.,,,,,,.,.,,,.,..,,...,...,,,,,,,.,,,,,,,.,..,,
+#LZQWUIV4BL5BYVHICWTUWQL64MCFSGJQXDL26LWDD5ZA3OVU5HNKEQOA55ZSER2SRJ3XHTCHFMEKC
+#\\\|YWAA5GYST32KGJ2ACJYJ6JDEDSADFIWSCGBC4OLAIH566P54EGH \ / AMOS7 \ YOURUM ::
+#\[7]5N4NUUG4OPBUDWRPX32PO4CZDCKT45R3PLOXLB5IYVUJZQ3CDOAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
