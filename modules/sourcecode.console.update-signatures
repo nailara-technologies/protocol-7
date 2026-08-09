@@ -11,6 +11,10 @@ $sign_verbosity = 0
     if $command_params =~ s| *:sign-silent: *| |
     or exists $ENV{'SIGN_SILENT'}
     and <[base.cfg_bool]>->( $ENV{'SIGN_SILENT'} ) == TRUE;
+
+## :stage: re-stages [ via git add ] exactly the files this run signs, and ##
+## no others -- leaves other already-staged/unstaged batches untouched     ##
+my $stage_files = $command_params =~ s| *:stage: *| |;
 $command_params =~ s,^ *| *$,,;
 
 my $signature_key_name = qw| proto-7.sourcecode |;
@@ -71,6 +75,7 @@ map {
 
 my $true_count = 0;
 my $file_count = scalar @source_paths;
+my @staged_paths;
 
 <[base.logs]>->( '* updating %s source file signatures..,', $file_count );
 foreach my $path_rel (@source_paths) {
@@ -96,9 +101,8 @@ foreach my $path_rel (@source_paths) {
             and $code_data_ref->{'mode'} eq qw| true |;
     };
 
-    <[base.s_warn]>->(
-        '%s <{NC}>', scalar <[base.format_error]>->($EVAL_ERROR)
-    ) if length $EVAL_ERROR;
+    <[base.s_warn]>->( '%s <{NC}>', scalar <[base.str.eval_error]> )
+        if length $EVAL_ERROR;
 
     <[base.log]>->( 0, $code_data_ref->{'data'} )
         if defined $code_data_ref
@@ -156,7 +160,20 @@ foreach my $path_rel (@source_paths) {
         next;
     }
 
+    push @staged_paths, $path_rel;
+
     $file_count--;
+}
+
+if ( $stage_files and @staged_paths ) {
+    <[base.logs]>->(
+        '* staging %d signed file%s..,',
+        scalar @staged_paths,
+        <[base.cnt_s]>->( scalar @staged_paths )
+    );
+    system( qw| git |, '-C', $work_tree, qw| add -- |, @staged_paths );
+    <[base.logs]>->( 0, ':E: git add failed [ exit %d ]', $CHILD_ERROR >> 8 )
+        if $CHILD_ERROR;
 }
 
 ## clear eventual numbers on console ##
@@ -165,8 +182,8 @@ printf( "%s\r", ' ' x 18 ) if <system.zenka.verbosity.console> == 1;
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 #
 
-#,,,,,..,,,.,,..,,,,,,...,,,,,..,,,,,,,,,,,,.,..,,...,...,.,.,.,.,,,,,..,,..,,
-#J7665GW36CZVXKOT6BZU5XUWRCFS455F4KXZLJ2QWDSPXV44WAKTXIRSPYA4F5KHFGQ6RWBIY4TJS
-#\\\|ZPPS6UWNYSASRHKZVEA7UENN7WGEN7C27IJU33QU2QTF4N3DMVN \ / AMOS7 \ YOURUM ::
-#\[7]YP7Q2GSSINF3KYHJULIF4CGTLMDSNDYZN2G542DYCUKQ56NKZEBA 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,,.,.,,,,..,.,.,,,.,.,,,.,,,,..,..,,...,..,,.,.,.,.,,..,,.,,,,,,
+#767WVRLASSQZGNMJHGGQT3WYTW2APAHA6ZOIQZTQI4UBMHBAO3POSIR6DXFUZNBBAQ6FQHZ2C7J4Y
+#\\\|OB3V5KGBGQMBEZEC5K42VIL53CHE6GU2MOVD2XHKINDRMOC2PZH \ / AMOS7 \ YOURUM ::
+#\[7]NF6JQRAZM72I4ZMF4GUXBS3YKGADFMR36MNW225HRBPD2U6LUEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
