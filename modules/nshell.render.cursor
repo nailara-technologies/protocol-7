@@ -6,8 +6,16 @@
 my ( $editor, $colors, $clear_to_eol ) = @ARG;
 $clear_to_eol //= 0;
 
-my $cursor_pos     = AMOS7::TERM::editor_get_cursor($editor);
-my $buffer         = AMOS7::TERM::editor_get_buffer($editor);
+my $cursor_pos = <[editor.control.get_cursor]>->( $editor, 'command' ) // 0;
+my $buffer     = <[editor.control.get_value]>->( $editor, 'command' )  // '';
+
+## editor.* state is character-based ; the terminal path below is
+## byte-oriented — reconstruct the byte view at the boundary
+my $prefix = substr( $buffer, 0, $cursor_pos );
+utf8::encode($prefix);
+$cursor_pos = length $prefix;
+utf8::encode($buffer);
+
 my $buf_len        = length($buffer);
 my $char_at_cursor = substr( $buffer, $cursor_pos, 1 ) // '';
 
@@ -31,8 +39,8 @@ STDOUT->flush();
 
 return;
 
-#,,..,..,,,,,,,,,,.,,,,,,,.,.,,.,,.,.,,..,,,.,.,.,...,...,.,.,,,.,..,,..,,.,.,
-#IAO6ONBMOHFKHSM3XLJCA3PFRJBZ5NR3AWWH4F7JPJZXI3C32VFGIPDC5ND4TZRQC4TVFGE2H3CYE
-#\\\|2HDLGRULYE2YQUXEPRAWAUCQVLMR7MTNA7SSTKNTQA6SHJJ6ARI \ / AMOS7 \ YOURUM ::
-#\[7]NFH3UF2HSMYWGNHOYMM5JWA2L4E3I3WSWYHUIQZRYLT5Q7ZFNIBY 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,..,,...,,.,,...,,,,,.,,,,.,,,,.,.,.,...,...,..,,...,.,,,,.,,.,,,
+#54LNA44LHKMHOH6EGR2GHHJESZEPRLKCJFIDAY3JS6KYQW4YMXUPQPJLPEEQ6NUOFUAKSZUKFRSYO
+#\\\|BON42Z3IXR7GWZG7MMOO4CRWUCQYYQBRTBHUSROO6B2CUV25ICF \ / AMOS7 \ YOURUM ::
+#\[7]WVE6OJ4XSPRR3FJSHM6DV552FJE454SHWSPYCYFZDTOO6U4EUOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

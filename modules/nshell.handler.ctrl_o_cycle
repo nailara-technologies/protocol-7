@@ -5,8 +5,13 @@
 
 my $state_ref = shift // {};
 
-my $cmd = AMOS7::TERM::editor_get_buffer( $state_ref->{'editor'} ) // '';
-my $cur_index = $state_ref->{'current_history_index'}              // -1;
+my $cmd = <[editor.control.get_value]>->( $state_ref->{'editor'}, 'command' )
+    // '';
+## editor.* state is character-based ; $cmd is printed, compared against
+## byte-based history entries, history_add'ed and returned for execution —
+## encode to the same bytes the old AMOS7::TERM path produced
+utf8::encode($cmd);
+my $cur_index = $state_ref->{'current_history_index'} // -1;
 
 ## [ ignore if not viewing history or empty buffer ]
 return undef if $cur_index < 0 or not length $cmd;
@@ -67,7 +72,10 @@ if ( defined $next_lines ) {
     $state_ref->{'display_buffer'}        = $next_text;
     $state_ref->{'current_mode'}          = 2;          ## [ VIEWING_HISTORY ]
     $state_ref->{'display_preloaded_entry'} = TRUE;
-    AMOS7::TERM::editor_load( $state_ref->{'editor'}, $next_text );
+    <[editor.control.load_field]>->(
+        $state_ref->{'editor'},
+        'command', $next_text
+    );
 
     ## [ schedule deferred render : fires after command reply has printed ]
     <[event.add_timer]>->(
@@ -93,7 +101,7 @@ if ( defined $next_lines ) {
     $state_ref->{'ctrl_o_start_position'}   = -1;
     $state_ref->{'ctrl_o_entries_added'}    = 0;
     $state_ref->{'display_preloaded_entry'} = FALSE;
-    AMOS7::TERM::editor_load( $state_ref->{'editor'}, '' );
+    <[editor.control.load_field]>->( $state_ref->{'editor'}, 'command', '' );
 
     if (<nshell.mode.no_tty_debug>) {
         <[base.logs]>->(
@@ -106,8 +114,8 @@ if ( defined $next_lines ) {
 
 return $cmd;
 
-#,,.,,,,,,,.,,,.,,.,.,.,.,,,,,.,,,...,.,,,,,.,.,.,...,...,..,,,.,,..,,.,,,..,,
-#H4QYNSAHEEJWD54JWESZXEI6HZH3DEVYN3P22KAXMOF5RYWEW5K2ZI7UWU3GTJFWFSWXT557G6SW6
-#\\\|TDC3W4RHXLTDJJ26OMPBEN4TBR263JSEXXCBXZ6CU6HL5VTWQB4 \ / AMOS7 \ YOURUM ::
-#\[7]CHPR5PLBVAWOARVFZ3NWXBUCX36JYGQZ46CTA5LBNKDLEB3GV2DI 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,...,,..,,.,,.,.,.,.,...,,,.,,,,,.,.,...,...,...,,.,,.,.,..,,...,
+#WGGQQXBXTSBVE3PL6JPTLSYKA336ABJWWIJMQ2YUITAOHR66VIMBSXDGJARYIFC4IPZFEP4DNXIHO
+#\\\|ODYEYLLMAW4J7O5ODCS2TZ6FZ6TXNXTYTVO7OAECQSWQD6XQ7HF \ / AMOS7 \ YOURUM ::
+#\[7]U7PCP2PHWN2NPATHEITNXKEY3MLXTQ7LLHWIDPMMGTQOKCJS3WBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
